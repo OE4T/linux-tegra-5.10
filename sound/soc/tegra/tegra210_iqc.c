@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: GPL-2.0-only
-/*
- * tegra210_iqc.c - Tegra210 IQC driver
- *
- * Copyright (c) 2014-2020 NVIDIA CORPORATION.  All rights reserved.
- *
- */
+//
+// tegra210_iqc.c - Tegra210 IQC driver
+//
+// Copyright (c) 2014-2021 NVIDIA CORPORATION.  All rights reserved.
 
 #include <linux/clk.h>
 #include <linux/device.h>
 #include <linux/io.h>
 #include <linux/module.h>
 #include <linux/of.h>
+#include <linux/of_device.h>
 #include <linux/platform_device.h>
 #include <linux/pm_runtime.h>
 #include <linux/regmap.h>
@@ -18,13 +17,10 @@
 #include <sound/pcm.h>
 #include <sound/pcm_params.h>
 #include <sound/soc.h>
-#include <linux/of_device.h>
 
 #include "tegra210_ahub.h"
 #include "tegra210_iqc.h"
 #include "tegra_cif.h"
-
-#define DRV_NAME "tegra210-iqc"
 
 static const struct reg_default tegra210_iqc_reg_defaults[] = {
 	{ TEGRA210_IQC_AXBAR_TX_INT_MASK, 0x0000000f},
@@ -50,13 +46,13 @@ static int tegra210_iqc_runtime_suspend(struct device *dev)
 static int tegra210_iqc_runtime_resume(struct device *dev)
 {
 	struct tegra210_iqc *iqc = dev_get_drvdata(dev);
-	int ret;
+	int err;
 
 #ifndef CONFIG_MACH_GRENADA
-	ret = clk_prepare_enable(iqc->clk_iqc);
-	if (ret) {
-		dev_err(dev, "clk_enable failed: %d\n", ret);
-		return ret;
+	err = clk_prepare_enable(iqc->clk_iqc);
+	if (err) {
+		dev_err(dev, "clk_enable failed: %d\n", err);
+		return err;
 	}
 #endif
 
@@ -105,15 +101,15 @@ static int tegra210_iqc_hw_params(struct snd_pcm_substream *substream,
 {
 	struct device *dev = dai->dev;
 	struct tegra210_iqc *iqc = snd_soc_dai_get_drvdata(dai);
-	int ret;
+	int err;
 
 	/* set IQC tx cif */
-	ret = tegra210_iqc_set_audio_cif(iqc, params,
+	err = tegra210_iqc_set_audio_cif(iqc, params,
 				TEGRA210_IQC_AXBAR_TX_CIF_CTRL +
 				(dai->id * TEGRA210_IQC_AXBAR_TX_STRIDE));
-	if (ret) {
-		dev_err(dev, "Can't set IQC TX CIF: %d\n", ret);
-		return ret;
+	if (err) {
+		dev_err(dev, "Can't set IQC TX CIF: %d\n", err);
+		return err;
 	}
 
 	/* disable timestamp */
@@ -128,7 +124,7 @@ static int tegra210_iqc_hw_params(struct snd_pcm_substream *substream,
 			TEGRA210_IQC_DATA_OFFSET_MASK,
 			iqc->data_offset);
 
-	return ret;
+	return err;
 }
 
 static struct snd_soc_dai_ops tegra210_iqc_dai_ops = {
@@ -216,7 +212,7 @@ static bool tegra210_iqc_wr_reg(struct device *dev, unsigned int reg)
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static bool tegra210_iqc_rd_reg(struct device *dev, unsigned int reg)
@@ -241,7 +237,7 @@ static bool tegra210_iqc_rd_reg(struct device *dev, unsigned int reg)
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static bool tegra210_iqc_volatile_reg(struct device *dev, unsigned int reg)
@@ -253,7 +249,7 @@ static bool tegra210_iqc_volatile_reg(struct device *dev, unsigned int reg)
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static const struct regmap_config tegra210_iqc_regmap_config = {
@@ -273,81 +269,70 @@ static const struct of_device_id tegra210_iqc_of_match[] = {
 	{ .compatible = "nvidia,tegra210-iqc" },
 	{},
 };
+MODULE_DEVICE_TABLE(of, tegra210_iqc_of_match);
 
 static int tegra210_iqc_platform_probe(struct platform_device *pdev)
 {
+	struct device *dev = &pdev->dev;
 	struct tegra210_iqc *iqc;
-	struct resource *mem;
 	void __iomem *regs;
-	int ret = 0;
-	const struct of_device_id *match;
+	int err;
 
-	match = of_match_device(tegra210_iqc_of_match, &pdev->dev);
-	if (!match) {
-		dev_err(&pdev->dev, "Error: No device match found\n");
-		return -ENODEV;
-	}
-
-	iqc = devm_kzalloc(&pdev->dev, sizeof(*iqc), GFP_KERNEL);
+	iqc = devm_kzalloc(dev, sizeof(*iqc), GFP_KERNEL);
 	if (!iqc)
 		return -ENOMEM;
 
-	dev_set_drvdata(&pdev->dev, iqc);
+	dev_set_drvdata(dev, iqc);
 
-	iqc->clk_iqc = devm_clk_get(&pdev->dev, NULL);
+	iqc->clk_iqc = devm_clk_get(dev, NULL);
 	if (IS_ERR(iqc->clk_iqc)) {
-		dev_err(&pdev->dev, "Can't retrieve iqc clock\n");
+		dev_err(dev, "Can't retrieve iqc clock\n");
 		return PTR_ERR(iqc->clk_iqc);
 	}
 
-	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	regs = devm_ioremap_resource(&pdev->dev, mem);
+	regs = devm_platform_ioremap_resource(pdev, 0);
 	if (IS_ERR(regs))
 		return PTR_ERR(regs);
-	iqc->regmap = devm_regmap_init_mmio(&pdev->dev, regs,
+
+	iqc->regmap = devm_regmap_init_mmio(dev, regs,
 					    &tegra210_iqc_regmap_config);
 	if (IS_ERR(iqc->regmap)) {
-		dev_err(&pdev->dev, "regmap init failed\n");
+		dev_err(dev, "regmap init failed\n");
 		return PTR_ERR(iqc->regmap);
 	}
+
 	regcache_cache_only(iqc->regmap, true);
 
-	if (of_property_read_u32(pdev->dev.of_node,
+	if (of_property_read_u32(dev->of_node,
 				 "timestamp-enable",
 				 &iqc->timestamp_enable) < 0) {
-		dev_dbg(&pdev->dev,
-			"Missing property timestamp-enable for IQC\n");
+		dev_dbg(dev, "Missing property timestamp-enable for IQC\n");
 		iqc->timestamp_enable = 1;
 	}
 
-	if (of_property_read_u32(pdev->dev.of_node,
+	if (of_property_read_u32(dev->of_node,
 				"data-offset",
 				&iqc->data_offset) < 0) {
-		dev_dbg(&pdev->dev,
-			"Missing property data-offset for IQC\n");
+		dev_dbg(dev, "Missing property data-offset for IQC\n");
 		iqc->data_offset = 0;
 	}
 
-	pm_runtime_enable(&pdev->dev);
-	ret = snd_soc_register_component(&pdev->dev, &tegra210_iqc_cmpnt,
+	err = devm_snd_soc_register_component(dev, &tegra210_iqc_cmpnt,
 				     tegra210_iqc_dais,
 				     ARRAY_SIZE(tegra210_iqc_dais));
-	if (ret != 0) {
-		dev_err(&pdev->dev, "Could not register CODEC: %d\n", ret);
-		pm_runtime_disable(&pdev->dev);
-		return ret;
+	if (err) {
+		dev_err(dev, "can't register IQC component, err: %d\n", err);
+		return err;
 	}
+
+	pm_runtime_enable(dev);
 
 	return 0;
 }
 
 static int tegra210_iqc_platform_remove(struct platform_device *pdev)
 {
-	snd_soc_unregister_component(&pdev->dev);
-
 	pm_runtime_disable(&pdev->dev);
-	if (!pm_runtime_status_suspended(&pdev->dev))
-		tegra210_iqc_runtime_suspend(&pdev->dev);
 
 	return 0;
 }
@@ -361,8 +346,7 @@ static const struct dev_pm_ops tegra210_iqc_pm_ops = {
 
 static struct platform_driver tegra210_iqc_driver = {
 	.driver = {
-		.name = DRV_NAME,
-		.owner = THIS_MODULE,
+		.name = "tegra210-iqc",
 		.of_match_table = tegra210_iqc_of_match,
 		.pm = &tegra210_iqc_pm_ops,
 	},
@@ -374,5 +358,3 @@ module_platform_driver(tegra210_iqc_driver)
 MODULE_AUTHOR("Arun S L <aruns@nvidia.com>");
 MODULE_DESCRIPTION("Tegra210 IQC ASoC driver");
 MODULE_LICENSE("GPL");
-MODULE_ALIAS("platform:" DRV_NAME);
-MODULE_DEVICE_TABLE(of, tegra210_iqc_of_match);

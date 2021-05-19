@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: GPL-2.0-only
-/*
- * tegra210_mixer.c - Tegra210 MIXER driver
- *
- * Copyright (c) 2014-2020 NVIDIA CORPORATION.  All rights reserved.
- *
- */
+//
+// tegra210_mixer.c - Tegra210 MIXER driver
+//
+// Copyright (c) 2014-2021 NVIDIA CORPORATION.  All rights reserved.
 
 #include <linux/clk.h>
 #include <linux/device.h>
 #include <linux/io.h>
 #include <linux/module.h>
 #include <linux/of.h>
+#include <linux/of_device.h>
 #include <linux/platform_device.h>
 #include <linux/pm_runtime.h>
 #include <linux/regmap.h>
@@ -18,29 +17,26 @@
 #include <sound/pcm.h>
 #include <sound/pcm_params.h>
 #include <sound/soc.h>
-#include <linux/of_device.h>
 
 #include "tegra210_ahub.h"
 #include "tegra210_mixer.h"
 #include "tegra_cif.h"
 
-#define DRV_NAME "tegra210_mixer"
+#define MIXER_RX_REG(reg, id) (reg + (id * TEGRA210_MIXER_RX_STRIDE))
+#define MIXER_TX_REG(reg, id) (reg + (id * TEGRA210_MIXER_TX_STRIDE))
 
-#define MIXER_RX_REG(reg, id) (reg + (id * TEGRA210_MIXER_AXBAR_RX_STRIDE))
-#define MIXER_TX_REG(reg, id) (reg + (id * TEGRA210_MIXER_AXBAR_TX_STRIDE))
-
-#define MIXER_GAIN_CONFIG_RAM_ADDR(id)	\
-	(TEGRA210_MIXER_AHUBRAMCTL_GAIN_CONFIG_RAM_ADDR_0 +	\
-		id*TEGRA210_MIXER_AHUBRAMCTL_GAIN_CONFIG_RAM_ADDR_STRIDE)
+#define MIXER_GAIN_CFG_RAM_ADDR(id)	\
+	(TEGRA210_MIXER_GAIN_CFG_RAM_ADDR_0 +	\
+		id*TEGRA210_MIXER_GAIN_CFG_RAM_ADDR_STRIDE)
 
 #define MIXER_RX_REG_DEFAULTS(id) \
-	{ MIXER_RX_REG(TEGRA210_MIXER_AXBAR_RX1_CIF_CTRL, id), 0x00007700}, \
-	{ MIXER_RX_REG(TEGRA210_MIXER_AXBAR_RX1_CTRL, id), 0x00010823}, \
-	{ MIXER_RX_REG(TEGRA210_MIXER_AXBAR_RX1_PEAK_CTRL, id), 0x000012c0}
+	{ MIXER_RX_REG(TEGRA210_MIXER_RX1_CIF_CTRL, id), 0x00007700}, \
+	{ MIXER_RX_REG(TEGRA210_MIXER_RX1_CTRL, id), 0x00010823}, \
+	{ MIXER_RX_REG(TEGRA210_MIXER_RX1_PEAK_CTRL, id), 0x000012c0}
 
 #define MIXER_TX_REG_DEFAULTS(id) \
-	{ MIXER_TX_REG(TEGRA210_MIXER_AXBAR_TX1_INT_MASK, id), 0x00000001}, \
-	{ MIXER_TX_REG(TEGRA210_MIXER_AXBAR_TX1_CIF_CTRL, id), 0x00007700}
+	{ MIXER_TX_REG(TEGRA210_MIXER_TX1_INT_MASK, id), 0x00000001}, \
+	{ MIXER_TX_REG(TEGRA210_MIXER_TX1_CIF_CTRL, id), 0x00007700}
 
 static const struct reg_default tegra210_mixer_reg_defaults[] = {
 	MIXER_RX_REG_DEFAULTS(0),
@@ -61,8 +57,8 @@ static const struct reg_default tegra210_mixer_reg_defaults[] = {
 	MIXER_TX_REG_DEFAULTS(4),
 
 	{ TEGRA210_MIXER_CG, 0x00000001},
-	{ TEGRA210_MIXER_AHUBRAMCTL_GAIN_CONFIG_RAM_CTRL, 0x00004000},
-	{ TEGRA210_MIXER_AHUBRAMCTL_PEAKM_RAM_CTRL, 0x00004000},
+	{ TEGRA210_MIXER_GAIN_CFG_RAM_CTRL, 0x00004000},
+	{ TEGRA210_MIXER_PEAKM_RAM_CTRL, 0x00004000},
 };
 
 static int tegra210_mixer_runtime_suspend(struct device *dev)
@@ -90,26 +86,26 @@ static int tegra210_mixer_write_ram(struct tegra210_mixer *mixer,
 				    unsigned int coef)
 {
 	unsigned int reg, val;
-	int ret;
+	int err;
 
 	/* check if busy */
-	ret = regmap_read_poll_timeout(mixer->regmap,
-			TEGRA210_MIXER_AHUBRAMCTL_GAIN_CONFIG_RAM_CTRL,
+	err = regmap_read_poll_timeout(mixer->regmap,
+			TEGRA210_MIXER_GAIN_CFG_RAM_CTRL,
 			val, !(val & 0x80000000), 10, 10000);
-	if (ret < 0)
-		return ret;
+	if (err < 0)
+		return err;
 
-	reg = (addr << TEGRA210_MIXER_AHUBRAMCTL_GAIN_CONFIG_RAM_CTRL_RAM_ADDR_SHIFT) &
-			TEGRA210_MIXER_AHUBRAMCTL_GAIN_CONFIG_RAM_CTRL_RAM_ADDR_MASK;
-	reg |= TEGRA210_MIXER_AHUBRAMCTL_GAIN_CONFIG_RAM_CTRL_ADDR_INIT_EN;
-	reg |= TEGRA210_MIXER_AHUBRAMCTL_GAIN_CONFIG_RAM_CTRL_RW_WRITE;
-	reg |= TEGRA210_MIXER_AHUBRAMCTL_GAIN_CONFIG_RAM_CTRL_SEQ_ACCESS_EN;
+	reg = (addr << TEGRA210_MIXER_GAIN_CFG_RAM_ADDR_SHIFT) &
+			TEGRA210_MIXER_GAIN_CFG_RAM_ADDR_MASK;
+	reg |= TEGRA210_MIXER_GAIN_CFG_RAM_ADDR_INIT_EN;
+	reg |= TEGRA210_MIXER_GAIN_CFG_RAM_RW_WRITE;
+	reg |= TEGRA210_MIXER_GAIN_CFG_RAM_SEQ_ACCESS_EN;
 
 	regmap_write(mixer->regmap,
-		     TEGRA210_MIXER_AHUBRAMCTL_GAIN_CONFIG_RAM_CTRL,
+		     TEGRA210_MIXER_GAIN_CFG_RAM_CTRL,
 		     reg);
 	regmap_write(mixer->regmap,
-		     TEGRA210_MIXER_AHUBRAMCTL_GAIN_CONFIG_RAM_DATA,
+		     TEGRA210_MIXER_GAIN_CFG_RAM_DATA,
 		     coef);
 
 	return 0;
@@ -124,7 +120,7 @@ static int tegra210_mixer_put_format(struct snd_kcontrol *kcontrol,
 	struct tegra210_mixer *mixer = snd_soc_component_get_drvdata(cmpnt);
 	int value = ucontrol->value.integer.value[0];
 
-	if (strstr(kcontrol->id.name, "Channels")) {
+	if (strstr(kcontrol->id.name, "Audio Channels")) {
 		if (value >= 0 && value <= 8)
 			mixer->channels_via_control[mc->reg - 1] = value;
 		else
@@ -142,7 +138,7 @@ static int tegra210_mixer_get_format(struct snd_kcontrol *kcontrol,
 	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
 	struct tegra210_mixer *mixer = snd_soc_component_get_drvdata(cmpnt);
 
-	if (strstr(kcontrol->id.name, "Channels"))
+	if (strstr(kcontrol->id.name, "Audio Channels"))
 		ucontrol->value.integer.value[0] =
 			mixer->channels_via_control[mc->reg - 1];
 
@@ -158,8 +154,8 @@ static int tegra210_mixer_get_gain(struct snd_kcontrol *kcontrol,
 	unsigned int reg = mc->reg;
 	unsigned int i;
 
-	i = (reg - TEGRA210_MIXER_AHUBRAMCTL_GAIN_CONFIG_RAM_ADDR_0) /
-		TEGRA210_MIXER_AHUBRAMCTL_GAIN_CONFIG_RAM_ADDR_STRIDE;
+	i = (reg - TEGRA210_MIXER_GAIN_CFG_RAM_ADDR_0) /
+		TEGRA210_MIXER_GAIN_CFG_RAM_ADDR_STRIDE;
 	ucontrol->value.integer.value[0] = mixer->gain_value[i];
 
 	return 0;
@@ -172,8 +168,8 @@ static int tegra210_mixer_put_gain(struct snd_kcontrol *kcontrol,
 		(struct soc_mixer_control *)kcontrol->private_value;
 	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
 	struct tegra210_mixer *mixer = snd_soc_component_get_drvdata(cmpnt);
-	unsigned int reg = mc->reg;
-	unsigned int ret, i;
+	unsigned int reg = mc->reg, i;
+	int err;
 
 	pm_runtime_get_sync(cmpnt->dev);
 	/* write default gain config poly coefficients */
@@ -191,18 +187,18 @@ static int tegra210_mixer_put_gain(struct snd_kcontrol *kcontrol,
 	}
 
 	/* write new gain and trigger config */
-	ret = tegra210_mixer_write_ram(mixer, reg + 0x09,
+	err = tegra210_mixer_write_ram(mixer, reg + 0x09,
 				ucontrol->value.integer.value[0]);
-	ret |= tegra210_mixer_write_ram(mixer, reg + 0x0f,
+	err |= tegra210_mixer_write_ram(mixer, reg + 0x0f,
 				ucontrol->value.integer.value[0]);
 	pm_runtime_put(cmpnt->dev);
 
 	/* save gain */
-	i = (reg - TEGRA210_MIXER_AHUBRAMCTL_GAIN_CONFIG_RAM_ADDR_0) /
-		TEGRA210_MIXER_AHUBRAMCTL_GAIN_CONFIG_RAM_ADDR_STRIDE;
+	i = (reg - TEGRA210_MIXER_GAIN_CFG_RAM_ADDR_0) /
+		TEGRA210_MIXER_GAIN_CFG_RAM_ADDR_STRIDE;
 	mixer->gain_value[i] = ucontrol->value.integer.value[0];
 
-	return ret;
+	return err;
 }
 
 static int tegra210_mixer_set_audio_cif(struct tegra210_mixer *mixer,
@@ -246,31 +242,31 @@ static int tegra210_mixer_in_hw_params(struct snd_pcm_substream *substream,
 				 struct snd_soc_dai *dai)
 {
 	struct tegra210_mixer *mixer = snd_soc_dai_get_drvdata(dai);
-	int ret, i;
+	int err, i;
 
-	ret = tegra210_mixer_set_audio_cif(mixer, params,
-				TEGRA210_MIXER_AXBAR_RX1_CIF_CTRL +
-				(dai->id * TEGRA210_MIXER_AXBAR_RX_STRIDE),
+	err = tegra210_mixer_set_audio_cif(mixer, params,
+				TEGRA210_MIXER_RX1_CIF_CTRL +
+				(dai->id * TEGRA210_MIXER_RX_STRIDE),
 				dai->id);
 
 	/* write the gain config poly coefficients */
 	for (i = 0; i < 14; i++) {
 		tegra210_mixer_write_ram(mixer,
-			MIXER_GAIN_CONFIG_RAM_ADDR(dai->id) + i,
+			MIXER_GAIN_CFG_RAM_ADDR(dai->id) + i,
 			mixer->gain_coeff[i]);
 	}
 
 	/* write saved gain */
-	ret = tegra210_mixer_write_ram(mixer,
-			MIXER_GAIN_CONFIG_RAM_ADDR(dai->id) + 0x09,
+	err = tegra210_mixer_write_ram(mixer,
+			MIXER_GAIN_CFG_RAM_ADDR(dai->id) + 0x09,
 			mixer->gain_value[dai->id]);
 
 	/* trigger the polynomial configuration */
 	tegra210_mixer_write_ram(mixer,
-		MIXER_GAIN_CONFIG_RAM_ADDR(dai->id) + 0xf,
+		MIXER_GAIN_CFG_RAM_ADDR(dai->id) + 0xf,
 		0x01);
 
-	return ret;
+	return err;
 }
 
 static int tegra210_mixer_out_hw_params(struct snd_pcm_substream *substream,
@@ -278,14 +274,14 @@ static int tegra210_mixer_out_hw_params(struct snd_pcm_substream *substream,
 				 struct snd_soc_dai *dai)
 {
 	struct tegra210_mixer *mixer = snd_soc_dai_get_drvdata(dai);
-	int ret;
+	int err;
 
-	ret = tegra210_mixer_set_audio_cif(mixer, params,
-				TEGRA210_MIXER_AXBAR_TX1_CIF_CTRL +
-				((dai->id-10) * TEGRA210_MIXER_AXBAR_TX_STRIDE),
+	err = tegra210_mixer_set_audio_cif(mixer, params,
+				TEGRA210_MIXER_TX1_CIF_CTRL +
+				((dai->id-10) * TEGRA210_MIXER_TX_STRIDE),
 				dai->id);
 
-	return ret;
+	return err;
 }
 
 static struct snd_soc_dai_ops tegra210_mixer_out_dai_ops = {
@@ -360,82 +356,82 @@ static struct snd_soc_dai_driver tegra210_mixer_dais[] = {
 		SOC_DAPM_SINGLE("RX10", reg, 9, 1, 0),	\
 	}
 
-ADDER_CTRL_DECL(adder1, TEGRA210_MIXER_AXBAR_TX1_ADDER_CONFIG);
-ADDER_CTRL_DECL(adder2, TEGRA210_MIXER_AXBAR_TX2_ADDER_CONFIG);
-ADDER_CTRL_DECL(adder3, TEGRA210_MIXER_AXBAR_TX3_ADDER_CONFIG);
-ADDER_CTRL_DECL(adder4, TEGRA210_MIXER_AXBAR_TX4_ADDER_CONFIG);
-ADDER_CTRL_DECL(adder5, TEGRA210_MIXER_AXBAR_TX5_ADDER_CONFIG);
+ADDER_CTRL_DECL(adder1, TEGRA210_MIXER_TX1_ADDER_CONFIG);
+ADDER_CTRL_DECL(adder2, TEGRA210_MIXER_TX2_ADDER_CONFIG);
+ADDER_CTRL_DECL(adder3, TEGRA210_MIXER_TX3_ADDER_CONFIG);
+ADDER_CTRL_DECL(adder4, TEGRA210_MIXER_TX4_ADDER_CONFIG);
+ADDER_CTRL_DECL(adder5, TEGRA210_MIXER_TX5_ADDER_CONFIG);
 
 static const struct snd_kcontrol_new tegra210_mixer_gain_ctls[] = {	\
-	SOC_SINGLE_EXT("RX1 Gain", MIXER_GAIN_CONFIG_RAM_ADDR(0), 0, 0x20000, 0,
+	SOC_SINGLE_EXT("RX1 Gain", MIXER_GAIN_CFG_RAM_ADDR(0), 0, 0x20000, 0,
 		tegra210_mixer_get_gain, tegra210_mixer_put_gain),
-	SOC_SINGLE_EXT("RX2 Gain", MIXER_GAIN_CONFIG_RAM_ADDR(1), 0, 0x20000, 0,
+	SOC_SINGLE_EXT("RX2 Gain", MIXER_GAIN_CFG_RAM_ADDR(1), 0, 0x20000, 0,
 		tegra210_mixer_get_gain, tegra210_mixer_put_gain),
-	SOC_SINGLE_EXT("RX3 Gain", MIXER_GAIN_CONFIG_RAM_ADDR(2), 0, 0x20000, 0,
+	SOC_SINGLE_EXT("RX3 Gain", MIXER_GAIN_CFG_RAM_ADDR(2), 0, 0x20000, 0,
 		tegra210_mixer_get_gain, tegra210_mixer_put_gain),
-	SOC_SINGLE_EXT("RX4 Gain", MIXER_GAIN_CONFIG_RAM_ADDR(3), 0, 0x20000, 0,
+	SOC_SINGLE_EXT("RX4 Gain", MIXER_GAIN_CFG_RAM_ADDR(3), 0, 0x20000, 0,
 		tegra210_mixer_get_gain, tegra210_mixer_put_gain),
-	SOC_SINGLE_EXT("RX5 Gain", MIXER_GAIN_CONFIG_RAM_ADDR(4), 0, 0x20000, 0,
+	SOC_SINGLE_EXT("RX5 Gain", MIXER_GAIN_CFG_RAM_ADDR(4), 0, 0x20000, 0,
 		tegra210_mixer_get_gain, tegra210_mixer_put_gain),
-	SOC_SINGLE_EXT("RX6 Gain", MIXER_GAIN_CONFIG_RAM_ADDR(5), 0, 0x20000, 0,
+	SOC_SINGLE_EXT("RX6 Gain", MIXER_GAIN_CFG_RAM_ADDR(5), 0, 0x20000, 0,
 		tegra210_mixer_get_gain, tegra210_mixer_put_gain),
-	SOC_SINGLE_EXT("RX7 Gain", MIXER_GAIN_CONFIG_RAM_ADDR(6), 0, 0x20000, 0,
+	SOC_SINGLE_EXT("RX7 Gain", MIXER_GAIN_CFG_RAM_ADDR(6), 0, 0x20000, 0,
 		tegra210_mixer_get_gain, tegra210_mixer_put_gain),
-	SOC_SINGLE_EXT("RX8 Gain", MIXER_GAIN_CONFIG_RAM_ADDR(7), 0, 0x20000, 0,
+	SOC_SINGLE_EXT("RX8 Gain", MIXER_GAIN_CFG_RAM_ADDR(7), 0, 0x20000, 0,
 		tegra210_mixer_get_gain, tegra210_mixer_put_gain),
-	SOC_SINGLE_EXT("RX9 Gain", MIXER_GAIN_CONFIG_RAM_ADDR(8), 0, 0x20000, 0,
+	SOC_SINGLE_EXT("RX9 Gain", MIXER_GAIN_CFG_RAM_ADDR(8), 0, 0x20000, 0,
 		tegra210_mixer_get_gain, tegra210_mixer_put_gain),
-	SOC_SINGLE_EXT("RX10 Gain", MIXER_GAIN_CONFIG_RAM_ADDR(9), 0, 0x20000, 0,
+	SOC_SINGLE_EXT("RX10 Gain", MIXER_GAIN_CFG_RAM_ADDR(9), 0, 0x20000, 0,
 		tegra210_mixer_get_gain, tegra210_mixer_put_gain),
-	SOC_SINGLE_EXT("RX1 Gain Instant", MIXER_GAIN_CONFIG_RAM_ADDR(0), 0,
+	SOC_SINGLE_EXT("RX1 Gain Instant", MIXER_GAIN_CFG_RAM_ADDR(0), 0,
 		0x20000, 0, tegra210_mixer_get_gain, tegra210_mixer_put_gain),
-	SOC_SINGLE_EXT("RX2 Gain Instant", MIXER_GAIN_CONFIG_RAM_ADDR(1), 0,
+	SOC_SINGLE_EXT("RX2 Gain Instant", MIXER_GAIN_CFG_RAM_ADDR(1), 0,
 		0x20000, 0, tegra210_mixer_get_gain, tegra210_mixer_put_gain),
-	SOC_SINGLE_EXT("RX3 Gain Instant", MIXER_GAIN_CONFIG_RAM_ADDR(2), 0,
+	SOC_SINGLE_EXT("RX3 Gain Instant", MIXER_GAIN_CFG_RAM_ADDR(2), 0,
 		0x20000, 0, tegra210_mixer_get_gain, tegra210_mixer_put_gain),
-	SOC_SINGLE_EXT("RX4 Gain Instant", MIXER_GAIN_CONFIG_RAM_ADDR(3), 0,
+	SOC_SINGLE_EXT("RX4 Gain Instant", MIXER_GAIN_CFG_RAM_ADDR(3), 0,
 		0x20000, 0, tegra210_mixer_get_gain, tegra210_mixer_put_gain),
-	SOC_SINGLE_EXT("RX5 Gain Instant", MIXER_GAIN_CONFIG_RAM_ADDR(4), 0,
+	SOC_SINGLE_EXT("RX5 Gain Instant", MIXER_GAIN_CFG_RAM_ADDR(4), 0,
 		0x20000, 0, tegra210_mixer_get_gain, tegra210_mixer_put_gain),
-	SOC_SINGLE_EXT("RX6 Gain Instant", MIXER_GAIN_CONFIG_RAM_ADDR(5), 0,
+	SOC_SINGLE_EXT("RX6 Gain Instant", MIXER_GAIN_CFG_RAM_ADDR(5), 0,
 		0x20000, 0, tegra210_mixer_get_gain, tegra210_mixer_put_gain),
-	SOC_SINGLE_EXT("RX7 Gain Instant", MIXER_GAIN_CONFIG_RAM_ADDR(6), 0,
+	SOC_SINGLE_EXT("RX7 Gain Instant", MIXER_GAIN_CFG_RAM_ADDR(6), 0,
 		0x20000, 0, tegra210_mixer_get_gain, tegra210_mixer_put_gain),
-	SOC_SINGLE_EXT("RX8 Gain Instant", MIXER_GAIN_CONFIG_RAM_ADDR(7), 0,
+	SOC_SINGLE_EXT("RX8 Gain Instant", MIXER_GAIN_CFG_RAM_ADDR(7), 0,
 		0x20000, 0, tegra210_mixer_get_gain, tegra210_mixer_put_gain),
-	SOC_SINGLE_EXT("RX9 Gain Instant", MIXER_GAIN_CONFIG_RAM_ADDR(8), 0,
+	SOC_SINGLE_EXT("RX9 Gain Instant", MIXER_GAIN_CFG_RAM_ADDR(8), 0,
 		0x20000, 0, tegra210_mixer_get_gain, tegra210_mixer_put_gain),
-	SOC_SINGLE_EXT("RX10 Gain Instant", MIXER_GAIN_CONFIG_RAM_ADDR(9), 0,
+	SOC_SINGLE_EXT("RX10 Gain Instant", MIXER_GAIN_CFG_RAM_ADDR(9), 0,
 		0x20000, 0, tegra210_mixer_get_gain, tegra210_mixer_put_gain),
-	SOC_SINGLE_EXT("RX1 Channels", 1, 0, 8, 0,
+	SOC_SINGLE_EXT("RX1 Audio Channels", 1, 0, 8, 0,
 		tegra210_mixer_get_format, tegra210_mixer_put_format),
-	SOC_SINGLE_EXT("RX2 Channels", 2, 0, 8, 0,
+	SOC_SINGLE_EXT("RX2 Audio Channels", 2, 0, 8, 0,
 		tegra210_mixer_get_format, tegra210_mixer_put_format),
-	SOC_SINGLE_EXT("RX3 Channels", 3, 0, 8, 0,
+	SOC_SINGLE_EXT("RX3 Audio Channels", 3, 0, 8, 0,
 		tegra210_mixer_get_format, tegra210_mixer_put_format),
-	SOC_SINGLE_EXT("RX4 Channels", 4, 0, 8, 0,
+	SOC_SINGLE_EXT("RX4 Audio Channels", 4, 0, 8, 0,
 		tegra210_mixer_get_format, tegra210_mixer_put_format),
-	SOC_SINGLE_EXT("RX5 Channels", 5, 0, 8, 0,
+	SOC_SINGLE_EXT("RX5 Audio Channels", 5, 0, 8, 0,
 		tegra210_mixer_get_format, tegra210_mixer_put_format),
-	SOC_SINGLE_EXT("RX6 Channels", 6, 0, 8, 0,
+	SOC_SINGLE_EXT("RX6 Audio Channels", 6, 0, 8, 0,
 		tegra210_mixer_get_format, tegra210_mixer_put_format),
-	SOC_SINGLE_EXT("RX7 Channels", 7, 0, 8, 0,
+	SOC_SINGLE_EXT("RX7 Audio Channels", 7, 0, 8, 0,
 		tegra210_mixer_get_format, tegra210_mixer_put_format),
-	SOC_SINGLE_EXT("RX8 Channels", 8, 0, 8, 0,
+	SOC_SINGLE_EXT("RX8 Audio Channels", 8, 0, 8, 0,
 		tegra210_mixer_get_format, tegra210_mixer_put_format),
-	SOC_SINGLE_EXT("RX9 Channels", 9, 0, 8, 0,
+	SOC_SINGLE_EXT("RX9 Audio Channels", 9, 0, 8, 0,
 		tegra210_mixer_get_format, tegra210_mixer_put_format),
-	SOC_SINGLE_EXT("RX10 Channels", 10, 0, 8, 0,
+	SOC_SINGLE_EXT("RX10 Audio Channels", 10, 0, 8, 0,
 		tegra210_mixer_get_format, tegra210_mixer_put_format),
-	SOC_SINGLE_EXT("TX1 Channels", 11, 0, 8, 0,
+	SOC_SINGLE_EXT("TX1 Audio Channels", 11, 0, 8, 0,
 		tegra210_mixer_get_format, tegra210_mixer_put_format),
-	SOC_SINGLE_EXT("TX2 Channels", 12, 0, 8, 0,
+	SOC_SINGLE_EXT("TX2 Audio Channels", 12, 0, 8, 0,
 		tegra210_mixer_get_format, tegra210_mixer_put_format),
-	SOC_SINGLE_EXT("TX3 Channels", 13, 0, 8, 0,
+	SOC_SINGLE_EXT("TX3 Audio Channels", 13, 0, 8, 0,
 		tegra210_mixer_get_format, tegra210_mixer_put_format),
-	SOC_SINGLE_EXT("TX4 Channels", 14, 0, 8, 0,
+	SOC_SINGLE_EXT("TX4 Audio Channels", 14, 0, 8, 0,
 		tegra210_mixer_get_format, tegra210_mixer_put_format),
-	SOC_SINGLE_EXT("TX5 Channels", 15, 0, 8, 0,
+	SOC_SINGLE_EXT("TX5 Audio Channels", 15, 0, 8, 0,
 		tegra210_mixer_get_format, tegra210_mixer_put_format),
 	SOC_SINGLE("Mixer Enable", TEGRA210_MIXER_ENABLE, 0, 1, 0),
 };
@@ -452,15 +448,15 @@ static const struct snd_soc_dapm_widget tegra210_mixer_widgets[] = {
 	SND_SOC_DAPM_AIF_IN("RX9", NULL, 0, SND_SOC_NOPM, 0, 0),
 	SND_SOC_DAPM_AIF_IN("RX10", NULL, 0, SND_SOC_NOPM, 0, 0),
 	SND_SOC_DAPM_AIF_OUT("TX1", NULL, 0,
-		TEGRA210_MIXER_AXBAR_TX1_ENABLE, 0, 0),
+		TEGRA210_MIXER_TX1_ENABLE, 0, 0),
 	SND_SOC_DAPM_AIF_OUT("TX2", NULL, 0,
-		TEGRA210_MIXER_AXBAR_TX2_ENABLE, 0, 0),
+		TEGRA210_MIXER_TX2_ENABLE, 0, 0),
 	SND_SOC_DAPM_AIF_OUT("TX3", NULL, 0,
-		TEGRA210_MIXER_AXBAR_TX3_ENABLE, 0, 0),
+		TEGRA210_MIXER_TX3_ENABLE, 0, 0),
 	SND_SOC_DAPM_AIF_OUT("TX4", NULL, 0,
-		TEGRA210_MIXER_AXBAR_TX4_ENABLE, 0, 0),
+		TEGRA210_MIXER_TX4_ENABLE, 0, 0),
 	SND_SOC_DAPM_AIF_OUT("TX5", NULL, 0,
-		TEGRA210_MIXER_AXBAR_TX5_ENABLE, 0, 0),
+		TEGRA210_MIXER_TX5_ENABLE, 0, 0),
 	SND_SOC_DAPM_MIXER("Adder1", SND_SOC_NOPM, 1, 0,
 		adder1, ARRAY_SIZE(adder1)),
 	SND_SOC_DAPM_MIXER("Adder2", SND_SOC_NOPM, 1, 0,
@@ -522,125 +518,88 @@ static struct snd_soc_component_driver tegra210_mixer_cmpnt = {
 static bool tegra210_mixer_wr_reg(struct device *dev,
 				unsigned int reg)
 {
-	if (reg < TEGRA210_MIXER_AXBAR_RX_LIMIT)
-		reg %= TEGRA210_MIXER_AXBAR_RX_STRIDE;
-	else if (reg < TEGRA210_MIXER_AXBAR_TX_LIMIT)
-		reg = (reg % TEGRA210_MIXER_AXBAR_TX_STRIDE) +
-			TEGRA210_MIXER_AXBAR_TX1_ENABLE;
+	if (reg < TEGRA210_MIXER_RX_LIMIT)
+		reg %= TEGRA210_MIXER_RX_STRIDE;
+	else if (reg < TEGRA210_MIXER_TX_LIMIT)
+		reg = (reg % TEGRA210_MIXER_TX_STRIDE) +
+			TEGRA210_MIXER_TX1_ENABLE;
 
 	switch (reg) {
-	case TEGRA210_MIXER_AXBAR_RX1_SOFT_RESET:
-	case TEGRA210_MIXER_AXBAR_RX1_STATUS:
-	case TEGRA210_MIXER_AXBAR_RX1_CIF_CTRL:
-	case TEGRA210_MIXER_AXBAR_RX1_CTRL:
-	case TEGRA210_MIXER_AXBAR_RX1_PEAK_CTRL:
+	case TEGRA210_MIXER_RX1_SOFT_RESET:
+	case TEGRA210_MIXER_RX1_CIF_CTRL ... TEGRA210_MIXER_RX1_PEAK_CTRL:
 
-	case TEGRA210_MIXER_AXBAR_TX1_ENABLE:
-	case TEGRA210_MIXER_AXBAR_TX1_SOFT_RESET:
-	case TEGRA210_MIXER_AXBAR_TX1_INT_MASK:
-	case TEGRA210_MIXER_AXBAR_TX1_INT_SET:
-	case TEGRA210_MIXER_AXBAR_TX1_INT_CLEAR:
-	case TEGRA210_MIXER_AXBAR_TX1_CIF_CTRL:
-	case TEGRA210_MIXER_AXBAR_TX1_ADDER_CONFIG:
+	case TEGRA210_MIXER_TX1_ENABLE:
+	case TEGRA210_MIXER_TX1_SOFT_RESET:
+	case TEGRA210_MIXER_TX1_INT_MASK ... TEGRA210_MIXER_TX1_ADDER_CONFIG:
 
-	case TEGRA210_MIXER_ENABLE:
-	case TEGRA210_MIXER_SOFT_RESET:
-	case TEGRA210_MIXER_CG:
-	case TEGRA210_MIXER_AHUBRAMCTL_GAIN_CONFIG_RAM_CTRL:
-	case TEGRA210_MIXER_AHUBRAMCTL_GAIN_CONFIG_RAM_DATA:
-	case TEGRA210_MIXER_AHUBRAMCTL_PEAKM_RAM_CTRL:
-	case TEGRA210_MIXER_AHUBRAMCTL_PEAKM_RAM_DATA:
-	case TEGRA210_MIXER_CTRL:
+	case TEGRA210_MIXER_ENABLE ... TEGRA210_MIXER_CG:
+	case TEGRA210_MIXER_GAIN_CFG_RAM_CTRL ... TEGRA210_MIXER_CTRL:
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static bool tegra210_mixer_rd_reg(struct device *dev,
 				unsigned int reg)
 {
-	if (reg < TEGRA210_MIXER_AXBAR_RX_LIMIT)
-		reg %= TEGRA210_MIXER_AXBAR_RX_STRIDE;
-	else if (reg < TEGRA210_MIXER_AXBAR_TX_LIMIT)
-		reg = (reg % TEGRA210_MIXER_AXBAR_TX_STRIDE) +
-			TEGRA210_MIXER_AXBAR_TX1_ENABLE;
+	if (reg < TEGRA210_MIXER_RX_LIMIT)
+		reg %= TEGRA210_MIXER_RX_STRIDE;
+	else if (reg < TEGRA210_MIXER_TX_LIMIT)
+		reg = (reg % TEGRA210_MIXER_TX_STRIDE) +
+			TEGRA210_MIXER_TX1_ENABLE;
 
 	switch (reg) {
-	case TEGRA210_MIXER_AXBAR_RX1_SOFT_RESET:
-	case TEGRA210_MIXER_AXBAR_RX1_STATUS:
-	case TEGRA210_MIXER_AXBAR_RX1_CIF_CTRL:
-	case TEGRA210_MIXER_AXBAR_RX1_CTRL:
-	case TEGRA210_MIXER_AXBAR_RX1_PEAK_CTRL:
-	case TEGRA210_MIXER_AXBAR_RX1_SAMPLE_COUNT:
-
-	case TEGRA210_MIXER_AXBAR_TX1_ENABLE:
-	case TEGRA210_MIXER_AXBAR_TX1_SOFT_RESET:
-	case TEGRA210_MIXER_AXBAR_TX1_STATUS:
-	case TEGRA210_MIXER_AXBAR_TX1_INT_STATUS:
-	case TEGRA210_MIXER_AXBAR_TX1_INT_MASK:
-	case TEGRA210_MIXER_AXBAR_TX1_INT_SET:
-	case TEGRA210_MIXER_AXBAR_TX1_INT_CLEAR:
-	case TEGRA210_MIXER_AXBAR_TX1_CIF_CTRL:
-	case TEGRA210_MIXER_AXBAR_TX1_ADDER_CONFIG:
-
-	case TEGRA210_MIXER_ENABLE:
-	case TEGRA210_MIXER_SOFT_RESET:
-	case TEGRA210_MIXER_CG:
-	case TEGRA210_MIXER_STATUS:
-	case TEGRA210_MIXER_INT_STATUS:
-	case TEGRA210_MIXER_AHUBRAMCTL_GAIN_CONFIG_RAM_CTRL:
-	case TEGRA210_MIXER_AHUBRAMCTL_GAIN_CONFIG_RAM_DATA:
-	case TEGRA210_MIXER_AHUBRAMCTL_PEAKM_RAM_CTRL:
-	case TEGRA210_MIXER_AHUBRAMCTL_PEAKM_RAM_DATA:
-	case TEGRA210_MIXER_CTRL:
+	case TEGRA210_MIXER_RX1_SOFT_RESET ... TEGRA210_MIXER_RX1_SAMPLE_COUNT:
+	case TEGRA210_MIXER_TX1_ENABLE ... TEGRA210_MIXER_TX1_ADDER_CONFIG:
+	case TEGRA210_MIXER_ENABLE ... TEGRA210_MIXER_CTRL:
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static bool tegra210_mixer_volatile_reg(struct device *dev,
 				unsigned int reg)
 {
-	if (reg < TEGRA210_MIXER_AXBAR_RX_LIMIT)
-		reg %= TEGRA210_MIXER_AXBAR_RX_STRIDE;
-	else if (reg < TEGRA210_MIXER_AXBAR_TX_LIMIT)
-		reg = (reg % TEGRA210_MIXER_AXBAR_TX_STRIDE) +
-			TEGRA210_MIXER_AXBAR_TX1_ENABLE;
+	if (reg < TEGRA210_MIXER_RX_LIMIT)
+		reg %= TEGRA210_MIXER_RX_STRIDE;
+	else if (reg < TEGRA210_MIXER_TX_LIMIT)
+		reg = (reg % TEGRA210_MIXER_TX_STRIDE) +
+			TEGRA210_MIXER_TX1_ENABLE;
 
 	switch (reg) {
-	case TEGRA210_MIXER_AXBAR_RX1_SOFT_RESET:
-	case TEGRA210_MIXER_AXBAR_RX1_STATUS:
+	case TEGRA210_MIXER_RX1_SOFT_RESET:
+	case TEGRA210_MIXER_RX1_STATUS:
 
-	case TEGRA210_MIXER_AXBAR_TX1_SOFT_RESET:
-	case TEGRA210_MIXER_AXBAR_TX1_STATUS:
-	case TEGRA210_MIXER_AXBAR_TX1_INT_STATUS:
-	case TEGRA210_MIXER_AXBAR_TX1_INT_SET:
+	case TEGRA210_MIXER_TX1_SOFT_RESET:
+	case TEGRA210_MIXER_TX1_STATUS:
+	case TEGRA210_MIXER_TX1_INT_STATUS:
+	case TEGRA210_MIXER_TX1_INT_SET:
 
 	case TEGRA210_MIXER_SOFT_RESET:
 	case TEGRA210_MIXER_STATUS:
 	case TEGRA210_MIXER_INT_STATUS:
-	case TEGRA210_MIXER_AHUBRAMCTL_GAIN_CONFIG_RAM_CTRL:
-	case TEGRA210_MIXER_AHUBRAMCTL_GAIN_CONFIG_RAM_DATA:
-	case TEGRA210_MIXER_AHUBRAMCTL_PEAKM_RAM_CTRL:
-	case TEGRA210_MIXER_AHUBRAMCTL_PEAKM_RAM_DATA:
+	case TEGRA210_MIXER_GAIN_CFG_RAM_CTRL:
+	case TEGRA210_MIXER_GAIN_CFG_RAM_DATA:
+	case TEGRA210_MIXER_PEAKM_RAM_CTRL:
+	case TEGRA210_MIXER_PEAKM_RAM_DATA:
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static bool tegra210_mixer_precious_reg(struct device *dev,
 				unsigned int reg)
 {
 	switch (reg) {
-	case TEGRA210_MIXER_AHUBRAMCTL_GAIN_CONFIG_RAM_DATA:
-	case TEGRA210_MIXER_AHUBRAMCTL_PEAKM_RAM_DATA:
+	case TEGRA210_MIXER_GAIN_CFG_RAM_DATA:
+	case TEGRA210_MIXER_PEAKM_RAM_DATA:
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static const struct regmap_config tegra210_mixer_regmap_config = {
@@ -661,22 +620,16 @@ static const struct of_device_id tegra210_mixer_of_match[] = {
 	{ .compatible = "nvidia,tegra210-amixer" },
 	{},
 };
+MODULE_DEVICE_TABLE(of, tegra210_mixer_of_match);
 
 static int tegra210_mixer_platform_probe(struct platform_device *pdev)
 {
+	struct device *dev = &pdev->dev;
 	struct tegra210_mixer *mixer;
-	struct resource *mem;
 	void __iomem *regs;
-	int ret, i;
-	const struct of_device_id *match;
+	int err, i;
 
-	match = of_match_device(tegra210_mixer_of_match, &pdev->dev);
-	if (!match) {
-		dev_err(&pdev->dev, "Error: No device match found\n");
-		return -ENODEV;
-	}
-
-	mixer = devm_kzalloc(&pdev->dev, sizeof(*mixer), GFP_KERNEL);
+	mixer = devm_kzalloc(dev, sizeof(*mixer), GFP_KERNEL);
 	if (!mixer)
 		return -ENOMEM;
 
@@ -694,43 +647,40 @@ static int tegra210_mixer_platform_probe(struct platform_device *pdev)
 	mixer->gain_coeff[11] = 0;
 	mixer->gain_coeff[12] = 0x400;
 	mixer->gain_coeff[13] = 0x8000000;
-	dev_set_drvdata(&pdev->dev, mixer);
+	dev_set_drvdata(dev, mixer);
 
-	for (i = 0; i < TEGRA210_MIXER_AXBAR_RX_MAX; i++)
+	for (i = 0; i < TEGRA210_MIXER_RX_MAX; i++)
 		mixer->gain_value[i] = 0x10000;
 
-	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	regs = devm_ioremap_resource(&pdev->dev, mem);
+	regs = devm_platform_ioremap_resource(pdev, 0);
 	if (IS_ERR(regs))
 		return PTR_ERR(regs);
-	mixer->regmap = devm_regmap_init_mmio(&pdev->dev, regs,
+
+	mixer->regmap = devm_regmap_init_mmio(dev, regs,
 					      &tegra210_mixer_regmap_config);
 	if (IS_ERR(mixer->regmap)) {
-		dev_err(&pdev->dev, "regmap init failed\n");
+		dev_err(dev, "regmap init failed\n");
 		return PTR_ERR(mixer->regmap);
 	}
+
 	regcache_cache_only(mixer->regmap, true);
 
-	pm_runtime_enable(&pdev->dev);
-	ret = snd_soc_register_component(&pdev->dev, &tegra210_mixer_cmpnt,
-				     tegra210_mixer_dais,
-				     ARRAY_SIZE(tegra210_mixer_dais));
-	if (ret != 0) {
-		dev_err(&pdev->dev, "Could not register CODEC: %d\n", ret);
-		pm_runtime_disable(&pdev->dev);
-		return ret;
+	err = devm_snd_soc_register_component(dev, &tegra210_mixer_cmpnt,
+					      tegra210_mixer_dais,
+					      ARRAY_SIZE(tegra210_mixer_dais));
+	if (err) {
+		dev_err(dev, "can't register MIXER component, err: %d\n", err);
+		return err;
 	}
+
+	pm_runtime_enable(dev);
 
 	return 0;
 }
 
 static int tegra210_mixer_platform_remove(struct platform_device *pdev)
 {
-	snd_soc_unregister_component(&pdev->dev);
-
 	pm_runtime_disable(&pdev->dev);
-	if (!pm_runtime_status_suspended(&pdev->dev))
-		tegra210_mixer_runtime_suspend(&pdev->dev);
 
 	return 0;
 }
@@ -744,8 +694,7 @@ static const struct dev_pm_ops tegra210_mixer_pm_ops = {
 
 static struct platform_driver tegra210_mixer_driver = {
 	.driver = {
-		.name = DRV_NAME,
-		.owner = THIS_MODULE,
+		.name = "tegra210_mixer",
 		.of_match_table = tegra210_mixer_of_match,
 		.pm = &tegra210_mixer_pm_ops,
 	},
@@ -757,5 +706,3 @@ module_platform_driver(tegra210_mixer_driver);
 MODULE_AUTHOR("Arun Shamanna Lakshmi <aruns@nvidia.com>");
 MODULE_DESCRIPTION("Tegra210 MIXER ASoC driver");
 MODULE_LICENSE("GPL v2");
-MODULE_ALIAS("platform:" DRV_NAME);
-MODULE_DEVICE_TABLE(of, tegra210_mixer_of_match);

@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: GPL-2.0-only
-/*
- * tegra210_amx.c - Tegra210 AMX driver
- *
- * Copyright (c) 2014-2020 NVIDIA CORPORATION.  All rights reserved.
- *
- */
+//
+// tegra210_amx.c - Tegra210 AMX driver
+//
+// Copyright (c) 2014-2021 NVIDIA CORPORATION.  All rights reserved.
 
 #include <linux/clk.h>
 #include <linux/device.h>
 #include <linux/io.h>
 #include <linux/module.h>
 #include <linux/of.h>
+#include <linux/of_device.h>
 #include <linux/platform_device.h>
 #include <linux/pm_runtime.h>
 #include <linux/regmap.h>
@@ -18,24 +17,21 @@
 #include <sound/pcm.h>
 #include <sound/pcm_params.h>
 #include <sound/soc.h>
-#include <linux/of_device.h>
 
 #include "tegra210_ahub.h"
 #include "tegra210_amx.h"
 #include "tegra_cif.h"
 
-#define DRV_NAME "tegra210-amx"
-
 static const struct reg_default tegra210_amx_reg_defaults[] = {
-	{ TEGRA210_AMX_AXBAR_RX_INT_MASK, 0x0000000f},
-	{ TEGRA210_AMX_AXBAR_RX1_CIF_CTRL, 0x00007000},
-	{ TEGRA210_AMX_AXBAR_RX2_CIF_CTRL, 0x00007000},
-	{ TEGRA210_AMX_AXBAR_RX3_CIF_CTRL, 0x00007000},
-	{ TEGRA210_AMX_AXBAR_RX4_CIF_CTRL, 0x00007000},
-	{ TEGRA210_AMX_AXBAR_TX_INT_MASK, 0x00000001},
-	{ TEGRA210_AMX_AXBAR_TX_CIF_CTRL, 0x00007000},
+	{ TEGRA210_AMX_RX_INT_MASK, 0x0000000f},
+	{ TEGRA210_AMX_RX1_CIF_CTRL, 0x00007000},
+	{ TEGRA210_AMX_RX2_CIF_CTRL, 0x00007000},
+	{ TEGRA210_AMX_RX3_CIF_CTRL, 0x00007000},
+	{ TEGRA210_AMX_RX4_CIF_CTRL, 0x00007000},
+	{ TEGRA210_AMX_TX_INT_MASK, 0x00000001},
+	{ TEGRA210_AMX_TX_CIF_CTRL, 0x00007000},
 	{ TEGRA210_AMX_CG, 0x1},
-	{ TEGRA210_AMX_AHUBRAMCTL_AMX_CTRL, 0x00004000},
+	{ TEGRA210_AMX_CFG_RAM_CTRL, 0x00004000},
 };
 
 /**
@@ -144,20 +140,20 @@ static void tegra210_amx_write_map_ram(struct tegra210_amx *amx,
 				unsigned int val)
 {
 	unsigned int reg;
-	regmap_write(amx->regmap, TEGRA210_AMX_AHUBRAMCTL_AMX_CTRL,
-		(addr << TEGRA210_AMX_AHUBRAMCTL_AMX_CTRL_RAM_ADDR_SHIFT));
+	regmap_write(amx->regmap, TEGRA210_AMX_CFG_RAM_CTRL,
+		(addr << TEGRA210_AMX_CFG_CTRL_RAM_ADDR_SHIFT));
 
-	regmap_write(amx->regmap, TEGRA210_AMX_AHUBRAMCTL_AMX_DATA, val);
+	regmap_write(amx->regmap, TEGRA210_AMX_CFG_RAM_DATA, val);
 
-	regmap_read(amx->regmap, TEGRA210_AMX_AHUBRAMCTL_AMX_CTRL, &reg);
-	reg |= TEGRA210_AMX_AHUBRAMCTL_AMX_CTRL_ADDR_INIT_EN;
+	regmap_read(amx->regmap, TEGRA210_AMX_CFG_RAM_CTRL, &reg);
+	reg |= TEGRA210_AMX_CFG_CTRL_ADDR_INIT_EN;
 
-	regmap_write(amx->regmap, TEGRA210_AMX_AHUBRAMCTL_AMX_CTRL, reg);
+	regmap_write(amx->regmap, TEGRA210_AMX_CFG_RAM_CTRL, reg);
 
-	regmap_read(amx->regmap, TEGRA210_AMX_AHUBRAMCTL_AMX_CTRL, &reg);
-	reg |= TEGRA210_AMX_AHUBRAMCTL_AMX_CTRL_RW_WRITE;
+	regmap_read(amx->regmap, TEGRA210_AMX_CFG_RAM_CTRL, &reg);
+	reg |= TEGRA210_AMX_CFG_CTRL_RW_WRITE;
 
-	regmap_write(amx->regmap, TEGRA210_AMX_AHUBRAMCTL_AMX_CTRL, reg);
+	regmap_write(amx->regmap, TEGRA210_AMX_CFG_RAM_CTRL, reg);
 }
 
 static void tegra210_amx_update_map_ram(struct tegra210_amx *amx)
@@ -175,14 +171,14 @@ static int tegra210_amx_stop(struct snd_soc_dapm_widget *w,
 	struct device *dev = cmpnt->dev;
 	struct tegra210_amx *amx = dev_get_drvdata(dev);
 	unsigned int val;
-	int ret;
+	int err;
 
 	/* Ensure if AMX is disabled */
-	ret = regmap_read_poll_timeout(amx->regmap, TEGRA210_AMX_STATUS, val,
+	err = regmap_read_poll_timeout(amx->regmap, TEGRA210_AMX_STATUS, val,
 				       !(val & 0x1), 10, 10000);
-	if (ret < 0) {
-		dev_err(dev, "failed to stop AMX, err = %d\n", ret);
-		return ret;
+	if (err < 0) {
+		dev_err(dev, "failed to stop AMX, err = %d\n", err);
+		return err;
 	}
 
 	/* SW reset */
@@ -190,11 +186,11 @@ static int tegra210_amx_stop(struct snd_soc_dapm_widget *w,
 			   TEGRA210_AMX_SOFT_RESET_SOFT_RESET_MASK,
 			   TEGRA210_AMX_SOFT_RESET_SOFT_EN);
 
-	ret = regmap_read_poll_timeout(amx->regmap, TEGRA210_AMX_SOFT_RESET,
+	err = regmap_read_poll_timeout(amx->regmap, TEGRA210_AMX_SOFT_RESET,
 				       val, !(val & 0x1), 10, 10000);
-	if (ret < 0) {
-		dev_err(dev, "failed to reset AMX, err = %d\n", ret);
-		return ret;
+	if (err < 0) {
+		dev_err(dev, "failed to reset AMX, err = %d\n", err);
+		return err;
 	}
 
 	regmap_update_bits(amx->regmap, TEGRA210_AMX_SOFT_RESET,
@@ -218,25 +214,25 @@ static unsigned int __maybe_unused
 	tegra210_amx_read_map_ram(struct tegra210_amx *amx, unsigned int addr)
 {
 	unsigned int val;
-	int ret;
+	int err;
 
-	regmap_write(amx->regmap, TEGRA210_AMX_AHUBRAMCTL_AMX_CTRL,
-		(addr << TEGRA210_AMX_AHUBRAMCTL_AMX_CTRL_RAM_ADDR_SHIFT));
+	regmap_write(amx->regmap, TEGRA210_AMX_CFG_RAM_CTRL,
+		(addr << TEGRA210_AMX_CFG_CTRL_RAM_ADDR_SHIFT));
 
-	regmap_read(amx->regmap, TEGRA210_AMX_AHUBRAMCTL_AMX_CTRL, &val);
-	val |= TEGRA210_AMX_AHUBRAMCTL_AMX_CTRL_ADDR_INIT_EN;
-	regmap_write(amx->regmap, TEGRA210_AMX_AHUBRAMCTL_AMX_CTRL, val);
-	regmap_read(amx->regmap, TEGRA210_AMX_AHUBRAMCTL_AMX_CTRL, &val);
-	val &= ~(TEGRA210_AMX_AHUBRAMCTL_AMX_CTRL_RW_WRITE);
-	regmap_write(amx->regmap, TEGRA210_AMX_AHUBRAMCTL_AMX_CTRL, val);
+	regmap_read(amx->regmap, TEGRA210_AMX_CFG_RAM_CTRL, &val);
+	val |= TEGRA210_AMX_CFG_CTRL_ADDR_INIT_EN;
+	regmap_write(amx->regmap, TEGRA210_AMX_CFG_RAM_CTRL, val);
+	regmap_read(amx->regmap, TEGRA210_AMX_CFG_RAM_CTRL, &val);
+	val &= ~(TEGRA210_AMX_CFG_CTRL_RW_WRITE);
+	regmap_write(amx->regmap, TEGRA210_AMX_CFG_RAM_CTRL, val);
 
-	ret = regmap_read_poll_timeout(amx->regmap,
-				       TEGRA210_AMX_AHUBRAMCTL_AMX_CTRL,
+	err = regmap_read_poll_timeout(amx->regmap,
+				       TEGRA210_AMX_CFG_RAM_CTRL,
 				       val, !(val & 0x80000000), 10, 10000);
-	if (ret < 0)
-		return ret;
+	if (err < 0)
+		return err;
 
-	regmap_read(amx->regmap, TEGRA210_AMX_AHUBRAMCTL_AMX_DATA, &val);
+	regmap_read(amx->regmap, TEGRA210_AMX_CFG_RAM_DATA, &val);
 
 	return val;
 }
@@ -309,7 +305,7 @@ static int tegra210_amx_in_hw_params(struct snd_pcm_substream *substream,
 				 struct snd_pcm_hw_params *params,
 				 struct snd_soc_dai *dai)
 {
-	int ret;
+	int err;
 	struct tegra210_amx *amx = snd_soc_dai_get_drvdata(dai);
 
 
@@ -325,17 +321,17 @@ static int tegra210_amx_in_hw_params(struct snd_pcm_substream *substream,
 	 */
 	if (amx->soc_data->is_auto_disable_supported) {
 		regmap_write(amx->regmap,
-			TEGRA194_AMX_RX1_CTRL_FRAME_PERIOD +
+			TEGRA194_AMX_RX1_FRAME_PERIOD +
 			(dai->id * TEGRA210_AMX_AUDIOCIF_CH_STRIDE),
 			0x1800);
 		regmap_write(amx->regmap, TEGRA210_AMX_CYA, 1);
 	}
 
-	ret = tegra210_amx_set_audio_cif(dai, params,
-				TEGRA210_AMX_AXBAR_RX1_CIF_CTRL +
+	err = tegra210_amx_set_audio_cif(dai, params,
+				TEGRA210_AMX_RX1_CIF_CTRL +
 				(dai->id * TEGRA210_AMX_AUDIOCIF_CH_STRIDE));
 
-	return ret;
+	return err;
 }
 
 static int tegra210_amx_in_trigger(struct snd_pcm_substream *substream,
@@ -367,7 +363,7 @@ static int tegra210_amx_out_hw_params(struct snd_pcm_substream *substream,
 				 struct snd_soc_dai *dai)
 {
 	return tegra210_amx_set_audio_cif(dai, params,
-					  TEGRA210_AMX_AXBAR_TX_CIF_CTRL);
+					  TEGRA210_AMX_TX_CIF_CTRL);
 }
 
 static int tegra210_amx_set_channel_map(struct snd_soc_dai *dai,
@@ -481,10 +477,10 @@ static int tegra210_amx_get_channels(struct snd_kcontrol *kcontrol,
 	int reg = mc->reg;
 	char buf[50];
 
-	snprintf(buf, 50, "Input%d Channels", reg);
+	snprintf(buf, 50, "Input%d Audio Channels", reg);
 	if (strstr(kcontrol->id.name, buf))
 		ucontrol->value.integer.value[0] = amx->input_channels[reg - 1];
-	else if (strstr(kcontrol->id.name, "Output Channels"))
+	else if (strstr(kcontrol->id.name, "Output Audio Channels"))
 		ucontrol->value.integer.value[0] = amx->output_channels;
 
 	return 0;
@@ -501,13 +497,13 @@ static int tegra210_amx_put_channels(struct snd_kcontrol *kcontrol,
 	int value = ucontrol->value.integer.value[0];
 	char buf[50];
 
-	snprintf(buf, 50, "Input%d Channels", reg);
+	snprintf(buf, 50, "Input%d Audio Channels", reg);
 	if (strstr(kcontrol->id.name, buf)) {
 		if (value >= 0 && value <= 16)
 			amx->input_channels[reg - 1] = value;
 		else
 			return -EINVAL;
-	} else if (strstr(kcontrol->id.name, "Output Channels")) {
+	} else if (strstr(kcontrol->id.name, "Output Audio Channels")) {
 		if (value >= 0 && value <= 16)
 			amx->output_channels = value;
 		else
@@ -587,12 +583,12 @@ static const struct snd_soc_dapm_route tegra210_amx_routes[] = {
 		tegra210_amx_get_byte_map, tegra210_amx_put_byte_map)
 
 #define TEGRA210_AMX_OUTPUT_CHANNELS_CTRL(reg) \
-	SOC_SINGLE_EXT("Output Channels", reg, 0, 16, 0, \
+	SOC_SINGLE_EXT("Output Audio Channels", reg, 0, 16, 0, \
 		tegra210_amx_get_channels, \
 		tegra210_amx_put_channels)
 
 #define TEGRA210_AMX_INPUT_CHANNELS_CTRL(reg) \
-	SOC_SINGLE_EXT("Input" #reg " Channels", reg, 0, 16, 0, \
+	SOC_SINGLE_EXT("Input" #reg " Audio Channels", reg, 0, 16, 0, \
 		tegra210_amx_get_channels, \
 		tegra210_amx_put_channels)
 
@@ -682,96 +678,68 @@ static bool tegra210_amx_wr_reg(struct device *dev,
 				unsigned int reg)
 {
 	switch (reg) {
-	case TEGRA210_AMX_AXBAR_RX_INT_MASK:
-	case TEGRA210_AMX_AXBAR_RX_INT_SET:
-	case TEGRA210_AMX_AXBAR_RX_INT_CLEAR:
-	case TEGRA210_AMX_AXBAR_RX1_CIF_CTRL:
-	case TEGRA210_AMX_AXBAR_RX2_CIF_CTRL:
-	case TEGRA210_AMX_AXBAR_RX3_CIF_CTRL:
-	case TEGRA210_AMX_AXBAR_RX4_CIF_CTRL:
-	case TEGRA210_AMX_AXBAR_TX_INT_MASK:
-	case TEGRA210_AMX_AXBAR_TX_INT_SET:
-	case TEGRA210_AMX_AXBAR_TX_INT_CLEAR:
-	case TEGRA210_AMX_AXBAR_TX_CIF_CTRL:
-	case TEGRA210_AMX_ENABLE:
-	case TEGRA210_AMX_SOFT_RESET:
-	case TEGRA210_AMX_CG:
-	case TEGRA210_AMX_CTRL:
-	case TEGRA210_AMX_OUT_BYTE_EN0:
-	case TEGRA210_AMX_OUT_BYTE_EN1:
-	case TEGRA210_AMX_CYA:
-	case TEGRA210_AMX_AHUBRAMCTL_AMX_CTRL:
-	case TEGRA210_AMX_AHUBRAMCTL_AMX_DATA:
-	case TEGRA194_AMX_RX1_CTRL_FRAME_PERIOD:
-	case TEGRA194_AMX_RX2_CTRL_FRAME_PERIOD:
-	case TEGRA194_AMX_RX3_CTRL_FRAME_PERIOD:
-	case TEGRA194_AMX_RX4_CTRL_FRAME_PERIOD:
+	case TEGRA210_AMX_RX_INT_MASK ... TEGRA210_AMX_RX4_CIF_CTRL:
+	case TEGRA210_AMX_TX_INT_MASK ... TEGRA210_AMX_CG:
+	case TEGRA210_AMX_CTRL ... TEGRA210_AMX_CYA:
+	case TEGRA210_AMX_CFG_RAM_CTRL ... TEGRA210_AMX_CFG_RAM_DATA:
 		return true;
 	default:
 		return false;
-	};
+	}
+}
+
+static bool tegra194_amx_wr_reg(struct device *dev,
+				unsigned int reg)
+{
+	switch (reg) {
+	case TEGRA194_AMX_RX1_FRAME_PERIOD ... TEGRA194_AMX_RX4_FRAME_PERIOD:
+		return true;
+	default:
+		return tegra210_amx_wr_reg(dev, reg);
+	}
 }
 
 static bool tegra210_amx_rd_reg(struct device *dev,
 				unsigned int reg)
 {
 	switch (reg) {
-	case TEGRA210_AMX_AXBAR_RX_STATUS:
-	case TEGRA210_AMX_AXBAR_RX_INT_STATUS:
-	case TEGRA210_AMX_AXBAR_RX_INT_MASK:
-	case TEGRA210_AMX_AXBAR_RX_INT_SET:
-	case TEGRA210_AMX_AXBAR_RX_INT_CLEAR:
-	case TEGRA210_AMX_AXBAR_RX1_CIF_CTRL:
-	case TEGRA210_AMX_AXBAR_RX2_CIF_CTRL:
-	case TEGRA210_AMX_AXBAR_RX3_CIF_CTRL:
-	case TEGRA210_AMX_AXBAR_RX4_CIF_CTRL:
-	case TEGRA210_AMX_AXBAR_TX_STATUS:
-	case TEGRA210_AMX_AXBAR_TX_INT_STATUS:
-	case TEGRA210_AMX_AXBAR_TX_INT_MASK:
-	case TEGRA210_AMX_AXBAR_TX_INT_SET:
-	case TEGRA210_AMX_AXBAR_TX_INT_CLEAR:
-	case TEGRA210_AMX_AXBAR_TX_CIF_CTRL:
-	case TEGRA210_AMX_ENABLE:
-	case TEGRA210_AMX_SOFT_RESET:
-	case TEGRA210_AMX_CG:
-	case TEGRA210_AMX_STATUS:
-	case TEGRA210_AMX_INT_STATUS:
-	case TEGRA210_AMX_CTRL:
-	case TEGRA210_AMX_OUT_BYTE_EN0:
-	case TEGRA210_AMX_OUT_BYTE_EN1:
-	case TEGRA210_AMX_CYA:
-	case TEGRA210_AMX_DBG:
-	case TEGRA210_AMX_AHUBRAMCTL_AMX_CTRL:
-	case TEGRA210_AMX_AHUBRAMCTL_AMX_DATA:
-	case TEGRA194_AMX_RX1_CTRL_FRAME_PERIOD:
-	case TEGRA194_AMX_RX2_CTRL_FRAME_PERIOD:
-	case TEGRA194_AMX_RX3_CTRL_FRAME_PERIOD:
-	case TEGRA194_AMX_RX4_CTRL_FRAME_PERIOD:
+	case TEGRA210_AMX_RX_STATUS ... TEGRA210_AMX_CFG_RAM_DATA:
 		return true;
 	default:
 		return false;
-	};
+	}
+}
+
+static bool tegra194_amx_rd_reg(struct device *dev,
+				unsigned int reg)
+{
+	switch (reg) {
+	case TEGRA194_AMX_RX1_FRAME_PERIOD ... TEGRA194_AMX_RX4_FRAME_PERIOD:
+		return true;
+	default:
+		return tegra210_amx_rd_reg(dev, reg);
+	}
 }
 
 static bool tegra210_amx_volatile_reg(struct device *dev,
 				unsigned int reg)
 {
 	switch (reg) {
-	case TEGRA210_AMX_AXBAR_RX_STATUS:
-	case TEGRA210_AMX_AXBAR_RX_INT_STATUS:
-	case TEGRA210_AMX_AXBAR_RX_INT_SET:
-	case TEGRA210_AMX_AXBAR_TX_STATUS:
-	case TEGRA210_AMX_AXBAR_TX_INT_STATUS:
-	case TEGRA210_AMX_AXBAR_TX_INT_SET:
+	case TEGRA210_AMX_RX_STATUS:
+	case TEGRA210_AMX_RX_INT_STATUS:
+	case TEGRA210_AMX_RX_INT_SET:
+	case TEGRA210_AMX_TX_STATUS:
+	case TEGRA210_AMX_TX_INT_STATUS:
+	case TEGRA210_AMX_TX_INT_SET:
 	case TEGRA210_AMX_SOFT_RESET:
 	case TEGRA210_AMX_STATUS:
 	case TEGRA210_AMX_INT_STATUS:
-	case TEGRA210_AMX_AHUBRAMCTL_AMX_CTRL:
-	case TEGRA210_AMX_AHUBRAMCTL_AMX_DATA:
+	case TEGRA210_AMX_CFG_RAM_CTRL:
+	case TEGRA210_AMX_CFG_RAM_DATA:
 		return true;
 	default:
 		break;
-	};
+	}
 
 	return false;
 }
@@ -780,7 +748,7 @@ static const struct regmap_config tegra210_amx_regmap_config = {
 	.reg_bits = 32,
 	.reg_stride = 4,
 	.val_bits = 32,
-	.max_register = TEGRA210_AMX_AHUBRAMCTL_AMX_DATA,
+	.max_register = TEGRA210_AMX_CFG_RAM_DATA,
 	.writeable_reg = tegra210_amx_wr_reg,
 	.readable_reg = tegra210_amx_rd_reg,
 	.volatile_reg = tegra210_amx_volatile_reg,
@@ -794,8 +762,8 @@ static const struct regmap_config tegra194_amx_regmap_config = {
 	.reg_stride = 4,
 	.val_bits = 32,
 	.max_register = TEGRA194_AMX_RX4_LAST_FRAME_PERIOD,
-	.writeable_reg = tegra210_amx_wr_reg,
-	.readable_reg = tegra210_amx_rd_reg,
+	.writeable_reg = tegra194_amx_wr_reg,
+	.readable_reg = tegra194_amx_rd_reg,
 	.volatile_reg = tegra210_amx_volatile_reg,
 	.reg_defaults = tegra210_amx_reg_defaults,
 	.num_reg_defaults = ARRAY_SIZE(tegra210_amx_reg_defaults),
@@ -817,64 +785,59 @@ static const struct of_device_id tegra210_amx_of_match[] = {
 	{ .compatible = "nvidia,tegra194-amx", .data = &soc_data_tegra194 },
 	{},
 };
+MODULE_DEVICE_TABLE(of, tegra210_amx_of_match);
 
 static int tegra210_amx_platform_probe(struct platform_device *pdev)
 {
+	struct device *dev = &pdev->dev;
 	struct tegra210_amx *amx;
-	struct resource *mem;
 	void __iomem *regs;
-	int ret;
+	int err;
 	const struct of_device_id *match;
 	struct tegra210_amx_soc_data *soc_data;
 
-	match = of_match_device(tegra210_amx_of_match, &pdev->dev);
-	if (!match) {
-		dev_err(&pdev->dev, "Error: No device match found\n");
-		return -ENODEV;
-	}
+	match = of_match_device(tegra210_amx_of_match, dev);
+
 	soc_data = (struct tegra210_amx_soc_data *)match->data;
 
-	amx = devm_kzalloc(&pdev->dev, sizeof(*amx), GFP_KERNEL);
+	amx = devm_kzalloc(dev, sizeof(*amx), GFP_KERNEL);
 	if (!amx)
 		return -ENOMEM;
 
 	amx->soc_data = soc_data;
 	memset(amx->map, 0, sizeof(amx->map));
 	memset(amx->byte_mask, 0, sizeof(amx->byte_mask));
-	dev_set_drvdata(&pdev->dev, amx);
+	dev_set_drvdata(dev, amx);
 
-	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	regs = devm_ioremap_resource(&pdev->dev, mem);
+	regs = devm_platform_ioremap_resource(pdev, 0);
 	if (IS_ERR(regs))
 		return PTR_ERR(regs);
-	amx->regmap = devm_regmap_init_mmio(&pdev->dev, regs,
+
+	amx->regmap = devm_regmap_init_mmio(dev, regs,
 					    soc_data->regmap_conf);
 	if (IS_ERR(amx->regmap)) {
-		dev_err(&pdev->dev, "regmap init failed\n");
+		dev_err(dev, "regmap init failed\n");
 		return PTR_ERR(amx->regmap);
 	}
+
 	regcache_cache_only(amx->regmap, true);
 
-	pm_runtime_enable(&pdev->dev);
-	ret = snd_soc_register_component(&pdev->dev, &tegra210_amx_cmpnt,
-				     tegra210_amx_dais,
-				     ARRAY_SIZE(tegra210_amx_dais));
-	if (ret != 0) {
-		dev_err(&pdev->dev, "Could not register CODEC: %d\n", ret);
-		pm_runtime_disable(&pdev->dev);
-		return ret;
+	err = devm_snd_soc_register_component(dev, &tegra210_amx_cmpnt,
+					      tegra210_amx_dais,
+					      ARRAY_SIZE(tegra210_amx_dais));
+	if (err) {
+		dev_err(dev, "can't register AMX component, err: %d\n", err);
+		return err;
 	}
+
+	pm_runtime_enable(dev);
 
 	return 0;
 }
 
 static int tegra210_amx_platform_remove(struct platform_device *pdev)
 {
-	snd_soc_unregister_component(&pdev->dev);
-
 	pm_runtime_disable(&pdev->dev);
-	if (!pm_runtime_status_suspended(&pdev->dev))
-		tegra210_amx_runtime_suspend(&pdev->dev);
 
 	return 0;
 }
@@ -888,8 +851,7 @@ static const struct dev_pm_ops tegra210_amx_pm_ops = {
 
 static struct platform_driver tegra210_amx_driver = {
 	.driver = {
-		.name = DRV_NAME,
-		.owner = THIS_MODULE,
+		.name = "tegra210-amx",
 		.of_match_table = tegra210_amx_of_match,
 		.pm = &tegra210_amx_pm_ops,
 	},
@@ -901,5 +863,3 @@ module_platform_driver(tegra210_amx_driver);
 MODULE_AUTHOR("Songhee Baek <sbaek@nvidia.com>");
 MODULE_DESCRIPTION("Tegra210 AMX ASoC driver");
 MODULE_LICENSE("GPL v2");
-MODULE_ALIAS("platform:" DRV_NAME);
-MODULE_DEVICE_TABLE(of, tegra210_amx_of_match);
