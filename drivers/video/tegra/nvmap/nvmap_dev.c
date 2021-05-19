@@ -36,7 +36,6 @@
 #include <linux/stat.h>
 #include <linux/kthread.h>
 #include <linux/highmem.h>
-#include <linux/lzo.h>
 #include <linux/swap.h>
 #include <linux/swapops.h>
 #include <linux/of.h>
