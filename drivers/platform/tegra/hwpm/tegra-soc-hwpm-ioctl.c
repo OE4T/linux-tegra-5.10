@@ -1315,6 +1315,8 @@ static int tegra_soc_hwpm_open(struct inode *inode, struct file *filp)
 	hwpm->bind_completed = false;
 	hwpm->full_wlist_size = -1;
 
+	return 0;
+
 fail:
 	if (hwpm->dt_apertures[TEGRA_SOC_HWPM_PMA_DT]) {
 		iounmap(hwpm->dt_apertures[TEGRA_SOC_HWPM_PMA_DT]);
@@ -1341,6 +1343,7 @@ fail:
 		kfree(cmd_slice_rtr_map[1].fake_registers);
 		cmd_slice_rtr_map[1].fake_registers = NULL;
 	}
+	tegra_soc_hwpm_err("%s failed", __func__);
 
 	return ret;
 }
