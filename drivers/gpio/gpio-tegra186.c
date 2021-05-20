@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2016-2020 NVIDIA Corporation
+ * Copyright (c) 2016-2021 NVIDIA Corporation
  *
  * Author: Thierry Reding <treding@nvidia.com>
  */
@@ -13,6 +13,7 @@
 #include <linux/gpio/consumer.h>
 #include <linux/platform_device.h>
 #include <linux/of_gpio.h>
+#include <linux/of_irq.h>
 
 #include <dt-bindings/gpio/tegra186-gpio.h>
 #include <dt-bindings/gpio/tegra194-gpio.h>
@@ -1193,6 +1194,9 @@ static int tegra186_gpio_probe(struct platform_device *pdev)
 	irq->parents = gpio->irq;
 
 	np = of_find_matching_node(NULL, tegra186_pmc_of_match);
+	if (!of_device_is_available(np))
+		np = of_irq_find_parent(pdev->dev.of_node);
+
 	if (of_device_is_available(np)) {
 		irq->parent_domain = irq_find_host(np);
 		of_node_put(np);
