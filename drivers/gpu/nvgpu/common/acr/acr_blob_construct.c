@@ -554,6 +554,10 @@ int nvgpu_acr_lsf_sec2_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 	p_img->data_size = desc->app_start_offset + desc->app_size;
 	p_img->lsf_desc = (struct lsf_ucode_desc *)lsf_desc;
 
+	g->sec2.fw.fw_image = sec2_fw;
+	g->sec2.fw.fw_desc = sec2_desc;
+	g->sec2.fw.fw_sig = sec2_sig;
+
 	nvgpu_acr_dbg(g, "requesting SEC2 ucode in %s done", g->name);
 
 	return err;
@@ -1404,6 +1408,17 @@ static void lsfm_free_nonpmu_ucode_img_res(struct gk20a *g,
 	}
 }
 
+static void lsfm_free_sec2_ucode_img_res(struct gk20a *g,
+	struct flcn_ucode_img *p_img)
+{
+	if (p_img->lsf_desc != NULL) {
+		nvgpu_kfree(g, p_img->lsf_desc);
+		p_img->lsf_desc = NULL;
+	}
+	p_img->data = NULL;
+	p_img->desc = NULL;
+}
+
 static void free_acr_resources(struct gk20a *g, struct ls_flcn_mgr *plsfm)
 {
 	u32 cnt = plsfm->managed_flcn_cnt;
@@ -1414,6 +1429,11 @@ static void free_acr_resources(struct gk20a *g, struct ls_flcn_mgr *plsfm)
 		if (mg_ucode_img->ucode_img.lsf_desc != NULL &&
 			mg_ucode_img->ucode_img.lsf_desc->falcon_id == FALCON_ID_PMU) {
 			lsfm_free_ucode_img_res(g, &mg_ucode_img->ucode_img);
+		} else if (mg_ucode_img->ucode_img.lsf_desc != NULL &&
+				mg_ucode_img->ucode_img.lsf_desc->falcon_id ==
+				FALCON_ID_SEC2) {
+			lsfm_free_sec2_ucode_img_res(g,
+				&mg_ucode_img->ucode_img);
 		} else {
 			lsfm_free_nonpmu_ucode_img_res(g,
 				&mg_ucode_img->ucode_img);

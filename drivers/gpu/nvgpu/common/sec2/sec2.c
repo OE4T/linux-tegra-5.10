@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/firmware.h>
 #include <nvgpu/log.h>
 #include <nvgpu/sec2/sec2.h>
 #include <nvgpu/sec2/queue.h>
@@ -84,6 +85,16 @@ int nvgpu_sec2_destroy(struct gk20a *g)
 	struct nvgpu_sec2 *sec2 = &g->sec2;
 
 	nvgpu_log_fn(g, " ");
+
+	if (g->sec2.fw.fw_image != NULL) {
+		nvgpu_release_firmware(g, g->sec2.fw.fw_image);
+	}
+	if (g->sec2.fw.fw_desc != NULL) {
+		nvgpu_release_firmware(g, g->sec2.fw.fw_desc);
+	}
+	if (g->sec2.fw.fw_sig != NULL) {
+		nvgpu_release_firmware(g, g->sec2.fw.fw_sig);
+	}
 
 	nvgpu_sec2_dmem_allocator_destroy(&sec2->dmem);
 

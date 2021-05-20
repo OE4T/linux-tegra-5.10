@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,6 +39,12 @@ struct nvgpu_engine_mem_queue;
 
 #define NVGPU_SEC2_TRACE_BUFSIZE	(32U * 1024U)
 
+struct sec2_fw {
+	struct nvgpu_firmware *fw_desc;
+	struct nvgpu_firmware *fw_image;
+	struct nvgpu_firmware *fw_sig;
+};
+
 struct nvgpu_sec2 {
 	struct gk20a *g;
 	struct nvgpu_falcon flcn;
@@ -61,6 +67,8 @@ struct nvgpu_sec2 {
 	void (*remove_support)(struct nvgpu_sec2 *sec2);
 
 	u32 command_ack;
+
+	struct sec2_fw fw;
 };
 
 /* sec2 init */
