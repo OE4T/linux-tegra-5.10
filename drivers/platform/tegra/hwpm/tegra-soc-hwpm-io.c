@@ -431,7 +431,6 @@ struct hwpm_resource_aperture mgbe_map[] = {
 	},
 };
 
-/* FIXME: Any missing apertures? */
 struct hwpm_resource_aperture scf_map[] = {
 	{
 		.start_pa = 0,
