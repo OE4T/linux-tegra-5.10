@@ -487,7 +487,7 @@ int ether_handle_hwtstamp_ioctl(struct ether_priv_data *pdata,
 #if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 		getnstimeofday(&now);
 #else
-		ktime_get_ts64(&now);
+		ktime_get_real_ts64(&now);
 #endif
 		/* Store sec and nsec */
 		osi_core->ptp_config.sec = now.tv_sec;

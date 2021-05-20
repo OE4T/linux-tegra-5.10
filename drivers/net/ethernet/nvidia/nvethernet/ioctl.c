@@ -248,7 +248,7 @@ static int ether_config_ptp_offload(struct ether_priv_data *pdata,
 	pdata->osi_core->ptp_config.ptp_clock = pdata->ptp_ref_clock_speed;
 	/* initialize system time */
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
-	ktime_get_ts64(&now);
+	ktime_get_real_ts64(&now);
 #else
 	getnstimeofday(&now);
 #endif
