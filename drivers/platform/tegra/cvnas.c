@@ -1,7 +1,7 @@
 /*
  * drivers/platform/tegra/cvnas.c
  *
- * Copyright (C) 2017-2020, NVIDIA Corporation.  All rights reserved.
+ * Copyright (C) 2017-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -493,6 +493,10 @@ static ssize_t clk_cap_store(struct device *dev,
 
 	ret = kstrtoul(buf, 0, &max_rate);
 	if (ret)
+		return -EINVAL;
+
+	max_rate = clk_round_rate(cvnas->clk, max_rate);
+	if (max_rate < 0)
 		return -EINVAL;
 
 	ret = clk_set_max_rate(cvnas->clk, max_rate);
