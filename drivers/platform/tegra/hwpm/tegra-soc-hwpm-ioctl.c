@@ -885,9 +885,9 @@ static int exec_reg_ops_ioctl(struct tegra_soc_hwpm *hwpm,
 		}							\
 	} while (0)
 
+		reg_op = &(exec_reg_ops->ops[op_idx]);
 		tegra_soc_hwpm_dbg("reg op: idx(%d), phys(0x%llx), cmd(%u)",
 				op_idx, reg_op->phys_addr, reg_op->cmd);
-		reg_op = &(exec_reg_ops->ops[op_idx]);
 
 		/* The whitelist check is done here */
 		aperture = find_hwpm_aperture(hwpm, reg_op->phys_addr, true);
