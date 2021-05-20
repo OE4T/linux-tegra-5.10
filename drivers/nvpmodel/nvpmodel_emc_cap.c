@@ -3,7 +3,7 @@
  *
  * NVIDIA Tegra Nvpmodel driver for Tegra chips
  *
- * Copyright (c) 2017-2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -105,6 +105,10 @@ static ssize_t clk_cap_store(struct kobject *kobj,
 	struct nvpmodel_clk *clk = container_of(attr, struct nvpmodel_clk, attr);
 
 	if (sscanf(buf, "%lu", &rate) != 1)
+		return -EINVAL;
+
+	rate = clk_round_rate(clk->clk, rate);
+	if (rate < 0)
 		return -EINVAL;
 
 	ret = clk_set_max_rate(clk->clk, rate);
