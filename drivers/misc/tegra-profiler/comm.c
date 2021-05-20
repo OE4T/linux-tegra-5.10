@@ -1,7 +1,7 @@
 /*
  * drivers/misc/tegra-profiler/comm.c
  *
- * Copyright (c) 2013-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -120,8 +120,7 @@ write_sample(struct quadd_ring_buffer *rb,
 
 	c = CIRC_SPACE(hdr.pos_write, hdr.pos_read, hdr.size);
 	if (len > c) {
-		pr_err_once("[cpu: %d] warning: buffer has been overflowed\n",
-			    smp_processor_id());
+		pr_info_once("[cpu:%d] buffer overflow\n", smp_processor_id());
 		return -ENOSPC;
 	}
 
@@ -198,7 +197,6 @@ put_sample(struct quadd_record_data *data,
 
 	err = write_sample(rb, data, vec, vec_count);
 	if (err < 0) {
-		pr_err_once("%s: error: write sample\n", __func__);
 		rb->nr_skipped_samples++;
 
 		rb_hdr = rb->rb_hdr;
