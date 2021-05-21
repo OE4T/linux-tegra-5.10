@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -69,8 +69,8 @@ int test_nvgpu_gmmu_map_unmap_map_fail(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_gmmu_map_fixed, gops_mm.gops_mm_gmmu.map, nvgpu_gmmu_map,
- * nvgpu_get_pte, gops_mm.gops_mm_gmmu.unmap, nvgpu_gmmu_unmap
+ * Targets: nvgpu_gmmu_map_fixed, gops_mm_gmmu.map, nvgpu_gmmu_map,
+ * nvgpu_get_pte, gops_mm_gmmu.unmap, nvgpu_gmmu_unmap
  *
  * Input: args as a struct test_parameters to hold scenario and test parameters.
  *
@@ -103,8 +103,8 @@ int test_nvgpu_gmmu_map_unmap(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
- * Targets: gops_mm.gops_mm_gmmu.map, nvgpu_gmmu_map_locked,
- * gops_mm.gops_mm_gmmu.unmap, nvgpu_gmmu_unmap, gk20a_from_vm
+ * Targets: gops_mm_gmmu.map, nvgpu_gmmu_map_locked,
+ * gops_mm_gmmu.unmap, nvgpu_gmmu_unmap, gk20a_from_vm
  *
  * Input: args as a struct test_parameters to hold scenario and test parameters.
  *
@@ -129,7 +129,7 @@ int test_nvgpu_gmmu_map_unmap_adv(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_gmmu_map_locked, nvgpu_gmmu_unmap, gops_mm.gops_mm_gmmu.unmap,
+ * Targets: nvgpu_gmmu_map_locked, nvgpu_gmmu_unmap, gops_mm_gmmu.unmap,
  * nvgpu_gmmu_unmap_locked
  *
  * Input: args as a struct test_parameters to hold scenario and test parameters.
@@ -159,8 +159,8 @@ int test_nvgpu_gmmu_map_unmap_batched(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_vm_init, nvgpu_gmmu_map, gops_mm.gops_mm_gmmu.map,
- * nvgpu_gmmu_map_locked, gops_mm.gops_mm_gmmu.unmap, nvgpu_gmmu_unmap,
+ * Targets: nvgpu_vm_init, nvgpu_gmmu_map, gops_mm_gmmu.map,
+ * nvgpu_gmmu_map_locked, gops_mm_gmmu.unmap, nvgpu_gmmu_unmap,
  * nvgpu_vm_put
  *
  * Input: None
@@ -192,8 +192,8 @@ int test_nvgpu_page_table_c1_full(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_vm_init, gops_mm.gops_mm_gmmu.map, nvgpu_gmmu_map_fixed,
- * gops_mm.gops_mm_gmmu.unmap, nvgpu_gmmu_unmap, nvgpu_vm_put
+ * Targets: nvgpu_vm_init, gops_mm_gmmu.map, nvgpu_gmmu_map_fixed,
+ * gops_mm_gmmu.unmap, nvgpu_gmmu_unmap, nvgpu_vm_put
  *
  * Input: None
  *

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -92,7 +92,7 @@ int test_page_faults_pending(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
- * Targets: gops_mm.gops_mm_mmu_fault.disable_hw, gv11b_mm_mmu_fault_disable_hw,
+ * Targets: gops_mm_mmu_fault.disable_hw, gv11b_mm_mmu_fault_disable_hw,
  * gops_fb.is_fault_buf_enabled, gv11b_fb_is_fault_buf_enabled
  *
  * Input: test_page_faults_init
@@ -120,7 +120,11 @@ int test_page_faults_disable_hw(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
+<<<<<<< HEAD
  * Targets: gops_mm.gops_mm_gmmu.get_default_big_page_size,
+=======
+ * Targets: gops_mm_gmmu.get_default_big_page_size,
+>>>>>>> 2769ccf4e... gpu: nvgpu: userspace: update "Targets" field for mm
  * nvgpu_gmmu_default_big_page_size, nvgpu_alloc_inst_block,
  * gops_mm.init_inst_block, gv11b_mm_init_inst_block
  *
@@ -148,7 +152,7 @@ int test_page_faults_inst_block(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: De-init
  *
- * Targets: gops_mm.gops_mm_mmu_fault.info_mem_destroy,
+ * Targets: gops_mm_mmu_fault.info_mem_destroy,
  * gv11b_mm_mmu_fault_info_mem_destroy, nvgpu_vm_put
  *
  * Input: test_page_faults_init

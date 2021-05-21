@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -59,8 +59,8 @@ int test_env_init_mm_mmu_fault_gv11b_fusa(struct unit_module *m,
  *
  * Test Type: Feature, Error injection
  *
- * Targets: gops_mm.gops_mm_mmu_fault.setup_sw, gv11b_mm_mmu_fault_setup_sw,
- * gops_mm.gops_mm_mmu_fault.info_mem_destroy,
+ * Targets: gops_mm_mmu_fault.setup_sw, gv11b_mm_mmu_fault_setup_sw,
+ * gops_mm_mmu_fault.info_mem_destroy,
  * gv11b_mm_mmu_fault_info_mem_destroy
  *
  * Input: test_env_init
@@ -83,7 +83,7 @@ int test_gv11b_mm_mmu_fault_setup_sw(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
- * Targets: gops_mm.gops_mm_mmu_fault.setup_hw, gv11b_mm_mmu_fault_setup_hw
+ * Targets: gops_mm_mmu_fault.setup_hw, gv11b_mm_mmu_fault_setup_hw
  *
  * Input: test_env_init
  *
@@ -104,7 +104,7 @@ int test_gv11b_mm_mmu_fault_setup_hw(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
- * Targets: gops_mm.gops_mm_mmu_fault.disable_hw, gv11b_mm_mmu_fault_disable_hw
+ * Targets: gops_mm_mmu_fault.disable_hw, gv11b_mm_mmu_fault_disable_hw
  *
  * Input: test_env_init
  *

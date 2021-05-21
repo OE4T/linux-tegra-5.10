@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,7 +39,7 @@ struct unit_module;
  *
  * Test Type: Feature
  *
- * Targets: gops_mm.gops_mm_gmmu.gpu_phys_addr, gv11b_gpu_phys_addr
+ * Targets: gops_mm_gmmu.gpu_phys_addr, gv11b_gpu_phys_addr
  *
  * Input: args (value can be F_GV11B_GPU_PHYS_ADDR_GMMU_ATTRS_NULL,
  *        F_GV11B_GPU_PHYS_ADDR_L3_ALLOC_FALSE or

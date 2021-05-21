@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,7 +39,11 @@ struct unit_module;
  *
  * Test Type: Feature
  *
+<<<<<<< HEAD
  * Targets: gops_mm.gops_mm_gmmu.get_default_big_page_size,
+=======
+ * Targets: gops_mm_gmmu.get_default_big_page_size,
+>>>>>>> 2769ccf4e... gpu: nvgpu: userspace: update "Targets" field for mm
  * nvgpu_gmmu_default_big_page_size
  *
  * Input: None
@@ -60,7 +64,7 @@ int test_gp10b_mm_get_default_big_page_size(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: gops_mm.gops_mm_gmmu.get_iommu_bit, gp10b_mm_get_iommu_bit
+ * Targets: gops_mm_gmmu.get_iommu_bit, gp10b_mm_get_iommu_bit
  *
  * Input: None
  *
@@ -80,7 +84,7 @@ int test_gp10b_mm_get_iommu_bit(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
- * Targets: gops_mm.gops_mm_gmmu.get_max_page_table_levels,
+ * Targets: gops_mm_gmmu.get_max_page_table_levels,
  * gp10b_get_max_page_table_levels
  *
  * Input: None
@@ -101,7 +105,7 @@ int test_gp10b_get_max_page_table_levels(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: gops_mm.gops_mm_gmmu.get_mmu_levels, gp10b_mm_get_mmu_levels
+ * Targets: gops_mm_gmmu.get_mmu_levels, gp10b_mm_get_mmu_levels
  *
  * Input: None
  *
