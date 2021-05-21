@@ -1,6 +1,5 @@
 menuconfig TEGRA_NVMAP
 	bool "Tegra GPU memory management driver (nvmap)"
-	select ARM_DMA_USE_IOMMU if IOMMU_API
 	select DMA_SHARED_BUFFER
 	default n
 	help
