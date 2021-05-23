@@ -2158,6 +2158,7 @@ static void tegra_xhci_id_work(struct work_struct *work)
 
 	mutex_unlock(&tegra->lock);
 
+	pm_runtime_get_sync(tegra->dev);
 	if (tegra->host_mode) {
 		/* switch to host mode */
 		if (tegra->otg_usb3_port >= 0) {
@@ -2187,13 +2188,14 @@ static void tegra_xhci_id_work(struct work_struct *work)
 		}
 
 		tegra_xhci_set_port_power(tegra, true, true);
-
+		pm_runtime_mark_last_busy(tegra->dev);
 	} else {
 		if (tegra->otg_usb3_port >= 0)
 			tegra_xhci_set_port_power(tegra, false, false);
 
 		tegra_xhci_set_port_power(tegra, true, false);
 	}
+	pm_runtime_put_autosuspend(tegra->dev);
 }
 
 static bool is_usb2_otg_phy(struct tegra_xusb *tegra, unsigned int index)
