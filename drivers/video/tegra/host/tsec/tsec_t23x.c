@@ -61,7 +61,7 @@ static int tsec_read_riscv_bin(struct platform_device *dev,
 			const char *desc_name,
 			const char *image_name)
 {
-	int err;
+	int err, w;
 	const struct firmware *riscv_desc, *riscv_image;
 	struct nvhost_device_data *pdata = platform_get_drvdata(dev);
 	struct riscv_data *m = (struct riscv_data *)pdata->riscv_data;
@@ -89,13 +89,18 @@ static int tsec_read_riscv_bin(struct platform_device *dev,
 	m->size = riscv_image->size;
 	m->mapped = dma_alloc_attrs(&dev->dev, m->size, &m->dma_addr,
 				GFP_KERNEL,
-				DMA_ATTR_READ_ONLY|DMA_ATTR_FORCE_CONTIGUOUS);
+				DMA_ATTR_READ_ONLY | DMA_ATTR_FORCE_CONTIGUOUS);
 	if (!m->mapped) {
 		dev_err(&dev->dev, "dma memory allocation failed");
 		err = -ENOMEM;
 		goto clean_up;
 	}
 
+	/* Copy the whole image taking endianness into account */
+	for (w = 0; w < riscv_image->size/sizeof(u32); w++)
+		m->mapped[w] = le32_to_cpu(((__le32 *)riscv_image->data)[w]);
+
+	/* Read the offsets from desc binary */
 	err = riscv_compute_ucode_offsets(dev, m, riscv_desc);
 	if (err) {
 		dev_err(&dev->dev, "failed to parse desc binary\n");
@@ -111,7 +116,7 @@ static int tsec_read_riscv_bin(struct platform_device *dev,
 clean_up:
 	if (m->mapped) {
 		dma_free_attrs(&dev->dev, m->size, m->mapped, m->dma_addr,
-				DMA_ATTR_READ_ONLY|DMA_ATTR_FORCE_CONTIGUOUS);
+				DMA_ATTR_READ_ONLY | DMA_ATTR_FORCE_CONTIGUOUS);
 		m->mapped = NULL;
 		m->dma_addr = 0;
 	}
@@ -183,7 +188,7 @@ static int nvhost_tsec_riscv_deinit_sw(struct platform_device *dev)
 
 	if (m->mapped) {
 		dma_free_attrs(&dev->dev, m->size, m->mapped, m->dma_addr,
-				DMA_ATTR_READ_ONLY|DMA_ATTR_FORCE_CONTIGUOUS);
+				DMA_ATTR_READ_ONLY | DMA_ATTR_FORCE_CONTIGUOUS);
 		m->mapped = NULL;
 		m->dma_addr = 0;
 	}
@@ -341,7 +346,7 @@ int nvhost_tsec_finalize_poweron_t23x(struct platform_device *dev)
 	struct nvhost_device_data *pdata = platform_get_drvdata(dev);
 
 	if (!pdata) {
-		dev_info(&dev->dev, "no platform data\n");
+		dev_err(&dev->dev, "no platform data\n");
 		return -ENODATA;
 	}
 
