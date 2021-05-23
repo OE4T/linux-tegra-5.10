@@ -1,3 +1,0 @@
-nvidia
-nvlink
-nvgpu

@@ -1,6 +1,3 @@
 nvidia
 nvlink
 nvgpu
-nvgpu-next
-nvidia-t23x
-display-t23x
