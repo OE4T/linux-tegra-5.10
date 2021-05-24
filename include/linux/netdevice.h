@@ -1,4 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
+/*  Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved. */
 /*
  * INET		An implementation of the TCP/IP protocol suite for the LINUX
  *		operating system.  INET is implemented using the  BSD Socket
@@ -473,6 +474,8 @@ static inline bool napi_reschedule(struct napi_struct *napi)
 	}
 	return false;
 }
+
+int napi_gro_complete(struct napi_struct *napi, struct sk_buff *skb);
 
 bool napi_complete_done(struct napi_struct *n, int work_done);
 /**
