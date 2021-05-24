@@ -1059,7 +1059,7 @@ static void ether_free_irqs(struct ether_priv_data *pdata)
 	if (pdata->osi_core->mac_ver > OSI_EQOS_MAC_5_00 ||
 	    (pdata->osi_core->mac_ver == OSI_MGBE_MAC_3_00) ||
 	    (pdata->osi_core->mac_ver == OSI_MGBE_MAC_3_10)) {
-		for (i = 0; i < pdata->osi_dma->num_vm_irqs; i++) {
+		for (i = 0; i < pdata->osi_core->num_vm_irqs; i++) {
 			if (pdata->rx_irq_alloc_mask & (OSI_ENABLE << i)) {
 				devm_free_irq(pdata->dev, pdata->vm_irqs[i],
 					      &pdata->vm_irq_data[i]);
@@ -1251,7 +1251,7 @@ static int ether_request_irqs(struct ether_priv_data *pdata)
 	if (osi_core->mac_ver > OSI_EQOS_MAC_5_00 ||
 	    (osi_core->mac_ver == OSI_MGBE_MAC_3_10) ||
 	    (osi_core->mac_ver == OSI_MGBE_MAC_3_00)) {
-		for (i = 0; i < osi_dma->num_vm_irqs; i++) {
+		for (i = 0; i < osi_core->num_vm_irqs; i++) {
 			snprintf(irq_names[j], ETHER_IRQ_NAME_SZ, "%s.vm%d",
 				 netdev_name(pdata->ndev), i);
 			ret = devm_request_irq(pdata->dev, pdata->vm_irqs[i],
@@ -3882,7 +3882,7 @@ static void ether_set_vm_irq_chan_mask(struct ether_vm_irq_data *vm_irq_data,
 static int ether_get_vm_irq_data(struct platform_device *pdev,
 				 struct ether_priv_data *pdata)
 {
-	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct device_node *vm_node, *temp;
 	unsigned int i, j, node = 0;
 	int ret = 0;
@@ -3896,22 +3896,22 @@ static int ether_get_vm_irq_data(struct platform_device *pdev,
 
 	/* parse the number of VM IRQ's */
 	ret = of_property_read_u32(vm_node, "nvidia,num-vm-irqs",
-				   &osi_dma->num_vm_irqs);
+				   &osi_core->num_vm_irqs);
 	if (ret != 0) {
 		dev_err(&pdev->dev, "failed to get number of VM IRQ's (%d)\n",
 			ret);
 		dev_info(&pdev->dev, "Using num_vm_irqs as one\n");
-		osi_dma->num_vm_irqs = 1;
+		osi_core->num_vm_irqs = 1;
 	}
 
-	if (osi_dma->num_vm_irqs > OSI_MAX_VM_IRQS) {
+	if (osi_core->num_vm_irqs > OSI_MAX_VM_IRQS) {
 		dev_err(&pdev->dev, "Invalid Num. of VM IRQS\n");
 		return -EINVAL;
 	}
 
 	pdata->vm_irq_data = devm_kzalloc(pdata->dev,
 					  sizeof(struct ether_vm_irq_data) *
-					  osi_dma->num_vm_irqs,
+					  osi_core->num_vm_irqs,
 					  GFP_KERNEL);
 	if (pdata->vm_irq_data == NULL) {
 		dev_err(&pdev->dev, "failed to allocate VM IRQ data\n");
@@ -3919,18 +3919,18 @@ static int ether_get_vm_irq_data(struct platform_device *pdev,
 	}
 
 	ret = of_get_child_count(vm_node);
-	if (ret != osi_dma->num_vm_irqs) {
+	if (ret != osi_core->num_vm_irqs) {
 		dev_err(&pdev->dev,
 			"Mismatch in num_vm_irqs and VM IRQ config DT nodes\n");
 		return -EINVAL;
 	}
 
 	for_each_child_of_node(vm_node, temp) {
-		if (node == osi_dma->num_vm_irqs)
+		if (node == osi_core->num_vm_irqs)
 			break;
 
 		ret = of_property_read_u32(temp, "nvidia,num-vm-channels",
-					&osi_dma->irq_data[node].num_vm_chans);
+					&osi_core->irq_data[node].num_vm_chans);
 		if (ret != 0) {
 			dev_err(&pdev->dev,
 				"failed to read number of VM channels\n");
@@ -3938,8 +3938,8 @@ static int ether_get_vm_irq_data(struct platform_device *pdev,
 		}
 
 		ret = of_property_read_u32_array(temp, "nvidia,vm-channels",
-					osi_dma->irq_data[node].vm_chans,
-					osi_dma->irq_data[node].num_vm_chans);
+					osi_core->irq_data[node].vm_chans,
+					osi_core->irq_data[node].num_vm_chans);
 		if (ret != 0) {
 			dev_err(&pdev->dev, "failed to get VM channels\n");
 			return ret;
@@ -3953,15 +3953,15 @@ static int ether_get_vm_irq_data(struct platform_device *pdev,
 		}
 
 		ether_set_vm_irq_chan_mask(&pdata->vm_irq_data[node],
-					   osi_dma->irq_data[node].num_vm_chans,
-					   osi_dma->irq_data[node].vm_chans);
+					   osi_core->irq_data[node].num_vm_chans,
+					   osi_core->irq_data[node].vm_chans);
 
 		pdata->vm_irq_data[node].pdata = pdata;
 
 		node++;
 	}
 
-	for (i = 0, j = 1; i < osi_dma->num_vm_irqs; i++, j++) {
+	for (i = 0, j = 1; i < osi_core->num_vm_irqs; i++, j++) {
 		pdata->vm_irqs[i] = platform_get_irq(pdev, j);
 		if (pdata->vm_irqs[i] < 0) {
 			dev_err(&pdev->dev, "failed to get VM IRQ number\n");
