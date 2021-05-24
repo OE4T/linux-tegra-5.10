@@ -2995,6 +2995,40 @@ static void mgbe_tsn_init(struct osi_core_priv_data *osi_core,
 }
 
 /**
+ * @brief Map DMA channels to a specific VM IRQ.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @note OSD layer needs to update number of VM channels and
+ *	DMA channel list in osi_vm_irq_data.
+ */
+static void mgbe_dma_chan_to_vmirq_map(struct osi_core_priv_data *osi_core)
+{
+	struct osi_vm_irq_data *irq_data;
+	nveu32_t i, j;
+	nveu32_t chan;
+
+	for (i = 0; i < osi_core->num_vm_irqs; i++) {
+		irq_data = &osi_core->irq_data[i];
+
+		for (j = 0; j < irq_data->num_vm_chans; j++) {
+			chan = irq_data->vm_chans[j];
+
+			if (chan >= OSI_MGBE_MAX_NUM_CHANS) {
+				continue;
+			}
+
+			osi_writel(OSI_BIT(irq_data->vm_num),
+				   (nveu8_t *)osi_core->base +
+				   MGBE_VIRT_INTR_APB_CHX_CNTRL(chan));
+		}
+	}
+
+	osi_writel(0xD, (nveu8_t *)osi_core->base + 0x8400);
+}
+
+
+/**
  * @brief mgbe_core_init - MGBE MAC, MTL and common DMA Initialization
  *
  * Algorithm: This function will take care of initializing MAC, MTL and
@@ -3099,6 +3133,8 @@ static nve32_t mgbe_core_init(struct osi_core_priv_data *osi_core,
 		mgbe_tsn_init(osi_core, osi_core->hw_feature->est_sel,
 			      osi_core->hw_feature->fpe_sel);
 	}
+
+	mgbe_dma_chan_to_vmirq_map(osi_core);
 
 	return 0;
 }

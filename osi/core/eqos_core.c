@@ -1857,6 +1857,42 @@ static void eqos_tsn_init(struct osi_core_priv_data *osi_core,
 }
 
 /**
+ * @brief Map DMA channels to a specific VM IRQ.
+ *
+ * @param[in] osi_core: OSI private data structure.
+ *
+ * @note
+ *	Dependencies: OSD layer needs to update number of VM channels and
+ *		      DMA channel list in osi_vm_irq_data.
+ *	Protection: None.
+ *
+ * @retval None.
+ */
+static void eqos_dma_chan_to_vmirq_map(struct osi_core_priv_data *osi_core)
+{
+	struct osi_vm_irq_data *irq_data;
+	nveu32_t i, j;
+	nveu32_t chan;
+
+	if (osi_core->mac_ver < OSI_EQOS_MAC_5_30) {
+		return;
+	}
+
+	for (i = 0; i < osi_core->num_vm_irqs; i++) {
+		irq_data = &osi_core->irq_data[i];
+		for (j = 0; j < irq_data->num_vm_chans; j++) {
+			chan = irq_data->vm_chans[j];
+			if (chan >= OSI_EQOS_MAX_NUM_CHANS) {
+				continue;
+			}
+			osi_writel(OSI_BIT(irq_data->vm_num),
+				   (nveu8_t *)osi_core->base +
+				   EQOS_VIRT_INTR_APB_CHX_CNTRL(chan));
+		}
+	}
+}
+
+/**
  * @brief eqos_core_init - EQOS MAC, MTL and common DMA Initialization
  *
  * @note
@@ -1974,6 +2010,8 @@ static nve32_t eqos_core_init(struct osi_core_priv_data *const osi_core,
 
 	/* initialize L3L4 Filters variable */
 	osi_core->l3l4_filter_bitmask = OSI_NONE;
+
+	eqos_dma_chan_to_vmirq_map(osi_core);
 
 	return ret;
 }

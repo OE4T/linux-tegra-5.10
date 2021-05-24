@@ -120,6 +120,7 @@
  */
 #define MGBE_WRAP_COMMON_INTR_ENABLE	0x8704
 #define MGBE_WRAP_COMMON_INTR_STATUS	0x8708
+#define MGBE_VIRT_INTR_APB_CHX_CNTRL(x)	(0x8200U + ((x) * 4U))
 /** @} */
 
 /**

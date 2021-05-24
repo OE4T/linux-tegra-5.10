@@ -710,40 +710,6 @@ static void eqos_configure_dma_channel(nveu32_t chan,
 }
 
 /**
- * @brief eqos_dma_chan_to_vmirq_map - Map DMA channels to a specific VM IRQ.
- *
- * @param[in] osi_dma: OSI private data structure.
- *
- * Algorithm: Programs HW to map DMA channels to specific VM.
- *
- * @note
- *	Dependencies: OSD layer needs to update number of VM channels and
- *		      DMA channel list in osi_vm_irq_data.
- *	Protection: None.
- *
- * @retval None.
- */
-static void eqos_dma_chan_to_vmirq_map(struct osi_dma_priv_data *osi_dma)
-{
-	struct osi_vm_irq_data *irq_data;
-	nveu32_t i, j;
-	nveu32_t chan;
-
-	for (i = 0; i < osi_dma->num_vm_irqs; i++) {
-		irq_data = &osi_dma->irq_data[i];
-		for (j = 0; j < irq_data->num_vm_chans; j++) {
-			chan = irq_data->vm_chans[j];
-			if (chan >= OSI_EQOS_MAX_NUM_CHANS) {
-				continue;
-			}
-			osi_writel(OSI_BIT(irq_data->vm_num),
-				   (nveu8_t *)osi_dma->base +
-				   EQOS_VIRT_INTR_APB_CHX_CNTRL(chan));
-		}
-	}
-}
-
-/**
  * @brief eqos_init_dma_channel - DMA channel INIT
  *
  * @param[in] osi_dma: OSI DMA private data structure.
@@ -772,8 +738,6 @@ static nve32_t eqos_init_dma_channel(struct osi_dma_priv_data *osi_dma)
 		}
 		eqos_configure_dma_channel(osi_dma->dma_chans[chinx], osi_dma);
 	}
-
-	eqos_dma_chan_to_vmirq_map(osi_dma);
 
 	return 0;
 }
