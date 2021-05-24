@@ -281,6 +281,7 @@ static int nvgpu_as_ioctl_get_sync_ro_map(
 	struct gk20a *g = gk20a_from_vm(vm);
 	u64 base_gpuva;
 	u32 sync_size;
+	u32 num_syncpoints;
 	int err = 0;
 
 	if (g->ops.sync.syncpt.get_sync_ro_map == NULL)
@@ -289,12 +290,14 @@ static int nvgpu_as_ioctl_get_sync_ro_map(
 	if (!nvgpu_has_syncpoints(g))
 		return -EINVAL;
 
-	err = g->ops.sync.syncpt.get_sync_ro_map(vm, &base_gpuva, &sync_size);
+	err = g->ops.sync.syncpt.get_sync_ro_map(vm, &base_gpuva, &sync_size,
+						 &num_syncpoints);
 	if (err)
 		return err;
 
 	args->base_gpuva = base_gpuva;
 	args->sync_size = sync_size;
+	args->num_syncpoints = num_syncpoints;
 
 	return err;
 #else

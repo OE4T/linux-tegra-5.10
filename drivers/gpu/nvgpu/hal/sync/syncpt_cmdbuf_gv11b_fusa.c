@@ -105,10 +105,11 @@ void gv11b_syncpt_free_buf(struct nvgpu_channel *c,
 }
 
 int gv11b_syncpt_get_sync_ro_map(struct vm_gk20a *vm,
-		u64 *base_gpuva, u32 *sync_size)
+		u64 *base_gpuva, u32 *sync_size, u32 *num_syncpoints)
 {
 	struct gk20a *g = gk20a_from_vm(vm);
 	int err;
+	size_t tmp;
 
 	nvgpu_mutex_acquire(&vm->syncpt_ro_map_lock);
 	err = set_syncpt_ro_map_gpu_va_locked(vm);
@@ -119,6 +120,9 @@ int gv11b_syncpt_get_sync_ro_map(struct vm_gk20a *vm,
 
 	*base_gpuva = vm->syncpt_ro_map_gpu_va;
 	*sync_size = g->syncpt_size;
+
+	tmp = g->syncpt_size ? (g->syncpt_unit_size / g->syncpt_size) : 0U;
+	*num_syncpoints = (tmp <= U32_MAX) ? tmp : U32_MAX;
 
 	return 0;
 }

@@ -375,7 +375,7 @@ struct nvgpu_as_map_buffer_batch_args {
 struct nvgpu_as_get_sync_ro_map_args {
 	__u64 base_gpuva;
 	__u32 sync_size;
-	__u32 padding;
+	__u32 num_syncpoints;
 };
 
 /*

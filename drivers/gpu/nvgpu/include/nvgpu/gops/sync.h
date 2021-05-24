@@ -44,8 +44,9 @@ struct gops_sync_syncpt {
 	 * @param vm [in]		VM area for channel.
 	 * @param base_gpu [out]	Base GPU VA for mapped
 	 * 				syncpoint aperture.
-	 * @param sync_size [out]	Size of syncpoint aperture
-	 * 				in bytes.
+	 * @param sync_size [out]	Size per syncpoint in bytes.
+	 * @param num_syncpoints [out]	Number of syncpoints in the
+	 * 				aperture.
 	 *
 	 * Map syncpoint aperture in GPU virtual memory as read-only:
 	 * - Acquire syncpoint read-only map lock.
@@ -53,12 +54,14 @@ struct gops_sync_syncpt {
 	 *   if not already mapped. Map as read-only.
 	 * - Release syncpoint read-only map lock.
 	 *
+	 * The syncpoint shim mapping size is sync_size * num_syncpoints.
+	 *
 	 * @return 0 in case of success, < 0 in case of failure.
 	 * @retval -ENOMEM if syncpoint aperture could not be
 	 *         mapped to GPU virtual memory.
 	 */
 	int (*get_sync_ro_map)(struct vm_gk20a *vm,
-			u64 *base_gpuva, u32 *sync_size);
+			u64 *base_gpuva, u32 *sync_size, u32 *num_syncpoints);
 
 /** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	int (*alloc_buf)(struct nvgpu_channel *c,

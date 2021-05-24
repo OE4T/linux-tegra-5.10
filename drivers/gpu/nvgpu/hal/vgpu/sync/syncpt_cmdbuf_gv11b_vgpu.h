@@ -35,5 +35,5 @@ int vgpu_gv11b_syncpt_alloc_buf(struct nvgpu_channel *c,
 void vgpu_gv11b_syncpt_free_buf(struct nvgpu_channel *c,
 					struct nvgpu_mem *syncpt_buf);
 int vgpu_gv11b_syncpt_get_sync_ro_map(struct vm_gk20a *vm,
-	u64 *base_gpuva, u32 *sync_size);
+	u64 *base_gpuva, u32 *sync_size, u32 *num_syncpoints);
 #endif /* NVGPU_SYNCPT_CMDBUF_GV11B_VGPU_H */

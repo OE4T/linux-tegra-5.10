@@ -341,6 +341,7 @@ int test_sync_get_ro_map(struct unit_module *m, struct gk20a *g, void *args)
 {
 	u64 base_gpuva = 0U;
 	u32 sync_size = 0U;
+	u32 num_syncpoints = 0U;
 	u32 branches;
 
 	int err = 0;
@@ -366,7 +367,7 @@ int test_sync_get_ro_map(struct unit_module *m, struct gk20a *g, void *args)
 		unit_info(m, "%s branch: %s\n", __func__, f_sync_get_ro_map[branches]);
 
 		err = g->ops.sync.syncpt.get_sync_ro_map(ch->vm,
-			&base_gpuva, &sync_size);
+				&base_gpuva, &sync_size, &num_syncpoints);
 
 		if (branches < F_SYNC_GET_RO_MAP_FAIL) {
 			if(err != 0) {

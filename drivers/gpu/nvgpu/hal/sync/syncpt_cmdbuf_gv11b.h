@@ -52,7 +52,7 @@ int gv11b_syncpt_alloc_buf(struct nvgpu_channel *c,
 		u32 syncpt_id, struct nvgpu_mem *syncpt_buf);
 
 int gv11b_syncpt_get_sync_ro_map(struct vm_gk20a *vm,
-		u64 *base_gpuva, u32 *sync_size);
+		u64 *base_gpuva, u32 *sync_size, u32 *num_syncpoints);
 
 #else
 
