@@ -4,11 +4,16 @@
  */
 
 #include <linux/iommu.h>
+#include <linux/version.h>
 
 #include <drm/drm_atomic.h>
 #include <drm/drm_atomic_helper.h>
 #include <drm/drm_fourcc.h>
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 13, 0)
+#include <drm/drm_gem_atomic_helper.h>
+#else
 #include <drm/drm_gem_framebuffer_helper.h>
+#endif
 #include <drm/drm_plane_helper.h>
 
 #include "dc.h"
@@ -198,7 +203,11 @@ int tegra_plane_prepare_fb(struct drm_plane *plane,
 	if (!state->fb)
 		return 0;
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 13, 0)
+	drm_gem_plane_helper_prepare_fb(plane, state);
+#else
 	drm_gem_fb_prepare_fb(plane, state);
+#endif
 
 	return tegra_dc_pin(dc, to_tegra_plane_state(state));
 }
