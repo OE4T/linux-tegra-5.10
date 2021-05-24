@@ -943,6 +943,18 @@ struct core_backup {
 };
 
 /**
+ * @brief OSI VM IRQ data
+ */
+struct osi_vm_irq_data {
+	/** Number of VM channels per VM IRQ */
+	nveu32_t num_vm_chans;
+	/** VM/OS number to be used */
+	nveu32_t vm_num;
+	/** Array of VM channel list */
+	nveu32_t vm_chans[OSI_MGBE_MAX_NUM_CHANS];
+};
+
+/**
  *@brief OSD Core callbacks
  */
 struct osd_core_ops {
@@ -1170,6 +1182,10 @@ struct osi_core_priv_data {
 	nveu32_t mc_dmasel;
 	/** UPHY GBE mode (1 for 10G, 0 for 5G) */
 	nveu32_t uphy_gbe_mode;
+	/** Array of VM IRQ's */
+	struct osi_vm_irq_data irq_data[OSI_MAX_VM_IRQS];
+	/** number of VM IRQ's */
+	nveu32_t num_vm_irqs;
 };
 
 /**

@@ -464,18 +464,6 @@ struct osi_xtra_dma_stat_counters {
 struct osi_dma_priv_data;
 
 /**
- * @brief OSI VM IRQ data
- */
-struct osi_vm_irq_data {
-	/** Number of VM channels per VM IRQ */
-	nveu32_t num_vm_chans;
-	/** VM/OS number to be used */
-	nveu32_t vm_num;
-	/** Array of VM channel list */
-	nveu32_t vm_chans[OSI_MGBE_MAX_NUM_CHANS];
-};
-
-/**
  *@brief OSD DMA callbacks
  */
 struct osd_dma_ops {
@@ -550,10 +538,6 @@ struct osi_dma_priv_data {
 	nveu32_t slot_interval[OSI_MGBE_MAX_NUM_CHANS];
 	/** Array of DMA channel slot enabled status from DT*/
 	nveu32_t slot_enabled[OSI_MGBE_MAX_NUM_CHANS];
-	/** number of VM IRQ's */
-	nveu32_t num_vm_irqs;
-	/** Array of VM IRQ's */
-	struct osi_vm_irq_data irq_data[OSI_MAX_VM_IRQS];
 	/** DMA callback ops structure */
 	struct osd_dma_ops osd_ops;
 	/** Virtual address of reserved DMA buffer */

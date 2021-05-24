@@ -523,41 +523,6 @@ static void mgbe_configure_dma_channel(nveu32_t chan,
 }
 
 /**
- * @brief mgbe_dma_chan_to_vmirq_map - Map DMA channels to a specific VM IRQ.
- *
- * Algorithm: Programs HW to map DMA channels to specific VM.
- *
- * @param[in] osi_dma: OSI DMA private data structure.
- *
- * @note OSD layer needs to update number of VM channels and
- *	DMA channel list in osi_vm_irq_data.
- */
-static void mgbe_dma_chan_to_vmirq_map(struct osi_dma_priv_data *osi_dma)
-{
-	struct osi_vm_irq_data *irq_data;
-	nveu32_t i, j;
-	nveu32_t chan;
-
-	for (i = 0; i < osi_dma->num_vm_irqs; i++) {
-		irq_data = &osi_dma->irq_data[i];
-
-		for (j = 0; j < irq_data->num_vm_chans; j++) {
-			chan = irq_data->vm_chans[j];
-
-			if (chan >= OSI_MGBE_MAX_NUM_CHANS) {
-				continue;
-			}
-
-			osi_writel(OSI_BIT(irq_data->vm_num),
-				   (nveu8_t *)osi_dma->base +
-				   MGBE_VIRT_INTR_APB_CHX_CNTRL(chan));
-		}
-	}
-
-	osi_writel(0xD, (nveu8_t *)osi_dma->base + 0x8400);
-}
-
-/**
  * @brief mgbe_init_dma_channel - DMA channel INIT
  *
  * @param[in] osi_dma: OSI DMA private data structure.
@@ -601,8 +566,6 @@ static nve32_t mgbe_init_dma_channel(struct osi_dma_priv_data *osi_dma)
 		mgbe_configure_dma_channel(osi_dma->dma_chans[chinx],
 					   owrq, orrq, osi_dma);
 	}
-
-	mgbe_dma_chan_to_vmirq_map(osi_dma);
 
 	return 0;
 }

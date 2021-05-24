@@ -180,6 +180,7 @@
 #define EQOS_PAD_CRTL			0x8800U
 #define EQOS_PAD_AUTO_CAL_CFG		0x8804U
 #define EQOS_PAD_AUTO_CAL_STAT		0x880CU
+#define EQOS_VIRT_INTR_APB_CHX_CNTRL(x)		(0x8200U + ((x) * 4U))
 /** @} */
 
 /**
