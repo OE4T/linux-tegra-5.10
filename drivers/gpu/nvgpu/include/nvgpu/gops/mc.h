@@ -79,9 +79,9 @@ struct gops_mc {
 	 *
 	 * Steps:
 	 * - Read and return the value of register
-	 *   mc_intr_r(#NVGPU_MC_INTR_STALLING).
+	 *   mc_intr_r(#NVGPU_CIC_INTR_STALLING).
 	 *
-	 * @return value read from mc_intr_r(#NVGPU_MC_INTR_STALLING).
+	 * @return value read from mc_intr_r(#NVGPU_CIC_INTR_STALLING).
 	 */
 	u32 (*intr_stall)(struct gk20a *g);
 
@@ -95,7 +95,7 @@ struct gops_mc {
 	 * stalling interrupt for servicing it.
 	 *
 	 * Steps:
-	 * - Read mc_intr_r(#NVGPU_MC_INTR_STALLING) register to get the
+	 * - Read mc_intr_r(#NVGPU_CIC_INTR_STALLING) register to get the
 	 *   stalling interrupts reported.
 	 * - For the FIFO engines with pending interrupt invoke corresponding
 	 *   handlers.
@@ -106,19 +106,19 @@ struct gops_mc {
 	 *   - Invoke g->ops.fb.intr.isr if HUB interrupt is pending, determined
 	 *     by calling g->ops.mc.is_intr_hub_pending.
 	 *   - Invoke g->ops.fifo.intr_0_isr if FIFO interrupt is pending. The
-	 *     FIFO interrupt bit in mc_intr_r(#NVGPU_MC_INTR_STALLING) is
+	 *     FIFO interrupt bit in mc_intr_r(#NVGPU_CIC_INTR_STALLING) is
 	 *     mc_intr_pfifo_pending_f.
 	 *   - Invoke g->ops.pmu.pmu_isr if PMU interrupt is pending.
-	 *     The PMU interrupt bit in mc_intr_r(#NVGPU_MC_INTR_STALLING)
+	 *     The PMU interrupt bit in mc_intr_r(#NVGPU_CIC_INTR_STALLING)
 	 *     is mc_intr_pmu_pending_f.
 	 *   - Invoke g->ops.priv_ring.isr if PRIV_RING interrupt is pending.
-	 *     The PRIV_RING interrupt bit in mc_intr_r(#NVGPU_MC_INTR_STALLING)
+	 *     The PRIV_RING interrupt bit in mc_intr_r(#NVGPU_CIC_INTR_STALLING)
 	 *     is mc_intr_priv_ring_pending_f.
 	 *   - Invoke g->ops.mc.ltc_isr if LTC interrupt is pending. The
-	 *     LTC interrupt bit in mc_intr_r(#NVGPU_MC_INTR_STALLING) is
+	 *     LTC interrupt bit in mc_intr_r(#NVGPU_CIC_INTR_STALLING) is
 	 *     mc_intr_ltc_pending_f.
 	 *   - Invoke g->ops.bus.isr if BUS interrupt is pending. The
-	 *     BUS interrupt bit in mc_intr_r(#NVGPU_MC_INTR_STALLING) is
+	 *     BUS interrupt bit in mc_intr_r(#NVGPU_CIC_INTR_STALLING) is
 	 *     mc_intr_pbus_pending_f.
 	 */
 	void (*isr_stall)(struct gk20a *g);
@@ -133,9 +133,9 @@ struct gops_mc {
 	 *
 	 * Steps:
 	 * - Read and return the value of the register
-	 *   mc_intr_r(#NVGPU_MC_INTR_NONSTALLING).
+	 *   mc_intr_r(#NVGPU_CIC_INTR_NONSTALLING).
 	 *
-	 * @return value read from mc_intr_r(#NVGPU_MC_INTR_NONSTALLING).
+	 * @return value read from mc_intr_r(#NVGPU_CIC_INTR_NONSTALLING).
 	 */
 	u32 (*intr_nonstall)(struct gk20a *g);
 
@@ -149,7 +149,7 @@ struct gops_mc {
 	 * non-stalling interrupt for servicing it.
 	 *
 	 * Steps:
-	 * - Read mc_intr_r(#NVGPU_MC_INTR_NONSTALLING) register to get the
+	 * - Read mc_intr_r(#NVGPU_CIC_INTR_NONSTALLING) register to get the
 	 *   non-stalling interrupts reported.
 	 * - Invoke g->ops.fifo.intr_1_isr if FIFO non-stalling interrupt
 	 *   is pending, determined by calling mc_intr_pfifo_pending_f.
@@ -176,17 +176,17 @@ struct gops_mc {
 	 * This function is invoked while polling for preempt completion.
 	 *
 	 * Steps:
-	 * - Read mc_intr_r(#NVGPU_MC_INTR_STALLING) register to get
+	 * - Read mc_intr_r(#NVGPU_CIC_INTR_STALLING) register to get
 	 *   the interrupts reported.
 	 * - Get the engine interrupt mask corresponding to \a engine_id.
 	 * - Check if the bits for engine interrupt mask are set in the
-	 *   mc_intr_r(#NVGPU_MC_INTR_STALLING) register by AND'ing values
+	 *   mc_intr_r(#NVGPU_CIC_INTR_STALLING) register by AND'ing values
 	 *   read in above two steps. Store the result in \a eng_intr_pending.
 	 * - Initialize the stalling interrupt mask with bitmask for FIFO, HUB,
 	 *   PRIV_RING, PBUS, LTC unit interrupts.
 	 * - Return true if bits from above stalling interrupt mask or the
 	 *   engine interrupt mask are set in the
-	 *   mc_intr_r(#NVGPU_MC_INTR_STALLING) register. Else, return false.
+	 *   mc_intr_r(#NVGPU_CIC_INTR_STALLING) register. Else, return false.
 	 *
 	 * @return true if stalling or engine interrupt is pending, else false.
 	 */

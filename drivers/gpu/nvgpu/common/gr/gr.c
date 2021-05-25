@@ -45,6 +45,7 @@
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/mc.h>
+#include <nvgpu/cic.h>
 #include <nvgpu/device.h>
 #if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 #include <nvgpu/engines.h>
@@ -188,10 +189,10 @@ static void disable_gr_interrupts(struct gk20a *g)
 	g->ops.gr.intr.enable_exceptions(g, g->gr->config, false);
 
 	/** Disable interrupts at MC level */
-	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_GR,
-					MC_INTR_DISABLE);
-	nvgpu_mc_intr_nonstall_unit_config(g, MC_INTR_UNIT_GR,
-					   MC_INTR_DISABLE);
+	nvgpu_cic_intr_stall_unit_config(g, NVGPU_CIC_INTR_UNIT_GR,
+					NVGPU_CIC_INTR_DISABLE);
+	nvgpu_cic_intr_nonstall_unit_config(g, NVGPU_CIC_INTR_UNIT_GR,
+					   NVGPU_CIC_INTR_DISABLE);
 }
 
 int nvgpu_gr_suspend(struct gk20a *g)
@@ -592,8 +593,8 @@ static int gr_init_prepare_hw(struct gk20a *g)
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
 	/** Enable interrupts at MC level */
-	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_GR, MC_INTR_ENABLE);
-	nvgpu_mc_intr_nonstall_unit_config(g, MC_INTR_UNIT_GR, MC_INTR_ENABLE);
+	nvgpu_cic_intr_stall_unit_config(g, NVGPU_CIC_INTR_UNIT_GR, NVGPU_CIC_INTR_ENABLE);
+	nvgpu_cic_intr_nonstall_unit_config(g, NVGPU_CIC_INTR_UNIT_GR, NVGPU_CIC_INTR_ENABLE);
 
 	return nvgpu_gr_exec_with_ret_for_each_instance(g,
 			gr_init_prepare_hw_impl(g));
@@ -710,8 +711,8 @@ static int nvgpu_gr_enable_hw_for_instance(struct gk20a *g)
 	nvgpu_cg_elcg_disable_no_wait(g);
 
 	/** Enable interrupts at MC level */
-	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_GR, MC_INTR_ENABLE);
-	nvgpu_mc_intr_nonstall_unit_config(g, MC_INTR_UNIT_GR, MC_INTR_ENABLE);
+	nvgpu_cic_intr_stall_unit_config(g, NVGPU_CIC_INTR_UNIT_GR, NVGPU_CIC_INTR_ENABLE);
+	nvgpu_cic_intr_nonstall_unit_config(g, NVGPU_CIC_INTR_UNIT_GR, NVGPU_CIC_INTR_ENABLE);
 
 	err = gr_init_prepare_hw_impl(g);
 	if (err != 0) {

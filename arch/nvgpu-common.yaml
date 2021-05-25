@@ -136,7 +136,6 @@ mc:
   safe: yes
   owner: Seema K
   sources: [ common/mc/mc.c,
-             common/mc/mc_intr.c,
              include/nvgpu/mc.h,
              include/nvgpu/gops/mc.h ]
 class:
@@ -1055,6 +1054,7 @@ cic:
   owner: Tejal K
   safe: yes
   sources: [ common/cic/cic.c,
+             common/cic/cic_intr.c,
              common/cic/ce_cic.c,
              common/cic/ctxsw_cic.c,
              common/cic/msg_cic.c,

@@ -29,6 +29,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/power_features/cg.h>
+#include <nvgpu/cic.h>
 #include <nvgpu/mc.h>
 
 #include "priv_ring_gm20b.h"
@@ -48,8 +49,8 @@ int gm20b_priv_ring_enable(struct gk20a *g)
 #ifdef CONFIG_NVGPU_SIM
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
 		nvgpu_log_info(g, "priv ring is already enabled");
-		nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_PRIV_RING,
-					 MC_INTR_ENABLE);
+		nvgpu_cic_intr_stall_unit_config(g, NVGPU_CIC_INTR_UNIT_PRIV_RING,
+					 NVGPU_CIC_INTR_ENABLE);
 		return 0;
 	}
 #endif
@@ -61,8 +62,8 @@ int gm20b_priv_ring_enable(struct gk20a *g)
 	/*
 	 * Enable interrupt early on.
 	 */
-	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_PRIV_RING,
-					 MC_INTR_ENABLE);
+	nvgpu_cic_intr_stall_unit_config(g, NVGPU_CIC_INTR_UNIT_PRIV_RING,
+					 NVGPU_CIC_INTR_ENABLE);
 
 	nvgpu_writel(g, pri_ringmaster_command_r(),
 			pri_ringmaster_command_cmd_enumerate_and_start_ring_f());

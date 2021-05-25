@@ -1,7 +1,7 @@
 /*
  * GK20A Graphics FIFO (gr host)
  *
- * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,7 @@
 #include <nvgpu/fifo.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/power_features/cg.h>
+#include <nvgpu/cic.h>
 #include <nvgpu/mc.h>
 
 #include "hal/fifo/fifo_gk20a.h"
@@ -35,9 +36,9 @@
 
 static void enable_fifo_interrupts(struct gk20a *g)
 {
-	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_FIFO, MC_INTR_ENABLE);
-	nvgpu_mc_intr_nonstall_unit_config(g, MC_INTR_UNIT_FIFO,
-					   MC_INTR_ENABLE);
+	nvgpu_cic_intr_stall_unit_config(g, NVGPU_CIC_INTR_UNIT_FIFO, NVGPU_CIC_INTR_ENABLE);
+	nvgpu_cic_intr_nonstall_unit_config(g, NVGPU_CIC_INTR_UNIT_FIFO,
+					   NVGPU_CIC_INTR_ENABLE);
 
 	g->ops.fifo.intr_0_enable(g, true);
 	g->ops.fifo.intr_1_enable(g, true);

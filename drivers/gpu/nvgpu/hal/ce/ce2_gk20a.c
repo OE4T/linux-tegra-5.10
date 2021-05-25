@@ -1,7 +1,7 @@
 /*
  * GK20A Graphics Copy Engine  (gr host)
  *
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/cic.h>
 #include <nvgpu/mc.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/engines.h>
@@ -69,8 +70,8 @@ u32 gk20a_ce2_nonstall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 		nvgpu_log(g, gpu_dbg_intr, "ce2 non-blocking pipe interrupt");
 		nvgpu_writel(g, ce2_intr_status_r(),
 			ce2_intr_status_nonblockpipe_pending_f());
-		ops |= (NVGPU_NONSTALL_OPS_WAKEUP_SEMAPHORE |
-			NVGPU_NONSTALL_OPS_POST_EVENTS);
+		ops |= (NVGPU_CIC_NONSTALL_OPS_WAKEUP_SEMAPHORE |
+			NVGPU_CIC_NONSTALL_OPS_POST_EVENTS);
 	}
 	return ops;
 }

@@ -73,8 +73,8 @@ struct gops_ce {
 	 * Steps:
 	 * - Read ce_intr_status_r corresponding to \a inst_id.
 	 * - If nonblocking pipe interrupt is pending,
-	 *   - Get bitmask of #NVGPU_NONSTALL_OPS_WAKEUP_SEMAPHORE and
-	 *     #NVGPU_NONSTALL_OPS_POST_EVENTS operations.
+	 *   - Get bitmask of #NVGPU_CIC_NONSTALL_OPS_WAKEUP_SEMAPHORE and
+	 *     #NVGPU_CIC_NONSTALL_OPS_POST_EVENTS operations.
 	 *   - Clear the interrupt.
 	 *
 	 * @return Bitmask of operations that will need to be executed on

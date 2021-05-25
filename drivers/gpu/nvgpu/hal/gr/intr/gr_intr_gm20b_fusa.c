@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,6 +22,7 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/mc.h>
+#include <nvgpu/cic.h>
 #include <nvgpu/io.h>
 #include <nvgpu/class.h>
 #include <nvgpu/static_analysis.h>
@@ -381,8 +382,8 @@ u32 gm20b_gr_intr_nonstall_isr(struct gk20a *g)
 		/* Clear the interrupt */
 		nvgpu_writel(g, gr_intr_nonstall_r(),
 			gr_intr_nonstall_trap_pending_f());
-		ops |= (NVGPU_NONSTALL_OPS_WAKEUP_SEMAPHORE |
-			NVGPU_NONSTALL_OPS_POST_EVENTS);
+		ops |= (NVGPU_CIC_NONSTALL_OPS_WAKEUP_SEMAPHORE |
+			NVGPU_CIC_NONSTALL_OPS_POST_EVENTS);
 	}
 	return ops;
 }

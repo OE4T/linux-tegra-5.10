@@ -26,6 +26,7 @@
 #include <nvgpu/device.h>
 #include <nvgpu/ce.h>
 #include <nvgpu/power_features/cg.h>
+#include <nvgpu/cic.h>
 #include <nvgpu/mc.h>
 
 int nvgpu_ce_init_support(struct gk20a *g)
@@ -63,8 +64,8 @@ int nvgpu_ce_init_support(struct gk20a *g)
 	}
 
 	/** Enable interrupts at MC level */
-	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_CE, MC_INTR_ENABLE);
-	nvgpu_mc_intr_nonstall_unit_config(g, MC_INTR_UNIT_CE, MC_INTR_ENABLE);
+	nvgpu_cic_intr_stall_unit_config(g, NVGPU_CIC_INTR_UNIT_CE, NVGPU_CIC_INTR_ENABLE);
+	nvgpu_cic_intr_nonstall_unit_config(g, NVGPU_CIC_INTR_UNIT_CE, NVGPU_CIC_INTR_ENABLE);
 
 	return 0;
 }

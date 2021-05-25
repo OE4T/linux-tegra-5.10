@@ -1,7 +1,7 @@
 /*
  * GV11B FB
  *
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@
 #include <nvgpu/log.h>
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/cic.h>
 #include <nvgpu/mc.h>
 
 #include "hal/fb/fb_gv11b.h"
@@ -47,7 +48,7 @@ void gv11b_fb_intr_enable(struct gk20a *g)
 #endif
 		fb_niso_intr_en_set_mmu_ecc_uncorrected_error_notify_m();
 
-	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_HUB, MC_INTR_ENABLE);
+	nvgpu_cic_intr_stall_unit_config(g, NVGPU_CIC_INTR_UNIT_HUB, NVGPU_CIC_INTR_ENABLE);
 
 	nvgpu_writel(g, fb_niso_intr_en_set_r(0), mask);
 }
@@ -67,7 +68,7 @@ void gv11b_fb_intr_disable(struct gk20a *g)
 
 	nvgpu_writel(g, fb_niso_intr_en_clr_r(0), mask);
 
-	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_HUB, MC_INTR_DISABLE);
+	nvgpu_cic_intr_stall_unit_config(g, NVGPU_CIC_INTR_UNIT_HUB, NVGPU_CIC_INTR_DISABLE);
 }
 
 void gv11b_fb_intr_isr(struct gk20a *g, u32 intr_unit_bitmask)

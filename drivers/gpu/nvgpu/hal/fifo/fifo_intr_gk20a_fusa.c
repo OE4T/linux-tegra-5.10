@@ -30,6 +30,7 @@
 #include <nvgpu/tsg.h>
 #include <nvgpu/rc.h>
 #include <nvgpu/nvgpu_err.h>
+#include <nvgpu/cic.h>
 #include <nvgpu/engines.h>
 
 #include <hal/fifo/fifo_intr_gk20a.h>
@@ -58,7 +59,7 @@ u32 gk20a_fifo_intr_1_isr(struct gk20a *g)
 	if ((fifo_intr & fifo_intr_0_channel_intr_pending_f()) != 0U) {
 		nvgpu_writel(g, fifo_intr_0_r(),
 			fifo_intr_0_channel_intr_pending_f());
-		return NVGPU_NONSTALL_OPS_WAKEUP_SEMAPHORE;
+		return NVGPU_CIC_NONSTALL_OPS_WAKEUP_SEMAPHORE;
 	}
 
 	return 0U;

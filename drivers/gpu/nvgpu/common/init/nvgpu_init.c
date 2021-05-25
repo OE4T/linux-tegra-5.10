@@ -73,9 +73,9 @@ void nvgpu_check_gpu_state(struct gk20a *g)
 
 static void gk20a_mask_interrupts(struct gk20a *g)
 {
-	nvgpu_mc_intr_mask(g);
+	nvgpu_cic_intr_mask(g);
 #ifdef CONFIG_NVGPU_NON_FUSA
-	nvgpu_mc_log_pending_intrs(g);
+	nvgpu_cic_log_pending_intrs(g);
 #endif
 }
 
@@ -568,14 +568,14 @@ static int nvgpu_init_interrupt_setup(struct gk20a *g)
 	/**
 	 * Disable all interrupts at the start.
 	 */
-	nvgpu_mc_intr_mask(g);
+	nvgpu_cic_intr_mask(g);
 
 #ifdef CONFIG_NVGPU_NON_FUSA
 	/**
 	 * For certain chips like gm20b, there is global interrupt control in
 	 * registers mc_intr_en_*_r. Program them here upfront.
 	 */
-	nvgpu_mc_intr_enable(g);
+	nvgpu_cic_intr_enable(g);
 #endif
 
 	return 0;

@@ -1,7 +1,7 @@
 /*
  * GP10B master
  *
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/io.h>
 #include <nvgpu/mc.h>
+#include <nvgpu/cic.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/device.h>
 #include <nvgpu/power_features/pg.h>
@@ -35,13 +36,13 @@
 
 void mc_gp10b_intr_mask(struct gk20a *g)
 {
-	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_STALLING),
+	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_CIC_INTR_STALLING),
 				U32_MAX);
-	g->mc.intr_mask_restore[NVGPU_MC_INTR_STALLING] = 0;
+	g->mc.intr_mask_restore[NVGPU_CIC_INTR_STALLING] = 0;
 
-	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_NONSTALLING),
+	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_CIC_INTR_NONSTALLING),
 				U32_MAX);
-	g->mc.intr_mask_restore[NVGPU_MC_INTR_NONSTALLING] = 0;
+	g->mc.intr_mask_restore[NVGPU_CIC_INTR_NONSTALLING] = 0;
 }
 
 static u32 mc_gp10b_intr_pending_f(struct gk20a *g, u32 unit)
@@ -49,28 +50,28 @@ static u32 mc_gp10b_intr_pending_f(struct gk20a *g, u32 unit)
 	u32 intr_pending_f = 0;
 
 	switch (unit) {
-	case MC_INTR_UNIT_BUS:
+	case NVGPU_CIC_INTR_UNIT_BUS:
 		intr_pending_f = mc_intr_pbus_pending_f();
 		break;
-	case MC_INTR_UNIT_PRIV_RING:
+	case NVGPU_CIC_INTR_UNIT_PRIV_RING:
 		intr_pending_f = mc_intr_priv_ring_pending_f();
 		break;
-	case MC_INTR_UNIT_FIFO:
+	case NVGPU_CIC_INTR_UNIT_FIFO:
 		intr_pending_f = mc_intr_pfifo_pending_f();
 		break;
-	case MC_INTR_UNIT_LTC:
+	case NVGPU_CIC_INTR_UNIT_LTC:
 		intr_pending_f = mc_intr_ltc_pending_f();
 		break;
-	case MC_INTR_UNIT_GR:
+	case NVGPU_CIC_INTR_UNIT_GR:
 		intr_pending_f = nvgpu_gr_engine_interrupt_mask(g);
 		break;
-	case MC_INTR_UNIT_PMU:
+	case NVGPU_CIC_INTR_UNIT_PMU:
 		intr_pending_f = mc_intr_pmu_pending_f();
 		break;
-	case MC_INTR_UNIT_HUB:
+	case NVGPU_CIC_INTR_UNIT_HUB:
 		intr_pending_f = mc_intr_replayable_fault_pending_f();
 		break;
-	case MC_INTR_UNIT_CE:
+	case NVGPU_CIC_INTR_UNIT_CE:
 		intr_pending_f = nvgpu_ce_engine_interrupt_mask(g);
 		break;
 	default:
@@ -146,13 +147,13 @@ void mc_gp10b_intr_stall_unit_config(struct gk20a *g, u32 unit, bool enable)
 	u32 reg = 0U;
 
 	if (enable) {
-		reg = mc_intr_en_set_r(NVGPU_MC_INTR_STALLING);
-		g->mc.intr_mask_restore[NVGPU_MC_INTR_STALLING] |=
+		reg = mc_intr_en_set_r(NVGPU_CIC_INTR_STALLING);
+		g->mc.intr_mask_restore[NVGPU_CIC_INTR_STALLING] |=
 			unit_pending_f;
 		nvgpu_writel(g, reg, unit_pending_f);
 	} else {
-		reg = mc_intr_en_clear_r(NVGPU_MC_INTR_STALLING);
-		g->mc.intr_mask_restore[NVGPU_MC_INTR_STALLING] &=
+		reg = mc_intr_en_clear_r(NVGPU_CIC_INTR_STALLING);
+		g->mc.intr_mask_restore[NVGPU_CIC_INTR_STALLING] &=
 			~unit_pending_f;
 		nvgpu_writel(g, reg, unit_pending_f);
 	}
@@ -164,13 +165,13 @@ void mc_gp10b_intr_nonstall_unit_config(struct gk20a *g, u32 unit, bool enable)
 	u32 reg = 0U;
 
 	if (enable) {
-		reg = mc_intr_en_set_r(NVGPU_MC_INTR_NONSTALLING);
-		g->mc.intr_mask_restore[NVGPU_MC_INTR_NONSTALLING] |=
+		reg = mc_intr_en_set_r(NVGPU_CIC_INTR_NONSTALLING);
+		g->mc.intr_mask_restore[NVGPU_CIC_INTR_NONSTALLING] |=
 			unit_pending_f;
 		nvgpu_writel(g, reg, unit_pending_f);
 	} else {
-		reg = mc_intr_en_clear_r(NVGPU_MC_INTR_NONSTALLING);
-		g->mc.intr_mask_restore[NVGPU_MC_INTR_NONSTALLING] &=
+		reg = mc_intr_en_clear_r(NVGPU_CIC_INTR_NONSTALLING);
+		g->mc.intr_mask_restore[NVGPU_CIC_INTR_NONSTALLING] &=
 			~unit_pending_f;
 		nvgpu_writel(g, reg, unit_pending_f);
 	}
@@ -182,7 +183,7 @@ void mc_gp10b_isr_stall(struct gk20a *g)
 	u32 i;
 	const struct nvgpu_device *dev;
 
-	mc_intr_0 = nvgpu_readl(g, mc_intr_r(NVGPU_MC_INTR_STALLING));
+	mc_intr_0 = nvgpu_readl(g, mc_intr_r(NVGPU_CIC_INTR_STALLING));
 
 	nvgpu_log(g, gpu_dbg_intr, "stall intr 0x%08x", mc_intr_0);
 
@@ -207,35 +208,35 @@ void mc_gp10b_isr_stall(struct gk20a *g)
 
 u32 mc_gp10b_intr_stall(struct gk20a *g)
 {
-	return nvgpu_readl(g, mc_intr_r(NVGPU_MC_INTR_STALLING));
+	return nvgpu_readl(g, mc_intr_r(NVGPU_CIC_INTR_STALLING));
 }
 
 void mc_gp10b_intr_stall_pause(struct gk20a *g)
 {
-	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_STALLING), U32_MAX);
+	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_CIC_INTR_STALLING), U32_MAX);
 }
 
 void mc_gp10b_intr_stall_resume(struct gk20a *g)
 {
-	nvgpu_writel(g, mc_intr_en_set_r(NVGPU_MC_INTR_STALLING),
-			g->mc.intr_mask_restore[NVGPU_MC_INTR_STALLING]);
+	nvgpu_writel(g, mc_intr_en_set_r(NVGPU_CIC_INTR_STALLING),
+			g->mc.intr_mask_restore[NVGPU_CIC_INTR_STALLING]);
 }
 
 u32 mc_gp10b_intr_nonstall(struct gk20a *g)
 {
-	return nvgpu_readl(g, mc_intr_r(NVGPU_MC_INTR_NONSTALLING));
+	return nvgpu_readl(g, mc_intr_r(NVGPU_CIC_INTR_NONSTALLING));
 }
 
 void mc_gp10b_intr_nonstall_pause(struct gk20a *g)
 {
-	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_NONSTALLING),
+	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_CIC_INTR_NONSTALLING),
 		     U32_MAX);
 }
 
 void mc_gp10b_intr_nonstall_resume(struct gk20a *g)
 {
-	nvgpu_writel(g, mc_intr_en_set_r(NVGPU_MC_INTR_NONSTALLING),
-			g->mc.intr_mask_restore[NVGPU_MC_INTR_NONSTALLING]);
+	nvgpu_writel(g, mc_intr_en_set_r(NVGPU_CIC_INTR_NONSTALLING),
+			g->mc.intr_mask_restore[NVGPU_CIC_INTR_NONSTALLING]);
 }
 
 bool mc_gp10b_is_intr1_pending(struct gk20a *g, u32 unit, u32 mc_intr_1)

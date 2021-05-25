@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,6 +24,7 @@
 #include <nvgpu/soc.h>
 #include <nvgpu/io.h>
 #include <nvgpu/mm.h>
+#include <nvgpu/cic.h>
 #include <nvgpu/gk20a.h>
 
 #include "bus_tu104.h"
@@ -35,7 +36,7 @@ int tu104_bus_init_hw(struct gk20a *g)
 {
 	u32 intr_en_mask = 0U;
 
-	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_BUS, MC_INTR_ENABLE);
+	nvgpu_cic_intr_stall_unit_config(g, NVGPU_CIC_INTR_UNIT_BUS, NVGPU_CIC_INTR_ENABLE);
 
 	/*
 	 * Note: bus_intr_en_0 is for routing intr to stall tree (mc_intr_0)

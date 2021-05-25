@@ -245,8 +245,8 @@ int test_ce_nonstall_isr(struct unit_module *m, struct gk20a *g, void *args)
 		nvgpu_posix_io_writel_reg_space(g, ce_intr_status_r(inst_id),
 						intr_val);
 		val = g->ops.ce.isr_nonstall(g, inst_id, 0);
-		if (val != (NVGPU_NONSTALL_OPS_WAKEUP_SEMAPHORE |
-			    NVGPU_NONSTALL_OPS_POST_EVENTS)) {
+		if (val != (NVGPU_CIC_NONSTALL_OPS_WAKEUP_SEMAPHORE |
+			    NVGPU_CIC_NONSTALL_OPS_POST_EVENTS)) {
 			ret = UNIT_FAIL;
 			unit_err(m, "incorrect ops returned 0x%08x\n", val);
 			goto done;

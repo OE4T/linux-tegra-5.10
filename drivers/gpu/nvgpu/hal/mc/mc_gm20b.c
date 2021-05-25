@@ -1,7 +1,7 @@
 /*
  * GM20B Master Control
  *
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,7 @@
 #include <nvgpu/atomic.h>
 #include <nvgpu/io.h>
 #include <nvgpu/mc.h>
+#include <nvgpu/cic.h>
 #include <nvgpu/ltc.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/bug.h>
@@ -107,25 +108,25 @@ static u32 gm20b_mc_intr_pending_f(struct gk20a *g, u32 unit)
 	u32 intr_pending_f = 0;
 
 	switch (unit) {
-	case MC_INTR_UNIT_BUS:
+	case NVGPU_CIC_INTR_UNIT_BUS:
 		intr_pending_f = mc_intr_pbus_pending_f();
 		break;
-	case MC_INTR_UNIT_PRIV_RING:
+	case NVGPU_CIC_INTR_UNIT_PRIV_RING:
 		intr_pending_f = mc_intr_priv_ring_pending_f();
 		break;
-	case MC_INTR_UNIT_FIFO:
+	case NVGPU_CIC_INTR_UNIT_FIFO:
 		intr_pending_f = mc_intr_pfifo_pending_f();
 		break;
-	case MC_INTR_UNIT_LTC:
+	case NVGPU_CIC_INTR_UNIT_LTC:
 		intr_pending_f = mc_intr_ltc_pending_f();
 		break;
-	case MC_INTR_UNIT_GR:
+	case NVGPU_CIC_INTR_UNIT_GR:
 		intr_pending_f = nvgpu_gr_engine_interrupt_mask(g);
 		break;
-	case MC_INTR_UNIT_PMU:
+	case NVGPU_CIC_INTR_UNIT_PMU:
 		intr_pending_f = mc_intr_mask_0_pmu_enabled_f();
 		break;
-	case MC_INTR_UNIT_CE:
+	case NVGPU_CIC_INTR_UNIT_CE:
 		intr_pending_f = nvgpu_ce_engine_interrupt_mask(g);
 		break;
 	default:
@@ -204,12 +205,12 @@ void gm20b_mc_intr_nonstall_resume(struct gk20a *g)
 
 u32 gm20b_mc_intr_stall(struct gk20a *g)
 {
-	return nvgpu_readl(g, mc_intr_r(NVGPU_MC_INTR_STALLING));
+	return nvgpu_readl(g, mc_intr_r(NVGPU_CIC_INTR_STALLING));
 }
 
 u32 gm20b_mc_intr_nonstall(struct gk20a *g)
 {
-	return nvgpu_readl(g, mc_intr_r(NVGPU_MC_INTR_NONSTALLING));
+	return nvgpu_readl(g, mc_intr_r(NVGPU_CIC_INTR_NONSTALLING));
 }
 
 bool gm20b_mc_is_intr1_pending(struct gk20a *g, u32 unit, u32 mc_intr_1)

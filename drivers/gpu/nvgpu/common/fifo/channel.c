@@ -45,6 +45,7 @@
 #include <nvgpu/ptimer.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/mc.h>
+#include <nvgpu/cic.h>
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/channel.h>
@@ -958,7 +959,7 @@ static void channel_free(struct nvgpu_channel *ch, bool force)
 
 	/* wait until all pending interrupts for recently completed
 	 * jobs are handled */
-	nvgpu_wait_for_deferred_interrupts(g);
+	nvgpu_cic_wait_for_deferred_interrupts(g);
 
 	/* prevent new refs */
 	nvgpu_spinlock_acquire(&ch->ref_obtain_lock);
@@ -1015,7 +1016,7 @@ static void channel_free(struct nvgpu_channel *ch, bool force)
 
 	/* make sure we don't have deferred interrupts pending that
 	 * could still touch the channel */
-	nvgpu_wait_for_deferred_interrupts(g);
+	nvgpu_cic_wait_for_deferred_interrupts(g);
 
 unbind:
 	g->ops.channel.unbind(ch);

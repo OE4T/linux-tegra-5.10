@@ -29,6 +29,7 @@
 #include <nvgpu/tsg.h>
 #include <nvgpu/preempt.h>
 #include <nvgpu/nvgpu_err.h>
+#include <nvgpu/cic.h>
 #include <nvgpu/rc.h>
 #ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/mutex.h>
@@ -102,7 +103,7 @@ int nvgpu_fifo_preempt_tsg(struct gk20a *g, struct nvgpu_tsg *tsg)
 			break;
 		}
 
-		ret = nvgpu_wait_for_stall_interrupts(g, preempt_retry_timeout);
+		ret = nvgpu_cic_wait_for_stall_interrupts(g, preempt_retry_timeout);
 		if (ret != 0) {
 			nvgpu_log_info(g, "wait for stall interrupts failed %d", ret);
 		}

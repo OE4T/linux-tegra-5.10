@@ -25,6 +25,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/mc.h>
+#include <nvgpu/cic.h>
 #include <nvgpu/nvgpu_err.h>
 
 #include "ce_gp10b.h"
@@ -68,8 +69,8 @@ u32 gp10b_ce_nonstall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 	if ((ce_intr & ce_intr_status_nonblockpipe_pending_f()) != 0U) {
 		nvgpu_writel(g, ce_intr_status_r(inst_id),
 			ce_intr_status_nonblockpipe_pending_f());
-		nonstall_ops |= (NVGPU_NONSTALL_OPS_WAKEUP_SEMAPHORE |
-			NVGPU_NONSTALL_OPS_POST_EVENTS);
+		nonstall_ops |= (NVGPU_CIC_NONSTALL_OPS_WAKEUP_SEMAPHORE |
+			NVGPU_CIC_NONSTALL_OPS_POST_EVENTS);
 	}
 
 	return nonstall_ops;

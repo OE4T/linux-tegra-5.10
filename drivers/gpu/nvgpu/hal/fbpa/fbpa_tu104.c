@@ -1,7 +1,7 @@
 /*
  * TU104 FBPA
  *
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,6 +28,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/hw/tu104/hw_fbpa_tu104.h>
 #include <nvgpu/mc.h>
+#include <nvgpu/cic.h>
 #include <nvgpu/nvgpu_init.h>
 
 #include "hal/fbpa/fbpa_tu104.h"
@@ -40,7 +41,7 @@ int tu104_fbpa_init(struct gk20a *g)
 	val |= fbpa_ecc_intr_ctrl_sec_intr_en_enabled_f() |
 		fbpa_ecc_intr_ctrl_ded_intr_en_enabled_f();
 
-	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_FBPA, MC_INTR_ENABLE);
+	nvgpu_cic_intr_stall_unit_config(g, NVGPU_CIC_INTR_UNIT_FBPA, NVGPU_CIC_INTR_ENABLE);
 
 	nvgpu_writel(g, fbpa_ecc_intr_ctrl_r(), val);
 	/* read back broadcast register */

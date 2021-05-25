@@ -210,7 +210,6 @@ nvgpu-y += \
 	common/perf/perfbuf.o \
 	common/therm/therm.o \
 	common/mc/mc.o \
-	common/mc/mc_intr.o \
 	common/sync/channel_sync.o \
 	common/sync/channel_sync_semaphore.o \
 	common/semaphore/semaphore_sea.o \
@@ -310,6 +309,7 @@ nvgpu-y += \
 	common/rc/rc.o \
 	common/grmgr/grmgr.o \
 	common/cic/cic.o \
+	common/cic/cic_intr.o \
 	common/cic/ce_cic.o \
 	common/cic/ctxsw_cic.o \
 	common/cic/ecc_cic.o \

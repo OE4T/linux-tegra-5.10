@@ -24,6 +24,7 @@
 #include <nvgpu/nvgpu_common.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/mc.h>
+#include <nvgpu/cic.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/errata.h>
 #include <nvgpu/nvlink_probe.h>
@@ -325,8 +326,8 @@ static struct pci_device_id nvgpu_pci_table[] = {
 static irqreturn_t nvgpu_pci_isr(int irq, void *dev_id)
 {
 	struct gk20a *g = dev_id;
-	u32 ret_stall = nvgpu_intr_stall_isr(g);
-	u32 ret_nonstall = nvgpu_intr_nonstall_isr(g);
+	u32 ret_stall = nvgpu_cic_intr_stall_isr(g);
+	u32 ret_nonstall = nvgpu_cic_intr_nonstall_isr(g);
 
 #if defined(CONFIG_PCI_MSI)
 	/* Send MSI EOI */
@@ -334,8 +335,8 @@ static irqreturn_t nvgpu_pci_isr(int irq, void *dev_id)
 		g->ops.xve.rearm_msi(g);
 #endif
 
-	if ((ret_stall == NVGPU_INTR_HANDLE) ||
-		(ret_nonstall == NVGPU_INTR_HANDLE)) {
+	if ((ret_stall == NVGPU_CIC_INTR_HANDLE) ||
+		(ret_nonstall == NVGPU_CIC_INTR_HANDLE)) {
 		return IRQ_WAKE_THREAD;
 	}
 
@@ -346,8 +347,8 @@ static irqreturn_t nvgpu_pci_intr_thread(int irq, void *dev_id)
 {
 	struct gk20a *g = dev_id;
 
-	nvgpu_intr_stall_handle(g);
-	nvgpu_intr_nonstall_handle(g);
+	nvgpu_cic_intr_stall_handle(g);
+	nvgpu_cic_intr_nonstall_handle(g);
 
 	return IRQ_HANDLED;
 }

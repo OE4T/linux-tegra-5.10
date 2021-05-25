@@ -74,12 +74,12 @@ int test_mc_free_env(struct unit_module *m, struct gk20a *g, void *args);
 /**
  * Test specification for: test_unit_config
  *
- * Description: Validate function of nvgpu_mc_intr_stall_unit_config and
- *              nvgpu_mc_intr_nonstall_unit_config.
+ * Description: Validate function of nvgpu_cic_intr_stall_unit_config and
+ *              nvgpu_cic_intr_nonstall_unit_config.
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: nvgpu_mc_intr_stall_unit_config, nvgpu_mc_intr_nonstall_unit_config,
+ * Targets: nvgpu_cic_intr_stall_unit_config, nvgpu_cic_intr_nonstall_unit_config,
  *          mc_gp10b_intr_stall_unit_config, mc_gp10b_intr_nonstall_unit_config
  *
  * Input: test_mc_setup_env must have been run.
@@ -88,22 +88,22 @@ int test_mc_free_env(struct unit_module *m, struct gk20a *g, void *args);
  * - Set each of the mock registers for enabling & disabling the stall &
  *   non-stall interrupts to 0.
  * - Loop through table of units:
- *   - Call nvgpu_mc_intr_stall_unit_config for the unit to enable the stall
+ *   - Call nvgpu_cic_intr_stall_unit_config for the unit to enable the stall
  *     interrupt.
  *   - Verify the stall interrupt enable register has the bit set for the unit.
- *   - Call nvgpu_mc_intr_stall_unit_config for the unit to disable the interrupt.
+ *   - Call nvgpu_cic_intr_stall_unit_config for the unit to disable the interrupt.
  *   - Verify the stall interrupt disable register has the bit set for the unit.
- *   - Call nvgpu_mc_intr_nonstall_unit_config for the unit to enable the
+ *   - Call nvgpu_cic_intr_nonstall_unit_config for the unit to enable the
  *     non-stall interrupt.
  *   - Verify the non-stall interrupt enable register has the bit set for the unit.
- *   - Call nvgpu_mc_intr_nonstall_unit_config for the unit to disable the interrupt.
+ *   - Call nvgpu_cic_intr_nonstall_unit_config for the unit to disable the interrupt.
  *   - Verify the non-stall interrupt disable register has the bit set for the unit.
  * - Clear the stall enable register.
- * - For negative testing, call nvgpu_mc_intr_stall_unit_config() with an
+ * - For negative testing, call nvgpu_cic_intr_stall_unit_config() with an
  *   invalid unit number, and verify no bits are set in the stall interrupt
  *   enable register.
  * - Clear the stall enable register.
- * - For negative testing, call nvgpu_mc_intr_nonstall_unit_config() with an
+ * - For negative testing, call nvgpu_cic_intr_nonstall_unit_config() with an
  *   invalid unit number, and verify no bits are set in the non-stall interrupt
  *   enable register.
  *
@@ -118,9 +118,9 @@ int test_unit_config(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_mc_intr_stall_pause, nvgpu_mc_intr_stall_resume,
- *          nvgpu_mc_intr_nonstall_pause, nvgpu_mc_intr_nonstall_resume,
- *          nvgpu_mc_intr_mask, mc_gp10b_intr_stall_pause,
+ * Targets: nvgpu_cic_intr_stall_pause, nvgpu_cic_intr_stall_resume,
+ *          nvgpu_cic_intr_nonstall_pause, nvgpu_cic_intr_nonstall_resume,
+ *          nvgpu_cic_intr_mask, mc_gp10b_intr_stall_pause,
  *          mc_gp10b_intr_stall_resume, mc_gp10b_intr_nonstall_pause,
  *          mc_gp10b_intr_nonstall_resume, mc_gp10b_intr_mask
  *
@@ -336,7 +336,7 @@ int test_reset_mask(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_wait_for_deferred_interrupts
+ * Targets: nvgpu_cic_wait_for_deferred_interrupts
  *
  * Input: test_mc_setup_env must have been run.
  *
