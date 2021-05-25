@@ -952,7 +952,7 @@ static int nvgpu_ioctl_channel_reg_ops(struct dbg_session_gk20a *dbg_s,
 				break;
 
 			err = nvgpu_gr_exec_with_err_for_instance(g, gr_instance_id,
-					g->ops.regops.exec_regops(g, tsg, NULL,
+					nvgpu_regops_exec(g, tsg, NULL,
 						g->dbg_regops_tmp_buf, num_ops, &flags));
 
 			if (err) {

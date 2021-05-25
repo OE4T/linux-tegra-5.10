@@ -1,7 +1,7 @@
 /*
  * Tegra GK20A GPU Debugger Driver Register Ops
  *
- * Copyright (c) 2013-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -88,28 +88,18 @@ static bool validate_reg_ops(struct gk20a *g,
 
 int exec_regops_gk20a(struct gk20a *g,
 		      struct nvgpu_tsg *tsg,
-		      struct nvgpu_profiler_object *prof,
 		      struct nvgpu_dbg_reg_op *ops,
 		      u32 num_ops,
+		      u32 ctx_wr_count,
+		      u32 ctx_rd_count,
 		      u32 *flags)
 {
 	int err = 0;
 	unsigned int i;
 	u32 data32_lo = 0, data32_hi = 0;
-	u32 ctx_rd_count = 0, ctx_wr_count = 0;
 	bool skip_read_lo, skip_read_hi;
-	bool ok;
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, " ");
-
-	ok = validate_reg_ops(g, prof, &ctx_rd_count, &ctx_wr_count,
-		ops, num_ops, tsg != NULL, flags);
-	if (!ok) {
-		nvgpu_err(g, "invalid op(s)");
-		err = -EINVAL;
-		/* each op has its own err/status */
-		goto clean_up;
-	}
 
 	/* be sure that ctx info is in place if there are ctx ops */
 	if ((ctx_wr_count | ctx_rd_count) != 0U) {
@@ -226,6 +216,34 @@ int exec_regops_gk20a(struct gk20a *g,
 
 }
 
+int nvgpu_regops_exec(struct gk20a *g,
+		struct nvgpu_tsg *tsg,
+		struct nvgpu_profiler_object *prof,
+		struct nvgpu_dbg_reg_op *ops,
+		u32 num_ops,
+		u32 *flags)
+{
+	u32 ctx_rd_count = 0, ctx_wr_count = 0;
+	int err = 0;
+	bool ok;
+
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, " ");
+
+	ok = validate_reg_ops(g, prof, &ctx_rd_count, &ctx_wr_count,
+		ops, num_ops, tsg != NULL, flags);
+	if (!ok) {
+		nvgpu_err(g, "invalid op(s)");
+		return -EINVAL;
+	}
+
+	err = g->ops.regops.exec_regops(g, tsg, ops, num_ops, ctx_wr_count,
+					ctx_rd_count, flags);
+	if (err != 0) {
+		nvgpu_warn(g, "failed to perform regops, err=%d", err);
+	}
+
+	return err;
+}
 
 static int validate_reg_op_info(struct nvgpu_dbg_reg_op *op)
 {
@@ -360,8 +378,7 @@ static int validate_reg_op_offset(struct gk20a *g,
 				  struct nvgpu_dbg_reg_op *op,
 				  bool valid_ctx)
 {
-	int err;
-	u32 buf_offset_lo, buf_offset_addr, num_offsets, offset;
+	u32 offset;
 	bool valid = false;
 
 	offset = op->offset;
@@ -376,31 +393,6 @@ static int validate_reg_op_offset(struct gk20a *g,
 	valid = check_whitelists(g, op, offset, valid_ctx);
 	if ((op->op == REGOP(READ_64) || op->op == REGOP(WRITE_64)) && valid) {
 		valid = check_whitelists(g, op, offset + 4U, valid_ctx);
-	}
-
-	if (valid && (op->type != REGOP(TYPE_GLOBAL))) {
-		err = g->ops.gr.get_ctx_buffer_offsets(g,
-						      op->offset,
-						      1,
-						      &buf_offset_lo,
-						      &buf_offset_addr,
-						      &num_offsets);
-		if (err != 0) {
-			err = gr_gk20a_get_pm_ctx_buffer_offsets(g,
-							      op->offset,
-							      1,
-							      &buf_offset_lo,
-							      &buf_offset_addr,
-							      &num_offsets);
-			if (err != 0) {
-				op->status |= REGOP(STATUS_INVALID_OFFSET);
-				return -EINVAL;
-			}
-		}
-		if (num_offsets == 0U) {
-			op->status |= REGOP(STATUS_INVALID_OFFSET);
-			return -EINVAL;
-		}
 	}
 
 	if (!valid) {

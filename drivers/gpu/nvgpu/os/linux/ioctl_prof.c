@@ -668,7 +668,7 @@ static int nvgpu_prof_ioctl_exec_reg_ops(struct nvgpu_profiler_object_priv *priv
 		}
 
 		err = nvgpu_gr_exec_with_err_for_instance(g, gr_instance_id,
-				g->ops.regops.exec_regops(g, tsg, prof,
+				nvgpu_regops_exec(g, tsg, prof,
 					priv->regops_staging_buf, num_ops,
 					&flags));
 		if (err) {

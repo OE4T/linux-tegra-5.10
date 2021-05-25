@@ -1,7 +1,7 @@
 /*
  * Tegra GK20A GPU Debugger Driver Register Ops
  *
- * Copyright (c) 2013-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2013-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -89,10 +89,17 @@ struct regop_offset_range {
 
 int exec_regops_gk20a(struct gk20a *g,
 		      struct nvgpu_tsg *tsg,
-		      struct nvgpu_profiler_object *prof,
 		      struct nvgpu_dbg_reg_op *ops,
 		      u32 num_ops,
+		      u32 ctx_wr_count,
+		      u32 ctx_rd_count,
 		      u32 *flags);
+int nvgpu_regops_exec(struct gk20a *g,
+		struct nvgpu_tsg *tsg,
+		struct nvgpu_profiler_object *prof,
+		struct nvgpu_dbg_reg_op *ops,
+		u32 num_ops,
+		u32 *flags);
 
 /* turn seriously unwieldy names -> something shorter */
 #define REGOP(x) NVGPU_DBG_REG_OP_##x

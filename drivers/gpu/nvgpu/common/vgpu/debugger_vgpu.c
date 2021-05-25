@@ -24,7 +24,6 @@
 #include <nvgpu/vgpu/tegra_vgpu.h>
 #include <nvgpu/vgpu/vgpu.h>
 #include <nvgpu/debugger.h>
-#include <nvgpu/profiler.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
@@ -35,11 +34,12 @@
 #include "common/vgpu/ivc/comm_vgpu.h"
 
 int vgpu_exec_regops(struct gk20a *g,
-		      struct nvgpu_tsg *tsg,
-		      struct nvgpu_profiler_object *prof,
-		      struct nvgpu_dbg_reg_op *ops,
-		      u32 num_ops,
-		      u32 *flags)
+		struct nvgpu_tsg *tsg,
+		struct nvgpu_dbg_reg_op *ops,
+		u32 num_ops,
+		u32 ctx_wr_count,
+		u32 ctx_rd_count,
+		u32 *flags)
 {
 	struct tegra_vgpu_cmd_msg msg;
 	struct tegra_vgpu_reg_ops_params *p = &msg.params.reg_ops;
