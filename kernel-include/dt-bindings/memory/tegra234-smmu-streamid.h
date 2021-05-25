@@ -169,6 +169,9 @@
 #define TEGRA_SID_NISO0_MGBE_VF19	0x5BU
 #define TEGRA_SID_NISO0_MGBE_VF20	0x5CU
 
+/* FIXME: Hack to support FSI Client on VDK */
+#define TEGRA_SID_NISO0_FSI			0x5DU
+
 /*
  ********* NISO1 SMMU STREAM IDs **********
  */
