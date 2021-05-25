@@ -215,7 +215,7 @@ void gp10b_gr_init_commit_global_cb_manager(struct gk20a *g,
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
-#ifdef CONFIG_NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GFXP
 	if (nvgpu_gr_ctx_get_graphics_preemption_mode(gr_ctx)
 			== NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP) {
 		attrib_size_in_chunk =
@@ -226,7 +226,7 @@ void gp10b_gr_init_commit_global_cb_manager(struct gk20a *g,
 #endif
 		attrib_size_in_chunk = attrib_cb_size;
 		cb_attrib_cache_size_init = attrib_cb_default_size;
-#ifdef CONFIG_NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GFXP
 	}
 #endif
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_ds_tga_constraintlogic_beta_r(),
@@ -327,7 +327,7 @@ void gp10b_gr_init_get_supported_preemption_modes(
 {
 	u32 gfxp_flags = NVGPU_PREEMPTION_MODE_GRAPHICS_WFI;
 
-#ifdef CONFIG_NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GFXP
 	gfxp_flags |= NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP;
 #endif
 	*graphics_preemption_mode_flags = gfxp_flags;
@@ -346,7 +346,7 @@ void gp10b_gr_init_get_default_preemption_modes(
 	*default_compute_preempt_mode = NVGPU_PREEMPTION_MODE_COMPUTE_WFI;
 }
 
-#ifdef CONFIG_NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GFXP
 u32 gp10b_gr_init_get_ctx_attrib_cb_size(struct gk20a *g, u32 betacb_size,
 	u32 tpc_count, u32 max_tpc)
 {
@@ -368,4 +368,4 @@ u32 gp10b_gr_init_get_ctx_pagepool_size(struct gk20a *g)
 		 g->ops.gr.init.pagepool_default_size(g),
 		 gr_scc_pagepool_total_pages_byte_granularity_v());
 }
-#endif /* CONFIG_NVGPU_GRAPHICS */
+#endif /* CONFIG_NVGPU_GFXP */

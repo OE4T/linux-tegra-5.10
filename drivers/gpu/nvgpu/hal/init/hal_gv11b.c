@@ -340,10 +340,12 @@ static const struct gops_gr_ctxsw_prog gv11b_ops_gr_ctxsw_prog = {
 	.set_zcull = gm20b_ctxsw_prog_set_zcull,
 	.set_zcull_mode_no_ctxsw = gm20b_ctxsw_prog_set_zcull_mode_no_ctxsw,
 	.is_zcull_mode_separate_buffer = gm20b_ctxsw_prog_is_zcull_mode_separate_buffer,
+#endif /* CONFIG_NVGPU_GRAPHICS */
+#ifdef CONFIG_NVGPU_GFXP
 	.set_graphics_preemption_mode_gfxp = gp10b_ctxsw_prog_set_graphics_preemption_mode_gfxp,
 	.set_full_preemption_ptr = gv11b_ctxsw_prog_set_full_preemption_ptr,
 	.set_full_preemption_ptr_veid0 = gv11b_ctxsw_prog_set_full_preemption_ptr_veid0,
-#endif /* CONFIG_NVGPU_GRAPHICS */
+#endif /* CONFIG_NVGPU_GFXP */
 #ifdef CONFIG_NVGPU_CILP
 	.set_compute_preemption_mode_cilp = gp10b_ctxsw_prog_set_compute_preemption_mode_cilp,
 #endif
@@ -485,9 +487,6 @@ static const struct gops_gr_init gv11b_ops_gr_init = {
 #endif
 	.fe_pwr_mode_force_on = gm20b_gr_init_fe_pwr_mode_force_on,
 	.override_context_reset = gm20b_gr_init_override_context_reset,
-#ifdef CONFIG_NVGPU_GRAPHICS
-	.preemption_state = gv11b_gr_init_preemption_state,
-#endif
 	.fe_go_idle_timeout = gv11b_gr_init_fe_go_idle_timeout,
 	.load_method_init = gm20b_gr_init_load_method_init,
 	.commit_global_timeslice = gv11b_gr_init_commit_global_timeslice,
@@ -526,9 +525,12 @@ static const struct gops_gr_init gv11b_ops_gr_init = {
 	.wait_initialized = nvgpu_gr_wait_initialized,
 #endif
 #ifdef CONFIG_NVGPU_GRAPHICS
+	.rop_mapping = gv11b_gr_init_rop_mapping,
+#endif /* CONFIG_NVGPU_GRAPHICS */
+#ifdef CONFIG_NVGPU_GFXP
+	.preemption_state = gv11b_gr_init_preemption_state,
 	.get_ctx_attrib_cb_size = gp10b_gr_init_get_ctx_attrib_cb_size,
 	.commit_cbes_reserve = gv11b_gr_init_commit_cbes_reserve,
-	.rop_mapping = gv11b_gr_init_rop_mapping,
 	.get_attrib_cb_gfxp_default_size = gv11b_gr_init_get_attrib_cb_gfxp_default_size,
 	.get_attrib_cb_gfxp_size = gv11b_gr_init_get_attrib_cb_gfxp_size,
 	.get_gfxp_rtv_cb_size = NULL,
@@ -537,7 +539,7 @@ static const struct gops_gr_init gv11b_ops_gr_init = {
 	.get_ctx_pagepool_size = gp10b_gr_init_get_ctx_pagepool_size,
 	.get_ctx_betacb_size = gv11b_gr_init_get_ctx_betacb_size,
 	.commit_ctxsw_spill = gv11b_gr_init_commit_ctxsw_spill,
-#endif /* CONFIG_NVGPU_GRAPHICS */
+#endif /* CONFIG_NVGPU_GFXP */
 };
 
 static const struct gops_gr_intr gv11b_ops_gr_intr = {
@@ -1576,6 +1578,8 @@ int gv11b_init_hal(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_MULTIPLE_WPR, false);
 #ifdef CONFIG_NVGPU_GRAPHICS
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_ZBC_STENCIL, true);
+#endif
+#ifdef CONFIG_NVGPU_GFXP
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PREEMPTION_GFXP, true);
 #endif
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PLATFORM_ATOMIC, true);

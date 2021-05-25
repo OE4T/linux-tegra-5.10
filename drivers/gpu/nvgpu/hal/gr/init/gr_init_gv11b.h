@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -89,11 +89,14 @@ u32 gv11b_gr_init_get_patch_slots(struct gk20a *g,
 void gv11b_gr_init_detect_sm_arch(struct gk20a *g);
 
 #ifdef CONFIG_NVGPU_GRAPHICS
+void gv11b_gr_init_rop_mapping(struct gk20a *g,
+			      struct nvgpu_gr_config *gr_config);
+#endif /* CONFIG_NVGPU_GRAPHICS */
+
+#ifdef CONFIG_NVGPU_GFXP
 int gv11b_gr_init_preemption_state(struct gk20a *g);
 void gv11b_gr_init_commit_cbes_reserve(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, bool patch);
-void gv11b_gr_init_rop_mapping(struct gk20a *g,
-			      struct nvgpu_gr_config *gr_config);
 
 u32 gv11b_gr_init_get_attrib_cb_gfxp_default_size(struct gk20a *g);
 u32 gv11b_gr_init_get_attrib_cb_gfxp_size(struct gk20a *g);
@@ -105,7 +108,7 @@ void gv11b_gr_init_commit_ctxsw_spill(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, u64 addr, u32 size, bool patch);
 void gv11b_gr_init_commit_gfxp_wfi_timeout(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, bool patch);
-#endif /* CONFIG_NVGPU_GRAPHICS */
+#endif /* CONFIG_NVGPU_GFXP */
 
 #ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
 void gv11b_gr_init_restore_stats_counter_bundle_data(struct gk20a *g,

@@ -193,17 +193,19 @@ u32 nvgpu_gr_falcon_get_pm_ctxsw_image_size(struct nvgpu_gr_falcon *falcon)
 }
 #endif
 
-#ifdef CONFIG_NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GFXP
 u32 nvgpu_gr_falcon_get_preempt_image_size(struct nvgpu_gr_falcon *falcon)
 {
 	return falcon->sizes.preempt_image_size;
 }
+#endif /* CONFIG_NVGPU_GFXP */
 
+#ifdef CONFIG_NVGPU_GRAPHICS
 u32 nvgpu_gr_falcon_get_zcull_image_size(struct nvgpu_gr_falcon *falcon)
 {
 	return falcon->sizes.zcull_image_size;
 }
-#endif
+#endif /* CONFIG_NVGPU_GRAPHICS */
 
 static int nvgpu_gr_falcon_init_ctxsw_ucode_vaspace(struct gk20a *g,
 					struct nvgpu_gr_falcon *falcon)

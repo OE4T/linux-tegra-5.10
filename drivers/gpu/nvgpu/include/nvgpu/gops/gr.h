@@ -732,7 +732,6 @@ struct gops_gr_init {
 				  u32 gpc_count, u32 tpc_count);
 	int (*wait_empty)(struct gk20a *g);
 	void (*override_context_reset)(struct gk20a *g);
-	int (*preemption_state)(struct gk20a *g);
 	void (*fe_go_idle_timeout)(struct gk20a *g, bool enable);
 	void (*load_method_init)(struct gk20a *g,
 			struct netlist_av_list *sw_method_init);
@@ -794,16 +793,19 @@ struct gops_gr_init {
 				bool patch);
 #endif
 #ifdef CONFIG_NVGPU_GRAPHICS
-	u32 (*get_ctx_attrib_cb_size)(struct gk20a *g, u32 betacb_size,
-				      u32 tpc_count, u32 max_tpc);
-	void (*commit_cbes_reserve)(struct gk20a *g,
-				    struct nvgpu_gr_ctx *gr_ctx,
-				    bool patch);
 	void (*rop_mapping)(struct gk20a *g,
 		struct nvgpu_gr_config *gr_config);
 	u32 (*get_rtv_cb_size)(struct gk20a *g);
 	void (*commit_rtv_cb)(struct gk20a *g, u64 addr,
 			      struct nvgpu_gr_ctx *gr_ctx, bool patch);
+#endif
+#ifdef CONFIG_NVGPU_GFXP
+	int (*preemption_state)(struct gk20a *g);
+	u32 (*get_ctx_attrib_cb_size)(struct gk20a *g, u32 betacb_size,
+				      u32 tpc_count, u32 max_tpc);
+	void (*commit_cbes_reserve)(struct gk20a *g,
+				    struct nvgpu_gr_ctx *gr_ctx,
+				    bool patch);
 	void (*commit_gfxp_rtv_cb)(struct gk20a *g,
 				   struct nvgpu_gr_ctx *gr_ctx,
 				   bool patch);
@@ -816,7 +818,7 @@ struct gops_gr_init {
 	u32 (*get_ctx_spill_size)(struct gk20a *g);
 	u32 (*get_ctx_pagepool_size)(struct gk20a *g);
 	u32 (*get_ctx_betacb_size)(struct gk20a *g);
-#endif /* CONFIG_NVGPU_GRAPHICS */
+#endif /* CONFIG_NVGPU_GFXP */
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	/**
 	 * @brief Wait for GR engine to be initialized.
@@ -894,6 +896,8 @@ struct gops_gr_ctxsw_prog {
 	void (*set_zcull_mode_no_ctxsw)(struct gk20a *g,
 					struct nvgpu_mem *ctx_mem);
 	bool (*is_zcull_mode_separate_buffer)(u32 mode);
+#endif
+#ifdef CONFIG_NVGPU_GFXP
 	void (*set_full_preemption_ptr)(struct gk20a *g,
 					struct nvgpu_mem *ctx_mem,
 					u64 addr);

@@ -68,7 +68,7 @@ struct zcull_ctx_desc;
 
 /** S/W defined value for WFI graphics preemption mode. */
 #define NVGPU_PREEMPTION_MODE_GRAPHICS_WFI	BIT32(0)
-#ifdef CONFIG_NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GFXP
 /** S/W defined value for GFxP graphics preemption mode. */
 #define NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP	BIT32(1)
 #endif
@@ -90,7 +90,7 @@ struct zcull_ctx_desc;
 #endif
 /** S/W defined index for patch context buffer. */
 #define NVGPU_GR_CTX_PATCH_CTX		2U
-#ifdef CONFIG_NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GFXP
 /** S/W defined index for preempt ctxsw buffer. */
 #define NVGPU_GR_CTX_PREEMPT_CTXSW	3U
 /** S/W defined index for spill ctxsw buffer. */
@@ -534,7 +534,7 @@ bool nvgpu_gr_ctx_desc_force_preemption_cilp(
 		struct nvgpu_gr_ctx_desc *gr_ctx_desc);
 #endif /* CONFIG_NVGPU_CILP */
 
-#ifdef CONFIG_NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GFXP
 int nvgpu_gr_ctx_alloc_ctxsw_buffers(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx,
 	struct nvgpu_gr_ctx_desc *gr_ctx_desc,
@@ -558,13 +558,14 @@ struct nvgpu_mem *nvgpu_gr_ctx_get_gfxp_rtvcb_ctxsw_buffer(
 void nvgpu_gr_ctx_set_preemption_buffer_va(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx);
 
-void nvgpu_gr_ctx_init_graphics_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
-	u32 graphics_preempt_mode);
-
-u32 nvgpu_gr_ctx_get_graphics_preemption_mode(struct nvgpu_gr_ctx *gr_ctx);
-
 bool nvgpu_gr_ctx_desc_force_preemption_gfxp(
 		struct nvgpu_gr_ctx_desc *gr_ctx_desc);
+#endif /* CONFIG_NVGPU_GFXP */
+
+#ifdef CONFIG_NVGPU_GRAPHICS
+void nvgpu_gr_ctx_init_graphics_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
+	u32 graphics_preempt_mode);
+u32 nvgpu_gr_ctx_get_graphics_preemption_mode(struct nvgpu_gr_ctx *gr_ctx);
 
 void nvgpu_gr_ctx_set_zcull_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 	u32 mode, u64 gpu_va);

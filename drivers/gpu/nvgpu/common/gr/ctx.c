@@ -121,7 +121,7 @@ void nvgpu_gr_ctx_free(struct gk20a *g,
 		nvgpu_gr_ctx_free_pm_ctx(g, vm, gr_ctx);
 #endif
 		nvgpu_gr_ctx_free_patch_ctx(g, vm, gr_ctx);
-#ifdef CONFIG_NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GFXP
 		if (nvgpu_mem_is_valid(&gr_ctx->gfxp_rtvcb_ctxsw_buffer)) {
 			nvgpu_dma_unmap_free(vm,
 				&gr_ctx->gfxp_rtvcb_ctxsw_buffer);
@@ -659,7 +659,7 @@ bool nvgpu_gr_ctx_check_valid_preemption_mode(struct gk20a *g,
 		}
 	}
 
-#if defined(CONFIG_NVGPU_CILP) && defined(CONFIG_NVGPU_GRAPHICS)
+#if defined(CONFIG_NVGPU_CILP) && defined(CONFIG_NVGPU_GFXP)
 	/* Invalid combination */
 	if ((graphics_preempt_mode == NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP) &&
 		   (compute_preempt_mode == NVGPU_PREEMPTION_MODE_COMPUTE_CILP)) {
@@ -673,7 +673,7 @@ bool nvgpu_gr_ctx_check_valid_preemption_mode(struct gk20a *g,
 void nvgpu_gr_ctx_set_preemption_modes(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx)
 {
-#ifdef CONFIG_NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GFXP
 	if (gr_ctx->graphics_preempt_mode == NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP) {
 		g->ops.gr.ctxsw_prog.set_graphics_preemption_mode_gfxp(g,
 			&gr_ctx->mem);
@@ -769,7 +769,9 @@ int nvgpu_gr_ctx_zcull_setup(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 
 	return 0;
 }
+#endif /* CONFIG_NVGPU_GRAPHICS */
 
+#ifdef CONFIG_NVGPU_GFXP
 void nvgpu_gr_ctx_set_preemption_buffer_va(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx)
 {
@@ -934,7 +936,7 @@ struct nvgpu_mem *nvgpu_gr_ctx_get_gfxp_rtvcb_ctxsw_buffer(
 {
 	return &gr_ctx->gfxp_rtvcb_ctxsw_buffer;
 }
-#endif /* CONFIG_NVGPU_GRAPHICS */
+#endif /* CONFIG_NVGPU_GFXP */
 
 #ifdef CONFIG_NVGPU_CILP
 bool nvgpu_gr_ctx_desc_force_preemption_cilp(struct nvgpu_gr_ctx_desc *gr_ctx_desc)

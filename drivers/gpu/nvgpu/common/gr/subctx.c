@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -140,7 +140,9 @@ void nvgpu_gr_subctx_zcull_setup(struct gk20a *g, struct nvgpu_gr_subctx *subctx
 	g->ops.gr.ctxsw_prog.set_zcull_ptr(g, &subctx->ctx_header,
 		nvgpu_gr_ctx_get_zcull_ctx_va(gr_ctx));
 }
+#endif /* CONFIG_NVGPU_GRAPHICS */
 
+#ifdef CONFIG_NVGPU_GFXP
 void nvgpu_gr_subctx_set_preemption_buffer_va(struct gk20a *g,
 	struct nvgpu_gr_subctx *subctx, struct nvgpu_gr_ctx *gr_ctx)
 {
@@ -153,7 +155,7 @@ void nvgpu_gr_subctx_set_preemption_buffer_va(struct gk20a *g,
 			nvgpu_gr_ctx_get_preempt_ctxsw_buffer(gr_ctx)->gpu_va);
 	}
 }
-#endif
+#endif /* CONFIG_NVGPU_GFXP */
 
 #ifdef CONFIG_NVGPU_DEBUGGER
 void nvgpu_gr_subctx_set_hwpm_mode(struct gk20a *g,

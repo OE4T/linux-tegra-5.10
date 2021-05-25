@@ -167,9 +167,10 @@ struct nvgpu_gr_falcon_query_sizes {
 #ifdef CONFIG_NVGPU_DEBUGGER
 	u32 pm_ctxsw_image_size;
 #endif
-
-#ifdef CONFIG_NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GFXP
 	u32 preempt_image_size;
+#endif
+#ifdef CONFIG_NVGPU_GRAPHICS
 	u32 zcull_image_size;
 #endif
 };

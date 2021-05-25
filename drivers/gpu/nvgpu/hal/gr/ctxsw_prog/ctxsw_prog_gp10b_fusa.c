@@ -60,7 +60,7 @@ void gp10b_ctxsw_prog_init_ctxsw_hdr_data(struct gk20a *g,
 	gm20b_ctxsw_prog_init_ctxsw_hdr_data(g, ctx_mem);
 }
 
-#ifdef CONFIG_NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GFXP
 void gp10b_ctxsw_prog_set_graphics_preemption_mode_gfxp(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem)
 {
@@ -76,4 +76,4 @@ void gp10b_ctxsw_prog_set_full_preemption_ptr(struct gk20a *g,
 	nvgpu_mem_wr(g, ctx_mem,
 		ctxsw_prog_main_image_full_preemption_ptr_o(), u64_lo32(addr));
 }
-#endif /* CONFIG_NVGPU_GRAPHICS */
+#endif /* CONFIG_NVGPU_GFXP */

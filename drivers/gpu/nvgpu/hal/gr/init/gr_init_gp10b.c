@@ -248,7 +248,7 @@ void gp10b_gr_init_commit_global_attrib_cb(struct gk20a *g,
 
 	addr = addr >> gr_gpcs_setup_attrib_cb_base_addr_39_12_align_bits_v();
 
-#ifdef CONFIG_NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GFXP
 	if (nvgpu_gr_ctx_get_preempt_ctxsw_buffer(gr_ctx)->gpu_va != 0ULL) {
 		attrBufferSize = nvgpu_safe_cast_u64_to_u32(
 			nvgpu_gr_ctx_get_betacb_ctxsw_buffer(gr_ctx)->size);
@@ -256,7 +256,7 @@ void gp10b_gr_init_commit_global_attrib_cb(struct gk20a *g,
 #endif
 		attrBufferSize = g->ops.gr.init.get_global_attr_cb_size(g,
 			tpc_count, max_tpc);
-#ifdef CONFIG_NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GFXP
 	}
 #endif
 

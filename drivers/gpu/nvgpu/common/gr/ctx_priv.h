@@ -104,7 +104,7 @@ struct nvgpu_gr_ctx {
 	 */
 	struct nvgpu_mem mem;
 
-#ifdef CONFIG_NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GFXP
 	struct nvgpu_mem preempt_ctxsw_buffer;
 	struct nvgpu_mem spill_ctxsw_buffer;
 	struct nvgpu_mem betacb_ctxsw_buffer;

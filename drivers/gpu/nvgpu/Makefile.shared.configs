@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -169,6 +169,9 @@ NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_RECOVERY
 
 CONFIG_NVGPU_CILP               := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_CILP
+
+CONFIG_NVGPU_GFXP               := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_GFXP
 
 CONFIG_NVGPU_CYCLESTATS         := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_CYCLESTATS

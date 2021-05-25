@@ -184,7 +184,9 @@ void tu104_gr_init_commit_rtv_cb(struct gk20a *g, u64 addr,
 	nvgpu_assert(u64_hi32(addr) == 0U);
 	tu104_gr_init_patch_rtv_cb(g, gr_ctx, (u32)addr, size, 0, patch);
 }
+#endif /* CONFIG_NVGPU_GRAPHICS */
 
+#ifdef CONFIG_NVGPU_GFXP
 void tu104_gr_init_commit_gfxp_rtv_cb(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, bool patch)
 {
@@ -248,4 +250,4 @@ u32 tu104_gr_init_get_gfxp_rtv_cb_size(struct gk20a *g)
 			gr_scc_rm_rtv_cb_size_div_256b_gfxp_adder_f()),
 		gr_scc_rm_rtv_cb_size_div_256b_byte_granularity_v());
 }
-#endif /* CONFIG_NVGPU_GRAPHICS */
+#endif /* CONFIG_NVGPU_GFXP */

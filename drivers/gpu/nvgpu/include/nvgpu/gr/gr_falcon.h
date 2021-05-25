@@ -342,8 +342,10 @@ struct nvgpu_mutex *nvgpu_gr_falcon_get_fecs_mutex(
 #ifdef CONFIG_NVGPU_DEBUGGER
 u32 nvgpu_gr_falcon_get_pm_ctxsw_image_size(struct nvgpu_gr_falcon *falcon);
 #endif
-#ifdef CONFIG_NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GFXP
 u32 nvgpu_gr_falcon_get_preempt_image_size(struct nvgpu_gr_falcon *falcon);
+#endif
+#ifdef CONFIG_NVGPU_GRAPHICS
 u32 nvgpu_gr_falcon_get_zcull_image_size(struct nvgpu_gr_falcon *falcon);
 #endif
 

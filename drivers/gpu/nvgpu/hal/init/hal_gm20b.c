@@ -1216,6 +1216,8 @@ int gm20b_init_hal(struct gk20a *g)
 
 #ifdef CONFIG_NVGPU_GRAPHICS
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_ZBC_STENCIL, false);
+#endif
+#ifdef CONFIG_NVGPU_GFXP
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PREEMPTION_GFXP, false);
 #endif
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SET_CTX_MMU_DEBUG_MODE, true);

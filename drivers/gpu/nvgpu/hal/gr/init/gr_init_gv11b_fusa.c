@@ -720,7 +720,7 @@ void gv11b_gr_init_commit_global_attrib_cb(struct gk20a *g,
 
 	addr = addr >> gr_gpcs_setup_attrib_cb_base_addr_39_12_align_bits_v();
 
-#ifdef CONFIG_NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GFXP
 	if (nvgpu_gr_ctx_get_preempt_ctxsw_buffer(gr_ctx)->gpu_va != 0ULL) {
 		attrBufferSize = nvgpu_safe_cast_u64_to_u32(
 			nvgpu_gr_ctx_get_betacb_ctxsw_buffer(gr_ctx)->size);
@@ -728,7 +728,7 @@ void gv11b_gr_init_commit_global_attrib_cb(struct gk20a *g,
 #endif
 		attrBufferSize = g->ops.gr.init.get_global_attr_cb_size(g,
 			tpc_count, max_tpc);
-#ifdef CONFIG_NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GFXP
 	}
 #endif
 
@@ -937,23 +937,6 @@ void gv11b_gr_init_detect_sm_arch(struct gk20a *g)
 		gr_gpc0_tpc0_sm_arch_warp_count_v(v);
 }
 
-#ifdef CONFIG_NVGPU_GRAPHICS
-void gv11b_gr_init_commit_cbes_reserve(struct gk20a *g,
-	struct nvgpu_gr_ctx *gr_ctx, bool patch)
-{
-	u32 cbes_reserve = gr_gpcs_swdx_beta_cb_ctrl_cbes_reserve_gfxp_v();
-
-	nvgpu_gr_ctx_patch_write(g, gr_ctx,
-		gr_gpcs_swdx_beta_cb_ctrl_r(),
-		gr_gpcs_swdx_beta_cb_ctrl_cbes_reserve_f(cbes_reserve),
-		patch);
-	nvgpu_gr_ctx_patch_write(g, gr_ctx,
-		gr_gpcs_ppcs_cbm_beta_cb_ctrl_r(),
-		gr_gpcs_ppcs_cbm_beta_cb_ctrl_cbes_reserve_f(cbes_reserve),
-		patch);
-}
-#endif
-
 #ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
 int gv11b_gr_init_load_sw_bundle_init(struct gk20a *g,
 		struct netlist_av_list *sw_bundle_init)
@@ -1141,6 +1124,23 @@ void gv11b_gr_init_rop_mapping(struct gk20a *g,
 		gr_rstr2d_map_table_cfg_num_entries_f(
 			nvgpu_gr_config_get_tpc_count(gr_config)));
 }
+#endif /* CONFIG_NVGPU_GRAPHICS */
+
+#ifdef CONFIG_NVGPU_GFXP
+void gv11b_gr_init_commit_cbes_reserve(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx, bool patch)
+{
+	u32 cbes_reserve = gr_gpcs_swdx_beta_cb_ctrl_cbes_reserve_gfxp_v();
+
+	nvgpu_gr_ctx_patch_write(g, gr_ctx,
+		gr_gpcs_swdx_beta_cb_ctrl_r(),
+		gr_gpcs_swdx_beta_cb_ctrl_cbes_reserve_f(cbes_reserve),
+		patch);
+	nvgpu_gr_ctx_patch_write(g, gr_ctx,
+		gr_gpcs_ppcs_cbm_beta_cb_ctrl_r(),
+		gr_gpcs_ppcs_cbm_beta_cb_ctrl_cbes_reserve_f(cbes_reserve),
+		patch);
+}
 
 u32 gv11b_gr_init_get_attrib_cb_gfxp_default_size(struct gk20a *g)
 {
@@ -1225,4 +1225,4 @@ int gv11b_gr_init_preemption_state(struct gk20a *g)
 
 	return 0;
 }
-#endif /* CONFIG_NVGPU_GRAPHICS */
+#endif /* CONFIG_NVGPU_GFXP */

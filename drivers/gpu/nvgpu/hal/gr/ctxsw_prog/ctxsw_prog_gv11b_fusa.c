@@ -58,7 +58,9 @@ void gv11b_ctxsw_prog_set_zcull_ptr(struct gk20a *g, struct nvgpu_mem *ctx_mem,
 	nvgpu_mem_wr(g, ctx_mem, ctxsw_prog_main_image_zcull_ptr_hi_o(),
 		u64_hi32(addr));
 }
+#endif /* CONFIG_NVGPU_GRAPHICS */
 
+#ifdef CONFIG_NVGPU_GFXP
 void gv11b_ctxsw_prog_set_full_preemption_ptr(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem, u64 addr)
 {
@@ -82,4 +84,4 @@ void gv11b_ctxsw_prog_set_full_preemption_ptr_veid0(struct gk20a *g,
 		ctxsw_prog_main_image_full_preemption_ptr_veid0_hi_o(),
 		u64_hi32(addr));
 }
-#endif /* CONFIG_NVGPU_GRAPHICS */
+#endif /* CONFIG_NVGPU_GFXP */

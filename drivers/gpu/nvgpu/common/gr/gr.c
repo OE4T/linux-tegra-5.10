@@ -271,12 +271,14 @@ static int gr_init_setup_hw(struct gk20a *g, struct nvgpu_gr *gr)
 
 		nvgpu_gr_zbc_load_table(g, gr->zbc);
 
+#ifdef CONFIG_NVGPU_GFXP
 		if (g->ops.gr.init.preemption_state != NULL) {
 			err = g->ops.gr.init.preemption_state(g);
 			if (err != 0) {
 				goto out;
 			}
 		}
+#endif /* CONFIG_NVGPU_GFXP */
 	}
 #endif /* CONFIG_NVGPU_GRAPHICS */
 
@@ -424,7 +426,7 @@ static int gr_init_ctx_bufs(struct gk20a *g, struct nvgpu_gr *gr)
 		goto clean_up;
 	}
 
-#ifdef CONFIG_NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GFXP
 	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
 		nvgpu_gr_ctx_set_size(gr->gr_ctx_desc,
 			NVGPU_GR_CTX_PREEMPT_CTXSW,
