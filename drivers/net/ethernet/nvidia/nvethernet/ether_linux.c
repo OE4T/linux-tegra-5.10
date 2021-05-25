@@ -2512,17 +2512,6 @@ static int ether_open(struct net_device *dev)
 	/* Enable napi before requesting irq to be ready to handle it */
 	ether_napi_enable(pdata);
 
-#ifdef MACSEC_SUPPORT
-#ifdef DEBUG_MACSEC
-	ret = macsec_open(pdata->macsec_pdata);
-	if (ret < 0) {
-		dev_err(&dev->dev, "%s: failed to open macsec with reason %d\n",
-			__func__, ret);
-		goto err_macsec_open;
-	}
-#endif
-#endif /* MACSEC_SUPPORT */
-
 	/* request tx/rx/common irq */
 	ret = ether_request_irqs(pdata);
 	if (ret < 0) {
@@ -2555,11 +2544,6 @@ static int ether_open(struct net_device *dev)
 
 	return ret;
 
-#ifdef MACSEC_SUPPORT
-#ifdef DEBUG_MACSEC
-err_macsec_open:
-#endif
-#endif /* MACSEC_SUPPORT */
 err_r_irq:
 	ether_napi_disable(pdata);
 	ether_ptp_remove(pdata);

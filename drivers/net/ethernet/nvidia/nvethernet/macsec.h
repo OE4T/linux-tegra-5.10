@@ -128,7 +128,9 @@ enum nv_macsec_nl_commands {
  * @brief MACsec supplicant data structure
  */
 struct macsec_supplicant_data {
+	/** specific port id to identity supplicant instance */
 	unsigned int snd_portid;
+	/** flag check supplicant instance is allocated */
 	unsigned short in_use;
 	/** MACsec protect frames variable */
 	unsigned int protect_frames;
