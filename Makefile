@@ -10,8 +10,14 @@ ifeq ($(_nv_build_configuration_is_external),0)
 # internal build kernel overlays txt
 CHOSEN_KERNEL_OVERLAYS_TXT := kernel-overlays.txt
 else
+ifeq ($(_nv_build_configuration_is_external),)
+# menuconfig make selects internal profile
+# NOTE: external profile menuconfig support may be needed later
+CHOSEN_KERNEL_OVERLAYS_TXT := kernel-overlays.txt
+else
 # external build kernel overlays txt
 CHOSEN_KERNEL_OVERLAYS_TXT := kernel-ext-overlays.txt
+endif
 endif
 KERNEL_OVERLAYS := $(addprefix $(CURDIR)/../,$(shell cat $(CHOSEN_KERNEL_OVERLAYS_TXT)))
 else
