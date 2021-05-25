@@ -298,58 +298,64 @@ int nvgpu_profiler_pm_resource_release(struct nvgpu_profiler_object *prof,
 	return 0;
 }
 
-static int nvgpu_profiler_bind_smpc(struct nvgpu_profiler_object *prof)
+static bool nvgpu_profiler_is_context_resource(
+			struct nvgpu_profiler_object *prof,
+			enum nvgpu_profiler_pm_resource_type pm_resource)
 {
-	struct gk20a *g = prof->g;
-	int err;
-	u32 gr_instance_id =
-		nvgpu_grmgr_get_gr_instance_id(g, prof->gpu_instance_id);
+	return (prof->scope != NVGPU_PROFILER_PM_RESERVATION_SCOPE_DEVICE) ||
+		prof->ctxsw[pm_resource];
+}
 
-	if (prof->scope == NVGPU_PROFILER_PM_RESERVATION_SCOPE_DEVICE) {
-		if (prof->ctxsw[NVGPU_PROFILER_PM_RESOURCE_TYPE_SMPC]) {
-			err = g->ops.gr.update_smpc_ctxsw_mode(g, prof->tsg, true);
-			if (err != 0) {
-				return err;
-			}
+static int nvgpu_profiler_bind_smpc(struct gk20a *g,
+		u32 gr_instance_id,
+		bool is_ctxsw,
+		struct nvgpu_tsg *tsg)
+{
+	int err = 0;
 
-			if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SMPC_GLOBAL_MODE)) {
-				err = nvgpu_gr_exec_with_err_for_instance(g, gr_instance_id,
-						g->ops.gr.update_smpc_global_mode(g, false));
-			}
+	if (!is_ctxsw) {
+		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SMPC_GLOBAL_MODE)) {
+			err = nvgpu_gr_exec_with_err_for_instance(g, gr_instance_id,
+				g->ops.gr.update_smpc_global_mode(g, true));
 		} else {
-			if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SMPC_GLOBAL_MODE)) {
-				err = nvgpu_gr_exec_with_err_for_instance(g, gr_instance_id,
-						g->ops.gr.update_smpc_global_mode(g, true));
-			} else {
-				err = -EINVAL;
-			}
+			err = -EINVAL;
 		}
 	} else {
-		err = g->ops.gr.update_smpc_ctxsw_mode(g, prof->tsg, true);
+		err = nvgpu_gr_exec_with_err_for_instance(g, gr_instance_id,
+			g->ops.gr.update_smpc_ctxsw_mode(g, tsg, true));
+		if (err != 0) {
+			goto done;
+		}
+		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SMPC_GLOBAL_MODE)) {
+			err = g->ops.gr.update_smpc_global_mode(g, false);
+		}
 	}
 
+done:
+	if (err != 0) {
+		nvgpu_err(g, "nvgpu bind smpc failed, err=%d", err);
+	}
 	return err;
 }
 
-static int nvgpu_profiler_unbind_smpc(struct nvgpu_profiler_object *prof)
+static int nvgpu_profiler_unbind_smpc(struct gk20a *g, bool is_ctxsw,
+		struct nvgpu_tsg *tsg)
 {
-	struct gk20a *g = prof->g;
 	int err;
 
-	if (prof->scope == NVGPU_PROFILER_PM_RESERVATION_SCOPE_DEVICE) {
-		if (prof->ctxsw[NVGPU_PROFILER_PM_RESOURCE_TYPE_SMPC]) {
-			err = g->ops.gr.update_smpc_ctxsw_mode(g, prof->tsg, false);
+	if (!is_ctxsw) {
+		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SMPC_GLOBAL_MODE)) {
+			err = g->ops.gr.update_smpc_global_mode(g, false);
 		} else {
-			if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SMPC_GLOBAL_MODE)) {
-				err = g->ops.gr.update_smpc_global_mode(g, false);
-			} else {
-				err = -EINVAL;
-			}
+			err = -EINVAL;
 		}
 	} else {
-		err = g->ops.gr.update_smpc_ctxsw_mode(g, prof->tsg, false);
+		err = g->ops.gr.update_smpc_ctxsw_mode(g, tsg, false);
 	}
 
+	if (err != 0) {
+		nvgpu_err(g, "nvgpu unbind smpc failed, err=%d", err);
+	}
 	return err;
 }
 
@@ -612,6 +618,7 @@ static int nvgpu_profiler_unbind_hwpm_streamout(struct nvgpu_profiler_object *pr
 int nvgpu_profiler_bind_pm_resources(struct nvgpu_profiler_object *prof)
 {
 	struct gk20a *g = prof->g;
+	bool is_ctxsw;
 	int err;
 
 	nvgpu_log(g, gpu_dbg_prof,
@@ -666,7 +673,11 @@ int nvgpu_profiler_bind_pm_resources(struct nvgpu_profiler_object *prof)
 	}
 
 	if (prof->reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_SMPC]) {
-		err = nvgpu_profiler_bind_smpc(prof);
+		is_ctxsw = nvgpu_profiler_is_context_resource(prof,
+				NVGPU_PROFILER_PM_RESOURCE_TYPE_SMPC);
+		err = nvgpu_profiler_bind_smpc(g,
+			nvgpu_grmgr_get_gr_instance_id(g, prof->gpu_instance_id),
+			is_ctxsw, prof->tsg);
 		if (err) {
 			nvgpu_err(g, "failed to bind SMPC with profiler handle %u",
 				prof->prof_handle);
@@ -698,6 +709,7 @@ fail:
 int nvgpu_profiler_unbind_pm_resources(struct nvgpu_profiler_object *prof)
 {
 	struct gk20a *g = prof->g;
+	bool is_ctxsw;
 	int err;
 
 	if (!prof->bound) {
@@ -743,7 +755,9 @@ int nvgpu_profiler_unbind_pm_resources(struct nvgpu_profiler_object *prof)
 	}
 
 	if (prof->reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_SMPC]) {
-		err = nvgpu_profiler_unbind_smpc(prof);
+		is_ctxsw = nvgpu_profiler_is_context_resource(prof,
+				NVGPU_PROFILER_PM_RESOURCE_TYPE_SMPC);
+		err = nvgpu_profiler_unbind_smpc(g, is_ctxsw, prof->tsg);
 		if (err) {
 			nvgpu_err(g,
 				"failed to unbind SMPC from profiler handle %u",
