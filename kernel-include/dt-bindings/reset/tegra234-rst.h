@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * NVIDIA CORPORATION and its licensors retain all intellectual property
  * and proprietary rights in and to this software, related documentation
@@ -171,10 +171,6 @@
 #define TEGRA234_RESET_PEX_USB_UPHY_L5		152U
 #define TEGRA234_RESET_PEX_USB_UPHY_L6		153U
 #define TEGRA234_RESET_PEX_USB_UPHY_L7		154U
-#define TEGRA234_RESET_PEX_USB_UPHY_L8		155U
-#define TEGRA234_RESET_PEX_USB_UPHY_L9		156U
-#define TEGRA234_RESET_PEX_USB_UPHY_L10		157U
-#define TEGRA234_RESET_PEX_USB_UPHY_L11		158U
 #define TEGRA234_RESET_PEX_USB_UPHY_PLL0	159U
 #define TEGRA234_RESET_PEX_USB_UPHY_PLL1	160U
 #define TEGRA234_RESET_PEX_USB_UPHY_PLL2	161U
@@ -191,8 +187,14 @@
 #define TEGRA234_RESET_GBE_UPHY_PLL1		172U
 #define TEGRA234_RESET_GBE_UPHY_PLL2		173U
 
-#define TEGRA234_MAX_PUBLIC_RESET_ID		180U
+#define TEGRA234_MAX_PUBLIC_RESET_ID		173U
 
 /** @} */
+
+/* FIXME: alias to be removed after kernel DT is updated */
+#define TEGRA234_RESET_PEX_USB_UPHY_L8		0U
+#define TEGRA234_RESET_PEX_USB_UPHY_L9		0U
+#define TEGRA234_RESET_PEX_USB_UPHY_L10		0U
+#define TEGRA234_RESET_PEX_USB_UPHY_L11		0U
 
 #endif
