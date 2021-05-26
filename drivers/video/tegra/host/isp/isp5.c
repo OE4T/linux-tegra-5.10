@@ -60,6 +60,8 @@ struct host_isp5 {
 	struct platform_device *isp_thi;
 };
 
+
+#if defined(CONFIG_TEGRA_CAMERA_RTCPU)
 static int isp5_alloc_syncpt(struct platform_device *pdev,
 			const char *name,
 			uint32_t *syncpt_id)
@@ -106,6 +108,7 @@ static struct isp_channel_drv_ops isp5_channel_drv_ops = {
 	.get_gos_table = isp5_get_gos_table,
 	.get_syncpt_gos_backing = isp5_get_syncpt_gos_backing,
 };
+#endif
 
 int isp5_priv_early_probe(struct platform_device *pdev)
 {
