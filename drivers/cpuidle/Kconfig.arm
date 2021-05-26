@@ -15,7 +15,7 @@ config CPU_IDLE_TEGRA18X
 
 config CPU_IDLE_TEGRA19X
 	tristate "CPU Idle Driver for NVIDIA Tegra19x SoCs"
-	depends on ARCH_TEGRA_19x_SOC
+	depends on ARCH_TEGRA_19x_SOC || ARCH_TEGRA_194_SOC
 	default y
 	select CPU_IDLE_MULTIPLE_DRIVERS
 	select DT_IDLE_STATES
