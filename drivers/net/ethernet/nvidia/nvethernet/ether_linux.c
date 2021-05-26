@@ -3945,6 +3945,13 @@ static int ether_get_vm_irq_data(struct platform_device *pdev,
 			return ret;
 		}
 
+		ret = of_property_read_u32(temp, "nvidia,vm-num",
+					   &osi_core->irq_data[node].vm_num);
+		if (ret != 0) {
+			dev_err(&pdev->dev, "failed to read VM Number\n");
+			return ret;
+		}
+
 		ether_set_vm_irq_chan_mask(&pdata->vm_irq_data[node],
 					   osi_dma->irq_data[node].num_vm_chans,
 					   osi_dma->irq_data[node].vm_chans);
