@@ -1,7 +1,7 @@
-From 27a45534e314b8368ab68ede108af6ae7ae9b88e Mon Sep 17 00:00:00 2001
+From fed6f3896ad240be2bb58f3baad34089209f0ab6 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Fri, 23 Oct 2020 12:12:09 +0200
-Subject: [PATCH 012/295] sched/core: Make migrate disable and CPU hotplug
+Subject: [PATCH 012/296] sched/core: Make migrate disable and CPU hotplug
  cooperative
 
 On CPU unplug tasks which are in a migrate disabled region cannot be pushed

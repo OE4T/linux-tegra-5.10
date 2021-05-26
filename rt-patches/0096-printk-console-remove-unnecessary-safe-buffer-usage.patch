@@ -1,7 +1,7 @@
-From 472ed4d3b3f135c51f92ac797a64bb6e0fa17bf3 Mon Sep 17 00:00:00 2001
+From b27e457efbd3c7143533d764abce30f26d32a4c2 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Wed, 17 Feb 2021 18:28:05 +0100
-Subject: [PATCH 096/295] printk: console: remove unnecessary safe buffer usage
+Subject: [PATCH 096/296] printk: console: remove unnecessary safe buffer usage
 
 Upon registering a console, safe buffers are activated when setting
 up the sequence number to replay the log. However, these are already

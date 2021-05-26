@@ -1,7 +1,7 @@
-From e4d2ed821347536d0615e106f461a5dcc5d28e1d Mon Sep 17 00:00:00 2001
+From a13fcc174a98d8e98d002976123c176de9cc6c71 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 14 Sep 2016 14:35:49 +0200
-Subject: [PATCH 187/295] fs/dcache: use swait_queue instead of waitqueue
+Subject: [PATCH 187/296] fs/dcache: use swait_queue instead of waitqueue
 
 __d_lookup_done() invokes wake_up_all() while holding a hlist_bl_lock()
 which disables preemption. As a workaround convert it to swait.
@@ -111,7 +111,7 @@ index 3441ffa..2fcae5c 100644
  	if (!o->nodeid) {
  		/*
 diff --git a/fs/namei.c b/fs/namei.c
-index 7af66d5..b3f51ef 100644
+index 4c9d0c36..5a6e15a 100644
 --- a/fs/namei.c
 +++ b/fs/namei.c
 @@ -1520,7 +1520,7 @@ static struct dentry *__lookup_slow(const struct qstr *name,

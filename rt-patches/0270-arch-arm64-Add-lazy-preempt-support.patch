@@ -1,7 +1,7 @@
-From 72a923ade68df9b5001f5e000435b9f5f89792be Mon Sep 17 00:00:00 2001
+From 7af9f72ec4f9612fc979ddb6680c84f90eafc0e2 Mon Sep 17 00:00:00 2001
 From: Anders Roxell <anders.roxell@linaro.org>
 Date: Thu, 14 May 2015 17:52:17 +0200
-Subject: [PATCH 270/295] arch/arm64: Add lazy preempt support
+Subject: [PATCH 270/296] arch/arm64: Add lazy preempt support
 
 arm64 is missing support for PREEMPT_RT. The main feature which is
 lacking is support for lazy preemption. The arch-specific entry code,
@@ -21,7 +21,7 @@ Signed-off-by: Anders Roxell <anders.roxell@linaro.org>
  6 files changed, 44 insertions(+), 5 deletions(-)
 
 diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index ebd3199..87c93d7 100644
+index 526cb15..bc0d83f 100644
 --- a/arch/arm64/Kconfig
 +++ b/arch/arm64/Kconfig
 @@ -173,6 +173,7 @@ config ARM64
@@ -123,10 +123,10 @@ index 7d32fc9..b2f29bd 100644
  #ifdef CONFIG_ARM64_SW_TTBR0_PAN
    DEFINE(TSK_TI_TTBR0,		offsetof(struct task_struct, thread_info.ttbr0));
 diff --git a/arch/arm64/kernel/entry.S b/arch/arm64/kernel/entry.S
-index d72c818..924cec6 100644
+index 2da82c1..32c907a 100644
 --- a/arch/arm64/kernel/entry.S
 +++ b/arch/arm64/kernel/entry.S
-@@ -649,9 +649,18 @@ alternative_if ARM64_HAS_IRQ_PRIO_MASKING
+@@ -651,9 +651,18 @@ alternative_if ARM64_HAS_IRQ_PRIO_MASKING
  	mrs	x0, daif
  	orr	x24, x24, x0
  alternative_else_nop_endif

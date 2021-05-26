@@ -1,7 +1,7 @@
-From b474d2dff1246840f1d40fcfdc176672af37f6ff Mon Sep 17 00:00:00 2001
+From 74c6f3a049d70ef1b43197952e5bb07f734b98c2 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Mon, 30 Nov 2020 01:41:58 +0106
-Subject: [PATCH 088/295] printk: use seqcount_latch for clear_seq
+Subject: [PATCH 088/296] printk: use seqcount_latch for clear_seq
 
 kmsg_dump_rewind_nolock() locklessly reads @clear_seq. However,
 this is not done atomically. Since @clear_seq is 64-bit, this

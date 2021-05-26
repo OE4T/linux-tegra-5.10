@@ -1,7 +1,7 @@
-From fd4cde2b424355a4adf37cba45933c77e2ec4e89 Mon Sep 17 00:00:00 2001
+From 9164b4c5595e321c0322fbb87fea8374c73accc6 Mon Sep 17 00:00:00 2001
 From: Clark Williams <williams@redhat.com>
 Date: Sat, 30 Jul 2011 21:55:53 -0500
-Subject: [PATCH 293/295] sysfs: Add /sys/kernel/realtime entry
+Subject: [PATCH 293/296] sysfs: Add /sys/kernel/realtime entry
 
 Add a /sys/kernel entry to indicate that the kernel is a
 realtime kernel.

@@ -1,7 +1,7 @@
-From 003a7d15e112341dfd8d8e73d195966d40b80811 Mon Sep 17 00:00:00 2001
+From 3f7b111e3a334e0dd93a8f28e96de0fdcbe109a6 Mon Sep 17 00:00:00 2001
 From: Frederic Weisbecker <frederic@kernel.org>
 Date: Wed, 2 Dec 2020 12:57:31 +0100
-Subject: [PATCH 131/295] irqtime: Move irqtime entry accounting after irq
+Subject: [PATCH 131/296] irqtime: Move irqtime entry accounting after irq
  offset incrementation
 
 IRQ time entry is currently accounted before HARDIRQ_OFFSET or

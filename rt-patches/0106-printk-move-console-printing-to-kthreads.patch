@@ -1,7 +1,7 @@
-From 00243ed32c259ca875206280a5308919b7200959 Mon Sep 17 00:00:00 2001
+From bd9f49f7af4db067baddd57dbb32820c839448a3 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Mon, 30 Nov 2020 01:42:07 +0106
-Subject: [PATCH 106/295] printk: move console printing to kthreads
+Subject: [PATCH 106/296] printk: move console printing to kthreads
 
 Create a kthread for each console to perform console printing. Now
 all console printing is fully asynchronous except for the boot

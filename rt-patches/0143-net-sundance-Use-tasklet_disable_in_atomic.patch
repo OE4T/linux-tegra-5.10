@@ -1,7 +1,7 @@
-From 75445d40ef0c63391b71608b833123012f26eff1 Mon Sep 17 00:00:00 2001
+From 6b0c44437e1e057b5fee90943f0f696343cbdb37 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 9 Mar 2021 09:42:12 +0100
-Subject: [PATCH 143/295] net: sundance: Use tasklet_disable_in_atomic().
+Subject: [PATCH 143/296] net: sundance: Use tasklet_disable_in_atomic().
 
 tasklet_disable() is used in the timer callback. This might be distangled,
 but without access to the hardware that's a bit risky.

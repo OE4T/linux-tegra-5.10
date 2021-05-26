@@ -1,7 +1,7 @@
-From 6c720b9fd0437755a9ea01b8e39db5830d51a7bf Mon Sep 17 00:00:00 2001
+From e1973b41e5643f22657a7a38a257c21577ca0f89 Mon Sep 17 00:00:00 2001
 From: Scott Wood <swood@redhat.com>
 Date: Wed, 11 Sep 2019 17:57:29 +0100
-Subject: [PATCH 232/295] rcutorture: Avoid problematic critical section
+Subject: [PATCH 232/296] rcutorture: Avoid problematic critical section
  nesting on RT
 
 rcutorture was generating some nesting scenarios that are not
@@ -42,7 +42,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 83 insertions(+), 14 deletions(-)
 
 diff --git a/kernel/rcu/rcutorture.c b/kernel/rcu/rcutorture.c
-index 916ea4f6..eb089d3 100644
+index 916ea4f..eb089d3 100644
 --- a/kernel/rcu/rcutorture.c
 +++ b/kernel/rcu/rcutorture.c
 @@ -61,10 +61,13 @@ MODULE_AUTHOR("Paul E. McKenney <paulmck@linux.ibm.com> and Josh Triplett <josh@

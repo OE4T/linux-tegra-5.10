@@ -1,7 +1,7 @@
-From e4ddbd7a3331b76663b827e07253d4efe3c107cf Mon Sep 17 00:00:00 2001
+From 952ee5809c529f63da4c79c8cc1704fadbc4efd9 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 28 Oct 2020 18:55:27 +0100
-Subject: [PATCH 067/295] lib/test_lockup: Minimum fix to get it compiled on
+Subject: [PATCH 067/296] lib/test_lockup: Minimum fix to get it compiled on
  PREEMPT_RT
 
 On PREEMPT_RT the locks are quite different so they can't be tested as

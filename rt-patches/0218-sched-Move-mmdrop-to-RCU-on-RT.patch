@@ -1,7 +1,7 @@
-From 7fe6ea8003b09baa9251d108ad5f047bc060ffc3 Mon Sep 17 00:00:00 2001
+From c10a753c9c6a9b7360809075749fb23e1c9f7627 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Mon, 6 Jun 2011 12:20:33 +0200
-Subject: [PATCH 218/295] sched: Move mmdrop to RCU on RT
+Subject: [PATCH 218/296] sched: Move mmdrop to RCU on RT
 
 Takes sleeping locks and calls into the memory allocator, so nothing
 we want to do in task switch and oder atomic contexts.

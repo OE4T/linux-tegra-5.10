@@ -1,7 +1,7 @@
-From f4e5b1725565dca576443e2dfb694b53f6b05f37 Mon Sep 17 00:00:00 2001
+From a816ccea30d534e61a884c86b475a4660334ac87 Mon Sep 17 00:00:00 2001
 From: Vitaly Wool <vitaly.wool@konsulko.com>
 Date: Mon, 14 Dec 2020 19:12:36 -0800
-Subject: [PATCH 001/295] z3fold: remove preempt disabled sections for RT
+Subject: [PATCH 001/296] z3fold: remove preempt disabled sections for RT
 
 Replace get_cpu_ptr() with migrate_disable()+this_cpu_ptr() so RT can take
 spinlocks that become sleeping locks.

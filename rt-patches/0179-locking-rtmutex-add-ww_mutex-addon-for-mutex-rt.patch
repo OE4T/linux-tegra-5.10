@@ -1,7 +1,7 @@
-From 0cb93c4daeee9876376844f3889aaaed7322e942 Mon Sep 17 00:00:00 2001
+From 23127a94c18e77ad39737299a2863efd0c95920e Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Thu, 12 Oct 2017 17:34:38 +0200
-Subject: [PATCH 179/295] locking/rtmutex: add ww_mutex addon for mutex-rt
+Subject: [PATCH 179/296] locking/rtmutex: add ww_mutex addon for mutex-rt
 
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
@@ -32,7 +32,7 @@ index e45774a..90923d3 100644
   * This is the control structure for tasks blocked on mutex,
   * which resides on the blocked task's kernel stack:
 diff --git a/include/linux/ww_mutex.h b/include/linux/ww_mutex.h
-index 850424e..8ef2feb 100644
+index 6ecf2a0..3145de5 100644
 --- a/include/linux/ww_mutex.h
 +++ b/include/linux/ww_mutex.h
 @@ -28,6 +28,14 @@ struct ww_class {

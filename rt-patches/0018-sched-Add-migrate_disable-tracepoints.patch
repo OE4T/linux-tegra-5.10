@@ -1,7 +1,7 @@
-From 89c87c0471d08c852763e5a9494c23b0ff7b5713 Mon Sep 17 00:00:00 2001
+From 741960e471af2a52907e3ca8df8b0b6e7b735ca5 Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:15 +0200
-Subject: [PATCH 018/295] sched: Add migrate_disable() tracepoints
+Subject: [PATCH 018/296] sched: Add migrate_disable() tracepoints
 
 XXX write a tracer:
 

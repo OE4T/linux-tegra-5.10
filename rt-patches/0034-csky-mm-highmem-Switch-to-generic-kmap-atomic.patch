@@ -1,7 +1,7 @@
-From fc4b0bda30b157b64c859912e3e63a202b9bd2cc Mon Sep 17 00:00:00 2001
+From a775ce6024e8e48cfb7b3cb5b8bf1a01f9ecc9fe Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:23 +0100
-Subject: [PATCH 034/295] csky/mm/highmem: Switch to generic kmap atomic
+Subject: [PATCH 034/296] csky/mm/highmem: Switch to generic kmap atomic
 
 No reason having the same code in every architecture.
 
@@ -16,7 +16,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  4 files changed, 8 insertions(+), 78 deletions(-)
 
 diff --git a/arch/csky/Kconfig b/arch/csky/Kconfig
-index 268fad5..7a86481 100644
+index 7bf0a61..c9f2533 100644
 --- a/arch/csky/Kconfig
 +++ b/arch/csky/Kconfig
 @@ -286,6 +286,7 @@ config NR_CPUS

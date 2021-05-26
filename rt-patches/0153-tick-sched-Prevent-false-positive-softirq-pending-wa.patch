@@ -1,7 +1,7 @@
-From 284814063653854a11a002b623330b4b9652d3d9 Mon Sep 17 00:00:00 2001
+From 620a0776ff522e05f54d89c018e6e5d13307e601 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 9 Mar 2021 09:55:57 +0100
-Subject: [PATCH 153/295] tick/sched: Prevent false positive softirq pending
+Subject: [PATCH 153/296] tick/sched: Prevent false positive softirq pending
  warnings on RT
 
 On RT a task which has soft interrupts disabled can block on a lock and

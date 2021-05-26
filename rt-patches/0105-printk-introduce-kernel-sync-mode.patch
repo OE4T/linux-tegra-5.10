@@ -1,7 +1,7 @@
-From 9bc149463cb802dfd3f1fc0138b35a21c312f8e3 Mon Sep 17 00:00:00 2001
+From 364baad648e40a9ae1aa0bff95f95399753f3533 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Mon, 30 Nov 2020 01:42:06 +0106
-Subject: [PATCH 105/295] printk: introduce kernel sync mode
+Subject: [PATCH 105/296] printk: introduce kernel sync mode
 
 When the kernel performs an OOPS, enter into "sync mode":
 

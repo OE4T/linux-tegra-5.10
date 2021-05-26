@@ -1,7 +1,7 @@
-From 31c6f77cb14bff853aa84b68dd2057a63d7d28e9 Mon Sep 17 00:00:00 2001
+From b810dfaf12ac705b12d2642cb34a69a07cb2cb71 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 9 Mar 2021 09:55:53 +0100
-Subject: [PATCH 149/295] softirq: Add RT specific softirq accounting
+Subject: [PATCH 149/296] softirq: Add RT specific softirq accounting
 
 RT requires the softirq processing and local bottomhalf disabled regions to
 be preemptible. Using the normal preempt count based serialization is

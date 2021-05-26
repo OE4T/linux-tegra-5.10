@@ -1,7 +1,7 @@
-From 58d6e289e3450e24883e37f198aa340cb33acad8 Mon Sep 17 00:00:00 2001
+From 764934f1a8e67f2e22a21e4fefda365df51817e7 Mon Sep 17 00:00:00 2001
 From: Josh Cartwright <joshc@ni.com>
 Date: Thu, 11 Feb 2016 11:54:01 -0600
-Subject: [PATCH 277/295] KVM: arm/arm64: downgrade preempt_disable()d region
+Subject: [PATCH 277/296] KVM: arm/arm64: downgrade preempt_disable()d region
  to migrate_disable()
 
 kvm_arch_vcpu_ioctl_run() disables the use of preemption when updating

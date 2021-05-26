@@ -1,7 +1,7 @@
-From 5dae376a20de93222471f787b9a968c74704a473 Mon Sep 17 00:00:00 2001
+From 5b0e5db617805da575809b73612e6ba38bd28865 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 9 Mar 2021 09:55:55 +0100
-Subject: [PATCH 151/295] softirq: Move various protections into inline helpers
+Subject: [PATCH 151/296] softirq: Move various protections into inline helpers
 
 To allow reuse of the bulk of softirq processing code for RT and to avoid
 #ifdeffery all over the place, split protections for various code sections

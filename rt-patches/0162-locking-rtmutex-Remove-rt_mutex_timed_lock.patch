@@ -1,7 +1,7 @@
-From 3a33cc579af04cf6f20af1f2f11f61ce04e6672f Mon Sep 17 00:00:00 2001
+From d1780695e33333205fb7ff7295220e4190f30f5c Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 7 Oct 2020 12:11:33 +0200
-Subject: [PATCH 162/295] locking/rtmutex: Remove rt_mutex_timed_lock()
+Subject: [PATCH 162/296] locking/rtmutex: Remove rt_mutex_timed_lock()
 
 rt_mutex_timed_lock() has no callers since commit
    c051b21f71d1f ("rtmutex: Confine deadlock logic to futex")

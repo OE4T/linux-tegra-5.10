@@ -1,7 +1,7 @@
-From b44b2573178d6fc334826eea40399b7a62fd2534 Mon Sep 17 00:00:00 2001
+From 5f0db5829f59bd8fac2c657480855bfe59c1db97 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:26 +0100
-Subject: [PATCH 037/295] nds32/mm/highmem: Switch to generic kmap atomic
+Subject: [PATCH 037/296] nds32/mm/highmem: Switch to generic kmap atomic
 
 The mapping code is odd and looks broken. See FIXME in the comment.
 
@@ -109,7 +109,7 @@ index 897ecaf..14fb2e8 100644
  CFLAGS_REMOVE_proc.o     = $(CC_FLAGS_FTRACE)
 diff --git a/arch/nds32/mm/highmem.c b/arch/nds32/mm/highmem.c
 deleted file mode 100644
-index 4284cd5..00000000
+index 4284cd5..0000000
 --- a/arch/nds32/mm/highmem.c
 +++ /dev/null
 @@ -1,48 +0,0 @@

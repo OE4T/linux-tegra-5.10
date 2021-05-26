@@ -1,7 +1,7 @@
-From d845dc8a2cdd2c51736f8020d919f3c4bf8f1036 Mon Sep 17 00:00:00 2001
+From e37cb5d185133356487ef295030b8ea2a4d54bbd Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:14 +0200
-Subject: [PATCH 017/295] sched/proc: Print accurate cpumask vs
+Subject: [PATCH 017/296] sched/proc: Print accurate cpumask vs
  migrate_disable()
 
 Ensure /proc/*/status doesn't print 'random' cpumasks due to

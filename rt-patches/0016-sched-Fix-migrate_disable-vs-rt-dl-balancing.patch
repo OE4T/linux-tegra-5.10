@@ -1,7 +1,7 @@
-From b5a09452dd552d542a54b26c66c2c7d28b8c2dba Mon Sep 17 00:00:00 2001
+From f7419a004ddfa39cfd230d7e3fe2495c28b53ef1 Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:13 +0200
-Subject: [PATCH 016/295] sched: Fix migrate_disable() vs rt/dl balancing
+Subject: [PATCH 016/296] sched: Fix migrate_disable() vs rt/dl balancing
 
 In order to minimize the interference of migrate_disable() on lower
 priority tasks, which can be deprived of runtime due to being stuck

@@ -1,7 +1,7 @@
-From e6ecf6ede42cfb73376d55562e396b9e55adc63a Mon Sep 17 00:00:00 2001
+From 08e934301fbdf5f51ece6d2ecbde09bf53d1aac8 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Mon, 30 Nov 2020 01:42:08 +0106
-Subject: [PATCH 107/295] printk: remove deferred printing
+Subject: [PATCH 107/296] printk: remove deferred printing
 
 Since printing occurs either atomically or from the printing
 kthread, there is no need for any deferring or tracking possible
@@ -106,7 +106,7 @@ index eee3dc9..59cb24e 100644
  obj-$(CONFIG_PRINTK)	+= printk_ringbuffer.o
 diff --git a/kernel/printk/internal.h b/kernel/printk/internal.h
 deleted file mode 100644
-index e108b2e..00000000
+index e108b2e..0000000
 --- a/kernel/printk/internal.h
 +++ /dev/null
 @@ -1,70 +0,0 @@
@@ -314,7 +314,7 @@ index 23c6e39..f5fd3e1 100644
  int printk_deferred(const char *fmt, ...)
 diff --git a/kernel/printk/printk_safe.c b/kernel/printk/printk_safe.c
 deleted file mode 100644
-index c23b127..00000000
+index c23b127..0000000
 --- a/kernel/printk/printk_safe.c
 +++ /dev/null
 @@ -1,88 +0,0 @@
@@ -407,10 +407,10 @@ index c23b127..00000000
 -	return vprintk_default(fmt, args);
 -}
 diff --git a/kernel/trace/trace.c b/kernel/trace/trace.c
-index ad9b9c6..525a3ec 100644
+index 08728de..460dbd4 100644
 --- a/kernel/trace/trace.c
 +++ b/kernel/trace/trace.c
-@@ -9294,7 +9294,6 @@ void ftrace_dump(enum ftrace_dump_mode oops_dump_mode)
+@@ -9295,7 +9295,6 @@ void ftrace_dump(enum ftrace_dump_mode oops_dump_mode)
  	tracing_off();
  
  	local_irq_save(flags);
@@ -418,7 +418,7 @@ index ad9b9c6..525a3ec 100644
  
  	/* Simulate the iterator */
  	trace_init_global_iter(&iter);
-@@ -9374,7 +9373,6 @@ void ftrace_dump(enum ftrace_dump_mode oops_dump_mode)
+@@ -9375,7 +9374,6 @@ void ftrace_dump(enum ftrace_dump_mode oops_dump_mode)
  		atomic_dec(&per_cpu_ptr(iter.array_buffer->data, cpu)->disabled);
  	}
  	atomic_dec(&dump_running);

@@ -1,7 +1,7 @@
-From 8601d1758bbebdb6b7fa02894f6f0d8b98f03ff7 Mon Sep 17 00:00:00 2001
+From 7212cb1fed34c33b2bf8ec4c1ca820b7053babde Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Fri, 11 Oct 2019 13:14:35 +0200
-Subject: [PATCH 281/295] ARM64: Allow to enable RT
+Subject: [PATCH 281/296] ARM64: Allow to enable RT
 
 Allow to select RT.
 
@@ -11,7 +11,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 2 insertions(+)
 
 diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index 87c93d7..145bede 100644
+index bc0d83f..8643855 100644
 --- a/arch/arm64/Kconfig
 +++ b/arch/arm64/Kconfig
 @@ -76,6 +76,7 @@ config ARM64

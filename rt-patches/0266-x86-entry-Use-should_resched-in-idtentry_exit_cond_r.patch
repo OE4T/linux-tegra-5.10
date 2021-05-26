@@ -1,7 +1,7 @@
-From 7f05cbdfee261c3cb3d53095b1e5e1310d6940c1 Mon Sep 17 00:00:00 2001
+From 8a942735b30c53fca42492e7f638a95dddd0b4ef Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 30 Jun 2020 11:45:14 +0200
-Subject: [PATCH 266/295] x86/entry: Use should_resched() in
+Subject: [PATCH 266/296] x86/entry: Use should_resched() in
  idtentry_exit_cond_resched()
 
 The TIF_NEED_RESCHED bit is inlined on x86 into the preemption counter.

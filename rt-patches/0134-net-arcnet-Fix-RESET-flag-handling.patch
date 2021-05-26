@@ -1,7 +1,7 @@
-From 9a60d3dd376dab957e3ce73d4e070882ca46a348 Mon Sep 17 00:00:00 2001
+From 6cdfafdfc34a28baf11687d0b93ef2be88ded895 Mon Sep 17 00:00:00 2001
 From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
 Date: Thu, 28 Jan 2021 20:48:02 +0100
-Subject: [PATCH 134/295] net: arcnet: Fix RESET flag handling
+Subject: [PATCH 134/296] net: arcnet: Fix RESET flag handling
 
 The main arcnet interrupt handler calls arcnet_close() then
 arcnet_open(), if the RESET status flag is encountered.

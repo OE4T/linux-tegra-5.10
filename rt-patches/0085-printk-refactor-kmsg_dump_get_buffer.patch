@@ -1,7 +1,7 @@
-From 441413136534ba64344af10242140a7ee1e63994 Mon Sep 17 00:00:00 2001
+From 6956156b6fc3321e1d09e5f4eb484f9eb8c5ef17 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Mon, 30 Nov 2020 01:41:56 +0106
-Subject: [PATCH 085/295] printk: refactor kmsg_dump_get_buffer()
+Subject: [PATCH 085/296] printk: refactor kmsg_dump_get_buffer()
 
 kmsg_dump_get_buffer() requires nearly the same logic as
 syslog_print_all(), but uses different variable names and

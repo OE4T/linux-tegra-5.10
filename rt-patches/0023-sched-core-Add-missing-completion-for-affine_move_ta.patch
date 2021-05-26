@@ -1,7 +1,7 @@
-From 355659467a40cd781c6240ff8b0a8d91785503bb Mon Sep 17 00:00:00 2001
+From 3b1579234edde9e511149b19154bd3a9779655a3 Mon Sep 17 00:00:00 2001
 From: Valentin Schneider <valentin.schneider@arm.com>
 Date: Fri, 13 Nov 2020 11:24:14 +0000
-Subject: [PATCH 023/295] sched/core: Add missing completion for
+Subject: [PATCH 023/296] sched/core: Add missing completion for
  affine_move_task() waiters
 
 Qian reported that some fuzzer issuing sched_setaffinity() ends up stuck on

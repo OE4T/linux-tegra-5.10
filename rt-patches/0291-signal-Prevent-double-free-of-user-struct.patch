@@ -1,7 +1,7 @@
-From 52f8ca975473a3a17f2fada1e15ee539b6adf538 Mon Sep 17 00:00:00 2001
+From ae98a12a0c16c1afcce314cc82ff154f9e0929ad Mon Sep 17 00:00:00 2001
 From: Matt Fleming <matt@codeblueprint.co.uk>
 Date: Tue, 7 Apr 2020 10:54:13 +0100
-Subject: [PATCH 291/295] signal: Prevent double-free of user struct
+Subject: [PATCH 291/296] signal: Prevent double-free of user struct
 
 The way user struct reference counting works changed significantly with,
 

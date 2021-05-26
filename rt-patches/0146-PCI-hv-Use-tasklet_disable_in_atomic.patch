@@ -1,7 +1,7 @@
-From b77c41e6b3f044b88f2afa123247df39f1201cfa Mon Sep 17 00:00:00 2001
+From d7f72660327e315826660735be5f82f20e064dec Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 9 Mar 2021 09:42:15 +0100
-Subject: [PATCH 146/295] PCI: hv: Use tasklet_disable_in_atomic()
+Subject: [PATCH 146/296] PCI: hv: Use tasklet_disable_in_atomic()
 
 The hv_compose_msi_msg() callback in irq_chip::irq_compose_msi_msg is
 invoked via irq_chip_compose_msi_msg(), which itself is always invoked from

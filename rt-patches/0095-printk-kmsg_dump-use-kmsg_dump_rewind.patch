@@ -1,7 +1,7 @@
-From 4affa2095092f56db0f52a00979d74045aefe9df Mon Sep 17 00:00:00 2001
+From 977f2cc595e73a5a7db4380fe92901e64602950f Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Wed, 17 Feb 2021 18:23:16 +0100
-Subject: [PATCH 095/295] printk: kmsg_dump: use kmsg_dump_rewind
+Subject: [PATCH 095/296] printk: kmsg_dump: use kmsg_dump_rewind
 
 kmsg_dump() is open coding the kmsg_dump_rewind(). Call
 kmsg_dump_rewind() instead.

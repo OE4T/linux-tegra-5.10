@@ -1,7 +1,7 @@
-From 79dd59e6c4477a139121ec811edce762a57eb721 Mon Sep 17 00:00:00 2001
+From 736790273511376eb66303f0ea18ac062a01f935 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Mon, 6 Jun 2011 12:12:51 +0200
-Subject: [PATCH 217/295] sched: Limit the number of task migrations per batch
+Subject: [PATCH 217/296] sched: Limit the number of task migrations per batch
 
 Put an upper limit on the number of tasks which are migrated per batch
 to avoid large latencies.

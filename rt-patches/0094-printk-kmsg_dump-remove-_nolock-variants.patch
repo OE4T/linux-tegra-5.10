@@ -1,7 +1,7 @@
-From 9566eceaa2602a4771026162e568eb96367261b2 Mon Sep 17 00:00:00 2001
+From 2881de1046ad5a20918e61e9034cc469e97176b1 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Mon, 21 Dec 2020 10:27:58 +0106
-Subject: [PATCH 094/295] printk: kmsg_dump: remove _nolock() variants
+Subject: [PATCH 094/296] printk: kmsg_dump: remove _nolock() variants
 
 kmsg_dump_rewind() and kmsg_dump_get_line() are lockless, so there is
 no need for _nolock() variants. Remove these functions and switch all

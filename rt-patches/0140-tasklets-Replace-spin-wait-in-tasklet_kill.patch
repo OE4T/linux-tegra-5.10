@@ -1,7 +1,7 @@
-From 4792bc22e80705fef2172e2c701958d598ab5623 Mon Sep 17 00:00:00 2001
+From 6e25ef93f4136d3ec13450bdd83306546824ffd7 Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Tue, 9 Mar 2021 09:42:09 +0100
-Subject: [PATCH 140/295] tasklets: Replace spin wait in tasklet_kill()
+Subject: [PATCH 140/296] tasklets: Replace spin wait in tasklet_kill()
 
 tasklet_kill() spin waits for TASKLET_STATE_SCHED to be cleared invoking
 yield() from inside the loop. yield() is an ill defined mechanism and the

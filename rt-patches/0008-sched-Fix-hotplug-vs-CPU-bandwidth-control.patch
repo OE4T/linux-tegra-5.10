@@ -1,7 +1,7 @@
-From 3295fb1f2f155f1b59e089410d3779b83b973df6 Mon Sep 17 00:00:00 2001
+From 828c20252ac86fc7d8f4bf48fc88d8138c9d0533 Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:05 +0200
-Subject: [PATCH 008/295] sched: Fix hotplug vs CPU bandwidth control
+Subject: [PATCH 008/296] sched: Fix hotplug vs CPU bandwidth control
 
 Since we now migrate tasks away before DYING, we should also move
 bandwidth unthrottle, otherwise we can gain tasks from unthrottle

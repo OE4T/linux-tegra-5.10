@@ -1,7 +1,7 @@
-From 273902c181969da41d69e7ba6a008b048db8d7d3 Mon Sep 17 00:00:00 2001
+From c9ead9679a3b43ef683eeb8e5e8c1597f9dc37be Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:08 +0200
-Subject: [PATCH 011/295] sched: Fix migrate_disable() vs
+Subject: [PATCH 011/296] sched: Fix migrate_disable() vs
  set_cpus_allowed_ptr()
 
 Concurrent migrate_disable() and set_cpus_allowed_ptr() has

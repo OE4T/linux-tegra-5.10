@@ -1,7 +1,7 @@
-From e06cf95a13a091e727aad7bf906260ebd6bca4b9 Mon Sep 17 00:00:00 2001
+From 4a49d8be4145e9a05fb07c323dc518f8e3633aab Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:15 +0100
-Subject: [PATCH 026/295] fs: Remove asm/kmap_types.h includes
+Subject: [PATCH 026/296] fs: Remove asm/kmap_types.h includes
 
 Historical leftovers from the time where kmap() had fixed slots.
 

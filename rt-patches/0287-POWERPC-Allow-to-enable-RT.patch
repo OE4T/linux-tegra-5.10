@@ -1,7 +1,7 @@
-From 7df1fa1722d78083a5bb211fb4cdffb0a89fe950 Mon Sep 17 00:00:00 2001
+From 56a8b9e6a52ac6a80390980411fe38feda9a07ed Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Fri, 11 Oct 2019 13:14:41 +0200
-Subject: [PATCH 287/295] POWERPC: Allow to enable RT
+Subject: [PATCH 287/296] POWERPC: Allow to enable RT
 
 Allow to select RT.
 

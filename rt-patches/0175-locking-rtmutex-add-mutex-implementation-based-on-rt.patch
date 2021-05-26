@@ -1,7 +1,7 @@
-From 6cd8dce0092e5e5e8cb13edfd67e0ee069cbca43 Mon Sep 17 00:00:00 2001
+From b6978f53a5d27ad30dd1f443ba5bacf74f10c778 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Thu, 12 Oct 2017 17:17:03 +0200
-Subject: [PATCH 175/295] locking/rtmutex: add mutex implementation based on
+Subject: [PATCH 175/296] locking/rtmutex: add mutex implementation based on
  rtmutex
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
@@ -15,7 +15,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
 diff --git a/include/linux/mutex_rt.h b/include/linux/mutex_rt.h
 new file mode 100644
-index 00000000..f0b2e07
+index 0000000..f0b2e07
 --- /dev/null
 +++ b/include/linux/mutex_rt.h
 @@ -0,0 +1,130 @@
@@ -151,7 +151,7 @@ index 00000000..f0b2e07
 +#endif
 diff --git a/kernel/locking/mutex-rt.c b/kernel/locking/mutex-rt.c
 new file mode 100644
-index 00000000..2b849e6
+index 0000000..2b849e6
 --- /dev/null
 +++ b/kernel/locking/mutex-rt.c
 @@ -0,0 +1,224 @@

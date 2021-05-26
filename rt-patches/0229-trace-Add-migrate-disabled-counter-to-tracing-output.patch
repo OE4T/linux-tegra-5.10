@@ -1,7 +1,7 @@
-From b9b60def80fa59b8247d1131fc1a95175259ab71 Mon Sep 17 00:00:00 2001
+From bc35a6466d529d5827a125ea337ed336c2a886e9 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Sun, 17 Jul 2011 21:56:42 +0200
-Subject: [PATCH 229/295] trace: Add migrate-disabled counter to tracing output
+Subject: [PATCH 229/296] trace: Add migrate-disabled counter to tracing output
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 ---
@@ -32,7 +32,7 @@ index 5d1eeac..29c24ec 100644
  	entry->type			= type;
  	entry->flags =			trace_ctx >> 16;
 diff --git a/kernel/trace/trace.c b/kernel/trace/trace.c
-index 525a3ec..fca9891 100644
+index 460dbd4..34b0589 100644
 --- a/kernel/trace/trace.c
 +++ b/kernel/trace/trace.c
 @@ -2578,6 +2578,15 @@ enum print_line_t trace_handle_return(struct trace_seq *s)
@@ -61,7 +61,7 @@ index 525a3ec..fca9891 100644
  }
  
  struct ring_buffer_event *
-@@ -3801,9 +3811,10 @@ static void print_lat_help_header(struct seq_file *m)
+@@ -3802,9 +3812,10 @@ static void print_lat_help_header(struct seq_file *m)
  		    "#                  | / _----=> need-resched    \n"
  		    "#                  || / _---=> hardirq/softirq \n"
  		    "#                  ||| / _--=> preempt-depth   \n"
@@ -75,7 +75,7 @@ index 525a3ec..fca9891 100644
  }
  
  static void print_event_info(struct array_buffer *buf, struct seq_file *m)
-@@ -3841,9 +3852,10 @@ static void print_func_help_header_irq(struct array_buffer *buf, struct seq_file
+@@ -3842,9 +3853,10 @@ static void print_func_help_header_irq(struct array_buffer *buf, struct seq_file
  	seq_printf(m, "#                            %.*s / _----=> need-resched\n", prec, space);
  	seq_printf(m, "#                            %.*s| / _---=> hardirq/softirq\n", prec, space);
  	seq_printf(m, "#                            %.*s|| / _--=> preempt-depth\n", prec, space);

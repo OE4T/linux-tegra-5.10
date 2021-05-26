@@ -1,7 +1,7 @@
-From 0a5dec42d11ff09b3dcb5dbd27611dbe0f460543 Mon Sep 17 00:00:00 2001
+From d2f931c883ab5a6895885594d89993d8dc4665fd Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:12 +0200
-Subject: [PATCH 015/295] sched, lockdep: Annotate ->pi_lock recursion
+Subject: [PATCH 015/296] sched, lockdep: Annotate ->pi_lock recursion
 
 There's a valid ->pi_lock recursion issue where the actual PI code
 tries to wake up the stop task. Make lockdep aware so it doesn't

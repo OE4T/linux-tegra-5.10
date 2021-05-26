@@ -1,7 +1,7 @@
-From 0748148f533cf0ac5b97441739341914a3e8280f Mon Sep 17 00:00:00 2001
+From 744adecb059f6b5a354fe13b2e93daa62046d71c Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 9 Mar 2021 09:55:54 +0100
-Subject: [PATCH 150/295] irqtime: Make accounting correct on RT
+Subject: [PATCH 150/296] irqtime: Make accounting correct on RT
 
 vtime_account_irq and irqtime_account_irq() base checks on preempt_count()
 which fails on RT because preempt_count() does not contain the softirq

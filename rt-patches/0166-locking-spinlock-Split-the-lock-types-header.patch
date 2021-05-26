@@ -1,7 +1,7 @@
-From 232e4ea6444ce45ad3011977ab981ed7cc2aa780 Mon Sep 17 00:00:00 2001
+From 40fbe285b9d7d63df8b591c773e2fa721874f1b0 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Wed, 29 Jun 2011 19:34:01 +0200
-Subject: [PATCH 166/295] locking/spinlock: Split the lock types header
+Subject: [PATCH 166/296] locking/spinlock: Split the lock types header
 
 Split raw_spinlock into its own file and the remaining spinlock_t into
 its own non-RT header. The non-RT header will be replaced later by sleeping
@@ -133,7 +133,7 @@ index b981caa..5c8664d 100644
  
 diff --git a/include/linux/spinlock_types_nort.h b/include/linux/spinlock_types_nort.h
 new file mode 100644
-index 00000000..e4549f0
+index 0000000..e4549f0
 --- /dev/null
 +++ b/include/linux/spinlock_types_nort.h
 @@ -0,0 +1,39 @@
@@ -178,7 +178,7 @@ index 00000000..e4549f0
 +#endif
 diff --git a/include/linux/spinlock_types_raw.h b/include/linux/spinlock_types_raw.h
 new file mode 100644
-index 00000000..1d4a180
+index 0000000..1d4a180
 --- /dev/null
 +++ b/include/linux/spinlock_types_raw.h
 @@ -0,0 +1,65 @@

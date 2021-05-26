@@ -1,7 +1,7 @@
-From fe5b13e86dc75fc08d1bb14a73978eb92ec9429b Mon Sep 17 00:00:00 2001
+From c5ccb917dcb96e0ec3bb6e64147ed37e0fe5467c Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Fri, 26 Jul 2019 11:30:49 +0200
-Subject: [PATCH 282/295] powerpc: traps: Use PREEMPT_RT
+Subject: [PATCH 282/296] powerpc: traps: Use PREEMPT_RT
 
 Add PREEMPT_RT to the backtrace if enabled.
 

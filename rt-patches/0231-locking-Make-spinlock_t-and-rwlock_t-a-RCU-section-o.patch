@@ -1,7 +1,7 @@
-From 62264c0c02d0ad2e73dc843900a8a10fef0d5a19 Mon Sep 17 00:00:00 2001
+From a8658853fe50b9a1c001464f2d2658cc087f0ef3 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 19 Nov 2019 09:25:04 +0100
-Subject: [PATCH 231/295] locking: Make spinlock_t and rwlock_t a RCU section
+Subject: [PATCH 231/296] locking: Make spinlock_t and rwlock_t a RCU section
  on RT
 
 On !RT a locked spinlock_t and rwlock_t disables preemption which

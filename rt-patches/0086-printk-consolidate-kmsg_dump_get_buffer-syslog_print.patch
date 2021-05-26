@@ -1,7 +1,7 @@
-From a90379efaa8dab5daf16ee82dbf42f81d5f95b49 Mon Sep 17 00:00:00 2001
+From e5818e6823db0132b11ef6e956e9c6b02297b135 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Wed, 13 Jan 2021 11:29:53 +0106
-Subject: [PATCH 086/295] printk: consolidate
+Subject: [PATCH 086/296] printk: consolidate
  kmsg_dump_get_buffer/syslog_print_all code
 
 The logic for finding records to fit into a buffer is the same for

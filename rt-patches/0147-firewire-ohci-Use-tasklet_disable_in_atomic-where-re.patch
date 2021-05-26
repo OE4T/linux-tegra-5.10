@@ -1,7 +1,7 @@
-From f17f2953291dd7fc2dfbe01de30ced6c0c8491ec Mon Sep 17 00:00:00 2001
+From 1e234a9d26142f19730e68bddc9ef218f77cdeea Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 9 Mar 2021 09:42:16 +0100
-Subject: [PATCH 147/295] firewire: ohci: Use tasklet_disable_in_atomic() where
+Subject: [PATCH 147/296] firewire: ohci: Use tasklet_disable_in_atomic() where
  required
 
 tasklet_disable() is invoked in several places. Some of them are in atomic

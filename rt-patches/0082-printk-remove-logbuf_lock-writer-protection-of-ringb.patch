@@ -1,7 +1,7 @@
-From 11bc53621f86f6515854cff93503129e4f7a2521 Mon Sep 17 00:00:00 2001
+From e395422d8987e3712c5795bcea2d956c27c172bb Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Wed, 9 Dec 2020 01:50:53 +0106
-Subject: [PATCH 082/295] printk: remove logbuf_lock writer-protection of
+Subject: [PATCH 082/296] printk: remove logbuf_lock writer-protection of
  ringbuffer
 
 Since the ringbuffer is lockless, there is no need for it to be

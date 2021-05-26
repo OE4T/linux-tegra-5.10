@@ -1,7 +1,7 @@
-From c588c5c5a49aa59af09d86896a650c12e5af9649 Mon Sep 17 00:00:00 2001
+From e0b8d5084fdf15314e0b441e8c0fbbc2bb64ee6a Mon Sep 17 00:00:00 2001
 From: Julia Cartwright <julia@ni.com>
 Date: Tue, 15 Dec 2020 15:16:47 +0100
-Subject: [PATCH 074/295] rcu: Enable rcu_normal_after_boot unconditionally for
+Subject: [PATCH 074/296] rcu: Enable rcu_normal_after_boot unconditionally for
  RT
 
 Expedited RCU grace periods send IPIs to all non-idle CPUs, and thus can

@@ -1,7 +1,7 @@
-From 4f22e0ee2aec0e1679aeba8395d28d00b7876b19 Mon Sep 17 00:00:00 2001
+From 418a1faaf31313f16b3b0cfe8abcd7a09cc76f5a Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Fri, 13 Nov 2020 15:02:15 +0100
-Subject: [PATCH 123/295] sh: irqstat: Use the generic irq_cpustat_t
+Subject: [PATCH 123/296] sh: irqstat: Use the generic irq_cpustat_t
 
 SH can now use the generic irq_cpustat_t. Define ack_bad_irq so the generic
 header does not emit the generic version of it.

@@ -1,7 +1,7 @@
-From f22c4e458eff143799d2f4dce3f5f9d58dc2811c Mon Sep 17 00:00:00 2001
+From 9c0fd22eb4b3294b6601d7f7aa8c0046ea2bdc9f Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Thu, 12 Oct 2017 17:18:06 +0200
-Subject: [PATCH 177/295] locking/rtmutex: add rwlock implementation based on
+Subject: [PATCH 177/296] locking/rtmutex: add rwlock implementation based on
  rtmutex
 
 The implementation is bias-based, similar to the rwsem implementation.
@@ -20,7 +20,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
 diff --git a/include/linux/rwlock_rt.h b/include/linux/rwlock_rt.h
 new file mode 100644
-index 00000000..aafdb0a
+index 0000000..aafdb0a
 --- /dev/null
 +++ b/include/linux/rwlock_rt.h
 @@ -0,0 +1,109 @@
@@ -135,7 +135,7 @@ index 00000000..aafdb0a
 +#endif
 diff --git a/include/linux/rwlock_types_rt.h b/include/linux/rwlock_types_rt.h
 new file mode 100644
-index 00000000..4762391
+index 0000000..4762391
 --- /dev/null
 +++ b/include/linux/rwlock_types_rt.h
 @@ -0,0 +1,56 @@
@@ -210,7 +210,7 @@ index 3de8fd1..4198f027 100644
  	bool
 diff --git a/kernel/locking/rwlock-rt.c b/kernel/locking/rwlock-rt.c
 new file mode 100644
-index 00000000..1ee16b8
+index 0000000..1ee16b8
 --- /dev/null
 +++ b/kernel/locking/rwlock-rt.c
 @@ -0,0 +1,328 @@

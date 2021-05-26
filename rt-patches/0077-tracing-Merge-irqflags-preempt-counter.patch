@@ -1,7 +1,7 @@
-From 44b6a5908858d3d2d7cadff4b3327199d89271c4 Mon Sep 17 00:00:00 2001
+From d5493edfeabe9bd9a30abbc23ee0849ae2ccb711 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 3 Feb 2021 11:05:23 -0500
-Subject: [PATCH 077/295] tracing: Merge irqflags + preempt counter.
+Subject: [PATCH 077/296] tracing: Merge irqflags + preempt counter.
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -194,7 +194,7 @@ index f102294..c300ac3 100644
  		}
  	}
 diff --git a/kernel/trace/trace.c b/kernel/trace/trace.c
-index abb4294..6049a92 100644
+index 9b148bb..06b200f 100644
 --- a/kernel/trace/trace.c
 +++ b/kernel/trace/trace.c
 @@ -176,7 +176,7 @@ static union trace_eval_map_item *trace_eval_maps;
@@ -531,16 +531,16 @@ index abb4294..6049a92 100644
  {
  	struct trace_event_call *call = &event_kernel_stack;
  	struct ring_buffer_event *event;
-@@ -2984,7 +3010,7 @@ static void __ftrace_trace_stack(struct trace_buffer *buffer,
- 
+@@ -2985,7 +3011,7 @@ static void __ftrace_trace_stack(struct trace_buffer *buffer,
  	size = nr_entries * sizeof(unsigned long);
  	event = __trace_buffer_lock_reserve(buffer, TRACE_STACK,
--					    sizeof(*entry) + size, flags, pc);
-+					    sizeof(*entry) + size, trace_ctx);
+ 				    (sizeof(*entry) - sizeof(entry->caller)) + size,
+-				    flags, pc);
++				    trace_ctx);
  	if (!event)
  		goto out;
  	entry = ring_buffer_event_data(event);
-@@ -3005,22 +3031,22 @@ static void __ftrace_trace_stack(struct trace_buffer *buffer,
+@@ -3006,22 +3032,22 @@ static void __ftrace_trace_stack(struct trace_buffer *buffer,
  
  static inline void ftrace_trace_stack(struct trace_array *tr,
  				      struct trace_buffer *buffer,
@@ -569,7 +569,7 @@ index abb4294..6049a92 100644
  		return;
  	}
  
-@@ -3034,7 +3060,7 @@ void __trace_stack(struct trace_array *tr, unsigned long flags, int skip,
+@@ -3035,7 +3061,7 @@ void __trace_stack(struct trace_array *tr, unsigned long flags, int skip,
  		return;
  
  	rcu_irq_enter_irqson();
@@ -578,7 +578,7 @@ index abb4294..6049a92 100644
  	rcu_irq_exit_irqson();
  }
  
-@@ -3044,19 +3070,15 @@ void __trace_stack(struct trace_array *tr, unsigned long flags, int skip,
+@@ -3045,19 +3071,15 @@ void __trace_stack(struct trace_array *tr, unsigned long flags, int skip,
   */
  void trace_dump_stack(int skip)
  {
@@ -599,7 +599,7 @@ index abb4294..6049a92 100644
  }
  EXPORT_SYMBOL_GPL(trace_dump_stack);
  
-@@ -3065,7 +3087,7 @@ static DEFINE_PER_CPU(int, user_stack_count);
+@@ -3066,7 +3088,7 @@ static DEFINE_PER_CPU(int, user_stack_count);
  
  static void
  ftrace_trace_userstack(struct trace_array *tr,
@@ -608,7 +608,7 @@ index abb4294..6049a92 100644
  {
  	struct trace_event_call *call = &event_user_stack;
  	struct ring_buffer_event *event;
-@@ -3092,7 +3114,7 @@ ftrace_trace_userstack(struct trace_array *tr,
+@@ -3093,7 +3115,7 @@ ftrace_trace_userstack(struct trace_array *tr,
  	__this_cpu_inc(user_stack_count);
  
  	event = __trace_buffer_lock_reserve(buffer, TRACE_USER_STACK,
@@ -617,7 +617,7 @@ index abb4294..6049a92 100644
  	if (!event)
  		goto out_drop_count;
  	entry	= ring_buffer_event_data(event);
-@@ -3112,7 +3134,7 @@ ftrace_trace_userstack(struct trace_array *tr,
+@@ -3113,7 +3135,7 @@ ftrace_trace_userstack(struct trace_array *tr,
  #else /* CONFIG_USER_STACKTRACE_SUPPORT */
  static void ftrace_trace_userstack(struct trace_array *tr,
  				   struct trace_buffer *buffer,
@@ -626,7 +626,7 @@ index abb4294..6049a92 100644
  {
  }
  #endif /* !CONFIG_USER_STACKTRACE_SUPPORT */
-@@ -3241,9 +3263,9 @@ int trace_vbprintk(unsigned long ip, const char *fmt, va_list args)
+@@ -3242,9 +3264,9 @@ int trace_vbprintk(unsigned long ip, const char *fmt, va_list args)
  	struct trace_buffer *buffer;
  	struct trace_array *tr = &global_trace;
  	struct bprint_entry *entry;
@@ -638,7 +638,7 @@ index abb4294..6049a92 100644
  
  	if (unlikely(tracing_selftest_running || tracing_disabled))
  		return 0;
-@@ -3251,7 +3273,7 @@ int trace_vbprintk(unsigned long ip, const char *fmt, va_list args)
+@@ -3252,7 +3274,7 @@ int trace_vbprintk(unsigned long ip, const char *fmt, va_list args)
  	/* Don't pollute graph traces with trace_vprintk internals */
  	pause_graph_tracing();
  
@@ -647,7 +647,7 @@ index abb4294..6049a92 100644
  	preempt_disable_notrace();
  
  	tbuffer = get_trace_buf();
-@@ -3265,12 +3287,11 @@ int trace_vbprintk(unsigned long ip, const char *fmt, va_list args)
+@@ -3266,12 +3288,11 @@ int trace_vbprintk(unsigned long ip, const char *fmt, va_list args)
  	if (len > TRACE_BUF_SIZE/sizeof(int) || len < 0)
  		goto out_put;
  
@@ -661,7 +661,7 @@ index abb4294..6049a92 100644
  	if (!event)
  		goto out;
  	entry = ring_buffer_event_data(event);
-@@ -3280,7 +3301,7 @@ int trace_vbprintk(unsigned long ip, const char *fmt, va_list args)
+@@ -3281,7 +3302,7 @@ int trace_vbprintk(unsigned long ip, const char *fmt, va_list args)
  	memcpy(entry->buf, tbuffer, sizeof(u32) * len);
  	if (!call_filter_check_discard(call, entry, buffer, event)) {
  		__buffer_unlock_commit(buffer, event);
@@ -670,7 +670,7 @@ index abb4294..6049a92 100644
  	}
  
  out:
-@@ -3303,9 +3324,9 @@ __trace_array_vprintk(struct trace_buffer *buffer,
+@@ -3304,9 +3325,9 @@ __trace_array_vprintk(struct trace_buffer *buffer,
  {
  	struct trace_event_call *call = &event_print;
  	struct ring_buffer_event *event;
@@ -682,7 +682,7 @@ index abb4294..6049a92 100644
  	char *tbuffer;
  
  	if (tracing_disabled || tracing_selftest_running)
-@@ -3314,7 +3335,7 @@ __trace_array_vprintk(struct trace_buffer *buffer,
+@@ -3315,7 +3336,7 @@ __trace_array_vprintk(struct trace_buffer *buffer,
  	/* Don't pollute graph traces with trace_vprintk internals */
  	pause_graph_tracing();
  
@@ -691,7 +691,7 @@ index abb4294..6049a92 100644
  	preempt_disable_notrace();
  
  
-@@ -3326,11 +3347,10 @@ __trace_array_vprintk(struct trace_buffer *buffer,
+@@ -3327,11 +3348,10 @@ __trace_array_vprintk(struct trace_buffer *buffer,
  
  	len = vscnprintf(tbuffer, TRACE_BUF_SIZE, fmt, args);
  
@@ -704,7 +704,7 @@ index abb4294..6049a92 100644
  	if (!event)
  		goto out;
  	entry = ring_buffer_event_data(event);
-@@ -3339,7 +3359,7 @@ __trace_array_vprintk(struct trace_buffer *buffer,
+@@ -3340,7 +3360,7 @@ __trace_array_vprintk(struct trace_buffer *buffer,
  	memcpy(&entry->buf, tbuffer, len + 1);
  	if (!call_filter_check_discard(call, entry, buffer, event)) {
  		__buffer_unlock_commit(buffer, event);
@@ -713,7 +713,7 @@ index abb4294..6049a92 100644
  	}
  
  out:
-@@ -6652,7 +6672,6 @@ tracing_mark_write(struct file *filp, const char __user *ubuf,
+@@ -6653,7 +6673,6 @@ tracing_mark_write(struct file *filp, const char __user *ubuf,
  	enum event_trigger_type tt = ETT_NONE;
  	struct trace_buffer *buffer;
  	struct print_entry *entry;
@@ -721,7 +721,7 @@ index abb4294..6049a92 100644
  	ssize_t written;
  	int size;
  	int len;
-@@ -6672,7 +6691,6 @@ tracing_mark_write(struct file *filp, const char __user *ubuf,
+@@ -6673,7 +6692,6 @@ tracing_mark_write(struct file *filp, const char __user *ubuf,
  
  	BUILD_BUG_ON(TRACE_BUF_SIZE >= PAGE_SIZE);
  
@@ -729,7 +729,7 @@ index abb4294..6049a92 100644
  	size = sizeof(*entry) + cnt + 2; /* add '\0' and possible '\n' */
  
  	/* If less than "<faulted>", then make sure we can still add that */
-@@ -6681,7 +6699,7 @@ tracing_mark_write(struct file *filp, const char __user *ubuf,
+@@ -6682,7 +6700,7 @@ tracing_mark_write(struct file *filp, const char __user *ubuf,
  
  	buffer = tr->array_buffer.buffer;
  	event = __trace_buffer_lock_reserve(buffer, TRACE_PRINT, size,
@@ -738,7 +738,7 @@ index abb4294..6049a92 100644
  	if (unlikely(!event))
  		/* Ring buffer disabled, return as if not open for write */
  		return -EBADF;
-@@ -6733,7 +6751,6 @@ tracing_mark_raw_write(struct file *filp, const char __user *ubuf,
+@@ -6734,7 +6752,6 @@ tracing_mark_raw_write(struct file *filp, const char __user *ubuf,
  	struct ring_buffer_event *event;
  	struct trace_buffer *buffer;
  	struct raw_data_entry *entry;
@@ -746,7 +746,7 @@ index abb4294..6049a92 100644
  	ssize_t written;
  	int size;
  	int len;
-@@ -6755,14 +6772,13 @@ tracing_mark_raw_write(struct file *filp, const char __user *ubuf,
+@@ -6756,14 +6773,13 @@ tracing_mark_raw_write(struct file *filp, const char __user *ubuf,
  
  	BUILD_BUG_ON(TRACE_BUF_SIZE >= PAGE_SIZE);
  

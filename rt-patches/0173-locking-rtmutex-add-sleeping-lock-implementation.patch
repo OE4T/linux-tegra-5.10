@@ -1,7 +1,7 @@
-From 470e998c8a757b9123307caf8a1c5f05e13239b4 Mon Sep 17 00:00:00 2001
+From c03fbeefc05aaee8e2cd63b6ddef3cff764a5f88 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Thu, 12 Oct 2017 17:11:19 +0200
-Subject: [PATCH 173/295] locking/rtmutex: add sleeping lock implementation
+Subject: [PATCH 173/296] locking/rtmutex: add sleeping lock implementation
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
@@ -164,7 +164,7 @@ index 26a2013..6e2dff7 100644
  #endif /* _LINUX_SCHED_WAKE_Q_H */
 diff --git a/include/linux/spinlock_rt.h b/include/linux/spinlock_rt.h
 new file mode 100644
-index 00000000..3085132
+index 0000000..3085132
 --- /dev/null
 +++ b/include/linux/spinlock_rt.h
 @@ -0,0 +1,155 @@
@@ -325,7 +325,7 @@ index 00000000..3085132
 +#endif
 diff --git a/include/linux/spinlock_types_rt.h b/include/linux/spinlock_types_rt.h
 new file mode 100644
-index 00000000..446da78
+index 0000000..446da78
 --- /dev/null
 +++ b/include/linux/spinlock_types_rt.h
 @@ -0,0 +1,38 @@

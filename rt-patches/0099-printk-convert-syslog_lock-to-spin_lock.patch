@@ -1,7 +1,7 @@
-From 9837dea840380043bce7e5213d0f007a1e150824 Mon Sep 17 00:00:00 2001
+From 8d785989f3d245bae383d39b29918059501e1145 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Thu, 18 Feb 2021 17:37:41 +0100
-Subject: [PATCH 099/295] printk: convert @syslog_lock to spin_lock
+Subject: [PATCH 099/296] printk: convert @syslog_lock to spin_lock
 
 Signed-off-by: John Ogness <john.ogness@linutronix.de>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>

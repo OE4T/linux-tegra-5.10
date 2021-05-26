@@ -1,7 +1,7 @@
-From 8ca59ba9e2e0e8d29e933d308861fd33a1686bfa Mon Sep 17 00:00:00 2001
+From 555741beeb2b27d89809331609b24a25ab75cc4d Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Mon, 15 Feb 2021 18:44:12 +0100
-Subject: [PATCH 133/295] smp: Wake ksoftirqd on PREEMPT_RT instead
+Subject: [PATCH 133/296] smp: Wake ksoftirqd on PREEMPT_RT instead
  do_softirq().
 
 The softirq implementation on PREEMPT_RT does not provide do_softirq().

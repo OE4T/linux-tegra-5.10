@@ -1,7 +1,7 @@
-From ee0b79bae89262f8ae10c8eb7cf335418de5c673 Mon Sep 17 00:00:00 2001
+From 9392d531acfdae444ed951d3a60a288679153b23 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Mon, 30 Nov 2020 01:42:09 +0106
-Subject: [PATCH 108/295] printk: add console handover
+Subject: [PATCH 108/296] printk: add console handover
 
 If earlyprintk is used, a boot console will print directly to the
 console immediately. The boot console will unregister itself as soon

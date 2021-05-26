@@ -1,7 +1,7 @@
-From d07a91f430b780ab4f99cf7457c3539540bb5b90 Mon Sep 17 00:00:00 2001
+From 1cfb7b3f625ba49a4b16ca1fabace9c660158bf0 Mon Sep 17 00:00:00 2001
 From: Frederic Weisbecker <frederic@kernel.org>
 Date: Wed, 2 Dec 2020 12:57:32 +0100
-Subject: [PATCH 132/295] irq: Call tick_irq_enter() inside HARDIRQ_OFFSET
+Subject: [PATCH 132/296] irq: Call tick_irq_enter() inside HARDIRQ_OFFSET
 
 Now that account_hardirq_enter() is called after HARDIRQ_OFFSET has
 been incremented, there is nothing left that prevents us from also

@@ -1,7 +1,7 @@
-From f57f9c727f73cf52939ffc4eedd23df219aa0898 Mon Sep 17 00:00:00 2001
+From 4abd1e46cc9559028dff8df0a6a10524a72e58f7 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Mon, 12 Oct 2020 17:33:54 +0200
-Subject: [PATCH 115/295] tcp: Remove superfluous BH-disable around
+Subject: [PATCH 115/296] tcp: Remove superfluous BH-disable around
  listening_hash
 
 Commit

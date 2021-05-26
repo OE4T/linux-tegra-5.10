@@ -1,7 +1,7 @@
-From ab2e85f076908c5f800554a3eda5ace11f30ace9 Mon Sep 17 00:00:00 2001
+From 509684966beaf4deec343dd96787b96a6122046c Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Sun, 17 Jul 2011 18:51:23 +0200
-Subject: [PATCH 253/295] lockdep: Make it RT aware
+Subject: [PATCH 253/296] lockdep: Make it RT aware
 
 teach lockdep that we don't really do softirqs on -RT.
 
@@ -53,10 +53,10 @@ index 3ed4e87..a437b2e 100644
  	defined(CONFIG_PREEMPT_TRACER)
   extern void stop_critical_timings(void);
 diff --git a/kernel/locking/lockdep.c b/kernel/locking/lockdep.c
-index 780012eb2..886c516 100644
+index 38d7c03..4d51597 100644
 --- a/kernel/locking/lockdep.c
 +++ b/kernel/locking/lockdep.c
-@@ -5291,6 +5291,7 @@ static noinstr void check_flags(unsigned long flags)
+@@ -5292,6 +5292,7 @@ static noinstr void check_flags(unsigned long flags)
  		}
  	}
  
@@ -64,7 +64,7 @@ index 780012eb2..886c516 100644
  	/*
  	 * We dont accurately track softirq state in e.g.
  	 * hardirq contexts (such as on 4KSTACKS), so only
-@@ -5305,6 +5306,7 @@ static noinstr void check_flags(unsigned long flags)
+@@ -5306,6 +5307,7 @@ static noinstr void check_flags(unsigned long flags)
  			DEBUG_LOCKS_WARN_ON(!current->softirqs_enabled);
  		}
  	}

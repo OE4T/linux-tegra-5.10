@@ -1,7 +1,7 @@
-From 5b0450b62ef79d43bd874072048588c947399e61 Mon Sep 17 00:00:00 2001
+From af3c1a7deeb7cc6dfe51033ebc3d0c55e56d096c Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Fri, 18 Dec 2020 11:40:08 +0000
-Subject: [PATCH 091/295] printk: introduce a kmsg_dump iterator
+Subject: [PATCH 091/296] printk: introduce a kmsg_dump iterator
 
 Rather than store the iterator information into the registered
 kmsg_dump structure, create a separate iterator structure. The

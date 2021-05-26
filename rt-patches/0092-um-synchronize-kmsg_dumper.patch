@@ -1,7 +1,7 @@
-From 857829be4a9fba4744e64eb14b544c464ab9353f Mon Sep 17 00:00:00 2001
+From f925a979deab2d25bc05035bade340255fe5a1ad Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Mon, 21 Dec 2020 11:10:03 +0106
-Subject: [PATCH 092/295] um: synchronize kmsg_dumper
+Subject: [PATCH 092/296] um: synchronize kmsg_dumper
 
 The kmsg_dumper can be called from any context and CPU, possibly
 from multiple CPUs simultaneously. Since a static buffer is used

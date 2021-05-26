@@ -1,7 +1,7 @@
-From b0a443fe16661a72fb51a0fb5d58534e173c9186 Mon Sep 17 00:00:00 2001
+From 4ac9a250b42bc520354c11784a12d20dcdea8f16 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:22 +0100
-Subject: [PATCH 033/295] ARM: highmem: Switch to generic kmap atomic
+Subject: [PATCH 033/296] ARM: highmem: Switch to generic kmap atomic
 
 No reason having the same code in every architecture.
 
@@ -112,7 +112,7 @@ index 31811be..b22dffa 100644
  #endif
 diff --git a/arch/arm/include/asm/kmap_types.h b/arch/arm/include/asm/kmap_types.h
 deleted file mode 100644
-index 5590940..00000000
+index 5590940..0000000
 --- a/arch/arm/include/asm/kmap_types.h
 +++ /dev/null
 @@ -1,10 +0,0 @@
@@ -140,7 +140,7 @@ index 7cb1699..c4ce477 100644
  
 diff --git a/arch/arm/mm/highmem.c b/arch/arm/mm/highmem.c
 deleted file mode 100644
-index 187fab2..00000000
+index 187fab2..0000000
 --- a/arch/arm/mm/highmem.c
 +++ /dev/null
 @@ -1,121 +0,0 @@

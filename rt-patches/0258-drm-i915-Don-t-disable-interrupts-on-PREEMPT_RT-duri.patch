@@ -1,7 +1,7 @@
-From 676063f4b789f794e9c3a6902018607f809605ce Mon Sep 17 00:00:00 2001
+From 91b7f942d0535a5beb48698c195246a071175225 Mon Sep 17 00:00:00 2001
 From: Mike Galbraith <umgwanakikbuti@gmail.com>
 Date: Sat, 27 Feb 2016 09:01:42 +0100
-Subject: [PATCH 258/295] drm/i915: Don't disable interrupts on PREEMPT_RT
+Subject: [PATCH 258/296] drm/i915: Don't disable interrupts on PREEMPT_RT
  during atomic updates
 
 Commit
