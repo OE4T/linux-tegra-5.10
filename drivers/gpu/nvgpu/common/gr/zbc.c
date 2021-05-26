@@ -602,6 +602,10 @@ alloc_err:
 /* deallocate the memory for the struct */
 void nvgpu_gr_zbc_deinit(struct gk20a *g, struct nvgpu_gr_zbc *zbc)
 {
+	if (zbc == NULL) {
+		return;
+	}
+
 	nvgpu_kfree(g, zbc->zbc_col_tbl);
 	nvgpu_kfree(g, zbc->zbc_dep_tbl);
 	nvgpu_kfree(g, zbc->zbc_s_tbl);
