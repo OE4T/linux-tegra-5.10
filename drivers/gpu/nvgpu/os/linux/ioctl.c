@@ -314,6 +314,10 @@ void gk20a_user_deinit(struct device *dev)
 		nvgpu_kfree(g, cdev);
 	}
 
+	if (l->power_cdev_region) {
+		unregister_chrdev_region(l->power_cdev_region, l->power_cdevs);
+	}
+
 	if (l->cdev_region) {
 		unregister_chrdev_region(l->cdev_region, l->num_cdevs);
 		l->num_cdevs = 0;
@@ -560,7 +564,7 @@ int gk20a_power_node_init(struct device *dev)
 		goto fail;
 	}
 
-	l->cdev_region = devno;
+	l->power_cdev_region = devno;
 	nvgpu_list_for_each_entry(class, &l->class_list_head, nvgpu_class, list_entry) {
 		cdev = nvgpu_kzalloc(g, sizeof(*cdev));
 		if (cdev == NULL) {
@@ -586,7 +590,7 @@ int gk20a_power_node_init(struct device *dev)
 		nvgpu_list_add(&cdev->list_entry, &l->cdev_list_head);
 	}
 
-	l->num_cdevs = total_cdevs;
+	l->power_cdevs = total_cdevs;
 	return 0;
 fail:
 	gk20a_user_deinit(dev);
@@ -674,7 +678,7 @@ int gk20a_user_init(struct device *dev)
 		}
 	}
 
-	l->num_cdevs += total_cdevs;
+	l->num_cdevs = total_cdevs;
 
 	return 0;
 fail:
