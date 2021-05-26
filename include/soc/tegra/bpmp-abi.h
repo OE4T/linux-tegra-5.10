@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0 OR MIT */
 /*
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #ifndef ABI_BPMP_ABI_H
@@ -139,16 +139,6 @@ struct mrq_request {
 	 *
 	 * Only used when #BPMP_MAIL_CRC_PRESENT is set.
 	 *
-	 * **crc16**
-	 *
-	 * CRC16 using polynomial x^16 + x^14 + x^12 + x^11 + x^8 + x^5 + x^4 + x^2 + 1
-	 * and initialization value 0x4657. The CRC is calculated over all bytes of the message
-	 * including this header. However the crc16 field is considered to be set to 0 when
-	 * calculating the CRC. Only used when #BPMP_MAIL_CRC_PRESENT is set. If
-	 * #BPMP_MAIL_CRC_PRESENT is set and this field does not match the CRC as
-	 * calculated by BPMP, -BPMP_EBADMSG will be returned and the request will
-	 * be ignored.
-	 *
 	 * | MRQ                  | CMD                                  | minimum payload length
 	 * | -------------------- | ------------------------------------ | ------------------------------------------ |
 	 * | MRQ_PING             |                                      | 4                                          |
@@ -196,6 +186,7 @@ struct mrq_request {
 	 * | MRQ_FMON             | CMD_FMON_GEAR_CLAMP                  | 16                                         |
 	 * | MRQ_FMON             | CMD_FMON_GEAR_FREE                   | 4                                          |
 	 * | MRQ_FMON             | CMD_FMON_GEAR_GET                    | 4                                          |
+	 * | MRQ_FMON             | CMD_FMON_FAULT_STS_GET               | 8                                          |
 	 * | MRQ_EC               | CMD_EC_STATUS_EX_GET                 | 12                                         |
 	 * | MRQ_QUERY_FW_TAG     |                                      | 0                                          |
 	 * | MRQ_DEBUG            | CMD_DEBUG_OPEN_RO                    | 4 + length of cmd_debug_fopen_request.name |
@@ -203,6 +194,38 @@ struct mrq_request {
 	 * | MRQ_DEBUG            | CMD_DEBUG_READ                       | 8                                          |
 	 * | MRQ_DEBUG            | CMD_DEBUG_WRITE                      | 12 + cmd_debug_fwrite_request.datalen      |
 	 * | MRQ_DEBUG            | CMD_DEBUG_CLOSE                      | 8                                          |
+	 *
+	 * **crc16**
+	 *
+	 * CRC16 using polynomial x^16 + x^14 + x^12 + x^11 + x^8 + x^5 + x^4 + x^2 + 1
+	 * and initialization value 0x4657. The CRC is calculated over all bytes of the message
+	 * including this header. However the crc16 field is considered to be set to 0 when
+	 * calculating the CRC. Only used when #BPMP_MAIL_CRC_PRESENT is set. If
+	 * #BPMP_MAIL_CRC_PRESENT is set and this field does not match the CRC as
+	 * calculated by BPMP, -BPMP_EBADMSG will be returned and the request will
+	 * be ignored. See code snippet below on how to calculate the CRC.
+	 *
+	 * @code
+	 *	uint16_t calc_crc_digest(uint16_t crc, uint8_t *data, size_t size)
+	 *	{
+	 *		for (size_t i = 0; i < size; i++) {
+	 *			crc ^= data[i] << 8;
+	 *			for (size_t j = 0; j < 8; j++) {
+	 *				if ((crc & 0x8000) == 0x8000) {
+	 *					crc = (crc << 1) ^ 0xAC9A;
+	 *				} else {
+	 *					crc = (crc << 1);
+	 *				}
+	 *			}
+	 *		}
+	 *		return crc;
+	 *	}
+	 *
+	 *	uint16_t calc_crc(uint8_t *data, size_t size)
+	 *	{
+	 *		return calc_crc_digest(0x4657, data, size);
+	 *	}
+	 * @endcode
 	 */
 	uint32_t flags;
 } BPMP_ABI_PACKED;
@@ -2703,7 +2726,7 @@ struct mrq_uphy_response {
  * @brief Perform a frequency monitor configuration operations
  *
  * * Platforms: T194 onwards
- * @cond bpmp_t194
+ * @cond (bpmp_t194 || bpmp_t234)
  * * Initiators: CCPLEX
  * * Targets: BPMP
  * * Request Payload: @ref mrq_fmon_request
@@ -2719,6 +2742,20 @@ enum {
 	 * The monitored clock must be running for clamp to succeed. If
 	 * clamped, FMON configuration is preserved when clock rate
 	 * and/or state is changed.
+	 *
+	 * mrq_response::err is 0 if the operation was successful, or @n
+	 * -#BPMP_EACCES: FMON access error @n
+	 * -#BPMP_EBADCMD if subcommand is not supported @n
+	 * -#BPMP_EBADSLT: clamp FMON on cluster with auto-CC3 enabled @n
+	 * -#BPMP_EBUSY: fmon is already clamped at different rate @n
+	 * -#BPMP_EFAULT: self-diagnostic error @n
+	 * -#BPMP_EINVAL: invalid FMON configuration @n
+	 * -#BPMP_EOPNOTSUPP: not in production mode @n
+	 * -#BPMP_ENODEV: invalid clk_id @n
+	 * -#BPMP_ENOENT: no calibration data, uninitialized @n
+	 * -#BPMP_ENOTSUP: avfs config not set @n
+	 * -#BPMP_ENOSYS: clamp FMON on cluster clock w/ no NAFLL @n
+	 * -#BPMP_ETIMEDOUT: operation timed out @n
 	 */
 	CMD_FMON_GEAR_CLAMP = 1,
 	/**
@@ -2726,6 +2763,13 @@ enum {
 	 *
 	 * Allow FMON configuration to follow monitored clock rate
 	 * and/or state changes.
+	 *
+	 * mrq_response::err is 0 if the operation was successful, or @n
+	 * -#BPMP_EBADCMD if subcommand is not supported @n
+	 * -#BPMP_ENODEV: invalid clk_id @n
+	 * -#BPMP_ENOENT: no calibration data, uninitialized @n
+	 * -#BPMP_ENOTSUP: avfs config not set @n
+	 * -#BPMP_EOPNOTSUPP: not in production mode @n
 	 */
 	CMD_FMON_GEAR_FREE = 2,
 	/**
@@ -2734,10 +2778,45 @@ enum {
 	 *
 	 * Inherently racy, since clamp state can be changed
 	 * concurrently. Useful for testing.
+	 *
+	 * mrq_response::err is 0 if the operation was successful, or @n
+	 * -#BPMP_EBADCMD if subcommand is not supported @n
+	 * -#BPMP_ENODEV: invalid clk_id @n
+	 * -#BPMP_ENOENT: no calibration data, uninitialized @n
+	 * -#BPMP_ENOTSUP: avfs config not set @n
+	 * -#BPMP_EOPNOTSUPP: not in production mode @n
 	 */
 	CMD_FMON_GEAR_GET = 3,
+	/** Kept for backward compatibility */
 	CMD_FMON_NUM,
+	/**
+	 * @brief Return current status of FMON faults detected by FMON
+	 *         h/w or s/w since last invocation of this command.
+	 *         Clears fault status.
+	 *
+	 * mrq_response::err is 0 if the operation was successful, or @n
+	 * -#BPMP_EBADCMD if subcommand is not supported @n
+	 * -#BPMP_EINVAL: invalid fault type @n
+	 * -#BPMP_ENODEV: invalid clk_id @n
+	 * -#BPMP_ENOENT: no calibration data, uninitialized @n
+	 * -#BPMP_ENOTSUP: avfs config not set @n
+	 * -#BPMP_EOPNOTSUPP: not in production mode @n
+	 */
+	CMD_FMON_FAULT_STS_GET = 4,
 };
+
+/**
+ * @defgroup fmon_fault_type FMON fault type
+ * @addtogroup fmon_fault_type
+ * @{
+ */
+/** @brief All detected FMON faults (h/w or s/w) */
+#define FMON_FAULT_TYPE_ALL		0U
+/** @brief FMON faults detected by h/w */
+#define FMON_FAULT_TYPE_HW		1U
+/** @brief FMON faults detected by s/w */
+#define FMON_FAULT_TYPE_SW		2U
+/** @} */
 
 struct cmd_fmon_gear_clamp_request {
 	int32_t unused;
@@ -2768,6 +2847,14 @@ struct cmd_fmon_gear_get_response {
 	int64_t rate;
 } BPMP_ABI_PACKED;
 
+struct cmd_fmon_fault_sts_get_request {
+	uint32_t fault_type;	/**< @ref fmon_fault_type */
+} BPMP_ABI_PACKED;
+
+struct cmd_fmon_fault_sts_get_response {
+	uint32_t fault_sts;
+} BPMP_ABI_PACKED;
+
 /**
  * @ingroup FMON
  * @brief Request with #MRQ_FMON
@@ -2782,6 +2869,7 @@ struct cmd_fmon_gear_get_response {
  * |CMD_FMON_GEAR_CLAMP         |fmon_gear_clamp        |
  * |CMD_FMON_GEAR_FREE          |-                      |
  * |CMD_FMON_GEAR_GET           |-                      |
+ * |CMD_FMON_FAULT_STS_GET      |fmon_fault_sts_get     |
  *
  */
 
@@ -2799,6 +2887,7 @@ struct mrq_fmon_request {
 		struct cmd_fmon_gear_free_request fmon_gear_free;
 		/** @private */
 		struct cmd_fmon_gear_get_request fmon_gear_get;
+		struct cmd_fmon_fault_sts_get_request fmon_fault_sts_get;
 	} BPMP_UNION_ANON;
 } BPMP_ABI_PACKED;
 
@@ -2814,6 +2903,7 @@ struct mrq_fmon_request {
  * |CMD_FMON_GEAR_CLAMP         |-                       |
  * |CMD_FMON_GEAR_FREE          |-                       |
  * |CMD_FMON_GEAR_GET           |fmon_gear_get           |
+ * |CMD_FMON_FAULT_STS_GET      |fmon_fault_sts_get      |
  *
  */
 
@@ -2824,6 +2914,7 @@ struct mrq_fmon_response {
 		/** @private */
 		struct cmd_fmon_gear_free_response fmon_gear_free;
 		struct cmd_fmon_gear_get_response fmon_gear_get;
+		struct cmd_fmon_fault_sts_get_response fmon_fault_sts_get;
 	} BPMP_UNION_ANON;
 } BPMP_ABI_PACKED;
 
@@ -2836,7 +2927,7 @@ struct mrq_fmon_response {
  * @brief Provide status information on faults reported by Error
  *        Collator (EC) to HSM.
  *
- * * Platforms: T194 onwards
+ * * Platforms: T194
  * @cond bpmp_t194
  * * Initiators: CCPLEX
  * * Targets: BPMP
@@ -3230,6 +3321,8 @@ struct mrq_ec_response {
 #define BPMP_EBADSLT	57
 /** @brief Invalid message */
 #define BPMP_EBADMSG	77
+/** @brief Operation not supported */
+#define BPMP_EOPNOTSUPP 95
 /** @brief Not supported */
 #define BPMP_ENOTSUP	134
 /** @brief No such device or address */
