@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -21,10 +21,8 @@
 #include <linux/sizes.h>
 #include <linux/platform_device.h>
 #include <linux/dma-mapping.h>
-#include <linux/cache.h>
+#include <linux/tegra-cache.h>
 #include <linux/io.h>
-
-#include <asm/cacheflush.h>
 
 #include <aon.h>
 
@@ -128,7 +126,7 @@ static int  tegra_aon_setup_fw_carveout(struct tegra_aon *aon)
 	}
 
 	memset(aon->fw->data, 0, FW_CARVEOUT_SIZE);
-	flush_cache_all();
+	tegra_flush_cache_all();
 
 	ret = of_property_read_u32(dn,
 				   NV("ivc-carveout-base-ss"),
@@ -234,6 +232,12 @@ static int tegra_aon_probe(struct platform_device *pdev)
 	ret = tegra_aon_debugfs_create(aon);
 	if (ret) {
 		dev_err(dev, "failed to create debugfs err = %d\n", ret);
+		goto exit;
+	}
+
+	ret = tegra_aon_ipc_init(aon);
+	if (ret) {
+		dev_err(dev, "failed to init ipc err = %d\n", ret);
 		goto exit;
 	}
 

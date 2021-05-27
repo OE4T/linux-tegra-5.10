@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA CORPORATION and its licensors retain all intellectual property
  * and proprietary rights in and to this software, related documentation
@@ -11,16 +11,16 @@
 #ifndef AON_IVC_DBG_MESSAGES_H
 #define AON_IVC_DBG_MESSAGES_H
 
-#define AON_BOOT		    0
-#define AON_PING		    1
-#define AON_QUERY_TAG		    2
-#define AON_MODS_LOOPS_TEST	    3
-#define AON_MODS_RESULT		    4
-#define AON_MODS_CRC		    5
-#define AON_REQUEST_TYPE_MAX	    5
+#define AON_BOOT			0
+#define AON_PING			1
+#define AON_QUERY_TAG			2
+#define AON_MODS_CASE			3
+#define AON_MODS_RESULT			4
+#define AON_MODS_CRC			5
+#define AON_REQUEST_TYPE_MAX		5
 
-#define AON_DBG_STATUS_OK	    0
-#define AON_DBG_STATUS_ERROR	    1
+#define AON_DBG_STATUS_OK		0
+#define AON_DBG_STATUS_ERROR		1
 
 /**
  * @brief ping message request
@@ -63,10 +63,14 @@ struct aon_query_tag_resp {
  * This struct is used to send the loop count to perform the mods test
  * on the target.
  *
- * @loops	    number of times mods test should be run
+ * @mods_case	mods test type: basic, mem2mem dma, io2mem dma
+ * @loops	number of times mods test should be run
+ * @dma_chans	dma channels bit mask for the mods dma tests
  */
 struct aon_mods_req {
+	u32 mods_case;
 	u32 loops;
+	u32 dma_chans;
 };
 
 /**

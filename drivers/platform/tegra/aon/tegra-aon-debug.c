@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -29,8 +29,7 @@
 #include <linux/jiffies.h>
 #include <linux/firmware.h>
 #include <linux/tegra-firmwares.h>
-
-#include <asm/cacheflush.h>
+#include <linux/tegra-cache.h>
 
 #include <aon.h>
 
@@ -46,6 +45,11 @@
 
 #define IVC_DBG_CH_FRAME_SIZE 64
 #define MODS_DEFAULT_VAL      0xFFFF
+#define MODS_DEFAULT_LOOPS    10
+#define MODS_DEFAULT_CHANS    0x1
+#define MODS_BASIC_TEST       0x0
+#define MODS_DMA_MEM2MEM      0x1
+#define MODS_DMA_IO2MEM       0x2
 
 #define AONFW_BOOT	1
 
@@ -80,7 +84,10 @@ static struct dbgfs_dir aon_dbgfs_dirs[] = {
 	{.name = "aon_mods", .parent = &aon_dbgfs_dirs[AON_ROOT]}
 };
 
-static u32 mods_result = MODS_DEFAULT_VAL;
+static u32 mods_result		= MODS_DEFAULT_VAL;
+static u32 mods_dma_chans	= MODS_DEFAULT_CHANS;
+static u32 mods_case		= MODS_BASIC_TEST;
+static u32 mods_loops		= MODS_DEFAULT_LOOPS;
 
 static unsigned int completion_timeout = 50;
 
@@ -89,6 +96,8 @@ static bool aon_boot_done;
 static DEFINE_MUTEX(aon_mutex);
 static DEFINE_SPINLOCK(mods);
 static DEFINE_SPINLOCK(completion);
+static DEFINE_SPINLOCK(loops);
+static DEFINE_SPINLOCK(mods_dma);
 
 static struct aon_dbgfs_node aon_nodes[];
 
@@ -128,6 +137,41 @@ static unsigned int get_completion_timeout(void)
 	return val;
 }
 
+static void set_mods_loops(u32 count)
+{
+	spin_lock(&loops);
+	mods_loops = count;
+	spin_unlock(&loops);
+}
+
+static unsigned int get_mods_loops(void)
+{
+	unsigned int val;
+
+	spin_lock(&loops);
+	val = mods_loops;
+	spin_unlock(&loops);
+
+	return val;
+}
+static void set_mods_dma_chans(u32 dma_chans)
+{
+	spin_lock(&mods_dma);
+	mods_dma_chans = dma_chans;
+	spin_unlock(&mods_dma);
+}
+
+static unsigned int get_mods_dma_chans(void)
+{
+	unsigned int val;
+
+	spin_lock(&mods_dma);
+	val = mods_dma_chans;
+	spin_unlock(&mods_dma);
+
+	return val;
+}
+
 static struct aon_dbg_response *aon_create_ivc_dbg_req(u32 request,
 						       u32 flag,
 						       u32 data)
@@ -144,8 +188,10 @@ static struct aon_dbg_response *aon_create_ivc_dbg_req(u32 request,
 
 	req.req_type = request & AON_REQUEST_MASK;
 	switch (req.req_type) {
-	case AON_MODS_LOOPS_TEST:
-		req.data.mods_req.loops = data;
+	case AON_MODS_CASE:
+		req.data.mods_req.loops = get_mods_loops();
+		req.data.mods_req.dma_chans = get_mods_dma_chans();
+		req.data.mods_req.mods_case = data;
 		break;
 	case AON_MODS_CRC:
 	case AON_PING:
@@ -198,7 +244,7 @@ static int load_aon_fw(struct tegra_aon *aon)
 
 	memcpy((u8 *)aon->fw->data, (u8 *)fw->data, fw->size);
 	release_firmware(fw);
-	flush_cache_all();
+	tegra_flush_cache_all();
 
 exit:
 	return ret;
@@ -365,10 +411,40 @@ static int aon_ping_show(void *data, u64 *val)
 DEFINE_SIMPLE_ATTRIBUTE(aon_ping_fops, aon_ping_show,
 			NULL, "%lld\n");
 
+static int aon_mods_loops_show(void *data, u64 *val)
+{
+	*val = get_mods_loops();
+
+	return 0;
+}
+
 static int aon_mods_loops_store(void *data, u64 val)
+{
+	set_mods_loops(val);
+
+	return 0;
+}
+
+DEFINE_SIMPLE_ATTRIBUTE(aon_mods_loops_fops, aon_mods_loops_show,
+			aon_mods_loops_store, "%lld\n");
+
+static int aon_mods_case_show(void *data, u64 *val)
+{
+	*val = mods_case;
+
+	return 0;
+}
+
+static int aon_mods_case_store(void *data, u64 val)
 {
 	struct aon_dbg_response *resp;
 	int ret = 0;
+
+	if (val > MODS_DMA_IO2MEM) {
+		ret = -1;
+		dev_err(aondbg_dev.dev, "Invalid mods case\n");
+		goto out;
+	}
 
 	mutex_lock(&aon_mutex);
 	set_mods_result(MODS_DEFAULT_VAL);
@@ -379,15 +455,17 @@ static int aon_mods_loops_store(void *data, u64 val)
 		set_mods_result(resp->status);
 	mutex_unlock(&aon_mutex);
 
+out:
 	return ret;
 }
 
-DEFINE_SIMPLE_ATTRIBUTE(aon_mods_loops_fops, NULL,
-			aon_mods_loops_store, "%lld\n");
+DEFINE_SIMPLE_ATTRIBUTE(aon_mods_case_fops, aon_mods_case_show,
+			aon_mods_case_store, "%lld\n");
 
 static int aon_mods_result_show(void *data, u64 *val)
 {
 	*val = get_mods_result();
+
 	return 0;
 }
 
@@ -413,15 +491,34 @@ static int aon_mods_crc_show(void *data, u64 *val)
 DEFINE_SIMPLE_ATTRIBUTE(aon_mods_crc_fops, aon_mods_crc_show,
 			NULL, "%llx\n");
 
+static int aon_mods_dma_show(void *data, u64 *val)
+{
+	*val = get_mods_dma_chans();
+
+	return 0;
+}
+
+static int aon_mods_dma_store(void *data, u64 val)
+{
+	set_mods_dma_chans(val);
+
+	return 0;
+}
+
+DEFINE_SIMPLE_ATTRIBUTE(aon_mods_dma_fops, aon_mods_dma_show,
+			aon_mods_dma_store, "%lld\n");
+
 static int aon_timeout_show(void *data, u64 *val)
 {
 	*val = get_completion_timeout();
+
 	return 0;
 }
 
 static int aon_timeout_store(void *data, u64 val)
 {
 	set_completion_timeout(val);
+
 	return 0;
 }
 
@@ -431,12 +528,16 @@ DEFINE_SIMPLE_ATTRIBUTE(aon_timeout_fops, aon_timeout_show,
 static struct aon_dbgfs_node aon_nodes[] = {
 	{.name = "boot", .id = AON_BOOT, .pdr_id = AON_ROOT,
 			.mode = 0644, .fops = &aon_boot_fops, },
-	{.name = "loops", .id = AON_MODS_LOOPS_TEST, .pdr_id = AON_MODS,
-			.mode = 0200, .fops = &aon_mods_loops_fops, },
+	{.name = "loops", .pdr_id = AON_MODS,
+			.mode = 0644, .fops = &aon_mods_loops_fops, },
 	{.name = "result", .id = AON_MODS_RESULT, .pdr_id = AON_MODS,
 			.mode = 0444, .fops = &aon_mods_result_fops,},
 	{.name = "crc", .id = AON_MODS_CRC, .pdr_id = AON_MODS,
 			.mode = 0444, .fops = &aon_mods_crc_fops,},
+	{.name = "case", .id = AON_MODS_CASE, .pdr_id = AON_MODS,
+			.mode = 0644, .fops = &aon_mods_case_fops,},
+	{.name = "dma_channels", .pdr_id = AON_MODS,
+			.mode = 0644, .fops = &aon_mods_dma_fops,},
 	{.name = "ping", .id = AON_PING, .pdr_id = AON_ROOT,
 			.mode = 0644, .fops = &aon_ping_fops,},
 	{.name = "tag", .id = AON_QUERY_TAG, .pdr_id = AON_ROOT,
