@@ -306,7 +306,7 @@ static bool nvgpu_profiler_is_context_resource(
 		prof->ctxsw[pm_resource];
 }
 
-static int nvgpu_profiler_bind_smpc(struct gk20a *g,
+int nvgpu_profiler_bind_smpc(struct gk20a *g,
 		u32 gr_instance_id,
 		bool is_ctxsw,
 		struct nvgpu_tsg *tsg)
@@ -338,7 +338,7 @@ done:
 	return err;
 }
 
-static int nvgpu_profiler_unbind_smpc(struct gk20a *g, bool is_ctxsw,
+int nvgpu_profiler_unbind_smpc(struct gk20a *g, bool is_ctxsw,
 		struct nvgpu_tsg *tsg)
 {
 	int err;
@@ -383,14 +383,14 @@ static int nvgpu_profiler_bind_hwpm_common(struct gk20a *g, u32 gr_instance_id,
 	return err;
 }
 
-static int nvgpu_profiler_bind_hwpm(struct gk20a *g, u32 gr_instance_id,
+int nvgpu_profiler_bind_hwpm(struct gk20a *g, u32 gr_instance_id,
 		bool is_ctxsw, struct nvgpu_tsg *tsg)
 {
 	return nvgpu_profiler_bind_hwpm_common(g, gr_instance_id, is_ctxsw,
 			tsg, false);
 }
 
-static int nvgpu_profiler_unbind_hwpm(struct gk20a *g, u32 gr_instance_id,
+int nvgpu_profiler_unbind_hwpm(struct gk20a *g, u32 gr_instance_id,
 		bool is_ctxsw, struct nvgpu_tsg *tsg)
 {
 	int err = 0;
@@ -571,7 +571,7 @@ static int nvgpu_profiler_quiesce_hwpm_streamout(struct gk20a *g,
 	}
 }
 
-static int nvgpu_profiler_bind_hwpm_streamout(struct gk20a *g,
+int nvgpu_profiler_bind_hwpm_streamout(struct gk20a *g,
 		u32 gr_instance_id,
 		bool is_ctxsw,
 		struct nvgpu_tsg *tsg,
@@ -596,7 +596,7 @@ static int nvgpu_profiler_bind_hwpm_streamout(struct gk20a *g,
 	return 0;
 }
 
-static int nvgpu_profiler_unbind_hwpm_streamout(struct gk20a *g,
+int nvgpu_profiler_unbind_hwpm_streamout(struct gk20a *g,
 		u32 gr_instance_id,
 		bool is_ctxsw,
 		struct nvgpu_tsg *tsg,
@@ -665,7 +665,7 @@ int nvgpu_profiler_bind_pm_resources(struct nvgpu_profiler_object *prof)
 		is_ctxsw = nvgpu_profiler_is_context_resource(prof,
 				  NVGPU_PROFILER_PM_RESOURCE_TYPE_HWPM_LEGACY);
 		if (prof->reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_PMA_STREAM]) {
-			err = nvgpu_profiler_bind_hwpm_streamout(g,
+			err = g->ops.profiler.bind_hwpm_streamout(g,
 					gr_instance_id,
 					is_ctxsw,
 					prof->tsg,
@@ -683,7 +683,7 @@ int nvgpu_profiler_bind_pm_resources(struct nvgpu_profiler_object *prof)
 				"HWPM streamout bound with profiler handle %u",
 				prof->prof_handle);
 		} else {
-			err = nvgpu_profiler_bind_hwpm(prof->g, gr_instance_id,
+			err = g->ops.profiler.bind_hwpm(prof->g, gr_instance_id,
 					is_ctxsw, prof->tsg);
 			if (err != 0) {
 				nvgpu_err(g,
@@ -701,7 +701,7 @@ int nvgpu_profiler_bind_pm_resources(struct nvgpu_profiler_object *prof)
 	if (prof->reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_SMPC]) {
 		is_ctxsw = nvgpu_profiler_is_context_resource(prof,
 				NVGPU_PROFILER_PM_RESOURCE_TYPE_SMPC);
-		err = nvgpu_profiler_bind_smpc(g, gr_instance_id,
+		err = g->ops.profiler.bind_smpc(g, gr_instance_id,
 				is_ctxsw, prof->tsg);
 		if (err) {
 			nvgpu_err(g, "failed to bind SMPC with profiler handle %u",
@@ -758,7 +758,7 @@ int nvgpu_profiler_unbind_pm_resources(struct nvgpu_profiler_object *prof)
 		is_ctxsw = nvgpu_profiler_is_context_resource(prof,
 				  NVGPU_PROFILER_PM_RESOURCE_TYPE_HWPM_LEGACY);
 		if (prof->reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_PMA_STREAM]) {
-			err = nvgpu_profiler_unbind_hwpm_streamout(g,
+			err = g->ops.profiler.unbind_hwpm_streamout(g,
 				gr_instance_id,
 				is_ctxsw,
 				prof->tsg,
@@ -775,7 +775,7 @@ int nvgpu_profiler_unbind_pm_resources(struct nvgpu_profiler_object *prof)
 				"HWPM streamout unbound from profiler handle %u",
 				prof->prof_handle);
 		} else {
-			err = nvgpu_profiler_unbind_hwpm(g, gr_instance_id,
+			err = g->ops.profiler.unbind_hwpm(g, gr_instance_id,
 					is_ctxsw, prof->tsg);
 			if (err) {
 				nvgpu_err(g,
@@ -793,7 +793,7 @@ int nvgpu_profiler_unbind_pm_resources(struct nvgpu_profiler_object *prof)
 	if (prof->reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_SMPC]) {
 		is_ctxsw = nvgpu_profiler_is_context_resource(prof,
 				NVGPU_PROFILER_PM_RESOURCE_TYPE_SMPC);
-		err = nvgpu_profiler_unbind_smpc(g, is_ctxsw, prof->tsg);
+		err = g->ops.profiler.unbind_smpc(g, is_ctxsw, prof->tsg);
 		if (err) {
 			nvgpu_err(g,
 				"failed to unbind SMPC from profiler handle %u",

@@ -147,6 +147,34 @@ int nvgpu_profiler_pm_resource_reserve(struct nvgpu_profiler_object *prof,
 int nvgpu_profiler_pm_resource_release(struct nvgpu_profiler_object *prof,
 	enum nvgpu_profiler_pm_resource_type pm_resource);
 
+int nvgpu_profiler_bind_hwpm(struct gk20a *g,
+		u32 gr_instance_id,
+		bool is_ctxsw,
+		struct nvgpu_tsg *tsg);
+int nvgpu_profiler_unbind_hwpm(struct gk20a *g,
+		u32 gr_instance_id,
+		bool is_ctxsw,
+		struct nvgpu_tsg *tsg);
+int nvgpu_profiler_bind_hwpm_streamout(struct gk20a *g,
+		u32 gr_instance_id,
+		bool is_ctxsw,
+		struct nvgpu_tsg *tsg,
+		u64 pma_buffer_va,
+		u32 pma_buffer_size,
+		u64 pma_bytes_available_buffer_va);
+int nvgpu_profiler_unbind_hwpm_streamout(struct gk20a *g,
+		u32 gr_instance_id,
+		bool is_ctxsw,
+		struct nvgpu_tsg *tsg,
+		void *pma_bytes_available_buffer_cpuva,
+		bool smpc_reserved);
+int nvgpu_profiler_bind_smpc(struct gk20a *g,
+		u32 gr_instance_id,
+		bool is_ctxsw,
+		struct nvgpu_tsg *tsg);
+int nvgpu_profiler_unbind_smpc(struct gk20a *g, bool is_ctxsw,
+		struct nvgpu_tsg *tsg);
+
 int nvgpu_profiler_bind_pm_resources(struct nvgpu_profiler_object *prof);
 int nvgpu_profiler_unbind_pm_resources(struct nvgpu_profiler_object *prof);
 

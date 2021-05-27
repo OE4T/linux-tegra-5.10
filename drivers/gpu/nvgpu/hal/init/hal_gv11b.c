@@ -43,6 +43,7 @@
 #ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/pmu_perfmon.h>
 #endif
+#include <nvgpu/profiler.h>
 
 #include "hal/mm/mm_gp10b.h"
 #include "hal/mm/mm_gv11b.h"
@@ -1298,6 +1299,17 @@ static const struct gops_pm_reservation gv11b_ops_pm_reservation = {
 };
 #endif
 
+#ifdef CONFIG_NVGPU_PROFILER
+static const struct gops_profiler gv11b_ops_profiler = {
+	.bind_hwpm = nvgpu_profiler_bind_hwpm,
+	.unbind_hwpm = nvgpu_profiler_unbind_hwpm,
+	.bind_hwpm_streamout = nvgpu_profiler_bind_hwpm_streamout,
+	.unbind_hwpm_streamout = nvgpu_profiler_unbind_hwpm_streamout,
+	.bind_smpc = nvgpu_profiler_bind_smpc,
+	.unbind_smpc = nvgpu_profiler_unbind_smpc,
+};
+#endif
+
 static const struct gops_bus gv11b_ops_bus = {
 	.init_hw = gk20a_bus_init_hw,
 	.isr = gk20a_bus_isr,
@@ -1511,6 +1523,7 @@ int gv11b_init_hal(struct gk20a *g)
 #endif
 #ifdef CONFIG_NVGPU_PROFILER
 	gops->pm_reservation = gv11b_ops_pm_reservation;
+	gops->profiler = gv11b_ops_profiler;
 #endif
 	gops->bus = gv11b_ops_bus;
 	gops->ptimer = gv11b_ops_ptimer;

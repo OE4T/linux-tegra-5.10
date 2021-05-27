@@ -249,6 +249,7 @@
 #include <nvgpu/nvlink.h>
 #include <nvgpu/clk_mon.h>
 #include <nvgpu/grmgr.h>
+#include <nvgpu/profiler.h>
 
 #include <nvgpu/hw/tu104/hw_pwr_tu104.h>
 
@@ -1372,6 +1373,17 @@ static const struct gops_pm_reservation tu104_ops_pm_reservation = {
 };
 #endif
 
+#ifdef CONFIG_NVGPU_PROFILER
+static const struct gops_profiler tu104_ops_profiler = {
+	.bind_hwpm = nvgpu_profiler_bind_hwpm,
+	.unbind_hwpm = nvgpu_profiler_unbind_hwpm,
+	.bind_hwpm_streamout = nvgpu_profiler_bind_hwpm_streamout,
+	.unbind_hwpm_streamout = nvgpu_profiler_unbind_hwpm_streamout,
+	.bind_smpc = nvgpu_profiler_bind_smpc,
+	.unbind_smpc = nvgpu_profiler_unbind_smpc,
+};
+#endif
+
 #ifdef CONFIG_NVGPU_LS_PMU
 static const struct gops_bus tu104_ops_bus = {
 	.init_hw = tu104_bus_init_hw,
@@ -1704,6 +1716,7 @@ int tu104_init_hal(struct gk20a *g)
 #endif
 #ifdef CONFIG_NVGPU_PROFILER
 	gops->pm_reservation = tu104_ops_pm_reservation;
+	gops->profiler = tu104_ops_profiler;
 #endif
 	gops->bus = tu104_ops_bus;
 	gops->ptimer = tu104_ops_ptimer;

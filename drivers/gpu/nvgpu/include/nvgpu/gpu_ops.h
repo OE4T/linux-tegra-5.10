@@ -166,6 +166,7 @@ struct gpu_ops {
 #endif
 #ifdef CONFIG_NVGPU_PROFILER
 	struct gops_pm_reservation pm_reservation;
+	struct gops_profiler profiler;
 #endif
 
 	/** Ops to get litter value corresponding to litter define. */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,6 +32,36 @@ struct gops_pm_reservation {
 		enum nvgpu_profiler_pm_resource_type pm_resource,
 		u32 vmid);
 	void (*release_all_per_vmid)(struct gk20a *g, u32 vmid);
+};
+struct gops_profiler {
+	int (*bind_hwpm)(struct gk20a *g,
+			u32 gr_instance_id,
+			bool is_ctxsw,
+			struct nvgpu_tsg *tsg);
+	int (*unbind_hwpm)(struct gk20a *g,
+			u32 gr_instance_id,
+			bool is_ctxsw,
+			struct nvgpu_tsg *tsg);
+	int (*bind_hwpm_streamout)(struct gk20a *g,
+			u32 gr_instance_id,
+			bool is_ctxsw,
+			struct nvgpu_tsg *tsg,
+			u64 pma_buffer_va,
+			u32 pma_buffer_size,
+			u64 pma_bytes_available_buffer_va);
+	int (*unbind_hwpm_streamout)(struct gk20a *g,
+			u32 gr_instance_id,
+			bool is_ctxsw,
+			struct nvgpu_tsg *tsg,
+			void *pma_bytes_available_buffer_cpuva,
+			bool smpc_reserved);
+	int (*bind_smpc)(struct gk20a *g,
+			u32 gr_instance_id,
+			bool is_ctxsw,
+			struct nvgpu_tsg *tsg);
+	int (*unbind_smpc)(struct gk20a *g,
+			bool is_ctxsw,
+			struct nvgpu_tsg *tsg);
 };
 #endif
 
