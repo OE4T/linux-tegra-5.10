@@ -310,7 +310,7 @@
 			reg = <0x0 0x15480000 0x0 0x00040000>;
 			resets = <&bpmp_resets TEGRA234_RESET_NVDEC>;
 			clocks = <&bpmp_clks TEGRA234_CLK_NVDEC>,
-				 <&bpmp_clks TEGRA234_CLK_KFUSE>,
+				 <&bpmp_clks TEGRA234_CLK_FUSE_BURN>,
 				 <&bpmp_clks TEGRA234_CLK_FUSE>;
 			clock-names = "nvdec", "kfuse", "efuse";
 
@@ -462,7 +462,7 @@
 				     <0 439 0x04>;
 			resets = <&bpmp_resets TEGRA234_RESET_PVA0_ALL>;
 			clocks = <&bpmp_clks TEGRA234_CLK_PVA0_CPU_AXI>,
-				 <&bpmp_clks TEGRA234_CLK_NAFLL_PVA_VPS>,
+				 <&bpmp_clks TEGRA234_CLK_NAFLL_PVA0_VPS>,
 				 <&bpmp_clks TEGRA234_CLK_PVA0_VPS>;
 			clock-names = "axi", "vps0", "vps1";
 

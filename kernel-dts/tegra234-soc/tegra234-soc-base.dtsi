@@ -245,7 +245,7 @@
 	kfuse@3828000 {
 		compatible = "nvidia,tegra194-kfuse";
 		reg = <0x0 0x3828000 0x0 0x1000>;
-		clocks = <&bpmp_clks TEGRA234_CLK_KFUSE>;
+		clocks = <&bpmp_clks TEGRA234_CLK_FUSE_BURN>;
 		clock-names = "kfuse";
 		status = "disabled";
 	};
@@ -608,7 +608,7 @@
 			<&bpmp_clks TEGRA234_CLK_XUSB_FS_HOST>,
 			<&bpmp_clks TEGRA234_CLK_XUSB_SS>,
 			<&bpmp_clks TEGRA234_CLK_XUSB_SS_SUPERSPEED>,
-			<&bpmp_clks TEGRA234_CLK_UTMIPLL>,
+			<&bpmp_clks TEGRA234_CLK_UTMIP_PLL>,
 			<&bpmp_clks TEGRA234_CLK_CLK_M>,
 			<&bpmp_clks TEGRA234_CLK_PLLE>;
 		clock-names = "xusb_hs_src", "xusb_host",
@@ -711,7 +711,7 @@
 		nvidia,host1x = <&host1x>;
 		access-vpr-phys;
 		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_GPU>;
-		clocks = <&bpmp_clks TEGRA234_CLK_GPCCLK>,
+		clocks = <&bpmp_clks TEGRA234_CLK_GPC0CLK>,
 			<&bpmp_clks TEGRA234_CLK_GPU_PWR>,
 			<&bpmp_clks TEGRA234_CLK_FUSE>;
 		clock-names = "gpu", "pwr", "fuse";
@@ -834,11 +834,11 @@
 		       0x0 0x1f00000 0x0 0x20000>; /* MSSNVLINK_0 */
 		clocks = <&bpmp_clks TEGRA234_CLK_NVHS_PLL0_MGMT>,
 				<&bpmp_clks TEGRA234_CLK_PLLREFE_VCOOUT_GATED>,
-				<&bpmp_clks TEGRA234_CLK_NVLINK_SYS>,
+				<&bpmp_clks TEGRA234_CLK_OSC>,
 				<&bpmp_clks TEGRA234_CLK_PLLNVHS>,
 				<&bpmp_clks TEGRA234_CLK_CLK_M>,
-				<&bpmp_clks TEGRA234_CLK_NVLINK_PLL_TXCLK>,
-				<&bpmp_clks TEGRA234_CLK_NVLINK_TX>;
+				<&bpmp_clks TEGRA234_CLK_OSC>,
+				<&bpmp_clks TEGRA234_CLK_OSC>;
 		clock-names = "nvhs_pll0_mgmt", "pllrefe_vcoout_gated", "nvlink_sys", "pllnvhs", "clk_m", "nvlink_pll_txclk", "nvlink_tx";
 		resets = <&bpmp_resets TEGRA234_RESET_NVHS_UPHY_PM>,
 				<&bpmp_resets TEGRA234_RESET_NVHS_UPHY>,
@@ -866,9 +866,9 @@
 				<&bpmp_clks TEGRA234_CLK_DLA1_CORE>,
 				<&bpmp_clks TEGRA234_CLK_DLA0_FALCON>,
 				<&bpmp_clks TEGRA234_CLK_DLA1_FALCON>,
-				<&bpmp_clks TEGRA234_CLK_PVA0_VPS0>,
-				<&bpmp_clks TEGRA234_CLK_PVA0_VPS1>,
-				<&bpmp_clks TEGRA234_CLK_PVA0_AXI>;
+				<&bpmp_clks TEGRA234_CLK_PVA0_VPS>,
+				<&bpmp_clks TEGRA234_CLK_PVA0_VPS>,
+				<&bpmp_clks TEGRA234_CLK_PVA0_CPU_AXI>;
 		clock-names = "emc", "dla0_core", "dla1_core", "dla0_falcon", "dla1_falcon",
 				"pva0_vps0", "pva0_vps1", "pva0_axi";
 		status = "okay";
@@ -887,8 +887,8 @@
 		              0 419 4
 			      0  61 4>;
 		nvidia,bpmp = <&bpmp>;
-		clocks = <&bpmp_clks TEGRA234_CLK_NVDISPLAYHUB>,
-			 <&bpmp_clks TEGRA234_CLK_NVDISPLAY_DISP>,
+		clocks = <&bpmp_clks TEGRA234_CLK_HUB>,
+			 <&bpmp_clks TEGRA234_CLK_DISP>,
 			 <&bpmp_clks TEGRA234_CLK_NVDISPLAY_P0>,
 			 <&bpmp_clks TEGRA234_CLK_NVDISPLAY_P1>,
 			 <&bpmp_clks TEGRA234_CLK_DPAUX>,
@@ -902,10 +902,10 @@
 			 <&bpmp_clks TEGRA234_CLK_SPPLL0_CLKOUTB>,
 			 <&bpmp_clks TEGRA234_CLK_SPPLL0_DIV10>,
 			 <&bpmp_clks TEGRA234_CLK_SPPLL0_DIV25>,
-			 <&bpmp_clks TEGRA234_CLK_SPPLL0_DIV27>,
+			 <&bpmp_clks TEGRA234_CLK_SPPLL0_DIV27PN>,
 			 <&bpmp_clks TEGRA234_CLK_SPPLL1_VCO>,
 			 <&bpmp_clks TEGRA234_CLK_SPPLL1_CLKOUTPN>,
-			 <&bpmp_clks TEGRA234_CLK_SPPLL1_DIV27>,
+			 <&bpmp_clks TEGRA234_CLK_SPPLL1_DIV27PN>,
 			 <&bpmp_clks TEGRA234_CLK_VPLL0_REF>,
 			 <&bpmp_clks TEGRA234_CLK_VPLL0>,
 			 <&bpmp_clks TEGRA234_CLK_VPLL1>,

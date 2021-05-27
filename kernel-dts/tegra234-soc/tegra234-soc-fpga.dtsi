@@ -215,7 +215,7 @@
 	kfuse@3828000 {
 		compatible = "nvidia,tegra194-kfuse";
 		reg = <0x0 0x3828000 0x0 0x1000>;
-		clocks = <&bpmp_clks TEGRA234_CLK_KFUSE>;
+		clocks = <&bpmp_clks TEGRA234_CLK_FUSE_BURN>;
 		clock-names = "kfuse";
 		status = "disabled";
 	};
@@ -269,8 +269,8 @@
 			      0 419 4
 			      0  61 4>;
 		nvidia,bpmp = <&bpmp>;
-		clocks = <&bpmp_clks TEGRA234_CLK_NVDISPLAYHUB>,
-			 <&bpmp_clks TEGRA234_CLK_NVDISPLAY_DISP>,
+		clocks = <&bpmp_clks TEGRA234_CLK_HUB>,
+			 <&bpmp_clks TEGRA234_CLK_DISP>,
 			 <&bpmp_clks TEGRA234_CLK_NVDISPLAY_P0>,
 			 <&bpmp_clks TEGRA234_CLK_NVDISPLAY_P1>,
 			 <&bpmp_clks TEGRA234_CLK_DPAUX>,
@@ -284,10 +284,10 @@
 			 <&bpmp_clks TEGRA234_CLK_SPPLL0_CLKOUTB>,
 			 <&bpmp_clks TEGRA234_CLK_SPPLL0_DIV10>,
 			 <&bpmp_clks TEGRA234_CLK_SPPLL0_DIV25>,
-			 <&bpmp_clks TEGRA234_CLK_SPPLL0_DIV27>,
+			 <&bpmp_clks TEGRA234_CLK_SPPLL0_DIV27PN>,
 			 <&bpmp_clks TEGRA234_CLK_SPPLL1_VCO>,
 			 <&bpmp_clks TEGRA234_CLK_SPPLL1_CLKOUTPN>,
-			 <&bpmp_clks TEGRA234_CLK_SPPLL1_DIV27>,
+			 <&bpmp_clks TEGRA234_CLK_SPPLL1_DIV27PN>,
 			 <&bpmp_clks TEGRA234_CLK_VPLL0_REF>,
 			 <&bpmp_clks TEGRA234_CLK_VPLL0>,
 			 <&bpmp_clks TEGRA234_CLK_VPLL1>,

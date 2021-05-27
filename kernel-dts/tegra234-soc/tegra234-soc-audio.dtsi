@@ -597,7 +597,7 @@
 				compatible = "nvidia,tegra210-iqc";
 				reg = <0x0 0x290e000 0x0 0x200>;
 				nvidia,ahub-iqc-id = <0>;
-				clocks = <&bpmp_clks TEGRA234_CLK_IQC1>;
+				clocks = <&bpmp_clks TEGRA234_CLK_OSC>;
 				clock-names = "iqc";
 				#sound-dai-cells = <1>;
 				status = "disabled";

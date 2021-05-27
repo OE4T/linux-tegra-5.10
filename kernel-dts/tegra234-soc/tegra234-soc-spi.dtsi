@@ -113,7 +113,7 @@
 		dma-names = "rx", "tx";
 		spi-max-frequency = <204000000>;
 		nvidia,clk-parents = "pllc", "pll_p";
-		clocks = <&bpmp_clks TEGRA234_CLK_QSPI0>,
+		clocks = <&bpmp_clks TEGRA234_CLK_QSPI0_2X_PM>,
 			 <&bpmp_clks TEGRA234_CLK_QSPI0_PM>,
 			 <&bpmp_clks TEGRA234_CLK_PLLC>,
 			 <&bpmp_clks TEGRA234_CLK_PLLP_OUT0>;
@@ -138,7 +138,7 @@
 		dma-names = "rx", "tx";
 		spi-max-frequency = <204000000>;
 		nvidia,clk-parents = "pllc", "pll_p";
-		clocks = <&bpmp_clks TEGRA234_CLK_QSPI1>,
+		clocks = <&bpmp_clks TEGRA234_CLK_QSPI1_2X_PM>,
 			 <&bpmp_clks TEGRA234_CLK_QSPI1_PM>,
 			 <&bpmp_clks TEGRA234_CLK_PLLC>,
 			 <&bpmp_clks TEGRA234_CLK_PLLP_OUT0>;
