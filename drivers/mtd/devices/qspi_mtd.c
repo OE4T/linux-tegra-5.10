@@ -3,7 +3,7 @@
  *
  * Author: Mike Lavender, mike@steroidmicros.com
  * Copyright (c) 2005, Intec Automation Inc.
- * Copyright (c) 2013-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2013-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -1392,9 +1392,12 @@ static int qspi_read(struct mtd_info *mtd, loff_t from, size_t len,
 
 		t[1].len = len;
 #ifdef QSPI_BRINGUP_BUILD
-		t[1].bits_per_word = ((t[1].len % bytes_per_word) == 0) ?
-				      flash->qspi_bits_per_word :
-				      BITS8_PER_WORD;
+		if (bytes_per_word != 0)
+			t[1].bits_per_word = ((t[1].len % bytes_per_word) == 0) ?
+					      flash->qspi_bits_per_word :
+					      BITS8_PER_WORD;
+		else
+			t[1].bits_per_word = BITS8_PER_WORD;
 #else
 		t[1].bits_per_word = BITS8_PER_WORD;
 #endif
@@ -1435,9 +1438,12 @@ static int qspi_read(struct mtd_info *mtd, loff_t from, size_t len,
 
 		t[2].len = len;
 #ifdef QSPI_BRINGUP_BUILD
-		t[2].bits_per_word = ((t[2].len % bytes_per_word) == 0) ?
-				      flash->qspi_bits_per_word :
-				      BITS8_PER_WORD;
+		if (bytes_per_word != 0)
+			t[2].bits_per_word = ((t[2].len % bytes_per_word) == 0) ?
+					      flash->qspi_bits_per_word :
+					      BITS8_PER_WORD;
+		else
+			t[2].bits_per_word = BITS8_PER_WORD;
 #else
 		t[2].bits_per_word = BITS8_PER_WORD;
 #endif
@@ -1558,9 +1564,12 @@ static int qspi_write(struct mtd_info *mtd, loff_t to, size_t len,
 
 		t[1].len = len;
 #ifdef QSPI_BRINGUP_BUILD
-		t[1].bits_per_word = ((t[1].len % bytes_per_word) == 0) ?
-				      flash->qspi_bits_per_word :
-				      BITS8_PER_WORD;
+		if (bytes_per_word != 0)
+			t[1].bits_per_word = ((t[1].len % bytes_per_word) == 0) ?
+					      flash->qspi_bits_per_word :
+					      BITS8_PER_WORD;
+		else
+			t[1].bits_per_word = BITS8_PER_WORD;
 #else
 		t[1].bits_per_word = BITS8_PER_WORD;
 #endif
@@ -1625,9 +1634,12 @@ clear_qmode:
 
 		t[1].len = page_size;
 #ifdef QSPI_BRINGUP_BUILD
-		t[1].bits_per_word = ((t[1].len % bytes_per_word) == 0) ?
-				      flash->qspi_bits_per_word :
-				      BITS8_PER_WORD;
+		if (bytes_per_word != 0)
+			t[1].bits_per_word = ((t[1].len % bytes_per_word) == 0) ?
+					      flash->qspi_bits_per_word :
+					      BITS8_PER_WORD;
+		else
+			t[1].bits_per_word = BITS8_PER_WORD;
 #else
 		t[1].bits_per_word = BITS8_PER_WORD;
 #endif
@@ -1709,9 +1721,12 @@ clear_qmode:
 			t[1].tx_buf = (buf + i);
 			t[1].len = page_size;
 #ifdef QSPI_BRINGUP_BUILD
-			t[1].bits_per_word = ((t[1].len % bytes_per_word) ==
-					      0) ? flash->qspi_bits_per_word :
-					      BITS8_PER_WORD;
+			if (bytes_per_word != 0)
+				t[1].bits_per_word = ((t[1].len % bytes_per_word) ==
+						      0) ? flash->qspi_bits_per_word :
+						      BITS8_PER_WORD;
+			else
+				t[1].bits_per_word = BITS8_PER_WORD;
 #else
 			t[1].bits_per_word = BITS8_PER_WORD;
 #endif
