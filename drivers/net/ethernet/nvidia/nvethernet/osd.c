@@ -253,6 +253,272 @@ static void osd_realloc_buf(void *priv, struct osi_rx_ring *rx_ring,
 	ether_realloc_rx_skb(pdata, rx_ring, chan);
 }
 
+#ifdef ETHER_NVGRO
+/**
+ * @brief ether_gro_merge_complete - Merging the packets with GRO layer
+ *
+ * @param[in] nvgro_q: NVGRO packet sequence queue.
+ * @param[in] napi: Driver NAPI instance.
+ */
+static inline void ether_gro_merge_complete(struct sk_buff_head *nvgro_q,
+					    struct napi_struct *napi)
+{
+	struct list_head h;
+	struct sk_buff *f_skb, *p, *pp;
+
+	f_skb = __skb_peek(nvgro_q);
+
+	INIT_LIST_HEAD(&h);
+
+	skb_queue_walk_safe(nvgro_q, p, pp) {
+		__skb_unlink(p, nvgro_q);
+
+		NAPI_GRO_CB(p)->data_offset = 0;
+		NAPI_GRO_CB(p)->frag0 = NULL;
+		NAPI_GRO_CB(p)->frag0_len = 0;
+		NAPI_GRO_CB(p)->same_flow = 1;
+		NAPI_GRO_CB(p)->flush_id = 0;
+		NAPI_GRO_CB(p)->count = 0;
+		NAPI_GRO_CB(p)->flush = skb_is_gso(p);
+		NAPI_GRO_CB(p)->free = 0;
+		NAPI_GRO_CB(p)->encap_mark = 0;
+		NAPI_GRO_CB(p)->recursion_counter = 0;
+		NAPI_GRO_CB(p)->is_fou = 0;
+		NAPI_GRO_CB(p)->is_atomic = 1;
+		NAPI_GRO_CB(p)->gro_remcsum_start = 0;
+		NAPI_GRO_CB(p)->csum_cnt = p->csum_level + 1;
+		NAPI_GRO_CB(p)->csum_valid = 0;
+
+		inet_gro_receive(&h, p);
+
+		if (p == f_skb) {
+			list_add(&p->list, &h);
+			NAPI_GRO_CB(p)->age = jiffies;
+			NAPI_GRO_CB(p)->last = p;
+			skb_shinfo(p)->gso_size = skb_gro_len(p);
+		}
+
+		NAPI_GRO_CB(f_skb)->count++;
+	}
+
+	skb_list_del_init(f_skb);
+	napi_gro_complete(napi, f_skb);
+}
+
+/**
+ * @brief ether_update_fq_with_fs - Populates final queue with TTL = 1 packet
+ *
+ * @param[in] pdata: Ethernet driver private data
+ * @param[in] skb: Socket buffer.
+ */
+static inline void ether_update_fq_with_fs(struct ether_priv_data *pdata,
+					   struct sk_buff *skb)
+{
+	if (!skb_queue_empty(&pdata->fq)) {
+		pdata->nvgro_dropped += pdata->fq.qlen;
+		__skb_queue_purge(&pdata->fq);
+	}
+
+	/* queue skb to fq which has TTL = 1 */
+	__skb_queue_tail(&pdata->fq, skb);
+
+	pdata->expected_ip_id = NAPI_GRO_CB(skb)->flush_id + 1;
+}
+
+/**
+ * @brief ether_get_skb_from_ip_id - Get SKB from MQ based on IPID.
+ *
+ * @param[in] mq: NVGRO packet out of order queue.
+ * @param[in] ip_id: IPv4 packet ID.
+ *
+ * @retval skb on Success
+ * @retval NULL on failure.
+ */
+static inline struct sk_buff *ether_get_skb_from_ip_id(struct sk_buff_head *mq,
+						       u16 ip_id)
+{
+	struct sk_buff *p, *pp;
+
+	skb_queue_walk_safe(mq, p, pp) {
+		if ((NAPI_GRO_CB(p)->flush_id) == ip_id) {
+			__skb_unlink(p, mq);
+			return p;
+		}
+	}
+
+	return NULL;
+}
+
+/**
+ * @brief ether_gro - Perform NVGRO packet merging.
+ *
+ * @param[in] fq: NVGRO packets sequence queue.
+ * @param[in] mq: NVGRO packet out of order queue.
+ * @param[in] napi: Driver NAPI instance.
+ */
+static inline void ether_gro(struct sk_buff_head *fq, struct sk_buff_head *mq,
+			     struct napi_struct *napi)
+{
+	struct sk_buff *f_skb, *p;
+	u32 s_ip_id;
+
+	if (skb_queue_empty(fq))
+		return;
+
+	f_skb = skb_peek_tail(fq);
+
+	s_ip_id = NAPI_GRO_CB(f_skb)->flush_id;
+
+	do {
+		s_ip_id++;
+		p = ether_get_skb_from_ip_id(mq, s_ip_id);
+		if (!p)
+			return;
+
+		__skb_queue_tail(fq, p);
+
+		if (NAPI_GRO_CB(p)->free == 2)
+			break;
+	} while (1);
+
+	ether_gro_merge_complete(fq, napi);
+}
+
+/**
+ * @brief ether_purge_q - Purge master queue based on packet age.
+ *
+ * @param[in] pdata: Ethernet private data.
+ */
+static inline void ether_purge_q(struct ether_priv_data *pdata)
+{
+	struct sk_buff *p, *pp;
+
+	skb_queue_walk_safe(&pdata->mq, p, pp) {
+		if ((jiffies - NAPI_GRO_CB(p)->age) >
+		    msecs_to_jiffies(pdata->pkt_age_msec)) {
+			__skb_unlink(p, &pdata->mq);
+			dev_consume_skb_any(p);
+			pdata->nvgro_dropped++;
+		} else {
+			return;
+		}
+	}
+}
+
+/**
+ * @brief ether_nvgro_purge_timer - NVGRO purge timer handler.
+ *
+ * @param[in] t: Pointer to the timer.
+ */
+void ether_nvgro_purge_timer(struct timer_list *t)
+{
+	struct ether_priv_data *pdata = from_timer(pdata, t, nvgro_timer);
+	struct sk_buff *f_skb;
+
+	if (atomic_read(&pdata->rx_state) == OSI_ENABLE)
+		return;
+
+	atomic_set(&pdata->timer_state, OSI_ENABLE);
+
+	ether_purge_q(pdata);
+
+	f_skb = skb_peek(&pdata->fq);
+	if (!f_skb)
+		goto exit;
+
+	if ((jiffies - NAPI_GRO_CB(f_skb)->age) >
+	    msecs_to_jiffies(pdata->pkt_age_msec)) {
+		pdata->nvgro_dropped += pdata->fq.qlen;
+		__skb_queue_purge(&pdata->fq);
+	}
+
+exit:
+	atomic_set(&pdata->timer_state, OSI_DISABLE);
+
+	mod_timer(&pdata->nvgro_timer,
+		  jiffies + msecs_to_jiffies(pdata->nvgro_timer_intrvl));
+}
+
+/**
+ * @brief ether_do_nvgro - Perform NVGRO processing.
+ *
+ * @param[in] pdata: Ethernet private data.
+ * @param[in] napi: Ethernet driver NAPI instance.
+ * @param[in] skb: socket buffer
+ *
+ * @retval true on Success
+ * @retval false on failure.
+ */
+static bool ether_do_nvgro(struct ether_priv_data *pdata,
+			   struct napi_struct *napi,
+			   struct sk_buff *skb)
+{
+	struct udphdr *uh = (struct udphdr *)(skb->data + sizeof(struct iphdr));
+	struct iphdr *iph = (struct iphdr *)skb->data;
+	struct sk_buff_head *mq = &pdata->mq;
+	struct ethhdr *ethh = eth_hdr(skb);
+	struct sock *sk = NULL;
+
+	if (ethh->h_proto != htons(ETH_P_IP))
+		return false;
+
+	if (iph->protocol != IPPROTO_UDP)
+		return false;
+
+	/* TODO: Hash based based queues selection */
+	/* Socket look up with IPv4/UDP source/destination */
+	sk = __udp4_lib_lookup(dev_net(skb->dev), iph->saddr, uh->source,
+			       iph->daddr, uh->dest, inet_iif(skb),
+			       inet_sdif(skb), &udp_table, NULL);
+	if (!sk)
+		return false;
+
+	/* Socket found but GRO not enabled on the socket - We don't care */
+	if (!udp_sk(sk)->gro_enabled)
+		return false;
+
+	/* Store IPID, TTL and age of skb inside per skb control block */
+	NAPI_GRO_CB(skb)->flush_id = ntohs(iph->id);
+	NAPI_GRO_CB(skb)->free = (iph->ttl & (BIT(6) | BIT(7))) >> 6;
+	NAPI_GRO_CB(skb)->age = jiffies;
+
+	while (atomic_read(&pdata->timer_state) == OSI_ENABLE) {
+		/* busyloop */
+	};
+
+	atomic_set(&pdata->rx_state, OSI_ENABLE);
+
+	if (NAPI_GRO_CB(skb)->free == 1) {
+		/* Update final queue with first segment */
+		ether_update_fq_with_fs(pdata, skb);
+		goto exit;
+	} else {
+		if (pdata->expected_ip_id == NAPI_GRO_CB(skb)->flush_id) {
+			__skb_queue_tail(&pdata->fq, skb);
+			pdata->expected_ip_id = NAPI_GRO_CB(skb)->flush_id + 1;
+
+			if (NAPI_GRO_CB(skb)->free == 2)
+				ether_gro_merge_complete(&pdata->fq, napi);
+
+			goto exit;
+		}
+	}
+
+	/* Add skb to the queue */
+	__skb_queue_tail(mq, skb);
+
+	/* Queue the packets until last segment received */
+	if (NAPI_GRO_CB(skb)->free != 2)
+		goto exit;
+
+	ether_gro(&pdata->fq, &pdata->mq, napi);
+
+exit:
+	atomic_set(&pdata->rx_state, OSI_DISABLE);
+	return true;
+}
+#endif
+
 /**
  * @brief Handover received packet to network stack.
  *
@@ -350,6 +616,11 @@ void osd_receive_packet(void *priv, struct osi_rx_ring *rx_ring,
 		skb->dev = ndev;
 		skb->protocol = eth_type_trans(skb, ndev);
 		ndev->stats.rx_bytes += skb->len;
+#ifdef ETHER_NVGRO
+		if ((ndev->features & NETIF_F_GRO) &&
+		    ether_do_nvgro(pdata, &rx_napi->napi, skb))
+			goto done;
+#endif
 		if (likely(ndev->features & NETIF_F_GRO)) {
 			napi_gro_receive(&rx_napi->napi, skb);
 		} else {
@@ -366,6 +637,9 @@ void osd_receive_packet(void *priv, struct osi_rx_ring *rx_ring,
 		dev_kfree_skb_any(skb);
 	}
 
+#ifdef ETHER_NVGRO
+done:
+#endif
 	ndev->stats.rx_packets++;
 	rx_swcx->buf_virt_addr = NULL;
 	rx_swcx->buf_phy_addr = 0;

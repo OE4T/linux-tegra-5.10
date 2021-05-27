@@ -2267,6 +2267,179 @@ static DEVICE_ATTR(ptp_sync, (S_IRUGO | S_IWUSR),
 		   ether_ptp_sync_show,
 		   ether_ptp_sync_store);
 
+#ifdef ETHER_NVGRO
+/**
+ * @brief Shows the current setting of NVGRO packet age threshold.
+ *
+ * @param[in] dev: Device data.
+ * @param[in] attr: Device attribute
+ * @param[in] buf: Buffer to store the current ptp sync method
+ */
+static ssize_t ether_nvgro_pkt_age_msec_show(struct device *dev,
+					     struct device_attribute *attr,
+					     char *buf)
+{
+	struct net_device *ndev = (struct net_device *)dev_get_drvdata(dev);
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+
+	return scnprintf(buf, PAGE_SIZE, "%u\n", pdata->pkt_age_msec);
+}
+
+/**
+ * @brief Set the user setting of NVGRO packet age threshold.
+ *
+ * @param[in] dev: Device data.
+ * @param[in] attr: Device attribute
+ * @param[in] buf: Buffer which contains the user settings of MAC loopback
+ * @param[in] size: size of buffer
+ *
+ * @return size of buffer.
+ */
+static ssize_t ether_nvgro_pkt_age_msec_store(struct device *dev,
+					      struct device_attribute *attr,
+					      const char *buf, size_t size)
+{
+	struct net_device *ndev = (struct net_device *)dev_get_drvdata(dev);
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	int ret;
+
+	ret = kstrtou32(buf, 0, &pdata->pkt_age_msec);
+	if (ret < 0) {
+		dev_err(pdata->dev,
+			"Invalid nvgro pkt age msec input\n");
+		return -EINVAL;
+	}
+
+	return size;
+}
+
+/**
+ * @brief Sysfs attribute for NVGRO packet age threshold
+ *
+ */
+static DEVICE_ATTR(nvgro_pkt_age_msec, 0644,
+		   ether_nvgro_pkt_age_msec_show,
+		   ether_nvgro_pkt_age_msec_store);
+
+/**
+ * @brief Shows the current setting of NVGRO purge timer interval..
+ *
+ * @param[in] dev: Device data.
+ * @param[in] attr: Device attribute
+ * @param[in] buf: Buffer to store the current ptp sync method
+ */
+static ssize_t ether_nvgro_timer_interval_show(struct device *dev,
+					       struct device_attribute *attr,
+					       char *buf)
+{
+	struct net_device *ndev = (struct net_device *)dev_get_drvdata(dev);
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+
+	return scnprintf(buf, PAGE_SIZE, "%u\n", pdata->nvgro_timer_intrvl);
+}
+
+/**
+ * @brief Set the user setting of NVGRO purge timer interval.
+ *
+ * @param[in] dev: Device data.
+ * @param[in] attr: Device attribute
+ * @param[in] buf: Buffer which contains the user settings of MAC loopback
+ * @param[in] size: size of buffer
+ *
+ * @return size of buffer.
+ */
+static ssize_t ether_nvgro_timer_interval_store(struct device *dev,
+						struct device_attribute *attr,
+						const char *buf, size_t size)
+{
+	struct net_device *ndev = (struct net_device *)dev_get_drvdata(dev);
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	int ret;
+
+	ret = kstrtou32(buf, 0, &pdata->nvgro_timer_intrvl);
+	if (ret < 0) {
+		dev_err(pdata->dev,
+			"Invalid nvgro timer interval input\n");
+		return -EINVAL;
+	}
+
+	return size;
+}
+
+/**
+ * @brief Sysfs attribute for NVGRO purge timer interval
+ *
+ */
+static DEVICE_ATTR(nvgro_timer_interval, 0644,
+		   ether_nvgro_timer_interval_show,
+		   ether_nvgro_timer_interval_store);
+
+/**
+ * @brief Shows NVGRO stats
+ *
+ * @param[in] dev: Device data.
+ * @param[in] attr: Device attribute
+ * @param[in] buf: Buffer to store the current ptp sync method
+ */
+static ssize_t ether_nvgro_stats_show(struct device *dev,
+				      struct device_attribute *attr,
+				      char *buf)
+{
+	struct net_device *ndev = (struct net_device *)dev_get_drvdata(dev);
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+
+	return scnprintf(buf, PAGE_SIZE, "dropped = %llu\n",
+			 pdata->nvgro_dropped);
+}
+
+/**
+ * @brief Sysfs attribute for NVGRO stats.
+ *
+ */
+static DEVICE_ATTR(nvgro_stats, 0644,
+		   ether_nvgro_stats_show, NULL);
+
+/**
+ * @brief Dumps NVGRO queues.
+ *
+ * @param[in] dev: Device data.
+ * @param[in] attr: Device attribute
+ * @param[in] buf: Buffer to store the current ptp sync method
+ */
+static ssize_t ether_nvgro_dump_show(struct device *dev,
+				     struct device_attribute *attr,
+				     char *buf)
+{
+	struct net_device *ndev = (struct net_device *)dev_get_drvdata(dev);
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct sk_buff *p, *pp;
+	char *start = buf;
+
+	buf += scnprintf(buf, PAGE_SIZE, "MQ: ");
+	skb_queue_walk_safe(&pdata->mq, p, pp) {
+		buf += scnprintf(buf, PAGE_SIZE, "skb %p TTL %d IPID %u\n",
+				 p, NAPI_GRO_CB(p)->free,
+				 NAPI_GRO_CB(p)->flush_id);
+	}
+
+	buf += scnprintf(buf, PAGE_SIZE, "FQ: ");
+	skb_queue_walk_safe(&pdata->fq, p, pp) {
+		buf += scnprintf(buf, PAGE_SIZE, "skb %p TTL %d IPID %u\n",
+				 p, NAPI_GRO_CB(p)->free,
+				 NAPI_GRO_CB(p)->flush_id);
+	}
+
+	return (buf - start);
+}
+
+/**
+ * @brief Sysfs attribute for NVGRO queue dump.
+ *
+ */
+static DEVICE_ATTR(nvgro_dump, 0644,
+		   ether_nvgro_dump_show, NULL);
+#endif
+
 /**
  * @brief Attributes for nvethernet sysfs
  */
@@ -2298,6 +2471,12 @@ static struct attribute *ether_sysfs_attrs[] = {
 	&dev_attr_macsec_dbg_events.attr,
 #endif /* MACSEC_SUPPORT */
 	&dev_attr_uphy_gbe_mode.attr,
+#ifdef ETHER_NVGRO
+	&dev_attr_nvgro_pkt_age_msec.attr,
+	&dev_attr_nvgro_timer_interval.attr,
+	&dev_attr_nvgro_stats.attr,
+	&dev_attr_nvgro_dump.attr,
+#endif
 	NULL
 };
 
