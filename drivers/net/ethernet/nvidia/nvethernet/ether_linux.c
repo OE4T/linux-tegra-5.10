@@ -2423,6 +2423,11 @@ static int ether_open(struct net_device *dev)
 	/* call function to schedule workqueue */
 	ether_stats_work_queue_start(pdata);
 
+#ifdef ETHER_NVGRO
+	/* start NVGRO timer for purging */
+	mod_timer(&pdata->nvgro_timer,
+		  jiffies + msecs_to_jiffies(pdata->nvgro_timer_intrvl));
+#endif
 	return ret;
 
 err_r_irq:
@@ -2602,6 +2607,11 @@ static int ether_close(struct net_device *ndev)
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	unsigned int chan = 0x0;
 	int i;
+
+#ifdef ETHER_NVGRO
+	del_timer_sync(&pdata->nvgro_timer);
+	/* TODO: purge the queues */
+#endif
 
 	/* Unregister broadcasting MAC timestamp to clients */
 	tegra_unregister_hwtime_source();
@@ -6090,6 +6100,15 @@ static int ether_probe(struct platform_device *pdev)
 	INIT_LIST_HEAD(&pdata->mac_addr_list_head);
 	INIT_LIST_HEAD(&pdata->tx_ts_skb_head);
 	INIT_WORK(&pdata->tx_ts_work, ether_get_tx_ts);
+
+#ifdef ETHER_NVGRO
+	__skb_queue_head_init(&pdata->mq);
+	__skb_queue_head_init(&pdata->fq);
+	pdata->pkt_age_msec = NVGRO_AGE_THRESHOLD;
+	pdata->nvgro_timer_intrvl = NVGRO_PURGE_TIMER_THRESHOLD;
+	pdata->nvgro_dropped = 0;
+	timer_setup(&pdata->nvgro_timer, ether_nvgro_purge_timer, 0);
+#endif
 
 	return 0;
 

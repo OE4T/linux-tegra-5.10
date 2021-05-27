@@ -65,6 +65,12 @@
 #ifdef MACSEC_SUPPORT
 #include "macsec.h"
 #endif
+#ifdef ETHER_NVGRO
+#include <net/inet_common.h>
+#include <uapi/linux/ip.h>
+#include <net/udp.h>
+#endif /* ETHER_NVGRO */
+
 /**
  * @brief Max number of Ethernet IRQs supported in HW
  */
@@ -200,6 +206,14 @@
 #define ETHER_BC_ADDRESS_INDEX		0
 #define ETHER_ADDRESS_MAC		1
 #define ETHER_ADDRESS_BC		0
+
+#ifdef ETHER_NVGRO
+/* NVGRO packets purge threshold in msec */
+#define NVGRO_AGE_THRESHOLD		500
+#define NVGRO_PURGE_TIMER_THRESHOLD	5000
+#define NVGRO_RX_RUNNING		OSI_BIT(0)
+#define NVGRO_PURGE_TIMER_RUNNING	OSI_BIT(1)
+#endif
 
 /**
  * @brief Check if Tx data buffer length is within bounds.
@@ -525,6 +539,26 @@ struct ether_priv_data {
 	int phy_reset_post_delay;
 	/** PHY reset duration delay */
 	int phy_reset_duration;
+#ifdef ETHER_NVGRO
+	/** Master queue */
+	struct sk_buff_head mq;
+	/** Master queue */
+	struct sk_buff_head fq;
+	/** expected IP ID */
+	u16 expected_ip_id;
+	/** Timer for purginging the packets in FQ and MQ based on threshold */
+	struct timer_list nvgro_timer;
+	/** Rx processing state for NVGRO */
+	atomic_t rx_state;
+	/** Purge timer state for NVGRO */
+	atomic_t timer_state;
+	/** NVGRO packet age threshold in milseconds */
+	u32 pkt_age_msec;
+	/** NVGRO purge timer interval */
+	u32 nvgro_timer_intrvl;
+	/** NVGRO packet dropped count */
+	u64 nvgro_dropped;
+#endif
 };
 
 /**
@@ -681,4 +715,7 @@ void ether_set_rx_mode(struct net_device *dev);
 int ether_tc_setup_taprio(struct ether_priv_data *pdata,
 			  struct tc_taprio_qopt_offload *qopt);
 #endif
+#ifdef ETHER_NVGRO
+void ether_nvgro_purge_timer(struct timer_list *t);
+#endif /* ETHER_NVGRO */
 #endif /* ETHER_LINUX_H */
