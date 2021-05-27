@@ -622,6 +622,7 @@ nvgpu-$(CONFIG_NVGPU_GR_VIRTUALIZATION) += \
 	common/vgpu/debugger_vgpu.o \
 	common/vgpu/pm_reservation_vgpu.o \
 	common/vgpu/perf/perf_vgpu.o \
+	common/vgpu/profiler/profiler_vgpu.o \
 	common/vgpu/ecc_vgpu.o \
 	common/vgpu/clk_vgpu.o \
 	common/vgpu/gr/fecs_trace_vgpu.o \

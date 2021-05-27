@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -152,7 +152,7 @@ int nvgpu_perfbuf_update_get_put(struct gk20a *g, u64 bytes_consumed,
 	bool update_available_bytes = (bytes_available == NULL) ? false : true;
 	volatile u32 *available_bytes_va = (u32 *)cpuva;
 
-	if (update_available_bytes) {
+	if (update_available_bytes && available_bytes_va != NULL) {
 		*available_bytes_va = 0xffffffff;
 	}
 
@@ -162,7 +162,7 @@ int nvgpu_perfbuf_update_get_put(struct gk20a *g, u64 bytes_consumed,
 		return err;
 	}
 
-	if (update_available_bytes && wait) {
+	if (update_available_bytes && wait && available_bytes_va != NULL) {
 		err = nvgpu_timeout_init(g, &timeout, 10000, NVGPU_TIMER_CPU_TIMER);
 		if (err != 0) {
 			nvgpu_err(g, "nvgpu_timeout_init() failed err=%d", err);
@@ -178,6 +178,7 @@ int nvgpu_perfbuf_update_get_put(struct gk20a *g, u64 bytes_consumed,
 		} while (nvgpu_timeout_expired(&timeout) == 0);
 
 		if (*available_bytes_va == 0xffffffff) {
+			nvgpu_err(g, "perfbuf update get put timed out");
 			return -ETIMEDOUT;
 		}
 

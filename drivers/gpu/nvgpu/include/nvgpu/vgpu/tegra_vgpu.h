@@ -121,6 +121,8 @@ enum {
 	TEGRA_VGPU_CMD_TSG_SET_LONG_TIMESLICE = 91,
 	TEGRA_VGPU_CMD_TSG_GET_L2_MAX_WAYS_EVICT_LAST = 92,
 	TEGRA_VGPU_CMD_TSG_SET_L2_MAX_WAYS_EVICT_LAST = 93,
+	TEGRA_VGPU_CMD_PROF_BIND_UNBIND = 94,
+	TEGRA_VGPU_CMD_PERF_UPDATE_GET_PUT = 95,
 };
 
 struct tegra_vgpu_connect_params {
@@ -658,6 +660,32 @@ struct tegra_vgpu_l2_max_ways_evict_last_params {
 	u32 num_ways;
 };
 
+enum {
+	TEGRA_VGPU_PROF_BIND_HWPM = 0,
+	TEGRA_VGPU_PROF_UNBIND_HWPM = 1,
+	TEGRA_VGPU_PROF_BIND_HWPM_STREAMOUT = 2,
+	TEGRA_VGPU_PROF_UNBIND_HWPM_STREAMOUT = 3,
+	TEGRA_VGPU_PROF_BIND_SMPC = 4,
+	TEGRA_VGPU_PROF_UNBIND_SMPC = 5,
+};
+
+struct tegra_vgpu_prof_bind_unbind_params {
+	u32 subcmd;
+	u8 is_ctxsw;
+	u8 smpc_reserved;
+	u32 tsg_id;
+	u32 pma_buffer_size;
+	u64 pma_buffer_va;
+	u64 pma_bytes_available_buffer_va;
+};
+
+struct tegra_vgpu_perf_update_get_put_params {
+	u64 bytes_consumed;
+	u64 put_ptr;
+	u8 update_available_bytes;
+	u8 overflowed;
+};
+
 struct tegra_vgpu_cmd_msg {
 	u32 cmd;
 	int ret;
@@ -725,6 +753,8 @@ struct tegra_vgpu_cmd_msg {
 		struct tegra_vgpu_gr_set_mmu_debug_mode_params gr_set_mmu_debug_mode;
 		struct tegra_vgpu_perfbuf_inst_block_mgt_params perfbuf_inst_block_management;
 		struct tegra_vgpu_l2_max_ways_evict_last_params l2_max_ways_evict_last;
+		struct tegra_vgpu_prof_bind_unbind_params prof_bind_unbind;
+		struct tegra_vgpu_perf_update_get_put_params perf_updat_get_put;
 		char padding[184];
 	} params;
 };

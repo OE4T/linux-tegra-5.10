@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -89,4 +89,34 @@ void vgpu_perfbuffer_deinit_inst_block(struct gk20a *g)
 {
 	vgpu_sendrecv_perfbuf_inst_block_cmd(g,
 			TEGRA_VGPU_PROF_PERFBUF_INST_BLOCK_DEINIT);
+}
+
+int vgpu_perf_update_get_put(struct gk20a *g, u64 bytes_consumed,
+		bool update_available_bytes, u64 *put_ptr,
+		bool *overflowed)
+{
+	struct tegra_vgpu_cmd_msg msg = {};
+	struct tegra_vgpu_perf_update_get_put_params *p =
+				&msg.params.perf_updat_get_put;
+	int err;
+
+	msg.cmd = TEGRA_VGPU_CMD_PERF_UPDATE_GET_PUT;
+	msg.handle = vgpu_get_handle(g);
+
+	p->bytes_consumed = bytes_consumed;
+	p->update_available_bytes = (u8)update_available_bytes;
+
+	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
+	err = err ? err : msg.ret;
+
+	if (err == 0) {
+		if (put_ptr != NULL) {
+			*put_ptr = p->put_ptr;
+		}
+		if (overflowed != NULL) {
+			*overflowed = (bool)p->overflowed;
+		}
+	}
+
+	return err;
 }

@@ -85,6 +85,11 @@
 #include "hal/init/hal_gv11b.h"
 #include "hal/init/hal_gv11b_litter.h"
 #include "hal/fifo/channel_gv11b.h"
+#ifdef CONFIG_NVGPU_DEBUGGER
+#include "hal/regops/regops_gv11b.h"
+#include "hal/regops/allowlist_gv11b.h"
+#endif
+#include "hal/ptimer/ptimer_gv11b.h"
 
 #include "hal/vgpu/fifo/fifo_gv11b_vgpu.h"
 #include "hal/vgpu/sync/syncpt_cmdbuf_gv11b_vgpu.h"
@@ -109,6 +114,7 @@
 #include <nvgpu/therm.h>
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/grmgr.h>
+#include <nvgpu/perfbuf.h>
 
 #include "common/vgpu/init/init_vgpu.h"
 #include "common/vgpu/fb/fb_vgpu.h"
@@ -132,6 +138,7 @@
 #include "common/vgpu/gr/fecs_trace_vgpu.h"
 #include "common/vgpu/perf/cyclestats_snapshot_vgpu.h"
 #include "common/vgpu/ptimer/ptimer_vgpu.h"
+#include "common/vgpu/profiler/profiler_vgpu.h"
 #include "vgpu_hal_gv11b.h"
 
 #include <nvgpu/debugger.h>
@@ -835,6 +842,29 @@ static const struct gops_regops vgpu_gv11b_ops_regops = {
 	.get_context_whitelist_ranges_count = gv11b_get_context_whitelist_ranges_count,
 	.get_runcontrol_whitelist = gv11b_get_runcontrol_whitelist,
 	.get_runcontrol_whitelist_count = gv11b_get_runcontrol_whitelist_count,
+	.get_hwpm_perfmon_register_stride = gv11b_get_hwpm_perfmon_register_stride,
+	.get_hwpm_router_register_stride = gv11b_get_hwpm_router_register_stride,
+	.get_hwpm_pma_channel_register_stride = gv11b_get_hwpm_pma_channel_register_stride,
+	.get_hwpm_pma_trigger_register_stride = gv11b_get_hwpm_pma_trigger_register_stride,
+	.get_smpc_register_stride = gv11b_get_smpc_register_stride,
+	.get_cau_register_stride = NULL,
+	.get_hwpm_perfmon_register_offset_allowlist =
+		gv11b_get_hwpm_perfmon_register_offset_allowlist,
+	.get_hwpm_router_register_offset_allowlist =
+		gv11b_get_hwpm_router_register_offset_allowlist,
+	.get_hwpm_pma_channel_register_offset_allowlist =
+		gv11b_get_hwpm_pma_channel_register_offset_allowlist,
+	.get_hwpm_pma_trigger_register_offset_allowlist =
+		gv11b_get_hwpm_pma_trigger_register_offset_allowlist,
+	.get_smpc_register_offset_allowlist = gv11b_get_smpc_register_offset_allowlist,
+	.get_cau_register_offset_allowlist = NULL,
+	.get_hwpm_perfmon_register_ranges = gv11b_get_hwpm_perfmon_register_ranges,
+	.get_hwpm_router_register_ranges = gv11b_get_hwpm_router_register_ranges,
+	.get_hwpm_pma_channel_register_ranges = gv11b_get_hwpm_pma_channel_register_ranges,
+	.get_hwpm_pma_trigger_register_ranges = gv11b_get_hwpm_pma_trigger_register_ranges,
+	.get_smpc_register_ranges = gv11b_get_smpc_register_ranges,
+	.get_cau_register_ranges = NULL,
+	.get_hwpm_perfmux_register_ranges = gv11b_get_hwpm_perfmux_register_ranges,
 };
 #endif
 
@@ -879,6 +909,7 @@ static const struct gops_perf vgpu_gv11b_ops_perf = {
 	.get_pmmsys_per_chiplet_offset = gv11b_perf_get_pmmsys_per_chiplet_offset,
 	.get_pmmgpc_per_chiplet_offset = gv11b_perf_get_pmmgpc_per_chiplet_offset,
 	.get_pmmfbp_per_chiplet_offset = gv11b_perf_get_pmmfbp_per_chiplet_offset,
+	.update_get_put = vgpu_perf_update_get_put,
 };
 #endif
 
@@ -888,6 +919,7 @@ static const struct gops_perfbuf vgpu_gv11b_ops_perfbuf = {
 	.perfbuf_disable = vgpu_perfbuffer_disable,
 	.init_inst_block = vgpu_perfbuffer_init_inst_block,
 	.deinit_inst_block = vgpu_perfbuffer_deinit_inst_block,
+	.update_get_put = nvgpu_perfbuf_update_get_put,
 };
 #endif
 
@@ -896,6 +928,17 @@ static const struct gops_pm_reservation vgpu_gv11b_ops_pm_reservation = {
 	.acquire = vgpu_pm_reservation_acquire,
 	.release = vgpu_pm_reservation_release,
 	.release_all_per_vmid = NULL,
+};
+#endif
+
+#ifdef CONFIG_NVGPU_PROFILER
+static const struct gops_profiler vgpu_gv11b_ops_profiler = {
+	.bind_hwpm = vgpu_profiler_bind_hwpm,
+	.unbind_hwpm = vgpu_profiler_unbind_hwpm,
+	.bind_hwpm_streamout = vgpu_profiler_bind_hwpm_streamout,
+	.unbind_hwpm_streamout = vgpu_profiler_unbind_hwpm_streamout,
+	.bind_smpc = vgpu_profiler_bind_smpc,
+	.unbind_smpc = vgpu_profiler_unbind_smpc,
 };
 #endif
 
@@ -914,6 +957,9 @@ static const struct gops_ptimer vgpu_gv11b_ops_ptimer = {
 	.read_ptimer = vgpu_read_ptimer,
 #ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 	.get_timestamps_zipper = vgpu_get_timestamps_zipper,
+#endif
+#ifdef CONFIG_NVGPU_PROFILER
+	.get_timer_reg_offsets = gv11b_ptimer_get_timer_reg_offsets,
 #endif
 };
 
@@ -1051,6 +1097,7 @@ int vgpu_gv11b_init_hal(struct gk20a *g)
 #endif
 #ifdef CONFIG_NVGPU_PROFILER
 	gops->pm_reservation = vgpu_gv11b_ops_pm_reservation;
+	gops->profiler = vgpu_gv11b_ops_profiler;
 #endif
 	gops->bus = vgpu_gv11b_ops_bus;
 	gops->ptimer = vgpu_gv11b_ops_ptimer;
@@ -1070,6 +1117,10 @@ int vgpu_gv11b_init_hal(struct gk20a *g)
 
 #ifdef CONFIG_NVGPU_FECS_TRACE
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_FECS_CTXSW_TRACE, true);
+#endif
+#ifdef CONFIG_NVGPU_PROFILER
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_PROFILER_V2_DEVICE, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_PROFILER_V2_CONTEXT, false);
 #endif
 
 	/* Lone functions */

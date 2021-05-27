@@ -458,12 +458,10 @@ static int nvgpu_profiler_quiesce_hwpm_streamout_resident(struct gk20a *g,
 	/* Disable streamout */
 	g->ops.perf.pma_stream_enable(g, false);
 
-	if (pma_bytes_available_buffer_cpuva != NULL) {
-		/* wait for all the inflight records from fb-hub to stream out */
-		err = nvgpu_perfbuf_update_get_put(g, 0U, &bytes_available,
+	/* wait for all the inflight records from fb-hub to stream out */
+	err = nvgpu_perfbuf_update_get_put(g, 0U, &bytes_available,
 				pma_bytes_available_buffer_cpuva, true,
 				NULL, NULL);
-	}
 
 fail:
 	if (err != 0) {

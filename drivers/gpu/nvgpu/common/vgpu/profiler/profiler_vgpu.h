@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,20 +19,41 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#ifndef NVGPU_PROFILER_VGPU_H
+#define NVGPU_PROFILER_VGPU_H
 
-#ifndef NVGPU_PERF_VGPU_H
-#define NVGPU_PERF_VGPU_H
+int vgpu_profiler_bind_hwpm(struct gk20a *g,
+		u32 gr_instance_id,
+		bool is_ctxsw,
+		struct nvgpu_tsg *tsg);
 
-struct gk20a;
+int vgpu_profiler_unbind_hwpm(struct gk20a *g,
+		u32 gr_instance_id,
+		bool is_ctxsw,
+		struct nvgpu_tsg *tsg);
 
-int vgpu_perfbuffer_enable(struct gk20a *g, u64 offset, u32 size);
-int vgpu_perfbuffer_disable(struct gk20a *g);
+int vgpu_profiler_bind_hwpm_streamout(struct gk20a *g,
+		u32 gr_instance_id,
+		bool is_ctxsw,
+		struct nvgpu_tsg *tsg,
+		u64 pma_buffer_va,
+		u32 pma_buffer_size,
+		u64 pma_bytes_available_buffer_va);
 
-int vgpu_perfbuffer_init_inst_block(struct gk20a *g);
-void vgpu_perfbuffer_deinit_inst_block(struct gk20a *g);
+int vgpu_profiler_unbind_hwpm_streamout(struct gk20a *g,
+		u32 gr_instance_id,
+		bool is_ctxsw,
+		struct nvgpu_tsg *tsg,
+		void *pma_bytes_available_buffer_cpuva,
+		bool smpc_reserved);
 
-int vgpu_perf_update_get_put(struct gk20a *g, u64 bytes_consumed,
-		bool update_available_bytes, u64 *put_ptr,
-		bool *overflowed);
+int vgpu_profiler_bind_smpc(struct gk20a *g,
+		u32 gr_instance_id,
+		bool is_ctxsw,
+		struct nvgpu_tsg *tsg);
+
+int vgpu_profiler_unbind_smpc(struct gk20a *g,
+		bool is_ctxsw,
+		struct nvgpu_tsg *tsg);
 
 #endif

@@ -1,4 +1,4 @@
-# Copyright (c) 2019, NVIDIA CORPORATION.  All Rights Reserved.
+# Copyright (c) 2019-2021, NVIDIA CORPORATION.  All Rights Reserved.
 #
 # vGPU architecture: currently there hasn't been much work done on
 # decomposing the vGPU architecture so all of the vGPU files are simply
@@ -67,6 +67,8 @@ all:
              common/vgpu/ptimer/ptimer_vgpu.h,
              common/vgpu/init/init_vgpu.c,
              common/vgpu/init/init_vgpu.h,
+             common/vgpu/profiler/profiler_vgpu.c,
+             common/vgpu/profiler/profiler_vgpu.h,
              include/nvgpu/vgpu/tegra_vgpu.h,
              include/nvgpu/vgpu/vgpu.h,
              include/nvgpu/vgpu/vgpu_ivc.h,
