@@ -108,6 +108,7 @@ struct vm_gk20a_mapping_batch;
 struct pmu_pg_stats_data;
 struct clk_domains_mon_status_params;
 struct nvgpu_cic_mon;
+struct nvgpu_cic_rm;
 #ifdef CONFIG_NVGPU_GSP_SCHEDULER
 struct nvgpu_gsp;
 #endif
@@ -826,6 +827,9 @@ struct gk20a {
 
 	/** Pointer to struct storing CIC-MON's data */
 	struct nvgpu_cic_mon *cic_mon;
+
+	/** Pointer to struct storing CIC-RM's data */
+	struct nvgpu_cic_rm *cic_rm;
 };
 
 /**

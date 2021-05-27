@@ -45,6 +45,7 @@
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/nvgpu_init.h>
+#include <nvgpu/cic_rm.h>
 
 #include <nvgpu/vgpu/os_init_hal_vgpu.h>
 
@@ -385,6 +386,19 @@ int vgpu_probe(struct platform_device *pdev)
 	if (err != 0) {
 		kfree(l);
 		return -ENOMEM;
+	}
+
+	err = nvgpu_cic_rm_setup(gk20a);
+	if (err != 0) {
+		nvgpu_err(gk20a, "CIC-RM setup failed");
+		return err;
+	}
+
+	err = nvgpu_cic_rm_init_vars(gk20a);
+	if (err != 0) {
+		nvgpu_err(gk20a, "CIC-RM init vars failed");
+		(void) nvgpu_cic_rm_remove(gk20a);
+		return err;
 	}
 
 	vgpu_init_vars(gk20a, platform);

@@ -34,6 +34,7 @@
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/cic_mon.h>
+#include <nvgpu/cic_rm.h>
 
 #include "common/gr/gr_falcon_priv.h"
 
@@ -180,6 +181,15 @@ int test_gr_init_setup_ready(struct unit_module *m,
 		unit_return_fail(m, "CIC LUT init failed\n");
 	}
 
+	err = nvgpu_cic_rm_setup(g);
+	if (err != 0) {
+		unit_return_fail(m, "CIC-rm init failed\n");
+	}
+
+	err = nvgpu_cic_rm_init_vars(g);
+	if (err != 0) {
+		unit_return_fail(m, "CIC-rm vars init failed\n");
+	}
 	/* Allocate and Initialize GR */
 	err = test_gr_init_setup(m, g, args);
 	if (err != 0) {

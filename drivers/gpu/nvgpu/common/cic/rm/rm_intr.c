@@ -22,21 +22,62 @@
 
 #include <nvgpu/cic_rm.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/mc.h>
+
+#include "cic_rm_priv.h"
+
+void nvgpu_cic_rm_set_irq_stall(struct gk20a *g, u32 value)
+{
+	nvgpu_atomic_set(&g->cic_rm->sw_irq_stall_pending, value);
+}
+
+void nvgpu_cic_rm_set_irq_nonstall(struct gk20a *g, u32 value)
+{
+	nvgpu_atomic_set(&g->cic_rm->sw_irq_nonstall_pending, value);
+}
+
+int nvgpu_cic_rm_broadcast_last_irq_stall(struct gk20a *g)
+{
+	int err = 0;
+
+	err = nvgpu_cond_broadcast(
+		&g->cic_rm->sw_irq_stall_last_handled_cond);
+	if (err != 0) {
+		nvgpu_err(g,
+			"Last IRQ stall cond_broadcast failed err=%d",
+			err);
+	}
+
+	return err;
+}
+
+int nvgpu_cic_rm_broadcast_last_irq_nonstall(struct gk20a *g)
+{
+	int err = 0;
+
+	err = nvgpu_cond_broadcast(
+		&g->cic_rm->sw_irq_nonstall_last_handled_cond);
+	if (err != 0) {
+		nvgpu_err(g,
+			"Last IRQ nonstall cond_broadcast failed err=%d",
+			err);
+	}
+
+	return err;
+}
 
 int nvgpu_cic_rm_wait_for_stall_interrupts(struct gk20a *g, u32 timeout)
 {
 	/* wait until all stalling irqs are handled */
-	return NVGPU_COND_WAIT(&g->mc.sw_irq_stall_last_handled_cond,
-			nvgpu_atomic_read(&g->mc.sw_irq_stall_pending) == 0,
+	return NVGPU_COND_WAIT(&g->cic_rm->sw_irq_stall_last_handled_cond,
+			nvgpu_atomic_read(&g->cic_rm->sw_irq_stall_pending) == 0,
 			timeout);
 }
 
 int nvgpu_cic_rm_wait_for_nonstall_interrupts(struct gk20a *g, u32 timeout)
 {
 	/* wait until all non-stalling irqs are handled */
-	return NVGPU_COND_WAIT(&g->mc.sw_irq_nonstall_last_handled_cond,
-			nvgpu_atomic_read(&g->mc.sw_irq_nonstall_pending) == 0,
+	return NVGPU_COND_WAIT(&g->cic_rm->sw_irq_nonstall_last_handled_cond,
+			nvgpu_atomic_read(&g->cic_rm->sw_irq_nonstall_pending) == 0,
 			timeout);
 }
 

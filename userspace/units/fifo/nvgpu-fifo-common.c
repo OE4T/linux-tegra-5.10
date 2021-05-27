@@ -33,6 +33,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/device.h>
 #include <nvgpu/cic_mon.h>
+#include <nvgpu/cic_rm.h>
 
 #include <nvgpu/posix/io.h>
 
@@ -197,6 +198,16 @@ int test_fifo_init_support(struct unit_module *m, struct gk20a *g, void *args)
 	err = nvgpu_cic_mon_init_lut(g);
 	if (err != 0) {
 		unit_return_fail(m, "CIC LUT init failed\n");
+	}
+
+	err = nvgpu_cic_rm_setup(g);
+	if (err != 0) {
+		unit_return_fail(m, "CIC-rm init failed\n");
+	}
+
+	err = nvgpu_cic_rm_init_vars(g);
+	if (err != 0) {
+		unit_return_fail(m, "CIC-rm vars init failed\n");
 	}
 
 	return UNIT_SUCCESS;

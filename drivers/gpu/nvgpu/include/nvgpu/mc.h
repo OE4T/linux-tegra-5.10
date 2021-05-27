@@ -106,9 +106,6 @@
  * Some of the dynamic interfaces are HAL functions. They are documented
  * here.
  *   + include/nvgpu/gops/mc.h
- *
- * Following interface is common function.
- *   + nvgpu_cic_rm_wait_for_deferred_interrupts()
  */
 
 
@@ -204,38 +201,6 @@ struct nvgpu_mc {
 	 * when GSP exists.
 	 */
 	u32 intr_mask_restore[4];
-
-	/**
-	 * One of the condition variables needed to keep track of deferred
-	 * interrupts.
-	 * The condition variable that is signalled upon handling of the
-	 * stalling interrupt. Function #nvgpu_cic_wait_for_stall_interrupts
-	 * waits on this condition variable.
-	 */
-	struct nvgpu_cond sw_irq_stall_last_handled_cond;
-
-	/**
-	 * One of the counters needed to keep track of deferred interrupts.
-	 * Stalling interrupt status counter - Set to 1 on entering stalling
-	 * interrupt handler and reset to 0 on exit.
-	 */
-	nvgpu_atomic_t sw_irq_stall_pending;
-
-	/**
-	 * One of the condition variables needed to keep track of deferred
-	 * interrupts.
-	 * The condition variable that is signalled upon handling of the
-	 * non-stalling interrupt. Function #nvgpu_cic_wait_for_nonstall_interrupts
-	 * waits on this condition variable.
-	 */
-	struct nvgpu_cond sw_irq_nonstall_last_handled_cond;
-
-	/**
-	 * One of the counters needed to keep track of deferred interrupts.
-	 * Non-stalling interrupt status counter - Set to 1 on entering
-	 * non-stalling interrupt handler and reset to 0 on exit.
-	 */
-	nvgpu_atomic_t sw_irq_nonstall_pending;
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 

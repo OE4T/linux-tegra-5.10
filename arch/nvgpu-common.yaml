@@ -1102,6 +1102,8 @@ cic:
              include/nvgpu/gops/cic_mon.h,
              include/nvgpu/cic_mon.h,
              common/cic/rm/rm_intr.c,
+             common/cic/rm/rm_init.c,
+             common/cic/rm/cic_rm_priv.h,
              include/nvgpu/cic_rm.h ]
 
 ##

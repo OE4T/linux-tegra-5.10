@@ -330,35 +330,6 @@ int test_enable_disable_reset(struct unit_module *m, struct gk20a *g, void *args
 int test_reset_mask(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
- * Test specification for: test_wait_for_deferred_interrupts
- *
- * Description: Validate functionality of waiting for deferred interrupts.
- *
- * Test Type: Feature
- *
- * Targets: nvgpu_cic_wait_for_deferred_interrupts
- *
- * Input: test_mc_setup_env must have been run.
- *
- * Steps:
- * - Initialize cond structures required by the API.
- * - Set the irq count states in the gk20a struct to 0 to cause immediate
- *   completion.
- * - Call the API.
- * - Enable cond fault injection to simulate a timeouts.
- * - Set the irq count states in the gk20a struct to simulate pending stall
- *   interrupts.
- * - Call the API.
- * - Set the irq count states in the gk20a struct to simulate pending non-stall
- *   interrupts.
- * - Disable cond fault injection.
- *
- * Output: Returns PASS if expected result is met, FAIL otherwise.
- */
-int test_wait_for_deferred_interrupts(struct unit_module *m, struct gk20a *g,
-					void *args);
-
-/**
  * @}
  */
 

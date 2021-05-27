@@ -1598,6 +1598,12 @@ static int gk20a_probe(struct platform_device *dev)
 	if (nvgpu_platform_is_simulation(gk20a))
 		nvgpu_set_enabled(gk20a, NVGPU_IS_FMODEL, true);
 
+	err = nvgpu_cic_mon_setup(gk20a);
+	if (err != 0) {
+		nvgpu_err(gk20a, "CIC-MON setup failed");
+		goto return_err_cic_mon;
+	}
+
 	intr_size = platform_irq_count(dev);
 	if (intr_size > 0U && intr_size <= NVGPU_MAX_INTERRUPTS) {
 		irq_idx = 0U;
@@ -1698,6 +1704,8 @@ static int gk20a_probe(struct platform_device *dev)
 	return 0;
 
 return_err:
+	nvgpu_cic_mon_remove(gk20a);
+return_err_cic_mon:
 	nvgpu_free_enabled_flags(gk20a);
 return_err_errata:
 	nvgpu_free_errata_flags(gk20a);
@@ -1762,6 +1770,12 @@ int nvgpu_remove(struct device *dev)
 
 	nvgpu_mutex_destroy(&g->clk_arb_enable_lock);
 
+	err = nvgpu_cic_rm_deinit_vars(g);
+	if (err != 0) {
+		nvgpu_err(g, "CIC-RM deinit vars failed.");
+		return err;
+	}
+
 	nvgpu_log_fn(g, "removed");
 
 	return err;
@@ -1778,6 +1792,18 @@ static int __exit gk20a_remove(struct platform_device *pdev)
 		return vgpu_remove(pdev);
 
 	err = nvgpu_remove(dev);
+
+	err = nvgpu_cic_mon_remove(g);
+	if (err != 0) {
+		nvgpu_err(g, "CIC-MON remove failed");
+		return err;
+	}
+
+	err = nvgpu_cic_rm_remove(g);
+	if (err != 0) {
+		nvgpu_err(g, "CIC-RM remove failed.");
+		return err;
+	}
 
 	gk20a_dma_buf_priv_list_clear(l);
 	nvgpu_mutex_destroy(&l->dmabuf_priv_list_lock);

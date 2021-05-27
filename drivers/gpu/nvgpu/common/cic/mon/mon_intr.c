@@ -128,14 +128,13 @@ u32 nvgpu_cic_mon_intr_nonstall_isr(struct gk20a *g)
 		return NVGPU_CIC_INTR_QUIESCE_PENDING;
 	}
 
-	nvgpu_atomic_set(&g->mc.sw_irq_nonstall_pending, 1);
+	nvgpu_cic_rm_set_irq_nonstall(g, 1);
 
 	return NVGPU_CIC_INTR_HANDLE;
 }
 
 void nvgpu_cic_mon_intr_nonstall_handle(struct gk20a *g)
 {
-	int err;
 	u32 nonstall_ops = 0;
 
 	nonstall_ops = g->ops.mc.isr_nonstall(g);
@@ -144,14 +143,11 @@ void nvgpu_cic_mon_intr_nonstall_handle(struct gk20a *g)
 	}
 
 	/* sync handled irq counter before re-enabling interrupts */
-	nvgpu_atomic_set(&g->mc.sw_irq_nonstall_pending, 0);
+	nvgpu_cic_rm_set_irq_nonstall(g, 0);
 
 	nvgpu_cic_mon_intr_nonstall_resume(g);
 
-	err = nvgpu_cond_broadcast(&g->mc.sw_irq_nonstall_last_handled_cond);
-	if (err != 0) {
-		nvgpu_err(g, "nvgpu_cond_broadcast failed err=%d", err);
-	}
+	(void)nvgpu_cic_rm_broadcast_last_irq_nonstall(g);
 }
 
 u32 nvgpu_cic_mon_intr_stall_isr(struct gk20a *g)
@@ -176,7 +172,7 @@ u32 nvgpu_cic_mon_intr_stall_isr(struct gk20a *g)
 		return NVGPU_CIC_INTR_QUIESCE_PENDING;
 	}
 
-	nvgpu_atomic_set(&g->mc.sw_irq_stall_pending, 1);
+	nvgpu_cic_rm_set_irq_stall(g, 1);
 
 	nvgpu_trace_intr_stall_done(g);
 
@@ -185,8 +181,6 @@ u32 nvgpu_cic_mon_intr_stall_isr(struct gk20a *g)
 
 void nvgpu_cic_mon_intr_stall_handle(struct gk20a *g)
 {
-	int err;
-
 	nvgpu_trace_intr_thread_stall_start(g);
 
 	g->ops.mc.isr_stall(g);
@@ -194,14 +188,11 @@ void nvgpu_cic_mon_intr_stall_handle(struct gk20a *g)
 	nvgpu_trace_intr_thread_stall_done(g);
 
 	/* sync handled irq counter before re-enabling interrupts */
-	nvgpu_atomic_set(&g->mc.sw_irq_stall_pending, 0);
+	nvgpu_cic_rm_set_irq_stall(g, 0);
 
 	nvgpu_cic_mon_intr_stall_resume(g);
 
-	err = nvgpu_cond_broadcast(&g->mc.sw_irq_stall_last_handled_cond);
-	if (err != 0) {
-		nvgpu_err(g, "nvgpu_cond_broadcast failed err=%d", err);
-	}
+	(void)nvgpu_cic_rm_broadcast_last_irq_stall(g);
 }
 
 #ifdef CONFIG_NVGPU_NON_FUSA

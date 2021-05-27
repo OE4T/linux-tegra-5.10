@@ -34,6 +34,7 @@
 #include <nvgpu/regops.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/cic_rm.h>
 
 #include "platform_gk20a.h"
 #include "module.h"
@@ -56,9 +57,6 @@ static void nvgpu_init_vars(struct gk20a *g)
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	struct device *dev = dev_from_gk20a(g);
 	struct gk20a_platform *platform = dev_get_drvdata(dev);
-
-	nvgpu_cond_init(&g->mc.sw_irq_stall_last_handled_cond);
-	nvgpu_cond_init(&g->mc.sw_irq_nonstall_last_handled_cond);
 
 	init_rwsem(&l->busy_lock);
 	nvgpu_rwsem_init(&g->deterministic_busy);
@@ -277,6 +275,19 @@ int nvgpu_probe(struct gk20a *g,
 	struct gk20a_platform *platform = dev_get_drvdata(dev);
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	int err = 0;
+
+	err = nvgpu_cic_rm_setup(g);
+	if (err != 0) {
+		nvgpu_err(g, "CIC-RM setup failed");
+		return err;
+	}
+
+	err = nvgpu_cic_rm_init_vars(g);
+	if (err != 0) {
+		nvgpu_err(g, "CIC-RM init vars failed");
+		(void) nvgpu_cic_rm_remove(g);
+		return err;
+	}
 
 	nvgpu_init_vars(g);
 	nvgpu_init_max_comptag(g);

@@ -653,37 +653,6 @@ int test_enable_disable_reset(struct unit_module *m, struct gk20a *g, void *args
 	return UNIT_SUCCESS;
 }
 
-int test_wait_for_deferred_interrupts(struct unit_module *m, struct gk20a *g,
-					void *args)
-{
-	struct nvgpu_posix_fault_inj *cond_fi =
-					nvgpu_cond_get_fault_injection();
-
-	nvgpu_cond_init(&g->mc.sw_irq_stall_last_handled_cond);
-	nvgpu_cond_init(&g->mc.sw_irq_nonstall_last_handled_cond);
-
-	/* immediate completion */
-	nvgpu_atomic_set(&g->mc.sw_irq_stall_pending, 0);
-	nvgpu_atomic_set(&g->mc.sw_irq_nonstall_pending, 0);
-	nvgpu_cic_rm_wait_for_deferred_interrupts(g);
-
-	/* cause timeout */
-	nvgpu_posix_enable_fault_injection(cond_fi, true, 0);
-
-	/* wait on stall until timeout for branch coverage */
-	nvgpu_atomic_set(&g->mc.sw_irq_stall_pending, 1);
-	nvgpu_cic_rm_wait_for_deferred_interrupts(g);
-
-	/* wait on nonstall until timeout for branch coverage */
-	nvgpu_atomic_set(&g->mc.sw_irq_nonstall_pending, 1);
-	nvgpu_cic_rm_wait_for_deferred_interrupts(g);
-
-	/* disable the fault injection */
-	nvgpu_posix_enable_fault_injection(cond_fi, false, 0);
-
-	return UNIT_SUCCESS;
-}
-
 struct unit_module_test mc_tests[] = {
 	UNIT_TEST(mc_setup_env,			test_mc_setup_env,			NULL, 0),
 	UNIT_TEST(unit_config,			test_unit_config,			NULL, 2),
@@ -695,7 +664,6 @@ struct unit_module_test mc_tests[] = {
 	UNIT_TEST(isr_nonstall,			test_isr_nonstall,			NULL, 2),
 	UNIT_TEST(is_intr1_pending,		test_is_intr1_pending,			NULL, 0),
 	UNIT_TEST(enable_disable_reset,		test_enable_disable_reset,		NULL, 0),
-	UNIT_TEST(wait_for_deferred_interrupts,	test_wait_for_deferred_interrupts,	NULL, 0),
 	UNIT_TEST(mc_free_env,			test_mc_free_env,			NULL, 0),
 };
 

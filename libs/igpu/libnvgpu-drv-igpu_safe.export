@@ -817,3 +817,7 @@ nvgpu_cic_mon_get_err_desc
 nvgpu_cic_mon_report_err_safety_services
 nvgpu_cic_mon_get_num_hw_modules
 nvgpu_cic_mon_remove
+nvgpu_cic_rm_setup
+nvgpu_cic_rm_init_vars
+nvgpu_cic_rm_deinit_vars
+nvgpu_cic_rm_remove

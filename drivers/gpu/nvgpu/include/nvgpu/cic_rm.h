@@ -26,6 +26,137 @@
 #include <nvgpu/log.h>
 
 /**
+ * @brief Setup the CIC-RM subunit's data structures
+ *
+ * @param g [in]	- The GPU driver struct.
+ *
+ * - Check if CIC-RM subunit is already initialized by checking its
+ *   reference in struct gk20a.
+ * - If not initialized, allocate memory for CIC-RM's private data
+ *   structure.
+ * - Store a reference pointer to the CIC struct in struct gk20a.
+ * - This API should to be called before any of the CIC-RM
+ *   functionality is requested.
+ *
+ * @return 0 if Initialization had already happened or was
+ *           successful in this call.
+ *	  < 0 if any steps in initialization fail.
+ *
+ * @retval -ENOMEM if sufficient memory is not available for CIC-RM
+ *            struct.
+ *
+ */
+int nvgpu_cic_rm_setup(struct gk20a *g);
+
+/**
+ * @brief Remove the CIC-RM subunit's data structures
+ *
+ * @param g [in]	- The GPU driver struct.
+ *
+ * - Check if CIC-RM  subunit is already removed by checking its
+ *   reference in struct gk20a.
+ * - If not removed already, free the memory allocated for CIC-RM's
+ *   private data structure.
+ * - Invalidate reference pointer to the CIC-RM struct in struct gk20a.
+ * - No CIC-RM functionality will be available after this API is
+ *   called.
+ *
+ * @return 0 if Deinitialization had already happened or was
+ *           successful in this call.
+ *
+ * @retval None.
+ */
+int nvgpu_cic_rm_remove(struct gk20a *g);
+
+/**
+ * @brief Initialize the CIC-RM subunit's data structures
+ *
+ * @param g [in]	- The GPU driver struct.
+ *
+ * - Check if CIC-RM subunit's setup is pending.
+ * - Initialize the condition variables used to keep track of
+ *   deferred interrupts.
+ *
+ * @return 0 if Initialization is successful.
+ *	  < 0 if any steps in initialization fail.
+ *
+ * @retval -EINVAL if CIC-RM setup is pending.
+ *
+ */
+int nvgpu_cic_rm_init_vars(struct gk20a *g);
+
+/**
+ * @brief De-initialize the CIC-RM subunit's data structures
+ *
+ * @param g [in]	- The GPU driver struct.
+ *
+ * - Check if CIC-RM  subunit is already removed by checking its
+ *   reference in struct gk20a.
+ * - Destroy the condition variables used to keep track of
+ *   deferred interrupts.
+ *
+ * @return 0 if Deinitialization had already happened or was
+ *           successful in this call.
+ *
+ * @retval None.
+ */
+int nvgpu_cic_rm_deinit_vars(struct gk20a *g);
+
+/**
+ * @brief Set the stalling interrupt status counter.
+ *
+ * @param g [in]	- The GPU driver struct.
+ * @param value[in]     - Counter value to be set.
+ *
+ * - Sets the stalling interrupt status counter atomically
+ *   to \a value.
+ * - This API is called to set the counter to 1 on entering the
+ *   stalling interrupt handler and reset to 0 on exit.
+ */
+void nvgpu_cic_rm_set_irq_stall(struct gk20a *g, u32 value);
+
+/**
+ * @brief Set the non-stalling interrupt status counter.
+ *
+ * @param g [in]	- The GPU driver struct.
+ * @param value[in]     - Counter value to be set.
+ *
+ * - Sets the non-stalling interrupt status counter atomically
+ *   to \a value.
+ * - This API is called to set the counter to 1 on entering the
+ *   non-stalling interrupt handler and reset to 0 on exit.
+ */
+void nvgpu_cic_rm_set_irq_nonstall(struct gk20a *g, u32 value);
+
+/**
+ * @brief Signal the completion of stall interrupt handling.
+ *
+ * @param g [in]	- The GPU driver struct.
+ *
+ * - Signal the waitqueues waiting on condition variable that keeps
+ *   track of deferred stalling interrupts.
+ * - This API is called on completion of stall interrupt handling.
+ *
+ * @return 0 if waitqueue broadcast call is successful.
+ *	  < 0 if broadcast call fails
+ */
+int nvgpu_cic_rm_broadcast_last_irq_stall(struct gk20a *g);
+
+/**
+ * @brief Signal the completion of non-stall interrupt handling.
+ *
+ * @param g [in]	- The GPU driver struct.
+ *
+ * - Signal the waitqueues waiting on condition variable that keeps
+ *   track of deferred non-stalling interrupts.
+ * - This API is called on completion of non-stall interrupt handling.
+ *
+ * @return 0 if waitqueue broadcast call is successful.
+ *	  < 0 if broadcast call fails
+ */
+int nvgpu_cic_rm_broadcast_last_irq_nonstall(struct gk20a *g);
+
+/**
  * @brief Wait for the stalling interrupts to complete.
  *
  * @param g [in]	The GPU driver struct.

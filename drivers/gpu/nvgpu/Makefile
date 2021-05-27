@@ -324,6 +324,7 @@ nvgpu-y += \
 	common/cic/mon/mon_pri.o \
 	common/cic/mon/mon_pmu.o \
 	common/cic/mon/mon_mmu.o \
+	common/cic/rm/rm_init.o \
 	common/cic/rm/rm_intr.o \
 	hal/bus/bus_gk20a.o \
 	hal/class/class_gm20b.o \

@@ -369,11 +369,6 @@ int nvgpu_prepare_poweroff(struct gk20a *g)
 		nvgpu_err(g, "Failed to deinit CIC-mon.");
 	}
 
-	ret = nvgpu_cic_mon_remove(g);
-	if (ret != 0) {
-		nvgpu_err(g, "Failed to remove CIC-mon.");
-	}
-
 	return ret;
 }
 
@@ -783,12 +778,6 @@ int nvgpu_early_poweron(struct gk20a *g)
 	/* Initialize CIC early on before the interrupts are
 	 * enabled.
 	 */
-	err = nvgpu_cic_mon_setup(g);
-	if (err != 0) {
-		nvgpu_err(g, "CIC-mon setup failed[%d]", err);
-		goto done;
-	}
-
 	err = nvgpu_cic_mon_init_lut(g);
 	if (err != 0) {
 		nvgpu_err(g, "CIC LUT Initialization failed[%d]", err);

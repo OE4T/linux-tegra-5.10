@@ -601,6 +601,12 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 		g->msi_enabled = true;
 #endif
 
+	err = nvgpu_cic_mon_setup(g);
+	if (err != 0) {
+		nvgpu_err(g, "CIC-MON setup failed");
+		goto err_disable_msi;
+	}
+
 	/* Number of stall interrupt line = 1 (for dgpu <= tu10x) */
 	l->interrupts.stall_size = 1U;
 	l->interrupts.nonstall_size = 0U;
@@ -610,7 +616,7 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 
 	if ((int)l->interrupts.stall_lines[0] < 0) {
 		err = -ENXIO;
-		goto err_disable_msi;
+		goto err_deinit_cic_mon;
 	}
 
 	err = devm_request_threaded_irq(&pdev->dev,
@@ -624,7 +630,7 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 	if (err) {
 		nvgpu_err(g,
 			"failed to request irq @ %d", l->interrupts.stall_lines[0]);
-		goto err_disable_msi;
+		goto err_deinit_cic_mon;
 	}
 	nvgpu_disable_irqs(g);
 
@@ -694,6 +700,8 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 
 err_free_irq:
 	nvgpu_free_irq(g);
+err_deinit_cic_mon:
+	nvgpu_cic_mon_remove(g);
 err_disable_msi:
 #if defined(CONFIG_PCI_MSI)
 	if (g->msi_enabled)
@@ -770,6 +778,9 @@ static void nvgpu_pci_remove(struct pci_dev *pdev)
 		nvgpu_enable_irqs(g);
 	}
 #endif
+	(void)nvgpu_cic_mon_remove(g);
+	(void)nvgpu_cic_rm_remove(g);
+
 	nvgpu_pci_pm_deinit(&pdev->dev);
 
 	/* free allocated platform data space */

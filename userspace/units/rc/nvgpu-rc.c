@@ -38,6 +38,7 @@
 #include <nvgpu/rc.h>
 #include <nvgpu/pbdma_status.h>
 #include <nvgpu/error_notifier.h>
+#include <nvgpu/cic_rm.h>
 
 #include "../fifo/nvgpu-fifo-common.h"
 #include "../fifo/nvgpu-fifo-gv11b.h"
@@ -95,6 +96,16 @@ int test_rc_init(struct unit_module *m, struct gk20a *g, void *args)
 	}
 
 	nvgpu_device_init(g);
+
+	ret = nvgpu_cic_rm_setup(g);
+	if (ret != 0) {
+		unit_return_fail(m, "CIC-rm init failed\n");
+	}
+
+	ret = nvgpu_cic_rm_init_vars(g);
+	if (ret != 0) {
+		unit_return_fail(m, "CIC-rm vars init failed\n");
+	}
 
 	g->ops.gr.init.get_no_of_sm = stub_gv11b_gr_init_get_no_of_sm;
 
