@@ -413,6 +413,16 @@ union nvpva_ioctl_submit_args {
 
 #define NVPVA_IOCTL_NUMBER_MAX 9
 
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define NVPVA_IOCTL_MAX_SIZE \
+	    MAX(sizeof(union nvpva_vpu_exe_register_args), \
+	    MAX(sizeof(union nvpva_vpu_exe_unregister_args), \
+	    MAX(sizeof(union nvpva_get_symbol_args), \
+	    MAX(sizeof(union nvpva_pin_args), \
+	    MAX(sizeof(union nvpva_unpin_args), \
+	    MAX(sizeof(union nvpva_ioctl_submit_args), \
+		0))))))
+
 /* NvPva Task param limits */
 #define NVPVA_TASK_MAX_PREFENCES 8U
 #define NVPVA_TASK_MAX_FENCEACTIONS 4U

@@ -1,5 +1,5 @@
 /*
- * PVA driver for T194
+ * PVA driver
  *
  * Copyright (c) 2016-2021, NVIDIA Corporation.  All rights reserved.
  *

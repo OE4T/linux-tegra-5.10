@@ -1,5 +1,5 @@
 /*
- * PVA Ioctl Handling for T194
+ * PVA Ioctl Handling
  *
  * Copyright (c) 2016-2021, NVIDIA Corporation.  All rights reserved.
  *
@@ -367,71 +367,6 @@ err_check_num_tasks:
 	return err;
 }
 
-/**
- * pva_queue_set_attr() - Set attribute to the queue
- *
- * @priv: PVA Private data
- * @arg: ioctl data
- *
- * This function set the attributes of the pv queue.
- */
-static int pva_queue_set_attr(struct pva_private *priv, void *arg)
-{
-	struct pva_ioctl_queue_attr *ioctl_queue_attr =
-		(struct pva_ioctl_queue_attr *)arg;
-	struct pva_queue_attribute *attrs;
-	struct pva_queue_attribute attr;
-	struct pva_queue_set_attribute set_attr;
-	int id = ioctl_queue_attr->id;
-	int val = ioctl_queue_attr->val;
-	int err = 0;
-
-	/* Only root is allowed to update queue attributes */
-	if (current_uid().val != 0) {
-		err = -EINVAL;
-		goto end;
-	}
-
-	/* Sanity checks for the task heaader */
-	if (id >= QUEUE_ATTR_MAX) {
-		err = -ENOSYS;
-		goto end;
-	}
-
-	id = array_index_nospec(id, QUEUE_ATTR_MAX);
-
-	/* Initialize attribute for setting */
-	attr.id = id;
-	attr.value = val;
-
-	/* Update the attribute cache */
-	mutex_lock(&priv->queue->attr_lock);
-	attrs =	priv->queue->attr;
-	if (!attrs) {
-		mutex_unlock(&priv->queue->attr_lock);
-		err = -EINVAL;
-		goto end;
-	}
-	attrs[id] = attr;
-	mutex_unlock(&priv->queue->attr_lock);
-
-	/* Turn on the hardware */
-	err = nvhost_module_busy(priv->pva->pdev);
-	if (err)
-		goto end;
-
-	/* Set attribute on hardware */
-	set_attr.pva = priv->pva;
-	set_attr.attr = &attr;
-	set_attr.bootup = false;
-	err = nvhost_queue_set_attr(priv->queue, &set_attr);
-
-	/* Drop PM runtime reference of PVA */
-	nvhost_module_idle(priv->pva->pdev);
-end:
-	return err;
-
-}
 
 static int pva_pin(struct pva_private *priv, void *arg)
 {
@@ -519,242 +454,19 @@ pva_buffer_cpy_err:
 	return err;
 }
 
-static int pva_get_characteristics(struct pva_private *priv,
-		void *arg)
+static int pva_register_vpu_exec(struct pva_private *priv, void *arg)
 {
-	struct pva_characteristics pva_char;
-	struct pva_characteristics_req *in_pva_char =
-			(struct pva_characteristics_req *)arg;
-	u64 in_size = in_pva_char->characteristics_size;
-	u64 out_size = sizeof(struct pva_characteristics);
-	struct pva_version_info info;
-	struct pva *pva = priv->pva;
-	int err = 0;
-
-	/* check whether the characteristics has NULL pointer */
-	if (!in_pva_char->characteristics) {
-		err = -EINVAL;
-		goto err_check_characteristics_ptr;
-	}
-
-	err = nvhost_module_busy(pva->pdev);
-	if (err < 0)
-		goto err_poweron;
-
-	err = pva_get_firmware_version(pva, &info);
-	if (err < 0)
-		goto err_get_firmware_version;
-
-	memset(&pva_char, 0, out_size);
-	pva_char.num_vpu = 2;
-	pva_char.num_queues = MAX_PVA_QUEUE_COUNT;
-	pva_char.submit_mode = pva->submit_task_mode;
-	pva_char.pva_r5_version = info.pva_r5_version;
-	pva_char.pva_compat_version = info.pva_compat_version;
-	pva_char.pva_revision = info.pva_revision;
-	pva_char.pva_built_on = info.pva_built_on;
-
-	/* if input_size more than output_size, copy kernel struct size */
-	if (in_size > out_size)
-		in_size = out_size;
-
-	/* copy input_size of data to output*/
-	in_pva_char->characteristics_size = in_size;
-	/* reserved field*/
-	in_pva_char->characteristics_filled = 0;
-
-	err = copy_to_user((void __user *)in_pva_char->characteristics,
-			&pva_char,
-			in_size);
-
-err_get_firmware_version:
-	nvhost_module_idle(pva->pdev);
-err_poweron:
-err_check_characteristics_ptr:
-	return err;
-}
-
-static int pva_get_statistics(struct pva_private *priv,
-		void *arg)
-{
-	struct pva_statistics pva_stats;
-	struct pva_statistics_req *in_pva_stats =
-			(struct pva_statistics_req *)arg;
-	u64 size = sizeof(struct pva_statistics);
-	struct pva *pva = priv->pva;
-	int err = 0;
-
-	/* check whether the statistics has NULL pointer */
-	if (!in_pva_stats->statistics) {
-		err = -EINVAL;
-		goto err_check_statistics;
-	}
-
-	memset(&pva_stats, 0, size);
-
-	err = pva_boot_kpi(pva, &(pva_stats.r5_boot_time));
-	if (err < 0)
-		goto err_check_statistics;
-
-	if (copy_to_user((void __user *)in_pva_stats->statistics,
-			&pva_stats,
-			size)) {
-		err = -EFAULT;
-		nvhost_dbg_info("error in copying to user\n");
-		goto err_check_statistics;
-	}
-
-	in_pva_stats->statistics_size = size;
-
-err_check_statistics:
-	return err;
-}
-
-static int pva_copy_function_table(struct pva_private *priv,
-		void *arg)
-{
-	struct pva_ioctl_vpu_func_table *ioctl_fn_table = arg;
-	struct pva_func_table fn_table;
-	struct pva *pva = priv->pva;
-	uint32_t table_size;
-	int err;
-
-	err = nvhost_module_busy(pva->pdev);
-	if (err) {
-		nvhost_dbg_info("error in powering up pva\n");
-		goto err_poweron;
-	}
-
-	err = pva_alloc_and_populate_function_table(pva, &fn_table);
-	if (err) {
-		nvhost_dbg_info("unable to populate function table\n");
-		goto err_vpu_alloc;
-	}
-
-	table_size = ioctl_fn_table->size;
-
-	if (fn_table.size > table_size) {
-		err = -ENOMEM;
-		goto err_table_copy;
-	}
-
-	err = copy_to_user((void __user *)ioctl_fn_table->addr,
-			fn_table.addr,
-			fn_table.size);
-	if (err < 0)
-		goto err_table_copy;
-
-	ioctl_fn_table->size = fn_table.size;
-	ioctl_fn_table->entries = fn_table.entries;
-
-err_table_copy:
-	pva_dealloc_vpu_function_table(pva, &fn_table);
-err_vpu_alloc:
-	nvhost_module_idle(pva->pdev);
-err_poweron:
-	return err;
-}
-
-/**
- * pva_set_rate() - Set PVA minimum frequencies
- *
- * @priv: PVA Private data
- * @arg: ioctl data
- *
- * This function sets PVA minimum frequencies
- */
-static int pva_set_rate(struct pva_private *priv, void *arg)
-{
-	struct pva_ioctl_rate *ioctl_rate = (struct pva_ioctl_rate *)arg;
-	unsigned long new_rate = max_t(u64,
-				       MIN_PVA_FREQUENCY,
-				       ioctl_rate->rate);
-	int err;
-
-
-	/* Set R5 minimum frequency */
-	err = nvhost_module_set_rate(priv->pva->pdev,
-				     priv,
-				     new_rate,
-				     0,
-				     ioctl_rate->type);
-	if (err < 0)
-		return err;
-
-	/* Set VPU0 minimum frequency */
-	err = nvhost_module_set_rate(priv->pva->pdev,
-				     priv,
-				     new_rate,
-				     1,
-				     ioctl_rate->type);
-	if (err < 0)
-		return err;
-
-	/* Set VPU1 minimum frequency */
-	err = nvhost_module_set_rate(priv->pva->pdev,
-				     priv,
-				     new_rate,
-				     2,
-				     ioctl_rate->type);
-	if (err < 0)
-		return err;
-
 	return 0;
 }
 
-/**
- * pva_get_rate() - Get current PVA frequency
- *
- * @priv: PVA Private data
- * @arg: ioctl data
- *
- * This function gets the current PVA frequency
- */
-static int pva_get_rate(struct pva_private *priv, void *arg)
+static int pva_unregister_vpu_exec(struct pva_private *priv, void *arg)
 {
-	struct pva_ioctl_rate *ioctl_rate = (struct pva_ioctl_rate *)arg;
-	unsigned long rate;
-	int err;
-
-	err = nvhost_module_get_rate(priv->pva->pdev,
-				     &rate,
-				     0);
-
-	ioctl_rate->rate = rate;
-	ioctl_rate->type = NVHOST_CLOCK;
-
-	return err;
+	return 0;
 }
-/**
- * pva_abort_req() - Request an abort
- *
- * @priv: PVA Private data
- * @arg: ioctl data
- *
- * This function requests a PVA abort
- */
-static int pva_abort_req(struct pva_private *priv, void *arg)
+
+static int pva_get_symbol_id(struct pva_private *priv, void *arg)
 {
-	struct pva_ioctl_abort_req *ioctl_abort = (struct pva_ioctl_abort_req *)arg;
-	int err = 0;
-	uint32_t flags = PVA_CMD_INT_ON_ERR | PVA_CMD_INT_ON_COMPLETE;
-	struct pva_cmd_status_regs status;
-	struct pva_cmd cmd;
-	u32 nregs;
-
-	nregs = pva_cmd_abort(&cmd, ioctl_abort->queue_id, flags);
-
-	/* Submit request to PVA and wait for response */
-	err = priv->pva->version_config->submit_cmd_sync(priv->pva, &cmd,
-			nregs, &status);
-
-	if (err < 0) {
-		nvhost_warn(&priv->pva->pdev->dev,
-			"mbox abort cmd failed: %d\n", err);
-		return err;
-	}
-
-	return status.error;
+	return 0;
 }
 
 static long pva_ioctl(struct file *file, unsigned int cmd,
@@ -766,69 +478,40 @@ static long pva_ioctl(struct file *file, unsigned int cmd,
 
 	nvhost_dbg_fn("");
 
-	if ((_IOC_TYPE(cmd) != NVHOST_PVA_IOCTL_MAGIC) ||
-		(_IOC_NR(cmd) == 0) ||
-		(_IOC_NR(cmd) > NVHOST_PVA_IOCTL_LAST) ||
-		(_IOC_SIZE(cmd) > NVHOST_PVA_IOCTL_MAX_ARG_SIZE))
+	if ((_IOC_TYPE(cmd) != NVPVA_IOCTL_MAGIC) ||
+	    (_IOC_NR(cmd) == 0) ||
+	    (_IOC_NR(cmd) > NVPVA_IOCTL_NUMBER_MAX) ||
+	    (_IOC_SIZE(cmd) > sizeof(buf)))
 		return -ENOIOCTLCMD;
 
 	if (_IOC_DIR(cmd) & _IOC_WRITE) {
-		if (copy_from_user(buf, (void __user *)arg, _IOC_SIZE(cmd)))
+		if (copy_from_user(buf, (void __user *)arg, _IOC_SIZE(cmd))) {
+			dev_err(&priv->pva->pdev->dev,
+				"failed copy ioctl buffer from user; size: %u",
+				_IOC_SIZE(cmd));
 			return -EFAULT;
+		}
 	}
 
 	switch (cmd) {
-
-	case PVA_IOCTL_CHARACTERISTICS:
-	{
-		err = pva_get_characteristics(priv, buf);
+	case NVPVA_IOCTL_REGISTER_VPU_EXEC:
+		err = pva_register_vpu_exec(priv, buf);
 		break;
-	}
-	case PVA_IOCTL_STATISTICS:
-	{
-		err = pva_get_statistics(priv, buf);
+	case NVPVA_IOCTL_UNREGISTER_VPU_EXEC:
+		err = pva_unregister_vpu_exec(priv, buf);
 		break;
-	}
-	case PVA_IOCTL_PIN:
-	{
+	case NVPVA_IOCTL_GET_SYMBOL_ID:
+		err = pva_get_symbol_id(priv, buf);
+		break;
+	case NVPVA_IOCTL_PIN:
 		err = pva_pin(priv, buf);
 		break;
-	}
-	case PVA_IOCTL_UNPIN:
-	{
+	case NVPVA_IOCTL_UNPIN:
 		err = pva_unpin(priv, buf);
 		break;
-	}
-	case PVA_IOCTL_SUBMIT:
-	{
+	case NVPVA_IOCTL_SUBMIT:
 		err = pva_submit(priv, buf);
 		break;
-	}
-	case PVA_IOCTL_SET_QUEUE_ATTRIBUTES:
-	{
-		err = pva_queue_set_attr(priv, buf);
-		break;
-	}
-	case PVA_IOCTL_COPY_VPU_FUNCTION_TABLE:
-	{
-		err = pva_copy_function_table(priv, buf);
-		break;
-	}
-	case PVA_IOCTL_SET_RATE:
-	{
-		err = pva_set_rate(priv, buf);
-		break;
-	}
-	case PVA_IOCTL_GET_RATE:
-	{
-		err = pva_get_rate(priv, buf);
-		break;
-	}
-	case PVA_IOCTL_ABORT_REQ:
-	{
-		err = pva_abort_req(priv, buf);
-		break;
-	}
 	default:
 		return -ENOIOCTLCMD;
 	}
@@ -836,53 +519,6 @@ static long pva_ioctl(struct file *file, unsigned int cmd,
 	if ((err == 0) && (_IOC_DIR(cmd) & _IOC_READ))
 		err = copy_to_user((void __user *)arg, buf, _IOC_SIZE(cmd));
 
-	return err;
-}
-
-static struct pva_queue_attribute default_queue_attr[QUEUE_ATTR_MAX] = {
-	{0, 0},
-	{QUEUE_ATTR_PRIORITY, PVA_QUEUE_DEFAULT_PRIORITY},
-	{QUEUE_ATTR_VPU, PVA_QUEUE_DEFAULT_VPU_MASK},
-	{QUEUE_ATTR_MISR_TO, 0xFFFFFFFF}
-};
-
-static void pva_queue_set_default_attr(struct pva_private *priv)
-{
-	u32 id;
-	struct pva_queue_attribute *attr;
-
-	attr = priv->queue->attr;
-	for (id = 1; id < QUEUE_ATTR_MAX; id++) {
-		attr[id].id = default_queue_attr[id].id;
-		attr[id].value = default_queue_attr[id].value;
-	}
-}
-
-static int pva_open_set_attrs(struct pva_private *priv)
-{
-	struct pva_queue_set_attribute set_attr;
-	unsigned int i;
-	int err = 0;
-
-	/* Turn on the hardware */
-	err = nvhost_module_busy(priv->pva->pdev);
-	if (err < 0)
-		goto end;
-
-	/* Set attribute on hardware */
-	set_attr.pva = priv->pva;
-	set_attr.bootup = false;
-
-	for (i = 1; i < QUEUE_ATTR_MAX; i++) {
-		set_attr.attr = &default_queue_attr[i];
-		err = nvhost_queue_set_attr(priv->queue, &set_attr);
-		if (err < 0)
-			break;
-	}
-
-	nvhost_module_idle(priv->pva->pdev);
-
-end:
 	return err;
 }
 
@@ -933,11 +569,9 @@ static int pva_open(struct inode *inode, struct file *file)
 	/* Ensure that the stashed attributes are valid */
 	mutex_lock(&priv->queue->attr_lock);
 	priv->queue->attr = attr;
-	pva_queue_set_default_attr(priv);
 	mutex_unlock(&priv->queue->attr_lock);
 
 	/* Restore the default attributes in hardware */
-	err = pva_open_set_attrs(priv);
 	if (err < 0)
 		dev_warn(&pdev->dev, "failed to restore queue attributes\n");
 
