@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -42,10 +42,18 @@ struct nvgpu_posix_fault_inj *nvgpu_queue_out_get_fault_injection(void)
 
 unsigned int nvgpu_queue_available(struct nvgpu_queue *queue)
 {
-	return nvgpu_safe_sub_u32(queue->in, queue->out);
+	u32 ret;
+
+	if (queue->in >= queue->out) {
+		ret = queue->in - queue->out;
+	} else {
+		ret = (UINT32_MAX - queue->out) + (queue->in + 1U);
+	}
+
+	return ret;
 }
 
-unsigned int nvgpu_queue_unused(struct nvgpu_queue *queue)
+static unsigned int nvgpu_queue_unused(struct nvgpu_queue *queue)
 {
 	return nvgpu_safe_sub_u32(nvgpu_safe_add_u32(queue->mask, 1U),
 			nvgpu_queue_available(queue));
@@ -114,7 +122,9 @@ static int posix_queue_in_common(struct nvgpu_queue *queue, const void *src,
 	if (lock != NULL) {
 		nvgpu_mutex_acquire(lock);
 	}
+
 	l = nvgpu_queue_unused(queue);
+
 	if (len > l) {
 		if (lock != NULL) {
 			nvgpu_mutex_release(lock);
@@ -128,19 +138,26 @@ static int posix_queue_in_common(struct nvgpu_queue *queue, const void *src,
 	 */
 	nvgpu_smp_wmb();
 
-	queue->in = nvgpu_safe_add_u32(queue->in, len);
+	if ((UINT_MAX - queue->in) < len) {
+		queue->in = (len - (UINT_MAX - queue->in)) - 1U;
+	} else {
+		queue->in = queue->in + len;
+	}
+
 	if (lock != NULL) {
 		nvgpu_mutex_release(lock);
 	}
 
-	return (int)len;
+	return 0;
 }
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 int nvgpu_queue_in(struct nvgpu_queue *queue, const void *buf,
 		unsigned int len)
 {
 	return posix_queue_in_common(queue, buf, len, NULL);
 }
+#endif
 
 int nvgpu_queue_in_locked(struct nvgpu_queue *queue, const void *buf,
 		unsigned int len, struct nvgpu_mutex *lock)
@@ -173,7 +190,8 @@ static int nvgpu_queue_out_common(struct nvgpu_queue *queue, void *buf,
 	if (lock != NULL) {
 		nvgpu_mutex_acquire(lock);
 	}
-	l = queue->in - queue->out;
+
+	l = nvgpu_queue_available(queue);
 	if (l < len) {
 		if (lock != NULL) {
 			nvgpu_mutex_release(lock);
@@ -186,19 +204,26 @@ static int nvgpu_queue_out_common(struct nvgpu_queue *queue, void *buf,
 	 */
 	nvgpu_smp_wmb();
 
-	queue->out = nvgpu_safe_add_u32(queue->out, len);
+	if ((UINT_MAX - queue->out) < len) {
+		queue->out = (len - (UINT_MAX - queue->out)) - 1U;
+	} else {
+		queue->out = queue->out + len;
+	}
+
 	if (lock != NULL) {
 		nvgpu_mutex_release(lock);
 	}
 
-	return (int)len;
+	return 0;
 }
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 int nvgpu_queue_out(struct nvgpu_queue *queue, void *buf,
 		unsigned int len)
 {
 	return nvgpu_queue_out_common(queue, buf, len, NULL);
 }
+#endif
 
 int nvgpu_queue_out_locked(struct nvgpu_queue *queue, void *buf,
 		unsigned int len, struct nvgpu_mutex *lock)

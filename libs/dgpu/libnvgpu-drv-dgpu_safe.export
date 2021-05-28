@@ -637,9 +637,7 @@ nvgpu_posix_register_io
 nvgpu_pte_words
 nvgpu_queue_alloc
 nvgpu_queue_free
-nvgpu_queue_in
 nvgpu_queue_in_locked
-nvgpu_queue_out
 nvgpu_queue_out_locked
 nvgpu_queue_out_get_fault_injection
 nvgpu_queue_available

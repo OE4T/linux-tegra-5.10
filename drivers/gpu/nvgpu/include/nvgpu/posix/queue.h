@@ -33,10 +33,10 @@ struct nvgpu_posix_fault_inj;
  * varying length. An user has to request for the allocation of required size
  * of memory to hold the messages before using any other public API of this
  * unit. Requested size for allocation should be greater than zero and less
- * than or equal to INT_MAX. The alloc function ensures that the allocated size
+ * than or equal to INT32_MAX. The alloc function ensures that the allocated size
  * is always a power of two, irrespective of the requested size. It does that
  * by rounding up the requested size to nearest power of two if required. This
- * structure holds in and out indexes used to push and pop the messages
+ * structure holds in and out indexes used to enqueue and dequeue the messages
  * respectively. A mask value to indicate the size of the queue is also held.
  */
 struct nvgpu_queue {
@@ -57,18 +57,6 @@ struct nvgpu_queue {
 	 */
 	unsigned char *data;
 };
-
-/**
- * @brief Calculate the unused message queue length.
- *
- * The size of all the messages currently enqueued is subtracted from the total
- * size of the queue to get the unused queue length.
- *
- * @param queue [in]	Queue structure to use.
- *
- * @return Return unused queue length.
- */
-unsigned int nvgpu_queue_unused(struct nvgpu_queue *queue);
 
 /**
  * @brief Calculate the length of the message queue in use.
@@ -113,6 +101,7 @@ int nvgpu_queue_alloc(struct nvgpu_queue *queue, unsigned int size);
  */
 void nvgpu_queue_free(struct nvgpu_queue *queue);
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 /**
  * @brief Enqueue message into message queue.
  *
@@ -124,7 +113,7 @@ void nvgpu_queue_free(struct nvgpu_queue *queue);
  * @param buf [in]	Pointer to source message buffer.
  * @param len [in]	Size of the message to be enqueued.
  *
- * @return Returns \a len on success, otherwise returns error number to indicate
+ * @return Returns 0 on success, otherwise returns error number to indicate
  * the error.
  *
  * @retval -ENOMEM if the message queue doesn't have enough free space to
@@ -132,6 +121,7 @@ void nvgpu_queue_free(struct nvgpu_queue *queue);
  */
 int nvgpu_queue_in(struct nvgpu_queue *queue, const void *buf,
 		unsigned int len);
+#endif
 
 /**
  * @brief Enqueue message into message queue after acquiring the mutex lock.
@@ -147,7 +137,7 @@ int nvgpu_queue_in(struct nvgpu_queue *queue, const void *buf,
  * @param len [in]	Size of the message to be enqueued.
  * @param lock [in]	Mutex lock for concurrency management.
  *
- * @return Returns \a len on success, otherwise returns error number to indicate
+ * @return Returns 0 on success, otherwise returns error number to indicate
  * the error.
  *
  * @retval -ENOMEM if the message queue doesn't have enough free space to
@@ -156,6 +146,7 @@ int nvgpu_queue_in(struct nvgpu_queue *queue, const void *buf,
 int nvgpu_queue_in_locked(struct nvgpu_queue *queue, const void *buf,
 		unsigned int len, struct nvgpu_mutex *lock);
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 /**
  * @brief Dequeue message from message queue.
  *
@@ -166,7 +157,7 @@ int nvgpu_queue_in_locked(struct nvgpu_queue *queue, const void *buf,
  * @param buf [in]	Pointer to destination message buffer.
  * @param len [in]	Size of the message to be dequeued.
  *
- * @return Returns \a len on success, otherwise returns error number to indicate
+ * @return Returns 0 on success, otherwise returns error number to indicate
  * the error.
  *
  * @retval -ENOMEM if the length of the messages held by the message queue is
@@ -174,6 +165,7 @@ int nvgpu_queue_in_locked(struct nvgpu_queue *queue, const void *buf,
  */
 int nvgpu_queue_out(struct nvgpu_queue *queue, void *buf,
 		unsigned int len);
+#endif
 
 /**
  * @brief Dequeue message from message queue after acquiring the mutex lock.
@@ -188,7 +180,7 @@ int nvgpu_queue_out(struct nvgpu_queue *queue, void *buf,
  * @param len [in]	Size of the message to be dequeued.
  * @param lock [in]	Mutex lock for concurrency management.
  *
- * @return Returns \a len on success, otherwise returns error number to indicate
+ * @return Returns 0 on success, otherwise returns error number to indicate
  * the error.
  *
  * @retval -ENOMEM if the length of the messages held by the message queue is
