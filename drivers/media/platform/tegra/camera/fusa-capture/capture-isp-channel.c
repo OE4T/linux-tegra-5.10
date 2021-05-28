@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2021 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -432,10 +432,13 @@ static long isp_channel_ioctl(
 
 	case _IOC_NR(ISP_CAPTURE_GET_INFO): {
 		struct isp_capture_info info;
+		(void)memset(&info, 0, sizeof(info));
 
 		err = isp_capture_get_info(chan, &info);
-		if (err)
+		if (err) {
 			dev_err(chan->isp_dev, "isp capture get info failed\n");
+			break;
+		}
 		if (copy_to_user(ptr, &info, sizeof(info)))
 			err = -EFAULT;
 		break;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2021 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -528,10 +528,13 @@ static long vi_channel_ioctl(
 
 	case _IOC_NR(VI_CAPTURE_GET_INFO): {
 		struct vi_capture_info info;
+		(void)memset(&info, 0, sizeof(info));
 
 		err = vi_capture_get_info(chan, &info);
-		if (err < 0)
+		if (err < 0) {
 			dev_err(chan->dev, "vi capture get info failed\n");
+			break;
+		}
 		if (copy_to_user(ptr, &info, sizeof(info)))
 			err = -EFAULT;
 		break;
