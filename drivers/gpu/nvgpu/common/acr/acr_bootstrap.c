@@ -97,7 +97,7 @@ exit:
 #ifdef CONFIG_NVGPU_FALCON_NON_FUSA
 	nvgpu_falcon_get_ctls(acr_desc->acr_flcn, &sctl, &cpuctl);
 
-	nvgpu_info(g, "flcn-%d: sctl reg %x cpuctl reg %x",
+	nvgpu_acr_dbg(g, "flcn-%d: sctl reg %x cpuctl reg %x",
 			flcn_id, sctl, cpuctl);
 #endif
 
