@@ -2541,6 +2541,11 @@ static long mods_krnl_ioctl(struct file  *fp,
 			   esc_mods_tegra_prod_iterate_dt,
 			   MODS_TEGRA_PROD_ITERATOR);
 		break;
+
+	case MODS_ESC_SEND_TZ_MSG:
+		MODS_IOCTL(MODS_ESC_SEND_TZ_MSG,
+			esc_mods_send_trustzone_msg, MODS_TZ_PARAMS);
+		break;
 #endif
 
 	case MODS_ESC_ACQUIRE_ACCESS_TOKEN:

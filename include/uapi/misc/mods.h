@@ -1780,6 +1780,21 @@ struct MODS_IOMMU_DMA_MAP_MEMORY {
 	__u64 physical_address;
 };
 
+#define MAX_TZ_BUFFER_SIZE 512
+/* Used by MODS_ESC_SEND_TZ_MSG.
+ *
+ * Available only on Tegra.
+ */
+struct MODS_TZ_PARAMS {
+	/* IN */
+	__u8 buf[MAX_TZ_BUFFER_SIZE];
+	__u32 buf_size;
+	__u32 cmd;
+
+	/* OUT */
+	int status;
+};
+
 #define MODS_IOMMU_MAP_CONTIGUOUS 1
 
 #pragma pack(pop)
@@ -1979,5 +1994,6 @@ struct MODS_IOMMU_DMA_MAP_MEMORY {
 #define MODS_ESC_MODS_GET_DRIVER_STATS MODSIO(R, 135, MODS_GET_DRIVER_STATS)
 #define MODS_ESC_BPMP_SET_PCIE_STATE MODSIO(W, 136, MODS_SET_PCIE_STATE)
 #define MODS_ESC_BPMP_INIT_PCIE_EP_PLL MODSIO(W, 137, MODS_INIT_PCIE_EP_PLL)
+#define MODS_ESC_SEND_TZ_MSG MODSIO(WR, 139, MODS_TZ_PARAMS)
 
 #endif /* _UAPI_MODS_H_  */
