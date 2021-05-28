@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -98,6 +98,14 @@ int test_nvgpu_queue_alloc_and_free(struct unit_module *m, struct gk20a *g,
 	}
 	nvgpu_queue_free(&q);
 
+	ret = nvgpu_queue_alloc(&q, (unsigned int)INT32_MAX);
+	if (ret != 0) {
+		err = UNIT_FAIL;
+		unit_err(m, "%d. test_queue_alloc failed err=%d\n", __LINE__,
+			ret);
+		goto fail;
+	}
+	nvgpu_queue_free(&q);
 fail:
 	return err;
 }
@@ -119,9 +127,10 @@ int test_nvgpu_queue_in(struct unit_module *m, struct gk20a *g, void *args)
 		goto fail;
 	}
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 	/* Enqueue message of length BUF_LEN */
 	ret = nvgpu_queue_in(&q, buf, BUF_LEN);
-	if (ret != BUF_LEN) {
+	if (ret != 0) {
 		err = UNIT_FAIL;
 		unit_err(m, "%d. queue_in failed err=%d\n", __LINE__,  ret);
 		goto fail;
@@ -134,12 +143,12 @@ int test_nvgpu_queue_in(struct unit_module *m, struct gk20a *g, void *args)
 	q.in = BUF_LEN;
 	q.out = BUF_LEN;
 	ret = nvgpu_queue_in(&q, buf, BUF_LEN);
-	if (ret != BUF_LEN) {
+	if (ret != 0) {
 		err = UNIT_FAIL;
 		unit_err(m, "%d. queue_in failed err=%d\n", __LINE__,  ret);
 		goto fail;
 	}
-
+#endif
 	/*
 	 * Reset "in" and "out" indexes and enqueue message of length BUF_LEN
 	 * with the lock.
@@ -147,7 +156,7 @@ int test_nvgpu_queue_in(struct unit_module *m, struct gk20a *g, void *args)
 	q.in = 0;
 	q.out = 0;
 	ret = nvgpu_queue_in_locked(&q, buf, BUF_LEN, &lock);
-	if (ret != BUF_LEN) {
+	if (ret != 0) {
 		err = UNIT_FAIL;
 		unit_err(m, "%d. queue_in failed err=%d\n", __LINE__,  ret);
 		goto fail;
@@ -161,6 +170,16 @@ int test_nvgpu_queue_in(struct unit_module *m, struct gk20a *g, void *args)
 		goto fail;
 	}
 
+	q.in = (UINT32_MAX - (BUF_LEN/2));
+	q.out = q.in;
+	ret = nvgpu_queue_in_locked(&q, buf, BUF_LEN, &lock);
+	if (ret != 0) {
+		err = UNIT_FAIL;
+		unit_err(m, "%d. queue in failed err=%d\n", __LINE__,  ret);
+		goto fail;
+	}
+
+#ifdef CONFIG_NVGPU_NON_FUSA
 	/* Enqueue message of length BUF_LEN again (without lock) and expect
 	 * memory full.
 	 */
@@ -170,6 +189,7 @@ int test_nvgpu_queue_in(struct unit_module *m, struct gk20a *g, void *args)
 		unit_err(m, "%d. queue_in failed err=%d\n", __LINE__,  ret);
 		goto fail;
 	}
+#endif
 
 fail:
 	if (q.data != NULL)
@@ -198,6 +218,7 @@ int test_nvgpu_queue_out(struct unit_module *m, struct gk20a *g, void *args)
 		goto fail;
 	}
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 	/* Queue is empty. Dequeue message should return "-ENOMEM" */
 	ret = nvgpu_queue_out(&q, buf, BUF_LEN);
 	if (ret != -ENOMEM) {
@@ -205,6 +226,7 @@ int test_nvgpu_queue_out(struct unit_module *m, struct gk20a *g, void *args)
 		unit_err(m, "%d. queue_out failed err=%d\n", __LINE__,  ret);
 		goto fail;
 	}
+#endif
 
 	/* Queue is empty. Dequeue message with lock should return "-ENOMEM" */
 	ret = nvgpu_queue_out_locked(&q, buf, BUF_LEN, &lock);
@@ -214,18 +236,19 @@ int test_nvgpu_queue_out(struct unit_module *m, struct gk20a *g, void *args)
 		goto fail;
 	}
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 	/*
 	 * Advance "in" index by "BUF_LEN" and dequeue message of length BUF_LEN
 	 */
 	q.in = BUF_LEN;
 	q.out = 0;
 	ret = nvgpu_queue_out(&q, buf, BUF_LEN);
-	if (ret != BUF_LEN) {
+	if (ret != 0) {
 		err = UNIT_FAIL;
 		unit_err(m, "%d. queue_out failed err=%d\n", __LINE__,  ret);
 		goto fail;
 	}
-
+#endif
 	/*
 	 * Advance "in" index by "BUF_LEN" and dequeue message of length BUF_LEN
 	 * with the lock.
@@ -233,22 +256,33 @@ int test_nvgpu_queue_out(struct unit_module *m, struct gk20a *g, void *args)
 	q.in = BUF_LEN;
 	q.out = 0;
 	ret = nvgpu_queue_out_locked(&q, buf, BUF_LEN, &lock);
-	if (ret != BUF_LEN) {
+	if (ret != 0) {
 		err = UNIT_FAIL;
 		unit_err(m, "%d. queue_out failed err=%d\n", __LINE__,  ret);
 		goto fail;
 	}
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 	/*
 	 * Update "in" and "out" indexes and dequeue message of length BUF_LEN
 	 * such that we wrap around the Queue while dequeuing the message.
 	 */
-	q.in = 1;
-	q.out = QUEUE_LEN_POW_2 -(BUF_LEN -1);
+	q.in = 0;
+	q.out = UINT32_MAX - BUF_LEN;
 	ret = nvgpu_queue_out(&q, buf, BUF_LEN);
-	if (ret != BUF_LEN) {
+	if (ret != 0) {
 		err = UNIT_FAIL;
 		unit_err(m, "%d. queue_out failed err=%d\n", __LINE__,  ret);
+		goto fail;
+	}
+#endif
+
+	q.in = 0;
+	q.out = UINT32_MAX - BUF_LEN;
+	ret = nvgpu_queue_out_locked(&q, buf, BUF_LEN, &lock);
+	if (ret != 0) {
+		err = UNIT_FAIL;
+		unit_err(m, "%d. queue in failed err=%d\n", __LINE__,  ret);
 		goto fail;
 	}
 
@@ -274,11 +308,70 @@ fail:
 	return err;
 }
 
+int test_nvgpu_queue_available(struct unit_module *m,
+				    struct gk20a *g, void *args)
+{
+	int ret = 0, err = UNIT_SUCCESS;
+	unsigned int count = 0;
+	struct nvgpu_queue q = {0};
+	struct nvgpu_mutex lock;
+
+	nvgpu_mutex_init(&lock);
+
+	ret = nvgpu_queue_alloc(&q, QUEUE_LEN_POW_2);
+	if (ret != 0) {
+		err = UNIT_FAIL;
+		unit_err(m, "%d. queue_alloc failed err=%d\n", __LINE__,  ret);
+		goto fail;
+	}
+
+	q.out = 10;
+	q.in = 10;
+	count = nvgpu_queue_available(&q);
+	if (count != 0) {
+		err = UNIT_FAIL;
+		unit_err(m, "%d. incorrect queue available count=%d\n",
+			__LINE__,  count);
+		goto fail;
+	}
+
+	q.out = 0;
+	q.in = BUF_LEN;
+	count = nvgpu_queue_available(&q);
+	if (count != BUF_LEN) {
+		err = UNIT_FAIL;
+		unit_err(m, "%d. incorrect queue available count=%d\n",
+			__LINE__,  count);
+		goto fail;
+	}
+
+	/*
+	 * This is to test the wrap around condition for IN index.
+	 */
+	q.out = UINT32_MAX - (BUF_LEN - 1);
+	q.in = 0;
+	count = nvgpu_queue_available(&q);
+	if (count != BUF_LEN) {
+		err = UNIT_FAIL;
+		unit_err(m, "%d. Invalid out index accepted, count=%d\n",
+			__LINE__,  count);
+		goto fail;
+	}
+
+fail:
+	if (q.data != NULL)
+		free(q.data);
+	nvgpu_mutex_destroy(&lock);
+
+	return err;
+}
+
 struct unit_module_test posix_queue_tests[] = {
 	UNIT_TEST(nvgpu_queue_alloc_free, test_nvgpu_queue_alloc_and_free,
 		NULL, 0),
 	UNIT_TEST(nvgpu_queue_in, test_nvgpu_queue_in, NULL, 0),
 	UNIT_TEST(nvgpu_queue_out, test_nvgpu_queue_out, NULL, 0),
+	UNIT_TEST(nvgpu_queue_available, test_nvgpu_queue_available,
+		NULL, 0),
 };
-
 UNIT_MODULE(posix_queue, posix_queue_tests, UNIT_PRIO_POSIX_TEST);
