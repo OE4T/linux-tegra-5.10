@@ -1138,6 +1138,12 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 		cx_desc->tdes3 |= TDES3_OWN;
 	}
 
+	/*
+	 * We need to make sure Tx descriptor updated above is really updated
+	 * before setting up the DMA, hence add memory write barrier here.
+	 */
+	dmb_oshst();
+
 	tailptr = tx_ring->tx_desc_phy_addr +
 		  (entry * sizeof(struct osi_tx_desc));
 	if (osi_unlikely(tailptr < tx_ring->tx_desc_phy_addr)) {
@@ -1147,13 +1153,11 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 		return -1;
 	}
 
-	tx_ring->cur_tx_idx = entry;
-
 	/*
-	 * We need to make sure Tx descriptor updated above is really updated
-	 * before setting up the DMA, hence add memory write barrier here.
+	 * Updating cur_tx_idx allows tx completion thread to read first_desc.
+	 * Hence cur_tx_idx should be updated after memory barrier.
 	 */
-	dmb_oshst();
+	tx_ring->cur_tx_idx = entry;
 
 	ops->update_tx_tailptr(osi_dma->base, chan, tailptr);
 
