@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2013 Google, Inc.
- * Copyright (c) 2016-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -47,7 +47,7 @@ struct trusty_state {
 	struct workqueue_struct *nop_wq;
 	struct trusty_work __percpu *nop_works;
 	struct list_head nop_queue;
-	spinlock_t nop_lock; /* protects nop_queue */
+	raw_spinlock_t nop_lock; /* protects nop_queue */
 };
 
 #define TRUSTY_DEV_COMP "android,trusty-smc-v1"
@@ -367,7 +367,7 @@ static bool dequeue_nop(struct trusty_state *s, u32 *args)
 	unsigned long flags;
 	struct trusty_nop *nop = NULL;
 
-	spin_lock_irqsave(&s->nop_lock, flags);
+	raw_spin_lock_irqsave(&s->nop_lock, flags);
 	if (!list_empty(&s->nop_queue)) {
 		nop = list_first_entry(&s->nop_queue,
 				       struct trusty_nop, node);
@@ -380,7 +380,7 @@ static bool dequeue_nop(struct trusty_state *s, u32 *args)
 		args[1] = 0;
 		args[2] = 0;
 	}
-	spin_unlock_irqrestore(&s->nop_lock, flags);
+	raw_spin_unlock_irqrestore(&s->nop_lock, flags);
 	return nop;
 }
 
@@ -471,10 +471,10 @@ void trusty_enqueue_nop(struct device *dev, struct trusty_nop *nop)
 	if (nop) {
 		WARN_ON(s->api_version < TRUSTY_API_VERSION_SMP_NOP);
 
-		spin_lock_irqsave(&s->nop_lock, flags);
+		raw_spin_lock_irqsave(&s->nop_lock, flags);
 		if (list_empty(&nop->node))
 			list_add_tail(&nop->node, &s->nop_queue);
-		spin_unlock_irqrestore(&s->nop_lock, flags);
+		raw_spin_unlock_irqrestore(&s->nop_lock, flags);
 	}
 	schedule_workitem(s->nop_wq, &tw->work);
 
@@ -494,10 +494,10 @@ void trusty_dequeue_nop(struct device *dev, struct trusty_nop *nop)
 	if (WARN_ON(!nop))
 		return;
 
-	spin_lock_irqsave(&s->nop_lock, flags);
+	raw_spin_lock_irqsave(&s->nop_lock, flags);
 	if (!list_empty(&nop->node))
 		list_del_init(&nop->node);
-	spin_unlock_irqrestore(&s->nop_lock, flags);
+	raw_spin_unlock_irqrestore(&s->nop_lock, flags);
 }
 EXPORT_SYMBOL(trusty_dequeue_nop);
 
@@ -552,7 +552,7 @@ static int trusty_probe(struct platform_device *pdev)
 	}
 
 	s->dev = &pdev->dev;
-	spin_lock_init(&s->nop_lock);
+	raw_spin_lock_init(&s->nop_lock);
 	INIT_LIST_HEAD(&s->nop_queue);
 	mutex_init(&s->smc_lock);
 	ATOMIC_INIT_NOTIFIER_HEAD(&s->notifier);
