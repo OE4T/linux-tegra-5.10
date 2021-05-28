@@ -26,7 +26,7 @@ enum rate_type {
 	NUM_RATE_TYPE,
 };
 unsigned int tegra210_pll_base_rate[NUM_RATE_TYPE] = {338688000, 368640000};
-unsigned int tegra186_pll_base_rate[NUM_RATE_TYPE] = {270950400, 245760000};
+unsigned int tegra186_pll_base_rate[NUM_RATE_TYPE] = {270950400, 294912000};
 unsigned int default_pll_out_rate[NUM_RATE_TYPE] = {45158400, 49152000};
 
 int tegra_asoc_utils_set_rate(struct tegra_asoc_utils_data *data, int srate,
