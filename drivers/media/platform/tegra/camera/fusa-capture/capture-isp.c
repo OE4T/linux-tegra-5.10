@@ -2019,6 +2019,21 @@ int isp_capture_set_progress_status_notifier(
 		return -EINVAL;
 	}
 
+	if (req->process_buffer_depth > U32_MAX - req->program_buffer_depth) {
+		dev_err(chan->isp_dev,
+			"%s: Process and Program status buffer larger than expected\n",
+			__func__);
+		return -EINVAL;
+	}
+
+	if ((req->process_buffer_depth + req->program_buffer_depth) >
+		(U32_MAX / sizeof(uint32_t))) {
+		dev_err(chan->isp_dev,
+			"%s: Process and Program status buffer larger than expected\n",
+			__func__);
+		return -EINVAL;
+	}
+
 	/* Setup the progress status buffer */
 	err = capture_common_setup_progress_status_notifier(
 		&capture->progress_status_notifier,

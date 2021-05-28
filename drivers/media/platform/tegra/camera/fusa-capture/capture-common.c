@@ -492,6 +492,11 @@ int capture_common_setup_progress_status_notifier(
 	if (IS_ERR(dmabuf))
 		return PTR_ERR(dmabuf);
 
+	if (buffer_size > U32_MAX - mem_offset) {
+		pr_err("%s: buffer_size or mem_offset too large\n", __func__);
+		return -EINVAL;
+	}
+
 	if ((buffer_size + mem_offset) > dmabuf->size) {
 		dma_buf_put(dmabuf);
 		pr_err("%s: invalid offset\n", __func__);

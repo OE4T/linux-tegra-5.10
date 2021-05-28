@@ -581,6 +581,12 @@ int vi_capture_setup(
 
 	uint32_t vi_inst = 0;
 
+	if (setup->csi_stream_id >= MAX_NVCSI_STREAM_IDS ||
+		setup->virtual_channel_id >= MAX_VIRTUAL_CHANNEL_PER_STREAM) {
+		dev_err(chan->dev, "Invalid stream id or virtual channel id\n");
+		return -EINVAL;
+	}
+
 	if (chan->vi_capture_pdev != NULL) {
 		struct tegra_capture_vi_data *info =
 			platform_get_drvdata(chan->vi_capture_pdev);
@@ -625,12 +631,6 @@ int vi_capture_setup(
 		dev_err(chan->dev,
 			"%s: already setup, release first\n", __func__);
 		return -EEXIST;
-	}
-
-	if (setup->csi_stream_id >= MAX_NVCSI_STREAM_IDS ||
-		setup->virtual_channel_id >= MAX_VIRTUAL_CHANNEL_PER_STREAM) {
-		dev_err(chan->dev, "Invalid stream id or virtual channel id\n");
-		return -EINVAL;
 	}
 
 	dev_dbg(chan->dev, "chan flags %u\n", setup->channel_flags);
