@@ -4711,9 +4711,11 @@ static int ether_init_plat_resources(struct platform_device *pdev,
 		osi_core->xpcs_base = NULL;
 	}
 
-	ret = ether_configure_car(pdev, pdata);
-	if (ret < 0) {
-		dev_err(&pdev->dev, "failed to get clks/reset");
+	if (osi_core->use_virtualization == OSI_DISABLE) {
+		ret = ether_configure_car(pdev, pdata);
+		if (ret < 0) {
+			dev_err(&pdev->dev, "failed to get clks/reset");
+		}
 	}
 
 	return ret;
