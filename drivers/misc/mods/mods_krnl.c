@@ -2360,11 +2360,6 @@ static long mods_krnl_ioctl(struct file  *fp,
 			   esc_mods_bpmp_init_pcie_ep_pll,
 			   MODS_INIT_PCIE_EP_PLL);
 		break;
-	case MODS_ESC_FLUSH_CPU_CACHE_RANGE:
-		MODS_IOCTL_NORETVAL(MODS_ESC_FLUSH_CPU_CACHE_RANGE,
-				    esc_mods_flush_cpu_cache_range,
-				    MODS_FLUSH_CPU_CACHE_RANGE);
-		break;
 	case MODS_ESC_DMA_ALLOC_COHERENT:
 		MODS_IOCTL(MODS_ESC_DMA_ALLOC_COHERENT,
 			   esc_mods_dma_alloc_coherent,
@@ -2441,6 +2436,13 @@ static long mods_krnl_ioctl(struct file  *fp,
 	case MODS_ESC_MEMORY_BARRIER:
 		MODS_IOCTL_VOID(MODS_ESC_MEMORY_BARRIER,
 				esc_mods_memory_barrier);
+		break;
+#endif
+#ifdef CONFIG_ARM64
+	case MODS_ESC_FLUSH_CPU_CACHE_RANGE:
+		MODS_IOCTL_NORETVAL(MODS_ESC_FLUSH_CPU_CACHE_RANGE,
+				    esc_mods_flush_cpu_cache_range,
+				    MODS_FLUSH_CPU_CACHE_RANGE);
 		break;
 #endif
 #ifdef CONFIG_ARCH_TEGRA

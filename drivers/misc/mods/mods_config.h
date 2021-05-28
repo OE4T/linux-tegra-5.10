@@ -2,7 +2,7 @@
 /*
  * mods_config.h - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2008-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2008-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -23,9 +23,13 @@
 
 #define MODS_KERNEL_VERSION LINUX_VERSION_CODE
 
-#if KERNEL_VERSION(2, 6, 30) <= MODS_KERNEL_VERSION
+#if KERNEL_VERSION(2, 6, 30) <= MODS_KERNEL_VERSION && \
+		KERNEL_VERSION(4, 16, 0) > MODS_KERNEL_VERSION && \
+		defined(CONFIG_X86)
 #       define MODS_HAS_DMA_OPS 1
-#else
+#endif
+
+#if KERNEL_VERSION(2, 6, 30) > MODS_KERNEL_VERSION
 #       define MODS_HASNT_PCI_RESCAN_BUS 1
 #endif
 
@@ -60,12 +64,6 @@
 #       define MODS_HASNT_PCI_LOCK_RESCAN_REMOVE 1
 #endif
 
-#if defined(CONFIG_ARM64) && \
-		KERNEL_VERSION(3, 15, 0) <= MODS_KERNEL_VERSION && \
-		KERNEL_VERSION(4, 14, 0) > MODS_KERNEL_VERSION
-#       define MODS_HAS_NONCOH_DMA_OPS 1
-#endif
-
 #if KERNEL_VERSION(3, 16, 0) <= MODS_KERNEL_VERSION && \
 		defined(CONFIG_VT_HW_CONSOLE_BINDING)
 #       define MODS_HAS_CONSOLE_BINDING 1
@@ -75,24 +73,27 @@
 #       define MODS_HAS_PNV_PCI_GET_NPU_DEV 1
 #endif
 
-#if KERNEL_VERSION(4, 12, 0) <= MODS_KERNEL_VERSION && !defined(CONFIG_PPC64)
-#       define MODS_HAS_SET_MEMORY_HEADER 1
+#if KERNEL_VERSION(4, 12, 0) <= MODS_KERNEL_VERSION && \
+		KERNEL_VERSION(4, 13, 0) > MODS_KERNEL_VERSION && \
+		defined(CONFIG_X86)
+#       define MODS_HAS_ASM_SET_MEMORY_HEADER 1
 #endif
 
 #if KERNEL_VERSION(4, 13, 0) <= MODS_KERNEL_VERSION
 #       define MODS_HAS_FLR_SUPPORT
-#if     KERNEL_VERSION(4, 17, 0) <= MODS_KERNEL_VERSION
-#              define MODS_PCIE_FLR_HAS_ERR
-#endif
+#       define MODS_HAS_SET_MEMORY_HEADER 1
 #endif
 
 #if KERNEL_VERSION(4, 14, 0) <= MODS_KERNEL_VERSION
 #       define MODS_HAS_KERNEL_WRITE
 #endif
 
-#if KERNEL_VERSION(4, 16, 0) > MODS_KERNEL_VERSION && defined(CONFIG_X86)
-#       define MODS_HAS_MAP_SG_ATTRS
+#if KERNEL_VERSION(4, 17, 0) <= MODS_KERNEL_VERSION
+#       define MODS_PCIE_FLR_HAS_ERR
 #endif
 
+#if defined(CONFIG_ARM64) && KERNEL_VERSION(5, 10, 0) <= MODS_KERNEL_VERSION
+#       define MODS_HAS_ARM64_READ_FTR_REG 1
+#endif
 
 #endif /* _MODS_CONFIG_H_  */

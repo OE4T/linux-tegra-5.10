@@ -2,7 +2,7 @@
 /*
  * mods_mem.c - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2008-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2008-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -25,6 +25,10 @@
 #if defined(MODS_HAS_SET_DMA_MASK)
 #include <linux/dma-mapping.h>
 #include <linux/of.h>
+#endif
+
+#ifdef CONFIG_ARCH64
+#include <linux/cache.h>
 #endif
 
 static int mods_post_alloc(struct mods_client     *client,
@@ -2232,26 +2236,42 @@ failed:
 	LOG_EXT();
 	return err;
 }
+#endif
 
+#ifdef CONFIG_ARM64
 static void clear_contiguous_cache(struct mods_client *client,
 				   u64                 virt_start,
 				   u64                 phys_start,
 				   u32                 size)
 {
+#ifdef CONFIG_ARCH_TEGRA
+	__flush_dcache_area((void *)(size_t)(virt_start), size);
+#else
+	/* __flush_dcache_area is not exported in upstream kernels */
+	u64 end = virt_start + size;
+	u64 cur;
+	u32 d_line_shift = 4; /* Fallback for kernel 5.9 or older */
+	u64 d_size;
+
+#ifdef MODS_HAS_ARM64_READ_FTR_REG
+	{
+		const u64 ctr_el0 = read_sanitised_ftr_reg(SYS_CTR_EL0);
+
+		d_line_shift = cpuid_feature_extract_unsigned_field(ctr_el0,
+							CTR_DMINLINE_SHIFT);
+	}
+#endif
+
+	d_size = 4 << d_line_shift;
+	cur = virt_start & ~(d_size - 1);
+	do {
+		asm volatile("dc civac, %0" : : "r" (cur) : "memory");
+	} while (cur += d_size, cur < end);
+#endif
+
 	cl_debug(DEBUG_MEM_DETAILED,
 		 "clear cache virt 0x%llx phys 0x%llx size 0x%x\n",
 		 virt_start, phys_start, size);
-
-#ifdef CONFIG_ARM64
-	/* Flush L1 cache */
-	__flush_dcache_area((void *)(size_t)(virt_start), size);
-#else
-	/* Flush L1 cache */
-	__cpuc_flush_dcache_area((void *)(size_t)(virt_start), size);
-
-	/* Now flush L2 cache. */
-	outer_flush_range(phys_start, phys_start + size);
-#endif
 }
 
 static void clear_entry_cache_mappings(struct mods_client    *client,
@@ -2341,10 +2361,15 @@ int esc_mods_flush_cpu_cache_range(struct mods_client                *client,
 	LOG_ENT();
 
 	if (irqs_disabled() || in_interrupt() ||
-	    p->virt_addr_start > p->virt_addr_end ||
-	    p->flags == MODS_INVALIDATE_CPU_CACHE) {
+	    p->virt_addr_start > p->virt_addr_end) {
 
-		cl_debug(DEBUG_MEM_DETAILED, "cannot clear cache\n");
+		cl_debug(DEBUG_MEM_DETAILED, "cannot flush cache\n");
+		LOG_EXT();
+		return -EINVAL;
+	}
+
+	if (p->flags == MODS_INVALIDATE_CPU_CACHE) {
+		cl_debug(DEBUG_MEM_DETAILED, "cannot invalidate cache\n");
 		LOG_EXT();
 		return -EINVAL;
 	}
@@ -2397,7 +2422,6 @@ int esc_mods_flush_cpu_cache_range(struct mods_client                *client,
 	LOG_EXT();
 	return OK;
 }
-
 #endif
 
 static int mods_post_alloc(struct mods_client     *client,
@@ -2452,8 +2476,7 @@ static int mods_post_alloc(struct mods_client     *client,
 		/* On systems with SWIOTLB active, disable default DMA mapping
 		 * because we don't support scatter-gather lists.
 		 */
-#if defined(CONFIG_SWIOTLB) && defined(MODS_HAS_DMA_OPS) && \
-	defined(MODS_HAS_MAP_SG_ATTRS)
+#if defined(CONFIG_SWIOTLB) && defined(MODS_HAS_DMA_OPS)
 		const struct dma_map_ops *ops = get_dma_ops(&dev->dev);
 
 		if (ops->map_sg == swiotlb_map_sg_attrs)

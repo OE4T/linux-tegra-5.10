@@ -2,7 +2,7 @@
 /*
  * mods_pci.c - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2008-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2008-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -820,8 +820,7 @@ int esc_mods_get_iommu_state_2(struct mods_client          *client,
 {
 #if !defined(CONFIG_SWIOTLB)
 	state->state = MODS_SWIOTLB_DISABLED;
-#elif defined(MODS_HAS_DMA_OPS) && \
-	(defined(MODS_HAS_NONCOH_DMA_OPS) || defined(MODS_HAS_MAP_SG_ATTRS))
+#elif defined(MODS_HAS_DMA_OPS)
 
 	const struct dma_map_ops *ops;
 	struct pci_dev           *dev;
@@ -837,22 +836,14 @@ int esc_mods_get_iommu_state_2(struct mods_client          *client,
 
 	ops = get_dma_ops(&dev->dev);
 
-#if defined(MODS_HAS_NONCOH_DMA_OPS)
-	state->state = (ops != &noncoherent_swiotlb_dma_ops &&
-			ops != &coherent_swiotlb_dma_ops)
-		       ? MODS_SWIOTLB_DISABLED : MODS_SWIOTLB_ACTIVE;
-#else
 	state->state = ops->map_sg != swiotlb_map_sg_attrs
 		       ? MODS_SWIOTLB_DISABLED : MODS_SWIOTLB_ACTIVE;
-#endif
+
 	pci_dev_put(dev);
 	LOG_EXT();
 
-#elif defined(CONFIG_PPC64) || defined(CONFIG_ARM64)
-	/* No way to detect, assume SW I/O TLB is disabled on ppc64/arm64 */
-	state->state = MODS_SWIOTLB_DISABLED;
 #else
-	/* No way to detect on old kernel */
+	/* No way to detect it */
 	state->state = MODS_SWIOTLB_INDETERMINATE;
 #endif
 	return OK;

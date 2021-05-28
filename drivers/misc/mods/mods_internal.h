@@ -32,8 +32,10 @@
 #include "mods_config.h"
 #include "mods.h"
 
-#ifdef MODS_HAS_SET_MEMORY_HEADER
+#ifdef MODS_HAS_ASM_SET_MEMORY_HEADER
 #include <asm/set_memory.h>
+#elif defined(MODS_HAS_SET_MEMORY_HEADER)
+#include <linux/set_memory.h>
 #endif
 
 #ifndef true
@@ -473,6 +475,11 @@ int esc_mods_iommu_dma_unmap_memory(struct mods_client               *client,
 int esc_mods_memory_barrier(struct mods_client *client);
 #endif
 
+#ifdef CONFIG_ARM64
+int esc_mods_flush_cpu_cache_range(struct mods_client                *client,
+				   struct MODS_FLUSH_CPU_CACHE_RANGE *p);
+#endif
+
 #if defined(CONFIG_PPC64)
 /* ppc64 */
 int esc_mods_set_ppc_tce_bypass(struct mods_client             *client,
@@ -614,8 +621,6 @@ int esc_mods_reset_assert(struct mods_client       *client,
 			  struct MODS_RESET_HANDLE *p);
 int esc_mods_get_rst_handle(struct mods_client          *client,
 			    struct MODS_GET_RESET_HANDLE *p);
-int esc_mods_flush_cpu_cache_range(struct mods_client                *client,
-				   struct MODS_FLUSH_CPU_CACHE_RANGE *p);
 int esc_mods_dma_alloc_coherent(struct mods_client                  *client,
 				struct MODS_DMA_COHERENT_MEM_HANDLE *p);
 int esc_mods_dma_free_coherent(struct mods_client                  *client,
