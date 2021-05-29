@@ -1,7 +1,7 @@
 /*
  * PVA mailbox code
  *
- * Copyright (c) 2016-2020, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -32,6 +32,7 @@
 #include "dev.h"
 #include "pva.h"
 #include "pva_mailbox.h"
+#include "pva-interface.h"
 
 static u32 pva_get_mb_reg_id(u32 i)
 {
@@ -45,7 +46,7 @@ static u32 pva_get_mb_reg_id(u32 i)
 	return mb_reg_id[i];
 }
 
-static int pva_mailbox_send_cmd(struct pva *pva, struct pva_cmd *cmd,
+static int pva_mailbox_send_cmd(struct pva *pva, struct pva_cmd_s *cmd,
 				u32 nregs)
 {
 	struct platform_device *pdev = pva->pdev;
@@ -64,6 +65,8 @@ static int pva_mailbox_send_cmd(struct pva *pva, struct pva_cmd *cmd,
 	WARN_ON((status & PVA_READY) == 0);
 	WARN_ON((status & PVA_BUSY));
 
+	/*set MSB of mailbox 0 to trigger FW interrupt*/
+	cmd->mbox[0] |= PVA_BIT(31);
 	/* Write all of the other command mailbox
 	 * registers before writing mailbox 0.
 	 */
@@ -121,7 +124,7 @@ void pva_mailbox_isr(struct pva *pva)
 			pva->version_config->read_mailbox(pdev,
 							PVA_MBOX_COMMAND);
 	pva->version_config->read_status_interface(pva,
-				PVA_MBOX_INTERFACE, int_status,
+				PVA_MAILBOX_INDEX, int_status,
 				&pva->cmd_status_regs[PVA_MAILBOX_INDEX]);
 	/* Clear the mailbox interrupt status */
 	int_status = int_status & PVA_READY;
@@ -133,7 +136,7 @@ void pva_mailbox_isr(struct pva *pva)
 }
 
 int pva_mailbox_send_cmd_sync_locked(struct pva *pva,
-			struct pva_cmd *cmd, u32 nregs,
+			struct pva_cmd_s *cmd, u32 nregs,
 			struct pva_cmd_status_regs *status_regs)
 {
 	int err = 0;
@@ -179,7 +182,7 @@ err_invalid_parameter:
 }
 
 int pva_mailbox_send_cmd_sync(struct pva *pva,
-			struct pva_cmd *cmd, u32 nregs,
+			struct pva_cmd_s *cmd, u32 nregs,
 			struct pva_cmd_status_regs *status_regs)
 {
 	int err = 0;

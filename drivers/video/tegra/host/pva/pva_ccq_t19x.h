@@ -1,7 +1,7 @@
 /*
  * PVA Command Queue Interface handling
  *
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -23,6 +23,6 @@
 
 #include "pva.h"
 
-int pva_ccq_send_task_t19x(struct pva *pva, struct pva_cmd *cmd);
+int pva_ccq_send_task_t19x(struct pva *pva, struct pva_cmd_s *cmd);
 
 #endif

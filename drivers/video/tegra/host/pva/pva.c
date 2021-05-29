@@ -60,6 +60,7 @@
 #include "pva_version_config_t19x.h"
 #include "pva_ccq_t19x.h"
 #include "class_ids_t194.h"
+#include "pva-ucode-header.h"
 
 /* Map PVA-A and PVA-B to respective configuration items in nvhost */
 static struct of_device_id tegra_pva_of_match[] = {
@@ -140,7 +141,7 @@ static int pva_init_fw(struct platform_device *pdev)
 
 	/* check the type of segments and their offset and address */
 	for (w = 0; w < fw_info->hdr->nsegments; w++) {
-		struct pva_ucode_seg *useg = (struct pva_ucode_seg *)
+		struct pva_ucode_seg_s *useg = (struct pva_ucode_seg_s *)
 			((void *)ucode_ptr + PVA_UCODE_SEG_HDR_LENGTH
 				+ (PVA_UCODE_SEG_HDR_LENGTH * w));
 
@@ -261,6 +262,7 @@ static int pva_read_ucode(struct platform_device *pdev,
 	const struct firmware *ucode_fw;
 	struct pva_fw *fw_info = &pva->fw_info;
 	struct pva_trace_log *trace = &pva->pva_trace;
+	u32 segment_end_addr = 0U;
 
 	nvhost_dbg_fn("loading pva fw:%s", fw_name);
 
@@ -305,7 +307,7 @@ static int pva_read_ucode(struct platform_device *pdev,
 		ucode_ptr[w] = le32_to_cpu(((__le32 *)ucode_fw->data)[w]);
 
 	/* set the header location accordingly */
-	fw_info->hdr = (struct pva_ucode_hdr *)ucode_ptr;
+	fw_info->hdr = (struct pva_ucode_hdr_s *)ucode_ptr;
 
 	/* check for the magic number  and header version*/
 	if ((fw_info->hdr->magic != PVA_HDR_MAGIC) &&
@@ -317,7 +319,7 @@ static int pva_read_ucode(struct platform_device *pdev,
 	/* find the size needed for priv2 buffer allocation */
 	/* check the type of segments and their offset and address */
 	for (w = 0; w < fw_info->hdr->nsegments; w++) {
-		struct pva_ucode_seg *useg = (struct pva_ucode_seg *)
+		struct pva_ucode_seg_s *useg = (struct pva_ucode_seg_s *)
 			((void *)ucode_ptr + PVA_UCODE_SEG_HDR_LENGTH
 				+ (PVA_UCODE_SEG_HDR_LENGTH * w));
 
@@ -336,8 +338,7 @@ static int pva_read_ucode(struct platform_device *pdev,
 			useg->size = 0;
 			break;
 		case PVA_UCODE_SEG_R5_OVERLAY:
-		case PVA_UCODE_SEG_R5_CRASHDUMP:
-		case PVA_UCODE_SEG_VPU_CRASHDUMP:
+		case PVA_UCODE_SEG_CRASHDUMP:
 			fw_info->priv2_buffer.size += useg->size;
 			break;
 		case PVA_UCODE_SEG_TRACE_LOG:
@@ -358,6 +359,25 @@ static int pva_read_ucode(struct platform_device *pdev,
 			trace->offset = useg->offset;
 
 			fw_info->priv2_buffer.size += useg->size;
+			segment_end_addr = useg->addr + useg->size;
+			break;
+		case PVA_UCODE_SEG_CODE_COVERAGE:
+			fw_info->priv2_buffer.size =
+				 ALIGN(fw_info->priv2_buffer.size + 64, 64);
+
+			useg->addr = ALIGN(segment_end_addr + 64, 64);
+			fw_info->priv2_buffer.size += useg->size;
+			segment_end_addr = useg->addr + useg->size;
+			break;
+		case PVA_UCODE_SEG_DEBUG_LOG:
+			fw_info->priv2_buffer.size =
+				 ALIGN(fw_info->priv2_buffer.size + 64, 64);
+
+			useg->addr = ALIGN(segment_end_addr + 64, 64);
+			fw_info->priv2_buffer.size += useg->size;
+			segment_end_addr = useg->addr + useg->size;
+			break;
+		default:
 			break;
 		}
 	}
@@ -390,23 +410,20 @@ static int pva_read_ucode(struct platform_device *pdev,
 	/* set the crashdump offsets and addresses */
 	for (w = 0; w < fw_info->hdr->nsegments; w++) {
 		struct pva_seg_info *seg_info = NULL;
-		struct pva_ucode_seg *useg = (struct pva_ucode_seg *)
-			((void *)ucode_ptr + PVA_UCODE_SEG_HDR_LENGTH
-				+ (PVA_UCODE_SEG_HDR_LENGTH * w));
+		struct pva_ucode_seg_s *useg =
+			(struct pva_ucode_seg_s *)((void *)ucode_ptr +
+						   PVA_UCODE_SEG_HDR_LENGTH +
+						   (PVA_UCODE_SEG_HDR_LENGTH *
+						    w));
 		int offset = useg->addr - fw_info->priv2_reg_offset;
 
 		switch (useg->type) {
 		case PVA_UCODE_SEG_R5_OVERLAY:
 			fw_info->priv2_reg_offset = useg->addr;
 			break;
-		case PVA_UCODE_SEG_R5_CRASHDUMP:
-			seg_info = &pva->debugfs_entry_r5.seg_info;
+		case PVA_UCODE_SEG_CRASHDUMP:
 			break;
-		case PVA_UCODE_SEG_VPU_CRASHDUMP:
-			if (useg->id == 0)
-				seg_info = &pva->debugfs_entry_vpu0.seg_info;
-			else
-				seg_info = &pva->debugfs_entry_vpu1.seg_info;
+		default:
 			break;
 		}
 
@@ -415,9 +432,8 @@ static int pva_read_ucode(struct platform_device *pdev,
 			seg_info->size = useg->size;
 			seg_info->addr =
 				(void *)((u8 *)fw_info->priv2_buffer.va +
-								offset);
+					 offset);
 		}
-
 	}
 clean_up:
 	release_firmware(ucode_fw);
@@ -441,80 +457,12 @@ load_fw_err:
 	return err;
 }
 
-static int pva_alloc_vpu_function_table(struct pva *pva,
-					struct pva_func_table *fn_table)
-{
-	uint32_t flags = PVA_CMD_INT_ON_ERR | PVA_CMD_INT_ON_COMPLETE;
-	struct pva_cmd_status_regs status;
-	dma_addr_t dma_handle;
-	uint32_t table_size;
-	struct pva_cmd cmd;
-	uint32_t entries;
-	void *va;
-	int err = 0;
-	u32 nregs;
-
-	nregs = pva_cmd_get_vpu_func_table(&cmd, 0, 0, flags);
-
-	err = pva->version_config->submit_cmd_sync(pva, &cmd, nregs, &status);
-	if (err < 0) {
-		nvhost_warn(&pva->pdev->dev,
-			"mbox function table cmd failed: %d\n", err);
-		goto end;
-	}
-
-	table_size = status.status[PVA_CMD_STATUS4_INDEX];
-	entries = status.status[PVA_CMD_STATUS5_INDEX];
-
-	va = dma_alloc_coherent(&pva->pdev->dev, table_size,
-				&dma_handle, GFP_KERNEL);
-	if (va == NULL) {
-		nvhost_warn(&pva->pdev->dev, "Unable to allocate the virtual address\n");
-		err =  -ENOMEM;
-		goto end;
-	}
-
-	fn_table->addr = va;
-	fn_table->size = table_size;
-	fn_table->handle = dma_handle;
-	fn_table->entries = entries;
-
-end:
-	return err;
-}
-
-static int pva_get_vpu_function_table(struct pva *pva,
-					struct pva_func_table *fn_table)
-{
-	uint32_t flags = PVA_CMD_INT_ON_ERR | PVA_CMD_INT_ON_COMPLETE;
-	struct pva_cmd_status_regs status;
-	dma_addr_t dma_handle;
-	uint32_t table_size;
-	struct pva_cmd cmd;
-	int err = 0;
-	u32 nregs;
-
-	dma_handle = fn_table->handle;
-	table_size = fn_table->size;
-
-	nregs = pva_cmd_get_vpu_func_table(&cmd, table_size, dma_handle, flags);
-
-	/* Submit request to PVA and wait for response */
-	err = pva->version_config->submit_cmd_sync(pva, &cmd, nregs, &status);
-	if (err < 0)
-		nvhost_warn(&pva->pdev->dev,
-			"mbox function table cmd failed: %d\n", err);
-
-	return err;
-
-}
-
 int pva_get_firmware_version(struct pva *pva,
 			     struct pva_version_info *info)
 {
 	uint32_t flags = PVA_CMD_INT_ON_ERR | PVA_CMD_INT_ON_COMPLETE;
 	struct pva_cmd_status_regs status;
-	struct pva_cmd cmd;
+	struct pva_cmd_s cmd;
 	int err = 0;
 	u32 nregs;
 
@@ -542,7 +490,7 @@ int pva_boot_kpi(struct pva *pva,
 {
 	uint32_t flags = PVA_CMD_INT_ON_ERR | PVA_CMD_INT_ON_COMPLETE;
 	struct pva_cmd_status_regs status;
-	struct pva_cmd cmd;
+	struct pva_cmd_s cmd;
 	int err = 0;
 	u32 nregs;
 
@@ -562,39 +510,6 @@ int pva_boot_kpi(struct pva *pva,
 	return err;
 }
 
-void pva_dealloc_vpu_function_table(struct pva *pva,
-					struct pva_func_table *fn_table)
-{
-	dma_addr_t dma_handle = fn_table->handle;
-	uint32_t table_size = fn_table->size;
-	void *va = fn_table->addr;
-
-	if (va)
-		dma_free_coherent(&pva->pdev->dev,
-				table_size, va, dma_handle);
-}
-
-int pva_alloc_and_populate_function_table(struct pva *pva,
-					struct pva_func_table *fn_table)
-{
-	int ret = 0;
-
-	ret = pva_alloc_vpu_function_table(pva, fn_table);
-	if (ret < 0)
-		goto err_alloc_vpu_function_table;
-
-	ret = pva_get_vpu_function_table(pva, fn_table);
-	if (ret < 0)
-		goto err_get_vpu_function_table;
-
-	return 0;
-
-err_get_vpu_function_table:
-	pva_dealloc_vpu_function_table(pva, fn_table);
-err_alloc_vpu_function_table:
-	return ret;
-
-}
 
 int pva_set_log_level(struct pva *pva,
 		      u32 log_level,
@@ -602,7 +517,7 @@ int pva_set_log_level(struct pva *pva,
 {
 	uint32_t flags = PVA_CMD_INT_ON_ERR | PVA_CMD_INT_ON_COMPLETE;
 	struct pva_cmd_status_regs status;
-	struct pva_cmd cmd;
+	struct pva_cmd_s cmd;
 	int err = 0;
 	u32 nregs;
 
@@ -623,44 +538,6 @@ int pva_set_log_level(struct pva *pva,
 			"mbox set log level failed: %d\n", err);
 
 	return err;
-}
-
-static void pva_restore_attributes(struct pva * pva)
-{
-	struct nvhost_queue_pool *pool = pva->pool;
-	struct pva_queue_set_attribute set_attr;
-	struct pva_queue_attribute *attrs;
-	unsigned int i = 0;
-	int err;
-
-	set_attr.pva = pva;
-	set_attr.bootup = true;
-
-	mutex_lock(&pool->queue_lock);
-	for_each_set_bit_from(i, &pool->alloc_table, pool->max_queue_cnt) {
-		u32 id;
-
-		mutex_lock(&pool->queues[i].attr_lock);
-		attrs = pool->queues[i].attr;
-		if (attrs == NULL) {
-			mutex_unlock(&pool->queues[i].attr_lock);
-			continue;
-		}
-
-		for (id = 1; id < QUEUE_ATTR_MAX; id++) {
-			set_attr.attr = &attrs[id];
-			err = nvhost_queue_set_attr(&pool->queues[i],
-						    &set_attr);
-			if (err) {
-				dev_err(&pva->pdev->dev,
-					"unable to set attribute %u to queue %u\n",
-					id, i);
-			}
-		}
-
-		mutex_unlock(&pool->queues[i].attr_lock);
-	}
-	mutex_unlock(&pool->queue_lock);
 }
 
 int pva_finalize_poweron(struct platform_device *pdev)
@@ -692,9 +569,6 @@ int pva_finalize_poweron(struct platform_device *pdev)
 	}
 
 	pva_set_log_level(pva, pva->log_level, true);
-
-	/* Restore the attributes */
-	pva_restore_attributes(pva);
 
 	pva->booted = true;
 

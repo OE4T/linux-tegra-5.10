@@ -3,7 +3,7 @@
  *
  * Tegra PVA header
  *
- * Copyright (c) 2016-2020, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -26,8 +26,6 @@
 
 #include "nvhost_queue.h"
 #include "pva_regs.h"
-
-extern const struct file_operations tegra_pva_ctrl_ops;
 
 enum pva_submit_mode {
 	PVA_SUBMIT_MODE_MAILBOX		= 0,
@@ -280,33 +278,6 @@ struct pva {
  *
  */
 void pva_trace_copy_to_ftrace(struct pva *pva);
-
-/**
- * @brief	Finalize the PVA Power-on-Sequence.
- *
- * This function called from host subsystem driver after the PVA
- * partition has been brought up, clocks enabled and reset deasserted.
- * In production mode, the function needs to wait until the ready  bit
- * within the PVA aperture has been set. After that enable the PVA IRQ.
- * Register the queue priorities on the PVA.
- *
- * @param pdev	Pointer to PVA device
- * @return:	0 on Success or negative error code
- *
- */
-int pva_finalize_poweron(struct platform_device *pdev);
-
-/**
- * @brief	Prepare PVA poweroff.
- *
- * This function called from host subsystem driver before turning off
- * the PVA. The function should turn off the PVA IRQ.
- *
- * @param pdev	Pointer to PVA device
- * @return	0 on Success or negative error code
- *
- */
-int pva_prepare_poweroff(struct platform_device *pdev);
 
 /**
  * @brief	Register PVA ISR

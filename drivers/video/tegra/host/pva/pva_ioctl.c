@@ -33,6 +33,21 @@
 #include "dev.h"
 #include "nvhost_buffer.h"
 #include "nvhost_acm.h"
+#include "pva_vpu_exe.h"
+
+struct nvpva_client_context {
+	/* PID of client process which uses this context */
+	pid_t pid;
+
+	/* This tracks how many queues active now */
+	u32 active_queue_requests;
+
+	/* Data structure to track pinned buffers for this client */
+	struct nvhost_buffers *buffers;
+
+	/* Data structure to track elf context for vpu parsing */
+	struct nvpva_elf_context elf_ctx;
+};
 
 /**
  * @brief pva_private - Per-fd specific data
@@ -45,6 +60,7 @@ struct pva_private {
 	struct pva *pva;
 	struct nvhost_queue *queue;
 	struct nvhost_buffers *buffers;
+	struct nvpva_client_context *client;
 };
 
 /**
@@ -527,7 +543,6 @@ static int pva_open(struct inode *inode, struct file *file)
 	struct nvhost_device_data *pdata = container_of(inode->i_cdev,
 					struct nvhost_device_data, ctrl_cdev);
 	struct platform_device *pdev = pdata->pdev;
-	struct pva_queue_attribute *attr;
 	struct pva *pva = pdata->private_data;
 	struct pva_private *priv;
 	int err = 0;
@@ -536,13 +551,6 @@ static int pva_open(struct inode *inode, struct file *file)
 	if (priv == NULL) {
 		err = -ENOMEM;
 		goto err_alloc_priv;
-	}
-
-	attr = kzalloc((sizeof(*attr) * QUEUE_ATTR_MAX), GFP_KERNEL);
-	if (!attr) {
-		err = -ENOMEM;
-		dev_info(&pdev->dev, "unable to allocate memory for attributes\n");
-		goto err_alloc_attr;
 	}
 
 	file->private_data = priv;
@@ -566,15 +574,6 @@ static int pva_open(struct inode *inode, struct file *file)
 		goto err_alloc_buffer;
 	}
 
-	/* Ensure that the stashed attributes are valid */
-	mutex_lock(&priv->queue->attr_lock);
-	priv->queue->attr = attr;
-	mutex_unlock(&priv->queue->attr_lock);
-
-	/* Restore the default attributes in hardware */
-	if (err < 0)
-		dev_warn(&pdev->dev, "failed to restore queue attributes\n");
-
 	return nonseekable_open(inode, file);
 
 err_alloc_buffer:
@@ -582,8 +581,6 @@ err_alloc_buffer:
 err_alloc_queue:
 	nvhost_module_remove_client(pdev, priv);
 err_add_client:
-	kfree(attr);
-err_alloc_attr:
 	kfree(priv);
 err_alloc_priv:
 	return err;
@@ -592,16 +589,6 @@ err_alloc_priv:
 static int pva_release(struct inode *inode, struct file *file)
 {
 	struct pva_private *priv = file->private_data;
-
-	/*
-	 * Queue attributes are referenced from the queue
-	 * structure. Release the attributes before the queue
-	 * reference.
-	 */
-	mutex_lock(&priv->queue->attr_lock);
-	kfree(priv->queue->attr);
-	priv->queue->attr = NULL;
-	mutex_unlock(&priv->queue->attr_lock);
 
 	/*
 	 * Release handle to the queue (on-going tasks have their

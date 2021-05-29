@@ -49,7 +49,7 @@
 #include "nvdec/nvdec.h"
 #endif
 #if IS_ENABLED(CONFIG_TEGRA_GRHOST_PVA)
-#include "pva/pva.h"
+#include "pva/pva_nvhost.h"
 #endif
 #include "hardware_t194.h"
 #if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVDLA)

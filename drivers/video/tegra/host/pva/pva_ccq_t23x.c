@@ -1,7 +1,7 @@
 /*
  * PVA Command Queue Interface handling
  *
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -60,7 +60,7 @@ static int pva_ccq_wait(struct pva *pva, int timeout, unsigned int queue_id)
 	return -ETIMEDOUT;
 }
 
-int pva_ccq_send_task_t23x(struct pva *pva, struct pva_cmd *cmd)
+int pva_ccq_send_task_t23x(struct pva *pva, struct pva_cmd_s *cmd)
 {
 	int err = 0;
 	unsigned int queue_id = 0;
@@ -133,7 +133,7 @@ int pva_ccq_wait_event(struct pva *pva, unsigned int queue_id, int wait_time)
 }
 
 int pva_ccq_send_cmd_sync(struct pva *pva,
-			struct pva_cmd *cmd, u32 nregs,
+			struct pva_cmd_s *cmd, u32 nregs,
 			struct pva_cmd_status_regs *status_regs)
 {
 	int err = 0;
@@ -185,7 +185,7 @@ err_invalid_parameter:
 }
 
 int pva_send_cmd_sync(struct pva *pva,
-			struct pva_cmd *cmd, u32 nregs,
+			struct pva_cmd_s *cmd, u32 nregs,
 			struct pva_cmd_status_regs *status_regs)
 {
 	int err = 0;
@@ -203,7 +203,7 @@ int pva_send_cmd_sync(struct pva *pva,
 	return err;
 }
 int pva_send_cmd_sync_locked(struct pva *pva,
-			struct pva_cmd *cmd, u32 nregs,
+			struct pva_cmd_s *cmd, u32 nregs,
 			struct pva_cmd_status_regs *status_regs)
 {
 	int err = 0;

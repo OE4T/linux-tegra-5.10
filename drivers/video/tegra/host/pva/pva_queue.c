@@ -46,7 +46,7 @@
 #include "nvhost_gos.h"
 #include <linux/seq_file.h>
 #include "pva.h"
-#include "pva-task.h"
+#include "bringup/pva-task.h"
 #include "nvhost_buffer.h"
 #include "nvhost_queue.h"
 #include "pva_mailbox.h"
@@ -57,9 +57,6 @@
 #include "pva-vpu-perf.h"
 #include "pva-interface.h"
 #include <uapi/linux/nvpva_ioctl.h>
-#include "pva_vpu_exe.h"
-#include "nvpva_client.h"
-
 #include <trace/events/nvhost_pva.h>
 
 #define ACTION_LIST_FENCE_SIZE 13
@@ -1504,7 +1501,7 @@ static int pva_task_submit_mmio_ccq(struct pva_submit_task *task,
 	struct nvhost_queue *queue = task->queue;
 	u32 old_maxval, new_maxval;
 	u64 fifo_flags = PVA_FIFO_INT_ON_ERR;
-	struct pva_cmd cmd;
+	struct pva_cmd_s cmd;
 	u32 nregs = 0;
 	int err = 0;
 
@@ -1538,7 +1535,7 @@ static int pva_task_submit_mailbox(struct pva_submit_task *task,
 	struct nvhost_queue *queue = task->queue;
 	struct pva_cmd_status_regs status;
 	u32 old_maxval, new_maxval;
-	struct pva_cmd cmd;
+	struct pva_cmd_s cmd;
 	u32 flags, nregs;
 	int err = 0;
 
@@ -1712,53 +1709,6 @@ static int pva_queue_submit(struct nvhost_queue *queue, void *args)
 	return err;
 }
 
-static int pva_queue_set_attribute(struct nvhost_queue *queue, void *args)
-{
-	uint32_t flags = PVA_CMD_INT_ON_ERR | PVA_CMD_INT_ON_COMPLETE;
-	struct pva_queue_set_attribute *set_attr = args;
-	struct pva_queue_attribute *attr = set_attr->attr;
-	struct pva_cmd_status_regs status_regs;
-	struct pva_cmd cmd;
-	int err = 0;
-	u32 nregs;
-
-	nregs = pva_cmd_set_queue_attributes(&cmd, queue->id, attr->id,
-			attr->value,
-			flags);
-
-	/* Submit request to PVA and wait for response */
-	if (set_attr->bootup) {
-		err = set_attr->pva->version_config->submit_cmd_sync_locked(
-							set_attr->pva,
-							&cmd,
-							nregs,
-							&status_regs);
-	} else {
-		err = set_attr->pva->version_config->submit_cmd_sync(
-							set_attr->pva,
-							&cmd,
-							nregs,
-							&status_regs);
-	}
-	if (err < 0) {
-		nvhost_warn(&set_attr->pva->pdev->dev,
-			    "Failed to set attributes: %d\n",
-			    err);
-		goto end;
-	}
-
-	/* Ensure that response is valid */
-	if (status_regs.error != PVA_ERR_NO_ERROR) {
-		nvhost_warn(&set_attr->pva->pdev->dev,
-			    "PVA Q attribute rejected: %u\n",
-			    status_regs.error);
-		err = -EINVAL;
-	}
-
- end:
-	return err;
-}
-
 static void pva_queue_cleanup_fence(struct nvdev_fence *fence,
 				    struct pva_parameter_ext *fence_ext)
 {
@@ -1857,5 +1807,5 @@ struct nvhost_queue_ops pva_queue_ops = {
 	.submit = pva_queue_submit,
 	.get_task_size = pva_task_get_memsize,
 	.dump = pva_queue_dump,
-	.set_attribute = pva_queue_set_attribute,
+	.set_attribute = NULL,
 };

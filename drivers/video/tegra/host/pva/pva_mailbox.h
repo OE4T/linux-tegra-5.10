@@ -1,7 +1,7 @@
 /*
  * PVA mailbox header
  *
- * Copyright (c) 2016-2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -27,7 +27,7 @@
 /* Total CCQ status registers */
 #define PVA_CCQ_STATUS_REGS    9
 
-// Symbolic definitions of the CCQ status registers
+/* Symbolic definitions of the CCQ status registers */
 #define PVA_CCQ_STATUS0_INDEX	0
 #define PVA_CCQ_STATUS1_INDEX	1
 #define PVA_CCQ_STATUS2_INDEX	2
@@ -89,7 +89,7 @@ struct pva_mailbox_status_regs {
  */
 
 int pva_mailbox_send_cmd_sync(struct pva *pva,
-				struct pva_cmd *cmd, u32 nregs,
+				struct pva_cmd_s *cmd, u32 nregs,
 				struct pva_cmd_status_regs *status_regs);
 /**
  *
@@ -107,7 +107,7 @@ int pva_mailbox_send_cmd_sync(struct pva *pva,
  * the function can be called during PVA boot-up).
  */
 int pva_mailbox_send_cmd_sync_locked(struct pva *pva,
-				struct pva_cmd *cmd, u32 nregs,
+				struct pva_cmd_s *cmd, u32 nregs,
 				struct pva_cmd_status_regs *status_regs);
 
 /**

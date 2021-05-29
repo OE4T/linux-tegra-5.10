@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -54,7 +54,7 @@ void read_status_interface_t19x(struct pva *pva,
 
 	status_registers = t19x_status_regs[interface_id].registers;
 
-	for (i = 0; i < NUM_STATUS_REGS; i++) {
+	for (i = 0; i < PVA_CMD_STATUS_REGS; i++) {
 		if (isr_status & (PVA_VALID_STATUS3 << i)) {
 			status_output->status[i] = host1x_readl(pva->pdev,
 						    status_registers[i]);

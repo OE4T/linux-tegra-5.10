@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2019 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2021 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -42,7 +42,7 @@
 /* Watchdog support */
 #define SEC_LIC_INTR_WDT	0x1
 
-//unfied register interface for both v1 and v2
+/* unfied register interface for both v1 and v2 */
 static inline u32 sec_lic_intr_status_r(int version)
 {
 	if (version == 1)

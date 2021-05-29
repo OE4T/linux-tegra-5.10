@@ -3,7 +3,7 @@
  *
  * Tegra PVA header
  *
- * Copyright (c) 2016-2020, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -26,8 +26,8 @@
 
 #include "nvhost_queue.h"
 #include "pva_regs.h"
-
-extern const struct file_operations tegra_pva_ctrl_ops;
+#include "pva_nvhost.h"
+#include "pva-ucode-header.h"
 
 enum pva_submit_mode {
 	PVA_SUBMIT_MODE_MAILBOX		= 0,
@@ -125,7 +125,7 @@ struct pva_dma_alloc_info {
  *
  */
 struct pva_fw {
-	struct pva_ucode_hdr *hdr;
+	pva_ucode_hdr_t *hdr;
 
 	struct pva_dma_alloc_info priv1_buffer;
 	struct pva_dma_alloc_info priv2_buffer;
@@ -190,13 +190,13 @@ struct pva_version_config {
 	void (*read_status_interface)(struct pva *pva,
 				uint32_t interface_id, u32 isr_status,
 				struct pva_cmd_status_regs *status_output);
-	int (*ccq_send_task)(struct pva *pva, struct pva_cmd *cmd);
+	int (*ccq_send_task)(struct pva *pva, struct pva_cmd_s *cmd);
 	int (*submit_cmd_sync_locked)(struct pva *pva,
-			struct pva_cmd *cmd, u32 nregs,
+			struct pva_cmd_s *cmd, u32 nregs,
 			struct pva_cmd_status_regs *status_regs);
 
 	int (*submit_cmd_sync)(struct pva *pva,
-		    struct pva_cmd *cmd, u32 nregs,
+		    struct pva_cmd_s *cmd, u32 nregs,
 		    struct pva_cmd_status_regs *status_regs);
 	int irq_count;
 
@@ -280,33 +280,6 @@ struct pva {
  *
  */
 void pva_trace_copy_to_ftrace(struct pva *pva);
-
-/**
- * @brief	Finalize the PVA Power-on-Sequence.
- *
- * This function called from host subsystem driver after the PVA
- * partition has been brought up, clocks enabled and reset deasserted.
- * In production mode, the function needs to wait until the ready  bit
- * within the PVA aperture has been set. After that enable the PVA IRQ.
- * Register the queue priorities on the PVA.
- *
- * @param pdev	Pointer to PVA device
- * @return:	0 on Success or negative error code
- *
- */
-int pva_finalize_poweron(struct platform_device *pdev);
-
-/**
- * @brief	Prepare PVA poweroff.
- *
- * This function called from host subsystem driver before turning off
- * the PVA. The function should turn off the PVA IRQ.
- *
- * @param pdev	Pointer to PVA device
- * @return	0 on Success or negative error code
- *
- */
-int pva_prepare_poweroff(struct platform_device *pdev);
 
 /**
  * @brief	Register PVA ISR
