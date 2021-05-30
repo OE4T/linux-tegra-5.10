@@ -24,7 +24,7 @@
 #include "hub.h"
 
 /* XXX move to include/uapi/drm/drm_fourcc.h? */
-#define DRM_FORMAT_MOD_NVIDIA_SECTOR_LAYOUT BIT(22)
+#define DRM_FORMAT_MOD_NVIDIA_SECTOR_LAYOUT BIT_ULL(22)
 
 struct reset_control;
 
