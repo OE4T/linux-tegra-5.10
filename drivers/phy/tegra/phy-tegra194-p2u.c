@@ -14,6 +14,9 @@
 #include <linux/of_platform.h>
 #include <linux/phy/phy.h>
 
+#define P2U_CONTROL_CMN	0x74
+#define P2U_CONTROL_CMN_SKP_SIZE_PROTECTION_EN	BIT(20)
+
 #define P2U_PERIODIC_EQ_CTRL_GEN3	0xc0
 #define P2U_PERIODIC_EQ_CTRL_GEN3_PERIODIC_EQ_EN		BIT(0)
 #define P2U_PERIODIC_EQ_CTRL_GEN3_INIT_PRESET_EQ_TRAIN_EN	BIT(1)
@@ -26,6 +29,7 @@
 
 struct tegra_p2u {
 	void __iomem *base;
+	bool skip_sz_protection_en;	/* Needed to support two retimers */
 };
 
 static inline void p2u_writel(struct tegra_p2u *phy, const u32 value,
@@ -43,6 +47,12 @@ static int tegra_p2u_power_on(struct phy *x)
 {
 	struct tegra_p2u *phy = phy_get_drvdata(x);
 	u32 val;
+
+	if (phy->skip_sz_protection_en) {
+		val = p2u_readl(phy, P2U_CONTROL_CMN);
+		val |= P2U_CONTROL_CMN_SKP_SIZE_PROTECTION_EN;
+		p2u_writel(phy, val, P2U_CONTROL_CMN);
+	}
 
 	val = p2u_readl(phy, P2U_PERIODIC_EQ_CTRL_GEN3);
 	val &= ~P2U_PERIODIC_EQ_CTRL_GEN3_PERIODIC_EQ_EN;
@@ -82,6 +92,10 @@ static int tegra_p2u_probe(struct platform_device *pdev)
 	phy->base = devm_ioremap_resource(dev, res);
 	if (IS_ERR(phy->base))
 		return PTR_ERR(phy->base);
+
+	phy->skip_sz_protection_en =
+		of_property_read_bool(dev->of_node,
+				      "nvidia,skip-sz-protect-en");
 
 	platform_set_drvdata(pdev, phy);
 
