@@ -216,6 +216,15 @@ int vgpu_pm_finalize_poweron(struct device *dev)
 	if (err)
 		goto done;
 
+	if (!l->dev_nodes_created) {
+		err = gk20a_user_init(dev);
+		if (err) {
+			goto done;
+		}
+
+		l->dev_nodes_created = true;
+	}
+
 	/* Initialize linux specific flags */
 	gk20a_init_linux_characteristics(g);
 
@@ -372,10 +381,6 @@ int vgpu_probe(struct platform_device *pdev)
 	platform->g = gk20a;
 	platform->vgpu_priv = priv;
 
-	err = gk20a_user_init(dev);
-	if (err)
-		return err;
-
 	err = vgpu_init_support(pdev);
 	if (err != 0) {
 		kfree(l);
@@ -408,6 +413,12 @@ int vgpu_probe(struct platform_device *pdev)
 			nvgpu_err(gk20a, "late probe failed");
 			return err;
 		}
+	}
+
+	err = gk20a_power_node_init(dev);
+	if (err) {
+		nvgpu_err(gk20a, "power_node creation failed");
+		return err;
 	}
 
 	err = vgpu_comm_init(gk20a);
@@ -462,7 +473,6 @@ int vgpu_probe(struct platform_device *pdev)
 	gk20a->timeouts_disabled_by_user = false;
 	nvgpu_atomic_set(&gk20a->timeouts_disabled_refcount, 0);
 	gk20a->tsg_dbg_timeslice_max_us = NVGPU_TSG_DBG_TIMESLICE_MAX_US_DEFAULT;
-
 	vgpu_create_sysfs(dev);
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0)
