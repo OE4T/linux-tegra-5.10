@@ -101,9 +101,11 @@ static inline nve32_t validate_rx_completions_arg(
 					      struct osi_rx_ring **rx_ring,
 					      struct osi_rx_pkt_cx **rx_pkt_cx)
 {
+	struct dma_local *l_dma = (struct dma_local *)osi_dma;
+
 	if (osi_unlikely((osi_dma == OSI_NULL) ||
 			 (more_data_avail == OSI_NULL) ||
-			 (chan >= OSI_EQOS_MAX_NUM_CHANS))) {
+			 (chan >= l_dma->max_chans))) {
 		return -1;
 	}
 
@@ -507,8 +509,10 @@ static inline nve32_t validate_tx_completions_arg(
 					      nveu32_t chan,
 					      struct osi_tx_ring **tx_ring)
 {
+	struct dma_local *l_dma = (struct dma_local *)osi_dma;
+
 	if (osi_unlikely((osi_dma == OSI_NULL) ||
-			 (chan >= OSI_EQOS_MAX_NUM_CHANS))) {
+			 (chan >= l_dma->max_chans))) {
 		return -1;
 	}
 

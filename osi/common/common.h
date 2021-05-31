@@ -236,9 +236,10 @@ static inline void osi_writela(void *priv, nveu32_t val, void *addr)
 #endif
 
 /**
- * @brief is_valid_mac_version - Check if read MAC IP is valid or not.
+ * @brief validate_mac_ver_update_chans - Validates mac version and update chan
  *
  * @param[in] mac_ver: MAC version read.
+ * @param[out] max_chans: Maximum channel number.
  *
  * @note MAC has to be out of reset.
  *
@@ -251,17 +252,26 @@ static inline void osi_writela(void *priv, nveu32_t val, void *addr)
  * @retval 0 - for not Valid MAC
  * @retval 1 - for Valid MAC
  */
-static inline nve32_t is_valid_mac_version(nveu32_t mac_ver)
+static inline nve32_t validate_mac_ver_update_chans(nveu32_t mac_ver,
+						    nveu32_t *max_chans)
 {
-	if ((mac_ver == OSI_EQOS_MAC_4_10) ||
-	    (mac_ver == OSI_EQOS_MAC_5_00) ||
-	    (mac_ver == OSI_EQOS_MAC_5_30) ||
-	    (mac_ver == OSI_MGBE_MAC_3_00) ||
-	    (mac_ver == OSI_MGBE_MAC_3_10)) {
-		return 1;
+	switch (mac_ver) {
+	case OSI_EQOS_MAC_4_10:
+	case OSI_EQOS_MAC_5_00:
+		*max_chans = OSI_EQOS_XP_MAX_CHANS;
+		break;
+	case OSI_EQOS_MAC_5_30:
+		*max_chans = OSI_EQOS_MAX_NUM_CHANS;
+		break;
+	case OSI_MGBE_MAC_3_00:
+	case OSI_MGBE_MAC_3_10:
+		*max_chans = OSI_MGBE_MAX_NUM_CHANS;
+		break;
+	default:
+		return 0;
 	}
 
-	return 0;
+	return 1;
 }
 
 /**

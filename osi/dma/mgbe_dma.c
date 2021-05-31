@@ -40,9 +40,9 @@
 static void mgbe_disable_chan_tx_intr(void *addr, nveu32_t chan)
 {
 	nveu32_t cntrl;
-
+#if 0
 	MGBE_CHECK_CHAN_BOUND(chan);
-
+#endif
 	cntrl = osi_readl((nveu8_t *)addr +
 			  MGBE_VIRT_INTR_CHX_CNTRL(chan));
 	cntrl &= ~MGBE_VIRT_INTR_CHX_CNTRL_TX;
@@ -65,9 +65,9 @@ static void mgbe_disable_chan_tx_intr(void *addr, nveu32_t chan)
 static void mgbe_enable_chan_tx_intr(void *addr, nveu32_t chan)
 {
 	nveu32_t cntrl;
-
+#if 0
 	MGBE_CHECK_CHAN_BOUND(chan);
-
+#endif
 	cntrl = osi_readl((nveu8_t *)addr +
 			  MGBE_VIRT_INTR_CHX_CNTRL(chan));
 	cntrl |= MGBE_VIRT_INTR_CHX_CNTRL_TX;
@@ -90,9 +90,9 @@ static void mgbe_enable_chan_tx_intr(void *addr, nveu32_t chan)
 static void mgbe_disable_chan_rx_intr(void *addr, nveu32_t chan)
 {
 	nveu32_t cntrl;
-
+#if 0
 	MGBE_CHECK_CHAN_BOUND(chan);
-
+#endif
 	cntrl = osi_readl((nveu8_t *)addr +
 			  MGBE_VIRT_INTR_CHX_CNTRL(chan));
 	cntrl &= ~MGBE_VIRT_INTR_CHX_CNTRL_RX;
@@ -113,9 +113,9 @@ static void mgbe_disable_chan_rx_intr(void *addr, nveu32_t chan)
 static void mgbe_enable_chan_rx_intr(void *addr, nveu32_t chan)
 {
 	nveu32_t cntrl;
-
+#if 0
 	MGBE_CHECK_CHAN_BOUND(chan);
-
+#endif
 	cntrl = osi_readl((nveu8_t *)addr +
 			  MGBE_VIRT_INTR_CHX_CNTRL(chan));
 	cntrl |= MGBE_VIRT_INTR_CHX_CNTRL_RX;
@@ -138,9 +138,9 @@ static void mgbe_set_tx_ring_len(struct osi_dma_priv_data *osi_dma,
 {
 	void *addr = osi_dma->base;
 	nveu32_t value;
-
+#if 0
 	MGBE_CHECK_CHAN_BOUND(chan);
-
+#endif
 	value = osi_readl((nveu8_t *)addr + MGBE_DMA_CHX_TX_CNTRL2(chan));
 	value |= (len & MGBE_DMA_RING_LENGTH_MASK);
 	osi_writel(value, (nveu8_t *)addr + MGBE_DMA_CHX_TX_CNTRL2(chan));
@@ -160,9 +160,9 @@ static void mgbe_set_tx_ring_start_addr(void *addr, nveu32_t chan,
 					nveu64_t tx_desc)
 {
 	nveu64_t temp;
-
+#if 0
 	MGBE_CHECK_CHAN_BOUND(chan);
-
+#endif
 	temp = H32(tx_desc);
 	if (temp < UINT_MAX) {
 		osi_writel((nveu32_t)temp, (nveu8_t *)addr +
@@ -194,9 +194,9 @@ static void mgbe_update_tx_tailptr(void *addr, nveu32_t chan,
 				   nveu64_t tailptr)
 {
 	nveu64_t temp;
-
+#if 0
 	MGBE_CHECK_CHAN_BOUND(chan);
-
+#endif
 	temp = L32(tailptr);
 	if (temp < UINT_MAX) {
 		osi_writel((nveu32_t)temp, (nveu8_t *)addr +
@@ -219,9 +219,9 @@ static void mgbe_set_rx_ring_len(struct osi_dma_priv_data *osi_dma,
 {
 	void *addr = osi_dma->base;
 	nveu32_t value;
-
+#if 0
 	MGBE_CHECK_CHAN_BOUND(chan);
-
+#endif
 	value = osi_readl((nveu8_t *)addr + MGBE_DMA_CHX_RX_CNTRL2(chan));
 	value |= (len & MGBE_DMA_RING_LENGTH_MASK);
 	osi_writel(value, (nveu8_t *)addr + MGBE_DMA_CHX_RX_CNTRL2(chan));
@@ -241,9 +241,9 @@ static void mgbe_set_rx_ring_start_addr(void *addr, nveu32_t chan,
 					nveu64_t tx_desc)
 {
 	nveu64_t temp;
-
+#if 0
 	MGBE_CHECK_CHAN_BOUND(chan);
-
+#endif
 	temp = H32(tx_desc);
 	if (temp < UINT_MAX) {
 		osi_writel((nveu32_t)temp, (nveu8_t *)addr +
@@ -274,9 +274,9 @@ static void mgbe_update_rx_tailptr(void *addr, nveu32_t chan,
 				   nveu64_t tailptr)
 {
 	nveu64_t temp;
-
+#if 0
 	MGBE_CHECK_CHAN_BOUND(chan);
-
+#endif
 	temp = H32(tailptr);
 	if (temp < UINT_MAX) {
 		osi_writel((nveu32_t)temp, (nveu8_t *)addr +
@@ -305,9 +305,9 @@ static void mgbe_start_dma(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
 {
 	nveu32_t val;
 	void *addr = osi_dma->base;
-
+#if 0
 	MGBE_CHECK_CHAN_BOUND(chan);
-
+#endif
 	/* start Tx DMA */
 	val = osi_readl((nveu8_t *)addr + MGBE_DMA_CHX_TX_CTRL(chan));
 	val |= OSI_BIT(0);
@@ -335,9 +335,9 @@ static void mgbe_stop_dma(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
 {
 	nveu32_t val;
 	void *addr = osi_dma->base;
-
+#if 0
 	MGBE_CHECK_CHAN_BOUND(chan);
-
+#endif
 	/* stop Tx DMA */
 	val = osi_readl((nveu8_t *)addr + MGBE_DMA_CHX_TX_CTRL(chan));
 	val &= ~OSI_BIT(0);
@@ -378,9 +378,9 @@ static void mgbe_configure_dma_channel(nveu32_t chan,
 	nveu32_t value;
 	nveu32_t txpbl;
 	nveu32_t rxpbl;
-
+#if 0
 	MGBE_CHECK_CHAN_BOUND(chan);
-
+#endif
 	/* enable DMA channel interrupts */
 	/* Enable TIE and TBUE */
 	/* TIE - Transmit Interrupt Enable */
@@ -648,8 +648,9 @@ static nveu32_t mgbe_get_global_dma_status(void *addr)
  */
 static void mgbe_clear_vm_tx_intr(void *addr, nveu32_t chan)
 {
+#if 0
 	MGBE_CHECK_CHAN_BOUND(chan);
-
+#endif
 	osi_writel(MGBE_DMA_CHX_STATUS_CLEAR_TX,
 		   (nveu8_t *)addr + MGBE_DMA_CHX_STATUS(chan));
 	osi_writel(MGBE_VIRT_INTR_CHX_STATUS_TX,
@@ -668,8 +669,9 @@ static void mgbe_clear_vm_tx_intr(void *addr, nveu32_t chan)
  */
 static void mgbe_clear_vm_rx_intr(void *addr, nveu32_t chan)
 {
+#if 0
 	MGBE_CHECK_CHAN_BOUND(chan);
-
+#endif
 	osi_writel(MGBE_DMA_CHX_STATUS_CLEAR_RX,
 		   (nveu8_t *)addr + MGBE_DMA_CHX_STATUS(chan));
 	osi_writel(MGBE_VIRT_INTR_CHX_STATUS_RX,
@@ -698,9 +700,9 @@ static void mgbe_config_slot(struct osi_dma_priv_data *osi_dma,
 			     unsigned int interval)
 {
 	unsigned int value;
-
+#if 0
 	MGBE_CHECK_CHAN_BOUND(chan);
-
+#endif
 	if (set == OSI_ENABLE) {
 		/* Program SLOT CTRL register SIV and set ESC bit */
 		value = osi_readl((unsigned char *)osi_dma->base +

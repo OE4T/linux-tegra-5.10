@@ -102,10 +102,11 @@ static inline nve32_t validate_args(struct osi_dma_priv_data *osi_dma,
 static inline nve32_t validate_dma_chan_num(struct osi_dma_priv_data *osi_dma,
 					    nveu32_t chan)
 {
-	/* TODO: Get the max channel number based on mac/mac_ver */
-	if (chan >= OSI_MGBE_MAX_NUM_CHANS) {
+	struct dma_local *l_dma = (struct dma_local *)osi_dma;
+
+	if (chan >= l_dma->max_chans) {
 		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			    "Invalid DMA channel number\n", 0ULL);
+				"Invalid DMA channel number\n", chan);
 		return -1;
 	}
 
@@ -128,11 +129,14 @@ static inline nve32_t validate_dma_chan_num(struct osi_dma_priv_data *osi_dma,
  */
 static inline nve32_t validate_dma_chans(struct osi_dma_priv_data *osi_dma)
 {
+	struct dma_local *l_dma = (struct dma_local *)osi_dma;
 	nveu32_t i = 0;
 
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
-		if (validate_dma_chan_num(osi_dma,
-					  osi_dma->dma_chans[i]) < 0) {
+		if (osi_dma->dma_chans[i] > l_dma->max_chans) {
+			OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				    "Invalid DMA channel number:\n",
+				    osi_dma->dma_chans[i]);
 			return -1;
 		}
 	}
@@ -257,7 +261,16 @@ nve32_t osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
 		return -1;
 	}
 
-	if (osi_dma->num_dma_chans > OSI_MGBE_MAX_NUM_CHANS) {
+	l_dma->mac_ver = osi_readl((nveu8_t *)osi_dma->base + MAC_VERSION) &
+				   MAC_VERSION_SNVER_MASK;
+	if (validate_mac_ver_update_chans(l_dma->mac_ver,
+					  &l_dma->max_chans) == 0) {
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "Invalid MAC version\n", (nveu64_t)l_dma->mac_ver);
+		return -1;
+	}
+
+	if (osi_dma->num_dma_chans > l_dma->max_chans) {
 		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			    "Invalid number of DMA channels\n", 0ULL);
 		return -1;
@@ -279,14 +292,6 @@ nve32_t osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
 	ret = dma_desc_init(osi_dma, l_dma->ops_p);
 	if (ret != 0) {
 		return ret;
-	}
-
-	l_dma->mac_ver = osi_readl((nveu8_t *)osi_dma->base + MAC_VERSION) &
-				   MAC_VERSION_SNVER_MASK;
-	if (is_valid_mac_version(l_dma->mac_ver) == 0) {
-		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			    "Invalid MAC version\n", (nveu64_t)l_dma->mac_ver);
-		return -1;
 	}
 
 	if ((l_dma->mac_ver !=  OSI_EQOS_MAC_4_10) &&
@@ -323,7 +328,7 @@ nve32_t osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma)
 		return -1;
 	}
 
-	if (osi_dma->num_dma_chans > OSI_MGBE_MAX_NUM_CHANS) {
+	if (osi_dma->num_dma_chans > l_dma->max_chans) {
 		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			    "Invalid number of DMA channels\n", 0ULL);
 		return -1;
@@ -854,7 +859,7 @@ nve32_t osi_config_slot_function(struct osi_dma_priv_data *osi_dma,
 		chan = osi_dma->dma_chans[i];
 
 		if ((chan == 0x0U) ||
-		    (chan >= OSI_MGBE_MAX_NUM_CHANS)) {
+		    (chan >= l_dma->max_chans)) {
 			/* Ignore 0 and invalid channels */
 			continue;
 		}

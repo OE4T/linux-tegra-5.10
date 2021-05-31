@@ -137,6 +137,8 @@ struct dma_local {
 	nveu32_t vm_intr;
 	/** Magic number to validate osi_dma pointer */
 	nveu64_t magic_num;
+	/** Maximum number of DMA channels */
+	nveu32_t max_chans;
 };
 
 /**
@@ -238,7 +240,14 @@ nve32_t dma_desc_init(struct osi_dma_priv_data *osi_dma,
 		if ((chan) >= OSI_EQOS_MAX_NUM_CHANS) {			\
 			return;						\
 		}							\
+	}
+
+#define MGBE_CHECK_CHAN_BOUND(chan)					\
+{									\
+	if ((chan) >= OSI_MGBE_MAX_NUM_CHANS) {				\
+		return;							\
 	}								\
+}									\
 
 #define BOOLEAN_FALSE		(0U != 0U)
 #define L32(data)       ((data) & 0xFFFFFFFFU)
