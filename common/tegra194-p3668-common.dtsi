@@ -55,18 +55,24 @@
 			    <1267200 408000>;
 	};
 #endif
+
+#if TEGRA_PMC_VERSION >= DT_VERSION_2
+        pmc@c360000 {
+		nvidia,invert-interrupt;
+	};
+#else
 	pmc@c370000 {
 		nvidia,invert-interrupt;
 	};
-
-        pmc@c360000 {
-                 iopad_defaults: iopad-defaults {
-                         sdmmc-io-pads {
-                                 pins = "sdmmc1-hv", "sdmmc3-hv";
-                                 nvidia,enable-voltage-switching;
-                         };
-                 };
-         };
+#endif
+	pmc@c360000 {
+		iopad_defaults: iopad-defaults {
+			sdmmc-io-pads {
+				pins = "sdmmc1-hv", "sdmmc3-hv";
+				nvidia,enable-voltage-switching;
+			};
+		};
+	};
 
 	hdr40_i2c0: i2c@c240000 {
 		/* This I2C (GEN2) is routed only to 40-pin hdr
