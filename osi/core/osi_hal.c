@@ -932,7 +932,7 @@ nve32_t osi_get_mac_version(struct osi_core_priv_data *const osi_core,
 	*mac_ver = ((l_core->ops_p->read_reg(osi_core, (nve32_t)MAC_VERSION)) &
 		    MAC_VERSION_SNVER_MASK);
 
-	if (is_valid_mac_version(*mac_ver) == 0) {
+	if (validate_mac_ver_update_chans(*mac_ver, &l_core->max_chans) == 0) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			     "Invalid MAC version\n", (nveu64_t)*mac_ver)
 		return -1;

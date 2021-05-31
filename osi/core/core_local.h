@@ -289,6 +289,8 @@ struct core_local {
 	nveu64_t magic_num;
 	/** This is the head node for PTP packet ID queue */
 	struct osi_core_tx_ts tx_ts_head;
+	/** Maximum number of queues/channels */
+	nveu32_t max_chans;
 };
 
 /**

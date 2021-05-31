@@ -191,6 +191,7 @@
 #define OSI_MGBE_MAX_L3_L4_FILTER	8U
 #define OSI_MGBE_MAX_NUM_CHANS		10U
 #define OSI_MGBE_MAX_NUM_QUEUES		10U
+#define OSI_EQOS_XP_MAX_CHANS		4U
 
 /* MACSEC max SC's supported 16*/
 #define OSI_MACSEC_SC_INDEX_MAX		16
@@ -223,20 +224,6 @@
 #define OSI_MAX_VM_IRQS              5U
 #define OSI_IP4_FILTER		0U
 #define OSI_IP6_FILTER		1U
-
-#define CHECK_CHAN_BOUND(chan)						\
-	{								\
-		if ((chan) >= OSI_EQOS_MAX_NUM_CHANS) {			\
-			return;						\
-		}							\
-	}								\
-
-#define MGBE_CHECK_CHAN_BOUND(chan)					\
-	{								\
-		if ((chan) >= OSI_MGBE_MAX_NUM_CHANS) {			\
-			return;						\
-		}							\
-	}								\
 
 #ifndef OSI_STRIPPED_LIB
 #define OSI_L2_FILTER_INDEX_ANY		127U
