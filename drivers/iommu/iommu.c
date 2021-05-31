@@ -2359,10 +2359,11 @@ static size_t iommu_pgsize(struct iommu_domain *domain,
 }
 
 static int __iommu_map(struct iommu_domain *domain, unsigned long iova,
-		       phys_addr_t paddr, size_t size, int prot, gfp_t gfp)
+		       phys_addr_t paddr, size_t size, int prot, gfp_t gfp,
+		       struct iommu_iotlb_gather *gather)
 {
 	const struct iommu_ops *ops = domain->ops;
-	struct iommu_iotlb_gather iotlb_gather;
+	struct iommu_iotlb_gather *iotlb_gather = gather;
 	unsigned long orig_iova = iova;
 	unsigned int min_pagesz;
 	size_t orig_size = size;
@@ -2390,7 +2391,7 @@ static int __iommu_map(struct iommu_domain *domain, unsigned long iova,
 		return -EINVAL;
 	}
 
-	iommu_iotlb_gather_init(&iotlb_gather);
+	iommu_iotlb_gather_init(iotlb_gather);
 
 	pr_debug("map: iova 0x%lx pa %pa size 0x%zx\n", iova, &paddr, size);
 
@@ -2399,7 +2400,7 @@ static int __iommu_map(struct iommu_domain *domain, unsigned long iova,
 
 		pr_debug("mapping: iova 0x%lx pa %pa pgsize 0x%zx\n",
 			 iova, &paddr, pgsize);
-		ret = ops->map(domain, iova, paddr, pgsize, prot, gfp, &iotlb_gather);
+		ret = ops->map(domain, iova, paddr, pgsize, prot, gfp, iotlb_gather);
 
 		if (ret)
 			break;
@@ -2408,9 +2409,6 @@ static int __iommu_map(struct iommu_domain *domain, unsigned long iova,
 		paddr += pgsize;
 		size -= pgsize;
 	}
-
-	if (ops->iotlb_sync_map)
-		ops->iotlb_sync_map(domain, &iotlb_gather);
 
 	/* unroll mapping in case something went wrong */
 	if (ret)
@@ -2424,18 +2422,32 @@ static int __iommu_map(struct iommu_domain *domain, unsigned long iova,
 	return ret;
 }
 
+static int _iommu_map(struct iommu_domain *domain, unsigned long iova,
+		      phys_addr_t paddr, size_t size, int prot, gfp_t gfp)
+{
+	const struct iommu_ops *ops = domain->ops;
+	struct iommu_iotlb_gather iotlb_gather;
+	int ret;
+
+	ret = __iommu_map(domain, iova, paddr, size, prot, gfp, &iotlb_gather);
+	if (ret == 0 && ops->iotlb_sync_map)
+		ops->iotlb_sync_map(domain, &iotlb_gather);
+
+	return ret;
+}
+
 int iommu_map(struct iommu_domain *domain, unsigned long iova,
 	      phys_addr_t paddr, size_t size, int prot)
 {
 	might_sleep();
-	return __iommu_map(domain, iova, paddr, size, prot, GFP_KERNEL);
+	return _iommu_map(domain, iova, paddr, size, prot, GFP_KERNEL);
 }
 EXPORT_SYMBOL_GPL(iommu_map);
 
 int iommu_map_atomic(struct iommu_domain *domain, unsigned long iova,
 	      phys_addr_t paddr, size_t size, int prot)
 {
-	return __iommu_map(domain, iova, paddr, size, prot, GFP_ATOMIC);
+	return _iommu_map(domain, iova, paddr, size, prot, GFP_ATOMIC);
 }
 EXPORT_SYMBOL_GPL(iommu_map_atomic);
 
@@ -2522,6 +2534,8 @@ static size_t __iommu_map_sg(struct iommu_domain *domain, unsigned long iova,
 			     struct scatterlist *sg, unsigned int nents, int prot,
 			     gfp_t gfp)
 {
+	const struct iommu_ops *ops = domain->ops;
+	struct iommu_iotlb_gather iotlb_gather;
 	size_t len = 0, mapped = 0;
 	phys_addr_t start;
 	unsigned int i = 0;
@@ -2532,7 +2546,7 @@ static size_t __iommu_map_sg(struct iommu_domain *domain, unsigned long iova,
 
 		if (len && s_phys != start + len) {
 			ret = __iommu_map(domain, iova + mapped, start,
-					len, prot, gfp);
+					len, prot, gfp, &iotlb_gather);
 
 			if (ret)
 				goto out_err;
@@ -2552,6 +2566,8 @@ static size_t __iommu_map_sg(struct iommu_domain *domain, unsigned long iova,
 			sg = sg_next(sg);
 	}
 
+	if (ops->iotlb_sync_map)
+		ops->iotlb_sync_map(domain, &iotlb_gather);
 	return mapped;
 
 out_err:
