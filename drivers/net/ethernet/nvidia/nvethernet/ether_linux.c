@@ -1629,18 +1629,18 @@ static int ether_allocate_rx_dma_resources(struct osi_dma_priv_data *osi_dma,
 	unsigned int i;
 	int ret = 0;
 
+#ifdef ETHER_PAGE_POOL
+	ret = ether_page_pool_create(pdata);
+	if (ret < 0) {
+		pr_err("%s(): failed to create page pool\n",
+		       __func__);
+		goto exit;
+	}
+#endif
 	for (i = 0; i < OSI_MGBE_MAX_NUM_CHANS; i++) {
 		chan = osi_dma->dma_chans[i];
 
 		if (chan != OSI_INVALID_CHAN_NUM) {
-#ifdef ETHER_PAGE_POOL
-			ret = ether_page_pool_create(pdata);
-			if (ret < 0) {
-				pr_err("%s(): failed to create page pool\n",
-				       __func__);
-				goto exit;
-			}
-#endif
 			ret = allocate_rx_dma_resource(osi_dma, pdata->dev,
 						       chan);
 			if (ret != 0) {
