@@ -131,10 +131,6 @@ struct nvhost_device_data t23x_host1x_info = {
 };
 
 struct nvhost_device_data t23x_host1x_hv_info = {
-	.clocks			= {
-		{"host1x", 204000000},
-		{"actmon", UINT_MAX}
-	},
 	.autosuspend_delay      = 2000,
 	.private_data		= &host1x04_info,
 	.finalize_poweron = nvhost_host1x_finalize_poweron,
