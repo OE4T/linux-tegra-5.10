@@ -869,21 +869,25 @@ irqreturn_t ether_vm_isr(int irq, void *data)
 
 		if (txrx) {
 			rx_napi = pdata->rx_napi[chan];
+
+			osi_handle_dma_intr(osi_dma, chan,
+					    OSI_DMA_CH_RX_INTR,
+					    OSI_DMA_INTR_DISABLE);
+
 			if (likely(napi_schedule_prep(&rx_napi->napi))) {
-				osi_handle_dma_intr(osi_dma, chan,
-						    OSI_DMA_CH_RX_INTR,
-						    OSI_DMA_INTR_DISABLE);
 				/* TODO: Schedule NAPI on different CPU core */
-				__napi_schedule(&rx_napi->napi);
+				__napi_schedule_irqoff(&rx_napi->napi);
 			}
 		} else {
 			tx_napi = pdata->tx_napi[chan];
+
+			osi_handle_dma_intr(osi_dma, chan,
+					    OSI_DMA_CH_TX_INTR,
+					    OSI_DMA_INTR_DISABLE);
+
 			if (likely(napi_schedule_prep(&tx_napi->napi))) {
-				osi_handle_dma_intr(osi_dma, chan,
-						    OSI_DMA_CH_TX_INTR,
-						    OSI_DMA_INTR_DISABLE);
 				/* TODO: Schedule NAPI on different CPU core */
-				__napi_schedule(&tx_napi->napi);
+				__napi_schedule_irqoff(&tx_napi->napi);
 			}
 		}
 
