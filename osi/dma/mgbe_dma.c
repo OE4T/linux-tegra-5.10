@@ -689,6 +689,8 @@ static void mgbe_clear_vm_tx_intr(void *addr, nveu32_t chan)
 		   (nveu8_t *)addr + MGBE_DMA_CHX_STATUS(chan));
 	osi_writel(MGBE_VIRT_INTR_CHX_STATUS_TX,
 		   (nveu8_t *)addr + MGBE_VIRT_INTR_CHX_STATUS(chan));
+
+	mgbe_disable_chan_tx_intr(addr, chan);
 }
 
 /**
@@ -707,6 +709,8 @@ static void mgbe_clear_vm_rx_intr(void *addr, nveu32_t chan)
 		   (nveu8_t *)addr + MGBE_DMA_CHX_STATUS(chan));
 	osi_writel(MGBE_VIRT_INTR_CHX_STATUS_RX,
 		   (nveu8_t *)addr + MGBE_VIRT_INTR_CHX_STATUS(chan));
+
+	mgbe_disable_chan_rx_intr(addr, chan);
 }
 
 /**
