@@ -2427,7 +2427,7 @@ struct spi_controller *__spi_alloc_controller(struct device *dev,
 	if (!dev)
 		return NULL;
 
-	ctlr = kzalloc(size + ctlr_size, GFP_KERNEL);
+	ctlr = devm_kzalloc(dev, size + ctlr_size, GFP_KERNEL);
 	if (!ctlr)
 		return NULL;
 
