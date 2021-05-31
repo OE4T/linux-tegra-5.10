@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -187,10 +187,16 @@
 				 <&bpmp_clks TEGRA194_CLK_APB2APE>,
 				 <&bpmp_clks TEGRA194_CLK_APE>;
 			clock-names = "ahub", "parent", "apb2ape", "xbar.ape";
-			assigned-clocks = <&bpmp_clks TEGRA194_CLK_AHUB>;
+			assigned-clocks = <&bpmp_clks TEGRA194_CLK_PLLA>,
+					<&bpmp_clks TEGRA194_CLK_PLLA_OUT0>,
+					<&bpmp_clks TEGRA194_CLK_AHUB>;
 			assigned-clock-parents =
+				<0>,
+				<&bpmp_clks TEGRA194_CLK_PLLA>,
 				<&bpmp_clks TEGRA194_CLK_PLLP_OUT0>;
-			assigned-clock-rates = <81600000>;
+			assigned-clock-rates = <294912000>,
+						<49152000>,
+						<81600000>;
 			status = "disabled";
 
 			#address-cells = <2>;
