@@ -4,7 +4,7 @@
  *
  * Support for Tegra Security Engine hardware crypto algorithms.
  *
- * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -4111,7 +4111,7 @@ out:
 	return ret;
 }
 
-static int se_suspend(struct device *dev, bool polling)
+int se_suspend(struct device *dev, bool polling)
 {
 	struct platform_device *pdev = to_platform_device(dev);
 	struct tegra_se_dev *se_dev = platform_get_drvdata(pdev);

@@ -1,7 +1,7 @@
 /*
  * drivers/platform/tegra/pm_debugfs.c
  *
- * Copyright (c) 2017, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION. All rights reserved.
  *
  *
  * This software is licensed under the terms of the GNU General Public
@@ -68,7 +68,7 @@ int send_smc(u32 smc_func, struct pm_regs *regs)
 /*
  * Specify debug flags for system suspend.
  */
-static int tegra_set_suspend_debug_flags(u32 debug_flags)
+int tegra_set_suspend_debug_flags(u32 debug_flags)
 {
 	struct pm_regs regs;
 	u32 smc_func = SMC_FAKE_SYS_SUSPEND |
