@@ -359,7 +359,6 @@ void tegra_xusb_hsic_port_release(struct tegra_xusb_port *port);
 
 struct tegra_xusb_usb3_port {
 	struct tegra_xusb_port base;
-	struct regulator *supply;
 	bool context_saved;
 	unsigned int port;
 	bool internal;
