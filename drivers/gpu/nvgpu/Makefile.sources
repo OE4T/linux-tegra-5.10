@@ -726,7 +726,7 @@ ifeq ($(CONFIG_NVGPU_NON_FUSA),1)
 srcs +=	common/power_features/power_features.c
 endif
 
-ifeq ($(CONFIG_NVGPU_TPC_POWERGATE),1)
+ifeq ($(CONFIG_NVGPU_STATIC_POWERGATE),1)
 srcs +=	hal/tpc/tpc_gv11b.c
 endif
 

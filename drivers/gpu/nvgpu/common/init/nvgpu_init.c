@@ -377,20 +377,20 @@ int nvgpu_prepare_poweroff(struct gk20a *g)
 	return ret;
 }
 
-#ifdef CONFIG_NVGPU_TPC_POWERGATE
-static bool have_tpc_pg_lock = false;
+#ifdef CONFIG_NVGPU_STATIC_POWERGATE
+static bool have_static_pg_lock = false;
 
-static int nvgpu_init_acquire_tpc_pg_lock(struct gk20a *g)
+static int nvgpu_init_acquire_static_pg_lock(struct gk20a *g)
 {
-	nvgpu_mutex_acquire(&g->tpc_pg_lock);
-	have_tpc_pg_lock = true;
+	nvgpu_mutex_acquire(&g->static_pg_lock);
+	have_static_pg_lock = true;
 	return 0;
 }
 
-static int nvgpu_init_release_tpc_pg_lock(struct gk20a *g)
+static int nvgpu_init_release_static_pg_lock(struct gk20a *g)
 {
-	nvgpu_mutex_release(&g->tpc_pg_lock);
-	have_tpc_pg_lock = false;
+	nvgpu_mutex_release(&g->static_pg_lock);
+	have_static_pg_lock = false;
 	return 0;
 }
 #endif
@@ -427,7 +427,7 @@ static int nvgpu_init_fbpa_ecc(struct gk20a *g)
 }
 #endif
 
-#ifdef CONFIG_NVGPU_TPC_POWERGATE
+#ifdef CONFIG_NVGPU_STATIC_POWERGATE
 static int nvgpu_init_power_gate(struct gk20a *g)
 {
 	int err;
@@ -793,9 +793,9 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		NVGPU_INIT_TABLE_ENTRY(g->ops.fifo.fifo_init_support, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.therm.elcg_init_idle_filters,
 				       NO_FLAG),
-#ifdef CONFIG_NVGPU_TPC_POWERGATE
+#ifdef CONFIG_NVGPU_STATIC_POWERGATE
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_power_gate, NO_FLAG),
-		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_acquire_tpc_pg_lock, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_acquire_static_pg_lock, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_power_gate_gr, NO_FLAG),
 #endif
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_netlist_init_ctx_vars, NO_FLAG),
@@ -826,8 +826,8 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		 */
 		NVGPU_INIT_TABLE_ENTRY(g->ops.ecc.ecc_finalize_support,
 				       NO_FLAG),
-#ifdef CONFIG_NVGPU_TPC_POWERGATE
-		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_release_tpc_pg_lock,
+#ifdef CONFIG_NVGPU_STATIC_POWERGATE
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_release_static_pg_lock,
 				       NO_FLAG),
 #endif
 
@@ -886,12 +886,12 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 	return err;
 
 done:
-#ifdef CONFIG_NVGPU_TPC_POWERGATE
-	if (have_tpc_pg_lock) {
-		int release_err = nvgpu_init_release_tpc_pg_lock(g);
+#ifdef CONFIG_NVGPU_STATIC_POWERGATE
+	if (have_static_pg_lock) {
+		int release_err = nvgpu_init_release_static_pg_lock(g);
 
 		if (release_err != 0) {
-			nvgpu_err(g, "failed to release tpc_gp_lock");
+			nvgpu_err(g, "failed to release static_pg_lock");
 		}
 	}
 #endif

@@ -218,7 +218,7 @@ struct gpu_ops {
 	struct gops_sec2 sec2;
 	struct gops_gsp gsp;
 /** @endcond */
-#ifdef CONFIG_NVGPU_TPC_POWERGATE
+#ifdef CONFIG_NVGPU_STATIC_POWERGATE
 	struct gops_tpc tpc;
 #endif
 	/** Wake up all threads waiting on semaphore wait. */

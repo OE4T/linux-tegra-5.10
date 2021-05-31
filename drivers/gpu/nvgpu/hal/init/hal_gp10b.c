@@ -1150,7 +1150,7 @@ static const struct gops_top gp10b_ops_top = {
 	.get_num_ltcs = gm20b_top_get_num_ltcs,
 };
 
-#ifdef CONFIG_NVGPU_TPC_POWERGATE
+#ifdef CONFIG_NVGPU_STATIC_POWERGATE
 static const struct gops_tpc gp10b_ops_tpc = {
 	.init_tpc_powergate = NULL,
 	.tpc_gr_pg = NULL,
@@ -1257,7 +1257,7 @@ int gp10b_init_hal(struct gk20a *g)
 	gops->priv_ring = gp10b_ops_priv_ring;
 	gops->fuse = gp10b_ops_fuse;
 	gops->top = gp10b_ops_top;
-#ifdef CONFIG_NVGPU_TPC_POWERGATE
+#ifdef CONFIG_NVGPU_STATIC_POWERGATE
 	gops->tpc = gp10b_ops_tpc;
 #endif
 	gops->grmgr = gp10b_ops_grmgr;

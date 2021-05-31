@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,7 +22,7 @@
 #ifndef NVGPU_GOPS_FLOORSWEEP_H
 #define NVGPU_GOPS_FLOORSWEEP_H
 
-#ifdef CONFIG_NVGPU_TPC_POWERGATE
+#ifdef CONFIG_NVGPU_STATIC_POWERGATE
 struct gops_tpc {
 	int (*init_tpc_powergate)(struct gk20a *g, u32 fuse_status);
 	void (*tpc_gr_pg)(struct gk20a *g);

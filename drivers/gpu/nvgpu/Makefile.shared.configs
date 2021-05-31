@@ -195,9 +195,9 @@ NVGPU_COMMON_CFLAGS                 += -DCONFIG_NVGPU_USE_3LSS_ERR_INJECTION
 CONFIG_NVGPU_NVLINK             := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_NVLINK
 
-# Enable tpc_powergate support for normal build.
-CONFIG_NVGPU_TPC_POWERGATE      := 1
-NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_TPC_POWERGATE
+# Enable static_powergate support for normal build.
+CONFIG_NVGPU_STATIC_POWERGATE      := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_STATIC_POWERGATE
 
 # Enable mssnvlink0 reset control for normal build
 CONFIG_MSSNVLINK0_RST_CONTROL   := 1

@@ -340,7 +340,7 @@ static int prepare_gr_hw_sw(struct unit_module *m, struct gk20a *g)
 
 	err = nvgpu_gr_enable_hw(g);
 	if (err != 0) {
-		nvgpu_mutex_release(&g->tpc_pg_lock);
+		nvgpu_mutex_release(&g->static_pg_lock);
 		unit_return_fail(m, "failed to enable gr");
 	}
 
@@ -399,7 +399,7 @@ int test_acr_bootstrap_hs_acr(struct unit_module *m,
 	return -ENOMEM;
 	}
 
-	nvgpu_mutex_acquire(&g->tpc_pg_lock);
+	nvgpu_mutex_acquire(&g->static_pg_lock);
 
 	/*
 	 * Prepare HW and SW setup needed
@@ -598,7 +598,7 @@ int test_acr_bootstrap_hs_acr(struct unit_module *m,
 					as expected\n");
 	}
 
-	nvgpu_mutex_release(&g->tpc_pg_lock);
+	nvgpu_mutex_release(&g->static_pg_lock);
 
 	return UNIT_SUCCESS;
 }
@@ -619,7 +619,7 @@ int test_acr_construct_execute(struct unit_module *m,
 		unit_return_fail(m, "Test env init failed\n");
 	}
 
-	nvgpu_mutex_acquire(&g->tpc_pg_lock);
+	nvgpu_mutex_acquire(&g->static_pg_lock);
 
 	/*
 	 * Prepare HW and SW setup needed for the test
@@ -693,7 +693,7 @@ int test_acr_construct_execute(struct unit_module *m,
 		unit_return_fail(m, "Bootstrap HS ACR didn't failed as \
 				expected\n");
 	}
-	nvgpu_mutex_release(&g->tpc_pg_lock);
+	nvgpu_mutex_release(&g->static_pg_lock);
 
 	return UNIT_SUCCESS;
 }
@@ -712,7 +712,7 @@ int test_acr_is_lsf_lazy_bootstrap(struct unit_module *m,
 	}
 
 
-	nvgpu_mutex_acquire(&g->tpc_pg_lock);
+	nvgpu_mutex_acquire(&g->static_pg_lock);
 
 	/*
 	 * Prepare HW and SW setup needed for the test
@@ -762,7 +762,7 @@ int test_acr_is_lsf_lazy_bootstrap(struct unit_module *m,
 				expected\n");
 	}
 
-	nvgpu_mutex_release(&g->tpc_pg_lock);
+	nvgpu_mutex_release(&g->static_pg_lock);
 
 	return UNIT_SUCCESS;
 }
@@ -782,7 +782,7 @@ int test_acr_prepare_ucode_blob(struct unit_module *m,
 		unit_return_fail(m, "Test env init failed\n");
 	}
 
-	nvgpu_mutex_acquire(&g->tpc_pg_lock);
+	nvgpu_mutex_acquire(&g->static_pg_lock);
 
 	/*
 	 * Prepare HW and SW setup needed for the test
@@ -882,7 +882,7 @@ int test_acr_prepare_ucode_blob(struct unit_module *m,
 		unit_return_fail(m, "prepare_ucode_blob test failed\n");
 	}
 
-	nvgpu_mutex_release(&g->tpc_pg_lock);
+	nvgpu_mutex_release(&g->static_pg_lock);
 
 	return UNIT_SUCCESS;
 }

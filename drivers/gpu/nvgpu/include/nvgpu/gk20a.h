@@ -424,7 +424,7 @@ struct gk20a {
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	u32 log_trace;
 
-	struct nvgpu_mutex tpc_pg_lock;
+	struct nvgpu_mutex static_pg_lock;
 	/** @endcond */
 
 	/** Stored HW version info */

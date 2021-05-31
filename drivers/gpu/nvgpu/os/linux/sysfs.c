@@ -863,11 +863,11 @@ static ssize_t tpc_pg_mask_store(struct device *dev,
 	unsigned long val = 0;
 	struct nvgpu_gr_obj_ctx_golden_image *gr_golden_image = NULL;
 
-	nvgpu_mutex_acquire(&g->tpc_pg_lock);
+	nvgpu_mutex_acquire(&g->static_pg_lock);
 
 	if (kstrtoul(buf, 10, &val) < 0) {
 		nvgpu_err(g, "invalid value");
-		nvgpu_mutex_release(&g->tpc_pg_lock);
+		nvgpu_mutex_release(&g->static_pg_lock);
 		return -EINVAL;
 	}
 
@@ -884,7 +884,7 @@ static ssize_t tpc_pg_mask_store(struct device *dev,
 			nvgpu_gr_obj_ctx_get_golden_image_size(gr_golden_image)
 			!= 0) {
 		nvgpu_err(g, "golden image size already initialized");
-		nvgpu_mutex_release(&g->tpc_pg_lock);
+		nvgpu_mutex_release(&g->static_pg_lock);
 		return -ENODEV;
 	}
 	/* checking that the value from userspace is within
@@ -894,11 +894,11 @@ static ssize_t tpc_pg_mask_store(struct device *dev,
 		g->tpc_pg_mask = val;
 	} else {
 		nvgpu_err(g, "TPC-PG mask is invalid");
-		nvgpu_mutex_release(&g->tpc_pg_lock);
+		nvgpu_mutex_release(&g->static_pg_lock);
 		return -EINVAL;
 	}
 exit:
-	nvgpu_mutex_release(&g->tpc_pg_lock);
+	nvgpu_mutex_release(&g->static_pg_lock);
 
 	return count;
 }

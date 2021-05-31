@@ -191,7 +191,7 @@
 
 #include "hal/cic/mon/cic_gv11b.h"
 
-#ifdef CONFIG_NVGPU_TPC_POWERGATE
+#ifdef CONFIG_NVGPU_STATIC_POWERGATE
 #include "hal/tpc/tpc_gv11b.h"
 #endif
 
@@ -1429,7 +1429,7 @@ static const struct gops_top gv11b_ops_top = {
 	.get_num_lce = gv11b_top_get_num_lce,
 };
 
-#ifdef CONFIG_NVGPU_TPC_POWERGATE
+#ifdef CONFIG_NVGPU_STATIC_POWERGATE
 static const struct gops_tpc gv11b_ops_tpc = {
 	.init_tpc_powergate = gv11b_tpc_powergate,
 	.tpc_gr_pg = gv11b_gr_pg_tpc,
@@ -1537,7 +1537,7 @@ int gv11b_init_hal(struct gk20a *g)
 	gops->priv_ring = gv11b_ops_priv_ring;
 	gops->fuse = gv11b_ops_fuse;
 	gops->top = gv11b_ops_top;
-#ifdef CONFIG_NVGPU_TPC_POWERGATE
+#ifdef CONFIG_NVGPU_STATIC_POWERGATE
 	gops->tpc = gv11b_ops_tpc;
 #endif
 	gops->grmgr = gv11b_ops_grmgr;
