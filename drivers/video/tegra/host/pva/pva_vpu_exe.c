@@ -22,7 +22,6 @@
 #include "pva_bit_helpers.h"
 #include "pva.h"
 
-#define ELF_MAXIMUM_SYMBOL_LENGTH 64
 #define ELF_MAXIMUM_SECTION_NAME 64
 #define ELF_EXPORTS_SECTION "EXPORTS"
 #define DATA_SECTION_ALIGNMENT 32

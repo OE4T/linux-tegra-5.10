@@ -469,7 +469,7 @@ static int pva_register_vpu_exec(struct pva_private *priv, void *arg,
 	uint16_t exe_id;
 
 	exec_data = kmalloc(reg_in->size, GFP_KERNEL);
-	if (!exec_data) {
+	if (exec_data == NULL) {
 		err = -ENOMEM;
 		goto out;
 	}
@@ -505,16 +505,66 @@ out:
 
 static int pva_unregister_vpu_exec(struct pva_private *priv, void *arg)
 {
-	return 0;
+	struct nvpva_vpu_exe_unregister_in_arg *unreg_in =
+		(struct nvpva_vpu_exe_unregister_in_arg *)arg;
+	return pva_release_vpu_app(&priv->client->elf_ctx, unreg_in->exe_id);
 }
 
-static int pva_get_symbol_id(struct pva_private *priv, void *arg)
+static int pva_get_symbol_id(struct pva_private *priv, void *arg,
+			     const void __user *user_arg)
 {
-	return 0;
+	struct nvpva_get_symbol_in_arg *symbol_in =
+		(struct nvpva_get_symbol_in_arg *)arg;
+	struct nvpva_get_symbol_out_arg *symbol_out =
+		(struct nvpva_get_symbol_out_arg *)arg;
+	char *symbol_buffer;
+	size_t copy_size;
+	int err = 0;
+	uint16_t sym_id;
+	uint32_t sym_size;
+
+	if (symbol_in->name_sz > ELF_MAXIMUM_SYMBOL_LENGTH) {
+		nvhost_err(&priv->pva->pdev->dev, "symbol size too large:%u",
+			   symbol_in->name_sz);
+	}
+	symbol_buffer = kmalloc(symbol_in->name_sz, GFP_KERNEL);
+	if (symbol_buffer == NULL) {
+		err = -ENOMEM;
+		goto out;
+	}
+	copy_size = copy_from_user(
+		symbol_buffer,
+		(const void __user *)(user_arg + sizeof(*symbol_in)),
+		symbol_in->name_sz);
+	if (copy_size) {
+		nvhost_err(
+			&priv->pva->pdev->dev,
+			"failed to copy all symbol name; size failed to copy: %lu/%u.",
+			copy_size, symbol_in->name_sz);
+		goto free_mem;
+	}
+	if (symbol_buffer[symbol_in->name_sz - 1] != '\0') {
+		nvhost_err(&priv->pva->pdev->dev,
+			   "symbol name not terminated with NULL");
+		goto free_mem;
+	}
+	err = pva_get_sym_id(&priv->client->elf_ctx, symbol_in->exe_id,
+			     symbol_buffer, &sym_id, &sym_size);
+	if (err) {
+		nvhost_err(&priv->pva->pdev->dev, "failed to get symbol id:%s",
+			   symbol_buffer);
+		goto free_mem;
+	}
+
+	symbol_out->symbol.id = sym_id;
+	symbol_out->symbol.size = sym_size;
+free_mem:
+	kfree(symbol_buffer);
+out:
+	return err;
 }
 
-static long pva_ioctl(struct file *file, unsigned int cmd,
-			unsigned long arg)
+static long pva_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
 	struct pva_private *priv = file->private_data;
 	u8 buf[NVHOST_PVA_IOCTL_MAX_ARG_SIZE] __aligned(sizeof(u64));
@@ -545,7 +595,7 @@ static long pva_ioctl(struct file *file, unsigned int cmd,
 		err = pva_unregister_vpu_exec(priv, buf);
 		break;
 	case NVPVA_IOCTL_GET_SYMBOL_ID:
-		err = pva_get_symbol_id(priv, buf);
+		err = pva_get_symbol_id(priv, buf, (void __user *)arg);
 		break;
 	case NVPVA_IOCTL_PIN:
 		err = pva_pin(priv, buf);

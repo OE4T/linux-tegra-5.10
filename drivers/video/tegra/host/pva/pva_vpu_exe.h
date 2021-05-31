@@ -23,8 +23,11 @@
 #include "pva-task.h"
 #include <linux/types.h>
 #include <linux/mutex.h>
-#define MAX_NUM_VPU_EXE 32U
 #include "pva-bit.h"
+
+#define ELF_MAXIMUM_SYMBOL_LENGTH 64
+#define MAX_NUM_VPU_EXE 32U
+
 /**
  *  enum to identify different segments of VPU ELF
  */
