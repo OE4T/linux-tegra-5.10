@@ -155,6 +155,7 @@
 #define NVQUIRK_SDMMC_CLK_OVERRIDE			BIT(11)
 #define NVQUIRK_UPDATE_PIN_CNTRL_REG			BIT(12)
 #define NVQUIRK_CONTROL_TRIMMER_SUPPLY			BIT(13)
+#define NVQUIRK_ENABLE_PERIODIC_CALIB			BIT(14)
 
 #define MAX_TAP_VALUE		256
 
@@ -1173,10 +1174,12 @@ static void tegra_sdhci_request(struct mmc_host *mmc, struct mmc_request *mrq)
 	struct sdhci_host *host = mmc_priv(mmc);
 	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
 	struct sdhci_tegra *tegra_host = sdhci_pltfm_priv(pltfm_host);
+	const struct sdhci_tegra_soc_data *soc_data = tegra_host->soc_data;
 	ktime_t since_calib = ktime_sub(ktime_get(), tegra_host->last_calib);
 
 	/* 100 ms calibration interval is specified in the TRM */
-	if (ktime_to_ms(since_calib) > 100) {
+	if ((soc_data->nvquirks & NVQUIRK_ENABLE_PERIODIC_CALIB) &&
+			(ktime_to_ms(since_calib) > 100)) {
 		tegra_sdhci_pad_autocalib(host);
 		tegra_host->last_calib = ktime_get();
 	}
@@ -2248,6 +2251,7 @@ static const struct sdhci_tegra_soc_data soc_data_tegra210 = {
 		    NVQUIRK_UPDATE_PIN_CNTRL_REG |
 		    NVQUIRK_ENABLE_SDR104 |
 		    NVQUIRK_CONTROL_TRIMMER_SUPPLY |
+		    NVQUIRK_ENABLE_PERIODIC_CALIB |
 		    NVQUIRK_HAS_TMCLK,
 	.min_tap_delay = 106,
 	.max_tap_delay = 185,
@@ -2292,6 +2296,7 @@ static const struct sdhci_tegra_soc_data soc_data_tegra186 = {
 		    NVQUIRK_SDMMC_CLK_OVERRIDE |
 		    NVQUIRK_HAS_TMCLK |
 		    NVQUIRK_CONTROL_TRIMMER_SUPPLY |
+		    NVQUIRK_ENABLE_PERIODIC_CALIB |
 		    NVQUIRK_CQHCI_DCMD_R1B_CMD_TIMING,
 	.min_tap_delay = 84,
 	.max_tap_delay = 136,
