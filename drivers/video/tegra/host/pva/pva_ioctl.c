@@ -369,90 +369,47 @@ err_check_num_tasks:
 	return err;
 }
 
-
 static int pva_pin(struct pva_private *priv, void *arg)
 {
-	u32 *handles;
 	int err = 0;
-	int i = 0;
-	struct dma_buf *dmabufs[PVA_MAX_PIN_BUFFERS];
-	struct pva_pin_unpin_args *buf_list = (struct pva_pin_unpin_args *)arg;
-	u32 count = buf_list->num_buffers;
+	struct dma_buf *dmabuf[1];
+	struct nvpva_pin_in_arg *in_arg = (struct nvpva_pin_in_arg *)arg;
+	struct nvpva_pin_out_arg *out_arg = (struct nvpva_pin_out_arg *)arg;
 
-	if (count > PVA_MAX_PIN_BUFFERS)
-		return -EINVAL;
-
-	handles = kcalloc(count, sizeof(u32), GFP_KERNEL);
-	if (!handles)
-		return -ENOMEM;
-
-	if (copy_from_user(handles, (void __user *)buf_list->buffers,
-			(count * sizeof(u32)))) {
+	dmabuf[0] = dma_buf_get(in_arg->pin.import_id);
+	if (IS_ERR_OR_NULL(dmabuf[0])) {
+		dev_err(&priv->pva->pdev->dev, "invalid handle to pin: %u",
+			in_arg->pin.import_id);
 		err = -EFAULT;
-		goto pva_buffer_cpy_err;
+		goto out;
 	}
 
-	/* get the dmabuf pointer from the fd handle */
-	for (i = 0; i < count; i++) {
-		dmabufs[i] = dma_buf_get(handles[i]);
-		if (IS_ERR_OR_NULL(dmabufs[i])) {
-			err = -EFAULT;
-			goto pva_buffer_get_err;
-		}
-	}
+	err = nvhost_buffer_pin(priv->client->buffers, &dmabuf[0], 1);
+	out_arg->pin_id = in_arg->pin.import_id;
 
-	err = nvhost_buffer_pin(priv->buffers, dmabufs, count);
-
-pva_buffer_get_err:
-	count = i;
-	for (i = 0; i < count; i++)
-		dma_buf_put(dmabufs[i]);
-
-pva_buffer_cpy_err:
-	kfree(handles);
+	dma_buf_put(dmabuf[0]);
+out:
 	return err;
 }
 
 static int pva_unpin(struct pva_private *priv, void *arg)
 {
-	u32 *handles;
-	int i = 0;
 	int err = 0;
-	struct dma_buf *dmabufs[PVA_MAX_PIN_BUFFERS];
-	struct pva_pin_unpin_args *buf_list = (struct pva_pin_unpin_args *)arg;
-	u32 count = buf_list->num_buffers;
+	struct dma_buf *dmabuf[1];
+	struct nvpva_unpin_in_arg *in_arg = (struct nvpva_unpin_in_arg *)arg;
 
-	if (count > PVA_MAX_PIN_BUFFERS)
-		return -EINVAL;
-
-	handles = kcalloc(count, sizeof(u32), GFP_KERNEL);
-	if (!handles)
-		return -ENOMEM;
-
-	if (copy_from_user(handles, (void __user *)buf_list->buffers,
-			(count * sizeof(u32)))) {
+	dmabuf[0] = dma_buf_get(in_arg->pin_id);
+	if (IS_ERR_OR_NULL(dmabuf[0])) {
+		dev_err(&priv->pva->pdev->dev, "invalid handle to unpin: %u",
+			in_arg->pin_id);
 		err = -EFAULT;
-		goto pva_buffer_cpy_err;
+		goto out;
 	}
 
-	/* get the dmabuf pointer and clean valid ones */
-	for (i = 0; i < count; i++) {
-		dmabufs[i] = dma_buf_get(handles[i]);
-		if (IS_ERR_OR_NULL(dmabufs[i]))
-			continue;
-	}
+	nvhost_buffer_unpin(priv->client->buffers, &dmabuf[0], 1);
 
-	nvhost_buffer_unpin(priv->buffers, dmabufs, count);
-
-	for (i = 0; i < count; i++) {
-		if (IS_ERR_OR_NULL(dmabufs[i]))
-			continue;
-
-		dma_buf_put(dmabufs[i]);
-	}
-
-pva_buffer_cpy_err:
-	kfree(handles);
+	dma_buf_put(dmabuf[0]);
+out:
 	return err;
 }
 
@@ -567,7 +524,7 @@ out:
 static long pva_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
 	struct pva_private *priv = file->private_data;
-	u8 buf[NVHOST_PVA_IOCTL_MAX_ARG_SIZE] __aligned(sizeof(u64));
+	u8 buf[NVPVA_IOCTL_MAX_SIZE] __aligned(sizeof(u64));
 	int err = 0;
 
 	nvhost_dbg_fn("");
@@ -607,7 +564,8 @@ static long pva_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		err = pva_submit(priv, buf);
 		break;
 	default:
-		return -ENOIOCTLCMD;
+		err = -ENOIOCTLCMD;
+		break;
 	}
 
 	if ((err == 0) && (_IOC_DIR(cmd) & _IOC_READ))
