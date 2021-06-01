@@ -68,11 +68,6 @@
 #define perf_pmmfbp_base_v()                                       (0x00200000U)
 #define perf_pmmfbp_extent_v()                                     (0x00203fffU)
 #define perf_pmasys_control_r()                                    (0x0024a000U)
-#define perf_pmasys_channel_control_r(i)\
-		(nvgpu_safe_add_u32(0x0024a730U, nvgpu_safe_mult_u32((i), 4U)))
-#define perf_pmasys_channel_control__size_1_v()                    (0x00000001U)
-#define perf_pmasys_channel_control_membuf_status_overflowed_f()         (0x10U)
-#define perf_pmasys_channel_control_membuf_clear_status_doit_f()         (0x20U)
 #define perf_pmasys_channel_control_user_r(i)\
 		(nvgpu_safe_add_u32(0x0024a620U, nvgpu_safe_mult_u32((i), 384U)))
 #define perf_pmasys_channel_control_user__size_1_v()               (0x00000001U)
@@ -81,6 +76,11 @@
 #define perf_pmasys_channel_control_user_stream_disable_f()               (0x0U)
 #define perf_pmasys_channel_control_user_update_bytes_m()     (U32(0x1U) << 31U)
 #define perf_pmasys_channel_control_user_update_bytes_doit_f()     (0x80000000U)
+#define perf_pmasys_channel_control_user_membuf_clear_status_doit_f()     (0x2U)
+#define perf_pmasys_channel_status_secure_r(i)\
+		(nvgpu_safe_add_u32(0x0024a610U, nvgpu_safe_mult_u32((i), 384U)))
+#define perf_pmasys_channel_status_secure__size_1_v()              (0x00000001U)
+#define perf_pmasys_channel_status_secure_membuf_status_overflowed_f()    (0x1U)
 #define perf_pmasys_channel_mem_block_r(i)\
 		(nvgpu_safe_add_u32(0x0024a638U, nvgpu_safe_mult_u32((i), 4U)))
 #define perf_pmasys_channel_mem_block__size_1_v()                  (0x00000001U)

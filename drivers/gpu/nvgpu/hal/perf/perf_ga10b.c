@@ -274,13 +274,13 @@ const u32 *ga10b_perf_get_hwpm_fbp_perfmon_regs(u32 *count)
 bool ga10b_perf_get_membuf_overflow_status(struct gk20a *g)
 {
 	const u32 st =
-		perf_pmasys_channel_control_membuf_status_overflowed_f();
+		perf_pmasys_channel_status_secure_membuf_status_overflowed_f();
 
-	nvgpu_assert(perf_pmasys_channel_control__size_1_v() ==
+	nvgpu_assert(perf_pmasys_channel_status_secure__size_1_v() ==
 				pmasys_channel_instance_max_size);
 
 	return st == (nvgpu_readl(g,
-			perf_pmasys_channel_control_r(inst_zero)) & st);
+			perf_pmasys_channel_status_secure_r(inst_zero)) & st);
 }
 
 u32 ga10b_perf_get_membuf_pending_bytes(struct gk20a *g)
@@ -311,7 +311,7 @@ void ga10b_perf_membuf_reset_streaming(struct gk20a *g)
 	u32 num_unread_bytes;
 	u32 i;
 
-	nvgpu_assert(perf_pmasys_channel_control__size_1_v() ==
+	nvgpu_assert(perf_pmasys_channel_control_user__size_1_v() ==
 				pmasys_channel_instance_max_size);
 	nvgpu_assert(perf_pmasys_channel_mem_bytes__size_1_v() ==
 				pmasys_channel_instance_max_size);
@@ -322,9 +322,9 @@ void ga10b_perf_membuf_reset_streaming(struct gk20a *g)
 	WARN_ON(0U ==
 	       (engine_status & perf_pmasys_enginestatus_rbufempty_empty_f()));
 
-	for (i = 0U; i < perf_pmasys_channel_control__size_1_v(); i++) {
-		nvgpu_writel(g, perf_pmasys_channel_control_r(i),
-		     perf_pmasys_channel_control_membuf_clear_status_doit_f());
+	for (i = 0U; i < perf_pmasys_channel_control_user__size_1_v(); i++) {
+		nvgpu_writel(g, perf_pmasys_channel_control_user_r(i),
+		     perf_pmasys_channel_control_user_membuf_clear_status_doit_f());
 	}
 
 	for (i = 0U; i < perf_pmasys_channel_mem_bytes__size_1_v(); i++) {
