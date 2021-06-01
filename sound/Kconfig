@@ -99,6 +99,8 @@ source "sound/synth/Kconfig"
 
 source "sound/xen/Kconfig"
 
+source "sound/tegra-safety-audio/Kconfig"
+
 endif # SND
 
 endif # !UML
