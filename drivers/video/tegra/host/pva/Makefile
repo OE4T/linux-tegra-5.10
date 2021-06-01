@@ -27,7 +27,10 @@ nvhost-pva-objs  = \
 		pva_trace.o \
 		pva_abort.o \
 		pva_ccq_t19x.o \
-		pva_selftest.o
+		pva_selftest.o \
+		nvpva_elf_parser.o \
+		pva_vpu_exe.o \
+		nvpva_client.o
 
 obj-$(V2) += nvhost-pva.o
 

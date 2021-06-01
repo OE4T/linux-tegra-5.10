@@ -34,21 +34,7 @@
 #include "nvhost_buffer.h"
 #include "nvhost_acm.h"
 #include "pva_vpu_exe.h"
-
-struct nvpva_client_context {
-	/* PID of client process which uses this context */
-	pid_t pid;
-
-	/* This tracks how many queues active now */
-	u32 active_queue_requests;
-
-	/* Data structure to track pinned buffers for this client */
-	struct nvhost_buffers *buffers;
-
-	/* Data structure to track elf context for vpu parsing */
-	struct nvpva_elf_context elf_ctx;
-};
-
+#include "nvpva_client.h"
 /**
  * @brief pva_private - Per-fd specific data
  *
@@ -470,9 +456,51 @@ pva_buffer_cpy_err:
 	return err;
 }
 
-static int pva_register_vpu_exec(struct pva_private *priv, void *arg)
+static int pva_register_vpu_exec(struct pva_private *priv, void *arg,
+				 const void __user *user_arg)
 {
-	return 0;
+	struct nvpva_vpu_exe_register_in_arg *reg_in =
+		(struct nvpva_vpu_exe_register_in_arg *)arg;
+	struct nvpva_vpu_exe_register_out_arg *reg_out =
+		(struct nvpva_vpu_exe_register_out_arg *)arg;
+	void *exec_data;
+	size_t copy_size;
+	int err = 0;
+	uint16_t exe_id;
+
+	exec_data = kmalloc(reg_in->size, GFP_KERNEL);
+	if (!exec_data) {
+		err = -ENOMEM;
+		goto out;
+	}
+	copy_size = copy_from_user(
+		exec_data, (const void __user *)(user_arg + sizeof(*reg_in)),
+		reg_in->size);
+	if (copy_size) {
+		nvhost_err(
+			&priv->pva->pdev->dev,
+			"failed to copy all executable data; size failed to copy: %lu/%u.",
+			copy_size, reg_in->size);
+		goto free_mem;
+	}
+	err = pva_load_vpu_app(&priv->client->elf_ctx, exec_data, reg_in->size,
+			       &exe_id);
+	if (err) {
+		nvhost_err(&priv->pva->pdev->dev, "failed to register vpu app");
+		goto free_mem;
+	}
+
+	reg_out->exe_id = exe_id;
+	reg_out->num_of_symbols =
+		priv->client->elf_ctx.elf_images->elf_img[exe_id].num_symbols;
+	reg_out->symbol_size_total =
+		priv->client->elf_ctx.elf_images->elf_img[exe_id]
+			.symbol_size_total;
+
+free_mem:
+	kfree(exec_data);
+out:
+	return err;
 }
 
 static int pva_unregister_vpu_exec(struct pva_private *priv, void *arg)
@@ -511,7 +539,7 @@ static long pva_ioctl(struct file *file, unsigned int cmd,
 
 	switch (cmd) {
 	case NVPVA_IOCTL_REGISTER_VPU_EXEC:
-		err = pva_register_vpu_exec(priv, buf);
+		err = pva_register_vpu_exec(priv, buf, (void __user *)arg);
 		break;
 	case NVPVA_IOCTL_UNREGISTER_VPU_EXEC:
 		err = pva_unregister_vpu_exec(priv, buf);
@@ -574,8 +602,17 @@ static int pva_open(struct inode *inode, struct file *file)
 		goto err_alloc_buffer;
 	}
 
+	priv->client = nvpva_client_context_alloc(pva, current->pid);
+	if (priv->client == NULL) {
+		err = -ENOMEM;
+		dev_err(&pdev->dev, "failed to allocate client context");
+		goto err_alloc_context;
+	}
+
 	return nonseekable_open(inode, file);
 
+err_alloc_context:
+	nvhost_buffer_release(priv->buffers);
 err_alloc_buffer:
 	nvhost_queue_put(priv->queue);
 err_alloc_queue:
@@ -601,6 +638,8 @@ static int pva_release(struct inode *inode, struct file *file)
 
 	/* Release the handle to buffer structure */
 	nvhost_buffer_release(priv->buffers);
+
+	nvpva_client_context_free(priv->pva, priv->client);
 
 	/* Finally, release the private data */
 	kfree(priv);

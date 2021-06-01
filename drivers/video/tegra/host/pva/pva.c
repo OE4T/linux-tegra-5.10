@@ -17,6 +17,7 @@
  */
 
 
+#include "nvpva_client.h"
 #include <linux/export.h>
 #include <linux/module.h>
 #include <linux/pm_runtime.h>
@@ -746,6 +747,12 @@ static int pva_probe(struct platform_device *pdev)
 		goto err_queue_init;
 	}
 
+	err = nvpva_client_context_init(pva);
+	if (err) {
+		dev_err(&pva->pdev->dev, "failed to init client context");
+		goto err_client_ctx_init;
+	}
+
 	err = pva_register_isr(pdev);
 	if (err < 0)
 		goto err_isr_init;
@@ -766,6 +773,8 @@ static int pva_probe(struct platform_device *pdev)
 
 err_mss_init:
 err_isr_init:
+	nvpva_client_context_deinit(pva);
+err_client_ctx_init:
 	nvhost_queue_deinit(pva->pool);
 err_queue_init:
 	nvhost_client_device_release(pdev);
@@ -787,6 +796,7 @@ static int __exit pva_remove(struct platform_device *pdev)
 	struct pva *pva = pdata->private_data;
 	int i;
 
+	nvpva_client_context_deinit(pva);
 	nvhost_queue_deinit(pva->pool);
 	nvhost_client_device_release(pdev);
 	for (i = 0; i < pva->version_config->irq_count; i++)

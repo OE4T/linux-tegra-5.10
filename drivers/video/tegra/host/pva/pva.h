@@ -29,6 +29,8 @@
 #include "pva_nvhost.h"
 #include "pva-ucode-header.h"
 
+struct nvpva_client_context;
+
 enum pva_submit_mode {
 	PVA_SUBMIT_MODE_MAILBOX		= 0,
 	PVA_SUBMIT_MODE_MMIO_CCQ	= 1,
@@ -46,6 +48,7 @@ struct pva_version_info {
  * Queue count of 8 is maintained per PVA.
  */
 #define MAX_PVA_QUEUE_COUNT 8
+#define MAX_PVA_CLIENTS 8
 
 /**
  * Maximum task count that a queue can support
@@ -267,6 +270,9 @@ struct pva {
 	bool booted;
 
 	u32 log_level;
+
+	struct nvpva_client_context *clients;
+	struct mutex clients_lock;
 };
 
 /**
