@@ -1,9 +1,10 @@
 GCOV_PROFILE := y
 ccflags-y += -I$(srctree.nvidia-t23x)/drivers/video/tegra/host
-ccflags-y += -I$(srctree.nvidia-t23x)/drivers/video/tegra/host/pva
+ccflags-y += -I$(srctree.nvidia-t23x)/drivers/video/tegra/host/pva/bringup
 ccflags-y += -I$(srctree.nvidia)/drivers/video/tegra/host
 ccflags-y += -I$(srctree.nvidia)/include
 ccflags-y += -Werror
+
 
 nvhost-pva-objs  = \
 		pva.o \
