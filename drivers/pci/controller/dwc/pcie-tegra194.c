@@ -300,6 +300,7 @@ struct tegra_pcie_dw {
 
 	bool supports_clkreq;
 	bool enable_cdm_check;
+	bool enable_srns;
 	bool link_state;
 	bool update_fc_fixup;
 	u8 init_link_width;
@@ -1175,6 +1176,8 @@ static int tegra_pcie_dw_parse_dt(struct tegra_pcie_dw *pcie)
 	pcie->enable_cdm_check =
 		of_property_read_bool(np, "snps,enable-cdm-check");
 
+	pcie->enable_srns = of_property_read_bool(np, "nvidia,enable-srns");
+
 	if (pcie->mode == DW_PCIE_RC_TYPE)
 		return 0;
 
@@ -1453,6 +1456,14 @@ static int tegra_pcie_config_controller(struct tegra_pcie_dw *pcie,
 	val = appl_readl(pcie, APPL_CFG_MISC);
 	val |= (APPL_CFG_MISC_ARCACHE_VAL << APPL_CFG_MISC_ARCACHE_SHIFT);
 	appl_writel(pcie, val, APPL_CFG_MISC);
+
+	if (pcie->enable_srns) {
+		/* Cut the REFCLK to EP as it is using its internal clock */
+		val = appl_readl(pcie, APPL_PINMUX);
+		val |= APPL_PINMUX_CLK_OUTPUT_IN_OVERRIDE_EN;
+		val &= ~APPL_PINMUX_CLK_OUTPUT_IN_OVERRIDE;
+		appl_writel(pcie, val, APPL_PINMUX);
+	}
 
 	if (!pcie->supports_clkreq) {
 		val = appl_readl(pcie, APPL_PINMUX);
@@ -1792,7 +1803,7 @@ static void pex_ep_event_pex_rst_assert(struct tegra_pcie_dw *pcie)
 
 	pm_runtime_put_sync(pcie->dev);
 
-	if (tegra_platform_is_silicon()) {
+	if (tegra_platform_is_silicon() && !pcie->enable_srns) {
 		ret = tegra_pcie_bpmp_set_pll_state(pcie, false);
 		if (ret)
 			dev_err(pcie->dev, "Failed to turn off UPHY: %d\n",
@@ -1821,7 +1832,7 @@ static void pex_ep_event_pex_rst_deassert(struct tegra_pcie_dw *pcie)
 		return;
 	}
 
-	if (tegra_platform_is_silicon()) {
+	if (tegra_platform_is_silicon() && !pcie->enable_srns) {
 		ret = tegra_pcie_bpmp_set_pll_state(pcie, true);
 		if (ret) {
 			dev_err(dev, "Failed to init UPHY for PCIe EP: %d\n",
