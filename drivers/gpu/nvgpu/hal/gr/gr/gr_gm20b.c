@@ -1,7 +1,7 @@
 /*
  * GM20B GPC MMU
  *
- * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -35,6 +35,7 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/gr/gr_instances.h>
 #include <nvgpu/gr/warpstate.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/engine_status.h>
@@ -54,7 +55,7 @@ u32 gr_gm20b_get_gr_status(struct gk20a *g)
 
 void gr_gm20b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data)
 {
-	struct nvgpu_gr *gr = g->gr;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 	u32 gpc_index, ppc_index, stride, val;
 	u32 pd_ab_max_output;
 	u32 alpha_cb_size = data * 4U;
@@ -111,7 +112,7 @@ void gr_gm20b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data)
 
 void gr_gm20b_set_circular_buffer_size(struct gk20a *g, u32 data)
 {
-	struct nvgpu_gr *gr = g->gr;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 	u32 gpc_index, ppc_index, stride, val;
 	u32 cb_size = data * 4U;
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
@@ -217,13 +218,15 @@ void gr_gm20b_get_sm_dsm_perf_ctrl_regs(struct gk20a *g,
 #ifdef CONFIG_NVGPU_TEGRA_FUSE
 void gr_gm20b_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index)
 {
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
+
 	nvgpu_tegra_fuse_write_bypass(g, 0x1);
 	nvgpu_tegra_fuse_write_access_sw(g, 0x0);
 
-	if (nvgpu_gr_config_get_gpc_tpc_mask(g->gr->config, gpc_index) == 0x1U) {
+	if (nvgpu_gr_config_get_gpc_tpc_mask(gr->config, gpc_index) == 0x1U) {
 		nvgpu_tegra_fuse_write_opt_gpu_tpc0_disable(g, 0x0);
 		nvgpu_tegra_fuse_write_opt_gpu_tpc1_disable(g, 0x1);
-	} else if (nvgpu_gr_config_get_gpc_tpc_mask(g->gr->config, gpc_index) ==
+	} else if (nvgpu_gr_config_get_gpc_tpc_mask(gr->config, gpc_index) ==
 			0x2U) {
 		nvgpu_tegra_fuse_write_opt_gpu_tpc0_disable(g, 0x1);
 		nvgpu_tegra_fuse_write_opt_gpu_tpc1_disable(g, 0x0);
@@ -237,7 +240,7 @@ void gr_gm20b_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index)
 int gr_gm20b_dump_gr_status_regs(struct gk20a *g,
 			   struct nvgpu_debug_context *o)
 {
-	struct nvgpu_gr *gr = g->gr;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 	u32 gr_engine_id;
 	struct nvgpu_engine_status_info engine_status;
 
@@ -423,7 +426,7 @@ void gr_gm20b_bpt_reg_info(struct gk20a *g, struct nvgpu_warpstate *w_state)
 {
 	/* Check if we have at least one valid warp */
 	/* get paused state on maxwell */
-	struct nvgpu_gr *gr = g->gr;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 	u32 gpc, tpc, sm_id;
 	u32  tpc_offset, gpc_offset, reg_offset;
 	u64 warps_valid = 0, warps_paused = 0, warps_trapped = 0;
@@ -511,6 +514,7 @@ int gm20b_gr_clear_sm_error_state(struct gk20a *g,
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g,
 					       GPU_LIT_TPC_IN_GPC_STRIDE);
 	int err = 0;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 
 	tsg = nvgpu_tsg_from_ch(ch);
 	if (tsg == NULL) {
@@ -530,7 +534,7 @@ int gm20b_gr_clear_sm_error_state(struct gk20a *g,
 
 	if (gk20a_is_channel_ctx_resident(ch)) {
 		struct nvgpu_sm_info *sm_info =
-			nvgpu_gr_config_get_sm_info(g->gr->config, sm_id);
+			nvgpu_gr_config_get_sm_info(gr->config, sm_id);
 		gpc = nvgpu_gr_config_get_sm_info_gpc_index(sm_info);
 		tpc = nvgpu_gr_config_get_sm_info_tpc_index(sm_info);
 

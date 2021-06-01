@@ -37,6 +37,7 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/gr/gr_instances.h>
 #include <nvgpu/gr/warpstate.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/engines.h>
@@ -63,7 +64,7 @@
 
 void gr_gv11b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data)
 {
-	struct nvgpu_gr *gr = g->gr;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 	u32 gpc_index, ppc_index, stride, val;
 	u32 pd_ab_max_output;
 	u32 alpha_cb_size = data * 4U;
@@ -115,7 +116,7 @@ void gr_gv11b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data)
 
 void gr_gv11b_set_circular_buffer_size(struct gk20a *g, u32 data)
 {
-	struct nvgpu_gr *gr = g->gr;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 	u32 gpc_index, ppc_index, stride, val;
 	u32 cb_size_steady = data * 4U, cb_size;
 	u32 attrib_cb_size = g->ops.gr.init.get_attrib_cb_size(g,
@@ -226,6 +227,7 @@ static void gr_gv11b_dump_gr_sm_regs(struct gk20a *g,
 {
 	u32 gpc, tpc, sm, sm_per_tpc;
 	u32 gpc_offset, tpc_offset, offset;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 
 	gk20a_debug_output(o,
 		"NV_PGRAPH_PRI_GPCS_TPCS_SMS_HWW_GLOBAL_ESR_REPORT_MASK: 0x%x",
@@ -251,11 +253,11 @@ static void gr_gv11b_dump_gr_sm_regs(struct gk20a *g,
 		gk20a_readl(g, gr_gpcs_tpcs_sms_dbgr_bpt_pause_mask_1_r()));
 
 	sm_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
-	for (gpc = 0; gpc < nvgpu_gr_config_get_gpc_count(g->gr->config); gpc++) {
+	for (gpc = 0; gpc < nvgpu_gr_config_get_gpc_count(gr->config); gpc++) {
 		gpc_offset = nvgpu_gr_gpc_offset(g, gpc);
 
 		for (tpc = 0;
-		     tpc < nvgpu_gr_config_get_gpc_tpc_count(g->gr->config, gpc);
+		     tpc < nvgpu_gr_config_get_gpc_tpc_count(gr->config, gpc);
 		     tpc++) {
 			tpc_offset = nvgpu_gr_tpc_offset(g, tpc);
 
@@ -273,7 +275,7 @@ static void gr_gv11b_dump_gr_sm_regs(struct gk20a *g,
 int gr_gv11b_dump_gr_status_regs(struct gk20a *g,
 			   struct nvgpu_debug_context *o)
 {
-	struct nvgpu_gr *gr = g->gr;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 	u32 gr_engine_id;
 	struct nvgpu_engine_status_info engine_status;
 
@@ -416,19 +418,20 @@ int gr_gv11b_dump_gr_status_regs(struct gk20a *g,
 void gr_gv11b_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index)
 {
 	u32 fuse_val;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 
-	if (nvgpu_gr_config_get_gpc_tpc_mask(g->gr->config, gpc_index) == 0U) {
+	if (nvgpu_gr_config_get_gpc_tpc_mask(gr->config, gpc_index) == 0U) {
 		return;
 	}
 
 	/*
-	 * For s/w value nvgpu_gr_config_get_gpc_tpc_mask(g->gr->config, gpc_index), bit value 1 indicates
+	 * For s/w value nvgpu_gr_config_get_gpc_tpc_mask(gr->config, gpc_index), bit value 1 indicates
 	 * corresponding TPC is enabled. But for h/w fuse register, bit value 1
 	 * indicates corresponding TPC is disabled.
 	 * So we need to flip the bits and ensure we don't write to bits greater
 	 * than TPC count
 	 */
-	fuse_val = nvgpu_gr_config_get_gpc_tpc_mask(g->gr->config, gpc_index);
+	fuse_val = nvgpu_gr_config_get_gpc_tpc_mask(gr->config, gpc_index);
 	fuse_val = ~fuse_val;
 	fuse_val = fuse_val & 0xfU; /* tpc0_disable fuse is only 4-bit wide */
 
@@ -754,7 +757,7 @@ static void gv11b_gr_sm_stop_trigger_enable(struct gk20a *g)
 {
 	u32 dbgr_control0;
 	u32 gpc, tpc, sm, gpc_offset, tpc_offset, offset;
-	struct nvgpu_gr *gr = g->gr;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 	u32 sm_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
 
 	/*
@@ -793,7 +796,7 @@ void gv11b_gr_bpt_reg_info(struct gk20a *g, struct nvgpu_warpstate *w_state)
 	/* Check if we have at least one valid warp
 	 * get paused state on maxwell
 	 */
-	struct nvgpu_gr *gr = g->gr;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 	u32 gpc, tpc, sm, sm_id;
 	u32 offset;
 	u64 warps_valid = 0, warps_paused = 0, warps_trapped = 0;
@@ -868,6 +871,7 @@ int gv11b_gr_set_sm_debug_mode(struct gk20a *g,
 	int err;
 	struct nvgpu_tsg *tsg = nvgpu_tsg_from_ch(ch);
 	u32 flags = NVGPU_REG_OP_FLAG_MODE_ALL_OR_NONE;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 
 	if (tsg == NULL) {
 		nvgpu_err(g, "gv11b_gr_set_sm_debug_mode failed=>tsg NULL");
@@ -892,21 +896,21 @@ int gv11b_gr_set_sm_debug_mode(struct gk20a *g,
 				NVGPU_DEFAULT_SM_DIVERSITY_CONFIG) {
 			sm_info =
 				nvgpu_gr_config_get_sm_info(
-					g->gr->config, sm_id);
+					gr->config, sm_id);
 		} else {
 			sm_info =
 				nvgpu_gr_config_get_redex_sm_info(
-					g->gr->config, sm_id);
+					gr->config, sm_id);
 		}
 #else
-		sm_info = nvgpu_gr_config_get_sm_info(g->gr->config, sm_id);
+		sm_info = nvgpu_gr_config_get_sm_info(gr->config, sm_id);
 #endif
 		gpc = nvgpu_gr_config_get_sm_info_gpc_index(sm_info);
 		if (g->ops.gr.init.get_nonpes_aware_tpc != NULL) {
 			tpc = g->ops.gr.init.get_nonpes_aware_tpc(g,
 				nvgpu_gr_config_get_sm_info_gpc_index(sm_info),
 				nvgpu_gr_config_get_sm_info_tpc_index(sm_info),
-					g->gr->config);
+					gr->config);
 		} else {
 			tpc = nvgpu_gr_config_get_sm_info_tpc_index(sm_info);
 		}
@@ -980,7 +984,7 @@ static bool gv11b_gr_single_sm_debugger_attached(struct gk20a *g, u32 gpc,
 bool gv11b_gr_sm_debugger_attached(struct gk20a *g)
 {
 	u32 gpc, tpc, sm;
-	struct nvgpu_gr *gr = g->gr;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 	u32 sm_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
 
 	/* return true only if all SMs are in debug mode */
@@ -1045,7 +1049,7 @@ void gv11b_gr_suspend_single_sm(struct gk20a *g,
 void gv11b_gr_suspend_all_sms(struct gk20a *g,
 		u32 global_esr_mask, bool check_errors)
 {
-	struct nvgpu_gr *gr = g->gr;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 	u32 gpc, tpc, sm;
 	int err;
 	u32 sm_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
@@ -1178,7 +1182,7 @@ void gv11b_gr_resume_all_sms(struct gk20a *g)
 {
 	u32 gpc, tpc, sm;
 	u32 sm_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
-	struct nvgpu_gr *gr = g->gr;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 
 	if (!g->ops.gr.sm_debugger_attached(g)) {
 		nvgpu_err(g,
@@ -1638,6 +1642,7 @@ void gv11b_gr_egpc_etpc_priv_addr_table(struct gk20a *g, u32 addr,
 	u32 *priv_addr_table, u32 *t)
 {
 	u32 priv_addr, gpc_addr;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 
 	nvgpu_log_info(g, "addr=0x%x", addr);
 
@@ -1648,13 +1653,13 @@ void gv11b_gr_egpc_etpc_priv_addr_table(struct gk20a *g, u32 addr,
 	if ((broadcast_flags & PRI_BROADCAST_FLAGS_EGPC) != 0U) {
 		nvgpu_log_info(g, "broadcast flags egpc");
 		for (gpc_num = 0;
-		     gpc_num < nvgpu_gr_config_get_gpc_count(g->gr->config);
+		     gpc_num < nvgpu_gr_config_get_gpc_count(gr->config);
 		     gpc_num++) {
 
 			if ((broadcast_flags & PRI_BROADCAST_FLAGS_ETPC) != 0U) {
 				nvgpu_log_info(g, "broadcast flags etpc");
 				for (tpc_num = 0;
-				     tpc_num < nvgpu_gr_config_get_gpc_tpc_count(g->gr->config, gpc_num);
+				     tpc_num < nvgpu_gr_config_get_gpc_tpc_count(gr->config, gpc_num);
 				     tpc_num++) {
 					if ((broadcast_flags &
 					     PRI_BROADCAST_FLAGS_SMPC) != 0U) {
@@ -1684,7 +1689,7 @@ void gv11b_gr_egpc_etpc_priv_addr_table(struct gk20a *g, u32 addr,
 
 				gpc_addr = pri_gpccs_addr_mask(g, priv_addr);
 				tpc_num = nvgpu_gr_get_tpc_num(g, gpc_addr);
-				if (tpc_num >= nvgpu_gr_config_get_gpc_tpc_count(g->gr->config, gpc_num)) {
+				if (tpc_num >= nvgpu_gr_config_get_gpc_tpc_count(gr->config, gpc_num)) {
 					continue;
 				}
 
@@ -1698,7 +1703,7 @@ void gv11b_gr_egpc_etpc_priv_addr_table(struct gk20a *g, u32 addr,
 		if ((broadcast_flags & PRI_BROADCAST_FLAGS_ETPC) != 0U) {
 			nvgpu_log_info(g, "broadcast flags etpc but not egpc");
 			for (tpc_num = 0;
-			     tpc_num < nvgpu_gr_config_get_gpc_tpc_count(g->gr->config, gpc_num);
+			     tpc_num < nvgpu_gr_config_get_gpc_tpc_count(gr->config, gpc_num);
 			     tpc_num++) {
 				if ((broadcast_flags &
 				     PRI_BROADCAST_FLAGS_SMPC) != 0U) {
@@ -1895,6 +1900,7 @@ int gr_gv11b_create_priv_addr_table(struct gk20a *g,
 	u32 broadcast_flags;
 	u32 t;
 	int err;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 
 	t = 0;
 	*num_registers = 0;
@@ -1934,17 +1940,17 @@ int gr_gv11b_create_priv_addr_table(struct gk20a *g,
 	 */
 	if ((broadcast_flags & PRI_BROADCAST_FLAGS_GPC) != 0U) {
 		for (gpc_num = 0;
-		     gpc_num < nvgpu_gr_config_get_gpc_count(g->gr->config);
+		     gpc_num < nvgpu_gr_config_get_gpc_count(gr->config);
 		     gpc_num++) {
 
 			if ((broadcast_flags & PRI_BROADCAST_FLAGS_TPC) != 0U) {
 				for (tpc_num = 0;
-				     tpc_num < nvgpu_gr_config_get_gpc_tpc_count(g->gr->config, gpc_num);
+				     tpc_num < nvgpu_gr_config_get_gpc_tpc_count(gr->config, gpc_num);
 				     tpc_num++) {
 					if ((broadcast_flags &
 						PRI_BROADCAST_FLAGS_SM) != 0U) {
 						for (sm_num = 0;
-							sm_num < nvgpu_gr_config_get_sm_count_per_tpc(g->gr->config);
+							sm_num < nvgpu_gr_config_get_sm_count_per_tpc(gr->config);
 							sm_num++) {
 								priv_addr_table[t++] =
 								pri_sm_addr(g,
@@ -1971,7 +1977,7 @@ int gr_gv11b_create_priv_addr_table(struct gk20a *g,
 
 				gpc_addr = pri_gpccs_addr_mask(g, priv_addr);
 				tpc_num = nvgpu_gr_get_tpc_num(g, gpc_addr);
-				if (tpc_num >= nvgpu_gr_config_get_gpc_tpc_count(g->gr->config, gpc_num)) {
+				if (tpc_num >= nvgpu_gr_config_get_gpc_tpc_count(gr->config, gpc_num)) {
 					continue;
 				}
 
@@ -2010,7 +2016,7 @@ int gr_gv11b_create_priv_addr_table(struct gk20a *g,
 		}
 
 		for (gpc_num = 0;
-		     gpc_num < nvgpu_gr_config_get_gpc_count(g->gr->config);
+		     gpc_num < nvgpu_gr_config_get_gpc_count(gr->config);
 		     gpc_num++) {
 			for (domain_idx = pmm_domain_start;
 			     domain_idx < (pmm_domain_start + num_domains);
@@ -2064,7 +2070,7 @@ int gr_gv11b_create_priv_addr_table(struct gk20a *g,
 	} else if ((broadcast_flags & PRI_BROADCAST_FLAGS_GPC) == 0U) {
 		if ((broadcast_flags & PRI_BROADCAST_FLAGS_TPC) != 0U) {
 			for (tpc_num = 0;
-			     tpc_num < nvgpu_gr_config_get_gpc_tpc_count(g->gr->config, gpc_num);
+			     tpc_num < nvgpu_gr_config_get_gpc_tpc_count(gr->config, gpc_num);
 			     tpc_num++) {
 				priv_addr_table[t++] =
 					pri_tpc_addr(g,
@@ -2089,6 +2095,7 @@ int gv11b_gr_clear_sm_error_state(struct gk20a *g,
 	u32 gpc, tpc, sm, offset;
 	u32 val;
 	struct nvgpu_tsg *tsg;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 
 	int err = 0;
 
@@ -2114,14 +2121,14 @@ int gv11b_gr_clear_sm_error_state(struct gk20a *g,
 				NVGPU_DEFAULT_SM_DIVERSITY_CONFIG) {
 			sm_info =
 				nvgpu_gr_config_get_sm_info(
-					g->gr->config, sm_id);
+					gr->config, sm_id);
 		} else {
 			sm_info =
 				nvgpu_gr_config_get_redex_sm_info(
-					g->gr->config, sm_id);
+					gr->config, sm_id);
 		}
 #else
-		sm_info = nvgpu_gr_config_get_sm_info(g->gr->config, sm_id);
+		sm_info = nvgpu_gr_config_get_sm_info(gr->config, sm_id);
 #endif
 
 		gpc = nvgpu_gr_config_get_sm_info_gpc_index(sm_info);
@@ -2129,7 +2136,7 @@ int gv11b_gr_clear_sm_error_state(struct gk20a *g,
 			tpc = g->ops.gr.init.get_nonpes_aware_tpc(g,
 				nvgpu_gr_config_get_sm_info_gpc_index(sm_info),
 				nvgpu_gr_config_get_sm_info_tpc_index(sm_info),
-					g->gr->config);
+					gr->config);
 		} else {
 			tpc = nvgpu_gr_config_get_sm_info_tpc_index(sm_info);
 		}

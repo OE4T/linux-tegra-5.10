@@ -1,7 +1,7 @@
 /*
  * GP10B GPU GR
  *
- * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -38,6 +38,7 @@
 #include <nvgpu/gr/subctx.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/gr/gr_instances.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/obj_ctx.h>
@@ -103,7 +104,7 @@ void gr_gp10b_set_bes_crop_debug4(struct gk20a *g, u32 data)
 
 void gr_gp10b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data)
 {
-	struct nvgpu_gr *gr = g->gr;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 	u32 gpc_index, ppc_index, stride, val;
 	u32 pd_ab_max_output;
 	u32 alpha_cb_size = data * 4U;
@@ -158,7 +159,7 @@ void gr_gp10b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data)
 
 void gr_gp10b_set_circular_buffer_size(struct gk20a *g, u32 data)
 {
-	struct nvgpu_gr *gr = g->gr;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 	u32 gpc_index, ppc_index, stride, val;
 	u32 cb_size_steady = data * 4U, cb_size;
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
@@ -234,7 +235,7 @@ void gr_gp10b_set_circular_buffer_size(struct gk20a *g, u32 data)
 int gr_gp10b_dump_gr_status_regs(struct gk20a *g,
 			   struct nvgpu_debug_context *o)
 {
-	struct nvgpu_gr *gr = g->gr;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 	u32 gr_engine_id;
 	struct nvgpu_engine_status_info engine_status;
 
@@ -369,12 +370,13 @@ int gr_gp10b_dump_gr_status_regs(struct gk20a *g,
 #ifdef CONFIG_NVGPU_TEGRA_FUSE
 void gr_gp10b_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index)
 {
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 	nvgpu_tegra_fuse_write_bypass(g, 0x1);
 	nvgpu_tegra_fuse_write_access_sw(g, 0x0);
 
-	if (nvgpu_gr_config_get_gpc_tpc_mask(g->gr->config, gpc_index) == 0x1U) {
+	if (nvgpu_gr_config_get_gpc_tpc_mask(gr->config, gpc_index) == 0x1U) {
 		nvgpu_tegra_fuse_write_opt_gpu_tpc0_disable(g, 0x2);
-	} else if (nvgpu_gr_config_get_gpc_tpc_mask(g->gr->config, gpc_index) ==
+	} else if (nvgpu_gr_config_get_gpc_tpc_mask(gr->config, gpc_index) ==
 			0x2U) {
 		nvgpu_tegra_fuse_write_opt_gpu_tpc0_disable(g, 0x1);
 	} else {
@@ -427,6 +429,7 @@ int gr_gp10b_set_cilp_preempt_pending(struct gk20a *g,
 	int ret;
 	struct nvgpu_tsg *tsg;
 	struct nvgpu_gr_ctx *gr_ctx;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg | gpu_dbg_intr, " ");
 
@@ -472,7 +475,7 @@ int gr_gp10b_set_cilp_preempt_pending(struct gk20a *g,
 
 	/* set cilp_preempt_pending = true and record the channel */
 	nvgpu_gr_ctx_set_cilp_preempt_pending(gr_ctx, true);
-	g->gr->cilp_preempt_pending_chid = fault_ch->chid;
+	gr->cilp_preempt_pending_chid = fault_ch->chid;
 
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 	g->ops.tsg.post_event_id(tsg, NVGPU_EVENT_ID_CILP_PREEMPTION_STARTED);
