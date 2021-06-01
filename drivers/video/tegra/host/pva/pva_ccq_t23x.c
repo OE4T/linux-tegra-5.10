@@ -29,11 +29,11 @@
 #endif
 
 #include "dev.h"
-#include "pva/pva.h"
+#include "pva.h"
 #include "pva_mailbox.h"
 #include "pva_ccq_t23x.h"
 
-#include "pva/pva_regs.h"
+#include "pva_regs.h"
 
 #define MAX_CCQ_ELEMENTS	6
 

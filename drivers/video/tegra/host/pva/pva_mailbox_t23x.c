@@ -24,9 +24,9 @@
 
 #include "nvhost_acm.h"
 #include "dev.h"
-#include "pva/pva_mailbox.h"
+#include "pva_mailbox.h"
 #include "pva_mailbox_t23x.h"
-#include "pva/pva_regs.h"
+#include "pva_regs.h"
 
 
 static u32 pva_get_mb_reg_ex(u32 i)

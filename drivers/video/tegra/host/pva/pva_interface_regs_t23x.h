@@ -17,7 +17,7 @@
 #ifndef __PVA_INTERFACE_REGS_T23X_H__
 #define __PVA_INTERFACE_REGS_T23X_H__
 
-#include "pva/pva.h"
+#include "pva.h"
 
 #define NUM_INTERFACES_T23X	9
 

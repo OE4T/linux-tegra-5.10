@@ -28,8 +28,8 @@
 
 #include "nvhost_acm.h"
 #include "dev.h"
-#include "pva/pva.h"
-#include "pva/pva_mailbox.h"
+#include "pva.h"
+#include "pva_mailbox.h"
 #include "pva_interface_regs_t23x.h"
 
 static struct pva_status_interface_registers t23x_status_regs[NUM_INTERFACES_T23X] = {

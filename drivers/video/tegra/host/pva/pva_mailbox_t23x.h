@@ -21,7 +21,7 @@
 
 #include <linux/platform_device.h>
 
-#include "pva/pva-interface.h"
+#include "pva-interface.h"
 
 /**
  * pva_read_mailbox() - read a mailbox register

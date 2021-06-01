@@ -21,8 +21,8 @@
 
 #include <linux/kernel.h>
 
-#include "pva/pva.h"
-#include "pva/pva_status_regs.h"
+#include "pva.h"
+#include "pva_status_regs.h"
 
 int pva_ccq_send_task_t23x(struct pva *pva, struct pva_cmd *cmd);
 void pva_ccq_isr_handler(struct pva *pva, unsigned int queue_id);
