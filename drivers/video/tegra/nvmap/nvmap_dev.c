@@ -581,10 +581,13 @@ next_page:
 
 bool is_nvmap_memory_available(size_t size)
 {
-	struct sysinfo i;
-
-	si_meminfo(&i);
-	if (size >> PAGE_SHIFT >= i.totalram) {
+	unsigned long total_num_pages =
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0)
+		totalram_pages();
+#else
+		totalram_pages;
+#endif
+	if ((size >> PAGE_SHIFT) > total_num_pages) {
 		pr_debug("Requested allocation size is more than system memory");
 		return false;
 	}
