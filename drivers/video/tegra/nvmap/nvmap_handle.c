@@ -176,12 +176,17 @@ struct nvmap_handle_ref *nvmap_create_handle_from_va(struct nvmap_client *client
 		return ERR_PTR(-EINVAL);
 
 	vma = find_vma(current->mm, vaddr);
-
 	if (unlikely(!vma))
 		return ERR_PTR(-EINVAL);
 
 	if (!size)
 		size = vma->vm_end - vaddr;
+
+	/* Don't allow exuberantly large sizes. */
+	if (!nvmap_memory_available(size)) {
+		pr_debug("Cannot allocate %zu bytes.\n", size);
+		return ERR_PTR(-ENOMEM);
+	}
 
 	vm_flags = vma->vm_flags;
 	/*

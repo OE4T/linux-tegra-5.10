@@ -342,17 +342,17 @@ out:
  * NOTE: this omits outer cache operations which is fine for ARM64
  */
 static int __nvmap_do_cache_maint_list(struct nvmap_handle **handles,
-				u64 *offsets, u64 *sizes, int op, int nr,
+				u64 *offsets, u64 *sizes, int op, u32 nr_ops,
 				bool is_32)
 {
-	int i;
+	u32 i;
 	u64 total = 0;
 	u64 thresh = ~0;
 
 	WARN(!IS_ENABLED(CONFIG_ARM64),
 		"cache list operation may not function properly");
 
-	for (i = 0; i < nr; i++) {
+	for (i = 0; i < nr_ops; i++) {
 		bool inner, outer;
 		u32 *sizes_32 = (u32 *)sizes;
 		u64 size = is_32 ? sizes_32[i] : sizes[i];
@@ -374,7 +374,7 @@ static int __nvmap_do_cache_maint_list(struct nvmap_handle **handles,
 	/* Full flush in the case the passed list is bigger than our
 	 * threshold. */
 	if (total >= thresh) {
-		for (i = 0; i < nr; i++) {
+		for (i = 0; i < nr_ops; i++) {
 			if (handles[i]->userflags &
 			    NVMAP_HANDLE_CACHE_SYNC) {
 				nvmap_handle_mkclean(handles[i], 0,
@@ -391,7 +391,7 @@ static int __nvmap_do_cache_maint_list(struct nvmap_handle **handles,
 					nvmap_stats_read(NS_CFLUSH_RQ),
 					nvmap_stats_read(NS_CFLUSH_DONE));
 	} else {
-		for (i = 0; i < nr; i++) {
+		for (i = 0; i < nr_ops; i++) {
 			u32 *offs_32 = (u32 *)offsets, *sizes_32 = (u32 *)sizes;
 			u64 size = is_32 ? sizes_32[i] : sizes[i];
 			u64 offset = is_32 ? offs_32[i] : offsets[i];
@@ -424,7 +424,7 @@ static const struct soc_device_attribute tegra234_soc = {
 };
 #endif
 inline int nvmap_do_cache_maint_list(struct nvmap_handle **handles,
-				u64 *offsets, u64 *sizes, int op, int nr,
+				u64 *offsets, u64 *sizes, int op, u32 nr_ops,
 				bool is_32)
 {
 	/*
@@ -438,7 +438,7 @@ inline int nvmap_do_cache_maint_list(struct nvmap_handle **handles,
 		!soc_device_match(&tegra234_soc))
 #endif
 		return __nvmap_do_cache_maint_list(handles,
-				offsets, sizes, op, nr, is_32);
+				offsets, sizes, op, nr_ops, is_32);
 	return 0;
 }
 

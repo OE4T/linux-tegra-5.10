@@ -579,6 +579,18 @@ next_page:
 	nvmap_ref_unlock(client);
 }
 
+bool nvmap_memory_available(size_t size)
+{
+	struct sysinfo i;
+
+	si_meminfo(&i);
+	if (size >> PAGE_SHIFT >= i.totalram) {
+		pr_debug("Requested allocation size is more than system memory");
+		return false;
+	}
+	return true;
+}
+
 /* compute the total amount of handle physical memory that is mapped
  * into client's virtual address space. Remember that vmas list is
  * sorted in ascending order of handle offsets.

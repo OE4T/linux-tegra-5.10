@@ -466,7 +466,7 @@ static int handle_page_alloc(struct nvmap_client *client,
 			     struct nvmap_handle *h, bool contiguous)
 {
 	size_t size = h->size;
-	int nr_page = size >> PAGE_SHIFT;
+	size_t nr_page = size >> PAGE_SHIFT;
 	int i = 0, page_index = 0;
 	struct page **pages;
 	gfp_t gfp = GFP_NVMAP | __GFP_ZERO;
@@ -721,7 +721,7 @@ static int alloc_handle_from_va(struct nvmap_client *client,
 				 ulong vaddr,
 				 u32 flags)
 {
-	int nr_page = h->size >> PAGE_SHIFT;
+	size_t nr_page = h->size >> PAGE_SHIFT;
 	struct page **pages;
 	int ret = 0;
 
@@ -782,7 +782,7 @@ int nvmap_alloc_handle(struct nvmap_client *client,
 		       int peer)
 {
 	const unsigned int *alloc_policy;
-	int nr_page;
+	size_t nr_page;
 	int err = -ENOMEM;
 	int tag, i;
 	bool alloc_from_excl = false;

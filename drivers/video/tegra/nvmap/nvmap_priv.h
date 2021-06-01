@@ -541,7 +541,7 @@ int nvmap_cache_maint_phys_range(unsigned int op, phys_addr_t pstart,
 		phys_addr_t pend, int inner, int outer);
 
 int nvmap_do_cache_maint_list(struct nvmap_handle **handles, u64 *offsets,
-			      u64 *sizes, int op, int nr, bool is_32);
+			      u64 *sizes, int op, u32 nr_ops, bool is_32);
 int __nvmap_cache_maint(struct nvmap_client *client,
 			       struct nvmap_cache_op_64 *op);
 int nvmap_cache_debugfs_init(struct dentry *nvmap_root);
@@ -761,13 +761,13 @@ static inline pid_t nvmap_client_pid(struct nvmap_client *client)
 }
 
 static inline int nvmap_get_user_pages(ulong vaddr,
-				int nr_page, struct page **pages,
+				size_t nr_page, struct page **pages,
 				bool is_user_flags, u32 user_foll_flags)
 {
 	u32 foll_flags = FOLL_FORCE;
 	struct vm_area_struct *vma;
 	vm_flags_t vm_flags;
-	int user_pages = 0;
+	long user_pages = 0;
 	int ret = 0;
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
@@ -800,7 +800,7 @@ static inline int nvmap_get_user_pages(ulong vaddr,
 #endif
 	if (user_pages != nr_page) {
 		ret = user_pages < 0 ? user_pages : -ENOMEM;
-		pr_err("get_user_pages requested/got: %d/%d]\n", nr_page,
+		pr_err("get_user_pages requested/got: %zu/%ld]\n", nr_page,
 				user_pages);
 		while (--user_pages >= 0)
 			put_page(pages[user_pages]);
@@ -833,4 +833,5 @@ int nvmap_dmabuf_set_drv_data(struct dma_buf *dmabuf,
 		struct device *dev, void *priv, void (*delete)(void *priv));
 void *nvmap_dmabuf_get_drv_data(struct dma_buf *dmabuf,
 		struct device *dev);
+bool nvmap_memory_available(size_t size);
 #endif /* __VIDEO_TEGRA_NVMAP_NVMAP_H */
