@@ -148,9 +148,12 @@ int nvgpu_dma_alloc_sys(struct gk20a *g, size_t size, struct nvgpu_mem *mem);
  * @param g     - The GPU.
  * @param flags - Flags modifying the operation of the DMA allocation.
  *                The following flags are accepted:
- *                - %NVGPU_DMA_NO_KERNEL_MAPPING
- *                - %NVGPU_DMA_READ_ONLY
+ *                - %NVGPU_DMA_NO_KERNEL_MAPPING (Not used on safety)
+ *                - %NVGPU_DMA_READ_ONLY         (Not used on safety)
+ *                - %NVGPU_DMA_PHYSICALLY_ADDRESSED
  * @param size  - Size of the allocation in bytes.
+ *                Range: 0 to (U64_MAX - PAGE_SIZE + 1). There is further
+ *                restriction to upper bound on size by the OS.
  * @param mem   - Struct for storing the allocation information.
  *
  * Allocate memory suitable for doing DMA. Store the allocation info in #mem.
