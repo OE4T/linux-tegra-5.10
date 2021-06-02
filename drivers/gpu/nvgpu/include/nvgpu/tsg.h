@@ -95,6 +95,15 @@ struct nvgpu_tsg {
 	 * TSG open and freed during TSG release.
 	 */
 	struct nvgpu_gr_ctx *gr_ctx;
+
+	/**
+	 * Mutex to prevent concurrent context initialization for channels
+	 * in same TSG. All channels in one TSG share the context buffer,
+	 * and only one of the channel needs to initialize the context.
+	 * Rest of the channels will re-use it.
+	 */
+	struct nvgpu_mutex ctx_init_lock;
+
 	/**
 	 * This ref is initialized during tsg setup s/w.
 	 * This is ref_get whenever a channel is bound to the TSG.

@@ -402,6 +402,7 @@ static void nvgpu_tsg_destroy(struct nvgpu_tsg *tsg)
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 	nvgpu_mutex_destroy(&tsg->event_id_list_lock);
 #endif
+	nvgpu_mutex_destroy(&tsg->ctx_init_lock);
 }
 
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
@@ -453,6 +454,7 @@ static void nvgpu_tsg_init_support(struct gk20a *g, u32 tsgid)
 
 	nvgpu_init_list_node(&tsg->ch_list);
 	nvgpu_rwsem_init(&tsg->ch_list_lock);
+	nvgpu_mutex_init(&tsg->ctx_init_lock);
 
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 	nvgpu_init_list_node(&tsg->event_id_list);

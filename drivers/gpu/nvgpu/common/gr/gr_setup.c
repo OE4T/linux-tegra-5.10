@@ -176,13 +176,15 @@ int nvgpu_gr_setup_alloc_obj_ctx(struct nvgpu_channel *c, u32 class_num,
 		return -EINVAL;
 	}
 
-	gr_ctx = tsg->gr_ctx;
-
 	err = nvgpu_gr_setup_alloc_subctx(g, c);
 	if (err != 0) {
 		nvgpu_err(g, "failed to allocate gr subctx buffer");
 		goto out;
 	}
+
+	nvgpu_mutex_acquire(&tsg->ctx_init_lock);
+
+	gr_ctx = tsg->gr_ctx;
 
 	if (!nvgpu_mem_is_valid(nvgpu_gr_ctx_get_ctx_mem(gr_ctx))) {
 		tsg->vm = c->vm;
@@ -196,6 +198,7 @@ int nvgpu_gr_setup_alloc_obj_ctx(struct nvgpu_channel *c, u32 class_num,
 		if (err != 0) {
 			nvgpu_err(g,
 				"failed to allocate gr ctx buffer");
+			nvgpu_mutex_release(&tsg->ctx_init_lock);
 			nvgpu_vm_put(tsg->vm);
 			tsg->vm = NULL;
 			goto out;
@@ -218,6 +221,8 @@ int nvgpu_gr_setup_alloc_obj_ctx(struct nvgpu_channel *c, u32 class_num,
 		}
 	}
 #endif
+
+	nvgpu_mutex_release(&tsg->ctx_init_lock);
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "done");
 	return 0;
