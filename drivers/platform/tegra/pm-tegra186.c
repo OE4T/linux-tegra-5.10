@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -21,6 +21,7 @@
 #include <linux/module.h>
 #include <linux/pm.h>
 #include <linux/tegra-pm.h>
+#include <linux/version.h>
 
 static u32 shutdown_state;
 
@@ -76,7 +77,11 @@ EXPORT_SYMBOL(tegra_get_clk_counter);
 
 static void tegra186_power_off_prepare(void)
 {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 2, 0)
 	disable_nonboot_cpus();
+#else
+	suspend_disable_secondary_cpus();
+#endif
 }
 
 static int __init tegra186_pm_init(void)
