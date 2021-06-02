@@ -41,6 +41,8 @@ u32 nvgpu_grmgr_get_gr_syspipe_id(struct gk20a *g, u32 gr_instance_id);
 u32 nvgpu_grmgr_get_gr_num_gpcs(struct gk20a *g, u32 gr_instance_id);
 u32 nvgpu_grmgr_get_gr_gpc_phys_id(struct gk20a *g, u32 gr_instance_id,
 		u32 gpc_local_id);
+u32 nvgpu_grmgr_get_gr_gpc_logical_id(struct gk20a *g, u32 gr_instance_id,
+		u32 gpc_local_id);
 u32 nvgpu_grmgr_get_gr_instance_id(struct gk20a *g, u32 gpu_instance_id);
 bool nvgpu_grmgr_is_valid_runlist_id(struct gk20a *g,
 		u32 gpu_instance_id, u32 runlist_id);
@@ -53,6 +55,9 @@ u32 nvgpu_grmgr_get_gpu_instance_max_veid_count(struct gk20a *g,
 u32 nvgpu_grmgr_get_gr_max_veid_count(struct gk20a *g, u32 gr_instance_id);
 u32 nvgpu_grmgr_get_gr_logical_gpc_mask(struct gk20a *g, u32 gr_instance_id);
 u32 nvgpu_grmgr_get_gr_physical_gpc_mask(struct gk20a *g, u32 gr_instance_id);
+u32 nvgpu_grmgr_get_num_fbps(struct gk20a *g, u32 gpu_instance_id);
+u32 nvgpu_grmgr_get_fbp_en_mask(struct gk20a *g, u32 gpu_instance_id);
+u32 *nvgpu_grmgr_get_fbp_rop_l2_en_mask(struct gk20a *g, u32 gpu_instance_id);
 
 static inline bool nvgpu_grmgr_is_mig_type_gpu_instance(
 		struct nvgpu_gpu_instance *gpu_instance)
@@ -64,6 +69,16 @@ static inline bool nvgpu_grmgr_is_multi_gr_enabled(struct gk20a *g)
 {
 	return ((nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) &&
 		(g->mig.num_gpu_instances > 1U));
+}
+
+static inline u32 nvgpu_grmgr_get_max_gpc_count(struct gk20a *g)
+{
+	return g->mig.max_gpc_count;
+}
+
+static inline u32 nvgpu_grmgr_get_max_fbps_count(struct gk20a *g)
+{
+	return g->mig.max_fbps_count;
 }
 
 #endif /* NVGPU_GRMGR_H */

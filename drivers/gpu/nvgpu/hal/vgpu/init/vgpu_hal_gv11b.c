@@ -1009,6 +1009,7 @@ static const struct gops_fuse vgpu_gv11b_ops_fuse = {
 };
 
 static const struct gops_top vgpu_gv11b_ops_top = {
+	.get_max_gpc_count = vgpu_gr_get_max_gpc_count,
 	.get_max_fbps_count = vgpu_gr_get_max_fbps_count,
 	.get_max_ltc_per_fbp = vgpu_gr_get_max_ltc_per_fbp,
 	.get_max_lts_per_ltc = vgpu_gr_get_max_lts_per_ltc,

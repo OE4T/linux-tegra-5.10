@@ -292,14 +292,14 @@ static int gr_config_init_mig_gpcs(struct nvgpu_gr_config *config)
 	struct gk20a *g = config->g;
 	u32 cur_gr_instance = nvgpu_gr_get_cur_instance_id(g);
 
-	config->max_gpc_count = nvgpu_grmgr_get_gr_num_gpcs(g, cur_gr_instance);
+	config->max_gpc_count = nvgpu_grmgr_get_max_gpc_count(g);
 	config->gpc_count = nvgpu_grmgr_get_gr_num_gpcs(g, cur_gr_instance);
 	if (config->gpc_count == 0U) {
 		nvgpu_err(g, "gpc_count==0!");
 		return -EINVAL;
 	}
 
-	config->gpc_mask = nvgpu_grmgr_get_gr_physical_gpc_mask(
+	config->gpc_mask = nvgpu_grmgr_get_gr_logical_gpc_mask(
 		g, cur_gr_instance);
 
 	return 0;

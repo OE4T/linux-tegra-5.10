@@ -29,6 +29,7 @@
 #include <nvgpu/grmgr.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/device.h>
+#include <nvgpu/fbp.h>
 
 int nvgpu_init_gr_manager(struct gk20a *g)
 {
@@ -45,10 +46,13 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 #endif
 
 	/* Number of gpu instance is 1 for legacy mode */
+	g->mig.max_gpc_count = g->ops.top.get_max_gpc_count(g);
+	nvgpu_assert(g->mig.max_gpc_count > 0U);
 	g->mig.gpc_count = g->ops.priv_ring.get_gpc_count(g);
 	nvgpu_assert(g->mig.gpc_count > 0U);
 	g->mig.num_gpu_instances = 1U;
 	g->mig.is_nongr_engine_sharable = false;
+	g->mig.max_fbps_count = nvgpu_fbp_get_max_fbps_count(g->fbp);
 
 	gpu_instance->gpu_instance_id = 0U;
 	gpu_instance->is_memory_partition_supported = false;
@@ -120,22 +124,34 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 	g->mig.recursive_ref_count = 0U;
 	g->mig.cur_tid = -1;
 
+	gpu_instance->fbp_en_mask = nvgpu_fbp_get_fbp_en_mask(g->fbp);
+#ifdef CONFIG_NVGPU_NON_FUSA
+	gpu_instance->num_fbp = nvgpu_fbp_get_num_fbps(g->fbp);
+	gpu_instance->fbp_rop_l2_en_mask = nvgpu_fbp_get_rop_l2_en_mask(g->fbp);
+#endif
+
 	g->mig.current_gr_syspipe_id = NVGPU_MIG_INVALID_GR_SYSPIPE_ID;
 
 	nvgpu_log(g, gpu_dbg_mig,
 		"[Physical device] gpu_instance_id[%u] gr_instance_id[%u] "
-			"gr_syspipe_id[%u] num_gpc[%u] gr_engine_id[%u] "
-			"max_veid_count_per_tsg[%u] veid_start_offset[%u] "
-			"is_memory_partition_support[%d] num_lce[%u] ",
+			"gr_syspipe_id[%u] max_gpc_count[%u] num_gpc[%u] "
+			"gr_engine_id[%u] max_veid_count_per_tsg[%u] "
+			"veid_start_offset[%u] is_memory_partition_support[%d] "
+			"num_lce[%u] max_fbps_count[%u] num_fbp[%u] "
+			"fbp_en_mask [0x%x] ",
 		gpu_instance->gpu_instance_id,
 		gr_syspipe->gr_instance_id,
 		gr_syspipe->gr_syspipe_id,
+		g->mig.max_gpc_count,
 		gr_syspipe->num_gpc,
 		gr_syspipe->gr_dev->engine_id,
 		gr_syspipe->max_veid_count_per_tsg,
 		gr_syspipe->veid_start_offset,
 		gpu_instance->is_memory_partition_supported,
-		gpu_instance->num_lce);
+		gpu_instance->num_lce,
+		g->mig.max_fbps_count,
+		gpu_instance->num_fbp,
+		gpu_instance->fbp_en_mask);
 
 	return 0;
 }
@@ -377,7 +393,35 @@ u32 nvgpu_grmgr_get_gr_gpc_phys_id(struct gk20a *g, u32 gr_instance_id,
 	gpu_instance = &g->mig.gpu_instance[gpu_instance_id];
 	gr_syspipe = &gpu_instance->gr_syspipe;
 
+	nvgpu_assert(gpc_local_id < gr_syspipe->num_gpc);
+
+	nvgpu_log(g, gpu_dbg_mig,
+		"gpu_instance_id[%u] gpc_local_id[%u] physical_id[%u]",
+		gpu_instance_id, gpc_local_id,
+		gr_syspipe->gpcs[gpc_local_id].physical_id);
+
 	return gr_syspipe->gpcs[gpc_local_id].physical_id;
+}
+
+u32 nvgpu_grmgr_get_gr_gpc_logical_id(struct gk20a *g, u32 gr_instance_id,
+		u32 gpc_local_id)
+{
+	struct nvgpu_gpu_instance *gpu_instance;
+	struct nvgpu_gr_syspipe *gr_syspipe;
+	u32 gpu_instance_id = nvgpu_grmgr_get_gpu_instance_id(
+		g, gr_instance_id);
+
+	gpu_instance = &g->mig.gpu_instance[gpu_instance_id];
+	gr_syspipe = &gpu_instance->gr_syspipe;
+
+	nvgpu_assert(gpc_local_id < gr_syspipe->num_gpc);
+
+	nvgpu_log(g, gpu_dbg_mig,
+		"gpu_instance_id[%u] gpc_local_id[%u] logical_id[%u]",
+		gpu_instance_id, gpc_local_id,
+		gr_syspipe->gpcs[gpc_local_id].logical_id);
+
+	return gr_syspipe->gpcs[gpc_local_id].logical_id;
 }
 
 u32 nvgpu_grmgr_get_gr_instance_id(struct gk20a *g, u32 gpu_instance_id)
@@ -578,4 +622,69 @@ u32 nvgpu_grmgr_get_gr_physical_gpc_mask(struct gk20a *g, u32 gr_instance_id)
 	}
 
 	return physical_gpc_mask;
+}
+
+u32 nvgpu_grmgr_get_num_fbps(struct gk20a *g, u32 gpu_instance_id)
+{
+	struct nvgpu_gpu_instance *gpu_instance;
+
+	if (gpu_instance_id < g->mig.num_gpu_instances) {
+		gpu_instance = &g->mig.gpu_instance[gpu_instance_id];
+
+		nvgpu_log(g, gpu_dbg_mig,
+			"gpu_instance_id[%u] num_fbp[%u]",
+			gpu_instance_id, gpu_instance->num_fbp);
+
+		return gpu_instance->num_fbp;
+	}
+
+	nvgpu_err(g,
+		"gpu_instance_id[%u] >= num_gpu_instances[%u]",
+		gpu_instance_id, g->mig.num_gpu_instances);
+
+	nvgpu_assert(gpu_instance_id < g->mig.num_gpu_instances);
+
+	return U32_MAX;
+}
+
+u32 nvgpu_grmgr_get_fbp_en_mask(struct gk20a *g, u32 gpu_instance_id)
+{
+	struct nvgpu_gpu_instance *gpu_instance;
+
+	if (gpu_instance_id < g->mig.num_gpu_instances) {
+		gpu_instance = &g->mig.gpu_instance[gpu_instance_id];
+
+		nvgpu_log(g, gpu_dbg_mig,
+			"gpu_instance_id[%u] fbp_en_mask[0x%x]",
+			gpu_instance_id, gpu_instance->fbp_en_mask);
+
+		return gpu_instance->fbp_en_mask;
+	}
+
+	nvgpu_err(g,
+		"gpu_instance_id[%u] >= num_gpu_instances[%u]",
+		gpu_instance_id, g->mig.num_gpu_instances);
+
+	nvgpu_assert(gpu_instance_id < g->mig.num_gpu_instances);
+
+	return U32_MAX;
+}
+
+u32 *nvgpu_grmgr_get_fbp_rop_l2_en_mask(struct gk20a *g, u32 gpu_instance_id)
+{
+	struct nvgpu_gpu_instance *gpu_instance;
+
+	if (gpu_instance_id < g->mig.num_gpu_instances) {
+		gpu_instance = &g->mig.gpu_instance[gpu_instance_id];
+
+		return gpu_instance->fbp_rop_l2_en_mask;
+	}
+
+	nvgpu_err(g,
+		"gpu_instance_id[%u] >= num_gpu_instances[%u]",
+		gpu_instance_id, g->mig.num_gpu_instances);
+
+	nvgpu_assert(gpu_instance_id < g->mig.num_gpu_instances);
+
+	return NULL;
 }

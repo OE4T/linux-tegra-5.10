@@ -167,10 +167,13 @@ static void nvgpu_init_gr_manager(struct gk20a *g)
 	struct nvgpu_gpu_instance *gpu_instance = &g->mig.gpu_instance[0];
 	struct nvgpu_gr_syspipe *gr_syspipe = &gpu_instance->gr_syspipe;
 
+	g->mig.max_gpc_count = 1;
+	g->mig.gpc_count = 1;
 	g->mig.num_gpu_instances = 1;
 	g->mig.num_gr_sys_pipes_enabled = 1;
 	gr_syspipe->gr_instance_id = 0U;
 	gr_syspipe->gr_syspipe_id = 0U;
+	gr_syspipe->num_gpc = 1;
 }
 
 static int init_pmu_falcon_test_env(struct unit_module *m, struct gk20a *g)

@@ -110,6 +110,21 @@ struct nvgpu_gpu_instance {
 	struct nvgpu_gr_syspipe gr_syspipe;
 	/** Number of Logical CE engine associated to this gpu instances. */
 	u32 num_lce;
+	/** Number of Logical FBP associated to this gpu instances. */
+	u32 num_fbp;
+	/**
+	 * Mask of FBPs. A set bit indicates FBP is available, otherwise
+	 * it is not available.
+	 * For Legacy, it is represent physical FBP mask.
+	 * For MIG, it is represent logical FBP mask.
+	 */
+	u32 fbp_en_mask;
+	/**
+	 * Array to hold physical masks of LTCs per FBP.
+	 * For Legacy, array is indexed by FBP physical index.
+	 * For MIG, array is indexed by FBP logical index.
+	 */
+	u32 *fbp_rop_l2_en_mask;
 	/** Memory area to store h/w CE engine ids. */
 	const struct nvgpu_device *lce_devs[NVGPU_MIG_MAX_ENGINES];
 	/* Flag to indicate whether memory partition is supported or not. */
@@ -183,6 +198,10 @@ struct nvgpu_mig {
 	u32 usable_gr_syspipe_mask;
 	/** Array of usable GR sys pipe instance id. */
 	u32 usable_gr_syspipe_instance_id[NVGPU_MIG_MAX_ENGINES];
+	/**
+	 * Max possible number of GPCs in GR engines.
+	 */
+	u32 max_gpc_count;
 	/** Total Number of GPCs (priv_ring enumerated (floor swept) value). */
 	u32 gpc_count;
 	/** GPC count associated to each GPC group. */
@@ -191,6 +210,8 @@ struct nvgpu_mig {
 	u32 num_gpu_instances;
 	/** Maximum gr sys pipes are supported by HW. */
 	u32 max_gr_sys_pipes_supported;
+	/** Maximum fbps are supported by HW. */
+	u32 max_fbps_count;
 	/** Total number of enabled gr syspipes count. */
 	u32 num_gr_sys_pipes_enabled;
 	/** GR sys pipe enabled mask. */

@@ -466,8 +466,8 @@ static long gk20a_ctrl_ioctl_gpu_characteristics(
 	gpu.max_dbg_tsg_timeslice = g->tsg_dbg_timeslice_max_us;
 
 	strlcpy(gpu.chipname, g->name, sizeof(gpu.chipname));
-	gpu.max_fbps_count = nvgpu_fbp_get_max_fbps_count(g->fbp);
-	gpu.fbp_en_mask = nvgpu_fbp_get_fbp_en_mask(g->fbp);;
+	gpu.max_fbps_count = nvgpu_grmgr_get_max_fbps_count(g);
+	gpu.fbp_en_mask = nvgpu_grmgr_get_fbp_en_mask(g, gpu_instance_id);
 	gpu.max_ltc_per_fbp =  g->ops.top.get_max_ltc_per_fbp(g);
 	gpu.max_lts_per_ltc = g->ops.top.get_max_lts_per_ltc(g);
 	gpu.num_ltc = nvgpu_ltc_get_ltc_count(g);
@@ -714,12 +714,14 @@ static int gk20a_ctrl_get_tpc_masks(struct gk20a *g, struct nvgpu_gr_config *gr_
 }
 
 static int gk20a_ctrl_get_fbp_l2_masks(
-	struct gk20a *g, struct nvgpu_gpu_get_fbp_l2_masks_args *args)
+	struct gk20a *g, u32 gpu_instance_id,
+	struct nvgpu_gpu_get_fbp_l2_masks_args *args)
 {
 	int err = 0;
 	const u32 fbp_l2_mask_size = sizeof(u32) *
-			nvgpu_fbp_get_max_fbps_count(g->fbp);
-	u32 *fbp_rop_l2_en_mask = nvgpu_fbp_get_rop_l2_en_mask(g->fbp);
+			nvgpu_grmgr_get_max_fbps_count(g);
+	u32 *fbp_rop_l2_en_mask =
+		nvgpu_grmgr_get_fbp_rop_l2_en_mask(g, gpu_instance_id);
 
 	if (args->mask_buf_size > 0) {
 		size_t write_size = fbp_l2_mask_size;
@@ -2072,7 +2074,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 			(struct nvgpu_gpu_get_tpc_masks_args *)buf);
 		break;
 	case NVGPU_GPU_IOCTL_GET_FBP_L2_MASKS:
-		err = gk20a_ctrl_get_fbp_l2_masks(g,
+		err = gk20a_ctrl_get_fbp_l2_masks(g, gpu_instance_id,
 			(struct nvgpu_gpu_get_fbp_l2_masks_args *)buf);
 		break;
 	case NVGPU_GPU_IOCTL_OPEN_CHANNEL:

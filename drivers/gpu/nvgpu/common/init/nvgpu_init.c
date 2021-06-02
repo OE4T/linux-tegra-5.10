@@ -643,6 +643,7 @@ static int nvgpu_early_init(struct gk20a *g)
 		NVGPU_INIT_TABLE_ENTRY(g->ops.fifo.reset_enable_hw, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_fb_support, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.ltc.init_ltc_support, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(g->ops.fbp.fbp_init_support, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.grmgr.init_gr_manager, NO_FLAG),
 	};
 
@@ -800,7 +801,6 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 #ifdef CONFIG_NVGPU_LS_PMU
 		NVGPU_INIT_TABLE_ENTRY(g->ops.pmu.pmu_rtos_init, NO_FLAG),
 #endif
-		NVGPU_INIT_TABLE_ENTRY(g->ops.fbp.fbp_init_support, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.gr.gr_init_support, NO_FLAG),
 		/**
 		 * All units requiring ECC stats must initialize ECC counters

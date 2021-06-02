@@ -1535,6 +1535,13 @@ int vgpu_gr_set_preemption_mode(struct nvgpu_channel *ch,
 	return err;
 }
 
+u32 vgpu_gr_get_max_gpc_count(struct gk20a *g)
+{
+	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
+
+	return priv->constants.max_gpc_count;
+}
+
 u32 vgpu_gr_get_gpc_count(struct gk20a *g)
 {
 	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
