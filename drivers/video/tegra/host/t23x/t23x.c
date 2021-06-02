@@ -130,36 +130,13 @@ struct nvhost_device_data t23x_host1x_info = {
 	.engine_can_cg		= true,
 };
 
-static struct host1x_device_info host1x04_hv_info = {
-	.nb_channels	= T23X_NVHOST_NUMCHANNELS,
-	.ch_base	= 0,
-	.ch_limit	= T23X_NVHOST_NUMCHANNELS,
-	.nb_mlocks	= NV_HOST1X_NB_MLOCKS,
-	.initialize_chip_support = nvhost_init_t23x_support,
-	.nb_hw_pts	= NV_HOST1X_SYNCPT_NB_PTS,
-	.nb_pts		= NV_HOST1X_SYNCPT_NB_PTS,
-	.pts_base	= 0,
-	.pts_limit	= NV_HOST1X_SYNCPT_NB_PTS,
-	.nb_syncpt_irqs	= 8,
-	.syncpt_policy	= SYNCPT_PER_CHANNEL_INSTANCE,
-	.channel_policy	= MAP_CHANNEL_ON_SUBMIT,
-	.nb_actmons	= 0,
-	.use_cross_vm_interrupts = 1,
-	.resources	= {
-		"guest",
-		"sem-syncpt-shim",
-	},
-	.nb_resources	= 2,
-	.secure_cmdfifo = true,
-	.syncpt_page_size = 0x10000,
-};
-
 struct nvhost_device_data t23x_host1x_hv_info = {
 	.clocks			= {
-		{"host1x", 204000000}
+		{"host1x", 204000000},
+		{"actmon", UINT_MAX}
 	},
 	.autosuspend_delay      = 2000,
-	.private_data		= &host1x04_hv_info,
+	.private_data		= &host1x04_info,
 	.finalize_poweron = nvhost_host1x_finalize_poweron,
 	.prepare_poweroff = nvhost_host1x_prepare_poweroff,
 };
