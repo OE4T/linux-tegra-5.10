@@ -15,6 +15,7 @@
  */
 
 #include <linux/dma-buf.h>
+#include <linux/dma-direction.h>
 #include <linux/scatterlist.h>
 #include <uapi/linux/nvgpu.h>
 
@@ -265,7 +266,10 @@ int nvgpu_vm_map_linux(struct vm_gk20a *vm,
 		return err;
 	}
 
-	sgt = nvgpu_mm_pin(dev, dmabuf, &attachment);
+	sgt = nvgpu_mm_pin(dev, dmabuf, &attachment,
+			   (buffer_rw_mode == gk20a_mem_flag_read_only) ||
+			   (map_access_requested == NVGPU_VM_MAP_ACCESS_READ_ONLY) ?
+				DMA_TO_DEVICE : DMA_BIDIRECTIONAL);
 	if (IS_ERR(sgt)) {
 		nvgpu_warn(g, "Failed to pin dma_buf!");
 		return PTR_ERR(sgt);

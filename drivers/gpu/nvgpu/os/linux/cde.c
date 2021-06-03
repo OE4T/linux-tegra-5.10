@@ -1149,7 +1149,7 @@ __releases(&l->cde_app->mutex)
 		nvgpu_log(g, gpu_dbg_cde, "surface=0x%p scatterBuffer=0x%p",
 			  surface, scatter_buffer);
 		sgt = nvgpu_mm_pin(dev_from_gk20a(g), compbits_scatter_buf,
-				   &attachment);
+				   &attachment, DMA_BIDIRECTIONAL);
 		if (IS_ERR(sgt)) {
 			nvgpu_err(g,
 				   "mm_pin failed");

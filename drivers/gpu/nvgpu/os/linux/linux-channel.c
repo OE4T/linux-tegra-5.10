@@ -41,6 +41,8 @@
 
 #include <linux/uaccess.h>
 #include <linux/dma-buf.h>
+#include <linux/dma-direction.h>
+
 #include <nvgpu/trace.h>
 #include <uapi/linux/nvgpu.h>
 
@@ -439,7 +441,7 @@ int nvgpu_usermode_buf_from_dmabuf(struct gk20a *g, int dmabuf_fd,
 		goto put_dmabuf;
 	}
 
-	sgt = nvgpu_mm_pin(dev, dmabuf, &attachment);
+	sgt = nvgpu_mm_pin(dev, dmabuf, &attachment, DMA_TO_DEVICE);
 	if (IS_ERR(sgt)) {
 		nvgpu_err(g, "Failed to pin dma_buf!");
 		err = PTR_ERR(sgt);
@@ -528,7 +530,7 @@ static int nvgpu_channel_alloc_usermode_buffers(struct nvgpu_channel *c,
 	}
 
 	c->usermode_gpfifo.gpu_va = nvgpu_gmmu_map(c->vm, &c->usermode_gpfifo,
-			c->usermode_gpfifo.size, 0, gk20a_mem_flag_none,
+			c->usermode_gpfifo.size, 0, gk20a_mem_flag_read_only,
 			false, c->usermode_gpfifo.aperture);
 
 	if (c->usermode_gpfifo.gpu_va == 0) {

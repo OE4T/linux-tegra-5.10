@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -99,7 +99,8 @@ struct gk20a_dmabuf_priv {
 
 struct sg_table *nvgpu_mm_pin(struct device *dev,
 			struct dma_buf *dmabuf,
-			struct dma_buf_attachment **attachment);
+			struct dma_buf_attachment **attachment,
+			enum dma_data_direction direction);
 
 void nvgpu_mm_unpin(struct device *dev,
 		struct dma_buf *dmabuf,

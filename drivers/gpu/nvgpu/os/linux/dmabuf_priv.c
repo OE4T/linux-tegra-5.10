@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -135,7 +135,8 @@ struct gk20a_dmabuf_priv *gk20a_dma_buf_get_drvdata(
 }
 
 struct sg_table *nvgpu_mm_pin(struct device *dev,
-			struct dma_buf *dmabuf, struct dma_buf_attachment **attachment)
+			struct dma_buf *dmabuf, struct dma_buf_attachment **attachment,
+			enum dma_data_direction direction)
 {
 	struct gk20a *g = get_gk20a(dev);
 	struct dma_buf_attachment *attach = NULL;
@@ -148,7 +149,7 @@ struct sg_table *nvgpu_mm_pin(struct device *dev,
 		return ERR_CAST(attach);
 	}
 
-	sgt = dma_buf_map_attachment(attach, DMA_BIDIRECTIONAL);
+	sgt = dma_buf_map_attachment(attach, direction);
 	if (IS_ERR(sgt)) {
 		dma_buf_detach(dmabuf, attach);
 		nvgpu_err(g, "Failed to map attachment (err = %ld)!",
