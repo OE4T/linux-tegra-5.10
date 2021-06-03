@@ -584,6 +584,7 @@ ifdef building_out_of_srctree
 		false; \
 	fi
 	$(Q)ln -fsn $(srctree) source
+	$(Q)cp -f $(srctree)/kernel*overlays.txt .
 	$(Q)$(CONFIG_SHELL) $(srctree)/scripts/mkmakefile $(srctree)
 	$(Q)test -e .gitignore || \
 	{ echo "# this is build directory, ignore it"; echo "*"; } > .gitignore
