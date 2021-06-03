@@ -2,7 +2,7 @@
 //
 // tegra210_dmic.c - Tegra210 DMIC driver
 //
-// Copyright (c) 2020 NVIDIA CORPORATION.  All rights reserved.
+// Copyright (c) 2020-2021 NVIDIA CORPORATION.  All rights reserved.
 
 #include <linux/clk.h>
 #include <linux/device.h>
@@ -381,6 +381,7 @@ static const struct snd_soc_component_driver tegra210_dmic_compnt = {
 	.num_dapm_routes	= ARRAY_SIZE(tegra210_dmic_routes),
 	.controls		= tegra210_dmic_controls,
 	.num_controls		= ARRAY_SIZE(tegra210_dmic_controls),
+	.non_legacy_dai_naming	= 1,
 };
 
 static bool tegra210_dmic_wr_reg(struct device *dev, unsigned int reg)

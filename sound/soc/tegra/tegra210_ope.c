@@ -191,6 +191,7 @@ static struct snd_soc_component_driver tegra210_ope_cmpnt = {
 	.num_dapm_routes = ARRAY_SIZE(tegra210_ope_routes),
 	.controls = tegra210_ope_controls,
 	.num_controls = ARRAY_SIZE(tegra210_ope_controls),
+	.non_legacy_dai_naming	= 1,
 };
 
 static bool tegra210_ope_wr_reg(struct device *dev, unsigned int reg)
