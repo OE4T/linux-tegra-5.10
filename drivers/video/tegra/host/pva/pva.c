@@ -1,7 +1,7 @@
 /*
  * PVA driver for T194
  *
- * Copyright (c) 2016-2020, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -262,7 +262,7 @@ static int pva_read_ucode(struct platform_device *pdev,
 	struct pva_fw *fw_info = &pva->fw_info;
 	struct pva_trace_log *trace = &pva->pva_trace;
 
-	nvhost_dbg_fn("");
+	nvhost_dbg_fn("loading pva fw:%s", fw_name);
 
 	ucode_fw = nvhost_client_request_firmware(pdev, fw_name, true);
 	if (!ucode_fw) {
@@ -790,6 +790,8 @@ static int pva_probe(struct platform_device *pdev)
 	if (tegra_get_chip_id() == TEGRA234) {
 #endif
 		pva->version = 2;
+		pdata->firmware_name = "nvpva_020.fw";
+		pdata->firmware_not_in_subdir = true;
 #ifdef CONFIG_TEGRA_T23X_GRHOST
 		pva->version_config = &pva_t23x_config;
 #else
@@ -800,6 +802,8 @@ static int pva_probe(struct platform_device *pdev)
 		nvhost_dbg_info("PVA gen2 detected.");
 	} else {
 		pva->version = 1;
+		pdata->firmware_name = "nvpva_010.fw";
+		pdata->firmware_not_in_subdir = true;
 		pva->version_config = &pva_t19x_config;
 		nvhost_dbg_info("PVA gen1 detected.");
 	}
