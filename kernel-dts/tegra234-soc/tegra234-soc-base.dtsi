@@ -22,7 +22,7 @@
 #include "dt-bindings/interrupt-controller/arm-gic.h"
 #include "dt-bindings/soc/tegra234-powergate.h"
 #include <dt-bindings/interrupt-controller/irq.h>
-#include <dt-bindings/gpio/tegra194-gpio.h>
+#include <dt-bindings/gpio/tegra234-gpio.h>
 #include <dt-bindings/pinctrl/pinctrl-tegra.h>
 #include <dt-bindings/mailbox/tegra186-hsp.h>
 /* Minimal.dtsi is to be included first as subsequent headers can
