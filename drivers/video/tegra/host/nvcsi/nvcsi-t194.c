@@ -1,7 +1,7 @@
 /*
  * NVCSI driver for T194
  *
- * Copyright (c) 2017-2020, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -46,10 +46,6 @@
 #include "t194/t194.h"
 #include "media/csi.h"
 
-#include "mipical/mipi_cal.h"
-
-#include "deskew.h"
-
 /* PG rate based on max ISP throughput */
 #define PG_CLK_RATE	102000000
 /* width of interface between VI and CSI */
@@ -62,8 +58,6 @@
 #define CIL_B_SW_RESET			0x110b0U
 #define CSIA				(1 << 20)
 #define CSIH				(1 << 27)
-
-static long long input_stats;
 
 static struct tegra_csi_device *mc_csi;
 struct t194_nvcsi {
@@ -82,41 +76,11 @@ static const struct of_device_id tegra194_nvcsi_of_match[] = {
 
 struct t194_nvcsi_file_private {
 	struct platform_device *pdev;
-	struct nvcsi_deskew_context deskew_ctx;
 };
-
-static int nvcsi_deskew_debugfs_init(struct t194_nvcsi *nvcsi);
-static void nvcsi_deskew_debugfs_remove(struct t194_nvcsi *nvcsi);
 
 static long t194_nvcsi_ioctl(struct file *file, unsigned int cmd,
 			unsigned long arg)
 {
-	struct t194_nvcsi_file_private *filepriv = file->private_data;
-	int ret;
-
-	switch (cmd) {
-	// sensor must be turned on before calling this ioctl, and streaming
-	// should be started shortly after.
-	case NVHOST_NVCSI_IOCTL_DESKEW_SETUP: {
-		unsigned int active_lanes;
-
-		dev_dbg(mc_csi->dev, "ioctl: deskew_setup\n");
-		ret = copy_from_user(&active_lanes, (const void __user *)arg,
-							sizeof(unsigned int));
-		if (ret) {
-			return -EINVAL;
-		} else {
-			filepriv->deskew_ctx.deskew_lanes = active_lanes;
-			return nvcsi_deskew_setup(&filepriv->deskew_ctx);
-		}
-	}
-	case NVHOST_NVCSI_IOCTL_DESKEW_APPLY: {
-		dev_dbg(mc_csi->dev, "ioctl: deskew_apply\n");
-		ret = nvcsi_deskew_apply_check(&filepriv->deskew_ctx);
-		return ret;
-	}
-	}
-
 	return -ENOIOCTLCMD;
 }
 
@@ -207,13 +171,6 @@ int t194_nvcsi_late_probe(struct platform_device *pdev)
 	nvcsi->csi.fops = &csi5_fops;
 	err = tegra_csi_media_controller_init(&nvcsi->csi, pdev);
 
-	nvcsi_deskew_platform_setup(&nvcsi->csi, true);
-
-	if (err < 0)
-		return err;
-
-	nvcsi_deskew_debugfs_init(nvcsi);
-
 	return 0;
 }
 
@@ -265,7 +222,6 @@ static int __exit t194_nvcsi_remove(struct platform_device *dev)
 
 	tegra_camera_device_unregister(nvcsi);
 	mc_csi = NULL;
-	nvcsi_deskew_debugfs_remove(nvcsi);
 	tegra_csi_media_controller_remove(&nvcsi->csi);
 
 	return 0;
@@ -285,78 +241,5 @@ static struct platform_driver t194_nvcsi_driver = {
 #endif
 	},
 };
-
-static int dbgfs_deskew_stats(struct seq_file *s, void *data)
-{
-	deskew_dbgfs_deskew_stats(s);
-	return 0;
-}
-
-static int dbgfs_open(struct inode *inode, struct file *file)
-{
-	return single_open(file, dbgfs_deskew_stats, inode->i_private);
-}
-
-static const struct file_operations dbg_show_ops = {
-	.open		= dbgfs_open,
-	.read		= seq_read,
-	.llseek		= seq_lseek,
-	.release	= single_release
-};
-
-static int dbgfs_calc_bound(struct seq_file *s, void *data)
-{
-	deskew_dbgfs_calc_bound(s, input_stats);
-	return 0;
-}
-static int dbg_calc_open(struct inode *inode, struct file *file)
-{
-	return single_open(file, dbgfs_calc_bound, inode->i_private);
-}
-static const struct file_operations dbg_calc_ops = {
-	.open		= dbg_calc_open,
-	.read		= seq_read,
-	.llseek		= seq_lseek,
-	.release	= single_release
-};
-
-static void nvcsi_deskew_debugfs_remove(struct t194_nvcsi *nvcsi)
-{
-	debugfs_remove_recursive(nvcsi->dir);
-}
-
-static int nvcsi_deskew_debugfs_init(struct t194_nvcsi *nvcsi)
-{
-	struct dentry *val;
-
-	nvcsi->dir = debugfs_create_dir("deskew", NULL);
-	if (!nvcsi->dir)
-		return -ENOMEM;
-
-	val = debugfs_create_file("stats", S_IRUGO, nvcsi->dir, mc_csi,
-				&dbg_show_ops);
-	if (!val)
-		goto err_debugfs;
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
-	val = debugfs_create_x64("input_status", S_IRUGO | S_IWUSR,
-				nvcsi->dir, &input_stats);
-	if (!val)
-		goto err_debugfs;
-#else
-	debugfs_create_x64("input_status", S_IRUGO | S_IWUSR,
-				nvcsi->dir, &input_stats);
-#endif
-
-	val = debugfs_create_file("calc_bound", S_IRUGO | S_IWUSR,
-				nvcsi->dir, mc_csi, &dbg_calc_ops);
-	if (!val)
-		goto err_debugfs;
-	return 0;
-err_debugfs:
-	dev_err(mc_csi->dev, "Fail to create debugfs\n");
-	debugfs_remove_recursive(nvcsi->dir);
-	return -ENOMEM;
-}
 
 module_platform_driver(t194_nvcsi_driver);
