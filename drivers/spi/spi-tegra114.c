@@ -1376,7 +1376,7 @@ static int tegra_spi_probe(struct platform_device *pdev)
 	int ret, spi_irq;
 	int bus_num;
 
-	ctrl = spi_alloc_master(&pdev->dev, sizeof(*tspi));
+	ctrl = devm_spi_alloc_master(&pdev->dev, sizeof(*tspi));
 	if (!ctrl) {
 		dev_err(&pdev->dev, "ctrl allocation failed\n");
 		return -ENOMEM;
