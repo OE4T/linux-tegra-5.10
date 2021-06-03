@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -121,6 +121,9 @@ struct nvgpu_profiler_object {
 
 	/* NVGPU_DBG_REG_OP_TYPE_* for each HWPM resource */
 	u32 reg_op_type[NVGPU_HWPM_REGISTER_TYPE_COUNT];
+
+	/** GPU instance Id */
+	u32 gpu_instance_id;
 };
 
 static inline struct nvgpu_profiler_object *
@@ -132,7 +135,7 @@ nvgpu_profiler_object_from_prof_obj_entry(struct nvgpu_list_node *node)
 
 int nvgpu_profiler_alloc(struct gk20a *g,
 	struct nvgpu_profiler_object **_prof,
-	enum nvgpu_profiler_pm_reservation_scope scope);
+	enum nvgpu_profiler_pm_reservation_scope scope, u32 gpu_instance_id);
 void nvgpu_profiler_free(struct nvgpu_profiler_object *prof);
 
 int nvgpu_profiler_bind_context(struct nvgpu_profiler_object *prof,

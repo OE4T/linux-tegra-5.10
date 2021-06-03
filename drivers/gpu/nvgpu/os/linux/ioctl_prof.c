@@ -45,6 +45,10 @@
 #endif
 /** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
+#include <nvgpu/gr/gr_utils.h>
+#include <nvgpu/gr/gr_instances.h>
+#include <nvgpu/grmgr.h>
+
 #define NVGPU_PROF_UMD_COPY_WINDOW_SIZE		SZ_4K
 
 struct nvgpu_profiler_object_priv {
@@ -83,7 +87,8 @@ struct nvgpu_profiler_object_priv {
 static void nvgpu_prof_free_pma_stream_priv_data(struct nvgpu_profiler_object_priv *priv);
 
 static int nvgpu_prof_fops_open(struct gk20a *g, struct file *filp,
-		enum nvgpu_profiler_pm_reservation_scope scope)
+		enum nvgpu_profiler_pm_reservation_scope scope,
+		u32 gpu_instance_id)
 {
 	struct nvgpu_profiler_object_priv *prof_priv;
 	struct nvgpu_profiler_object *prof;
@@ -98,7 +103,7 @@ static int nvgpu_prof_fops_open(struct gk20a *g, struct file *filp,
 		return -ENOMEM;
 	}
 
-	err = nvgpu_profiler_alloc(g, &prof, scope);
+	err = nvgpu_profiler_alloc(g, &prof, scope, gpu_instance_id);
 	if (err != 0) {
 		goto free_priv;
 	}
@@ -141,9 +146,11 @@ int nvgpu_prof_dev_fops_open(struct inode *inode, struct file *filp)
 	struct gk20a *g;
 	int err;
 	struct nvgpu_cdev *cdev;
+	u32 gpu_instance_id;
 
 	cdev = container_of(inode->i_cdev, struct nvgpu_cdev, cdev);
 	g = nvgpu_get_gk20a_from_cdev(cdev);
+	gpu_instance_id = nvgpu_get_gpu_instance_id_from_cdev(g, cdev);
 
 	g = nvgpu_get(g);
 	if (!g) {
@@ -157,7 +164,8 @@ int nvgpu_prof_dev_fops_open(struct inode *inode, struct file *filp)
 	}
 
 	err = nvgpu_prof_fops_open(g, filp,
-			NVGPU_PROFILER_PM_RESERVATION_SCOPE_DEVICE);
+			NVGPU_PROFILER_PM_RESERVATION_SCOPE_DEVICE,
+			gpu_instance_id);
 	if (err != 0) {
 		nvgpu_put(g);
 	}
@@ -170,9 +178,11 @@ int nvgpu_prof_ctx_fops_open(struct inode *inode, struct file *filp)
 	struct gk20a *g;
 	int err;
 	struct nvgpu_cdev *cdev;
+	u32 gpu_instance_id;
 
 	cdev = container_of(inode->i_cdev, struct nvgpu_cdev, cdev);
 	g = nvgpu_get_gk20a_from_cdev(cdev);
+	gpu_instance_id = nvgpu_get_gpu_instance_id_from_cdev(g, cdev);
 
 	g = nvgpu_get(g);
 	if (!g) {
@@ -185,7 +195,8 @@ int nvgpu_prof_ctx_fops_open(struct inode *inode, struct file *filp)
 	}
 
 	err = nvgpu_prof_fops_open(g, filp,
-			NVGPU_PROFILER_PM_RESERVATION_SCOPE_CONTEXT);
+			NVGPU_PROFILER_PM_RESERVATION_SCOPE_CONTEXT,
+			gpu_instance_id);
 	if (err != 0) {
 		nvgpu_put(g);
 	}
@@ -595,6 +606,8 @@ static int nvgpu_prof_ioctl_exec_reg_ops(struct nvgpu_profiler_object_priv *priv
 	u32 flags = 0U;
 	bool all_passed = true;
 	int err;
+	u32 gr_instance_id =
+		nvgpu_grmgr_get_gr_instance_id(g, prof->gpu_instance_id);
 
 	nvgpu_log(g, gpu_dbg_prof,
 		"REG_OPS for handle %u: count=%u mode=%u flags=0x%x",
@@ -654,9 +667,10 @@ static int nvgpu_prof_ioctl_exec_reg_ops(struct nvgpu_profiler_object_priv *priv
 			flags &= ~NVGPU_REG_OP_FLAG_ALL_PASSED;
 		}
 
-		err = g->ops.regops.exec_regops(g, tsg, prof,
-			priv->regops_staging_buf, num_ops,
-			&flags);
+		err = nvgpu_gr_exec_with_err_for_instance(g, gr_instance_id,
+				g->ops.regops.exec_regops(g, tsg, prof,
+					priv->regops_staging_buf, num_ops,
+					&flags));
 		if (err) {
 			nvgpu_err(g, "regop execution failed");
 			break;
@@ -756,6 +770,15 @@ long nvgpu_prof_fops_ioctl(struct file *filp, unsigned int cmd,
 	struct gk20a *g = prof_priv->g;
 	u8 __maybe_unused buf[NVGPU_PROFILER_IOCTL_MAX_ARG_SIZE];
 	int err = 0;
+	u32 gr_instance_id =
+		nvgpu_grmgr_get_gr_instance_id(g, prof->gpu_instance_id);
+
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,
+		"gpu_instance_id [%u] gr_instance_id [%u]",
+		prof->gpu_instance_id, gr_instance_id);
+
+	nvgpu_assert(prof->gpu_instance_id < g->mig.num_gpu_instances);
+	nvgpu_assert(gr_instance_id < g->num_gr_instances);
 
 	if ((_IOC_TYPE(cmd) != NVGPU_PROFILER_IOCTL_MAGIC) ||
 	    (_IOC_NR(cmd) == 0) ||

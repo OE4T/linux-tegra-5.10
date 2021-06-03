@@ -77,6 +77,7 @@ out:
 }
 
 int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
+				  u32 gr_instance_id,
 				  struct nvgpu_tsg *tsg,
 				  u64 gpu_va,
 				  u32 mode)
@@ -86,7 +87,7 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 	bool skip_update = false;
 	int err;
 	int ret;
-	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
+	struct nvgpu_gr *gr = nvgpu_gr_get_instance_ptr(g, gr_instance_id);
 
 	nvgpu_log_fn(g, " ");
 

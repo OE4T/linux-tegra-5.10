@@ -35,6 +35,8 @@
 #include <nvgpu/regops_allowlist.h>
 #include <nvgpu/regops.h>
 #include <nvgpu/sort.h>
+#include <nvgpu/gr/gr_instances.h>
+#include <nvgpu/grmgr.h>
 
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 #include "nvgpu_next_gpuid.h"
@@ -51,7 +53,8 @@ static int generate_unique_id(void)
 
 int nvgpu_profiler_alloc(struct gk20a *g,
 	struct nvgpu_profiler_object **_prof,
-	enum nvgpu_profiler_pm_reservation_scope scope)
+	enum nvgpu_profiler_pm_reservation_scope scope,
+	u32 gpu_instance_id)
 {
 	struct nvgpu_profiler_object *prof;
 	*_prof = NULL;
@@ -65,6 +68,7 @@ int nvgpu_profiler_alloc(struct gk20a *g,
 
 	prof->prof_handle = generate_unique_id();
 	prof->scope = scope;
+	prof->gpu_instance_id = gpu_instance_id;
 	prof->g = g;
 
 	nvgpu_mutex_init(&prof->ioctl_lock);
@@ -89,6 +93,7 @@ void nvgpu_profiler_free(struct nvgpu_profiler_object *prof)
 	nvgpu_profiler_free_pma_stream(prof);
 
 	nvgpu_list_del(&prof->prof_obj_entry);
+	prof->gpu_instance_id = 0U;
 	nvgpu_kfree(g, prof);
 }
 
@@ -297,6 +302,8 @@ static int nvgpu_profiler_bind_smpc(struct nvgpu_profiler_object *prof)
 {
 	struct gk20a *g = prof->g;
 	int err;
+	u32 gr_instance_id =
+		nvgpu_grmgr_get_gr_instance_id(g, prof->gpu_instance_id);
 
 	if (prof->scope == NVGPU_PROFILER_PM_RESERVATION_SCOPE_DEVICE) {
 		if (prof->ctxsw[NVGPU_PROFILER_PM_RESOURCE_TYPE_SMPC]) {
@@ -306,11 +313,13 @@ static int nvgpu_profiler_bind_smpc(struct nvgpu_profiler_object *prof)
 			}
 
 			if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SMPC_GLOBAL_MODE)) {
-				err = g->ops.gr.update_smpc_global_mode(g, false);
+				err = nvgpu_gr_exec_with_err_for_instance(g, gr_instance_id,
+						g->ops.gr.update_smpc_global_mode(g, false));
 			}
 		} else {
 			if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SMPC_GLOBAL_MODE)) {
-				err = g->ops.gr.update_smpc_global_mode(g, true);
+				err = nvgpu_gr_exec_with_err_for_instance(g, gr_instance_id,
+						g->ops.gr.update_smpc_global_mode(g, true));
 			} else {
 				err = -EINVAL;
 			}
@@ -350,13 +359,17 @@ static int nvgpu_profiler_bind_hwpm(struct nvgpu_profiler_object *prof, bool str
 	int err = 0;
 	u32 mode = streamout ? NVGPU_GR_CTX_HWPM_CTXSW_MODE_STREAM_OUT_CTXSW :
 			       NVGPU_GR_CTX_HWPM_CTXSW_MODE_CTXSW;
+	u32 gr_instance_id =
+		nvgpu_grmgr_get_gr_instance_id(g, prof->gpu_instance_id);
 
 	if (prof->scope == NVGPU_PROFILER_PM_RESERVATION_SCOPE_DEVICE) {
 		if (prof->ctxsw[NVGPU_PROFILER_PM_RESOURCE_TYPE_HWPM_LEGACY]) {
-			err = g->ops.gr.update_hwpm_ctxsw_mode(g, prof->tsg, 0, mode);
+			err = g->ops.gr.update_hwpm_ctxsw_mode(
+					g, gr_instance_id, prof->tsg, 0, mode);
 		} else {
 			if (g->ops.gr.init_cau != NULL) {
-				g->ops.gr.init_cau(g);
+				nvgpu_gr_exec_for_instance(g, gr_instance_id,
+					g->ops.gr.init_cau(g));
 			}
 			if (g->ops.perf.reset_hwpm_pmm_registers != NULL) {
 				g->ops.perf.reset_hwpm_pmm_registers(g);
@@ -364,7 +377,8 @@ static int nvgpu_profiler_bind_hwpm(struct nvgpu_profiler_object *prof, bool str
 			g->ops.perf.init_hwpm_pmm_register(g);
 		}
 	} else {
-		err = g->ops.gr.update_hwpm_ctxsw_mode(g, prof->tsg, 0, mode);
+		err = g->ops.gr.update_hwpm_ctxsw_mode(
+				g, gr_instance_id, prof->tsg, 0, mode);
 	}
 
 	return err;
@@ -375,16 +389,40 @@ static int nvgpu_profiler_unbind_hwpm(struct nvgpu_profiler_object *prof)
 	struct gk20a *g = prof->g;
 	int err = 0;
 	u32 mode = NVGPU_GR_CTX_HWPM_CTXSW_MODE_NO_CTXSW;
+	u32 gr_instance_id =
+		nvgpu_grmgr_get_gr_instance_id(g, prof->gpu_instance_id);
 
 	if (prof->scope == NVGPU_PROFILER_PM_RESERVATION_SCOPE_DEVICE) {
 		if (prof->ctxsw[NVGPU_PROFILER_PM_RESOURCE_TYPE_HWPM_LEGACY]) {
-			err = g->ops.gr.update_hwpm_ctxsw_mode(g, prof->tsg, 0, mode);
+			err = g->ops.gr.update_hwpm_ctxsw_mode(
+					g, gr_instance_id, prof->tsg, 0, mode);
 		}
 	} else {
-		err = g->ops.gr.update_hwpm_ctxsw_mode(g, prof->tsg, 0, mode);
+		err = g->ops.gr.update_hwpm_ctxsw_mode(
+				g, gr_instance_id, prof->tsg, 0, mode);
 	}
 
 	return err;
+}
+
+static void nvgpu_profiler_disable_cau_and_smpc(
+	struct nvgpu_profiler_object *prof)
+{
+	struct gk20a *g = prof->g;
+
+	/* Disable CAUs */
+	if (prof->reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_HWPM_LEGACY] &&
+			prof->reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_SMPC] &&
+			g->ops.gr.disable_cau != NULL) {
+		g->ops.gr.disable_cau(g);
+	}
+
+	/* Disable SMPC */
+	if (prof->reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_SMPC] &&
+			g->ops.gr.disable_smpc != NULL) {
+		g->ops.gr.disable_smpc(g);
+	}
+
 }
 
 static int nvgpu_profiler_quiesce_hwpm_streamout_resident(struct nvgpu_profiler_object *prof)
@@ -392,6 +430,8 @@ static int nvgpu_profiler_quiesce_hwpm_streamout_resident(struct nvgpu_profiler_
 	struct gk20a *g = prof->g;
 	u64 bytes_available;
 	int err = 0;
+	u32 gr_instance_id =
+		nvgpu_grmgr_get_gr_instance_id(g, prof->gpu_instance_id);
 
 	nvgpu_log(g, gpu_dbg_prof,
 		"HWPM streamout quiesce in resident state started for handle %u",
@@ -405,18 +445,8 @@ static int nvgpu_profiler_quiesce_hwpm_streamout_resident(struct nvgpu_profiler_
 		g->ops.perf.disable_all_perfmons(g);
 	}
 
-	/* Disable CAUs */
-	if (prof->reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_HWPM_LEGACY] &&
-	    prof->reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_SMPC] &&
-	    g->ops.gr.disable_cau != NULL) {
-		g->ops.gr.disable_cau(g);
-	}
-
-	/* Disable SMPC */
-	if (prof->reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_SMPC] &&
-	    g->ops.gr.disable_smpc != NULL) {
-		g->ops.gr.disable_smpc(g);
-	}
+	nvgpu_gr_exec_for_instance(g, gr_instance_id,
+		nvgpu_profiler_disable_cau_and_smpc(prof));
 
 	/* Wait for routers to idle/quiescent */
 	err = g->ops.perf.wait_for_idle_pmm_routers(g);
@@ -481,11 +511,11 @@ static int nvgpu_profiler_quiesce_hwpm_streamout_non_resident(struct nvgpu_profi
 	return 0;
 }
 
-static int nvgpu_profiler_quiesce_hwpm_streamout(struct nvgpu_profiler_object *prof)
+static int nvgpu_profiler_disable_ctxsw_and_check_is_tsg_ctx_resident(
+	struct nvgpu_profiler_object *prof)
 {
 	struct gk20a *g = prof->g;
-	bool ctx_resident;
-	int err, ctxsw_err;
+	int err;
 
 	err = nvgpu_gr_disable_ctxsw(g);
 	if (err != 0) {
@@ -493,7 +523,19 @@ static int nvgpu_profiler_quiesce_hwpm_streamout(struct nvgpu_profiler_object *p
 		return err;
 	}
 
-	ctx_resident = g->ops.gr.is_tsg_ctx_resident(prof->tsg);
+	return g->ops.gr.is_tsg_ctx_resident(prof->tsg);
+}
+
+static int nvgpu_profiler_quiesce_hwpm_streamout(struct nvgpu_profiler_object *prof)
+{
+	struct gk20a *g = prof->g;
+	bool ctx_resident;
+	int err, ctxsw_err;
+	u32 gr_instance_id =
+		nvgpu_grmgr_get_gr_instance_id(g, prof->gpu_instance_id);
+
+	ctx_resident = nvgpu_gr_exec_with_err_for_instance(g, gr_instance_id,
+		nvgpu_profiler_disable_ctxsw_and_check_is_tsg_ctx_resident(prof));
 
 	if (ctx_resident) {
 		err = nvgpu_profiler_quiesce_hwpm_streamout_resident(prof);
@@ -504,7 +546,8 @@ static int nvgpu_profiler_quiesce_hwpm_streamout(struct nvgpu_profiler_object *p
 		nvgpu_err(g, "Failed to quiesce HWPM streamout");
 	}
 
-	ctxsw_err = nvgpu_gr_enable_ctxsw(g);
+	ctxsw_err = nvgpu_gr_exec_with_err_for_instance(g, gr_instance_id,
+					nvgpu_gr_enable_ctxsw(g));
 	if (ctxsw_err != 0) {
 		nvgpu_err(g, "unable to restart ctxsw!");
 		err = ctxsw_err;

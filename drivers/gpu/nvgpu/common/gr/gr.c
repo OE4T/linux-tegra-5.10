@@ -1057,7 +1057,7 @@ u32 nvgpu_gr_get_syspipe_id(struct gk20a *g, u32 gr_instance_id)
  */
 int nvgpu_gr_disable_ctxsw(struct gk20a *g)
 {
-	struct nvgpu_gr *gr = g->gr;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 	int err = 0;
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, " ");
@@ -1104,7 +1104,7 @@ out:
 /* Start processing (continue) context switches at FECS */
 int nvgpu_gr_enable_ctxsw(struct gk20a *g)
 {
-	struct nvgpu_gr *gr = g->gr;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 	int err = 0;
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, " ");
@@ -1158,7 +1158,9 @@ void nvgpu_gr_sw_ready(struct gk20a *g, bool enable)
 /* Wait until GR is initialized */
 void nvgpu_gr_wait_initialized(struct gk20a *g)
 {
-	NVGPU_COND_WAIT(&g->gr->init_wq, g->gr->initialized, 0U);
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
+
+	NVGPU_COND_WAIT(&gr->init_wq, gr->initialized, 0U);
 }
 #endif
 

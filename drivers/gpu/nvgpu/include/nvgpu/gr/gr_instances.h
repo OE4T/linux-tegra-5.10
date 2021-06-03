@@ -27,6 +27,7 @@
 #include <nvgpu/grmgr.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/lock.h>
+#include <nvgpu/bug.h>
 
 #ifdef CONFIG_NVGPU_MIG
 #define nvgpu_gr_get_cur_instance_id(g) \
@@ -49,6 +50,12 @@
 	({ \
 		u32 current_gr_instance_id = nvgpu_gr_get_cur_instance_id(g); \
 		&g->gr[current_gr_instance_id]; \
+	})
+
+#define nvgpu_gr_get_instance_ptr(g, gr_instance_id) \
+	({ \
+		nvgpu_assert(gr_instance_id < g->num_gr_instances); \
+		&g->gr[gr_instance_id]; \
 	})
 
 #ifdef CONFIG_NVGPU_MIG
@@ -129,7 +136,11 @@
 		} \
 	})
 #else
-#define nvgpu_gr_exec_for_instance(g, gr_instance_id, func)	(func)
+#define nvgpu_gr_exec_for_instance(g, gr_instance_id, func) \
+	({ \
+		nvgpu_assert(gr_instance_id == 0U); \
+		(func); \
+	})
 #endif
 
 #ifdef CONFIG_NVGPU_MIG
@@ -149,7 +160,10 @@
 	})
 #else
 #define nvgpu_gr_exec_with_ret_for_instance(g, gr_instance_id, func, type) \
-		(func)
+	({ \
+		nvgpu_assert(gr_instance_id == 0U); \
+		(func); \
+	})
 #endif
 
 #ifdef CONFIG_NVGPU_MIG
@@ -161,7 +175,11 @@
 		err; \
 	})
 #else
-#define nvgpu_gr_exec_with_err_for_instance(g, gr_instance_id, func)	(func)
+#define nvgpu_gr_exec_with_err_for_instance(g, gr_instance_id, func) \
+	({ \
+		nvgpu_assert(gr_instance_id == 0U); \
+		(func); \
+	})
 #endif
 
 #ifdef CONFIG_NVGPU_MIG
@@ -182,10 +200,11 @@
 		gr_config; \
 	})
 #else
-#define nvgpu_gr_get_gpu_instance_config_ptr(g, gr_instance_id) \
+#define nvgpu_gr_get_gpu_instance_config_ptr(g, gpu_instance_id) \
 	({ \
-		struct nvgpu_gr_config *gr_instance_gr_config = \
-			nvgpu_gr_get_config_ptr(g); \
+		struct nvgpu_gr_config *gr_instance_gr_config; \
+		nvgpu_assert(gpu_instance_id == 0U); \
+		gr_instance_gr_config = nvgpu_gr_get_config_ptr(g); \
 		gr_instance_gr_config; \
 	})
 #endif

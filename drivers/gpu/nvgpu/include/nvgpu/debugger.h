@@ -1,7 +1,7 @@
 /*
  * Tegra GK20A GPU Debugger Driver
  *
- * Copyright (c) 2013-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -76,6 +76,9 @@ struct dbg_session_gk20a {
 	 * profilers.
 	 */
 	struct nvgpu_profiler_object *prof;
+
+	/** GPU instance Id */
+	u32 gpu_instance_id;
 };
 
 struct dbg_session_data {

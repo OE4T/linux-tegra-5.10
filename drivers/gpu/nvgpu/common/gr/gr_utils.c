@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -111,21 +111,29 @@ void nvgpu_gr_clear_cilp_preempt_pending_chid(struct gk20a *g)
 struct nvgpu_gr_obj_ctx_golden_image *nvgpu_gr_get_golden_image_ptr(
 		struct gk20a *g)
 {
-	return g->gr->golden_image;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
+
+	return gr->golden_image;
 }
 
 struct nvgpu_gr_hwpm_map *nvgpu_gr_get_hwpm_map_ptr(struct gk20a *g)
 {
-	return g->gr->hwpm_map;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
+
+	return gr->hwpm_map;
 }
 
 void nvgpu_gr_reset_falcon_ptr(struct gk20a *g)
 {
-	g->gr->falcon = NULL;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
+
+	gr->falcon = NULL;
 }
 
 void nvgpu_gr_reset_golden_image_ptr(struct gk20a *g)
 {
-	g->gr->golden_image = NULL;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
+
+	gr->golden_image = NULL;
 }
 #endif
