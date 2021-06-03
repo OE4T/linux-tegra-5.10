@@ -34,6 +34,7 @@
 #define NV_NVRNG_R_CTRL1_0	0x90
 
 /* SAP offsets */
+#define SE0_SOFTRESET_0				0x60
 #define SE0_INT_ENABLE_0			0x88
 #define		SC7_CTX_INTEGRITY_ERROR		(1 << 7)
 #define		SC7_CTX_START_ERROR		(1 << 6)
@@ -46,7 +47,8 @@
 #define		BUSY				1
 
 #define	SC7_IDLE_TIMEOUT_2000MS	2000000 /* 2sec */
-#define	SC7_IDLE_TIMEOUT_200MS	200000 /* 2sec */
+#define	SC7_IDLE_TIMEOUT_200MS	200000 /* 200 MS */
+#define RESET_TIMEOUT_100MS	100000
 
 #define HALTED			0x4
 #define STARTUP_DONE		0x2
@@ -209,6 +211,16 @@ static int tegra_se_sc7_check_idle(struct tegra_se_nvrng_dev *nvrng_dev,
 				(val & 0x5f) == 0x5f, 10, timeout_us);
 }
 
+static int tegra_se_softreset(struct tegra_se_nvrng_dev *nvrng_dev)
+{
+	u32 val;
+
+	tegra_se_sap_writel(nvrng_dev, SE0_SOFTRESET_0, TRUE);
+
+	return readl_poll_timeout(nvrng_dev->sap_base + SE0_SOFTRESET_0, val,
+				val == FALSE, 10, RESET_TIMEOUT_100MS);
+}
+
 static int tegra_se_sc7_check_error(struct tegra_se_nvrng_dev *nvrng_dev)
 {
 	u32 val;
@@ -249,6 +261,14 @@ static int tegra_se_nvrng_suspend(struct device *dev)
 
 	/* 2. Program NV_NVRNG_R_CTRL0_0.SW_ENGINE_ENABLED to true */
 	tegra_se_nvrng_writel(nvrng_dev, NV_NVRNG_R_CTRL0_0, SW_ENGINE_ENABLED);
+
+	/* WAR for bug 200735620 */
+	ret = tegra_se_softreset(nvrng_dev);
+	if (ret) {
+		pr_err("%s:%d SE softreset failed\n", __func__, __LINE__);
+		clk_disable_unprepare(nvrng_dev->clk);
+		return ret;
+	}
 
 	/* 3. Check SE0_SC7_STATUS_0 is 0x5f for HW to be IDLE */
 	ret = tegra_se_sc7_check_idle(nvrng_dev, SC7_IDLE_TIMEOUT_2000MS);
