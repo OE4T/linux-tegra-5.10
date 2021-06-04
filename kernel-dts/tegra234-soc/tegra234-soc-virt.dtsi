@@ -58,10 +58,12 @@
 		status = "disabled";
 	};
 
-	/* ISO-clients cannot have stage-1 translation and hence
-	 * iommus node are deleted for ISO-Clients which are
-	 * nvdisplay, vi0, vi1, vi0-thi, and vi1-thi */
 	host1x@13e00000 {
+		status = "disabled";
+
+		/* ISO-clients cannot have stage-1 translation and hence
+		 * iommus node are deleted for ISO-Clients which are
+		 * nvdisplay, vi0, vi1, vi0-thi, and vi1-thi */
 		vi0@15c00000 {
 			/delete-property/ iommus;
 			/delete-property/ iso-smmu;
@@ -80,6 +82,18 @@
 		vi1-thi@14f00000 {
 			/delete-property/ iommus;
 			/delete-property/ iso-smmu;
+		};
+
+		se@15810000 {
+			status="disabled";
+		};
+
+		se@15820000 {
+			status="disabled";
+		};
+
+		se@15840000 {
+			status="disabled";
 		};
 	};
 
@@ -233,20 +247,6 @@
 
 	se_elp@3ad0000 {
 		status = "disabled";
-	};
-
-	host1x@13e00000 {
-		se@15810000 {
-			status="disabled";
-		};
-
-		se@15820000 {
-			status="disabled";
-		};
-
-		se@15840000 {
-			status="disabled";
-		};
 	};
 
 	nvrng@3ae0000 {
