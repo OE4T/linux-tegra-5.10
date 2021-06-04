@@ -254,22 +254,25 @@ struct tegra_vgpu_zcull_info_params {
 #define TEGRA_VGPU_ZBC_TYPE_INVALID		0
 #define TEGRA_VGPU_ZBC_TYPE_COLOR		1
 #define TEGRA_VGPU_ZBC_TYPE_DEPTH		2
+#define TEGRA_VGPU_ZBC_TYPE_STENCIL		3
 
 struct tegra_vgpu_zbc_set_table_params {
 	u32 color_ds[TEGRA_VGPU_ZBC_COLOR_VALUE_SIZE];
 	u32 color_l2[TEGRA_VGPU_ZBC_COLOR_VALUE_SIZE];
 	u32 depth;
+	u32 stencil;
 	u32 format;
-	u32 type;     /* color or depth */
+	u32 type;     /* color, depth or stencil */
 };
 
 struct tegra_vgpu_zbc_query_table_params {
 	u32 color_ds[TEGRA_VGPU_ZBC_COLOR_VALUE_SIZE];
 	u32 color_l2[TEGRA_VGPU_ZBC_COLOR_VALUE_SIZE];
 	u32 depth;
+	u32 stencil;
 	u32 ref_cnt;
 	u32 format;
-	u32 type;             /* color or depth */
+	u32 type;             /* color, depth or stencil */
 	u32 index_size;       /* [out] size, [in] index */
 };
 #endif

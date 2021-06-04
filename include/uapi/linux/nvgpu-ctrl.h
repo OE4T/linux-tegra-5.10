@@ -49,22 +49,25 @@ struct nvgpu_gpu_zcull_get_info_args {
 #define NVGPU_ZBC_TYPE_INVALID		0
 #define NVGPU_ZBC_TYPE_COLOR		1
 #define NVGPU_ZBC_TYPE_DEPTH		2
+#define NVGPU_ZBC_TYPE_STENCIL		3
 
 struct nvgpu_gpu_zbc_set_table_args {
 	__u32 color_ds[NVGPU_ZBC_COLOR_VALUE_SIZE];
 	__u32 color_l2[NVGPU_ZBC_COLOR_VALUE_SIZE];
 	__u32 depth;
+	__u32 stencil;
 	__u32 format;
-	__u32 type;	/* color or depth */
+	__u32 type;	/* color, depth or stencil */
 };
 
 struct nvgpu_gpu_zbc_query_table_args {
 	__u32 color_ds[NVGPU_ZBC_COLOR_VALUE_SIZE];
 	__u32 color_l2[NVGPU_ZBC_COLOR_VALUE_SIZE];
 	__u32 depth;
+	__u32 stencil;
 	__u32 ref_cnt;
 	__u32 format;
-	__u32 type;		/* color or depth */
+	__u32 type;		/* color, depth or stencil */
 	__u32 index_size;	/* [out] size, [in] index */
 };
 

@@ -538,6 +538,9 @@ int vgpu_gr_add_zbc(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 	case NVGPU_GR_ZBC_TYPE_DEPTH:
 		p->depth = zbc_val->depth;
 		break;
+	case NVGPU_GR_ZBC_TYPE_STENCIL:
+		p->stencil = zbc_val->stencil;
+		break;
 	default:
 		return -EINVAL;
 	}
@@ -577,6 +580,9 @@ int vgpu_gr_query_zbc(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 		break;
 	case NVGPU_GR_ZBC_TYPE_DEPTH:
 		query_params->depth = p->depth;
+		break;
+	case NVGPU_GR_ZBC_TYPE_STENCIL:
+		query_params->stencil = p->stencil;
 		break;
 	case NVGPU_GR_ZBC_TYPE_INVALID:
 		query_params->index_size = p->index_size;
