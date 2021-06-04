@@ -30,6 +30,8 @@
 #include <linux/time.h>
 #include <linux/version.h>
 #include <uapi/linux/nvpps_ioctl.h>
+#include <linux/tegra-gte.h>
+
 
 
 /* the following contrl flags are for
@@ -81,6 +83,7 @@ struct nvpps_device_data {
 
 	wait_queue_head_t	pps_event_queue;
 	struct fasync_struct	*pps_event_async_queue;
+	struct tegra_gte_ev_desc *gte_ev_desc;
 
 #ifdef NVPPS_MAP_EQOS_REGS
 	u64			eqos_base_addr;
@@ -188,8 +191,11 @@ static void nvpps_get_ts(struct nvpps_device_data *pdev_data, bool in_isr)
 		irq_tsc = __arch_counter_get_cntvct();
 		if (pdev_data->use_gpio_int_timesatmp) {
 			int	err;
-			/* get the interrupt timestamp */
-			err = gpio_timestamp_read(pdev_data->gpio_pin, &irq_tsc);
+			struct tegra_gte_ev_detail hts;
+			err = tegra_gte_retrieve_event(pdev_data->gte_ev_desc, &hts);
+			if (!err) {
+				irq_tsc = hts.ts_raw;
+			}
 			if (err) {
 				dev_err(pdev_data->dev, "failed to read timestamp data err(%d)\n", err);
 			}
@@ -603,6 +609,7 @@ static int nvpps_probe(struct platform_device *pdev)
 	struct device_node		*np = pdev->dev.of_node;
 	dev_t				devt;
 	int				err;
+	struct device_node              *np_gte;
 
 	dev_info(&pdev->dev, "%s\n", __FUNCTION__);
 
@@ -648,16 +655,6 @@ static int nvpps_probe(struct platform_device *pdev)
 		}
 		pdev_data->irq = err;
 		dev_info(&pdev->dev, "gpio_to_irq(%d)\n", pdev_data->irq);
-
-		/* enable gpio interrupt timestamp */
-		err = gpio_timestamp_control(pdev_data->gpio_pin, 1);
-		if (err && (err != -EINVAL)) {
-			dev_err(pdev_data->dev, "failed to set timestamp control\n");
-			pdev_data->use_gpio_int_timesatmp = false;
-		} else {
-			pdev_data->use_gpio_int_timesatmp = true;
-			dev_info(pdev_data->dev, "enable timestamp control\n");
-		}
 	}
 
 #ifdef NVPPS_MAP_EQOS_REGS
@@ -729,18 +726,33 @@ static int nvpps_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "nvpps: failed to add char device %d:%d\n",
 			MAJOR(s_nvpps_devt), pdev_data->id);
 		device_destroy(s_nvpps_class, pdev_data->dev->devt);
-		return err;
+		goto error_ret;
 	}
 
 	dev_info(&pdev->dev, "nvpps cdev(%d:%d)\n", MAJOR(s_nvpps_devt), pdev_data->id);
 	platform_set_drvdata(pdev, pdev_data);
+
+	np_gte = of_find_compatible_node(NULL, NULL, "nvidia,tegra194-gte-aon");
+	if (!np_gte) {
+		pdev_data->use_gpio_int_timesatmp = false;
+		dev_err(&pdev->dev, "of_find_compatible_node failed\n");
+	} else {
+		pdev_data->gte_ev_desc = tegra_gte_register_event(np_gte, pdev_data->gpio_pin);
+		if (IS_ERR(pdev_data->gte_ev_desc)) {
+			pdev_data->use_gpio_int_timesatmp = false;
+			dev_err(&pdev->dev, "tegra_gte_register_event err = %d\n", (int)PTR_ERR(pdev_data->gte_ev_desc));
+		} else {
+			pdev_data->use_gpio_int_timesatmp = true;
+			dev_info(pdev_data->dev, "tegra_gte_register_event succeed\n");
+		}
+	}
 
 	/* setup PPS event hndler */
 	err = set_mode(pdev_data, NVPPS_DEF_MODE);
 	if (err) {
 		dev_err(&pdev->dev, "set_mode failed err = %d\n", err);
 		device_destroy(s_nvpps_class, pdev_data->dev->devt);
-		return err;
+		goto error_ret;
 	}
 	pdev_data->evt_mode = NVPPS_DEF_MODE;
 
@@ -767,9 +779,10 @@ static int nvpps_remove(struct platform_device *pdev)
 			del_timer_sync(&pdev_data->timer);
 		}
 		if (pdev_data->use_gpio_int_timesatmp) {
-			gpio_timestamp_control(pdev_data->gpio_pin, 0);
+			if (!IS_ERR_OR_NULL(pdev_data->gte_ev_desc)) {
+				tegra_gte_unregister_event(pdev_data->gte_ev_desc);
+			}
 			pdev_data->use_gpio_int_timesatmp = false;
-			dev_info(&pdev->dev, "disable timestamp control\n");
 		}
 #ifdef NVPPS_MAP_EQOS_REGS
 		if (pdev_data->eqos_base_addr) {
