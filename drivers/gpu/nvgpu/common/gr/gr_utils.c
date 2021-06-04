@@ -97,12 +97,16 @@ struct nvgpu_gr_global_ctx_buffer_desc *nvgpu_gr_get_global_ctx_buffer_ptr(
 #ifdef CONFIG_NVGPU_CILP
 u32 nvgpu_gr_get_cilp_preempt_pending_chid(struct gk20a *g)
 {
-	return g->gr->cilp_preempt_pending_chid;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
+
+	return gr->cilp_preempt_pending_chid;
 }
 
 void nvgpu_gr_clear_cilp_preempt_pending_chid(struct gk20a *g)
 {
-	g->gr->cilp_preempt_pending_chid =
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
+
+	gr->cilp_preempt_pending_chid =
 				NVGPU_INVALID_CHANNEL_ID;
 }
 #endif

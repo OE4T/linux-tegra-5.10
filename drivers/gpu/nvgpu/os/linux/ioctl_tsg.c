@@ -650,15 +650,18 @@ static int gk20a_tsg_ioctl_read_single_sm_error_state(struct gk20a *g,
 }
 
 static int nvgpu_gpu_ioctl_set_l2_max_ways_evict_last(
-		struct gk20a *g, struct nvgpu_tsg *tsg,
+		struct gk20a *g, u32 gpu_instance_id, struct nvgpu_tsg *tsg,
 		struct nvgpu_tsg_l2_max_ways_evict_last_args *args)
 {
 	int err;
+	u32 gr_instance_id =
+		nvgpu_grmgr_get_gr_instance_id(g, gpu_instance_id);
 
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 	if (g->ops.ltc.set_l2_max_ways_evict_last) {
-		err = g->ops.ltc.set_l2_max_ways_evict_last(g, tsg,
-				args->max_ways);
+		err = nvgpu_gr_exec_with_err_for_instance(g, gr_instance_id,
+				g->ops.ltc.set_l2_max_ways_evict_last(g, tsg,
+					args->max_ways));
 	} else {
 		err = -ENOSYS;
 	}
@@ -668,15 +671,18 @@ static int nvgpu_gpu_ioctl_set_l2_max_ways_evict_last(
 }
 
 static int nvgpu_gpu_ioctl_get_l2_max_ways_evict_last(
-		struct gk20a *g, struct nvgpu_tsg *tsg,
+		struct gk20a *g, u32 gpu_instance_id, struct nvgpu_tsg *tsg,
 		struct nvgpu_tsg_l2_max_ways_evict_last_args *args)
 {
 	int err;
+	u32 gr_instance_id =
+		nvgpu_grmgr_get_gr_instance_id(g, gpu_instance_id);
 
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 	if (g->ops.ltc.get_l2_max_ways_evict_last) {
-		err = g->ops.ltc.get_l2_max_ways_evict_last(g, tsg,
-				&args->max_ways);
+		err = nvgpu_gr_exec_with_err_for_instance(g, gr_instance_id,
+				g->ops.ltc.get_l2_max_ways_evict_last(g, tsg,
+					&args->max_ways));
 	} else {
 		err = -ENOSYS;
 	}
@@ -712,11 +718,13 @@ static u32 nvgpu_translate_l2_sector_promotion_flag(struct gk20a *g, u32 flag)
 }
 
 static int nvgpu_gpu_ioctl_set_l2_sector_promotion(struct gk20a *g,
-		struct nvgpu_tsg *tsg,
+		u32 gpu_instance_id, struct nvgpu_tsg *tsg,
 		struct nvgpu_tsg_set_l2_sector_promotion_args *args)
 {
 	u32 promotion_flag = 0U;
 	int err = 0;
+	u32 gr_instance_id =
+		nvgpu_grmgr_get_gr_instance_id(g, gpu_instance_id);
 
 	/*
 	 * L2 sector promotion is a perf feature so return silently without
@@ -739,8 +747,9 @@ static int nvgpu_gpu_ioctl_set_l2_sector_promotion(struct gk20a *g,
 		nvgpu_err(g, "failed to power on gpu");
 		return err;
 	}
-	err = g->ops.ltc.set_l2_sector_promotion(g, tsg,
-			promotion_flag);
+	err = nvgpu_gr_exec_with_err_for_instance(g, gr_instance_id,
+			g->ops.ltc.set_l2_sector_promotion(g, tsg,
+				promotion_flag));
 	gk20a_idle(g);
 
 	return err;
@@ -903,8 +912,9 @@ long nvgpu_ioctl_tsg_dev_ioctl(struct file *filp, unsigned int cmd,
 			   "failed to power on gpu for ioctl cmd: 0x%x", cmd);
 			break;
 		}
-		err = nvgpu_gpu_ioctl_set_l2_max_ways_evict_last(g, tsg,
-			(struct nvgpu_tsg_l2_max_ways_evict_last_args *)buf);
+		err = nvgpu_gpu_ioctl_set_l2_max_ways_evict_last(g,
+				gpu_instance_id, tsg,
+				(struct nvgpu_tsg_l2_max_ways_evict_last_args *)buf);
 		gk20a_idle(g);
 		break;
 		}
@@ -917,15 +927,17 @@ long nvgpu_ioctl_tsg_dev_ioctl(struct file *filp, unsigned int cmd,
 			   "failed to power on gpu for ioctl cmd: 0x%x", cmd);
 			break;
 		}
-		err = nvgpu_gpu_ioctl_get_l2_max_ways_evict_last(g, tsg,
-			(struct nvgpu_tsg_l2_max_ways_evict_last_args *)buf);
+		err = nvgpu_gpu_ioctl_get_l2_max_ways_evict_last(g,
+				gpu_instance_id, tsg,
+				(struct nvgpu_tsg_l2_max_ways_evict_last_args *)buf);
 		gk20a_idle(g);
 		break;
 		}
 
 	case NVGPU_TSG_IOCTL_SET_L2_SECTOR_PROMOTION:
 		{
-		err = nvgpu_gpu_ioctl_set_l2_sector_promotion(g, tsg,
+		err = nvgpu_gpu_ioctl_set_l2_sector_promotion(g,
+				gpu_instance_id, tsg,
 				(struct nvgpu_tsg_set_l2_sector_promotion_args *)buf);
 		break;
 		}
