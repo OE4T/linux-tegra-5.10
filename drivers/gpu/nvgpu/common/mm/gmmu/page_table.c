@@ -36,6 +36,9 @@
 #include <nvgpu/types.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/static_analysis.h>
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include <nvgpu/errata.h>
+#endif
 
 #ifdef CONFIG_NVGPU_TRACE
 #define nvgpu_gmmu_dbg(g, attrs, fmt, args...)				\
@@ -953,6 +956,14 @@ u64 nvgpu_gmmu_map_locked(struct vm_gk20a *vm,
 #endif
 
 	attrs.l3_alloc = ((flags & NVGPU_VM_MAP_L3_ALLOC) != 0U);
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	if (nvgpu_is_errata_present(g, NVGPU_ERRATA_3288192) &&
+							(attrs.l3_alloc)) {
+		nvgpu_gmmu_dbg_v(g, &attrs,
+			"L3 alloc is requested when L3 cache is not supported");
+		attrs.l3_alloc = false;
+	}
+#endif
 
 	/*
 	 * Only allocate a new GPU VA range if we haven't already been passed a
