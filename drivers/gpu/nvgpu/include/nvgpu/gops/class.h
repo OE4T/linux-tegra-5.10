@@ -44,20 +44,14 @@ struct gops_class {
 	 *
 	 * List of valid class numbers:
 	 *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	 * 1. Graphics classes: (Fix: Lot of qnx safety tests are still using
-	 *			 graphics 3d class. Until these tests get fixed,
-	 *			 allowing 3d graphics class as valid class for
-	 *			 safety build.)
-	 *	a. VOLTA_A                   --> 0xC397U
-	 * 2. Compute classes:
+	 * 1. Compute class:
 	 * 	a. VOLTA_COMPUTE_A           --> 0xC3C0U
-	 * 3. DMA copy
-	 *	a. KEPLER_DMA_COPY_A         --> 0xA0B5U
-	 *	b. MAXWELL_DMA_COPY_A        --> 0xB0B5U
-	 *	c. PASCAL_DMA_COPY_A         --> 0xC0B5U
-	 *	d. VOLTA_DMA_COPY_A          --> 0xC3B5U
-	 * 4. Inline to memory
-	 *	a. KEPLER_INLINE_TO_MEMORY_B --> 0xA140U
+	 * 2. DMA copy class:
+	 *	a. VOLTA_DMA_COPY_A          --> 0xC3B5U
+	 * 3. Channel Gpfifo class:
+	 *	a. VOLTA_CHANNEL_GPFIFO_A    --> 0xC36FU
+	 * 4. Graphics class:
+	 * 	a. VOLTA_A                   --> 0xC397U
 	 *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	 *
 	 * @param class_num [in]	Class number to be checked.

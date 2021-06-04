@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,7 @@ struct unit_module;
  *
  * Description: Validate common.class unit API.
  *
- * Test Type: Feature
+ * Test Type: Feature, Boundary Values
  *
  * Targets: gops_class.is_valid_compute, gv11b_class_is_valid_compute,
  *          gops_class.is_valid, gv11b_class_is_valid
