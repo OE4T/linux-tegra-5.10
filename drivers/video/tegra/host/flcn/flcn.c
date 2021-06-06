@@ -50,6 +50,7 @@
 #include "t194/t194.h"
 #ifdef CONFIG_TEGRA_T23X_GRHOST
 #include "t23x/t23x.h"
+#include "t239/t239.h"
 #endif
 
 

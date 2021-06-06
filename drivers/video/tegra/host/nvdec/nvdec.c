@@ -1,7 +1,7 @@
 /*
  * Tegra NVDEC Module Support
  *
- * Copyright (c) 2013-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -60,6 +60,7 @@
 #include "t194/t194.h"
 #ifdef CONFIG_TEGRA_T23X_GRHOST
 #include "t23x/t23x.h"
+#include "t239/t239.h"
 #endif
 
 #define FW_NAME_SIZE			32
@@ -472,9 +473,7 @@ static struct of_device_id tegra_nvdec_of_match[] = {
 		.data = (struct nvhost_device_data *)&t19_nvdec1_info,
 		.name = "nvdec1" },
 #ifdef CONFIG_TEGRA_T23X_GRHOST
-	{ .compatible = "nvidia,tegra234-nvdec",
-		.data = (struct nvhost_device_data *)&t23x_nvdec_info,
-		.name = "nvdec" },
+	#include "nvdec/nvdec_of_match_t23x.h"
 #endif
 	{ },
 };

@@ -67,6 +67,7 @@
 #include "t194/t194.h"
 #ifdef CONFIG_TEGRA_T23X_GRHOST
 #include "t23x/t23x.h"
+#include "t239/t239.h"
 #endif
 
 #define DRIVER_NAME		"host1x"
@@ -1015,12 +1016,7 @@ static struct of_device_id tegra_host1x_of_match[] = {
 		.compatible = "nvidia,tegra194-host1x-hv",
 		.data = (struct nvhost_device_data *)&t19_host1x_hv_info },
 #ifdef CONFIG_TEGRA_T23X_GRHOST
-	{ .name = "host1x",
-		.compatible = "nvidia,tegra234-host1x",
-		.data = (struct nvhost_device_data *)&t23x_host1x_info },
-	{ .name = "host1x",
-		.compatible = "nvidia,tegra234-host1x-hv",
-		.data = (struct nvhost_device_data *)&t23x_host1x_hv_info },
+	#include "host1x/host1x_of_match_t23x.h"
 #endif
 	{ },
 };
