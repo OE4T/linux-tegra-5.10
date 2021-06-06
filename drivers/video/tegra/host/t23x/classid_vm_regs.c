@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,9 +15,9 @@
  */
 
 /* HOST1X_THOST_COMMON_STRMID_VM_0 */
-static const u32 host1x_strmid_vm_r = 0x1004u;
-static const u32 strmid_vm_regs_nb = 128u;
-static const u32 host1x_classid_vm_r[] = {
+static const u32 t23x_host1x_strmid_vm_r = 0x1004u;
+static const u32 t23x_strmid_vm_regs_nb = 128u;
+static const u32 t23x_host1x_classid_vm_r[] = {
 	0x1404u, /* HOST1X_THOST_COMMON_THOST_CLASSID_VM*/
 	0x1408u, /* HOST1X_THOST_COMMON_SE1_CLASSID_VM*/
 	0x140cu, /* HOST1X_THOST_COMMON_SE2_CLASSID_VM*/

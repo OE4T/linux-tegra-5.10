@@ -1,7 +1,7 @@
 /*
- * Tegra Graphics Init for T23X Architecture Chips
+ * Tegra Graphics Init for T239 Architecture Chips
  *
- * Copyright (c) 2016-2021, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2021, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -40,33 +40,17 @@
 
 #include "nvhost_syncpt_unit_interface.h"
 #include "nvhost_gos.h"
-#include "t23x.h"
+#include "t239.h"
 #include "host1x/host1x.h"
-#if IS_ENABLED(CONFIG_TEGRA_GRHOST_ISP)
-#include "isp/isp5.h"
-#endif
 #if IS_ENABLED(CONFIG_TEGRA_GRHOST_TSEC)
 #include "tsec/tsec.h"
 #include "tsec/tsec_t23x.h"
 #endif
 #include "flcn/flcn.h"
-#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVCSI)
-#include "nvcsi/nvcsi-t194.h"
-#endif
 #if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVDEC)
 #include "nvdec/nvdec.h"
 #endif
-#if IS_ENABLED(CONFIG_TEGRA_GRHOST_PVA)
-#include "pva/pva.h"
-#endif
-#include "hardware_t23x.h"
-#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVDLA)
-#include "nvdla/nvdla.h"
-#include "nvdla/dla_t23x_fw_version.h"
-#endif
-#if IS_ENABLED(CONFIG_VIDEO_TEGRA_VI)
-#include "vi/vi5.h"
-#endif
+#include "hardware_t239.h"
 #if IS_ENABLED(CONFIG_TEGRA_GRHOST_OFA)
 #include "ofa/ofa.h"
 #endif
@@ -82,7 +66,7 @@
 
 #define NVHOST_HAS_SUBMIT_HOST1XSTREAMID
 
-static dma_addr_t nvhost_t23x_get_reloc_phys_addr(dma_addr_t phys_addr,
+static dma_addr_t nvhost_t239_get_reloc_phys_addr(dma_addr_t phys_addr,
 						  u32 reloc_type)
 {
 	if (reloc_type == NVHOST_RELOC_TYPE_BLOCK_LINEAR)
@@ -92,11 +76,11 @@ static dma_addr_t nvhost_t23x_get_reloc_phys_addr(dma_addr_t phys_addr,
 }
 
 static struct host1x_device_info host1x04_info = {
-	.nb_channels	= T23X_NVHOST_NUMCHANNELS,
+	.nb_channels	= T239_NVHOST_NUMCHANNELS,
 	.ch_base	= 0,
-	.ch_limit	= T23X_NVHOST_NUMCHANNELS,
+	.ch_limit	= T239_NVHOST_NUMCHANNELS,
 	.nb_mlocks	= NV_HOST1X_NB_MLOCKS,
-	.initialize_chip_support = nvhost_init_t23x_support,
+	.initialize_chip_support = nvhost_init_t239_support,
 	.nb_hw_pts	= NV_HOST1X_SYNCPT_NB_PTS,
 	.nb_pts		= NV_HOST1X_SYNCPT_NB_PTS,
 	.pts_base	= 0,
@@ -118,7 +102,7 @@ static struct host1x_device_info host1x04_info = {
 	.syncpt_page_size = 0x10000,
 };
 
-struct nvhost_device_data t23x_host1x_info = {
+struct nvhost_device_data t239_host1x_info = {
 	.clocks			= {
 		{"host1x", 204000000},
 		{"actmon", UINT_MAX}
@@ -130,7 +114,7 @@ struct nvhost_device_data t23x_host1x_info = {
 	.engine_can_cg		= true,
 };
 
-struct nvhost_device_data t23x_host1x_hv_info = {
+struct nvhost_device_data t239_host1x_hv_info = {
 	.autosuspend_delay      = 2000,
 	.private_data		= &host1x04_info,
 	.finalize_poweron = nvhost_host1x_finalize_poweron,
@@ -138,11 +122,11 @@ struct nvhost_device_data t23x_host1x_hv_info = {
 };
 
 static struct host1x_device_info host1xb04_info = {
-	.nb_channels	= T23X_NVHOST_NUMCHANNELS,
+	.nb_channels	= T239_NVHOST_NUMCHANNELS,
 	.ch_base	= 0,
-	.ch_limit	= T23X_NVHOST_NUMCHANNELS,
+	.ch_limit	= T239_NVHOST_NUMCHANNELS,
 	.nb_mlocks	= NV_HOST1X_NB_MLOCKS,
-	.initialize_chip_support = nvhost_init_t23x_support,
+	.initialize_chip_support = nvhost_init_t239_support,
 	.nb_hw_pts	= NV_HOST1X_SYNCPT_NB_PTS,
 	.nb_pts		= NV_HOST1X_SYNCPT_NB_PTS,
 	.pts_base	= 0,
@@ -153,7 +137,7 @@ static struct host1x_device_info host1xb04_info = {
 	.use_cross_vm_interrupts = 1,
 };
 
-struct nvhost_device_data t23x_host1xb_info = {
+struct nvhost_device_data t239_host1xb_info = {
 	.clocks			= {
 		{"host1x", UINT_MAX},
 		{"actmon", UINT_MAX}
@@ -161,107 +145,8 @@ struct nvhost_device_data t23x_host1xb_info = {
 	.private_data		= &host1xb04_info,
 };
 
-#if IS_ENABLED(CONFIG_VIDEO_TEGRA_VI)
-struct nvhost_device_data t23x_vi0_thi_info = {
-	.devfs_name		= "vi0-thi",
-	.moduleid		= NVHOST_MODULE_VI,
-};
-
-struct nvhost_device_data t23x_vi0_info = {
-	.devfs_name		= "vi0",
-	.class			= NV_VIDEO_STREAMING_VI_CLASS_ID,
-	.keepalive		= true,
-	.autosuspend_delay	= 500,
-	.poweron_reset		= true,
-	.moduleid		= NVHOST_MODULE_VI,
-	.clocks = {
-		{"vi", UINT_MAX},
-		{"vi-const", UINT_MAX},
-	},
-	.version		= NVHOST_ENCODE_FLCN_VER(5, 0),
-	.num_ppc		= 8,
-	.aggregate_constraints	= nvhost_vi5_aggregate_constraints,
-	.can_powergate		= true,
-	.pre_virt_init		= vi5_priv_early_probe,
-	.post_virt_init		= vi5_priv_late_probe,
-};
-
-struct nvhost_device_data t23x_vi1_thi_info = {
-	.devfs_name		= "vi1-thi",
-	.moduleid		= NVHOST_MODULE_VI2,
-};
-
-struct nvhost_device_data t23x_vi1_info = {
-	.devfs_name		= "vi1",
-	.class			= NV_VIDEO_STREAMING_VI_CLASS_ID,
-	.keepalive		= true,
-	.autosuspend_delay	= 500,
-	.poweron_reset		= true,
-	.moduleid		= NVHOST_MODULE_VI2,
-	.clocks = {
-		{"vi", UINT_MAX},
-		{"vi-const", UINT_MAX},
-	},
-	.version		= NVHOST_ENCODE_FLCN_VER(5, 0),
-	.num_ppc		= 8,
-	.aggregate_constraints	= nvhost_vi5_aggregate_constraints,
-	.can_powergate		= true,
-	.pre_virt_init		= vi5_priv_early_probe,
-	.post_virt_init		= vi5_priv_late_probe,
-};
-#endif
-
-#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVCSI)
-struct nvhost_device_data t23x_nvcsi_info = {
-	.num_channels		= 1,
-	.moduleid		= NVHOST_MODULE_NVCSI,
-	.clocks			= {
-		{"nvcsi", UINT_MAX},
-		{"nvcsilp", UINT_MAX},
-		{"mipi_cal", UINT_MAX},
-		{"uart_fs_mipi_cal", UINT_MAX},
-	},
-	.devfs_name		= "nvcsi",
-	.modulemutexes		= {NV_HOST1X_MLOCK_ID_NVCSI},
-	.class			= NV_VIDEO_STREAMING_NVCSI_CLASS_ID,
-	.ctrl_ops		= &tegra194_nvcsi_ctrl_ops,
-	.autosuspend_delay      = 500,
-	.poweron_reset		= true,
-	.keepalive		= true,
-	.serialize		= 1,
-	.push_work_done		= 1,
-	.can_powergate		= true,
-	.pre_virt_init		= t194_nvcsi_early_probe,
-	.post_virt_init		= t194_nvcsi_late_probe,
-};
-#endif
-
-#ifdef CONFIG_TEGRA_GRHOST_ISP
-struct nvhost_device_data t23x_isp_thi_info = {
-	.devfs_name		= "isp-thi",
-	.moduleid		= NVHOST_MODULE_ISP,
-};
-
-struct nvhost_device_data t23x_isp5_info = {
-	.devfs_name		= "isp",
-	.class			= NV_VIDEO_STREAMING_ISP_CLASS_ID,
-	.keepalive		= true,
-	.autosuspend_delay      = 500,
-	.poweron_reset		= true,
-	.moduleid		= NVHOST_MODULE_ISP,
-	.clocks			= {
-		{"isp", UINT_MAX},
-	},
-	.ctrl_ops		= &tegra194_isp5_ctrl_ops,
-	.version		= NVHOST_ENCODE_FLCN_VER(5, 0),
-	.can_powergate		= true,
-	.pre_virt_init		= isp5_priv_early_probe,
-	.post_virt_init		= isp5_priv_late_probe,
-};
-#endif
-
 #if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVENC)
-struct nvhost_device_data t23x_msenc_info = {
+struct nvhost_device_data t239_msenc_info = {
 	.version		= NVHOST_ENCODE_FLCN_VER(8, 0),
 	.devfs_name		= "msenc",
 	.class			= NV_VIDEO_ENCODE_NVENC_CLASS_ID,
@@ -285,8 +170,8 @@ struct nvhost_device_data t23x_msenc_info = {
 	.transcfg_addr		= 0x1844,
 	.transcfg_val		= 0x20,
 	.icc_id			= TEGRA_ICC_NVENC,
-	.get_reloc_phys_addr	= nvhost_t23x_get_reloc_phys_addr,
-	.engine_cg_regs		= t23x_nvenc_gating_registers,
+	.get_reloc_phys_addr	= nvhost_t239_get_reloc_phys_addr,
+	.engine_cg_regs		= t239_nvenc_gating_registers,
 	.engine_can_cg		= true,
 	.can_powergate		= true,
 	.isolate_contexts	= true,
@@ -295,7 +180,7 @@ struct nvhost_device_data t23x_msenc_info = {
 #endif
 
 #if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVDEC)
-struct nvhost_device_data t23x_nvdec_info = {
+struct nvhost_device_data t239_nvdec_info = {
 	.version		= NVHOST_ENCODE_NVDEC_VER(5, 0),
 	.devfs_name		= "nvdec",
 	.modulemutexes		= {NV_HOST1X_MLOCK_ID_NVDEC},
@@ -322,70 +207,8 @@ struct nvhost_device_data t23x_nvdec_info = {
 	.transcfg_addr		= 0x4e44,
 	.transcfg_val		= 0x20,
 	.icc_id			= TEGRA_ICC_NVDEC,
-	.get_reloc_phys_addr	= nvhost_t23x_get_reloc_phys_addr,
-	.engine_cg_regs		= t23x_nvdec_gating_registers,
-	.engine_can_cg		= true,
-	.can_powergate		= true,
-	.isolate_contexts	= true,
-};
-#endif
-
-#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVJPG)
-struct nvhost_device_data t23x_nvjpg_info = {
-	.version		= NVHOST_ENCODE_FLCN_VER(1, 3),
-	.devfs_name		= "nvjpg",
-	.modulemutexes		= {NV_HOST1X_MLOCK_ID_NVJPG},
-	.class			= NV_NVJPG_CLASS_ID,
-	.autosuspend_delay      = 500,
-	.clocks			= {
-		{"nvjpg", UINT_MAX},
-		{"emc", 0,
-		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		 TEGRA_SET_EMC_SHARED_BW}
-	},
-	.poweron_reset		= true,
-	.finalize_poweron	= nvhost_flcn_finalize_poweron_t186,
-	.moduleid		= NVHOST_MODULE_NVJPG,
-	.num_channels		= 1,
-	.firmware_name		= "nvhost_nvjpg013.fw",
-	.serialize		= true,
-	.push_work_done		= true,
-	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
-	.vm_regs		= {{0x30, true}, {0x34, false} },
-	.transcfg_addr		= 0x1444,
-	.transcfg_val		= 0x20,
-	.icc_id			= TEGRA_ICC_NVJPG_0,
-	.engine_cg_regs		= t23x_nvjpg_gating_registers,
-	.engine_can_cg		= true,
-	.can_powergate		= true,
-	.isolate_contexts	= true,
-};
-
-struct nvhost_device_data t23x_nvjpg1_info = {
-	.version		= NVHOST_ENCODE_FLCN_VER(1, 3),
-	.devfs_name		= "nvjpg1",
-	.modulemutexes		= {NV_HOST1X_MLOCK_ID_NVJPG1},
-	.class			= NV_NVJPG1_CLASS_ID,
-	.autosuspend_delay      = 500,
-	.clocks			= {
-		{"nvjpg", UINT_MAX},
-		{"emc", 0,
-		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		 TEGRA_SET_EMC_SHARED_BW}
-	},
-	.poweron_reset		= true,
-	.finalize_poweron	= nvhost_flcn_finalize_poweron_t186,
-	.moduleid		= NVHOST_MODULE_NVJPG1,
-	.num_channels		= 1,
-	.firmware_name		= "nvhost_nvjpg013.fw",
-	.serialize		= true,
-	.push_work_done		= true,
-	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
-	.vm_regs		= {{0x30, true}, {0x34, false} },
-	.transcfg_addr		= 0x1444,
-	.transcfg_val		= 0x20,
-	.icc_id			= TEGRA_ICC_NVJPG_1,
-	.engine_cg_regs		= t23x_nvjpg_gating_registers,
+	.get_reloc_phys_addr	= nvhost_t239_get_reloc_phys_addr,
+	.engine_cg_regs		= t239_nvdec_gating_registers,
 	.engine_can_cg		= true,
 	.can_powergate		= true,
 	.isolate_contexts	= true,
@@ -393,7 +216,7 @@ struct nvhost_device_data t23x_nvjpg1_info = {
 #endif
 
 #if IS_ENABLED(CONFIG_TEGRA_GRHOST_OFA)
-struct nvhost_device_data t23x_ofa_info = {
+struct nvhost_device_data t239_ofa_info = {
 	.version		= NVHOST_ENCODE_FLCN_VER(1, 2),
 	.devfs_name		= "ofa",
 	.modulemutexes		= {NV_HOST1X_MLOCK_ID_OFA},
@@ -418,8 +241,8 @@ struct nvhost_device_data t23x_ofa_info = {
 	.transcfg_addr		= 0x1444,
 	.transcfg_val		= 0x20,
 	.icc_id			= TEGRA_ICC_OFAA,
-	.get_reloc_phys_addr	= nvhost_t23x_get_reloc_phys_addr,
-	.engine_cg_regs		= t23x_ofa_gating_registers,
+	.get_reloc_phys_addr	= nvhost_t239_get_reloc_phys_addr,
+	.engine_cg_regs		= t239_ofa_gating_registers,
 	.engine_can_cg		= true,
 	.can_powergate		= true,
 	.isolate_contexts	= true,
@@ -427,7 +250,7 @@ struct nvhost_device_data t23x_ofa_info = {
 #endif
 
 #if IS_ENABLED(CONFIG_TEGRA_GRHOST_TSEC)
-struct nvhost_device_data t23x_tsec_info = {
+struct nvhost_device_data t239_tsec_info = {
 	.num_channels		= 1,
 	.devfs_name		= "tsec",
 	.version		= NVHOST_ENCODE_TSEC_VER(1, 0),
@@ -453,7 +276,7 @@ struct nvhost_device_data t23x_tsec_info = {
 	.transcfg_addr		= 0x1644,
 	.transcfg_val		= 0x20,
 	.icc_id			= TEGRA_ICC_TSEC,
-	.engine_cg_regs		= t23x_tsec_gating_registers,
+	.engine_cg_regs		= t239_tsec_gating_registers,
 	.engine_can_cg		= true,
 	.can_powergate		= true,
 	.isolate_contexts	= true,
@@ -464,7 +287,7 @@ struct nvhost_device_data t23x_tsec_info = {
 #endif
 
 #if IS_ENABLED(CONFIG_TEGRA_GRHOST_VIC)
-struct nvhost_device_data t23x_vic_info = {
+struct nvhost_device_data t239_vic_info = {
 	.num_channels		= 1,
 	.devfs_name		= "vic",
 	.clocks			= {
@@ -490,120 +313,18 @@ struct nvhost_device_data t23x_vic_info = {
 	.transcfg_addr		= 0x2044,
 	.transcfg_val		= 0x20,
 	.icc_id			= TEGRA_ICC_VIC,
-	.get_reloc_phys_addr	= nvhost_t23x_get_reloc_phys_addr,
+	.get_reloc_phys_addr	= nvhost_t239_get_reloc_phys_addr,
 	.module_irq		= 1,
-	.engine_cg_regs		= t23x_vic_gating_registers,
+	.engine_cg_regs		= t239_vic_gating_registers,
 	.engine_can_cg		= true,
 	.can_powergate		= true,
 	.isolate_contexts	= true,
 };
 #endif
 
-#if IS_ENABLED(CONFIG_TEGRA_GRHOST_PVA)
-struct nvhost_device_data t23x_pva0_info = {
-	.num_channels		= 1,
-	.clocks			= {
-		{"axi", UINT_MAX,},
-		{"vps0", UINT_MAX,},
-		{"vps1", UINT_MAX,},
-	},
-	.ctrl_ops		= &tegra_pva_ctrl_ops,
-	.devfs_name_family	= "pva",
-	.class			= NV_PVA0_CLASS_ID,
-	.autosuspend_delay      = 500,
-	.finalize_poweron	= pva_finalize_poweron,
-	.prepare_poweroff	= pva_prepare_poweroff,
-	.firmware_name		= "nvhost_pva020.fw",
-	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
-	.vm_regs		= {
-		{0x240000, false, 0},
-		{0x240004, false, 0},
-		{0x240008, false, 0},
-		{0x24000c, false, 0},
-		{0x240010, false, 0},
-		{0x240014, false, 0},
-		{0x240018, false, 0},
-		{0x24001c, false, 0},
-		{0x240020, false, 0},
-		{0x240020, false, 8},
-		{0x240020, false, 16},
-		{0x240024, false, 0},
-		{0x240024, false, 8}
-		},
-	.poweron_reset		= true,
-	.serialize		= true,
-	.get_reloc_phys_addr	= nvhost_t23x_get_reloc_phys_addr,
-	.can_powergate		= true,
-};
-#endif
-
-#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVDLA)
-struct nvhost_device_data t23x_nvdla0_info = {
-	.devfs_name_family	= "nvdla",
-	.class			= NV_DLA0_CLASS_ID,
-	.clocks			= {
-		{"nvdla0", UINT_MAX},
-		{"nvdla0_flcn", UINT_MAX}
-	},
-	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
-	.finalize_poweron	= nvhost_nvdla_finalize_poweron,
-	.prepare_poweroff	= nvhost_nvdla_prepare_poweroff,
-	.flcn_isr               = nvhost_nvdla_flcn_isr,
-	.self_config_flcn_isr	= true,
-	.vm_regs		= {{0x30, true}, {0x34, false} },
-	.firmware_name		= "nvhost_nvdla020.fw",
-	.version		= FIRMWARE_ENCODE_VERSION(T23X),
-	.autosuspend_delay      = 500,
-	.keepalive		= true,
-	.poweron_reset		= true,
-	.serialize		= true,
-	.ctrl_ops		= &tegra_nvdla_ctrl_ops,
-	.get_reloc_phys_addr	= nvhost_t23x_get_reloc_phys_addr,
-	.module_irq		= 1,
-	.engine_cg_regs		= t23x_nvdla_gating_registers,
-	.engine_can_cg		= true,
-	.can_powergate		= false,
-	.icc_id			= TEGRA_ICC_DLA_0,
-	.transcfg_addr		= 0x1444,
-	.transcfg_val		= 0x20,
-	.firmware_not_in_subdir = true,
-};
-
-struct nvhost_device_data t23x_nvdla1_info = {
-	.devfs_name_family	= "nvdla",
-	.class			= NV_DLA1_CLASS_ID,
-	.clocks			= {
-		{"nvdla1", UINT_MAX},
-		{"nvdla1_flcn", UINT_MAX}
-	},
-	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
-	.finalize_poweron	= nvhost_nvdla_finalize_poweron,
-	.prepare_poweroff	= nvhost_nvdla_prepare_poweroff,
-	.flcn_isr               = nvhost_nvdla_flcn_isr,
-	.self_config_flcn_isr	= true,
-	.vm_regs		= {{0x30, true}, {0x34, false} },
-	.firmware_name		= "nvhost_nvdla020.fw",
-	.version		= FIRMWARE_ENCODE_VERSION(T23X),
-	.autosuspend_delay      = 500,
-	.keepalive		= true,
-	.poweron_reset		= true,
-	.serialize		= true,
-	.ctrl_ops		= &tegra_nvdla_ctrl_ops,
-	.get_reloc_phys_addr	= nvhost_t23x_get_reloc_phys_addr,
-	.module_irq		= 1,
-	.engine_cg_regs		= t23x_nvdla_gating_registers,
-	.engine_can_cg		= true,
-	.can_powergate		= false,
-	.icc_id			= TEGRA_ICC_DLA_1,
-	.transcfg_addr		= 0x1444,
-	.transcfg_val		= 0x20,
-	.firmware_not_in_subdir = true,
-};
-#endif
-
 #include "host1x/host1x_channel_t186.c"
 
-static void t23x_set_nvhost_chanops(struct nvhost_channel *ch)
+static void t239_set_nvhost_chanops(struct nvhost_channel *ch)
 {
 	if (!ch)
 		return;
@@ -615,15 +336,15 @@ static void t23x_set_nvhost_chanops(struct nvhost_channel *ch)
 		ch->ops.init_gather_filter = NULL;
 }
 
-int nvhost_init_t23x_channel_support(struct nvhost_master *host,
+int nvhost_init_t239_channel_support(struct nvhost_master *host,
 				     struct nvhost_chip_support *op)
 {
-	op->nvhost_dev.set_nvhost_chanops = t23x_set_nvhost_chanops;
+	op->nvhost_dev.set_nvhost_chanops = t239_set_nvhost_chanops;
 
 	return 0;
 }
 
-static void t23x_remove_support(struct nvhost_chip_support *op)
+static void t239_remove_support(struct nvhost_chip_support *op)
 {
 	kfree(op->priv);
 	op->priv = NULL;
@@ -631,9 +352,9 @@ static void t23x_remove_support(struct nvhost_chip_support *op)
 
 #define SYNCPT_RAM_INIT_TIMEOUT_MS	1000
 
-static void t23x_init_gating_regs(struct platform_device *pdev, bool prod)
+static void t239_init_gating_regs(struct platform_device *pdev, bool prod)
 {
-	struct nvhost_gating_register *cg_regs = t23x_host1x_gating_registers;
+	struct nvhost_gating_register *cg_regs = t239_host1x_gating_registers;
 	ktime_t now, start = ktime_get();
 	u32 ram_init;
 
@@ -677,9 +398,9 @@ static void t23x_init_gating_regs(struct platform_device *pdev, bool prod)
 
 }
 
-static void t23x_init_map_regs(struct platform_device *pdev)
+static void t239_init_map_regs(struct platform_device *pdev)
 {
-	struct nvhost_streamid_mapping *map_regs = t23x_host1x_streamid_mapping;
+	struct nvhost_streamid_mapping *map_regs = t239_host1x_streamid_mapping;
 	u32 i;
 
 	/* Write the client streamid map registers */
@@ -694,21 +415,21 @@ static void t23x_init_map_regs(struct platform_device *pdev)
 	}
 
 	/* Allow all VMs to access all streamid */
-	for (i = 0; i < t23x_strmid_vm_regs_nb; i++) {
+	for (i = 0; i < t239_strmid_vm_regs_nb; i++) {
 		host1x_hypervisor_writel(pdev,
-					t23x_host1x_strmid_vm_r + (i * 4),
+					t239_host1x_strmid_vm_r + (i * 4),
 					0xff);
 	}
 
 	/* Update common_thost_classid registers */
-	for (i = 0; i < ARRAY_SIZE(t23x_host1x_classid_vm_r); i++) {
-		host1x_hypervisor_writel(pdev, t23x_host1x_classid_vm_r[i],
+	for (i = 0; i < ARRAY_SIZE(t239_host1x_classid_vm_r); i++) {
+		host1x_hypervisor_writel(pdev, t239_host1x_classid_vm_r[i],
 					0xff);
 	}
 
 	/* Update relevant MMIO-to-VM mapping table entries to VM1 (0x1) */
-	for (i = 0; i < ARRAY_SIZE(t23x_host1x_mmio_vm_r); i++) {
-		host1x_hypervisor_writel(pdev, t23x_host1x_mmio_vm_r[i],
+	for (i = 0; i < ARRAY_SIZE(t239_host1x_mmio_vm_r); i++) {
+		host1x_hypervisor_writel(pdev, t239_host1x_mmio_vm_r[i],
 					0x1);
 	}
 }
@@ -755,15 +476,16 @@ static void host1x08_intr_resume(struct nvhost_intr *intr)
 	}
 }
 
-int nvhost_init_t23x_support(struct nvhost_master *host,
+int nvhost_init_t239_support(struct nvhost_master *host,
 			     struct nvhost_chip_support *op)
 {
 	int err;
 
+	/* Not changing this to tegra239, because fw is searched in this path */
 	op->soc_name = "tegra23x";
 
 	/* don't worry about cleaning up on failure... "remove" does it. */
-	err = nvhost_init_t23x_channel_support(host, op);
+	err = nvhost_init_t239_channel_support(host, op);
 	if (err)
 		return err;
 
@@ -781,8 +503,8 @@ int nvhost_init_t23x_support(struct nvhost_master *host,
 #if IS_ENABLED(CONFIG_TEGRA_GRHOST_SCALE)
 	op->actmon = host1x_actmon_ops;
 #endif
-	op->nvhost_dev.load_gating_regs = t23x_init_gating_regs;
-	op->nvhost_dev.load_map_regs = t23x_init_map_regs;
+	op->nvhost_dev.load_gating_regs = t239_init_gating_regs;
+	op->nvhost_dev.load_map_regs = t239_init_map_regs;
 
 	op->syncpt.alloc = nvhost_syncpt_alloc_gos_backing;
 	op->syncpt.release = nvhost_syncpt_release_gos_backing;
@@ -793,7 +515,7 @@ int nvhost_init_t23x_support(struct nvhost_master *host,
 
 	op->syncpt.mutex_owner = t186_syncpt_mutex_owner;
 
-	op->remove_support = t23x_remove_support;
+	op->remove_support = t239_remove_support;
 
 	return 0;
 }

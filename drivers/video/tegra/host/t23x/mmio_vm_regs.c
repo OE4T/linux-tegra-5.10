@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-static const u32 host1x_mmio_vm_r[] = {
+static const u32 t23x_host1x_mmio_vm_r[] = {
 	0x1504u, /* HOST1X_THOST_COMMON_THOST_MMIO_VM*/
 	0x1508u, /* HOST1X_THOST_COMMON_SE1_MMIO_VM*/
 	0x150cu, /* HOST1X_THOST_COMMON_SE2_MMIO_VM*/
