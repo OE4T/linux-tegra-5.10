@@ -4573,9 +4573,14 @@ static int ether_configure_car(struct platform_device *pdev,
 		return PTR_ERR(pdata->mac_rst);
 	}
 
-	pdata->xpcs_rst = devm_reset_control_get(&pdev->dev, "xpcs_rst");
-	if (IS_ERR_OR_NULL(pdata->xpcs_rst)) {
-		dev_info(&pdev->dev, "failed to get XPCS reset\n");
+	if (osi_core->mac == OSI_MAC_HW_MGBE) {
+		pdata->xpcs_rst = devm_reset_control_get(&pdev->dev,
+							 "xpcs_rst");
+		if (IS_ERR_OR_NULL(pdata->xpcs_rst)) {
+			dev_info(&pdev->dev, "failed to get XPCS reset\n");
+			return PTR_ERR(pdata->xpcs_rst);
+		}
+	} else {
 		pdata->xpcs_rst = NULL;
 	}
 
@@ -4700,12 +4705,16 @@ static int ether_init_plat_resources(struct platform_device *pdev,
 		osi_dma->base = osi_core->base;
 	}
 
-	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "xpcs-base");
-	if (res) {
-		osi_core->xpcs_base = devm_ioremap_resource(&pdev->dev, res);
-		if (IS_ERR(osi_core->xpcs_base)) {
-			dev_err(&pdev->dev, "failed to ioremap XPCS address\n");
-			return PTR_ERR(osi_core->xpcs_base);
+	if (osi_core->mac == OSI_MAC_HW_MGBE) {
+		res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
+						   "xpcs-base");
+		if (res) {
+			osi_core->xpcs_base = devm_ioremap_resource(&pdev->dev,
+								    res);
+			if (IS_ERR(osi_core->xpcs_base)) {
+				dev_err(&pdev->dev, "failed to ioremap XPCS address\n");
+				return PTR_ERR(osi_core->xpcs_base);
+			}
 		}
 	} else {
 		osi_core->xpcs_base = NULL;
@@ -5210,12 +5219,14 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 		return -EINVAL;
 	}
 
-	ret = of_property_read_u32(np, "nvidia,uphy-gbe-mode",
-				   &osi_core->uphy_gbe_mode);
-	if (ret < 0) {
-		dev_info(dev,
-			 "failed to read UPHY GBE mode - default to 10G\n");
-		osi_core->uphy_gbe_mode = OSI_ENABLE;
+	if (osi_core->mac == OSI_MAC_HW_MGBE) {
+		ret = of_property_read_u32(np, "nvidia,uphy-gbe-mode",
+					   &osi_core->uphy_gbe_mode);
+		if (ret < 0) {
+			dev_info(dev,
+				 "failed to read UPHY GBE mode - default to 10G\n");
+			osi_core->uphy_gbe_mode = OSI_ENABLE;
+		}
 	}
 
 	/* Enable VLAN strip by default */
