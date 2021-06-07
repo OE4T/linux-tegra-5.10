@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -343,34 +343,36 @@ static bool gv11b_mm_mmu_fault_handle_mmu_fault_refch(struct gk20a *g,
 {
 	struct nvgpu_tsg *tsg = NULL;
 
-	if (mmufault->refch->mmu_nack_handled) {
-		/*
-		 * We have already recovered for the same
-		 * context, skip doing another recovery.
-		 */
-		mmufault->refch->mmu_nack_handled = false;
-		/*
-		 * Recovery path can be entered twice for the
-		 * same error in case of mmu nack. If mmu
-		 * nack interrupt is handled before mmu fault
-		 * then channel reference is increased to avoid
-		 * closing the channel by userspace. Decrement
-		 * channel reference.
-		 */
-		nvgpu_channel_put(mmufault->refch);
-		/*
-		 * refch in mmufault is assigned at the time
-		 * of copying fault info from snap reg or bar2
-		 * fault buf.
-		 */
-		nvgpu_channel_put(mmufault->refch);
-		return true;
-	} else {
-		/*
-		 * Indicate recovery is handled if mmu fault is
-		 * a result of mmu nack.
-		 */
-		mmufault->refch->mmu_nack_handled = true;
+	if (mmufault->client_type == gmmu_fault_client_type_gpc_v()) {
+		if (mmufault->refch->mmu_nack_handled) {
+			/*
+			 * We have already recovered for the same
+			 * context, skip doing another recovery.
+			 */
+			mmufault->refch->mmu_nack_handled = false;
+			/*
+			 * Recovery path can be entered twice for the
+			 * same error in case of mmu nack. If mmu
+			 * nack interrupt is handled before mmu fault
+			 * then channel reference is increased to avoid
+			 * closing the channel by userspace. Decrement
+			 * channel reference.
+			 */
+			nvgpu_channel_put(mmufault->refch);
+			/*
+			 * refch in mmufault is assigned at the time
+			 * of copying fault info from snap reg or bar2
+			 * fault buf.
+			 */
+			nvgpu_channel_put(mmufault->refch);
+			return true;
+		} else {
+			/*
+			 * Indicate recovery is handled if mmu fault is
+			 * a result of mmu nack.
+			 */
+			mmufault->refch->mmu_nack_handled = true;
+		}
 	}
 
 	tsg = nvgpu_tsg_from_ch(mmufault->refch);
