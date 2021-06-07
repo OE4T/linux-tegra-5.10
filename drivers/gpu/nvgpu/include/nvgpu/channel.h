@@ -831,6 +831,7 @@ int nvgpu_channel_suspend_all_serviceable_ch(struct gk20a *g);
  */
 int nvgpu_channel_resume_all_serviceable_ch(struct gk20a *g);
 
+#ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
 /**
  * @brief Stop deterministic channel activity for do_idle().
  *
@@ -857,6 +858,7 @@ void nvgpu_channel_deterministic_idle(struct gk20a *g);
  * @note Must be paired with #nvgpu_channel_deterministic_idle().
  */
 void nvgpu_channel_deterministic_unidle(struct gk20a *g);
+#endif
 
 /**
  * @brief Get a reference to the channel.

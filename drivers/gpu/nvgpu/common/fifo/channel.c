@@ -69,6 +69,8 @@
 #include "channel_wdt.h"
 #include "channel_worker.h"
 
+#define CHANNEL_MAX_GPFIFO_ENTRIES	0x80000000U
+
 static void free_channel(struct nvgpu_fifo *f, struct nvgpu_channel *ch);
 static void channel_dump_ref_actions(struct nvgpu_channel *ch);
 
@@ -1409,7 +1411,7 @@ static int channel_setup_bind_prechecks(struct nvgpu_channel *c,
 	struct nvgpu_tsg *tsg;
 	int err = 0;
 
-	if (args->num_gpfifo_entries > 0x80000000U) {
+	if (args->num_gpfifo_entries > CHANNEL_MAX_GPFIFO_ENTRIES) {
 		nvgpu_err(g,
 			"num_gpfifo_entries exceeds max limit of 2^31");
 		err = -EINVAL;
