@@ -1018,12 +1018,10 @@
 			      "maud_clk";
 		resets = <&bpmp_resets TEGRA234_RESET_NVDISPLAY>,
 			 <&bpmp_resets TEGRA234_RESET_DPAUX>,
-			 <&bpmp_resets TEGRA234_RESET_HDA>,
 			 <&bpmp_resets TEGRA234_RESET_HDACODEC>,
 			 <&bpmp_resets TEGRA234_RESET_DSI_CORE>;
 		reset-names = "nvdisplay_reset",
 			      "dpaux0_reset",
-			      "hda_reset",
 			      "hdacodec_reset",
 			      "dsi_core_reset";
 		status = "disabled";
