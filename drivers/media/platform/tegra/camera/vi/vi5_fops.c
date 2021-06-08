@@ -474,7 +474,11 @@ static void vi5_capture_dequeue(struct tegra_channel *chan,
 #else
 	ts = ns_to_timespec64((s64)descr->status.sof_timestamp);
 #endif
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	trace_tegra_channel_capture_frame("sof", ts);
+#else
+	trace_tegra_channel_capture_frame("sof", &ts);
+#endif
 	vb->vb2_buf.timestamp = descr->status.sof_timestamp;
 
 	/* Read EOF from capture descriptor */
@@ -483,7 +487,11 @@ static void vi5_capture_dequeue(struct tegra_channel *chan,
 #else
 	ts = ns_to_timespec64((s64)descr->status.eof_timestamp);
 #endif
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	trace_tegra_channel_capture_frame("eof", ts);
+#else
+	trace_tegra_channel_capture_frame("eof", &ts);
+#endif
 
 done:
 	spin_lock_irqsave(&chan->capture_state_lock, flags);

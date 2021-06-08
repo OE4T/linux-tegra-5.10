@@ -615,7 +615,11 @@ static int tegra_channel_capture_frame_single_thread(
 
 	set_timestamp(buf, &ts);
 	tegra_channel_ring_buffer(chan, vb, &ts, state);
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	trace_tegra_channel_capture_frame("sof", ts);
+#else
+	trace_tegra_channel_capture_frame("sof", &ts);
+#endif
 	return 0;
 }
 
@@ -885,7 +889,11 @@ static void tegra_channel_capture_done(struct tegra_channel *chan)
 	else
 		tegra_channel_ring_buffer(chan, &buf->buf, &ts, state);
 
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	trace_tegra_channel_capture_done("eof", ts);
+#else
+	trace_tegra_channel_capture_done("eof", &ts);
+#endif
 }
 
 

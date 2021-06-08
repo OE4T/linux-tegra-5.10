@@ -1,7 +1,7 @@
 /*
  * camera_common.h
  *
- * Copyright (c) 2017, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION, All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -119,7 +119,7 @@ DECLARE_EVENT_CLASS(frame,
 #if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	TP_PROTO(const char *str, struct timespec ts),
 #else
-	TP_PROTO(const char *str, struct timespec64 ts),
+	TP_PROTO(const char *str, struct timespec64 *ts),
 #endif
 	TP_ARGS(str, ts),
 	TP_STRUCT__entry(
@@ -127,11 +127,19 @@ DECLARE_EVENT_CLASS(frame,
 		__field(long,	tv_sec)
 		__field(long,	tv_nsec)
 	),
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	TP_fast_assign(
 		__assign_str(str, str);
 		__entry->tv_sec = ts.tv_sec;
 		__entry->tv_nsec = ts.tv_nsec;
 	),
+#else
+	TP_fast_assign(
+		__assign_str(str, str);
+		__entry->tv_sec = ts->tv_sec;
+		__entry->tv_nsec = ts->tv_nsec;
+	),
+#endif
 	TP_printk("%s:%ld.%ld", __get_str(str), __entry->tv_sec,
 		  __entry->tv_nsec)
 );
@@ -140,7 +148,7 @@ DEFINE_EVENT(frame, tegra_channel_capture_frame,
 #if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	TP_PROTO(const char *str, struct timespec ts),
 #else
-	TP_PROTO(const char *str, struct timespec64 ts),
+	TP_PROTO(const char *str, struct timespec64 *ts),
 #endif
 	TP_ARGS(str, ts)
 );
@@ -149,7 +157,7 @@ DEFINE_EVENT(frame, tegra_channel_capture_done,
 #if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	TP_PROTO(const char *str, struct timespec ts),
 #else
-	TP_PROTO(const char *str, struct timespec64 ts),
+	TP_PROTO(const char *str, struct timespec64 *ts),
 #endif
 	TP_ARGS(str, ts)
 );
