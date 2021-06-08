@@ -22,4 +22,35 @@
 #include <tegra234-soc/tegra234-soc-prod.dtsi>
 
 / {
+	i2c@3160000 {
+		status = "okay";
+	};
+
+	i2c@3180000 {
+		status = "okay";
+	};
+
+	i2c@3190000 {
+		status = "okay";
+	};
+
+	i2c@31b0000 {
+		status = "okay";
+	};
+
+	i2c@31c0000 {
+		status = "okay";
+	};
+
+	i2c@31e0000 {
+		status = "okay";
+	};
+
+	i2c@c240000 {
+		status = "okay";
+	};
+
+	i2c@c250000 {
+		status = "okay";
+	};
 };
