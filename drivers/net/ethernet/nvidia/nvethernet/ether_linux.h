@@ -100,10 +100,21 @@
 #define ETHER_DFLT_PTP_CLK		312500000U
 
 /**
- * @brief Ethernet default Rx Input clock frequency
+ * @brief Ethernet clk rates
  */
-#define ETHER_RX_INPUT_CLK_RATE		125000000U
-
+#define ETHER_RX_INPUT_CLK_RATE		125000000UL
+#define ETHER_MGBE_MAC_DIV_RATE_10G	312500000UL
+#define ETHER_MGBE_MAC_DIV_RATE_5G	156250000UL
+#define ETHER_MGBE_MAC_DIV_RATE_2_5G	78125000UL
+// gbe_pll2_txclkref (644 MHz) --> programmable link TX_CLK divider
+// --> link_Tx_clk --> fixed 1/2 gear box divider --> lane TX clk.
+#define ETHER_MGBE_TX_CLK_USXGMII_10G	644531250UL
+#define ETHER_MGBE_TX_CLK_USXGMII_5G	322265625UL
+#define ETHER_MGBE_TX_PCS_CLK_USXGMII_10G	156250000UL
+#define ETHER_MGBE_TX_PCS_CLK_USXGMII_5G	78125000UL
+#define ETHER_EQOS_TX_CLK_1000M		125000000UL
+#define ETHER_EQOS_TX_CLK_100M		25000000UL
+#define ETHER_EQOS_TX_CLK_10M		2500000UL
 /**
  * @addtogroup CONFIG Ethernet configuration error codes
  *
