@@ -350,6 +350,8 @@ static void ether_disable_clks(struct ether_priv_data *pdata)
  */
 static int ether_enable_mgbe_clks(struct ether_priv_data *pdata)
 {
+	unsigned int uphy_gbe_mode = pdata->osi_core->uphy_gbe_mode;
+	unsigned long rate = 0;
 	int ret;
 
 	if (!IS_ERR_OR_NULL(pdata->rx_m_clk)) {
@@ -381,6 +383,17 @@ static int ether_enable_mgbe_clks(struct ether_priv_data *pdata)
 	}
 
 	if (!IS_ERR_OR_NULL(pdata->tx_clk)) {
+		if (uphy_gbe_mode == OSI_ENABLE)
+			rate = ETHER_MGBE_TX_CLK_USXGMII_10G;
+		else
+			rate = ETHER_MGBE_TX_CLK_USXGMII_5G;
+
+		ret = clk_set_rate(pdata->tx_clk, rate);
+		if (ret < 0) {
+			dev_err(pdata->dev, "failed to set MGBE tx_clk rate\n");
+			goto err_tx;
+		}
+
 		ret = clk_prepare_enable(pdata->tx_clk);
 		if (ret < 0) {
 			goto err_tx;
@@ -388,6 +401,18 @@ static int ether_enable_mgbe_clks(struct ether_priv_data *pdata)
 	}
 
 	if (!IS_ERR_OR_NULL(pdata->tx_pcs_clk)) {
+		if (uphy_gbe_mode == OSI_ENABLE)
+			rate = ETHER_MGBE_TX_PCS_CLK_USXGMII_10G;
+		else
+			rate = ETHER_MGBE_TX_PCS_CLK_USXGMII_5G;
+
+		ret = clk_set_rate(pdata->tx_pcs_clk, rate);
+		if (ret < 0) {
+			dev_err(pdata->dev,
+				"failed to set MGBE tx_pcs_clk rate\n");
+			goto err_tx_pcs;
+		}
+
 		ret = clk_prepare_enable(pdata->tx_pcs_clk);
 		if (ret < 0) {
 			goto err_tx_pcs;
@@ -650,6 +675,64 @@ int ether_conf_eee(struct ether_priv_data *pdata, unsigned int tx_lpi_enable)
 }
 
 /**
+ * @brief Set MGBE MAC_DIV/TX clk rate
+ *
+ * Algorithm: Sets MGBE MAC_DIV clk_rate which will be MAC_TX/MACSEC clk rate.
+ *
+ * @param[in] mac_div_clk: Pointer to MAC_DIV clk.
+ * @param[in] speed: PHY line speed.
+ */
+static inline void ether_set_mgbe_mac_div_rate(struct clk *mac_div_clk,
+					       int speed)
+{
+	unsigned long rate;
+
+	switch (speed) {
+	case SPEED_2500:
+		rate = ETHER_MGBE_MAC_DIV_RATE_2_5G;
+		break;
+	case SPEED_5000:
+		rate = ETHER_MGBE_MAC_DIV_RATE_5G;
+		break;
+	case SPEED_10000:
+	default:
+		rate = ETHER_MGBE_MAC_DIV_RATE_10G;
+		break;
+	}
+
+	if (clk_set_rate(mac_div_clk, rate) < 0)
+		pr_err("%s(): failed to set mac_div_clk rate\n", __func__);
+}
+
+/**
+ * @brief Set EQOS TX clk rate
+ *
+ * @param[in] tx_clk: Pointer to Tx clk.
+ * @param[in] speed: PHY line speed.
+ */
+static inline void ether_set_eqos_tx_clk(struct clk *tx_clk,
+					 int speed)
+{
+	unsigned long rate;
+
+	switch (speed) {
+	case SPEED_10:
+		rate = ETHER_EQOS_TX_CLK_10M;
+		break;
+	case SPEED_100:
+		rate = ETHER_EQOS_TX_CLK_100M;
+		break;
+	case SPEED_1000:
+	default:
+		rate = ETHER_EQOS_TX_CLK_1000M;
+		break;
+	}
+
+	if (clk_set_rate(tx_clk, rate) < 0)
+		pr_err("%s(): failed to set eqos tx_clk rate\n", __func__);
+}
+
+/**
  * @brief Adjust link call back
  *
  * Algorithm: Callback function called by the PHY subsystem
@@ -736,16 +819,19 @@ static void ether_adjust_link(struct net_device *dev)
 	}
 
 	if (speed_changed) {
-		clk_set_rate(pdata->tx_clk,
-			     (phydev->speed == SPEED_10) ? 2500 * 1000 :
-			     (phydev->speed ==
-			     SPEED_100) ? 25000 * 1000 : 125000 * 1000);
-		if (phydev->speed != SPEED_10) {
-			ioctl_data.cmd = OSI_CMD_PAD_CALIBRATION;
-			if (osi_handle_ioctl(pdata->osi_core, &ioctl_data) <
-					     0) {
-				dev_err(pdata->dev,
-					"failed to do pad caliberation\n");
+		if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
+			ether_set_mgbe_mac_div_rate(pdata->mac_div_clk,
+						    phydev->speed);
+		} else {
+			ether_set_eqos_tx_clk(pdata->tx_clk,
+					      phydev->speed);
+			if (phydev->speed != SPEED_10) {
+				ioctl_data.cmd = OSI_CMD_PAD_CALIBRATION;
+				if (osi_handle_ioctl(pdata->osi_core,
+						     &ioctl_data) < 0) {
+					dev_err(pdata->dev,
+						"failed to do pad caliberation\n");
+				}
 			}
 		}
 	}
@@ -5225,6 +5311,12 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 		if (ret < 0) {
 			dev_info(dev,
 				 "failed to read UPHY GBE mode - default to 10G\n");
+			osi_core->uphy_gbe_mode = OSI_ENABLE;
+		}
+
+		if ((osi_core->uphy_gbe_mode != OSI_ENABLE) &&
+		    (osi_core->uphy_gbe_mode != OSI_DISABLE)) {
+			dev_err(dev, "Invalid UPHY GBE mode - default to 10G\n");
 			osi_core->uphy_gbe_mode = OSI_ENABLE;
 		}
 	}
