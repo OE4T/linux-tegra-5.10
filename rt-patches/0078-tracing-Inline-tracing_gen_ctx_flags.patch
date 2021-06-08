@@ -1,4 +1,4 @@
-From d219f3ebaa993e688297d22791b3742649860703 Mon Sep 17 00:00:00 2001
+From e71e4e1b589cbf6eb871102c1fce29af572d64be Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 3 Feb 2021 11:05:24 -0500
 Subject: [PATCH 078/296] tracing: Inline tracing_gen_ctx_flags()
@@ -88,10 +88,10 @@ index 091250b0..67ae708 100644
  struct trace_event_file;
  
 diff --git a/kernel/trace/trace.c b/kernel/trace/trace.c
-index 06b200f..0f46a6d 100644
+index b9d9833..a9f1101 100644
 --- a/kernel/trace/trace.c
 +++ b/kernel/trace/trace.c
-@@ -2578,20 +2578,13 @@ enum print_line_t trace_handle_return(struct trace_seq *s)
+@@ -2567,20 +2567,13 @@ enum print_line_t trace_handle_return(struct trace_seq *s)
  }
  EXPORT_SYMBOL_GPL(trace_handle_return);
  
@@ -114,7 +114,7 @@ index 06b200f..0f46a6d 100644
  	if (pc & NMI_MASK)
  		trace_flags |= TRACE_FLAG_NMI;
  	if (pc & HARDIRQ_MASK)
-@@ -2607,33 +2600,6 @@ unsigned int tracing_gen_ctx_flags(unsigned long irqflags)
+@@ -2596,33 +2589,6 @@ unsigned int tracing_gen_ctx_flags(unsigned long irqflags)
  	return (trace_flags << 16) | (pc & 0xff);
  }
  

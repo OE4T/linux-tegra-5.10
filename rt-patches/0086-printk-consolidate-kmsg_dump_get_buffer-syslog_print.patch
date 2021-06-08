@@ -1,4 +1,4 @@
-From e5818e6823db0132b11ef6e956e9c6b02297b135 Mon Sep 17 00:00:00 2001
+From c3bfb89643be3ab29d275a72b2114f504865d838 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Wed, 13 Jan 2021 11:29:53 +0106
 Subject: [PATCH 086/296] printk: consolidate

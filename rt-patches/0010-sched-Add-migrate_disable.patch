@@ -1,4 +1,4 @@
-From 3b9269db9cdafd928efbdb2a19a9cc0c0d268df7 Mon Sep 17 00:00:00 2001
+From 4f9ed2cd2160aae2f7508bf7704cb88215b7b5d2 Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:07 +0200
 Subject: [PATCH 010/296] sched: Add migrate_disable()
@@ -118,7 +118,7 @@ index 76cd21f..8efed58 100644
  #ifdef CONFIG_PREEMPT_RCU
  	int				rcu_read_lock_nesting;
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 03e923e..528add5 100644
+index 9846f02..4171a22 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -1694,6 +1694,61 @@ void check_preempt_curr(struct rq *rq, struct task_struct *p, int flags)
@@ -312,10 +312,10 @@ index 03e923e..528add5 100644
  
  		trace_sched_switch(preempt, prev, next);
 diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index 97c2084..9cdf7a8 100644
+index c0486f8..66c4882 100644
 --- a/kernel/sched/sched.h
 +++ b/kernel/sched/sched.h
-@@ -1898,14 +1898,16 @@ static inline bool sched_fair_runnable(struct rq *rq)
+@@ -1905,14 +1905,16 @@ static inline bool sched_fair_runnable(struct rq *rq)
  extern struct task_struct *pick_next_task_fair(struct rq *rq, struct task_struct *prev, struct rq_flags *rf);
  extern struct task_struct *pick_next_task_idle(struct rq *rq);
  

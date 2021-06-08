@@ -1,4 +1,4 @@
-From 6c5186168bd4d354fe847c01bc1666a07a9ba64c Mon Sep 17 00:00:00 2001
+From 356a15896a8acc84b62b02e7cd1431d28859f98b Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 15 Dec 2020 15:16:45 +0100
 Subject: [PATCH 072/296] rcu: Make RCU_BOOST default on CONFIG_PREEMPT_RT

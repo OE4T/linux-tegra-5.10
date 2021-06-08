@@ -1,4 +1,4 @@
-From 79a788704ae98d4709380acb935fa4284178a289 Mon Sep 17 00:00:00 2001
+From 5a631ab37bc094fcd793cf4edc37681cb5c13739 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Fri, 11 Oct 2019 13:14:29 +0200
 Subject: [PATCH 280/296] ARM: Allow to enable RT

@@ -1,4 +1,4 @@
-From 43474682ab62477e3f60fa598289237ae7284cdd Mon Sep 17 00:00:00 2001
+From cf94d255da0e26e6693e02e47eb579b67b95a8b2 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Fri, 23 Oct 2020 12:12:02 +0200
 Subject: [PATCH 005/296] sched/core: Wait for tasks being pushed away on
@@ -24,7 +24,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  2 files changed, 43 insertions(+), 1 deletion(-)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 67aeaa4..825eafb 100644
+index 9a571c3..e388449 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -6896,8 +6896,21 @@ static void balance_push(struct rq *rq)
@@ -104,10 +104,10 @@ index 67aeaa4..825eafb 100644
  		hrtick_rq_init(rq);
  		atomic_set(&rq->nr_iowait, 0);
 diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index 59f5e8b..1c8b83c 100644
+index c81a5e2..e82cf9b 100644
 --- a/kernel/sched/sched.h
 +++ b/kernel/sched/sched.h
-@@ -999,6 +999,10 @@ struct rq {
+@@ -1006,6 +1006,10 @@ struct rq {
  
  	/* This is used to determine avg_idle's max value */
  	u64			max_idle_balance_cost;

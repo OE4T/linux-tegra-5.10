@@ -1,4 +1,4 @@
-From c5efb734f32764472812fafe995af8529845330f Mon Sep 17 00:00:00 2001
+From 06fffb0b96d45b360d9d48c8a258a54b63211460 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:46 +0100
 Subject: [PATCH 057/296] drm/qxl: Replace io_mapping_map_atomic_wc()
@@ -173,10 +173,10 @@ index 5cea6ee..7850230 100644
  	}
  
 diff --git a/drivers/gpu/drm/qxl/qxl_object.c b/drivers/gpu/drm/qxl/qxl_object.c
-index 2bc3644..9350d23 100644
+index 544a9e4..5ee5171 100644
 --- a/drivers/gpu/drm/qxl/qxl_object.c
 +++ b/drivers/gpu/drm/qxl/qxl_object.c
-@@ -172,8 +172,8 @@ int qxl_bo_kmap(struct qxl_bo *bo, void **ptr)
+@@ -173,8 +173,8 @@ int qxl_bo_kmap(struct qxl_bo *bo, void **ptr)
  	return 0;
  }
  
@@ -187,7 +187,7 @@ index 2bc3644..9350d23 100644
  {
  	unsigned long offset;
  	void *rptr;
-@@ -188,7 +188,7 @@ void *qxl_bo_kmap_atomic_page(struct qxl_device *qdev,
+@@ -189,7 +189,7 @@ void *qxl_bo_kmap_atomic_page(struct qxl_device *qdev,
  		goto fallback;
  
  	offset = bo->tbo.mem.start << PAGE_SHIFT;
@@ -196,7 +196,7 @@ index 2bc3644..9350d23 100644
  fallback:
  	if (bo->kptr) {
  		rptr = bo->kptr + (page_offset * PAGE_SIZE);
-@@ -214,14 +214,14 @@ void qxl_bo_kunmap(struct qxl_bo *bo)
+@@ -215,14 +215,14 @@ void qxl_bo_kunmap(struct qxl_bo *bo)
  	ttm_bo_kunmap(&bo->kmap);
  }
  
@@ -215,10 +215,10 @@ index 2bc3644..9350d23 100644
   fallback:
  	qxl_bo_kunmap(bo);
 diff --git a/drivers/gpu/drm/qxl/qxl_object.h b/drivers/gpu/drm/qxl/qxl_object.h
-index 6b434e5..02f1e03 100644
+index 5762ea4..6ae89b1 100644
 --- a/drivers/gpu/drm/qxl/qxl_object.h
 +++ b/drivers/gpu/drm/qxl/qxl_object.h
-@@ -88,8 +88,8 @@ extern int qxl_bo_create(struct qxl_device *qdev,
+@@ -89,8 +89,8 @@ extern int qxl_bo_create(struct qxl_device *qdev,
  			 struct qxl_bo **bo_ptr);
  extern int qxl_bo_kmap(struct qxl_bo *bo, void **ptr);
  extern void qxl_bo_kunmap(struct qxl_bo *bo);
@@ -230,10 +230,10 @@ index 6b434e5..02f1e03 100644
  extern void qxl_bo_unref(struct qxl_bo **bo);
  extern int qxl_bo_pin(struct qxl_bo *bo);
 diff --git a/drivers/gpu/drm/qxl/qxl_release.c b/drivers/gpu/drm/qxl/qxl_release.c
-index 4fae3e3..9f37b51 100644
+index b2a475a..b665a33 100644
 --- a/drivers/gpu/drm/qxl/qxl_release.c
 +++ b/drivers/gpu/drm/qxl/qxl_release.c
-@@ -408,7 +408,7 @@ union qxl_release_info *qxl_release_map(struct qxl_device *qdev,
+@@ -414,7 +414,7 @@ union qxl_release_info *qxl_release_map(struct qxl_device *qdev,
  	union qxl_release_info *info;
  	struct qxl_bo *bo = release->release_bo;
  
@@ -242,7 +242,7 @@ index 4fae3e3..9f37b51 100644
  	if (!ptr)
  		return NULL;
  	info = ptr + (release->release_offset & ~PAGE_MASK);
-@@ -423,7 +423,7 @@ void qxl_release_unmap(struct qxl_device *qdev,
+@@ -429,7 +429,7 @@ void qxl_release_unmap(struct qxl_device *qdev,
  	void *ptr;
  
  	ptr = ((void *)info) - (release->release_offset & ~PAGE_MASK);

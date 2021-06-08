@@ -1,4 +1,4 @@
-From c2e948624716de28f471045b15dd672f988d2d10 Mon Sep 17 00:00:00 2001
+From d647beee7cf4f9052857ed86107d592d9b0dafec Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Fri, 20 Oct 2017 11:29:53 +0200
 Subject: [PATCH 188/296] fs/dcache: disable preemption on i_dir_seq's write

@@ -1,4 +1,4 @@
-From 45672eb37a0624eef09b4e6914029598e259a10a Mon Sep 17 00:00:00 2001
+From 4e6ad3e4e146b72e38c312d947bd8694a16a0855 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Wed, 7 Mar 2012 21:00:34 +0100
 Subject: [PATCH 239/296] fs: namespace: Use cpu_chill() in trylock loops

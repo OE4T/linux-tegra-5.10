@@ -1,4 +1,4 @@
-From 00e1f5313a3f792aa50d7ff9b7a758aceec39d50 Mon Sep 17 00:00:00 2001
+From 0ccb2bccd42fd66598c84fec8a1b5bf75af4888a Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Mon, 30 Nov 2020 01:42:03 +0106
 Subject: [PATCH 102/296] printk: relocate printk_delay() and vprintk_default()

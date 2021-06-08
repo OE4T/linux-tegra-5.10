@@ -1,4 +1,4 @@
-From cbae5b6434bb338d102bc896ce786d894fbd6c7a Mon Sep 17 00:00:00 2001
+From 575d2bf8100c38abd7d3a6128b4c9d5baabd4b63 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Thu, 16 Jul 2020 18:47:50 +0200
 Subject: [PATCH 207/296] mm/slub: Make object_map_lock a raw_spinlock_t
@@ -14,7 +14,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/mm/slub.c b/mm/slub.c
-index f580214..65502b5 100644
+index b7a41ba..f6fb9aa 100644
 --- a/mm/slub.c
 +++ b/mm/slub.c
 @@ -434,7 +434,7 @@ static inline bool cmpxchg_double_slab(struct kmem_cache *s, struct page *page,

@@ -1,4 +1,4 @@
-From 0bb4ed363ac2b7925be00b4f8ca6988745e616cf Mon Sep 17 00:00:00 2001
+From e34d37e9d2693639186a39463563c6f8ca8178ed Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:33 +0100
 Subject: [PATCH 044/296] Documentation/io-mapping: Remove outdated blurb

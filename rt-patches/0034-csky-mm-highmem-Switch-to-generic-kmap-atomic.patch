@@ -1,4 +1,4 @@
-From a775ce6024e8e48cfb7b3cb5b8bf1a01f9ecc9fe Mon Sep 17 00:00:00 2001
+From 26e261833fb43323d4dc6c95c03ad92a5701488f Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:23 +0100
 Subject: [PATCH 034/296] csky/mm/highmem: Switch to generic kmap atomic

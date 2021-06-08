@@ -1,4 +1,4 @@
-From 741960e471af2a52907e3ca8df8b0b6e7b735ca5 Mon Sep 17 00:00:00 2001
+From 008c77226a94a7a555fc90ef1482efedc872be89 Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:15 +0200
 Subject: [PATCH 018/296] sched: Add migrate_disable() tracepoints
@@ -45,7 +45,7 @@ index c96a433..e48f584 100644
  
  /* This part must be outside protection */
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 9d89008..fe4ffc8 100644
+index ec9df83..d33b77b 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -1726,6 +1726,8 @@ void migrate_disable(void)

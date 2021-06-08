@@ -1,4 +1,4 @@
-From e5ddf8a74f48eec90382e0f94997df4ab31acecc Mon Sep 17 00:00:00 2001
+From cb7002394ca516f8cc326ca8856dd75f31cde710 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Mon, 28 Oct 2013 12:19:57 +0100
 Subject: [PATCH 216/296] wait.h: include atomic.h

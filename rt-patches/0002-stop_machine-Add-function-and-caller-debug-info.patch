@@ -1,4 +1,4 @@
-From fb6f348b28962ef1b94e484e92973941fcf1ae2a Mon Sep 17 00:00:00 2001
+From 0fd9727f87512233c3c09bb90a0e6f836e3ac77e Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:11:59 +0200
 Subject: [PATCH 002/296] stop_machine: Add function and caller debug info

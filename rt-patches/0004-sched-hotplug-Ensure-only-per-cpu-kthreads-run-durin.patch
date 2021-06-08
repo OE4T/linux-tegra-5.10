@@ -1,4 +1,4 @@
-From fc1da2f40e0dd53696d3f99fea21ae8042ef09c8 Mon Sep 17 00:00:00 2001
+From d99ead435e34146094888916afbcf1dd5517dd6f Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:01 +0200
 Subject: [PATCH 004/296] sched/hotplug: Ensure only per-cpu kthreads run
@@ -27,7 +27,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  2 files changed, 118 insertions(+), 3 deletions(-)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 483f8de..67aeaa4 100644
+index 512c5b9..9a571c3 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -3511,8 +3511,10 @@ static inline struct callback_head *splice_balance_callbacks(struct rq *rq)
@@ -202,10 +202,10 @@ index 483f8de..67aeaa4 100644
  		return ret;
  	}
 diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index a5b0d36..59f5e8b 100644
+index ad5e94c5..c81a5e2 100644
 --- a/kernel/sched/sched.h
 +++ b/kernel/sched/sched.h
-@@ -968,6 +968,7 @@ struct rq {
+@@ -975,6 +975,7 @@ struct rq {
  	unsigned long		cpu_capacity_orig;
  
  	struct callback_head	*balance_callback;
@@ -213,7 +213,7 @@ index a5b0d36..59f5e8b 100644
  
  	unsigned char		nohz_idle_balance;
  	unsigned char		idle_balance;
-@@ -1381,6 +1382,9 @@ init_numa_balancing(unsigned long clone_flags, struct task_struct *p)
+@@ -1388,6 +1389,9 @@ init_numa_balancing(unsigned long clone_flags, struct task_struct *p)
  
  #ifdef CONFIG_SMP
  
@@ -223,7 +223,7 @@ index a5b0d36..59f5e8b 100644
  static inline void
  queue_balance_callback(struct rq *rq,
  		       struct callback_head *head,
-@@ -1388,12 +1392,13 @@ queue_balance_callback(struct rq *rq,
+@@ -1395,12 +1399,13 @@ queue_balance_callback(struct rq *rq,
  {
  	lockdep_assert_held(&rq->lock);
  

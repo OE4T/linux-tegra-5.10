@@ -1,4 +1,4 @@
-From 26cd9980cc0ef76521031425ed420da818f91407 Mon Sep 17 00:00:00 2001
+From 096d92755307e1877d12b4e3c8f53152d87656eb Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 6 Oct 2020 13:07:17 +0200
 Subject: [PATCH 180/296] locking/rtmutex: Use custom scheduling function for
@@ -132,7 +132,7 @@ index 1ee16b8..16be711 100644
  		raw_spin_lock_irqsave(&m->wait_lock, flags);
  
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index ef7a7be..c16a962 100644
+index 65e80d2..47e4ced 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -4980,7 +4980,7 @@ pick_next_task(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)

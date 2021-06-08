@@ -1,4 +1,4 @@
-From fa0739de7dd2a0e323145851d223e26128ba646d Mon Sep 17 00:00:00 2001
+From fb6c542f5a57574b55447a97b4b865986bf9bc72 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 21 Aug 2012 20:38:50 +0200
 Subject: [PATCH 251/296] random: Make it work on rt
@@ -39,7 +39,7 @@ index 6cc50ab..4055fe3 100644
  
  	set_irq_regs(old_regs);
 diff --git a/drivers/char/random.c b/drivers/char/random.c
-index f462b9d..a537022 100644
+index 340ad21..209220e 100644
 --- a/drivers/char/random.c
 +++ b/drivers/char/random.c
 @@ -1252,28 +1252,27 @@ static __u32 get_reg(struct fast_pool *f, struct pt_regs *regs)

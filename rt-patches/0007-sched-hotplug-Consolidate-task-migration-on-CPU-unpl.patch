@@ -1,4 +1,4 @@
-From 1308cc829d9e4649706b3518c2d1a1ef67245bb9 Mon Sep 17 00:00:00 2001
+From 16ec5da3e8c68b512af7c77b3cbe353df3815cc7 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Fri, 23 Oct 2020 12:12:04 +0200
 Subject: [PATCH 007/296] sched/hotplug: Consolidate task migration on CPU
@@ -38,10 +38,10 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  4 files changed, 46 insertions(+), 120 deletions(-)
 
 diff --git a/include/linux/cpuhotplug.h b/include/linux/cpuhotplug.h
-index bc56287..0042ef3 100644
+index 8fb893e..5c0a088 100644
 --- a/include/linux/cpuhotplug.h
 +++ b/include/linux/cpuhotplug.h
-@@ -152,6 +152,7 @@ enum cpuhp_state {
+@@ -153,6 +153,7 @@ enum cpuhp_state {
  	CPUHP_AP_ONLINE,
  	CPUHP_TEARDOWN_CPU,
  	CPUHP_AP_ONLINE_IDLE,
@@ -92,7 +92,7 @@ index 2b8d7a5..4e11e91 100644
  	[CPUHP_AP_SMPBOOT_THREADS] = {
  		.name			= "smpboot/threads:online",
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 825eafb..c9e2565 100644
+index e388449..8882edf9 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -6741,120 +6741,6 @@ void idle_task_exit(void)

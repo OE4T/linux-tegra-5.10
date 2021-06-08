@@ -1,4 +1,4 @@
-From 38821aa176bbbb0fd55419abbc318e5e9a12239d Mon Sep 17 00:00:00 2001
+From e7e8da906fd903c872dc24a323e5ea8756ad2514 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Fri, 14 Aug 2020 17:08:41 +0200
 Subject: [PATCH 169/296] locking: split out the rbtree definition

@@ -1,4 +1,4 @@
-From ae98a12a0c16c1afcce314cc82ff154f9e0929ad Mon Sep 17 00:00:00 2001
+From eab3b66981c2d7702842cbfe8e9b5cbaed753831 Mon Sep 17 00:00:00 2001
 From: Matt Fleming <matt@codeblueprint.co.uk>
 Date: Tue, 7 Apr 2020 10:54:13 +0100
 Subject: [PATCH 291/296] signal: Prevent double-free of user struct

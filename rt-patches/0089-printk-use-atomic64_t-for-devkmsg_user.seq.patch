@@ -1,4 +1,4 @@
-From a33eb54fa6c8deff590b4bce24622f06dfe426a5 Mon Sep 17 00:00:00 2001
+From 1680d18923ae724b2e5dd5d6da2c1274b5f502fd Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Thu, 10 Dec 2020 15:33:40 +0106
 Subject: [PATCH 089/296] printk: use atomic64_t for devkmsg_user.seq

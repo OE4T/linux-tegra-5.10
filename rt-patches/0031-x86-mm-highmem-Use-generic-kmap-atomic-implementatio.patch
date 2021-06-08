@@ -1,4 +1,4 @@
-From 0b69f058de4b744053260026a96002ec17c3d29d Mon Sep 17 00:00:00 2001
+From 8e187deff5ad74684e54e1f55232c452cd48c1b5 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:20 +0100
 Subject: [PATCH 031/296] x86/mm/highmem: Use generic kmap atomic
@@ -27,7 +27,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  delete mode 100644 arch/x86/include/asm/kmap_types.h
 
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 3a5ecb1..7e1fd20 100644
+index f3c8a81..2ae9cf1 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
 @@ -15,6 +15,7 @@ config X86_32

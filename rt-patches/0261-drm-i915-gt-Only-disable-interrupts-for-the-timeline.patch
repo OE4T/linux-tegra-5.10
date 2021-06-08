@@ -1,4 +1,4 @@
-From 2b95632d780e047e0b7ed2e5eaaee8527630f83f Mon Sep 17 00:00:00 2001
+From 3a65b6e10470875bd38f4d3fd21b3c8d2a3e6d46 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 7 Jul 2020 12:25:11 +0200
 Subject: [PATCH 261/296] drm/i915/gt: Only disable interrupts for the timeline

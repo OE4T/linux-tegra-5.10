@@ -1,4 +1,4 @@
-From e395422d8987e3712c5795bcea2d956c27c172bb Mon Sep 17 00:00:00 2001
+From 04d8c712324ea4091eb224d98c257e0379d6efcd Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Wed, 9 Dec 2020 01:50:53 +0106
 Subject: [PATCH 082/296] printk: remove logbuf_lock writer-protection of

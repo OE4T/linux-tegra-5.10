@@ -1,4 +1,4 @@
-From 2881de1046ad5a20918e61e9034cc469e97176b1 Mon Sep 17 00:00:00 2001
+From 6ce84bd2e59d52def1e528e51996faac5eb74991 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Mon, 21 Dec 2020 10:27:58 +0106
 Subject: [PATCH 094/296] printk: kmsg_dump: remove _nolock() variants

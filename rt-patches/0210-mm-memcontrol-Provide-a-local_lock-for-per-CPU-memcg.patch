@@ -1,4 +1,4 @@
-From d9be86e672e186f89dc8d19424721771bfde15d0 Mon Sep 17 00:00:00 2001
+From 9e2ef2d61a661555def37e818616e76cda787943 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 18 Aug 2020 10:30:00 +0200
 Subject: [PATCH 210/296] mm: memcontrol: Provide a local_lock for per-CPU
@@ -21,7 +21,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 18 insertions(+), 13 deletions(-)
 
 diff --git a/mm/memcontrol.c b/mm/memcontrol.c
-index bc99242..dee3b8d 100644
+index ad254c4..4d880a9 100644
 --- a/mm/memcontrol.c
 +++ b/mm/memcontrol.c
 @@ -2202,6 +2202,7 @@ void unlock_page_memcg(struct page *page)
@@ -103,7 +103,7 @@ index bc99242..dee3b8d 100644
  
  	return ret;
  }
-@@ -3206,7 +3207,7 @@ static void refill_obj_stock(struct obj_cgroup *objcg, unsigned int nr_bytes)
+@@ -3214,7 +3215,7 @@ static void refill_obj_stock(struct obj_cgroup *objcg, unsigned int nr_bytes)
  	struct memcg_stock_pcp *stock;
  	unsigned long flags;
  
@@ -112,7 +112,7 @@ index bc99242..dee3b8d 100644
  
  	stock = this_cpu_ptr(&memcg_stock);
  	if (stock->cached_objcg != objcg) { /* reset if necessary */
-@@ -3220,7 +3221,7 @@ static void refill_obj_stock(struct obj_cgroup *objcg, unsigned int nr_bytes)
+@@ -3228,7 +3229,7 @@ static void refill_obj_stock(struct obj_cgroup *objcg, unsigned int nr_bytes)
  	if (stock->nr_bytes > PAGE_SIZE)
  		drain_obj_stock(stock);
  
@@ -121,7 +121,7 @@ index bc99242..dee3b8d 100644
  }
  
  int obj_cgroup_charge(struct obj_cgroup *objcg, gfp_t gfp, size_t size)
-@@ -7140,9 +7141,13 @@ static int __init mem_cgroup_init(void)
+@@ -7148,9 +7149,13 @@ static int __init mem_cgroup_init(void)
  	cpuhp_setup_state_nocalls(CPUHP_MM_MEMCQ_DEAD, "mm/memctrl:dead", NULL,
  				  memcg_hotplug_cpu_dead);
  

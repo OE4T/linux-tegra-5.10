@@ -1,4 +1,4 @@
-From 4ac9a250b42bc520354c11784a12d20dcdea8f16 Mon Sep 17 00:00:00 2001
+From 4a5f648cc2dde4a14d6d154cdc9c4eaa61be3ccb Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:22 +0100
 Subject: [PATCH 033/296] ARM: highmem: Switch to generic kmap atomic
@@ -34,7 +34,7 @@ index 002e0cf..4708ede 100644
  	  The address space of ARM processors is only 4 Gigabytes large
  	  and it has to accommodate user address space, kernel address
 diff --git a/arch/arm/include/asm/fixmap.h b/arch/arm/include/asm/fixmap.h
-index fc56fc3..c279a8a 100644
+index 9575b40..707068f 100644
 --- a/arch/arm/include/asm/fixmap.h
 +++ b/arch/arm/include/asm/fixmap.h
 @@ -7,14 +7,14 @@

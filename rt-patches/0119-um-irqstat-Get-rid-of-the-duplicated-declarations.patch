@@ -1,4 +1,4 @@
-From ad967a321e0a7d9181e3bb248b585eb64dad3df6 Mon Sep 17 00:00:00 2001
+From 12de4f303322206672cc02ed9752e2a4ff21b4f7 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Fri, 13 Nov 2020 15:02:11 +0100
 Subject: [PATCH 119/296] um/irqstat: Get rid of the duplicated declarations

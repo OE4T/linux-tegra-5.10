@@ -1,4 +1,4 @@
-From bc739a0db5c6831a6ebf4d49e7244d3ab8da1969 Mon Sep 17 00:00:00 2001
+From 86ffaa0b7f1498fd8bfa38ee89d5c91fd331933a Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Fri, 13 Nov 2020 15:02:12 +0100
 Subject: [PATCH 120/296] ARM: irqstat: Get rid of duplicated declaration

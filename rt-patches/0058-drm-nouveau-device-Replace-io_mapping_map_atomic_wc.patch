@@ -1,4 +1,4 @@
-From 36e93b65ac70b35367f16713f4325f1f5e5c11de Mon Sep 17 00:00:00 2001
+From 243ecc57a239e971316e0099c17f014633486643 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:47 +0100
 Subject: [PATCH 058/296] drm/nouveau/device: Replace

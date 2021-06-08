@@ -1,4 +1,4 @@
-From 83cdb74a208f672cf29d989576acbe570bda2585 Mon Sep 17 00:00:00 2001
+From 1850cdc0c891e7cf9eac138db938bff7afd16b71 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:36 +0100
 Subject: [PATCH 047/296] sched: highmem: Store local kmaps in task struct
@@ -117,7 +117,7 @@ index dc5c98b..d70cf79 100644
  #ifdef CONFIG_FAULT_INJECTION
  	tsk->fail_nth = 0;
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 972bae4..d62a774 100644
+index 04fc8bb4..175897d 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -4068,6 +4068,22 @@ static inline void finish_lock_switch(struct rq *rq)

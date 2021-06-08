@@ -1,4 +1,4 @@
-From c1a4b5790e2e41333e127d3a194d5625eb9d78ab Mon Sep 17 00:00:00 2001
+From 7abb3f38acb5cddeec761a5af69459d7474005ef Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Fri, 10 Jun 2011 11:04:15 +0200
 Subject: [PATCH 163/296] locking/rtmutex: Handle the various new futex race
@@ -16,7 +16,7 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
  3 files changed, 94 insertions(+), 21 deletions(-)
 
 diff --git a/kernel/futex.c b/kernel/futex.c
-index 7cf1987..6d7aaa8 100644
+index 3136aba..ae63c58 100644
 --- a/kernel/futex.c
 +++ b/kernel/futex.c
 @@ -2156,6 +2156,16 @@ static int futex_requeue(u32 __user *uaddr1, unsigned int flags,

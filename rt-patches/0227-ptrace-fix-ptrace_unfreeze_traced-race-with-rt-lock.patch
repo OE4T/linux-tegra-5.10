@@ -1,4 +1,4 @@
-From fd58274d10282adef56b2609b7676c33f70f5c9a Mon Sep 17 00:00:00 2001
+From 22b50e786dcf18614a040602e01321004164e2fc Mon Sep 17 00:00:00 2001
 From: Oleg Nesterov <oleg@redhat.com>
 Date: Tue, 3 Nov 2020 12:39:01 +0100
 Subject: [PATCH 227/296] ptrace: fix ptrace_unfreeze_traced() race with
@@ -19,10 +19,10 @@ Cc: stable-rt@vger.kernel.org
  1 file changed, 15 insertions(+), 8 deletions(-)
 
 diff --git a/kernel/ptrace.c b/kernel/ptrace.c
-index 0b81543..2f09a6d 100644
+index 258b599..ec2d9fd 100644
 --- a/kernel/ptrace.c
 +++ b/kernel/ptrace.c
-@@ -197,8 +197,8 @@ static bool ptrace_freeze_traced(struct task_struct *task)
+@@ -213,8 +213,8 @@ static bool ptrace_freeze_traced(struct task_struct *task)
  
  static void ptrace_unfreeze_traced(struct task_struct *task)
  {
@@ -33,7 +33,7 @@ index 0b81543..2f09a6d 100644
  
  	WARN_ON(!task->ptrace || task->parent != current);
  
-@@ -207,12 +207,19 @@ static void ptrace_unfreeze_traced(struct task_struct *task)
+@@ -223,12 +223,19 @@ static void ptrace_unfreeze_traced(struct task_struct *task)
  	 * Recheck state under the lock to close this race.
  	 */
  	spin_lock_irq(&task->sighand->siglock);

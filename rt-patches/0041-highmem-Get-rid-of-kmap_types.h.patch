@@ -1,4 +1,4 @@
-From c7dfc0b57f70961381cbad64b18d48e30a93e970 Mon Sep 17 00:00:00 2001
+From 9a7a3eeba27f3e8e7a3ad36df71faabe2fd03e4c Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:30 +0100
 Subject: [PATCH 041/296] highmem: Get rid of kmap_types.h
@@ -68,7 +68,7 @@ index 5c268cf..0000000
 -
 -#endif /* _ASM_IA64_KMAP_TYPES_H */
 diff --git a/arch/openrisc/mm/init.c b/arch/openrisc/mm/init.c
-index 8348fea..bf9b231 100644
+index 5e88c35..f3fa02b 100644
 --- a/arch/openrisc/mm/init.c
 +++ b/arch/openrisc/mm/init.c
 @@ -33,7 +33,6 @@

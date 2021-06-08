@@ -1,4 +1,4 @@
-From 1ebf9e58110ee504f9c0036d073c7c118434ad33 Mon Sep 17 00:00:00 2001
+From c2397e2dc8b02f9256406a406bff626f4f9f3d69 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Fri, 4 Dec 2020 20:13:54 +0100
 Subject: [PATCH 064/296] blk-mq: Don't complete on a remote CPU in force
@@ -24,7 +24,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 8 insertions(+)
 
 diff --git a/block/blk-mq.c b/block/blk-mq.c
-index 5d28f35..4a5366e 100644
+index fae6df5..0aeb225 100644
 --- a/block/blk-mq.c
 +++ b/block/blk-mq.c
 @@ -648,6 +648,14 @@ static inline bool blk_mq_complete_need_ipi(struct request *rq)

@@ -1,4 +1,4 @@
-From 22b0c054d18e6112d268c5a9816fe8832b29e7ec Mon Sep 17 00:00:00 2001
+From 39e3999a3f739e13920b1bd2472259bbf4c8e18e Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Sat, 27 May 2017 19:02:06 +0200
 Subject: [PATCH 228/296] kernel/sched: add {put|get}_cpu_light()
@@ -9,7 +9,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 3 insertions(+)
 
 diff --git a/include/linux/smp.h b/include/linux/smp.h
-index 9f13966..c1f6aaa 100644
+index 04f44e0..cae6681 100644
 --- a/include/linux/smp.h
 +++ b/include/linux/smp.h
 @@ -239,6 +239,9 @@ static inline int get_boot_cpu_id(void)

@@ -1,4 +1,4 @@
-From 3e3dd9b06ea1625e5d685c87058ddfab63cafed6 Mon Sep 17 00:00:00 2001
+From 218f09838f9c21084f158e11649d99e1f293166f Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Mon, 30 Nov 2020 01:42:05 +0106
 Subject: [PATCH 104/296] printk: change @console_seq to atomic64_t

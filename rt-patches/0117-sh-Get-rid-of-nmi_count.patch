@@ -1,4 +1,4 @@
-From c14b85ef3334871e1640dd5504dc9811326cfdba Mon Sep 17 00:00:00 2001
+From f565c836b2c2c4a5f794451d52e640823a0d7cf1 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Fri, 13 Nov 2020 15:02:09 +0100
 Subject: [PATCH 117/296] sh: Get rid of nmi_count()

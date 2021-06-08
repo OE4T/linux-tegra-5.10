@@ -1,4 +1,4 @@
-From 77f315b89239ca548bb37aa2a5fadf415fc3f406 Mon Sep 17 00:00:00 2001
+From 6a5e13255cc9b9348ca58b28c7a5aa7a1748fb43 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:14 +0100
 Subject: [PATCH 025/296] highmem: Remove unused functions

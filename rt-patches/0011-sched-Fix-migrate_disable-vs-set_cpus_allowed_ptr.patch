@@ -1,4 +1,4 @@
-From c9ead9679a3b43ef683eeb8e5e8c1597f9dc37be Mon Sep 17 00:00:00 2001
+From c6e496f285aadcdb3b3f8c01fc20fc39352745a9 Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:08 +0200
 Subject: [PATCH 011/296] sched: Fix migrate_disable() vs
@@ -55,7 +55,7 @@ index 8efed58..71accd9 100644
  	int				migration_disabled;
  #endif
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 528add5..b0aaeef 100644
+index 4171a22..a3624cc 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -1730,15 +1730,26 @@ void migrate_enable(void)

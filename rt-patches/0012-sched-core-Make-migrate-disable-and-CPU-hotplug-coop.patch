@@ -1,4 +1,4 @@
-From fed6f3896ad240be2bb58f3baad34089209f0ab6 Mon Sep 17 00:00:00 2001
+From 55a5bef4b77288a1416c843fc70d281e9b8b1c40 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Fri, 23 Oct 2020 12:12:09 +0200
 Subject: [PATCH 012/296] sched/core: Make migrate disable and CPU hotplug
@@ -19,7 +19,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  2 files changed, 34 insertions(+), 6 deletions(-)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index b0aaeef..02faf96 100644
+index a3624cc..3830192 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -1719,10 +1719,17 @@ static void migrate_disable_switch(struct rq *rq, struct task_struct *p)
@@ -117,10 +117,10 @@ index b0aaeef..02faf96 100644
  
  	calc_load_migrate(rq);
 diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index 9cdf7a8..b474265 100644
+index 66c4882..59da79e 100644
 --- a/kernel/sched/sched.h
 +++ b/kernel/sched/sched.h
-@@ -1049,6 +1049,10 @@ struct rq {
+@@ -1056,6 +1056,10 @@ struct rq {
  	/* Must be inspected within a rcu lock section */
  	struct cpuidle_state	*idle_state;
  #endif

@@ -1,4 +1,4 @@
-From 6312139bcf57e4b9bba0e751d434d6a9f96437ff Mon Sep 17 00:00:00 2001
+From b4ff754930f7cffca497cdc7fc2351145a23433d Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:00 +0200
 Subject: [PATCH 003/296] sched: Fix balance_callback()
@@ -28,7 +28,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  2 files changed, 78 insertions(+), 44 deletions(-)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index c92dbe0..483f8de 100644
+index c2a895e..512c5b9 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -3487,6 +3487,69 @@ static inline void finish_task(struct task_struct *prev)
@@ -216,10 +216,10 @@ index c92dbe0..483f8de 100644
  
  	return 0;
 diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index 6997314..a5b0d36 100644
+index 9c77f2f..ad5e94c5 100644
 --- a/kernel/sched/sched.h
 +++ b/kernel/sched/sched.h
-@@ -1217,6 +1217,9 @@ static inline void rq_pin_lock(struct rq *rq, struct rq_flags *rf)
+@@ -1224,6 +1224,9 @@ static inline void rq_pin_lock(struct rq *rq, struct rq_flags *rf)
  	rq->clock_update_flags &= (RQCF_REQ_SKIP|RQCF_ACT_SKIP);
  	rf->clock_update_flags = 0;
  #endif

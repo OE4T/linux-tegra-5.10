@@ -1,4 +1,4 @@
-From 743953e1b06e205531a71232e72d918fab9fc697 Mon Sep 17 00:00:00 2001
+From 9ed182d93ae261a29584925f90b641087a4f723d Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Fri, 14 Aug 2020 18:53:34 +0200
 Subject: [PATCH 113/296] shmem: Use raw_spinlock_t for ->stat_lock
@@ -34,7 +34,7 @@ index a5a5d1d..0470d15 100644
  	unsigned char huge;	    /* Whether to try for hugepages */
  	kuid_t uid;		    /* Mount uid for root directory */
 diff --git a/mm/shmem.c b/mm/shmem.c
-index 537c137..1c473d6 100644
+index 6e487bf..840eb08 100644
 --- a/mm/shmem.c
 +++ b/mm/shmem.c
 @@ -278,10 +278,10 @@ static int shmem_reserve_inode(struct super_block *sb, ino_t *inop)
@@ -101,7 +101,7 @@ index 537c137..1c473d6 100644
  	}
  	return mpol;
  }
-@@ -3592,9 +3593,10 @@ static int shmem_reconfigure(struct fs_context *fc)
+@@ -3588,9 +3589,10 @@ static int shmem_reconfigure(struct fs_context *fc)
  	struct shmem_options *ctx = fc->fs_private;
  	struct shmem_sb_info *sbinfo = SHMEM_SB(fc->root->d_sb);
  	unsigned long inodes;
@@ -113,7 +113,7 @@ index 537c137..1c473d6 100644
  	inodes = sbinfo->max_inodes - sbinfo->free_inodes;
  	if ((ctx->seen & SHMEM_SEEN_BLOCKS) && ctx->blocks) {
  		if (!sbinfo->max_blocks) {
-@@ -3639,14 +3641,15 @@ static int shmem_reconfigure(struct fs_context *fc)
+@@ -3635,14 +3637,15 @@ static int shmem_reconfigure(struct fs_context *fc)
  	 * Preserve previous mempolicy unless mpol remount option was specified.
  	 */
  	if (ctx->mpol) {
@@ -132,7 +132,7 @@ index 537c137..1c473d6 100644
  	return invalfc(fc, "%s", err);
  }
  
-@@ -3763,7 +3766,7 @@ static int shmem_fill_super(struct super_block *sb, struct fs_context *fc)
+@@ -3759,7 +3762,7 @@ static int shmem_fill_super(struct super_block *sb, struct fs_context *fc)
  	sbinfo->mpol = ctx->mpol;
  	ctx->mpol = NULL;
  

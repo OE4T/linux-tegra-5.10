@@ -1,4 +1,4 @@
-From 1e234a9d26142f19730e68bddc9ef218f77cdeea Mon Sep 17 00:00:00 2001
+From f77fbdc5b9235377daf4e8badba80895ea79a0f8 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 9 Mar 2021 09:42:16 +0100
 Subject: [PATCH 147/296] firewire: ohci: Use tasklet_disable_in_atomic() where

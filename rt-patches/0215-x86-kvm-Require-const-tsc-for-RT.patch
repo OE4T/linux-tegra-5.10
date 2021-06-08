@@ -1,4 +1,4 @@
-From 39ebe3efd5bd3567b9e6e6c0bc881bce6f42b942 Mon Sep 17 00:00:00 2001
+From 2e46221725ee62df1449084e732f933ac226f3a4 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Sun, 6 Nov 2011 12:26:18 +0100
 Subject: [PATCH 215/296] x86: kvm Require const tsc for RT
@@ -14,10 +14,10 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
  1 file changed, 8 insertions(+)
 
 diff --git a/arch/x86/kvm/x86.c b/arch/x86/kvm/x86.c
-index 0d8383b..b53e8e6 100644
+index 7f767d5..7c33c91 100644
 --- a/arch/x86/kvm/x86.c
 +++ b/arch/x86/kvm/x86.c
-@@ -7908,6 +7908,14 @@ int kvm_arch_init(void *opaque)
+@@ -7936,6 +7936,14 @@ int kvm_arch_init(void *opaque)
  		goto out;
  	}
  

@@ -1,4 +1,4 @@
-From 828c20252ac86fc7d8f4bf48fc88d8138c9d0533 Mon Sep 17 00:00:00 2001
+From 29a7e45b051150a5b2bfa0c5f1b4b4262fe964b2 Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:05 +0200
 Subject: [PATCH 008/296] sched: Fix hotplug vs CPU bandwidth control
@@ -24,7 +24,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  3 files changed, 12 insertions(+), 6 deletions(-)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index c9e2565..538c0db 100644
+index 8882edf9..94a79b4 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -6977,6 +6977,8 @@ int sched_cpu_activate(unsigned int cpu)

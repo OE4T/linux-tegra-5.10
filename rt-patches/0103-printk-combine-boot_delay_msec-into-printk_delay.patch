@@ -1,4 +1,4 @@
-From d956ad3390fb007cbbf3dd506490b9c8a0eae192 Mon Sep 17 00:00:00 2001
+From 51c8732f7dc75cd18c7d37c0ecb6ae6fcefbba80 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Mon, 30 Nov 2020 01:42:04 +0106
 Subject: [PATCH 103/296] printk: combine boot_delay_msec() into printk_delay()

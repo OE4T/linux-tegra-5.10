@@ -1,4 +1,4 @@
-From e0b8d5084fdf15314e0b441e8c0fbbc2bb64ee6a Mon Sep 17 00:00:00 2001
+From c35bca277f55e959cd92c3e2945a554e230c17fc Mon Sep 17 00:00:00 2001
 From: Julia Cartwright <julia@ni.com>
 Date: Tue, 15 Dec 2020 15:16:47 +0100
 Subject: [PATCH 074/296] rcu: Enable rcu_normal_after_boot unconditionally for

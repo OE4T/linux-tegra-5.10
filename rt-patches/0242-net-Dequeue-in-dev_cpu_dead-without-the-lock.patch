@@ -1,4 +1,4 @@
-From 6ce180f019b76d0b4ddf90a039966da33ef792b2 Mon Sep 17 00:00:00 2001
+From 7fc92e041dce28cac35486d1e56bf1b6d12c83aa Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 16 Sep 2020 16:15:39 +0200
 Subject: [PATCH 242/296] net: Dequeue in dev_cpu_dead() without the lock
@@ -19,7 +19,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/net/core/dev.c b/net/core/dev.c
-index 5809e1b..22f3a4c 100644
+index 1c859e0..7b929bf 100644
 --- a/net/core/dev.c
 +++ b/net/core/dev.c
 @@ -10923,7 +10923,7 @@ static int dev_cpu_dead(unsigned int oldcpu)

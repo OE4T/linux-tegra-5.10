@@ -1,4 +1,4 @@
-From f98fd1b9491920a3d09eccc343e89ac793f585c1 Mon Sep 17 00:00:00 2001
+From b067f8b68e45f3063aa851c943030a00a382ee99 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Thu, 26 Jul 2018 15:06:10 +0200
 Subject: [PATCH 196/296] efi: Allow efi=runtime

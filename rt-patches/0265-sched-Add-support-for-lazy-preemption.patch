@@ -1,4 +1,4 @@
-From 95464db823a70432d75a7bc6794c01261f614029 Mon Sep 17 00:00:00 2001
+From 6f37607600e8e75aa1d7ea0573f6cee88eef0133 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Fri, 26 Oct 2012 18:50:54 +0100
 Subject: [PATCH 265/296] sched: Add support for lazy preemption
@@ -295,7 +295,7 @@ index cbe3aa4..b5cd1e2 100644
  	prompt "Preemption Model"
  	default PREEMPT_NONE
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 55145e1..c1de29e 100644
+index 38e59f6..28c92ab 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -655,6 +655,48 @@ void resched_curr(struct rq *rq)
@@ -444,10 +444,10 @@ index 55145e1..c1de29e 100644
  	 * The idle tasks have their own, simple scheduling class:
  	 */
 diff --git a/kernel/sched/fair.c b/kernel/sched/fair.c
-index 3486053..e7d6ae7 100644
+index 1ad0e52..de742dd 100644
 --- a/kernel/sched/fair.c
 +++ b/kernel/sched/fair.c
-@@ -4372,7 +4372,7 @@ check_preempt_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr)
+@@ -4391,7 +4391,7 @@ check_preempt_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr)
  	ideal_runtime = sched_slice(cfs_rq, curr);
  	delta_exec = curr->sum_exec_runtime - curr->prev_sum_exec_runtime;
  	if (delta_exec > ideal_runtime) {
@@ -456,7 +456,7 @@ index 3486053..e7d6ae7 100644
  		/*
  		 * The current task ran long enough, ensure it doesn't get
  		 * re-elected due to buddy favours.
-@@ -4396,7 +4396,7 @@ check_preempt_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr)
+@@ -4415,7 +4415,7 @@ check_preempt_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr)
  		return;
  
  	if (delta > ideal_runtime)
@@ -465,7 +465,7 @@ index 3486053..e7d6ae7 100644
  }
  
  static void
-@@ -4539,7 +4539,7 @@ entity_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr, int queued)
+@@ -4558,7 +4558,7 @@ entity_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr, int queued)
  	 * validating it and just reschedule.
  	 */
  	if (queued) {
@@ -474,7 +474,7 @@ index 3486053..e7d6ae7 100644
  		return;
  	}
  	/*
-@@ -4676,7 +4676,7 @@ static void __account_cfs_rq_runtime(struct cfs_rq *cfs_rq, u64 delta_exec)
+@@ -4695,7 +4695,7 @@ static void __account_cfs_rq_runtime(struct cfs_rq *cfs_rq, u64 delta_exec)
  	 * hierarchy can be throttled
  	 */
  	if (!assign_cfs_rq_runtime(cfs_rq) && likely(cfs_rq->curr))
@@ -483,7 +483,7 @@ index 3486053..e7d6ae7 100644
  }
  
  static __always_inline
-@@ -5411,7 +5411,7 @@ static void hrtick_start_fair(struct rq *rq, struct task_struct *p)
+@@ -5430,7 +5430,7 @@ static void hrtick_start_fair(struct rq *rq, struct task_struct *p)
  
  		if (delta < 0) {
  			if (rq->curr == p)
@@ -492,7 +492,7 @@ index 3486053..e7d6ae7 100644
  			return;
  		}
  		hrtick_start(rq, delta);
-@@ -6992,7 +6992,7 @@ static void check_preempt_wakeup(struct rq *rq, struct task_struct *p, int wake_
+@@ -7011,7 +7011,7 @@ static void check_preempt_wakeup(struct rq *rq, struct task_struct *p, int wake_
  	return;
  
  preempt:
@@ -501,7 +501,7 @@ index 3486053..e7d6ae7 100644
  	/*
  	 * Only set the backward buddy when the current task is still
  	 * on the rq. This can happen when a wakeup gets interleaved
-@@ -10749,7 +10749,7 @@ static void task_fork_fair(struct task_struct *p)
+@@ -10771,7 +10771,7 @@ static void task_fork_fair(struct task_struct *p)
  		 * 'current' within the tree based on its new key value.
  		 */
  		swap(curr->vruntime, se->vruntime);
@@ -510,7 +510,7 @@ index 3486053..e7d6ae7 100644
  	}
  
  	se->vruntime -= cfs_rq->min_vruntime;
-@@ -10776,7 +10776,7 @@ prio_changed_fair(struct rq *rq, struct task_struct *p, int oldprio)
+@@ -10798,7 +10798,7 @@ prio_changed_fair(struct rq *rq, struct task_struct *p, int oldprio)
  	 */
  	if (rq->curr == p) {
  		if (p->prio > oldprio)
@@ -520,7 +520,7 @@ index 3486053..e7d6ae7 100644
  		check_preempt_curr(rq, p, 0);
  }
 diff --git a/kernel/sched/features.h b/kernel/sched/features.h
-index 296aea5..5a2e272 100644
+index 402fd37..bc2466a 100644
 --- a/kernel/sched/features.h
 +++ b/kernel/sched/features.h
 @@ -47,6 +47,9 @@ SCHED_FEAT(NONTASK_CAPACITY, true)
@@ -534,10 +534,10 @@ index 296aea5..5a2e272 100644
  
  /*
 diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index 88ab83f..167c05c 100644
+index 33515df..d192a01 100644
 --- a/kernel/sched/sched.h
 +++ b/kernel/sched/sched.h
-@@ -1989,6 +1989,15 @@ extern void reweight_task(struct task_struct *p, int prio);
+@@ -1996,6 +1996,15 @@ extern void reweight_task(struct task_struct *p, int prio);
  extern void resched_curr(struct rq *rq);
  extern void resched_cpu(int cpu);
  
@@ -554,10 +554,10 @@ index 88ab83f..167c05c 100644
  extern void init_rt_bandwidth(struct rt_bandwidth *rt_b, u64 period, u64 runtime);
  
 diff --git a/kernel/trace/trace.c b/kernel/trace/trace.c
-index 34b0589..3c6568b 100644
+index 14f48eb..5a700362 100644
 --- a/kernel/trace/trace.c
 +++ b/kernel/trace/trace.c
-@@ -2605,8 +2605,16 @@ unsigned int tracing_gen_ctx_irq_test(unsigned int irqs_status)
+@@ -2594,8 +2594,16 @@ unsigned int tracing_gen_ctx_irq_test(unsigned int irqs_status)
  		trace_flags |= TRACE_FLAG_NEED_RESCHED;
  	if (test_preempt_need_resched())
  		trace_flags |= TRACE_FLAG_PREEMPT_RESCHED;
@@ -576,7 +576,7 @@ index 34b0589..3c6568b 100644
  }
  
  struct ring_buffer_event *
-@@ -3807,15 +3815,17 @@ unsigned long trace_total_entries(struct trace_array *tr)
+@@ -3796,15 +3804,17 @@ unsigned long trace_total_entries(struct trace_array *tr)
  
  static void print_lat_help_header(struct seq_file *m)
  {
@@ -603,7 +603,7 @@ index 34b0589..3c6568b 100644
  }
  
  static void print_event_info(struct array_buffer *buf, struct seq_file *m)
-@@ -3849,14 +3859,16 @@ static void print_func_help_header_irq(struct array_buffer *buf, struct seq_file
+@@ -3838,14 +3848,16 @@ static void print_func_help_header_irq(struct array_buffer *buf, struct seq_file
  
  	print_event_info(buf, m);
  

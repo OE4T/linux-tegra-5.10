@@ -1,4 +1,4 @@
-From d21355946d2f81c22e2cbcb589cd11eabc11b103 Mon Sep 17 00:00:00 2001
+From ad5e4e3c9094f32983eedc6096563fbc3f6168dd Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Tue, 26 Jan 2021 17:43:19 +0106
 Subject: [PATCH 093/296] printk: remove logbuf_lock

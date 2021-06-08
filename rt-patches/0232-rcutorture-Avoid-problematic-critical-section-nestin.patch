@@ -1,4 +1,4 @@
-From e1973b41e5643f22657a7a38a257c21577ca0f89 Mon Sep 17 00:00:00 2001
+From 2695d21dba53dada60843d63b31e3191dfe73d68 Mon Sep 17 00:00:00 2001
 From: Scott Wood <swood@redhat.com>
 Date: Wed, 11 Sep 2019 17:57:29 +0100
 Subject: [PATCH 232/296] rcutorture: Avoid problematic critical section

@@ -1,4 +1,4 @@
-From a13fcc174a98d8e98d002976123c176de9cc6c71 Mon Sep 17 00:00:00 2001
+From d13a4ea81d0c8c8c26ebe201af668b2d9eb56328 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 14 Sep 2016 14:35:49 +0200
 Subject: [PATCH 187/296] fs/dcache: use swait_queue instead of waitqueue
@@ -23,10 +23,10 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  12 files changed, 31 insertions(+), 26 deletions(-)
 
 diff --git a/fs/afs/dir_silly.c b/fs/afs/dir_silly.c
-index 04f75a4..60cbce1 100644
+index dae9a57..9a6a0ec 100644
 --- a/fs/afs/dir_silly.c
 +++ b/fs/afs/dir_silly.c
-@@ -236,7 +236,7 @@ int afs_silly_iput(struct dentry *dentry, struct inode *inode)
+@@ -239,7 +239,7 @@ int afs_silly_iput(struct dentry *dentry, struct inode *inode)
  	struct dentry *alias;
  	int ret;
  
@@ -233,10 +233,10 @@ index 6f95c33..c1290db 100644
  extern struct dentry * d_add_ci(struct dentry *, struct inode *, struct qstr *);
  extern struct dentry * d_exact_alias(struct dentry *, struct inode *);
 diff --git a/include/linux/nfs_xdr.h b/include/linux/nfs_xdr.h
-index d63cb86..1630690 100644
+index 5491ad5..cd9e5b3 100644
 --- a/include/linux/nfs_xdr.h
 +++ b/include/linux/nfs_xdr.h
-@@ -1670,7 +1670,7 @@ struct nfs_unlinkdata {
+@@ -1675,7 +1675,7 @@ struct nfs_unlinkdata {
  	struct nfs_removeargs args;
  	struct nfs_removeres res;
  	struct dentry *dentry;

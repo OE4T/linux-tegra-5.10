@@ -1,4 +1,4 @@
-From 9392d531acfdae444ed951d3a60a288679153b23 Mon Sep 17 00:00:00 2001
+From 8d70678dc92a95cf1deacf8a5c3d71cd3ea4d14f Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Mon, 30 Nov 2020 01:42:09 +0106
 Subject: [PATCH 108/296] printk: add console handover

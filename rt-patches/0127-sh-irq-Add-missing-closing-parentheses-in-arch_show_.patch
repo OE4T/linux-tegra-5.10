@@ -1,4 +1,4 @@
-From 38b9094ff8c3f934702f5d65f0891bedda0cd206 Mon Sep 17 00:00:00 2001
+From 49e90c0beaa8eb756335d66842debcfd077c5f0a Mon Sep 17 00:00:00 2001
 From: Geert Uytterhoeven <geert+renesas@glider.be>
 Date: Tue, 24 Nov 2020 14:06:56 +0100
 Subject: [PATCH 127/296] sh/irq: Add missing closing parentheses in

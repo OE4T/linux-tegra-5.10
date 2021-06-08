@@ -1,4 +1,4 @@
-From ddfe5cd2551244a663f4920e58130ffa9f4d8f3c Mon Sep 17 00:00:00 2001
+From 3881100fa4a2457e85313e0fff70c7894c5af053 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Thu, 10 Dec 2020 16:58:02 +0106
 Subject: [PATCH 090/296] printk: add syslog_lock

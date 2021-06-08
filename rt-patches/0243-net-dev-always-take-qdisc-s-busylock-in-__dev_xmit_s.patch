@@ -1,4 +1,4 @@
-From 5f3e0a626f3e633f53df52df837d8776b868534f Mon Sep 17 00:00:00 2001
+From 19f2a0764e79afe2ccf0789308321dea89184d8d Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 30 Mar 2016 13:36:29 +0200
 Subject: [PATCH 243/296] net: dev: always take qdisc's busylock in
@@ -21,7 +21,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 4 insertions(+)
 
 diff --git a/net/core/dev.c b/net/core/dev.c
-index 22f3a4c..15bbb62 100644
+index 7b929bf..e0ec4c9 100644
 --- a/net/core/dev.c
 +++ b/net/core/dev.c
 @@ -3779,7 +3779,11 @@ static inline int __dev_xmit_skb(struct sk_buff *skb, struct Qdisc *q,

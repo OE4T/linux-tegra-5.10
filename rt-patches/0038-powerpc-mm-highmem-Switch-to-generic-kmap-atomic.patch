@@ -1,4 +1,4 @@
-From b165de6c2bd56d692c1537fa5c4c5b0ca5587a40 Mon Sep 17 00:00:00 2001
+From 5dd7fe828f9a3053058a2e725651e4c6ee4c0b89 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:27 +0100
 Subject: [PATCH 038/296] powerpc/mm/highmem: Switch to generic kmap atomic
@@ -24,7 +24,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  delete mode 100644 arch/powerpc/mm/highmem.c
 
 diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-index 31ed808..fc7b425 100644
+index 5afa0eb..7da69f3 100644
 --- a/arch/powerpc/Kconfig
 +++ b/arch/powerpc/Kconfig
 @@ -410,6 +410,7 @@ menu "Kernel options"
@@ -36,7 +36,7 @@ index 31ed808..fc7b425 100644
  source "kernel/Kconfig.hz"
  
 diff --git a/arch/powerpc/include/asm/fixmap.h b/arch/powerpc/include/asm/fixmap.h
-index 6bfc879..8d03c16 100644
+index 591b2f4..947b5b9 100644
 --- a/arch/powerpc/include/asm/fixmap.h
 +++ b/arch/powerpc/include/asm/fixmap.h
 @@ -20,7 +20,7 @@
@@ -47,8 +47,8 @@ index 6bfc879..8d03c16 100644
 +#include <asm/kmap_size.h>
  #endif
  
- #ifdef CONFIG_KASAN
-@@ -55,7 +55,7 @@ enum fixed_addresses {
+ #ifdef CONFIG_PPC64
+@@ -61,7 +61,7 @@ enum fixed_addresses {
  	FIX_EARLY_DEBUG_BASE = FIX_EARLY_DEBUG_TOP+(ALIGN(SZ_128K, PAGE_SIZE)/PAGE_SIZE)-1,
  #ifdef CONFIG_HIGHMEM
  	FIX_KMAP_BEGIN,	/* reserved pte's for temporary kernel mappings */

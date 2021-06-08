@@ -1,4 +1,4 @@
-From 8c75fccbd1557d03527ba9319752017c16903f68 Mon Sep 17 00:00:00 2001
+From aa6c472294a3832cfb3fbd89e3876cbf52e63656 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Sat, 25 Jun 2011 09:21:04 +0200
 Subject: [PATCH 172/296] sched: Add saved_state for tasks blocked on sleeping
@@ -39,7 +39,7 @@ index 1a14698..796ea63 100644
  
  #ifdef CONFIG_SMP
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index d62a774..0d7d0e6 100644
+index 175897d..eaf77e1 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -3282,7 +3282,7 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags)
@@ -99,10 +99,10 @@ index d62a774..0d7d0e6 100644
  {
  	return try_to_wake_up(p, state, 0);
 diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index 5f152b96..88ab83f 100644
+index 07381f6..33515df 100644
 --- a/kernel/sched/sched.h
 +++ b/kernel/sched/sched.h
-@@ -1745,6 +1745,7 @@ static inline int task_on_rq_migrating(struct task_struct *p)
+@@ -1752,6 +1752,7 @@ static inline int task_on_rq_migrating(struct task_struct *p)
  #define WF_FORK			0x02		/* Child wakeup after fork */
  #define WF_MIGRATED		0x04		/* Internal use, task got migrated */
  #define WF_ON_CPU		0x08		/* Wakee is on_cpu */

@@ -1,4 +1,4 @@
-From d2f931c883ab5a6895885594d89993d8dc4665fd Mon Sep 17 00:00:00 2001
+From d94cf7d8a49cb3e64d85ee95e87fbe66c72e3a7c Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:12 +0200
 Subject: [PATCH 015/296] sched, lockdep: Annotate ->pi_lock recursion
@@ -14,7 +14,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 15 insertions(+)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 02faf96..5b4461a 100644
+index 3830192..53b5af00 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -2654,6 +2654,7 @@ int select_task_rq(struct task_struct *p, int cpu, int sd_flags, int wake_flags)

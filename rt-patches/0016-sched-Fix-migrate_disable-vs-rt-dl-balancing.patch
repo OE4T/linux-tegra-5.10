@@ -1,4 +1,4 @@
-From f7419a004ddfa39cfd230d7e3fe2495c28b53ef1 Mon Sep 17 00:00:00 2001
+From a7e4994b1eb926e78a18eeb130a6ae72d0dca5d6 Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:13 +0200
 Subject: [PATCH 016/296] sched: Fix migrate_disable() vs rt/dl balancing
@@ -100,7 +100,7 @@ index 71accd9..b47c446 100644
  #ifdef CONFIG_PREEMPT_RCU
  	int				rcu_read_lock_nesting;
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 5b4461a..9d89008 100644
+index 53b5af00..ec9df83 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -1761,11 +1761,6 @@ void migrate_enable(void)
@@ -426,10 +426,10 @@ index cf63346a..c592e47 100644
  
  	.task_tick		= task_tick_rt,
 diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index b474265..5e08def 100644
+index 59da79e..7db3cea 100644
 --- a/kernel/sched/sched.h
 +++ b/kernel/sched/sched.h
-@@ -1053,6 +1053,8 @@ struct rq {
+@@ -1060,6 +1060,8 @@ struct rq {
  #if defined(CONFIG_PREEMPT_RT) && defined(CONFIG_SMP)
  	unsigned int		nr_pinned;
  #endif
@@ -438,7 +438,7 @@ index b474265..5e08def 100644
  };
  
  #ifdef CONFIG_FAIR_GROUP_SCHED
-@@ -1080,6 +1082,16 @@ static inline int cpu_of(struct rq *rq)
+@@ -1087,6 +1089,16 @@ static inline int cpu_of(struct rq *rq)
  #endif
  }
  
@@ -455,7 +455,7 @@ index b474265..5e08def 100644
  
  #ifdef CONFIG_SCHED_SMT
  extern void __update_idle_core(struct rq *rq);
-@@ -1819,6 +1831,8 @@ struct sched_class {
+@@ -1826,6 +1838,8 @@ struct sched_class {
  
  	void (*rq_online)(struct rq *rq);
  	void (*rq_offline)(struct rq *rq);
@@ -464,7 +464,7 @@ index b474265..5e08def 100644
  #endif
  
  	void (*task_tick)(struct rq *rq, struct task_struct *p, int queued);
-@@ -1914,6 +1928,24 @@ extern void trigger_load_balance(struct rq *rq);
+@@ -1921,6 +1935,24 @@ extern void trigger_load_balance(struct rq *rq);
  
  extern void set_cpus_allowed_common(struct task_struct *p, const struct cpumask *new_mask, u32 flags);
  

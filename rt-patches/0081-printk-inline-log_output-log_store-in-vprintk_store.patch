@@ -1,4 +1,4 @@
-From 04372b87d3490a4e345f5f268eb2daa974da7050 Mon Sep 17 00:00:00 2001
+From 27913ce07108bb1bac7ea0994d8c56328c3917a1 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Wed, 9 Dec 2020 01:50:52 +0106
 Subject: [PATCH 081/296] printk: inline log_output(),log_store() in

@@ -1,4 +1,4 @@
-From 6fc2d7db23197217b378a4d924f92db249bccccc Mon Sep 17 00:00:00 2001
+From d89ad2f3656984a22009e8f6ca3e0607549cc706 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Wed, 17 Feb 2021 16:15:31 +0100
 Subject: [PATCH 083/296] printk: limit second loop of syslog_print_all

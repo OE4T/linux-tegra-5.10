@@ -1,4 +1,4 @@
-From 56a8b9e6a52ac6a80390980411fe38feda9a07ed Mon Sep 17 00:00:00 2001
+From 922c4029d0d2397284d81502fe700817aa2b7a5d Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Fri, 11 Oct 2019 13:14:41 +0200
 Subject: [PATCH 287/296] POWERPC: Allow to enable RT
@@ -11,7 +11,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 2 insertions(+)
 
 diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-index 155add2..7152967 100644
+index 6d291ac..1d3e6f3 100644
 --- a/arch/powerpc/Kconfig
 +++ b/arch/powerpc/Kconfig
 @@ -146,6 +146,7 @@ config PPC

@@ -1,4 +1,4 @@
-From 984dea590871f938bb8b16d6a4b9f74e5be7143b Mon Sep 17 00:00:00 2001
+From 311244ec6e8abdf97f1fea1f8dd7db5cd519e6ee Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Thu, 28 Jul 2011 13:32:57 +0200
 Subject: [PATCH 273/296] tty/serial/omap: Make the locking RT aware
@@ -13,10 +13,10 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
  1 file changed, 4 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 76b94d0..8037159 100644
+index 84e8158..342005e 100644
 --- a/drivers/tty/serial/omap-serial.c
 +++ b/drivers/tty/serial/omap-serial.c
-@@ -1301,13 +1301,10 @@ serial_omap_console_write(struct console *co, const char *s,
+@@ -1311,13 +1311,10 @@ serial_omap_console_write(struct console *co, const char *s,
  
  	pm_runtime_get_sync(up->dev);
  
@@ -33,7 +33,7 @@ index 76b94d0..8037159 100644
  
  	/*
  	 * First save the IER then disable the interrupts
-@@ -1336,8 +1333,7 @@ serial_omap_console_write(struct console *co, const char *s,
+@@ -1346,8 +1343,7 @@ serial_omap_console_write(struct console *co, const char *s,
  	pm_runtime_mark_last_busy(up->dev);
  	pm_runtime_put_autosuspend(up->dev);
  	if (locked)

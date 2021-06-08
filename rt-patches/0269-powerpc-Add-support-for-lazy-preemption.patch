@@ -1,4 +1,4 @@
-From 535a21d68301b4c6f41b3b3b3953fdb8e0988696 Mon Sep 17 00:00:00 2001
+From 47dc9cd375f20ed274e5bd24ffa6d705089f6ec3 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Thu, 1 Nov 2012 10:14:11 +0100
 Subject: [PATCH 269/296] powerpc: Add support for lazy preemption
@@ -16,7 +16,7 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
  6 files changed, 50 insertions(+), 18 deletions(-)
 
 diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-index fc7b425..155add2 100644
+index 7da69f3..6d291ac 100644
 --- a/arch/powerpc/Kconfig
 +++ b/arch/powerpc/Kconfig
 @@ -230,6 +230,7 @@ config PPC

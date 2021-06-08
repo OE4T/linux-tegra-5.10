@@ -1,4 +1,4 @@
-From 9846da303fe3a51d4de0f00c2d6bf619490da426 Mon Sep 17 00:00:00 2001
+From bcfcb3db31e4239f6f318ec68545b42eab431410 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Mon, 30 Nov 2020 01:42:10 +0106
 Subject: [PATCH 109/296] printk: add pr_flush()
@@ -194,10 +194,10 @@ index 18e3aab..f56fd2e 100644
 +}
 +EXPORT_SYMBOL(pr_flush);
 diff --git a/lib/bug.c b/lib/bug.c
-index 7103440..baf61c3 100644
+index 4ab398a..9c681f2 100644
 --- a/lib/bug.c
 +++ b/lib/bug.c
-@@ -205,6 +205,7 @@ enum bug_trap_type report_bug(unsigned long bugaddr, struct pt_regs *regs)
+@@ -202,6 +202,7 @@ enum bug_trap_type report_bug(unsigned long bugaddr, struct pt_regs *regs)
  	else
  		pr_crit("Kernel BUG at %pB [verbose debug info unavailable]\n",
  			(void *)bugaddr);

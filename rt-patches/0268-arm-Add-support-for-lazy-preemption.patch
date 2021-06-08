@@ -1,4 +1,4 @@
-From 9b92460178ba3af3b448a80a3913c11c547dd647 Mon Sep 17 00:00:00 2001
+From edd3d9cb0b85dee84cac53860c31c8ad3ae3a0b5 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Wed, 31 Oct 2012 12:04:11 +0100
 Subject: [PATCH 268/296] arm: Add support for lazy preemption
@@ -68,10 +68,10 @@ index 536b6b9..875aaf9 100644
  #endif /* __KERNEL__ */
  #endif /* __ASM_ARM_THREAD_INFO_H */
 diff --git a/arch/arm/kernel/asm-offsets.c b/arch/arm/kernel/asm-offsets.c
-index be8050b..884e40a 100644
+index 70993af..024c65c 100644
 --- a/arch/arm/kernel/asm-offsets.c
 +++ b/arch/arm/kernel/asm-offsets.c
-@@ -42,6 +42,7 @@ int main(void)
+@@ -43,6 +43,7 @@ int main(void)
    BLANK();
    DEFINE(TI_FLAGS,		offsetof(struct thread_info, flags));
    DEFINE(TI_PREEMPT,		offsetof(struct thread_info, preempt_count));

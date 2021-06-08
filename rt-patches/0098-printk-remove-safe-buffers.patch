@@ -1,4 +1,4 @@
-From 43600aabc82d54b7b00f777af32e689d576abd4c Mon Sep 17 00:00:00 2001
+From e4cc5d537267f0e7be84d854418d1319acf23871 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Mon, 30 Nov 2020 01:42:00 +0106
 Subject: [PATCH 098/296] printk: remove safe buffers

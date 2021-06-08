@@ -1,4 +1,4 @@
-From a3c92e821b4d9197cbac94dbdc8b6663ca5844bd Mon Sep 17 00:00:00 2001
+From 0b22411e5cf5451e967b6e9905dafa7ad306f638 Mon Sep 17 00:00:00 2001
 From: Valentin Schneider <valentin.schneider@arm.com>
 Date: Sun, 22 Nov 2020 20:19:04 +0000
 Subject: [PATCH 071/296] notifier: Make atomic_notifiers use raw_spinlock

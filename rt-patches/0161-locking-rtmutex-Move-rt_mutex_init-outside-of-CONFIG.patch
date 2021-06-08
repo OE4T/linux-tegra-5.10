@@ -1,4 +1,4 @@
-From 1653b18eb64b103ec32a92d148102197c3ea3613 Mon Sep 17 00:00:00 2001
+From 52627157a7565c4aee0f3b4c7057b34d851594e7 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 29 Sep 2020 16:32:49 +0200
 Subject: [PATCH 161/296] locking/rtmutex: Move rt_mutex_init() outside of

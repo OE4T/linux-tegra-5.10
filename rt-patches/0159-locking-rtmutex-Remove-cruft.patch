@@ -1,4 +1,4 @@
-From ccc1ffee8a3de532a57986570d2584b8e2c2da6e Mon Sep 17 00:00:00 2001
+From 8d31718c9a9e88c34fee73063b921a8afd06798b Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 29 Sep 2020 15:21:17 +0200
 Subject: [PATCH 159/296] locking/rtmutex: Remove cruft

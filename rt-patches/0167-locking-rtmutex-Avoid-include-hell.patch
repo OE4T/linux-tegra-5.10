@@ -1,4 +1,4 @@
-From c1f3540791ef450e418ce8ec3db3b87784fe846d Mon Sep 17 00:00:00 2001
+From a8ca5235448f42fc84920027922afd8ff69b17fd Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Wed, 29 Jun 2011 20:06:39 +0200
 Subject: [PATCH 167/296] locking/rtmutex: Avoid include hell

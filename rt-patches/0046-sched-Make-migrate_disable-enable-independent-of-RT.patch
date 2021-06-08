@@ -1,4 +1,4 @@
-From 6e5705fb053686b77a066790f2bccbc1aba814ca Mon Sep 17 00:00:00 2001
+From 9ba08a34cb047e9999f9339419835cb5524c0031 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:35 +0100
 Subject: [PATCH 046/296] sched: Make migrate_disable/enable() independent of
@@ -162,7 +162,7 @@ index b47c446..942b87f 100644
  #endif
  	unsigned short			migration_flags;
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 797c213..972bae4 100644
+index 8bd19d3..04fc8bb4 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -1694,8 +1694,6 @@ void check_preempt_curr(struct rq *rq, struct task_struct *p, int flags)
@@ -253,10 +253,10 @@ index 797c213..972bae4 100644
  
  #ifdef CONFIG_MAGIC_SYSRQ
 diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index 5e08def..5f152b96 100644
+index 7db3cea..07381f6 100644
 --- a/kernel/sched/sched.h
 +++ b/kernel/sched/sched.h
-@@ -1050,7 +1050,7 @@ struct rq {
+@@ -1057,7 +1057,7 @@ struct rq {
  	struct cpuidle_state	*idle_state;
  #endif
  
@@ -265,7 +265,7 @@ index 5e08def..5f152b96 100644
  	unsigned int		nr_pinned;
  #endif
  	unsigned int		push_busy;
-@@ -1086,7 +1086,7 @@ static inline int cpu_of(struct rq *rq)
+@@ -1093,7 +1093,7 @@ static inline int cpu_of(struct rq *rq)
  
  static inline bool is_migration_disabled(struct task_struct *p)
  {

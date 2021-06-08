@@ -1,4 +1,4 @@
-From 25f56f7864b3880414c7f18c66899ac0b5945028 Mon Sep 17 00:00:00 2001
+From 5f61ea8a3bf27109d65c7426e628e49b4daade9b Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Sat, 23 Jan 2021 21:10:27 +0100
 Subject: [PATCH 066/296] blk-mq: Use llist_head for blk_cpu_done
@@ -26,7 +26,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  2 files changed, 44 insertions(+), 59 deletions(-)
 
 diff --git a/block/blk-mq.c b/block/blk-mq.c
-index f3c65e46..9329fc4 100644
+index 7049e1b..2c23e34 100644
 --- a/block/blk-mq.c
 +++ b/block/blk-mq.c
 @@ -41,7 +41,7 @@
@@ -173,7 +173,7 @@ index f3c65e46..9329fc4 100644
  }
  EXPORT_SYMBOL_GPL(blk_mq_complete_request_remote);
  
-@@ -3908,7 +3893,7 @@ static int __init blk_mq_init(void)
+@@ -3911,7 +3896,7 @@ static int __init blk_mq_init(void)
  	int i;
  
  	for_each_possible_cpu(i)

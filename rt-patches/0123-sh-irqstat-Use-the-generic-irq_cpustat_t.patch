@@ -1,4 +1,4 @@
-From 418a1faaf31313f16b3b0cfe8abcd7a09cc76f5a Mon Sep 17 00:00:00 2001
+From e11c9cff29d46492c59d1968a7b18ef4de730c6e Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Fri, 13 Nov 2020 15:02:15 +0100
 Subject: [PATCH 123/296] sh: irqstat: Use the generic irq_cpustat_t
