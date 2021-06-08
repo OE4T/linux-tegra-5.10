@@ -779,17 +779,6 @@
 		status = "okay";
 	};
 
-	bwmgr: bwmgr {
-		compatible = "nvidia,bwmgr";
-		clocks = <&bpmp_clks TEGRA234_CLK_EMC>;
-		clock-names = "emc";
-		cdev-type = "bwmgr-therm-handler";
-		cooling-min-state = <0>;
-		cooling-max-state = <1>;
-		#cooling-cells = <2>;
-		status = "okay";
-	};
-
 	tegra_hv_xhci_debug@0 {
 		compatible = "nvidia,tegra-hv-xhci-debug";
 		status = "disabled";
@@ -1086,6 +1075,7 @@
 		clocks = <&bpmp_clks TEGRA234_CLK_EMC>;
 		clock-names = "emc";
 		compatible = "nvidia,tegra23x-icc";
+		nvidia,bpmp = <&bpmp>;
 		status = "okay";
 	};
 
