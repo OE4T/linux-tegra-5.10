@@ -1121,11 +1121,7 @@ static void nvmap_iovmm_get_client_mss(struct nvmap_client *client, u64 *pss,
 			PTRACE_MODE_READ_FSCREDS);
 	if (!mm || IS_ERR(mm)) return;
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
-	down_read(&mm->mmap_sem);
-#else
-	down_read(&mm->mmap_lock);
-#endif
+	nvmap_acquire_mmap_read_lock(mm);
 	procrank_walk.mm = mm;
 
 	nvmap_ref_lock(client);
@@ -1151,11 +1147,7 @@ static void nvmap_iovmm_get_client_mss(struct nvmap_client *client, u64 *pss,
 		*total += h->size / atomic_read(&h->share_count);
 	}
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
-	up_read(&mm->mmap_sem);
-#else
-	up_read(&mm->mmap_lock);
-#endif
+	nvmap_release_mmap_read_lock(mm);
 	mmput(mm);
 	*pss = (mss.pss >> PSS_SHIFT);
 	nvmap_ref_unlock(client);
@@ -1183,11 +1175,7 @@ static void nvmap_iovmm_get_client_mss(struct nvmap_client *client, u64 *pss,
 			PTRACE_MODE_READ_FSCREDS);
 	if (!mm || IS_ERR(mm)) return;
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
-	down_read(&mm->mmap_sem);
-#else
-	down_read(&mm->mmap_lock);
-#endif
+	nvmap_acquire_mmap_read_lock(mm);
 	procrank_walk.mm = mm;
 
 	nvmap_ref_lock(client);
@@ -1215,11 +1203,7 @@ static void nvmap_iovmm_get_client_mss(struct nvmap_client *client, u64 *pss,
 		*total += h->size / atomic_read(&h->share_count);
 	}
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
-	up_read(&mm->mmap_sem);
-#else
-	up_read(&mm->mmap_lock);
-#endif
+	nvmap_release_mmap_read_lock(mm);
 	mmput(mm);
 	*pss = (mss.pss >> PSS_SHIFT);
 	nvmap_ref_unlock(client);

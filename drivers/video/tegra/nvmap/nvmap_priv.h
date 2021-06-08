@@ -402,6 +402,24 @@ static inline struct nvmap_handle *nvmap_handle_get(struct nvmap_handle *h)
 	return h;
 }
 
+static inline void nvmap_acquire_mmap_read_lock(struct mm_struct *mm)
+{
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
+	down_read(&mm->mmap_sem);
+#else
+	down_read(&mm->mmap_lock);
+#endif
+}
+
+static inline void nvmap_release_mmap_read_lock(struct mm_struct *mm)
+{
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
+	up_read(&mm->mmap_sem);
+#else
+	up_read(&mm->mmap_lock);
+#endif
+}
+
 static inline pgprot_t nvmap_pgprot(struct nvmap_handle *h, pgprot_t prot)
 {
 	if (h->flags == NVMAP_HANDLE_UNCACHEABLE) {
@@ -770,11 +788,7 @@ static inline int nvmap_get_user_pages(ulong vaddr,
 	long user_pages = 0;
 	int ret = 0;
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
-	down_read(&current->mm->mmap_sem);
-#else
-	down_read(&current->mm->mmap_lock);
-#endif
+	nvmap_acquire_mmap_read_lock(current->mm);
 	vma = find_vma(current->mm, vaddr);
 	if (vma) {
 		if (is_user_flags) {
@@ -793,11 +807,7 @@ static inline int nvmap_get_user_pages(ulong vaddr,
 		user_pages = get_user_pages(vaddr & PAGE_MASK, nr_page,
 					    foll_flags, pages, NULL);
 	}
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
-	up_read(&current->mm->mmap_sem);
-#else
-	up_read(&current->mm->mmap_lock);
-#endif
+	nvmap_release_mmap_read_lock(current->mm);
 	if (user_pages != nr_page) {
 		ret = user_pages < 0 ? user_pages : -ENOMEM;
 		pr_err("get_user_pages requested/got: %zu/%ld]\n", nr_page,
