@@ -179,6 +179,8 @@ void gv11b_gr_intr_set_shader_cut_collector(struct gk20a *g, u32 data)
 int gv11b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 				     u32 class_num, u32 offset, u32 data)
 {
+	int err = -EFAULT;
+
 	nvgpu_log_fn(g, " ");
 
 	if (class_num == VOLTA_COMPUTE_A) {
@@ -186,56 +188,74 @@ int gv11b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
 		case NVC0C0_SET_SHADER_EXCEPTIONS:
 			g->ops.gr.intr.set_shader_exceptions(g, data);
-			return 0;
+			err = 0;
+			break;
 #endif
 		case NVC3C0_SET_SKEDCHECK:
 			gv11b_gr_intr_set_skedcheck(g, data);
-			return 0;
+			err = 0;
+			break;
 		case NVC3C0_SET_SHADER_CUT_COLLECTOR:
 			gv11b_gr_intr_set_shader_cut_collector(g, data);
-			return 0;
+			err = 0;
+			break;
+		default:
+			err = -EINVAL;
+			break;
 		}
 	}
-
 
 #if defined(CONFIG_NVGPU_DEBUGGER) && defined(CONFIG_NVGPU_GRAPHICS)
 	if (class_num == VOLTA_A) {
 		switch (offset << 2) {
 		case NVC397_SET_SHADER_EXCEPTIONS:
 			g->ops.gr.intr.set_shader_exceptions(g, data);
-			return 0;
+			err = 0;
+			break;
 		case NVC397_SET_CIRCULAR_BUFFER_SIZE:
 			g->ops.gr.set_circular_buffer_size(g, data);
-			return 0;
+			err = 0;
+			break;
 		case NVC397_SET_ALPHA_CIRCULAR_BUFFER_SIZE:
 			g->ops.gr.set_alpha_circular_buffer_size(g, data);
-			return 0;
+			err = 0;
+			break;
 		case NVC397_SET_GO_IDLE_TIMEOUT:
 			gp10b_gr_intr_set_go_idle_timeout(g, data);
-			return 0;
+			err = 0;
+			break;
 		case NVC097_SET_COALESCE_BUFFER_SIZE:
 			gv11b_gr_intr_set_coalesce_buffer_size(g, data);
-			return 0;
+			err = 0;
+			break;
 		case NVC397_SET_TEX_IN_DBG:
 			gv11b_gr_intr_set_tex_in_dbg(g, data);
-			return 0;
+			err = 0;
+			break;
 		case NVC397_SET_SKEDCHECK:
 			gv11b_gr_intr_set_skedcheck(g, data);
-			return 0;
+			err = 0;
+			break;
 		case NVC397_SET_BES_CROP_DEBUG3:
 			g->ops.gr.set_bes_crop_debug3(g, data);
-			return 0;
+			err = 0;
+			break;
 		case NVC397_SET_BES_CROP_DEBUG4:
 			g->ops.gr.set_bes_crop_debug4(g, data);
-			return 0;
+			err = 0;
+			break;
 		case NVC397_SET_SHADER_CUT_COLLECTOR:
 			gv11b_gr_intr_set_shader_cut_collector(g, data);
-			return 0;
+			err = 0;
+			break;
+		default:
+			err = -EINVAL;
+			break;
 		}
 	}
 #endif
 
-	return -EINVAL;
+	return err;
 }
 
 void gv11b_gr_intr_handle_gcc_exception(struct gk20a *g, u32 gpc,

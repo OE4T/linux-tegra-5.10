@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -53,7 +53,9 @@ int gm20b_gr_init_wait_idle(struct gk20a *g);
 int gm20b_gr_init_wait_fe_idle(struct gk20a *g);
 int gm20b_gr_init_fe_pwr_mode_force_on(struct gk20a *g, bool force_on);
 void gm20b_gr_init_override_context_reset(struct gk20a *g);
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 void gm20b_gr_init_fe_go_idle_timeout(struct gk20a *g, bool enable);
+#endif
 void gm20b_gr_init_pipe_mode_override(struct gk20a *g, bool enable);
 void gm20b_gr_init_load_method_init(struct gk20a *g,
 		struct netlist_av_list *sw_method_init);

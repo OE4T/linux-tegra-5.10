@@ -373,7 +373,7 @@ void gm20b_gr_intr_enable_interrupts(struct gk20a *g, bool enable)
 
 u32 gm20b_gr_intr_nonstall_isr(struct gk20a *g)
 {
-	u32 ops = 0;
+	u32 nonstall_ops = 0;
 	u32 gr_intr = nvgpu_readl(g, gr_intr_nonstall_r());
 
 	nvgpu_log(g, gpu_dbg_intr, "pgraph nonstall intr %08x", gr_intr);
@@ -382,10 +382,10 @@ u32 gm20b_gr_intr_nonstall_isr(struct gk20a *g)
 		/* Clear the interrupt */
 		nvgpu_writel(g, gr_intr_nonstall_r(),
 			gr_intr_nonstall_trap_pending_f());
-		ops |= (NVGPU_CIC_NONSTALL_OPS_WAKEUP_SEMAPHORE |
+		nonstall_ops |= (NVGPU_CIC_NONSTALL_OPS_WAKEUP_SEMAPHORE |
 			NVGPU_CIC_NONSTALL_OPS_POST_EVENTS);
 	}
-	return ops;
+	return nonstall_ops;
 }
 
 #ifdef CONFIG_NVGPU_DEBUGGER
