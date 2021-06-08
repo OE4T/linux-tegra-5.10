@@ -72,6 +72,7 @@ struct gops_ptimer {
 	 *    priv ring HAL to decode the error.
 	 * 6. We clear SAVE_0 and SAVE_1 registers so that the next pri access
 	 *    error can be recorded.
+	 * 7. Report the PRI_TIMEOUT_ERROR to SDL unit.
 	 */
 	void (*isr)(struct gk20a *g);
 
