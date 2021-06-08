@@ -2,7 +2,7 @@
 /*
  * UCSI driver for Cypress CCGx Type-C controller
  *
- * Copyright (C) 2017-2020 NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2017-2021 NVIDIA Corporation. All rights reserved.
  * Author: Ajay Gupta <ajayg@nvidia.com>
  *
  * Some code borrowed from drivers/usb/typec/ucsi/ucsi_acpi.c
@@ -648,8 +648,8 @@ static int ucsi_ccg_role_sw_get(struct ucsi_ccg *uc)
 	if (!typec)
 		return -ENODEV;
 
+	child_node = fwnode_get_named_child_node(typec, "connector");
 	for (i = 0; i < uc->port_num; i++) {
-		child_node = fwnode_get_named_child_node(typec, "connector");
 		if (!child_node)
 			break;
 
@@ -657,13 +657,16 @@ static int ucsi_ccg_role_sw_get(struct ucsi_ccg *uc)
 		if (IS_ERR_OR_NULL(uc->role_sw[i])) {
 			err = PTR_ERR(uc->role_sw[i]);
 			uc->role_sw[i] = NULL;
-			if (err == -EPROBE_DEFER)
+			if (err == -EPROBE_DEFER) {
+				fwnode_handle_put(child_node);
 				return err;
+			}
 			dev_info(uc->dev, "Port-%d: no role switch found\n", i);
-			continue;
 		}
+		child_node = fwnode_get_next_child_node(typec, child_node);
 	}
 
+	fwnode_handle_put(child_node);
 	return 0;
 }
 
