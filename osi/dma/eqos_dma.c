@@ -539,6 +539,7 @@ static void eqos_start_dma(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
 	val = osi_readla(osi_dma->osd,
 			 (nveu8_t *)addr + EQOS_DMA_CHX_RX_CTRL(chan));
 	val |= OSI_BIT(0);
+	val &= ~OSI_BIT(31);
 	eqos_dma_safety_writel(osi_dma, val, (nveu8_t *)addr +
 			       EQOS_DMA_CHX_RX_CTRL(chan),
 			       EQOS_DMA_CH0_RX_CTRL_IDX + chan);
@@ -583,6 +584,7 @@ static void eqos_stop_dma(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
 	val = osi_readla(osi_dma->osd,
 			 (nveu8_t *)addr + EQOS_DMA_CHX_RX_CTRL(chan));
 	val &= ~OSI_BIT(0);
+	val |= OSI_BIT(31);
 	eqos_dma_safety_writel(osi_dma, val, (nveu8_t *)addr +
 			       EQOS_DMA_CHX_RX_CTRL(chan),
 			       EQOS_DMA_CH0_RX_CTRL_IDX + chan);
