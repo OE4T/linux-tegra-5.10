@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -176,7 +176,7 @@ static void tvnet_host_alloc_empty_buffers(struct tvnet_priv *tvnet)
 			break;
 		}
 
-		ep2h_empty_ptr = kmalloc(sizeof(*ep2h_empty_ptr), GFP_KERNEL);
+		ep2h_empty_ptr = kmalloc(sizeof(*ep2h_empty_ptr), GFP_ATOMIC);
 		if (!ep2h_empty_ptr) {
 			dma_unmap_single(d, iova, len, DMA_FROM_DEVICE);
 			dev_kfree_skb_any(skb);

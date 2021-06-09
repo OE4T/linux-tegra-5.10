@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -87,6 +87,7 @@ struct pci_epf_tvnet {
 	dma_addr_t ep_dma_iova;
 	struct irqsp_data *ctrl_irqsp;
 	struct irqsp_data *data_irqsp;
+	struct work_struct raise_irq_work;
 
 	struct tvnet_counter h2ep_ctrl;
 	struct tvnet_counter ep2h_ctrl;
@@ -95,6 +96,26 @@ struct pci_epf_tvnet {
 	struct tvnet_counter ep2h_empty;
 	struct tvnet_counter ep2h_full;
 };
+
+static void tvnet_ep_raise_irq_work_function(struct work_struct *work)
+{
+	struct pci_epf_tvnet *tvnet =
+		container_of(work, struct pci_epf_tvnet, raise_irq_work);
+
+	struct pci_epc *epc = tvnet->epf->epc;
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(4, 15, 0))
+	struct pci_epf *epf = tvnet->epf;
+#endif
+
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(4, 15, 0))
+	pci_epc_raise_irq(epc, epf->func_no, PCI_EPC_IRQ_MSIX, 0);
+	pci_epc_raise_irq(epc, epf->func_no, PCI_EPC_IRQ_MSIX, 1);
+#else
+	pci_epc_raise_irq(epc, PCI_EPC_IRQ_MSIX, 0);
+	pci_epc_raise_irq(epc, PCI_EPC_IRQ_MSIX, 1);
+#endif
+
+}
 
 static void tvnet_ep_read_ctrl_msg(struct pci_epf_tvnet *tvnet,
 				struct ctrl_msg *msg)
@@ -522,11 +543,13 @@ static netdev_tx_t tvnet_ep_start_xmit(struct sk_buff *skb,
 				(struct tvnet_dma_desc *)tvnet->ep_dma_virt;
 	u32 desc_widx, desc_ridx, val, ctrl_d;
 	unsigned long timeout;
+#else
+	int ret;
 #endif
 	dma_addr_t src_iova;
 	u32 rd_idx, wr_idx;
 	u64 dst_masked, dst_off, dst_iova;
-	int ret, dst_len, len;
+	int dst_len, len;
 
 	/*TODO Not expecting skb frags, remove this after testing */
 	WARN_ON(info->nr_frags);
@@ -585,6 +608,7 @@ static netdev_tx_t tvnet_ep_start_xmit(struct sk_buff *skb,
 	dst_masked = (dst_iova & ~(SZ_64K - 1));
 	dst_off = (dst_iova & (SZ_64K - 1));
 
+#if !ENABLE_DMA
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(4, 15, 0))
 	ret = pci_epc_map_addr(epc, epf->func_no, tvnet->tx_dst_pci_addr,
 			       dst_masked, dst_len);
@@ -598,18 +622,12 @@ static netdev_tx_t tvnet_ep_start_xmit(struct sk_buff *skb,
 		dev_kfree_skb_any(skb);
 		return NETDEV_TX_OK;
 	}
-
+#endif
 	/*
 	 * Advance read count after all failure cases completed, to avoid
 	 * dangling buffer at host.
 	 */
 	tvnet_ivc_advance_rd(&tvnet->ep2h_empty);
-	/* Raise an interrupt to let host populate EP2H_EMPTY_BUF ring */
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(4, 15, 0))
-	pci_epc_raise_irq(epc, epf->func_no, PCI_EPC_IRQ_MSIX, 0);
-#else
-	pci_epc_raise_irq(epc, PCI_EPC_IRQ_MSIX, 0);
-#endif
 
 #if ENABLE_DMA
 	/* Trigger DMA write from src_iova to dst_iova */
@@ -680,20 +698,18 @@ static netdev_tx_t tvnet_ep_start_xmit(struct sk_buff *skb,
 	ep2h_full_msg[wr_idx].u.full_buffer.packet_size = len;
 	ep2h_full_msg[wr_idx].u.full_buffer.pcie_address = dst_iova;
 	tvnet_ivc_advance_wr(&tvnet->ep2h_full);
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(4, 15, 0))
-	pci_epc_raise_irq(epc, epf->func_no, PCI_EPC_IRQ_MSIX, 1);
-#else
-	pci_epc_raise_irq(epc, PCI_EPC_IRQ_MSIX, 1);
-#endif
 
 	/* Free temp src and skb */
+#if !ENABLE_DMA
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(4, 15, 0))
 	pci_epc_unmap_addr(epc, epf->func_no, tvnet->tx_dst_pci_addr);
 #else
 	pci_epc_unmap_addr(epc, tvnet->tx_dst_pci_addr);
 #endif
+#endif
 	dma_unmap_single(cdev, src_iova, len, DMA_TO_DEVICE);
 	dev_kfree_skb_any(skb);
+	schedule_work(&tvnet->raise_irq_work);
 
 	return NETDEV_TX_OK;
 }
@@ -762,17 +778,6 @@ static int tvnet_ep_process_h2ep_msg(struct pci_epf_tvnet *tvnet)
 
 		/* Advance H2EP full buffer after search in local list */
 		tvnet_ivc_advance_rd(&tvnet->h2ep_full);
-
-		/*
-		 * If H2EP network queue is stopped due to lack of H2EP_FULL
-		 * queue, raising ctrl irq will help.
-		 */
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(4, 15, 0))
-		pci_epc_raise_irq(epc, epf->func_no, PCI_EPC_IRQ_MSIX, 0);
-#else
-		pci_epc_raise_irq(epc, PCI_EPC_IRQ_MSIX, 0);
-#endif
-
 #if ENABLE_DMA
 		dma_unmap_single(cdev, pcie_address, ndev->mtu,
 				 DMA_FROM_DEVICE);
@@ -1529,6 +1534,8 @@ static int tvnet_ep_pci_epf_bind(struct pci_epf *epf)
 
 	INIT_LIST_HEAD(&tvnet->h2ep_empty_list);
 	spin_lock_init(&tvnet->h2ep_empty_lock);
+
+	INIT_WORK(&tvnet->raise_irq_work, tvnet_ep_raise_irq_work_function);
 
 #if (LINUX_VERSION_CODE <= KERNEL_VERSION(4, 15, 0))
 	/* TODO Update it to 64-bit prefetch type */
