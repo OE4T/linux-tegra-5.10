@@ -220,6 +220,7 @@ typedef my_lint_64		nvel64_t;
 #define OSI_CMD_REG_DUMP		44U
 #define OSI_CMD_STRUCTS_DUMP		45U
 #endif /* OSI_DEBUG */
+#define OSI_CMD_CAP_TSC_PTP		46U
 /** @} */
 
 /**
@@ -943,6 +944,21 @@ struct osi_core_rss {
 };
 
 /**
+ * @brief osi_core_ptp_tsc_data - Struture used to store TSC and PTP time
+ * information.
+ */
+struct osi_core_ptp_tsc_data {
+	/** high bits of MAC */
+	nveu32_t ptp_high_bits;
+	/** low bits of MAC */
+	nveu32_t ptp_low_bits;
+	/** high bits of TSC */
+	nveu32_t tsc_high_bits;
+	/** low bits of TSC */
+	nveu32_t tsc_low_bits;
+};
+
+/**
  * @brief Max num of MAC core registers to backup. It should be max of or >=
  * (EQOS_MAX_BAK_IDX=380, coreX,...etc) backup registers.
  */
@@ -1115,6 +1131,8 @@ struct osi_ioctl {
 	struct osi_ptp_config ptp_config;
 	/** TX Timestamp structure */
 	struct osi_core_tx_ts tx_ts;
+	/** PTP TSC data */
+	struct osi_core_ptp_tsc_data ptp_tsc;
 };
 
 /**
@@ -2277,6 +2295,10 @@ nve32_t osi_get_hw_features(struct osi_core_priv_data *const osi_core,
  *	Command to free old timestamp for PTP packet
  *	chan - DMA channel number +1. 0 will be used for onestep
  *
+ *  - OSI_CMD_CAP_TSC_PTP
+ *      Capture TSC and PTP time stamp
+ *      ptp_tsc_data - output structure with time
+ *
  * @param[in] osi_core: OSI core private data structure.
  * @param[in] data: void pointer pointing to osi_ioctl
  *
@@ -2468,6 +2490,10 @@ struct osi_core_priv_data *osi_get_core(void);
  *  - OSI_CMD_FREE_TS
  *	Command to free old timestamp for PTP packet
  *	chan - DMA channel number +1. 0 will be used for onestep
+ *
+ *  - OSI_CMD_CAP_TSC_PTP
+ *      Capture TSC and PTP time stamp
+ *      ptp_tsc_data - output structure with time
  *
  * @param[in] osi_core: OSI core private data structure.
  * @param[in] data: void pointer pointing to osi_ioctl

@@ -44,6 +44,75 @@ static nve32_t eqos_pre_pad_calibrate(
 static struct core_func_safety eqos_core_safety_config;
 
 /**
+ * @brief eqos_ptp_tsc_capture - read PTP and TSC registers
+ *
+ * Algorithm:
+ * - write 1 to ETHER_QOS_WRAP_SYNC_TSC_PTP_CAPTURE_0
+ * - wait till ETHER_QOS_WRAP_SYNC_TSC_PTP_CAPTURE_0 is 0x0
+ * - read and return following registers
+ *   ETHER_QOS_WRAP_TSC_CAPTURE_LOW_0
+ *   ETHER_QOS_WRAP_TSC_CAPTURE_HIGH_0
+ *   ETHER_QOS_WRAP_PTP_CAPTURE_LOW_0
+ *   ETHER_QOS_WRAP_PTP_CAPTURE_HIGH_0
+ *
+ * @param[in] base: EQOS virtual base address.
+ * @param[out]: osi_core_ptp_tsc_data register
+ *
+ * @note MAC needs to be out of reset and proper clock configured. TSC and PTP
+ * registers should be configured.
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static nve32_t eqos_ptp_tsc_capture(struct osi_core_priv_data *const osi_core,
+				    struct osi_core_ptp_tsc_data *data)
+{
+	nveu32_t retry = 1000U;
+	nveu32_t count = 0U, val = 0U;
+	nve32_t cond = COND_NOT_MET;
+	nve32_t ret = -1;
+
+	if (osi_core->mac_ver < OSI_EQOS_MAC_5_30) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "ptp_tsc: older IP\n", 0ULL);
+		goto done;
+	}
+	osi_writela(osi_core, OSI_ENABLE, (nveu8_t *)osi_core->base +
+		    EQOS_WRAP_SYNC_TSC_PTP_CAPTURE);
+
+	/* Poll Until Poll Condition */
+	while (cond == COND_NOT_MET) {
+		if (count > retry) {
+			/* Max retries reached */
+			goto done;
+		}
+
+		count++;
+
+		val = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				 EQOS_WRAP_SYNC_TSC_PTP_CAPTURE);
+		if ((val & OSI_ENABLE) == OSI_NONE) {
+			cond = COND_MET;
+		} else {
+			/* sleep if SWR is set */
+			osi_core->osd_ops.msleep(1U);
+		}
+	}
+
+	data->tsc_low_bits =  osi_readla(osi_core, (nveu8_t *)osi_core->base +
+					 EQOS_WRAP_TSC_CAPTURE_LOW);
+	data->tsc_high_bits =  osi_readla(osi_core, (nveu8_t *)osi_core->base +
+					  EQOS_WRAP_TSC_CAPTURE_HIGH);
+	data->ptp_low_bits =  osi_readla(osi_core, (nveu8_t *)osi_core->base +
+					 EQOS_WRAP_PTP_CAPTURE_LOW);
+	data->ptp_high_bits =  osi_readla(osi_core, (nveu8_t *)osi_core->base +
+					  EQOS_WRAP_PTP_CAPTURE_HIGH);
+	ret = 0;
+done:
+	return ret;
+}
+
+/**
  * @brief eqos_core_safety_writel - Write to safety critical register.
  *
  * @note
@@ -6461,4 +6530,5 @@ void eqos_init_core_ops(struct core_ops *ops)
 #ifdef MACSEC_SUPPORT
 	ops->config_macsec_ipg = eqos_config_macsec_ipg;
 #endif /*  MACSEC_SUPPORT */
+	ops->ptp_tsc_capture = eqos_ptp_tsc_capture;
 }
