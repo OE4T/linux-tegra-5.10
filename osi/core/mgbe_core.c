@@ -32,6 +32,70 @@
 #include "vlan_filter.h"
 
 /**
+ * @brief mgbe_ptp_tsc_capture - read PTP and TSC registers
+ *
+ * Algorithm:
+ * - write 1 to MGBE_WRAP_SYNC_TSC_PTP_CAPTURE_0
+ * - wait till MGBE_WRAP_SYNC_TSC_PTP_CAPTURE_0 is 0x0
+ * - read and return following registers
+ *   MGBE_WRAP _TSC_CAPTURE_LOW_0
+ *   MGBE_WRAP _TSC_CAPTURE_HIGH_0
+ *   MGBE_WRAP _PTP_CAPTURE_LOW_0
+ *   MGBE_WRAP _PTP_CAPTURE_HIGH_0
+ *
+ * @param[in] base: MGBE virtual base address.
+ * @param[out]: osi_core_ptp_tsc_data register
+ *
+ * @note MAC needs to be out of reset and proper clock configured. TSC and PTP
+ * registers should be configured.
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static nve32_t mgbe_ptp_tsc_capture(struct osi_core_priv_data *const osi_core,
+				    struct osi_core_ptp_tsc_data *data)
+{
+	nveu32_t retry = 1000U;
+	nveu32_t count = 0U, val = 0U;
+	nve32_t cond = COND_NOT_MET;
+	nve32_t ret = -1;
+
+	osi_writela(osi_core, OSI_ENABLE, (nveu8_t *)osi_core->base +
+		    MGBE_WRAP_SYNC_TSC_PTP_CAPTURE);
+
+	/* Poll Until Poll Condition */
+	while (cond == COND_NOT_MET) {
+		if (count > retry) {
+			/* Max retries reached */
+			goto done;
+		}
+
+		count++;
+
+		val = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				 MGBE_WRAP_SYNC_TSC_PTP_CAPTURE);
+		if ((val & OSI_ENABLE) == OSI_NONE) {
+			cond = COND_MET;
+		} else {
+			/* sleep if SWR is set */
+			osi_core->osd_ops.msleep(1U);
+		}
+	}
+
+	data->tsc_low_bits = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+					MGBE_WRAP_TSC_CAPTURE_LOW);
+	data->tsc_high_bits =  osi_readla(osi_core, (nveu8_t *)osi_core->base +
+					 MGBE_WRAP_TSC_CAPTURE_HIGH);
+	data->ptp_low_bits =  osi_readla(osi_core, (nveu8_t *)osi_core->base +
+					 MGBE_WRAP_PTP_CAPTURE_LOW);
+	data->ptp_high_bits =  osi_readla(osi_core, (nveu8_t *)osi_core->base +
+					 MGBE_WRAP_PTP_CAPTURE_HIGH);
+	ret = 0;
+done:
+	return ret;
+}
+
+/**
  * @brief mgbe_config_fw_err_pkts - Configure forwarding of error packets
  *
  * Algorithm: When FEP bit is reset, the Rx queue drops packets with
@@ -5836,6 +5900,7 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->config_frp = mgbe_config_frp;
 	ops->update_frp_entry = mgbe_update_frp_entry;
 	ops->update_frp_nve = mgbe_update_frp_nve;
+	ops->ptp_tsc_capture = mgbe_ptp_tsc_capture;
 	ops->write_reg = mgbe_write_reg;
 	ops->read_reg = mgbe_read_reg;
 #ifdef MACSEC_SUPPORT

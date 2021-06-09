@@ -1665,6 +1665,7 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		free_tx_ts(osi_core, data->arg1_u32);
 		ret = 0;
 		break;
+
 #ifdef OSI_DEBUG
 	case OSI_CMD_REG_DUMP:
 		core_reg_dump(osi_core);
@@ -1675,6 +1676,10 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		ret = 0;
 		break;
 #endif /* OSI_DEBUG */
+	case OSI_CMD_CAP_TSC_PTP:
+		ret = ops_p->ptp_tsc_capture(osi_core, &data->ptp_tsc);
+		break;
+
 	default:
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			     "CORE: Incorrect command\n",

@@ -270,6 +270,8 @@ struct core_ops {
 	void (*config_macsec_ipg)(struct osi_core_priv_data *const osi_core,
 				  const nveu32_t enable);
 #endif /* MACSEC_SUPPORT */
+	int (*ptp_tsc_capture)(struct osi_core_priv_data *const osi_core,
+			       struct osi_core_ptp_tsc_data *data);
 };
 
 
