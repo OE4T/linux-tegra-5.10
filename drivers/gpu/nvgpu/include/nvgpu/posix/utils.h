@@ -496,22 +496,6 @@ static inline unsigned int nvgpu_posix_hweight64(uint64_t x)
 /** Defined to match kernel macro names. */
 #define likely(x)	(x)
 
-/*
- * Prevent compiler optimizations from mangling writes. But likely most uses of
- * this in nvgpu are incorrect (i.e unnecessary).
- */
-/**
- * @brief Ensure ordered writes.
- *
- * @param p	Variable to be updated.
- * @param v	Value to be written.
- */
-#define WRITE_ONCE(p, v)				\
-	({						\
-		volatile typeof(p) *__p__ = &(p);	\
-		*__p__ = (v);				\
-	})
-
 /**
  * @brief Get the container which holds the member.
  *

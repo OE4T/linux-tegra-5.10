@@ -27,6 +27,7 @@
 #include <unit/unit.h>
 
 #include <nvgpu/utils.h>
+#include <nvgpu/barrier.h>
 
 #include "posix-utils.h"
 
@@ -487,10 +488,10 @@ int test_write_once(struct unit_module *m,
 	test1 = 20;
 	for (i = 0 ; i < 10; i++) {
 		test1 += 1;
-		WRITE_ONCE(result, test1);
+		NV_WRITE_ONCE(result, test1);
 		if (result != test1) {
 			unit_return_fail(m,
-				"WRITE_ONCE failure %d\n", result);
+				"NV_WRITE_ONCE failure %d\n", result);
 		}
 	}
 

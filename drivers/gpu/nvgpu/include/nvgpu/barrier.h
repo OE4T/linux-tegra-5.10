@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -44,8 +44,30 @@
 #define nvgpu_smp_rmb()	nvgpu_smp_rmb_impl()
 #define nvgpu_smp_wmb()	nvgpu_smp_wmb_impl()
 
-#define NV_READ_ONCE(x)		NV_READ_ONCE_IMPL((x))
-#define NV_WRITE_ONCE(x, y)	NV_WRITE_ONCE_IMPL((x), (y))
+/**
+ * @brief Compilers can do optimizations assuming there is a single thread
+ * executing the code. For example, a variable read in a loop from one thread
+ * may not see the update from another thread because compiler has assumed that
+ * it's value cannot change from the one initialized before the loop. There are
+ * other possibilities like multiple references to a variable when the code
+ * assumes that it should see a constant value. In general, this macro should
+ * never be used by nvgpu driver code, and many of the current uses in driver
+ * are likely wrong.
+ * For more info see: URL = lwn.net/Articles/508991/
+ *
+ * @param x [in] variable that needs to turn into a volatile type temporarily.
+ */
+#define NV_READ_ONCE(x)		(*((volatile typeof(x) *)&x))
+
+/**
+ * @brief Ensure ordered writes.
+ *
+ * @param x    Variable to be updated.
+ * @param y    Value to be written.
+ *
+ * Prevent compiler optimizations from mangling writes.
+ */
+#define NV_WRITE_ONCE(x, y)	(*((volatile typeof(x) *)(&(x))) = (y))
 
 /*
  * Sometimes we want to prevent speculation.
