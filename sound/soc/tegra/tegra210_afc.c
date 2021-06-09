@@ -393,6 +393,7 @@ static const struct snd_soc_component_driver tegra210_afc_cmpnt = {
 	.num_dapm_widgets = ARRAY_SIZE(tegra210_afc_widgets),
 	.dapm_routes = tegra210_afc_routes,
 	.num_dapm_routes = ARRAY_SIZE(tegra210_afc_routes),
+	.non_legacy_dai_naming	= 1,
 };
 
 static const struct snd_soc_component_driver tegra186_afc_cmpnt = {
@@ -402,6 +403,7 @@ static const struct snd_soc_component_driver tegra186_afc_cmpnt = {
 	.num_dapm_routes = ARRAY_SIZE(tegra210_afc_routes),
 	.controls = tegra186_afc_controls,
 	.num_controls = ARRAY_SIZE(tegra186_afc_controls),
+	.non_legacy_dai_naming	= 1,
 };
 
 static bool tegra210_afc_wr_rd_reg(struct device *dev, unsigned int reg)

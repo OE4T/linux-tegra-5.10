@@ -513,6 +513,7 @@ static struct snd_soc_component_driver tegra210_mixer_cmpnt = {
 	.num_dapm_routes = ARRAY_SIZE(tegra210_mixer_routes),
 	.controls = tegra210_mixer_gain_ctls,
 	.num_controls = ARRAY_SIZE(tegra210_mixer_gain_ctls),
+	.non_legacy_dai_naming	= 1,
 };
 
 static bool tegra210_mixer_wr_reg(struct device *dev,
