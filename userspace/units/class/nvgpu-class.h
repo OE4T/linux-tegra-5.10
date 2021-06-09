@@ -39,8 +39,15 @@ struct unit_module;
  *
  * Test Type: Feature, Boundary Values
  *
+ * Targets: gops_class.is_valid, gv11b_class_is_valid
+ * Equivalence classes:
+ * Variable: class_num
+ * - Valid : { 0xC3C0U }, { 0xC3B5U }, { 0xC36FU }, { 0xC397U }
+ *
  * Targets: gops_class.is_valid_compute, gv11b_class_is_valid_compute,
- *          gops_class.is_valid, gv11b_class_is_valid
+ * Equivalence classes:
+ * Variable: class_num
+ * - Valid : { 0xC3C0U }
  *
  * Input: None
  *
