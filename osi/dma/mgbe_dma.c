@@ -316,6 +316,7 @@ static void mgbe_start_dma(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
 	/* start Rx DMA */
 	val = osi_readl((nveu8_t *)addr + MGBE_DMA_CHX_RX_CTRL(chan));
 	val |= OSI_BIT(0);
+	val &= ~OSI_BIT(31);
 	osi_writel(val, (nveu8_t *)addr + MGBE_DMA_CHX_RX_CTRL(chan));
 }
 
@@ -345,6 +346,7 @@ static void mgbe_stop_dma(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
 	/* stop Rx DMA */
 	val = osi_readl((nveu8_t *)addr + MGBE_DMA_CHX_RX_CTRL(chan));
 	val &= ~OSI_BIT(0);
+	val |= OSI_BIT(31);
 	osi_writel(val, (nveu8_t *)addr + MGBE_DMA_CHX_RX_CTRL(chan));
 }
 
