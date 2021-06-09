@@ -2746,6 +2746,7 @@ static void eqos_l2_filter_delete(struct osi_core_priv_data *osi_core,
 		osi_writela(osi_core, *value, (nveu8_t *)osi_core->base +
 			    EQOS_MAC_ADDRH((idx)));
 	} else {
+		*value &= ~(EQOS_MAC_ADDRH_DCS);
 		*value |= (dcs_check << EQOS_MAC_ADDRH_DCS_SHIFT);
 		osi_writela(osi_core, *value, (nveu8_t *)osi_core->base +
 			    EQOS_MAC_ADDRH((idx)));
