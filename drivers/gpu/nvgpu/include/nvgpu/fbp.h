@@ -39,11 +39,8 @@ struct nvgpu_fbp;
  * @param g [in]	Pointer to GPU driver struct.
  *
  * This API reads various FBP related configuration information like:
- * 1. Number of FBPs from PPRIV_MASTER_RING_ENUMERATE_RESULTS_FBP_COUNT
- * 2. Maximum number of FBPs from PTOP_SCAL_NUM_FBPS
- * 3. Active FBP mask from the fuse(accessed from GPU MMIO register space)
- * 4. Mask of Rop_L2 for each FBP from fuse(accessed from GPU MMIO register
- * 					    space)
+ * 1. Maximum number of FBPs from PTOP_SCAL_NUM_FBPS
+ * 2. Active FBP mask from the fuse(accessed from GPU MMIO register space)
  *
  * All the above configuration information is stored in a struct nvgpu_fbp
  * and exposed to other units through APIs.
