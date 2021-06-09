@@ -3,7 +3,7 @@
  *
  * Handle allocation and freeing routines for nvmap
  *
- * Copyright (c) 2009-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2009-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -183,7 +183,7 @@ struct nvmap_handle_ref *nvmap_create_handle_from_va(struct nvmap_client *client
 		size = vma->vm_end - vaddr;
 
 	/* Don't allow exuberantly large sizes. */
-	if (!nvmap_memory_available(size)) {
+	if (!is_nvmap_memory_available(size)) {
 		pr_debug("Cannot allocate %zu bytes.\n", size);
 		return ERR_PTR(-ENOMEM);
 	}

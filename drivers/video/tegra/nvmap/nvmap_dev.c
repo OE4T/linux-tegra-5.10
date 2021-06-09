@@ -579,7 +579,7 @@ next_page:
 	nvmap_ref_unlock(client);
 }
 
-bool nvmap_memory_available(size_t size)
+bool is_nvmap_memory_available(size_t size)
 {
 	struct sysinfo i;
 

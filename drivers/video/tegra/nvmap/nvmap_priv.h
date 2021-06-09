@@ -833,5 +833,5 @@ int nvmap_dmabuf_set_drv_data(struct dma_buf *dmabuf,
 		struct device *dev, void *priv, void (*delete)(void *priv));
 void *nvmap_dmabuf_get_drv_data(struct dma_buf *dmabuf,
 		struct device *dev);
-bool nvmap_memory_available(size_t size);
+bool is_nvmap_memory_available(size_t size);
 #endif /* __VIDEO_TEGRA_NVMAP_NVMAP_H */
