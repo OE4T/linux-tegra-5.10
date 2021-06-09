@@ -25,6 +25,9 @@
 #include <nvgpu/barrier.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/static_analysis.h>
+#ifdef CONFIG_NVGPU_REMAP
+#include <nvgpu/vm_remap.h>
+#endif
 
 struct nvgpu_vm_area *nvgpu_vm_area_find(struct vm_gk20a *vm, u64 addr)
 {
@@ -200,6 +203,7 @@ int nvgpu_vm_area_alloc(struct vm_gk20a *vm, u64 pages, u32 page_size,
 	u64 vaddr_start = 0;
 	u64 our_addr = *addr;
 	u32 pgsz_idx = GMMU_PAGE_SIZE_SMALL;
+	int err = 0;
 
 	/*
 	 * If we have a fixed address then use the passed address in *addr. This
@@ -226,8 +230,10 @@ int nvgpu_vm_area_alloc(struct vm_gk20a *vm, u64 pages, u32 page_size,
 	}
 
 	vma = vm->vma[pgsz_idx];
-	if (nvgpu_vm_area_alloc_memory(vma, our_addr, pages,
-				page_size, flags, &vaddr_start) != 0) {
+
+	err = nvgpu_vm_area_alloc_memory(vma, our_addr, pages, page_size,
+					flags, &vaddr_start);
+	if (err != 0) {
 		goto free_vm_area;
 	}
 
@@ -238,10 +244,21 @@ int nvgpu_vm_area_alloc(struct vm_gk20a *vm, u64 pages, u32 page_size,
 	nvgpu_init_list_node(&vm_area->buffer_list_head);
 	nvgpu_init_list_node(&vm_area->vm_area_list);
 
+#ifdef CONFIG_NVGPU_REMAP
+	if (((flags & NVGPU_VM_AREA_ALLOC_SPARSE) != 0U) &&
+		(vm_area->pgsz_idx == GMMU_PAGE_SIZE_BIG)) {
+		err = nvgpu_vm_remap_vpool_create(vm, vm_area, pages);
+		if (err != 0) {
+			goto free_vaddr;
+		}
+	}
+#endif
+
 	nvgpu_mutex_acquire(&vm->update_gmmu_lock);
 
-	if (nvgpu_vm_area_alloc_gmmu_map(vm, vm_area, vaddr_start,
-						pgsz_idx, flags) != 0) {
+	err = nvgpu_vm_area_alloc_gmmu_map(vm, vm_area, vaddr_start,
+					pgsz_idx, flags);
+	if (err != 0) {
 		nvgpu_mutex_release(&vm->update_gmmu_lock);
 		goto free_vaddr;
 	}
@@ -252,10 +269,16 @@ int nvgpu_vm_area_alloc(struct vm_gk20a *vm, u64 pages, u32 page_size,
 	return 0;
 
 free_vaddr:
+#ifdef CONFIG_NVGPU_REMAP
+	if (vm_area->vpool != NULL) {
+		nvgpu_vm_remap_vpool_destroy(vm, vm_area);
+		vm_area->vpool = NULL;
+	}
+#endif
 	nvgpu_free(vma, vaddr_start);
 free_vm_area:
 	nvgpu_kfree(g, vm_area);
-	return -ENOMEM;
+	return err;
 }
 
 int nvgpu_vm_area_free(struct vm_gk20a *vm, u64 addr)
@@ -301,6 +324,13 @@ int nvgpu_vm_area_free(struct vm_gk20a *vm, u64 addr)
 				     true,
 				     NULL);
 	}
+
+#ifdef CONFIG_NVGPU_REMAP
+	/* clean up any remap resources */
+	if (vm_area->vpool != NULL) {
+		nvgpu_vm_remap_vpool_destroy(vm, vm_area);
+	}
+#endif
 
 	nvgpu_mutex_release(&vm->update_gmmu_lock);
 

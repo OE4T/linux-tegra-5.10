@@ -60,6 +60,10 @@ ifeq ($(CONFIG_NVGPU_COMPRESSION),1)
 srcs += os/posix/posix-comptags.c
 endif
 
+ifeq ($(CONFIG_NVGPU_REMAP),1)
+srcs += os/posix/posix-vm_remap.c
+endif
+
 ifeq ($(CONFIG_NVGPU_LOGGING),1)
 srcs += os/posix/log.c
 endif
@@ -602,6 +606,10 @@ srcs += common/mm/comptags.c \
 	hal/cbc/cbc_gm20b.c \
 	hal/cbc/cbc_gp10b.c \
 	hal/cbc/cbc_gv11b.c
+endif
+
+ifeq ($(CONFIG_NVGPU_REMAP),1)
+srcs += common/mm/vm_remap.c
 endif
 
 ifeq ($(CONFIG_NVGPU_NVLINK),1)

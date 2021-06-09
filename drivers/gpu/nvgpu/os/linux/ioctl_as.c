@@ -23,6 +23,7 @@
 #include <nvgpu/gmmu.h>
 #include <nvgpu/mm.h>
 #include <nvgpu/vm_area.h>
+#include <nvgpu/vm_remap.h>
 #include <nvgpu/log2.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/nvgpu_init.h>
@@ -325,6 +326,82 @@ static int nvgpu_as_ioctl_mapping_modify(
 				args->buffer_size);
 }
 
+static int nvgpu_as_ioctl_remap(
+	struct gk20a_as_share *as_share,
+	struct nvgpu_as_remap_args *args)
+{
+	struct gk20a *g = gk20a_from_vm(as_share->vm);
+	struct nvgpu_as_remap_op __user *user_remap_ops = NULL;
+	struct nvgpu_as_remap_op remap_op;
+	struct nvgpu_vm_remap_op *nvgpu_vm_remap_ops = NULL;
+	u32 i;
+	int err = 0;
+
+	nvgpu_log_fn(g, " ");
+
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_REMAP)) {
+		return -ENOTTY;
+	}
+
+	if (args->num_ops == 0) {
+		return 0;
+	}
+
+	/* allocate buffer for internal representation of remap ops */
+	nvgpu_vm_remap_ops = nvgpu_kzalloc(g, args->num_ops *
+				sizeof(struct nvgpu_vm_remap_op));
+	if (nvgpu_vm_remap_ops == NULL) {
+		err = -ENOMEM;
+		goto out;
+	}
+
+	user_remap_ops =
+		(struct nvgpu_as_remap_op __user *)(uintptr_t)args->ops;
+
+	for (i = 0; i < args->num_ops; i++) {
+		if (copy_from_user(&remap_op, &user_remap_ops[i],
+					sizeof(remap_op))) {
+			err = -EFAULT;
+			goto out;
+		}
+
+		err = nvgpu_vm_remap_translate_as_op(as_share->vm,
+						&nvgpu_vm_remap_ops[i],
+						&remap_op);
+		if (err != 0) {
+			args->num_ops = 0;
+			goto out;
+		}
+	}
+
+	/* execute remap ops */
+	err = nvgpu_vm_remap(as_share->vm, nvgpu_vm_remap_ops,
+			&args->num_ops);
+	if (err != 0) {
+		goto out;
+	}
+
+	/* update user params */
+	for (i = 0; i < args->num_ops; i++) {
+		nvgpu_vm_remap_translate_vm_op(&remap_op,
+					&nvgpu_vm_remap_ops[i]);
+
+		if (copy_to_user(&user_remap_ops[i], &remap_op,
+					sizeof(remap_op))) {
+			err = -EFAULT;
+			args->num_ops = i;
+			goto out;
+		}
+	}
+
+out:
+	if (nvgpu_vm_remap_ops != NULL) {
+		nvgpu_kfree(g, nvgpu_vm_remap_ops);
+	}
+
+	return err;
+}
+
 int gk20a_as_dev_open(struct inode *inode, struct file *filp)
 {
 	struct gk20a_as_share *as_share;
@@ -371,7 +448,7 @@ long gk20a_as_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	int err = 0;
 	struct gk20a_as_share *as_share = filp->private_data;
 	struct gk20a *g = gk20a_from_as(as_share->as);
-
+	bool always_copy_to_user = false;
 	u8 buf[NVGPU_AS_IOCTL_MAX_ARG_SIZE];
 
 	nvgpu_log_fn(g, "start %d", _IOC_NR(cmd));
@@ -466,6 +543,11 @@ long gk20a_as_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		err = nvgpu_as_ioctl_mapping_modify(as_share,
 			(struct nvgpu_as_mapping_modify_args *)buf);
 		break;
+	case NVGPU_AS_IOCTL_REMAP:
+		err = nvgpu_as_ioctl_remap(as_share,
+			(struct nvgpu_as_remap_args *)buf);
+		always_copy_to_user = true;
+		break;
 	default:
 		err = -ENOTTY;
 		break;
@@ -473,7 +555,7 @@ long gk20a_as_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 
 	gk20a_idle(g);
 
-	if ((err == 0) && (_IOC_DIR(cmd) & _IOC_READ))
+	if ((err == 0 || always_copy_to_user) && (_IOC_DIR(cmd) & _IOC_READ))
 		if (copy_to_user((void __user *)arg, buf, _IOC_SIZE(cmd)))
 			err = -EFAULT;
 

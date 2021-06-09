@@ -228,7 +228,8 @@ vgpu:
              os/linux/vgpu/vgpu_linux.h ]
 
 vm:
-  sources: [ os/linux/vm.c ]
+  sources: [ os/linux/vm.c,
+             os/linux/vm_remap.c ]
 
 cic:
   sources: [ os/linux/cic/cic_stub.c ]
@@ -252,7 +253,8 @@ headers:
              include/nvgpu/linux/thread.h,
              include/nvgpu/linux/log.h,
              include/nvgpu/linux/utils.h,
-             include/nvgpu/linux/vm.h ]
+             include/nvgpu/linux/vm.h,
+             include/nvgpu/linux/vm_remap.h ]
 
 # An extra unit to lump all the unclassified Linux files.
 extra:

@@ -158,6 +158,8 @@ struct nvgpu_gpu_zbc_query_table_args {
 #define NVGPU_GPU_FLAGS_SUPPORT_FAULT_RECOVERY		(1ULL << 33)
 /* Mapping modify is enabled */
 #define NVGPU_GPU_FLAGS_SUPPORT_MAPPING_MODIFY		(1ULL << 34)
+/* Remap is enabled */
+#define NVGPU_GPU_FLAGS_SUPPORT_REMAP			(1ULL << 35)
 /* Compression is enabled */
 #define NVGPU_GPU_FLAGS_SUPPORT_COMPRESSION		(1ULL << 36)
 /* SM TTU is enabled */
@@ -1100,4 +1102,4 @@ struct nvgpu_gpu_register_buffer_args {
 #define NVGPU_GPU_IOCTL_MAX_ARG_SIZE	\
 	sizeof(struct nvgpu_gpu_get_cpu_time_correlation_info_args)
 
-#endif
+#endif /* _UAPI__LINUX_NVGPU_CTRL_H__ */

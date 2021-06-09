@@ -431,6 +431,137 @@ struct nvgpu_as_mapping_modify_args {
 	__u64 map_address;	/* in, base virtual address of mapped buffer */
 };
 
+/*
+ * VM remap operation.
+ *
+ * The VM remap operation structure represents a single map or unmap operation
+ * to be executed by the NVGPU_AS_IOCTL_REMAP ioctl.
+ *
+ * The format of the structure is as follows:
+ *
+ * @flags [IN]
+ *
+ *   The following remap operation flags are supported:
+ *
+ *     %NVGPU_AS_REMAP_OP_FLAGS_CACHEABLE
+ *
+ *       Specify that the associated mapping shall be GPU cachable.
+ *
+ *     %NVGPU_AS_REMAP_OP_FLAGS_ACCESS_NO_WRITE
+ *
+ *       Specify that the associated mapping shall be read-only.  This flag
+ *       must be set if the physical memory buffer represented by @mem_handle
+ *       is mapped read-only.
+ *
+ *   This field must be zero for unmap operations.
+ *
+ * @compr_kind  [IN/OUT]
+ * @incompr_kind  [IN/OUT]
+ *
+ *   On input these fields specify the compressible and incompressible kinds
+ *   to be used for the mapping.  If @compr_kind is not set to NV_KIND_INVALID
+ *   then nvgpu will attempt to allocate compression resources.  If
+ *   @compr_kind is set to NV_KIND_INVALID or there are no compression
+ *   resources then nvgpu will attempt to use @incompr_kind.  If both
+ *   @compr_kind and @incompr_kind are set to NV_KIND_INVALID then -EINVAL is
+ *   returned.  These fields must be set to NV_KIND_INVALID for unmap
+ *   operations.  On output these fields return the selected kind.  If
+ *   @compr_kind is set to a valid compressible kind but the required
+ *   compression resources are not available then @compr_kind will return
+ *   NV_INVALID_KIND and the @incompr_kind value will be used for the mapping.
+ *
+ * @mem_handle [IN]
+ *
+ *   Specify the memory handle (dmabuf_fd) associated with the physical
+ *   memory buffer to be mapped.  This field must be zero for unmap
+ *   operations.
+ *
+ * @mem_offset_in_pages [IN]
+ *
+ *   Specify an offset into the physical buffer associated with mem_handle at
+ *   which to start the mapping.  This value is in pages and the page size
+ *   is the big page size in the associated sparse address space.  This value
+ *   must be zero for unmap operations.
+ *
+ * @virt_offset_in_pages [IN]
+ *
+ *   Specify the virtual memory start offset of the region to map or unmap.
+ *   This value is in pages and the page size is the big page size in the
+ *   associated sparse address space.
+ *
+ * @num_pages [IN]
+ *   Specify the number of pages to map or unmap.
+ */
+struct nvgpu_as_remap_op {
+#define NVGPU_AS_REMAP_OP_FLAGS_CACHEABLE               (1 << 2)
+#define NVGPU_AS_REMAP_OP_FLAGS_ACCESS_NO_WRITE         (1 << 10)
+
+	/* in: For map operations, this field specifies the mask of
+         * NVGPU_AS_REMAP flags to use for the mapping.  For unmap operations
+         * this field must be zero */
+	__u32 flags;
+
+	/* in: For map operations, this field specifies the desired
+         * compressible kind.  For unmap operations this field must be set
+	 * to NV_KIND_INVALID.
+	 * out: For map operations this field returns the actual kind used
+	 * for the mapping.  This can be useful for detecting if a compressed
+	 * mapping request was forced to use the fallback incompressible kind
+	 * value because sufficient compression resources are not available. */
+	__s16 compr_kind;
+
+	/* in: For map operations, this field specifies the desired
+	 * incompressible kind.  This value will be used as the fallback kind
+	 * if a valid compressible kind value was specified in the compr_kind
+	 * field but sufficient compression resources are not available.  For
+	 * unmap operations this field must be set to NV_KIND_INVALID. */
+	__s16 incompr_kind;
+
+	/* in: For map operations, this field specifies the handle (dmabuf_fd)
+	 * for the physical memory buffer to map into the specified virtual
+	 * address range.  For unmap operations, this field must be set to
+         * zero. */
+	__u32 mem_handle;
+
+	/* This field is reserved for padding purposes. */
+	__s32 reserved;
+
+	/* in: For map operations this field specifies the offset (in pages)
+	 * into the physical memory buffer associated with mem_handle from
+	 * from which physical page information should be collected for
+	 * the mapping.  For unmap operations this field must be zero. */
+	__u64 mem_offset_in_pages;
+
+	/* in: For both map and unmap operations this field specifies the
+	 * virtual address space start offset in pages for the operation. */
+	__u64 virt_offset_in_pages;
+
+	/* in: For both map and unmap operations this field specifies the
+	 * number of pages to map or unmap. */
+	__u64 num_pages;
+};
+
+/*
+ * VM remap IOCTL
+ *
+ * This ioctl can be used to issue multiple map and/or unmap operations in
+ * a single request.  VM remap operations are only valid on address spaces
+ * that have been allocated with NVGPU_AS_ALLOC_SPACE_FLAGS_SPARSE.
+ * Validation of remap operations is performed before any changes are made
+ * to the associated sparse address space so either all map and/or unmap
+ * operations are performed or none of them area.
+ */
+struct nvgpu_as_remap_args {
+	/* in: This field specifies a pointer into the caller's address space
+	 * containing an array of one or more nvgpu_as_remap_op structures. */
+	__u64 ops;
+
+	/* in/out: On input this field specifies the number of operations in
+	 * the ops array.  On output this field returns the successful
+	 * number of remap operations. */
+	__u32 num_ops;
+};
+
 #define NVGPU_AS_IOCTL_BIND_CHANNEL \
 	_IOWR(NVGPU_AS_IOCTL_MAGIC, 1, struct nvgpu_as_bind_channel_args)
 #define NVGPU32_AS_IOCTL_ALLOC_SPACE \
@@ -455,10 +586,12 @@ struct nvgpu_as_mapping_modify_args {
 	_IOR(NVGPU_AS_IOCTL_MAGIC,  12, struct nvgpu_as_get_sync_ro_map_args)
 #define NVGPU_AS_IOCTL_MAPPING_MODIFY	\
 	_IOWR(NVGPU_AS_IOCTL_MAGIC,  13, struct nvgpu_as_mapping_modify_args)
+#define NVGPU_AS_IOCTL_REMAP		\
+	_IOWR(NVGPU_AS_IOCTL_MAGIC, 14, struct nvgpu_as_remap_args)
 
 #define NVGPU_AS_IOCTL_LAST		\
-	_IOC_NR(NVGPU_AS_IOCTL_MAPPING_MODIFY)
+	_IOC_NR(NVGPU_AS_IOCTL_REMAP)
 #define NVGPU_AS_IOCTL_MAX_ARG_SIZE	\
 	sizeof(struct nvgpu_as_map_buffer_ex_args)
 
-#endif
+#endif /* #define _UAPI__LINUX_NVGPU_AS_H__ */

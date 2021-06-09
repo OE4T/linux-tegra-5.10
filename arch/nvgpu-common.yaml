@@ -675,6 +675,12 @@ mm:
                  include/nvgpu/vm_area.h ]
       deps: [ ]
       tags: unit-testable
+    vm_remap:
+      safe: no
+      sources: [ common/mm/vm_remap.c,
+                 include/nvgpu/vm_remap.h ]
+      deps: [ ]
+      tags: unit-testable
     vm:
       safe: yes
       sources: [ common/mm/vm.c,

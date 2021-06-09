@@ -22,6 +22,7 @@ all:
              os/posix/posix-nvgpu_mem.c,
              os/posix/posix-tsg.c,
              os/posix/posix-vm.c,
+             os/posix/posix-vm_remap.c,
              os/posix/soc.c,
              os/posix/bsearch.c,
              os/posix/posix-clk_arb.c,
@@ -51,6 +52,7 @@ headers:
              include/nvgpu/posix/probe.h,
              include/nvgpu/posix/soc_fuse.h,
              include/nvgpu/posix/vm.h,
+             include/nvgpu/posix/posix-vm_remap.h,
              include/nvgpu/posix/posix_vidmem.h,
              include/nvgpu/posix/posix-nvhost.h,
              include/nvgpu/posix/trace_gk20a.h ]

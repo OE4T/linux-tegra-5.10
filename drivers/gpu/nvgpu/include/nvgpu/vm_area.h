@@ -30,6 +30,8 @@ struct vm_gk20a;
 struct gk20a_as_share;
 struct nvgpu_as_alloc_space_args;
 struct nvgpu_as_free_space_args;
+struct nvgpu_vm_remap_vpool;
+
 /**
  * Carve out virtual address space from virtual memory context.
  * This is needed for fixed address mapping.
@@ -66,6 +68,13 @@ struct nvgpu_vm_area {
 	 * @sa NVGPU_VM_AREA_ALLOC_SPARSE
  	 */
 	bool sparse;
+
+#ifdef CONFIG_NVGPU_REMAP
+	/**
+	 * Virtual pool for remap support of sparse VM areas.
+	 */
+	struct nvgpu_vm_remap_vpool *vpool;
+#endif
 };
 
 static inline struct nvgpu_vm_area *
@@ -90,6 +99,13 @@ nvgpu_vm_area_from_vm_area_list(struct nvgpu_list_node *node)
  * for a particular texture or other object.
  */
 #define NVGPU_VM_AREA_ALLOC_SPARSE			BIT32(1)
+
+/**
+ * Enable REMAP control of the the vmarea.  REMAP uses a virtual
+ * memory pool that provides control over each page in the vmarea.
+ * Note that REMAP is only permitted with SPARSE vmareas.
+ */
+#define NVGPU_VM_AREA_ALLOC_REMAP			BIT32(2)
 
 /**
  * @brief Allocate a virtual memory area with given size and start.

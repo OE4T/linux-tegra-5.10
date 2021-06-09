@@ -40,6 +40,9 @@ ifeq ($(CONFIG_NVGPU_COMPRESSION),y)
 CONFIG_NVGPU_SUPPORT_CDE := y
 endif
 
+# Support for remap
+CONFIG_NVGPU_REMAP := y
+
 ifeq ($(CONFIG_COMMON_CLK),y)
 ifeq ($(CONFIG_PM_DEVFREQ),y)
 # Select this entry to enable gk20a scaling
@@ -171,6 +174,9 @@ ccflags-y += -DCONFIG_NVGPU_RECOVERY
 endif
 ifeq ($(CONFIG_NVGPU_COMPRESSION),y)
 ccflags-y += -DCONFIG_NVGPU_COMPRESSION
+endif
+ifeq ($(CONFIG_NVGPU_REMAP),y)
+ccflags-y += -DCONFIG_NVGPU_REMAP
 endif
 ifeq ($(CONFIG_NVGPU_SUPPORT_CDE),y)
 ccflags-y += -DCONFIG_NVGPU_SUPPORT_CDE

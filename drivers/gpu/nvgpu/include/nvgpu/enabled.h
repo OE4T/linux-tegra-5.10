@@ -82,6 +82,8 @@ struct gk20a;
 		"Support batch mapping"),				\
 	DEFINE_FLAG(NVGPU_SUPPORT_MAPPING_MODIFY,			\
 		"Support mapping modify"),				\
+	DEFINE_FLAG(NVGPU_SUPPORT_REMAP,				\
+		"Support remap"),					\
 	DEFINE_FLAG(NVGPU_USE_COHERENT_SYSMEM,				\
 		"Use coherent aperture for sysmem"),			\
 	DEFINE_FLAG(NVGPU_MM_USE_PHYSICAL_SG,				\

@@ -650,6 +650,10 @@ nvgpu-$(CONFIG_NVGPU_COMPRESSION) += \
 	hal/cbc/cbc_gv11b.o \
 	hal/cbc/cbc_tu104.o \
 
+nvgpu-$(CONFIG_NVGPU_REMAP) += \
+	os/linux/vm_remap.o \
+	common/mm/vm_remap.o
+
 # FUSA (Functionally Safe) HAL source files
 nvgpu-y += \
 	hal/mm/mm_gv11b_fusa.o \
