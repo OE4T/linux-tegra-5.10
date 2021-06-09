@@ -35,6 +35,17 @@
  * configuration for Second Level Clock Gating (SLCG), Block Level
  * Clock Gating (BLCG) and Engine Level Clock Gating (ELCG).
  *
+ * ELCG is supported for GR and CE. It is pure HW logic.
+ * ELCG is applicable to all units within an engine.
+ *
+ * BLCG controller is instanced in each unit. Each unit can decide
+ * BLCG entry/exit. BLCG entry/exit latency is small,
+ * so there are modes/states under which a unit can enter BLCG.
+
+ * A second level clock gate is a clock gate that exists within the clock
+ * network between the BLCG/ELCG (1st-level) clock gate and flops/ICGs at the
+ * leaf-end of the clock network.
+ *
  * Chip specific clock gating register configurations are available
  * in the files, hal/power_features/cg/<chip>_gating_reglist.c.
  *
@@ -179,12 +190,12 @@ struct gk20a;
 
 /**
  * @brief During nvgpu power-on, this function is called as part of GR
- *        HW initialization to load register configuration for ELCG and
+ *        HW initialization to load register configuration for SLCG and
  *        BLCG for GR related units.
  *
  * @param g [in] The GPU driver struct.
  *
- * This function programs ELCG configuration for bus, chiplet, gr, perf,
+ * This function programs SLCG configuration for bus, chiplet, gr, perf,
  * xbar, hshub units and BLCG for bus, gr, xbar and hshub. This is
  * called in #nvgpu_gr_enable_hw after resetting GR engine.
  *
