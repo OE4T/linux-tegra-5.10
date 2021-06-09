@@ -625,11 +625,6 @@ void nvgpu_channel_remove_support_linux(struct nvgpu_os_linux *l)
 	g->os_channel.destroy_os_fence_framework = NULL;
 }
 
-u32 nvgpu_get_gpfifo_entry_size(void)
-{
-	return sizeof(struct nvgpu_gpfifo_entry);
-}
-
 u32 nvgpu_channel_get_max_subctx_count(struct nvgpu_channel *ch)
 {
 	struct nvgpu_channel_linux *priv = ch->os_priv;

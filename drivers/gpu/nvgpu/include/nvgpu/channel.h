@@ -1026,7 +1026,10 @@ void nvgpu_channel_free_usermode_buffers(struct nvgpu_channel *c);
  *
  * @return Size of a gpfifo entry in bytes.
  */
-u32 nvgpu_get_gpfifo_entry_size(void);
+static inline u32 nvgpu_get_gpfifo_entry_size(void)
+{
+	return sizeof(struct nvgpu_gpfifo_entry);
+}
 
 #ifdef CONFIG_DEBUG_FS
 void trace_write_pushbuffers(struct nvgpu_channel *c, u32 count);
