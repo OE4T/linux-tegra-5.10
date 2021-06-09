@@ -88,7 +88,7 @@
 #else
 		iommus = <&smmu TEGRA_SID_MGBE>;
 #endif
-		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_MGBEB>;
+		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_MGBEBA>;
 		nvidia,num-dma-chans = <10>;
 		nvidia,dma-chans = <0 1 2 3 4 5 6 7 8 9>;
 		nvidia,num-mtl-queues = <10>;
