@@ -217,15 +217,6 @@ static int tegra_tcu_probe(struct platform_device *pdev)
 		return err;
 	}
 
-	tcu->rx = mbox_request_channel_byname(&tcu->rx_client, "rx");
-	if (IS_ERR(tcu->rx)) {
-		err = PTR_ERR(tcu->rx);
-		dev_err(&pdev->dev, "failed to get rx mailbox: %d\n", err);
-		goto free_tx;
-	}
-
-	tcu->skip_frame_info = of_property_read_bool(np, "skip-frame-info");
-
 #if IS_ENABLED(CONFIG_SERIAL_TEGRA_TCU_CONSOLE)
 	/* setup the console */
 	strcpy(tcu->console.name, "ttyTCU");
@@ -250,7 +241,7 @@ static int tegra_tcu_probe(struct platform_device *pdev)
 	if (err) {
 		dev_err(&pdev->dev, "failed to register UART driver: %d\n",
 			err);
-		goto free_rx;
+		goto free_tx;
 	}
 
 	/* setup the port */
@@ -270,6 +261,19 @@ static int tegra_tcu_probe(struct platform_device *pdev)
 		goto unregister_uart;
 	}
 
+	tcu->skip_frame_info = of_property_read_bool(np, "skip-frame-info");
+
+	/*
+	 * Request RX channel after creating port to ensure tcu->port
+	 * is ready for any immediate incoming bytes.
+	 */
+	tcu->rx = mbox_request_channel_byname(&tcu->rx_client, "rx");
+	if (IS_ERR(tcu->rx)) {
+		err = PTR_ERR(tcu->rx);
+		dev_err(&pdev->dev, "failed to get rx mailbox: %d\n", err);
+		goto remove_uart_port;
+	}
+
 	platform_set_drvdata(pdev, tcu);
 #if IS_ENABLED(CONFIG_SERIAL_TEGRA_TCU_CONSOLE)
 	register_console(&tcu->console);
@@ -277,10 +281,10 @@ static int tegra_tcu_probe(struct platform_device *pdev)
 
 	return 0;
 
+remove_uart_port:
+	uart_remove_one_port(&tcu->driver, &tcu->port);
 unregister_uart:
 	uart_unregister_driver(&tcu->driver);
-free_rx:
-	mbox_free_channel(tcu->rx);
 free_tx:
 	mbox_free_channel(tcu->tx);
 
@@ -294,9 +298,9 @@ static int tegra_tcu_remove(struct platform_device *pdev)
 #if IS_ENABLED(CONFIG_SERIAL_TEGRA_TCU_CONSOLE)
 	unregister_console(&tcu->console);
 #endif
+	mbox_free_channel(tcu->rx);
 	uart_remove_one_port(&tcu->driver, &tcu->port);
 	uart_unregister_driver(&tcu->driver);
-	mbox_free_channel(tcu->rx);
 	mbox_free_channel(tcu->tx);
 
 	return 0;
