@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "pva-interface.h"
 #include <linux/irq.h>
 #include <linux/slab.h>
 #include <linux/wait.h>
@@ -47,8 +48,12 @@ static irqreturn_t pva_system_isr(int irq, void *dev_id)
 	if (status5 & PVA_AISR_INT_PENDING) {
 		nvhost_dbg_info("PVA AISR (%x)", status5);
 
-		/* For now, just log the errors */
+		if (status5 & (PVA_AISR_TASK_COMPLETE | PVA_AISR_TASK_ERROR)) {
+			atomic_add(1, &pva->n_pending_tasks);
+			schedule_work(&pva->task_update_work);
+		}
 
+		/* For now, just log the errors */
 		if (status5 & PVA_AISR_TASK_ERROR)
 			nvhost_warn(&pdev->dev, "PVA AISR: PVA_AISR_TASK_ERROR");
 		if (status5 & PVA_AISR_THRESHOLD_EXCEEDED)

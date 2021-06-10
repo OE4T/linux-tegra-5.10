@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
+#include "pva-interface.h"
 #include <linux/kernel.h>
 #include <linux/nvhost.h>
 #include <linux/delay.h>
@@ -34,7 +34,7 @@
 
 #include "pva_regs.h"
 
-#define MAX_CCQ_ELEMENTS	6
+#define MAX_CCQ_ELEMENTS 6
 
 static int pva_ccq_wait(struct pva *pva, int timeout)
 {
@@ -47,8 +47,8 @@ static int pva_ccq_wait(struct pva *pva, int timeout)
 	while (time_before(jiffies, end_jiffies) ||
 	       (pva->timeout_enabled == false)) {
 		u32 val = host1x_readl(pva->pdev,
-					cfg_ccq_status_r(pva->version,
-					0, PVA_CCQ_STATUS2_INDEX));
+				       cfg_ccq_status_r(pva->version, 0,
+							PVA_CCQ_STATUS2_INDEX));
 		if (val <= MAX_CCQ_ELEMENTS)
 			return 0;
 
@@ -58,33 +58,25 @@ static int pva_ccq_wait(struct pva *pva, int timeout)
 	return -ETIMEDOUT;
 }
 
-int pva_ccq_send_task_t19x(struct pva *pva, struct pva_cmd_s *cmd)
+int pva_ccq_send_task_t19x(struct pva *pva, u32 queue_id, dma_addr_t task_addr,
+			   u8 batchsize, u32 flags)
 {
 	int err = 0;
-	u64 fifo_cmd;
-	u64 fifo_flags;
-	unsigned int queue_id;
-	uint64_t address;
+	u64 cmd;
 
-	queue_id = PVA_EXTRACT(cmd->mbox[0], 15, 8, unsigned int);
-	address = PVA_INSERT64(PVA_EXTRACT(cmd->mbox[0], 23, 16, uint32_t),
-		39, 32) | PVA_INSERT64(cmd->mbox[1], 32, 0);
+	/* Convert from mailbox to fifo flags */
+	flags >>= PVA_CMD_MBOX_TO_FIFO_FLAG_SHIFT;
 
-	fifo_flags = cmd->mbox[0] &
-		    (PVA_CMD_INT_ON_ERR | PVA_CMD_INT_ON_COMPLETE)
-		    >> PVA_CMD_MBOX_TO_FIFO_FLAG_SHIFT;
+	cmd = pva_fifo_submit_batch(queue_id, task_addr, batchsize, flags);
 
-	fifo_cmd = pva_fifo_submit(queue_id, address, fifo_flags);
 	mutex_lock(&pva->ccq_mutex);
 	err = pva_ccq_wait(pva, 100);
 	if (err < 0)
 		goto err_wait_ccq;
 
 	/* Make the writes to CCQ */
-	host1x_writel(pva->pdev,
-		cfg_ccq_r(pva->version, 0), (u32)(fifo_cmd >> 32));
-	host1x_writel(pva->pdev,
-		cfg_ccq_r(pva->version, 0), (u32)(fifo_cmd & 0xffffffff));
+	host1x_writel(pva->pdev, cfg_ccq_r(pva->version, 0), PVA_HI32(cmd));
+	host1x_writel(pva->pdev, cfg_ccq_r(pva->version, 0), PVA_LOW32(cmd));
 
 	mutex_unlock(&pva->ccq_mutex);
 

@@ -14,46 +14,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <linux/mutex.h>
 #include "nvhost_buffer.h"
 #include "pva.h"
 #include "nvpva_client.h"
 #include <linux/slab.h>
 /* Maximum contexts KMD creates per engine */
 #define NVPVA_CLIENT_MAX_CONTEXTS_PER_ENG (MAX_PVA_CLIENTS)
-
-/* Allocate a buffer pool
- * The function does below things;
- *
- * 1. checks if number of Qs opened exceeds the limit
- *
- * 2. checks if there is pool array already created, (succeeds for first
- * request)
- *
- * 3. If current active and max Qs nums are same, then a new pool need to be
- * allocated.
- */
-static int client_context_pool_alloc_locked(struct pva *dev,
-					    struct nvpva_client_context *client,
-					    pid_t pid)
-{
-	int32_t err = 0;
-
-	if (client->buffers == NULL) { /* First time creation */
-		client->buffers = nvhost_buffer_init(dev->pdev);
-		if (IS_ERR(client->buffers)) {
-			err = PTR_ERR(client->buffers);
-			dev_err(&dev->pdev->dev,
-				"failed to init nvhost buffer for client");
-			goto err_alloc_buffer;
-		}
-
-		/* Create an array with max limit for buffer pool pointers */
-	}
-
-	client->active_queue_requests++;
-err_alloc_buffer:
-	return err;
-}
 
 /* Search if the pid already have a context
  * The function does below things;
@@ -69,18 +36,27 @@ client_context_search_locked(struct pva *dev, pid_t pid)
 
 	for (i = 0U; i < NVPVA_CLIENT_MAX_CONTEXTS_PER_ENG; i++) {
 		c_node = &dev->clients[i];
-		if (c_node->active_queue_requests != 0U) { /* In use */
+		if (c_node->ref_count != 0U) { /* In use */
 			if (c_node->pid == pid)
 				break;
 		} else {
 			if (c_free == NULL) {
 				c_free = c_node;
 				c_free->pid = pid;
+				c_free->pva = dev;
+				c_free->curr_sema_value = 0;
+				mutex_init(&c_free->sema_val_lock);
+				c_free->buffers = nvhost_buffer_init(dev->pdev);
+				if (IS_ERR(c_free->buffers)) {
+					dev_err(&dev->pdev->dev,
+						"failed to init nvhost buffer for client:%lu",
+						PTR_ERR(c_free->buffers));
+					return NULL;
+				}
 			}
 		}
 		c_node = NULL;
 	}
-
 	return (c_node != NULL) ? c_node : c_free;
 }
 
@@ -93,27 +69,35 @@ struct nvpva_client_context *nvpva_client_context_alloc(struct pva *dev,
 							pid_t pid)
 {
 	struct nvpva_client_context *client = NULL;
-	int32_t err = 0;
 
 	mutex_lock(&dev->clients_lock);
 	client = client_context_search_locked(dev, pid);
 	if (client != NULL) {
-		err = client_context_pool_alloc_locked(dev, client, pid);
-		if (err)
-			client = NULL;
+		client->ref_count += 1;
 	}
 	mutex_unlock(&dev->clients_lock);
 
 	return client;
 }
 
+void nvpva_client_context_get(struct nvpva_client_context *client)
+{
+	struct pva *dev = client->pva;
+
+	mutex_lock(&dev->clients_lock);
+	client->ref_count += 1;
+	mutex_unlock(&dev->clients_lock);
+}
+
 /* Free a client context from the client array */
 static void
-nvpva_client_context_free_locked(struct pva *dev,
-				 struct nvpva_client_context *client)
+nvpva_client_context_free_locked(struct nvpva_client_context *client)
 {
 	nvhost_buffer_release(client->buffers);
+	mutex_destroy(&client->sema_val_lock);
 	client->buffers = NULL;
+	client->pva = NULL;
+	client->pid = 0;
 	pva_unload_all_apps(&client->elf_ctx);
 }
 
@@ -122,16 +106,16 @@ nvpva_client_context_free_locked(struct pva *dev,
  * 1. Reduce the active Q count
  * 2. Initiate freeing if the count is 0
  */
-void nvpva_client_context_free(struct pva *dev,
-			       struct nvpva_client_context *client)
+void nvpva_client_context_put(struct nvpva_client_context *client)
 {
-	mutex_lock(&dev->clients_lock);
-	dev_info(&dev->pdev->dev, "client refcount: %d\n",
-		 client->active_queue_requests);
-	client->active_queue_requests--;
-	if (client->active_queue_requests == 0U)
-		nvpva_client_context_free_locked(dev, client);
-	mutex_unlock(&dev->clients_lock);
+	struct pva *pva = client->pva;
+
+	mutex_lock(&pva->clients_lock);
+	client->ref_count--;
+	if (client->ref_count == 0U)
+		nvpva_client_context_free_locked(client);
+
+	mutex_unlock(&pva->clients_lock);
 }
 
 /* De-initialize the client array for the device

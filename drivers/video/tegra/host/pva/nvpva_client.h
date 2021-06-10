@@ -21,15 +21,23 @@
 #include <linux/mutex.h>
 #include "pva_vpu_exe.h"
 
+struct pva;
+
 struct nvpva_client_context {
+	/* Reference to the device*/
+	struct pva *pva;
+
 	/* PID of client process which uses this context */
 	pid_t pid;
 
-	/* This tracks how many queues active now */
-	u32 active_queue_requests;
+	/* This tracks active users */
+	u32 ref_count;
 
 	/* Data structure to track pinned buffers for this client */
 	struct nvhost_buffers *buffers;
+
+	u32 curr_sema_value;
+	struct mutex sema_val_lock;
 
 	/* Data structure to track elf context for vpu parsing */
 	struct nvpva_elf_context elf_ctx;
@@ -38,9 +46,9 @@ struct nvpva_client_context {
 struct pva;
 int nvpva_client_context_init(struct pva *pva);
 void nvpva_client_context_deinit(struct pva *pva);
-struct nvpva_client_context *nvpva_client_context_alloc(struct pva *pva,
+void nvpva_client_context_get(struct nvpva_client_context *client);
+struct nvpva_client_context *nvpva_client_context_alloc(struct pva *dev,
 							pid_t pid);
-void nvpva_client_context_free(struct pva *pva,
-			       struct nvpva_client_context *client);
+void nvpva_client_context_put(struct nvpva_client_context *client);
 
 #endif /* NVPVA_CLIENT_H */

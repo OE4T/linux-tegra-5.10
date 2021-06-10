@@ -16,15 +16,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "linux/jiffies.h"
+#include "linux/mutex.h"
+#include "linux/semaphore.h"
 #include <linux/platform_device.h>
 #include <linux/fs.h>
 #include <linux/uaccess.h>
 #include <linux/slab.h>
 #include <linux/nospec.h>
-
 #include <asm/ioctls.h>
 #include <asm/barrier.h>
-
 #include <uapi/linux/nvdev_fence.h>
 #include <uapi/linux/nvpva_ioctl.h>
 
@@ -45,9 +46,33 @@
 struct pva_private {
 	struct pva *pva;
 	struct nvhost_queue *queue;
-	struct nvhost_buffers *buffers;
 	struct nvpva_client_context *client;
 };
+
+static int copy_part_from_user(void *kbuffer, size_t kbuffer_size,
+			       struct nvpva_ioctl_part part)
+{
+	int err = 0;
+	int copy_ret;
+
+	if (part.size == 0)
+		goto out;
+
+	if (kbuffer_size < part.size) {
+		pr_err("pva: failed to copy from user due to size too large: %llu > %lu",
+		       part.size, kbuffer_size);
+		err = -EINVAL;
+		goto out;
+	}
+	copy_ret =
+		copy_from_user(kbuffer, (void __user *)part.addr, part.size);
+	if (copy_ret) {
+		err = -EFAULT;
+		goto out;
+	}
+out:
+	return err;
+}
 
 /**
  * @brief	Copy a single task from userspace to kernel space
@@ -63,103 +88,130 @@ struct pva_private {
  * @return		0 on Success or negative error code
  *
  */
-static int pva_copy_task(struct pva_ioctl_submit_task *ioctl_task,
+static int pva_copy_task(struct nvpva_ioctl_task *ioctl_task,
 			 struct pva_submit_task *task)
 {
 	int err = 0;
-	int copy_ret = 0;
-	int i;
+	u32 i;
 
-	if (ioctl_task->num_prefences > PVA_MAX_PREFENCES ||
-	    ioctl_task->num_input_task_status > PVA_MAX_INPUT_STATUS ||
-	    ioctl_task->num_output_task_status > PVA_MAX_OUTPUT_STATUS ||
-	    ioctl_task->num_input_surfaces > PVA_MAX_INPUT_SURFACES ||
-	    ioctl_task->num_output_surfaces > PVA_MAX_OUTPUT_SURFACES ||
-	    ioctl_task->num_pointers > PVA_MAX_POINTERS ||
-	    ioctl_task->primary_payload_size > PVA_MAX_PRIMARY_PAYLOAD_SIZE) {
-		err = -EINVAL;
-		goto err_out;
-	}
-
+	nvhost_dbg_fn("");
 	/*
 	 * These fields are clear-text in the task descriptor. Just
 	 * copy them.
 	 */
-	task->operation			= ioctl_task->operation;
-	task->num_prefences		= ioctl_task->num_prefences;
-	task->num_input_task_status	= ioctl_task->num_input_task_status;
-	task->num_output_task_status	= ioctl_task->num_output_task_status;
-	task->num_input_surfaces	= ioctl_task->num_input_surfaces;
-	task->num_output_surfaces	= ioctl_task->num_output_surfaces;
-	task->num_pointers		= ioctl_task->num_pointers;
-	task->primary_payload_size	= ioctl_task->primary_payload_size;
-	task->input_scalars		= ioctl_task->input_scalars;
-	task->output_scalars		= ioctl_task->output_scalars;
-	task->timeout			= ioctl_task->timeout;
+	task->exe_id = ioctl_task->exe_id;
+	task->l2_alloc_size = ioctl_task->l2_alloc_size;
+	task->symbol_payload_size = ioctl_task->symbol_payload.size;
+	task->flags = ioctl_task->flags;
 
-	/* Copy the user primary_payload */
-	if (task->primary_payload_size) {
-		copy_ret = copy_from_user(task->primary_payload,
-				(void __user *)(ioctl_task->primary_payload),
-				ioctl_task->primary_payload_size);
-		if (copy_ret) {
-			err = -EFAULT;
-			goto err_out;
-		}
-	}
+#define IOCTL_ARRAY_SIZE(field_name)                                           \
+	(ioctl_task->field_name.size / sizeof(task->field_name[0]))
 
-#define COPY_FIELD(dst, src, num, type)					\
-	do {								\
-		if ((num) == 0) {					\
-			break;						\
-		}							\
-		copy_ret = copy_from_user((dst),			\
-				(void __user *)(src),			\
-				(num) * sizeof(type));			\
-		if (copy_ret) {						\
-			err = -EFAULT;					\
-			goto err_out;					\
-		}							\
-	} while (0)
+	task->num_prefences = IOCTL_ARRAY_SIZE(prefences);
+	task->num_user_fence_actions = IOCTL_ARRAY_SIZE(user_fence_actions);
+	task->num_input_task_status = IOCTL_ARRAY_SIZE(input_task_status);
+	task->num_output_task_status = IOCTL_ARRAY_SIZE(output_task_status);
+	task->num_dma_descriptors = IOCTL_ARRAY_SIZE(dma_descriptors);
+	task->num_dma_channels = IOCTL_ARRAY_SIZE(dma_channels);
+	task->num_symbols = IOCTL_ARRAY_SIZE(symbols);
 
-	/* Copy the fields */
-	COPY_FIELD(task->input_surfaces, ioctl_task->input_surfaces,
-			task->num_input_surfaces,
-			struct pva_surface);
-	COPY_FIELD(task->output_surfaces, ioctl_task->output_surfaces,
-			task->num_output_surfaces,
-			struct pva_surface);
-	COPY_FIELD(task->prefences, ioctl_task->prefences, task->num_prefences,
-			struct nvdev_fence);
-	COPY_FIELD(task->input_task_status, ioctl_task->input_task_status,
-			task->num_input_task_status,
-			struct pva_status_handle);
-	COPY_FIELD(task->output_task_status, ioctl_task->output_task_status,
-			task->num_output_task_status,
-			struct pva_status_handle);
-	COPY_FIELD(task->pointers, ioctl_task->pointers,
-			task->num_pointers, struct pva_memory_handle);
+#undef IOCTL_ARRAY_SIZE
 
-	COPY_FIELD(task->pvafences, ioctl_task->pvafences,
-			sizeof(task->pvafences), u8);
-	COPY_FIELD(task->num_pvafences, ioctl_task->num_pvafences,
-		   sizeof(task->num_pvafences), u8);
-	COPY_FIELD(task->num_pva_ts_buffers, ioctl_task->num_pva_ts_buffers,
-		   sizeof(task->num_pva_ts_buffers), u8);
+	err = copy_part_from_user(&task->prefences, sizeof(task->prefences),
+				  ioctl_task->prefences);
+	if (err)
+		goto out;
 
-	for (i = 0; i < PVA_MAX_FENCE_TYPES; i++) {
-		if ((task->num_pvafences[i] > PVA_MAX_FENCES_PER_TYPE) ||
-			(task->num_pva_ts_buffers[i] >
-			 PVA_MAX_FENCES_PER_TYPE)) {
+	err = copy_part_from_user(&task->user_fence_actions,
+				  sizeof(task->user_fence_actions),
+				  ioctl_task->user_fence_actions);
+	if (err)
+		goto out;
+
+	err = copy_part_from_user(&task->input_task_status,
+				  sizeof(task->input_task_status),
+				  ioctl_task->input_task_status);
+	if (err)
+		goto out;
+
+	err = copy_part_from_user(&task->output_task_status,
+				  sizeof(task->output_task_status),
+				  ioctl_task->output_task_status);
+	if (err)
+		goto out;
+
+	err = copy_part_from_user(&task->dma_descriptors,
+				  sizeof(task->dma_descriptors),
+				  ioctl_task->dma_descriptors);
+	if (err)
+		goto out;
+
+	err = copy_part_from_user(&task->dma_channels,
+				  sizeof(task->dma_channels),
+				  ioctl_task->dma_channels);
+	if (err)
+		goto out;
+
+	err = copy_part_from_user(&task->hwseq_config,
+				  sizeof(task->hwseq_config),
+				  ioctl_task->hwseq_config);
+	if (err)
+		goto out;
+
+	err = copy_part_from_user(&task->symbols, sizeof(task->symbols),
+				  ioctl_task->symbols);
+	if (err)
+		goto out;
+
+	err = copy_part_from_user(&task->symbol_payload,
+				  sizeof(task->symbol_payload),
+				  ioctl_task->symbol_payload);
+	if (err)
+		goto out;
+
+	/* Parse each postfence provided by user in 1D array and store into
+	 * internal 2D array representation wrt type of fence and number of
+	 * fences of each type for further processing
+	 */
+	for (i = 0; i < task->num_user_fence_actions; i++) {
+		struct nvpva_fence_action *fence = &task->user_fence_actions[i];
+		enum nvpva_fence_action_type fence_type = fence->type;
+		u8 num_fence;
+
+		if ((fence_type == 0U) ||
+		    (fence_type >= NVPVA_MAX_FENCE_TYPES)) {
+			task_err(task, "invalid fence type at index: %u", i);
 			err = -EINVAL;
-			goto err_out;
+			goto out;
 		}
+
+		/* Ensure that the number of postfences for each type are within
+		 * limit
+		 */
+		num_fence = task->num_pva_fence_actions[fence_type];
+		if (num_fence >= NVPVA_TASK_MAX_FENCEACTIONS) {
+			task_err(task, "too many fences for type: %u",
+				 fence_type);
+			err = -EINVAL;
+			goto out;
+		}
+
+		task->pva_fence_actions[fence_type][num_fence] = *fence;
+		task->num_pva_fence_actions[fence_type] += 1;
 	}
 
+	/* Check for valid HWSeq trigger mode */
+	if ((task->hwseq_config.hwseqTrigMode != NVPVA_HWSEQTM_VPUTRIG) &&
+	    (task->hwseq_config.hwseqTrigMode != NVPVA_HWSEQTM_DMATRIG)) {
+		task_err(task, "invalid hwseq trigger mode: %d",
+			 task->hwseq_config.hwseqTrigMode);
+		err = -EINVAL;
+		goto out;
+	}
 
 #undef COPY_FIELD
 
-err_out:
+out:
 	return err;
 }
 
@@ -178,194 +230,159 @@ err_out:
  */
 static int pva_submit(struct pva_private *priv, void *arg)
 {
-	struct pva_ioctl_submit_args *ioctl_tasks_header =
-		(struct pva_ioctl_submit_args *)arg;
-	struct pva_ioctl_submit_task *ioctl_tasks = NULL;
+	struct nvpva_ioctl_submit_in_arg *ioctl_tasks_header =
+		(struct nvpva_ioctl_submit_in_arg *)arg;
+	struct nvpva_ioctl_task *ioctl_tasks = NULL;
 	struct pva_submit_tasks tasks_header;
-	struct pva_submit_task *task = NULL;
 	int err = 0;
-	int i;
-	int j;
-	int k;
-	int threshold;
+	unsigned long rest;
+	int i, j;
+	uint32_t num_tasks;
 
 	memset(&tasks_header, 0, sizeof(tasks_header));
 
+	num_tasks = ioctl_tasks_header->tasks.size / sizeof(*ioctl_tasks);
 	/* Sanity checks for the task heaader */
-	if (ioctl_tasks_header->num_tasks > PVA_MAX_TASKS) {
+	if (num_tasks > NVPVA_SUBMIT_MAX_TASKS) {
 		err = -EINVAL;
-		goto err_check_num_tasks;
+		dev_err(&priv->pva->pdev->dev,
+			"exceeds maximum number of tasks: %u > %u", num_tasks,
+			NVPVA_SUBMIT_MAX_TASKS);
+		goto out;
 	}
 
-	ioctl_tasks_header->num_tasks =
-		array_index_nospec(ioctl_tasks_header->num_tasks,
-					PVA_MAX_TASKS + 1);
+	num_tasks = array_index_nospec(num_tasks, NVPVA_SUBMIT_MAX_TASKS + 1);
 
 	if (ioctl_tasks_header->version > 0) {
 		err = -ENOSYS;
-		goto err_check_version;
+		goto out;
 	}
 
 	/* Allocate memory for the UMD representation of the tasks */
-	ioctl_tasks = kcalloc(ioctl_tasks_header->num_tasks,
-			sizeof(*ioctl_tasks), GFP_KERNEL);
-	if (!ioctl_tasks) {
+	ioctl_tasks = kzalloc(ioctl_tasks_header->tasks.size, GFP_KERNEL);
+	if (ioctl_tasks == NULL) {
 		err = -ENOMEM;
-		goto err_alloc_task_mem;
+		goto out;
 	}
 
 	/* Copy the tasks from userspace */
-	err = copy_from_user(ioctl_tasks,
-			(void __user *)ioctl_tasks_header->tasks,
-			ioctl_tasks_header->num_tasks * sizeof(*ioctl_tasks));
-	if (err < 0) {
+	rest = copy_from_user(ioctl_tasks,
+			      (void __user *)ioctl_tasks_header->tasks.addr,
+			      ioctl_tasks_header->tasks.size);
+
+	if (rest > 0) {
 		err = -EFAULT;
-		goto err_copy_tasks;
+		pr_err("pva: failed to copy tasks");
+		goto free_ioctl_tasks;
 	}
 
 	/* Go through the tasks and make a KMD representation of them */
-	for (i = 0; i < ioctl_tasks_header->num_tasks; i++) {
-
+	for (i = 0; i < num_tasks; i++) {
+		struct pva_submit_task *task;
 		struct nvhost_queue_task_mem_info task_mem_info;
+		long timeout_jiffies = usecs_to_jiffies(
+			ioctl_tasks_header->submission_timeout_us);
 
 		/* Allocate memory for the task and dma */
+		err = down_timeout(&priv->queue->task_pool_sem,
+				   timeout_jiffies);
+		if (err) {
+			pr_err("pva: timeout when allocating task buffer");
+			/* UMD expects this error code */
+			err = -EAGAIN;
+			goto free_tasks;
+		}
 		err = nvhost_queue_alloc_task_memory(priv->queue,
-							&task_mem_info);
+						     &task_mem_info);
 		task = task_mem_info.kmem_addr;
-		if ((err < 0) || !task)
-			goto err_get_task_buffer;
 
-		err = pva_copy_task(ioctl_tasks + i, task);
-		if (err < 0)
-			goto err_copy_tasks;
+		WARN_ON((err < 0) || !task);
 
-		INIT_LIST_HEAD(&task->node);
+		/* initialize memory to 0 */
+		(void)memset(task_mem_info.kmem_addr, 0,
+			     priv->queue->task_kmem_size);
+		(void)memset(task_mem_info.va, 0, priv->queue->task_dma_size);
+
 		/* Obtain an initial reference */
 		kref_init(&task->ref);
+		INIT_LIST_HEAD(&task->node);
 
-		task->pva = priv->pva;
-		task->queue = priv->queue;
-		task->buffers = priv->buffers;
+		tasks_header.tasks[i] = task;
+		tasks_header.num_tasks += 1;
 
 		task->dma_addr = task_mem_info.dma_addr;
 		task->va = task_mem_info.va;
 		task->pool_index = task_mem_info.pool_index;
 
-		tasks_header.tasks[i] = task;
-		tasks_header.num_tasks += 1;
+		task->pva = priv->pva;
+		task->queue = priv->queue;
+		task->client = priv->client;
+
+		/* setup ownership */
+		nvhost_queue_get(task->queue);
+		nvhost_module_busy(task->pva->pdev);
+		nvpva_client_context_get(task->client);
+
+		err = pva_copy_task(ioctl_tasks + i, task);
+		if (err)
+			goto free_tasks;
+
 	}
 
 	/* Populate header structure */
-	tasks_header.flags = ioctl_tasks_header->flags;
+	tasks_header.execution_timeout_us =
+		ioctl_tasks_header->execution_timeout_us;
+
+	/* TODO: submission timeout */
 
 	/* ..and submit them */
 	err = nvhost_queue_submit(priv->queue, &tasks_header);
 
 	if (err < 0) {
-		goto err_submit_task;
+		goto free_tasks;
 	}
 
 	/* Copy fences back to userspace */
-	for (i = 0; i < ioctl_tasks_header->num_tasks; i++) {
-		struct nvpva_fence __user *pvafences =
-			(struct nvpva_fence __user *)
-			ioctl_tasks[i].pvafences;
-
-		struct platform_device *host1x_pdev =
-			to_platform_device(priv->queue->vm_pdev->dev.parent);
-
-		task = tasks_header.tasks[i];
-
-		threshold = tasks_header.task_thresh[i] - task->fence_num + 1;
-
-		/* Return post-fences */
-		for (k = 0; k < PVA_MAX_FENCE_TYPES; k++) {
-			u32 increment = 0;
-			struct nvdev_fence *fence;
-
-			if ((task->num_pvafences[k] == 0) ||
-				(k == PVA_FENCE_PRE)) {
-				continue;
-			}
-
-			switch (k) {
-			case PVA_FENCE_SOT_V:
-				increment = 1;
-				break;
-			case PVA_FENCE_SOT_R:
-				increment = 1;
-				break;
-			case PVA_FENCE_POST:
-				increment = 1;
-				break;
-			default:
-
-				break;
-			};
-
-			for (j = 0; j < task->num_pvafences[k]; j++) {
-				fence = &task->pvafences[k][j].fence;
-
-				switch (fence->type) {
-				case NVDEV_FENCE_TYPE_SYNCPT: {
-					fence->syncpoint_index =
-						priv->queue->syncpt_id;
-					fence->syncpoint_value =
-						threshold;
-					threshold += increment;
-					break;
-				}
-				case NVDEV_FENCE_TYPE_SYNC_FD: {
-					struct nvhost_ctrl_sync_fence_info pts;
-
-					pts.id = priv->queue->syncpt_id;
-					pts.thresh = threshold;
-					threshold += increment;
-					err = nvhost_fence_create_fd(
-						host1x_pdev,
-						&pts, 1,
-						"fence_pva",
-						&fence->sync_fd);
-
-					break;
-				}
-				case NVDEV_FENCE_TYPE_SEMAPHORE:
-					break;
-				default:
-					err = -ENOSYS;
-					nvhost_warn(&priv->pva->pdev->dev,
-						    "Bad fence type");
-				}
-			}
-		}
-
-		err = copy_to_user(pvafences,
-				   task->pvafences,
-				   sizeof(task->pvafences));
-		if (err < 0) {
-			nvhost_warn(&priv->pva->pdev->dev,
-				    "Failed to copy  pva fences to userspace");
-			break;
-		}
-		/* Drop the reference */
-		kref_put(&task->ref, pva_task_free);
-	}
-
-	kfree(ioctl_tasks);
-	return 0;
-
-err_submit_task:
-err_get_task_buffer:
-err_copy_tasks:
 	for (i = 0; i < tasks_header.num_tasks; i++) {
-		task = tasks_header.tasks[i];
+		struct pva_submit_task *task = tasks_header.tasks[i];
+		u32 n_copied[NVPVA_MAX_FENCE_TYPES] = {};
+		struct nvpva_fence_action __user *action_fences =
+			(struct nvpva_fence_action __user *)ioctl_tasks[i]
+				.user_fence_actions.addr;
+
+		/* Copy return postfences in the same order as that provided in
+		 * input
+		 */
+		for (j = 0; j < task->num_user_fence_actions; j++) {
+			struct nvpva_fence_action *fence =
+				&task->user_fence_actions[j];
+			enum nvpva_fence_action_type fence_type = fence->type;
+
+			*fence = task->pva_fence_actions[fence_type]
+							[n_copied[fence_type]];
+			n_copied[fence_type] += 1;
+		}
+
+		rest = copy_to_user(action_fences, task->user_fence_actions,
+				    ioctl_tasks[i].user_fence_actions.size);
+
+		if (rest) {
+			nvhost_warn(&priv->pva->pdev->dev,
+				    "Failed to copy pva fences to userspace");
+			err = -EFAULT;
+			goto free_tasks;
+		}
+	}
+
+free_tasks:
+	for (i = 0; i < tasks_header.num_tasks; i++) {
+		struct pva_submit_task *task = tasks_header.tasks[i];
 		/* Drop the reference */
 		kref_put(&task->ref, pva_task_free);
 	}
-err_alloc_task_mem:
+free_ioctl_tasks:
 	kfree(ioctl_tasks);
-err_check_version:
-err_check_num_tasks:
+out:
 	return err;
 }
 
@@ -413,35 +430,32 @@ out:
 	return err;
 }
 
-static int pva_register_vpu_exec(struct pva_private *priv, void *arg,
-				 const void __user *user_arg)
+static int pva_register_vpu_exec(struct pva_private *priv, void *arg)
 {
 	struct nvpva_vpu_exe_register_in_arg *reg_in =
 		(struct nvpva_vpu_exe_register_in_arg *)arg;
 	struct nvpva_vpu_exe_register_out_arg *reg_out =
 		(struct nvpva_vpu_exe_register_out_arg *)arg;
 	void *exec_data;
-	size_t copy_size;
 	int err = 0;
 	uint16_t exe_id;
 
-	exec_data = kmalloc(reg_in->size, GFP_KERNEL);
+	exec_data = kmalloc(reg_in->exe_data.size, GFP_KERNEL);
 	if (exec_data == NULL) {
 		err = -ENOMEM;
 		goto out;
 	}
-	copy_size = copy_from_user(
-		exec_data, (const void __user *)(user_arg + sizeof(*reg_in)),
-		reg_in->size);
-	if (copy_size) {
-		nvhost_err(
-			&priv->pva->pdev->dev,
-			"failed to copy all executable data; size failed to copy: %lu/%u.",
-			copy_size, reg_in->size);
+
+	err = copy_part_from_user(exec_data, reg_in->exe_data.size,
+				  reg_in->exe_data);
+	if (err) {
+		nvhost_err(&priv->pva->pdev->dev,
+			   "failed to copy vpu exe data");
 		goto free_mem;
 	}
-	err = pva_load_vpu_app(&priv->client->elf_ctx, exec_data, reg_in->size,
-			       &exe_id);
+
+	err = pva_load_vpu_app(&priv->client->elf_ctx, exec_data,
+			       reg_in->exe_data.size, &exe_id);
 	if (err) {
 		nvhost_err(&priv->pva->pdev->dev, "failed to register vpu app");
 		goto free_mem;
@@ -467,40 +481,35 @@ static int pva_unregister_vpu_exec(struct pva_private *priv, void *arg)
 	return pva_release_vpu_app(&priv->client->elf_ctx, unreg_in->exe_id);
 }
 
-static int pva_get_symbol_id(struct pva_private *priv, void *arg,
-			     const void __user *user_arg)
+static int pva_get_symbol_id(struct pva_private *priv, void *arg)
 {
 	struct nvpva_get_symbol_in_arg *symbol_in =
 		(struct nvpva_get_symbol_in_arg *)arg;
 	struct nvpva_get_symbol_out_arg *symbol_out =
 		(struct nvpva_get_symbol_out_arg *)arg;
 	char *symbol_buffer;
-	size_t copy_size;
 	int err = 0;
 	uint16_t sym_id;
 	uint32_t sym_size;
 
-	if (symbol_in->name_sz > ELF_MAXIMUM_SYMBOL_LENGTH) {
-		nvhost_err(&priv->pva->pdev->dev, "symbol size too large:%u",
-			   symbol_in->name_sz);
+	if (symbol_in->name.size > ELF_MAXIMUM_SYMBOL_LENGTH) {
+		nvhost_err(&priv->pva->pdev->dev, "symbol size too large:%llu",
+			   symbol_in->name.size);
 	}
-	symbol_buffer = kmalloc(symbol_in->name_sz, GFP_KERNEL);
+	symbol_buffer = kmalloc(symbol_in->name.size, GFP_KERNEL);
 	if (symbol_buffer == NULL) {
 		err = -ENOMEM;
 		goto out;
 	}
-	copy_size = copy_from_user(
-		symbol_buffer,
-		(const void __user *)(user_arg + sizeof(*symbol_in)),
-		symbol_in->name_sz);
-	if (copy_size) {
-		nvhost_err(
-			&priv->pva->pdev->dev,
-			"failed to copy all symbol name; size failed to copy: %lu/%u.",
-			copy_size, symbol_in->name_sz);
+	err = copy_part_from_user(symbol_buffer, symbol_in->name.size,
+				  symbol_in->name);
+	if (err) {
+		nvhost_err(&priv->pva->pdev->dev,
+			   "failed to copy all name from user");
 		goto free_mem;
 	}
-	if (symbol_buffer[symbol_in->name_sz - 1] != '\0') {
+
+	if (symbol_buffer[symbol_in->name.size - 1] != '\0') {
 		nvhost_err(&priv->pva->pdev->dev,
 			   "symbol name not terminated with NULL");
 		goto free_mem;
@@ -546,13 +555,13 @@ static long pva_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 
 	switch (cmd) {
 	case NVPVA_IOCTL_REGISTER_VPU_EXEC:
-		err = pva_register_vpu_exec(priv, buf, (void __user *)arg);
+		err = pva_register_vpu_exec(priv, buf);
 		break;
 	case NVPVA_IOCTL_UNREGISTER_VPU_EXEC:
 		err = pva_unregister_vpu_exec(priv, buf);
 		break;
 	case NVPVA_IOCTL_GET_SYMBOL_ID:
-		err = pva_get_symbol_id(priv, buf, (void __user *)arg);
+		err = pva_get_symbol_id(priv, buf);
 		break;
 	case NVPVA_IOCTL_PIN:
 		err = pva_pin(priv, buf);
@@ -576,8 +585,8 @@ static long pva_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 
 static int pva_open(struct inode *inode, struct file *file)
 {
-	struct nvhost_device_data *pdata = container_of(inode->i_cdev,
-					struct nvhost_device_data, ctrl_cdev);
+	struct nvhost_device_data *pdata = container_of(
+		inode->i_cdev, struct nvhost_device_data, ctrl_cdev);
 	struct platform_device *pdev = pdata->pdev;
 	struct pva *pva = pdata->private_data;
 	struct pva_private *priv;
@@ -597,18 +606,14 @@ static int pva_open(struct inode *inode, struct file *file)
 	if (err < 0)
 		goto err_add_client;
 
-	priv->queue = nvhost_queue_alloc(pva->pool, MAX_PVA_TASK_COUNT,
-		pva->submit_task_mode == PVA_SUBMIT_MODE_CHANNEL_CCQ);
+	priv->queue = nvhost_queue_alloc(pva->pool,
+					 MAX_PVA_TASK_COUNT_PER_QUEUE, false);
+
 	if (IS_ERR(priv->queue)) {
 		err = PTR_ERR(priv->queue);
 		goto err_alloc_queue;
 	}
-
-	priv->buffers = nvhost_buffer_init(priv->queue->vm_pdev);
-	if (IS_ERR(priv->buffers)) {
-		err = PTR_ERR(priv->buffers);
-		goto err_alloc_buffer;
-	}
+	sema_init(&priv->queue->task_pool_sem, MAX_PVA_TASK_COUNT_PER_QUEUE);
 
 	priv->client = nvpva_client_context_alloc(pva, current->pid);
 	if (priv->client == NULL) {
@@ -620,8 +625,6 @@ static int pva_open(struct inode *inode, struct file *file)
 	return nonseekable_open(inode, file);
 
 err_alloc_context:
-	nvhost_buffer_release(priv->buffers);
-err_alloc_buffer:
 	nvhost_queue_put(priv->queue);
 err_alloc_queue:
 	nvhost_module_remove_client(pdev, priv);
@@ -635,6 +638,9 @@ static int pva_release(struct inode *inode, struct file *file)
 {
 	struct pva_private *priv = file->private_data;
 
+	/* Release reference to client */
+	nvpva_client_context_put(priv->client);
+
 	/*
 	 * Release handle to the queue (on-going tasks have their
 	 * own references to the queue
@@ -643,11 +649,6 @@ static int pva_release(struct inode *inode, struct file *file)
 
 	/* Release handle to nvhost_acm */
 	nvhost_module_remove_client(priv->pva->pdev, priv);
-
-	/* Release the handle to buffer structure */
-	nvhost_buffer_release(priv->buffers);
-
-	nvpva_client_context_free(priv->pva, priv->client);
 
 	/* Finally, release the private data */
 	kfree(priv);

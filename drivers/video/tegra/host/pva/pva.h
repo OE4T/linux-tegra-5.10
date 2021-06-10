@@ -32,9 +32,8 @@
 struct nvpva_client_context;
 
 enum pva_submit_mode {
-	PVA_SUBMIT_MODE_MAILBOX		= 0,
-	PVA_SUBMIT_MODE_MMIO_CCQ	= 1,
-	PVA_SUBMIT_MODE_CHANNEL_CCQ	= 2
+	PVA_SUBMIT_MODE_MAILBOX = 0,
+	PVA_SUBMIT_MODE_MMIO_CCQ = 1,
 };
 
 struct pva_version_info {
@@ -49,33 +48,34 @@ struct pva_version_info {
  */
 #define MAX_PVA_QUEUE_COUNT 8
 #define MAX_PVA_CLIENTS 8
+#define MAX_PVA_TASK_COUNT_PER_QUEUE	16
 
 /**
- * Maximum task count that a queue can support
+ * Maximum task count that a PVA engine can support
  */
-#define MAX_PVA_TASK_COUNT	16
+#define MAX_PVA_TASK_COUNT                                                     \
+	((MAX_PVA_QUEUE_COUNT) * (MAX_PVA_TASK_COUNT_PER_QUEUE))
 
 /**
  * Minium PVA frequency (10MHz)
  */
-#define MIN_PVA_FREQUENCY	10000000
+#define MIN_PVA_FREQUENCY 10000000
 
 /**
  * Maximum number of IRQS to be serviced by the driver. Gen1 has a single IRQ,
  * Gen2 has 9.
  */
-#define MAX_PVA_IRQS	9
-#define MAX_PVA_QUEUES	9
-#define PVA_MAILBOX_INDEX	0
-#define PVA_CCQ0_INDEX	1
-#define PVA_CCQ1_INDEX	2
-#define PVA_CCQ2_INDEX	3
-#define PVA_CCQ3_INDEX	4
-#define PVA_CCQ4_INDEX	5
-#define PVA_CCQ5_INDEX	6
-#define PVA_CCQ6_INDEX	7
-#define PVA_CCQ7_INDEX	8
-
+#define MAX_PVA_IRQS 9
+#define MAX_PVA_QUEUES 9
+#define PVA_MAILBOX_INDEX 0
+#define PVA_CCQ0_INDEX 1
+#define PVA_CCQ1_INDEX 2
+#define PVA_CCQ2_INDEX 3
+#define PVA_CCQ3_INDEX 4
+#define PVA_CCQ4_INDEX 5
+#define PVA_CCQ5_INDEX 6
+#define PVA_CCQ6_INDEX 7
+#define PVA_CCQ7_INDEX 8
 
 /**
  * @brief		struct to hold the segment details
@@ -128,7 +128,7 @@ struct pva_dma_alloc_info {
  *
  */
 struct pva_fw {
-	pva_ucode_hdr_t *hdr;
+	struct pva_ucode_hdr_s *hdr;
 
 	struct pva_dma_alloc_info priv1_buffer;
 	struct pva_dma_alloc_info priv2_buffer;
@@ -151,7 +151,6 @@ struct pva_trace_log {
 	u32 offset;
 };
 
-
 /*
  * @brief	stores address and other attributes of the vpu function table
  *
@@ -171,6 +170,10 @@ struct pva_func_table {
 struct pva_status_interface_registers {
 	uint32_t registers[5];
 };
+
+#define PVA_HW_GEN1 1
+#define PVA_HW_GEN2 2
+
 /**
  * @brief		HW version specific configuration and functions
  * read_mailbox		Function to read from mailbox based on PVA revision
@@ -188,21 +191,21 @@ struct pva_status_interface_registers {
 
 struct pva_version_config {
 	u32 (*read_mailbox)(struct platform_device *pdev, u32 mbox_id);
-	void (*write_mailbox)(struct platform_device *pdev,
-					u32 mbox_id, u32 value);
-	void (*read_status_interface)(struct pva *pva,
-				uint32_t interface_id, u32 isr_status,
-				struct pva_cmd_status_regs *status_output);
-	int (*ccq_send_task)(struct pva *pva, struct pva_cmd_s *cmd);
-	int (*submit_cmd_sync_locked)(struct pva *pva,
-			struct pva_cmd_s *cmd, u32 nregs,
-			struct pva_cmd_status_regs *status_regs);
+	void (*write_mailbox)(struct platform_device *pdev, u32 mbox_id,
+			      u32 value);
+	void (*read_status_interface)(struct pva *pva, uint32_t interface_id,
+				      u32 isr_status,
+				      struct pva_cmd_status_regs *status_out);
+	int (*ccq_send_task)(struct pva *pva, u32 queue_id,
+			     dma_addr_t task_addr, u8 batchsize, u32 flags);
+	int (*submit_cmd_sync_locked)(struct pva *pva, struct pva_cmd_s *cmd,
+				      u32 nregs,
+				      struct pva_cmd_status_regs *status_regs);
 
-	int (*submit_cmd_sync)(struct pva *pva,
-		    struct pva_cmd_s *cmd, u32 nregs,
-		    struct pva_cmd_status_regs *status_regs);
+	int (*submit_cmd_sync)(struct pva *pva, struct pva_cmd_s *cmd,
+			       u32 nregs,
+			       struct pva_cmd_status_regs *status_regs);
 	int irq_count;
-
 };
 
 /**
@@ -254,6 +257,14 @@ struct pva {
 
 	struct pva_dma_alloc_info priv1_dma;
 	struct pva_dma_alloc_info priv2_dma;
+	/* Circular array to share with PVA R5 FW for task status info */
+	struct pva_dma_alloc_info priv_circular_array;
+	/* Current position to read task status buffer from the circular
+	 * array
+	 */
+	u32 circular_array_rd_pos;
+	struct work_struct task_update_work;
+	atomic_t n_pending_tasks;
 
 	struct pva_trace_log pva_trace;
 	u32 submit_task_mode;
@@ -265,6 +276,7 @@ struct pva {
 	u32 slcg_disable;
 	u32 vmem_war_disable;
 	bool vpu_perf_counters_enable;
+	bool vpu_debug_enabled;
 
 	struct work_struct pva_abort_handler_work;
 	bool booted;
@@ -376,8 +388,7 @@ void pva_dealloc_vpu_function_table(struct pva *pva,
  *
  * @return	0 on success, otherwise a negative error code
  */
-int pva_get_firmware_version(struct pva *pva,
-			     struct pva_version_info *info);
+int pva_get_firmware_version(struct pva *pva, struct pva_version_info *info);
 
 /**
  * @brief	Set trace log level of PVA
@@ -396,10 +407,7 @@ int pva_get_firmware_version(struct pva *pva,
  *
  * @return	0 on success, otherwise a negative error code
  */
-int pva_boot_kpi(struct pva *pva,
-			     u64 *r5_boot_time);
+int pva_boot_kpi(struct pva *pva, u64 *r5_boot_time);
 
-int pva_set_log_level(struct pva *pva,
-		      u32 log_level,
-		      bool mailbox_locked);
+int pva_set_log_level(struct pva *pva, u32 log_level, bool mailbox_locked);
 #endif

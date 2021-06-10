@@ -23,6 +23,7 @@
 
 #include "pva.h"
 
-int pva_ccq_send_task_t19x(struct pva *pva, struct pva_cmd_s *cmd);
+int pva_ccq_send_task_t19x(struct pva *pva, u32 queue_id, dma_addr_t task_addr,
+			   u8 batchsize, u32 flags);
 
 #endif

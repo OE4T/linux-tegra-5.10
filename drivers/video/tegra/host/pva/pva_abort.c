@@ -64,15 +64,6 @@ static void pva_abort_handler(struct work_struct *work)
 		goto skip_recovery;
 	}
 
-	/*
-	 * If we use channel submit mode, nvhost handles the channel
-	 * clean-up and syncpoint increments
-	 */
-	if (pva->submit_task_mode == PVA_SUBMIT_MODE_CHANNEL_CCQ) {
-		nvhost_warn(&pdev->dev, "Recovery skipped: Submit mode does not require clean-up");
-		goto skip_recovery;
-	}
-
 	/* Reset the PVA and reload firmware */
 	nvhost_module_reset(pdev, true);
 

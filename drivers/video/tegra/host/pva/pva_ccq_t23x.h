@@ -24,7 +24,8 @@
 #include "pva.h"
 #include "pva_status_regs.h"
 
-int pva_ccq_send_task_t23x(struct pva *pva, struct pva_cmd_s *cmd);
+int pva_ccq_send_task_t23x(struct pva *pva, u32 queue_id, dma_addr_t task_addr,
+			   u8 batchsize, u32 flags);
 void pva_ccq_isr_handler(struct pva *pva, unsigned int queue_id);
 int pva_ccq_send_cmd_sync(struct pva *pva,
 			struct pva_cmd_s *cmd, u32 nregs,

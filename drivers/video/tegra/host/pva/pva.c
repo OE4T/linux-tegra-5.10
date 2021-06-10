@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "nvpva_client.h"
 #include <linux/export.h>
 #include <linux/module.h>
@@ -99,6 +98,82 @@ static u32 pva_get_evp_reg(u32 index)
 	return evp_reg[index];
 }
 
+/**
+ * Allocate and set a circular array for FW to provide status info about
+ * completed tasks from all the PVA R5 queues.
+ * To avoid possible overwrite of info, the size of circular array needs to be
+ * sufficient to hold the status info for maximum allowed number of tasks
+ * across all PVA R5 queues at any time.
+ * PVA R5 FW shall fill task status info at incremental positions in the array
+ * while PVA KMD shall read the task status info at incremental positions from
+ * the array.
+ * Both PVA R5 FW and PVA KMD shall independently maintain an internal index
+ * to dictate the current write position and read position respectively.
+ */
+static int pva_alloc_task_status_buffer(struct pva *pva)
+{
+	size_t min_size = 0U;
+
+	/* Determine worst case size required for circular array based on
+	 * maximum allowed per PVA engine and maximum allowed number of task
+	 * submissions per PVA queue at any time.
+	 */
+	min_size = MAX_PVA_TASK_COUNT * sizeof(struct pva_task_error_s);
+
+	pva->priv_circular_array.size = ALIGN(min_size + 64, 64);
+
+	pva->priv_circular_array.va =
+		dma_alloc_coherent(&pva->pdev->dev,
+				   pva->priv_circular_array.size,
+				   &pva->priv_circular_array.pa, GFP_KERNEL);
+
+	if (pva->priv_circular_array.va == NULL) {
+		pr_err("pva: failed to alloc mem for task status info");
+		return -ENOMEM;
+	}
+
+	INIT_WORK(&pva->task_update_work, pva_task_update);
+
+	atomic_set(&pva->n_pending_tasks, 0);
+	return 0;
+}
+
+static void pva_free_task_status_buffer(struct pva *pva)
+{
+	dma_free_coherent(&pva->pdev->dev, pva->priv_circular_array.size,
+			  pva->priv_circular_array.va,
+			  pva->priv_circular_array.pa);
+}
+
+
+int nvpva_set_task_status_buffer(struct pva *pva)
+{
+	struct pva_cmd_s cmd = {};
+	struct pva_cmd_status_regs status = {};
+	uint32_t flags = PVA_CMD_INT_ON_ERR | PVA_CMD_INT_ON_COMPLETE;
+	uint32_t nregs = 0U;
+	int32_t err = 0;
+
+	/* clear for debugging */
+	(void)memset(pva->priv_circular_array.va, 0,
+		     pva->priv_circular_array.size);
+
+	nregs = pva_cmd_set_status_buffer(&cmd, pva->priv_circular_array.pa,
+					  MAX_PVA_TASK_COUNT, flags);
+
+	err = pva_mailbox_send_cmd_sync(pva, &cmd, nregs, &status);
+	if (err || (status.error != (uint32_t)PVA_ERR_NO_ERROR)) {
+		pr_err("pva: failed to configure task status info buffer: %d, %d",
+		       err, status.error);
+		return -EINVAL;
+	}
+
+	// Initialize the current read position in the circular array
+	pva->circular_array_rd_pos = 0U;
+	return 0;
+
+}
+
 /* Default buffer size (256 kbytes) used for ucode trace log*/
 #define PVA_PRIV2_TRACE_LOG_BUFFER_SIZE 0x40000
 
@@ -125,29 +200,30 @@ static int pva_init_fw(struct platform_device *pdev)
 	/* Program user seg subtracting the offset */
 	ucode_useg_addr = priv1_buffer->pa - R5_USER_SEGREG_OFFSET;
 	host1x_writel(pdev, cfg_r5user_lsegreg_r(pva->version),
-		PVA_LOW32(ucode_useg_addr));
+		      PVA_LOW32(ucode_useg_addr));
 	host1x_writel(pdev, cfg_r5user_usegreg_r(pva->version),
-		PVA_EXTRACT64(ucode_useg_addr, 39, 32, u32));
+		      PVA_EXTRACT64(ucode_useg_addr, 39, 32, u32));
 
 	/* Program the extra memory to be used by R5 */
 	ucode_useg_addr = priv2_buffer->pa - fw_info->priv2_reg_offset;
 	host1x_writel(pdev, cfg_priv_ar2_start_r(pva->version),
-		fw_info->priv2_reg_offset);
+		      fw_info->priv2_reg_offset);
 	host1x_writel(pdev, cfg_priv_ar2_end_r(pva->version),
-		fw_info->priv2_reg_offset + priv2_buffer->size);
+		      fw_info->priv2_reg_offset + priv2_buffer->size);
 	host1x_writel(pdev, cfg_priv_ar2_lsegreg_r(pva->version),
-		PVA_LOW32(ucode_useg_addr));
+		      PVA_LOW32(ucode_useg_addr));
 	host1x_writel(pdev, cfg_priv_ar2_usegreg_r(pva->version),
-		PVA_EXTRACT64(ucode_useg_addr, 39, 32, u32));
+		      PVA_EXTRACT64(ucode_useg_addr, 39, 32, u32));
 
 	/* check the type of segments and their offset and address */
 	for (w = 0; w < fw_info->hdr->nsegments; w++) {
-		struct pva_ucode_seg_s *useg = (struct pva_ucode_seg_s *)
-			((void *)ucode_ptr + PVA_UCODE_SEG_HDR_LENGTH
-				+ (PVA_UCODE_SEG_HDR_LENGTH * w));
+		struct pva_ucode_seg_s *useg =
+			(struct pva_ucode_seg_s *)((void *)ucode_ptr +
+						   PVA_UCODE_SEG_HDR_LENGTH +
+						   (PVA_UCODE_SEG_HDR_LENGTH *
+						    w));
 
 		switch (useg->type) {
-
 		case PVA_UCODE_SEG_EVP: {
 			/* First 32 bytes of the EVP payload are zeros.
 			 * so skip first 32 bytes
@@ -175,19 +251,18 @@ static int pva_init_fw(struct platform_device *pdev)
 			const u32 ar1_end =
 				useg->addr + priv1_buffer->size - useg->offset;
 
+			host1x_writel(pdev, cfg_priv_ar1_start_r(pva->version),
+				      ar1_start);
+			host1x_writel(pdev, cfg_priv_ar1_end_r(pva->version),
+				      ar1_end);
 			host1x_writel(pdev,
-				cfg_priv_ar1_start_r(pva->version), ar1_start);
+				      cfg_priv_ar1_lsegreg_r(pva->version),
+				      useg_addr_low);
 			host1x_writel(pdev,
-				cfg_priv_ar1_end_r(pva->version), ar1_end);
-			host1x_writel(pdev,
-				cfg_priv_ar1_lsegreg_r(pva->version),
-				useg_addr_low);
-			host1x_writel(pdev,
-				cfg_priv_ar1_usegreg_r(pva->version),
-				useg_addr_high);
+				      cfg_priv_ar1_usegreg_r(pva->version),
+				      useg_addr_high);
 			break;
 		}
-
 		}
 	}
 
@@ -210,7 +285,7 @@ static int pva_init_fw(struct platform_device *pdev)
 
 	/* Take R5 out of reset */
 	host1x_writel(pdev, proc_cpuhalt_r(),
-		proc_cpuhalt_ncpuhalt_f(proc_cpuhalt_ncpuhalt_done_v()));
+		      proc_cpuhalt_ncpuhalt_f(proc_cpuhalt_ncpuhalt_done_v()));
 
 	nvhost_dbg_fn("Waiting for PVA to be READY");
 
@@ -227,6 +302,7 @@ static int pva_init_fw(struct platform_device *pdev)
 	if ((host1x_readl(pdev, hsp_ss0_state_r()) & PVA_TEST_MODE))
 		err = pva_run_ucode_selftest(pdev);
 
+	err = nvpva_set_task_status_buffer(pva);
 wait_timeout:
 	return err;
 }
@@ -237,11 +313,11 @@ static int pva_free_fw(struct platform_device *pdev, struct pva *pva)
 
 	if (pva->priv1_dma.va)
 		dma_free_coherent(&pdev->dev, pva->priv1_dma.size,
-		pva->priv1_dma.va, pva->priv1_dma.pa);
+				  pva->priv1_dma.va, pva->priv1_dma.pa);
 
 	if (pva->priv2_dma.va)
 		dma_free_coherent(&pdev->dev, pva->priv2_dma.size,
-		pva->priv2_dma.va, pva->priv2_dma.pa);
+				  pva->priv2_dma.va, pva->priv2_dma.pa);
 
 	memset(fw_info, 0, sizeof(struct pva_fw));
 
@@ -255,8 +331,8 @@ static int pva_free_fw(struct platform_device *pdev, struct pva *pva)
 #define DRAM_PVA_IOVA_START_ADDRESS 0x80000000
 #define DRAM_PVA_NO_IOMMU_START_ADDRESS 0x60000000
 
-static int pva_read_ucode(struct platform_device *pdev,
-		const char *fw_name, struct pva *pva)
+static int pva_read_ucode(struct platform_device *pdev, const char *fw_name,
+			  struct pva *pva)
 {
 	int err = 0, w;
 	u32 *ucode_ptr;
@@ -270,8 +346,8 @@ static int pva_read_ucode(struct platform_device *pdev,
 	ucode_fw = nvhost_client_request_firmware(pdev, fw_name, true);
 	if (!ucode_fw) {
 		nvhost_dbg_fn("pva firmware request failed");
-		dev_err(&pdev->dev,
-			"Failed to load the %s firmware\n", fw_name);
+		dev_err(&pdev->dev, "Failed to load the %s firmware\n",
+			fw_name);
 		err = -ENOENT;
 		return err;
 	}
@@ -285,10 +361,8 @@ static int pva_read_ucode(struct platform_device *pdev,
 	pva->priv1_dma.size = ALIGN(fw_info->priv1_buffer.size + SZ_4K, SZ_4K);
 
 	/* Allocate memory to R5 for app code, data or to log information */
-	pva->priv1_dma.va = dma_alloc_coherent(&pdev->dev,
-				pva->priv1_dma.size,
-				&pva->priv1_dma.pa,
-				GFP_KERNEL);
+	pva->priv1_dma.va = dma_alloc_coherent(&pdev->dev, pva->priv1_dma.size,
+					       &pva->priv1_dma.pa, GFP_KERNEL);
 
 	if (!pva->priv1_dma.va) {
 		err = -ENOMEM;
@@ -296,15 +370,14 @@ static int pva_read_ucode(struct platform_device *pdev,
 	}
 
 	/* Make sure the buffer allocated to R5 are 4K aligned */
-	fw_info->priv1_buffer.va =
-			(void *)ALIGN((u64)pva->priv1_dma.va, SZ_4K);
+	fw_info->priv1_buffer.va = (void *)ALIGN((u64)pva->priv1_dma.va, SZ_4K);
 	fw_info->priv1_buffer.pa =
-			(dma_addr_t)ALIGN((u64)pva->priv1_dma.pa, SZ_4K);
+		(dma_addr_t)ALIGN((u64)pva->priv1_dma.pa, SZ_4K);
 
 	ucode_ptr = fw_info->priv1_buffer.va;
 
 	/* copy the whole thing taking into account endianness */
-	for (w = 0; w < ucode_fw->size/sizeof(u32); w++)
+	for (w = 0; w < ucode_fw->size / sizeof(u32); w++)
 		ucode_ptr[w] = le32_to_cpu(((__le32 *)ucode_fw->data)[w]);
 
 	/* set the header location accordingly */
@@ -312,7 +385,7 @@ static int pva_read_ucode(struct platform_device *pdev,
 
 	/* check for the magic number  and header version*/
 	if ((fw_info->hdr->magic != PVA_HDR_MAGIC) &&
-		(fw_info->hdr->hdr_version != PVA_HDR_VERSION)) {
+	    (fw_info->hdr->hdr_version != PVA_HDR_VERSION)) {
 		dev_err(&pdev->dev, "Wrong PVA uCode header magic/version\n");
 		err = -EINVAL;
 	}
@@ -320,9 +393,11 @@ static int pva_read_ucode(struct platform_device *pdev,
 	/* find the size needed for priv2 buffer allocation */
 	/* check the type of segments and their offset and address */
 	for (w = 0; w < fw_info->hdr->nsegments; w++) {
-		struct pva_ucode_seg_s *useg = (struct pva_ucode_seg_s *)
-			((void *)ucode_ptr + PVA_UCODE_SEG_HDR_LENGTH
-				+ (PVA_UCODE_SEG_HDR_LENGTH * w));
+		struct pva_ucode_seg_s *useg =
+			(struct pva_ucode_seg_s *)((void *)ucode_ptr +
+						   PVA_UCODE_SEG_HDR_LENGTH +
+						   (PVA_UCODE_SEG_HDR_LENGTH *
+						    w));
 
 		switch (useg->type) {
 		case PVA_UCODE_SEG_DRAM_CACHED:
@@ -332,7 +407,8 @@ static int pva_read_ucode(struct platform_device *pdev,
 			if (iommu_get_domain_for_dev(&pdev->dev))
 				useg->phys_addr = DRAM_PVA_IOVA_START_ADDRESS;
 			else
-				useg->phys_addr = DRAM_PVA_NO_IOMMU_START_ADDRESS;
+				useg->phys_addr =
+					DRAM_PVA_NO_IOMMU_START_ADDRESS;
 			break;
 		case PVA_UCODE_SEG_DRAM_UNCACHED:
 			/* Set the Uncache size as Zero */
@@ -347,7 +423,7 @@ static int pva_read_ucode(struct platform_device *pdev,
 			 * offset must be 64bytes aligned for dma usage
 			 */
 			fw_info->priv2_buffer.size =
-				 ALIGN(fw_info->priv2_buffer.size + 64, 64);
+				ALIGN(fw_info->priv2_buffer.size + 64, 64);
 
 			/* set the trace log buffer offset from priv2 start */
 			useg->offset = fw_info->priv2_buffer.size;
@@ -364,7 +440,7 @@ static int pva_read_ucode(struct platform_device *pdev,
 			break;
 		case PVA_UCODE_SEG_CODE_COVERAGE:
 			fw_info->priv2_buffer.size =
-				 ALIGN(fw_info->priv2_buffer.size + 64, 64);
+				ALIGN(fw_info->priv2_buffer.size + 64, 64);
 
 			useg->addr = ALIGN(segment_end_addr + 64, 64);
 			fw_info->priv2_buffer.size += useg->size;
@@ -372,7 +448,7 @@ static int pva_read_ucode(struct platform_device *pdev,
 			break;
 		case PVA_UCODE_SEG_DEBUG_LOG:
 			fw_info->priv2_buffer.size =
-				 ALIGN(fw_info->priv2_buffer.size + 64, 64);
+				ALIGN(fw_info->priv2_buffer.size + 64, 64);
 
 			useg->addr = ALIGN(segment_end_addr + 64, 64);
 			fw_info->priv2_buffer.size += useg->size;
@@ -387,10 +463,8 @@ static int pva_read_ucode(struct platform_device *pdev,
 	pva->priv2_dma.size = ALIGN(fw_info->priv2_buffer.size + SZ_4K, SZ_4K);
 
 	/* Allocate memory to R5 for app code, data or to log information */
-	pva->priv2_dma.va = dma_alloc_coherent(&pdev->dev,
-				pva->priv2_dma.size,
-				&pva->priv2_dma.pa,
-				GFP_KERNEL);
+	pva->priv2_dma.va = dma_alloc_coherent(&pdev->dev, pva->priv2_dma.size,
+					       &pva->priv2_dma.pa, GFP_KERNEL);
 
 	if (!pva->priv2_dma.va) {
 		err = -ENOMEM;
@@ -398,15 +472,13 @@ static int pva_read_ucode(struct platform_device *pdev,
 	}
 
 	/* Make sure the buffer allocated to R5 are 4K aligned */
-	fw_info->priv2_buffer.va =
-			(void *)ALIGN((u64)pva->priv2_dma.va, SZ_4K);
+	fw_info->priv2_buffer.va = (void *)ALIGN((u64)pva->priv2_dma.va, SZ_4K);
 
-	trace->addr = (void *)((u8 *)fw_info->priv2_buffer.va +
-					trace->offset);
+	trace->addr = (void *)((u8 *)fw_info->priv2_buffer.va + trace->offset);
 	memset(trace->addr, 0, trace->size);
 
 	fw_info->priv2_buffer.pa =
-			(dma_addr_t)ALIGN((u64)pva->priv2_dma.pa, SZ_4K);
+		(dma_addr_t)ALIGN((u64)pva->priv2_dma.pa, SZ_4K);
 
 	/* set the crashdump offsets and addresses */
 	for (w = 0; w < fw_info->hdr->nsegments; w++) {
@@ -458,8 +530,7 @@ load_fw_err:
 	return err;
 }
 
-int pva_get_firmware_version(struct pva *pva,
-			     struct pva_version_info *info)
+int pva_get_firmware_version(struct pva *pva, struct pva_version_info *info)
 {
 	uint32_t flags = PVA_CMD_INT_ON_ERR | PVA_CMD_INT_ON_COMPLETE;
 	struct pva_cmd_status_regs status;
@@ -473,7 +544,7 @@ int pva_get_firmware_version(struct pva *pva,
 	err = pva->version_config->submit_cmd_sync(pva, &cmd, nregs, &status);
 	if (err < 0) {
 		nvhost_warn(&pva->pdev->dev,
-			"mbox get firmware version cmd failed: %d\n", err);
+			    "mbox get firmware version cmd failed: %d\n", err);
 
 		return err;
 	}
@@ -486,8 +557,7 @@ int pva_get_firmware_version(struct pva *pva,
 	return err;
 }
 
-int pva_boot_kpi(struct pva *pva,
-				u64 *r5_boot_time)
+int pva_boot_kpi(struct pva *pva, u64 *r5_boot_time)
 {
 	uint32_t flags = PVA_CMD_INT_ON_ERR | PVA_CMD_INT_ON_COMPLETE;
 	struct pva_cmd_status_regs status;
@@ -500,8 +570,8 @@ int pva_boot_kpi(struct pva *pva,
 	/* Submit request to PVA and wait for response */
 	err = pva_mailbox_send_cmd_sync(pva, &cmd, nregs, &status);
 	if (err < 0) {
-		nvhost_warn(&pva->pdev->dev,
-			"mbox get uptime cmd failed: %d\n", err);
+		nvhost_warn(&pva->pdev->dev, "mbox get uptime cmd failed: %d\n",
+			    err);
 		return err;
 	}
 	*r5_boot_time = status.status[PVA_CMD_STATUS7_INDEX];
@@ -511,10 +581,7 @@ int pva_boot_kpi(struct pva *pva,
 	return err;
 }
 
-
-int pva_set_log_level(struct pva *pva,
-		      u32 log_level,
-		      bool mailbox_locked)
+int pva_set_log_level(struct pva *pva, u32 log_level, bool mailbox_locked)
 {
 	uint32_t flags = PVA_CMD_INT_ON_ERR | PVA_CMD_INT_ON_COMPLETE;
 	struct pva_cmd_status_regs status;
@@ -525,18 +592,15 @@ int pva_set_log_level(struct pva *pva,
 	nregs = pva_cmd_set_logging_level(&cmd, log_level, flags);
 
 	if (mailbox_locked)
-		err = pva->version_config->submit_cmd_sync_locked(pva,
-								  &cmd,
-								  nregs,
-								  &status);
+		err = pva->version_config->submit_cmd_sync_locked(
+			pva, &cmd, nregs, &status);
 	else
-		err = pva->version_config->submit_cmd_sync(pva, &cmd,
-							   nregs,
+		err = pva->version_config->submit_cmd_sync(pva, &cmd, nregs,
 							   &status);
 
 	if (err < 0)
-		nvhost_warn(&pva->pdev->dev,
-			"mbox set log level failed: %d\n", err);
+		nvhost_warn(&pva->pdev->dev, "mbox set log level failed: %d\n",
+			    err);
 
 	return err;
 }
@@ -550,9 +614,9 @@ int pva_finalize_poweron(struct platform_device *pdev)
 
 	/* Enable LIC_INTERRUPT line for HSP1, H1X and WDT */
 	host1x_writel(pva->pdev, sec_lic_intr_enable_r(pva->version),
-		sec_lic_intr_enable_hsp_f(SEC_LIC_INTR_HSP1) |
-		sec_lic_intr_enable_h1x_f(SEC_LIC_INTR_H1X_ALL) |
-		sec_lic_intr_enable_wdt_f(SEC_LIC_INTR_WDT));
+		      sec_lic_intr_enable_hsp_f(SEC_LIC_INTR_HSP1) |
+			      sec_lic_intr_enable_h1x_f(SEC_LIC_INTR_H1X_ALL) |
+			      sec_lic_intr_enable_wdt_f(SEC_LIC_INTR_WDT));
 
 	err = pva_load_fw(pdev);
 	if (err < 0) {
@@ -634,7 +698,7 @@ static int pva_probe(struct platform_device *pdev)
 #else
 	if (tegra_get_chip_id() == TEGRA194 &&
 #endif
-		tegra_get_sku_id() == 0x9E) {
+	    tegra_get_sku_id() == 0x9E) {
 		dev_err(dev, "PVA IP is disabled in SKU\n");
 		err = -ENODEV;
 		goto err_no_ip;
@@ -645,8 +709,7 @@ static int pva_probe(struct platform_device *pdev)
 #else
 	if (tegra_get_chip_id() == TEGRA194 &&
 #endif
-	    tegra_get_sku_id() == 0x9F &&
-	    pdata->class == NV_PVA1_CLASS_ID) {
+	    tegra_get_sku_id() == 0x9F && pdata->class == NV_PVA1_CLASS_ID) {
 		dev_err(dev, "PVA1 IP is disabled in SKU\n");
 		err = -ENODEV;
 		goto err_no_ip;
@@ -664,9 +727,10 @@ static int pva_probe(struct platform_device *pdev)
 #else
 	if (tegra_get_chip_id() == TEGRA234) {
 #endif
-		pva->version = 2;
+		pva->version = PVA_HW_GEN2;
 		pdata->firmware_name = "nvpva_020.fw";
 		pdata->firmware_not_in_subdir = true;
+		pva->submit_cmd_mode = PVA_SUBMIT_MODE_MMIO_CCQ;
 #ifdef CONFIG_TEGRA_T23X_GRHOST
 		pva->version_config = &pva_t23x_config;
 #else
@@ -676,14 +740,14 @@ static int pva_probe(struct platform_device *pdev)
 #endif
 		nvhost_dbg_info("PVA gen2 detected.");
 	} else {
-		pva->version = 1;
+		pva->version = PVA_HW_GEN1;
 		pdata->firmware_name = "nvpva_010.fw";
 		pdata->firmware_not_in_subdir = true;
+		pva->submit_cmd_mode = PVA_SUBMIT_MODE_MAILBOX;
 		pva->version_config = &pva_t19x_config;
 		nvhost_dbg_info("PVA gen1 detected.");
 	}
 	pva->pdev = pdev;
-
 
 	/* Enable powergating and timeout only on silicon */
 	if (!tegra_platform_is_silicon()) {
@@ -693,7 +757,6 @@ static int pva_probe(struct platform_device *pdev)
 		pva->timeout_enabled = true;
 	}
 
-
 	/* Initialize nvhost specific data */
 	pdata->pdev = pdev;
 	mutex_init(&pdata->lock);
@@ -702,14 +765,10 @@ static int pva_probe(struct platform_device *pdev)
 	mutex_init(&pva->mailbox_mutex);
 	mutex_init(&pva->ccq_mutex);
 	pva->submit_task_mode = PVA_SUBMIT_MODE_MMIO_CCQ;
-	if (pva->version == 2) {
-		pva->submit_cmd_mode = PVA_SUBMIT_MODE_MMIO_CCQ;
-	} else {
-		pva->submit_cmd_mode = PVA_SUBMIT_MODE_MAILBOX;
-	}
 	pva->slcg_disable = 0;
 	pva->vmem_war_disable = 0;
 	pva->vpu_perf_counters_enable = false;
+	pva->vpu_debug_enabled = true;
 
 #ifdef __linux__
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)
@@ -740,11 +799,17 @@ static int pva_probe(struct platform_device *pdev)
 	if (err < 0)
 		goto err_client_device_init;
 
-	pva->pool = nvhost_queue_init(pdev, &pva_queue_ops,
-					MAX_PVA_QUEUE_COUNT);
+	pva->pool =
+		nvhost_queue_init(pdev, &pva_queue_ops, MAX_PVA_QUEUE_COUNT);
 	if (IS_ERR(pva->pool)) {
 		err = PTR_ERR(pva->pool);
 		goto err_queue_init;
+	}
+
+	err = pva_alloc_task_status_buffer(pva);
+	if (err) {
+		dev_err(&pva->pdev->dev, "failed to init task status buffer");
+		goto err_status_init;
 	}
 
 	err = nvpva_client_context_init(pva);
@@ -775,6 +840,8 @@ err_mss_init:
 err_isr_init:
 	nvpva_client_context_deinit(pva);
 err_client_ctx_init:
+	pva_free_task_status_buffer(pva);
+err_status_init:
 	nvhost_queue_deinit(pva->pool);
 err_queue_init:
 	nvhost_client_device_release(pdev);
@@ -796,6 +863,7 @@ static int __exit pva_remove(struct platform_device *pdev)
 	struct pva *pva = pdata->private_data;
 	int i;
 
+	pva_free_task_status_buffer(pva);
 	nvpva_client_context_deinit(pva);
 	nvhost_queue_deinit(pva->pool);
 	nvhost_client_device_release(pdev);
