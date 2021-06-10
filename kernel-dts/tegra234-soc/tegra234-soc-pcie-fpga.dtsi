@@ -26,7 +26,7 @@
 		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX1A>;
 		reg = <0x00 0x14100000 0x0 0x00020000   /* appl registers (128K)      */
 		       0x00 0x30040000 0x0 0x00040000   /* iATU_DMA reg space (256K)  */
-		       0x00 0x30000000 0x0 0x00040000   /* configuration space (256K) */
+		       0x00 0x30080000 0x0 0x00040000   /* DBI space (256K)           */
 		       0x20 0x80000000 0x0 0x40000000>; /* Address Space (1G)         */
 		reg-names = "appl", "atu_dma", "dbi", "addr_space";
 
@@ -97,8 +97,9 @@
 		reg = <0x00 0x14100000 0x0 0x00020000   /* appl registers (128K)      */
 		       0x00 0x30000000 0x0 0x00040000   /* configuration space (256K) */
 		       0x00 0x30040000 0x0 0x00040000   /* iATU_DMA reg space (256K)  */
-		       0x00 0x30080000 0x0 0x00040000>; /* DBI reg space (256K)       */
-		reg-names = "appl", "config", "atu_dma", "dbi";
+		       0x00 0x30080000 0x0 0x00040000   /* DBI reg space (256K)       */
+		       0x20 0xb0000000 0x0 0x10000000>; /* ECAM (256MB)               */
+		reg-names = "appl", "config", "atu_dma", "dbi", "ecam";
 
 		status = "disabled";
 
@@ -147,9 +148,9 @@
 		nvidia,aspm-l0s-entrance-latency = <0x3>;
 
 		bus-range = <0x0 0xff>;
-		ranges = <0x81000000 0x0 0x30100000 0x0 0x30100000 0x0 0x00100000      /* downstream I/O (1MB) */
-			  0x82000000 0x0 0x30200000 0x0 0x30200000 0x0 0x01E00000      /* non-prefetchable memory (30MB) */
-			  0xc2000000 0x20 0x80000000 0x20 0x80000000 0x0 0x40000000>;  /* prefetchable memory (1GB) */
+		ranges = <0x81000000 0x00 0x30100000 0x00 0x30100000 0x0 0x00100000      /* downstream I/O (1MB) */
+			  0x82000000 0x00 0x40000000 0x20 0xa8000000 0x0 0x08000000      /* non-prefetchable memory (128MB) */
+			  0xc3000000 0x20 0x80000000 0x20 0x80000000 0x0 0x28000000>;    /* prefetchable memory (640MB) */
 
 		nvidia,cfg-link-cap-l1sub = <0x154>;
 		nvidia,cap-pl16g-status = <0x164>;
