@@ -141,6 +141,8 @@ Optional properties:
    (Separate Reference clocks with No Spread-spectrum clocking) configuration
    implemented. This property disables REFCLK supply to EP on the RC side and
    initializes PLLs with the internal clock source on the EP side.
+- nvidia,pex-prsnt-gpios: Must contain a phandle to a GPIO controller followed
+  by GPIO that is being used to support hot plug and unplug via PRSNT# pin.
 
 RC mode:
 - vpcie3v3-supply: A phandle to the regulator node that supplies 3.3V to the slot
