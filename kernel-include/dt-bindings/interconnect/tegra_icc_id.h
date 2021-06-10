@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-21, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -57,5 +57,10 @@
 #define TEGRA_ICC_APE				36
 #define TEGRA_ICC_APEDMA			37
 #define TEGRA_ICC_SE				38
+#define TEGRA_ICC_ISP				39
+#define TEGRA_ICC_HDA				40
+#define TEGRA_ICC_VIFAL				41
+#define TEGRA_ICC_VI2FAL			42
+#define TEGRA_ICC_VI2				43
 
 #endif /* _DT_BINDINGS_TEGRA_ICC_ID_H */
