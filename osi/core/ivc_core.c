@@ -61,9 +61,15 @@ static nve32_t ivc_handle_ioctl(struct osi_core_priv_data *osi_core,
 
 	ret = osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
 
-	msg.status = osi_memcpy((void *)data,
-				(void *)&msg.data.ioctl_data,
-		   		sizeof(struct osi_ioctl));
+	if (data->cmd == OSI_CMD_READ_MMC) {
+		msg.status = osi_memcpy((void *)&osi_core->mmc,
+					(void *)&msg.data.mmc,
+					sizeof(struct osi_mmc_counters));
+	} else {
+		msg.status = osi_memcpy((void *)data,
+					(void *)&msg.data.ioctl_data,
+					sizeof(struct osi_ioctl));
+	}
 	return ret;
 }
 
