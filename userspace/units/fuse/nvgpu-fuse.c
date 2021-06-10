@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,11 +27,13 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/hal_init.h>
 #include <nvgpu/enabled.h>
+#include <common/gr/gr_priv.h>
 
 #include "nvgpu-fuse.h"
 #include "nvgpu-fuse-priv.h"
 #include "nvgpu-fuse-gp10b.h"
 #include "nvgpu-fuse-gm20b.h"
+#include "common/gr/gr_config_priv.h"
 #ifdef CONFIG_NVGPU_DGPU
 #include "nvgpu-fuse-tu104.h"
 #endif
@@ -101,9 +103,11 @@ int test_fuse_device_common_init(struct unit_module *m,
 	int ret = UNIT_SUCCESS;
 	int result;
 	struct fuse_test_args *args = (struct fuse_test_args *)__args;
+	struct nvgpu_gr gr = {0};
+	struct nvgpu_gr_config config = {0};
 
 	/* Create fuse register space */
-	if (nvgpu_posix_io_add_reg_space(g, args->fuse_base_addr, 0xfff) != 0) {
+	if (nvgpu_posix_io_add_reg_space(g, args->fuse_base_addr, 0x1fff) != 0) {
 		unit_err(m, "%s: failed to create register space\n",
 			 __func__);
 		return UNIT_FAIL;
@@ -119,6 +123,8 @@ int test_fuse_device_common_init(struct unit_module *m,
 	g->params.gpu_impl = NV_PMC_BOOT_0_IMPLEMENTATION_B;
 #endif
 
+	g->gr = &gr;
+	gr.config = &config;
 	nvgpu_posix_io_writel_reg_space(g, args->sec_fuse_addr, 0x0);
 
 	result = nvgpu_init_hal(g);
@@ -129,6 +135,8 @@ int test_fuse_device_common_init(struct unit_module *m,
 	}
 
 	g->ops.fuse.read_gcplex_config_fuse = read_gcplex_config_fuse_pass;
+	nvgpu_posix_io_writel_reg_space(g, GM20B_TOP_NUM_GPCS,
+		GM20B_MAX_GPC_COUNT);
 
 	return ret;
 }
@@ -186,6 +194,7 @@ struct unit_module_test fuse_tests[] = {
 		  0),
 #endif
 	UNIT_TEST(fuse_gm20b_basic_fuses, test_fuse_gm20b_basic_fuses, NULL, 0),
+	UNIT_TEST(test_fuse_gm20b_basic_fuses_bvec, test_fuse_gm20b_basic_fuses_bvec, NULL, 0),
 #ifdef CONFIG_NVGPU_SIM
 	UNIT_TEST(fuse_gm20b_check_fmodel, test_fuse_gm20b_check_fmodel, NULL, 0),
 #endif

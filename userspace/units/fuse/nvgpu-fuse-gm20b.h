@@ -159,6 +159,31 @@ int test_fuse_gm20b_check_non_sec(struct unit_module *m,
 int test_fuse_gm20b_basic_fuses(struct unit_module *m,
 				struct gk20a *g, void *__args);
 
+/**
+ * Test specification for: test_fuse_gm20b_basic_fuses_bvec
+ *
+ * Description:  Verify fuse reads for basic value-return APIs.
+ *
+ * Test Type: BVEC
+ *
+ * Targets: gops_fuse.fuse_status_opt_tpc_gpc,
+ *
+ * Equivalence classes:
+ * - Valid : {0, gr->config->max_gpc_count - 1}
+ * - Invalid : {gr->config->max_gpc_count, U32_MAX}
+ *
+ * Input: test_fuse_device_common_init() must be called for this GPU.
+ *
+ * Steps:
+ * - For each fuse API that returns the value of the fuse, do the following:
+ *   - Read values for valid/invalid GPCs.
+ *   - Verify the correct value/error is returned.
+ *
+ * Output: Returns SUCCESS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_fuse_gm20b_basic_fuses_bvec(struct unit_module *m,
+				struct gk20a *g, void *__args);
 #ifdef CONFIG_NVGPU_SIM
 int test_fuse_gm20b_check_fmodel(struct unit_module *m,
 				 struct gk20a *g, void *__args);

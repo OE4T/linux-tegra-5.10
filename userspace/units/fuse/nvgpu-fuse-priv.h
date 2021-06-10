@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,4 +34,7 @@ struct fuse_test_args {
 	u32 sec_fuse_addr;
 };
 
+#define GM20B_FUSE_REG_BASE			0x00021000U
+#define GM20B_TOP_NUM_GPCS			(GM20B_FUSE_REG_BASE+0x1430U)
+#define GM20B_MAX_GPC_COUNT                     24U
 #endif /* __UNIT_NVGPU_FUSE_PRIV_H__ */

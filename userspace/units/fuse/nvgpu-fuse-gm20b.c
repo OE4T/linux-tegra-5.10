@@ -32,7 +32,6 @@
 #include "nvgpu-fuse-gm20b.h"
 
 /* register definitions for this block */
-#define GM20B_FUSE_REG_BASE			0x00021000U
 #define GM20B_FUSE_OPT_SEC_DEBUG_EN		(GM20B_FUSE_REG_BASE+0x218U)
 #define GM20B_FUSE_STATUS_OPT_PRIV_SEC_EN	(GM20B_FUSE_REG_BASE+0x434U)
 #define GM20B_FUSE_CTRL_OPT_TPC_GPC		(GM20B_FUSE_REG_BASE+0x838U)
@@ -42,7 +41,6 @@
 #define GM20B_FUSE_STATUS_OPT_FBP		(GM20B_FUSE_REG_BASE+0xD38U)
 #define GM20B_FUSE_STATUS_OPT_ROP_L2_FBP	(GM20B_FUSE_REG_BASE+0xD70U)
 #define GM20B_MAX_FBPS_COUNT			32U
-#define GM20B_MAX_GPC_COUNT			32U
 
 /* for common init args */
 struct fuse_test_args gm20b_init_args = {
@@ -255,6 +253,7 @@ int test_fuse_gm20b_basic_fuses(struct unit_module *m,
 					set*i);
 
 		}
+
 		for (i = 0; i < GM20B_MAX_GPC_COUNT; i++) {
 			val = g->ops.fuse.fuse_status_opt_tpc_gpc(g, i);
 			if (val != (set*i)) {
@@ -286,6 +285,57 @@ int test_fuse_gm20b_basic_fuses(struct unit_module *m,
 				__func__, val, set);
 			ret = UNIT_FAIL;
 		}
+	}
+
+	return ret;
+}
+
+int test_fuse_gm20b_basic_fuses_bvec(struct unit_module *m,
+				struct gk20a *g, void *__args)
+{
+	int ret = UNIT_SUCCESS;
+	u32 set, val, i;
+
+/* GPC in range */
+	i = 0;
+	set = 0;
+	nvgpu_posix_io_writel_reg_space(g, GM20B_FUSE_STATUS_OPT_TPC_GPC+(i*4U),
+				set*i);
+	val = g->ops.fuse.fuse_status_opt_tpc_gpc(g, i);
+	if (val != (set*i)) {
+		unit_err(m, "%s TPC STATUS incorrect for gpc %u %u != %u\n",
+			__func__, i, val, set*i);
+		ret = UNIT_FAIL;
+	}
+
+/* GPC in range */
+	i = GM20B_MAX_GPC_COUNT - 1;
+	set = 4;
+	nvgpu_posix_io_writel_reg_space(g, GM20B_FUSE_STATUS_OPT_TPC_GPC+(i*4U),
+				set*i);
+	val = g->ops.fuse.fuse_status_opt_tpc_gpc(g, i);
+	if (val != (set*i)) {
+		unit_err(m, "%s TPC STATUS incorrect for gpc %u %u != %u\n",
+			__func__, i, val, set*i);
+		ret = UNIT_FAIL;
+	}
+
+/* GPC is equal to MAX */
+	i = GM20B_MAX_GPC_COUNT;
+	val = EXPECT_BUG(g->ops.fuse.fuse_status_opt_tpc_gpc(g, i));
+	if (val == 0) {
+		unit_err(m, "%s TPC STATUS incorrect for gpc %u %u != %u\n",
+			__func__, i, val, set*i);
+		ret = UNIT_FAIL;
+	}
+
+/* GPC is more than MAX */
+	i = GM20B_MAX_GPC_COUNT + 1;
+	val = EXPECT_BUG(g->ops.fuse.fuse_status_opt_tpc_gpc(g, i));
+	if (val == 0) {
+		unit_err(m, "%s TPC STATUS incorrect for gpc %u %u != %u\n",
+			__func__, i, val, set*i);
+		ret = UNIT_FAIL;
 	}
 
 	return ret;
