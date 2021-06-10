@@ -50,12 +50,16 @@
 #define ACTIVE_GR_ID 1
 #define ACTIVE_CE_ID 2
 
-#define STALL_EN_REG		mc_intr_en_set_r(NVGPU_CIC_INTR_STALLING)
-#define STALL_DIS_REG		mc_intr_en_clear_r(NVGPU_CIC_INTR_STALLING)
-#define NONSTALL_EN_REG		mc_intr_en_set_r(NVGPU_CIC_INTR_NONSTALLING)
-#define NONSTALL_DIS_REG	mc_intr_en_clear_r(NVGPU_CIC_INTR_NONSTALLING)
-#define STALL_PENDING_REG	mc_intr_r(NVGPU_CIC_INTR_STALLING)
-#define NONSTALL_PENDING_REG	mc_intr_r(NVGPU_CIC_INTR_NONSTALLING)
+#define STALL_EN_REG			mc_intr_en_r(NVGPU_CIC_INTR_STALLING)
+#define NONSTALL_EN_REG			mc_intr_en_r(NVGPU_CIC_INTR_NONSTALLING)
+
+#define STALL_EN_SET_REG		mc_intr_en_set_r(NVGPU_CIC_INTR_STALLING)
+#define STALL_EN_CLEAR_REG		mc_intr_en_clear_r(NVGPU_CIC_INTR_STALLING)
+#define NONSTALL_EN_SET_REG		mc_intr_en_set_r(NVGPU_CIC_INTR_NONSTALLING)
+#define NONSTALL_EN_CLEAR_REG		mc_intr_en_clear_r(NVGPU_CIC_INTR_NONSTALLING)
+
+#define STALL_PENDING_REG		mc_intr_r(NVGPU_CIC_INTR_STALLING)
+#define NONSTALL_PENDING_REG		mc_intr_r(NVGPU_CIC_INTR_NONSTALLING)
 
 struct mc_unit {
 	u32 num;
@@ -63,7 +67,6 @@ struct mc_unit {
 };
 static struct mc_unit mc_units[] = {
 	{ NVGPU_CIC_INTR_UNIT_BUS, mc_intr_pbus_pending_f() },
-	{ NVGPU_CIC_INTR_UNIT_PMU, mc_intr_pmu_pending_f() },
 	{ NVGPU_CIC_INTR_UNIT_PRIV_RING, mc_intr_priv_ring_pending_f() },
 	{ NVGPU_CIC_INTR_UNIT_FIFO, mc_intr_pfifo_pending_f() },
 	{ NVGPU_CIC_INTR_UNIT_LTC, mc_intr_ltc_pending_f() },
@@ -85,6 +88,29 @@ static struct mc_unit mc_units[] = {
 static void writel_access_reg_fn(struct gk20a *g,
 				 struct nvgpu_reg_access *access)
 {
+	u32 value;
+
+	if (access->addr == STALL_EN_SET_REG) {
+		value = nvgpu_posix_io_readl_reg_space(g, STALL_EN_REG) | access->value;
+		nvgpu_posix_io_writel_reg_space(g, STALL_EN_REG, value);
+	}
+
+	if (access->addr == NONSTALL_EN_SET_REG) {
+		value = nvgpu_posix_io_readl_reg_space(g, NONSTALL_EN_REG) | access->value;
+		nvgpu_posix_io_writel_reg_space(g, NONSTALL_EN_REG, value);
+	}
+
+
+	if (access->addr == STALL_EN_CLEAR_REG) {
+		value = nvgpu_posix_io_readl_reg_space(g, STALL_EN_REG) & ~access->value;
+		nvgpu_posix_io_writel_reg_space(g, STALL_EN_REG, value);
+	}
+
+	if (access->addr == NONSTALL_EN_CLEAR_REG) {
+		value = nvgpu_posix_io_readl_reg_space(g, NONSTALL_EN_REG) & ~access->value;
+		nvgpu_posix_io_writel_reg_space(g, NONSTALL_EN_REG, value);
+	}
+
 	nvgpu_posix_io_writel_reg_space(g, access->addr, access->value);
 }
 
@@ -271,15 +297,19 @@ int test_mc_free_env(struct unit_module *m, struct gk20a *g, void *args)
 
 int test_unit_config(struct unit_module *m, struct gk20a *g, void *args)
 {
+	u32 invalid_units[] = {NUM_MC_UNITS, INVALID_UNIT, U32_MAX};
 	u32 i;
 	u32 unit;
 	u32 val;
 
 	/* clear regs */
 	nvgpu_posix_io_writel_reg_space(g, STALL_EN_REG, 0x0);
-	nvgpu_posix_io_writel_reg_space(g, STALL_DIS_REG, 0x0);
 	nvgpu_posix_io_writel_reg_space(g, NONSTALL_EN_REG, 0x0);
-	nvgpu_posix_io_writel_reg_space(g, NONSTALL_DIS_REG, 0x0);
+
+	nvgpu_posix_io_writel_reg_space(g, STALL_EN_SET_REG, 0x0);
+	nvgpu_posix_io_writel_reg_space(g, STALL_EN_CLEAR_REG, 0x0);
+	nvgpu_posix_io_writel_reg_space(g, NONSTALL_EN_SET_REG, 0x0);
+	nvgpu_posix_io_writel_reg_space(g, NONSTALL_EN_CLEAR_REG, 0x0);
 
 	for (i = 0; i < NUM_MC_UNITS; i++) {
 		unit = mc_units[i].num;
@@ -287,15 +317,15 @@ int test_unit_config(struct unit_module *m, struct gk20a *g, void *args)
 		/* enable stall intr */
 		nvgpu_cic_mon_intr_stall_unit_config(g, unit, true);
 		val = nvgpu_posix_io_readl_reg_space(g, STALL_EN_REG);
-		if (val != mc_units[i].bit) {
+		if ((val & mc_units[i].bit) == 0) {
 			unit_return_fail(m, "failed to enable stall intr for unit %u val=0x%08x\n",
 					unit, val);
 		}
 
 		/* disable stall intr */
 		nvgpu_cic_mon_intr_stall_unit_config(g, unit, false);
-		val = nvgpu_posix_io_readl_reg_space(g, STALL_DIS_REG);
-		if (val != mc_units[i].bit) {
+		val = nvgpu_posix_io_readl_reg_space(g, STALL_EN_REG);
+		if ((val & mc_units[i].bit) != 0) {
 			unit_return_fail(m, "failed to disable stall intr for unit %u val=0x%08x\n",
 					unit, val);
 		}
@@ -303,36 +333,56 @@ int test_unit_config(struct unit_module *m, struct gk20a *g, void *args)
 		/* enable nonstall intr */
 		nvgpu_cic_mon_intr_nonstall_unit_config(g, unit, true);
 		val = nvgpu_posix_io_readl_reg_space(g, NONSTALL_EN_REG);
-		if (val != mc_units[i].bit) {
+		if ((val & mc_units[i].bit) == 0) {
 			unit_return_fail(m, "failed to enable nonstall intr for unit %u val=0x%08x\n",
 					unit, val);
 		}
 
 		/* disable stall intr */
 		nvgpu_cic_mon_intr_nonstall_unit_config(g, unit, false);
-		val = nvgpu_posix_io_readl_reg_space(g, NONSTALL_DIS_REG);
-		if (val != mc_units[i].bit) {
+		val = nvgpu_posix_io_readl_reg_space(g, NONSTALL_EN_REG);
+		if ((val & mc_units[i].bit) != 0) {
 			unit_return_fail(m, "failed to disable nonstall intr for unit %u val=0x%08x\n",
 					unit, val);
 		}
 	}
 
-	/* negative testing - invalid unit - stall */
-	nvgpu_posix_io_writel_reg_space(g, STALL_EN_REG, 0x0); /* clear reg */
-	nvgpu_cic_mon_intr_stall_unit_config(g, U32_MAX, true);
-	val = nvgpu_posix_io_readl_reg_space(g, STALL_EN_REG);
-	if (val != 0U) {
-		unit_return_fail(m, "Incorrectly enabled interrupt for invalid unit, val=0x%08x\n",
-				 val);
-	}
+	for (i = 0; i < ARRAY_SIZE(invalid_units); i++) {
+		/* negative testing - invalid unit enable set - stall */
+		nvgpu_posix_io_writel_reg_space(g, STALL_EN_REG, 0x0); /* clear en reg */
+		nvgpu_cic_mon_intr_stall_unit_config(g, invalid_units[i], true);
+		val = nvgpu_posix_io_readl_reg_space(g, STALL_EN_REG);
+		if (val != 0U) {
+			unit_return_fail(m, "Incorrectly enabled stall interrupt for invalid unit, val=0x%08x\n",
+					 val);
+		}
 
-	/* negative testing - invalid unit - nonstall */
-	nvgpu_posix_io_writel_reg_space(g, NONSTALL_EN_REG, 0x0); /* clear reg */
-	nvgpu_cic_mon_intr_nonstall_unit_config(g, U32_MAX, true);
-	val = nvgpu_posix_io_readl_reg_space(g, NONSTALL_EN_REG);
-	if (val != 0U) {
-		unit_return_fail(m, "Incorrectly enabled interrupt for invalid unit, val=0x%08x\n",
-				 val);
+		/* negative testing - invalid unit enable clear - stall */
+		nvgpu_posix_io_writel_reg_space(g, STALL_EN_REG, U32_MAX); /* set en reg */
+		nvgpu_cic_mon_intr_stall_unit_config(g, invalid_units[i], false);
+		val = nvgpu_posix_io_readl_reg_space(g, STALL_EN_REG);
+		if (val != U32_MAX) {
+			unit_return_fail(m, "Incorrectly disabled stall interrupt for invalid unit, val=0x%08x\n",
+					 val);
+		}
+
+		/* negative testing - invalid unit enable set - nonstall */
+		nvgpu_posix_io_writel_reg_space(g, NONSTALL_EN_REG, 0x0); /* clear en reg */
+		nvgpu_cic_mon_intr_nonstall_unit_config(g, invalid_units[i], true);
+		val = nvgpu_posix_io_readl_reg_space(g, NONSTALL_EN_REG);
+		if (val != 0U) {
+			unit_return_fail(m, "Incorrectly enabled non-stall interrupt for invalid unit, val=0x%08x\n",
+					 val);
+		}
+
+		/* negative testing - invalid unit enable clear - nonstall */
+		nvgpu_posix_io_writel_reg_space(g, NONSTALL_EN_REG, U32_MAX); /* set en reg */
+		nvgpu_cic_mon_intr_nonstall_unit_config(g, invalid_units[i], false);
+		val = nvgpu_posix_io_readl_reg_space(g, NONSTALL_EN_REG);
+		if (val != U32_MAX) {
+			unit_return_fail(m, "Incorrectly enabled non-stall interrupt for invalid unit, val=0x%08x\n",
+					 val);
+		}
 	}
 
 	return UNIT_SUCCESS;
@@ -347,9 +397,12 @@ int test_pause_resume_mask(struct unit_module *m, struct gk20a *g, void *args)
 
 	/* clear regs */
 	nvgpu_posix_io_writel_reg_space(g, STALL_EN_REG, 0x0);
-	nvgpu_posix_io_writel_reg_space(g, STALL_DIS_REG, 0x0);
 	nvgpu_posix_io_writel_reg_space(g, NONSTALL_EN_REG, 0x0);
-	nvgpu_posix_io_writel_reg_space(g, NONSTALL_DIS_REG, 0x0);
+
+	nvgpu_posix_io_writel_reg_space(g, STALL_EN_SET_REG, 0x0);
+	nvgpu_posix_io_writel_reg_space(g, STALL_EN_CLEAR_REG, 0x0);
+	nvgpu_posix_io_writel_reg_space(g, NONSTALL_EN_SET_REG, 0x0);
+	nvgpu_posix_io_writel_reg_space(g, NONSTALL_EN_CLEAR_REG, 0x0);
 
 	/* cleanup anything from previous tests */
 	g->mc.intr_mask_restore[0] = 0U;
@@ -361,20 +414,20 @@ int test_pause_resume_mask(struct unit_module *m, struct gk20a *g, void *args)
 
 	/* pause stall */
 	nvgpu_cic_mon_intr_stall_pause(g);
-	val = nvgpu_posix_io_readl_reg_space(g, STALL_DIS_REG);
-	if (val != U32_MAX) {
+	val = nvgpu_posix_io_readl_reg_space(g, STALL_EN_REG);
+	if (val != 0) {
 		unit_return_fail(m, "failed to pause stall intr\n");
 	}
 
 	/* pause nonstall */
 	nvgpu_cic_mon_intr_nonstall_pause(g);
-	val = nvgpu_posix_io_readl_reg_space(g, NONSTALL_DIS_REG);
-	if (val != U32_MAX) {
+	val = nvgpu_posix_io_readl_reg_space(g, NONSTALL_EN_REG);
+	if (val != 0) {
 		unit_return_fail(m, "failed to pause nonstall intr\n");
 	}
 
 	/* resume stall */
-	nvgpu_posix_io_writel_reg_space(g, STALL_EN_REG, 0x0);
+	nvgpu_posix_io_writel_reg_space(g, STALL_EN_SET_REG, 0x0);
 	nvgpu_cic_mon_intr_stall_resume(g);
 	val = nvgpu_posix_io_readl_reg_space(g, STALL_EN_REG);
 	if (val != expected_stall_val) {
@@ -382,7 +435,7 @@ int test_pause_resume_mask(struct unit_module *m, struct gk20a *g, void *args)
 	}
 
 	/* resume nonstall */
-	nvgpu_posix_io_writel_reg_space(g, NONSTALL_EN_REG, 0x0);
+	nvgpu_posix_io_writel_reg_space(g, NONSTALL_EN_SET_REG, 0x0);
 	nvgpu_cic_mon_intr_nonstall_resume(g);
 	val = nvgpu_posix_io_readl_reg_space(g, NONSTALL_EN_REG);
 	if (val != expected_nonstall_val) {
@@ -390,17 +443,17 @@ int test_pause_resume_mask(struct unit_module *m, struct gk20a *g, void *args)
 	}
 
 	/* clear regs */
-	nvgpu_posix_io_writel_reg_space(g, STALL_DIS_REG, 0x0);
-	nvgpu_posix_io_writel_reg_space(g, NONSTALL_DIS_REG, 0x0);
+	nvgpu_posix_io_writel_reg_space(g, STALL_EN_CLEAR_REG, 0x0);
+	nvgpu_posix_io_writel_reg_space(g, NONSTALL_EN_CLEAR_REG, 0x0);
 
 	/* mask all */
 	nvgpu_cic_mon_intr_mask(g);
-	val = nvgpu_posix_io_readl_reg_space(g, STALL_DIS_REG);
-	if (val != U32_MAX) {
+	val = nvgpu_posix_io_readl_reg_space(g, STALL_EN_REG);
+	if (val != 0) {
 		unit_return_fail(m, "failed to mask stall intr\n");
 	}
-	val = nvgpu_posix_io_readl_reg_space(g, NONSTALL_DIS_REG);
-	if (val != U32_MAX) {
+	val = nvgpu_posix_io_readl_reg_space(g, NONSTALL_EN_REG);
+	if (val != 0) {
 		unit_return_fail(m, "failed to mask nonstall intr\n");
 	}
 

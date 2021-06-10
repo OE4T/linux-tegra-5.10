@@ -75,7 +75,7 @@ static u32 mc_gp10b_intr_pending_f(struct gk20a *g, u32 unit)
 		intr_pending_f = nvgpu_ce_engine_interrupt_mask(g);
 		break;
 	default:
-		nvgpu_err(g, "Invalid MC interrupt unit specified !!!");
+		nvgpu_err(g, "Invalid MC interrupt unit %u specified", unit);
 		break;
 	}
 

@@ -77,35 +77,52 @@ int test_mc_free_env(struct unit_module *m, struct gk20a *g, void *args);
  * Description: Validate function of nvgpu_cic_mon_intr_stall_unit_config and
  *              nvgpu_cic_mon_intr_nonstall_unit_config.
  *
- * Test Type: Feature, Error guessing
+ * Test Type: Feature, Error guessing, Boundary Value
  *
  * Targets: nvgpu_cic_mon_intr_stall_unit_config, nvgpu_cic_mon_intr_nonstall_unit_config,
  *          mc_gp10b_intr_stall_unit_config, mc_gp10b_intr_nonstall_unit_config
  *
  * Input: test_mc_setup_env must have been run.
  *
+ * Equivalence classes:
+ * Variable: unit
+ * - Valid : { 0 - 7 }
+ * - Invalid : { 8 - U32_MAX }
+ * Variable: enable
+ * - {false, true}
+ *
  * Steps:
  * - Set each of the mock registers for enabling & disabling the stall &
- *   non-stall interrupts to 0.
+ *   non-stall interrupts and the interrupt enabled registers to 0.
  * - Loop through table of units:
  *   - Call nvgpu_cic_mon_intr_stall_unit_config for the unit to enable the stall
  *     interrupt.
  *   - Verify the stall interrupt enable register has the bit set for the unit.
  *   - Call nvgpu_cic_mon_intr_stall_unit_config for the unit to disable the interrupt.
- *   - Verify the stall interrupt disable register has the bit set for the unit.
+ *   - Verify the stall interrupt enable register has the bit cleared for the unit.
  *   - Call nvgpu_cic_mon_intr_nonstall_unit_config for the unit to enable the
  *     non-stall interrupt.
  *   - Verify the non-stall interrupt enable register has the bit set for the unit.
  *   - Call nvgpu_cic_mon_intr_nonstall_unit_config for the unit to disable the interrupt.
- *   - Verify the non-stall interrupt disable register has the bit set for the unit.
- * - Clear the stall enable register.
- * - For negative testing, call nvgpu_cic_mon_intr_stall_unit_config() with an
- *   invalid unit number, and verify no bits are set in the stall interrupt
- *   enable register.
- * - Clear the stall enable register.
- * - For negative testing, call nvgpu_cic_mon_intr_nonstall_unit_config() with an
- *   invalid unit number, and verify no bits are set in the non-stall interrupt
- *   enable register.
+ *   - Verify the non-stall interrupt enable register has the bit cleared for the unit.
+ * - Loop through combination of invalid "unit" (8, 100, U32_MAX) and "enable"
+ *   (false, true) values:
+ *   - Clear stall interrupt enable register.
+ *   - Call nvgpu_cic_mon_intr_stall_unit_config() with an invalid unit number to attempt
+ *     enabling the interrupt, and verify no bits are set in the stall interrupt
+ *     enable register.
+ *   - Set all bits in stall interrupt enable register.
+ *   - Call nvgpu_cic_mon_intr_stall_unit_config() with an invalid unit number to attempt
+ *     disabling the interrupt, and verify no bits are cleared in the stall interrupt
+ *     enable register.
+ *   - Clear non-stall interrupt enable register.
+ *   - Call nvgpu_cic_mon_intr_nonstall_unit_config() with an invalid unit number to attempt
+ *     enabling the interrupt, and verify no bits are set in the non-stall interrupt
+ *     enable register.
+ *   - Set all bits in non-stall interrupt enable register.
+ *   - Call nvgpu_cic_mon_intr_nonstall_unit_config() with an invalid unit number to attempt
+ *     disabling the interrupt, and verify no bits are cleared in the non-stall interrupt
+ *     enable register.
  *
  * Output: Returns PASS if expected result is met, FAIL otherwise.
  */
@@ -313,17 +330,25 @@ int test_enable_disable_reset(struct unit_module *m, struct gk20a *g, void *args
  *
  * Description: Validate functionality of HAL to get reset mask for a unit.
  *
- * Test Type: Feature, Error guessing
+ * Test Type: Feature, Error guessing, Boundary Value
  *
  * Targets: gops_mc.reset_mask, gm20b_mc_reset_mask
  *
  * Input: test_mc_setup_env must have been run.
  *
+ * Input:
+ *
+ * Equivalence classes:
+ * Variable: unit
+ * - Valid : { 0 - 3 }
+ * - Invalid : { INT_MIN - -1 }, {4 - INT_MAX}
+ *
  * Steps:
  * - Call the enable HAL API for a number of units and verify the correct
- *   mask is returned.
- * - For branch coverage pass in an invalid Unit number, and verify the mask
- *   returned is 0.
+ *   mask is returned. This covers the valid class from above.
+ * - For branch coverage and invalid class coverage pass in an invalid Unit
+ *   numbers {INT_MIN, -1, 4, 100, INT_MAX}, and verify the mask returned
+ *   is 0.
  *
  * Output: Returns PASS if expected result is met, FAIL otherwise.
  */

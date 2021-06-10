@@ -151,7 +151,7 @@ static u32 gm20b_mc_unit_reset_mask(struct gk20a *g, u32 unit)
 		mask = mc_enable_ce2_enabled_f();
 		break;
 	default:
-		WARN(true, "unknown reset unit %d", unit);
+		nvgpu_err(g, "unknown reset unit %d", unit);
 		break;
 	}
 
