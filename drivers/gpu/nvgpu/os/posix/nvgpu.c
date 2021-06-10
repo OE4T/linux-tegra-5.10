@@ -108,62 +108,6 @@ void nvgpu_disable_irqs(struct gk20a *g)
 {
 }
 
-void nvgpu_set_power_state(struct gk20a *g, u32 state)
-{
-	nvgpu_spinlock_acquire(&g->power_spinlock);
-	g->power_on_state = state;
-	nvgpu_spinlock_release(&g->power_spinlock);
-}
-
-const char *nvgpu_get_power_state(struct gk20a *g)
-{
-	const char *str = NULL;
-	u32 state;
-
-	nvgpu_spinlock_acquire(&g->power_spinlock);
-	state = g->power_on_state;
-	nvgpu_spinlock_release(&g->power_spinlock);
-
-	switch (state) {
-	case NVGPU_STATE_POWERED_OFF:
-		str = "off";
-		break;
-	case NVGPU_STATE_POWERING_ON:
-		str = "powering on";
-		break;
-	case NVGPU_STATE_POWERED_ON:
-		str = "on";
-		break;
-	default:
-		nvgpu_err(g, "Invalid nvgpu power state.");
-		break;
-	}
-
-	return str;
-}
-
-bool nvgpu_is_powered_on(struct gk20a *g)
-{
-	u32 power_on;
-
-	nvgpu_spinlock_acquire(&g->power_spinlock);
-	power_on = g->power_on_state;
-	nvgpu_spinlock_release(&g->power_spinlock);
-
-	return power_on == NVGPU_STATE_POWERED_ON;
-}
-
-bool nvgpu_is_powered_off(struct gk20a *g)
-{
-	u32 power_on;
-
-	nvgpu_spinlock_acquire(&g->power_spinlock);
-	power_on = g->power_on_state;
-	nvgpu_spinlock_release(&g->power_spinlock);
-
-	return power_on == NVGPU_STATE_POWERED_OFF;
-}
-
 /*
  * We have no runtime PM stuff in userspace so these are really just noops.
  */
