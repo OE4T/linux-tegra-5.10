@@ -114,6 +114,7 @@ struct nvgpu_os_linux {
 	struct dentry *debugfs_timeouts_enabled;
 	struct dentry *debugfs_disable_bigpage;
 	struct dentry *debugfs_dbg_tsg_timeslice_max_us;
+	struct dentry *debugfs_disable_syncpts;
 
 	struct dentry *debugfs_runlist_interleave;
 	struct dentry *debugfs_allocators;
@@ -135,8 +136,6 @@ struct nvgpu_os_linux {
 
 	bool init_done;
 
-	/** Debugfs knob for forcing syncpt support off in runtime. */
-	bool disable_syncpoints;
 	bool enable_platform_dbg;
 };
 

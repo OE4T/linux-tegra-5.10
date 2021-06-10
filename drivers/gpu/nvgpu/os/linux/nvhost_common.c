@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -39,14 +39,6 @@ void nvgpu_free_nvhost_dev(struct gk20a *g)
 		nvgpu_kfree(g, mem->priv.sgt);
 	}
 	nvgpu_kfree(g, g->nvhost);
-}
-
-bool nvgpu_has_syncpoints(struct gk20a *g)
-{
-	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
-
-	return nvgpu_is_enabled(g, NVGPU_HAS_SYNCPOINTS) &&
-		!l->disable_syncpoints;
 }
 
 int nvgpu_nvhost_create_symlink(struct gk20a *g)

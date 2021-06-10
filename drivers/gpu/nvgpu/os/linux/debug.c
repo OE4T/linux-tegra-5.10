@@ -384,6 +384,48 @@ static const struct file_operations dbg_tsg_timeslice_max_fops = {
 		.write =        dbg_tsg_timeslice_max_write,
 };
 
+static ssize_t disable_syncpts_read(struct file *file,
+			char __user *user_buf, size_t count, loff_t *ppos)
+{
+	char buf[3];
+	struct gk20a *g = file->private_data;
+
+	if (!nvgpu_is_enabled(g, NVGPU_HAS_SYNCPOINTS))
+		buf[0] = 'Y';
+	else
+		buf[0] = 'N';
+	buf[1] = '\n';
+	buf[2] = 0x00;
+	return simple_read_from_buffer(user_buf, count, ppos, buf, 2);
+}
+
+static ssize_t disable_syncpts_write(struct file *file,
+			const char __user *user_buf, size_t count, loff_t *ppos)
+{
+	char buf[3];
+	int buf_size;
+	bool disable_syncpts;
+	struct gk20a *g = file->private_data;
+
+	buf_size = min(count, (sizeof(buf)-1));
+	if (copy_from_user(buf, user_buf, buf_size))
+		return -EFAULT;
+
+	if (!g->nvhost)
+		return -ENOSYS;
+
+	if (strtobool(buf, &disable_syncpts) == 0)
+		nvgpu_set_enabled(g, NVGPU_HAS_SYNCPOINTS, !disable_syncpts);
+
+	return count;
+}
+
+static const struct file_operations disable_syncpts_fops = {
+	.open =		simple_open,
+	.read =		disable_syncpts_read,
+	.write =	disable_syncpts_write,
+};
+
 void gk20a_debug_init(struct gk20a *g, const char *debugfs_symlink)
 {
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
@@ -408,8 +450,13 @@ void gk20a_debug_init(struct gk20a *g, const char *debugfs_symlink)
 	debugfs_create_u32("ch_wdt_init_limit_ms", S_IRUGO|S_IWUSR,
 		l->debugfs, &g->ch_wdt_init_limit_ms);
 
-	debugfs_create_bool("disable_syncpoints", S_IRUGO|S_IWUSR,
-		l->debugfs, &l->disable_syncpoints);
+	l->debugfs_disable_syncpts =
+			debugfs_create_file("disable_syncpoints",
+					S_IRUGO|S_IWUSR,
+					l->debugfs,
+					g,
+					&disable_syncpts_fops);
+
 	debugfs_create_bool("enable_platform_dbg", S_IRUGO|S_IWUSR,
 		l->debugfs, &l->enable_platform_dbg);
 

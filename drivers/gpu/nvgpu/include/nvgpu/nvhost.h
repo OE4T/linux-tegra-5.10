@@ -24,6 +24,7 @@
 #define NVGPU_NVHOST_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/enabled.h>
 
 struct gk20a;
 #define NVGPU_INVALID_SYNCPT_ID	(~U32(0U))
@@ -87,7 +88,10 @@ void nvgpu_free_nvhost_dev(struct gk20a *g);
  * @retval		TRUE For syncpoint support.
  *
  */
-bool nvgpu_has_syncpoints(struct gk20a *g);
+static inline bool nvgpu_has_syncpoints(struct gk20a *g)
+{
+	return nvgpu_is_enabled(g, NVGPU_HAS_SYNCPOINTS);
+}
 
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 /**

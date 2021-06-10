@@ -497,7 +497,6 @@ nvgpu_gr_subctx_alloc
 nvgpu_gr_subctx_free
 nvgpu_gr_suspend
 nvgpu_gr_sw_ready
-nvgpu_has_syncpoints
 nvgpu_init_enabled_flags
 nvgpu_init_errata_flags
 nvgpu_init_hal
