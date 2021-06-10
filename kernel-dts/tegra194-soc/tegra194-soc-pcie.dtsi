@@ -641,9 +641,8 @@
 		interrupts = <0 53 0x04>;	/* controller interrupt */
 		interrupt-names = "intr";
 
-		pinctrl-names = "pex_rst", "clkreq";
-		pinctrl-0 = <&pex_rst_c5_in_state>;
-		pinctrl-1 = <&clkreq_c5_bi_dir_state>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pex_rst_c5_in_state>, <&clkreq_c5_bi_dir_state>;
 
 		nvidia,max-speed = <4>;
 		nvidia,bar0-size = <0x100000>;	/* 1 MB */
