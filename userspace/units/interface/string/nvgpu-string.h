@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -76,13 +76,25 @@ int test_memcpy_memcmp(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Input: None.
  *
+ * Equivalence classes:
+ * Variable: radix
+ * - Valid: { 2 - 16 }
+ * - Invalid: { 0, 1, 17 - UINT32_MAX }
+ *
  * Steps:
- * - Call nvgpu_strnadd_u32 with invalid radices. Verify 0 is returned.
- * - Call nvgpu_strnadd_u32 with an insufficient string size for the requested.
- *   number. Verify 0 is returned.
+ * - Call nvgpu_strnadd_u32 with invalid radix 0. Verify 0 is returned.
+ * - Call nvgpu_strnadd_u32 with invalid radix 1. Verify 0 is returned.
+ * - Call nvgpu_strnadd_u32 with invalid radix 17. Verify 0 is returned.
+ * - Call nvgpu_strnadd_u32 with invalid radix 100. Verify 0 is returned.
+ * - Call nvgpu_strnadd_u32 with invalid radix UINT32_MAX. Verify 0 is
+ *   returned.
+ * - Call nvgpu_strnadd_u32 with insufficient string sizes. Verify 0 is
+ *   returned.
+ * - Call nvgpu_strnadd_u32 with a binary value of 10. Verify returned size
+ *   is 4 and the string contains "1010".
  * - Call nvgpu_strnadd_u32 with a decimal value of 1000. Verify returned size
  *   is 4 and the string contains "1000".
- * - Call nvgpu_strnadd_u32 with a hexidecimal value of 0xdeadbeef. Verify
+ * - Call nvgpu_strnadd_u32 with a hexadecimal value of 0xdeadbeef. Verify
  *   returned size is 8 and the string contains "deadbeef".
  *
  * Output: Returns PASS if expected result is met, FAIL otherwise.

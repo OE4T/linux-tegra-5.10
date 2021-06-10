@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -94,6 +94,10 @@ u64 initial_key_start[] = {50, 30, 80, 100, 170, 10, 200, DUPLICATE_VALUE,
  */
 #define RED_BLACK_VIOLATION_1 20
 #define RED_BLACK_VIOLATION_2 320
+
+
+#define RED_BLACK_BVEC_KEY_MIN 0
+#define RED_BLACK_BVEC_KEY_MAX UINT64_MAX
 
 /**
  * Test specification for: test_insert
@@ -291,6 +295,82 @@ int test_search_less(struct unit_module *m, struct gk20a *g, void *args);
  */
 int test_unlink_corner_cases(struct unit_module *m, struct gk20a *g,
 	void *args);
+
+/**
+ * Test specification for: test_search_bvec
+ *
+ * Description: Test to check the boundary values for nvgpu_rbtree_search,
+ * nvgpu_rbtree_range_search and nvgpu_rbtree_less_than_search.
+ *
+ * Test Type: Boundary value
+ *
+ * Targets: nvgpu_rbtree_search, nvgpu_rbtree_range_search,
+ *          nvgpu_rbtree_less_than_search.
+ *
+ * Input: None
+ *
+ * Equivalence classes:
+ * Variable: key_start
+ * - Valid : { 0 - UINT64_MAX }
+ * Variable: key
+ * - Valid : { 0 - UINT64_MAX }
+ * Steps:
+ * - Create a test tree with known values.
+ * - Insert two new nodes with boundary key values.
+ * - Ensure that searching for min boundary value returns a valid result.
+ * - Ensure that range searching for min value returns a valid result.
+ * - Ensure that less than search for min value returns NULL.
+ * - Ensure that searching for max boundary value returns a valid result.
+ * - Ensure that range searching for max value returns NULL.
+ * - Ensure that less than search for max value returns a valid result.
+ * - Ensure that searching for a valid value in between min and max values
+ *   returns a valid result.
+ * - Ensure that range searching for a valid value in between min and max
+ *   returns a valid result.
+ * - Ensure that less than search for a valid value in between min and max
+ *   returns a valid result.
+ * - Free the extra nodes allocated.
+ * - Free the test tree.
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_search_bvec(struct unit_module *m, struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_enum_bvec
+ *
+ * Description: Test to check the boundary values for nvgpu_rbtree_enum_start
+ *
+ * Test Type: Boundary value
+ *
+ * Targets: nvgpu_rbtree_enum_start
+ *
+ * Input: None
+ *
+ * Equivalence classes:
+ * Variable: key_start
+ * - Valid : { 0 - UINT64_MAX }
+ *
+ * Steps:
+ * - Create a test tree with known values.
+ * - Invoke nvgpu_rbtree_enum_start for a known key value in the tree. The API
+ *   should return a valid node and the key_start value of the node should
+ *   match the requested key value.
+ * - Insert two new nodes with boundary key values.
+ * - Invoke nvgpu_rbtree_enum_start for BVEC min key value in the tree. The API
+ *   should return a valid node and the key_start value of the node should
+ *   match the requested key value.
+ * - Invoke nvgpu_rbtree_enum_start for BVEC max key value in the tree. The API
+ *   should return a valid node and the key_start value of the node should
+ *   match the requested key value.
+ * - Free the extra nodes allocated.
+ * - Free the test tree.
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_enum_bvec(struct unit_module *m, struct gk20a *g, void *args);
 
 /** }@ */
 #endif /* UNIT_RBTREE_H */

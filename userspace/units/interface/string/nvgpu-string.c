@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -60,19 +60,37 @@ int test_memcpy_memcmp(struct unit_module *m, struct gk20a *g, void *args)
 
 int test_strnadd_u32(struct unit_module *m, struct gk20a *g, void *args)
 {
-	const size_t len = 10;
+	const size_t len = 40;
 	char dest[len];
+	const char *max_str = "11111111111111111111111111111111";
 
 	/* test invalid radices */
+	unit_assert(nvgpu_strnadd_u32(dest, 10U, len, 0U) == 0,
+							return UNIT_FAIL);
 	unit_assert(nvgpu_strnadd_u32(dest, 10U, len, 1U) == 0,
 							return UNIT_FAIL);
 	unit_assert(nvgpu_strnadd_u32(dest, 10U, len, 17U) == 0,
 							return UNIT_FAIL);
+	unit_assert(nvgpu_strnadd_u32(dest, 10U, len, 100U) == 0,
+							return UNIT_FAIL);
+	unit_assert(nvgpu_strnadd_u32(dest, 10U, len, UINT32_MAX) == 0,
+							return UNIT_FAIL);
+
 	/* test insufficient space */
+	unit_assert(nvgpu_strnadd_u32(dest, 1000U, 0, 10U) == 0,
+							return UNIT_FAIL);
 	unit_assert(nvgpu_strnadd_u32(dest, 1000U, 2, 10U) == 0,
 							return UNIT_FAIL);
 	unit_assert(nvgpu_strnadd_u32(dest, 1000U, 4, 10U) == 0,
 							return UNIT_FAIL);
+
+	unit_assert(nvgpu_strnadd_u32(dest, 1U, len, 2U) == 1,
+							return UNIT_FAIL);
+	unit_assert(strncmp(dest, "1", 4) == 0, return UNIT_FAIL);
+
+	unit_assert(nvgpu_strnadd_u32(dest, 0xffffffff, len, 2U) == 32,
+							return UNIT_FAIL);
+	unit_assert(strncmp(dest, max_str, 32) == 0, return UNIT_FAIL);
 
 	unit_assert(nvgpu_strnadd_u32(dest, 1000U, len, 10U) == 4,
 							return UNIT_FAIL);

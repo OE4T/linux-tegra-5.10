@@ -72,7 +72,8 @@ int nvgpu_memcmp(const u8 *b1, const u8 *b2, size_t n);
  * @param dst [in,out]	Buffer to copy the value into.
  * @param value [in]	Value to be added with the string.
  * @param size [in]	Size available in the destination buffer.
- * @param radix	[in]	Radix value to be used.
+ * @param radix	[in]	Radix value to be used. Should be in the range
+ *                      2 - 16, both inclusive.
  *
  * @return Returns number of digits added to string (not including '\0') if
  * successful, else 0.

@@ -38,7 +38,7 @@ nvgpu_memcmp(const u8 *b1, const u8 *b2, size_t n)
 
 int nvgpu_strnadd_u32(char *dst, const u32 value, size_t size, u32 radix)
 {
-	int n;
+	u32 n;
 	u32 v;
 	char *p;
 	u32 digit;
@@ -47,20 +47,16 @@ int nvgpu_strnadd_u32(char *dst, const u32 value, size_t size, u32 radix)
 		return 0;
 	}
 
-	if (size > ((u64)(INT_MAX))) {
-		return 0;
-	}
-
 	/* how many digits do we need ? */
 	n = 0;
 	v = value;
 	do {
-		n = nvgpu_safe_add_s32(n, 1);
+		n = nvgpu_safe_add_u32(n, 1U);
 		v = v / radix;
 	} while (v > 0U);
 
 	/* bail out if there is not room for '\0' */
-	if (n >= (s32)size) {
+	if (n >= size) {
 		return 0;
 	}
 
@@ -80,7 +76,7 @@ int nvgpu_strnadd_u32(char *dst, const u32 value, size_t size, u32 radix)
 	}
 	while (v > 0U);
 
-	return n;
+	return (int)n;
 }
 
 bool nvgpu_mem_is_word_aligned(struct gk20a *g, u8 *addr)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -535,6 +535,193 @@ int test_unlink_corner_cases(struct unit_module *m, struct gk20a *g, void *args)
 	return UNIT_SUCCESS;
 }
 
+int test_search_bvec(struct unit_module *m, struct gk20a *g, void *args)
+{
+	struct nvgpu_rbtree_node *root = NULL;
+	struct nvgpu_rbtree_node *result1 = NULL;
+	struct nvgpu_rbtree_node *result2 = NULL;
+	struct nvgpu_rbtree_node *result3 = NULL;
+	struct nvgpu_rbtree_node *node1 = NULL;
+	struct nvgpu_rbtree_node *node2 = NULL;
+	u64 key_start_search = RED_BLACK_BVEC_KEY_MIN;
+	int status = UNIT_FAIL;
+
+	fill_test_tree(m, &root);
+	if (check_rbtree(m, root) < 0) {
+		goto free_tree;
+	}
+
+	node1 = (struct nvgpu_rbtree_node *)
+				malloc(sizeof(struct nvgpu_rbtree_node));
+	node1->key_start = RED_BLACK_BVEC_KEY_MIN;
+	node1->key_end = RED_BLACK_BVEC_KEY_MIN + RANGE_SIZE;
+	nvgpu_rbtree_insert(node1, &root);
+
+	node2 = (struct nvgpu_rbtree_node *)
+				malloc(sizeof(struct nvgpu_rbtree_node));
+	node2->key_start = RED_BLACK_BVEC_KEY_MAX;
+	node2->key_end = RED_BLACK_BVEC_KEY_MAX;
+	nvgpu_rbtree_insert(node2, &root);
+
+	if (check_rbtree(m, root) < 0) {
+		goto free_nodes;
+	}
+
+	nvgpu_rbtree_search(key_start_search, &result1, root);
+	if (result1 == NULL) {
+		unit_err(m, "BVEC search failed for min value\n");
+		goto free_nodes;
+	}
+
+	nvgpu_rbtree_range_search(key_start_search, &result2, root);
+	if (result2 == NULL) {
+		unit_err(m, "BVEC range search failed\n");
+		goto free_nodes;
+	} else if (result1 != result2) {
+		unit_err(m,
+			"BVEC range search did not find the expected result\n");
+		goto free_nodes;
+	}
+
+	nvgpu_rbtree_less_than_search(key_start_search, &result3, root);
+	if (result3 != NULL) {
+		unit_err(m, "BVEC less than search failed\n");
+		goto free_nodes;
+	}
+
+	result1 = NULL;
+	result2 = NULL;
+	result3 = NULL;
+	key_start_search = RED_BLACK_BVEC_KEY_MAX;
+
+	nvgpu_rbtree_search(key_start_search, &result1, root);
+	if (result1 == NULL) {
+		unit_err(m, "BVEC search failed for max value\n");
+		goto free_nodes;
+	}
+
+	nvgpu_rbtree_range_search(key_start_search, &result2, root);
+	if (result2 != NULL) {
+		unit_err(m, "BVEC range search failed for max value\n");
+		goto free_nodes;
+	}
+
+	nvgpu_rbtree_less_than_search(key_start_search, &result3, root);
+	if (result3 == NULL) {
+		unit_err(m, "BVEC less than search failed for max value\n");
+		goto free_nodes;
+	}
+
+	result1 = NULL;
+	result2 = NULL;
+	result3 = NULL;
+	key_start_search = SEARCH_KEY;
+
+	nvgpu_rbtree_search(key_start_search, &result1, root);
+	if (result1 == NULL) {
+		unit_err(m, "BVEC search failed for valid value\n");
+		goto free_nodes;
+	}
+
+	nvgpu_rbtree_range_search(key_start_search, &result2, root);
+	if (result2 == NULL) {
+		unit_err(m, "BVEC range search failed for valid value\n");
+		goto free_nodes;
+	}
+
+	nvgpu_rbtree_less_than_search(key_start_search, &result3, root);
+	if (result3 == NULL) {
+		unit_err(m, "BVEC less than search failed for valid value\n");
+		goto free_nodes;
+	}
+
+	status = UNIT_SUCCESS;
+
+free_nodes:
+	free(node1);
+	free(node2);
+free_tree:
+	free_test_tree(m, root);
+
+	return status;
+}
+
+int test_enum_bvec(struct unit_module *m, struct gk20a *g, void *args)
+{
+	struct nvgpu_rbtree_node *root = NULL;
+	struct nvgpu_rbtree_node *node = NULL;
+	struct nvgpu_rbtree_node *node1 = NULL;
+	struct nvgpu_rbtree_node *node2 = NULL;
+	u64 key_start;
+	int status = UNIT_FAIL;
+
+	fill_test_tree(m, &root);
+	if (check_rbtree(m, root) < 0) {
+		goto free_tree;
+	}
+
+	key_start = initial_key_start[0];
+	nvgpu_rbtree_enum_start(key_start, &node, root);
+	if (node == NULL) {
+		unit_err(m, "Enum for valid key returned NULL\n");
+		goto free_nodes;
+	}
+	if (node->key_start != key_start) {
+		unit_err(m, "Enum mismatch for initial value\n");
+		goto free_tree;
+	}
+
+	node1 = (struct nvgpu_rbtree_node *)
+				malloc(sizeof(struct nvgpu_rbtree_node));
+	node1->key_start = RED_BLACK_BVEC_KEY_MIN;
+	node1->key_end = RED_BLACK_BVEC_KEY_MIN + RANGE_SIZE;
+	nvgpu_rbtree_insert(node1, &root);
+
+	node2 = (struct nvgpu_rbtree_node *)
+				malloc(sizeof(struct nvgpu_rbtree_node));
+	node2->key_start = RED_BLACK_BVEC_KEY_MAX;
+	node2->key_end = RED_BLACK_BVEC_KEY_MAX;
+	nvgpu_rbtree_insert(node2, &root);
+
+	if (check_rbtree(m, root) < 0) {
+		goto free_nodes;
+	}
+
+	node = NULL;
+	key_start = RED_BLACK_BVEC_KEY_MIN;
+	nvgpu_rbtree_enum_start(key_start, &node, root);
+	if (node == NULL) {
+		unit_err(m, "Enum for min key returned NULL\n");
+		goto free_nodes;
+	}
+	if (node->key_start != key_start) {
+		unit_err(m, "Enum mismatch for min value\n");
+		goto free_nodes;
+	}
+
+	node = NULL;
+	key_start = RED_BLACK_BVEC_KEY_MAX;
+	nvgpu_rbtree_enum_start(key_start, &node, root);
+	if (node == NULL) {
+		unit_err(m, "Enum for max key returned NULL\n");
+		goto free_nodes;
+	}
+	if (node->key_start != key_start) {
+		unit_err(m, "Enum mismatch for max value\n");
+		goto free_nodes;
+	}
+
+	status = UNIT_SUCCESS;
+
+free_nodes:
+	free(node1);
+	free(node2);
+free_tree:
+	free_test_tree(m, root);
+
+	return status;
+}
+
 struct unit_module_test interface_rbtree_tests[] = {
 	UNIT_TEST(insert, test_insert, NULL, 0),
 	UNIT_TEST(search, test_search, NULL, 0),
@@ -543,6 +730,8 @@ struct unit_module_test interface_rbtree_tests[] = {
 	UNIT_TEST(enum_next, test_enum_next, NULL, 0),
 	UNIT_TEST(search_less_than, test_search_less, NULL, 0),
 	UNIT_TEST(unlink_corner_cases, test_unlink_corner_cases, NULL, 0),
+	UNIT_TEST(search_bvec, test_search_bvec, NULL, 0),
+	UNIT_TEST(search_bvec, test_enum_bvec, NULL, 0),
 };
 
 UNIT_MODULE(interface_rbtree, interface_rbtree_tests, UNIT_PRIO_NVGPU_TEST);

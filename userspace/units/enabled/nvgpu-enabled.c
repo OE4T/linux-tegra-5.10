@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -108,6 +108,55 @@ int test_nvgpu_set_enabled(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
+int test_nvgpu_enabled_bvec(struct unit_module *m,
+					struct gk20a *g, void *args)
+{
+	u32 n = 0;
+
+	nvgpu_set_enabled(g, n, true);
+	if (!nvgpu_is_enabled(g, n)) {
+		g->enabled_flags = original_enabled_flags;
+		unit_return_fail(m, "enabled_flag not set for %u\n", n);
+	}
+
+	n = NVGPU_MAX_ENABLED_BITS - 1;
+	nvgpu_set_enabled(g, n, true);
+	if (!nvgpu_is_enabled(g, n)) {
+		g->enabled_flags = original_enabled_flags;
+		unit_return_fail(m, "enabled_flag not set for %u\n", n);
+	}
+
+	n = NVGPU_MAX_ENABLED_BITS/2;
+	nvgpu_set_enabled(g, n, true);
+	if (!nvgpu_is_enabled(g, n)) {
+		g->enabled_flags = original_enabled_flags;
+		unit_return_fail(m, "enabled_flag not set for %u\n", n);
+	}
+
+	n = NVGPU_MAX_ENABLED_BITS;
+	nvgpu_set_enabled(g, n, true);
+	if (nvgpu_is_enabled(g, n)) {
+		g->enabled_flags = original_enabled_flags;
+		unit_return_fail(m, "enabled_flag set for %u\n", n);
+	}
+
+	n = NVGPU_MAX_ENABLED_BITS + 1;
+	nvgpu_set_enabled(g, n, true);
+	if (nvgpu_is_enabled(g, n)) {
+		g->enabled_flags = original_enabled_flags;
+		unit_return_fail(m, "enabled_flag set for %u\n", n);
+	}
+
+	n = UINT32_MAX;
+	nvgpu_set_enabled(g, n, true);
+	if (nvgpu_is_enabled(g, n)) {
+		g->enabled_flags = original_enabled_flags;
+		unit_return_fail(m, "enabled_flag set for %u\n", n);
+	}
+
+	return UNIT_SUCCESS;
+}
+
 int test_nvgpu_free_enabled_flags(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
@@ -124,6 +173,7 @@ struct unit_module_test enabled_tests[] = {
 
 	UNIT_TEST(enabled_flags_false_check, test_nvgpu_enabled_flags_false_check, NULL, 0),
 	UNIT_TEST(set_enabled, test_nvgpu_set_enabled, NULL, 0),
+	UNIT_TEST(bvec_enabled, test_nvgpu_enabled_bvec, NULL, 0),
 
 	UNIT_TEST(free, test_nvgpu_free_enabled_flags, NULL, 0),
 };

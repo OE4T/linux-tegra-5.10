@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -100,6 +100,49 @@ int test_nvgpu_enabled_flags_false_check(struct unit_module *m,
  * otherwise.
  */
 int test_nvgpu_set_enabled(struct unit_module *m, struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_nvgpu_enabled_bvec
+ *
+ * Description: Boundary check for flag setting and checking.
+ *
+ * Test Type: Boundary value
+ *
+ * Targets: nvgpu_is_enabled, nvgpu_set_enabled
+ *
+ * Input: test_nvgpu_init_enabled_flags
+ *
+ * Equivalence classes:
+ * Variable: flag
+ * - Valid : { 0 - (NVGPU_MAX_ENABLED_BITS - 1) }
+ * - Invalid : { NVGPU_MAX_ENABLED_BITS - UINT32_MAX }
+ *
+ * Steps:
+ * - Set and check flag for bit position 0. The set API nvgpu_set_enabled
+ *   should set the value and the check API nvgpu_is_enabled should return 1.
+ * - Set and check flag for bit position NVGPU_MAX_ENABLED_BITS - 1. The set
+ *   API nvgpu_set_enabled should set the value and the check API
+ *   nvgpu_is_enabled should return 1.
+ * - Set and check flag for bit position NVGPU_MAX_ENABLED_BITS/2. The set API
+ *   nvgpu_set_enabled should set the value and the check API nvgpu_is_enabled
+ *   should return 1.
+ * - Try to set and check flag for bit position NVGPU_MAX_ENABLED_BITS. The
+ *   set API nvgpu_set_enabled should return without doing any operation and
+ *   the check API nvgpu_is_enabled should return 0 indicating an error for
+ *   flag boundary value.
+ * - Try to set and check flag for bit position NVGPU_MAX_ENABLED_BITS + 1. The
+ *   set API nvgpu_set_enabled should return without doing any operation and
+ *   the check API nvgpu_is_enabled should return 0 indicating an error for
+ *   flag boundary value.
+ * - Try to set and check flag for bit position UINT32_MAX. The set API
+ *   nvgpu_set_enabled should return without doing any operation and
+ *   the check API nvgpu_is_enabled should return 0 indicating an error for
+ *   flag boundary value.
+ *
+ * Output: Returns SUCCESS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_nvgpu_enabled_bvec(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
  * Test specification for: test_nvgpu_free_enabled_flags
