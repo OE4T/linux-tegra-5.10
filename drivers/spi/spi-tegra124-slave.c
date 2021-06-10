@@ -1,7 +1,7 @@
 /*
  * SPI driver for NVIDIA's Tegra124 SPI Controller.
  *
- * Copyright (c) 2013-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -2003,7 +2003,7 @@ static int tegra_spi_probe(struct platform_device *pdev)
 		 pdata->rx_trig_words != 4 && pdata->rx_trig_words != 8)
 		pdata->rx_trig_words = 0;
 
-	controller = spi_alloc_master(&pdev->dev, sizeof(*tspi));
+	controller = devm_spi_alloc_master(&pdev->dev, sizeof(*tspi));
 	if (!controller) {
 		dev_err(&pdev->dev, "controller allocation failed\n");
 		return -ENOMEM;
