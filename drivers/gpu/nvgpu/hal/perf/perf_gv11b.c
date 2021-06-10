@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -443,11 +443,6 @@ void gv11b_perf_reset_hwpm_pmm_registers(struct gk20a *g)
 	const u32 *perfmon_regs;
 	u32 i;
 
-	if (g->num_sys_perfmon == 0U) {
-		g->ops.perf.get_num_hwpm_perfmon(g, &g->num_sys_perfmon,
-				&g->num_fbp_perfmon, &g->num_gpc_perfmon);
-	}
-
 	perfmon_regs = g->ops.perf.get_hwpm_sys_perfmon_regs(&count);
 
 	for (i = 0U; i < count; i++) {
@@ -484,11 +479,6 @@ void gv11b_perf_reset_hwpm_pmm_registers(struct gk20a *g)
 
 void gv11b_perf_init_hwpm_pmm_register(struct gk20a *g)
 {
-	if (g->num_sys_perfmon == 0U) {
-		g->ops.perf.get_num_hwpm_perfmon(g, &g->num_sys_perfmon,
-				&g->num_fbp_perfmon, &g->num_gpc_perfmon);
-	}
-
 	g->ops.perf.set_pmm_register(g, perf_pmmsys_engine_sel_r(0), 0xFFFFFFFFU,
 		1U, g->ops.perf.get_pmmsys_per_chiplet_offset(),
 		g->num_sys_perfmon);
@@ -523,11 +513,6 @@ void gv11b_perf_pma_stream_enable(struct gk20a *g, bool enable)
 
 void gv11b_perf_disable_all_perfmons(struct gk20a *g)
 {
-	if (g->num_sys_perfmon == 0U) {
-		g->ops.perf.get_num_hwpm_perfmon(g, &g->num_sys_perfmon,
-				&g->num_fbp_perfmon, &g->num_gpc_perfmon);
-	}
-
 	g->ops.perf.set_pmm_register(g, perf_pmmsys_control_r(0U), 0U, 1U,
 		g->ops.perf.get_pmmsys_per_chiplet_offset(),
 		g->num_sys_perfmon);

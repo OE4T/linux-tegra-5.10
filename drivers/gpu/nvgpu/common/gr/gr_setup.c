@@ -222,6 +222,23 @@ int nvgpu_gr_setup_alloc_obj_ctx(struct nvgpu_channel *c, u32 class_num,
 	}
 #endif
 
+#ifdef CONFIG_NVGPU_DEBUGGER
+	if ((g->num_sys_perfmon == 0U) &&
+			(g->ops.perf.get_num_hwpm_perfmon != NULL) &&
+			(err == 0)) {
+		g->ops.perf.get_num_hwpm_perfmon(g, &g->num_sys_perfmon,
+				&g->num_fbp_perfmon, &g->num_gpc_perfmon);
+		nvgpu_log(g, gpu_dbg_gr | gpu_dbg_gpu_dbg,
+			"num_sys_perfmon[%u] num_fbp_perfmon[%u] "
+				"num_gpc_perfmon[%u] ",
+			g->num_sys_perfmon, g->num_fbp_perfmon,
+			g->num_gpc_perfmon);
+		nvgpu_assert((g->num_sys_perfmon != 0U) &&
+			(g->num_fbp_perfmon != 0U) &&
+			(g->num_gpc_perfmon != 0U));
+	}
+#endif
+
 	nvgpu_mutex_release(&tsg->ctx_init_lock);
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "done");
