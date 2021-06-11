@@ -217,7 +217,7 @@ int vgpu_pm_finalize_poweron(struct device *dev)
 		goto done;
 
 	if (!l->dev_nodes_created) {
-		err = gk20a_user_init(dev);
+		err = gk20a_user_nodes_init(dev);
 		if (err) {
 			goto done;
 		}
@@ -509,7 +509,7 @@ int vgpu_remove(struct platform_device *pdev)
 
 	vgpu_comm_deinit();
 	gk20a_sched_ctrl_cleanup(g);
-	gk20a_user_deinit(dev);
+	gk20a_user_nodes_deinit(dev);
 	vgpu_remove_sysfs(dev);
 	gk20a_get_platform(dev)->g = NULL;
 	nvgpu_put(g);

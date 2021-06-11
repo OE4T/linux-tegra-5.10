@@ -307,7 +307,7 @@ int nvgpu_probe(struct gk20a *g,
 	* need to be removed.
 	*/
 	if (platform->platform_chip_id == TEGRA_210) {
-		err = gk20a_user_init(dev);
+		err = gk20a_user_nodes_init(dev);
 		if (err)
 			return err;
 		l->dev_nodes_created = true;

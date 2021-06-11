@@ -298,36 +298,56 @@ static int gk20a_create_device(
 	return 0;
 }
 
-void gk20a_user_deinit(struct device *dev)
+void gk20a_remove_devices_and_classes(struct gk20a *g, bool power_node)
 {
-	struct gk20a *g = gk20a_from_dev(dev);
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	struct nvgpu_cdev *cdev, *n;
 	struct nvgpu_class *class, *p;
 
 	nvgpu_list_for_each_entry_safe(cdev, n, &l->cdev_list_head, nvgpu_cdev, list_entry) {
-		nvgpu_list_del(&cdev->list_entry);
+		class = cdev->class;
+		if (class->power_node != power_node)
+			continue;
 
-		device_destroy(cdev->class, cdev->cdev.dev);
+		nvgpu_list_del(&cdev->list_entry);
+		device_destroy(nvgpu_class_get_class(cdev->class), cdev->cdev.dev);
 		cdev_del(&cdev->cdev);
 
 		nvgpu_kfree(g, cdev);
 	}
 
+	nvgpu_list_for_each_entry_safe(class, p, &l->class_list_head, nvgpu_class, list_entry) {
+		if (class->power_node != power_node)
+			continue;
+
+		nvgpu_list_del(&class->list_entry);
+		class_destroy(class->class);
+		nvgpu_kfree(g, class);
+	}
+}
+
+void gk20a_power_node_deinit(struct device *dev)
+{
+	struct gk20a *g = gk20a_from_dev(dev);
+	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
+
+	gk20a_remove_devices_and_classes(g, true);
+
 	if (l->power_cdev_region) {
 		unregister_chrdev_region(l->power_cdev_region, l->power_cdevs);
 	}
+}
+
+void gk20a_user_nodes_deinit(struct device *dev)
+{
+	struct gk20a *g = gk20a_from_dev(dev);
+	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
+
+	gk20a_remove_devices_and_classes(g, false);
 
 	if (l->cdev_region) {
 		unregister_chrdev_region(l->cdev_region, l->num_cdevs);
 		l->num_cdevs = 0;
-	}
-
-	nvgpu_list_for_each_entry_safe(class, p, &l->class_list_head, nvgpu_class, list_entry) {
-		nvgpu_list_del(&class->list_entry);
-
-		class_destroy(class->class);
-		nvgpu_kfree(g, class);
 	}
 
 	l->dev_nodes_created = false;
@@ -585,7 +605,7 @@ int gk20a_power_node_init(struct device *dev)
 			goto fail;
 		}
 
-		cdev->class = class->class;
+		cdev->class = class;
 		nvgpu_init_list_node(&cdev->list_entry);
 		nvgpu_list_add(&cdev->list_entry, &l->cdev_list_head);
 	}
@@ -593,12 +613,12 @@ int gk20a_power_node_init(struct device *dev)
 	l->power_cdevs = total_cdevs;
 	return 0;
 fail:
-	gk20a_user_deinit(dev);
+	gk20a_power_node_deinit(dev);
 	return err;
 
 }
 
-int gk20a_user_init(struct device *dev)
+int gk20a_user_nodes_init(struct device *dev)
 {
 	int err;
 	dev_t devno;
@@ -672,7 +692,7 @@ int gk20a_user_init(struct device *dev)
 				goto fail;
 			}
 
-			cdev->class = class->class;
+			cdev->class = class;
 			nvgpu_init_list_node(&cdev->list_entry);
 			nvgpu_list_add(&cdev->list_entry, &l->cdev_list_head);
 		}
@@ -682,7 +702,7 @@ int gk20a_user_init(struct device *dev)
 
 	return 0;
 fail:
-	gk20a_user_deinit(dev);
+	gk20a_user_nodes_deinit(dev);
 	return err;
 }
 

@@ -21,10 +21,25 @@
 struct device;
 struct class;
 
+struct nvgpu_class {
+	struct class *class;
+	struct nvgpu_list_node list_entry;
+
+	struct nvgpu_cdev_class_priv_data *priv_data;
+
+	enum nvgpu_mig_gpu_instance_type instance_type;
+	bool power_node;
+};
+
+static inline struct class *nvgpu_class_get_class(struct nvgpu_class *class)
+{
+	return class->class;
+}
+
 struct nvgpu_cdev {
 	struct cdev cdev;
 	struct device *node;
-	struct class *class;
+	struct nvgpu_class *class;
 	struct nvgpu_list_node list_entry;
 };
 
@@ -43,16 +58,6 @@ struct nvgpu_cdev_class_priv_data {
 	bool pci;
 };
 
-struct nvgpu_class {
-	struct class *class;
-	struct nvgpu_list_node list_entry;
-
-	struct nvgpu_cdev_class_priv_data *priv_data;
-
-	enum nvgpu_mig_gpu_instance_type instance_type;
-	bool power_node;
-};
-
 static inline struct nvgpu_class *
 nvgpu_class_from_list_entry(struct nvgpu_list_node *node)
 {
@@ -60,9 +65,10 @@ nvgpu_class_from_list_entry(struct nvgpu_list_node *node)
 		((uintptr_t)node - offsetof(struct nvgpu_class, list_entry));
 };
 
-int gk20a_user_init(struct device *dev);
+int gk20a_user_nodes_init(struct device *dev);
 int gk20a_power_node_init(struct device *dev);
-void gk20a_user_deinit(struct device *dev);
+void gk20a_user_nodes_deinit(struct device *dev);
+void gk20a_power_node_deinit(struct device *dev);
 
 struct gk20a *nvgpu_get_gk20a_from_cdev(struct nvgpu_cdev *cdev);
 u32 nvgpu_get_gpu_instance_id_from_cdev(struct gk20a *g, struct nvgpu_cdev *cdev);

@@ -442,7 +442,7 @@ int gk20a_pm_finalize_poweron(struct device *dev)
 	}
 
 	if (!l->dev_nodes_created) {
-		err = gk20a_user_init(dev);
+		err = gk20a_user_nodes_init(dev);
 		if (err) {
 			goto done;
 		}
@@ -542,7 +542,7 @@ done:
 		nvgpu_disable_irqs(g);
 		nvgpu_remove_sim_support_linux(g);
 		if (l->dev_nodes_created) {
-			gk20a_user_deinit(dev);
+			gk20a_user_nodes_deinit(dev);
 		}
 	}
 
@@ -1783,7 +1783,9 @@ int nvgpu_remove(struct device *dev)
 
 	nvgpu_clk_arb_cleanup_arbiter(g);
 
-	gk20a_user_deinit(dev);
+	gk20a_user_nodes_deinit(dev_from_gk20a(g));
+
+	gk20a_power_node_deinit(dev_from_gk20a(g));
 
 	gk20a_debug_deinit(g);
 
