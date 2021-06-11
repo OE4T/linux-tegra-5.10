@@ -823,7 +823,7 @@ int nvmap_ioctl_gup_test(struct file *filp, void __user *arg)
 		err = -EFAULT;
 
 	for (i = 0; i < nr_page; i++) {
-		put_page(handle->pgalloc.pages[i]);
+		put_page(pages[i]);
 	}
 free_pages:
 	nvmap_altfree(pages, nr_page * sizeof(*pages));
