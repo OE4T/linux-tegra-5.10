@@ -1504,7 +1504,7 @@ static int tegra_qspi_probe(struct platform_device *pdev)
 	u32 as_delay;
 	u32 actual_speed = 0;
 
-	master = spi_alloc_master(&pdev->dev, sizeof(*tqspi));
+	master = devm_spi_alloc_master(&pdev->dev, sizeof(*tqspi));
 	if (!master) {
 		dev_err(&pdev->dev, "SPI master allocation failed\n");
 		return -ENOMEM;
@@ -1669,7 +1669,6 @@ exit_deinit_dma:
 exit_rx_dma_free:
 	tegra_qspi_deinit_dma_param(tqspi, true);
 exit_free_master:
-	spi_master_put(master);
 
 	return ret;
 }
@@ -1678,6 +1677,8 @@ static int tegra_qspi_remove(struct platform_device *pdev)
 {
 	struct spi_controller *master = dev_get_drvdata(&pdev->dev);
 	struct tegra_qspi_data	*tqspi = spi_master_get_devdata(master);
+
+	spi_unregister_master(master);
 
 	pm_runtime_put_noidle(&pdev->dev);
 	pm_runtime_disable(&pdev->dev);
