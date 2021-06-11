@@ -1169,6 +1169,7 @@ int macsec_probe(struct ether_priv_data *pdata)
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct macsec_priv_data *macsec_pdata = NULL;
 	struct resource *res = NULL;
+	struct device_node *np = dev->of_node;
 	int ret = 0;
 
 	PRINT_ENTRY();
@@ -1210,6 +1211,14 @@ int macsec_probe(struct ether_priv_data *pdata)
 	macsec_pdata->ether_pdata = pdata;
 	pdata->macsec_pdata = macsec_pdata;
 	mutex_init(&pdata->macsec_pdata->lock);
+
+	/* Read MAC instance id and used in TZ api's */
+	ret = of_property_read_u32(np, "nvidia,instance_id", &macsec_pdata->id);
+	if (ret != 0) {
+		dev_info(dev,
+			 "DT instance_id missing, setting default to MGBE0\n");
+		macsec_pdata->id = 0;
+	}
 
 	/* 3. Get OSI MACsec ops */
 	if (osi_init_macsec_ops(osi_core) != 0) {
@@ -1273,6 +1282,7 @@ static int macsec_tz_kt_config(struct ether_priv_data *pdata,
 	void *msg_head;
 	int ret = 0;
 	struct device *dev = pdata->dev;
+	struct macsec_priv_data *macsec_pdata = pdata->macsec_pdata;
 
 	PRINT_ENTRY();
 	if (info == OSI_NULL) {
@@ -1322,6 +1332,7 @@ static int macsec_tz_kt_config(struct ether_priv_data *pdata,
 			ret = EINVAL;
 			goto failure;
 		}
+		nla_put_u32(msg, NV_MACSEC_TZ_INSTANCE_ID, macsec_pdata->id);
 		nla_put_u8(msg, NV_MACSEC_TZ_ATTR_CTRL,
 			   kt_config->table_config.ctlr_sel);
 		nla_put_u8(msg, NV_MACSEC_TZ_ATTR_RW,
@@ -1330,8 +1341,6 @@ static int macsec_tz_kt_config(struct ether_priv_data *pdata,
 			   kt_config->table_config.index);
 		nla_put(msg, NV_MACSEC_TZ_ATTR_KEY, KEY_LEN_256,
 			kt_config->entry.sak);
-		nla_put(msg, NV_MACSEC_TZ_ATTR_HKEY, KEY_LEN_128,
-			kt_config->entry.h);
 		nla_put_u32(msg, NV_MACSEC_TZ_ATTR_FLAG, kt_config->flags);
 		nla_nest_end(msg, nest);
 	}
