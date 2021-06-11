@@ -1,7 +1,7 @@
 /*
  * Host1x Application Specific Virtual Memory
  *
- * Copyright (c) 2015-2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -33,6 +33,7 @@
 
 #include "nvhost_vm.h"
 #include "chip_support.h"
+#include "platform.h"
 
 static struct of_device_id tegra_iommu_context_dev_of_match[] = {
 	{ .compatible = "nvidia,tegra186-iommu-context" },
@@ -157,12 +158,18 @@ static int iommu_context_dev_probe(struct platform_device *pdev)
 	}
 
 	/* http://nvbugs/2737086/96: The  History buffer space need to be limited to 38bits for OFS
-	   and  39bits in Codec because of an issue.
+	   and  39bits in Codec because of an issue on pre-T234.
 	   Due to the above HW issue limiting DMA_MASK to 38 bit IOVA to all of the context banks.
 	*/
-	if (dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(38)))
-		dev_info(&pdev->dev, "Error: setting DMA_MASK: 0x%llx failed\n",
-			DMA_BIT_MASK(38));
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
+	if (tegra_get_chipid() == TEGRA_CHIPID_TEGRA19) {
+#else
+	if (tegra_get_chip_id() == TEGRA194) {
+#endif
+		if (dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(38)))
+			dev_info(&pdev->dev, "Error: setting DMA_MASK: 0x%llx failed\n",
+				DMA_BIT_MASK(38));
+	}
 
 	ctx = devm_kzalloc(&pdev->dev, sizeof(*ctx), GFP_KERNEL);
 	if (!ctx) {
