@@ -106,6 +106,9 @@ Required properties:
 				can be configured based on the requirements.
 				The maximum frequency it can take is 312.5MHz
 				and minimum frequency is 25MHz
+- nvidia,instance_id:		Ethernet interface instance id. Fixed id value
+				is used. For mgbe0 is 0, mgbe1 is 1,
+				mgbe2 is 2, mgbe3 is 3 and eqos is 4.
 - nvidia,phy-reset-gpio:	The GPIO phandle and specifier for the PHY
 				reset signal.
 - nvidia,rxq_enable_ctrl:	Mode of the MTL Receive Queue to enable either

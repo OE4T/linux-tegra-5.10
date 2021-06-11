@@ -53,11 +53,11 @@ enum nv_macsec_sa_attrs {
 
 enum nv_macsec_tz_attrs {
 	NV_MACSEC_TZ_ATTR_UNSPEC,
+	NV_MACSEC_TZ_INSTANCE_ID,
 	NV_MACSEC_TZ_ATTR_CTRL,
 	NV_MACSEC_TZ_ATTR_RW,
 	NV_MACSEC_TZ_ATTR_INDEX,
 	NV_MACSEC_TZ_ATTR_KEY,
-	NV_MACSEC_TZ_ATTR_HKEY,
 	NV_MACSEC_TZ_ATTR_FLAG,
 	__NV_MACSEC_TZ_ATTR_END,
 	NUM_NV_MACSEC_TZ_ATTR = __NV_MACSEC_TZ_ATTR_END,
@@ -90,13 +90,12 @@ static const struct nla_policy nv_macsec_sa_genl_policy[NUM_NV_MACSEC_SA_ATTR] =
 };
 
 static const struct nla_policy nv_macsec_tz_genl_policy[NUM_NV_MACSEC_TZ_ATTR] = {
+	[NV_MACSEC_TZ_INSTANCE_ID] = { .type = NLA_U32 },
 	[NV_MACSEC_TZ_ATTR_CTRL] = { .type = NLA_U8 }, /* controller Tx or Rx */
 	[NV_MACSEC_TZ_ATTR_RW] = { .type = NLA_U8 },
 	[NV_MACSEC_TZ_ATTR_INDEX] = { .type = NLA_U8 },
 	[NV_MACSEC_TZ_ATTR_KEY] = { .type = NLA_BINARY,
 				    .len = KEY_LEN_256 },
-	[NV_MACSEC_TZ_ATTR_HKEY] = { .type = NLA_BINARY,
-				     .len = KEY_LEN_128 },
 	[NV_MACSEC_TZ_ATTR_FLAG] = { .type = NLA_U32 },
 };
 
@@ -173,6 +172,8 @@ struct macsec_priv_data {
 	unsigned short next_supp_idx;
 	/** macsec mutex lock */
 	struct mutex lock;
+	/** macsec hw instance id */
+	unsigned int id;
 };
 
 int macsec_probe(struct ether_priv_data *pdata);
