@@ -27,6 +27,15 @@
 #include <osi_core.h>
 
 /**
+ * @addtogroup XPCS helper macros
+ *
+ * @brief XPCS helper macros.
+ * @{
+ */
+#define XPCS_RETRY_COUNT	(RETRY_COUNT * (2U))
+/** @} */
+
+/**
  * @addtogroup XPCS Register offsets
  *
  * @brief XPCS register offsets
@@ -44,6 +53,8 @@
 #define XPCS_SR_MII_CTRL			0x7C0000
 #define XPCS_VR_MII_AN_INTR_STS			0x7E0008
 #define XPCS_VR_XS_PCS_EEE_MCTRL0		0xE00018
+#define XPCS_WRAP_UPHY_HW_INIT_CTRL		0x8020
+#define XPCS_WRAP_IRQ_STATUS			0x8050
 /** @} */
 
 
@@ -79,6 +90,9 @@
 						 OSI_BIT(11) | \
 						 OSI_BIT(10))
 #define XPCS_VR_XS_PCS_KR_CTRL_USXG_MODE_5G	OSI_BIT(10)
+#define XPCS_WRAP_UPHY_HW_INIT_CTRL_TX_EN	OSI_BIT(0)
+#define XPCS_WRAP_UPHY_HW_INIT_CTRL_RX_EN	OSI_BIT(2)
+#define XPCS_WRAP_IRQ_STATUS_PCS_LINK_STS	OSI_BIT(6)
 /** @} */
 
 int xpcs_init(struct osi_core_priv_data *osi_core);
@@ -120,5 +134,4 @@ static inline void xpcs_write(void *xpcs_base, unsigned int reg_addr,
 	osi_writel(val, (unsigned char *)xpcs_base +
 		   (((reg_addr) & XPCS_REG_VALUE_MASK)));
 }
-
 #endif

@@ -195,6 +195,127 @@ int xpcs_start(struct osi_core_priv_data *osi_core)
 }
 
 /**
+ * @brief xpcs_uphy_lane_bring_up - Bring up UPHY Tx/Rx lanes
+ *
+ * Algorithm: This routine bring up the UPHY Tx/Rx lanes
+ * through XPCS FSM wrapper.
+ *
+ * @param[in] osi_core: OSI core data structure.
+ * @param[in] lane_init_en: Tx/Rx lane init value.
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static nve32_t xpcs_uphy_lane_bring_up(struct osi_core_priv_data *osi_core,
+				       unsigned int lane_init_en)
+{
+	void *xpcs_base = osi_core->xpcs_base;
+	nveu32_t retry = XPCS_RETRY_COUNT;
+	nve32_t cond = COND_NOT_MET;
+	nveu32_t val = 0;
+	nveu32_t count;
+
+	val = xpcs_read(xpcs_base, XPCS_WRAP_UPHY_HW_INIT_CTRL);
+	val |= lane_init_en;
+	xpcs_write(xpcs_base, XPCS_WRAP_UPHY_HW_INIT_CTRL, val);
+
+	count = 0;
+	while (cond == COND_NOT_MET) {
+		if (count > retry) {
+			return -1;
+		}
+		count++;
+
+		val = xpcs_read(xpcs_base, XPCS_WRAP_UPHY_HW_INIT_CTRL);
+		if ((val & lane_init_en) == OSI_NONE) {
+			/* exit loop */
+			cond = COND_MET;
+		} else {
+			osi_core->osd_ops.udelay(500U);
+		}
+	}
+
+	return 0;
+}
+
+/**
+ * @brief xpcs_check_pcs_lock_status - Checks whether PCS lock happened or not.
+ *
+ * Algorithm: This routine helps to check whether PCS lock happened or not.
+ *
+ * @param[in] osi_core: OSI core data structure.
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static nve32_t xpcs_check_pcs_lock_status(struct osi_core_priv_data *osi_core)
+{
+	void *xpcs_base = osi_core->xpcs_base;
+	nveu32_t retry = XPCS_RETRY_COUNT;
+	nve32_t cond = COND_NOT_MET;
+	nveu32_t val = 0;
+	nveu32_t count;
+
+	count = 0;
+	while (cond == COND_NOT_MET) {
+		if (count > retry) {
+			return -1;
+		}
+		count++;
+
+		val = xpcs_read(xpcs_base, XPCS_WRAP_IRQ_STATUS);
+		if ((val & XPCS_WRAP_IRQ_STATUS_PCS_LINK_STS) ==
+		    XPCS_WRAP_IRQ_STATUS_PCS_LINK_STS) {
+			/* exit loop */
+			cond = COND_MET;
+		} else {
+			osi_core->osd_ops.udelay(500U);
+		}
+	}
+
+	/* Clear the status */
+	xpcs_write(xpcs_base, XPCS_WRAP_IRQ_STATUS, val);
+
+	return 0;
+}
+
+/**
+ * @brief xpcs_lane_bring_up - Bring up UPHY Tx/Rx lanes
+ *
+ * Algorithm: This routine bring up the UPHY Tx/Rx lanes
+ * through XPCS FSM wrapper.
+ *
+ * @param[in] osi_core: OSI core data structure.
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static nve32_t xpcs_lane_bring_up(struct osi_core_priv_data *osi_core)
+{
+	if (xpcs_uphy_lane_bring_up(osi_core,
+				    XPCS_WRAP_UPHY_HW_INIT_CTRL_TX_EN) < 0) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+			     "UPHY TX lane bring-up failed\n", 0ULL);
+		return -1;
+	}
+
+	if (xpcs_uphy_lane_bring_up(osi_core,
+				    XPCS_WRAP_UPHY_HW_INIT_CTRL_RX_EN) < 0) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+			     "UPHY RX lane bring-up failed\n", 0ULL);
+		return -1;
+	}
+
+	if (xpcs_check_pcs_lock_status(osi_core) < 0) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+			     "PCS block lock not achieved\n", 0ULL);
+		return -1;
+	}
+
+	return 0;
+}
+
+/**
  * @brief xpcs_init - XPCS initialization
  *
  * Algorithm: This routine initialize XPCS in USXMII mode.
@@ -217,6 +338,14 @@ int xpcs_init(struct osi_core_priv_data *osi_core)
 			     "XPCS base is NULL", 0ULL);
 		/* TODO: Remove this once silicon arrives */
 		return 0;
+	}
+
+	if (osi_core->pre_si != OSI_ENABLE) {
+		if (xpcs_lane_bring_up(osi_core) < 0) {
+			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+				     "TX/RX lane bring-up failed\n", 0ULL);
+			return -1;
+		}
 	}
 
 	/* Switching to USXGMII Mode based on
