@@ -12,7 +12,7 @@ config TEGRA_ARM_SMMU_T19x
 config ARM_SMMU_SUSPEND
 	bool "ARM SMMU SUSPEND"
 	depends on (ARM_SMMU && PM_SLEEP)
-	default n
+	default y
 	help
 	  Support for ARM System MMU suspend where all the required SMMU
 	  registers will be saved to memory and upon resume warmboot/bootloader
