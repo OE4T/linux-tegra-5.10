@@ -179,14 +179,14 @@ static void nvmap_pp_do_background_zero_pages(struct nvmap_page_pool *pool)
 static int nvmap_background_zero_thread(void *arg)
 {
 	struct nvmap_page_pool *pool = &nvmap_dev->pool;
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 9, 0)
 	struct sched_param param = { .sched_priority = 0 };
 #endif
 
 	pr_info("PP zeroing thread starting.\n");
 
 	set_freezable();
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 9, 0)
 	sched_setscheduler(current, SCHED_NORMAL, &param);
 #else
 	sched_set_normal(current, MAX_NICE);
