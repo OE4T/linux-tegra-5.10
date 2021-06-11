@@ -324,6 +324,34 @@ void nvhost_module_reset(struct platform_device *dev, bool reboot)
 }
 EXPORT_SYMBOL(nvhost_module_reset);
 
+void nvhost_module_reset_for_stage2(struct platform_device *dev)
+{
+	struct nvhost_device_data *pdata = platform_get_drvdata(dev);
+
+	dev_dbg(&dev->dev, "%s: asserting %s module reset for stage-2\n",
+		__func__, dev_name(&dev->dev));
+
+	if (pdata->prepare_poweroff)
+		pdata->prepare_poweroff(dev);
+
+	mutex_lock(&pdata->lock);
+	do_module_reset_locked(dev);
+	mutex_unlock(&pdata->lock);
+
+	/* Load clockgating registers */
+	nvhost_module_load_regs(dev, pdata->engine_can_cg);
+
+	/* Set actmon registers */
+	nvhost_module_set_actmon_regs(dev);
+
+	/* initialize device vm */
+	nvhost_vm_init_device(dev);
+
+	dev_dbg(&dev->dev, "%s: module %s out of reset for stage-2\n",
+		__func__, dev_name(&dev->dev));
+}
+EXPORT_SYMBOL(nvhost_module_reset_for_stage2);
+
 void nvhost_module_busy_noresume(struct platform_device *dev)
 {
 	if (dev->dev.parent && (dev->dev.parent != &platform_bus))
