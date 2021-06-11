@@ -76,11 +76,6 @@ module_param(disable_bypass, bool, S_IRUGO);
 MODULE_PARM_DESC(disable_bypass,
 	"Disable bypass streams such that incoming transactions from devices that are not attached to an iommu domain will report an abort back to the device and will not be allowed to pass through the SMMU.");
 
-static bool tlb_inv_at_map;
-module_param(tlb_inv_at_map, bool, S_IRUGO);
-MODULE_PARM_DESC(tlb_inv_at_map,
-	"Enable tlb invalidate at map request");
-
 #define s2cr_init_val (struct arm_smmu_s2cr){				\
 	.type = disable_bypass ? S2CR_TYPE_FAULT : S2CR_TYPE_BYPASS,	\
 }
@@ -1295,7 +1290,6 @@ static int arm_smmu_map(struct iommu_domain *domain, unsigned long iova,
 	struct arm_smmu_domain *smmu_domain = to_smmu_domain(domain);
 	struct io_pgtable_ops *ops = smmu_domain->pgtbl_ops;
 	struct arm_smmu_device *smmu = to_smmu_domain(domain)->smmu;
-	const struct iommu_flush_ops *flush_ops = smmu_domain->flush_ops;
 	u64 time_before = 0;
 	int ret;
 
@@ -1317,9 +1311,6 @@ static int arm_smmu_map(struct iommu_domain *domain, unsigned long iova,
 		trace_arm_smmu_handle_mapping(dev_name(smmu->dev), time_before,
 				to_smmu_domain(domain)->cfg.cbndx, iova, paddr,
 				size, prot);
-
-	if (tlb_inv_at_map)
-		flush_ops->tlb_flush_leaf(iova, size, PAGE_SIZE, smmu_domain);
 
 	return ret;
 }
