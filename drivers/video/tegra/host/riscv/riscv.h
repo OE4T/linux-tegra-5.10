@@ -28,6 +28,7 @@
 #define RISCV_IDLE_TIMEOUT_LONG		1000000	/* 1 seconds */
 #define RISCV_IDLE_CHECK_PERIOD		10	/* 10 usec */
 #define RISCV_IDLE_CHECK_PERIOD_LONG	1000	/* 1 milliseconds */
+#define RISCV_UCODE_DESC_ALIGNMENT	256	/* 256 bytes */
 
 enum riscv_bin_type_e {
 	RISCV_BIN_TYPE_DESC,
@@ -104,4 +105,7 @@ int riscv_compute_ucode_offsets(struct platform_device *dev,
 				struct riscv_data *v,
 				const struct firmware *ucode_desc);
 
+void riscv_compute_ucode_offsets_2stage(struct platform_device *dev,
+				struct riscv_data *v,
+				const struct firmware *riscv_desc_bin);
 #endif /* __NVHOST_RISCV_H__ */

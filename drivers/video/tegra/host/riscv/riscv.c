@@ -33,3 +33,23 @@ int riscv_compute_ucode_offsets(struct platform_device *dev,
 	return 0;
 }
 
+void riscv_compute_ucode_offsets_2stage(struct platform_device *dev,
+				struct riscv_data *v,
+				const struct firmware *riscv_desc_bin)
+{
+	PRM_RISCV_UCODE_DESC riscv_desc;
+
+	/* Fetch offsets for BL ucode */
+	riscv_desc = (PRM_RISCV_UCODE_DESC)riscv_desc_bin->data;
+	v->bl.manifest_offset = le32_to_cpu(riscv_desc->manifestOffset);
+	v->bl.code_offset = le32_to_cpu(riscv_desc->monitorCodeOffset);
+	v->bl.data_offset = le32_to_cpu(riscv_desc->monitorDataOffset);
+
+	/* Fetch offsets for LS ucode */
+	riscv_desc = (PRM_RISCV_UCODE_DESC)((u8 *)riscv_desc_bin->data +
+						RISCV_UCODE_DESC_ALIGNMENT);
+	v->os.manifest_offset = le32_to_cpu(riscv_desc->manifestOffset);
+	v->os.code_offset = le32_to_cpu(riscv_desc->monitorCodeOffset);
+	v->os.data_offset = le32_to_cpu(riscv_desc->monitorDataOffset);
+}
+

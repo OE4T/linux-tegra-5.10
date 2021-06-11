@@ -55,6 +55,7 @@
 #endif
 #if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVDEC)
 #include "nvdec/nvdec.h"
+#include "nvdec/nvdec_t23x.h"
 #endif
 #if IS_ENABLED(CONFIG_TEGRA_GRHOST_PVA)
 #include "pva/pva.h"
@@ -276,8 +277,8 @@ struct nvhost_device_data t23x_nvdec_info = {
 		 TEGRA_SET_EMC_FLOOR}
 	},
 	.poweron_reset		= true,
-	.finalize_poweron	= nvhost_nvdec_finalize_poweron_t186,
-	.prepare_poweroff	= nvhost_nvdec_prepare_poweroff_t186,
+	.finalize_poweron	= nvhost_nvdec_finalize_poweron_t23x,
+	.prepare_poweroff	= nvhost_nvdec_prepare_poweroff_t23x,
 	.moduleid		= NVHOST_MODULE_NVDEC,
 	.ctrl_ops		= &tegra_nvdec_ctrl_ops,
 	.num_channels		= 1,
@@ -293,6 +294,8 @@ struct nvhost_device_data t23x_nvdec_info = {
 	.engine_can_cg		= true,
 	.can_powergate		= true,
 	.isolate_contexts	= true,
+	.enable_riscv_boot	= false,
+	.riscv_desc_bin		= "nvhost_nvdec050_riscv_desc.bin",
 };
 #endif
 
