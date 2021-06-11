@@ -127,7 +127,7 @@ config TEGRA_MCE
 
 config TEGRA_CACHE
 	bool "Enable Tegra Cache Driver"
-	default y if (ARCH_TEGRA_18x_SOC || ARCH_TEGRA_19x_SOC || ARCH_TEGRA_23x_SOC)
+	default y if (ARCH_TEGRA_18x_SOC || ARCH_TEGRA_19x_SOC || ARCH_TEGRA_23x_SOC || ARCH_TEGRA_186_SOC || ARCH_TEGRA_194_SOC)
 	help
 	  Enable Tegra Cache driver for Various cache operations.
 
