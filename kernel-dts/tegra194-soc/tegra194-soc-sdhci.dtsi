@@ -101,6 +101,7 @@
 #endif
 		dma-coherent;
 		max-clk-limit = <208000000>;
+		ddr-clk-limit = <51000000>;
 		bus-width = <4>;
 		cap-mmc-highspeed;
 		cap-sd-highspeed;
@@ -168,6 +169,7 @@
 #endif
 		dma-coherent;
 		max-clk-limit = <208000000>;
+		ddr-clk-limit = <51000000>;
 		bus-width = <4>;
 		cap-mmc-highspeed;
 		cap-sd-highspeed;
