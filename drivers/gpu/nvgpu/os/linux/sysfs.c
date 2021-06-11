@@ -1097,7 +1097,11 @@ static ssize_t mig_mode_config_list_show(struct device *dev,
 			(g->ops.grmgr.get_mig_config_ptr != NULL) ?
 			g->ops.grmgr.get_mig_config_ptr(g) : NULL;
 		if (mig_gpu_instance_config == NULL) {
-			res += sprintf(&buf[res], "%s", error_on_nullconfig);
+			res += sprintf(&buf[res], "MIG is %s", nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG) ?
+					"enabled\n" : "disabled\n");
+			res += scnprintf(&buf[res], (PAGE_SIZE - res - 1),"%s", error_on_nullconfig);
+			res += scnprintf(&buf[res], (PAGE_SIZE - res - 1), " for : %s\n",
+					g->name);
 			return res;
 		}
 	} else {
@@ -1106,7 +1110,12 @@ static ssize_t mig_mode_config_list_show(struct device *dev,
 	}
 
 	num_config = mig_gpu_instance_config->num_config_supported;
-	res += sprintf(&buf[res], "\n+++++++++ Config list Start ++++++++++\n");
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		res += sprintf(&buf[res], "\n  MIG not enabled for %s \n", g->name);
+	}
+
+	res += scnprintf(&buf[res], (PAGE_SIZE - res - 1),
+		"\n+++++++++ Config list Start ++++++++++\n");
 	for (config_id = 0U; config_id < num_config; config_id++) {
 		res += scnprintf(&buf[res], (PAGE_SIZE - res - 1),
 			"\n CONFIG_ID : %d for CONFIG NAME : %s\n",

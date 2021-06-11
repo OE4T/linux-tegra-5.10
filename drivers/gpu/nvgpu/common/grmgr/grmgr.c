@@ -38,7 +38,8 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 	struct nvgpu_gr_syspipe *gr_syspipe = &gpu_instance->gr_syspipe;
 	u32 local_gpc_mask;
 	u32 ffs_bit = 0U;
-
+	u32 index;
+	const struct nvgpu_device *gr_dev = NULL;
 #ifdef CONFIG_NVGPU_NEXT
 	if (g->ops.grmgr.load_timestamp_prod != NULL) {
 		g->ops.grmgr.load_timestamp_prod(g);
@@ -64,7 +65,6 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 	gr_syspipe->gr_dev = nvgpu_device_get(g, NVGPU_DEVTYPE_GRAPHICS, 0U);
 	nvgpu_assert(gr_syspipe->gr_dev != NULL);
 
-	g->mig.gpcgrp_gpc_count[0] = gr_syspipe->num_gpc;
 	if (g->ops.gr.config.get_gpc_mask != NULL) {
 		gr_syspipe->gpc_mask = g->ops.gr.config.get_gpc_mask(g);
 		nvgpu_assert(gr_syspipe->gpc_mask != 0U);
@@ -98,6 +98,36 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 			gr_syspipe->gpcs[gpc_id].gpcgrp_id = 0U;
 		}
 		nvgpu_assert(local_gpc_mask == 0U);
+	}
+
+	g->mig.usable_gr_syspipe_count =
+	nvgpu_device_count(g, NVGPU_DEVTYPE_GRAPHICS);
+	if ((g->mig.usable_gr_syspipe_count == 0U) ||
+			(g->mig.usable_gr_syspipe_count >=
+			 NVGPU_MIG_MAX_ENGINES)) {
+		nvgpu_err(g, "Usable GR engine syspipe"
+			"count[%u] is more than[%u]! or "
+			"No GR engine available on the device!",
+			g->mig.usable_gr_syspipe_count,
+			NVGPU_MIG_MAX_ENGINES);
+		nvgpu_assert(g->mig.usable_gr_syspipe_count <
+			NVGPU_MIG_MAX_ENGINES);
+		return -EINVAL;
+	}
+
+	index = 0U;
+	nvgpu_device_for_each(g, gr_dev, NVGPU_DEVTYPE_GRAPHICS) {
+		g->mig.usable_gr_syspipe_instance_id[index] =
+			gr_dev->inst_id;
+		g->mig.usable_gr_syspipe_mask |=
+			BIT32(gr_dev->inst_id);
+		index = nvgpu_safe_add_u32(index, 1U);
+	}
+
+	if (g->ops.grmgr.get_gpcgrp_count != NULL) {
+		g->ops.grmgr.get_gpcgrp_count(g);
+	} else {
+		g->mig.gpcgrp_gpc_count[0] = gr_syspipe->num_gpc;
 	}
 
 	if (g->ops.gr.init.get_max_subctx_count != NULL) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -67,6 +67,14 @@ struct gops_grmgr {
 	 * @return 0 in case of success, < 0 in case of failure.
 	 */
 	int (*remove_gr_manager)(struct gk20a *g);
+
+	/**
+	 * @brief Get gpc group information.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 */
+	void (*get_gpcgrp_count)(struct gk20a *g);
 
 #if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_MIG)
 #include "include/nvgpu/nvgpu_next_gops_grmgr.h"
