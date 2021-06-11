@@ -759,7 +759,7 @@ int gv11b_gr_init_commit_sm_id_programming(struct gk20a *g,
 	u32 *tpc_sm_id;
 	u32 sm_id_size = g->ops.gr.init.get_sm_id_size();
 
-	for (sm_id = 0; sm_id < g->ops.gr.init.get_no_of_sm(g);
+	for (sm_id = 0; sm_id < nvgpu_gr_config_get_no_of_sm(config);
 			sm_id++) {
 		struct nvgpu_sm_info *sm_info =
 			((gr_ctx == NULL) ||

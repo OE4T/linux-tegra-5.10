@@ -1902,10 +1902,10 @@ int gr_gk20a_set_sm_debug_mode(struct gk20a *g,
 	int err;
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
-	u32 no_of_sm = g->ops.gr.init.get_no_of_sm(g);
 	struct nvgpu_tsg *tsg = nvgpu_tsg_from_ch(ch);
 	u32 flags = NVGPU_REG_OP_FLAG_MODE_ALL_OR_NONE;
 	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
+	u32 no_of_sm = nvgpu_gr_config_get_no_of_sm(gr->config);
 
 	if (tsg == NULL) {
 		return -EINVAL;
@@ -2124,15 +2124,14 @@ int gr_gk20a_wait_for_pause(struct gk20a *g, struct nvgpu_warpstate *w_state)
 	u32 no_of_sm;
 	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 
-	if((g->ops.gr.init.get_no_of_sm == NULL) ||
-			(g->ops.gr.intr.get_sm_no_lock_down_hww_global_esr_mask == NULL) ||
+	if ((g->ops.gr.intr.get_sm_no_lock_down_hww_global_esr_mask == NULL) ||
 			(g->ops.gr.lock_down_sm == NULL) ||
 			(g->ops.gr.bpt_reg_info == NULL) ||
 			(g->ops.gr.sm_debugger_attached == NULL)) {
 		return -EINVAL;
 	}
 
-	no_of_sm = g->ops.gr.init.get_no_of_sm(g);
+	no_of_sm = nvgpu_gr_config_get_no_of_sm(gr->config);
 
 	if (!g->ops.gr.sm_debugger_attached(g)) {
 		nvgpu_err(g,

@@ -855,8 +855,10 @@ static int nvgpu_gpu_ioctl_wait_for_pause(struct gk20a *g,
 	struct warpstate *ioctl_w_state;
 	struct nvgpu_warpstate *w_state = NULL;
 	u32 ioctl_size, size, sm_id, no_of_sm;
+	struct nvgpu_gr_config *gr_config =
+		nvgpu_gr_get_gr_instance_config_ptr(g, gr_instance_id);
 
-	no_of_sm = g->ops.gr.init.get_no_of_sm(g);
+	no_of_sm = nvgpu_gr_config_get_no_of_sm(gr_config);
 
 	ioctl_size = no_of_sm * sizeof(struct warpstate);
 	ioctl_w_state = nvgpu_kzalloc(g, ioctl_size);
