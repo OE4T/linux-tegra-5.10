@@ -2780,9 +2780,12 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 	/* HW busy detection is supported, but R1B responses are required. */
 	host->mmc->caps |= MMC_CAP_WAIT_WHILE_BUSY | MMC_CAP_NEED_RSP_BUSY;
 
-	/* Set host ocr for SDIO cards to enumerate directly from 1.8V */
-	if (!(host->mmc->caps2 & MMC_CAP2_NO_SDIO))
-		host->ocr_mask = MMC_VDD_27_36 | MMC_VDD_165_195;
+	/*
+	 * Set host ocr for populating support for 3.3V and 1.8V in case
+	 * VMMC regulator is not populated. The value gets overwritten by the regulator
+	 * calls if a valid VMMC regulator is populated.
+	 */
+	host->ocr_mask = MMC_VDD_27_36 | MMC_VDD_165_195;
 
 	tegra_sdhci_parse_dt(host);
 
