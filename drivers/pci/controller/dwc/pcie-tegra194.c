@@ -17,6 +17,7 @@
 #include <linux/kernel.h>
 #include <linux/kfifo.h>
 #include <linux/kthread.h>
+#include <linux/mmc/sdhci-tegra-notify.h>
 #include <linux/module.h>
 #include <linux/of.h>
 #include <linux/of_address.h>
@@ -41,6 +42,7 @@
 
 #define APPL_PINMUX				0x0
 #define APPL_PINMUX_PEX_RST			BIT(0)
+#define APPL_PINMUX_CLKREQ_IN			BIT(1)
 #define APPL_PINMUX_CLKREQ_OVERRIDE_EN		BIT(2)
 #define APPL_PINMUX_CLKREQ_OVERRIDE		BIT(3)
 #define APPL_PINMUX_CLK_OUTPUT_IN_OVERRIDE_EN	BIT(4)
@@ -337,6 +339,10 @@ struct tegra_pcie_dw {
 	bool perst_irq_enabled;
 	int ep_state;
 	DECLARE_KFIFO(event_fifo, u32, EVENT_QUEUE_LEN);
+
+	/* SD 7.0 specific */
+	struct device *sd_dev_handle;
+	struct notifier_block nb;
 };
 
 struct tegra_pcie_of_data {
@@ -1209,8 +1215,13 @@ static int tegra_pcie_dw_parse_dt(struct tegra_pcie_dw *pcie)
 		pcie->pex_prsnt_gpiod = NULL;
 	}
 
-	if (pcie->mode == DW_PCIE_RC_TYPE)
+	if (pcie->mode == DW_PCIE_RC_TYPE) {
+		pcie->sd_dev_handle = get_sdhci_device_handle(pcie->dev);
+		if (!pcie->sd_dev_handle)
+			dev_dbg(pcie->dev, "SD7.0 is not supported\n");
+
 		return 0;
+	}
 
 	if (tegra_platform_is_fpga()) {
 		pcie->pex_rst_gpiod = NULL;
@@ -1453,6 +1464,15 @@ static int tegra_pcie_config_controller(struct tegra_pcie_dw *pcie,
 		goto fail_core_apb_rst;
 	}
 
+	if (pcie->sd_dev_handle) {
+		val = readl(pcie->appl_base + APPL_PINMUX);
+		if (val & APPL_PINMUX_CLKREQ_IN) {
+			/* CLKREQ# is not asserted */
+			ret = -EPERM;
+			goto fail_phy;
+		}
+	}
+
 	if (en_hw_hot_rst || !pcie->of_data->sbr_reset_fixup) {
 		/* Enable HW_HOT_RST mode */
 		val = appl_readl(pcie, APPL_CTRL);
@@ -1579,6 +1599,11 @@ static void tegra_pcie_unconfig_controller(struct tegra_pcie_dw *pcie)
 			dev_err(pcie->dev, "Failed to disable controller %d: %d\n",
 				pcie->cid, ret);
 	}
+
+	/* Inform SD driver about the completion of suspend from PCIe driver. */
+	if (pcie->sd_dev_handle)
+		notifier_to_sd_call_chain(pcie->sd_dev_handle,
+					  SD_EXP_SUSPEND_COMPLETE);
 }
 
 static int tegra_pcie_msi_host_init(struct pcie_port *pp)
@@ -1785,6 +1810,40 @@ fail_host_init:
 fail_pm_get_sync:
 	pm_runtime_put_sync(dev);
 	pm_runtime_disable(dev);
+	return ret;
+}
+
+static int notify_pcie_from_sd(struct notifier_block *self,
+			       unsigned long action,
+			       void *dev)
+{
+	struct tegra_pcie_dw *pcie =
+		container_of(self, struct tegra_pcie_dw, nb);
+	int ret = NOTIFY_OK;
+
+	switch (action) {
+	case CARD_INSERTED:
+		dev_dbg(pcie->dev, "SD card is inserted\n");
+		/* Currently not doing anything */
+		ret = NOTIFY_OK;
+		break;
+	case CARD_IS_SD_EXPRESS:
+		dev_info(pcie->dev, "Enumerating SD Express card\n");
+		ret = tegra_pcie_config_rp(pcie);
+		if (ret < 0)
+			ret = NOTIFY_BAD;
+		else
+			ret = NOTIFY_OK;
+		break;
+	case CARD_REMOVED:
+		debugfs_remove_recursive(pcie->debugfs);
+		tegra_pcie_deinit_controller(pcie);
+		pm_runtime_put_sync(pcie->dev);
+		pm_runtime_disable(pcie->dev);
+		ret = NOTIFY_OK;
+		break;
+	}
+
 	return ret;
 }
 
@@ -2447,6 +2506,23 @@ static int tegra_pcie_dw_probe(struct platform_device *pdev)
 			}
 		}
 
+		if (pcie->sd_dev_handle) {
+			pcie->nb.notifier_call = notify_pcie_from_sd;
+			ret = register_notifier_from_sd(pcie->sd_dev_handle,
+							&pcie->nb);
+			if (ret < 0) {
+				dev_err(dev, "failed to register with SD notify: %d\n",
+					ret);
+				goto fail;
+			}
+			/*
+			 * Controller initialization in probe and PRSNT#
+			 * notification is not required for SD7.0, return from
+			 * here.
+			 */
+			return ret;
+		}
+
 		init_waitqueue_head(&pcie->config_rp_waitq);
 		pcie->config_rp_done = false;
 
@@ -2730,7 +2806,16 @@ static struct platform_driver tegra_pcie_dw_driver = {
 		.of_match_table = tegra_pcie_dw_of_match,
 	},
 };
+#if IS_MODULE(CONFIG_PCIE_TEGRA)
 module_platform_driver(tegra_pcie_dw_driver);
+#else
+static int __init tegra_pcie_rp_init(void)
+{
+	return platform_driver_register(&tegra_pcie_dw_driver);
+}
+
+late_initcall(tegra_pcie_rp_init);
+#endif
 
 MODULE_DEVICE_TABLE(of, tegra_pcie_dw_of_match);
 
