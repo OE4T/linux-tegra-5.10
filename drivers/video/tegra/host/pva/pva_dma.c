@@ -24,7 +24,7 @@
 
 static int32_t patch_dma_desc_address(struct pva_submit_task *task,
 				      struct nvpva_dma_descriptor *umd_dma_desc,
-				      struct pva_dtd_s *dma_desc)
+				      struct pva_dtd_s *dma_desc, int *is_cfg)
 {
 	int32_t err = 0;
 	uint64_t addr_base = 0;
@@ -42,14 +42,15 @@ static int32_t patch_dma_desc_address(struct pva_submit_task *task,
 				pva_task_pin_mem(task, umd_dma_desc->srcPtr);
 			if (IS_ERR(mem)) {
 				err = PTR_ERR(mem);
-				task_err(task,
-					 "invalid memory handle in descriptor");
+				task_err(
+					task,
+					"invalid memory handle in descriptor for src L2RAM");
 				goto out;
 			}
 			addr_base = mem->dma_addr;
-		}
+		} else
+			addr_base = 0;
 		break;
-	case DMA_DESC_SRC_XFER_VPU_CONFIG:
 	case DMA_DESC_SRC_XFER_VMEM:
 	case DMA_DESC_SRC_XFER_MMIO: {
 		/* calculate symbol address */
@@ -59,17 +60,44 @@ static int32_t patch_dma_desc_address(struct pva_submit_task *task,
 					 umd_dma_desc->srcPtr, &addr);
 		if (err) {
 			err = -EINVAL;
-			task_err(task, "invalid symbol id in descriptor");
+			task_err(
+				task,
+				"invalid symbol id in descriptor for src VMEM");
 			goto out;
 		}
 		addr_base = addr;
 	} break;
+	case DMA_DESC_SRC_XFER_VPU_CONFIG: {
+		u32 addr;
+		/* dest must be null*/
+		if (umd_dma_desc->dstPtr != 0U) {
+			task_err(task, "vpu config's dstPtr must be 0");
+			err = -EINVAL;
+			goto out;
+		}
+
+		/* calculate symbol address */
+		/* TODO: check VPUC handling in ELF segment */
+		err = pva_get_sym_offset(&task->client->elf_ctx, task->exe_id,
+					 umd_dma_desc->srcPtr, &addr);
+
+		if (err) {
+			task_err(task, "ERROR: Invalid offset or address");
+			goto out;
+		}
+
+		addr_base = addr;
+		*is_cfg = 1;
+		break;
+	}
 	case DMA_DESC_SRC_XFER_MC: {
 		struct pva_pinned_memory *mem =
 			pva_task_pin_mem(task, umd_dma_desc->srcPtr);
 		if (IS_ERR(mem)) {
 			err = PTR_ERR(mem);
-			task_err(task, "invalid memory handle in descriptor");
+			task_err(
+				task,
+				"invalid memory handle in descriptor for src MC");
 			goto out;
 		}
 		addr_base = mem->dma_addr;
@@ -86,6 +114,7 @@ static int32_t patch_dma_desc_address(struct pva_submit_task *task,
 	dma_desc->src_adr0 = (uint32_t)(addr_base & 0xFFFFFFFFLL);
 	dma_desc->src_adr1 = (uint8_t)((addr_base >> 32U) & 0xFF);
 
+	addr_base = 0;
 	switch (umd_dma_desc->dstTransferMode) {
 	case DMA_DESC_DST_XFER_L2RAM:
 		if (task->pva->version == PVA_HW_GEN1) {
@@ -93,12 +122,14 @@ static int32_t patch_dma_desc_address(struct pva_submit_task *task,
 				pva_task_pin_mem(task, umd_dma_desc->dstPtr);
 			if (IS_ERR(mem)) {
 				err = PTR_ERR(mem);
-				task_err(task,
-					 "invalid memory handle in descriptor");
+				task_err(
+					task,
+					"invalid memory handle in descriptor for dst L2RAM");
 				goto out;
 			}
 			addr_base = mem->dma_addr;
-		}
+		} else
+			addr_base = 0;
 		break;
 	case DMA_DESC_DST_XFER_VMEM: {
 		/* calculate symbol address */
@@ -108,7 +139,9 @@ static int32_t patch_dma_desc_address(struct pva_submit_task *task,
 					 umd_dma_desc->dstPtr, &addr);
 		if (err) {
 			err = -EINVAL;
-			task_err(task, "invalid symbol id in descriptor");
+			task_err(
+				task,
+				"invalid symbol id in descriptor for dst VMEM");
 			goto out;
 		}
 		addr_base = addr;
@@ -125,7 +158,9 @@ static int32_t patch_dma_desc_address(struct pva_submit_task *task,
 			pva_task_pin_mem(task, umd_dma_desc->dstPtr);
 		if (IS_ERR(mem)) {
 			err = PTR_ERR(mem);
-			task_err(task, "invalid memory handle in descriptor");
+			task_err(
+				task,
+				"invalid memory handle in descriptor for dst MC");
 			goto out;
 		}
 		addr_base = mem->dma_addr;
@@ -157,15 +192,34 @@ static int32_t nvpva_task_dma_desc_mapping(struct pva_submit_task *task,
 	int32_t err = 0;
 	unsigned int numDesc;
 	uint32_t addr = 0U;
+	int valid_link_did = 0;
+	int is_cfg = 0;
 
 	for (numDesc = 0U; numDesc < task->num_dma_descriptors; numDesc++) {
 		umd_dma_desc = &task->dma_descriptors[numDesc];
 		dma_desc = &hw_task->dma_desc[numDesc];
+		is_cfg = 0;
 
-		err = patch_dma_desc_address(task, umd_dma_desc, dma_desc);
-		if (err)
-			goto out;
-
+		err = patch_dma_desc_address(task, umd_dma_desc, dma_desc,
+					     &is_cfg);
+		if (err) {
+			/* @TODO: Check if this condition related to usage of
+			 * vpu_config transfer control mode can be detected
+			 * before hitting this error case.
+			 */
+			if (valid_link_did) {
+				/* @TODO: Check whether separate handling is
+				 * required to support multiple linked
+				 * descriptors provided by user in any order.
+				 */
+				err = 0;
+				valid_link_did = 0;
+				task_err(
+					task,
+					"invalid memory handle in descriptor but vpuc");
+			} else
+				goto out;
+		}
 		/* DMA_DESC_TRANS CNTL0 */
 		dma_desc->transfer_control0 =
 			umd_dma_desc->srcTransferMode |
@@ -196,6 +250,9 @@ static int32_t nvpva_task_dma_desc_mapping(struct pva_submit_task *task,
 		/* DMA_DESC_LDID */
 		if (umd_dma_desc->linkDescId < 0x40)
 			dma_desc->link_did = umd_dma_desc->linkDescId;
+
+		if ((dma_desc->link_did > 0) && (is_cfg))
+			valid_link_did = 1;
 
 		/* DMA_DESC_TX */
 		dma_desc->tx = umd_dma_desc->tx;
