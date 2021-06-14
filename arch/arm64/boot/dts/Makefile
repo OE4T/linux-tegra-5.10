@@ -30,6 +30,7 @@ ifeq ($(CONFIG_ARCH_TEGRA_23x_SOC),y)
 DTC_INCLUDE += $(tegra-dtstree)/soc/t23x/kernel-include
 DTC_INCLUDE += $(tegra-dtstree)/soc/t23x/kernel-dts
 DTC_INCLUDE += $(tegra-dtstree)/platform/t23x/common/kernel-dts
+DTC_INCLUDE += $(tegra-dtstree)/platform/t23x/automotive/kernel-dts/common/linux/
 endif
 
 ifeq ($(CONFIG_ARCH_TEGRA_239_SOC),y)
