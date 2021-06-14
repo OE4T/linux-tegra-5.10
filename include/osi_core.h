@@ -986,7 +986,7 @@ struct osd_core_ops {
 			    nveu32_t len);
 #ifdef MACSEC_SUPPORT
 	/** Program macsec key table through Trust Zone callback */
-	int (*macsec_tz_kt_config)(void *priv, unsigned char cmd,
+	nve32_t (*macsec_tz_kt_config)(void *priv, unsigned char cmd,
 				   void *const kt_config,
 				   void *const genl_info);
 #endif /* MACSEC_SUPPORT */
@@ -998,43 +998,43 @@ struct osd_core_ops {
  */
 struct osi_macsec_irq_stats {
 	/** Tx debug buffer capture done */
-	unsigned long tx_dbg_capture_done;
+	nveu64_t tx_dbg_capture_done;
 	/** Tx MTU check failed */
-	unsigned long tx_mtu_check_fail;
+	nveu64_t tx_mtu_check_fail;
 	/** Tx MAC CRC err */
-	unsigned long tx_mac_crc_error;
+	nveu64_t tx_mac_crc_error;
 	/** Tx SC AN not valid */
-	unsigned long tx_sc_an_not_valid;
+	nveu64_t tx_sc_an_not_valid;
 	/** Tx AES GCM buffer overflow */
-	unsigned long tx_aes_gcm_buf_ovf;
+	nveu64_t tx_aes_gcm_buf_ovf;
 	/** Tx LUT lookup miss */
-	unsigned long tx_lkup_miss;
+	nveu64_t tx_lkup_miss;
 	/** Tx uninitialized key slot */
-	unsigned long tx_uninit_key_slot;
+	nveu64_t tx_uninit_key_slot;
 	/** Tx PN threshold reached */
-	unsigned long tx_pn_threshold;
+	nveu64_t tx_pn_threshold;
 	/** Tx PN exhausted */
-	unsigned long tx_pn_exhausted;
+	nveu64_t tx_pn_exhausted;
 	/** Tx debug buffer capture done */
-	unsigned long rx_dbg_capture_done;
+	nveu64_t rx_dbg_capture_done;
 	/** Rx ICV error threshold */
-	unsigned long rx_icv_err_threshold;
+	nveu64_t rx_icv_err_threshold;
 	/** Rx replay error */
-	unsigned long rx_replay_error;
+	nveu64_t rx_replay_error;
 	/** Rx MTU check failed */
-	unsigned long rx_mtu_check_fail;
+	nveu64_t rx_mtu_check_fail;
 	/** Rx MAC CRC err */
-	unsigned long rx_mac_crc_error;
+	nveu64_t rx_mac_crc_error;
 	/** Rx AES GCM buffer overflow */
-	unsigned long rx_aes_gcm_buf_ovf;
+	nveu64_t rx_aes_gcm_buf_ovf;
 	/** Rx LUT lookup miss */
-	unsigned long rx_lkup_miss;
+	nveu64_t rx_lkup_miss;
 	/** Rx uninitialized key slot */
-	unsigned long rx_uninit_key_slot;
+	nveu64_t rx_uninit_key_slot;
 	/** Rx PN exhausted */
-	unsigned long rx_pn_exhausted;
+	nveu64_t rx_pn_exhausted;
 	/** Secure reg violation */
-	unsigned long secure_reg_viol;
+	nveu64_t secure_reg_viol;
 };
 #endif /* MACSEC_SUPPORT */
 
@@ -1144,7 +1144,7 @@ struct osi_core_priv_data {
 	/** Memory mapped base address of MACsec TZ page */
 	void *tz_base;
 	/** Address of MACsec HW operations structure */
-	struct macsec_core_ops *macsec_ops;
+	struct osi_macsec_core_ops *macsec_ops;
 	/** Instance of macsec interrupt stats structure */
 	struct osi_macsec_irq_stats macsec_irq_stats;
 	/** Instance of macsec HW controller Tx/Rx LUT status */

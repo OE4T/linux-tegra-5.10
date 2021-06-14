@@ -516,7 +516,7 @@ static int ivc_macsec_init(struct osi_core_priv_data *const osi_core)
  */
 void ivc_init_macsec_ops(void *macsecops)
 {
-	struct macsec_core_ops *ops = (struct macsec_core_ops *) macsecops;
+	struct osi_macsec_core_ops *ops = (struct osi_macsec_core_ops *) macsecops;
 
 	ops->init = ivc_macsec_init;
 	ops->deinit = ivc_macsec_deinit;

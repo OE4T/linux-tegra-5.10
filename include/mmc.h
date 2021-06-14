@@ -587,43 +587,43 @@ struct osi_xtra_stat_counters {
 struct osi_macsec_mmc_counters {
 	/** This counter provides the number of controller port macsec
 	 * untaged packets */
-	unsigned long long rx_pkts_no_tag;
+	nveul64_t rx_pkts_no_tag;
 	/** This counter provides the number of controller port macsec
 	 * untaged packets validateFrame != strict */
-	unsigned long long rx_pkts_untagged;
+	nveul64_t rx_pkts_untagged;
 	/** This counter provides the number of invalid tag or icv packets */
-	unsigned long long rx_pkts_bad_tag;
+	nveul64_t rx_pkts_bad_tag;
 	/** This counter provides the number of no sc lookup hit or sc match
 	 * packets */
-	unsigned long long rx_pkts_no_sa_err;
+	nveul64_t rx_pkts_no_sa_err;
 	/** This counter provides the number of no sc lookup hit or sc match
 	 * packets validateFrame != strict */
-	unsigned long long rx_pkts_no_sa;
+	nveul64_t rx_pkts_no_sa;
 	/** This counter provides the number of late packets
 	 *received PN < lowest PN */
-	unsigned long long rx_pkts_late[OSI_MACSEC_SC_INDEX_MAX];
+	nveul64_t rx_pkts_late[OSI_MACSEC_SC_INDEX_MAX];
 	/** This counter provides the number of overrun packets */
-	unsigned long long rx_pkts_overrun;
+	nveul64_t rx_pkts_overrun;
 	/** This counter provides the number of octets after IVC passing */
-	unsigned long long rx_octets_validated;
+	nveul64_t rx_octets_validated;
 	/** This counter provides the number not valid packets */
-	unsigned long long rx_pkts_not_valid[OSI_MACSEC_SC_INDEX_MAX];
+	nveul64_t rx_pkts_not_valid[OSI_MACSEC_SC_INDEX_MAX];
 	/** This counter provides the number of invalid packets */
-	unsigned long long in_pkts_invalid[OSI_MACSEC_SC_INDEX_MAX];
+	nveul64_t in_pkts_invalid[OSI_MACSEC_SC_INDEX_MAX];
 	/** This counter provides the number of in packet delayed */
-	unsigned long long rx_pkts_delayed[OSI_MACSEC_SC_INDEX_MAX];
+	nveul64_t rx_pkts_delayed[OSI_MACSEC_SC_INDEX_MAX];
 	/** This counter provides the number of in packets un checked */
-	unsigned long long rx_pkts_unchecked[OSI_MACSEC_SC_INDEX_MAX];
+	nveul64_t rx_pkts_unchecked[OSI_MACSEC_SC_INDEX_MAX];
 	/** This counter provides the number of in packets ok */
-	unsigned long long rx_pkts_ok[OSI_MACSEC_SC_INDEX_MAX];
+	nveul64_t rx_pkts_ok[OSI_MACSEC_SC_INDEX_MAX];
 	/** This counter provides the number of out packets untaged */
-	unsigned long long tx_pkts_untaged;
+	nveul64_t tx_pkts_untaged;
 	/** This counter provides the number of out too long */
-	unsigned long long tx_pkts_too_long;
+	nveul64_t tx_pkts_too_long;
 	/** This counter provides the number of out packets protected */
-	unsigned long long tx_pkts_protected[OSI_MACSEC_SC_INDEX_MAX];
+	nveul64_t tx_pkts_protected[OSI_MACSEC_SC_INDEX_MAX];
 	/** This counter provides the number of out octets protected */
-	unsigned long long tx_octets_protected;
+	nveul64_t tx_octets_protected;
 };
 #endif /* MACSEC_SUPPORT */
 #endif /* INCLUDED_MMC_H */
