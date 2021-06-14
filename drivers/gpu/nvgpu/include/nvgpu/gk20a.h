@@ -252,7 +252,6 @@ struct railgate_stats {
 #define GPU_LIT_DMA_COPY_CLASS	36
 /** Gpc priv stride. */
 #define GPU_LIT_GPC_PRIV_STRIDE	37
-/** Compute class. */
 /** @cond DOXYGEN_SHOULD_SKIP_THIS */
 #define GPU_LIT_PERFMON_PMMGPCTPCA_DOMAIN_START 38
 #define GPU_LIT_PERFMON_PMMGPCTPCB_DOMAIN_START 39
