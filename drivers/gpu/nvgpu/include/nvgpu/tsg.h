@@ -174,19 +174,6 @@ struct nvgpu_tsg {
 	 */
 	pid_t tgid;
 	/**
-	 * Number of active TPCs as requested by userspace.
-	 * This is used while requesting for dynamic TPC PG (power gating).
-	 * TPC PG is specific to chip.
-	 */
-	u32  num_active_tpcs;
-	/** Set to true if dynamic TPC PG is requested to be enabled. */
-	bool tpc_pg_enabled;
-	/**
-	 * Set to true if dynamic TPC PG is enabled and #num_active_tpcs is
-	 * non-zero.
-	 */
-	bool tpc_num_initialized;
-	/**
 	 * Set to true if tsgid is acquired else set to false.
 	 * This is protected by #nvgpu_fifo.tsg_inuse_mutex. Acquire/Release
 	 * the mutex to check if tsgid is already acquired or not.

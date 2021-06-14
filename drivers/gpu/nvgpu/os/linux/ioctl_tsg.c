@@ -93,7 +93,6 @@ static int gk20a_tsg_ioctl_bind_channel_ex(struct gk20a *g,
 	struct nvgpu_tsg *tsg = priv->tsg;
 	struct nvgpu_sched_ctrl *sched = &g->sched_ctrl;
 	struct nvgpu_channel *ch;
-	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
 	u32 max_subctx_count;
 	u32 gpu_instance_id;
 	int err = 0;
@@ -115,21 +114,6 @@ static int gk20a_tsg_ioctl_bind_channel_ex(struct gk20a *g,
 	if (!ch) {
 		err = -EINVAL;
 		goto idle;
-	}
-
-	if (arg->tpc_pg_enabled && (!tsg->tpc_num_initialized)) {
-		if ((arg->num_active_tpcs >
-				nvgpu_gr_config_get_max_tpc_count(gr_config)) ||
-		    !(arg->num_active_tpcs)) {
-			nvgpu_err(g, "Invalid num of active TPCs");
-			err = -EINVAL;
-			goto ch_put;
-		}
-		tsg->tpc_num_initialized = true;
-		tsg->num_active_tpcs = arg->num_active_tpcs;
-		tsg->tpc_pg_enabled = true;
-	} else {
-		tsg->tpc_pg_enabled = false; nvgpu_log(g, gpu_dbg_info, "dynamic TPC-PG not enabled");
 	}
 
 	gpu_instance_id = nvgpu_get_gpu_instance_id_from_cdev(g, priv->cdev);
