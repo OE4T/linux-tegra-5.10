@@ -544,6 +544,7 @@ done:
 		if (l->dev_nodes_created) {
 			gk20a_user_nodes_deinit(dev);
 		}
+		nvgpu_set_power_state(g, NVGPU_STATE_POWERED_OFF);
 	}
 
 	nvgpu_mutex_release(&g->power_lock);
