@@ -4417,6 +4417,46 @@ static inline void ether_put_clks(struct ether_priv_data *pdata)
 }
 
 /**
+ * @brief Set clk rates for mgbe#_rx_input/mgbe#_rx_pcs_input
+ *
+ * Algorithm: Sets clk rates based on UPHY GBE mode for
+ * mgbe#_rx_input/mgbe#_rx_pcs_input clk ID's.
+ *
+ * @param[in] pdata: OSD private data.
+ *
+ * @retval 0 on success
+ * @retval "negative value" on failure.
+ */
+static int ether_set_mgbe_rx_fmon_rates(struct ether_priv_data *pdata)
+{
+	unsigned int uphy_gbe_mode = pdata->osi_core->uphy_gbe_mode;
+	unsigned long rx_rate, rx_pcs_rate;
+	int ret;
+
+	if (uphy_gbe_mode == OSI_ENABLE) {
+		rx_rate = ETHER_MGBE_RX_CLK_USXGMII_10G;
+		rx_pcs_rate = ETHER_MGBE_RX_PCS_CLK_USXGMII_10G;
+	} else {
+		rx_rate = ETHER_MGBE_RX_CLK_USXGMII_5G;
+		rx_pcs_rate = ETHER_MGBE_RX_PCS_CLK_USXGMII_5G;
+	}
+
+	ret = clk_set_rate(pdata->rx_input_clk, rx_rate);
+	if (ret < 0) {
+		dev_err(pdata->dev, "failed to set rx_input_clk rate\n");
+		return ret;
+	}
+
+	ret = clk_set_rate(pdata->rx_pcs_input_clk, rx_pcs_rate);
+	if (ret < 0) {
+		dev_err(pdata->dev, "failed to set rx_pcs_input_clk rate\n");
+		return ret;
+	}
+
+	return 0;
+}
+
+/**
  * @brief Get MAC MGBE related clocks.
  *
  * Algorithm: Get the clocks from DT and stores in OSD private data.
@@ -4508,8 +4548,21 @@ static int ether_get_mgbe_clks(struct ether_priv_data *pdata)
 		goto err_ptp_ref;
 	}
 
+	pdata->rx_input_clk = devm_clk_get(dev, "rx_input");
+	if (IS_ERR(pdata->rx_input_clk)) {
+		ret = PTR_ERR(pdata->rx_input_clk);
+		dev_err(dev, "failed to get rx_input clk\n");
+		goto err_rx_input;
+	}
+
+	ret = ether_set_mgbe_rx_fmon_rates(pdata);
+	if (ret < 0)
+		goto err_rx_input;
+
 	return 0;
 
+err_rx_input:
+	devm_clk_put(dev, pdata->ptp_ref_clk);
 err_ptp_ref:
 	devm_clk_put(dev, pdata->app_clk);
 err_app:
