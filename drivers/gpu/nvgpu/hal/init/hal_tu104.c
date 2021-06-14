@@ -1393,9 +1393,9 @@ static const struct gops_bus tu104_ops_bus = {
 	.configure_debug_bus = gv11b_bus_configure_debug_bus,
 #ifdef CONFIG_NVGPU_DGPU
 	.set_bar0_window = gk20a_bus_set_bar0_window,
-#endif
 	.read_sw_scratch = gv100_bus_read_sw_scratch,
 	.write_sw_scratch = gv100_bus_write_sw_scratch,
+#endif
 };
 #endif
 
