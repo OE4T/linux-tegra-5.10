@@ -79,10 +79,12 @@
 			 <&bpmp_clks TEGRA234_CLK_MGBE0_EEE_PCS>,
 			 <&bpmp_clks TEGRA234_CLK_MGBE0_APP>,
 			 <&bpmp_clks TEGRA234_CLK_MGBE0_PTP_REF>,
-			 <&bpmp_clks TEGRA234_CLK_MGBE0_MACSEC>;
+			 <&bpmp_clks TEGRA234_CLK_MGBE0_MACSEC>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE0_RX_INPUT>;
 		clock-names = "rx_input_m", "rx_pcs_m", "rx_pcs_input",
 			      "rx_pcs", "tx", "tx_pcs", "mac_divider",
-			      "mac", "eee_pcs", "app", "ptp_ref", "mgbe_macsec";
+			      "mac", "eee_pcs", "app", "ptp_ref",
+			      "mgbe_macsec", "rx_input";
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_MGBE>;
 #else
@@ -143,10 +145,12 @@
 			 <&bpmp_clks TEGRA234_CLK_MGBE1_EEE_PCS>,
 			 <&bpmp_clks TEGRA234_CLK_MGBE1_APP>,
 			 <&bpmp_clks TEGRA234_CLK_MGBE1_PTP_REF>,
-			 <&bpmp_clks TEGRA234_CLK_MGBE1_MACSEC>;
+			 <&bpmp_clks TEGRA234_CLK_MGBE1_MACSEC>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE1_RX_INPUT>;
 		clock-names = "rx_input_m", "rx_pcs_m", "rx_pcs_input",
 			      "rx_pcs", "tx", "tx_pcs", "mac_divider",
-			      "mac", "eee_pcs", "app", "ptp_ref", "mgbe_macsec";
+			      "mac", "eee_pcs", "app", "ptp_ref",
+			      "mgbe_macsec", "rx_input";
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_MGBE>;
 #else
@@ -207,10 +211,12 @@
 			 <&bpmp_clks TEGRA234_CLK_MGBE2_EEE_PCS>,
 			 <&bpmp_clks TEGRA234_CLK_MGBE2_APP>,
 			 <&bpmp_clks TEGRA234_CLK_MGBE2_PTP_REF>,
-			 <&bpmp_clks TEGRA234_CLK_MGBE2_MACSEC>;
+			 <&bpmp_clks TEGRA234_CLK_MGBE2_MACSEC>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE2_RX_INPUT>;
 		clock-names = "rx_input_m", "rx_pcs_m", "rx_pcs_input",
 			      "rx_pcs", "tx", "tx_pcs", "mac_divider",
-			      "mac", "eee_pcs", "app", "ptp_ref", "mgbe_macsec";
+			      "mac", "eee_pcs", "app", "ptp_ref",
+			      "mgbe_macsec", "rx_input";
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_MGBE>;
 #else
@@ -271,10 +277,12 @@
 			 <&bpmp_clks TEGRA234_CLK_MGBE3_EEE_PCS>,
 			 <&bpmp_clks TEGRA234_CLK_MGBE3_APP>,
 			 <&bpmp_clks TEGRA234_CLK_MGBE3_PTP_REF>,
-			 <&bpmp_clks TEGRA234_CLK_MGBE3_MACSEC>;
+			 <&bpmp_clks TEGRA234_CLK_MGBE3_MACSEC>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE3_RX_INPUT>;
 		clock-names = "rx_input_m", "rx_pcs_m", "rx_pcs_input",
 			      "rx_pcs", "tx", "tx_pcs", "mac_divider",
-			      "mac", "eee_pcs", "app", "ptp_ref", "mgbe_macsec";
+			      "mac", "eee_pcs", "app", "ptp_ref",
+			      "mgbe_macsec", "rx_input";
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_MGBE>;
 #else
