@@ -35,6 +35,10 @@
 typedef unsigned int		my_uint32_t;
 /** intermediate type for int */
 typedef int			my_int32_t;
+/** intermediate type for unsigned short */
+typedef unsigned short		my_uint16_t;
+/** intermediate type for short */
+typedef short			my_int16_t;
 /** intermediate type for char */
 typedef char			my_int8_t;
 /** intermediate type for unsigned char */
@@ -49,6 +53,10 @@ typedef unsigned long		my_uint64_t;
 typedef my_uint32_t		nveu32_t;
 /** typedef equivalent to int */
 typedef my_int32_t		nve32_t;
+/** typedef equivalent to unsigned short */
+typedef my_uint16_t		nveu16_t;
+/** typedef equivalent to short */
+typedef my_int16_t		nve16_t;
 /** typedef equivalent to char */
 typedef my_int8_t		nve8_t;
 /** typedef equivalent to unsigned char */
