@@ -49,47 +49,24 @@ static irqreturn_t macsec_ns_isr(int irq, void *data)
 static int macsec_disable_car(struct macsec_priv_data *macsec_pdata)
 {
 	struct ether_priv_data *pdata = macsec_pdata->ether_pdata;
-	struct device *dev = pdata->dev;
-	void __iomem *addr = NULL;
-	unsigned int val = 0;
 
 	PRINT_ENTRY();
-	if (!pdata->osi_core->pre_si) {
-		if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
-			if (!IS_ERR_OR_NULL(macsec_pdata->mgbe_clk)) {
-				clk_disable_unprepare(macsec_pdata->mgbe_clk);
-			}
-		} else {
-			if (!IS_ERR_OR_NULL(macsec_pdata->eqos_tx_clk)) {
-				clk_disable_unprepare(macsec_pdata->eqos_tx_clk);
-			}
-
-			if (!IS_ERR_OR_NULL(macsec_pdata->eqos_rx_clk)) {
-				clk_disable_unprepare(macsec_pdata->eqos_rx_clk);
-			}
-		}
-
-		if (macsec_pdata->ns_rst) {
-			reset_control_assert(macsec_pdata->ns_rst);
+	if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
+		if (!IS_ERR_OR_NULL(macsec_pdata->mgbe_clk)) {
+			clk_disable_unprepare(macsec_pdata->mgbe_clk);
 		}
 	} else {
-		/* For Pre-sil only, reset the MACsec controller directly.
-		 * Assert the reset Bit 8 in CLK_RST_CONTROLLER_RST_DEV_MGBE_0.
-		 */
-		addr = devm_ioremap(dev, 0x21460018, 0x4);
-		if (addr) {
-			val = readl(addr);
-			val |= BIT(8);
-			writel(val, addr);
-			devm_iounmap(dev, addr);
+		if (!IS_ERR_OR_NULL(macsec_pdata->eqos_tx_clk)) {
+			clk_disable_unprepare(macsec_pdata->eqos_tx_clk);
 		}
-		addr = devm_ioremap(dev, 0x21460080, 0x4);
-		if (addr) {
-			val = readl(addr);
-			val &= ~BIT(2);
-			writel(val, addr);
-			devm_iounmap(dev, addr);
+
+		if (!IS_ERR_OR_NULL(macsec_pdata->eqos_rx_clk)) {
+			clk_disable_unprepare(macsec_pdata->eqos_rx_clk);
 		}
+	}
+
+	if (macsec_pdata->ns_rst) {
+		reset_control_assert(macsec_pdata->ns_rst);
 	}
 
 	PRINT_EXIT();
@@ -100,72 +77,41 @@ static int macsec_enable_car(struct macsec_priv_data *macsec_pdata)
 {
 	struct ether_priv_data *pdata = macsec_pdata->ether_pdata;
 	struct device *dev = pdata->dev;
-	void __iomem *addr = NULL;
-	unsigned int val = 0;
 	int ret = 0;
 
 	PRINT_ENTRY();
-	if (!pdata->osi_core->pre_si) {
-		if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
-			if (!IS_ERR_OR_NULL(macsec_pdata->mgbe_clk)) {
-				ret = clk_prepare_enable(macsec_pdata->mgbe_clk);
-				if (ret < 0) {
-					dev_err(dev, "failed to enable macsec clk\n");
-					goto exit;
-				}
-			}
-		} else {
-			if (!IS_ERR_OR_NULL(macsec_pdata->eqos_tx_clk)) {
-				ret = clk_prepare_enable(macsec_pdata->eqos_tx_clk);
-				if (ret < 0) {
-					dev_err(dev, "failed to enable macsec tx clk\n");
-					goto exit;
-				}
-			}
-
-			if (!IS_ERR_OR_NULL(macsec_pdata->eqos_rx_clk)) {
-				ret = clk_prepare_enable(macsec_pdata->eqos_rx_clk);
-				if (ret < 0) {
-					dev_err(dev, "failed to enable macsec rx clk\n");
-					goto err_rx_clk;
-				}
-			}
-		}
-		/* TODO:
-		 * 1. Any delay needed in silicon for clocks to stabilize ?
-		 */
-		if (macsec_pdata->ns_rst) {
-			ret = reset_control_reset(macsec_pdata->ns_rst);
+	if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
+		if (!IS_ERR_OR_NULL(macsec_pdata->mgbe_clk)) {
+			ret = clk_prepare_enable(macsec_pdata->mgbe_clk);
 			if (ret < 0) {
-				dev_err(dev, "failed to reset macsec\n");
-				goto err_ns_rst;
+				dev_err(dev, "failed to enable macsec clk\n");
+				goto exit;
 			}
 		}
 	} else {
-			if (pdata->osi_core->use_virtualization != OSI_ENABLE) {
-				/* For Pre-sil only, reset the MACsec controller directly.
-				 * clk ungate first, followed by disabling reset
-				 * Bit 8 in CLK_RST_CONTROLLER_RST_DEV_MGBE_0 register.
-				 */
-				addr = devm_ioremap(dev, 0x21460080, 0x4);
-				if (addr) {
-					val = readl(addr);
-					val |= BIT(2);
-					writel(val, addr);
-					devm_iounmap(dev, addr);
-				}
-
-				/* Followed by disabling reset - Bit 8 in
-				 * CLK_RST_CONTROLLER_RST_DEV_MGBE_0 register.
-				 */
-				addr = devm_ioremap(dev, 0x21460018, 0x4);
-				if (addr) {
-					val = readl(addr);
-					val &= ~BIT(8);
-					writel(val, addr);
-					devm_iounmap(dev, addr);
-				}
+		if (!IS_ERR_OR_NULL(macsec_pdata->eqos_tx_clk)) {
+			ret = clk_prepare_enable(macsec_pdata->eqos_tx_clk);
+			if (ret < 0) {
+				dev_err(dev, "failed to enable macsec tx clk\n");
+				goto exit;
 			}
+		}
+
+		if (!IS_ERR_OR_NULL(macsec_pdata->eqos_rx_clk)) {
+			ret = clk_prepare_enable(macsec_pdata->eqos_rx_clk);
+			if (ret < 0) {
+				dev_err(dev, "failed to enable macsec rx clk\n");
+				goto err_rx_clk;
+			}
+		}
+	}
+
+	if (macsec_pdata->ns_rst) {
+		ret = reset_control_reset(macsec_pdata->ns_rst);
+		if (ret < 0) {
+			dev_err(dev, "failed to reset macsec\n");
+			goto err_ns_rst;
+		}
 	}
 
 	goto exit;
@@ -257,7 +203,7 @@ int macsec_open(struct macsec_priv_data *macsec_pdata,
 
 #ifndef MACSEC_KEY_PROGRAM
 	/* Clear KT entries */
-	ret = macsec_tz_kt_config(pdata, MACSEC_CMD_TZ_KT_RESET, OSI_NULL,
+	ret = macsec_tz_kt_config(pdata, OSI_MACSEC_CMD_TZ_KT_RESET, OSI_NULL,
 				  genl_info);
 	if (ret < 0) {
 		dev_err(dev, "TZ key config failed %d\n", ret);
@@ -265,7 +211,7 @@ int macsec_open(struct macsec_priv_data *macsec_pdata,
 	}
 #endif /* !MACSEC_KEY_PROGRAM */
 
-	/* 4. Enable the macsec controller */
+	/* Enable the macsec controller */
 	ret = osi_macsec_en(pdata->osi_core,
 			    (OSI_MACSEC_TX_EN | OSI_MACSEC_RX_EN));
 	if (ret < 0) {
@@ -294,40 +240,35 @@ static int macsec_get_platform_res(struct macsec_priv_data *macsec_pdata)
 	int ret = 0;
 
 	PRINT_ENTRY();
-	if (!pdata->osi_core->pre_si) {
-		/* 1. Get resets */
-		macsec_pdata->ns_rst = devm_reset_control_get(dev,
-							      "macsec_ns_rst");
-		if (IS_ERR_OR_NULL(macsec_pdata->ns_rst)) {
-			dev_err(dev, "Failed to get macsec_ns_rst\n");
-			ret = PTR_ERR(macsec_pdata->ns_rst);
+	/* 1. Get resets */
+	macsec_pdata->ns_rst = devm_reset_control_get(dev, "macsec_ns_rst");
+	if (IS_ERR_OR_NULL(macsec_pdata->ns_rst)) {
+		dev_err(dev, "Failed to get macsec_ns_rst\n");
+		ret = PTR_ERR(macsec_pdata->ns_rst);
+		goto exit;
+	}
+
+	/* 2. Get clks */
+	if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
+		macsec_pdata->mgbe_clk = devm_clk_get(dev, "mgbe_macsec");
+		if (IS_ERR(macsec_pdata->mgbe_clk)) {
+			dev_err(dev, "failed to get macsec clk\n");
+			ret = PTR_ERR(macsec_pdata->mgbe_clk);
 			goto exit;
 		}
-
-		/* 2. Get clks */
-		if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
-			macsec_pdata->mgbe_clk = devm_clk_get(dev,
-							"mgbe_macsec");
-			if (IS_ERR(macsec_pdata->mgbe_clk)) {
-				dev_err(dev, "failed to get macsec clk\n");
-				ret = PTR_ERR(macsec_pdata->mgbe_clk);
-				goto exit;
-			}
-		} else {
-			macsec_pdata->eqos_tx_clk = devm_clk_get(dev,
-							"eqos_macsec_tx");
-			if (IS_ERR(macsec_pdata->eqos_tx_clk)) {
-				dev_err(dev, "failed to get eqos_tx clk\n");
-				ret = PTR_ERR(macsec_pdata->eqos_tx_clk);
-				goto exit;
-			}
-			macsec_pdata->eqos_rx_clk = devm_clk_get(dev,
-							"eqos_macsec_rx");
-			if (IS_ERR(macsec_pdata->eqos_rx_clk)) {
-				dev_err(dev, "failed to get eqos_rx_clk clk\n");
-				ret = PTR_ERR(macsec_pdata->eqos_rx_clk);
-				goto exit;
-			}
+	} else {
+		macsec_pdata->eqos_tx_clk = devm_clk_get(dev, "eqos_macsec_tx");
+		if (IS_ERR(macsec_pdata->eqos_tx_clk)) {
+			dev_err(dev, "failed to get eqos_tx clk\n");
+			ret = PTR_ERR(macsec_pdata->eqos_tx_clk);
+			goto exit;
+		}
+		macsec_pdata->eqos_rx_clk = devm_clk_get(dev,
+						"eqos_macsec_rx");
+		if (IS_ERR(macsec_pdata->eqos_rx_clk)) {
+			dev_err(dev, "failed to get eqos_rx_clk clk\n");
+			ret = PTR_ERR(macsec_pdata->eqos_rx_clk);
+			goto exit;
 		}
 	}
 
@@ -346,7 +287,6 @@ static int macsec_get_platform_res(struct macsec_priv_data *macsec_pdata)
 		goto exit;
 	}
 
-	/* Sucess */
 exit:
 	PRINT_EXIT();
 	return ret;
@@ -358,21 +298,20 @@ static void macsec_release_platform_res(struct macsec_priv_data *macsec_pdata)
 	struct device *dev = pdata->dev;
 
 	PRINT_ENTRY();
-	if (!pdata->osi_core->pre_si) {
-		if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
-			if (!IS_ERR_OR_NULL(macsec_pdata->mgbe_clk)) {
-				devm_clk_put(dev, macsec_pdata->mgbe_clk);
-			}
-		} else {
-			if (!IS_ERR_OR_NULL(macsec_pdata->eqos_tx_clk)) {
-				devm_clk_put(dev, macsec_pdata->eqos_tx_clk);
-			}
+	if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
+		if (!IS_ERR_OR_NULL(macsec_pdata->mgbe_clk)) {
+			devm_clk_put(dev, macsec_pdata->mgbe_clk);
+		}
+	} else {
+		if (!IS_ERR_OR_NULL(macsec_pdata->eqos_tx_clk)) {
+			devm_clk_put(dev, macsec_pdata->eqos_tx_clk);
+		}
 
-			if (!IS_ERR_OR_NULL(macsec_pdata->eqos_rx_clk)) {
-				devm_clk_put(dev, macsec_pdata->eqos_rx_clk);
-			}
+		if (!IS_ERR_OR_NULL(macsec_pdata->eqos_rx_clk)) {
+			devm_clk_put(dev, macsec_pdata->eqos_rx_clk);
 		}
 	}
+
 	PRINT_EXIT();
 }
 
@@ -410,7 +349,7 @@ static struct macsec_supplicant_data *macsec_get_supplicant(
 	int i;
 
 	/* check for already exist instance */
-	for (i = 0; i < MAX_NUM_SC; i++) {
+	for (i = 0; i < OSI_MAX_NUM_SC; i++) {
 		if (supplicant[i].snd_portid == portid &&
 		    supplicant[i].in_use == OSI_ENABLE) {
 			return &supplicant[i];
@@ -426,7 +365,7 @@ static int update_prot_frame(
 	int enable = OSI_NONE;
 
 	/* check any supplicant instance set */
-	for (i = 0; i < MAX_NUM_SC; i++) {
+	for (i = 0; i < OSI_MAX_NUM_SC; i++) {
 		if (supplicant[i].protect_frames == OSI_ENABLE) {
 			enable = OSI_ENABLE;
 			break;
@@ -442,7 +381,7 @@ static int update_set_controlled_port(
 	int enable = OSI_NONE;
 
 	/* check any supplicant instance set */
-	for (i = 0; i < MAX_NUM_SC; i++) {
+	for (i = 0; i < OSI_MAX_NUM_SC; i++) {
 		if (supplicant[i].enabled == OSI_ENABLE) {
 			enable = OSI_ENABLE;
 			break;
@@ -469,7 +408,7 @@ static int macsec_set_prot_frames(struct sk_buff *skb, struct genl_info *info)
 
 	macsec_pdata = genl_to_macsec_pdata(info);
 	if (!macsec_pdata) {
-		ret = -EOPNOTSUPP;
+		ret = -EPROTO;
 		goto exit;
 	}
 	pdata = macsec_pdata->ether_pdata;
@@ -483,7 +422,7 @@ static int macsec_set_prot_frames(struct sk_buff *skb, struct genl_info *info)
 	mutex_lock(&macsec_pdata->lock);
 	supplicant = macsec_get_supplicant(macsec_pdata, info->snd_portid);
 	if (!supplicant) {
-		ret = -EOPNOTSUPP;
+		ret = -EPROTO;
 		dev_err(pdata->dev, "%s: failed to get supplicant data",
 			__func__);
 		goto err_unlock;
@@ -502,7 +441,62 @@ exit:
 
 static int macsec_set_cipher(struct sk_buff *skb, struct genl_info *info)
 {
-	return -1;
+	struct nlattr **attrs = info->attrs;
+	struct macsec_priv_data *macsec_pdata;
+	struct macsec_supplicant_data *supplicant;
+	struct ether_priv_data *pdata = NULL;
+	int ret = 0;
+
+	PRINT_ENTRY();
+	if (!attrs[NV_MACSEC_ATTR_IFNAME] ||
+	    !attrs[NV_MACSEC_ATTR_CIPHER_SUITE]) {
+		ret = -EINVAL;
+		goto exit;
+	}
+
+	macsec_pdata = genl_to_macsec_pdata(info);
+	if (!macsec_pdata) {
+		ret = -EPROTO;
+		goto exit;
+	}
+	pdata = macsec_pdata->ether_pdata;
+
+	if (!netif_running(pdata->ndev)) {
+		ret = -ENETDOWN;
+		dev_err(pdata->dev, "%s: MAC interface down!!\n", __func__);
+		goto exit;
+	}
+
+	mutex_lock(&macsec_pdata->lock);
+	supplicant = macsec_get_supplicant(macsec_pdata, info->snd_portid);
+	if (!supplicant) {
+		ret = -EPROTO;
+		dev_err(pdata->dev, "%s: failed to get supplicant data\n",
+			__func__);
+		goto err_unlock;
+	}
+	supplicant->cipher = nla_get_u32(attrs[NV_MACSEC_ATTR_CIPHER_SUITE]);
+
+	if (supplicant->cipher != OSI_MACSEC_CIPHER_AES128 &&
+	    supplicant->cipher != OSI_MACSEC_CIPHER_AES256) {
+		ret = -EPROTO;
+		dev_err(pdata->dev, "%s: Invalid cipher suit %d\n",
+			__func__, supplicant->cipher);
+		goto err_unlock;
+	}
+
+	if (macsec_pdata->cipher != supplicant->cipher) {
+		ret = osi_macsec_cipher_config(pdata->osi_core,
+					       supplicant->cipher);
+		if (ret < 0) {
+			dev_err(pdata->dev, "Failed to set macsec cipher\n");
+		}
+		macsec_pdata->cipher = supplicant->cipher;
+	}
+err_unlock:
+	mutex_unlock(&macsec_pdata->lock);
+exit:
+	return ret;
 }
 
 static int macsec_set_controlled_port(struct sk_buff *skb,
@@ -525,7 +519,7 @@ static int macsec_set_controlled_port(struct sk_buff *skb,
 
 	macsec_pdata = genl_to_macsec_pdata(info);
 	if (!macsec_pdata) {
-		ret = -EOPNOTSUPP;
+		ret = -EPROTO;
 		goto exit;
 	}
 	pdata = macsec_pdata->ether_pdata;
@@ -539,7 +533,7 @@ static int macsec_set_controlled_port(struct sk_buff *skb,
 	mutex_lock(&macsec_pdata->lock);
 	supplicant = macsec_get_supplicant(macsec_pdata, info->snd_portid);
 	if (!supplicant) {
-		ret = -EOPNOTSUPP;
+		ret = -EPROTO;
 		dev_err(pdata->dev, "%s: failed to get supplicant data",
 			__func__);
 		goto err_unlock;
@@ -557,7 +551,7 @@ static int macsec_set_controlled_port(struct sk_buff *skb,
 		ret = osi_macsec_en(macsec_pdata->ether_pdata->osi_core,
 				    macsec_en);
 		if (ret < 0) {
-			ret = -EOPNOTSUPP;
+			ret = -EPROTO;
 			goto err_unlock;
 		}
 		macsec_pdata->enabled = macsec_en;
@@ -611,7 +605,7 @@ static int macsec_dis_rx_sa(struct sk_buff *skb, struct genl_info *info)
 	struct device *dev = NULL;
 #ifndef MACSEC_KEY_PROGRAM
 	struct osi_macsec_kt_config kt_config = {0};
-	struct macsec_table_config *table_config;
+	struct osi_macsec_table_config *table_config;
 #endif /* !MACSEC_KEY_PROGRAM */
 
 	PRINT_ENTRY();
@@ -620,10 +614,8 @@ static int macsec_dis_rx_sa(struct sk_buff *skb, struct genl_info *info)
 	if (macsec_pdata) {
 		pdata = macsec_pdata->ether_pdata;
 	} else {
-#ifndef TEST
-		ret = -EOPNOTSUPP;
+		ret = -EPROTO;
 		goto exit;
-#endif
 	}
 	dev = pdata->dev;
 
@@ -654,10 +646,9 @@ static int macsec_dis_rx_sa(struct sk_buff *skb, struct genl_info *info)
 	}
 	pr_err("");
 
-#ifndef TEST
 	mutex_lock(&macsec_pdata->lock);
 	ret = osi_macsec_config(pdata->osi_core, &rx_sa, OSI_DISABLE,
-				CTLR_SEL_RX, &kt_idx);
+				OSI_CTLR_SEL_RX, &kt_idx);
 	if (ret < 0) {
 		dev_err(dev, "%s: failed to disable Rx SA", __func__);
 		mutex_unlock(&macsec_pdata->lock);
@@ -666,11 +657,11 @@ static int macsec_dis_rx_sa(struct sk_buff *skb, struct genl_info *info)
 	mutex_unlock(&macsec_pdata->lock);
 #ifndef MACSEC_KEY_PROGRAM
 	table_config = &kt_config.table_config;
-	table_config->ctlr_sel = CTLR_SEL_RX;
-	table_config->rw = LUT_WRITE;
+	table_config->ctlr_sel = OSI_CTLR_SEL_RX;
+	table_config->rw = OSI_LUT_WRITE;
 	table_config->index = kt_idx;
 
-	ret = macsec_tz_kt_config(pdata, MACSEC_CMD_TZ_CONFIG, &kt_config,
+	ret = macsec_tz_kt_config(pdata, OSI_MACSEC_CMD_TZ_CONFIG, &kt_config,
 				  info);
 	if (ret < 0) {
 		dev_err(dev, "%s: failed to program SAK through TZ %d",
@@ -678,7 +669,6 @@ static int macsec_dis_rx_sa(struct sk_buff *skb, struct genl_info *info)
 		goto exit;
 	}
 #endif /* !MACSEC_KEY_PROGRAM */
-#endif
 exit:
 	PRINT_EXIT();
 	return ret;
@@ -696,7 +686,7 @@ static int macsec_en_rx_sa(struct sk_buff *skb, struct genl_info *info)
 	struct device *dev = NULL;
 #ifndef MACSEC_KEY_PROGRAM
 	struct osi_macsec_kt_config kt_config = {0};
-	struct macsec_table_config *table_config;
+	struct osi_macsec_table_config *table_config;
 #endif /* !MACSEC_KEY_PROGRAM */
 
 	PRINT_ENTRY();
@@ -704,10 +694,8 @@ static int macsec_en_rx_sa(struct sk_buff *skb, struct genl_info *info)
 	if (macsec_pdata) {
 		pdata = macsec_pdata->ether_pdata;
 	} else {
-#ifndef TEST
-		ret = -EOPNOTSUPP;
+		ret = -EPROTO;
 		goto exit;
-#endif
 	}
 	dev = pdata->dev;
 
@@ -724,24 +712,25 @@ static int macsec_en_rx_sa(struct sk_buff *skb, struct genl_info *info)
 		goto exit;
 	}
 
+	rx_sa.pn_window = macsec_pdata->pn_window;
 	pr_err("%s:\n"
 		"\tsci: %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n"
 		"\tan: %u\n"
-		"\tpn: %u",
+		"\tpn: %u\n"
+		"\twindow: %u",
 		__func__,
 		rx_sa.sci[0], rx_sa.sci[1], rx_sa.sci[2], rx_sa.sci[3],
 		rx_sa.sci[4], rx_sa.sci[5], rx_sa.sci[6], rx_sa.sci[7],
-		rx_sa.curr_an, rx_sa.next_pn);
+		rx_sa.curr_an, rx_sa.next_pn, rx_sa.pn_window);
 	pr_err("\tkey: ");
 	for (i = 0; i < 16; i++) {
 		pr_cont(" %02x", rx_sa.sak[i]);
 	}
 	pr_err("");
 
-#ifndef TEST
 	mutex_lock(&macsec_pdata->lock);
 	ret = osi_macsec_config(pdata->osi_core, &rx_sa, OSI_ENABLE,
-				CTLR_SEL_RX, &kt_idx);
+				OSI_CTLR_SEL_RX, &kt_idx);
 	if (ret < 0) {
 		dev_err(dev, "%s: failed to enable Rx SA", __func__);
 		mutex_unlock(&macsec_pdata->lock);
@@ -751,16 +740,16 @@ static int macsec_en_rx_sa(struct sk_buff *skb, struct genl_info *info)
 
 #ifndef MACSEC_KEY_PROGRAM
 	table_config = &kt_config.table_config;
-	table_config->ctlr_sel = CTLR_SEL_RX;
-	table_config->rw = LUT_WRITE;
+	table_config->ctlr_sel = OSI_CTLR_SEL_RX;
+	table_config->rw = OSI_LUT_WRITE;
 	table_config->index = kt_idx;
-	kt_config.flags |= LUT_FLAGS_ENTRY_VALID;
+	kt_config.flags |= OSI_LUT_FLAGS_ENTRY_VALID;
 
-	for (i = 0; i < KEY_LEN_128; i++) {
+	for (i = 0; i < OSI_KEY_LEN_128; i++) {
 		kt_config.entry.sak[i] = rx_sa.sak[i];
 	}
 
-	ret = macsec_tz_kt_config(pdata, MACSEC_CMD_TZ_CONFIG, &kt_config,
+	ret = macsec_tz_kt_config(pdata, OSI_MACSEC_CMD_TZ_CONFIG, &kt_config,
 				  info);
 	if (ret < 0) {
 		dev_err(dev, "%s: failed to program SAK through TZ %d",
@@ -768,7 +757,6 @@ static int macsec_en_rx_sa(struct sk_buff *skb, struct genl_info *info)
 		goto exit;
 	}
 #endif /* !MACSEC_KEY_PROGRAM */
-#endif
 
 exit:
 	PRINT_EXIT();
@@ -787,7 +775,7 @@ static int macsec_dis_tx_sa(struct sk_buff *skb, struct genl_info *info)
 	struct device *dev = NULL;
 #ifndef MACSEC_KEY_PROGRAM
 	struct osi_macsec_kt_config kt_config = {0};
-	struct macsec_table_config *table_config;
+	struct osi_macsec_table_config *table_config;
 #endif /* !MACSEC_KEY_PROGRAM */
 
 	PRINT_ENTRY();
@@ -795,10 +783,8 @@ static int macsec_dis_tx_sa(struct sk_buff *skb, struct genl_info *info)
 	if (macsec_pdata) {
 		pdata = macsec_pdata->ether_pdata;
 	} else {
-#ifndef TEST
-		ret = -EOPNOTSUPP;
+		ret = -EPROTO;
 		goto exit;
-#endif
 	}
 	dev = pdata->dev;
 
@@ -829,10 +815,9 @@ static int macsec_dis_tx_sa(struct sk_buff *skb, struct genl_info *info)
 	}
 	pr_err("");
 
-#ifndef TEST
 	mutex_lock(&macsec_pdata->lock);
 	ret = osi_macsec_config(pdata->osi_core, &tx_sa, OSI_DISABLE,
-				CTLR_SEL_TX, &kt_idx);
+				OSI_CTLR_SEL_TX, &kt_idx);
 	if (ret < 0) {
 		dev_err(dev, "%s: failed to disable Tx SA", __func__);
 		mutex_unlock(&macsec_pdata->lock);
@@ -842,11 +827,11 @@ static int macsec_dis_tx_sa(struct sk_buff *skb, struct genl_info *info)
 
 #ifndef MACSEC_KEY_PROGRAM
 	table_config = &kt_config.table_config;
-	table_config->ctlr_sel = CTLR_SEL_TX;
-	table_config->rw = LUT_WRITE;
+	table_config->ctlr_sel = OSI_CTLR_SEL_TX;
+	table_config->rw = OSI_LUT_WRITE;
 	table_config->index = kt_idx;
 
-	ret = macsec_tz_kt_config(pdata, MACSEC_CMD_TZ_CONFIG, &kt_config,
+	ret = macsec_tz_kt_config(pdata, OSI_MACSEC_CMD_TZ_CONFIG, &kt_config,
 				  info);
 	if (ret < 0) {
 		dev_err(dev, "%s: failed to program SAK through TZ %d",
@@ -854,7 +839,6 @@ static int macsec_dis_tx_sa(struct sk_buff *skb, struct genl_info *info)
 		goto exit;
 	}
 #endif /* !MACSEC_KEY_PROGRAM */
-#endif
 
 exit:
 	PRINT_EXIT();
@@ -873,7 +857,7 @@ static int macsec_en_tx_sa(struct sk_buff *skb, struct genl_info *info)
 	struct device *dev = NULL;
 #ifndef MACSEC_KEY_PROGRAM
 	struct osi_macsec_kt_config kt_config = {0};
-	struct macsec_table_config *table_config;
+	struct osi_macsec_table_config *table_config;
 #endif /* !MACSEC_KEY_PROGRAM */
 
 	PRINT_ENTRY();
@@ -881,10 +865,8 @@ static int macsec_en_tx_sa(struct sk_buff *skb, struct genl_info *info)
 	if (macsec_pdata) {
 		pdata = macsec_pdata->ether_pdata;
 	} else {
-#ifndef TEST
-		ret = -EOPNOTSUPP;
+		ret = -EPROTO;
 		goto exit;
-#endif
 	}
 	dev = pdata->dev;
 
@@ -901,6 +883,7 @@ static int macsec_en_tx_sa(struct sk_buff *skb, struct genl_info *info)
 		goto exit;
 	}
 
+	tx_sa.pn_window = macsec_pdata->pn_window;
 	pr_err("%s:\n"
 		"\tsci: %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n"
 		"\tan: %u\n"
@@ -915,10 +898,9 @@ static int macsec_en_tx_sa(struct sk_buff *skb, struct genl_info *info)
 	}
 	pr_err("");
 
-#ifndef TEST
 	mutex_lock(&macsec_pdata->lock);
 	ret = osi_macsec_config(pdata->osi_core, &tx_sa, OSI_ENABLE,
-				CTLR_SEL_TX, &kt_idx);
+				OSI_CTLR_SEL_TX, &kt_idx);
 	if (ret < 0) {
 		dev_err(dev, "%s: failed to enable Tx SA", __func__);
 		mutex_unlock(&macsec_pdata->lock);
@@ -928,16 +910,16 @@ static int macsec_en_tx_sa(struct sk_buff *skb, struct genl_info *info)
 	mutex_unlock(&macsec_pdata->lock);
 #ifndef MACSEC_KEY_PROGRAM
 	table_config = &kt_config.table_config;
-	table_config->ctlr_sel = CTLR_SEL_TX;
-	table_config->rw = LUT_WRITE;
+	table_config->ctlr_sel = OSI_CTLR_SEL_TX;
+	table_config->rw = OSI_LUT_WRITE;
 	table_config->index = kt_idx;
-	kt_config.flags |= LUT_FLAGS_ENTRY_VALID;
+	kt_config.flags |= OSI_LUT_FLAGS_ENTRY_VALID;
 
-	for (i = 0; i < KEY_LEN_128; i++) {
+	for (i = 0; i < OSI_KEY_LEN_128; i++) {
 		kt_config.entry.sak[i] = tx_sa.sak[i];
 	}
 
-	ret = macsec_tz_kt_config(pdata, MACSEC_CMD_TZ_CONFIG, &kt_config,
+	ret = macsec_tz_kt_config(pdata, OSI_MACSEC_CMD_TZ_CONFIG, &kt_config,
 				  info);
 	if (ret < 0) {
 		dev_err(dev, "%s: failed to program SAK through TZ %d",
@@ -945,7 +927,6 @@ static int macsec_en_tx_sa(struct sk_buff *skb, struct genl_info *info)
 		goto exit;
 	}
 #endif /* !MACSEC_KEY_PROGRAM */
-#endif
 
 exit:
 	PRINT_EXIT();
@@ -970,7 +951,7 @@ static int macsec_deinit(struct sk_buff *skb, struct genl_info *info)
 	macsec_pdata = genl_to_macsec_pdata(info);
 	if (!macsec_pdata) {
 		pr_err("%s: failed to get macsec_pdata", __func__);
-		ret = -EOPNOTSUPP;
+		ret = -EPROTO;
 		goto exit;
 	}
 	pdata = macsec_pdata->ether_pdata;
@@ -979,7 +960,7 @@ static int macsec_deinit(struct sk_buff *skb, struct genl_info *info)
 	supplicant = macsec_get_supplicant(macsec_pdata, info->snd_portid);
 
 	if (!supplicant) {
-		ret = -EOPNOTSUPP;
+		ret = -EPROTO;
 		mutex_unlock(&macsec_pdata->lock);
 		dev_err(pdata->dev, "%s: failed to get supplicant data",
 			__func__);
@@ -1006,9 +987,8 @@ static int macsec_deinit(struct sk_buff *skb, struct genl_info *info)
 	}
 
 	ret = macsec_close(macsec_pdata);
-	//TODO - check why needs -EOPNOTSUPP, why not pass ret val
 	if (ret < 0) {
-		ret = -EOPNOTSUPP;
+		ret = -EPROTO;
 		goto exit;
 	}
 done:
@@ -1040,7 +1020,7 @@ static int macsec_init(struct sk_buff *skb, struct genl_info *info)
 
 	macsec_pdata = genl_to_macsec_pdata(info);
 	if (!macsec_pdata) {
-		ret = -EOPNOTSUPP;
+		ret = -EPROTO;
 		pr_err("%s: failed to get macsec_pdata", __func__);
 		goto exit;
 	}
@@ -1055,8 +1035,8 @@ static int macsec_init(struct sk_buff *skb, struct genl_info *info)
 	}
 	mutex_lock(&macsec_pdata->lock);
 
-	if (macsec_pdata->next_supp_idx >= MAX_NUM_SC) {
-		ret = -EOPNOTSUPP;
+	if (macsec_pdata->next_supp_idx >= OSI_MAX_NUM_SC) {
+		ret = -EPROTO;
 		mutex_unlock(&macsec_pdata->lock);
 		dev_err(dev, "%s: Reached max supported supplicants", __func__);
 		goto exit;
@@ -1080,9 +1060,8 @@ static int macsec_init(struct sk_buff *skb, struct genl_info *info)
 
 	mutex_unlock(&macsec_pdata->lock);
 	ret = macsec_open(macsec_pdata, info);
-	//TODO - check why needs -EOPNOTSUPP, why not pass ret val
 	if (ret < 0) {
-		ret = -EOPNOTSUPP;
+		ret = -EPROTO;
 		goto exit;
 	}
 done:
@@ -1098,23 +1077,48 @@ static int macsec_set_replay_prot(struct sk_buff *skb, struct genl_info *info)
 {
 	struct nlattr **attrs = info->attrs;
 	unsigned int replay_prot, window;
+	struct macsec_priv_data *macsec_pdata = NULL;
+	struct ether_priv_data *pdata = NULL;
+	struct device *dev = NULL;
+	int ret = 0;
+
+	PRINT_ENTRY();
 
 	if (!attrs[NV_MACSEC_ATTR_IFNAME] ||
 	    !attrs[NV_MACSEC_ATTR_REPLAY_PROT_EN] ||
 	    !attrs[NV_MACSEC_ATTR_REPLAY_WINDOW]) {
-		return -EINVAL;
+		ret = -EINVAL;
+		goto exit;
 	}
 
 	replay_prot = nla_get_u32(attrs[NV_MACSEC_ATTR_REPLAY_PROT_EN]);
 	window = nla_get_u32(attrs[NV_MACSEC_ATTR_REPLAY_WINDOW]);
-	pr_err("replay_prot(window): %u(%u)\n",
-		replay_prot, window);
+	macsec_pdata = genl_to_macsec_pdata(info);
 
+	if (!macsec_pdata) {
+		ret = -EPROTO;
+		pr_err("%s: failed to get macsec_pdata", __func__);
+		goto exit;
+	}
 
-	/* TODO - set replay window for all active SA's.
-	 * Store window in macsec_pdata so that future SA's can be updated
-	 */
-	return 0;
+	pdata = macsec_pdata->ether_pdata;
+	dev = pdata->dev;
+
+	if (!netif_running(pdata->ndev)) {
+		ret = -ENETDOWN;
+		dev_err(pdata->dev, "%s: MAC interface down!!\n", __func__);
+		goto exit;
+	}
+
+	if (window != 0) {
+		macsec_pdata->pn_window = window;
+	} else {
+		macsec_pdata->pn_window = OSI_PN_MAX_DEFAULT;
+	}
+
+exit:
+	PRINT_EXIT();
+	return ret;
 }
 
 static const struct genl_ops nv_macsec_genl_ops[] = {
@@ -1192,7 +1196,7 @@ void macsec_remove(struct ether_priv_data *pdata)
 		mutex_lock(&macsec_pdata->lock);
 		/* Delete if any supplicant active heartbeat timer */
 		supplicant = macsec_pdata->supplicant;
-		for (i = 0; i < MAX_NUM_SC; i++) {
+		for (i = 0; i < OSI_MAX_NUM_SC; i++) {
 			if (supplicant[i].in_use == OSI_ENABLE) {
 				supplicant->snd_portid = OSI_NONE;
 				supplicant->in_use = OSI_NONE;
@@ -1220,23 +1224,6 @@ void macsec_remove(struct ether_priv_data *pdata)
 	PRINT_EXIT();
 }
 
-#ifdef TEST
-int macsec_genl_register(void)
-{
-	int ret = 0;
-	ret = genl_register_family(&nv_macsec_fam);
-	if (ret < 0) {
-		pr_err("failed to register genl\n");
-	}
-	return ret;
-}
-
-void macsec_genl_unregister(void)
-{
-	genl_unregister_family(&nv_macsec_fam);
-}
-#endif /* TEST */
-
 int macsec_probe(struct ether_priv_data *pdata)
 {
 	struct device *dev = pdata->dev;
@@ -1248,7 +1235,7 @@ int macsec_probe(struct ether_priv_data *pdata)
 	int ret = 0;
 
 	PRINT_ENTRY();
-	/* 1. Check if MACsec is enabled in DT, if so map the I/O base addr */
+	/* Check if MACsec is enabled in DT, if so map the I/O base addr */
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "macsec-base");
 	if (res) {
 		osi_core->macsec_base = devm_ioremap_resource(dev, res);
@@ -1276,7 +1263,7 @@ int macsec_probe(struct ether_priv_data *pdata)
 		goto exit;
 	}
 #endif
-	/* 2. Alloc macsec priv data structure */
+	/* Alloc macsec priv data structure */
 	macsec_pdata = devm_kzalloc(dev, sizeof(struct macsec_priv_data),
 				    GFP_KERNEL);
 	if (macsec_pdata == NULL) {
@@ -1296,14 +1283,14 @@ int macsec_probe(struct ether_priv_data *pdata)
 		macsec_pdata->id = 0;
 	}
 
-	/* 3. Get OSI MACsec ops */
+	/* Get OSI MACsec ops */
 	if (osi_init_macsec_ops(osi_core) != 0) {
 		dev_err(dev, "osi_init_macsec_ops failed\n");
 		ret = -1;
 		goto init_err;
 	}
 
-	/* 4. Get platform resources - clks, resets, irqs.
+	/* Get platform resources - clks, resets, irqs.
 	 * CAR is not enabled and irqs not requested until macsec_init()
 	 */
 	ret = macsec_get_platform_res(macsec_pdata);
@@ -1312,15 +1299,14 @@ int macsec_probe(struct ether_priv_data *pdata)
 		goto init_err;
 	}
 
-	/* 2. Enable CAR */
+	/* Enable CAR */
 	ret = macsec_enable_car(macsec_pdata);
 	if (ret < 0) {
 		dev_err(dev, "Unable to enable macsec clks & reset\n");
 		goto car_err;
 	}
-	/* 5. Register macsec sysfs node - done from sysfs.c */
 
-	/* 6. Register macsec generic netlink ops */
+	/* Register macsec generic netlink ops */
 	if (is_nv_macsec_fam_registered == OSI_DISABLE) {
 		ret = genl_register_family(&nv_macsec_fam);
 			if (ret) {
@@ -1374,13 +1360,14 @@ static int macsec_tz_kt_config(struct ether_priv_data *pdata,
 		/* return success, as info can be NULL if called from
 		 * sysfs calls
 		 */
-		return ret;
+		ret = 0;
+		goto fail;
 	}
 
 	/* remap osi tz cmd to netlink cmd */
-	if (cmd == MACSEC_CMD_TZ_CONFIG) {
+	if (cmd == OSI_MACSEC_CMD_TZ_CONFIG) {
 		cmd = NV_MACSEC_CMD_TZ_CONFIG;
-	} else if (cmd == MACSEC_CMD_TZ_KT_RESET) {
+	} else if (cmd == OSI_MACSEC_CMD_TZ_KT_RESET) {
 		cmd = NV_MACSEC_CMD_TZ_KT_RESET;
 	} else {
 		dev_err(dev, "%s: Wrong TZ cmd %d\n", __func__, cmd);
@@ -1423,7 +1410,7 @@ static int macsec_tz_kt_config(struct ether_priv_data *pdata,
 			   kt_config->table_config.rw);
 		nla_put_u8(msg, NV_MACSEC_TZ_ATTR_INDEX,
 			   kt_config->table_config.index);
-		nla_put(msg, NV_MACSEC_TZ_ATTR_KEY, KEY_LEN_256,
+		nla_put(msg, NV_MACSEC_TZ_ATTR_KEY, OSI_KEY_LEN_256,
 			kt_config->entry.sak);
 		nla_put_u32(msg, NV_MACSEC_TZ_ATTR_FLAG, kt_config->flags);
 		nla_nest_end(msg, nest);
