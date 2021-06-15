@@ -3111,8 +3111,9 @@ static int tegra_sor_init(struct host1x_client *client)
 	 * kernel is possible.
 	 */
 	if (sor->rst) {
-		err = pm_runtime_resume_and_get(sor->dev);
+		err = pm_runtime_get_sync(sor->dev);
 		if (err < 0) {
+			pm_runtime_put_noidle(sor->dev);
 			dev_err(sor->dev, "failed to get runtime PM: %d\n", err);
 			return err;
 		}

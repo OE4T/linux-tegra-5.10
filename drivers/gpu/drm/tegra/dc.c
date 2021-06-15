@@ -987,7 +987,13 @@ static void tegra_cursor_atomic_update(struct drm_plane *plane,
 		x = new_state->dst.x1;
 		y = new_state->dst.y1;
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 12, 0)
 		drm_rect_fp_to_int(&src, &new_state->src);
+#else
+		drm_rect_init(&src, new_state->src.x1 >> 16, new_state->src.y1 >> 16,
+			      drm_rect_width(&new_state->src) >> 16,
+			      drm_rect_height(&new_state->src) >> 16);
+#endif
 
 		value = (src.y1 & tegra->vmask) << 16 | (src.x1 & tegra->hmask);
 		tegra_dc_writel(dc, value, DC_DISP_PCALC_HEAD_SET_CROPPED_POINT_IN_CURSOR);
