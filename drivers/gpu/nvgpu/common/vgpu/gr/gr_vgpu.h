@@ -72,7 +72,7 @@ int vgpu_gr_update_smpc_ctxsw_mode(struct gk20a *g,
 int vgpu_gr_set_sm_debug_mode(struct gk20a *g,
 	struct nvgpu_channel *ch, u64 sms, bool enable);
 int vgpu_gr_update_hwpm_ctxsw_mode(struct gk20a *g,
-	u32 gr_instance_id, struct nvgpu_tsg *tsg, u64 gpu_va, u32 mode);
+	u32 gr_instance_id, struct nvgpu_tsg *tsg, u32 mode);
 int vgpu_gr_clear_sm_error_state(struct gk20a *g,
 		struct nvgpu_channel *ch, u32 sm_id);
 int vgpu_gr_suspend_contexts(struct gk20a *g,

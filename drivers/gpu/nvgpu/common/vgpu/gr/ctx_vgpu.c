@@ -57,28 +57,3 @@ void vgpu_gr_free_gr_ctx(struct gk20a *g,
 
 	(void) memset(gr_ctx, 0, sizeof(*gr_ctx));
 }
-
-int vgpu_gr_alloc_pm_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
-			struct vm_gk20a *vm)
-{
-	struct pm_ctx_desc *pm_ctx = &gr_ctx->pm_ctx;
-	struct nvgpu_gr_hwpm_map *gr_hwpm_map = nvgpu_gr_get_hwpm_map_ptr(g);
-
-	nvgpu_log_fn(g, " ");
-
-	if (pm_ctx->mem.gpu_va != 0ULL) {
-		return 0;
-	}
-
-	pm_ctx->mem.gpu_va = nvgpu_vm_alloc_va(vm,
-			nvgpu_gr_hwpm_map_get_size(gr_hwpm_map),
-			GMMU_PAGE_SIZE_KERNEL);
-
-	if (!pm_ctx->mem.gpu_va) {
-		nvgpu_err(g, "failed to map pm ctxt buffer");
-		return -ENOMEM;
-	}
-
-	pm_ctx->mem.size = nvgpu_gr_hwpm_map_get_size(gr_hwpm_map);
-	return 0;
-}

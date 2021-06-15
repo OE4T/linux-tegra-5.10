@@ -44,14 +44,6 @@ int vgpu_profiler_bind_hwpm(struct gk20a *g,
 
 	nvgpu_assert(gr_instance_id == 0U);
 
-	if (is_ctxsw) {
-		err = g->ops.gr.update_hwpm_ctxsw_mode(g, gr_instance_id,
-				tsg, 0, NVGPU_GR_CTX_HWPM_CTXSW_MODE_CTXSW);
-		if (err != 0) {
-			return err;
-		}
-	}
-
 	msg.cmd = TEGRA_VGPU_CMD_PROF_BIND_UNBIND;
 	msg.handle = vgpu_get_handle(g);
 
@@ -102,15 +94,6 @@ int vgpu_profiler_bind_hwpm_streamout(struct gk20a *g,
 	int err;
 
 	nvgpu_assert(gr_instance_id == 0U);
-
-	if (is_ctxsw) {
-		err = g->ops.gr.update_hwpm_ctxsw_mode(g, gr_instance_id,
-				tsg, 0,
-				NVGPU_GR_CTX_HWPM_CTXSW_MODE_STREAM_OUT_CTXSW);
-		if (err != 0) {
-			return err;
-		}
-	}
 
 	msg.cmd = TEGRA_VGPU_CMD_PROF_BIND_UNBIND;
 	msg.handle = vgpu_get_handle(g);

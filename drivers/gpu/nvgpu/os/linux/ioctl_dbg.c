@@ -1175,7 +1175,7 @@ static int nvgpu_dbg_gpu_ioctl_hwpm_ctxsw_mode(struct dbg_session_gk20a *dbg_s,
 		goto clean_up;
 	}
 
-	err = g->ops.gr.update_hwpm_ctxsw_mode(g, gr_instance_id, tsg, 0, mode);
+	err = g->ops.gr.update_hwpm_ctxsw_mode(g, gr_instance_id, tsg, mode);
 
 	if (err)
 		nvgpu_err(g,

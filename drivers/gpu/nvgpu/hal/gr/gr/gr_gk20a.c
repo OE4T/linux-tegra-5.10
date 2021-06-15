@@ -79,7 +79,6 @@ out:
 int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 				  u32 gr_instance_id,
 				  struct nvgpu_tsg *tsg,
-				  u64 gpu_va,
 				  u32 mode)
 {
 	struct nvgpu_channel *ch;
@@ -99,8 +98,7 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 			nvgpu_gr_hwpm_map_get_size(gr->hwpm_map));
 
 		ret = nvgpu_gr_ctx_alloc_pm_ctx(g, gr_ctx,
-			gr->gr_ctx_desc, tsg->vm,
-			gpu_va);
+			gr->gr_ctx_desc, tsg->vm);
 		if (ret != 0) {
 			nvgpu_err(g,
 				"failed to allocate pm ctxt buffer");

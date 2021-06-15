@@ -982,8 +982,7 @@ void nvgpu_gr_ctx_set_patch_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 int nvgpu_gr_ctx_alloc_pm_ctx(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx,
 	struct nvgpu_gr_ctx_desc *gr_ctx_desc,
-	struct vm_gk20a *vm,
-	u64 gpu_va)
+	struct vm_gk20a *vm)
 {
 	struct pm_ctx_desc *pm_ctx = &gr_ctx->pm_ctx;
 	int err;
@@ -1000,9 +999,8 @@ int nvgpu_gr_ctx_alloc_pm_ctx(struct gk20a *g,
 		return err;
 	}
 
-	pm_ctx->mem.gpu_va = nvgpu_gmmu_map_fixed(vm,
+	pm_ctx->mem.gpu_va = nvgpu_gmmu_map(vm,
 					&pm_ctx->mem,
-					gpu_va,
 					pm_ctx->mem.size,
 					NVGPU_VM_MAP_CACHEABLE,
 					gk20a_mem_flag_none, true,

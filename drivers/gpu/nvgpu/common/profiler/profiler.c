@@ -373,7 +373,7 @@ static int nvgpu_profiler_bind_hwpm_common(struct gk20a *g, u32 gr_instance_id,
 		g->ops.perf.init_hwpm_pmm_register(g);
 	} else {
 		err = g->ops.gr.update_hwpm_ctxsw_mode(
-				g, gr_instance_id, tsg, 0, mode);
+				g, gr_instance_id, tsg, mode);
 	}
 
 	return err;
@@ -394,7 +394,7 @@ int nvgpu_profiler_unbind_hwpm(struct gk20a *g, u32 gr_instance_id,
 
 	if (is_ctxsw) {
 		err = g->ops.gr.update_hwpm_ctxsw_mode(
-				g, gr_instance_id, tsg, 0, mode);
+				g, gr_instance_id, tsg, mode);
 	}
 
 	return err;

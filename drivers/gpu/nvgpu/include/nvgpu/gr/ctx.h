@@ -582,8 +582,7 @@ int nvgpu_gr_ctx_zcull_setup(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 int nvgpu_gr_ctx_alloc_pm_ctx(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx,
 	struct nvgpu_gr_ctx_desc *gr_ctx_desc,
-	struct vm_gk20a *vm,
-	u64 gpu_va);
+	struct vm_gk20a *vm);
 void nvgpu_gr_ctx_free_pm_ctx(struct gk20a *g, struct vm_gk20a *vm,
 	struct nvgpu_gr_ctx *gr_ctx);
 

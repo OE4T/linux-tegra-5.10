@@ -1161,7 +1161,6 @@ struct gops_gr {
 	int (*update_hwpm_ctxsw_mode)(struct gk20a *g,
 				      u32 gr_instance_id,
 				      struct nvgpu_tsg *tsg,
-				      u64 gpu_va,
 				      u32 mode);
 	int (*ctx_patch_smpc)(struct gk20a *g,
 			    u32 addr, u32 data,

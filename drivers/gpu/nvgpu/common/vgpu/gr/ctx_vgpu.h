@@ -29,7 +29,5 @@ struct vm_gk20a;
 
 void vgpu_gr_free_gr_ctx(struct gk20a *g,
 			 struct vm_gk20a *vm, struct nvgpu_gr_ctx *gr_ctx);
-int vgpu_gr_alloc_pm_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
-			struct vm_gk20a *vm);
 
 #endif
