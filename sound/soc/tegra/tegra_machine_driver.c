@@ -303,6 +303,7 @@ static struct snd_soc_card snd_soc_tegra_card = {
 	.controls = tegra_machine_controls,
 	.num_controls = ARRAY_SIZE(tegra_machine_controls),
 	.fully_routed = true,
+	.driver_name = "tegra-ape",
 };
 
 /* structure to match device tree node */
