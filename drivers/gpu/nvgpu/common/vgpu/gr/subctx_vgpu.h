@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,16 +23,8 @@
 #ifndef NVGPU_SUBCTX_VGPU_H
 #define NVGPU_SUBCTX_VGPU_H
 
-struct gk20a;
-struct nvgpu_gr_subctx;
-struct vm_gk20a;
 struct nvgpu_channel;
 
-int vgpu_alloc_subctx_header(struct gk20a *g,
-			struct nvgpu_gr_subctx **gr_subctx,
-			struct vm_gk20a *vm, u64 virt_ctx);
-void vgpu_free_subctx_header(struct gk20a *g, struct nvgpu_gr_subctx *subctx,
-			struct vm_gk20a *vm, u64 virt_ctx);
 void vgpu_gr_setup_free_subctx(struct nvgpu_channel *c);
 
 #endif /* NVGPU_SUBCTX_VGPU_H */

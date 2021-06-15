@@ -55,11 +55,6 @@ enum {
 	TEGRA_VGPU_CMD_CHANNEL_DISABLE = 15,
 	TEGRA_VGPU_CMD_CHANNEL_PREEMPT = 16,
 	TEGRA_VGPU_CMD_CHANNEL_SETUP_RAMFC = 17,
-	TEGRA_VGPU_CMD_CHANNEL_COMMIT_GR_CTX = 20,
-	TEGRA_VGPU_CMD_CHANNEL_ALLOC_GR_PATCH_CTX = 21,
-	TEGRA_VGPU_CMD_CHANNEL_MAP_GR_GLOBAL_CTX = 23,
-	TEGRA_VGPU_CMD_CHANNEL_COMMIT_GR_GLOBAL_CTX = 25,
-	TEGRA_VGPU_CMD_CHANNEL_LOAD_GR_GOLDEN_CTX = 26,
 	TEGRA_VGPU_CMD_CHANNEL_BIND_ZCULL = 27,
 	TEGRA_VGPU_CMD_CACHE_MAINT = 28,
 	TEGRA_VGPU_CMD_SUBMIT_RUNLIST = 29,
@@ -123,6 +118,7 @@ enum {
 	TEGRA_VGPU_CMD_TSG_SET_L2_MAX_WAYS_EVICT_LAST = 93,
 	TEGRA_VGPU_CMD_PROF_BIND_UNBIND = 94,
 	TEGRA_VGPU_CMD_PERF_UPDATE_GET_PUT = 95,
+	TEGRA_VGPU_CMD_ALLOC_OBJ_CTX = 96,
 };
 
 struct tegra_vgpu_connect_params {
@@ -208,19 +204,6 @@ struct tegra_vgpu_ramfc_params {
 	u32 num_entries;
 	u64 userd_addr;
 	u8 iova;
-};
-
-struct tegra_vgpu_ch_ctx_params {
-	u64 handle;
-	u64 gr_ctx_va;
-	u64 patch_ctx_va;
-	u64 cb_va;
-	u64 attr_va;
-	u64 page_pool_va;
-	u64 priv_access_map_va;
-	u64 rtv_cb_va;
-	u64 fecs_trace_va;
-	u32 class_num;
 };
 
 enum {
@@ -687,6 +670,13 @@ struct tegra_vgpu_perf_update_get_put_params {
 	u8 overflowed;
 };
 
+struct tegra_vgpu_alloc_obj_ctx_params {
+	u64 ch_handle;
+	u32 class_num;
+	u32 flags;
+	u32 sm_diversity_config;
+};
+
 struct tegra_vgpu_cmd_msg {
 	u32 cmd;
 	int ret;
@@ -701,7 +691,6 @@ struct tegra_vgpu_cmd_msg {
 		struct tegra_vgpu_as_map_ex_params as_map_ex;
 		struct tegra_vgpu_channel_config_params channel_config;
 		struct tegra_vgpu_ramfc_params ramfc;
-		struct tegra_vgpu_ch_ctx_params ch_ctx;
 		struct tegra_vgpu_cache_maint_params cache_maint;
 		struct tegra_vgpu_runlist_params runlist;
 		struct tegra_vgpu_golden_ctx_params golden_ctx;
@@ -756,6 +745,7 @@ struct tegra_vgpu_cmd_msg {
 		struct tegra_vgpu_l2_max_ways_evict_last_params l2_max_ways_evict_last;
 		struct tegra_vgpu_prof_bind_unbind_params prof_bind_unbind;
 		struct tegra_vgpu_perf_update_get_put_params perf_updat_get_put;
+		struct tegra_vgpu_alloc_obj_ctx_params alloc_obj_ctx;
 		char padding[184];
 	} params;
 };
