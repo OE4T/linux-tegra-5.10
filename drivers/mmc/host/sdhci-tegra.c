@@ -2323,10 +2323,7 @@ static int tegra_sdhci_pre_sd_exp_card_init(struct sdhci_host *host,
 				/* Disable VDD3 regulator */
 				if (!IS_ERR(host->mmc->supply.vdd3))
 					regulator_disable(host->mmc->supply.vdd3);
-				if (err == NOTIFY_BAD)
-					err = -EIO;
-				else
-					err = 0;
+				err = 0;
 			}
 		}
 enable_vdd2:

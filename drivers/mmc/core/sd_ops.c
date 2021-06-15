@@ -200,6 +200,7 @@ int mmc_send_if_cond(struct mmc_host *host, u32 ocr)
 			if (err) {
 				/* Set pinmux back to SD mode */
 				/* Turn on card clock */
+				host->caps2 &= ~MMC_CAP2_SD_EXPRESS_SUPPORT;
 				err = host->ops->pre_card_init(host, CARD_IS_SD_ONLY, 0U);
 				pr_info("%s: Card in SD ONLY MODE\n", mmc_hostname(host));
 			} else {
