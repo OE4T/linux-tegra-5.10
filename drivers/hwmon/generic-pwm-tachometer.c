@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -71,8 +71,10 @@ static int pwm_tach_probe(struct platform_device *pdev)
 
 	ptt->pwm = devm_of_pwm_get(&pdev->dev, pdev->dev.of_node, NULL);
 	if (IS_ERR(ptt->pwm)) {
-		dev_err(&pdev->dev, "Failed to get pwm:  %ld\n",
-			PTR_ERR(ptt->pwm));
+		if (PTR_ERR(ptt->pwm) != -EPROBE_DEFER) {
+			dev_err(&pdev->dev, "Failed to get pwm:  %ld\n",
+				PTR_ERR(ptt->pwm));
+		}
 		return PTR_ERR(ptt->pwm);
 	}
 
