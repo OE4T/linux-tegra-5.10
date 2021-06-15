@@ -243,16 +243,6 @@ int test_nvgpu_vm_alloc_va(struct unit_module *m, struct gk20a *g,
 		nvgpu_kmem_get_fault_injection();
 	u64 addr;
 
-	/* Error handling: VM cannot allocate VA */
-	vm->guest_managed = true;
-	addr = nvgpu_vm_alloc_va(vm, SZ_1K, 0);
-	vm->guest_managed = false;
-	if (addr != 0) {
-		unit_err(m, "nvgpu_vm_alloc_va did not fail as expected (1).\n");
-		ret = UNIT_FAIL;
-		goto exit;
-	}
-
 	/* Error handling: invalid page size */
 	addr = nvgpu_vm_alloc_va(vm, SZ_1K, GMMU_NR_PAGE_SIZES);
 	if (addr != 0) {
@@ -969,19 +959,6 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 
 	/* Make nvgpu_vm_do_init fail with invalid parameters */
 	vm = nvgpu_kzalloc(g, sizeof(*vm));
-	vm->guest_managed = true;
-	if (!EXPECT_BUG(
-		nvgpu_vm_do_init(&g->mm, vm,
-				g->ops.mm.gmmu.get_default_big_page_size(),
-				low_hole, user_vma, kernel_reserved,
-				nvgpu_gmmu_va_small_page_limit(),
-				big_pages, false, true, __func__)
-	)) {
-		unit_err(m, "BUG() was not called but it was expected (3).\n");
-		ret = UNIT_FAIL;
-		goto exit;
-	}
-	vm->guest_managed = false;
 
 	/* vGPU with userspace managed */
 	g->is_virtual = true;
@@ -1070,21 +1047,6 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 		goto exit;
 	}
 
-	/* Invalid low_hole and kernel_reserved to cause an invalid config */
-	vm->guest_managed = true;
-	ret = nvgpu_vm_do_init(&g->mm, vm,
-				g->ops.mm.gmmu.get_default_big_page_size(),
-				nvgpu_gmmu_va_small_page_limit(),
-				((u64)SZ_1G * 200U), 0,
-				nvgpu_gmmu_va_small_page_limit(), big_pages,
-				false, false, __func__);
-	vm->guest_managed = false;
-	if (ret != -EINVAL) {
-		unit_err(m, "nvgpu_vm_do_init didn't fail as expected (11).\n");
-		ret = UNIT_FAIL;
-		goto exit;
-	}
-
 	/* Cause nvgpu_vm_init_vma_allocators to fail for long vm name */
 	ret = nvgpu_vm_do_init(&g->mm, vm,
 				g->ops.mm.gmmu.get_default_big_page_size(),
@@ -1157,7 +1119,6 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	ret = UNIT_SUCCESS;
 
 exit:
-	vm->guest_managed = false;
 	if (vm != NULL) {
 		nvgpu_vm_put(vm);
 	}

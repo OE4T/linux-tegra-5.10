@@ -64,10 +64,9 @@
 
 /* Some special failure cases */
 #define SPECIAL_MAP_FAIL_FI_NULL_SGT		0
-#define SPECIAL_MAP_FAIL_VM_ALLOC		1
-#define SPECIAL_MAP_FAIL_PD_ALLOCATE		2
-#define SPECIAL_MAP_FAIL_PD_ALLOCATE_CHILD	3
-#define SPECIAL_MAP_FAIL_TLB_INVALIDATE		4
+#define SPECIAL_MAP_FAIL_PD_ALLOCATE		1
+#define SPECIAL_MAP_FAIL_PD_ALLOCATE_CHILD	2
+#define SPECIAL_MAP_FAIL_TLB_INVALIDATE		3
 
 /* Consts for requirements C1/C2 testing */
 #define REQ_C1_NUM_MEMS		3
@@ -604,11 +603,6 @@ int test_nvgpu_gmmu_map_unmap_map_fail(struct unit_module *m, struct gk20a *g,
 		nvgpu_posix_enable_fault_injection(kmem_fi, true, 3);
 	}
 
-	if (scenario == SPECIAL_MAP_FAIL_VM_ALLOC) {
-		/* Special case: cause __nvgpu_vm_alloc_va to fail */
-		g->mm.pmu.vm->guest_managed = true;
-	}
-
 	if (scenario == SPECIAL_MAP_FAIL_TLB_INVALIDATE) {
 		g->ops.fb.tlb_invalidate = hal_fb_tlb_invalidate_fail;
 	}
@@ -623,7 +617,6 @@ int test_nvgpu_gmmu_map_unmap_map_fail(struct unit_module *m, struct gk20a *g,
 	}
 
 	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
-	g->mm.pmu.vm->guest_managed = false;
 
 	if (mem.gpu_va != 0) {
 		unit_return_fail(m, "map did not fail as expected\n");
@@ -1293,10 +1286,6 @@ struct unit_module_test nvgpu_gmmu_tests[] = {
 	UNIT_TEST(map_fail_fi_null_sgt,
 		test_nvgpu_gmmu_map_unmap_map_fail,
 		(void *) SPECIAL_MAP_FAIL_FI_NULL_SGT,
-		0),
-	UNIT_TEST(map_fail_fi_vm_alloc,
-		test_nvgpu_gmmu_map_unmap_map_fail,
-		(void *) SPECIAL_MAP_FAIL_VM_ALLOC,
 		0),
 	UNIT_TEST(map_fail_tlb_invalidate,
 		test_nvgpu_gmmu_map_unmap_map_fail,

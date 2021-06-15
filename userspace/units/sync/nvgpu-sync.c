@@ -315,12 +315,11 @@ done:
 
 #define F_SYNC_GET_RO_MAP_PRE_ALLOCATED     0
 #define F_SYNC_GET_RO_MAP                   1
-#define F_SYNC_GET_RO_MAP_FAIL              2
+#define F_SYNC_GET_RO_MAP_MAX               1
 
 static const char *f_sync_get_ro_map[] = {
 	"sync_get_ro_map_preallocated",
 	"sync_get_ro_map",
-	"sync_get_ro_map_fail",
 };
 
 static void syncpt_ro_map_gpu_va_clear(struct gk20a *g, struct nvgpu_channel *ch)
@@ -347,7 +346,7 @@ int test_sync_get_ro_map(struct unit_module *m, struct gk20a *g, void *args)
 	int err = 0;
 	int ret = UNIT_FAIL;
 
-	for (branches = 0U; branches <= F_SYNC_GET_RO_MAP_FAIL; branches++) {
+	for (branches = 0U; branches <= F_SYNC_GET_RO_MAP_MAX; branches++) {
 		if (branches == F_SYNC_GET_RO_MAP_PRE_ALLOCATED) {
 			ch->vm->syncpt_ro_map_gpu_va = nvgpu_gmmu_map(ch->vm,
 					&g->syncpt_mem, g->syncpt_unit_size,
@@ -358,10 +357,6 @@ int test_sync_get_ro_map(struct unit_module *m, struct gk20a *g, void *args)
 			}
 		} else if (branches == F_SYNC_GET_RO_MAP) {
 			ch->vm->syncpt_ro_map_gpu_va = 0U;
-		} else if (branches == F_SYNC_GET_RO_MAP_FAIL) {
-			ch->vm->syncpt_ro_map_gpu_va = 0U;
-			/* fail Read-Only nvgpu_gmmu_map of g->syncpt_mem */
-			ch->vm->guest_managed = true;
 		}
 
 		unit_info(m, "%s branch: %s\n", __func__, f_sync_get_ro_map[branches]);
@@ -369,7 +364,7 @@ int test_sync_get_ro_map(struct unit_module *m, struct gk20a *g, void *args)
 		err = g->ops.sync.syncpt.get_sync_ro_map(ch->vm,
 				&base_gpuva, &sync_size, &num_syncpoints);
 
-		if (branches < F_SYNC_GET_RO_MAP_FAIL) {
+		if (branches < F_SYNC_GET_RO_MAP_MAX) {
 			if(err != 0) {
 				unit_return_fail(m,
 					"unexpected failure in get_sync_ro_map");
@@ -382,20 +377,9 @@ int test_sync_get_ro_map(struct unit_module *m, struct gk20a *g, void *args)
 
 			unit_info(m, "Syncpt Shim GPU VA: %llu\n", base_gpuva);
 
-		} else {
-			if (err == 0) {
-				unit_return_fail(m,
-					"expected failure in get_sync_ro_map");
-			} else {
-				ret = UNIT_SUCCESS;
-			}
 		}
 
 		syncpt_ro_map_gpu_va_clear(g, ch);
-
-		if (ch->vm->guest_managed == true) {
-			ch->vm->guest_managed = false;
-		}
 
 		base_gpuva = 0U;
 		sync_size = 0U;
@@ -403,19 +387,15 @@ int test_sync_get_ro_map(struct unit_module *m, struct gk20a *g, void *args)
 done:
 	syncpt_ro_map_gpu_va_clear(g, ch);
 
-	if (ch->vm->guest_managed == true) {
-		ch->vm->guest_managed = false;
-	}
 	return ret;
 }
 
 #define F_SYNC_SYNCPT_ALLOC_FAILED		1
 #define F_SYNC_STRADD_FAIL			3
 #define F_SYNC_NVHOST_CLIENT_MANAGED_FAIL	4
-#define F_SYNC_RO_MAP_GPU_VA_MAP_FAIL		5
-#define F_SYNC_MEM_CREATE_PHYS_FAIL		6
-#define F_SYNC_BUF_MAP_FAIL			7
-#define F_SYNC_FAIL_LAST			8
+#define F_SYNC_MEM_CREATE_PHYS_FAIL		5
+#define F_SYNC_BUF_MAP_FAIL			6
+#define F_SYNC_FAIL_LAST			7
 
 static const char *f_syncpt_open[] = {
 	"global_disable_syncpt",
@@ -423,7 +403,6 @@ static const char *f_syncpt_open[] = {
 	"syncpt_user_managed_false",
 	"syncpt_stradd_fail",
 	"syncpt_get_client_managed_fail",
-	"syncpt_ro_map_gpu_va_fail",
 	"syncpt_create_phys_mem_fail",
 	"syncpt_buf_map_fail",
 };
@@ -439,10 +418,6 @@ static void clear_test_params(struct gk20a *g,
 		bool *fault_injection_enabled, u32 branch,
 		struct nvgpu_posix_fault_inj *kmem_fi)
 {
-	if (ch->vm->guest_managed) {
-		ch->vm->guest_managed = false;
-	}
-
 	if (*fault_injection_enabled) {
 		nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
 		*fault_injection_enabled = false;
@@ -486,9 +461,6 @@ int test_sync_create_fail(struct unit_module *m, struct gk20a *g, void *args)
 			g->name = FAIL_G_NAME_STR;
 		} else if (branches == F_SYNC_NVHOST_CLIENT_MANAGED_FAIL) {
 			g->nvhost->syncpt_id = 20U; /* arbitary id */
-		} else if (branches == F_SYNC_RO_MAP_GPU_VA_MAP_FAIL) {
-			/* fail Read-Only nvgpu_gmmu_map of g->syncpt_mem */
-			ch->vm->guest_managed = true;
 		} else if (branches == F_SYNC_MEM_CREATE_PHYS_FAIL) {
 			/*
 			 * bypass map of g->syncpt_mem and fail at

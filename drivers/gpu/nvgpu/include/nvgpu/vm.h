@@ -256,8 +256,6 @@ struct vm_gk20a {
 	 * It is not enabled for safety build.
 	 */
 	bool enable_ctag;
-	/** Whether this address space is managed by guest or not. */
-	bool guest_managed;
 
 	/** Page size used for mappings with this address space. */
 	u32 big_page_size;

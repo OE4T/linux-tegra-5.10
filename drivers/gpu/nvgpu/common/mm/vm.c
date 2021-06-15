@@ -245,11 +245,6 @@ u64 nvgpu_vm_alloc_va(struct vm_gk20a *vm, u64 size, u32 pgsz_idx)
 
 	vma = vm->vma[pgsz_idx];
 
-	if (vm->guest_managed) {
-		nvgpu_err(g, "Illegal GPU allocation on behalf of guest OS");
-		return 0;
-	}
-
 	if (pgsz_idx >= GMMU_NR_PAGE_SIZES) {
 		nvgpu_err(g, "(%s) invalid page size requested", vma->name);
 		return 0;
@@ -599,8 +594,7 @@ static int nvgpu_vm_init_check_vma_limits(struct gk20a *g, struct vm_gk20a *vm,
 {
 	if ((user_vma_start > user_vma_limit) ||
 		(user_lp_vma_start > user_lp_vma_limit) ||
-		(!vm->guest_managed &&
-			(kernel_vma_start >= kernel_vma_limit))) {
+		(kernel_vma_start >= kernel_vma_limit)) {
 		nvgpu_err(g, "Invalid vm configuration");
 		nvgpu_do_assert();
 		return -EINVAL;
@@ -737,12 +731,6 @@ static int nvgpu_vm_init_attributes(struct mm_gk20a *mm,
 		nvgpu_do_assert_print(g,
 			"Overlap between user and kernel spaces");
 		return -ENOMEM;
-	}
-
-	if (vm->guest_managed && (kernel_reserved != 0U)) {
-		nvgpu_do_assert_print(g,
-			"Cannot use guest managed VM with kernel space");
-		return -EINVAL;
 	}
 
 	nvgpu_log_info(g, "Init space for %s: valimit=0x%llx, "
