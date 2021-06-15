@@ -57,7 +57,7 @@ struct nvgpu_ltc {
  * @brief Allocate and initialize a error counters for all ltc-lts instances.
  *
  * @param g [in] The GPU driver struct.
- * @param stat [out] Pointer to array of tpc error counters.
+ * @param stat [out] Pointer to array of ltc-lts error counters.
  * @param name [in] Unique name for error counter.
  *
  * Calculates the total number of ltc-lts instances, allocates memory for each
@@ -122,11 +122,11 @@ void nvgpu_ltc_remove_support(struct gk20a *g);
  * @param g [in]		Pointer to GPU driver struct.
  *
  * This function will enable/disable caching feature of L2 based on
- * #mm.ltc_enable_target. With #mm.ltc_enable_target set to true,
- * gpu l2 caching feature will be enabled. Gpu L2 cahching is enabled with h/w
+ * #mm.ltc_enabled_target. With #mm.ltc_enabled_target set to true,
+ * gpu l2 caching feature will be enabled. Gpu L2 caching is enabled with h/w
  * power-on and can only be changed after h/w reset, before the first
  * transaction received by L2.
- * With #mm.ltc_enable_target set to false, Gpu L2 caching will be disabled.
+ * With #mm.ltc_enabled_target set to false, Gpu L2 caching will be disabled.
  * With Gpu L2 cache disabled, all transactions will miss in L2 and data will
  * be always write-through to main memory.
  *

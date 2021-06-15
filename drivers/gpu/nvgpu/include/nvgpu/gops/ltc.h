@@ -68,24 +68,13 @@ struct gops_ltc_intr {
  */
 struct gops_ltc {
 	/**
-	 * @brief Initialize LTC unit ECC support.
-	 *
-	 * @param g [in]		Pointer to GPU driver struct.
-	 *
-	 * This function allocates memory to track the ecc error counts
-	 * for LTC unit.
-	 *
-	 * @return 0 in case of success, < 0 in case of failure.
-	 */
-	int (*ecc_init)(struct gk20a *g);
-
-	/**
 	 * @brief Initialize LTC support.
 	 *
 	 * @param g [in]		Pointer to GPU driver struct.
 	 *
 	 * This function reads ltc unit info from GPU h/w and stores
-	 * it in #nvgpu_ltc structure.
+	 * it in #nvgpu_ltc structure. This function also initializes
+	 * LTC unit ecc counters.
 	 *
 	 * @return 0 in case of success, < 0 in case of failure.
 	 * @retval -ENOMEM if memory allocation fails for #nvgpu_ltc.
@@ -134,6 +123,18 @@ struct gops_ltc {
 	struct gops_ltc_intr intr;
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+	/**
+	 * @brief Initialize LTC unit ECC support.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 * This function allocates memory to track the ecc error counts
+	 * for LTC unit.
+	 *
+	 * @return 0 in case of success, < 0 in case of failure.
+	 */
+	int (*ecc_init)(struct gk20a *g);
+
 	void (*init_fs_state)(struct gk20a *g);
 	void (*set_enabled)(struct gk20a *g, bool enabled);
 #ifdef CONFIG_NVGPU_GRAPHICS
