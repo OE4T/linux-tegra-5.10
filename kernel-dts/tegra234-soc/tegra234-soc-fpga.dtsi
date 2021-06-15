@@ -412,7 +412,6 @@
 
         hda@3510000 {
                 compatible = "nvidia,tegra23x-hda";
-                hda,card-name = "tegra-hda-t23x";
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
                 iommus = <&smmu_niso0 TEGRA_SID_NISO0_HDA>;
 #else
