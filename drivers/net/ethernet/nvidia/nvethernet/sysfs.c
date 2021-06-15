@@ -296,7 +296,7 @@ static ssize_t macsec_cipher_show(struct device *dev,
 	struct macsec_priv_data *macsec_pdata = pdata->macsec_pdata;
 
 	return scnprintf(buf, PAGE_SIZE, "%s\n",
-			 (macsec_pdata->cipher == MACSEC_CIPHER_AES128) ?
+			 (macsec_pdata->cipher == OSI_MACSEC_CIPHER_AES128) ?
 			 "aes128" : "aes256");
 }
 
@@ -328,20 +328,20 @@ static ssize_t macsec_cipher_store(struct device *dev,
 
 	if (strncmp(buf, "aes128", 6) == OSI_NONE) {
 		ret = osi_macsec_cipher_config(pdata->osi_core,
-					       MACSEC_CIPHER_AES128);
+					       OSI_MACSEC_CIPHER_AES128);
 		if (ret < 0) {
 			dev_err(pdata->dev, "Failed to set macsec cipher\n");
 		} else {
-			macsec_pdata->cipher = MACSEC_CIPHER_AES128;
+			macsec_pdata->cipher = OSI_MACSEC_CIPHER_AES128;
 			dev_info(pdata->dev, "macsec cipher aes128 enabled\n");
 		}
 	} else if (strncmp(buf, "aes256", 6) == OSI_NONE) {
 		ret = osi_macsec_cipher_config(pdata->osi_core,
-					       MACSEC_CIPHER_AES256);
+					       OSI_MACSEC_CIPHER_AES256);
 		if (ret < 0) {
 			dev_err(pdata->dev, "Failed to set macsec cipher\n");
 		} else {
-			macsec_pdata->cipher = MACSEC_CIPHER_AES256;
+			macsec_pdata->cipher = OSI_MACSEC_CIPHER_AES256;
 			dev_info(pdata->dev, "macsec cipher aes256 enabled\n");
 		}
 	} else {
@@ -454,9 +454,9 @@ static void format_output(char **buf_p,
 {
 	char *buf = *buf_p;
 	unsigned int flags = lut_config->flags;
-	struct lut_inputs entry = lut_config->lut_in;
+	struct osi_lut_inputs entry = lut_config->lut_in;
 
-	if ((flags & LUT_FLAGS_DA_VALID) == LUT_FLAGS_DA_VALID) {
+	if ((flags & OSI_LUT_FLAGS_DA_VALID) == OSI_LUT_FLAGS_DA_VALID) {
 		buf += scnprintf(buf, PAGE_SIZE, "DA: " MAC_ADDR_FMT " ",
 				 entry.da[5], entry.da[4], entry.da[3],
 				 entry.da[2], entry.da[1], entry.da[0]);
@@ -464,7 +464,7 @@ static void format_output(char **buf_p,
 		buf += scnprintf(buf, PAGE_SIZE, "DA: X ");
 	}
 
-	if ((flags & LUT_FLAGS_SA_VALID) == LUT_FLAGS_SA_VALID) {
+	if ((flags & OSI_LUT_FLAGS_SA_VALID) == OSI_LUT_FLAGS_SA_VALID) {
 		buf += scnprintf(buf, PAGE_SIZE, "SA: " MAC_ADDR_FMT " ",
 				 entry.sa[5], entry.sa[4], entry.sa[3],
 				 entry.sa[2], entry.sa[1], entry.sa[0]);
@@ -472,24 +472,25 @@ static void format_output(char **buf_p,
 		buf += scnprintf(buf, PAGE_SIZE, "SA: X ");
 	}
 
-	if ((flags & LUT_FLAGS_ETHTYPE_VALID) == LUT_FLAGS_ETHTYPE_VALID) {
+	if ((flags & OSI_LUT_FLAGS_ETHTYPE_VALID) ==
+	    OSI_LUT_FLAGS_ETHTYPE_VALID) {
 		buf += scnprintf(buf, PAGE_SIZE, "ethtype: " ETHTYPE_FMT " ",
 				 entry.ethtype[1], entry.ethtype[0]);
 	} else {
 		buf += scnprintf(buf, PAGE_SIZE, "ethtype: X ");
 	}
 
-	if ((flags & LUT_FLAGS_VLAN_VALID) == LUT_FLAGS_VLAN_VALID) {
+	if ((flags & OSI_LUT_FLAGS_VLAN_VALID) == OSI_LUT_FLAGS_VLAN_VALID) {
 		buf += scnprintf(buf, PAGE_SIZE, "vlan: ");
-		if ((flags & LUT_FLAGS_VLAN_PCP_VALID) ==
-		    LUT_FLAGS_VLAN_PCP_VALID) {
+		if ((flags & OSI_LUT_FLAGS_VLAN_PCP_VALID) ==
+		    OSI_LUT_FLAGS_VLAN_PCP_VALID) {
 			buf += scnprintf(buf, PAGE_SIZE, "prio: %u ",
 					 entry.vlan_pcp);
 		} else {
 			buf += scnprintf(buf, PAGE_SIZE, "prio: X ");
 		}
-		if ((flags & LUT_FLAGS_VLAN_ID_VALID) ==
-		    LUT_FLAGS_VLAN_ID_VALID) {
+		if ((flags & OSI_LUT_FLAGS_VLAN_ID_VALID) ==
+		    OSI_LUT_FLAGS_VLAN_ID_VALID) {
 			buf += scnprintf(buf, PAGE_SIZE, "id: %u ",
 					 entry.vlan_id);
 		} else {
@@ -499,10 +500,10 @@ static void format_output(char **buf_p,
 		buf += scnprintf(buf, PAGE_SIZE, "vlan: X ");
 	}
 
-	if ((flags & LUT_FLAGS_DVLAN_PKT) == LUT_FLAGS_DVLAN_PKT) {
+	if ((flags & OSI_LUT_FLAGS_DVLAN_PKT) == OSI_LUT_FLAGS_DVLAN_PKT) {
 		buf += scnprintf(buf, PAGE_SIZE, "dvlan: 1 ");
-		if ((flags & LUT_FLAGS_DVLAN_OUTER_INNER_TAG_SEL) ==
-			LUT_FLAGS_DVLAN_OUTER_INNER_TAG_SEL) {
+		if ((flags & OSI_LUT_FLAGS_DVLAN_OUTER_INNER_TAG_SEL) ==
+			OSI_LUT_FLAGS_DVLAN_OUTER_INNER_TAG_SEL) {
 			buf += scnprintf(buf, PAGE_SIZE, "dvlan_outer_tag: 1 ");
 		} else {
 			buf += scnprintf(buf, PAGE_SIZE, "dvlan_outer_tag: 0 ");
@@ -511,8 +512,8 @@ static void format_output(char **buf_p,
 		buf += scnprintf(buf, PAGE_SIZE, "dvlan: X ");
 	}
 
-	if ((flags & LUT_FLAGS_BYTE0_PATTERN_VALID) ==
-	    LUT_FLAGS_BYTE0_PATTERN_VALID) {
+	if ((flags & OSI_LUT_FLAGS_BYTE0_PATTERN_VALID) ==
+	    OSI_LUT_FLAGS_BYTE0_PATTERN_VALID) {
 		buf += scnprintf(buf, PAGE_SIZE, "Byte0: Pattern: %x "
 						  "offset: %u ",
 				 entry.byte_pattern[0],
@@ -521,8 +522,8 @@ static void format_output(char **buf_p,
 		buf += scnprintf(buf, PAGE_SIZE, "Byte0: X ");
 	}
 
-	if ((flags & LUT_FLAGS_BYTE1_PATTERN_VALID) ==
-	    LUT_FLAGS_BYTE1_PATTERN_VALID) {
+	if ((flags & OSI_LUT_FLAGS_BYTE1_PATTERN_VALID) ==
+	    OSI_LUT_FLAGS_BYTE1_PATTERN_VALID) {
 		buf += scnprintf(buf, PAGE_SIZE, "Byte1: Pattern: %x "
 						  "offset: %u ",
 				 entry.byte_pattern[1],
@@ -531,8 +532,8 @@ static void format_output(char **buf_p,
 		buf += scnprintf(buf, PAGE_SIZE, "Byte1: X ");
 	}
 
-	if ((flags & LUT_FLAGS_BYTE2_PATTERN_VALID) ==
-	    LUT_FLAGS_BYTE2_PATTERN_VALID) {
+	if ((flags & OSI_LUT_FLAGS_BYTE2_PATTERN_VALID) ==
+	    OSI_LUT_FLAGS_BYTE2_PATTERN_VALID) {
 		buf += scnprintf(buf, PAGE_SIZE, "Byte2: Pattern: %x "
 						  "offset: %u ",
 				 entry.byte_pattern[2],
@@ -541,8 +542,8 @@ static void format_output(char **buf_p,
 		buf += scnprintf(buf, PAGE_SIZE, "Byte2: X ");
 	}
 
-	if ((flags & LUT_FLAGS_BYTE3_PATTERN_VALID) ==
-	    LUT_FLAGS_BYTE3_PATTERN_VALID) {
+	if ((flags & OSI_LUT_FLAGS_BYTE3_PATTERN_VALID) ==
+	    OSI_LUT_FLAGS_BYTE3_PATTERN_VALID) {
 		buf += scnprintf(buf, PAGE_SIZE, "Byte3: Pattern: %x "
 						  "offset: %u ",
 				 entry.byte_pattern[3],
@@ -551,8 +552,9 @@ static void format_output(char **buf_p,
 		buf += scnprintf(buf, PAGE_SIZE, "Byte3: X ");
 	}
 
-	if ((flags & LUT_FLAGS_PREEMPT_VALID) == LUT_FLAGS_PREEMPT_VALID) {
-		if ((flags & LUT_FLAGS_PREEMPT) == LUT_FLAGS_PREEMPT) {
+	if ((flags & OSI_LUT_FLAGS_PREEMPT_VALID) ==
+	    OSI_LUT_FLAGS_PREEMPT_VALID) {
+		if ((flags & OSI_LUT_FLAGS_PREEMPT) == OSI_LUT_FLAGS_PREEMPT) {
 			buf += scnprintf(buf, PAGE_SIZE, "prempt: 1 ");
 		} else {
 			buf += scnprintf(buf, PAGE_SIZE, "prempt: 0 ");
@@ -571,21 +573,21 @@ static void format_output(char **buf_p,
 static int parse_inputs(const char *buf,
 			struct osi_macsec_lut_config *lut_config, int *bufp)
 {
-	struct lut_inputs *lut_in;
+	struct osi_lut_inputs *lut_in;
 	int temp[OSI_ETH_ALEN] = {0};
 	int temp2[OSI_ETH_ALEN] = {0};
-	int temp3[LUT_BYTE_PATTERN_MAX] = {0};
-	int temp4[ETHTYPE_LEN] = {0};
-	unsigned char byte[LUT_BYTE_PATTERN_MAX] = {0};
+	int temp3[OSI_LUT_BYTE_PATTERN_MAX] = {0};
+	int temp4[OSI_ETHTYPE_LEN] = {0};
+	unsigned char byte[OSI_LUT_BYTE_PATTERN_MAX] = {0};
 	unsigned char mac_da[OSI_ETH_ALEN] = {0};
 	unsigned char mac_sa[OSI_ETH_ALEN] = {0};
-	unsigned char ethtype[ETHTYPE_LEN] = {0};
-	unsigned int byte_offset[LUT_BYTE_PATTERN_MAX] = {0};
+	unsigned char ethtype[OSI_ETHTYPE_LEN] = {0};
+	unsigned int byte_offset[OSI_LUT_BYTE_PATTERN_MAX] = {0};
 	unsigned int vlan_pcp = 0, vlan_id = 0, flags = 0;
 	unsigned short controller;
 	int mac_da_valid, mac_sa_valid, ethtype_valid, vlan_valid;
 	int dvlan, dvlan_outer_tag;
-	int byte_valid[LUT_BYTE_PATTERN_MAX];
+	int byte_valid[OSI_LUT_BYTE_PATTERN_MAX];
 	int i, valid, index;;
 
 
@@ -620,11 +622,11 @@ static int parse_inputs(const char *buf,
 		mac_sa[i] = (unsigned char)temp2[i];
 	}
 
-	for (i = 0; i < ETHTYPE_LEN; i++) {
+	for (i = 0; i < OSI_ETHTYPE_LEN; i++) {
 		ethtype[i] = (unsigned char)temp4[i];
 	}
 
-	for (i = 0; i < LUT_BYTE_PATTERN_MAX; i++) {
+	for (i = 0; i < OSI_LUT_BYTE_PATTERN_MAX; i++) {
 		byte[i] = (unsigned char)temp3[i];
 	}
 
@@ -648,7 +650,7 @@ static int parse_inputs(const char *buf,
 		for (i = 0; i < OSI_ETH_ALEN; i++) {
 			lut_in->da[i] = mac_da[OSI_ETH_ALEN - 1 - i];
 		}
-		flags |= LUT_FLAGS_DA_VALID;
+		flags |= OSI_LUT_FLAGS_DA_VALID;
 	}
 
 	if (mac_sa_valid) {
@@ -656,32 +658,31 @@ static int parse_inputs(const char *buf,
 		for (i = 0; i < OSI_ETH_ALEN; i++) {
 			lut_in->sa[i] = mac_sa[OSI_ETH_ALEN - 1 - i];
 		}
-		flags |= LUT_FLAGS_SA_VALID;
+		flags |= OSI_LUT_FLAGS_SA_VALID;
 	}
 
 	if (ethtype_valid) {
 		/* Reverse endianess for HW */
-		for (i = 0; i < ETHTYPE_LEN; i++) {
-			lut_in->ethtype[i] = ethtype[ETHTYPE_LEN - 1 - i];
+		for (i = 0; i < OSI_ETHTYPE_LEN; i++) {
+			lut_in->ethtype[i] = ethtype[OSI_ETHTYPE_LEN - 1 - i];
 		}
-		flags |= LUT_FLAGS_ETHTYPE_VALID;
-
+		flags |= OSI_LUT_FLAGS_ETHTYPE_VALID;
 	}
 
-	for (i = 0; i < LUT_BYTE_PATTERN_MAX; i++) {
+	for (i = 0; i < OSI_LUT_BYTE_PATTERN_MAX; i++) {
 		if (byte_valid[i]) {
 			switch (i) {
 			case 0:
-				flags |= LUT_FLAGS_BYTE0_PATTERN_VALID;
+				flags |= OSI_LUT_FLAGS_BYTE0_PATTERN_VALID;
 				break;
 			case 1:
-				flags |= LUT_FLAGS_BYTE1_PATTERN_VALID;
+				flags |= OSI_LUT_FLAGS_BYTE1_PATTERN_VALID;
 				break;
 			case 2:
-				flags |= LUT_FLAGS_BYTE2_PATTERN_VALID;
+				flags |= OSI_LUT_FLAGS_BYTE2_PATTERN_VALID;
 				break;
 			case 3:
-				flags |= LUT_FLAGS_BYTE3_PATTERN_VALID;
+				flags |= OSI_LUT_FLAGS_BYTE3_PATTERN_VALID;
 				break;
 			default:
 				break;
@@ -694,19 +695,20 @@ static int parse_inputs(const char *buf,
 	if (vlan_valid) {
 		lut_in->vlan_pcp = vlan_pcp;
 		lut_in->vlan_id = vlan_id;
-		flags |= (LUT_FLAGS_VLAN_ID_VALID | LUT_FLAGS_VLAN_PCP_VALID |
-			 LUT_FLAGS_VLAN_VALID);
+		flags |= (OSI_LUT_FLAGS_VLAN_ID_VALID |
+			 OSI_LUT_FLAGS_VLAN_PCP_VALID |
+			 OSI_LUT_FLAGS_VLAN_VALID);
 	}
 
 	if (dvlan) {
-		flags |= LUT_FLAGS_DVLAN_PKT;
+		flags |= OSI_LUT_FLAGS_DVLAN_PKT;
 		if (dvlan_outer_tag) {
-			flags |= LUT_FLAGS_DVLAN_OUTER_INNER_TAG_SEL;
+			flags |= OSI_LUT_FLAGS_DVLAN_OUTER_INNER_TAG_SEL;
 		}
 	}
 
 	if (valid) {
-		flags |= LUT_FLAGS_ENTRY_VALID;
+		flags |= OSI_LUT_FLAGS_ENTRY_VALID;
 	}
 
 	lut_config->flags = flags;
@@ -724,11 +726,11 @@ static void dump_byp_lut(char **buf_p, unsigned short ctlr_sel,
 	char *buf = *buf_p;
 	int i;
 
-	for (i = 0; i <= BYP_LUT_MAX_INDEX; i++) {
+	for (i = 0; i <= OSI_BYP_LUT_MAX_INDEX; i++) {
 		memset(&lut_config, OSI_NONE, sizeof(lut_config));
 		lut_config.table_config.ctlr_sel = ctlr_sel;
-		lut_config.lut_sel = LUT_SEL_BYPASS;
-		lut_config.table_config.rw = LUT_READ;
+		lut_config.lut_sel = OSI_LUT_SEL_BYPASS;
+		lut_config.table_config.rw = OSI_LUT_READ;
 		lut_config.table_config.index = i;
 		if (osi_macsec_lut_config(osi_core, &lut_config) < 0) {
 			pr_err("%s: Failed to read BYP LUT\n", __func__);
@@ -736,8 +738,8 @@ static void dump_byp_lut(char **buf_p, unsigned short ctlr_sel,
 			return;
 		} else {
 			buf += scnprintf(buf, PAGE_SIZE, "%d.\t", i);
-			if ((lut_config.flags & LUT_FLAGS_ENTRY_VALID) !=
-			    LUT_FLAGS_ENTRY_VALID) {
+			if ((lut_config.flags & OSI_LUT_FLAGS_ENTRY_VALID) !=
+			    OSI_LUT_FLAGS_ENTRY_VALID) {
 				buf += scnprintf(buf, PAGE_SIZE, "Invalid\n");
 				memset(&lut_config, 0, sizeof(lut_config));
 				continue;
@@ -745,8 +747,8 @@ static void dump_byp_lut(char **buf_p, unsigned short ctlr_sel,
 
 			format_output(&buf, &lut_config);
 			/* BYP LUT output field */
-			if ((lut_config.flags & LUT_FLAGS_CONTROLLED_PORT) ==
-			    LUT_FLAGS_CONTROLLED_PORT) {
+			if ((lut_config.flags & OSI_LUT_FLAGS_CONTROLLED_PORT) ==
+			    OSI_LUT_FLAGS_CONTROLLED_PORT) {
 				buf += scnprintf(buf,
 						 PAGE_SIZE, "ctrl port: 1\n");
 			} else {
@@ -780,10 +782,10 @@ static ssize_t macsec_byp_lut_show(struct device *dev,
 	}
 
 	buf += scnprintf(buf, PAGE_SIZE, "Tx:\n");
-	dump_byp_lut(&buf, CTLR_SEL_TX, osi_core);
+	dump_byp_lut(&buf, OSI_CTLR_SEL_TX, osi_core);
 
 	buf += scnprintf(buf, PAGE_SIZE, "Rx:\n");
-	dump_byp_lut(&buf, CTLR_SEL_RX, osi_core);
+	dump_byp_lut(&buf, OSI_CTLR_SEL_RX, osi_core);
 
 	return (buf - start);
 }
@@ -819,13 +821,12 @@ static ssize_t macsec_byp_lut_store(struct device *dev,
 		goto exit;
 	}
 
-	//TODO - need to lock. Since  lut_status is updated.
-	lut_config.lut_sel = LUT_SEL_BYPASS;
-	lut_config.table_config.rw = LUT_WRITE;
+	lut_config.lut_sel = OSI_LUT_SEL_BYPASS;
+	lut_config.table_config.rw = OSI_LUT_WRITE;
 	/* Rest of LUT attributes are filled by parse_inputs() */
-	if (lut_config.table_config.index > BYP_LUT_MAX_INDEX) {
+	if (lut_config.table_config.index > OSI_BYP_LUT_MAX_INDEX) {
 		dev_err(dev, "%s: Index can't be > %d\n", __func__,
-			BYP_LUT_MAX_INDEX);
+			OSI_BYP_LUT_MAX_INDEX);
 		goto exit;
 	}
 
@@ -870,8 +871,8 @@ static ssize_t macsec_mmc_counters_show(struct device *dev,
 		dev_err(pdata->dev, "Not Allowed. Ether interface is not up\n");
 		return 0;
 	}
-	osi_macsec_read_mmc(osi_core);
 
+	osi_macsec_read_mmc(osi_core);
 	buf += scnprintf(buf, PAGE_SIZE, "tx_pkts_untaged:\t%llu\n",
 		mmc->tx_pkts_untaged);
 	buf += scnprintf(buf, PAGE_SIZE, "tx_pkts_too_long:\t%llu\n",
@@ -910,6 +911,7 @@ static ssize_t macsec_mmc_counters_show(struct device *dev,
 		buf += scnprintf(buf, PAGE_SIZE, "rx_pkts_ok sc%d: \t%llu\n",
 			i, mmc->rx_pkts_ok[i]);
 	}
+
 	return (buf - start);
 }
 
@@ -930,14 +932,14 @@ static void dump_dbg_buffers(char **buf_p, unsigned short ctlr_sel,
 	int i;
 	unsigned int idx_max;
 
-	if (ctlr_sel == CTLR_SEL_TX) {
-		idx_max = TX_DBG_BUF_IDX_MAX;
+	if (ctlr_sel == OSI_CTLR_SEL_TX) {
+		idx_max = OSI_TX_DBG_BUF_IDX_MAX;
 	} else {
-		idx_max = RX_DBG_BUF_IDX_MAX;
+		idx_max = OSI_RX_DBG_BUF_IDX_MAX;
 	}
 	for (i = 0; i < idx_max; i++) {
 		memset(&dbg_buf_config, OSI_NONE, sizeof(dbg_buf_config));
-		dbg_buf_config.rw = DBG_TBL_READ;
+		dbg_buf_config.rw = OSI_DBG_TBL_READ;
 		dbg_buf_config.ctlr_sel = ctlr_sel;
 		dbg_buf_config.index = i;
 		if (osi_macsec_dbg_buf_config(osi_core, &dbg_buf_config) < 0) {
@@ -956,7 +958,7 @@ static void dump_dbg_buffers(char **buf_p, unsigned short ctlr_sel,
 	/* reset debug buffer after buf read */
 	for (i = 0; i < idx_max; i++) {
 		memset(&dbg_buf_config, OSI_NONE, sizeof(dbg_buf_config));
-		dbg_buf_config.rw = DBG_TBL_WRITE;
+		dbg_buf_config.rw = OSI_DBG_TBL_WRITE;
 		dbg_buf_config.ctlr_sel = ctlr_sel;
 		dbg_buf_config.index = i;
 		if (osi_macsec_dbg_buf_config(osi_core, &dbg_buf_config) < 0) {
@@ -986,10 +988,10 @@ static ssize_t macsec_dbg_buffer_show(struct device *dev,
 		return 0;
 	}
 	buf += scnprintf(buf, PAGE_SIZE, "Tx Dbg Buffers:\n");
-	dump_dbg_buffers(&buf, CTLR_SEL_TX, osi_core);
+	dump_dbg_buffers(&buf, OSI_CTLR_SEL_TX, osi_core);
 
 	buf += scnprintf(buf, PAGE_SIZE, "Rx Dbg Buffers:\n");
-	dump_dbg_buffers(&buf, CTLR_SEL_RX, osi_core);
+	dump_dbg_buffers(&buf, OSI_CTLR_SEL_RX, osi_core);
 
 	return (buf - start);
 }
@@ -1050,7 +1052,7 @@ static ssize_t macsec_dbg_events_store(struct device *dev,
 		}
 	}
 	dbg_buf_config.ctlr_sel = controller;
-	dbg_buf_config.rw = DBG_TBL_WRITE;
+	dbg_buf_config.rw = OSI_DBG_TBL_WRITE;
 
 	if (osi_macsec_dbg_events_config(osi_core, &dbg_buf_config) < 0) {
 		dev_err(dev, "%s: Failed to config dbg trigger events\n", __func__);
@@ -1098,19 +1100,19 @@ static ssize_t macsec_sci_lut_show(struct device *dev,
 
 	buf += scnprintf(buf, PAGE_SIZE, "Tx:\n");
 
-	for (i = 0; i <= SC_LUT_MAX_INDEX; i++) {
+	for (i = 0; i <= OSI_SC_LUT_MAX_INDEX; i++) {
 		memset(&lut_config, OSI_NONE, sizeof(lut_config));
-		lut_config.table_config.ctlr_sel = CTLR_SEL_TX;
-		lut_config.lut_sel = LUT_SEL_SCI;
-		lut_config.table_config.rw = LUT_READ;
+		lut_config.table_config.ctlr_sel = OSI_CTLR_SEL_TX;
+		lut_config.lut_sel = OSI_LUT_SEL_SCI;
+		lut_config.table_config.rw = OSI_LUT_READ;
 		lut_config.table_config.index = i;
 		if (osi_macsec_lut_config(osi_core, &lut_config) < 0) {
-			dev_err(dev, "%s: Failed to read BYP LUT\n", __func__);
+			dev_err(dev, "%s: Failed to read SCI LUT\n", __func__);
 			goto exit;
 		} else {
 			buf += scnprintf(buf, PAGE_SIZE, "%d.\t", i);
-			if ((lut_config.flags & LUT_FLAGS_ENTRY_VALID) !=
-			    LUT_FLAGS_ENTRY_VALID) {
+			if ((lut_config.flags & OSI_LUT_FLAGS_ENTRY_VALID) !=
+			    OSI_LUT_FLAGS_ENTRY_VALID) {
 				buf += scnprintf(buf, PAGE_SIZE, "Invalid\n");
 				memset(&lut_config, 0, sizeof(lut_config));
 				continue;
@@ -1120,10 +1122,10 @@ static ssize_t macsec_sci_lut_show(struct device *dev,
 			an_valid = lut_config.sci_lut_out.an_valid;
 			buf += scnprintf(buf, PAGE_SIZE, "AN3: %d AN2: %d "
 					 "AN1: %d AN0: %d ",
-					 an_valid & AN3_VALID ? 1 : 0,
-					 an_valid & AN2_VALID ? 1 : 0,
-					 an_valid & AN1_VALID ? 1 : 0,
-					 an_valid & AN0_VALID ? 1 : 0);
+					 an_valid & OSI_AN3_VALID ? 1 : 0,
+					 an_valid & OSI_AN2_VALID ? 1 : 0,
+					 an_valid & OSI_AN1_VALID ? 1 : 0,
+					 an_valid & OSI_AN0_VALID ? 1 : 0);
 			buf += scnprintf(buf, PAGE_SIZE, "sc_index: %d\n",
 					 lut_config.sci_lut_out.sc_index);
 			memset(&lut_config, 0, sizeof(lut_config));
@@ -1132,19 +1134,19 @@ static ssize_t macsec_sci_lut_show(struct device *dev,
 
 	buf += scnprintf(buf, PAGE_SIZE, "Rx:\n");
 
-	for (i = 0; i <= SC_LUT_MAX_INDEX; i++) {
+	for (i = 0; i <= OSI_SC_LUT_MAX_INDEX; i++) {
 		memset(&lut_config, OSI_NONE, sizeof(lut_config));
-		lut_config.table_config.ctlr_sel = CTLR_SEL_RX;
-		lut_config.lut_sel = LUT_SEL_SCI;
-		lut_config.table_config.rw = LUT_READ;
+		lut_config.table_config.ctlr_sel = OSI_CTLR_SEL_RX;
+		lut_config.lut_sel = OSI_LUT_SEL_SCI;
+		lut_config.table_config.rw = OSI_LUT_READ;
 		lut_config.table_config.index = i;
 		if (osi_macsec_lut_config(osi_core, &lut_config) < 0) {
 			dev_err(dev, "%s: Failed to read BYP LUT\n", __func__);
 			goto exit;
 		} else {
 			buf += scnprintf(buf, PAGE_SIZE, "%d.\t", i);
-			if ((lut_config.flags & LUT_FLAGS_ENTRY_VALID) !=
-			    LUT_FLAGS_ENTRY_VALID) {
+			if ((lut_config.flags & OSI_LUT_FLAGS_ENTRY_VALID) !=
+			    OSI_LUT_FLAGS_ENTRY_VALID) {
 				buf += scnprintf(buf, PAGE_SIZE, "Invalid\n");
 				memset(&lut_config, 0, sizeof(lut_config));
 				continue;
@@ -1190,9 +1192,9 @@ static ssize_t macsec_sci_lut_store(struct device *dev,
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct osi_macsec_lut_config lut_config;
-	int an_valid[MAX_NUM_SA] = {0};
+	int an_valid[OSI_MAX_NUM_SA] = {0};
 	int ret, bufp;
-	int temp[SCI_LEN];
+	int temp[OSI_SCI_LEN];
 	int i;
 	int sc_index;
 
@@ -1217,25 +1219,25 @@ static ssize_t macsec_sci_lut_store(struct device *dev,
 		goto exit;
 	}
 
-	lut_config.lut_sel = LUT_SEL_SCI;
-	lut_config.table_config.rw = LUT_WRITE;
+	lut_config.lut_sel = OSI_LUT_SEL_SCI;
+	lut_config.table_config.rw = OSI_LUT_WRITE;
 	/* Rest of LUT attributes are filled by parse_inputs() */
-	if (lut_config.table_config.index > SC_LUT_MAX_INDEX) {
+	if (lut_config.table_config.index > OSI_SC_LUT_MAX_INDEX) {
 		dev_err(dev, "%s: Index can't be > %d\n", __func__,
-			SC_LUT_MAX_INDEX);
+			OSI_SC_LUT_MAX_INDEX);
 		goto exit;
 	}
-	if (sc_index > SC_LUT_MAX_INDEX) {
+	if (sc_index > OSI_SC_LUT_MAX_INDEX) {
 		dev_err(dev, "%s: SC Index can't be > %d\n", __func__,
-			SC_LUT_MAX_INDEX);
+			OSI_SC_LUT_MAX_INDEX);
 		goto exit;
 	}
 
 	/* Configure the outputs */
-	for (i = 0; i < SCI_LEN; i++) {
+	for (i = 0; i < OSI_SCI_LEN; i++) {
 		lut_config.sci_lut_out.sci[i] = (unsigned char)temp[i];
 	}
-	for (i = 0; i < MAX_NUM_SA; i++) {
+	for (i = 0; i < OSI_MAX_NUM_SA; i++) {
 		if (an_valid[i] > OSI_ENABLE) {
 			dev_err(dev, "%s: an_valid bitmap error\n", __func__);
 			goto exit;
@@ -1246,7 +1248,7 @@ static ssize_t macsec_sci_lut_store(struct device *dev,
 	lut_config.sci_lut_out.sc_index = sc_index;
 
 	if (osi_macsec_lut_config(osi_core, &lut_config) < 0) {
-		dev_err(dev, "%s: Failed to config BYP LUT\n", __func__);
+		dev_err(dev, "%s: Failed to config SCI LUT\n", __func__);
 		goto exit;
 	} else {
 		dev_err(dev, "%s: Added SCI LUT idx: %d", __func__,
@@ -1273,10 +1275,10 @@ static void dump_kt(char **buf_p, unsigned short ctlr_sel,
 	char *buf = *buf_p;
 	int i, j;
 
-	for (i = 0; i <= TABLE_INDEX_MAX; i++) {
+	for (i = 0; i <= OSI_TABLE_INDEX_MAX; i++) {
 		memset(&kt_config, OSI_NONE, sizeof(kt_config));
 		kt_config.table_config.ctlr_sel = ctlr_sel;
-		kt_config.table_config.rw = LUT_READ;
+		kt_config.table_config.rw = OSI_LUT_READ;
 		kt_config.table_config.index = i;
 		if (osi_macsec_kt_config(osi_core, &kt_config, OSI_NULL) < 0) {
 			pr_err("%s: Failed to read KT\n", __func__);
@@ -1284,22 +1286,22 @@ static void dump_kt(char **buf_p, unsigned short ctlr_sel,
 			return;
 		} else {
 			buf += scnprintf(buf, PAGE_SIZE, "%d.\t", i);
-			if ((kt_config.flags & LUT_FLAGS_ENTRY_VALID) !=
-			    LUT_FLAGS_ENTRY_VALID) {
+			if ((kt_config.flags & OSI_LUT_FLAGS_ENTRY_VALID) !=
+			    OSI_LUT_FLAGS_ENTRY_VALID) {
 				buf += scnprintf(buf, PAGE_SIZE, "Invalid\n");
 				memset(&kt_config, 0, sizeof(kt_config));
 				continue;
 			}
 
 			buf += scnprintf(buf, PAGE_SIZE, "SAK: 0x");
-			for (j = 0; j < KEY_LEN_256; j++) {
+			for (j = 0; j < OSI_KEY_LEN_256; j++) {
 				buf += scnprintf(buf, PAGE_SIZE, "%02x",
-				kt_config.entry.sak[KEY_LEN_256 - 1 - j]);
+				kt_config.entry.sak[OSI_KEY_LEN_256 - 1 - j]);
 			}
 			buf += scnprintf(buf, PAGE_SIZE, " H: 0x");
-			for (j = 0; j < KEY_LEN_128; j++) {
+			for (j = 0; j < OSI_KEY_LEN_128; j++) {
 				buf += scnprintf(buf, PAGE_SIZE, "%02x",
-				kt_config.entry.h[KEY_LEN_128 - 1 - j]);
+				kt_config.entry.h[OSI_KEY_LEN_128 - 1 - j]);
 			}
 			buf += scnprintf(buf, PAGE_SIZE, "\n");
 		}
@@ -1329,7 +1331,7 @@ static ssize_t macsec_tx_kt_show(struct device *dev,
 	}
 
 	buf += scnprintf(buf, PAGE_SIZE, "Tx:\n");
-	dump_kt(&buf, CTLR_SEL_TX, osi_core);
+	dump_kt(&buf, OSI_CTLR_SEL_TX, osi_core);
 
 	return (buf - start);
 }
@@ -1355,7 +1357,7 @@ static ssize_t macsec_rx_kt_show(struct device *dev,
 	}
 
 	buf += scnprintf(buf, PAGE_SIZE, "Rx:\n");
-	dump_kt(&buf, CTLR_SEL_RX, osi_core);
+	dump_kt(&buf, OSI_CTLR_SEL_RX, osi_core);
 
 	return (buf - start);
 }
@@ -1380,11 +1382,11 @@ static ssize_t macsec_kt_store(struct device *dev,
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct crypto_cipher *tfm;
-	unsigned char hkey[KEY_LEN_128];
-	unsigned char zeros[KEY_LEN_128] = {0};
+	unsigned char hkey[OSI_KEY_LEN_128];
+	unsigned char zeros[OSI_KEY_LEN_128] = {0};
 	struct osi_macsec_kt_config kt_config = {0};
-	int temp[KEY_LEN_256] = {0};
-	unsigned char sak[KEY_LEN_256] = {0};
+	int temp[OSI_KEY_LEN_256] = {0};
+	unsigned char sak[OSI_KEY_LEN_256] = {0};
 
 	int valid, index, ctlr, key256bit;
 	int i, ret, bufp = 0;
@@ -1418,20 +1420,20 @@ static ssize_t macsec_kt_store(struct device *dev,
 			}
 	}
 
-	if ((index > TABLE_INDEX_MAX) ||
+	if ((index > OSI_TABLE_INDEX_MAX) ||
 	    (valid != OSI_ENABLE && valid != OSI_DISABLE) ||
-	    (ctlr != CTLR_SEL_TX && ctlr != CTLR_SEL_RX)) {
+	    (ctlr != OSI_CTLR_SEL_TX && ctlr != OSI_CTLR_SEL_RX)) {
 		dev_err(pdata->dev, "%s: Invalid inputs\n", __func__);
 		goto exit;
 	}
 
 	kt_config.table_config.ctlr_sel = ctlr;
-	kt_config.table_config.rw = LUT_WRITE;
+	kt_config.table_config.rw = OSI_LUT_WRITE;
 	kt_config.table_config.index = index;
 
 	/* HKEY GENERATION */
 	tfm = crypto_alloc_cipher("aes", 0, CRYPTO_ALG_ASYNC);
-	if (crypto_cipher_setkey(tfm, sak, KEY_LEN_128)) {
+	if (crypto_cipher_setkey(tfm, sak, OSI_KEY_LEN_128)) {
 		pr_err("%s: Failed to set cipher key for H generation",
 			__func__);
 		goto exit;
@@ -1439,31 +1441,31 @@ static ssize_t macsec_kt_store(struct device *dev,
 	crypto_cipher_encrypt_one(tfm, hkey, zeros);
 	crypto_free_cipher(tfm);
 
-	for (i = 0; i < KEY_LEN_128; i++) {
+	for (i = 0; i < OSI_KEY_LEN_128; i++) {
 		sak[i] = (unsigned char)temp[i];
 	}
 	if (key256bit == 1) {
-		for (i = KEY_LEN_128; i < KEY_LEN_256; i++) {
+		for (i = OSI_KEY_LEN_128; i < OSI_KEY_LEN_256; i++) {
 			sak[i] = (unsigned char)temp[i];
 		}
 	}
 
-	for (i = 0; i < KEY_LEN_128; i++) {
-		kt_config.entry.h[i] = hkey[KEY_LEN_128 - 1 - i];
+	for (i = 0; i < OSI_KEY_LEN_128; i++) {
+		kt_config.entry.h[i] = hkey[OSI_KEY_LEN_128 - 1 - i];
 	}
 
 	if (key256bit == 1) {
-		for (i = 0; i < KEY_LEN_256; i++) {
-			kt_config.entry.sak[i] = sak[KEY_LEN_256 - 1 - i];
+		for (i = 0; i < OSI_KEY_LEN_256; i++) {
+			kt_config.entry.sak[i] = sak[OSI_KEY_LEN_256 - 1 - i];
 		}
 	} else {
-		for (i = 0; i < KEY_LEN_128; i++) {
-			kt_config.entry.sak[i] = sak[KEY_LEN_128 - 1 - i];
+		for (i = 0; i < OSI_KEY_LEN_128; i++) {
+			kt_config.entry.sak[i] = sak[OSI_KEY_LEN_128 - 1 - i];
 		}
 	}
 
 	if (valid) {
-		kt_config.flags |= LUT_FLAGS_ENTRY_VALID;
+		kt_config.flags |= OSI_LUT_FLAGS_ENTRY_VALID;
 	}
 
 	ret = osi_macsec_kt_config(osi_core, &kt_config, OSI_NULL);
@@ -1508,12 +1510,12 @@ static void dump_sc_state_lut(char **buf_p, unsigned short ctlr_sel,
 	char *buf = *buf_p;
 	int i;
 
-	for (i = 0; i <= SC_LUT_MAX_INDEX; i++) {
+	for (i = 0; i <= OSI_SC_LUT_MAX_INDEX; i++) {
 		memset(&lut_config, OSI_NONE, sizeof(lut_config));
 		lut_config.table_config.ctlr_sel = ctlr_sel;
-		lut_config.table_config.rw = LUT_READ;
+		lut_config.table_config.rw = OSI_LUT_READ;
 		lut_config.table_config.index = i;
-		lut_config.lut_sel = LUT_SEL_SC_STATE;
+		lut_config.lut_sel = OSI_LUT_SEL_SC_STATE;
 		if (osi_macsec_lut_config(osi_core, &lut_config) < 0) {
 			pr_err("%s: Failed to read BYP LUT\n", __func__);
 			*buf_p = buf;
@@ -1549,10 +1551,10 @@ static ssize_t macsec_sc_state_lut_show(struct device *dev,
 	}
 
 	buf += scnprintf(buf, PAGE_SIZE, "Tx:\n");
-	dump_sc_state_lut(&buf, CTLR_SEL_TX, osi_core);
+	dump_sc_state_lut(&buf, OSI_CTLR_SEL_TX, osi_core);
 
 	buf += scnprintf(buf, PAGE_SIZE, "Rx:\n");
-	dump_sc_state_lut(&buf, CTLR_SEL_RX, osi_core);
+	dump_sc_state_lut(&buf, OSI_CTLR_SEL_RX, osi_core);
 
 	return (buf - start);
 }
@@ -1589,18 +1591,17 @@ static ssize_t macsec_sc_state_lut_store(struct device *dev,
 		goto exit;
 	}
 
-	if ((index > SC_LUT_MAX_INDEX) ||
-	    (ctlr != CTLR_SEL_TX && ctlr != CTLR_SEL_RX) ||
-	    (curr_an > CURR_AN_MAX)) {
+	if ((index > OSI_SC_LUT_MAX_INDEX) ||
+	    (ctlr != OSI_CTLR_SEL_TX && ctlr != OSI_CTLR_SEL_RX) ||
+	    (curr_an > OSI_CURR_AN_MAX)) {
 		dev_err(pdata->dev, "%s:Invalid inputs", __func__);
 		goto exit;
 	}
 
-	//TODO - need to lock. Since  lut_status is updated.
 	lut_config.table_config.ctlr_sel = ctlr;
-	lut_config.table_config.rw = LUT_WRITE;
+	lut_config.table_config.rw = OSI_LUT_WRITE;
 	lut_config.table_config.index = index;
-	lut_config.lut_sel = LUT_SEL_SC_STATE;
+	lut_config.lut_sel = OSI_LUT_SEL_SC_STATE;
 	lut_config.sc_state_out.curr_an = curr_an;
 
 	if (osi_macsec_lut_config(osi_core, &lut_config) < 0) {
@@ -1630,21 +1631,21 @@ static void dump_sa_state_lut(char **buf_p, unsigned short ctlr_sel,
 	char *buf = *buf_p;
 	int i;
 
-	for (i = 0; i <= SA_LUT_MAX_INDEX; i++) {
+	for (i = 0; i <= OSI_SA_LUT_MAX_INDEX; i++) {
 		memset(&lut_config, OSI_NONE, sizeof(lut_config));
 		lut_config.table_config.ctlr_sel = ctlr_sel;
-		lut_config.table_config.rw = LUT_READ;
+		lut_config.table_config.rw = OSI_LUT_READ;
 		lut_config.table_config.index = i;
-		lut_config.lut_sel = LUT_SEL_SA_STATE;
+		lut_config.lut_sel = OSI_LUT_SEL_SA_STATE;
 		if (osi_macsec_lut_config(osi_core, &lut_config) < 0) {
 			pr_err("%s: Failed to read BYP LUT\n", __func__);
 			goto exit;
 		}
 
 		switch (ctlr_sel) {
-		case CTLR_SEL_TX:
-			if ((lut_config.flags & LUT_FLAGS_ENTRY_VALID) ==
-			    LUT_FLAGS_ENTRY_VALID) {
+		case OSI_CTLR_SEL_TX:
+			if ((lut_config.flags & OSI_LUT_FLAGS_ENTRY_VALID) ==
+			    OSI_LUT_FLAGS_ENTRY_VALID) {
 				buf += scnprintf(buf, PAGE_SIZE,
 					"%d.\tnext_pn: %d\n", i,
 					lut_config.sa_state_out.next_pn);
@@ -1653,7 +1654,7 @@ static void dump_sa_state_lut(char **buf_p, unsigned short ctlr_sel,
 					"%d.\tInvalid\n", i);
 			}
 			break;
-		case CTLR_SEL_RX:
+		case OSI_CTLR_SEL_RX:
 			buf += scnprintf(buf, PAGE_SIZE,
 				"%d.\tnext_pn: %d lowest_pn: %d\n", i,
 				lut_config.sa_state_out.next_pn,
@@ -1690,10 +1691,10 @@ static ssize_t macsec_sa_state_lut_show(struct device *dev,
 	}
 
 	buf += scnprintf(buf, PAGE_SIZE, "Tx:\n");
-	dump_sa_state_lut(&buf, CTLR_SEL_TX, osi_core);
+	dump_sa_state_lut(&buf, OSI_CTLR_SEL_TX, osi_core);
 
 	buf += scnprintf(buf, PAGE_SIZE, "Rx:\n");
-	dump_sa_state_lut(&buf, CTLR_SEL_RX, osi_core);
+	dump_sa_state_lut(&buf, OSI_CTLR_SEL_RX, osi_core);
 
 	return (buf - start);
 }
@@ -1731,20 +1732,19 @@ static ssize_t macsec_sa_state_lut_store(struct device *dev,
 		goto exit;
 	}
 
-	if ((index > SA_LUT_MAX_INDEX) ||
-	    (ctlr != CTLR_SEL_TX && ctlr != CTLR_SEL_RX)) {
+	if ((index > OSI_SA_LUT_MAX_INDEX) ||
+	    (ctlr != OSI_CTLR_SEL_TX && ctlr != OSI_CTLR_SEL_RX)) {
 		dev_err(pdata->dev, "%s:Invalid inputs", __func__);
 		goto exit;
 	}
 
-	//TODO - need to lock. Since  lut_status is updated.
-	lut_config.flags = LUT_FLAGS_ENTRY_VALID;
+	lut_config.flags = OSI_LUT_FLAGS_ENTRY_VALID;
 	lut_config.table_config.ctlr_sel = ctlr;
-	lut_config.table_config.rw = LUT_WRITE;
+	lut_config.table_config.rw = OSI_LUT_WRITE;
 	lut_config.table_config.index = index;
 	lut_config.sa_state_out.next_pn = next_pn;
 	lut_config.sa_state_out.lowest_pn = lowest_pn;
-	lut_config.lut_sel = LUT_SEL_SA_STATE;
+	lut_config.lut_sel = OSI_LUT_SEL_SA_STATE;
 
 	if (osi_macsec_lut_config(osi_core, &lut_config) < 0) {
 		dev_err(dev, "%s: Failed to config SA STATE LUT\n", __func__);
@@ -1774,19 +1774,19 @@ static void dump_sc_param_lut(char **buf_p, unsigned short ctlr_sel,
 	char *buf = *buf_p;
 	int i;
 
-	for (i = 0; i <= SC_LUT_MAX_INDEX; i++) {
+	for (i = 0; i <= OSI_SC_LUT_MAX_INDEX; i++) {
 		memset(&lut_config, OSI_NONE, sizeof(lut_config));
 		lut_config.table_config.ctlr_sel = ctlr_sel;
-		lut_config.table_config.rw = LUT_READ;
+		lut_config.table_config.rw = OSI_LUT_READ;
 		lut_config.table_config.index = i;
-		lut_config.lut_sel = LUT_SEL_SC_PARAM;
+		lut_config.lut_sel = OSI_LUT_SEL_SC_PARAM;
 		if (osi_macsec_lut_config(osi_core, &lut_config) < 0) {
 			pr_err("%s: Failed to read BYP LUT\n", __func__);
 			goto exit;
 		}
 
 		switch (ctlr_sel) {
-		case CTLR_SEL_TX:
+		case OSI_CTLR_SEL_TX:
 			buf += scnprintf(buf, PAGE_SIZE,
 				"%d.\tkey_idx_start: %d pn_max: %u "
 				"pn_threshold: %u tci %01x vlan_clear %01x sci: " SCI_FMT,
@@ -1805,7 +1805,7 @@ static void dump_sc_param_lut(char **buf_p, unsigned short ctlr_sel,
 				lut_config.sc_param_out.sci[0]);
 			buf += scnprintf(buf, PAGE_SIZE, "\n");
 			break;
-		case CTLR_SEL_RX:
+		case OSI_CTLR_SEL_RX:
 			buf += scnprintf(buf, PAGE_SIZE,
 				"%d.\tkey_idx_start: %d pn_max: %u pn_window: %u\n", i,
 				lut_config.sc_param_out.key_index_start,
@@ -1843,10 +1843,10 @@ static ssize_t macsec_sc_param_lut_show(struct device *dev,
 	}
 
 	buf += scnprintf(buf, PAGE_SIZE, "Tx:\n");
-	dump_sc_param_lut(&buf, CTLR_SEL_TX, osi_core);
+	dump_sc_param_lut(&buf, OSI_CTLR_SEL_TX, osi_core);
 
 	buf += scnprintf(buf, PAGE_SIZE, "Rx:\n");
-	dump_sc_param_lut(&buf, CTLR_SEL_RX, osi_core);
+	dump_sc_param_lut(&buf, OSI_CTLR_SEL_RX, osi_core);
 
 	return (buf - start);
 }
@@ -1873,7 +1873,7 @@ static ssize_t macsec_sc_param_lut_store(struct device *dev,
 	struct osi_macsec_lut_config lut_config = {0};
 	int index, ctlr;
 	int ret, i, tci, vlan_clear;
-	int sci[SCI_LEN] = {0};
+	int sci[OSI_SCI_LEN] = {0};
 	unsigned int pn_max, pn_threshold, key_index_start, pn_window;
 
 	if (!netif_running(ndev)) {
@@ -1892,26 +1892,25 @@ static ssize_t macsec_sc_param_lut_store(struct device *dev,
 		goto exit;
 	}
 
-	if ((index > SC_LUT_MAX_INDEX) ||
-	    (ctlr != CTLR_SEL_TX && ctlr != CTLR_SEL_RX) ||
-	    (key_index_start > KEY_INDEX_MAX) ||
+	if ((index > OSI_SC_LUT_MAX_INDEX) ||
+	    (ctlr != OSI_CTLR_SEL_TX && ctlr != OSI_CTLR_SEL_RX) ||
+	    (key_index_start > OSI_KEY_INDEX_MAX) ||
 	    (pn_threshold > pn_max)) {
 		dev_err(pdata->dev, "%s:Invalid inputs", __func__);
 		goto exit;
 	}
 
-	//TODO - need to lock. Since  lut_status is updated.
 	lut_config.table_config.ctlr_sel = ctlr;
-	lut_config.table_config.rw = LUT_WRITE;
+	lut_config.table_config.rw = OSI_LUT_WRITE;
 	lut_config.table_config.index = index;
-	lut_config.lut_sel = LUT_SEL_SC_PARAM;
+	lut_config.lut_sel = OSI_LUT_SEL_SC_PARAM;
 	lut_config.sc_param_out.key_index_start = key_index_start;
 	lut_config.sc_param_out.pn_max = pn_max;
 	lut_config.sc_param_out.pn_threshold = pn_threshold;
 	lut_config.sc_param_out.pn_window = pn_window;
 	lut_config.sc_param_out.tci = (unsigned char)tci;
 	lut_config.sc_param_out.vlan_in_clear = (unsigned char)vlan_clear;
-	for (i = 0; i < SCI_LEN; i++) {
+	for (i = 0; i < OSI_SCI_LEN; i++) {
 		lut_config.sc_param_out.sci[i] = (unsigned char)sci[i];
 	}
 

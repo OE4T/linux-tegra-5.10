@@ -5672,11 +5672,6 @@ static int ether_probe(struct platform_device *pdev)
 	struct net_device *ndev;
 	int ret = 0, i;
 
-#ifdef TEST
-	macsec_genl_register();
-	return 0;
-#endif /* TEST */
-
 	ether_get_num_dma_chan_mtl_q(pdev, &num_dma_chans,
 				     &mac, &num_mtl_queues);
 
@@ -5827,9 +5822,11 @@ static int ether_probe(struct platform_device *pdev)
 	if (ret < 0) {
 		dev_err(&pdev->dev, "failed to setup macsec\n");
 		goto err_macsec;
+	} else if (ret == 1) {
+		/* Nothing to do, macsec is not supported */
+		dev_info(&pdev->dev, "Macsec not supported\n");
 	} else {
-		; //Nothing to do, macsec is not supported
-		dev_info(&pdev->dev, "Macsec not enabled - ignore\n");
+		dev_info(&pdev->dev, "Macsec not enabled\n");
 	}
 
 #ifdef DEBUG_MACSEC
@@ -5926,10 +5923,6 @@ static int ether_remove(struct platform_device *pdev)
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 
 #ifdef MACSEC_SUPPORT
-#ifdef TEST
-	macsec_genl_unregister();
-	return 0;
-#endif /* TEST */
 	macsec_remove(pdata);
 #endif /* MACSEC_SUPPORT */
 
