@@ -25,7 +25,9 @@ obj-$(CONFIG_TEGRA_AON) += tegra-aon-ivc-echo.o
 obj-$(CONFIG_ARCH_TEGRA_18x_SOC) += tegra18_cpu_debugfs.o
 obj-$(CONFIG_TEGRA_PM_DEBUG) += pm.o
 obj-$(CONFIG_TEGRA_PM_DEBUG) += pm_debugfs.o
-obj-$(CONFIG_ARCH_TEGRA_18x_SOC) += reboot-t18x.o
+ifneq ($(filter y,$(CONFIG_ARCH_TEGRA_18x_SOC) $(CONFIG_ARCH_TEGRA_186_SOC)),)
+obj-y += reboot-t18x.o
+endif
 ifneq ($(filter y,$(CONFIG_ARCH_TEGRA_18x_SOC) $(CONFIG_ARCH_TEGRA_186_SOC)),)
 obj-y += pm-tegra186.o
 endif
