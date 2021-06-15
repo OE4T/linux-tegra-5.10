@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -62,6 +62,8 @@ static u32 nvgpu_vm_translate_linux_flags(struct gk20a *g, u32 flags)
 		core_flags |= NVGPU_VM_MAP_DIRECT_KIND_CTRL;
 	if (flags & NVGPU_AS_MAP_BUFFER_FLAGS_PLATFORM_ATOMIC)
 		core_flags |= NVGPU_VM_MAP_PLATFORM_ATOMIC;
+	if (flags & NVGPU_AS_MAP_BUFFER_FLAGS_TEGRA_RAW)
+		core_flags |= NVGPU_VM_MAP_TEGRA_RAW;
 
 	/* copy the map access bitfield from flags */
 	core_flags |= (flags & map_access_bitmask);

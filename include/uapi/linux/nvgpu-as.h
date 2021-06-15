@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -102,14 +102,15 @@ struct nvgpu_as_bind_channel_args {
  * chosen will be returned back to the caller in the 'page_size' parameter in
  * that case.
  */
-#define NVGPU_AS_MAP_BUFFER_FLAGS_FIXED_OFFSET	    (1 << 0)
-#define NVGPU_AS_MAP_BUFFER_FLAGS_CACHEABLE	    (1 << 2)
-#define NVGPU_AS_MAP_BUFFER_FLAGS_IO_COHERENT	    (1 << 4)
-#define NVGPU_AS_MAP_BUFFER_FLAGS_UNMAPPED_PTE	    (1 << 5)
-#define NVGPU_AS_MAP_BUFFER_FLAGS_MAPPABLE_COMPBITS (1 << 6)
-#define NVGPU_AS_MAP_BUFFER_FLAGS_L3_ALLOC          (1 << 7)
-#define NVGPU_AS_MAP_BUFFER_FLAGS_DIRECT_KIND_CTRL  (1 << 8)
-#define NVGPU_AS_MAP_BUFFER_FLAGS_PLATFORM_ATOMIC   (1 << 9)
+#define NVGPU_AS_MAP_BUFFER_FLAGS_FIXED_OFFSET		(1 << 0)
+#define NVGPU_AS_MAP_BUFFER_FLAGS_CACHEABLE		(1 << 2)
+#define NVGPU_AS_MAP_BUFFER_FLAGS_IO_COHERENT		(1 << 4)
+#define NVGPU_AS_MAP_BUFFER_FLAGS_UNMAPPED_PTE		(1 << 5)
+#define NVGPU_AS_MAP_BUFFER_FLAGS_MAPPABLE_COMPBITS	(1 << 6)
+#define NVGPU_AS_MAP_BUFFER_FLAGS_L3_ALLOC		(1 << 7)
+#define NVGPU_AS_MAP_BUFFER_FLAGS_DIRECT_KIND_CTRL	(1 << 8)
+#define NVGPU_AS_MAP_BUFFER_FLAGS_PLATFORM_ATOMIC	(1 << 9)
+#define NVGPU_AS_MAP_BUFFER_FLAGS_TEGRA_RAW		(1 << 12)
 
 #define NVGPU_AS_MAP_BUFFER_FLAGS_ACCESS_BITMASK_OFFSET    10U
 #define NVGPU_AS_MAP_BUFFER_FLAGS_ACCESS_BITMASK_SIZE      2U

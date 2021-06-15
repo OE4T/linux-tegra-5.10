@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -1060,7 +1060,15 @@ u64 nvgpu_gmmu_map_locked(struct vm_gk20a *vm,
 #endif
 #endif
 
-	attrs.l3_alloc = ((flags & NVGPU_VM_MAP_L3_ALLOC) != 0U);
+	attrs.l3_alloc  = ((flags & NVGPU_VM_MAP_L3_ALLOC)  != 0U);
+
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_TEGRA_RAW)) {
+#ifdef CONFIG_NVGPU_TRACE
+		nvgpu_gmmu_dbg_v(g, &attrs,
+			"TEGRA_RAW format is requested");
+#endif /* CONFIG_NVGPU_TRACE */
+		attrs.tegra_raw = ((flags & NVGPU_VM_MAP_TEGRA_RAW) != 0U);
+	}
 #if defined(CONFIG_NVGPU_NON_FUSA)
 	if (nvgpu_is_errata_present(g, NVGPU_ERRATA_3288192) &&
 							(attrs.l3_alloc)) {
