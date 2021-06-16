@@ -77,6 +77,8 @@
 #define ETHER_REGISTER_DUMP		56
 #define ETHER_STRUCTURE_DUMP		57
 #endif /* OSI_DEBUG */
+#define ETHER_CAP_TSC_PTP		58
+
 /** @} */
 
 /**
