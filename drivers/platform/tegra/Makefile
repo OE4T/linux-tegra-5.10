@@ -1,3 +1,5 @@
+# Copyright (c) 2014-2021, NVIDIA CORPORATION. All rights reserved.
+
 KBUILD_CFLAGS += -I$(srctree)/arch/arm/mach-tegra \
 		 -I$(srctree)/arch/arm/mach-tegra/include/ \
 		 -I$(srctree)/drivers/platform/tegra/ \
@@ -9,6 +11,10 @@ ccflags-y += -Werror
 obj-$(CONFIG_TEGRA_MCE) += mce/
 obj-$(CONFIG_NV_TEGRA_MC) += mc/
 obj-$(CONFIG_TEGRA_CBB_NOC) += cbb/
+obj-$(CONFIG_TEGRA_DCE) += dce/
+obj-$(CONFIG_TEGRA_SPE) += aon/
+obj-$(CONFIG_TEGRA_PSC) += psc/
+obj-$(CONFIG_TEGRA_SOC_HWPM) += hwpm/
 obj-$(CONFIG_ARCH_TEGRA_18x_SOC) += tegra18_speedo.o
 obj-$(CONFIG_TEGRA_DC) += panel-simulator.o
 obj-$(CONFIG_ARCH_TEGRA_18x_SOC) += tegra-roc.o
@@ -75,6 +81,10 @@ ifeq ($(CONFIG_HW_PERF_EVENTS), y)
 obj-$(CONFIG_ARCH_TEGRA_19x_SOC) += tegra19_perf_uncore.o
 endif
 
+endif
+
+ifdef CONFIG_ARCH_TEGRA_23x_SOC
+obj-$(CONFIG_HW_PERF_EVENTS) += uncore_pmu/
 endif
 
 obj-$(CONFIG_ARCH_TEGRA_210_SOC) += mselect.o

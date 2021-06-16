@@ -53,6 +53,13 @@ config TEGRA_GRHOST_NVJPG
           Driver for the Tegra NVJPG is an engine which
           can be used for JPEG encoding and decoding.
 
+config TEGRA_GRHOST_OFA
+        depends on TEGRA_GRHOST
+        bool "Tegra OFA support"
+        default y
+        help
+          Driver for the Tegra OFA is an engine which
+          can be used for optical flow/stereo acceleration.
 config TEGRA_GRHOST_TSEC
         depends on TEGRA_GRHOST
         bool "Tegra TSEC support"

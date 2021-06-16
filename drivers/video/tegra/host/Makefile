@@ -6,11 +6,6 @@ ccflags-y += -Idrivers/video/tegra/host
 ccflags-y += -Idrivers/devfreq
 ccflags-y += -Wno-multichar
 
-ifeq ($(CONFIG_TEGRA_T23X_GRHOST),y)
-ccflags-y += -I$(srctree.nvidia-t23x)/include
-ccflags-y += -I$(srctree.nvidia-t23x)/drivers/video/tegra/host
-endif
-
 ccflags-y += -Werror -Wno-vla
 
 nvhost-y += \
@@ -35,8 +30,21 @@ nvhost-y += \
 	t186/t186.o \
 	t194/t194.o
 
+nvhost-$(CONFIG_TEGRA_T23X_GRHOST) += \
+	t23x/t23x.o \
+	t239/t239.o \
+	riscv/riscv.o
+
+nvhost-$(CONFIG_TEGRA_GRHOST_OFA) += ofa/ofa.o
+
 nvhost-$(CONFIG_TEGRA_GRHOST_NVDEC) += nvdec/nvdec.o
+ifeq ($(CONFIG_TEGRA_T23X_GRHOST),y)
+nvhost-$(CONFIG_TEGRA_GRHOST_NVDEC) += nvdec/nvdec_t23x.o
+endif
 nvhost-$(CONFIG_TEGRA_GRHOST_TSEC) += tsec/tsec.o
+ifeq ($(CONFIG_TEGRA_T23X_GRHOST),y)
+nvhost-$(CONFIG_TEGRA_GRHOST_TSEC) += tsec/tsec_t23x.o
+endif
 
 nvhost-$(CONFIG_TEGRA_GRHOST_LEGACY_PD) += nvhost_pd.o
 ifeq ($(CONFIG_SYNC),y)
@@ -48,6 +56,9 @@ endif
 nvhost-$(CONFIG_TEGRA_GRHOST_GOS) += nvhost_gos.o
 nvhost-$(CONFIG_TEGRA_GRHOST_SCALE) += scale_emc.o nvhost_scale.o
 nvhost-$(CONFIG_TEGRA_GRHOST_VHOST) += vhost/vhost.o vhost/vhost_client.o
+ifeq ($(CONFIG_TEGRA_T23X_GRHOST),y)
+nvhost-$(CONFIG_TEGRA_GRHOST_VHOST) += vhost/vhost_t23x.o
+endif
 
 obj-$(CONFIG_TEGRA_GRHOST) += nvhost.o
 
