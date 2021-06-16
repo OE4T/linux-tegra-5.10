@@ -156,6 +156,58 @@ static int ether_set_avb_algo(struct net_device *ndev,
 }
 
 /**
+ * @brief Function to get TSC and PTP time capture. This function is called for
+ * ETHER_CAP_TSC_PTP
+ *
+ * Algorithm: Call OSI_CMD_CAP_TSC_PTP with user passed data
+ *
+ * @param[in] ndev: network device structure
+ * @param[in] ifdata: interface private data structure
+ *
+ * @note Ethernet interface need to be up. Caller should check for return
+ * value before using return value.
+ *
+ * @retval 0 on Success
+ * @retval "negative value" on Failure
+ */
+static int ether_get_tsc_ptp_cap(struct net_device *ndev,
+				 struct ether_ifr_data *ifdata)
+{
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_ioctl ioctl_data = {};
+	int ret;
+
+	if (!ifdata->ptr) {
+		dev_err(pdata->dev, "%s: Invalid data for priv ioctl %d\n",
+			__func__, ifdata->ifcmd);
+		return -EINVAL;
+	}
+
+	if (copy_from_user(&ioctl_data.ptp_tsc,
+			   (struct osi_core_ptp_tsc_data *)ifdata->ptr,
+			   sizeof(struct osi_core_ptp_tsc_data)) != 0U) {
+		dev_err(pdata->dev,
+			"Failed to fetch TSC Struct info from user\n");
+		return -EFAULT;
+	}
+
+	ioctl_data.cmd = OSI_CMD_CAP_TSC_PTP;
+	ret = osi_handle_ioctl(osi_core, &ioctl_data);
+	if (ret != 0) {
+		dev_err(pdata->dev,
+			"Failed to get TSC Struct info from registers\n");
+		return ret;
+	}
+	if (copy_to_user(ifdata->ptr, &ioctl_data.ptp_tsc,
+			 sizeof(struct osi_core_ptp_tsc_data)) != 0U) {
+		dev_err(pdata->dev, "%s: copy_to_user failed\n", __func__);
+		return -EFAULT;
+	}
+
+	return ret;
+}
+/**
  * @brief Function to get avb data from registers. This function is called for
  * EQOS_GET_AVB_ALGORITHM
  *
@@ -1252,6 +1304,9 @@ int ether_handle_priv_ioctl(struct net_device *ndev,
 		ret = osi_handle_ioctl(pdata->osi_core, &ioctl_data);
 		break;
 #endif
+	case ETHER_CAP_TSC_PTP:
+		ret = ether_get_tsc_ptp_cap(ndev, &ifdata);
+		break;
 	default:
 		break;
 	}
