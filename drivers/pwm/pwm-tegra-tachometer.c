@@ -216,7 +216,11 @@ static int pwm_tegra_tach_probe(struct platform_device *pdev)
 
 	ptt->clk = devm_clk_get(&pdev->dev, "tach");
 	if (IS_ERR(ptt->clk)) {
-		dev_err(&pdev->dev, "Tachometer clock get failed\n");
+		ret = PTR_ERR(ptt->clk);
+		if (ret != -EPROBE_DEFER) {
+			dev_err(&pdev->dev,
+				"Tachometer clock get failed: %d\n", ret);
+		}
 		return PTR_ERR(ptt->clk);
 	}
 
