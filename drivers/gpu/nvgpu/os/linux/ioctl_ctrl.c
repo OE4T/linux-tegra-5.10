@@ -474,10 +474,23 @@ static long gk20a_ctrl_ioctl_gpu_characteristics(
 	gpu.lts_per_ltc = nvgpu_ltc_get_slices_per_ltc(g);
 	gpu.cbc_cache_line_size = nvgpu_ltc_get_cacheline_size(g);
 
-	/* All nvgpu supported GPUs have 64 bit FBIO channel
-	 * So number of Sub partition per FBPA is always 0x2.
+	/*
+	 * TODO : Need to replace with proper HAL.
 	 */
-	gpu.num_sub_partition_per_fbpa = 0x2;
+	if (g->pci_device_id != (u16)0) {
+		/* All nvgpu supported dGPUs have 64 bit FBIO channel
+		 * So number of Sub partition per FBPA is always 0x2.
+		 * Half FBPA (32BIT channel mode) enablement
+		 * (1 sub partition per FBPA) is disabled for tegra dGPUs.
+		 */
+		gpu.num_sub_partition_per_fbpa = 0x2;
+	} else {
+		/*
+		 * All iGPUs don't have real FBPA/FBSP units at all.
+		 * So num_sub_partition_per_fbpa should be 0 for iGPUs.
+		 */
+		gpu.num_sub_partition_per_fbpa = 0x00;
+	}
 
 	if ((g->ops.clk.get_maxrate) && nvgpu_platform_is_silicon(g)) {
 		gpu.max_freq = g->ops.clk.get_maxrate(g,
