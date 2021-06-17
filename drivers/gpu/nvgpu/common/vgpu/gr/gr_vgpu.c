@@ -67,12 +67,6 @@
 #endif
 #include "common/gr/gr_priv.h"
 
-static int vgpu_gr_set_ctxsw_preemption_mode(struct gk20a *g,
-				struct nvgpu_gr_ctx *gr_ctx,
-				struct vm_gk20a *vm, u32 class,
-				u32 graphics_preempt_mode,
-				u32 compute_preempt_mode);
-
 void vgpu_gr_detect_sm_arch(struct gk20a *g)
 {
 	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
@@ -1135,171 +1129,6 @@ void vgpu_gr_init_cyclestats(struct gk20a *g)
 #endif
 }
 
-static int vgpu_gr_set_ctxsw_preemption_mode(struct gk20a *g,
-				struct nvgpu_gr_ctx *gr_ctx,
-				struct vm_gk20a *vm, u32 class,
-				u32 graphics_preempt_mode,
-				u32 compute_preempt_mode)
-{
-	struct tegra_vgpu_cmd_msg msg = {};
-	struct tegra_vgpu_gr_bind_ctxsw_buffers_params *p =
-				&msg.params.gr_bind_ctxsw_buffers;
-	int err = 0;
-
-#ifdef CONFIG_NVGPU_GRAPHICS
-	if (g->ops.gpu_class.is_valid_gfx(class) &&
-			g->gr->gr_ctx_desc->force_preemption_gfxp) {
-		graphics_preempt_mode = NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP;
-	}
-#endif
-
-#ifdef CONFIG_NVGPU_CILP
-	if (g->ops.gpu_class.is_valid_compute(class) &&
-			g->gr->gr_ctx_desc->force_preemption_cilp) {
-		compute_preempt_mode = NVGPU_PREEMPTION_MODE_COMPUTE_CILP;
-	}
-#endif
-
-	/* check for invalid combinations */
-	if ((graphics_preempt_mode == 0) && (compute_preempt_mode == 0)) {
-		return -EINVAL;
-	}
-
-#if defined(CONFIG_NVGPU_CILP) && defined(CONFIG_NVGPU_GRAPHICS)
-	if ((graphics_preempt_mode == NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP) &&
-		   (compute_preempt_mode == NVGPU_PREEMPTION_MODE_COMPUTE_CILP)) {
-		return -EINVAL;
-	}
-#endif
-
-	/* set preemption modes */
-	switch (graphics_preempt_mode) {
-#ifdef CONFIG_NVGPU_GRAPHICS
-	case NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP:
-	{
-		u32 spill_size = g->ops.gr.init.get_ctx_spill_size(g);
-		u32 pagepool_size = g->ops.gr.init.get_ctx_pagepool_size(g);
-		u32 betacb_size = g->ops.gr.init.get_ctx_betacb_size(g);
-		u32 attrib_cb_size =
-			g->ops.gr.init.get_ctx_attrib_cb_size(g, betacb_size,
-				nvgpu_gr_config_get_tpc_count(g->gr->config),
-				nvgpu_gr_config_get_max_tpc_count(g->gr->config));
-		u32 rtv_cb_size;
-		struct nvgpu_mem *desc;
-
-		nvgpu_log_info(g, "gfxp context preempt size=%d",
-			g->gr->falcon->sizes.preempt_image_size);
-		nvgpu_log_info(g, "gfxp context spill size=%d", spill_size);
-		nvgpu_log_info(g, "gfxp context pagepool size=%d", pagepool_size);
-		nvgpu_log_info(g, "gfxp context attrib cb size=%d",
-			attrib_cb_size);
-
-		nvgpu_gr_ctx_set_size(g->gr->gr_ctx_desc,
-			NVGPU_GR_CTX_SPILL_CTXSW, spill_size);
-		nvgpu_gr_ctx_set_size(g->gr->gr_ctx_desc,
-			NVGPU_GR_CTX_BETACB_CTXSW, attrib_cb_size);
-		nvgpu_gr_ctx_set_size(g->gr->gr_ctx_desc,
-			NVGPU_GR_CTX_PAGEPOOL_CTXSW, pagepool_size);
-
-		if (g->ops.gr.init.get_gfxp_rtv_cb_size != NULL) {
-			rtv_cb_size = g->ops.gr.init.get_gfxp_rtv_cb_size(g);
-			nvgpu_gr_ctx_set_size(g->gr->gr_ctx_desc,
-				NVGPU_GR_CTX_GFXP_RTVCB_CTXSW, rtv_cb_size);
-		}
-
-		err = nvgpu_gr_ctx_alloc_ctxsw_buffers(g, gr_ctx,
-			g->gr->gr_ctx_desc, vm);
-		if (err != 0) {
-			nvgpu_err(g, "cannot allocate ctxsw buffers");
-			goto fail;
-		}
-
-		desc = nvgpu_gr_ctx_get_preempt_ctxsw_buffer(gr_ctx);
-		p->gpu_va[TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_MAIN] = desc->gpu_va;
-		p->size[TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_MAIN] = desc->size;
-
-		desc = nvgpu_gr_ctx_get_spill_ctxsw_buffer(gr_ctx);
-		p->gpu_va[TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_SPILL] = desc->gpu_va;
-		p->size[TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_SPILL] = desc->size;
-
-		desc = nvgpu_gr_ctx_get_pagepool_ctxsw_buffer(gr_ctx);
-		p->gpu_va[TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_PAGEPOOL] =
-			desc->gpu_va;
-		p->size[TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_PAGEPOOL] = desc->size;
-
-		desc = nvgpu_gr_ctx_get_betacb_ctxsw_buffer(gr_ctx);
-		p->gpu_va[TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_BETACB] =
-			desc->gpu_va;
-		p->size[TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_BETACB] = desc->size;
-
-		desc = nvgpu_gr_ctx_get_gfxp_rtvcb_ctxsw_buffer(gr_ctx);
-		p->gpu_va[TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_RTVCB] =
-			desc->gpu_va;
-		p->size[TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_RTVCB] = desc->size;
-
-		nvgpu_gr_ctx_init_graphics_preemption_mode(gr_ctx,
-			NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP);
-		p->mode = TEGRA_VGPU_GR_CTXSW_PREEMPTION_MODE_GFX_GFXP;
-		break;
-	}
-#endif
-	case NVGPU_PREEMPTION_MODE_GRAPHICS_WFI:
-		nvgpu_gr_ctx_init_graphics_preemption_mode(gr_ctx,
-			graphics_preempt_mode);
-		break;
-
-	default:
-		break;
-	}
-
-	if (g->ops.gpu_class.is_valid_compute(class)) {
-		switch (compute_preempt_mode) {
-		case NVGPU_PREEMPTION_MODE_COMPUTE_WFI:
-			nvgpu_gr_ctx_init_compute_preemption_mode(gr_ctx,
-				NVGPU_PREEMPTION_MODE_COMPUTE_WFI);
-			p->mode = TEGRA_VGPU_GR_CTXSW_PREEMPTION_MODE_WFI;
-			break;
-		case NVGPU_PREEMPTION_MODE_COMPUTE_CTA:
-			nvgpu_gr_ctx_init_compute_preemption_mode(gr_ctx,
-				NVGPU_PREEMPTION_MODE_COMPUTE_CTA);
-			p->mode =
-				TEGRA_VGPU_GR_CTXSW_PREEMPTION_MODE_COMPUTE_CTA;
-			break;
-#ifdef CONFIG_NVGPU_CILP
-		case NVGPU_PREEMPTION_MODE_COMPUTE_CILP:
-			nvgpu_gr_ctx_init_compute_preemption_mode(gr_ctx,
-				NVGPU_PREEMPTION_MODE_COMPUTE_CILP);
-			p->mode =
-				TEGRA_VGPU_GR_CTXSW_PREEMPTION_MODE_COMPUTE_CILP;
-			break;
-#endif
-		default:
-			break;
-		}
-	}
-
-	if (
-#ifdef CONFIG_NVGPU_GRAPHICS
-		(nvgpu_gr_ctx_get_graphics_preemption_mode(gr_ctx) != 0U) ||
-#endif
-		(nvgpu_gr_ctx_get_compute_preemption_mode(gr_ctx) != 0U)) {
-		msg.cmd = TEGRA_VGPU_CMD_BIND_GR_CTXSW_BUFFERS;
-		msg.handle = vgpu_get_handle(g);
-		p->tsg_id = nvgpu_gr_ctx_get_tsgid(gr_ctx);
-		err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
-		if (err || msg.ret) {
-			err = -ENOMEM;
-			goto fail;
-		}
-	}
-
-	return err;
-
-fail:
-	nvgpu_err(g, "%s failed %d", __func__, err);
-	return err;
-}
-
 int vgpu_gr_set_preemption_mode(struct nvgpu_channel *ch,
 		u32 graphics_preempt_mode, u32 compute_preempt_mode,
 		u32 gr_instance_id)
@@ -1307,12 +1136,12 @@ int vgpu_gr_set_preemption_mode(struct nvgpu_channel *ch,
 	struct nvgpu_gr_ctx *gr_ctx;
 	struct gk20a *g = ch->g;
 	struct nvgpu_tsg *tsg;
-	struct vm_gk20a *vm;
-	u32 class;
+	struct tegra_vgpu_cmd_msg msg = {};
+	struct tegra_vgpu_preemption_mode_params *p =
+			&msg.params.preemption_mode;
 	int err;
 
-	class = ch->obj_class;
-	if (!class) {
+	if (!ch->obj_class) {
 		return -EINVAL;
 	}
 
@@ -1321,34 +1150,21 @@ int vgpu_gr_set_preemption_mode(struct nvgpu_channel *ch,
 		return -EINVAL;
 	}
 
-	vm = tsg->vm;
 	gr_ctx = tsg->gr_ctx;
 
-#ifdef CONFIG_NVGPU_GRAPHICS
-	/* skip setting anything if both modes are already set */
-	if (graphics_preempt_mode &&
-		(graphics_preempt_mode ==
-			nvgpu_gr_ctx_get_graphics_preemption_mode(gr_ctx))) {
-		graphics_preempt_mode = 0;
-	}
-#endif
+	msg.cmd = TEGRA_VGPU_CMD_SET_PREEMPTION_MODE;
+	msg.handle = vgpu_get_handle(g);
+	p->ch_handle = ch->virt_ctx;
+	p->graphics_preempt_mode = graphics_preempt_mode;
+	p->compute_preempt_mode = compute_preempt_mode;
+	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
+	err = err ? err : msg.ret;
 
-	if (compute_preempt_mode &&
-	   (compute_preempt_mode ==
-			nvgpu_gr_ctx_get_compute_preemption_mode(gr_ctx))) {
-		compute_preempt_mode = 0;
-	}
-
-	if (graphics_preempt_mode == 0 && compute_preempt_mode == 0) {
-		return 0;
-	}
-
-	err = vgpu_gr_set_ctxsw_preemption_mode(g, gr_ctx, vm, class,
-					graphics_preempt_mode,
-					compute_preempt_mode);
-	if (err) {
+	if (!err) {
+		gr_ctx->graphics_preempt_mode = graphics_preempt_mode;
+		gr_ctx->compute_preempt_mode = compute_preempt_mode;
+	} else {
 		nvgpu_err(g, "set_ctxsw_preemption_mode failed");
-		return err;
 	}
 
 	return err;

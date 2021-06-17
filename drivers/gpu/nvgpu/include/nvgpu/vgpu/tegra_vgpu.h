@@ -62,7 +62,6 @@ enum {
 	TEGRA_VGPU_CMD_ZBC_SET_TABLE = 31,
 	TEGRA_VGPU_CMD_ZBC_QUERY_TABLE = 32,
 	TEGRA_VGPU_CMD_AS_MAP_EX = 33,
-	TEGRA_VGPU_CMD_BIND_GR_CTXSW_BUFFERS = 34,
 	TEGRA_VGPU_CMD_SET_MMU_DEBUG_MODE = 35,
 	TEGRA_VGPU_CMD_SET_SM_DEBUG_MODE = 36,
 	TEGRA_VGPU_CMD_REG_OPS = 37,
@@ -119,6 +118,7 @@ enum {
 	TEGRA_VGPU_CMD_PROF_BIND_UNBIND = 94,
 	TEGRA_VGPU_CMD_PERF_UPDATE_GET_PUT = 95,
 	TEGRA_VGPU_CMD_ALLOC_OBJ_CTX = 96,
+	TEGRA_VGPU_CMD_SET_PREEMPTION_MODE = 97,
 };
 
 struct tegra_vgpu_connect_params {
@@ -269,30 +269,6 @@ struct tegra_vgpu_zbc_query_table_params {
 	u32 index_size;       /* [out] size, [in] index */
 };
 #endif
-
-enum {
-	TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_MAIN,
-	TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_SPILL,
-	TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_PAGEPOOL,
-	TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_BETACB,
-	TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_RTVCB,
-	TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_LAST
-};
-
-enum {
-	TEGRA_VGPU_GR_CTXSW_PREEMPTION_MODE_WFI,
-	TEGRA_VGPU_GR_CTXSW_PREEMPTION_MODE_GFX_GFXP,
-	TEGRA_VGPU_GR_CTXSW_PREEMPTION_MODE_COMPUTE_CTA,
-	TEGRA_VGPU_GR_CTXSW_PREEMPTION_MODE_COMPUTE_CILP,
-	TEGRA_VGPU_GR_CTXSW_PREEMPTION_MODE_LAST
-};
-
-struct tegra_vgpu_gr_bind_ctxsw_buffers_params {
-	u32 tsg_id;
-	u64 gpu_va[TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_LAST];
-	u64 size[TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_LAST];
-	u32 mode;
-};
 
 struct tegra_vgpu_mmu_debug_mode {
 	u32 enable;
@@ -676,6 +652,12 @@ struct tegra_vgpu_alloc_obj_ctx_params {
 	u32 sm_diversity_config;
 };
 
+struct tegra_vgpu_preemption_mode_params {
+	u64 ch_handle;
+	u32 graphics_preempt_mode;
+	u32 compute_preempt_mode;
+};
+
 struct tegra_vgpu_cmd_msg {
 	u32 cmd;
 	int ret;
@@ -699,7 +681,6 @@ struct tegra_vgpu_cmd_msg {
 		struct tegra_vgpu_zbc_set_table_params zbc_set_table;
 		struct tegra_vgpu_zbc_query_table_params zbc_query_table;
 #endif
-		struct tegra_vgpu_gr_bind_ctxsw_buffers_params gr_bind_ctxsw_buffers;
 		struct tegra_vgpu_mmu_debug_mode mmu_debug_mode;
 		struct tegra_vgpu_sm_debug_mode sm_debug_mode;
 		struct tegra_vgpu_reg_ops_params reg_ops;
@@ -745,6 +726,7 @@ struct tegra_vgpu_cmd_msg {
 		struct tegra_vgpu_prof_bind_unbind_params prof_bind_unbind;
 		struct tegra_vgpu_perf_update_get_put_params perf_updat_get_put;
 		struct tegra_vgpu_alloc_obj_ctx_params alloc_obj_ctx;
+		struct tegra_vgpu_preemption_mode_params preemption_mode;
 		char padding[184];
 	} params;
 };
