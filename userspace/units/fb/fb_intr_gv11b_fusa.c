@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -165,6 +165,8 @@ int fb_intr_gv11b_ecc_test(struct unit_module *m, struct gk20a *g, void *args)
 	default:
 		unit_return_fail(m, "Invalid subcase\n");
 	}
+
+	g->ops.ecc.ecc_init_support(g);
 
 	g->ops.fb.ecc.init(g);
 
