@@ -337,6 +337,8 @@ static int tegra210_mvc_get_format(struct snd_kcontrol *kcontrol,
 		ucontrol->value.integer.value[0] = mvc->format_in;
 	else if (strstr(kcontrol->id.name, "Audio Channels"))
 		ucontrol->value.integer.value[0] = mvc->cif_channels;
+	else if (strstr(kcontrol->id.name, "Bypass"))
+		ucontrol->value.integer.value[0] = mvc->bypass_mode;
 
 	return 0;
 }
@@ -353,6 +355,8 @@ static int tegra210_mvc_put_format(struct snd_kcontrol *kcontrol,
 		mvc->format_in = value;
 	else if (strstr(kcontrol->id.name, "Audio Channels"))
 		mvc->cif_channels = value;
+	else if (strstr(kcontrol->id.name, "Bypass"))
+		mvc->bypass_mode = value;
 
 	return 0;
 }
@@ -455,6 +459,11 @@ static int tegra210_mvc_hw_params(struct snd_pcm_substream *substream,
 	/* program duration_inv */
 	regmap_write(mvc->regmap, TEGRA210_MVC_DURATION_INV, mvc->duration_inv);
 
+	/* set bypass mode */
+	regmap_update_bits(mvc->regmap, TEGRA210_MVC_CTRL,
+			TEGRA210_MVC_BYPASS_MODE_MASK,
+			mvc->bypass_mode << TEGRA210_MVC_BYPASS_MODE_SHIFT);
+
 	return err;
 }
 
@@ -516,6 +525,8 @@ static const struct snd_kcontrol_new tegra210_mvc_vol_ctrl[] = {
 	SOC_SINGLE_EXT("Audio Channels", 0, 0, 8, 0,
 		tegra210_mvc_get_format, tegra210_mvc_put_format),
 	SOC_ENUM_EXT("Audio Bit Format", tegra210_mvc_format_enum,
+		tegra210_mvc_get_format, tegra210_mvc_put_format),
+	SOC_SINGLE_EXT("Bypass", TEGRA210_MVC_CTRL, 0, 1, 0,
 		tegra210_mvc_get_format, tegra210_mvc_put_format),
 };
 

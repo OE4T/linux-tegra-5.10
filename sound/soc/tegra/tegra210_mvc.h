@@ -81,6 +81,9 @@
 #define TEGRA210_MVC_INIT_VOL_DEFAULT_POLY	0x01000000
 #define TEGRA210_MVC_INIT_VOL_DEFAULT_LINEAR	0x00000000
 
+#define TEGRA210_MVC_BYPASS_MODE_SHIFT		31
+#define TEGRA210_MVC_BYPASS_MODE_MASK		(1 << TEGRA210_MVC_BYPASS_MODE_SHIFT)
+
 /* Fields in TEGRA210_MVC ram ctrl */
 #define TEGRA210_MVC_CFG_RAM_CTRL_RW_SHIFT		14
 #define TEGRA210_MVC_CFG_RAM_CTRL_RW_WRITE		(1 << TEGRA210_MVC_CFG_RAM_CTRL_RW_SHIFT)
@@ -113,6 +116,7 @@ struct tegra210_mvc {
 	unsigned int cif_channels;
 	unsigned int audio_bits;
 	unsigned int format_in;
+	bool bypass_mode;
 };
 
 #endif
