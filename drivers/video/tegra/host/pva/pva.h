@@ -270,7 +270,6 @@ struct pva {
 	u32 submit_task_mode;
 	u32 submit_cmd_mode;
 
-	u32 dbg_vpu_app_id;
 	u32 r5_dbg_wait;
 	bool timeout_enabled;
 	u32 slcg_disable;

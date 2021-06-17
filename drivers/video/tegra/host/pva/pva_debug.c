@@ -167,8 +167,8 @@ void pva_debugfs_init(struct platform_device *pdev)
 				&pva->debugfs_entry_vpu1, &pva_crashdump_fops);
 	debugfs_create_u32("submit_task_mode", S_IRUGO | S_IWUSR, de,
 				 &pva->submit_task_mode);
-	debugfs_create_u32("vpu_app_id", S_IRUGO | S_IWUSR, de,
-			   &pva->dbg_vpu_app_id);
+	debugfs_create_bool("vpu_debug", 0644, de,
+			   &pva->vpu_debug_enabled);
 	debugfs_create_u32("r5_dbg_wait", 0644, de,
 			   &pva->r5_dbg_wait);
 	debugfs_create_bool("r5_timeout_enable", 0644, de,
