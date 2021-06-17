@@ -1,7 +1,7 @@
 /*
  * GP10B L2
  *
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -56,7 +56,7 @@ int gp10b_lts_ecc_init(struct gk20a *g)
 init_lts_err:
 	if (err != 0) {
 		nvgpu_err(g, "ecc counter allocate failed, err=%d", err);
-		nvgpu_ecc_free(g);
+		nvgpu_ltc_ecc_free(g);
 	}
 
 	return err;

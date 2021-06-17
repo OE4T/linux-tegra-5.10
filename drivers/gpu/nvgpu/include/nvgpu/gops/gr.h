@@ -106,6 +106,27 @@ struct gops_gr_ecc {
 	int (*fecs_ecc_init)(struct gk20a *g);
 
 	/**
+	 * @brief Deinitialize GR unit ECC support.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 * This function deallocates memory to track the ecc error counts
+	 * for GR unit and subunits of GR (like GPCs, TPCs etc) and removes
+	 * it from global list.
+	 */
+	void (*gpc_tpc_ecc_deinit)(struct gk20a *g);
+
+	/**
+	 * @brief Deinitialize GR unit ECC support.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 * This function deallocates memory to track the ecc error counts
+	 * for FECS in GR and removes it from global list.
+	 */
+	void (*fecs_ecc_deinit)(struct gk20a *g);
+
+	/**
 	 * @brief Detect ECC enabled units in GR engine.
 	 *
 	 * @param g [in]		Pointer to GPU driver struct.

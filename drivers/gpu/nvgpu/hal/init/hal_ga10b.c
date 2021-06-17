@@ -394,6 +394,8 @@ static const struct gops_gr_ecc ga10b_ops_gr_ecc = {
 	.detect = ga10b_ecc_detect_enabled_units,
 	.gpc_tpc_ecc_init = ga10b_gr_gpc_tpc_ecc_init,
 	.fecs_ecc_init = gv11b_gr_fecs_ecc_init,
+	.gpc_tpc_ecc_deinit = ga10b_gr_gpc_tpc_ecc_deinit,
+	.fecs_ecc_deinit = gv11b_gr_fecs_ecc_deinit,
 #ifdef CONFIG_NVGPU_INJECT_HWERR
 	.get_mmu_err_desc = ga10b_gr_ecc_get_mmu_err_desc,
 	.get_gcc_err_desc = gv11b_gr_intr_get_gcc_err_desc,

@@ -1,7 +1,7 @@
 /*
  * GV11B FB ECC
  *
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -36,8 +36,8 @@ struct gk20a;
 #define NVGPU_ECC_COUNTER_INIT_FB(stat) \
 	nvgpu_ecc_counter_init(g, &g->ecc.fb.stat, #stat)
 
-#define NVGPU_ECC_COUNTER_FREE_FB(stat) \
-	nvgpu_kfree(g, g->ecc.fb.stat)
+#define NVGPU_ECC_COUNTER_FREE_FB(stat)	\
+	nvgpu_ecc_counter_deinit(g, &g->ecc.fb.stat)
 
 int gv11b_fb_ecc_init(struct gk20a *g);
 void gv11b_fb_ecc_free(struct gk20a *g);

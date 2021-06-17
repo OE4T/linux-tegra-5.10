@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,5 +27,6 @@ struct gk20a;
 
 void gp10b_ecc_detect_enabled_units(struct gk20a *g);
 int gp10b_gr_ecc_init(struct gk20a *g);
+void gp10b_gr_ecc_deinit(struct gk20a *g);
 
 #endif /* NVGPU_ECC_GP10B_H */

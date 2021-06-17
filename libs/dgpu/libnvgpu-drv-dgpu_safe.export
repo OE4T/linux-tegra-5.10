@@ -779,6 +779,7 @@ nvgpu_get_nvhost_dev
 nvgpu_free_nvhost_dev
 nvgpu_ecc_free
 nvgpu_ecc_counter_init
+nvgpu_ecc_counter_deinit
 nvgpu_ecc_finalize_support
 nvgpu_rc_fifo_recover
 nvgpu_rc_ctxsw_timeout

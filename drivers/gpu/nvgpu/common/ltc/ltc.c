@@ -126,6 +126,7 @@ int nvgpu_ecc_counter_init_per_lts(struct gk20a *g,
 	if (stats == NULL) {
 		return -ENOMEM;
 	}
+
 	for (ltc = 0; ltc < ltc_count; ltc++) {
 		stats[ltc] = nvgpu_kzalloc(g,
 			nvgpu_safe_mult_u64(sizeof(*stats[ltc]),
@@ -184,17 +185,45 @@ fail:
 void nvgpu_ltc_ecc_free(struct gk20a *g)
 {
 	struct nvgpu_ecc *ecc = &g->ecc;
-	u32 i;
+	struct nvgpu_ecc_stat *stat;
+	u32 slices_per_ltc;
+	u32 ltc_count;
+	u32 ltc, lts;
 
-	for (i = 0; i < nvgpu_ltc_get_ltc_count(g); i++) {
-		if (ecc->ltc.ecc_sec_count != NULL) {
-			nvgpu_kfree(g, ecc->ltc.ecc_sec_count[i]);
+	if (g->ltc == NULL) {
+		return;
+	}
+
+	ltc_count = nvgpu_ltc_get_ltc_count(g);
+	slices_per_ltc = nvgpu_ltc_get_slices_per_ltc(g);
+
+	for (ltc = 0; ltc < ltc_count; ltc++) {
+		if (ecc->ltc.ecc_sec_count != NULL &&
+		    ecc->ltc.ecc_sec_count[ltc] != NULL) {
+			for (lts = 0; lts < slices_per_ltc; lts++) {
+				stat = &ecc->ltc.ecc_sec_count[ltc][lts];
+				nvgpu_ecc_stat_del(g, stat);
+			}
+
+			nvgpu_kfree(g, ecc->ltc.ecc_sec_count[ltc]);
+			ecc->ltc.ecc_sec_count[ltc] = NULL;
 		}
 
-		if (ecc->ltc.ecc_ded_count != NULL) {
-			nvgpu_kfree(g, ecc->ltc.ecc_ded_count[i]);
+		if (ecc->ltc.ecc_ded_count != NULL &&
+		    ecc->ltc.ecc_ded_count[ltc] != NULL) {
+			for (lts = 0; lts < slices_per_ltc; lts++) {
+				stat = &ecc->ltc.ecc_ded_count[ltc][lts];
+				nvgpu_ecc_stat_del(g, stat);
+			}
+
+			nvgpu_kfree(g, ecc->ltc.ecc_ded_count[ltc]);
+			ecc->ltc.ecc_ded_count[ltc] = NULL;
 		}
 	}
+
 	nvgpu_kfree(g, ecc->ltc.ecc_sec_count);
+	ecc->ltc.ecc_sec_count = NULL;
+
 	nvgpu_kfree(g, ecc->ltc.ecc_ded_count);
+	ecc->ltc.ecc_ded_count = NULL;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -110,6 +110,8 @@ int test_ecc_finalize_support(struct unit_module *m,
  *   - Set counter name to string with invalid length equal to
  *     NVGPU_ECC_STAT_NAME_MAX_SIZE.
  *   - "nvgpu_ecc_counter_init" will truncate the counter name and return 0.
+ * - Test case #4
+ *   - Verify that the g->ecc.stats_list is empty.
  *
  * Output:
  * - UNIT_FAIL under the following conditions:

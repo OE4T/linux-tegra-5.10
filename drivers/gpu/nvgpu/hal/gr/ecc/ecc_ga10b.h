@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -36,5 +36,6 @@ struct nvgpu_hw_err_inject_info_desc *
 
 void ga10b_ecc_detect_enabled_units(struct gk20a *g);
 int ga10b_gr_gpc_tpc_ecc_init(struct gk20a *g);
+void ga10b_gr_gpc_tpc_ecc_deinit(struct gk20a *g);
 
 #endif /* NVGPU_ECC_GA10B_H */

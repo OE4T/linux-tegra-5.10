@@ -77,6 +77,7 @@
 
 #include <nvgpu/types.h>
 #include <nvgpu/list.h>
+#include <nvgpu/lock.h>
 
 #define NVGPU_ECC_STAT_NAME_MAX_SIZE	100UL
 
@@ -268,6 +269,8 @@ struct nvgpu_ecc {
 
 	/** Contains the head to the list of error statistics. */
 	struct nvgpu_list_node stats_list;
+	/** Lock to protect the stats_list updates. */
+	struct nvgpu_mutex stats_lock;
 	/** Contains the number of error statistics. */
 	int stats_count;
 	/**
@@ -281,28 +284,49 @@ struct nvgpu_ecc {
  * @brief Allocates, initializes an error counter with specified name.
  *
  * @param g [in] The GPU driver struct.
- * @param stat [out] Pointer to array of tpc error counters.
+ * @param statp [out] Pointer to error counter pointer.
  * @param name [in] Unique name for error counter.
  *
  * Allocate memory for one error counter, initializes the counter with 0 and the
- * specified string identifier. Finally the counter is added to the status_list
+ * specified string identifier. Finally the counter is added to the stats_list
  * of struct nvgpu_ecc.
  *
  * @return 0 in case of success, less than 0 for failure.
  * @return -ENOMEM if there is not enough memory to allocate ecc stats.
  */
 int nvgpu_ecc_counter_init(struct gk20a *g,
-		struct nvgpu_ecc_stat **stat, const char *name);
+		struct nvgpu_ecc_stat **statp, const char *name);
 
 /**
- * @brief Concatenates the error counter to status list.
+ * @brief Deallocates an error counter.
+ *
+ * @param g [in] The GPU driver struct.
+ * @param statp [in] Pointer to error counter pointer.
+ *
+ * Delete the counter from the nvgpu_ecc stats_list. Deallocate memory for the
+ * error counter.
+ */
+void nvgpu_ecc_counter_deinit(struct gk20a *g, struct nvgpu_ecc_stat **statp);
+
+/**
+ * @brief Concatenates the error counter to stats list.
  *
  * @param g [in] The GPU driver struct.
  * @param stat [in] Pointer to error counter.
  *
- * The counter is added to the status_list of struct nvgpu_ecc.
+ * The counter is added to the stats_list of struct nvgpu_ecc.
  */
 void nvgpu_ecc_stat_add(struct gk20a *g, struct nvgpu_ecc_stat *stat);
+
+/**
+ * @brief Deletes the error counter from the stats list.
+ *
+ * @param g [in] The GPU driver struct.
+ * @param stat [in] Pointer to error counter.
+ *
+ * The counter is removed from the stats_list of struct nvgpu_ecc.
+ */
+void nvgpu_ecc_stat_del(struct gk20a *g, struct nvgpu_ecc_stat *stat);
 
 /**
  * @brief Release memory associated with all error counters.

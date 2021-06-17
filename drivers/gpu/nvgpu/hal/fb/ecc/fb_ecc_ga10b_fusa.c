@@ -1,7 +1,7 @@
 /*
  * GA10B FB ECC
  *
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -50,61 +50,52 @@ int ga10b_fb_ecc_init(struct gk20a *g)
 
 	err = gv11b_fb_ecc_init(g);
 	if (err != 0) {
-		goto init_fb_gv11b_counters_fail;
+		goto init_fb_ecc_err;
 	}
 	err = NVGPU_ECC_COUNTER_INIT_FB(mmu_l2tlb_ecc_uncorrected_unique_err_count);
 	if (err != 0) {
-		goto init_l2tlb_ecc_uncorrected_unique_fail;
+		goto init_fb_ecc_err;
 	}
 	err = NVGPU_ECC_COUNTER_INIT_FB(mmu_l2tlb_ecc_corrected_unique_err_count);
 	if (err != 0) {
-		goto init_l2tlb_ecc_corrected_unique_fail;
+		goto init_fb_ecc_err;
 	}
 	err = NVGPU_ECC_COUNTER_INIT_FB(mmu_hubtlb_ecc_uncorrected_unique_err_count);
 	if (err != 0) {
-		goto init_hubtlb_ecc_uncorrected_unique_fail;
+		goto init_fb_ecc_err;
 	}
 	err = NVGPU_ECC_COUNTER_INIT_FB(mmu_hubtlb_ecc_corrected_unique_err_count);
 	if (err != 0) {
-		goto init_hubtlb_ecc_corrected_unique_fail;
+		goto init_fb_ecc_err;
 	}
 	err = NVGPU_ECC_COUNTER_INIT_FB(mmu_fillunit_ecc_uncorrected_unique_err_count);
 	if (err != 0) {
-		goto init_fillunit_ecc_uncorrected_unique_fail;
+		goto init_fb_ecc_err;
 	}
 	err = NVGPU_ECC_COUNTER_INIT_FB(mmu_fillunit_ecc_corrected_unique_err_count);
 	if (err != 0) {
-		goto init_fillunit_ecc_corrected_unique_fail;
+		goto init_fb_ecc_err;
 	}
 
-	return 0;
+init_fb_ecc_err:
 
-init_fillunit_ecc_corrected_unique_fail:
-	NVGPU_ECC_COUNTER_FREE_FB(mmu_fillunit_ecc_uncorrected_unique_err_count);
-init_fillunit_ecc_uncorrected_unique_fail:
-	NVGPU_ECC_COUNTER_FREE_FB(mmu_hubtlb_ecc_corrected_unique_err_count);
-init_hubtlb_ecc_corrected_unique_fail:
-	NVGPU_ECC_COUNTER_FREE_FB(mmu_hubtlb_ecc_uncorrected_unique_err_count);
-init_hubtlb_ecc_uncorrected_unique_fail:
-	NVGPU_ECC_COUNTER_FREE_FB(mmu_l2tlb_ecc_corrected_unique_err_count);
-init_l2tlb_ecc_corrected_unique_fail:
-	NVGPU_ECC_COUNTER_FREE_FB(mmu_l2tlb_ecc_uncorrected_unique_err_count);
-init_l2tlb_ecc_uncorrected_unique_fail:
-	gv11b_fb_ecc_free(g);
-init_fb_gv11b_counters_fail:
+	if (err != 0) {
+		nvgpu_err(g, "ecc counter allocate failed, err=%d", err);
+		ga10b_fb_ecc_free(g);
+	}
+
 	return err;
 }
 
 void ga10b_fb_ecc_free(struct gk20a *g)
 {
-	struct nvgpu_ecc *ecc = &g->ecc;
+	NVGPU_ECC_COUNTER_FREE_FB(mmu_l2tlb_ecc_corrected_unique_err_count);
+	NVGPU_ECC_COUNTER_FREE_FB(mmu_l2tlb_ecc_uncorrected_unique_err_count);
+	NVGPU_ECC_COUNTER_FREE_FB(mmu_hubtlb_ecc_corrected_unique_err_count);
+	NVGPU_ECC_COUNTER_FREE_FB(mmu_hubtlb_ecc_uncorrected_unique_err_count);
+	NVGPU_ECC_COUNTER_FREE_FB(mmu_fillunit_ecc_corrected_unique_err_count);
+	NVGPU_ECC_COUNTER_FREE_FB(mmu_fillunit_ecc_uncorrected_unique_err_count);
 
-	nvgpu_kfree(g, ecc->fb.mmu_l2tlb_ecc_corrected_unique_err_count);
-	nvgpu_kfree(g, ecc->fb.mmu_l2tlb_ecc_uncorrected_unique_err_count);
-	nvgpu_kfree(g, ecc->fb.mmu_hubtlb_ecc_corrected_unique_err_count);
-	nvgpu_kfree(g, ecc->fb.mmu_hubtlb_ecc_uncorrected_unique_err_count);
-	nvgpu_kfree(g, ecc->fb.mmu_fillunit_ecc_corrected_unique_err_count);
-	nvgpu_kfree(g, ecc->fb.mmu_fillunit_ecc_uncorrected_unique_err_count);
 	gv11b_fb_ecc_free(g);
 }
 

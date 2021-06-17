@@ -49,7 +49,7 @@ int nvgpu_ecc_counter_init_per_tpc(struct gk20a *g,
  * @param stat [in] Address of pointer to struct nvgpu_ecc_stat.
  *
  */
-#define NVGPU_ECC_COUNTER_INIT_PER_TPC(stat)		\
+#define NVGPU_ECC_COUNTER_INIT_PER_TPC_OR_RETURN(stat)		\
 	do {						\
 		int err = 0;				\
 		err = nvgpu_ecc_counter_init_per_tpc(g,	\
@@ -58,6 +58,27 @@ int nvgpu_ecc_counter_init_per_tpc(struct gk20a *g,
 			return err;			\
 		}					\
 	} while (false)
+
+/**
+ * @brief Free error counter of all tpc instances in all gpc instances.
+ *
+ * @param g [in] The GPU driver struct.
+ * @param stats_p [out] Pointer to 2D array of error counters in tpcs in gpcs.
+ *
+ * Removes the error counter of all gpc instances from stats_list in struct
+ * nvgpu_ecc and frees the memory allocated for it.
+ */
+void nvgpu_ecc_counter_deinit_per_tpc(struct gk20a *g,
+				      struct nvgpu_ecc_stat ***stats_p);
+
+/*
+ * @brief Frees counters for memories shared across a TPCs in GPCs.
+ *
+ * @param stat [in] error counter member from g->ecc.gr.
+ *
+ */
+#define NVGPU_ECC_COUNTER_DEINIT_PER_TPC(stat) \
+	nvgpu_ecc_counter_deinit_per_tpc(g, &g->ecc.gr.stat)
 
 /**
  * @brief Allocate and initialize error counter specified by name for all gpc
@@ -79,11 +100,32 @@ int nvgpu_ecc_counter_init_per_gpc(struct gk20a *g,
 /*
  * @brief Allocate and initialize counters for memories shared across a GPC.
  *
- * @param stat [in] Address of pointer to struct nvgpu_ecc_stat.
+ * @param stat [in] error counter member from g->ecc.gr.
  *
  */
 #define NVGPU_ECC_COUNTER_INIT_PER_GPC(stat) \
 	nvgpu_ecc_counter_init_per_gpc(g, &g->ecc.gr.stat, #stat)
+
+/**
+ * @brief Free error counter of all gpc instances.
+ *
+ * @param g [in] The GPU driver struct.
+ * @param stats_p [out] Pointer to array of gpc error counters.
+ *
+ * Removes the error counter of all gpc instances from stats_list in struct
+ * nvgpu_ecc and frees the memory allocated for it.
+ */
+void nvgpu_ecc_counter_deinit_per_gpc(struct gk20a *g,
+				      struct nvgpu_ecc_stat **stats_p);
+
+/*
+ * @brief Frees counters for memories shared across a GPC.
+ *
+ * @param stat [in] error counter member from g->ecc.gr.
+ *
+ */
+#define NVGPU_ECC_COUNTER_DEINIT_PER_GPC(stat) \
+	nvgpu_ecc_counter_deinit_per_gpc(g, &g->ecc.gr.stat)
 
 /**
  * @brief Allocate and initialize error counter specified by name for all gr
@@ -107,8 +149,29 @@ int nvgpu_ecc_counter_init_per_gr(struct gk20a *g,
  * @param stat [in] Address of pointer to struct nvgpu_ecc_stat.
  *
  */
-#define NVGPU_ECC_COUNTER_INIT_GR(stat) \
+#define NVGPU_ECC_COUNTER_INIT_PER_GR(stat) \
 	nvgpu_ecc_counter_init_per_gr(g, &g->ecc.gr.stat, #stat)
+
+/**
+ * @brief Free error counter of all gr instances.
+ *
+ * @param g [in] The GPU driver struct.
+ * @param stats_p [out] Pointer to array of gr error counters.
+ *
+ * Removes the error counter of all gr instances from stats_list in struct
+ * nvgpu_ecc and frees the memory allocated for it.
+ */
+void nvgpu_ecc_counter_deinit_per_gr(struct gk20a *g,
+				     struct nvgpu_ecc_stat **stats_p);
+
+/*
+ * @brief Frees counters for memories shared across a GR instances.
+ *
+ * @param stat [in] error counter member from g->ecc.gr.
+ *
+ */
+#define NVGPU_ECC_COUNTER_DEINIT_PER_GR(stat) \
+	nvgpu_ecc_counter_deinit_per_gr(g, &g->ecc.gr.stat)
 
 /**
  * @brief Release all GR ECC stats counters.

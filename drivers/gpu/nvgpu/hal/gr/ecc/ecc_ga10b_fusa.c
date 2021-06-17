@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -158,11 +158,40 @@ void ga10b_ecc_detect_enabled_units(struct gk20a *g)
 	}
 }
 
-int ga10b_gr_gpc_tpc_ecc_init(struct gk20a *g)
+static int _ga10b_gr_gpc_tpc_ecc_init(struct gk20a *g)
 {
-	gv11b_gr_gpc_tpc_ecc_init(g);
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_rams_ecc_corrected_err_count);
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_rams_ecc_uncorrected_err_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC_OR_RETURN(sm_rams_ecc_corrected_err_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC_OR_RETURN(sm_rams_ecc_uncorrected_err_count);
 
 	return 0;
+}
+
+int ga10b_gr_gpc_tpc_ecc_init(struct gk20a *g)
+{
+	int err;
+
+	err = gv11b_gr_gpc_tpc_ecc_init(g);
+	if (err != 0) {
+		goto done;
+	}
+
+	err = _ga10b_gr_gpc_tpc_ecc_init(g);
+	if (err != 0) {
+		goto done;
+	}
+
+done:
+	if (err != 0) {
+		nvgpu_err(g, "ecc counter allocate failed, err=%d", err);
+		ga10b_gr_gpc_tpc_ecc_deinit(g);
+	}
+
+	return 0;
+}
+
+void ga10b_gr_gpc_tpc_ecc_deinit(struct gk20a *g)
+{
+	gv11b_gr_gpc_tpc_ecc_deinit(g);
+	NVGPU_ECC_COUNTER_DEINIT_PER_TPC(sm_rams_ecc_corrected_err_count);
+	NVGPU_ECC_COUNTER_DEINIT_PER_TPC(sm_rams_ecc_uncorrected_err_count);
 }

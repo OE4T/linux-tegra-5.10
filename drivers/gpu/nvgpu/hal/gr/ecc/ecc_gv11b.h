@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -35,6 +35,8 @@ void gv11b_ecc_detect_enabled_units(struct gk20a *g);
 int gv11b_gr_gpc_tpc_ecc_init(struct gk20a *g);
 int gv11b_gr_fecs_ecc_init(struct gk20a *g);
 
+void gv11b_gr_gpc_tpc_ecc_deinit(struct gk20a *g);
+void gv11b_gr_fecs_ecc_deinit(struct gk20a *g);
 
 #ifdef CONFIG_NVGPU_INJECT_HWERR
 void gv11b_gr_intr_inject_fecs_ecc_error(struct gk20a *g,

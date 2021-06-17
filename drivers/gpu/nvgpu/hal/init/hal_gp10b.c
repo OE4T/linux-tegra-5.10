@@ -247,6 +247,7 @@ static const struct gops_ce gp10b_ops_ce = {
 static const struct gops_gr_ecc gp10b_ops_gr_ecc = {
 	.detect = gp10b_ecc_detect_enabled_units,
 	.gpc_tpc_ecc_init = gp10b_gr_ecc_init,
+	.gpc_tpc_ecc_deinit = gp10b_gr_ecc_deinit,
 };
 
 static const struct gops_gr_ctxsw_prog gp10b_ops_gr_ctxsw_prog = {

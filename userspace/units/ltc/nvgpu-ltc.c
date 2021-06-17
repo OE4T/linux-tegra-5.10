@@ -440,7 +440,6 @@ static int mock_l2_flush(struct gk20a *g, bool inv)
 int test_ltc_intr(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int err = UNIT_SUCCESS;
-	u32 i;
 	const u32 offset1 = nvgpu_get_litter_value(g, GPU_LIT_LTC_STRIDE) *
 			nvgpu_get_litter_value(g, GPU_LIT_LTS_STRIDE);
 	int (*save_func)(struct gk20a *g, bool inv);
@@ -560,15 +559,7 @@ int test_ltc_intr(struct unit_module *m, struct gk20a *g, void *args)
 	g->ops.mm.cache.l2_flush = save_func;
 
 done:
-	for (i = 0; i < nvgpu_ltc_get_ltc_count(g); i++) {
-		if (g->ecc.ltc.ecc_sec_count != NULL) {
-			nvgpu_kfree(g, g->ecc.ltc.ecc_sec_count[i]);
-		}
-
-		if (g->ecc.ltc.ecc_ded_count != NULL) {
-			nvgpu_kfree(g, g->ecc.ltc.ecc_ded_count[i]);
-		}
-	}
+	nvgpu_ltc_ecc_free(g);
 
 	return err;
 }

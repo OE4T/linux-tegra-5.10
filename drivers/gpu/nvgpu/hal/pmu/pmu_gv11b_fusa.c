@@ -328,7 +328,7 @@ int gv11b_pmu_ecc_init(struct gk20a *g)
 done:
 	if (err != 0) {
 		nvgpu_err(g, "ecc counter allocate failed, err=%d", err);
-		nvgpu_ecc_free(g);
+		gv11b_pmu_ecc_free(g);
 	}
 
 	return err;
@@ -336,10 +336,8 @@ done:
 
 void gv11b_pmu_ecc_free(struct gk20a *g)
 {
-	struct nvgpu_ecc *ecc = &g->ecc;
-
-	nvgpu_kfree(g, ecc->pmu.pmu_ecc_corrected_err_count);
-	nvgpu_kfree(g, ecc->pmu.pmu_ecc_uncorrected_err_count);
+	NVGPU_ECC_COUNTER_FREE_PMU(pmu_ecc_corrected_err_count);
+	NVGPU_ECC_COUNTER_FREE_PMU(pmu_ecc_uncorrected_err_count);
 }
 
 static void gv11b_pmu_handle_ecc_irq(struct gk20a *g)

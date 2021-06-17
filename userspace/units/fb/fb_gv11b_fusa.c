@@ -120,6 +120,8 @@ int fb_gv11b_init_test(struct unit_module *m, struct gk20a *g, void *args)
 		if (err != -ENOMEM) {
 			unit_return_fail(m, "gv11b_fb_ecc_init did not fail as expected (%d)\n", i);
 		}
+
+		g->ops.ecc.ecc_init_support(g);
 	}
 
 	err = g->ops.fb.ecc.init(g);

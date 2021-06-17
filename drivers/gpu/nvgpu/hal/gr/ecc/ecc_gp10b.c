@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -126,25 +126,25 @@ void gp10b_ecc_detect_enabled_units(struct gk20a *g)
 
 static int gp10b_ecc_init_tpc_sm(struct gk20a *g)
 {
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_lrf_ecc_single_err_count);
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_lrf_ecc_double_err_count);
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_shm_ecc_sec_count);
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_shm_ecc_sed_count);
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_shm_ecc_ded_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC_OR_RETURN(sm_lrf_ecc_single_err_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC_OR_RETURN(sm_lrf_ecc_double_err_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC_OR_RETURN(sm_shm_ecc_sec_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC_OR_RETURN(sm_shm_ecc_sed_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC_OR_RETURN(sm_shm_ecc_ded_count);
 
 	return 0;
 }
 
 static int gp10b_ecc_init_tpc_tex(struct gk20a *g)
 {
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(tex_ecc_total_sec_pipe0_count);
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(tex_ecc_total_ded_pipe0_count);
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(tex_unique_ecc_sec_pipe0_count);
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(tex_unique_ecc_ded_pipe0_count);
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(tex_ecc_total_sec_pipe1_count);
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(tex_ecc_total_ded_pipe1_count);
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(tex_unique_ecc_sec_pipe1_count);
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(tex_unique_ecc_ded_pipe1_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC_OR_RETURN(tex_ecc_total_sec_pipe0_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC_OR_RETURN(tex_ecc_total_ded_pipe0_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC_OR_RETURN(tex_unique_ecc_sec_pipe0_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC_OR_RETURN(tex_unique_ecc_ded_pipe0_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC_OR_RETURN(tex_ecc_total_sec_pipe1_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC_OR_RETURN(tex_ecc_total_ded_pipe1_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC_OR_RETURN(tex_unique_ecc_sec_pipe1_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC_OR_RETURN(tex_unique_ecc_ded_pipe1_count);
 
 	return 0;
 }
@@ -170,8 +170,36 @@ int gp10b_gr_ecc_init(struct gk20a *g)
 	err = gp10b_ecc_init_tpc(g);
 	if (err != 0) {
 		nvgpu_err(g, "ecc counter allocate failed, err=%d", err);
-		nvgpu_ecc_free(g);
+		gp10b_gr_ecc_deinit(g);
 	}
 
 	return err;
+}
+
+static void gp10b_ecc_deinit_tpc_sm(struct gk20a *g)
+{
+	NVGPU_ECC_COUNTER_DEINIT_PER_TPC(sm_lrf_ecc_single_err_count);
+	NVGPU_ECC_COUNTER_DEINIT_PER_TPC(sm_lrf_ecc_double_err_count);
+	NVGPU_ECC_COUNTER_DEINIT_PER_TPC(sm_shm_ecc_sec_count);
+	NVGPU_ECC_COUNTER_DEINIT_PER_TPC(sm_shm_ecc_sed_count);
+	NVGPU_ECC_COUNTER_DEINIT_PER_TPC(sm_shm_ecc_ded_count);
+}
+
+static void gp10b_ecc_deinit_tpc_tex(struct gk20a *g)
+{
+	NVGPU_ECC_COUNTER_DEINIT_PER_TPC(tex_ecc_total_sec_pipe0_count);
+	NVGPU_ECC_COUNTER_DEINIT_PER_TPC(tex_ecc_total_ded_pipe0_count);
+	NVGPU_ECC_COUNTER_DEINIT_PER_TPC(tex_unique_ecc_sec_pipe0_count);
+	NVGPU_ECC_COUNTER_DEINIT_PER_TPC(tex_unique_ecc_ded_pipe0_count);
+	NVGPU_ECC_COUNTER_DEINIT_PER_TPC(tex_ecc_total_sec_pipe1_count);
+	NVGPU_ECC_COUNTER_DEINIT_PER_TPC(tex_ecc_total_ded_pipe1_count);
+	NVGPU_ECC_COUNTER_DEINIT_PER_TPC(tex_unique_ecc_sec_pipe1_count);
+	NVGPU_ECC_COUNTER_DEINIT_PER_TPC(tex_unique_ecc_ded_pipe1_count);
+}
+
+void gp10b_gr_ecc_deinit(struct gk20a *g)
+{
+	gp10b_ecc_deinit_tpc_sm(g);
+
+	gp10b_ecc_deinit_tpc_tex(g);
 }

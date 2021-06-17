@@ -73,7 +73,7 @@ int gv11b_lts_ecc_init(struct gk20a *g)
 done:
 	if (err != 0) {
 		nvgpu_err(g, "ecc counter allocate failed, err=%d", err);
-		nvgpu_ecc_free(g);
+		nvgpu_ltc_ecc_free(g);
 	}
 
 	return err;

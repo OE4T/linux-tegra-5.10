@@ -996,7 +996,7 @@ int nvgpu_gr_alloc(struct gk20a *g)
 	 * FECS ECC errors during FECS load need to be handled and reported
 	 * using the ECC counters.
 	 */
-	if (g->ops.gr.ecc.fecs_ecc_init != NULL) {
+	if ((g->ops.gr.ecc.fecs_ecc_init != NULL) && !g->ecc.initialized) {
 		err = g->ops.gr.ecc.fecs_ecc_init(g);
 		if (err != 0) {
 			nvgpu_err(g, "failed to init gr fecs ecc");

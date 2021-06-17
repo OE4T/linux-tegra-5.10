@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -80,6 +80,7 @@ int nvgpu_ecc_counter_init_per_tpc(struct gk20a *g,
 	if (stats == NULL) {
 		return -ENOMEM;
 	}
+
 	for (gpc = 0; gpc < gpc_count; gpc++) {
 		stats[gpc] = nvgpu_kzalloc(g,
 			nvgpu_safe_mult_u64(sizeof(*stats[gpc]),
@@ -128,11 +129,10 @@ int nvgpu_ecc_counter_init_per_tpc(struct gk20a *g,
 
 fail:
 	if (err != 0) {
-#ifdef CONFIG_NVGPU_DGPU
 		while (gpc-- != 0u) {
 			nvgpu_kfree(g, stats[gpc]);
 		}
-#endif
+
 		nvgpu_kfree(g, stats);
 	}
 
@@ -178,85 +178,92 @@ int nvgpu_ecc_counter_init_per_gpc(struct gk20a *g,
 	return 0;
 }
 
-/* helper function that frees the count array if non-NULL. */
-static void free_ecc_stat_count_array(struct gk20a *g,
-				      struct nvgpu_ecc_stat **stat,
-				      u32 gpc_count)
+void nvgpu_ecc_counter_deinit_per_gr(struct gk20a *g,
+				     struct nvgpu_ecc_stat **stats_p)
 {
+	struct nvgpu_ecc_stat *stats = NULL;
 	u32 i;
 
-	if (stat != NULL) {
-		for (i = 0; i < gpc_count; i++) {
-			nvgpu_kfree(g, stat[i]);
+	if (*stats_p != NULL) {
+		stats = *stats_p;
+
+		for (i = 0; i < g->num_gr_instances; i++) {
+			nvgpu_ecc_stat_del(g, &stats[i]);
 		}
-		nvgpu_kfree(g, stat);
+
+		nvgpu_kfree(g, stats);
+		*stats_p = NULL;
+	}
+}
+
+void nvgpu_ecc_counter_deinit_per_tpc(struct gk20a *g,
+				      struct nvgpu_ecc_stat ***stats_p)
+{
+	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
+	struct nvgpu_ecc_stat **stats = NULL;
+	u32 gpc_count;
+	u32 gpc, tpc;
+
+	if (*stats_p != NULL) {
+		gpc_count = nvgpu_gr_config_get_gpc_count(gr_config);
+		stats = *stats_p;
+
+		for (gpc = 0; gpc < gpc_count; gpc++) {
+			if (stats[gpc] == NULL) {
+				continue;
+			}
+
+			for (tpc = 0;
+			     tpc < nvgpu_gr_config_get_gpc_tpc_count(gr_config, gpc);
+			     tpc++) {
+				nvgpu_ecc_stat_del(g, &stats[gpc][tpc]);
+			}
+
+			nvgpu_kfree(g, stats[gpc]);
+			stats[gpc] = NULL;
+		}
+
+		nvgpu_kfree(g, stats);
+		*stats_p = NULL;
+	}
+}
+
+void nvgpu_ecc_counter_deinit_per_gpc(struct gk20a *g,
+				      struct nvgpu_ecc_stat **stats_p)
+{
+	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
+	struct nvgpu_ecc_stat *stats = NULL;
+	u32 gpc_count;
+	u32 gpc;
+
+	if (*stats_p != NULL) {
+		gpc_count = nvgpu_gr_config_get_gpc_count(gr_config);
+		stats = *stats_p;
+
+		for (gpc = 0; gpc < gpc_count; gpc++) {
+			nvgpu_ecc_stat_del(g, &stats[gpc]);
+		}
+
+		nvgpu_kfree(g, stats);
+		*stats_p = NULL;
 	}
 }
 
 void nvgpu_gr_ecc_free(struct gk20a *g)
 {
-	struct nvgpu_ecc *ecc = &g->ecc;
 	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
-	u32 gpc_count;
+
+	nvgpu_log(g, gpu_dbg_gr, " ");
 
 	if (gr_config == NULL) {
 		return;
 	}
 
-	gpc_count = nvgpu_gr_config_get_gpc_count(gr_config);
+	if (g->ops.gr.ecc.fecs_ecc_deinit != NULL) {
+		g->ops.gr.ecc.fecs_ecc_deinit(g);
+	}
 
-	free_ecc_stat_count_array(g, ecc->gr.sm_lrf_ecc_single_err_count,
-				  gpc_count);
-	free_ecc_stat_count_array(g, ecc->gr.sm_lrf_ecc_double_err_count,
-				  gpc_count);
-	free_ecc_stat_count_array(g, ecc->gr.sm_shm_ecc_sec_count,
-				  gpc_count);
-	free_ecc_stat_count_array(g, ecc->gr.sm_shm_ecc_sed_count,
-				  gpc_count);
-	free_ecc_stat_count_array(g, ecc->gr.sm_shm_ecc_ded_count,
-				  gpc_count);
-	free_ecc_stat_count_array(g, ecc->gr.tex_ecc_total_sec_pipe0_count,
-				  gpc_count);
-	free_ecc_stat_count_array(g, ecc->gr.tex_ecc_total_ded_pipe0_count,
-				  gpc_count);
-	free_ecc_stat_count_array(g, ecc->gr.tex_unique_ecc_sec_pipe0_count,
-				  gpc_count);
-	free_ecc_stat_count_array(g, ecc->gr.tex_unique_ecc_ded_pipe0_count,
-				  gpc_count);
-	free_ecc_stat_count_array(g, ecc->gr.tex_ecc_total_sec_pipe1_count,
-				  gpc_count);
-	free_ecc_stat_count_array(g, ecc->gr.tex_ecc_total_ded_pipe1_count,
-				  gpc_count);
-	free_ecc_stat_count_array(g, ecc->gr.tex_unique_ecc_sec_pipe1_count,
-				  gpc_count);
-	free_ecc_stat_count_array(g, ecc->gr.tex_unique_ecc_ded_pipe1_count,
-				  gpc_count);
-	free_ecc_stat_count_array(g, ecc->gr.sm_l1_tag_ecc_corrected_err_count,
-				  gpc_count);
-	free_ecc_stat_count_array(g,
-				  ecc->gr.sm_l1_tag_ecc_uncorrected_err_count,
-				  gpc_count);
-	free_ecc_stat_count_array(g, ecc->gr.sm_cbu_ecc_corrected_err_count,
-				  gpc_count);
-	free_ecc_stat_count_array(g, ecc->gr.sm_cbu_ecc_uncorrected_err_count,
-				  gpc_count);
-	free_ecc_stat_count_array(g, ecc->gr.sm_l1_data_ecc_corrected_err_count,
-				  gpc_count);
-	free_ecc_stat_count_array(g,
-				  ecc->gr.sm_l1_data_ecc_uncorrected_err_count,
-				  gpc_count);
-	free_ecc_stat_count_array(g, ecc->gr.sm_icache_ecc_corrected_err_count,
-				  gpc_count);
-	free_ecc_stat_count_array(g,
-				  ecc->gr.sm_icache_ecc_uncorrected_err_count,
-				  gpc_count);
-
-	nvgpu_kfree(g, ecc->gr.gcc_l15_ecc_corrected_err_count);
-	nvgpu_kfree(g, ecc->gr.gcc_l15_ecc_uncorrected_err_count);
-	nvgpu_kfree(g, ecc->gr.gpccs_ecc_corrected_err_count);
-	nvgpu_kfree(g, ecc->gr.gpccs_ecc_uncorrected_err_count);
-	nvgpu_kfree(g, ecc->gr.mmu_l1tlb_ecc_corrected_err_count);
-	nvgpu_kfree(g, ecc->gr.mmu_l1tlb_ecc_uncorrected_err_count);
-	nvgpu_kfree(g, ecc->gr.fecs_ecc_corrected_err_count);
-	nvgpu_kfree(g, ecc->gr.fecs_ecc_uncorrected_err_count);
+	if (g->ops.gr.ecc.gpc_tpc_ecc_deinit != NULL) {
+		g->ops.gr.ecc.gpc_tpc_ecc_deinit(g);
+	}
 }

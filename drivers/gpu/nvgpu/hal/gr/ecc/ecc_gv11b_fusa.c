@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -177,20 +177,20 @@ void gv11b_ecc_detect_enabled_units(struct gk20a *g)
 
 static int gv11b_ecc_init_sm_corrected_err_count(struct gk20a *g)
 {
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_l1_tag_ecc_corrected_err_count);
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_cbu_ecc_corrected_err_count);
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_l1_data_ecc_corrected_err_count);
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_icache_ecc_corrected_err_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC_OR_RETURN(sm_l1_tag_ecc_corrected_err_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC_OR_RETURN(sm_cbu_ecc_corrected_err_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC_OR_RETURN(sm_l1_data_ecc_corrected_err_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC_OR_RETURN(sm_icache_ecc_corrected_err_count);
 
 	return 0;
 }
 
 static int gv11b_ecc_init_sm_uncorrected_err_count(struct gk20a *g)
 {
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_l1_tag_ecc_uncorrected_err_count);
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_cbu_ecc_uncorrected_err_count);
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_l1_data_ecc_uncorrected_err_count);
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_icache_ecc_uncorrected_err_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC_OR_RETURN(sm_l1_tag_ecc_uncorrected_err_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC_OR_RETURN(sm_cbu_ecc_uncorrected_err_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC_OR_RETURN(sm_l1_data_ecc_uncorrected_err_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC_OR_RETURN(sm_icache_ecc_uncorrected_err_count);
 
 	return 0;
 }
@@ -199,8 +199,8 @@ static int gv11b_ecc_init_tpc(struct gk20a *g)
 {
 	int ret;
 
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_lrf_ecc_single_err_count);
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_lrf_ecc_double_err_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC_OR_RETURN(sm_lrf_ecc_single_err_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC_OR_RETURN(sm_lrf_ecc_double_err_count);
 
 	ret = gv11b_ecc_init_sm_corrected_err_count(g);
 	if (ret != 0) {
@@ -268,22 +268,23 @@ int gv11b_gr_gpc_tpc_ecc_init(struct gk20a *g)
 done:
 	if (err != 0) {
 		nvgpu_err(g, "ecc counter allocate failed, err=%d", err);
-		nvgpu_ecc_free(g);
+		gv11b_gr_gpc_tpc_ecc_deinit(g);
 	}
 
 	return err;
 }
+
 int gv11b_gr_fecs_ecc_init(struct gk20a *g)
 {
 	int err;
 
 	nvgpu_log(g, gpu_dbg_gr, " ");
 
-	err = NVGPU_ECC_COUNTER_INIT_GR(fecs_ecc_uncorrected_err_count);
+	err = NVGPU_ECC_COUNTER_INIT_PER_GR(fecs_ecc_uncorrected_err_count);
 	if (err != 0) {
 		goto done;
 	}
-	err = NVGPU_ECC_COUNTER_INIT_GR(fecs_ecc_corrected_err_count);
+	err = NVGPU_ECC_COUNTER_INIT_PER_GR(fecs_ecc_corrected_err_count);
 	if (err != 0) {
 		goto done;
 	}
@@ -291,8 +292,60 @@ int gv11b_gr_fecs_ecc_init(struct gk20a *g)
 done:
 	if (err != 0) {
 		nvgpu_err(g, "ecc counter allocate failed, err=%d", err);
-		nvgpu_ecc_free(g);
+		gv11b_gr_fecs_ecc_deinit(g);
 	}
 
 	return err;
+}
+
+static void gv11b_ecc_deinit_sm_corrected_err_count(struct gk20a *g)
+{
+	NVGPU_ECC_COUNTER_DEINIT_PER_TPC(sm_l1_tag_ecc_corrected_err_count);
+	NVGPU_ECC_COUNTER_DEINIT_PER_TPC(sm_cbu_ecc_corrected_err_count);
+	NVGPU_ECC_COUNTER_DEINIT_PER_TPC(sm_l1_data_ecc_corrected_err_count);
+	NVGPU_ECC_COUNTER_DEINIT_PER_TPC(sm_icache_ecc_corrected_err_count);
+}
+
+static void gv11b_ecc_deinit_sm_uncorrected_err_count(struct gk20a *g)
+{
+	NVGPU_ECC_COUNTER_DEINIT_PER_TPC(sm_l1_tag_ecc_uncorrected_err_count);
+	NVGPU_ECC_COUNTER_DEINIT_PER_TPC(sm_cbu_ecc_uncorrected_err_count);
+	NVGPU_ECC_COUNTER_DEINIT_PER_TPC(sm_l1_data_ecc_uncorrected_err_count);
+	NVGPU_ECC_COUNTER_DEINIT_PER_TPC(sm_icache_ecc_uncorrected_err_count);
+}
+
+static void gv11b_ecc_deinit_tpc(struct gk20a *g)
+{
+	NVGPU_ECC_COUNTER_DEINIT_PER_TPC(sm_lrf_ecc_single_err_count);
+	NVGPU_ECC_COUNTER_DEINIT_PER_TPC(sm_lrf_ecc_double_err_count);
+
+	gv11b_ecc_deinit_sm_corrected_err_count(g);
+	gv11b_ecc_deinit_sm_uncorrected_err_count(g);
+}
+
+static void gv11b_ecc_deinit_gpc(struct gk20a *g)
+{
+	NVGPU_ECC_COUNTER_DEINIT_PER_GPC(gcc_l15_ecc_corrected_err_count);
+	NVGPU_ECC_COUNTER_DEINIT_PER_GPC(gcc_l15_ecc_uncorrected_err_count);
+	NVGPU_ECC_COUNTER_DEINIT_PER_GPC(gpccs_ecc_uncorrected_err_count);
+	NVGPU_ECC_COUNTER_DEINIT_PER_GPC(gpccs_ecc_corrected_err_count);
+	NVGPU_ECC_COUNTER_DEINIT_PER_GPC(mmu_l1tlb_ecc_uncorrected_err_count);
+	NVGPU_ECC_COUNTER_DEINIT_PER_GPC(mmu_l1tlb_ecc_corrected_err_count);
+}
+
+void gv11b_gr_gpc_tpc_ecc_deinit(struct gk20a *g)
+{
+	nvgpu_log(g, gpu_dbg_gr, " ");
+
+	gv11b_ecc_deinit_tpc(g);
+
+	gv11b_ecc_deinit_gpc(g);
+}
+
+void gv11b_gr_fecs_ecc_deinit(struct gk20a *g)
+{
+	nvgpu_log(g, gpu_dbg_gr, " ");
+
+	NVGPU_ECC_COUNTER_DEINIT_PER_GR(fecs_ecc_uncorrected_err_count);
+	NVGPU_ECC_COUNTER_DEINIT_PER_GR(fecs_ecc_corrected_err_count);
 }

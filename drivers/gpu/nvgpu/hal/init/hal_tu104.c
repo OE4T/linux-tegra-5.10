@@ -368,6 +368,8 @@ static const struct gops_gr_ecc tu104_ops_gr_ecc = {
 	.detect = NULL,
 	.gpc_tpc_ecc_init = gv11b_gr_gpc_tpc_ecc_init,
 	.fecs_ecc_init = gv11b_gr_fecs_ecc_init,
+	.gpc_tpc_ecc_deinit = gv11b_gr_gpc_tpc_ecc_deinit,
+	.fecs_ecc_deinit = gv11b_gr_fecs_ecc_deinit,
 };
 
 static const struct gops_gr_ctxsw_prog tu104_ops_gr_ctxsw_prog = {

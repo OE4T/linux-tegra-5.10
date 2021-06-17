@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -121,7 +121,7 @@ int test_ecc_counter_init(struct unit_module *m, struct gk20a *g,
 		ret = UNIT_FAIL;
 		goto cleanup;
 	}
-	nvgpu_kfree(g, stat);
+	nvgpu_ecc_counter_deinit(g, &stat);
 
 	/*
 	 * Case #2:
@@ -147,12 +147,17 @@ int test_ecc_counter_init(struct unit_module *m, struct gk20a *g,
 		ret = UNIT_FAIL;
 		goto cleanup;
 	}
-	nvgpu_kfree(g, stat);
-	stat = NULL;
+
+	nvgpu_ecc_counter_deinit(g, &stat);
+
+	if (!nvgpu_list_empty(&g->ecc.stats_list)) {
+		ret = UNIT_FAIL;
+		goto cleanup;
+	}
 
 cleanup:
 	if (stat != NULL) {
-		nvgpu_kfree(g, stat);
+		nvgpu_ecc_counter_deinit(g, &stat);
 	}
 	nvgpu_kfree(g, name);
 
