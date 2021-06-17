@@ -26,7 +26,7 @@
 		/* tegra194 central actmon */
 		compatible = "nvidia,tegra194-cactmon";
 		reg = <0x0 0x0d230000 0x0 0x1000>; /* ACTMON_BASE */
-		interrupts = <0 TEGRA194_IRQ_ACTMON IRQ_TYPE_LEVEL_HIGH>;
+		interrupts = <0 TEGRA234_IRQ_ACTMON IRQ_TYPE_LEVEL_HIGH>;
 		clocks = <&bpmp_clks TEGRA234_CLK_ACTMON>;
 		clock-names = "actmon";
 		resets = <&bpmp_resets TEGRA234_RESET_ACTMON>;

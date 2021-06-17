@@ -20,7 +20,7 @@
  *                            without the new change, boot to shell is broken.
  */
 
-#include "dt-bindings/interrupt/tegra194-irq.h"
+#include "dt-bindings/interrupt/tegra234-irq.h"
 #include "dt-bindings/interrupt-controller/arm-gic.h"
 #include "dt-bindings/interrupt-controller/tegra-t23x-agic.h"
 #include <dt-bindings/version.h>

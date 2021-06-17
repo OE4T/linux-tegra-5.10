@@ -52,7 +52,7 @@
 		resets = <&bpmp_resets TEGRA234_RESET_RCE_ALL>;
 		reset-names = "rce-all";
 
-		interrupts = <0 TEGRA194_IRQ_RCE_WDT_REMOTE 0x4>;
+		interrupts = <0 TEGRA234_IRQ_RCE_WDT_REMOTE 0x4>;
 		interrupt-names = "wdt-remote";
 
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_RCE>;

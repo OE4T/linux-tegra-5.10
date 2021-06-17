@@ -17,7 +17,7 @@
 #include <dt-bindings/clock/tegra234-clock.h>
 #include <dt-bindings/memory/tegra234-mc.h>
 #include <dt-bindings/reset/tegra234-reset.h>
-#include <dt-bindings/interrupt/tegra194-irq.h>
+#include <dt-bindings/interrupt/tegra234-irq.h>
 #include "tegra234-pin-drive-sdmmc-common.dtsi"
 
 / {
@@ -33,7 +33,7 @@
 	sdmmc4: sdhci@3460000 { /* Used for eMMC */
 		compatible = "nvidia,tegra234-sdhci","nvidia,tegra194-sdhci";
 		reg = <0x0 0x3460000 0x0 0x00020000>;
-		interrupts = < 0 TEGRA194_IRQ_SDMMC4 0x04>;
+		interrupts = < 0 TEGRA234_IRQ_SDMMC4 0x04>;
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		interconnects = <&mc TEGRA234_MEMORY_CLIENT_SDMMCRAB>,
 				<&mc TEGRA234_MEMORY_CLIENT_SDMMCWAB>;
@@ -91,7 +91,7 @@
 	sdmmc1: sdhci@3400000 {
 		compatible = "nvidia,tegra234-sdhci", "nvidia,tegra194-sdhci";
 		reg = <0x0 0x3400000 0x0 0x00020000>;
-		interrupts = < 0 TEGRA194_IRQ_SDMMC1 0x04>;
+		interrupts = < 0 TEGRA234_IRQ_SDMMC1 0x04>;
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		interconnects = <&mc TEGRA234_MEMORY_CLIENT_SDMMCRA>,
 				<&mc TEGRA234_MEMORY_CLIENT_SDMMCWA>;
