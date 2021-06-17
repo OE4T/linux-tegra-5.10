@@ -485,7 +485,7 @@
 		status = "disabled";
 	};
 
-	tegra_tachometer: tachometer@39c0000 {
+	tegra_tachometer0: tachometer@39c0000 {
 		compatible = "nvidia,pwm-tegra234-tachometer";
 		reg = <0x0 0x039c0000 0x0 0x10>;
 		#pwm-cells = <2>;
@@ -512,18 +512,6 @@
 		pulse-per-rev = <2>;
 		capture-window-length = <2>;
 		disable-clk-gate;
-		status = "disabled";
-	};
-
-	generic_pwm_tachometer {
-		compatible = "generic-pwm-tachometer";
-		pwms = <&tegra_tachometer 0 1000000>;
-		status = "disabled";
-	};
-
-	generic_pwm_tachometer1 {
-		compatible = "generic-pwm-tachometer";
-		pwms = <&tegra_tachometer1 0 1000000>;
 		status = "disabled";
 	};
 
