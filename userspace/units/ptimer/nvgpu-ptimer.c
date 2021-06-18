@@ -262,65 +262,45 @@ int test_ptimer_scaling(struct unit_module *m,
 			struct gk20a *g, void *args)
 {
 	int ret = UNIT_SUCCESS;
+	int err;
 	u32 val;
 
-	val = scale_ptimer(100, 20);
-	if (val != 50) {
-		unit_err(m, "ptimer scale calculation incorrect\n");
+	/* Initialize ptimer source freq as per gv11b platform freq */
+	g->ptimer_src_freq = 31250000U;
+
+	err = nvgpu_ptimer_scale(g, 0U, &val);
+	if ((err != 0) || (val != 0U)) {
+		unit_err(m, "ptimer scale calculation incorrect, line %u\n", __LINE__);
 		ret = UNIT_FAIL;
 	}
 
-	val = scale_ptimer(111, 20);
-	if (val != 56) {
-		unit_err(m, "ptimer scale calculation incorrect\n");
+	err = nvgpu_ptimer_scale(g, 1000U, &val);
+	if ((err != 0) || (val != 1000U)) {
+		unit_err(m, "ptimer scale calculation incorrect, line %u\n", __LINE__);
 		ret = UNIT_FAIL;
 	}
 
-	val = scale_ptimer(U32_MAX/10, 20);
-	if (val != (U32_MAX/20)+1) {
-		unit_err(m, "ptimer scale calculation incorrect\n");
+	err = nvgpu_ptimer_scale(g, U32_MAX / 10, &val);
+	if ((err != 0) || (val !=  (U32_MAX / 10))) {
+		unit_err(m, "ptimer scale calculation incorrect, line %u\n", __LINE__);
 		ret = UNIT_FAIL;
 	}
 
-	val = scale_ptimer(0, U32_MAX);
-	if (val != 0) {
-		unit_err(m, "ptimer scale calculation incorrect\n");
+	err = nvgpu_ptimer_scale(g, (U32_MAX / 10U) + 1, &val);
+	if (err == 0) {
+		unit_err(m, "unexpected success returned, line %u\n", __LINE__);
 		ret = UNIT_FAIL;
 	}
 
-	val = scale_ptimer(100, 1);
-	if (val != 1001) {
-		unit_err(m, "ptimer scale calculation incorrect\n");
+	err = nvgpu_ptimer_scale(g, U32_MAX / 5U, &val);
+	if (err == 0) {
+		unit_err(m, "unexpected success returned, line %u\n", __LINE__);
 		ret = UNIT_FAIL;
 	}
 
-	val = scale_ptimer(10, 6);
-	if (val != 17) {
-		unit_err(m, "ptimer scale calculation incorrect\n");
-		ret = UNIT_FAIL;
-	}
-
-	val = ptimer_scalingfactor10x(100);
-	if (val != (PTIMER_REF_FREQ_HZ*10/100)) {
-		unit_err(m, "ptimer scale calculation incorrect\n");
-		ret = UNIT_FAIL;
-	}
-
-	val = ptimer_scalingfactor10x(97);
-	if (val != (PTIMER_REF_FREQ_HZ*10/97)) {
-		unit_err(m, "ptimer scale calculation incorrect\n");
-		ret = UNIT_FAIL;
-	}
-
-	val = ptimer_scalingfactor10x(100);
-	if (val != (PTIMER_REF_FREQ_HZ*10/100)) {
-		unit_err(m, "ptimer scale calculation incorrect\n");
-		ret = UNIT_FAIL;
-	}
-
-	val = ptimer_scalingfactor10x(PTIMER_REF_FREQ_HZ);
-	if (val != 10) {
-		unit_err(m, "ptimer scale calculation incorrect\n");
+	err = nvgpu_ptimer_scale(g, U32_MAX, &val);
+	if (err == 0) {
+		unit_err(m, "unexpected success returned, line %u\n", __LINE__);
 		ret = UNIT_FAIL;
 	}
 

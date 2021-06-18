@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -156,19 +156,24 @@ int test_ptimer_isr(struct unit_module *m,
 /**
  * Test specification for: test_ptimer_scaling
  *
- * Description: Verify the scale_ptimer() and ptimer_scalingfactor10x() APIs.
+ * Description: Verify the nvgpu_ptimer_scale() API.
  *
  * Test Type: Feature Based, Boundary Values
  *
- * Targets: scale_ptimer, ptimer_scalingfactor10x
+ * Targets: nvgpu_ptimer_scale
+ *
+ * Equivalence classes:
+ * Variable: timeout
+ * - Valid : 0 to U32_MAX/10
  *
  * Input: None
  *
  * Steps:
- * - Call the scale_ptimer() API with various input values and verify the
- *   returned value.
- * - Call the ptimer_scalingfactor10x() API with various input values and verify
- *   the returned value.
+ * - Initialize ptimer source freq as per gv11b platform freq (i.e. 31250000U).
+ * - Call the nvgpu_ptimer_scale() API with below BVEC test values and verify the
+ *   returned value and error code.
+ *   Valid test values : 0, 1000, U32_MAX/10
+ *   Invalid test values : U32_MAX/10 + 1, U32_MAX/5, U32_MAX
  *
  * Output:
  * - UNIT_FAIL if encounters an error creating reg space
