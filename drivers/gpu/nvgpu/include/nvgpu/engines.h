@@ -31,7 +31,7 @@
 #include <nvgpu/types.h>
 
 /** @cond DOXYGEN_SHOULD_SKIP_THIS */
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 #include "include/nvgpu/nvgpu_next_engines.h"
 #endif
 /** @endcond DOXYGEN_SHOULD_SKIP_THIS */

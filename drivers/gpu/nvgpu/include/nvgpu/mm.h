@@ -456,7 +456,7 @@ struct mm_gk20a {
 	/** GMMU debug read buffer. */
 	struct nvgpu_mem mmu_rd_mem;
 
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 #include "include/nvgpu/nvgpu_next_mm.h"
 #endif
 };

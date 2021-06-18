@@ -52,7 +52,7 @@ struct gops_ltc_intr {
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	void (*configure)(struct gk20a *g);
 	void (*en_illegal_compstat)(struct gk20a *g, bool enable);
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 #include "include/nvgpu/nvgpu_next_gops_ltc_intr.h"
 #endif
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
@@ -160,7 +160,7 @@ struct gops_ltc {
 	u32 (*pri_is_lts_tstg_addr)(struct gk20a *g, u32 addr);
 	int (*set_l2_sector_promotion)(struct gk20a *g, struct nvgpu_tsg *tsg,
 			u32 policy);
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 #include "include/nvgpu/nvgpu_next_gops_ltc.h"
 #endif
 #endif

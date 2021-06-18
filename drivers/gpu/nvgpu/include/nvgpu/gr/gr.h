@@ -352,7 +352,7 @@ int nvgpu_gr_reset(struct gk20a *g);
 #endif
 
 /** @cond DOXYGEN_SHOULD_SKIP_THIS */
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 #include "include/nvgpu/gr/nvgpu_next_gr.h"
 #endif
 /** @endcond DOXYGEN_SHOULD_SKIP_THIS */

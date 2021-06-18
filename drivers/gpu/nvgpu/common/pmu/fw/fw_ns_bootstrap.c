@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -71,7 +71,7 @@ int nvgpu_pmu_ns_fw_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu)
 
 	g->ops.pmu.setup_apertures(g);
 
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	if (nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
 		nvgpu_pmu_next_core_rtos_args_setup(g, pmu);
 	} else

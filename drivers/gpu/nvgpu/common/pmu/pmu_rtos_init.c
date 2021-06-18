@@ -54,7 +54,7 @@
 #include <nvgpu/sec2/lsfm.h>
 #endif
 
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 #define PMU_PRIV_LOCKDOWN_RELEASE_POLLING_US (1U)
 #endif
 
@@ -238,7 +238,7 @@ void nvgpu_pmu_rtos_cmdline_args_init(struct gk20a *g, struct nvgpu_pmu *pmu)
 	}
 }
 
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 void nvgpu_pmu_next_core_rtos_args_setup(struct gk20a *g,
 		struct nvgpu_pmu *pmu)
 {
@@ -393,7 +393,7 @@ int nvgpu_pmu_rtos_init(struct gk20a *g)
 			g->ops.pmu.setup_apertures(g);
 		}
 
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 		if (nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
 			err = nvgpu_pmu_next_core_rtos_args_allocate(g, g->pmu);
 			if (err != 0) {
@@ -413,7 +413,7 @@ int nvgpu_pmu_rtos_init(struct gk20a *g)
 
 		nvgpu_pmu_enable_irq(g, true);
 
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 		if (nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
 			g->ops.falcon.bootstrap(g->pmu->flcn, 0U);
 			err = nvgpu_pmu_wait_for_priv_lockdown_release(g,
@@ -436,7 +436,7 @@ int nvgpu_pmu_rtos_init(struct gk20a *g)
 		if (err != 0) {
 			goto exit;
 		}
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 		if (nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
 			err = nvgpu_pmu_wait_for_priv_lockdown_release(g,
 					g->pmu->flcn, U32_MAX);

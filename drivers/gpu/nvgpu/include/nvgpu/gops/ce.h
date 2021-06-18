@@ -146,7 +146,7 @@ struct gops_ce {
 	void (*ce_app_destroy)(struct gk20a *g);
 #endif
 
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 #include "include/nvgpu/nvgpu_next_gops_ce.h"
 #endif
 

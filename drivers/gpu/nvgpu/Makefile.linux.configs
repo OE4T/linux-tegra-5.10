@@ -32,6 +32,9 @@ CONFIG_NVGPU_RECOVERY := y
 # Support for compression
 CONFIG_NVGPU_COMPRESSION := y
 
+# Enable MIG Support
+CONFIG_NVGPU_MIG := y
+
 # Enable support for extraction of comptags for CDE.
 ifeq ($(CONFIG_NVGPU_COMPRESSION),y)
 CONFIG_NVGPU_SUPPORT_CDE := y

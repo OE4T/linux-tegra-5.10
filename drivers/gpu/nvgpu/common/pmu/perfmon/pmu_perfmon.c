@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,7 +34,7 @@
 #include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
 #include <nvgpu/kmem.h>
 
-#if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_NON_FUSA)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 #include "nvgpu_next_gpuid.h"
 #endif
 
@@ -55,7 +55,7 @@ static u8 get_perfmon_id(struct nvgpu_pmu *pmu)
 		break;
 	case NVGPU_GPUID_GP10B:
 	case NVGPU_GPUID_GV11B:
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	case NVGPU_NEXT_GPUID:
 #endif
 		unit_id = PMU_UNIT_PERFMON_T18X;
@@ -144,7 +144,7 @@ int nvgpu_pmu_initialize_perfmon(struct gk20a *g, struct nvgpu_pmu *pmu,
 	case NVGPU_GPUID_GV11B:
 		nvgpu_gv11b_perfmon_sw_init(g, *perfmon_ptr);
 		break;
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	case NVGPU_NEXT_GPUID:
 		nvgpu_next_perfmon_sw_init(g, *perfmon_ptr);
 		break;

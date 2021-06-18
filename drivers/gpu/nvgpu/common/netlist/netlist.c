@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@
 #include <nvgpu/netlist.h>
 #include <nvgpu/string.h>
 #include <nvgpu/static_analysis.h>
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 #include "nvgpu/nvgpu_next_netlist.h"
 #endif
 
@@ -214,7 +214,7 @@ static bool nvgpu_netlist_handle_sw_bundles_region_id(struct gk20a *g,
 		break;
 	default:
 		handled = false;
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 		handled = nvgpu_next_netlist_handle_sw_bundles_region_id(g,
 				region_id, src, size, netlist_vars, &err);
 #endif
@@ -369,7 +369,7 @@ static bool nvgpu_netlist_handle_debugger_region_id(struct gk20a *g,
 		break;
 	default:
 		handled = false;
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 		handled = nvgpu_next_netlist_handle_debugger_region_id(g,
 				region_id, src, size, netlist_vars, &err);
 #endif
@@ -549,7 +549,7 @@ clean_up:
 		nvgpu_kfree(g, netlist_vars->sw_method_init.l);
 		nvgpu_kfree(g, netlist_vars->sw_ctx_load.l);
 		nvgpu_kfree(g, netlist_vars->sw_non_ctx_load.l);
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 		nvgpu_next_netlist_deinit_ctx_vars(g);
 #endif
 #ifdef CONFIG_NVGPU_DEBUGGER
@@ -576,7 +576,7 @@ clean_up:
 		nvgpu_kfree(g, netlist_vars->ctxsw_regs.pm_rop.l);
 		nvgpu_kfree(g, netlist_vars->ctxsw_regs.pm_ucgpc.l);
 		nvgpu_kfree(g, netlist_vars->ctxsw_regs.etpc.l);
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 		nvgpu_next_netlist_deinit_ctxsw_regs(g);
 #endif
 		nvgpu_kfree(g, netlist_vars->ctxsw_regs.pm_cau.l);
@@ -652,7 +652,7 @@ void nvgpu_netlist_deinit_ctx_vars(struct gk20a *g)
 	nvgpu_kfree(g, netlist_vars->sw_method_init.l);
 	nvgpu_kfree(g, netlist_vars->sw_ctx_load.l);
 	nvgpu_kfree(g, netlist_vars->sw_non_ctx_load.l);
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	nvgpu_next_netlist_deinit_ctx_vars(g);
 #endif
 #ifdef CONFIG_NVGPU_DEBUGGER
@@ -678,7 +678,7 @@ void nvgpu_netlist_deinit_ctx_vars(struct gk20a *g)
 	nvgpu_kfree(g, netlist_vars->ctxsw_regs.perf_pma.l);
 	nvgpu_kfree(g, netlist_vars->ctxsw_regs.pm_rop.l);
 	nvgpu_kfree(g, netlist_vars->ctxsw_regs.pm_ucgpc.l);
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	nvgpu_next_netlist_deinit_ctxsw_regs(g);
 #endif
 	nvgpu_kfree(g, netlist_vars->ctxsw_regs.pm_cau.l);
@@ -912,7 +912,7 @@ u32 nvgpu_netlist_get_ppc_ctxsw_regs_count(struct gk20a *g)
 {
 	u32 count = nvgpu_netlist_get_ppc_ctxsw_regs(g)->count;
 
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	if (count == 0U) {
 		count = nvgpu_next_netlist_get_ppc_ctxsw_regs_count(g);
 	}
@@ -924,7 +924,7 @@ u32 nvgpu_netlist_get_gpc_ctxsw_regs_count(struct gk20a *g)
 {
 	u32 count = nvgpu_netlist_get_gpc_ctxsw_regs(g)->count;
 
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	if (count == 0U) {
 		count = nvgpu_next_netlist_get_gpc_ctxsw_regs_count(g);
 	}
@@ -936,7 +936,7 @@ u32 nvgpu_netlist_get_tpc_ctxsw_regs_count(struct gk20a *g)
 {
 	u32 count = nvgpu_netlist_get_tpc_ctxsw_regs(g)->count;
 
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	if (count == 0U) {
 		count = nvgpu_next_netlist_get_tpc_ctxsw_regs_count(g);
 	}
@@ -948,7 +948,7 @@ u32 nvgpu_netlist_get_etpc_ctxsw_regs_count(struct gk20a *g)
 {
 	u32 count = nvgpu_netlist_get_etpc_ctxsw_regs(g)->count;
 
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	if (count == 0U) {
 		count = nvgpu_next_netlist_get_etpc_ctxsw_regs_count(g);
 	}
@@ -1011,7 +1011,7 @@ void nvgpu_netlist_print_ctxsw_reg_info(struct gk20a *g)
 			nvgpu_netlist_get_perf_gpc_control_ctxsw_regs(g)->count);
 	nvgpu_log_info(g, "GRCTX_REG_LIST_PERF_PMA_CONTROL_COUNT        :%d",
 			nvgpu_netlist_get_perf_pma_control_ctxsw_regs(g)->count);
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	nvgpu_next_netlist_print_ctxsw_reg_info(g);
 #endif
 }

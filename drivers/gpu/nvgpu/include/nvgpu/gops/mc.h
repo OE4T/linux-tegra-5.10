@@ -24,9 +24,7 @@
 
 #include <nvgpu/types.h>
 #include <nvgpu/mc.h>
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 #include <nvgpu/engines.h>
-#endif
 
 /**
  * @file
@@ -260,7 +258,7 @@ struct gops_mc {
 	void (*fbpa_isr)(struct gk20a *g);
 #endif
 
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 #include "include/nvgpu/nvgpu_next_gops_mc.h"
 #endif
 

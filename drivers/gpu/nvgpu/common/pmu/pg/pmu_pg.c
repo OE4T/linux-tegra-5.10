@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,7 +40,7 @@
 #include "pg_sw_gp10b.h"
 #include "pmu_pg.h"
 
-#if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_NON_FUSA)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 #include "nvgpu_next_gpuid.h"
 #endif
 
@@ -880,7 +880,7 @@ int nvgpu_pmu_pg_init(struct gk20a *g, struct nvgpu_pmu *pmu,
 		nvgpu_gv11b_pg_sw_init(g, *pg_p);
 		break;
 
-#if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_NON_FUSA)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	case NVGPU_NEXT_GPUID:
 		nvgpu_next_pg_sw_init(g, *pg_p);
 		break;

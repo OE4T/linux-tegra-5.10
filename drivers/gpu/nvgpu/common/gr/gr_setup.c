@@ -158,7 +158,7 @@ int nvgpu_gr_setup_alloc_obj_ctx(struct nvgpu_channel *c, u32 class_num,
 
 	c->obj_class = class_num;
 
-#ifndef CONFIG_NVGPU_HAL_NON_FUSA
+#ifndef CONFIG_NVGPU_NON_FUSA
 	/*
 	 * Only compute and graphics classes need object context.
 	 * Return success for valid non-compute and non-graphics classes.

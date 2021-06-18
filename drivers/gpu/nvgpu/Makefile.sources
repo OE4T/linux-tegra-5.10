@@ -710,7 +710,6 @@ ifeq ($(CONFIG_NVGPU_TPC_POWERGATE),1)
 srcs +=	hal/tpc/tpc_gv11b.c
 endif
 
-ifeq ($(CONFIG_NVGPU_NEXT),1)
 ifeq ($(CONFIG_NVGPU_HAL_NON_FUSA),1)
 srcs += \
 	common/fifo/nvgpu_next_engines.c \
@@ -804,8 +803,6 @@ ifeq ($(CONFIG_NVGPU_COMPRESSION),1)
 srcs += \
 	hal/cbc/cbc_ga100.c \
 	hal/cbc/cbc_ga10b.c
-endif
-
 endif
 
 ifeq ($(CONFIG_NVGPU_IGPU_VIRT),1)

@@ -51,7 +51,7 @@ static void prepare_resource_reservation(struct gk20a *g,
 				nvgpu_err(g, "Failed to reset PERFMON unit");
 			}
 			nvgpu_cg_slcg_perf_load_enable(g, false);
-#ifdef CONFIG_NVGPU_NEXT
+#ifdef CONFIG_NVGPU_NON_FUSA
 			/*
 			 * By default, disable the PMASYS legacy mode for
 			 * NVGPU_NEXT.

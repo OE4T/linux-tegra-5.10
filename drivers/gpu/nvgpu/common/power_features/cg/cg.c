@@ -110,7 +110,7 @@ void nvgpu_cg_blcg_fifo_load_enable(struct gk20a *g)
 	if (g->ops.cg.blcg_fifo_load_gating_prod != NULL) {
 		g->ops.cg.blcg_fifo_load_gating_prod(g, true);
 	}
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	if (g->ops.cg.blcg_runlist_load_gating_prod != NULL) {
 		g->ops.cg.blcg_runlist_load_gating_prod(g, true);
 	}
@@ -188,7 +188,7 @@ static void nvgpu_cg_slcg_priring_load_prod(struct gk20a *g, bool enable)
 	if (g->ops.cg.slcg_priring_load_gating_prod != NULL) {
 		g->ops.cg.slcg_priring_load_gating_prod(g, enable);
 	}
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	if (g->ops.cg.slcg_rs_ctrl_fbp_load_gating_prod != NULL) {
 		g->ops.cg.slcg_rs_ctrl_fbp_load_gating_prod(g, enable);
 	}
@@ -236,7 +236,7 @@ void nvgpu_cg_slcg_fifo_load_enable(struct gk20a *g)
 	if (g->ops.cg.slcg_fifo_load_gating_prod != NULL) {
 		g->ops.cg.slcg_fifo_load_gating_prod(g, true);
 	}
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	if (g->ops.cg.slcg_runlist_load_gating_prod != NULL) {
 		g->ops.cg.slcg_runlist_load_gating_prod(g, true);
 	}
@@ -290,7 +290,7 @@ done:
 	nvgpu_mutex_release(&g->cg_pg_lock);
 }
 
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 void nvgpu_cg_slcg_timer_load_enable(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");
@@ -507,7 +507,7 @@ void nvgpu_cg_elcg_set_elcg_enabled(struct gk20a *g, bool enable)
 			nvgpu_cg_set_mode(g, ELCG_MODE, ELCG_RUN);
 		}
 	}
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	if (g->ops.cg.elcg_ce_load_gating_prod != NULL) {
 		g->ops.cg.elcg_ce_load_gating_prod(g, g->elcg_enabled);
 	}
@@ -554,7 +554,7 @@ void nvgpu_cg_blcg_set_blcg_enabled(struct gk20a *g, bool enable)
 	if (g->ops.cg.blcg_gr_load_gating_prod != NULL) {
 		g->ops.cg.blcg_gr_load_gating_prod(g, enable);
 	}
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	if (g->ops.cg.blcg_runlist_load_gating_prod != NULL) {
 		g->ops.cg.blcg_runlist_load_gating_prod(g, enable);
 	}
@@ -615,7 +615,7 @@ void nvgpu_cg_slcg_set_slcg_enabled(struct gk20a *g, bool enable)
 	if (g->ops.cg.slcg_fifo_load_gating_prod != NULL) {
 		g->ops.cg.slcg_fifo_load_gating_prod(g, enable);
 	}
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	if (g->ops.cg.slcg_runlist_load_gating_prod != NULL) {
 		g->ops.cg.slcg_runlist_load_gating_prod(g, enable);
 	}
@@ -657,7 +657,7 @@ void nvgpu_cg_elcg_ce_load_enable(struct gk20a *g)
 	if (!g->elcg_enabled) {
 		goto done;
 	}
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	if (g->ops.cg.elcg_ce_load_gating_prod != NULL) {
 		g->ops.cg.elcg_ce_load_gating_prod(g, true);
 	}

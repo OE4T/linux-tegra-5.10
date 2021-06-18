@@ -122,7 +122,7 @@ static void acr_ucode_patch_sig(struct gk20a *g,
 	unsigned int *p_dbg_sig, unsigned int *p_patch_loc,
 	unsigned int *p_patch_ind, u32 sig_size)
 {
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	struct nvgpu_acr *acr = g->acr;
 #endif
 	unsigned int i, j, *p_sig;
@@ -137,7 +137,7 @@ static void acr_ucode_patch_sig(struct gk20a *g,
 		nvgpu_info(g, "DEBUG MODE\n");
 	}
 
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	if (acr->get_versioned_sig != NULL) {
 		p_sig = acr->get_versioned_sig(g, acr, p_sig, &sig_size);
 	}

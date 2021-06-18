@@ -447,7 +447,7 @@ int nvgpu_pmu_rtos_init(struct gk20a *g);
 int nvgpu_pmu_destroy(struct gk20a *g, struct nvgpu_pmu *pmu);
 
 void nvgpu_pmu_rtos_cmdline_args_init(struct gk20a *g, struct nvgpu_pmu *pmu);
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 void nvgpu_pmu_next_core_rtos_args_setup(struct gk20a *g,
 		struct nvgpu_pmu *pmu);
 s32 nvgpu_pmu_next_core_rtos_args_allocate(struct gk20a *g,

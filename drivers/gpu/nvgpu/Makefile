@@ -788,14 +788,6 @@ nvgpu-$(CONFIG_NVGPU_HAL_NON_FUSA) += \
 endif
 
 
-ifeq ($(CONFIG_ARCH_TEGRA_23x_SOC),y)
-CONFIG_NVGPU_NEXT := y
-ccflags-y += -DCONFIG_NVGPU_NEXT
-# Multi Instance GPU support
-CONFIG_NVGPU_MIG := y
-endif
-
-ifeq ($(CONFIG_NVGPU_NEXT),y)
 ifeq ($(CONFIG_NVGPU_HAL_NON_FUSA),y)
 nvgpu-y += \
 	common/fifo/nvgpu_next_engines.o \
@@ -939,4 +931,3 @@ nvgpu-y += \
 	os/linux/platform_ga10b_tegra.o \
 	os/linux/nvgpu_next_ioctl_prof.o \
 	os/linux/nvlink/hal/ga10b_mssnvlink.o
-endif

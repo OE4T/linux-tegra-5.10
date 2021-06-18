@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@
 #include "pramin_tu104.h"
 #endif
 
-#if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_NON_FUSA)
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 #include "nvgpu_next_gpuid.h"
 #endif
 
@@ -46,7 +46,7 @@ void nvgpu_pramin_ops_init(struct gk20a *g)
 		g->ops.pramin.data032_r = gv100_pramin_data032_r;
 		break;
 	case NVGPU_GPUID_TU104:
-#ifdef CONFIG_NVGPU_NEXT
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	case NVGPU_NEXT_DGPU_GPUID:
 #endif
 		g->ops.pramin.data032_r = tu104_pramin_data032_r;

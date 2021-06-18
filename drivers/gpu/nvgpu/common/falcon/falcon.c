@@ -30,7 +30,7 @@
 #include "falcon_sw_tu104.h"
 #endif
 
-#if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_NON_FUSA)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 #include "nvgpu_next_gpuid.h"
 #endif
 
@@ -401,7 +401,7 @@ u32 nvgpu_falcon_get_id(struct nvgpu_falcon *flcn)
 	return flcn->flcn_id;
 }
 
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 bool nvgpu_falcon_is_falcon2_enabled(struct nvgpu_falcon *flcn)
 {
 	return flcn->is_falcon2_enabled ? true : false;
@@ -462,7 +462,7 @@ static int falcon_sw_chip_init(struct gk20a *g, struct nvgpu_falcon *flcn)
 	case NVGPU_GPUID_GP10B:
 		gk20a_falcon_sw_init(flcn);
 		break;
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	case NVGPU_NEXT_GPUID:
 		nvgpu_next_falcon_sw_init(flcn);
 		break;
@@ -473,7 +473,7 @@ static int falcon_sw_chip_init(struct gk20a *g, struct nvgpu_falcon *flcn)
 		break;
 #ifdef CONFIG_NVGPU_DGPU
 	case NVGPU_GPUID_TU104:
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	case NVGPU_NEXT_DGPU_GPUID:
 #endif
 		tu104_falcon_sw_init(flcn);

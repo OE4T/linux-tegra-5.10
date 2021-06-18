@@ -76,7 +76,7 @@ struct gops_grmgr {
 	 */
 	void (*get_gpcgrp_count)(struct gk20a *g);
 
-#if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_MIG)
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_MIG)
 #include "include/nvgpu/nvgpu_next_gops_grmgr.h"
 #endif
 };

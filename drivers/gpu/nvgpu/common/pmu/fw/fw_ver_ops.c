@@ -1170,7 +1170,7 @@ static int pmu_prepare_ns_ucode_blob_v1(struct gk20a *g)
 		nvgpu_mem_wr_n(g, &pmu->fw->ucode, 0, ucode_image,
 				rtos_fw->fw_image->size);
 
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 		/* alloc boot args */
 		err = nvgpu_pmu_next_core_rtos_args_allocate(g, pmu);
 		if (err != 0) {

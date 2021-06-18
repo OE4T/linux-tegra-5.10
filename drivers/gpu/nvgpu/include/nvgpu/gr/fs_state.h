@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -52,7 +52,7 @@ struct nvgpu_gr_config;
  */
 int nvgpu_gr_fs_state_init(struct gk20a *g, struct nvgpu_gr_config *config);
 /** @cond DOXYGEN_SHOULD_SKIP_THIS */
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 #include "include/nvgpu/gr/nvgpu_next_fs_state.h"
 #endif
 /** @endcond DOXYGEN_SHOULD_SKIP_THIS */

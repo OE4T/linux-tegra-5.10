@@ -34,7 +34,7 @@
 #include "lsfm_sw_tu104.h"
 #endif
 
-#if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_NON_FUSA)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 #include "nvgpu_next_gpuid.h"
 #endif
 
@@ -168,7 +168,7 @@ int nvgpu_pmu_lsfm_init(struct gk20a *g, struct nvgpu_pmu_lsfm **lsfm)
 			nvgpu_tu104_lsfm_sw_init(g, *lsfm);
 		break;
 #endif
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	case NVGPU_NEXT_GPUID:
 		nvgpu_gv100_lsfm_sw_init(g, *lsfm);
 		break;

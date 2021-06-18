@@ -47,7 +47,7 @@ int nvgpu_ce_init_support(struct gk20a *g)
 
 	nvgpu_cg_blcg_ce_load_enable(g);
 
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	nvgpu_cg_elcg_ce_load_enable(g);
 #endif
 

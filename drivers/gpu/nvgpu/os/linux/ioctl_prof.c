@@ -40,7 +40,7 @@
 #include "ioctl.h"
 
 /** @cond DOXYGEN_SHOULD_SKIP_THIS */
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 #include "os/linux/nvgpu_next_ioctl_prof.h"
 #endif
 /** @endcond DOXYGEN_SHOULD_SKIP_THIS */
@@ -849,7 +849,7 @@ long nvgpu_prof_fops_ioctl(struct file *filp, unsigned int cmd,
 		break;
 
 	default:
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 		err = nvgpu_next_prof_fops_ioctl(prof, cmd, (void *)buf);
 #else
 		nvgpu_err(g, "unrecognized profiler ioctl cmd: 0x%x", cmd);

@@ -23,7 +23,7 @@
 #ifndef NVGPU_FB_H
 #define NVGPU_FB_H
 
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 #include "include/nvgpu/nvgpu_next_fb.h"
 #endif
 

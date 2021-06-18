@@ -47,9 +47,7 @@
 #include <nvgpu/mc.h>
 #include <nvgpu/cic.h>
 #include <nvgpu/device.h>
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 #include <nvgpu/engines.h>
-#endif
 #include <nvgpu/grmgr.h>
 
 #include "gr_priv.h"
@@ -225,7 +223,7 @@ static int gr_init_setup_hw(struct gk20a *g, struct nvgpu_gr *gr)
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	if (g->ops.gr.init.eng_config != NULL) {
 		g->ops.gr.init.eng_config(g);
 	}
@@ -562,7 +560,7 @@ static int gr_init_prepare_hw_impl(struct gk20a *g)
 			sw_non_ctx_load->l[i].value);
 	}
 
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	nvgpu_next_gr_init_reset_enable_hw_non_ctx_local(g);
 	nvgpu_next_gr_init_reset_enable_hw_non_ctx_global(g);
 #endif
@@ -618,7 +616,7 @@ static int gr_reset_engine(struct gk20a *g)
 		return err;
 	}
 
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	if (g->ops.gr.init.reset_gpcs != NULL) {
 		err = g->ops.gr.init.reset_gpcs(g);
 		if (err != 0) {
@@ -796,7 +794,7 @@ int nvgpu_gr_reset(struct gk20a *g)
 }
 #endif
 
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 static int gr_init_sm_id_config_early(struct gk20a *g, struct nvgpu_gr *gr)
 {
 	int err;
@@ -852,7 +850,7 @@ static int gr_init_support_impl(struct gk20a *g)
 		}
 	}
 
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	/*
 	 * Move sm id programming before loading ctxsw and gpccs firmwares. This
 	 * is the actual sequence expected by ctxsw ucode.
@@ -1154,7 +1152,7 @@ void nvgpu_gr_sw_ready(struct gk20a *g, bool enable)
 	}
 }
 
-#ifdef CONFIG_NVGPU_HAL_NON_FUSA
+#ifdef CONFIG_NVGPU_NON_FUSA
 /* Wait until GR is initialized */
 void nvgpu_gr_wait_initialized(struct gk20a *g)
 {

@@ -733,7 +733,7 @@ static int nvgpu_engine_init_one_dev(struct nvgpu_fifo *f,
 		}
 	}
 
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	{
 		int err = nvgpu_next_engine_init_one_dev(g, dev);
 		if (err != 0) {

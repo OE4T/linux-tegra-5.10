@@ -453,7 +453,7 @@ struct gops_gr_intr {
 	void (*flush_channel_tlb)(struct gk20a *g);
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 #include "include/nvgpu/nvgpu_next_gops_gr_intr.h"
 #endif
 	int (*handle_fecs_error)(struct gk20a *g,
@@ -834,7 +834,7 @@ struct gops_gr_init {
 #endif
 	bool (*is_allowed_sw_bundle)(struct gk20a *g,
 			u32 bundle_addr, u32 bundle_value, int *context);
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 #include "include/nvgpu/nvgpu_next_gops_gr_init.h"
 #endif
 	/** @endcond */
@@ -966,7 +966,7 @@ struct gops_gr_ctxsw_prog {
 				  struct nvgpu_mem *ctx_mem, u64 addr,
 				  u32 aperture_mask);
 #endif
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 #include "include/nvgpu/nvgpu_next_gops_gr_ctxsw_prog.h"
 #endif
 };
@@ -1282,7 +1282,7 @@ struct gops_gr {
 	struct gops_gr_zbc		zbc;
 	struct gops_gr_zcull		zcull;
 #endif /* CONFIG_NVGPU_GRAPHICS */
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 #include "include/nvgpu/nvgpu_next_gops_gr.h"
 #endif
 	/** @endcond */

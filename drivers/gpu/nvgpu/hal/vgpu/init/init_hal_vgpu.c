@@ -26,7 +26,7 @@
 #include <nvgpu/vgpu/vgpu.h>
 #include <nvgpu/vgpu/os_init_hal_vgpu.h>
 
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 #include "nvgpu_next_gpuid.h"
 #endif
 
@@ -43,7 +43,7 @@ int vgpu_init_hal(struct gk20a *g)
 	case NVGPU_GPUID_GV11B:
 		err = vgpu_gv11b_init_hal(g);
 		break;
-#ifdef CONFIG_NVGPU_NEXT
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	case NVGPU_NEXT_GPUID:
 		err = NVGPU_NEXT_VGPU_INIT_HAL(g);
 		break;

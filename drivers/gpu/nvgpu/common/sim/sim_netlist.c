@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,7 +24,7 @@
 #include <nvgpu/sim.h>
 #include <nvgpu/netlist.h>
 #include <nvgpu/log.h>
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 #include "nvgpu/nvgpu_next_sim.h"
 #endif
 
@@ -341,11 +341,11 @@ int nvgpu_init_sim_netlist_ctx_vars(struct gk20a *g)
 		goto fail;
 	}
 
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	nvgpu_next_init_sim_netlist_ctxsw_regs(g);
 #endif
 #endif /* CONFIG_NVGPU_DEBUGGER */
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	nvgpu_next_init_sim_netlist_ctx_vars(g);
 #endif
 
@@ -780,7 +780,7 @@ fail:
 	nvgpu_kfree(g, sw_method_init->l);
 	nvgpu_kfree(g, sw_ctx_load->l);
 	nvgpu_kfree(g, sw_non_ctx_load->l);
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	nvgpu_next_init_sim_netlist_ctx_vars_free(g);
 #endif
 	nvgpu_kfree(g, sw_veid_bundle_init->l);
@@ -811,7 +811,7 @@ fail:
 	nvgpu_kfree(g, perf_fbp_control_ctxsw_regs->l);
 	nvgpu_kfree(g, perf_gpc_control_ctxsw_regs->l);
 	nvgpu_kfree(g, perf_pma_control_ctxsw_regs->l);
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	nvgpu_next_init_sim_netlist_ctxsw_regs_free(g);
 #endif
 #endif /* CONFIG_NVGPU_DEBUGGER */

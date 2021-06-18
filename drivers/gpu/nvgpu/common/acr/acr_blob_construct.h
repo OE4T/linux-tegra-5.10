@@ -87,7 +87,7 @@ struct flcn_ucode_img {
 	u32 data_size;
 	struct lsf_ucode_desc *lsf_desc;
 	bool is_next_core_img;
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	struct falcon_next_core_ucode_desc *ndesc;
 #endif
 };
@@ -140,7 +140,7 @@ struct ls_flcn_mgr {
 int nvgpu_acr_prepare_ucode_blob(struct gk20a *g);
 #ifdef CONFIG_NVGPU_LS_PMU
 int nvgpu_acr_lsf_pmu_ucode_details(struct gk20a *g, void *lsf_ucode_img);
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 s32 nvgpu_acr_lsf_pmu_ncore_ucode_details(struct gk20a *g, void *lsf_ucode_img);
 #endif
 #endif

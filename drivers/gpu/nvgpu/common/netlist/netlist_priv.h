@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,7 +25,7 @@
 
 #include <nvgpu/types.h>
 
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 #include "common/netlist/nvgpu_next_netlist_priv.h"
 #endif
 
@@ -120,7 +120,7 @@ struct nvgpu_netlist_vars {
 	struct netlist_av_list  sw_method_init;
 	struct netlist_aiv_list sw_ctx_load;
 	struct netlist_av_list  sw_non_ctx_load;
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	struct nvgpu_next_netlist_vars nvgpu_next;
 #endif
 	struct netlist_av_list  sw_veid_bundle_init;
@@ -154,7 +154,7 @@ struct nvgpu_netlist_vars {
 		struct netlist_aiv_list perf_fbp_control;
 		struct netlist_aiv_list perf_gpc_control;
 		struct netlist_aiv_list perf_pma_control;
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 		struct nvgpu_next_ctxsw_regs nvgpu_next;
 #endif
 	} ctxsw_regs;

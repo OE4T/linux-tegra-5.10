@@ -19,7 +19,6 @@
 #include <linux/of_platform.h>
 #include <linux/debugfs.h>
 #include <linux/dma-buf.h>
-#include <linux/nvmap.h>
 #include <linux/reset.h>
 #include <linux/iommu.h>
 #include <linux/hashtable.h>
@@ -63,6 +62,7 @@ static int ga10b_tegra_get_clocks(struct device *dev)
 
 void ga10b_tegra_scale_init(struct device *dev)
 {
+#ifdef CONFIG_TEGRA_BWMG
 	struct gk20a_platform *platform = gk20a_get_platform(dev);
 	struct gk20a_scale_profile *profile = platform->g->scale_profile;
 
@@ -72,16 +72,19 @@ void ga10b_tegra_scale_init(struct device *dev)
 	platform->g->emc3d_ratio = EMC3D_GA10B_RATIO;
 
 	gp10b_tegra_scale_init(dev);
+#endif
 }
 
 static void ga10b_tegra_scale_exit(struct device *dev)
 {
+#ifdef CONFIG_TEGRA_BWMGR
 	struct gk20a_platform *platform = gk20a_get_platform(dev);
 	struct gk20a_scale_profile *profile = platform->g->scale_profile;
 
 	if (profile)
 		tegra_bwmgr_unregister(
 			(struct tegra_bwmgr_client *)profile->private_data);
+#endif
 }
 
 static int ga10b_tegra_probe(struct device *dev)

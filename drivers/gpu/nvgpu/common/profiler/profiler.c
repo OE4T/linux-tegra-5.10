@@ -38,7 +38,7 @@
 #include <nvgpu/gr/gr_instances.h>
 #include <nvgpu/grmgr.h>
 
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 #include "nvgpu_next_gpuid.h"
 #endif
 
@@ -451,7 +451,7 @@ static int nvgpu_profiler_quiesce_hwpm_streamout_resident(struct gk20a *g,
 		goto fail;
 	}
 
-#ifdef CONFIG_NVGPU_NEXT
+#ifdef CONFIG_NVGPU_NON_FUSA
 	NVGPU_NEXT_PROFILER_QUIESCE(g);
 #endif
 

@@ -214,7 +214,7 @@ struct gops_fifo {
 			u32 exception_mask);
 #endif
 
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 #include "include/nvgpu/nvgpu_next_gops_fifo.h"
 #endif
 

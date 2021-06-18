@@ -34,7 +34,7 @@
  */
 
 /** @cond DOXYGEN_SHOULD_SKIP_THIS */
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 #include <nvgpu/nvgpu_next_runlist.h>
 #endif
 /** @endcond DOXYGEN_SHOULD_SKIP_THIS */
@@ -102,7 +102,7 @@ struct nvgpu_runlist {
 	struct nvgpu_mutex runlist_lock;
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	/* nvgpu next runlist info additions */
 	struct nvgpu_next_runlist nvgpu_next;
 #endif

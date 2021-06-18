@@ -23,7 +23,7 @@
 #ifndef NVGPU_ENGINE_STATUS_H
 #define NVGPU_ENGINE_STATUS_H
 
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 #include "include/nvgpu/nvgpu_next_engine_status.h"
 #endif
 
@@ -98,7 +98,7 @@ enum nvgpu_engine_status_ctx_status {
 struct nvgpu_engine_status_info {
 	/** Engine status h/w register's read value. */
 	u32 reg_data;
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	/* nvgpu next engine status additions */
 	struct nvgpu_next_engine_status_info nvgpu_next;

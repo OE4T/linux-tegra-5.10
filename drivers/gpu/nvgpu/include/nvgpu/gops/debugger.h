@@ -102,7 +102,7 @@ struct gops_perf {
 	void (*disable_all_perfmons)(struct gk20a *g);
 	int (*wait_for_idle_pmm_routers)(struct gk20a *g);
 	int (*wait_for_idle_pma)(struct gk20a *g);
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 #include "include/nvgpu/nvgpu_next_gops_perf.h"
 #endif
 };

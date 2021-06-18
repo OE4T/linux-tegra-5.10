@@ -161,7 +161,7 @@ struct gops_fb_ecc {
 			u32 *uncorrected_error_mask);
 };
 
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 #include "include/nvgpu/nvgpu_next_gops_fb_vab.h"
 #endif
 
@@ -440,7 +440,7 @@ struct gops_fb {
 						u32 invalidate_replay_val);
 #endif
 
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 #include "include/nvgpu/nvgpu_next_gops_fb.h"
 #endif
 

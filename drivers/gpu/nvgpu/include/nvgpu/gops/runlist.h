@@ -89,7 +89,7 @@ struct gops_runlist {
 			bool wait_preempt);
 	void (*init_enginfo)(struct gk20a *g, struct nvgpu_fifo *f);
 	u32 (*get_tsg_max_timeslice)(void);
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 #include "include/nvgpu/nvgpu_next_gops_runlist.h"
 #endif
 

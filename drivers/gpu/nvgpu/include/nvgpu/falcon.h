@@ -178,7 +178,7 @@
 /**
  * Falcon/Falcon2 fuse settings bit
  */
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 #define FCD            (0U)
 #define FENEN          (1U)
 #define NVRISCV_BRE_EN (2U)
@@ -243,7 +243,7 @@ struct nvgpu_falcon {
 	bool is_falcon2_enabled;
 	/** Indicates if the falcon interrupts are enabled. */
 	bool is_interrupt_enabled;
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 	/** Fuse settings */
 	unsigned long fuse_settings;
 #endif
@@ -656,7 +656,7 @@ void nvgpu_falcon_sw_free(struct gk20a *g, u32 flcn_id);
 void nvgpu_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable,
 	u32 intr_mask, u32 intr_dest);
 
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 bool nvgpu_falcon_is_falcon2_enabled(struct nvgpu_falcon *flcn);
 bool nvgpu_falcon_is_feature_supported(struct nvgpu_falcon *flcn,
 		u32 feature);

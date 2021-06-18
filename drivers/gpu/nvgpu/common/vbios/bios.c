@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@
 #include "bios_sw_gv100.h"
 #include "bios_sw_tu104.h"
 
-#if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_NON_FUSA)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 #include "nvgpu_next_gpuid.h"
 #endif
 
@@ -73,7 +73,7 @@ bool nvgpu_bios_check_dgpu(struct gk20a *g, u32 ver)
 
 	case NVGPU_GPUID_GV100:
 	case NVGPU_GPUID_TU104:
-#if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_NON_FUSA)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	case NVGPU_NEXT_DGPU_GPUID:
 #endif
 		is_supported = true;
@@ -197,7 +197,7 @@ int nvgpu_bios_sw_init(struct gk20a *g)
 		nvgpu_tu104_bios_sw_init(g, g->bios);
 		break;
 
-#if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_NON_FUSA)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	case NVGPU_NEXT_DGPU_GPUID:
 		/*
 		 * TODO

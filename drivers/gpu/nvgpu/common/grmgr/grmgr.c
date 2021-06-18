@@ -40,7 +40,7 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 	u32 ffs_bit = 0U;
 	u32 index;
 	const struct nvgpu_device *gr_dev = NULL;
-#ifdef CONFIG_NVGPU_NEXT
+#ifdef CONFIG_NVGPU_NON_FUSA
 	if (g->ops.grmgr.load_timestamp_prod != NULL) {
 		g->ops.grmgr.load_timestamp_prod(g);
 	}
@@ -186,7 +186,7 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 	return 0;
 }
 
-#if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_MIG)
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_MIG)
 static void nvgpu_grmgr_acquire_gr_syspipe(struct gk20a *g, u32 gr_syspipe_id)
 {
 	g->mig.recursive_ref_count = nvgpu_safe_add_u32(
@@ -234,7 +234,7 @@ int nvgpu_grmgr_config_gr_remap_window(struct gk20a *g,
 		u32 gr_syspipe_id, bool enable)
 {
 	int err = 0;
-#if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_MIG)
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_MIG)
 	if (nvgpu_grmgr_is_multi_gr_enabled(g)) {
 		/*
 		 * GR remap window enable/disable sequence for a GR

@@ -32,7 +32,7 @@
  */
 struct gk20a;
 
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 struct nvgpu_fuse_feature_override_ecc;
 #endif
 
@@ -218,12 +218,12 @@ struct gops_fuse {
 	int (*read_ucode_version)(struct gk20a *g, u32 falcon_id,
 			u32 *ucode_version);
 
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 	int (*fetch_falcon_fuse_settings)(struct gk20a *g, u32 falcon_id,
 			unsigned long *fuse_settings);
 #endif
 
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 #include "include/nvgpu/nvgpu_next_gops_fuse.h"
 #endif
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */

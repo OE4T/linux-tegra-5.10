@@ -121,7 +121,7 @@
 struct gk20a;
 struct nvgpu_device;
 
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 #include "include/nvgpu/nvgpu_next_mc.h"
 #endif
 
@@ -216,7 +216,7 @@ struct nvgpu_mc {
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	struct nvgpu_next_mc nvgpu_next;
 #endif
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */

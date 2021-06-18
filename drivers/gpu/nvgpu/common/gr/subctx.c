@@ -121,7 +121,7 @@ struct nvgpu_mem *nvgpu_gr_subctx_get_ctx_header(struct nvgpu_gr_subctx *subctx)
 	return &subctx->ctx_header;
 }
 
-#ifdef CONFIG_NVGPU_HAL_NON_FUSA
+#ifdef CONFIG_NVGPU_NON_FUSA
 void nvgpu_gr_subctx_set_patch_ctx(struct gk20a *g,
 	struct nvgpu_gr_subctx *subctx, struct nvgpu_gr_ctx *gr_ctx)
 {

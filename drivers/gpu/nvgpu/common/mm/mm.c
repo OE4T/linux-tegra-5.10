@@ -136,7 +136,7 @@ static void nvgpu_remove_mm_support(struct mm_gk20a *mm)
 	nvgpu_dma_free(g, &mm->mmu_wr_mem);
 	nvgpu_dma_free(g, &mm->mmu_rd_mem);
 
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	if (nvgpu_fb_vab_teardown_hal(g) != 0) {
 		nvgpu_err(g, "failed to teardown VAB");
 	}
@@ -567,7 +567,7 @@ static int nvgpu_init_mm_setup_sw(struct gk20a *g)
 		}
 	}
 
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	if (nvgpu_fb_vab_init_hal(g) != 0) {
 		nvgpu_err(g, "failed to init VAB");
 	}

@@ -1,7 +1,7 @@
 /*
  * NVIDIA GPU HAL interface.
  *
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -36,7 +36,7 @@
 #include "hal_tu104.h"
 #endif
 
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 #include "nvgpu_next_gpuid.h"
 #endif
 
@@ -66,7 +66,7 @@ int nvgpu_init_hal(struct gk20a *g)
 			return -ENODEV;
 		}
 		break;
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 	case NVGPU_NEXT_GPUID:
 		if (NVGPU_NEXT_INIT_HAL(g) != 0) {
 			return -ENODEV;
@@ -87,7 +87,7 @@ int nvgpu_init_hal(struct gk20a *g)
 			return -ENODEV;
 		}
 		break;
-#if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_DGPU)
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_DGPU)
 	case NVGPU_NEXT_DGPU_GPUID:
 		if (NVGPU_NEXT_DGPU_INIT_HAL(g) != 0) {
 			return -ENODEV;

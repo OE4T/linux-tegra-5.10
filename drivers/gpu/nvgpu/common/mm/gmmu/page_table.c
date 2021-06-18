@@ -36,9 +36,7 @@
 #include <nvgpu/types.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/static_analysis.h>
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 #include <nvgpu/errata.h>
-#endif
 
 #ifdef CONFIG_NVGPU_TRACE
 #define nvgpu_gmmu_dbg(g, attrs, fmt, args...)				\
@@ -948,7 +946,7 @@ u64 nvgpu_gmmu_map_locked(struct vm_gk20a *vm,
 				buffer_offset & (ctag_granularity - U64(1)));
 	}
 
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	attrs.cbc_comptagline_mode =
 		g->ops.fb.is_comptagline_mode_enabled != NULL ?
 			g->ops.fb.is_comptagline_mode_enabled(g) : true;
@@ -956,7 +954,7 @@ u64 nvgpu_gmmu_map_locked(struct vm_gk20a *vm,
 #endif
 
 	attrs.l3_alloc = ((flags & NVGPU_VM_MAP_L3_ALLOC) != 0U);
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	if (nvgpu_is_errata_present(g, NVGPU_ERRATA_3288192) &&
 							(attrs.l3_alloc)) {
 		nvgpu_gmmu_dbg_v(g, &attrs,
@@ -1032,7 +1030,7 @@ void nvgpu_gmmu_unmap_locked(struct vm_gk20a *vm,
 		.aperture  = APERTURE_INVALID,
 	};
 #ifdef CONFIG_NVGPU_COMPRESSION
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	attrs.cbc_comptagline_mode =
 		g->ops.fb.is_comptagline_mode_enabled != NULL ?
 			g->ops.fb.is_comptagline_mode_enabled(g) : true;

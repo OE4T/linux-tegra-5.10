@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,7 +24,7 @@
 #define ACR_BOOTSTRAP_H
 
 #include "nvgpu_acr_interface.h"
-#ifdef CONFIG_NVGPU_NEXT
+#ifdef CONFIG_NVGPU_NON_FUSA
 #include "common/acr/nvgpu_next_acr_bootstrap.h"
 #endif
 
@@ -115,7 +115,7 @@ struct hs_acr {
 		struct flcn_acr_desc *acr_dmem_desc;
 	};
 
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 	struct nvgpu_mem acr_falcon2_sysmem_desc;
 	struct flcn2_acr_desc acr_sysmem_desc;
 	struct nvgpu_mem ls_pmu_desc;

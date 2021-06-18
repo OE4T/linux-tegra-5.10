@@ -33,7 +33,7 @@
 #include "acr_wpr.h"
 #include "acr_priv.h"
 
-#if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_NON_FUSA)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 #include "nvgpu_next_gpuid.h"
 #endif
 
@@ -54,7 +54,7 @@
 #endif
 
 #ifdef CONFIG_NVGPU_LS_PMU
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 #define PMU_NVRISCV_WPR_RSVD_BYTES	(0x8000)
 #endif
 
@@ -106,7 +106,7 @@ int nvgpu_acr_lsf_pmu_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 exit:
 	return err;
 }
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 s32 nvgpu_acr_lsf_pmu_ncore_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 {
 	struct lsf_ucode_desc *lsf_desc;
@@ -162,7 +162,7 @@ int nvgpu_acr_lsf_fecs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 
 	switch (ver) {
 		case NVGPU_GPUID_GV11B:
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 		case NVGPU_NEXT_GPUID:
 #endif
 			fecs_sig = nvgpu_request_firmware(g, GM20B_FECS_UCODE_SIG,
@@ -174,7 +174,7 @@ int nvgpu_acr_lsf_fecs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 				NVGPU_REQUEST_FIRMWARE_NO_SOC);
 			break;
 #endif
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 		case NVGPU_NEXT_DGPU_GPUID:
 			fecs_sig = nvgpu_request_firmware(g, NEXT_DGPU_FECS_UCODE_SIG,
 				NVGPU_REQUEST_FIRMWARE_NO_SOC);
@@ -272,7 +272,7 @@ int nvgpu_acr_lsf_gpccs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 
 	switch (ver) {
 		case NVGPU_GPUID_GV11B:
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 		case NVGPU_NEXT_GPUID:
 #endif
 			gpccs_sig = nvgpu_request_firmware(g, T18x_GPCCS_UCODE_SIG,
@@ -284,7 +284,7 @@ int nvgpu_acr_lsf_gpccs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 					NVGPU_REQUEST_FIRMWARE_NO_SOC);
 			break;
 #endif
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 		case NVGPU_NEXT_DGPU_GPUID:
 			gpccs_sig = nvgpu_request_firmware(g, NEXT_DGPU_GPCCS_UCODE_SIG,
 				NVGPU_REQUEST_FIRMWARE_NO_SOC);
@@ -775,7 +775,7 @@ static int lsf_gen_wpr_requirements(struct gk20a *g,
 			pnode->lsb_header.app_data_size =
 				pnode->lsb_header.data_size;
 		}
-#if defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 		/* Falcon image is cleanly partitioned between a code and
 		 * data section where we don't need extra reserved space.
 		 * NVRISCV image has no clear partition for code and data

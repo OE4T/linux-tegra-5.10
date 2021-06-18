@@ -348,7 +348,7 @@ u32 *nvgpu_netlist_get_gpccs_inst_list(struct gk20a *g);
 u32 *nvgpu_netlist_get_gpccs_data_list(struct gk20a *g);
 
 /** @cond DOXYGEN_SHOULD_SKIP_THIS */
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#if defined(CONFIG_NVGPU_NON_FUSA)
 #include <nvgpu/nvgpu_next_netlist.h>
 #endif
 

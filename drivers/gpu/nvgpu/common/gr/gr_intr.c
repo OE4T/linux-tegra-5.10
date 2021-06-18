@@ -125,7 +125,7 @@ static int gr_intr_handle_tpc_exception(struct gk20a *g, u32 gpc, u32 tpc,
 	if (pending_tpc.tex_exception) {
 		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
 			  "GPC%d TPC%d: TEX exception pending", gpc, tpc);
-#ifdef CONFIG_NVGPU_HAL_NON_FUSA
+#ifdef CONFIG_NVGPU_NON_FUSA
 		if (g->ops.gr.intr.handle_tex_exception != NULL) {
 			g->ops.gr.intr.handle_tex_exception(g, gpc, tpc);
 		}
