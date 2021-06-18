@@ -223,11 +223,16 @@ struct gops_fb {
 	void (*init_hw)(struct gk20a *g);
 
 	/**
-	 * @brief Intitilizes controls for GMMU state
+	 * @brief Intitializes controls for GMMU state.
 	 *
 	 * @param g [in]		Pointer to GPU driver struct.
 	 *
 	 * This function initializes chip specific fb state.
+	 * This function sets platform atomic capability mode to the
+	 * following configuration:
+	 *  - NV_PFB_PRI_MMU_CTRL_ATOMIC_CAPABILITY_MODE to RMW MODE
+	 *  - NV_PFB_PRI_MMU_CTRL_ATOMIC_CAPABILITY_SYS_NCOH_MODE to L2
+	 *  - NV_PFB_HSHUB_NUM_ACTIVE_LTCS_HUB_SYS_ATOMIC_MODE to USE_RMW
 	 */
 	void (*init_fs_state)(struct gk20a *g);
 
@@ -289,7 +294,7 @@ struct gops_fb {
 	 * memory controller. VPR info has following data:
 	 *  - addr_lo displays the lower address of the VPR
 	 *  - addr_hi displays the upper address of the VPR.
-	 *  - cya_low and cya_hi displays CYA bits the control the
+	 *  - cya_low and cya_hi displays CYA bits that controls the
 	 *    trust level of each client.
 	 */
 	void (*dump_vpr_info)(struct gk20a *g);
@@ -388,7 +393,7 @@ struct gops_fb {
 	 * @param state [in]		NVGPU_MMU_FAULT_BUF_ENABLED or
 	 *				NVGPU_MMU_FAULT_BUF_DISABLED
 	 *
-	 * This function set-up mmu fault buffer state.
+	 * This function sets up mmu fault buffer state.
 	 *   NVGPU_MMU_FAULT_BUF_ENABLED : set the actual size of fault buffer.
 	 *   NVGPU_MMU_FAULT_BUF_DISABLED : Clears fault buffer size.
 	 */
