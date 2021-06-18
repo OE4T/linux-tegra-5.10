@@ -108,7 +108,7 @@ struct gops_priv_ring {
 	 * @param g [in]		Pointer to GPU driver struct.
 	 *
 	 * This function returns number of enumerated ltc chiplets after
-	 * floor-sweeping.
+	 * the enumeration step of enable_priv_ring.
 	 *
 	 * @return U32 Number of ltc units.
 	 */
@@ -121,7 +121,7 @@ struct gops_priv_ring {
 	 * @param g [in]		Pointer to GPU driver struct.
 	 *
 	 * This function returns number of enumerated gpc chiplets after
-	 * floor-sweeping.
+	 * the enumeration step of enable_priv_ring.
 	 *
 	 * @return U32 Number of gpc units.
 	 */
@@ -133,14 +133,24 @@ struct gops_priv_ring {
 	 * @param g [in]		Pointer to GPU driver struct.
 	 *
 	 * This function returns number of enumerated fbp chiplets after
-	 * floor-sweeping.
+	 * the enumeration step of enable_priv_ring.
 	 *
 	 * @return U32 Number of fbp units.
 	 */
 	u32 (*get_fbp_count)(struct gk20a *g);
 
-	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+	/**
+	 * @brief Decodes priv ring error code.
+	 *
+	 * @param g [in] Pointer to GPU driver struct.
+	 * @param error_code [in] Priv error code reported from h/w.
+	 *
+	 * This function decodes and prints appropriate error message for
+	 * priv error_code reported by h/w.
+	*/
 	void (*decode_error_code)(struct gk20a *g, u32 error_code);
+
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 #ifdef CONFIG_NVGPU_PROFILER
 	void (*read_pri_fence)(struct gk20a *g);
 #endif
