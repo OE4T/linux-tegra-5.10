@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,7 +21,7 @@
  */
 
 #ifndef USERD_GA10B_H
-#define USERD_GK10B_H
+#define USERD_GA10B_H
 
 #ifdef CONFIG_NVGPU_USERD
 struct gk20a;
