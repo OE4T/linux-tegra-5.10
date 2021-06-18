@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -36,13 +36,13 @@
 void gk20a_fifo_ctxsw_timeout_enable(struct gk20a *g, bool enable)
 {
 	u32 timeout;
+	u32 scaled_timeout;
 
 	if (enable) {
 		timeout = g->ctxsw_timeout_period_ms * 1000U; /* in us */
-		timeout = scale_ptimer(timeout,
-			ptimer_scalingfactor10x(g->ptimer_src_freq));
-		timeout |= fifo_eng_timeout_detection_enabled_f();
-		nvgpu_writel(g, fifo_eng_timeout_r(), timeout);
+		nvgpu_assert(nvgpu_ptimer_scale(g, timeout, &scaled_timeout) == 0);
+		scaled_timeout |= fifo_eng_timeout_detection_enabled_f();
+		nvgpu_writel(g, fifo_eng_timeout_r(), scaled_timeout);
 	} else {
 		timeout = nvgpu_readl(g, fifo_eng_timeout_r());
 		timeout &= ~(fifo_eng_timeout_detection_enabled_f());

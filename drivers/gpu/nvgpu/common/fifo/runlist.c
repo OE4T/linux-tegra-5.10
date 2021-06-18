@@ -73,6 +73,7 @@ static u32 nvgpu_runlist_append_tsg(struct gk20a *g,
 	struct nvgpu_channel *ch;
 	u32 count = 0;
 	u32 timeslice;
+	int err;
 
 	nvgpu_log_fn(f->g, " ");
 
@@ -87,8 +88,10 @@ static u32 nvgpu_runlist_append_tsg(struct gk20a *g,
 	 * timeslice is measured with PTIMER.
 	 * On some platforms, PTIMER is lower than 1GHz.
 	 */
-	timeslice = scale_ptimer(tsg->timeslice_us,
-			ptimer_scalingfactor10x(g->ptimer_src_freq));
+	err = nvgpu_ptimer_scale(g, tsg->timeslice_us, &timeslice);
+	if (err != 0) {
+		return RUNLIST_APPEND_FAILURE;
+	}
 
 	g->ops.runlist.get_tsg_entry(tsg, *runlist_entry, timeslice);
 

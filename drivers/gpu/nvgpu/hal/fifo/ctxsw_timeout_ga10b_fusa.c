@@ -97,6 +97,7 @@ static void ga10b_fifo_ctxsw_timeout_disable_and_clear(struct gk20a *g,
 void ga10b_fifo_ctxsw_timeout_enable(struct gk20a *g, bool enable)
 {
 	u32 timeout;
+	u32 scaled_timeout;
 
 	nvgpu_log_fn(g, " ");
 
@@ -104,10 +105,9 @@ void ga10b_fifo_ctxsw_timeout_enable(struct gk20a *g, bool enable)
 		if (nvgpu_platform_is_silicon(g)) {
 			timeout = nvgpu_safe_mult_u32(
 					g->ctxsw_timeout_period_ms, MS_TO_US);
-			timeout = scale_ptimer(timeout,
-				ptimer_scalingfactor10x(g->ptimer_src_freq));
+			nvgpu_assert(nvgpu_ptimer_scale(g, timeout, &scaled_timeout) == 0);
 			timeout =
-			 runlist_engine_ctxsw_timeout_config_period_f(timeout) |
+			 runlist_engine_ctxsw_timeout_config_period_f(scaled_timeout) |
 			 runlist_engine_ctxsw_timeout_config_detection_enabled_f();
 		} else {
 			timeout =

@@ -20,13 +20,42 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 #include <nvgpu/ptimer.h>
-#include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
+#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
+#include <nvgpu/timers.h>
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/power_features/cg.h>
+#endif
 
+static u32 ptimer_scalingfactor10x(u32 ptimer_src_freq)
+{
+	return nvgpu_safe_cast_u64_to_u32((U64(PTIMER_REF_FREQ_HZ) * U64(10))
+						/ U64(ptimer_src_freq));
+}
+
+int nvgpu_ptimer_scale(struct gk20a *g, u32 timeout, u32 *scaled_timeout)
+{
+	u32 scale10x;
+
+	nvgpu_assert(g->ptimer_src_freq != 0U);
+	scale10x = ptimer_scalingfactor10x(g->ptimer_src_freq);
+	nvgpu_assert(scale10x != 0U);
+
+	if (timeout > U32_MAX / 10U) {
+		return -EINVAL;
+	}
+
+	if (((timeout * 10U) % scale10x) >= (scale10x / 2U)) {
+		*scaled_timeout = ((timeout * 10U) / scale10x) + 1U;
+	} else {
+		*scaled_timeout = (timeout * 10U) / scale10x;
+	}
+
+	return 0;
+}
+
+#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 int nvgpu_ptimer_init(struct gk20a *g)
 {
 #if defined(CONFIG_NVGPU_NON_FUSA)
