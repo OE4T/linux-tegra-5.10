@@ -24,13 +24,9 @@
 
 #ifdef CONFIG_NVGPU_SIM
 
+#include <nvgpu/types.h>
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/gk20a.h>
-/** @cond DOXYGEN_SHOULD_SKIP_THIS */
-#if defined(CONFIG_NVGPU_NON_FUSA)
-#include <nvgpu/nvgpu_next_sim.h>
-#endif
-/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
 /*
  * Size of SIM ring buffers.
@@ -107,6 +103,21 @@ static inline u32 *sim_msg_param(struct gk20a *g, u32 byte_offset)
 	/*starts after msg header/cmn*/
 	return sim_msg_bfr(g, byte_offset + sim_msg_header_size());
 }
+
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_HAL_NON_FUSA)
+void nvgpu_next_init_sim_support(struct gk20a *g);
+
+#ifdef CONFIG_NVGPU_DEBUGGER
+int nvgpu_next_init_sim_netlist_ctxsw_regs(struct gk20a *g);
+void nvgpu_next_init_sim_netlist_ctxsw_regs_free(struct gk20a *g);
+#endif /* CONFIG_NVGPU_DEBUGGER */
+
+int nvgpu_next_init_sim_netlist_ctx_vars(struct gk20a *g);
+void nvgpu_next_init_sim_netlist_ctx_vars_free(struct gk20a *g);
+
+#endif
+/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
 #endif
 #endif /* NVGPU_SIM_H */

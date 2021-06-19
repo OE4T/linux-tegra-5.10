@@ -23,6 +23,8 @@
 #ifndef NVGPU_PBDMA_COMMON_H
 #define NVGPU_PBDMA_COMMON_H
 
+#include <nvgpu/types.h>
+
 /**
  * @file
  *
@@ -36,7 +38,16 @@ struct gk20a;
 
 /** @cond DOXYGEN_SHOULD_SKIP_THIS */
 #if defined(CONFIG_NVGPU_NON_FUSA)
-#include "include/nvgpu/nvgpu_next_pbdma.h"
+#define PBDMA_PER_RUNLIST_SIZE		2U
+#define NVGPU_INVALID_PBDMA_PRI_BASE	U32_MAX
+#define NVGPU_INVALID_PBDMA_ID		U32_MAX
+
+struct nvgpu_next_pbdma_info {
+	/** The pri offset of the i'th PBDMA for runlist_pri_base */
+	u32 pbdma_pri_base[PBDMA_PER_RUNLIST_SIZE];
+	/** The ID of the i'th PBDMA that runs channels on this runlist */
+	u32 pbdma_id[PBDMA_PER_RUNLIST_SIZE];
+};
 #endif
 /** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 

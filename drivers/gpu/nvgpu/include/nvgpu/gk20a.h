@@ -267,6 +267,11 @@ struct railgate_stats {
 #define GPU_LIT_MAX_RUNLISTS_SUPPORTED		49
 #define GPU_LIT_NUM_LTC_LTS_SETS		50
 #define GPU_LIT_NUM_LTC_LTS_WAYS		51
+#define GPU_LIT_ROP_IN_GPC_BASE			52
+#define GPU_LIT_ROP_IN_GPC_SHARED_BASE		53
+#define GPU_LIT_ROP_IN_GPC_PRI_SHARED_IDX	54
+#define GPU_LIT_ROP_IN_GPC_STRIDE		55
+
 /** @endcond */
 
 /** Macro to get litter values corresponding to the litter defines. */

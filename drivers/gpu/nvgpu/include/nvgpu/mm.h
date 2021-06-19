@@ -457,7 +457,8 @@ struct mm_gk20a {
 	struct nvgpu_mem mmu_rd_mem;
 
 #if defined(CONFIG_NVGPU_NON_FUSA)
-#include "include/nvgpu/nvgpu_next_mm.h"
+	/** VAB struct */
+	struct nvgpu_vab vab;
 #endif
 };
 

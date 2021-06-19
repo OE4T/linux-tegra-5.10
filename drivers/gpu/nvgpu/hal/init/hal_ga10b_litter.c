@@ -22,8 +22,6 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/class.h>
-#include <nvgpu/nvgpu_next_class.h>
-#include <nvgpu/nvgpu_next_litter.h>
 
 #include <nvgpu/hw/ga10b/hw_proj_ga10b.h>
 

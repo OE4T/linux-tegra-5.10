@@ -117,13 +117,10 @@
 #include <nvgpu/atomic.h>
 #include <nvgpu/lock.h>
 #include <nvgpu/bitops.h>
+#include <nvgpu/cic.h>
 
 struct gk20a;
 struct nvgpu_device;
-
-#if defined(CONFIG_NVGPU_NON_FUSA)
-#include "include/nvgpu/nvgpu_next_mc.h"
-#endif
 
 #define MC_ENABLE_DELAY_US	20U
 #define MC_RESET_DELAY_US	20U
@@ -162,6 +159,44 @@ struct nvgpu_device;
 
 /** Bit offset of the Architecture field in the HW version register */
 #define NVGPU_GPU_ARCHITECTURE_SHIFT 4U
+
+#if defined(CONFIG_NVGPU_NON_FUSA)
+struct nvgpu_intr_unit_info {
+	/**
+	 * top bit 0 -> subtree 0 -> leaf0, leaf1 -> leaf 0, 1
+	 * top bit 1 -> subtree 1 -> leaf0, leaf1 -> leaf 2, 3
+	 * top bit 2 -> subtree 2 -> leaf0, leaf1 -> leaf 4, 5
+	 * top bit 3 -> subtree 3 -> leaf0, leaf1 -> leaf 6, 7
+	 */
+	/**
+	 * h/w defined vectorids for the s/w defined intr unit.
+	 * Upto 32 vectorids (32 bits of a leaf register) are supported for
+	 * the intr units that support multiple vector ids.
+	 */
+	u32 vectorid[NVGPU_CIC_INTR_VECTORID_SIZE_MAX];
+	/** number of vectorid supported by the intr unit */
+	u32 vectorid_size;
+	u32 subtree;	/** subtree number corresponding to vectorid */
+	u64 subtree_mask; /** leaf1_leaf0 value for the intr unit */
+	/**
+	 * This flag will be set to true after all the fields
+	 * of nvgpu_intr_unit_info are configured.
+	 */
+	bool valid;
+};
+
+struct nvgpu_next_mc {
+	/**
+	 * intr info array indexed by s/w defined intr unit name
+	 */
+	struct nvgpu_intr_unit_info intr_unit_info[NVGPU_CIC_INTR_UNIT_MAX];
+	/**
+	 * Leaf mask per subtree. Subtree is a pair of leaf registers.
+	 * Each subtree corresponds to a bit in intr_top register.
+	 */
+	u64 subtree_mask_restore[HOST2SOC_NUM_SUBTREE];
+};
+#endif
 
 /**
  * This struct holds the variables needed to manage the configuration and

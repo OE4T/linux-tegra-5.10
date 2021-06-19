@@ -194,3 +194,35 @@ int nvgpu_gr_fs_state_init(struct gk20a *g, struct nvgpu_gr_config *config)
 	return err;
 }
 
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
+int nvgpu_gr_init_sm_id_early_config(struct gk20a *g, struct nvgpu_gr_config *config)
+{
+	u32 tpc_index, gpc_index;
+	u32 sm_id = 0;
+	u32 num_sm;
+	int err = 0;
+
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
+
+	err = g->ops.gr.config.init_sm_id_table(g, config);
+	if (err != 0) {
+		return err;
+	}
+
+	num_sm = nvgpu_gr_config_get_no_of_sm(config);
+	nvgpu_assert(num_sm > 0U);
+
+	for (sm_id = 0; sm_id < num_sm; sm_id++) {
+		struct nvgpu_sm_info *sm_info =
+			nvgpu_gr_config_get_sm_info(config, sm_id);
+		tpc_index = nvgpu_gr_config_get_sm_info_tpc_index(sm_info);
+		gpc_index = nvgpu_gr_config_get_sm_info_gpc_index(sm_info);
+
+		g->ops.gr.init.sm_id_numbering(g, gpc_index, tpc_index, sm_id,
+					       config, NULL, false);
+	}
+
+	return err;
+}
+#endif
+

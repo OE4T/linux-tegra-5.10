@@ -24,12 +24,10 @@
 #define ACR_BOOTSTRAP_H
 
 #include "nvgpu_acr_interface.h"
-#ifdef CONFIG_NVGPU_NON_FUSA
-#include "common/acr/nvgpu_next_acr_bootstrap.h"
-#endif
 
 struct gk20a;
 struct nvgpu_acr;
+struct hs_acr;
 
 struct flcn_acr_region_prop_v0 {
 	u32 start_addr;
@@ -135,5 +133,10 @@ int nvgpu_acr_wait_for_completion(struct gk20a *g, struct hs_acr *acr_desc,
 	u32 timeout);
 int nvgpu_acr_bootstrap_hs_ucode(struct gk20a *g, struct nvgpu_acr *acr,
 	struct hs_acr *acr_desc);
+
+
+#if defined(CONFIG_NVGPU_FALCON_NON_FUSA) && defined(CONFIG_NVGPU_HAL_NON_FUSA)
+int nvgpu_acr_bootstrap_hs_ucode_riscv(struct gk20a *g, struct nvgpu_acr *acr);
+#endif
 
 #endif /* ACR_BOOTSTRAP_H */

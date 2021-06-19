@@ -30,9 +30,15 @@
 
 #include <nvgpu/types.h>
 
+struct gk20a;
+struct nvgpu_device;
+
 /** @cond DOXYGEN_SHOULD_SKIP_THIS */
 #if defined(CONFIG_NVGPU_NON_FUSA)
-#include "include/nvgpu/nvgpu_next_engines.h"
+#define ENGINE_PBDMA_INSTANCE0 0U
+
+int nvgpu_next_engine_init_one_dev(struct gk20a *g,
+				   const struct nvgpu_device *dev);
 #endif
 /** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 

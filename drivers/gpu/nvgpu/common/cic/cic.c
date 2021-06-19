@@ -22,6 +22,7 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/kmem.h>
+#include <nvgpu/lock.h>
 #include <nvgpu/log.h>
 #include <nvgpu/cic.h>
 #include <nvgpu/nvgpu_err_info.h>
@@ -159,3 +160,71 @@ int nvgpu_cic_get_num_hw_modules(struct gk20a *g)
 
 	return g->cic->num_hw_modules;
 }
+
+#if defined(CONFIG_NVGPU_NON_FUSA)
+void nvgpu_cic_intr_unit_vectorid_init(struct gk20a *g, u32 unit, u32 *vectorid,
+		u32 num_entries)
+{
+	unsigned long flags = 0;
+	u32 i = 0U;
+	struct nvgpu_intr_unit_info *intr_unit_info;
+
+	nvgpu_assert(num_entries <= NVGPU_CIC_INTR_VECTORID_SIZE_MAX);
+
+	nvgpu_log(g, gpu_dbg_intr, "UNIT=%d, nvecs=%d", unit, num_entries);
+
+	intr_unit_info = g->mc.nvgpu_next.intr_unit_info;
+
+	nvgpu_spinlock_irqsave(&g->mc.intr_lock, flags);
+
+	if (intr_unit_info[unit].valid == false) {
+		for (i = 0U; i < num_entries; i++) {
+			nvgpu_log(g, gpu_dbg_intr, " vec[%d] = %d", i,
+					*(vectorid + i));
+			intr_unit_info[unit].vectorid[i] = *(vectorid + i);
+		}
+		intr_unit_info[unit].vectorid_size = num_entries;
+	}
+	nvgpu_spinunlock_irqrestore(&g->mc.intr_lock, flags);
+}
+
+bool nvgpu_cic_intr_is_unit_info_valid(struct gk20a *g, u32 unit)
+{
+	struct nvgpu_intr_unit_info *intr_unit_info;
+	bool info_valid = false;
+
+	if (unit >= NVGPU_CIC_INTR_UNIT_MAX) {
+		nvgpu_err(g, "invalid unit(%d)", unit);
+		return false;
+	}
+
+	intr_unit_info = g->mc.nvgpu_next.intr_unit_info;
+
+	if (intr_unit_info[unit].valid == true) {
+		info_valid = true;
+	}
+
+	return info_valid;
+}
+
+bool nvgpu_cic_intr_get_unit_info(struct gk20a *g, u32 unit, u32 *subtree,
+		u64 *subtree_mask)
+{
+	if (unit >= NVGPU_CIC_INTR_UNIT_MAX) {
+		nvgpu_err(g, "invalid unit(%d)", unit);
+		return false;
+	}
+	if (nvgpu_cic_intr_is_unit_info_valid(g, unit) != true) {
+		if (g->ops.mc.intr_get_unit_info(g, unit) != true) {
+			nvgpu_err(g, "failed to fetch info for unit(%d)", unit);
+			return false;
+		}
+	}
+	*subtree = g->mc.nvgpu_next.intr_unit_info[unit].subtree;
+	*subtree_mask = g->mc.nvgpu_next.intr_unit_info[unit].subtree_mask;
+	nvgpu_log(g, gpu_dbg_intr, "subtree(%d) subtree_mask(%llx)",
+			*subtree, *subtree_mask);
+
+	return true;
+}
+#endif

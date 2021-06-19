@@ -33,7 +33,43 @@ struct gk20a;
 #include <nvgpu/errno.h>
 
 #if defined(CONFIG_NVGPU_NON_FUSA)
-#include "include/nvgpu/nvgpu_next_fuse.h"
+struct nvgpu_fuse_feature_override_ecc {
+	/** overide_ecc register feature */
+	/** sm_lrf enable */
+	bool sm_lrf_enable;
+	/** sm_lrf override */
+	bool sm_lrf_override;
+	/** sm_l1_data enable */
+	bool sm_l1_data_enable;
+	/** sm_l1_data overide */
+	bool sm_l1_data_override;
+	/** sm_l1_tag enable */
+	bool sm_l1_tag_enable;
+	/** sm_l1_tag overide */
+	bool sm_l1_tag_override;
+	/** ltc enable */
+	bool ltc_enable;
+	/** ltc overide */
+	bool ltc_override;
+	/** dram enable */
+	bool dram_enable;
+	/** dram overide */
+	bool dram_override;
+	/** sm_cbu enable */
+	bool sm_cbu_enable;
+	/** sm_cbu overide */
+	bool sm_cbu_override;
+
+	/** override_ecc_1 register feature */
+	/** sm_l0_icache enable */
+	bool sm_l0_icache_enable;
+	/** sm_l0_icache overide */
+	bool sm_l0_icache_override;
+	/** sm_l1_icache enable */
+	bool sm_l1_icache_enable;
+	/** sm_l1_icache overide */
+	bool sm_l1_icache_override;
+};
 #endif
 
 #define GCPLEX_CONFIG_VPR_AUTO_FETCH_DISABLE_MASK	BIT32(0)

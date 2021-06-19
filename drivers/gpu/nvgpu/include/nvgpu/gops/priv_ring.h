@@ -146,8 +146,10 @@ struct gops_priv_ring {
 #endif
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
-#include "include/nvgpu/nvgpu_next_gops_priv_ring.h"
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_MIG)
+	int (*config_gr_remap_window)(struct gk20a *g, u32 gr_syspipe_indx,
+		bool enable);
+	int (*config_gpc_rs_map)(struct gk20a *g, bool enable);
 #endif
 
 };

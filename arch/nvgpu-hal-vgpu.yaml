@@ -9,7 +9,9 @@ init:
   sources: [ hal/vgpu/init/init_hal_vgpu.c,
              hal/vgpu/init/init_hal_vgpu.h,
              hal/vgpu/init/vgpu_hal_gv11b.c,
-             hal/vgpu/init/vgpu_hal_gv11b.h ]
+             hal/vgpu/init/vgpu_hal_gv11b.h,
+             hal/vgpu/init/vgpu_hal_ga10b.c,
+             hal/vgpu/init/vgpu_hal_ga10b.h ]
 
 fifo:
   safe : no

@@ -103,7 +103,9 @@ struct gops_perf {
 	int (*wait_for_idle_pmm_routers)(struct gk20a *g);
 	int (*wait_for_idle_pma)(struct gk20a *g);
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA)
-#include "include/nvgpu/nvgpu_next_gops_perf.h"
+	void (*enable_hs_streaming)(struct gk20a *g, bool enable);
+	void (*reset_hs_streaming_credits)(struct gk20a *g);
+	void (*enable_pmasys_legacy_mode)(struct gk20a *g, bool enable);
 #endif
 };
 struct gops_perfbuf {

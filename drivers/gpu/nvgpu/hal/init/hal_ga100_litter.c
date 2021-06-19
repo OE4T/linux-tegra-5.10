@@ -22,7 +22,6 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/class.h>
-#include <nvgpu/nvgpu_next_class.h>
 
 #include <nvgpu/hw/ga100/hw_proj_ga100.h>
 

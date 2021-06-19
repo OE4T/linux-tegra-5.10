@@ -218,7 +218,7 @@ struct gops_pmu {
 	 * @param void
 	 *
 	 * @return Chip specific PMU Engine Falcon2 base address.
-	 *         For NEXT_GPUID, NEXT_GPUID PMU Engine Falcon2 base address
+	 *         For Ampere+, PMU Engine Falcon2 base address
 	 *         will be returned.
 	 */
 	u32 (*falcon2_base_addr)(void);

@@ -62,7 +62,20 @@ struct gops_cg {
 	void (*blcg_xbar_load_gating_prod)(struct gk20a *g, bool prod);
 	void (*blcg_hshub_load_gating_prod)(struct gk20a *g, bool prod);
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA)
-#include "include/nvgpu/nvgpu_next_gops_cg.h"
+	void (*slcg_runlist_load_gating_prod)(struct gk20a *g, bool prod);
+	void (*blcg_runlist_load_gating_prod)(struct gk20a *g, bool prod);
+
+	/* Ring station slcg prod gops */
+	void (*slcg_rs_ctrl_fbp_load_gating_prod)(struct gk20a *g, bool prod);
+	void (*slcg_rs_ctrl_gpc_load_gating_prod)(struct gk20a *g, bool prod);
+	void (*slcg_rs_ctrl_sys_load_gating_prod)(struct gk20a *g, bool prod);
+	void (*slcg_rs_fbp_load_gating_prod)(struct gk20a *g, bool prod);
+	void (*slcg_rs_gpc_load_gating_prod)(struct gk20a *g, bool prod);
+	void (*slcg_rs_sys_load_gating_prod)(struct gk20a *g, bool prod);
+
+	void (*slcg_timer_load_gating_prod)(struct gk20a *g, bool prod);
+
+	void (*elcg_ce_load_gating_prod)(struct gk20a *g, bool prod);
 #endif
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 };

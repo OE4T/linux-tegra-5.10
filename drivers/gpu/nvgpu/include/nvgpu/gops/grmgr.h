@@ -77,8 +77,16 @@ struct gops_grmgr {
 	void (*get_gpcgrp_count)(struct gk20a *g);
 
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_MIG)
-#include "include/nvgpu/nvgpu_next_gops_grmgr.h"
+	u32 (*get_max_sys_pipes)(struct gk20a *g);
+	const struct nvgpu_mig_gpu_instance_config* (*get_mig_config_ptr)(
+			struct gk20a *g);
+	u32 (*get_allowed_swizzid_size)(struct gk20a *g);
+	int (*get_gpc_instance_gpcgrp_id)(struct gk20a *g,
+			u32 gpu_instance_id, u32 gr_syspipe_id, u32 *gpcgrp_id);
+	int (*get_mig_gpu_instance_config)(struct gk20a *g,
+		const char **config_name, u32 *num_config_supported);
+	void (*load_timestamp_prod)(struct gk20a *g);
 #endif
 };
 
-#endif /* NVGPU_NEXT_GOPS_GRMGR_H */
+#endif /* NVGPU_GOPS_GRMGR_H */

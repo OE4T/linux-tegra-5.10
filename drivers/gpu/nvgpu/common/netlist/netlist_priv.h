@@ -25,10 +25,6 @@
 
 #include <nvgpu/types.h>
 
-#if defined(CONFIG_NVGPU_NON_FUSA)
-#include "common/netlist/nvgpu_next_netlist_priv.h"
-#endif
-
 struct netlist_u32_list;
 struct netlist_av_list;
 struct netlist_av64_list;
@@ -78,10 +74,30 @@ struct netlist_aiv_list;
 #define NETLIST_REGIONID_SW_BUNDLE64_INIT	34
 #ifdef CONFIG_NVGPU_DEBUGGER
 #define NETLIST_REGIONID_NVPERF_PMCAU		35
+#define NETLIST_REGIONID_CTXREG_SYS_COMPUTE	36
+#define NETLIST_REGIONID_CTXREG_GPC_COMPUTE	38
+#define NETLIST_REGIONID_CTXREG_TPC_COMPUTE	40
+#define NETLIST_REGIONID_CTXREG_PPC_COMPUTE	42
+#define NETLIST_REGIONID_CTXREG_ETPC_COMPUTE	44
+#ifdef CONFIG_NVGPU_GRAPHICS
+#define NETLIST_REGIONID_CTXREG_SYS_GFX			37
+#define NETLIST_REGIONID_CTXREG_GPC_GFX			39
+#define NETLIST_REGIONID_CTXREG_TPC_GFX			41
+#define NETLIST_REGIONID_CTXREG_PPC_GFX			43
+#define NETLIST_REGIONID_CTXREG_ETPC_GFX		45
+#endif  /* CONFIG_NVGPU_GRAPHICS */
+#define NETLIST_REGIONID_SW_NON_CTX_LOCAL_COMPUTE_LOAD	48
+#define NETLIST_REGIONID_SW_NON_CTX_GLOBAL_COMPUTE_LOAD	50
+#ifdef CONFIG_NVGPU_GRAPHICS
+#define NETLIST_REGIONID_SW_NON_CTX_LOCAL_GFX_LOAD	49
+#define NETLIST_REGIONID_SW_NON_CTX_GLOBAL_GFX_LOAD	51
+#endif  /* CONFIG_NVGPU_GRAPHICS */
 #define NETLIST_REGIONID_NVPERF_SYS_CONTROL	52
 #define NETLIST_REGIONID_NVPERF_FBP_CONTROL	53
 #define NETLIST_REGIONID_NVPERF_GPC_CONTROL	54
 #define NETLIST_REGIONID_NVPERF_PMA_CONTROL	55
+#define NETLIST_REGIONID_CTXREG_LTS_BC		57
+#define NETLIST_REGIONID_CTXREG_LTS_UC		58
 #endif
 
 struct netlist_region {
@@ -107,6 +123,37 @@ struct netlist_gr_ucode {
 	} gpccs, fecs;
 };
 
+
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
+struct nvgpu_next_netlist_vars {
+	struct netlist_av_list  sw_non_ctx_local_compute_load;
+	struct netlist_av_list  sw_non_ctx_global_compute_load;
+#ifdef CONFIG_NVGPU_GRAPHICS
+	struct netlist_av_list  sw_non_ctx_local_gfx_load;
+	struct netlist_av_list  sw_non_ctx_global_gfx_load;
+#endif  /* CONFIG_NVGPU_GRAPHICS */
+};
+
+#ifdef CONFIG_NVGPU_DEBUGGER
+struct nvgpu_next_ctxsw_regs {
+	struct netlist_aiv_list sys_compute;
+	struct netlist_aiv_list gpc_compute;
+	struct netlist_aiv_list tpc_compute;
+	struct netlist_aiv_list ppc_compute;
+	struct netlist_aiv_list etpc_compute;
+	struct netlist_aiv_list lts_bc;
+	struct netlist_aiv_list lts_uc;
+#ifdef CONFIG_NVGPU_GRAPHICS
+	struct netlist_aiv_list sys_gfx;
+	struct netlist_aiv_list gpc_gfx;
+	struct netlist_aiv_list tpc_gfx;
+	struct netlist_aiv_list ppc_gfx;
+	struct netlist_aiv_list etpc_gfx;
+#endif /* CONFIG_NVGPU_GRAPHICS */
+};
+#endif /* CONFIG_NVGPU_DEBUGGER */
+
+#endif /* CONFIG_NVGPU_HAL_NON_FUSA */
 struct nvgpu_netlist_vars {
 	bool dynamic;
 

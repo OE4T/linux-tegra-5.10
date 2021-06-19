@@ -90,7 +90,11 @@ struct gops_pbdma {
 	void (*dump_status)(struct gk20a *g,
 			struct nvgpu_debug_context *o);
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA)
-#include "include/nvgpu/nvgpu_next_gops_pbdma.h"
+	u32 (*set_channel_info_chid)(u32 chid);
+	u32 (*set_intr_notify)(u32 eng_intr_vector);
+	u32 (*get_mmu_fault_id)(struct gk20a *g, u32 pbdma_id);
+	void (*pbdma_force_ce_split)(struct gk20a *g);
+	u32 (*get_num_of_pbdmas)(void);
 #endif
 };
 

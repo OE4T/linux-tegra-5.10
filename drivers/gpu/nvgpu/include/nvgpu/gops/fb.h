@@ -162,7 +162,41 @@ struct gops_fb_ecc {
 };
 
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA)
-#include "include/nvgpu/nvgpu_next_gops_fb_vab.h"
+struct nvgpu_vab_range_checker;
+
+struct gops_fb_vab {
+	/**
+	 * @brief Initialize VAB
+	 *
+	 */
+	int (*init)(struct gk20a *g);
+
+	/**
+	 * @brief Initialize VAB range checkers and enable VAB tracking
+	 *
+	 */
+	int (*reserve)(struct gk20a *g, u32 vab_mode, u32 num_range_checkers,
+		struct nvgpu_vab_range_checker *vab_range_checker);
+
+	/**
+	 * @brief Trigger VAB dump, copy buffer to user and clear
+	 *
+	 */
+	int (*dump_and_clear)(struct gk20a *g, u64 *user_buf,
+		u64 user_buf_size);
+
+	/**
+	 * @brief Disable VAB
+	 *
+	 */
+	int (*release)(struct gk20a *g);
+
+	/**
+	 * @brief Free VAB resources
+	 *
+	 */
+	int (*teardown)(struct gk20a *g);
+};
 #endif
 
 /**
@@ -441,7 +475,14 @@ struct gops_fb {
 #endif
 
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA)
-#include "include/nvgpu/nvgpu_next_gops_fb.h"
+	u32 (*get_num_active_ltcs)(struct gk20a *g);
+
+#ifdef CONFIG_NVGPU_MIG
+	int (*config_veid_smc_map)(struct gk20a *g, bool enable);
+	int (*set_smc_eng_config)(struct gk20a *g, bool enable);
+	int (*set_remote_swizid)(struct gk20a *g, bool enable);
+#endif
+	struct gops_fb_vab vab;
 #endif
 
 #ifdef CONFIG_NVGPU_DGPU

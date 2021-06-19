@@ -454,7 +454,8 @@ struct gops_gr_intr {
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA)
-#include "include/nvgpu/nvgpu_next_gops_gr_intr.h"
+	void (*retrigger)(struct gk20a *g);
+	u32 (*enable_mask)(struct gk20a *g);
 #endif
 	int (*handle_fecs_error)(struct gk20a *g,
 				 struct nvgpu_channel *ch,
@@ -835,7 +836,11 @@ struct gops_gr_init {
 	bool (*is_allowed_sw_bundle)(struct gk20a *g,
 			u32 bundle_addr, u32 bundle_value, int *context);
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA)
-#include "include/nvgpu/nvgpu_next_gops_gr_init.h"
+	void (*auto_go_idle)(struct gk20a *g, bool enable);
+	void (*eng_config)(struct gk20a *g);
+	int (*reset_gpcs)(struct gk20a *g);
+	int (*sm_id_config_early)(struct gk20a *g,
+			struct nvgpu_gr_config *config);
 #endif
 	/** @endcond */
 };
@@ -967,7 +972,21 @@ struct gops_gr_ctxsw_prog {
 				  u32 aperture_mask);
 #endif
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA)
-#include "include/nvgpu/nvgpu_next_gops_gr_ctxsw_prog.h"
+#ifdef CONFIG_NVGPU_DEBUGGER
+	u32 (*hw_get_main_header_size)(void);
+	u32 (*hw_get_gpccs_header_stride)(void);
+	u32 (*get_compute_sysreglist_offset)(u32 *fecs_hdr);
+	u32 (*get_gfx_sysreglist_offset)(u32 *fecs_hdr);
+	u32 (*get_ltsreglist_offset)(u32 *fecs_hdr);
+	u32 (*get_compute_gpcreglist_offset)(u32 *gpccs_hdr);
+	u32 (*get_gfx_gpcreglist_offset)(u32 *gpccs_hdr);
+	u32 (*get_compute_tpcreglist_offset)(u32 *gpccs_hdr, u32 tpc_num);
+	u32 (*get_gfx_tpcreglist_offset)(u32 *gpccs_hdr, u32 tpc_num);
+	u32 (*get_compute_ppcreglist_offset)(u32 *gpccs_hdr);
+	u32 (*get_gfx_ppcreglist_offset)(u32 *gpccs_hdr);
+	u32 (*get_compute_etpcreglist_offset)(u32 *gpccs_hdr);
+	u32 (*get_gfx_etpcreglist_offset)(u32 *gpccs_hdr);
+#endif
 #endif
 };
 /** @endcond */
@@ -1283,7 +1302,8 @@ struct gops_gr {
 	struct gops_gr_zcull		zcull;
 #endif /* CONFIG_NVGPU_GRAPHICS */
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA)
-#include "include/nvgpu/nvgpu_next_gops_gr.h"
+	void (*vab_init)(struct gk20a *g, u32 vab_reg);
+	void (*vab_release)(struct gk20a *g, u32 vab_reg);
 #endif
 	/** @endcond */
 };

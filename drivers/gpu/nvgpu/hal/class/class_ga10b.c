@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021 NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,7 +21,6 @@
  */
 
 #include <nvgpu/class.h>
-#include <nvgpu/nvgpu_next_class.h>
 #include <nvgpu/barrier.h>
 
 #include "hal/class/class_tu104.h"

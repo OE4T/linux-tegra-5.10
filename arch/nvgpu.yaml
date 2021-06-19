@@ -14,13 +14,13 @@ nvgpu:
     common:
       safe: no
       children:
-        !include nvgpu-common.yaml nvgpu-next-common.yaml
+        !include nvgpu-common.yaml
 
     # HAL units - Hardware Abstraction Layer.
     hal:
       safe: no
       children:
-        !include nvgpu-hal-new.yaml nvgpu-next-hal.yaml
+        !include nvgpu-hal-new.yaml
 
     # The QNX OS layer implementation units.
     qnx:
@@ -32,7 +32,7 @@ nvgpu:
     linux:
       safe: no
       children:
-        !include nvgpu-linux.yaml nvgpu-next-linux.yaml
+        !include nvgpu-linux.yaml
 
     # POSIX units for implementing the OS layer for unit testing.
     posix:
@@ -58,7 +58,7 @@ nvgpu:
     hal-vgpu:
       safe: yes
       children:
-        !include nvgpu-hal-vgpu.yaml nvgpu-next-hal-vgpu.yaml
+        !include nvgpu-hal-vgpu.yaml
 
     # A meta-element for the GPU HW. A good example of this is the HW headers.
     # This is not code we write in nvgpu, but we import it from the GPU HW
@@ -66,4 +66,4 @@ nvgpu:
     gpu_hw:
       safe: no
       children:
-        !include nvgpu-gpu_hw.yaml nvgpu-next-gpu_hw.yaml
+        !include nvgpu-gpu_hw.yaml

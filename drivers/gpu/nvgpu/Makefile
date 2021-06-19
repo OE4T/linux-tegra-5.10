@@ -790,23 +790,12 @@ endif
 
 ifeq ($(CONFIG_NVGPU_HAL_NON_FUSA),y)
 nvgpu-y += \
-	common/fifo/nvgpu_next_engines.o \
-	common/fifo/nvgpu_next_runlist.o \
-	common/acr/nvgpu_next_acr_bootstrap.o \
 	common/falcon/falcon_sw_ga10b.o \
-	common/fb/nvgpu_next_fb.o \
 	common/riscv/riscv.o \
 	common/acr/acr_sw_ga10b.o \
 	common/acr/acr_sw_ga100.o \
-	common/sim/nvgpu_next_sim.o \
-	common/gr/nvgpu_next_gr.o \
-	common/gr/nvgpu_next_fs_state.o \
-	common/netlist/nvgpu_next_netlist.o \
-	common/sim/nvgpu_next_sim_netlist.o \
 	common/pmu/perfmon/pmu_perfmon_sw_ga10b.o \
-	common/cic/nvgpu_next_cic.o \
-	common/pmu/pg/pg_sw_ga10b.o \
-	common/profiler/nvgpu_next_profiler.o
+	common/pmu/pg/pg_sw_ga10b.o
 
 nvgpu-y += \
 	hal/init/hal_ga10b.o \
@@ -929,5 +918,4 @@ endif
 
 nvgpu-y += \
 	os/linux/platform_ga10b_tegra.o \
-	os/linux/nvgpu_next_ioctl_prof.o \
 	os/linux/nvlink/hal/ga10b_mssnvlink.o

@@ -147,7 +147,7 @@ struct gops_ce {
 #endif
 
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA)
-#include "include/nvgpu/nvgpu_next_gops_ce.h"
+	void (*intr_retrigger)(struct gk20a *g, u32 inst_id);
 #endif
 
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */

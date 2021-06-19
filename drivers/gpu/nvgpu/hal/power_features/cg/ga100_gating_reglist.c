@@ -31,7 +31,6 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/fifo.h>
 #include <nvgpu/runlist.h>
-#include <nvgpu/nvgpu_next_runlist.h>
 
 #include "hal/power_features/cg/gating_reglist.h"
 #include "ga100_gating_reglist.h"

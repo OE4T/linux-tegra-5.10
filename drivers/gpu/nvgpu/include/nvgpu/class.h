@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -103,6 +103,16 @@
 #define	TURING_CHANNEL_GPFIFO_A		0xC46FU
 #define	TURING_COMPUTE_A		0xC5C0U
 #define	TURING_DMA_COPY_A		0xC5B5U
+
+#define AMPERE_SMC_PARTITION_REF	0xC637U
+#define	AMPERE_B			0xC797U
+#define	AMPERE_A			0xC697U
+#define AMPERE_DMA_COPY_A		0xC6B5U
+#define AMPERE_DMA_COPY_B		0xC7B5U
+#define AMPERE_COMPUTE_A		0xC6C0U
+#define	AMPERE_COMPUTE_B		0xC7C0U
+#define AMPERE_CHANNEL_GPFIFO_A		0xC56FU
+#define AMPERE_CHANNEL_GPFIFO_B		0xC76FU
 #endif
 
 #endif /* NVGPU_CLASS_H */

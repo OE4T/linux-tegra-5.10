@@ -561,8 +561,8 @@ static int gr_init_prepare_hw_impl(struct gk20a *g)
 	}
 
 #if defined(CONFIG_NVGPU_NON_FUSA)
-	nvgpu_next_gr_init_reset_enable_hw_non_ctx_local(g);
-	nvgpu_next_gr_init_reset_enable_hw_non_ctx_global(g);
+	nvgpu_gr_init_reset_enable_hw_non_ctx_local(g);
+	nvgpu_gr_init_reset_enable_hw_non_ctx_global(g);
 #endif
 	nvgpu_log_info(g, "end: netlist: sw_non_ctx_load: register writes");
 
@@ -1200,3 +1200,59 @@ u32 nvgpu_gr_get_tpc_num(struct gk20a *g, u32 addr)
 	}
 	return 0;
 }
+
+#ifdef CONFIG_NVGPU_NON_FUSA
+void nvgpu_gr_init_reset_enable_hw_non_ctx_local(struct gk20a *g)
+{
+	u32 i = 0U;
+	struct netlist_av_list *sw_non_ctx_local_compute_load =
+		nvgpu_next_netlist_get_sw_non_ctx_local_compute_load_av_list(g);
+#ifdef CONFIG_NVGPU_GRAPHICS
+	struct netlist_av_list *sw_non_ctx_local_gfx_load =
+		nvgpu_next_netlist_get_sw_non_ctx_local_gfx_load_av_list(g);
+#endif
+
+	for (i = 0U; i < sw_non_ctx_local_compute_load->count; i++) {
+		nvgpu_writel(g, sw_non_ctx_local_compute_load->l[i].addr,
+			sw_non_ctx_local_compute_load->l[i].value);
+	}
+
+#ifdef CONFIG_NVGPU_GRAPHICS
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		for (i = 0U; i < sw_non_ctx_local_gfx_load->count; i++) {
+			nvgpu_writel(g, sw_non_ctx_local_gfx_load->l[i].addr,
+				sw_non_ctx_local_gfx_load->l[i].value);
+		}
+	}
+#endif
+
+	return;
+}
+
+void nvgpu_gr_init_reset_enable_hw_non_ctx_global(struct gk20a *g)
+{
+	u32 i = 0U;
+	struct netlist_av_list *sw_non_ctx_global_compute_load =
+		nvgpu_next_netlist_get_sw_non_ctx_global_compute_load_av_list(g);
+#ifdef CONFIG_NVGPU_GRAPHICS
+	struct netlist_av_list *sw_non_ctx_global_gfx_load =
+		nvgpu_next_netlist_get_sw_non_ctx_global_gfx_load_av_list(g);
+#endif
+
+	for (i = 0U; i < sw_non_ctx_global_compute_load->count; i++) {
+		nvgpu_writel(g, sw_non_ctx_global_compute_load->l[i].addr,
+			sw_non_ctx_global_compute_load->l[i].value);
+	}
+
+#ifdef CONFIG_NVGPU_GRAPHICS
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		for (i = 0U; i < sw_non_ctx_global_gfx_load->count; i++) {
+			nvgpu_writel(g, sw_non_ctx_global_gfx_load->l[i].addr,
+				sw_non_ctx_global_gfx_load->l[i].value);
+		}
+	}
+#endif
+
+	return;
+}
+#endif

@@ -26,11 +26,14 @@ bios:
              common/vbios/bios_sw_gv100.h,
              common/vbios/bios_sw_tu104.c,
              common/vbios/bios_sw_tu104.h,
+             common/vbios/bios_sw_ga100.c,
+             common/vbios/bios_sw_ga100.h,
              common/vbios/nvlink_bios.c,
              include/nvgpu/bios.h,
              include/nvgpu/nvlink_bios.h,
              include/nvgpu/gops/bios.h,
              include/nvgpu/gops/xve.h ]
+
 
 ce:
   safe: yes
@@ -269,7 +272,9 @@ acr_fusa:
              common/acr/acr_sw_gv11b.h,
              common/acr/nvgpu_acr_interface.h,
              include/nvgpu/gops/acr.h,
-             include/nvgpu/acr.h ]
+             include/nvgpu/acr.h,
+             include/nvgpu/riscv.h,
+             common/riscv/riscv.c ]
 
 acr:
   safe: no
@@ -281,7 +286,11 @@ acr:
              common/acr/acr_sw_gm20b.c,
              common/acr/acr_sw_gm20b.h,
              common/acr/acr_sw_tu104.c,
-             common/acr/acr_sw_tu104.h ]
+             common/acr/acr_sw_tu104.h,
+             common/acr/acr_sw_ga10b.c,
+             common/acr/acr_sw_ga10b.h,
+             common/acr/acr_sw_ga100.c,
+             common/acr/acr_sw_ga100.h  ]
 
 sbr:
   safe: yes
@@ -348,6 +357,8 @@ falcon:
   gpu: dgpu
   sources: [ common/falcon/falcon_sw_tu104.c,
              common/falcon/falcon_sw_tu104.h,
+             common/falcon/falcon_sw_ga10b.c,
+             common/falcon/falcon_sw_ga10b.h,
              include/nvgpu/gops/gsp.h,
              include/nvgpu/gops/nvdec.h ]
   deps: [ ]
@@ -834,6 +845,8 @@ pmu:
                  common/pmu/perfmon/pmu_perfmon_sw_gm20b.h,
                  common/pmu/perfmon/pmu_perfmon_sw_gv11b.c,
                  common/pmu/perfmon/pmu_perfmon_sw_gv11b.h,
+                 common/pmu/perfmon/pmu_perfmon_sw_ga10b.c,
+                 common/pmu/perfmon/pmu_perfmon_sw_ga10b.h,
                  include/nvgpu/pmu/pmu_perfmon.h ]
 
     clk:
@@ -900,6 +913,8 @@ pmu:
                  common/pmu/pg/pg_sw_gp10b.h,
                  common/pmu/pg/pg_sw_gv11b.c,
                  common/pmu/pg/pg_sw_gv11b.h,
+                 common/pmu/pg/pg_sw_ga10b.c,
+                 common/pmu/pg/pg_sw_ga10b.h,
                  common/pmu/pg/pmu_aelpg.c,
                  common/pmu/pg/pmu_pg.c,
                  common/pmu/pg/pmu_pg.h,

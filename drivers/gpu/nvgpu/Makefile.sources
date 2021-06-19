@@ -712,23 +712,12 @@ endif
 
 ifeq ($(CONFIG_NVGPU_HAL_NON_FUSA),1)
 srcs += \
-	common/fifo/nvgpu_next_engines.c \
-	common/acr/nvgpu_next_acr_bootstrap.c \
 	common/riscv/riscv.c \
 	common/acr/acr_sw_ga10b.c \
 	common/acr/acr_sw_ga100.c \
-	common/fb/nvgpu_next_fb.c \
-	common/fifo/nvgpu_next_runlist.c \
-	common/gr/nvgpu_next_gr.c \
-	common/gr/nvgpu_next_fs_state.c \
-	common/netlist/nvgpu_next_netlist.c \
-	common/sim/nvgpu_next_sim.c \
-	common/sim/nvgpu_next_sim_netlist.c \
 	common/pmu/perfmon/pmu_perfmon_sw_ga10b.c \
-	common/cic/nvgpu_next_cic.c \
 	common/pmu/pg/pg_sw_ga10b.c \
 	common/falcon/falcon_sw_ga10b.c \
-	common/profiler/nvgpu_next_profiler.c
 
 srcs += hal/init/hal_ga10b.c \
 	hal/init/hal_ga10b_litter.c \

@@ -118,6 +118,7 @@
 struct gk20a;
 struct nvgpu_gr;
 struct nvgpu_gr_config;
+struct netlist_av_list;
 
 /**
  * @brief Allocate memory for GR struct and initialize the minimum SW
@@ -353,7 +354,8 @@ int nvgpu_gr_reset(struct gk20a *g);
 
 /** @cond DOXYGEN_SHOULD_SKIP_THIS */
 #if defined(CONFIG_NVGPU_NON_FUSA)
-#include "include/nvgpu/gr/nvgpu_next_gr.h"
+void nvgpu_gr_init_reset_enable_hw_non_ctx_local(struct gk20a *g);
+void nvgpu_gr_init_reset_enable_hw_non_ctx_global(struct gk20a *g);
 #endif
 /** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 

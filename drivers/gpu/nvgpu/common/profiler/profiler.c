@@ -1157,3 +1157,18 @@ bool nvgpu_profiler_validate_regops_allowlist(struct nvgpu_profiler_object *prof
 	offset = offset & (stride - 1U);
 	return allowlist_offset_search(g, offset_allowlist, count, offset);
 }
+
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
+void nvgpu_next_profiler_hs_stream_quiesce(struct gk20a *g)
+{
+	if (g->ops.perf.reset_hs_streaming_credits != NULL) {
+		/* Reset high speed streaming credits to 0. */
+		g->ops.perf.reset_hs_streaming_credits(g);
+	}
+
+	if (g->ops.perf.enable_hs_streaming != NULL) {
+		/* Disable high speed streaming */
+		g->ops.perf.enable_hs_streaming(g, false);
+	}
+}
+#endif /* CONFIG_NVGPU_HAL_NON_FUSA */

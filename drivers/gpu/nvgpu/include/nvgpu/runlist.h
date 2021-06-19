@@ -33,16 +33,18 @@
  * Runlist interface.
  */
 
-/** @cond DOXYGEN_SHOULD_SKIP_THIS */
-#if defined(CONFIG_NVGPU_NON_FUSA)
-#include <nvgpu/nvgpu_next_runlist.h>
-#endif
-/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
-
 struct gk20a;
 struct nvgpu_tsg;
 struct nvgpu_fifo;
 struct nvgpu_channel;
+
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+#if defined(CONFIG_NVGPU_NON_FUSA)
+struct nvgpu_next_pbdma_info;
+struct nvgpu_device;
+
+#define RLENG_PER_RUNLIST_SIZE			3
+#endif
 
 /**
  * Low interleave level for runlist entry. TSGs with this interleave level
@@ -79,6 +81,22 @@ struct nvgpu_channel;
 /** Runlist identifier is invalid. */
 #define NVGPU_INVALID_RUNLIST_ID		U32_MAX
 
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+#if defined(CONFIG_NVGPU_NON_FUSA)
+struct nvgpu_next_runlist {
+	/* Ampere+ runlist info additions */
+
+	/** Runlist pri base - offset into device's runlist space */
+	u32 runlist_pri_base;
+	/** Channel ram address in bar0 pri space */
+	u32 chram_bar0_offset;
+	/** Pointer to pbdma info stored in engine_info*/
+	const struct nvgpu_next_pbdma_info *pbdma_info;
+	/** Pointer to engine info for per runlist engine id */
+	const struct nvgpu_device *rl_dev_list[RLENG_PER_RUNLIST_SIZE];
+};
+#endif
+
 struct nvgpu_runlist {
 	/** Runlist identifier. */
 	u32 id;
@@ -103,7 +121,7 @@ struct nvgpu_runlist {
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 #if defined(CONFIG_NVGPU_NON_FUSA)
-	/* nvgpu next runlist info additions */
+	/* Ampere+ runlist info additions */
 	struct nvgpu_next_runlist nvgpu_next;
 #endif
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
@@ -363,6 +381,11 @@ u32 nvgpu_runlist_get_runlists_mask(struct gk20a *g, u32 id,
  * Walks through all active engines info, and initialize runlist info.
  */
 void nvgpu_runlist_init_enginfo(struct gk20a *g, struct nvgpu_fifo *f);
+
+#if defined(CONFIG_NVGPU_NON_FUSA)
+void nvgpu_next_runlist_init_enginfo(struct gk20a *g, struct nvgpu_fifo *f);
+#endif
+
 /** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
 #define rl_dbg(g, fmt, arg...)			\

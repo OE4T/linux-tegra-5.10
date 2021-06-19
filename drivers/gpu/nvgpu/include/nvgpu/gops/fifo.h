@@ -215,7 +215,7 @@ struct gops_fifo {
 #endif
 
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA)
-#include "include/nvgpu/nvgpu_next_gops_fifo.h"
+	void (*runlist_intr_retrigger)(struct gk20a *g, u32 intr_tree);
 #endif
 
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */

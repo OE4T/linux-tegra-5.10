@@ -101,6 +101,11 @@ struct mmu_fault_info;
 #define GPU_SM_L1_TAG_S2R_PIXPRF_ECC_UNCORRECTED	(17U)
 #define GPU_SM_MACHINE_CHECK_ERROR			(18U)
 #define GPU_SM_ICACHE_L1_PREDECODE_ECC_UNCORRECTED	(20U)
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
+#define GPU_SM_RAMS_ECC_CORRECTED			(21U)
+#define GPU_SM_RAMS_ECC_UNCORRECTED			(22U)
+#endif
+
 /**
  * @}
  */
@@ -813,9 +818,5 @@ void nvgpu_report_mmu_err(struct gk20a *g, u32 hw_unit,
  */
 void gr_intr_report_ctxsw_error(struct gk20a *g, u32 err_type, u32 chid,
 		u32 mailbox_value);
-
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
-#include "include/nvgpu/nvgpu_next_err.h"
-#endif
 
 #endif /* NVGPU_NVGPU_ERR_H */

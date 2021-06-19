@@ -46,7 +46,6 @@
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/netlist.h>
 #include <nvgpu/gr/obj_ctx.h>
-#include <nvgpu/nvgpu_next_litter.h>
 
 #include "gr_ga10b.h"
 #include "hal/gr/gr/gr_gk20a.h"

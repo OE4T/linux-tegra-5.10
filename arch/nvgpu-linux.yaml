@@ -183,7 +183,9 @@ platform:
              os/linux/platform_gk20a_tegra.h,
              os/linux/platform_gp10b.h,
              os/linux/platform_gp10b_tegra.c,
-             os/linux/platform_gv11b_tegra.c ]
+             os/linux/platform_gv11b_tegra.c,
+             os/linux/platform_ga10b_tegra.c,
+             os/linux/nvlink/hal/ga10b_mssnvlink.c ]
 
 rwsem:
   sources: [ os/linux/rwsem.c ]
@@ -216,6 +218,7 @@ vgpu:
   sources: [ os/linux/vgpu/fecs_trace_vgpu_linux.c,
              os/linux/vgpu/gv11b/platform_gv11b_vgpu_tegra.c,
              os/linux/vgpu/gv11b/platform_gv11b_vgpu_tegra.h,
+             os/linux/vgpu/ga10b/platform_ga10b_vgpu_tegra.c,
              os/linux/vgpu/platform_vgpu_tegra.c,
              os/linux/vgpu/platform_vgpu_tegra.h,
              os/linux/vgpu/sysfs_vgpu.c,

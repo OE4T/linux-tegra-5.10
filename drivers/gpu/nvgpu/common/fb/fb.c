@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,3 +39,25 @@ int nvgpu_init_fb_support(struct gk20a *g)
 	}
 	return 0;
 }
+
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_HAL_NON_FUSA)
+int nvgpu_fb_vab_init_hal(struct gk20a *g)
+{
+	int err = 0;
+
+	if (g->ops.fb.vab.init != NULL) {
+		err = g->ops.fb.vab.init(g);
+	}
+	return err;
+}
+
+int nvgpu_fb_vab_teardown_hal(struct gk20a *g)
+{
+	int err = 0;
+
+	if (g->ops.fb.vab.teardown != NULL)  {
+		err = g->ops.fb.vab.teardown(g);
+	}
+	return err;
+}
+#endif
