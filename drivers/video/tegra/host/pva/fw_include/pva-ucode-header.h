@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -14,12 +14,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PVA_UCODE_HEADER_H_
-#define _PVA_UCODE_HEADER_H_
+#ifndef PVA_UCODE_HEADER_H
+#define PVA_UCODE_HEADER_H
 
-#include "pva-ucode-header-types.h"
+#include <pva-types.h>
+#include <pva-ucode-header-types.h>
 
-#define MAX_SEGMENT_NAME_LEN	64
+#define MAX_SEGMENT_NAME_LEN 64
 
 /*
  * PVA uCode Header.
@@ -57,46 +58,50 @@
 /*
  * There can be multiple segments of the same type.
  */
-
-/**
- * pva_ucode_seg - uCode segment struct
- *
- * @type:	Type of segment
- * @id:		ID of segment
- * @size:	Size of the segment
- * @offset:	Offset from header to segment start
- * @addr:	Load address of segment
- * @name:	Name of segment
- * @phys_addr:	Physical addr of the segment
- *
- */
-
-struct pva_ucode_seg {
-	uint32_t	type;
-	uint32_t	id;
-	uint32_t	size;
-	uint32_t	offset;
-	uint32_t	addr;
-	uint8_t		name[MAX_SEGMENT_NAME_LEN];
-	uint64_t	phys_addr	__attribute__((aligned(sizeof(uint64_t))));
+struct pva_ucode_seg_s {
+	uint32_t type; /* type of segment */
+	uint32_t id; /* ID of segment */
+	uint32_t size; /* size of the segment */
+	uint32_t offset; /* offset from header to segment start */
+	uint32_t addr; /* load address of segment */
+	uint8_t name[MAX_SEGMENT_NAME_LEN];
+	uint64_t phys_addr __aligned(8);
 };
 
-/**
- * pva_ucode_hdr - uCode header struct
+/*
+ * Ucode header gives information on what kind of images are contained in
+ * a binary.
  *
- * @magic:		Module Magic number
- * @hdr_version:	Header version
- * @ucode_version:	Firmware version
- * @nsegments:		Number of segments
+ * nsegments      : Number of segments available in pva_ucode_r5_sysfw_info_t.
  *
+ * R5 system image layout used for booting R5.
+ *	+--------------------------------+
+ *	+          Ucode header          +
+ *	+--------------------------------+
+ *	+           struct               +
+ *	+   pva_ucode_r5_sysfw_info_t    +
+ *	+--------------------------------+
+ *	+                                +
+ *	+   pva firwmare data/code       +
+ *	+--------------------------------+
  */
-
-struct pva_ucode_hdr {
-	uint32_t	magic;
-	uint32_t	hdr_version;
-	uint32_t	ucode_version;
-	uint32_t	nsegments;
+struct __packed pva_ucode_hdr_s {
+	uint32_t magic;
+	uint32_t hdr_version;
+	uint32_t ucode_version;
+	uint32_t nsegments;
 };
 
+struct pva_ucode_r5_sysfw_info_s {
+	struct pva_ucode_seg_s evp __aligned(128);
+	struct pva_ucode_seg_s dram __aligned(128);
+	struct pva_ucode_seg_s overlay __aligned(128);
+	struct pva_ucode_seg_s crash_dump __aligned(128);
+	struct pva_ucode_seg_s trace_log __aligned(128);
+	struct pva_ucode_seg_s code_coverage __aligned(128);
+	struct pva_ucode_seg_s debug_log __aligned(128);
+	struct pva_ucode_seg_s cached_dram __aligned(128);
+	struct pva_ucode_seg_s uncached_dram __aligned(128);
+};
 
 #endif
