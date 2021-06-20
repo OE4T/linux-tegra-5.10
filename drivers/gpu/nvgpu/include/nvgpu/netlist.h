@@ -101,10 +101,10 @@ struct netlist_u32_list {
 
 /**
  * @brief Allocates memory for netlist bundles and populates
- * ctxsw region info from ctxsw firmware file.
+ * ctx region info from ctx firmware file.
  *
  * This function allocates memory for netlist unit variables and bundles.
- * Opens netlist ctxsw firmware file based on firmware definition and loads
+ * Opens netlist ctx firmware file based on firmware definition and loads
  * different bundles into appropriate netlist regions structures.
  *
  * @param g [in]		Pointer to GPU driver struct.
