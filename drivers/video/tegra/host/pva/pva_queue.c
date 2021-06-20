@@ -1,7 +1,7 @@
 /*
  * PVA Task Management
  *
- * Copyright (c) 2016-2020, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -55,6 +55,10 @@
 #include "pva_regs.h"
 #include "t194/hardware_t194.h"
 #include "pva-vpu-perf.h"
+#include "pva-interface.h"
+#include <uapi/linux/nvpva_ioctl.h>
+#include "pva_vpu_exe.h"
+#include "nvpva_client.h"
 
 #include <trace/events/nvhost_pva.h>
 

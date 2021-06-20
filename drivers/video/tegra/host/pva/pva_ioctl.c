@@ -1,7 +1,7 @@
 /*
  * PVA Ioctl Handling for T194
  *
- * Copyright (c) 2016-2020, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -26,7 +26,7 @@
 #include <asm/barrier.h>
 
 #include <uapi/linux/nvdev_fence.h>
-#include <uapi/linux/nvhost_pva_ioctl.h>
+#include <uapi/linux/nvpva_ioctl.h>
 
 #include "pva.h"
 #include "pva_queue.h"

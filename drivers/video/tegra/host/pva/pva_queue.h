@@ -1,7 +1,7 @@
 /*
  * PVA Task Management
  *
- * Copyright (c) 2016-2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -19,8 +19,7 @@
 #ifndef PVA_QUEUE_H
 #define PVA_QUEUE_H
 
-#include <uapi/linux/nvhost_pva_ioctl.h>
-#include <uapi/linux/nvdev_fence.h>
+#include <uapi/linux/nvpva_ioctl.h>
 
 #include "nvhost_queue.h"
 #include "nvhost_buffer.h"
