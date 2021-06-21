@@ -15,7 +15,6 @@
  */
 
 #include "ether_linux.h"
-#include <ivc_core.h>
 
 /**
  * @brief Adds delay in micro seconds.
@@ -133,10 +132,11 @@ static inline int ether_alloc_skb(struct ether_priv_data *pdata,
 				  unsigned int dma_rx_buf_len,
 				  unsigned int chan)
 {
+#ifndef ETHER_PAGE_POOL
 	struct sk_buff *skb = NULL;
 	dma_addr_t dma_addr;
+#endif
 	unsigned long val;
-
 	if ((rx_swcx->flags & OSI_RX_SWCX_REUSE) == OSI_RX_SWCX_REUSE) {
 		/* Skip buffer allocation and DMA mapping since
 		 * PTP software context will have valid buffer and
@@ -146,6 +146,7 @@ static inline int ether_alloc_skb(struct ether_priv_data *pdata,
 		return 0;
 	}
 
+#ifndef ETHER_PAGE_POOL
 	skb = netdev_alloc_skb_ip_align(pdata->ndev, dma_rx_buf_len);
 
 	if (unlikely(skb == NULL)) {
@@ -167,8 +168,26 @@ static inline int ether_alloc_skb(struct ether_priv_data *pdata,
 		return -ENOMEM;
 	}
 
+#else
+	rx_swcx->buf_virt_addr = page_pool_dev_alloc_pages(pdata->page_pool);
+	if (!rx_swcx->buf_virt_addr) {
+		dev_err(pdata->dev,
+			"page pool allocation failed using resv_buf\n");
+		rx_swcx->buf_virt_addr = pdata->osi_dma->resv_buf_virt_addr;
+		rx_swcx->buf_phy_addr = pdata->osi_dma->resv_buf_phy_addr;
+		rx_swcx->flags |= OSI_RX_SWCX_BUF_VALID;
+		val = pdata->osi_core->xstats.re_alloc_rxbuf_failed[chan];
+		pdata->osi_core->xstats.re_alloc_rxbuf_failed[chan] =
+			osi_update_stats_counter(val, 1UL);
+		return 0;
+	}
+
+	rx_swcx->buf_phy_addr = page_pool_get_dma_addr(rx_swcx->buf_virt_addr);
+#endif
+#ifndef ETHER_PAGE_POOL
 	rx_swcx->buf_virt_addr = skb;
 	rx_swcx->buf_phy_addr = dma_addr;
+#endif
 	rx_swcx->flags |= OSI_RX_SWCX_BUF_VALID;
 
 	return 0;
@@ -222,14 +241,14 @@ static void ether_realloc_rx_skb(struct ether_priv_data *pdata,
  * Algorithm: call ether_realloc_rx_skb for re-allocation
  *
  * @param[in] priv: OSD private data structure.
- * @param[in] rxring: Pointer to DMA channel Rx ring.
+ * @param[in] rx_ring: Pointer to DMA channel Rx ring.
  * @param[in] chan: DMA Rx channel number.
  *
  */
-static void osd_realloc_buf(void *priv, void *rxring, unsigned int chan)
+static void osd_realloc_buf(void *priv, struct osi_rx_ring *rx_ring,
+			    unsigned int chan)
 {
 	struct ether_priv_data *pdata = (struct ether_priv_data *)priv;
-	struct osi_rx_ring *rx_ring = (struct osi_rx_ring *)rxring;
 
 	ether_realloc_rx_skb(pdata, rx_ring, chan);
 }
@@ -244,43 +263,71 @@ static void osd_realloc_buf(void *priv, void *rxring, unsigned int chan)
  * 3) Refill the Rx ring based on threshold.
  *
  * @param[in] priv: OSD private data structure.
- * @param[in] rxring: Pointer to DMA channel Rx ring.
+ * @param[in] rx_ring: Pointer to DMA channel Rx ring.
  * @param[in] chan: DMA Rx channel number.
  * @param[in] dma_buf_len: Rx DMA buffer length.
- * @param[in] rxpkt_cx: Received packet context.
- * @param[in] rx_pkt_swcx: Received packet sw context.
+ * @param[in] rx_pkt_cx: Received packet context.
+ * @param[in] rx_swcx: Received packet sw context.
  *
  * @note Rx completion need to make sure that Rx descriptors processed properly.
  */
-void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
-			unsigned int dma_buf_len, void *rxpkt_cx,
-			void *rx_pkt_swcx)
+void osd_receive_packet(void *priv, struct osi_rx_ring *rx_ring,
+			unsigned int chan, unsigned int dma_buf_len,
+			struct osi_rx_pkt_cx *rx_pkt_cx,
+			struct osi_rx_swcx *rx_swcx)
 {
 	struct ether_priv_data *pdata = (struct ether_priv_data *)priv;
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct ether_rx_napi *rx_napi = pdata->rx_napi[chan];
-	struct osi_rx_ring *rx_ring = (struct osi_rx_ring *)rxring;
-	struct osi_rx_swcx *rx_swcx = (struct osi_rx_swcx *)rx_pkt_swcx;
-	struct osi_rx_pkt_cx *rx_pkt_cx = (struct osi_rx_pkt_cx *)rxpkt_cx;
+#ifdef ETHER_PAGE_POOL
+	struct page *page = (struct page *)rx_swcx->buf_virt_addr;
+	struct sk_buff *skb = NULL;
+#else
 	struct sk_buff *skb = (struct sk_buff *)rx_swcx->buf_virt_addr;
+#endif
 	dma_addr_t dma_addr = (dma_addr_t)rx_swcx->buf_phy_addr;
 	struct net_device *ndev = pdata->ndev;
 	struct osi_pkt_err_stats *pkt_err_stat = &pdata->osi_dma->pkt_err_stats;
 	struct skb_shared_hwtstamps *shhwtstamp;
 	unsigned long val;
 
+#ifndef ETHER_PAGE_POOL
 	dma_unmap_single(pdata->dev, dma_addr, dma_buf_len, DMA_FROM_DEVICE);
-
+#endif
 	/* Process only the Valid packets */
 	if (likely((rx_pkt_cx->flags & OSI_PKT_CX_VALID) ==
 		   OSI_PKT_CX_VALID)) {
-		skb_put(skb, rx_pkt_cx->pkt_len);
+#ifdef ETHER_PAGE_POOL
+		skb = netdev_alloc_skb_ip_align(pdata->ndev,
+						rx_pkt_cx->pkt_len);
+		if (unlikely(!skb)) {
+			pdata->ndev->stats.rx_dropped++;
+			dev_err(pdata->dev,
+				"%s(): Error in allocating the skb\n",
+			        __func__);
+			page_pool_recycle_direct(pdata->page_pool, page);
+			return;
+		}
 
+		dma_sync_single_for_cpu(pdata->dev, dma_addr,
+					rx_pkt_cx->pkt_len, DMA_FROM_DEVICE);
+		skb_copy_to_linear_data(skb, page_address(page),
+					rx_pkt_cx->pkt_len);
+		skb_put(skb, rx_pkt_cx->pkt_len);
+		page_pool_recycle_direct(pdata->page_pool, page);
+#else
+		skb_put(skb, rx_pkt_cx->pkt_len);
+#endif
 		if (likely((rx_pkt_cx->rxcsum & OSI_CHECKSUM_UNNECESSARY) ==
 			 OSI_CHECKSUM_UNNECESSARY)) {
 			skb->ip_summed = CHECKSUM_UNNECESSARY;
 		} else {
 			skb->ip_summed = CHECKSUM_NONE;
+		}
+
+		if ((rx_pkt_cx->flags & OSI_PKT_CX_RSS) == OSI_PKT_CX_RSS) {
+			skb_set_hash(skb, rx_pkt_cx->rx_hash,
+				     rx_pkt_cx->rx_hash_type);
 		}
 
 		if ((rx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) {
@@ -299,6 +346,7 @@ void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
 			shhwtstamp->hwtstamp = ns_to_ktime(rx_pkt_cx->ns);
 		}
 
+		skb_record_rx_queue(skb, chan);
 		skb->dev = ndev;
 		skb->protocol = eth_type_trans(skb, ndev);
 		ndev->stats.rx_bytes += skb->len;
@@ -312,6 +360,9 @@ void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
 		ndev->stats.rx_frame_errors = pkt_err_stat->rx_frame_error;
 		ndev->stats.rx_fifo_errors = osi_core->mmc.mmc_rx_fifo_overflow;
 		ndev->stats.rx_errors++;
+#ifdef ETHER_PAGE_POOL
+		page_pool_recycle_direct(pdata->page_pool, page);
+#endif
 		dev_kfree_skb_any(skb);
 	}
 
@@ -337,17 +388,16 @@ void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
  * @param[in] buffer: Buffer address to free.
  * @param[in] dmaaddr: DMA address to unmap.
  * @param[in] len: Length of data.
- * @param[in] tx_done_pkt_cx: Pointer to struct which has tx done status info.
+ * @param[in] txdone_pkt_cx: Pointer to struct which has tx done status info.
  * This struct has flags to indicate tx error, whether DMA address
  * is mapped from paged/linear buffer.
  *
  * @note Tx completion need to make sure that Tx descriptors processed properly.
  */
 static void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaaddr,
-				  unsigned int len, void *tx_done_pkt_cx)
+				  unsigned int len,
+				  struct osi_txdone_pkt_cx *txdone_pkt_cx)
 {
-	struct osi_txdone_pkt_cx *txdone_pkt_cx = (struct osi_txdone_pkt_cx *)
-						  tx_done_pkt_cx;
 	struct ether_priv_data *pdata = (struct ether_priv_data *)priv;
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 	struct sk_buff *skb = (struct sk_buff *)buffer;
@@ -418,21 +468,19 @@ void ether_assign_osd_ops(struct osi_core_priv_data *osi_core,
  * @brief osd_send_cmd - OSD ivc send cmd
  *
  * @param[in] priv: OSD private data
- * @param[in] func: data
- * @param[in] line: len
+ * @param[in] ivc_buf: ivc_msg_common structure
+ * @param[in] len: length of data
  * @note
  * API Group:
  * - Initialization: Yes
  * - Run time: Yes
  * - De-initialization: Yes
  */
-int osd_ivc_send_cmd(void *priv, void *data, unsigned int len)
+int osd_ivc_send_cmd(void *priv, ivc_msg_common_t *ivc_buf, unsigned int len)
 {
 	int ret = -1;
-	unsigned long flags = 0;
 	static int cnt  = 0;
 	struct osi_core_priv_data *core = (struct osi_core_priv_data *)priv;
-	ivc_msg_common *ivc_buf = (ivc_msg_common *) data;
 	struct ether_priv_data *pdata = (struct ether_priv_data *)core->osd;
 	struct ether_ivc_ctxt *ictxt = &pdata->ictxt;
 	struct tegra_hv_ivc_cookie *ivck =
@@ -445,11 +493,12 @@ int osd_ivc_send_cmd(void *priv, void *data, unsigned int len)
 	}
 
 	ivc_buf->status = -1;
-	spin_lock_irqsave(&ictxt->ivck_lock, flags);
 	if (in_atomic()) {
 		preempt_enable();
 		is_atomic = 1;
 	}
+
+	mutex_lock(&ictxt->ivck_lock);
 	ivc_buf->count = cnt++;
 	/* Waiting for the channel to be ready */
 	while (tegra_hv_ivc_channel_notified(ivck) != 0){
@@ -485,9 +534,9 @@ int osd_ivc_send_cmd(void *priv, void *data, unsigned int len)
 	}
 	ret = ivc_buf->status;
 fail:
+	mutex_unlock(&ictxt->ivck_lock);
 	if (is_atomic) {
 		preempt_disable();
 	}
-	spin_unlock_irqrestore(&ictxt->ivck_lock, flags);
 	return ret;
 }

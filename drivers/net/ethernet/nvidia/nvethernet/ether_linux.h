@@ -42,17 +42,27 @@
 #include <linux/ktime.h>
 #include <linux/hrtimer.h>
 #include <linux/version.h>
+#include <linux/list.h>
 #include <linux/tegra-ivc.h>
 #if (KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE)
 #include <soc/tegra/chip-id.h>
 #else
 #include <soc/tegra/fuse.h>
 #endif
+#if IS_ENABLED(CONFIG_PAGE_POOL)
+#if (KERNEL_VERSION(5, 10, 0) <= LINUX_VERSION_CODE)
+#include <net/page_pool.h>
+#define ETHER_PAGE_POOL
+#endif
+#endif
 #include <osi_core.h>
 #include <osi_dma.h>
 #include <mmc.h>
+#include <ivc_core.h>
 #include "ioctl.h"
-
+#ifdef MACSEC_SUPPORT
+#include "macsec.h"
+#endif
 /**
  * @brief Max number of Ethernet IRQs supported in HW
  */
@@ -65,6 +75,11 @@
  * @brief Size of Ethernet IRQ name.
  */
 #define ETHER_IRQ_NAME_SZ		32
+
+/**
+ * @addtogroup MAC address DT string
+ */
+#define ETH_MAC_STR_LEN			20
 
 /**
  * @addtogroup Ethernet Transmit Queue Priority
@@ -84,6 +99,22 @@
  */
 #define ETHER_DFLT_PTP_CLK		312500000U
 
+/**
+ * @brief Ethernet clk rates
+ */
+#define ETHER_RX_INPUT_CLK_RATE		125000000UL
+#define ETHER_MGBE_MAC_DIV_RATE_10G	312500000UL
+#define ETHER_MGBE_MAC_DIV_RATE_5G	156250000UL
+#define ETHER_MGBE_MAC_DIV_RATE_2_5G	78125000UL
+// gbe_pll2_txclkref (644 MHz) --> programmable link TX_CLK divider
+// --> link_Tx_clk --> fixed 1/2 gear box divider --> lane TX clk.
+#define ETHER_MGBE_TX_CLK_USXGMII_10G	644531250UL
+#define ETHER_MGBE_TX_CLK_USXGMII_5G	322265625UL
+#define ETHER_MGBE_TX_PCS_CLK_USXGMII_10G	156250000UL
+#define ETHER_MGBE_TX_PCS_CLK_USXGMII_5G	78125000UL
+#define ETHER_EQOS_TX_CLK_1000M		125000000UL
+#define ETHER_EQOS_TX_CLK_100M		25000000UL
+#define ETHER_EQOS_TX_CLK_10M		2500000UL
 /**
  * @addtogroup CONFIG Ethernet configuration error codes
  *
@@ -144,6 +175,14 @@
  * Used with 1 millisec so max timeout is 50 ms.
  */
 #define IVC_CHANNEL_TIMEOUT_CNT		50
+
+/**
+ * @brief Broadcast and MAC address macros
+ */
+#define ETHER_MAC_ADDRESS_INDEX		1
+#define ETHER_BC_ADDRESS_INDEX		0
+#define ETHER_ADDRESS_MAC		1
+#define ETHER_ADDRESS_BC		0
 
 /**
  * @brief Check if Tx data buffer length is within bounds.
@@ -258,7 +297,7 @@ struct ether_ivc_ctxt {
 	/** ivc cookie */
 	struct tegra_hv_ivc_cookie *ivck;
 	/** ivc lock */
-	spinlock_t ivck_lock;
+	struct mutex ivck_lock;
 	/** ivc work */
 	struct work_struct ivc_work;
 	/** wait for event */
@@ -268,25 +307,43 @@ struct ether_ivc_ctxt {
 };
 
 /**
+ * @brief local L2 filter table structure
+ */
+struct ether_mac_addr_list {
+	/** Link list node head */
+	struct list_head list_head;
+	/** L2 address */
+	unsigned char addr[ETH_ALEN];
+	/** Flag represent is address valid(1) or not (0) */
+	char is_valid_addr;
+	/** DMA channel to route packets */
+	unsigned int dma_chan;
+	/** index number at the time of add */
+	unsigned int index;
+};
+
+/**
  * @brief Ethernet driver private data
  */
 struct ether_priv_data {
- 	/** OSI core private data */
+	/** OSI core private data */
 	struct osi_core_priv_data *osi_core;
 	/** OSI DMA private data */
 	struct osi_dma_priv_data *osi_dma;
 	/** HW supported feature list */
 	struct osi_hw_features hw_feat;
 	/** Array of DMA Transmit channel NAPI */
-	struct ether_tx_napi *tx_napi[OSI_EQOS_MAX_NUM_CHANS];
+	struct ether_tx_napi *tx_napi[OSI_MGBE_MAX_NUM_CHANS];
 	/** Array of DMA Receive channel NAPI */
-	struct ether_rx_napi *rx_napi[OSI_EQOS_MAX_NUM_CHANS];
+	struct ether_rx_napi *rx_napi[OSI_MGBE_MAX_NUM_CHANS];
 	/** Network device associated with driver */
 	struct net_device *ndev;
 	/** Base device associated with driver */
 	struct device *dev;
 	/** Reset for the MAC */
 	struct reset_control *mac_rst;
+	/** Reset for the XPCS */
+	struct reset_control *xpcs_rst;
 	/** PLLREFE clock */
 	struct clk *pllrefe_clk;
 	/** Clock from AXI */
@@ -299,6 +356,26 @@ struct ether_priv_data {
 	struct clk *ptp_ref_clk;
 	/** Transmit clock */
 	struct clk *tx_clk;
+	/** Receive Monitoring clock */
+	struct clk *rx_m_clk;
+	/** RX PCS monitoring clock */
+	struct clk *rx_pcs_m_clk;
+	/** RX PCS input clock */
+	struct clk *rx_pcs_input_clk;
+	/** RX PCS clock */
+	struct clk *rx_pcs_clk;
+	/** TX PCS clock */
+	struct clk *tx_pcs_clk;
+	/** MAC DIV clock */
+	struct clk *mac_div_clk;
+	/** MAC clock */
+	struct clk *mac_clk;
+	/** EEE PCS clock */
+	struct clk *eee_pcs_clk;
+	/** APP clock */
+	struct clk *app_clk;
+	/** MAC Rx input clk */
+	struct clk *rx_input_clk;
 	/** Pointer to PHY device tree node */
 	struct device_node *phy_node;
 	/** Pointer to MDIO device tree node */
@@ -339,10 +416,10 @@ struct ether_priv_data {
 	/** MAC loopback mode */
 	unsigned int mac_loopback_mode;
 	/** Array of MTL queue TX priority */
-	unsigned int txq_prio[OSI_EQOS_MAX_NUM_CHANS];
+	unsigned int txq_prio[OSI_MGBE_MAX_NUM_CHANS];
 
 #ifdef THERMAL_CAL
- 	/** Pointer to thermal cooling device which this driver registers
+	/** Pointer to thermal cooling device which this driver registers
 	 * with the kernel. Kernel will invoke the callback ops for this
 	 * cooling device when temperate in thermal zone defined in DT
 	 * binding for this driver is tripped */
@@ -381,6 +458,10 @@ struct ether_priv_data {
 	unsigned int promisc_mode;
 	/** Delayed work queue to read RMON counters periodically */
 	struct delayed_work ether_stats_work;
+	/** process rx work */
+	struct work_struct set_rx_mode_work;
+	/** rx lock */
+	struct mutex rx_mode_lock;
 	/** Flag to check if EEE LPI is enabled for the MAC */
 	unsigned int eee_enabled;
 	/** Flag to check if EEE LPI is active currently */
@@ -389,12 +470,14 @@ struct ether_priv_data {
 	unsigned int tx_lpi_enabled;
 	/** Time (usec) MAC waits to enter LPI after Tx complete */
 	unsigned int tx_lpi_timer;
-	/** Flag which decides stats is enabled(1) or disabled(0) */
-	unsigned int use_stats;
 	/** ivc context */
 	struct ether_ivc_ctxt ictxt;
 	/** VM channel info data associated with VM IRQ */
 	struct ether_vm_irq_data *vm_irq_data;
+#ifdef ETHER_PAGE_POOL
+	/** Pointer to page pool */
+	struct page_pool *page_pool;
+#endif
 #ifdef CONFIG_DEBUG_FS
 	/** Debug fs directory pointer */
 	struct dentry *dbgfs_dir;
@@ -405,6 +488,12 @@ struct ether_priv_data {
 	/** Register dump debug fs pointer */
 	struct dentry *dbgfs_reg_dump;
 #endif
+#ifdef MACSEC_SUPPORT
+	/** MACsec priv data */
+	struct macsec_priv_data *macsec_pdata;
+#endif /* MACSEC_SUPPORT */
+	/** local L2 filter address list head pointer */
+	struct list_head mac_addr_list_head;
 };
 
 /**
@@ -482,7 +571,7 @@ int ether_conf_eee(struct ether_priv_data *pdata, unsigned int tx_lpi_enable);
 
 #if IS_ENABLED(CONFIG_NVETHERNET_SELFTESTS)
 void ether_selftest_run(struct net_device *dev,
-		        struct ethtool_test *etest, u64 *buf);
+			struct ethtool_test *etest, u64 *buf);
 void ether_selftest_get_strings(struct ether_priv_data *pdata, u8 *data);
 int ether_selftest_get_count(struct ether_priv_data *pdata);
 #else
@@ -516,16 +605,18 @@ void ether_assign_osd_ops(struct osi_core_priv_data *osi_core,
 			  struct osi_dma_priv_data *osi_dma);
 
 /**
- * @brief osd_send_cmd - OSD ivc send cmd
+ * @brief osd_ivc_send_cmd - OSD ivc send cmd
  *
  * @param[in] priv: OSD private data
- * @param[in] func: data
- * @param[in] len: length of the data
+ * @param[in] ivc_buf: ivc_msg_common structure
+ * @param[in] len: length of data
  * @note
  * API Group:
  * - Initialization: Yes
  * - Run time: Yes
  * - De-initialization: Yes
  */
-int osd_ivc_send_cmd(void *priv, void *data, unsigned int len);
+int osd_ivc_send_cmd(void *priv, ivc_msg_common_t *ivc_buf,
+		     unsigned int len);
+void ether_set_rx_mode(struct net_device *dev);
 #endif /* ETHER_LINUX_H */
