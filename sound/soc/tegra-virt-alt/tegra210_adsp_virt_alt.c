@@ -120,7 +120,7 @@ struct tegra210_adsp_app {
 	 * if app is playback FE, indicates whether in triggered state
 	 * or inactive
 	 */
-	uint32_t fe_playback_triggered:1;
+	int32_t fe_playback_triggered;
 	uint32_t connect:1; /* if app is connected to a source */
 	uint32_t priority; /* Valid for only APM app */
 	uint32_t min_adsp_clock; /* Min ADSP clock required in MHz */
@@ -2244,7 +2244,7 @@ static int tegra210_adsp_pcm_trigger(struct snd_soc_component *component,
 	struct device_node *node = dev->of_node;
 	struct tegra210_adsp_app *apm = prtd->fe_apm;
 	struct snd_soc_dai *codec_dai = asoc_rtd_to_codec(soc_runtime, 0);
-	uint32_t codec_id = codec_dai->id;
+	uint32_t codec_id = codec_dai->id + 1;
 	unsigned long flags;
 	int ret = 0;
 
