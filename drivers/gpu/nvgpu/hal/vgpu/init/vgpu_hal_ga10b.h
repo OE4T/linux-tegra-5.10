@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef VGPU_HAL_GV11B_H
-#define VGPU_HAL_GV11B_H
+#ifndef VGPU_HAL_GA10B_H
+#define VGPU_HAL_GA10B_H
 
 struct gk20a;
 

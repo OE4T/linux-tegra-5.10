@@ -38,10 +38,6 @@
 #include <nvgpu/gr/gr_instances.h>
 #include <nvgpu/grmgr.h>
 
-#if defined(CONFIG_NVGPU_NON_FUSA)
-#include "nvgpu_next_gpuid.h"
-#endif
-
 static int nvgpu_profiler_build_regops_allowlist(struct nvgpu_profiler_object *prof);
 static void nvgpu_profiler_destroy_regops_allowlist(struct nvgpu_profiler_object *prof);
 
@@ -452,7 +448,7 @@ static int nvgpu_profiler_quiesce_hwpm_streamout_resident(struct gk20a *g,
 	}
 
 #ifdef CONFIG_NVGPU_NON_FUSA
-	NVGPU_NEXT_PROFILER_QUIESCE(g);
+	nvgpu_profiler_hs_stream_quiesce(g);
 #endif
 
 	/* Disable streamout */
@@ -1158,7 +1154,7 @@ bool nvgpu_profiler_validate_regops_allowlist(struct nvgpu_profiler_object *prof
 	return allowlist_offset_search(g, offset_allowlist, count, offset);
 }
 
-#ifdef CONFIG_NVGPU_HAL_NON_FUSA
+#ifdef CONFIG_NVGPU_NON_FUSA
 void nvgpu_profiler_hs_stream_quiesce(struct gk20a *g)
 {
 	if (g->ops.perf.reset_hs_streaming_credits != NULL) {
@@ -1171,4 +1167,4 @@ void nvgpu_profiler_hs_stream_quiesce(struct gk20a *g)
 		g->ops.perf.enable_hs_streaming(g, false);
 	}
 }
-#endif /* CONFIG_NVGPU_HAL_NON_FUSA */
+#endif /* CONFIG_NVGPU_NON_FUSA */

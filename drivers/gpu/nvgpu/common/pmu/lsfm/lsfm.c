@@ -34,10 +34,6 @@
 #include "lsfm_sw_tu104.h"
 #endif
 
-#if defined(CONFIG_NVGPU_NON_FUSA)
-#include "nvgpu_next_gpuid.h"
-#endif
-
 static bool is_lsfm_supported(struct gk20a *g,
 	struct nvgpu_pmu *pmu, struct nvgpu_pmu_lsfm *lsfm)
 {
@@ -169,7 +165,7 @@ int nvgpu_pmu_lsfm_init(struct gk20a *g, struct nvgpu_pmu_lsfm **lsfm)
 		break;
 #endif
 #if defined(CONFIG_NVGPU_NON_FUSA)
-	case NVGPU_NEXT_GPUID:
+	case NVGPU_GPUID_GA10B:
 		nvgpu_gv100_lsfm_sw_init(g, *lsfm);
 		break;
 #endif

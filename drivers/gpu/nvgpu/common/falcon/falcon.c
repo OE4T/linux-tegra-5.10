@@ -31,7 +31,7 @@
 #endif
 
 #ifdef CONFIG_NVGPU_NON_FUSA
-#include "nvgpu_next_gpuid.h"
+#include "falcon_sw_ga10b.h"
 #endif /* CONFIG_NVGPU_NON_FUSA */
 
 static bool is_falcon_valid(struct nvgpu_falcon *flcn)
@@ -462,12 +462,12 @@ static int falcon_sw_chip_init(struct gk20a *g, struct nvgpu_falcon *flcn)
 	case NVGPU_GPUID_GP10B:
 		gk20a_falcon_sw_init(flcn);
 		break;
-	case NVGPU_NEXT_GPUID:
+	case NVGPU_GPUID_GA10B:
 		ga10b_falcon_sw_init(flcn);
 		break;
 #ifdef CONFIG_NVGPU_DGPU
 	case NVGPU_GPUID_TU104:
-	case NVGPU_NEXT_DGPU_GPUID:
+	case NVGPU_GPUID_GA100:
 		tu104_falcon_sw_init(flcn);
 		break;
 #endif /* CONFIG_NVGPU_DGPU */

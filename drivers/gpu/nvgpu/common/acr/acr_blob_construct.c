@@ -33,11 +33,6 @@
 #include "acr_wpr.h"
 #include "acr_priv.h"
 
-#if defined(CONFIG_NVGPU_NON_FUSA)
-#include "nvgpu_next_gpuid.h"
-#endif
-
-
 #define APP_IMEM_OFFSET			(0)
 #define APP_IMEM_ENTRY			(0)
 #define APP_DMEM_OFFSET			(0)
@@ -163,7 +158,7 @@ int nvgpu_acr_lsf_fecs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 	switch (ver) {
 		case NVGPU_GPUID_GV11B:
 #if defined(CONFIG_NVGPU_NON_FUSA)
-		case NVGPU_NEXT_GPUID:
+		case NVGPU_GPUID_GA10B:
 #endif
 			fecs_sig = nvgpu_request_firmware(g, GM20B_FECS_UCODE_SIG,
 				NVGPU_REQUEST_FIRMWARE_NO_WARN);
@@ -175,8 +170,8 @@ int nvgpu_acr_lsf_fecs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 			break;
 #endif
 #if defined(CONFIG_NVGPU_NON_FUSA)
-		case NVGPU_NEXT_DGPU_GPUID:
-			fecs_sig = nvgpu_request_firmware(g, NEXT_DGPU_FECS_UCODE_SIG,
+		case NVGPU_GPUID_GA100:
+			fecs_sig = nvgpu_request_firmware(g, GA100_FECS_UCODE_SIG,
 				NVGPU_REQUEST_FIRMWARE_NO_SOC);
 			break;
 #endif
@@ -273,7 +268,7 @@ int nvgpu_acr_lsf_gpccs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 	switch (ver) {
 		case NVGPU_GPUID_GV11B:
 #if defined(CONFIG_NVGPU_NON_FUSA)
-		case NVGPU_NEXT_GPUID:
+		case NVGPU_GPUID_GA10B:
 #endif
 			gpccs_sig = nvgpu_request_firmware(g, T18x_GPCCS_UCODE_SIG,
 					NVGPU_REQUEST_FIRMWARE_NO_WARN);
@@ -285,8 +280,8 @@ int nvgpu_acr_lsf_gpccs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 			break;
 #endif
 #if defined(CONFIG_NVGPU_NON_FUSA)
-		case NVGPU_NEXT_DGPU_GPUID:
-			gpccs_sig = nvgpu_request_firmware(g, NEXT_DGPU_GPCCS_UCODE_SIG,
+		case NVGPU_GPUID_GA100:
+			gpccs_sig = nvgpu_request_firmware(g, GA100_GPCCS_UCODE_SIG,
 				NVGPU_REQUEST_FIRMWARE_NO_SOC);
 			break;
 #endif

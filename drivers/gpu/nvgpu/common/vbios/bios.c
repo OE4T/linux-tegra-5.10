@@ -31,10 +31,6 @@
 #include "bios_sw_gv100.h"
 #include "bios_sw_tu104.h"
 
-#if defined(CONFIG_NVGPU_NON_FUSA)
-#include "nvgpu_next_gpuid.h"
-#endif
-
 static void nvgpu_bios_parse_bit(struct gk20a *g, u32 offset);
 
 int nvgpu_bios_devinit(struct gk20a *g,
@@ -74,7 +70,7 @@ bool nvgpu_bios_check_dgpu(struct gk20a *g, u32 ver)
 	case NVGPU_GPUID_GV100:
 	case NVGPU_GPUID_TU104:
 #if defined(CONFIG_NVGPU_NON_FUSA)
-	case NVGPU_NEXT_DGPU_GPUID:
+	case NVGPU_GPUID_GA100:
 #endif
 		is_supported = true;
 		break;
@@ -198,7 +194,7 @@ int nvgpu_bios_sw_init(struct gk20a *g)
 		break;
 
 #if defined(CONFIG_NVGPU_NON_FUSA)
-	case NVGPU_NEXT_DGPU_GPUID:
+	case NVGPU_GPUID_GA100:
 		/*
 		 * TODO
 		 * After IFR region removal from bios image this can

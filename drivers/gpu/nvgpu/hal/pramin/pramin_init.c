@@ -29,10 +29,6 @@
 #include "pramin_tu104.h"
 #endif
 
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
-#include "nvgpu_next_gpuid.h"
-#endif
-
 void nvgpu_pramin_ops_init(struct gk20a *g)
 {
 	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
@@ -47,7 +43,7 @@ void nvgpu_pramin_ops_init(struct gk20a *g)
 		break;
 	case NVGPU_GPUID_TU104:
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
-	case NVGPU_NEXT_DGPU_GPUID:
+	case NVGPU_GPUID_GA100:
 #endif
 		g->ops.pramin.data032_r = tu104_pramin_data032_r;
 		break;

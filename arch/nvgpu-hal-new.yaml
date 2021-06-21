@@ -1036,11 +1036,6 @@ cic:
              hal/cic/cic_lut_gv11b_fusa.c,
              hal/cic/cic_gv11b.h ]
 
-misc:
-  safe: no
-  owner: Vedashree V
-  sources: [ nvgpu_next_gpuid.h ]
-
 grmgr:
   safe: no
   owner: Lakshmanan M

@@ -22,8 +22,6 @@
 
 #include <nvgpu/gk20a.h>
 
-#include "nvgpu_next_gpuid.h"
-
 #include "netlist_ga100.h"
 
 int ga100_netlist_get_name(struct gk20a *g, int index, char *name)
@@ -32,7 +30,7 @@ int ga100_netlist_get_name(struct gk20a *g, int index, char *name)
 	int valid = 0;
 
 	switch (ver) {
-	case NVGPU_NEXT_DGPU_GPUID:
+	case NVGPU_GPUID_GA100:
 		(void) strcpy(name, "ga100/");
 		(void) strcat(name, GA100_NETLIST_IMAGE_FW_NAME);
 		break;

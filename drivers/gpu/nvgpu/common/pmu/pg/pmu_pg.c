@@ -38,11 +38,10 @@
 #include "pg_sw_gm20b.h"
 #include "pg_sw_gv11b.h"
 #include "pg_sw_gp10b.h"
-#include "pmu_pg.h"
-
 #if defined(CONFIG_NVGPU_NON_FUSA)
-#include "nvgpu_next_gpuid.h"
-#endif
+#include "pg_sw_ga10b.h"
+#endif /* CONFIG_NVGPU_NON_FUSA */
+#include "pmu_pg.h"
 
 static bool is_pg_supported(struct gk20a *g, struct nvgpu_pmu_pg *pg)
 {
@@ -881,10 +880,10 @@ int nvgpu_pmu_pg_init(struct gk20a *g, struct nvgpu_pmu *pmu,
 		break;
 
 #if defined(CONFIG_NVGPU_NON_FUSA)
-	case NVGPU_NEXT_GPUID:
+	case NVGPU_GPUID_GA10B:
 		nvgpu_ga10b_pg_sw_init(g, *pg_p);
 		break;
-#endif
+#endif /* CONFIG_NVGPU_NON_FUSA */
 
 	default:
 		nvgpu_kfree(g, *pg_p);

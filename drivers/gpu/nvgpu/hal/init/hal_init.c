@@ -37,7 +37,10 @@
 #endif
 
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA)
-#include "nvgpu_next_gpuid.h"
+#include "hal_ga10b.h"
+#if defined(CONFIG_NVGPU_DGPU)
+#include "hal_ga100.h"
+#endif
 #endif
 
 #include "hal/mc/mc_gm20b.h"
@@ -66,13 +69,11 @@ int nvgpu_init_hal(struct gk20a *g)
 			return -ENODEV;
 		}
 		break;
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
-	case NVGPU_NEXT_GPUID:
-		if (NVGPU_NEXT_INIT_HAL(g) != 0) {
+	case NVGPU_GPUID_GA10B:
+		if (ga10b_init_hal(g) != 0) {
 			return -ENODEV;
 		}
 		break;
-#endif
 #endif
 
 	case NVGPU_GPUID_GV11B:
@@ -88,8 +89,8 @@ int nvgpu_init_hal(struct gk20a *g)
 		}
 		break;
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_DGPU)
-	case NVGPU_NEXT_DGPU_GPUID:
-		if (NVGPU_NEXT_DGPU_INIT_HAL(g) != 0) {
+	case NVGPU_GPUID_GA100:
+		if (ga100_init_hal(g) != 0) {
 			return -ENODEV;
 		}
 		break;

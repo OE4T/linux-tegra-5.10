@@ -35,9 +35,11 @@
 #ifdef CONFIG_NVGPU_DGPU
 #include "acr_sw_tu104.h"
 #endif
-
-#if defined(CONFIG_NVGPU_NON_FUSA)
-#include "nvgpu_next_gpuid.h"
+#ifdef CONFIG_NVGPU_NON_FUSA
+#include "acr_sw_ga10b.h"
+#ifdef CONFIG_NVGPU_DGPU
+#include "acr_sw_ga100.h"
+#endif
 #endif
 
 /* ACR public API's */
@@ -146,19 +148,19 @@ int nvgpu_acr_init(struct gk20a *g)
 		nvgpu_gv11b_acr_sw_init(g, g->acr);
 		break;
 #if defined(CONFIG_NVGPU_NON_FUSA)
-	case NVGPU_NEXT_GPUID:
+	case NVGPU_GPUID_GA10B:
 		nvgpu_ga10b_acr_sw_init(g, g->acr);
 		break;
-#endif
+#endif /* CONFIG_NVGPU_NON_FUSA */
 #ifdef CONFIG_NVGPU_DGPU
 	case NVGPU_GPUID_TU104:
 		nvgpu_tu104_acr_sw_init(g, g->acr);
 		break;
 #if defined(CONFIG_NVGPU_NON_FUSA)
-	case NVGPU_NEXT_DGPU_GPUID:
+	case NVGPU_GPUID_GA100:
 		nvgpu_ga100_acr_sw_init(g, g->acr);
 		break;
-#endif
+#endif /* CONFIG_NVGPU_NON_FUSA */
 #endif
 	default:
 		nvgpu_kfree(g, g->acr);

@@ -26,12 +26,11 @@
 #include <nvgpu/vgpu/vgpu.h>
 #include <nvgpu/vgpu/os_init_hal_vgpu.h>
 
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
-#include "nvgpu_next_gpuid.h"
-#endif
-
 #include "init_hal_vgpu.h"
 #include "vgpu_hal_gv11b.h"
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
+#include "vgpu_hal_ga10b.h"
+#endif
 
 int vgpu_init_hal(struct gk20a *g)
 {
@@ -43,11 +42,9 @@ int vgpu_init_hal(struct gk20a *g)
 	case NVGPU_GPUID_GV11B:
 		err = vgpu_gv11b_init_hal(g);
 		break;
-#ifdef CONFIG_NVGPU_HAL_NON_FUSA
-	case NVGPU_NEXT_GPUID:
-		err = NVGPU_NEXT_VGPU_INIT_HAL(g);
+	case NVGPU_GPUID_GA10B:
+		err = vgpu_ga10b_init_hal(g);
 		break;
-#endif
 #endif
 	default:
 		nvgpu_err(g, "no support for %x", ver);

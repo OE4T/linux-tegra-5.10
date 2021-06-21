@@ -34,12 +34,11 @@
 #include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
 #include <nvgpu/kmem.h>
 
-#if defined(CONFIG_NVGPU_NON_FUSA)
-#include "nvgpu_next_gpuid.h"
-#endif
-
 #include "pmu_perfmon_sw_gm20b.h"
 #include "pmu_perfmon_sw_gv11b.h"
+#if defined(CONFIG_NVGPU_NON_FUSA)
+#include "pmu_perfmon_sw_ga10b.h"
+#endif
 
 static u8 get_perfmon_id(struct nvgpu_pmu *pmu)
 {
@@ -56,7 +55,7 @@ static u8 get_perfmon_id(struct nvgpu_pmu *pmu)
 	case NVGPU_GPUID_GP10B:
 	case NVGPU_GPUID_GV11B:
 #if defined(CONFIG_NVGPU_NON_FUSA)
-	case NVGPU_NEXT_GPUID:
+	case NVGPU_GPUID_GA10B:
 #endif
 		unit_id = PMU_UNIT_PERFMON_T18X;
 		break;
@@ -145,7 +144,7 @@ int nvgpu_pmu_initialize_perfmon(struct gk20a *g, struct nvgpu_pmu *pmu,
 		nvgpu_gv11b_perfmon_sw_init(g, *perfmon_ptr);
 		break;
 #if defined(CONFIG_NVGPU_NON_FUSA)
-	case NVGPU_NEXT_GPUID:
+	case NVGPU_GPUID_GA10B:
 		nvgpu_ga10b_perfmon_sw_init(g, *perfmon_ptr);
 		break;
 #endif

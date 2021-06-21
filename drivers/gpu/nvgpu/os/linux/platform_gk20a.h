@@ -322,6 +322,13 @@ extern struct gk20a_platform gv11b_tegra_platform;
 #ifdef CONFIG_NVGPU_GR_VIRTUALIZATION
 extern struct gk20a_platform gv11b_vgpu_tegra_platform;
 #endif
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NON_FUSA)
+extern struct gk20a_platform ga10b_tegra_platform;
+#ifdef CONFIG_NVGPU_GR_VIRTUALIZATION
+extern struct gk20a_platform ga10b_vgpu_tegra_platform;
+#endif
+#endif
+
 #endif
 
 int gk20a_tegra_busy(struct device *dev);

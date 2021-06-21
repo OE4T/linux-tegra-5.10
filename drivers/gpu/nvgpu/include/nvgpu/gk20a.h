@@ -877,6 +877,10 @@ int gk20a_do_unidle(void *_g);
 #define NVGPU_GPUID_GV100   0x00000140U
 /** tu104 HW version */
 #define NVGPU_GPUID_TU104   0x00000164U
+/** ga100 HW Version */
+#define NVGPU_GPUID_GA100   0x00000170U
+/** ga10b HW version */
+#define NVGPU_GPUID_GA10B   0x0000017BU
 
 /**
  * @}
