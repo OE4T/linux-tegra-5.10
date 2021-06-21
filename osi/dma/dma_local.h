@@ -28,6 +28,13 @@
 #include "eqos_dma.h"
 
 /**
+ * @brief Maximum number of OSI DMA instances.
+ */
+#ifndef MAX_DMA_INSTANCES
+#define MAX_DMA_INSTANCES	5U
+#endif
+
+/**
  * @brief MAC DMA Channel operations
  */
 struct dma_chan_ops {
@@ -86,20 +93,83 @@ struct dma_chan_ops {
 };
 
 /**
+ * @brief DMA descriptor operations
+ */
+struct desc_ops {
+	/** Called to get receive checksum */
+	void (*get_rx_csum)(struct osi_rx_desc *rx_desc,
+			    struct osi_rx_pkt_cx *rx_pkt_cx);
+	/** Called to get rx error stats */
+	void (*update_rx_err_stats)(struct osi_rx_desc *rx_desc,
+				    struct osi_pkt_err_stats pkt_err_stats);
+	/** Called to get rx VLAN from descriptor */
+	void (*get_rx_vlan)(struct osi_rx_desc *rx_desc,
+			    struct osi_rx_pkt_cx *rx_pkt_cx);
+	/** Called to get rx HASH from descriptor */
+	void (*get_rx_hash)(struct osi_rx_desc *rx_desc,
+			    struct osi_rx_pkt_cx *rx_pkt_cx);
+	/** Called to get RX hw timestamp */
+	int (*get_rx_hwstamp)(struct osi_dma_priv_data *osi_dma,
+			      struct osi_rx_desc *rx_desc,
+			      struct osi_rx_desc *context_desc,
+			      struct osi_rx_pkt_cx *rx_pkt_cx);
+};
+
+/**
  * @brief OSI DMA private data.
  */
 struct dma_local {
+	/** OSI DMA data variable */
+	struct osi_dma_priv_data osi_dma;
 	/** DMA channel operations */
-	struct dma_chan_ops ops;
+	struct dma_chan_ops *ops_p;
 	/** Flag to represent OSI DMA software init done */
-	unsigned int init_done;
+	nveu32_t init_done;
 	/** Holds the MAC version of MAC controller */
 	nveu32_t mac_ver;
 	/** Represents whether DMA interrupts are VM or Non-VM */
 	nveu32_t vm_intr;
+	/** Magic number to validate osi_dma pointer */
+	nveu64_t magic_num;
 };
 
+/**
+ * @brief eqos_init_dma_chan_ops - Initialize eqos DMA operations.
+ *
+ * @param[in] ops: DMA channel operations pointer.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ */
 void eqos_init_dma_chan_ops(struct dma_chan_ops *ops);
+
+/**
+ * @brief mgbe_init_dma_chan_ops - Initialize MGBE DMA operations.
+ *
+ * @param[in] ops: DMA channel operations pointer.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ */
+void mgbe_init_dma_chan_ops(struct dma_chan_ops *ops);
+
+/**
+ * @brief eqos_get_desc_ops - EQOS init DMA descriptor operations
+ */
+void eqos_init_desc_ops(struct desc_ops *d_ops);
+
+/**
+ * @brief mgbe_get_desc_ops - MGBE init DMA descriptor operations
+ */
+void mgbe_init_desc_ops(struct desc_ops *d_ops);
+
+nve32_t init_desc_ops(struct osi_dma_priv_data *osi_dma);
 
 /**
  * @brief osi_hw_transmit - Initialize Tx DMA descriptors for a channel

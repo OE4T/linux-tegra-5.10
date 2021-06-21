@@ -26,6 +26,43 @@
 #include <osi_core.h>
 
 /**
+ * @brief Maximum number of OSI core instances.
+ */
+#ifndef MAX_CORE_INSTANCES
+#define MAX_CORE_INSTANCES	5U
+#endif
+
+/**
+ * @brief Maximum number of interface operations.
+ */
+#define MAX_INTERFACE_OPS	2U
+
+/**
+ * interface core ops
+ */
+struct if_core_ops {
+	/** Interface function called to initialize MAC and MTL registers */
+	nve32_t (*if_core_init)(struct osi_core_priv_data *const osi_core,
+				nveu32_t tx_fifo_size, nveu32_t rx_fifo_size);
+	/** Interface function called to deinitialize MAC and MTL registers */
+	nve32_t (*if_core_deinit)(struct osi_core_priv_data *const osi_core);
+	/** Interface function called to write into a PHY reg over MDIO bus */
+	nve32_t (*if_write_phy_reg)(struct osi_core_priv_data *const osi_core,
+				    const nveu32_t phyaddr,
+				    const nveu32_t phyreg,
+				    const nveu16_t phydata);
+	/** Interface function called to read a PHY reg over MDIO bus */
+	nve32_t (*if_read_phy_reg)(struct osi_core_priv_data *const osi_core,
+				   const nveu32_t phyaddr,
+				   const nveu32_t phyreg);
+	/** Initialize Interface core operations */
+	nve32_t (*if_init_core_ops)(struct osi_core_priv_data *const osi_core);
+	/** Interface function called to handle runtime commands */
+	nve32_t (*if_handle_ioctl)(struct osi_core_priv_data *osi_core,
+				   struct osi_ioctl *data);
+};
+
+/**
  * @brief Initialize MAC & MTL core operations.
  */
 struct core_ops {
@@ -46,9 +83,9 @@ struct core_ops {
 	/** Called to set the mode at MAC (full/duplex) */
 	nve32_t (*set_mode)(struct osi_core_priv_data *const osi_core,
 			    const nve32_t mode);
-	/** Called to set the speed (10/100/1000) at MAC */
-	void (*set_speed)(struct osi_core_priv_data *const osi_core,
-			  const nve32_t speed);
+	/** Called to set the speed at MAC */
+	nve32_t (*set_speed)(struct osi_core_priv_data *const osi_core,
+			     const nve32_t speed);
 	/** Called to do pad caliberation */
 	nve32_t (*pad_calibrate)(struct osi_core_priv_data *const osi_core);
 	/** Called to configure MTL RxQ to forward the err pkt */
@@ -120,7 +157,12 @@ struct core_ops {
 	void (*config_tscr)(struct osi_core_priv_data *const osi_core,
 			    const nveu32_t ptp_filter);
 	/** Called to configure the sub second increment register */
-	void (*config_ssir)(struct osi_core_priv_data *const osi_core);
+	void (*config_ssir)(struct osi_core_priv_data *const osi_core,
+			    const nveu32_t ptp_clock);
+	/** Called to configure the PTP RX packets Queue */
+	nve32_t (*config_ptp_rxq)(struct osi_core_priv_data *const osi_core,
+				  const unsigned int rxq_idx,
+				  const unsigned int enable);
 	/** Called to update MMC counter from HW register */
 	void (*read_mmc)(struct osi_core_priv_data *const osi_core);
 	/** Called to write into a PHY reg over MDIO bus */
@@ -197,6 +239,27 @@ struct core_ops {
 	/** Called to get HW features */
 	nve32_t (*get_hw_features)(struct osi_core_priv_data *const osi_core,
 				   struct osi_hw_features *hw_feat);
+	/** Called to configure RSS for MAC */
+	nve32_t (*config_rss)(struct osi_core_priv_data *osi_core);
+	/** Called to update GCL config */
+	int (*hw_config_est)(struct osi_core_priv_data *const osi_core,
+			     struct osi_est_config *const est);
+	/** Called to update FPE config */
+	int (*hw_config_fpe)(struct osi_core_priv_data *const osi_core,
+			struct osi_fpe_config *const fpe);
+	/** Called to configure FRP engine */
+	int (*config_frp)(struct osi_core_priv_data *const osi_core,
+			  const unsigned int enabled);
+	/** Called to update FRP Instruction Table entry */
+	int (*update_frp_entry)(struct osi_core_priv_data *const osi_core,
+				const unsigned int pos,
+				struct osi_core_frp_data *const data);
+	/** Called to update FRP NVE and  */
+	int (*update_frp_nve)(struct osi_core_priv_data *const osi_core,
+			      const unsigned int nve);
+	/** Called to configure HW PTP offload feature */
+	int (*config_ptp_offload)(struct osi_core_priv_data *const osi_core,
+				  struct osi_pto_config *const pto_config);
 };
 
 
@@ -204,10 +267,18 @@ struct core_ops {
  * @brief Core local data structure.
  */
 struct core_local {
+	/** OSI Core data variable */
+	struct osi_core_priv_data osi_core;
 	/** Core local operations variable */
-	struct core_ops ops;
+	struct core_ops *ops_p;
+	/** interface core local operations variable */
+	struct if_core_ops *if_ops_p;
 	/** Flag to represent initialization done or not */
-	unsigned int init_done;
+	nveu32_t init_done;
+	/** Flag to represent infterface initialization done or not */
+	nveu32_t if_init_done;
+	/** Magic number to validate osi core pointer */
+	nveu64_t magic_num;
 };
 
 /**
@@ -235,4 +306,57 @@ void eqos_init_core_ops(struct core_ops *ops);
  * - De-initialization: No
  */
 void ivc_init_core_ops(struct core_ops *ops);
+
+/**
+ * @brief mgbe_init_core_ops - Initialize MGBE core operations.
+ *
+ * @param[in] ops: Core operations pointer.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ */
+void mgbe_init_core_ops(struct core_ops *ops);
+
+/**
+ * @brief ivc_init_macsec_ops - Initialize macsec core operations.
+ *
+ * @param[in] macsecops: Macsec operations pointer.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ */
+void ivc_init_macsec_ops(void *macsecops);
+
+/**
+ * @brief hw_interface_init_core_ops - Initialize HW interface functions.
+ *
+ * @param[in] if_ops_p: interface core operations pointer.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ */
+void hw_interface_init_core_ops(struct if_core_ops *if_ops_p);
+
+/**
+ * @brief ivc_interface_init_core_ops - Initialize IVC interface functions
+ *
+ * @param[in] if_ops_p: interface core operations pointer.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ */
+void ivc_interface_init_core_ops(struct if_core_ops *if_ops_p);
+
 #endif /* INCLUDED_CORE_LOCAL_H */

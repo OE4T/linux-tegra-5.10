@@ -35,6 +35,7 @@
 #define RDES3_CTXT		OSI_BIT(30)
 #define RDES3_IOC		OSI_BIT(30)
 #define RDES3_B1V		OSI_BIT(24)
+#define RDES3_CDA		OSI_BIT(27)
 #define RDES3_LD		OSI_BIT(28)
 #define RDES3_FD		OSI_BIT(29)
 #define RDES3_ERR_CRC		OSI_BIT(24)
@@ -49,9 +50,17 @@
 #define RDES3_LT_DVT		(OSI_BIT(16) | OSI_BIT(18))
 #define RDES3_RS0V		OSI_BIT(25)
 #define RDES3_RS1V		OSI_BIT(26)
+#define RDES3_RSV		OSI_BIT(26)
 #define RDES0_OVT		0x0000FFFFU
+#define RDES3_TSD		OSI_BIT(6)
+#define RDES3_TSA		OSI_BIT(4)
 #define RDES1_TSA		OSI_BIT(14)
 #define RDES1_TD		OSI_BIT(15)
+#define RDES3_L34T		0x00F00000U
+#define RDES3_L34T_IPV4_TCP	OSI_BIT(20)
+#define RDES3_L34T_IPV4_UDP	OSI_BIT(21)
+#define RDES3_L34T_IPV6_TCP	(OSI_BIT(23) | OSI_BIT(20))
+#define RDES3_L34T_IPV6_UDP	(OSI_BIT(23) | OSI_BIT(21))
 
 #define RDES1_IPCE		OSI_BIT(7)
 #define RDES1_IPCB		OSI_BIT(6)
@@ -61,6 +70,10 @@
 #define RDES1_PT_MASK		(OSI_BIT(2) | OSI_BIT(1) | OSI_BIT(0))
 #define RDES1_PT_TCP		OSI_BIT(1)
 #define RDES1_PT_UDP		OSI_BIT(0)
+#define RDES3_ELLT		0xF0000U
+#define RDES3_ELLT_IPHE		0x50000U
+#define RDES3_ELLT_CSUM_ERR	0x60000U
+#define RDES3_ELLT_CVLAN	0x90000U
 /** @} */
 
 /** Error Summary bits for Received packet */
@@ -68,6 +81,9 @@
 	(RDES3_ERR_CRC | RDES3_ERR_GP | RDES3_ERR_WD | \
 	RDES3_ERR_ORUN | RDES3_ERR_RE | RDES3_ERR_DRIB)
 
+/** MGBE error summary bits for Received packet */
+#define RDES3_ES_MGBE		0x8000U
+#define RDES3_ERR_MGBE_CRC	(OSI_BIT(16) | OSI_BIT(17))
 /**
  * @addtogroup EQOS_TxDesc Transmit Descriptors bit fields
  *
@@ -83,6 +99,7 @@
 #define TDES3_TCMSSV		OSI_BIT(26)
 #define TDES3_FD		OSI_BIT(29)
 #define TDES3_LD		OSI_BIT(28)
+#define TDES3_OSTC              OSI_BIT(27)
 #define TDES3_TSE		OSI_BIT(18)
 #define TDES3_HW_CIC_ALL	(OSI_BIT(16) | OSI_BIT(17))
 #define TDES3_HW_CIC_IP_ONLY	(OSI_BIT(16))
@@ -93,6 +110,7 @@
 #define TDES3_THL_SHIFT		19U
 #define TDES3_VLTV		OSI_BIT(16)
 #define TDES3_TTSS		OSI_BIT(17)
+#define TDES3_PIDV		OSI_BIT(25)
 
 /* Tx Errors */
 #define TDES3_IP_HEADER_ERR	OSI_BIT(0)

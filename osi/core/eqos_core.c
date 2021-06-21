@@ -21,10 +21,12 @@
  */
 
 #include "../osi/common/common.h"
+#include <local_common.h>
 #include <osi_core.h>
 #include "eqos_core.h"
 #include "eqos_mmc.h"
 #include "core_local.h"
+#include "vlan_filter.h"
 
 /**
  * @brief eqos_core_safety_config - EQOS MAC core safety configuration
@@ -38,7 +40,7 @@ static struct core_func_safety eqos_core_safety_config;
  * Algorithm:
  *  - Acquire RW lock, so that eqos_validate_core_regs does not run while
  *    updating the safety critical register.
- *  - call osi_writel() to actually update the memory mapped register.
+ *  - call osi_writela() to actually update the memory mapped register.
  *  - Store the same value in eqos_core_safety_config->reg_val[idx],
  *    so that this latest value will be compared when eqos_validate_core_regs
  *    is scheduled.
@@ -543,7 +545,7 @@ static nve32_t eqos_poll_for_swr(struct osi_core_priv_data *const osi_core)
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
  */
-static void eqos_set_speed(struct osi_core_priv_data *const osi_core,
+static int eqos_set_speed(struct osi_core_priv_data *const osi_core,
 			   const nve32_t speed)
 {
 	nveu32_t  mcr_val;
@@ -570,8 +572,9 @@ static void eqos_set_speed(struct osi_core_priv_data *const osi_core,
 	}
 
 	eqos_core_safety_writel(osi_core, mcr_val,
-				(nveu8_t *)base + EQOS_MAC_MCR,
+				(unsigned char *)osi_core->base + EQOS_MAC_MCR,
 				EQOS_MAC_MCR_IDX);
+	return 0;
 }
 
 /**
@@ -1123,6 +1126,284 @@ static nve32_t eqos_config_rxcsum_offload(
 }
 
 /**
+ * @brief eqos_config_frp - Enable/Disale RX Flexible Receive Parser in HW
+ *
+ * Algorithm:
+ *      1) Read the MTL OP Mode configuration register.
+ *      2) Enable/Disable FRPE bit based on the input.
+ *      3) Write the MTL OP Mode configuration register.
+ *
+ * @param[in] osi_core: OSI core private data.
+ * @param[in] enabled: Flag to indicate feature is to be enabled/disabled.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int eqos_config_frp(struct osi_core_priv_data *const osi_core,
+			   const unsigned int enabled)
+{
+	unsigned char *base = osi_core->base;
+	unsigned int op_mode = 0U, val = 0U;
+	int ret = 0;
+
+	if (enabled != OSI_ENABLE && enabled != OSI_DISABLE) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Invalid enable input\n",
+			enabled);
+		return -1;
+	}
+
+	/* Disable RE */
+	val = osi_readl(base + EQOS_MAC_MCR);
+	val &= ~EQOS_MCR_RE;
+	osi_writel(val, base + EQOS_MAC_MCR);
+
+	/* Verify RXPI bit set in MTL_RXP_Control_Status */
+	ret = osi_readl_poll_timeout((base + EQOS_MTL_RXP_CS),
+				     (osi_core->osd_ops.udelay),
+				     (val),
+				     ((val & EQOS_MTL_RXP_CS_RXPI) ==
+				      EQOS_MTL_RXP_CS_RXPI),
+				     (EQOS_MTL_FRP_READ_UDELAY),
+				     (EQOS_MTL_FRP_READ_RETRY));
+	if (ret < 0) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+			"Fail to enable FRP\n",
+			val);
+		goto frp_enable_re;
+	}
+
+	op_mode = osi_readl(base + EQOS_MTL_OP_MODE);
+	val = osi_readl(base + EQOS_MTL_RXP_INTR_CS);
+	if (enabled == OSI_ENABLE) {
+		/* Set FRPE bit of MTL_Operation_Mode register */
+		op_mode |= EQOS_MTL_OP_MODE_FRPE;
+
+		/* Enable FRP Interrupt MTL_RXP_Interrupt_Control_Status */
+		val |= (EQOS_MTL_RXP_INTR_CS_NVEOVIE |
+			EQOS_MTL_RXP_INTR_CS_NPEOVIE |
+			EQOS_MTL_RXP_INTR_CS_FOOVIE |
+			EQOS_MTL_RXP_INTR_CS_PDRFIE);
+	} else {
+		/* Reset FRPE bit of MTL_Operation_Mode register */
+		op_mode &= ~EQOS_MTL_OP_MODE_FRPE;
+
+		/* Disable FRP Interrupt MTL_RXP_Interrupt_Control_Status */
+		val = osi_readl(base + EQOS_MTL_RXP_INTR_CS);
+		val &= ~(EQOS_MTL_RXP_INTR_CS_NVEOVIE |
+			 EQOS_MTL_RXP_INTR_CS_NPEOVIE |
+			 EQOS_MTL_RXP_INTR_CS_FOOVIE |
+			 EQOS_MTL_RXP_INTR_CS_PDRFIE);
+	}
+	osi_writel(op_mode, base + EQOS_MTL_OP_MODE);
+	osi_writel(val, base + EQOS_MTL_RXP_INTR_CS);
+
+frp_enable_re:
+	/* Enable RE */
+	val = osi_readla(osi_core, base + EQOS_MAC_MCR);
+	val |= EQOS_MCR_RE;
+	osi_writela(osi_core, val, base + EQOS_MAC_MCR);
+
+	return ret;
+}
+
+/**
+ * @brief eqos_update_frp_nve - Update FRP NVE into HW
+ *
+ * Algorithm:
+ *
+ * @param[in] osi_core: OSI core private data.
+ * @param[in] enabled: Flag to indicate feature is to be enabled/disabled.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int eqos_update_frp_nve(struct osi_core_priv_data *const osi_core,
+			       const unsigned int nve)
+{
+	unsigned int val;
+	unsigned char *base = osi_core->base;
+
+	/* Validate the NVE value */
+	if (nve >= OSI_FRP_MAX_ENTRY) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Invalid NVE value\n",
+			nve);
+		return -1;
+	}
+
+	/* Update NVE and NPE in MTL_RXP_Control_Status register */
+	val = osi_readla(osi_core, base + EQOS_MTL_RXP_CS);
+	/* Clear old NVE and NPE */
+	val &= ~(EQOS_MTL_RXP_CS_NVE | EQOS_MTL_RXP_CS_NPE);
+	/* Add new NVE and NVE */
+	val |= (nve & EQOS_MTL_RXP_CS_NVE);
+	val |= ((nve << EQOS_MTL_RXP_CS_NPE_SHIFT) & EQOS_MTL_RXP_CS_NPE);
+	osi_writela(osi_core, val, base + EQOS_MTL_RXP_CS);
+
+	return 0;
+}
+
+/**
+ * @brief eqos_frp_write - Write FRP entry into HW
+ *
+ * Algorithm: This function will write FRP entry registers into HW.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] addr: FRP register address.
+ * @param[in] data: FRP register data.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int eqos_frp_write(struct osi_core_priv_data *osi_core,
+			  unsigned int addr,
+			  unsigned int data)
+{
+	int ret = 0;
+	unsigned char *base = osi_core->base;
+	unsigned int val = 0U;
+
+	/* Wait for ready */
+	ret = osi_readl_poll_timeout((base + EQOS_MTL_RXP_IND_CS),
+				     (osi_core->osd_ops.udelay),
+				     (val),
+				     ((val & EQOS_MTL_RXP_IND_CS_BUSY) ==
+				      OSI_NONE),
+				     (EQOS_MTL_FRP_READ_UDELAY),
+				     (EQOS_MTL_FRP_READ_RETRY));
+	if (ret < 0) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+			"Fail to write\n",
+			val);
+		return -1;
+	}
+
+	/* Write data into MTL_RXP_Indirect_Acc_Data */
+	osi_writel(data, base + EQOS_MTL_RXP_IND_DATA);
+
+	/* Program MTL_RXP_Indirect_Acc_Control_Status */
+	val = osi_readl(base + EQOS_MTL_RXP_IND_CS);
+	/* Set WRRDN for write */
+	val |= EQOS_MTL_RXP_IND_CS_WRRDN;
+	/* Clear and add ADDR */
+	val &= ~EQOS_MTL_RXP_IND_CS_ADDR;
+	val |= (addr & EQOS_MTL_RXP_IND_CS_ADDR);
+	/* Start write */
+	val |= EQOS_MTL_RXP_IND_CS_BUSY;
+	osi_writel(val, base + EQOS_MTL_RXP_IND_CS);
+
+	/* Wait for complete */
+	ret = osi_readl_poll_timeout((base + EQOS_MTL_RXP_IND_CS),
+				     (osi_core->osd_ops.udelay),
+				     (val),
+				     ((val & EQOS_MTL_RXP_IND_CS_BUSY) ==
+				      OSI_NONE),
+				     (EQOS_MTL_FRP_READ_UDELAY),
+				     (EQOS_MTL_FRP_READ_RETRY));
+	if (ret < 0) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+			"Fail to write\n",
+			val);
+		return -1;
+	}
+
+	return ret;
+}
+
+/**
+ * @brief eqos_update_frp_entry - Update FRP Instruction Table entry in HW
+ *
+ * Algorithm:
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] pos: FRP Instruction Table entry location.
+ * @param[in] data: FRP entry data structure.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int eqos_update_frp_entry(struct osi_core_priv_data *const osi_core,
+				 const unsigned int pos,
+				 struct osi_core_frp_data *const data)
+{
+	unsigned int val = 0U, tmp = 0U;
+	int ret = -1;
+
+	/* Validate pos value */
+	if (pos >= OSI_FRP_MAX_ENTRY) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Invalid FRP table entry\n",
+			pos);
+		return -1;
+	}
+
+	/** Write Match Data into IE0 **/
+	val = data->match_data;
+	ret = eqos_frp_write(osi_core, EQOS_MTL_FRP_IE0(pos), val);
+	if (ret < 0) {
+		/* Match Data Write fail */
+		return -1;
+	}
+
+	/** Write Match Enable into IE1 **/
+	val = data->match_en;
+	ret = eqos_frp_write(osi_core, EQOS_MTL_FRP_IE1(pos), val);
+	if (ret < 0) {
+		/* Match Enable Write fail */
+		return -1;
+	}
+
+	/** Write AF, RF, IM, NIC, FO and OKI into IE2 **/
+	val = 0;
+	if (data->accept_frame == OSI_ENABLE) {
+		/* Set AF Bit */
+		val |= EQOS_MTL_FRP_IE2_AF;
+	}
+	if (data->reject_frame == OSI_ENABLE) {
+		/* Set RF Bit */
+		val |= EQOS_MTL_FRP_IE2_RF;
+	}
+	if (data->inverse_match == OSI_ENABLE) {
+		/* Set IM Bit */
+		val |= EQOS_MTL_FRP_IE2_IM;
+	}
+	if (data->next_ins_ctrl == OSI_ENABLE) {
+		/* Set NIC Bit */
+		val |= EQOS_MTL_FRP_IE2_NC;
+	}
+	tmp = data->frame_offset;
+	val |= ((tmp << EQOS_MTL_FRP_IE2_FO_SHIFT) & EQOS_MTL_FRP_IE2_FO);
+	tmp = data->ok_index;
+	val |= ((tmp << EQOS_MTL_FRP_IE2_OKI_SHIFT) & EQOS_MTL_FRP_IE2_OKI);
+	tmp = data->dma_chsel;
+	val |= ((tmp << EQOS_MTL_FRP_IE2_DCH_SHIFT) & EQOS_MTL_FRP_IE2_DCH);
+	ret = eqos_frp_write(osi_core, EQOS_MTL_FRP_IE2(pos), val);
+	if (ret < 0) {
+		/* FRP IE2 Write fail */
+		return -1;
+	}
+
+	/** Write DCH into IE3 **/
+	val = OSI_NONE;
+	ret = eqos_frp_write(osi_core, EQOS_MTL_FRP_IE3(pos), val);
+	if (ret < 0) {
+		/* DCH Write fail */
+		return -1;
+	}
+
+	return ret;
+}
+
+/**
  * @brief eqos_configure_rxq_priority - Configure Priorities Selected in
  *    the Receive Queue
  *
@@ -1163,7 +1444,7 @@ static void eqos_configure_rxq_priority(
 		/* check for PSRQ field mutual exclusive for all queues */
 		if ((osi_core->rxq_prio[mtlq] <= 0xFFU) &&
 		    (osi_core->rxq_prio[mtlq] > 0x0U) &&
-		    ((pmask & osi_core->rxq_prio[mtlq]) == 0)) {
+		    ((pmask & osi_core->rxq_prio[mtlq]) == 0U)) {
 			pmask |= osi_core->rxq_prio[mtlq];
 			temp = osi_core->rxq_prio[mtlq];
 		} else {
@@ -1192,6 +1473,46 @@ static void eqos_configure_rxq_priority(
 	}
 }
 
+#ifdef MACSEC_SUPPORT
+/**
+ * @brief eqos_config_macsec_ipg - Configure MAC IPG according to macsec IAS
+ *
+ * @note
+ * Algorithm:
+ *  - Increase MAC IPG value to accommodate macsec 32 byte SECTAG.
+ *
+ * @param[in] osi_core: OSI core private data.
+ *
+ * @pre
+ *     1) MAC has to be out of reset.
+ *     2) Shall not use this ipg value in half duplex mode
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ */
+static void eqos_config_macsec_ipg(struct osi_core_priv_data *const osi_core)
+{
+	nveu32_t value;
+
+	/* Configure IPG  {EIPG,IPG} value according to macsec IAS in
+	 * MAC_Configuration and MAC_Extended_Configuration
+	 * IPG (12 B[default] + 32 B[sectag]) = 352 bits
+	 */
+	value = osi_readla(osi_core, (nveu8_t *)osi_core->base + EQOS_MAC_MCR);
+	value |= (EQOS_MCR_IPG << EQOS_MCR_IPG_SHIFT) & EQOS_MCR_IPG_MASK;
+	osi_writela(osi_core, value, (nveu8_t *)osi_core->base + EQOS_MAC_MCR);
+
+	value = osi_readla(osi_core, (nveu8_t *)osi_core->base + EQOS_MAC_EXTR);
+	value |= EQOS_MAC_EXTR_EIPGEN;
+	value |= (EQOS_MAC_EXTR_EIPG << EQOS_MAC_EXTR_EIPG_SHIFT) &
+		  EQOS_MAC_EXTR_EIPG_MASK;
+	osi_writela(osi_core, value, (nveu8_t *)osi_core->base + EQOS_MAC_EXTR);
+}
+#endif /*  MACSEC_SUPPORT */
+
 /**
  * @brief eqos_configure_mac - Configure MAC
  *
@@ -1199,7 +1520,6 @@ static void eqos_configure_rxq_priority(
  * Algorithm:
  *  - This takes care of configuring the  below
  *  parameters for the MAC
- *    - Programming the MAC address
  *    - Enable required MAC control fields in MCR
  *    - Enable JE/JD/WD/GPSLCE based on the MTU size
  *    - Enable Multicast and Broadcast Queue
@@ -1220,21 +1540,6 @@ static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 {
 	nveu32_t value;
 	nveu32_t mac_ext;
-
-	/* Update MAC address 0 high */
-	value = (((nveu32_t)osi_core->mac_addr[5] << 8U) |
-		 ((nveu32_t)osi_core->mac_addr[4]));
-	eqos_core_safety_writel(osi_core, value,
-				(nveu8_t *)osi_core->base +
-				EQOS_MAC_MA0HR, EQOS_MAC_MA0HR_IDX);
-
-	/* Update MAC address 0 Low */
-	value = (((nveu32_t)osi_core->mac_addr[3] << 24U) |
-		 ((nveu32_t)osi_core->mac_addr[2] << 16U) |
-		 ((nveu32_t)osi_core->mac_addr[1] << 8U)  |
-		 ((nveu32_t)osi_core->mac_addr[0]));
-	eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
-				EQOS_MAC_MA0LR, EQOS_MAC_MA0LR_IDX);
 
 	/* Read MAC Configuration Register */
 	value = osi_readla(osi_core,
@@ -1270,12 +1575,26 @@ static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 	eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
 				EQOS_MAC_MCR, EQOS_MAC_MCR_IDX);
 
+	/* enable Packet Duplication Control */
+	value = osi_readla(osi_core, (nveu8_t *)osi_core->base + EQOS_MAC_EXTR);
+	if (osi_core->mac_ver >= OSI_EQOS_MAC_5_00) {
+		value |= EQOS_MAC_EXTR_PDC;
+	}
+	/* Write to MAC Extension Register */
+	osi_writela(osi_core, value, (nveu8_t *)osi_core->base + EQOS_MAC_EXTR);
+
 	/* Enable Multicast and Broadcast Queue, default is Q0 */
 	value = osi_readla(osi_core,
 			   (nveu8_t *)osi_core->base + EQOS_MAC_RQC1R);
 	value |= EQOS_MAC_RQC1R_MCBCQEN;
-	/* Routing Multicast and Broadcast to Q1 */
-	value |= EQOS_MAC_RQC1R_MCBCQ1;
+
+	/* Routing Multicast and Broadcast depending on mac version */
+	value &= ~(EQOS_MAC_RQC1R_MCBCQ);
+	if (osi_core->mac_ver > OSI_EQOS_MAC_5_00) {
+		value |= EQOS_MAC_RQC1R_MCBCQ7 << EQOS_MAC_RQC1R_MCBCQ_SHIFT;
+	} else {
+		value |= EQOS_MAC_RQC1R_MCBCQ3 << EQOS_MAC_RQC1R_MCBCQ_SHIFT;
+	}
 	eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
 				EQOS_MAC_RQC1R, EQOS_MAC_RQC1R_IDX);
 
@@ -1349,6 +1668,9 @@ static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 	if (osi_core->dcs_en != OSI_ENABLE) {
 		eqos_configure_rxq_priority(osi_core);
 	}
+#ifdef MACSEC_SUPPORT
+	eqos_config_macsec_ipg(osi_core);
+#endif /*  MACSEC_SUPPORT */
 }
 
 /**
@@ -1395,6 +1717,179 @@ static void eqos_configure_dma(struct osi_core_priv_data *const osi_core)
 	value = osi_readla(osi_core, (nveu8_t *)base + EQOS_DMA_BMR);
 	value |= EQOS_DMA_BMR_DPSW;
 	osi_writela(osi_core, value, (nveu8_t *)base + EQOS_DMA_BMR);
+}
+
+/**
+ * @brief eqos_enable_mtl_interrupts - Enable MTL interrupts
+ *
+ * Algorithm: enable MTL interrupts for EST
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ */
+static inline void eqos_enable_mtl_interrupts(
+				struct osi_core_priv_data *const osi_core)
+{
+	unsigned int  mtl_est_ir = OSI_DISABLE;
+	void *addr = osi_core->base;
+
+	mtl_est_ir = osi_readla(osi_core, (unsigned char *)
+				addr + EQOS_MTL_EST_ITRE);
+	/* enable only MTL interrupt realted to
+	 * Constant Gate Control Error
+	 * Head-Of-Line Blocking due to Scheduling
+	 * Head-Of-Line Blocking due to Frame Size
+	 * BTR Error
+	 * Switch to S/W owned list Complete
+	 */
+	mtl_est_ir |= (EQOS_MTL_EST_ITRE_CGCE | EQOS_MTL_EST_ITRE_IEHS |
+		       EQOS_MTL_EST_ITRE_IEHF | EQOS_MTL_EST_ITRE_IEBE |
+		       EQOS_MTL_EST_ITRE_IECC);
+	osi_writela(osi_core, mtl_est_ir,
+		    (unsigned char *)addr + EQOS_MTL_EST_ITRE);
+}
+
+/**
+ * @brief eqos_enable_fpe_interrupts - Enable MTL interrupts
+ *
+ * Algorithm: enable FPE interrupts
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ */
+static inline void eqos_enable_fpe_interrupts(
+			struct osi_core_priv_data *const osi_core)
+{
+	unsigned int  value = OSI_DISABLE;
+	void *addr = osi_core->base;
+
+	/* Read MAC IER Register and enable Frame Preemption Interrupt
+	 * Enable */
+	value = osi_readla(osi_core, (unsigned char *)addr + EQOS_MAC_IMR);
+	value |= EQOS_IMR_FPEIE;
+	osi_writela(osi_core, value, (unsigned char *)addr + EQOS_MAC_IMR);
+}
+
+/**
+ * @brief eqos_tsn_init - initialize TSN feature
+ *
+ * Algorithm:
+ * 1) If hardware support EST,
+ *   a) Set default EST configuration
+ *   b) Set enable interrupts
+ * 2) If hardware supports FPE
+ *   a) Set default FPE configuration
+ *   b) enable interrupts
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] est_sel: EST HW support present or not
+ * @param[in] fpe_sel: FPE HW support present or not
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ */
+static void eqos_tsn_init(struct osi_core_priv_data *osi_core,
+			  unsigned int est_sel, unsigned int fpe_sel)
+{
+	unsigned int val = 0x0;
+	unsigned int temp = 0U;
+
+	if (est_sel == OSI_ENABLE) {
+		val = osi_readla(osi_core, (unsigned char *)osi_core->base +
+				EQOS_MTL_EST_CONTROL);
+
+		/*
+		 * PTOV PTP clock period * 6
+		 * dual-port RAM based asynchronous FIFO controllers or
+		 * Single-port RAM based synchronous FIFO controllers
+		 * CTOV 96 x Tx clock period
+		 * :
+		 * :
+		 * set other default value
+		 */
+		val &= ~EQOS_MTL_EST_CONTROL_PTOV;
+		if (osi_core->pre_si == OSI_ENABLE) {
+			/* 6*1/(78.6 MHz) in ns*/
+			temp = (6U * 13U);
+		} else {
+			/* 6*1/(312 MHz) in ns*/
+			temp = (6U * 3U);
+		}
+		temp = temp << EQOS_MTL_EST_CONTROL_PTOV_SHIFT;
+		val |= temp;
+
+		/* We have a bug on CTOV for Qbv that synopsys is yet to
+		 * fix[Case – 8001147927, Bug 200468714]. You can go ahead
+		 * with 128*8ns for now. TODO */
+		val &= ~EQOS_MTL_EST_CONTROL_CTOV;
+		temp = (128U * 8U);
+		temp = temp << EQOS_MTL_EST_CONTROL_CTOV_SHIFT;
+		val |= temp;
+
+		/*Loop Count to report Scheduling Error*/
+		val &= ~EQOS_MTL_EST_CONTROL_LCSE;
+		val |= EQOS_MTL_EST_CONTROL_LCSE_VAL;
+		/* Drop Frames causing Scheduling Error */
+		val |= EQOS_MTL_EST_CONTROL_DFBS;
+		osi_writela(osi_core, val, (nveu8_t *)osi_core->base +
+			   EQOS_MTL_EST_CONTROL);
+
+		eqos_enable_mtl_interrupts(osi_core);
+	}
+
+	if (fpe_sel == OSI_ENABLE) {
+		val = osi_readla(osi_core, (unsigned char *)osi_core->base +
+				EQOS_MAC_RQC1R);
+		val &= ~EQOS_MAC_RQC1R_FPRQ;
+		temp = osi_core->residual_queue;
+		temp = temp << EQOS_MAC_RQC1R_FPRQ_SHIFT;
+		temp = (temp & EQOS_MAC_RQC1R_FPRQ);
+		val |= temp;
+		osi_writela(osi_core, val, (unsigned char *)osi_core->base +
+			   EQOS_MAC_RQC1R);
+
+		eqos_enable_fpe_interrupts(osi_core);
+	}
+
+	/* CBS setting for TC should be by  user application/IOCTL as
+	 * per requirement */
+}
+
+/**
+ * @brief Map DMA channels to a specific VM IRQ.
+ *
+ * @param[in] osi_core: OSI private data structure.
+ *
+ * @note
+ *	Dependencies: OSD layer needs to update number of VM channels and
+ *		      DMA channel list in osi_vm_irq_data.
+ *	Protection: None.
+ *
+ * @retval None.
+ */
+static void eqos_dma_chan_to_vmirq_map(struct osi_core_priv_data *osi_core)
+{
+	struct osi_vm_irq_data *irq_data;
+	nveu32_t i, j;
+	nveu32_t chan;
+
+	if (osi_core->mac_ver < OSI_EQOS_MAC_5_30) {
+		return;
+	}
+
+	for (i = 0; i < osi_core->num_vm_irqs; i++) {
+		irq_data = &osi_core->irq_data[i];
+		for (j = 0; j < irq_data->num_vm_chans; j++) {
+			chan = irq_data->vm_chans[j];
+			if (chan >= OSI_EQOS_MAX_NUM_CHANS) {
+				continue;
+			}
+			osi_writel(OSI_BIT(irq_data->vm_num),
+				   (nveu8_t *)osi_core->base +
+				   EQOS_VIRT_INTR_APB_CHX_CNTRL(chan));
+		}
+	}
 }
 
 /**
@@ -1507,10 +2002,71 @@ static nve32_t eqos_core_init(struct osi_core_priv_data *const osi_core,
 	/* configure EQOS DMA */
 	eqos_configure_dma(osi_core);
 
+	/* tsn initialization */
+	if (osi_core->hw_feature != OSI_NULL) {
+		eqos_tsn_init(osi_core, osi_core->hw_feature->est_sel,
+			      osi_core->hw_feature->fpe_sel);
+	}
+
 	/* initialize L3L4 Filters variable */
 	osi_core->l3l4_filter_bitmask = OSI_NONE;
 
+	eqos_dma_chan_to_vmirq_map(osi_core);
+
 	return ret;
+}
+
+/**
+ * @brief eqos_handle_mac_fpe_intrs
+ *
+ * Algorithm: This function takes care of handling the
+ *	MAC FPE interrupts.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @note MAC interrupts need to be enabled
+ */
+static void eqos_handle_mac_fpe_intrs(struct osi_core_priv_data *osi_core)
+{
+	unsigned int val = 0;
+
+	/* interrupt bit clear on read as CSR_SW is reset */
+	val = osi_readla(osi_core,
+			 (unsigned char *)osi_core->base + EQOS_MAC_FPE_CTS);
+
+	if ((val & EQOS_MAC_FPE_CTS_RVER) == EQOS_MAC_FPE_CTS_RVER) {
+		val &= ~EQOS_MAC_FPE_CTS_RVER;
+		val |= EQOS_MAC_FPE_CTS_SRSP;
+	}
+
+	if ((val & EQOS_MAC_FPE_CTS_RRSP) == EQOS_MAC_FPE_CTS_RRSP) {
+		/* received respose packet  Nothing to be done, it means other
+		 * IP also support FPE
+		 */
+		val &= ~EQOS_MAC_FPE_CTS_RRSP;
+		val &= ~EQOS_MAC_FPE_CTS_TVER;
+		osi_core->fpe_ready = OSI_ENABLE;
+		val |= EQOS_MAC_FPE_CTS_EFPE;
+	}
+
+	if ((val & EQOS_MAC_FPE_CTS_TRSP) == EQOS_MAC_FPE_CTS_TRSP) {
+		/* TX response packet sucessful */
+		osi_core->fpe_ready = OSI_ENABLE;
+		/* Enable frame preemption */
+		val &= ~EQOS_MAC_FPE_CTS_TRSP;
+		val &= ~EQOS_MAC_FPE_CTS_TVER;
+		val |= EQOS_MAC_FPE_CTS_EFPE;
+	}
+
+	if ((val & EQOS_MAC_FPE_CTS_TVER) == EQOS_MAC_FPE_CTS_TVER) {
+		/*Transmit verif packet sucessful*/
+		osi_core->fpe_ready = OSI_DISABLE;
+		val &= ~EQOS_MAC_FPE_CTS_TVER;
+		val &= ~EQOS_MAC_FPE_CTS_EFPE;
+	}
+
+	osi_writela(osi_core, val,
+		    (unsigned char *)osi_core->base + EQOS_MAC_FPE_CTS);
 }
 
 /**
@@ -1552,10 +2108,20 @@ static void eqos_handle_mac_intrs(struct osi_core_priv_data *const osi_core,
 	mac_imr = osi_readla(osi_core,
 			     (nveu8_t *)osi_core->base + EQOS_MAC_IMR);
 	mac_isr = (mac_isr & mac_imr);
+
 	/* RGMII/SMII interrupt */
-	if ((mac_isr & EQOS_MAC_ISR_RGSMIIS) != EQOS_MAC_ISR_RGSMIIS) {
+	if (((mac_isr & EQOS_MAC_ISR_RGSMIIS) != EQOS_MAC_ISR_RGSMIIS) &&
+	    ((mac_isr & EQOS_MAC_IMR_FPEIS) != EQOS_MAC_IMR_FPEIS)) {
 		return;
 	}
+
+	if (((mac_isr & EQOS_MAC_IMR_FPEIS) == EQOS_MAC_IMR_FPEIS) &&
+	    ((mac_imr & EQOS_IMR_FPEIE) == EQOS_IMR_FPEIE)) {
+		eqos_handle_mac_fpe_intrs(osi_core);
+		mac_isr &= ~EQOS_MAC_IMR_FPEIS;
+	}
+	osi_writela(osi_core, mac_isr,
+		    (nveu8_t *) osi_core->base + EQOS_MAC_ISR);
 
 	mac_pcs = osi_readla(osi_core,
 			     (nveu8_t *)osi_core->base + EQOS_MAC_PCS);
@@ -1593,6 +2159,14 @@ static void eqos_handle_mac_intrs(struct osi_core_priv_data *const osi_core,
 	} else {
 		/* Nothing here */
 	}
+
+	if (((mac_isr & EQOS_MAC_IMR_FPEIS) == EQOS_MAC_IMR_FPEIS) &&
+	    ((mac_imr & EQOS_IMR_FPEIE) == EQOS_IMR_FPEIE)) {
+		eqos_handle_mac_fpe_intrs(osi_core);
+		mac_isr &= ~EQOS_MAC_IMR_FPEIS;
+	}
+	osi_writela(osi_core, mac_isr,
+		    (unsigned char *)osi_core->base + EQOS_MAC_ISR);
 }
 
 /**
@@ -1651,6 +2225,116 @@ static inline void update_dma_sr_stats(
 }
 
 /**
+ * @brief eqos_handle_mtl_intrs - Handle MTL interrupts
+ *
+ * Algorithm: Code to handle interrupt for MTL EST error and status.
+ * There are possible 4 errors which can be part of common interrupt in case of
+ * MTL_EST_SCH_ERR (sheduling error)- HLBS
+ * MTL_EST_FRMS_ERR (Frame size error) - HLBF
+ * MTL_EST_FRMC_ERR (frame check error) - HLBF
+ * Constant Gate Control Error - when time interval in less
+ * than or equal to cycle time, llr = 1
+ * There is one status interrupt which says swich to SWOL complete.
+ *
+ * @param[in] osi_core: osi core priv data structure
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ */
+static void eqos_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
+{
+	unsigned int val = 0;
+	unsigned int sch_err = 0;
+	unsigned int frm_err = 0;
+	unsigned int temp = 0U;
+	unsigned int i = 0;
+	unsigned long stat_val = 0;
+
+	val = osi_readla(osi_core,
+			 (unsigned char *)osi_core->base + EQOS_MTL_EST_STATUS);
+	val &= (EQOS_MTL_EST_STATUS_CGCE | EQOS_MTL_EST_STATUS_HLBS |
+		EQOS_MTL_EST_STATUS_HLBF | EQOS_MTL_EST_STATUS_BTRE |
+		EQOS_MTL_EST_STATUS_SWLC);
+
+	/* return if interrupt is not related to EST */
+	if (val == OSI_DISABLE) {
+		return;
+	}
+
+	/* increase counter write 1 back will clear */
+	if ((val & EQOS_MTL_EST_STATUS_CGCE) == EQOS_MTL_EST_STATUS_CGCE) {
+		osi_core->est_ready = OSI_DISABLE;
+		stat_val = osi_core->tsn_stats.const_gate_ctr_err;
+		osi_core->tsn_stats.const_gate_ctr_err =
+				osi_update_stats_counter(stat_val, 1U);
+	}
+
+	if ((val & EQOS_MTL_EST_STATUS_HLBS) == EQOS_MTL_EST_STATUS_HLBS) {
+		osi_core->est_ready = OSI_DISABLE;
+		stat_val = osi_core->tsn_stats.head_of_line_blk_sch;
+		osi_core->tsn_stats.head_of_line_blk_sch =
+				osi_update_stats_counter(stat_val, 1U);
+		/* Need to read MTL_EST_Sch_Error register and cleared */
+		sch_err = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				    EQOS_MTL_EST_SCH_ERR);
+		for (i = 0U; i < OSI_MAX_TC_NUM; i++) {
+			temp = OSI_ENABLE;
+			temp = temp << i;
+			if ((sch_err & temp) == temp) {
+				stat_val = osi_core->tsn_stats.hlbs_q[i];
+				osi_core->tsn_stats.hlbs_q[i] =
+					osi_update_stats_counter(stat_val, 1U);
+			}
+		}
+		sch_err &= 0xFFU; /* only 8 TC allowed so clearing all */
+		osi_writela(osi_core, sch_err,
+			   (nveu8_t *)osi_core->base + EQOS_MTL_EST_SCH_ERR);
+	}
+
+	if ((val & EQOS_MTL_EST_STATUS_HLBF) == EQOS_MTL_EST_STATUS_HLBF) {
+		osi_core->est_ready = OSI_DISABLE;
+		stat_val = osi_core->tsn_stats.head_of_line_blk_frm;
+		osi_core->tsn_stats.head_of_line_blk_frm =
+				osi_update_stats_counter(stat_val, 1U);
+		/* Need to read MTL_EST_Frm_Size_Error register and cleared */
+		frm_err = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				    EQOS_MTL_EST_FRMS_ERR);
+		for (i = 0U; i < OSI_MAX_TC_NUM; i++) {
+			temp = OSI_ENABLE;
+			temp = temp << i;
+			if ((frm_err & temp) == temp) {
+				stat_val = osi_core->tsn_stats.hlbf_q[i];
+				osi_core->tsn_stats.hlbf_q[i] =
+					osi_update_stats_counter(stat_val, 1U);
+			}
+		}
+		frm_err &= 0xFFU; /* 8 TC allowed so clearing all */
+		osi_writela(osi_core, frm_err, (nveu8_t *)osi_core->base +
+			   EQOS_MTL_EST_FRMS_ERR);
+	}
+
+	if ((val & EQOS_MTL_EST_STATUS_SWLC) == EQOS_MTL_EST_STATUS_SWLC) {
+		if ((val & EQOS_MTL_EST_STATUS_BTRE) !=
+		    EQOS_MTL_EST_STATUS_BTRE) {
+			osi_core->est_ready = OSI_ENABLE;
+		}
+		stat_val = osi_core->tsn_stats.sw_own_list_complete;
+		osi_core->tsn_stats.sw_own_list_complete =
+				osi_update_stats_counter(stat_val, 1U);
+	}
+
+	if ((val & EQOS_MTL_EST_STATUS_BTRE) == EQOS_MTL_EST_STATUS_BTRE) {
+		osi_core->est_ready = OSI_DISABLE;
+		stat_val = osi_core->tsn_stats.base_time_reg_err;
+		osi_core->tsn_stats.base_time_reg_err =
+				osi_update_stats_counter(stat_val, 1U);
+		osi_core->est_ready = OSI_DISABLE;
+	}
+	/* clear EST status register as interrupt is handled */
+	osi_writela(osi_core, val,
+		    (nveu8_t *)osi_core->base + EQOS_MTL_EST_STATUS);
+}
+
+/**
  * @brief eqos_handle_common_intr - Handles common interrupt.
  *
  * @note
@@ -1675,6 +2359,8 @@ static void eqos_handle_common_intr(struct osi_core_priv_data *const osi_core)
 	nveu32_t i = 0;
 	nveu32_t dma_sr = 0;
 	nveu32_t dma_ier = 0;
+	unsigned int mtl_isr = 0;
+	unsigned int frp_isr = 0U;
 
 	dma_isr = osi_readla(osi_core, (nveu8_t *)base + EQOS_DMA_ISR);
 	if (dma_isr == 0U) {
@@ -1717,6 +2403,26 @@ static void eqos_handle_common_intr(struct osi_core_priv_data *const osi_core)
 	}
 
 	eqos_handle_mac_intrs(osi_core, dma_isr);
+	/* Handle MTL inerrupts */
+	mtl_isr = osi_readla(osi_core,
+			     (unsigned char *)base + EQOS_MTL_INTR_STATUS);
+	if (((mtl_isr & EQOS_MTL_IS_ESTIS) == EQOS_MTL_IS_ESTIS) &&
+	    ((dma_isr & EQOS_DMA_ISR_MTLIS) == EQOS_DMA_ISR_MTLIS)) {
+		eqos_handle_mtl_intrs(osi_core);
+		mtl_isr &= ~EQOS_MTL_IS_ESTIS;
+		osi_writela(osi_core, mtl_isr, (unsigned char *)base +
+			   EQOS_MTL_INTR_STATUS);
+	}
+
+	/* Clear FRP Interrupt MTL_RXP_Interrupt_Control_Status */
+	frp_isr = osi_readla(osi_core,
+			     (unsigned char *)base + EQOS_MTL_RXP_INTR_CS);
+	frp_isr |= (EQOS_MTL_RXP_INTR_CS_NVEOVIS |
+		    EQOS_MTL_RXP_INTR_CS_NPEOVIS |
+		    EQOS_MTL_RXP_INTR_CS_FOOVIS |
+		    EQOS_MTL_RXP_INTR_CS_PDRFIS);
+	osi_writela(osi_core, frp_isr,
+		    (unsigned char *)base + EQOS_MTL_RXP_INTR_CS);
 }
 
 /**
@@ -1908,13 +2614,12 @@ static nve32_t eqos_config_mac_pkt_filter_reg(
  * @note
  * Algorithm:
  *  - This helper routine is to update passed parameter value
- *  based on DCS and MBC parameter. Validation of dma_chan as well as
- *  dsc_en status performed before updating DCS bits.
+ *  based on DCS and MBC parameter. Validation of dsc_en status performed
+ *  before updating DCS bits.
  *
  * @param[in] osi_core: OSI core private data structure.
  * @param[out] value: nveu32_t pointer which has value read from register.
  * @param[in] idx: filter index
- * @param[in] dma_routing_enable: dma channel routing enable(1)
  * @param[in] dma_chan: dma channel number
  * @param[in] addr_mask: filter will not consider byte in comparison
  *            Bit 5: MAC_Address${i}_High[15:8]
@@ -1922,6 +2627,7 @@ static nve32_t eqos_config_mac_pkt_filter_reg(
  *            Bit 3: MAC_Address${i}_Low[31:24]
  *            ..
  *            Bit 0: MAC_Address${i}_Low[7:0]
+ * @pram[in] src_dest: Source/Destination Address match
  *
  * @pre
  *  - MAC should be initialized and started. see osi_start_mac()
@@ -1937,32 +2643,32 @@ static nve32_t eqos_config_mac_pkt_filter_reg(
  * @retval -1 on failure.
  */
 static inline nve32_t eqos_update_mac_addr_helper(
-				struct osi_core_priv_data *const osi_core,
+				const struct osi_core_priv_data *osi_core,
 				nveu32_t *value,
 				const nveu32_t idx,
-				const nveu32_t dma_routing_enable,
 				const nveu32_t dma_chan,
-				const nveu32_t addr_mask)
+				const nveu32_t addr_mask,
+				const nveu32_t src_dest)
 {
-	nve32_t ret = 0;
-	/* PDC bit of MAC_Ext_Configuration register is not set so binary
-	 * value representation.
+	nveu32_t temp;
+
+	/* PDC bit of MAC_Ext_Configuration register is set so binary
+	 * value representation form index 32-127 else hot-bit
+	 * representation.
 	 */
-	if (dma_routing_enable == OSI_ENABLE) {
-		if ((dma_chan < OSI_EQOS_MAX_NUM_CHANS) &&
-		    (osi_core->dcs_en == OSI_ENABLE)) {
-			*value = ((dma_chan << EQOS_MAC_ADDRH_DCS_SHIFT) &
-				  EQOS_MAC_ADDRH_DCS);
-		} else if ((dma_chan == OSI_CHAN_ANY) ||
-			   (dma_chan > (OSI_EQOS_MAX_NUM_CHANS - 0x1U))) {
-			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
-				     "invalid dma channel\n",
-				     (nveul64_t)dma_chan);
-			ret = -1;
-			goto err_dma_chan;
-		} else {
-		/* Do nothing */
-		}
+	if ((idx < EQOS_MAX_MAC_ADDR_REG) &&
+	    (osi_core->mac_ver >= OSI_EQOS_MAC_5_00)) {
+		*value &= EQOS_MAC_ADDRH_DCS;
+		temp = OSI_BIT(dma_chan);
+		temp = temp << EQOS_MAC_ADDRH_DCS_SHIFT;
+		temp = temp & EQOS_MAC_ADDRH_DCS;
+		*value = *value | temp;
+	} else {
+		*value = OSI_DISABLE;
+		temp = dma_chan;
+		temp = temp << EQOS_MAC_ADDRH_DCS_SHIFT;
+		temp = temp & EQOS_MAC_ADDRH_DCS;
+		*value = temp;
 	}
 
 	/* Address mask is valid for address 1 to 31 index only */
@@ -1976,12 +2682,76 @@ static inline nve32_t eqos_update_mac_addr_helper(
 			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "invalid address index for MBC\n",
 				     0ULL);
-			ret = -1;
+			return -1;
 		}
 	}
 
-err_dma_chan:
-	return ret;
+	return 0;
+}
+
+/**
+ * @brief eqos_l2_filter_delete - Function to delete L2 filter
+ *
+ * @note
+ * Algorithm:
+ *  - This helper routine is to delete L2 filter based on DCS and MBC
+ *    parameter.
+ *  - Handling for EQOS mac version 4.10 differently.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[out] value: nveu32_t pointer which has value read from register.
+ * @param[in] idx: filter index
+ * @param[in] dma_routing_enable: dma channel routing enable(1)
+ * @param[in] dma_chan: dma channel number
+ *
+ * @pre
+ *  - MAC should be initialized and started. see osi_start_mac()
+ *  - osi_core->osd should be populated.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ */
+static void eqos_l2_filter_delete(struct osi_core_priv_data *osi_core,
+				  nveu32_t *value,
+				  const nveu32_t idx,
+				  const nveu32_t dma_routing_enable,
+				  const nveu32_t dma_chan)
+{
+	nveu32_t dcs_check = *value;
+	nveu32_t temp = OSI_DISABLE;
+
+	if (dma_routing_enable == OSI_DISABLE ||
+	    osi_core->mac_ver < OSI_EQOS_MAC_5_00) {
+		*value &= ~(EQOS_MAC_ADDRH_AE | EQOS_MAC_ADDRH_DCS);
+		osi_writela(osi_core, *value, (nveu8_t *)osi_core->base +
+			    EQOS_MAC_ADDRH((idx)));
+		return;
+	}
+
+	dcs_check &= EQOS_MAC_ADDRH_DCS;
+	dcs_check = dcs_check >> EQOS_MAC_ADDRH_DCS_SHIFT;
+
+	if (idx >= EQOS_MAX_MAC_ADDR_REG) {
+		dcs_check = OSI_DISABLE;
+	} else {
+		temp = OSI_BIT(dma_chan);
+		dcs_check &= ~(temp);
+	}
+
+	if (dcs_check == OSI_DISABLE) {
+		*value &= ~(EQOS_MAC_ADDRH_AE | EQOS_MAC_ADDRH_DCS);
+		osi_writela(osi_core, *value, (nveu8_t *)osi_core->base +
+			    EQOS_MAC_ADDRH((idx)));
+	} else {
+		*value |= (dcs_check << EQOS_MAC_ADDRH_DCS_SHIFT);
+		osi_writela(osi_core, *value, (nveu8_t *)osi_core->base +
+			    EQOS_MAC_ADDRH((idx)));
+	}
+
+	return;
 }
 
 /**
@@ -2020,34 +2790,46 @@ static nve32_t eqos_update_mac_addr_low_high_reg(
 	nveu32_t dma_chan = filter->dma_chan;
 	nveu32_t addr_mask = filter->addr_mask;
 	nveu32_t src_dest = filter->src_dest;
-	nveu32_t value = 0x0U;
+	nveu32_t value = OSI_DISABLE;
 	nve32_t ret = 0;
 
-	if (idx > (EQOS_MAX_MAC_ADDRESS_FILTER -  0x1U)) {
+	if ((idx > (EQOS_MAX_MAC_ADDRESS_FILTER -  0x1U)) ||
+	    (dma_chan >= OSI_EQOS_MAX_NUM_CHANS)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			     "invalid MAC filter index\n", 0ULL);
+			     "invalid MAC filter index or channel number\n",
+			     0ULL);
 		return -1;
 	}
 
-	ret = eqos_update_mac_addr_helper(osi_core, &value, idx,
-					  dma_routing_enable, dma_chan,
-					  addr_mask);
+	/* read current value at index preserve DCS current value */
+	value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+			   EQOS_MAC_ADDRH((idx)));
+
+	/* High address reset DCS and AE bits*/
+	if ((filter->oper_mode & OSI_OPER_ADDR_DEL) != OSI_NONE) {
+		eqos_l2_filter_delete(osi_core, &value, idx, dma_routing_enable,
+				      dma_chan);
+		return 0;
+	}
+
+	ret = eqos_update_mac_addr_helper(osi_core, &value, idx, dma_chan,
+					  addr_mask, src_dest);
 	/* Check return value from helper code */
 	if (ret == -1) {
 		return ret;
-	}
-
-	/* Setting Source/Destination Address match valid for 1 to 32 index */
-	if (((idx > 0U) && (idx < EQOS_MAX_MAC_ADDR_REG)) &&
-	    ((src_dest == OSI_SA_MATCH) || (src_dest == OSI_DA_MATCH))) {
-		value = (value | ((src_dest << EQOS_MAC_ADDRH_SA_SHIFT) &
-			EQOS_MAC_ADDRH_SA));
 	}
 
 	/* Update AE bit if OSI_OPER_ADDR_UPDATE is set */
 	if ((filter->oper_mode & OSI_OPER_ADDR_UPDATE) ==
 	     OSI_OPER_ADDR_UPDATE) {
 		value |= EQOS_MAC_ADDRH_AE;
+	}
+
+	/* Setting Source/Destination Address match valid for 1 to 32 index */
+	if (((idx > 0U) && (idx < EQOS_MAX_MAC_ADDR_REG)) &&
+	    (src_dest <= OSI_SA_MATCH)) {
+		value = (value | ((src_dest << EQOS_MAC_ADDRH_SA_SHIFT) &
+				  EQOS_MAC_ADDRH_SA));
 	}
 
 	osi_writela(osi_core, ((nveu32_t)filter->mac_address[4] |
@@ -2059,6 +2841,109 @@ static nve32_t eqos_update_mac_addr_low_high_reg(
 		    ((nveu32_t)filter->mac_address[2] << 16) |
 		    ((nveu32_t)filter->mac_address[3] << 24)),
 		    (nveu8_t *)osi_core->base +  EQOS_MAC_ADDRL((idx)));
+
+	return ret;
+}
+
+/**
+ * @brief eqos_config_ptp_offload - Enable/Disable PTP offload
+ *
+ * Algorithm: Based on input argument, update PTO and TSCR registers.
+ * Update ptp_filter for TSCR register.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] pto_config: The PTP Offload configuration from function
+ *	      driver.
+ *
+ * @note 1) MAC should be init and started. see osi_start_mac()
+ *	 2) configure_ptp() should be called after this API
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int eqos_config_ptp_offload(struct osi_core_priv_data *osi_core,
+				   struct osi_pto_config *const pto_config)
+{
+	unsigned char *addr = (unsigned char *)osi_core->base;
+	int ret = 0;
+	unsigned int value = 0x0U;
+	unsigned int ptc_value = 0x0U;
+	unsigned int port_id = 0x0U;
+
+	/* Read MAC TCR */
+	value = osi_readla(osi_core, (nveu8_t *)addr + EQOS_MAC_TCR);
+	/* clear old configuration */
+	value &= ~(EQOS_MAC_TCR_TSENMACADDR | OSI_MAC_TCR_SNAPTYPSEL_3 |
+		   OSI_MAC_TCR_TSMASTERENA | OSI_MAC_TCR_TSEVENTENA |
+		   OSI_MAC_TCR_TSENA | OSI_MAC_TCR_TSCFUPDT |
+		   OSI_MAC_TCR_TSCTRLSSR | OSI_MAC_TCR_TSVER2ENA |
+		   OSI_MAC_TCR_TSIPENA);
+
+	/** Handle PTO disable */
+	if (pto_config->en_dis == OSI_DISABLE) {
+		osi_core->ptp_config.ptp_filter = value;
+		osi_writela(osi_core, ptc_value, addr + EQOS_MAC_PTO_CR);
+		eqos_core_safety_writel(osi_core, value, addr +
+					EQOS_MAC_TCR, EQOS_MAC_TCR_IDX);
+		osi_writela(osi_core, OSI_NONE, addr + EQOS_MAC_PIDR0);
+		osi_writela(osi_core, OSI_NONE, addr + EQOS_MAC_PIDR1);
+		osi_writela(osi_core, OSI_NONE, addr + EQOS_MAC_PIDR2);
+		return 0;
+	}
+
+	/** Handle PTO enable */
+	/* Set PTOEN bit */
+	ptc_value |= EQOS_MAC_PTO_CR_PTOEN;
+	ptc_value |= ((pto_config->domain_num << EQOS_MAC_PTO_CR_DN_SHIFT)
+		      & EQOS_MAC_PTO_CR_DN);
+	/* Set TSCR register flag */
+	value |= (OSI_MAC_TCR_TSENA | OSI_MAC_TCR_TSCFUPDT |
+		  OSI_MAC_TCR_TSCTRLSSR | OSI_MAC_TCR_TSVER2ENA |
+		  OSI_MAC_TCR_TSIPENA);
+
+	if (pto_config->snap_type > 0U) {
+		/* Set APDREQEN bit if snap_type > 0 */
+		ptc_value |= EQOS_MAC_PTO_CR_APDREQEN;
+	}
+
+	/* Set SNAPTYPSEL for Taking Snapshots mode */
+	value |= ((pto_config->snap_type << EQOS_MAC_TCR_SNAPTYPSEL_SHIFT) &
+		  OSI_MAC_TCR_SNAPTYPSEL_3);
+
+	/* Set/Reset TSMSTRENA bit for Master/Slave */
+	if (pto_config->master == OSI_ENABLE) {
+		/* Set TSMSTRENA bit for master */
+		value |= OSI_MAC_TCR_TSMASTERENA;
+		if (pto_config->snap_type != OSI_PTP_SNAP_P2P) {
+			/* Set ASYNCEN bit on PTO Control Register */
+			ptc_value |= EQOS_MAC_PTO_CR_ASYNCEN;
+		}
+	} else {
+		/* Reset TSMSTRENA bit for slave */
+		value &= ~OSI_MAC_TCR_TSMASTERENA;
+	}
+
+	/* Set/Reset TSENMACADDR bit for UC/MC MAC */
+	if (pto_config->mc_uc == OSI_ENABLE) {
+		/* Set TSENMACADDR bit for MC/UC MAC PTP filter */
+		value |= EQOS_MAC_TCR_TSENMACADDR;
+	} else {
+		/* Reset TSENMACADDR bit */
+		value &= ~EQOS_MAC_TCR_TSENMACADDR;
+	}
+
+	/* Set TSEVENTENA bit for PTP events */
+	value |= OSI_MAC_TCR_TSEVENTENA;
+	osi_core->ptp_config.ptp_filter = value;
+	/** Write PTO_CR and TCR registers */
+	osi_writela(osi_core, ptc_value, addr + EQOS_MAC_PTO_CR);
+	eqos_core_safety_writel(osi_core, value, addr + EQOS_MAC_TCR,
+				EQOS_MAC_TCR_IDX);
+	/* Port ID for PTP offload packet created */
+	port_id = pto_config->portid & EQOS_MAC_PIDR_PID_MASK;
+	osi_writela(osi_core, port_id, addr + EQOS_MAC_PIDR0);
+	osi_writela(osi_core, OSI_NONE, addr + EQOS_MAC_PIDR1);
+	osi_writela(osi_core, OSI_NONE, addr + EQOS_MAC_PIDR2);
 
 	return ret;
 }
@@ -2741,8 +3626,9 @@ static inline nve32_t eqos_poll_for_tsinit_complete(
 		if ((*mac_tcr & EQOS_MAC_TCR_TSINIT) == 0U) {
 			cond = COND_MET;
 		}
+
 		count++;
-		osi_core->osd_ops.udelay(1000U);
+		osi_core->osd_ops.udelay(OSI_DELAY_1000US);
 	}
 
 	return 0;
@@ -2780,6 +3666,7 @@ static nve32_t eqos_set_systime_to_mac(
 	nveu32_t mac_tcr;
 	nve32_t ret;
 
+	/* To be sure previous write was flushed (if Any) */
 	ret = eqos_poll_for_tsinit_complete(osi_core, &mac_tcr);
 	if (ret == -1) {
 		return -1;
@@ -2853,8 +3740,9 @@ static inline nve32_t eqos_poll_for_addend_complete(
 		if ((*mac_tcr & EQOS_MAC_TCR_TSADDREG) == 0U) {
 			cond = COND_MET;
 		}
+
 		count++;
-		osi_core->osd_ops.udelay(1000U);
+		osi_core->osd_ops.udelay(OSI_DELAY_1000US);
 	}
 
 	return 0;
@@ -2887,6 +3775,7 @@ static nve32_t eqos_config_addend(struct osi_core_priv_data *const osi_core,
 	nveu32_t mac_tcr;
 	nve32_t ret;
 
+	/* To be sure previous write was flushed (if Any) */
 	ret = eqos_poll_for_addend_complete(osi_core, &mac_tcr);
 	if (ret == -1) {
 		return -1;
@@ -2956,8 +3845,9 @@ static inline nve32_t eqos_poll_for_update_ts_complete(
 		if ((*mac_tcr & EQOS_MAC_TCR_TSUPDT) == 0U) {
 			cond = COND_MET;
 		}
+
 		count++;
-		osi_core->osd_ops.udelay(1000U);
+		osi_core->osd_ops.udelay(OSI_DELAY_1000US);
 	}
 
 	return 0;
@@ -3038,7 +3928,7 @@ static nve32_t eqos_adjust_mactime(struct osi_core_priv_data *const osi_core,
 	}
 
 	/* write seconds value to MAC_System_Time_Seconds_Update register */
-	osi_writela(osi_core, sec, (nveu8_t *)addr + EQOS_MAC_STSUR);
+	osi_writela(osi_core, sec1, (nveu8_t *)addr + EQOS_MAC_STSUR);
 
 	/* write nano seconds value and add_sub to
 	 * MAC_System_Time_Nanoseconds_Update register
@@ -3083,58 +3973,54 @@ static void eqos_config_tscr(struct osi_core_priv_data *const osi_core,
 	void *addr = osi_core->base;
 	nveu32_t mac_tcr = 0U, i = 0U, temp = 0U;
 
-	if (ptp_filter == OSI_DISABLE) {
+	if (ptp_filter != OSI_DISABLE) {
+		mac_tcr = (OSI_MAC_TCR_TSENA	|
+				OSI_MAC_TCR_TSCFUPDT |
+				OSI_MAC_TCR_TSCTRLSSR);
+
+		for (i = 0U; i < 32U; i++) {
+			temp = ptp_filter & OSI_BIT(i);
+
+			switch (temp) {
+				case OSI_MAC_TCR_SNAPTYPSEL_1:
+					mac_tcr |= OSI_MAC_TCR_SNAPTYPSEL_1;
+					break;
+				case OSI_MAC_TCR_SNAPTYPSEL_2:
+					mac_tcr |= OSI_MAC_TCR_SNAPTYPSEL_2;
+					break;
+				case OSI_MAC_TCR_TSIPV4ENA:
+					mac_tcr |= OSI_MAC_TCR_TSIPV4ENA;
+					break;
+				case OSI_MAC_TCR_TSIPV6ENA:
+					mac_tcr |= OSI_MAC_TCR_TSIPV6ENA;
+					break;
+				case OSI_MAC_TCR_TSEVENTENA:
+					mac_tcr |= OSI_MAC_TCR_TSEVENTENA;
+					break;
+				case OSI_MAC_TCR_TSMASTERENA:
+					mac_tcr |= OSI_MAC_TCR_TSMASTERENA;
+					break;
+				case OSI_MAC_TCR_TSVER2ENA:
+					mac_tcr |= OSI_MAC_TCR_TSVER2ENA;
+					break;
+				case OSI_MAC_TCR_TSIPENA:
+					mac_tcr |= OSI_MAC_TCR_TSIPENA;
+					break;
+				case OSI_MAC_TCR_AV8021ASMEN:
+					mac_tcr |= OSI_MAC_TCR_AV8021ASMEN;
+					break;
+				case OSI_MAC_TCR_TSENALL:
+					mac_tcr |= OSI_MAC_TCR_TSENALL;
+					break;
+				default:
+					/* To avoid MISRA violation */
+					mac_tcr |= mac_tcr;
+					break;
+			}
+		}
+	} else {
 		/* Disabling the MAC time stamping */
 		mac_tcr = OSI_DISABLE;
-		eqos_core_safety_writel(osi_core, mac_tcr,
-					(nveu8_t *)addr + EQOS_MAC_TCR,
-					EQOS_MAC_TCR_IDX);
-		return;
-	}
-
-	mac_tcr = (OSI_MAC_TCR_TSENA	|
-		   OSI_MAC_TCR_TSCFUPDT |
-		   OSI_MAC_TCR_TSCTRLSSR);
-
-	for (i = 0U; i < 32U; i++) {
-		temp = ptp_filter & OSI_BIT(i);
-
-		switch (temp) {
-		case OSI_MAC_TCR_SNAPTYPSEL_1:
-			mac_tcr |= OSI_MAC_TCR_SNAPTYPSEL_1;
-			break;
-		case OSI_MAC_TCR_SNAPTYPSEL_2:
-			mac_tcr |= OSI_MAC_TCR_SNAPTYPSEL_2;
-			break;
-		case OSI_MAC_TCR_TSIPV4ENA:
-			mac_tcr |= OSI_MAC_TCR_TSIPV4ENA;
-			break;
-		case OSI_MAC_TCR_TSIPV6ENA:
-			mac_tcr |= OSI_MAC_TCR_TSIPV6ENA;
-			break;
-		case OSI_MAC_TCR_TSEVENTENA:
-			mac_tcr |= OSI_MAC_TCR_TSEVENTENA;
-			break;
-		case OSI_MAC_TCR_TSMASTERENA:
-			mac_tcr |= OSI_MAC_TCR_TSMASTERENA;
-			break;
-		case OSI_MAC_TCR_TSVER2ENA:
-			mac_tcr |= OSI_MAC_TCR_TSVER2ENA;
-			break;
-		case OSI_MAC_TCR_TSIPENA:
-			mac_tcr |= OSI_MAC_TCR_TSIPENA;
-			break;
-		case OSI_MAC_TCR_AV8021ASMEN:
-			mac_tcr |= OSI_MAC_TCR_AV8021ASMEN;
-			break;
-		case OSI_MAC_TCR_TSENALL:
-			mac_tcr |= OSI_MAC_TCR_TSENALL;
-			break;
-		default:
-			/* To avoid MISRA violation */
-			mac_tcr |= mac_tcr;
-			break;
-		}
 	}
 
 	eqos_core_safety_writel(osi_core, mac_tcr,
@@ -3143,9 +4029,98 @@ static void eqos_config_tscr(struct osi_core_priv_data *const osi_core,
 }
 
 /**
+ * @brief eqos_config_ptp_rxq - To config PTP RX packets queue
+ *
+ * Algorithm: This function is used to program the PTP RX packets queue.
+ *
+ * @param[in] osi_core: OSI core private data.
+ *
+ * @note 1) MAC should be init and started. see osi_start_mac()
+ *	 2) osi_core->osd should be populated
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int eqos_config_ptp_rxq(struct osi_core_priv_data *osi_core,
+			       const unsigned int rxq_idx,
+			       const unsigned int enable)
+{
+	unsigned char *base = osi_core->base;
+	unsigned int value = OSI_NONE;
+	unsigned int i = 0U;
+
+	/* Validate the RX queue index argment */
+	if (rxq_idx >= OSI_EQOS_MAX_NUM_QUEUES) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Invalid PTP RX queue index\n",
+			rxq_idx);
+		return -1;
+	}
+	/* Check MAC version */
+	if (osi_core->mac_ver <= OSI_EQOS_MAC_5_00) {
+		/* MAC 4_10 and 5 doesn't have PTP RX Queue route support */
+		return 0;
+	}
+
+	/* Validate enable argument */
+	if (enable != OSI_ENABLE && enable != OSI_DISABLE) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Invalid enable input\n",
+			enable);
+		return -1;
+	}
+
+	/* Validate PTP RX queue enable */
+	for (i = 0; i < osi_core->num_mtl_queues; i++) {
+		if (osi_core->mtl_queues[i] == rxq_idx) {
+			/* Given PTP RX queue is enabled */
+			break;
+		}
+	}
+
+	if (i == osi_core->num_mtl_queues) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"PTP RX queue not enabled\n",
+			rxq_idx);
+		return -1;
+	}
+
+	/* Read MAC_RxQ_Ctrl1 */
+	value = osi_readla(osi_core, (nveu8_t *)base + EQOS_MAC_RQC1R);
+	if (enable == OSI_DISABLE) {
+		/** Reset OMCBCQ bit to disable over-riding the MCBC Queue
+		 * priority for the PTP RX queue.
+		 */
+		value &= ~EQOS_MAC_RQC1R_OMCBCQ;
+
+	} else {
+		/* Program PTPQ with ptp_rxq */
+		osi_core->ptp_config.ptp_rx_queue = rxq_idx;
+		value &= ~EQOS_MAC_RQC1R_PTPQ;
+		value |= (rxq_idx << EQOS_MAC_RQC1R_PTPQ_SHIFT);
+		/* Reset TPQC before setting TPQC0 */
+		value &= ~EQOS_MAC_RQC1R_TPQC;
+		/** Set TPQC to 0x1 for VLAN Tagged PTP over
+		 * ethernet packets are routed to Rx Queue specified
+		 * by PTPQ field
+		 **/
+		value |= EQOS_MAC_RQC1R_TPQC0;
+		/** Set OMCBCQ bit to enable over-riding the MCBC Queue
+		 * priority for the PTP RX queue.
+		 */
+		value |= EQOS_MAC_RQC1R_OMCBCQ;
+	}
+	/* Write MAC_RxQ_Ctrl1 */
+	osi_writela(osi_core, value, base + EQOS_MAC_RQC1R);
+
+	return 0;
+}
+
+/**
  * @brief eqos_config_ssir - Configure SSIR
  *
  * @param[in] osi_core: OSI core private data structure.
+ * @param[in] ptp_clock: PTP required clock frequency
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
  *
@@ -3155,15 +4130,14 @@ static void eqos_config_tscr(struct osi_core_priv_data *const osi_core,
  * - Run time: Yes
  * - De-initialization: No
  */
-static void eqos_config_ssir(struct osi_core_priv_data *const osi_core)
+static void eqos_config_ssir(struct osi_core_priv_data *const osi_core,
+			     const unsigned int ptp_clock)
 {
 	nveul64_t val;
 	nveu32_t mac_tcr;
 	void *addr = osi_core->base;
-	nveu32_t ptp_clock = osi_core->ptp_config.ptp_clock;
 
 	mac_tcr = osi_readla(osi_core, (nveu8_t *)addr + EQOS_MAC_TCR);
-
 
 	if ((mac_tcr & EQOS_MAC_TCR_TSCFUPDT) == EQOS_MAC_TCR_TSCFUPDT) {
 		if (osi_core->mac_ver <= OSI_EQOS_MAC_4_10) {
@@ -3216,6 +4190,349 @@ static void eqos_core_deinit(struct osi_core_priv_data *const osi_core)
 {
 	/* Stop the MAC by disabling both MAC Tx and Rx */
 	eqos_stop_mac(osi_core);
+}
+
+/**
+ * @brief eqos_hw_est_write - indirect write the GCL to Software own list
+ * (SWOL)
+ *
+ * @param[in] base: MAC base IOVA address.
+ * @param[in] addr_val: Address offset for indirect write.
+ * @param[in] data: Data to be written at offset.
+ * @param[in] gcla: Gate Control List Address, 0 for ETS register.
+ *	      1 for GCL memory.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int eqos_hw_est_write(struct osi_core_priv_data *osi_core,
+			     unsigned int addr_val,
+			     unsigned int data, unsigned int gcla)
+{
+	void *base = osi_core->base;
+	int retry = 1000;
+	unsigned int val = 0x0;
+
+	osi_writela(osi_core, data, (unsigned char *)base + EQOS_MTL_EST_DATA);
+
+	val &= ~EQOS_MTL_EST_ADDR_MASK;
+	val |= (gcla == 1U) ? 0x0U : EQOS_MTL_EST_GCRR;
+	val |= EQOS_MTL_EST_SRWO;
+	val |= addr_val;
+	osi_writela(osi_core, val,
+		    (unsigned char *)base + EQOS_MTL_EST_GCL_CONTROL);
+
+	while (--retry > 0) {
+		osi_core->osd_ops.udelay(OSI_DELAY_1US);
+		val = osi_readla(osi_core, (unsigned char *)base +
+				EQOS_MTL_EST_GCL_CONTROL);
+		if ((val & EQOS_MTL_EST_SRWO) == EQOS_MTL_EST_SRWO) {
+			continue;
+		}
+
+		break;
+	}
+
+	if (((val & EQOS_MTL_EST_ERR0) == EQOS_MTL_EST_ERR0) ||
+	    (retry <= 0)) {
+		return -1;
+	}
+
+	return 0;
+}
+
+/**
+ * @brief eqos_gcl_validate - validate GCL from user
+ *
+ * Algorithm: validate GCL size and width of time interval value
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] est: Configuration input argument.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static inline int eqos_gcl_validate(struct osi_core_priv_data *osi_core,
+				    struct osi_est_config *est)
+{
+	unsigned int wid_val = 0x0U;
+	unsigned int dep = 0x0U;
+	unsigned int i;
+
+	if (osi_core->hw_feature == OSI_NULL) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"HW feature is NULL\n", 0ULL);
+		return -1;
+	}
+
+	if (osi_core->hw_feature->gcl_width == 0x1U) {
+		wid_val = OSI_MAX_24BITS;
+	} else if (osi_core->hw_feature->gcl_width == 0x2U) {
+		wid_val = OSI_MAX_28BITS;
+	} else if (osi_core->hw_feature->gcl_width == 0x3U) {
+		wid_val = OSI_MAX_32BITS;
+	} else {
+		/* Do Nothing */
+	}
+
+	if (osi_core->hw_feature->gcl_depth == 0x1U) {
+		dep = OSI_GCL_SIZE_64;
+	} else if (osi_core->hw_feature->gcl_depth == 0x2U) {
+		dep = OSI_GCL_SIZE_128;
+	} else if (osi_core->hw_feature->gcl_depth == 0x3U) {
+		dep = OSI_GCL_SIZE_256;
+	} else if (osi_core->hw_feature->gcl_depth == 0x4U) {
+		dep = OSI_GCL_SIZE_512;
+	} else if (osi_core->hw_feature->gcl_depth == 0x5U) {
+		dep = OSI_GCL_SIZE_1024;
+	} else {
+		/* Do Nothing */
+	}
+
+	if (est->llr > dep) {
+		return -1;
+	}
+
+	for (i = 0U; i < est->llr; i++) {
+		if (est->gcl[i] <= wid_val) {
+			continue;
+		}
+		return -1;
+	}
+
+	return 0;
+}
+
+/**
+ * @brief eqos_hw_config_est - Read Setting for GCL from input and update
+ * registers.
+ *
+ * Algorithm:
+ * 1) Write  TER, LLR and EST control register
+ * 2) Update GCL to sw own GCL (MTL_EST_Status bit SWOL will tell which is
+ *    owned by SW) and store which GCL is in use currently in sw.
+ * 3) TODO set DBGB and DBGM for debugging
+ * 4) EST_data and GCRR to 1, update entry sno in ADDR and put data at
+ *    est_gcl_data enable GCL MTL_EST_SSWL and wait for self clear or use
+ *    SWLC in MTL_EST_Status. Please note new GCL will be pushed for each entry.
+ * 5) Configure btr. Update btr based on current time (current time
+ *    should be updated based on PTP by this time)
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] est: EST configuration input argument.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int eqos_hw_config_est(struct osi_core_priv_data *osi_core,
+			      struct osi_est_config *est)
+{
+	void *base = osi_core->base;
+	unsigned int btr[2] = {0};
+	unsigned int val = 0x0;
+	unsigned int addr = 0x0;
+	unsigned int i;
+	int ret = 0;
+
+	if ((osi_core->hw_feature != OSI_NULL) &&
+	    (osi_core->hw_feature->est_sel == OSI_DISABLE)) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "EST not supported in HW\n", 0ULL);
+		return -1;
+	}
+
+	if (est->en_dis == OSI_DISABLE) {
+		val = osi_readla(osi_core,
+				 (nveu8_t *)base + EQOS_MTL_EST_CONTROL);
+		val &= ~EQOS_MTL_EST_CONTROL_EEST;
+		osi_writela(osi_core, val,
+			    (nveu8_t *)base + EQOS_MTL_EST_CONTROL);
+		return 0;
+	}
+
+	if (eqos_gcl_validate(osi_core, est) < 0) {
+		return -1;
+	}
+
+	ret = eqos_hw_est_write(osi_core, EQOS_MTL_EST_CTR_LOW, est->ctr[0],
+				OSI_DISABLE);
+	if (ret < 0) {
+		return ret;
+	}
+	/* check for est->ctr[i]  not more than FF, TODO as per hw config
+	 * parameter we can have max 0x3 as this value in sec */
+	est->ctr[1] &= EQOS_MTL_EST_CTR_HIGH_MAX;
+	ret = eqos_hw_est_write(osi_core, EQOS_MTL_EST_CTR_HIGH, est->ctr[1],
+				OSI_DISABLE);
+	if (ret < 0) {
+		return ret;
+	}
+
+	ret = eqos_hw_est_write(osi_core, EQOS_MTL_EST_TER, est->ter,
+				OSI_DISABLE);
+	if (ret < 0) {
+		return ret;
+	}
+
+	ret = eqos_hw_est_write(osi_core, EQOS_MTL_EST_LLR, est->llr,
+				OSI_DISABLE);
+	if (ret < 0) {
+		return ret;
+	}
+
+	/* Write GCL table */
+	for (i = 0U; i < est->llr; i++) {
+		addr = i;
+		addr = addr << EQOS_MTL_EST_ADDR_SHIFT;
+		addr &= EQOS_MTL_EST_ADDR_MASK;
+		ret = eqos_hw_est_write(osi_core, addr, est->gcl[i],
+					OSI_ENABLE);
+		if (ret < 0) {
+			return ret;
+		}
+	}
+
+	if (est->btr[0] == 0U && est->btr[1] == 0U) {
+		common_get_systime_from_mac(osi_core->base, osi_core->mac,
+					    &btr[1], &btr[0]);
+	}
+
+	/* Write parameters */
+	ret = eqos_hw_est_write(osi_core, EQOS_MTL_EST_BTR_LOW,
+				btr[0] + est->btr_offset[0], OSI_DISABLE);
+	if (ret < 0) {
+		return ret;
+	}
+
+	ret = eqos_hw_est_write(osi_core, EQOS_MTL_EST_BTR_HIGH,
+				btr[1] + est->btr_offset[1], OSI_DISABLE);
+	if (ret < 0) {
+		return ret;
+	}
+
+	val = osi_readla(osi_core, (unsigned char *)
+			 base + EQOS_MTL_EST_CONTROL);
+	/* Store table */
+	val |= EQOS_MTL_EST_CONTROL_SSWL;
+	val |= EQOS_MTL_EST_CONTROL_EEST;
+	osi_writela(osi_core, val, (nveu8_t *)base + EQOS_MTL_EST_CONTROL);
+
+	return ret;
+}
+
+/**
+ * @brief eqos_hw_config_fep - Read Setting for preemption and express for TC
+ * and update registers.
+ *
+ * Algorithm:
+ * 1) Check for TC enable and TC has masked for setting to preemptable.
+ * 2) update FPE control status register
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] fpe: FPE configuration input argument.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int eqos_hw_config_fpe(struct osi_core_priv_data *osi_core,
+			      struct osi_fpe_config *fpe)
+{
+	unsigned int i = 0U;
+	unsigned int val = 0U;
+	unsigned int temp = 0U, temp1 = 0U;
+	unsigned int temp_shift = 0U;
+
+	if ((osi_core->hw_feature != OSI_NULL) &&
+	    (osi_core->hw_feature->fpe_sel == OSI_DISABLE)) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "FPE not supported in HW\n", 0ULL);
+		return -1;
+	}
+
+	osi_core->fpe_ready = OSI_DISABLE;
+
+	val = osi_readla(osi_core,
+			 (unsigned char *)osi_core->base + EQOS_MTL_FPE_CTS);
+
+	if (((fpe->tx_queue_preemption_enable << EQOS_MTL_FPE_CTS_PEC_SHIFT) &
+	     EQOS_MTL_FPE_CTS_PEC) == OSI_DISABLE) {
+		val &= ~EQOS_MAC_FPE_CTS_EFPE;
+		osi_writela(osi_core, val, (unsigned char *)osi_core->base +
+			   EQOS_MAC_FPE_CTS);
+
+		val = osi_readla(osi_core, (unsigned char *)osi_core->base +
+				EQOS_MAC_RQC1R);
+		val &= ~EQOS_MAC_RQC1R_FPRQ;
+		osi_writela(osi_core, val, (unsigned char *)osi_core->base +
+			   EQOS_MAC_RQC1R);
+
+		return 0;
+	}
+
+	val &= ~EQOS_MTL_FPE_CTS_PEC;
+	for (i = 0U; i < OSI_MAX_TC_NUM; i++) {
+	/* max 8 bit for this structure fot TC/TXQ. Set the TC for express or
+	 * preemption. Default is express for a TC. DWCXG_NUM_TC = 8 */
+		temp = OSI_BIT(i);
+		if ((fpe->tx_queue_preemption_enable & temp) == temp) {
+			temp_shift = i;
+			temp_shift += EQOS_MTL_FPE_CTS_PEC_SHIFT;
+			/* set queue for preemtable */
+			if (temp_shift < EQOS_MTL_FPE_CTS_PEC_MAX_SHIFT) {
+				temp1 = OSI_ENABLE;
+				temp1 = temp1 << temp_shift;
+				val |= temp1;
+			} else {
+				/* Do nothing */
+			}
+		}
+	}
+	osi_writela(osi_core, val,
+		    (unsigned char *)osi_core->base + EQOS_MTL_FPE_CTS);
+
+	/* Setting RQ as RxQ 0 is not allowed */
+	if (fpe->rq == 0x0U || fpe->rq >= OSI_EQOS_MAX_NUM_CHANS) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "EST init failed due to wrong RQ\n", fpe->rq);
+		return -1;
+	}
+
+	val = osi_readla(osi_core,
+			 (unsigned char *)osi_core->base + EQOS_MAC_RQC1R);
+	val &= ~EQOS_MAC_RQC1R_FPRQ;
+	temp = fpe->rq;
+	temp = temp << EQOS_MAC_RQC1R_FPRQ_SHIFT;
+	temp = (temp & EQOS_MAC_RQC1R_FPRQ);
+	val |= temp;
+	/* update RQ in OSI CORE struct */
+	osi_core->residual_queue = fpe->rq;
+	osi_writela(osi_core, val,
+		    (unsigned char *)osi_core->base + EQOS_MAC_RQC1R);
+
+	/* initiate SVER for SMD-V and SMD-R */
+	val = osi_readla(osi_core,
+			 (unsigned char *)osi_core->base + EQOS_MTL_FPE_CTS);
+	val |= EQOS_MAC_FPE_CTS_SVER;
+	osi_writela(osi_core, val,
+		    (unsigned char *)osi_core->base + EQOS_MAC_FPE_CTS);
+
+	val = osi_readla(osi_core,
+			 (unsigned char *)osi_core->base + EQOS_MTL_FPE_ADV);
+	val &= ~EQOS_MTL_FPE_ADV_HADV_MASK;
+	/* (minimum_fragment_size +IPG/EIPG + Preamble) *.8 ~98ns for10G */
+	val |= EQOS_MTL_FPE_ADV_HADV_VAL;
+	osi_writela(osi_core, val,
+		    (unsigned char *)osi_core->base + EQOS_MTL_FPE_ADV);
+
+	return 0;
 }
 
 /**
@@ -3302,6 +4619,7 @@ static nve32_t eqos_write_phy_reg(struct osi_core_priv_data *const osi_core,
 {
 	nveu32_t mac_gmiiar;
 	nveu32_t mac_gmiidr;
+	nveu32_t devaddr;
 	nve32_t ret = 0;
 
 	/* Wait for any previous MII read/write operation to complete */
@@ -3311,40 +4629,57 @@ static nve32_t eqos_write_phy_reg(struct osi_core_priv_data *const osi_core,
 		return ret;
 	}
 
-	mac_gmiidr = osi_readla(osi_core, (nveu8_t *)osi_core->base +
-			        EQOS_MAC_MDIO_DATA);
-	mac_gmiidr = ((mac_gmiidr & EQOS_MAC_GMIIDR_GD_WR_MASK) |
-		      ((phydata) & EQOS_MAC_GMIIDR_GD_MASK));
+	/* C45 register access */
+	if ((phyreg & OSI_MII_ADDR_C45) == OSI_MII_ADDR_C45) {
+		/* Write the PHY register address and data into data register */
+		mac_gmiidr = (phyreg & EQOS_MDIO_DATA_REG_PHYREG_MASK) <<
+			      EQOS_MDIO_DATA_REG_PHYREG_SHIFT;
+		mac_gmiidr |= phydata;
+		osi_writela(osi_core, mac_gmiidr, (nveu8_t *)osi_core->base +
+			    EQOS_MAC_MDIO_DATA);
 
-	osi_writela(osi_core, mac_gmiidr, (nveu8_t *)osi_core->base +
-		    EQOS_MAC_MDIO_DATA);
+		/* Extract the device address */
+		devaddr = (phyreg >> EQOS_MDIO_DATA_REG_DEV_ADDR_SHIFT) &
+			   EQOS_MDIO_DATA_REG_DEV_ADDR_MASK;
 
-	/* initiate the MII write operation by updating desired */
-	/* phy address/id (0 - 31) */
-	/* phy register offset */
-	/* CSR Clock Range (20 - 35MHz) */
-	/* Select write operation */
-	/* set busy bit */
-	mac_gmiiar = osi_readla(osi_core, (nveu8_t *)osi_core->base +
-			        EQOS_MAC_MDIO_ADDRESS);
-	mac_gmiiar = (mac_gmiiar & (EQOS_MDIO_PHY_REG_SKAP |
-		      EQOS_MDIO_PHY_REG_C45E));
-	mac_gmiiar = (mac_gmiiar | ((phyaddr) << EQOS_MDIO_PHY_ADDR_SHIFT) |
-		      ((phyreg) << EQOS_MDIO_PHY_REG_SHIFT) |
-		      ((osi_core->mdc_cr) << EQOS_MDIO_PHY_REG_CR_SHIF) |
-		      (EQOS_MDIO_PHY_REG_WRITE) | EQOS_MAC_GMII_BUSY);
+		/* Initiate the clause 45 transaction with auto
+		 * generation of address packet
+		 */
+		mac_gmiiar = (EQOS_MDIO_PHY_REG_C45E |
+			     ((phyaddr) << EQOS_MDIO_PHY_ADDR_SHIFT) |
+			     (devaddr << EQOS_MDIO_PHY_REG_SHIFT) |
+			     ((osi_core->mdc_cr) << EQOS_MDIO_PHY_REG_CR_SHIF) |
+			     (EQOS_MDIO_PHY_REG_WRITE) | (EQOS_MAC_GMII_BUSY));
+	} else {
+		mac_gmiidr = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+					EQOS_MAC_MDIO_DATA);
+		mac_gmiidr = ((mac_gmiidr & EQOS_MAC_GMIIDR_GD_WR_MASK) |
+			      ((phydata) & EQOS_MAC_GMIIDR_GD_MASK));
+
+		osi_writela(osi_core, mac_gmiidr, (nveu8_t *)osi_core->base +
+			    EQOS_MAC_MDIO_DATA);
+
+		/* initiate the MII write operation by updating desired */
+		/* phy address/id (0 - 31) */
+		/* phy register offset */
+		/* CSR Clock Range (20 - 35MHz) */
+		/* Select write operation */
+		/* set busy bit */
+		mac_gmiiar = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+					EQOS_MAC_MDIO_ADDRESS);
+		mac_gmiiar = (mac_gmiiar & (EQOS_MDIO_PHY_REG_SKAP |
+			      EQOS_MDIO_PHY_REG_C45E));
+		mac_gmiiar = (mac_gmiiar |
+			     ((phyaddr) << EQOS_MDIO_PHY_ADDR_SHIFT) |
+			     ((phyreg) << EQOS_MDIO_PHY_REG_SHIFT) |
+			     ((osi_core->mdc_cr) << EQOS_MDIO_PHY_REG_CR_SHIF) |
+			     (EQOS_MDIO_PHY_REG_WRITE) | EQOS_MAC_GMII_BUSY);
+	}
 
 	osi_writela(osi_core, mac_gmiiar, (nveu8_t *)osi_core->base +
 		    EQOS_MAC_MDIO_ADDRESS);
-
 	/* wait for MII write operation to complete */
-	ret = poll_for_mii_idle(osi_core);
-	if (ret < 0) {
-		/* poll_for_mii_idle fail */
-		return ret;
-	}
-
-	return ret;
+	return poll_for_mii_idle(osi_core);
 }
 
 /**
@@ -3383,29 +4718,53 @@ static nve32_t eqos_read_phy_reg(struct osi_core_priv_data *const osi_core,
 	nveu32_t mac_gmiiar;
 	nveu32_t mac_gmiidr;
 	nveu32_t data;
+	nveu32_t devaddr;
 	nve32_t ret = 0;
 
-	/* wait for any previous MII read/write operation to complete */
+	/* Wait for any previous MII read/write operation to complete */
 	ret = poll_for_mii_idle(osi_core);
 	if (ret < 0) {
 		/* poll_for_mii_idle fail */
 		return ret;
 	}
+	/* C45 register access */
+	if ((phyreg & OSI_MII_ADDR_C45) == OSI_MII_ADDR_C45) {
+		/* First write the register address */
+		mac_gmiidr = (phyreg & EQOS_MDIO_DATA_REG_PHYREG_MASK) <<
+			      EQOS_MDIO_DATA_REG_PHYREG_SHIFT;
+		osi_writela(osi_core, mac_gmiidr, (nveu8_t *)osi_core->base +
+			    EQOS_MAC_MDIO_DATA);
 
-	mac_gmiiar = osi_readla(osi_core, (nveu8_t *)osi_core->base +
-			        EQOS_MAC_MDIO_ADDRESS);
-	/* initiate the MII read operation by updating desired */
-	/* phy address/id (0 - 31) */
-	/* phy register offset */
-	/* CSR Clock Range (20 - 35MHz) */
-	/* Select read operation */
-	/* set busy bit */
-	mac_gmiiar = (mac_gmiiar & (EQOS_MDIO_PHY_REG_SKAP |
-		      EQOS_MDIO_PHY_REG_C45E));
-	mac_gmiiar = mac_gmiiar | ((phyaddr) << EQOS_MDIO_PHY_ADDR_SHIFT) |
-		     ((phyreg) << EQOS_MDIO_PHY_REG_SHIFT) |
-		     ((osi_core->mdc_cr) << EQOS_MDIO_PHY_REG_CR_SHIF) |
-		     (EQOS_MDIO_PHY_REG_GOC_READ) | EQOS_MAC_GMII_BUSY;
+		/* Extract the device address from PHY register */
+		devaddr = (phyreg >> EQOS_MDIO_DATA_REG_DEV_ADDR_SHIFT) &
+			   EQOS_MDIO_DATA_REG_DEV_ADDR_MASK;
+
+		/* Initiate the clause 45 transaction with auto
+		 * generation of address packet.
+		 */
+		mac_gmiiar = (EQOS_MDIO_PHY_REG_C45E |
+			     ((phyaddr) << EQOS_MDIO_PHY_ADDR_SHIFT) |
+			     (devaddr << EQOS_MDIO_PHY_REG_SHIFT) |
+			     ((osi_core->mdc_cr) << EQOS_MDIO_PHY_REG_CR_SHIF) |
+			     (EQOS_MDIO_PHY_REG_GOC_READ) | EQOS_MAC_GMII_BUSY);
+	} else {
+		mac_gmiiar = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+					EQOS_MAC_MDIO_ADDRESS);
+		/* initiate the MII read operation by updating desired */
+		/* phy address/id (0 - 31) */
+		/* phy register offset */
+		/* CSR Clock Range (20 - 35MHz) */
+		/* Select read operation */
+		/* set busy bit */
+		mac_gmiiar = (mac_gmiiar & (EQOS_MDIO_PHY_REG_SKAP |
+			      EQOS_MDIO_PHY_REG_C45E));
+		mac_gmiiar = (mac_gmiiar |
+			     ((phyaddr) << EQOS_MDIO_PHY_ADDR_SHIFT) |
+			     ((phyreg) << EQOS_MDIO_PHY_REG_SHIFT) |
+			     ((osi_core->mdc_cr) << EQOS_MDIO_PHY_REG_CR_SHIF) |
+			     (EQOS_MDIO_PHY_REG_GOC_READ) | EQOS_MAC_GMII_BUSY);
+	}
+
 	osi_writela(osi_core, mac_gmiiar, (nveu8_t *)osi_core->base +
 		    EQOS_MAC_MDIO_ADDRESS);
 
@@ -3588,7 +4947,7 @@ static nve32_t eqos_config_rx_crc_check(
 	nveu32_t val;
 
 	/* return on invalid argument */
-	if (crc_chk != OSI_ENABLE && crc_chk != OSI_DISABLE) {
+	if ((crc_chk != OSI_ENABLE) && (crc_chk != OSI_DISABLE)) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			     "rx_crc: invalid input\n", 0ULL);
 		return -1;
@@ -3645,7 +5004,7 @@ static nve32_t eqos_config_tx_status(struct osi_core_priv_data *const osi_core,
 	nveu32_t val;
 
 	/* don't allow if tx_status is other than 0 or 1 */
-	if (tx_status != OSI_ENABLE && tx_status != OSI_DISABLE) {
+	if ((tx_status != OSI_ENABLE) && (tx_status != OSI_DISABLE)) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			     "tx_status: invalid input\n", 0ULL);
 		return -1;
@@ -3921,9 +5280,9 @@ static nve32_t eqos_config_arp_offload(
 				const nveu8_t *ip_addr)
 {
 	void *addr = osi_core->base;
-	nve32_t mac_ver = osi_core->mac_ver;
-	nve32_t mac_mcr;
-	nve32_t val;
+	nveu32_t mac_ver = osi_core->mac_ver;
+	nveu32_t mac_mcr;
+	nveu32_t val;
 
 	mac_mcr = osi_readla(osi_core, (nveu8_t *)addr + EQOS_MAC_MCR);
 
@@ -3993,21 +5352,22 @@ static nve32_t eqos_config_vlan_filtering(
 	nveu32_t value;
 	void *base = osi_core->base;
 
-	if (filter_enb_dis != OSI_ENABLE && filter_enb_dis != OSI_DISABLE) {
+	if ((filter_enb_dis != OSI_ENABLE) &&
+        (filter_enb_dis != OSI_DISABLE)) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			     "vlan_filter: invalid input\n", 0ULL);
 		return -1;
 	}
 
-	if (perfect_hash_filtering != OSI_ENABLE &&
-	    perfect_hash_filtering != OSI_DISABLE) {
+	if ((perfect_hash_filtering != OSI_ENABLE) &&
+	    (perfect_hash_filtering != OSI_DISABLE)) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			     "vlan_filter: invalid input\n", 0ULL);
 		return -1;
 	}
 
-	if (perfect_inverse_match != OSI_ENABLE &&
-	    perfect_inverse_match != OSI_DISABLE) {
+	if ((perfect_inverse_match != OSI_ENABLE) &&
+	    (perfect_inverse_match != OSI_DISABLE)) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			     "vlan_filter: invalid input\n", 0ULL);
 		return -1;
@@ -4049,12 +5409,8 @@ static nve32_t eqos_config_vlan_filtering(
  */
 static inline nve32_t eqos_update_vlan_id(
 				struct osi_core_priv_data *const osi_core,
-				nveu32_t vid)
+				nveu32_t const vid)
 {
-	/* Don't add VLAN ID to TR register which is eventually set TR
-	 * to 0x0 and allow all tagged packets
-	 */
-
 	return 0;
 }
 
@@ -4454,6 +5810,23 @@ static nve32_t eqos_get_hw_features(struct osi_core_priv_data *const osi_core,
 }
 
 /**
+ * @brief eqos_config_rss - Configure RSS
+ *
+ * Algorithm: Programes RSS hash table or RSS hash key.
+ *
+ * @param[in] osi_core: OSI core private data.
+ *
+ * @retval -1 Always
+ */
+static nve32_t eqos_config_rss(struct osi_core_priv_data *const osi_core)
+{
+	OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+		     "RSS not supported by EQOS\n", 0ULL);
+
+	return -1;
+}
+
+/**
  * @brief eqos_get_core_safety_config - EQOS MAC safety configuration
  *
  * @note
@@ -4504,6 +5877,7 @@ void eqos_init_core_ops(struct core_ops *ops)
 	ops->config_rx_crc_check = eqos_config_rx_crc_check;
 	ops->config_flow_control = eqos_config_flow_control;
 	ops->config_arp_offload = eqos_config_arp_offload;
+	ops->config_ptp_offload = eqos_config_ptp_offload;
 	ops->validate_regs = eqos_validate_core_regs;
 	ops->flush_mtl_tx_queue = eqos_flush_mtl_tx_queue;
 	ops->set_avb_algorithm = eqos_set_avb_algorithm;
@@ -4517,4 +5891,11 @@ void eqos_init_core_ops(struct core_ops *ops)
 	ops->set_mdc_clk_rate = eqos_set_mdc_clk_rate;
 	ops->config_mac_loopback = eqos_config_mac_loopback;
 #endif /* !OSI_STRIPPED_LIB */
+	ops->hw_config_est = eqos_hw_config_est;
+	ops->hw_config_fpe = eqos_hw_config_fpe;
+	ops->config_ptp_rxq = eqos_config_ptp_rxq;
+	ops->config_frp = eqos_config_frp;
+	ops->update_frp_entry = eqos_update_frp_entry;
+	ops->update_frp_nve = eqos_update_frp_nve;
+	ops->config_rss = eqos_config_rss;
 }

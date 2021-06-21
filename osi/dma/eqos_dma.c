@@ -630,7 +630,7 @@ static void eqos_configure_dma_channel(nveu32_t chan,
 	/* FBE - Fatal Bus Error Enable */
 	value = osi_readl((nveu8_t *)osi_dma->base +
 			  EQOS_DMA_CHX_INTR_ENA(chan));
-	if (!osi_dma->use_virtualization) {
+	if (osi_dma->use_virtualization == OSI_DISABLE) {
 		value |= EQOS_DMA_CHX_INTR_TBUE |
 			 EQOS_DMA_CHX_INTR_RBUE;
 	}
@@ -710,40 +710,6 @@ static void eqos_configure_dma_channel(nveu32_t chan,
 }
 
 /**
- * @brief eqos_dma_chan_to_vmirq_map - Map DMA channels to a specific VM IRQ.
- *
- * @param[in] osi_dma: OSI private data structure.
- *
- * Algorithm: Programs HW to map DMA channels to specific VM.
- *
- * @note
- *	Dependencies: OSD layer needs to update number of VM channels and
- *		      DMA channel list in osi_vm_irq_data.
- *	Protection: None.
- *
- * @retval None.
- */
-static void eqos_dma_chan_to_vmirq_map(struct osi_dma_priv_data *osi_dma)
-{
-	struct osi_vm_irq_data *irq_data;
-	nveu32_t i, j;
-	nveu32_t chan;
-
-	for (i = 0; i < osi_dma->num_vm_irqs; i++) {
-		irq_data = &osi_dma->irq_data[i];
-		for (j = 0; j < irq_data->num_vm_chans; j++) {
-			chan = irq_data->vm_chans[j];
-			if (chan >= OSI_EQOS_MAX_NUM_CHANS) {
-				continue;
-			}
-			osi_writel(OSI_BIT(i),
-				   (nveu8_t *)osi_dma->base +
-				   EQOS_VIRT_INTR_APB_CHX_CNTRL(chan));
-		}
-	}
-}
-
-/**
  * @brief eqos_init_dma_channel - DMA channel INIT
  *
  * @param[in] osi_dma: OSI DMA private data structure.
@@ -772,8 +738,6 @@ static nve32_t eqos_init_dma_channel(struct osi_dma_priv_data *osi_dma)
 		}
 		eqos_configure_dma_channel(osi_dma->dma_chans[chinx], osi_dma);
 	}
-
-	eqos_dma_chan_to_vmirq_map(osi_dma);
 
 	return 0;
 }
@@ -900,6 +864,7 @@ static void eqos_config_slot(struct osi_dma_priv_data *osi_dma,
 			     nveu32_t interval)
 {
 	nveu32_t value;
+	nveu32_t intr;
 
 	CHECK_CHAN_BOUND(chan);
 
@@ -909,8 +874,8 @@ static void eqos_config_slot(struct osi_dma_priv_data *osi_dma,
 				  EQOS_DMA_CHX_SLOT_CTRL(chan));
 		value &= ~EQOS_DMA_CHX_SLOT_SIV_MASK;
 		/* remove overflow bits of interval */
-		interval &= EQOS_DMA_CHX_SLOT_SIV_MASK;
-		value |= (interval << EQOS_DMA_CHX_SLOT_SIV_SHIFT);
+		intr = interval & EQOS_DMA_CHX_SLOT_SIV_MASK;
+		value |= (intr << EQOS_DMA_CHX_SLOT_SIV_SHIFT);
 		/* Set ESC bit */
 		value |= EQOS_DMA_CHX_SLOT_ESC;
 		osi_writel(value, (nveu8_t *)osi_dma->base +

@@ -26,6 +26,7 @@
 #include <osi_common.h>
 #include "mmc.h"
 
+struct ivc_msg_common;
 /**
  * @addtogroup typedef related info
  *
@@ -76,10 +77,9 @@ typedef my_lint_64		nvel64_t;
 #define OSI_MAC_TCR_TSMASTERENA		OSI_BIT(15)
 #define OSI_MAC_TCR_SNAPTYPSEL_1	OSI_BIT(16)
 #define OSI_MAC_TCR_SNAPTYPSEL_2	OSI_BIT(17)
+#define OSI_MAC_TCR_CSC			OSI_BIT(19)
 #define OSI_MAC_TCR_AV8021ASMEN		OSI_BIT(28)
-#ifndef OSI_STRIPPED_LIB
 #define OSI_MAC_TCR_SNAPTYPSEL_3	(OSI_BIT(16) | OSI_BIT(17))
-#endif /* !OSI_STRIPPED_LIB */
 /** @} */
 
 /**
@@ -92,10 +92,12 @@ typedef my_lint_64		nvel64_t;
 #define EQOS_MAX_MAC_ADDRESS_FILTER	128U
 #define EQOS_MAX_L3_L4_FILTER		8U
 #define EQOS_MAX_HTR_REGS		8U
+#define OSI_MGBE_MAX_MAC_ADDRESS_FILTER	32U
 #define OSI_DA_MATCH			0U
 #define OSI_INV_MATCH			1U
 #define OSI_AMASK_DISABLE		0U
 #define OSI_CHAN_ANY			0xFFU
+#define OSI_MAX_TC_NUM			8U
 #define OSI_DFLT_MTU_SIZE		1500U
 #define OSI_MTU_SIZE_9000		9000U
 /* HW supports 8 Hash table regs, but eqos_validate_core_regs only checks 4 */
@@ -111,10 +113,7 @@ typedef my_lint_64		nvel64_t;
 #define OSI_IP4_FILTER			0U
 #define OSI_IP6_FILTER			1U
 #define OSI_IPV6_MATCH			1U
-
-#define OSI_LOG_INFO			1U
-#define OSI_LOG_ARG_HW_FAIL		4U
-#define OSI_LOG_ARG_OUTOFBOUND		1U
+#define OSI_IPV4_MATCH			0U
 
 /* L2 filter operations supported by OSI layer. These operation modes shall be
  * set by OSD driver as input to update registers accordingly.
@@ -138,11 +137,26 @@ typedef my_lint_64		nvel64_t;
 #define OSI_SPEED_10		10
 #define OSI_SPEED_100		100
 #define OSI_SPEED_1000		1000
+#define OSI_SPEED_2500		2500
+#define OSI_SPEED_5000		5000
+#define OSI_SPEED_10000		10000
 
 #define TEN_POWER_9		0x3B9ACA00U
 #define TWO_POWER_32		0x100000000ULL
 #define TWO_POWER_31		0x80000000U
+/* MDIO clause 45 bit */
+#define OSI_MII_ADDR_C45		OSI_BIT(30)
 /** @} */
+
+/**
+ * @addtogroup PTP-offload PTP offload defines
+ * @{
+ */
+#define OSI_PTP_SNAP_ORDINARY	0U
+#define OSI_PTP_SNAP_TRANSPORT	1U
+#define OSI_PTP_SNAP_P2P	3U
+#define OSI_PTP_MAX_PORTID	0xFFFFU
+#define OSI_PTP_MAX_DOMAIN	0xFFU
 
 /**
  * @addtogroup IOCTL OPS MACROS
@@ -183,6 +197,14 @@ typedef my_lint_64		nvel64_t;
 #define OSI_CMD_VLAN_FILTER		31U
 #define OSI_CMD_CONFIG_EEE		32U
 #define OSI_CMD_SET_SYSTOHW_TIME	33U
+#define OSI_CMD_CONFIG_PTP_OFFLOAD	34U
+#define OSI_CMD_PTP_RXQ_ROUTE		35U
+#define OSI_CMD_CONFIG_FRP		36U
+#define OSI_CMD_CONFIG_RSS		37U
+#define OSI_CMD_CONFIG_EST		38U
+#define OSI_CMD_CONFIG_FPE		39U
+#define OSI_CMD_READ_REG		40U
+#define OSI_CMD_WRITE_REG		41U
 /** @} */
 
 /**
@@ -211,6 +233,70 @@ typedef my_lint_64		nvel64_t;
 				  OSI_LOG_INFO, type, err, loga);	\
 }
 
+#define VLAN_NUM_VID		4096U
+#define OSI_VLAN_ACTION_ADD	OSI_BIT(31)
+#define OSI_VLAN_ACTION_DEL	0x0U
+#define OSI_RXQ_ROUTE_PTP	0U
+#define OSI_DELAY_1000US	1000U
+#define OSI_DELAY_1US		1U
+/**
+ * @addtogroup RSS related information
+ *
+ * @brief RSS hash key and table size.
+ * @{
+ */
+#define OSI_RSS_HASH_KEY_SIZE	40U
+#define OSI_RSS_MAX_TABLE_SIZE	128U
+/** @} */
+
+/**
+ * @addtogroup PTP related information
+ *
+ * @brief PTP SSINC values
+ * @{
+ */
+#define OSI_PTP_SSINC_16	16U
+#define OSI_PTP_SSINC_4		4U
+/** @} */
+
+/**
+ * @addtogroup Flexible Receive Parser related information
+ *
+ * @brief Flexible Receive Parser commands, table size and other defines
+ * @{
+ */
+#define OSI_FRP_MAX_ENTRY		256U
+#define OSI_FRP_OFFSET_MAX		64U
+/* FRP Command types */
+#define OSI_FRP_CMD_ADD			0U
+#define OSI_FRP_CMD_UPDATE		1U
+#define OSI_FRP_CMD_DEL			2U
+#define OSI_FRP_CMD_MAX			3U
+/* FRP Filter mode defines */
+#define OSI_FRP_MODE_ROUTE		0U
+#define OSI_FRP_MODE_DROP		1U
+#define OSI_FRP_MODE_BYPASS		2U
+#define OSI_FRP_MODE_LINK		3U
+#define OSI_FRP_MODE_IM_ROUTE		4U
+#define OSI_FRP_MODE_IM_DROP		5U
+#define OSI_FRP_MODE_IM_BYPASS		6U
+#define OSI_FRP_MODE_IM_LINK		7U
+#define OSI_FRP_MODE_MAX		8U
+/* Match data defines */
+#define OSI_FRP_MATCH_DATA_MAX		12U
+#define OSI_FRP_MATCH_NORMAL		0U
+#define OSI_FRP_MATCH_L2_DA		1U
+#define OSI_FRP_MATCH_L2_SA		2U
+#define OSI_FRP_MATCH_L3_SIP		3U
+#define OSI_FRP_MATCH_L3_DIP		4U
+#define OSI_FRP_MATCH_L4_S_UPORT	5U
+#define OSI_FRP_MATCH_L4_D_UPORT	6U
+#define OSI_FRP_MATCH_L4_S_TPORT	7U
+#define OSI_FRP_MATCH_L4_D_TPORT	8U
+#define OSI_FRP_MATCH_VLAN		9U
+#define OSI_FRP_MATCH_MAX		10U
+/** @} */
+
 struct osi_core_priv_data;
 
 /**
@@ -237,6 +323,21 @@ struct osi_filter {
 	nveu32_t addr_mask;
 	/** src_dest: SA(1) or DA(0) */
 	nveu32_t src_dest;
+	/**  indicates one hot encoded DMA receive channels to program */
+	nveu32_t dma_chansel;
+};
+
+/**
+ * @brief OSI core structure for RXQ route
+ */
+struct osi_rxq_route {
+#define OSI_RXQ_ROUTE_PTP	0U
+	/** Indicates RX routing type OSI_RXQ_ROUTE_* */
+	unsigned int route_type;
+	/** RXQ routing enable(1) disable (0) */
+	unsigned int enable;
+	/** RX queue index */
+	unsigned int idx;
 };
 
 /**
@@ -584,6 +685,64 @@ struct osi_vlan_filter {
 };
 
 /**
+ * @brief FRP Instruction configuration structure
+ */
+struct osi_core_frp_data {
+	/* Entry Match Data */
+	unsigned int match_data;
+	/* Entry Match Enable mask */
+	unsigned int match_en;
+	/* Entry Accept frame flag */
+	unsigned char accept_frame;
+	/* Entry Reject Frame flag */
+	unsigned char reject_frame;
+	/* Entry Inverse match flag */
+	unsigned char inverse_match;
+	/* Entry Next Instruction Control match flag */
+	unsigned char next_ins_ctrl;
+	/* Entry Frame offset in the packet data */
+	unsigned char frame_offset;
+	/* Entry OK Index - Next Instruction */
+	unsigned char ok_index;
+	/* Entry DMA Channel selection (1-bit for each channel) */
+	unsigned int dma_chsel;
+};
+
+/**
+ * @brief FRP command structure for OSD to OSI
+ */
+struct osi_core_frp_cmd {
+	/* FRP Command type */
+	unsigned int cmd;
+	/* OSD FRP ID */
+	int frp_id;
+	/* OSD match data type */
+	unsigned char match_type;
+	/* OSD match data */
+	unsigned char match[OSI_FRP_MATCH_DATA_MAX];
+	/* OSD match data length */
+	unsigned char match_length;
+	/* OSD Offset */
+	unsigned char offset;
+	/* OSD FRP filter mode flag */
+	unsigned char filter_mode;
+	/* OSD FRP Link ID */
+	int next_frp_id;
+	/* OSD DMA Channel Selection */
+	unsigned int dma_sel;
+};
+
+/**
+ * @brief FRP Instruction table entry configuration structure
+ */
+struct osi_core_frp_entry {
+	/* FRP ID */
+	int frp_id;
+	/* FRP Entry data structure */
+	struct osi_core_frp_data data;
+};
+
+/**
  * @brief L2 filter function dependent parameter
  */
 struct osi_l2_da_filter {
@@ -623,8 +782,87 @@ struct  osi_core_avb_algorithm {
 	 *
 	 * 10: enable */
 	nveu32_t oper_mode;
+	/** TC index */
+	unsigned int tcindex;
 };
 #endif /* !OSI_STRIPPED_LIB */
+
+/**
+ * @brief struct ptp_offload_param - Parameter to support PTP offload.
+ */
+struct osi_pto_config {
+	/** enable(0) / disable(1) */
+	unsigned int en_dis;
+	/** Flag for Master mode.
+	 * OSI_ENABLE for master OSI_DISABLE for slave */
+	unsigned int master;
+	/** Flag to Select PTP packets for Taking Snapshots */
+	unsigned int snap_type;
+	/** ptp domain */
+	unsigned int domain_num;
+	/**  The PTP Offload function qualifies received PTP
+	 *  packet with unicast Destination  address
+	 *  0 - only multicast, 1 - unicast and multicast */
+	unsigned int mc_uc;
+	/** Port identification */
+	unsigned int portid;
+};
+
+/**
+ * @brief OSI Core EST structure
+ */
+struct osi_est_config {
+	/** enable/disable */
+	unsigned int en_dis;
+	/** 64 bit base time register
+	 * if both vlaues are 0, take ptp time to avoid BTRE
+	 * index 0 for nsec, index 1 for sec
+	 */
+	unsigned int btr[2];
+	/** 64 bit base time offset index 0 for nsec, index 1 for sec */
+	unsigned int btr_offset[2];
+	/** 40 bit cycle time register, index 0 for nsec, index 1 for sec */
+	unsigned int ctr[2];
+	/** Configured Time Interval width + 7 bit extension register */
+	unsigned int ter;
+	/** size of the gate control list */
+	unsigned int llr;
+	/** data array 8 bit gate op + 24 execution time
+	 * MGBE HW support GCL depth 256 */
+	unsigned int gcl[OSI_GCL_SIZE_256];
+};
+
+/**
+ * @brief OSI Core FPE structure
+ */
+struct osi_fpe_config {
+	/** Queue Mask 1 preemption 0- express bit representation */
+	unsigned int tx_queue_preemption_enable;
+	/** RQ for all preemptable packets  which are not filtered
+	 * based on user priority or SA-DA
+	 */
+	unsigned int rq;
+};
+
+/**
+ * @brief OSI Core TSN error stats structure
+ */
+struct osi_tsn_stats {
+	/** Constant Gate Control Error */
+	unsigned long const_gate_ctr_err;
+	/** Head-Of-Line Blocking due to Scheduling */
+	unsigned long head_of_line_blk_sch;
+	/** Per TC Schedule Error */
+	unsigned long hlbs_q[OSI_MAX_TC_NUM];
+	/** Head-Of-Line Blocking due to Frame Size */
+	unsigned long head_of_line_blk_frm;
+	/** Per TC Frame Size Error */
+	unsigned long hlbf_q[OSI_MAX_TC_NUM];
+	/** BTR Error */
+	unsigned long base_time_reg_err;
+	/** Switch to Software Owned List Complete */
+	unsigned long sw_own_list_complete;
+};
 
 /**
  * @brief PTP configuration structure
@@ -634,29 +872,29 @@ struct osi_ptp_config {
 	 * 
 	 * Enable Timestamp, Fine Timestamp, 1 nanosecond accuracy
 	 * are enabled by default.
-	 * 
+	 *
 	 * Need to set below bit fields accordingly as per the requirements.
-	 * 
+	 *
 	 * Enable Timestamp for All Packets			OSI_BIT(8)
-	 * 
+	 *
 	 * Enable PTP Packet Processing for Version 2 Format	OSI_BIT(10)
-	 * 
+	 *
 	 * Enable Processing of PTP over Ethernet Packets	OSI_BIT(11)
-	 * 
+	 *
 	 * Enable Processing of PTP Packets Sent over IPv6-UDP	OSI_BIT(12)
-	 * 
+	 *
 	 * Enable Processing of PTP Packets Sent over IPv4-UDP	OSI_BIT(13)
-	 * 
+	 *
 	 * Enable Timestamp Snapshot for Event Messages		OSI_BIT(14)
-	 * 
+	 *
 	 * Enable Snapshot for Messages Relevant to Master	OSI_BIT(15)
-	 * 
+	 *
 	 * Select PTP packets for Taking Snapshots		OSI_BIT(16)
-	 * 
+	 *
 	 * Select PTP packets for Taking Snapshots		OSI_BIT(17)
-	 * 
+	 *
 	 * Select PTP packets for Taking Snapshots (OSI_BIT(16) + OSI_BIT(17))
-	 * 
+	 *
 	 * AV 802.1AS Mode Enable				OSI_BIT(28)
 	 * 
 	 * if ptp_filter is set to Zero then Time stamping is disabled */
@@ -671,6 +909,21 @@ struct osi_ptp_config {
 	nveu32_t one_nsec_accuracy;
 	/** PTP system clock which is 62500000Hz */
 	nveu32_t ptp_clock;
+	/** PTP Packets RX Queue.*/
+	nveu32_t ptp_rx_queue;
+};
+
+/**
+ * @brief osi_core_rss - Struture used to store RSS Hash key and table
+ * information.
+ */
+struct osi_core_rss {
+	/** Flag to represent to enable RSS or not */
+	unsigned int enable;
+	/** Array for storing RSS Hash key */
+	unsigned char key[OSI_RSS_HASH_KEY_SIZE];
+	/** Array for storing RSS Hash table */
+	unsigned int table[OSI_RSS_MAX_TABLE_SIZE];
 };
 
 /**
@@ -690,6 +943,18 @@ struct core_backup {
 };
 
 /**
+ * @brief OSI VM IRQ data
+ */
+struct osi_vm_irq_data {
+	/** Number of VM channels per VM IRQ */
+	nveu32_t num_vm_chans;
+	/** VM/OS number to be used */
+	nveu32_t vm_num;
+	/** Array of VM channel list */
+	nveu32_t vm_chans[OSI_MGBE_MAX_NUM_CHANS];
+};
+
+/**
  *@brief OSD Core callbacks
  */
 struct osd_core_ops {
@@ -704,8 +969,61 @@ struct osd_core_ops {
 	/** msleep callback */
 	void (*msleep)(nveu32_t msec);
 	/** ivcsend callback*/
-	nve32_t (*ivc_send)(void *priv, void *data, nveu32_t len);
+	nve32_t (*ivc_send)(void *priv, struct ivc_msg_common *ivc,
+			    nveu32_t len);
+#ifdef MACSEC_SUPPORT
+	/** Program macsec key table through Trust Zone callback */
+	int (*macsec_tz_kt_config)(void *priv, unsigned char cmd,
+				   void *const kt_config,
+				   void *const genl_info);
+#endif /* MACSEC_SUPPORT */
 };
+
+#ifdef MACSEC_SUPPORT
+/**
+ * @brief MACsec interrupt stats structure.
+ */
+struct osi_macsec_irq_stats {
+	/** Tx debug buffer capture done */
+	unsigned long tx_dbg_capture_done;
+	/** Tx MTU check failed */
+	unsigned long tx_mtu_check_fail;
+	/** Tx MAC CRC err */
+	unsigned long tx_mac_crc_error;
+	/** Tx SC AN not valid */
+	unsigned long tx_sc_an_not_valid;
+	/** Tx AES GCM buffer overflow */
+	unsigned long tx_aes_gcm_buf_ovf;
+	/** Tx LUT lookup miss */
+	unsigned long tx_lkup_miss;
+	/** Tx uninitialized key slot */
+	unsigned long tx_uninit_key_slot;
+	/** Tx PN threshold reached */
+	unsigned long tx_pn_threshold;
+	/** Tx PN exhausted */
+	unsigned long tx_pn_exhausted;
+	/** Tx debug buffer capture done */
+	unsigned long rx_dbg_capture_done;
+	/** Rx ICV error threshold */
+	unsigned long rx_icv_err_threshold;
+	/** Rx replay error */
+	unsigned long rx_replay_error;
+	/** Rx MTU check failed */
+	unsigned long rx_mtu_check_fail;
+	/** Rx MAC CRC err */
+	unsigned long rx_mac_crc_error;
+	/** Rx AES GCM buffer overflow */
+	unsigned long rx_aes_gcm_buf_ovf;
+	/** Rx LUT lookup miss */
+	unsigned long rx_lkup_miss;
+	/** Rx uninitialized key slot */
+	unsigned long rx_uninit_key_slot;
+	/** Rx PN exhausted */
+	unsigned long rx_pn_exhausted;
+	/** Secure reg violation */
+	unsigned long secure_reg_viol;
+};
+#endif /* MACSEC_SUPPORT */
 
 /**
  * @brief OSI Core data structure for runtime commands.
@@ -741,6 +1059,18 @@ struct osi_ioctl {
 	/* VLAN filter structure */
 	struct osi_vlan_filter vlan_filter;
 #endif /* !OSI_STRIPPED_LIB */
+	/* PTP offload config structure*/
+	struct osi_pto_config pto_config;
+	/* RXQ route structure */
+	struct osi_rxq_route rxq_route;
+	/* FRP structure */
+	struct osi_core_frp_cmd frp_cmd;
+	/* EST structure */
+	struct osi_est_config est;
+	/* FRP structure */
+	struct osi_fpe_config fpe;
+	/** PTP configuration settings */
+	struct osi_ptp_config ptp_config;
 };
 
 /**
@@ -749,6 +1079,24 @@ struct osi_ioctl {
 struct osi_core_priv_data {
 	/** Memory mapped base address of MAC IP */
 	void *base;
+	/** Memory mapped base address of DMA window of MAC IP */
+	void *dma_base;
+	/** Memory mapped base address of XPCS IP */
+	void *xpcs_base;
+#ifdef MACSEC_SUPPORT
+	/** Memory mapped base address of MACsec IP */
+	void *macsec_base;
+	/** Memory mapped base address of MACsec TZ page */
+	void *tz_base;
+	/** Address of MACsec HW operations structure */
+	struct macsec_core_ops *macsec_ops;
+	/** Instance of macsec interrupt stats structure */
+	struct osi_macsec_irq_stats macsec_irq_stats;
+	/** Instance of macsec HW controller Tx/Rx LUT status */
+	struct osi_macsec_lut_status *macsec_lut_status;
+	/** macsec mmc counters */
+	struct osi_macsec_mmc_counters macsec_mmc;
+#endif /* MACSEC_SUPPORT */
 	/** Pointer to OSD private data structure */
 	void *osd;
 	/** OSD callback ops structure */
@@ -756,15 +1104,21 @@ struct osi_core_priv_data {
 	/** Number of MTL queues enabled in MAC */
 	nveu32_t num_mtl_queues;
 	/** Array of MTL queues */
-	nveu32_t mtl_queues[OSI_EQOS_MAX_NUM_CHANS];
+	nveu32_t mtl_queues[OSI_MGBE_MAX_NUM_CHANS];
 	/** List of MTL Rx queue mode that need to be enabled */
-	nveu32_t rxq_ctrl[OSI_EQOS_MAX_NUM_CHANS];
+	nveu32_t rxq_ctrl[OSI_MGBE_MAX_NUM_CHANS];
 	/** Rx MTl Queue mapping based on User Priority field */
-	nveu32_t rxq_prio[OSI_EQOS_MAX_NUM_CHANS];
+	nveu32_t rxq_prio[OSI_MGBE_MAX_NUM_CHANS];
+	/** TQ:TC mapping */
+	unsigned int tc[OSI_MGBE_MAX_NUM_CHANS];
+	/** Residual queue valid with FPE support */
+	unsigned int residual_queue;
 	/** MAC HW type EQOS based on DT compatible */
 	nveu32_t mac;
 	/** MAC version */
 	nveu32_t mac_ver;
+	/** HW supported feature list */
+	struct osi_hw_features *hw_feat;
 	/** MDC clock rate */
 	nveu32_t mdc_cr;
 	/** MTU size */
@@ -803,6 +1157,35 @@ struct osi_core_priv_data {
 	nveu32_t pre_si;
 	/** Flag which decides virtualization is enabled(1) or disabled(0) */
 	nveu32_t use_virtualization;
+	unsigned long vf_bitmap;
+	/** Array to maintaion VLAN filters */
+	unsigned short vid[VLAN_NUM_VID];
+	/** Count of number of VLAN filters in vid array */
+	unsigned short vlan_filter_cnt;
+	/** FRP Instruction Table */
+	struct osi_core_frp_entry frp_table[OSI_FRP_MAX_ENTRY];
+	/** Number of valid Entries in the FRP Instruction Table */
+	unsigned int frp_cnt;
+	/** RSS core structure */
+	struct osi_core_rss rss;
+	/** HW supported feature list */
+	struct osi_hw_features *hw_feature;
+	/** Switch to Software Owned List Complete.
+	  *  1 - Successful and User configured GCL in placed */
+	unsigned int est_ready;
+	/** FPE enabled, verify and respose done with peer device
+	  * 1- Sucessful and can be used between P2P device */
+	unsigned int fpe_ready;
+	/** TSN stats counters */
+	struct osi_tsn_stats tsn_stats;
+	/** MC packets Multiple DMA channel selection flags */
+	nveu32_t mc_dmasel;
+	/** UPHY GBE mode (1 for 10G, 0 for 5G) */
+	nveu32_t uphy_gbe_mode;
+	/** Array of VM IRQ's */
+	struct osi_vm_irq_data irq_data[OSI_MAX_VM_IRQS];
+	/** number of VM IRQ's */
+	nveu32_t num_vm_irqs;
 };
 
 /**
@@ -1766,7 +2149,7 @@ nve32_t osi_get_hw_features(struct osi_core_priv_data *const osi_core,
  *	Configure EEE LPI in MAC
  *	arg1_u32 - Enable (1)/disable (0) tx lpi
  *	arg2_u32 - Tx LPI entry timer in usecs upto
- *            OSI_MAX_TX_LPI_TIMER (in steps of 8usec)
+ *		   OSI_MAX_TX_LPI_TIMER (in steps of 8usec)
  *  - OSI_CMD_L3L4_FILTER
  *	invoke OSI call to add L3/L4
  *	l3l4_filter - l3_l4 filter structure
@@ -1780,6 +2163,23 @@ nve32_t osi_get_hw_features(struct osi_core_priv_data *const osi_core,
  *	set system to MAC hardware
  *	arg1_u32 - sec
  *	arg1_u32 - nsec
+ *  - OSI_CMD_CONFIG_PTP_OFFLOAD
+ *	enable/disable PTP offload feature
+ *	pto_config - ptp offload structure
+ *  - OSI_CMD_PTP_RXQ_ROUTE
+ *	rxq routing to secific queue
+ *	rxq_route - rxq routing information in structure
+ *  - OSI_CMD_CONFIG_FRP
+ *	Issue FRP command to HW
+ *	frp_cmd - FRP command parameter
+ *  - OSI_CMD_CONFIG_RSS
+ *	Configure RSS
+ *  - OSI_CMD_CONFIG_EST
+ *	Configure EST registers and GCL to hw
+ *	est - EST configuration structure
+ *  - OSI_CMD_CONFIG_FPE
+ *	Configuration FPE register and preemptable queue
+ *	fpe - FPE configuration structure
  *
  * @param[in] osi_core: OSI core private data structure.
  * @param[in] data: void pointer pointing to osi_ioctl
@@ -1807,4 +2207,352 @@ nve32_t osi_get_hw_features(struct osi_core_priv_data *const osi_core,
  */
 nve32_t osi_handle_ioctl(struct osi_core_priv_data *osi_core,
 			 struct osi_ioctl *data);
+
+/**
+ * @brief osi_get_core - Get pointer to osi_core data structure.
+ *
+ * @note
+ * Algorithm:
+ *  - Returns OSI core data structure.
+ *
+ * @pre OSD layer should use this as first API to get osi_core pointer and
+ * use the same in remaning API invocation.
+ *
+ * @note
+ * Traceability Details:
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ *
+ * @retval valid and unique osi_core pointer on success
+ * @retval NULL on failure.
+ */
+struct osi_core_priv_data *osi_get_core(void);
+
+/**
+ * @brief osi_hal_handle_ioctl - HW function API to handle runtime command
+ *
+ * @note
+ * Algorithm:
+ *  - Handle runtime commands to OSI
+ *  - OSI_CMD_MDC_CONFIG
+ *	Derive MDC clock based on provided AXI_CBB clk
+ *	arg1_u32 - CSR (AXI CBB) clock rate.
+ *  - OSI_CMD_RESTORE_REGISTER
+ *	Restore backup of MAC MMIO address space
+ *  - OSI_CMD_POLL_FOR_MAC_RST
+ *	Poll Software reset bit in MAC HW
+ *  - OSI_CMD_START_MAC
+ *	Start MAC Tx/Rx engine
+ *  - OSI_CMD_STOP_MAC
+ *	Stop MAC Tx/Rx engine
+ *  - OSI_CMD_COMMON_ISR
+ *	Common ISR handler
+ *  - OSI_CMD_PAD_CALIBRATION
+ *	PAD calibration
+ *  - OSI_CMD_READ_MMC
+ *	invoke function to read actual registers and update
+ *     structure variable mmc
+ *  - OSI_CMD_GET_MAC_VER
+ *	Reading MAC version
+ *	arg1_u32 - holds mac version
+ *  - OSI_CMD_VALIDATE_CORE_REG
+ *	 Read-validate HW registers for func safety
+ *  - OSI_CMD_RESET_MMC
+ *	invoke function to reset MMC counter and data
+ *        structure
+ *  - OSI_CMD_SAVE_REGISTER
+ *	 Take backup of MAC MMIO address space
+ *  - OSI_CMD_MAC_LB
+ *	Configure MAC loopback
+ *  - OSI_CMD_FLOW_CTRL
+ *	Configure flow control settings
+ *	arg1_u32 - Enable or disable flow control settings
+ *  - OSI_CMD_SET_MODE
+ *	Set Full/Half Duplex mode.
+ *	arg1_u32 - mode
+ *  - OSI_CMD_SET_SPEED
+ *	Set Operating speed
+ *	arg1_u32 - Operating speed
+ *  - OSI_CMD_L2_FILTER
+ *	configure L2 mac filter
+ *	l2_filter_struct - OSI filter structure
+ *  - OSI_CMD_RXCSUM_OFFLOAD
+ *	Configure RX checksum offload in MAC
+ *	arg1_u32 - enable(1)/disable(0)
+ *  - OSI_CMD_ADJ_FREQ
+ *	Adjust frequency
+ *	arg6_u32 - Parts per Billion
+ *  - OSI_CMD_ADJ_TIME
+ *	Adjust MAC time with system time
+ *	arg1_u32 - Delta time in nano seconds
+ *  - OSI_CMD_CONFIG_PTP
+ *	Configure PTP
+ *	arg1_u32 - Enable(1) or disable(0) Time Stamping
+ *  - OSI_CMD_GET_AVB
+ *	Get CBS algo and parameters
+ *	avb_struct -  osi core avb data structure
+ *  - OSI_CMD_SET_AVB
+ *	Set CBS algo and parameters
+ *	avb_struct -  osi core avb data structure
+ *  - OSI_CMD_CONFIG_RX_CRC_CHECK
+ *	Configure CRC Checking for Received Packets
+ *	arg1_u32 - Enable or disable checking of CRC field in
+ *	received pkts
+ *  - OSI_CMD_UPDATE_VLAN_ID
+ *	invoke osi call to update VLAN ID
+ *	arg1_u32 - VLAN ID
+ *  - OSI_CMD_CONFIG_TXSTATUS
+ *	Configure Tx packet status reporting
+ *	Enable(1) or disable(0) tx packet status reporting
+ *  - OSI_CMD_GET_HW_FEAT
+ *	Reading MAC HW features
+ *	hw_feat_struct - holds the supported features of the hardware
+ *  - OSI_CMD_CONFIG_FW_ERR
+ *	Configure forwarding of error packets
+ *	arg1_u32 - queue index, Max OSI_EQOS_MAX_NUM_QUEUES
+ *	arg2_u32 - FWD error enable(1)/disable(0)
+ *  - OSI_CMD_ARP_OFFLOAD
+ *	Configure ARP offload in MAC
+ *	arg1_u32 - Enable/disable flag
+ *	arg7_u8_p - Char array representation of IP address
+ *  - OSI_CMD_VLAN_FILTER
+ *	OSI call for configuring VLAN filter
+ *	vlan_filter - vlan filter structure
+ *  - OSI_CMD_CONFIG_EEE
+ *	Configure EEE LPI in MAC
+ *	arg1_u32 - Enable (1)/disable (0) tx lpi
+ *	arg2_u32 - Tx LPI entry timer in usecs upto
+ *		   OSI_MAX_TX_LPI_TIMER (in steps of 8usec)
+ *  - OSI_CMD_L3L4_FILTER
+ *	invoke OSI call to add L3/L4
+ *	l3l4_filter - l3_l4 filter structure
+ *	arg1_u32 - L3 filter (ipv4(0) or ipv6(1))
+ *            or L4 filter (tcp(0) or udp(1)
+ *	arg2_u32 - filter based dma routing enable(1)
+ *	arg3_u32 - dma channel for routing based on filter.
+ *		   Max OSI_EQOS_MAX_NUM_CHANS.
+ *	arg4_u32 - API call for L3 filter(0) or L4 filter(1)
+ *  - OSI_CMD_SET_SYSTOHW_TIME
+ *	set system to MAC hardware
+ *	arg1_u32 - sec
+ *	arg1_u32 - nsec
+ *  - OSI_CMD_CONFIG_PTP_OFFLOAD
+ *	enable/disable PTP offload feature
+ *	pto_config - ptp offload structure
+ *  - OSI_CMD_PTP_RXQ_ROUTE
+ *	rxq routing to secific queue
+ *	rxq_route - rxq routing information in structure
+ *  - OSI_CMD_CONFIG_FRP
+ *	Issue FRP command to HW
+ *	frp_cmd - FRP command parameter
+ *  - OSI_CMD_CONFIG_RSS
+ *	Configure RSS
+ *  - OSI_CMD_CONFIG_EST
+ *	Configure EST registers and GCL to hw
+ *	est - EST configuration structure
+ *  - OSI_CMD_CONFIG_FPE
+ *	Configuration FPE register and preemptable queue
+ *	fpe - FPE configuration structure
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] data: void pointer pointing to osi_ioctl
+ *
+ * @pre MAC should be init and started. see osi_start_mac()
+ *
+ * @note
+ * Traceability Details:
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
+			     struct osi_ioctl *data);
+/**
+ * @brief osi_hal_hw_core_init - HW API for EQOS MAC, MTL and common DMA
+ * initialization.
+ *
+ * @note
+ * Algorithm:
+ *  - Invokes EQOS MAC, MTL and common DMA register init code.
+ *
+ * @param[in, out] osi_core: OSI core private data structure.
+ * @param[in] tx_fifo_size: OSI core private data structure.
+ * @param[in] rx_fifo_size: OSI core private data structure.
+ *
+ * @pre
+ * - MAC should be out of reset. See osi_poll_for_mac_reset_complete()
+ *   for details.
+ * - osi_core->base needs to be filled based on ioremap.
+ * - osi_core->num_mtl_queues needs to be filled.
+ * - osi_core->mtl_queues[qinx] need to be filled.
+ *
+ * @note
+ * Traceability Details:
+ * - SWUD_ID: ETHERNET_NVETHERNETRM_006
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+nve32_t osi_hal_hw_core_init(struct osi_core_priv_data *const osi_core,
+			     nveu32_t tx_fifo_size, nveu32_t rx_fifo_size);
+
+/**
+ * @brief osi_hal_hw_core_deinit - HW API for MAC deinitialization.
+ *
+ * @note
+ * Algorithm:
+ *  - Stops MAC transmission and reception.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @pre MAC has to be out of reset.
+ *
+ * @note
+ * Traceability Details:
+ * - SWUD_ID: TODO
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: No
+ * - De-initialization: Yes
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+nve32_t osi_hal_hw_core_deinit(struct osi_core_priv_data *const osi_core);
+
+/**
+ * @brief osi_hal_write_phy_reg - HW API to Write to a PHY register through MAC
+ * over MDIO bus.
+ *
+ * @note
+ * Algorithm:
+ * - Before proceeding for reading for PHY register check whether any MII
+ *   operation going on MDIO bus by polling MAC_GMII_BUSY bit.
+ * - Program data into MAC MDIO data register.
+ * - Populate required parameters like phy address, phy register etc,,
+ *   in MAC MDIO Address register. write and GMII busy bits needs to be set
+ *   in this operation.
+ * - Write into MAC MDIO address register poll for GMII busy for MDIO
+ *   operation to complete.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] phyaddr: PHY address (PHY ID) associated with PHY
+ * @param[in] phyreg: Register which needs to be write to PHY.
+ * @param[in] phydata: Data to write to a PHY register.
+ *
+ * @pre MAC should be init and started. see osi_start_mac()
+ *
+ * @note
+ * Traceability Details:
+ * - SWUD_ID: TODO
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+nve32_t osi_hal_write_phy_reg(struct osi_core_priv_data *const osi_core,
+			      const nveu32_t phyaddr, const nveu32_t phyreg,
+			      const nveu16_t phydata);
+
+/**
+ * @brief osi_hal_read_phy_reg - HW API to Read from a PHY register through MAC
+ * over MDIO bus.
+ *
+ * @note
+ * Algorithm:
+ *  - Before proceeding for reading for PHY register check whether any MII
+ *    operation going on MDIO bus by polling MAC_GMII_BUSY bit.
+ *  - Populate required parameters like phy address, phy register etc,,
+ *    in program it in MAC MDIO Address register. Read and GMII busy bits
+ *    needs to be set in this operation.
+ *  - Write into MAC MDIO address register poll for GMII busy for MDIO
+ *    operation to complete. After this data will be available at MAC MDIO
+ *    data register.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] phyaddr: PHY address (PHY ID) associated with PHY
+ * @param[in] phyreg: Register which needs to be read from PHY.
+ *
+ * @pre MAC should be init and started. see osi_start_mac()
+ *
+ * @note
+ * Traceability Details:
+ * - SWUD_ID: TODO
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval data from PHY register on success
+ * @retval -1 on failure
+ */
+nve32_t osi_hal_read_phy_reg(struct osi_core_priv_data *const osi_core,
+			     const nveu32_t phyaddr, const nveu32_t phyreg);
 #endif /* INCLUDED_OSI_CORE_H */

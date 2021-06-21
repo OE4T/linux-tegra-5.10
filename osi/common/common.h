@@ -35,6 +35,41 @@
 #define COND_MET	0
 #define COND_NOT_MET	1
 /** @} */
+
+
+/**
+ * @brief Maximum number of supported MAC IP types (EQOS and MGBE)
+ */
+#define MAX_MAC_IP_TYPES       2U
+
+/**
+ * @brief osi_readl_poll_timeout - Periodically poll an address until
+ * a condition is met or a timeout occurs
+ *
+ * @param[in] addr: Memory mapped address.
+ * @param[in] val: Variable to read the value.
+ * @param[in] cond: Break condition (usually involving @val).
+ * @param[in] delay_us: Maximum time to sleep between reads in us.
+ * @param[in] retry: Retry count.
+
+ * @note Physical address has to be memmory mapped.
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+#define osi_readl_poll_timeout(addr, fn, val, cond, delay_us, retry) \
+({ \
+	unsigned int count = 0; \
+	while (count++ < retry) { \
+		val = osi_readl((unsigned char *)addr); \
+		if ((cond)) { \
+			break; \
+		} \
+		fn(delay_us); \
+	} \
+	(cond) ? 0 : -1; \
+})
+
 struct osi_core_priv_data;
 
 /**
@@ -220,7 +255,9 @@ static inline nve32_t is_valid_mac_version(nveu32_t mac_ver)
 {
 	if ((mac_ver == OSI_EQOS_MAC_4_10) ||
 	    (mac_ver == OSI_EQOS_MAC_5_00) ||
-	    (mac_ver == OSI_EQOS_MAC_5_30)) {
+	    (mac_ver == OSI_EQOS_MAC_5_30) ||
+	    (mac_ver == OSI_MGBE_MAC_3_00) ||
+	    (mac_ver == OSI_MGBE_MAC_3_10)) {
 		return 1;
 	}
 
@@ -271,17 +308,38 @@ static inline void osi_memset(void *s, nveu32_t c, nveu64_t count)
  * - Run time: Yes
  * - De-initialization: No
  */
-static inline void osi_memcpy(void *dest, void *src, int n)
+static inline nve32_t osi_memcpy(void *dest, void *src, nveu64_t n)
 {
-	char *csrc = (char *)src;
-	char *cdest = (char *)dest;
-	int i = 0;
+	nve8_t *csrc = (nve8_t *)src;
+	nve8_t *cdest = (nve8_t *)dest;
+	nveu64_t i = 0;
 
 	if (src == OSI_NULL || dest == OSI_NULL) {
-		return;
+		return -1;
 	}
 	for (i = 0; i < n; i++) {
 		cdest[i] = csrc[i];
 	}
+
+	return 0;
+}
+
+static inline nve32_t osi_memcmp(void *dest, void *src, nve32_t n)
+{
+	nve32_t i;
+	nve8_t *csrc = (nve8_t *)src;
+	nve8_t *cdest = (nve8_t *)dest;
+
+	if (src == OSI_NULL || dest == OSI_NULL)
+		return -1;
+
+	for (i = 0; i < n; i++) {
+		if (csrc[i] < cdest[i]) {
+			return -1;
+		} else if (csrc[i] > cdest[i]) {
+			return 1;
+		}
+	}
+	return 0;
 }
 #endif

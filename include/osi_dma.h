@@ -26,6 +26,19 @@
 #include <osi_common.h>
 #include "osi_dma_txrx.h"
 
+/*
+ * @addtogroup Helper Helper MACROS
+ *
+ * @brief These flags are used for PTP time synchronization
+ * @{
+ */
+#define OSI_PTP_SYNC_MASTER		OSI_BIT(0)
+#define OSI_PTP_SYNC_SLAVE		OSI_BIT(1)
+#define OSI_PTP_SYNC_ONESTEP		OSI_BIT(2)
+#define OSI_PTP_SYNC_TWOSTEP		OSI_BIT(3)
+#define OSI_DELAY_1US			1U
+/** @} */
+
 /**
  * @addtogroup Helper Helper MACROS
  *
@@ -43,6 +56,15 @@
 
 /* Compiler hints for branch prediction */
 #define osi_likely(x)			__builtin_expect(!!(x), 1)
+/** @} */
+
+/**
+ * @addtogroup Channel Mask
+ * @brief Chanel mask for Tx and Rx interrupts
+ * @{
+ */
+#define OSI_VM_IRQ_TX_CHAN_MASK(x)	OSI_BIT((x) * 2U)
+#define OSI_VM_IRQ_RX_CHAN_MASK(x)	OSI_BIT(((x) * 2U) + 1U)
 /** @} */
 
 /**
@@ -82,8 +104,8 @@
  * whether checksum offload is to be enabled for the packet upon transmit,
  * whether IP checksum offload is to be enabled for the packet upon transmit,
  * whether TCP segmentation offload is to be enabled for the packet,
- * whether the HW should timestamp transmit/arrival of a packet respectively,
- * whether tx payload length to be updated
+ * whether the HW should timestamp transmit/arrival of a packet respectively
+ * whether a paged buffer.
  * @{
  */
 /** VLAN packet */
@@ -94,13 +116,16 @@
 #define OSI_PKT_CX_TSO			OSI_BIT(2)
 /** PTP packet */
 #define OSI_PKT_CX_PTP			OSI_BIT(3)
+/** Paged buffer */
+#define OSI_PKT_CX_PAGED_BUF		OSI_BIT(4)
+/** Rx packet has RSS hash */
+#define OSI_PKT_CX_RSS			OSI_BIT(5)
 /** Valid packet */
 #define OSI_PKT_CX_VALID		OSI_BIT(10)
 /** Update Packet Length in Tx Desc3 */
 #define OSI_PKT_CX_LEN			OSI_BIT(11)
 /** IP CSUM packet */
 #define OSI_PKT_CX_IP_CSUM		OSI_BIT(12)
-
 /** @} */
 
 /**
@@ -182,6 +207,19 @@
 
 /** @} */
 
+
+/**
+ * @addtogroup RSS-HASH type
+ *
+ * @brief Macros to represent to type of packet for hash stored in receive packet
+ * context.
+ * @{
+ */
+#define OSI_RX_PKT_HASH_TYPE_L2	0x1U
+#define OSI_RX_PKT_HASH_TYPE_L3	0x2U
+#define OSI_RX_PKT_HASH_TYPE_L4	0x3U
+/** @} */
+
 /**
  * @addtogroup OSI-INTR OSI DMA interrupt handling macros.
  *
@@ -227,6 +265,16 @@ struct osi_pkt_err_stats {
 	nveu64_t clear_tx_err;
 	/** clear_rx_pkt_err_stats() API invoked */
 	nveu64_t clear_rx_err;
+	/** FRP Parsed count, includes accept
+	 * routing-bypass, or result-bypass count.
+	 */
+	unsigned long frp_parsed;
+	/** FRP Dropped count */
+	unsigned long frp_dropped;
+	/** FRP Parsing Error count */
+	unsigned long frp_err;
+	/** FRP Incomplete Parsing */
+	unsigned long frp_incomplete;
 };
 
 /**
@@ -270,6 +318,10 @@ struct osi_rx_pkt_cx {
 	nveu32_t vlan_tag;
 	/** Length of received packet */
 	nveu32_t pkt_len;
+	/** Stores received packet hash */
+	nveu32_t rx_hash;
+	/** Store type of packet for which hash carries at rx_hash */
+	nveu32_t rx_hash_type;
 	/** TS in nsec for the received packet */
 	nveul64_t ns;
 };
@@ -306,6 +358,11 @@ struct osi_tx_swcx {
 	/** Flag to keep track of whether buffer pointed by buf_phy_addr
 	 * is a paged buffer/linear buffer */
 	nveu32_t is_paged_buf;
+	/** Flag to keep track of SWCX
+	 * Bit 0 is_paged_buf - whether buffer pointed by buf_phy_addr
+	 * is a paged buffer/linear buffer
+	 * Bit 1 PTP hwtime form timestamp registers */
+	unsigned int flags;
 };
 
 /**
@@ -387,11 +444,11 @@ struct osi_tx_ring {
  */
 struct osi_xtra_dma_stat_counters {
 	/** Per Q TX packet count */
-	nveu64_t q_tx_pkt_n[OSI_EQOS_MAX_NUM_QUEUES];
+	nveu64_t q_tx_pkt_n[OSI_MGBE_MAX_NUM_QUEUES];
 	/** Per Q RX packet count */
-	nveu64_t q_rx_pkt_n[OSI_EQOS_MAX_NUM_QUEUES];
+	nveu64_t q_rx_pkt_n[OSI_MGBE_MAX_NUM_QUEUES];
 	/** Per Q TX complete call count */
-	nveu64_t tx_clean_n[OSI_EQOS_MAX_NUM_QUEUES];
+	nveu64_t tx_clean_n[OSI_MGBE_MAX_NUM_QUEUES];
 	/** Total number of tx packets count */
 	nveu64_t tx_pkt_n;
 	/** Total number of rx packet count */
@@ -407,29 +464,21 @@ struct osi_xtra_dma_stat_counters {
 struct osi_dma_priv_data;
 
 /**
- * @brief OSI VM IRQ data
- */
-struct osi_vm_irq_data {
-	/** Number of VM channels per VM IRQ */
-	nveu32_t num_vm_chans;
-	/** Array of VM channel list */
-	nveu32_t vm_chans[OSI_EQOS_MAX_NUM_CHANS];
-};
-
-/**
  *@brief OSD DMA callbacks
  */
 struct osd_dma_ops {
 	/** DMA transmit complete callback */
 	void (*transmit_complete)(void *priv, void *buffer,
 				  nveu64_t dmaaddr, nveu32_t len,
-				  void *txdone_pkt_cx);
+				  struct osi_txdone_pkt_cx *txdone_pkt_cx);
 	/** DMA receive packet callback */
-	void (*receive_packet)(void *priv, void *rxring,
+	void (*receive_packet)(void *priv, struct osi_rx_ring *rx_ring,
 			       nveu32_t chan, nveu32_t dma_buf_len,
-			       void *rxpkt_cx, void *rx_pkt_swcx);
+			       struct osi_rx_pkt_cx *rx_pkt_cx,
+			       struct osi_rx_swcx *rx_swcx);
 	/** RX buffer reallocation callback */
-	void (*realloc_buf)(void *priv, void *rxring, nveu32_t chan);
+	void (*realloc_buf)(void *priv, struct osi_rx_ring *rx_ring,
+			    nveu32_t chan);
 	/**.ops_log function callback */
 	void (*ops_log)(void *priv, const nve8_t *func, nveu32_t line,
 			nveu32_t level, nveu32_t type, const nve8_t *err,
@@ -443,9 +492,9 @@ struct osd_dma_ops {
  */
 struct osi_dma_priv_data {
 	/** Array of pointers to DMA Tx channel Ring */
-	struct osi_tx_ring *tx_ring[OSI_EQOS_MAX_NUM_CHANS];
+	struct osi_tx_ring *tx_ring[OSI_MGBE_MAX_NUM_CHANS];
 	/** Array of pointers to DMA Rx channel Ring */
-	struct osi_rx_ring *rx_ring[OSI_EQOS_MAX_NUM_CHANS];
+	struct osi_rx_ring *rx_ring[OSI_MGBE_MAX_NUM_CHANS];
 	/** Memory mapped base address of MAC IP */
 	void *base;
 	/** Pointer to OSD private data structure */
@@ -455,7 +504,7 @@ struct osi_dma_priv_data {
 	/** Number of channels enabled in MAC */
 	nveu32_t num_dma_chans;
 	/** Array of supported DMA channels */
-	nveu32_t dma_chans[OSI_EQOS_MAX_NUM_CHANS];
+	nveu32_t dma_chans[OSI_MGBE_MAX_NUM_CHANS];
 	/** DMA Rx channel buffer length at HW level */
 	nveu32_t rx_buf_len;
 	/** MTU size */
@@ -486,19 +535,21 @@ struct osi_dma_priv_data {
 	 * certain safety critical dma registers */
 	void *safety_config;
 	/** Array of DMA channel slot snterval value from DT */
-	nveu32_t slot_interval[OSI_EQOS_MAX_NUM_CHANS];
+	nveu32_t slot_interval[OSI_MGBE_MAX_NUM_CHANS];
 	/** Array of DMA channel slot enabled status from DT*/
-	nveu32_t slot_enabled[OSI_EQOS_MAX_NUM_CHANS];
-	/** number of VM IRQ's */
-	nveu32_t num_vm_irqs;
-	/** Array of VM IRQ's */
-	struct osi_vm_irq_data irq_data[OSI_MAX_VM_IRQS];
+	nveu32_t slot_enabled[OSI_MGBE_MAX_NUM_CHANS];
 	/** DMA callback ops structure */
 	struct osd_dma_ops osd_ops;
 	/** Virtual address of reserved DMA buffer */
 	void *resv_buf_virt_addr;
 	/** Physical address of reserved DMA buffer */
 	nveu64_t resv_buf_phy_addr;
+	/** Tegra Pre-si platform info */
+	nveu32_t pre_si;
+	/** PTP flags
+	 * bit 0 PTP mode master(1) slave(0)
+	 * bit 1 PTP sync method twostep(1) onestep(0) */
+	unsigned int ptp_flag;
 };
 
 
@@ -1416,4 +1467,35 @@ nve32_t osi_clear_rx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
  */
 nve32_t osi_txring_empty(struct osi_dma_priv_data *osi_dma, nveu32_t chan);
 #endif /* !OSI_STRIPPED_LIB */
+
+/**
+ * @brief osi_get_dma - Get pointer to osi_dma data structure.
+ *
+ * @note
+ * Algorithm:
+ *  - Returns OSI DMA data structure.
+ *
+ * @pre OSD layer should use this as first API to get osi_dma pointer and
+ * use the same in remaning API invocation.
+ *
+ * @note
+ * Traceability Details:
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ *
+ * @retval valid and unique osi_dma pointer on success
+ * @retval NULL on failure.
+ */
+struct osi_dma_priv_data *osi_get_dma(void);
 #endif /* INCLUDED_OSI_DMA_H */

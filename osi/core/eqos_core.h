@@ -23,23 +23,6 @@
 #ifndef INCLUDED_EQOS_CORE_H
 #define INCLUDED_EQOS_CORE_H
 
-/**
- * @addtogroup EQOS-FC Flow Control Threshold Macros
- *
- * @brief These bits control the threshold (fill-level of Rx queue) at which
- * the flow control is asserted or de-asserted
- * @{
- */
-#define FULL_MINUS_1_5K		(nveu32_t)1
-#define FULL_MINUS_2_K		(nveu32_t)2
-#define FULL_MINUS_2_5K		(nveu32_t)3
-#define FULL_MINUS_3_K		(nveu32_t)4
-#define FULL_MINUS_4_K		(nveu32_t)6
-#define FULL_MINUS_6_K		(nveu32_t)10
-#define FULL_MINUS_10_K		(nveu32_t)18
-#define FULL_MINUS_16_K		(nveu32_t)30
-/** @} */
-
 #ifndef OSI_STRIPPED_LIB
 /**
  * @addtogroup EQOS-MDC MDC Clock Selection defines
@@ -117,6 +100,8 @@
 #define EQOS_MAC_MDIO_ADDRESS		0x0200
 #define EQOS_MAC_MDIO_DATA		0x0204
 #define EQOS_5_00_MAC_ARPPA		0x0210
+#define EQOS_MAC_CSR_SW_CTL		0x0230
+#define EQOS_MAC_FPE_CTS		0x0234
 #define EQOS_MAC_MA0HR			0x0300
 #define EQOS_MAC_ADDRH(x)		((0x0008U * (x)) + 0x0300U)
 #define EQOS_MAC_MA0LR			0x0304
@@ -139,6 +124,10 @@
 #define EQOS_MAC_STSUR			0x0B10
 #define EQOS_MAC_STNSUR			0x0B14
 #define EQOS_MAC_TAR			0x0B18
+#define EQOS_MAC_PTO_CR			0x0BC0
+#define EQOS_MAC_PIDR0			0x0BC4
+#define EQOS_MAC_PIDR1			0x0BC8
+#define EQOS_MAC_PIDR2			0x0BCC
 #define EQOS_DMA_BMR			0x1000
 #define EQOS_DMA_SBUS			0x1004
 #define EQOS_DMA_ISR			0x1008
@@ -151,7 +140,24 @@
  * @{
  */
 #define EQOS_MTL_OP_MODE		0x0C00
+#define EQOS_MTL_INTR_STATUS		0x0C20
 #define EQOS_MTL_RXQ_DMA_MAP0		0x0C30
+#define EQOS_MTL_EST_CONTROL		0x0C50
+#define EQOS_MTL_EST_STATUS		0x0C58
+#define EQOS_MTL_EST_SCH_ERR		0x0C60
+#define EQOS_MTL_EST_FRMS_ERR		0x0C64
+#define EQOS_MTL_EST_FRMC_ERR		0x0C68
+#define EQOS_MTL_EST_ITRE		0x0C70
+#define EQOS_MTL_EST_GCL_CONTROL	0x0C80
+#define EQOS_MTL_EST_DATA		0x0C84
+#define EQOS_MTL_FPE_CTS		0x0C90
+#define EQOS_MTL_FPE_ADV		0x0C94
+#define EQOS_MTL_RXP_CS			0x0CA0
+#define EQOS_MTL_RXP_INTR_CS		0x0CA4
+#define EQOS_MTL_RXP_DROP_CNT		0x0CA8
+#define EQOS_MTL_RXP_ERROR_CNT		0x0CAC
+#define EQOS_MTL_RXP_IND_CS		0x0CB0
+#define EQOS_MTL_RXP_IND_DATA		0x0CB4
 #define EQOS_MTL_CHX_TX_OP_MODE(x)	((0x0040U * (x)) + 0x0D00U)
 #define EQOS_MTL_TXQ_ETS_CR(x)		((0x0040U * (x)) + 0x0D10U)
 #define EQOS_MTL_TXQ_QW(x)		((0x0040U * (x)) + 0x0D18U)
@@ -174,6 +180,7 @@
 #define EQOS_PAD_CRTL			0x8800U
 #define EQOS_PAD_AUTO_CAL_CFG		0x8804U
 #define EQOS_PAD_AUTO_CAL_STAT		0x880CU
+#define EQOS_VIRT_INTR_APB_CHX_CNTRL(x)		(0x8200U + ((x) * 4U))
 /** @} */
 
 /**
@@ -189,6 +196,9 @@
 #define EQOS_PAD_AUTO_CAL_CFG_START		OSI_BIT(31)
 #define EQOS_PAD_AUTO_CAL_STAT_ACTIVE		OSI_BIT(31)
 #define EQOS_PAD_CRTL_E_INPUT_OR_E_PWRD		OSI_BIT(31)
+#define EQOS_MCR_IPG_MASK			0x700000U
+#define EQOS_MCR_IPG_SHIFT			24U
+#define EQOS_MCR_IPG				0x7U
 #define EQOS_MCR_IPC				OSI_BIT(27)
 #define EQOS_MMC_CNTRL_CNTRST			OSI_BIT(0)
 #define EQOS_MMC_CNTRL_RSTONRD			OSI_BIT(2)
@@ -198,8 +208,8 @@
 #define EQOS_MTL_TSF				OSI_BIT(1)
 #define EQOS_MTL_TXQEN				OSI_BIT(3)
 #define EQOS_MTL_RSF				OSI_BIT(5)
-#define EQOS_MCR_TE				OSI_BIT(0)
-#define EQOS_MCR_RE				OSI_BIT(1)
+#define EQOS_MCR_RE				OSI_BIT(0)
+#define EQOS_MCR_TE				OSI_BIT(1)
 #define EQOS_MCR_DO				OSI_BIT(10)
 #define EQOS_MCR_DM				OSI_BIT(13)
 #define EQOS_MCR_FES				OSI_BIT(14)
@@ -211,6 +221,11 @@
 #define EQOS_MCR_CST				OSI_BIT(21)
 #define EQOS_MCR_GPSLCE				OSI_BIT(23)
 #define EQOS_IMR_RGSMIIIE			OSI_BIT(0)
+#define EQOS_IMR_PCSLCHGIE			OSI_BIT(1)
+#define EQOS_IMR_PCSANCIE			OSI_BIT(2)
+#define EQOS_IMR_PMTIE				OSI_BIT(4)
+#define EQOS_IMR_LPIIE				OSI_BIT(5)
+#define EQOS_IMR_FPEIE				OSI_BIT(17)
 #define EQOS_MAC_PCS_LNKSTS			OSI_BIT(19)
 #define EQOS_MAC_PCS_LNKMOD			OSI_BIT(16)
 #define EQOS_MAC_PCS_LNKSPEED			(OSI_BIT(17) | OSI_BIT(18))
@@ -228,11 +243,27 @@
 #define EQOS_DMA_SBUS_EAME			OSI_BIT(11)
 #define EQOS_DMA_BMR_SWR			OSI_BIT(0)
 #define EQOS_DMA_BMR_DPSW			OSI_BIT(8)
-#define EQOS_MAC_RQC1R_MCBCQ1			OSI_BIT(16)
+#define EQOS_MAC_RQC1R_TPQC			(OSI_BIT(22) | OSI_BIT(23))
+#define EQOS_MAC_RQC1R_TPQC0			OSI_BIT(22)
+#define EQOS_MAC_RQC1R_MCBCQ			(OSI_BIT(18) | OSI_BIT(17) |\
+						 OSI_BIT(16))
+#define EQOS_MAC_RQC1R_MCBCQ_SHIFT		16U
+#define EQOS_MAC_RQC1R_MCBCQ3			0x3U
+#define EQOS_MAC_RQC1R_MCBCQ7			0x7U
 #define EQOS_MAC_RQC1R_MCBCQEN			OSI_BIT(20)
+
+#define EQOS_MAC_RQC1R_FPRQ			(OSI_BIT(26) | OSI_BIT(25) | \
+						 OSI_BIT(24))
+#define EQOS_MAC_RQC1R_FPRQ_SHIFT		24U
+#define EQOS_MAC_RQC1R_PTPQ			(OSI_BIT(6) | OSI_BIT(5) | \
+						 OSI_BIT(4))
+#define EQOS_MAC_RQC1R_OMCBCQ			OSI_BIT(28)
+#define EQOS_MAC_RQC1R_PTPQ_SHIFT		4U
 #define EQOS_MTL_QTOMR_FTQ_LPOS			OSI_BIT(0)
+#define EQOS_DMA_ISR_MTLIS			OSI_BIT(16)
 #define EQOS_DMA_ISR_MACIS			OSI_BIT(17)
 #define EQOS_MAC_ISR_RGSMIIS			OSI_BIT(0)
+#define EQOS_MAC_IMR_FPEIS			OSI_BIT(17)
 #define EQOS_MTL_TXQ_QW_ISCQW			OSI_BIT(4)
 #define EQOS_DMA_SBUS_RD_OSR_LMT		0x001F0000U
 #define EQOS_DMA_SBUS_WR_OSR_LMT		0x1F000000U
@@ -287,7 +318,15 @@
 						 OSI_BIT(13) | OSI_BIT(14) | \
 						 OSI_BIT(15))
 #define EQOS_MAC_PFR_SHIFT			16
+#define EQOS_MTL_RXQ_OP_MODE_FEP		OSI_BIT(4)
+#define EQOS_MTL_OP_MODE_FRPE			OSI_BIT(15)
+#define EQOS_MTL_OP_MODE_DTXSTS			OSI_BIT(1)
+#define EQOS_MAC_EXTR_PDC			OSI_BIT(19)
 #define EQOS_MAC_EXTR_DCRCC			OSI_BIT(16)
+#define EQOS_MAC_EXTR_EIPGEN			OSI_BIT(24)
+#define EQOS_MAC_EXTR_EIPG_MASK			0x3E000000
+#define EQOS_MAC_EXTR_EIPG_SHIFT		25U
+#define EQOS_MAC_EXTR_EIPG			0x3U
 #endif /* !OSI_STRIPPED_LIB */
 #define EQOS_MTL_RXQ_OP_MODE_FEP		OSI_BIT(4)
 #define EQOS_MAC_QX_TX_FLW_CTRL_TFE		OSI_BIT(1)
@@ -378,12 +417,25 @@
 #define EQOS_MAC_ADDRH_AE			OSI_BIT(31)
 #define EQOS_MAC_RQC2_PSRQ_MASK			((nveu32_t)0xFF)
 #define EQOS_MAC_RQC2_PSRQ_SHIFT		8U
+#define EQOS_MAC_VLAN_TR_ETV_SHIFT		16U
+#define EQOS_MAC_MAX_HTR_REG_LEN		8U
+#define EQOS_MAC_TCR_TSENMACADDR		OSI_BIT(18)
+#define EQOS_MAC_TCR_SNAPTYPSEL_SHIFT		16U
+#define EQOS_MAC_TCR_TSCTRLSSR			OSI_BIT(9)
 #define EQOS_MAC_TCR_TSADDREG			OSI_BIT(5)
 #define EQOS_MAC_TCR_TSINIT			OSI_BIT(2)
 #define EQOS_MAC_TCR_TSUPDT			OSI_BIT(3)
-#define EQOS_MAC_STNSUR_ADDSUB_SHIFT		31U
 #define EQOS_MAC_TCR_TSCFUPDT			OSI_BIT(1)
-#define EQOS_MAC_TCR_TSCTRLSSR			OSI_BIT(9)
+#define EQOS_MAC_PTO_CR_DN			(OSI_BIT(15) | OSI_BIT(14) | \
+						 OSI_BIT(13) | OSI_BIT(12) | \
+						 OSI_BIT(11) | OSI_BIT(10) | \
+						 OSI_BIT(9) | OSI_BIT(8))
+#define EQOS_MAC_PTO_CR_DN_SHIFT		8U
+#define EQOS_MAC_PTO_CR_APDREQEN		OSI_BIT(2)
+#define EQOS_MAC_PTO_CR_ASYNCEN			OSI_BIT(1)
+#define EQOS_MAC_PTO_CR_PTOEN			OSI_BIT(0)
+#define EQOS_MAC_PIDR_PID_MASK			0XFFFFU
+#define EQOS_MAC_STNSUR_ADDSUB_SHIFT		31U
 #define EQOS_MAC_SSIR_SSINC_SHIFT		16U
 #define EQOS_MAC_GMIIDR_GD_WR_MASK		0xFFFF0000U
 #define EQOS_MAC_GMIIDR_GD_MASK			0xFFFFU
@@ -396,6 +448,10 @@
 #define EQOS_MDIO_PHY_REG_C45E			OSI_BIT(1)
 #define EQOS_MAC_GMII_BUSY			0x00000001U
 #define EQOS_MAC_EXTR_GPSL_MSK			0x00003FFFU
+#define EQOS_MDIO_DATA_REG_PHYREG_MASK		0xFFFFU
+#define EQOS_MDIO_DATA_REG_PHYREG_SHIFT		16U
+#define EQOS_MDIO_DATA_REG_DEV_ADDR_MASK	0x1FU
+#define EQOS_MDIO_DATA_REG_DEV_ADDR_SHIFT	16U
 
 #define EQOS_DMA_CHAN_INTR_STATUS		0xFU
 #define EQOS_DMA_CHX_STATUS_TPS			OSI_BIT(1)
@@ -425,6 +481,86 @@
 				 (TEGRA_SID_EQOS_CH5) |\
 				 (TEGRA_SID_EQOS))
 #define EQOS_MMC_INTR_DISABLE	0xFFFFFFFFU
+
+/* MAC FPE control/statusOSI_BITmap */
+#define EQOS_MAC_FPE_CTS_EFPE			OSI_BIT(0)
+#define EQOS_MAC_FPE_CTS_TRSP			OSI_BIT(19)
+#define EQOS_MAC_FPE_CTS_TVER			OSI_BIT(18)
+#define EQOS_MAC_FPE_CTS_RRSP			OSI_BIT(17)
+#define EQOS_MAC_FPE_CTS_RVER			OSI_BIT(16)
+#define EQOS_MAC_FPE_CTS_SVER			OSI_BIT(1)
+#define EQOS_MAC_FPE_CTS_SRSP			OSI_BIT(2)
+
+/* MTL_FPE_CTRL_STS */
+#define EQOS_MTL_FPE_CTS_PEC			(OSI_BIT(8) | OSI_BIT(9) | \
+						 OSI_BIT(10) | OSI_BIT(11) | \
+						 OSI_BIT(12) | OSI_BIT(13) | \
+						 OSI_BIT(14) | OSI_BIT(15))
+#define EQOS_MTL_FPE_CTS_PEC_SHIFT		8U
+#define EQOS_MTL_FPE_CTS_PEC_MAX_SHIFT		16U
+/* MTL FPE adv registers */
+#define EQOS_MTL_FPE_ADV_HADV_MASK		(0xFFFFU)
+#define EQOS_MTL_FPE_ADV_HADV_VAL		100U
+/* MTL_EST_CONTROL */
+#define EQOS_MTL_EST_CONTROL_PTOV		(OSI_BIT(24) | OSI_BIT(25) | \
+						 OSI_BIT(26) | OSI_BIT(27) | \
+						 OSI_BIT(28) | OSI_BIT(29) | \
+						 OSI_BIT(30) | OSI_BIT(31))
+#define EQOS_MTL_EST_CONTROL_PTOV_SHIFT		24U
+#define EQOS_MTL_EST_CONTROL_CTOV		(OSI_BIT(12) | OSI_BIT(13) | \
+						 OSI_BIT(14) | OSI_BIT(15) | \
+						 OSI_BIT(16) | OSI_BIT(17) | \
+						 OSI_BIT(18) | OSI_BIT(19) | \
+						 OSI_BIT(20) | OSI_BIT(21) | \
+						 OSI_BIT(22) | OSI_BIT(23))
+#define EQOS_MTL_EST_CONTROL_CTOV_SHIFT		12U
+#define EQOS_MTL_EST_CONTROL_TILS		(OSI_BIT(8) | OSI_BIT(9) | \
+						 OSI_BIT(10))
+#define EQOS_MTL_EST_CONTROL_LCSE		(OSI_BIT(6) | OSI_BIT(5))
+#define EQOS_MTL_EST_CONTROL_LCSE_SHIFT		5U
+#define EQOS_MTL_EST_CONTROL_LCSE_VAL		0U
+#define EQOS_MTL_EST_CONTROL_DFBS		OSI_BIT(5)
+#define EQOS_MTL_EST_CONTROL_DDBF		OSI_BIT(4)
+#define EQOS_MTL_EST_CONTROL_SSWL		OSI_BIT(1)
+#define EQOS_MTL_EST_CONTROL_EEST		OSI_BIT(0)
+/* EST GCL controlOSI_BITmap */
+#define EQOS_MTL_EST_ADDR_SHIFT			8U
+#define EQOS_MTL_EST_ADDR_MASK			(OSI_BIT(8) | OSI_BIT(9) | \
+						 OSI_BIT(10) | OSI_BIT(11) | \
+						 OSI_BIT(12) | OSI_BIT(13) | \
+						 OSI_BIT(14) | OSI_BIT(15) | \
+						 OSI_BIT(16) | OSI_BIT(17) | \
+						 OSI_BIT(18) | OSI_BIT(19))
+#define EQOS_MTL_EST_GCRR			OSI_BIT(2)
+#define EQOS_MTL_EST_SRWO			OSI_BIT(0)
+#define EQOS_MTL_EST_ERR0			OSI_BIT(20)
+/* EST GCRA addresses */
+#define EQOS_MTL_EST_BTR_LOW			((unsigned int)0x0 << \
+						 EQOS_MTL_EST_ADDR_SHIFT)
+#define EQOS_MTL_EST_BTR_HIGH			((unsigned int)0x1 << \
+						 EQOS_MTL_EST_ADDR_SHIFT)
+#define EQOS_MTL_EST_CTR_LOW			((unsigned int)0x2 << \
+						 EQOS_MTL_EST_ADDR_SHIFT)
+#define EQOS_MTL_EST_CTR_HIGH			((unsigned int)0x3 << \
+						 EQOS_MTL_EST_ADDR_SHIFT)
+#define EQOS_MTL_EST_CTR_HIGH_MAX		0xFFU
+#define EQOS_MTL_EST_TER			((unsigned int)0x4 << \
+						 EQOS_MTL_EST_ADDR_SHIFT)
+#define EQOS_MTL_EST_LLR			((unsigned int)0x5 << \
+						 EQOS_MTL_EST_ADDR_SHIFT)
+/*EST MTL interrupt STATUS and ERR*/
+#define EQOS_MTL_IS_ESTIS			OSI_BIT(18)
+/* MTL_EST_STATUS*/
+#define EQOS_MTL_EST_STATUS_CGCE		OSI_BIT(4)
+#define EQOS_MTL_EST_STATUS_HLBS		OSI_BIT(3)
+#define EQOS_MTL_EST_STATUS_HLBF		OSI_BIT(2)
+#define EQOS_MTL_EST_STATUS_BTRE		OSI_BIT(1)
+#define EQOS_MTL_EST_STATUS_SWLC		OSI_BIT(0)
+#define EQOS_MTL_EST_ITRE_CGCE			OSI_BIT(4)
+#define EQOS_MTL_EST_ITRE_IEHS			OSI_BIT(3)
+#define EQOS_MTL_EST_ITRE_IEHF			OSI_BIT(2)
+#define EQOS_MTL_EST_ITRE_IEBE			OSI_BIT(1)
+#define EQOS_MTL_EST_ITRE_IECC			OSI_BIT(0)
 /** @} */
 
 void update_ehfc_rfa_rfd(nveu32_t rx_fifo, nveu32_t *value);
@@ -442,7 +578,7 @@ void update_ehfc_rfa_rfd(nveu32_t rx_fifo, nveu32_t *value);
 #define EQOS_MAC_RQC0R_MASK			0xFFU
 #define EQOS_MAC_RQC1R_MASK			0xF77077U
 #define EQOS_MAC_RQC2R_MASK			0xFFFFFFFFU
-#define EQOS_MAC_IMR_MASK			0x47039U
+#define EQOS_MAC_IMR_MASK			0x67039U
 #define EQOS_MAC_MA0HR_MASK			0xFFFFFU
 #define EQOS_MAC_MA0LR_MASK			0xFFFFFFFFU
 #define EQOS_MAC_TCR_MASK			0x1107FF03U
@@ -450,7 +586,6 @@ void update_ehfc_rfa_rfd(nveu32_t rx_fifo, nveu32_t *value);
 #define EQOS_MAC_TAR_MASK			0xFFFFFFFFU
 #define EQOS_RXQ_DMA_MAP0_MASK			0x13131313U
 #define EQOS_RXQ_EN_MASK			(OSI_BIT(0) | OSI_BIT(1))
-
 #define EQOS_MTL_TXQ_OP_MODE_MASK		0xFF007EU
 #define EQOS_MTL_TXQ_QW_MASK			0x1FFFFFU
 #define EQOS_MTL_RXQ_OP_MODE_MASK		0xFFFFFFBU
@@ -495,6 +630,71 @@ void update_ehfc_rfa_rfd(nveu32_t rx_fifo, nveu32_t *value);
 #define EQOS_MTL_CH0_RX_OP_MODE_IDX		26U
 #define EQOS_DMA_SBUS_IDX			30U
 #define EQOS_MAX_CORE_SAFETY_REGS		31U
+/** @} */
+
+/**
+ * @addtogroup EQOS-MTL FRP Indirect Access register defines
+ *
+ * @brief EQOS MTL register offsets
+ * @{
+ */
+#define EQOS_MTL_FRP_READ_UDELAY		1U
+#define EQOS_MTL_FRP_READ_RETRY			10000U
+
+/* FRP Control and Status register defines */
+#define EQOS_MTL_RXP_CS_RXPI			OSI_BIT(31)
+#define EQOS_MTL_RXP_CS_NPE			(OSI_BIT(23) | OSI_BIT(22) | \
+						 OSI_BIT(21) | OSI_BIT(20) | \
+						 OSI_BIT(19) | OSI_BIT(18) | \
+						 OSI_BIT(17) | OSI_BIT(16))
+#define EQOS_MTL_RXP_CS_NPE_SHIFT		16U
+#define EQOS_MTL_RXP_CS_NVE			(OSI_BIT(7) | OSI_BIT(6) | \
+						 OSI_BIT(5) | OSI_BIT(4) | \
+						 OSI_BIT(3) | OSI_BIT(2) | \
+						 OSI_BIT(1) | OSI_BIT(0))
+/* FRP Interrupt Control and Status register */
+#define EQOS_MTL_RXP_INTR_CS_PDRFIE		OSI_BIT(19)
+#define EQOS_MTL_RXP_INTR_CS_FOOVIE		OSI_BIT(18)
+#define EQOS_MTL_RXP_INTR_CS_NPEOVIE		OSI_BIT(17)
+#define EQOS_MTL_RXP_INTR_CS_NVEOVIE		OSI_BIT(16)
+#define EQOS_MTL_RXP_INTR_CS_PDRFIS		OSI_BIT(3)
+#define EQOS_MTL_RXP_INTR_CS_FOOVIS		OSI_BIT(2)
+#define EQOS_MTL_RXP_INTR_CS_NPEOVIS		OSI_BIT(1)
+#define EQOS_MTL_RXP_INTR_CS_NVEOVIS		OSI_BIT(0)
+/* Indirect Instruction Table defines */
+#define EQOS_MTL_FRP_IE0(x)			((x) * 0x4U + 0x0U)
+#define EQOS_MTL_FRP_IE1(x)			((x) * 0x4U + 0x1U)
+#define EQOS_MTL_FRP_IE2(x)			((x) * 0x4U + 0x2U)
+#define EQOS_MTL_FRP_IE3(x)			((x) * 0x4U + 0x3U)
+#define EQOS_MTL_FRP_IE2_DCH			(OSI_BIT(31) | OSI_BIT(30) | \
+						 OSI_BIT(29) | OSI_BIT(28) | \
+						 OSI_BIT(27) | OSI_BIT(26) | \
+						 OSI_BIT(25) | OSI_BIT(24))
+#define EQOS_MTL_FRP_IE2_DCH_SHIFT		24U
+#define EQOS_MTL_FRP_IE2_DCH_MASK		0xFFU
+#define EQOS_MTL_FRP_IE2_OKI			(OSI_BIT(23) | OSI_BIT(22) | \
+						 OSI_BIT(21) | OSI_BIT(20) | \
+						 OSI_BIT(19) | OSI_BIT(18) | \
+						 OSI_BIT(17) | OSI_BIT(16))
+#define EQOS_MTL_FRP_IE2_OKI_SHIFT		16U
+#define EQOS_MTL_FRP_IE2_FO			(OSI_BIT(13) | OSI_BIT(12) | \
+						 OSI_BIT(11) | OSI_BIT(10) | \
+						 OSI_BIT(9) | OSI_BIT(8))
+#define EQOS_MTL_FRP_IE2_FO_SHIFT		8U
+#define EQOS_MTL_FRP_IE2_NC			OSI_BIT(3)
+#define EQOS_MTL_FRP_IE2_IM			OSI_BIT(2)
+#define EQOS_MTL_FRP_IE2_RF			OSI_BIT(1)
+#define EQOS_MTL_FRP_IE2_AF			OSI_BIT(0)
+/* Indirect register defines */
+#define EQOS_MTL_RXP_IND_CS_BUSY		OSI_BIT(31)
+#define EQOS_MTL_RXP_IND_CS_RXPEIEC		(OSI_BIT(22) | OSI_BIT(21))
+#define EQOS_MTL_RXP_IND_CS_RXPEIEE		OSI_BIT(20)
+#define EQOS_MTL_RXP_IND_CS_WRRDN		OSI_BIT(16)
+#define EQOS_MTL_RXP_IND_CS_ADDR		(OSI_BIT(9) | OSI_BIT(8) | \
+						 OSI_BIT(7) | OSI_BIT(6) | \
+						 OSI_BIT(5) | OSI_BIT(4) | \
+						 OSI_BIT(3) | OSI_BIT(2) | \
+						 OSI_BIT(1) | OSI_BIT(0))
 /** @} */
 
 /**

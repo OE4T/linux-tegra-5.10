@@ -527,6 +527,27 @@ struct osi_mmc_counters {
 	 * segment that had checksum errors. This counter does not count
 	 * IP header bytes */
 	nveu64_t mmc_rx_icmp_err_octets_h;
+	/** This counter provides the number of additional mPackets
+	 * transmitted due to preemption */
+	unsigned long mmc_tx_fpe_frag_cnt;
+	/** This counter provides the count of number of times a hold
+	 *  request is given to MAC */
+	unsigned long mmc_tx_fpe_hold_req_cnt;
+	/** This counter provides the number of MAC frames with reassembly
+	 *  errors on the Receiver, due to mismatch in the fragment
+	 *  count value */
+	unsigned long mmc_rx_packet_reass_err_cnt;
+	/** This counter the number of received MAC frames rejected
+	 *  due to unknown SMD value and MAC frame fragments rejected due
+	 *  to arriving with an SMD-C when there was no preceding preempted
+	 *  frame */
+	unsigned long mmc_rx_packet_smd_err_cnt;
+	/** This counter provides the number of MAC frames that were
+	 * successfully reassembled and delivered to MAC */
+	unsigned long mmc_rx_packet_asm_ok_cnt;
+	/** This counter provides the number of additional mPackets received
+	 *   due to preemption */
+	unsigned long mmc_rx_fpe_fragment_cnt;
 };
 
 /**
@@ -534,28 +555,75 @@ struct osi_mmc_counters {
  */
 struct osi_xtra_stat_counters {
 	/** RX buffer unavailable irq count */
-	nveu64_t rx_buf_unavail_irq_n[OSI_EQOS_MAX_NUM_QUEUES];
+	nveu64_t rx_buf_unavail_irq_n[OSI_MGBE_MAX_NUM_QUEUES];
 	/** Transmit Process Stopped irq count */
-	nveu64_t tx_proc_stopped_irq_n[OSI_EQOS_MAX_NUM_QUEUES];
+	nveu64_t tx_proc_stopped_irq_n[OSI_MGBE_MAX_NUM_QUEUES];
 	/** Transmit Buffer Unavailable irq count */
-	nveu64_t tx_buf_unavail_irq_n[OSI_EQOS_MAX_NUM_QUEUES];
+	nveu64_t tx_buf_unavail_irq_n[OSI_MGBE_MAX_NUM_QUEUES];
 	/** Receive Process Stopped irq count */
-	nveu64_t rx_proc_stopped_irq_n[OSI_EQOS_MAX_NUM_QUEUES];
+	nveu64_t rx_proc_stopped_irq_n[OSI_MGBE_MAX_NUM_QUEUES];
 	/** Receive Watchdog Timeout irq count */
 	nveu64_t rx_watchdog_irq_n;
 	/** Fatal Bus Error irq count */
 	nveu64_t fatal_bus_error_irq_n;
 	/** rx skb allocation failure count */
-	nveu64_t re_alloc_rxbuf_failed[OSI_EQOS_MAX_NUM_QUEUES];
+	nveu64_t re_alloc_rxbuf_failed[OSI_MGBE_MAX_NUM_QUEUES];
 	/** TX per channel interrupt count */
-	nveu64_t tx_normal_irq_n[OSI_EQOS_MAX_NUM_QUEUES];
+	nveu64_t tx_normal_irq_n[OSI_MGBE_MAX_NUM_QUEUES];
 	/** TX per channel SW timer callback count */
-	nveu64_t tx_usecs_swtimer_n[OSI_EQOS_MAX_NUM_QUEUES];
+	nveu64_t tx_usecs_swtimer_n[OSI_MGBE_MAX_NUM_QUEUES];
 	/** RX per channel interrupt count */
-	nveu64_t rx_normal_irq_n[OSI_EQOS_MAX_NUM_QUEUES];
+	nveu64_t rx_normal_irq_n[OSI_MGBE_MAX_NUM_QUEUES];
 	/** link connect count */
 	nveu64_t link_connect_count;
 	/** link disconnect count */
 	nveu64_t link_disconnect_count;
 };
-#endif
+
+#ifdef MACSEC_SUPPORT
+/**
+ * @brief The structure hold macsec statistics counters
+ */
+struct osi_macsec_mmc_counters {
+	/** This counter provides the number of controller port macsec
+	 * untaged packets */
+	unsigned long long rx_pkts_no_tag;
+	/** This counter provides the number of controller port macsec
+	 * untaged packets validateFrame != strict */
+	unsigned long long rx_pkts_untagged;
+	/** This counter provides the number of invalid tag or icv packets */
+	unsigned long long rx_pkts_bad_tag;
+	/** This counter provides the number of no sc lookup hit or sc match
+	 * packets */
+	unsigned long long rx_pkts_no_sa_err;
+	/** This counter provides the number of no sc lookup hit or sc match
+	 * packets validateFrame != strict */
+	unsigned long long rx_pkts_no_sa;
+	/** This counter provides the number of late packets
+	 *received PN < lowest PN */
+	unsigned long long rx_pkts_late[OSI_MACSEC_SC_INDEX_MAX];
+	/** This counter provides the number of overrun packets */
+	unsigned long long rx_pkts_overrun;
+	/** This counter provides the number of octets after IVC passing */
+	unsigned long long rx_octets_validated;
+	/** This counter provides the number not valid packets */
+	unsigned long long rx_pkts_not_valid[OSI_MACSEC_SC_INDEX_MAX];
+	/** This counter provides the number of invalid packets */
+	unsigned long long in_pkts_invalid[OSI_MACSEC_SC_INDEX_MAX];
+	/** This counter provides the number of in packet delayed */
+	unsigned long long rx_pkts_delayed[OSI_MACSEC_SC_INDEX_MAX];
+	/** This counter provides the number of in packets un checked */
+	unsigned long long rx_pkts_unchecked[OSI_MACSEC_SC_INDEX_MAX];
+	/** This counter provides the number of in packets ok */
+	unsigned long long rx_pkts_ok[OSI_MACSEC_SC_INDEX_MAX];
+	/** This counter provides the number of out packets untaged */
+	unsigned long long tx_pkts_untaged;
+	/** This counter provides the number of out too long */
+	unsigned long long tx_pkts_too_long;
+	/** This counter provides the number of out packets protected */
+	unsigned long long tx_pkts_protected[OSI_MACSEC_SC_INDEX_MAX];
+	/** This counter provides the number of out octets protected */
+	unsigned long long tx_octets_protected;
+};
+#endif /* MACSEC_SUPPORT */
+#endif /* INCLUDED_MMC_H */
