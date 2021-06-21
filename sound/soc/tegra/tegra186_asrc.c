@@ -39,8 +39,8 @@
 	{ ASRC_STREAM_REG(TEGRA186_ASRC_STREAM1_RATIO_INTEGER_PART, id), 0x1}, \
 	{ ASRC_STREAM_REG(TEGRA186_ASRC_STREAM1_RATIO_FRAC_PART, id), 0x0}, \
 	{ ASRC_STREAM_REG(TEGRA186_ASRC_STREAM1_MUTE_UNMUTE_DURATION, id), 0x400}, \
-	{ ASRC_STREAM_REG(TEGRA186_ASRC_STREAM1_RX_CIF_CTRL, id), 0x7700}, \
-	{ ASRC_STREAM_REG(TEGRA186_ASRC_STREAM1_TX_CIF_CTRL, id), 0x7700}, \
+	{ ASRC_STREAM_REG(TEGRA186_ASRC_STREAM1_RX_CIF_CTRL, id), 0x7500}, \
+	{ ASRC_STREAM_REG(TEGRA186_ASRC_STREAM1_TX_CIF_CTRL, id), 0x7500}, \
 	{ ASRC_STREAM_REG(TEGRA186_ASRC_STREAM1_ENABLE, id), 0x0}, \
 	{ ASRC_STREAM_REG(TEGRA186_ASRC_STREAM1_SOFT_RESET, id), 0x0}, \
 	{ ASRC_STREAM_REG(TEGRA186_ASRC_STREAM1_STATEBUF_ADDR, id), 0x0}, \
@@ -61,7 +61,7 @@ static const struct reg_default tegra186_asrc_reg_defaults[] = {
 
 	{ TEGRA186_ASRC_GLOBAL_ENB, 0},
 	{ TEGRA186_ASRC_GLOBAL_SOFT_RESET, 0},
-	{ TEGRA186_ASRC_GLOBAL_CG, 0},
+	{ TEGRA186_ASRC_GLOBAL_CG, 1},
 	{ TEGRA186_ASRC_GLOBAL_SCRATCH_ADDR, 0},
 	{ TEGRA186_ASRC_GLOBAL_SCRATCH_CONFIG, 0x0c207980},
 	{ TEGRA186_ASRC_RATIO_UPD_RX_CIF_CTRL, 0x00115500},
@@ -238,7 +238,7 @@ static int tegra186_asrc_set_audio_cif(struct tegra186_asrc *asrc,
 	cif_conf.audio_ch = channels;
 	cif_conf.client_ch = channels;
 	cif_conf.audio_bits = audio_bits;
-	cif_conf.client_bits = audio_bits;
+	cif_conf.client_bits = TEGRA_ACIF_BITS_24;
 	tegra_set_cif(asrc->regmap, reg, &cif_conf);
 
 	return 0;
