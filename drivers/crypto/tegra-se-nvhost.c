@@ -2967,8 +2967,13 @@ static int tegra_se_sha_process_buf(struct ahash_request *req, bool is_last,
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 	/* For SHAKE128/SHAKE256, digest size can vary */
 	if (sha_ctx->op_mode == SE_AES_OP_MODE_SHAKE128
-			|| sha_ctx->op_mode == SE_AES_OP_MODE_SHAKE256)
+			|| sha_ctx->op_mode == SE_AES_OP_MODE_SHAKE256) {
 		dst_len = req->dst_size;
+		if (dst_len == 0) {
+			req->base.complete(&req->base, 0);
+			return 0;
+		}
+	}
 #endif
 
 	req_ctx->hash_result = devm_kzalloc(se_dev->dev, dst_len, GFP_KERNEL);
@@ -5965,10 +5970,6 @@ static int tegra_se_gcm_final(struct aead_request *req, bool encrypt)
 	/* 5 Submit request */
 	ret = tegra_se_channel_submit_gather(se_dev, cpuvaddr,
 			iova, 0, se_dev->cmdbuf_cnt, NONE);
-
-	/* For zero length delay is required for now bug 200713489 */
-	if (cryptlen == 0)
-		udelay(250);
 
 	return ret;
 }
