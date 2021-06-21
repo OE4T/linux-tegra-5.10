@@ -73,6 +73,17 @@ config EQOS_APE_HWDEP
 	  calculated frequency offset, the pll_a clock (parent of APE clock)
 	  frequency is adjusted.
 
+config TEGRA_ACSL
+	tristate "ACSL (ADSP Component Shim Layer) Kernel Driver"
+	default n
+	depends on TEGRA_NVADSP
+	depends on DMA_SHARED_BUFFER
+	help
+	  ACSL Kernel driver is a simple driver abstraction over SW Mailbox
+	  APIs implemented by the ADSP host driver. These SW Mailboxes are
+	  used to send/receive commands, input and output buffer management
+	  with ADSP SW.
+
 config TEGRA_SKIN
 	tristate "Thermal skin temperature estimator"
 	help

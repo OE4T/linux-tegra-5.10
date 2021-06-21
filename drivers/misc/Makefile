@@ -12,6 +12,7 @@ obj-$(CONFIG_TEGRA_CPC)		+= tegra_cpc.o
 obj-$(CONFIG_THERM_EST)		+= therm_est.o
 obj-$(CONFIG_FAN_THERM_EST)	+= therm_fan_est.o
 obj-$(CONFIG_EQOS_APE_HWDEP) += eqos_ape/
+obj-$(CONFIG_TEGRA_ACSL)        += nv_acsl/
 obj-$(CONFIG_TEGRA_SKIN)	+= tegra-skin.o
 obj-$(CONFIG_TEGRA186_AHC) += tegra186-ahc/
 obj-$(CONFIG_EVENTLIB)		+= eventlib/
