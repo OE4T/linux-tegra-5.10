@@ -22,6 +22,7 @@
 #include <linux/platform_device.h>
 #include <linux/etherdevice.h>
 #include <linux/net_tstamp.h>
+#include <linux/pm_runtime.h>
 #include <linux/interrupt.h>
 #include <linux/workqueue.h>
 #include <linux/spinlock.h>
