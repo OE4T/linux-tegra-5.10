@@ -44,7 +44,7 @@ static bool ga10b_intr_is_unit_pending(struct gk20a *g,
 	u32 intr_unit_pending = false;
 	struct nvgpu_intr_unit_info *intr_unit_info;
 
-	intr_unit_info = g->mc.nvgpu_next.intr_unit_info;
+	intr_unit_info = g->mc.intr_unit_info;
 
 	subtree_mask = intr_unit_info[intr_unit].subtree_mask;
 	subtree_mask_lo = u64_lo32(subtree_mask);
@@ -167,15 +167,15 @@ static void ga10b_intr_config(struct gk20a *g, bool enable, u32 subtree,
 		u64 subtree_mask)
 {
 	if (enable) {
-		g->mc.nvgpu_next.subtree_mask_restore[subtree] |=
+		g->mc.subtree_mask_restore[subtree] |=
 			subtree_mask;
-		subtree_mask = g->mc.nvgpu_next.subtree_mask_restore[subtree];
+		subtree_mask = g->mc.subtree_mask_restore[subtree];
 
 		ga10b_intr_subtree_enable(g, subtree, subtree_mask);
 	} else {
-		g->mc.nvgpu_next.subtree_mask_restore[subtree] &=
+		g->mc.subtree_mask_restore[subtree] &=
 			~(subtree_mask);
-		subtree_mask = g->mc.nvgpu_next.subtree_mask_restore[subtree];
+		subtree_mask = g->mc.subtree_mask_restore[subtree];
 
 		ga10b_intr_subtree_disable(g, subtree, subtree_mask);
 	}
@@ -331,7 +331,7 @@ bool ga10b_mc_intr_get_unit_info(struct gk20a *g, u32 unit)
 	struct nvgpu_intr_unit_info *intr_unit_info;
 	u64 tmp_subtree_mask = 0ULL;
 
-	intr_unit_info = &g->mc.nvgpu_next.intr_unit_info[unit];
+	intr_unit_info = &g->mc.intr_unit_info[unit];
 
 	switch (unit) {
 	case NVGPU_CIC_INTR_UNIT_BUS:
@@ -710,7 +710,7 @@ static void ga10b_intr_gr_stall_interrupt_handling(struct gk20a *g,
 	u32 gr_instance_id;
 	const struct nvgpu_device *dev;
 	struct nvgpu_intr_unit_info *intr_unit_info =
-		&g->mc.nvgpu_next.intr_unit_info[NVGPU_CIC_INTR_UNIT_GR_STALL];
+		&g->mc.intr_unit_info[NVGPU_CIC_INTR_UNIT_GR_STALL];
 
 	vectorid = intr_unit_info->vectorid[0];
 
@@ -791,7 +791,7 @@ static void ga10b_intr_isr_stall_host2soc_3(struct gk20a *g)
 		const struct nvgpu_device *dev;
 
 		vectorid =
-		   g->mc.nvgpu_next.intr_unit_info[NVGPU_CIC_INTR_UNIT_CE_STALL].vectorid[0];
+		   g->mc.intr_unit_info[NVGPU_CIC_INTR_UNIT_CE_STALL].vectorid[0];
 
 		handled_subtree_mask |= unit_subtree_mask;
 		ga10b_intr_subtree_clear(g, subtree, unit_subtree_mask);

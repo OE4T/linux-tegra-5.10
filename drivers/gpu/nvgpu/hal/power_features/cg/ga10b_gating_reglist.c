@@ -446,7 +446,7 @@ void ga10b_slcg_runlist_load_gating_prod(struct gk20a *g,
 					 ga10b_slcg_runlist[i].disable;
 			for (j = 0U; j < f->num_runlists; j++) {
 				runlist = &f->active_runlists[j];
-				runlist_pri_base = runlist->nvgpu_next.runlist_pri_base;
+				runlist_pri_base = runlist->runlist_pri_base;
 				nvgpu_writel(g, nvgpu_safe_add_u32(reg, runlist_pri_base), val);
 			}
 		}
@@ -966,7 +966,7 @@ void ga10b_blcg_runlist_load_gating_prod(struct gk20a *g,
 					 ga10b_blcg_runlist[i].disable;
 			for (j = 0U; j < f->num_runlists; j++) {
 				runlist = &f->active_runlists[j];
-				runlist_pri_base = runlist->nvgpu_next.runlist_pri_base;
+				runlist_pri_base = runlist->runlist_pri_base;
 				nvgpu_writel(g, nvgpu_safe_add_u32(reg, runlist_pri_base), val);
 			}
 		}

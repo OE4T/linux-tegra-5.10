@@ -882,7 +882,7 @@ int nvgpu_pmu_pg_init(struct gk20a *g, struct nvgpu_pmu *pmu,
 
 #if defined(CONFIG_NVGPU_NON_FUSA)
 	case NVGPU_NEXT_GPUID:
-		nvgpu_next_pg_sw_init(g, *pg_p);
+		nvgpu_ga10b_pg_sw_init(g, *pg_p);
 		break;
 #endif
 

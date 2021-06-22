@@ -694,7 +694,7 @@ static const struct gops_runlist vgpu_ga10b_ops_runlist = {
 	.get_ch_entry = gv11b_runlist_get_ch_entry,
 	.hw_submit = NULL,
 	.wait_pending = NULL,
-	.init_enginfo = nvgpu_next_runlist_init_enginfo,
+	.init_enginfo = nvgpu_runlist_init_enginfo,
 };
 
 static const struct gops_userd vgpu_ga10b_ops_userd = {

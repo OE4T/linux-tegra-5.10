@@ -666,6 +666,66 @@ void nvgpu_runlist_cleanup_sw(struct gk20a *g)
 	f->max_runlists = 0;
 }
 
+#if defined(CONFIG_NVGPU_NON_FUSA)
+static void nvgpu_runlist_init_engine_info(struct gk20a *g,
+		struct nvgpu_runlist *runlist,
+		const struct nvgpu_device *dev)
+{
+	u32 i = 0U;
+
+	/*
+	 * Bail out on pre-ga10b platforms.
+	 */
+	if (g->ops.runlist.get_engine_id_from_rleng_id == NULL) {
+		return;
+	}
+
+	/*
+	 * runlist_pri_base, chram_bar0_offset and pbdma_info
+	 * will get over-written with same info, if multiple engines
+	 * are present on same runlist. Required optimization will be
+	 * done as part of JIRA NVGPU-4980
+	 */
+	runlist->runlist_pri_base =
+			dev->rl_pri_base;
+	runlist->chram_bar0_offset =
+		g->ops.runlist.get_chram_bar0_offset(g, dev->rl_pri_base);
+
+	nvgpu_log(g, gpu_dbg_info, "runlist[%d]: runlist_pri_base 0x%x",
+		runlist->id, runlist->runlist_pri_base);
+	nvgpu_log(g, gpu_dbg_info, "runlist[%d]: chram_bar0_offset 0x%x",
+		runlist->id, runlist->chram_bar0_offset);
+
+	runlist->pbdma_info = &dev->pbdma_info;
+	for  (i = 0U; i < PBDMA_PER_RUNLIST_SIZE; i++) {
+		nvgpu_log(g, gpu_dbg_info,
+			"runlist[%d]: pbdma_id[%d] %d pbdma_pri_base[%d] 0x%x",
+			runlist->id, i,
+			runlist->pbdma_info->pbdma_id[i], i,
+			runlist->pbdma_info->pbdma_pri_base[i]);
+	}
+
+	runlist->rl_dev_list[dev->rleng_id] = dev;
+}
+
+static u32 nvgpu_runlist_get_pbdma_mask(struct gk20a *g,
+					struct nvgpu_runlist *runlist)
+{
+	u32 pbdma_mask = 0U;
+	u32 i;
+	u32 pbdma_id;
+
+	nvgpu_assert(runlist != NULL);
+
+	for ( i = 0U; i < PBDMA_PER_RUNLIST_SIZE; i++) {
+		pbdma_id = runlist->pbdma_info->pbdma_id[i];
+		if (pbdma_id != NVGPU_INVALID_PBDMA_ID)
+			pbdma_mask |= BIT32(pbdma_id);
+	}
+	return pbdma_mask;
+}
+#endif /* CONFIG_NVGPU_NON_FUSA */
+
 void nvgpu_runlist_init_enginfo(struct gk20a *g, struct nvgpu_fifo *f)
 {
 	struct nvgpu_runlist *runlist;
@@ -681,21 +741,44 @@ void nvgpu_runlist_init_enginfo(struct gk20a *g, struct nvgpu_fifo *f)
 	for (i = 0; i < f->num_runlists; i++) {
 		runlist = &f->active_runlists[i];
 
-		(void) g->ops.fifo.find_pbdma_for_runlist(g,
-						runlist->id,
-						&runlist->pbdma_bitmask);
-		nvgpu_log(g, gpu_dbg_info, "runlist %d: pbdma bitmask 0x%x",
-				 runlist->id, runlist->pbdma_bitmask);
+		nvgpu_log(g, gpu_dbg_info, "Configuring runlist %u (%u)", runlist->id, i);
 
 		for (j = 0; j < f->num_engines; j++) {
 			dev = f->active_engines[j];
 
 			if (dev->runlist_id == runlist->id) {
 				runlist->eng_bitmask |= BIT32(dev->engine_id);
+#ifdef CONFIG_NVGPU_NON_FUSA
+				/*
+				 * Populate additional runlist fields on
+				 * Ampere+ chips.
+				 */
+				nvgpu_runlist_init_engine_info(g, runlist, dev);
+#endif /* CONFIG_NVGPU_NON_FUSA */
 			}
 		}
-		nvgpu_log(g, gpu_dbg_info, "runlist %d: act eng bitmask 0x%x",
-				 runlist->id, runlist->eng_bitmask);
+
+		/*
+		 * The PBDMA mask per runlist is probed differently on
+		 * PreAmpere vs Ampere+ chips.
+		 *
+		 * Use legacy probing if g->ops.fifo.find_pbdma_for_runlist is
+		 * assigned, else switch to new probe function
+		 * nvgpu_runlist_get_pbdma_mask.
+		 */
+		if (g->ops.fifo.find_pbdma_for_runlist != NULL) {
+			(void) g->ops.fifo.find_pbdma_for_runlist(g,
+						runlist->id,
+						&runlist->pbdma_bitmask);
+		}
+#ifdef CONFIG_NVGPU_NON_FUSA
+		else {
+			runlist->pbdma_bitmask =
+				nvgpu_runlist_get_pbdma_mask(g, runlist);
+		}
+#endif /* CONFIG_NVGPU_NON_FUSA */
+		nvgpu_log(g, gpu_dbg_info, "  Active engine bitmask: 0x%x", runlist->eng_bitmask);
+		nvgpu_log(g, gpu_dbg_info, "          PBDMA bitmask: 0x%x", runlist->pbdma_bitmask);
 	}
 
 	nvgpu_log_fn(g, "done");
@@ -913,92 +996,3 @@ void nvgpu_runlist_unlock_runlists(struct gk20a *g, u32 runlists_mask)
 		}
 	}
 }
-
-#if defined(CONFIG_NVGPU_NON_FUSA)
-static void nvgpu_runlist_init_engine_info(struct gk20a *g,
-		struct nvgpu_runlist *runlist,
-		const struct nvgpu_device *dev)
-{
-	u32 i = 0U;
-
-	/*
-	 * runlist_pri_base, chram_bar0_offset and pbdma_info
-	 * will get over-written with same info, if multiple engines
-	 * are present on same runlist. Required optimization will be
-	 * done as part of JIRA NVGPU-4980
-	 */
-	runlist->nvgpu_next.runlist_pri_base =
-			dev->next.rl_pri_base;
-	runlist->nvgpu_next.chram_bar0_offset =
-		g->ops.runlist.get_chram_bar0_offset(g, dev->next.rl_pri_base);
-
-	nvgpu_log(g, gpu_dbg_info, "runlist[%d]: runlist_pri_base 0x%x",
-		runlist->id, runlist->nvgpu_next.runlist_pri_base);
-	nvgpu_log(g, gpu_dbg_info, "runlist[%d]: chram_bar0_offset 0x%x",
-		runlist->id, runlist->nvgpu_next.chram_bar0_offset);
-
-	runlist->nvgpu_next.pbdma_info = &dev->next.pbdma_info;
-	for  (i = 0U; i < PBDMA_PER_RUNLIST_SIZE; i++) {
-		nvgpu_log(g, gpu_dbg_info,
-			"runlist[%d]: pbdma_id[%d] %d pbdma_pri_base[%d] 0x%x",
-			runlist->id, i,
-			runlist->nvgpu_next.pbdma_info->pbdma_id[i], i,
-			runlist->nvgpu_next.pbdma_info->pbdma_pri_base[i]);
-	}
-
-	runlist->nvgpu_next.rl_dev_list[dev->next.rleng_id] = dev;
-}
-
-static u32 nvgpu_runlist_get_pbdma_mask(struct gk20a *g,
-					struct nvgpu_runlist *runlist)
-{
-	u32 pbdma_mask = 0U;
-	u32 i;
-	u32 pbdma_id;
-
-	nvgpu_assert(runlist != NULL);
-
-	for ( i = 0U; i < PBDMA_PER_RUNLIST_SIZE; i++) {
-		pbdma_id = runlist->nvgpu_next.pbdma_info->pbdma_id[i];
-		if (pbdma_id != NVGPU_INVALID_PBDMA_ID)
-			pbdma_mask |= BIT32(pbdma_id);
-	}
-	return pbdma_mask;
-}
-
-void nvgpu_next_runlist_init_enginfo(struct gk20a *g, struct nvgpu_fifo *f)
-{
-	struct nvgpu_runlist *runlist;
-	const struct nvgpu_device *dev;
-	u32 i, j;
-
-	nvgpu_log_fn(g, " ");
-
-	if (g->is_virtual) {
-		return;
-	}
-
-	for (i = 0U; i < f->num_runlists; i++) {
-		runlist = &f->active_runlists[i];
-
-		nvgpu_log(g, gpu_dbg_info, "Configuring runlist %u (%u)", runlist->id, i);
-
-		for (j = 0U; j < f->num_engines; j++) {
-			dev = f->active_engines[j];
-
-			if (dev->runlist_id == runlist->id) {
-				runlist->eng_bitmask |= BIT32(dev->engine_id);
-				nvgpu_runlist_init_engine_info(g, runlist, dev);
-			}
-		}
-
-		runlist->pbdma_bitmask = nvgpu_runlist_get_pbdma_mask(g, runlist);
-
-		nvgpu_log(g, gpu_dbg_info, "  Active engine bitmask: 0x%x", runlist->eng_bitmask);
-		nvgpu_log(g, gpu_dbg_info, "          PBDMA bitmask: 0x%x", runlist->pbdma_bitmask);
-	}
-
-	nvgpu_log_fn(g, "done");
-}
-#endif
-

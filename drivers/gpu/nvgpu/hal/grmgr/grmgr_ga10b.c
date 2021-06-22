@@ -166,10 +166,10 @@ static bool ga10b_grmgr_is_syspipe_lce(struct gk20a *g,
 	u32 lce_fb_thread_id;
 
 	gr_fb_thread_id = g->ops.runlist.get_esched_fb_thread_id(g,
-		gr_dev->next.rl_pri_base);
+		gr_dev->rl_pri_base);
 
 	lce_fb_thread_id = g->ops.runlist.get_esched_fb_thread_id(g,
-		lce_dev->next.rl_pri_base);
+		lce_dev->rl_pri_base);
 
 	nvgpu_log(g, gpu_dbg_mig,
 		"gr_engine_id[%u] lce_engine_id[%u] "

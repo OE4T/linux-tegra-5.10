@@ -452,14 +452,14 @@ void ga10b_fifo_intr_unset_recover_mask(struct gk20a *g)
 void ga10b_fifo_pbdma_isr(struct gk20a *g, struct nvgpu_runlist *runlist, u32 pbdma_idx)
 {
 	u32 pbdma_id;
-	const struct nvgpu_next_pbdma_info *pbdma_info;
+	const struct nvgpu_pbdma_info *pbdma_info;
 
 	if (pbdma_idx >= PBDMA_PER_RUNLIST_SIZE) {
 		nvgpu_err(g, "pbdma_idx(%d) >= max_pbdmas_per_runlist(%d)",
 				pbdma_idx, PBDMA_PER_RUNLIST_SIZE);
 		return;
 	}
-	pbdma_info = runlist->nvgpu_next.pbdma_info;
+	pbdma_info = runlist->pbdma_info;
 	pbdma_id = pbdma_info->pbdma_id[pbdma_idx];
 	if (pbdma_id == PBDMA_ID_INVALID) {
 		nvgpu_err(g, "runlist_id(%d), pbdma_idx(%d): invalid PBDMA",

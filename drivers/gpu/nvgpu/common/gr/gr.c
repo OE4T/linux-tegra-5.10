@@ -1206,10 +1206,10 @@ void nvgpu_gr_init_reset_enable_hw_non_ctx_local(struct gk20a *g)
 {
 	u32 i = 0U;
 	struct netlist_av_list *sw_non_ctx_local_compute_load =
-		nvgpu_next_netlist_get_sw_non_ctx_local_compute_load_av_list(g);
+		nvgpu_netlist_get_sw_non_ctx_local_compute_load_av_list(g);
 #ifdef CONFIG_NVGPU_GRAPHICS
 	struct netlist_av_list *sw_non_ctx_local_gfx_load =
-		nvgpu_next_netlist_get_sw_non_ctx_local_gfx_load_av_list(g);
+		nvgpu_netlist_get_sw_non_ctx_local_gfx_load_av_list(g);
 #endif
 
 	for (i = 0U; i < sw_non_ctx_local_compute_load->count; i++) {
@@ -1233,10 +1233,10 @@ void nvgpu_gr_init_reset_enable_hw_non_ctx_global(struct gk20a *g)
 {
 	u32 i = 0U;
 	struct netlist_av_list *sw_non_ctx_global_compute_load =
-		nvgpu_next_netlist_get_sw_non_ctx_global_compute_load_av_list(g);
+		nvgpu_netlist_get_sw_non_ctx_global_compute_load_av_list(g);
 #ifdef CONFIG_NVGPU_GRAPHICS
 	struct netlist_av_list *sw_non_ctx_global_gfx_load =
-		nvgpu_next_netlist_get_sw_non_ctx_global_gfx_load_av_list(g);
+		nvgpu_netlist_get_sw_non_ctx_global_gfx_load_av_list(g);
 #endif
 
 	for (i = 0U; i < sw_non_ctx_global_compute_load->count; i++) {

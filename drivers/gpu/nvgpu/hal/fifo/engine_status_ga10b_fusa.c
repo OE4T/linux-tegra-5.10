@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -107,15 +107,15 @@ void ga10b_read_engine_status_info(struct gk20a *g, u32 engine_id,
 	dev = g->fifo.host_engines[engine_id];
 
 	engine_reg0_data = nvgpu_readl(g, nvgpu_safe_add_u32(
-		dev->next.rl_pri_base,
-		runlist_engine_status0_r(dev->next.rleng_id)));
+		dev->rl_pri_base,
+		runlist_engine_status0_r(dev->rleng_id)));
 
 	engine_reg1_data = nvgpu_readl(g, nvgpu_safe_add_u32(
-		dev->next.rl_pri_base,
-		runlist_engine_status1_r(dev->next.rleng_id)));
+		dev->rl_pri_base,
+		runlist_engine_status1_r(dev->rleng_id)));
 
 	status->reg_data = engine_reg0_data;
-	status->nvgpu_next.reg1_data = engine_reg1_data;
+	status->reg1_data = engine_reg1_data;
 
 	/* populate the engine_state enum */
 	status->is_busy = runlist_engine_status0_engine_v(engine_reg0_data) ==

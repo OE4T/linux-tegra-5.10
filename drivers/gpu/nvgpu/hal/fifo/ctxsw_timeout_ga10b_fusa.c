@@ -55,18 +55,18 @@ static void ga10b_fifo_ctxsw_timeout_clear_and_enable(struct gk20a *g,
 				runlist_intr_0_r(),
 				runlist_intr_0_ctxsw_timeout_eng_reset_f(rleng));
 
-			dev = runlist->nvgpu_next.rl_dev_list[rleng];
+			dev = runlist->rl_dev_list[rleng];
 			if (dev == NULL) {
 				continue;
 			}
 			/* enable ctxsw timeout interrupt */
 			nvgpu_runlist_writel(g, runlist,
 				runlist_engine_ctxsw_timeout_config_r(
-				dev->next.rleng_id),
+				dev->rleng_id),
 				timeout);
 			nvgpu_log_info(g, "ctxsw timeout enable "
 				       "rleng: %u timeout_config_val: 0x%08x",
-				       dev->next.rleng_id, timeout);
+				       dev->rleng_id, timeout);
 		}
 	}
 }
@@ -247,7 +247,7 @@ void ga10b_fifo_ctxsw_timeout_isr(struct gk20a *g,
 			/* ctxsw timeout not pending for this rleng */
 			continue;
 		}
-		dev = runlist->nvgpu_next.rl_dev_list[rleng];
+		dev = runlist->rl_dev_list[rleng];
 		if (dev == NULL) {
 			nvgpu_err(g, "ctxsw timeout for rleng: %u but "
 				"dev is invalid", rleng);
@@ -257,10 +257,10 @@ void ga10b_fifo_ctxsw_timeout_isr(struct gk20a *g,
 		/* dump ctxsw timeout for rleng. useful for debugging */
 		reg_val = nvgpu_runlist_readl(g, runlist,
 			runlist_engine_ctxsw_timeout_config_r(
-			dev->next.rleng_id));
+			dev->rleng_id));
 		timeout = runlist_engine_ctxsw_timeout_config_period_v(reg_val);
 		nvgpu_log_info(g, "rleng: %u ctxsw timeout period = 0x%x",
-			dev->next.rleng_id, timeout);
+			dev->rleng_id, timeout);
 
 		/* handle ctxsw timeout */
 		tsgid = ga10b_fifo_ctxsw_timeout_info(g, runlist, rleng,

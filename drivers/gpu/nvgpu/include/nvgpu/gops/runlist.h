@@ -95,7 +95,7 @@ struct gops_runlist {
 				u32 rleng_id, u32 runlist_pri_base);
 	u32 (*get_chram_bar0_offset)(struct gk20a *g, u32 runlist_pri_base);
 	void (*get_pbdma_info)(struct gk20a *g, u32 runlist_pri_base,
-				struct nvgpu_next_pbdma_info *pbdma_info);
+				struct nvgpu_pbdma_info *pbdma_info);
 	u32 (*get_engine_intr_id)(struct gk20a *g, u32 runlist_pri_base,
 			u32 rleng_id);
 	u32 (*get_esched_fb_thread_id)(struct gk20a *g, u32 runlist_pri_base);

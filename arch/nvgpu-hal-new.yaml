@@ -1049,3 +1049,8 @@ grmgr:
              hal/grmgr/grmgr_ga100.c,
              hal/grmgr/grmgr_ga100.h,]
 
+sim:
+  safe: no
+  owner: Antony Alex
+  sources: [ hal/sim/sim_ga10b.h,
+             hal/sim/sim_ga10b.c ]

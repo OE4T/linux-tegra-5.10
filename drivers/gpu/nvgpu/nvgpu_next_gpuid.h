@@ -41,7 +41,7 @@
 #define NVGPU_NEXT_VGPU_INIT_HAL vgpu_ga10b_init_hal
 #define NVGPU_NEXT_PLATFORM_VGPU ga10b_vgpu_tegra_platform
 
-#define NVGPU_NEXT_PROFILER_QUIESCE	nvgpu_next_profiler_hs_stream_quiesce
+#define NVGPU_NEXT_PROFILER_QUIESCE	nvgpu_profiler_hs_stream_quiesce
 #ifdef CONFIG_NVGPU_DGPU
 #define NVGPU_NEXT_DGPU_GPUID		0x00000170
 #define NVGPU_NEXT_DGPU_INIT_HAL	ga100_init_hal
@@ -57,14 +57,14 @@ extern int ga10b_init_hal(struct gk20a *g);
 
 extern struct gk20a_platform ga10b_tegra_platform;
 
-extern void nvgpu_next_perfmon_sw_init(struct gk20a *g,
+extern void nvgpu_ga10b_perfmon_sw_init(struct gk20a *g,
 		struct nvgpu_pmu_perfmon *perfmon);
 
-extern void nvgpu_next_pg_sw_init(struct gk20a *g, struct nvgpu_pmu_pg *pg);
+extern void nvgpu_ga10b_pg_sw_init(struct gk20a *g, struct nvgpu_pmu_pg *pg);
 
 int vgpu_ga10b_init_hal(struct gk20a *g);
 extern struct gk20a_platform ga10b_vgpu_tegra_platform;
 
-extern void nvgpu_next_profiler_hs_stream_quiesce(struct gk20a *g);
+extern void nvgpu_profiler_hs_stream_quiesce(struct gk20a *g);
 
 #endif

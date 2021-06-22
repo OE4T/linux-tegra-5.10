@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,6 @@
 #ifndef NVGPU_FALCON_SW_GA10B_H
 #define NVGPU_FALCON_SW_GA10B_H
 
-void nvgpu_next_falcon_sw_init(struct nvgpu_falcon *flcn);
+void ga10b_falcon_sw_init(struct nvgpu_falcon *flcn);
 
 #endif /* NVGPU_FALCON_SW_GA10B_H */

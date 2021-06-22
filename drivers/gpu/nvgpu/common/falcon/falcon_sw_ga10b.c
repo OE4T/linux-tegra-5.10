@@ -119,7 +119,7 @@ static void check_and_enable_falcon2(struct nvgpu_falcon *flcn,
 	}
 }
 
-extern void nvgpu_next_falcon_sw_init(struct nvgpu_falcon *flcn)
+extern void ga10b_falcon_sw_init(struct nvgpu_falcon *flcn)
 {
 	struct gk20a *g = flcn->g;
 

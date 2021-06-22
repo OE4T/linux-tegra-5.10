@@ -867,7 +867,8 @@ nvgpu-y += \
 	hal/power_features/cg/ga10b_gating_reglist.o \
 	hal/therm/therm_ga10b_fusa.o \
 	hal/ce/ce_ga10b_fusa.o \
-	hal/grmgr/grmgr_ga10b.o
+	hal/grmgr/grmgr_ga10b.o \
+	hal/sim/sim_ga10b.o
 
 ifeq ($(CONFIG_NVGPU_COMPRESSION),y)
 nvgpu-y += \

@@ -66,7 +66,7 @@ u32 ga10b_runlist_get_chram_bar0_offset(struct gk20a *g, u32 runlist_pri_base)
  * is not populated.
  */
 void ga10b_runlist_get_pbdma_info(struct gk20a *g, u32 runlist_pri_base,
-			struct nvgpu_next_pbdma_info *pbdma_info)
+			struct nvgpu_pbdma_info *pbdma_info)
 {
 	u32 i, pbdma_config;
 

@@ -147,7 +147,7 @@ int nvgpu_acr_init(struct gk20a *g)
 		break;
 #if defined(CONFIG_NVGPU_NON_FUSA)
 	case NVGPU_NEXT_GPUID:
-		nvgpu_next_acr_sw_init(g, g->acr);
+		nvgpu_ga10b_acr_sw_init(g, g->acr);
 		break;
 #endif
 #ifdef CONFIG_NVGPU_DGPU
@@ -156,7 +156,7 @@ int nvgpu_acr_init(struct gk20a *g)
 		break;
 #if defined(CONFIG_NVGPU_NON_FUSA)
 	case NVGPU_NEXT_DGPU_GPUID:
-		nvgpu_next_dgpu_acr_sw_init(g, g->acr);
+		nvgpu_ga100_acr_sw_init(g, g->acr);
 		break;
 #endif
 #endif

@@ -91,12 +91,6 @@ enum nvgpu_engine_status_ctx_status {
 	NVGPU_CTX_STATUS_CTXSW_SWITCH,
 };
 
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_HAL_NON_FUSA)
-struct nvgpu_next_engine_status_info {
-	/** Engine status_1 h/w register's read value. */
-	u32 reg1_data;
-};
-#endif
 
 struct nvgpu_engine_status_info {
 	/** Engine status h/w register's read value. */
@@ -104,7 +98,9 @@ struct nvgpu_engine_status_info {
 #if defined(CONFIG_NVGPU_NON_FUSA)
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	/* Ampere+ engine status additions */
-	 struct nvgpu_next_engine_status_info nvgpu_next;
+
+	/** Engine status_1 h/w register's read value. */
+	u32 reg1_data;
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 #endif
 	/** Channel or tsg id that is currently assigned to the engine. */

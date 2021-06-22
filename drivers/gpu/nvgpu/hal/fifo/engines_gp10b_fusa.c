@@ -65,7 +65,10 @@ int gp10b_engine_init_ce_info(struct nvgpu_fifo *f)
 
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 		{
-			int err = nvgpu_next_engine_init_one_dev(g, dev);
+			/*
+			 * Fill Ampere+ device fields.
+			 */
+			int err = nvgpu_engine_init_one_dev_extra(g, dev);
 			if (err != 0) {
 				return err;
 			}

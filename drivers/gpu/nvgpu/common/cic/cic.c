@@ -173,7 +173,7 @@ void nvgpu_cic_intr_unit_vectorid_init(struct gk20a *g, u32 unit, u32 *vectorid,
 
 	nvgpu_log(g, gpu_dbg_intr, "UNIT=%d, nvecs=%d", unit, num_entries);
 
-	intr_unit_info = g->mc.nvgpu_next.intr_unit_info;
+	intr_unit_info = g->mc.intr_unit_info;
 
 	nvgpu_spinlock_irqsave(&g->mc.intr_lock, flags);
 
@@ -198,7 +198,7 @@ bool nvgpu_cic_intr_is_unit_info_valid(struct gk20a *g, u32 unit)
 		return false;
 	}
 
-	intr_unit_info = g->mc.nvgpu_next.intr_unit_info;
+	intr_unit_info = g->mc.intr_unit_info;
 
 	if (intr_unit_info[unit].valid == true) {
 		info_valid = true;
@@ -220,8 +220,8 @@ bool nvgpu_cic_intr_get_unit_info(struct gk20a *g, u32 unit, u32 *subtree,
 			return false;
 		}
 	}
-	*subtree = g->mc.nvgpu_next.intr_unit_info[unit].subtree;
-	*subtree_mask = g->mc.nvgpu_next.intr_unit_info[unit].subtree_mask;
+	*subtree = g->mc.intr_unit_info[unit].subtree;
+	*subtree_mask = g->mc.intr_unit_info[unit].subtree_mask;
 	nvgpu_log(g, gpu_dbg_intr, "subtree(%d) subtree_mask(%llx)",
 			*subtree, *subtree_mask);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -49,7 +49,7 @@ static u32* ga100_get_versioned_sig(struct gk20a *g, struct nvgpu_acr *acr,
 	return sig;
 }
 
-void nvgpu_next_dgpu_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
+void nvgpu_ga100_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 {
 	nvgpu_log_fn(g, " ");
 

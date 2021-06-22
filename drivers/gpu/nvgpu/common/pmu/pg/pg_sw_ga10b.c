@@ -357,7 +357,7 @@ static int ga10b_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
 	return err;
 }
 
-void nvgpu_next_pg_sw_init(struct gk20a *g,
+void nvgpu_ga10b_pg_sw_init(struct gk20a *g,
 		struct nvgpu_pmu_pg *pg)
 {
 	nvgpu_log_fn(g, " ");

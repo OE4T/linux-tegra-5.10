@@ -146,7 +146,7 @@ int nvgpu_pmu_initialize_perfmon(struct gk20a *g, struct nvgpu_pmu *pmu,
 		break;
 #if defined(CONFIG_NVGPU_NON_FUSA)
 	case NVGPU_NEXT_GPUID:
-		nvgpu_next_perfmon_sw_init(g, *perfmon_ptr);
+		nvgpu_ga10b_perfmon_sw_init(g, *perfmon_ptr);
 		break;
 #endif
 	default:

@@ -185,7 +185,7 @@ bool nvgpu_profiler_validate_regops_allowlist(struct nvgpu_profiler_object *prof
 		u32 offset, enum nvgpu_pm_resource_hwpm_register_type *type);
 
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
-void nvgpu_next_profiler_hs_stream_quiesce(struct gk20a *g);
+void nvgpu_profiler_hs_stream_quiesce(struct gk20a *g);
 #endif /* CONFIG_NVGPU_HAL_NON_FUSA */
 
 #endif /* CONFIG_NVGPU_PROFILER */

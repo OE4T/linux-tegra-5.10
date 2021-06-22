@@ -105,18 +105,9 @@ static inline u32 *sim_msg_param(struct gk20a *g, u32 byte_offset)
 }
 
 /** @cond DOXYGEN_SHOULD_SKIP_THIS */
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_HAL_NON_FUSA)
-void nvgpu_next_init_sim_support(struct gk20a *g);
-
-#ifdef CONFIG_NVGPU_DEBUGGER
-int nvgpu_next_init_sim_netlist_ctxsw_regs(struct gk20a *g);
-void nvgpu_next_init_sim_netlist_ctxsw_regs_free(struct gk20a *g);
-#endif /* CONFIG_NVGPU_DEBUGGER */
-
-int nvgpu_next_init_sim_netlist_ctx_vars(struct gk20a *g);
-void nvgpu_next_init_sim_netlist_ctx_vars_free(struct gk20a *g);
-
-#endif
+#ifdef CONFIG_NVGPU_NON_FUSA
+void nvgpu_init_sim_support2(struct gk20a *g);
+#endif /* CONFIG_NVGPU_NON_FUSA */
 /** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
 #endif

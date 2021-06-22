@@ -622,7 +622,7 @@ int gr_ga10b_process_context_buffer_priv_segment(struct gk20a *g,
 	/* Process the SYS/BE segment. */
 	if ((addr_type == CTXSW_ADDR_TYPE_SYS) ||
 	    (addr_type == CTXSW_ADDR_TYPE_ROP)) {
-		list = nvgpu_next_netlist_get_sys_compute_ctxsw_regs(g);
+		list = nvgpu_netlist_get_sys_compute_ctxsw_regs(g);
 		for (i = 0; i < list->count; i++) {
 			reg = &list->l[i];
 			address    = reg->addr;
@@ -634,7 +634,7 @@ int gr_ga10b_process_context_buffer_priv_segment(struct gk20a *g,
 			}
 		}
 #ifdef CONFIG_NVGPU_GRAPHICS
-		list = nvgpu_next_netlist_get_sys_gfx_ctxsw_regs(g);
+		list = nvgpu_netlist_get_sys_gfx_ctxsw_regs(g);
 		for (i = 0; i < list->count; i++) {
 			reg = &list->l[i];
 			address    = reg->addr;
@@ -652,7 +652,7 @@ int gr_ga10b_process_context_buffer_priv_segment(struct gk20a *g,
 	 * Process the LTS segment.
 	 */
 	if (addr_type == CTXSW_ADDR_TYPE_LTS_MAIN) {
-		list = nvgpu_next_netlist_get_lts_ctxsw_regs(g);
+		list = nvgpu_netlist_get_lts_ctxsw_regs(g);
 		for (i = 0; i < list->count; i++) {
 			reg = &list->l[i];
 			address = reg->addr;
@@ -668,7 +668,7 @@ int gr_ga10b_process_context_buffer_priv_segment(struct gk20a *g,
 	/* Process the TPC segment. */
 	if (addr_type == CTXSW_ADDR_TYPE_TPC) {
 		for (tpc_num = 0; tpc_num < num_tpcs; tpc_num++) {
-			list = nvgpu_next_netlist_get_tpc_compute_ctxsw_regs(g);
+			list = nvgpu_netlist_get_tpc_compute_ctxsw_regs(g);
 			for (i = 0; i < list->count; i++) {
 				reg = &list->l[i];
 				address = reg->addr;
@@ -686,7 +686,7 @@ int gr_ga10b_process_context_buffer_priv_segment(struct gk20a *g,
 				}
 			}
 #ifdef CONFIG_NVGPU_GRAPHICS
-			list = nvgpu_next_netlist_get_tpc_gfx_ctxsw_regs(g);
+			list = nvgpu_netlist_get_tpc_gfx_ctxsw_regs(g);
 			for (i = 0; i < list->count; i++) {
 				reg = &list->l[i];
 				address = reg->addr;
@@ -712,7 +712,7 @@ int gr_ga10b_process_context_buffer_priv_segment(struct gk20a *g,
 		}
 
 		for (tpc_num = 0; tpc_num < num_tpcs; tpc_num++) {
-			list = nvgpu_next_netlist_get_etpc_compute_ctxsw_regs(g);
+			list = nvgpu_netlist_get_etpc_compute_ctxsw_regs(g);
 			for (i = 0; i < list->count; i++) {
 				reg = &list->l[i];
 				address = reg->addr;
@@ -740,7 +740,7 @@ int gr_ga10b_process_context_buffer_priv_segment(struct gk20a *g,
 				}
 			}
 #ifdef CONFIG_NVGPU_GRAPHICS
-			list = nvgpu_next_netlist_get_etpc_gfx_ctxsw_regs(g);
+			list = nvgpu_netlist_get_etpc_gfx_ctxsw_regs(g);
 			for (i = 0; i < list->count; i++) {
 				reg = &list->l[i];
 				address = reg->addr;
@@ -775,7 +775,7 @@ int gr_ga10b_process_context_buffer_priv_segment(struct gk20a *g,
 	/* Process the PPC segment. */
 	if (addr_type == CTXSW_ADDR_TYPE_PPC) {
 		for (ppc_num = 0; ppc_num < num_ppcs; ppc_num++) {
-			list = nvgpu_next_netlist_get_ppc_compute_ctxsw_regs(g);
+			list = nvgpu_netlist_get_ppc_compute_ctxsw_regs(g);
 			for (i = 0; i < list->count; i++) {
 				reg = &list->l[i];
 				address = reg->addr;
@@ -799,7 +799,7 @@ int gr_ga10b_process_context_buffer_priv_segment(struct gk20a *g,
 				}
 			}
 #ifdef CONFIG_NVGPU_GRAPHICS
-			list = nvgpu_next_netlist_get_ppc_gfx_ctxsw_regs(g);
+			list = nvgpu_netlist_get_ppc_gfx_ctxsw_regs(g);
 			for (i = 0; i < list->count; i++) {
 				reg = &list->l[i];
 				address = reg->addr;
@@ -828,7 +828,7 @@ int gr_ga10b_process_context_buffer_priv_segment(struct gk20a *g,
 
 	/* Process the GPC segment. */
 	if (addr_type == CTXSW_ADDR_TYPE_GPC) {
-		list = nvgpu_next_netlist_get_gpc_compute_ctxsw_regs(g);
+		list = nvgpu_netlist_get_gpc_compute_ctxsw_regs(g);
 		for (i = 0; i < list->count; i++) {
 			reg = &list->l[i];
 
@@ -845,7 +845,7 @@ int gr_ga10b_process_context_buffer_priv_segment(struct gk20a *g,
 			}
 		}
 #ifdef CONFIG_NVGPU_GRAPHICS
-		list = nvgpu_next_netlist_get_gpc_gfx_ctxsw_regs(g);
+		list = nvgpu_netlist_get_gpc_gfx_ctxsw_regs(g);
 		for (i = 0; i < list->count; i++) {
 			reg = &list->l[i];
 

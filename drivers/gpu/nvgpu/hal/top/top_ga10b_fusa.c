@@ -85,25 +85,25 @@ static struct nvgpu_device *ga10b_top_parse_device(struct gk20a *g,
 	dev->pri_base = top_device_info2_dev_device_pri_base_v(rows[1]) <<
 		top_device_info2_dev_device_pri_base_b();
 
-	dev->next.engine = top_device_info2_dev_is_engine_v(rows[1]) ==
+	dev->engine = top_device_info2_dev_is_engine_v(rows[1]) ==
 		top_device_info2_dev_is_engine_true_v();
-	dev->next.rleng_id = top_device_info2_dev_rleng_id_v(rows[2]);
-	dev->next.rl_pri_base =
+	dev->rleng_id = top_device_info2_dev_rleng_id_v(rows[2]);
+	dev->rl_pri_base =
 		top_device_info2_dev_runlist_pri_base_v(rows[2]) <<
 		top_device_info2_dev_runlist_pri_base_b();
 
-	if (dev->next.engine) {
+	if (dev->engine) {
 		dev->engine_id = g->ops.runlist.get_engine_id_from_rleng_id(g,
-								dev->next.rleng_id,
-								dev->next.rl_pri_base);
+								dev->rleng_id,
+								dev->rl_pri_base);
 		dev->runlist_id = g->ops.runlist.get_runlist_id(g,
-								dev->next.rl_pri_base);
+								dev->rl_pri_base);
 		dev->intr_id = g->ops.runlist.get_engine_intr_id(g,
-								 dev->next.rl_pri_base,
-								 dev->next.rleng_id);
+								 dev->rl_pri_base,
+								 dev->rleng_id);
 		g->ops.runlist.get_pbdma_info(g,
-					      dev->next.rl_pri_base,
-					      &dev->next.pbdma_info);
+					      dev->rl_pri_base,
+					      &dev->pbdma_info);
 
 	}
 

@@ -57,7 +57,7 @@ u32 ga100_pbdma_set_clear_intr_offsets(struct gk20a *g,
 
 u32 ga100_pbdma_get_fc_target(const struct nvgpu_device *dev)
 {
-	return (pbdma_target_engine_f(dev->next.rleng_id) |
+	return (pbdma_target_engine_f(dev->rleng_id) |
 			pbdma_target_eng_ctx_valid_true_f() |
 			pbdma_target_ce_ctx_valid_true_f());
 }
@@ -68,9 +68,9 @@ static void ga100_pbdma_force_ce_split_set(struct gk20a *g,
 	u32 reg;
 	u32 i;
 	u32 pbdma_id;
-	const struct nvgpu_next_pbdma_info *pbdma_info = NULL;
+	const struct nvgpu_pbdma_info *pbdma_info = NULL;
 
-	pbdma_info = runlist->nvgpu_next.pbdma_info;
+	pbdma_info = runlist->pbdma_info;
 	for (i = 0U; i < PBDMA_PER_RUNLIST_SIZE; i++) {
 		pbdma_id = pbdma_info->pbdma_id[i];
 		if (pbdma_id == U32_MAX) {

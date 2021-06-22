@@ -312,7 +312,7 @@ static void ga10b_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 	acr->patch_wpr_info_to_ucode = ga10b_acr_patch_wpr_info_to_ucode;
 }
 
-extern void nvgpu_next_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
+extern void nvgpu_ga10b_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 {
 	nvgpu_log_fn(g, " ");
 	acr->g = g;

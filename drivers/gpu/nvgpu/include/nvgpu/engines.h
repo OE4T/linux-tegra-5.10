@@ -37,8 +37,8 @@ struct nvgpu_device;
 #if defined(CONFIG_NVGPU_NON_FUSA)
 #define ENGINE_PBDMA_INSTANCE0 0U
 
-int nvgpu_next_engine_init_one_dev(struct gk20a *g,
-				   const struct nvgpu_device *dev);
+int nvgpu_engine_init_one_dev_extra(struct gk20a *g,
+		const struct nvgpu_device *dev);
 #endif
 /** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 

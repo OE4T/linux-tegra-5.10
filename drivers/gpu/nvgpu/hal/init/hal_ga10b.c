@@ -268,6 +268,7 @@
 #include <nvgpu/nvgpu_init.h>
 #ifdef CONFIG_NVGPU_SIM
 #include <nvgpu/sim.h>
+#include "hal/sim/sim_ga10b.h"
 #endif
 
 #include "hal/grmgr/grmgr_ga10b.h"
@@ -1106,7 +1107,7 @@ static const struct gops_runlist ga10b_ops_runlist = {
 	.get_chram_bar0_offset = ga10b_runlist_get_chram_bar0_offset,
 	.get_pbdma_info = ga10b_runlist_get_pbdma_info,
 	.get_engine_intr_id = ga10b_runlist_get_engine_intr_id,
-	.init_enginfo = nvgpu_next_runlist_init_enginfo,
+	.init_enginfo = nvgpu_runlist_init_enginfo,
 	.get_tsg_max_timeslice = gv11b_runlist_max_timeslice,
 	.get_esched_fb_thread_id = ga10b_runlist_get_esched_fb_thread_id,
 };
@@ -1861,8 +1862,8 @@ int ga10b_init_hal(struct gk20a *g)
 #endif
 
 #ifdef CONFIG_NVGPU_SIM
-	/* SIM specific overrides */
-	nvgpu_next_init_sim_support(g);
+	/* SIM specific overrides for ga10b */
+	nvgpu_init_sim_support_ga10b(g);
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)){
 		/* Disable fb mem_unlock */
 		gops->fb.mem_unlock = NULL;

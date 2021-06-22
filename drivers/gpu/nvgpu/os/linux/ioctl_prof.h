@@ -29,9 +29,5 @@ int nvgpu_prof_ctx_fops_open(struct inode *inode, struct file *filp);
 int nvgpu_prof_fops_release(struct inode *inode, struct file *filp);
 long nvgpu_prof_fops_ioctl(struct file *filp, unsigned int cmd,
 		unsigned long arg);
-#if defined(CONFIG_NVGPU_NON_FUSA)
-int nvgpu_next_prof_fops_ioctl(struct nvgpu_profiler_object *prof,
-	unsigned int cmd, void *buf);
-#endif
 
 #endif /* LINUX_IOCTL_PROF_H */

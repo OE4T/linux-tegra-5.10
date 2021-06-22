@@ -292,7 +292,7 @@ struct pmu_pg_stats_v3
 	u32 hw_disallow_reason_mask;
 };
 
-void nvgpu_next_pg_sw_init(struct gk20a *g, struct nvgpu_pmu_pg *pg);
+void nvgpu_ga10b_pg_sw_init(struct gk20a *g, struct nvgpu_pmu_pg *pg);
 u32 ga10b_pmu_pg_engines_list(struct gk20a *g);
 
 #endif /* NVGPU_PMU_PG_SW_GA10B_H */

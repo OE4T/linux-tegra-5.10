@@ -597,7 +597,7 @@ u32 ga10b_pbdma_set_intr_notify(u32 eng_intr_vector)
 
 u32 ga10b_pbdma_get_fc_target(const struct nvgpu_device *dev)
 {
-	return (pbdma_target_engine_f(dev->next.rleng_id) |
+	return (pbdma_target_engine_f(dev->rleng_id) |
 			pbdma_target_eng_ctx_valid_true_f() |
 			pbdma_target_ce_ctx_valid_true_f());
 }

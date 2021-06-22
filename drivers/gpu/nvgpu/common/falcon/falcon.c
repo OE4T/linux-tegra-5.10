@@ -30,9 +30,9 @@
 #include "falcon_sw_tu104.h"
 #endif
 
-#if defined(CONFIG_NVGPU_NON_FUSA)
+#ifdef CONFIG_NVGPU_NON_FUSA
 #include "nvgpu_next_gpuid.h"
-#endif
+#endif /* CONFIG_NVGPU_NON_FUSA */
 
 static bool is_falcon_valid(struct nvgpu_falcon *flcn)
 {
@@ -462,23 +462,19 @@ static int falcon_sw_chip_init(struct gk20a *g, struct nvgpu_falcon *flcn)
 	case NVGPU_GPUID_GP10B:
 		gk20a_falcon_sw_init(flcn);
 		break;
-#if defined(CONFIG_NVGPU_NON_FUSA)
 	case NVGPU_NEXT_GPUID:
-		nvgpu_next_falcon_sw_init(flcn);
-		break;
-#endif
-#endif
-	case NVGPU_GPUID_GV11B:
-		gk20a_falcon_sw_init(flcn);
+		ga10b_falcon_sw_init(flcn);
 		break;
 #ifdef CONFIG_NVGPU_DGPU
 	case NVGPU_GPUID_TU104:
-#if defined(CONFIG_NVGPU_NON_FUSA)
 	case NVGPU_NEXT_DGPU_GPUID:
-#endif
 		tu104_falcon_sw_init(flcn);
 		break;
-#endif
+#endif /* CONFIG_NVGPU_DGPU */
+#endif /* CONFIG_NVGPU_NON_FUSA */
+	case NVGPU_GPUID_GV11B:
+		gk20a_falcon_sw_init(flcn);
+		break;
 	default:
 		err = -EINVAL;
 		nvgpu_err(g, "no support for GPUID %x", ver);

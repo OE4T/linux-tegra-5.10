@@ -42,7 +42,7 @@ struct gk20a;
 #define NVGPU_INVALID_PBDMA_PRI_BASE	U32_MAX
 #define NVGPU_INVALID_PBDMA_ID		U32_MAX
 
-struct nvgpu_next_pbdma_info {
+struct nvgpu_pbdma_info {
 	/** The pri offset of the i'th PBDMA for runlist_pri_base */
 	u32 pbdma_pri_base[PBDMA_PER_RUNLIST_SIZE];
 	/** The ID of the i'th PBDMA that runs channels on this runlist */

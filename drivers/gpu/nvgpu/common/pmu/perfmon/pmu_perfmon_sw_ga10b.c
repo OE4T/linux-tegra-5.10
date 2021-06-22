@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,7 +25,7 @@
 
 #include "pmu_perfmon_sw_ga10b.h"
 
-void nvgpu_next_perfmon_sw_init(struct gk20a *g,
+void nvgpu_ga10b_perfmon_sw_init(struct gk20a *g,
 		struct nvgpu_pmu_perfmon *perfmon)
 {
 	nvgpu_log_fn(g, " ");

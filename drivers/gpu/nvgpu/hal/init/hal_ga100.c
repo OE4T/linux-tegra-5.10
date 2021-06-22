@@ -1118,7 +1118,7 @@ static const struct gops_runlist ga100_ops_runlist = {
 	.get_chram_bar0_offset = ga10b_runlist_get_chram_bar0_offset,
 	.get_pbdma_info = ga10b_runlist_get_pbdma_info,
 	.get_engine_intr_id = ga10b_runlist_get_engine_intr_id,
-	.init_enginfo = nvgpu_next_runlist_init_enginfo,
+	.init_enginfo = nvgpu_runlist_init_enginfo,
 	.get_tsg_max_timeslice = gv11b_runlist_max_timeslice,
 	.get_esched_fb_thread_id = ga10b_runlist_get_esched_fb_thread_id,
 };

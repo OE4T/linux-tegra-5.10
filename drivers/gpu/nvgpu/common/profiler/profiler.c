@@ -1159,7 +1159,7 @@ bool nvgpu_profiler_validate_regops_allowlist(struct nvgpu_profiler_object *prof
 }
 
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
-void nvgpu_next_profiler_hs_stream_quiesce(struct gk20a *g)
+void nvgpu_profiler_hs_stream_quiesce(struct gk20a *g)
 {
 	if (g->ops.perf.reset_hs_streaming_credits != NULL) {
 		/* Reset high speed streaming credits to 0. */

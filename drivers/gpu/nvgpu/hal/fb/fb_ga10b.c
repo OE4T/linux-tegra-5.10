@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -212,7 +212,7 @@ int ga10b_fb_set_remote_swizid(struct gk20a *g, bool enable)
 	u32 default_remote_swizid = 0U;
 	struct nvgpu_gpu_instance *gpu_instance;
 	u32 pbdma_id_mask;
-	struct nvgpu_next_pbdma_info pbdma_info;
+	struct nvgpu_pbdma_info pbdma_info;
 	u32 pbdma_index;
 
 	for (index = 0U; index < g->mig.num_gpu_instances; index++) {
@@ -248,7 +248,7 @@ int ga10b_fb_set_remote_swizid(struct gk20a *g, bool enable)
 			reg_val);
 
 		g->ops.runlist.get_pbdma_info(g,
-				gr_dev->next.rl_pri_base,
+				gr_dev->rl_pri_base,
 				&pbdma_info);
 
 		for (pbdma_index = 0U; pbdma_index < PBDMA_PER_RUNLIST_SIZE;
@@ -297,7 +297,7 @@ int ga10b_fb_set_remote_swizid(struct gk20a *g, bool enable)
 			}
 
 			g->ops.runlist.get_pbdma_info(g,
-					lce->next.rl_pri_base,
+					lce->rl_pri_base,
 					&pbdma_info);
 
 			for (pbdma_index = 0U; pbdma_index < PBDMA_PER_RUNLIST_SIZE;

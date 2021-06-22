@@ -184,18 +184,6 @@ struct nvgpu_intr_unit_info {
 	 */
 	bool valid;
 };
-
-struct nvgpu_next_mc {
-	/**
-	 * intr info array indexed by s/w defined intr unit name
-	 */
-	struct nvgpu_intr_unit_info intr_unit_info[NVGPU_CIC_INTR_UNIT_MAX];
-	/**
-	 * Leaf mask per subtree. Subtree is a pair of leaf registers.
-	 * Each subtree corresponds to a bit in intr_top register.
-	 */
-	u64 subtree_mask_restore[HOST2SOC_NUM_SUBTREE];
-};
 #endif
 
 /**
@@ -252,7 +240,15 @@ struct nvgpu_mc {
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 
 #if defined(CONFIG_NVGPU_NON_FUSA)
-	struct nvgpu_next_mc nvgpu_next;
+	/**
+	 * intr info array indexed by s/w defined intr unit name
+	 */
+	struct nvgpu_intr_unit_info intr_unit_info[NVGPU_CIC_INTR_UNIT_MAX];
+	/**
+	 * Leaf mask per subtree. Subtree is a pair of leaf registers.
+	 * Each subtree corresponds to a bit in intr_top register.
+	 */
+	u64 subtree_mask_restore[HOST2SOC_NUM_SUBTREE];
 #endif
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 };
