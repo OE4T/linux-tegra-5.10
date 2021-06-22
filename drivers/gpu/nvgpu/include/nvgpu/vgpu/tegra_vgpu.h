@@ -143,7 +143,8 @@ struct tegra_vgpu_attrib_params {
 };
 
 struct tegra_vgpu_as_share_params {
-	u64 size;
+	u64 va_start;
+	u64 va_limit;
 	u64 handle;
 	u32 big_page_size;
 };
