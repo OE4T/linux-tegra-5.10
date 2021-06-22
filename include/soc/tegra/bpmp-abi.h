@@ -76,7 +76,8 @@
  * @ingroup MRQ_Format
  * Request an answer from the peer.
  * This should be set in mrq_request::flags for all requests targetted
- * at BPMP. For requests originating in BPMP, this flag is optional.
+ * at BPMP. For requests originating in BPMP, this flag is optional except
+ * for messages targeting MCE, for which the field must be set.
  * When this flag is not set, the remote peer must not send a response
  * back.
  */
@@ -294,24 +295,16 @@ struct mrq_response {
 
 #define MRQ_PING		0U
 #define MRQ_QUERY_TAG		1U
-#define MRQ_MODULE_LOAD		4U
-#define MRQ_MODULE_UNLOAD	5U
-#define MRQ_TRACE_MODIFY	7U
-#define MRQ_WRITE_TRACE		8U
 #define MRQ_THREADED_PING	9U
-#define MRQ_MODULE_MAIL		11U
 #define MRQ_DEBUGFS		19U
 #define MRQ_RESET		20U
 #define MRQ_I2C			21U
 #define MRQ_CLK			22U
 #define MRQ_QUERY_ABI		23U
-#define MRQ_PG_READ_STATE	25U
-#define MRQ_PG_UPDATE_STATE	26U
 #define MRQ_THERMAL		27U
 #define MRQ_CPU_VHINT		28U
 #define MRQ_ABI_RATCHET		29U
 #define MRQ_EMC_DVFS_LATENCY	31U
-#define MRQ_TRACE_ITER		64U
 #define MRQ_RINGBUF_CONSOLE	65U
 #define MRQ_PG			66U
 #define MRQ_CPU_NDIV_LIMITS	67U
@@ -3323,6 +3316,8 @@ struct mrq_ec_response {
 #define BPMP_EBADMSG	77
 /** @brief Operation not supported */
 #define BPMP_EOPNOTSUPP 95
+/** @brief Targeted resource not available */
+#define BPMP_ENAVAIL	119
 /** @brief Not supported */
 #define BPMP_ENOTSUP	134
 /** @brief No such device or address */
