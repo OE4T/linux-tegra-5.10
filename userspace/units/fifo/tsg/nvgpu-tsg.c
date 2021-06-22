@@ -26,6 +26,7 @@
 
 #include <unit/io.h>
 #include <unit/unit.h>
+#include <unit/utils.h>
 
 #include <nvgpu/channel.h>
 #include <nvgpu/error_notifier.h>
@@ -1085,6 +1086,67 @@ done:
 	return ret;
 }
 
+int test_tsg_check_and_get_from_id_bvec(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	struct nvgpu_fifo *f = &g->fifo;
+	int ret = UNIT_FAIL;
+	u32 valid_tsg_ids[][2] = {{0, f->num_channels - 1}};
+	u32 invalid_tsg_ids[][2] = {{f->num_channels, U32_MAX}};
+	u32 tsgid, tsgid_range_len;
+	u32 (*working_list)[2];
+	/*
+	 * i is to loop through valid and invalid cases
+	 * j is to loop through different ranges within ith case
+	 * states is for min, max and median
+	 */
+	u32 i, j, states;
+	const char *string_cases[] = {"Valid", "Invalid"};
+	const char *string_states[] = {"Min", "Max", "Mid"};
+	u32 tsgid_range_difference;
+
+	/* loop through valid and invalid cases */
+	for (i = 0; i < 2; i++) {
+		/* select appropriate iteration size */
+		tsgid_range_len = (i == 0) ? ARRAY_SIZE(valid_tsg_ids) : ARRAY_SIZE(invalid_tsg_ids);
+		/* select correct working list */
+		working_list =  (i == 0) ? valid_tsg_ids : invalid_tsg_ids;
+		for (j = 0; j < tsgid_range_len; j++) {
+			for (states = 0; states < 3; states++) {
+				/* check for min tsgid */
+				if (states == 0)
+					tsgid = working_list[j][0];
+				else if (states == 1) {
+					/* check for max tsgid */
+					tsgid = working_list[j][1];
+				} else {
+					tsgid_range_difference = working_list[j][1] - working_list[j][0];
+					/* Check for random tsgid in range */
+					if (tsgid_range_difference > 1)
+						tsgid = get_random_u32(working_list[j][0] + 1, working_list[j][1] - 1);
+					else
+						continue;
+				}
+
+				unit_info(m, "BVEC testing for nvgpu_tsg_check_and_get_from_id with tsgid =  0x%08x(%s range [0x%08x - 0x%08x] %s)\n", tsgid, string_cases[i], working_list[j][0], working_list[j][1], string_states[states]);
+
+				if (i == 0)
+					unit_assert(nvgpu_tsg_check_and_get_from_id(g, tsgid) != NULL, goto done);
+				else
+					unit_assert(nvgpu_tsg_check_and_get_from_id(g,tsgid) == NULL, goto done);
+			}
+		}
+	}
+
+	ret = UNIT_SUCCESS;
+done:
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "%s failed\n", __func__);
+	}
+
+	return ret;
+}
+
 #define F_TSG_ABORT_CH_ABORT_CLEANUP_NULL	BIT(0)
 #define F_TSG_ABORT_PREEMPT			BIT(1)
 #define F_TSG_ABORT_CH				BIT(2)
@@ -1364,6 +1426,100 @@ done:
 	return ret;
 }
 
+int test_nvgpu_tsg_set_error_notifier_bvec(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	struct nvgpu_tsg *tsg = NULL;
+	struct nvgpu_channel *ch = NULL;
+	int ret = 0;
+
+	u32 valid_error_notifier_ids[][2] = {{NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT, NVGPU_ERR_NOTIFIER_PBDMA_PUSHBUFFER_CRC_MISMATCH}};
+	u32 invalid_error_notifier_ids[][2] = {{NVGPU_ERR_NOTIFIER_PBDMA_PUSHBUFFER_CRC_MISMATCH + 1, U32_MAX}};
+	u32 (*working_list)[2];
+	u32 error_code, error_notifier_range_len;
+	/*
+	 * i is to loop through valid and invalid cases
+	 * j is to loop through different ranges within ith case
+	 * states is for min, max and median
+	 */
+	u32 i, j, states;
+	const char *string_cases[] = {"Valid", "Invalid"};
+	const char *string_states[] = {"Min", "Max", "Mid"};
+	u32 tsgid_range_difference;
+
+	struct nvgpu_posix_channel ch_priv;
+
+	tsg = nvgpu_tsg_open(g, getpid());
+	unit_assert(tsg != NULL, goto done);
+
+	ch = nvgpu_channel_open_new(g, ~0U, false, getpid(), getpid());
+	unit_assert(ch != NULL, goto done);
+
+	ch->os_priv = &ch_priv;
+	ch_priv.err_notifier.error = 0U;
+
+	ret = nvgpu_tsg_bind_channel(tsg, ch);
+	unit_assert(ret == 0, goto done);
+
+	ret = UNIT_FAIL;
+
+	/* loop through valid and invalid cases */
+	for (i = 0; i < 2; i++) {
+		/* select appropriate iteration size */
+		error_notifier_range_len = (i == 0) ? ARRAY_SIZE(valid_error_notifier_ids) : ARRAY_SIZE(invalid_error_notifier_ids);
+		/* select correct working list */
+		working_list = (i == 0) ? valid_error_notifier_ids : invalid_error_notifier_ids;
+		for (j = 0; j < error_notifier_range_len; j++) {
+			for (states = 0; states < 3; states++) {
+				/* check for min error code */
+				if (states == 0)
+					error_code = working_list[j][0];
+				else if (states == 1) {
+					/* check for max error code */
+					error_code = working_list[j][1];
+				} else {
+					tsgid_range_difference = working_list[j][1] - working_list[j][0];
+					/* Check for random error code in range */
+					if (tsgid_range_difference > 1)
+						error_code = get_random_u32(working_list[j][0] + 1, working_list[j][1] - 1);
+					else
+						continue;
+				}
+
+				ch_priv.err_notifier.error = 0;
+				ch_priv.err_notifier.status = 0;
+
+				unit_info(m, "BVEC testing for nvgpu_tsg_set_error_notifier with id =  0x%08x(%s range [0x%08x - 0x%08x] %s)\n", error_code, string_cases[i], working_list[j][0], working_list[j][1], string_states[states]);
+
+				nvgpu_tsg_set_error_notifier(g, tsg, error_code);
+				if (i == 0) {
+					unit_assert(ch_priv.err_notifier.error == error_code, goto done);
+				} else {
+					unit_assert(ch_priv.err_notifier.error != error_code , goto done);
+				}
+
+			}
+		}
+	}
+
+	ret = UNIT_SUCCESS;
+done:
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "%s failed\n", __func__);
+	}
+
+	if (ch != NULL) {
+		nvgpu_channel_close(ch);
+		ch = NULL;
+	}
+	if (tsg != NULL) {
+		nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
+		tsg = NULL;
+	}
+
+	return ret;
+}
+
 int test_tsg_set_ctx_mmu_error(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
@@ -1489,6 +1645,7 @@ struct unit_module_test nvgpu_tsg_tests[] = {
 	UNIT_TEST(open, test_tsg_open, &unit_ctx, 0),
 	UNIT_TEST(release, test_tsg_release, &unit_ctx, 0),
 	UNIT_TEST(get_from_id, test_tsg_check_and_get_from_id, &unit_ctx, 0),
+	UNIT_TEST(get_from_id_bvec, test_tsg_check_and_get_from_id_bvec, &unit_ctx, 0),
 	UNIT_TEST(bind_channel, test_tsg_bind_channel, &unit_ctx, 2),
 	UNIT_TEST(unbind_channel, test_tsg_unbind_channel, &unit_ctx, 0),
 	UNIT_TEST(unbind_channel_check_hw_state,
@@ -1498,6 +1655,7 @@ struct unit_module_test nvgpu_tsg_tests[] = {
 	UNIT_TEST(enable_disable, test_tsg_enable, &unit_ctx, 0),
 	UNIT_TEST(abort, test_tsg_abort, &unit_ctx, 0),
 	UNIT_TEST(mark_error, test_tsg_mark_error, &unit_ctx, 0),
+	UNIT_TEST(bvec_nvgpu_tsg_set_error_notifier, test_nvgpu_tsg_set_error_notifier_bvec, &unit_ctx, 0),
 	UNIT_TEST(set_ctx_mmu_error, test_tsg_set_ctx_mmu_error, &unit_ctx, 0),
 	UNIT_TEST(reset_faulted_eng_pbdma, test_tsg_reset_faulted_eng_pbdma, &unit_ctx, 0),
 	UNIT_TEST(remove_support, test_fifo_remove_support, &unit_ctx, 0),

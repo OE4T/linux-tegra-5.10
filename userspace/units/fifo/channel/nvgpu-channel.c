@@ -25,6 +25,7 @@
 
 #include <unit/io.h>
 #include <unit/unit.h>
+#include <unit/utils.h>
 
 #include <nvgpu/channel.h>
 #include <nvgpu/channel_sync.h>
@@ -184,6 +185,78 @@ static int stub_channel_alloc_inst_ENOMEM(struct gk20a *g,
 	return -ENOMEM;
 }
 
+static int test_channel_open_bvec(struct unit_module *m,
+		struct gk20a *g, void *vargs, bool priviledged)
+{
+	struct nvgpu_channel *ch = NULL;
+	int ret = UNIT_FAIL;
+	u32 gr_runlist_id = nvgpu_engine_get_gr_runlist_id(g);
+	u32 valid_runlist_ids[][2] = {{0, 1}};
+	u32 invalid_runlist_ids[][2] = {{2, U32_MAX}};
+	u32 runlist_id, runlist_id_range;
+	u32 (*working_list)[2];
+	/*
+	 * i is to loop through valid and invalid cases
+	 * j is to loop through different ranges within ith case
+	 * states is for min, max and median
+	 */
+	u32 i, j, states;
+	const char *string_cases[] = {"Valid", "Invalid"};
+	const char *string_states[] = {"Min", "Max", "Mid"};
+	u32 runlist_range_difference;
+
+	/* loop through valid and invalid cases */
+	for (i = 0; i < 2; i++) {
+		/* select appropriate iteration size */
+		runlist_id_range = (i == 0) ? ARRAY_SIZE(valid_runlist_ids) : ARRAY_SIZE(invalid_runlist_ids);
+		/* select correct working list */
+		working_list =  (i == 0) ? valid_runlist_ids : invalid_runlist_ids;
+		for (j = 0; j < runlist_id_range; j++) {
+			for (states = 0; states < 3; states++) {
+				/* check for min runlist id */
+				if (states == 0)
+					runlist_id = working_list[j][0];
+				else if (states == 1) {
+					/* check for max valid runlist id */
+					runlist_id = working_list[j][1];
+				} else {
+					runlist_range_difference = working_list[j][1] - working_list[j][0];
+					/* Check for random runlist id in range */
+					if (runlist_range_difference > 1)
+						runlist_id = get_random_u32(working_list[j][0] + 1, working_list[j][1] - 1);
+					else
+						continue;
+				}
+				unit_info(m, "BVEC testing for nvgpu_channel_open_new with runlist id = 0x%08x(%s range [0x%08x - 0x%08x]  %s)\n", runlist_id, string_cases[i], working_list[j][0], working_list[j][1], string_states[states]);
+
+				ch = nvgpu_channel_open_new(g, runlist_id, priviledged, getpid(), getpid());
+				if (i == 0)
+					unit_assert(ch != NULL && ch->runlist->id == runlist_id, goto done);
+				else
+					unit_assert(ch != NULL && ch->runlist->id == gr_runlist_id, goto done);
+
+				/* Clearing for success cases */
+				if (ch != NULL) {
+					nvgpu_channel_close(ch);
+					ch = NULL;
+				}
+			}
+		}
+	}
+
+	ret = UNIT_SUCCESS;
+
+done:
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "%s failed\n", __func__);
+		if (ch != NULL) {
+			nvgpu_channel_close(ch);
+		}
+	}
+
+	return ret;
+}
+
 int test_channel_open(struct unit_module *m, struct gk20a *g, void *vargs)
 {
 	struct nvgpu_fifo *f = &g->fifo;
@@ -277,6 +350,9 @@ int test_channel_open(struct unit_module *m, struct gk20a *g, void *vargs)
 		if (branches & F_CHANNEL_OPEN_BUG_ON) {
 			next_ch->g = NULL;
 			unit_assert(err != 0, goto done);
+			/* add to head to increase visibility of timing-related bugs */
+			nvgpu_list_add(&next_ch->free_chs, &f->free_chs);
+			f->used_channels -= 1U;
 		} else {
 			unit_assert(err == 0, goto done);
 		};
@@ -309,6 +385,9 @@ int test_channel_open(struct unit_module *m, struct gk20a *g, void *vargs)
 
 			nvgpu_channel_close(ch);
 			ch = NULL;
+
+			err = test_channel_open_bvec(m, g, vargs, privileged);
+			unit_assert(err == 0, goto done);
 		}
 	}
 	ret = UNIT_SUCCESS;
@@ -1785,6 +1864,91 @@ done:
 	return ret;
 }
 
+int test_nvgpu_channel_from_id_bvec(struct unit_module *m,
+					struct gk20a *g, void *args)
+{
+	struct nvgpu_channel *ch = NULL;
+	int ret = UNIT_FAIL;
+	/* One channel is already opened by default */
+	int num_channels_to_open = g->fifo.num_channels;
+	u32 valid_chids[][2] = {{0, g->fifo.num_channels - 1}};
+	u32 invalid_chids[][2] = {{g->fifo.num_channels, U32_MAX}};
+	u32 (*working_list)[2];
+	u32 chid, chid_ranges;
+	/*
+	 * i is to loop through valid and invalid cases
+	 * j is to loop through different ranges within ith case
+	 * states is for min, max and median
+	 */
+	u32 i, j, states;
+	int c;
+	const char *string_cases[] = {"Valid", "Invalid"};
+	const char *string_states[] = {"Min", "Max", "Mid"};
+	u32 chid_range_difference;
+
+	struct nvgpu_channel **ch_list = (struct nvgpu_channel **)calloc(sizeof(struct nvgpu_channel *), num_channels_to_open);
+
+	for (c = 0; c < num_channels_to_open; c++) {
+		ch_list[c] = nvgpu_channel_open_new(g, -1, false, getpid(), getpid());
+		if (ch_list[c] == NULL) {
+			unit_err(m, "Unable to create channels\n");
+			goto done;
+		}
+	}
+
+	/* loop through valid and invalid cases */
+	for (i = 0; i < 2; i++) {
+		/* select appropriate iteration size */
+		chid_ranges = (i == 0) ? ARRAY_SIZE(valid_chids) : ARRAY_SIZE(invalid_chids);
+		/* select correct working list */
+		working_list = (i == 0) ? valid_chids : invalid_chids;
+		for (j = 0; j < chid_ranges; j++) {
+			for (states = 0; states < 3; states++) {
+				/* check for min chid */
+				if (states == 0)
+					chid = working_list[j][0];
+				else if (states == 1) {
+					/* check for max valid chid */
+					chid = working_list[j][1];
+				} else {
+					chid_range_difference = working_list[j][1] - working_list[j][0];
+					/* Check for random chid in range */
+					if (chid_range_difference > 1)
+						chid = get_random_u32(working_list[j][0] + 1, working_list[j][1] - 1);
+					else
+						continue;
+				}
+
+				unit_info(m, "BVEC testing for nvgpu_channel_from_id with chid = 0x%08x(%s range [0x%08x - 0x%08x] %s)\n", chid, string_cases[i], working_list[j][0], working_list[j][1], string_states[states]);
+				ch = nvgpu_channel_from_id(g, chid);
+				if (i == 0)
+					unit_assert(ch != NULL, goto done);
+				else
+					unit_assert(ch == NULL, goto done);
+
+				/* Clearing for success cases */
+				if (ch != NULL) {
+					nvgpu_channel_put(ch);
+					ch = NULL;
+				}
+			}
+		}
+	}
+
+	ret = UNIT_SUCCESS;
+
+done:
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "%s failed\n", __func__);
+	}
+
+	while (--c >= 0 ) {
+		nvgpu_channel_close(ch_list[c]);
+	}
+
+	return ret;
+}
+
 int test_channel_put_warn(struct unit_module *m, struct gk20a *g, void *vargs)
 {
 	struct nvgpu_channel *ch = NULL;
@@ -1977,6 +2141,7 @@ struct unit_module_test nvgpu_channel_tests[] = {
 	UNIT_TEST(debug_dump, test_channel_debug_dump, &unit_ctx, 0),
 	UNIT_TEST(semaphore_wakeup, test_channel_semaphore_wakeup, &unit_ctx, 0),
 	UNIT_TEST(channel_from_invalid_id, test_channel_from_invalid_id, &unit_ctx, 0),
+	UNIT_TEST(nvgpu_channel_from_chid_bvec, test_nvgpu_channel_from_id_bvec, &unit_ctx, 0),
 	UNIT_TEST(channel_put_warn, test_channel_put_warn, &unit_ctx, 0),
 	UNIT_TEST(referenceable_cleanup, test_ch_referenceable_cleanup, &unit_ctx, 0),
 	UNIT_TEST(abort_cleanup, test_channel_abort_cleanup, &unit_ctx, 0),

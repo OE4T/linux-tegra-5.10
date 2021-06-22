@@ -1195,7 +1195,7 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
 struct nvgpu_channel *nvgpu_channel_from_id__func(struct gk20a *g,
 				u32 chid, const char *caller)
 {
-	if (chid == NVGPU_INVALID_CHANNEL_ID) {
+	if (chid >= g->fifo.num_channels) {
 		return NULL;
 	}
 

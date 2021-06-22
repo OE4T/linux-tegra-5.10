@@ -31,7 +31,8 @@ NVGPU_UNIT_COMMON_SRCS		:= \
                                 src/module.c \
                                 src/required_tests.c \
                                 src/results.c \
-                                src/exec.c
+                                src/exec.c \
+                                src/utils.c
 NVGPU_UNIT_COMMON_INCLUDES	:= \
                                 include \
                                 ../drivers/gpu/nvgpu \

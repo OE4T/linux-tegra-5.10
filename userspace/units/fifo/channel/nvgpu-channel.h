@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -64,17 +64,21 @@ int test_channel_setup_sw(struct unit_module *m,
  *
  * Description: Branch coverage for nvgpu_channel_open_new.
  *
- * Test Type: Feature, Error injection
+ * Test Type: Feature, Error injection, Boundary Value
  *
  * Targets: nvgpu_channel_open_new, nvgpu_channel_from_free_chs
  *
  * Input: test_fifo_init_support() run for this GPU
+ * Equivalence classes:
+ * runlist_id
+ * - Valid :   {0 - 1, 2 - U32_MAX}
  *
  * Steps:
  * - Check that channel can be allocated with nvgpu_channel_open_new:
- *    - Allocate channel w/ valid runlist_id.
- *    - Allocate channel w/ invalid runlist_id (nvgpu_channel_open_new
- *      should set it to GR runlist_id).
+ *    - For runlist ids [0 - 1], channels must be allocated to
+ *      GR engine and Async Engine respectively and for other ranges
+ *      channels should be allocated to GR engine. Verify the same by
+ *      checking the corresponding runlist id for the channel.
  *    - Allocate w/ or w/o is_privileged_channel set.
  *    - Check that aggresive_sync_destroy is set to true, if used channels
  *      is above threshold (by setting threshold and forcing used_channels
@@ -143,7 +147,7 @@ int test_channel_close(struct unit_module *m, struct gk20a *g, void *vargs);
  *
  * Description: Branch coverage for nvgpu_channel_setup_bind.
  *
- * Test Type: Feature, Error injection, Boundary values
+ * Test Type: Feature, Error injection, Boundary value
  *
  * Targets: nvgpu_channel_setup_bind, nvgpu_channel_setup_usermode,
  *          nvgpu_channel_as_bound, nvgpu_channel_update_runlist
@@ -417,6 +421,29 @@ int test_channel_semaphore_wakeup(struct unit_module *m,
 int test_channel_from_invalid_id(struct unit_module *m, struct gk20a *g,
 								void *vargs);
 
+/**
+ * Test specification for: nvgpu_channel_from_id
+ *
+ * Description: Validate Boundary Values and Equivalence classes for the function
+ * nvgpu_channel_from_id
+ *
+ * Test Type: Boundary Value
+ *
+ * Targets: nvgpu_channel_from_id
+ *
+ * Input: test_fifo_init_support() run for this GPU
+ * Equivalence classes:
+ * chid
+ * - Invalid : { g->fifo.num_channels - U32_MAX }
+ * - Valid :   { 0 - g->fifo.num_channels - 1 }
+ *
+ * Steps:
+ * - Test corner cases to retrieve channel with invalid channel id.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_nvgpu_channel_from_id_bvec(struct unit_module *m,
+					struct gk20a *g, void *args);
 /**
  * Test specification for: test_channel_put_warn
  *

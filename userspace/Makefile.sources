@@ -37,7 +37,8 @@ CORE_OBJS :=	\
 	$(CORE_OUT)/module.o			\
 	$(CORE_OUT)/required_tests.o		\
 	$(CORE_OUT)/results.o			\
-	$(CORE_OUT)/exec.o
+	$(CORE_OUT)/exec.o			\
+	$(CORE_OUT)/utils.o
 
 CORE_HEADERS :=	\
 	$(CORE_SRC)/../include/unit/*.h

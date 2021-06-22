@@ -53,7 +53,9 @@ void nvgpu_tsg_disable(struct nvgpu_tsg *tsg)
 
 struct nvgpu_tsg *nvgpu_tsg_check_and_get_from_id(struct gk20a *g, u32 tsgid)
 {
-	if (tsgid == NVGPU_INVALID_TSG_ID) {
+	struct nvgpu_fifo *f = &g->fifo;
+
+	if (tsgid >= f->num_channels) {
 		return NULL;
 	}
 
@@ -578,6 +580,11 @@ void nvgpu_tsg_set_error_notifier(struct gk20a *g, struct nvgpu_tsg *tsg,
 		u32 error_notifier)
 {
 	struct nvgpu_channel *ch = NULL;
+	u32 max_error_notifier_id = NVGPU_ERR_NOTIFIER_PBDMA_PUSHBUFFER_CRC_MISMATCH;
+
+	if (error_notifier > max_error_notifier_id) {
+		return;
+	}
 
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 	nvgpu_list_for_each_entry(ch, &tsg->ch_list, nvgpu_channel, ch_entry) {

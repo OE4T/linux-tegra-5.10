@@ -298,6 +298,33 @@ int test_tsg_check_and_get_from_id(struct unit_module *m,
 		struct gk20a *g, void *args);
 
 /**
+ * Test specification for: test_tsg_check_and_get_from_id
+ *
+ * Description: This test will validate boundary values for
+ * the function nvgpu_tsg_check_and_get_from_id
+ *
+ * Test Type: Boundary Values
+ *
+ * Targets: nvgpu_tsg_check_and_get_from_id
+ *
+ * Input: test_fifo_init_support() run for this GPU
+ * Equivalence classes:
+ * tsgid
+ * - Invalid : {(&g->fifo->num_channels - 1) - U32_MAX }
+ * - Valid :   { 0 - (&g->fifo->num_channels - 1) }
+ *
+ * Steps:
+ * - Check that nvgpu_tsg_check_and_get_from_id returns NULL for
+ *   any invalid tsgid.
+ * - Check that nvgpu_tsg_check_and_get_from_id returns correct
+ *   tsg pointer for any valid tsgid.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_tsg_check_and_get_from_id_bvec(struct unit_module *m,
+		struct gk20a *g, void *args);
+
+/**
  * Test specification for: test_tsg_abort
  *
  * Description: Abort TSG
@@ -374,6 +401,33 @@ int test_tsg_setup_sw(struct unit_module *m,
 int test_tsg_mark_error(struct unit_module *m,
 		struct gk20a *g, void *args);
 
+/**
+ * Test specification for: nvgpu_tsg_set_error_notifier
+ *
+ * Description: This test will verify the boundary values for the function
+ * nvgpu_tsg_set_error_notifier
+ *
+ * Test Type: Boundary Value
+ *
+ * Targets: nvgpu_tsg_set_error_notifier
+ *
+ * Input: None
+ * Equivalence classes:
+ * error_notifier
+ * - Invalid : { NVGPU_ERR_NOTIFIER_PBDMA_PUSHBUFFER_CRC_MISMATCH + 1, U32_MAX }
+ * - Valid :   { NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT, NVGPU_ERR_NOTIFIER_PBDMA_PUSHBUFFER_CRC_MISMATCH }
+ *
+ * Steps:
+ * Check likely cases:
+ *  - Use one TSG with one bound channel for minimum, median and maximum values
+ *    from valid classes.
+ *  - Use one TSG with one bound channel for minimum, maximum and one other random value
+ *    from invalid classes.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_nvgpu_tsg_set_error_notifier_bvec(struct unit_module *m,
+		struct gk20a *g, void *args);
 /**
  * Test specification for: test_tsg_set_ctx_mmu_error
  *
