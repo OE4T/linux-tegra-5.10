@@ -441,16 +441,9 @@ static void nvgpu_pd_cache_do_free(struct gk20a *g,
 		 * Partially full still. If it was already on the partial list
 		 * this just re-adds it.
 		 *
-		 * Since the memory used for the entries is still mapped, if
-		 * igpu make sure the entries are invalidated so that the hw
-		 * doesn't acccidentally try to prefetch non-existent fb memory.
-		 *
-		 * As IOMMU prefetching of invalid pd entries cause the IOMMU fault,
-		 * fill them with zero.
+		 * Zero the memory for reusing.
 		 */
-		if ((nvgpu_iommuable(g)) &&
-			(NVGPU_PD_CACHE_SIZE > NVGPU_CPU_SMALL_PAGE_SIZE) &&
-			(pd->mem->cpu_va != NULL)) {
+		if (pd->mem->cpu_va != NULL) {
 			(void)memset(((u8 *)pd->mem->cpu_va + pd->mem_offs), 0,
 					pd->pd_size);
 		}
