@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
-// Copyright (C) 2019-2021 NVIDIA CORPORATION.  All rights reserved.
+// Copyright (C) 2019-2020 NVIDIA CORPORATION.  All rights reserved.
 
 #include <linux/bitfield.h>
 #include <linux/delay.h>
@@ -258,7 +258,7 @@ static irqreturn_t nvidia_smmu_context_fault(int irq, void *dev)
 static void nvidia_smmu_write_sctlr(struct arm_smmu_device *smmu, int idx,
 		u32 reg)
 {
-	reg |= (ARM_SMMU_SCTLR_HUPCF | ARM_SMMU_SCTLR_CFCFG);
+	reg |= ARM_SMMU_SCTLR_HUPCF;
 
 	arm_smmu_cb_write(smmu, idx, ARM_SMMU_CB_SCTLR, reg);
 }
