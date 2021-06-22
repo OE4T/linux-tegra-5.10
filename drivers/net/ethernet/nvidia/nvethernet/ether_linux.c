@@ -2272,10 +2272,18 @@ static int ether_open(struct net_device *dev)
 
 	ether_start_ivc(pdata);
 
+	if (osi_core->mac == OSI_MAC_HW_MGBE) {
+		ret = pm_runtime_get_sync(pdata->dev);
+		if (ret < 0) {
+			dev_err(&dev->dev, "failed to ungate MGBE power\n");
+			goto err_get_sync;
+		}
+	}
+
 	ret = ether_enable_clks(pdata);
 	if (ret < 0) {
 		dev_err(&dev->dev, "failed to enable clks\n");
-		return ret;
+		goto err_en_clks;
 	}
 
 	if (pdata->mac_rst) {
@@ -2455,6 +2463,10 @@ err_mac_rst:
 	if (gpio_is_valid(pdata->phy_reset)) {
 		gpio_set_value(pdata->phy_reset, OSI_DISABLE);
 	}
+err_en_clks:
+err_get_sync:
+	if (osi_core->mac == OSI_MAC_HW_MGBE)
+		pm_runtime_put_sync(pdata->dev);
 
 	return ret;
 }
@@ -2652,6 +2664,9 @@ static int ether_close(struct net_device *ndev)
 
 	/* Disable clock */
 	ether_disable_clks(pdata);
+
+	if (pdata->osi_core->mac == OSI_MAC_HW_MGBE)
+		pm_runtime_put_sync(pdata->dev);
 
 #ifdef MACSEC_SUPPORT
 #ifdef DEBUG_MACSEC
@@ -5756,6 +5771,10 @@ static int ether_probe(struct platform_device *pdev)
 
 	raw_spin_lock_init(&pdata->rlock);
 	init_filter_values(pdata);
+
+	if (osi_core->mac == OSI_MAC_HW_MGBE)
+		pm_runtime_enable(pdata->dev);
+
 	/* Disable Clocks */
 	ether_disable_clks(pdata);
 
@@ -5837,6 +5856,9 @@ static int ether_remove(struct platform_device *pdev)
 	/* Assert MAC RST gpio */
 	if (pdata->mac_rst) {
 		reset_control_assert(pdata->mac_rst);
+		if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
+			pm_runtime_disable(pdata->dev);
+		}
 	}
 
 	if (pdata->xpcs_rst) {
@@ -5926,6 +5948,9 @@ static int ether_suspend_noirq(struct device *dev)
 	/* disable MAC clocks */
 	ether_disable_clks(pdata);
 
+	if (osi_core->mac == OSI_MAC_HW_MGBE)
+		pm_runtime_put_sync(pdata->dev);
+
 	return 0;
 }
 
@@ -5949,6 +5974,9 @@ static int ether_resume(struct ether_priv_data *pdata)
 	struct net_device *ndev = pdata->ndev;
 	struct osi_ioctl ioctl_data = {};
 	int ret = 0;
+
+	if (osi_core->mac == OSI_MAC_HW_MGBE)
+		pm_runtime_get_sync(pdata->dev);
 
 	if (pdata->mac_rst) {
 		ret = reset_control_reset(pdata->mac_rst);
