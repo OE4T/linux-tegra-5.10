@@ -7,8 +7,7 @@ endif
 obj-$(BRINGUP) = bringup/
 
 GCOV_PROFILE := y
-ccflags-$(V2) += -I$(srctree.nvidia-t23x)/drivers/video/tegra/host
-ccflags-$(V2) += -I$(srctree.nvidia-t23x)/drivers/video/tegra/host/pva
+ccflags-$(V2) += -I$(srctree.nvidia)/drivers/video/tegra/host/pva
 ccflags-$(V2) += -I$(srctree.nvidia)/drivers/video/tegra/host
 ccflags-$(V2) += -I$(srctree.nvidia)/include
 ccflags-$(V2) += -Werror
@@ -30,3 +29,16 @@ nvhost-pva-objs  = \
 		pva_selftest.o
 
 obj-$(V2) += nvhost-pva.o
+
+ifdef CONFIG_TEGRA_T23X_GRHOST
+nvhost-pva-t23x-objs  = \
+		pva_isr_t23x.o \
+		pva_mailbox_t23x.o \
+		pva_interface_regs_t23x.o \
+		pva_version_config_t23x.o \
+		pva_ccq_t23x.o
+
+
+obj-$(V2) += nvhost-pva-t23x.o
+
+endif

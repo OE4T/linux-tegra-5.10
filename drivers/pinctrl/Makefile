@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-2.0
 GCOV_PROFILE_pinctrl-tegra186-padctl.o := y
 
 ccflags-y += -Werror
@@ -20,5 +21,11 @@ ifdef CONFIG_ARCH_TEGRA_19x_SOC
 GCOV_PROFILE_pinctrl-tegra194-padctl.o := y
 obj-$(CONFIG_PINCTRL_TEGRA194)  += pinctrl-tegra194.o
 obj-$(CONFIG_PINCTRL_TEGRA194_PEXCLK_PADCTL) += pinctrl-tegra194-pexclk-padctrl.o
+
+endif
+
+ifdef CONFIG_ARCH_TEGRA_23x_SOC
+
+obj-$(CONFIG_PINCTRL_TEGRA234_DPAUX)  += pinctrl-tegra234-dpaux.o
 
 endif

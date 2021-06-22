@@ -28,6 +28,13 @@ config ARCH_TEGRA_21x_SOC
 	help
 	  NVIDIA Tegra Downstream options for 21x family of SoCs
 
+config ARCH_TEGRA_23x_SOC
+	bool "Tegra 23x family SOC (Downstream options)"
+	select PINCTRL
+	default n
+	help
+	  NVIDIA Tegra Downstream options for 23x family of SoCs
+
 append_menu "Kernel Features"
 
 config TEGRA_EBP
@@ -38,5 +45,12 @@ config TEGRA_EBP
 	help
 	  NVIDIA Tegra single core stripped down configuration
 	  designed for fast boot time.
+
+config TEGRA_PSC
+	tristate "NVIDIA Tegra Option for PSC module"
+	depends on ARCH_TEGRA_23x_SOC
+	default y
+	help
+	  Enable NVIDIA Tegra Option for platform security controller
 
 endmenu

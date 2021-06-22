@@ -65,6 +65,10 @@ config TEGRA_CAMERA_HSP_MBOX_CLIENT
 	depends on TEGRA_CAMERA_RTCPU && ARCH_TEGRA_186_SOC && MAILBOX
 	default n
 
+config TEGRA_DCE
+	bool "Tegra DCE driver"
+	depends on ARCH_TEGRA_23x_SOC
+
 config TEGRA_ISOMGR
         bool "Isochronous Bandwidth Manager "
         help
@@ -164,6 +168,26 @@ config TEGRA_SAFETY_SCE
 	  This enables communication between CCPLEX and SCE over IVC channel.
 	  This also provides a userspace command response interface as
 	  character device which will be used by other safety modules.
+
+config TEGRA_SOC_HWPM
+	bool "Tegra SOC HWPM driver"
+	depends on ARCH_TEGRA_23x_SOC
+	default n
+	help
+	  The SOC HWPM driver enables performance monitoring for various Tegra
+	  IPs.
+
+config TEGRA_SPE
+	bool "Tegra SPE driver"
+	depends on ARCH_TEGRA_23x_SOC
+	select NV_TEGRA_IVC
+	help
+	  This enables communication between CCPLEX and SPE over IVC channel.
+
+config TEGRA_SPE_HSP_MBOX_CLIENT
+	bool "Enable Mailbox Client Implementation of HSP Protocol for Camera"
+	depends on TEGRA_SPE && ARCH_TEGRA_23x_SOC && MAILBOX
+	default n
 
 config TEGRA_19X_RAS
 	tristate "Tegra19 RAS Handler"
