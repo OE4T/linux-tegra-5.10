@@ -21,6 +21,7 @@
  */
 
 #include <unit/unit.h>
+#include <unit/utils.h>
 
 /*
  * Place holder for runlist unit tests. These will be written once the new

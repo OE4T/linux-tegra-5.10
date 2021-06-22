@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -135,12 +135,16 @@ int test_runlist_interleave_level_name(struct unit_module *m,
  *
  * Description: Reload given runlists.
  *
- * Test Type: Feature
+ * Test Type: Feature, Boundary Value
  *
  * Targets: gops_runlist.reload, nvgpu_runlist_reload,
  *          nvgpu_runlist_reload_ids, nvgpu_runlist_update
  *
  * Input: test_fifo_init_support
+ * Equivalence classes:
+ * runlist id
+ * - Invalid : { 2 - U32_MAX }
+ * - Valid: { 0, 1 }
  *
  * Steps:
  * - Reload runlist with different conditions:
@@ -149,6 +153,8 @@ int test_runlist_interleave_level_name(struct unit_module *m,
  *   - Pending wait times out.
  *   - Runlist update pending wait is interrupted.
  *   - Remove/Restore all channels.
+ *   - Verify error for runlist ids for Invalid range
+ *   - Verify pass for runlist ids for valid range
  *
  * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
  */
@@ -159,17 +165,23 @@ int test_runlist_reload_ids(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Add/remove channel from runlist.
  *
- * Test Type: Feature
+ * Test Type: Feature, Boundary Value
  *
  * Targets: nvgpu_runlist_update_locked, gk20a_runlist_modify_active_locked,
  *          gk20a_runlist_reconstruct_locked
  *
  * Input: test_fifo_init_support
+ * Equivalence classes:
+ * runlist_id
+ * - Invalid : { 2 - U32_MAX }
+ * - Valid :   { 0 - 1 }
  *
  * Steps:
  * - Check that channels can be added to runlist.
  * - Check that channels can be removed from runlist.
  * - Check that runlist update fails for invalid tsg id and zero runlist entries
+ * - Check that runlist update fails for invalid runlist ids
+ * - Check that runlist update passes for valid runlist ids
  *
  * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
  */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -52,6 +52,30 @@ struct gk20a;
 int test_gm20b_ramin_set_big_page_size(struct unit_module *m, struct gk20a *g,
 								void *args);
 
+/**
+ * Test specification for: test_gm20b_ramin_set_big_page_size
+ *
+ * Description: Test big page size boundary values
+ *
+ * Test Type: Boundary Value
+ *
+ * Targets: gops_ramin.set_big_page_size, gm20b_ramin_set_big_page_size
+ *
+ * Input: None
+ * Equivalence classes:
+ * size
+ * - Invalid : { 0 - (SZ_64K - 1), (SZ_64K + 1) - U32_MAX }
+ * - Valid :   { SZ_64K }
+ *
+ * Steps:
+ * - Set big page size in given instance block.
+ * - Check that ramin region is updated if a valid big page size is provided.
+ * - Check that ramin region is not updated if an invalid big page size is provided.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_gm20b_ramin_set_big_page_size_bvec(struct unit_module *m, struct gk20a *g,
+								void *args);
 /**
  * @}
  */
