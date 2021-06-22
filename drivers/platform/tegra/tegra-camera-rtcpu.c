@@ -808,7 +808,6 @@ static int tegra_camrtc_poweron(struct device *dev, bool full_speed)
 
 	if (full_speed)
 		camrtc_clk_group_adjust_fast(rtcpu->clocks);
-	camrtc_device_group_reset(rtcpu->camera_devices);
 
 	ret = tegra_camrtc_deassert_resets(dev);
 	if (ret)
@@ -950,26 +949,12 @@ static int tegra_cam_rtcpu_runtime_suspend(struct device *dev)
 
 	camrtc_clk_group_adjust_slow(rtcpu->clocks);
 
-	camrtc_device_group_idle(rtcpu->camera_devices);
-
 	return 0;
 }
 
 static int tegra_cam_rtcpu_runtime_resume(struct device *dev)
 {
-	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
-	int ret;
-
-	ret = camrtc_device_group_busy(rtcpu->camera_devices);
-	if (ret < 0)
-		return ret;
-
-	ret = tegra_camrtc_boot(dev);
-
-	if (ret < 0)
-		camrtc_device_group_idle(rtcpu->camera_devices);
-
-	return ret;
+	return tegra_camrtc_boot(dev);
 }
 
 static struct device *tegra_camrtc_get_hsp_device(struct device_node *hsp_node)
