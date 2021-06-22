@@ -18,6 +18,141 @@
 #include <linux/iommu.h>
 #include "ether_linux.h"
 
+/** @brief invalidate local l2 address list
+ *
+ * Algorithm: Invalidate all nodes in local address link list
+ *
+ * @param[in] pdata: OSD private data.
+ *
+ */
+static inline void ether_invalidate_mac_addr_list(struct ether_priv_data *pdata)
+{
+	struct ether_mac_addr_list *pnode;
+	struct list_head *head_node, *temp_head_node;
+
+	if (list_empty(&pdata->mac_addr_list_head)) {
+		return;
+	}
+
+	list_for_each_safe(head_node, temp_head_node,
+			   &pdata->mac_addr_list_head) {
+		pnode = list_entry(head_node,
+				   struct ether_mac_addr_list,
+				   list_head);
+		if (pnode->index != ETHER_MAC_ADDRESS_INDEX &&
+		    pnode->index != ETHER_BC_ADDRESS_INDEX) {
+			pnode->is_valid_addr = OSI_DISABLE;
+		}
+	}
+}
+
+/**
+ * @brief find index and add l2 address
+ *
+ * Algorithm: Find index for already added address or empty index to add filter
+ *	      address. If new L2 address, add it in local link list and call OSI
+ *	      API.
+ * @param[in] pdata: OSD private data.
+ * @param[in] filter: OSI filter structure pointer
+ */
+static int ether_update_mac_addr(struct ether_priv_data *pdata,
+				 struct osi_ioctl *ioctl_data)
+{
+	struct ether_mac_addr_list *pnode = NULL;
+	struct list_head *head_node, *temp_head_node;
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	int ret = 0;
+
+	list_for_each_safe(head_node, temp_head_node,
+			   &pdata->mac_addr_list_head) {
+		pnode = list_entry(head_node,
+				   struct ether_mac_addr_list,
+				   list_head);
+		if (memcmp(ioctl_data->l2_filter.mac_address, pnode->addr,
+			   OSI_ETH_ALEN) == 0) {
+			pnode->is_valid_addr = OSI_ENABLE;
+			return ret;
+		}
+	}
+
+	pnode = kmalloc(sizeof(*pnode), GFP_KERNEL);
+	if (!pnode) {
+		dev_err(pdata->dev, "kmalloc failed %s()\n", __func__);
+		return -1;
+	}
+
+	memcpy(pnode->addr, ioctl_data->l2_filter.mac_address, OSI_ETH_ALEN);
+	pnode->is_valid_addr = OSI_ENABLE;
+	pnode->dma_chan = ioctl_data->l2_filter.dma_chan;
+	pnode->index = ioctl_data->l2_filter.index;
+
+	ret = osi_handle_ioctl(osi_core, ioctl_data);
+	if (ret < 0) {
+		kfree(pnode);
+		return ret;
+	}
+
+	list_add(&pnode->list_head,
+		 &pdata->mac_addr_list_head);
+
+	return ret;
+}
+
+/**
+ * @brief remove invalid l2 address
+ *
+ * Algorithm: call OSI call for  addresses which are not valid with new list
+ *	      from network stack.
+ *
+ * @param[in] pdata: OSD private data.
+ * @param[in] ioctl_data: OSI IOCTL data structure.
+ *
+ */
+static inline int ether_remove_invalid_mac_addr(struct ether_priv_data *pdata,
+						struct osi_ioctl *ioctl_data)
+{
+	struct ether_mac_addr_list *pnode;
+	struct list_head *head_node, *temp_head_node;
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	int ret = 0;
+
+	if (list_empty(&pdata->mac_addr_list_head)) {
+		return ret;
+	}
+
+	list_for_each_safe(head_node, temp_head_node,
+			   &pdata->mac_addr_list_head) {
+		pnode = list_entry(head_node,
+				   struct ether_mac_addr_list,
+				   list_head);
+		if (pnode->is_valid_addr == OSI_DISABLE) {
+			memset(&ioctl_data->l2_filter, 0x0,
+			       sizeof(struct osi_filter));
+			ioctl_data->l2_filter.dma_routing = OSI_ENABLE;
+			ioctl_data->l2_filter.addr_mask = OSI_AMASK_DISABLE;
+			ioctl_data->l2_filter.src_dest = OSI_DA_MATCH;
+			ioctl_data->l2_filter.oper_mode = OSI_OPER_ADDR_DEL;
+			memcpy(ioctl_data->l2_filter.mac_address, pnode->addr,
+			       OSI_ETH_ALEN);
+			ioctl_data->l2_filter.dma_chan = pnode->dma_chan;
+			ioctl_data->l2_filter.index = pnode->index;
+
+			ret = osi_handle_ioctl(osi_core, ioctl_data);
+			if (ret < 0) {
+				dev_err(pdata->dev,
+					"%s failed to remove address\n",
+					__func__);
+				return ret;
+			}
+
+			list_del(head_node);
+			kfree(pnode);
+		}
+	}
+
+	return ret;
+}
+
 /**
  * @brief Work Queue function to call osi_read_mmc() periodically.
  *
@@ -60,12 +195,10 @@ static inline void ether_stats_work_func(struct work_struct *work)
  */
 static inline void ether_stats_work_queue_start(struct ether_priv_data *pdata)
 {
-#if (KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE)
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+
 	if (pdata->hw_feat.mmc_sel == OSI_ENABLE &&
-	    pdata->use_stats == OSI_ENABLE) {
-#else
-	if (pdata->hw_feat.mmc_sel == OSI_ENABLE) {
-#endif
+	    osi_core->use_virtualization == OSI_DISABLE) {
 		schedule_delayed_work(&pdata->ether_stats_work,
 				      msecs_to_jiffies(ETHER_STATS_TIMER *
 						       1000));
@@ -82,29 +215,81 @@ static inline void ether_stats_work_queue_start(struct ether_priv_data *pdata)
  */
 static inline void ether_stats_work_queue_stop(struct ether_priv_data *pdata)
 {
-#if (KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE)
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+
 	if (pdata->hw_feat.mmc_sel == OSI_ENABLE &&
-	    pdata->use_stats == OSI_ENABLE) {
-#else
-	if (pdata->hw_feat.mmc_sel == OSI_ENABLE) {
-#endif
+	    osi_core->use_virtualization == OSI_DISABLE) {
 		cancel_delayed_work_sync(&pdata->ether_stats_work);
 	}
 }
 
 /**
- * @brief Disable all MAC related clks
+ * @brief Disable all MAC MGBE related clks
  *
  * Algorithm: Release the reference counter for the clks by using
  * clock subsystem provided API's
  *
  * @param[in] pdata: OSD private data.
  */
-static void ether_disable_clks(struct ether_priv_data *pdata)
+static void ether_disable_mgbe_clks(struct ether_priv_data *pdata)
 {
-	if (pdata->osi_core->pre_si)
-		goto exit;
+	if (!IS_ERR_OR_NULL(pdata->ptp_ref_clk)) {
+		clk_disable_unprepare(pdata->ptp_ref_clk);
+	}
 
+	if (!IS_ERR_OR_NULL(pdata->app_clk)) {
+		clk_disable_unprepare(pdata->app_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->eee_pcs_clk)) {
+		clk_disable_unprepare(pdata->eee_pcs_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->mac_clk)) {
+		clk_disable_unprepare(pdata->mac_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->mac_div_clk)) {
+		clk_disable_unprepare(pdata->mac_div_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->tx_pcs_clk)) {
+		clk_disable_unprepare(pdata->tx_pcs_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->tx_clk)) {
+		clk_disable_unprepare(pdata->tx_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->rx_pcs_clk)) {
+		clk_disable_unprepare(pdata->rx_pcs_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->rx_pcs_input_clk)) {
+		clk_disable_unprepare(pdata->rx_pcs_input_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->rx_pcs_m_clk)) {
+		clk_disable_unprepare(pdata->rx_pcs_m_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->rx_m_clk)) {
+		clk_disable_unprepare(pdata->rx_m_clk);
+	}
+
+	pdata->clks_enable = false;
+}
+
+/**
+ * @brief Disable all MAC EQOS related clks
+ *
+ * Algorithm: Release the reference counter for the clks by using
+ * clock subsystem provided API's
+ *
+ * @param[in] pdata: OSD private data.
+ */
+static void ether_disable_eqos_clks(struct ether_priv_data *pdata)
+{
 	if (!IS_ERR_OR_NULL(pdata->axi_cbb_clk)) {
 		clk_disable_unprepare(pdata->axi_cbb_clk);
 	}
@@ -128,12 +313,33 @@ static void ether_disable_clks(struct ether_priv_data *pdata)
 	if (!IS_ERR_OR_NULL(pdata->pllrefe_clk)) {
 		clk_disable_unprepare(pdata->pllrefe_clk);
 	}
-exit:
+
+	if (!IS_ERR_OR_NULL(pdata->rx_m_clk)) {
+		clk_disable_unprepare(pdata->rx_m_clk);
+	}
+
 	pdata->clks_enable = false;
 }
 
 /**
- * @brief Enable all MAC related clks.
+ * @brief Disable all MAC related clks
+ *
+ * Algorithm: Release the reference counter for the clks by using
+ * clock subsystem provided API's
+ *
+ * @param[in] pdata: OSD private data.
+ */
+static void ether_disable_clks(struct ether_priv_data *pdata)
+{
+	if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
+		ether_disable_mgbe_clks(pdata);
+	} else {
+		ether_disable_eqos_clks(pdata);
+	}
+}
+
+/**
+ * @brief Enable all MAC MGBE related clks.
  *
  * Algorithm: Enables the clks by using clock subsystem provided API's.
  *
@@ -142,12 +348,173 @@ exit:
  * @retval 0 on success
  * @retval "negative value" on failure.
  */
-static int ether_enable_clks(struct ether_priv_data *pdata)
+static int ether_enable_mgbe_clks(struct ether_priv_data *pdata)
 {
+	unsigned int uphy_gbe_mode = pdata->osi_core->uphy_gbe_mode;
+	unsigned long rate = 0;
 	int ret;
 
-	if (pdata->osi_core->pre_si)
-		goto exit;
+	if (!IS_ERR_OR_NULL(pdata->rx_m_clk)) {
+		ret = clk_prepare_enable(pdata->rx_m_clk);
+		if (ret < 0) {
+			return ret;
+		}
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->rx_pcs_m_clk)) {
+		ret = clk_prepare_enable(pdata->rx_pcs_m_clk);
+		if (ret < 0) {
+			goto err_rx_pcs_m;
+		}
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->rx_pcs_input_clk)) {
+		ret = clk_prepare_enable(pdata->rx_pcs_input_clk);
+		if (ret < 0) {
+			goto err_rx_pcs_input;
+		}
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->rx_pcs_clk)) {
+		ret = clk_prepare_enable(pdata->rx_pcs_clk);
+		if (ret < 0) {
+			goto err_rx_pcs;
+		}
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->tx_clk)) {
+		if (uphy_gbe_mode == OSI_ENABLE)
+			rate = ETHER_MGBE_TX_CLK_USXGMII_10G;
+		else
+			rate = ETHER_MGBE_TX_CLK_USXGMII_5G;
+
+		ret = clk_set_rate(pdata->tx_clk, rate);
+		if (ret < 0) {
+			dev_err(pdata->dev, "failed to set MGBE tx_clk rate\n");
+			goto err_tx;
+		}
+
+		ret = clk_prepare_enable(pdata->tx_clk);
+		if (ret < 0) {
+			goto err_tx;
+		}
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->tx_pcs_clk)) {
+		if (uphy_gbe_mode == OSI_ENABLE)
+			rate = ETHER_MGBE_TX_PCS_CLK_USXGMII_10G;
+		else
+			rate = ETHER_MGBE_TX_PCS_CLK_USXGMII_5G;
+
+		ret = clk_set_rate(pdata->tx_pcs_clk, rate);
+		if (ret < 0) {
+			dev_err(pdata->dev,
+				"failed to set MGBE tx_pcs_clk rate\n");
+			goto err_tx_pcs;
+		}
+
+		ret = clk_prepare_enable(pdata->tx_pcs_clk);
+		if (ret < 0) {
+			goto err_tx_pcs;
+		}
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->mac_div_clk)) {
+		ret = clk_prepare_enable(pdata->mac_div_clk);
+		if (ret < 0) {
+			goto err_mac_div;
+		}
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->mac_clk)) {
+		ret = clk_prepare_enable(pdata->mac_clk);
+		if (ret < 0) {
+			goto err_mac;
+		}
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->eee_pcs_clk)) {
+		ret = clk_prepare_enable(pdata->eee_pcs_clk);
+		if (ret < 0) {
+			goto err_eee_pcs;
+		}
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->app_clk)) {
+		ret = clk_prepare_enable(pdata->app_clk);
+		if (ret < 0) {
+			goto err_app;
+		}
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->ptp_ref_clk)) {
+		ret = clk_prepare_enable(pdata->ptp_ref_clk);
+		if (ret < 0) {
+			goto err_ptp_ref;
+		}
+	}
+
+	pdata->clks_enable = true;
+
+	return 0;
+
+err_ptp_ref:
+	if (!IS_ERR_OR_NULL(pdata->app_clk)) {
+		clk_disable_unprepare(pdata->app_clk);
+	}
+err_app:
+	if (!IS_ERR_OR_NULL(pdata->eee_pcs_clk)) {
+		clk_disable_unprepare(pdata->eee_pcs_clk);
+	}
+err_eee_pcs:
+	if (!IS_ERR_OR_NULL(pdata->mac_clk)) {
+		clk_disable_unprepare(pdata->mac_clk);
+	}
+err_mac:
+	if (!IS_ERR_OR_NULL(pdata->mac_div_clk)) {
+		clk_disable_unprepare(pdata->mac_div_clk);
+	}
+err_mac_div:
+	if (!IS_ERR_OR_NULL(pdata->tx_pcs_clk)) {
+		clk_disable_unprepare(pdata->tx_pcs_clk);
+	}
+err_tx_pcs:
+	if (!IS_ERR_OR_NULL(pdata->tx_clk)) {
+		clk_disable_unprepare(pdata->tx_clk);
+	}
+err_tx:
+	if (!IS_ERR_OR_NULL(pdata->rx_pcs_clk)) {
+		clk_disable_unprepare(pdata->rx_pcs_clk);
+	}
+err_rx_pcs:
+	if (!IS_ERR_OR_NULL(pdata->rx_pcs_input_clk)) {
+		clk_disable_unprepare(pdata->rx_pcs_input_clk);
+	}
+err_rx_pcs_input:
+	if (!IS_ERR_OR_NULL(pdata->rx_pcs_m_clk)) {
+		clk_disable_unprepare(pdata->rx_pcs_m_clk);
+	}
+err_rx_pcs_m:
+	if (!IS_ERR_OR_NULL(pdata->rx_m_clk)) {
+		clk_disable_unprepare(pdata->rx_m_clk);
+	}
+
+	return ret;
+}
+
+/**
+ * @brief Enable all MAC EQOS related clks.
+ *
+ * Algorithm: Enables the clks by using clock subsystem provided API's.
+ *
+ * @param[in] pdata: OSD private data.
+ *
+ * @retval 0 on success
+ * @retval "negative value" on failure.
+ */
+static int ether_enable_eqos_clks(struct ether_priv_data *pdata)
+{
+	int ret;
 
 	if (!IS_ERR_OR_NULL(pdata->pllrefe_clk)) {
 		ret = clk_prepare_enable(pdata->pllrefe_clk);
@@ -191,11 +558,21 @@ static int ether_enable_clks(struct ether_priv_data *pdata)
 		}
 	}
 
-exit:
+	if (!IS_ERR_OR_NULL(pdata->rx_m_clk)) {
+		ret = clk_prepare_enable(pdata->rx_m_clk);
+		if (ret < 0) {
+			goto err_rx_m;
+		}
+	}
+
 	pdata->clks_enable = true;
 
 	return 0;
 
+err_rx_m:
+	if (!IS_ERR_OR_NULL(pdata->tx_clk)) {
+		clk_disable_unprepare(pdata->tx_clk);
+	}
 err_tx:
 	if (!IS_ERR_OR_NULL(pdata->ptp_ref_clk)) {
 		clk_disable_unprepare(pdata->ptp_ref_clk);
@@ -218,6 +595,25 @@ err_axi_cbb:
 	}
 
 	return ret;
+}
+
+/**
+ * @brief Enable all MAC related clks.
+ *
+ * Algorithm: Enables the clks by using clock subsystem provided API's.
+ *
+ * @param[in] pdata: OSD private data.
+ *
+ * @retval 0 on success
+ * @retval "negative value" on failure.
+ */
+static int ether_enable_clks(struct ether_priv_data *pdata)
+{
+	if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
+		return ether_enable_mgbe_clks(pdata);
+	}
+
+	return ether_enable_eqos_clks(pdata);
 }
 
 /**
@@ -276,6 +672,64 @@ int ether_conf_eee(struct ether_priv_data *pdata, unsigned int tx_lpi_enable)
 	}
 
 	return ret;
+}
+
+/**
+ * @brief Set MGBE MAC_DIV/TX clk rate
+ *
+ * Algorithm: Sets MGBE MAC_DIV clk_rate which will be MAC_TX/MACSEC clk rate.
+ *
+ * @param[in] mac_div_clk: Pointer to MAC_DIV clk.
+ * @param[in] speed: PHY line speed.
+ */
+static inline void ether_set_mgbe_mac_div_rate(struct clk *mac_div_clk,
+					       int speed)
+{
+	unsigned long rate;
+
+	switch (speed) {
+	case SPEED_2500:
+		rate = ETHER_MGBE_MAC_DIV_RATE_2_5G;
+		break;
+	case SPEED_5000:
+		rate = ETHER_MGBE_MAC_DIV_RATE_5G;
+		break;
+	case SPEED_10000:
+	default:
+		rate = ETHER_MGBE_MAC_DIV_RATE_10G;
+		break;
+	}
+
+	if (clk_set_rate(mac_div_clk, rate) < 0)
+		pr_err("%s(): failed to set mac_div_clk rate\n", __func__);
+}
+
+/**
+ * @brief Set EQOS TX clk rate
+ *
+ * @param[in] tx_clk: Pointer to Tx clk.
+ * @param[in] speed: PHY line speed.
+ */
+static inline void ether_set_eqos_tx_clk(struct clk *tx_clk,
+					 int speed)
+{
+	unsigned long rate;
+
+	switch (speed) {
+	case SPEED_10:
+		rate = ETHER_EQOS_TX_CLK_10M;
+		break;
+	case SPEED_100:
+		rate = ETHER_EQOS_TX_CLK_100M;
+		break;
+	case SPEED_1000:
+	default:
+		rate = ETHER_EQOS_TX_CLK_1000M;
+		break;
+	}
+
+	if (clk_set_rate(tx_clk, rate) < 0)
+		pr_err("%s(): failed to set eqos tx_clk rate\n", __func__);
 }
 
 /**
@@ -365,16 +819,19 @@ static void ether_adjust_link(struct net_device *dev)
 	}
 
 	if (speed_changed) {
-		clk_set_rate(pdata->tx_clk,
-			     (phydev->speed == SPEED_10) ? 2500 * 1000 :
-			     (phydev->speed ==
-			     SPEED_100) ? 25000 * 1000 : 125000 * 1000);
-		if (phydev->speed != SPEED_10) {
-			ioctl_data.cmd = OSI_CMD_PAD_CALIBRATION;
-			if (osi_handle_ioctl(pdata->osi_core, &ioctl_data) <
-					     0) {
-				dev_err(pdata->dev,
-					"failed to do pad caliberation\n");
+		if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
+			ether_set_mgbe_mac_div_rate(pdata->mac_div_clk,
+						    phydev->speed);
+		} else {
+			ether_set_eqos_tx_clk(pdata->tx_clk,
+					      phydev->speed);
+			if (phydev->speed != SPEED_10) {
+				ioctl_data.cmd = OSI_CMD_PAD_CALIBRATION;
+				if (osi_handle_ioctl(pdata->osi_core,
+						     &ioctl_data) < 0) {
+					dev_err(pdata->dev,
+						"failed to do pad caliberation\n");
+				}
 			}
 		}
 	}
@@ -513,21 +970,25 @@ irqreturn_t ether_vm_isr(int irq, void *data)
 
 		if (txrx) {
 			rx_napi = pdata->rx_napi[chan];
+
+			osi_handle_dma_intr(osi_dma, chan,
+					    OSI_DMA_CH_RX_INTR,
+					    OSI_DMA_INTR_DISABLE);
+
 			if (likely(napi_schedule_prep(&rx_napi->napi))) {
-				osi_handle_dma_intr(osi_dma, chan,
-						    OSI_DMA_CH_RX_INTR,
-						    OSI_DMA_INTR_DISABLE);
 				/* TODO: Schedule NAPI on different CPU core */
-				__napi_schedule(&rx_napi->napi);
+				__napi_schedule_irqoff(&rx_napi->napi);
 			}
 		} else {
 			tx_napi = pdata->tx_napi[chan];
+
+			osi_handle_dma_intr(osi_dma, chan,
+					    OSI_DMA_CH_TX_INTR,
+					    OSI_DMA_INTR_DISABLE);
+
 			if (likely(napi_schedule_prep(&tx_napi->napi))) {
-				osi_handle_dma_intr(osi_dma, chan,
-						    OSI_DMA_CH_TX_INTR,
-						    OSI_DMA_INTR_DISABLE);
 				/* TODO: Schedule NAPI on different CPU core */
-				__napi_schedule(&tx_napi->napi);
+				__napi_schedule_irqoff(&tx_napi->napi);
 			}
 		}
 
@@ -681,8 +1142,10 @@ static void ether_free_irqs(struct ether_priv_data *pdata)
 		pdata->common_irq_alloc_mask = 0U;
 	}
 
-	if (pdata->osi_core->mac_ver > OSI_EQOS_MAC_5_00) {
-		for (i = 0; i < pdata->osi_dma->num_vm_irqs; i++) {
+	if (pdata->osi_core->mac_ver > OSI_EQOS_MAC_5_00 ||
+	    (pdata->osi_core->mac_ver == OSI_MGBE_MAC_3_00) ||
+	    (pdata->osi_core->mac_ver == OSI_MGBE_MAC_3_10)) {
+		for (i = 0; i < pdata->osi_core->num_vm_irqs; i++) {
 			if (pdata->rx_irq_alloc_mask & (OSI_ENABLE << i)) {
 				devm_free_irq(pdata->dev, pdata->vm_irqs[i],
 					      &pdata->vm_irq_data[i]);
@@ -760,7 +1223,7 @@ static void ether_start_ivc(struct ether_priv_data *pdata)
 		}
 		ictxt->ivc_state = 1;
 		// initialize
-		spin_lock_init(&ictxt->ivck_lock);
+		mutex_init(&ictxt->ivck_lock);
 	}
 }
 
@@ -831,7 +1294,7 @@ static int ether_init_ivc(struct ether_priv_data *pdata)
 	}
 
 	dev_info(dev, "Reserved IVC channel #%u - frame_size=%d irq %d\n",
-                 id, ictxt->ivck->frame_size, ictxt->ivck->irq);
+		 id, ictxt->ivck->frame_size, ictxt->ivck->irq);
 	osi_core->osd_ops.ivc_send = osd_ivc_send_cmd;
 	init_completion(&ictxt->msg_complete);
 	ether_start_ivc(pdata);
@@ -871,8 +1334,10 @@ static int ether_request_irqs(struct ether_priv_data *pdata)
 	}
 	pdata->common_irq_alloc_mask = 1;
 
-	if (osi_core->mac_ver > OSI_EQOS_MAC_5_00) {
-		for (i = 0; i < osi_dma->num_vm_irqs; i++) {
+	if (osi_core->mac_ver > OSI_EQOS_MAC_5_00 ||
+	    (osi_core->mac_ver == OSI_MGBE_MAC_3_10) ||
+	    (osi_core->mac_ver == OSI_MGBE_MAC_3_00)) {
+		for (i = 0; i < osi_core->num_vm_irqs; i++) {
 			snprintf(irq_names[j], ETHER_IRQ_NAME_SZ, "%s.vm%d",
 				 netdev_name(pdata->ndev), i);
 			ret = devm_request_irq(pdata->dev, pdata->vm_irqs[i],
@@ -988,11 +1453,14 @@ static void ether_napi_enable(struct ether_priv_data *pdata)
  * @brief Free receive skbs
  *
  * @param[in] rx_swcx: Rx pkt SW context
- * @param[in] dev: device instance associated with driver.
+ * @param[in] pdata: Ethernet private data
  * @param[in] rx_buf_len: Receive buffer length
+ * @param[in] resv_buf_virt_addr: Reservered virtual buffer
  */
-static void ether_free_rx_skbs(struct osi_rx_swcx *rx_swcx, struct device *dev,
-			       unsigned int rx_buf_len, void *resv_buf_virt_addr)
+static void ether_free_rx_skbs(struct osi_rx_swcx *rx_swcx,
+			       struct ether_priv_data *pdata,
+			       unsigned int rx_buf_len,
+			       void *resv_buf_virt_addr)
 {
 	struct osi_rx_swcx *prx_swcx = NULL;
 	unsigned int i;
@@ -1002,9 +1470,16 @@ static void ether_free_rx_skbs(struct osi_rx_swcx *rx_swcx, struct device *dev,
 
 		if (prx_swcx->buf_virt_addr != NULL) {
 			if (resv_buf_virt_addr != prx_swcx->buf_virt_addr) {
-				dma_unmap_single(dev, prx_swcx->buf_phy_addr,
+#ifdef ETHER_PAGE_POOL
+				page_pool_put_full_page(pdata->page_pool,
+							prx_swcx->buf_virt_addr,
+							false);
+#else
+				dma_unmap_single(pdata->dev,
+						 prx_swcx->buf_phy_addr,
 						 rx_buf_len, DMA_FROM_DEVICE);
 				dev_kfree_skb_any(prx_swcx->buf_virt_addr);
+#endif
 			}
 			prx_swcx->buf_virt_addr = NULL;
 			prx_swcx->buf_phy_addr = 0;
@@ -1018,28 +1493,28 @@ static void ether_free_rx_skbs(struct osi_rx_swcx *rx_swcx, struct device *dev,
  *	allocated_rx_dma_ring() API.
  *
  * @param[in] osi_dma: OSI DMA private data structure.
- * @param[in] dev: device instance associated with driver.
+ * @param[in] pdata: Ethernet private data.
  */
 static void free_rx_dma_resources(struct osi_dma_priv_data *osi_dma,
-				  struct device *dev)
+				  struct ether_priv_data *pdata)
 {
 	unsigned long rx_desc_size = sizeof(struct osi_rx_desc) * RX_DESC_CNT;
 	struct osi_rx_ring *rx_ring = NULL;
 	unsigned int i;
 
-	for (i = 0; i < OSI_EQOS_MAX_NUM_CHANS; i++) {
+	for (i = 0; i < OSI_MGBE_MAX_NUM_CHANS; i++) {
 		rx_ring = osi_dma->rx_ring[i];
 
 		if (rx_ring != NULL) {
 			if (rx_ring->rx_swcx != NULL) {
-				ether_free_rx_skbs(rx_ring->rx_swcx, dev,
+				ether_free_rx_skbs(rx_ring->rx_swcx, pdata,
 						   osi_dma->rx_buf_len,
 						   osi_dma->resv_buf_virt_addr);
 				kfree(rx_ring->rx_swcx);
 			}
 
 			if (rx_ring->rx_desc != NULL) {
-				dma_free_coherent(dev, rx_desc_size,
+				dma_free_coherent(pdata->dev, rx_desc_size,
 						  rx_ring->rx_desc,
 						  rx_ring->rx_desc_phy_addr);
 			}
@@ -1048,6 +1523,12 @@ static void free_rx_dma_resources(struct osi_dma_priv_data *osi_dma,
 			rx_ring = NULL;
 		}
 	}
+#ifdef ETHER_PAGE_POOL
+	if (pdata->page_pool) {
+		page_pool_destroy(pdata->page_pool);
+		pdata->page_pool = NULL;
+	}
+#endif
 }
 
 /**
@@ -1126,16 +1607,33 @@ err_rx_desc:
 static int ether_allocate_rx_buffers(struct ether_priv_data *pdata,
 				     struct osi_rx_ring *rx_ring)
 {
+#ifndef ETHER_PAGE_POOL
 	unsigned int rx_buf_len = pdata->osi_dma->rx_buf_len;
+#endif
 	struct osi_rx_swcx *rx_swcx = NULL;
 	unsigned int i = 0;
 
 	for (i = 0; i < RX_DESC_CNT; i++) {
+#ifndef ETHER_PAGE_POOL
 		struct sk_buff *skb = NULL;
+#else
+		struct page *page = NULL;
+#endif
 		dma_addr_t dma_addr = 0;
 
 		rx_swcx = rx_ring->rx_swcx + i;
 
+#ifdef ETHER_PAGE_POOL
+		page = page_pool_dev_alloc_pages(pdata->page_pool);
+		if (!page) {
+			dev_err(pdata->dev,
+				"failed to allocate page pool buffer");
+			return -ENOMEM;
+		}
+
+		dma_addr = page_pool_get_dma_addr(page);
+		rx_swcx->buf_virt_addr = page;
+#else
 		skb = __netdev_alloc_skb_ip_align(pdata->ndev, rx_buf_len,
 						  GFP_KERNEL);
 		if (unlikely(skb == NULL)) {
@@ -1152,11 +1650,49 @@ static int ether_allocate_rx_buffers(struct ether_priv_data *pdata,
 		}
 
 		rx_swcx->buf_virt_addr = skb;
+#endif
 		rx_swcx->buf_phy_addr = dma_addr;
 	}
 
 	return 0;
 }
+
+#ifdef ETHER_PAGE_POOL
+/**
+ * @brief Create Rx buffer page pool
+ *
+ * Algorithm: Invokes page pool API to create Rx buffer pool.
+ *
+ * @param[in] pdata: OSD private data.
+ *
+ * @retval 0 on success
+ * @retval "negative value" on failure.
+ */
+static int ether_page_pool_create(struct ether_priv_data *pdata)
+{
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	struct page_pool_params pp_params = { 0 };
+	unsigned int num_pages;
+	int ret = 0;
+
+	pp_params.flags = PP_FLAG_DMA_MAP;
+	pp_params.pool_size = osi_dma->rx_buf_len;
+	num_pages = DIV_ROUND_UP(osi_dma->rx_buf_len, PAGE_SIZE);
+	pp_params.order = ilog2(roundup_pow_of_two(num_pages));
+	pp_params.nid = dev_to_node(pdata->dev);
+	pp_params.dev = pdata->dev;
+	pp_params.dma_dir = DMA_FROM_DEVICE;
+
+	pdata->page_pool = page_pool_create(&pp_params);
+	if (IS_ERR(pdata->page_pool)) {
+		ret = PTR_ERR(pdata->page_pool);
+		pdata->page_pool = NULL;
+		return ret;
+	}
+
+	return ret;
+}
+#endif
 
 /**
  * @brief Allocate Receive DMA channel ring resources.
@@ -1179,7 +1715,15 @@ static int ether_allocate_rx_dma_resources(struct osi_dma_priv_data *osi_dma,
 	unsigned int i;
 	int ret = 0;
 
-	for (i = 0; i < OSI_EQOS_MAX_NUM_CHANS; i++) {
+#ifdef ETHER_PAGE_POOL
+	ret = ether_page_pool_create(pdata);
+	if (ret < 0) {
+		pr_err("%s(): failed to create page pool\n",
+		       __func__);
+		goto exit;
+	}
+#endif
+	for (i = 0; i < OSI_MGBE_MAX_NUM_CHANS; i++) {
 		chan = osi_dma->dma_chans[i];
 
 		if (chan != OSI_INVALID_CHAN_NUM) {
@@ -1199,7 +1743,7 @@ static int ether_allocate_rx_dma_resources(struct osi_dma_priv_data *osi_dma,
 
 	return 0;
 exit:
-	free_rx_dma_resources(osi_dma, pdata->dev);
+	free_rx_dma_resources(osi_dma, pdata);
 	return ret;
 }
 
@@ -1219,7 +1763,7 @@ static void free_tx_dma_resources(struct osi_dma_priv_data *osi_dma,
 	struct osi_tx_ring *tx_ring = NULL;
 	unsigned int i;
 
-	for (i = 0; i < OSI_EQOS_MAX_NUM_CHANS; i++) {
+	for (i = 0; i < OSI_MGBE_MAX_NUM_CHANS; i++) {
 		tx_ring = osi_dma->tx_ring[i];
 
 		if (tx_ring != NULL) {
@@ -1322,7 +1866,7 @@ static int ether_allocate_tx_dma_resources(struct osi_dma_priv_data *osi_dma,
 	unsigned int i;
 	int ret = 0;
 
-	for (i = 0; i < OSI_EQOS_MAX_NUM_CHANS; i++) {
+	for (i = 0; i < OSI_MGBE_MAX_NUM_CHANS; i++) {
 		chan = osi_dma->dma_chans[i];
 
 		if (chan != OSI_INVALID_CHAN_NUM) {
@@ -1359,12 +1903,12 @@ static void ether_init_invalid_chan_ring(struct osi_dma_priv_data *osi_dma)
 {
 	unsigned int i;
 
-	for (i = 0; i < OSI_EQOS_MAX_NUM_CHANS; i++) {
+	for (i = 0; i < OSI_MGBE_MAX_NUM_CHANS; i++) {
 		osi_dma->tx_ring[i] = NULL;
 		osi_dma->rx_ring[i] = NULL;
 	}
 
-	for (i = osi_dma->num_dma_chans; i < OSI_EQOS_MAX_NUM_CHANS; i++) {
+	for (i = osi_dma->num_dma_chans; i < OSI_MGBE_MAX_NUM_CHANS; i++) {
 		osi_dma->dma_chans[i] = OSI_INVALID_CHAN_NUM;
 	}
 }
@@ -1384,7 +1928,7 @@ void free_dma_resources(struct ether_priv_data *pdata)
 	struct device *dev = pdata->dev;
 
 	free_tx_dma_resources(osi_dma, dev);
-	free_rx_dma_resources(osi_dma, dev);
+	free_rx_dma_resources(osi_dma, pdata);
 
 	/* unmap reserved DMA*/
 	if (osi_dma->resv_buf_phy_addr) {
@@ -1627,6 +2171,74 @@ static inline void ether_init_eee_params(struct ether_priv_data *pdata)
 }
 
 /**
+ * @brief function to set unicast/Broadcast MAC address filter
+ *
+ * Algorithm: algo to add Unicast MAC/Broadcast address in L2 filter register
+ *
+ * @param[in] pdata: Pointer to private data structure.
+ * @param[in] ioctl_data: OSI IOCTL data structure.
+ * @param[in] en_dis: enable(1)/disable(0) L2 filter.
+ * @param[in] uc_bc: MAC address(1)/ Broadcast address(0).
+ *
+ * @note Ethernet driver probe need to be completed successfully
+ * with ethernet network device created.
+ *
+ * @retval 0 on success
+ * @retval "negative value" on failure.
+ */
+static int ether_update_mac_addr_filter(struct ether_priv_data *pdata,
+					struct osi_ioctl *ioctl_data,
+					unsigned int en_dis,
+					unsigned int uc_bc)
+{
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	nveu32_t dma_channel = osi_dma->dma_chans[0];
+	unsigned char bc_addr[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+
+	if ((en_dis > OSI_ENABLE) || (uc_bc > ETHER_ADDRESS_MAC)) {
+		dev_err(pdata->dev,
+			"%s(): wrong argument en_dis=0x%01x, uc_bc=0x%01x\n",
+		       __func__, en_dis, uc_bc);
+		return -1;
+	}
+
+	memset(&ioctl_data->l2_filter, 0x0, sizeof(struct osi_filter));
+	/* Set MAC address with DCS set to route all legacy Rx
+	 * packets from RxQ0 to default DMA at index 0.
+	 */
+	ioctl_data->l2_filter.oper_mode = (OSI_OPER_EN_PERFECT |
+					   OSI_OPER_DIS_PROMISC |
+					   OSI_OPER_DIS_ALLMULTI);
+	if (en_dis == OSI_ENABLE) {
+		ioctl_data->l2_filter.oper_mode |= OSI_OPER_ADDR_UPDATE;
+	} else {
+		ioctl_data->l2_filter.oper_mode |= OSI_OPER_ADDR_DEL;
+	}
+
+	if (uc_bc == ETHER_ADDRESS_MAC) {
+		ioctl_data->l2_filter.index = ETHER_MAC_ADDRESS_INDEX;
+		memcpy(ioctl_data->l2_filter.mac_address, osi_core->mac_addr,
+		       ETH_ALEN);
+	} else {
+		if (osi_dma->num_dma_chans > 1) {
+			dma_channel = osi_dma->dma_chans[1];
+		} else {
+			dma_channel = osi_dma->dma_chans[0];
+		}
+		ioctl_data->l2_filter.index = ETHER_BC_ADDRESS_INDEX;
+		memcpy(ioctl_data->l2_filter.mac_address, bc_addr, ETH_ALEN);
+	}
+	ioctl_data->l2_filter.dma_routing = OSI_ENABLE;
+	ioctl_data->l2_filter.dma_chan = dma_channel;
+	ioctl_data->l2_filter.addr_mask = OSI_AMASK_DISABLE;
+	ioctl_data->l2_filter.src_dest = OSI_DA_MATCH;
+	ioctl_data->cmd = OSI_CMD_L2_FILTER;
+
+	return osi_handle_ioctl(osi_core, ioctl_data);
+}
+
+/**
  * @brief Call back to handle bring up of Ethernet interface
  *
  * Algorithm: This routine takes care of below
@@ -1666,11 +2278,19 @@ static int ether_open(struct net_device *dev)
 		return ret;
 	}
 
-	if (pdata->mac_rst && !osi_core->pre_si) {
+	if (pdata->mac_rst) {
 		ret = reset_control_reset(pdata->mac_rst);
 		if (ret < 0) {
 			dev_err(&dev->dev, "failed to reset MAC HW\n");
 			goto err_mac_rst;
+		}
+	}
+
+	if (pdata->xpcs_rst) {
+		ret = reset_control_reset(pdata->xpcs_rst);
+		if (ret < 0) {
+			dev_err(&dev->dev, "failed to reset XPCS HW\n");
+			goto err_xpcs_rst;
 		}
 	}
 
@@ -1718,6 +2338,20 @@ static int ether_open(struct net_device *dev)
 		goto err_hw_init;
 	}
 
+	ret = ether_update_mac_addr_filter(pdata, &ioctl_data, OSI_ENABLE,
+					   ETHER_ADDRESS_MAC);
+	if (ret < 0) {
+		dev_err(pdata->dev, "failed to set MAC address\n");
+		goto err_hw_init;
+	}
+
+	ret = ether_update_mac_addr_filter(pdata, &ioctl_data, OSI_ENABLE,
+					   ETHER_ADDRESS_BC);
+	if (ret < 0) {
+		dev_err(pdata->dev, "failed to set BC address\n");
+		goto err_hw_init;
+	}
+
 	/* DMA init */
 	ret = osi_hw_dma_init(pdata->osi_dma);
 	if (ret < 0) {
@@ -1731,6 +2365,8 @@ static int ether_open(struct net_device *dev)
 	 * structure variable as well */
 	pdata->vlan_hash_filtering = OSI_PERFECT_FILTER_MODE;
 	pdata->l2_filtering_mode = OSI_PERFECT_FILTER_MODE;
+	/* Set default PTP mode as Two step */
+	pdata->osi_dma->ptp_flag = OSI_PTP_SYNC_TWOSTEP;
 
 	/* Initialize PTP */
 	ret = ether_ptp_init(pdata);
@@ -1743,6 +2379,17 @@ static int ether_open(struct net_device *dev)
 
 	/* Enable napi before requesting irq to be ready to handle it */
 	ether_napi_enable(pdata);
+
+#ifdef MACSEC_SUPPORT
+#ifdef DEBUG_MACSEC
+	ret = macsec_open(pdata->macsec_pdata);
+	if (ret < 0) {
+		dev_err(&dev->dev, "%s: failed to open macsec with reason %d\n",
+			__func__, ret);
+		goto err_macsec_open;
+	}
+#endif
+#endif /* MACSEC_SUPPORT */
 
 	/* request tx/rx/common irq */
 	ret = ether_request_irqs(pdata);
@@ -1776,6 +2423,11 @@ static int ether_open(struct net_device *dev)
 
 	return ret;
 
+#ifdef MACSEC_SUPPORT
+#ifdef DEBUG_MACSEC
+err_macsec_open:
+#endif
+#endif /* MACSEC_SUPPORT */
 err_r_irq:
 	ether_napi_disable(pdata);
 	ether_ptp_remove(pdata);
@@ -1791,7 +2443,11 @@ err_alloc:
 	}
 err_phy_init:
 err_poll_swr:
-	if (!osi_core->pre_si && pdata->mac_rst) {
+	if (pdata->xpcs_rst) {
+		reset_control_assert(pdata->xpcs_rst);
+	}
+err_xpcs_rst:
+	if (pdata->mac_rst) {
 		reset_control_assert(pdata->mac_rst);
 	}
 err_mac_rst:
@@ -1830,6 +2486,76 @@ static inline void ether_reset_stats(struct ether_priv_data *pdata)
 }
 
 /**
+ * @brief Delete L2 filters from HW register when interface is down
+ *
+ *  Algorithm: This routine takes care of below
+ *  - Remove MAC address filter
+ *  - Remove BC address filter (remove DMA channel form DCS field)
+ *  - Remove all L2 filters
+ *
+ * @param[in] pdata: Pointer to private data structure.
+ *
+ * @note  MAC Interface need to be registered.
+ */
+static inline void ether_delete_l2_filter(struct ether_priv_data *pdata)
+{
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	struct ether_mac_addr_list *pnode;
+	struct list_head *head_node, *temp_head_node;
+	struct osi_ioctl ioctl_data = {};
+	int ret, i;
+
+	memset(&ioctl_data.l2_filter, 0x0, sizeof(struct osi_filter));
+	ret = ether_update_mac_addr_filter(pdata, &ioctl_data, OSI_DISABLE,
+					   ETHER_ADDRESS_MAC);
+	if (ret < 0) {
+		dev_err(pdata->dev, "issue in deleting MAC address\n");
+	}
+
+	memset(&ioctl_data.l2_filter, 0x0, sizeof(struct osi_filter));
+	ret = ether_update_mac_addr_filter(pdata, &ioctl_data, OSI_DISABLE,
+					   ETHER_ADDRESS_BC);
+	if (ret < 0) {
+		dev_err(pdata->dev, "issue in deleting BC address\n");
+	}
+
+	/* Loop to delete l2 address list filters */
+	for (i = ETHER_MAC_ADDRESS_INDEX + 1; i <= pdata->last_filter_index;
+	     i++) {
+		/* Reset the filter structure to avoid any old value */
+		memset(&ioctl_data.l2_filter, 0x0, sizeof(struct osi_filter));
+		ioctl_data.l2_filter.oper_mode = OSI_OPER_ADDR_DEL;
+		ioctl_data.l2_filter.index = i;
+		ioctl_data.l2_filter.dma_routing = OSI_ENABLE;
+		if (osi_dma->num_dma_chans > 1) {
+			ioctl_data.l2_filter.dma_chan = osi_dma->dma_chans[1];
+		} else {
+			ioctl_data.l2_filter.dma_chan = osi_dma->dma_chans[0];
+		}
+		ioctl_data.l2_filter.addr_mask = OSI_AMASK_DISABLE;
+		ioctl_data.l2_filter.src_dest = OSI_DA_MATCH;
+		ioctl_data.cmd = OSI_CMD_L2_FILTER;
+		ret = osi_handle_ioctl(osi_core, &ioctl_data);
+		if (ret < 0) {
+			dev_err(pdata->dev,
+				"failed to delete L2 filter index = %d\n", i);
+		}
+	}
+
+	if (!list_empty(&pdata->mac_addr_list_head)) {
+		list_for_each_safe(head_node, temp_head_node,
+				   &pdata->mac_addr_list_head) {
+			pnode = list_entry(head_node,
+					   struct ether_mac_addr_list,
+					   list_head);
+			list_del(head_node);
+			kfree(pnode);
+		}
+	}
+}
+
+/**
  * @brief Call back to handle bring down of Ethernet interface
  *
  * Algorithm: This routine takes care of below
@@ -1846,8 +2572,8 @@ static inline void ether_reset_stats(struct ether_priv_data *pdata)
 static int ether_close(struct net_device *ndev)
 {
 	struct ether_priv_data *pdata = netdev_priv(ndev);
-	int ret = 0, i;
 	unsigned int chan = 0x0;
+	int i;
 
 	/* Unregister broadcasting MAC timestamp to clients */
 	tegra_unregister_hwtime_source();
@@ -1890,6 +2616,9 @@ static int ether_close(struct net_device *ndev)
 		}
 	}
 
+	/* Delete MAC filters */
+	ether_delete_l2_filter(pdata);
+
 	/* DMA De init */
 	osi_hw_dma_deinit(pdata->osi_dma);
 
@@ -1908,20 +2637,35 @@ static int ether_close(struct net_device *ndev)
 	/* MAC deinit which inturn stop MAC Tx,Rx */
 	osi_hw_core_deinit(pdata->osi_core);
 
+	cancel_work_sync(&pdata->set_rx_mode_work);
+
 	ether_stop_ivc(pdata);
 
+	if (pdata->xpcs_rst) {
+		reset_control_assert(pdata->xpcs_rst);
+	}
+
 	/* Assert MAC RST gpio */
-	if (!pdata->osi_core->pre_si && pdata->mac_rst) {
+	if (pdata->mac_rst) {
 		reset_control_assert(pdata->mac_rst);
 	}
 
 	/* Disable clock */
 	ether_disable_clks(pdata);
 
+#ifdef MACSEC_SUPPORT
+#ifdef DEBUG_MACSEC
+	ret = macsec_close(pdata->macsec_pdata);
+	if (ret < 0) {
+		dev_err(pdata->dev, "Failed to close macsec");
+	}
+#endif
+#endif /* MACSEC_SUPPORT */
+
 	/* Reset stats since interface is going down */
 	ether_reset_stats(pdata);
 
-	return ret;
+	return 0;
 }
 
 /**
@@ -1991,13 +2735,14 @@ static int ether_handle_tso(struct osi_tx_pkt_cx *tx_pkt_cx,
  * @retval "number of descriptors" on success
  * @retval "negative value"  on failure.
  */
-static int ether_tx_swcx_alloc(struct device *dev,
+static int ether_tx_swcx_alloc(struct ether_priv_data *pdata,
 			       struct osi_tx_ring *tx_ring,
 			       struct sk_buff *skb)
 {
 	struct osi_tx_pkt_cx *tx_pkt_cx = &tx_ring->tx_pkt_cx;
 	unsigned int cur_tx_idx = tx_ring->cur_tx_idx;
 	struct osi_tx_swcx *tx_swcx = NULL;
+	struct device *dev = pdata->dev;
 	unsigned int len = 0, offset = 0, size = 0;
 	int cnt = 0, ret = 0, i, num_frags;
 #if (KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE)
@@ -2039,7 +2784,12 @@ static int ether_tx_swcx_alloc(struct device *dev,
 	}
 
 	if (((tx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) ||
-	    ((tx_pkt_cx->flags & OSI_PKT_CX_TSO) == OSI_PKT_CX_TSO)) {
+	    ((tx_pkt_cx->flags & OSI_PKT_CX_TSO) == OSI_PKT_CX_TSO) ||
+	    (((tx_pkt_cx->flags & OSI_PKT_CX_PTP) == OSI_PKT_CX_PTP) &&
+	      /* Check only MGBE as we need ctx fro both sync mode */
+	      ((pdata->osi_core->mac == OSI_MAC_HW_MGBE) ||
+	       ((pdata->osi_dma->ptp_flag & OSI_PTP_SYNC_ONESTEP) ==
+		OSI_PTP_SYNC_ONESTEP)))) {
 		tx_swcx = tx_ring->tx_swcx + cur_tx_idx;
 		if (tx_swcx->len) {
 			return 0;
@@ -2078,7 +2828,7 @@ static int ether_tx_swcx_alloc(struct device *dev,
 			ret = -ENOMEM;
 			goto dma_map_failed;
 		}
-		tx_swcx->is_paged_buf = 0;
+		tx_swcx->flags &= ~OSI_PKT_CX_PAGED_BUF;
 
 		tx_swcx->len = size;
 		len -= size;
@@ -2111,7 +2861,7 @@ static int ether_tx_swcx_alloc(struct device *dev,
 				goto dma_map_failed;
 			}
 
-			tx_swcx->is_paged_buf = 0;
+			tx_swcx->flags &= ~OSI_PKT_CX_PAGED_BUF;
 			tx_swcx->len = size;
 			len -= size;
 			offset += size;
@@ -2154,7 +2904,7 @@ static int ether_tx_swcx_alloc(struct device *dev,
 				ret = -ENOMEM;
 				goto dma_map_failed;
 			}
-			tx_swcx->is_paged_buf = 1;
+			tx_swcx->flags |= OSI_PKT_CX_PAGED_BUF;
 
 			tx_swcx->len = size;
 			len -= size;
@@ -2178,7 +2928,8 @@ dma_map_failed:
 		DECR_TX_DESC_INDEX(cur_tx_idx, 1U);
 		tx_swcx = tx_ring->tx_swcx + cur_tx_idx;
 		if (tx_swcx->buf_phy_addr) {
-			if (tx_swcx->is_paged_buf) {
+			if ((tx_swcx->flags & OSI_PKT_CX_PAGED_BUF) ==
+			    OSI_PKT_CX_PAGED_BUF) {
 				dma_unmap_page(dev, tx_swcx->buf_phy_addr,
 					       tx_swcx->len, DMA_TO_DEVICE);
 			} else {
@@ -2189,7 +2940,7 @@ dma_map_failed:
 		}
 		tx_swcx->len = 0;
 
-		tx_swcx->is_paged_buf = 0;
+		tx_swcx->flags &= ~OSI_PKT_CX_PAGED_BUF;
 		cnt--;
 	}
 	return ret;
@@ -2265,7 +3016,7 @@ static int ether_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 	struct osi_tx_ring *tx_ring = osi_dma->tx_ring[chan];
 	int count = 0;
 
-	count = ether_tx_swcx_alloc(pdata->dev, tx_ring, skb);
+	count = ether_tx_swcx_alloc(pdata, tx_ring, skb);
 	if (count <= 0) {
 		if (count == 0) {
 			netif_stop_subqueue(ndev, qinx);
@@ -2313,8 +3064,9 @@ static int ether_prepare_mc_list(struct net_device *dev,
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 	struct netdev_hw_addr *ha;
-	unsigned int i = 1;
+	unsigned int i = ETHER_MAC_ADDRESS_INDEX + 1;
 	int ret = -1;
 
 	if (ioctl_data == NULL) {
@@ -2361,12 +3113,18 @@ static int ether_prepare_mc_list(struct net_device *dev,
 			ioctl_data->l2_filter.index = i;
 			memcpy(ioctl_data->l2_filter.mac_address, ha->addr,
 			       ETH_ALEN);
-			ioctl_data->l2_filter.dma_routing = OSI_DISABLE;
-			ioctl_data->l2_filter.dma_chan = 0x0;
+			ioctl_data->l2_filter.dma_routing = OSI_ENABLE;
+			if (osi_dma->num_dma_chans > 1) {
+				ioctl_data->l2_filter.dma_chan =
+							  osi_dma->dma_chans[1];
+			} else {
+				ioctl_data->l2_filter.dma_chan =
+							  osi_dma->dma_chans[0];
+			}
 			ioctl_data->l2_filter.addr_mask = OSI_AMASK_DISABLE;
 			ioctl_data->l2_filter.src_dest = OSI_DA_MATCH;
 			ioctl_data->cmd = OSI_CMD_L2_FILTER;
-			ret = osi_handle_ioctl(osi_core, ioctl_data);
+			ret = ether_update_mac_addr(pdata, ioctl_data);
 			if (ret < 0) {
 				dev_err(pdata->dev, "issue in creating mc list\n");
 				pdata->last_filter_index = i - 1;
@@ -2405,6 +3163,7 @@ static int ether_prepare_uc_list(struct net_device *dev,
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 	/* last valid MC/MAC DA + 1 should be start of UC addresses */
 	unsigned int i = pdata->last_filter_index + 1;
 	struct netdev_hw_addr *ha;
@@ -2451,15 +3210,22 @@ static int ether_prepare_uc_list(struct net_device *dev,
 			ioctl_data->l2_filter.index = i;
 			memcpy(ioctl_data->l2_filter.mac_address, ha->addr,
 			       ETH_ALEN);
-			ioctl_data->l2_filter.dma_routing = OSI_DISABLE;
-			ioctl_data->l2_filter.dma_chan = 0x0;
+			ioctl_data->l2_filter.dma_routing = OSI_ENABLE;
+			if (osi_dma->num_dma_chans > 1) {
+				ioctl_data->l2_filter.dma_chan =
+							  osi_dma->dma_chans[1];
+			} else {
+				ioctl_data->l2_filter.dma_chan =
+							  osi_dma->dma_chans[0];
+			}
 			ioctl_data->l2_filter.addr_mask = OSI_AMASK_DISABLE;
 			ioctl_data->l2_filter.src_dest = OSI_DA_MATCH;
 
 			ioctl_data->cmd = OSI_CMD_L2_FILTER;
-			ret = osi_handle_ioctl(osi_core, ioctl_data);
+			ret = ether_update_mac_addr(pdata, ioctl_data);
 			if (ret < 0) {
-				dev_err(pdata->dev, "issue in creating uc list\n");
+				dev_err(pdata->dev,
+					"issue in creating uc list\n");
 				pdata->last_filter_index = i - 1;
 				return ret;
 			}
@@ -2477,26 +3243,23 @@ static int ether_prepare_uc_list(struct net_device *dev,
 }
 
 /**
- * @brief This function is used to set RX mode.
+ * @brief Work Queue function to call rx mode.
  *
- * Algorithm: Based on Network interface flag, MAC registers are programmed to
- * set mode.
- *
- * @param[in] dev - pointer to net_device structure.
+ * @param[in] work: work structure
  *
  * @note MAC and PHY need to be initialized.
  */
-static void ether_set_rx_mode(struct net_device *dev)
+static inline void set_rx_mode_work_func(struct work_struct *work)
 {
-	struct ether_priv_data *pdata = netdev_priv(dev);
+	struct ether_priv_data *pdata = container_of(work,
+			struct ether_priv_data, set_rx_mode_work);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	/* store last call last_uc_filter_index in temporary variable */
-	int last_index = pdata->last_filter_index;
 	struct osi_ioctl ioctl_data = {};
-
+	struct net_device *dev = pdata->ndev;
 	int ret = -1;
-	unsigned int i = 0;
 
+	mutex_lock(&pdata->rx_mode_lock);
 	memset(&ioctl_data.l2_filter, 0x0, sizeof(struct osi_filter));
 	if ((dev->flags & IFF_PROMISC) == IFF_PROMISC) {
 		if (pdata->promisc_mode == OSI_ENABLE) {
@@ -2516,6 +3279,7 @@ static void ether_set_rx_mode(struct net_device *dev)
 				 "Promiscuous mode not supported\n");
 		}
 
+		mutex_unlock(&pdata->rx_mode_lock);
 		return;
 	} else if ((dev->flags & IFF_ALLMULTI) == IFF_ALLMULTI) {
 		ioctl_data.l2_filter.oper_mode = (OSI_OPER_EN_ALLMULTI |
@@ -2528,13 +3292,17 @@ static void ether_set_rx_mode(struct net_device *dev)
 			dev_err(pdata->dev, "Setting All Multicast allow mode failed\n");
 		}
 
+		mutex_unlock(&pdata->rx_mode_lock);
 		return;
 	} else if (!netdev_mc_empty(dev)) {
+		/*MC list will be always there, invalidate list only once*/
+		ether_invalidate_mac_addr_list(pdata);
 		if (ether_prepare_mc_list(dev, &ioctl_data) != 0) {
 			dev_err(pdata->dev, "Setting MC address failed\n");
 		}
 	} else {
-		pdata->last_filter_index = 0;
+		/* start index after MAC and BC address index */
+		pdata->last_filter_index = ETHER_MAC_ADDRESS_INDEX;
 	}
 
 	if (!netdev_uc_empty(dev)) {
@@ -2543,25 +3311,47 @@ static void ether_set_rx_mode(struct net_device *dev)
 		}
 	}
 
-	/* Reset the filter structure to avoid any old value */
-	memset(&ioctl_data.l2_filter, 0x0, sizeof(struct osi_filter));
-	/* invalidate remaining ealier address */
-	for (i = pdata->last_filter_index + 1; i <= last_index; i++) {
-		ioctl_data.l2_filter.oper_mode = OSI_OPER_ADDR_DEL;
-		ioctl_data.l2_filter.index = i;
-		ioctl_data.l2_filter.dma_routing = OSI_DISABLE;
-		ioctl_data.l2_filter.dma_chan = OSI_CHAN_ANY;
-		ioctl_data.l2_filter.addr_mask = OSI_AMASK_DISABLE;
-		ioctl_data.l2_filter.src_dest = OSI_DA_MATCH;
-		ioctl_data.cmd = OSI_CMD_L2_FILTER;
-		ret = osi_handle_ioctl(osi_core, &ioctl_data);
-		if (ret < 0) {
-			dev_err(pdata->dev, "Invalidating expired L2 filter failed\n");
-			return;
-		}
+	ret = ether_remove_invalid_mac_addr(pdata, &ioctl_data);
+	if (ret < 0) {
+		dev_err(pdata->dev,
+			"Invalidating expired L2 filter failed\n");
+		mutex_unlock(&pdata->rx_mode_lock);
+		return;
 	}
 
+	/* Set default MAC configuration because if this path is called
+	 * only when flag for promiscuous or all_multi is not set.
+	 */
+	memset(&ioctl_data.l2_filter, 0x0, sizeof(struct osi_filter));
+	ioctl_data.l2_filter.oper_mode = (OSI_OPER_EN_PERFECT |
+					  OSI_OPER_DIS_PROMISC |
+					  OSI_OPER_DIS_ALLMULTI);
+	ioctl_data.cmd = OSI_CMD_L2_FILTER;
+
+	ret = osi_handle_ioctl(osi_core, &ioctl_data);
+	if (ret < 0) {
+		dev_err(pdata->dev, "failed to set operation mode\n");
+	}
+
+	mutex_unlock(&pdata->rx_mode_lock);
 	return;
+}
+
+/**
+ * @brief This function is used to set RX mode.
+ *
+ * Algorithm: Based on Network interface flag, MAC registers are programmed to
+ * set mode.
+ *
+ * @param[in] dev - pointer to net_device structure.
+ *
+ * @note MAC and PHY need to be initialized.
+ */
+void ether_set_rx_mode(struct net_device *dev)
+{
+	struct ether_priv_data *pdata = netdev_priv(dev);
+
+	schedule_work(&pdata->set_rx_mode_work);
 }
 
 /**
@@ -2655,7 +3445,7 @@ static int ether_set_mac_addr(struct net_device *ndev, void *addr)
 		return ret;
 	}
 
-	/* MAC address programmed in HW registers during osi_hw_core_init() */
+	/* MAC address programmed in HW registers before osi_hw_core_init() */
 	memcpy(osi_core->mac_addr, ndev->dev_addr, ETH_ALEN);
 
 	return ret;
@@ -2697,6 +3487,18 @@ static int ether_change_mtu(struct net_device *ndev, int new_mtu)
 	ndev->mtu = new_mtu;
 	osi_core->mtu = new_mtu;
 	osi_dma->mtu = new_mtu;
+
+#ifdef MACSEC_SUPPORT
+#ifdef DEBUG_MACSEC
+	/* Macsec is enabled, reduce MTU
+	 */
+	osi_core->mtu -= MACSEC_TAG_ICV_LEN;
+	osi_dma->mtu = osi_core->mtu;
+	ndev->mtu = osi_core->mtu;
+	netdev_info(pdata->ndev, "Macsec: Reduced MTU: %d Max: %d\n",
+		    ndev->mtu, ndev->max_mtu);
+#endif /* DEBUG_MACSEC */
+#endif /*  MACSEC_SUPPORT */
 
 	netdev_update_features(ndev);
 
@@ -2779,6 +3581,7 @@ static int ether_vlan_rx_add_vid(struct net_device *ndev, __be16 vlan_proto,
 {
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	unsigned int vlan_id = (vid | OSI_VLAN_ACTION_ADD);
 	struct osi_ioctl ioctl_data = {};
 	int ret = -1;
 
@@ -2787,7 +3590,7 @@ static int ether_vlan_rx_add_vid(struct net_device *ndev, __be16 vlan_proto,
 			"HASH FILTERING for VLAN tag is not supported in SW\n");
 	} else {
 		ioctl_data.cmd = OSI_CMD_UPDATE_VLAN_ID;
-		ioctl_data.arg1_u32 = vid;
+		ioctl_data.arg1_u32 = vlan_id;
 		ret = osi_handle_ioctl(osi_core, &ioctl_data);
 	}
 
@@ -2818,6 +3621,7 @@ static int ether_vlan_rx_kill_vid(struct net_device *ndev, __be16 vlan_proto,
 {
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	unsigned int vlan_id = (vid | OSI_VLAN_ACTION_DEL);
 	struct osi_ioctl ioctl_data = {};
 	int ret = -1;
 
@@ -2830,10 +3634,7 @@ static int ether_vlan_rx_kill_vid(struct net_device *ndev, __be16 vlan_proto,
 			"HASH FILTERING for VLAN tag is not supported in SW\n");
 	} else {
 		ioctl_data.cmd = OSI_CMD_UPDATE_VLAN_ID;
-		/* By default, receive only VLAN pkt with VID = 1 because
-		 * writing 0 will pass all VLAN pkt
-		 */
-		ioctl_data.arg1_u32 = 0x1U;
+		ioctl_data.arg1_u32 = vlan_id;
 		ret = osi_handle_ioctl(osi_core, &ioctl_data);
 	}
 
@@ -3167,7 +3968,7 @@ static void ether_set_vm_irq_chan_mask(struct ether_vm_irq_data *vm_irq_data,
 static int ether_get_vm_irq_data(struct platform_device *pdev,
 				 struct ether_priv_data *pdata)
 {
-	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct device_node *vm_node, *temp;
 	unsigned int i, j, node = 0;
 	int ret = 0;
@@ -3181,22 +3982,22 @@ static int ether_get_vm_irq_data(struct platform_device *pdev,
 
 	/* parse the number of VM IRQ's */
 	ret = of_property_read_u32(vm_node, "nvidia,num-vm-irqs",
-				   &osi_dma->num_vm_irqs);
+				   &osi_core->num_vm_irqs);
 	if (ret != 0) {
 		dev_err(&pdev->dev, "failed to get number of VM IRQ's (%d)\n",
 			ret);
 		dev_info(&pdev->dev, "Using num_vm_irqs as one\n");
-		osi_dma->num_vm_irqs = 1;
+		osi_core->num_vm_irqs = 1;
 	}
 
-	if (osi_dma->num_vm_irqs > OSI_MAX_VM_IRQS) {
+	if (osi_core->num_vm_irqs > OSI_MAX_VM_IRQS) {
 		dev_err(&pdev->dev, "Invalid Num. of VM IRQS\n");
 		return -EINVAL;
 	}
 
 	pdata->vm_irq_data = devm_kzalloc(pdata->dev,
 					  sizeof(struct ether_vm_irq_data) *
-					  osi_dma->num_vm_irqs,
+					  osi_core->num_vm_irqs,
 					  GFP_KERNEL);
 	if (pdata->vm_irq_data == NULL) {
 		dev_err(&pdev->dev, "failed to allocate VM IRQ data\n");
@@ -3204,18 +4005,18 @@ static int ether_get_vm_irq_data(struct platform_device *pdev,
 	}
 
 	ret = of_get_child_count(vm_node);
-	if (ret != osi_dma->num_vm_irqs) {
+	if (ret != osi_core->num_vm_irqs) {
 		dev_err(&pdev->dev,
 			"Mismatch in num_vm_irqs and VM IRQ config DT nodes\n");
 		return -EINVAL;
 	}
 
 	for_each_child_of_node(vm_node, temp) {
-		if (node == osi_dma->num_vm_irqs)
+		if (node == osi_core->num_vm_irqs)
 			break;
 
 		ret = of_property_read_u32(temp, "nvidia,num-vm-channels",
-					&osi_dma->irq_data[node].num_vm_chans);
+					&osi_core->irq_data[node].num_vm_chans);
 		if (ret != 0) {
 			dev_err(&pdev->dev,
 				"failed to read number of VM channels\n");
@@ -3223,23 +4024,30 @@ static int ether_get_vm_irq_data(struct platform_device *pdev,
 		}
 
 		ret = of_property_read_u32_array(temp, "nvidia,vm-channels",
-					osi_dma->irq_data[node].vm_chans,
-					osi_dma->irq_data[node].num_vm_chans);
+					osi_core->irq_data[node].vm_chans,
+					osi_core->irq_data[node].num_vm_chans);
 		if (ret != 0) {
 			dev_err(&pdev->dev, "failed to get VM channels\n");
 			return ret;
 		}
 
+		ret = of_property_read_u32(temp, "nvidia,vm-num",
+					   &osi_core->irq_data[node].vm_num);
+		if (ret != 0) {
+			dev_err(&pdev->dev, "failed to read VM Number\n");
+			return ret;
+		}
+
 		ether_set_vm_irq_chan_mask(&pdata->vm_irq_data[node],
-					   osi_dma->irq_data[node].num_vm_chans,
-					   osi_dma->irq_data[node].vm_chans);
+					   osi_core->irq_data[node].num_vm_chans,
+					   osi_core->irq_data[node].vm_chans);
 
 		pdata->vm_irq_data[node].pdata = pdata;
 
 		node++;
 	}
 
-	for (i = 0, j = 1; i < osi_dma->num_vm_irqs; i++, j++) {
+	for (i = 0, j = 1; i < osi_core->num_vm_irqs; i++, j++) {
 		pdata->vm_irqs[i] = platform_get_irq(pdev, j);
 		if (pdata->vm_irqs[i] < 0) {
 			dev_err(&pdev->dev, "failed to get VM IRQ number\n");
@@ -3276,7 +4084,9 @@ static int ether_get_irqs(struct platform_device *pdev,
 		dev_err(&pdev->dev, "failed to get common IRQ number\n");
 		return pdata->common_irq;
 	}
-	if (osi_core->mac_ver > OSI_EQOS_MAC_5_00) {
+	if (osi_core->mac_ver > OSI_EQOS_MAC_5_00 ||
+	    (osi_core->mac_ver == OSI_MGBE_MAC_3_10) ||
+	    (osi_core->mac_ver == OSI_MGBE_MAC_3_00)) {
 		ret = ether_get_vm_irq_data(pdev, pdata);
 		if (ret < 0) {
 			dev_err(pdata->dev, "failed to get VM IRQ info\n");
@@ -3393,23 +4203,65 @@ static int ether_get_mac_address(struct ether_priv_data *pdata)
 	struct device_node *np = dev->of_node;
 	const char *eth_mac_addr = NULL;
 	unsigned char mac_addr[ETH_ALEN] = {0};
+	/* Default choesn node property name for MAC address */
+	char str_mac_address[ETH_MAC_STR_LEN] = "nvidia,ether-mac";
+	unsigned int offset = 0;
+	unsigned int mac_addr_idx = 0x0;
 	int ret = 0;
 
 	if (!osi_core->pre_si) {
-		/* read MAC address */
-		eth_mac_addr = of_get_mac_address(np);
-		if (IS_ERR_OR_NULL(eth_mac_addr)) {
-			ret = ether_get_mac_address_dtb("/chosen",
-							"nvidia,ether-mac",
-							mac_addr);
-			if (ret < 0)
-				return ret;
-			eth_mac_addr = mac_addr;
-		} else {
-			if (!(is_valid_ether_addr(eth_mac_addr))) {
-				dev_err(dev, "Bad mac address exiting\n");
-				return -EINVAL;
+		/** For all new Platforms, ethernet DT node must have
+		 * "nvidia,mac-addr-idx" property which give MAC address
+		 * index of ethernet controller.
+		 *
+		 * - Algorithm: MAC address index for a functional driver is
+		 *   known from platform dts file.
+		 *
+		 *   For example:
+		 *     if there is MGBE controller DT node with index 8 MGBE,
+		 *     MAC address is at /chosen/nvidia,ether-mac8
+		 */
+		if ((pdata->osi_core->mac_ver > OSI_EQOS_MAC_5_10) ||
+		    (pdata->osi_core->mac_ver == OSI_MGBE_MAC_3_10)) {
+			ret = of_property_read_u32(np,
+						   "nvidia,mac-addr-idx",
+						   &mac_addr_idx);
+			if (ret < 0) {
+				dev_err(dev,
+					"Ethernet MAC index missing\n");
+				/* TODO Must return error if index is not
+				 * present in ethernet dt node
+				 * which is having status "okay".
+				 */
 			}
+
+			offset = mac_addr_idx;
+			sprintf(str_mac_address, "nvidia,ether-mac%d", offset);
+		}
+
+		ret = ether_get_mac_address_dtb("/chosen", str_mac_address,
+						mac_addr);
+		/* If return value is valid update eth_mac_addr */
+		if (ret == 0) {
+			eth_mac_addr = mac_addr;
+		}
+
+		/* if chosen nodes are not present for platform */
+		if (IS_ERR_OR_NULL(eth_mac_addr)) {
+			/* Read MAC address using default ethernet property
+			 * upstream driver should have only this call to get
+			 * MAC address
+			 */
+			eth_mac_addr = of_get_mac_address(np);
+		}
+
+		/* If neither chosen node nor kernel supported dt strings are
+		 * present in platform device tree.
+		 */
+		if (!(is_valid_ether_addr(eth_mac_addr)) ||
+		    IS_ERR_OR_NULL(eth_mac_addr)) {
+			dev_err(dev, "Bad mac address exiting\n");
+			return -EINVAL;
 		}
 	} else {
 		ndev->addr_assign_type = NET_ADDR_RANDOM;
@@ -3427,6 +4279,98 @@ static int ether_get_mac_address(struct ether_priv_data *pdata)
 }
 
 /**
+ * @brief Put back MAC MGBE related clocks.
+ *
+ * Algorithm: Put back or release the MAC related clocks.
+ *
+ * @param[in] pdata: OSD private data.
+ */
+static void ether_put_mgbe_clks(struct ether_priv_data *pdata)
+{
+	struct device *dev = pdata->dev;
+
+	if (!IS_ERR_OR_NULL(pdata->ptp_ref_clk)) {
+		devm_clk_put(dev, pdata->ptp_ref_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->app_clk)) {
+		devm_clk_put(dev, pdata->app_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->eee_pcs_clk)) {
+		devm_clk_put(dev, pdata->eee_pcs_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->mac_clk)) {
+		devm_clk_put(dev, pdata->mac_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->mac_div_clk)) {
+		devm_clk_put(dev, pdata->mac_div_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->tx_pcs_clk)) {
+		devm_clk_put(dev, pdata->tx_pcs_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->tx_clk)) {
+		devm_clk_put(dev, pdata->tx_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->rx_pcs_clk)) {
+		devm_clk_put(dev, pdata->rx_pcs_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->rx_pcs_input_clk)) {
+		devm_clk_put(dev, pdata->rx_pcs_input_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->rx_pcs_m_clk)) {
+		devm_clk_put(dev, pdata->rx_pcs_m_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->rx_m_clk)) {
+		devm_clk_put(dev, pdata->rx_m_clk);
+	}
+}
+
+/**
+ * @brief Put back MAC EQOS related clocks.
+ *
+ * Algorithm: Put back or release the MAC related clocks.
+ *
+ * @param[in] pdata: OSD private data.
+ */
+static void ether_put_eqos_clks(struct ether_priv_data *pdata)
+{
+	struct device *dev = pdata->dev;
+
+	if (!IS_ERR_OR_NULL(pdata->tx_clk)) {
+		devm_clk_put(dev, pdata->tx_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->ptp_ref_clk)) {
+		devm_clk_put(dev, pdata->ptp_ref_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->rx_clk)) {
+		devm_clk_put(dev, pdata->rx_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->axi_clk)) {
+		devm_clk_put(dev, pdata->axi_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->axi_cbb_clk)) {
+		devm_clk_put(dev, pdata->axi_cbb_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->pllrefe_clk)) {
+		devm_clk_put(dev, pdata->pllrefe_clk);
+	}
+}
+
+/**
  * @brief Put back MAC related clocks.
  *
  * Algorithm: Put back or release the MAC related clocks.
@@ -3435,34 +4379,15 @@ static int ether_get_mac_address(struct ether_priv_data *pdata)
  */
 static inline void ether_put_clks(struct ether_priv_data *pdata)
 {
-	struct device *dev = pdata->dev;
-
-	if (pdata->osi_core->pre_si) {
-		return;
-	}
-
-	if (!IS_ERR_OR_NULL(pdata->tx_clk)) {
-		devm_clk_put(dev, pdata->tx_clk);
-	}
-	if (!IS_ERR_OR_NULL(pdata->ptp_ref_clk)) {
-		devm_clk_put(dev, pdata->ptp_ref_clk);
-	}
-	if (!IS_ERR_OR_NULL(pdata->rx_clk)) {
-		devm_clk_put(dev, pdata->rx_clk);
-	}
-	if (!IS_ERR_OR_NULL(pdata->axi_clk)) {
-		devm_clk_put(dev, pdata->axi_clk);
-	}
-	if (!IS_ERR_OR_NULL(pdata->axi_cbb_clk)) {
-		devm_clk_put(dev, pdata->axi_cbb_clk);
-	}
-	if (!IS_ERR_OR_NULL(pdata->pllrefe_clk)) {
-		devm_clk_put(dev, pdata->pllrefe_clk);
+	if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
+		ether_put_mgbe_clks(pdata);
+	} else {
+		ether_put_eqos_clks(pdata);
 	}
 }
 
 /**
- * @brief Get MAC related clocks.
+ * @brief Get MAC MGBE related clocks.
  *
  * Algorithm: Get the clocks from DT and stores in OSD private data.
  *
@@ -3471,7 +4396,125 @@ static inline void ether_put_clks(struct ether_priv_data *pdata)
  * @retval 0 on success
  * @retval "negative value" on failure.
  */
-static int ether_get_clks(struct ether_priv_data *pdata)
+static int ether_get_mgbe_clks(struct ether_priv_data *pdata)
+{
+	struct device *dev = pdata->dev;
+	int ret;
+
+	pdata->rx_m_clk = devm_clk_get(dev, "rx_input_m");
+	if (IS_ERR(pdata->rx_m_clk)) {
+		ret = PTR_ERR(pdata->rx_m_clk);
+		dev_err(dev, "failed to get rx_input_m\n");
+		goto err_rx_m;
+	}
+
+	pdata->rx_pcs_m_clk = devm_clk_get(dev, "rx_pcs_m");
+	if (IS_ERR(pdata->rx_pcs_m_clk)) {
+		ret = PTR_ERR(pdata->rx_pcs_m_clk);
+		dev_err(dev, "failed to get rx_pcs_m clk\n");
+		goto err_rx_pcs_m;
+	}
+
+	pdata->rx_pcs_input_clk = devm_clk_get(dev, "rx_pcs_input");
+	if (IS_ERR(pdata->rx_pcs_input_clk)) {
+		ret = PTR_ERR(pdata->rx_pcs_input_clk);
+		dev_err(dev, "failed to get rx_pcs_input clk\n");
+		goto err_rx_pcs_input;
+	}
+
+	pdata->rx_pcs_clk = devm_clk_get(dev, "rx_pcs");
+	if (IS_ERR(pdata->rx_pcs_clk)) {
+		ret = PTR_ERR(pdata->rx_pcs_clk);
+		dev_err(dev, "failed to get rx_pcs clk\n");
+		goto err_rx_pcs;
+	}
+
+	pdata->tx_clk = devm_clk_get(dev, "tx");
+	if (IS_ERR(pdata->tx_clk)) {
+		ret = PTR_ERR(pdata->tx_clk);
+		dev_err(dev, "failed to get tx clk\n");
+		goto err_tx;
+	}
+
+	pdata->tx_pcs_clk = devm_clk_get(dev, "tx_pcs");
+	if (IS_ERR(pdata->tx_pcs_clk)) {
+		ret = PTR_ERR(pdata->tx_pcs_clk);
+		dev_err(dev, "failed to get tx_pcs clk\n");
+		goto err_tx_pcs;
+	}
+
+	pdata->mac_div_clk = devm_clk_get(dev, "mac_divider");
+	if (IS_ERR(pdata->mac_div_clk)) {
+		ret = PTR_ERR(pdata->mac_div_clk);
+		dev_err(dev, "failed to get mac_divider clk\n");
+		goto err_mac_div;
+	}
+
+	pdata->mac_clk = devm_clk_get(dev, "mac");
+	if (IS_ERR(pdata->mac_clk)) {
+		ret = PTR_ERR(pdata->mac_clk);
+		dev_err(dev, "failed to get mac clk\n");
+		goto err_mac;
+	}
+
+	pdata->eee_pcs_clk = devm_clk_get(dev, "eee_pcs");
+	if (IS_ERR(pdata->eee_pcs_clk)) {
+		ret = PTR_ERR(pdata->eee_pcs_clk);
+		dev_err(dev, "failed to get eee_pcs clk\n");
+		goto err_eee_pcs;
+	}
+
+	pdata->app_clk = devm_clk_get(dev, "app");
+	if (IS_ERR(pdata->app_clk)) {
+		ret = PTR_ERR(pdata->app_clk);
+		dev_err(dev, "failed to get app clk\n");
+		goto err_app;
+	}
+
+	pdata->ptp_ref_clk = devm_clk_get(dev, "ptp_ref");
+	if (IS_ERR(pdata->ptp_ref_clk)) {
+		ret = PTR_ERR(pdata->ptp_ref_clk);
+		dev_err(dev, "failed to get ptp_ref clk\n");
+		goto err_ptp_ref;
+	}
+
+	return 0;
+
+err_ptp_ref:
+	devm_clk_put(dev, pdata->app_clk);
+err_app:
+	devm_clk_put(dev, pdata->eee_pcs_clk);
+err_eee_pcs:
+	devm_clk_put(dev, pdata->mac_clk);
+err_mac:
+	devm_clk_put(dev, pdata->mac_div_clk);
+err_mac_div:
+	devm_clk_put(dev, pdata->tx_pcs_clk);
+err_tx_pcs:
+	devm_clk_put(dev, pdata->tx_clk);
+err_tx:
+	devm_clk_put(dev, pdata->rx_pcs_clk);
+err_rx_pcs:
+	devm_clk_put(dev, pdata->rx_pcs_input_clk);
+err_rx_pcs_input:
+	devm_clk_put(dev, pdata->rx_pcs_m_clk);
+err_rx_pcs_m:
+	devm_clk_put(dev, pdata->rx_m_clk);
+err_rx_m:
+	return ret;
+}
+
+/**
+ * @brief Get EQOS MAC related clocks.
+ *
+ * Algorithm: Get the clocks from DT and stores in OSD private data.
+ *
+ * @param[in] pdata: OSD private data.
+ *
+ * @retval 0 on success
+ * @retval "negative value" on failure.
+ */
+static int ether_get_eqos_clks(struct ether_priv_data *pdata)
 {
 	struct device *dev = pdata->dev;
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
@@ -3521,8 +4564,37 @@ static int ether_get_clks(struct ether_priv_data *pdata)
 		goto err_tx;
 	}
 
+	if (osi_core->mac_ver == OSI_EQOS_MAC_5_30) {
+		pdata->rx_m_clk = devm_clk_get(dev, "eqos_rx_m");
+		if (IS_ERR(pdata->rx_m_clk)) {
+			ret =  PTR_ERR(pdata->rx_m_clk);
+			dev_err(dev, "failed to get eqos_rx_m clk\n");
+			goto err_rx_m;
+		}
+
+		pdata->rx_input_clk = devm_clk_get(dev, "eqos_rx_input");
+		if (IS_ERR(pdata->rx_input_clk)) {
+			ret = PTR_ERR(pdata->rx_input_clk);
+			dev_err(dev, "failed to get eqos_rx_input clk\n");
+			goto err_rx_input;
+		}
+
+		/* Set default rate to 1G */
+		clk_set_rate(pdata->rx_input_clk,
+			     ETHER_RX_INPUT_CLK_RATE);
+	} else {
+		pdata->rx_m_clk = NULL;
+		pdata->rx_input_clk = NULL;
+	}
+
 	return 0;
 
+err_rx_input:
+	if (osi_core->mac_ver == OSI_EQOS_MAC_5_30) {
+		devm_clk_put(dev, pdata->rx_m_clk);
+err_rx_m:
+		devm_clk_put(dev, pdata->tx_clk);
+	}
 err_tx:
 	devm_clk_put(dev, pdata->ptp_ref_clk);
 err_ptp_ref:
@@ -3535,6 +4607,25 @@ err_axi_cbb:
 	devm_clk_put(dev, pdata->pllrefe_clk);
 
 	return ret;
+}
+
+/**
+ * @brief Get MAC related clocks.
+ *
+ * Algorithm: Get the clocks from DT and stores in OSD private data.
+ *
+ * @param[in] pdata: OSD private data.
+ *
+ * @retval 0 on success
+ * @retval "negative value" on failure.
+ */
+static int ether_get_clks(struct ether_priv_data *pdata)
+{
+	if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
+		return ether_get_mgbe_clks(pdata);
+	}
+
+	return ether_get_eqos_clks(pdata);
 }
 
 /**
@@ -3560,17 +4651,23 @@ static int ether_configure_car(struct platform_device *pdev,
 	struct osi_ioctl ioctl_data = {};
 	int ret = 0;
 
-	if (osi_core->pre_si) {
-		/* Enabling clks to set so that MDIO read/write will happen */
-		pdata->clks_enable = true;
-		return 0;
-	}
 
 	/* get MAC reset */
 	pdata->mac_rst = devm_reset_control_get(&pdev->dev, "mac_rst");
 	if (IS_ERR_OR_NULL(pdata->mac_rst)) {
 		dev_err(&pdev->dev, "failed to get MAC reset\n");
 		return PTR_ERR(pdata->mac_rst);
+	}
+
+	if (osi_core->mac == OSI_MAC_HW_MGBE) {
+		pdata->xpcs_rst = devm_reset_control_get(&pdev->dev,
+							 "xpcs_rst");
+		if (IS_ERR_OR_NULL(pdata->xpcs_rst)) {
+			dev_info(&pdev->dev, "failed to get XPCS reset\n");
+			return PTR_ERR(pdata->xpcs_rst);
+		}
+	} else {
+		pdata->xpcs_rst = NULL;
 	}
 
 	/* get PHY reset */
@@ -3673,7 +4770,7 @@ static int ether_init_plat_resources(struct platform_device *pdev,
 	int ret = 0;
 
 	/* get base address and remap */
-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "mac-base");
 	osi_core->base = devm_ioremap_resource(&pdev->dev, res);
 	if (IS_ERR(osi_core->base)) {
 		dev_err(&pdev->dev, "failed to ioremap MAC base address\n");
@@ -3694,31 +4791,28 @@ static int ether_init_plat_resources(struct platform_device *pdev,
 		osi_dma->base = osi_core->base;
 	}
 
-	ret = ether_configure_car(pdev, pdata);
-	if (ret < 0) {
-		dev_err(&pdev->dev, "failed to get clks/reset");
-		goto rst_clk_fail;
+	if (osi_core->mac == OSI_MAC_HW_MGBE) {
+		res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
+						   "xpcs-base");
+		if (res) {
+			osi_core->xpcs_base = devm_ioremap_resource(&pdev->dev,
+								    res);
+			if (IS_ERR(osi_core->xpcs_base)) {
+				dev_err(&pdev->dev, "failed to ioremap XPCS address\n");
+				return PTR_ERR(osi_core->xpcs_base);
+			}
+		}
+	} else {
+		osi_core->xpcs_base = NULL;
 	}
 
-	/*FIXME Need to program different MAC address for other FDs into
-	 * different MAC address registers. Need to add DA based filtering
-	 * support. Get MAC address from DT
-	 */
-	ret = ether_get_mac_address(pdata);
-	if (ret < 0) {
-		dev_err(&pdev->dev, "failed to get MAC address");
-		goto mac_addr_fail;
+	if (osi_core->use_virtualization == OSI_DISABLE) {
+		ret = ether_configure_car(pdev, pdata);
+		if (ret < 0) {
+			dev_err(&pdev->dev, "failed to get clks/reset");
+		}
 	}
 
-	return 0;
-
-mac_addr_fail:
-	ether_disable_clks(pdata);
-	ether_put_clks(pdata);
-	if (gpio_is_valid(pdata->phy_reset)) {
-		gpio_set_value(pdata->phy_reset, OSI_DISABLE);
-	}
-rst_clk_fail:
 	return ret;
 }
 
@@ -3770,6 +4864,38 @@ static int ether_parse_phy_dt(struct ether_priv_data *pdata,
 }
 
 /**
+ * @brief ether_parse_residual_queue - Parse RQ DT entry.
+ *
+ * Algorithm: Reads residual queue form DT. Updates
+ * data either by DT values or by default value.
+ *
+ * @param[in] pdata: OS dependent private data structure.
+ * @param[in] pdt_prop: name of property
+ * @param[in] pval: structure pointer where value will be filed
+ *
+ * @retval 0 on success
+ * @retval "negative value" on failure.
+ */
+static int ether_parse_residual_queue(struct ether_priv_data *pdata,
+				      const char *pdt_prop, unsigned int *pval)
+{
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct device_node *pnode = pdata->dev->of_node;
+	int ret = 0;
+
+	ret = of_property_read_u32(pnode, pdt_prop, pval);
+	if ((ret < 0) ||
+	    (*pval >= osi_core->num_mtl_queues) ||
+	    (*pval == 0U)) {
+		dev_err(pdata->dev, "No/incorrect residual queue defined\n");
+		/* TODO we should return -EINVAL */
+		*pval = 0x2U;
+	}
+
+	return 0;
+}
+
+/**
  * @brief Parse queue priority DT.
  *
  * Algorithm: Reads queue priority form DT. Updates
@@ -3794,7 +4920,7 @@ static void ether_parse_queue_prio(struct ether_priv_data *pdata,
 	struct device_node *pnode = pdata->dev->of_node;
 	unsigned int i, pmask = 0x0U;
 	unsigned int mtlq;
-	unsigned int tval[OSI_EQOS_MAX_NUM_QUEUES];
+	unsigned int tval[OSI_MGBE_MAX_NUM_QUEUES];
 	int ret = 0;
 
 	ret = of_property_read_u32_array(pnode, pdt_prop, pval, num_entries);
@@ -3845,10 +4971,10 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 	struct platform_device *pdev = to_platform_device(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
-	unsigned int tmp_value[OSI_EQOS_MAX_NUM_QUEUES];
+	unsigned int tmp_value[OSI_MGBE_MAX_NUM_QUEUES];
 	struct device_node *np = dev->of_node;
 	int ret = -EINVAL;
-	unsigned int i, mtlq, chan;
+	unsigned int i, mtlq, chan, bitmap;
 
 	/* read ptp clock */
 	ret = of_property_read_u32(np, "nvidia,ptp_ref_clock_speed",
@@ -3903,6 +5029,44 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 		}
 	}
 
+	ret = of_property_read_u32_array(np, "nvidia,tc-mapping",
+					 osi_core->tc,
+					 osi_core->num_mtl_queues);
+	for (i = 0; i < osi_core->num_mtl_queues; i++) {
+		if (ret < 0) {
+			dev_info(dev, "set default TXQ to TC mapping\n");
+			osi_core->tc[osi_core->mtl_queues[i]] =
+				(osi_core->mtl_queues[i] %
+				 OSI_MAX_TC_NUM);
+		} else if ((osi_core->tc[osi_core->mtl_queues[i]] >=
+		    OSI_MAX_TC_NUM)) {
+			dev_err(dev, "Wrong TC %din DT, setting to TC 0\n",
+				osi_core->tc[osi_core->mtl_queues[i]]);
+			osi_core->tc[osi_core->mtl_queues[i]] = 0U;
+		}
+	}
+
+	/* Read PTP Rx queue index */
+	ret = of_property_read_u32(np, "nvidia,ptp-rx-queue",
+				   &osi_core->ptp_config.ptp_rx_queue);
+	if (ret != 0) {
+		dev_info(dev, "Setting default PTP RX queue\n");
+		osi_core->ptp_config.ptp_rx_queue = osi_core->mtl_queues[0];
+	} else {
+		/* Validate PTP Rx queue index */
+		for (i = 0; i < osi_core->num_mtl_queues; i++) {
+			if (osi_core->mtl_queues[i] ==
+					osi_core->ptp_config.ptp_rx_queue)
+				break;
+		}
+		if (i == osi_core->num_mtl_queues) {
+			dev_err(dev, "Invalid PTP RX queue in DT:%d\n",
+				osi_core->ptp_config.ptp_rx_queue);
+			osi_core->ptp_config.ptp_rx_queue =
+				osi_core->mtl_queues[0];
+		}
+	}
+
 	ret = of_property_read_u32_array(np, "nvidia,dma-chans",
 					 osi_dma->dma_chans,
 					 osi_dma->num_dma_chans);
@@ -3925,14 +5089,9 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 	if (!ether_init_ivc(pdata)) {
 		osi_dma->use_virtualization = OSI_ENABLE;
 		osi_core->use_virtualization = OSI_ENABLE;
-		/* read mac management flag and set use_stats */
-		of_property_read_u32(np, "nvidia,mmc_daemon",
-				     &pdata->use_stats);
-		dev_info(dev, "Virtualization is enabled & stats flag is %d\n",
-			 pdata->use_stats);
+		dev_info(dev, "Virtualization is enabled\n");
 	} else {
 		ret = -1;
-		pdata->use_stats = OSI_ENABLE;
 	}
 
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
@@ -4027,6 +5186,33 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 		osi_core->dcs_en = OSI_DISABLE;
 	}
 
+	/* Read XDCS input for DMA channels route */
+	ret = of_property_read_u32(np, "nvidia,mc-dmasel",
+				   &osi_core->mc_dmasel);
+	if (ret < 0) {
+		/* Disable Multiple DMA selection on DT read failure */
+		osi_core->mc_dmasel = osi_dma->dma_chans[0];
+	} else {
+		/* Validate MC DMA channel selection flags */
+		bitmap = osi_core->mc_dmasel;
+		while (bitmap != 0U) {
+			chan = __builtin_ctz(bitmap);
+			for (i = 0; i < osi_dma->num_dma_chans; i++) {
+				if (osi_dma->dma_chans[i] == chan) {
+					/* channel is enabled */
+					break;
+				}
+			}
+			if (i == osi_dma->num_dma_chans) {
+				/* Invalid MC DMA selection */
+				dev_err(dev, "Invalid %d MC DMA selection\n", chan);
+				osi_core->mc_dmasel = osi_dma->dma_chans[0];
+				break;
+			}
+			bitmap &= ~OSI_BIT(chan);
+		}
+	}
+
 	/* Read MAX MTU size supported */
 	ret = of_property_read_u32(np, "nvidia,max-platform-mtu",
 				   &pdata->max_platform_mtu);
@@ -4119,6 +5305,22 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 		return -EINVAL;
 	}
 
+	if (osi_core->mac == OSI_MAC_HW_MGBE) {
+		ret = of_property_read_u32(np, "nvidia,uphy-gbe-mode",
+					   &osi_core->uphy_gbe_mode);
+		if (ret < 0) {
+			dev_info(dev,
+				 "failed to read UPHY GBE mode - default to 10G\n");
+			osi_core->uphy_gbe_mode = OSI_ENABLE;
+		}
+
+		if ((osi_core->uphy_gbe_mode != OSI_ENABLE) &&
+		    (osi_core->uphy_gbe_mode != OSI_DISABLE)) {
+			dev_err(dev, "Invalid UPHY GBE mode - default to 10G\n");
+			osi_core->uphy_gbe_mode = OSI_ENABLE;
+		}
+	}
+
 	/* Enable VLAN strip by default */
 	osi_core->strip_vlan_tag = OSI_ENABLE;
 
@@ -4159,6 +5361,12 @@ static void ether_get_num_dma_chan_mtl_q(struct platform_device *pdev,
 	if (ret != 0) {
 		*mac = OSI_MAC_HW_EQOS;
 		max_chans = OSI_EQOS_MAX_NUM_CHANS;
+	}
+
+	ret = of_device_is_compatible(np, "nvidia,nvmgbe");
+	if (ret != 0) {
+		*mac = OSI_MAC_HW_MGBE;
+		max_chans = OSI_MGBE_MAX_NUM_CHANS;
 	}
 
 	/* parse the number of DMA channels */
@@ -4237,6 +5445,11 @@ static void ether_set_ndev_features(struct net_device *ndev,
 	features |= NETIF_F_HW_VLAN_CTAG_RX;
 	features |= NETIF_F_HW_VLAN_CTAG_FILTER;
 
+	/* Receive Hashing offload */
+	if (pdata->hw_feat.rss_en) {
+		features |= NETIF_F_RXHASH;
+	}
+
 	/* Features available in HW */
 	ndev->hw_features = features;
 	/* Features that can be changed by user */
@@ -4278,14 +5491,51 @@ static void init_filter_values(struct ether_priv_data *pdata)
  * Algorithm: Updates OSI whether respective platform is Pre-silicon or not
  *
  * @param[in] osi_core: OSI core private data structure
+ * @param[in] osi_dma: OSI dma private data structure
  */
-static inline void tegra_pre_si_platform(struct osi_core_priv_data *osi_core)
+static inline void tegra_pre_si_platform(struct osi_core_priv_data *osi_core,
+					 struct osi_dma_priv_data *osi_dma)
 {
 	/* VDK set true for both VDK/uFPGA */
-	if (tegra_platform_is_vdk())
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0))
+	if (tegra_platform_is_vdk()) {
 		osi_core->pre_si = 1;
-	else
-		osi_core->pre_si = 0;
+		osi_dma->pre_si = 1;
+	}
+	return;
+#endif
+	osi_core->pre_si = 0;
+	osi_dma->pre_si = 0;
+}
+
+/**
+ * @brief ether_init_rss - Init OSI RSS structure
+ *
+ * Algorithm: Populates RSS hash key and table in OSI core structure.
+ *
+ * @param[in] pdata: Ethernet private data
+ * @param[in] features: Netdev features
+ */
+static void ether_init_rss(struct ether_priv_data *pdata,
+			   netdev_features_t features)
+{
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	unsigned int num_q = osi_core->num_mtl_queues;
+	unsigned int i = 0;
+
+	if ((features & NETIF_F_RXHASH) == NETIF_F_RXHASH) {
+		osi_core->rss.enable = 1;
+	} else {
+		osi_core->rss.enable = 0;
+		return;
+	}
+
+	/* generate random key */
+	netdev_rss_key_fill(osi_core->rss.key, sizeof(osi_core->rss.key));
+
+	/* initialize hash table */
+	for (i = 0; i < OSI_RSS_MAX_TABLE_SIZE; i++)
+		osi_core->rss.table[i] = ethtool_rxfh_indir_default(i, num_q);
 }
 
 /**
@@ -4295,11 +5545,11 @@ static inline void tegra_pre_si_platform(struct osi_core_priv_data *osi_core)
  * 1) Get the number of channels from DT.
  * 2) Allocate the network device for those many channels.
  * 3) Parse MAC and PHY DT.
- * 4) Update callback function for rx buffer reallocation
- * 5) Get all required clks/reset/IRQ's.
- * 6) Register MDIO bus and network device.
- * 7) Initialize spinlock.
- * 8) Update filter value based on HW feature.
+ * 4) Get all required clks/reset/IRQ's.
+ * 5) Register MDIO bus and network device.
+ * 6) Initialize spinlock.
+ * 7) Update filter value based on HW feature.
+ * 8) Update osi_core->hw_feature with pdata->hw_feat pointer
  * 9) Initialize Workqueue to read MMC counters periodically.
  *
  * @param[in] pdev: platform device associated with platform driver.
@@ -4318,15 +5568,20 @@ static int ether_probe(struct platform_device *pdev)
 	struct net_device *ndev;
 	int ret = 0, i;
 
+#ifdef TEST
+	macsec_genl_register();
+	return 0;
+#endif /* TEST */
+
 	ether_get_num_dma_chan_mtl_q(pdev, &num_dma_chans,
 				     &mac, &num_mtl_queues);
 
-	osi_core = devm_kzalloc(&pdev->dev, sizeof(*osi_core), GFP_KERNEL);
+	osi_core = osi_get_core();
 	if (osi_core == NULL) {
 		return -ENOMEM;
 	}
 
-	osi_dma = devm_kzalloc(&pdev->dev, sizeof(*osi_dma), GFP_KERNEL);
+	osi_dma = osi_get_dma();
 	if (osi_dma == NULL) {
 		return -ENOMEM;
 	}
@@ -4359,8 +5614,7 @@ static int ether_probe(struct platform_device *pdev)
 
 	osi_core->mtu = ndev->mtu;
 	osi_dma->mtu = ndev->mtu;
-
-	tegra_pre_si_platform(osi_core);
+	tegra_pre_si_platform(osi_core, osi_dma);
 
 	/* Parse the ethernet DT node */
 	ret = ether_parse_dt(pdata);
@@ -4372,12 +5626,14 @@ static int ether_probe(struct platform_device *pdev)
 	ether_assign_osd_ops(osi_core, osi_dma);
 
 	/* Initialize core and DMA ops based on MAC type */
-	if (osi_init_core_ops(osi_core) != 0) {
+	ret = osi_init_core_ops(osi_core);
+	if (ret < 0) {
 		dev_err(&pdev->dev, "failed to get osi_init_core_ops\n");
 		goto err_core_ops;
 	}
 
-	if (osi_init_dma_ops(osi_dma) != 0) {
+	ret = osi_init_dma_ops(osi_dma);
+	if (ret < 0) {
 		dev_err(&pdev->dev, "failed to get osi_init_dma_ops\n");
 		goto err_dma_ops;
 	}
@@ -4400,6 +5656,12 @@ static int ether_probe(struct platform_device *pdev)
 	}
 	osi_core->mac_ver = ioctl_data.arg1_u32;
 
+	ret = ether_get_mac_address(pdata);
+	if (ret < 0) {
+		dev_err(&pdev->dev, "failed to get MAC address\n");
+		goto err_dma_mask;
+	}
+
 	ioctl_data.cmd = OSI_CMD_GET_HW_FEAT;
 	ret = osi_handle_ioctl(osi_core, &ioctl_data);
 	if (ret < 0) {
@@ -4409,8 +5671,20 @@ static int ether_probe(struct platform_device *pdev)
 	memcpy(&pdata->hw_feat, &ioctl_data.hw_feat,
 	       sizeof(struct osi_hw_features));
 
+	if (pdata->hw_feat.fpe_sel) {
+		ret = ether_parse_residual_queue(pdata, "nvidia,residual-queue",
+						 &osi_core->residual_queue);
+		if (ret < 0) {
+			dev_err(&pdev->dev, "failed to read RQ\n");
+			goto err_dma_mask;
+		}
+	}
+
 	/* Set netdev features based on hw features */
 	ether_set_ndev_features(ndev, pdata);
+
+	/* RSS init */
+	ether_init_rss(pdata, ndev->features);
 
 	ret = ether_get_irqs(pdev, pdata, num_dma_chans);
 	if (ret < 0) {
@@ -4444,6 +5718,27 @@ static int ether_probe(struct platform_device *pdev)
 			ether_tx_usecs_hrtimer;
 	}
 
+#ifdef MACSEC_SUPPORT
+	ret = macsec_probe(pdata);
+	if (ret < 0) {
+		dev_err(&pdev->dev, "failed to setup macsec\n");
+		goto err_macsec;
+	} else {
+		; //Nothing to do, macsec is not supported
+		dev_info(&pdev->dev, "Macsec not enabled - ignore\n");
+	}
+
+#ifdef DEBUG_MACSEC
+	/* Macsec is enabled, reduce MTU
+	 */
+	osi_core->mtu -= MACSEC_TAG_ICV_LEN;
+	osi_dma->mtu = osi_core->mtu;
+	ndev->mtu = osi_core->mtu;
+	dev_info(&pdev->dev, "Macsec: Reduced MTU: %d Max: %d\n",
+		 ndev->mtu, ndev->max_mtu);
+#endif /* DEBUG_MACSEC */
+#endif /*  MACSEC_SUPPORT */
+
 	ret = register_netdev(ndev);
 	if (ret < 0) {
 		dev_err(&pdev->dev, "failed to register netdev\n");
@@ -4474,11 +5769,20 @@ static int ether_probe(struct platform_device *pdev)
 	/* Initialization of delayed workqueue */
 	INIT_DELAYED_WORK(&pdata->ether_stats_work, ether_stats_work_func);
 
+	mutex_init(&pdata->rx_mode_lock);
+	/* Initialization of delayed workqueue */
+	INIT_WORK(&pdata->set_rx_mode_work, set_rx_mode_work_func);
+	osi_core->hw_feature = &pdata->hw_feat;
+	INIT_LIST_HEAD(&pdata->mac_addr_list_head);
+
 	return 0;
 
 err_sysfs:
 	unregister_netdev(ndev);
 err_netdev:
+#ifdef MACSEC_SUPPORT
+err_macsec:
+#endif /* MACSEC_SUPPORT */
 err_napi:
 	mdiobus_unregister(pdata->mii);
 err_dma_mask:
@@ -4511,6 +5815,14 @@ static int ether_remove(struct platform_device *pdev)
 	struct net_device *ndev = platform_get_drvdata(pdev);
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 
+#ifdef MACSEC_SUPPORT
+#ifdef TEST
+	macsec_genl_unregister();
+	return 0;
+#endif /* TEST */
+	macsec_remove(pdata);
+#endif /* MACSEC_SUPPORT */
+
 	unregister_netdev(ndev);
 
 	/* remove nvethernet sysfs group under /sys/devices/<ether_device>/ */
@@ -4523,9 +5835,14 @@ static int ether_remove(struct platform_device *pdev)
 	ether_put_clks(pdata);
 
 	/* Assert MAC RST gpio */
-	if (!pdata->osi_core->pre_si && pdata->mac_rst) {
+	if (pdata->mac_rst) {
 		reset_control_assert(pdata->mac_rst);
 	}
+
+	if (pdata->xpcs_rst) {
+		reset_control_assert(pdata->xpcs_rst);
+	}
+
 	free_netdev(ndev);
 
 	return 0;
@@ -4552,6 +5869,7 @@ static int ether_suspend_noirq(struct device *dev)
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 	struct osi_ioctl ioctl_data = {};
 	unsigned int i = 0, chan = 0;
+	int ret;
 
 	if (!netif_running(ndev))
 		return 0;
@@ -4577,6 +5895,18 @@ static int ether_suspend_noirq(struct device *dev)
 
 	netif_tx_disable(ndev);
 	ether_napi_disable(pdata);
+
+	ret = ether_update_mac_addr_filter(pdata, &ioctl_data, OSI_DISABLE,
+					   ETHER_ADDRESS_MAC);
+	if (ret < 0) {
+		dev_err(pdata->dev, "issue in deleting MAC address\n");
+	}
+
+	ret = ether_update_mac_addr_filter(pdata, &ioctl_data, OSI_DISABLE,
+					   ETHER_ADDRESS_BC);
+	if (ret < 0) {
+		dev_err(pdata->dev, "issue in deleting BC address\n");
+	}
 
 	osi_hw_dma_deinit(osi_dma);
 	osi_hw_core_deinit(osi_core);
@@ -4635,6 +5965,14 @@ static int ether_resume(struct ether_priv_data *pdata)
 		return ret;
 	}
 
+	if (pdata->xpcs_rst) {
+		ret = reset_control_reset(pdata->xpcs_rst);
+		if (ret < 0) {
+			dev_err(dev, "failed to reset XPCS hw\n");
+			return ret;
+		}
+	}
+
 	ioctl_data.cmd = OSI_CMD_PAD_CALIBRATION;
 	ret = osi_handle_ioctl(osi_core, &ioctl_data);
 	if (ret < 0) {
@@ -4659,6 +5997,20 @@ static int ether_resume(struct ether_priv_data *pdata)
 			"%s: failed to initialize mac hw core with reason %d\n",
 			__func__, ret);
 		goto err_core;
+	}
+
+	ret = ether_update_mac_addr_filter(pdata, &ioctl_data, OSI_ENABLE,
+					   ETHER_ADDRESS_MAC);
+	if (ret < 0) {
+		dev_err(pdata->dev, "failed to set MAC address\n");
+		goto err_dma;
+	}
+
+	ret = ether_update_mac_addr_filter(pdata, &ioctl_data, OSI_ENABLE,
+					   ETHER_ADDRESS_BC);
+	if (ret < 0) {
+		dev_err(pdata->dev, "failed to set BC address\n");
+		goto err_dma;
 	}
 
 	/* dma init */
@@ -4771,6 +6123,7 @@ static const struct dev_pm_ops ether_pm_ops = {
  */
 static const struct of_device_id ether_of_match[] = {
 	{ .compatible = "nvidia,nveqos" },
+	{ .compatible = "nvidia,nvmgbe" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, ether_of_match);
