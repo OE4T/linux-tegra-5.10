@@ -49,6 +49,11 @@ u32 gm20b_fuse_status_opt_l2_fbp(struct gk20a *g, u32 fbp)
 
 u32 gm20b_fuse_status_opt_tpc_gpc(struct gk20a *g, u32 gpc)
 {
+	u32 max_gpc_count = g->ops.top.get_max_gpc_count(g);
+	if (gpc >= max_gpc_count) {
+		BUG();
+	}
+
 	return nvgpu_readl(g, fuse_status_opt_tpc_gpc_r(gpc));
 }
 
