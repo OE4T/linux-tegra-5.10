@@ -15,10 +15,29 @@
  */
 
 /*
- * tegra194-soc-eqos.dtsi: Ethernet QOS DTSI file.
+ * tegra234-soc-eqos.dtsi: Ethernet QOS DTSI file.
  */
 
 / {
+	pinmux@2430000 {
+		eqos_mii_rx_input_state_disable: eqos_rx_disable {
+			eqos {
+				nvidia,pins = "eqos_rd0_pe6","eqos_rd1_pe7",
+						"eqos_rd2_pf0","eqos_rd3_pf1",
+						"eqos_rx_ctl_pf2";
+				nvidia,enable-input = <TEGRA_PIN_DISABLE>;
+			};
+		};
+		eqos_mii_rx_input_state_enable: eqos_rx_enable {
+			eqos {
+				nvidia,pins = "eqos_rd0_pe6","eqos_rd1_pe7",
+						"eqos_rd2_pf0","eqos_rd3_pf1",
+						"eqos_rx_ctl_pf2";
+				nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+			};
+		};
+	};
+
 	eqos_vm_irq_config: vm-irq-config {
 		nvidia,num-vm-irqs = <4>;
 		vm_irq1 {
@@ -92,6 +111,7 @@
 		nvidia,vm-irq-config = <&eqos_vm_irq_config>;
 		status = "disabled";
 		nvidia,dcs-enable = <0x1>;
+		nvidia,pad_calibration = <0x1>;
 		nvidia,rx_riwt = <512>;
 		nvidia,rx_frames = <64>;
 		nvidia,tx_usecs = <256>;
@@ -101,5 +121,8 @@
 		nvidia,slot_intvl_vals = <0x0 0x7D 0x7D 0x7D 0x7D 0x7D 0x7D 0x7D>;
 		nvidia,ptp_ref_clock_speed = <208300000>;
 		nvidia,instance_id = <4>; /* EQOS instance */
+		pinctrl-names = "mii_rx_disable", "mii_rx_enable";
+		pinctrl-0 = <&eqos_mii_rx_input_state_disable>;
+		pinctrl-1 = <&eqos_mii_rx_input_state_enable>;
 	};
 };
