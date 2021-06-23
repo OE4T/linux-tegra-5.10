@@ -31,6 +31,7 @@ struct dma_buf;
 extern struct nvhost_queue_ops pva_queue_ops;
 
 struct pva_pinned_memory {
+	int fd;
 	dma_addr_t dma_addr;
 	size_t size;
 	struct dma_buf *dmabuf;
@@ -99,7 +100,6 @@ struct pva_submit_task {
 	u8 num_symbols;
 
 	u64 timeout;
-	bool invalid;
 	u32 syncpt_thresh;
 	u32 fence_num;
 

@@ -16,9 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "linux/jiffies.h"
-#include "linux/mutex.h"
-#include "linux/semaphore.h"
+#include <linux/jiffies.h>
+#include <linux/list.h>
+#include <linux/mutex.h>
+#include <linux/nvhost.h>
+#include <linux/semaphore.h>
 #include <linux/platform_device.h>
 #include <linux/fs.h>
 #include <linux/uaccess.h>
@@ -319,7 +321,6 @@ static int pva_submit(struct pva_private *priv, void *arg)
 		task->client = priv->client;
 
 		/* setup ownership */
-		nvhost_queue_get(task->queue);
 		nvhost_module_busy(task->pva->pdev);
 		nvpva_client_context_get(task->client);
 
@@ -634,13 +635,57 @@ err_alloc_priv:
 	return err;
 }
 
+static void pva_queue_flush(struct pva *pva, struct nvhost_queue *queue)
+{
+	u32 flags = PVA_CMD_INT_ON_ERR | PVA_CMD_INT_ON_COMPLETE;
+	struct pva_cmd_status_regs status = {};
+	struct pva_cmd_s cmd = {};
+	int err = 0;
+	u32 nregs;
+
+	nregs = pva_cmd_abort_task(&cmd, queue->id, flags);
+	nvhost_module_busy(pva->pdev);
+	err = pva->version_config->submit_cmd_sync(pva, &cmd, nregs, &status);
+	nvhost_module_idle(pva->pdev);
+	if (err < 0) {
+		dev_err(&pva->pdev->dev, "failed to issue FW abort command: %d",
+			err);
+		goto err_out;
+	}
+	/* Ensure that response is valid */
+	if (status.error != PVA_ERR_NO_ERROR) {
+		dev_err(&pva->pdev->dev, "PVA FW Abort rejected: %d",
+			status.error);
+	}
+
+err_out:
+	return;
+}
+
 static int pva_release(struct inode *inode, struct file *file)
 {
 	struct pva_private *priv = file->private_data;
+	bool queue_empty;
+	int i;
+
+	flush_workqueue(priv->pva->task_status_workqueue);
+	mutex_lock(&priv->queue->list_lock);
+	queue_empty = list_empty(&priv->queue->tasklist);
+	mutex_unlock(&priv->queue->list_lock);
+	if (!queue_empty) {
+		/* Cancel remaining tasks */
+		nvhost_warn(&priv->pva->pdev->dev, "cancel remaining tasks");
+		pva_queue_flush(priv->pva, priv->queue);
+	}
+
+	/* make sure all tasks have been finished */
+	for (i = 0; i < MAX_PVA_TASK_COUNT_PER_QUEUE; i++)
+		down(&priv->queue->task_pool_sem);
 
 	/* Release reference to client */
 	nvpva_client_context_put(priv->client);
 
+	WARN_ON(kref_read(&priv->queue->kref) != 1);
 	/*
 	 * Release handle to the queue (on-going tasks have their
 	 * own references to the queue

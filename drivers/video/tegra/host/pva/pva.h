@@ -21,6 +21,7 @@
 #ifndef __NVHOST_PVA_H__
 #define __NVHOST_PVA_H__
 
+#include <linux/workqueue.h>
 #include <linux/mutex.h>
 #include <linux/version.h>
 
@@ -265,6 +266,7 @@ struct pva {
 	u32 circular_array_rd_pos;
 	struct work_struct task_update_work;
 	atomic_t n_pending_tasks;
+	struct workqueue_struct *task_status_workqueue;
 
 	struct pva_trace_log pva_trace;
 	u32 submit_task_mode;

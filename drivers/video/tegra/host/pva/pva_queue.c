@@ -128,16 +128,6 @@ static void pva_task_unpin_mem(struct pva_submit_task *task)
 	task->num_pinned = 0;
 }
 
-static void pva_task_unpin_last_mem(struct pva_submit_task *task)
-{
-	struct pva_pinned_memory *mem;
-
-	task->num_pinned -= 1;
-	mem = &task->pinned_memory[task->num_pinned];
-	nvhost_buffer_submit_unpin(task->client->buffers, &mem->dmabuf, 1);
-	dma_buf_put(mem->dmabuf);
-}
-
 struct pva_pinned_memory *pva_task_pin_mem(struct pva_submit_task *task,
 					   u32 dmafd)
 {
@@ -157,10 +147,11 @@ struct pva_pinned_memory *pva_task_pin_mem(struct pva_submit_task *task,
 	}
 
 	mem = &task->pinned_memory[task->num_pinned];
+	mem->fd = dmafd;
 	mem->dmabuf = dma_buf_get(dmafd);
 	if (IS_ERR_OR_NULL(mem->dmabuf)) {
-		mem->dmabuf = NULL;
-		task_err(task, "can't get dmabuf from pin_id");
+		task_err(task, "can't get dmabuf from pin_id: %ld",
+			 PTR_ERR(mem->dmabuf));
 		err = -EFAULT;
 		goto err_out;
 	}
@@ -750,7 +741,6 @@ void pva_task_free(struct kref *ref)
 	/* Release memory that was allocated for the task */
 	nvhost_queue_free_task_memory(task->queue, task->pool_index);
 	up(&my_queue->task_pool_sem);
-	nvhost_queue_put(my_queue);
 }
 
 static void update_one_task(struct pva *pva)
@@ -1141,6 +1131,17 @@ unlock:
 	return err;
 }
 
+static struct pva_pinned_memory *find_pinned_mem(struct pva_submit_task *task,
+						 int fd)
+{
+	u32 i;
+
+	for (i = 0; i < task->num_pinned; i++)
+		if (task->pinned_memory[i].fd == fd)
+			return &task->pinned_memory[i];
+	return NULL;
+}
+
 static void pva_queue_cleanup_semaphore(struct pva_submit_task *task,
 					struct nvpva_submit_fence *fence)
 {
@@ -1151,24 +1152,23 @@ static void pva_queue_cleanup_semaphore(struct pva_submit_task *task,
 	if (fence->type != NVPVA_FENCE_OBJ_SEM)
 		goto out;
 
-	if (!(fence->obj.sem.mem.offset % 4))
-		goto out;
+	WARN_ON((fence->obj.sem.mem.offset % 4) != 0);
 
-	mem = pva_task_pin_mem(task, fence->obj.sem.mem.pin_id);
-	if (IS_ERR(mem))
+	mem = find_pinned_mem(task, fence->obj.sem.mem.pin_id);
+	if (mem == NULL) {
+		task_err(task, "can't find pinned semaphore for cleanup");
 		goto out;
+	}
 
 	dmabuf_cpuva = dma_buf_vmap(mem->dmabuf);
 
 	if (!dmabuf_cpuva)
-		goto unpin_mem;
+		goto out;
 
 	fence_cpuva = (void *)&dmabuf_cpuva[fence->obj.sem.mem.offset];
 	*fence_cpuva = fence->obj.sem.value;
 
 	dma_buf_vunmap(mem->dmabuf, dmabuf_cpuva);
-unpin_mem:
-	pva_task_unpin_last_mem(task);
 out:
 	return;
 }
@@ -1178,24 +1178,23 @@ static void pva_queue_cleanup_status(struct pva_submit_task *task,
 {
 	struct pva_pinned_memory *mem;
 	u8 *dmabuf_cpuva;
-	struct pva_gen_task_status_s *status_ptr = NULL;
+	struct pva_gen_task_status_s *status_ptr;
 
-	mem = pva_task_pin_mem(task, status_h->pin_id);
-	if (IS_ERR(mem))
+	mem = find_pinned_mem(task, status_h->pin_id);
+	if (mem == NULL) {
+		task_err(task, "can't find pinned status for cleanup");
 		goto out;
+	}
 
 	dmabuf_cpuva = dma_buf_vmap(mem->dmabuf);
 	if (!dmabuf_cpuva)
-		goto unpin_mem;
+		goto out;
 
 	status_ptr = (void *)&dmabuf_cpuva[status_h->offset];
 	status_ptr->status_task = PVA_ERR_BAD_TASK_STATE;
 	status_ptr->engine_status = PVA_ERR_VPU_BAD_STATE;
 
 	dma_buf_vunmap(mem->dmabuf, dmabuf_cpuva);
-
-unpin_mem:
-	pva_task_unpin_last_mem(task);
 out:
 	return;
 }
@@ -1204,45 +1203,37 @@ static void pva_queue_cleanup(struct nvhost_queue *queue,
 			      struct pva_submit_task *task)
 {
 	struct platform_device *pdev = queue->pool->pdev;
-	struct nvhost_master *host = nvhost_get_host(pdev);
-	bool expired = nvhost_syncpt_is_expired(&host->syncpt, queue->syncpt_id,
-						task->syncpt_thresh);
-	unsigned int i;
-
-	/*
-	 * Ensure that there won't be communication with PVA for
-	 * checking the task status
-	 */
-	task->invalid = true;
-
-	/* Ignore expired fences */
-	if (expired)
-		return;
+	unsigned int i, fence_type;
 
 	/* Write task status first */
 	for (i = 0; i < task->num_output_task_status; i++)
 		pva_queue_cleanup_status(task, &task->output_task_status[i]);
 
 	/* Finish up non-syncpoint fences */
-	for (i = 0; i < task->num_user_fence_actions; i++) {
-		pva_queue_cleanup_semaphore(task,
-					    &task->user_fence_actions[i].fence);
+	for (fence_type = NVPVA_FENCE_SOT_R5;
+	     fence_type < NVPVA_MAX_FENCE_TYPES; fence_type++) {
+		for (i = 0; i < task->num_pva_fence_actions[fence_type]; i++)
+			pva_queue_cleanup_semaphore(
+				task,
+				&task->pva_fence_actions[fence_type][i].fence);
 	}
 
-	for (i = 0; i < task->fence_num; i++) {
-		/* Finish syncpoint increments to release waiters */
+	/* Finish syncpoint increments to release waiters */
+	for (i = 0; i < task->fence_num; i++)
 		nvhost_syncpt_cpu_incr_ext(pdev, queue->syncpt_id);
-	}
 }
 
 static int pva_queue_abort(struct nvhost_queue *queue)
 {
-	struct pva_submit_task *task;
+	struct pva_submit_task *task, *n;
 
 	mutex_lock(&queue->list_lock);
 
-	list_for_each_entry(task, &queue->tasklist, node)
+	list_for_each_entry_safe(task, n, &queue->tasklist, node) {
 		pva_queue_cleanup(queue, task);
+		list_del(&task->node);
+		kref_put(&task->ref, pva_task_free);
+	}
 
 	mutex_unlock(&queue->list_lock);
 

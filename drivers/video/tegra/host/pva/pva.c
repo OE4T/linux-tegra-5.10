@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <linux/workqueue.h>
 #include "nvpva_client.h"
 #include <linux/export.h>
 #include <linux/module.h>
@@ -135,11 +136,23 @@ static int pva_alloc_task_status_buffer(struct pva *pva)
 	INIT_WORK(&pva->task_update_work, pva_task_update);
 
 	atomic_set(&pva->n_pending_tasks, 0);
+	pva->task_status_workqueue =
+		create_workqueue("pva_task_status_workqueue");
 	return 0;
+}
+
+static void pva_reset_task_status_buffer(struct pva *pva)
+{
+	flush_workqueue(pva->task_status_workqueue);
+	WARN_ON(atomic_read(&pva->n_pending_tasks) != 0);
+	atomic_set(&pva->n_pending_tasks, 0);
+	pva->circular_array_rd_pos = 0U;
 }
 
 static void pva_free_task_status_buffer(struct pva *pva)
 {
+	flush_workqueue(pva->task_status_workqueue);
+	destroy_workqueue(pva->task_status_workqueue);
 	dma_free_coherent(&pva->pdev->dev, pva->priv_circular_array.size,
 			  pva->priv_circular_array.va,
 			  pva->priv_circular_array.pa);
@@ -161,15 +174,13 @@ int nvpva_set_task_status_buffer(struct pva *pva)
 	nregs = pva_cmd_set_status_buffer(&cmd, pva->priv_circular_array.pa,
 					  MAX_PVA_TASK_COUNT, flags);
 
-	err = pva_mailbox_send_cmd_sync(pva, &cmd, nregs, &status);
+	err = pva_mailbox_send_cmd_sync_locked(pva, &cmd, nregs, &status);
 	if (err || (status.error != (uint32_t)PVA_ERR_NO_ERROR)) {
 		pr_err("pva: failed to configure task status info buffer: %d, %d",
 		       err, status.error);
 		return -EINVAL;
 	}
 
-	// Initialize the current read position in the circular array
-	pva->circular_array_rd_pos = 0U;
 	return 0;
 
 }
@@ -302,6 +313,7 @@ static int pva_init_fw(struct platform_device *pdev)
 	if ((host1x_readl(pdev, hsp_ss0_state_r()) & PVA_TEST_MODE))
 		err = pva_run_ucode_selftest(pdev);
 
+	pva_reset_task_status_buffer(pva);
 	err = nvpva_set_task_status_buffer(pva);
 wait_timeout:
 	return err;

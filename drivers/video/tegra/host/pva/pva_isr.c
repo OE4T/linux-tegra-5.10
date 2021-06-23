@@ -50,7 +50,8 @@ static irqreturn_t pva_system_isr(int irq, void *dev_id)
 
 		if (status5 & (PVA_AISR_TASK_COMPLETE | PVA_AISR_TASK_ERROR)) {
 			atomic_add(1, &pva->n_pending_tasks);
-			schedule_work(&pva->task_update_work);
+			queue_work(pva->task_status_workqueue,
+				   &pva->task_update_work);
 		}
 
 		/* For now, just log the errors */
