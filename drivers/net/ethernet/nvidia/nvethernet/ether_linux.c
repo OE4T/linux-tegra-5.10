@@ -3521,15 +3521,13 @@ static int ether_change_mtu(struct net_device *ndev, int new_mtu)
 	osi_dma->mtu = new_mtu;
 
 #ifdef MACSEC_SUPPORT
-#ifdef DEBUG_MACSEC
-	/* Macsec is enabled, reduce MTU
-	 */
-	osi_core->mtu -= MACSEC_TAG_ICV_LEN;
-	osi_dma->mtu = osi_core->mtu;
-	ndev->mtu = osi_core->mtu;
-	netdev_info(pdata->ndev, "Macsec: Reduced MTU: %d Max: %d\n",
-		    ndev->mtu, ndev->max_mtu);
-#endif /* DEBUG_MACSEC */
+	/* Macsec is supported, reduce MTU */
+	if ((osi_core->mac == OSI_MAC_HW_EQOS && osi_core->mac_ver == OSI_EQOS_MAC_5_30) ||
+	    (osi_core->mac == OSI_MAC_HW_MGBE && osi_core->mac_ver == OSI_MGBE_MAC_3_10)) {
+		ndev->mtu -= MACSEC_TAG_ICV_LEN;
+		netdev_info(pdata->ndev, "Macsec: Reduced MTU: %d Max: %d\n",
+			    ndev->mtu, ndev->max_mtu);
+	}
 #endif /*  MACSEC_SUPPORT */
 
 	netdev_update_features(ndev);
@@ -5900,17 +5898,11 @@ static int ether_probe(struct platform_device *pdev)
 		dev_info(&pdev->dev, "Macsec not supported\n");
 	} else {
 		dev_info(&pdev->dev, "Macsec not enabled\n");
+		/* Macsec is supported, reduce MTU */
+		ndev->mtu -= MACSEC_TAG_ICV_LEN;
+		dev_info(&pdev->dev, "Macsec: Reduced MTU: %d Max: %d\n",
+			 ndev->mtu, ndev->max_mtu);
 	}
-
-#ifdef DEBUG_MACSEC
-	/* Macsec is enabled, reduce MTU
-	 */
-	osi_core->mtu -= MACSEC_TAG_ICV_LEN;
-	osi_dma->mtu = osi_core->mtu;
-	ndev->mtu = osi_core->mtu;
-	dev_info(&pdev->dev, "Macsec: Reduced MTU: %d Max: %d\n",
-		 ndev->mtu, ndev->max_mtu);
-#endif /* DEBUG_MACSEC */
 #endif /*  MACSEC_SUPPORT */
 
 	ret = register_netdev(ndev);
