@@ -1669,7 +1669,9 @@ static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 		eqos_configure_rxq_priority(osi_core);
 	}
 #ifdef MACSEC_SUPPORT
-	eqos_config_macsec_ipg(osi_core);
+	if (osi_core->mac_ver == OSI_EQOS_MAC_5_30) {
+		eqos_config_macsec_ipg(osi_core);
+	}
 #endif /*  MACSEC_SUPPORT */
 }
 
