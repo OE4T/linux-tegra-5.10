@@ -693,11 +693,12 @@ int __init nvmap_co_setup(struct reserved_mem *rmem)
 		goto finish;
 	}
 
-	dma_contiguous_early_fixup(rmem->base, rmem->size);
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+	dma_contiguous_early_fixup_vpr(rmem->base, rmem->size);
 	if (co->cma_dev)
 		co->cma_dev->cma_area = cma;
 #else
+	dma_contiguous_early_fixup(rmem->base, rmem->size);
 	dev_set_cma_area(co->cma_dev, cma);
 #endif
 	pr_debug("tegra-carveouts carveout=%s %pa@%pa\n",
