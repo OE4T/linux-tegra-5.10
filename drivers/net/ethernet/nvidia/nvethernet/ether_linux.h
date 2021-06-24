@@ -247,13 +247,6 @@ static inline int ether_avail_txdesc_cnt(struct osi_tx_ring *tx_ring)
 		(TX_DESC_CNT - 1));
 }
 
-#ifdef THERMAL_CAL
-/* @brief The DT binding for ethernet device has 5 thermal zones in steps of
- * 35 degress from -40C to 110C. Each zone corresponds to a state.
- */
-#define ETHER_MAX_THERM_STATE		5UL
-#endif /* THERMAL_CAL */
-
 /**
  * @brief Timer to trigger Work queue periodically which read HW counters
  * and store locally. If data is at line rate, 2^32 entry get will filled in
@@ -443,17 +436,6 @@ struct ether_priv_data {
 	unsigned int mac_loopback_mode;
 	/** Array of MTL queue TX priority */
 	unsigned int txq_prio[OSI_MGBE_MAX_NUM_CHANS];
-
-#ifdef THERMAL_CAL
-	/** Pointer to thermal cooling device which this driver registers
-	 * with the kernel. Kernel will invoke the callback ops for this
-	 * cooling device when temperate in thermal zone defined in DT
-	 * binding for this driver is tripped */
-	struct thermal_cooling_device *tcd;
-	/** Atomic variable to hold the current temperature zone
-	 * whcih has triggered */
-	atomic_t therm_state;
-#endif /* THERMAL_CAL */
 	/** Spin lock for Tx/Rx interrupt enable registers */
 	raw_spinlock_t rlock;
 	/** max address register count, 2*mac_addr64_sel */
