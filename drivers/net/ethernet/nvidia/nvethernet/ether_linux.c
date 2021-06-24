@@ -2116,145 +2116,6 @@ error_alloc:
 	return ret;
 }
 
-#ifdef THERMAL_CAL
-/**
- * @brief Set current thermal state.
- *
- * Algorithm: Fill the max supported thermal state for ethernet cooling
- * device in variable provided by caller.
- *
- * @param[in] tcd: Ethernet thermal cooling device pointer.
- * @param[in] state: Variable to read max thermal state.
- *
- * @note MAC needs to be out of reset. Once cooling device ops are
- * registered, it can be called anytime from kernel. MAC has to be in
- * sufficient state to allow pad calibration.
- *
- * return: 0 - succcess. Does not fail as function is only reading variable.
- */
-static int ether_get_max_therm_state(struct thermal_cooling_device *tcd,
-				     unsigned long *state)
-{
-	*state = ETHER_MAX_THERM_STATE;
-
-	return 0;
-}
-
-/**
- * @brief Get current thermal state.
- *
- * Algorithm: Atomically get the current thermal state of etherent
- * cooling device.
- *
- * @param[in] tcd: Ethernet thermal cooling device pointer.
- * @param[in] state: Variable to read current thermal state.
- *
- * @note MAC needs to be out of reset. Once cooling device ops are
- * registered, it can be called anytime from kernel. MAC has to be in
- * sufficient state to allow pad calibration.
- *
- * @return: succcess on 0.
- */
-static int ether_get_cur_therm_state(struct thermal_cooling_device *tcd,
-				     unsigned long *state)
-{
-	struct ether_priv_data *pdata = tcd->devdata;
-
-	*state = (unsigned long)atomic_read(&pdata->therm_state);
-
-	return 0;
-}
-
-/**
- * @brief Set current thermal state.
- *
- * Algorithm: Atomically set the desired state provided as argument.
- * Trigger pad calibration for each state change.
- *
- * @param[in] tcd: Ethernet thermal cooling device pointer.
- * @param[in] state: The thermal state to set.
- *
- * @note MAC needs to be out of reset. Once cooling device ops are
- * registered, it can be called anytime from kernel. MAC has to be in
- * sufficient state to allow pad calibration.
- *
- * @retval 0 on success
- * @retval negative value on failure.
- */
-static int ether_set_cur_therm_state(struct thermal_cooling_device *tcd,
-				     unsigned long state)
-{
-	struct ether_priv_data *pdata = tcd->devdata;
-	struct device *dev = pdata->dev;
-	struct osi_ioctl ioctl_data = {};
-
-
-	/* Thermal framework will take care of making sure state is within
-	 * valid bounds, based on the get_max_state callback. So no need
-	 * to validate bounds again here.
-	 */
-	dev_info(dev, "Therm state change from %d to %lu\n",
-		 atomic_read(&pdata->therm_state), state);
-
-	atomic_set(&pdata->therm_state, state);
-
-	ioctl_data.cmd = OSI_CMD_PAD_CALIBRATION;
-	if (osi_handle_ioctl(pdata->osi_core, &ioctl_data) < 0) {
-		dev_err(dev, "Therm state changed, failed pad calibration\n");
-		return -1;
-	}
-
-	return 0;
-}
-
-static struct thermal_cooling_device_ops ether_cdev_ops = {
-	.get_max_state = ether_get_max_therm_state,
-	.get_cur_state = ether_get_cur_therm_state,
-	.set_cur_state = ether_set_cur_therm_state,
-};
-
-/**
- * @brief Register thermal cooling device with kernel.
- *
- * Algorithm: Register thermal cooling device read from DT. The cooling
- * device ops struct passed as argument will be used by thermal framework
- * to callback the ethernet driver when temperature trip points are
- * triggered, so that ethernet driver can do pad calibration.
- *
- * @param[in] pdata: Pointer to driver private data structure.
- *
- * @ote MAC needs to be out of reset. Once cooling device ops are
- * registered, it can be called anytime from kernel. MAC has to be in
- * sufficient state to allow pad calibration.
- *
- * @retval 0 on success
- * @retval negative value on failure.
- */
-static int ether_therm_init(struct ether_priv_data *pdata)
-{
-	struct device_node *np = NULL;
-
-	if (pdata->osi_core->pre_si)
-		return 0;
-
-	np = of_find_node_by_name(NULL, "eqos-cool-dev");
-	if (!np) {
-		dev_err(pdata->dev, "failed to get eqos-cool-dev\n");
-		return -ENODEV;
-	}
-	pdata->tcd = thermal_of_cooling_device_register(np,
-							"tegra-eqos", pdata,
-							&ether_cdev_ops);
-	if (!pdata->tcd) {
-		return -ENODEV;
-	} else if (IS_ERR(pdata->tcd)) {
-		return PTR_ERR(pdata->tcd);
-	}
-
-	return 0;
-}
-#endif /* THERMAL_CAL */
-
 /**
  * @brief Initialize default EEE LPI configurations
  *
@@ -2432,16 +2293,6 @@ static int ether_open(struct net_device *dev)
 		goto err_alloc;
 	}
 
-#ifdef THERMAL_CAL
-	atomic_set(&pdata->therm_state, 0);
-	ret = ether_therm_init(pdata);
-	if (ret < 0) {
-		dev_err(pdata->dev, "Failed to register cooling device (%d)\n",
-			ret);
-		goto err_therm;
-	}
-#endif /* THERMAL_CAL */
-
 	/* initialize MAC/MTL/DMA Common registers */
 	ret = osi_hw_core_init(pdata->osi_core,
 			       pdata->hw_feat.tx_fifo_size,
@@ -2548,10 +2399,6 @@ err_r_irq:
 	ether_napi_disable(pdata);
 	ether_ptp_remove(pdata);
 err_hw_init:
-#ifdef THERMAL_CAL
-	thermal_cooling_device_unregister(pdata->tcd);
-err_therm:
-#endif /* THERMAL_CAL */
 	free_dma_resources(pdata);
 err_alloc:
 	if (pdata->phydev) {
@@ -2772,10 +2619,6 @@ static int ether_close(struct net_device *ndev)
 
 	/* DMA De init */
 	osi_hw_dma_deinit(pdata->osi_dma);
-
-#ifdef THERMAL_CAL
-	thermal_cooling_device_unregister(pdata->tcd);
-#endif /* THERMAL_CAL */
 
 	ether_napi_disable(pdata);
 
