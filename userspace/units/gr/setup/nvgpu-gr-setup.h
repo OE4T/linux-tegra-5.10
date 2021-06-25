@@ -38,7 +38,17 @@ struct unit_module;
  *
  * Description: This test helps to verify common.gr object context creation.
  *
- * Test Type: Feature
+ * Test Type: Feature, Boundary Value
+ *
+ * Equivalence classes:
+ * Variable: class_num
+ * - Valid : {0 - U32_MAX}
+ *   	Range of "class_num" variable for nvgpu-rm is
+ *      0xC3C0U (VOLTA_COMPUTE_A), 0xC3B5U (VOLTA_DMA_COPY_A),
+ *      0xC36FU (VOLTA_CHANNEL_GPFIFO_A).
+ *      class_num range check is done in common.class unit.
+ * Variable: flags
+ * - Valid : {0 - U32_MAX}
  *
  * Targets: nvgpu_gr_setup_alloc_obj_ctx,
  *          nvgpu_gr_obj_ctx_alloc,
@@ -75,7 +85,24 @@ struct unit_module;
  *    - g->ops.gr.falcon.ctrl_ctxsw.
  * -  Set default golden image size.
  * -  Allocate and bind channel and tsg.
- * -  Call g->ops.gr.setup.alloc_obj_ctx.
+ * -  Start BVEC testing for variable class_num.
+ *    class_num is tested for range in common.class. In common.gr, stub out
+ *    the common.class HALs to perform independent range testing. Before
+ *    stubbing, save the valid initialization values for common.class HALs.
+ * -  Call g->ops.gr.setup.alloc_obj_ctx with input class_num at boundary
+ *    values - min boundary(0), max boundary(U32_MAX) and once with value
+ *    in valid range. g->ops.gr.setup.alloc_obj_ctx value should return
+ *    0 as all class_num values are valid from common.gr perspective.
+ *    End BVEC testing for variable class_num by restoring the stubbed
+ *    common.class HALs.
+ * -  Start BVEC testing for variable flags.
+ * -  Call g->ops.gr.setup.alloc_obj_ctx with input variable flags at boundary
+ *    values - min boundary(0), max boundary(U32_MAX) and once with value
+ *    in valid range. g->ops.gr.setup.alloc_obj_ctx value should return
+ *    0 as all flags values are valid from common.gr perspective.
+ *    End BVEC testing for variable flags.
+ * -  Call g->ops.gr.setup.alloc_obj_ctx with valid class_num -
+ *    VOLTA_DMA_COPY_A and VOLTA_COMPUTE_A.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL
  * otherwise.
@@ -153,7 +180,16 @@ int test_gr_setup_free_obj_ctx(struct unit_module *m,
  * Description: Helps to verify error paths in
  *              gops_gr_setup.set_preemption_mode call.
  *
- * Test Type: Error injection, Boundary values
+ * Test Type: Error injection, Boundary value
+ *
+ * Equivalence classes:
+ * Variable  : graphics_preempt_mode
+ * - Valid   : {0}
+ * - Invalid : {1 - U32_MAX}
+ * Variable  : compute_preempt_mode
+ * - Valid   : {0,2}
+ * - Invalid : {3 - U32_MAX}
+ *
  *
  * Targets: nvgpu_gr_setup_set_preemption_mode,
  *          nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode

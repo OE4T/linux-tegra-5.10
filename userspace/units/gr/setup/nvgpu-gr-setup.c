@@ -51,6 +51,14 @@
 #include "../nvgpu-gr.h"
 #include "nvgpu-gr-setup.h"
 
+#define CLASS_MIN_VALUE 	0
+#define CLASS_MAX_VALUE 	U32_MAX
+#define CLASS_VALID_VALUE 	0x1234
+
+#define FLAGS_MIN_VALUE 	0
+#define FLAGS_MAX_VALUE 	U32_MAX
+#define FLAGS_VALID_VALUE 	0x1234
+
 struct gr_gops_org {
 	int (*l2_flush)(struct gk20a *g, bool invalidate);
 	int (*fe_pwr_mode)(struct gk20a *g, bool force_on);
@@ -59,11 +67,23 @@ struct gr_gops_org {
 			u32 data, u32 *ret_val);
 	int (*fifo_preempt_tsg)(struct gk20a *g,
 				struct nvgpu_tsg *tsg);
+	bool (*is_valid)(u32 class_num);
+	bool (*is_valid_compute)(u32 class_num);
 };
 
 static struct nvgpu_channel *gr_setup_ch;
 static struct nvgpu_tsg *gr_setup_tsg;
 static struct gr_gops_org gr_setup_gops;
+
+static bool stub_class_is_valid(u32 class_num)
+{
+	return true;
+}
+
+static bool stub_class_is_valid_compute(u32 class_num)
+{
+	return true;
+}
 
 static u32 stub_channel_count(struct gk20a *g)
 {
@@ -102,6 +122,28 @@ static int stub_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 static int stub_gr_fifo_preempt_tsg(struct gk20a *g, struct nvgpu_tsg *tsg)
 {
 	return -1;
+}
+
+static void gr_setup_stub_class_ops(struct gk20a *g)
+{
+	g->ops.gpu_class.is_valid = stub_class_is_valid;
+	g->ops.gpu_class.is_valid_compute = stub_class_is_valid_compute;
+}
+
+static void gr_setup_restore_class_ops(struct gk20a *g)
+{
+	g->ops.gpu_class.is_valid =
+		gr_setup_gops.is_valid;
+	g->ops.gpu_class.is_valid_compute =
+		gr_setup_gops.is_valid_compute;
+}
+
+static void gr_setup_save_class_ops(struct gk20a *g)
+{
+	gr_setup_gops.is_valid =
+		g->ops.gpu_class.is_valid;
+	gr_setup_gops.is_valid_compute =
+		g->ops.gpu_class.is_valid_compute;
 }
 
 static int gr_test_setup_unbind_tsg(struct unit_module *m, struct gk20a *g)
@@ -247,17 +289,17 @@ struct test_gr_setup_preemption_mode {
 
 struct test_gr_setup_preemption_mode preemp_mode_types[] = {
 	[0] = {
-		.compute_mode = NVGPU_PREEMPTION_MODE_COMPUTE_CTA,
+		.compute_mode = NVGPU_PREEMPTION_MODE_COMPUTE_WFI,
 		.graphics_mode = 0,
 		.result = 0,
 	      },
 	[1] = {
-		.compute_mode = BIT(2),
+		.compute_mode = NVGPU_PREEMPTION_MODE_COMPUTE_CTA,
 		.graphics_mode = 0,
-		.result = -EINVAL,
+		.result = 0,
 	      },
 	[2] = {
-		.compute_mode = NVGPU_PREEMPTION_MODE_COMPUTE_WFI,
+		.compute_mode = BIT(15),
 		.graphics_mode = 0,
 		.result = -EINVAL,
 	      },
@@ -268,7 +310,27 @@ struct test_gr_setup_preemption_mode preemp_mode_types[] = {
 	      },
 	[4] = {
 		.compute_mode = 0,
-		.graphics_mode = BIT(1),
+		.graphics_mode = BIT(0),
+		.result = -EINVAL,
+	      },
+	[5] = {
+		.compute_mode = NVGPU_PREEMPTION_MODE_COMPUTE_CTA,
+		.graphics_mode = BIT(12),
+		.result = -EINVAL,
+	      },
+	[6] = {
+		.compute_mode = NVGPU_PREEMPTION_MODE_COMPUTE_CTA,
+		.graphics_mode = U32_MAX,
+		.result = -EINVAL,
+	      },
+	[7] = {
+		.compute_mode = 3,
+		.graphics_mode = 0,
+		.result = -EINVAL,
+	      },
+	[8] = {
+		.compute_mode = U32_MAX,
+		.graphics_mode = 0,
 		.result = -EINVAL,
 	      },
 };
@@ -607,7 +669,7 @@ int test_gr_setup_set_preemption_mode(struct unit_module *m,
 						&compute_mode);
 
 	err = g->ops.gr.setup.set_preemption_mode(gr_setup_ch, 0,
-		(compute_mode & NVGPU_PREEMPTION_MODE_COMPUTE_CTA), 0);
+		(compute_mode & NVGPU_PREEMPTION_MODE_COMPUTE_WFI), 0);
 	if (err != 0) {
 		unit_return_fail(m, "setup preemption_mode failed\n");
 	}
@@ -663,6 +725,53 @@ int test_gr_setup_alloc_obj_ctx(struct unit_module *m,
 	if (err != 0) {
 		unit_return_fail(m, "setup channel allocation failed\n");
 	}
+
+	/* BVEC tests for variable class_num */
+	gr_setup_save_class_ops(g);
+	gr_setup_stub_class_ops(g);
+
+	err = g->ops.gr.setup.alloc_obj_ctx(gr_setup_ch, CLASS_MIN_VALUE, 0);
+	if (err != 0) {
+		unit_return_fail(m,
+			"alloc_obj_ctx BVEC class_num min_value failed.\n");
+	}
+
+	err = g->ops.gr.setup.alloc_obj_ctx(gr_setup_ch, CLASS_MAX_VALUE, 0);
+	if (err != 0) {
+		unit_return_fail(m,
+			"alloc_obj_ctx BVEC class_num max_value failed.\n");
+	}
+
+	err = g->ops.gr.setup.alloc_obj_ctx(gr_setup_ch, CLASS_VALID_VALUE, 0);
+	if (err != 0) {
+		unit_return_fail(m,
+			"alloc_obj_ctx BVEC class_num valid_value failed.\n");
+	}
+
+	gr_setup_restore_class_ops(g);
+
+	/* BVEC tests for variable flags */
+	err = g->ops.gr.setup.alloc_obj_ctx(gr_setup_ch, VOLTA_DMA_COPY_A,
+						FLAGS_MIN_VALUE);
+	if (err != 0) {
+		unit_return_fail(m,
+			"alloc_obj_ctx BVEC flags min_value failed.\n");
+	}
+
+	err = g->ops.gr.setup.alloc_obj_ctx(gr_setup_ch, VOLTA_DMA_COPY_A,
+						FLAGS_MAX_VALUE);
+	if (err != 0) {
+		unit_return_fail(m,
+			"alloc_obj_ctx BVEC flags max_value failed.\n");
+	}
+
+	err = g->ops.gr.setup.alloc_obj_ctx(gr_setup_ch, VOLTA_DMA_COPY_A,
+						FLAGS_VALID_VALUE);
+	if (err != 0) {
+		unit_return_fail(m,
+			"alloc_obj_ctx BVEC flags valid_value failed.\n");
+	}
+	/* End BVEC tests */
 
 	/* DMA_COPY should pass, but it own't allocate obj ctx */
 	err = g->ops.gr.setup.alloc_obj_ctx(gr_setup_ch, VOLTA_DMA_COPY_A, 0);
