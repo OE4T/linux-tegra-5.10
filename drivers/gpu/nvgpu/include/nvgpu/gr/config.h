@@ -353,9 +353,12 @@ void nvgpu_gr_config_set_no_of_sm(struct nvgpu_gr_config *config, u32 no_of_sm);
  * particular SM, and index of SM within TPC.
  *
  * This function will return pointer to #nvgpu_sm_info struct for SM with
- * requested index.
+ * requested index if requested index is valid.
+ * Valid SM index range is 0 to (SM count - 1) where SM count is received
+ * with #nvgpu_gr_config_get_no_of_sm().
  *
- * @return pointer to struct #nvgpu_sm_info corresponding to requested sm_id.
+ * @return pointer to struct #nvgpu_sm_info if requested sm_id is valid,
+ *         NULL otherwise.
  */
 struct nvgpu_sm_info *nvgpu_gr_config_get_sm_info(struct nvgpu_gr_config *config,
 	u32 sm_id);

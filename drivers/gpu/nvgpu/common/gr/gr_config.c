@@ -808,7 +808,10 @@ void nvgpu_gr_config_set_no_of_sm(struct nvgpu_gr_config *config, u32 no_of_sm)
 struct nvgpu_sm_info *nvgpu_gr_config_get_sm_info(struct nvgpu_gr_config *config,
 	u32 sm_id)
 {
-	return &config->sm_to_cluster[sm_id];
+	if (sm_id < config->no_of_sm) {
+		return &config->sm_to_cluster[sm_id];
+	}
+	return NULL;
 }
 
 #ifdef CONFIG_NVGPU_SM_DIVERSITY

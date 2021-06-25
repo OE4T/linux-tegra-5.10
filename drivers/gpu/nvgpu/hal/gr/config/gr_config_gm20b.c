@@ -34,6 +34,11 @@ int gm20b_gr_config_init_sm_id_table(struct gk20a *g,
 {
 	u32 gpc, tpc;
 	u32 sm_id = 0;
+	u32 num_sm;
+
+	num_sm = nvgpu_safe_mult_u32(nvgpu_gr_config_get_tpc_count(gr_config),
+				     nvgpu_gr_config_get_sm_count_per_tpc(gr_config));
+	nvgpu_gr_config_set_no_of_sm(gr_config, num_sm);
 
 	for (tpc = 0;
 	     tpc < nvgpu_gr_config_get_max_tpc_per_gpc_count(gr_config);
@@ -51,6 +56,6 @@ int gm20b_gr_config_init_sm_id_table(struct gk20a *g,
 			}
 		}
 	}
-	nvgpu_gr_config_set_no_of_sm(gr_config, sm_id);
+	nvgpu_assert(num_sm == sm_id);
 	return 0;
 }

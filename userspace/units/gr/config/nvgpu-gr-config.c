@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -302,18 +302,20 @@ int test_gr_config_set_get(struct unit_module *m,
 	u32 gindex = 0U;
 	u32 val = 0U;
 	struct nvgpu_sm_info *sm_info;
+	u32 num_sm = 0U;
 
 	srand(0);
+
+	num_sm = nvgpu_gr_config_get_tpc_count(unit_gr_config) *
+		 nvgpu_gr_config_get_sm_count_per_tpc(unit_gr_config);
+	nvgpu_gr_config_set_no_of_sm(unit_gr_config, num_sm);
+	if (num_sm != nvgpu_gr_config_get_no_of_sm(unit_gr_config)) {
+		unit_return_fail(m, "mismatch in no_of_sm\n");
+	}
 
 	/*
 	 * Set random value and read back
 	 */
-	val = (u32)rand();
-	nvgpu_gr_config_set_no_of_sm(unit_gr_config, val);
-	if (val != nvgpu_gr_config_get_no_of_sm(unit_gr_config)) {
-		unit_return_fail(m, "mismatch in no_of_sm\n");
-	}
-
 	sm_info = nvgpu_gr_config_get_sm_info(unit_gr_config, 0);
 	val = (u32)rand();
 	nvgpu_gr_config_set_sm_info_gpc_index(sm_info, val);
