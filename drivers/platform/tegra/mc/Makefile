@@ -45,7 +45,6 @@ endif
 
 ifeq ($(CONFIG_ARCH_TEGRA_23x_SOC),y)
 obj-y += tegra234-mc-sid.o
-obj-y += mc-t23x.o
 obj-y += mcerr-t23x.o
 obj-y += mc_utils.o
 endif
