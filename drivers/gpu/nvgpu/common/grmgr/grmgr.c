@@ -163,12 +163,14 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 	g->mig.current_gr_syspipe_id = NVGPU_MIG_INVALID_GR_SYSPIPE_ID;
 
 	nvgpu_log(g, gpu_dbg_mig,
-		"[Physical device] gpu_instance_id[%u] gr_instance_id[%u] "
+		"[%s] gpu_instance_id[%u] gr_instance_id[%u] "
 			"gr_syspipe_id[%u] max_gpc_count[%u] num_gpc[%u] "
 			"gr_engine_id[%u] max_veid_count_per_tsg[%u] "
 			"veid_start_offset[%u] is_memory_partition_support[%d] "
 			"num_lce[%u] max_fbps_count[%u] num_fbp[%u] "
 			"fbp_en_mask [0x%x] ",
+		(nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG) ?
+			"MIG_Physical" : "Physical"),
 		gpu_instance->gpu_instance_id,
 		gr_syspipe->gr_instance_id,
 		gr_syspipe->gr_syspipe_id,

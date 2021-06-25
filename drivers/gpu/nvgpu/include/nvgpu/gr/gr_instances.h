@@ -120,6 +120,26 @@
 #endif
 
 #ifdef CONFIG_NVGPU_MIG
+#define nvgpu_gr_exec_with_ret_for_all_instances(g, func) \
+	({ \
+		int err = 0; \
+		if (nvgpu_grmgr_is_multi_gr_enabled(g)) { \
+			nvgpu_grmgr_config_gr_remap_window(g, \
+				NVGPU_MIG_INVALID_GR_SYSPIPE_ID, false); \
+			g->mig.cur_gr_instance = 0; \
+			err = (func); \
+			nvgpu_grmgr_config_gr_remap_window(g, \
+			 NVGPU_MIG_INVALID_GR_SYSPIPE_ID, true); \
+		} else { \
+			err = (func); \
+		} \
+		err; \
+	})
+#else
+#define nvgpu_gr_exec_with_ret_for_all_instances(g, func)	(func)
+#endif
+
+#ifdef CONFIG_NVGPU_MIG
 #define nvgpu_gr_exec_for_instance(g, gr_instance_id, func) \
 	({ \
 		if (nvgpu_grmgr_is_multi_gr_enabled(g)) { \

@@ -661,6 +661,9 @@ static const struct gops_gr_init ga100_ops_gr_init = {
 	.get_ctx_pagepool_size = gp10b_gr_init_get_ctx_pagepool_size,
 	.get_ctx_betacb_size = ga100_gr_init_get_ctx_betacb_size,
 	.commit_ctxsw_spill = gv11b_gr_init_commit_ctxsw_spill,
+#ifdef CONFIG_NVGPU_MIG
+	.is_allowed_reg = ga10b_gr_init_is_allowed_reg,
+#endif
 #endif /* CONFIG_NVGPU_GFXP */
 };
 
@@ -1314,7 +1317,6 @@ static const struct gops_clk ga100_ops_clk = {
 	.get_cntr_xbarclk_source = ga100_clk_get_cntr_xbarclk_source,
 	.get_cntr_sysclk_source = ga100_clk_get_cntr_sysclk_source,
 #endif
-	.change_host_clk_source = tu104_change_host_clk_source,
 	.perf_pmu_vfe_load = nvgpu_pmu_perf_load,
 	.clk_mon_init_domains = nvgpu_pmu_clk_mon_init_domains,
 };

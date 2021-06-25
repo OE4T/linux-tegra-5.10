@@ -790,16 +790,20 @@ void gv11b_gr_intr_enable_hww_exceptions(struct gk20a *g)
 	nvgpu_writel(g, gr_memfmt_hww_esr_r(),
 		     gr_memfmt_hww_esr_en_enable_f() |
 		     gr_memfmt_hww_esr_reset_active_f());
-	nvgpu_writel(g, gr_pd_hww_esr_r(),
-		     gr_pd_hww_esr_en_enable_f() |
-		     gr_pd_hww_esr_reset_active_f());
-	nvgpu_writel(g, gr_scc_hww_esr_r(),
-		     gr_scc_hww_esr_en_enable_f() |
-		     gr_scc_hww_esr_reset_active_f());
-	nvgpu_writel(g, gr_ds_hww_esr_r(),
-		     gr_ds_hww_esr_en_enabled_f() |
-		     gr_ds_hww_esr_reset_task_f());
+	/*
+	 * PD, SCC, DS, SSYNC - SYS Graphics Units.
+	 * Accessible only in legacy mode (graphics+compute).
+	 */
 	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		nvgpu_writel(g, gr_pd_hww_esr_r(),
+				 gr_pd_hww_esr_en_enable_f() |
+				 gr_pd_hww_esr_reset_active_f());
+		nvgpu_writel(g, gr_scc_hww_esr_r(),
+				 gr_scc_hww_esr_en_enable_f() |
+				 gr_scc_hww_esr_reset_active_f());
+		nvgpu_writel(g, gr_ds_hww_esr_r(),
+				 gr_ds_hww_esr_en_enabled_f() |
+				 gr_ds_hww_esr_reset_task_f());
 		nvgpu_writel(g, gr_ssync_hww_esr_r(),
 		        gr_ssync_hww_esr_en_enable_f() |
 		        gr_ssync_hww_esr_reset_active_f());

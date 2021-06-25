@@ -494,6 +494,19 @@ static int nvgpu_gr_obj_ctx_init_hw_state(struct gk20a *g,
 	/* load ctx init */
 	nvgpu_log_info(g, "begin: netlist: sw_ctx_load: register writes");
 	for (i = 0U; i < sw_ctx_load->count; i++) {
+#ifdef CONFIG_NVGPU_MIG
+		if ((nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) &&
+				(g->ops.gr.init.is_allowed_reg != NULL) &&
+				(!(g->ops.gr.init.is_allowed_reg(g,
+					sw_ctx_load->l[i].addr)))) {
+			nvgpu_log(g, gpu_dbg_mig | gpu_dbg_gr,
+				"(MIG) Skip graphics ctx load reg "
+					"index[%u] addr[%x] value[%x] ",
+				i, sw_ctx_load->l[i].addr,
+				sw_ctx_load->l[i].value);
+			continue;
+		}
+#endif
 		nvgpu_writel(g, sw_ctx_load->l[i].addr,
 			     sw_ctx_load->l[i].value);
 	}

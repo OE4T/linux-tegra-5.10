@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,6 +30,13 @@
 struct gk20a;
 struct nvgpu_gr_ctx;
 struct nvgpu_gr_config;
+
+#ifdef CONFIG_NVGPU_MIG
+struct nvgpu_gr_gfx_reg_range {
+	u32 start_addr;
+	u32 end_addr;
+};
+#endif
 
 void ga10b_gr_init_override_context_reset(struct gk20a *g);
 void ga10b_gr_init_fe_go_idle_timeout(struct gk20a *g, bool enable);
@@ -69,5 +76,7 @@ int ga10b_gr_init_wait_idle(struct gk20a *g);
 void ga10b_gr_init_eng_config(struct gk20a *g);
 int ga10b_gr_init_reset_gpcs(struct gk20a *g);
 int ga10b_gr_init_wait_empty(struct gk20a *g);
-
+#ifdef CONFIG_NVGPU_MIG
+bool ga10b_gr_init_is_allowed_reg(struct gk20a *g, u32 addr);
+#endif
 #endif /* NVGPU_GR_INIT_GA10B_H */

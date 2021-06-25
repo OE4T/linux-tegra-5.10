@@ -516,3 +516,101 @@ int ga10b_gr_init_wait_empty(struct gk20a *g)
 
 	return -EAGAIN;
 }
+
+#ifdef CONFIG_NVGPU_MIG
+bool ga10b_gr_init_is_allowed_reg(struct gk20a *g, u32 addr)
+{
+	struct nvgpu_gr_gfx_reg_range gfx_range[] = {
+		/* start_addr, end_addr */
+		{ 0x00405800 /* gr_pri_ds_debug */,
+			0x00405864 /* gr_pri_ds_cg1 */ },
+		{ 0x00405900 /* gr_pri_pdb - start */,
+			0x004059ff /* gr_pri_pdb - end */ },
+		{ 0x00405a00 /* gr_pri_ssync - start */,
+			0x00405aff /* gr_pri_ssync - end */ },
+		{ 0x00406000 /* gr_pri_pd_cg */,
+			0x00406518
+			/* gr_pri_pd_output_batch_stall__priv_level_mask */ },
+		{ 0x00407800 /* gr_pri_pd_rstr2d - start */,
+			0x00407fff /* gr_pri_pd_rstr2d - end */ },
+		{ 0x00408000 /* gr_pri_pd_scc - start */,
+			0x004087ff /* gr_pri_pd_scc - end */ },
+		/*
+		 * ga10b doesn't have bes, but for some ampere GPU,
+		 * the following pes reg_range is valid.
+		 * For ga10b, the following bes range is unused.
+		 */
+		{ 0x00408800 /* gr_pri_bes - start */,
+			0x004089ff /* gr_pri_bes_rdm - end */ },
+		{ 0x00408a24 /* gr_pri_bes_becs_cg1 - start */,
+			0x00408a24 /* gr_pri_bes_becs_cg1 - end */ },
+		{ 0x00408a80 /* gr_pri_bes_crop_cg - start */,
+			0x00408a84 /* gr_pri_bes_crop_cg1 - end */ },
+		/*
+		 * For ga10b, end_addr is 0x00418ea7.
+		 * but for some ampere GPU, end_address is 0x00418eff.
+		 * So maximum possible end_addr is 0x00418eff.
+		 * For ga10b, range 0x00418ea7 - 0x00418eff is unused.
+		 */
+		{ 0x00418000 /* gr_pri_gpcs_swdx_dss_debug */,
+			0x00418eff
+				/* gr_pri_gpcs_swdx_tc_beta_cb_size */ },
+
+		{ 0x00418380 /* gr_pri_gpcs_rasterarb - start */,
+			0x004183ff /* gr_pri_gpcs_rasterarb - end */ },
+		{ 0x00418400 /* gr_pri_gpcs_prop - start */,
+			0x004185ff /* gr_pri_gpcs_prop - end */ },
+		{ 0x00418600 /* gr_pri_gpcs_frstr - start */,
+			0x0041867f /* gr_pri_gpcs_frstr - end */ },
+		{ 0x00418680 /* gr_pri_gpcs_widcilp - start */,
+			0x004186ff /* gr_pri_gpcs_widcilp - end */ },
+		{ 0x00418700 /* gr_pri_gpcs_tc - start */,
+			0x004187ff /* gr_pri_gpcs_tc - end */ },
+		{ 0x00418800 /* gr_pri_gpcs_setup - start */,
+			0x0041887f /* gr_pri_gpcs_setup - end */ },
+		{ 0x004188c0 /* gr_pri_gpcs_zcull_zcram_index */,
+			0x00418af8 /* gr_pri_gpcs_zcull_zcsstatus_7 */ },
+		{ 0x00418b00 /* gr_pri_gpcs_crstr - start */,
+			0x00418bff /* gr_pri_gpcs_crstr - end */ },
+		{ 0x00418d00 /* gr_pri_gpcs_gpm_rpt - start */,
+			0x00418d7f /* gr_pri_gpcs_gpm_rpt - end */ },
+		{ 0x00418f00 /* gr_pri_gpcs_wdxps - start */,
+			0x00418fff /* gr_pri_gpcs_wdxps - end */ },
+		{ 0x00419804 /* gr_pri_gpcs_tpcs_pe_blkcg_cg */,
+			0x00419900
+			/* gr_pri_gpcs_tpcs_pe_blk_activity_weigts_c */ },
+		{ 0x0041be00 /* gr_pri_gpcs_ppcs */,
+			0x0041bfff /* gr_pri_gpcs_ppcs_wwdx - end */ },
+	};
+
+	u32 gfx_range_size = (sizeof(gfx_range) /
+		sizeof(struct nvgpu_gr_gfx_reg_range));
+	u32 index;
+
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		nvgpu_log(g, gpu_dbg_gr,
+			"Allowed reg addr[%x] ", addr);
+		return true;
+	}
+	/*
+	 * Capture whether the ctx_load address is compute subunit or not.
+	 */
+	for (index = 0U; index < gfx_range_size; index++) {
+		if ((addr >= gfx_range[index].start_addr) &&
+				(addr <= gfx_range[index].end_addr)) {
+			nvgpu_log(g, gpu_dbg_mig | gpu_dbg_gr,
+				"(MIG) Skip graphics reg index[%u] "
+					"addr[%x] start_addr[%x] end_addr[%x] ",
+				index, addr,
+				gfx_range[index].start_addr,
+				gfx_range[index].end_addr);
+			return false;
+		}
+	}
+
+	nvgpu_log(g, gpu_dbg_gr, "Allowed compute reg addr[%x] ",
+		addr);
+
+	return true;
+}
+#endif

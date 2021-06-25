@@ -595,6 +595,7 @@
 #define gr_fe_tpc_pesmask_mask_m()                          (U32(0xffffU) << 0U)
 #define gr_pri_mme_shadow_ram_index_r()                            (0x00404488U)
 #define gr_pri_mme_shadow_ram_index_nvclass_f(v)      ((U32(v) & 0xffffU) << 0U)
+#define gr_pri_mme_shadow_ram_index_nvclass_v(r)         (((r) >> 0U) & 0xffffU)
 #define gr_pri_mme_shadow_ram_index_method_address_f(v)\
 				((U32(v) & 0xfffU) << 16U)
 #define gr_pri_mme_shadow_ram_index_fepipe_f(v)         ((U32(v) & 0x1U) << 29U)

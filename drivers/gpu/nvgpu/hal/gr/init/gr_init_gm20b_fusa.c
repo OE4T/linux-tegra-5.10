@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -364,18 +364,27 @@ void gm20b_gr_init_load_method_init(struct gk20a *g,
 {
 	u32 i;
 	u32 last_method_data = 0U;
+	u32 class_num = 0U;
 
-	if (sw_method_init->count != 0U) {
-		nvgpu_writel(g, gr_pri_mme_shadow_ram_data_r(),
-			     sw_method_init->l[0U].value);
-		nvgpu_writel(g, gr_pri_mme_shadow_ram_index_r(),
-			     gr_pri_mme_shadow_ram_index_write_trigger_f() |
-			     sw_method_init->l[0U].addr);
-		last_method_data = sw_method_init->l[0U].value;
-	}
-
-	for (i = 1U; i < sw_method_init->count; i++) {
-		if (sw_method_init->l[i].value != last_method_data) {
+	for (i = 0U; i < sw_method_init->count; i++) {
+		class_num = gr_pri_mme_shadow_ram_index_nvclass_v(
+			sw_method_init->l[i].addr);
+#ifdef CONFIG_NVGPU_MIG
+		if ((nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) &&
+				(!g->ops.gpu_class.is_valid_compute(
+					class_num))) {
+			nvgpu_log(g, gpu_dbg_mig | gpu_dbg_gr,
+				"(MIG) Skip graphics sw method index[%u] "
+					"addr[%x] value[%x] class_num[%x] ",
+				i, sw_method_init->l[i].addr,
+				sw_method_init->l[i].value,
+				class_num);
+			continue;
+		}
+#endif
+		if ((i == 0U) ||
+				(sw_method_init->l[i].value !=
+					last_method_data)) {
 			nvgpu_writel(g, gr_pri_mme_shadow_ram_data_r(),
 				sw_method_init->l[i].value);
 			last_method_data = sw_method_init->l[i].value;
@@ -383,6 +392,12 @@ void gm20b_gr_init_load_method_init(struct gk20a *g,
 		nvgpu_writel(g, gr_pri_mme_shadow_ram_index_r(),
 			gr_pri_mme_shadow_ram_index_write_trigger_f() |
 			sw_method_init->l[i].addr);
+		nvgpu_log(g, gpu_dbg_gr,
+			"Allowed graphics sw method index[%u] "
+				"addr[%x] value[%x] class_num[%x] ",
+			i, sw_method_init->l[i].addr,
+			sw_method_init->l[i].value,
+			class_num);
 	}
 }
 

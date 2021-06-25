@@ -475,6 +475,19 @@ void ga10b_slcg_gr_load_gating_prod(struct gk20a *g,
 			u32 reg = ga10b_slcg_gr[i].addr;
 			u32 val = prod ? ga10b_slcg_gr[i].prod :
 					 ga10b_slcg_gr[i].disable;
+#ifdef CONFIG_NVGPU_MIG
+			if ((nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) &&
+					(g->ops.gr.init.is_allowed_reg
+						!= NULL) &&
+					(!(g->ops.gr.init.is_allowed_reg(g,
+						reg)))) {
+				nvgpu_log(g, gpu_dbg_mig | gpu_dbg_gr,
+					"(MIG) Skip slcg graphics gating reg "
+						"index[%u] addr[%x] value[%x] ",
+				i, reg, val);
+				continue;
+			}
+#endif
 			nvgpu_writel(g, reg, val);
 		}
 	}
@@ -995,6 +1008,19 @@ void ga10b_blcg_gr_load_gating_prod(struct gk20a *g,
 			u32 reg = ga10b_blcg_gr[i].addr;
 			u32 val = prod ? ga10b_blcg_gr[i].prod :
 					 ga10b_blcg_gr[i].disable;
+#ifdef CONFIG_NVGPU_MIG
+			if ((nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) &&
+					(g->ops.gr.init.is_allowed_reg
+						!= NULL) &&
+					(!(g->ops.gr.init.is_allowed_reg(g,
+						reg)))) {
+				nvgpu_log(g, gpu_dbg_mig | gpu_dbg_gr,
+					"(MIG) Skip blcg graphics gating reg "
+						"index[%u] addr[%x] value[%x] ",
+					i, reg, val);
+				continue;
+			}
+#endif
 			nvgpu_writel(g, reg, val);
 		}
 	}

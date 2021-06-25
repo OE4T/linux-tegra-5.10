@@ -835,6 +835,7 @@ struct gops_gr_init {
 #endif
 	bool (*is_allowed_sw_bundle)(struct gk20a *g,
 			u32 bundle_addr, u32 bundle_value, int *context);
+	bool (*is_allowed_reg)(struct gk20a *g, u32 addr);
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 	void (*auto_go_idle)(struct gk20a *g, bool enable);
 	void (*eng_config)(struct gk20a *g);

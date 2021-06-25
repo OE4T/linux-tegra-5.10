@@ -456,7 +456,9 @@ int gk20a_pm_finalize_poweron(struct device *dev)
 #ifdef CONFIG_NVGPU_DGPU
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_DGPU_PCIE_SCRIPT_EXECUTE) &&
 			nvgpu_platform_is_silicon(g)) {
-		g->ops.clk.change_host_clk_source(g);
+		if (g->ops.clk.change_host_clk_source != NULL) {
+			g->ops.clk.change_host_clk_source(g);
+		}
 		g->ops.xve.devinit_deferred_settings(g);
 	}
 

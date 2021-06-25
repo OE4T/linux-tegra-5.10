@@ -366,6 +366,7 @@
 #define gr_fe_tpc_fs_r(i)\
 		(nvgpu_safe_add_u32(0x0040a200U, nvgpu_safe_mult_u32((i), 4U)))
 #define gr_pri_mme_shadow_ram_index_r()                            (0x00404488U)
+#define gr_pri_mme_shadow_ram_index_nvclass_v(r)         (((r) >> 0U) & 0xffffU)
 #define gr_pri_mme_shadow_ram_index_write_trigger_f()              (0x80000000U)
 #define gr_pri_mme_shadow_ram_data_r()                             (0x0040448cU)
 #define gr_mme_hww_esr_r()                                         (0x00404490U)

@@ -635,6 +635,9 @@ static const struct gops_gr_init ga10b_ops_gr_init = {
 	.get_ctx_pagepool_size = gp10b_gr_init_get_ctx_pagepool_size,
 	.get_ctx_betacb_size = ga10b_gr_init_get_ctx_betacb_size,
 	.commit_ctxsw_spill = gv11b_gr_init_commit_ctxsw_spill,
+#ifdef CONFIG_NVGPU_MIG
+	.is_allowed_reg = ga10b_gr_init_is_allowed_reg,
+#endif
 #endif /* CONFIG_NVGPU_GFXP */
 };
 

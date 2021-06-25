@@ -768,10 +768,14 @@ int ga10b_grmgr_init_gr_manager(struct gk20a *g)
 
 	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG) ||
 			(g->mig.gpc_count < 2U)) {
-		nvgpu_set_enabled(g, NVGPU_SUPPORT_MIG, false);
-		/* Fall back to non MIG gr manager init */
+		/*
+		 * Fall back to 1 GPU instance.
+		 * It can be Physical/legacy or MIG mode based NVGPU_SUPPORT_MIG.
+		 */
 		nvgpu_log(g, gpu_dbg_mig,
-			"legacy mode boot[non MIG]");
+			"Fall back to 1 GPU instance - mode[%s]",
+			(nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG) ?
+				"MIG_Physical" : "Physical"));
 		return 0;
 	}
 
