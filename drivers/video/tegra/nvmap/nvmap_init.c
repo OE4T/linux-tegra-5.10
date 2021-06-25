@@ -9,6 +9,8 @@
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
  * more details.
+ *
+ * Portions derived from Linux kernel source file kernel/dma/coherent.c
  */
 
 #define pr_fmt(fmt) "%s: " fmt, __func__
