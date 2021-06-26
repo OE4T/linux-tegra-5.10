@@ -1,7 +1,7 @@
 /*
- * tegra_machine_driver_mobile.c - Tegra ASoC Machine driver for mobile
+ * tegra_machine_driver.c - Tegra ASoC Machine driver
  *
- * Copyright (c) 2017-2020 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021 NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -504,8 +504,8 @@ static struct snd_soc_card snd_soc_tegra_card = {
 
 /* structure to match device tree node */
 static const struct of_device_id tegra_machine_of_match[] = {
-	{ .compatible = "nvidia,tegra-audio-t186ref-mobile-rt565x" },
-	{ .compatible = "nvidia,tegra-audio-t210ref-mobile-rt565x" },
+	{ .compatible = "nvidia,tegra186-ape" },
+	{ .compatible = "nvidia,tegra210-ape" },
 	{},
 };
 
