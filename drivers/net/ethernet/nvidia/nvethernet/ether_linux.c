@@ -818,8 +818,9 @@ static inline void ether_set_eqos_tx_clk(struct clk *tx_clk,
 static void ether_adjust_link(struct net_device *dev)
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
+	nveu32_t iface_mode = pdata->osi_core->phy_iface_mode;
 	struct phy_device *phydev = pdata->phydev;
-	int new_state = 0, speed_changed = 0;
+	int new_state = 0, speed_changed = 0, speed;
 	unsigned long val;
 	unsigned int eee_enable = OSI_DISABLE;
 	struct osi_ioctl ioctl_data = {};
@@ -857,14 +858,47 @@ static void ether_adjust_link(struct net_device *dev)
 			new_state = 1;
 			speed_changed = 1;
 			ioctl_data.cmd = OSI_CMD_SET_SPEED;
-			ioctl_data.arg6_32 = phydev->speed;
+			/* FOR EQOS speed is PHY Speed and For MGBE this
+			 * speed will be overwritten as per the
+			 * PHY interface mode */
+			speed = phydev->speed;
+			/* XFI mode = 10G:
+				UPHY GBE mode = 10G
+				MAC = 10G
+				XPCS = 10G
+				PHY line side = 10G/5G/2.5G/1G/100M
+			   XFI mode = 5G:
+				UPHY GBE mode = 5G
+				MAC = 5G
+				XPCS = 5G
+				PHY line side = 10G/5G/2.5G/1G/100M
+			  USXGMII mode = 10G:
+				UPHY GBE mode = 10G
+				MAC = 10G/5G/2.5G (same as PHY line speed)
+				XPCS = 10G
+				PHY line side = 10G/5G/2.5G
+			  USXGMII mode = 5G:
+				UPHY GBE mode = 5G
+				MAC = 5G/2.5G ( same as PHY line speed)
+				XPCS = 5G
+				PHY line side = 5G/2.5G
+			*/
+			if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
+				/* MAC and XFI speed should match in XFI mode */
+				if (iface_mode == OSI_XFI_MODE_10G) {
+					speed = OSI_SPEED_10000;
+				} else if (iface_mode == OSI_XFI_MODE_5G) {
+					speed = OSI_SPEED_5000;
+				}
+			}
+			ioctl_data.arg6_32 = speed;
 			ret = osi_handle_ioctl(pdata->osi_core, &ioctl_data);
 			if (ret < 0) {
 				netdev_err(dev, "Failed to set speed\n");
 				return;
 			}
 
-			pdata->speed = phydev->speed;
+			pdata->speed = speed;
 		}
 
 		if (!pdata->oldlink) {
@@ -893,7 +927,7 @@ static void ether_adjust_link(struct net_device *dev)
 	if (speed_changed) {
 		if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
 			ether_set_mgbe_mac_div_rate(pdata->mac_div_clk,
-						    phydev->speed);
+						    pdata->speed);
 		} else {
 			ether_set_eqos_tx_clk(pdata->tx_clk,
 					      phydev->speed);
@@ -5449,14 +5483,50 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 					   &osi_core->uphy_gbe_mode);
 		if (ret < 0) {
 			dev_info(dev,
-				 "failed to read UPHY GBE mode - default to 10G\n");
+				 "failed to read UPHY GBE mode"
+				 "- default to 10G\n");
 			osi_core->uphy_gbe_mode = OSI_ENABLE;
 		}
 
 		if ((osi_core->uphy_gbe_mode != OSI_ENABLE) &&
 		    (osi_core->uphy_gbe_mode != OSI_DISABLE)) {
-			dev_err(dev, "Invalid UPHY GBE mode - default to 10G\n");
+			dev_err(dev, "Invalid UPHY GBE mode"
+				"- default to 10G\n");
 			osi_core->uphy_gbe_mode = OSI_ENABLE;
+		}
+
+		ret = of_property_read_u32(np, "nvidia,phy-iface-mode",
+					   &osi_core->phy_iface_mode);
+		if (ret < 0) {
+			dev_info(dev,
+				 "failed to read PHY iface mode"
+				 "- default to 10G XFI\n");
+			osi_core->phy_iface_mode = OSI_XFI_MODE_10G;
+		}
+
+		if ((osi_core->phy_iface_mode != OSI_XFI_MODE_10G) &&
+		    (osi_core->phy_iface_mode != OSI_XFI_MODE_5G) &&
+		    (osi_core->phy_iface_mode != OSI_USXGMII_MODE_10G) &&
+		    (osi_core->phy_iface_mode != OSI_USXGMII_MODE_5G)) {
+			dev_err(dev, "Invalid PHY iface mode"
+				"- default to 10G\n");
+			osi_core->phy_iface_mode = OSI_XFI_MODE_10G;
+		}
+
+		/* GBE and XFI/USXGMII must be in same mode */
+		if ((osi_core->uphy_gbe_mode == OSI_ENABLE) &&
+		    ((osi_core->phy_iface_mode == OSI_XFI_MODE_5G) ||
+		    (osi_core->phy_iface_mode == OSI_USXGMII_MODE_5G))) {
+			dev_err(dev, "Invalid combination of UPHY GBE mode"
+				"and XFI/USXGMII 5G mode\n");
+			return -EINVAL;
+		}
+		if ((osi_core->uphy_gbe_mode == OSI_DISABLE) &&
+		    ((osi_core->phy_iface_mode == OSI_XFI_MODE_10G) ||
+		    (osi_core->phy_iface_mode == OSI_USXGMII_MODE_10G))) {
+			dev_err(dev, "Invalid combination of UPHY GBE mode"
+				"and XFI/USXGMII 10G mode\n");
+			return -EINVAL;
 		}
 	}
 
