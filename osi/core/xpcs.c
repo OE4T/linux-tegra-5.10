@@ -129,11 +129,11 @@ int xpcs_start(struct osi_core_priv_data *osi_core)
 {
 	void *xpcs_base = osi_core->xpcs_base;
 	unsigned int an_status = 0;
-	unsigned int retry = 1000;
+	unsigned int retry = RETRY_COUNT;
 	unsigned int count = 0;
 	unsigned int ctrl = 0;
 	int ret = 0;
-	int cond = 1;
+	int cond = COND_NOT_MET;
 
 	if (osi_core->xpcs_base == OSI_NULL) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
@@ -142,40 +142,43 @@ int xpcs_start(struct osi_core_priv_data *osi_core)
 		return 0;
 	}
 
-	ctrl = xpcs_read(xpcs_base, XPCS_SR_MII_CTRL);
-	ctrl |= XPCS_SR_MII_CTRL_AN_ENABLE;
-	xpcs_write(xpcs_base, XPCS_SR_MII_CTRL, ctrl);
+	if ((osi_core->phy_iface_mode == OSI_USXGMII_MODE_10G) ||
+	    (osi_core->phy_iface_mode == OSI_USXGMII_MODE_5G)) {
+		ctrl = xpcs_read(xpcs_base, XPCS_SR_MII_CTRL);
+		ctrl |= XPCS_SR_MII_CTRL_AN_ENABLE;
+		xpcs_write(xpcs_base, XPCS_SR_MII_CTRL, ctrl);
 
-	ret = xpcs_poll_for_an_complete(osi_core, &an_status);
-	if (ret < 0) {
-		return ret;
-	}
-
-	xpcs_set_speed(xpcs_base, an_status);
-
-	/* USXGMII Rate Adaptor Reset before data transfer */
-	ctrl = xpcs_read(xpcs_base, XPCS_VR_XS_PCS_DIG_CTRL1);
-	ctrl |= XPCS_VR_XS_PCS_DIG_CTRL1_USRA_RST;
-	xpcs_write(xpcs_base, XPCS_VR_XS_PCS_DIG_CTRL1, ctrl);
-	while (cond == 1) {
-		if (count > retry) {
-			return -1;
+		ret = xpcs_poll_for_an_complete(osi_core, &an_status);
+		if (ret < 0) {
+			return ret;
 		}
 
-		count++;
+		xpcs_set_speed(xpcs_base, an_status);
 
+		/* USXGMII Rate Adaptor Reset before data transfer */
 		ctrl = xpcs_read(xpcs_base, XPCS_VR_XS_PCS_DIG_CTRL1);
-		if ((ctrl & XPCS_VR_XS_PCS_DIG_CTRL1_USRA_RST) == 0U) {
-			cond = 0;
-		} else {
-			osi_core->osd_ops.udelay(1000U);
+		ctrl |= XPCS_VR_XS_PCS_DIG_CTRL1_USRA_RST;
+		xpcs_write(xpcs_base, XPCS_VR_XS_PCS_DIG_CTRL1, ctrl);
+		while (cond == COND_NOT_MET) {
+			if (count > retry) {
+				return -1;
+			}
+
+			count++;
+
+			ctrl = xpcs_read(xpcs_base, XPCS_VR_XS_PCS_DIG_CTRL1);
+			if ((ctrl & XPCS_VR_XS_PCS_DIG_CTRL1_USRA_RST) == 0U) {
+				cond = COND_MET;
+			} else {
+				osi_core->osd_ops.udelay(1000U);
+			}
 		}
 	}
 
 	/* poll for Rx link up */
-	cond = 1;
+	cond = COND_NOT_MET;
 	count = 0;
-	while (cond == 1) {
+	while (cond == COND_NOT_MET) {
 		if (count > retry) {
 			return -1;
 		}
@@ -185,7 +188,7 @@ int xpcs_start(struct osi_core_priv_data *osi_core)
 		ctrl = xpcs_read(xpcs_base, XPCS_SR_XS_PCS_STS1);
 		if ((ctrl & XPCS_SR_XS_PCS_STS1_RLU) ==
 		    XPCS_SR_XS_PCS_STS1_RLU) {
-			cond = 0;
+			cond = COND_MET;
 		} else {
 			osi_core->osd_ops.udelay(1000U);
 		}
@@ -360,11 +363,14 @@ int xpcs_init(struct osi_core_priv_data *osi_core)
 	/* 2. enable USXGMII Mode inside DWC_xpcs */
 
 	/* 3.  USXG_MODE = 10G - default it will be 10G mode */
-	ctrl = xpcs_read(xpcs_base, XPCS_VR_XS_PCS_KR_CTRL);
-	ctrl &= ~(XPCS_VR_XS_PCS_KR_CTRL_USXG_MODE_MASK);
+	if ((osi_core->phy_iface_mode == OSI_USXGMII_MODE_10G) ||
+	    (osi_core->phy_iface_mode == OSI_USXGMII_MODE_5G)) {
+		ctrl = xpcs_read(xpcs_base, XPCS_VR_XS_PCS_KR_CTRL);
+		ctrl &= ~(XPCS_VR_XS_PCS_KR_CTRL_USXG_MODE_MASK);
 
-	if (osi_core->uphy_gbe_mode == OSI_DISABLE) {
-		ctrl |= XPCS_VR_XS_PCS_KR_CTRL_USXG_MODE_5G;
+		if (osi_core->uphy_gbe_mode == OSI_DISABLE) {
+			ctrl |= XPCS_VR_XS_PCS_KR_CTRL_USXG_MODE_5G;
+		}
 	}
 
 	xpcs_write(xpcs_base, XPCS_VR_XS_PCS_KR_CTRL, ctrl);
@@ -403,14 +409,16 @@ int xpcs_init(struct osi_core_priv_data *osi_core)
 	 * clear AN_EN in SR_AN_CTRL
 	 * set CL37_BP in VR_XS_PCS_DIG_CTRL1
 	 */
-	ctrl = xpcs_read(xpcs_base, XPCS_SR_AN_CTRL);
-	ctrl &= ~XPCS_SR_AN_CTRL_AN_EN;
-	xpcs_write(xpcs_base, XPCS_SR_AN_CTRL, ctrl);
+	if ((osi_core->phy_iface_mode == OSI_USXGMII_MODE_10G) ||
+	    (osi_core->phy_iface_mode == OSI_USXGMII_MODE_5G)) {
+		ctrl = xpcs_read(xpcs_base, XPCS_SR_AN_CTRL);
+		ctrl &= ~XPCS_SR_AN_CTRL_AN_EN;
+		xpcs_write(xpcs_base, XPCS_SR_AN_CTRL, ctrl);
 
-	ctrl = xpcs_read(xpcs_base, XPCS_VR_XS_PCS_DIG_CTRL1);
-	ctrl |= XPCS_VR_XS_PCS_DIG_CTRL1_CL37_BP;
-	xpcs_write(xpcs_base, XPCS_VR_XS_PCS_DIG_CTRL1, ctrl);
-
+		ctrl = xpcs_read(xpcs_base, XPCS_VR_XS_PCS_DIG_CTRL1);
+		ctrl |= XPCS_VR_XS_PCS_DIG_CTRL1_CL37_BP;
+		xpcs_write(xpcs_base, XPCS_VR_XS_PCS_DIG_CTRL1, ctrl);
+	}
 	/* TODO: 9. MII_AN_INTR_EN to 1, to enable auto-negotiation
 	 * complete interrupt */
 

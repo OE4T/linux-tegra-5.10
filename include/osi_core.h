@@ -150,6 +150,14 @@ typedef my_lint_64		nvel64_t;
 /** @} */
 
 /**
+ * @brief Ethernet PHY Interface Modes
+ */
+#define OSI_XFI_MODE_10G	0
+#define OSI_XFI_MODE_5G		1
+#define OSI_USXGMII_MODE_10G	2
+#define OSI_USXGMII_MODE_5G	3
+
+/**
  * @addtogroup PTP-offload PTP offload defines
  * @{
  */
@@ -1209,6 +1217,8 @@ struct osi_core_priv_data {
 	struct osi_vm_irq_data irq_data[OSI_MAX_VM_IRQS];
 	/** number of VM IRQ's */
 	nveu32_t num_vm_irqs;
+	/** PHY interface mode (0/1 for XFI 10/5G, 2/3 for USXGMII 10/5) */
+	nveu32_t phy_iface_mode;
 };
 
 /**
