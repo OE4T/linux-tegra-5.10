@@ -24,7 +24,9 @@
 #include <local_common.h>
 #include "hw_desc.h"
 #include "../osi/common/common.h"
-
+#ifdef OSI_DMA_DEBUG
+#include "debug.h"
+#endif
 /**
  * @brief g_dma - DMA local data array.
  */
@@ -208,6 +210,9 @@ nve32_t osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 	if ((osi_dma->osd_ops.transmit_complete == OSI_NULL) ||
 	    (osi_dma->osd_ops.receive_packet == OSI_NULL) ||
 	    (osi_dma->osd_ops.ops_log == OSI_NULL) ||
+#ifdef OSI_DMA_DEBUG
+	    (osi_dma->osd_ops.printf == OSI_NULL) ||
+#endif
 	    (osi_dma->osd_ops.udelay == OSI_NULL)) {
 		return -1;
 	}
@@ -759,6 +764,35 @@ nve32_t osi_hw_transmit(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
 	}
 
 	return hw_transmit(osi_dma, osi_dma->tx_ring[chan], l_dma->ops_p, chan);
+}
+
+nve32_t osi_dma_ioctl(struct osi_dma_priv_data *osi_dma)
+{
+	struct dma_local *l_dma = (struct dma_local *)osi_dma;
+	struct osi_dma_ioctl_data *data;
+
+	if (osi_unlikely(validate_args(osi_dma, l_dma) < 0)) {
+		return -1;
+	}
+
+	data = &osi_dma->ioctl_data;
+
+	switch (data->cmd) {
+#ifdef OSI_DMA_DEBUG
+	case OSI_DMA_IOCTL_CMD_REG_DUMP:
+		reg_dump(osi_dma);
+		break;
+	case OSI_DMA_IOCTL_CMD_STRUCTS_DUMP:
+		structs_dump(osi_dma);
+		break;
+#endif
+	default:
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "DMA: Invalid IOCTL command", 0ULL);
+		return -1;
+	}
+
+	return 0;
 }
 
 #ifndef OSI_STRIPPED_LIB
