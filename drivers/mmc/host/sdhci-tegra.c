@@ -297,6 +297,7 @@ struct sdhci_tegra {
 	struct notifier_block notifier;
 	bool sd_exp_support;
 	bool is_probe_done;
+	bool defer_calib;
 };
 
 static void sdhci_tegra_debugfs_init(struct sdhci_host *host);
@@ -1044,7 +1045,7 @@ static void tegra_sdhci_pad_autocalib(struct sdhci_host *host)
 	int ret;
 	unsigned int timeout = 10;
 
-	if (tegra_platform_is_vsp())
+	if (tegra_platform_is_vsp() || tegra_host->defer_calib)
 		return;
 
 	switch (ios->timing) {
@@ -1220,8 +1221,9 @@ static void tegra_sdhci_request(struct mmc_host *mmc, struct mmc_request *mrq)
 	ktime_t since_calib = ktime_sub(ktime_get(), tegra_host->last_calib);
 
 	/* 100 ms calibration interval is specified in the TRM */
-	if ((soc_data->nvquirks & NVQUIRK_ENABLE_PERIODIC_CALIB) &&
-			(ktime_to_ms(since_calib) > 100)) {
+	if (tegra_host->defer_calib || ((soc_data->nvquirks & NVQUIRK_ENABLE_PERIODIC_CALIB) &&
+			(ktime_to_ms(since_calib) > 100))) {
+		tegra_host->defer_calib = false;
 		tegra_sdhci_pad_autocalib(host);
 		tegra_host->last_calib = ktime_get();
 	}
@@ -2759,8 +2761,10 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 	}
 
 	/* Hook to periodically rerun pad calibration */
-	if (soc_data->nvquirks & NVQUIRK_HAS_PADCALIB)
+	if (soc_data->nvquirks & NVQUIRK_HAS_PADCALIB) {
 		host->mmc_host_ops.request = tegra_sdhci_request;
+		tegra_host->defer_calib = false;
+	}
 
 	if (!host->ops->platform_execute_tuning)
 		host->mmc_host_ops.execute_tuning =
@@ -3074,6 +3078,11 @@ static int sdhci_tegra_runtime_resume(struct device *dev)
 	/* Enable SDMMC internal clocks */
 	sdhci_set_clock(host, clk);
 
+	/*
+	 * Defer auto-calibration in RTPM context so that it can be run
+	 * only once before the incoming request.
+	 */
+	tegra_host->defer_calib = true;
 	ret = sdhci_runtime_resume_host(host, true);
 	if (ret)
 		goto disable_car_clk;
