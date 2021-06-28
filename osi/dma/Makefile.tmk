@@ -36,6 +36,7 @@ NV_COMPONENT_SOURCES           := \
 	mgbe_dma.c \
 	eqos_desc.c \
 	mgbe_desc.c \
+	debug.c \
 	$(NV_SOURCE)/nvethernetrm/osi/common/osi_common.c \
 	$(NV_SOURCE)/nvethernetrm/osi/common/eqos_common.c \
 	$(NV_SOURCE)/nvethernetrm/osi/common/mgbe_common.c

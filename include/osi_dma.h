@@ -236,6 +236,21 @@
 /** @} */
 
 /**
+ * @addtogroup OSI_DMA-DEBUG helper macros
+ *
+ * @brief Helper macros for OSI dma debugging.
+ * @{
+ */
+#ifdef OSI_DMA_DEBUG
+#define OSI_DMA_IOCTL_CMD_REG_DUMP	1U
+#define OSI_DMA_IOCTL_CMD_STRUCTS_DUMP	2U
+#define OSI_DMA_DEBUG_DESC		1U
+#define OSI_DMA_DEBUG_REG		2U
+#define OSI_DMA_DEBUG_STRUCTS		3U
+#endif /* OSI_DMA_DEBUG */
+/** @} */
+
+/**
  * @brief OSI packet error stats
  */
 struct osi_pkt_err_stats {
@@ -491,6 +506,20 @@ struct osd_dma_ops {
 			nveul64_t loga);
 	/**.ops_log function callback */
 	void (*udelay)(nveu64_t usec);
+#ifdef OSI_DMA_DEBUG
+	/**.printf function callback */
+	void (*printf)(struct osi_dma_priv_data *osi_dma,
+		       nveu32_t type,
+		       const char *fmt, ...);
+#endif
+};
+
+/**
+ * @brief The OSI DMA IOCTL data structure.
+ */
+struct osi_dma_ioctl_data {
+	/** IOCTL command number */
+	nveu32_t cmd;
 };
 
 /**
@@ -556,8 +585,13 @@ struct osi_dma_priv_data {
 	 * bit 0 PTP mode master(1) slave(0)
 	 * bit 1 PTP sync method twostep(1) onestep(0) */
 	unsigned int ptp_flag;
+	/** OSI DMA IOCTL data */
+	struct osi_dma_ioctl_data ioctl_data;
+#ifdef OSI_DMA_DEBUG
+	/** Flag to enable/disable descriptor dump */
+	nveu32_t enable_desc_dump;
+#endif
 };
-
 
 /**
  * @brief osi_disable_chan_tx_intr - Disables DMA Tx channel interrupts.
@@ -1314,6 +1348,25 @@ nveu32_t osi_is_mac_enabled(struct osi_dma_priv_data *const osi_dma);
  */
 nve32_t osi_handle_dma_intr(struct osi_dma_priv_data *osi_dma,
 			    nveu32_t chan, nveu32_t tx_rx, nveu32_t en_dis);
+
+/**
+ * @brief osi_dma_ioctl - OSI DMA IOCTL
+ *
+ * @param[in] osi_dma: OSI DMA private data.
+ *
+ * @note
+ * Traceability Details: TBD
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+nve32_t osi_dma_ioctl(struct osi_dma_priv_data *osi_dma);
 #ifndef OSI_STRIPPED_LIB
 /**
  * @brief - Read-validate HW registers for func safety.
