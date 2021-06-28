@@ -576,11 +576,11 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
 			}
 		}
 
-		if ((osi_dma->mac != OSI_MAC_HW_MGBE) &&
-		    ((tx_desc->tdes3 & TDES3_LD) == TDES3_LD) &&
-		    ((tx_desc->tdes3 & TDES3_CTXT) != TDES3_CTXT)) {
+		if (osi_dma->mac != OSI_MAC_HW_MGBE) {
 			/* check tx tstamp status */
-			if ((tx_desc->tdes3 & TDES3_TTSS) == TDES3_TTSS) {
+			if (((tx_desc->tdes3 & TDES3_LD) == TDES3_LD) &&
+			    ((tx_desc->tdes3 & TDES3_CTXT) != TDES3_CTXT) &&
+			    ((tx_desc->tdes3 & TDES3_TTSS) == TDES3_TTSS)) {
 				/* tx timestamp captured for this packet */
 				ns = tx_desc->tdes0;
 				vartdes1 = tx_desc->tdes1;
