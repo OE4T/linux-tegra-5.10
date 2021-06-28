@@ -306,6 +306,7 @@ static unsigned int en_boot_part_access;
 
 static void tegra_sdhci_update_sdmmc_pinctrl_register(struct sdhci_host *sdhci,
                bool set);
+static bool tegra_sdhci_skip_retuning(struct sdhci_host *host);
 
 static u16 tegra_sdhci_readw(struct sdhci_host *host, int reg)
 {
@@ -1516,6 +1517,9 @@ static int tegra_sdhci_execute_hw_tuning(struct mmc_host *mmc, u32 opcode)
 	struct sdhci_host *host = mmc_priv(mmc);
 	int err;
 
+	if (tegra_sdhci_skip_retuning(host))
+		return 0;
+
 	err = sdhci_execute_tuning(mmc, opcode);
 	if (!err && !host->tuning_err)
 		tegra_sdhci_post_tuning(host);
@@ -2392,7 +2396,6 @@ static const struct sdhci_ops tegra_sdhci_ops = {
 	.get_max_clock = tegra_sdhci_get_max_clock,
 	.get_timeout_clock = tegra_sdhci_get_timeout_clock,
 	.get_max_tuning_loop_counter = tegra_sdhci_get_max_tuning_loop_counter,
-	.skip_retuning = tegra_sdhci_skip_retuning,
 	.hs400_enhanced_strobe = tegra_sdhci_hs400_enhanced_strobe,
 	.dump_vendor_regs = tegra_sdhci_dump_vendor_regs,
 	.irq = sdhci_tegra_cqhci_irq,

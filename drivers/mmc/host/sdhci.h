@@ -655,7 +655,6 @@ struct sdhci_ops {
 	void    (*card_event)(struct sdhci_host *host);
 	void	(*voltage_switch)(struct sdhci_host *host);
 	int	(*get_max_tuning_loop_counter)(struct sdhci_host *host);
-	bool	(*skip_retuning)(struct sdhci_host *host);
 	void	(*adma_write_desc)(struct sdhci_host *host, void **desc,
 				   dma_addr_t addr, int len, unsigned int cmd);
 	void	(*hs400_enhanced_strobe)(struct sdhci_host *host, bool enable);

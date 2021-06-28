@@ -2854,10 +2854,6 @@ int sdhci_execute_tuning(struct mmc_host *mmc, u32 opcode)
 	unsigned int tuning_count = 0;
 	bool hs400_tuning;
 
-	if (host->ops->skip_retuning)
-		if (host->ops->skip_retuning(host))
-			return 0;
-
 	hs400_tuning = host->flags & SDHCI_HS400_TUNING;
 
 	if (host->tuning_mode == SDHCI_TUNING_MODE_1)
