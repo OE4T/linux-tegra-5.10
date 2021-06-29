@@ -86,19 +86,19 @@ int nvgpu_get_timestamps_zipper(struct gk20a *g,
 	if (gk20a_busy(g) != 0) {
 		nvgpu_err(g, "GPU not powered on\n");
 		err = -EINVAL;
-		goto end;
+		return err;
 	}
 
 	for (i = 0; i < count; i++) {
 		err = g->ops.ptimer.read_ptimer(g, &samples[i].gpu_timestamp);
 		if (err != 0) {
-			return err;
+			goto idle;
 		}
 
 		samples[i].cpu_timestamp = nvgpu_hr_timestamp();
 	}
 
-end:
+idle:
 	gk20a_idle(g);
 	return err;
 }
