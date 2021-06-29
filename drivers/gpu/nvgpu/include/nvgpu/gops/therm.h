@@ -95,8 +95,11 @@ struct gops_therm {
 	 *
 	 * @param g [in]	The GPU driver struct.
 	 *
-	 * This HAL skips idle filter initialization for simulation
-	 * platform. Otherwise sets up idle filters with prod settings for:
+	 * Idle filter specifies the amount of time that the engine must be
+	 * idle before sending a turnoff request to host in preparation to
+	 * gate the engine. This HAL skips idle filter initialization for
+	 * simulation  platform. Otherwise sets up idle filters with prod
+	 * settings for:
 	 * - Active engines
 	 * - FECS
 	 * - HUBMMU
