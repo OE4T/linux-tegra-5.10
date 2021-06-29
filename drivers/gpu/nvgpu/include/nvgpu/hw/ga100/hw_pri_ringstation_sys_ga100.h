@@ -59,9 +59,6 @@
 #include <nvgpu/types.h>
 #include <nvgpu/static_analysis.h>
 
-#define pri_ringstation_sys_master_ring_start_results_r()          (0x00120050U)
-#define pri_ringstation_sys_master_ring_start_results_connectivity_pass_f()\
-				(0x1U)
 #define pri_ringstation_sys_bar0_to_pri_window_r()                 (0x00122144U)
 #define pri_ringstation_sys_bar0_to_pri_window_index_f(v)\
 				((U32(v) & 0x3fU) << 0U)
