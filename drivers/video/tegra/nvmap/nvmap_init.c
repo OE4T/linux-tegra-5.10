@@ -120,6 +120,7 @@ static struct nvmap_platform_carveout nvmap_carveouts[] = {
 		.usage_mask	= NVMAP_HEAP_CARVEOUT_FSI,
 		.base		= 0,
 		.size		= 0,
+		.no_cpu_access = true,
 	},
 	/* Need uninitialized entries for IVM carveouts */
 	[4] = {
