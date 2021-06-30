@@ -20,44 +20,16 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/cic.h>
+#include <nvgpu/cic_mon.h>
+#include <nvgpu/cic_rm.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/trace.h>
 
-int nvgpu_cic_wait_for_stall_interrupts(struct gk20a *g, u32 timeout)
-{
-	/* wait until all stalling irqs are handled */
-	return NVGPU_COND_WAIT(&g->mc.sw_irq_stall_last_handled_cond,
-			nvgpu_atomic_read(&g->mc.sw_irq_stall_pending) == 0,
-			timeout);
-}
+#include "cic_mon_priv.h"
 
-int nvgpu_cic_wait_for_nonstall_interrupts(struct gk20a *g, u32 timeout)
-{
-	/* wait until all non-stalling irqs are handled */
-	return NVGPU_COND_WAIT(&g->mc.sw_irq_nonstall_last_handled_cond,
-			nvgpu_atomic_read(&g->mc.sw_irq_nonstall_pending) == 0,
-			timeout);
-}
-
-void nvgpu_cic_wait_for_deferred_interrupts(struct gk20a *g)
-{
-	int ret;
-
-	ret = nvgpu_cic_wait_for_stall_interrupts(g, 0U);
-	if (ret != 0) {
-		nvgpu_err(g, "wait for stall interrupts failed %d", ret);
-	}
-
-	ret = nvgpu_cic_wait_for_nonstall_interrupts(g, 0U);
-	if (ret != 0) {
-		nvgpu_err(g, "wait for nonstall interrupts failed %d", ret);
-	}
-}
-
-void nvgpu_cic_intr_mask(struct gk20a *g)
+void nvgpu_cic_mon_intr_mask(struct gk20a *g)
 {
 	unsigned long flags = 0;
 
@@ -68,27 +40,7 @@ void nvgpu_cic_intr_mask(struct gk20a *g)
 	}
 }
 
-#ifdef CONFIG_NVGPU_NON_FUSA
-void nvgpu_cic_log_pending_intrs(struct gk20a *g)
-{
-	if (g->ops.mc.log_pending_intrs != NULL) {
-		g->ops.mc.log_pending_intrs(g);
-	}
-}
-
-void nvgpu_cic_intr_enable(struct gk20a *g)
-{
-	unsigned long flags = 0;
-
-	if (g->ops.mc.intr_enable != NULL) {
-		nvgpu_spinlock_irqsave(&g->mc.intr_lock, flags);
-		g->ops.mc.intr_enable(g);
-		nvgpu_spinunlock_irqrestore(&g->mc.intr_lock, flags);
-	}
-}
-#endif
-
-void nvgpu_cic_intr_stall_unit_config(struct gk20a *g, u32 unit, bool enable)
+void nvgpu_cic_mon_intr_stall_unit_config(struct gk20a *g, u32 unit, bool enable)
 {
 	unsigned long flags = 0;
 
@@ -97,7 +49,7 @@ void nvgpu_cic_intr_stall_unit_config(struct gk20a *g, u32 unit, bool enable)
 	nvgpu_spinunlock_irqrestore(&g->mc.intr_lock, flags);
 }
 
-void nvgpu_cic_intr_nonstall_unit_config(struct gk20a *g, u32 unit, bool enable)
+void nvgpu_cic_mon_intr_nonstall_unit_config(struct gk20a *g, u32 unit, bool enable)
 {
 	unsigned long flags = 0;
 
@@ -106,7 +58,7 @@ void nvgpu_cic_intr_nonstall_unit_config(struct gk20a *g, u32 unit, bool enable)
 	nvgpu_spinunlock_irqrestore(&g->mc.intr_lock, flags);
 }
 
-void nvgpu_cic_intr_stall_pause(struct gk20a *g)
+void nvgpu_cic_mon_intr_stall_pause(struct gk20a *g)
 {
 	unsigned long flags = 0;
 
@@ -115,7 +67,7 @@ void nvgpu_cic_intr_stall_pause(struct gk20a *g)
 	nvgpu_spinunlock_irqrestore(&g->mc.intr_lock, flags);
 }
 
-void nvgpu_cic_intr_stall_resume(struct gk20a *g)
+void nvgpu_cic_mon_intr_stall_resume(struct gk20a *g)
 {
 	unsigned long flags = 0;
 
@@ -124,7 +76,7 @@ void nvgpu_cic_intr_stall_resume(struct gk20a *g)
 	nvgpu_spinunlock_irqrestore(&g->mc.intr_lock, flags);
 }
 
-void nvgpu_cic_intr_nonstall_pause(struct gk20a *g)
+void nvgpu_cic_mon_intr_nonstall_pause(struct gk20a *g)
 {
 	unsigned long flags = 0;
 
@@ -133,7 +85,7 @@ void nvgpu_cic_intr_nonstall_pause(struct gk20a *g)
 	nvgpu_spinunlock_irqrestore(&g->mc.intr_lock, flags);
 }
 
-void nvgpu_cic_intr_nonstall_resume(struct gk20a *g)
+void nvgpu_cic_mon_intr_nonstall_resume(struct gk20a *g)
 {
 	unsigned long flags = 0;
 
@@ -142,7 +94,7 @@ void nvgpu_cic_intr_nonstall_resume(struct gk20a *g)
 	nvgpu_spinunlock_irqrestore(&g->mc.intr_lock, flags);
 }
 
-static void nvgpu_cic_intr_nonstall_work(struct gk20a *g, u32 work_ops)
+static void nvgpu_cic_mon_intr_nonstall_work(struct gk20a *g, u32 work_ops)
 {
 	bool semaphore_wakeup, post_events;
 
@@ -157,7 +109,7 @@ static void nvgpu_cic_intr_nonstall_work(struct gk20a *g, u32 work_ops)
 	}
 }
 
-u32 nvgpu_cic_intr_nonstall_isr(struct gk20a *g)
+u32 nvgpu_cic_mon_intr_nonstall_isr(struct gk20a *g)
 {
 	u32 non_stall_intr_val = 0U;
 
@@ -171,29 +123,30 @@ u32 nvgpu_cic_intr_nonstall_isr(struct gk20a *g)
 		return NVGPU_CIC_INTR_NONE;
 	}
 
-	nvgpu_cic_intr_nonstall_pause(g);
+	nvgpu_cic_mon_intr_nonstall_pause(g);
 	if (g->sw_quiesce_pending) {
 		return NVGPU_CIC_INTR_QUIESCE_PENDING;
 	}
 
 	nvgpu_atomic_set(&g->mc.sw_irq_nonstall_pending, 1);
+
 	return NVGPU_CIC_INTR_HANDLE;
 }
 
-void nvgpu_cic_intr_nonstall_handle(struct gk20a *g)
+void nvgpu_cic_mon_intr_nonstall_handle(struct gk20a *g)
 {
 	int err;
 	u32 nonstall_ops = 0;
 
 	nonstall_ops = g->ops.mc.isr_nonstall(g);
 	if (nonstall_ops != 0U) {
-		nvgpu_cic_intr_nonstall_work(g, nonstall_ops);
+		nvgpu_cic_mon_intr_nonstall_work(g, nonstall_ops);
 	}
 
 	/* sync handled irq counter before re-enabling interrupts */
 	nvgpu_atomic_set(&g->mc.sw_irq_nonstall_pending, 0);
 
-	nvgpu_cic_intr_nonstall_resume(g);
+	nvgpu_cic_mon_intr_nonstall_resume(g);
 
 	err = nvgpu_cond_broadcast(&g->mc.sw_irq_nonstall_last_handled_cond);
 	if (err != 0) {
@@ -201,7 +154,7 @@ void nvgpu_cic_intr_nonstall_handle(struct gk20a *g)
 	}
 }
 
-u32 nvgpu_cic_intr_stall_isr(struct gk20a *g)
+u32 nvgpu_cic_mon_intr_stall_isr(struct gk20a *g)
 {
 	u32 mc_intr_0 = 0U;
 
@@ -217,7 +170,7 @@ u32 nvgpu_cic_intr_stall_isr(struct gk20a *g)
 		return NVGPU_CIC_INTR_NONE;
 	}
 
-	nvgpu_cic_intr_stall_pause(g);
+	nvgpu_cic_mon_intr_stall_pause(g);
 
 	if (g->sw_quiesce_pending) {
 		return NVGPU_CIC_INTR_QUIESCE_PENDING;
@@ -230,7 +183,7 @@ u32 nvgpu_cic_intr_stall_isr(struct gk20a *g)
 	return NVGPU_CIC_INTR_HANDLE;
 }
 
-void nvgpu_cic_intr_stall_handle(struct gk20a *g)
+void nvgpu_cic_mon_intr_stall_handle(struct gk20a *g)
 {
 	int err;
 
@@ -242,10 +195,90 @@ void nvgpu_cic_intr_stall_handle(struct gk20a *g)
 
 	/* sync handled irq counter before re-enabling interrupts */
 	nvgpu_atomic_set(&g->mc.sw_irq_stall_pending, 0);
-	nvgpu_cic_intr_stall_resume(g);
+
+	nvgpu_cic_mon_intr_stall_resume(g);
 
 	err = nvgpu_cond_broadcast(&g->mc.sw_irq_stall_last_handled_cond);
 	if (err != 0) {
 		nvgpu_err(g, "nvgpu_cond_broadcast failed err=%d", err);
 	}
 }
+
+#ifdef CONFIG_NVGPU_NON_FUSA
+void nvgpu_cic_mon_intr_enable(struct gk20a *g)
+{
+	unsigned long flags = 0;
+
+	if (g->ops.mc.intr_enable != NULL) {
+		nvgpu_spinlock_irqsave(&g->mc.intr_lock, flags);
+		g->ops.mc.intr_enable(g);
+		nvgpu_spinunlock_irqrestore(&g->mc.intr_lock, flags);
+	}
+}
+
+void nvgpu_cic_mon_intr_unit_vectorid_init(struct gk20a *g, u32 unit, u32 *vectorid,
+		u32 num_entries)
+{
+	unsigned long flags = 0;
+	u32 i = 0U;
+	struct nvgpu_intr_unit_info *intr_unit_info;
+
+	nvgpu_assert(num_entries <= NVGPU_CIC_INTR_VECTORID_SIZE_MAX);
+
+	nvgpu_log(g, gpu_dbg_intr, "UNIT=%d, nvecs=%d", unit, num_entries);
+
+	intr_unit_info = g->mc.intr_unit_info;
+
+	nvgpu_spinlock_irqsave(&g->mc.intr_lock, flags);
+
+	if (intr_unit_info[unit].valid == false) {
+		for (i = 0U; i < num_entries; i++) {
+			nvgpu_log(g, gpu_dbg_intr, " vec[%d] = %d", i,
+					*(vectorid + i));
+			intr_unit_info[unit].vectorid[i] = *(vectorid + i);
+		}
+		intr_unit_info[unit].vectorid_size = num_entries;
+	}
+	nvgpu_spinunlock_irqrestore(&g->mc.intr_lock, flags);
+}
+
+bool nvgpu_cic_mon_intr_is_unit_info_valid(struct gk20a *g, u32 unit)
+{
+	struct nvgpu_intr_unit_info *intr_unit_info;
+	bool info_valid = false;
+
+	if (unit >= NVGPU_CIC_INTR_UNIT_MAX) {
+		nvgpu_err(g, "invalid unit(%d)", unit);
+		return false;
+	}
+
+	intr_unit_info = g->mc.intr_unit_info;
+
+	if (intr_unit_info[unit].valid == true) {
+		info_valid = true;
+	}
+
+	return info_valid;
+}
+
+bool nvgpu_cic_mon_intr_get_unit_info(struct gk20a *g, u32 unit, u32 *subtree,
+		u64 *subtree_mask)
+{
+	if (unit >= NVGPU_CIC_INTR_UNIT_MAX) {
+		nvgpu_err(g, "invalid unit(%d)", unit);
+		return false;
+	}
+	if (nvgpu_cic_mon_intr_is_unit_info_valid(g, unit) != true) {
+		if (g->ops.mc.intr_get_unit_info(g, unit) != true) {
+			nvgpu_err(g, "failed to fetch info for unit(%d)", unit);
+			return false;
+		}
+	}
+	*subtree = g->mc.intr_unit_info[unit].subtree;
+	*subtree_mask = g->mc.intr_unit_info[unit].subtree_mask;
+	nvgpu_log(g, gpu_dbg_intr, "subtree(%d) subtree_mask(%llx)",
+			*subtree, *subtree_mask);
+
+	return true;
+}
+#endif

@@ -308,17 +308,19 @@ nvgpu-y += \
 	common/clk_arb/clk_arb_gp10b.o \
 	common/rc/rc.o \
 	common/grmgr/grmgr.o \
-	common/cic/cic.o \
-	common/cic/cic_intr.o \
-	common/cic/ce_cic.o \
-	common/cic/ctxsw_cic.o \
-	common/cic/ecc_cic.o \
-	common/cic/host_cic.o \
-	common/cic/gr_cic.o \
-	common/cic/pri_cic.o \
-	common/cic/pmu_cic.o \
-	common/cic/mmu_cic.o \
-	common/cic/msg_cic.o \
+	common/cic/mon/mon_init.o \
+	common/cic/mon/mon_lut.o \
+	common/cic/mon/mon_intr.o \
+	common/cic/mon/mon_ce.o \
+	common/cic/mon/mon_ctxsw.o \
+	common/cic/mon/mon_msg.o \
+	common/cic/mon/mon_ecc.o \
+	common/cic/mon/mon_host.o \
+	common/cic/mon/mon_gr.o \
+	common/cic/mon/mon_pri.o \
+	common/cic/mon/mon_pmu.o \
+	common/cic/mon/mon_mmu.o \
+	common/cic/rm/rm_intr.o \
 	hal/bus/bus_gk20a.o \
 	hal/class/class_gm20b.o \
 	hal/class/class_gp10b.o \
@@ -392,8 +394,8 @@ nvgpu-y += \
 	hal/top/top_gp10b.o \
 	hal/tpc/tpc_gv11b.o \
 	hal/priv_ring/priv_ring_gv11b.o \
-	hal/cic/cic_gv11b_fusa.o \
-	hal/cic/cic_lut_gv11b_fusa.o
+	hal/cic/mon/init_gv11b_fusa.o \
+	hal/cic/mon/lut_gv11b_fusa.o
 
 # Linux specific parts of nvgpu.
 nvgpu-y += \

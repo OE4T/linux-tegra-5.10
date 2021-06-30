@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@
 #include <nvgpu/soc.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/cic_mon.h>
 #include <nvgpu/nvgpu_err.h>
 
 #include "bus_ga10b.h"
@@ -76,7 +77,7 @@ int ga10b_bus_init_hw(struct gk20a *g)
 	nvgpu_log_info(g, "bus fb_timeout=0x%x",
 		bus_fb_timeout_period_v(nvgpu_readl(g,  bus_fb_timeout_r())));
 
-	nvgpu_cic_intr_stall_unit_config(g, NVGPU_CIC_INTR_UNIT_BUS, NVGPU_CIC_INTR_ENABLE);
+	nvgpu_cic_mon_intr_stall_unit_config(g, NVGPU_CIC_INTR_UNIT_BUS, NVGPU_CIC_INTR_ENABLE);
 
 	nvgpu_writel(g, bus_intr_en_0_r(), intr_en_mask);
 	return 0;

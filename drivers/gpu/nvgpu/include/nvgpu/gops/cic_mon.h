@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_GOPS_CIC_H
-#define NVGPU_GOPS_CIC_H
+#ifndef NVGPU_GOPS_CIC_MON_H
+#define NVGPU_GOPS_CIC_MON_H
 
 #include <nvgpu/types.h>
 
@@ -31,14 +31,14 @@
  *
  */
 struct gk20a;
-struct nvgpu_cic;
+struct nvgpu_cic_mon;
 
 /**
- * CIC unit HAL operations
+ * CIC-MON unit HAL operations
  *
  * @see gpu_ops
  */
-struct gops_cic {
+struct gops_cic_mon {
 	/**
 	 * @brief Chip specific CIC unit initialization.
 	 *
@@ -47,7 +47,7 @@ struct gops_cic {
 	 *
 	 * @return 0 in case of success, < 0 in case of failure.
 	 */
-	int (*init)(struct gk20a *g, struct nvgpu_cic *cic);
+	int (*init)(struct gk20a *g, struct nvgpu_cic_mon *cic_mon);
 
 	/**
 	 * @brief Report error to safety services.
@@ -64,4 +64,4 @@ struct gops_cic {
 			bool is_critical);
 };
 
-#endif/*NVGPU_GOPS_CIC_H*/
+#endif/*NVGPU_GOPS_CIC_MON_H*/

@@ -26,11 +26,11 @@
 #include <nvgpu/nvgpu_err_info.h>
 
 struct gk20a;
-struct nvgpu_cic;
+struct nvgpu_cic_mon;
 
 extern struct nvgpu_err_hw_module gv11b_err_lut[];
 extern u32 size_of_gv11b_lut;
 
-int gv11b_cic_init(struct gk20a *g, struct nvgpu_cic *cic);
+int gv11b_cic_mon_init(struct gk20a *g, struct nvgpu_cic_mon *cic_mon);
 
 #endif /* CIC_GV11B_H */

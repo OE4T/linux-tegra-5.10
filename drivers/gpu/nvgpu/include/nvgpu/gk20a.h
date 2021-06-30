@@ -107,7 +107,7 @@ struct nvgpu_gpfifo_entry;
 struct vm_gk20a_mapping_batch;
 struct pmu_pg_stats_data;
 struct clk_domains_mon_status_params;
-struct nvgpu_cic;
+struct nvgpu_cic_mon;
 
 enum nvgpu_flush_op;
 enum gk20a_mem_rw_flag;
@@ -796,8 +796,8 @@ struct gk20a {
 	/**  Multi Instance GPU information. */
 	struct nvgpu_mig mig;
 
-	/** Pointer to struct storing CIC unit's data */
-	struct nvgpu_cic *cic;
+	/** Pointer to struct storing CIC-MON's data */
+	struct nvgpu_cic_mon *cic_mon;
 };
 
 /**

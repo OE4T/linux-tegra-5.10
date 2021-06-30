@@ -29,7 +29,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/cic.h>
+#include <nvgpu/cic_mon.h>
 #include <nvgpu/mc.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/engines.h>

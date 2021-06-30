@@ -30,7 +30,7 @@
 #include <nvgpu/tsg.h>
 #include <nvgpu/rc.h>
 #include <nvgpu/nvgpu_err.h>
-#include <nvgpu/cic.h>
+#include <nvgpu/cic_mon.h>
 #include <nvgpu/engines.h>
 
 #include <hal/fifo/fifo_intr_gk20a.h>

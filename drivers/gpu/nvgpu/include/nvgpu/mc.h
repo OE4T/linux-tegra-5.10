@@ -108,7 +108,7 @@
  *   + include/nvgpu/gops/mc.h
  *
  * Following interface is common function.
- *   + nvgpu_cic_wait_for_deferred_interrupts()
+ *   + nvgpu_cic_rm_wait_for_deferred_interrupts()
  */
 
 
@@ -117,7 +117,7 @@
 #include <nvgpu/atomic.h>
 #include <nvgpu/lock.h>
 #include <nvgpu/bitops.h>
-#include <nvgpu/cic.h>
+#include <nvgpu/cic_mon.h>
 
 struct gk20a;
 struct nvgpu_device;

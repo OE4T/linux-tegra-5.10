@@ -23,7 +23,7 @@
 #include <nvgpu/nvgpu_err_info.h>
 #include <nvgpu/string.h>
 
-#include "cic_priv.h"
+#include "cic_mon_priv.h"
 
 void nvgpu_init_err_msg_header(struct gpu_err_header *header)
 {

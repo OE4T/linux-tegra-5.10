@@ -25,7 +25,7 @@
 #include <nvgpu/posix/io.h>
 #include <unit/core.h>
 #include <nvgpu/io.h>
-#include <nvgpu/cic.h>
+#include <nvgpu/cic_mon.h>
 #include <os/posix/os_posix.h>
 #include <nvgpu/posix/posix-fault-injection.h>
 
@@ -36,7 +36,7 @@
 #include <hal/bus/bus_gm20b.h>
 #include <hal/bus/bus_gp10b.h>
 #include <hal/bus/bus_gv11b.h>
-#include <hal/cic/cic_gv11b.h>
+#include <hal/cic/mon/cic_gv11b.h>
 
 #include <nvgpu/hw/gv11b/hw_mc_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_bus_gv11b.h>
@@ -130,8 +130,8 @@ int test_bus_setup(struct unit_module *m, struct gk20a *g, void *args)
 	g->ops.mc.intr_nonstall_unit_config =
 					mc_gp10b_intr_nonstall_unit_config;
 	g->ops.ptimer.isr = gk20a_ptimer_isr;
-	g->ops.cic.init = gv11b_cic_init;
-	g->ops.cic.report_err = nvgpu_cic_report_err_safety_services;
+	g->ops.cic_mon.init = gv11b_cic_mon_init;
+	g->ops.cic_mon.report_err = nvgpu_cic_mon_report_err_safety_services;
 
 	/* Map register space NV_PRIV_MASTER */
 	if (nvgpu_posix_io_add_reg_space(g, NV_PBUS_START, NV_PBUS_SIZE) != 0) {
@@ -158,8 +158,14 @@ int test_bus_setup(struct unit_module *m, struct gk20a *g, void *args)
 
 	(void)nvgpu_posix_register_io(g, &test_reg_callbacks);
 
-	if (nvgpu_cic_init_common(g) != 0) {
+	if (nvgpu_cic_mon_setup(g) != 0) {
 		unit_err(m, "%s: Failed to initialize CIC\n",
+							__func__);
+		return UNIT_FAIL;
+	}
+
+	if (nvgpu_cic_mon_init_lut(g) != 0) {
+		unit_err(m, "%s: Failed to initialize CIC LUT\n",
 							__func__);
 		return UNIT_FAIL;
 	}

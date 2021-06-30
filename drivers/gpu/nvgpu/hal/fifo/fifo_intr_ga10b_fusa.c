@@ -26,7 +26,7 @@
 #include <nvgpu/runlist.h>
 #include <nvgpu/mc.h>
 #include <nvgpu/nvgpu_err.h>
-#include <nvgpu/cic.h>
+#include <nvgpu/cic_mon.h>
 #include <nvgpu/rc.h>
 
 #include "fifo_utils_ga10b.h"
@@ -116,7 +116,7 @@ void ga10b_fifo_runlist_intr_vectorid_init(struct gk20a *g)
 
 		intr_unit = NVGPU_CIC_INTR_UNIT_RUNLIST_TREE_0 + intr_tree;
 
-		if (nvgpu_cic_intr_is_unit_info_valid(g, intr_unit) == true) {
+		if (nvgpu_cic_mon_intr_is_unit_info_valid(g, intr_unit) == true) {
 			/* intr_unit_info is already set by s/w */
 			continue;
 		}
@@ -136,7 +136,7 @@ void ga10b_fifo_runlist_intr_vectorid_init(struct gk20a *g)
 				"init runlist: %u intr_tree_%d vectorid",
 				i, intr_tree);
 		}
-		nvgpu_cic_intr_unit_vectorid_init(g, intr_unit,
+		nvgpu_cic_mon_intr_unit_vectorid_init(g, intr_unit,
 			vectorid_tree, num_vectorid);
 	}
 
@@ -145,17 +145,17 @@ void ga10b_fifo_runlist_intr_vectorid_init(struct gk20a *g)
 void ga10b_fifo_intr_top_enable(struct gk20a *g, bool enable)
 {
 	if (enable) {
-		nvgpu_cic_intr_stall_unit_config(g,
+		nvgpu_cic_mon_intr_stall_unit_config(g,
 			NVGPU_CIC_INTR_UNIT_RUNLIST_TREE_0, NVGPU_CIC_INTR_ENABLE);
 
 		/**
 		 * RUNLIST_TREE_1 interrupts are not enabled as all runlist
 		 * interrupts are routed to runlist_tree_0
 		 */
-		nvgpu_cic_intr_stall_unit_config(g,
+		nvgpu_cic_mon_intr_stall_unit_config(g,
 			NVGPU_CIC_INTR_UNIT_RUNLIST_TREE_1, NVGPU_CIC_INTR_DISABLE);
 	} else {
-		nvgpu_cic_intr_stall_unit_config(g,
+		nvgpu_cic_mon_intr_stall_unit_config(g,
 				NVGPU_CIC_INTR_UNIT_RUNLIST_TREE_0, NVGPU_CIC_INTR_DISABLE);
 	}
 }

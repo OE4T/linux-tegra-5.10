@@ -23,7 +23,7 @@
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/nvgpu_err_info.h>
 #include <nvgpu/static_analysis.h>
-#include "common/cic/cic_priv.h"
+#include "common/cic/mon/cic_mon_priv.h"
 #include "cic_gv11b.h"
 
 /*

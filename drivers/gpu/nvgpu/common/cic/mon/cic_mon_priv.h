@@ -20,22 +20,16 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef CIC_PRIV_H
-#define CIC_PRIV_H
+#ifndef CIC_MON_PRIV_H
+#define CIC_MON_PRIV_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/lock.h>
 
 struct gk20a;
 struct nvgpu_err_hw_module;
 struct nvgpu_err_msg;
 struct gpu_err_header;
-
-/*
- * @file
- *
- * Declare CIC's private structure to store error-policy LUT and
- * other data and ops needed during error reporting.
- */
 
 #define ERR_INJECT_TEST_PATTERN 0xA5
 
@@ -43,13 +37,12 @@ struct gpu_err_header;
  * This struct contains members related to error-policy look-up table,
  * number of units reporting errors.
  */
-struct nvgpu_cic {
+struct nvgpu_cic_mon {
 	/** Pointer for error look-up table. */
 	struct nvgpu_err_hw_module *err_lut;
 
 	/** Total number of GPU HW modules considered in CIC. */
 	u32 num_hw_modules;
-
 };
 
 /**
@@ -288,4 +281,4 @@ void nvgpu_init_ctxsw_err_msg(struct nvgpu_err_msg *msg);
  */
 void nvgpu_init_mmu_err_msg(struct nvgpu_err_msg *msg);
 
-#endif /* CIC_PRIV_H */
+#endif /* CIC_MON_PRIV_H */

@@ -1,7 +1,7 @@
 /*
  * Ampere GPU series Copy Engine.
  *
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,7 @@
 #include <nvgpu/device.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/fifo.h>
+#include <nvgpu/cic_mon.h>
 #include <nvgpu/mc.h>
 
 #include "hal/ce/ce_gv11b.h"
@@ -159,7 +160,7 @@ void ga10b_ce_init_hw(struct gk20a *g)
 	/*
 	 * Initalize struct nvgpu_mc with POR values of non-stall vectors ids.
 	 */
-	nvgpu_cic_intr_unit_vectorid_init(g, NVGPU_CIC_INTR_UNIT_CE,
+	nvgpu_cic_mon_intr_unit_vectorid_init(g, NVGPU_CIC_INTR_UNIT_CE,
 			nonstall_vectorid_tree, num_nonstall_vectors);
 }
 

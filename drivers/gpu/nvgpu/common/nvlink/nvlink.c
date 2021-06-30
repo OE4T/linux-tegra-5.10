@@ -27,7 +27,7 @@
 #include <nvgpu/device.h>
 #include <nvgpu/nvlink_bios.h>
 #include <nvgpu/device.h>
-#include <nvgpu/cic.h>
+#include <nvgpu/cic_mon.h>
 #include <nvgpu/errata.h>
 
 #ifdef CONFIG_NVGPU_NVLINK
@@ -236,7 +236,7 @@ int nvgpu_nvlink_early_init(struct gk20a *g)
 		nvgpu_err(g, "Failed to reset NVLINK unit");
 	}
 
-	nvgpu_cic_intr_stall_unit_config(g, NVGPU_CIC_INTR_UNIT_NVLINK,
+	nvgpu_cic_mon_intr_stall_unit_config(g, NVGPU_CIC_INTR_UNIT_NVLINK,
 					NVGPU_CIC_INTR_ENABLE);
 
 	err = g->ops.nvlink.discover_link(g);

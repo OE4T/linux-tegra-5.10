@@ -29,7 +29,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/static_analysis.h>
-#include <nvgpu/cic.h>
+#include <nvgpu/cic_mon.h>
 #include <nvgpu/mc.h>
 
 #include <nvgpu/hw/gv11b/hw_fifo_gv11b.h>
@@ -38,9 +38,9 @@
 
 static void enable_fifo_interrupts(struct gk20a *g)
 {
-	nvgpu_cic_intr_stall_unit_config(g, NVGPU_CIC_INTR_UNIT_FIFO,
+	nvgpu_cic_mon_intr_stall_unit_config(g, NVGPU_CIC_INTR_UNIT_FIFO,
 					NVGPU_CIC_INTR_ENABLE);
-	nvgpu_cic_intr_nonstall_unit_config(g, NVGPU_CIC_INTR_UNIT_FIFO,
+	nvgpu_cic_mon_intr_nonstall_unit_config(g, NVGPU_CIC_INTR_UNIT_FIFO,
 					   NVGPU_CIC_INTR_ENABLE);
 
 	g->ops.fifo.intr_0_enable(g, true);

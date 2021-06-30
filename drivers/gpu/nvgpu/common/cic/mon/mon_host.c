@@ -24,30 +24,30 @@
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/nvgpu_err_info.h>
-#include <nvgpu/cic.h>
+#include <nvgpu/cic_mon.h>
 
-#include "cic_priv.h"
+#include "cic_mon_priv.h"
 
-void nvgpu_report_pmu_err(struct gk20a *g, u32 hw_unit, u32 err_id,
-		u32 sub_err_type, u32 status)
+void nvgpu_report_host_err(struct gk20a *g, u32 hw_unit,
+		u32 inst, u32 err_id, u32 intr_info)
 {
 	int err = 0;
 	struct nvgpu_err_desc *err_desc = NULL;
 	struct nvgpu_err_msg err_pkt;
 
-	if (g->ops.cic.report_err == NULL) {
+	if (g->ops.cic_mon.report_err == NULL) {
 		cic_dbg(g, "CIC does not support reporting error "
 			       "to safety services");
 		return;
 	}
 
-	if (hw_unit != NVGPU_ERR_MODULE_PMU) {
+	if (hw_unit != NVGPU_ERR_MODULE_HOST) {
 		nvgpu_err(g, "invalid hw module (%u)", hw_unit);
 		err = -EINVAL;
 		goto handle_report_failure;
 	}
 
-	err = nvgpu_cic_get_err_desc(g, hw_unit, err_id, &err_desc);
+	err = nvgpu_cic_mon_get_err_desc(g, hw_unit, err_id, &err_desc);
 	if (err != 0) {
 		nvgpu_err(g, "Failed to get err_desc for "
 				"err_id (%u) for hw module (%u)",
@@ -55,23 +55,27 @@ void nvgpu_report_pmu_err(struct gk20a *g, u32 hw_unit, u32 err_id,
 		goto handle_report_failure;
 	}
 
-	nvgpu_init_pmu_err_msg(&err_pkt);
+	nvgpu_init_host_err_msg(&err_pkt);
 	err_pkt.hw_unit_id = hw_unit;
 	err_pkt.err_id = err_desc->error_id;
 	err_pkt.is_critical = err_desc->is_critical;
-	err_pkt.err_info.pmu_err_info.status = status;
-	err_pkt.err_info.pmu_err_info.header.sub_err_type = sub_err_type;
+	err_pkt.err_info.host_info.header.sub_unit_id = inst;
 	err_pkt.err_desc = err_desc;
+	/* sub_err_type can be decoded using intr_info by referring
+	 * to the interrupt status register definition corresponding
+	 * to the error that is being reported.
+	 */
+	err_pkt.err_info.host_info.header.sub_err_type = intr_info;
 	err_pkt.err_size = nvgpu_safe_cast_u64_to_u8(
-			sizeof(err_pkt.err_info.pmu_err_info));
+			sizeof(err_pkt.err_info.host_info));
 
-	if (g->ops.cic.report_err != NULL) {
-		err = g->ops.cic.report_err(g, (void *)&err_pkt,
+	if (g->ops.cic_mon.report_err != NULL) {
+		err = g->ops.cic_mon.report_err(g, (void *)&err_pkt,
 			sizeof(err_pkt), err_desc->is_critical);
 		if (err != 0) {
-			nvgpu_err(g, "Failed to report PMU error: "
-				"err_id=%u, sub_err_type=%u, status=%u",
-				err_id, sub_err_type, status);
+			nvgpu_err(g, "Failed to report HOST error: "
+					"inst=%u, err_id=%u, intr_info=%u",
+					inst, err_id, intr_info);
 		}
 	}
 handle_report_failure:
@@ -80,12 +84,8 @@ handle_report_failure:
 	}
 }
 
-void nvgpu_inject_pmu_swerror(struct gk20a *g, u32 hw_unit,
+void nvgpu_inject_host_swerror(struct gk20a *g, u32 hw_unit,
 		u32 err_index, u32 sub_err_type)
 {
-	u32 err_info;
-
-	err_info = (u32)ERR_INJECT_TEST_PATTERN;
-
-	nvgpu_report_pmu_err(g, hw_unit, err_index, sub_err_type, err_info);
+	nvgpu_report_host_err(g, hw_unit, 0U, err_index, sub_err_type);
 }

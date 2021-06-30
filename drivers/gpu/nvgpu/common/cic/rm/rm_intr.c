@@ -20,19 +20,46 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/log.h>
+#include <nvgpu/cic_rm.h>
+#include <nvgpu/gk20a.h>
+#include <nvgpu/mc.h>
 
-#include "common/cic/cic_priv.h"
-#include "cic_gv11b.h"
-
-int gv11b_cic_init(struct gk20a *g, struct nvgpu_cic *cic)
+int nvgpu_cic_rm_wait_for_stall_interrupts(struct gk20a *g, u32 timeout)
 {
-	if (cic == NULL) {
-		nvgpu_err(g, "Invalid CIC reference pointer.");
-		return -EINVAL;
+	/* wait until all stalling irqs are handled */
+	return NVGPU_COND_WAIT(&g->mc.sw_irq_stall_last_handled_cond,
+			nvgpu_atomic_read(&g->mc.sw_irq_stall_pending) == 0,
+			timeout);
+}
+
+int nvgpu_cic_rm_wait_for_nonstall_interrupts(struct gk20a *g, u32 timeout)
+{
+	/* wait until all non-stalling irqs are handled */
+	return NVGPU_COND_WAIT(&g->mc.sw_irq_nonstall_last_handled_cond,
+			nvgpu_atomic_read(&g->mc.sw_irq_nonstall_pending) == 0,
+			timeout);
+}
+
+void nvgpu_cic_rm_wait_for_deferred_interrupts(struct gk20a *g)
+{
+	int ret;
+
+	ret = nvgpu_cic_rm_wait_for_stall_interrupts(g, 0U);
+	if (ret != 0) {
+		nvgpu_err(g, "wait for stall interrupts failed %d", ret);
 	}
 
-	cic->err_lut = gv11b_err_lut;
-	cic->num_hw_modules = size_of_gv11b_lut;
-	return 0;
+	ret = nvgpu_cic_rm_wait_for_nonstall_interrupts(g, 0U);
+	if (ret != 0) {
+		nvgpu_err(g, "wait for nonstall interrupts failed %d", ret);
+	}
 }
+
+#ifdef CONFIG_NVGPU_NON_FUSA
+void nvgpu_cic_rm_log_pending_intrs(struct gk20a *g)
+{
+	if (g->ops.mc.log_pending_intrs != NULL) {
+		g->ops.mc.log_pending_intrs(g);
+	}
+}
+#endif

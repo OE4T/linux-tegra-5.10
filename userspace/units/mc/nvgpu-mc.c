@@ -26,7 +26,8 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/mc.h>
-#include <nvgpu/cic.h>
+#include <nvgpu/cic_mon.h>
+#include <nvgpu/cic_rm.h>
 #include <nvgpu/hal_init.h>
 #include <nvgpu/device.h>
 #include <nvgpu/engines.h>
@@ -284,7 +285,7 @@ int test_unit_config(struct unit_module *m, struct gk20a *g, void *args)
 		unit = mc_units[i].num;
 
 		/* enable stall intr */
-		nvgpu_cic_intr_stall_unit_config(g, unit, true);
+		nvgpu_cic_mon_intr_stall_unit_config(g, unit, true);
 		val = nvgpu_posix_io_readl_reg_space(g, STALL_EN_REG);
 		if (val != mc_units[i].bit) {
 			unit_return_fail(m, "failed to enable stall intr for unit %u val=0x%08x\n",
@@ -292,7 +293,7 @@ int test_unit_config(struct unit_module *m, struct gk20a *g, void *args)
 		}
 
 		/* disable stall intr */
-		nvgpu_cic_intr_stall_unit_config(g, unit, false);
+		nvgpu_cic_mon_intr_stall_unit_config(g, unit, false);
 		val = nvgpu_posix_io_readl_reg_space(g, STALL_DIS_REG);
 		if (val != mc_units[i].bit) {
 			unit_return_fail(m, "failed to disable stall intr for unit %u val=0x%08x\n",
@@ -300,7 +301,7 @@ int test_unit_config(struct unit_module *m, struct gk20a *g, void *args)
 		}
 
 		/* enable nonstall intr */
-		nvgpu_cic_intr_nonstall_unit_config(g, unit, true);
+		nvgpu_cic_mon_intr_nonstall_unit_config(g, unit, true);
 		val = nvgpu_posix_io_readl_reg_space(g, NONSTALL_EN_REG);
 		if (val != mc_units[i].bit) {
 			unit_return_fail(m, "failed to enable nonstall intr for unit %u val=0x%08x\n",
@@ -308,7 +309,7 @@ int test_unit_config(struct unit_module *m, struct gk20a *g, void *args)
 		}
 
 		/* disable stall intr */
-		nvgpu_cic_intr_nonstall_unit_config(g, unit, false);
+		nvgpu_cic_mon_intr_nonstall_unit_config(g, unit, false);
 		val = nvgpu_posix_io_readl_reg_space(g, NONSTALL_DIS_REG);
 		if (val != mc_units[i].bit) {
 			unit_return_fail(m, "failed to disable nonstall intr for unit %u val=0x%08x\n",
@@ -318,7 +319,7 @@ int test_unit_config(struct unit_module *m, struct gk20a *g, void *args)
 
 	/* negative testing - invalid unit - stall */
 	nvgpu_posix_io_writel_reg_space(g, STALL_EN_REG, 0x0); /* clear reg */
-	nvgpu_cic_intr_stall_unit_config(g, U32_MAX, true);
+	nvgpu_cic_mon_intr_stall_unit_config(g, U32_MAX, true);
 	val = nvgpu_posix_io_readl_reg_space(g, STALL_EN_REG);
 	if (val != 0U) {
 		unit_return_fail(m, "Incorrectly enabled interrupt for invalid unit, val=0x%08x\n",
@@ -327,7 +328,7 @@ int test_unit_config(struct unit_module *m, struct gk20a *g, void *args)
 
 	/* negative testing - invalid unit - nonstall */
 	nvgpu_posix_io_writel_reg_space(g, NONSTALL_EN_REG, 0x0); /* clear reg */
-	nvgpu_cic_intr_nonstall_unit_config(g, U32_MAX, true);
+	nvgpu_cic_mon_intr_nonstall_unit_config(g, U32_MAX, true);
 	val = nvgpu_posix_io_readl_reg_space(g, NONSTALL_EN_REG);
 	if (val != 0U) {
 		unit_return_fail(m, "Incorrectly enabled interrupt for invalid unit, val=0x%08x\n",
@@ -355,18 +356,18 @@ int test_pause_resume_mask(struct unit_module *m, struct gk20a *g, void *args)
 	g->mc.intr_mask_restore[1] = 0U;
 
 	/* enable something to pause and resume */
-	nvgpu_cic_intr_stall_unit_config(g, NVGPU_CIC_INTR_UNIT_PRIV_RING, true);
-	nvgpu_cic_intr_nonstall_unit_config(g, NVGPU_CIC_INTR_UNIT_BUS, true);
+	nvgpu_cic_mon_intr_stall_unit_config(g, NVGPU_CIC_INTR_UNIT_PRIV_RING, true);
+	nvgpu_cic_mon_intr_nonstall_unit_config(g, NVGPU_CIC_INTR_UNIT_BUS, true);
 
 	/* pause stall */
-	nvgpu_cic_intr_stall_pause(g);
+	nvgpu_cic_mon_intr_stall_pause(g);
 	val = nvgpu_posix_io_readl_reg_space(g, STALL_DIS_REG);
 	if (val != U32_MAX) {
 		unit_return_fail(m, "failed to pause stall intr\n");
 	}
 
 	/* pause nonstall */
-	nvgpu_cic_intr_nonstall_pause(g);
+	nvgpu_cic_mon_intr_nonstall_pause(g);
 	val = nvgpu_posix_io_readl_reg_space(g, NONSTALL_DIS_REG);
 	if (val != U32_MAX) {
 		unit_return_fail(m, "failed to pause nonstall intr\n");
@@ -374,7 +375,7 @@ int test_pause_resume_mask(struct unit_module *m, struct gk20a *g, void *args)
 
 	/* resume stall */
 	nvgpu_posix_io_writel_reg_space(g, STALL_EN_REG, 0x0);
-	nvgpu_cic_intr_stall_resume(g);
+	nvgpu_cic_mon_intr_stall_resume(g);
 	val = nvgpu_posix_io_readl_reg_space(g, STALL_EN_REG);
 	if (val != expected_stall_val) {
 		unit_return_fail(m, "failed to resume stall intr\n");
@@ -382,7 +383,7 @@ int test_pause_resume_mask(struct unit_module *m, struct gk20a *g, void *args)
 
 	/* resume nonstall */
 	nvgpu_posix_io_writel_reg_space(g, NONSTALL_EN_REG, 0x0);
-	nvgpu_cic_intr_nonstall_resume(g);
+	nvgpu_cic_mon_intr_nonstall_resume(g);
 	val = nvgpu_posix_io_readl_reg_space(g, NONSTALL_EN_REG);
 	if (val != expected_nonstall_val) {
 		unit_return_fail(m, "failed to resume nonstall intr\n");
@@ -393,7 +394,7 @@ int test_pause_resume_mask(struct unit_module *m, struct gk20a *g, void *args)
 	nvgpu_posix_io_writel_reg_space(g, NONSTALL_DIS_REG, 0x0);
 
 	/* mask all */
-	nvgpu_cic_intr_mask(g);
+	nvgpu_cic_mon_intr_mask(g);
 	val = nvgpu_posix_io_readl_reg_space(g, STALL_DIS_REG);
 	if (val != U32_MAX) {
 		unit_return_fail(m, "failed to mask stall intr\n");
@@ -406,7 +407,7 @@ int test_pause_resume_mask(struct unit_module *m, struct gk20a *g, void *args)
 	/* make this HAL NULL for branch coverage */
 	save_func = g->ops.mc.intr_mask;
 	g->ops.mc.intr_mask = NULL;
-	nvgpu_cic_intr_mask(g);
+	nvgpu_cic_mon_intr_mask(g);
 	g->ops.mc.intr_mask = save_func;
 
 	return UNIT_SUCCESS;
@@ -664,18 +665,18 @@ int test_wait_for_deferred_interrupts(struct unit_module *m, struct gk20a *g,
 	/* immediate completion */
 	nvgpu_atomic_set(&g->mc.sw_irq_stall_pending, 0);
 	nvgpu_atomic_set(&g->mc.sw_irq_nonstall_pending, 0);
-	nvgpu_cic_wait_for_deferred_interrupts(g);
+	nvgpu_cic_rm_wait_for_deferred_interrupts(g);
 
 	/* cause timeout */
 	nvgpu_posix_enable_fault_injection(cond_fi, true, 0);
 
 	/* wait on stall until timeout for branch coverage */
 	nvgpu_atomic_set(&g->mc.sw_irq_stall_pending, 1);
-	nvgpu_cic_wait_for_deferred_interrupts(g);
+	nvgpu_cic_rm_wait_for_deferred_interrupts(g);
 
 	/* wait on nonstall until timeout for branch coverage */
 	nvgpu_atomic_set(&g->mc.sw_irq_nonstall_pending, 1);
-	nvgpu_cic_wait_for_deferred_interrupts(g);
+	nvgpu_cic_rm_wait_for_deferred_interrupts(g);
 
 	/* disable the fault injection */
 	nvgpu_posix_enable_fault_injection(cond_fi, false, 0);

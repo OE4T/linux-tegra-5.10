@@ -35,7 +35,7 @@
 #include <nvgpu/firmware.h>
 #include <nvgpu/netlist.h>
 #include <nvgpu/fuse.h>
-#include <nvgpu/cic.h>
+#include <nvgpu/cic_mon.h>
 
 #include <nvgpu/gr/gr.h>
 
@@ -219,9 +219,14 @@ static int init_acr_falcon_test_env(struct unit_module *m, struct gk20a *g)
 		return -ENODEV;
 	}
 
-	err = nvgpu_cic_init_common(g);
+	err = nvgpu_cic_mon_setup(g);
 	if (err != 0) {
 		unit_return_fail(m, "CIC init failed\n");
+	}
+
+	err = nvgpu_cic_mon_init_lut(g);
+	if (err != 0) {
+		unit_return_fail(m, "CIC LUT init failed\n");
 	}
 
 	/*

@@ -1032,9 +1032,9 @@ tpc:
 cic:
   safe: yes
   owner: Tejal K
-  sources: [ hal/cic/cic_gv11b_fusa.c,
-             hal/cic/cic_lut_gv11b_fusa.c,
-             hal/cic/cic_gv11b.h ]
+  sources: [ hal/cic/mon/init_gv11b_fusa.c,
+             hal/cic/mon/lut_gv11b_fusa.c,
+             hal/cic/mon/cic_gv11b.h ]
 
 grmgr:
   safe: no

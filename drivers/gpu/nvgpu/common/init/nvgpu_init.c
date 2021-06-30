@@ -46,7 +46,8 @@
 #ifdef CONFIG_NVGPU_NON_FUSA
 #include <nvgpu/ptimer.h>
 #endif
-#include <nvgpu/cic.h>
+#include <nvgpu/cic_mon.h>
+#include <nvgpu/cic_rm.h>
 
 #ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/pmu_pstate.h>
@@ -73,9 +74,9 @@ void nvgpu_check_gpu_state(struct gk20a *g)
 
 static void gk20a_mask_interrupts(struct gk20a *g)
 {
-	nvgpu_cic_intr_mask(g);
+	nvgpu_cic_mon_intr_mask(g);
 #ifdef CONFIG_NVGPU_NON_FUSA
-	nvgpu_cic_log_pending_intrs(g);
+	nvgpu_cic_rm_log_pending_intrs(g);
 #endif
 }
 
@@ -362,7 +363,15 @@ int nvgpu_prepare_poweroff(struct gk20a *g)
 	 * This will ensure that CIC will not get probed
 	 * after it's deinit.
 	 */
-	nvgpu_cic_deinit_common(g);
+	ret = nvgpu_cic_mon_deinit(g);
+	if (ret != 0) {
+		nvgpu_err(g, "Failed to deinit CIC-mon.");
+	}
+
+	ret = nvgpu_cic_mon_remove(g);
+	if (ret != 0) {
+		nvgpu_err(g, "Failed to remove CIC-mon.");
+	}
 
 	return ret;
 }
@@ -568,14 +577,14 @@ static int nvgpu_init_interrupt_setup(struct gk20a *g)
 	/**
 	 * Disable all interrupts at the start.
 	 */
-	nvgpu_cic_intr_mask(g);
+	nvgpu_cic_mon_intr_mask(g);
 
 #ifdef CONFIG_NVGPU_NON_FUSA
 	/**
 	 * For certain chips like gm20b, there is global interrupt control in
 	 * registers mc_intr_en_*_r. Program them here upfront.
 	 */
-	nvgpu_cic_intr_enable(g);
+	nvgpu_cic_mon_intr_enable(g);
 #endif
 
 	return 0;
@@ -727,9 +736,15 @@ int nvgpu_early_poweron(struct gk20a *g)
 	/* Initialize CIC early on before the interrupts are
 	 * enabled.
 	 */
-	err = nvgpu_cic_init_common(g);
+	err = nvgpu_cic_mon_setup(g);
 	if (err != 0) {
-		nvgpu_err(g, "CIC Initialization failed[%d]", err);
+		nvgpu_err(g, "CIC-mon setup failed[%d]", err);
+		goto done;
+	}
+
+	err = nvgpu_cic_mon_init_lut(g);
+	if (err != 0) {
+		nvgpu_err(g, "CIC LUT Initialization failed[%d]", err);
 		goto done;
 	}
 done:

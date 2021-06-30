@@ -26,7 +26,7 @@
 #include <nvgpu/atomic.h>
 #include <nvgpu/io.h>
 #include <nvgpu/mc.h>
-#include <nvgpu/cic.h>
+#include <nvgpu/cic_mon.h>
 #include <nvgpu/ltc.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/bug.h>

@@ -23,14 +23,14 @@
 #include <unit/unit.h>
 #include <unit/io.h>
 #include <nvgpu/posix/io.h>
-#include <nvgpu/cic.h>
+#include <nvgpu/cic_mon.h>
 
 #include <nvgpu/gk20a.h>
 #include <hal/priv_ring/priv_ring_gm20b.h>
 #include <hal/priv_ring/priv_ring_gp10b.h>
 #include <hal/init/hal_gv11b_litter.h>
 #include <hal/mc/mc_gp10b.h>
-#include "hal/cic/cic_gv11b.h"
+#include "hal/cic/mon/cic_gv11b.h"
 
 #include <nvgpu/hw/gv11b/hw_pri_ringstation_sys_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_pri_ringstation_gpc_gv11b.h>
@@ -125,8 +125,8 @@ int test_priv_ring_setup(struct unit_module *m, struct gk20a *g, void *args)
 	g->ops.get_litter_value = gv11b_get_litter_value;
 	g->ops.mc.intr_stall_unit_config =
 					mc_gp10b_intr_stall_unit_config;
-	g->ops.cic.init = gv11b_cic_init;
-	g->ops.cic.report_err = nvgpu_cic_report_err_safety_services;
+	g->ops.cic_mon.init = gv11b_cic_mon_init;
+	g->ops.cic_mon.report_err = nvgpu_cic_mon_report_err_safety_services;
 
 	/* Map register space NV_PRIV_MASTER */
 	if (nvgpu_posix_io_add_reg_space(g, NV_PRIV_MASTER_START,
@@ -162,8 +162,14 @@ int test_priv_ring_setup(struct unit_module *m, struct gk20a *g, void *args)
 
 	(void)nvgpu_posix_register_io(g, &test_reg_callbacks);
 
-	if (nvgpu_cic_init_common(g) != 0) {
+	if (nvgpu_cic_mon_setup(g) != 0) {
 		unit_err(m, "%s: Failed to initialize CIC\n",
+				__func__);
+		return UNIT_FAIL;
+	}
+
+	if (nvgpu_cic_mon_init_lut(g) != 0) {
+		unit_err(m, "%s: Failed to initialize CIC LUT\n",
 				__func__);
 		return UNIT_FAIL;
 	}

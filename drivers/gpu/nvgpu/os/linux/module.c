@@ -61,7 +61,8 @@
 #include <nvgpu/cyclestats_snapshot.h>
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/mc.h>
-#include <nvgpu/cic.h>
+#include <nvgpu/cic_mon.h>
+#include <nvgpu/cic_rm.h>
 
 #include "platform_gk20a.h"
 #include "sysfs.h"
@@ -865,7 +866,7 @@ u64 nvgpu_resource_addr(struct platform_device *dev, int i)
 static irqreturn_t gk20a_intr_isr_stall(int irq, void *dev_id)
 {
 	struct gk20a *g = dev_id;
-	u32 err = nvgpu_cic_intr_stall_isr(g);
+	u32 err = nvgpu_cic_mon_intr_stall_isr(g);
 
 	return err == NVGPU_CIC_INTR_HANDLE ? IRQ_WAKE_THREAD : IRQ_NONE;
 }
@@ -874,14 +875,14 @@ static irqreturn_t gk20a_intr_thread_isr_stall(int irq, void *dev_id)
 {
 	struct gk20a *g = dev_id;
 
-	nvgpu_cic_intr_stall_handle(g);
+	nvgpu_cic_mon_intr_stall_handle(g);
 	return IRQ_HANDLED;
 }
 
 static irqreturn_t gk20a_intr_isr_nonstall(int irq, void *dev_id)
 {
 	struct gk20a *g = dev_id;
-	u32 err = nvgpu_cic_intr_nonstall_isr(g);
+	u32 err = nvgpu_cic_mon_intr_nonstall_isr(g);
 
 	return err == NVGPU_CIC_INTR_HANDLE ? IRQ_WAKE_THREAD : IRQ_NONE;
 }
@@ -890,7 +891,7 @@ static irqreturn_t gk20a_intr_thread_isr_nonstall(int irq, void *dev_id)
 {
 	struct gk20a *g = dev_id;
 
-	nvgpu_cic_intr_nonstall_handle(g);
+	nvgpu_cic_mon_intr_nonstall_handle(g);
 	return IRQ_HANDLED;
 }
 
@@ -1435,7 +1436,7 @@ int nvgpu_wait_for_gpu_idle(struct gk20a *g)
 		goto out;
 	}
 
-	nvgpu_cic_wait_for_deferred_interrupts(g);
+	nvgpu_cic_rm_wait_for_deferred_interrupts(g);
 out:
 	return ret;
 }
@@ -1454,7 +1455,7 @@ void gk20a_driver_start_unload(struct gk20a *g)
 
 	nvgpu_wait_for_idle(g);
 
-	nvgpu_cic_wait_for_deferred_interrupts(g);
+	nvgpu_cic_rm_wait_for_deferred_interrupts(g);
 }
 
 static inline void set_gk20a(struct platform_device *pdev, struct gk20a *gk20a)

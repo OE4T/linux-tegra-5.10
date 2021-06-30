@@ -24,60 +24,58 @@
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/nvgpu_err_info.h>
-#include <nvgpu/cic.h>
+#include <nvgpu/cic_mon.h>
 
-#include "cic_priv.h"
+#include "cic_mon_priv.h"
 
-void nvgpu_report_ctxsw_err(struct gk20a *g, u32 hw_unit, u32 err_id,
-		void *data)
+void nvgpu_report_pri_err(struct gk20a *g, u32 hw_unit, u32 inst,
+		u32 err_id, u32 err_addr, u32 err_code)
 {
 	int err = 0;
 	struct nvgpu_err_desc *err_desc = NULL;
 	struct nvgpu_err_msg err_pkt;
-	u32 inst = 0;
-	struct ctxsw_err_info *err_info = (struct ctxsw_err_info *)data;
 
-	if (g->ops.cic.report_err == NULL) {
+	if (g->ops.cic_mon.report_err == NULL) {
 		cic_dbg(g, "CIC does not support reporting error "
 			       "to safety services");
 		return;
 	}
 
-	if (hw_unit != NVGPU_ERR_MODULE_FECS) {
+	if (hw_unit != NVGPU_ERR_MODULE_PRI) {
 		nvgpu_err(g, "invalid hw module (%u)", hw_unit);
 		err = -EINVAL;
 		goto handle_report_failure;
 	}
 
-	err = nvgpu_cic_get_err_desc(g, hw_unit, err_id, &err_desc);
+	err = nvgpu_cic_mon_get_err_desc(g, hw_unit, err_id, &err_desc);
 	if (err != 0) {
-		nvgpu_err(g, "Failed to get err_desc for"
-			       " err_id (%u) for hw module (%u)",
+		nvgpu_err(g, "Failed to get err_desc for "
+				"err_id (%u) for hw module (%u)",
 				err_id, hw_unit);
 		goto handle_report_failure;
 	}
 
-	nvgpu_init_ctxsw_err_msg(&err_pkt);
+	nvgpu_init_pri_err_msg(&err_pkt);
 	err_pkt.hw_unit_id = hw_unit;
 	err_pkt.err_id = err_desc->error_id;
 	err_pkt.is_critical = err_desc->is_critical;
-	err_pkt.err_info.ctxsw_info.header.sub_unit_id = inst;
-	err_pkt.err_info.ctxsw_info.curr_ctx = err_info->curr_ctx;
-	err_pkt.err_info.ctxsw_info.chid = err_info->chid;
-	err_pkt.err_info.ctxsw_info.ctxsw_status0 = err_info->ctxsw_status0;
-	err_pkt.err_info.ctxsw_info.ctxsw_status1 = err_info->ctxsw_status1;
-	err_pkt.err_info.ctxsw_info.mailbox_value = err_info->mailbox_value;
+	err_pkt.err_info.pri_info.header.sub_unit_id = inst;
+	err_pkt.err_info.pri_info.header.address = (u64) err_addr;
 	err_pkt.err_desc = err_desc;
+	/* sub_err_type can be decoded using err_code by referring
+	 * to the FECS pri error codes.
+	 */
+	err_pkt.err_info.pri_info.header.sub_err_type = err_code;
 	err_pkt.err_size = nvgpu_safe_cast_u64_to_u8(
-			sizeof(err_pkt.err_info.ctxsw_info));
+			sizeof(err_pkt.err_info.pri_info));
 
-	if (g->ops.cic.report_err != NULL) {
-		err = g->ops.cic.report_err(g, (void *)&err_pkt,
+	if (g->ops.cic_mon.report_err != NULL) {
+		err = g->ops.cic_mon.report_err(g, (void *)&err_pkt,
 			sizeof(err_pkt), err_desc->is_critical);
 		if (err != 0) {
-			nvgpu_err(g, "Failed to report CTXSW error: "
-					"err_id=%u, mailbox_val=%u",
-					err_id, err_info->mailbox_value);
+			nvgpu_err(g, "Failed to report PRI error: "
+					"inst=%u, err_id=%u, err_code=%u",
+					inst, err_id, err_code);
 		}
 	}
 handle_report_failure:
@@ -86,12 +84,8 @@ handle_report_failure:
 	}
 }
 
-void nvgpu_inject_ctxsw_swerror(struct gk20a *g, u32 hw_unit,
-		u32 err_index, u32 inst)
+void nvgpu_inject_pri_swerror(struct gk20a *g, u32 hw_unit,
+		u32 err_index, u32 err_code)
 {
-	struct ctxsw_err_info err_info;
-
-	(void)memset(&err_info, ERR_INJECT_TEST_PATTERN, sizeof(err_info));
-
-	nvgpu_report_ctxsw_err(g, hw_unit, err_index, (void *)&err_info);
+	nvgpu_report_pri_err(g, hw_unit, 0U, err_index, 0U, err_code);
 }

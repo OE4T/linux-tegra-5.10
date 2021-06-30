@@ -25,7 +25,7 @@
 #include <nvgpu/types.h>
 #include <nvgpu/io.h>
 #include <nvgpu/mc.h>
-#include <nvgpu/cic.h>
+#include <nvgpu/cic_mon.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/engines.h>

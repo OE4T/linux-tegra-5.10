@@ -28,7 +28,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/nvgpu_sgt.h>
 #include <nvgpu/nvgpu_err.h>
-#include <nvgpu/cic.h>
+#include <nvgpu/cic_mon.h>
 #include <nvgpu/mc.h>
 
 #include "bus_gk20a.h"
@@ -39,7 +39,7 @@ int gk20a_bus_init_hw(struct gk20a *g)
 {
 	u32 intr_en_mask = 0U;
 
-	nvgpu_cic_intr_nonstall_unit_config(g, NVGPU_CIC_INTR_UNIT_BUS, NVGPU_CIC_INTR_ENABLE);
+	nvgpu_cic_mon_intr_nonstall_unit_config(g, NVGPU_CIC_INTR_UNIT_BUS, NVGPU_CIC_INTR_ENABLE);
 
 	/*
 	 * Note: bus_intr_en_0 is for routing intr to stall tree (mc_intr_0)

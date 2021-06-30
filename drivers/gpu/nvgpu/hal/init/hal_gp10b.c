@@ -1159,7 +1159,7 @@ static const struct gops_grmgr gp10b_ops_grmgr = {
 	.init_gr_manager = nvgpu_init_gr_manager,
 };
 
-static const struct gops_cic gp10b_ops_cic = {
+static const struct gops_cic_mon gp10b_ops_cic_mon = {
 	.init = NULL,
 	.report_err = NULL,
 };
@@ -1259,7 +1259,7 @@ int gp10b_init_hal(struct gk20a *g)
 	gops->tpc = gp10b_ops_tpc;
 #endif
 	gops->grmgr = gp10b_ops_grmgr;
-	gops->cic = gp10b_ops_cic;
+	gops->cic_mon = gp10b_ops_cic_mon;
 	gops->chip_init_gpu_characteristics = gp10b_init_gpu_characteristics;
 	gops->get_litter_value = gp10b_get_litter_value;
 	gops->semaphore_wakeup = nvgpu_channel_semaphore_wakeup;

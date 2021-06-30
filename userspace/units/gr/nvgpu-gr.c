@@ -33,12 +33,12 @@
 #include <nvgpu/netlist.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_falcon.h>
-#include <nvgpu/cic.h>
+#include <nvgpu/cic_mon.h>
 
 #include "common/gr/gr_falcon_priv.h"
 
 #include "hal/init/hal_gv11b.h"
-#include "hal/cic/cic_gv11b.h"
+#include "hal/cic/mon/cic_gv11b.h"
 
 #include "nvgpu-gr.h"
 #include "nvgpu-gr-gv11b.h"
@@ -167,12 +167,17 @@ int test_gr_init_setup_ready(struct unit_module *m,
 	nvgpu_device_init(g);
 	nvgpu_fifo_setup_sw(g);
 
-	g->ops.cic.init = gv11b_cic_init;
-	g->ops.cic.report_err = nvgpu_cic_report_err_safety_services;
+	g->ops.cic_mon.init = gv11b_cic_mon_init;
+	g->ops.cic_mon.report_err = nvgpu_cic_mon_report_err_safety_services;
 
-	err = nvgpu_cic_init_common(g);
+	err = nvgpu_cic_mon_setup(g);
 	if (err != 0) {
 		unit_return_fail(m, "CIC init failed\n");
+	}
+
+	err = nvgpu_cic_mon_init_lut(g);
+	if (err != 0) {
+		unit_return_fail(m, "CIC LUT init failed\n");
 	}
 
 	/* Allocate and Initialize GR */

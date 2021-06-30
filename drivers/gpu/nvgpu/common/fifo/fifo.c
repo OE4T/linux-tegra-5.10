@@ -34,7 +34,7 @@
 #include <nvgpu/tsg.h>
 #include <nvgpu/vm_area.h>
 #include <nvgpu/nvgpu_err.h>
-#include <nvgpu/cic.h>
+#include <nvgpu/cic_mon.h>
 #include <nvgpu/mc.h>
 #include <nvgpu/swprofile.h>
 #include <nvgpu/fifo/swprofile.h>
@@ -281,9 +281,9 @@ static void disable_fifo_interrupts(struct gk20a *g)
 	g->ops.fifo.intr_1_enable(g, false);
 
 	if (g->ops.fifo.intr_top_enable == NULL) {
-		nvgpu_cic_intr_stall_unit_config(g, NVGPU_CIC_INTR_UNIT_FIFO,
+		nvgpu_cic_mon_intr_stall_unit_config(g, NVGPU_CIC_INTR_UNIT_FIFO,
 					NVGPU_CIC_INTR_DISABLE);
-		nvgpu_cic_intr_nonstall_unit_config(g, NVGPU_CIC_INTR_UNIT_FIFO,
+		nvgpu_cic_mon_intr_nonstall_unit_config(g, NVGPU_CIC_INTR_UNIT_FIFO,
 					   NVGPU_CIC_INTR_DISABLE);
 	} else {
 		g->ops.fifo.intr_top_enable(g, NVGPU_CIC_INTR_DISABLE);

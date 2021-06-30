@@ -20,14 +20,15 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_CIC_H
-#define NVGPU_CIC_H
+#ifndef NVGPU_CIC_MON_H
+#define NVGPU_CIC_MON_H
 
 #include <nvgpu/types.h>
 #include <nvgpu/static_analysis.h>
 #include <nvgpu/log.h>
 
 #if defined(CONFIG_NVGPU_NON_FUSA)
+
 #define U32_BITS		32U
 #define DIV_BY_U32_BITS(x)	((x) / U32_BITS)
 #define MOD_BY_U32_BITS(x)	((x) % U32_BITS)
@@ -83,10 +84,10 @@
 #define RUNLIST_INTR_TREE_0					0U
 #define RUNLIST_INTR_TREE_1					1U
 
-void nvgpu_cic_intr_unit_vectorid_init(struct gk20a *g, u32 unit, u32 *vectorid,
+void nvgpu_cic_mon_intr_unit_vectorid_init(struct gk20a *g, u32 unit, u32 *vectorid,
 		u32 num_entries);
-bool nvgpu_cic_intr_is_unit_info_valid(struct gk20a *g, u32 unit);
-bool nvgpu_cic_intr_get_unit_info(struct gk20a *g, u32 unit, u32 *subtree,
+bool nvgpu_cic_mon_intr_is_unit_info_valid(struct gk20a *g, u32 unit);
+bool nvgpu_cic_mon_intr_get_unit_info(struct gk20a *g, u32 unit, u32 *subtree,
 		u64 *subtree_mask);
 
 #endif
@@ -265,7 +266,9 @@ struct nvgpu_err_desc;
  *            struct.
  *
  */
-int nvgpu_cic_init_common(struct gk20a *g);
+int nvgpu_cic_mon_setup(struct gk20a *g);
+
+int nvgpu_cic_mon_init_lut(struct gk20a *g);
 
 /**
  * @brief De-initialize the CIC unit's data structures
@@ -284,7 +287,9 @@ int nvgpu_cic_init_common(struct gk20a *g);
  *
  * @retval None.
  */
-int nvgpu_cic_deinit_common(struct gk20a *g);
+int nvgpu_cic_mon_remove(struct gk20a *g);
+int nvgpu_cic_mon_deinit_lut(struct gk20a *g);
+int nvgpu_cic_mon_deinit(struct gk20a *g);
 
 /**
  * @brief Check if the input HW unit ID is valid CIC HW unit.
@@ -305,7 +310,7 @@ int nvgpu_cic_deinit_common(struct gk20a *g);
  * @retval -EINVAL if CIC is not initialized and
  *                 if input hw_unit_id is invalid.
  */
-int nvgpu_cic_check_hw_unit_id(struct gk20a *g, u32 hw_unit_id);
+int nvgpu_cic_mon_bound_check_hw_unit_id(struct gk20a *g, u32 hw_unit_id);
 
 /**
  * @brief Check if the input error ID is valid in CIC domain.
@@ -332,7 +337,7 @@ int nvgpu_cic_check_hw_unit_id(struct gk20a *g, u32 hw_unit_id);
  * @retval -EINVAL if CIC is not initialized and
  *                 if input hw_unit_id or err_id is invalid.
  */
-int nvgpu_cic_check_err_id(struct gk20a *g, u32 hw_unit_id,
+int nvgpu_cic_mon_bound_check_err_id(struct gk20a *g, u32 hw_unit_id,
 						u32 err_id);
 
 /**
@@ -347,7 +352,7 @@ int nvgpu_cic_check_err_id(struct gk20a *g, u32 hw_unit_id,
  *   all the static data for each HW unit reporting error to CIC.
  * - nvgpu_err_hw_module struct is inturn an array of struct
  *   nvgpu_err_desc which stores static data per error ID.
- * - Use the nvgpu_cic_check_err_id() API to
+ * - Use the nvgpu_cic_mon_bound_check_err_id() API to
  *     - Check if the CIC unit is initialized so that the LUT is
  *       available to read the static data for input err_id.
  *     - Check if input HW unit ID and error ID are valid.
@@ -364,7 +369,7 @@ int nvgpu_cic_check_err_id(struct gk20a *g, u32 hw_unit_id,
  * @retval -EINVAL if CIC is not initialized and
  *                 if input hw_unit_id or err_id is invalid.
  */
-int nvgpu_cic_get_err_desc(struct gk20a *g, u32 hw_unit_id,
+int nvgpu_cic_mon_get_err_desc(struct gk20a *g, u32 hw_unit_id,
 		u32 err_id, struct nvgpu_err_desc **err_desc);
 
 /**
@@ -390,7 +395,7 @@ int nvgpu_cic_get_err_desc(struct gk20a *g, u32 hw_unit_id,
  * @retval -EAGAIN if SDL not initialized.
  * @retval -ENOMEM if sufficient memory is not available.
  */
-int nvgpu_cic_report_err_safety_services(struct gk20a *g,
+int nvgpu_cic_mon_report_err_safety_services(struct gk20a *g,
 		void *err_info, size_t err_size, bool is_critical);
 
 /**
@@ -407,7 +412,7 @@ int nvgpu_cic_report_err_safety_services(struct gk20a *g,
  *       < 0 otherwise.
  * @retval -EINVAL if CIC is not initialized.
  */
-int nvgpu_cic_get_num_hw_modules(struct gk20a *g);
+int nvgpu_cic_mon_get_num_hw_modules(struct gk20a *g);
 
 /**
  * @brief Top half of stall interrupt ISR.
@@ -423,7 +428,7 @@ int nvgpu_cic_get_num_hw_modules(struct gk20a *g);
  * @retval NVGPU_CIC_INTR_NONE if none of the stall interrupts are pending.
  * @retval NVGPU_CIC_INTR_QUIESCE_PENDING if quiesce is pending.
  */
-u32 nvgpu_cic_intr_stall_isr(struct gk20a *g);
+u32 nvgpu_cic_mon_intr_stall_isr(struct gk20a *g);
 
 /**
  * @brief Bottom half of stall interrupt ISR.
@@ -433,7 +438,7 @@ u32 nvgpu_cic_intr_stall_isr(struct gk20a *g);
  * This function is called to take action based on pending stall interrupts.
  * The unit ISR functions are invoked based on triggered stall interrupts.
  */
-void nvgpu_cic_intr_stall_handle(struct gk20a *g);
+void nvgpu_cic_mon_intr_stall_handle(struct gk20a *g);
 
 /**
  * @brief Top half of nonstall interrupt ISR.
@@ -449,7 +454,7 @@ void nvgpu_cic_intr_stall_handle(struct gk20a *g);
  * @retval NVGPU_CIC_INTR_NONE if none of the nonstall interrupts are pending.
  * @retval NVGPU_CIC_INTR_QUIESCE_PENDING if quiesce is pending.
  */
-u32 nvgpu_cic_intr_nonstall_isr(struct gk20a *g);
+u32 nvgpu_cic_mon_intr_nonstall_isr(struct gk20a *g);
 
 /**
  * @brief Bottom half of nonstall interrupt ISR.
@@ -460,60 +465,7 @@ u32 nvgpu_cic_intr_nonstall_isr(struct gk20a *g);
  * Based on triggered nonstall interrupts, this function will invoke
  * nonstall operations.
  */
-void nvgpu_cic_intr_nonstall_handle(struct gk20a *g);
-
-/**
- * @brief Wait for the stalling interrupts to complete.
- *
- * @param g [in]	The GPU driver struct.
- * @param timeout [in]  Timeout
- *
- * Steps:
- * - Get the stalling interrupts atomic count.
- * - Wait for #timeout duration on the condition variable
- *   #sw_irq_stall_last_handled_cond until #sw_irq_stall_last_handled
- *   becomes greater than or equal to previously read stalling
- *   interrupt atomic count.
- *
- * @retval 0 if wait completes successfully.
- * @retval -ETIMEDOUT if wait completes without stalling interrupts
- * completing.
- */
-int nvgpu_cic_wait_for_stall_interrupts(struct gk20a *g, u32 timeout);
-
-
-/**
- * @brief Wait for the non-stalling interrupts to complete.
- *
- * @param g [in]	The GPU driver struct.
- * @param timeout [in]  Timeout
- *
- * Steps:
- * - Get the non-stalling interrupts atomic count.
- * - Wait for #timeout duration on the condition variable
- *   #sw_irq_nonstall_last_handled_cond until #sw_irq_nonstall_last_handled
- *   becomes greater than or equal to previously read non-stalling
- *   interrupt atomic count.
- *
- * @retval 0 if wait completes successfully.
- * @retval -ETIMEDOUT if wait completes without nonstalling interrupts
- * completing.
- */
-int  nvgpu_cic_wait_for_nonstall_interrupts(struct gk20a *g, u32 timeout);
-
-/**
- * @brief Wait for the interrupts to complete.
- *
- * @param g [in]	The GPU driver struct.
- *
- * While freeing the channel or entering SW quiesce state, nvgpu driver needs
- * to wait until all scheduled interrupt handlers have completed. This is
- * because the interrupt handlers could access data structures after freeing.
- * Steps:
- * - Wait for stalling interrupts to complete with timeout disabled.
- * - Wait for non-stalling interrupts to complete with timeout disabled.
- */
-void nvgpu_cic_wait_for_deferred_interrupts(struct gk20a *g);
+void nvgpu_cic_mon_intr_nonstall_handle(struct gk20a *g);
 
 /**
  * @brief Clear the GPU device interrupts at master level.
@@ -534,12 +486,7 @@ void nvgpu_cic_wait_for_deferred_interrupts(struct gk20a *g);
  * - Write U32_MAX to the non-stalling interrupts enable clear register.
  * - Release the spinlock g->mc.intr_lock.
  */
-void nvgpu_cic_intr_mask(struct gk20a *g);
-
-#ifdef CONFIG_NVGPU_NON_FUSA
-void nvgpu_cic_log_pending_intrs(struct gk20a *g);
-void nvgpu_cic_intr_enable(struct gk20a *g);
-#endif
+void nvgpu_cic_mon_intr_mask(struct gk20a *g);
 
 /**
  * @brief Enable/Disable the stalling interrupts for given GPU unit at the
@@ -581,7 +528,7 @@ void nvgpu_cic_intr_enable(struct gk20a *g);
  *     mc_intr_en_clear_r(#NVGPU_CIC_INTR_STALLING).
  * - Release the spinlock g->mc.intr_lock.
  */
-void nvgpu_cic_intr_stall_unit_config(struct gk20a *g, u32 unit, bool enable);
+void nvgpu_cic_mon_intr_stall_unit_config(struct gk20a *g, u32 unit, bool enable);
 
 /**
  * @brief Enable/Disable the non-stalling interrupts for given GPU unit at the
@@ -623,7 +570,7 @@ void nvgpu_cic_intr_stall_unit_config(struct gk20a *g, u32 unit, bool enable);
  *     mc_intr_en_clear_r(#NVGPU_CIC_INTR_NONSTALLING).
  * - Release the spinlock g->mc.intr_lock.
  */
-void nvgpu_cic_intr_nonstall_unit_config(struct gk20a *g, u32 unit, bool enable);
+void nvgpu_cic_mon_intr_nonstall_unit_config(struct gk20a *g, u32 unit, bool enable);
 
 /**
  * @brief Disable/Pause the stalling interrupts.
@@ -639,7 +586,7 @@ void nvgpu_cic_intr_nonstall_unit_config(struct gk20a *g, u32 unit, bool enable)
  *   (mc_intr_en_clear_r(#NVGPU_CIC_INTR_STALLING)).
  * - Release the spinlock g->mc.intr_lock.
  */
-void nvgpu_cic_intr_stall_pause(struct gk20a *g);
+void nvgpu_cic_mon_intr_stall_pause(struct gk20a *g);
 
 /**
  * @brief Enable/Resume the stalling interrupts.
@@ -656,7 +603,7 @@ void nvgpu_cic_intr_stall_pause(struct gk20a *g);
  *   interrupts enable set register (mc_intr_en_set_r(#NVGPU_CIC_INTR_STALLING)).
  * - Release the spinlock g->mc.intr_lock.
  */
-void nvgpu_cic_intr_stall_resume(struct gk20a *g);
+void nvgpu_cic_mon_intr_stall_resume(struct gk20a *g);
 
 /**
  * @brief Disable/Pause the non-stalling interrupts.
@@ -672,7 +619,7 @@ void nvgpu_cic_intr_stall_resume(struct gk20a *g);
  *   (mc_intr_en_clear_r(#NVGPU_CIC_INTR_NONSTALLING)).
  * - Release the spinlock g->mc.intr_lock.
  */
-void nvgpu_cic_intr_nonstall_pause(struct gk20a *g);
+void nvgpu_cic_mon_intr_nonstall_pause(struct gk20a *g);
 
 /**
  * @brief Enable/Resume the non-stalling interrupts.
@@ -691,6 +638,10 @@ void nvgpu_cic_intr_nonstall_pause(struct gk20a *g);
  *   (mc_intr_en_set_r(#NVGPU_CIC_INTR_NONSTALLING)).
  * - Release the spinlock g->mc.intr_lock.
  */
-void nvgpu_cic_intr_nonstall_resume(struct gk20a *g);
+void nvgpu_cic_mon_intr_nonstall_resume(struct gk20a *g);
 
-#endif /* NVGPU_CIC_H */
+#ifdef CONFIG_NVGPU_NON_FUSA
+void nvgpu_cic_mon_intr_enable(struct gk20a *g);
+#endif
+
+#endif /* NVGPU_CIC_MON_H */

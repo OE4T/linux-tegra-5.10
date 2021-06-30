@@ -24,9 +24,9 @@
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/nvgpu_err_info.h>
-#include <nvgpu/cic.h>
+#include <nvgpu/cic_mon.h>
 
-#include "cic_priv.h"
+#include "cic_mon_priv.h"
 
 void nvgpu_report_mmu_err(struct gk20a *g, u32 hw_unit, u32 err_id,
 		struct mmu_fault_info *fault_info, u32 status, u32 sub_err_type)
@@ -35,7 +35,7 @@ void nvgpu_report_mmu_err(struct gk20a *g, u32 hw_unit, u32 err_id,
 	struct nvgpu_err_desc *err_desc = NULL;
 	struct nvgpu_err_msg err_pkt;
 
-	if (g->ops.cic.report_err == NULL) {
+	if (g->ops.cic_mon.report_err == NULL) {
 		cic_dbg(g, "CIC does not support reporting error "
 			       "to safety services");
 		return;
@@ -47,7 +47,7 @@ void nvgpu_report_mmu_err(struct gk20a *g, u32 hw_unit, u32 err_id,
 		goto handle_report_failure;
 	}
 
-	err = nvgpu_cic_get_err_desc(g, hw_unit, err_id, &err_desc);
+	err = nvgpu_cic_mon_get_err_desc(g, hw_unit, err_id, &err_desc);
 	if (err != 0) {
 		nvgpu_err(g, "Failed to get err_desc for "
 				"err_id (%u) for hw module (%u)",
@@ -104,8 +104,8 @@ void nvgpu_report_mmu_err(struct gk20a *g, u32 hw_unit, u32 err_id,
 	err_pkt.err_size = nvgpu_safe_cast_u64_to_u8(
 			sizeof(err_pkt.err_info.mmu_info));
 
-	if (g->ops.cic.report_err != NULL) {
-		err = g->ops.cic.report_err(g, (void *)&err_pkt,
+	if (g->ops.cic_mon.report_err != NULL) {
+		err = g->ops.cic_mon.report_err(g, (void *)&err_pkt,
 			sizeof(err_pkt), err_desc->is_critical);
 		if (err != 0) {
 			nvgpu_err(g, "Failed to report MMU fault: hw_unit=%u, "

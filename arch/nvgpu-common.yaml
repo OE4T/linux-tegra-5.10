@@ -1074,20 +1074,23 @@ grmgr:
 cic:
   owner: Tejal K
   safe: yes
-  sources: [ common/cic/cic.c,
-             common/cic/cic_intr.c,
-             common/cic/ce_cic.c,
-             common/cic/ctxsw_cic.c,
-             common/cic/msg_cic.c,
-             common/cic/ecc_cic.c,
-             common/cic/host_cic.c,
-             common/cic/gr_cic.c,
-             common/cic/pri_cic.c,
-             common/cic/pmu_cic.c,
-             common/cic/mmu_cic.c,
-             common/cic/cic_priv.h,
-             include/nvgpu/gops/cic.h,
-             include/nvgpu/cic.h ]
+  sources: [ common/cic/mon/mon_init.c,
+             common/cic/mon/mon_lut.c,
+             common/cic/mon/mon_intr.c,
+             common/cic/mon/mon_ce.c,
+             common/cic/mon/mon_ctxsw.c,
+             common/cic/mon/mon_msg.c,
+             common/cic/mon/mon_ecc.c,
+             common/cic/mon/mon_host.c,
+             common/cic/mon/mon_gr.c,
+             common/cic/mon/mon_pri.c,
+             common/cic/mon/mon_pmu.c,
+             common/cic/mon/mon_mmu.c,
+             common/cic/mon/cic_mon_priv.h,
+             include/nvgpu/gops/cic_mon.h,
+             include/nvgpu/cic_mon.h,
+             common/cic/rm/rm_intr.c,
+             include/nvgpu/cic_rm.h ]
 
 ##
 ## HAL units. Currently they are under common but this needs to change.

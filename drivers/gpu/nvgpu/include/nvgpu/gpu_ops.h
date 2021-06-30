@@ -71,7 +71,7 @@
 #include <nvgpu/gops/pmu.h>
 #include <nvgpu/gops/ecc.h>
 #include <nvgpu/gops/grmgr.h>
-#include <nvgpu/gops/cic.h>
+#include <nvgpu/gops/cic_mon.h>
 
 struct gk20a;
 struct nvgpu_debug_context;
@@ -226,7 +226,7 @@ struct gpu_ops {
 
 	struct gops_grmgr grmgr;
 
-	struct gops_cic cic;
+	struct gops_cic_mon cic_mon;
 };
 
 #endif /* NVGPU_GOPS_OPS_H */

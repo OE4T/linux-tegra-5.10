@@ -22,7 +22,7 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/mc.h>
-#include <nvgpu/cic.h>
+#include <nvgpu/cic_mon.h>
 #include <nvgpu/io.h>
 #include <nvgpu/class.h>
 #include <nvgpu/static_analysis.h>

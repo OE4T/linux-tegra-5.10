@@ -27,7 +27,7 @@
 #include <nvgpu/engines.h>
 #include <nvgpu/device.h>
 #include <nvgpu/mc.h>
-#include <nvgpu/cic.h>
+#include <nvgpu/cic_mon.h>
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/gr/gr_instances.h>
 
@@ -204,7 +204,7 @@ void ga10b_intr_host2soc_0_unit_config(struct gk20a *g, u32 unit, bool enable)
 	u32 subtree = 0U;
 	u64 subtree_mask = 0ULL;
 
-	if (nvgpu_cic_intr_get_unit_info(g, unit, &subtree, &subtree_mask)
+	if (nvgpu_cic_mon_intr_get_unit_info(g, unit, &subtree, &subtree_mask)
 			== false) {
 		return;
 	}
@@ -500,7 +500,7 @@ void ga10b_intr_stall_unit_config(struct gk20a *g, u32 unit, bool enable)
 
 	unit = ga10b_intr_map_mc_stall_unit_to_intr_unit(g, unit);
 
-	if (nvgpu_cic_intr_get_unit_info(g, unit, &subtree, &subtree_mask)
+	if (nvgpu_cic_mon_intr_get_unit_info(g, unit, &subtree, &subtree_mask)
 			== false) {
 		return;
 	}

@@ -27,7 +27,6 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/mmu_fault.h>
-#include <nvgpu/cic.h>
 
 #include "hal/fb/fb_mmu_fault_gv11b.h"
 #include "hal/mm/mmu_fault/mmu_fault_gv11b.h"

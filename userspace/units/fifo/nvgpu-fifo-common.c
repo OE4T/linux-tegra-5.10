@@ -32,7 +32,7 @@
 #include <nvgpu/fifo/userd.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/device.h>
-#include <nvgpu/cic.h>
+#include <nvgpu/cic_mon.h>
 
 #include <nvgpu/posix/io.h>
 
@@ -188,10 +188,15 @@ int test_fifo_init_support(struct unit_module *m, struct gk20a *g, void *args)
 	/* Do not allocate from vidmem */
 	nvgpu_set_enabled(g, NVGPU_MM_UNIFIED_MEMORY, true);
 
-	err = nvgpu_cic_init_common(g);
+	err = nvgpu_cic_mon_setup(g);
 	if (err != 0) {
 		unit_err(m, "CIC init failed!\n");
 		return UNIT_FAIL;
+	}
+
+	err = nvgpu_cic_mon_init_lut(g);
+	if (err != 0) {
+		unit_return_fail(m, "CIC LUT init failed\n");
 	}
 
 	return UNIT_SUCCESS;
