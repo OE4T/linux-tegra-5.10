@@ -124,7 +124,7 @@ struct nvgpu_gpu_instance {
 	 * For Legacy, array is indexed by FBP physical index.
 	 * For MIG, array is indexed by FBP logical index.
 	 */
-	u32 *fbp_rop_l2_en_mask;
+	u32 *fbp_l2_en_mask;
 	/** Memory area to store h/w CE engine ids. */
 	const struct nvgpu_device *lce_devs[NVGPU_MIG_MAX_ENGINES];
 	/* Flag to indicate whether memory partition is supported or not. */

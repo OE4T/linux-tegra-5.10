@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -99,7 +99,7 @@ u32 nvgpu_fbp_get_fbp_en_mask(struct nvgpu_fbp *fbp);
 
 #ifdef CONFIG_NVGPU_NON_FUSA
 u32 nvgpu_fbp_get_num_fbps(struct nvgpu_fbp *fbp);
-u32 *nvgpu_fbp_get_rop_l2_en_mask(struct nvgpu_fbp *fbp);
+u32 *nvgpu_fbp_get_l2_en_mask(struct nvgpu_fbp *fbp);
 #endif
 
 /** @endcond DOXYGEN_SHOULD_SKIP_THIS */

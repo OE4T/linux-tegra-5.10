@@ -296,7 +296,7 @@ static int ga10b_grmgr_get_gpu_instance(struct gk20a *g,
 	u32 max_subctx_count = g->ops.gr.init.get_max_subctx_count();
 	u32 max_fbps_count = g->mig.max_fbps_count;
 	u32 physical_fbp_en_mask = g->mig.gpu_instance[0].fbp_en_mask;
-	u32 *physical_fbp_rop_l2_en_mask = g->mig.gpu_instance[0].fbp_rop_l2_en_mask;
+	u32 *physical_fbp_l2_en_mask = g->mig.gpu_instance[0].fbp_l2_en_mask;
 
 	if ((mig_gpu_instance_config == NULL) || (num_gpc > NVGPU_MIG_MAX_GPCS)) {
 		nvgpu_err(g,"mig_gpu_instance_config NULL "
@@ -564,12 +564,12 @@ static int ga10b_grmgr_get_gpu_instance(struct gk20a *g,
 			}
 		}
 
-		gpu_instance[index].fbp_rop_l2_en_mask =
+		gpu_instance[index].fbp_l2_en_mask =
 			nvgpu_kzalloc(g,
 				nvgpu_safe_mult_u64(max_fbps_count, sizeof(u32)));
-		if (gpu_instance[index].fbp_rop_l2_en_mask == NULL) {
+		if (gpu_instance[index].fbp_l2_en_mask == NULL) {
 			nvgpu_err(g,
-				"gpu_instance[%d].fbp_rop_l2_en_mask aloc failed",
+				"gpu_instance[%d].fbp_l2_en_mask aloc failed",
 				index);
 			err = -ENOMEM;
 			goto exit;
@@ -577,8 +577,8 @@ static int ga10b_grmgr_get_gpu_instance(struct gk20a *g,
 
 		if (gpu_instance[index].is_memory_partition_supported == false) {
 			u32 physical_fb_id, logical_fb_id;
-			u32 *logical_fbp_rop_l2_en_mask =
-				gpu_instance[index].fbp_rop_l2_en_mask;
+			u32 *logical_fbp_l2_en_mask =
+				gpu_instance[index].fbp_l2_en_mask;
 
 			gpu_instance[index].num_fbp = g->mig.gpu_instance[0].num_fbp;
 			gpu_instance[index].fbp_en_mask =
@@ -590,8 +590,8 @@ static int ga10b_grmgr_get_gpu_instance(struct gk20a *g,
 						(physical_fb_id < max_fbps_count));
 					++physical_fb_id) {
 				if (physical_fbp_en_mask & BIT32(physical_fb_id)) {
-					logical_fbp_rop_l2_en_mask[logical_fb_id] =
-						physical_fbp_rop_l2_en_mask[physical_fb_id];
+					logical_fbp_l2_en_mask[logical_fb_id] =
+						physical_fbp_l2_en_mask[physical_fb_id];
 					++logical_fb_id;
 				}
 			}
@@ -922,13 +922,13 @@ int ga10b_grmgr_remove_gr_manager(struct gk20a *g)
 	err |= g->ops.fb.config_veid_smc_map(g, false);
 	err |= g->ops.fb.set_remote_swizid(g, false);
 
-	/* Free only MIG instance fbp_rop_l2_en_mask */
+	/* Free only MIG instance fbp_l2_en_mask */
 	for (index = 1U; index  < g->mig.num_gpu_instances; index++) {
-		if (g->mig.gpu_instance[index].fbp_rop_l2_en_mask !=
+		if (g->mig.gpu_instance[index].fbp_l2_en_mask !=
 				NULL) {
 			nvgpu_kfree(g,
-				g->mig.gpu_instance[index].fbp_rop_l2_en_mask);
-			g->mig.gpu_instance[index].fbp_rop_l2_en_mask = NULL;
+				g->mig.gpu_instance[index].fbp_l2_en_mask);
+			g->mig.gpu_instance[index].fbp_l2_en_mask = NULL;
 			g->mig.gpu_instance[index].num_fbp = 0U;
 			g->mig.gpu_instance[index].fbp_en_mask = 0U;
 		}

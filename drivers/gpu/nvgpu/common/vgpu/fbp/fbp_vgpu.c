@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -46,15 +46,15 @@ int vgpu_fbp_init_support(struct gk20a *g)
 	fbp->max_fbps_count = priv->constants.num_fbps;
 	fbp->fbp_en_mask = priv->constants.fbp_en_mask;
 
-	fbp->fbp_rop_l2_en_mask =
+	fbp->fbp_l2_en_mask =
 		nvgpu_kzalloc(g, fbp->max_fbps_count * sizeof(u32));
-	if (fbp->fbp_rop_l2_en_mask == NULL) {
+	if (fbp->fbp_l2_en_mask == NULL) {
 		nvgpu_kfree(g, fbp);
 		return -ENOMEM;
 	}
 
 	for (i = 0U; i < fbp->max_fbps_count; i++) {
-		fbp->fbp_rop_l2_en_mask[i] = priv->constants.l2_en_mask[i];
+		fbp->fbp_l2_en_mask[i] = priv->constants.l2_en_mask[i];
 	}
 
 	g->fbp = fbp;

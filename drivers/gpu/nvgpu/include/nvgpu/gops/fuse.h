@@ -119,7 +119,7 @@ struct gops_fuse {
 	 *
 	 * @return fuse value read from NV_FUSE_STATUS_OPT_ROP_L2_FBP.
 	 */
-	u32 (*fuse_status_opt_rop_l2_fbp)(struct gk20a *g, u32 fbp);
+	u32 (*fuse_status_opt_l2_fbp)(struct gk20a *g, u32 fbp);
 
 	/**
 	 * @brief Read NV_FUSE_STATUS_OPT_TPC_GPC fuse.

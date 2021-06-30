@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,7 +34,7 @@ int nvgpu_fbp_init_support(struct gk20a *g)
 	u32 fbp_en_mask;
 #ifdef CONFIG_NVGPU_NON_FUSA
 	u32 max_ltc_per_fbp;
-	u32 rop_l2_all_en;
+	u32 l2_all_en_mask;
 	unsigned long i;
 	unsigned long fbp_en_mask_tmp;
 	u32 tmp;
@@ -70,22 +70,22 @@ int nvgpu_fbp_init_support(struct gk20a *g)
 	fbp->fbp_en_mask = fbp_en_mask;
 
 #ifdef CONFIG_NVGPU_NON_FUSA
-	fbp->fbp_rop_l2_en_mask =
+	fbp->fbp_l2_en_mask =
 		nvgpu_kzalloc(g,
 			nvgpu_safe_mult_u64(fbp->max_fbps_count, sizeof(u32)));
-	if (fbp->fbp_rop_l2_en_mask == NULL) {
+	if (fbp->fbp_l2_en_mask == NULL) {
 		nvgpu_kfree(g, fbp);
 		return -ENOMEM;
 	}
 
 	fbp_en_mask_tmp = fbp_en_mask;
 	max_ltc_per_fbp = g->ops.top.get_max_ltc_per_fbp(g);
-	rop_l2_all_en = nvgpu_safe_sub_u32(BIT32(max_ltc_per_fbp), 1U);
+	l2_all_en_mask = nvgpu_safe_sub_u32(BIT32(max_ltc_per_fbp), 1U);
 
-	/* mask of Rop_L2 for each FBP */
+	/* get active L2 mask per FBP */
 	for_each_set_bit(i, &fbp_en_mask_tmp, fbp->max_fbps_count) {
-		tmp = g->ops.fuse.fuse_status_opt_rop_l2_fbp(g, i);
-		fbp->fbp_rop_l2_en_mask[i] = rop_l2_all_en ^ tmp;
+		tmp = g->ops.fuse.fuse_status_opt_l2_fbp(g, i);
+		fbp->fbp_l2_en_mask[i] = l2_all_en_mask ^ tmp;
 	}
 #endif
 
@@ -99,7 +99,7 @@ void nvgpu_fbp_remove_support(struct gk20a *g)
 	struct nvgpu_fbp *fbp = g->fbp;
 
 	if (fbp != NULL) {
-		nvgpu_kfree(g, fbp->fbp_rop_l2_en_mask);
+		nvgpu_kfree(g, fbp->fbp_l2_en_mask);
 		nvgpu_kfree(g, fbp);
 	}
 
@@ -122,9 +122,9 @@ u32 nvgpu_fbp_get_num_fbps(struct nvgpu_fbp *fbp)
 	return fbp->num_fbps;
 }
 
-u32 *nvgpu_fbp_get_rop_l2_en_mask(struct nvgpu_fbp *fbp)
+u32 *nvgpu_fbp_get_l2_en_mask(struct nvgpu_fbp *fbp)
 {
-	return fbp->fbp_rop_l2_en_mask;
+	return fbp->fbp_l2_en_mask;
 }
 #endif
 

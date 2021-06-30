@@ -93,9 +93,9 @@ u32 ga10b_fuse_status_opt_fbp(struct gk20a *g)
 	return nvgpu_readl(g, fuse_status_opt_fbp_r());
 }
 
-u32 ga10b_fuse_status_opt_rop_gpc(struct gk20a *g, u32 fbp)
+u32 ga10b_fuse_status_opt_l2_fbp(struct gk20a *g, u32 fbp)
 {
-	return nvgpu_readl(g, fuse_status_opt_rop_gpc_r(fbp));
+	return nvgpu_readl(g, fuse_ctrl_opt_ltc_fbp_r(fbp));
 }
 
 u32 ga10b_fuse_status_opt_tpc_gpc(struct gk20a *g, u32 gpc)

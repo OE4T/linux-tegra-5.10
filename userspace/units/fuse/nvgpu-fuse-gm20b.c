@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -209,7 +209,7 @@ int test_fuse_gm20b_basic_fuses(struct unit_module *m,
 					set+i);
 		}
 		for (i = 0; i < GM20B_MAX_FBPS_COUNT; i++) {
-			val = g->ops.fuse.fuse_status_opt_rop_l2_fbp(g, i);
+			val = g->ops.fuse.fuse_status_opt_l2_fbp(g, i);
 			if (val != (set+i)) {
 				unit_err(m,
 					 "%s: ROP_L2_FBP incorrect %u != %u\n",

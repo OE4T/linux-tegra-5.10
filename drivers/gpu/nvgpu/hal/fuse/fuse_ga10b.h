@@ -36,7 +36,7 @@ bool ga10b_fuse_is_opt_feature_override_disable(struct gk20a *g);
 u32 ga10b_fuse_status_opt_gpc(struct gk20a *g);
 u32 ga10b_fuse_status_opt_fbio(struct gk20a *g);
 u32 ga10b_fuse_status_opt_fbp(struct gk20a *g);
-u32 ga10b_fuse_status_opt_rop_gpc(struct gk20a *g, u32 fbp);
+u32 ga10b_fuse_status_opt_l2_fbp(struct gk20a *g, u32 fbp);
 u32 ga10b_fuse_status_opt_tpc_gpc(struct gk20a *g, u32 gpc);
 void ga10b_fuse_ctrl_opt_tpc_gpc(struct gk20a *g, u32 gpc, u32 val);
 u32 ga10b_fuse_opt_priv_sec_en(struct gk20a *g);

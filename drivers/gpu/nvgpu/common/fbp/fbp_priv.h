@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,7 +27,7 @@ struct nvgpu_fbp {
 	u32 num_fbps;
 	u32 max_fbps_count;
 	u32 fbp_en_mask;
-	u32 *fbp_rop_l2_en_mask;
+	u32 *fbp_l2_en_mask;
 };
 
 #endif /* NVGPU_FBP_PRIV_H */

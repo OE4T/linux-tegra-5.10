@@ -1,7 +1,7 @@
 /*
  * GM20B FUSE
  *
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,7 +34,7 @@ u32 gm20b_fuse_status_opt_gpc(struct gk20a *g);
 #endif
 u32 gm20b_fuse_status_opt_fbio(struct gk20a *g);
 u32 gm20b_fuse_status_opt_fbp(struct gk20a *g);
-u32 gm20b_fuse_status_opt_rop_l2_fbp(struct gk20a *g, u32 fbp);
+u32 gm20b_fuse_status_opt_l2_fbp(struct gk20a *g, u32 fbp);
 u32 gm20b_fuse_status_opt_tpc_gpc(struct gk20a *g, u32 gpc);
 void gm20b_fuse_ctrl_opt_tpc_gpc(struct gk20a *g, u32 gpc, u32 val);
 u32 gm20b_fuse_opt_sec_debug_en(struct gk20a *g);

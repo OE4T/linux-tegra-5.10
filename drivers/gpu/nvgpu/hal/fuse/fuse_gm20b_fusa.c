@@ -1,7 +1,7 @@
 /*
  * GM20B FUSE
  *
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -42,7 +42,7 @@ u32 gm20b_fuse_status_opt_fbp(struct gk20a *g)
 	return nvgpu_readl(g, fuse_status_opt_fbp_r());
 }
 
-u32 gm20b_fuse_status_opt_rop_l2_fbp(struct gk20a *g, u32 fbp)
+u32 gm20b_fuse_status_opt_l2_fbp(struct gk20a *g, u32 fbp)
 {
 	return nvgpu_readl(g, fuse_status_opt_rop_l2_fbp_r(fbp));
 }

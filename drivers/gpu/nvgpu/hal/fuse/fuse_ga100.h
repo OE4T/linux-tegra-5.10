@@ -1,7 +1,7 @@
 /*
  * GA100 FUSE
  *
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,7 +27,7 @@
 
 struct gk20a;
 
-u32 ga100_fuse_status_opt_rop_l2_fbp(struct gk20a *g, u32 fbp);
+u32 ga100_fuse_status_opt_l2_fbp(struct gk20a *g, u32 fbp);
 int ga100_fuse_read_per_device_identifier(struct gk20a *g, u64 *pdi);
 int ga100_read_ucode_version(struct gk20a *g, u32 falcon_id,
 		u32 *ucode_version);

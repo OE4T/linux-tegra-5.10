@@ -1,7 +1,7 @@
 /*
  * GA100 FUSE
  *
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@
 
 #include <nvgpu/hw/ga100/hw_fuse_ga100.h>
 
-u32 ga100_fuse_status_opt_rop_l2_fbp(struct gk20a *g, u32 fbp)
+u32 ga100_fuse_status_opt_l2_fbp(struct gk20a *g, u32 fbp)
 {
 	return nvgpu_readl(g, fuse_status_opt_rop_l2_fbp_r(fbp));
 }

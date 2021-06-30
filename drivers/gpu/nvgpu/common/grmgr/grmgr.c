@@ -157,7 +157,7 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 	gpu_instance->fbp_en_mask = nvgpu_fbp_get_fbp_en_mask(g->fbp);
 #ifdef CONFIG_NVGPU_NON_FUSA
 	gpu_instance->num_fbp = nvgpu_fbp_get_num_fbps(g->fbp);
-	gpu_instance->fbp_rop_l2_en_mask = nvgpu_fbp_get_rop_l2_en_mask(g->fbp);
+	gpu_instance->fbp_l2_en_mask = nvgpu_fbp_get_l2_en_mask(g->fbp);
 #endif
 
 	g->mig.current_gr_syspipe_id = NVGPU_MIG_INVALID_GR_SYSPIPE_ID;
@@ -702,14 +702,14 @@ u32 nvgpu_grmgr_get_fbp_en_mask(struct gk20a *g, u32 gpu_instance_id)
 	return U32_MAX;
 }
 
-u32 *nvgpu_grmgr_get_fbp_rop_l2_en_mask(struct gk20a *g, u32 gpu_instance_id)
+u32 *nvgpu_grmgr_get_fbp_l2_en_mask(struct gk20a *g, u32 gpu_instance_id)
 {
 	struct nvgpu_gpu_instance *gpu_instance;
 
 	if (gpu_instance_id < g->mig.num_gpu_instances) {
 		gpu_instance = &g->mig.gpu_instance[gpu_instance_id];
 
-		return gpu_instance->fbp_rop_l2_en_mask;
+		return gpu_instance->fbp_l2_en_mask;
 	}
 
 	nvgpu_err(g,

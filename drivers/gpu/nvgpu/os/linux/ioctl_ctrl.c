@@ -734,8 +734,8 @@ static int gk20a_ctrl_get_fbp_l2_masks(
 	int err = 0;
 	const u32 fbp_l2_mask_size = sizeof(u32) *
 			nvgpu_grmgr_get_max_fbps_count(g);
-	u32 *fbp_rop_l2_en_mask =
-		nvgpu_grmgr_get_fbp_rop_l2_en_mask(g, gpu_instance_id);
+	u32 *fbp_l2_en_mask =
+		nvgpu_grmgr_get_fbp_l2_en_mask(g, gpu_instance_id);
 
 	if (args->mask_buf_size > 0) {
 		size_t write_size = fbp_l2_mask_size;
@@ -746,7 +746,7 @@ static int gk20a_ctrl_get_fbp_l2_masks(
 
 		err = copy_to_user((void __user *)(uintptr_t)
 				   args->mask_buf_addr,
-				   fbp_rop_l2_en_mask, write_size);
+				   fbp_l2_en_mask, write_size);
 	}
 
 	if (err == 0)
