@@ -139,7 +139,6 @@ void dce_worker_thread_wakeup(struct tegra_dce *d,
 		if (w->c_state != STATE_DCE_WORKER_BOOT_WAIT) {
 			dce_warn(d, "Unexpected wakeup event rcvd: [%d]. Cur State: [%d]",
 					event, w->c_state);
-			return;
 		}
 		new_state = STATE_DCE_WORKER_IDLE;
 		break;
