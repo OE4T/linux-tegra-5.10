@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -419,7 +419,16 @@ void tegra_mc_utils_init(void)
 		dram = readl(emc_base + EMC_FBIO_CFG5_0) & DRAM_MASK;
 
 	ch = mc_readl(MC_EMEM_ADR_CFG_CHANNEL_ENABLE_0) & CH_MASK;
-	ecc = mc_readl(MC_ECC_CONTROL_0) & ECC_MASK;
+	/*
+	 * TODO: For non orin chips MC_ECC_CONTROL_0 is not present, hence set
+	 * ecc to 0 and cleanup this once we have chip specific mc_utils driver.
+	 */
+	if (tegra_get_chip_id() == TEGRA234 &&
+		((tegra_read_chipid() >> 4) & 0xf) == 4)
+		ecc = mc_readl(MC_ECC_CONTROL_0) & ECC_MASK;
+	else
+		ecc = 0;
+
 	rank = mc_readl(MC_EMEM_ADR_CFG_0) & RANK_MASK;
 
 	iounmap(emc_base);
