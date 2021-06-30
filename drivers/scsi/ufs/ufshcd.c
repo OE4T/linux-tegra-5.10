@@ -9402,7 +9402,8 @@ int ufshcd_system_suspend(struct ufs_hba *hba)
 	if (!hba || !hba->is_powered)
 		return 0;
 
-	cancel_delayed_work_sync(&hba->rpm_dev_flush_recheck_work);
+	if (hba->card_present)
+		cancel_delayed_work_sync(&hba->rpm_dev_flush_recheck_work);
 
 	if ((ufs_get_pm_lvl_to_dev_pwr_mode(hba->spm_lvl) ==
 	     hba->curr_dev_pwr_mode) &&
@@ -9833,6 +9834,7 @@ int ufshcd_init(struct ufs_hba *hba, void __iomem *mmio_base, unsigned int irq)
 							UFS_POWERDOWN_PWR_MODE,
 							UIC_LINK_OFF_STATE);
 		hba->spm_lvl = hba->rpm_lvl;
+		dev_info(hba->dev, "ufs card not detected.\n");
 		pm_runtime_get_sync(dev);
 		return 0;
 	}
