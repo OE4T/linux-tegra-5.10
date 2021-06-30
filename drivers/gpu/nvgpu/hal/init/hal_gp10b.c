@@ -940,6 +940,7 @@ static const struct gops_pmu gp10b_ops_pmu = {
 	.bar0_error_status = gk20a_pmu_bar0_error_status,
 	.flcn_setup_boot_config = gm20b_pmu_flcn_setup_boot_config,
 	.pmu_ns_bootstrap = gk20a_pmu_ns_bootstrap,
+	.handle_swgen1_irq = NULL,
 };
 #endif
 

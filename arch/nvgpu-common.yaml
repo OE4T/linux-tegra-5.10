@@ -364,11 +364,13 @@ falcon_fusa:
 falcon:
   owner: Sagar K
   safe: no
-  gpu: dgpu
+  gpu: both
   sources: [ common/falcon/falcon_sw_tu104.c,
              common/falcon/falcon_sw_tu104.h,
              common/falcon/falcon_sw_ga10b.c,
              common/falcon/falcon_sw_ga10b.h,
+             common/falcon/falcon_debug.c,
+             common/falcon/falcon_debug.h,
              include/nvgpu/gops/gsp.h,
              include/nvgpu/gops/nvdec.h ]
   deps: [ ]

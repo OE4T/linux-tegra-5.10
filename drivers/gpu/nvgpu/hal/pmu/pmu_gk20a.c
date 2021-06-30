@@ -517,6 +517,10 @@ void gk20a_pmu_handle_interrupts(struct gk20a *g, u32 intr)
 				~pwr_falcon_exterrstat_valid_m());
 	}
 
+	if (g->ops.pmu.handle_swgen1_irq != NULL) {
+		g->ops.pmu.handle_swgen1_irq(g, intr);
+	}
+
 	if ((intr & pwr_falcon_irqstat_swgen0_true_f()) != 0U) {
 		err = nvgpu_pmu_process_message(pmu);
 		if (err != 0) {

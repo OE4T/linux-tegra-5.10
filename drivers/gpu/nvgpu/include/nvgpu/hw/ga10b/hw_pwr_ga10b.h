@@ -68,6 +68,7 @@
 #define pwr_falcon_irqstat_exterr_true_f()                               (0x20U)
 #define pwr_falcon_irqstat_swgen0_true_f()                               (0x40U)
 #define pwr_falcon_irqstat_ext_ecc_parity_true_f()                      (0x400U)
+#define pwr_falcon_irqstat_swgen1_true_f()                               (0x80U)
 #define pwr_pmu_ecc_intr_status_r()                                (0x0010abfcU)
 #define pwr_pmu_ecc_intr_status_corrected_m()                  (U32(0x1U) << 0U)
 #define pwr_pmu_ecc_intr_status_uncorrected_m()                (U32(0x1U) << 1U)

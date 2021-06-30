@@ -34,6 +34,7 @@
 #include <nvgpu/pmu.h>
 #include <nvgpu/string.h>
 #include <nvgpu/pmu/clk/clk.h>
+#include <nvgpu/falcon.h>
 
 #include <nvgpu/pmu/mutex.h>
 #include <nvgpu/pmu/seq.h>
@@ -158,6 +159,13 @@ static void remove_pmu_support(struct nvgpu_pmu *pmu)
 	if (nvgpu_is_enabled(g, NVGPU_PMU_PSTATE)) {
 		nvgpu_pmu_pstate_deinit(g);
 	}
+
+#ifdef CONFIG_NVGPU_FALCON_DEBUG
+	if (nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
+		nvgpu_falcon_dbg_buf_display(pmu->flcn);
+		nvgpu_falcon_dbg_buf_destroy(pmu->flcn);
+	}
+#endif
 
 	nvgpu_pmu_debug_deinit(g, pmu);
 	nvgpu_pmu_lsfm_deinit(g, pmu, pmu->lsfm);
@@ -418,6 +426,18 @@ int nvgpu_pmu_rtos_init(struct gk20a *g)
 
 #if defined(CONFIG_NVGPU_NON_FUSA)
 		if (nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
+#ifdef CONFIG_NVGPU_FALCON_DEBUG
+			err = nvgpu_falcon_dbg_buf_init(g->pmu->flcn,
+					NV_RISCV_DMESG_BUFFER_SIZE,
+					g->ops.pmu.pmu_get_queue_head(NV_RISCV_DEBUG_BUFFER_QUEUE),
+					g->ops.pmu.pmu_get_queue_tail(NV_RISCV_DEBUG_BUFFER_QUEUE));
+			if (err != 0) {
+				nvgpu_err(g,
+					"Failed to allocate RISCV PMU debug buffer status=0x%x)",
+					err);
+				goto exit;
+			}
+#endif
 			g->ops.falcon.bootstrap(g->pmu->flcn, 0U);
 			err = nvgpu_pmu_wait_for_priv_lockdown_release(g,
 					g->pmu->flcn, U32_MAX);

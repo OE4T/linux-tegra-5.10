@@ -489,6 +489,10 @@ ifdef NVGPU_FAULT_INJECTION_ENABLEMENT
 srcs += os/posix/posix-fault-injection.c
 endif
 
+ifeq ($(CONFIG_NVGPU_FALCON_DEBUG),1)
+srcs += common/falcon/falcon_debug.c
+endif
+
 ifeq ($(CONFIG_NVGPU_LS_PMU),1)
 # Add LS PMU files which are required for normal build
 srcs += \

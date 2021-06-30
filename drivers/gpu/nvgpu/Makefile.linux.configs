@@ -16,6 +16,9 @@ CONFIG_TEGRA_ACR := y
 # Support for debugger APIs
 CONFIG_NVGPU_DEBUGGER := y
 
+# Support for Falcon debugger APIs
+CONFIG_NVGPU_FALCON_DEBUG := y
+
 # Support for iGPU LS PMU enable/disable
 CONFIG_NVGPU_LS_PMU := y
 
@@ -162,6 +165,9 @@ ccflags-y += -DCONFIG_TEGRA_ACR
 endif
 ifeq ($(CONFIG_NVGPU_DEBUGGER),y)
 ccflags-y += -DCONFIG_NVGPU_DEBUGGER
+endif
+ifeq ($(CONFIG_NVGPU_FALCON_DEBUG),y)
+ccflags-y += -DCONFIG_NVGPU_FALCON_DEBUG
 endif
 ifeq ($(CONFIG_NVGPU_LS_PMU),y)
 ccflags-y += -DCONFIG_NVGPU_LS_PMU

@@ -1126,6 +1126,7 @@ static const struct gops_pmu gv11b_ops_pmu = {
 	.pmu_destroy = nvgpu_pmu_destroy,
 	/* ISR */
 	.pmu_is_interrupted = gk20a_pmu_is_interrupted,
+	.handle_swgen1_irq = NULL,
 	/* queue */
 	.pmu_get_queue_head = gv11b_pmu_queue_head_r,
 	.pmu_get_queue_head_size = gv11b_pmu_queue_head__size_1_v,

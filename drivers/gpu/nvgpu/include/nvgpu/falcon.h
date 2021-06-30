@@ -207,6 +207,35 @@ enum falcon_mem_type {
 	MEM_IMEM
 };
 
+#ifdef CONFIG_NVGPU_FALCON_DEBUG
+/*
+ * Structure tracking information relevant to firmware debug buffer.
+ */
+struct nvgpu_falcon_dbg_buf {
+	/* Offset to debug buffer in NVRISCV DMEM */
+	u32 dmem_offset;
+
+	/*
+	 * Pointer to local debug buffer copy on system memory
+	 * where nvgpu copy the data from NVRISCV DMEM.
+	 */
+	u8 *local_buf;
+
+	/* Last read offset for the circular debug buffer */
+	u32 read_offset;
+
+	/* Read/Write offset register addresses */
+	u32 read_offset_address;
+	u32 write_offset_address;
+
+	/* Flcn debug buffer size */
+	u32 buffer_size;
+
+	/* Set once nvgpu get the first message from FLCN */
+	bool first_msg_received;
+};
+#endif
+
 /**
  * This struct holds the falcon ops which are falcon engine specific.
  */
@@ -259,6 +288,9 @@ struct nvgpu_falcon {
 #endif
 	/** Functions for engine specific reset and memory access. */
 	struct nvgpu_falcon_engine_dependency_ops flcn_engine_dep_ops;
+#ifdef CONFIG_NVGPU_FALCON_DEBUG
+	struct nvgpu_falcon_dbg_buf debug_buffer;
+#endif
 };
 
 /**
@@ -724,6 +756,48 @@ int nvgpu_falcon_copy_from_imem(struct nvgpu_falcon *flcn,
 void nvgpu_falcon_print_dmem(struct nvgpu_falcon *flcn, u32 src, u32 size);
 void nvgpu_falcon_print_imem(struct nvgpu_falcon *flcn, u32 src, u32 size);
 void nvgpu_falcon_get_ctls(struct nvgpu_falcon *flcn, u32 *sctl, u32 *cpuctl);
+#endif
+
+#ifdef CONFIG_NVGPU_FALCON_DEBUG
+#define NV_RISCV_DEBUG_BUFFER_QUEUE   7U
+#define NV_RISCV_DMESG_BUFFER_SIZE    0x1000U
+
+/**
+ * @brief falcon debug buffer initialization.
+ *
+ * @param flcn [in] The falcon.
+ *
+ * Allocates and maps buffer in system memory for sharing flcn firmware
+ * debug prints with client nvgpu.
+ *
+ * @return '0' if initialization is successful, error otherwise.
+ */
+int nvgpu_falcon_dbg_buf_init(struct nvgpu_falcon *flcn,
+	u32 debug_buffer_max_size, u32 write_reg_addr, u32 read_reg_addr);
+
+/*
+ * @brief falcon debug buffer deinitialization.
+ *
+ * @param flcn [in] The falcon.
+ *
+ * Frees falcon debug buffer from memory.
+ *
+ */
+void nvgpu_falcon_dbg_buf_destroy(struct nvgpu_falcon *flcn);
+
+/**
+ * @brief Display falcon firmware logs
+ *
+ * @param flcn [in] The falcon.
+ *
+ * This function reads the contents of flcn debug buffer filled by firmware.
+ * Logs are displayed line-by-line with label '<FLCN> Async' signifying that
+ * these logs might be delayed and should be assumed as out-of-order when read
+ * alongside other client nvgpu logs.
+ *
+ * @return '0' if contents logged successfully, error otherwise.
+ */
+int nvgpu_falcon_dbg_buf_display(struct nvgpu_falcon *flcn);
 #endif
 
 #endif /* NVGPU_FALCON_H */

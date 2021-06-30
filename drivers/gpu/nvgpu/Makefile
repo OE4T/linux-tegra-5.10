@@ -573,6 +573,7 @@ nvgpu-y += \
 	common/mm/dma.o \
 	common/vbios/bios.o \
 	common/falcon/falcon.o \
+	common/falcon/falcon_debug.o \
 	common/falcon/falcon_sw_gk20a.o \
 	common/engine_queues/engine_mem_queue.o \
 	common/engine_queues/engine_dmem_queue.o \
@@ -803,7 +804,6 @@ ifeq ($(CONFIG_NVGPU_GR_VIRTUALIZATION),y)
 nvgpu-$(CONFIG_NVGPU_HAL_NON_FUSA) += \
 	hal/vgpu/init/vgpu_hal_gv11b.o
 endif
-
 
 ifeq ($(CONFIG_NVGPU_HAL_NON_FUSA),y)
 nvgpu-y += \

@@ -312,6 +312,7 @@ struct gops_pmu {
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	void (*handle_ext_irq)(struct gk20a *g, u32 intr);
+	void (*handle_swgen1_irq)(struct gk20a *g, u32 intr);
 
 	void (*pmu_enable_irq)(struct nvgpu_pmu *pmu, bool enable);
 	u32 (*get_irqdest)(struct gk20a *g);

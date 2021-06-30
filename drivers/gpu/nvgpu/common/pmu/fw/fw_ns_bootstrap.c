@@ -27,6 +27,7 @@
 #include <nvgpu/pmu/fw.h>
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/string.h>
+#include <nvgpu/falcon.h>
 
 static void pmu_free_ns_ucode_blob(struct gk20a *g)
 {
@@ -74,6 +75,20 @@ int nvgpu_pmu_ns_fw_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu)
 #if defined(CONFIG_NVGPU_NON_FUSA)
 	if (nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
 		nvgpu_pmu_next_core_rtos_args_setup(g, pmu);
+
+#ifdef CONFIG_NVGPU_FALCON_DEBUG
+		err = nvgpu_falcon_dbg_buf_init(g->pmu->flcn,
+				NV_RISCV_DMESG_BUFFER_SIZE,
+				g->ops.pmu.pmu_get_queue_head(NV_RISCV_DEBUG_BUFFER_QUEUE),
+				g->ops.pmu.pmu_get_queue_tail(NV_RISCV_DEBUG_BUFFER_QUEUE));
+		if (err != 0) {
+			nvgpu_err(g,
+				"Failed to allocate NVRISCV PMU debug buffer status=0x%x)",
+				err);
+			return err;
+		}
+#endif
+
 	} else
 #endif
 	{

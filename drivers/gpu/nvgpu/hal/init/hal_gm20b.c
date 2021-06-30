@@ -850,6 +850,7 @@ static const struct gops_pmu gm20b_ops_pmu = {
 	.pmu_ns_bootstrap = gk20a_pmu_ns_bootstrap,
 	.setup_apertures = gm20b_pmu_setup_apertures,
 	.secured_pmu_start = gm20b_secured_pmu_start,
+	.handle_swgen1_irq = NULL,
 };
 #endif
 

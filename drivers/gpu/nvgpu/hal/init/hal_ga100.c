@@ -1297,6 +1297,7 @@ static const struct gops_pmu ga100_ops_pmu = {
 	.pmu_get_queue_tail = tu104_pmu_queue_tail_r,
 	.get_irqdest = gk20a_pmu_get_irqdest,
 	.handle_ext_irq = NULL,
+	.handle_swgen1_irq = NULL,
 	.is_debug_mode_enabled = gm20b_pmu_is_debug_mode_en,
 	.setup_apertures = tu104_pmu_setup_apertures,
 	.secured_pmu_start = gm20b_secured_pmu_start,

@@ -342,3 +342,19 @@ bool ga10b_pmu_is_debug_mode_en(struct gk20a *g)
 		return false;
 	}
 }
+
+void ga10b_pmu_handle_swgen1_irq(struct gk20a *g, u32 intr)
+{
+	struct nvgpu_pmu *pmu = g->pmu;
+	int err = 0;
+
+	if ((intr & pwr_falcon_irqstat_swgen1_true_f()) != 0U) {
+#ifdef CONFIG_NVGPU_FALCON_DEBUG
+		err = nvgpu_falcon_dbg_buf_display(pmu->flcn);
+		if (err != 0) {
+			nvgpu_err(g, "nvgpu_falcon_dbg_buf_display failed err=%d",
+				err);
+		}
+#endif
+	}
+}
