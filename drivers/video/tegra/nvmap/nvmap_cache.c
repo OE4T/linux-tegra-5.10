@@ -15,7 +15,6 @@
 
 #define pr_fmt(fmt)	"nvmap: %s() " fmt, __func__
 
-#include <linux/highmem.h>
 #include <linux/io.h>
 #include <linux/debugfs.h>
 #include <linux/of.h>

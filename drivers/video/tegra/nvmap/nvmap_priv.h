@@ -167,6 +167,7 @@ extern struct vm_operations_struct nvmap_vma_ops;
 #define outer_flush_all()
 #define outer_clean_all()
 extern void __clean_dcache_page(struct page *);
+extern void __clean_dcache_area_poc(void *addr, size_t len);
 #else
 #define PG_PROT_KERNEL pgprot_kernel
 #define FLUSH_DCACHE_AREA __cpuc_flush_dcache_area

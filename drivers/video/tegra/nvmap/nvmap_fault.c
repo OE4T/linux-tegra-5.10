@@ -23,7 +23,6 @@
 static void nvmap_vma_close(struct vm_area_struct *vma);
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
-#include <linux/atomic-fallback.h>
 #define __atomic_add_unless atomic_fetch_add_unless
 static vm_fault_t nvmap_vma_fault(struct vm_fault *vmf);
 #elif LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
