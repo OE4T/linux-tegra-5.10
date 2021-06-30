@@ -382,7 +382,7 @@ static int bpmp_populate_debugfs_inband(struct tegra_bpmp *bpmp,
 	char *buf, *pathbuf;
 	const char *name;
 	int err = 0;
-	int retry_count = 25;
+	int retry_count = 50;
 
 	if (!bpmp || !parent || !ppath)
 		return -EINVAL;
