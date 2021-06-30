@@ -166,8 +166,13 @@ static phys_addr_t nvmap_alloc_mem(struct nvmap_heap *h, size_t len,
 	} else
 #endif
 	{
+#ifdef NVMAP_LOADABLE_MODULE
+		(void)nvmap_dma_alloc_attrs(dev, len, &pa,
+				GFP_KERNEL, DMA_ATTR_ALLOC_EXACT_SIZE);
+#else
 		(void)dma_alloc_attrs(dev, len, &pa,
 				GFP_KERNEL, DMA_ATTR_ALLOC_EXACT_SIZE);
+#endif /* !NVMAP_LOADABLE_MODULE */
 		if (!dma_mapping_error(dev, pa)) {
 #ifdef CONFIG_TEGRA_VPR
 			int ret;
@@ -211,9 +216,16 @@ static void nvmap_free_mem(struct nvmap_heap *h, phys_addr_t base,
 	} else
 #endif
 	{
+#ifdef NVMAP_LOADABLE_MODULE
+		nvmap_dma_free_attrs(dev, len,
+				     (void *)(uintptr_t)base,
+				     (dma_addr_t)base,
+				     DMA_ATTR_ALLOC_EXACT_SIZE);
+#else
 		dma_free_attrs(dev, len,
 			        (void *)(uintptr_t)base,
 			        (dma_addr_t)base, DMA_ATTR_ALLOC_EXACT_SIZE);
+#endif
 	}
 }
 

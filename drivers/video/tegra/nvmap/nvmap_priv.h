@@ -845,4 +845,11 @@ int nvmap_dmabuf_set_drv_data(struct dma_buf *dmabuf,
 void *nvmap_dmabuf_get_drv_data(struct dma_buf *dmabuf,
 		struct device *dev);
 bool is_nvmap_memory_available(size_t size);
+#ifdef NVMAP_LOADABLE_MODULE
+void *nvmap_dma_alloc_attrs(struct device *dev, size_t size,
+			    dma_addr_t *dma_handle, gfp_t flag,
+			    unsigned long attrs);
+void nvmap_dma_free_attrs(struct device *dev, size_t size, void *cpu_addr,
+			  dma_addr_t dma_handle, unsigned long attrs);
+#endif /* NVMAP_LOADABLE_MODULE */
 #endif /* __VIDEO_TEGRA_NVMAP_NVMAP_H */

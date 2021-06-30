@@ -48,6 +48,14 @@
 #include <soc/tegra/virt/syscalls.h>
 #endif
 
+#ifdef NVMAP_LOADABLE_MODULE
+#ifdef CONFIG_ARM_DMA_IOMMU_ALIGNMENT
+#define DMA_BUF_ALIGNMENT CONFIG_ARM_DMA_IOMMU_ALIGNMENT
+#else
+#define DMA_BUF_ALIGNMENT 8
+#endif
+#endif /* NVMAP_LOADABLE_MODULE */
+
 phys_addr_t __weak tegra_carveout_start;
 phys_addr_t __weak tegra_carveout_size;
 
@@ -295,6 +303,180 @@ static int __nvmap_init_dt(struct platform_device *pdev)
 
 	return 0;
 }
+
+#ifdef NVMAP_LOADABLE_MODULE
+static inline struct page **nvmap_kvzalloc_pages(u32 count)
+{
+	if (count * sizeof(struct page *) <= PAGE_SIZE)
+		return kzalloc(count * sizeof(struct page *), GFP_KERNEL);
+	else
+		return vzalloc(count * sizeof(struct page *));
+}
+
+static void *__nvmap_dma_alloc_from_coherent(struct device *dev,
+					     struct dma_coherent_mem_replica *mem,
+					     ssize_t size,
+					     dma_addr_t *dma_handle,
+					     unsigned long attrs,
+					     unsigned long start)
+{
+	int order = get_order(size);
+	unsigned long flags;
+	int pageno, i = 0, j = 0;
+	unsigned int count;
+	unsigned int alloc_size;
+	unsigned long align;
+	void *addr = NULL;
+	struct page **pages = NULL;
+	int do_memset = 0;
+	int *bitmap_nos = NULL;
+
+	if (dma_get_attr(DMA_ATTR_ALLOC_EXACT_SIZE, attrs))
+		count = PAGE_ALIGN(size) >> PAGE_SHIFT;
+	else
+		count = 1 << order;
+
+	if (!count)
+		return NULL;
+
+	bitmap_nos = vzalloc(count * sizeof(int));
+	if ((mem->flags & DMA_MEMORY_NOMAP) &&
+	    dma_get_attr(DMA_ATTR_ALLOC_SINGLE_PAGES, attrs)) {
+		alloc_size = 1;
+		pages = nvmap_kvzalloc_pages(count);
+		if (!pages)
+			return NULL;
+	} else {
+		alloc_size = count;
+	}
+
+	spin_lock_irqsave(&mem->spinlock, flags);
+
+	if (unlikely(size > (mem->size << PAGE_SHIFT)))
+		goto err;
+
+	if ((mem->flags & DMA_MEMORY_NOMAP) &&
+	    dma_get_attr(DMA_ATTR_ALLOC_SINGLE_PAGES, attrs)) {
+		align = 0;
+	} else  {
+		if (order > DMA_BUF_ALIGNMENT)
+			align = (1 << DMA_BUF_ALIGNMENT) - 1;
+		else
+			align = (1 << order) - 1;
+	}
+
+	while (count) {
+		pageno = bitmap_find_next_zero_area(mem->bitmap, mem->size,
+						    start, alloc_size, align);
+
+		if (pageno >= mem->size)
+			goto err;
+
+		count -= alloc_size;
+		if (pages)
+			pages[i++] = pfn_to_page(mem->pfn_base + pageno);
+		bitmap_set(mem->bitmap, pageno, alloc_size);
+		bitmap_nos[j++] = pageno;
+	}
+
+	/*
+	 * Memory was found in the coherent area.
+	 */
+	*dma_handle = mem->device_base + (pageno << PAGE_SHIFT);
+	if (!(mem->flags & DMA_MEMORY_NOMAP)) {
+		addr = mem->virt_base + (pageno << PAGE_SHIFT);
+		do_memset = 1;
+	} else if (dma_get_attr(DMA_ATTR_ALLOC_SINGLE_PAGES, attrs)) {
+		addr = pages;
+	}
+
+	spin_unlock_irqrestore(&mem->spinlock, flags);
+
+	if (do_memset)
+		memset(addr, 0, size);
+
+	kvfree(bitmap_nos);
+	return addr;
+err:
+	while (j--)
+		bitmap_clear(mem->bitmap, bitmap_nos[j], alloc_size);
+
+	spin_unlock_irqrestore(&mem->spinlock, flags);
+	kvfree(pages);
+	kvfree(bitmap_nos);
+	return NULL;
+}
+
+void *nvmap_dma_alloc_attrs(struct device *dev, size_t size,
+			    dma_addr_t *dma_handle,
+			    gfp_t flag, unsigned long attrs)
+{
+	struct dma_coherent_mem_replica *mem;
+
+	if (!dev || !dev->dma_mem)
+		return NULL;
+
+	WARN_ON_ONCE(!dev->coherent_dma_mask);
+
+	mem = (struct dma_coherent_mem_replica *)(dev->dma_mem);
+
+	return __nvmap_dma_alloc_from_coherent(dev, mem, size, dma_handle,
+						   attrs, 0);
+}
+
+void nvmap_dma_free_attrs(struct device *dev, size_t size, void *cpu_addr,
+			  dma_addr_t dma_handle, unsigned long attrs)
+{
+	void *mem_addr;
+	unsigned long flags;
+	unsigned int pageno;
+	struct dma_coherent_mem_replica *mem;
+
+	if (!dev || !dev->dma_mem)
+		return;
+
+	mem = (struct dma_coherent_mem_replica *)(dev->dma_mem);
+	if ((mem->flags & DMA_MEMORY_NOMAP) &&
+	    dma_get_attr(DMA_ATTR_ALLOC_SINGLE_PAGES, attrs)) {
+		struct page **pages = cpu_addr;
+		int i;
+
+		spin_lock_irqsave(&mem->spinlock, flags);
+		for (i = 0; i < (size >> PAGE_SHIFT); i++) {
+			pageno = page_to_pfn(pages[i]) - mem->pfn_base;
+			if (WARN_ONCE(pageno > mem->size,
+				      "invalid pageno:%d\n", pageno))
+				continue;
+			bitmap_clear(mem->bitmap, pageno, 1);
+		}
+		spin_unlock_irqrestore(&mem->spinlock, flags);
+		kvfree(pages);
+		return;
+	}
+
+	if (mem->flags & DMA_MEMORY_NOMAP)
+		mem_addr =  (void *)(uintptr_t)mem->device_base;
+	else
+		mem_addr =  mem->virt_base;
+
+	if (mem && cpu_addr >= mem_addr &&
+	    cpu_addr - mem_addr < mem->size << PAGE_SHIFT) {
+		int page = (cpu_addr - mem_addr) >> PAGE_SHIFT;
+		unsigned long flags;
+		unsigned int count;
+
+		if (DMA_ATTR_ALLOC_EXACT_SIZE & attrs)
+			count = PAGE_ALIGN(size) >> PAGE_SHIFT;
+		else
+			count = 1 << get_order(size);
+
+		spin_lock_irqsave(&mem->spinlock, flags);
+		bitmap_clear(mem->bitmap, page, count);
+		spin_unlock_irqrestore(&mem->spinlock, flags);
+	}
+}
+
+#endif /* NVMAP_LOADABLE_MODULE */
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 static void nvmap_dma_release_coherent_memory(struct dma_coherent_mem_replica *mem)
@@ -595,6 +777,21 @@ int __init nvmap_init(struct platform_device *pdev)
 {
 	int err;
 	struct reserved_mem rmem;
+#ifdef NVMAP_LOADABLE_MODULE
+	struct reserved_mem *rmem2;
+	struct device_node *np = pdev->dev.of_node;
+	struct of_phandle_iterator it;
+
+	of_phandle_iterator_init(&it, np, "memory-region", NULL, 0);
+	while (of_phandle_iterator_next(&it) == 0) {
+		rmem2 = of_reserved_mem_lookup(it.node);
+		if (!rmem2) {
+			pr_err("unable to acquire memory-region\n");
+			return -EINVAL;
+		}
+		nvmap_co_setup(rmem2);
+	}
+#endif /* NVMAP_LOADABLE_MODULE */
 
 	if (pdev->dev.of_node) {
 		err = __nvmap_init_dt(pdev);
