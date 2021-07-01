@@ -1043,6 +1043,7 @@ static const struct kpp_testvec dh_tv_template[] = {
 #else
 #define ECDSA_TEST_VECTORS 4
 #endif
+#define DISABLE_CCM_FIPS_CAVS_TESTS	1
 
 /*
  * ECDSA NIST test vectors from SigGenComponent.txt file from
@@ -19401,7 +19402,9 @@ static const struct aead_testvec aes_ccm_tv_template[] = {
 			  "\x7c\xf9\xbe\xc2\x40\x88\x97\xc6"
 			  "\xba",
 		.clen	= 33,
-	}, {
+	},
+#ifndef DISABLE_CCM_FIPS_CAVS_TESTS
+	{
 		/* This is taken from FIPS CAVS. */
 		.key	= "\x83\xac\x54\x66\xc2\xeb\xe5\x05"
 			  "\x2e\x01\xd1\xfc\x5d\x82\x66\x2e",
@@ -19752,6 +19755,7 @@ static const struct aead_testvec aes_ccm_tv_template[] = {
 			  "\xe1\xd3\x51\xce\x32\x6d\x0c\x5b",
 		.clen	= 48,
 	},
+#endif
 };
 
 /*
