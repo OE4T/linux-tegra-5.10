@@ -298,6 +298,7 @@ struct sdhci_tegra {
 	bool sd_exp_support;
 	bool is_probe_done;
 	bool defer_calib;
+	bool wake_enable_failed;
 };
 
 static void sdhci_tegra_debugfs_init(struct sdhci_host *host);
@@ -3105,6 +3106,8 @@ disable_car_clk:
 static int __maybe_unused sdhci_tegra_suspend(struct device *dev)
 {
 	struct sdhci_host *host = dev_get_drvdata(dev);
+	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
+	struct sdhci_tegra *tegra_host = sdhci_pltfm_priv(pltfm_host);
 	int ret;
 
 	if (pm_runtime_status_suspended(dev)) {
@@ -3126,13 +3129,50 @@ static int __maybe_unused sdhci_tegra_suspend(struct device *dev)
 		return ret;
 	}
 
+	/* Enable wake irq at end of suspend */
+	if (device_may_wakeup(dev)) {
+		ret = enable_irq_wake(tegra_host->cd_irq);
+		if (ret) {
+			dev_err(mmc_dev(host->mmc),
+				"Failed to enable wake irq %u, err %d\n",
+				tegra_host->cd_irq, ret);
+			tegra_host->wake_enable_failed = true;
+		}
+	}
+
 	return tegra_sdhci_set_host_clock(host, false);
 }
 
 static int __maybe_unused sdhci_tegra_resume(struct device *dev)
 {
 	struct sdhci_host *host = dev_get_drvdata(dev);
+	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
+	struct sdhci_tegra *tegra_host = sdhci_pltfm_priv(pltfm_host);
 	int ret;
+
+	if (device_may_wakeup(dev)) {
+		if (!tegra_host->wake_enable_failed) {
+			ret = disable_irq_wake(tegra_host->cd_irq);
+			if (ret)
+				dev_err(mmc_dev(host->mmc),
+					"Failed to disable wakeirq %u,err %d\n",
+					tegra_host->cd_irq, ret);
+		}
+	}
+
+	if (gpio_is_valid(tegra_host->cd_gpio)) {
+		if (!host->mmc->cd_cap_invert)
+			host->mmc->rem_card_present =
+				(mmc_gpio_get_cd(host->mmc) == 0);
+		else
+			host->mmc->rem_card_present =
+				mmc_gpio_get_cd(host->mmc);
+	} else {
+		host->mmc->rem_card_present = true;
+	}
+
+	if (host->mmc->rem_card_present == false)
+		tegra_host->tuning_status = TUNING_STATUS_RETUNE;
 
 	ret = tegra_sdhci_set_host_clock(host, true);
 	if (ret)
