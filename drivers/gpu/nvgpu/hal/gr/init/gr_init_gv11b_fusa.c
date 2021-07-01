@@ -416,8 +416,10 @@ void gv11b_gr_init_sm_id_numbering(struct gk20a *g, u32 gpc, u32 tpc, u32 smid,
 			nvgpu_gr_config_get_sm_info(gr_config, smid) :
 			nvgpu_gr_config_get_redex_sm_info(gr_config, smid));
 #else
-		sm_info = nvgpu_gr_config_get_sm_info(gr_config, smid);
+	sm_info = nvgpu_gr_config_get_sm_info(gr_config, smid);
 #endif
+	nvgpu_assert(sm_info != NULL);
+
 	global_tpc_index =
 		nvgpu_gr_config_get_sm_info_global_tpc_index(sm_info);
 
@@ -492,6 +494,8 @@ int gv11b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
 			sm_info =
 				nvgpu_gr_config_get_sm_info(gr_config, sm_id);
 #endif
+			nvgpu_assert(sm_info != NULL);
+
 			gpc_index =
 				nvgpu_gr_config_get_sm_info_gpc_index(sm_info);
 			tpc_index =
@@ -769,6 +773,7 @@ int gv11b_gr_init_commit_sm_id_programming(struct gk20a *g,
 					config, sm_id) :
 				nvgpu_gr_config_get_redex_sm_info(
 					config, sm_id);
+		nvgpu_assert(sm_info != NULL);
 		tpc_index = nvgpu_gr_config_get_sm_info_tpc_index(sm_info);
 		gpc_index = nvgpu_gr_config_get_sm_info_gpc_index(sm_info);
 

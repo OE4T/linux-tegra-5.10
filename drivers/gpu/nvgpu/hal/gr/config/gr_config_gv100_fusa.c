@@ -370,6 +370,8 @@ static void gv100_gr_config_set_sminfo(struct gk20a *g,
 			u32 index = nvgpu_safe_add_u32(sm_id, sm);
 			struct nvgpu_sm_info *sm_info =
 				nvgpu_gr_config_get_sm_info(gr_config, index);
+			nvgpu_assert(sm_info != NULL);
+
 			nvgpu_gr_config_set_sm_info_gpc_index(sm_info,
 							gpc_table[tpc]);
 			nvgpu_gr_config_set_sm_info_tpc_index(sm_info,
