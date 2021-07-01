@@ -19,6 +19,7 @@
  */
 
 #include "tegra-soc-hwpm-io.h"
+#include "include/hw/t234/hw_addr_map_soc_hwpm.h"
 
 /* FIXME: Auto-generate whitelists */
 struct whitelist perfmon_wlist[] = {
@@ -139,8 +140,8 @@ struct hwpm_resource_aperture vi_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_VI1_PERFMON_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_VI_THI_BASE,
-		.end_pa = NV_ADDRESS_MAP_VI_THI_LIMIT,
+		.start_pa = addr_map_vi_thi_base_r(),
+		.end_pa = addr_map_vi_thi_limit_r(),
 		.fake_registers = NULL,
 		.wlist = vi_thi_wlist,
 		.wlist_size = ARRAY_SIZE(vi_thi_wlist),
@@ -148,8 +149,8 @@ struct hwpm_resource_aperture vi_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_VI2_THI_BASE,
-		.end_pa = NV_ADDRESS_MAP_VI2_THI_LIMIT,
+		.start_pa = addr_map_vi2_thi_base_r(),
+		.end_pa = addr_map_vi2_thi_limit_r(),
 		.fake_registers = NULL,
 		.wlist = vi2_thi_wlist,
 		.wlist_size = ARRAY_SIZE(vi2_thi_wlist),
@@ -179,8 +180,8 @@ struct hwpm_resource_aperture isp_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_ISP0_PERFMON_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_ISP_THI_BASE,
-		.end_pa = NV_ADDRESS_MAP_ISP_THI_LIMIT,
+		.start_pa = addr_map_isp_thi_base_r(),
+		.end_pa = addr_map_isp_thi_limit_r(),
 		.fake_registers = NULL,
 		.wlist = isp_thi_wlist,
 		.wlist_size = ARRAY_SIZE(isp_thi_wlist),
@@ -211,8 +212,8 @@ struct hwpm_resource_aperture vic_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_VICA0_PERFMON_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_VIC_BASE,
-		.end_pa = NV_ADDRESS_MAP_VIC_LIMIT,
+		.start_pa = addr_map_vic_base_r(),
+		.end_pa = addr_map_vic_limit_r(),
 		.fake_registers = NULL,
 		.wlist = vic_wlist,
 		.wlist_size = ARRAY_SIZE(vic_wlist),
@@ -241,8 +242,8 @@ struct hwpm_resource_aperture ofa_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_OFAA0_PERFMON_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_OFA_BASE,
-		.end_pa = NV_ADDRESS_MAP_OFA_LIMIT,
+		.start_pa = addr_map_ofa_base_r(),
+		.end_pa = addr_map_ofa_limit_r(),
 		.fake_registers = NULL,
 		.wlist = ofa_wlist,
 		.wlist_size = ARRAY_SIZE(ofa_wlist),
@@ -292,8 +293,8 @@ struct hwpm_resource_aperture pva_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_PVAC0_PERFMON_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_PVA0_PM_BASE,
-		.end_pa = NV_ADDRESS_MAP_PVA0_PM_LIMIT,
+		.start_pa = addr_map_pva0_pm_base_r(),
+		.end_pa = addr_map_pva0_pm_limit_r(),
 		.fake_registers = NULL,
 		.wlist = pva0_pm_wlist,
 		.wlist_size = ARRAY_SIZE(pva0_pm_wlist),
@@ -333,8 +334,8 @@ struct hwpm_resource_aperture nvdla_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_NVDLAB1_PERFMON_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_NVDLA0_BASE,
-		.end_pa = NV_ADDRESS_MAP_NVDLA0_LIMIT,
+		.start_pa = addr_map_nvdla0_base_r(),
+		.end_pa = addr_map_nvdla0_limit_r(),
 		.fake_registers = NULL,
 		.wlist = nvdla_wlist,
 		.wlist_size = ARRAY_SIZE(nvdla_wlist),
@@ -342,8 +343,8 @@ struct hwpm_resource_aperture nvdla_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_NVDLA1_BASE,
-		.end_pa = NV_ADDRESS_MAP_NVDLA1_LIMIT,
+		.start_pa = addr_map_nvdla1_base_r(),
+		.end_pa = addr_map_nvdla1_limit_r(),
 		.fake_registers = NULL,
 		.wlist = nvdla_wlist,
 		.wlist_size = ARRAY_SIZE(nvdla_wlist),
@@ -394,8 +395,8 @@ struct hwpm_resource_aperture mgbe_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_MGBE3_PERFMON_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MGBE0_BASE,
-		.end_pa = NV_ADDRESS_MAP_MGBE0_LIMIT,
+		.start_pa = addr_map_mgbe0_base_r(),
+		.end_pa = addr_map_mgbe0_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mgbe_wlist,
 		.wlist_size = ARRAY_SIZE(mgbe_wlist),
@@ -403,8 +404,8 @@ struct hwpm_resource_aperture mgbe_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MGBE1_BASE,
-		.end_pa = NV_ADDRESS_MAP_MGBE1_LIMIT,
+		.start_pa = addr_map_mgbe1_base_r(),
+		.end_pa = addr_map_mgbe1_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mgbe_wlist,
 		.wlist_size = ARRAY_SIZE(mgbe_wlist),
@@ -412,8 +413,8 @@ struct hwpm_resource_aperture mgbe_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MGBE2_BASE,
-		.end_pa = NV_ADDRESS_MAP_MGBE2_LIMIT,
+		.start_pa = addr_map_mgbe2_base_r(),
+		.end_pa = addr_map_mgbe2_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mgbe_wlist,
 		.wlist_size = ARRAY_SIZE(mgbe_wlist),
@@ -421,8 +422,8 @@ struct hwpm_resource_aperture mgbe_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MGBE3_BASE,
-		.end_pa = NV_ADDRESS_MAP_MGBE3_LIMIT,
+		.start_pa = addr_map_mgbe3_base_r(),
+		.end_pa = addr_map_mgbe3_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mgbe_wlist,
 		.wlist_size = ARRAY_SIZE(mgbe_wlist),
@@ -463,8 +464,8 @@ struct hwpm_resource_aperture nvdec_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_NVDECA0_PERFMON_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_NVDEC_BASE,
-		.end_pa = NV_ADDRESS_MAP_NVDEC_LIMIT,
+		.start_pa = addr_map_nvdec_base_r(),
+		.end_pa = addr_map_nvdec_limit_r(),
 		.fake_registers = NULL,
 		.wlist = nvdec_wlist,
 		.wlist_size = ARRAY_SIZE(nvdec_wlist),
@@ -490,8 +491,8 @@ struct hwpm_resource_aperture nvenc_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_NVENCA0_PERFMON_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_NVENC_BASE,
-		.end_pa = NV_ADDRESS_MAP_NVENC_LIMIT,
+		.start_pa = addr_map_nvenc_base_r(),
+		.end_pa = addr_map_nvenc_limit_r(),
 		.fake_registers = NULL,
 		.wlist = nvenc_wlist,
 		.wlist_size = ARRAY_SIZE(nvenc_wlist),
@@ -605,8 +606,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_PCIE10_PERFMON_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_PCIE_C0_CTL_BASE,
-		.end_pa = NV_ADDRESS_MAP_PCIE_C0_CTL_LIMIT,
+		.start_pa = addr_map_pcie_c0_ctl_base_r(),
+		.end_pa = addr_map_pcie_c0_ctl_limit_r(),
 		.fake_registers = NULL,
 		.wlist = pcie_ctl_wlist,
 		.wlist_size = ARRAY_SIZE(pcie_ctl_wlist),
@@ -614,8 +615,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_PCIE_C1_CTL_BASE,
-		.end_pa = NV_ADDRESS_MAP_PCIE_C1_CTL_LIMIT,
+		.start_pa = addr_map_pcie_c1_ctl_base_r(),
+		.end_pa = addr_map_pcie_c1_ctl_limit_r(),
 		.fake_registers = NULL,
 		.wlist = pcie_ctl_wlist,
 		.wlist_size = ARRAY_SIZE(pcie_ctl_wlist),
@@ -623,8 +624,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_PCIE_C2_CTL_BASE,
-		.end_pa = NV_ADDRESS_MAP_PCIE_C2_CTL_LIMIT,
+		.start_pa = addr_map_pcie_c2_ctl_base_r(),
+		.end_pa = addr_map_pcie_c2_ctl_limit_r(),
 		.fake_registers = NULL,
 		.wlist = pcie_ctl_wlist,
 		.wlist_size = ARRAY_SIZE(pcie_ctl_wlist),
@@ -632,8 +633,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_PCIE_C3_CTL_BASE,
-		.end_pa = NV_ADDRESS_MAP_PCIE_C3_CTL_LIMIT,
+		.start_pa = addr_map_pcie_c3_ctl_base_r(),
+		.end_pa = addr_map_pcie_c3_ctl_limit_r(),
 		.fake_registers = NULL,
 		.wlist = pcie_ctl_wlist,
 		.wlist_size = ARRAY_SIZE(pcie_ctl_wlist),
@@ -641,8 +642,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_PCIE_C4_CTL_BASE,
-		.end_pa = NV_ADDRESS_MAP_PCIE_C4_CTL_LIMIT,
+		.start_pa = addr_map_pcie_c4_ctl_base_r(),
+		.end_pa = addr_map_pcie_c4_ctl_limit_r(),
 		.fake_registers = NULL,
 		.wlist = pcie_ctl_wlist,
 		.wlist_size = ARRAY_SIZE(pcie_ctl_wlist),
@@ -650,8 +651,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_PCIE_C5_CTL_BASE,
-		.end_pa = NV_ADDRESS_MAP_PCIE_C5_CTL_LIMIT,
+		.start_pa = addr_map_pcie_c5_ctl_base_r(),
+		.end_pa = addr_map_pcie_c5_ctl_limit_r(),
 		.fake_registers = NULL,
 		.wlist = pcie_ctl_wlist,
 		.wlist_size = ARRAY_SIZE(pcie_ctl_wlist),
@@ -659,8 +660,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_PCIE_C6_CTL_BASE,
-		.end_pa = NV_ADDRESS_MAP_PCIE_C6_CTL_LIMIT,
+		.start_pa = addr_map_pcie_c6_ctl_base_r(),
+		.end_pa = addr_map_pcie_c6_ctl_limit_r(),
 		.fake_registers = NULL,
 		.wlist = pcie_ctl_wlist,
 		.wlist_size = ARRAY_SIZE(pcie_ctl_wlist),
@@ -668,8 +669,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_PCIE_C7_CTL_BASE,
-		.end_pa = NV_ADDRESS_MAP_PCIE_C7_CTL_LIMIT,
+		.start_pa = addr_map_pcie_c7_ctl_base_r(),
+		.end_pa = addr_map_pcie_c7_ctl_limit_r(),
 		.fake_registers = NULL,
 		.wlist = pcie_ctl_wlist,
 		.wlist_size = ARRAY_SIZE(pcie_ctl_wlist),
@@ -677,8 +678,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_PCIE_C8_CTL_BASE,
-		.end_pa = NV_ADDRESS_MAP_PCIE_C8_CTL_LIMIT,
+		.start_pa = addr_map_pcie_c8_ctl_base_r(),
+		.end_pa = addr_map_pcie_c8_ctl_limit_r(),
 		.fake_registers = NULL,
 		.wlist = pcie_ctl_wlist,
 		.wlist_size = ARRAY_SIZE(pcie_ctl_wlist),
@@ -686,8 +687,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_PCIE_C9_CTL_BASE,
-		.end_pa = NV_ADDRESS_MAP_PCIE_C9_CTL_LIMIT,
+		.start_pa = addr_map_pcie_c9_ctl_base_r(),
+		.end_pa = addr_map_pcie_c9_ctl_limit_r(),
 		.fake_registers = NULL,
 		.wlist = pcie_ctl_wlist,
 		.wlist_size = ARRAY_SIZE(pcie_ctl_wlist),
@@ -695,8 +696,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_PCIE_C10_CTL_BASE,
-		.end_pa = NV_ADDRESS_MAP_PCIE_C10_CTL_LIMIT,
+		.start_pa = addr_map_pcie_c10_ctl_base_r(),
+		.end_pa = addr_map_pcie_c10_ctl_limit_r(),
 		.fake_registers = NULL,
 		.wlist = pcie_ctl_wlist,
 		.wlist_size = ARRAY_SIZE(pcie_ctl_wlist),
@@ -721,8 +722,8 @@ struct hwpm_resource_aperture display_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_NVDISPLAY0_PERFMON_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_DISP_BASE,
-		.end_pa = NV_ADDRESS_MAP_DISP_LIMIT,
+		.start_pa = addr_map_disp_base_r(),
+		.end_pa = addr_map_disp_limit_r(),
 		.fake_registers = NULL,
 		.wlist = disp_wlist,
 		.wlist_size = ARRAY_SIZE(disp_wlist),
@@ -747,8 +748,8 @@ struct whitelist mc_res_mss_channel_wlist[] = {
 };
 struct hwpm_resource_aperture mss_channel_map[] = {
 	{
-		.start_pa = NV_ADDRESS_MAP_MC0_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC0_LIMIT,
+		.start_pa = addr_map_mc0_base_r(),
+		.end_pa = addr_map_mc0_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -756,8 +757,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MC1_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC1_LIMIT,
+		.start_pa = addr_map_mc1_base_r(),
+		.end_pa = addr_map_mc1_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -765,8 +766,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MC2_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC2_LIMIT,
+		.start_pa = addr_map_mc2_base_r(),
+		.end_pa = addr_map_mc2_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -774,8 +775,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MC3_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC3_LIMIT,
+		.start_pa = addr_map_mc3_base_r(),
+		.end_pa = addr_map_mc3_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -783,8 +784,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MC4_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC4_LIMIT,
+		.start_pa = addr_map_mc4_base_r(),
+		.end_pa = addr_map_mc4_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -792,8 +793,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MC5_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC5_LIMIT,
+		.start_pa = addr_map_mc5_base_r(),
+		.end_pa = addr_map_mc5_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -801,8 +802,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MC6_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC6_LIMIT,
+		.start_pa = addr_map_mc6_base_r(),
+		.end_pa = addr_map_mc6_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -810,8 +811,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MC7_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC7_LIMIT,
+		.start_pa = addr_map_mc7_base_r(),
+		.end_pa = addr_map_mc7_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -819,8 +820,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MC8_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC8_LIMIT,
+		.start_pa = addr_map_mc8_base_r(),
+		.end_pa = addr_map_mc8_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -828,8 +829,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MC9_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC9_LIMIT,
+		.start_pa = addr_map_mc9_base_r(),
+		.end_pa = addr_map_mc9_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -837,8 +838,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MC10_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC10_LIMIT,
+		.start_pa = addr_map_mc10_base_r(),
+		.end_pa = addr_map_mc10_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -846,8 +847,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MC11_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC11_LIMIT,
+		.start_pa = addr_map_mc11_base_r(),
+		.end_pa = addr_map_mc11_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -855,8 +856,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MC12_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC12_LIMIT,
+		.start_pa = addr_map_mc12_base_r(),
+		.end_pa = addr_map_mc12_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -864,8 +865,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MC13_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC13_LIMIT,
+		.start_pa = addr_map_mc13_base_r(),
+		.end_pa = addr_map_mc13_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -873,8 +874,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MC14_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC14_LIMIT,
+		.start_pa = addr_map_mc14_base_r(),
+		.end_pa = addr_map_mc14_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -882,8 +883,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MC15_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC15_LIMIT,
+		.start_pa = addr_map_mc15_base_r(),
+		.end_pa = addr_map_mc15_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -1042,8 +1043,8 @@ struct whitelist mss_nvlink_wlist[] = {
 };
 struct hwpm_resource_aperture mss_gpu_hub_map[] = {
 	{
-		.start_pa = NV_ADDRESS_MAP_MSS_NVLINK_1_BASE,
-		.end_pa = NV_ADDRESS_MAP_MSS_NVLINK_1_LIMIT,
+		.start_pa = addr_map_mss_nvlink_1_base_r(),
+		.end_pa = addr_map_mss_nvlink_1_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mss_nvlink_wlist,
 		.wlist_size = ARRAY_SIZE(mss_nvlink_wlist),
@@ -1051,8 +1052,8 @@ struct hwpm_resource_aperture mss_gpu_hub_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MSS_NVLINK_2_BASE,
-		.end_pa = NV_ADDRESS_MAP_MSS_NVLINK_2_LIMIT,
+		.start_pa = addr_map_mss_nvlink_2_base_r(),
+		.end_pa = addr_map_mss_nvlink_2_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mss_nvlink_wlist,
 		.wlist_size = ARRAY_SIZE(mss_nvlink_wlist),
@@ -1060,8 +1061,8 @@ struct hwpm_resource_aperture mss_gpu_hub_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MSS_NVLINK_3_BASE,
-		.end_pa = NV_ADDRESS_MAP_MSS_NVLINK_3_LIMIT,
+		.start_pa = addr_map_mss_nvlink_3_base_r(),
+		.end_pa = addr_map_mss_nvlink_3_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mss_nvlink_wlist,
 		.wlist_size = ARRAY_SIZE(mss_nvlink_wlist),
@@ -1069,8 +1070,8 @@ struct hwpm_resource_aperture mss_gpu_hub_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MSS_NVLINK_4_BASE,
-		.end_pa = NV_ADDRESS_MAP_MSS_NVLINK_4_LIMIT,
+		.start_pa = addr_map_mss_nvlink_4_base_r(),
+		.end_pa = addr_map_mss_nvlink_4_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mss_nvlink_wlist,
 		.wlist_size = ARRAY_SIZE(mss_nvlink_wlist),
@@ -1078,8 +1079,8 @@ struct hwpm_resource_aperture mss_gpu_hub_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MSS_NVLINK_5_BASE,
-		.end_pa = NV_ADDRESS_MAP_MSS_NVLINK_5_LIMIT,
+		.start_pa = addr_map_mss_nvlink_5_base_r(),
+		.end_pa = addr_map_mss_nvlink_5_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mss_nvlink_wlist,
 		.wlist_size = ARRAY_SIZE(mss_nvlink_wlist),
@@ -1087,8 +1088,8 @@ struct hwpm_resource_aperture mss_gpu_hub_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MSS_NVLINK_6_BASE,
-		.end_pa = NV_ADDRESS_MAP_MSS_NVLINK_6_LIMIT,
+		.start_pa = addr_map_mss_nvlink_6_base_r(),
+		.end_pa = addr_map_mss_nvlink_6_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mss_nvlink_wlist,
 		.wlist_size = ARRAY_SIZE(mss_nvlink_wlist),
@@ -1096,8 +1097,8 @@ struct hwpm_resource_aperture mss_gpu_hub_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MSS_NVLINK_7_BASE,
-		.end_pa = NV_ADDRESS_MAP_MSS_NVLINK_7_LIMIT,
+		.start_pa = addr_map_mss_nvlink_7_base_r(),
+		.end_pa = addr_map_mss_nvlink_7_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mss_nvlink_wlist,
 		.wlist_size = ARRAY_SIZE(mss_nvlink_wlist),
@@ -1105,8 +1106,8 @@ struct hwpm_resource_aperture mss_gpu_hub_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MSS_NVLINK_8_BASE,
-		.end_pa = NV_ADDRESS_MAP_MSS_NVLINK_8_LIMIT,
+		.start_pa = addr_map_mss_nvlink_8_base_r(),
+		.end_pa = addr_map_mss_nvlink_8_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mss_nvlink_wlist,
 		.wlist_size = ARRAY_SIZE(mss_nvlink_wlist),
@@ -1135,8 +1136,8 @@ struct whitelist mc8_res_mss_iso_niso_hub_wlist[] = {
 };
 struct hwpm_resource_aperture mss_iso_niso_hub_map[] = {
 	{
-		.start_pa = NV_ADDRESS_MAP_MC0_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC0_LIMIT,
+		.start_pa = addr_map_mc0_base_r(),
+		.end_pa = addr_map_mc0_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc0to7_res_mss_iso_niso_hub_wlist,
 		.wlist_size = ARRAY_SIZE(mc0to7_res_mss_iso_niso_hub_wlist),
@@ -1144,8 +1145,8 @@ struct hwpm_resource_aperture mss_iso_niso_hub_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MC1_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC1_LIMIT,
+		.start_pa = addr_map_mc1_base_r(),
+		.end_pa = addr_map_mc1_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc0to7_res_mss_iso_niso_hub_wlist,
 		.wlist_size = ARRAY_SIZE(mc0to7_res_mss_iso_niso_hub_wlist),
@@ -1153,8 +1154,8 @@ struct hwpm_resource_aperture mss_iso_niso_hub_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MC2_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC2_LIMIT,
+		.start_pa = addr_map_mc2_base_r(),
+		.end_pa = addr_map_mc2_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc0to7_res_mss_iso_niso_hub_wlist,
 		.wlist_size = ARRAY_SIZE(mc0to7_res_mss_iso_niso_hub_wlist),
@@ -1162,8 +1163,8 @@ struct hwpm_resource_aperture mss_iso_niso_hub_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MC3_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC3_LIMIT,
+		.start_pa = addr_map_mc3_base_r(),
+		.end_pa = addr_map_mc3_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc0to7_res_mss_iso_niso_hub_wlist,
 		.wlist_size = ARRAY_SIZE(mc0to7_res_mss_iso_niso_hub_wlist),
@@ -1171,8 +1172,8 @@ struct hwpm_resource_aperture mss_iso_niso_hub_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MC4_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC4_LIMIT,
+		.start_pa = addr_map_mc4_base_r(),
+		.end_pa = addr_map_mc4_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc0to7_res_mss_iso_niso_hub_wlist,
 		.wlist_size = ARRAY_SIZE(mc0to7_res_mss_iso_niso_hub_wlist),
@@ -1180,8 +1181,8 @@ struct hwpm_resource_aperture mss_iso_niso_hub_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MC5_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC5_LIMIT,
+		.start_pa = addr_map_mc5_base_r(),
+		.end_pa = addr_map_mc5_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc0to7_res_mss_iso_niso_hub_wlist,
 		.wlist_size = ARRAY_SIZE(mc0to7_res_mss_iso_niso_hub_wlist),
@@ -1189,8 +1190,8 @@ struct hwpm_resource_aperture mss_iso_niso_hub_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MC6_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC6_LIMIT,
+		.start_pa = addr_map_mc6_base_r(),
+		.end_pa = addr_map_mc6_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc0to7_res_mss_iso_niso_hub_wlist,
 		.wlist_size = ARRAY_SIZE(mc0to7_res_mss_iso_niso_hub_wlist),
@@ -1198,8 +1199,8 @@ struct hwpm_resource_aperture mss_iso_niso_hub_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MC7_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC7_LIMIT,
+		.start_pa = addr_map_mc7_base_r(),
+		.end_pa = addr_map_mc7_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc0to7_res_mss_iso_niso_hub_wlist,
 		.wlist_size = ARRAY_SIZE(mc0to7_res_mss_iso_niso_hub_wlist),
@@ -1207,8 +1208,8 @@ struct hwpm_resource_aperture mss_iso_niso_hub_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MC8_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC8_LIMIT,
+		.start_pa = addr_map_mc8_base_r(),
+		.end_pa = addr_map_mc8_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc8_res_mss_iso_niso_hub_wlist,
 		.wlist_size = ARRAY_SIZE(mc8_res_mss_iso_niso_hub_wlist),
@@ -1254,8 +1255,8 @@ struct whitelist mc2to7_res_mss_mcf_wlist[] = {
 };
 struct hwpm_resource_aperture mss_mcf_map[] = {
 	{
-		.start_pa = NV_ADDRESS_MAP_MC0_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC0_LIMIT,
+		.start_pa = addr_map_mc0_base_r(),
+		.end_pa = addr_map_mc0_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc0to1_res_mss_mcf_wlist,
 		.wlist_size = ARRAY_SIZE(mc0to1_res_mss_mcf_wlist),
@@ -1263,8 +1264,8 @@ struct hwpm_resource_aperture mss_mcf_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MC1_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC1_LIMIT,
+		.start_pa = addr_map_mc1_base_r(),
+		.end_pa = addr_map_mc1_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc0to1_res_mss_mcf_wlist,
 		.wlist_size = ARRAY_SIZE(mc0to1_res_mss_mcf_wlist),
@@ -1272,8 +1273,8 @@ struct hwpm_resource_aperture mss_mcf_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MC2_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC2_LIMIT,
+		.start_pa = addr_map_mc2_base_r(),
+		.end_pa = addr_map_mc2_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc2to7_res_mss_mcf_wlist,
 		.wlist_size = ARRAY_SIZE(mc2to7_res_mss_mcf_wlist),
@@ -1281,8 +1282,8 @@ struct hwpm_resource_aperture mss_mcf_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MC3_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC3_LIMIT,
+		.start_pa = addr_map_mc3_base_r(),
+		.end_pa = addr_map_mc3_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc2to7_res_mss_mcf_wlist,
 		.wlist_size = ARRAY_SIZE(mc2to7_res_mss_mcf_wlist),
@@ -1290,8 +1291,8 @@ struct hwpm_resource_aperture mss_mcf_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MC4_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC4_LIMIT,
+		.start_pa = addr_map_mc4_base_r(),
+		.end_pa = addr_map_mc4_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc2to7_res_mss_mcf_wlist,
 		.wlist_size = ARRAY_SIZE(mc2to7_res_mss_mcf_wlist),
@@ -1299,8 +1300,8 @@ struct hwpm_resource_aperture mss_mcf_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MC5_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC5_LIMIT,
+		.start_pa = addr_map_mc5_base_r(),
+		.end_pa = addr_map_mc5_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc2to7_res_mss_mcf_wlist,
 		.wlist_size = ARRAY_SIZE(mc2to7_res_mss_mcf_wlist),
@@ -1308,8 +1309,8 @@ struct hwpm_resource_aperture mss_mcf_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MC6_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC6_LIMIT,
+		.start_pa = addr_map_mc6_base_r(),
+		.end_pa = addr_map_mc6_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc2to7_res_mss_mcf_wlist,
 		.wlist_size = ARRAY_SIZE(mc2to7_res_mss_mcf_wlist),
@@ -1317,8 +1318,8 @@ struct hwpm_resource_aperture mss_mcf_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MC7_BASE,
-		.end_pa = NV_ADDRESS_MAP_MC7_LIMIT,
+		.start_pa = addr_map_mc7_base_r(),
+		.end_pa = addr_map_mc7_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc2to7_res_mss_mcf_wlist,
 		.wlist_size = ARRAY_SIZE(mc2to7_res_mss_mcf_wlist),
@@ -1326,8 +1327,8 @@ struct hwpm_resource_aperture mss_mcf_map[] = {
 		.dt_aperture = TEGRA_SOC_HWPM_INVALID_DT,
 	},
 	{
-		.start_pa = NV_ADDRESS_MAP_MCB_BASE,
-		.end_pa = NV_ADDRESS_MAP_MCB_LIMIT,
+		.start_pa = addr_map_mcb_base_r(),
+		.end_pa = addr_map_mcb_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mcb_res_mss_mcf_wlist,
 		.wlist_size = ARRAY_SIZE(mcb_res_mss_mcf_wlist),
@@ -1739,8 +1740,7 @@ static void fake_writel(struct tegra_soc_hwpm *hwpm,
 
 /* Read a HWPM (PERFMON, PMA, or RTR) register */
 u32 hwpm_readl(struct tegra_soc_hwpm *hwpm,
-	       enum tegra_soc_hwpm_dt_aperture dt_aperture,
-	       u32 reg)
+		enum tegra_soc_hwpm_dt_aperture dt_aperture, u32 reg_offset)
 {
 	if ((dt_aperture < 0) ||
 	    (dt_aperture >= TEGRA_SOC_HWPM_NUM_DT_APERTURES)) {
@@ -1748,8 +1748,8 @@ u32 hwpm_readl(struct tegra_soc_hwpm *hwpm,
 		return 0;
 	}
 
-	tegra_soc_hwpm_dbg("reg read: dt_aperture(%d), reg(0x%x)",
-			  dt_aperture, reg);
+	tegra_soc_hwpm_dbg("reg read: dt_aperture(%d), reg_offset(0x%x)",
+			dt_aperture, reg_offset);
 
 	if (hwpm->fake_registers_enabled) {
 		u64 base_pa = 0;
@@ -1757,30 +1757,30 @@ u32 hwpm_readl(struct tegra_soc_hwpm *hwpm,
 		if (IS_PERFMON(dt_aperture))
 			base_pa = PERFMON_BASE(dt_aperture);
 		else if (dt_aperture == TEGRA_SOC_HWPM_PMA_DT)
-			base_pa = NV_ADDRESS_MAP_PMA_BASE;
+			base_pa = addr_map_pma_base_r();
 		else
-			base_pa = NV_ADDRESS_MAP_RTR_BASE;
+			base_pa = addr_map_rtr_base_r();
 
-		return fake_readl(hwpm, base_pa + reg);
+		return fake_readl(hwpm, base_pa + reg_offset);
 	} else {
-		return readl(hwpm->dt_apertures[dt_aperture] + reg);
+		return readl(hwpm->dt_apertures[dt_aperture] + reg_offset);
 	}
 }
 
 /* Write a HWPM (PERFMON, PMA, or RTR) register */
 void hwpm_writel(struct tegra_soc_hwpm *hwpm,
-		 enum tegra_soc_hwpm_dt_aperture dt_aperture,
-		 u32 reg,
-		 u32 val)
+		enum tegra_soc_hwpm_dt_aperture dt_aperture,
+		u32 reg_offset, u32 val)
 {
 	if ((dt_aperture < 0) ||
-	    (dt_aperture >= TEGRA_SOC_HWPM_NUM_DT_APERTURES)) {
+		(dt_aperture >= TEGRA_SOC_HWPM_NUM_DT_APERTURES)) {
 		tegra_soc_hwpm_err("Invalid dt aperture(%d)", dt_aperture);
 		return;
 	}
 
-	tegra_soc_hwpm_dbg("reg write: dt_aperture(%d), reg(0x%x), val(0x%x)",
-			dt_aperture, reg, val);
+	tegra_soc_hwpm_dbg(
+		"reg write: dt_aperture(%d), reg_offset(0x%x), val(0x%x)",
+		dt_aperture, reg_offset, val);
 
 	if (hwpm->fake_registers_enabled) {
 		u64 base_pa = 0;
@@ -1788,13 +1788,13 @@ void hwpm_writel(struct tegra_soc_hwpm *hwpm,
 		if (IS_PERFMON(dt_aperture))
 			base_pa = PERFMON_BASE(dt_aperture);
 		else if (dt_aperture == TEGRA_SOC_HWPM_PMA_DT)
-			base_pa = NV_ADDRESS_MAP_PMA_BASE;
+			base_pa = addr_map_pma_base_r();
 		else
-			base_pa = NV_ADDRESS_MAP_RTR_BASE;
+			base_pa = addr_map_rtr_base_r();
 
-		fake_writel(hwpm, base_pa + reg, val);
+		fake_writel(hwpm, base_pa + reg_offset, val);
 	} else {
-		writel(val, hwpm->dt_apertures[dt_aperture] + reg);
+		writel(val, hwpm->dt_apertures[dt_aperture] + reg_offset);
 	}
 }
 
@@ -1867,9 +1867,8 @@ u32 ioctl_readl(struct tegra_soc_hwpm *hwpm,
 	if (aperture->is_ip) {
 		reg_val = ip_readl(hwpm, addr);
 	} else {
-		reg_val = hwpm_readl(hwpm,
-				     aperture->dt_aperture,
-				     addr - aperture->start_pa);
+		reg_val = hwpm_readl(hwpm, aperture->dt_aperture,
+				addr - aperture->start_pa);
 	}
 	return reg_val;
 }
@@ -1891,10 +1890,8 @@ void ioctl_writel(struct tegra_soc_hwpm *hwpm,
 	if (aperture->is_ip) {
 		ip_writel(hwpm, addr, val);
 	} else {
-		hwpm_writel(hwpm,
-			    aperture->dt_aperture,
-			    addr - aperture->start_pa,
-			    val);
+		hwpm_writel(hwpm, aperture->dt_aperture,
+			addr - aperture->start_pa, val);
 	}
 }
 

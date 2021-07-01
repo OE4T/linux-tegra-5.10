@@ -22,25 +22,6 @@
 
 #include "tegra-soc-hwpm.h"
 
-/* Mask and shift field_val so it can be written to a register */
-#define HWPM_REG_F(field, field_val)	\
-				(((field_val) << field##_SHIFT) & field##_MASK)
-
-/* Extract a field's value from a register */
-#define HWPM_REG_V(field, reg_val)	\
-				(((reg_val) & field##_MASK) >> field##_SHIFT)
-
-/*
- * Check if field_val is set in reg_val. field_val is already masked and
- * shifted to the correct location.
- */
-#define HWPM_REG_CHECK(reg_val, field_mask, field_val)	\
-		(((reg_val) & (field_mask)) == ((field_val) & (field_mask)))
-
-/* Mask and shift field_val. Then check if field_val is set in reg_val. */
-#define HWPM_REG_CHECK_F(reg_val, field, field_val)	\
-		(((reg_val) & field##_MASK) == HWPM_REG_F(field, (field_val)))
-
 struct whitelist {
 	u64 reg;
 	bool zero_in_init;
@@ -91,12 +72,11 @@ struct hwpm_resource_aperture *find_hwpm_aperture(struct tegra_soc_hwpm *hwpm,
 						  u64 phys_addr,
 						  bool check_reservation);
 u32 hwpm_readl(struct tegra_soc_hwpm *hwpm,
-	       enum tegra_soc_hwpm_dt_aperture dt_aperture,
-	       u32 reg);
+		enum tegra_soc_hwpm_dt_aperture dt_aperture,
+		u32 reg_offset);
 void hwpm_writel(struct tegra_soc_hwpm *hwpm,
-		 enum tegra_soc_hwpm_dt_aperture dt_aperture,
-		 u32 reg,
-		 u32 val);
+		enum tegra_soc_hwpm_dt_aperture dt_aperture,
+		u32 reg_offset, u32 val);
 u32 ip_readl(struct tegra_soc_hwpm *hwpm, u64 phys_addr);
 void ip_writel(struct tegra_soc_hwpm *hwpm, u64 phys_addr, u32 val);
 u32 ioctl_readl(struct tegra_soc_hwpm *hwpm,
@@ -114,23 +94,5 @@ int reg_rmw(struct tegra_soc_hwpm *hwpm,
 	    u32 field_val,
 	    bool is_ioctl,
 	    bool is_ip);
-#define DRIVER_REG_RMW(hwpm, dt_aperture, reg, field, field_val, is_ip)		\
-					reg_rmw(hwpm,				\
-						NULL,				\
-						dt_aperture,			\
-						reg,				\
-						field##_MASK,			\
-						HWPM_REG_F(field, field_val),	\
-						false,				\
-						is_ip)
-#define IOCTL_REG_RMW(hwpm, aperture, addr, field_mask, field_val)		\
-					reg_rmw(hwpm,				\
-						aperture,			\
-						aperture->dt_aperture,		\
-						addr,				\
-						field_mask,			\
-						field_val,			\
-						true,				\
-						aperture->is_ip)
 
 #endif /* TEGRA_SOC_HWPM_IO_H */

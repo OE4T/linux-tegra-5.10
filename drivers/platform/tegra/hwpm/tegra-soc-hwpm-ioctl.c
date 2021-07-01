@@ -31,6 +31,10 @@
 
 #include <uapi/linux/tegra-soc-hwpm-uapi.h>
 
+#include "include/hw/t234/hw_pmasys_soc_hwpm.h"
+#include "include/hw/t234/hw_pmmsys_soc_hwpm.h"
+#include "include/hw/t234/hw_addr_map_soc_hwpm.h"
+
 #include "tegra-soc-hwpm.h"
 #include "tegra-soc-hwpm-io.h"
 
@@ -139,37 +143,37 @@ static u32 **get_mc_fake_regs(struct tegra_soc_hwpm *hwpm,
 	}
 
 	switch (aperture->start_pa) {
-	case NV_ADDRESS_MAP_MC0_BASE:
+	case addr_map_mc0_base_r():
 		return &mc_fake_regs[0];
-	case NV_ADDRESS_MAP_MC1_BASE:
+	case addr_map_mc1_base_r():
 		return &mc_fake_regs[1];
-	case NV_ADDRESS_MAP_MC2_BASE:
+	case addr_map_mc2_base_r():
 		return &mc_fake_regs[2];
-	case NV_ADDRESS_MAP_MC3_BASE:
+	case addr_map_mc3_base_r():
 		return &mc_fake_regs[3];
-	case NV_ADDRESS_MAP_MC4_BASE:
+	case addr_map_mc4_base_r():
 		return &mc_fake_regs[4];
-	case NV_ADDRESS_MAP_MC5_BASE:
+	case addr_map_mc5_base_r():
 		return &mc_fake_regs[5];
-	case NV_ADDRESS_MAP_MC6_BASE:
+	case addr_map_mc6_base_r():
 		return &mc_fake_regs[6];
-	case NV_ADDRESS_MAP_MC7_BASE:
+	case addr_map_mc7_base_r():
 		return &mc_fake_regs[7];
-	case NV_ADDRESS_MAP_MC8_BASE:
+	case addr_map_mc8_base_r():
 		return &mc_fake_regs[8];
-	case NV_ADDRESS_MAP_MC9_BASE:
+	case addr_map_mc9_base_r():
 		return &mc_fake_regs[9];
-	case NV_ADDRESS_MAP_MC10_BASE:
+	case addr_map_mc10_base_r():
 		return &mc_fake_regs[10];
-	case NV_ADDRESS_MAP_MC11_BASE:
+	case addr_map_mc11_base_r():
 		return &mc_fake_regs[11];
-	case NV_ADDRESS_MAP_MC12_BASE:
+	case addr_map_mc12_base_r():
 		return &mc_fake_regs[12];
-	case NV_ADDRESS_MAP_MC13_BASE:
+	case addr_map_mc13_base_r():
 		return &mc_fake_regs[13];
-	case NV_ADDRESS_MAP_MC14_BASE:
+	case addr_map_mc14_base_r():
 		return &mc_fake_regs[14];
-	case NV_ADDRESS_MAP_MC15_BASE:
+	case addr_map_mc15_base_r():
 		return &mc_fake_regs[15];
 	default:
 		return NULL;
@@ -188,99 +192,99 @@ static void set_mc_fake_regs(struct tegra_soc_hwpm *hwpm,
 	}
 
 	switch (aperture->start_pa) {
-	case NV_ADDRESS_MAP_MC0_BASE:
+	case addr_map_mc0_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[0];
 		mss_channel_map[0].fake_registers = fake_regs;
 		mss_iso_niso_hub_map[0].fake_registers = fake_regs;
 		mss_mcf_map[0].fake_registers = fake_regs;
 		break;
-	case NV_ADDRESS_MAP_MC1_BASE:
+	case addr_map_mc1_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[1];
 		mss_channel_map[1].fake_registers = fake_regs;
 		mss_iso_niso_hub_map[1].fake_registers = fake_regs;
 		mss_mcf_map[1].fake_registers = fake_regs;
 		break;
-	case NV_ADDRESS_MAP_MC2_BASE:
+	case addr_map_mc2_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[2];
 		mss_channel_map[2].fake_registers = fake_regs;
 		mss_iso_niso_hub_map[2].fake_registers = fake_regs;
 		mss_mcf_map[2].fake_registers = fake_regs;
 		break;
-	case NV_ADDRESS_MAP_MC3_BASE:
+	case addr_map_mc3_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[3];
 		mss_channel_map[3].fake_registers = fake_regs;
 		mss_iso_niso_hub_map[3].fake_registers = fake_regs;
 		mss_mcf_map[3].fake_registers = fake_regs;
 		break;
-	case NV_ADDRESS_MAP_MC4_BASE:
+	case addr_map_mc4_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[4];
 		mss_channel_map[4].fake_registers = fake_regs;
 		mss_iso_niso_hub_map[4].fake_registers = fake_regs;
 		mss_mcf_map[4].fake_registers = fake_regs;
 		break;
-	case NV_ADDRESS_MAP_MC5_BASE:
+	case addr_map_mc5_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[5];
 		mss_channel_map[5].fake_registers = fake_regs;
 		mss_iso_niso_hub_map[5].fake_registers = fake_regs;
 		mss_mcf_map[5].fake_registers = fake_regs;
 		break;
-	case NV_ADDRESS_MAP_MC6_BASE:
+	case addr_map_mc6_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[6];
 		mss_channel_map[6].fake_registers = fake_regs;
 		mss_iso_niso_hub_map[6].fake_registers = fake_regs;
 		mss_mcf_map[6].fake_registers = fake_regs;
 		break;
-	case NV_ADDRESS_MAP_MC7_BASE:
+	case addr_map_mc7_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[7];
 		mss_channel_map[7].fake_registers = fake_regs;
 		mss_iso_niso_hub_map[7].fake_registers = fake_regs;
 		mss_mcf_map[7].fake_registers = fake_regs;
 		break;
-	case NV_ADDRESS_MAP_MC8_BASE:
+	case addr_map_mc8_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[8];
 		mss_channel_map[8].fake_registers = fake_regs;
 		mss_iso_niso_hub_map[8].fake_registers = fake_regs;
 		break;
-	case NV_ADDRESS_MAP_MC9_BASE:
+	case addr_map_mc9_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[9];
 		mss_channel_map[9].fake_registers = fake_regs;
 		break;
-	case NV_ADDRESS_MAP_MC10_BASE:
+	case addr_map_mc10_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[10];
 		mss_channel_map[10].fake_registers = fake_regs;
 		break;
-	case NV_ADDRESS_MAP_MC11_BASE:
+	case addr_map_mc11_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[11];
 		mss_channel_map[11].fake_registers = fake_regs;
 		break;
-	case NV_ADDRESS_MAP_MC12_BASE:
+	case addr_map_mc12_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[12];
 		mss_channel_map[12].fake_registers = fake_regs;
 		break;
-	case NV_ADDRESS_MAP_MC13_BASE:
+	case addr_map_mc13_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[13];
 		mss_channel_map[13].fake_registers = fake_regs;
 		break;
-	case NV_ADDRESS_MAP_MC14_BASE:
+	case addr_map_mc14_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[14];
 		mss_channel_map[14].fake_registers = fake_regs;
 		break;
-	case NV_ADDRESS_MAP_MC15_BASE:
+	case addr_map_mc15_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[15];
 		mss_channel_map[15].fake_registers = fake_regs;
@@ -517,84 +521,61 @@ static int alloc_pma_stream_ioctl(struct tegra_soc_hwpm *hwpm,
 	}
 	hwpm->mem_bytes_kernel = dma_buf_vmap(hwpm->mem_bytes_dma_buf);
 	if (!hwpm->mem_bytes_kernel) {
-		tegra_soc_hwpm_err("Unable to map mem_bytes buffer into kernel VA space");
+		tegra_soc_hwpm_err(
+			"Unable to map mem_bytes buffer into kernel VA space");
 		ret = -ENOMEM;
 		goto fail;
 	}
 	memset(hwpm->mem_bytes_kernel, 0, 32);
 
-	outbase_lo = alloc_pma_stream->stream_buf_pma_va & 0xffffffffULL;
-	outbase_lo >>= NV_PERF_PMASYS_CHANNEL_OUTBASE_PTR_SHIFT;
-	reg_val = HWPM_REG_F(NV_PERF_PMASYS_CHANNEL_OUTBASE_PTR,
-			     outbase_lo);
-	hwpm_writel(hwpm,
-		    TEGRA_SOC_HWPM_PMA_DT,
-		    NV_PERF_PMASYS_CHANNEL_OUTBASE_CH0,
-		    reg_val);
+	outbase_lo = alloc_pma_stream->stream_buf_pma_va &
+			pmasys_channel_outbase_ptr_m();
+	hwpm_writel(hwpm, TEGRA_SOC_HWPM_PMA_DT,
+		pmasys_channel_outbase_r(0) - addr_map_pma_base_r(),
+		outbase_lo);
 	tegra_soc_hwpm_dbg("OUTBASE = 0x%x", reg_val);
 
-	outbase_hi = (alloc_pma_stream->stream_buf_pma_va >> 32) & 0xff;
-	outbase_hi >>= NV_PERF_PMASYS_CHANNEL_OUTBASEUPPER_PTR_SHIFT;
-	reg_val = HWPM_REG_F(NV_PERF_PMASYS_CHANNEL_OUTBASEUPPER_PTR,
-			     outbase_hi);
-	hwpm_writel(hwpm,
-		    TEGRA_SOC_HWPM_PMA_DT,
-		    NV_PERF_PMASYS_CHANNEL_OUTBASEUPPER_CH0,
-		    reg_val);
+	outbase_hi = (alloc_pma_stream->stream_buf_pma_va >> 32) &
+			pmasys_channel_outbaseupper_ptr_m();
+	hwpm_writel(hwpm, TEGRA_SOC_HWPM_PMA_DT,
+		pmasys_channel_outbaseupper_r(0) - addr_map_pma_base_r(),
+		outbase_hi);
 	tegra_soc_hwpm_dbg("OUTBASEUPPER = 0x%x", reg_val);
 
-	outsize = alloc_pma_stream->stream_buf_size >>
-				NV_PERF_PMASYS_CHANNEL_OUTSIZE_NUMBYTES_SHIFT;
-	reg_val = HWPM_REG_F(NV_PERF_PMASYS_CHANNEL_OUTSIZE_NUMBYTES,
-			     outsize);
-	hwpm_writel(hwpm,
-		    TEGRA_SOC_HWPM_PMA_DT,
-		    NV_PERF_PMASYS_CHANNEL_OUTSIZE_CH0,
-		    reg_val);
+	outsize = alloc_pma_stream->stream_buf_size &
+			pmasys_channel_outsize_numbytes_m();
+	hwpm_writel(hwpm, TEGRA_SOC_HWPM_PMA_DT,
+		pmasys_channel_outsize_r(0) - addr_map_pma_base_r(),
+		outsize);
 	tegra_soc_hwpm_dbg("OUTSIZE = 0x%x", reg_val);
 
-	mem_bytes_addr = sg_dma_address(hwpm->mem_bytes_sgt->sgl) & 0xffffffffULL;
-	mem_bytes_addr >>= NV_PERF_PMASYS_CHANNEL_MEM_BYTES_ADDR_PTR_SHIFT;
-	reg_val = HWPM_REG_F(NV_PERF_PMASYS_CHANNEL_MEM_BYTES_ADDR_PTR,
-			     mem_bytes_addr);
-	hwpm_writel(hwpm,
-		    TEGRA_SOC_HWPM_PMA_DT,
-		    NV_PERF_PMASYS_CHANNEL_MEM_BYTES_ADDR_CH0,
-		    reg_val);
+	mem_bytes_addr = sg_dma_address(hwpm->mem_bytes_sgt->sgl) &
+			pmasys_channel_mem_bytes_addr_ptr_m();
+	hwpm_writel(hwpm, TEGRA_SOC_HWPM_PMA_DT,
+		pmasys_channel_mem_bytes_addr_r(0) - addr_map_pma_base_r(),
+		mem_bytes_addr);
 	tegra_soc_hwpm_dbg("MEM_BYTES_ADDR = 0x%x", reg_val);
 
-	reg_val = HWPM_REG_F(NV_PERF_PMASYS_CHANNEL_MEM_BLOCK_VALID,
-			     NV_PERF_PMASYS_CHANNEL_MEM_BLOCK_VALID_TRUE);
-	hwpm_writel(hwpm,
-		    TEGRA_SOC_HWPM_PMA_DT,
-		    NV_PERF_PMASYS_CHANNEL_MEM_BLOCK_CH0,
-		    reg_val);
+	hwpm_writel(hwpm, TEGRA_SOC_HWPM_PMA_DT,
+		pmasys_channel_mem_block_r(0) - addr_map_pma_base_r(),
+		pmasys_channel_mem_block_valid_f(
+			pmasys_channel_mem_block_valid_true_v()));
 
 	return 0;
 
 fail:
-	reg_val = HWPM_REG_F(NV_PERF_PMASYS_CHANNEL_MEM_BLOCK_VALID,
-				NV_PERF_PMASYS_CHANNEL_MEM_BLOCK_VALID_FALSE);
-	hwpm_writel(hwpm,
-		    TEGRA_SOC_HWPM_PMA_DT,
-		    NV_PERF_PMASYS_CHANNEL_MEM_BLOCK_CH0,
-		    reg_val);
-	hwpm_writel(hwpm,
-		    TEGRA_SOC_HWPM_PMA_DT,
-		    NV_PERF_PMASYS_CHANNEL_OUTBASE_CH0,
-		    0);
-	hwpm_writel(hwpm,
-		    TEGRA_SOC_HWPM_PMA_DT,
-		    NV_PERF_PMASYS_CHANNEL_OUTBASEUPPER_CH0,
-		    0);
-	hwpm_writel(hwpm,
-		    TEGRA_SOC_HWPM_PMA_DT,
-		    NV_PERF_PMASYS_CHANNEL_OUTSIZE_CH0,
-		    0);
-	hwpm_writel(hwpm,
-		    TEGRA_SOC_HWPM_PMA_DT,
-		    NV_PERF_PMASYS_CHANNEL_MEM_BYTES_ADDR_CH0,
-		    0);
+	hwpm_writel(hwpm, TEGRA_SOC_HWPM_PMA_DT,
+		pmasys_channel_mem_block_r(0) - addr_map_pma_base_r(),
+		pmasys_channel_mem_block_valid_f(
+			pmasys_channel_mem_block_valid_false_v()));
+	hwpm_writel(hwpm, TEGRA_SOC_HWPM_PMA_DT,
+		pmasys_channel_outbase_r(0) - addr_map_pma_base_r(), 0);
+	hwpm_writel(hwpm, TEGRA_SOC_HWPM_PMA_DT,
+		pmasys_channel_outbaseupper_r(0) - addr_map_pma_base_r(), 0);
+	hwpm_writel(hwpm, TEGRA_SOC_HWPM_PMA_DT,
+		pmasys_channel_outsize_r(0) - addr_map_pma_base_r(), 0);
+	hwpm_writel(hwpm, TEGRA_SOC_HWPM_PMA_DT,
+		pmasys_channel_mem_bytes_addr_r(0) - addr_map_pma_base_r(), 0);
 
 	alloc_pma_stream->stream_buf_pma_va = 0;
 
@@ -686,12 +667,12 @@ static int bind_ioctl(struct tegra_soc_hwpm *hwpm,
 				tegra_soc_hwpm_dbg("Found PERFMON(0x%llx - 0x%llx)",
 						   aperture->start_pa,
 						   aperture->end_pa);
-				ret = DRIVER_REG_RMW(hwpm,
-					aperture->dt_aperture,
-					NV_PERF_PMMSYS_SYS0_ENGINESTATUS,
-					NV_PERF_PMMSYS_SYS0_ENGINESTATUS_ENABLE,
-					NV_PERF_PMMSYS_SYS0_ENGINESTATUS_ENABLE_OUT,
-					false);
+				ret = reg_rmw(hwpm, NULL, aperture->dt_aperture,
+					pmmsys_sys0_enginestatus_r(0) -
+						addr_map_rpg_pm_base_r(),
+					pmmsys_sys0_enginestatus_enable_m(),
+					pmmsys_sys0_enginestatus_enable_out_f(),
+					false, false);
 				if (ret < 0) {
 					tegra_soc_hwpm_err("Unable to set PMM ENGINESTATUS_ENABLE"
 						" for PERFMON(0x%llx - 0x%llx)",
@@ -918,11 +899,9 @@ static int exec_reg_ops_ioctl(struct tegra_soc_hwpm *hwpm,
 
 		/* Read Modify Write operation */
 		case TEGRA_SOC_HWPM_REG_OP_CMD_WR32:
-			ret = IOCTL_REG_RMW(hwpm,
-					    aperture,
-					    reg_op->phys_addr,
-					    reg_op->mask_lo,
-					    reg_op->reg_val_lo);
+			ret = reg_rmw(hwpm, aperture, aperture->dt_aperture,
+				reg_op->phys_addr, reg_op->mask_lo,
+				reg_op->reg_val_lo, true, aperture->is_ip);
 			if (ret < 0) {
 				REG_OP_FAIL(INVALID,
 					"WR32 REGOP failed for register(0x%llx)",
@@ -935,11 +914,9 @@ static int exec_reg_ops_ioctl(struct tegra_soc_hwpm *hwpm,
 		/* Read Modify Write operation */
 		case TEGRA_SOC_HWPM_REG_OP_CMD_WR64:
 			/* Lower 32 bits */
-			ret = IOCTL_REG_RMW(hwpm,
-					aperture,
-					reg_op->phys_addr,
-					reg_op->mask_lo,
-					reg_op->reg_val_lo);
+			ret = reg_rmw(hwpm, aperture, aperture->dt_aperture,
+				reg_op->phys_addr, reg_op->mask_lo,
+				reg_op->reg_val_lo, true, aperture->is_ip);
 			if (ret < 0) {
 				REG_OP_FAIL(INVALID,
 					"WR64 REGOP failed for register(0x%llx)",
@@ -948,11 +925,9 @@ static int exec_reg_ops_ioctl(struct tegra_soc_hwpm *hwpm,
 			}
 
 			/* Upper 32 bits */
-			ret = IOCTL_REG_RMW(hwpm,
-					aperture,
-					reg_op->phys_addr + 4,
-					reg_op->mask_hi,
-					reg_op->reg_val_hi);
+			ret = reg_rmw(hwpm, aperture, aperture->dt_aperture,
+				reg_op->phys_addr + 4, reg_op->mask_hi,
+				reg_op->reg_val_hi, true, aperture->is_ip);
 			if (ret < 0) {
 				REG_OP_FAIL(INVALID,
 					"WR64 REGOP failed for register(0x%llx)",
@@ -997,21 +972,19 @@ static int update_get_put_ioctl(struct tegra_soc_hwpm *hwpm,
 	}
 
 	/* Update SW get pointer */
-	hwpm_writel(hwpm,
-		    TEGRA_SOC_HWPM_PMA_DT,
-		    NV_PERF_PMASYS_CHANNEL_MEM_BUMP_CH0,
-		    update_get_put->mem_bump);
+	hwpm_writel(hwpm, TEGRA_SOC_HWPM_PMA_DT,
+		pmasys_channel_mem_bump_r(0) - addr_map_pma_base_r(),
+		update_get_put->mem_bump);
 
 	/* Stream MEM_BYTES value to MEM_BYTES buffer */
 	if (update_get_put->b_stream_mem_bytes) {
 		mem_bytes_kernel_u32 = (u32 *)(hwpm->mem_bytes_kernel);
 		*mem_bytes_kernel_u32 = TEGRA_SOC_HWPM_MEM_BYTES_INVALID;
-		ret = DRIVER_REG_RMW(hwpm,
-				TEGRA_SOC_HWPM_PMA_DT,
-				NV_PERF_PMASYS_CHANNEL_CONTROL_USER_CH0,
-				NV_PERF_PMASYS_CHANNEL_CONTROL_USER_UPDATE_BYTES,
-				NV_PERF_PMASYS_CHANNEL_CONTROL_USER_UPDATE_BYTES_DOIT,
-				false);
+		ret = reg_rmw(hwpm, NULL, TEGRA_SOC_HWPM_PMA_DT,
+			pmasys_channel_control_user_r(0) - addr_map_pma_base_r(),
+			pmasys_channel_control_user_update_bytes_m(),
+			pmasys_channel_control_user_update_bytes_doit_f(),
+			false, false);
 		if (ret < 0) {
 			tegra_soc_hwpm_err("Failed to stream mem_bytes to buffer");
 			return -EIO;
@@ -1020,25 +993,22 @@ static int update_get_put_ioctl(struct tegra_soc_hwpm *hwpm,
 
 	/* Read HW put pointer */
 	if (update_get_put->b_read_mem_head) {
-		update_get_put->mem_head =
-				hwpm_readl(hwpm,
-					TEGRA_SOC_HWPM_PMA_DT,
-					NV_PERF_PMASYS_CHANNEL_MEM_HEAD_CH0);
+		update_get_put->mem_head = hwpm_readl(hwpm,
+			TEGRA_SOC_HWPM_PMA_DT,
+			pmasys_channel_mem_head_r(0) - addr_map_pma_base_r());
 		tegra_soc_hwpm_dbg("MEM_HEAD = 0x%llx",
 				   update_get_put->mem_head);
 	}
 
 	/* Check overflow error status */
 	if (update_get_put->b_check_overflow) {
-		reg_val = hwpm_readl(hwpm,
-				TEGRA_SOC_HWPM_PMA_DT,
-				NV_PERF_PMASYS_CHANNEL_STATUS_SECURE_CH0);
-		field_val =
-			HWPM_REG_V(NV_PERF_PMASYS_CHANNEL_STATUS_SECURE_MEMBUF_STATUS,
-				   reg_val);
-		update_get_put->b_overflowed =
-			(field_val ==
-				NV_PERF_PMASYS_CHANNEL_STATUS_SECURE_MEMBUF_STATUS_OVERFLOWED);
+		reg_val = hwpm_readl(hwpm, TEGRA_SOC_HWPM_PMA_DT,
+			pmasys_channel_status_secure_r(0) -
+			addr_map_pma_base_r());
+		field_val = pmasys_channel_status_secure_membuf_status_v(
+			reg_val);
+		update_get_put->b_overflowed = (field_val ==
+			pmasys_channel_status_secure_membuf_status_overflowed_v());
 		tegra_soc_hwpm_dbg("OVERFLOWED = %u",
 				   update_get_put->b_overflowed);
 	}
@@ -1264,23 +1234,21 @@ static int tegra_soc_hwpm_open(struct inode *inode, struct file *filp)
 
 	/* FIXME: Remove after verification */
 	/* Disable SLCG */
-	ret = DRIVER_REG_RMW(hwpm,
-			     TEGRA_SOC_HWPM_PMA_DT,
-			     NV_PERF_PMASYS_CG2,
-			     NV_PERF_PMASYS_CG2_SLCG,
-			     NV_PERF_PMASYS_CG2_SLCG_DISABLED,
-			     false);
+	ret = reg_rmw(hwpm, NULL, TEGRA_SOC_HWPM_PMA_DT,
+		pmasys_cg2_r() - addr_map_pma_base_r(),
+		pmasys_cg2_slcg_m(), pmasys_cg2_slcg_disabled_f(),
+		false, false);
 	if (ret < 0) {
 		tegra_soc_hwpm_err("Unable to disable PMA SLCG");
 		ret = -EIO;
 		goto fail;
 	}
-	ret = DRIVER_REG_RMW(hwpm,
-			     TEGRA_SOC_HWPM_RTR_DT,
-			     NV_PERF_PMMSYS_SYS0ROUTER_CG2,
-			     NV_PERF_PMMSYS_SYS0ROUTER_CG2_SLCG,
-			     NV_PERF_PMMSYS_SYS0ROUTER_CG2_SLCG_DISABLED,
-			     false);
+
+	ret = reg_rmw(hwpm, NULL, TEGRA_SOC_HWPM_RTR_DT,
+		pmmsys_sys0router_cg2_r() - addr_map_rtr_base_r(),
+		pmmsys_sys0router_cg2_slcg_m(),
+		pmmsys_sys0router_cg2_slcg_disabled_f(),
+		false, false);
 	if (ret < 0) {
 		tegra_soc_hwpm_err("Unable to disable ROUTER SLCG");
 		ret = -EIO;
@@ -1288,23 +1256,22 @@ static int tegra_soc_hwpm_open(struct inode *inode, struct file *filp)
 	}
 
 	/* Program PROD values */
-	ret = DRIVER_REG_RMW(hwpm,
-			TEGRA_SOC_HWPM_PMA_DT,
-			NV_PERF_PMASYS_CONTROLB,
-			NV_PERF_PMASYS_CONTROLB_COALESCE_TIMEOUT_CYCLES,
-			NV_PERF_PMASYS_CONTROLB_COALESCE_TIMEOUT_CYCLES__PROD,
-			false);
+	ret = reg_rmw(hwpm, NULL, TEGRA_SOC_HWPM_PMA_DT,
+		pmasys_controlb_r() - addr_map_pma_base_r(),
+		pmasys_controlb_coalesce_timeout_cycles_m(),
+		pmasys_controlb_coalesce_timeout_cycles__prod_f(),
+		false, false);
 	if (ret < 0) {
 		tegra_soc_hwpm_err("Unable to program PROD value");
 		ret = -EIO;
 		goto fail;
 	}
-	ret = DRIVER_REG_RMW(hwpm,
-		TEGRA_SOC_HWPM_PMA_DT,
-		NV_PERF_PMASYS_CHANNEL_CONFIG_USER_CH0,
-		NV_PERF_PMASYS_CHANNEL_CONFIG_USER_COALESCE_TIMEOUT_CYCLES,
-		NV_PERF_PMASYS_CHANNEL_CONFIG_USER_COALESCE_TIMEOUT_CYCLES__PROD,
-		false);
+
+	ret = reg_rmw(hwpm, NULL, TEGRA_SOC_HWPM_PMA_DT,
+		pmasys_channel_config_user_r(0) - addr_map_pma_base_r(),
+		pmasys_channel_config_user_coalesce_timeout_cycles_m(),
+		pmasys_channel_config_user_coalesce_timeout_cycles__prod_f(),
+		false, false);
 	if (ret < 0) {
 		tegra_soc_hwpm_err("Unable to program PROD value");
 		ret = -EIO;
@@ -1394,62 +1361,50 @@ static int tegra_soc_hwpm_release(struct inode *inode, struct file *filp)
 	}
 
 	/* Disable PMA triggers */
-	err = DRIVER_REG_RMW(hwpm,
-			TEGRA_SOC_HWPM_PMA_DT,
-			NV_PERF_PMASYS_TRIGGER_CONFIG_USER_CH0,
-			NV_PERF_PMASYS_TRIGGER_CONFIG_USER_PMA_PULSE,
-			NV_PERF_PMASYS_TRIGGER_CONFIG_USER_PMA_PULSE_DISABLE,
-			false);
+	err = reg_rmw(hwpm, NULL, TEGRA_SOC_HWPM_PMA_DT,
+		pmasys_trigger_config_user_r(0) - addr_map_pma_base_r(),
+		pmasys_trigger_config_user_pma_pulse_m(),
+		pmasys_trigger_config_user_pma_pulse_disable_f(),
+		false, false);
 	RELEASE_FAIL("Unable to disable PMA triggers");
 
-	hwpm_writel(hwpm,
-		    TEGRA_SOC_HWPM_PMA_DT,
-		    NV_PERF_PMASYS_SYS_TRIGGER_START_MASK,
-		    0);
-	hwpm_writel(hwpm,
-		    TEGRA_SOC_HWPM_PMA_DT,
-		    NV_PERF_PMASYS_SYS_TRIGGER_START_MASKB,
-		    0);
-	hwpm_writel(hwpm,
-		    TEGRA_SOC_HWPM_PMA_DT,
-		    NV_PERF_PMASYS_SYS_TRIGGER_STOP_MASK,
-		    0);
-	hwpm_writel(hwpm,
-		    TEGRA_SOC_HWPM_PMA_DT,
-		    NV_PERF_PMASYS_SYS_TRIGGER_STOP_MASKB,
-		    0);
+	hwpm_writel(hwpm, TEGRA_SOC_HWPM_PMA_DT,
+		pmasys_sys_trigger_start_mask_r() - addr_map_pma_base_r(), 0);
+	hwpm_writel(hwpm, TEGRA_SOC_HWPM_PMA_DT,
+		pmasys_sys_trigger_start_maskb_r() - addr_map_pma_base_r(), 0);
+	hwpm_writel(hwpm, TEGRA_SOC_HWPM_PMA_DT,
+		pmasys_sys_trigger_stop_mask_r() - addr_map_pma_base_r(), 0);
+	hwpm_writel(hwpm, TEGRA_SOC_HWPM_PMA_DT,
+		pmasys_sys_trigger_stop_maskb_r() - addr_map_pma_base_r(), 0);
 
 	/* Wait for PERFMONs, ROUTER, and PMA to idle */
-	timeout = HWPM_TIMEOUT(HWPM_REG_CHECK_F(hwpm_readl(hwpm,
-						TEGRA_SOC_HWPM_RTR_DT,
-						NV_PERF_PMMSYS_SYS0ROUTER_PERFMONSTATUS),
-					NV_PERF_PMMSYS_SYS0ROUTER_PERFMONSTATUS_MERGED,
-					NV_PERF_PMMSYS_SYS0ROUTER_PERFMONSTATUS_MERGED_EMPTY),
-			"NV_PERF_PMMSYS_SYS0ROUTER_PERFMONSTATUS_MERGED_EMPTY");
+	timeout = HWPM_TIMEOUT(pmmsys_sys0router_perfmonstatus_merged_v(
+		hwpm_readl(hwpm, TEGRA_SOC_HWPM_RTR_DT,
+			pmmsys_sys0router_perfmonstatus_r() -
+			addr_map_rtr_base_r())) == 0U,
+		"NV_PERF_PMMSYS_SYS0ROUTER_PERFMONSTATUS_MERGED_EMPTY");
 	if (timeout && ret == 0) {
 		ret = -EIO;
 	}
-	timeout = HWPM_TIMEOUT(HWPM_REG_CHECK_F(hwpm_readl(hwpm,
-						TEGRA_SOC_HWPM_RTR_DT,
-						NV_PERF_PMMSYS_SYS0ROUTER_ENGINESTATUS),
-					NV_PERF_PMMSYS_SYS0ROUTER_ENGINESTATUS_STATUS,
-					NV_PERF_PMMSYS_SYS0ROUTER_ENGINESTATUS_STATUS_EMPTY),
-			"NV_PERF_PMMSYS_SYS0ROUTER_ENGINESTATUS_STATUS_EMPTY");
+
+	timeout = HWPM_TIMEOUT(pmmsys_sys0router_enginestatus_status_v(
+		hwpm_readl(hwpm, TEGRA_SOC_HWPM_RTR_DT,
+			pmmsys_sys0router_enginestatus_r() -
+			addr_map_rtr_base_r())) ==
+		pmmsys_sys0router_enginestatus_status_empty_v(),
+		"NV_PERF_PMMSYS_SYS0ROUTER_ENGINESTATUS_STATUS_EMPTY");
 	if (timeout && ret == 0) {
 		ret = -EIO;
 	}
-	field_mask = NV_PERF_PMASYS_ENGINESTATUS_STATUS_MASK |
-		     NV_PERF_PMASYS_ENGINESTATUS_RBUFEMPTY_MASK;
-	field_val = HWPM_REG_F(NV_PERF_PMASYS_ENGINESTATUS_STATUS,
-			       NV_PERF_PMASYS_ENGINESTATUS_STATUS_EMPTY);
-	field_val |= HWPM_REG_F(NV_PERF_PMASYS_ENGINESTATUS_RBUFEMPTY,
-				NV_PERF_PMASYS_ENGINESTATUS_RBUFEMPTY_EMPTY);
-	timeout = HWPM_TIMEOUT(HWPM_REG_CHECK(hwpm_readl(hwpm,
-						TEGRA_SOC_HWPM_PMA_DT,
-						NV_PERF_PMASYS_ENGINESTATUS),
-				    field_mask,
-				    field_val),
-			"NV_PERF_PMASYS_ENGINESTATUS");
+
+	field_mask = pmasys_enginestatus_status_m() |
+		     pmasys_enginestatus_rbufempty_m();
+	field_val = pmasys_enginestatus_status_empty_f() ||
+		pmasys_enginestatus_rbufempty_empty_f();
+	timeout = HWPM_TIMEOUT((hwpm_readl(hwpm, TEGRA_SOC_HWPM_PMA_DT,
+			pmasys_enginestatus_r() -
+			addr_map_pma_base_r()) & field_mask) == field_val,
+		"NV_PERF_PMASYS_ENGINESTATUS");
 	if (timeout && ret == 0) {
 		ret = -EIO;
 	}
@@ -1469,12 +1424,11 @@ static int tegra_soc_hwpm_release(struct inode *inode, struct file *filp)
 				tegra_soc_hwpm_dbg("Found PERFMON(0x%llx - 0x%llx)",
 						   aperture->start_pa,
 						   aperture->end_pa);
-				err = DRIVER_REG_RMW(hwpm,
-					aperture->dt_aperture,
-					NV_PERF_PMMSYS_CONTROL,
-					NV_PERF_PMMSYS_CONTROL_MODE,
-					NV_PERF_PMMSYS_CONTROL_MODE_DISABLE,
-					false);
+				err = reg_rmw(hwpm, NULL, aperture->dt_aperture,
+					pmmsys_control_r(0) - addr_map_rpg_pm_base_r(),
+					pmmsys_control_mode_m(),
+					pmmsys_control_mode_disable_f(),
+					false, false);
 				RELEASE_FAIL("Unable to disable PERFMON(0x%llx - 0x%llx)",
 					     aperture->start_pa,
 					     aperture->end_pa);
@@ -1486,12 +1440,11 @@ static int tegra_soc_hwpm_release(struct inode *inode, struct file *filp)
 	if (hwpm->mem_bytes_kernel) {
 		mem_bytes_kernel_u32 = (u32 *)(hwpm->mem_bytes_kernel);
 		*mem_bytes_kernel_u32 = TEGRA_SOC_HWPM_MEM_BYTES_INVALID;
-		err = DRIVER_REG_RMW(hwpm,
-			TEGRA_SOC_HWPM_PMA_DT,
-			NV_PERF_PMASYS_CHANNEL_CONTROL_USER_CH0,
-			NV_PERF_PMASYS_CHANNEL_CONTROL_USER_UPDATE_BYTES,
-			NV_PERF_PMASYS_CHANNEL_CONTROL_USER_UPDATE_BYTES_DOIT,
-			false);
+		err = reg_rmw(hwpm, NULL, TEGRA_SOC_HWPM_PMA_DT,
+			pmasys_channel_control_user_r(0) - addr_map_pma_base_r(),
+			pmasys_channel_control_user_update_bytes_m(),
+			pmasys_channel_control_user_update_bytes_doit_f(),
+			false, false);
 		RELEASE_FAIL("Unable to stream MEM_BYTES");
 		timeout = HWPM_TIMEOUT(*mem_bytes_kernel_u32 !=
 				       TEGRA_SOC_HWPM_MEM_BYTES_INVALID,
@@ -1501,38 +1454,29 @@ static int tegra_soc_hwpm_release(struct inode *inode, struct file *filp)
 	}
 
 	/* Disable PMA streaming */
-	err = DRIVER_REG_RMW(hwpm,
-		TEGRA_SOC_HWPM_PMA_DT,
-		NV_PERF_PMASYS_TRIGGER_CONFIG_USER_CH0,
-		NV_PERF_PMASYS_TRIGGER_CONFIG_USER_RECORD_STREAM,
-		NV_PERF_PMASYS_TRIGGER_CONFIG_USER_RECORD_STREAM_DISABLE,
-		false);
+	err = reg_rmw(hwpm, NULL, TEGRA_SOC_HWPM_PMA_DT,
+		pmasys_trigger_config_user_r(0) - addr_map_pma_base_r(),
+		pmasys_trigger_config_user_record_stream_m(),
+		pmasys_trigger_config_user_record_stream_disable_f(),
+		false, false);
 	RELEASE_FAIL("Unable to disable PMA streaming");
-	err = DRIVER_REG_RMW(hwpm,
-			TEGRA_SOC_HWPM_PMA_DT,
-			NV_PERF_PMASYS_CHANNEL_CONTROL_USER_CH0,
-			NV_PERF_PMASYS_CHANNEL_CONTROL_USER_STREAM,
-			NV_PERF_PMASYS_CHANNEL_CONTROL_USER_STREAM_DISABLE,
-			false);
+
+	err = reg_rmw(hwpm, NULL, TEGRA_SOC_HWPM_PMA_DT,
+		pmasys_channel_control_user_r(0) - addr_map_pma_base_r(),
+		pmasys_channel_control_user_stream_m(),
+		pmasys_channel_control_user_stream_disable_f(),
+		false, false);
 	RELEASE_FAIL("Unable to disable PMA streaming");
 
 	/* Memory Management */
-	hwpm_writel(hwpm,
-		    TEGRA_SOC_HWPM_PMA_DT,
-		    NV_PERF_PMASYS_CHANNEL_OUTBASE_CH0,
-		    0);
-	hwpm_writel(hwpm,
-		    TEGRA_SOC_HWPM_PMA_DT,
-		    NV_PERF_PMASYS_CHANNEL_OUTBASEUPPER_CH0,
-		    0);
-	hwpm_writel(hwpm,
-		    TEGRA_SOC_HWPM_PMA_DT,
-		    NV_PERF_PMASYS_CHANNEL_OUTSIZE_CH0,
-		    0);
-	hwpm_writel(hwpm,
-		    TEGRA_SOC_HWPM_PMA_DT,
-		    NV_PERF_PMASYS_CHANNEL_MEM_BYTES_ADDR_CH0,
-		    0);
+	hwpm_writel(hwpm, TEGRA_SOC_HWPM_PMA_DT,
+		pmasys_channel_outbase_r(0) - addr_map_pma_base_r(), 0);
+	hwpm_writel(hwpm, TEGRA_SOC_HWPM_PMA_DT,
+		pmasys_channel_outbaseupper_r(0) - addr_map_pma_base_r(), 0);
+	hwpm_writel(hwpm, TEGRA_SOC_HWPM_PMA_DT,
+		pmasys_channel_outsize_r(0) - addr_map_pma_base_r(), 0);
+	hwpm_writel(hwpm, TEGRA_SOC_HWPM_PMA_DT,
+		pmasys_channel_mem_bytes_addr_r(0) - addr_map_pma_base_r(), 0);
 
 	if (hwpm->stream_sgt && (!IS_ERR(hwpm->stream_sgt))) {
 		dma_buf_unmap_attachment(hwpm->stream_attach,
@@ -1586,19 +1530,16 @@ static int tegra_soc_hwpm_release(struct inode *inode, struct file *filp)
 
 	/* FIXME: Remove after verification */
 	/* Enable SLCG */
-	err = DRIVER_REG_RMW(hwpm,
-			     TEGRA_SOC_HWPM_PMA_DT,
-			     NV_PERF_PMASYS_CG2,
-			     NV_PERF_PMASYS_CG2_SLCG,
-			     NV_PERF_PMASYS_CG2_SLCG_ENABLED,
-			     false);
+	err = reg_rmw(hwpm, NULL, TEGRA_SOC_HWPM_PMA_DT,
+		pmasys_cg2_r() - addr_map_pma_base_r(),
+		pmasys_cg2_slcg_m(),
+		pmasys_cg2_slcg_enabled_f(), false, false);
 	RELEASE_FAIL("Unable to enable PMA SLCG");
-	err = DRIVER_REG_RMW(hwpm,
-			     TEGRA_SOC_HWPM_RTR_DT,
-			     NV_PERF_PMMSYS_SYS0ROUTER_CG2,
-			     NV_PERF_PMMSYS_SYS0ROUTER_CG2_SLCG,
-			     NV_PERF_PMMSYS_SYS0ROUTER_CG2_SLCG_ENABLED,
-			     false);
+
+	err = reg_rmw(hwpm, NULL, TEGRA_SOC_HWPM_RTR_DT,
+		pmmsys_sys0router_cg2_r() - addr_map_rtr_base_r(),
+		pmmsys_sys0router_cg2_slcg_m(),
+		pmmsys_sys0router_cg2_slcg_enabled_f(), false, false);
 	RELEASE_FAIL("Unable to enable ROUTER SLCG");
 
 	/* Unmap PMA and RTR apertures */
@@ -1632,7 +1573,6 @@ static int tegra_soc_hwpm_release(struct inode *inode, struct file *filp)
 	for (res_idx = 0; res_idx < TERGA_SOC_HWPM_NUM_RESOURCES; res_idx++) {
 		if (!hwpm_resources[res_idx].reserved)
 			continue;
-		tegra_soc_hwpm_dbg("Found reserved IP(%d)", res_idx);
 		hwpm_resources[res_idx].reserved = false;
 
 		for (aprt_idx = 0;
@@ -1665,7 +1605,6 @@ static int tegra_soc_hwpm_release(struct inode *inode, struct file *filp)
 			}
 		}
 	}
-
 	return ret;
 }
 
