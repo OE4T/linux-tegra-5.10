@@ -2141,15 +2141,15 @@ int esc_mods_iommu_dma_map_memory(struct mods_client               *client,
 	/* Check if IOVAs are contiguous */
 	iova_offset = 0;
 	for_each_sg(sgt->sgl, sg, sgt->nents, i) {
-		iova_offset = iova_offset + sg->offset;
-		if (sg_dma_address(sg) != (iova + iova_offset)
-		    || sg_dma_len(sg) != sg->length) {
+		if (sg_dma_address(sg) != (~(dma_addr_t)0) &&
+		    sg_dma_address(sg) != (iova + iova_offset)) {
 			cl_error("sg not contiguous:dma 0x%llx, iova 0x%llx\n",
 				 sg_dma_address(sg),
 				 (u64)(iova + iova_offset));
 			err = -EINVAL;
 			break;
 		}
+		iova_offset += sg->length;
 	}
 	if (err) {
 		dma_unmap_sg_attrs(smmu_pdev->dev, sgt->sgl, sgt->nents,
