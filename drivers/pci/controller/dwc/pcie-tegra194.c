@@ -2806,7 +2806,7 @@ static struct platform_driver tegra_pcie_dw_driver = {
 		.of_match_table = tegra_pcie_dw_of_match,
 	},
 };
-#if IS_MODULE(CONFIG_PCIE_TEGRA)
+#if IS_MODULE(CONFIG_PCIE_TEGRA194)
 module_platform_driver(tegra_pcie_dw_driver);
 #else
 static int __init tegra_pcie_rp_init(void)
