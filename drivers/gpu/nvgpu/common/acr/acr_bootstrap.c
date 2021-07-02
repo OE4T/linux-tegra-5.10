@@ -99,15 +99,19 @@ int nvgpu_acr_wait_for_completion(struct gk20a *g, struct hs_acr *acr_desc,
 exit:
 
 #ifdef CONFIG_NVGPU_FALCON_NON_FUSA
-	nvgpu_falcon_get_ctls(acr_desc->acr_flcn, &sctl, &cpuctl);
+	if (!nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
+		nvgpu_falcon_get_ctls(acr_desc->acr_flcn, &sctl, &cpuctl);
 
-	nvgpu_acr_dbg(g, "flcn-%d: sctl reg %x cpuctl reg %x",
+		nvgpu_acr_dbg(g, "flcn-%d: sctl reg %x cpuctl reg %x",
 			flcn_id, sctl, cpuctl);
+	}
 #endif
 
 	if (completion != 0) {
 #ifdef CONFIG_NVGPU_FALCON_DEBUG
-		nvgpu_falcon_dump_stats(acr_desc->acr_flcn);
+		if (!nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
+			nvgpu_falcon_dump_stats(acr_desc->acr_flcn);
+		}
 #endif
 		if (acr_desc->report_acr_engine_bus_err_status != NULL) {
 			acr_desc->report_acr_engine_bus_err_status(g,

@@ -230,17 +230,23 @@ static void falcon_copy_to_imem_unaligned_src(struct nvgpu_falcon *flcn,
 	while ((offset + sizeof(src_tmp)) <= size) {
 		nvgpu_memcpy((u8 *)&src_tmp[0], &src[offset],
 			     sizeof(src_tmp));
-		for (i = 0; i < ARRAY_SIZE(src_tmp); i++) {
-			if ((j++ % 64U) == 0U) {
-				/* tag is always 256B aligned */
-				nvgpu_falcon_writel(flcn,
-					falcon_falcon_imemt_r(port), tag);
-				tag = nvgpu_safe_add_u32(tag, 1U);
-			}
+		if (!flcn->is_falcon2_enabled) {
+			for (i = 0U; i < ARRAY_SIZE(src_tmp); i++) {
+				if ((j++ % 64U) == 0U) {
+					/* tag is always 256B aligned */
+					nvgpu_falcon_writel(flcn,
+							falcon_falcon_imemt_r(port), tag);
+					tag = nvgpu_safe_add_u32(tag, 1U);
+				}
 
-			nvgpu_falcon_writel(flcn,
-					    falcon_falcon_imemd_r(port),
-					    src_tmp[i]);
+				nvgpu_falcon_writel(flcn, falcon_falcon_imemd_r(port),
+					src_tmp[i]);
+			}
+		} else {
+			for (i = 0U; i < ARRAY_SIZE(src_tmp); i++) {
+				nvgpu_falcon_writel(flcn, falcon_falcon_imemd_r(port),
+						src_tmp[i]);
+			}
 		}
 		offset += (u32) sizeof(src_tmp);
 	}
@@ -253,17 +259,23 @@ static void falcon_copy_to_imem_unaligned_src(struct nvgpu_falcon *flcn,
 
 		nvgpu_memcpy((u8 *)&src_tmp[0], &src[offset],
 			     (u64)elems * elem_size);
-		for (i = 0; i < elems; i++) {
-			if ((j++ % 64U) == 0U) {
-				/* tag is always 256B aligned */
-				nvgpu_falcon_writel(flcn,
-					falcon_falcon_imemt_r(port), tag);
-				tag = nvgpu_safe_add_u32(tag, 1U);
-			}
+		if (!flcn->is_falcon2_enabled) {
+			for (i = 0U; i < elems; i++) {
+				if ((j++ % 64U) == 0U) {
+					/* tag is always 256B aligned */
+					nvgpu_falcon_writel(flcn,
+						falcon_falcon_imemt_r(port), tag);
+					tag = nvgpu_safe_add_u32(tag, 1U);
+				}
 
-			nvgpu_falcon_writel(flcn,
-					    falcon_falcon_imemd_r(port),
-					    src_tmp[i]);
+				nvgpu_falcon_writel(flcn, falcon_falcon_imemd_r(port),
+					src_tmp[i]);
+			}
+		} else {
+			for (i = 0U; i < elems; i++) {
+				nvgpu_falcon_writel(flcn, falcon_falcon_imemd_r(port),
+						src_tmp[i]);
+			}
 		}
 	}
 
@@ -303,16 +315,23 @@ int gk20a_falcon_copy_to_imem(struct nvgpu_falcon *flcn, u32 dst,
 NVGPU_COV_WHITELIST(deviate, NVGPU_MISRA(Rule, 11_3), "TID-415")
 		src_u32 = (u32 *)src;
 
-		for (i = 0U; i < words; i++) {
-			if ((i % 64U) == 0U) {
+		if (!flcn->is_falcon2_enabled) {
+			for (i = 0U; i < words; i++) {
+				if (((i % 64U) == 0U)) {
 				/* tag is always 256B aligned */
-				nvgpu_falcon_writel(flcn,
-					falcon_falcon_imemt_r(port), tag);
-				tag = nvgpu_safe_add_u32(tag, 1U);
-			}
+					nvgpu_falcon_writel(flcn,
+							falcon_falcon_imemt_r(port), tag);
+					tag = nvgpu_safe_add_u32(tag, 1U);
+				}
 
-			nvgpu_falcon_writel(flcn, falcon_falcon_imemd_r(port),
+				nvgpu_falcon_writel(flcn, falcon_falcon_imemd_r(port),
 					    src_u32[i]);
+			}
+		} else {
+			for (i = 0U; i < words; i++) {
+				nvgpu_falcon_writel(flcn, falcon_falcon_imemd_r(port),
+					src_u32[i]);
+			}
 		}
 
 		/* WARNING : setting remaining bytes in block to 0x0 */

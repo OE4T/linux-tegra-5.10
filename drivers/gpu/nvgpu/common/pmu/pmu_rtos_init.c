@@ -379,14 +379,17 @@ int nvgpu_pmu_rtos_init(struct gk20a *g)
 			}
 		}
 #endif
-		/*
-		 * clear halt interrupt to avoid PMU-RTOS ucode
-		 * hitting breakpoint due to PMU halt
-		 */
-		err = nvgpu_falcon_clear_halt_intr_status(g->pmu->flcn,
-			nvgpu_get_poll_timeout(g));
-		if (err != 0) {
-			goto exit;
+
+		if (!nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
+			/*
+			 * clear halt interrupt to avoid PMU-RTOS ucode
+			 * hitting breakpoint due to PMU halt
+			 */
+			err = nvgpu_falcon_clear_halt_intr_status(g->pmu->flcn,
+					nvgpu_get_poll_timeout(g));
+			if (err != 0) {
+				goto exit;
+			}
 		}
 
 		if (g->ops.pmu.setup_apertures != NULL) {
