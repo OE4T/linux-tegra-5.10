@@ -2229,23 +2229,6 @@ int sdhci_tegra_notifier_handle(struct notifier_block *self,
 		mmc_detect_change(host->mmc, 0);
 		err = unregister_notifier_to_sd(host);
 		break;
-	case SD_EXP_SUSPEND_COMPLETE:
-		/* Turn off regulators */
-		if (!IS_ERR(host->mmc->supply.vdd2) &&
-		    regulator_is_enabled(host->mmc->supply.vdd2))
-			regulator_disable(host->mmc->supply.vdd2);
-		if (!IS_ERR(host->mmc->supply.vdd3) &&
-		    regulator_is_enabled(host->mmc->supply.vdd3))
-			regulator_disable(host->mmc->supply.vdd3);
-		/* Set pinmux to SD */
-		sdhci_tegra_sd_express_mode_select(host, false);
-		sdhci_set_power(host, MMC_POWER_OFF, 0);
-		err = unregister_notifier_to_sd(host);
-		if (!err)
-			err = NOTIFY_OK;
-		else
-			err = NOTIFY_BAD;
-		break;
 	default:
 		err = NOTIFY_BAD;
 		break;
@@ -3116,6 +3099,30 @@ static int __maybe_unused sdhci_tegra_suspend(struct device *dev)
 			return ret;
 	}
 
+	/*
+	 * PCIe driver does not have a mechanism to detect card insertion status
+	 * and handle sudden card removal events.
+	 * Send notification to the PCIe driver with card removal event before
+	 * SDHCI proceeds with its suspend sequence. This ensures safe
+	 * card removal from the PCIe subsystem and avoids crash in case the
+	 * card is removed during resume.
+	 * During resume, if the card is kept inserted, the SDHCI driver
+	 * retriggers the init sequence and attaches the card in PCIe mode.
+	 */
+	if (host->mmc->is_card_sd_express) {
+		ret = notifier_from_sd_call_chain(host, CARD_REMOVED);
+		if (ret != NOTIFY_OK) {
+			pr_warn("%s: SD express card removal failed in suspend\n",
+				mmc_hostname(host->mmc));
+		}
+		sdhci_set_power(host, MMC_POWER_OFF, 0);
+		ret = tegra_sdhci_pre_sd_exp_card_init(host, CARD_REMOVED, 0);
+		if (ret)
+			return ret;
+		unregister_notifier_to_sd(host);
+		host->mmc->is_card_sd_express = false;
+	}
+
 	if (host->mmc->caps2 & MMC_CAP2_CQE) {
 		ret = cqhci_suspend(host->mmc);
 		if (ret)
@@ -3188,6 +3195,11 @@ static int __maybe_unused sdhci_tegra_resume(struct device *dev)
 			goto suspend_host;
 	}
 
+	/* Detect change in the card state over suspend/resume cycles */
+	if (mmc_card_is_removable(host->mmc) ||
+		(host->mmc->caps2 & MMC_CAP2_SD_EXPRESS_SUPPORT)) {
+		mmc_detect_change(host->mmc, 0);
+	}
 	return 0;
 
 suspend_host:
