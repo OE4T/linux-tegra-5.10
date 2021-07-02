@@ -1599,11 +1599,6 @@ static void tegra_pcie_unconfig_controller(struct tegra_pcie_dw *pcie)
 			dev_err(pcie->dev, "Failed to disable controller %d: %d\n",
 				pcie->cid, ret);
 	}
-
-	/* Inform SD driver about the completion of suspend from PCIe driver. */
-	if (pcie->sd_dev_handle)
-		notifier_to_sd_call_chain(pcie->sd_dev_handle,
-					  SD_EXP_SUSPEND_COMPLETE);
 }
 
 static int tegra_pcie_msi_host_init(struct pcie_port *pp)
