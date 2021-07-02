@@ -100,6 +100,8 @@ int nvgpu_vm_remap_os_buf_get(struct vm_gk20a *vm,
 		goto clean_up;
 	}
 
+	memset(remap_os_buf, 0, sizeof(*remap_os_buf));
+
 	remap_os_buf->os_priv.dmabuf = dmabuf;
 	remap_os_buf->os_priv.attachment = attachment;
 	remap_os_buf->os_priv.sgt = sgt;

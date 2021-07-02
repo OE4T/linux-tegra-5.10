@@ -544,7 +544,7 @@ static int nvgpu_vm_remap_get_mpool(struct vm_gk20a *vm,
 				struct nvgpu_vm_remap_mpool **curr_mpool,
 				u32 *curr_mem_handle)
 {
-	struct nvgpu_vm_remap_os_buffer remap_os_buf = { 0 };
+	struct nvgpu_vm_remap_os_buffer remap_os_buf;
 	int err = 0;
 
 	if (op->mem_handle == *curr_mem_handle) {
