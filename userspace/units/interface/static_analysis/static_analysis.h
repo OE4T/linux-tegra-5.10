@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,7 @@ struct unit_module;
  *
  * Description: Verify functionality of static analysis safe arithmetic APIs.
  *
- * Test Type: Feature, Error guessing
+ * Test Type: Feature, Error guessing, Boundary Value
  *
  * Targets: nvgpu_safe_sub_u8, nvgpu_safe_add_u32, nvgpu_safe_add_s32,
  *          nvgpu_safe_sub_u32, nvgpu_safe_sub_s32, nvgpu_safe_mult_u32,
@@ -45,6 +45,66 @@ struct unit_module;
  *          nvgpu_safe_sub_s64, nvgpu_safe_mult_u64, nvgpu_safe_mult_s64
  *
  * Input: None
+ *
+ * -# Unsigned addition tests:
+ *    Boundary values: {0, max}
+ *
+ *    Equivalence classes:
+ *    Variable: Addition result of two unsigned operands.
+ *    - Valid tests: Addition result within range for each boundary value and
+ *                   random value in the set.
+ *    - Invalid tests: Addition result out of range if possible for each
+ *                     boundary and random value.
+ *
+ * -# Signed addition tests:
+ *     Boundary values: {min, 0, max}
+ *
+ *     Equivalence classes:
+ *     Variable: Addition result of two signed operands.
+ *     - Valid tests: Addition result within range for each boundary value and
+ *                    random value.
+ *     - Invalid tests: Addition result out of range if possible for each
+ *                      boundary and random value.
+ *
+ * -# Unsigned subtraction tests:
+ *    Boundary values: {0, max}
+ *
+ *    Equivalence classes:
+ *    Variable: Subtraction result of two unsigned operands.
+ *    - Valid tests: Subtraction result within range for each boundary value and
+ *                   random value.
+ *    - Invalid tests: Subtraction result out of range if possible for each
+ *                     boundary and random value.
+ *
+ * -# Signed subtraction tests:
+ *    Boundary values: {min, 0, max}
+ *
+ *    Equivalence classes:
+ *    Variable: Subtraction result of two signed operands.
+ *    - Valid tests: Subtraction output within range for each boundary value and
+ *                   random value.
+ *    - Invalid tests: Subtraction output out of range if possible for each
+ *                     boundary and random value.
+ *
+ * -# Unsigned multiplication tests:
+ *    Boundary values: {0, max}
+ *
+ *    Equivalence classes:
+ *    Variable: Multiplication result of two unsigned operands.
+ *    - Valid tests: Multiplication result within range for each boundary value and
+ *                   random value.
+ *    - Invalid tests: Multiplication result out of range if possible for each
+ *                     boundary and random value.
+ *
+ * -# Signed multiplication tests:
+ *    Boundary values: {min, 0, max}
+ *
+ *    Equivalence classes:
+ *    Variable: Multiplication result of two signed operands.
+ *    - Valid tests: Multiplication result within range for each boundary value and
+ *                   random value.
+ *    - Invalid tests: Multiplication result out of range if possible for each
+ *                     boundary and random value.
  *
  * Steps:
  * - Call the static analysis arithmetic APIs. Pass in valid values and verify
