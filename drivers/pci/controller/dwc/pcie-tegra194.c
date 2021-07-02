@@ -312,6 +312,7 @@ struct tegra_pcie_dw {
 	bool enable_cdm_check;
 	bool enable_srns;
 	bool link_state;
+	bool disable_power_down;
 	bool update_fc_fixup;
 	bool gic_v2m;
 	u8 init_link_width;
@@ -2053,6 +2054,9 @@ static int tegra_pcie_dw_parse_dt(struct tegra_pcie_dw *pcie)
 
 	pcie->enable_srns = of_property_read_bool(np, "nvidia,enable-srns");
 
+	pcie->disable_power_down =
+		of_property_read_bool(np, "nvidia,disable-power-down");
+
 	if (pcie->mode == DW_PCIE_RC_TYPE)
 		flags = GPIOD_IN;
 	else
@@ -2648,7 +2652,7 @@ static int tegra_pcie_config_rp(struct tegra_pcie_dw *pcie)
 	}
 
 	pcie->link_state = tegra_pcie_dw_link_up(&pcie->pci);
-	if (!pcie->link_state) {
+	if (!pcie->link_state && !pcie->disable_power_down) {
 		ret = -ENOMEDIUM;
 		goto fail_host_init;
 	}
@@ -3511,7 +3515,7 @@ static int tegra_pcie_dw_remove(struct platform_device *pdev)
 {
 	struct tegra_pcie_dw *pcie = platform_get_drvdata(pdev);
 
-	if (!pcie->link_state)
+	if (!pcie->link_state && !pcie->disable_power_down)
 		return 0;
 
 	debugfs_remove_recursive(pcie->debugfs);
@@ -3535,7 +3539,7 @@ static int tegra_pcie_dw_suspend_late(struct device *dev)
 		return -EPERM;
 	}
 
-	if (!pcie->link_state)
+	if (!pcie->link_state && !pcie->disable_power_down)
 		return 0;
 
 	/* Enable HW_HOT_RST mode */
@@ -3554,7 +3558,7 @@ static int tegra_pcie_dw_suspend_noirq(struct device *dev)
 {
 	struct tegra_pcie_dw *pcie = dev_get_drvdata(dev);
 
-	if (!pcie->link_state)
+	if (!pcie->link_state && !pcie->disable_power_down)
 		return 0;
 
 	/* Save MSI interrupt vector */
@@ -3572,7 +3576,7 @@ static int tegra_pcie_dw_resume_noirq(struct device *dev)
 	struct tegra_pcie_dw *pcie = dev_get_drvdata(dev);
 	int ret;
 
-	if (!pcie->link_state)
+	if (!pcie->link_state && !pcie->disable_power_down)
 		return 0;
 
 	ret = tegra_pcie_config_controller(pcie, true);
@@ -3613,7 +3617,7 @@ static int tegra_pcie_dw_resume_early(struct device *dev)
 	struct tegra_pcie_dw *pcie = dev_get_drvdata(dev);
 	u32 val;
 
-	if (!pcie->link_state)
+	if (!pcie->link_state && !pcie->disable_power_down)
 		return 0;
 
 	/* Disable HW_HOT_RST mode */
@@ -3634,7 +3638,7 @@ static void tegra_pcie_dw_shutdown(struct platform_device *pdev)
 {
 	struct tegra_pcie_dw *pcie = platform_get_drvdata(pdev);
 
-	if (!pcie->link_state)
+	if (!pcie->link_state && !pcie->disable_power_down)
 		return;
 
 	debugfs_remove_recursive(pcie->debugfs);

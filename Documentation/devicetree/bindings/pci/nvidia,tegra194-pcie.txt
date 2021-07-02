@@ -143,6 +143,8 @@ Optional properties:
    initializes PLLs with the internal clock source on the EP side.
 - nvidia,pex-prsnt-gpios: Must contain a phandle to a GPIO controller followed
   by GPIO that is being used to support hot plug and unplug via PRSNT# pin.
+- nvidia,disable-power-down: Set this property to keep root port enabled even
+   if no Endpoint is connected to the root port
 
 RC mode:
 - vpcie3v3-supply: A phandle to the regulator node that supplies 3.3V to the slot
