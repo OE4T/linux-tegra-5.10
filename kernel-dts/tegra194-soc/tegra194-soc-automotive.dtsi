@@ -242,6 +242,10 @@
 		status = "okay";
 	};
 
+	iommu@10000000 {
+		status = "okay";
+	};
+
 	tegra-hsp@c150000 {
 		status = "okay";
 	};
