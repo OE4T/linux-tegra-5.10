@@ -2557,8 +2557,7 @@ static int ufshcd_queuecommand(struct Scsi_Host *host, struct scsi_cmnd *cmd)
 		BUG();
 	}
 
-	if (!down_read_trylock(&hba->clk_scaling_lock))
-		return SCSI_MLQUEUE_HOST_BUSY;
+	down_read(&hba->clk_scaling_lock);
 
 	hba->req_abort_count = 0;
 
