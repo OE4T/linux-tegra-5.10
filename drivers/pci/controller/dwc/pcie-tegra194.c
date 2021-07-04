@@ -95,6 +95,7 @@
 #define APPL_INTR_EN_L1_8_0			0x44
 #define APPL_INTR_EN_L1_8_BW_MGT_INT_EN		BIT(2)
 #define APPL_INTR_EN_L1_8_AUTO_BW_INT_EN	BIT(3)
+#define APPL_INTR_EN_L1_8_EDMA_INT_EN		BIT(6)
 #define APPL_INTR_EN_L1_8_INTX_EN		BIT(11)
 #define APPL_INTR_EN_L1_8_AER_INT_EN		BIT(15)
 
@@ -418,6 +419,7 @@ static irqreturn_t tegra_pcie_rp_irq_handler(int irq, void *arg)
 	struct pcie_port *pp = &pci->pp;
 	u32 val, tmp;
 	u16 val_w;
+	int handled = 1;
 
 	val = appl_readl(pcie, APPL_INTR_STATUS_L0);
 	if (val & APPL_INTR_STATUS_L0_LINK_STATE_INT) {
@@ -441,6 +443,8 @@ static irqreturn_t tegra_pcie_rp_irq_handler(int irq, void *arg)
 
 	if (val & APPL_INTR_STATUS_L0_INT_INT) {
 		val = appl_readl(pcie, APPL_INTR_STATUS_L1_8_0);
+		if (val & APPL_INTR_STATUS_L1_8_0_EDMA_INT_MASK)
+			handled = 0;
 		if (val & APPL_INTR_STATUS_L1_8_0_AUTO_BW_INT_STS) {
 			appl_writel(pcie,
 				    APPL_INTR_STATUS_L1_8_0_AUTO_BW_INT_STS,
@@ -484,7 +488,7 @@ static irqreturn_t tegra_pcie_rp_irq_handler(int irq, void *arg)
 		dev_err(pci->dev, "CDM Error Address Offset = 0x%08X\n", tmp);
 	}
 
-	return IRQ_HANDLED;
+	return IRQ_RETVAL(handled);
 }
 
 static void pex_ep_event_hot_rst_done(struct tegra_pcie_dw *pcie)
@@ -558,7 +562,7 @@ static irqreturn_t tegra_pcie_ep_hard_irq(int irq, void *arg)
 {
 	struct tegra_pcie_dw *pcie = arg;
 	struct dw_pcie_ep *ep = &pcie->pci.ep;
-	int spurious = 1;
+	int spurious = 1, handled = 1;
 	u32 val, tmp;
 
 	val = appl_readl(pcie, APPL_INTR_STATUS_L0);
@@ -590,13 +594,23 @@ static irqreturn_t tegra_pcie_ep_hard_irq(int irq, void *arg)
 		spurious = 0;
 	}
 
+	if (val & APPL_INTR_STATUS_L0_INT_INT) {
+		val = appl_readl(pcie, APPL_INTR_STATUS_L1_8_0);
+		if (val & APPL_INTR_STATUS_L1_8_0_EDMA_INT_MASK)
+			handled = 0;
+		spurious = 0;
+	}
+
+	if (!val)
+		spurious = 0;
+
 	if (spurious) {
 		dev_warn(pcie->dev, "Random interrupt (STATUS = 0x%08X)\n",
 			 val);
 		appl_writel(pcie, val, APPL_INTR_STATUS_L0);
 	}
 
-	return IRQ_HANDLED;
+	return IRQ_RETVAL(handled);
 }
 
 static int tegra_pcie_dw_rd_own_conf(struct pci_bus *bus, u32 devfn, int where,
@@ -816,6 +830,7 @@ static void tegra_pcie_enable_legacy_interrupts(struct pcie_port *pp)
 	val |= APPL_INTR_EN_L1_8_INTX_EN;
 	val |= APPL_INTR_EN_L1_8_AUTO_BW_INT_EN;
 	val |= APPL_INTR_EN_L1_8_BW_MGT_INT_EN;
+	val |= APPL_INTR_EN_L1_8_EDMA_INT_EN;
 	if (IS_ENABLED(CONFIG_PCIEAER))
 		val |= APPL_INTR_EN_L1_8_AER_INT_EN;
 	appl_writel(pcie, val, APPL_INTR_EN_L1_8_0);
@@ -2001,6 +2016,7 @@ static void pex_ep_event_pex_rst_deassert(struct tegra_pcie_dw *pcie)
 	val |= APPL_INTR_EN_L0_0_SYS_INTR_EN;
 	val |= APPL_INTR_EN_L0_0_LINK_STATE_INT_EN;
 	val |= APPL_INTR_EN_L0_0_PCI_CMD_EN_INT_EN;
+	val |= APPL_INTR_EN_L0_0_INT_INT_EN;
 	if (tegra_platform_is_fpga())
 		val |= APPL_INTR_EN_L0_0_PEX_RST_INT_EN;
 	appl_writel(pcie, val, APPL_INTR_EN_L0_0);
@@ -2009,6 +2025,10 @@ static void pex_ep_event_pex_rst_deassert(struct tegra_pcie_dw *pcie)
 	val |= APPL_INTR_EN_L1_0_0_HOT_RESET_DONE_INT_EN;
 	val |= APPL_INTR_EN_L1_0_0_RDLH_LINK_UP_INT_EN;
 	appl_writel(pcie, val, APPL_INTR_EN_L1_0_0);
+
+	val = appl_readl(pcie, APPL_INTR_EN_L1_8_0);
+	val |= APPL_INTR_EN_L1_8_EDMA_INT_EN;
+	appl_writel(pcie, val, APPL_INTR_EN_L1_8_0);
 
 	/* 110us for both snoop and no-snoop */
 	val = 110 | (2 << PCI_LTR_SCALE_SHIFT) | LTR_MSG_REQ;
