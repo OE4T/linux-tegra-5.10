@@ -256,7 +256,10 @@ static int dw_pcie_ep_set_bar(struct pci_epc *epc, u8 func_no,
 	ep->epf_bar[bar] = epf_bar;
 	dw_pcie_dbi_ro_wr_dis(pci);
 
-	return 0;
+	if (!ep->ops->set_bar)
+		return 0;
+
+	return ep->ops->set_bar(ep, func_no, epf_bar);
 }
 
 static int dw_pcie_find_index(struct dw_pcie_ep *ep, phys_addr_t addr,

@@ -267,6 +267,10 @@
 #define EP_STATE_DISABLED	0
 #define EP_STATE_ENABLED	1
 
+/* Reserve 64K page in BAR0 for MSI */
+#define BAR0_MSI_OFFSET		SZ_64K
+#define BAR0_MSI_SIZE		SZ_64K
+
 enum ep_event {
 	EP_EVENT_NONE = 0,
 	EP_PEX_RST_DEASSERT,
@@ -306,6 +310,7 @@ struct tegra_pcie_dw {
 	bool enable_srns;
 	bool link_state;
 	bool update_fc_fixup;
+	bool gic_v2m;
 	u8 init_link_width;
 	u32 msi_ctrl_int;
 	u32 num_lanes;
@@ -354,8 +359,6 @@ struct tegra_pcie_of_data {
 	bool sbr_reset_fixup;
 	/* Bug 200390637 */
 	bool l1ss_exit_fixup;
-	/* GIC V2M support available */
-	bool gic_v2m;
 };
 
 static inline struct tegra_pcie_dw *to_tegra_pcie(struct dw_pcie *pci)
@@ -1288,6 +1291,43 @@ static int tegra_pcie_dw_parse_dt(struct tegra_pcie_dw *pcie)
 	return 0;
 }
 
+/*
+ * Parse msi-parent and gic-v2m resources. On failure don't return error
+ * and use default DWC MSI framework.
+ */
+void tegra_pcie_parse_msi_parent(struct tegra_pcie_dw *pcie)
+{
+	struct device_node *np = pcie->dev->of_node;
+	struct device_node *msi_node;
+	int ret;
+
+	msi_node = of_parse_phandle(np, "msi-parent", 0);
+	if (!msi_node) {
+		dev_dbg(pcie->dev, "Failed to find msi-parent\n");
+		return;
+	}
+
+	if (!of_device_is_compatible(np, "arm,gic-v2m-frame")) {
+		dev_err(pcie->dev, "msi-parent is not gic-v2m\n");
+		return;
+	}
+
+	ret = of_address_to_resource(msi_node, 0, &pcie->gic_base);
+	if (ret) {
+		dev_err(pcie->dev, "Failed to allocate gic_base resource\n");
+		return;
+	}
+
+	ret = of_address_to_resource(msi_node, 1, &pcie->msi_base);
+	if (ret) {
+		dev_err(pcie->dev, "Failed to allocate msi_base resource\n");
+		return;
+	}
+
+	dev_info(pcie->dev, "Using GICv2m MSI allocator\n");
+	pcie->gic_v2m = true;
+}
+
 static int tegra_pcie_bpmp_set_ctrl_state(struct tegra_pcie_dw *pcie,
 					  bool enable)
 {
@@ -1630,34 +1670,6 @@ static int tegra_pcie_msi_host_init(struct pcie_port *pp)
 {
 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
 	struct tegra_pcie_dw *pcie = to_tegra_pcie(pci);
-	struct device *dev = pcie->dev;
-	struct device_node *np = dev->of_node;
-	struct device_node *msi_node;
-	int ret;
-
-	/*
-	 * The MSI domain is set by the generic of_msi_configure().  This
-	 * .msi_host_init() function keeps us from doing the default MSI
-	 * domain setup in dw_pcie_host_init() and also enforces the
-	 * requirement that "msi-parent" exists.
-	 */
-	msi_node = of_parse_phandle(np, "msi-parent", 0);
-	if (!msi_node) {
-		dev_err(dev, "failed to find msi-parent\n");
-		return -EINVAL;
-	}
-
-	ret = of_address_to_resource(msi_node, 0, &pcie->gic_base);
-	if (ret) {
-		dev_err(dev, "Failed to allocate gic_base resource.\n");
-		return ret;
-	}
-
-	ret = of_address_to_resource(msi_node, 1, &pcie->msi_base);
-	if (ret) {
-		dev_err(dev, "Failed to allocate msi_base resource.\n");
-		return ret;
-	}
 
 	writel(lower_32_bits(pcie->gic_base.start + V2M_MSI_SETSPI_NS),
 	       pcie->appl_base + APPL_SEC_EXTERNAL_MSI_ADDR_L);
@@ -1682,7 +1694,7 @@ static int tegra_pcie_init_controller(struct tegra_pcie_dw *pcie)
 	if (ret < 0)
 		return ret;
 
-	if (pcie->of_data->gic_v2m)
+	if (pcie->gic_v2m)
 		tegra_pcie_dw_host_ops.msi_host_init = tegra_pcie_msi_host_init;
 
 	pp->ops = &tegra_pcie_dw_host_ops;
@@ -2262,6 +2274,9 @@ static const struct pci_epc_features tegra_pcie_epc_features = {
 	.reserved_bar = 1 << BAR_2 | 1 << BAR_3 | 1 << BAR_4 | 1 << BAR_5,
 	.bar_fixed_64bit = 1 << BAR_0,
 	.bar_fixed_size[0] = SZ_1M,
+	.msi_rcv_bar = BAR_0,
+	.msi_rcv_offset = BAR0_MSI_OFFSET,
+	.msi_rcv_size = BAR0_MSI_SIZE,
 };
 
 static const struct pci_epc_features*
@@ -2270,9 +2285,34 @@ tegra_pcie_ep_get_features(struct dw_pcie_ep *ep)
 	return &tegra_pcie_epc_features;
 }
 
+/* Reserve BAR0_BASE + BAR0_MSI_OFFSET of size SZ_64K as MSI page */
+static int tegra_pcie_ep_set_bar(struct dw_pcie_ep *ep, u8 func_no,
+				 struct pci_epf_bar *epf_bar)
+{
+	struct dw_pcie *pci = to_dw_pcie_from_ep(ep);
+	struct tegra_pcie_dw *pcie = to_tegra_pcie(pci);
+	enum pci_barno bar = epf_bar->barno;
+	dma_addr_t msi_phy = epf_bar->phys_addr + BAR0_MSI_OFFSET;
+
+	if (pcie->gic_v2m && (bar == BAR_0)) {
+		appl_writel(pcie, lower_32_bits(msi_phy),
+			    APPL_SEC_EXTERNAL_MSI_ADDR_L);
+		appl_writel(pcie, upper_32_bits(msi_phy),
+			    APPL_SEC_EXTERNAL_MSI_ADDR_H);
+
+		appl_writel(pcie, lower_32_bits(pcie->msi_base.start),
+			    APPL_SEC_INTERNAL_MSI_ADDR_L);
+		appl_writel(pcie, upper_32_bits(pcie->msi_base.start),
+			    APPL_SEC_INTERNAL_MSI_ADDR_H);
+	}
+
+	return 0;
+}
+
 static struct dw_pcie_ep_ops pcie_ep_ops = {
 	.raise_irq = tegra_pcie_ep_raise_irq,
 	.get_features = tegra_pcie_ep_get_features,
+	.set_bar = tegra_pcie_ep_set_bar,
 };
 
 static int tegra_pcie_config_ep(struct tegra_pcie_dw *pcie,
@@ -2408,6 +2448,8 @@ static int tegra_pcie_dw_probe(struct platform_device *pdev)
 			   ret);
 		return ret;
 	}
+
+	tegra_pcie_parse_msi_parent(pcie);
 
 	ret = tegra_pcie_get_slot_regulators(pcie);
 	if (ret < 0) {
@@ -2709,7 +2751,7 @@ static int tegra_pcie_dw_resume_noirq(struct device *dev)
 	if (ret < 0)
 		return ret;
 
-	if (pcie->of_data->gic_v2m) {
+	if (pcie->gic_v2m) {
 		writel(lower_32_bits(pcie->gic_base.start + V2M_MSI_SETSPI_NS),
 		       pcie->appl_base + APPL_SEC_EXTERNAL_MSI_ADDR_L);
 		writel(upper_32_bits(pcie->gic_base.start + V2M_MSI_SETSPI_NS),
@@ -2783,7 +2825,6 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t194 = {
 	.msix_doorbell_access_fixup = true,
 	.sbr_reset_fixup = true,
 	.l1ss_exit_fixup = true,
-	.gic_v2m = false,
 };
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t194_ep = {
@@ -2791,7 +2832,6 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t194_ep = {
 	.msix_doorbell_access_fixup = false,
 	.sbr_reset_fixup = false,
 	.l1ss_exit_fixup = true,
-	.gic_v2m = false,
 };
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t234 = {
@@ -2799,7 +2839,6 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t234 = {
 	.msix_doorbell_access_fixup = false,
 	.sbr_reset_fixup = false,
 	.l1ss_exit_fixup = false,
-	.gic_v2m = true,
 };
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t234_ep = {
@@ -2807,7 +2846,6 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t234_ep = {
 	.msix_doorbell_access_fixup = false,
 	.sbr_reset_fixup = false,
 	.l1ss_exit_fixup = false,
-	.gic_v2m = false,
 };
 
 static const struct of_device_id tegra_pcie_dw_of_match[] = {

@@ -219,6 +219,8 @@ struct dw_pcie_ep_ops {
 	 * driver.
 	 */
 	unsigned int (*func_conf_select)(struct dw_pcie_ep *ep, u8 func_no);
+	int	(*set_bar)(struct dw_pcie_ep *ep, u8 func_no,
+			   struct pci_epf_bar *epf_bar);
 };
 
 struct dw_pcie_ep_func {
