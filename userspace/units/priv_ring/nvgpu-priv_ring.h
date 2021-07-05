@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -224,17 +224,21 @@ int test_priv_ring_isr(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Verify the priv_ring.decode_error_code HAL.
  *
- * Test Type: Feature, Error injection
+ * Test Type: Feature, Error injection, Boundary Value
  *
  * Targets: gops_priv_ring.decode_error_code, gp10b_decode_error_code
  *
  * Input: test_priv_ring_setup() has been executed.
+ * Equivalence classes:
+ * engine_id
+ * - Valid : {0 - U32_MAX}
  *
  * Steps:
  * - Call decode_error_code HAL with different error_codes covering all the
  *   branches (0xBADF1xxx, 0xBADF2xxx, 0xBADF3xxx, 0xBADF5xxx).
  * - Include error codes with reference the largest index for each of the error
  *   types.
+ * - Include boundary values and one random number in between the range [0 - U32_MAX]
  *
  * Output:
  * - UNIT_SUCCESS

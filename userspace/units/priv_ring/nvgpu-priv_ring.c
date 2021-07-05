@@ -21,6 +21,7 @@
  */
 
 #include <unit/unit.h>
+#include <unit/utils.h>
 #include <unit/io.h>
 #include <nvgpu/posix/io.h>
 #include <nvgpu/cic_mon.h>
@@ -377,6 +378,7 @@ int test_priv_ring_isr(struct unit_module *m, struct gk20a *g, void *args)
 }
 
 u32 error_codes[] = {
+	0U,
 	0xBADF1100U,
 	0xBADF1800U,
 	0xBADF1A00U,
@@ -389,6 +391,7 @@ u32 error_codes[] = {
 	0xBADF5100U,
 	0xBADF5500U,
 	0xBADF5600U,
+	U32_MAX,
 };
 
 int test_decode_error_code(struct unit_module *m, struct gk20a *g, void *args)
@@ -400,6 +403,10 @@ int test_decode_error_code(struct unit_module *m, struct gk20a *g, void *args)
 	for (i = 0; i < sizeof(error_codes)/sizeof(u32); i++) {
 		g->ops.priv_ring.decode_error_code(g, error_codes[i]);
 	}
+
+	/* Call priv_ring ISR randomly on the full range */
+	u32 random_code = get_random_u32(1, U32_MAX - 1);
+	g->ops.priv_ring.decode_error_code(g, random_code);
 
 	return ret;
 }
