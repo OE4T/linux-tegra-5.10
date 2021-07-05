@@ -87,6 +87,15 @@ config TEGRA_PCIE_EP_MEM
 	 Say Y if Tegra is working in PCIe-End Point mode and a client
 	 driver is required
 
+config TEGRA_PCIE_DMA_TEST
+	tristate "Client driver for Tegra PCIe DMA test end point function"
+	depends on PCI
+	help
+	 Say Y if client driver is required for Tegra PCIe-End Point mode
+	 enabled with DMA test function.
+
+	 If in doubt, say "N" to disable Tegra PCIe DMA test driver.
+
 if ARCH_TEGRA
 source "drivers/misc/nvs-dfsh/Kconfig"
 source "drivers/misc/nvs/Kconfig"

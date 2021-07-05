@@ -225,6 +225,7 @@ M:	Krishna Thota <kthota@nvidia.com>
 B:	Tegra_PCIe
 S:	Supported
 F:	drivers/pci/*
+F:	drivers/misc/tegra-pcie-dma-test.c
 
 PLATFORM
 M:	Laxman Dewangan <ldewangan@nvidia.com>
