@@ -27,6 +27,7 @@
 #include <linux/dma-mapping.h>
 #include <linux/uaccess.h>
 #include <linux/version.h>
+#include <linux/nvmem-consumer.h>
 #include <soc/tegra/fuse.h>
 
 #include "dev.h"
@@ -691,6 +692,76 @@ out:
 	return ret;
 }
 
+static int nvhost_nvdla_read_chip_option_register(struct platform_device *pdev)
+{
+	/* Read floor sweeping info using nvmem api
+	 * See Bug 200748079
+	 */
+	struct nvmem_cell *cell = NULL;
+	struct device *dev = &pdev->dev;
+	size_t len = 0ULL;
+	char *pbuf = NULL;
+	int ret = 0;
+
+	cell = nvmem_cell_get(dev, "dla-disable");
+
+	if (IS_ERR(cell)) {
+
+		dev_err(dev,
+		"nvmem_cell_get error %ld. Assuming DLA instances are available\n"
+		, PTR_ERR(cell));
+
+		ret = 0;
+		/* Throwing a fuse read error
+		 * and reverting to default
+		 * behaviour assuming that the
+		 * DLA instance exists
+		 */
+		goto out;
+	}
+
+	pbuf = nvmem_cell_read(cell, &len);
+
+	nvmem_cell_put(cell);
+
+	if (IS_ERR(pbuf)) {
+
+		dev_err(dev,
+		"nvmem_cell_read buffer error %ld. Assuming DLA instances are available\n"
+		, PTR_ERR(pbuf));
+
+		ret = 0;
+		/* Throwing a fuse read error
+		 * and reverting to default
+		 * behaviour assuming that the
+		 * DLA instance exists
+		 */
+		goto out;
+	}
+
+	if (len != FUSE_OPT_DLA_DISABLE_SIZE) {
+
+		dev_err(dev,
+		"nvmem_cell_read len mismatch error. Assuming DLA instances are available\n"
+		);
+
+		ret = 0;
+		/* Throwing a fuse read error
+		 * and reverting to default
+		 * behaviour assuming that the
+		 * DLA instance exists
+		 */
+		goto out;
+	}
+
+	ret  = (int)(*pbuf);
+
+out:
+	kfree(pbuf);
+
+	return ret;
+}
+
 /* driver probe and init */
 static struct of_device_id tegra_nvdla_of_match[] = {
 	{
@@ -720,6 +791,7 @@ static int nvdla_probe(struct platform_device *pdev)
 	struct nvhost_device_data *pdata = NULL;
 	struct nvdla_device *nvdla_dev = NULL;
 	struct device *dev = &pdev->dev;
+	int fuse_ret = 0;
 
 	if (pdev->dev.of_node) {
 		const struct of_device_id *match;
@@ -759,6 +831,28 @@ static int nvdla_probe(struct platform_device *pdev)
 		dev_err(dev, "NVDLA1 IP is disabled in SKU\n");
 		err = -ENODEV;
 		goto err_no_ip;
+	}
+
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
+	if (tegra_get_chipid() == TEGRA_CHIPID_TEGRA23) {
+#else
+	if (tegra_get_chip_id() == TEGRA234) {
+#endif
+		fuse_ret = nvhost_nvdla_read_chip_option_register(pdev);
+
+		if ((fuse_ret & FUSE_OPT_DLA_0_DISABLED) &&
+			(pdata->class == NV_DLA0_CLASS_ID)) {
+				dev_err(dev, "NVDLA0 IP is disabled in Fuse\n");
+				err = -ENODEV;
+				goto err_no_ip;
+		}
+
+		if ((fuse_ret & FUSE_OPT_DLA_1_DISABLED) &&
+			(pdata->class == NV_DLA1_CLASS_ID)) {
+				dev_err(dev, "NVDLA1 IP is disabled in Fuse\n");
+				err = -ENODEV;
+				goto err_no_ip;
+		}
 	}
 
 	dma_set_mask(dev, DMA_BIT_MASK(39));

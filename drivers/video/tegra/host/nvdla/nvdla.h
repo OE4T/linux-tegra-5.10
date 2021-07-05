@@ -62,6 +62,23 @@
 #define MAX_NUM_ACTION_LIST	1
 
 /**
+ * Return size of FUSE_OPT_DLA_DISABLE register read
+ */
+#define FUSE_OPT_DLA_DISABLE_SIZE	1
+
+/**
+ * Value of FUSE_OPT_DLA_DISABLE register
+ * when DLA0 is disabled
+ */
+#define FUSE_OPT_DLA_0_DISABLED		1
+
+/**
+ * Value of FUSE_OPT_DLA_DISABLE register
+ * when DLA1 is disabled
+ */
+#define FUSE_OPT_DLA_1_DISABLED		2
+
+/**
  * Maximum number of queue's per engine
  */
 #define MAX_NVDLA_QUEUE_COUNT	16
