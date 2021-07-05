@@ -329,6 +329,8 @@ struct tegra_pcie_dw {
 	unsigned int phy_count;
 	struct phy **phys;
 
+	u32 target_speed;
+	u32 flr_rid;
 	struct dentry *debugfs;
 
 	wait_queue_head_t config_rp_waitq;
@@ -360,6 +362,9 @@ struct tegra_pcie_of_data {
 	/* Bug 200390637 */
 	bool l1ss_exit_fixup;
 };
+
+static void tegra_pcie_downstream_dev_to_D0(struct tegra_pcie_dw *pcie);
+static void tegra_pcie_dw_pme_turnoff(struct tegra_pcie_dw *pcie);
 
 static inline struct tegra_pcie_dw *to_tegra_pcie(struct dw_pcie *pci)
 {
@@ -765,7 +770,7 @@ static void init_host_aspm(struct tegra_pcie_dw *pcie)
 	dw_pcie_writel_dbi(pci, PCIE_PORT_AFR, val);
 }
 
-static void init_debugfs(struct tegra_pcie_dw *pcie)
+static void init_aspm_debugfs(struct tegra_pcie_dw *pcie)
 {
 	debugfs_create_devm_seqfile(pcie->dev, "aspm_state_cnt", pcie->debugfs,
 				    aspm_state_cnt);
@@ -774,8 +779,216 @@ static void init_debugfs(struct tegra_pcie_dw *pcie)
 static inline void disable_aspm_l12(struct tegra_pcie_dw *pcie) { return; }
 static inline void disable_aspm_l11(struct tegra_pcie_dw *pcie) { return; }
 static inline void init_host_aspm(struct tegra_pcie_dw *pcie) { return; }
-static inline void init_debugfs(struct tegra_pcie_dw *pcie) { return; }
+static inline void init_aspm_debugfs(struct tegra_pcie_dw *pcie) { return; }
 #endif
+
+static int apply_speed_change(struct seq_file *s, void *data)
+{
+	struct tegra_pcie_dw *pcie = (struct tegra_pcie_dw *)
+				     dev_get_drvdata(s->private);
+	struct dw_pcie *pci = &pcie->pci;
+	unsigned long start;
+	u16 val_w;
+
+	if ((pcie->target_speed == 0) ||
+	    (pcie->target_speed > PCI_EXP_LNKSTA_CLS_16_0GB)) {
+		seq_puts(s, "Invalid target speed. Should be 1 ~ 4\n");
+		return 0;
+	}
+
+	val_w = dw_pcie_readw_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKSTA);
+	if ((val_w & PCI_EXP_LNKSTA_CLS) == pcie->target_speed) {
+		seq_puts(s, "Link speed is already the target speed\n");
+		return 0;
+	}
+
+	val_w = dw_pcie_readw_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKCTL2);
+	val_w &= ~PCI_EXP_LNKSTA_CLS;
+	val_w |= pcie->target_speed;
+	dw_pcie_writew_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKCTL2, val_w);
+
+	/* Wait for previous link training to complete */
+	start = jiffies;
+	for (;;) {
+		val_w = dw_pcie_readw_dbi(pci,
+					  pcie->pcie_cap_base + PCI_EXP_LNKSTA);
+		if (!(val_w & PCI_EXP_LNKSTA_LT))
+			break;
+		if (time_after(jiffies, start + msecs_to_jiffies(1000))) {
+			seq_puts(s, "Link Retrain Timeout\n");
+			break;
+		}
+		usleep_range(1000, 1100);
+	}
+
+	if (val_w & PCI_EXP_LNKSTA_LT) {
+		seq_puts(s, "Previous link training didn't complete\n");
+		return 0;
+	}
+
+	val_w = dw_pcie_readw_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKCTL);
+	val_w |= PCI_EXP_LNKCTL_RL;
+	dw_pcie_writew_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKCTL, val_w);
+
+	/* Wait for link training end. Break out after waiting for timeout */
+	start = jiffies;
+	for (;;) {
+		val_w = dw_pcie_readw_dbi(pci,
+					  pcie->pcie_cap_base + PCI_EXP_LNKSTA);
+		if (!(val_w & PCI_EXP_LNKSTA_LT))
+			break;
+		if (time_after(jiffies, start + msecs_to_jiffies(1000))) {
+			seq_puts(s, "Bandwidth Management Status Timeout\n");
+			break;
+		}
+		usleep_range(1000, 1100);
+	}
+
+	/* Give 20ms time for new link status to appear in LnkSta register */
+	msleep(20);
+
+	val_w = dw_pcie_readw_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKSTA);
+	if ((val_w & PCI_EXP_LNKSTA_CLS) == pcie->target_speed) {
+		seq_puts(s, "Link speed is successful\n");
+	} else {
+		seq_puts(s, "Link speed change failed");
+		seq_printf(s, "Settled for Gen-%u\n", (val_w >> 16) &
+			   PCI_EXP_LNKSTA_CLS);
+	}
+
+	return 0;
+}
+
+static int apply_pme_turnoff(struct seq_file *s, void *data)
+{
+	struct tegra_pcie_dw *pcie = (struct tegra_pcie_dw *)
+				     dev_get_drvdata(s->private);
+
+	tegra_pcie_downstream_dev_to_D0(pcie);
+	tegra_pcie_dw_pme_turnoff(pcie);
+	seq_puts(s, "PME_TurnOff sent and Link is in L2 state\n");
+
+	return 0;
+}
+
+static int apply_sbr(struct seq_file *s, void *data)
+{
+	struct tegra_pcie_dw *pcie = (struct tegra_pcie_dw *)
+				     dev_get_drvdata(s->private);
+	struct dw_pcie *pci = &pcie->pci;
+	struct pci_dev *pdev = NULL;
+	u16 val = 0, lnkspd = 0, tls = 0;
+	bool pass = true;
+	int domain = of_get_pci_domain_nr(pcie->dev->of_node);
+
+	/* save config state */
+	for_each_pci_dev(pdev) {
+		if (pci_domain_nr(pdev->bus) == domain)
+			pci_save_state(pdev);
+	}
+
+	lnkspd = dw_pcie_readw_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKSTA);
+	lnkspd &= PCI_EXP_LNKSTA_CLS;
+	tls = dw_pcie_readw_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKCTL2);
+	tls &= PCI_EXP_LNKCTL2_TLS;
+
+	val = dw_pcie_readw_dbi(pci, PCI_BRIDGE_CONTROL);
+	val |= PCI_BRIDGE_CTL_BUS_RESET;
+	dw_pcie_writew_dbi(pci, PCI_BRIDGE_CONTROL, val);
+	mdelay(1);
+	val = dw_pcie_readw_dbi(pci, PCI_BRIDGE_CONTROL);
+	val &= ~PCI_BRIDGE_CTL_BUS_RESET;
+	dw_pcie_writew_dbi(pci, PCI_BRIDGE_CONTROL, val);
+
+	/* Compare PCIE_CAP_TARGET_LINK_SPEED sticky bit before & after SBR */
+	val = dw_pcie_readw_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKSTA);
+	val &= PCI_EXP_LNKSTA_CLS;
+	if (lnkspd != val) {
+		seq_printf(s, "Link speed not restored to %d, cur speed: %d\n",
+			   lnkspd, val);
+		pass = false;
+	}
+
+	val = dw_pcie_readw_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKCTL2);
+	val &= PCI_EXP_LNKCTL2_TLS;
+	if (tls != val) {
+		seq_printf(s, "Sticky reg changed, prev tls: %d, cur tls: %d\n",
+			   tls, val);
+		pass = false;
+	}
+
+	mdelay(100);
+
+	/* restore config state */
+	for_each_pci_dev(pdev) {
+		if (pci_domain_nr(pdev->bus) == domain) {
+			pci_restore_state(pdev);
+			mdelay(10);
+		}
+	}
+
+	if (pass)
+		seq_puts(s, "Secondary Bus Reset applied successfully\n");
+	else
+		seq_puts(s, "Secondary Bus Reset failed\n");
+
+	return 0;
+}
+
+static int apply_flr(struct seq_file *s, void *data)
+{
+	struct tegra_pcie_dw *pcie = (struct tegra_pcie_dw *)
+				     dev_get_drvdata(s->private);
+	struct pci_dev *pdev = NULL;
+	int domain = of_get_pci_domain_nr(pcie->dev->of_node);
+	int ret;
+
+	pdev = pci_get_domain_bus_and_slot(domain, (pcie->flr_rid >> 8) & 0xff,
+					   pcie->flr_rid & 0xff);
+	pci_dev_put(pdev);
+	if (!pdev) {
+		seq_printf(s, "No PCIe device with RID: 0x%x\n", pcie->flr_rid);
+		return 0;
+	}
+
+	/* save config state */
+	pci_save_state(pdev);
+
+	if (!pcie_has_flr(pdev)) {
+		seq_printf(s, "PCIe device: 0x%x has no FLR\n", pcie->flr_rid);
+		return 0;
+	}
+
+	ret = pcie_flr(pdev);
+	if (ret < 0) {
+		seq_printf(s, "FLR failed for PCIe dev: 0x%x\n", pcie->flr_rid);
+		return 0;
+	}
+
+	/* restore config state */
+	pci_restore_state(pdev);
+
+	seq_puts(s, "Functional Level Reset applied successfully\n");
+
+	return 0;
+}
+
+static void init_debugfs(struct tegra_pcie_dw *pcie)
+{
+	init_aspm_debugfs(pcie);
+
+	debugfs_create_u32("target_speed", 0644, pcie->debugfs,
+			   &pcie->target_speed);
+	debugfs_create_devm_seqfile(pcie->dev, "apply_speed_change",
+				    pcie->debugfs, apply_speed_change);
+	debugfs_create_devm_seqfile(pcie->dev, "apply_pme_turnoff",
+				    pcie->debugfs, apply_pme_turnoff);
+	debugfs_create_devm_seqfile(pcie->dev, "apply_sbr", pcie->debugfs,
+				    apply_sbr);
+	debugfs_create_u32("flr_rid", 0644, pcie->debugfs, &pcie->flr_rid);
+	debugfs_create_devm_seqfile(pcie->dev, "apply_flr", pcie->debugfs,
+				    apply_flr);
+}
 
 static void tegra_pcie_enable_system_interrupts(struct pcie_port *pp)
 {
