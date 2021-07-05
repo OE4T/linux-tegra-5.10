@@ -56,6 +56,8 @@
 #include "t194/t194.h"
 #ifdef CONFIG_TEGRA_T23X_GRHOST
 #include "t23x/t23x.h"
+#endif
+#ifdef CONFIG_TEGRA_T239_GRHOST
 #include "t239/t239.h"
 #endif
 
@@ -779,7 +781,14 @@ static struct of_device_id tegra_tsec_of_match[] = {
 		.compatible = "nvidia,tegra194-tsec",
 		.data = (struct nvhost_device_data *)&t19_tsecb_info },
 #ifdef CONFIG_TEGRA_T23X_GRHOST
-	#include "tsec/tsec_of_match_t23x.h"
+	{ .name = "tsec",
+		.compatible = "nvidia,tegra234-tsec",
+		.data = (struct nvhost_device_data *)&t23x_tsec_info },
+#endif
+#ifdef CONFIG_TEGRA_T239_GRHOST
+	{ .name = "tsec",
+		.compatible = "nvidia,tegra239-tsec",
+		.data = (struct nvhost_device_data *)&t239_tsec_info },
 #endif
 	{ },
 };

@@ -60,6 +60,8 @@
 #include "t194/t194.h"
 #ifdef CONFIG_TEGRA_T23X_GRHOST
 #include "t23x/t23x.h"
+#endif
+#ifdef CONFIG_TEGRA_T239_GRHOST
 #include "t239/t239.h"
 #endif
 
@@ -473,7 +475,14 @@ static struct of_device_id tegra_nvdec_of_match[] = {
 		.data = (struct nvhost_device_data *)&t19_nvdec1_info,
 		.name = "nvdec1" },
 #ifdef CONFIG_TEGRA_T23X_GRHOST
-	#include "nvdec/nvdec_of_match_t23x.h"
+	{ .compatible = "nvidia,tegra234-nvdec",
+		.data = (struct nvhost_device_data *)&t23x_nvdec_info,
+		.name = "nvdec" },
+#endif
+#ifdef CONFIG_TEGRA_T239_GRHOST
+	{ .compatible = "nvidia,tegra239-nvdec",
+		.data = (struct nvhost_device_data *)&t239_nvdec_info,
+		.name = "nvdec" },
 #endif
 	{ },
 };

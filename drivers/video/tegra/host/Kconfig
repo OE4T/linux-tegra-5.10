@@ -7,6 +7,13 @@ config TEGRA_T23X_GRHOST
 	help
 	  Driver for the Tegra graphics host hardware.
 
+config TEGRA_T239_GRHOST
+	bool "Tegra 239 graphics host driver"
+	depends on TEGRA_GRHOST && ARCH_TEGRA_239_SOC
+	default y
+	help
+	  Driver for the Tegra graphics host hardware.
+
 config TEGRA_GRHOST_NVDLA
 	bool "Tegra NVDLA support"
 	depends on TEGRA_GRHOST && (ARCH_TEGRA_19x_SOC || ARCH_TEGRA_194_SOC)
