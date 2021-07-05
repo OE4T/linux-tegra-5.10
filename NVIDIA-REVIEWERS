@@ -220,6 +220,12 @@ S:	Supported
 F:	drivers/staging/mttcan/*
 F:	drivers/net/can/mttcan/*
 
+PCI
+M:	Krishna Thota <kthota@nvidia.com>
+B:	Tegra_PCIe
+S:	Supported
+F:	drivers/pci/*
+
 PLATFORM
 M:	Laxman Dewangan <ldewangan@nvidia.com>
 L:	sw-mobile-kernel-platform@exchange.nvidia.com
