@@ -295,6 +295,9 @@ NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_SM_DIVERSITY
 CONFIG_NVGPU_MIG                     := 1
 NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_MIG
 
+# Enable gsp scheduler for normal build
+CONFIG_NVGPU_GSP_SCHEDULER......:= 1
+NVGPU_COMMON_CFLAGS.............+= -DCONFIG_NVGPU_GSP_SCHEDULER
 endif
 endif
 

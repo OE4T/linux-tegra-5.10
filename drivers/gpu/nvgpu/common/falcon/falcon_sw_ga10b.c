@@ -119,6 +119,29 @@ static void check_and_enable_falcon2(struct nvgpu_falcon *flcn,
 	}
 }
 
+static void ga10b_falcon_engine_dependency_ops(struct nvgpu_falcon *flcn)
+{
+	struct gk20a *g = flcn->g;
+	struct nvgpu_falcon_engine_dependency_ops *flcn_eng_dep_ops =
+			&flcn->flcn_engine_dep_ops;
+
+	switch (flcn->flcn_id) {
+	case FALCON_ID_PMU:
+		gk20a_falcon_engine_dependency_ops(flcn);
+		break;
+	case FALCON_ID_GSPLITE:
+		flcn_eng_dep_ops->reset_eng = g->ops.gsp.gsp_reset;
+		break;
+	default:
+		/* NULL assignment make sure
+		 * CPU hard reset in gk20a_falcon_reset() gets execute
+		 * if falcon doesn't need specific reset implementation
+		 */
+		flcn_eng_dep_ops->reset_eng = NULL;
+		break;
+	}
+}
+
 extern void ga10b_falcon_sw_init(struct nvgpu_falcon *flcn)
 {
 	struct gk20a *g = flcn->g;
@@ -150,7 +173,7 @@ extern void ga10b_falcon_sw_init(struct nvgpu_falcon *flcn)
 	}
 
 	if (flcn->is_falcon_supported) {
-		gk20a_falcon_engine_dependency_ops(flcn);
+		ga10b_falcon_engine_dependency_ops(flcn);
 	} else {
 		gk20a_falcon_sw_init(flcn);
 	}

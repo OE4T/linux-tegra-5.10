@@ -20,34 +20,66 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <nvgpu/firmware.h>
 #include <nvgpu/falcon.h>
-#include <nvgpu/mm.h>
-#include <nvgpu/io.h>
-#include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/bug.h>
+#include <nvgpu/log.h>
+#include <nvgpu/gsp.h>
 
-#include "gsp_ga10b.h"
+#include "gsp_priv.h"
+#include "gsp_bootstrap.h"
 
-#include <nvgpu/hw/ga10b/hw_pgsp_ga10b.h>
-
-u32 ga10b_gsp_falcon2_base_addr(void)
+void nvgpu_gsp_sw_deinit(struct gk20a *g)
 {
-	return pgsp_falcon2_gsp_base_r();
+	if (g->gsp != NULL) {
+		nvgpu_kfree(g, g->gsp);
+		g->gsp = NULL;
+	}
 }
 
-u32 ga10b_gsp_falcon_base_addr(void)
+int nvgpu_gsp_sw_init(struct gk20a *g)
 {
-	return pgsp_falcon_irqsset_r();
+	int err = 0;
+
+	nvgpu_log_fn(g, " ");
+
+	if (g->gsp != NULL) {
+		/*
+		 * Recovery/unrailgate case, we do not need to do gsp init as
+		 * gsp is set during cold boot & doesn't execute gsp clean up as
+		 * part of power off sequence, so reuse to perform faster boot.
+		 */
+		return err;
+	}
+
+	/* Init struct holding the gsp software state */
+	g->gsp = (struct nvgpu_gsp *)nvgpu_kzalloc(g, sizeof(struct nvgpu_gsp));
+	if (g->gsp == NULL) {
+		err = -ENOMEM;
+		goto exit;
+	}
+
+	/* gsp falcon software state */
+	g->gsp->gsp_flcn = &g->gsp_flcn;
+
+exit:
+	return err;
 }
 
-int ga10b_gsp_engine_reset(struct gk20a *g)
+int nvgpu_gsp_bootstrap(struct gk20a *g)
 {
-	gk20a_writel(g, pgsp_falcon_engine_r(),
-		pgsp_falcon_engine_reset_true_f());
-	nvgpu_udelay(10);
-	gk20a_writel(g, pgsp_falcon_engine_r(),
-		pgsp_falcon_engine_reset_false_f());
+	int err = 0;
 
-	return 0;
+	nvgpu_log_fn(g, " ");
+
+	err = gsp_bootstrap_ns(g, g->gsp);
+	if (err != 0) {
+		nvgpu_err(g, "GSP bootstrap failed");
+		goto de_init;
+	}
+
+	return err;
+de_init:
+	nvgpu_gsp_sw_deinit(g);
+	return err;
 }

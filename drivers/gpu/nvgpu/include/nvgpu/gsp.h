@@ -20,34 +20,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/falcon.h>
-#include <nvgpu/mm.h>
-#include <nvgpu/io.h>
-#include <nvgpu/timers.h>
-#include <nvgpu/gk20a.h>
-#include <nvgpu/bug.h>
+#ifndef NVGPU_GSP
+#define NVGPU_GSP
+struct gk20a;
 
-#include "gsp_ga10b.h"
-
-#include <nvgpu/hw/ga10b/hw_pgsp_ga10b.h>
-
-u32 ga10b_gsp_falcon2_base_addr(void)
-{
-	return pgsp_falcon2_gsp_base_r();
-}
-
-u32 ga10b_gsp_falcon_base_addr(void)
-{
-	return pgsp_falcon_irqsset_r();
-}
-
-int ga10b_gsp_engine_reset(struct gk20a *g)
-{
-	gk20a_writel(g, pgsp_falcon_engine_r(),
-		pgsp_falcon_engine_reset_true_f());
-	nvgpu_udelay(10);
-	gk20a_writel(g, pgsp_falcon_engine_r(),
-		pgsp_falcon_engine_reset_false_f());
-
-	return 0;
-}
+int nvgpu_gsp_sw_init(struct gk20a *g);
+int nvgpu_gsp_bootstrap(struct gk20a *g);
+void nvgpu_gsp_sw_deinit(struct gk20a *g);
+#endif /* NVGPU_GSP */

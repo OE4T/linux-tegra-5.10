@@ -83,6 +83,10 @@
 #include "debug_pmgr.h"
 #include "dmabuf_priv.h"
 
+#ifdef CONFIG_NVGPU_GSP_SCHEDULER
+#include "nvgpu/gsp.h"
+#endif
+
 #ifdef CONFIG_NVGPU_SUPPORT_CDE
 #include "cde.h"
 #endif
@@ -943,6 +947,10 @@ void gk20a_remove_support(struct gk20a *g)
 
 #if defined(CONFIG_NVGPU_CYCLESTATS)
 	nvgpu_free_cyclestats_snapshot_data(g);
+#endif
+
+#ifdef CONFIG_NVGPU_GSP_SCHEDULER
+	nvgpu_gsp_sw_deinit(g);
 #endif
 
 	nvgpu_fbp_remove_support(g);
