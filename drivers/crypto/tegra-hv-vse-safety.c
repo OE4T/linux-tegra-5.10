@@ -1179,11 +1179,17 @@ static int tegra_hv_vse_safety_sha_init(struct ahash_request *req)
 		req_ctx->blk_size =
 			TEGRA_VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_1344BIT;
 		req_ctx->intermediate_digest_size = SHA3_STATE_SIZE;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+		req_ctx->digest_size = req->dst_size;
+#endif
 	} else if (strcmp(crypto_ahash_alg_name(tfm), "shake256") == 0) {
 		req_ctx->mode = VIRTUAL_SE_OP_MODE_SHAKE256;
 		req_ctx->blk_size =
 			TEGRA_VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_1088BIT;
 		req_ctx->intermediate_digest_size = SHA3_STATE_SIZE;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+		req_ctx->digest_size = req->dst_size;
+#endif
 	} else {
 		dev_err(se_dev->dev, "Invalid SHA Mode\n");
 		return -EINVAL;
