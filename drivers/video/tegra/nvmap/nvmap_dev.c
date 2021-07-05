@@ -1367,10 +1367,16 @@ int __init nvmap_probe(struct platform_device *pdev)
 	nvmap_dev->debug_root = nvmap_debug_root;
 	if (IS_ERR_OR_NULL(nvmap_debug_root))
 		dev_err(&pdev->dev, "couldn't create debug files\n");
-
-	debugfs_create_u32("max_handle_count", S_IRUGO,
-			nvmap_debug_root, &nvmap_max_handle_count);
-
+	else {
+		debugfs_create_u32("max_handle_count", S_IRUGO,
+				   nvmap_debug_root, &nvmap_max_handle_count);
+		nvmap_dev->handles_by_pid = debugfs_create_dir("handles_by_pid",
+							nvmap_debug_root);
+#if defined(CONFIG_DEBUG_FS)
+		debugfs_create_ulong("nvmap_init_time", S_IRUGO | S_IWUSR,
+				     nvmap_dev->debug_root, &nvmap_init_time);
+#endif
+	}
 	nvmap_dev->dynamic_dma_map_mask = ~0;
 	nvmap_dev->cpu_access_mask = ~0;
 	if (plat)
@@ -1381,12 +1387,6 @@ int __init nvmap_probe(struct platform_device *pdev)
 	nvmap_page_pool_debugfs_init(nvmap_dev->debug_root);
 #endif
 	nvmap_cache_debugfs_init(nvmap_dev->debug_root);
-	nvmap_dev->handles_by_pid = debugfs_create_dir("handles_by_pid",
-							nvmap_debug_root);
-#if defined(CONFIG_DEBUG_FS)
-	debugfs_create_ulong("nvmap_init_time", S_IRUGO | S_IWUSR,
-				nvmap_dev->debug_root, &nvmap_init_time);
-#endif
 	nvmap_stats_init(nvmap_debug_root);
 	platform_set_drvdata(pdev, dev);
 
@@ -1420,6 +1420,7 @@ int __init nvmap_probe(struct platform_device *pdev)
 
 	goto finish;
 fail_heaps:
+	debugfs_remove_recursive(nvmap_dev->debug_root);
 	for (i = 0; i < dev->nr_carveouts; i++) {
 		struct nvmap_carveout_node *node = &dev->heaps[i];
 		nvmap_heap_destroy(node->carveout);
@@ -1444,9 +1445,12 @@ int nvmap_remove(struct platform_device *pdev)
 	struct nvmap_handle *h;
 	int i;
 
-	misc_deregister(&dev->dev_user);
-
 	nvmap_sci_ipc_exit();
+	debugfs_remove_recursive(dev->debug_root);
+	misc_deregister(&dev->dev_user);
+#ifdef CONFIG_NVMAP_PAGE_POOLS
+	nvmap_page_pool_fini(nvmap_dev);
+#endif
 
 	while ((n = rb_first(&dev->handles))) {
 		h = rb_entry(n, struct nvmap_handle, node);

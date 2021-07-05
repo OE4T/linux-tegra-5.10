@@ -57,6 +57,7 @@ struct nvmap_handle_t19x {
 
 #if defined(NVMAP_LOADABLE_MODULE)
 int nvmap_t19x_init(void);
+void nvmap_t19x_deinit(void);
 #endif
 
 extern bool nvmap_version_t19x;

@@ -590,6 +590,12 @@ int nvmap_t19x_init(void)
 	return bus_register_notifier(&platform_bus_type,
 			&nvmap_gosmem_nb);
 }
+
+void nvmap_t19x_deinit(void)
+{
+	bus_unregister_notifier(&platform_bus_type,
+				&nvmap_gosmem_nb);
+}
 #else
 static int nvmap_t19x_init(void)
 {

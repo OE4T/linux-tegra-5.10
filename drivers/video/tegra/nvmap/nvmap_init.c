@@ -70,6 +70,10 @@ EXPORT_SYMBOL(tegra_vpr_dev);
 struct device __weak tegra_generic_cma_dev;
 struct device __weak tegra_vpr_cma_dev;
 
+#ifdef NVMAP_LOADABLE_MODULE
+	struct platform_device *pdev;
+#endif /* NVMAP_LOADABLE_MODULE */
+
 #ifdef CONFIG_TEGRA_VPR
 struct dma_resize_notifier_ops __weak vpr_dev_ops;
 
@@ -838,9 +842,6 @@ static struct platform_driver __refdata nvmap_driver = {
 static int __init nvmap_init_driver(void)
 {
 	int e = 0;
-#ifdef NVMAP_LOADABLE_MODULE
-	struct platform_device *pdev;
-#endif /* NVMAP_LOADABLE_MODULE */
 
 	e = nvmap_heap_init();
 	if (e)
@@ -867,8 +868,9 @@ static int __init nvmap_init_driver(void)
 	}
 	pdev = platform_device_register_simple("tegra-carveouts", -1, NULL, 0);
 	if (IS_ERR(pdev)) {
-		nvmap_heap_deinit();
+		nvmap_t19x_deinit();
 		platform_driver_unregister(&nvmap_driver);
+		nvmap_heap_deinit();
 		return PTR_ERR(pdev);
 	}
 #endif /* NVMAP_LOADABLE_MODULE */
@@ -885,6 +887,10 @@ fs_initcall(nvmap_init_driver);
 
 static void __exit nvmap_exit_driver(void)
 {
+#ifdef NVMAP_LOADABLE_MODULE
+	platform_device_unregister(pdev);
+	nvmap_t19x_deinit();
+#endif /* NVMAP_LOADABLE_MODULE */
 	platform_driver_unregister(&nvmap_driver);
 	nvmap_heap_deinit();
 	nvmap_dev = NULL;
