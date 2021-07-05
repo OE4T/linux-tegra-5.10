@@ -19,7 +19,7 @@
  */
 
 / {
-	i2c@c240000 {
+	i2c@c250000 {
 		e2614_i2c_mux: i2cmux@70 {
 			compatible = "nxp,pca9546";
 			reg = <0x70>;
