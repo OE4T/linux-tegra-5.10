@@ -108,9 +108,6 @@ struct vm_gk20a_mapping_batch;
 struct pmu_pg_stats_data;
 struct clk_domains_mon_status_params;
 struct nvgpu_cic_mon;
-#ifdef CONFIG_NVGPU_GSP_SCHEDULER
-struct nvgpu_gsp;
-#endif
 
 enum nvgpu_flush_op;
 enum gk20a_mem_rw_flag;
@@ -475,10 +472,6 @@ struct gk20a {
 	struct nvgpu_pmu *pmu;
 	/** Pointer to struct maintaining ACR unit's software state. */
 	struct nvgpu_acr *acr;
-#ifdef CONFIG_NVGPU_GSP_SCHEDULER
-	/** Pointer to struct maintaining GSP unit's software state. */
-	struct nvgpu_gsp *gsp;
-#endif
 	/** Top level struct maintaining ECC unit's software state. */
 	struct nvgpu_ecc ecc;
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */

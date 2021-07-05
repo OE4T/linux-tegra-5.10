@@ -73,7 +73,6 @@ ccflags-y += -DCONFIG_NVGPU_SET_FALCON_ACCESS_MAP
 ccflags-y += -DCONFIG_NVGPU_SW_SEMAPHORE
 ccflags-y += -DCONFIG_NVGPU_FENCE
 ccflags-y += -DCONFIG_NVGPU_PROFILER
-ccflags-y += -DCONFIG_NVGPU_GSP_SCHEDULER
 
 ifeq ($(CONFIG_NVGPU_LOGGING),y)
 ccflags-y += -DCONFIG_NVGPU_LOGGING=1
@@ -397,12 +396,6 @@ nvgpu-y += \
 	hal/priv_ring/priv_ring_gv11b.o \
 	hal/cic/mon/init_gv11b_fusa.o \
 	hal/cic/mon/lut_gv11b_fusa.o
-
-ifeq ($(CONFIG_NVGPU_GSP_SCHEDULER),y)
-nvgpu-$(CONFIG_NVGPU_GSP_SCHEDULER) += \
-	common/gsp/gsp_init.o \
-	common/gsp/gsp_bootstrap.o
-endif
 
 # Linux specific parts of nvgpu.
 nvgpu-y += \

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,5 @@
 
 u32 ga10b_gsp_falcon_base_addr(void);
 u32 ga10b_gsp_falcon2_base_addr(void);
-int ga10b_gsp_engine_reset(struct gk20a *g);
 
 #endif /* GSP_GA10B_H */

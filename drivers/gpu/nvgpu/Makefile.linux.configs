@@ -43,9 +43,6 @@ endif
 # Support for remap
 CONFIG_NVGPU_REMAP := y
 
-# Enable gsp scheduler support
-CONFIG_NVGPU_GSP_SCHEDULER := y
-
 ifeq ($(CONFIG_COMMON_CLK),y)
 ifeq ($(CONFIG_PM_DEVFREQ),y)
 # Select this entry to enable gk20a scaling
@@ -234,7 +231,4 @@ ccflags-y += -DCONFIG_NVGPU_SYNCFD_STABLE
 endif
 ifeq ($(CONFIG_NVGPU_SYNCFD_NONE),y)
 ccflags-y += -DCONFIG_NVGPU_SYNCFD_NONE
-endif
-ifeq ($(CONFIG_NVGPU_GSP_SCHEDULER),y)
-ccflags-y += -DCONFIG_NVGPU_GSP_SCHEDULER
 endif

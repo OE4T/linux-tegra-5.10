@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,15 +39,4 @@ u32 ga10b_gsp_falcon2_base_addr(void)
 u32 ga10b_gsp_falcon_base_addr(void)
 {
 	return pgsp_falcon_irqsset_r();
-}
-
-int ga10b_gsp_engine_reset(struct gk20a *g)
-{
-	gk20a_writel(g, pgsp_falcon_engine_r(),
-		pgsp_falcon_engine_reset_true_f());
-	nvgpu_udelay(10);
-	gk20a_writel(g, pgsp_falcon_engine_r(),
-		pgsp_falcon_engine_reset_false_f());
-
-	return 0;
 }
