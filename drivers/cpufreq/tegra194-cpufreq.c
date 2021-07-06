@@ -451,8 +451,10 @@ static int tegra194_cpufreq_probe(struct platform_device *pdev)
 	tegra194_cpufreq_driver.driver_data = data;
 
 	err = cpufreq_register_driver(&tegra194_cpufreq_driver);
-	if (!err)
-		goto put_bpmp;
+	if (!err) {
+		tegra_bpmp_put(bpmp);
+		return err;
+	}
 
 err_free_res:
 	tegra194_cpufreq_free_resources();
