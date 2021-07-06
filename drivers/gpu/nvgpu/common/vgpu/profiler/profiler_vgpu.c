@@ -162,6 +162,7 @@ int vgpu_profiler_bind_smpc(struct gk20a *g,
 }
 
 int vgpu_profiler_unbind_smpc(struct gk20a *g,
+		u32 gr_instance_id,
 		bool is_ctxsw,
 		struct nvgpu_tsg *tsg)
 {

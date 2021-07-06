@@ -172,7 +172,8 @@ int nvgpu_profiler_bind_smpc(struct gk20a *g,
 		u32 gr_instance_id,
 		bool is_ctxsw,
 		struct nvgpu_tsg *tsg);
-int nvgpu_profiler_unbind_smpc(struct gk20a *g, bool is_ctxsw,
+int nvgpu_profiler_unbind_smpc(struct gk20a *g, u32 gr_instance_id,
+		bool is_ctxsw,
 		struct nvgpu_tsg *tsg);
 
 int nvgpu_profiler_bind_pm_resources(struct nvgpu_profiler_object *prof);

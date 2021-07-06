@@ -311,19 +311,21 @@ int nvgpu_profiler_bind_smpc(struct gk20a *g,
 
 	if (!is_ctxsw) {
 		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SMPC_GLOBAL_MODE)) {
-			err = nvgpu_gr_exec_with_err_for_instance(g, gr_instance_id,
+			err = nvgpu_gr_exec_with_err_for_instance(g,
+				gr_instance_id,
 				g->ops.gr.update_smpc_global_mode(g, true));
 		} else {
 			err = -EINVAL;
 		}
 	} else {
-		err = nvgpu_gr_exec_with_err_for_instance(g, gr_instance_id,
-			g->ops.gr.update_smpc_ctxsw_mode(g, tsg, true));
+		err = g->ops.gr.update_smpc_ctxsw_mode(g, tsg, true);
 		if (err != 0) {
 			goto done;
 		}
 		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SMPC_GLOBAL_MODE)) {
-			err = g->ops.gr.update_smpc_global_mode(g, false);
+			err = nvgpu_gr_exec_with_err_for_instance(g,
+				gr_instance_id,
+				g->ops.gr.update_smpc_global_mode(g, false));
 		}
 	}
 
@@ -334,14 +336,17 @@ done:
 	return err;
 }
 
-int nvgpu_profiler_unbind_smpc(struct gk20a *g, bool is_ctxsw,
+int nvgpu_profiler_unbind_smpc(struct gk20a *g, u32 gr_instance_id,
+		bool is_ctxsw,
 		struct nvgpu_tsg *tsg)
 {
 	int err;
 
 	if (!is_ctxsw) {
 		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SMPC_GLOBAL_MODE)) {
-			err = g->ops.gr.update_smpc_global_mode(g, false);
+			err = nvgpu_gr_exec_with_err_for_instance(g,
+				gr_instance_id,
+				g->ops.gr.update_smpc_global_mode(g, false));
 		} else {
 			err = -EINVAL;
 		}
@@ -364,7 +369,15 @@ static int nvgpu_profiler_bind_hwpm_common(struct gk20a *g, u32 gr_instance_id,
 
 	if (!is_ctxsw) {
 		if (g->ops.gr.init_cau != NULL) {
-			nvgpu_gr_exec_for_instance(g, gr_instance_id,
+			/*
+			 * TODO: Currently only one profiler object should be
+			 * allowed. Reset CAU is using whole GR space for both
+			 * MIG and legacy mode. Need to convert broadcast
+			 * address to GR specific unicast programming when
+			 * NvGpu supports more than one profiler object
+			 * at a time.
+			 */
+			nvgpu_gr_exec_for_all_instances(g,
 				g->ops.gr.init_cau(g));
 		}
 		if (g->ops.perf.reset_hwpm_pmm_registers != NULL) {
@@ -431,7 +444,14 @@ static int nvgpu_profiler_quiesce_hwpm_streamout_resident(struct gk20a *g,
 	g->ops.perf.disable_all_perfmons(g);
 
 	if (smpc_reserved) {
-		nvgpu_gr_exec_for_instance(g, gr_instance_id,
+		/*
+		 * TODO: Currently only one profiler object should be
+		 * allowed. Reset CAU/smpc is using whole GR space for both
+		 * MIG and legacy mode. Need to convert broadcast address
+		 * to GR specific unicast programming when NvGpu supports
+		 * more than one profiler object at a time.
+		 */
+		nvgpu_gr_exec_for_all_instances(g,
 			nvgpu_profiler_disable_cau_and_smpc(g));
 	}
 
@@ -787,7 +807,8 @@ int nvgpu_profiler_unbind_pm_resources(struct nvgpu_profiler_object *prof)
 	if (prof->reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_SMPC]) {
 		is_ctxsw = nvgpu_profiler_is_context_resource(prof,
 				NVGPU_PROFILER_PM_RESOURCE_TYPE_SMPC);
-		err = g->ops.profiler.unbind_smpc(g, is_ctxsw, prof->tsg);
+		err = g->ops.profiler.unbind_smpc(g, gr_instance_id,
+				is_ctxsw, prof->tsg);
 		if (err) {
 			nvgpu_err(g,
 				"failed to unbind SMPC from profiler handle %u",

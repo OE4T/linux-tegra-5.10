@@ -60,6 +60,7 @@ struct gops_profiler {
 			bool is_ctxsw,
 			struct nvgpu_tsg *tsg);
 	int (*unbind_smpc)(struct gk20a *g,
+			u32 gr_instance_id,
 			bool is_ctxsw,
 			struct nvgpu_tsg *tsg);
 };
