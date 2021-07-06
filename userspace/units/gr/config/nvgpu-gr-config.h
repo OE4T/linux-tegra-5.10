@@ -124,7 +124,13 @@ int test_gr_config_count(struct unit_module *m, struct gk20a *g, void *args);
  *              reflect the same value. This test helps to verify the
  *              configuration values can be changed as part of floorsweeping.
  *
- * Test Type: Feature, Error guessing
+ * Test Type: Feature, Error guessing, Boundary Value
+ *
+ * Equivalence classes:
+ * Variable  : sm_id (nvgpu_gr_config_get_sm_info)
+ * - Valid   : {0, (SM count - 1)}
+ * - Invalid : {SM count, U32_MAX}
+ * For GV11b, SM count = 8
  *
  * Targets: nvgpu_gr_config_set_no_of_sm,
  *          nvgpu_gr_config_get_no_of_sm,
@@ -146,6 +152,16 @@ int test_gr_config_count(struct unit_module *m, struct gk20a *g, void *args);
  * Steps:
  * -  Random values are set for various configuration and read back to
  *    check those values.
+ * -  For BVEC testing of nvgpu_gr_config_get_sm_info,
+ *      - Get the 'SM count' based on TPC count and number of SMs per TPC.
+ *      - Call nvgpu_gr_config_get_sm_info with input sm_id at boundary
+ *        values - min boundary(0), max boundary(SM count - 1) and once
+ *        with random value in valid range. nvgpu_gr_config_get_sm_info
+ *        should return non NULL pointer with sm_info populated.
+ *      - Call nvgpu_gr_config_get_sm_info with input sm_id at boundary
+ *        values - min boundary(SM count), max boundary(U32_MAX) and once
+ *        with random value in invalid range. nvgpu_gr_config_get_sm_info
+ *        should return NULL pointer.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL
  * otherwise.

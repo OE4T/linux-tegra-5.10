@@ -25,6 +25,7 @@
 
 #include <unit/unit.h>
 #include <unit/io.h>
+#include <unit/utils.h>
 
 #include <nvgpu/posix/io.h>
 #include <nvgpu/posix/kmem.h>
@@ -302,7 +303,14 @@ int test_gr_config_set_get(struct unit_module *m,
 	u32 gindex = 0U;
 	u32 val = 0U;
 	struct nvgpu_sm_info *sm_info;
-	u32 num_sm = 0U;
+	u32 num_sm =  nvgpu_gr_config_get_tpc_count(unit_gr_config) *
+                 nvgpu_gr_config_get_sm_count_per_tpc(unit_gr_config);
+	u32 i, j, states, sm_id, sm_id_range, sm_range_difference;
+	u32 valid_sm_ids[][2] = {{0, num_sm-1}};
+	u32 invalid_sm_ids[][2] = {{num_sm, U32_MAX}};
+	u32 (*working_list)[2];
+	const char *string_cases[] = {"Valid", "Invalid"};
+	const char *string_states[] = {"Min", "Max", "Random Mid"};
 
 	srand(0);
 
@@ -311,6 +319,48 @@ int test_gr_config_set_get(struct unit_module *m,
 	nvgpu_gr_config_set_no_of_sm(unit_gr_config, num_sm);
 	if (num_sm != nvgpu_gr_config_get_no_of_sm(unit_gr_config)) {
 		unit_return_fail(m, "mismatch in no_of_sm\n");
+	}
+
+	/*
+	 * i is to loop through valid and invalid cases
+	 * j is to loop through different ranges within ith case
+	 * states is for min, max and median
+	 */
+
+	/* loop through valid and invalid cases */
+	for (i = 0; i < 2; i++) {
+		/* select appropriate iteration size */
+		sm_id_range = (i == 0) ? ARRAY_SIZE(valid_sm_ids) : ARRAY_SIZE(invalid_sm_ids);
+		/* select correct working list */
+		working_list =  (i == 0) ? valid_sm_ids : invalid_sm_ids;
+		for (j = 0; j < sm_id_range; j++) {
+			for (states = 0; states < 3; states++) {
+				/* check for min sm id */
+				if (states == 0)
+					sm_id = working_list[j][0];
+				else if (states == 1) {
+					/* check for max valid sm id */
+					sm_id = working_list[j][1];
+				} else {
+					sm_range_difference = working_list[j][1] - working_list[j][0];
+					/* Check for random sm id in range */
+					if (sm_range_difference > 1)
+						sm_id = get_random_u32(working_list[j][0] + 1, working_list[j][1] - 1);
+					else
+						continue;
+				}
+
+				unit_info(m, "BVEC testing for nvgpu_gr_config_get_sm_info with sm id = %u(%s range %s) done\n", sm_id, string_cases[i], string_states[states]);
+				sm_info = nvgpu_gr_config_get_sm_info(unit_gr_config, sm_id);
+				if (i == 0) {
+					if (sm_info == NULL)
+						unit_return_fail(m, "SM_id valid range check failed.\n");
+				} else {
+					if (sm_info != NULL)
+						unit_return_fail(m, "SM_id invalid range check failed.\n");
+				}
+			}
+		}
 	}
 
 	/*
