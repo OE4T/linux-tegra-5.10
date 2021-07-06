@@ -395,8 +395,7 @@ struct nvgpu_hw_err_inject_info_desc {
 };
 
 /**
- * @brief GPU HW errors need to be reported to Safety_Services via SDL unit.
- *        This function provides an interface to report errors from HOST
+ * @brief This function provides an interface to report errors from HOST
  *        (FIFO/PBDMA/PBUS) unit to SDL unit.
  *
  * @param g [in]		- The GPU driver struct.
@@ -438,42 +437,71 @@ void nvgpu_report_host_err(struct gk20a *g, u32 hw_unit,
 	u32 inst, u32 err_id, u32 intr_info);
 
 /**
- * @brief GPU HW errors need to be reported to Safety_Services via SDL unit.
- *        This function provides an interface to report errors from CE unit
+ * @brief This function provides an interface to report errors from CE unit
  *        to SDL unit.
  *
  * @param g [in]		- The GPU driver struct.
- * @param hw_unit [in]		- Index of HW unit (CE).
- *				  - NVGPU_ERR_MODULE_CE
+ *                                - The function does not perform validation of
+ *                                  g parameter.
+ * @param hw_unit [in]		- Index of HW unit.
+ *				  - The function validates that hw_unit ==
+ *				    \link NVGPU_ERR_MODULE_CE \endlink.
  * @param inst [in]		- Instance ID.
  *				  - In case of multiple instances of the same HW
  *				    unit (e.g., there are multiple instances of
  *				    CE), it is used to identify the instance
  *				    that encountered a fault.
+ *				  - The function does not perform any validation
+ *				    on this parameter.
  * @param err_id [in]		- Error index.
- *				  - Min: GPU_CE_LAUNCH_ERROR
- *				  - Max: GPU_CE_METHOD_BUFFER_FAULT
+ *				  - The function validates that, this paramter
+ *				    has a value within valid range.
+ *				  - Min: \link GPU_CE_LAUNCH_ERROR \endlink
+ *				  - Max: \link GPU_CE_METHOD_BUFFER_FAULT \endlink
  * @param intr_info [in]	- Content of interrupt status register.
+ *				  - The function does not perform any validation
+ *				    on this parameter.
  *
- * - Checks whether SDL is supported in the current GPU platform. If SDL is not
- *   supported, it simply returns.
- * - Validates both \a hw_unit and \a err_id indices. In case of a failure,
- *   invokes #nvgpu_sdl_handle_report_failure() api.
- * - Gets the current time of a clock. In case of a failure, invokes
- *   #nvgpu_sdl_handle_report_failure() api.
- * - Gets error description from internal look-up table using \a hw_unit and
- *   \a err_id indices.
- * - Forms error packet using details such as time-stamp, \a hw_unit, \a err_id,
- *   criticality of the error, \a inst, error description, \a intr_info and
- *   size of the error packet.
- * - Performs compile-time assert check to ensure that the size of the error
- *   packet does not exceed the maximum allowable size specified in
- *   #MAX_ERR_MSG_SIZE.
- * - Invokes #nvgpu_sdl_report_error_rmos() to enqueue the error packet into
- *   error message queue. In case of any failure during this enqueue operation,
- *   #nvgpu_sdl_handle_report_failure() api is invoked to handle the failure.
- * - The error packet will be dequeued from the error message queue and reported
- *   to Safety_Services by #nvgpu_sdl_worker thread.
+ * - Check nvgpu_os_rmos.is_sdl_supported equals true (pointer to nvgpu_os_rmos
+ *   is obtained using \ref nvgpu_os_rmos_from_gk20a()
+ *   "nvgpu_os_rmos_from_gk20a(g)"), return on failure.
+ * - Perform validation of input paramters, see paramter section for detailed
+ *   validation criteria. In case of a failure, print error message and invoke
+ *   \ref nvgpu_sdl_handle_report_failure()
+ *   "nvgpu_sdl_handle_report_failure(g)" and return.
+ * - Get the current time using api clock_gettime(CLOCK_MONOTONIC, &ts).
+ *   In case of a failure, print error message and invoke
+ *   \ref nvgpu_sdl_handle_report_failure()
+ *   "nvgpu_sdl_handle_report_failure(g)" and return.
+ * - Declare and initialize an error message packet err_pkt of type
+ *   nvgpu_err_msg, using \ref nvgpu_init_ce_err_msg()
+ *   "nvgpu_init_ce_err_msg(&err_pkt)".
+ * - Get error description err_desc of type nvgpu_err_desc from internal
+ *   look-up table \ref nvgpu_os_rmos.sdl_rmos "nvgpu_os_rmos.sdl_rmos".\ref
+ *   nvgpu_sdl_rmos.err_lut "err_lut" using hw_unit and err_id.
+ * - Update the following fields in the error message packet err_pkt.
+ *   - nvgpu_err_msg.hw_unit_id = hw_unit
+ *   - nvgpu_err_msg.is_critical = err_desc->is_critical
+ *   - nvgpu_err_msg.err_id = err_desc->error_id
+ *   - nvgpu_err_msg.err_size = sizeof(gpu_error_info.ce_info)
+ *   - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *     gpu_error_info.ce_info "ce_info".\ref gpu_ce_error_info.header
+ *     "header".\ref gpu_err_header.sub_err_type "sub_err_type" = intr_info
+ *   - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *     gpu_error_info.ce_info "ce_info".\ref gpu_ce_error_info.header
+ *     "header".\ref gpu_err_header.timestamp_ns "timestamp_ns" =
+ *     \ref nvgpu_timespec2nsec() "nvgpu_timespec2nsec(&ts)"
+ *   - nvgpu_err_msg.err_desc = err_desc
+ * - Invoke \ref nvgpu_sdl_report_error_rmos()
+ *   "nvgpu_sdl_report_error_rmos(g, &err_pkt, sizeof(err_pkt))" to enqueue
+ *   the packet err_pkt into the circular buffer \ref nvgpu_os_rmos.sdl_rmos
+ *   "nvgpu_os_rmos.sdl_rmos".\ref nvgpu_sdl_rmos.emsg_q "emsg_q". In case
+ *   of failure, print error message and invoke
+ *   \ref nvgpu_sdl_handle_report_failure() "nvgpu_sdl_handle_report_failure(g)"
+ *   and return.
+ * - The error packet err_pkt will be dequeued from \ref
+ *   nvgpu_os_rmos.sdl_rmos "nvgpu_os_rmos.sdl_rmos".\ref nvgpu_sdl_rmos.emsg_q
+ *   "emsg_q" and reported to Safety Service by nvgpu_sdl_worker() thread.
  *
  * @return	None
  */
@@ -481,8 +509,7 @@ void nvgpu_report_ce_err(struct gk20a *g, u32 hw_unit,
 	u32 inst, u32 err_id, u32 intr_info);
 
 /**
- * @brief GPU HW errors need to be reported to Safety_Services via SDL unit.
- *        This function provides an interface to report ECC erros to SDL unit.
+ * @brief This function provides an interface to report ECC erros to SDL unit.
  *
  * @param g [in]		- The GPU driver struct.
  * @param hw_unit [in]		- Index of HW unit.
@@ -556,8 +583,7 @@ void nvgpu_report_ecc_err(struct gk20a *g, u32 hw_unit, u32 inst,
 		u32 err_id, u64 err_addr, u64 err_count);
 
 /**
- * @brief GPU HW errors need to be reported to Safety_Services via SDL unit.
- *        This is a wrapper function to report ECC errors from HUBMMU to SDL.
+ * @brief This is a wrapper function to report ECC errors from HUBMMU to SDL.
  *
  * @param g [in]		- The GPU driver struct.
  * @param err_id [in]		- Error index.
@@ -580,8 +606,7 @@ static inline void nvgpu_report_fb_ecc_err(struct gk20a *g, u32 err_id, u64 err_
 }
 
 /**
- * @brief GPU HW errors need to be reported to Safety_Services via SDL unit.
- *        This function provides an interface to report CTXSW erros to SDL unit.
+ * @brief This function provides an interface to report CTXSW erros to SDL unit.
  *
  * @param g [in]	- The GPU driver struct.
  * @param hw_unit [in]	- Index of HW unit (FECS).
@@ -618,8 +643,7 @@ void nvgpu_report_ctxsw_err(struct gk20a *g, u32 hw_unit, u32 err_id,
 		void *data);
 
 /**
- * @brief GPU HW errors need to be reported to Safety_Services via SDL unit.
- *        This function provides an interface to report SM and PGRAPH erros
+ * @brief This function provides an interface to report SM and PGRAPH erros
  *        to SDL unit.
  *
  * @param g [in]		- The GPU driver struct.
@@ -672,8 +696,7 @@ void nvgpu_report_gr_err(struct gk20a *g, u32 hw_unit, u32 inst,
 		u32 err_id, struct gr_err_info *err_info, u32 sub_err_type);
 
 /**
- * @brief GPU HW errors need to be reported to Safety_Services via SDL unit.
- *        This function provides an interface to report PMU erros to SDL unit.
+ * @brief This function provides an interface to report PMU erros to SDL unit.
  *
  * @param g [in]		- The GPU driver struct.
  * @param hw_unit [in]		- Index of HW unit (PMU).
@@ -711,8 +734,7 @@ void nvgpu_report_pmu_err(struct gk20a *g, u32 hw_unit, u32 err_id,
 	u32 sub_err_type, u32 status);
 
 /**
- * @brief GPU HW errors need to be reported to Safety_Services via SDL unit.
- *        This function provides an interface to report PRI erros to SDL unit.
+ * @brief This function provides an interface to report PRI erros to SDL unit.
  *
  * @param g [in]		- The GPU driver struct.
  * @param hw_unit [in]		- Index of HW unit (PRI).
@@ -757,8 +779,7 @@ void nvgpu_report_pri_err(struct gk20a *g, u32 hw_unit, u32 inst,
 		u32 err_id, u32 err_addr, u32 err_code);
 
 /**
- * @brief GPU HW errors need to be reported to Safety_Services via SDL unit.
- *        This function provides an interface to report HUBMMU erros to SDL.
+ * @brief This function provides an interface to report HUBMMU erros to SDL.
  *
  * @param g [in]		- The GPU driver struct.
  * @param hw_unit [in]		- Index of HW unit (HUBMMU).
@@ -799,8 +820,7 @@ void nvgpu_report_mmu_err(struct gk20a *g, u32 hw_unit,
 		u32 status, u32 sub_err_type);
 
 /**
- * @brief GPU HW errors need to be reported to Safety_Services via SDL unit.
- *        This is a wrapper function to report CTXSW errors to SDL unit.
+ * @brief This is a wrapper function to report CTXSW errors to SDL unit.
  *
  * @param g [in]		- The GPU driver struct.
  * @param err_type [in]		- Error index.
