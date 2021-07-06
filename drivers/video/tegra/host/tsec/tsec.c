@@ -387,13 +387,19 @@ void tsec_send_method(struct hdcp_context_t *hdcp_context,
 	struct nvhost_device_data *pdata = platform_get_drvdata(tsec);
 	int err;
 
+	/* Ensure that TSEC is powered through the operation. */
+	err = nvhost_module_busy(tsec);
+	if (err) {
+		nvhost_err(&tsec->dev, "Failed to power-on TSEC\n");
+		return;
+	}
+
 	mutex_lock(&tegra_tsec_lock);
 	if (!channel) {
 		err = nvhost_channel_map(pdata, &channel, pdata);
 		if (err) {
 			nvhost_err(&tsec->dev, "Channel map failed\n");
-			mutex_unlock(&tegra_tsec_lock);
-			return;
+			goto exit_idle;
 		}
 
 		if (!id) {
@@ -401,8 +407,7 @@ void tsec_send_method(struct hdcp_context_t *hdcp_context,
 			if (!id) {
 				nvhost_err(&tsec->dev, "failed to get sync point\n");
 				nvhost_putchannel(channel, 1);
-				mutex_unlock(&tegra_tsec_lock);
-				return;
+				goto exit_idle;
 			}
 		}
 	}
@@ -412,8 +417,7 @@ void tsec_send_method(struct hdcp_context_t *hdcp_context,
 			0);
 	if (!cpuvaddr) {
 		nvhost_err(&tsec->dev, "Failed to allocate memory\n");
-		mutex_unlock(&tegra_tsec_lock);
-		return;
+		goto exit_idle;
 	}
 
 	memset(cpuvaddr, 0x0, HDCP_MTHD_BUF_SIZE);
@@ -484,7 +488,9 @@ void tsec_send_method(struct hdcp_context_t *hdcp_context,
 	dma_free_attrs(tsec->dev.parent,
 		HDCP_MTHD_BUF_SIZE, cpuvaddr,
 		dma_handle, 0);
+exit_idle:
 	mutex_unlock(&tegra_tsec_lock);
+	nvhost_module_idle(tsec);
 }
 
 
