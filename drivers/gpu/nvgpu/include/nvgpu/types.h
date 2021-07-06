@@ -24,6 +24,7 @@
 
 #ifdef __KERNEL__
 #include <linux/types.h>
+#include <linux/limits.h>
 #else
 #include <nvgpu/posix/types.h>
 #endif
