@@ -12,6 +12,9 @@
 #include <linux/platform_device.h>
 #include <linux/version.h>
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 14, 0)
+#include <drm/drm_aperture.h>
+#endif
 #include <drm/drm_atomic.h>
 #include <drm/drm_atomic_helper.h>
 #include <drm/drm_debugfs.h>
@@ -1229,8 +1232,12 @@ static int host1x_drm_probe(struct host1x_device *dev)
 
 	drm_mode_config_reset(drm);
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 14, 0)
+	err = drm_aperture_remove_framebuffers(false, "tegradrmfb");
+#else
 	err = drm_fb_helper_remove_conflicting_framebuffers(NULL, "tegradrmfb",
 							    false);
+#endif
 	if (err < 0)
 		goto hub;
 
