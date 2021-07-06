@@ -39,6 +39,8 @@
 /* Remote wakeup filter */
 #define EQOS_RWK_FILTER_LENGTH		8
 #define ETHER_PRV_TS_IOCTL		(SIOCDEVPRIVATE + 1)
+#define ETHER_PRV_RMDIO_IOCTL		(SIOCDEVPRIVATE + 2)
+#define ETHER_PRV_WMDIO_IOCTL		(SIOCDEVPRIVATE + 3)
 /* TX/RX channel/queue count */
 #define EQOS_GET_TX_QCNT		23
 #define EQOS_GET_RX_QCNT		24

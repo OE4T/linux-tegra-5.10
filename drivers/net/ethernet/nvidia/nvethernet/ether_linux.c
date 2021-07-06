@@ -3387,6 +3387,105 @@ void ether_set_rx_mode(struct net_device *dev)
 }
 
 /**
+ * @brief Function to handle PHY read private IOCTL
+ *
+ * Algorithm: This function is used to write the data
+ * into the specified register.
+ *
+ * @param [in] pdata: Pointer to private data structure.
+ * @param [in] ifr: Interface request structure used for socket ioctl
+ *
+ * @retval 0 on success.
+ * @retval "negative value" on failure.
+ */
+
+static int ether_handle_priv_rmdio_ioctl(struct ether_priv_data *pdata,
+					 struct ifreq *ifr)
+{
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(5, 9, 0))
+	struct mii_ioctl_data *mii_data = if_mii(ifr);
+	unsigned int prtad, devad;
+	int ret = 0;
+
+	if (!ifr->ifr_data) {
+		dev_err(pdata->dev, "%s: Invalid data for priv ioctl\n",
+			__func__);
+		return -EFAULT;
+	}
+
+	if (mdio_phy_id_is_c45(mii_data->phy_id)) {
+		prtad = mdio_phy_id_prtad(mii_data->phy_id);
+		devad = mdio_phy_id_devad(mii_data->phy_id);
+		devad = mdiobus_c45_addr(devad, mii_data->reg_num);
+	} else {
+		prtad = mii_data->phy_id;
+		devad = mii_data->reg_num;
+	}
+
+	dev_dbg(pdata->dev, "%s: phy_id:%d regadd: %d devaddr:%d\n",
+		__func__, mii_data->phy_id, prtad, devad);
+
+	ret = osi_read_phy_reg(pdata->osi_core, prtad, devad);
+	if (ret < 0) {
+		dev_err(pdata->dev, "%s: Data read failed\n", __func__);
+		return -EFAULT;
+	}
+
+	mii_data->val_out = ret;
+
+	return 0;
+#else
+	dev_err(pdata->dev, "Not supported for kernel versions less than 5.10");
+	return -ENOTSUPP;
+#endif
+}
+
+/**
+ * @brief Function to handle PHY write private IOCTL
+ *
+ * Algorithm: This function is used to write the data
+ * into the specified register.
+ *
+ * @param [in] pdata: Pointer to private data structure.
+ * @param [in] ifr: Interface request structure used for socket ioctl
+ *
+ * @retval 0 on success.
+ * @retval "negative value" on failure.
+ */
+static int ether_handle_priv_wmdio_ioctl(struct ether_priv_data *pdata,
+					 struct ifreq *ifr)
+{
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(5, 9, 0))
+	struct mii_ioctl_data *mii_data = if_mii(ifr);
+	unsigned int prtad, devad;
+
+	if (!ifr->ifr_data) {
+		dev_err(pdata->dev, "%s: Invalid data for priv ioctl\n",
+			__func__);
+		return -EFAULT;
+	}
+
+	if (mdio_phy_id_is_c45(mii_data->phy_id)) {
+		prtad = mdio_phy_id_prtad(mii_data->phy_id);
+		devad = mdio_phy_id_devad(mii_data->phy_id);
+		devad = mdiobus_c45_addr(devad, mii_data->reg_num);
+	} else {
+		prtad = mii_data->phy_id;
+		devad = mii_data->reg_num;
+	}
+
+	dev_dbg(pdata->dev, "%s: phy_id:%d regadd: %d devaddr:%d val:%d\n",
+		__func__, mii_data->phy_id, prtad, devad, mii_data->val_in);
+
+	return osi_write_phy_reg(pdata->osi_core, prtad, devad,
+				 mii_data->val_in);
+#else
+	dev_err(pdata->dev, "Not supported for kernel versions less than 5.10");
+	return -ENOTSUPP;
+#endif
+}
+
+/**
  * @brief Network stack IOCTL hook to driver
  *
  * Algorithm:
@@ -3431,6 +3530,14 @@ static int ether_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
 
 	case SIOCDEVPRIVATE:
 		ret = ether_handle_priv_ioctl(dev, rq);
+		break;
+
+	case ETHER_PRV_RMDIO_IOCTL:
+		ret = ether_handle_priv_rmdio_ioctl(pdata, rq);
+		break;
+
+	case ETHER_PRV_WMDIO_IOCTL:
+		ret = ether_handle_priv_wmdio_ioctl(pdata, rq);
 		break;
 
 	case ETHER_PRV_TS_IOCTL:
