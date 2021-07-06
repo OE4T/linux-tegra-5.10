@@ -192,6 +192,7 @@ static const struct gops_ce gm20b_ops_ce = {
 #endif
 	.isr_stall = gk20a_ce2_stall_isr,
 	.isr_nonstall = gk20a_ce2_nonstall_isr,
+	.request_idle = NULL,
 };
 
 static const struct gops_gr_ctxsw_prog gm20b_ops_gr_ctxsw_prog = {

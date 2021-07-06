@@ -238,3 +238,19 @@ void ga10b_ce_intr_retrigger(struct gk20a *g, u32 inst_id)
 	nvgpu_writel(g, ce_intr_retrigger_r(inst_id),
 			ce_intr_retrigger_trigger_true_f());
 }
+
+void ga10b_ce_request_idle(struct gk20a *g)
+{
+	u32 num_pce;
+
+	/*
+	 * After CE engine reset, LCE0/LCE1 are not done with
+	 * the reset sequence.The state of these LCE is RESET0.
+	 * Extra ce pri read is needed to bring LCE0/1 out of reset.
+	 * Without extra pri read after ce engine reset, ELPG does
+	 * not engage after recovery due to IDLE_SNAP causing ELPG
+	 * to not engage.
+	 */
+
+	num_pce = g->ops.ce.get_num_pce(g);
+}

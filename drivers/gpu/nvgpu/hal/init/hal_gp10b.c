@@ -241,6 +241,7 @@ static const struct gops_ce gp10b_ops_ce = {
 #endif
 	.isr_stall = gp10b_ce_stall_isr,
 	.isr_nonstall = gp10b_ce_nonstall_isr,
+	.request_idle = NULL,
 };
 
 static const struct gops_gr_ecc gp10b_ops_gr_ecc = {

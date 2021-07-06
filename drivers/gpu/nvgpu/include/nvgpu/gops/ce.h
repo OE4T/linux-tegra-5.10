@@ -118,6 +118,7 @@ struct gops_ce {
 	int (*ce_init_support)(struct gk20a *g);
 	void (*set_pce2lce_mapping)(struct gk20a *g);
 	void (*init_prod_values)(struct gk20a *g);
+	void (*request_idle)(struct gk20a *g);
 
 	/*
 	 * @brief Get non-stall vectors from hw.

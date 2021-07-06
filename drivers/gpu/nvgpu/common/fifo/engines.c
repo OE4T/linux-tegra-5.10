@@ -539,6 +539,13 @@ void nvgpu_engine_reset(struct gk20a *g, u32 engine_id)
 	 */
 	if (nvgpu_device_is_ce(g, dev)) {
 		err = nvgpu_mc_reset_dev(g, dev);
+		if (g->ops.ce.request_idle != NULL) {
+			/*
+			 * Read CE register for CE to switch
+			 * from reset to idle state.
+			 */
+			g->ops.ce.request_idle(g);
+		}
 		if (err != 0) {
 			nvgpu_log_info(g, "CE engine [id:%u] reset failed",
 				dev->engine_id);

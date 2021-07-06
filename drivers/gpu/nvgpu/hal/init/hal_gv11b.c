@@ -309,6 +309,7 @@ static const struct gops_ce gv11b_ops_ce = {
 	.get_num_pce = gv11b_ce_get_num_pce,
 	.mthd_buffer_fault_in_bar2_fault = gv11b_ce_mthd_buffer_fault_in_bar2_fault,
 	.init_prod_values = gv11b_ce_init_prod_values,
+	.request_idle = NULL,
 };
 
 static const struct gops_gr_ecc gv11b_ops_gr_ecc = {
