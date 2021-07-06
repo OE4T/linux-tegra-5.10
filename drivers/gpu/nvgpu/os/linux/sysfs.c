@@ -926,7 +926,7 @@ static ssize_t tpc_fs_mask_store(struct device *dev,
 	gr_golden_image = nvgpu_gr_get_golden_image_ptr(g);
 	gr_falcon = nvgpu_gr_get_falcon_ptr(g);
 
-	if (nvgpu_gr_config_get_gpc_tpc_mask_base(gr_config) == NULL)
+	if (nvgpu_gr_config_get_base_mask_gpc_tpc(gr_config) == NULL)
 		return -ENODEV;
 
 	if (val && val != nvgpu_gr_config_get_gpc_tpc_mask(gr_config, 0) &&

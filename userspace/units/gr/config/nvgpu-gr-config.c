@@ -283,12 +283,12 @@ int test_gr_config_count(struct unit_module *m,
 	/*
 	 * Check for valid memory
 	 */
-	reg_base = nvgpu_gr_config_get_gpc_tpc_mask_base(unit_gr_config);
+	reg_base = nvgpu_gr_config_get_base_mask_gpc_tpc(unit_gr_config);
 	if (reg_base == NULL) {
 		unit_return_fail(m, "Invalid gpc_tpc_mask_base\n");
 	}
 
-	reg_base = nvgpu_gr_config_get_gpc_tpc_count_base(unit_gr_config);
+	reg_base = nvgpu_gr_config_get_base_count_gpc_tpc(unit_gr_config);
 	if (reg_base == NULL) {
 		unit_return_fail(m, "Invalid gpc_tpc_count_base\n");
 	}

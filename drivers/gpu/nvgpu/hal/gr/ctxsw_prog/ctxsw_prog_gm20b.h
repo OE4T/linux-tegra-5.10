@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -36,9 +36,9 @@ void gm20b_ctxsw_prog_set_patch_addr(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem, u64 addr);
 void gm20b_ctxsw_prog_init_ctxsw_hdr_data(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem);
-void gm20b_ctxsw_prog_set_priv_access_map_config_mode(struct gk20a *g,
+void gm20b_ctxsw_prog_set_config_mode_priv_access_map(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem, bool allow_all);
-void gm20b_ctxsw_prog_set_priv_access_map_addr(struct gk20a *g,
+void gm20b_ctxsw_prog_set_addr_priv_access_map(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem, u64 addr);
 void gm20b_ctxsw_prog_disable_verif_features(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem);

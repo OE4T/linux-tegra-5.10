@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -132,12 +132,12 @@ void gv11b_gr_intr_handle_ssync_hww(struct gk20a *g, u32 *ssync_esr);
 u32 gv11b_gr_intr_record_sm_error_state(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 				struct nvgpu_channel *fault_ch);
 
-u32 gv11b_gr_intr_get_sm_hww_warp_esr(struct gk20a *g,
+u32 gv11b_gr_intr_get_warp_esr_sm_hww(struct gk20a *g,
 			u32 gpc, u32 tpc, u32 sm);
 u32 gv11b_gr_intr_get_sm_hww_global_esr(struct gk20a *g,
 			u32 gpc, u32 tpc, u32 sm);
 u32 gv11b_gr_intr_get_sm_no_lock_down_hww_global_esr_mask(struct gk20a *g);
-u64 gv11b_gr_intr_get_sm_hww_warp_esr_pc(struct gk20a *g, u32 offset);
+u64 gv11b_gr_intr_get_warp_esr_pc_sm_hww(struct gk20a *g, u32 offset);
 
 u32 gv11b_gr_intr_ctxsw_checksum_mismatch_mailbox_val(void);
 

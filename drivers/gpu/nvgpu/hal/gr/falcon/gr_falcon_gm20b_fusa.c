@@ -878,7 +878,7 @@ u32 gm20b_gr_falcon_get_fecs_current_ctx_data(struct gk20a *g,
 		gr_fecs_current_ctx_valid_f(1);
 }
 
-u32 gm20b_gr_falcon_read_fecs_ctxsw_mailbox(struct gk20a *g, u32 reg_index)
+u32 gm20b_gr_falcon_read_mailbox_fecs_ctxsw(struct gk20a *g, u32 reg_index)
 {
 	return nvgpu_readl(g, gr_fecs_ctxsw_mailbox_r(reg_index));
 }
@@ -943,12 +943,12 @@ u32 gm20b_gr_falcon_fecs_host_intr_status(struct gk20a *g,
 	return gr_fecs_intr;
 }
 
-u32 gm20b_gr_falcon_read_fecs_ctxsw_status0(struct gk20a *g)
+u32 gm20b_gr_falcon_read_status0_fecs_ctxsw(struct gk20a *g)
 {
 	return nvgpu_readl(g, gr_fecs_ctxsw_status_fe_0_r());
 }
 
-u32 gm20b_gr_falcon_read_fecs_ctxsw_status1(struct gk20a *g)
+u32 gm20b_gr_falcon_read_status1_fecs_ctxsw(struct gk20a *g)
 {
 	return nvgpu_readl(g, gr_fecs_ctxsw_status_1_r());
 }

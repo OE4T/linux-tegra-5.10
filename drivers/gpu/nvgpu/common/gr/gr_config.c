@@ -732,7 +732,7 @@ u32 nvgpu_gr_config_get_gpc_ppc_count(struct nvgpu_gr_config *config,
 	return config->gpc_ppc_count[gpc_index];
 }
 
-u32 *nvgpu_gr_config_get_gpc_tpc_count_base(struct nvgpu_gr_config *config)
+u32 *nvgpu_gr_config_get_base_count_gpc_tpc(struct nvgpu_gr_config *config)
 {
 	return config->gpc_tpc_count;
 }
@@ -754,7 +754,7 @@ u32 nvgpu_gr_config_get_pes_tpc_count(struct nvgpu_gr_config *config,
 	return config->pes_tpc_count[pes_index][gpc_index];
 }
 
-u32 *nvgpu_gr_config_get_gpc_tpc_mask_base(struct nvgpu_gr_config *config)
+u32 *nvgpu_gr_config_get_base_mask_gpc_tpc(struct nvgpu_gr_config *config)
 {
 	return config->gpc_tpc_mask;
 }

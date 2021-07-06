@@ -323,7 +323,7 @@ int gr_gv11b_dump_gr_status_regs(struct gk20a *g,
 		gk20a_readl(g, gr_pri_gpc0_gpccs_gpc_activity3_r()));
 	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_TPC0_TPCCS_TPC_ACTIVITY0: 0x%x",
 		gk20a_readl(g, gr_pri_gpc0_tpc0_tpccs_tpc_activity_0_r()));
-	if ((nvgpu_gr_config_get_gpc_tpc_count_base(gr->config) != NULL) &&
+	if ((nvgpu_gr_config_get_base_count_gpc_tpc(gr->config) != NULL) &&
 		(nvgpu_gr_config_get_gpc_tpc_count(gr->config, 0) == 2U)) {
 		gk20a_debug_output(o,
 			"NV_PGRAPH_PRI_GPC0_TPC1_TPCCS_TPC_ACTIVITY0: 0x%x",

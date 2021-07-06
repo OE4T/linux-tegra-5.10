@@ -1943,7 +1943,7 @@ record_fail:
 	return sm_id;
 }
 
-u32 gv11b_gr_intr_get_sm_hww_warp_esr(struct gk20a *g,
+u32 gv11b_gr_intr_get_warp_esr_sm_hww(struct gk20a *g,
 			u32 gpc, u32 tpc, u32 sm)
 {
 	u32 offset = nvgpu_safe_add_u32(nvgpu_gr_gpc_offset(g, gpc),
@@ -1985,7 +1985,7 @@ u32 gv11b_gr_intr_get_sm_no_lock_down_hww_global_esr_mask(struct gk20a *g)
 	return global_esr_mask;
 }
 
-u64 gv11b_gr_intr_get_sm_hww_warp_esr_pc(struct gk20a *g, u32 offset)
+u64 gv11b_gr_intr_get_warp_esr_pc_sm_hww(struct gk20a *g, u32 offset)
 {
 	u64 hww_warp_esr_pc;
 	u32 addr_hi = nvgpu_readl(g, nvgpu_safe_add_u32(

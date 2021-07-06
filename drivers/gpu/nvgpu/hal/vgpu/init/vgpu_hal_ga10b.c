@@ -278,8 +278,8 @@ static const struct gops_gr_ctxsw_prog vgpu_ga10b_ops_gr_ctxsw_prog = {
 	.set_patch_addr = gm20b_ctxsw_prog_set_patch_addr,
 	.init_ctxsw_hdr_data = gp10b_ctxsw_prog_init_ctxsw_hdr_data,
 	.set_compute_preemption_mode_cta = gp10b_ctxsw_prog_set_compute_preemption_mode_cta,
-	.set_priv_access_map_config_mode = gm20b_ctxsw_prog_set_priv_access_map_config_mode,
-	.set_priv_access_map_addr = gm20b_ctxsw_prog_set_priv_access_map_addr,
+	.set_priv_access_map_config_mode = gm20b_ctxsw_prog_set_config_mode_priv_access_map,
+	.set_priv_access_map_addr = gm20b_ctxsw_prog_set_addr_priv_access_map,
 	.disable_verif_features = gm20b_ctxsw_prog_disable_verif_features,
 #ifdef CONFIG_NVGPU_GRAPHICS
 	.set_zcull_ptr = gv11b_ctxsw_prog_set_zcull_ptr,

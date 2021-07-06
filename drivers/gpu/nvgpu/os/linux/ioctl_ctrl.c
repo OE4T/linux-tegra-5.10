@@ -717,7 +717,7 @@ static int gk20a_ctrl_get_tpc_masks(struct gk20a *g, struct nvgpu_gr_config *gr_
 
 		err = copy_to_user((void __user *)(uintptr_t)
 			args->mask_buf_addr,
-			nvgpu_gr_config_get_gpc_tpc_mask_base(gr_config),
+			nvgpu_gr_config_get_base_mask_gpc_tpc(gr_config),
 			write_size);
 	}
 

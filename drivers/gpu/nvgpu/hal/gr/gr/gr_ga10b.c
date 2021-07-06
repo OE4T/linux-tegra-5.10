@@ -163,7 +163,7 @@ static void gr_ga10b_dump_tpc_activity_regs(struct gk20a *g,
 	u32 reg_index = 0U, offset = 0U;
 	u32 i = 0U;
 
-	if (nvgpu_gr_config_get_gpc_tpc_count_base(gr->config) == NULL) {
+	if (nvgpu_gr_config_get_base_count_gpc_tpc(gr->config) == NULL) {
 		return;
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -101,8 +101,8 @@ int test_gr_config_deinit(struct unit_module *m, struct gk20a *g, void *args);
  *          nvgpu_gr_config_get_gpc_tpc_count,
  *          nvgpu_gr_config_get_pes_tpc_count,
  *          nvgpu_gr_config_get_pes_tpc_mask,
- *          nvgpu_gr_config_get_gpc_tpc_count_base,
- *          nvgpu_gr_config_get_gpc_tpc_mask_base
+ *          nvgpu_gr_config_get_base_count_gpc_tpc,
+ *          nvgpu_gr_config_get_base_mask_gpc_tpc
  *
  * Input: #test_gr_init_setup and #test_gr_config_init
  *        must have been executed successfully.

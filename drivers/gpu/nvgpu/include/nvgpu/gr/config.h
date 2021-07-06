@@ -186,7 +186,7 @@ u32 nvgpu_gr_config_get_gpc_ppc_count(struct nvgpu_gr_config *config,
  *
  * @return base address of array that stores number of TPCs in GPC.
  */
-u32 *nvgpu_gr_config_get_gpc_tpc_count_base(struct nvgpu_gr_config *config);
+u32 *nvgpu_gr_config_get_base_count_gpc_tpc(struct nvgpu_gr_config *config);
 
 /**
  * @brief Get TPC count for given GPC.
@@ -235,7 +235,7 @@ u32 nvgpu_gr_config_get_pes_tpc_count(struct nvgpu_gr_config *config,
  *
  * @return base address of array that stores mask of TPCs in GPC.
  */
-u32 *nvgpu_gr_config_get_gpc_tpc_mask_base(struct nvgpu_gr_config *config);
+u32 *nvgpu_gr_config_get_base_mask_gpc_tpc(struct nvgpu_gr_config *config);
 
 /**
  * @brief Get TPC mask for given GPC.

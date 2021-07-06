@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -48,7 +48,7 @@ struct unit_module;
  *          nvgpu_gr_intr_handle_fecs_error,
  *          gops_gr_falcon.dump_stats,
  *          gm20b_gr_falcon_fecs_dump_stats,
- *          gm20b_gr_falcon_read_fecs_ctxsw_status1,
+ *          gm20b_gr_falcon_read_status1_fecs_ctxsw,
  *          gm20b_gr_falcon_get_fecs_ctxsw_mailbox_size,
  *          gm20b_gr_falcon_fecs_host_clear_intr,
  *          nvgpu_gr_intr_remove_support
@@ -172,11 +172,11 @@ int test_gr_intr_sw_exceptions(struct unit_module *m,
  *          gops_gr_intr.get_ctxsw_checksum_mismatch_mailbox_val,
  *          gv11b_gr_intr_ctxsw_checksum_mismatch_mailbox_val,
  *          gops_gr_falcon.read_fecs_ctxsw_mailbox,
- *          gm20b_gr_falcon_read_fecs_ctxsw_mailbox,
+ *          gm20b_gr_falcon_read_mailbox_fecs_ctxsw,
  *          gops_gr_falcon.dump_stats,
  *          gm20b_gr_falcon_fecs_dump_stats,
- *          gm20b_gr_falcon_read_fecs_ctxsw_status1,
- *          gm20b_gr_falcon_read_fecs_ctxsw_status0,
+ *          gm20b_gr_falcon_read_status1_fecs_ctxsw,
+ *          gm20b_gr_falcon_read_status0_fecs_ctxsw,
  *          gm20b_gr_falcon_get_fecs_ctxsw_mailbox_size,
  *          gm20b_gr_falcon_fecs_host_clear_intr,
  *          gm20b_gr_falcon_fecs_host_intr_status,
@@ -244,9 +244,9 @@ int test_gr_intr_fecs_exceptions(struct unit_module *m,
  *          gops_gr_intr.record_sm_error_state,
  *          gv11b_gr_intr_record_sm_error_state,
  *          gops_gr_intr.get_sm_hww_warp_esr,
- *          gv11b_gr_intr_get_sm_hww_warp_esr,
+ *          gv11b_gr_intr_get_warp_esr_sm_hww,
  *          gops_gr_intr.get_sm_hww_warp_esr_pc,
- *          gv11b_gr_intr_get_sm_hww_warp_esr_pc,
+ *          gv11b_gr_intr_get_warp_esr_sm_hww_pc,
  *          gops_gr_intr.get_sm_hww_global_esr,
  *          gv11b_gr_intr_get_sm_hww_global_esr,
  *          gops_gr_intr.get_sm_no_lock_down_hww_global_esr_mask,

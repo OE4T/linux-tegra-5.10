@@ -255,8 +255,8 @@ static const struct gops_gr_ctxsw_prog gp10b_ops_gr_ctxsw_prog = {
 	.set_patch_addr = gm20b_ctxsw_prog_set_patch_addr,
 	.init_ctxsw_hdr_data = gp10b_ctxsw_prog_init_ctxsw_hdr_data,
 	.set_compute_preemption_mode_cta = gp10b_ctxsw_prog_set_compute_preemption_mode_cta,
-	.set_priv_access_map_config_mode = gm20b_ctxsw_prog_set_priv_access_map_config_mode,
-	.set_priv_access_map_addr = gm20b_ctxsw_prog_set_priv_access_map_addr,
+	.set_priv_access_map_config_mode = gm20b_ctxsw_prog_set_config_mode_priv_access_map,
+	.set_priv_access_map_addr = gm20b_ctxsw_prog_set_addr_priv_access_map,
 	.disable_verif_features = gm20b_ctxsw_prog_disable_verif_features,
 #ifdef CONFIG_NVGPU_GRAPHICS
 	.set_zcull_ptr = gm20b_ctxsw_prog_set_zcull_ptr,
@@ -478,7 +478,7 @@ static const struct gops_gr_intr gp10b_ops_gr_intr = {
 };
 
 static const struct gops_gr_falcon gp10b_ops_gr_falcon = {
-	.read_fecs_ctxsw_mailbox = gm20b_gr_falcon_read_fecs_ctxsw_mailbox,
+	.read_fecs_ctxsw_mailbox = gm20b_gr_falcon_read_mailbox_fecs_ctxsw,
 	.fecs_host_clear_intr = gm20b_gr_falcon_fecs_host_clear_intr,
 	.fecs_host_intr_status = gm20b_gr_falcon_fecs_host_intr_status,
 	.fecs_base_addr = gm20b_gr_falcon_fecs_base_addr,
@@ -500,8 +500,8 @@ static const struct gops_gr_falcon gp10b_ops_gr_falcon = {
 	.get_fecs_current_ctx_data = gm20b_gr_falcon_get_fecs_current_ctx_data,
 	.init_ctx_state = gp10b_gr_falcon_init_ctx_state,
 	.fecs_host_int_enable = gm20b_gr_falcon_fecs_host_int_enable,
-	.read_fecs_ctxsw_status0 = gm20b_gr_falcon_read_fecs_ctxsw_status0,
-	.read_fecs_ctxsw_status1 = gm20b_gr_falcon_read_fecs_ctxsw_status1,
+	.read_fecs_ctxsw_status0 = gm20b_gr_falcon_read_status0_fecs_ctxsw,
+	.read_fecs_ctxsw_status1 = gm20b_gr_falcon_read_status1_fecs_ctxsw,
 #ifdef CONFIG_NVGPU_GR_FALCON_NON_SECURE_BOOT
 	.load_ctxsw_ucode_header = gm20b_gr_falcon_load_ctxsw_ucode_header,
 	.load_ctxsw_ucode_boot = gm20b_gr_falcon_load_ctxsw_ucode_boot,

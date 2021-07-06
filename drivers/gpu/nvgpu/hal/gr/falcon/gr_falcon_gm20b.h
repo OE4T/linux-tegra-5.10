@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@ struct nvgpu_gr_falcon_query_sizes;
 
 void gm20b_gr_falcon_fecs_ctxsw_clear_mailbox(struct gk20a *g,
 					u32 reg_index, u32 clear_val);
-u32 gm20b_gr_falcon_read_fecs_ctxsw_mailbox(struct gk20a *g, u32 reg_index);
+u32 gm20b_gr_falcon_read_mailbox_fecs_ctxsw(struct gk20a *g, u32 reg_index);
 void gm20b_gr_falcon_fecs_host_clear_intr(struct gk20a *g, u32 fecs_intr);
 u32 gm20b_gr_falcon_fecs_host_intr_status(struct gk20a *g,
 			struct nvgpu_fecs_host_intr_status *fecs_host_intr);
@@ -59,8 +59,8 @@ u32 gm20b_gr_falcon_get_fecs_current_ctx_data(struct gk20a *g,
 						struct nvgpu_mem *inst_block);
 int gm20b_gr_falcon_init_ctx_state(struct gk20a *g,
 		struct nvgpu_gr_falcon_query_sizes *sizes);
-u32 gm20b_gr_falcon_read_fecs_ctxsw_status0(struct gk20a *g);
-u32 gm20b_gr_falcon_read_fecs_ctxsw_status1(struct gk20a *g);
+u32 gm20b_gr_falcon_read_status0_fecs_ctxsw(struct gk20a *g);
+u32 gm20b_gr_falcon_read_status1_fecs_ctxsw(struct gk20a *g);
 #ifdef CONFIG_NVGPU_GRAPHICS
 int gm20b_gr_falcon_submit_fecs_sideband_method_op(struct gk20a *g,
 				struct nvgpu_fecs_method_op op);
