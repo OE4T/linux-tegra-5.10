@@ -441,6 +441,10 @@
 				alignment = <0 0x400000>;
 				alloc-ranges = <0x0 0x80000000 0x0 0x70000000>;
 		};
+
+		bpmp-fw {
+                        reg = <0x0 0x84c00000 0x0 0x400000>;
+                };
         };
 
 	tegra_main_gpio: gpio@2200000 {
