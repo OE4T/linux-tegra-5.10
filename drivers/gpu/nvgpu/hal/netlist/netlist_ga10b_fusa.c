@@ -28,6 +28,8 @@ int ga10b_netlist_get_name(struct gk20a *g, int index, char *name)
 {
 	int ret = 0;
 
+	(void)g;
+
 	switch (index) {
 #ifdef GA10B_NETLIST_IMAGE_FW_NAME
 	case NETLIST_FINAL:

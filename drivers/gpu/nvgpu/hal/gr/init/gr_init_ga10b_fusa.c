@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -240,16 +240,19 @@ void ga10b_gr_init_commit_global_bundle_cb(struct gk20a *g,
 
 u32 ga10b_gr_init_get_min_gpm_fifo_depth(struct gk20a *g)
 {
+	(void)g;
 	return gr_pd_ab_dist_cfg2_state_limit_min_gpm_fifo_depths_v();
 }
 
 u32 ga10b_gr_init_get_bundle_cb_token_limit(struct gk20a *g)
 {
+	(void)g;
 	return gr_pd_ab_dist_cfg2_token_limit_init_v();
 }
 
 u32 ga10b_gr_init_get_attrib_cb_default_size(struct gk20a *g)
 {
+	(void)g;
 	return gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v();
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,6 +30,7 @@
 #include <nvgpu/gr/gr_utils.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/pmu/clk/clk.h>
+#include <nvgpu/string.h>
 
 #include "gr_falcon_gm20b.h"
 #include "common/gr/gr_falcon_priv.h"
@@ -325,6 +326,7 @@ static bool gm20b_gr_falcon_gr_opcode_less(u32 opc_status, bool is_fail,
 static void gm20b_gr_falcon_gr_opcode_less_equal(u32 opc_status, bool is_fail,
 		u32 mailbox_status, u32 reg, enum wait_ucode_status *check)
 {
+	(void)opc_status;
 	if (reg <= mailbox_status) {
 		if (is_fail) {
 			*check = WAIT_UCODE_ERROR;

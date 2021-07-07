@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -42,6 +42,7 @@
 #include <nvgpu/mmu_fault.h>
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/power_features/pg.h>
+#include <nvgpu/string.h>
 
 #include <nvgpu/hw/gv11b/hw_gmmu_gv11b.h>
 
@@ -331,6 +332,8 @@ static bool gv11b_mm_mmu_fault_handle_mmu_fault_ce(struct gk20a *g,
 		}
 		return true;
 	}
+#else
+	(void)invalidate_replay_val;
 #endif
 	/* Do recovery */
 	nvgpu_log(g, gpu_dbg_intr, "CE Page Fault Not Fixed");
@@ -711,6 +714,7 @@ void gv11b_mm_mmu_fault_info_mem_destroy(struct gk20a *g)
 
 static int gv11b_mm_mmu_fault_info_buf_init(struct gk20a *g)
 {
+	(void)g;
 	return 0;
 }
 

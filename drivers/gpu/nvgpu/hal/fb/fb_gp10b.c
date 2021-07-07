@@ -1,7 +1,7 @@
 /*
  * GP10B FB
  *
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2022, NVIDIA CORPORATION.  All rights reserved.
 *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,11 +30,13 @@
 #ifdef CONFIG_NVGPU_COMPRESSION
 u64 gp10b_fb_compression_page_size(struct gk20a *g)
 {
+	(void)g;
 	return SZ_64K;
 }
 
 unsigned int gp10b_fb_compressible_page_size(struct gk20a *g)
 {
+	(void)g;
 	return (unsigned int)SZ_4K;
 }
 #endif

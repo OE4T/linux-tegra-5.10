@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -266,16 +266,19 @@ const struct gk20a_mmu_level gk20a_mm_levels_128k[] = {
 const struct gk20a_mmu_level *gk20a_mm_get_mmu_levels(struct gk20a *g,
 						      u64 big_page_size)
 {
+	(void)g;
 	return (big_page_size == SZ_64K) ?
 		 gk20a_mm_levels_64k : gk20a_mm_levels_128k;
 }
 
 u32 gk20a_get_max_page_table_levels(struct gk20a *g)
 {
+	(void)g;
 	return 2U;
 }
 
 u32 gk20a_mm_get_iommu_bit(struct gk20a *g)
 {
+	(void)g;
 	return 34;
 }

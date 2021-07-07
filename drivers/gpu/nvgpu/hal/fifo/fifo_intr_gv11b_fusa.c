@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -86,6 +86,7 @@ static u32 gv11b_fifo_intr_0_en_mask(struct gk20a *g)
 {
 	u32 intr_0_en_mask = fifo_intr_0_err_mask();
 
+	(void)g;
 	intr_0_en_mask |= fifo_intr_0_pbdma_intr_pending_f() |
 				 fifo_intr_0_ctxsw_timeout_pending_f();
 

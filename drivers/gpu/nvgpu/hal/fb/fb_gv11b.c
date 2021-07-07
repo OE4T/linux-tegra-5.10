@@ -1,7 +1,7 @@
 /*
  * GV11B FB
  *
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -83,7 +83,7 @@ void gv11b_fb_cbc_configure(struct gk20a *g, struct nvgpu_cbc *cbc)
 
 	if (g->ops.cbc.fix_config != NULL) {
 		compbit_base_post_divide =
-			g->ops.cbc.fix_config(g, compbit_base_post_divide);
+			g->ops.cbc.fix_config(g, (int)compbit_base_post_divide);
 	}
 
 	nvgpu_writel(g, fb_mmu_cbc_base_r(),

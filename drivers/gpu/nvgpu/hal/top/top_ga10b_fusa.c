@@ -31,6 +31,8 @@
 
 u32 ga10b_get_num_engine_type_entries(struct gk20a *g, u32 engine_type)
 {
+	(void)g;
+	(void)engine_type;
 	/*
 	 * Will be replaced by core code function in next patch!
 	 */
@@ -42,6 +44,8 @@ static struct nvgpu_device *ga10b_top_parse_device(struct gk20a *g,
 {
 	bool valid_device_info = false;
 	struct nvgpu_device *dev;
+
+	(void)num_rows;
 
 	/*
 	 * ga10b  device info structure

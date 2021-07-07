@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -177,6 +177,7 @@ bool gv11b_pbdma_handle_intr_1(struct gk20a *g, u32 pbdma_id, u32 pbdma_intr_1,
 
 	u32 pbdma_intr_1_current = gk20a_readl(g, pbdma_intr_1_r(pbdma_id));
 
+	(void)error_notifier;
 	/* minimize race with the gpu clearing the pending interrupt */
 	if ((pbdma_intr_1_current &
 	     pbdma_intr_1_ctxnotvalid_pending_f()) == 0U) {

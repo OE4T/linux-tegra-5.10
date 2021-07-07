@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,26 +34,31 @@
 
 u32 tu104_gr_init_get_bundle_cb_default_size(struct gk20a *g)
 {
+	(void)g;
 	return gr_scc_bundle_cb_size_div_256b__prod_v();
 }
 
 u32 tu104_gr_init_get_min_gpm_fifo_depth(struct gk20a *g)
 {
+	(void)g;
 	return gr_pd_ab_dist_cfg2_state_limit_min_gpm_fifo_depths_v();
 }
 
 u32 tu104_gr_init_get_bundle_cb_token_limit(struct gk20a *g)
 {
+	(void)g;
 	return gr_pd_ab_dist_cfg2_token_limit_init_v();
 }
 
 u32 tu104_gr_init_get_attrib_cb_default_size(struct gk20a *g)
 {
+	(void)g;
 	return gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v();
 }
 
 u32 tu104_gr_init_get_alpha_cb_default_size(struct gk20a *g)
 {
+	(void)g;
 	return gr_gpc0_ppc0_cbm_alpha_cb_size_v_default_v();
 }
 
@@ -150,6 +155,7 @@ int tu104_gr_init_load_sw_bundle64(struct gk20a *g,
 #ifdef CONFIG_NVGPU_GRAPHICS
 u32 tu104_gr_init_get_rtv_cb_size(struct gk20a *g)
 {
+	(void)g;
 	return nvgpu_safe_mult_u32(
 		nvgpu_safe_add_u32(
 			gr_scc_rm_rtv_cb_size_div_256b_default_f(),

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -340,6 +340,8 @@ u32 gv11b_gr_init_get_nonpes_aware_tpc(struct gk20a *g, u32 gpc, u32 tpc,
 	u32 temp;
 	u32 pes;
 
+	(void)g;
+
 	for (pes = 0U;
 	     pes < nvgpu_gr_config_get_gpc_ppc_count(gr_config, gpc);
 	     pes++) {
@@ -642,26 +644,31 @@ void gv11b_gr_init_commit_global_timeslice(struct gk20a *g)
 
 u32 gv11b_gr_init_get_bundle_cb_default_size(struct gk20a *g)
 {
+	(void)g;
 	return gr_scc_bundle_cb_size_div_256b__prod_v();
 }
 
 u32 gv11b_gr_init_get_min_gpm_fifo_depth(struct gk20a *g)
 {
+	(void)g;
 	return gr_pd_ab_dist_cfg2_state_limit_min_gpm_fifo_depths_v();
 }
 
 u32 gv11b_gr_init_get_bundle_cb_token_limit(struct gk20a *g)
 {
+	(void)g;
 	return gr_pd_ab_dist_cfg2_token_limit_init_v();
 }
 
 u32 gv11b_gr_init_get_attrib_cb_default_size(struct gk20a *g)
 {
+	(void)g;
 	return gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v();
 }
 
 u32 gv11b_gr_init_get_alpha_cb_default_size(struct gk20a *g)
 {
+	(void)g;
 	return gr_gpc0_ppc0_cbm_alpha_cb_size_v_default_v();
 }
 
@@ -1165,16 +1172,19 @@ void gv11b_gr_init_commit_cbes_reserve(struct gk20a *g,
 
 u32 gv11b_gr_init_get_attrib_cb_gfxp_default_size(struct gk20a *g)
 {
+	(void)g;
 	return gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v();
 }
 
 u32 gv11b_gr_init_get_attrib_cb_gfxp_size(struct gk20a *g)
 {
+	(void)g;
 	return gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v();
 }
 
 u32 gv11b_gr_init_get_ctx_spill_size(struct gk20a *g)
 {
+	(void)g;
 	return  nvgpu_safe_mult_u32(
 		  gr_gpc0_swdx_rm_spill_buffer_size_256b_default_v(),
 		  gr_gpc0_swdx_rm_spill_buffer_size_256b_byte_granularity_v());

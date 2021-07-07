@@ -1,7 +1,7 @@
 /*
  * Pascal GPU series Copy Engine.
  *
- * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,6 +37,8 @@ void gp10b_ce_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 	u32 ce_intr = nvgpu_readl(g, ce_intr_status_r(inst_id));
 	u32 clear_intr = 0U;
 
+	(void)pri_base;
+
 	nvgpu_log(g, gpu_dbg_intr, "ce isr %08x %08x", ce_intr, inst_id);
 
 	/* clear blocking interrupts: they exibit broken behavior */
@@ -62,6 +64,8 @@ u32 gp10b_ce_nonstall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 {
 	u32 nonstall_ops = 0U;
 	u32 ce_intr = nvgpu_readl(g, ce_intr_status_r(inst_id));
+
+	(void)pri_base;
 
 	nvgpu_log(g, gpu_dbg_intr, "ce nonstall isr %08x %08x",
 			ce_intr, inst_id);

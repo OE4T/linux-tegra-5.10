@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -303,6 +303,8 @@ u32 gv11b_pmu_falcon_base_addr(void)
 
 bool gv11b_is_pmu_supported(struct gk20a *g)
 {
+	(void)g;
+
 #ifdef CONFIG_NVGPU_LS_PMU
 	return true;
 #else
@@ -477,6 +479,8 @@ void gv11b_pmu_enable_irq(struct nvgpu_pmu *pmu, bool enable)
 u32 gv11b_pmu_get_irqdest(struct gk20a *g)
 {
 	u32 intr_dest;
+
+	(void)g;
 
 #ifdef CONFIG_NVGPU_LS_PMU
 	/* dest 0=falcon, 1=host; level 0=irq0, 1=irq1 */

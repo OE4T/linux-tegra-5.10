@@ -1,7 +1,7 @@
 /*
  * GA10B Runlist
  *
- * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,12 +39,14 @@
 
 u32 ga10b_runlist_count_max(struct gk20a *g)
 {
+	(void)g;
 	/* TODO Needs to be read from litter values */
 	return 4U;
 }
 
 u32 ga10b_runlist_length_max(struct gk20a *g)
 {
+	(void)g;
 	return runlist_submit_length_max_v();
 }
 

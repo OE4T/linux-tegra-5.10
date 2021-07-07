@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -91,6 +91,7 @@ static u32 get_sm_hww_global_esr_report_mask(void)
 
 u32 ga10b_gr_intr_enable_mask(struct gk20a *g)
 {
+	(void)g;
 	return gr_intr_en_mask();
 }
 
@@ -104,6 +105,11 @@ int ga10b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 	 */
 	u32 left_shift_by_2 = 2U;
 #endif
+
+	(void)addr;
+	(void)class_num;
+	(void)offset;
+	(void)data;
 
 	nvgpu_log_fn(g, " ");
 
@@ -362,6 +368,8 @@ void ga10b_gr_intr_enable_exceptions(struct gk20a *g,
 static void ga10b_gr_intr_report_gpcmmu_ecc_err(struct gk20a *g,
 		u32 ecc_status, u32 gpc, u32 correct_err, u32 uncorrect_err)
 {
+	(void)correct_err;
+
 	if ((ecc_status &
 	     gr_gpc0_mmu0_l1tlb_ecc_status_corrected_err_l1tlb_sa_data_m()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr, "corrected ecc sa data error");
@@ -473,6 +481,7 @@ void ga10b_gr_intr_handle_gpc_gpcmmu_exception(struct gk20a *g, u32 gpc,
 static void ga10b_gr_intr_set_l1_tag_uncorrected_err(struct gk20a *g,
 	u32 l1_tag_ecc_status, struct nvgpu_gr_sm_ecc_status *ecc_status)
 {
+	(void)g;
 
 	if ((l1_tag_ecc_status &
 	    gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_uncorrected_err_el1_0_m()) != 0U) {
@@ -502,6 +511,7 @@ static void ga10b_gr_intr_set_l1_tag_uncorrected_err(struct gk20a *g,
 static void ga10b_gr_intr_set_l1_tag_corrected_err(struct gk20a *g,
 	u32 l1_tag_ecc_status, struct nvgpu_gr_sm_ecc_status *ecc_status)
 {
+	(void)g;
 
 	if ((l1_tag_ecc_status &
 	    gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_corrected_err_el1_0_m()) != 0U) {
@@ -548,6 +558,8 @@ static bool ga10b_gr_intr_sm_lrf_ecc_status_errors(struct gk20a *g,
 	u32 corr_err, uncorr_err;
 	bool err_status = true;
 
+	(void)g;
+
 	corr_err = lrf_ecc_status &
 		(gr_pri_gpc0_tpc0_sm_lrf_ecc_status_corrected_err_qrfdp0_m() |
 		 gr_pri_gpc0_tpc0_sm_lrf_ecc_status_corrected_err_qrfdp1_m() |
@@ -585,6 +597,8 @@ static bool ga10b_gr_intr_sm_cbu_ecc_status_errors(struct gk20a *g,
 	u32 corr_err, uncorr_err;
 	bool err_status = true;
 
+	(void)g;
+
 	corr_err = cbu_ecc_status &
 	  (gr_pri_gpc0_tpc0_sm_cbu_ecc_status_corrected_err_warp_sm0_m() |
 	   gr_pri_gpc0_tpc0_sm_cbu_ecc_status_corrected_err_barrier_sm0_m());
@@ -618,6 +632,8 @@ static bool ga10b_gr_intr_sm_l1_data_ecc_status_errors(struct gk20a *g,
 	u32 corr_err, uncorr_err;
 	bool err_status = true;
 
+	(void)g;
+
 	corr_err = l1_data_ecc_status &
 		gr_pri_gpc0_tpc0_sm_l1_data_ecc_status_corrected_err_el1_0_m();
 	uncorr_err = l1_data_ecc_status &
@@ -647,6 +663,8 @@ static bool ga10b_gr_intr_sm_rams_ecc_status_errors(struct gk20a *g,
 {
 	u32 corr_err, uncorr_err;
 	bool err_status = true;
+
+	(void)g;
 
 	corr_err = rams_ecc_status &\
 		(gr_pri_gpc0_tpc0_sm_rams_ecc_status_corrected_err_l0ic_data_m() |\
@@ -688,6 +706,8 @@ static bool ga10b_gr_intr_sm_icache_ecc_status_errors(struct gk20a *g,
 {
 	u32 corr_err, uncorr_err;
 	bool err_status = true;
+
+	(void)g;
 
 	corr_err = icache_ecc_status &
 		gr_pri_gpc0_tpc0_sm_icache_ecc_status_corrected_err_l1_data_m();

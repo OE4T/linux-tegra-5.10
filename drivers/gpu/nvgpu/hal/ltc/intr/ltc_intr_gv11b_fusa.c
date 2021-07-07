@@ -1,7 +1,7 @@
 /*
  * GV11B LTC INTR
  *
- * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -98,6 +98,11 @@ void gv11b_ltc_intr_handle_rstg_ecc_interrupts(struct gk20a *g,
 			u32 ltc, u32 slice, u32 ecc_status, u32 ecc_addr,
 			u32 uncorrected_delta)
 {
+	(void)ltc;
+	(void)slice;
+	(void)ecc_addr;
+	(void)uncorrected_delta;
+
 	if ((ecc_status &
 		ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_rstg_m())
 								!= 0U) {

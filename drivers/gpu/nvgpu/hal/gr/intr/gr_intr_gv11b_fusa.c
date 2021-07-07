@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@
 #include <nvgpu/class.h>
 #include <nvgpu/static_analysis.h>
 #include <nvgpu/nvgpu_err.h>
+#include <nvgpu/string.h>
 
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr.h>
@@ -184,6 +185,11 @@ int gv11b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 {
 	int err = -EFAULT;
 
+	(void)addr;
+	(void)class_num;
+	(void)offset;
+	(void)data;
+
 	nvgpu_log_fn(g, " ");
 
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
@@ -273,6 +279,8 @@ void gv11b_gr_intr_handle_gcc_exception(struct gk20a *g, u32 gpc,
 	bool is_gcc_l15_ecc_corrected_total_err_overflow = false;
 	bool is_gcc_l15_ecc_uncorrected_total_err_overflow = false;
 
+	(void)corrected_err;
+
 	if (gr_gpc0_gpccs_gpc_exception_gcc_v(gpc_exception) == 0U) {
 		return;
 	}
@@ -359,6 +367,8 @@ static void gv11b_gr_intr_report_gpcmmu_ecc_err(struct gk20a *g,
 			u32 ecc_status, u32 gpc,
 			u32 correct_err, u32 uncorrect_err)
 {
+	(void)correct_err;
+
 	if ((ecc_status &
 	     gr_gpc0_mmu_l1tlb_ecc_status_corrected_err_l1tlb_sa_data_m()) !=
 									0U) {
@@ -974,6 +984,7 @@ static void gv11b_gr_intr_report_l1_tag_corrected_err(struct gk20a *g,
 static void gv11b_gr_intr_set_l1_tag_uncorrected_err(struct gk20a *g,
 	u32 l1_tag_ecc_status, struct nvgpu_gr_sm_ecc_status *ecc_status)
 {
+	(void)g;
 
 	if ((l1_tag_ecc_status &
 	    (gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_uncorrected_err_el1_0_m() |
@@ -1004,6 +1015,7 @@ static void gv11b_gr_intr_set_l1_tag_uncorrected_err(struct gk20a *g,
 static void gv11b_gr_intr_set_l1_tag_corrected_err(struct gk20a *g,
 	u32 l1_tag_ecc_status, struct nvgpu_gr_sm_ecc_status *ecc_status)
 {
+	(void)g;
 
 	if ((l1_tag_ecc_status &
 	    (gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_corrected_err_el1_0_m() |
@@ -1159,6 +1171,8 @@ static bool gv11b_gr_intr_sm_lrf_ecc_status_errors(struct gk20a *g,
 	u32 corr_err, uncorr_err;
 	bool err_status = true;
 
+	(void)g;
+
 	corr_err = lrf_ecc_status &
 		(gr_pri_gpc0_tpc0_sm_lrf_ecc_status_corrected_err_qrfdp0_m() |
 		 gr_pri_gpc0_tpc0_sm_lrf_ecc_status_corrected_err_qrfdp1_m() |
@@ -1302,6 +1316,8 @@ static bool gv11b_gr_intr_sm_cbu_ecc_status_errors(struct gk20a *g,
 	u32 corr_err, uncorr_err;
 	bool err_status = true;
 
+	(void)g;
+
 	corr_err = cbu_ecc_status &
 		(gr_pri_gpc0_tpc0_sm_cbu_ecc_status_corrected_err_warp_sm0_m() |
 		 gr_pri_gpc0_tpc0_sm_cbu_ecc_status_corrected_err_warp_sm1_m() |
@@ -1434,6 +1450,8 @@ static bool gv11b_gr_intr_sm_l1_data_ecc_status_errors(struct gk20a *g,
 {
 	u32 corr_err, uncorr_err;
 	bool err_status = true;
+
+	(void)g;
 
 	corr_err = l1_data_ecc_status &
 		(gr_pri_gpc0_tpc0_sm_l1_data_ecc_status_corrected_err_el1_0_m() |
@@ -1603,6 +1621,8 @@ static void gv11b_set_icache_ecc_status_uncorrected_errors(struct gk20a *g,
 				u32 icache_ecc_status,
 				struct nvgpu_gr_sm_ecc_status *ecc_status)
 {
+	(void)g;
+
 	if ((icache_ecc_status &
 	     gr_pri_gpc0_tpc0_sm_icache_ecc_status_uncorrected_err_l0_data_m()) != 0U) {
 		ecc_status->err_id[ecc_status->err_count] =
@@ -2000,6 +2020,8 @@ u32 gv11b_gr_intr_get_sm_no_lock_down_hww_global_esr_mask(struct gk20a *g)
 		gr_gpc0_tpc0_sm0_hww_global_esr_bpt_int_pending_f()   |
 		gr_gpc0_tpc0_sm0_hww_global_esr_bpt_pause_pending_f() |
 		gr_gpc0_tpc0_sm0_hww_global_esr_single_step_complete_pending_f();
+
+	(void)g;
 
 	return global_esr_mask;
 }

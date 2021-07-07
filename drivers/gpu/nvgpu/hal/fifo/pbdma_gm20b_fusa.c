@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -282,6 +282,7 @@ void gm20b_pbdma_format_gpfifo_entry(struct gk20a *g,
 		struct nvgpu_gpfifo_entry *gpfifo_entry,
 		u64 pb_gpu_va, u32 method_size)
 {
+	(void)g;
 	gpfifo_entry->entry0 = u64_lo32(pb_gpu_va);
 	gpfifo_entry->entry1 = u64_hi32(pb_gpu_va) |
 					pbdma_gp_entry1_length_f(method_size);
@@ -388,6 +389,7 @@ u32 gm20b_pbdma_get_fc_subdevice(void)
 
 u32 gm20b_pbdma_get_fc_target(const struct nvgpu_device *dev)
 {
+	(void)dev;
 	return pbdma_target_engine_sw_f();
 }
 

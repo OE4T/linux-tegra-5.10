@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -111,7 +111,7 @@ int gv11b_perf_update_get_put(struct gk20a *g, u64 bytes_consumed,
 	u32 val;
 
 	if (bytes_consumed != 0U) {
-		nvgpu_writel(g, perf_pmasys_mem_bump_r(), bytes_consumed);
+		nvgpu_writel(g, perf_pmasys_mem_bump_r(), (u32)bytes_consumed);
 	}
 
 	if (update_available_bytes) {

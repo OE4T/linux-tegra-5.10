@@ -1,7 +1,7 @@
 /*
  * GA10B LTC INTR
  *
- * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -249,6 +249,8 @@ static void ga10b_ltc_intr2_configure(struct gk20a *g)
 
 void ga10b_ltc_intr3_configure_extra(struct gk20a *g, u32 *reg)
 {
+	(void)g;
+
 	/*
 	 * DTM_KIND_INVALID - If the kind of a comp stat req read or packed
 	 * read is invalid or pitch, the inter3_dtm_kind_invalid interrupt will

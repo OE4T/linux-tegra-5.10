@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -50,6 +50,7 @@ static u32 gk20a_fifo_intr_0_error_mask(struct gk20a *g)
 		fifo_intr_0_lb_error_pending_f() |
 		fifo_intr_0_pio_error_pending_f();
 
+	(void)g;
 	return intr_0_error_mask;
 }
 

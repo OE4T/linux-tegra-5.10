@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -243,6 +243,8 @@ void intr_tu104_stall_unit_config(struct gk20a *g, u32 unit, bool enable)
 
 void intr_tu104_nonstall_unit_config(struct gk20a *g, u32 unit, bool enable)
 {
+	(void)unit;
+	(void)enable;
 	intr_tu104_nonstall_enable(g);
 }
 
@@ -386,6 +388,7 @@ u32 intr_tu104_stall(struct gk20a *g)
 /* Return true if HUB interrupt is pending */
 bool intr_tu104_is_intr_hub_pending(struct gk20a *g, u32 mc_intr_0)
 {
+	(void)mc_intr_0;
 	return g->ops.mc.is_mmu_fault_pending(g);
 }
 

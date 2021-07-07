@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -194,8 +194,8 @@ static void ga10b_intr_subtree_clear_unhandled(struct gk20a *g,
 				"intr_leaf0 0x%08x intr_leaf1 0x%08x",
 			subtree, handled_subtree_mask, intr_leaf0, intr_leaf1);
 		ga10b_intr_subtree_clear(g, subtree,
-			hi32_lo32_to_u64(unhandled_intr_leaf1,
-				unhandled_intr_leaf0));
+			hi32_lo32_to_u64((u32)unhandled_intr_leaf1,
+				(u32)unhandled_intr_leaf0));
 	}
 }
 
@@ -489,6 +489,8 @@ static u32 ga10b_intr_map_mc_stall_unit_to_intr_unit(struct gk20a *g,
 		u32 mc_intr_unit)
 {
 	u32 intr_unit = mc_intr_unit;
+
+	(void)g;
 
 	/**
 	 * Different indices are used to store unit info for

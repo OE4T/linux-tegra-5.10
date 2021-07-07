@@ -1,7 +1,7 @@
 /*
  * GA10B FUSE
  *
- * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,7 +40,7 @@
 int ga10b_fuse_read_gcplex_config_fuse(struct gk20a *g, u32 *val)
 {
 	u32 reg_val = 0U;
-	int fuse_val = 0;
+	u32 fuse_val = 0U;
 
 	/*
 	 * SOC FUSE_GCPLEX_CONFIG_FUSE_0 bit(2) mapped to
