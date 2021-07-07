@@ -390,105 +390,202 @@ int test_arithmetic(struct unit_module *m, struct gk20a *g, void *args)
 	return UNIT_SUCCESS;
 }
 
+/**
+ * unsigned to unsigned cast tests
+ *
+ * parameters:
+ *   type1: type to cast from (u32, u64)
+ *   type2: type to cast to (u8, u16, u32)
+ *   type1_max:  Maximum value of the type1.
+ *   type2_max : Maximum value of the type2.
+ *
+ * Boundary values: (0, type2 max, type1 max)
+ *
+ * Valid tests: Cast result within range for each valid boundary value and
+ *              random value.
+ * Invalid tests: Cast result out of range if possible for each invalid
+ *                boundary and random value.
+ */
+#define GENERATE_UNSIGNED_CAST_TESTS(type1, type2, type1_max, type2_max) { \
+	type1 temp; \
+	type1 valid_##type2[] = {0, 1, (temp = rand() % type2_max) > 1 ? temp : 2, type2_max - 1, type2_max}; \
+	type1 invalid_##type2[] = {(type1)type2_max + 1, (type1)type2_max + 2,\
+				   (type1)type2_max + ((temp = rand() % (type1_max - type2_max)) > 2 ? temp : 3),\
+				   type1_max - 1, type1_max}; \
+	for (i = 0; i < ARRAY_SIZE(valid_##type2); i++) { \
+		unit_assert(nvgpu_safe_cast_##type1##_to_##type2(valid_##type2[i]) == (type2)valid_##type2[i], return UNIT_FAIL); \
+	} \
+	for (i = 0; i < ARRAY_SIZE(invalid_##type2); i++) { \
+		err = EXPECT_BUG((void)nvgpu_safe_cast_##type1##_to_##type2(invalid_##type2[i])); \
+		unit_assert(err != 0, return UNIT_FAIL); \
+	} \
+}
+
+/**
+ * unsigned to signed cast tests
+ *
+ * parameters:
+ *   type1: type to cast from (u32, u64)
+ *   type2: type to cast to (s8, s32, s64)
+ *   type1_max:  Maximum value of the type1.
+ *   type2_min : Minimum value of the type2.
+ *   type2_max : Maximum value of the type2.
+ *
+ * Boundary values: (type2 min, 0, type2 max, type1 max)
+ *
+ * Valid tests: Cast result within range for each valid boundary value and
+ *              random value.
+ * Invalid tests: Cast result out of range if possible for each invalid
+ *                boundary and random value.
+ */
+#define GENERATE_SIGNED_CAST_TESTS(type1, type2, type1_max, type2_min, type2_max) { \
+	type2 temp; \
+	type1 valid_##type2[] = {0, 1, (temp = rand() % type2_max) > 1 ? temp : 2, type2_max - 1, type2_max}; \
+	type1 invalid_##type2[] = {(type1)type2_min, (type1)type2_min + 1, \
+				   (type1)type2_min + ((temp = rand() % type2_min) > 1 ? temp : 2), -1, \
+				   (type1)type2_max + 1, (type1)type2_max + 2, \
+				   (type1)type2_max + ((temp = rand() % (type1_max - type2_max)) > 2 ? temp : 3), \
+				   type1_max - 1, type1_max}; \
+	for (i = 0; i < ARRAY_SIZE(valid_##type2); i++) { \
+		unit_assert(nvgpu_safe_cast_##type1##_to_##type2(valid_##type2[i]) == (type2)valid_##type2[i], return UNIT_FAIL); \
+	} \
+	for (i = 0; i < ARRAY_SIZE(invalid_##type2); i++) { \
+		err = EXPECT_BUG((void)nvgpu_safe_cast_##type1##_to_##type2(invalid_##type2[i])); \
+		unit_assert(err != 0, return UNIT_FAIL); \
+	} \
+}
+
+/**
+ * signed to unsigned cast tests
+ *
+ * parameters:
+ *   type1: type to cast to (s8, s32, s64)
+ *   type2: type to cast from (u8, u32, u64)
+ *   type1_min : Minimum value of the type1.
+ *   type1_max : Maximum value of the type1.
+ *
+ * Boundary values: (type1 min, 0, type1 max)
+ *
+ * Assumption: the range of non-negative values from type1 are subset of those
+ *             from type2.
+ *
+ * Valid tests: Cast result within range for each valid boundary value and
+ *              random value.
+ * Invalid tests: Cast result out of range if possible for each invalid
+ *                boundary and random value.
+ */
+#define GENERATE_SIGNED_TO_UNSIGNED_CAST_TESTS(type1, type2, type1_min, type1_max) { \
+	type1 temp;\
+	type1 valid_##type2[] = {0, 1, (temp = rand() % type1_max) > 1 ? temp : 2, type1_max - 1, type1_max}; \
+	type1 invalid_##type2[] = {type1_min, type1_min + 1, type1_min + ((temp = rand() % type1_min) > 1 ? temp : 2), -1}; \
+	for (i = 0; i < ARRAY_SIZE(valid_##type2); i++) { \
+		unit_assert(nvgpu_safe_cast_##type1##_to_##type2(valid_##type2[i]) == (type2)valid_##type2[i], return UNIT_FAIL); \
+	} \
+	for (i = 0; i < ARRAY_SIZE(invalid_##type2); i++) { \
+		err = EXPECT_BUG((void)nvgpu_safe_cast_##type1##_to_##type2(invalid_##type2[i])); \
+		unit_assert(err != 0, return UNIT_FAIL); \
+	} \
+}
+
 int test_cast(struct unit_module *m, struct gk20a *g, void *args)
 {
+	s64 random_s64;
+	/**
+	 * s64 to u32 cast tests
+	 *
+	 * Boundary values: (LONG_MIN, 0, U32_MAX, LONG_MAX)
+	 *
+	 * Valid tests: Cast result within range for each valid boundary value and
+	 *              random value.
+	 * Invalid tests: Cast result out of range if possible for each invalid
+	 *                boundary and random value.
+	 */
+	s64 valid_s64_u32[] = {0, 1, (random_s64 = rand() % U32_MAX) > 1 ? random_s64 : 2, U32_MAX - 1, U32_MAX};
+	s64 invalid_s64_u32[] = {LONG_MIN, LONG_MIN + 1,
+				 LONG_MIN + ((random_s64 = rand() % LONG_MIN) > 1 ? random_s64 : 2), -1,
+				 (s64)U32_MAX + 1, (s64)U32_MAX + 2,
+				 (s64)U32_MAX + ((random_s64 = rand() % LONG_MAX) > 1 ? random_s64 : 3),
+				 LONG_MAX - 1, LONG_MAX};
+
+	/**
+	 * s64 to s32 cast tests
+	 *
+	 * Boundary values: (LONG_MIN, INT_MIN, 0, INT_MAX, LONG_MAX)
+	 *
+	 * Valid tests: Cast result within range for each valid boundary value and
+	 *              random value.
+	 * Invalid tests: Cast result out of range if possible for each invalid
+	 *                boundary and random value.
+	 */
+	s64 valid_s64_s32[] = {INT_MIN, INT_MIN + 1,
+			       INT_MIN + ((random_s64 = rand() % INT_MIN) > 1 ? random_s64 : 2), -1, 0,
+			       1, (random_s64 = rand() % INT_MAX) > 1 ? random_s64 : 2, INT_MAX - 1, INT_MAX};
+	s64 invalid_s64_s32[] = {LONG_MIN, LONG_MIN + 1,
+				 LONG_MIN + ((random_s64 = rand() % (INT_MIN - LONG_MIN)) > 1 ? random_s64 : 2),
+				 (s64)INT_MIN - 2, (s64)INT_MIN - 1, (s64)INT_MAX + 1, (s64)INT_MAX + 2,
+				 (s64)INT_MAX + ((random_s64 = rand() % (LONG_MAX - INT_MAX)) > 1 ? random_s64 : 3),
+				 LONG_MAX - 1, LONG_MAX};
 	int err;
+	u32 i;
 
 	/* U64 to U32 */
-	unit_assert(nvgpu_safe_cast_u64_to_u32(U32_MAX) == U32_MAX,
-							return UNIT_FAIL);
-	err = EXPECT_BUG((void)nvgpu_safe_cast_u64_to_u32(U64(U32_MAX)+1));
-	unit_assert(err != 0, return UNIT_FAIL);
+	GENERATE_UNSIGNED_CAST_TESTS(u64, u32, U64_MAX, U32_MAX);
 
 	/* U64 to U16 */
-	unit_assert(nvgpu_safe_cast_u64_to_u16(U16_MAX) == U16_MAX,
-							return UNIT_FAIL);
-	err = EXPECT_BUG((void)nvgpu_safe_cast_u64_to_u16(U64(U16_MAX)+1));
-	unit_assert(err != 0, return UNIT_FAIL);
+	GENERATE_UNSIGNED_CAST_TESTS(u64, u16, U64_MAX, U16_MAX);
 
 	/* U64 to U8 */
-	unit_assert(nvgpu_safe_cast_u64_to_u8(U8_MAX) == U8_MAX,
-							return UNIT_FAIL);
-	err = EXPECT_BUG((void)nvgpu_safe_cast_u64_to_u8(U64(U8_MAX)+1));
-	unit_assert(err != 0, return UNIT_FAIL);
-
-	/* U64 to S64 */
-	unit_assert(nvgpu_safe_cast_u64_to_s64(LONG_MAX) == LONG_MAX,
-							return UNIT_FAIL);
-	err = EXPECT_BUG((void)nvgpu_safe_cast_u64_to_s64(U64(LONG_MAX)+1));
-	unit_assert(err != 0, return UNIT_FAIL);
-
-	/* U64 to S32 */
-	unit_assert(nvgpu_safe_cast_u64_to_s32(INT_MAX) == INT_MAX,
-							return UNIT_FAIL);
-	err = EXPECT_BUG((void)nvgpu_safe_cast_u64_to_s32(U64(INT_MAX)+1));
-	unit_assert(err != 0, return UNIT_FAIL);
-
-	/* S64 to U64 */
-	unit_assert(nvgpu_safe_cast_s64_to_u64(LONG_MAX) == LONG_MAX,
-							return UNIT_FAIL);
-	err = EXPECT_BUG((void)nvgpu_safe_cast_s64_to_u64(-1));
-	unit_assert(err != 0, return UNIT_FAIL);
-
-	/* S64 to U32 */
-	unit_assert(nvgpu_safe_cast_s64_to_u32(U32_MAX) == U32_MAX,
-							return UNIT_FAIL);
-	err = EXPECT_BUG((void)nvgpu_safe_cast_s64_to_u32(-1));
-	unit_assert(err != 0, return UNIT_FAIL);
-	err = EXPECT_BUG((void)nvgpu_safe_cast_s64_to_u32(U64(U32_MAX)+1));
-	unit_assert(err != 0, return UNIT_FAIL);
-
-	/* S64 to S32 */
-	unit_assert(nvgpu_safe_cast_s64_to_s32(INT_MAX) == INT_MAX,
-							return UNIT_FAIL);
-	unit_assert(nvgpu_safe_cast_s64_to_s32(INT_MIN) == INT_MIN,
-							return UNIT_FAIL);
-	err = EXPECT_BUG((void)nvgpu_safe_cast_s64_to_s32(S64(INT_MIN)-1));
-	unit_assert(err != 0, return UNIT_FAIL);
-	err = EXPECT_BUG((void)nvgpu_safe_cast_s64_to_s32(S64(INT_MAX)+1));
-	unit_assert(err != 0, return UNIT_FAIL);
+	GENERATE_UNSIGNED_CAST_TESTS(u64, u8, U64_MAX, U8_MAX);
 
 	/* U32 to U16 */
-	unit_assert(nvgpu_safe_cast_u32_to_u16(U16_MAX) == U16_MAX,
-							return UNIT_FAIL);
-	err = EXPECT_BUG((void)nvgpu_safe_cast_u32_to_u16(U64(U16_MAX)+1));
-	unit_assert(err != 0, return UNIT_FAIL);
+	GENERATE_UNSIGNED_CAST_TESTS(u32, u16, U32_MAX, U16_MAX);
 
 	/* U32 to U8 */
-	unit_assert(nvgpu_safe_cast_u32_to_u8(U8_MAX) == U8_MAX,
-							return UNIT_FAIL);
-	err = EXPECT_BUG((void)nvgpu_safe_cast_u32_to_u8(U64(U8_MAX)+1));
-	unit_assert(err != 0, return UNIT_FAIL);
+	GENERATE_UNSIGNED_CAST_TESTS(u32, u8, U32_MAX, U8_MAX);
+
+	/* U64 to S64 */
+	GENERATE_SIGNED_CAST_TESTS(u64, s64, U64_MAX, LONG_MIN, LONG_MAX);
+
+	/* U64 to S32 */
+	GENERATE_SIGNED_CAST_TESTS(u64, s32, U64_MAX, INT_MIN, INT_MAX);
 
 	/* U32 to S32 */
-	unit_assert(nvgpu_safe_cast_u32_to_s32(INT_MAX) == INT_MAX,
-							return UNIT_FAIL);
-	err = EXPECT_BUG((void)nvgpu_safe_cast_u32_to_s32(U32(INT_MAX)+1));
-	unit_assert(err != 0, return UNIT_FAIL);
+	GENERATE_SIGNED_CAST_TESTS(u32, s32, U32_MAX, INT_MIN, INT_MAX);
 
 	/* U32 to S8 */
-	unit_assert(nvgpu_safe_cast_u32_to_s8(SCHAR_MAX) == SCHAR_MAX,
-							return UNIT_FAIL);
-	err = EXPECT_BUG((void)nvgpu_safe_cast_u32_to_s8(U32(SCHAR_MAX)+1));
-	unit_assert(err != 0, return UNIT_FAIL);
+	GENERATE_SIGNED_CAST_TESTS(u32, s8, U32_MAX, SCHAR_MIN, SCHAR_MAX);
+
+	/* S64 to U64 */
+	GENERATE_SIGNED_TO_UNSIGNED_CAST_TESTS(s64, u64, LONG_MIN, LONG_MAX);
 
 	/* S32 to U64 */
-	unit_assert(nvgpu_safe_cast_s32_to_u64(INT_MAX) == INT_MAX,
-							return UNIT_FAIL);
-	err = EXPECT_BUG((void)nvgpu_safe_cast_s32_to_u64(-1));
-	unit_assert(err != 0, return UNIT_FAIL);
+	GENERATE_SIGNED_TO_UNSIGNED_CAST_TESTS(s32, u64, INT_MIN, INT_MAX);
 
 	/* S32 to U32 */
-	unit_assert(nvgpu_safe_cast_s32_to_u32(INT_MAX) == INT_MAX,
-							return UNIT_FAIL);
-	err = EXPECT_BUG((void)nvgpu_safe_cast_s32_to_u32(-1));
-	unit_assert(err != 0, return UNIT_FAIL);
+	GENERATE_SIGNED_TO_UNSIGNED_CAST_TESTS(s32, u32, INT_MIN, INT_MAX);
 
 	/* S8 to U8 */
-	unit_assert(nvgpu_safe_cast_s8_to_u8(SCHAR_MAX) == SCHAR_MAX,
-							return UNIT_FAIL);
-	err = EXPECT_BUG((void)nvgpu_safe_cast_s8_to_u8(-1));
-	unit_assert(err != 0, return UNIT_FAIL);
+	GENERATE_SIGNED_TO_UNSIGNED_CAST_TESTS(s8, u8, SCHAR_MIN, SCHAR_MAX);
+
+	/* S64 to U32 */
+	for (i = 0; i < ARRAY_SIZE(valid_s64_u32); i++) {
+		unit_assert(nvgpu_safe_cast_s64_to_u32(valid_s64_u32[i]) == (u32)valid_s64_u32[i], return UNIT_FAIL);
+	}
+
+	for (i = 0; i < ARRAY_SIZE(invalid_s64_u32); i++) {
+		err = EXPECT_BUG((void)nvgpu_safe_cast_s64_to_u32(invalid_s64_u32[i]));
+		unit_assert(err != 0, return UNIT_FAIL);
+	}
+
+	/* S64 to S32 */
+	for (i = 0; i < ARRAY_SIZE(valid_s64_s32); i++) {
+		unit_assert(nvgpu_safe_cast_s64_to_s32(valid_s64_s32[i]) == (s32)valid_s64_s32[i], return UNIT_FAIL);
+	}
+
+	for (i = 0; i < ARRAY_SIZE(invalid_s64_s32); i++) {
+		err = EXPECT_BUG((void)nvgpu_safe_cast_s64_to_s32(invalid_s64_s32[i]));
+		unit_assert(err != 0, return UNIT_FAIL);
+	}
 
 	/* bool to U32 */
 	unit_assert(nvgpu_safe_cast_bool_to_u32(false) == 0, return UNIT_FAIL);

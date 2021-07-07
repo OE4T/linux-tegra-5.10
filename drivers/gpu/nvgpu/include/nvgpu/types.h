@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -135,6 +135,11 @@ NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 2, NVGPU_MISRA(Rule, 21_1), "Bug
  * Maximum value for signed char.
  */
 #define SCHAR_MAX (U8_MAX/2)
+
+/**
+ * Minimum value for signed char.
+ */
+#define SCHAR_MIN (-SCHAR_MAX - 1)
 #endif
 NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 21_1))
 

@@ -122,7 +122,7 @@ int test_arithmetic(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Verify functionality of static analysis safe cast APIs.
  *
- * Test Type: Feature, Error guessing
+ * Test Type: Feature, Error guessing, Boundary Value
  *
  * Targets: nvgpu_safe_cast_u64_to_u32, nvgpu_safe_cast_u64_to_u16,
  *          nvgpu_safe_cast_u64_to_u8, nvgpu_safe_cast_u64_to_s64,
@@ -135,10 +135,60 @@ int test_arithmetic(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Input: None
  *
+ * -# unsigned to unsigned cast tests:
+ *    Boundary values: {0, type2 max, type1 max}
+ *
+ *    Equivalence classes:
+ *    Variable: Cast input value.
+ *    - Valid tests: Cast result within range for each valid boundary value and
+ *                   random value [0, type2 max].
+ *    - Invalid tests: Cast result out of range if possible for each invalid
+ *                     boundary and random value [type2 max + 1, type1 max].
+ *
+ * -# unsigned to signed cast tests:
+ *    Boundary values: {type2 min, 0, type2 max, type1 max}
+ *
+ *    Equivalence classes:
+ *    Variable: Cast input value.
+ *    - Valid tests: Cast result within range for each valid boundary value and
+ *                   random value. [0, type2 max]
+ *    - Invalid tests: Cast result out of range if possible for each invalid
+ *                     boundary and random value. {[type2 min, -1], [type2 max + 1, type1 max]}
+ *
+ * -# signed to unsigned cast tests:
+ *    Boundary values: {type1 min, 0, type1 max}
+ *
+ *    Equivalence classes:
+ *    Variable: Cast input value.
+ *    - Valid tests: Cast result within range for each valid boundary value and
+ *                   random value. [0, type1 max]
+ *    - Invalid tests: Cast result out of range if possible for each invalid
+ *                     boundary and random value. [type1 min, -1]
+ *
+ * -# s64 to u32 cast tests:
+ *    Boundary values: {LONG_MIN, 0, U32_MAX, LONG_MAX}
+ *
+ *    Equivalence classes:
+ *    Variable: Cast input value.
+ *    - Valid tests: Cast result within range for each valid boundary value and
+ *                   random value. [0, U32_MAX]
+ *    - Invalid tests: Cast result out of range if possible for each invalid
+ *                     boundary and random value. {[LONG_MIN, -1], [U32_MAX + 1, LONG_MAX]}
+ *
+ * -# s64 to s32 cast tests:
+ *    Boundary values: {LONG_MIN, INT_MIN, 0, INT_MAX, LONG_MAX}
+ *
+ *    Equivalence classes:
+ *    Variable: Cast input value.
+ *    - Valid tests: Cast result within range for each valid boundary value and
+ *                   random value. [INT_MIN, INT_MAX]
+ *    - Invalid tests: Cast result out of range if possible for each invalid
+ *                     boundary and random value. {[LONG_MIN, INT_MIN - 1], [INT_MAX + 1, LONG_MAX]}
+ *
  * Steps:
- * - Call the static analysis arithmetic APIs. Pass in valid values and verify
+ * - Call the static analysis cast APIs. Pass in valid values and verify
  *   correct return.
- * - Call the static analysis arithmetic APIs. Pass in values beyond type range
+ * - Call the static analysis cast APIs. Pass in values beyond type range
  *   and use EXPECT_BUG() to verify BUG() is called.
  *
  * Output: Returns PASS if expected result is met, FAIL otherwise.
