@@ -109,6 +109,11 @@ int test_nvgpu_queue_alloc_and_free(struct unit_module *m, struct gk20a *g,
  *   return 0 to indicate successful enqueue operation.
  * - Enqueue message of length BUF_LEN again using nvgpu_queue_in() API. Check
  *   that the API returns error -ENOMEM.
+ * - Reset In and Out indexes and enqueue message of length BUF_LEN using
+ *   nvgpu_queue_in_locked() API with lock parameter passed as NULL. This test
+ *   is to increase the code coverage. Check that the API returns 0.
+ * - Enqueue message of length BUF_LEN again using nvgpu_queue_in_locked()
+ *   API with lock parameter as NULL. Check that the API returns error -ENOMEM.
  * - Free the allocated resources.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL
@@ -139,15 +144,26 @@ int test_nvgpu_queue_in(struct unit_module *m, struct gk20a *g, void *args);
  * - Dequeue message of length BUF_LEN from the empty queue calling
  *   nvgpu_queue_out_locked() API and check that the API returns -ENOMEM
  *   error.
+ * - Dequeue message of length BUF_LEN from the empty queue calling
+ *   nvgpu_queue_out_locked() API with lock parameter passed as NULL and check
+ *   that the API returns -ENOMEM error. This is for code coverage.
  * - Set In index as BUF_LEN and dequeue message of length BUF_LEN by
  *   calling nvgpu_queue_out() API and check that the API returns 0.
  * - Set In index as BUF_LEN and dequeue message of length BUF_LEN by
  *   calling nvgpu_queue_out_locked() API and check that the API returns 0.
+ * - Set In index as BUF_LEN and dequeue message of length BUF_LEN by
+ *   calling nvgpu_queue_out_locked() API with lock parameter passed as NULL
+ *   and check that the API returns 0. This is for code coverage.
  * - Set In index as 0 and Out index as (UINT32_MAX - BUF_LEN). This
  *   indicates a condition were In index has wrapped around due to an enqueue
  *   operation. Use nvgpu_queue_out API to dequeue message of length BUF_LEN.
  *   The dequeue operation should successfully return 0.
  * - Repeat the above step to test API nvgpu_queue_out_locked.
+ * - Set In index as (BUF_LEN/2 - 1) and Out index as (UINT32_MAX - BUF_LEN/2).
+ *   This indicates a condition were In index has wrapped around due to an
+ *   enqueue operation. Use nvgpu_queue_out_locked API to dequeue message of
+ *   length BUF_LEN. This will cover the wrap around condition for Out index.
+ *   The dequeue operation should successfully return 0.
  * - Do fault injection so that immediate call to nvgpu_queue_out_locked() API
  *   would return error.
  * - Invoke nvgpu_queue_out_locked() API and check that API returns -1 error.

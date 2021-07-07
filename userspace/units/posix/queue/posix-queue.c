@@ -190,6 +190,24 @@ int test_nvgpu_queue_in(struct unit_module *m, struct gk20a *g, void *args)
 		goto fail;
 	}
 #endif
+	/*
+	 * This is for code coverage.
+	 */
+	q.in = 0;
+	q.out = 0;
+	ret = nvgpu_queue_in_locked(&q, buf, BUF_LEN, NULL);
+	if (ret != 0) {
+		err = UNIT_FAIL;
+		unit_err(m, "%d. queue_in failed err=%d\n", __LINE__,  ret);
+		goto fail;
+	}
+
+	ret = nvgpu_queue_in_locked(&q, buf, BUF_LEN, NULL);
+	if (ret != -ENOMEM) {
+		err = UNIT_FAIL;
+		unit_err(m, "%d. queue_in failed err=%d\n", __LINE__,  ret);
+		goto fail;
+	}
 
 fail:
 	if (q.data != NULL)
@@ -236,6 +254,14 @@ int test_nvgpu_queue_out(struct unit_module *m, struct gk20a *g, void *args)
 		goto fail;
 	}
 
+	/* For code coverage. */
+	ret = nvgpu_queue_out_locked(&q, buf, BUF_LEN, NULL);
+	if (ret != -ENOMEM) {
+		err = UNIT_FAIL;
+		unit_err(m, "%d. queue_out failed err=%d\n", __LINE__,  ret);
+		goto fail;
+	}
+
 #ifdef CONFIG_NVGPU_NON_FUSA
 	/*
 	 * Advance "in" index by "BUF_LEN" and dequeue message of length BUF_LEN
@@ -262,6 +288,16 @@ int test_nvgpu_queue_out(struct unit_module *m, struct gk20a *g, void *args)
 		goto fail;
 	}
 
+	/* For code coverage. */
+	q.in = BUF_LEN;
+	q.out = 0;
+	ret = nvgpu_queue_out_locked(&q, buf, BUF_LEN, NULL);
+	if (ret != 0) {
+		err = UNIT_FAIL;
+		unit_err(m, "%d. queue_out failed err=%d\n", __LINE__,  ret);
+		goto fail;
+	}
+
 #ifdef CONFIG_NVGPU_NON_FUSA
 	/*
 	 * Update "in" and "out" indexes and dequeue message of length BUF_LEN
@@ -282,10 +318,18 @@ int test_nvgpu_queue_out(struct unit_module *m, struct gk20a *g, void *args)
 	ret = nvgpu_queue_out_locked(&q, buf, BUF_LEN, &lock);
 	if (ret != 0) {
 		err = UNIT_FAIL;
-		unit_err(m, "%d. queue in failed err=%d\n", __LINE__,  ret);
+		unit_err(m, "%d. queue out failed err=%d\n", __LINE__,  ret);
 		goto fail;
 	}
 
+	q.in = (BUF_LEN/2 - 1);
+	q.out = UINT32_MAX - (BUF_LEN/2);
+	ret = nvgpu_queue_out_locked(&q, buf, BUF_LEN, &lock);
+	if (ret != 0) {
+		err = UNIT_FAIL;
+		unit_err(m, "%d. queue out failed err=%d\n", __LINE__,  ret);
+		goto fail;
+	}
 	/*
 	 * Fault injection so that immediate call to nvgpu_queue_out_locked()
 	 * API would return error.
