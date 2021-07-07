@@ -466,10 +466,8 @@ void gk20a_debug_init(struct gk20a *g, const char *debugfs_symlink)
 	debugfs_create_u32("log_trace", S_IRUGO|S_IWUSR,
 		l->debugfs, &g->log_trace);
 
-	l->debugfs_ltc_enabled =
-			debugfs_create_bool("ltc_enabled", S_IRUGO|S_IWUSR,
-				 l->debugfs,
-				 &g->mm.ltc_enabled_target);
+	debugfs_create_bool("ltc_enabled", S_IRUGO|S_IWUSR, l->debugfs,
+			    &g->mm.ltc_enabled_target);
 
 	debugfs_create_u32("poll_timeout_default_ms", S_IRUGO|S_IWUSR,
 				l->debugfs, &g->poll_timeout_default);
@@ -504,11 +502,8 @@ void gk20a_debug_init(struct gk20a *g, const char *debugfs_symlink)
                                         l->debugfs, g,
                                         &dbg_tsg_timeslice_max_fops);
 
-	l->debugfs_runlist_interleave =
-			debugfs_create_bool("runlist_interleave",
-					S_IRUGO|S_IWUSR,
-					l->debugfs,
-					&g->runlist_interleave);
+	debugfs_create_bool("runlist_interleave", S_IRUGO|S_IWUSR, l->debugfs,
+			    &g->runlist_interleave);
 
 	gr_gk20a_debugfs_init(g);
 	gk20a_pmu_debugfs_init(g);
