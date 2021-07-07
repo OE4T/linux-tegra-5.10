@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * GK20A Graphics
  *
@@ -877,6 +877,7 @@ static inline bool nvgpu_is_timeouts_enabled(struct gk20a *g)
 #ifdef CONFIG_NVGPU_DEBUGGER
 	return nvgpu_atomic_read(&g->timeouts_disabled_refcount) == 0;
 #else
+	(void)g;
 	return true;
 #endif
 }

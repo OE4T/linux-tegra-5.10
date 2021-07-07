@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -105,21 +105,27 @@ void nvgpu_nvs_domain_put(struct gk20a *g, struct nvgpu_nvs_domain *dom);
 #else
 static inline int nvgpu_nvs_init(struct gk20a *g)
 {
+	(void)g;
 	return 0;
 }
 
 static inline void nvgpu_nvs_remove_support(struct gk20a *g)
 {
+	(void)g;
 }
 
 static inline struct nvgpu_nvs_domain *
 nvgpu_nvs_domain_by_name(struct gk20a *g, const char *name)
 {
+	(void)g;
+	(void)name;
 	return NULL;
 }
 
 static inline void nvgpu_nvs_domain_put(struct gk20a *g, struct nvgpu_nvs_domain *dom)
 {
+	(void)g;
+	(void)dom;
 }
 #endif
 

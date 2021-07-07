@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,11 +23,12 @@
 #ifndef NVGPU_POSIX_ATOMIC_H
 #define NVGPU_POSIX_ATOMIC_H
 
-#include <stdatomic.h>
 #include <nvgpu/types.h>
 #include <nvgpu/static_analysis.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/cov_whitelist.h>
+
+#include <stdatomic.h>
 
 /*
  * Note: this code uses the GCC builtins to implement atomics.
@@ -117,8 +118,8 @@ typedef struct nvgpu_posix_atomic64 {
 		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 10_3))	\
 		tmp = __builtin_choose_expr(				\
 				IS_SIGNED_LONG_TYPE(i),			\
-				(nvgpu_safe_add_s64((tmp), (i))),	\
-				(nvgpu_safe_add_s32((tmp), (i))));	\
+				(nvgpu_safe_add_s64((s64)(tmp), (s64)(i))),	\
+				(nvgpu_safe_add_s32((s32)(tmp), (s32)(i))));	\
 		tmp;							\
 	})
 
@@ -149,8 +150,8 @@ typedef struct nvgpu_posix_atomic64 {
 		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 10_3))	\
 		tmp = __builtin_choose_expr(				\
 				IS_SIGNED_LONG_TYPE(i),			\
-				(nvgpu_safe_sub_s64((tmp), (i))),	\
-				(nvgpu_safe_sub_s32((tmp), (i))));	\
+				(nvgpu_safe_sub_s64((s64)(tmp), (s64)(i))),	\
+				(nvgpu_safe_sub_s32((s32)(tmp), (s32)(i))));	\
 		tmp;							\
 	})
 

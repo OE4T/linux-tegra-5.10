@@ -791,8 +791,15 @@ void nvgpu_init_alloc_debug(struct gk20a *g, struct nvgpu_allocator *a);
 void nvgpu_fini_alloc_debug(struct nvgpu_allocator *a);
 #else
 static inline void nvgpu_init_alloc_debug(struct gk20a *g,
-					  struct nvgpu_allocator *a) {}
-static inline void nvgpu_fini_alloc_debug(struct nvgpu_allocator *a) {}
+					  struct nvgpu_allocator *a)
+{
+	(void)g;
+	(void)a;
+}
+static inline void nvgpu_fini_alloc_debug(struct nvgpu_allocator *a)
+{
+	(void)a;
+}
 #endif /* CONFIG_DEBUG_FS */
 
 /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -56,7 +56,7 @@
  */
 #define roundup_pow_of_two(x)						\
 			({						\
-				unsigned long ret;			\
+				unsigned long ret = 0U;			\
 									\
 				if ((x) == 0UL) {			\
 					BUG();				\
