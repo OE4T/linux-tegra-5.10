@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -84,6 +84,9 @@ void nvgpu_pmu_fw_state_change(struct gk20a *g, struct nvgpu_pmu *pmu,
 u32 nvgpu_pmu_get_fw_state(struct gk20a *g, struct nvgpu_pmu *pmu)
 {
 	u32 state = pmu->fw->state;
+
+	(void)g;
+
 	nvgpu_smp_rmb();
 
 	return state;
@@ -92,6 +95,7 @@ u32 nvgpu_pmu_get_fw_state(struct gk20a *g, struct nvgpu_pmu *pmu)
 void nvgpu_pmu_set_fw_ready(struct gk20a *g, struct nvgpu_pmu *pmu,
 	bool status)
 {
+	(void)g;
 	nvgpu_smp_wmb();
 	pmu->fw->ready = status;
 }
@@ -99,6 +103,9 @@ void nvgpu_pmu_set_fw_ready(struct gk20a *g, struct nvgpu_pmu *pmu,
 bool nvgpu_pmu_get_fw_ready(struct gk20a *g, struct nvgpu_pmu *pmu)
 {
 	bool state = pmu->fw->ready;
+
+	(void)g;
+
 	nvgpu_smp_rmb();
 
 	return state;
@@ -194,18 +201,21 @@ static void pmu_fw_release(struct gk20a *g, struct pmu_rtos_fw *rtos_fw)
 struct nvgpu_firmware *nvgpu_pmu_fw_sig_desc(struct gk20a *g,
 	struct nvgpu_pmu *pmu)
 {
+	(void)g;
 	return pmu->fw->fw_sig;
 }
 
 struct nvgpu_firmware *nvgpu_pmu_fw_desc_desc(struct gk20a *g,
 	struct nvgpu_pmu *pmu)
 {
+	(void)g;
 	return pmu->fw->fw_desc;
 }
 
 struct nvgpu_firmware *nvgpu_pmu_fw_image_desc(struct gk20a *g,
 	struct nvgpu_pmu *pmu)
 {
+	(void)g;
 	return pmu->fw->fw_image;
 }
 
@@ -339,6 +349,8 @@ exit:
 void nvgpu_pmu_fw_deinit(struct gk20a *g, struct nvgpu_pmu *pmu,
 	struct pmu_rtos_fw *rtos_fw)
 {
+	(void)pmu;
+
 	nvgpu_log_fn(g, " ");
 
 	if (rtos_fw == NULL) {

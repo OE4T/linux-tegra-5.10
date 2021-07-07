@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -679,6 +679,8 @@ static int pmu_pg_init_powergating(struct gk20a *g, struct nvgpu_pmu *pmu,
 	u32 pg_engine_id_list = 0;
 	int err = 0;
 
+	(void)pg;
+
 	nvgpu_log_fn(g, " ");
 
 	if (pmu->pg->supported_engines_list != NULL) {
@@ -747,6 +749,8 @@ static int pmu_pg_init_bind_fecs(struct gk20a *g, struct nvgpu_pmu *pmu,
 	int err = 0;
 	nvgpu_log_fn(g, " ");
 
+	(void)pg;
+
 	nvgpu_pmu_dbg(g,
 		"cmd post PMU_PG_CMD_ID_ENG_BUF_LOAD PMU_PGENG_GR_BUFFER_IDX_FECS");
 	nvgpu_pmu_fw_state_change(g, pmu, PMU_FW_STATE_LOADING_PG_BUF, false);
@@ -766,6 +770,8 @@ static int pmu_pg_setup_hw_load_zbc(struct gk20a *g, struct nvgpu_pmu *pmu,
 	struct nvgpu_pmu_pg *pg)
 {
 	int err = 0;
+
+	(void)pg;
 
 	nvgpu_pmu_dbg(g,
 		"cmd post PMU_PG_CMD_ID_ENG_BUF_LOAD PMU_PGENG_GR_BUFFER_IDX_ZBC");
@@ -935,6 +941,8 @@ static int pmu_pg_init_seq_buf(struct gk20a *g, struct nvgpu_pmu *pmu,
 	int err;
 	u8 *ptr;
 
+	(void)pmu;
+
 	err = nvgpu_dma_alloc_map_sys(vm, PMU_PG_SEQ_BUF_SIZE,
 				&pg->seq_buf);
 	if (err != 0) {
@@ -1038,6 +1046,8 @@ int nvgpu_pmu_pg_init(struct gk20a *g, struct nvgpu_pmu *pmu,
 	int err = 0;
 	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
 
+	(void)pmu;
+
 	if (!g->support_ls_pmu || !g->can_elpg) {
 		return 0;
 	}
@@ -1105,6 +1115,8 @@ void nvgpu_pmu_pg_deinit(struct gk20a *g, struct nvgpu_pmu *pmu,
 {
 	struct mm_gk20a *mm = &g->mm;
 	struct vm_gk20a *vm = mm->pmu.vm;
+
+	(void)pmu;
 
 	if (!is_pg_supported(g, pg)) {
 		return;

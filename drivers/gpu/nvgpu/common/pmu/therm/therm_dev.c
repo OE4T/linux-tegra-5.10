@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -199,7 +199,7 @@ static int devinit_get_therm_device_table(struct gk20a *g,
 		}
 
 		status = boardobjgrp_objinsert(&pthermdeviceobjs->super.super,
-				obj_tmp, obj_index);
+				obj_tmp, (u8)obj_index);
 
 		if (status != 0) {
 			nvgpu_err(g,

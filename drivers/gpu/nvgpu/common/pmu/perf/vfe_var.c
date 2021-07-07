@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -84,6 +84,8 @@ static int vfe_vars_pmustatus_instget(struct gk20a *g, void *pboardobjgrppmu,
 		(struct nv_pmu_perf_vfe_var_boardobj_grp_get_status *)
 		pboardobjgrppmu;
 
+	(void)g;
+
 	if (((u32)BIT(idx) &
 		pgrp_get_status->hdr.data.super.obj_mask.super.data[0]) == 0U) {
 		return -EINVAL;
@@ -129,7 +131,7 @@ static int vfe_var_get_s_param_value(struct gk20a *g,
 static int vfe_var_dependency_mask_build(struct gk20a *g,
 		struct vfe_vars *pvfe_vars)
 {
-	int status;
+	int status = 0;
 	u8 index_1 = 0, index_2 = 0;
 	struct vfe_var *tmp_vfe_var_1 = NULL, *tmp_vfe_var_2 = NULL;
 	struct pmu_board_obj *obj_tmp_1 = NULL, *obj_tmp_2 = NULL;
@@ -331,6 +333,9 @@ static int vfe_var_build_depending_mask_null(struct gk20a *g,
 		struct boardobjgrp *pboardobjgrp,
 		struct vfe_var *pvfe_var)
 {
+	(void)g;
+	(void)pboardobjgrp;
+	(void)pvfe_var;
 	/* Individual vfe_var members should over_ride this with their */
 	/* respective function types */
 	return -EINVAL;
@@ -640,6 +645,8 @@ static int vfe_var_build_depending_mask_single(struct gk20a *g,
 		struct boardobjgrp *pboardobjgrp,
 		struct vfe_var *pvfe_var)
 {
+	(void)g;
+	(void)pboardobjgrp;
 	return nvgpu_boardobjgrpmask_bit_set(
 			&pvfe_var->mask_depending_vars.super,
 			pvfe_var->super.idx);
@@ -1266,7 +1273,7 @@ static int devinit_get_vfe_var_table(struct gk20a *g,
 		}
 
 		status = boardobjgrp_objinsert(&pvfevarobjs->super.super,
-					       (struct pmu_board_obj *)pvar, index);
+					       (struct pmu_board_obj *)pvar, (u8)index);
 		if (status != 0) {
 			nvgpu_err(g, "error adding vfe_var boardobj %d", index);
 			status = -EINVAL;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,7 @@
 #include <nvgpu/pmu.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/bug.h>
+#include <nvgpu/string.h>
 #include <nvgpu/pmu/cmd.h>
 #include <nvgpu/pmu/pmu_pg.h>
 
@@ -33,6 +34,8 @@
 static void pmu_handle_pg_sub_feature_msg(struct gk20a *g, struct pmu_msg *msg,
 			void *param, u32 status)
 {
+	(void)param;
+
 	nvgpu_log_fn(g, " ");
 
 	if (status != 0U) {
@@ -47,6 +50,8 @@ static void pmu_handle_pg_sub_feature_msg(struct gk20a *g, struct pmu_msg *msg,
 static void pmu_handle_pg_param_msg(struct gk20a *g, struct pmu_msg *msg,
 			void *param, u32 status)
 {
+	(void)param;
+
 	nvgpu_log_fn(g, " ");
 
 	if (status != 0U) {
@@ -132,6 +137,8 @@ int gv11b_pg_set_subfeature_mask(struct gk20a *g, u32 pg_engine_id)
 void nvgpu_gv11b_pg_sw_init(struct gk20a *g,
 		struct nvgpu_pmu_pg *pg)
 {
+	(void)g;
+
 	pg->elpg_statistics = gp106_pmu_elpg_statistics;
 	pg->init_param = gv11b_pg_gr_init;
 	pg->supported_engines_list = gm20b_pmu_pg_engines_list;
