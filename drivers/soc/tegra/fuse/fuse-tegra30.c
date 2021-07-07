@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2013-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2021, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/device.h>
@@ -427,6 +427,16 @@ static const struct nvmem_cell_lookup tegra234_fuse_lookups[] = {
 		.cell_name = "xusb-pad-calibration-ext",
 		.dev_id = "3520000.padctl",
 		.con_id = "calibration-ext",
+	}, {
+		.nvmem_name = "fuse",
+		.cell_name = "opt-dla-disable",
+		.dev_id = "15880000.nvdla0",
+		.con_id = "dla-disable",
+	}, {
+		.nvmem_name = "fuse",
+		.cell_name = "opt-dla-disable",
+		.dev_id = "158c0000.nvdla1",
+		.con_id = "dla-disable",
 	},
 };
 
