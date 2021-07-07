@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -91,6 +91,7 @@ static struct nvgpu_posix_io_callbacks default_posix_reg_callbacks = {
  */
 void nvgpu_kernel_restart(void *cmd)
 {
+	(void)cmd;
 	BUG();
 }
 
@@ -101,11 +102,13 @@ void nvgpu_start_gpu_idle(struct gk20a *g)
 
 int nvgpu_enable_irqs(struct gk20a *g)
 {
+	(void)g;
 	return 0;
 }
 
 void nvgpu_disable_irqs(struct gk20a *g)
 {
+	(void)g;
 }
 
 /*
@@ -113,10 +116,12 @@ void nvgpu_disable_irqs(struct gk20a *g)
  */
 void gk20a_busy_noresume(struct gk20a *g)
 {
+	(void)g;
 }
 
 void gk20a_idle_nosuspend(struct gk20a *g)
 {
+	(void)g;
 }
 
 int gk20a_busy(struct gk20a *g)
@@ -151,7 +156,7 @@ static void nvgpu_posix_load_regs(struct gk20a *g)
 			continue;
 		}
 
-		err = nvgpu_posix_io_add_reg_space(g, space.base, space.size);
+		err = nvgpu_posix_io_add_reg_space(g, space.base, (u32)space.size);
 		nvgpu_assert(err == 0);
 
 		regs = nvgpu_posix_io_get_reg_space(g, space.base);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -118,12 +118,16 @@ void *nvgpu_kmem_cache_alloc(struct nvgpu_kmem_cache *cache)
 
 void nvgpu_kmem_cache_free(struct nvgpu_kmem_cache *cache, void *ptr)
 {
+	(void)cache;
 	free(ptr);
 }
 
 void *nvgpu_kmalloc_impl(struct gk20a *g, size_t size, void *ip)
 {
 	void *ptr;
+
+	(void)g;
+	(void)ip;
 
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 	if (nvgpu_posix_fault_injection_handle_call(
@@ -153,6 +157,9 @@ void *nvgpu_kzalloc_impl(struct gk20a *g, size_t size, void *ip)
 	void *ptr;
 	const size_t num = 1;
 
+	(void)g;
+	(void)ip;
+
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 	if (nvgpu_posix_fault_injection_handle_call(
 					nvgpu_kmem_get_fault_injection())) {
@@ -173,6 +180,9 @@ void *nvgpu_kcalloc_impl(struct gk20a *g, size_t n, size_t size, void *ip)
 {
 	void *ptr;
 	const size_t num = 1;
+
+	(void)g;
+	(void)ip;
 
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 	if (nvgpu_posix_fault_injection_handle_call(
@@ -202,6 +212,7 @@ void *nvgpu_vzalloc_impl(struct gk20a *g, unsigned long size, void *ip)
 
 void nvgpu_kfree_impl(struct gk20a *g, void *addr)
 {
+	(void)g;
 	free(addr);
 }
 
@@ -226,6 +237,7 @@ void nvgpu_big_free(struct gk20a *g, void *p)
 
 int nvgpu_kmem_init(struct gk20a *g)
 {
+	(void)g;
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 	if (nvgpu_posix_fault_injection_handle_call(
 					nvgpu_kmem_get_fault_injection())) {
@@ -238,4 +250,6 @@ int nvgpu_kmem_init(struct gk20a *g)
 
 void nvgpu_kmem_fini(struct gk20a *g, int flags)
 {
+	(void)g;
+	(void)flags;
 }

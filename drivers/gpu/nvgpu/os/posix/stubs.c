@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -52,5 +52,9 @@ void nvgpu_ecc_sysfs_remove(struct gk20a *g)
 int nvgpu_cic_mon_report_err_safety_services(struct gk20a *g,
 		void *err_info, size_t err_size, bool is_critical)
 {
+	(void)g;
+	(void)err_info;
+	(void)err_size;
+	(void)is_critical;
 	return 0;
 }
