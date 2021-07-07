@@ -1,7 +1,7 @@
 /*
  * GR MANAGER
  *
- * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -93,7 +93,7 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 		for (gpc_id = 0U; gpc_id < gr_syspipe->num_gpc; gpc_id++) {
 			gr_syspipe->gpcs[gpc_id].logical_id = gpc_id;
 			nvgpu_assert(local_gpc_mask != 0U);
-			ffs_bit = nvgpu_ffs(local_gpc_mask) - 1U;
+			ffs_bit = (u32)(nvgpu_ffs(local_gpc_mask) - 1U);
 			local_gpc_mask &= ~(1U << ffs_bit);
 			gr_syspipe->gpcs[gpc_id].physical_id = ffs_bit;
 			gr_syspipe->gpcs[gpc_id].gpcgrp_id = 0U;
@@ -391,6 +391,10 @@ int nvgpu_grmgr_config_gr_remap_window(struct gk20a *g,
 			g->mig.cur_tid, g->mig.current_gr_syspipe_id,
 			gr_syspipe_id, enable, g->mig.recursive_ref_count);
 	}
+#else
+	(void)g;
+	(void)gr_syspipe_id;
+	(void)enable;
 #endif
 	return err;
 }

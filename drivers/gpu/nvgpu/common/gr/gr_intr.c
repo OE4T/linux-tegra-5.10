@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,6 +31,7 @@
 #if defined(CONFIG_NVGPU_CYCLESTATS)
 #include <nvgpu/cyclestats.h>
 #endif
+#include <nvgpu/string.h>
 
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_intr.h>
@@ -437,6 +438,8 @@ int nvgpu_gr_intr_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 	bool disable_sm_exceptions = true;
 #endif
 
+	(void)post_event;
+
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, " ");
 
 	global_esr = g->ops.gr.intr.get_sm_hww_global_esr(g, gpc, tpc, sm);
@@ -524,6 +527,8 @@ int nvgpu_gr_intr_handle_fecs_error(struct gk20a *g, struct nvgpu_channel *ch,
 		isr_data->ch->chid : NVGPU_INVALID_CHANNEL_ID;
 	u32 mailbox_id = NVGPU_GR_FALCON_FECS_CTXSW_MAILBOX6;
 	struct nvgpu_fecs_host_intr_status *fecs_host_intr;
+
+	(void)ch;
 
 	gr_fecs_intr = isr_data->fecs_intr;
 	if (gr_fecs_intr == 0U) {

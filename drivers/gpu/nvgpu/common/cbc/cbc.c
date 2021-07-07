@@ -1,7 +1,7 @@
 /*
  * CBC
  *
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,7 @@
 #include <nvgpu/cbc.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/log.h>
+#include <nvgpu/string.h>
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/comptags.h>
 
@@ -93,6 +94,8 @@ int nvgpu_cbc_alloc(struct gk20a *g, size_t compbit_backing_size,
 			bool vidmem_alloc)
 {
 	struct nvgpu_cbc *cbc = g->cbc;
+
+	(void)vidmem_alloc;
 
 	if (nvgpu_mem_is_valid(&cbc->compbit_store.mem) != 0) {
 		return 0;

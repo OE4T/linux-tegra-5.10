@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -63,7 +63,7 @@ int nvgpu_profiler_alloc(struct gk20a *g,
 		return -ENOMEM;
 	}
 
-	prof->prof_handle = generate_unique_id();
+	prof->prof_handle = (u32)generate_unique_id();
 	prof->scope = scope;
 	prof->gpu_instance_id = gpu_instance_id;
 	prof->g = g;
@@ -138,7 +138,8 @@ int nvgpu_profiler_unbind_context(struct nvgpu_profiler_object *prof)
 		if (prof->reserved[i]) {
 			nvgpu_warn(g, "Releasing reserved resource %u for handle %u",
 				i, prof->prof_handle);
-			nvgpu_profiler_pm_resource_release(prof, i);
+			nvgpu_profiler_pm_resource_release(prof,
+				(enum nvgpu_profiler_pm_resource_type)i);
 		}
 	}
 

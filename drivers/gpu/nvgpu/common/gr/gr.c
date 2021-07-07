@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -119,7 +119,7 @@ static int gr_alloc_global_ctx_buffers(struct gk20a *g, struct nvgpu_gr *gr)
 		NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP, size);
 
 #ifdef CONFIG_NVGPU_FECS_TRACE
-	size = nvgpu_gr_fecs_trace_buffer_size(g);
+	size = (u32)nvgpu_gr_fecs_trace_buffer_size(g);
 	nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "fecs_trace_buffer_size : %d", size);
 
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,

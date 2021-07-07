@@ -67,6 +67,8 @@ static u64 nvgpu_bitmap_balloc_fixed(struct nvgpu_allocator *na,
 	struct nvgpu_bitmap_allocator *a = bitmap_allocator(na);
 	u64 blks, offs, ret;
 
+	(void)page_size;
+
 	/* Compute the bit offset and make sure it's aligned to a block.  */
 	offs = base >> a->blk_shift;
 	if (nvgpu_safe_mult_u64(offs, a->blk_size) != base) {

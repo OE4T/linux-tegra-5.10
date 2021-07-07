@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -919,6 +919,8 @@ static u32 nvgpu_runlist_get_pbdma_mask(struct gk20a *g,
 	u32 i;
 	u32 pbdma_id;
 
+	(void)g;
+
 	nvgpu_assert(runlist != NULL);
 
 	for ( i = 0U; i < PBDMA_PER_RUNLIST_SIZE; i++) {
@@ -1019,12 +1021,12 @@ static struct nvgpu_runlist_domain *nvgpu_runlist_domain_alloc(struct gk20a *g,
 
 	(void)strncpy(domain->name, name, sizeof(domain->name) - 1U);
 
-	domain->mem = init_rl_mem(g, runlist_size);
+	domain->mem = init_rl_mem(g, (u32)runlist_size);
 	if (domain->mem == NULL) {
 		goto free_domain;
 	}
 
-	domain->mem_hw = init_rl_mem(g, runlist_size);
+	domain->mem_hw = init_rl_mem(g, (u32)runlist_size);
 	if (domain->mem_hw == NULL) {
 		goto free_mem;
 	}

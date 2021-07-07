@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -332,12 +332,16 @@ static u64 nvgpu_mem_phys_sgl_phys(struct gk20a *g, void *sgl)
 {
 	struct nvgpu_mem_sgl *sgl_impl = (struct nvgpu_mem_sgl *)sgl;
 
+	(void)g;
 	return sgl_impl->phys;
 }
 
 static u64 nvgpu_mem_phys_sgl_ipa_to_pa(struct gk20a *g,
 		void *sgl, u64 ipa, u64 *pa_len)
 {
+	(void)g;
+	(void)sgl;
+	(void)pa_len;
 	return ipa;
 }
 
@@ -353,11 +357,15 @@ static u64 nvgpu_mem_phys_sgl_gpu_addr(struct gk20a *g, void *sgl,
 {
 	struct nvgpu_mem_sgl *sgl_impl = (struct nvgpu_mem_sgl *)sgl;
 
+	(void)g;
+	(void)attrs;
 	return sgl_impl->phys;
 }
 
 static void nvgpu_mem_phys_sgt_free(struct gk20a *g, struct nvgpu_sgt *sgt)
 {
+	(void)g;
+	(void)sgt;
 	/*
 	 * No-op here. The free is handled by freeing the nvgpu_mem itself.
 	 */

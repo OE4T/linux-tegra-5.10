@@ -28,6 +28,7 @@
 #include <nvgpu/mm.h>
 #include <nvgpu/vm.h>
 #include <nvgpu/static_analysis.h>
+#include <nvgpu/string.h>
 
 #include "buddy_allocator_priv.h"
 

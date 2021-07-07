@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -135,7 +135,7 @@ int nvgpu_gr_fecs_trace_init(struct gk20a *g)
 {
 	struct nvgpu_gr_fecs_trace *trace;
 
-	if (!is_power_of_2(GK20A_FECS_TRACE_NUM_RECORDS)) {
+	if (!is_power_of_2((u32)GK20A_FECS_TRACE_NUM_RECORDS)) {
 		nvgpu_err(g, "invalid NUM_RECORDS chosen");
 		nvgpu_set_enabled(g, NVGPU_SUPPORT_FECS_CTXSW_TRACE, false);
 		return -EINVAL;
@@ -189,8 +189,8 @@ int nvgpu_gr_fecs_trace_deinit(struct gk20a *g)
 
 int nvgpu_gr_fecs_trace_num_ts(struct gk20a *g)
 {
-	return (g->ops.gr.ctxsw_prog.hw_get_ts_record_size_in_bytes()
-		- sizeof(struct nvgpu_fecs_trace_record)) / sizeof(u64);
+	return (int)((g->ops.gr.ctxsw_prog.hw_get_ts_record_size_in_bytes()
+		- sizeof(struct nvgpu_fecs_trace_record)) / sizeof(u64));
 }
 
 struct nvgpu_fecs_trace_record *nvgpu_gr_fecs_trace_get_record(
@@ -207,7 +207,7 @@ struct nvgpu_fecs_trace_record *nvgpu_gr_fecs_trace_get_record(
 
 	return (struct nvgpu_fecs_trace_record *)
 		((u8 *) mem->cpu_va +
-		(idx * g->ops.gr.ctxsw_prog.hw_get_ts_record_size_in_bytes()));
+		((u32)idx * g->ops.gr.ctxsw_prog.hw_get_ts_record_size_in_bytes()));
 }
 
 bool nvgpu_gr_fecs_trace_is_valid_record(struct gk20a *g,
@@ -262,8 +262,8 @@ int nvgpu_gr_fecs_trace_enable(struct gk20a *g)
 			 * (Bit 31:31) should be set to 1. Bits 30:0 represents
 			 * actual pointer value.
 			 */
-			write = write |
-				(BIT32(NVGPU_FECS_TRACE_FEATURE_CONTROL_BIT));
+			write = (int)((u32)write |
+				(BIT32(NVGPU_FECS_TRACE_FEATURE_CONTROL_BIT)));
 		}
 
 		g->ops.gr.fecs_trace.set_read_index(g, write);
@@ -315,8 +315,8 @@ int nvgpu_gr_fecs_trace_disable(struct gk20a *g)
 			 * For disabling FECS trace support, MAILBOX1's MSB
 			 * (Bit 31:31) should be set to 0.
 			 */
-			read = g->ops.gr.fecs_trace.get_read_index(g) &
-				(~(BIT32(NVGPU_FECS_TRACE_FEATURE_CONTROL_BIT)));
+			read = (int)((u32)(g->ops.gr.fecs_trace.get_read_index(g)) &
+				(~(BIT32(NVGPU_FECS_TRACE_FEATURE_CONTROL_BIT))));
 
 			g->ops.gr.fecs_trace.set_read_index(g, read);
 
@@ -420,7 +420,7 @@ int nvgpu_gr_fecs_trace_ring_read(struct gk20a *g, int index,
 	/* break out FECS record into trace events */
 	for (i = 0; i < nvgpu_gr_fecs_trace_num_ts(g); i++) {
 
-		entry.tag = g->ops.gr.ctxsw_prog.hw_get_ts_tag(r->ts[i]);
+		entry.tag = (u8)g->ops.gr.ctxsw_prog.hw_get_ts_tag(r->ts[i]);
 		entry.timestamp =
 			g->ops.gr.ctxsw_prog.hw_record_ts_timestamp(r->ts[i]);
 		entry.timestamp <<= GK20A_FECS_TRACE_PTIMER_SHIFT;
@@ -434,8 +434,8 @@ int nvgpu_gr_fecs_trace_ring_read(struct gk20a *g, int index,
 		case NVGPU_GPU_CTXSW_TAG_RESTORE_START:
 		case NVGPU_GPU_CTXSW_TAG_CONTEXT_START:
 			entry.context_id = r->new_context_id;
-			entry.pid = new_pid;
-			entry.vmid = new_vmid;
+			entry.pid = (u64)new_pid;
+			entry.vmid = (u8)new_vmid;
 			break;
 
 		case NVGPU_GPU_CTXSW_TAG_CTXSW_REQ_BY_HOST:
@@ -446,8 +446,8 @@ int nvgpu_gr_fecs_trace_ring_read(struct gk20a *g, int index,
 		case NVGPU_GPU_CTXSW_TAG_FE_ACK_CILP:
 		case NVGPU_GPU_CTXSW_TAG_SAVE_END:
 			entry.context_id = r->context_id;
-			entry.pid = cur_pid;
-			entry.vmid = cur_vmid;
+			entry.pid = (u64)cur_pid;
+			entry.vmid = (u8)cur_vmid;
 			break;
 
 		default:
@@ -474,7 +474,7 @@ int nvgpu_gr_fecs_trace_ring_read(struct gk20a *g, int index,
 		count++;
 	}
 
-	nvgpu_gr_fecs_trace_wake_up(g, vmid);
+	nvgpu_gr_fecs_trace_wake_up(g, (int)vmid);
 	return count;
 }
 
@@ -524,7 +524,7 @@ int nvgpu_gr_fecs_trace_poll(struct gk20a *g)
 
 	if (nvgpu_is_enabled(g, NVGPU_FECS_TRACE_FEATURE_CONTROL)) {
 		/* Bits 30:0 of MAILBOX1 represents actual read pointer value */
-		read = read & (~(BIT32(NVGPU_FECS_TRACE_FEATURE_CONTROL_BIT)));
+		read = ((u32)read) & (~(BIT32(NVGPU_FECS_TRACE_FEATURE_CONTROL_BIT)));
 	}
 
 	while (read != write) {
@@ -543,7 +543,7 @@ int nvgpu_gr_fecs_trace_poll(struct gk20a *g)
 		 * So, MSB of read pointer should be set back to 1. This will
 		 * keep FECS trace enabled.
 		 */
-		read = read | (BIT32(NVGPU_FECS_TRACE_FEATURE_CONTROL_BIT));
+		read = (int)(((u32)read) | (BIT32(NVGPU_FECS_TRACE_FEATURE_CONTROL_BIT)));
 	}
 
 	/* ensure FECS records has been updated before incrementing read index */

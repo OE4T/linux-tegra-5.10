@@ -1,7 +1,7 @@
 /*
  * Tegra GK20A GPU Debugger Driver Register Ops
  *
- * Copyright (c) 2013-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -368,7 +368,7 @@ static int profiler_obj_validate_reg_op_offset(struct nvgpu_profiler_object *pro
 		nvgpu_assert(type == type64);
 	}
 
-	op->type = prof->reg_op_type[type];
+	op->type = (u8)prof->reg_op_type[type];
 
 	return 0;
 }

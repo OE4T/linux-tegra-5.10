@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -386,7 +386,7 @@ int nvgpu_acr_bootstrap_hs_ucode_riscv(struct gk20a *g, struct nvgpu_acr *acr)
 		timeout = RISCV_BR_COMPLETION_TIMEOUT_NON_SILICON_MS;
 	}
 
-	err = nvgpu_acr_wait_for_riscv_brom_completion(flcn, timeout);
+	err = nvgpu_acr_wait_for_riscv_brom_completion(flcn, (int)timeout);
 
 	if (err == 0x0) {
 		nvgpu_acr_dbg(g, "RISCV BROM passed");

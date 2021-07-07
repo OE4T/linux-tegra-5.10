@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -41,6 +41,7 @@
 #include <nvgpu/static_analysis.h>
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/nvhost.h>
+#include <nvgpu/string.h>
 
 struct nvgpu_ctag_buffer_info {
 	u64			size;
@@ -593,6 +594,7 @@ static int nvgpu_vm_init_check_vma_limits(struct gk20a *g, struct vm_gk20a *vm,
 				u64 user_lp_vma_start, u64 user_lp_vma_limit,
 				u64 kernel_vma_start, u64 kernel_vma_limit)
 {
+	(void)vm;
 	if ((user_vma_start > user_vma_limit) ||
 		(user_lp_vma_start > user_lp_vma_limit) ||
 		(kernel_vma_start >= kernel_vma_limit)) {
@@ -722,6 +724,8 @@ static int nvgpu_vm_init_attributes(struct mm_gk20a *mm,
 	struct gk20a *g = gk20a_from_mm(mm);
 	u64 aperture_size;
 	u64 default_aperture_size;
+
+	(void)big_pages;
 
 	g->ops.mm.get_default_va_sizes(&default_aperture_size, NULL, NULL);
 
@@ -1185,6 +1189,8 @@ static int nvgpu_vm_do_map(struct vm_gk20a *vm,
 	 */
 	u8 pte_kind;
 
+	(void)os_buf;
+	(void)flags;
 #ifdef CONFIG_NVGPU_COMPRESSION
 	err = nvgpu_vm_compute_compression(vm, binfo_ptr);
 	if (err != 0) {
@@ -1216,7 +1222,7 @@ static int nvgpu_vm_do_map(struct vm_gk20a *vm,
 	}
 
 	if (binfo_ptr->compr_kind != NVGPU_KIND_INVALID) {
-		struct gk20a_comptags comptags = { 0 };
+		struct gk20a_comptags comptags = { };
 
 		/*
 		 * Get the comptags state
@@ -1410,6 +1416,8 @@ static int nvgpu_vm_map_check_attributes(struct vm_gk20a *vm,
 {
 	struct gk20a *g = gk20a_from_vm(vm);
 
+	(void)compr_kind;
+
 	if (vm->userspace_managed &&
 		((flags & NVGPU_VM_MAP_FIXED_OFFSET) == 0U)) {
 		nvgpu_err(g,
@@ -1461,7 +1469,7 @@ int nvgpu_vm_map(struct vm_gk20a *vm,
 {
 	struct gk20a *g = gk20a_from_vm(vm);
 	struct nvgpu_mapped_buf *mapped_buffer = NULL;
-	struct nvgpu_ctag_buffer_info binfo = { 0 };
+	struct nvgpu_ctag_buffer_info binfo = { };
 	enum gk20a_mem_rw_flag rw = buffer_rw_mode;
 	struct nvgpu_vm_area *vm_area = NULL;
 	int err = 0;

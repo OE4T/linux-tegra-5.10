@@ -529,6 +529,7 @@ static int nvgpu_init_boot_clk_or_clk_arb(struct gk20a *g)
 {
 	int err = 0;
 
+	(void)g;
 #ifdef CONFIG_NVGPU_LS_PMU
 	if (nvgpu_is_enabled(g, NVGPU_PMU_PSTATE) &&
 		(g->pmu->fw->ops.clk.clk_set_boot_clk != NULL)) {
@@ -566,6 +567,7 @@ static int nvgpu_init_per_device_identifier(struct gk20a *g)
 
 static int nvgpu_init_set_debugger_mode(struct gk20a *g)
 {
+	(void)g;
 #ifdef CONFIG_NVGPU_DEBUGGER
 	/* Restore the debug setting */
 	g->ops.fb.set_debug_mode(g, g->mmu_debug_ctrl);
@@ -603,6 +605,8 @@ static int nvgpu_init_xve_set_speed(struct gk20a *g)
 			return err;
 		}
 	}
+#else
+	(void)g;
 #endif
 	return 0;
 }

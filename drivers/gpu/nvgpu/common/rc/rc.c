@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -61,6 +61,12 @@ void nvgpu_rc_fifo_recover(struct gk20a *g, u32 eng_bitmask,
 				 rc_type, NULL);
 #else
 	WARN_ON(!g->sw_quiesce_pending);
+	(void)eng_bitmask;
+	(void)hw_id;
+	(void)id_is_tsg;
+	(void)id_is_known;
+	(void)debug_dump;
+	(void)rc_type;
 #endif
 }
 
@@ -83,6 +89,8 @@ void nvgpu_rc_ctxsw_timeout(struct gk20a *g, u32 eng_bitmask,
 			RC_TYPE_CTXSW_TIMEOUT);
 #else
 	WARN_ON(!g->sw_quiesce_pending);
+	(void)eng_bitmask;
+	(void)debug_dump;
 #endif
 }
 
@@ -162,6 +170,7 @@ void nvgpu_rc_runlist_update(struct gk20a *g, u32 runlist_id)
 	 * on time.
 	 */
 	WARN_ON(!g->sw_quiesce_pending);
+	(void)runlist_id;
 #endif
 }
 
@@ -209,6 +218,8 @@ void nvgpu_rc_gr_fault(struct gk20a *g, struct nvgpu_tsg *tsg,
 	}
 #else
 	WARN_ON(!g->sw_quiesce_pending);
+	(void)tsg;
+	(void)ch;
 #endif
 	nvgpu_log(g, gpu_dbg_gr, "done");
 }
@@ -292,6 +303,9 @@ void nvgpu_rc_tsg_and_related_engines(struct gk20a *g, struct nvgpu_tsg *tsg,
 #endif
 #else
 	WARN_ON(!g->sw_quiesce_pending);
+	(void)tsg;
+	(void)debug_dump;
+	(void)rc_type;
 #endif
 }
 
@@ -313,5 +327,7 @@ void nvgpu_rc_mmu_fault(struct gk20a *g, u32 act_eng_bitmask,
 	}
 
 	WARN_ON(!g->sw_quiesce_pending);
+	(void)rc_type;
+	(void)mmufault;
 #endif
 }

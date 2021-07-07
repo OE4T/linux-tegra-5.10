@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -188,7 +188,7 @@ void nvgpu_swprofile_snapshot(struct nvgpu_swprofiler *p, u32 idx)
 	 */
 	index = matrix_to_linear_index(p, p->sample_index, idx);
 
-	p->samples[index] = nvgpu_current_time_ns();
+	p->samples[index] = (u64)nvgpu_current_time_ns();
 }
 
 void nvgpu_swprofile_begin_sample(struct nvgpu_swprofiler *p)
@@ -210,14 +210,14 @@ void nvgpu_swprofile_begin_sample(struct nvgpu_swprofiler *p)
 	/*
 	 * Reference time for subsequent subsamples in this sample.
 	 */
-	p->samples_start[p->sample_index] = nvgpu_current_time_ns();
+	p->samples_start[p->sample_index] = (u64)nvgpu_current_time_ns();
 
 	nvgpu_mutex_release(&p->lock);
 }
 
 static int profile_cmp(const void *a, const void *b)
 {
-	return *((const u64 *) a) - *((const u64 *) b);
+	return (int)(*((const u64 *) a) - *((const u64 *) b));
 }
 
 #define PERCENTILE_WIDTH	5
@@ -350,6 +350,8 @@ void nvgpu_swprofile_print_raw_data(struct gk20a *g,
 {
 	u32 i, j;
 
+	(void)g;
+
 	nvgpu_mutex_acquire(&p->lock);
 
 	if (p->samples == NULL) {
@@ -408,6 +410,8 @@ static u32 nvgpu_swprofile_subsample_basic_stats(struct gk20a *g,
 	u64 sigma_2 = 0U;
 	u32 i;
 
+	(void)g;
+
 	/*
 	 * First, let's work out min, max, sum, and number of samples of data. With this we
 	 * can then get the mean, median, and sigma^2.
@@ -461,7 +465,7 @@ static u32 nvgpu_swprofile_subsample_basic_stats(struct gk20a *g,
 	results[3] = median;
 	results[4] = sigma_2;
 
-	return samples;
+	return (u32)samples;
 }
 
 /*

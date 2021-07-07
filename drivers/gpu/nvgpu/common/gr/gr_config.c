@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -159,6 +159,8 @@ static void gr_config_set_gpc_mask(struct gk20a *g,
 	if (g->ops.gr.config.get_gpc_mask != NULL) {
 		config->gpc_mask = g->ops.gr.config.get_gpc_mask(g);
 	} else
+#else
+	(void)g;
 #endif
 	{
 		config->gpc_mask = nvgpu_safe_sub_u32(BIT32(config->gpc_count),

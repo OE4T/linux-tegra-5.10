@@ -940,6 +940,15 @@ static void nvgpu_gmmu_update_page_table_dbg_print(struct gk20a *g,
 		attrs->priv      ? 'P' : '-',
 		attrs->valid     ? 'V' : '-',
 		attrs->platform_atomic ? 'A' : '-');
+#else
+	(void)g;
+	(void)attrs;
+	(void)vm;
+	(void)sgt;
+	(void)space_to_skip;
+	(void)virt_addr;
+	(void)length;
+	(void)page_size;
 #endif /* CONFIG_NVGPU_TRACE */
 }
 
@@ -1077,6 +1086,8 @@ u64 nvgpu_gmmu_map_locked(struct vm_gk20a *vm,
 		attrs.l3_alloc = false;
 	}
 #endif
+	(void)clear_ctags;
+	(void)ctag_offset;
 
 	/*
 	 * Only allocate a new GPU VA range if we haven't already been passed a
@@ -1170,6 +1181,8 @@ void nvgpu_gmmu_unmap_locked(struct vm_gk20a *vm,
 	int err = 0;
 	struct gk20a *g = gk20a_from_vm(vm);
 	struct nvgpu_gmmu_attrs attrs = gmmu_unmap_attrs(pgsz_idx);
+
+	(void)rw_flag;
 
 	attrs.sparse = sparse;
 

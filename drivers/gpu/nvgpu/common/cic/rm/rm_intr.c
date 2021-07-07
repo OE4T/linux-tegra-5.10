@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,12 +27,12 @@
 
 void nvgpu_cic_rm_set_irq_stall(struct gk20a *g, u32 value)
 {
-	nvgpu_atomic_set(&g->cic_rm->sw_irq_stall_pending, value);
+	nvgpu_atomic_set(&g->cic_rm->sw_irq_stall_pending, (int)value);
 }
 
 void nvgpu_cic_rm_set_irq_nonstall(struct gk20a *g, u32 value)
 {
-	nvgpu_atomic_set(&g->cic_rm->sw_irq_nonstall_pending, value);
+	nvgpu_atomic_set(&g->cic_rm->sw_irq_nonstall_pending, (int)value);
 }
 
 int nvgpu_cic_rm_broadcast_last_irq_stall(struct gk20a *g)

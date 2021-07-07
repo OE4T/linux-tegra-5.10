@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/nvgpu_err_info.h>
 #include <nvgpu/cic_mon.h>
+#include <nvgpu/string.h>
 
 #include "cic_mon_priv.h"
 

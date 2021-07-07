@@ -1,7 +1,7 @@
 /*
  * GK20A Graphics channel
  *
- * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -65,6 +65,7 @@
 #endif
 #include <nvgpu/job.h>
 #include <nvgpu/priv_cmdbuf.h>
+#include <nvgpu/string.h>
 
 #include "channel_wdt.h"
 #include "channel_worker.h"
@@ -829,6 +830,8 @@ static void channel_free_invoke_deferred_engine_reset(struct nvgpu_channel *ch)
 
 		nvgpu_mutex_release(&g->fifo.engines_reset_mutex);
 	}
+#else
+	(void)ch;
 #endif
 }
 
@@ -848,6 +851,8 @@ static void channel_free_invoke_sync_destroy(struct nvgpu_channel *ch)
 		ch->user_sync = NULL;
 	}
 	nvgpu_mutex_release(&ch->sync_lock);
+#else
+	(void)ch;
 #endif
 }
 
@@ -881,6 +886,8 @@ static void channel_free_unlink_debug_session(struct nvgpu_channel *ch)
 	}
 
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
+#else
+	(void)ch;
 #endif
 }
 
@@ -1097,6 +1104,8 @@ static void channel_dump_ref_actions(struct nvgpu_channel *ch)
 	}
 
 	nvgpu_spinlock_release(&ch->ref_actions_lock);
+#else
+	(void)ch;
 #endif
 }
 
@@ -1158,6 +1167,8 @@ struct nvgpu_channel *nvgpu_channel_get__func(struct nvgpu_channel *ch,
 	if (ret != NULL) {
 		trace_nvgpu_channel_get(ch->chid, caller);
 	}
+#else
+	(void)caller;
 #endif
 
 	return ret;
@@ -1170,6 +1181,8 @@ void nvgpu_channel_put__func(struct nvgpu_channel *ch, const char *caller)
 #endif
 #ifdef CONFIG_NVGPU_TRACE
 	trace_nvgpu_channel_put(ch->chid, caller);
+#else
+	(void)caller;
 #endif
 	nvgpu_atomic_dec(&ch->ref_count);
 	if (nvgpu_cond_broadcast(&ch->ref_count_dec_wq) != 0) {
@@ -1962,6 +1975,8 @@ static void nvgpu_channel_semaphore_signal(struct nvgpu_channel *c,
 {
 	struct gk20a *g = c->g;
 
+	(void)post_events;
+
 	if (nvgpu_cond_broadcast_interruptible( &c->semaphore_wq) != 0) {
 		nvgpu_warn(g, "failed to broadcast");
 	}
@@ -2091,6 +2106,10 @@ static void nvgpu_channel_sync_debug_dump(struct gk20a *g,
 			info->inst.semaphored);
 
 	g->ops.pbdma.syncpt_debug_dump(g, o, info);
+#else
+	(void)g;
+	(void)o;
+	(void)info;
 #endif
 }
 
