@@ -2,7 +2,7 @@
 /*
  * tegra_asoc_machine.c - Tegra DAI links parser
  *
- * Copyright (c) 2014-2020 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021 NVIDIA CORPORATION.  All rights reserved.
  *
  */
 
@@ -402,9 +402,9 @@ static int parse_dt_dai_links(struct snd_soc_card *card,
 					goto cleanup;
 			}
 
-			asoc_simple_parse_daifmt(&pdev->dev, link_node,
-						      codec, NULL,
-						      &dai_link->dai_fmt);
+			dai_link->dai_fmt =
+				snd_soc_of_parse_daifmt(link_node, NULL,
+							NULL, NULL);
 
 			asoc_simple_canonicalize_platform(dai_link);
 
