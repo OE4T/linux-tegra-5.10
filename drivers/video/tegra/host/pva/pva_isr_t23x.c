@@ -1,7 +1,7 @@
 /*
  * PVA ISR code for T23X
  *
- * Copyright (c) 2019-2020, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -30,7 +30,6 @@
 
 irqreturn_t pva_ccq_isr(int irq, void *dev_id)
 {
-	uint32_t clear_int = (0x1U << 20) | (0x1U << 24) | (0x1U << 28);
 	uint32_t int_status = 0, isr_status = 0, aisr_status = 0;
 	unsigned int queue_id = MAX_PVA_QUEUE_COUNT + 1;
 	int i;
@@ -62,6 +61,12 @@ irqreturn_t pva_ccq_isr(int irq, void *dev_id)
 	}
 	if (aisr_status & PVA_AISR_INT_PENDING) {
 		nvhost_dbg_info("PVA CCQ AISR (%x)", aisr_status);
+		if (aisr_status &
+		    (PVA_AISR_TASK_COMPLETE | PVA_AISR_TASK_ERROR)) {
+			atomic_add(1, &pva->n_pending_tasks);
+			queue_work(pva->task_status_workqueue,
+				   &pva->task_update_work);
+		}
 
 		/* For now, just log the errors */
 
@@ -106,7 +111,7 @@ irqreturn_t pva_ccq_isr(int irq, void *dev_id)
 				current status: 0x%x",
 				queue_id, int_status);
 		host1x_writel(pdev, cfg_ccq_status_r(pva->version,
-				queue_id, PVA_CCQ_STATUS2_INDEX), clear_int);
+				queue_id, PVA_CCQ_STATUS2_INDEX), int_status);
 	}
 	if (recover)
 		pva_abort(pva);

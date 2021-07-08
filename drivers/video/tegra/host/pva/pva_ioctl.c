@@ -645,7 +645,8 @@ static void pva_queue_flush(struct pva *pva, struct nvhost_queue *queue)
 
 	nregs = pva_cmd_abort_task(&cmd, queue->id, flags);
 	nvhost_module_busy(pva->pdev);
-	err = pva->version_config->submit_cmd_sync(pva, &cmd, nregs, &status);
+	err = pva->version_config->submit_cmd_sync(pva, &cmd, nregs, queue->id,
+						   &status);
 	nvhost_module_idle(pva->pdev);
 	if (err < 0) {
 		dev_err(&pva->pdev->dev, "failed to issue FW abort command: %d",

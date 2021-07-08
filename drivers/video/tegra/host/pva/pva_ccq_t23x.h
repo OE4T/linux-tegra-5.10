@@ -27,15 +27,14 @@
 int pva_ccq_send_task_t23x(struct pva *pva, u32 queue_id, dma_addr_t task_addr,
 			   u8 batchsize, u32 flags);
 void pva_ccq_isr_handler(struct pva *pva, unsigned int queue_id);
-int pva_ccq_send_cmd_sync(struct pva *pva,
-			struct pva_cmd_s *cmd, u32 nregs,
-			struct pva_cmd_status_regs *ccq_status_regs);
-
-int pva_send_cmd_sync(struct pva *pva,
-			struct pva_cmd_s *cmd, u32 nregs,
-			struct pva_cmd_status_regs *ccq_status_regs);
-int pva_send_cmd_sync_locked(struct pva *pva,
-			struct pva_cmd_s *cmd, u32 nregs,
-			struct pva_cmd_status_regs *ccq_status_regs);
+int pva_ccq_send_cmd_sync(struct pva *pva, struct pva_cmd_s *cmd, u32 nregs,
+			  u32 queue_id,
+			  struct pva_cmd_status_regs *ccq_status_regs);
+int pva_send_cmd_sync(struct pva *pva, struct pva_cmd_s *cmd, u32 nregs,
+		      u32 queue_id,
+		      struct pva_cmd_status_regs *ccq_status_regs);
+int pva_send_cmd_sync_locked(struct pva *pva, struct pva_cmd_s *cmd, u32 nregs,
+			     u32 queue_id,
+			     struct pva_cmd_status_regs *ccq_status_regs);
 
 #endif

@@ -67,7 +67,7 @@ struct pva_version_info {
  * Gen2 has 9.
  */
 #define MAX_PVA_IRQS 9
-#define MAX_PVA_QUEUES 9
+#define MAX_PVA_INTERFACE 9
 #define PVA_MAILBOX_INDEX 0
 #define PVA_CCQ0_INDEX 1
 #define PVA_CCQ1_INDEX 2
@@ -200,11 +200,11 @@ struct pva_version_config {
 	int (*ccq_send_task)(struct pva *pva, u32 queue_id,
 			     dma_addr_t task_addr, u8 batchsize, u32 flags);
 	int (*submit_cmd_sync_locked)(struct pva *pva, struct pva_cmd_s *cmd,
-				      u32 nregs,
+				      u32 nregs, u32 queue_id,
 				      struct pva_cmd_status_regs *status_regs);
 
 	int (*submit_cmd_sync)(struct pva *pva, struct pva_cmd_s *cmd,
-			       u32 nregs,
+			       u32 nregs, u32 queue_id,
 			       struct pva_cmd_status_regs *status_regs);
 	int irq_count;
 };
@@ -245,9 +245,9 @@ struct pva {
 
 	int irq[MAX_PVA_IRQS];
 
-	wait_queue_head_t cmd_waitqueue[MAX_PVA_QUEUES];
-	struct pva_cmd_status_regs cmd_status_regs[MAX_PVA_QUEUES];
-	enum pva_cmd_status cmd_status[MAX_PVA_QUEUES];
+	wait_queue_head_t cmd_waitqueue[MAX_PVA_INTERFACE];
+	struct pva_cmd_status_regs cmd_status_regs[MAX_PVA_INTERFACE];
+	enum pva_cmd_status cmd_status[MAX_PVA_INTERFACE];
 	struct mutex mailbox_mutex;
 
 	struct mutex ccq_mutex;

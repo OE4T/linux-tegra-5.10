@@ -124,25 +124,25 @@ int pva_ccq_wait_event(struct pva *pva, unsigned int queue_id, int wait_time)
 {
 	int timeout = 1;
 	int err;
-
+	u32 interface = queue_id + 1;
 	/* Wait for the event being triggered in ISR */
 	if (pva->timeout_enabled == true) {
 		timeout = wait_event_timeout(
-			pva->cmd_waitqueue[queue_id],
-			pva->cmd_status[queue_id] == PVA_CMD_STATUS_DONE ||
-				pva->cmd_status[queue_id] ==
+			pva->cmd_waitqueue[interface],
+			pva->cmd_status[interface] == PVA_CMD_STATUS_DONE ||
+				pva->cmd_status[interface] ==
 					PVA_CMD_STATUS_ABORTED,
 			msecs_to_jiffies(wait_time));
 	} else {
-		wait_event(pva->cmd_waitqueue[queue_id],
-			   pva->cmd_status[queue_id] == PVA_CMD_STATUS_DONE ||
-				   pva->cmd_status[queue_id] ==
+		wait_event(pva->cmd_waitqueue[interface],
+			   pva->cmd_status[interface] == PVA_CMD_STATUS_DONE ||
+				   pva->cmd_status[interface] ==
 					   PVA_CMD_STATUS_ABORTED);
 	}
 	if (timeout <= 0) {
 		err = -ETIMEDOUT;
 		pva_abort(pva);
-	} else if (pva->cmd_status[queue_id] == PVA_CMD_STATUS_ABORTED)
+	} else if (pva->cmd_status[interface] == PVA_CMD_STATUS_ABORTED)
 		err = -EIO;
 	else
 		err = 0;
@@ -150,32 +150,30 @@ int pva_ccq_wait_event(struct pva *pva, unsigned int queue_id, int wait_time)
 }
 
 int pva_ccq_send_cmd_sync(struct pva *pva, struct pva_cmd_s *cmd, u32 nregs,
-			  struct pva_cmd_status_regs *status_regs)
+			  u32 queue_id, struct pva_cmd_status_regs *status_regs)
 {
 	int err = 0;
-	unsigned int queue_id = 0;
+	u32 interface = queue_id + 1U;
 
 	if (status_regs == NULL) {
 		err = -EINVAL;
 		goto err_invalid_parameter;
 	}
 
-	queue_id =
-		PVA_EXTRACT(cmd->mbox[0], 15, 8, unsigned int) + PVA_CCQ0_INDEX;
-	if (queue_id > PVA_CCQ7_INDEX) {
+	if (queue_id >= MAX_PVA_QUEUE_COUNT) {
 		err = -EINVAL;
 		goto err_invalid_parameter;
 	}
 
 	/* Ensure that mailbox state is sane */
-	if (WARN_ON(pva->cmd_status[queue_id] != PVA_CMD_STATUS_INVALID)) {
+	if (WARN_ON(pva->cmd_status[interface] != PVA_CMD_STATUS_INVALID)) {
 		err = -EIO;
 		goto err_check_status;
 	}
 
 	/* Mark that we are waiting for an interrupt */
-	pva->cmd_status[queue_id] = PVA_CMD_STATUS_WFI;
-	memset(&pva->cmd_status_regs[queue_id], 0,
+	pva->cmd_status[interface] = PVA_CMD_STATUS_WFI;
+	memset(&pva->cmd_status_regs[interface], 0,
 	       sizeof(struct pva_cmd_status_regs));
 
 	/* Submit command to PVA */
@@ -187,23 +185,23 @@ int pva_ccq_send_cmd_sync(struct pva *pva, struct pva_cmd_s *cmd, u32 nregs,
 	if (err < 0)
 		goto err_wait_response;
 	/* Return interrupt status back to caller */
-	memcpy(status_regs, &pva->cmd_status_regs[queue_id],
+	memcpy(status_regs, &pva->cmd_status_regs[interface],
 	       sizeof(struct pva_cmd_status_regs));
 
-	pva->cmd_status[queue_id] = PVA_CMD_STATUS_INVALID;
+	pva->cmd_status[interface] = PVA_CMD_STATUS_INVALID;
 
 	return err;
 
 err_wait_response:
 err_send_command:
-	pva->cmd_status[queue_id] = PVA_CMD_STATUS_INVALID;
+	pva->cmd_status[interface] = PVA_CMD_STATUS_INVALID;
 err_check_status:
 err_invalid_parameter:
 	return err;
 }
 
 int pva_send_cmd_sync(struct pva *pva, struct pva_cmd_s *cmd, u32 nregs,
-		      struct pva_cmd_status_regs *status_regs)
+		      u32 queue_id, struct pva_cmd_status_regs *status_regs)
 {
 	int err = 0;
 
@@ -212,13 +210,16 @@ int pva_send_cmd_sync(struct pva *pva, struct pva_cmd_s *cmd, u32 nregs,
 		err = pva_mailbox_send_cmd_sync(pva, cmd, nregs, status_regs);
 		break;
 	case PVA_SUBMIT_MODE_MMIO_CCQ:
-		err = pva_ccq_send_cmd_sync(pva, cmd, nregs, status_regs);
+		err = pva_ccq_send_cmd_sync(pva, cmd, nregs, queue_id,
+					    status_regs);
 		break;
 	}
 
 	return err;
 }
+
 int pva_send_cmd_sync_locked(struct pva *pva, struct pva_cmd_s *cmd, u32 nregs,
+			     u32 queue_id,
 			     struct pva_cmd_status_regs *status_regs)
 {
 	int err = 0;
@@ -229,7 +230,8 @@ int pva_send_cmd_sync_locked(struct pva *pva, struct pva_cmd_s *cmd, u32 nregs,
 						       status_regs);
 		break;
 	case PVA_SUBMIT_MODE_MMIO_CCQ:
-		err = pva_ccq_send_cmd_sync(pva, cmd, nregs, status_regs);
+		err = pva_ccq_send_cmd_sync(pva, cmd, nregs, queue_id,
+					    status_regs);
 		break;
 	}
 

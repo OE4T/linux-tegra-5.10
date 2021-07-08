@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "pva_mailbox.h"
 #include <linux/workqueue.h>
 #include "nvpva_client.h"
 #include <linux/export.h>
@@ -553,7 +554,7 @@ int pva_get_firmware_version(struct pva *pva, struct pva_version_info *info)
 	nregs = pva_cmd_R5_version(&cmd, flags);
 
 	/* Submit request to PVA and wait for response */
-	err = pva->version_config->submit_cmd_sync(pva, &cmd, nregs, &status);
+	err = pva_mailbox_send_cmd_sync(pva, &cmd, nregs, &status);
 	if (err < 0) {
 		nvhost_warn(&pva->pdev->dev,
 			    "mbox get firmware version cmd failed: %d\n", err);
@@ -604,11 +605,9 @@ int pva_set_log_level(struct pva *pva, u32 log_level, bool mailbox_locked)
 	nregs = pva_cmd_set_logging_level(&cmd, log_level, flags);
 
 	if (mailbox_locked)
-		err = pva->version_config->submit_cmd_sync_locked(
-			pva, &cmd, nregs, &status);
+		pva_mailbox_send_cmd_sync_locked(pva, &cmd, nregs, &status);
 	else
-		err = pva->version_config->submit_cmd_sync(pva, &cmd, nregs,
-							   &status);
+		pva_mailbox_send_cmd_sync(pva, &cmd, nregs, &status);
 
 	if (err < 0)
 		nvhost_warn(&pva->pdev->dev, "mbox set log level failed: %d\n",
