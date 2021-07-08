@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -63,6 +63,12 @@
  * 4) Wait for the thread to be created by polling for a shared variable.
  * 5) Return Success once the thread function is called and the shared
  *    variable is set which indicates a successful thread creation.
+ * 6) Above steps are done for thread with a name, thread without a name
+ *    and thread function which returns an error value.
+ * 7) For code coverage, based on a passed argument the created thread tries
+ *    to join with itself expecting a BUG callback. This should trigger a BUG
+ *    as expected by the calling thread. This test is run only if QNX is not
+ *    defined, as there is a difference in the return values.
  *
  * Thread creation with a priority value
  * 1) Reset all global and shared variables to 0.
@@ -74,6 +80,7 @@
  * 6) In some host machines, permission is not granted to create threads
  *    with priority.  In that case skip the test by returning PASS.
  * 7) Return PASS if the thread is created with requested priority.
+ * 8) Above steps are done for thread with a name and without a name.
  *
  * Thread stop
  * 1) Follow steps 1 - 4 of Thread creation scenario.

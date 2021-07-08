@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,122 +30,148 @@
 #define UNIT_TEST_THREAD_PRIORITY 5
 
 struct test_thread_args {
-        bool use_priority;
-        bool check_stop;
-        bool stop_graceful;
-        bool use_name;
-        bool stop_repeat;
-        bool ret_err;
-        bool skip_callback;
+	bool use_priority;
+	bool check_stop;
+	bool stop_graceful;
+	bool use_name;
+	bool stop_repeat;
+	bool ret_err;
+	bool skip_callback;
+	bool try_join;
 };
 
 struct unit_test_thread_data {
-        int thread_created;
-        int check_priority;
-        int thread_priority;
-        int check_stop;
-        int callback_invoked;
-        int use_return;
+	int thread_created;
+	int check_priority;
+	int thread_priority;
+	int check_stop;
+	int callback_invoked;
+	int use_return;
+	int try_join;
 };
 
 static struct test_thread_args create_normal = {
-        .use_priority = false,
-        .check_stop = false,
-        .stop_graceful = false,
-        .use_name = true,
-        .stop_repeat = false,
-        .ret_err = false,
-        .skip_callback = false
+	.use_priority = false,
+	.check_stop = false,
+	.stop_graceful = false,
+	.use_name = true,
+	.stop_repeat = false,
+	.ret_err = false,
+	.skip_callback = false,
+	.try_join = false
 };
 
 static struct test_thread_args create_normal_noname = {
-        .use_priority = false,
-        .check_stop = false,
-        .stop_graceful = false,
-        .use_name = false,
-        .stop_repeat = false,
-        .ret_err = false,
-        .skip_callback = false
+	.use_priority = false,
+	.check_stop = false,
+	.stop_graceful = false,
+	.use_name = false,
+	.stop_repeat = false,
+	.ret_err = false,
+	.skip_callback = false,
+	.try_join = false
 };
 
 static struct test_thread_args create_normal_errret = {
-        .use_priority = false,
-        .check_stop = false,
-        .stop_graceful = false,
-        .use_name = true,
-        .stop_repeat = false,
-        .ret_err = true,
-        .skip_callback = false
+	.use_priority = false,
+	.check_stop = false,
+	.stop_graceful = false,
+	.use_name = true,
+	.stop_repeat = false,
+	.ret_err = true,
+	.skip_callback = false,
+	.try_join = false
 };
 
 static struct test_thread_args create_priority = {
-        .use_priority = true,
-        .check_stop = false,
-        .stop_graceful = false,
-        .use_name = true,
-        .stop_repeat = false,
-        .ret_err = false,
-        .skip_callback = false
+	.use_priority = true,
+	.check_stop = false,
+	.stop_graceful = false,
+	.use_name = true,
+	.stop_repeat = false,
+	.ret_err = false,
+	.skip_callback = false,
+	.try_join = false
 };
 
 static struct test_thread_args create_priority_noname = {
-        .use_priority = true,
-        .check_stop = false,
-        .stop_graceful = false,
-        .use_name = false,
-        .stop_repeat = false,
-        .ret_err = false,
-        .skip_callback = false
+	.use_priority = true,
+	.check_stop = false,
+	.stop_graceful = false,
+	.use_name = false,
+	.stop_repeat = false,
+	.ret_err = false,
+	.skip_callback = false,
+	.try_join = false
 };
 
 static struct test_thread_args check_stop = {
-        .use_priority = false,
-        .check_stop = true,
-        .stop_graceful = false,
-        .use_name = true,
-        .stop_repeat = false,
-        .ret_err = false,
-        .skip_callback = false
+	.use_priority = false,
+	.check_stop = true,
+	.stop_graceful = false,
+	.use_name = true,
+	.stop_repeat = false,
+	.ret_err = false,
+	.skip_callback = false,
+	.try_join = false
 };
+
 static struct test_thread_args check_stop_repeat = {
-        .use_priority = false,
-        .check_stop = true,
-        .stop_graceful = false,
-        .use_name = true,
-        .stop_repeat = true,
-        .ret_err = false,
-        .skip_callback = false
+	.use_priority = false,
+	.check_stop = true,
+	.stop_graceful = false,
+	.use_name = true,
+	.stop_repeat = true,
+	.ret_err = false,
+	.skip_callback = false,
+	.try_join = false
 };
 
 static struct test_thread_args stop_graceful = {
-        .use_priority = false,
-        .check_stop = true,
-        .stop_graceful = true,
-        .use_name = true,
-        .stop_repeat = false,
-        .ret_err = false,
-        .skip_callback = false
+	.use_priority = false,
+	.check_stop = true,
+	.stop_graceful = true,
+	.use_name = true,
+	.stop_repeat = false,
+	.ret_err = false,
+	.skip_callback = false,
+	.try_join = false
 };
 
 static struct test_thread_args stop_graceful_repeat = {
-        .use_priority = false,
-        .check_stop = true,
-        .stop_graceful = true,
-        .use_name = true,
-        .stop_repeat = true,
-        .ret_err = false,
-        .skip_callback = false
+	.use_priority = false,
+	.check_stop = true,
+	.stop_graceful = true,
+	.use_name = true,
+	.stop_repeat = true,
+	.ret_err = false,
+	.skip_callback = false,
+	.try_join = false
 };
 
 static struct test_thread_args stop_graceful_skip_callback = {
-        .use_priority = false,
-        .check_stop = true,
-        .stop_graceful = true,
-        .use_name = true,
-        .stop_repeat = false,
-        .ret_err = false,
-        .skip_callback = true
+	.use_priority = false,
+	.check_stop = true,
+	.stop_graceful = true,
+	.use_name = true,
+	.stop_repeat = false,
+	.ret_err = false,
+	.skip_callback = true,
+	.try_join = false
 };
+
+#if !defined(__QNX__)
+static struct test_thread_args create_try_join = {
+	.use_priority = false,
+	.check_stop = false,
+	.stop_graceful = false,
+	.use_name = true,
+	.stop_repeat = false,
+	.ret_err = false,
+	.skip_callback = false,
+	.try_join = true
+};
+#endif
 
 static struct nvgpu_thread test_thread;
 static struct unit_test_thread_data test_data;
@@ -163,6 +189,12 @@ static int test_thread_fn(void *args)
 	if (data->check_priority) {
 		pthread_getschedparam(pthread_self(), &policy, &param);
 		data->thread_priority = param.sched_priority;
+	}
+
+	if (data->try_join) {
+		if (!EXPECT_BUG(nvgpu_thread_join(&test_thread))) {
+			data->try_join = 0;
+		}
 	}
 
 	data->thread_created = 1;
@@ -199,6 +231,10 @@ int test_thread_cycle(struct unit_module *m, struct gk20a *g, void *args)
 
 	if (test_args->check_stop == true) {
 		test_data.check_stop = 1;
+	}
+
+	if (test_args->try_join == true) {
+		test_data.try_join = 1;
 	}
 
 	if (test_args->use_priority == false) {
@@ -290,6 +326,13 @@ int test_thread_cycle(struct unit_module *m, struct gk20a *g, void *args)
 		}
 	}
 
+	if (test_args->try_join == true) {
+		if (test_data.try_join == 0) {
+			unit_return_fail(m,
+				"Attempt to join the same thread didn't invoke bug\n");
+		}
+	}
+
 	return UNIT_SUCCESS;
 }
 
@@ -304,6 +347,9 @@ struct unit_module_test posix_thread_tests[] = {
 	UNIT_TEST(stop_graceful,            test_thread_cycle, &stop_graceful, 0),
 	UNIT_TEST(stop_graceful_repeat,     test_thread_cycle, &stop_graceful_repeat, 0),
 	UNIT_TEST(stop_graceful_skipcb,     test_thread_cycle, &stop_graceful_skip_callback, 0),
+#if !defined(__QNX__)
+	UNIT_TEST(create_try_join,          test_thread_cycle, &create_try_join, 0),
+#endif
 };
 
 UNIT_MODULE(posix_thread, posix_thread_tests, UNIT_PRIO_POSIX_TEST);
