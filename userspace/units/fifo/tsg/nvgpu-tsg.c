@@ -851,6 +851,137 @@ done:
 	return ret;
 }
 
+int test_tsg_sm_error_state_set_get(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	struct gpu_ops gops = g->ops;
+	struct nvgpu_channel *ch = NULL;
+	struct nvgpu_tsg *tsg = NULL;
+	int ret = UNIT_FAIL;
+	int err = 0;
+	int num_sm = g->ops.gr.init.get_no_of_sm(g);
+	u32 valid_sm_id[][2] = {{0, num_sm - 1}};
+	u32 invalid_sm_id[][2] = {{num_sm, U32_MAX}};
+	u32 i = 0, j = 0, sm_id_range, states, sm_id, t = 0, z = 0;
+	u32 (*working_list)[2];
+	const char *string_states[] = {"Min", "Max", "Mid"};
+	struct nvgpu_tsg_sm_error_state *sm_error_states = NULL;
+	const struct nvgpu_tsg_sm_error_state *get_error_state = NULL;
+	u32 sm_error_states_values[] = {0, 0, 0, 0};
+	u64 hww_warp_esr_pc = 0;
+
+	tsg = nvgpu_tsg_open(g, getpid());
+	unit_assert(tsg != NULL, goto done);
+
+	ch = nvgpu_channel_open_new(g, ~0U, false, getpid(), getpid());
+	unit_assert(ch != NULL, goto done);
+
+	err = nvgpu_tsg_bind_channel(tsg, ch);
+	unit_assert(err == 0, goto done);
+
+	sm_error_states = tsg->sm_error_states;
+
+	//check for SM_ERROR_STATE null
+	tsg->sm_error_states = NULL;
+	err = nvgpu_tsg_store_sm_error_state(tsg, 0, 0, 0, 0, 0, 0);
+	unit_assert(err != 0, goto done);
+
+	tsg->sm_error_states = sm_error_states;
+	err = nvgpu_tsg_store_sm_error_state(tsg, 0, 0, 0, 0, 0, 0);
+	unit_assert(err == 0, goto done);
+
+	//check for SM_ERROR_STATE null
+	tsg->sm_error_states = NULL;
+	get_error_state = nvgpu_tsg_get_sm_error_state(tsg, 0);
+	unit_assert(get_error_state == NULL, goto done);
+	tsg->sm_error_states = sm_error_states;
+
+	/* valid, invalid sm_ids */
+	for (i = 0; i < 2; i++) {
+		working_list = (i == 0) ? valid_sm_id : invalid_sm_id;
+		sm_id_range = (i == 0) ? ARRAY_SIZE(valid_sm_id) : ARRAY_SIZE(invalid_sm_id);
+		for (j = 0; j < sm_id_range; j++) {
+			for (states = 0; states < 3; states++) {
+				if (states == 0) {
+					sm_id = working_list[j][0];
+				} else if (states == 1) {
+					sm_id = working_list[j][1];
+				} else {
+					if (working_list[j][1] - working_list[j][0] > 1) {
+						sm_id = get_random_u32(working_list[j][0] + 1, working_list[j][1] - 1);
+					} else {
+						continue;
+					}
+				}
+
+				/* Invalid SM_ID case */
+				if (i == 1) {
+					unit_info(m, "BVEC testing for nvgpu_tsg_store_sm_error_state with sm_id = 0x%08x(Invalid range %s) \n", sm_id, string_states[states]);
+					err = nvgpu_tsg_store_sm_error_state(tsg, sm_id, 0, 0, 0, 0, 0);
+					unit_assert(err != 0, goto done);
+
+					unit_info(m, "BVEC testing for nvgpu_tsg_get_sm_error_state with sm_id = 0x%08x(Invalid range %s) \n", sm_id, string_states[states]);
+					get_error_state = nvgpu_tsg_get_sm_error_state(tsg, sm_id);
+					unit_assert(get_error_state == NULL, goto done);
+				} else {
+					for (t = 0; t < 3; t++) {
+						/* Loop to fill the SM error values */
+						for (z = 0; z < 4; z++) {
+							if (t == 0) {
+								/* Default 0*/
+							} else if (t == 1) {
+								sm_error_states_values[z] = U32_MAX;
+								hww_warp_esr_pc = U32_MAX;
+							} else {
+								sm_error_states_values[z] = get_random_u32(1, U32_MAX - 1);
+								hww_warp_esr_pc = 2ULL * U32_MAX;
+							}
+						}
+
+						unit_info(m, "BVEC testing for nvgpu_tsg_store_sm_error_state with sm_id = 0x%08x(Valid range %s)\n", sm_id, string_states[t]);
+						unit_info(m, "hww_global_esr = 0x%08x\n", sm_error_states_values[0]);
+						unit_info(m, "hww_warp_esr = 0x%08x\n", sm_error_states_values[1]);
+						unit_info(m, "hww_warp_esr_pc = 0x%016llx\n", hww_warp_esr_pc);
+						unit_info(m, "hww_global_esr_report_mask = 0x%08x\n", sm_error_states_values[2]);
+						unit_info(m, "hww_warp_esr_report_mask = 0x%08x\n", sm_error_states_values[3]);
+
+						err = nvgpu_tsg_store_sm_error_state(tsg, sm_id,
+							sm_error_states_values[0], sm_error_states_values[1], hww_warp_esr_pc,
+							sm_error_states_values[2], sm_error_states_values[3]);
+						unit_assert(err == 0, goto done);
+
+						unit_info(m, "BVEC testing for nvgpu_tsg_get_sm_error_state with sm_id = %u(Valid range %s) \n", sm_id, string_states[t]);
+						get_error_state = nvgpu_tsg_get_sm_error_state(tsg, sm_id);
+						unit_assert(get_error_state != NULL, goto done);
+
+						unit_assert(get_error_state->hww_global_esr == sm_error_states_values[0], goto done);
+						unit_assert(get_error_state->hww_warp_esr == sm_error_states_values[1], goto done);
+						unit_assert(get_error_state->hww_warp_esr_pc == hww_warp_esr_pc, goto done);
+						unit_assert(get_error_state->hww_global_esr_report_mask == sm_error_states_values[2], goto done);
+						unit_assert(get_error_state->hww_warp_esr_report_mask == sm_error_states_values[3], goto done);
+					}
+				}
+			}
+		}
+	}
+
+	ret = UNIT_SUCCESS;
+done:
+	if (ret == UNIT_FAIL) {
+		unit_err(m, "branches=%s\n", __func__);
+	}
+
+	if (ch != NULL) {
+		nvgpu_tsg_force_unbind_channel(tsg, ch);
+		nvgpu_channel_close(ch);
+	}
+	if (tsg != NULL) {
+		nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
+	}
+	g->ops = gops;
+	return ret;
+}
+
 #define F_UNBIND_CHANNEL_CHECK_CTX_RELOAD_SET		BIT(0)
 #define F_UNBIND_CHANNEL_CHECK_CTX_RELOAD_CHID_MATCH	BIT(1)
 #define F_UNBIND_CHANNEL_CHECK_CTX_RELOAD_LAST		BIT(2)
@@ -1650,6 +1781,7 @@ struct unit_module_test nvgpu_tsg_tests[] = {
 	UNIT_TEST(unbind_channel, test_tsg_unbind_channel, &unit_ctx, 0),
 	UNIT_TEST(unbind_channel_check_hw_state,
 		test_tsg_unbind_channel_check_hw_state, &unit_ctx, 0),
+	UNIT_TEST(sm_error_states, test_tsg_sm_error_state_set_get, &unit_ctx, 0),
 	UNIT_TEST(unbind_channel_check_ctx_reload,
 		test_tsg_unbind_channel_check_ctx_reload, &unit_ctx, 0),
 	UNIT_TEST(enable_disable, test_tsg_enable, &unit_ctx, 0),

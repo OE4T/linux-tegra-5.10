@@ -618,6 +618,45 @@ void nvgpu_tsg_set_unserviceable(struct gk20a *g, struct nvgpu_tsg *tsg);
  */
 void nvgpu_tsg_wakeup_wqs(struct gk20a *g, struct nvgpu_tsg *tsg);
 
+/** @brief store error info for SM error state
+ *
+ * @param tsg [in]		Pointer to the TSG struct.
+ * @param sm_id [in]	index of SM
+ * @param hww_global_esr [in]	hww_global_esr reg value
+ * @param hww_warp_esr [in]	hww_warp_esr register value
+ * @param hww_warp_esr_pc [in]	PC value of hww_warp_esr
+ * @param hww_global_esr_report_mask [in]	hww_global_esr_report_mask
+ * @param hww_warp_esr_report_mask [in]	hww_warp_esr_report_mask
+ *
+ * Allocate zero initialized memory to #nvgpu_tsg_sm_error_state, which stores
+ * SM errors for all the SMs supported by h/w.
+ *
+ * @return 0 in case of success, < 0 in case of failure.
+ * @retval -EINVAL if memory is already allocated to store
+ *         SM error states.
+ * @retval -ENOMEM if memory could not be allocated to store
+ *         SM error states.
+ */
+int nvgpu_tsg_store_sm_error_state(struct nvgpu_tsg *tsg, u32 sm_id,
+		u32 hww_global_esr, u32 hww_warp_esr, u64 hww_warp_esr_pc,
+		u32 hww_global_esr_report_mask, u32 hww_warp_esr_report_mask);
+
+/**
+ * @brief retrieve pointer to nvgpu_tsg_get_sm_error_state
+ *
+ * @param tsg [in]		Pointer to the TSG struct.
+ * @param sm_id [in]	index of SM
+ *
+ * Retrieve a pointer to a struct nvgpu_tsg_get_sm_error_state for
+ * the index sm_id.
+ *
+ * @retval NULL if sm_id is incorrect or no memory was allocated for storing
+ *         SM error states.
+ * @retval pointer to a constant struct nvgpu_tsg_sm_error_state
+ */
+const struct nvgpu_tsg_sm_error_state *nvgpu_tsg_get_sm_error_state(
+		struct nvgpu_tsg *tsg, u32 sm_id);
+
 #ifdef CONFIG_NVGPU_DEBUGGER
 int nvgpu_tsg_set_sm_exception_type_mask(struct nvgpu_channel *ch,
 		u32 exception_mask);

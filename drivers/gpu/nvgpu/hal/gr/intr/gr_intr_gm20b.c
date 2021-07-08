@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -304,21 +304,24 @@ void gm20b_gr_intr_clear_sm_hww(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 			0);
 }
 
-static void gm20b_gr_intr_read_sm_error_state(struct gk20a *g,
-			u32 offset,
-			struct nvgpu_tsg_sm_error_state *sm_error_states)
+static int gm20b_gr_intr_read_sm_error_state(struct gk20a *g,
+		struct nvgpu_tsg *tsg, u32 offset, u32 sm_id)
 {
-	sm_error_states->hww_global_esr = gk20a_readl(g, nvgpu_safe_add_u32(
+	u32 hww_global_esr = gk20a_readl(g, nvgpu_safe_add_u32(
 			gr_gpc0_tpc0_sm_hww_global_esr_r(), offset));
-	sm_error_states->hww_warp_esr = gk20a_readl(g, nvgpu_safe_add_u32(
+	u32 hww_warp_esr = gk20a_readl(g, nvgpu_safe_add_u32(
 			gr_gpc0_tpc0_sm_hww_warp_esr_r(), offset));
-	sm_error_states->hww_warp_esr_pc = (u64)(gk20a_readl(g, nvgpu_safe_add_u32(
+	u64 hww_warp_esr_pc = (u64)(gk20a_readl(g, nvgpu_safe_add_u32(
 			gr_gpc0_tpc0_sm_hww_warp_esr_pc_r(), offset)));
-	sm_error_states->hww_global_esr_report_mask = gk20a_readl(g, nvgpu_safe_add_u32(
+	u32 hww_global_esr_report_mask = gk20a_readl(g, nvgpu_safe_add_u32(
 		       gr_gpc0_tpc0_sm_hww_global_esr_report_mask_r(), offset));
-	sm_error_states->hww_warp_esr_report_mask = gk20a_readl(g, nvgpu_safe_add_u32(
+	u32 hww_warp_esr_report_mask = gk20a_readl(g, nvgpu_safe_add_u32(
 			gr_gpc0_tpc0_sm_hww_warp_esr_report_mask_r(), offset));
 
+	return nvgpu_tsg_store_sm_error_state(tsg, sm_id,
+		hww_global_esr, hww_warp_esr,
+		hww_warp_esr_pc, hww_global_esr_report_mask,
+		hww_warp_esr_report_mask);
 }
 
 u32 gm20b_gr_intr_record_sm_error_state(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
@@ -329,8 +332,8 @@ u32 gm20b_gr_intr_record_sm_error_state(struct gk20a *g, u32 gpc, u32 tpc, u32 s
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g,
 					       GPU_LIT_TPC_IN_GPC_STRIDE);
 	u32 offset;
-	struct nvgpu_tsg_sm_error_state *sm_error_states = NULL;
 	struct nvgpu_tsg *tsg = NULL;
+	int err = 0;
 
 	offset = nvgpu_safe_add_u32(
 			nvgpu_safe_mult_u32(gpc_stride, gpc),
@@ -353,8 +356,10 @@ u32 gm20b_gr_intr_record_sm_error_state(struct gk20a *g, u32 gpc, u32 tpc, u32 s
 		goto record_fail;
 	}
 
-	sm_error_states = tsg->sm_error_states + sm_id;
-	gm20b_gr_intr_read_sm_error_state(g, offset, sm_error_states);
+	err = gm20b_gr_intr_read_sm_error_state(g, tsg, offset, sm_id);
+	if (err != 0) {
+		nvgpu_err(g, "error writing sm_error_state");
+	}
 
 record_fail:
 #ifdef CONFIG_NVGPU_DEBUGGER

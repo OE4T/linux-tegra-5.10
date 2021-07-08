@@ -221,6 +221,40 @@ int test_tsg_unbind_channel_check_hw_state(struct unit_module *m,
 		struct gk20a *g, void *args);
 
 /**
+ * Test specification for: struct nvgpu_tsg_sm_error_state
+ *
+ * Description: Check HW state during TSG unbind channel.
+ *
+ * Test Type: Feature, Boundary Value
+ *
+ * Targets: nvgpu_tsg_store_sm_error_state, nvgpu_tsg_get_sm_error_state
+ *
+ * Input: test_fifo_init_support() run for this GPU
+ * Equivalence classes:
+ * sm_id
+ * - Invalid : [g->ops.gr.init.get_no_of_sm(g), U32_MAX]
+ * - Valid :   [0, g->ops.gr.init.get_no_of_sm(g) - 1]
+ * struct nvgpu_tsg_sm_error_state fields
+ * - Valid : [0, U32_MAX]
+ *
+ * Steps:
+ * 1) tsg->sm_error_states = NULL (Invalid Case)
+ *   Verify nvgpu_tsg_store_sm_error_state returns error
+ *   Verify nvgpu_tsg_get_sm_error_state returns NULL
+ * 2) sm_id >= g->ops.gr.init.get_no_of_sm(g) (Invalid Case)
+ *   Verify nvgpu_tsg_store_sm_error_state returns error
+ *   Verify nvgpu_tsg_get_sm_error_state returns NULL
+ * 3) For Valid sm_id and tsg->sm_error_states != NULL
+ *    For each value within struct nvgpu_tsg_sm_error_state,
+ *       test with Min, Max and one random number between [0, U32_MAX].
+ *       a) Verify nvgpu_tsg_store_sm_error_state returns 0
+ *       b) Verify nvgpu_tsg_get_sm_error_state returns non NULL.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_tsg_sm_error_state_set_get(struct unit_module *m,
+		struct gk20a *g, void *args);
+/**
  * Test specification for: test_tsg_unbind_channel_check_ctx_reload
  *
  * Description: Check if channel reload is needed during TSG unbind

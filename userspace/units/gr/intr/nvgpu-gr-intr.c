@@ -199,12 +199,13 @@ static int gr_test_intr_allocate_ch(struct unit_module *m,
 
 
 static int gr_test_intr_block_ptr_as_current_ctx(struct unit_module *m,
-				struct gk20a *g, struct nvgpu_channel *ch,
+				struct gk20a *g, struct nvgpu_channel *ch, struct nvgpu_tsg *tsg,
 				u32 pid)
 {
 	int err, i;
 	struct nvgpu_gr_intr *intr = g->gr->intr;
 	u32 tsgid = nvgpu_inst_block_ptr(g, &ch->inst_block);
+	struct nvgpu_tsg_sm_error_state *sm_error_states = NULL;
 
 	err = EXPECT_BUG(g->ops.gr.intr.stall_isr(g));
 	if (err != 0) {
@@ -218,6 +219,17 @@ static int gr_test_intr_block_ptr_as_current_ctx(struct unit_module *m,
 	if (err != 0) {
 		unit_return_fail(m, "failed stall isr\n");
 	}
+
+	/* Cover the case where gv11b_gr_intr_read_sm_error_state fails */
+	sm_error_states = tsg->sm_error_states;
+	tsg->sm_error_states = NULL;
+
+	err = g->ops.gr.intr.stall_isr(g);
+	if (err != 0) {
+		unit_return_fail(m, "failed stall isr\n");
+	}
+
+	tsg->sm_error_states = sm_error_states;
 
 	/* Make all entry valid so code with flush one */
 	for (i = 0; i < GR_TEST_CHANNEL_MAP_TLB_SIZE; i++) {
@@ -289,7 +301,7 @@ static int gr_test_intr_allocate_ch_tsg(struct unit_module *m,
 		goto ch_cleanup;
 	}
 
-	err = gr_test_intr_block_ptr_as_current_ctx(m, g, ch, tsgid);
+	err = gr_test_intr_block_ptr_as_current_ctx(m, g, ch, tsg, tsgid);
 	if (err != 0) {
 		unit_err(m, "isr failed with block_ptr as current_ctx\n");
 		goto tsg_unbind;

@@ -583,7 +583,7 @@ static int gk20a_tsg_ioctl_read_single_sm_error_state(struct gk20a *g,
 		struct nvgpu_tsg *tsg,
 		struct nvgpu_tsg_read_single_sm_error_state_args *args)
 {
-	struct nvgpu_tsg_sm_error_state *sm_error_state;
+	const struct nvgpu_tsg_sm_error_state *sm_error_state = NULL;
 	struct nvgpu_tsg_sm_error_state_record sm_error_state_record;
 	u32 sm_id;
 	int err = 0;
@@ -597,7 +597,7 @@ static int gk20a_tsg_ioctl_read_single_sm_error_state(struct gk20a *g,
 
 	nvgpu_speculation_barrier();
 
-	sm_error_state = tsg->sm_error_states + sm_id;
+	sm_error_state = nvgpu_tsg_get_sm_error_state(tsg, sm_id);
 	sm_error_state_record.global_esr =
 		sm_error_state->hww_global_esr;
 	sm_error_state_record.warp_esr =

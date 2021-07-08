@@ -982,7 +982,6 @@ int vgpu_gr_resume_contexts(struct gk20a *g,
 void vgpu_gr_handle_sm_esr_event(struct gk20a *g,
 			struct tegra_vgpu_sm_esr_info *info)
 {
-	struct nvgpu_tsg_sm_error_state *sm_error_states;
 	struct nvgpu_tsg *tsg;
 	u32 no_of_sm = g->ops.gr.init.get_no_of_sm(g);
 
@@ -1004,15 +1003,10 @@ void vgpu_gr_handle_sm_esr_event(struct gk20a *g,
 
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 
-	sm_error_states = &tsg->sm_error_states[info->sm_id];
-
-	sm_error_states->hww_global_esr = info->hww_global_esr;
-	sm_error_states->hww_warp_esr = info->hww_warp_esr;
-	sm_error_states->hww_warp_esr_pc = info->hww_warp_esr_pc;
-	sm_error_states->hww_global_esr_report_mask =
-				info->hww_global_esr_report_mask;
-	sm_error_states->hww_warp_esr_report_mask =
-				info->hww_warp_esr_report_mask;
+	(void)nvgpu_tsg_store_sm_error_state(tsg, info->sm_id,
+		info->hww_global_esr, info->hww_warp_esr,
+		info->hww_warp_esr_pc, info->hww_global_esr_report_mask,
+		info->hww_warp_esr_report_mask);
 
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
 }

@@ -1002,6 +1002,53 @@ int nvgpu_tsg_alloc_sm_error_states_mem(struct gk20a *g,
 	return 0;
 }
 
+int nvgpu_tsg_store_sm_error_state(struct nvgpu_tsg *tsg, u32 sm_id,
+		u32 hww_global_esr, u32 hww_warp_esr, u64 hww_warp_esr_pc,
+		u32 hww_global_esr_report_mask, u32 hww_warp_esr_report_mask)
+{
+	struct gk20a *g = tsg->g;
+	u32 num_of_sm = g->ops.gr.init.get_no_of_sm(g);
+	struct nvgpu_tsg_sm_error_state *sm_error_states = NULL;
+
+	if (sm_id >= num_of_sm) {
+		nvgpu_err(g, "Invalid number of SMs");
+		return -EINVAL;
+	}
+
+	if (tsg->sm_error_states == NULL) {
+		nvgpu_err(g, "invalid memory");
+		return -ENOMEM;
+	}
+
+	sm_error_states = &tsg->sm_error_states[sm_id];
+
+	sm_error_states->hww_global_esr = hww_global_esr;
+	sm_error_states->hww_warp_esr = hww_warp_esr;
+	sm_error_states->hww_warp_esr_pc = hww_warp_esr_pc;
+	sm_error_states->hww_global_esr_report_mask = hww_global_esr_report_mask;
+	sm_error_states->hww_warp_esr_report_mask = hww_warp_esr_report_mask;
+
+	return 0;
+}
+
+const struct nvgpu_tsg_sm_error_state *nvgpu_tsg_get_sm_error_state(struct nvgpu_tsg *tsg, u32 sm_id)
+{
+	struct gk20a *g = tsg->g;
+	u32 num_of_sm = g->ops.gr.init.get_no_of_sm(g);
+
+	if (sm_id >= num_of_sm) {
+		nvgpu_err(g, "Invalid number of SMs");
+		return NULL;
+	}
+
+	if (tsg->sm_error_states == NULL) {
+		nvgpu_err(g, "Invalid memory");
+		return NULL;
+	}
+
+	return &tsg->sm_error_states[sm_id];
+}
+
 #ifdef CONFIG_NVGPU_DEBUGGER
 int nvgpu_tsg_set_sm_exception_type_mask(struct nvgpu_channel *ch,
 		u32 exception_mask)

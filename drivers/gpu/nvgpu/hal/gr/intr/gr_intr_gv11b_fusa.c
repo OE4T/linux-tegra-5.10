@@ -1852,34 +1852,36 @@ void gv11b_gr_intr_handle_ssync_hww(struct gk20a *g, u32 *ssync_esr)
 			 gr_ssync_hww_esr_reset_active_f());
 }
 
-static void gv11b_gr_intr_read_sm_error_state(struct gk20a *g,
-			u32 offset,
-			struct nvgpu_tsg_sm_error_state *sm_error_states)
+static int gv11b_gr_intr_read_sm_error_state(struct gk20a *g,
+		struct nvgpu_tsg *tsg, u32 offset, u32 sm_id)
 {
-	u32 addr_hi, addr_lo;
-
-	sm_error_states->hww_global_esr = nvgpu_readl(g, nvgpu_safe_add_u32(
+	u32 hww_global_esr = nvgpu_readl(g, nvgpu_safe_add_u32(
 		gr_gpc0_tpc0_sm0_hww_global_esr_r(), offset));
 
-	sm_error_states->hww_warp_esr = nvgpu_readl(g, nvgpu_safe_add_u32(
+	u32 hww_warp_esr = nvgpu_readl(g, nvgpu_safe_add_u32(
 		gr_gpc0_tpc0_sm0_hww_warp_esr_r(), offset));
 
-	addr_hi = nvgpu_readl(g, nvgpu_safe_add_u32(
+	u32 addr_hi = nvgpu_readl(g, nvgpu_safe_add_u32(
 			gr_gpc0_tpc0_sm0_hww_warp_esr_pc_hi_r(), offset));
-	addr_lo = nvgpu_readl(g, nvgpu_safe_add_u32(
+	u32 addr_lo = nvgpu_readl(g, nvgpu_safe_add_u32(
 			gr_gpc0_tpc0_sm0_hww_warp_esr_pc_r(), offset));
 
-	sm_error_states->hww_warp_esr_pc = hi32_lo32_to_u64(addr_hi, addr_lo);
+	u64 hww_warp_esr_pc = hi32_lo32_to_u64(addr_hi, addr_lo);
 
-	sm_error_states->hww_global_esr_report_mask = nvgpu_readl(g,
+	u32 hww_global_esr_report_mask = nvgpu_readl(g,
 		nvgpu_safe_add_u32(
 			gr_gpc0_tpc0_sm0_hww_global_esr_report_mask_r(),
 			offset));
 
-	sm_error_states->hww_warp_esr_report_mask = nvgpu_readl(g,
+	u32 hww_warp_esr_report_mask = nvgpu_readl(g,
 		nvgpu_safe_add_u32(
 			gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_r(),
 			offset));
+
+	return nvgpu_tsg_store_sm_error_state(tsg, sm_id,
+		hww_global_esr, hww_warp_esr,
+		hww_warp_esr_pc, hww_global_esr_report_mask,
+		hww_warp_esr_report_mask);
 }
 
 u32 gv11b_gr_intr_record_sm_error_state(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
@@ -1888,8 +1890,8 @@ u32 gv11b_gr_intr_record_sm_error_state(struct gk20a *g, u32 gpc, u32 tpc, u32 s
 	u32 sm_id;
 	u32 offset, sm_per_tpc, tpc_id;
 	u32 gpc_offset, gpc_tpc_offset;
-	struct nvgpu_tsg_sm_error_state *sm_error_states = NULL;
 	struct nvgpu_tsg *tsg = NULL;
+	int err = 0;
 
 #ifdef CONFIG_NVGPU_DEBUGGER
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
@@ -1918,8 +1920,10 @@ u32 gv11b_gr_intr_record_sm_error_state(struct gk20a *g, u32 gpc, u32 tpc, u32 s
 		goto record_fail;
 	}
 
-	sm_error_states = &tsg->sm_error_states[sm_id];
-	gv11b_gr_intr_read_sm_error_state(g, offset, sm_error_states);
+	err = gv11b_gr_intr_read_sm_error_state(g, tsg, offset, sm_id);
+	if (err != 0) {
+		nvgpu_err(g, "error writing sm_error_state");
+	}
 
 record_fail:
 #ifdef CONFIG_NVGPU_DEBUGGER

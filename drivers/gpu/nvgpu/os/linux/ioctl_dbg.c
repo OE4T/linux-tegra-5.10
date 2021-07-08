@@ -276,7 +276,7 @@ static int nvgpu_dbg_gpu_ioctl_read_single_sm_error_state(
 		struct nvgpu_dbg_gpu_read_single_sm_error_state_args *args)
 {
 	struct gk20a *g = dbg_s->g;
-	struct nvgpu_tsg_sm_error_state *sm_error_state;
+	const struct nvgpu_tsg_sm_error_state *sm_error_state = NULL;
 	struct nvgpu_dbg_gpu_sm_error_state_record sm_error_state_record;
 	struct nvgpu_channel *ch;
 	struct nvgpu_tsg *tsg;
@@ -307,7 +307,7 @@ static int nvgpu_dbg_gpu_ioctl_read_single_sm_error_state(
 
 	nvgpu_speculation_barrier();
 
-	sm_error_state = tsg->sm_error_states + sm_id;
+	sm_error_state = nvgpu_tsg_get_sm_error_state(tsg, sm_id);
 	sm_error_state_record.hww_global_esr =
 		sm_error_state->hww_global_esr;
 	sm_error_state_record.hww_warp_esr =

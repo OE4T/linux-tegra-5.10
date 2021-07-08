@@ -700,6 +700,8 @@ nvgpu_timeout_expired_fault_injection
 nvgpu_timeout_init
 nvgpu_timeout_peek_expired
 nvgpu_timers_get_fault_injection
+nvgpu_tsg_store_sm_error_state
+nvgpu_tsg_get_sm_error_state
 nvgpu_tsg_abort
 nvgpu_tsg_bind_channel
 nvgpu_tsg_check_and_get_from_id
