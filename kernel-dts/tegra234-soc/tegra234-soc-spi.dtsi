@@ -29,11 +29,7 @@
 		interrupts = <0 36 0x04>;
 		#address-cells = <1>;
 		#size-cells = <0>;
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_GPCDMA_0>;
-#else
-		iommus = <&smmu TEGRA_SID_GPCDMA_0>;
-#endif
 		dma-coherent;
 		dmas = <&gpcdma 15>, <&gpcdma 15>;
 		dma-names = "rx", "tx";
@@ -54,11 +50,7 @@
 		interrupts = <0 37 0x04>;
 		#address-cells = <1>;
 		#size-cells = <0>;
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_GPCDMA_0>;
-#else
-		iommus = <&smmu TEGRA_SID_GPCDMA_0>;
-#endif
 		dma-coherent;
 		dmas = <&gpcdma 16>, <&gpcdma 16>;
 		dma-names = "rx", "tx";
@@ -79,11 +71,7 @@
 		interrupts = <0 38 0x04>;
 		#address-cells = <1>;
 		#size-cells = <0>;
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_GPCDMA_0>;
-#else
-		iommus = <&smmu TEGRA_SID_GPCDMA_0>;
-#endif
 		dma-coherent;
 		dmas = <&gpcdma 17>, <&gpcdma 17>;
 		dma-names = "rx", "tx";
@@ -104,11 +92,7 @@
 		interrupts = < 0 35 0x04 >;
 		#address-cells = <1>;
 		#size-cells = <0>;
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso1 TEGRA_SID_NISO1_QSPI0>;
-#else
-		iommus = <&smmu TEGRA_SID_XSPI0>;
-#endif
 		dma-coherent;
 		dma-names = "rx", "tx";
 		spi-max-frequency = <204000000>;
@@ -129,11 +113,7 @@
 		interrupts = < 0 39 0x04 >;
 		#address-cells = <1>;
 		#size-cells = <0>;
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso1 TEGRA_SID_NISO1_QSPI1>;
-#else
-		iommus = <&smmu TEGRA_SID_XSPI1>;
-#endif
 		dma-coherent;
 		dma-names = "rx", "tx";
 		spi-max-frequency = <204000000>;

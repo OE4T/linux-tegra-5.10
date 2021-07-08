@@ -61,13 +61,8 @@
 			0 106 0x04
 			0 107 0x04>;
 		#dma-cells = <1>;
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_GPCDMA_0>;
 		nvidia,stream-id = <TEGRA_SID_NISO0_GPCDMA_0>;
-#else
-		iommus = <&smmu TEGRA_SID_GPCDMA_0>;
-		nvidia,stream-id = <TEGRA_SID_GPCDMA_0>;
-#endif
 		dma-coherent;
 		nvidia,start-dma-channel-index = <1>;
 		dma-channels = <31>;

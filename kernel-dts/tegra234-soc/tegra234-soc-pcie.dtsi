@@ -403,17 +403,10 @@
 		num-ib-windows = <2>;
 		num-ob-windows = <8>;
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_PCIE5>;
 		iommu-map = <0x0 &smmu_niso0 TEGRA_SID_NISO0_PCIE5 0x1000>;
 		msi-parent = <&gic_v2m TEGRA_SID_NISO0_PCIE5>;
 		msi-map = <0x0 &gic_v2m TEGRA_SID_NISO0_PCIE5 0x1000>;
-#else
-		iommus = <&smmu TEGRA_SID_PCIE5>;
-		iommu-map = <0x0 &smmu TEGRA_SID_PCIE5 0x1000>;
-		msi-parent = <&gic_v2m TEGRA_SID_PCIE5>;
-		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE5 0x1000>;
-#endif
 		dma-coherent;
 		iommu-map-mask = <0x0>;
 
@@ -481,17 +474,10 @@
 		num-ib-windows = <2>;
 		num-ob-windows = <8>;
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_PCIE6>;
 		iommu-map = <0x0 &smmu_niso0 TEGRA_SID_NISO0_PCIE6 0x1000>;
 		msi-parent = <&gic_v2m TEGRA_SID_NISO0_PCIE6>;
 		msi-map = <0x0 &gic_v2m TEGRA_SID_NISO0_PCIE6 0x1000>;
-#else
-		iommus = <&smmu TEGRA_SID_PCIE6>;
-		iommu-map = <0x0 &smmu TEGRA_SID_PCIE6 0x1000>;
-		msi-parent = <&gic_v2m TEGRA_SID_PCIE6>;
-		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE6 0x1000>;
-#endif
 		dma-coherent;
 		iommu-map-mask = <0x0>;
 
@@ -559,17 +545,10 @@
 		num-ob-windows = <8>;
 
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso1 TEGRA_SID_NISO1_PCIE7>;
 		iommu-map = <0x0 &smmu_niso1 TEGRA_SID_NISO1_PCIE7 0x1000>;
 		msi-parent = <&gic_v2m TEGRA_SID_NISO1_PCIE7>;
 		msi-map = <0x0 &gic_v2m TEGRA_SID_NISO1_PCIE7 0x1000>;
-#else
-		iommus = <&smmu TEGRA_SID_PCIE7>;
-		iommu-map = <0x0 &smmu TEGRA_SID_PCIE7 0x1000>;
-		msi-parent = <&gic_v2m TEGRA_SID_PCIE7>;
-		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE7 0x1000>;
-#endif
 		dma-coherent;
 		iommu-map-mask = <0x0>;
 
@@ -637,17 +616,10 @@
 		num-ob-windows = <8>;
 
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso1 TEGRA_SID_NISO1_PCIE10>;
 		iommu-map = <0x0 &smmu_niso1 TEGRA_SID_NISO1_PCIE10 0x1000>;
 		msi-parent = <&gic_v2m TEGRA_SID_NISO1_PCIE10>;
 		msi-map = <0x0 &gic_v2m TEGRA_SID_NISO1_PCIE10 0x1000>;
-#else
-		iommus = <&smmu TEGRA_SID_PCIE10>;
-		iommu-map = <0x0 &smmu TEGRA_SID_PCIE10 0x1000>;
-		msi-parent = <&gic_v2m TEGRA_SID_PCIE10>;
-		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE10 0x1000>;
-#endif
 		dma-coherent;
 		iommu-map-mask = <0x0>;
 
@@ -700,7 +672,6 @@
 			     <0 73 0x04>;	/* MSI interrupt */
 		interrupt-names = "intr", "msi";
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE0R>,
 			        <&mc TEGRA234_MEMORY_CLIENT_PCIE0W>;
 		interconnect-names = "dma-mem", "dma-mem";
@@ -708,14 +679,6 @@
 		iommu-map = <0x0 &smmu_niso0 TEGRA_SID_NISO0_PCIE0 0x1000>;
 		msi-parent = <&gic_v2m TEGRA_SID_NISO0_PCIE0>;
 		msi-map = <0x0 &gic_v2m TEGRA_SID_NISO0_PCIE0 0x1000>;
-#else
-		interconnects = <&tegra_icc TEGRA_ICC_PCIE_0 &tegra_icc TEGRA_ICC_PRIMARY>;
-		interconnect-names = "icc_bwmgr";
-		iommus = <&smmu TEGRA_SID_PCIE0>;
-		iommu-map = <0x0 &smmu TEGRA_SID_PCIE0 0x1000>;
-		msi-parent = <&gic_v2m TEGRA_SID_PCIE0>;
-		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE0 0x1000>;
-#endif
 
 		dma-coherent;
 		iommu-map-mask = <0x0>;
@@ -788,8 +751,6 @@
 		interrupts = <0 45 0x04>,	/* controller interrupt */
 			     <0 46 0x04>;	/* MSI interrupt */
 		interrupt-names = "intr", "msi";
-
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE1R>,
 			        <&mc TEGRA234_MEMORY_CLIENT_PCIE1W>;
 		interconnect-names = "dma-mem", "dma-mem";
@@ -797,14 +758,6 @@
 		iommu-map = <0x0 &smmu_niso1 TEGRA_SID_NISO1_PCIE1 0x1000>;
 		msi-parent = <&gic_v2m TEGRA_SID_NISO1_PCIE1>;
 		msi-map = <0x0 &gic_v2m TEGRA_SID_NISO1_PCIE1 0x1000>;
-#else
-		interconnects = <&tegra_icc TEGRA_ICC_PCIE_1 &tegra_icc TEGRA_ICC_PRIMARY>;
-		interconnect-names = "icc_bwmgr";
-		iommus = <&smmu TEGRA_SID_PCIE1>;
-		iommu-map = <0x0 &smmu TEGRA_SID_PCIE1 0x1000>;
-		msi-parent = <&gic_v2m TEGRA_SID_PCIE1>;
-		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE1 0x1000>;
-#endif
 		dma-coherent;
 		iommu-map-mask = <0x0>;
 
@@ -878,7 +831,6 @@
 			     <0 48 0x04>;	/* MSI interrupt */
 		interrupt-names = "intr", "msi";
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE2AR>,
 			        <&mc TEGRA234_MEMORY_CLIENT_PCIE2AW>;
 		interconnect-names = "dma-mem", "dma-mem";
@@ -886,14 +838,6 @@
 		iommu-map = <0x0 &smmu_niso1 TEGRA_SID_NISO1_PCIE2 0x1000>;
 		msi-parent = <&gic_v2m TEGRA_SID_NISO1_PCIE2>;
 		msi-map = <0x0 &gic_v2m TEGRA_SID_NISO1_PCIE2 0x1000>;
-#else
-		interconnects = <&tegra_icc TEGRA_ICC_PCIE_2 &tegra_icc TEGRA_ICC_PRIMARY>;
-		interconnect-names = "icc_bwmgr";
-		iommus = <&smmu TEGRA_SID_PCIE2>;
-		iommu-map = <0x0 &smmu TEGRA_SID_PCIE2 0x1000>;
-		msi-parent = <&gic_v2m TEGRA_SID_PCIE2>;
-		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE2 0x1000>;
-#endif
 		dma-coherent;
 		iommu-map-mask = <0x0>;
 
@@ -966,7 +910,6 @@
 			     <0 50 0x04>;	/* MSI interrupt */
 		interrupt-names = "intr", "msi";
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE3R>,
 			        <&mc TEGRA234_MEMORY_CLIENT_PCIE3W>;
 		interconnect-names = "dma-mem", "dma-mem";
@@ -974,14 +917,6 @@
 		iommu-map = <0x0 &smmu_niso1 TEGRA_SID_NISO1_PCIE3 0x1000>;
 		msi-parent = <&gic_v2m TEGRA_SID_NISO1_PCIE3>;
 		msi-map = <0x0 &gic_v2m TEGRA_SID_NISO1_PCIE3 0x1000>;
-#else
-		interconnects = <&tegra_icc TEGRA_ICC_PCIE_3 &tegra_icc TEGRA_ICC_PRIMARY>;
-		interconnect-names = "icc_bwmgr";
-		iommus = <&smmu TEGRA_SID_PCIE3>;
-		iommu-map = <0x0 &smmu TEGRA_SID_PCIE3 0x1000>;
-		msi-parent = <&gic_v2m TEGRA_SID_PCIE3>;
-		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE3 0x1000>;
-#endif
 		dma-coherent;
 		iommu-map-mask = <0x0>;
 
@@ -1054,7 +989,6 @@
 			     <0 52 0x04>;	/* MSI interrupt */
 		interrupt-names = "intr", "msi";
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE4R>,
 			        <&mc TEGRA234_MEMORY_CLIENT_PCIE4W>;
 		interconnect-names = "dma-mem", "dma-mem";
@@ -1062,14 +996,6 @@
 		iommu-map = <0x0 &smmu_niso0 TEGRA_SID_NISO0_PCIE4 0x1000>;
 		msi-parent = <&gic_v2m TEGRA_SID_NISO0_PCIE4>;
 		msi-map = <0x0 &gic_v2m TEGRA_SID_NISO0_PCIE4 0x1000>;
-#else
-		interconnects = <&tegra_icc TEGRA_ICC_PCIE_4 &tegra_icc TEGRA_ICC_PRIMARY>;
-		interconnect-names = "icc_bwmgr";
-		iommus = <&smmu TEGRA_SID_PCIE4>;
-		iommu-map = <0x0 &smmu TEGRA_SID_PCIE4 0x1000>;
-		msi-parent = <&gic_v2m TEGRA_SID_PCIE4>;
-		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE4 0x1000>;
-#endif
 		dma-coherent;
 		iommu-map-mask = <0x0>;
 
@@ -1142,7 +1068,6 @@
 			     <0 54 0x04>;	/* MSI interrupt */
 		interrupt-names = "intr", "msi";
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE5R>,
 			        <&mc TEGRA234_MEMORY_CLIENT_PCIE5W>;
 		interconnect-names = "dma-mem", "dma-mem";
@@ -1150,14 +1075,6 @@
 		iommu-map = <0x0 &smmu_niso0 TEGRA_SID_NISO0_PCIE5 0x1000>;
 		msi-parent = <&gic_v2m TEGRA_SID_NISO0_PCIE5>;
 		msi-map = <0x0 &gic_v2m TEGRA_SID_NISO0_PCIE5 0x1000>;
-#else
-		interconnects = <&tegra_icc TEGRA_ICC_PCIE_5 &tegra_icc TEGRA_ICC_PRIMARY>;
-		interconnect-names = "icc_bwmgr";
-		iommus = <&smmu TEGRA_SID_PCIE5>;
-		iommu-map = <0x0 &smmu TEGRA_SID_PCIE5 0x1000>;
-		msi-parent = <&gic_v2m TEGRA_SID_PCIE5>;
-		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE5 0x1000>;
-#endif
 		dma-coherent;
 		iommu-map-mask = <0x0>;
 
@@ -1231,7 +1148,6 @@
 			     <0 353 0x04>;	/* MSI interrupt */
 		interrupt-names = "intr", "msi";
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE6AR>,
 			        <&mc TEGRA234_MEMORY_CLIENT_PCIE6AW>;
 		interconnect-names = "dma-mem", "dma-mem";
@@ -1239,14 +1155,6 @@
 		iommu-map = <0x0 &smmu_niso0 TEGRA_SID_NISO0_PCIE6 0x1000>;
 		msi-parent = <&gic_v2m TEGRA_SID_NISO0_PCIE6>;
 		msi-map = <0x0 &gic_v2m TEGRA_SID_NISO0_PCIE6 0x1000>;
-#else
-		interconnects = <&tegra_icc TEGRA_ICC_PCIE_6 &tegra_icc TEGRA_ICC_PRIMARY>;
-		interconnect-names = "icc_bwmgr";
-		iommus = <&smmu TEGRA_SID_PCIE6>;
-		iommu-map = <0x0 &smmu TEGRA_SID_PCIE6 0x1000>;
-		msi-parent = <&gic_v2m TEGRA_SID_PCIE6>;
-		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE6 0x1000>;
-#endif
 		dma-coherent;
 		iommu-map-mask = <0x0>;
 
@@ -1320,7 +1228,6 @@
 			     <0 355 0x04>;	/* MSI interrupt */
 		interrupt-names = "intr", "msi";
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE7AR>,
 			        <&mc TEGRA234_MEMORY_CLIENT_PCIE7AW>;
 		interconnect-names = "dma-mem", "dma-mem";
@@ -1328,14 +1235,6 @@
 		iommu-map = <0x0 &smmu_niso1 TEGRA_SID_NISO1_PCIE7 0x1000>;
 		msi-parent = <&gic_v2m TEGRA_SID_NISO1_PCIE7>;
 		msi-map = <0x0 &gic_v2m TEGRA_SID_NISO1_PCIE7 0x1000>;
-#else
-		interconnects = <&tegra_icc TEGRA_ICC_PCIE_7 &tegra_icc TEGRA_ICC_PRIMARY>;
-		interconnect-names = "icc_bwmgr";
-		iommus = <&smmu TEGRA_SID_PCIE7>;
-		iommu-map = <0x0 &smmu TEGRA_SID_PCIE7 0x1000>;
-		msi-parent = <&gic_v2m TEGRA_SID_PCIE7>;
-		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE7 0x1000>;
-#endif
 		dma-coherent;
 		iommu-map-mask = <0x0>;
 
@@ -1409,7 +1308,6 @@
 			     <0 357 0x04>;	/* MSI interrupt */
 		interrupt-names = "intr", "msi";
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE8AR>,
 			        <&mc TEGRA234_MEMORY_CLIENT_PCIE8AW>;
 		interconnect-names = "dma-mem", "dma-mem";
@@ -1417,14 +1315,6 @@
 		iommu-map = <0x0 &smmu_niso1 TEGRA_SID_NISO1_PCIE8 0x1000>;
 		msi-parent = <&gic_v2m TEGRA_SID_NISO1_PCIE8>;
 		msi-map = <0x0 &gic_v2m TEGRA_SID_NISO1_PCIE8 0x1000>;
-#else
-		interconnects = <&tegra_icc TEGRA_ICC_PCIE_8 &tegra_icc TEGRA_ICC_PRIMARY>;
-		interconnect-names = "icc_bwmgr";
-		iommus = <&smmu TEGRA_SID_PCIE8>;
-		iommu-map = <0x0 &smmu TEGRA_SID_PCIE8 0x1000>;
-		msi-parent = <&gic_v2m TEGRA_SID_PCIE8>;
-		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE8 0x1000>;
-#endif
 		dma-coherent;
 		iommu-map-mask = <0x0>;
 
@@ -1498,7 +1388,6 @@
 			     <0 359 0x04>;	/* MSI interrupt */
 		interrupt-names = "intr", "msi";
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE9AR>,
 			        <&mc TEGRA234_MEMORY_CLIENT_PCIE9AW>;
 		interconnect-names = "dma-mem", "dma-mem";
@@ -1506,14 +1395,6 @@
 		iommu-map = <0x0 &smmu_niso1 TEGRA_SID_NISO1_PCIE9 0x1000>;
 		msi-parent = <&gic_v2m TEGRA_SID_NISO1_PCIE9>;
 		msi-map = <0x0 &gic_v2m TEGRA_SID_NISO1_PCIE9 0x1000>;
-#else
-		interconnects = <&tegra_icc TEGRA_ICC_PCIE_9 &tegra_icc TEGRA_ICC_PRIMARY>;
-		interconnect-names = "icc_bwmgr";
-		iommus = <&smmu TEGRA_SID_PCIE9>;
-		iommu-map = <0x0 &smmu TEGRA_SID_PCIE9 0x1000>;
-		msi-parent = <&gic_v2m TEGRA_SID_PCIE9>;
-		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE9 0x1000>;
-#endif
 		dma-coherent;
 		iommu-map-mask = <0x0>;
 
@@ -1587,7 +1468,6 @@
 			     <0 361 0x04>;	/* MSI interrupt */
 		interrupt-names = "intr", "msi";
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE10AR>,
 			        <&mc TEGRA234_MEMORY_CLIENT_PCIE10AW>;
 		interconnect-names = "dma-mem", "dma-mem";
@@ -1595,14 +1475,6 @@
 		iommu-map = <0x0 &smmu_niso1 TEGRA_SID_NISO1_PCIE10 0x1000>;
 		msi-parent = <&gic_v2m TEGRA_SID_NISO1_PCIE10>;
 		msi-map = <0x0 &gic_v2m TEGRA_SID_NISO1_PCIE10 0x1000>;
-#else
-		interconnects = <&tegra_icc TEGRA_ICC_PCIE_10 &tegra_icc TEGRA_ICC_PRIMARY>;
-		interconnect-names = "icc_bwmgr";
-		iommus = <&smmu TEGRA_SID_PCIE10>;
-		iommu-map = <0x0 &smmu TEGRA_SID_PCIE10 0x1000>;
-		msi-parent = <&gic_v2m TEGRA_SID_PCIE10>;
-		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE10 0x1000>;
-#endif
 		dma-coherent;
 		iommu-map-mask = <0x0>;
 

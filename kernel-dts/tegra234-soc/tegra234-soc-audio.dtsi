@@ -18,21 +18,13 @@
 
 / {
 	sound {
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_APE>;
-#else
-		iommus = <&smmu TEGRA_SID_APE>;
-#endif
 		iommu-resv-regions = <0x0 0x0 0x0 0x40000000 0x0 0x60000000 0xffffffff 0xffffffff>;
 		status = "disabled";
 	};
 
 	sound_ref {
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_APE>;
-#else
-		iommus = <&smmu TEGRA_SID_APE>;
-#endif
 		iommu-resv-regions = <0x0 0x0 0x0 0x40000000 0x0 0x60000000 0xffffffff 0xffffffff>;
 		status = "disabled";
 	};
@@ -135,11 +127,7 @@
 					"adsp", "aclk";
 			resets = <&bpmp_resets TEGRA234_RESET_ADSP_ALL>;
 			reset-names = "adspall";
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 			iommus = <&smmu_niso0 TEGRA_SID_NISO0_APE>;
-#else
-			iommus = <&smmu TEGRA_SID_APE>;
-#endif
 			iommu-resv-regions = <0x0 0x0 0x0 0x40000000 0x0 0x60000000 0xffffffff 0xffffffff>;
 			status = "disabled";
 		};
@@ -701,11 +689,7 @@
 			wakeup-disable;
 			nvidia,adma_ch_start = <16>;
 			nvidia,adma_ch_cnt = <16>;
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 			iommus = <&smmu_niso0 TEGRA_SID_NISO0_APE>;
-#else
-			iommus = <&smmu TEGRA_SID_APE>;
-#endif
 			iommu-resv-regions = <0x0 0x0 0x0 0x40000000 0x0 0x60000000 0xffffffff 0xffffffff>;
 			interrupt-parent = <&tegra_agic>;
 			interrupts = <GIC_SPI INT_ADMA_EOT16 IRQ_TYPE_LEVEL_HIGH
@@ -748,11 +732,7 @@
 	hda@3510000 {
 		compatible = "nvidia,tegra23x-hda";
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_HDA>;
-#else
-		iommus = <&smmu TEGRA_SID_HDA>;
-#endif
 		reg = <0x0 0x3510000 0x0 0x10000>;
 		clocks = <&bpmp_clks TEGRA234_CLK_AZA_2XBIT>,
 			 <&bpmp_clks TEGRA234_CLK_AZA_BIT>;

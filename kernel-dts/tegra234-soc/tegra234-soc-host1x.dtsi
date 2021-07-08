@@ -55,7 +55,6 @@
 		interconnect-names = "dma-mem";
 #endif
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso1 TEGRA_SID_NISO1_HC>,
 			 <&smmu_niso1 TEGRA_SID_NISO1_HC_VM0>,
 			 <&smmu_niso1 TEGRA_SID_NISO1_HC_VM1>,
@@ -65,17 +64,6 @@
 			 <&smmu_niso1 TEGRA_SID_NISO1_HC_VM5>,
 			 <&smmu_niso1 TEGRA_SID_NISO1_HC_VM6>,
 			 <&smmu_niso1 TEGRA_SID_NISO1_HC_VM7>;
-#else
-		iommus = <&smmu TEGRA_SID_HC>,
-			 <&smmu TEGRA_SID_HC_VM0>,
-			 <&smmu TEGRA_SID_HC_VM1>,
-			 <&smmu TEGRA_SID_HC_VM2>,
-			 <&smmu TEGRA_SID_HC_VM3>,
-			 <&smmu TEGRA_SID_HC_VM4>,
-			 <&smmu TEGRA_SID_HC_VM5>,
-			 <&smmu TEGRA_SID_HC_VM6>,
-			 <&smmu TEGRA_SID_HC_VM7>;
-#endif
 		dma-coherent;
 
 		#address-cells = <2>;
@@ -87,93 +75,60 @@
 
 		host1x_ctx0: niso0_ctx0 {
 			compatible = "nvidia,tegra186-iommu-context";
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 			iommus = <&smmu_niso0 TEGRA_SID_NISO0_HOST1X_CTX0>;
-#else
-			iommus = <&smmu TEGRA_SID_HOST1X_CTX0>;
-#endif
 			dma-coherent;
 			status = "okay";
 		};
 
 		host1x_ctx1: niso0_ctx1 {
 			compatible = "nvidia,tegra186-iommu-context";
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 			iommus = <&smmu_niso0 TEGRA_SID_NISO0_HOST1X_CTX1>;
-#else
-			iommus = <&smmu TEGRA_SID_HOST1X_CTX1>;
-#endif
 			dma-coherent;
 			status = "okay";
 		};
 
 		host1x_ctx2: niso0_ctx2 {
 			compatible = "nvidia,tegra186-iommu-context";
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 			iommus = <&smmu_niso0 TEGRA_SID_NISO0_HOST1X_CTX2>;
-#else
-			iommus = <&smmu TEGRA_SID_HOST1X_CTX2>;
-#endif
 			dma-coherent;
 			status = "okay";
 		};
 
 		host1x_ctx3: niso0_ctx3 {
 			compatible = "nvidia,tegra186-iommu-context";
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 			iommus = <&smmu_niso0 TEGRA_SID_NISO0_HOST1X_CTX3>;
-#else
-			iommus = <&smmu TEGRA_SID_HOST1X_CTX3>;
-#endif
 			dma-coherent;
 			status = "okay";
 		};
 
 		host1x_ctx4: niso0_ctx4 {
 			compatible = "nvidia,tegra186-iommu-context";
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 			iommus = <&smmu_niso0 TEGRA_SID_NISO0_HOST1X_CTX4>;
-#else
-			iommus = <&smmu TEGRA_SID_HOST1X_CTX4>;
-#endif
 			dma-coherent;
 			status = "okay";
 		};
 
 		host1x_ctx5: niso0_ctx5 {
 			compatible = "nvidia,tegra186-iommu-context";
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 			iommus = <&smmu_niso0 TEGRA_SID_NISO0_HOST1X_CTX5>;
-#else
-			iommus = <&smmu TEGRA_SID_HOST1X_CTX5>;
-#endif
 			dma-coherent;
 			status = "okay";
 		};
 
 		host1x_ctx6: niso0_ctx6 {
 			compatible = "nvidia,tegra186-iommu-context";
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 			iommus = <&smmu_niso0 TEGRA_SID_NISO0_HOST1X_CTX6>;
-#else
-			iommus = <&smmu TEGRA_SID_HOST1X_CTX6>;
-#endif
 			dma-coherent;
 			status = "okay";
 		};
 
 		host1x_ctx7: niso0_ctx7 {
 			compatible = "nvidia,tegra186-iommu-context";
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 			iommus = <&smmu_niso0 TEGRA_SID_NISO0_HOST1X_CTX7>;
-#else
-			iommus = <&smmu TEGRA_SID_HOST1X_CTX7>;
-#endif
 			dma-coherent;
 			status = "okay";
 		};
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		host1x_ctx0n1: niso1_ctx0 {
 			compatible = "nvidia,tegra186-iommu-context";
 			iommus = <&smmu_niso1 TEGRA_SID_NISO1_HOST1X_CTX0>;
@@ -229,7 +184,6 @@
 			dma-coherent;
 			status = "okay";
 		};
-#endif
 
 		vic@15340000 {
 			compatible = "nvidia,tegra234-vic";
@@ -246,11 +200,7 @@
 					<&mc TEGRA234_MEMORY_CLIENT_VICSWR>;
 			interconnect-names = "dma-mem", "dma-mem";
 #endif
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 			iommus = <&smmu_niso1 TEGRA_SID_NISO1_VIC>;
-#else
-			iommus = <&smmu TEGRA_SID_VIC>;
-#endif
 			dma-coherent;
 			status = "okay";
 		};
@@ -263,11 +213,7 @@
 			clocks = <&bpmp_clks TEGRA234_CLK_NVJPG>;
 			clock-names = "nvjpg";
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 			iommus = <&smmu_niso1 TEGRA_SID_NISO1_NVJPG>;
-#else
-			iommus = <&smmu TEGRA_SID_NVJPG>;
-#endif
 			dma-coherent;
 			status = "okay";
 		};
@@ -280,11 +226,7 @@
 			clocks = <&bpmp_clks TEGRA234_CLK_NVJPG1>;
 			clock-names = "nvjpg";
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 			iommus = <&smmu_niso0 TEGRA_SID_NISO0_NVJPG1>;
-#else
-			iommus = <&smmu TEGRA_SID_NVJPG1>;
-#endif
 			dma-coherent;
 			status = "okay";
 		};
@@ -297,11 +239,7 @@
 				 <&bpmp_clks TEGRA234_CLK_FUSE>;
 			clock-names = "tsec", "efuse";
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 			iommus = <&smmu_niso1 TEGRA_SID_NISO1_TSEC>;
-#else
-			iommus = <&smmu TEGRA_SID_TSEC>;
-#endif
 			dma-coherent;
 			status = "okay";
 		};
@@ -316,11 +254,7 @@
 				 <&bpmp_clks TEGRA234_CLK_FUSE>;
 			clock-names = "nvdec", "kfuse", "efuse";
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 			iommus = <&smmu_niso1 TEGRA_SID_NISO1_NVDEC>;
-#else
-			iommus = <&smmu TEGRA_SID_NVDEC>;
-#endif
 			dma-coherent;
 			status = "okay";
 		};
@@ -333,11 +267,7 @@
 			clocks = <&bpmp_clks TEGRA234_CLK_NVENC>;
 			clock-names = "nvenc";
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 			iommus = <&smmu_niso0 TEGRA_SID_NISO0_NVENC>;
-#else
-			iommus = <&smmu TEGRA_SID_NVENC>;
-#endif
 			dma-coherent;
 			status = "okay";
 		};
@@ -350,11 +280,7 @@
 			clocks = <&bpmp_clks TEGRA234_CLK_OFA>;
 			clock-names = "ofa";
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 			iommus = <&smmu_niso0 TEGRA_SID_NISO0_OFA>;
-#else
-			iommus = <&smmu TEGRA_SID_OFA>;
-#endif
 			dma-coherent;
 			status = "okay";
 		};
@@ -365,12 +291,7 @@
 			clock-names = "vi";
 			nvidia,vi-falcon-device = <&vi0_thi>;
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 			iommus = <&smmu_iso TEGRA_SID_ISO_VI>;
-#else
-			iommus = <&smmu TEGRA_SID_VI>;
-			iso-smmu;
-#endif
 			non-coherent;
 			status = "okay";
 		};
@@ -386,12 +307,7 @@
 			clock-names = "vi";
 			nvidia,vi-falcon-device = <&vi1_thi>;
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 			iommus = <&smmu_iso TEGRA_SID_ISO_VI2>;
-#else
-			iommus = <&smmu TEGRA_SID_VI2>;
-			iso-smmu;
-#endif
 			non-coherent;
 			status = "okay";
 		};
@@ -412,11 +328,7 @@
 			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_ISPA>;
 			nvidia,isp-falcon-device = <&isp_thi>;
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 			iommus = <&smmu_niso1 TEGRA_SID_NISO1_ISP>;
-#else
-			iommus = <&smmu TEGRA_SID_ISP>;
-#endif
 			dma-coherent;
 			status = "okay";
 		};
@@ -451,7 +363,6 @@
 				 <&bpmp_clks TEGRA234_CLK_PVA0_VPS>;
 			clock-names = "axi", "vps0", "vps1";
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 			iommus = <&smmu_niso1 TEGRA_SID_NISO1_PVA0>,
 			         <&smmu_niso1 TEGRA_SID_NISO1_PVA0_VM0>,
 			         <&smmu_niso1 TEGRA_SID_NISO1_PVA0_VM1>,
@@ -461,17 +372,6 @@
 			         <&smmu_niso1 TEGRA_SID_NISO1_PVA0_VM5>,
 			         <&smmu_niso1 TEGRA_SID_NISO1_PVA0_VM6>,
 			         <&smmu_niso1 TEGRA_SID_NISO1_PVA0_VM7>;
-#else
-			iommus = <&smmu TEGRA_SID_PVA0>,
-			         <&smmu TEGRA_SID_PVA_VM0>,
-			         <&smmu TEGRA_SID_PVA_VM1>,
-			         <&smmu TEGRA_SID_PVA_VM2>,
-			         <&smmu TEGRA_SID_PVA_VM3>,
-			         <&smmu TEGRA_SID_PVA_VM4>,
-			         <&smmu TEGRA_SID_PVA_VM5>,
-			         <&smmu TEGRA_SID_PVA_VM6>,
-			         <&smmu TEGRA_SID_PVA_VM7>;
-#endif
 			dma-coherent;
 			status = "okay";
 		};
@@ -487,11 +387,7 @@
 				 <&bpmp_clks TEGRA234_CLK_DLA0_FALCON>;
 			clock-names = "nvdla0", "nvdla0_flcn";
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 			iommus = <&smmu_niso1 TEGRA_SID_NISO1_NVDLA0>;
-#else
-			iommus = <&smmu TEGRA_SID_NVDLA0>;
-#endif
 			dma-coherent;
 			status = "okay";
 		};
@@ -507,11 +403,7 @@
 				 <&bpmp_clks TEGRA234_CLK_DLA1_FALCON>;
 			clock-names = "nvdla1", "nvdla1_flcn";
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 			iommus = <&smmu_niso0 TEGRA_SID_NISO0_NVDLA1>;
-#else
-			iommus = <&smmu TEGRA_SID_NVDLA1>;
-#endif
 			dma-coherent;
 			status = "okay";
 		};
@@ -526,11 +418,7 @@
 			clocks = <&bpmp_clks TEGRA234_CLK_SE>;
 			clock-names = "se";
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 			iommus = <&smmu_niso1 TEGRA_SID_NISO1_SES_SE0>;
-#else
-			iommus = <&smmu TEGRA_SID_SE>;
-#endif
 			dma-coherent;
 
 			status = "okay";
@@ -546,11 +434,7 @@
 			clocks = <&bpmp_clks TEGRA234_CLK_SE>;
 			clock-names = "se";
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 			iommus = <&smmu_niso1 TEGRA_SID_NISO1_SES_SE1>;
-#else
-			iommus = <&smmu TEGRA_SID_SE1>;
-#endif
 			dma-coherent;
 
 			status = "okay";
@@ -566,11 +450,7 @@
 			clocks = <&bpmp_clks TEGRA234_CLK_SE>;
 			clock-names = "se";
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 			iommus = <&smmu_niso1 TEGRA_SID_NISO1_SES_SE2>;
-#else
-			iommus = <&smmu TEGRA_SID_SE2>;
-#endif
 			dma-coherent;
 
 			status = "okay";

@@ -78,11 +78,7 @@
 		resets = <&bpmp_resets TEGRA234_RESET_LA>,
 			<&bpmp_resets TEGRA234_RESET_HWPM>;
 		reset-names = "la", "hwpm";
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso1 TEGRA_SID_NISO1_HWMP_PMA>;
-#else
-		iommus = <&smmu TEGRA_SID_PMA>;
-#endif
 		status = "disabled";
 	};
 };

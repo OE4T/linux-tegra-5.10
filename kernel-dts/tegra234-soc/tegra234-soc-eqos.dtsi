@@ -93,11 +93,7 @@
 			      "eqos_ptp_ref", "eqos_tx", "axi_cbb",
 			      "eqos_rx_m", "eqos_rx_input",
 			       "eqos_macsec_tx", "eqos_macsec_rx";
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso1 TEGRA_SID_NISO1_EQOS>;
-#else
-		iommus = <&smmu TEGRA_SID_EQOS>;
-#endif
 		nvidia,num-dma-chans = <8>;
 		nvidia,num-mtl-queues = <8>;
 		nvidia,mtl-queues = <0 1 2 3 4 5 6 7>;
