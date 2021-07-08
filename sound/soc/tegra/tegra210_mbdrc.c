@@ -145,7 +145,7 @@ static int tegra210_mbdrc_get(struct snd_kcontrol *kcontrol,
 		(struct soc_mixer_control *)kcontrol->private_value;
 	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
 	struct tegra210_ope *ope = snd_soc_component_get_drvdata(cmpnt);
-	unsigned long long fls_val = 1 << fls(mc->max);
+	unsigned long long fls_val = 1ULL << fls(mc->max);
 	unsigned int mask = fls_val -  1;
 	unsigned int val;
 
@@ -165,7 +165,7 @@ static int tegra210_mbdrc_put(struct snd_kcontrol *kcontrol,
 		(struct soc_mixer_control *)kcontrol->private_value;
 	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
 	struct tegra210_ope *ope = snd_soc_component_get_drvdata(cmpnt);
-	unsigned long long fls_val = 1 << fls(mc->max);
+	unsigned long long fls_val = 1ULL << fls(mc->max);
 	unsigned int mask = fls_val -  1;
 	unsigned int val;
 
