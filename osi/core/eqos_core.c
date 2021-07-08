@@ -4514,7 +4514,10 @@ static int eqos_hw_config_est(struct osi_core_priv_data *osi_core,
 		}
 	}
 
-	if (est->btr[0] == 0U && est->btr[1] == 0U) {
+	btr[0] = est->btr[0];
+	btr[1] = est->btr[1];
+
+	if (btr[0] == 0U && btr[1] == 0U) {
 		common_get_systime_from_mac(osi_core->base, osi_core->mac,
 					    &btr[1], &btr[0]);
 	}
