@@ -1,7 +1,4 @@
 /*
- * tegra-soc-hwpm-uapi.h:
- * This is the userspace API header for the Tegra SOC HWPM driver.
- *
  * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -15,6 +12,9 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * tegra-soc-hwpm-uapi.h:
+ * This is the userspace API header for the Tegra SOC HWPM driver.
  */
 
 #ifndef TEGRA_SOC_HWPM_UAPI_H
@@ -206,16 +206,15 @@ struct tegra_soc_hwpm_reg_op {
 	__u8 cmd;
 
 /*
- * INVALID is first so the default value of 0 is not a valid value.
- * User is forced to pick a real value
+ * Return RegOps status
  */
-#define TEGRA_SOC_HWPM_REG_OP_STATUS_INVALID			0
+#define TEGRA_SOC_HWPM_REG_OP_STATUS_SUCCESS			0
 #define TEGRA_SOC_HWPM_REG_OP_STATUS_INVALID_CMD		1
  /* FIXME: What is this error code for? */
 #define TEGRA_SOC_HWPM_REG_OP_STATUS_INVALID_ADDR		2
  /* not in whitelist */
 #define TEGRA_SOC_HWPM_REG_OP_STATUS_INSUFFICIENT_PERMISSIONS	3
-#define TEGRA_SOC_HWPM_REG_OP_STATUS_SUCCESS			4
+#define TEGRA_SOC_HWPM_REG_OP_STATUS_WR_FAILED			4
 	__u8 status;
 
 	/* Explicit padding for 8 Byte alignment */

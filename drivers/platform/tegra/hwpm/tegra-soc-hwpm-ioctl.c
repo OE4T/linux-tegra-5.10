@@ -904,7 +904,7 @@ static int exec_reg_ops_ioctl(struct tegra_soc_hwpm *hwpm,
 				reg_op->phys_addr, reg_op->mask_lo,
 				reg_op->reg_val_lo, true, aperture->is_ip);
 			if (ret < 0) {
-				REG_OP_FAIL(INVALID,
+				REG_OP_FAIL(WR_FAILED,
 					"WR32 REGOP failed for register(0x%llx)",
 					reg_op->phys_addr);
 			} else {
@@ -919,7 +919,7 @@ static int exec_reg_ops_ioctl(struct tegra_soc_hwpm *hwpm,
 				reg_op->phys_addr, reg_op->mask_lo,
 				reg_op->reg_val_lo, true, aperture->is_ip);
 			if (ret < 0) {
-				REG_OP_FAIL(INVALID,
+				REG_OP_FAIL(WR_FAILED,
 					"WR64 REGOP failed for register(0x%llx)",
 					reg_op->phys_addr);
 				continue;
@@ -930,7 +930,7 @@ static int exec_reg_ops_ioctl(struct tegra_soc_hwpm *hwpm,
 				reg_op->phys_addr + 4, reg_op->mask_hi,
 				reg_op->reg_val_hi, true, aperture->is_ip);
 			if (ret < 0) {
-				REG_OP_FAIL(INVALID,
+				REG_OP_FAIL(WR_FAILED,
 					"WR64 REGOP failed for register(0x%llx)",
 					reg_op->phys_addr + 4);
 			} else {
