@@ -408,9 +408,19 @@ struct nvhost_device_data {
 	/* deliver task timestamps for falcon */
 	void (*enable_timestamps)(struct platform_device *pdev,
 			struct nvhost_cdma *cdma, dma_addr_t timestamp_addr);
-#if IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
-	#include "linux/nvhost_device_data_t23x.h"
-#endif /* CONFIG_TEGRA_T23X_GRHOST */
+
+	/* enable risc-v boot */
+	bool enable_riscv_boot;
+
+	/* store the risc-v info */
+	void *riscv_data;
+
+	/* name of riscv descriptor binary */
+	char *riscv_desc_bin;
+
+	/* name of riscv image binary */
+	char *riscv_image_bin;
+
 };
 
 

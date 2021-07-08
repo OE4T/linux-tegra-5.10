@@ -419,11 +419,8 @@ enum nvhost_module_id {
 	NVHOST_MODULE_NVENC1,
 	NVHOST_MODULE_NVDEC1,
 	NVHOST_MODULE_NVCSI,
-#ifdef __KERNEL__
-#if IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
-	#include "uapi/linux/nvhost_ioctl_t23x.h"
-#endif /* CONFIG_TEGRA_T23X_GRHOST */
-#endif /* __KERNEL__ */
+	NVHOST_MODULE_NVJPG1,
+	NVHOST_MODULE_OFA,
 	NVHOST_MODULE_INVALID
 };
 

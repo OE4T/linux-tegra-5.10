@@ -1,7 +1,7 @@
 /*
 * Tegra Host1x Virtualization client common driver
 *
-* Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+* Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
 *
 * This program is free software; you can redistribute it and/or modify it
 * under the terms and conditions of the GNU General Public License,
@@ -29,9 +29,7 @@
 #include "vhost.h"
 #include "t186/t186.h"
 #include "t194/t194.h"
-#ifdef CONFIG_TEGRA_T23X_GRHOST
 #include "t23x/t23x.h"
-#endif
 
 #define TEGRA_ISPB_BASE			0x54680000
 #define TEGRA_ISP_BASE			0x54600000
@@ -111,10 +109,49 @@ static struct of_device_id tegra_client_of_match[] = {
 	{ .compatible = "nvidia,tegra194-vhost-nvcsi",
 		.data = (struct nvhost_device_data *)&t19_nvcsi_info },
 #endif
-
-#ifdef CONFIG_TEGRA_T23X_GRHOST
-#include "vhost/vhost_client_t23x.h"
+#if defined(CONFIG_TEGRA_GRHOST_VIC)
+	{ .compatible = "nvidia,tegra234-vhost-vic",
+		.data = (struct nvhost_device_data *)&t23x_vic_info },
 #endif
+#if defined(CONFIG_TEGRA_GRHOST_NVJPG)
+	{ .compatible = "nvidia,tegra234-vhost-nvjpg",
+		.data = (struct nvhost_device_data *)&t23x_nvjpg_info,
+		.name = "nvjpg" },
+	{ .compatible = "nvidia,tegra234-vhost-nvjpg",
+		.data = (struct nvhost_device_data *)&t23x_nvjpg1_info,
+		.name = "nvjpg1" },
+#endif
+#if defined(CONFIG_TEGRA_GRHOST_NVENC)
+	{ .compatible = "nvidia,tegra234-vhost-nvenc",
+		.data = (struct nvhost_device_data *)&t23x_msenc_info,
+		.name = "nvenc" },
+#endif
+#if defined(CONFIG_TEGRA_GRHOST_NVDEC)
+	{ .compatible = "nvidia,tegra234-vhost-nvdec",
+		.data = (struct nvhost_device_data *)&t23x_nvdec_info,
+		.name = "nvdec" },
+#endif
+#if defined(CONFIG_TEGRA_GRHOST_OFA)
+	{ .compatible = "nvidia,tegra234-vhost-ofa",
+		.data = (struct nvhost_device_data *)&t23x_ofa_info },
+#endif
+#if IS_ENABLED(CONFIG_VIDEO_TEGRA_VI)
+	{ .compatible = "nvidia,tegra234-vhost-vi",
+		.data = (struct nvhost_device_data *)&t23x_vi0_info,
+		.name = "vi0" },
+	{ .compatible = "nvidia,tegra234-vhost-vi",
+		.data = (struct nvhost_device_data *)&t23x_vi1_info,
+		.name = "vi1" },
+#endif
+#ifdef CONFIG_TEGRA_GRHOST_ISP
+	{ .compatible = "nvidia,tegra234-vhost-isp",
+		.data = (struct nvhost_device_data *)&t23x_isp5_info },
+#endif
+#if defined(CONFIG_TEGRA_GRHOST_NVCSI)
+	{ .compatible = "nvidia,tegra234-vhost-nvcsi",
+		.data = (struct nvhost_device_data *)&t23x_nvcsi_info },
+#endif
+
 	{ },
 };
 

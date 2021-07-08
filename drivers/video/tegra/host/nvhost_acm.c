@@ -41,10 +41,8 @@
 #include <linux/nospec.h>
 
 #include <linux/platform/tegra/mc.h>
-#if IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
 #include <linux/platform/tegra/mc_utils.h>
-#endif
-#if IS_ENABLED(CONFIG_INTERCONNECT) && IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
+#if IS_ENABLED(CONFIG_INTERCONNECT)
 #include <linux/interconnect.h>
 #include <dt-bindings/interconnect/tegra_icc_id.h>
 #endif
@@ -125,7 +123,7 @@ static void do_module_reset_locked(struct platform_device *dev)
 static bool nvhost_is_bw_handle_valid(struct nvhost_device_data *pdata)
 {
 	bool ret = false;
-#if IS_ENABLED(CONFIG_INTERCONNECT) && IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
+#if IS_ENABLED(CONFIG_INTERCONNECT)
 	ret |= !IS_ERR_OR_NULL(pdata->icc_path_handle);
 #endif
 #if IS_ENABLED(CONFIG_TEGRA_BWMGR)
@@ -148,7 +146,7 @@ static void nvhost_register_bw(struct device *devp,
 		return;
 	}
 
-#if IS_ENABLED(CONFIG_INTERCONNECT) && IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
+#if IS_ENABLED(CONFIG_INTERCONNECT)
 	/* get icc_path handle if needed */
 	if (pdata->icc_id) {
 		pdata->icc_path_handle =
@@ -168,7 +166,7 @@ static void nvhost_register_bw(struct device *devp,
 
 static void nvhost_unregister_bw(struct nvhost_device_data *pdata)
 {
-#if IS_ENABLED(CONFIG_INTERCONNECT) && IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
+#if IS_ENABLED(CONFIG_INTERCONNECT)
 	if (!IS_ERR_OR_NULL(pdata->icc_path_handle))
 		icc_put(pdata->icc_path_handle);
 #endif
@@ -188,7 +186,7 @@ static int nvhost_get_emc_rate(struct nvhost_device_data *pdata,
 	 * them when respective framework is enabled. Keeping it simple.
 	 */
 
-#if IS_ENABLED(CONFIG_INTERCONNECT) && IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
+#if IS_ENABLED(CONFIG_INTERCONNECT)
 	if (!IS_ERR_OR_NULL(pdata->icc_path_handle)) {
 		*rate = tegra_get_emc_rate();
 		ret = 0;
@@ -208,7 +206,7 @@ static int nvhost_set_emc_rate(struct device *devp,
 				int index,
 				unsigned long rate)
 {
-#if IS_ENABLED(CONFIG_INTERCONNECT) && IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
+#if IS_ENABLED(CONFIG_INTERCONNECT)
 	if (!IS_ERR_OR_NULL(pdata->icc_path_handle)) {
 		u32 avg_bw_kbps = 0;
 		u32 floor_bw_kbps = 0;
@@ -274,7 +272,7 @@ static unsigned long nvhost_emc_bw_to_freq_req(struct device *devp,
 	 * them when respective framework is enabled. Keeping it simple.
 	 */
 
-#if IS_ENABLED(CONFIG_INTERCONNECT) && IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
+#if IS_ENABLED(CONFIG_INTERCONNECT)
 	if (!IS_ERR_OR_NULL(pdata->icc_path_handle))
 		return emc_bw_to_freq((unsigned long)(bw));
 #endif
