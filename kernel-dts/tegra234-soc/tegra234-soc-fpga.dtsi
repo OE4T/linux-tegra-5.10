@@ -442,6 +442,11 @@
 				alloc-ranges = <0x0 0x80000000 0x0 0x70000000>;
 		};
 
+		/* The sec-mon memory in bootwrapper */
+		sec-mon {
+			reg = <0x0 0x84080000 0x0 0x400000>;
+		};
+
 		bpmp-fw {
                         reg = <0x0 0x84c00000 0x0 0x400000>;
                 };
