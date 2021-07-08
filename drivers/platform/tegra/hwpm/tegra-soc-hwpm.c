@@ -92,30 +92,28 @@ static int tegra_soc_hwpm_probe(struct platform_device *pdev)
 		goto device_create;
 	}
 
-	/* FIXME: Enable clock and reset programming */
-#if 0
-	hwpm->la_clk = devm_clk_get(hwpm->dev, "la");
-	if (IS_ERR(hwpm->la_clk)) {
-		tegra_soc_hwpm_err("Missing la clock");
-		ret = PTR_ERR(hwpm->la_clk);
-		goto fail;
-	}
+	if (tegra_platform_is_silicon()) {
+		hwpm->la_clk = devm_clk_get(hwpm->dev, "la");
+		if (IS_ERR(hwpm->la_clk)) {
+			tegra_soc_hwpm_err("Missing la clock");
+			ret = PTR_ERR(hwpm->la_clk);
+			goto clock_reset_fail;
+		}
 
-	hwpm->la_rst = devm_reset_control_get(hwpm->dev, "la");
-	if (IS_ERR(hwpm->la_rst)) {
-		tegra_soc_hwpm_err("Missing la reset");
-		ret = PTR_ERR(hwpm->la_rst);
-		goto fail;
-	}
+		hwpm->la_rst = devm_reset_control_get(hwpm->dev, "la");
+		if (IS_ERR(hwpm->la_rst)) {
+			tegra_soc_hwpm_err("Missing la reset");
+			ret = PTR_ERR(hwpm->la_rst);
+			goto clock_reset_fail;
+		}
 
-	hwpm->hwpm_rst = devm_reset_control_get(hwpm->dev, "hwpm");
-	if (IS_ERR(hwpm->hwpm_rst)) {
-		tegra_soc_hwpm_err("Missing hwpm reset");
-		ret = PTR_ERR(hwpm->hwpm_rst);
-		goto fail;
+		hwpm->hwpm_rst = devm_reset_control_get(hwpm->dev, "hwpm");
+		if (IS_ERR(hwpm->hwpm_rst)) {
+			tegra_soc_hwpm_err("Missing hwpm reset");
+			ret = PTR_ERR(hwpm->hwpm_rst);
+			goto clock_reset_fail;
+		}
 	}
-	*/
-#endif
 
 	tegra_soc_hwpm_debugfs_init(hwpm);
 
@@ -134,6 +132,15 @@ static int tegra_soc_hwpm_probe(struct platform_device *pdev)
 	goto success;
 
 
+clock_reset_fail:
+	if (tegra_platform_is_silicon()) {
+		if (hwpm->la_clk)
+			devm_clk_put(hwpm->dev, hwpm->la_clk);
+		if (hwpm->la_rst)
+			reset_control_assert(hwpm->la_rst);
+		if (hwpm->hwpm_rst)
+			reset_control_assert(hwpm->hwpm_rst);
+	}
 device_create:
 	cdev_del(&hwpm->cdev);
 cdev_add:
@@ -142,16 +149,6 @@ alloc_chrdev_region:
 	class_unregister(&hwpm->class);
 class_register:
 	kfree(hwpm);
-	/* FIXME: Enable clock and reset programming */
-#if 0
-	if (hwpm->la_clk)
-		devm_clk_put(hwpm->dev, hwpm->la_clk);
-	if (hwpm->la_rst)
-		reset_control_assert(hwpm->la_rst);
-	if (hwpm->hwpm_rst)
-		reset_control_assert(hwpm->hwpm_rst);
-	*/
-#endif
 fail:
 	tegra_soc_hwpm_err("Probe failed!");
 success:
@@ -175,16 +172,14 @@ static int tegra_soc_hwpm_remove(struct platform_device *pdev)
 
 	tegra_soc_hwpm_debugfs_deinit(hwpm);
 
-	/* FIXME: Enable clock and reset programming */
-#if 0
-	if (hwpm->la_clk)
-		devm_clk_put(hwpm->dev, hwpm->la_clk);
-	if (hwpm->la_rst)
-		reset_control_assert(hwpm->la_rst);
-	if (hwpm->hwpm_rst)
-		reset_control_assert(hwpm->hwpm_rst);
-	*/
-#endif
+	if (tegra_platform_is_silicon()) {
+		if (hwpm->la_clk)
+			devm_clk_put(hwpm->dev, hwpm->la_clk);
+		if (hwpm->la_rst)
+			reset_control_assert(hwpm->la_rst);
+		if (hwpm->hwpm_rst)
+			reset_control_assert(hwpm->hwpm_rst);
+	}
 
 	device_destroy(&hwpm->class, hwpm->dev_t);
 	cdev_del(&hwpm->cdev);

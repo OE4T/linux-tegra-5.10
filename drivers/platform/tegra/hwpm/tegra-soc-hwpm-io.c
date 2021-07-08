@@ -1,8 +1,4 @@
 /*
- * tegra-soc-hwpm-io.c:
- * This file contians register read/write functions for the Tegra SOC HWPM
- * driver.
- *
  * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -16,6 +12,10 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * tegra-soc-hwpm-io.c:
+ * This file contains register read/write functions for the Tegra SOC HWPM
+ * driver.
  */
 
 #include "tegra-soc-hwpm-io.h"

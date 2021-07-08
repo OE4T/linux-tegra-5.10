@@ -1,7 +1,4 @@
 /*
- * tegra-soc-hwpm-ioctl.c:
- * This file adds IOCTL handlers for the Tegra SOC HWPM driver.
- *
  * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -15,8 +12,12 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * tegra-soc-hwpm-ioctl.c:
+ * This file adds IOCTL handlers for the Tegra SOC HWPM driver.
  */
 
+#include <soc/tegra/fuse.h>
 #include <linux/kernel.h>
 #include <linux/uaccess.h>
 #include <linux/slab.h>
@@ -1132,39 +1133,38 @@ static int tegra_soc_hwpm_open(struct inode *inode, struct file *filp)
 	}
 	filp->private_data = hwpm;
 
-	/* FIXME: Enable clock and reset programming */
-#if 0
-	ret = reset_control_assert(hwpm->hwpm_rst);
-	if (ret < 0) {
-		tegra_soc_hwpm_err("hwpm reset assert failed");
-		ret = -ENODEV;
-		goto fail;
+	if (tegra_platform_is_silicon()) {
+		ret = reset_control_assert(hwpm->hwpm_rst);
+		if (ret < 0) {
+			tegra_soc_hwpm_err("hwpm reset assert failed");
+			ret = -ENODEV;
+			goto fail;
+		}
+		ret = reset_control_assert(hwpm->la_rst);
+		if (ret < 0) {
+			tegra_soc_hwpm_err("la reset assert failed");
+			ret = -ENODEV;
+			goto fail;
+		}
+		ret = clk_prepare_enable(hwpm->la_clk);
+		if (ret < 0) {
+			tegra_soc_hwpm_err("la clock enable failed");
+			ret = -ENODEV;
+			goto fail;
+		}
+		ret = reset_control_deassert(hwpm->la_rst);
+		if (ret < 0) {
+			tegra_soc_hwpm_err("la reset deassert failed");
+			ret = -ENODEV;
+			goto fail;
+		}
+		ret = reset_control_deassert(hwpm->hwpm_rst);
+		if (ret < 0) {
+			tegra_soc_hwpm_err("hwpm reset deassert failed");
+			ret = -ENODEV;
+			goto fail;
+		}
 	}
-	ret = reset_control_assert(hwpm->la_rst);
-	if (ret < 0) {
-		tegra_soc_hwpm_err("la reset assert failed");
-		ret = -ENODEV;
-		goto fail;
-	}
-	ret = clk_prepare_enable(hwpm->la_clk);
-	if (ret < 0) {
-		tegra_soc_hwpm_err("la clock enable failed");
-		ret = -ENODEV;
-		goto fail;
-	}
-	ret = reset_control_deassert(hwpm->la_rst);
-	if (ret < 0) {
-		tegra_soc_hwpm_err("la reset deassert failed");
-		ret = -ENODEV;
-		goto fail;
-	}
-	ret = reset_control_deassert(hwpm->hwpm_rst);
-	if (ret < 0) {
-		tegra_soc_hwpm_err("hwpm reset deassert failed");
-		ret = -ENODEV;
-		goto fail;
-	}
-#endif
 
 	/* Map PMA and RTR apertures */
 	hwpm->dt_apertures[TEGRA_SOC_HWPM_PMA_DT] =
@@ -1518,15 +1518,13 @@ static int tegra_soc_hwpm_release(struct inode *inode, struct file *filp)
 	}
 	hwpm->mem_bytes_dma_buf = NULL;
 
-	/* FIXME: Enable clock and reset programming */
-	/* FIXME: Tell IPs which are being profiled to re-enable power management */
-#if 0
-	err = reset_control_assert(hwpm->hwpm_rst);
-	RELEASE_FAIL("hwpm reset assert failed");
-	err = reset_control_assert(hwpm->la_rst);
-	RELEASE_FAIL("la reset assert failed");
-	clk_disable_unprepare(hwpm->la_clk);
-#endif
+	if (tegra_platform_is_silicon()) {
+		err = reset_control_assert(hwpm->hwpm_rst);
+		RELEASE_FAIL("hwpm reset assert failed");
+		err = reset_control_assert(hwpm->la_rst);
+		RELEASE_FAIL("la reset assert failed");
+		clk_disable_unprepare(hwpm->la_clk);
+	}
 
 	/* FIXME: Remove after verification */
 	/* Enable SLCG */

@@ -1,7 +1,4 @@
 /*
- * tegra-soc-hwpm.h:
- * This is the header for the Tegra SOC HWPM driver.
- *
  * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -15,6 +12,9 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * tegra-soc-hwpm.h:
+ * This is the header for the Tegra SOC HWPM driver.
  */
 
 #ifndef TEGRA_SOC_HWPM_H
@@ -66,12 +66,9 @@ struct tegra_soc_hwpm {
 	void __iomem *dt_apertures[TEGRA_SOC_HWPM_NUM_DT_APERTURES];
 
 	/* Clocks and resets */
-	/* FIXME: Enable clock and reset programming */
-#if 0
 	struct clk *la_clk;
 	struct reset_control *la_rst;
 	struct reset_control *hwpm_rst;
-#endif
 
 	/* Memory Management */
 	struct dma_buf *stream_dma_buf;
