@@ -497,6 +497,47 @@ static void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaadd
 
 }
 
+#ifdef OSI_DMA_DEBUG
+/**
+ * @brief Dumps the data to trace buffer
+ *
+ * @param[in] osi_dma: OSI DMA private data.
+ * @param[in] type: Type of data to be dump.
+ * @param[in] fmt: Data format.
+ */
+static void osd_printf(struct osi_dma_priv_data *osi_dma,
+		       unsigned int type,
+		       const char *fmt, ...)
+{
+	char buf[512];
+	va_list args;
+
+	va_start(args, fmt);
+	vsprintf(buf, fmt, args);
+
+	switch (type) {
+	case OSI_DMA_DEBUG_DESC:
+#if 0
+		/**
+		 * TODO: trace_printk resulted in kernel warning GVS failure.
+		 * Add support for writing to a file
+		 */
+		trace_printk("%s", buf);
+#endif
+		pr_err("%s", buf);
+		break;
+	case OSI_DMA_DEBUG_REG:
+	case OSI_DMA_DEBUG_STRUCTS:
+		pr_err("%s", buf);
+		break;
+	default:
+		pr_err("Unsupported debug type\n");
+		break;
+	}
+	va_end(args);
+}
+#endif
+
 void ether_assign_osd_ops(struct osi_core_priv_data *osi_core,
 			  struct osi_dma_priv_data *osi_dma)
 {
@@ -511,6 +552,9 @@ void ether_assign_osd_ops(struct osi_core_priv_data *osi_core,
 	osi_dma->osd_ops.realloc_buf = osd_realloc_buf;
 	osi_dma->osd_ops.ops_log = osd_log;
 	osi_dma->osd_ops.udelay = osd_udelay;
+#ifdef OSI_DMA_DEBUG
+	osi_dma->osd_ops.printf = osd_printf;
+#endif
 }
 
 /**
