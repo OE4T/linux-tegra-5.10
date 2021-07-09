@@ -449,6 +449,7 @@ cleanup:
 int parse_card_info(struct snd_soc_card *card, struct snd_soc_ops *pcm_ops,
 		    struct snd_soc_compr_ops *compr_ops)
 {
+	struct tegra_machine *machine = snd_soc_card_get_drvdata(card);
 	struct device_node *node = card->dev->of_node;
 	int ret;
 
@@ -477,6 +478,11 @@ int parse_card_info(struct snd_soc_card *card, struct snd_soc_ops *pcm_ops,
 	}
 
 	parse_mclk_fs(card);
+
+	if (of_property_read_bool(node, "fixed-pll")) {
+		machine->audio_clock.fixed_pll = true;
+		dev_info(card->dev, "PLL configuration is fixed from DT\n");
+	}
 
 	ret = parse_dt_dai_links(card, pcm_ops, compr_ops);
 	if (ret < 0)

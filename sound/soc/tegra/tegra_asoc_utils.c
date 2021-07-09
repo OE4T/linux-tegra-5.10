@@ -175,6 +175,9 @@ int tegra_asoc_utils_set_tegra210_rate(struct tegra_asoc_utils_data *data,
 	unsigned int new_pll_base, pll_out, aud_mclk = 0;
 	int err;
 
+	if (data->fixed_pll)
+		goto update_mclk_rate;
+
 	switch (sample_rate) {
 	case 11025:
 	case 22050:
@@ -200,8 +203,6 @@ int tegra_asoc_utils_set_tegra210_rate(struct tegra_asoc_utils_data *data,
 	/* reduce pll_out rate to support lower sampling rates */
 	if (sample_rate <= 11025)
 		pll_out = pll_out >> 1;
-	if (data->mclk_fs)
-		aud_mclk = sample_rate * data->mclk_fs;
 
 	if (data->set_baseclock != new_pll_base) {
 		err = clk_set_rate(data->clk_pll_a, new_pll_base);
@@ -222,6 +223,10 @@ int tegra_asoc_utils_set_tegra210_rate(struct tegra_asoc_utils_data *data,
 		}
 		data->set_pll_out = pll_out;
 	}
+
+update_mclk_rate:
+	if (data->mclk_fs)
+		aud_mclk = sample_rate * data->mclk_fs;
 
 	if (data->set_mclk != aud_mclk) {
 		err = clk_set_rate(data->clk_cdev1, aud_mclk);

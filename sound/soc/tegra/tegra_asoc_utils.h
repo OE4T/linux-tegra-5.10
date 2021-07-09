@@ -3,7 +3,7 @@
  * tegra_asoc_utils.h - Definitions for Tegra DAS driver
  *
  * Author: Stephen Warren <swarren@nvidia.com>
- * Copyright (C) 2010,2012 - NVIDIA, Inc.
+ * Copyright (c) 2010,2012-2021, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #ifndef __TEGRA_ASOC_UTILS_H__
@@ -33,6 +33,7 @@ struct tegra_asoc_utils_data {
 	unsigned int set_pll_out;
 	unsigned int *pll_base_rate;
 	unsigned int mclk_fs;
+	bool fixed_pll;
 };
 
 int tegra_asoc_utils_set_rate(struct tegra_asoc_utils_data *data, int srate,
