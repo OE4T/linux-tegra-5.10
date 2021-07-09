@@ -58,9 +58,9 @@ void ga10b_init_nvlink_soc_credits(struct gk20a *g)
 		return;
 	}
 
-	if (nvgpu_is_bpmp_running(g) ) {
-		nvgpu_log(g, gpu_dbg_info, "bpmp running: "
-			"nvlink soc credits init done by bpmp");
+	if (nvgpu_platform_is_silicon(g)) {
+		nvgpu_log(g, gpu_dbg_info,
+			"nvlink soc credits init done by bpmp on silicon");
 		return;
 	}
 	/* init nvlink soc credits and force snoop */

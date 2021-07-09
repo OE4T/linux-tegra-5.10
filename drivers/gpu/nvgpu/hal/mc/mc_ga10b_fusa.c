@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -270,7 +270,7 @@ void ga10b_mc_elpg_enable(struct gk20a *g)
 	 * these three out of reset, software should enable
 	 * all of these.
 	 */
-	if (!nvgpu_is_bpmp_running(g)) {
+	if (!nvgpu_platform_is_silicon(g)) {
 		nvgpu_writel(g, mc_elpg_enable_r(),
 				mc_elpg_enable_xbar_enabled_f() |
 				mc_elpg_enable_l2_enabled_f() |

@@ -720,8 +720,6 @@ int nvgpu_early_poweron(struct gk20a *g)
 	 *                 XBAR, L2 and HUB are enabled during
 	 *                 g->ops.fifo.reset_enable_hw(). This introduces a
 	 *                 dependency to get the MIG map conf information.
-	 *                 (if nvgpu_is_bpmp_running() == false treated as
-	 *                 simulation/emulation/GPU standalone platform).
 	 * fb - MIG config programming.
 	 * ltc - MIG config programming.
 	 * bios, bus, ecc and clk - dependent module of priv_ring/fb/ltc.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -46,11 +46,6 @@ bool nvgpu_platform_is_fpga(struct gk20a *g)
 }
 
 bool nvgpu_is_hypervisor_mode(struct gk20a *g)
-{
-	return false;
-}
-
-bool nvgpu_is_bpmp_running(struct gk20a *g)
 {
 	return false;
 }

@@ -49,7 +49,7 @@
 static void gv11b_init_nvlink_soc_credits(struct gk20a *g)
 {
 #ifndef __NVGPU_POSIX__
-	if (nvgpu_is_bpmp_running(g) && (!nvgpu_platform_is_simulation(g))) {
+	if (nvgpu_platform_is_silicon(g)) {
 		nvgpu_log(g, gpu_dbg_info, "nvlink soc credits init done by bpmp");
 	} else {
 #ifdef CONFIG_NVGPU_NVLINK

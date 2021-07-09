@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -83,15 +83,6 @@ bool nvgpu_platform_is_fpga(struct gk20a *g);
 bool nvgpu_is_hypervisor_mode(struct gk20a *g);
 
 /**
- * @brief Check whether bpmp server is runing.
- *
- * @param g [in]	GPU super structure.
- *
- * @return Returns true if bpmp server is running else returns false.
- */
-bool nvgpu_is_bpmp_running(struct gk20a *g);
-
-/**
  * @brief Check whether soc is t194 and revision a01.
  *
  * @param g [in]	GPU super structure.
@@ -136,11 +127,6 @@ static inline bool nvgpu_platform_is_fpga(struct gk20a *g)
 }
 
 static inline bool nvgpu_is_hypervisor_mode(struct gk20a *g)
-{
-	return false;
-}
-
-static inline bool nvgpu_is_bpmp_running(struct gk20a *g)
 {
 	return false;
 }
