@@ -21,6 +21,68 @@
 #define EOQS_MAX_REGISTER_ADDRESS 0x12FC
 #endif
 
+#ifdef OSI_DMA_DEBUG
+/**
+ * @brief Shows the current setting of descriptor dump
+ *
+ * @param[in] dev: Device data.
+ * @param[in] attr: Device attribute
+ * @param[in] buf: Buffer to store the current MAC loopback setting
+ */
+static ssize_t ether_desc_dump_show(struct device *dev,
+				    struct device_attribute *attr,
+				    char *buf)
+{
+	struct net_device *ndev = (struct net_device *)dev_get_drvdata(dev);
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+
+	return scnprintf(buf, PAGE_SIZE, "%s\n",
+			 (osi_dma->enable_desc_dump == 1U) ?
+			 "enabled" : "disabled");
+}
+
+/**
+ * @brief Set the user setting for enable_desc_dump
+ *
+ * Algorithm: This is used to update osi_dma->enable_desc_dump
+ *
+ * @param[in] dev: Device data.
+ * @param[in] attr: Device attribute
+ * @param[in] buf: Buffer which contains the user settings of MAC loopback
+ * @param[in] size: size of buffer
+ *
+ * @return size of buffer.
+ */
+static ssize_t ether_desc_dump_store(struct device *dev,
+				     struct device_attribute *attr,
+				     const char *buf, size_t size)
+{
+	struct net_device *ndev = (struct net_device *)dev_get_drvdata(dev);
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+
+	if (strncmp(buf, "enable", 6) == 0U) {
+		osi_dma->enable_desc_dump = 1U;
+	} else if (strncmp(buf, "disable", 7) == 0U) {
+		osi_dma->enable_desc_dump = 0U;
+	} else {
+		dev_err(pdata->dev,
+			"Invalid entry. Valid Entries are enable or disable\n");
+	}
+
+	return size;
+}
+
+/**
+ * @brief Sysfs attribute for enable descriptor dump
+ *
+ */
+static DEVICE_ATTR(desc_dump_enable, (S_IRUGO | S_IWUSR),
+		   ether_desc_dump_show,
+		   ether_desc_dump_store);
+#endif /* OSI_DMA_DEBUG */
+
 /**
  * @brief Shows the current setting of MAC loopback
  *
@@ -2210,6 +2272,9 @@ static DEVICE_ATTR(ptp_sync, (S_IRUGO | S_IWUSR),
  * @brief Attributes for nvethernet sysfs
  */
 static struct attribute *ether_sysfs_attrs[] = {
+#ifdef OSI_DMA_DEBUG
+	&dev_attr_desc_dump_enable.attr,
+#endif
 	&dev_attr_mac_loopback.attr,
 	&dev_attr_ptp_mode.attr,
 	&dev_attr_ptp_sync.attr,

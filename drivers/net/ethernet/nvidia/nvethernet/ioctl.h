@@ -71,6 +71,8 @@
 #define ETHER_READ_REG			53
 #define ETHER_WRITE_REG			54
 #define ETHER_PAD_CALIBRATION		55
+#define ETHER_REGISTER_DUMP		56
+#define ETHER_STRUCTURE_DUMP		57
 
 /** @} */
 
