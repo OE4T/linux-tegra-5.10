@@ -107,15 +107,13 @@ static void nvhost_nvdec_riscv_deinit_sw(struct platform_device *dev)
 static int load_ucode(struct platform_device *dev, u64 base,
 			struct riscv_image_desc desc)
 {
-	struct nvhost_device_data *pdata = platform_get_drvdata(dev);
-	void __iomem *retcode_addr;
+	void __iomem *retcode_addr, *debuginfo_addr;
 	u64 addr;
 	int err = 0;
 	u32 val;
 
-	/* Load transcfg configuration if defined */
-	if (pdata->transcfg_addr)
-		host1x_writel(dev, pdata->transcfg_addr, pdata->transcfg_val);
+	/* Protect engine/falcon registers from channel programing */
+	flcn_enable_thi_sec(dev);
 
 	/* Select RISC-V core for nvdec */
 	host1x_writel(dev, nvdec_riscv_bcr_ctrl_r(),
@@ -168,6 +166,19 @@ static int load_ucode(struct platform_device *dev, u64 base,
 		return err;
 	}
 
+	/* Check if it has reached a proper initialized state */
+	debuginfo_addr = get_aperture(dev, 0) + nvdec_debuginfo_r();
+	err  = readl_poll_timeout(debuginfo_addr, val,
+				(val == NVDEC_DEBUGINFO_CLEAR),
+				RISCV_IDLE_CHECK_PERIOD_LONG,
+				RISCV_IDLE_TIMEOUT_LONG);
+	if (err) {
+		dev_err(&dev->dev,
+			"RISC-V couldn't reach init state, timeout! val=0x%x",
+			val);
+		return err;
+	}
+
 	return 0;
 }
 
@@ -175,8 +186,6 @@ int nvhost_nvdec_riscv_finalize_poweron(struct platform_device *dev)
 {
 	struct riscv_data *m;
 	struct mc_carveout_info inf;
-	void __iomem *debuginfo_addr;
-	u32 val;
 	int err = 0;
 	struct nvhost_device_data *pdata = platform_get_drvdata(dev);
 
@@ -204,19 +213,6 @@ int nvhost_nvdec_riscv_finalize_poweron(struct platform_device *dev)
 		goto clean_up;
 	}
 
-	/* Check nvdec has reached a proper initialized state */
-	debuginfo_addr = get_aperture(dev, 0) + nvdec_debuginfo_r();
-	err  = readl_poll_timeout(debuginfo_addr, val,
-				(val == NVDEC_DEBUGINFO_CLEAR),
-				RISCV_IDLE_CHECK_PERIOD_LONG,
-				RISCV_IDLE_TIMEOUT_LONG);
-	if (err) {
-		dev_err(&dev->dev,
-			"RISC-V couldn't reach init state, timeout! val=0x%x",
-			val);
-		goto clean_up;
-	}
-
 	/* Reset NVDEC before stage-2 boot */
 	nvhost_module_reset_for_stage2(dev);
 
@@ -226,6 +222,8 @@ int nvhost_nvdec_riscv_finalize_poweron(struct platform_device *dev)
 		dev_err(&dev->dev, "RISC-V stage-2 boot failed = 0x%x", err);
 		goto clean_up;
 	}
+
+	nvhost_flcn_ctxtsw_init(dev);
 
 #if defined(CONFIG_TRUSTED_LITTLE_KERNEL)
 	tlk_restore_keyslots();
@@ -259,11 +257,10 @@ int nvhost_nvdec_finalize_poweron_t23x(struct platform_device *dev)
 			return err;
 	}
 
-	flcn_enable_thi_sec(dev);
-
 	if (pdata->enable_riscv_boot) {
 		err = nvhost_nvdec_riscv_finalize_poweron(dev);
 	} else {
+		flcn_enable_thi_sec(dev);
 		err = nvhost_nvdec_finalize_poweron(dev);
 	}
 

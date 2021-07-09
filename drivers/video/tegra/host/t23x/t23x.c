@@ -294,8 +294,8 @@ struct nvhost_device_data t23x_nvdec_info = {
 	.engine_can_cg		= false,
 	.can_powergate		= false,
 	.isolate_contexts	= true,
-	.enable_riscv_boot	= false,
-	.riscv_desc_bin		= "nvhost_nvdec050_riscv_desc.bin",
+	.enable_riscv_boot	= true,
+	.riscv_desc_bin		= "nvhost_nvdec050_desc_dev.bin",
 };
 #endif
 

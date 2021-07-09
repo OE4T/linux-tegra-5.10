@@ -25,7 +25,7 @@
 #include <linux/nvhost.h>
 
 #define RISCV_IDLE_TIMEOUT_DEFAULT	100000	/* 100 milliseconds */
-#define RISCV_IDLE_TIMEOUT_LONG		1000000	/* 1 seconds */
+#define RISCV_IDLE_TIMEOUT_LONG		2000000	/* 2 seconds */
 #define RISCV_IDLE_CHECK_PERIOD		10	/* 10 usec */
 #define RISCV_IDLE_CHECK_PERIOD_LONG	1000	/* 1 milliseconds */
 #define RISCV_UCODE_DESC_ALIGNMENT	256	/* 256 bytes */
