@@ -520,6 +520,10 @@ struct ether_priv_data {
 	struct pinctrl_state	*mii_rx_enable_state;
 	/** eqos rgmii rx input pins disable state */
 	struct pinctrl_state	*mii_rx_disable_state;
+	/** PHY reset Post delay */
+	int phy_reset_post_delay;
+	/** PHY reset duration delay */
+	int phy_reset_duration;
 };
 
 /**
