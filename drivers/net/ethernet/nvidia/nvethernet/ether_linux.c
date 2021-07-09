@@ -888,25 +888,25 @@ static void ether_adjust_link(struct net_device *dev)
 			 * PHY interface mode */
 			speed = phydev->speed;
 			/* XFI mode = 10G:
-				UPHY GBE mode = 10G
-				MAC = 10G
-				XPCS = 10G
-				PHY line side = 10G/5G/2.5G/1G/100M
-			   XFI mode = 5G:
-				UPHY GBE mode = 5G
-				MAC = 5G
-				XPCS = 5G
-				PHY line side = 10G/5G/2.5G/1G/100M
-			  USXGMII mode = 10G:
-				UPHY GBE mode = 10G
-				MAC = 10G/5G/2.5G (same as PHY line speed)
-				XPCS = 10G
-				PHY line side = 10G/5G/2.5G
-			  USXGMII mode = 5G:
-				UPHY GBE mode = 5G
-				MAC = 5G/2.5G ( same as PHY line speed)
-				XPCS = 5G
-				PHY line side = 5G/2.5G
+			 *	UPHY GBE mode = 10G
+			 *	MAC = 10G
+			 *	XPCS = 10G
+			 *	PHY line side = 10G/5G/2.5G/1G/100M
+			 * XFI mode = 5G:
+			 *	UPHY GBE mode = 5G
+			 *	MAC = 5G
+			 *	XPCS = 5G
+			 *	PHY line side = 10G/5G/2.5G/1G/100M
+			 * USXGMII mode = 10G:
+			 *	UPHY GBE mode = 10G
+			 *	MAC = 10G/5G/2.5G (same as PHY line speed)
+			 *	XPCS = 10G
+			 *	PHY line side = 10G/5G/2.5G
+			 * USXGMII mode = 5G:
+			 *	UPHY GBE mode = 5G
+			 *	MAC = 5G/2.5G ( same as PHY line speed)
+			 *	XPCS = 5G
+			 *	PHY line side = 5G/2.5G
 			*/
 			if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
 				/* MAC and XFI speed should match in XFI mode */
@@ -2257,8 +2257,10 @@ static int ether_open(struct net_device *dev)
 	/* Reset the PHY */
 	if (gpio_is_valid(pdata->phy_reset)) {
 		gpio_set_value(pdata->phy_reset, 0);
-		usleep_range(10, 11);
+		usleep_range(pdata->phy_reset_duration,
+			     pdata->phy_reset_duration + 1);
 		gpio_set_value(pdata->phy_reset, 1);
+		msleep(pdata->phy_reset_post_delay);
 	}
 
 	ether_start_ivc(pdata);
@@ -4773,8 +4775,10 @@ static int ether_configure_car(struct platform_device *pdev,
 		}
 
 		gpio_set_value(pdata->phy_reset, 0);
-		usleep_range(10, 11);
+		usleep_range(pdata->phy_reset_duration,
+			     pdata->phy_reset_duration + 1);
 		gpio_set_value(pdata->phy_reset, 1);
+		msleep(pdata->phy_reset_post_delay);
 	}
 
 	ret = ether_get_clks(pdata);
@@ -4913,11 +4917,11 @@ static int ether_init_plat_resources(struct platform_device *pdev,
 static int ether_parse_phy_dt(struct ether_priv_data *pdata,
 			      struct device_node *node)
 {
+	int err;
+
 #if KERNEL_VERSION(5, 5, 0) > LINUX_VERSION_CODE
 	pdata->interface = of_get_phy_mode(node);
 #else
-	int err;
-
 	err = of_get_phy_mode(node, &pdata->interface);
 	if (err < 0)
 		pr_debug("%s(): phy interface not found\n", __func__);
@@ -4932,6 +4936,21 @@ static int ether_parse_phy_dt(struct ether_priv_data *pdata,
 		if (of_device_is_compatible(pdata->mdio_node,
 					    "nvidia,eqos-mdio"))
 			break;
+	}
+
+	/* Read PHY delays */
+	err = of_property_read_u32(pdata->phy_node, "nvidia,phy-rst-duration-usec",
+				   &pdata->phy_reset_duration);
+	if (err < 0) {
+		pr_debug("failed to read PHY reset duration,setting to default 10usec\n");
+		pdata->phy_reset_duration = 10;
+	}
+
+	err = of_property_read_u32(pdata->phy_node, "nvidia,phy-rst-pdelay-msec",
+				   &pdata->phy_reset_post_delay);
+	if (err < 0) {
+		pr_debug("failed to read PHY post delay,setting to default 0msec\n");
+		pdata->phy_reset_post_delay = 0;
 	}
 
 	/* In the case of a fixed PHY, the DT node associated
@@ -5428,14 +5447,15 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 		if ((osi_core->uphy_gbe_mode == OSI_ENABLE) &&
 		    ((osi_core->phy_iface_mode == OSI_XFI_MODE_5G) ||
 		    (osi_core->phy_iface_mode == OSI_USXGMII_MODE_5G))) {
-			dev_err(dev, "Invalid combination of UPHY GBE mode"
+			dev_err(dev, "Invalid combination of UPHY 10GBE mode"
 				"and XFI/USXGMII 5G mode\n");
 			return -EINVAL;
 		}
+
 		if ((osi_core->uphy_gbe_mode == OSI_DISABLE) &&
 		    ((osi_core->phy_iface_mode == OSI_XFI_MODE_10G) ||
 		    (osi_core->phy_iface_mode == OSI_USXGMII_MODE_10G))) {
-			dev_err(dev, "Invalid combination of UPHY GBE mode"
+			dev_err(dev, "Invalid combination of UPHY 5GBE mode"
 				"and XFI/USXGMII 10G mode\n");
 			return -EINVAL;
 		}
