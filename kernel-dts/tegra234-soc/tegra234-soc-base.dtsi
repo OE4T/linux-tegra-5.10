@@ -792,8 +792,10 @@
 	};
 
 	cpufreq {
-		compatible = "nvidia,tegra194-cpufreq";
-		status = "disabled";
+		compatible = "nvidia,t234-cpufreq";
+		nvidia,bpmp = <&bpmp>;
+		reg = <0x0 0x0e000000 0x0 0x5ffff>; /* MMCRAB base */
+		status = "okay";
 		cpu_emc_map = <1500000 800000>,
 				<900000  665000>,
 				<550000  408000>,
