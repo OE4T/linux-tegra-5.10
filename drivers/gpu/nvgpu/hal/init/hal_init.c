@@ -43,6 +43,10 @@
 #endif
 #endif
 
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include <nvgpu_next_hal_init.h>
+#endif
+
 #include "hal/mc/mc_gm20b.h"
 
 int nvgpu_init_hal(struct gk20a *g)
@@ -55,51 +59,56 @@ int nvgpu_init_hal(struct gk20a *g)
 	case GK20A_GPUID_GM20B:
 		nvgpu_log_info(g, "gm20b detected");
 		if (gm20b_init_hal(g) != 0) {
-			return -ENODEV;
+			err = -ENODEV;
 		}
 		break;
 	case GK20A_GPUID_GM20B_B:
 		nvgpu_log_info(g, "gm20b detected");
 		if (gm20b_init_hal(g) != 0) {
-			return -ENODEV;
+			err = -ENODEV;
 		}
 		break;
 	case NVGPU_GPUID_GP10B:
 		if (gp10b_init_hal(g) != 0) {
-			return -ENODEV;
+			err = -ENODEV;
 		}
 		break;
 	case NVGPU_GPUID_GA10B:
 		if (ga10b_init_hal(g) != 0) {
-			return -ENODEV;
+			err = -ENODEV;
 		}
 		break;
 #endif
 
 	case NVGPU_GPUID_GV11B:
 		if (gv11b_init_hal(g) != 0) {
-			return -ENODEV;
+			err = -ENODEV;
 		}
 		break;
 
 #if defined(CONFIG_NVGPU_DGPU) && defined(CONFIG_NVGPU_HAL_NON_FUSA)
 	case NVGPU_GPUID_TU104:
 		if (tu104_init_hal(g) != 0) {
-			return -ENODEV;
+			err = -ENODEV;
 		}
 		break;
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_DGPU)
 	case NVGPU_GPUID_GA100:
 		if (ga100_init_hal(g) != 0) {
-			return -ENODEV;
+			err = -ENODEV;
 		}
 		break;
 #endif
 
 #endif
 	default:
-		nvgpu_err(g, "no support for %x", ver);
-		err = -ENODEV;
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+		if (nvgpu_next_init_hal(g) != 0)
+#endif /* CONFIG_NVGPU_NEXT */
+		{
+			nvgpu_err(g, "no support for %x", ver);
+			err = -ENODEV;
+		}
 		break;
 	}
 

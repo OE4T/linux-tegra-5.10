@@ -40,6 +40,10 @@
 #include "pmu_perfmon_sw_ga10b.h"
 #endif
 
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include <nvgpu_next_perfmon.h>
+#endif
+
 static u8 get_perfmon_id(struct nvgpu_pmu *pmu)
 {
 	struct gk20a *g = pmu->g;
@@ -60,10 +64,17 @@ static u8 get_perfmon_id(struct nvgpu_pmu *pmu)
 		unit_id = PMU_UNIT_PERFMON_T18X;
 		break;
 	default:
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+		unit_id = nvgpu_next_get_perfmon_id(pmu);
+#else
 		unit_id = PMU_UNIT_INVALID;
+#endif
+		break;
+	}
+
+	if (unit_id == PMU_UNIT_INVALID) {
 		nvgpu_err(g, "no support for %x", ver);
 		WARN_ON(true);
-		break;
 	}
 
 	return unit_id;
@@ -149,9 +160,14 @@ int nvgpu_pmu_initialize_perfmon(struct gk20a *g, struct nvgpu_pmu *pmu,
 		break;
 #endif
 	default:
-		nvgpu_kfree(g, *perfmon_ptr);
-		err = -EINVAL;
-		nvgpu_err(g, "no support for GPUID %x", ver);
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+		if (nvgpu_next_pmu_initialize_perfmon(g, pmu, perfmon_ptr))
+#endif
+		{
+			nvgpu_kfree(g, *perfmon_ptr);
+			err = -ENODEV;
+			nvgpu_err(g, "no support for GPUID %x", ver);
+		}
 		break;
 	}
 

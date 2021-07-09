@@ -42,6 +42,10 @@
 #endif
 #endif
 
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include <nvgpu_next_acr.h>
+#endif
+
 /* ACR public API's */
 bool nvgpu_acr_is_lsf_lazy_bootstrap(struct gk20a *g, struct nvgpu_acr *acr,
 	u32 falcon_id)
@@ -163,9 +167,14 @@ int nvgpu_acr_init(struct gk20a *g)
 #endif /* CONFIG_NVGPU_NON_FUSA */
 #endif
 	default:
-		nvgpu_kfree(g, g->acr);
-		err = -EINVAL;
-		nvgpu_err(g, "no support for GPUID %x", ver);
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+		if (nvgpu_next_acr_init(g))
+#endif
+		{
+			nvgpu_kfree(g, g->acr);
+			err = -ENODEV;
+			nvgpu_err(g, "no support for GPUID %x", ver);
+		}
 		break;
 	}
 

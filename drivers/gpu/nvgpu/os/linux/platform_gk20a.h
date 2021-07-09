@@ -21,6 +21,10 @@
 #include <nvgpu/lock.h>
 #include <nvgpu/gk20a.h>
 
+#if defined(CONFIG_NVGPU_NEXT)
+#include <nvgpu_next_chips.h>
+#endif
+
 #define GK20A_CLKS_MAX		4
 
 struct gk20a;
@@ -62,6 +66,9 @@ enum tegra_chip_id {
 	TEGRA_194,
 	TEGRA_194_VGPU,
 	TEGRA_234,
+#ifdef CONFIG_NVGPU_NEXT
+	NVGPU_NEXT_TEGRA_CHIPS
+#endif
 };
 
 struct gk20a_platform {

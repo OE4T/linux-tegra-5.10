@@ -43,6 +43,10 @@
 #endif /* CONFIG_NVGPU_NON_FUSA */
 #include "pmu_pg.h"
 
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include <nvgpu_next_pmu_pg.h>
+#endif
+
 static bool is_pg_supported(struct gk20a *g, struct nvgpu_pmu_pg *pg)
 {
 	if (!g->support_ls_pmu || !g->can_elpg || pg == NULL) {
@@ -888,9 +892,14 @@ int nvgpu_pmu_pg_init(struct gk20a *g, struct nvgpu_pmu *pmu,
 #endif /* CONFIG_NVGPU_NON_FUSA */
 
 	default:
-		nvgpu_kfree(g, *pg_p);
-		err = -EINVAL;
-		nvgpu_err(g, "no support for GPUID %x", ver);
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+		if (nvgpu_next_pg_sw_init(g, pg_p))
+#endif
+		{
+			nvgpu_kfree(g, *pg_p);
+			err = -ENODEV;
+			nvgpu_err(g, "no support for GPUID %x", ver);
+		}
 		break;
 	}
 exit:

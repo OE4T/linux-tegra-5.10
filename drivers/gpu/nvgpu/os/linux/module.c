@@ -94,6 +94,10 @@
 #include "cde.h"
 #endif
 
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include <nvgpu_next_chips.h>
+#endif
+
 #define GK20A_WAIT_FOR_IDLE_MS	2000
 
 #define CREATE_TRACE_POINTS
@@ -690,6 +694,12 @@ static struct of_device_id tegra_gk20a_of_match[] = {
 	{ .compatible = "nvidia,ga10b-vgpu",
 		.data = &ga10b_vgpu_tegra_platform},
 #endif
+#endif
+#endif
+
+#ifdef CONFIG_NVGPU_NEXT
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NON_FUSA)
+	NVGPU_NEXT_COMPATIBLE_CHIPS
 #endif
 #endif
 	{ },

@@ -944,7 +944,7 @@ int test_acr_init(struct unit_module *m,
 	g->params.gpu_impl = NV_PMC_BOOT_0_IMPLEMENTATION_INVALID;
 
 	err = nvgpu_acr_init(g);
-	if (err != -EINVAL) {
+	if (err != -ENODEV) {
 		unit_return_fail(m, "Version failure of chip for \
 				nvgpu_acr_init() didn't happen as expected\n");
 	}

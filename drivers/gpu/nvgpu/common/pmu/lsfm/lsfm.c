@@ -34,6 +34,10 @@
 #include "lsfm_sw_tu104.h"
 #endif
 
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include <nvgpu_next_lsfm.h>
+#endif
+
 static bool is_lsfm_supported(struct gk20a *g,
 	struct nvgpu_pmu *pmu, struct nvgpu_pmu_lsfm *lsfm)
 {
@@ -170,9 +174,14 @@ int nvgpu_pmu_lsfm_init(struct gk20a *g, struct nvgpu_pmu_lsfm **lsfm)
 		break;
 #endif
 	default:
-		nvgpu_kfree(g, *lsfm);
-		err = -EINVAL;
-		nvgpu_err(g, "no support for GPUID %x", ver);
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+		if (nvgpu_next_lsfm_sw_init(g, lsfm))
+#endif
+		{
+			nvgpu_kfree(g, *lsfm);
+			err = -ENODEV;
+			nvgpu_err(g, "no support for GPUID %x", ver);
+		}
 		break;
 	}
 
