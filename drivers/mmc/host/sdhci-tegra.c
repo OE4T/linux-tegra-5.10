@@ -1217,9 +1217,8 @@ static void tegra_sdhci_request(struct mmc_host *mmc, struct mmc_request *mrq)
 	ktime_t since_calib = ktime_sub(ktime_get(), tegra_host->last_calib);
 
 	/* 100 ms calibration interval is specified in the TRM */
-	if (tegra_host->defer_calib || ((soc_data->nvquirks & NVQUIRK_ENABLE_PERIODIC_CALIB) &&
-			(ktime_to_ms(since_calib) > 100))) {
-		tegra_host->defer_calib = false;
+	if ((soc_data->nvquirks & NVQUIRK_ENABLE_PERIODIC_CALIB) &&
+			(ktime_to_ms(since_calib) > 100)) {
 		tegra_sdhci_pad_autocalib(host);
 		tegra_host->last_calib = ktime_get();
 	}
@@ -3063,6 +3062,7 @@ static int sdhci_tegra_runtime_resume(struct device *dev)
 	 */
 	tegra_host->defer_calib = true;
 	ret = sdhci_runtime_resume_host(host, true);
+	tegra_host->defer_calib = false;
 	if (ret)
 		goto disable_car_clk;
 
