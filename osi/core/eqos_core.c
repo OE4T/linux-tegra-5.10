@@ -1886,6 +1886,43 @@ static inline void eqos_enable_fpe_interrupts(
 }
 
 /**
+ * @brief eqos_save_gcl_params - save GCL configs in local core structure
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ */
+static inline void eqos_save_gcl_params(struct osi_core_priv_data *osi_core)
+{
+	struct core_local *l_core = (struct core_local *)osi_core;
+	unsigned int gcl_widhth[4] = {0, OSI_MAX_24BITS, OSI_MAX_28BITS,
+				      OSI_MAX_32BITS};
+	unsigned int gcl_depthth[6] = {0, OSI_GCL_SIZE_64, OSI_GCL_SIZE_128,
+				       OSI_GCL_SIZE_256, OSI_GCL_SIZE_512,
+				       OSI_GCL_SIZE_1024};
+
+	if ((osi_core->hw_feature->gcl_width == 0) ||
+	    (osi_core->hw_feature->gcl_width > 3)) {
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+				     "Wrong HW feature GCL width\n",
+			   (unsigned long long)osi_core->hw_feature->gcl_width);
+	} else {
+		l_core->gcl_width_val =
+				    gcl_widhth[osi_core->hw_feature->gcl_width];
+	}
+
+	if ((osi_core->hw_feature->gcl_depth == 0) ||
+	    (osi_core->hw_feature->gcl_depth > 5)) {
+		/* Do Nothing */
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "Wrong HW feature GCL depth\n",
+			   (unsigned long long)osi_core->hw_feature->gcl_depth);
+	} else {
+		l_core->gcl_dep = gcl_depthth[osi_core->hw_feature->gcl_depth];
+	}
+}
+
+/**
  * @brief eqos_tsn_init - initialize TSN feature
  *
  * Algorithm:
@@ -1909,6 +1946,7 @@ static void eqos_tsn_init(struct osi_core_priv_data *osi_core,
 	unsigned int temp = 0U;
 
 	if (est_sel == OSI_ENABLE) {
+		eqos_save_gcl_params(osi_core);
 		val = osi_readla(osi_core, (unsigned char *)osi_core->base +
 				EQOS_MTL_EST_CONTROL);
 
@@ -4375,48 +4413,24 @@ static int eqos_hw_est_write(struct osi_core_priv_data *osi_core,
 static inline int eqos_gcl_validate(struct osi_core_priv_data *osi_core,
 				    struct osi_est_config *est)
 {
-	unsigned int wid_val = 0x0U;
-	unsigned int dep = 0x0U;
+	struct core_local *l_core = (struct core_local *)osi_core;
 	unsigned int i;
 
-	if (osi_core->hw_feature == OSI_NULL) {
+	if (est->llr > l_core->gcl_dep) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			"HW feature is NULL\n", 0ULL);
-		return -1;
-	}
-
-	if (osi_core->hw_feature->gcl_width == 0x1U) {
-		wid_val = OSI_MAX_24BITS;
-	} else if (osi_core->hw_feature->gcl_width == 0x2U) {
-		wid_val = OSI_MAX_28BITS;
-	} else if (osi_core->hw_feature->gcl_width == 0x3U) {
-		wid_val = OSI_MAX_32BITS;
-	} else {
-		/* Do Nothing */
-	}
-
-	if (osi_core->hw_feature->gcl_depth == 0x1U) {
-		dep = OSI_GCL_SIZE_64;
-	} else if (osi_core->hw_feature->gcl_depth == 0x2U) {
-		dep = OSI_GCL_SIZE_128;
-	} else if (osi_core->hw_feature->gcl_depth == 0x3U) {
-		dep = OSI_GCL_SIZE_256;
-	} else if (osi_core->hw_feature->gcl_depth == 0x4U) {
-		dep = OSI_GCL_SIZE_512;
-	} else if (osi_core->hw_feature->gcl_depth == 0x5U) {
-		dep = OSI_GCL_SIZE_1024;
-	} else {
-		/* Do Nothing */
-	}
-
-	if (est->llr > dep) {
+			     "input argument more than GCL depth\n",
+			     (unsigned long long)est->llr);
 		return -1;
 	}
 
 	for (i = 0U; i < est->llr; i++) {
-		if (est->gcl[i] <= wid_val) {
+		if (est->gcl[i] <= l_core->gcl_width_val) {
 			continue;
 		}
+
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "validation of GCL entry failed\n",
+			     (unsigned long long)i);
 		return -1;
 	}
 
@@ -4473,12 +4487,16 @@ static int eqos_hw_config_est(struct osi_core_priv_data *osi_core,
 	}
 
 	if (eqos_gcl_validate(osi_core, est) < 0) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "GCL validation failed\n", 0LL);
 		return -1;
 	}
 
 	ret = eqos_hw_est_write(osi_core, EQOS_MTL_EST_CTR_LOW, est->ctr[0],
 				OSI_DISABLE);
 	if (ret < 0) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "GCL CTR[0] failed\n", 0LL);
 		return ret;
 	}
 	/* check for est->ctr[i]  not more than FF, TODO as per hw config
@@ -4487,18 +4505,24 @@ static int eqos_hw_config_est(struct osi_core_priv_data *osi_core,
 	ret = eqos_hw_est_write(osi_core, EQOS_MTL_EST_CTR_HIGH, est->ctr[1],
 				OSI_DISABLE);
 	if (ret < 0) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "GCL CTR[1] failed\n", 0LL);
 		return ret;
 	}
 
 	ret = eqos_hw_est_write(osi_core, EQOS_MTL_EST_TER, est->ter,
 				OSI_DISABLE);
 	if (ret < 0) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "GCL TER failed\n", 0LL);
 		return ret;
 	}
 
 	ret = eqos_hw_est_write(osi_core, EQOS_MTL_EST_LLR, est->llr,
 				OSI_DISABLE);
 	if (ret < 0) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "GCL LLR failed\n", 0LL);
 		return ret;
 	}
 
@@ -4510,6 +4534,9 @@ static int eqos_hw_config_est(struct osi_core_priv_data *osi_core,
 		ret = eqos_hw_est_write(osi_core, addr, est->gcl[i],
 					OSI_ENABLE);
 		if (ret < 0) {
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+				     "GCL enties write failed\n",
+				     (unsigned long long)i);
 			return ret;
 		}
 	}
@@ -4526,12 +4553,20 @@ static int eqos_hw_config_est(struct osi_core_priv_data *osi_core,
 	ret = eqos_hw_est_write(osi_core, EQOS_MTL_EST_BTR_LOW,
 				btr[0] + est->btr_offset[0], OSI_DISABLE);
 	if (ret < 0) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "GCL BTR[0] failed\n",
+			     (unsigned long long)(btr[0] +
+			     est->btr_offset[0]));
 		return ret;
 	}
 
 	ret = eqos_hw_est_write(osi_core, EQOS_MTL_EST_BTR_HIGH,
 				btr[1] + est->btr_offset[1], OSI_DISABLE);
 	if (ret < 0) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "GCL BTR[1] failed\n",
+			     (unsigned long long)(btr[1] +
+			     est->btr_offset[1]));
 		return ret;
 	}
 
