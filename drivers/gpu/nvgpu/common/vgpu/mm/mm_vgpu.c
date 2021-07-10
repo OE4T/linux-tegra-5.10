@@ -98,6 +98,8 @@ void vgpu_locked_gmmu_unmap(struct vm_gk20a *vm,
 	msg.handle = vgpu_get_handle(g);
 	p->handle = vm->handle;
 	p->gpu_va = vaddr;
+	p->size = size;
+	p->pgsz_idx = pgsz_idx;
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	if (err || msg.ret) {
 		nvgpu_err(g, "failed to update gmmu ptes on unmap");
