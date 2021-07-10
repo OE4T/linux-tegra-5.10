@@ -291,6 +291,10 @@ struct core_local {
 	struct osi_core_tx_ts tx_ts_head;
 	/** Maximum number of queues/channels */
 	nveu32_t max_chans;
+	/** GCL depth supported by HW */
+	nveu32_t gcl_dep;
+	/** Max GCL width (time + gate) value supported by HW */
+	nveu32_t gcl_width_val;
 };
 
 /**
