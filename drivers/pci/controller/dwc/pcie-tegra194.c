@@ -8,6 +8,7 @@
  */
 
 #include <linux/clk.h>
+#include <linux/crc32.h>
 #include <linux/debugfs.h>
 #include <linux/delay.h>
 #include <linux/gpio.h>
@@ -26,6 +27,7 @@
 #include <linux/of_irq.h>
 #include <linux/of_pci.h>
 #include <linux/pci.h>
+#include <linux/pcie_dma.h>
 #include <linux/phy/phy.h>
 #include <linux/pinctrl/consumer.h>
 #include <linux/platform_device.h>
@@ -296,6 +298,7 @@ struct tegra_pcie_dw {
 	struct resource gic_base;
 	struct resource msi_base;
 	void __iomem *appl_base;
+	void __iomem *dma_base;
 	struct clk *core_clk;
 	struct reset_control *core_apb_rst;
 	struct reset_control *core_rst;
@@ -331,6 +334,20 @@ struct tegra_pcie_dw {
 
 	u32 target_speed;
 	u32 flr_rid;
+#if defined(CONFIG_PCIE_RP_DMA_TEST)
+	u32 dma_size;
+	u32 ep_rid;
+	void *dma_virt;
+	dma_addr_t dma_phy;
+	wait_queue_head_t wr_wq[DMA_WR_CHNL_NUM];
+	wait_queue_head_t rd_wq[DMA_RD_CHNL_NUM];
+	unsigned long wr_busy;
+	unsigned long rd_busy;
+	ktime_t wr_start_time[DMA_WR_CHNL_NUM];
+	ktime_t wr_end_time[DMA_WR_CHNL_NUM];
+	ktime_t rd_start_time[DMA_RD_CHNL_NUM];
+	ktime_t rd_end_time[DMA_RD_CHNL_NUM];
+#endif
 	struct dentry *debugfs;
 
 	wait_queue_head_t config_rp_waitq;
@@ -421,6 +438,36 @@ static void apply_bad_link_workaround(struct pcie_port *pp)
 	}
 }
 
+#if defined(CONFIG_PCIE_RP_DMA_TEST)
+static void tegra_pcie_dma_status_clr(struct tegra_pcie_dw *pcie)
+{
+	u32 val, bit = 0;
+
+	val = dma_common_rd(pcie->dma_base, DMA_WRITE_INT_STATUS_OFF);
+	for_each_set_bit(bit, &pcie->wr_busy, DMA_WR_CHNL_NUM) {
+		if (BIT(bit) & val) {
+			dma_common_wr(pcie->dma_base, BIT(bit),
+				      DMA_WRITE_INT_CLEAR_OFF);
+			pcie->wr_end_time[bit] = ktime_get();
+			pcie->wr_busy &= ~(BIT(bit));
+			wake_up(&pcie->wr_wq[bit]);
+		}
+	}
+
+	bit = 0;
+	val = dma_common_rd(pcie->dma_base, DMA_READ_INT_STATUS_OFF);
+	for_each_set_bit(bit, &pcie->rd_busy, DMA_RD_CHNL_NUM) {
+		if (BIT(bit) & val) {
+			dma_common_wr(pcie->dma_base, BIT(bit),
+				      DMA_READ_INT_CLEAR_OFF);
+			pcie->rd_end_time[bit] = ktime_get();
+			pcie->rd_busy &= ~(BIT(bit));
+			wake_up(&pcie->rd_wq[bit]);
+		}
+	}
+}
+#endif
+
 static irqreturn_t tegra_pcie_rp_irq_handler(int irq, void *arg)
 {
 	struct tegra_pcie_dw *pcie = arg;
@@ -452,8 +499,14 @@ static irqreturn_t tegra_pcie_rp_irq_handler(int irq, void *arg)
 
 	if (val & APPL_INTR_STATUS_L0_INT_INT) {
 		val = appl_readl(pcie, APPL_INTR_STATUS_L1_8_0);
-		if (val & APPL_INTR_STATUS_L1_8_0_EDMA_INT_MASK)
+		if (val & APPL_INTR_STATUS_L1_8_0_EDMA_INT_MASK) {
+#if defined(CONFIG_PCIE_RP_DMA_TEST)
+			tegra_pcie_dma_status_clr(pcie);
+#else
 			handled = 0;
+#endif
+		}
+
 		if (val & APPL_INTR_STATUS_L1_8_0_AUTO_BW_INT_STS) {
 			appl_writel(pcie,
 				    APPL_INTR_STATUS_L1_8_0_AUTO_BW_INT_STS,
@@ -974,8 +1027,538 @@ static int apply_flr(struct seq_file *s, void *data)
 	return 0;
 }
 
+#if defined(CONFIG_PCIE_RP_DMA_TEST)
+struct edma_desc {
+	dma_addr_t src;
+	dma_addr_t dst;
+	size_t sz;
+};
+
+static int edma_init(struct tegra_pcie_dw *pcie, bool lie)
+{
+	u32 val;
+	int i;
+
+	/* Enable LIE or RIE for all write channels */
+	if (lie) {
+		val = dma_common_rd(pcie->dma_base, DMA_WRITE_INT_MASK_OFF);
+		val &= ~0xf;
+		val &= ~(0xf << 16);
+		dma_common_wr(pcie->dma_base, val, DMA_WRITE_INT_MASK_OFF);
+	}
+
+	val = DMA_CH_CONTROL1_OFF_WRCH_LIE;
+	if (!lie)
+		val |= DMA_CH_CONTROL1_OFF_WRCH_RIE;
+	for (i = 0; i < DMA_WR_CHNL_NUM; i++)
+		dma_channel_wr(pcie->dma_base, i, val,
+			       DMA_CH_CONTROL1_OFF_WRCH);
+
+	/* Enable LIE or RIE for all read channels */
+	if (lie) {
+		val = dma_common_rd(pcie->dma_base, DMA_READ_INT_MASK_OFF);
+		val &= ~0x3;
+		val &= ~(0x3 << 16);
+		dma_common_wr(pcie->dma_base, val, DMA_READ_INT_MASK_OFF);
+	}
+
+	val = DMA_CH_CONTROL1_OFF_RDCH_LIE;
+	if (!lie)
+		val |= DMA_CH_CONTROL1_OFF_RDCH_RIE;
+	for (i = 0; i < DMA_RD_CHNL_NUM; i++)
+		dma_channel_wr(pcie->dma_base, i, val,
+			       DMA_CH_CONTROL1_OFF_RDCH);
+
+	dma_common_wr(pcie->dma_base, WRITE_ENABLE, DMA_WRITE_ENGINE_EN_OFF);
+	dma_common_wr(pcie->dma_base, READ_ENABLE, DMA_READ_ENGINE_EN_OFF);
+
+	return 0;
+}
+
+static void edma_deinit(struct tegra_pcie_dw *pcie)
+{
+	u32 val;
+
+	/* Mask channel interrupts */
+	val = dma_common_rd(pcie->dma_base, DMA_WRITE_INT_MASK_OFF);
+	val |= 0xf;
+	val |= (0xf << 16);
+	dma_common_wr(pcie->dma_base, val, DMA_WRITE_INT_MASK_OFF);
+
+	val = dma_common_rd(pcie->dma_base, DMA_READ_INT_MASK_OFF);
+	val |= 0x3;
+	val |= (0x3 << 16);
+	dma_common_wr(pcie->dma_base, val, DMA_READ_INT_MASK_OFF);
+
+	dma_common_wr(pcie->dma_base, WRITE_DISABLE, DMA_WRITE_ENGINE_EN_OFF);
+	dma_common_wr(pcie->dma_base, READ_DISABLE, DMA_READ_ENGINE_EN_OFF);
+}
+
+static int edma_ll_init(struct tegra_pcie_dw *pcie)
+{
+	u32 val;
+	int i;
+
+	/* Enable linked list mode and set CCS */
+	val = DMA_CH_CONTROL1_OFF_WRCH_LLE | DMA_CH_CONTROL1_OFF_WRCH_CCS;
+	for (i = 0; i < DMA_WR_CHNL_NUM; i++)
+		dma_channel_wr(pcie->dma_base, i, val,
+			       DMA_CH_CONTROL1_OFF_WRCH);
+
+	val = DMA_CH_CONTROL1_OFF_RDCH_LLE | DMA_CH_CONTROL1_OFF_WRCH_CCS;
+	for (i = 0; i < DMA_RD_CHNL_NUM; i++)
+		dma_channel_wr(pcie->dma_base, i, val,
+			       DMA_CH_CONTROL1_OFF_RDCH);
+
+	return 0;
+}
+
+static void edma_ll_deinit(struct tegra_pcie_dw *pcie)
+{
+	u32 val;
+	int i;
+
+	/* Disable linked list mode and clear CCS */
+	for (i = 0; i < DMA_WR_CHNL_NUM; i++) {
+		val = dma_channel_rd(pcie->dma_base, i,
+				     DMA_CH_CONTROL1_OFF_WRCH);
+		val &= ~(DMA_CH_CONTROL1_OFF_WRCH_LLE |
+			 DMA_CH_CONTROL1_OFF_WRCH_CCS);
+		dma_channel_wr(pcie->dma_base, i, val,
+			       DMA_CH_CONTROL1_OFF_WRCH);
+	}
+
+	for (i = 0; i < DMA_RD_CHNL_NUM; i++) {
+		val = dma_channel_rd(pcie->dma_base, i,
+				     DMA_CH_CONTROL1_OFF_RDCH);
+		val &= ~(DMA_CH_CONTROL1_OFF_RDCH_LLE |
+			 DMA_CH_CONTROL1_OFF_RDCH_CCS);
+		dma_channel_wr(pcie->dma_base, i, val,
+			       DMA_CH_CONTROL1_OFF_RDCH);
+	}
+}
+
+static int edma_submit_direct_tx(struct tegra_pcie_dw *pcie,
+				 struct edma_desc *desc, u32 ch)
+{
+	int ret = 0;
+
+	pcie->wr_busy |= 1 << ch;
+
+	/* Populate desc in DMA registers */
+	dma_channel_wr(pcie->dma_base, ch, desc->sz,
+		       DMA_TRANSFER_SIZE_OFF_WRCH);
+	dma_channel_wr(pcie->dma_base, ch, lower_32_bits(desc->src),
+		       DMA_SAR_LOW_OFF_WRCH);
+	dma_channel_wr(pcie->dma_base, ch, upper_32_bits(desc->src),
+		       DMA_SAR_HIGH_OFF_WRCH);
+	dma_channel_wr(pcie->dma_base, ch, lower_32_bits(desc->dst),
+		       DMA_DAR_LOW_OFF_WRCH);
+	dma_channel_wr(pcie->dma_base, ch, upper_32_bits(desc->dst),
+		       DMA_DAR_HIGH_OFF_WRCH);
+
+	pcie->wr_start_time[ch] = ktime_get();
+	dma_common_wr(pcie->dma_base, ch, DMA_WRITE_DOORBELL_OFF);
+
+	/* Wait 5 sec to get DMA done interrupt */
+	ret = wait_event_timeout(pcie->wr_wq[ch],
+				 !(pcie->wr_busy & (1 << ch)),
+				 msecs_to_jiffies(5000));
+	if (ret == 0) {
+		dev_err(pcie->dev, "%s: DD WR CH: %d TO\n", __func__, ch);
+		ret = -ETIMEDOUT;
+	}
+
+	return ret;
+}
+
+static int edma_submit_direct_rx(struct tegra_pcie_dw *pcie,
+				 struct edma_desc *desc, u32 ch)
+{
+	int ret = 0;
+
+	pcie->rd_busy |= 1 << ch;
+
+	/* Populate desc in DMA registers */
+	dma_channel_wr(pcie->dma_base, ch, desc->sz,
+		       DMA_TRANSFER_SIZE_OFF_RDCH);
+	dma_channel_wr(pcie->dma_base, ch, lower_32_bits(desc->src),
+		       DMA_SAR_LOW_OFF_RDCH);
+	dma_channel_wr(pcie->dma_base, ch, upper_32_bits(desc->src),
+		       DMA_SAR_HIGH_OFF_RDCH);
+	dma_channel_wr(pcie->dma_base, ch, lower_32_bits(desc->dst),
+		       DMA_DAR_LOW_OFF_RDCH);
+	dma_channel_wr(pcie->dma_base, ch, upper_32_bits(desc->dst),
+		       DMA_DAR_HIGH_OFF_RDCH);
+
+	pcie->rd_start_time[ch] = ktime_get();
+	dma_common_wr(pcie->dma_base, ch, DMA_READ_DOORBELL_OFF);
+
+	ret = wait_event_timeout(pcie->rd_wq[ch],
+				 !(pcie->rd_busy & (1 << ch)),
+				 msecs_to_jiffies(5000));
+	if (ret == 0) {
+		dev_err(pcie->dev, "%s: DD RD CH: %d TO\n", __func__, ch);
+		ret = -ETIMEDOUT;
+	}
+
+	return ret;
+}
+
+static int edma_submit_sync_tx(struct tegra_pcie_dw *pcie,
+			       struct edma_desc *desc,
+			       int nents, u32 ch, bool lie)
+{
+	dma_addr_t ll_phy_addr = pcie->dma_phy + DMA_LL_WR_OFFSET(ch);
+	struct dma_ll *dma_ll_virt;
+	int i, ret;
+
+	pcie->wr_busy |= 1 << ch;
+
+	/* Program DMA LL base address in DMA LL pointer register */
+	dma_channel_wr(pcie->dma_base, ch, lower_32_bits(ll_phy_addr),
+		       DMA_LLP_LOW_OFF_WRCH);
+	dma_channel_wr(pcie->dma_base, ch, upper_32_bits(ll_phy_addr),
+		       DMA_LLP_HIGH_OFF_WRCH);
+
+	/* Populate DMA descriptors in LL */
+	dma_ll_virt = (struct dma_ll *)
+		(pcie->dma_virt + DMA_LL_WR_OFFSET(ch));
+	for (i = 0; i < nents; i++) {
+		dma_ll_virt->size = desc[i].sz;
+		dma_ll_virt->src_low = lower_32_bits(desc[i].src);
+		dma_ll_virt->src_high = upper_32_bits(desc[i].src);
+		dma_ll_virt->dst_low = lower_32_bits(desc[i].dst);
+		dma_ll_virt->dst_high = upper_32_bits(desc[i].dst);
+		dma_ll_virt->ele.cb = 1;
+		dma_ll_virt++;
+	}
+	/* Set LIE or RIE in last element */
+	dma_ll_virt--;
+	dma_ll_virt->ele.lie = 1;
+	if (!lie)
+		dma_ll_virt->ele.rie = 1;
+
+	pcie->wr_start_time[ch] = ktime_get();
+	dma_common_wr(pcie->dma_base, ch, DMA_WRITE_DOORBELL_OFF);
+
+	ret = wait_event_timeout(pcie->wr_wq[ch],
+				 !(pcie->wr_busy & (1 << ch)),
+				 msecs_to_jiffies(5000));
+	if (ret == 0) {
+		dev_err(pcie->dev, "%s: LL WR CH: %d TO\n", __func__, ch);
+		ret = -ETIMEDOUT;
+	}
+
+	return ret;
+}
+
+static int edma_submit_sync_rx(struct tegra_pcie_dw *pcie,
+			       struct edma_desc *desc,
+			       int nents, u32 ch, bool lie)
+{
+	dma_addr_t ll_phy_addr = pcie->dma_phy + DMA_LL_RD_OFFSET(ch);
+	struct dma_ll *dma_ll_virt;
+	int i, ret;
+
+	pcie->rd_busy |= 1 << ch;
+
+	/* Program DMA LL base address in DMA LL pointer register */
+	dma_channel_wr(pcie->dma_base, ch, lower_32_bits(ll_phy_addr),
+		       DMA_LLP_LOW_OFF_RDCH);
+	dma_channel_wr(pcie->dma_base, ch, upper_32_bits(ll_phy_addr),
+		       DMA_LLP_HIGH_OFF_RDCH);
+
+	/* Populate DMA descriptors in LL */
+	dma_ll_virt = (struct dma_ll *)
+		(pcie->dma_virt + DMA_LL_RD_OFFSET(ch));
+	for (i = 0; i < nents; i++) {
+		dma_ll_virt->size = desc[i].sz;
+		dma_ll_virt->src_low = lower_32_bits(desc[i].src);
+		dma_ll_virt->src_high = upper_32_bits(desc[i].src);
+		dma_ll_virt->dst_low = lower_32_bits(desc[i].dst);
+		dma_ll_virt->dst_high = upper_32_bits(desc[i].dst);
+		dma_ll_virt->ele.cb = 1;
+		dma_ll_virt++;
+	}
+	/* Set LIE or RIE in last element */
+	dma_ll_virt--;
+	dma_ll_virt->ele.lie = 1;
+	if (!lie)
+		dma_ll_virt->ele.rie = 1;
+
+	pcie->rd_start_time[ch] = ktime_get();
+	dma_common_wr(pcie->dma_base, ch, DMA_READ_DOORBELL_OFF);
+
+	ret = wait_event_timeout(pcie->rd_wq[ch],
+				 !(pcie->rd_busy & (1 << ch)),
+				 msecs_to_jiffies(5000));
+	if (ret == 0) {
+		dev_err(pcie->dev, "%s: LL RD CH: %d TO\n",  __func__, ch);
+		ret = -ETIMEDOUT;
+	}
+
+	return ret;
+}
+
+static int perf_test(struct seq_file *s, void *data)
+{
+	struct tegra_pcie_dw *pcie = (struct tegra_pcie_dw *)
+					dev_get_drvdata(s->private);
+	struct edma_desc desc;
+	struct edma_desc ll_desc[DMA_LL_DEFAULT_SIZE];
+	dma_addr_t ep_dma_addr;
+	dma_addr_t rp_dma_addr = pcie->dma_phy + BAR0_DMA_BUF_OFFSET;
+	long long time;
+	u32 ch = 0;
+	int nents = DMA_LL_MIN_SIZE, i, ret;
+	struct pci_dev *pdev = NULL;
+	int domain = of_get_pci_domain_nr(pcie->dev->of_node);
+
+	pdev = pci_get_domain_bus_and_slot(domain, pcie->ep_rid >> 8,
+					   pcie->ep_rid & 0xff);
+	pci_dev_put(pdev);
+	if (!pdev) {
+		dev_err(pcie->dev, "%s: EP RID: 0x%x not found\n",
+			__func__, pcie->ep_rid);
+		return 0;
+	}
+
+	ep_dma_addr = pci_resource_start(pdev, 0) + BAR0_DMA_BUF_OFFSET;
+
+	edma_init(pcie, 1);
+
+	/* Direct DMA perf test with size BAR0_DMA_BUF_SIZE */
+	desc.src = rp_dma_addr;
+	desc.dst = ep_dma_addr;
+	desc.sz = BAR0_DMA_BUF_SIZE;
+	ret = edma_submit_direct_tx(pcie, &desc, ch);
+	if (ret < 0) {
+		dev_err(pcie->dev, "%s: DD WR, SZ: %lu B CH: %d failed\n",
+			__func__, desc.sz, ch);
+		goto fail;
+	}
+
+	time = ktime_to_ns(pcie->wr_end_time[ch]) -
+		ktime_to_ns(pcie->wr_start_time[ch]);
+	dev_info(pcie->dev, "%s: DD WR, CH: %d SZ: %lu B, time: %lld ns\n",
+		 __func__, ch, desc.sz, time);
+
+	desc.src = ep_dma_addr;
+	desc.dst = rp_dma_addr;
+	desc.sz = BAR0_DMA_BUF_SIZE;
+	ret = edma_submit_direct_rx(pcie, &desc, ch);
+	if (ret < 0) {
+		dev_err(pcie->dev, "%s: DD RD, SZ: %lu B CH: %d failed\n",
+			__func__, desc.sz, ch);
+		goto fail;
+	}
+	time = ktime_to_ns(pcie->rd_end_time[ch]) -
+		ktime_to_ns(pcie->rd_start_time[ch]);
+	dev_info(pcie->dev, "%s: DD RD, CH: %d SZ: %lu B, time: %lld ns\n",
+		 __func__, ch, desc.sz, time);
+
+	/* Clean DMA LL */
+	memset(pcie->dma_virt + DMA_LL_WR_OFFSET(0), 0, 6 * DMA_LL_SIZE);
+	edma_ll_init(pcie);
+
+	/* LL DMA perf test with size BAR0_DMA_BUF_SIZE and one desc */
+	for (i = 0; i < nents; i++) {
+		ll_desc[i].src = rp_dma_addr + (i * BAR0_DMA_BUF_SIZE);
+		ll_desc[i].dst = ep_dma_addr + (i * BAR0_DMA_BUF_SIZE);
+		ll_desc[i].sz = BAR0_DMA_BUF_SIZE;
+	}
+	ret = edma_submit_sync_tx(pcie, ll_desc, nents, ch, 1);
+	if (ret < 0) {
+		dev_err(pcie->dev, "%s: LL WR, SZ: %u B CH: %d failed\n",
+			__func__, BAR0_DMA_BUF_SIZE * nents, ch);
+		goto fail;
+	}
+	time = ktime_to_ns(pcie->wr_end_time[ch]) -
+		ktime_to_ns(pcie->wr_start_time[ch]);
+	dev_info(pcie->dev, "%s: LL WR, CH: %d N: %d SZ: %d B, time: %lld ns\n",
+		 __func__, ch, nents, BAR0_DMA_BUF_SIZE, time);
+
+	for (i = 0; i < nents; i++) {
+		ll_desc[i].src = ep_dma_addr + (i * BAR0_DMA_BUF_SIZE);
+		ll_desc[i].dst = rp_dma_addr + (i * BAR0_DMA_BUF_SIZE);
+		ll_desc[i].sz = BAR0_DMA_BUF_SIZE;
+	}
+
+	ret = edma_submit_sync_rx(pcie, ll_desc, nents, ch, 1);
+	if (ret < 0) {
+		dev_err(pcie->dev, "%s: LL RD, SZ: %u B CH: %d failed\n",
+			__func__, BAR0_DMA_BUF_SIZE * nents, ch);
+		goto fail;
+	}
+	time = ktime_to_ns(pcie->rd_end_time[ch]) -
+		ktime_to_ns(pcie->rd_start_time[ch]);
+	dev_info(pcie->dev, "%s: LL RD, CH: %d N: %d SZ: %d B, time: %lld ns\n",
+		 __func__, ch, nents, BAR0_DMA_BUF_SIZE, time);
+
+	edma_ll_deinit(pcie);
+	edma_deinit(pcie);
+
+fail:
+	return 0;
+}
+
+static int sanity_test(struct seq_file *s, void *data)
+{
+	struct tegra_pcie_dw *pcie = (struct tegra_pcie_dw *)
+		dev_get_drvdata(s->private);
+	struct edma_desc desc;
+	struct edma_desc ll_desc[DMA_LL_DEFAULT_SIZE];
+	dma_addr_t ep_dma_addr;
+	dma_addr_t rp_dma_addr = pcie->dma_phy + BAR0_DMA_BUF_OFFSET;
+	int nents = DMA_LL_DEFAULT_SIZE;
+	int i, j, ret;
+	u32 rp_crc, ep_crc;
+	struct pci_dev *pdev = NULL;
+	int domain = of_get_pci_domain_nr(pcie->dev->of_node);
+	void __iomem *bar0_virt;
+
+	if (pcie->dma_size > SZ_16M) {
+		dev_err(pcie->dev, "%s: dma_size should be <= 0x%x\n",
+			__func__, SZ_16M);
+		goto fail;
+	}
+
+	pdev = pci_get_domain_bus_and_slot(domain, pcie->ep_rid >> 8,
+					   pcie->ep_rid & 0xff);
+	pci_dev_put(pdev);
+	if (!pdev) {
+		dev_err(pcie->dev, "%s: EP RID: 0x%x not found\n",
+			__func__, pcie->ep_rid);
+		return 0;
+	}
+
+	bar0_virt = devm_ioremap(&pdev->dev, pci_resource_start(pdev, 0),
+				 pci_resource_len(pdev, 0));
+	if (!bar0_virt) {
+		dev_err(pcie->dev, "BAR0 ioremap fail\n");
+		return 0;
+	}
+
+	ep_dma_addr = pci_resource_start(pdev, 0) + BAR0_DMA_BUF_OFFSET;
+
+	edma_init(pcie, 1);
+
+	/* Direct DMA of size pcie->dma_size */
+	for (i = 0; i < DMA_WR_CHNL_NUM; i++) {
+		desc.src = rp_dma_addr;
+		desc.dst = ep_dma_addr;
+		desc.sz = pcie->dma_size;
+		ret = edma_submit_direct_tx(pcie, &desc, i);
+		if (ret < 0) {
+			dev_err(pcie->dev, "%s: DD WR CH: %d failed\n",
+				__func__, i);
+			goto fail;
+		}
+		rp_crc = crc32_le(~0, pcie->dma_virt + DMA_LL_WR_BUF(i),
+				  desc.sz);
+		ep_crc = crc32_le(~0, bar0_virt + DMA_LL_WR_BUF(i), desc.sz);
+		if (rp_crc != ep_crc) {
+			dev_err(pcie->dev, "%s: DD WR, SZ: %lu B CH: %d CRC failed\n",
+				__func__, desc.sz, i);
+			goto fail;
+		}
+		dev_info(pcie->dev, "%s: DD WR, SZ: %lu B CH: %d success\n",
+			 __func__, desc.sz, i);
+	}
+
+	for (i = 0; i < DMA_RD_CHNL_NUM; i++) {
+		desc.src = ep_dma_addr;
+		desc.dst = rp_dma_addr;
+		desc.sz = pcie->dma_size;
+		ret = edma_submit_direct_rx(pcie, &desc, i);
+		if (ret < 0) {
+			dev_err(pcie->dev, "%s: DD RD CH: %d failed\n",
+				__func__, i);
+			goto fail;
+		}
+		rp_crc = crc32_le(~0, pcie->dma_virt + DMA_LL_RD_BUF(i),
+				  desc.sz);
+		ep_crc = crc32_le(~0, bar0_virt + DMA_LL_RD_BUF(i), desc.sz);
+		if (rp_crc != ep_crc) {
+			dev_err(pcie->dev, "%s: DD RD, SZ: %lu B CH: %d CRC failed\n",
+				__func__, desc.sz, i);
+			goto fail;
+		}
+		dev_info(pcie->dev, "%s: DD RD, SZ: %lu B CH: %d success\n",
+			 __func__, desc.sz, i);
+	}
+
+	/* Clean DMA LL */
+	memset(pcie->dma_virt + DMA_LL_WR_OFFSET(0), 0, 6 * DMA_LL_SIZE);
+	edma_ll_init(pcie);
+
+	/* LL DMA with size pcie->dma_size per desc */
+	for (i = 0; i < DMA_WR_CHNL_NUM; i++) {
+		for (j = 0; j < nents; j++) {
+			ll_desc[j].src = rp_dma_addr + (j * pcie->dma_size);
+			ll_desc[j].dst = ep_dma_addr + (j * pcie->dma_size);
+			ll_desc[j].sz = pcie->dma_size;
+		}
+
+		ret = edma_submit_sync_tx(pcie, ll_desc, nents, i, 1);
+		if (ret < 0) {
+			dev_err(pcie->dev, "%s: LL WR CH: %d failed\n",
+				__func__, i);
+			goto fail;
+		}
+		rp_crc = crc32_le(~0, pcie->dma_virt + DMA_LL_WR_BUF(i),
+				  pcie->dma_size * nents);
+		ep_crc = crc32_le(~0, bar0_virt + DMA_LL_WR_BUF(i),
+				  pcie->dma_size * nents);
+		if (rp_crc != ep_crc) {
+			dev_err(pcie->dev, "%s: LL WR, SZ: %u B CH: %d CRC failed\n",
+				__func__, pcie->dma_size, i);
+			goto fail;
+		}
+		dev_info(pcie->dev, "%s: LL WR, SZ: %u B CH: %d success\n",
+			 __func__, pcie->dma_size, i);
+	}
+
+	for (i = 0; i < DMA_RD_CHNL_NUM; i++) {
+		for (j = 0; j < nents; j++) {
+			ll_desc[j].src = ep_dma_addr + (j * pcie->dma_size);
+			ll_desc[j].dst = rp_dma_addr + (j * pcie->dma_size);
+			ll_desc[j].sz = pcie->dma_size;
+		}
+
+		ret = edma_submit_sync_rx(pcie, ll_desc, nents, i, 1);
+		if (ret < 0) {
+			dev_err(pcie->dev, "%s: LL RD failed\n", __func__);
+			goto fail;
+		}
+		rp_crc = crc32_le(~0, pcie->dma_virt + DMA_LL_RD_BUF(i),
+				  pcie->dma_size * nents);
+		ep_crc = crc32_le(~0, bar0_virt + DMA_LL_RD_BUF(i),
+				  pcie->dma_size * nents);
+		if (rp_crc != ep_crc) {
+			dev_err(pcie->dev, "%s: LL RD, SZ: %u B CH: %d CRC failed\n",
+				__func__, pcie->dma_size, i);
+			goto fail;
+		}
+		dev_info(pcie->dev, "%s: LL RD, SZ: %u B CH: %d success\n",
+			 __func__, pcie->dma_size, i);
+	}
+
+	edma_ll_deinit(pcie);
+	edma_deinit(pcie);
+
+fail:
+	return 0;
+}
+#endif
+
 static void init_debugfs(struct tegra_pcie_dw *pcie)
 {
+#if defined(CONFIG_PCIE_RP_DMA_TEST)
+	int i;
+#endif
+
 	init_aspm_debugfs(pcie);
 
 	debugfs_create_u32("target_speed", 0644, pcie->debugfs,
@@ -989,6 +1572,36 @@ static void init_debugfs(struct tegra_pcie_dw *pcie)
 	debugfs_create_u32("flr_rid", 0644, pcie->debugfs, &pcie->flr_rid);
 	debugfs_create_devm_seqfile(pcie->dev, "apply_flr", pcie->debugfs,
 				    apply_flr);
+
+#if defined(CONFIG_PCIE_RP_DMA_TEST)
+	pcie->dma_virt = dma_alloc_coherent(pcie->dev, BAR0_SIZE,
+					    &pcie->dma_phy, GFP_KERNEL);
+	if (!pcie->dma_virt) {
+		dev_err(pcie->dev, "Failed to allocate DMA memory\n");
+		return;
+	}
+	dev_err(pcie->dev, "RP host DMA buf: 0x%llx size: %dn",
+		pcie->dma_phy, BAR0_SIZE);
+	get_random_bytes(pcie->dma_virt, BAR0_SIZE);
+
+	debugfs_create_devm_seqfile(pcie->dev, "perf_test", pcie->debugfs,
+				    perf_test);
+	debugfs_create_devm_seqfile(pcie->dev, "sanity_test", pcie->debugfs,
+				    sanity_test);
+
+	debugfs_create_u32("dma_size", 0644, pcie->debugfs, &pcie->dma_size);
+	/* Set default dma_size as SZ_64K */
+	pcie->dma_size = SZ_64K;
+	debugfs_create_u32("ep_rid", 0644, pcie->debugfs, &pcie->ep_rid);
+	/* Set default to bus=1, devfn=0 */
+	pcie->ep_rid = 0x100;
+
+	for (i = 0; i < DMA_WR_CHNL_NUM; i++)
+		init_waitqueue_head(&pcie->wr_wq[i]);
+
+	for (i = 0; i < DMA_RD_CHNL_NUM; i++)
+		init_waitqueue_head(&pcie->rd_wq[i]);
+#endif
 }
 
 static void tegra_pcie_enable_system_interrupts(struct pcie_port *pp)
@@ -2767,6 +3380,7 @@ static int tegra_pcie_dw_probe(struct platform_device *pdev)
 	pci->atu_base = devm_ioremap_resource(dev, atu_dma_res);
 	if (IS_ERR(pci->atu_base))
 		return PTR_ERR(pci->atu_base);
+	pcie->dma_base = pci->atu_base + SZ_128K;
 
 	pcie->core_rst = devm_reset_control_get(dev, "core");
 	if (IS_ERR(pcie->core_rst)) {
