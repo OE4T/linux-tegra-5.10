@@ -132,6 +132,9 @@ struct pci_epc {
  * @bar_fixed_64bit: bitmap to indicate fixed 64bit BARs
  * @bar_fixed_size: Array specifying the size supported by each BAR
  * @align: alignment size required for BAR buffer allocation
+ * @msi_rcv_bar: BAR to target Endpoint MSI from Root port
+ * @msi_rcv_offset: Offset in BAR to target Endpoint MSI from Root port
+ * @msi_rcv_size: Endpoint MSI page size in BAR
  */
 struct pci_epc_features {
 	unsigned int	linkup_notifier : 1;
@@ -142,6 +145,9 @@ struct pci_epc_features {
 	u8	bar_fixed_64bit;
 	u64	bar_fixed_size[PCI_STD_NUM_BARS];
 	size_t	align;
+	u8	msi_rcv_bar;
+	u64	msi_rcv_offset;
+	u32	msi_rcv_size;
 };
 
 #define to_pci_epc(device) container_of((device), struct pci_epc, dev)
