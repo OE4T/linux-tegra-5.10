@@ -633,6 +633,22 @@ static unsigned int dw_pcie_ep_find_ext_capability(struct dw_pcie *pci, int cap)
 	return 0;
 }
 
+void dw_pcie_ep_deinit(struct dw_pcie_ep *ep)
+{
+	struct dw_pcie *pci = to_dw_pcie_from_ep(ep);
+	struct dw_pcie_ep_func *ep_func, *tmp;
+	struct device *dev = pci->dev;
+
+	memset(ep->ib_window_map, 0x0,
+	       BITS_TO_LONGS(ep->num_ib_windows) * sizeof(long));
+
+	list_for_each_entry_safe(ep_func, tmp, &ep->func_list, list) {
+		list_del(&ep_func->list);
+		devm_kfree(dev, ep_func);
+	}
+}
+EXPORT_SYMBOL_GPL(dw_pcie_ep_deinit);
+
 int dw_pcie_ep_init_complete(struct dw_pcie_ep *ep)
 {
 	struct dw_pcie *pci = to_dw_pcie_from_ep(ep);
