@@ -104,11 +104,13 @@ u8 tegra_get_major_rev(void)
 {
 	return (tegra_read_chipid() >> 4) & 0xf;
 }
+EXPORT_SYMBOL(tegra_get_major_rev);
 
 u8 tegra_get_minor_rev(void)
 {
 	return (tegra_read_chipid() >> 16) & 0xf;
 }
+EXPORT_SYMBOL(tegra_get_minor_rev);
 
 u32 tegra_read_straps(void)
 {

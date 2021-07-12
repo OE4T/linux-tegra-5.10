@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
  * Copyright (C) 2010 Google, Inc.
- * Copyright (c) 2013-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Author:
  *	Colin Cross <ccross@android.com>
@@ -69,9 +69,6 @@ void tegra_init_apbmisc(void);
 
 bool tegra_fuse_read_spare(unsigned int spare);
 u32 tegra_fuse_read_early(unsigned int offset);
-
-u8 tegra_get_major_rev(void);
-u8 tegra_get_minor_rev(void);
 
 extern const struct attribute_group tegra_soc_attr_group;
 

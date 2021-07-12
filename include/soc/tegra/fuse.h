@@ -54,8 +54,10 @@
 
 #include <linux/of.h>
 
-extern u32 tegra_read_chipid(void);
-extern u8 tegra_get_chip_id(void);
+u32 tegra_read_chipid(void);
+u8 tegra_get_chip_id(void);
+u8 tegra_get_major_rev(void);
+u8 tegra_get_minor_rev(void);
 int tegra_miscreg_set_erd(u64);
 
 enum tegra_revision {
