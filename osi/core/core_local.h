@@ -266,6 +266,10 @@ struct core_ops {
 	/** Called to configure HW PTP offload feature */
 	int (*config_ptp_offload)(struct osi_core_priv_data *const osi_core,
 				  struct osi_pto_config *const pto_config);
+#ifdef MACSEC_SUPPORT
+	void (*config_macsec_ipg)(struct osi_core_priv_data *const osi_core,
+				  const nveu32_t enable);
+#endif /* MACSEC_SUPPORT */
 };
 
 

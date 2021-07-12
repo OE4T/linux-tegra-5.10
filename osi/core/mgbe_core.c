@@ -2505,47 +2505,6 @@ static int mgbe_config_flow_control(struct osi_core_priv_data *const osi_core,
 	return 0;
 }
 
-#ifdef MACSEC_SUPPORT
-/**
- * @brief mgbe_config_macsec_ipg - Configure MAC IPG according to macsec IAS
- *
- * @note
- * Algorithm:
- *  - Increase MAC IPG value to accommodate macsec 32 byte SECTAG.
- *
- * @param[in] osi_core: OSI core private data.
- *
- * @pre
- *     1) MAC has to be out of reset.
- *     2) Shall not use this ipg value in half duplex mode
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: No
- * - De-initialization: No
- */
-static void mgbe_config_macsec_ipg(struct osi_core_priv_data *const osi_core)
-{
-	nveu32_t value = 0U;
-
-	/* Configure IPG  {EIPG,IPG} value according to macsec IAS in
-	 * MAC_Tx_Configuration and MAC_Extended_Configuration
-	 * IPG (12 B[default] + 32 B[sectag]) = 352 bits
-	 */
-	value = osi_readla(osi_core, (nveu8_t *)osi_core->base + MGBE_MAC_TMCR);
-	value &= ~MGBE_MAC_TMCR_IPG_MASK;
-	value |= MGBE_MAC_TMCR_IFP;
-	osi_writela(osi_core, value, (nveu8_t *)osi_core->base + MGBE_MAC_TMCR);
-
-	value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
-			   MGBE_MAC_EXT_CNF);
-	value |= MGBE_MAC_EXT_CNF_EIPG;
-	osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
-		    MGBE_MAC_EXT_CNF);
-}
-#endif /*  MACSEC_SUPPORT */
-
 /**
  * @brief mgbe_configure_mac - Configure MAC
  *
@@ -2688,10 +2647,6 @@ static int mgbe_configure_mac(struct osi_core_priv_data *osi_core)
 		}
 	}
 	/* TODO: USP (user Priority) to RxQ Mapping */
-
-#ifdef MACSEC_SUPPORT
-	mgbe_config_macsec_ipg(osi_core);
-#endif /*  MACSEC_SUPPORT */
 
 	/* RSS cofiguration */
 	return mgbe_config_rss(osi_core);
@@ -3984,6 +3939,37 @@ static void mgbe_stop_mac(struct osi_core_priv_data *const osi_core)
 	value &= ~MGBE_MAC_RMCR_RE;
 	osi_writela(osi_core, value, (nveu8_t *)addr + MGBE_MAC_RMCR);
 }
+
+#ifdef MACSEC_SUPPORT
+/**
+ * @brief mgbe_config_mac_tx - Enable/Disable MAC Tx
+ *
+ * Algorithm: Enable/Disable MAC Transmitter engine
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] enable: Enable or Disable.MAC Tx
+ *
+ * @note 1) MAC init should be complete. See osi_hw_core_init()
+ */
+static void mgbe_config_mac_tx(struct osi_core_priv_data *const osi_core,
+				const nveu32_t enable)
+{
+	nveu32_t value;
+	void *addr = osi_core->base;
+
+	if (enable == OSI_ENABLE) {
+		value = osi_readla(osi_core, (nveu8_t *)addr + MGBE_MAC_TMCR);
+		/* Enable MAC Transmit */
+		value |= MGBE_MAC_TMCR_TE;
+		osi_writela(osi_core, value, (nveu8_t *)addr + MGBE_MAC_TMCR);
+	} else {
+		value = osi_readla(osi_core, (nveu8_t *)addr + MGBE_MAC_TMCR);
+		/* Disable MAC Transmit */
+		value &= ~MGBE_MAC_TMCR_TE;
+		osi_writela(osi_core, value, (nveu8_t *)addr + MGBE_MAC_TMCR);
+	}
+}
+#endif /*  MACSEC_SUPPORT */
 
 /**
  * @brief mgbe_core_deinit - MGBE MAC core deinitialization
@@ -5598,6 +5584,71 @@ static void mgbe_set_mdc_clk_rate(struct osi_core_priv_data *const osi_core,
 {
 }
 
+#ifdef MACSEC_SUPPORT
+/**
+ * @brief mgbe_config_macsec_ipg - Configure MAC IPG according to macsec IAS
+ *
+ * @note
+ * Algorithm:
+ *  - Stop MAC Tx
+ *  - Update MAC IPG value to accommodate macsec 32 byte SECTAG.
+ *  - Start MAC Tx
+ *
+ * @param[in] osi_core: OSI core private data.
+ * @param[in] enable: Enable or Disable MAC Tx engine
+ *
+ * @pre
+ *     1) MAC has to be out of reset.
+ *     2) Shall not use this ipg value in half duplex mode
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ */
+void mgbe_config_macsec_ipg(struct osi_core_priv_data *const osi_core,
+					    const nveu32_t enable)
+{
+	nveu32_t value = 0U;
+
+	/* stop MAC Tx */
+	mgbe_config_mac_tx(osi_core, OSI_DISABLE);
+	if (enable == OSI_ENABLE) {
+		/* Configure IPG  {EIPG,IPG} value according to macsec IAS in
+		 * MAC_Tx_Configuration and MAC_Extended_Configuration
+		 * IPG (12 B[default] + 32 B[sectag]) = 352 bits
+		 */
+		value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				   MGBE_MAC_TMCR);
+		value &= ~MGBE_MAC_TMCR_IPG_MASK;
+		value |= MGBE_MAC_TMCR_IFP;
+		osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
+			    MGBE_MAC_TMCR);
+		value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				   MGBE_MAC_EXT_CNF);
+		value |= MGBE_MAC_EXT_CNF_EIPG;
+		osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
+			    MGBE_MAC_EXT_CNF);
+	} else {
+		/* Update MAC IPG to default value 12B */
+		value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				   MGBE_MAC_TMCR);
+		value &= ~MGBE_MAC_TMCR_IPG_MASK;
+		value &= ~MGBE_MAC_TMCR_IFP;
+		osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
+			    MGBE_MAC_TMCR);
+		value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				   MGBE_MAC_EXT_CNF);
+		value &= ~MGBE_MAC_EXT_CNF_EIPG_MASK;
+		osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
+			    MGBE_MAC_EXT_CNF);
+	}
+	/* start MAC Tx */
+	mgbe_config_mac_tx(osi_core, OSI_ENABLE);
+}
+#endif /*  MACSEC_SUPPORT */
+
 /**
  * @brief mgbe_init_core_ops - Initialize MGBE MAC core operations
  */
@@ -5659,4 +5710,7 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->update_frp_nve = mgbe_update_frp_nve;
 	ops->write_reg = mgbe_write_reg;
 	ops->read_reg = mgbe_read_reg;
+#ifdef MACSEC_SUPPORT
+	ops->config_macsec_ipg = mgbe_config_macsec_ipg;
+#endif /*  MACSEC_SUPPORT */
 };

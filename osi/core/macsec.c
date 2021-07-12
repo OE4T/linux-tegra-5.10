@@ -2448,11 +2448,21 @@ static nve32_t clear_lut(struct osi_core_priv_data *const osi_core)
 static nve32_t macsec_deinit(struct osi_core_priv_data *const osi_core)
 {
 	nveu32_t i;
+	struct core_local *l_core = (struct core_local *)osi_core;
 
 	for (i = OSI_CTLR_SEL_TX; i <= OSI_CTLR_SEL_RX; i++) {
 		osi_memset(&osi_core->macsec_lut_status[i], OSI_NONE,
 			   sizeof(struct osi_macsec_lut_status));
 	}
+
+	/* Update MAC ipg value as per macsec requirement */
+	if (l_core->ops_p->config_macsec_ipg != OSI_NULL) {
+		l_core->ops_p->config_macsec_ipg(osi_core, OSI_DISABLE);
+	} else {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+			     "Failed config macsec IPG\n", 0ULL);
+	}
+
 	return 0;
 }
 
@@ -2461,6 +2471,7 @@ static nve32_t macsec_init(struct osi_core_priv_data *const osi_core)
 	nveu32_t val = 0;
 	struct osi_macsec_lut_config lut_config = {0};
 	struct osi_macsec_table_config *table_config = &lut_config.table_config;
+	struct core_local *l_core = (struct core_local *)osi_core;
 	/* Store MAC address in reverse, per HW design */
 	nveu8_t mac_da_mkpdu[OSI_ETH_ALEN] = {0x3, 0x0, 0x0,
 					      0xC2, 0x80, 0x01};
@@ -2471,7 +2482,15 @@ static nve32_t macsec_init(struct osi_core_priv_data *const osi_core)
 	nve32_t ret = 0;
 	nveu16_t i, j;
 
-	/* 1. Set MTU */
+	/* Update MAC ipg value as per macsec requirement */
+	if (l_core->ops_p->config_macsec_ipg != OSI_NULL) {
+		l_core->ops_p->config_macsec_ipg(osi_core, OSI_ENABLE);
+	} else {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+			     "Failed config macsec IPG\n", 0ULL);
+	}
+
+	/* Set MTU */
 	val = osi_readla(osi_core, addr + MACSEC_TX_MTU_LEN);
 	pr_err("Read MACSEC_TX_MTU_LEN: 0x%x\n", val);
 	val &= ~(MTU_LENGTH_MASK);
@@ -2505,7 +2524,7 @@ static nve32_t macsec_init(struct osi_core_priv_data *const osi_core)
 		osi_writela(osi_core, val, addr + MACSEC_RX_SOT_DELAY);
 	}
 
-	/* 2. Set essential MACsec control configuration */
+	/* Set essential MACsec control configuration */
 	val = osi_readla(osi_core, addr + MACSEC_CONTROL0);
 	pr_err("Read MACSEC_CONTROL0: 0x%x\n", val);
 	val |= (MACSEC_TX_LKUP_MISS_NS_INTR | MACSEC_RX_LKUP_MISS_NS_INTR |
@@ -2539,7 +2558,7 @@ static nve32_t macsec_init(struct osi_core_priv_data *const osi_core)
 	pr_err("Write MACSEC_STATS_CONTROL_0: 0x%x\n", val);
 	osi_writela(osi_core, val, addr + MACSEC_STATS_CONTROL_0);
 
-	/* 3. Enable default interrupts needed */
+	/* Enable default interrupts needed */
 	val = osi_readla(osi_core, addr + MACSEC_TX_IMR);
 	pr_err("Read MACSEC_TX_IMR: 0x%x\n", val);
 	val |= (MACSEC_TX_DBG_BUF_CAPTURE_DONE_INT_EN |
@@ -2576,11 +2595,11 @@ static nve32_t macsec_init(struct osi_core_priv_data *const osi_core)
 	pr_err("Write MACSEC_COMMON_IMR: 0x%x\n", val);
 	osi_writela(osi_core, val, addr + MACSEC_COMMON_IMR);
 
-	/* 4. Set AES mode
+	/* Set AES mode
 	 * Default power on reset is AES-GCM128, leave it.
 	 */
 
-	/* 5. Invalidate LUT entries */
+	/* Invalidate LUT entries */
 	ret = clear_lut(osi_core);
 	if (ret < 0) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
@@ -2588,7 +2607,7 @@ static nve32_t macsec_init(struct osi_core_priv_data *const osi_core)
 		return ret;
 	}
 
-	/* 6. Set default BYP for MKPDU/BC packets */
+	/* Set default BYP for MKPDU/BC packets */
 	table_config->rw = OSI_LUT_WRITE;
 	lut_config.lut_sel = OSI_LUT_SEL_BYPASS;
 	lut_config.flags |= (OSI_LUT_FLAGS_DA_VALID |
