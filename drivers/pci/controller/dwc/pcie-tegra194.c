@@ -1854,6 +1854,8 @@ static int notify_pcie_from_sd(struct notifier_block *self,
 
 static void pex_ep_event_pex_rst_assert(struct tegra_pcie_dw *pcie)
 {
+	struct dw_pcie *pci = &pcie->pci;
+	struct dw_pcie_ep *ep = &pci->ep;
 	u32 val;
 	int ret;
 
@@ -1892,6 +1894,9 @@ static void pex_ep_event_pex_rst_assert(struct tegra_pcie_dw *pcie)
 	}
 
 	pcie->ep_state = EP_STATE_DISABLED;
+
+	dw_pcie_ep_deinit(ep);
+
 	dev_dbg(pcie->dev, "Uninitialization of endpoint is completed\n");
 }
 
