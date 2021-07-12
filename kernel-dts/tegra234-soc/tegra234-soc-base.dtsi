@@ -491,9 +491,9 @@
 	};
 
 	xusb_padctl: xusb_padctl@3520000 {
-		compatible = "nvidia,tegra19x-xusb-padctl";
-		reg = <0x0 0x03520000 0x0 0x1000>,
-			<0x0 0x03540000 0x0 0x1000>;
+		compatible = "nvidia,tegra234-xusb-padctl";
+		reg = <0x0 0x03520000 0x0 0x20000>,
+			<0x0 0x03540000 0x0 0x10000>;
 		reg-names = "padctl", "ao";
 		interrupts = <0 167 0x4>;
 		resets = <&bpmp_resets TEGRA234_RESET_XUSB_PADCTL>;
@@ -575,7 +575,7 @@
 	};
 
 	tegra_usb_cd: usb_cd {
-		compatible = "nvidia,tegra194-usb-cd";
+		compatible = "nvidia,tegra234-usb-cd";
 		nvidia,xusb-padctl = <&xusb_padctl>;
 		phys = <&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-0}>;
 		phy-names = "otg-phy";
@@ -583,14 +583,21 @@
 	};
 
 	tegra_xudc: xudc@3550000 {
-		compatible = "nvidia,tegra194-xudc";
+		compatible = "nvidia,tegra234-xudc";
 		reg = <0x0 0x03550000 0x0 0x8000>,
-			<0x0 0x03558000 0x0 0x1000>;
+			<0x0 0x03558000 0x0 0x8000>;
 		interrupts = <0 166 0x4>;
 		clocks = <&bpmp_clks TEGRA234_CLK_XUSB_CORE_DEV>,
 			<&bpmp_clks TEGRA234_CLK_XUSB_SS_SUPERSPEED>,
 			<&bpmp_clks TEGRA234_CLK_XUSB_SS>,
 			<&bpmp_clks TEGRA234_CLK_XUSB_FS>;
+		clock-names = "dev", "ss", "ss_src", "fs_src";
+
+#if defined(LINUX_VERSION) && LINUX_VERSION > 414
+                power-domains =  <&bpmp TEGRA234_POWER_DOMAIN_XUSBB>,
+                        <&bpmp TEGRA234_POWER_DOMAIN_XUSBA>;
+                power-domain-names = "dev", "ss";
+#endif
 
 		nvidia,xusb-padctl = <&xusb_padctl>;
 
@@ -606,9 +613,10 @@
 	};
 
 	tegra_xhci: xhci@3610000 {
-		compatible = "nvidia,tegra194-xhci";
+		compatible = "nvidia,tegra234-xhci", "nvidia,tegra234-xusb";
 		reg = <0x0 0x03610000 0x0 0x40000>,
-			<0x0 0x03600000 0x0 0x10000>;
+			<0x0 0x03600000 0x0 0x10000>,
+			<0x0 0x03650000 0x0 0x10000>;
 		interrupts = <0 163 0x4>, <0 164 0x4>, <0 167 0x4>;
 		interrupt-parent = <&tegra_pm_irq>;
 
@@ -631,9 +639,19 @@
 			"xusb_fs_src", "xusb_fs_host_clk", "xusb_ss_src",
 			"xusb_ss", "pll_u_480m", "clk_m", "pll_e";
 
+#if defined(LINUX_VERSION) && LINUX_VERSION > 414
+		power-domains =  <&bpmp TEGRA234_POWER_DOMAIN_XUSBC>,
+			<&bpmp TEGRA234_POWER_DOMAIN_XUSBA>;
+		power-domain-names = "xusb_host", "xusb_ss";
+#endif
+
 		nvidia,xusb-padctl = <&xusb_padctl>;
 
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA234_MEMORY_CLIENT_XUSB_HOSTR>,
+				<&mc TEGRA234_MEMORY_CLIENT_XUSB_HOSTW>;
+		interconnect-names = "dma-mem", "dma-mem";
+
 		iommus = <&smmu_niso1 TEGRA_SID_NISO1_XUSB_HOST>;
 #else
 		iommus = <&smmu TEGRA_SID_XUSB_HOST>;
@@ -643,14 +661,18 @@
 		status = "disabled";
 	};
 
-	tegra_xhci_vf1: xhci@3660000 {
-		compatible = "nvidia,tegra194-xhci-vf1";
-		reg = <0x0 0x03660000 0x0 0x40000>;
+	tegra_xhci_vf1: xhci@3670000 {
+		compatible = "nvidia,tegra234-xhci-vf1";
+		reg = <0x0 0x03670000 0x0 0x40000>;
 		interrupts = <0 21 0x4>;
 
 		nvidia,xusb-padctl = <&xusb_padctl>;
 
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA234_MEMORY_CLIENT_XUSB_HOSTR>,
+				<&mc TEGRA234_MEMORY_CLIENT_XUSB_HOSTW>;
+		interconnect-names = "dma-mem", "dma-mem";
+
 		iommus = <&smmu_niso1 TEGRA_SID_NISO1_XUSB_VF0>;
 #else
 		iommus = <&smmu TEGRA_SID_XUSB_VF0>;
@@ -660,14 +682,18 @@
 		status = "disabled";
 	};
 
-	tegra_xhci_vf2: xhci@36b0000 {
-		compatible = "nvidia,tegra194-xhci-vf2";
-		reg = <0x0 0x036b0000 0x0 0x40000>;
+	tegra_xhci_vf2: xhci@36c0000 {
+		compatible = "nvidia,tegra234-xhci-vf2";
+		reg = <0x0 0x036c0000 0x0 0x40000>;
 		interrupts = <0 22 0x4>;
 
 		nvidia,xusb-padctl = <&xusb_padctl>;
 
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA234_MEMORY_CLIENT_XUSB_HOSTR>,
+				<&mc TEGRA234_MEMORY_CLIENT_XUSB_HOSTW>;
+		interconnect-names = "dma-mem", "dma-mem";
+
 		iommus = <&smmu_niso1 TEGRA_SID_NISO1_XUSB_VF1>;
 #else
 		iommus = <&smmu TEGRA_SID_XUSB_VF1>;
@@ -677,14 +703,18 @@
 		status = "disabled";
 	};
 
-	tegra_xhci_vf3: xhci@3700000 {
-		compatible = "nvidia,tegra194-xhci-vf3";
-		reg = <0x0 0x03700000 0x0 0x40000>;
+	tegra_xhci_vf3: xhci@3710000 {
+		compatible = "nvidia,tegra234-xhci-vf3";
+		reg = <0x0 0x03710000 0x0 0x40000>;
 		interrupts = <0 23 0x4>;
 
 		nvidia,xusb-padctl = <&xusb_padctl>;
 
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA234_MEMORY_CLIENT_XUSB_HOSTR>,
+				<&mc TEGRA234_MEMORY_CLIENT_XUSB_HOSTW>;
+		interconnect-names = "dma-mem", "dma-mem";
+
 		iommus = <&smmu_niso1 TEGRA_SID_NISO1_XUSB_VF2>;
 #else
 		iommus = <&smmu TEGRA_SID_XUSB_VF2>;
@@ -694,14 +724,18 @@
 		status = "disabled";
 	};
 
-	tegra_xhci_vf4: xhci@3750000 {
-		compatible = "nvidia,tegra194-xhci-vf4";
-		reg = <0x0 0x03750000 0x0 0x40000>;
+	tegra_xhci_vf4: xhci@3760000 {
+		compatible = "nvidia,tegra234-xhci-vf4";
+		reg = <0x0 0x03760000 0x0 0x40000>;
 		interrupts = <0 24 0x4>;
 
 		nvidia,xusb-padctl = <&xusb_padctl>;
 
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA234_MEMORY_CLIENT_XUSB_HOSTR>,
+				<&mc TEGRA234_MEMORY_CLIENT_XUSB_HOSTW>;
+		interconnect-names = "dma-mem", "dma-mem";
+
 		iommus = <&smmu_niso1 TEGRA_SID_NISO1_XUSB_VF3>;
 #else
 		iommus = <&smmu TEGRA_SID_XUSB_VF3>;
