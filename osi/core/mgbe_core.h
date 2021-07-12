@@ -668,6 +668,7 @@
 #define MGBE_MAC_SBD_INTR			OSI_BIT(2)
 #define MGBE_MAC_EXT_CNF_DDS			OSI_BIT(7)
 #define MGBE_MAC_EXT_CNF_EIPG 			0x1U
+#define MGBE_MAC_EXT_CNF_EIPG_MASK		0x7FU
 /* TX timestamp */
 #define MGBE_MAC_TSS_TXTSC			OSI_BIT(15)
 /** @} */
