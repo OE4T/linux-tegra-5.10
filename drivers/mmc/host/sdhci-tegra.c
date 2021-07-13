@@ -158,13 +158,17 @@
 #define NVQUIRK_SDMMC_CLK_OVERRIDE			BIT(11)
 #define NVQUIRK_UPDATE_PIN_CNTRL_REG			BIT(12)
 #define NVQUIRK_CONTROL_TRIMMER_SUPPLY			BIT(13)
-#define NVQUIRK_ENABLE_PERIODIC_CALIB			BIT(14)
+/*
+ * NVQUIRK_HAS_TMCLK is for SoC's having separate timeout clock for Tegra
+ * SDMMC hardware data timeout.
+ */
+#define NVQUIRK_HAS_TMCLK				BIT(14)
+#define NVQUIRK_ENABLE_PERIODIC_CALIB			BIT(15)
+#define SDHCI_TEGRA_FALLBACK_CLK_HZ			400000
 
 #define MAX_TAP_VALUE		256
 
 /* Set min identification clock of 400 KHz */
-#define SDMMC_TEGRA_FALLBACK_CLK_HZ	400000
-#define SDMMC_TIMEOUT_CLK_FREQ_HZ	12000000
 #define SDMMC_TIMEOUT_CLK_FREQ_MHZ	12
 
 /* uhs mask can be used to mask any of the UHS modes support */
@@ -191,11 +195,6 @@ static char prod_device_states[MMC_TIMING_COUNTER][20] = {
 	"prod_c_hs400", /* MMC_TIMING_MMC_HS400 */
 };
 
-/*
- * NVQUIRK_HAS_TMCLK is for SoC's having separate timeout clock for Tegra
- * SDMMC hardware data timeout.
- */
-#define NVQUIRK_HAS_TMCLK				BIT(14)
 #define SDHCI_TEGRA_FALLBACK_CLK_HZ			400000
 #define SDHCI_TEGRA_RTPM_TIMEOUT_MS			10
 #define SDMMC_EMC_MAX_FREQ      			150000000
