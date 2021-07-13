@@ -1905,8 +1905,7 @@ static void tegra_cqhci_writel(struct cqhci_host *cq_host, u32 val, int reg)
 	 */
 	if (reg == CQHCI_CTL && !(val & CQHCI_HALT) &&
 	    cqhci_readl(cq_host, CQHCI_CTL) & CQHCI_HALT) {
-		sdhci_writew(host, SDHCI_TEGRA_CQE_TRNS_MODE,
-				SDHCI_TRANSFER_MODE);
+		sdhci_writew(host, SDHCI_TEGRA_CQE_TRNS_MODE, SDHCI_TRANSFER_MODE);
 		sdhci_cqe_enable(mmc);
 		writel(val, cq_host->mmio + reg);
 		timeout = ktime_add_us(ktime_get(), 50);
@@ -1956,8 +1955,7 @@ static void sdhci_tegra_cqe_enable(struct mmc_host *mmc)
 		if (val & CQHCI_ENABLE)
 			cqhci_writel(cq_host, (val & ~CQHCI_ENABLE),
 				     CQHCI_CFG);
-		sdhci_writew(host, SDHCI_TEGRA_CQE_TRNS_MODE,
-				SDHCI_TRANSFER_MODE);
+		sdhci_writew(host, SDHCI_TEGRA_CQE_TRNS_MODE, SDHCI_TRANSFER_MODE);
 		sdhci_cqe_enable(mmc);
 		if (val & CQHCI_ENABLE)
 			cqhci_writel(cq_host, val, CQHCI_CFG);
@@ -1974,6 +1972,7 @@ static void sdhci_tegra_cqe_enable(struct mmc_host *mmc)
 	val &= ~CQHCI_SSC1_CBC_MASK;
 	cqhci_writel(cq_host, val, CQHCI_SSC1);
 }
+
 static void sdhci_tegra_cqe_pre_enable(struct mmc_host *mmc)
 {
 	struct cqhci_host *cq_host = mmc->cqe_private;
@@ -2013,6 +2012,7 @@ static u32 sdhci_tegra_cqhci_irq(struct sdhci_host *host, u32 intmask)
 
 	return 0;
 }
+
 /* Configure voltage switch specific requirements */
 static void tegra_sdhci_voltage_switch_req(struct sdhci_host *host, bool req)
 {
@@ -2056,7 +2056,6 @@ static void tegra_sdhci_voltage_switch_req(struct sdhci_host *host, bool req)
 	}
 
 }
-
 
 static void tegra_sdhci_set_timeout(struct sdhci_host *host,
 				    struct mmc_command *cmd)
