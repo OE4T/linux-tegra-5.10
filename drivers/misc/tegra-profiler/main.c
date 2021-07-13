@@ -651,6 +651,7 @@ int quadd_late_init(void)
 	unsigned int raw_event_mask;
 	struct quadd_event *events;
 	struct source_info *pmu_info;
+	struct quadd_event_source *src;
 	int cpuid;
 
 	if (unlikely(!ctx.early_initialized))
@@ -659,38 +660,36 @@ int quadd_late_init(void)
 	if (likely(ctx.initialized))
 		return 0;
 
-	ctx.pmu = pmu_init();
-	if (IS_ERR(ctx.pmu)) {
-		pr_err("PMU init failed\n");
-		err = PTR_ERR(ctx.pmu);
-		goto out_err;
-	}
+	src = pmu_init();
+	ctx.pmu = IS_ERR(src) ? NULL : src;
 
-	for_each_possible_cpu(cpuid) {
-		const struct quadd_arch_info *arch;
+	if (ctx.pmu) {
+		for_each_possible_cpu(cpuid) {
+			const struct quadd_arch_info *arch;
 
-		arch = ctx.pmu->get_arch(cpuid);
-		if (!arch)
-			continue;
+			arch = ctx.pmu->get_arch(cpuid);
+			if (!arch)
+				continue;
 
-		pmu_info = &per_cpu(ctx_pmu_info, cpuid);
-		pmu_info->is_present = 1;
+			pmu_info = &per_cpu(ctx_pmu_info, cpuid);
+			pmu_info->is_present = 1;
 
-		events = pmu_info->supp_events;
-		nr_events =
-		    ctx.pmu->supported_events(cpuid, events,
-					      QUADD_MAX_COUNTERS,
-					      &raw_event_mask);
+			events = pmu_info->supp_events;
+			nr_events =
+				ctx.pmu->supported_events(cpuid, events,
+							  QUADD_MAX_COUNTERS,
+							  &raw_event_mask);
 
-		pmu_info->nr_supp_events = nr_events;
-		pmu_info->raw_event_mask = raw_event_mask;
+			pmu_info->nr_supp_events = nr_events;
+			pmu_info->raw_event_mask = raw_event_mask;
 
-		pr_debug("CPU: %d PMU: amount of events: %d, raw mask: %#x\n",
-			 cpuid, nr_events, raw_event_mask);
+			pr_debug("CPU: %d PMU: events: %d, raw mask: %#x\n",
+				 cpuid, nr_events, raw_event_mask);
 
-		for (i = 0; i < nr_events; i++)
-			pr_debug("CPU: %d PMU event: %s\n", cpuid,
-				 quadd_get_hw_event_str(events[i].id));
+			for (i = 0; i < nr_events; i++)
+				pr_debug("CPU: %d PMU event: %s\n", cpuid,
+					 quadd_get_hw_event_str(events[i].id));
+		}
 	}
 
 #if defined(CONFIG_ARCH_TEGRA_19x_SOC) || defined(CONFIG_ARCH_TEGRA_194_SOC)
@@ -763,7 +762,6 @@ out_err_pmu:
 #endif
 	pmu_deinit();
 
-out_err:
 	return err;
 }
 

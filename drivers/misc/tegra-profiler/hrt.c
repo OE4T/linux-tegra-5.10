@@ -1,7 +1,7 @@
 /*
  * drivers/misc/tegra-profiler/hrt.c
  *
- * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -1014,7 +1014,7 @@ int quadd_hrt_start(void)
 		(extra & QUADD_PARAM_EXTRA_STACK_OFFSET) ? 1 : 0;
 
 	for_each_possible_cpu(cpuid) {
-		if (ctx->pmu->get_arch(cpuid))
+		if (ctx->pmu && ctx->pmu->get_arch(cpuid))
 			put_header(cpuid, false);
 	}
 	put_header(0, true);

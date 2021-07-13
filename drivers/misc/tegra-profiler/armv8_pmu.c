@@ -1,7 +1,7 @@
 /*
  * drivers/misc/tegra-profiler/armv8_pmu.c
  *
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -827,7 +827,7 @@ static struct quadd_event_source pmu_armv8_int = {
 static int quadd_armv8_pmu_init_for_cpu(int cpuid)
 {
 	int idx, err = 0;
-	u32 pmcr, idcode = 0, reg_midr;
+	u32 pmcr, idcode = 0, reg_midr, pmuver;
 	u64 aa64_dfr;
 	u8 implementer;
 	struct cpuinfo_arm64 *local_cpu_data = &per_cpu(cpu_data, cpuid);
@@ -850,12 +850,15 @@ static int quadd_armv8_pmu_init_for_cpu(int cpuid)
 	implementer = MIDR_IMPLEMENTOR(reg_midr);
 
 	aa64_dfr = local_cpu_data->reg_id_aa64dfr0;
-	arch->pmuver = (aa64_dfr >> ID_AA64DFR0_PMUVER_SHIFT) &
+	pmuver = (aa64_dfr >> ID_AA64DFR0_PMUVER_SHIFT) &
 			QUADD_AA64_ID_AA64DFR0_PMUVER_MASK;
+	if (pmuver == 0xf || pmuver == 0)
+		return -ENODEV;
+
+	arch->pmuver = pmuver;
 	arch->pmuver_is_set = 1;
 
 	if (implementer == 'A' || implementer == 'N') {
-
 		strncpy(arch->name, "AA64 PmuV3", sizeof(arch->name));
 
 		idx = sizeof(arch->name) - 1;
@@ -917,8 +920,7 @@ static int quadd_armv8_pmu_init_for_cpu(int cpuid)
 	}
 
 	arch->name[sizeof(arch->name) - 1] = '\0';
-	pr_info("[%d] arch: %s, pmuver: %#x\n",
-		cpuid, arch->name, arch->pmuver);
+	pr_info("[%d] arch: %s, pmuver: %#x\n", cpuid, arch->name, pmuver);
 
 	return err;
 }
