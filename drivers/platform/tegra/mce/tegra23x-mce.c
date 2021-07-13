@@ -235,7 +235,7 @@ static int tegra23x_mce_read_uncore_perfmon(u32 req, u32 *data)
 
 	cpu_idx = get_ari_address_index();
 	ret = ari_send_request(ari_bar_array[cpu_idx], 0U,
-			(u32)TEGRA_ARI_PERFMON, 0U, req);
+			(u32)TEGRA_ARI_PERFMON, req, 0U);
 
 	if (ret)
 		return ret;
@@ -243,12 +243,12 @@ static int tegra23x_mce_read_uncore_perfmon(u32 req, u32 *data)
 	out_lo = ari_get_response_low(ari_bar_array[cpu_idx]);
 	out_hi = ari_get_response_high(ari_bar_array[cpu_idx]);
 
-	pr_debug("%s: read status = %u\n", __func__, out_hi);
+	pr_debug("%s: read status = %u\n", __func__, out_lo);
 
-	if (out_hi != 0)
-		return -out_hi;
+	if (out_lo != 0)
+		return -out_lo;
 
-	*data = out_lo;
+	*data = out_hi;
 
 	preempt_enable();
 
@@ -265,7 +265,7 @@ static int tegra23x_mce_write_uncore_perfmon(u32 req, u32 data)
 
 	cpu_idx = get_ari_address_index();
 	ret = ari_send_request(ari_bar_array[cpu_idx], 0U,
-			(u32)TEGRA_ARI_PERFMON, data, req);
+			(u32)TEGRA_ARI_PERFMON, req, data);
 
 	if (ret)
 		return ret;
@@ -273,10 +273,10 @@ static int tegra23x_mce_write_uncore_perfmon(u32 req, u32 data)
 	out_lo = ari_get_response_low(ari_bar_array[cpu_idx]);
 	out_hi = ari_get_response_high(ari_bar_array[cpu_idx]);
 
-	pr_debug("%s: write status = %u\n", __func__, out_hi);
+	pr_debug("%s: write status = %u\n", __func__, out_lo);
 
-	if (out_hi != 0)
-		return -out_hi;
+	if (out_lo != 0)
+		return -out_lo;
 
 	preempt_enable();
 
