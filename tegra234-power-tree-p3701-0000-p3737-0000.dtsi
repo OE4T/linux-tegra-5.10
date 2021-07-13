@@ -1,11 +1,10 @@
 /*
- * Top level DTS file for CVM:P3701-0000 and CVB:P3737-0000.
- *
  * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; version 2 of the License.
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -13,14 +12,17 @@
  * more details.
  */
 
-/dts-v1/;
-#include "cvm/tegra234-p3701-0000.dtsi"
-#include "cvb/tegra234-p3737-0000-a00.dtsi"
-#include "tegra234-power-tree-p3701-0000-p3737-0000.dtsi"
+
+#include "cvb/tegra234-p3737-fixed-regulator.dtsi"
 
 / {
-	nvidia,dtsfilename = __FILE__;
-	nvidia,dtbbuildtime = __DATE__, __TIME__;
+	sdhci@3440000 {
+		/*
+		 * Both 3.3V and 1.8V vqmmc/IO supplies are always provided
+		 * and enabling either of the supplies is controller by
+		 * pad controls. Do not list any vqmmc supply here.
+		 */
+		vmmc-supply = <&p3737_vdd_3v3_sd>;
+	};
 
-	compatible = "nvidia,p3737-0000+p3701-0000", "nvidia,tegra23x";
 };
