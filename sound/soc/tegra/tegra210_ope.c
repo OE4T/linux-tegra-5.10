@@ -125,8 +125,23 @@ static int tegra210_ope_hw_params(struct snd_pcm_substream *substream,
 
 static int tegra210_ope_codec_probe(struct snd_soc_component *cmpnt)
 {
+	struct tegra210_ope *ope = dev_get_drvdata(cmpnt->dev);
+
 	tegra210_peq_codec_init(cmpnt);
 	tegra210_mbdrc_codec_init(cmpnt);
+
+	/*
+	 * The OPE, PEQ and MBDRC functionalities are combined under one
+	 * device registered by OPE driver. However there are separate
+	 * regmap interfaces for each of these. ASoC core depends on
+	 * dev_get_regmap() to populate the regmap field for a given ASoC
+	 * component. Due to multiple regmap interfaces, it always uses
+	 * the last registered interface in probe(). The DAPM routes in
+	 * the current driver depend on OPE regmap. So to avoid dependency
+	 * on probe order and to allow DAPM paths to use correct regmap
+	 * below explicit assignment is done.
+	 */
+	snd_soc_component_init_regmap(cmpnt, ope->regmap);
 
 	return 0;
 }
