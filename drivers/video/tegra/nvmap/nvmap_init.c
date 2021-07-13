@@ -41,7 +41,6 @@
 #endif
 
 #include "nvmap_priv.h"
-#include <linux/platform/tegra/common.h>
 
 #ifdef CONFIG_TEGRA_VIRTUALIZATION
 #include <linux/tegra-ivc.h>

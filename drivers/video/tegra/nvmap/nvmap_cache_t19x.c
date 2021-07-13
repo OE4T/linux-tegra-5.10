@@ -15,8 +15,6 @@
 
 #define pr_fmt(fmt)	"nvmap: %s() " fmt, __func__
 
-#include <linux/miscdevice.h>
-#include <linux/tegra-cache.h>
 #include <linux/nvmap_t19x.h>
 
 #include "nvmap_priv.h"

@@ -28,7 +28,6 @@
 #include <linux/seq_file.h>
 #include <linux/stringify.h>
 #include <linux/of.h>
-#include <linux/platform/tegra/tegra_fd.h>
 #include <linux/version.h>
 #include <linux/iommu.h>
 
