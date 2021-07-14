@@ -160,6 +160,13 @@ B:	Tegra-DLA
 S:	Supported
 F:	drivers/video/tegra/host/nvdla/
 
+FSICOM
+M:	Prashant Shaw <pshaw@nvidia.com>
+B:	Embedded Safety Services
+S:	Supported
+F:	drivers/platform/tegra/tegra-fsicom.c
+F:	include/linux/tegra-fsicom.h
+
 HDCP
 M:	Hyung Taek Ryoo <hryoo@nvidia.com>
 M:	Sharath Sarangpur <ssarangpur@nvidia.com>
