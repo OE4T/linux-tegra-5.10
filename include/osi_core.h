@@ -216,6 +216,10 @@ typedef my_lint_64		nvel64_t;
 #define OSI_CMD_WRITE_REG		41U
 #define OSI_CMD_GET_TX_TS			42U
 #define OSI_CMD_FREE_TS			43U
+#ifdef OSI_DEBUG
+#define OSI_CMD_REG_DUMP		44U
+#define OSI_CMD_STRUCTS_DUMP		45U
+#endif /* OSI_DEBUG */
 /** @} */
 
 /**
@@ -990,6 +994,12 @@ struct osd_core_ops {
 				   void *const kt_config,
 				   void *const genl_info);
 #endif /* MACSEC_SUPPORT */
+#ifdef OSI_DEBUG
+	/**.printf function callback */
+	void (*printf)(struct osi_core_priv_data *osi_core,
+		       nveu32_t type,
+		       const char *fmt, ...);
+#endif
 };
 
 #ifdef MACSEC_SUPPORT
