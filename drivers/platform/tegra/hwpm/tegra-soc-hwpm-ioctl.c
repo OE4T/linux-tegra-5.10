@@ -108,14 +108,20 @@ static const struct tegra_soc_hwpm_ioctl ioctls[] = {
 static int device_info_ioctl(struct tegra_soc_hwpm *hwpm,
 			     void *ioctl_struct)
 {
-/* FIXME: Implement IOCTL */
-#if 0
 	struct tegra_soc_hwpm_device_info *device_info =
 			(struct tegra_soc_hwpm_device_info *)ioctl_struct;
-#endif
 
-	tegra_soc_hwpm_err("The DEVICE_INFO IOCTL is currently not implemented");
-	return -ENXIO;
+	device_info->chip = tegra_get_chip_id();
+	device_info->chip_revision = tegra_get_major_rev();
+	device_info->revision = tegra_chip_get_revision();
+	device_info->platform = tegra_get_platform();
+
+	tegra_soc_hwpm_dbg("chip id 0x%x", device_info->chip);
+	tegra_soc_hwpm_dbg("chip_revision 0x%x", device_info->chip_revision);
+	tegra_soc_hwpm_dbg("revision 0x%x", device_info->revision);
+	tegra_soc_hwpm_dbg("platform 0x%x", device_info->platform);
+
+	return 0;
 }
 
 static int timer_relation_ioctl(struct tegra_soc_hwpm *hwpm,

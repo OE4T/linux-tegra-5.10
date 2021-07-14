@@ -48,20 +48,10 @@ enum tegra_soc_hwpm_ip {
 
 /* TEGRA_CTRL_CMD_SOC_HWPM_DEVICE_INFO IOCTL */
 struct tegra_soc_hwpm_device_info {
-	/*
-	 * Inputs
-	 */
-	enum tegra_soc_hwpm_ip ip;
-
-	/*
-	 * Outputs
-	 */
-	/*
-	 * This is a bitfield for indicating which IP instances are available in
-	 * the current chip. The bit position is the physical instance number.
-	 * If the bit is set, the instance is available and vice versa.
-	 */
-	__u32 instance_mask;
+	__u32 chip;	/* chip id, eg. 0x23 (t23x) */
+	__u32 chip_revision;	/* chip_id revision, eg. 0x4 (t234) */
+	__u32 revision;	/* major-minor revision, eg. A01, A02 */
+	__u32 platform;	/* Eg. Pre-Si, Si */
 };
 
 enum tegra_soc_hwpm_timer_relation_cpu_clk {
