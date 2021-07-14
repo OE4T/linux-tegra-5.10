@@ -127,6 +127,9 @@ struct pva_submit_task {
 	struct nvpva_fence_action
 		pva_fence_actions[NVPVA_MAX_FENCE_TYPES]
 				 [NVPVA_TASK_MAX_FENCEACTIONS];
+	/** Store Suface base address */
+	u64 src_surf_base_addr;
+	u64 dst_surf_base_addr;
 };
 
 struct pva_submit_tasks {

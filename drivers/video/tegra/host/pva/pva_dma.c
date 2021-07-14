@@ -101,6 +101,12 @@ static int32_t patch_dma_desc_address(struct pva_submit_task *task,
 			goto out;
 		}
 		addr_base = mem->dma_addr;
+		task->src_surf_base_addr = addr_base;
+
+		/** If BL format selected, set addr bit 39 to indicate */
+		/* XBAR_RAW swizzling is required */
+		addr_base |= (u64)umd_dma_desc->srcFormat << 39U;
+
 		break;
 	}
 	case DMA_DESC_SRC_XFER_INVAL:
@@ -164,6 +170,11 @@ static int32_t patch_dma_desc_address(struct pva_submit_task *task,
 			goto out;
 		}
 		addr_base = mem->dma_addr;
+		task->dst_surf_base_addr = addr_base;
+
+		/* If BL format selected, set addr bit 39 to indicate */
+		/* XBAR_RAW swizzling is required */
+		addr_base |= (u64)umd_dma_desc->dstFormat << 39U;
 		break;
 	}
 	case DMA_DESC_DST_XFER_INVAL:
@@ -246,6 +257,28 @@ static int32_t nvpva_task_dma_desc_mapping(struct pva_submit_task *task,
 			umd_dma_desc->prefetchEnable |
 			(umd_dma_desc->dstCbEnable << 1U) |
 			(umd_dma_desc->srcCbEnable << 2U);
+
+		/*!
+		 * Block-linear surface offset. Only the surface in dram
+		 * can be block-linear.
+		 * BLBaseAddress = translate(srcPtr / dstPtr) + surfBLOffset;
+		 * transfer_control2.bit[3:7] = BLBaseAddress[1].bit[1:5]
+		 * GOB offset in BL mode and corresponds to surface address
+		 * bits [13:9]
+		 */
+		if ((umd_dma_desc->srcFormat == 1U)
+		   && (umd_dma_desc->srcTransferMode ==
+					DMA_DESC_SRC_XFER_MC)) {
+			task->src_surf_base_addr += umd_dma_desc->surfBLOffset;
+			dma_desc->transfer_control2 |=
+			    (u8)((task->src_surf_base_addr & 0x3E00) >> 6U);
+		} else if ((umd_dma_desc->dstFormat == 1U) &&
+				(umd_dma_desc->dstTransferMode ==
+					DMA_DESC_DST_XFER_MC)) {
+			task->dst_surf_base_addr += umd_dma_desc->surfBLOffset;
+			dma_desc->transfer_control2 |=
+			    (u8)((task->dst_surf_base_addr & 0x3E00) >> 6U);
+		}
 
 		/* DMA_DESC_LDID */
 		if (umd_dma_desc->linkDescId < 0x40)
