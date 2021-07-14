@@ -23,6 +23,7 @@
 #else
 		iommus = <&smmu TEGRA_SID_APE>;
 #endif
+		iommu-resv-regions = <0x0 0x0 0x0 0x40000000 0x0 0x60000000 0xffffffff 0xffffffff>;
 		status = "disabled";
 	};
 
@@ -32,6 +33,7 @@
 #else
 		iommus = <&smmu TEGRA_SID_APE>;
 #endif
+		iommu-resv-regions = <0x0 0x0 0x0 0x40000000 0x0 0x60000000 0xffffffff 0xffffffff>;
 		status = "disabled";
 	};
 
@@ -138,6 +140,7 @@
 #else
 			iommus = <&smmu TEGRA_SID_APE>;
 #endif
+			iommu-resv-regions = <0x0 0x0 0x0 0x40000000 0x0 0x60000000 0xffffffff 0xffffffff>;
 			status = "disabled";
 		};
 
@@ -703,6 +706,7 @@
 #else
 			iommus = <&smmu TEGRA_SID_APE>;
 #endif
+			iommu-resv-regions = <0x0 0x0 0x0 0x40000000 0x0 0x60000000 0xffffffff 0xffffffff>;
 			interrupt-parent = <&tegra_agic>;
 			interrupts = <GIC_SPI INT_ADMA_EOT16 IRQ_TYPE_LEVEL_HIGH
 					ROUTE_TO_ADSP>,
