@@ -117,10 +117,12 @@ union app_loader_msgq {
 };
 
 /* ADSP APP shared message pool */
+#pragma pack(8)
 struct nvadsp_app_shared_msg_pool {
 	union app_loader_msgq		app_loader_send_message;
 	union app_loader_msgq		app_loader_recv_message;
-} __packed;
+};
+#pragma pack()
 
 /*ADSP shated OS args */
 struct nvadsp_os_args {
@@ -168,12 +170,14 @@ struct nvadsp_os_info {
 } __packed;
 
 /* ADSP OS shared memory */
+#pragma pack(8)
 struct nvadsp_shared_mem {
 	struct nvadsp_app_shared_msg_pool app_shared_msg_pool;
 	struct nvadsp_os_args os_args;
 	struct nvadsp_os_info os_info;
 	struct nvadsp_exception_context exception_context;
-} __packed;
+};
+#pragma pack()
 
 
 #endif /* __ADSP_SHARED_STRUCT */
