@@ -1085,7 +1085,7 @@ int ether_handle_priv_ioctl(struct net_device *ndev,
 	struct phy_device *phydev = ndev->phydev;
 	struct ether_ifr_data ifdata;
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
-#ifdef OSI_DMA_DEBUG
+#ifdef OSI_DEBUG
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 #endif
 	int ret = -EOPNOTSUPP;
@@ -1232,14 +1232,24 @@ int ether_handle_priv_ioctl(struct net_device *ndev,
 	case ETHER_PAD_CALIBRATION:
 		ret = ether_pad_calibration(ndev, ifdata.if_flags);
 		break;
-#ifdef OSI_DMA_DEBUG
+#ifdef OSI_DEBUG
 	case ETHER_REGISTER_DUMP:
 		osi_dma->ioctl_data.cmd = OSI_DMA_IOCTL_CMD_REG_DUMP;
 		ret = osi_dma_ioctl(osi_dma);
+		if (ret < 0)
+			goto err;
+
+		ioctl_data.cmd = OSI_CMD_REG_DUMP;
+		ret = osi_handle_ioctl(pdata->osi_core, &ioctl_data);
 		break;
 	case ETHER_STRUCTURE_DUMP:
 		osi_dma->ioctl_data.cmd = OSI_DMA_IOCTL_CMD_STRUCTS_DUMP;
 		ret = osi_dma_ioctl(osi_dma);
+		if (ret < 0)
+			goto err;
+
+		ioctl_data.cmd = OSI_CMD_STRUCTS_DUMP;
+		ret = osi_handle_ioctl(pdata->osi_core, &ioctl_data);
 		break;
 #endif
 	default:

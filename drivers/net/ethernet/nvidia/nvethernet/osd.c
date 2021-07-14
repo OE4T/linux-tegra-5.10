@@ -497,7 +497,7 @@ static void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaadd
 
 }
 
-#ifdef OSI_DMA_DEBUG
+#ifdef OSI_DEBUG
 /**
  * @brief Dumps the data to trace buffer
  *
@@ -516,7 +516,7 @@ static void osd_printf(struct osi_dma_priv_data *osi_dma,
 	vsprintf(buf, fmt, args);
 
 	switch (type) {
-	case OSI_DMA_DEBUG_DESC:
+	case OSI_DEBUG_TYPE_DESC:
 #if 0
 		/**
 		 * TODO: trace_printk resulted in kernel warning GVS failure.
@@ -526,8 +526,37 @@ static void osd_printf(struct osi_dma_priv_data *osi_dma,
 #endif
 		pr_err("%s", buf);
 		break;
-	case OSI_DMA_DEBUG_REG:
-	case OSI_DMA_DEBUG_STRUCTS:
+	case OSI_DEBUG_TYPE_REG:
+	case OSI_DEBUG_TYPE_STRUCTS:
+		pr_err("%s", buf);
+		break;
+	default:
+		pr_err("Unsupported debug type\n");
+		break;
+	}
+	va_end(args);
+}
+
+/**
+ * @brief Dumps the data
+ *
+ * @param[in] osi_core: OSI core private data.
+ * @param[in] type: Type of data to be dump.
+ * @param[in] fmt: Data format.
+ */
+static void osd_core_printf(struct osi_core_priv_data *osi_core,
+			    unsigned int type,
+			    const char *fmt, ...)
+{
+	char buf[512];
+	va_list args;
+
+	va_start(args, fmt);
+	vsprintf(buf, fmt, args);
+
+	switch (type) {
+	case OSI_DEBUG_TYPE_REG:
+	case OSI_DEBUG_TYPE_STRUCTS:
 		pr_err("%s", buf);
 		break;
 	default:
@@ -546,13 +575,16 @@ void ether_assign_osd_ops(struct osi_core_priv_data *osi_core,
 	osi_core->osd_ops.usleep_range = osd_usleep_range;
 	osi_core->osd_ops.msleep = osd_msleep;
 	osi_core->osd_ops.padctrl_mii_rx_pins = ether_padctrl_mii_rx_pins;
+#ifdef OSI_DEBUG
+	osi_core->osd_ops.printf = osd_core_printf;
+#endif
 
 	osi_dma->osd_ops.transmit_complete = osd_transmit_complete;
 	osi_dma->osd_ops.receive_packet = osd_receive_packet;
 	osi_dma->osd_ops.realloc_buf = osd_realloc_buf;
 	osi_dma->osd_ops.ops_log = osd_log;
 	osi_dma->osd_ops.udelay = osd_udelay;
-#ifdef OSI_DMA_DEBUG
+#ifdef OSI_DEBUG
 	osi_dma->osd_ops.printf = osd_printf;
 #endif
 }
