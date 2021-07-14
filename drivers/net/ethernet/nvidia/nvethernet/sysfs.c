@@ -21,7 +21,7 @@
 #define EOQS_MAX_REGISTER_ADDRESS 0x12FC
 #endif
 
-#ifdef OSI_DMA_DEBUG
+#ifdef OSI_DEBUG
 /**
  * @brief Shows the current setting of descriptor dump
  *
@@ -81,7 +81,7 @@ static ssize_t ether_desc_dump_store(struct device *dev,
 static DEVICE_ATTR(desc_dump_enable, (S_IRUGO | S_IWUSR),
 		   ether_desc_dump_show,
 		   ether_desc_dump_store);
-#endif /* OSI_DMA_DEBUG */
+#endif /* OSI_DEBUG */
 
 /**
  * @brief Shows the current setting of MAC loopback
@@ -2271,9 +2271,9 @@ static DEVICE_ATTR(ptp_sync, (S_IRUGO | S_IWUSR),
  * @brief Attributes for nvethernet sysfs
  */
 static struct attribute *ether_sysfs_attrs[] = {
-#ifdef OSI_DMA_DEBUG
+#ifdef OSI_DEBUG
 	&dev_attr_desc_dump_enable.attr,
-#endif
+#endif /* OSI_DEBUG */
 	&dev_attr_mac_loopback.attr,
 	&dev_attr_ptp_mode.attr,
 	&dev_attr_ptp_sync.attr,
