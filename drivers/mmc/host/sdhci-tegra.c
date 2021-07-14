@@ -298,6 +298,7 @@ struct sdhci_tegra {
 	bool is_probe_done;
 	bool defer_calib;
 	bool wake_enable_failed;
+	bool enable_cqic;
 };
 
 static void sdhci_tegra_debugfs_init(struct sdhci_host *host);
@@ -1281,6 +1282,14 @@ static void tegra_sdhci_parse_dt(struct sdhci_host *host)
 		tegra_host->enable_hwcq = true;
 	else
 		tegra_host->enable_hwcq = false;
+
+	if (tegra_host->enable_hwcq) {
+		if (device_property_read_bool(host->mmc->parent,
+						"nvidia,enable-cqic"))
+			tegra_host->enable_cqic = true;
+		else
+			tegra_host->enable_cqic = false;
+	}
 
 	if (device_property_read_bool(host->mmc->parent, "nvidia,disable-rtpm"))
 		tegra_host->disable_rtpm = true;
