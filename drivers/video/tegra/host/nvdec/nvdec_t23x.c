@@ -34,10 +34,50 @@
 #include "nvdec/nvdec.h"
 #include "nvdec_t23x.h"
 #include "nvdec/hw_nvdec_t23x.h"
+#include "flcn/hw_flcn.h"
 
 #define NVDEC_DEBUGINFO_DUMMY		(0xabcd1234)
 #define NVDEC_DEBUGINFO_CLEAR		(0x0)
+#define FW_NAME_SIZE			32
 
+static int nvdec_riscv_wait_mem_scrubbing(struct platform_device *dev)
+{
+	u32 val;
+	int err = 0;
+	void __iomem *hwcfg2_addr;
+
+	hwcfg2_addr = get_aperture(dev, 0) + flcn_hwcfg2_r();
+	err  = readl_poll_timeout(hwcfg2_addr, val,
+				(flcn_hwcfg2_mem_scrubbing_v(val) ==
+				 flcn_hwcfg2_mem_scrubbing_done_v()),
+				RISCV_IDLE_CHECK_PERIOD,
+				RISCV_IDLE_TIMEOUT_DEFAULT);
+	if (err) {
+		dev_err(&dev->dev, "mem scrubbing timeout! val=0x%x", val);
+		return -ETIMEDOUT;
+	}
+
+	return err;
+
+}
+
+static void nvdec_get_riscv_bin_name(struct platform_device *pdev, char *name)
+{
+	u8 maj, min;
+	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
+	u32 debug_mode = host1x_readl(pdev, flcn_hwcfg2_r()) &
+					flcn_hwcfg2_dbgmode_m();
+
+	nvdec_decode_ver(pdata->version, &maj, &min);
+	if (debug_mode) {
+		snprintf(name, FW_NAME_SIZE, "nvhost_nvdec0%d%d_desc_dev.bin",
+			maj, min);
+	} else {
+		snprintf(name, FW_NAME_SIZE, "nvhost_nvdec0%d%d_desc_prod.bin",
+			maj, min);
+	}
+
+}
 static int nvdec_read_riscv_bin(struct platform_device *dev,
 				const char *desc_bin_name)
 {
@@ -68,6 +108,7 @@ static int nvdec_read_riscv_bin(struct platform_device *dev,
 static int nvhost_nvdec_riscv_init_sw(struct platform_device *pdev)
 {
 	int err = 0;
+	char riscv_desc_bin[FW_NAME_SIZE];
 	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
 	struct riscv_data *m = (struct riscv_data *)pdata->riscv_data;
 
@@ -81,7 +122,9 @@ static int nvhost_nvdec_riscv_init_sw(struct platform_device *pdev)
 	}
 	pdata->riscv_data = m;
 
-	err = nvdec_read_riscv_bin(pdev, pdata->riscv_desc_bin);
+	nvdec_get_riscv_bin_name(pdev, riscv_desc_bin);
+	dev_info(&pdev->dev, "risc-v desc binary name:%s", riscv_desc_bin);
+	err = nvdec_read_riscv_bin(pdev, riscv_desc_bin);
 	if (err || !m->valid) {
 		dev_err(&pdev->dev, "binary not valid");
 		goto clean_up;
@@ -114,6 +157,11 @@ static int load_ucode(struct platform_device *dev, u64 base,
 
 	/* Protect engine/falcon registers from channel programing */
 	flcn_enable_thi_sec(dev);
+
+	/* Check if mem scrubbing is done */
+	err = nvdec_riscv_wait_mem_scrubbing(dev);
+	if (err)
+		return err;
 
 	/* Select RISC-V core for nvdec */
 	host1x_writel(dev, nvdec_riscv_bcr_ctrl_r(),
@@ -247,7 +295,7 @@ int nvhost_nvdec_finalize_poweron_t23x(struct platform_device *dev)
 	struct nvhost_device_data *pdata = platform_get_drvdata(dev);
 
 	if (!pdata) {
-		dev_info(&dev->dev, "no platform data");
+		dev_err(&dev->dev, "no platform data");
 		return -ENODATA;
 	}
 
