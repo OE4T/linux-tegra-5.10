@@ -2466,7 +2466,7 @@ static nve32_t macsec_init(struct osi_core_priv_data *const osi_core)
 					      0xC2, 0x80, 0x01};
 	nveu8_t mac_da_bc[OSI_ETH_ALEN] = {0xFF, 0xFF, 0xFF,
 					   0xFF, 0xFF, 0xFF};
-	nveu32_t mtu = osi_core->mtu + MACSEC_TAG_ICV_LEN;
+	nveu32_t mtu = osi_core->mtu;
 	nveu8_t *addr = (nveu8_t *)osi_core->macsec_base;
 	nve32_t ret = 0;
 	nveu16_t i, j;
