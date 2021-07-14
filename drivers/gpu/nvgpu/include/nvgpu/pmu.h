@@ -360,6 +360,7 @@ struct nv_next_core_boot_params {
 	struct nv_next_core_bootldr_params bl;
 	/* rtos specific configuration should be added here. */
 	struct nv_next_core_rtos_params rtos;
+	u32 dummy[24];
 };
 
 struct nv_pmu_boot_params {

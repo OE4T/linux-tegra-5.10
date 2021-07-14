@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -267,7 +267,7 @@ static int pmu_fw_init_ops(struct gk20a *g, struct nvgpu_pmu *pmu)
 	if (nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
 		ncore_desc = (struct falcon_next_core_ucode_desc *)(void *)
 						rtos_fw->fw_desc->data;
-		app_version = ncore_desc->version;
+		app_version = ncore_desc->app_version;
 	} else {
 		desc = (struct pmu_ucode_desc *)(void *)rtos_fw->fw_desc->data;
 		app_version = desc->app_version;
