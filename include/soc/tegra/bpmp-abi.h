@@ -172,6 +172,12 @@ struct mrq_request {
 	 * | MRQ_ABI_RATCHET      |                                      | 2                                          |
 	 * | MRQ_EMC_DVFS_LATENCY |                                      | 8                                          |
 	 * | MRQ_EMC_DVFS_EMCHUB  |                                      | 8                                          |
+	 * | MRQ_BWMGR            | CMD_BWMGR_QUERY_ABI                  | 8                                          |
+	 * | MRQ_BWMGR            | CMD_BWMGR_CALC_RATE                  | 112                                        |
+	 * | MRQ_ISO_CLIENT       | CMD_ISO_CLIENT_QUERY_ABI             | 8                                          |
+	 * | MRQ_ISO_CLIENT       | CMD_ISO_CLIENT_CALCULATE_LA          | 16                                         |
+	 * | MRQ_ISO_CLIENT       | CMD_ISO_CLIENT_SET_LA                | 16                                         |
+	 * | MRQ_ISO_CLIENT       | CMD_ISO_CLIENT_GET_MAX_BW            | 8                                          |
 	 * | MRQ_CPU_NDIV_LIMITS  |                                      | 4                                          |
 	 * | MRQ_CPU_AUTO_CC3     |                                      | 4                                          |
 	 * | MRQ_RINGBUF_CONSOLE  | CMD_RINGBUF_CONSOLE_QUERY_ABI        | 8                                          |
@@ -316,6 +322,8 @@ struct mrq_response {
 #define MRQ_EC			73U
 #define MRQ_DEBUG		75U
 #define MRQ_EMC_DVFS_EMCHUB	76U
+#define MRQ_BWMGR		77U
+#define MRQ_ISO_CLIENT		78U
 
 /** @} */
 
@@ -324,7 +332,7 @@ struct mrq_response {
  * @brief Maximum MRQ code to be sent by CPU software to
  * BPMP. Subject to change in future
  */
-#define MAX_CPU_MRQ_ID		76U
+#define MAX_CPU_MRQ_ID		78U
 
 /**
  * @addtogroup MRQ_Payloads
@@ -342,6 +350,8 @@ struct mrq_response {
  *   @defgroup Thermal Thermal
  *   @defgroup Vhint CPU Voltage hint
  *   @defgroup EMC EMC
+ *   @defgroup BWMGR BWMGR
+ *   @defgroup ISO_CLIENT ISO_CLIENT
  *   @defgroup CPU NDIV Limits
  *   @defgroup RingbufConsole Ring Buffer Console
  *   @defgroup Strap Straps
@@ -2253,6 +2263,312 @@ struct mrq_emc_dvfs_emchub_response {
 
 /**
  * @ingroup MRQ_Codes
+ * @def MRQ_BWMGR
+ * @brief bwmgr requests
+ *
+ * * Platforms: T234 onwards
+ * @cond bpmp_t234
+ * * Initiators: CCPLEX
+ * * Targets: BPMP
+ * * Request Payload: @ref mrq_bwmgr_request
+ * * Response Payload: @ref mrq_bwmgr_response
+ *
+ * @addtogroup BWMGR
+ *
+ * @{
+ */
+
+enum mrq_bwmgr_cmd {
+	/**
+	 * @brief Check whether the BPMP driver supports the specified
+	 * request type
+	 *
+	 * mrq_response::err is 0 if the specified request is
+	 * supported and -#BPMP_ENODEV otherwise.
+	 */
+	CMD_BWMGR_QUERY_ABI = 0,
+
+	/**
+	 * @brief Determine dram rate to satisfy iso/niso bw requests
+	 *
+	 * mrq_response::err is
+	 * *  0: calc_rate succeeded.
+	 * *  -#BPMP_EINVAL: Invalid request parameters.
+	 * *  -#BPMP_ENOTSUP: Requested bw is not available.
+	 */
+	CMD_BWMGR_CALC_RATE = 1
+};
+
+/*
+ * request data for request type CMD_BWMGR_QUERY_ABI
+ *
+ * type: Request type for which to check existence.
+ */
+struct cmd_bwmgr_query_abi_request {
+	uint32_t type;
+} BPMP_ABI_PACKED;
+
+/**
+ * @brief Used by @ref cmd_bwmgr_calc_rate_request
+ */
+struct iso_req {
+	/* @brief bwmgr client ID @ref bpmp_bwmgr_ids */
+	uint32_t id;
+	/* @brief bw in kBps requested by client */
+	uint32_t iso_bw;
+} BPMP_ABI_PACKED;
+
+#define MAX_ISO_CLIENTS		13U
+/*
+ * request data for request type CMD_BWMGR_CALC_RATE
+ */
+struct cmd_bwmgr_calc_rate_request {
+	/* @brief total bw in kBps requested by all niso clients */
+	uint32_t sum_niso_bw;
+	/* @brief The number of iso clients */
+	uint32_t num_iso_clients;
+	/* @brief iso_req <id, iso_bw> information */
+	struct iso_req isobw_reqs[MAX_ISO_CLIENTS];
+} BPMP_ABI_PACKED;
+
+/*
+ * response data for request type CMD_BWMGR_CALC_RATE
+ *
+ * iso_rate_min: min dram data clk rate in kHz to satisfy all iso bw reqs
+ * total_rate_min: min dram data clk rate in kHz to satisfy all bw reqs
+ */
+struct cmd_bwmgr_calc_rate_response {
+	uint32_t iso_rate_min;
+	uint32_t total_rate_min;
+} BPMP_ABI_PACKED;
+
+/*
+ * @brief Request with #MRQ_BWMGR
+ *
+ *
+ * |sub-command                 |payload                       |
+ * |----------------------------|------------------------------|
+ * |CMD_BWMGR_QUERY_ABI         | cmd_bwmgr_query_abi_request  |
+ * |CMD_BWMGR_CALC_RATE         | cmd_bwmgr_calc_rate_request  |
+ *
+ */
+struct mrq_bwmgr_request {
+	uint32_t cmd;
+	union {
+		struct cmd_bwmgr_query_abi_request query_abi;
+		struct cmd_bwmgr_calc_rate_request bwmgr_rate_req;
+	} BPMP_UNION_ANON;
+} BPMP_ABI_PACKED;
+
+/*
+ * @brief Response to MRQ_BWMGR
+ *
+ * |sub-command                 |payload                       |
+ * |----------------------------|------------------------------|
+ * |CMD_BWMGR_CALC_RATE         | cmd_bwmgr_calc_rate_response |
+ */
+struct mrq_bwmgr_response {
+	union {
+		struct cmd_bwmgr_calc_rate_response bwmgr_rate_resp;
+	} BPMP_UNION_ANON;
+} BPMP_ABI_PACKED;
+
+/** @endcond */
+/** @} */
+
+/**
+ * @ingroup MRQ_Codes
+ * @def MRQ_ISO_CLIENT
+ * @brief ISO client requests
+ *
+ * * Platforms: T234 onwards
+ * @cond bpmp_t234
+ * * Initiators: CCPLEX
+ * * Targets: BPMP
+ * * Request Payload: @ref mrq_iso_client_request
+ * * Response Payload: @ref mrq_iso_client_response
+ *
+ * @addtogroup ISO_CLIENT
+ * @{
+ */
+
+enum mrq_iso_client_cmd {
+	/**
+	 * @brief Check whether the BPMP driver supports the specified
+	 * request type
+	 *
+	 * mrq_response::err is 0 if the specified request is
+	 * supported and -#BPMP_ENODEV otherwise.
+	 */
+	CMD_ISO_CLIENT_QUERY_ABI = 0,
+
+	/*
+	 * @brief check for legal LA for the iso client. Without programming
+	 * LA MC registers, calculate and ensure that legal LA is possible for
+	 * iso bw requested by the ISO client.
+	 *
+	 * mrq_response::err is
+	 * *  0: check la succeeded.
+	 * *  -#BPMP_EINVAL: Invalid request parameters.
+	 * *  -#BPMP_EFAULT: Legal LA is not possible for client requested iso_bw
+	 */
+	CMD_ISO_CLIENT_CALCULATE_LA = 1,
+
+	/*
+	 * @brief set LA for the iso client. Calculate and program the LA/PTSA
+	 * MC registers corresponding to the client making bw request
+	 *
+	 * mrq_response::err is
+	 * *  0: set la succeeded.
+	 * *  -#BPMP_EINVAL: Invalid request parameters.
+	 * *  -#BPMP_EFAULT: Failed to calculate or program MC registers.
+	 */
+	CMD_ISO_CLIENT_SET_LA = 2,
+
+	/*
+	 * @brief Get max possible bw for iso client
+	 *
+	 * mrq_response::err is
+	 * *  0: get_max_bw succeeded.
+	 * *  -#BPMP_EINVAL: Invalid request parameters.
+	 */
+	CMD_ISO_CLIENT_GET_MAX_BW = 3
+};
+
+/*
+ * request data for request type CMD_ISO_CLIENT_QUERY_ABI
+ *
+ * type: Request type for which to check existence.
+ */
+struct cmd_iso_client_query_abi_request {
+	uint32_t type;
+} BPMP_ABI_PACKED;
+
+/*
+ * request data for request type CMD_ISO_CLIENT_CALCULATE_LA
+ *
+ * id: client ID in @ref bpmp_bwmgr_ids
+ * bw: bw requested in kBps by client ID.
+ * init_bw_floor: initial dram_bw_floor in kBps passed by client ID.
+ * ISO client will perform mempool allocation and DVFS buffering based
+ * on this dram_bw_floor.
+ */
+struct cmd_iso_client_calculate_la_request {
+	uint32_t id;
+	uint32_t bw;
+	uint32_t init_bw_floor;
+} BPMP_ABI_PACKED;
+
+/*
+ * request data for request type CMD_ISO_CLIENT_SET_LA
+ *
+ * id: client ID in @ref bpmp_bwmgr_ids
+ * bw: bw requested in kBps by client ID.
+ * final_bw_floor: final dram_bw_floor in kBps.
+ * Sometimes the initial dram_bw_floor passed by ISO client may need to be
+ * updated by considering higher dram freq's. This is the final dram_bw_floor
+ * used to calculate and program MC registers.
+ */
+struct cmd_iso_client_set_la_request {
+	uint32_t id;
+	uint32_t bw;
+	uint32_t final_bw_floor;
+} BPMP_ABI_PACKED;
+
+/*
+ * request data for request type CMD_ISO_CLIENT_GET_MAX_BW
+ *
+ * id: client ID in @ref bpmp_bwmgr_ids
+ */
+struct cmd_iso_client_get_max_bw_request {
+	uint32_t id;
+} BPMP_ABI_PACKED;
+
+/*
+ * response data for request type CMD_ISO_CLIENT_CALCULATE_LA
+ *
+ * la_rate_floor: minimum dram_rate_floor in kHz at which a legal la is possible
+ * iso_client_only_rate: Minimum dram freq in kHz required to satisfy this clients
+ * iso bw request, assuming all other iso clients are inactive
+ */
+struct cmd_iso_client_calculate_la_response {
+	uint32_t la_rate_floor;
+	uint32_t iso_client_only_rate;
+} BPMP_ABI_PACKED;
+
+/**
+ * @brief Used by @ref cmd_iso_client_get_max_bw_response
+ */
+struct iso_max_bw {
+	/* @brief dram frequency in kHz */
+	uint32_t freq;
+	/* @brief max possible iso-bw in kBps */
+	uint32_t iso_bw;
+} BPMP_ABI_PACKED;
+
+#define ISO_MAX_BW_MAX_SIZE	14U
+/*
+ * response data for request type CMD_ISO_CLIENT_GET_MAX_BW
+ */
+struct cmd_iso_client_get_max_bw_response {
+	/* @brief The number valid entries in iso_max_bw pairs */
+	uint32_t num_pairs;
+	/* @brief max ISOBW <dram freq, max bw> information */
+	struct iso_max_bw pairs[ISO_MAX_BW_MAX_SIZE];
+} BPMP_ABI_PACKED;
+
+/**
+ * @brief Request with #MRQ_ISO_CLIENT
+ *
+ * Used by the sender of an #MRQ_ISO_CLIENT message.
+ *
+ * |sub-command                          |payload                                 |
+ * |------------------------------------ |----------------------------------------|
+ * |CMD_ISO_CLIENT_QUERY_ABI		 |cmd_iso_client_query_abi_request        |
+ * |CMD_ISO_CLIENT_CALCULATE_LA		 |cmd_iso_client_calculate_la_request     |
+ * |CMD_ISO_CLIENT_SET_LA		 |cmd_iso_client_set_la_request           |
+ * |CMD_ISO_CLIENT_GET_MAX_BW		 |cmd_iso_client_get_max_bw_request       |
+ *
+ */
+
+struct mrq_iso_client_request {
+	/* Type of request. Values listed in enum mrq_iso_client_cmd */
+	uint32_t cmd;
+	union {
+		struct cmd_iso_client_query_abi_request query_abi;
+		struct cmd_iso_client_calculate_la_request calculate_la_req;
+		struct cmd_iso_client_set_la_request set_la_req;
+		struct cmd_iso_client_get_max_bw_request max_isobw_req;
+	} BPMP_UNION_ANON;
+} BPMP_ABI_PACKED;
+
+/**
+ * @brief Response to MRQ_ISO_CLIENT
+ *
+ * Each sub-command supported by @ref mrq_iso_client_request may return
+ * sub-command-specific data. Some do and some do not as indicated in
+ * the following table
+ *
+ * |sub-command                  |payload                             |
+ * |---------------------------- |------------------------------------|
+ * |CMD_ISO_CLIENT_CALCULATE_LA  |cmd_iso_client_calculate_la_response|
+ * |CMD_ISO_CLIENT_SET_LA        |N/A                                 |
+ * |CMD_ISO_CLIENT_GET_MAX_BW    |cmd_iso_client_get_max_bw_response  |
+ *
+ */
+
+struct mrq_iso_client_response {
+	union {
+		struct cmd_iso_client_calculate_la_response calculate_la_resp;
+		struct cmd_iso_client_get_max_bw_response max_isobw_resp;
+	} BPMP_UNION_ANON;
+} BPMP_ABI_PACKED;
+
+/** @endcond */
+/** @} */
+
+/**
+ * @ingroup MRQ_Codes
  * @def MRQ_CPU_NDIV_LIMITS
  * @brief CPU freq. limits in ndiv
  *
@@ -2780,8 +3096,6 @@ enum {
 	 * -#BPMP_EOPNOTSUPP: not in production mode @n
 	 */
 	CMD_FMON_GEAR_GET = 3,
-	/** Kept for backward compatibility */
-	CMD_FMON_NUM,
 	/**
 	 * @brief Return current status of FMON faults detected by FMON
 	 *         h/w or s/w since last invocation of this command.
@@ -2797,6 +3111,13 @@ enum {
 	 */
 	CMD_FMON_FAULT_STS_GET = 4,
 };
+
+/**
+ * @cond DEPRECATED
+ * Kept for backward compatibility
+ */
+#define CMD_FMON_NUM		4
+/** @endcond */
 
 /**
  * @defgroup fmon_fault_type FMON fault type
