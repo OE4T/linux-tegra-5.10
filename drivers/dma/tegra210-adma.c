@@ -1072,7 +1072,6 @@ static int tegra_adma_probe(struct platform_device *pdev)
 		tdma->nr_channels = cdata->nr_channels;
 #endif
 
-	tdma->nr_channels = cdata->nr_channels;
 	tdma->ch_base_offset = cdata->ch_base_offset;
 
 	if (is_tegra_hypervisor_mode()) {
