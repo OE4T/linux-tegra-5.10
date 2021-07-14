@@ -244,8 +244,19 @@
 #define OSI_MTU_SIZE_2K		2000U
 #define OSI_INVALID_CHAN_NUM    0xFFU
 #endif /* OSI_STRIPPED_LIB */
-
 /** @} */
+
+/**
+ * @addtogroup OSI-DEBUG helper macros
+ *
+ * @brief OSI debug type macros
+ * @{
+ */
+#ifdef OSI_DEBUG
+#define OSI_DEBUG_TYPE_DESC		1U
+#define OSI_DEBUG_TYPE_REG		2U
+#define OSI_DEBUG_TYPE_STRUCTS		3U
+#endif /* OSI_DEBUG */
 
 #ifndef OSI_STRIPPED_LIB
 /**

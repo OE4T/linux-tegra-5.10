@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifdef OSI_DMA_DEBUG
+#ifdef OSI_DEBUG
 #include "debug.h"
 
 /**
@@ -38,18 +38,24 @@ static void dump_struct(struct osi_dma_priv_data *osi_dma,
 	nveu32_t i = 0, rem, j;
 	unsigned long temp;
 
+	if (ptr == OSI_NULL) {
+		osi_dma->osd_ops.printf(osi_dma, OSI_DEBUG_TYPE_STRUCTS,
+					"Pointer is NULL\n");
+		return;
+	}
+
 	rem = i % 4;
 	temp = size - rem;
 
 	for (i = 0; i < temp; i += 4) {
-		osi_dma->osd_ops.printf(osi_dma, OSI_DMA_DEBUG_STRUCTS,
+		osi_dma->osd_ops.printf(osi_dma, OSI_DEBUG_TYPE_STRUCTS,
 					"%02x%02x%02x%02x", ptr[i], ptr[i + 1],
 					ptr[i + 2], ptr[i + 3]);
 		j = i;
 	}
 
 	for (i = j; i < size; i++) {
-		osi_dma->osd_ops.printf(osi_dma, OSI_DMA_DEBUG_STRUCTS, "%x",
+		osi_dma->osd_ops.printf(osi_dma, OSI_DEBUG_TYPE_STRUCTS, "%x",
 					ptr[i]);
 	}
 }
@@ -64,13 +70,16 @@ void structs_dump(struct osi_dma_priv_data *osi_dma)
 	struct dma_local *l_dma = (struct dma_local *)osi_dma;
 	nveu32_t i = 0;
 
-	osi_dma->osd_ops.printf(osi_dma, OSI_DMA_DEBUG_STRUCTS,
-				"OSI DMA struct: ");
+	osi_dma->osd_ops.printf(osi_dma, OSI_DEBUG_TYPE_STRUCTS,
+				"OSI DMA struct size: %lu",
+				sizeof(struct osi_dma_priv_data));
 	dump_struct(osi_dma, (unsigned char *)osi_dma,
 		    sizeof(struct osi_dma_priv_data));
 
-	osi_dma->osd_ops.printf(osi_dma, OSI_DMA_DEBUG_STRUCTS,
-				"OSI DMA Tx/Rx Ring struct: ");
+	osi_dma->osd_ops.printf(osi_dma, OSI_DEBUG_TYPE_STRUCTS,
+				"OSI DMA Tx/Rx Ring struct sizes: %lu %lu",
+				sizeof(struct osi_tx_ring),
+				sizeof(struct osi_rx_ring));
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
 		dump_struct(osi_dma, (unsigned char *)osi_dma->tx_ring[i],
 			    sizeof(struct osi_tx_ring));
@@ -79,18 +88,21 @@ void structs_dump(struct osi_dma_priv_data *osi_dma)
 	}
 
 
-	osi_dma->osd_ops.printf(osi_dma, OSI_DMA_DEBUG_STRUCTS,
-				"OSD DMA ops struct: ");
+	osi_dma->osd_ops.printf(osi_dma, OSI_DEBUG_TYPE_STRUCTS,
+				"OSD DMA ops struct size: %lu",
+				sizeof(struct osd_dma_ops));
 	dump_struct(osi_dma, (unsigned char *)(&osi_dma->osd_ops),
 		    sizeof(struct osd_dma_ops));
 
-	osi_dma->osd_ops.printf(osi_dma, OSI_DMA_DEBUG_STRUCTS,
-				"OSI local DMA struct: ");
+	osi_dma->osd_ops.printf(osi_dma, OSI_DEBUG_TYPE_STRUCTS,
+				"OSI local DMA struct size: %lu",
+				sizeof(struct dma_local));
 	dump_struct(osi_dma, (unsigned char *)l_dma,
 		    sizeof(struct dma_local));
 
-	osi_dma->osd_ops.printf(osi_dma, OSI_DMA_DEBUG_STRUCTS,
-				"OSI local ops DMA struct: ");
+	osi_dma->osd_ops.printf(osi_dma, OSI_DEBUG_TYPE_STRUCTS,
+				"OSI local ops DMA struct size: %lu",
+				sizeof(struct dma_chan_ops));
 	dump_struct(osi_dma, (unsigned char *)l_dma->ops_p,
 		    sizeof(struct dma_chan_ops));
 }
@@ -130,7 +142,7 @@ void reg_dump(struct osi_dma_priv_data *osi_dma)
 			break;
 
 		reg_val = osi_readl((nveu8_t *)osi_dma->base + addr);
-		osi_dma->osd_ops.printf(osi_dma, OSI_DMA_DEBUG_REG,
+		osi_dma->osd_ops.printf(osi_dma, OSI_DEBUG_TYPE_REG,
 					"%x: %x\n", addr, reg_val);
 		addr += 4;
 	}
@@ -150,7 +162,7 @@ static void rx_desc_dump(struct osi_dma_priv_data *osi_dma, unsigned int idx,
 	struct osi_rx_desc *rx_desc = rx_ring->rx_desc + idx;
 	struct osd_dma_ops *ops = &osi_dma->osd_ops;
 
-	ops->printf(osi_dma, OSI_DMA_DEBUG_DESC,
+	ops->printf(osi_dma, OSI_DEBUG_TYPE_DESC,
 		    "N [%02d %4p %04d %lx R_D] = %#x:%#x:%#x:%#x\n",
 		    chan, rx_desc, idx,
 		    (rx_ring->rx_desc_phy_addr + (idx * sizeof(struct osi_rx_desc))),
@@ -181,7 +193,7 @@ static void tx_desc_dump(struct osi_dma_priv_data *osi_dma, unsigned int f_idx,
 		tx_desc = tx_ring->tx_desc + f_idx;
 		ctxt = tx_desc->tdes3 & TDES3_CTXT;
 
-		ops->printf(osi_dma, OSI_DMA_DEBUG_DESC,
+		ops->printf(osi_dma, OSI_DEBUG_TYPE_DESC,
 			    "%s [%02d %4p %04d %lx %s] = %#x:%#x:%#x:%#x\n",
 			    (ctxt  == TDES3_CTXT) ? "C" : "N",
 			    chan, tx_desc, f_idx,
@@ -202,7 +214,7 @@ static void tx_desc_dump(struct osi_dma_priv_data *osi_dma, unsigned int f_idx,
 			tx_desc = tx_ring->tx_desc + i;
 			ctxt = tx_desc->tdes3 & TDES3_CTXT;
 
-			ops->printf(osi_dma, OSI_DMA_DEBUG_DESC,
+			ops->printf(osi_dma, OSI_DEBUG_TYPE_DESC,
 				    "%s [%02d %4p %04d %lx %s] = %#x:%#x:%#x:%#x\n",
 				    (ctxt  == TDES3_CTXT) ? "C" : "N",
 				    chan, tx_desc, i,
@@ -241,4 +253,4 @@ void desc_dump(struct osi_dma_priv_data *osi_dma, unsigned int f_idx,
 		break;
 	}
 }
-#endif
+#endif /* OSI_DEBUG */

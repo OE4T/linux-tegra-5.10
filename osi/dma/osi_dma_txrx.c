@@ -26,9 +26,9 @@
 #include "../osi/common/common.h"
 #include "mgbe_dma.h"
 #include "local_common.h"
-#ifdef OSI_DMA_DEBUG
+#ifdef OSI_DEBUG
 #include "debug.h"
-#endif
+#endif /* OSI_DEBUG */
 
 static struct desc_ops d_ops[MAX_MAC_IP_TYPES];
 
@@ -166,12 +166,12 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 		if ((rx_desc->rdes3 & RDES3_OWN) == RDES3_OWN) {
 			break;
 		}
-#ifdef OSI_DMA_DEBUG
+#ifdef OSI_DEBUG
 		if (osi_dma->enable_desc_dump == 1U) {
 			desc_dump(osi_dma, rx_ring->cur_rx_idx,
 				  rx_ring->cur_rx_idx, RX_DESC_DUMP, chan);
 		}
-#endif /* OSI_DMA_DEBUG */
+#endif /* OSI_DEBUG */
 
 		INCR_RX_DESC_INDEX(rx_ring->cur_rx_idx, 1U);
 
@@ -254,13 +254,13 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 				 * those are valid.
 				 */
 				ptp_rx_swcx->flags |= OSI_RX_SWCX_REUSE;
-#ifdef OSI_DMA_DEBUG
+#ifdef OSI_DEBUG
 				if (osi_dma->enable_desc_dump == 1U) {
 					desc_dump(osi_dma, rx_ring->cur_rx_idx,
 						  rx_ring->cur_rx_idx, RX_DESC_DUMP,
 						  chan);
 				}
-#endif /* OSI_DMA_DEBUG */
+#endif /* OSI_DEBUG */
 				/* Context descriptor was consumed. Its skb
 				 * and DMA mapping will be recycled
 				 */
@@ -580,12 +580,12 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
 			break;
 		}
 
-#ifdef OSI_DMA_DEBUG
+#ifdef OSI_DEBUG
 		if (osi_dma->enable_desc_dump == 1U) {
 			desc_dump(osi_dma, entry, entry,
 				  (TX_DESC_DUMP | TX_DESC_DUMP_TX_DONE), chan);
 		}
-#endif /* OSI_DMA_DEBUG */
+#endif /* OSI_DEBUG */
 
 		/* check for Last Descriptor */
 		if ((tx_desc->tdes3 & TDES3_LD) == TDES3_LD) {
@@ -934,10 +934,10 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 	struct osi_tx_desc *tx_desc = OSI_NULL;
 	struct osi_tx_swcx *tx_swcx = OSI_NULL;
 	struct osi_tx_desc *cx_desc = OSI_NULL;
-#ifdef OSI_DMA_DEBUG
+#ifdef OSI_DEBUG
 	nveu32_t f_idx = tx_ring->cur_tx_idx;
 	nveu32_t l_idx = 0;
-#endif /* OSI_DMA_DEBUG */
+#endif /* OSI_DEBUG */
 	nve32_t cntx_desc_consumed;
 	nveu32_t pkt_id = 0x0U;
 	nveu32_t desc_cnt = 0U;
@@ -1086,13 +1086,13 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 	 */
 	dmb_oshst();
 
-#ifdef OSI_DMA_DEBUG
+#ifdef OSI_DEBUG
 	if (osi_dma->enable_desc_dump == 1U) {
 		l_idx = entry;
 		desc_dump(osi_dma, f_idx, DECR_TX_DESC_INDEX(l_idx, 1U),
 			  (TX_DESC_DUMP | TX_DESC_DUMP_TX), chan);
 	}
-#endif /* OSI_DMA_DEBUG */
+#endif /* OSI_DEBUG */
 
 	tailptr = tx_ring->tx_desc_phy_addr +
 		  (entry * sizeof(struct osi_tx_desc));

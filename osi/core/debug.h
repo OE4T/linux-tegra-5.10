@@ -20,31 +20,15 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef INCLUDED_DMA_DEBUG_H
-#define INCLUDED_DMA_DEBUG_H
+#ifndef INCLUDED_CORE_DEBUG_H
+#define INCLUDED_CORE_DEBUG_H
 
-#include <osi_common.h>
-#include <osi_dma.h>
-#include "hw_desc.h"
+#include <osi_core.h>
+#include <osi_macsec.h>
 #include "../osi/common/common.h"
-#include "dma_local.h"
+#include "core_local.h"
 
-/**
- * @addtogroup DESC-DUMP helper macros.
- *
- * @brief Helper macros used for debugging.
- * @{
- */
-#define TX_DESC_DUMP		OSI_BIT(0)
-#define RX_DESC_DUMP		OSI_BIT(1)
-#define TXRX_DESC_DUMP_MASK     (OSI_BIT(0) | OSI_BIT(1))
-#define TX_DESC_DUMP_TX		OSI_BIT(2)
-#define TX_DESC_DUMP_TX_DONE	OSI_BIT(3)
-#define TX_DESC_DUMP_MASK	(OSI_BIT(2) | OSI_BIT(3))
-/** @} */
+void core_reg_dump(struct osi_core_priv_data *osi_core);
+void core_structs_dump(struct osi_core_priv_data *osi_core);
 
-void desc_dump(struct osi_dma_priv_data *osi_dma, unsigned int f_idx,
-	       unsigned int l_idx, unsigned int flag, unsigned int chan);
-void reg_dump(struct osi_dma_priv_data *osi_dma);
-void structs_dump(struct osi_dma_priv_data *osi_dma);
-#endif /* INCLUDED_DMA_DEBUG_H*/
+#endif /* INCLUDED_CORE_DEBUG_H*/

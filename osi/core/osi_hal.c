@@ -26,6 +26,9 @@
 #include "../osi/common/common.h"
 #include "vlan_filter.h"
 #include "frp.h"
+#ifdef OSI_DEBUG
+#include "debug.h"
+#endif /* OSI_DEBUG */
 
 /**
  * @brief g_ops - Static core operations array.
@@ -156,6 +159,9 @@ static nve32_t osi_hal_init_core_ops(struct osi_core_priv_data *const osi_core)
 	if ((osi_core->osd_ops.ops_log == OSI_NULL) ||
 	    (osi_core->osd_ops.udelay == OSI_NULL) ||
 	    (osi_core->osd_ops.msleep == OSI_NULL) ||
+#ifdef OSI_DEBUG
+	    (osi_core->osd_ops.printf == OSI_NULL) ||
+#endif /* OSI_DEBUG */
 	    (osi_core->osd_ops.usleep_range == OSI_NULL)) {
 		return -1;
 	}
@@ -1644,7 +1650,16 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		free_tx_ts(osi_core, data->arg1_u32);
 		ret = 0;
 		break;
-
+#ifdef OSI_DEBUG
+	case OSI_CMD_REG_DUMP:
+		core_reg_dump(osi_core);
+		ret = 0;
+		break;
+	case OSI_CMD_STRUCTS_DUMP:
+		core_structs_dump(osi_core);
+		ret = 0;
+		break;
+#endif /* OSI_DEBUG */
 	default:
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			     "CORE: Incorrect command\n",

@@ -241,13 +241,10 @@
  * @brief Helper macros for OSI dma debugging.
  * @{
  */
-#ifdef OSI_DMA_DEBUG
+#ifdef OSI_DEBUG
 #define OSI_DMA_IOCTL_CMD_REG_DUMP	1U
 #define OSI_DMA_IOCTL_CMD_STRUCTS_DUMP	2U
-#define OSI_DMA_DEBUG_DESC		1U
-#define OSI_DMA_DEBUG_REG		2U
-#define OSI_DMA_DEBUG_STRUCTS		3U
-#endif /* OSI_DMA_DEBUG */
+#endif /* OSI_DEBUG */
 /** @} */
 
 /**
@@ -506,12 +503,12 @@ struct osd_dma_ops {
 			nveul64_t loga);
 	/**.ops_log function callback */
 	void (*udelay)(nveu64_t usec);
-#ifdef OSI_DMA_DEBUG
+#ifdef OSI_DEBUG
 	/**.printf function callback */
 	void (*printf)(struct osi_dma_priv_data *osi_dma,
 		       nveu32_t type,
 		       const char *fmt, ...);
-#endif
+#endif /* OSI_DEBUG */
 };
 
 /**
@@ -587,10 +584,10 @@ struct osi_dma_priv_data {
 	unsigned int ptp_flag;
 	/** OSI DMA IOCTL data */
 	struct osi_dma_ioctl_data ioctl_data;
-#ifdef OSI_DMA_DEBUG
+#ifdef OSI_DEBUG
 	/** Flag to enable/disable descriptor dump */
 	nveu32_t enable_desc_dump;
-#endif
+#endif /* OSI_DEBUG */
 };
 
 /**
