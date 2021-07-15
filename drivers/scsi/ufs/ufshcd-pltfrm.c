@@ -2,7 +2,7 @@
 /*
  * Universal Flash Storage Host controller Platform bus based glue driver
  * Copyright (C) 2011-2013 Samsung India Software Operations
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Authors:
  *	Santosh Yaraganavi <santosh.sy@samsung.com>
@@ -418,7 +418,9 @@ int ufshcd_pltfrm_init(struct platform_device *pdev,
 
 	err = ufshcd_init(hba, mmio_base, irq);
 	if (err) {
-		dev_err(dev, "Initialization failed\n");
+		if (err != -EPROBE_DEFER) {
+			dev_err(dev, "Initialization failed\n");
+		}
 		goto dealloc_host;
 	}
 
