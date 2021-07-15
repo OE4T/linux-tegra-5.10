@@ -61,4 +61,8 @@
 	pmc@c360000 {
 		status = "okay";
 	};
+
+	ga10b {
+		status = "okay";
+	};
 };
