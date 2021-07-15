@@ -16,4 +16,7 @@
 #include <tegra234-soc/tegra234-soc-cvm.dtsi>
 
 / {
+	pmc@c360000 {
+		nvidia,invert-interrupt;
+	};
 };
