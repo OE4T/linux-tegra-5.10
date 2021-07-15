@@ -62,6 +62,9 @@ struct tegra_soc_hwpm {
 	dev_t dev_t;
 	struct cdev cdev;
 
+	/* IP floorsweep info */
+	u64 ip_fs_info[TERGA_SOC_HWPM_NUM_IPS];
+
 	/* MMIO apertures in device tree */
 	void __iomem *dt_apertures[TEGRA_SOC_HWPM_NUM_DT_APERTURES];
 

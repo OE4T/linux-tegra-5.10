@@ -1,8 +1,4 @@
 /*
- * tegra-soc-hwpm-hw.h:
- * This header contains HW aperture and register info for the Tegra SOC HWPM
- * driver.
- *
  * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -16,6 +12,10 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * tegra-soc-hwpm-hw.h:
+ * This header contains HW aperture and register info for the Tegra SOC HWPM
+ * driver.
  */
 
 #ifndef TEGRA_SOC_HWPM_HW_H
@@ -32,8 +32,8 @@ enum tegra_soc_hwpm_dt_aperture {
 	TEGRA_SOC_HWPM_INVALID_DT = -1,
 
 	/* PERFMONs */
-	TEGRA_SOC_HWPM_VI0_PERFMON_DT = 0,
-	TEGRA_SOC_HWPM_FIRST_PERFMON_DT = TEGRA_SOC_HWPM_VI0_PERFMON_DT,
+	TEGRA_SOC_HWPM_FIRST_PERFMON_DT = 0,
+	TEGRA_SOC_HWPM_VI0_PERFMON_DT = TEGRA_SOC_HWPM_FIRST_PERFMON_DT,
 	TEGRA_SOC_HWPM_VI1_PERFMON_DT  = TEGRA_SOC_HWPM_FIRST_PERFMON_DT + 1,
 	TEGRA_SOC_HWPM_ISP0_PERFMON_DT,
 	TEGRA_SOC_HWPM_VICA0_PERFMON_DT,

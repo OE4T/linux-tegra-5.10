@@ -47,6 +47,8 @@ struct tegra_soc_hwpm_ioctl {
 
 static int device_info_ioctl(struct tegra_soc_hwpm *hwpm,
 			     void *ioctl_struct);
+static int floorsweep_info_ioctl(struct tegra_soc_hwpm *hwpm,
+			     void *ioctl_struct);
 static int timer_relation_ioctl(struct tegra_soc_hwpm *hwpm,
 				void *ioctl_struct);
 static int reserve_resource_ioctl(struct tegra_soc_hwpm *hwpm,
@@ -67,6 +69,11 @@ static const struct tegra_soc_hwpm_ioctl ioctls[] = {
 		.name			= "device_info",
 		.struct_size		= sizeof(struct tegra_soc_hwpm_device_info),
 		.handler		= device_info_ioctl,
+	},
+	[TEGRA_SOC_HWPM_IOCTL_FLOORSWEEP_INFO] = {
+		.name			= "floorsweep_info",
+		.struct_size		= sizeof(struct tegra_soc_hwpm_ip_floorsweep_info),
+		.handler		= floorsweep_info_ioctl,
 	},
 	[TEGRA_SOC_HWPM_IOCTL_GET_GPU_CPU_TIME_CORRELATION_INFO] = {
 		.name			= "timer_relation",
@@ -120,6 +127,40 @@ static int device_info_ioctl(struct tegra_soc_hwpm *hwpm,
 	tegra_soc_hwpm_dbg("chip_revision 0x%x", device_info->chip_revision);
 	tegra_soc_hwpm_dbg("revision 0x%x", device_info->revision);
 	tegra_soc_hwpm_dbg("platform 0x%x", device_info->platform);
+
+	return 0;
+}
+
+static int floorsweep_info_ioctl(struct tegra_soc_hwpm *hwpm,
+			     void *ioctl_struct)
+{
+	u32 i = 0U;
+	struct tegra_soc_hwpm_ip_floorsweep_info *fs_info =
+		(struct tegra_soc_hwpm_ip_floorsweep_info *)ioctl_struct;
+
+	if (fs_info->num_queries > TEGRA_SOC_HWPM_IP_QUERIES_MAX) {
+		tegra_soc_hwpm_err("Number of queries exceed max limit of %u",
+			TEGRA_SOC_HWPM_IP_QUERIES_MAX);
+		return -EINVAL;
+	}
+
+	for (i = 0U; i < fs_info->num_queries; i++) {
+		if (fs_info->ip_fsinfo[i].ip_type < TERGA_SOC_HWPM_NUM_IPS) {
+			fs_info->ip_fsinfo[i].status =
+				TEGRA_SOC_HWPM_IP_STATUS_VALID;
+			fs_info->ip_fsinfo[i].ip_inst_mask =
+				hwpm->ip_fs_info[fs_info->ip_fsinfo[i].ip_type];
+		} else {
+			fs_info->ip_fsinfo[i].ip_inst_mask = 0ULL;
+			fs_info->ip_fsinfo[i].status =
+				TEGRA_SOC_HWPM_IP_STATUS_INVALID;
+		}
+		tegra_soc_hwpm_dbg(
+			"Query %d: ip_type %d: ip_status: %d inst_mask 0x%llx",
+			i, fs_info->ip_fsinfo[i].ip_type,
+			fs_info->ip_fsinfo[i].status,
+			fs_info->ip_fsinfo[i].ip_inst_mask);
+	}
 
 	return 0;
 }
@@ -315,6 +356,19 @@ static int reserve_resource_ioctl(struct tegra_soc_hwpm *hwpm,
 		tegra_soc_hwpm_err("The RESERVE_RESOURCE IOCTL can only be"
 				" called before the BIND IOCTL.");
 		return -EPERM;
+	}
+
+	if (resource >= TERGA_SOC_HWPM_NUM_RESOURCES) {
+		tegra_soc_hwpm_err("Requested resource %d is out of bounds.",
+			resource);
+		return -EINVAL;
+	}
+
+	if ((resource < TERGA_SOC_HWPM_NUM_IPS) &&
+		(hwpm->ip_fs_info[resource] == 0)) {
+		tegra_soc_hwpm_dbg("Requested resource %d unavailable.",
+			resource);
+		return 0;
 	}
 
 	/*
@@ -1039,6 +1093,7 @@ static long tegra_soc_hwpm_ioctl(struct file *file,
 		ret = -ENODEV;
 		goto fail;
 	}
+
 	if ((_IOC_TYPE(cmd) != TEGRA_SOC_HWPM_IOC_MAGIC) ||
 	    (ioctl_num < 0) ||
 	    (ioctl_num >= TERGA_SOC_HWPM_NUM_IOCTLS)) {
@@ -1117,6 +1172,7 @@ static int tegra_soc_hwpm_open(struct inode *inode, struct file *filp)
 	unsigned int minor = iminor(inode);
 	struct tegra_soc_hwpm *hwpm = NULL;
 	struct resource *res = NULL;
+	u32 i;
 	u64 num_regs = 0;
 
 	if (!inode) {
@@ -1170,6 +1226,21 @@ static int tegra_soc_hwpm_open(struct inode *inode, struct file *filp)
 			ret = -ENODEV;
 			goto fail;
 		}
+	}
+
+	/* Initialize IP floorsweep info */
+	tegra_soc_hwpm_dbg("Initialize IP fs info");
+	for (i = 0U; i < TERGA_SOC_HWPM_NUM_IPS; i++) {
+		hwpm->ip_fs_info[i] = 0ULL;
+	}
+	if (tegra_platform_is_vsp()) {
+		/* Static IP instances as per VSP netlist */
+		hwpm->ip_fs_info[TEGRA_SOC_HWPM_IP_VIC] = 0x1;
+		hwpm->ip_fs_info[TEGRA_SOC_HWPM_IP_MSS_CHANNEL] = 0xF;
+		hwpm->ip_fs_info[TEGRA_SOC_HWPM_IP_MSS_GPU_HUB] = 0x1;
+		hwpm->ip_fs_info[TEGRA_SOC_HWPM_IP_MSS_ISO_NISO_HUBS] = 0x1;
+		hwpm->ip_fs_info[TEGRA_SOC_HWPM_IP_MSS_MCF] = 0x1;
+		hwpm->ip_fs_info[TEGRA_SOC_HWPM_IP_MSS_NVLINK] = 0x1;
 	}
 
 	/* Map PMA and RTR apertures */

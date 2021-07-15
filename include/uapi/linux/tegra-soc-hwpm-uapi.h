@@ -43,6 +43,7 @@ enum tegra_soc_hwpm_ip {
 	TEGRA_SOC_HWPM_IP_MSS_GPU_HUB,
 	TEGRA_SOC_HWPM_IP_MSS_ISO_NISO_HUBS,
 	TEGRA_SOC_HWPM_IP_MSS_MCF,
+	TEGRA_SOC_HWPM_IP_MSS_NVLINK,
 	TERGA_SOC_HWPM_NUM_IPS
 };
 
@@ -52,6 +53,26 @@ struct tegra_soc_hwpm_device_info {
 	__u32 chip_revision;	/* chip_id revision, eg. 0x4 (t234) */
 	__u32 revision;	/* major-minor revision, eg. A01, A02 */
 	__u32 platform;	/* Eg. Pre-Si, Si */
+};
+
+struct tegra_soc_hwpm_ip_floorsweep_info_query {
+	/* input */
+	__u16 ip_type;		/* enum tegra_soc_hwpm_ip */
+	/* output */
+#define TEGRA_SOC_HWPM_IP_STATUS_VALID		0
+#define TEGRA_SOC_HWPM_IP_STATUS_INVALID	1
+	__u8 status;		/* IP status */
+	__u8 reserved1;
+	__u32 reserved2;
+	__u64 ip_inst_mask;	/* each set bit corresponds to an IP instance */
+};
+
+#define TEGRA_SOC_HWPM_IP_QUERIES_MAX	32
+/* TEGRA_CTRL_CMD_SOC_HWPM_IP_FLOORSWEEP_INFO IOCTL */
+struct tegra_soc_hwpm_ip_floorsweep_info {
+	/* Holds queries */
+	struct tegra_soc_hwpm_ip_floorsweep_info_query ip_fsinfo[TEGRA_SOC_HWPM_IP_QUERIES_MAX];
+	__u32 num_queries;
 };
 
 enum tegra_soc_hwpm_timer_relation_cpu_clk {
@@ -96,6 +117,7 @@ enum tegra_soc_hwpm_resource {
 	TEGRA_SOC_HWPM_RESOURCE_MSS_GPU_HUB,
 	TEGRA_SOC_HWPM_RESOURCE_MSS_ISO_NISO_HUBS,
 	TEGRA_SOC_HWPM_RESOURCE_MSS_MCF,
+	TEGRA_SOC_HWPM_RESOURCE_MSS_NVLINK,
 
 	/*
 	 * - SYS0 PERMON in RPG_PMG
@@ -269,6 +291,7 @@ struct tegra_soc_hwpm_update_get_put {
 /* IOCTL enum */
 enum tegra_soc_hwpm_ioctl_num {
 	TEGRA_SOC_HWPM_IOCTL_DEVICE_INFO,
+	TEGRA_SOC_HWPM_IOCTL_FLOORSWEEP_INFO,
 	TEGRA_SOC_HWPM_IOCTL_GET_GPU_CPU_TIME_CORRELATION_INFO,
 	TEGRA_SOC_HWPM_IOCTL_RESERVE_RESOURCE,
 	TEGRA_SOC_HWPM_IOCTL_ALLOC_PMA_STREAM,
@@ -371,5 +394,13 @@ enum tegra_soc_hwpm_ioctl_num {
 			_IOWR(TEGRA_SOC_HWPM_IOC_MAGIC,			\
 				TEGRA_SOC_HWPM_IOCTL_UPDATE_GET_PUT,	\
 				struct tegra_soc_hwpm_update_get_put)
+
+/*
+ * IOCTL for querying IP instance info
+ */
+#define TEGRA_CTRL_CMD_SOC_HWPM_IP_FLOORSWEEP_INFO		\
+		_IOWR(TEGRA_SOC_HWPM_IOC_MAGIC,			\
+			TEGRA_SOC_HWPM_IOCTL_FLOORSWEEP_INFO,	\
+			struct tegra_soc_hwpm_ip_floorsweep_info)
 
 #endif /* TEGRA_SOC_HWPM_UAPI_H */
