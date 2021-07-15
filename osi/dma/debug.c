@@ -117,6 +117,7 @@ void reg_dump(struct osi_dma_priv_data *osi_dma)
 		max_addr = 0x14EC;
 		break;
 	case OSI_MGBE_MAC_3_10:
+	case OSI_MGBE_MAC_4_00:
 		addr = 0x3100;
 		max_addr = 0x35FC;
 		break;

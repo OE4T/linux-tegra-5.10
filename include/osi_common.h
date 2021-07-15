@@ -220,6 +220,7 @@
 #define OSI_EQOS_MAC_5_30       0x53U
 #define OSI_MGBE_MAC_3_00	0x30U
 #define OSI_MGBE_MAC_3_10	0x31U
+#define OSI_MGBE_MAC_4_00	0x40U
 
 #define OSI_MAX_VM_IRQS              5U
 #define OSI_IP4_FILTER		0U

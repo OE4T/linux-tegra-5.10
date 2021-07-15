@@ -265,6 +265,7 @@ static inline nve32_t validate_mac_ver_update_chans(nveu32_t mac_ver,
 		break;
 	case OSI_MGBE_MAC_3_00:
 	case OSI_MGBE_MAC_3_10:
+	case OSI_MGBE_MAC_4_00:
 		*max_chans = OSI_MGBE_MAX_NUM_CHANS;
 		break;
 	default:
