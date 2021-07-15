@@ -14,7 +14,9 @@ obj-$(CONFIG_TEGRA_CBB_NOC) += cbb/
 obj-$(CONFIG_TEGRA_DCE) += dce/
 obj-$(CONFIG_TEGRA_SPE) += aon/
 obj-$(CONFIG_TEGRA_PSC) += psc/
+ifeq ($(TARGET_BUILD_VARIANT),internal)
 obj-$(CONFIG_TEGRA_SOC_HWPM) += hwpm/
+endif
 obj-$(CONFIG_ARCH_TEGRA_18x_SOC) += tegra18_speedo.o
 obj-$(CONFIG_TEGRA_DC) += panel-simulator.o
 obj-$(CONFIG_ARCH_TEGRA_18x_SOC) += tegra-roc.o

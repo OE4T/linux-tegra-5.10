@@ -172,7 +172,7 @@ config TEGRA_SAFETY_SCE
 config TEGRA_SOC_HWPM
 	bool "Tegra SOC HWPM driver"
 	depends on ARCH_TEGRA_23x_SOC
-	default n
+	default y
 	help
 	  The SOC HWPM driver enables performance monitoring for various Tegra
 	  IPs.
