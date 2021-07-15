@@ -29,7 +29,7 @@
 
 static const struct of_device_id tegra_soc_hwpm_of_match[] = {
 	{
-		.compatible     = "nvidia,t23x-soc-hwpm",
+		.compatible     = "nvidia,t234-soc-hwpm",
 	}, {
 	},
 };
