@@ -1272,8 +1272,7 @@ static void ether_free_irqs(struct ether_priv_data *pdata)
 	}
 
 	if (pdata->osi_core->mac_ver > OSI_EQOS_MAC_5_00 ||
-	    (pdata->osi_core->mac_ver == OSI_MGBE_MAC_3_00) ||
-	    (pdata->osi_core->mac_ver == OSI_MGBE_MAC_3_10)) {
+	    pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
 		for (i = 0; i < pdata->osi_core->num_vm_irqs; i++) {
 			if (pdata->rx_irq_alloc_mask & (OSI_ENABLE << i)) {
 				devm_free_irq(pdata->dev, pdata->vm_irqs[i],
@@ -1464,8 +1463,7 @@ static int ether_request_irqs(struct ether_priv_data *pdata)
 	pdata->common_irq_alloc_mask = 1;
 
 	if (osi_core->mac_ver > OSI_EQOS_MAC_5_00 ||
-	    (osi_core->mac_ver == OSI_MGBE_MAC_3_10) ||
-	    (osi_core->mac_ver == OSI_MGBE_MAC_3_00)) {
+	    osi_core->mac == OSI_MAC_HW_MGBE) {
 		for (i = 0; i < osi_core->num_vm_irqs; i++) {
 			snprintf(irq_names[j], ETHER_IRQ_NAME_SZ, "%s.vm%d",
 				 netdev_name(pdata->ndev), i);
@@ -4262,8 +4260,7 @@ static int ether_get_irqs(struct platform_device *pdev,
 		return pdata->common_irq;
 	}
 	if (osi_core->mac_ver > OSI_EQOS_MAC_5_00 ||
-	    (osi_core->mac_ver == OSI_MGBE_MAC_3_10) ||
-	    (osi_core->mac_ver == OSI_MGBE_MAC_3_00)) {
+	    (osi_core->mac == OSI_MAC_HW_MGBE)) {
 		ret = ether_get_vm_irq_data(pdev, pdata);
 		if (ret < 0) {
 			dev_err(pdata->dev, "failed to get VM IRQ info\n");
@@ -4399,7 +4396,7 @@ static int ether_get_mac_address(struct ether_priv_data *pdata)
 		 *     MAC address is at /chosen/nvidia,ether-mac8
 		 */
 		if ((pdata->osi_core->mac_ver > OSI_EQOS_MAC_5_10) ||
-		    (pdata->osi_core->mac_ver == OSI_MGBE_MAC_3_10)) {
+		    (pdata->osi_core->mac == OSI_MAC_HW_MGBE)) {
 			ret = of_property_read_u32(np,
 						   "nvidia,mac-addr-idx",
 						   &mac_addr_idx);
