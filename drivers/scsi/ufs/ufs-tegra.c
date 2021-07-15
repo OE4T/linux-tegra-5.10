@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Authors:
  *      VenkataJagadish.p	<vjagadish@nvidia.com>
@@ -188,8 +188,10 @@ static int ufs_tegra_host_clk_get(struct device *dev,
 	clk = devm_clk_get(dev, name);
 	if (IS_ERR(clk)) {
 		err = PTR_ERR(clk);
-		dev_err(dev, "%s: failed to get %s err %d",
+		if (err != -EPROBE_DEFER) {
+			dev_err(dev, "%s: failed to get %s err %d",
 				__func__, name, err);
+		}
 	} else {
 		*clk_out = clk;
 	}
@@ -1735,9 +1737,10 @@ static int ufs_tegra_probe(struct platform_device *pdev)
 
 	/* Perform generic probe */
 	err = ufshcd_pltfrm_init(pdev, &ufs_hba_tegra_vops);
-	if (err)
-		dev_err(dev, "ufshcd_pltfrm_init() failed %d\n", err);
-
+	if (err) {
+		if (err != -EPROBE_DEFER)
+			dev_err(dev, "ufshcd_pltfrm_init() failed %d\n", err);
+	}
 	return err;
 }
 
