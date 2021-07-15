@@ -45,7 +45,7 @@
 		ranges;
 		status = "disabled";
 
-		gic_v2m: v2m@f400000 {
+		gic_v2m: v2m@f410000 {
 			compatible = "arm,gic-v2m-frame";
 			msi-controller;
 			#msi-cells = <1>;

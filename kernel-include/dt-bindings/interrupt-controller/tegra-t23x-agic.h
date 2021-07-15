@@ -166,9 +166,8 @@
 /* UART interrupt to AGIC (In FPGA platform only) */
 #define INT_UART_FPGA			AGIC_IRQ(117)
 
-/* SPIs which are available for MSI interrupts */
-#define GIC_SPI_MSI_BASE		576
-#define GIC_SPI_MSI_END			960
-#define GIC_SPI_MSI_SIZE		(GIC_SPI_MSI_END - GIC_SPI_MSI_BASE)
+/* SPIs which are available for PCIe MSI interrupts */
+#define GIC_SPI_MSI_BASE		608
+#define GIC_SPI_MSI_SIZE		70
 
 #endif /* _DT_BINDINGS_INTERRUPT_CONTROLLER_TEGRA_T23X_AGIC_H */
