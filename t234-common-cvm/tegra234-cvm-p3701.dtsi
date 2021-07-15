@@ -167,6 +167,10 @@
 		status = "okay";
 	};
 
+	rtc@c2a0000 {
+		status = "okay";
+	};
+
 	pmc@c360000 {
 #if TEGRA_PMC_VERSION >= DT_VERSION_2
 		nvidia,invert-interrupt;
