@@ -167,6 +167,14 @@
 		status = "okay";
 	};
 
+	efuse@3810000 {
+		status = "okay";
+	};
+
+	efuse-burn {
+		status = "okay";
+	};
+
 	rtc@c2a0000 {
 		status = "okay";
 	};
