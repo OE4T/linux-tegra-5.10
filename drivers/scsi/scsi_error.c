@@ -448,7 +448,7 @@ static void scsi_report_sense(struct scsi_device *sdev,
 
 		if (sshdr->asc == 0x29) {
 			evt_type = SDEV_EVT_POWER_ON_RESET_OCCURRED;
-			sdev_printk(KERN_WARNING, sdev,
+			sdev_printk(KERN_INFO, sdev,
 				    "Power-on or device reset occurred\n");
 		}
 
