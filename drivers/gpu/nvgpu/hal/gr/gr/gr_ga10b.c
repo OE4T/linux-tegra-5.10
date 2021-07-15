@@ -1063,8 +1063,34 @@ const u32 *ga10b_gr_get_hwpm_cau_init_data(u32 *count)
 
 #endif /* CONFIG_NVGPU_DEBUGGER */
 
-void ga10b_gr_vab_init(struct gk20a *g, u32 vab_reg)
+void ga10b_gr_vab_init(struct gk20a *g, u32 vab_reg, u32 num_range_checkers,
+	struct nvgpu_vab_range_checker *vab_range_checker)
 {
+	/*
+	 * configure range checkers in GPC
+	 */
+
+	u32 i = 0U;
+	u32 granularity_shift_bits_base = 16U; /* log(64KB) */
+	u32 granularity_shift_bits = 0U;
+
+	nvgpu_log_fn(g, " ");
+
+	for (i = 0U; i < num_range_checkers; i++) {
+		granularity_shift_bits = nvgpu_safe_sub_u32(
+			vab_range_checker[i].granularity_shift,
+			granularity_shift_bits_base);
+
+		nvgpu_writel(g, gr_gpcs_mmu_vidmem_access_bit_start_addr_hi_r(i),
+			U32(vab_range_checker[i].start_phys_addr >> 32U));
+
+		nvgpu_writel(g, gr_gpcs_mmu_vidmem_access_bit_start_addr_lo_r(i),
+			(vab_range_checker[i].start_phys_addr &
+			gr_gpcs_mmu_vidmem_access_bit_start_addr_lo_val_m()) |
+			gr_gpcs_mmu_vidmem_access_bit_start_addr_lo_granularity_f(
+				granularity_shift_bits));
+	}
+
 	nvgpu_writel(g, gr_gpcs_mmu_vidmem_access_bit_r(), vab_reg);
 }
 

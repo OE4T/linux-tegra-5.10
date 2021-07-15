@@ -200,7 +200,7 @@ int ga10b_fb_vab_reserve(struct gk20a *g, u32 vab_mode, u32 num_range_checkers,
 	/*
 	 * Enable VAB in GPC
 	 */
-	g->ops.gr.vab_init(g, vab_reg);
+	g->ops.gr.vab_init(g, vab_reg, num_range_checkers, vab_range_checker);
 
 fail:
 	return err;

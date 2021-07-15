@@ -1025,6 +1025,13 @@
 #define gr_gpcs_pri_mmu_debug_rd_r()                               (0x004188b8U)
 #define gr_gpcs_mmu_num_active_ltcs_r()                            (0x004188acU)
 #define gr_gpcs_mmu_vidmem_access_bit_r()                          (0x0041833cU)
+#define gr_gpcs_mmu_vidmem_access_bit_start_addr_lo_r(i)\
+		(nvgpu_safe_add_u32(0x004182c0U, nvgpu_safe_mult_u32((i), 8U)))
+#define gr_gpcs_mmu_vidmem_access_bit_start_addr_lo_granularity_f(v)\
+				((U32(v) & 0xfU) << 0U)
+#define gr_gpcs_mmu_vidmem_access_bit_start_addr_lo_val_m()  (U32(0xffU) << 24U)
+#define gr_gpcs_mmu_vidmem_access_bit_start_addr_hi_r(i)\
+		(nvgpu_safe_add_u32(0x004182c4U, nvgpu_safe_mult_u32((i), 8U)))
 #define gr_gpcs_tpcs_sms_dbgr_control0_r()                         (0x00419e84U)
 #define gr_fe_gfxp_wfi_timeout_r()                                 (0x004041c0U)
 #define gr_gpcs_tpcs_sm_texio_control_r()                          (0x00419bd8U)

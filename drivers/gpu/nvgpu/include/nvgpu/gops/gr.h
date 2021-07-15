@@ -1302,7 +1302,8 @@ struct gops_gr {
 	struct gops_gr_zcull		zcull;
 #endif /* CONFIG_NVGPU_GRAPHICS */
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA)
-	void (*vab_init)(struct gk20a *g, u32 vab_reg);
+	void (*vab_init)(struct gk20a *g, u32 vab_reg, u32 num_range_checkers,
+	struct nvgpu_vab_range_checker *vab_range_checker);
 	void (*vab_release)(struct gk20a *g, u32 vab_reg);
 #endif
 	/** @endcond */
