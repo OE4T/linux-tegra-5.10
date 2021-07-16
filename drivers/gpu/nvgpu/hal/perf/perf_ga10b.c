@@ -542,6 +542,8 @@ void ga10b_perf_init_hwpm_pmm_register(struct gk20a *g)
 	/* Recheck g10ab can support more  than one chiplet */
 	u32 num_chiplets    = 1U;
 	u32 base_index      = 0U;
+	u32 data            = 0U;
+	u32 i               = 0U;
 
 	g->ops.perf.set_pmm_register(g, perf_pmmsys_engine_sel_r(base_index),
 				   U32_MAX, num_chiplets,
@@ -556,6 +558,28 @@ void ga10b_perf_init_hwpm_pmm_register(struct gk20a *g)
 				   nvgpu_gr_config_get_gpc_count(nvgpu_gr_get_config_ptr(g)),
 				   g->ops.perf.get_pmmgpc_per_chiplet_offset(),
 				   g->num_gpc_perfmon);
+
+	nvgpu_assert(perf_pmasys_channel_config_user__size_1_v() ==
+				pmasys_channel_instance_max_size);
+
+	data = nvgpu_readl(g, perf_pmasys_controlb_r());
+	data = set_field(data,
+		perf_pmasys_controlb_coalesce_timeout_cycles_m(),
+		perf_pmasys_controlb_coalesce_timeout_cycles__prod_f());
+	nvgpu_writel(g, perf_pmasys_controlb_r(), data);
+
+	for (i = 0U; i < perf_pmasys_channel_config_user__size_1_v(); i++) {
+		data = nvgpu_readl(g, perf_pmasys_channel_config_user_r(i));
+		data = set_field(data,
+			perf_pmasys_channel_config_user_coalesce_timeout_cycles_m(),
+			perf_pmasys_channel_config_user_coalesce_timeout_cycles__prod_f());
+		nvgpu_writel(g, perf_pmasys_channel_config_user_r(i), data);
+	}
+
+	if (g->ops.priv_ring.read_pri_fence != NULL) {
+		/* Read back to ensure all writes are complete */
+		g->ops.priv_ring.read_pri_fence(g);
+	}
 }
 
 void ga10b_perf_disable_all_perfmons(struct gk20a *g)

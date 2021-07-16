@@ -114,6 +114,16 @@
 #define perf_pmasys_controlreg_legacy_mode_m()                 (U32(0x1U) << 0U)
 #define perf_pmasys_controlreg_legacy_mode_enable_f()                     (0x0U)
 #define perf_pmasys_controlreg_legacy_mode_disable_f()                    (0x1U)
+#define perf_pmasys_controlb_r()                                   (0x0024a070U)
+#define perf_pmasys_controlb_coalesce_timeout_cycles_m()       (U32(0x7U) << 4U)
+#define perf_pmasys_controlb_coalesce_timeout_cycles__prod_f()           (0x40U)
+#define perf_pmasys_channel_config_user_r(i)\
+		(nvgpu_safe_add_u32(0x0024a640U, nvgpu_safe_mult_u32((i), 384U)))
+#define perf_pmasys_channel_config_user__size_1_v()                (0x00000001U)
+#define perf_pmasys_channel_config_user_coalesce_timeout_cycles_m()\
+				(U32(0x7U) << 4U)
+#define perf_pmasys_channel_config_user_coalesce_timeout_cycles__prod_f()\
+				(0x40U)
 #define perf_pmmsys_engine_sel_r(i)\
 		(nvgpu_safe_add_u32(0x0026006cU, nvgpu_safe_mult_u32((i), 512U)))
 #define perf_pmmsys_engine_sel__size_1_v()                         (0x0000003aU)
