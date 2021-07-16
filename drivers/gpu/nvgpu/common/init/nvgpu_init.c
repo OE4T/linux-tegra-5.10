@@ -338,6 +338,12 @@ int nvgpu_prepare_poweroff(struct gk20a *g)
 		ret = tmp_ret;
 	}
 
+#ifdef CONFIG_NVGPU_GSP_STRESS_TEST
+	ret = nvgpu_gsp_stress_test_halt(g, true);
+	if (ret != 0)
+		nvgpu_err(g, "Failed to halt GSP stress test");
+#endif
+
 	nvgpu_falcons_sw_free(g);
 
 #ifdef CONFIG_NVGPU_DGPU
@@ -360,6 +366,7 @@ int nvgpu_prepare_poweroff(struct gk20a *g)
 		g->ops.clk_arb.stop_clk_arb_threads(g);
 	}
 #endif
+
 	gk20a_mask_interrupts(g);
 
 	/* Disable CIC after the interrupts are masked;
@@ -819,10 +826,6 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		NVGPU_INIT_TABLE_ENTRY(g->ops.sec2.init_sec2_setup_sw,
 				       NVGPU_SUPPORT_SEC2_RTOS),
 #endif
-#ifdef CONFIG_NVGPU_GSP_SCHEDULER
-		/* Init gsp ops */
-		NVGPU_INIT_TABLE_ENTRY(&nvgpu_gsp_sw_init, NO_FLAG),
-#endif
 		NVGPU_INIT_TABLE_ENTRY(g->ops.acr.acr_init,
 				       NVGPU_SEC_PRIVSECURITY),
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_sw_quiesce_init_support, NO_FLAG),
@@ -902,6 +905,10 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 #endif
 		NVGPU_INIT_TABLE_ENTRY(g->ops.channel.resume_all_serviceable_ch,
 				       NO_FLAG),
+#if defined(CONFIG_NVGPU_GSP_SCHEDULER) || defined(CONFIG_NVGPU_GSP_STRESS_TEST)
+		/* Init gsp ops */
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_gsp_sw_init, NO_FLAG),
+#endif
 	};
 	size_t i;
 

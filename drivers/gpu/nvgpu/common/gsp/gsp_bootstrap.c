@@ -32,10 +32,22 @@
 #include "gsp_priv.h"
 #include "gsp_bootstrap.h"
 
-#define GSP_SIM_WAIT_TIME_MS 10000U
+#define GSP_WAIT_TIME_MS 10000U
 #define GSP_DBG_RISCV_FW_MANIFEST  "sample-gsp.manifest.encrypt.bin.out.bin"
 #define GSP_DBG_RISCV_FW_CODE      "sample-gsp.text.encrypt.bin"
 #define GSP_DBG_RISCV_FW_DATA      "sample-gsp.data.encrypt.bin"
+
+#ifdef CONFIG_NVGPU_GSP_STRESS_TEST
+#define GSPDBG_RISCV_STRESS_TEST_FW_MANIFEST  "gsp-stress.manifest.encrypt.bin.out.bin"
+#define GSPDBG_RISCV_STRESS_TEST_FW_CODE      "gsp-stress.text.encrypt.bin"
+#define GSPDBG_RISCV_STRESS_TEST_FW_DATA      "gsp-stress.data.encrypt.bin"
+
+#define GSPPROD_RISCV_STRESS_TEST_FW_MANIFEST  "gsp-stress.manifest.encrypt.bin.out.bin.prod"
+#define GSPPROD_RISCV_STRESS_TEST_FW_CODE      "gsp-stress.text.encrypt.bin.prod"
+#define GSPPROD_RISCV_STRESS_TEST_FW_DATA      "gsp-stress.data.encrypt.bin.prod"
+
+#define GSP_STRESS_TEST_MAILBOX_PASS 0xAAAAAAAA
+#endif
 
 static void gsp_release_firmware(struct gk20a *g, struct nvgpu_gsp *gsp)
 {
@@ -54,26 +66,52 @@ static void gsp_release_firmware(struct gk20a *g, struct nvgpu_gsp *gsp)
 
 static int gsp_read_firmware(struct gk20a *g, struct gsp_fw *gsp_ucode)
 {
+	const char *gsp_code_name;
+	const char *gsp_data_name;
+	const char *gsp_manifest_name;
+
 	nvgpu_log_fn(g, " ");
 
+#ifdef CONFIG_NVGPU_GSP_STRESS_TEST
+	if (g->gsp->gsp_test.load_stress_test) {
+		/*
+		 * TODO Switch to GSP specific register
+		 */
+		if (g->ops.pmu.is_debug_mode_enabled(g)) {
+			gsp_code_name = GSPDBG_RISCV_STRESS_TEST_FW_CODE;
+			gsp_data_name = GSPDBG_RISCV_STRESS_TEST_FW_DATA;
+			gsp_manifest_name = GSPDBG_RISCV_STRESS_TEST_FW_MANIFEST;
+		} else {
+			gsp_code_name = GSPPROD_RISCV_STRESS_TEST_FW_CODE;
+			gsp_data_name = GSPPROD_RISCV_STRESS_TEST_FW_DATA;
+			gsp_manifest_name = GSPPROD_RISCV_STRESS_TEST_FW_MANIFEST;
+		}
+	} else
+#endif
+	{
+		gsp_code_name = GSP_DBG_RISCV_FW_CODE;
+		gsp_data_name = GSP_DBG_RISCV_FW_DATA;
+		gsp_manifest_name = GSP_DBG_RISCV_FW_MANIFEST;
+	}
+
 	gsp_ucode->manifest = nvgpu_request_firmware(g,
-		GSP_DBG_RISCV_FW_MANIFEST, NVGPU_REQUEST_FIRMWARE_NO_WARN);
+		gsp_manifest_name, NVGPU_REQUEST_FIRMWARE_NO_WARN);
 	if (gsp_ucode->manifest == NULL) {
-		nvgpu_err(g, "GSP_DBG_RISCV_FW_MANIFEST ucode get failed");
+		nvgpu_err(g, "%s ucode get failed", gsp_manifest_name);
 		goto fw_release;
 	}
 
 	gsp_ucode->code = nvgpu_request_firmware(g,
-		GSP_DBG_RISCV_FW_CODE, NVGPU_REQUEST_FIRMWARE_NO_WARN);
+		gsp_code_name, NVGPU_REQUEST_FIRMWARE_NO_WARN);
 	if (gsp_ucode->code == NULL) {
-		nvgpu_err(g, "GSP_DBG_RISCV_FW_CODE ucode get failed");
+		nvgpu_err(g, "%s ucode get failed", gsp_code_name);
 		goto fw_release;
 	}
 
 	gsp_ucode->data = nvgpu_request_firmware(g,
-		GSP_DBG_RISCV_FW_DATA, NVGPU_REQUEST_FIRMWARE_NO_WARN);
+		gsp_data_name, NVGPU_REQUEST_FIRMWARE_NO_WARN);
 	if (gsp_ucode->data == NULL) {
-		nvgpu_err(g, "GSP_DBG_RISCV_FW_DATA ucode get failed");
+		nvgpu_err(g, "%s ucode get failed", gsp_data_name);
 		goto fw_release;
 	}
 
@@ -83,6 +121,25 @@ fw_release:
 	gsp_release_firmware(g, g->gsp);
 	return -ENOENT;
 }
+
+#ifdef CONFIG_NVGPU_GSP_STRESS_TEST
+static void gsp_write_test_sysmem_addr(struct nvgpu_gsp *gsp)
+{
+	struct gk20a *g;
+	struct nvgpu_falcon *flcn;
+	u64 sysmem_addr;
+
+	g = gsp->g;
+	flcn = gsp->gsp_flcn;
+
+	sysmem_addr = nvgpu_mem_get_addr(g, &gsp->gsp_test.gsp_test_sysmem_block);
+
+	nvgpu_falcon_mailbox_write(flcn, FALCON_MAILBOX_0, u64_lo32(sysmem_addr));
+
+	nvgpu_falcon_mailbox_write(flcn, FALCON_MAILBOX_1, u64_hi32(sysmem_addr));
+
+}
+#endif
 
 static int gsp_ucode_load_and_bootstrap(struct gk20a *g,
 		struct nvgpu_falcon *flcn,
@@ -135,6 +192,14 @@ static int gsp_ucode_load_and_bootstrap(struct gk20a *g,
 	 * gsp ucode to denote its return status.
 	 */
 	nvgpu_falcon_mailbox_write(flcn, FALCON_MAILBOX_0, 0x0U);
+#ifdef CONFIG_NVGPU_GSP_STRESS_TEST
+	/*
+	 * Update the address of the allocated sysmem block in the
+	 * mailbox register for stress test.
+	 */
+	if (g->gsp->gsp_test.load_stress_test)
+		gsp_write_test_sysmem_addr(g->gsp);
+#endif
 
 	g->ops.falcon.bootstrap(flcn, 0x0);
 exit:
@@ -175,21 +240,31 @@ exit:
 	return -1;
 }
 
-static int gsp_wait_for_mailbox_update(struct nvgpu_falcon *flcn,
+static int gsp_wait_for_mailbox_update(struct nvgpu_gsp *gsp,
 		u32 mailbox_index, signed int timeoutms)
 {
 	u32 mail_box_data = 0;
+	u32 pass_val = 0;
+	struct nvgpu_falcon *flcn = gsp->gsp_flcn;
 
 	nvgpu_log_fn(flcn->g, " ");
+
+#ifdef CONFIG_NVGPU_GSP_STRESS_TEST
+	if (gsp->gsp_test.load_stress_test) {
+		pass_val = GSP_STRESS_TEST_MAILBOX_PASS;
+	}
+#endif
 
 	do {
 		mail_box_data = flcn->g->ops.falcon.mailbox_read(
 				flcn, mailbox_index);
 		if (mail_box_data != 0U) {
-			nvgpu_info(flcn->g,
-				"gsp mailbox-0 updated successful with 0x%x",
-				mail_box_data);
-			break;
+			if ((pass_val == 0U) || (mail_box_data == pass_val)) {
+				nvgpu_info(flcn->g,
+					"gsp mailbox-0 updated successful with 0x%x",
+					mail_box_data);
+				break;
+			}
 		}
 
 		if (timeoutms <= 0) {
@@ -234,16 +309,14 @@ int gsp_bootstrap_ns(struct gk20a *g, struct nvgpu_gsp *gsp)
 		goto exit;
 	}
 
-	err = gsp_check_for_brom_completion(gsp->gsp_flcn,
-			GSP_SIM_WAIT_TIME_MS);
+	err = gsp_check_for_brom_completion(gsp->gsp_flcn, GSP_WAIT_TIME_MS);
 	if (err != 0) {
 		nvgpu_err(g, "gsp BROM failed");
 		goto exit;
 	}
 
 	/* wait for mailbox-0 update with non-zero value */
-	err = gsp_wait_for_mailbox_update(gsp->gsp_flcn, 0x0,
-			GSP_SIM_WAIT_TIME_MS);
+	err = gsp_wait_for_mailbox_update(gsp, 0x0, GSP_WAIT_TIME_MS);
 	if (err != 0) {
 		nvgpu_err(g, "gsp ucode failed to update mailbox-0");
 	}

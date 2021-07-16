@@ -95,6 +95,10 @@ nvgpu-y += \
 	hal/rc/rc_gv11b.o
 endif
 
+ifeq ($(CONFIG_NVGPU_GSP_STRESS_TEST),y)
+ccflags-y += -DCONFIG_NVGPU_GSP_STRESS_TEST
+endif
+
 obj-$(CONFIG_GK20A) := nvgpu.o
 
 # OS independent parts of nvgpu. The work to collect files here
@@ -409,6 +413,11 @@ nvgpu-$(CONFIG_NVGPU_GSP_SCHEDULER) += \
 	common/gsp/gsp_bootstrap.o
 endif
 
+ifeq ($(CONFIG_NVGPU_GSP_STRESS_TEST),y)
+nvgpu-$(CONFIG_NVGPU_GSP_STRESS_TEST) += \
+	common/gsp/gsp_test.o
+endif
+
 # Linux specific parts of nvgpu.
 nvgpu-y += \
 	os/linux/os_ops.o \
@@ -465,7 +474,8 @@ nvgpu-$(CONFIG_DEBUG_FS) += \
 	os/linux/debug_ltc.o \
 	os/linux/debug_volt.o \
 	os/linux/debug_s_param.o \
-	os/linux/swprofile_debugfs.o
+	os/linux/swprofile_debugfs.o \
+	os/linux/debug_gsp.o
 
 nvgpu-$(CONFIG_NVGPU_LOGGING) += os/linux/log.o
 

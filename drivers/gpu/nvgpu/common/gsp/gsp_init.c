@@ -25,6 +25,9 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/log.h>
 #include <nvgpu/gsp.h>
+#ifdef CONFIG_NVGPU_GSP_STRESS_TEST
+#include <nvgpu/dma.h>
+#endif
 
 #include "gsp_priv.h"
 #include "gsp_bootstrap.h"
@@ -50,6 +53,9 @@ void nvgpu_gsp_sw_deinit(struct gk20a *g)
 #ifdef CONFIG_NVGPU_FALCON_DEBUG
 		nvgpu_falcon_dbg_buf_destroy(g->gsp->gsp_flcn);
 #endif
+#ifdef CONFIG_NVGPU_GSP_STRESS_TEST
+		nvgpu_dma_free(g, &g->gsp->gsp_test.gsp_test_sysmem_block);
+#endif
 		nvgpu_kfree(g, g->gsp);
 		g->gsp = NULL;
 	}
@@ -68,6 +74,9 @@ int nvgpu_gsp_sw_init(struct gk20a *g)
 		 * gsp is set during cold boot & doesn't execute gsp clean up as
 		 * part of power off sequence, so reuse to perform faster boot.
 		 */
+#ifdef CONFIG_NVGPU_GSP_STRESS_TEST
+		nvgpu_gsp_stress_test_bootstrap(g, false);
+#endif
 		return err;
 	}
 
@@ -85,20 +94,6 @@ int nvgpu_gsp_sw_init(struct gk20a *g)
 	/* gsp falcon software state */
 	gsp->gsp_flcn = &g->gsp_flcn;
 
-	/* enable debug buffer support */
-#ifdef CONFIG_NVGPU_FALCON_DEBUG
-	if ((g->ops.gsp.gsp_get_queue_head != NULL) &&
-			(g->ops.gsp.gsp_get_queue_tail != NULL)) {
-		err = nvgpu_falcon_dbg_buf_init(
-			gsp->gsp_flcn, GSP_DMESG_BUFFER_SIZE,
-			g->ops.gsp.gsp_get_queue_head(GSP_DEBUG_BUFFER_QUEUE),
-			g->ops.gsp.gsp_get_queue_tail(GSP_DEBUG_BUFFER_QUEUE));
-		if (err != 0) {
-			nvgpu_err(g, "GSP debug init failed");
-			goto exit;
-		}
-	}
-#endif
 	/* Init isr mutex */
 	nvgpu_mutex_init(&gsp->isr_mutex);
 
@@ -111,6 +106,21 @@ int nvgpu_gsp_bootstrap(struct gk20a *g)
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
+
+	/* enable debug buffer support */
+#ifdef CONFIG_NVGPU_FALCON_DEBUG
+	if ((g->ops.gsp.gsp_get_queue_head != NULL) &&
+			(g->ops.gsp.gsp_get_queue_tail != NULL)) {
+		err = nvgpu_falcon_dbg_buf_init(
+					g->gsp->gsp_flcn, GSP_DMESG_BUFFER_SIZE,
+					g->ops.gsp.gsp_get_queue_head(GSP_DEBUG_BUFFER_QUEUE),
+					g->ops.gsp.gsp_get_queue_tail(GSP_DEBUG_BUFFER_QUEUE));
+		if (err != 0) {
+			nvgpu_err(g, "GSP debug init failed");
+			goto de_init;
+		}
+	}
+#endif
 
 	err = gsp_bootstrap_ns(g, g->gsp);
 	if (err != 0) {
@@ -151,3 +161,97 @@ struct nvgpu_falcon *nvgpu_gsp_falcon_instance(struct gk20a *g)
 
 	return gsp->gsp_flcn;
 }
+
+#ifdef CONFIG_NVGPU_GSP_STRESS_TEST
+int nvgpu_gsp_stress_test_bootstrap(struct gk20a *g, bool start)
+{
+	int err = 0;
+	struct nvgpu_gsp *gsp;
+
+	nvgpu_log_fn(g, " ");
+
+	gsp = g->gsp;
+
+	if (gsp == NULL) {
+		nvgpu_err(g, "GSP not initialized");
+		err = -EFAULT;
+		goto exit;
+	}
+
+	if (!start && !(gsp->gsp_test.load_stress_test))
+		return err;
+
+	if (start) {
+		err = nvgpu_dma_alloc_flags_sys(g,
+						NVGPU_DMA_PHYSICALLY_ADDRESSED,
+						SZ_64K,
+						&g->gsp->gsp_test.gsp_test_sysmem_block);
+		if (err != 0) {
+			nvgpu_err(g, "GSP test memory alloc failed");
+			goto exit;
+		}
+	}
+
+	gsp->gsp_test.load_stress_test = true;
+
+	err = nvgpu_gsp_bootstrap(g);
+	if (err != 0) {
+		nvgpu_err(g, "GSP bootstrap failed for stress test");
+		goto exit;
+	}
+
+	if (gsp->gsp_test.enable_stress_test) {
+		nvgpu_info(g, "Restarting GSP stress test");
+		nvgpu_falcon_mailbox_write(gsp->gsp_flcn, FALCON_MAILBOX_1, 0xFFFFFFFF);
+	}
+
+	return err;
+
+exit:
+	gsp->gsp_test.load_stress_test = false;
+
+	return err;
+}
+
+int nvgpu_gsp_stress_test_halt(struct gk20a *g, bool restart)
+{
+	int err = 0;
+	struct nvgpu_gsp *gsp;
+
+	nvgpu_log_fn(g, " ");
+
+	gsp = g->gsp;
+
+	if ((gsp == NULL)) {
+		nvgpu_info(g, "GSP not initialized");
+		goto exit;
+	}
+
+	if (restart && (gsp->gsp_test.load_stress_test == false)) {
+		nvgpu_info(g, "GSP stress test not loaded ");
+		goto exit;
+	}
+
+	err = nvgpu_falcon_reset(gsp->gsp_flcn);
+	if (err != 0) {
+		nvgpu_err(g, "gsp reset failed err=%d", err);
+		goto exit;
+	}
+
+	if (!restart) {
+		gsp->gsp_test.load_stress_test = false;
+		nvgpu_dma_free(g, &g->gsp->gsp_test.gsp_test_sysmem_block);
+	}
+
+exit:
+	return err;
+}
+
+bool nvgpu_gsp_is_stress_test(struct gk20a *g)
+{
+	if (g->gsp->gsp_test.load_stress_test)
+		return true;
+	else
+		return false;
+}
+#endif

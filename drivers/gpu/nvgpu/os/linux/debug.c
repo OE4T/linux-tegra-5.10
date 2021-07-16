@@ -25,6 +25,9 @@
 #include "debug_xve.h"
 #include "debug_ltc.h"
 #include "debug_bios.h"
+#ifdef CONFIG_NVGPU_GSP_STRESS_TEST
+#include "debug_gsp.h"
+#endif
 #include "os_linux.h"
 #include "platform_gk20a.h"
 
@@ -523,6 +526,9 @@ void gk20a_debug_init(struct gk20a *g, const char *debugfs_symlink)
 		nvgpu_xve_debugfs_init(g);
 		nvgpu_bios_debugfs_init(g);
 	}
+#endif
+#ifdef CONFIG_NVGPU_GSP_STRESS_TEST
+	nvgpu_gsp_debugfs_init(g);
 #endif
 }
 

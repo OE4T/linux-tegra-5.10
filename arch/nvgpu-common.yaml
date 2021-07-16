@@ -309,7 +309,9 @@ gsp:
              common/gsp/gsp_priv.h,
              common/gsp/gsp_bootstrap.c,
              common/gsp/gsp_bootstrap.h,
-             include/nvgpu/gsp.h ]
+             common/gsp/gsp_test.c,
+             include/nvgpu/gsp.h,
+             include/nvgpu/gsp/gsp_test.h ]
 
 engine_queues:
   owner: Sagar K

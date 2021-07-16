@@ -26,7 +26,7 @@
 #include <nvgpu/lock.h>
 
 #define GSP_DEBUG_BUFFER_QUEUE	3U
-#define GSP_DMESG_BUFFER_SIZE	0x1000U
+#define GSP_DMESG_BUFFER_SIZE	0xC00U
 
 struct gsp_fw {
 	/* gsp ucode */
@@ -35,6 +35,16 @@ struct gsp_fw {
 	struct nvgpu_firmware *manifest;
 };
 
+#ifdef CONFIG_NVGPU_GSP_STRESS_TEST
+struct gsp_stress_test {
+	bool load_stress_test;
+	bool enable_stress_test;
+	bool stress_test_fail_status;
+	u32 test_iterations;
+	u32 test_name;
+	struct nvgpu_mem gsp_test_sysmem_block;
+};
+#endif
 /* GSP descriptor's */
 struct nvgpu_gsp {
 	struct gk20a *g;
@@ -44,5 +54,8 @@ struct nvgpu_gsp {
 
 	bool isr_enabled;
 	struct nvgpu_mutex isr_mutex;
+#ifdef CONFIG_NVGPU_GSP_STRESS_TEST
+	struct gsp_stress_test gsp_test;
+#endif
 };
 #endif /* NVGPU_GSP_PRIV */

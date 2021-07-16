@@ -33,4 +33,9 @@ void nvgpu_gsp_isr_mutex_aquire(struct gk20a *g);
 void nvgpu_gsp_isr_mutex_release(struct gk20a *g);
 bool nvgpu_gsp_is_isr_enable(struct gk20a *g);
 struct nvgpu_falcon *nvgpu_gsp_falcon_instance(struct gk20a *g);
+#ifdef CONFIG_NVGPU_GSP_STRESS_TEST
+int nvgpu_gsp_stress_test_bootstrap(struct gk20a *g, bool start);
+int nvgpu_gsp_stress_test_halt(struct gk20a *g, bool restart);
+bool nvgpu_gsp_is_stress_test(struct gk20a *g);
+#endif
 #endif /* NVGPU_GSP */

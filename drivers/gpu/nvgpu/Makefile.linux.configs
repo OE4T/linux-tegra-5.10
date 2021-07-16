@@ -49,6 +49,11 @@ CONFIG_NVGPU_REMAP := y
 # Enable gsp scheduler support
 CONFIG_NVGPU_GSP_SCHEDULER := y
 
+#Enable stress test for GSP
+ifeq ($(CONFIG_NVGPU_GSP_SCHEDULER),y)
+CONFIG_NVGPU_GSP_STRESS_TEST := y
+endif
+
 ifeq ($(CONFIG_COMMON_CLK),y)
 ifeq ($(CONFIG_PM_DEVFREQ),y)
 # Select this entry to enable gk20a scaling
@@ -243,4 +248,7 @@ ccflags-y += -DCONFIG_NVGPU_SYNCFD_NONE
 endif
 ifeq ($(CONFIG_NVGPU_GSP_SCHEDULER),y)
 ccflags-y += -DCONFIG_NVGPU_GSP_SCHEDULER
+endif
+ifeq ($(CONFIG_NVGPU_GSP_STRESS_TEST),y)
+ccflags-y += -DCONFIG_NVGPU_GSP_STRESS_TEST
 endif

@@ -29,6 +29,9 @@
 #ifdef CONFIG_NVGPU_GSP_SCHEDULER
 #include <nvgpu/gsp.h>
 #endif
+#ifdef CONFIG_NVGPU_GSP_STRESS_TEST
+#include <nvgpu/gsp/gsp_test.h>
+#endif
 
 #include "gsp_ga10b.h"
 
@@ -120,9 +123,18 @@ static void ga10b_gsp_handle_swgen1_irq(struct gk20a *g)
 #endif
 }
 
+static void ga10b_gsp_handle_halt_irq(struct gk20a *g)
+{
+	nvgpu_err(g, "GSP Halt Interrupt Fired");
+
+#ifdef CONFIG_NVGPU_GSP_STRESS_TEST
+	nvgpu_gsp_set_test_fail_status(g, true);
+#endif
+}
+
 static void ga10b_gsp_clr_intr(struct gk20a *g, u32 intr)
 {
-	gk20a_writel(g, pgsp_riscv_irqmclr_r(), intr);
+	gk20a_writel(g, pgsp_falcon_irqsclr_r(), intr);
 }
 
 void ga10b_gsp_handle_interrupts(struct gk20a *g, u32 intr)
@@ -136,7 +148,7 @@ void ga10b_gsp_handle_interrupts(struct gk20a *g, u32 intr)
 
 	/* halt interrupt handle */
 	if ((intr & pgsp_falcon_irqstat_halt_true_f()) != 0U) {
-		nvgpu_err(g, "gsp halt intr not implemented");
+		ga10b_gsp_handle_halt_irq(g);
 	}
 }
 
@@ -193,39 +205,48 @@ void ga10b_gsp_enable_irq(struct gk20a *g, bool enable)
 {
 	u32 intr_mask;
 	u32 intr_dest;
+	bool skip_priv = false;
 
 	nvgpu_log_fn(g, " ");
 
+#ifdef CONFIG_NVGPU_GSP_STRESS_TEST
+	if (nvgpu_gsp_is_stress_test(g))
+		skip_priv = true;
+#endif
+
 	/* clear before setting required irq */
-	ga10b_riscv_set_irq(g, false, 0x0, 0x0);
+	if ((!skip_priv) || (!enable))
+		ga10b_riscv_set_irq(g, false, 0x0, 0x0);
 
 	nvgpu_cic_mon_intr_stall_unit_config(g,
 			NVGPU_CIC_INTR_UNIT_GSP, NVGPU_CIC_INTR_DISABLE);
 
 	if (enable) {
-		/* dest 0=falcon, 1=host; level 0=irq0, 1=irq1 */
-		intr_dest = pgsp_riscv_irqdest_gptmr_f(0)    |
-			pgsp_riscv_irqdest_wdtmr_f(1)    |
-			pgsp_riscv_irqdest_mthd_f(0)     |
-			pgsp_riscv_irqdest_ctxsw_f(0)    |
-			pgsp_riscv_irqdest_halt_f(1)     |
-			pgsp_riscv_irqdest_exterr_f(0)   |
-			pgsp_riscv_irqdest_swgen0_f(1)   |
-			pgsp_riscv_irqdest_swgen1_f(1)   |
-			pgsp_riscv_irqdest_ext_f(0xff);
+		if (!skip_priv) {
+			/* dest 0=falcon, 1=host; level 0=irq0, 1=irq1 */
+			intr_dest = pgsp_riscv_irqdest_gptmr_f(0)    |
+				pgsp_riscv_irqdest_wdtmr_f(1)    |
+				pgsp_riscv_irqdest_mthd_f(0)     |
+				pgsp_riscv_irqdest_ctxsw_f(0)    |
+				pgsp_riscv_irqdest_halt_f(1)     |
+				pgsp_riscv_irqdest_exterr_f(0)   |
+				pgsp_riscv_irqdest_swgen0_f(1)   |
+				pgsp_riscv_irqdest_swgen1_f(1)   |
+				pgsp_riscv_irqdest_ext_f(0xff);
 
-		/* 0=disable, 1=enable */
-		intr_mask = pgsp_riscv_irqmset_gptmr_f(1)  |
-			pgsp_riscv_irqmset_wdtmr_f(1)  |
-			pgsp_riscv_irqmset_mthd_f(0)   |
-			pgsp_riscv_irqmset_ctxsw_f(0)  |
-			pgsp_riscv_irqmset_halt_f(1)   |
-			pgsp_riscv_irqmset_exterr_f(1) |
-			pgsp_riscv_irqmset_swgen0_f(1) |
-			pgsp_riscv_irqmset_swgen1_f(1);
+			/* 0=disable, 1=enable */
+			intr_mask = pgsp_riscv_irqmset_gptmr_f(1)  |
+				pgsp_riscv_irqmset_wdtmr_f(1)  |
+				pgsp_riscv_irqmset_mthd_f(0)   |
+				pgsp_riscv_irqmset_ctxsw_f(0)  |
+				pgsp_riscv_irqmset_halt_f(1)   |
+				pgsp_riscv_irqmset_exterr_f(1) |
+				pgsp_riscv_irqmset_swgen0_f(1) |
+				pgsp_riscv_irqmset_swgen1_f(1);
 
-		/* set required irq */
-		ga10b_riscv_set_irq(g, true, intr_mask, intr_dest);
+			/* set required irq */
+			ga10b_riscv_set_irq(g, true, intr_mask, intr_dest);
+		}
 
 		nvgpu_cic_mon_intr_stall_unit_config(g,
 				NVGPU_CIC_INTR_UNIT_GSP, NVGPU_CIC_INTR_ENABLE);

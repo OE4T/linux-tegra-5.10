@@ -61,6 +61,7 @@
 
 #define pgsp_falcon2_gsp_base_r()                                  (0x00111000U)
 #define pgsp_falcon_irqsset_r()                                    (0x00110000U)
+#define pgsp_falcon_irqsclr_r()                                    (0x00110004U)
 #define pgsp_falcon_engine_r()                                     (0x001103c0U)
 #define pgsp_falcon_engine_reset_true_f()                                 (0x1U)
 #define pgsp_falcon_engine_reset_false_f()                                (0x0U)
