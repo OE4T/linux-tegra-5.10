@@ -122,6 +122,7 @@ enum {
 	TEGRA_VGPU_CMD_FB_VAB_RESERVE = 98,
 	TEGRA_VGPU_CMD_FB_VAB_DUMP_CLEAR = 99,
 	TEGRA_VGPU_CMD_FB_VAB_RELEASE = 100,
+	TEGRA_VGPU_CMD_L2_SECTOR_PROMOTION = 101,
 };
 
 struct tegra_vgpu_connect_params {
@@ -671,6 +672,11 @@ struct tegra_vgpu_fb_vab_dump_and_clear_params {
 	u64 user_buf_size;
 };
 
+struct tegra_vgpu_l2_sector_promotion_params {
+	u32 tsg_id;
+	u32 policy;
+};
+
 struct tegra_vgpu_cmd_msg {
 	u32 cmd;
 	int ret;
@@ -742,6 +748,7 @@ struct tegra_vgpu_cmd_msg {
 		struct tegra_vgpu_perf_update_get_put_params perf_updat_get_put;
 		struct tegra_vgpu_alloc_obj_ctx_params alloc_obj_ctx;
 		struct tegra_vgpu_preemption_mode_params preemption_mode;
+		struct tegra_vgpu_l2_sector_promotion_params l2_promotion;
 		char padding[184];
 	} params;
 };

@@ -99,4 +99,27 @@ int vgpu_ltc_set_max_ways_evict_last(struct gk20a *g, struct nvgpu_tsg *tsg,
 	return err;
 }
 
+int vgpu_ltc_set_sector_promotion(struct gk20a *g, struct nvgpu_tsg *tsg,
+		u32 policy)
+{
+	struct tegra_vgpu_cmd_msg msg = {};
+	struct tegra_vgpu_l2_sector_promotion_params *p =
+				&msg.params.l2_promotion;
+	int err;
+
+	msg.cmd = TEGRA_VGPU_CMD_L2_SECTOR_PROMOTION;
+	msg.handle = vgpu_get_handle(g);
+	p->tsg_id = tsg->tsgid;
+	p->policy = policy;
+	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
+	err = err ? err : msg.ret;
+
+	if (unlikely(err)) {
+		nvgpu_err(g, "failed to set L2 sector promotion, err %d",
+			err);
+	}
+
+	return err;
+}
+
 #endif

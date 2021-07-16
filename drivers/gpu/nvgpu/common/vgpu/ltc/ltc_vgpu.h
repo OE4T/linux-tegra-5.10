@@ -36,4 +36,7 @@ int vgpu_ltc_set_max_ways_evict_last(struct gk20a *g, struct nvgpu_tsg *tsg,
 		u32 num_ways);
 #endif
 
+int vgpu_ltc_set_sector_promotion(struct gk20a *g, struct nvgpu_tsg *tsg,
+		u32 policy);
+
 #endif /* NVGPU_LTC_VGPU_H */

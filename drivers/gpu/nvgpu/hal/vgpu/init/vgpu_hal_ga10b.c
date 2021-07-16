@@ -248,6 +248,7 @@ static const struct gops_ltc vgpu_ga10b_ops_ltc = {
 	.split_ltc_broadcast_addr = gm20b_ltc_split_ltc_broadcast_addr,
 	.set_l2_max_ways_evict_last = vgpu_ltc_set_max_ways_evict_last,
 	.get_l2_max_ways_evict_last = vgpu_ltc_get_max_ways_evict_last,
+	.set_l2_sector_promotion = vgpu_ltc_set_sector_promotion,
 #endif /* CONFIG_NVGPU_DEBUGGER */
 };
 
