@@ -230,20 +230,69 @@
 	};
 
 	host1x: host1x@13e00000 {
-		tsec@15500000 {
-			status = "okay";
+
+		vic@15340000 {
+			status = "disabled";
 		};
 
-		se@15810000 {
-			status = "okay";
+		nvjpg@15380000 {
+			status = "disabled";
 		};
 
-		se@15820000 {
-			status = "okay";
+		nvjpg1@15540000 {
+			status = "disabled";
 		};
 
-		se@15840000 {
-			status = "okay";
+		nvdec@15480000 {
+			status = "disabled";
+		};
+
+		nvenc@154c0000 {
+			status = "disabled";
+		};
+
+		ofa@15a50000 {
+			status = "disabled";
+		};
+
+		vi0@15c00000 {
+			status = "disabled";
+		};
+
+		vi0-thi@15f00000 {
+			status = "disabled";
+		};
+
+		vi1@14c00000 {
+			status = "disabled";
+		};
+
+		vi1-thi@14f00000 {
+			status = "disabled";
+		};
+
+		isp@14800000 {
+			status = "disabled";
+		};
+
+		isp-thi@14b00000 {
+			status = "disabled";
+		};
+
+		nvcsi@15a00000 {
+			status = "disabled";
+		};
+
+		pva0 {
+			status = "disabled";
+		};
+
+		nvdla0@15880000 {
+			status = "disabled";
+		};
+
+		nvdla1@158c0000 {
+			status = "disabled";
 		};
 	};
 

@@ -83,6 +83,8 @@
 
 		ranges;
 
+		status = "okay";
+
 		host1x_ctx0: niso0_ctx0 {
 			compatible = "nvidia,tegra186-iommu-context";
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
@@ -91,7 +93,7 @@
 			iommus = <&smmu TEGRA_SID_HOST1X_CTX0>;
 #endif
 			dma-coherent;
-			status = "disabled";
+			status = "okay";
 		};
 
 		host1x_ctx1: niso0_ctx1 {
@@ -102,7 +104,7 @@
 			iommus = <&smmu TEGRA_SID_HOST1X_CTX1>;
 #endif
 			dma-coherent;
-			status = "disabled";
+			status = "okay";
 		};
 
 		host1x_ctx2: niso0_ctx2 {
@@ -113,7 +115,7 @@
 			iommus = <&smmu TEGRA_SID_HOST1X_CTX2>;
 #endif
 			dma-coherent;
-			status = "disabled";
+			status = "okay";
 		};
 
 		host1x_ctx3: niso0_ctx3 {
@@ -124,7 +126,7 @@
 			iommus = <&smmu TEGRA_SID_HOST1X_CTX3>;
 #endif
 			dma-coherent;
-			status = "disabled";
+			status = "okay";
 		};
 
 		host1x_ctx4: niso0_ctx4 {
@@ -135,7 +137,7 @@
 			iommus = <&smmu TEGRA_SID_HOST1X_CTX4>;
 #endif
 			dma-coherent;
-			status = "disabled";
+			status = "okay";
 		};
 
 		host1x_ctx5: niso0_ctx5 {
@@ -146,7 +148,7 @@
 			iommus = <&smmu TEGRA_SID_HOST1X_CTX5>;
 #endif
 			dma-coherent;
-			status = "disabled";
+			status = "okay";
 		};
 
 		host1x_ctx6: niso0_ctx6 {
@@ -157,7 +159,7 @@
 			iommus = <&smmu TEGRA_SID_HOST1X_CTX6>;
 #endif
 			dma-coherent;
-			status = "disabled";
+			status = "okay";
 		};
 
 		host1x_ctx7: niso0_ctx7 {
@@ -168,7 +170,7 @@
 			iommus = <&smmu TEGRA_SID_HOST1X_CTX7>;
 #endif
 			dma-coherent;
-			status = "disabled";
+			status = "okay";
 		};
 
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
@@ -176,56 +178,56 @@
 			compatible = "nvidia,tegra186-iommu-context";
 			iommus = <&smmu_niso1 TEGRA_SID_NISO1_HOST1X_CTX0>;
 			dma-coherent;
-			status = "disabled";
+			status = "okay";
 		};
 
 		host1x_ctx1n1: niso1_ctx1 {
 			compatible = "nvidia,tegra186-iommu-context";
 			iommus = <&smmu_niso1 TEGRA_SID_NISO1_HOST1X_CTX1>;
 			dma-coherent;
-			status = "disabled";
+			status = "okay";
 		};
 
 		host1x_ctx2n1: niso1_ctx2 {
 			compatible = "nvidia,tegra186-iommu-context";
 			iommus = <&smmu_niso1 TEGRA_SID_NISO1_HOST1X_CTX2>;
 			dma-coherent;
-			status = "disabled";
+			status = "okay";
 		};
 
 		host1x_ctx3n1: niso1_ctx3 {
 			compatible = "nvidia,tegra186-iommu-context";
 			iommus = <&smmu_niso1 TEGRA_SID_NISO1_HOST1X_CTX3>;
 			dma-coherent;
-			status = "disabled";
+			status = "okay";
 		};
 
 		host1x_ctx4n1: niso1_ctx4 {
 			compatible = "nvidia,tegra186-iommu-context";
 			iommus = <&smmu_niso1 TEGRA_SID_NISO1_HOST1X_CTX4>;
 			dma-coherent;
-			status = "disabled";
+			status = "okay";
 		};
 
 		host1x_ctx5n1: niso1_ctx5 {
 			compatible = "nvidia,tegra186-iommu-context";
 			iommus = <&smmu_niso1 TEGRA_SID_NISO1_HOST1X_CTX5>;
 			dma-coherent;
-			status = "disabled";
+			status = "okay";
 		};
 
 		host1x_ctx6n1: niso1_ctx6 {
 			compatible = "nvidia,tegra186-iommu-context";
 			iommus = <&smmu_niso1 TEGRA_SID_NISO1_HOST1X_CTX6>;
 			dma-coherent;
-			status = "disabled";
+			status = "okay";
 		};
 
 		host1x_ctx7n1: niso1_ctx7 {
 			compatible = "nvidia,tegra186-iommu-context";
 			iommus = <&smmu_niso1 TEGRA_SID_NISO1_HOST1X_CTX7>;
 			dma-coherent;
-			status = "disabled";
+			status = "okay";
 		};
 #endif
 
@@ -250,7 +252,7 @@
 			iommus = <&smmu TEGRA_SID_VIC>;
 #endif
 			dma-coherent;
-			status = "disabled";
+			status = "okay";
 		};
 
 		nvjpg@15380000 {
@@ -267,7 +269,7 @@
 			iommus = <&smmu TEGRA_SID_NVJPG>;
 #endif
 			dma-coherent;
-			status = "disabled";
+			status = "okay";
 		};
 
 		nvjpg1@15540000 {
@@ -284,7 +286,7 @@
 			iommus = <&smmu TEGRA_SID_NVJPG1>;
 #endif
 			dma-coherent;
-			status = "disabled";
+			status = "okay";
 		};
 
 		tsec@15500000 {
@@ -301,7 +303,7 @@
 			iommus = <&smmu TEGRA_SID_TSEC>;
 #endif
 			dma-coherent;
-			status = "disabled";
+			status = "okay";
 		};
 
 		nvdec@15480000 {
@@ -320,7 +322,7 @@
 			iommus = <&smmu TEGRA_SID_NVDEC>;
 #endif
 			dma-coherent;
-			status = "disabled";
+			status = "okay";
 		};
 
 		nvenc@154c0000 {
@@ -337,7 +339,7 @@
 			iommus = <&smmu TEGRA_SID_NVENC>;
 #endif
 			dma-coherent;
-			status = "disabled";
+			status = "okay";
 		};
 
 		ofa@15a50000 {
@@ -354,7 +356,7 @@
 			iommus = <&smmu TEGRA_SID_OFA>;
 #endif
 			dma-coherent;
-			status = "disabled";
+			status = "okay";
 		};
 
 		vi0: vi0@15c00000 {
@@ -370,12 +372,12 @@
 			iso-smmu;
 #endif
 			non-coherent;
-			status = "disabled";
+			status = "okay";
 		};
 
 		vi0_thi: vi0-thi@15f00000 {
 			compatible = "nvidia,tegra234-vi-thi";
-			status = "disabled";
+			status = "okay";
 		};
 
 		vi1: vi1@14c00000 {
@@ -391,12 +393,12 @@
 			iso-smmu;
 #endif
 			non-coherent;
-			status = "disabled";
+			status = "okay";
 		};
 
 		vi1_thi: vi1-thi@14f00000 {
 			compatible = "nvidia,tegra234-vi-thi";
-			status = "disabled";
+			status = "okay";
 		};
 
 		isp: isp@14800000 {
@@ -416,18 +418,18 @@
 			iommus = <&smmu TEGRA_SID_ISP>;
 #endif
 			dma-coherent;
-			status = "disabled";
+			status = "okay";
 		};
 
 		isp_thi: isp-thi@14b00000 {
 			compatible = "nvidia,tegra194-isp-thi";
-			status = "disabled";
+			status = "okay";
 		};
 
 		nvcsi: nvcsi@15a00000 {
 			compatible = "nvidia,tegra194-nvcsi";
 			clocks = <&bpmp_clks TEGRA234_CLK_NVCSI>;
-			status = "disabled";
+			status = "okay";
 		};
 
 		pva0: pva0 {
@@ -471,7 +473,7 @@
 			         <&smmu TEGRA_SID_PVA_VM7>;
 #endif
 			dma-coherent;
-			status = "disabled";
+			status = "okay";
 		};
 
 		nvdla0: nvdla0@15880000 {
@@ -491,7 +493,7 @@
 			iommus = <&smmu TEGRA_SID_NVDLA0>;
 #endif
 			dma-coherent;
-			status = "disabled";
+			status = "okay";
 		};
 
 		nvdla1: nvdla1@158c0000 {
@@ -511,7 +513,7 @@
 			iommus = <&smmu TEGRA_SID_NVDLA1>;
 #endif
 			dma-coherent;
-			status = "disabled";
+			status = "okay";
 		};
 
 		se@15810000 {
@@ -531,7 +533,7 @@
 #endif
 			dma-coherent;
 
-			status = "disabled";
+			status = "okay";
 		};
 
 		se@15820000 {
@@ -551,7 +553,7 @@
 #endif
 			dma-coherent;
 
-			status = "disabled";
+			status = "okay";
 		};
 
 		se@15840000 {
@@ -571,7 +573,7 @@
 #endif
 			dma-coherent;
 
-			status = "disabled";
+			status = "okay";
 		};
 	};
 };

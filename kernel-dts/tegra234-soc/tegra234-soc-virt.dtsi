@@ -61,27 +61,149 @@
 	host1x@13e00000 {
 		status = "disabled";
 
+		niso0_ctx0 {
+			status = "disabled";
+		};
+
+		niso0_ctx1 {
+			status = "disabled";
+		};
+
+		niso0_ctx2 {
+			status = "disabled";
+		};
+
+		niso0_ctx3 {
+			status = "disabled";
+		};
+
+		niso0_ctx4 {
+			status = "disabled";
+		};
+
+		niso0_ctx5 {
+			status = "disabled";
+		};
+
+		niso0_ctx6 {
+			status = "disabled";
+		};
+
+		niso0_ctx7 {
+			status = "disabled";
+		};
+
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		niso1_ctx0 {
+			status = "disabled";
+		};
+
+		niso1_ctx1 {
+			status = "disabled";
+		};
+
+		niso1_ctx2 {
+			status = "disabled";
+		};
+
+		niso1_ctx3 {
+			status = "disabled";
+		};
+
+		niso1_ctx4 {
+			status = "disabled";
+		};
+
+		niso1_ctx5 {
+			status = "disabled";
+		};
+
+		niso1_ctx6 {
+			status = "disabled";
+		};
+
+		niso1_ctx7 {
+			status = "disabled";
+		};
+#endif
+
+		vic@15340000 {
+			status = "disabled";
+		};
+
+		nvjpg@15380000 {
+			status = "disabled";
+		};
+
+		nvjpg1@15540000 {
+			status = "disabled";
+		};
+
+		tsec@15500000 {
+			status = "disabled";
+		};
+
+		nvdec@15480000 {
+			status = "disabled";
+		};
+
+		nvenc@154c0000 {
+			status = "disabled";
+		};
+
+		ofa@15a50000 {
+			status = "disabled";
+		};
+
 		/* ISO-clients cannot have stage-1 translation and hence
 		 * iommus node are deleted for ISO-Clients which are
 		 * nvdisplay, vi0, vi1, vi0-thi, and vi1-thi */
 		vi0@15c00000 {
 			/delete-property/ iommus;
 			/delete-property/ iso-smmu;
+			status = "disabled";
 		};
 
 		vi1@14c00000 {
 			/delete-property/ iommus;
 			/delete-property/ iso-smmu;
+			status = "disabled";
 		};
 
 		vi0-thi@15f00000 {
 			/delete-property/ iommus;
 			/delete-property/ iso-smmu;
+			status = "disabled";
 		};
 
 		vi1-thi@14f00000 {
 			/delete-property/ iommus;
 			/delete-property/ iso-smmu;
+			status = "disabled";
+		};
+
+		isp@14800000 {
+			status = "disabled";
+		};
+
+		isp-thi@14b00000 {
+			status = "disabled";
+		};
+
+		nvcsi@15a00000 {
+			status = "disabled";
+		};
+
+		pva0 {
+			status = "disabled";
+		};
+
+		nvdla0@15880000 {
+			status = "disabled";
+		};
+
+		nvdla1@158c0000 {
+			status = "disabled";
 		};
 
 		se@15810000 {
