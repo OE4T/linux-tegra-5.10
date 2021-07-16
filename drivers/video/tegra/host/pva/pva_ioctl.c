@@ -28,6 +28,7 @@
 #include <linux/nospec.h>
 #include <asm/ioctls.h>
 #include <asm/barrier.h>
+#include <linux/kref.h>
 #include <uapi/linux/nvdev_fence.h>
 #include <uapi/linux/nvpva_ioctl.h>
 
@@ -686,7 +687,6 @@ static int pva_release(struct inode *inode, struct file *file)
 	/* Release reference to client */
 	nvpva_client_context_put(priv->client);
 
-	WARN_ON(kref_read(&priv->queue->kref) != 1);
 	/*
 	 * Release handle to the queue (on-going tasks have their
 	 * own references to the queue

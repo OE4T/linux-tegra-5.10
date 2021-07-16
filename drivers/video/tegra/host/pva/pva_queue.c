@@ -17,11 +17,9 @@
  */
 
 #include <asm-generic/errno-base.h>
-#include <linux/dev_printk.h>
 #include <linux/err.h>
 #include <linux/kernel.h>
 #include <linux/mutex.h>
-#include <linux/overflow.h>
 #include <linux/percpu.h>
 #include "pva_dma.h"
 #include <linux/delay.h>

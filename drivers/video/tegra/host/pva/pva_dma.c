@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <linux/seq_file.h>
 #include "pva_dma.h"
 #include "pva_queue.h"
 #include "pva-sys-dma.h"
