@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017 - 2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -31,7 +31,7 @@
 #include <linux/pci-aspm.h>
 #include <linux/platform_device.h>
 #include <linux/platform/tegra/emc_bwmgr.h>
-#if IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
+#if IS_ENABLED(CONFIG_ARCH_TEGRA_23x_SOC)
 #include <linux/platform/tegra/mc_utils.h>
 #endif
 #include <linux/pm_runtime.h>
@@ -488,7 +488,7 @@
 #define MARGIN_WIN_TIME 1000
 #define MARGIN_READ_DELAY 100
 
-#if IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
+#if IS_ENABLED(CONFIG_ARCH_TEGRA_23x_SOC)
 #define FREQ2ICC(x) (Bps_to_icc(emc_freq_to_bw(x)))
 #else
 #define FREQ2ICC(x) 0UL
