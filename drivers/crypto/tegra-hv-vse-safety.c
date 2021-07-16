@@ -1020,6 +1020,14 @@ static int tegra_hv_vse_safety_sha_op(struct ahash_request *req, bool is_last,
 		}
 	};
 
+	if (req_ctx->mode == VIRTUAL_SE_OP_MODE_SHAKE128 ||
+			req_ctx->mode == VIRTUAL_SE_OP_MODE_SHAKE256) {
+		if (req_ctx->digest_size == 0) {
+			dev_info(se_dev->dev, "digest size is 0\n");
+			return 0;
+		}
+	}
+
 	if (req->nbytes == 0) {
 		if (req_ctx->total_count > 0) {
 			if (is_last == false) {
