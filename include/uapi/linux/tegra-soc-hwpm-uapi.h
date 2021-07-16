@@ -288,6 +288,84 @@ struct tegra_soc_hwpm_update_get_put {
 	__u8 b_overflowed;
 };
 
+/* Interface for IP driver communication */
+
+/*
+ * Enums for IP register read/write, to make things simple
+ * from SOC HWPM driver, read or write of only 32 bit data
+ * requested at a time.
+ */
+enum tegra_soc_hwpm_ip_reg_op {
+	TEGRA_SOC_HWPM_IP_REG_OP_INVALID,
+	TEGRA_SOC_HWPM_IP_REG_OP_READ,
+	TEGRA_SOC_HWPM_IP_REG_OP_WRITE
+};
+
+/*
+ * Structure describing hwpm ip ops. Once IP driver is ready
+ * it will register with SOC HWPM driver with data and callback
+ * functions listed here. On IP driver removal, un-register with
+ * SOC HWPM driver.
+ */
+struct tegra_soc_hwpm_ip_ops {
+	/*
+	 * IP driver identfiier for SOC HWPM usage. Example: Unique
+	 * device/platform name created using IP device tree entry.
+	 * SOC HWPM should be able to map this identifier to one
+	 * of supported IP aperture.
+	 */
+	 u64 ip_base_address;
+
+	/*
+	 * Opaque ip device handle used for callback from
+	 * SOC HWPM driver to IP drivers. This handle can be used
+	 * to access IP driver functionality with the callbacks.
+	 */
+	void *ip_dev;
+	/*
+	 * hwpm_ip_pm is callback function to disable/enable
+	 * IP driver power management. Before SOC HWPM doing
+	 * perf measuremnts, this callback is called with
+	 * "disable = true ", so that IP driver will disable IP specific
+	 * power management to keep IP driver responsive. Once SOC HWPM is
+	 * done with perf measurement, this callaback is called
+	 * with "disable = true", so that IP driver can restore back
+	 * it's orignal power management.
+	 */
+	int (*hwpm_ip_pm)(void *dev, bool disable);
+	/*
+	 * hwpm_ip_reg_op is callback function to do IP
+	 * register 32 bit read or write.
+	 * For read:
+	 *      input : dev - IP device handle
+	 *      input : reg_op - TEGRA_SOC_HWPM_IP_REG_OP_READ
+	 *      input : reg_offset - register offset
+	 *      output: reg_data - u32 read value
+	 * For write:
+	 *      input : dev - IP device handle
+	 *      input : reg_op - TEGRA_SOC_HWPM_IP_REG_OP_WRITE
+	 *      input : reg_offset - register offset
+	 *      output: reg_data -  u32 write value
+	 * Return:
+	 *      reg_op success / failure
+	 */
+	int (*hwpm_ip_reg_op)(void *dev,
+				enum tegra_soc_hwpm_ip_reg_op reg_op,
+				u64 reg_offset, u32 *reg_data);
+
+};
+
+/*
+ * tegra_soc_hwpm_ip_register: IP driver will call this function to register
+ * with SOC HWPM driver with it's data and callbacks
+ */
+void tegra_soc_hwpm_ip_register(struct tegra_soc_hwpm_ip_ops *hwpm_ip_ops);
+/*
+ * tegra_soc_hwpm_ip_unregister: IP driver will call this function to unregister
+ * with SOC HWPM driver.
+ */
+void tegra_soc_hwpm_ip_unregister(struct tegra_soc_hwpm_ip_ops *hwpm_ip_ops);
+
 /* IOCTL enum */
 enum tegra_soc_hwpm_ioctl_num {
 	TEGRA_SOC_HWPM_IOCTL_DEVICE_INFO,
