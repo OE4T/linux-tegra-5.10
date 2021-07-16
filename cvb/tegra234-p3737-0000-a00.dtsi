@@ -61,6 +61,10 @@
 		};
 	};
 
+	ufshci@2500000 {
+		status = "okay";
+	};
+
 	sdhci@3400000 {
 		disable-wp;
 		no-sdio;
