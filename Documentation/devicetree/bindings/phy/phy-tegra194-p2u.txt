@@ -11,6 +11,7 @@ lane.
 
 Required properties:
 - compatible: For Tegra19x, must contain "nvidia,tegra194-p2u".
+	      For Tegra23x, must contain "nvidia,tegra234-p2u".
 - reg: Should be the physical address space and length of respective each P2U
        instance.
 - reg-names: Must include the entry "ctl".

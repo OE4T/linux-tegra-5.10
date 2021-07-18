@@ -2,7 +2,7 @@
 /*
  * P2U (PIPE to UPHY) driver for Tegra T194 SoC
  *
- * Copyright (C) 2019 NVIDIA Corporation.
+ * Copyright (C) 2019-2021 NVIDIA Corporation.
  *
  * Author: Vidya Sagar <vidyas@nvidia.com>
  */
@@ -115,6 +115,9 @@ static int tegra_p2u_probe(struct platform_device *pdev)
 static const struct of_device_id tegra_p2u_id_table[] = {
 	{
 		.compatible = "nvidia,tegra194-p2u",
+	},
+	{
+		.compatible = "nvidia,tegra234-p2u",
 	},
 	{}
 };
