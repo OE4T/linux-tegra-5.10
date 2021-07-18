@@ -48,15 +48,16 @@
 
 / {
 
-	hsio_p2u {
+	cbb {
 		compatible = "simple-bus";
-		#address-cells = <2>;
-		#size-cells = <2>;
-		ranges;
-		hsio_p2u_0: p2u@03e00000 {
-			compatible = "nvidia,phy-p2u-t234";
-			reg = <0x0 0x03e00000 0x0 0x00010000>;
-			reg-names = "base";
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges = <0x0 0x0 0x0 0x40000000>;
+
+		p2u_hsio_0: p2u@03e00000 {
+			compatible = "nvidia,tegra234-p2u";
+			reg = <0x03e00000 0x00010000>;
+			reg-names = "ctl";
 
 			interrupts = <0 336 0x04>;
 			interrupt-names = "intr";
@@ -65,10 +66,10 @@
 
 			#phy-cells = <0>;
 		};
-		hsio_p2u_1: p2u@03e10000 {
-			compatible = "nvidia,phy-p2u-t234";
-			reg = <0x0 0x03e10000 0x0 0x00010000>;
-			reg-names = "base";
+		p2u_hsio_1: p2u@03e10000 {
+			compatible = "nvidia,tegra234-p2u";
+			reg = <0x03e10000 0x00010000>;
+			reg-names = "ctl";
 
 			interrupts = <0 337 0x04>;
 			interrupt-names = "intr";
@@ -77,10 +78,10 @@
 
 			#phy-cells = <0>;
 		};
-		hsio_p2u_2: p2u@03e20000 {
-			compatible = "nvidia,phy-p2u-t234";
-			reg = <0x0 0x03e20000 0x0 0x00010000>;
-			reg-names = "base";
+		p2u_hsio_2: p2u@03e20000 {
+			compatible = "nvidia,tegra234-p2u";
+			reg = <0x03e20000 0x00010000>;
+			reg-names = "ctl";
 
 			interrupts = <0 338 0x04>;
 			interrupt-names = "intr";
@@ -89,10 +90,10 @@
 
 			#phy-cells = <0>;
 		};
-		hsio_p2u_3: p2u@03e30000 {
-			compatible = "nvidia,phy-p2u-t234";
-			reg = <0x0 0x03e30000 0x0 0x00010000>;
-			reg-names = "base";
+		p2u_hsio_3: p2u@03e30000 {
+			compatible = "nvidia,tegra234-p2u";
+			reg = <0x03e30000 0x00010000>;
+			reg-names = "ctl";
 
 			interrupts = <0 339 0x04>;
 			interrupt-names = "intr";
@@ -101,10 +102,10 @@
 
 			#phy-cells = <0>;
 		};
-		hsio_p2u_4: p2u@03e40000 {
-			compatible = "nvidia,phy-p2u-t234";
-			reg = <0x0 0x03e40000 0x0 0x00010000>;
-			reg-names = "base";
+		p2u_hsio_4: p2u@03e40000 {
+			compatible = "nvidia,tegra234-p2u";
+			reg = <0x03e40000 0x00010000>;
+			reg-names = "ctl";
 
 			interrupts = <0 340 0x04>;
 			interrupt-names = "intr";
@@ -113,10 +114,10 @@
 
 			#phy-cells = <0>;
 		};
-		hsio_p2u_5: p2u@03e50000 {
-			compatible = "nvidia,phy-p2u-t234";
-			reg = <0x0 0x03e50000 0x0 0x00010000>;
-			reg-names = "base";
+		p2u_hsio_5: p2u@03e50000 {
+			compatible = "nvidia,tegra234-p2u";
+			reg = <0x03e50000 0x00010000>;
+			reg-names = "ctl";
 
 			interrupts = <0 341 0x04>;
 			interrupt-names = "intr";
@@ -125,10 +126,10 @@
 
 			#phy-cells = <0>;
 		};
-		hsio_p2u_6: p2u@03e60000 {
-			compatible = "nvidia,phy-p2u-t234";
-			reg = <0x0 0x03e60000 0x0 0x00010000>;
-			reg-names = "base";
+		p2u_hsio_6: p2u@03e60000 {
+			compatible = "nvidia,tegra234-p2u";
+			reg = <0x03e60000 0x00010000>;
+			reg-names = "ctl";
 
 			interrupts = <0 342 0x04>;
 			interrupt-names = "intr";
@@ -137,10 +138,10 @@
 
 			#phy-cells = <0>;
 		};
-		hsio_p2u_7: p2u@03e70000 {
-			compatible = "nvidia,phy-p2u-t234";
-			reg = <0x0 0x03e70000 0x0 0x00010000>;
-			reg-names = "base";
+		p2u_hsio_7: p2u@03e70000 {
+			compatible = "nvidia,tegra234-p2u";
+			reg = <0x03e70000 0x00010000>;
+			reg-names = "ctl";
 
 			interrupts = <0 343 0x04>;
 			interrupt-names = "intr";
@@ -149,17 +150,10 @@
 
 			#phy-cells = <0>;
 		};
-	};
-
-	nvhs_p2u {
-		compatible = "simple-bus";
-		#address-cells = <2>;
-		#size-cells = <2>;
-		ranges;
-		nvhs_p2u_0: p2u@03e90000 {
-			compatible = "nvidia,phy-p2u-t234";
-			reg = <0x0 0x03e90000 0x0 0x00010000>;
-			reg-names = "base";
+		p2u_nvhs_0: p2u@03e90000 {
+			compatible = "nvidia,tegra234-p2u";
+			reg = <0x03e90000 0x00010000>;
+			reg-names = "ctl";
 
 			interrupts = <0 344 0x04>;
 			interrupt-names = "intr";
@@ -168,10 +162,10 @@
 
 			#phy-cells = <0>;
 		};
-		nvhs_p2u_1: p2u@03ea0000 {
-			compatible = "nvidia,phy-p2u-t234";
-			reg = <0x0 0x03ea0000 0x0 0x00010000>;
-			reg-names = "base";
+		p2u_nvhs_1: p2u@03ea0000 {
+			compatible = "nvidia,tegra234-p2u";
+			reg = <0x03ea0000 0x00010000>;
+			reg-names = "ctl";
 
 			interrupts = <0 345 0x04>;
 			interrupt-names = "intr";
@@ -180,10 +174,10 @@
 
 			#phy-cells = <0>;
 		};
-		nvhs_p2u_2: p2u@03eb0000 {
-			compatible = "nvidia,phy-p2u-t234";
-			reg = <0x0 0x03eb0000 0x0 0x00010000>;
-			reg-names = "base";
+		p2u_nvhs_2: p2u@03eb0000 {
+			compatible = "nvidia,tegra234-p2u";
+			reg = <0x03eb0000 0x00010000>;
+			reg-names = "ctl";
 
 			interrupts = <0 346 0x04>;
 			interrupt-names = "intr";
@@ -192,10 +186,10 @@
 
 			#phy-cells = <0>;
 		};
-		nvhs_p2u_3: p2u@03ec0000 {
-			compatible = "nvidia,phy-p2u-t234";
-			reg = <0x0 0x03ec0000 0x0 0x00010000>;
-			reg-names = "base";
+		p2u_nvhs_3: p2u@03ec0000 {
+			compatible = "nvidia,tegra234-p2u";
+			reg = <0x03ec0000 0x00010000>;
+			reg-names = "ctl";
 
 			interrupts = <0 347 0x04>;
 			interrupt-names = "intr";
@@ -204,10 +198,10 @@
 
 			#phy-cells = <0>;
 		};
-		nvhs_p2u_4: p2u@03ed0000 {
-			compatible = "nvidia,phy-p2u-t234";
-			reg = <0x0 0x03ed0000 0x0 0x00010000>;
-			reg-names = "base";
+		p2u_nvhs_4: p2u@03ed0000 {
+			compatible = "nvidia,tegra234-p2u";
+			reg = <0x03ed0000 0x00010000>;
+			reg-names = "ctl";
 
 			interrupts = <0 348 0x04>;
 			interrupt-names = "intr";
@@ -216,10 +210,10 @@
 
 			#phy-cells = <0>;
 		};
-		nvhs_p2u_5: p2u@03ee00000 {
-			compatible = "nvidia,phy-p2u-t234";
-			reg = <0x0 0x03ee00000 0x0 0x00010000>;
-			reg-names = "base";
+		p2u_nvhs_5: p2u@03ee00000 {
+			compatible = "nvidia,tegra234-p2u";
+			reg = <0x03ee00000 0x00010000>;
+			reg-names = "ctl";
 
 			interrupts = <0 349 0x04>;
 			interrupt-names = "intr";
@@ -228,10 +222,10 @@
 
 			#phy-cells = <0>;
 		};
-		nvhs_p2u_6: p2u@03ef0000 {
-			compatible = "nvidia,phy-p2u-t234";
-			reg = <0x0 0x03ef0000 0x0 0x00010000>;
-			reg-names = "base";
+		p2u_nvhs_6: p2u@03ef0000 {
+			compatible = "nvidia,tegra234-p2u";
+			reg = <0x03ef0000 0x00010000>;
+			reg-names = "ctl";
 
 			interrupts = <0 350 0x04>;
 			interrupt-names = "intr";
@@ -240,10 +234,10 @@
 
 			#phy-cells = <0>;
 		};
-		nvhs_p2u_7: p2u@03f00000 {
-			compatible = "nvidia,phy-p2u-t234";
-			reg = <0x0 0x03f00000 0x0 0x00010000>;
-			reg-names = "base";
+		p2u_nvhs_7: p2u@03f00000 {
+			compatible = "nvidia,tegra234-p2u";
+			reg = <0x03f00000 0x00010000>;
+			reg-names = "ctl";
 
 			interrupts = <0 351 0x04>;
 			interrupt-names = "intr";
@@ -252,17 +246,10 @@
 
 			#phy-cells = <0>;
 		};
-	};
-
-	gbe_p2u {
-		compatible = "simple-bus";
-		#address-cells = <2>;
-		#size-cells = <2>;
-		ranges;
-		gbe_p2u_0: p2u@03f20000 {
-			compatible = "nvidia,phy-p2u-t234";
-			reg = <0x0 0x03f20000 0x0 0x00010000>;
-			reg-names = "base";
+		p2u_gbe_0: p2u@03f20000 {
+			compatible = "nvidia,tegra234-p2u";
+			reg = <0x03f20000 0x00010000>;
+			reg-names = "ctl";
 
 			interrupts = <0 203 0x04>;
 			interrupt-names = "intr";
@@ -271,10 +258,10 @@
 
 			#phy-cells = <0>;
 		};
-		gbe_p2u_1: p2u@03f30000 {
-			compatible = "nvidia,phy-p2u-t234";
-			reg = <0x0 0x03f30000 0x0 0x00010000>;
-			reg-names = "base";
+		p2u_gbe_1: p2u@03f30000 {
+			compatible = "nvidia,tegra234-p2u";
+			reg = <0x03f30000 0x00010000>;
+			reg-names = "ctl";
 
 			interrupts = <0 220 0x04>;
 			interrupt-names = "intr";
@@ -283,10 +270,10 @@
 
 			#phy-cells = <0>;
 		};
-		gbe_p2u_2: p2u@03f40000 {
-			compatible = "nvidia,phy-p2u-t234";
-			reg = <0x0 0x03f40000 0x0 0x00010000>;
-			reg-names = "base";
+		p2u_gbe_2: p2u@03f40000 {
+			compatible = "nvidia,tegra234-p2u";
+			reg = <0x03f40000 0x00010000>;
+			reg-names = "ctl";
 
 			interrupts = <0 221 0x04>;
 			interrupt-names = "intr";
@@ -295,10 +282,10 @@
 
 			#phy-cells = <0>;
 		};
-		gbe_p2u_3: p2u@03f50000 {
-			compatible = "nvidia,phy-p2u-t234";
-			reg = <0x0 0x03f50000 0x0 0x00010000>;
-			reg-names = "base";
+		p2u_gbe_3: p2u@03f50000 {
+			compatible = "nvidia,tegra234-p2u";
+			reg = <0x03f50000 0x00010000>;
+			reg-names = "ctl";
 
 			interrupts = <0 222 0x04>;
 			interrupt-names = "intr";
@@ -307,10 +294,10 @@
 
 			#phy-cells = <0>;
 		};
-		gbe_p2u_4: p2u@03f60000 {
-			compatible = "nvidia,phy-p2u-t234";
-			reg = <0x0 0x03f60000 0x0 0x00010000>;
-			reg-names = "base";
+		p2u_gbe_4: p2u@03f60000 {
+			compatible = "nvidia,tegra234-p2u";
+			reg = <0x03f60000 0x00010000>;
+			reg-names = "ctl";
 
 			interrupts = <0 108 0x04>;
 			interrupt-names = "intr";
@@ -319,10 +306,10 @@
 
 			#phy-cells = <0>;
 		};
-		gbe_p2u_5: p2u@03f70000 {
-			compatible = "nvidia,phy-p2u-t234";
-			reg = <0x0 0x03f70000 0x0 0x00010000>;
-			reg-names = "base";
+		p2u_gbe_5: p2u@03f70000 {
+			compatible = "nvidia,tegra234-p2u";
+			reg = <0x03f70000 0x00010000>;
+			reg-names = "ctl";
 
 			interrupts = <0 109 0x04>;
 			interrupt-names = "intr";
@@ -331,10 +318,10 @@
 
 			#phy-cells = <0>;
 		};
-		gbe_p2u_6: p2u@03f80000 {
-			compatible = "nvidia,phy-p2u-t234";
-			reg = <0x0 0x03f80000 0x0 0x00010000>;
-			reg-names = "base";
+		p2u_gbe_6: p2u@03f80000 {
+			compatible = "nvidia,tegra234-p2u";
+			reg = <0x03f80000 0x00010000>;
+			reg-names = "ctl";
 
 			interrupts = <0 110 0x04>;
 			interrupt-names = "intr";
@@ -343,10 +330,10 @@
 
 			#phy-cells = <0>;
 		};
-		gbe_p2u_7: p2u@03f90000 {
-			compatible = "nvidia,phy-p2u-t234";
-			reg = <0x0 0x03f90000 0x0 0x00010000>;
-			reg-names = "base";
+		p2u_gbe_7: p2u@03f90000 {
+			compatible = "nvidia,tegra234-p2u";
+			reg = <0x03f90000 0x00010000>;
+			reg-names = "ctl";
 
 			interrupts = <0 111 0x04>;
 			interrupt-names = "intr";
