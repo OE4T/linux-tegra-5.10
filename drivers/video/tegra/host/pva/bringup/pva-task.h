@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2021 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -113,7 +113,7 @@ struct pva_gen_task_status {
 	u64	timestamp;
 	u32	engine_status;
 	u16	subframe;
-	u16	status_task;
+	u16	status;
 };
 
 struct pva_task_statistics {

@@ -421,25 +421,33 @@ out:
 	return ret;
 }
 
-static int32_t
-update_exports_symbol(void *elf,
-		      const struct elf_section_header *section_header,
-		      struct pva_elf_symbolId *symID)
+/**
+ * Data about symbol information in EXPORTS sections is present as follows
+ * typedef struct {
+ *   uint32_t type; From VMEM_TYPE enums
+ *   uint32_t addr_offset; Offset from VMEM base
+ *   uint32_t size; Size of VMEM region in bytes
+ * } vmem_symbol_metadata_t;
+ */
+static int32_t update_exports_symbol(void *elf, const struct elf_section_header *section_header,
+				     struct pva_elf_symbol *symID)
 {
 	const u8 *data;
 	const char *section_name = elf_section_name(elf, section_header);
 	int32_t section_type = find_pva_ucode_segment_type(section_name);
-
 	if (section_type == PVA_SEG_VPU_IN_PARAMS) {
 		uint32_t symOffset = symID->addr - section_header->addr;
-
 		data = elf_section_contents(elf, section_header);
 		if (data == NULL)
 			return -EINVAL;
-
-		symID->addr = *(uint32_t *)&data[symOffset];
-		symID->size = *(uint32_t *)&data[symOffset + sizeof(uint32_t)];
+		symID->type = *(uint32_t *)&data[symOffset];
+		if ((symID->type > (uint32_t)VMEM_TYPE_SYSTEM) ||
+		    (symID->type == (uint32_t)VMEM_TYPE_INVALID))
+			return -EINVAL;
+		symID->addr = *(uint32_t *)&data[symOffset + sizeof(uint32_t)];
+		symID->size = *(uint32_t *)&data[symOffset + (2UL * sizeof(uint32_t))];
 	}
+
 	return 0;
 }
 
@@ -451,7 +459,7 @@ static int32_t populate_symtab(void *elf, struct nvpva_elf_context *d,
 	int32_t ret = 0;
 	const struct elf_symbol *sym;
 	uint32_t i, count;
-	struct pva_elf_symbolId *symID;
+	struct pva_elf_symbol *symID;
 	uint32_t numSym = 0;
 	uint32_t totalSymsize = 0;
 	const char *symname = NULL;
@@ -487,7 +495,11 @@ static int32_t populate_symtab(void *elf, struct nvpva_elf_context *d,
 				symID->size = sym->size;
 				symID->addr = sym->value;
 				sym_scn = elf_section_header(elf, sym->shndx);
-				update_exports_symbol(elf, sym_scn, symID);
+				ret = update_exports_symbol(elf, sym_scn, symID);
+				if (ret != 0) {
+					kfree(symID->symbol_name);
+					goto fail;
+				}
 				numSym++;
 				totalSymsize += symID->size;
 			}
@@ -607,8 +619,8 @@ int32_t pva_unload_vpu_app(struct nvpva_elf_context *d, uint16_t exe_id)
 	return err;
 }
 
-int32_t pva_get_sym_id(struct nvpva_elf_context *d, uint16_t vpu_exe_id,
-		       const char *sym_name, uint16_t *id, uint32_t *sym_size)
+int32_t pva_get_sym_info(struct nvpva_elf_context *d, uint16_t vpu_exe_id,
+		       const char *sym_name, struct pva_elf_symbol *symbol)
 {
 	struct pva_elf_image *elf;
 	uint32_t i;
@@ -618,8 +630,9 @@ int32_t pva_get_sym_id(struct nvpva_elf_context *d, uint16_t vpu_exe_id,
 	elf = &d->elf_images->elf_img[vpu_exe_id];
 	for (i = 0; i < elf->num_symbols; i++) {
 		if (strncmp(sym_name, elf->sym[i].symbol_name, strSize) == 0) {
-			*id = elf->sym[i].symbolID;
-			*sym_size = elf->sym[i].size;
+			symbol->symbolID = elf->sym[i].symbolID;
+			symbol->size = elf->sym[i].size;
+			symbol->type = elf->sym[i].type;
 			break;
 		}
 	}
@@ -663,15 +676,16 @@ int32_t pva_task_release_ref_vpu_app(struct nvpva_elf_context *d,
 	int32_t err = 0;
 	struct pva_elf_image *image = NULL;
 
-	image = get_elf_image(d, exe_id);
-	if (image != NULL) {
-		atomic_sub(1, &image->submit_refcount);
-		if (atomic_read(&image->submit_refcount) <= 0 &&
-		    image->user_registered == false)
-			(void)pva_unload_vpu_app(d, exe_id);
-
-	} else
-		err = -EINVAL;
+	if (exe_id != NVPVA_NOOP_EXE_ID) {
+		image = get_elf_image(d, exe_id);
+		if (image != NULL) {
+			atomic_sub(1, &image->submit_refcount);
+			if (atomic_read(&image->submit_refcount) <= 0 &&
+			    image->user_registered == false)
+				(void)pva_unload_vpu_app(d, exe_id);
+		} else
+			err = -EINVAL;
+	}
 
 	return err;
 }

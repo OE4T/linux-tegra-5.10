@@ -68,6 +68,8 @@ union nvpva_vpu_exe_unregister_args {
 struct nvpva_symbol {
 	uint16_t id;
 	uint32_t size;
+	/* 1 = true; 0 = false */
+	uint8_t isPointer;
 };
 
 struct nvpva_get_symbol_in_arg {

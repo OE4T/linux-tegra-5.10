@@ -29,6 +29,22 @@
 #define MAX_NUM_VPU_EXE 32U
 
 /**
+ * enum to identify different types of symbols
+ */
+enum pva_elf_symbol_type {
+	/**< Symbol type Invalid */
+	VMEM_TYPE_INVALID,
+	/**< Symbol type Data */
+	VMEM_TYPE_DATA,
+	/**< Symbol type VPU Config Table */
+	VMEM_TYPE_VPUC_TABLE,
+	/**< Symbol type Pointer */
+	VMEM_TYPE_POINTER,
+	/**< Symbol type System */
+	VMEM_TYPE_SYSTEM
+};
+
+/**
  *  enum to identify different segments of VPU ELF
  */
 enum pva_elf_seg_type {
@@ -71,13 +87,15 @@ struct pva_elf_buffer {
 /*
  * Store elf symbols information
  */
-struct pva_elf_symbolId {
+struct pva_elf_symbol {
+	/**< Type of symbol */
+	uint32_t type;
 	/**< Symbol name */
 	char *symbol_name;
 	/**< Symbol ID */
 	uint16_t symbolID;
 	/**< Symbol Size */
-	size_t size;
+	uint32_t size;
 	/**< VMEM address of Symbol */
 	uint32_t addr;
 	/**<IOVA address offset in symbol buffer */
@@ -101,7 +119,7 @@ struct pva_elf_image {
 	/**< Number of symbols in the VPU app */
 	uint32_t num_symbols;
 	/**< Stores symbol information */
-	struct pva_elf_symbolId sym[NVPVA_TASK_MAX_SYMBOLS];
+	struct pva_elf_symbol sym[NVPVA_TASK_MAX_SYMBOLS];
 	/**< Total size of all the symbols in VPU app */
 	uint32_t symbol_size_total;
 	/**< Bin info which stores information about different vpu segments */
@@ -131,20 +149,19 @@ struct nvpva_elf_context {
 
 /* following functions to deal with UMD request */
 /**
- * Get Symbol ID given the symbol name from a vpu app
+ * Get Symbol info given the symbol name from a vpu app
  *
  * @param d		Pointer to Elf Context
  * @param vpu_exe_id	ID of the VPU app
  * @param *sym_name	String containing Name of the symbol
- * @param *id		ID of the symbol filled by this function
- * @param *sym_size	Size of the symbol filled by this function
- *
+ * @param *symbol	symbol information
+
  * @return		EOK for symbol found. -EINVAL for symbol not found
  *			When -EINVAL is returned, ignore values in id and
  *			sym_size
  */
-int32_t pva_get_sym_id(struct nvpva_elf_context *d, uint16_t vpu_exe_id,
-		       const char *sym_name, uint16_t *id, uint32_t *sym_size);
+int32_t pva_get_sym_info(struct nvpva_elf_context *d, uint16_t vpu_exe_id,
+		       const char *sym_name, struct pva_elf_symbol *symbol);
 
 /**
  * Get IOVA address of bin_info to passed to FW

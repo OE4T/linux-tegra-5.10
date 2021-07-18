@@ -26,8 +26,8 @@
 #define PVA_TASK_VERSION_ID 0x01U
 #define PVA_ENGINE_ID 'P'
 
-#define PVA_MAX_PREACTION_LISTS 1U
-#define PVA_MAX_POSTACTION_LISTS 1U
+#define PVA_MAX_PREACTION_LISTS 26U
+#define PVA_MAX_POSTACTION_LISTS 28U
 
 #define PVA_TASK_POINTER_AUX_SIZE_MASK 0x00ffffffffffffffU
 #define PVA_TASK_POINTER_AUX_SIZE_SHIFT 0
@@ -74,23 +74,22 @@ struct PVA_PACKED pva_action_list_s {
  *
  * @{
  */
-#define TASK_ACT_TERMINATE 0x00U
-#define TASK_ACT_PVA_STATISTICS 0x40U
-#define TASK_ACT_PTR_BLK_GTREQL 0x92U
-#define TASK_ACT_READ_STATUS 0xC0U
-#define TASK_ACT_WRITE_STATUS 0xC1U
-#define TASK_ACT_PTR_WRITE_SOT_V 0xC2U
-#define TASK_ACT_PTR_WRITE_SOT_R 0xC3U
-#define TASK_ACT_PTR_WRITE_EOT_V 0xC4U
-#define TASK_ACT_PTR_WRITE_EOT_R 0xC5U
-#define TASK_ACT_PTR_WRITE_EOT 0xC6U
+#define TASK_ACT_PVA_STATISTICS			0x00U
+#define TASK_ACT_PTR_BLK_GTREQL			0x01U
+#define TASK_ACT_READ_STATUS			0x02U
+#define TASK_ACT_WRITE_STATUS			0x03U
+#define TASK_ACT_PTR_WRITE_SOT_V		0x04U
+#define TASK_ACT_PTR_WRITE_SOT_R		0x05U
+#define TASK_ACT_PTR_WRITE_EOT_V		0x06U
+#define TASK_ACT_PTR_WRITE_EOT_R		0x07U
+#define TASK_ACT_PTR_WRITE_EOT			0x08U
 /** @} */
 
 struct PVA_PACKED pva_gen_task_status_s {
 	uint64_t timestamp;
-	uint32_t engine_status;
-	uint16_t subframe;
-	uint16_t status_task;
+	uint32_t info32;
+	uint16_t info16;
+	uint16_t status;
 };
 
 struct PVA_PACKED pva_task_statistics_s {
@@ -209,7 +208,7 @@ struct PVA_PACKED pva_task_point2d_s {
  * describing its binary code, and its dma setup.
  */
 struct PVA_PACKED pva_td_s {
-	struct pva_gen_task_s gen_task;
+	pva_iova next;
 	uint8_t runlist_version;
 	uint8_t pva_td_pad0[7];
 	uint16_t flags;
@@ -221,6 +220,17 @@ struct PVA_PACKED pva_td_s {
 	pva_iova bin_info;
 	/** IOVA pointer to a struct pva_dma_info_s structure */
 	pva_iova dma_info;
+
+	/** Number of pre-actions */
+	uint8_t num_preactions;
+	/** Number of post-actions */
+	uint8_t num_postactions;
+
+	/** IOVA pointer to an array of pva_task_action_t structure */
+	pva_iova preactions;
+	/** IOVA pointer to  an array of pva_task_action_t structure */
+	pva_iova postactions;
+
 	uint64_t timeout;
 	/** Size of L2SRAM required for the task */
 	uint32_t l2sram_size;

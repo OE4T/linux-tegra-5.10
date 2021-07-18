@@ -230,119 +230,74 @@ static int get_fence_value(struct nvpva_submit_fence *fence, u32 *val)
 	return err;
 }
 
-static inline u16 pva_task_write_fence_op(u8 *base, u8 action, u64 fence_addr,
-					  u64 val, u64 timestamp_addr)
+static inline void
+pva_task_write_fence_action_op(struct pva_task_action_s *op,
+				uint8_t action,
+				uint64_t fence_addr,
+				uint32_t val,
+				uint64_t time_stamp_addr)
 {
-	uint16_t i = 0U;
-
-	base[i++] = action;
-	base[i++] = (uint8_t)((fence_addr >> 0) & 0xffU);
-	base[i++] = (uint8_t)((fence_addr >> 8) & 0xffU);
-	base[i++] = (uint8_t)((fence_addr >> 16) & 0xffU);
-	base[i++] = (uint8_t)((fence_addr >> 24) & 0xffU);
-	base[i++] = (uint8_t)((fence_addr >> 32) & 0xffU);
-	base[i++] = (uint8_t)((fence_addr >> 40) & 0xffU);
-	base[i++] = (uint8_t)((fence_addr >> 48) & 0xffU);
-	base[i++] = (uint8_t)((fence_addr >> 56) & 0xffU);
-	base[i++] = (uint8_t)((val >> 0) & 0xffU);
-	base[i++] = (uint8_t)((val >> 8) & 0xffU);
-	base[i++] = (uint8_t)((val >> 16) & 0xffU);
-	base[i++] = (uint8_t)((val >> 24) & 0xffU);
-	base[i++] = (uint8_t)((timestamp_addr >> 0) & 0xffU);
-	base[i++] = (uint8_t)((timestamp_addr >> 8) & 0xffU);
-	base[i++] = (uint8_t)((timestamp_addr >> 16) & 0xffU);
-	base[i++] = (uint8_t)((timestamp_addr >> 24) & 0xffU);
-	base[i++] = (uint8_t)((timestamp_addr >> 32) & 0xffU);
-	base[i++] = (uint8_t)((timestamp_addr >> 40) & 0xffU);
-	base[i++] = (uint8_t)((timestamp_addr >> 48) & 0xffU);
-	base[i++] = (uint8_t)((timestamp_addr >> 56) & 0xffU);
-
-	return i;
+	op->action	= action;
+	op->args.ptr.p	= fence_addr;
+	op->args.ptr.v	= val;
+	op->args.ptr.t	= time_stamp_addr;
 }
 
-static inline int pva_task_write_atomic_op(u8 *base, u8 action)
+static inline void pva_task_write_status_action_op(struct pva_task_action_s *op,
+						   uint8_t action,
+						   uint64_t addr,
+						   uint16_t val)
 {
-	*base = action;
-
-	return 1;
+	op->action = action;
+	op->args.status.p = addr;
+	op->args.status.status = val;
 }
 
-static inline int pva_task_write_struct_ptr_op(u8 *base, u8 action, u64 addr)
+static inline void pva_task_write_stats_action_op(struct pva_task_action_s *op,
+						  uint8_t action, uint64_t addr)
 {
-	int i = 0;
-
-	base[i++] = action;
-	base[i++] = (u8)((addr >> 0) & 0xff);
-	base[i++] = (u8)((addr >> 8) & 0xff);
-	base[i++] = (u8)((addr >> 16) & 0xff);
-	base[i++] = (u8)((addr >> 24) & 0xff);
-	base[i++] = (u8)((addr >> 32) & 0xff);
-	base[i++] = (u8)((addr >> 40) & 0xff);
-	base[i++] = (u8)((addr >> 48) & 0xff);
-	base[i++] = (u8)((addr >> 56) & 0xff);
-
-	return i;
-}
-
-static inline int pva_task_write_ptr_16b_op(u8 *base, u8 action, u64 addr,
-					    u16 val)
-{
-	int i = 0;
-
-	base[i++] = action;
-	base[i++] = (u8)((addr >> 0) & 0xff);
-	base[i++] = (u8)((addr >> 8) & 0xff);
-	base[i++] = (u8)((addr >> 16) & 0xff);
-	base[i++] = (u8)((addr >> 24) & 0xff);
-	base[i++] = (u8)((addr >> 32) & 0xff);
-	base[i++] = (u8)((addr >> 40) & 0xff);
-	base[i++] = (u8)((addr >> 48) & 0xff);
-	base[i++] = (u8)((addr >> 56) & 0xff);
-	base[i++] = (u8)((val >> 0) & 0xff);
-	base[i++] = (u8)((val >> 8) & 0xff);
-
-	return i;
+	op->action = action;
+	op->args.statistics.p = addr;
 }
 
 static int pva_task_process_fence_actions(struct pva_submit_task *task,
-					  u8 *fw_preactions, u32 *pre_ptr,
-					  u8 *fw_postactions, u32 *post_ptr)
+					  struct pva_hw_task *hw_task)
 {
 	int err = 0;
 	u32 i;
 	u32 fence_type;
+	u8 *action_counter;
+	u8 action_code;
+	struct pva_task_action_s *fw_actions;
+	struct pva_task_action_s *current_fw_actions;
 
 	for (fence_type = NVPVA_FENCE_SOT_R5;
 	     fence_type < NVPVA_MAX_FENCE_TYPES; fence_type++) {
-		u8 *fw_actions;
-		u32 *ptr;
-		u8 action_code;
-
 		switch (fence_type) {
 		case NVPVA_FENCE_SOT_R5:
-			fw_actions = fw_preactions;
-			ptr = pre_ptr;
+			fw_actions = &hw_task->preactions[0];
 			action_code = TASK_ACT_PTR_WRITE_SOT_R;
+			action_counter = &hw_task->task.num_preactions;
 			break;
 		case NVPVA_FENCE_SOT_VPU:
-			fw_actions = fw_preactions;
-			ptr = pre_ptr;
+			fw_actions = &hw_task->preactions[0];
 			action_code = TASK_ACT_PTR_WRITE_SOT_V;
+			action_counter = &hw_task->task.num_preactions;
 			break;
 		case NVPVA_FENCE_EOT_R5:
-			fw_actions = fw_postactions;
-			ptr = post_ptr;
+			fw_actions = &hw_task->postactions[0];
 			action_code = TASK_ACT_PTR_WRITE_EOT_R;
+			action_counter = &hw_task->task.num_postactions;
 			break;
 		case NVPVA_FENCE_EOT_VPU:
-			fw_actions = fw_postactions;
-			ptr = post_ptr;
+			fw_actions = &hw_task->postactions[0];
 			action_code = TASK_ACT_PTR_WRITE_EOT_V;
+			action_counter = &hw_task->task.num_postactions;
 			break;
 		case NVPVA_FENCE_POST:
-			fw_actions = fw_postactions;
-			ptr = post_ptr;
+			fw_actions = &hw_task->postactions[0];
 			action_code = TASK_ACT_PTR_WRITE_EOT;
+			action_counter = &hw_task->task.num_postactions;
 			break;
 		default:
 			task_err(task, "unknown fence action type");
@@ -352,21 +307,20 @@ static int pva_task_process_fence_actions(struct pva_submit_task *task,
 
 		for (i = 0; i < task->num_pva_fence_actions[fence_type]; i++) {
 			struct nvpva_fence_action *fence_action =
-				&task->pva_fence_actions[fence_type][i];
+			    &task->pva_fence_actions[fence_type][i];
 			dma_addr_t gos_addr = 0;
 			dma_addr_t fence_addr;
 			u32 fence_value;
 			dma_addr_t timestamp_addr;
-
 			switch (fence_action->fence.type) {
-			case NVPVA_FENCE_OBJ_SYNCPT: {
+			case NVPVA_FENCE_OBJ_SYNCPT:
+			{
 				u32 id = task->queue->syncpt_id;
-
 				fence_action->fence.obj.syncpt.id = id;
 				fence_addr = nvhost_syncpt_address(
-					task->queue->vm_pdev, id);
+				    task->queue->vm_pdev, id);
 				gos_addr = nvhost_syncpt_gos_address(
-					task->pva->pdev, id);
+				    task->pva->pdev, id);
 				if (fence_addr == 0) {
 					err = -EFAULT;
 					goto out;
@@ -375,10 +329,11 @@ static int pva_task_process_fence_actions(struct pva_submit_task *task,
 				task->syncpt_thresh += 1;
 				fence_value = 1;
 				fence_action->fence.obj.syncpt.value =
-					task->syncpt_thresh;
+				    task->syncpt_thresh;
 				break;
 			}
-			case NVPVA_FENCE_OBJ_SEM: {
+			case NVPVA_FENCE_OBJ_SEM:
+			{
 				err = pva_task_pin_fence(task,
 							 &fence_action->fence,
 							 &fence_addr);
@@ -395,138 +350,139 @@ static int pva_task_process_fence_actions(struct pva_submit_task *task,
 				err = -EINVAL;
 				goto out;
 			}
-
 			if (fence_action->timestamp_buf.pin_id) {
 				struct pva_pinned_memory *mem;
-
 				mem = pva_task_pin_mem(
-					task,
-					fence_action->timestamp_buf.pin_id);
+				    task,
+				    fence_action->timestamp_buf.pin_id);
 				if (IS_ERR(mem)) {
 					err = PTR_ERR(mem);
 					task_err(
-						task,
-						"failed to pin timestamp buffer");
+					    task,
+					    "failed to pin timestamp buffer");
 					goto out;
 				}
 				timestamp_addr =
-					mem->dma_addr +
-					fence_action->timestamp_buf.offset;
+				    mem->dma_addr +
+				    fence_action->timestamp_buf.offset;
 			} else {
 				timestamp_addr = 0;
 			}
-			*ptr += pva_task_write_fence_op(&fw_actions[*ptr],
-							action_code, fence_addr,
-							fence_value,
-							timestamp_addr);
-
+			current_fw_actions = &fw_actions[*action_counter];
+			pva_task_write_fence_action_op(current_fw_actions,
+						       action_code, fence_addr,
+						       fence_value,
+						       timestamp_addr);
+			*action_counter = *action_counter + 1;
 			if (gos_addr) {
-				*ptr += pva_task_write_fence_op(
-					&fw_actions[*ptr], action_code,
-					gos_addr,
-					fence_action->fence.obj.syncpt.value,
-					timestamp_addr);
+				current_fw_actions =
+					&fw_actions[*action_counter];
+				pva_task_write_fence_action_op(
+				    current_fw_actions, action_code,
+				    gos_addr,
+				    fence_action->fence.obj.syncpt.value,
+				    timestamp_addr);
+				*action_counter = *action_counter + 1;
 			}
 		}
 	}
-
 out:
 	return err;
 }
-
 static int pva_task_process_prefences(struct pva_submit_task *task,
-				      u8 *fw_preactions, u32 *pre_ptr)
+				      struct pva_hw_task *hw_task)
 {
 	u32 i;
 	int err;
-
+	struct pva_task_action_s *fw_preactions = NULL;
 	for (i = 0; i < task->num_prefences; i++) {
 		struct nvpva_submit_fence *fence = &task->prefences[i];
 		dma_addr_t fence_addr;
 		u32 fence_val;
-
 		err = pva_task_pin_fence(task, fence, &fence_addr);
 		if (err)
 			goto out;
-
 		if (fence_addr == 0) {
 			err = -EINVAL;
 			goto out;
 		}
-
 		err = get_fence_value(fence, &fence_val);
 		if (err)
 			goto out;
-
-		*pre_ptr += pva_task_write_fence_op(&fw_preactions[*pre_ptr],
-						    TASK_ACT_PTR_BLK_GTREQL,
-						    fence_addr, fence_val, 0);
+		fw_preactions =
+			&hw_task->preactions[hw_task->task.num_preactions];
+		pva_task_write_fence_action_op(fw_preactions,
+						TASK_ACT_PTR_BLK_GTREQL,
+						fence_addr, fence_val, 0);
+		++hw_task->task.num_preactions;
 	}
 out:
 	return err;
 }
-
 static int pva_task_process_input_status(struct pva_submit_task *task,
-					 u8 *fw_preactions, u32 *pre_ptr)
+					 struct pva_hw_task *hw_task)
 {
 	u32 i;
 	int err = 0;
+	struct pva_task_action_s *fw_preactions = NULL;
 
 	for (i = 0; i < task->num_input_task_status; i++) {
 		struct nvpva_mem *status = &task->input_task_status[i];
 		struct pva_pinned_memory *mem =
-			pva_task_pin_mem(task, status->pin_id);
+		    pva_task_pin_mem(task, status->pin_id);
 		dma_addr_t status_addr;
-
 		if (IS_ERR(mem)) {
 			err = PTR_ERR(mem);
 			goto out;
 		}
-		status_addr = mem->dma_addr + status->offset;
-		*pre_ptr +=
-			pva_task_write_ptr_16b_op(&fw_preactions[*pre_ptr],
-						  (uint8_t)TASK_ACT_READ_STATUS,
-						  status_addr, 0U);
-	}
 
+		status_addr = mem->dma_addr + status->offset;
+
+		fw_preactions =
+			&hw_task->preactions[hw_task->task.num_preactions];
+		pva_task_write_status_action_op(fw_preactions,
+						(uint8_t)TASK_ACT_READ_STATUS,
+						status_addr, 0U);
+		++hw_task->task.num_preactions;
+	}
 out:
 	return err;
 }
-
 static int pva_task_process_output_status(struct pva_submit_task *task,
-					  u8 *fw_postactions, u32 *post_ptr)
+					  struct pva_hw_task *hw_task)
 {
 	u32 i;
 	int err = 0;
 	dma_addr_t stats_addr;
+	struct pva_task_action_s *fw_postactions = NULL;
 
 	for (i = 0; i < task->num_output_task_status; i++) {
 		struct nvpva_mem *status = &task->output_task_status[i];
 		struct pva_pinned_memory *mem =
-			pva_task_pin_mem(task, status->pin_id);
+		    pva_task_pin_mem(task, status->pin_id);
 		dma_addr_t status_addr;
-
 		if (IS_ERR(mem)) {
 			err = PTR_ERR(mem);
 			goto out;
 		}
 		status_addr = mem->dma_addr + status->offset;
-		*post_ptr += pva_task_write_ptr_16b_op(
-			&fw_postactions[*post_ptr],
-			(uint8_t)TASK_ACT_WRITE_STATUS, status_addr,
-			1U /* PVA task error code */);
+		fw_postactions = &hw_task->postactions[hw_task->task.num_postactions];
+		pva_task_write_status_action_op(fw_postactions,
+						(uint8_t)TASK_ACT_WRITE_STATUS,
+						status_addr,
+						1U /* PVA task error code */);
+		++hw_task->task.num_postactions;
 	}
-
 	stats_addr = task->dma_addr + offsetof(struct pva_hw_task, statistics);
-	*post_ptr +=
-		pva_task_write_struct_ptr_op(&fw_postactions[*post_ptr],
-					     (uint8_t)TASK_ACT_PVA_STATISTICS,
-					     stats_addr);
+	fw_postactions = &hw_task->postactions[hw_task->task.num_postactions];
+	pva_task_write_stats_action_op(fw_postactions,
+				       (uint8_t)TASK_ACT_PVA_STATISTICS,
+				       stats_addr);
+	++hw_task->task.num_postactions;
 
 out:
 	return err;
 }
-
 static int pva_task_write_vpu_parameter(struct pva_submit_task *task,
 					struct pva_hw_task *hw_task)
 {
@@ -537,21 +493,17 @@ static int pva_task_write_vpu_parameter(struct pva_submit_task *task,
 	dma_addr_t symbol_payload = 0U;
 	u32 size = 0U;
 	u32 i;
-
 	if (task->exe_id == NVPVA_NOOP_EXE_ID)
 		return err;
-
 	elf = &task->client->elf_ctx.elf_images->elf_img[task->exe_id];
-
 	if (task->num_symbols > elf->num_symbols) {
 		task_err(task, "invalid number of symbols");
 		return -EINVAL;
 	}
-
 	memcpy(hw_task->sym_payload, task->symbol_payload,
 	       task->symbol_payload_size);
 	symbol_payload =
-		task->dma_addr + offsetof(struct pva_hw_task, sym_payload);
+	    task->dma_addr + offsetof(struct pva_hw_task, sym_payload);
 	for (i = 0U; i < task->num_symbols; i++) {
 		symbolId = task->symbols[i].symbol.id;
 		size = elf->sym[symbolId].size;
@@ -560,13 +512,11 @@ static int pva_task_write_vpu_parameter(struct pva_submit_task *task,
 				 elf->sym[symbolId].symbol_name);
 			return -EINVAL;
 		}
-
 		if (task->symbols[i].config == NVPVA_SYMBOL_POINTER) {
 			struct pva_pinned_memory *mem;
-
 			ptrSym = (struct nvpva_pointer_symbol
-					  *)(hw_task->sym_payload +
-					     task->symbols[i].offset);
+				      *)(hw_task->sym_payload +
+					 task->symbols[i].offset);
 			mem = pva_task_pin_mem(task, ptrSym->base);
 			if (IS_ERR(mem)) {
 				err = PTR_ERR(mem);
@@ -577,30 +527,27 @@ static int pva_task_write_vpu_parameter(struct pva_submit_task *task,
 			ptrSym->size = elf->sym[symbolId].size;
 			size = sizeof(struct nvpva_pointer_symbol);
 		}
-
 		hw_task->param_list[i].addr = elf->sym[symbolId].addr;
 		hw_task->param_list[i].size = size;
 		hw_task->param_list[i].param_base =
-			symbol_payload + task->symbols[i].offset;
+		    symbol_payload + task->symbols[i].offset;
 	}
 	/* Write info for VPU instance data parameter, if available in elf */
 	for (i = 0U; i < elf->num_symbols; i++) {
 		if (strcmp(elf->sym[i].symbol_name,
 			   PVA_SYS_INSTANCE_DATA_V1_SYMBOL) == 0) {
 			hw_task->param_list[task->num_symbols].addr =
-				elf->sym[i].addr;
+			    elf->sym[i].addr;
 			hw_task->param_list[task->num_symbols].size =
-				elf->sym[i].size;
+			    elf->sym[i].size;
 			hw_task->param_list[task->num_symbols].param_base =
-				PVA_SYS_INSTANCE_DATA_V1_IOVA;
+			    PVA_SYS_INSTANCE_DATA_V1_IOVA;
 			++task->num_symbols;
 		}
 	}
-
 	hw_task->task.parameter_base =
-		task->dma_addr + offsetof(struct pva_hw_task, param_list);
+	    task->dma_addr + offsetof(struct pva_hw_task, param_list);
 	hw_task->task.num_parameters = task->num_symbols;
-
 	err = pva_task_acquire_ref_vpu_app(&task->client->elf_ctx,
 					   task->exe_id);
 	if (err) {
@@ -609,24 +556,18 @@ static int pva_task_write_vpu_parameter(struct pva_submit_task *task,
 			 task->exe_id);
 	}
 	task->pinned_app = true;
-
 	return err;
 }
-
 static int set_flags(struct pva_submit_task *task, struct pva_hw_task *hw_task)
 {
 	int err = 0;
 	uint32_t flags = task->flags;
-
 	if (flags & NVPVA_PRE_BARRIER_TASK_TRUE)
 		hw_task->task.flags |= PVA_TASK_FL_SYNC_TASKS;
-
 	if (flags & NVPVA_AFFINITY_VPU0)
 		hw_task->task.flags |= PVA_TASK_FL_VPU0;
-
 	if (flags & NVPVA_AFFINITY_VPU1)
 		hw_task->task.flags |= PVA_TASK_FL_VPU1;
-
 	if ((flags & NVPVA_AFFINITY_VPU_ANY) == 0) {
 		err = -EINVAL;
 		task_err(task, "incorrect vpu affinity");
@@ -634,105 +575,67 @@ static int set_flags(struct pva_submit_task *task, struct pva_hw_task *hw_task)
 	}
 	if (task->pva->vpu_debug_enabled)
 		hw_task->task.flags |= PVA_TASK_FL_VPU_DEBUG;
-
 out:
 	return err;
 }
-
 static int pva_task_write(struct pva_submit_task *task)
 {
 	struct pva_hw_task *hw_task;
 	u32 pre_ptr, post_ptr;
 	int err = 0;
-
 	if (!pva_vpu_elf_is_registered(&task->client->elf_ctx, task->exe_id) &&
 	    (task->exe_id != NVPVA_NOOP_EXE_ID)) {
 		task_err(task, "invalid exe id: %d", task->exe_id);
 		return -EINVAL;
 	}
-
 	/* Task start from the memory base */
 	hw_task = task->va;
-
 	pre_ptr = 0;
 	post_ptr = 0;
-
 	/* process pre & post actions */
-	err = pva_task_process_prefences(task, hw_task->preactions, &pre_ptr);
+	err = pva_task_process_prefences(task, hw_task);
 	if (err)
 		goto out;
-
-	err = pva_task_process_input_status(task, hw_task->preactions,
-					    &pre_ptr);
+	err = pva_task_process_input_status(task, hw_task);
 	if (err)
 		goto out;
-
-	err = pva_task_process_output_status(task, hw_task->postactions,
-					     &post_ptr);
+	err = pva_task_process_output_status(task, hw_task);
 	if (err)
 		goto out;
-
-	err = pva_task_process_fence_actions(task, hw_task->preactions,
-					     &pre_ptr, hw_task->postactions,
-					     &post_ptr);
+	err = pva_task_process_fence_actions(task, hw_task);
 	if (err)
 		goto out;
-
-	pre_ptr += pva_task_write_atomic_op(&hw_task->preactions[pre_ptr],
-					    TASK_ACT_TERMINATE);
-	hw_task->preaction_list.offset =
-		offsetof(struct pva_hw_task, preactions);
-	hw_task->preaction_list.length = pre_ptr;
-
-	post_ptr += pva_task_write_atomic_op(&hw_task->postactions[post_ptr],
-					     TASK_ACT_TERMINATE);
-	hw_task->postaction_list.offset =
-		offsetof(struct pva_hw_task, postactions);
-	hw_task->postaction_list.length = post_ptr;
 
 	err = pva_task_write_dma_info(task, hw_task);
 	if (err)
 		goto out;
-
 	err = pva_task_write_vpu_parameter(task, hw_task);
 	if (err)
 		goto out;
-
-	hw_task->task.gen_task.versionid = TASK_VERSION_ID;
-	hw_task->task.gen_task.engineid = PVA_ENGINE_ID;
-	hw_task->task.gen_task.sequence = 0;
-	hw_task->task.gen_task.next = 0U;
-	hw_task->task.gen_task.length = offsetof(struct pva_hw_task, dma_info);
-	hw_task->task.gen_task.n_preaction_lists = 1;
-	hw_task->task.gen_task.preaction_lists_p =
-		offsetof(struct pva_hw_task, preaction_list);
-	hw_task->task.gen_task.n_postaction_lists = 1;
-	hw_task->task.gen_task.postaction_lists_p =
-		offsetof(struct pva_hw_task, postaction_list);
+	hw_task->task.next = 0U;
+	hw_task->task.preactions = task->dma_addr + offsetof(struct pva_hw_task,
+							 preactions);
+	hw_task->task.postactions = task->dma_addr + offsetof(struct pva_hw_task,
+							  postactions);
 	hw_task->task.runlist_version = PVA_RUNLIST_VERSION_ID;
 	hw_task->task.sid_index = 0;
 	err = set_flags(task, hw_task);
 	if (err)
 		goto out;
-
 	hw_task->task.bin_info =
-		phys_get_bin_info(&task->client->elf_ctx, task->exe_id);
+	    phys_get_bin_info(&task->client->elf_ctx, task->exe_id);
 out:
 	return err;
 }
-
 void pva_task_free(struct kref *ref)
 {
 	struct pva_submit_task *task =
-		container_of(ref, struct pva_submit_task, ref);
-
+	    container_of(ref, struct pva_submit_task, ref);
 	struct nvhost_queue *my_queue = task->queue;
-
 	pva_task_unpin_mem(task);
-
 	if (task->pinned_app)
 		pva_task_release_ref_vpu_app(&task->client->elf_ctx,
-					     task->exe_id);
+						     task->exe_id);
 
 	nvhost_module_idle(task->pva->pdev);
 	nvpva_client_context_put(task->client);
@@ -754,46 +657,39 @@ static void update_one_task(struct pva *pva)
 	u64 vpu_time = 0u;
 	u64 r5_overhead = 0u;
 	const u32 tsc_ticks_to_us = 31;
-
 	nvpva_fetch_task_status_info(pva, &task_info);
 	WARN_ON(!task_info.valid);
 	WARN_ON(task_info.queue >= MAX_PVA_QUEUE_COUNT);
 	queue = &pva->pool->queues[task_info.queue];
-
 	/* find the finished task; since two tasks can be scheduled at the same
-	 * time, the finished one is not necessarily the first one
-	 */
+ * time, the finished one is not necessarily the first one
+ */
 	found = false;
 	mutex_lock(&queue->list_lock);
 	/* since we are only taking one entry out, we don't need to use the safe
-	 * version
-	 */
+ * version
+ */
 	list_for_each_entry(task, &queue->tasklist, node) {
 		if (task->dma_addr == task_info.addr) {
 			list_del(&task->node);
-			found = true;
-			break;
+				found = true;
+				break;
 		}
 	}
 	mutex_unlock(&queue->list_lock);
-
 	if (!found) {
 		pr_err("pva: unexpected task: queue:%u, valid:%u, error:%u, vpu:%u",
 		       task_info.queue, task_info.valid, task_info.error,
 		       task_info.vpu);
 		return;
 	}
-
 	WARN_ON(task_info.error == PVA_ERR_BAD_TASK ||
 		task_info.error == PVA_ERR_BAD_TASK_ACTION_LIST);
-
 	hw_task = task->va;
 	stats = &hw_task->statistics;
-
 	vpu_time = (stats->vpu_complete_time - stats->vpu_start_time);
 	r5_overhead = ((stats->complete_time - stats->queued_time) - vpu_time);
 	r5_overhead = r5_overhead / tsc_ticks_to_us;
-
 	trace_nvhost_task_timestamp(dev_name(&pdev->dev), pdata->class,
 				    queue->syncpt_id, task->syncpt_thresh,
 				    stats->vpu_assigned_time,
@@ -802,18 +698,16 @@ static void update_one_task(struct pva *pva)
 				 stats->vpu_assigned_time,
 				 stats->complete_time);
 	nvhost_dbg_info(
-		"Completed task %p (0x%llx), start_time=%llu, end_time=%llu",
-		task, (u64)task->dma_addr, stats->vpu_assigned_time,
-		stats->complete_time);
-
+	    "Completed task %p (0x%llx), start_time=%llu, end_time=%llu",
+	    task, (u64)task->dma_addr, stats->vpu_assigned_time,
+	    stats->complete_time);
 	trace_nvhost_pva_task_stats(
-		pdev->name, stats->queued_time, stats->head_time,
-		stats->input_actions_complete, stats->vpu_assigned_time,
-		stats->vpu_start_time, stats->vpu_complete_time,
-		stats->complete_time, stats->vpu_assigned, r5_overhead);
-
-	/* Not linked anymore so drop the reference */
-	kref_put(&task->ref, pva_task_free);
+	    pdev->name, stats->queued_time, stats->head_time,
+	    stats->input_actions_complete, stats->vpu_assigned_time,
+	    stats->vpu_start_time, stats->vpu_complete_time,
+	    stats->complete_time, stats->vpu_assigned, r5_overhead);
+		/* Not linked anymore so drop the reference */
+		kref_put(&task->ref, pva_task_free);
 }
 
 void pva_task_update(struct work_struct *work)
@@ -821,38 +715,30 @@ void pva_task_update(struct work_struct *work)
 	struct pva *pva = container_of(work, struct pva, task_update_work);
 	int n_tasks = atomic_read(&pva->n_pending_tasks);
 	int i;
-
 	atomic_sub(n_tasks, &pva->n_pending_tasks);
 	for (i = 0; i < n_tasks; i++)
 		update_one_task(pva);
 }
-
 static void pva_queue_dump(struct nvhost_queue *queue, struct seq_file *s)
 {
 	struct pva_submit_task *task;
 	int i = 0;
-
 	seq_printf(s, "Queue %u, Tasks\n", queue->id);
-
 	mutex_lock(&queue->list_lock);
 	list_for_each_entry(task, &queue->tasklist, node) {
 		seq_printf(s, "    #%u: exe_id = %u\n", i++, task->exe_id);
 	}
 	mutex_unlock(&queue->list_lock);
 }
-
 static int pva_task_submit_mmio_ccq(struct pva_submit_task *task, u8 batchsize)
 {
 	u32 flags = PVA_CMD_INT_ON_ERR;
 	int err = 0;
-
 	/* Construct submit command */
 	err = task->pva->version_config->ccq_send_task(
-		task->pva, task->queue->id, task->dma_addr, batchsize, flags);
-
+	    task->pva, task->queue->id, task->dma_addr, batchsize, flags);
 	return err;
 }
-
 static int pva_task_submit_mailbox(struct pva_submit_task *task, u8 batchsize)
 {
 	struct nvhost_queue *queue = task->queue;
@@ -860,12 +746,10 @@ static int pva_task_submit_mailbox(struct pva_submit_task *task, u8 batchsize)
 	struct pva_cmd_s cmd;
 	u32 flags, nregs;
 	int err = 0;
-
 	/* Construct submit command */
 	flags = PVA_CMD_INT_ON_ERR | PVA_CMD_INT_ON_COMPLETE;
 	nregs = pva_cmd_submit_batch(&cmd, queue->id, task->dma_addr, batchsize,
 				     flags);
-
 	/* Submit request to PVA and wait for response */
 	err = pva_mailbox_send_cmd_sync(task->pva, &cmd, nregs, &status);
 	if (err < 0) {
@@ -873,23 +757,20 @@ static int pva_task_submit_mailbox(struct pva_submit_task *task, u8 batchsize)
 			    err);
 		goto out;
 	}
-
 	if (status.error != PVA_ERR_NO_ERROR) {
 		nvhost_warn(&task->pva->pdev->dev, "PVA task rejected: %u",
 			    status.error);
 		err = -EINVAL;
 		goto out;
 	}
-
 out:
 	return err;
 }
-
 u32 nvhost_syncpt_dec_max_ext(struct platform_device *dev, u32 id, u32 dec)
 {
 	struct nvhost_master *master = nvhost_get_host(dev);
 	struct nvhost_syncpt *sp =
-		nvhost_get_syncpt_owner_struct(id, &master->syncpt);
+	    nvhost_get_syncpt_owner_struct(id, &master->syncpt);
 	return (u32)atomic_sub_return(dec, &sp->max_val[id]);
 }
 
@@ -897,16 +778,14 @@ static int pva_task_submit(const struct pva_submit_tasks *task_header)
 {
 	struct pva_submit_task *first_task = task_header->tasks[0];
 	struct platform_device *host1x_pdev =
-		to_platform_device(first_task->pva->pdev->dev.parent);
+	    to_platform_device(first_task->pva->pdev->dev.parent);
 	struct nvhost_queue *queue = first_task->queue;
 	u64 timestamp;
 	int err = 0;
 	u32 i;
 	u8 batchsize = task_header->num_tasks - 1U;
-
-	nvhost_dbg_info("submitting %u tasks; batchsize: %u",
+		nvhost_dbg_info("submitting %u tasks; batchsize: %u",
 			task_header->num_tasks, batchsize);
-
 	/*
 	 * TSC timestamp is same as CNTVCT. Task statistics are being
 	 * reported in TSC ticks.
@@ -1104,7 +983,7 @@ static int pva_queue_submit(struct nvhost_queue *queue, void *args)
 		sem_thresh = task->sem_thresh;
 
 		if (prev_hw_task)
-			prev_hw_task->task.gen_task.next = task->dma_addr;
+			prev_hw_task->task.next = task->dma_addr;
 
 		prev_hw_task = task->va;
 	}
@@ -1189,8 +1068,8 @@ static void pva_queue_cleanup_status(struct pva_submit_task *task,
 		goto out;
 
 	status_ptr = (void *)&dmabuf_cpuva[status_h->offset];
-	status_ptr->status_task = PVA_ERR_BAD_TASK_STATE;
-	status_ptr->engine_status = PVA_ERR_VPU_BAD_STATE;
+	status_ptr->status = PVA_ERR_BAD_TASK_STATE;
+	status_ptr->info32 = PVA_ERR_VPU_BAD_STATE;
 
 	dma_buf_vunmap(mem->dmabuf, dmabuf_cpuva);
 out:

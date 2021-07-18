@@ -159,28 +159,74 @@ struct pva_submit_tasks {
 	       ACTION_LIST_TERMINATION_SIZE),                                  \
 	      256)
 
-/*
- * The worst-case output action buffer size:
- * - Postfences trigger a word memory operation (size 13 bytes)
- * - Output status write triggers a half-word memory operation (size 11 bytes)
- * - Output action list includes a operation for stats purpose (size 9 bytes)
- * - Output action list includes syncpoint and semaphore increments
- * - The action list is terminated by a null action (1 byte)
+/**
+ * Ensure that sufficient preactions per task are supported by FW/KMD interface.
+ * Maximum possible number of preactions can be determined by adding below
+ * limits:
+ * - Maximum number of prefences allowed per task
+ * - Maximum number of SOT_R and SOT_V fences allowed per task
+ * - Maximum number of input status buffers allowed per task
  */
-#define OUTPUT_ACTION_BUFFER_SIZE                                              \
-	ALIGN((((NVPVA_TASK_MAX_FENCEACTIONS * 3U) * ACTION_LIST_FENCE_SIZE) + \
-	       NVPVA_TASK_MAX_OUTPUT_STATUS *                                  \
-		       ACTION_LIST_STATUS_OPERATION_SIZE +                     \
-	       ACTION_LIST_STATS_SIZE + ACTION_LIST_TERMINATION_SIZE),         \
-	      256)
+#if ((PVA_MAX_PREACTION_LISTS) < \
+		( \
+			(NVPVA_TASK_MAX_PREFENCES) + \
+			(NVPVA_TASK_MAX_FENCEACTIONS * 2U) + \
+			(NVPVA_TASK_MAX_INPUT_STATUS) \
+		) \
+	)
+#error "Insufficient preactions supported by FW/KMD interface"
+#endif
+
+/**
+ * Ensure that sufficient postactions per task are supported by FW/KMD interface.
+ * Maximum possible number of postactions can be determined by adding below
+ * limits:
+ * - Maximum number of EOT_V, EOT_R and EOT fences allowed per task
+ * - Maximum number of output status buffers allowed per task
+ * - Maximum one postaction for statistics
+ */
+#if ((PVA_MAX_POSTACTION_LISTS) < \
+		( \
+			(NVPVA_TASK_MAX_FENCEACTIONS * 3U) + \
+			(NVPVA_TASK_MAX_OUTPUT_STATUS) + \
+			(1U) \
+		) \
+	)
+#error "Insufficient postactions supported by FW/KMD interface"
+#endif
+
+struct PVA_PACKED pva_task_action_ptr_s {
+	/* IOVA Pointer to update Sync Point Value */
+	pva_iova			p;
+	/* Value to be written to Sync Point */
+	uint32_t			v;
+	/* Pointer to write timestamp */
+	pva_iova			t;
+};
+
+struct PVA_PACKED pva_task_action_status_s {
+	/* IOVA to pva_gen_task_status_t struct */
+	pva_iova		p;
+	uint16_t		status;
+};
+
+struct PVA_PACKED pva_task_action_statistics_s {
+	/* IOVA to pva_task_statistics_t struct */
+	pva_iova			p;
+};
+struct PVA_PACKED pva_task_action_s {
+	uint8_t		action;
+	union {
+		struct pva_task_action_ptr_s		ptr;
+		struct pva_task_action_status_s		status;
+		struct pva_task_action_statistics_s	statistics;
+	} args;
+};
 
 struct pva_hw_task {
 	struct pva_td_s task;
-	struct pva_action_list_s preaction_list;
-	struct pva_action_list_s postaction_list;
-	u8 preactions[INPUT_ACTION_BUFFER_SIZE];
-	u8 postactions[OUTPUT_ACTION_BUFFER_SIZE];
-
+	struct pva_task_action_s preactions[PVA_MAX_PREACTION_LISTS];
+	struct pva_task_action_s postactions[PVA_MAX_POSTACTION_LISTS];
 	struct pva_dma_info_s dma_info;
 	struct pva_dtd_s dma_desc[NVPVA_TASK_MAX_DMA_DESCRIPTORS];
 	struct pva_vpu_parameters_s param_list[NVPVA_TASK_MAX_SYMBOLS];

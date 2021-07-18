@@ -491,8 +491,7 @@ static int pva_get_symbol_id(struct pva_private *priv, void *arg)
 		(struct nvpva_get_symbol_out_arg *)arg;
 	char *symbol_buffer;
 	int err = 0;
-	uint16_t sym_id;
-	uint32_t sym_size;
+	struct pva_elf_symbol symbol = {0};
 
 	if (symbol_in->name.size > ELF_MAXIMUM_SYMBOL_LENGTH) {
 		nvhost_err(&priv->pva->pdev->dev, "symbol size too large:%llu",
@@ -516,16 +515,19 @@ static int pva_get_symbol_id(struct pva_private *priv, void *arg)
 			   "symbol name not terminated with NULL");
 		goto free_mem;
 	}
-	err = pva_get_sym_id(&priv->client->elf_ctx, symbol_in->exe_id,
-			     symbol_buffer, &sym_id, &sym_size);
+
+	err = pva_get_sym_info(&priv->client->elf_ctx, symbol_in->exe_id,
+			     symbol_buffer, &symbol);
 	if (err) {
 		nvhost_err(&priv->pva->pdev->dev, "failed to get symbol id:%s",
 			   symbol_buffer);
 		goto free_mem;
 	}
 
-	symbol_out->symbol.id = sym_id;
-	symbol_out->symbol.size = sym_size;
+	symbol_out->symbol.id = symbol.symbolID;
+	symbol_out->symbol.size = symbol.size;
+	symbol_out->symbol.isPointer =
+		(symbol.type == (uint32_t)VMEM_TYPE_POINTER) ? 1U : 0U;
 free_mem:
 	kfree(symbol_buffer);
 out:
