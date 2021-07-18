@@ -16,7 +16,7 @@
 	pcie@14100000 {
 		status = "okay";
 
-		phys = <&hsio_p2u_3>;
+		phys = <&p2u_hsio_3>;
 		phy-names = "p2u-0";
 	};
 
@@ -24,8 +24,8 @@
 	pcie@14160000 {
 		status = "disabled";
 
-		phys = <&hsio_p2u_4>, <&hsio_p2u_5>, <&hsio_p2u_6>,
-		       <&hsio_p2u_7>;
+		phys = <&p2u_hsio_4>, <&p2u_hsio_5>, <&p2u_hsio_6>,
+		       <&p2u_hsio_7>;
 		phy-names = "p2u-0", "p2u-1", "p2u-2", "p2u-3";
 	};
 
@@ -37,9 +37,9 @@
 	pcie@141a0000 {
 		status = "disabled";
 
-		phys = <&nvhs_p2u_0>, <&nvhs_p2u_1>, <&nvhs_p2u_2>,
-		       <&nvhs_p2u_3>, <&nvhs_p2u_4>, <&nvhs_p2u_5>,
-		       <&nvhs_p2u_6>, <&nvhs_p2u_7>;
+		phys = <&p2u_nvhs_0>, <&p2u_nvhs_1>, <&p2u_nvhs_2>,
+		       <&p2u_nvhs_3>, <&p2u_nvhs_4>, <&p2u_nvhs_5>,
+		       <&p2u_nvhs_6>, <&p2u_nvhs_7>;
 		phy-names = "p2u-0", "p2u-1", "p2u-2", "p2u-3",
 			    "p2u-4", "p2u-5", "p2u-6", "p2u-7";
 	};

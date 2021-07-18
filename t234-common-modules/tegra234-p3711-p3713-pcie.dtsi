@@ -25,8 +25,8 @@
 					  TEGRA234_MAIN_GPIO(R, 4)
 					  GPIO_ACTIVE_LOW>;
 
-		phys = <&nvhs_p2u_0>, <&nvhs_p2u_1>, <&nvhs_p2u_2>,
-		       <&nvhs_p2u_3>;
+		phys = <&p2u_nvhs_0>, <&p2u_nvhs_1>, <&p2u_nvhs_2>,
+		       <&p2u_nvhs_3>;
 		phy-names = "p2u-0", "p2u-1", "p2u-2", "p2u-3";
 	};
 
@@ -44,8 +44,8 @@
 			       TEGRA234_MAIN_GPIO(AF, 1)
 			       GPIO_ACTIVE_LOW>;
 
-		phys = <&nvhs_p2u_0>, <&nvhs_p2u_1>, <&nvhs_p2u_2>,
-		       <&nvhs_p2u_3>;
+		phys = <&p2u_nvhs_0>, <&p2u_nvhs_1>, <&p2u_nvhs_2>,
+		       <&p2u_nvhs_3>;
 		phy-names = "p2u-0", "p2u-1", "p2u-2", "p2u-3";
 	};
 
@@ -61,8 +61,8 @@
 			       TEGRA234_MAIN_GPIO(AF, 3)
 			       GPIO_ACTIVE_LOW>;
 
-		phys = <&nvhs_p2u_4>, <&nvhs_p2u_5>, <&nvhs_p2u_6>,
-		       <&nvhs_p2u_7>;
+		phys = <&p2u_nvhs_4>, <&p2u_nvhs_5>, <&p2u_nvhs_6>,
+		       <&p2u_nvhs_7>;
 		phy-names = "p2u-0", "p2u-1", "p2u-2", "p2u-3";
 	};
 
@@ -75,8 +75,8 @@
 					  TEGRA234_MAIN_GPIO(R, 5)
 					  GPIO_ACTIVE_LOW>;
 
-		phys = <&nvhs_p2u_4>, <&nvhs_p2u_5>, <&nvhs_p2u_6>,
-		       <&nvhs_p2u_7>;
+		phys = <&p2u_nvhs_4>, <&p2u_nvhs_5>, <&p2u_nvhs_6>,
+		       <&p2u_nvhs_7>;
 		phy-names = "p2u-0", "p2u-1", "p2u-2", "p2u-3";
 	};
 
@@ -86,7 +86,7 @@
 
 		num-lanes = <1>;
 
-		phys = <&gbe_p2u_0>;
+		phys = <&p2u_gbe_0>;
 		phy-names = "p2u-0";
 	};
 };
