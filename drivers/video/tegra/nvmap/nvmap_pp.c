@@ -740,6 +740,7 @@ int nvmap_page_pool_fini(struct nvmap_device *dev)
 	if (!IS_ERR_OR_NULL(background_allocator)) {
 		unregister_shrinker(&nvmap_page_pool_shrinker);
 		kthread_stop(background_allocator);
+		background_allocator = NULL;
 	}
 
 	WARN_ON(!list_empty(&pool->page_list));

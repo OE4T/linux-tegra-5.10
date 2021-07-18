@@ -1449,6 +1449,7 @@ int nvmap_remove(struct platform_device *pdev)
 	debugfs_remove_recursive(dev->debug_root);
 	misc_deregister(&dev->dev_user);
 #ifdef CONFIG_NVMAP_PAGE_POOLS
+	nvmap_page_pool_clear();
 	nvmap_page_pool_fini(nvmap_dev);
 #endif
 
