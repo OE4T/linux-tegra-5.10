@@ -4880,7 +4880,8 @@ static int ether_configure_car(struct platform_device *pdev,
 	/* get MAC reset */
 	pdata->mac_rst = devm_reset_control_get(&pdev->dev, "mac_rst");
 	if (IS_ERR_OR_NULL(pdata->mac_rst)) {
-		dev_err(&pdev->dev, "failed to get MAC reset\n");
+		if (PTR_ERR(pdata->mac_rst) != -EPROBE_DEFER)
+			dev_err(&pdev->dev, "failed to get MAC reset\n");
 		return PTR_ERR(pdata->mac_rst);
 	}
 
@@ -5036,7 +5037,8 @@ static int ether_init_plat_resources(struct platform_device *pdev,
 	if (osi_core->use_virtualization == OSI_DISABLE) {
 		ret = ether_configure_car(pdev, pdata);
 		if (ret < 0) {
-			dev_err(&pdev->dev, "failed to get clks/reset");
+			if (ret != -EPROBE_DEFER)
+				dev_err(&pdev->dev, "failed to get clks/reset");
 		}
 	}
 
@@ -5955,7 +5957,9 @@ static int ether_probe(struct platform_device *pdev)
 	/* get base address, clks, reset ID's and MAC address*/
 	ret = ether_init_plat_resources(pdev, pdata);
 	if (ret < 0) {
-		dev_err(&pdev->dev, "failed to allocate platform resources\n");
+		if (ret != -EPROBE_DEFER)
+			dev_err(&pdev->dev,
+				"failed to allocate platform resources\n");
 		goto err_init_res;
 	}
 
