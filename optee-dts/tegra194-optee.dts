@@ -1,0 +1,21 @@
+/*
+ * SPDX-License-Identifier: BSD-2-Clause
+ *
+ * Copyright (c) 2021, NVIDIA CORPORATION. All rights reserved.
+ */
+
+/dts-v1/;
+
+/ {
+	#address-cells = <2>;
+	#size-cells = <2>;
+
+	/* MB2 fills the non-secure memory chucks here in order to
+	 * enable the dynamic shared memory in OP-TEE.
+	 * Example:
+	 * nsec-memory@<xxx> {
+	 * 	device_type = "memory";
+	 *	reg = <xxx xxx xxx xxx>;
+	 * };
+	 */
+};
