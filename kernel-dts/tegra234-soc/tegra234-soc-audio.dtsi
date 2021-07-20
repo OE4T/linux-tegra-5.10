@@ -755,4 +755,77 @@
 		interrupts = <0 60 0x04>;
 		status = "disabled";
 	};
+
+	tegra_safety_audio {
+		compatible = "nvidia,tegra234-safety-audio";
+		iommus = <&smmu_niso0 TEGRA_SID_NISO0_GPCDMA_0>;
+
+		reg = <0x0 0x2450000 0x0 0x124>,
+		      <0x0 0x2460000 0x0 0x124>;
+
+		dmas = <&gpcdma 1>, <&gpcdma 1>, <&gpcdma 2>, <&gpcdma 2>;
+		dma-names = "i2s7-rx", "i2s7-tx", "i2s8-rx", "i2s8-tx";
+		dma-coherent;
+
+		status = "disabled";
+
+		clocks = <&bpmp_clks TEGRA234_CLK_PLLA_OUT0>,
+		         <&bpmp_clks TEGRA234_CLK_I2S7>,
+		         <&bpmp_clks TEGRA234_CLK_PLLA_OUT0>,
+		         <&bpmp_clks TEGRA234_CLK_I2S7_SYNC_INPUT>,
+		         <&bpmp_clks TEGRA234_CLK_SYNC_I2S7>,
+		         <&bpmp_clks TEGRA234_CLK_I2S7_SYNC_INPUT>,
+		         <&bpmp_clks TEGRA234_CLK_I2S8>,
+		         <&bpmp_clks TEGRA234_CLK_PLLA_OUT0>,
+		         <&bpmp_clks TEGRA234_CLK_I2S8_SYNC_INPUT>,
+		         <&bpmp_clks TEGRA234_CLK_SYNC_I2S8>,
+		         <&bpmp_clks TEGRA234_CLK_I2S8_SYNC_INPUT>;
+
+		clock-names = "pll_a_out0",
+			"i2s7", "i2s7_clk_parent", "i2s7_ext_audio_sync",
+			"i2s7_audio_sync", "i2s7_sync_input",
+			"i2s8", "i2s8_clk_parent", "i2s8_ext_audio_sync",
+			"i2s8_audio_sync", "i2s8_sync_input";
+
+		resets = <&bpmp_resets TEGRA234_RESET_I2S7>,
+			 <&bpmp_resets TEGRA234_RESET_I2S8>;
+		reset-names = "i2s7_reset", "i2s8_reset";
+
+		i2s7 {
+			clocks = <&bpmp_clks TEGRA234_CLK_I2S7>,
+				 <&bpmp_clks TEGRA234_CLK_PLLA_OUT0>,
+				 <&bpmp_clks TEGRA234_CLK_I2S7_SYNC_INPUT>,
+				 <&bpmp_clks TEGRA234_CLK_SYNC_I2S7>,
+				 <&bpmp_clks TEGRA234_CLK_I2S7_SYNC_INPUT>;
+			resets = <&bpmp_resets TEGRA234_RESET_I2S7>;
+			/* frame-slave => codec is slave, Tegra is clock master */
+			frame-slave;
+			bitclock-noninversion;
+			/* frame-inversion => LRCK_POLARITY = HIGH, meaning rising edge?? */
+			/* A2B Master has inversion bit set, A2B_I2SGCFG.INV = b'1, REG(0x41) = 0xc2 */
+			frame-inversion;
+			tx-mask = <0xff>;
+			rx-mask = <0xff>;
+			clk-trim = <0x0>;
+			format = "dsp_a";
+			fsync-width = <0x1f>;
+		};
+
+		i2s8 {
+			clocks = <&bpmp_clks TEGRA234_CLK_I2S8>,
+				 <&bpmp_clks TEGRA234_CLK_PLLA_OUT0>,
+				 <&bpmp_clks TEGRA234_CLK_I2S8_SYNC_INPUT>,
+				 <&bpmp_clks TEGRA234_CLK_SYNC_I2S8>,
+				 <&bpmp_clks TEGRA234_CLK_I2S8_SYNC_INPUT>;
+			resets = <&bpmp_resets TEGRA234_RESET_I2S8>;
+			frame-slave;
+			bitclock-noninversion;
+			frame-inversion;
+			tx-mask = <0xff>;
+			rx-mask = <0xff>;
+			clk-trim = <0x0>;
+			format = "dsp_a";
+			fsync-width = <0x1f>;
+		};
+	};
 };
