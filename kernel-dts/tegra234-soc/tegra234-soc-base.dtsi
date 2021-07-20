@@ -55,6 +55,7 @@
 #include "dt-bindings/soc/tegra-io-pads.h"
 #include "tegra234-soc-pmc.dtsi"
 #include "tegra234-soc-host1x.dtsi"
+#include "tegra234-soc-mods.dtsi"
 #include <dt-bindings/interconnect/tegra_icc_id.h>
 
 #include "tegra234-soc/tegra234-automotive-nvguard.dtsi"
