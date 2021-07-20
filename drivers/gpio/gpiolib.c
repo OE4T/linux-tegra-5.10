@@ -1988,6 +1988,12 @@ static int gpiod_request_commit(struct gpio_desc *desc, const char *label)
 	unsigned		offset;
 
 	if (label) {
+		/* Free desc->label if already allocated. */
+		if (desc->label) {
+			kfree_const(desc->label);
+			desc_set_label(desc, NULL);
+		}
+
 		label = kstrdup_const(label, GFP_KERNEL);
 		if (!label)
 			return -ENOMEM;
