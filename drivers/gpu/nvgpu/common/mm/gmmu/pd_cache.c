@@ -61,7 +61,7 @@ static u32 nvgpu_pd_cache_nr(u32 bytes)
 
 static u32 nvgpu_pd_cache_get_nr_entries(struct nvgpu_pd_mem_entry *pentry)
 {
-	BUG_ON(pentry->pd_size == 0);
+	BUG_ON(pentry->pd_size == 0U);
 
 	return (nvgpu_safe_cast_u64_to_u32(NVGPU_PD_CACHE_SIZE)) /
 			pentry->pd_size;

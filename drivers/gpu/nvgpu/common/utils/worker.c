@@ -275,7 +275,7 @@ void nvgpu_worker_init_name(struct nvgpu_worker *worker,
 }
 
 int nvgpu_worker_init(struct gk20a *g, struct nvgpu_worker *worker,
-	const struct nvgpu_worker_ops *ops)
+	const struct nvgpu_worker_ops *worker_ops)
 {
 	int err;
 
@@ -286,7 +286,7 @@ int nvgpu_worker_init(struct gk20a *g, struct nvgpu_worker *worker,
 	nvgpu_spinlock_init(&worker->items_lock);
 	nvgpu_mutex_init(&worker->start_lock);
 
-	worker->ops = ops;
+	worker->ops = worker_ops;
 
 	err = nvgpu_worker_start(worker);
 	if (err != 0) {
