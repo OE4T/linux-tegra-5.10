@@ -137,6 +137,7 @@ struct gops_ltc {
 
 	void (*init_fs_state)(struct gk20a *g);
 	void (*set_enabled)(struct gk20a *g, bool enabled);
+	void (*ltc_lts_set_mgmt_setup)(struct gk20a *g);
 #ifdef CONFIG_NVGPU_GRAPHICS
 	void (*set_zbc_color_entry)(struct gk20a *g,
 					u32 *color_val_l2, u32 index);
@@ -164,7 +165,6 @@ struct gops_ltc {
 			u32 policy);
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 	u32 (*pri_shared_addr)(struct gk20a *g, u32 addr);
-	void (*ltc_lts_set_mgmt_setup)(struct gk20a *g);
 #endif
 #endif
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
