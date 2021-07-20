@@ -668,7 +668,9 @@ int test_handle_mmu_fault_common(struct unit_module *m,
 		g->ops.channel.free_inst = nvgpu_channel_free_inst;
 		g->ops.tsg.disable = nvgpu_tsg_disable;
 		g->ops.fifo.preempt_tsg = nvgpu_fifo_preempt_tsg;
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 		g->aggressive_sync_destroy_thresh = 0U;
+#endif
 
 		g->fifo.g = g;
 

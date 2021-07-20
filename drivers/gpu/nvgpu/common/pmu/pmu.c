@@ -209,10 +209,12 @@ int nvgpu_pmu_early_init(struct gk20a *g)
 		g->support_ls_pmu = false;
 
 		/* Disable LS PMU global checkers */
+#ifdef CONFIG_NVGPU_NON_FUSA
 		g->can_elpg = false;
 		g->elpg_enabled = false;
 		g->aelpg_enabled = false;
 		g->elpg_ms_enabled = false;
+#endif
 		nvgpu_set_enabled(g, NVGPU_PMU_PERFMON, false);
 		nvgpu_set_enabled(g, NVGPU_ELPG_MS_ENABLED, false);
 #ifdef  CONFIG_NVGPU_DGPU

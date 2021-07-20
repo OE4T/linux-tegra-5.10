@@ -376,10 +376,12 @@ int nvgpu_prepare_poweroff(struct gk20a *g)
 	}
 #endif
 
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	/* Disable GPCPLL */
 	if (g->ops.clk.suspend_clk_support != NULL) {
 		g->ops.clk.suspend_clk_support(g);
 	}
+#endif
 #ifdef CONFIG_NVGPU_CLK_ARB
 	if (g->ops.clk_arb.stop_clk_arb_threads != NULL) {
 		g->ops.clk_arb.stop_clk_arb_threads(g);
@@ -742,7 +744,9 @@ static int nvgpu_early_init(struct gk20a *g)
 		 * SOB after graphics power saving features (blcg/slcg) are
 		 * enabled. For now, do it here.
 		 */
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 		NVGPU_INIT_TABLE_ENTRY(g->ops.clk.init_clk_support, NO_FLAG),
+#endif
 #ifdef CONFIG_NVGPU_DGPU
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_fbpa_ecc, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.fb.init_fbpa, NO_FLAG),
@@ -864,8 +868,10 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		NVGPU_INIT_TABLE_ENTRY(g->ops.acr.acr_init,
 				       NVGPU_SEC_PRIVSECURITY),
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_sw_quiesce_init_support, NO_FLAG),
+#ifdef CONFIG_NVGPU_NVLINK
 		NVGPU_INIT_TABLE_ENTRY(g->ops.nvlink.init,
 				       NVGPU_SUPPORT_NVLINK),
+#endif
 
 #ifdef CONFIG_NVGPU_DEBUGGER
 		NVGPU_INIT_TABLE_ENTRY(g->ops.ptimer.config_gr_tick_freq,
@@ -1064,8 +1070,12 @@ int nvgpu_init_gpu_characteristics(struct gk20a *g)
 	 * (even if kernel-mode submits aren't enabled where full deterministic
 	 * features matter).
 	 */
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 	if (nvgpu_has_syncpoints(g) &&
 			g->aggressive_sync_destroy_thresh == 0U) {
+#else
+	if (nvgpu_has_syncpoints(g)) {
+#endif
 		nvgpu_set_enabled(g,
 				NVGPU_SUPPORT_DETERMINISTIC_SUBMIT_FULL,
 				true);
@@ -1147,9 +1157,11 @@ static void gk20a_free_cb(struct nvgpu_ref *refcount)
 		g->ops.ecc.ecc_remove_support(g);
 	}
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 	if (g->remove_support != NULL) {
 		g->remove_support(g);
 	}
+#endif
 
 	if (g->ops.ltc.ltc_remove_support != NULL) {
 		g->ops.ltc.ltc_remove_support(g);

@@ -74,6 +74,7 @@ struct ctxsw_buf_offset_map_entry;
 enum ctxsw_addr_type;
 enum nvgpu_event_id_type;
 #endif
+struct netlist_av64_list;
 
 /**
  * This structure stores the GR engine ecc subunit hal pointers.

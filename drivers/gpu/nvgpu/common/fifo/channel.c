@@ -83,7 +83,9 @@ static int channel_setup_ramfc(struct nvgpu_channel *c,
 static struct nvgpu_channel *allocate_channel(struct nvgpu_fifo *f)
 {
 	struct nvgpu_channel *ch = NULL;
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 	struct gk20a *g = f->g;
+#endif
 
 	nvgpu_mutex_acquire(&f->free_chs_mutex);
 	if (!nvgpu_list_empty(&f->free_chs)) {
@@ -102,11 +104,13 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
 	}
 	nvgpu_mutex_release(&f->free_chs_mutex);
 
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 	if ((g->aggressive_sync_destroy_thresh != 0U) &&
 			(f->used_channels >
 			 g->aggressive_sync_destroy_thresh)) {
 		g->aggressive_sync_destroy = true;
 	}
+#endif
 
 	return ch;
 }
@@ -114,7 +118,9 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
 static void free_channel(struct nvgpu_fifo *f,
 		struct nvgpu_channel *ch)
 {
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 	struct gk20a *g = f->g;
+#endif
 
 #ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_release_used_channel(ch->chid);
@@ -130,6 +136,7 @@ static void free_channel(struct nvgpu_fifo *f,
 	 * On teardown it is not possible to dereference platform, but ignoring
 	 * this is fine then because no new channels would be created.
 	 */
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 	if (!nvgpu_is_enabled(g, NVGPU_DRIVER_IS_DYING)) {
 		if ((g->aggressive_sync_destroy_thresh != 0U) &&
 			(f->used_channels <
@@ -137,6 +144,7 @@ static void free_channel(struct nvgpu_fifo *f,
 			g->aggressive_sync_destroy = false;
 		}
 	}
+#endif
 }
 
 void nvgpu_channel_commit_va(struct nvgpu_channel *c)
@@ -1909,10 +1917,12 @@ int nvgpu_channel_suspend_all_serviceable_ch(struct gk20a *g)
 			if (err != 0) {
 				nvgpu_err(g, "failed to preempt channel/TSG");
 			}
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 			/* wait for channel update notifiers */
 			if (g->os_channel.work_completion_cancel_sync != NULL) {
 				g->os_channel.work_completion_cancel_sync(ch);
 			}
+#endif
 
 			g->ops.channel.unbind(ch);
 

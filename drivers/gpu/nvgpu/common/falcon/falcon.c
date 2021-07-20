@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -419,6 +419,7 @@ struct nvgpu_falcon *nvgpu_falcon_get_instance(struct gk20a *g, u32 flcn_id)
 	case FALCON_ID_GSPLITE:
 		flcn = &g->gsp_flcn;
 		break;
+#ifdef CONFIG_NVGPU_DGPU
 	case FALCON_ID_NVDEC:
 		flcn = &g->nvdec_flcn;
 		break;
@@ -428,6 +429,7 @@ struct nvgpu_falcon *nvgpu_falcon_get_instance(struct gk20a *g, u32 flcn_id)
 	case FALCON_ID_MINION:
 		flcn = &g->minion_flcn;
 		break;
+#endif
 	default:
 		nvgpu_err(g, "Invalid/Unsupported falcon ID %x", flcn_id);
 		break;

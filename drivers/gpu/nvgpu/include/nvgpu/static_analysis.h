@@ -769,6 +769,11 @@ static inline s32 nvgpu_safe_cast_s64_to_s32(s64 sl_a)
  *
  * @param v [in]	Value to determine precision for.
  *
+ * Returns number of 1-bits (set bits). Compiler intrinsics are used for this
+ * purpose. __builtin_popcount for unsigned int, __builtin_popcountl for
+ * unsigned long and __builtin_popcountll for unsigned long long data type is
+ * used.
+ *
  * @return s32 representation of the precision in bits of the value passed in.
  */
 #define NVGPU_PRECISION(v) _Generic(v, \

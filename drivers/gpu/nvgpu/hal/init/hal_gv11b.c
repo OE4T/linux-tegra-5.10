@@ -980,8 +980,8 @@ static const struct gops_runlist gv11b_ops_runlist = {
 	.get_max_channels_per_tsg = gv11b_runlist_get_max_channels_per_tsg,
 };
 
-static const struct gops_userd gv11b_ops_userd = {
 #ifdef CONFIG_NVGPU_USERD
+static const struct gops_userd gv11b_ops_userd = {
 	.setup_sw = nvgpu_userd_setup_sw,
 	.cleanup_sw = nvgpu_userd_cleanup_sw,
 	.init_mem = gk20a_userd_init_mem,
@@ -990,9 +990,9 @@ static const struct gops_userd gv11b_ops_userd = {
 	.gp_put = gv11b_userd_gp_put,
 	.pb_get = gv11b_userd_pb_get,
 #endif
-#endif /* CONFIG_NVGPU_USERD */
 	.entry_size = gk20a_userd_entry_size,
 };
+#endif /* CONFIG_NVGPU_USERD */
 
 static const struct gops_channel gv11b_ops_channel = {
 	.alloc_inst = nvgpu_channel_alloc_inst,
@@ -1263,9 +1263,11 @@ static const struct gops_mc gv11b_ops_mc = {
 	.is_mmu_fault_pending = gv11b_mc_is_mmu_fault_pending,
 };
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 static const struct gops_debug gv11b_ops_debug = {
 	.show_dump = gk20a_debug_show_dump,
 };
+#endif
 
 #ifdef CONFIG_NVGPU_DEBUGGER
 static const struct gops_debugger gv11b_ops_debugger = {
@@ -1524,7 +1526,9 @@ int gv11b_init_hal(struct gk20a *g)
 	gops->ramfc = gv11b_ops_ramfc;
 	gops->ramin = gv11b_ops_ramin;
 	gops->runlist = gv11b_ops_runlist;
+#ifdef CONFIG_NVGPU_USERD
 	gops->userd = gv11b_ops_userd;
+#endif
 	gops->channel = gv11b_ops_channel;
 	gops->tsg = gv11b_ops_tsg;
 	gops->usermode = gv11b_ops_usermode;
@@ -1542,8 +1546,8 @@ int gv11b_init_hal(struct gk20a *g)
 	gops->regops = gv11b_ops_regops;
 #endif
 	gops->mc = gv11b_ops_mc;
-	gops->debug = gv11b_ops_debug;
 #ifdef CONFIG_NVGPU_DEBUGGER
+	gops->debug = gv11b_ops_debug;
 	gops->debugger = gv11b_ops_debugger;
 	gops->perf = gv11b_ops_perf;
 	gops->perfbuf = gv11b_ops_perfbuf;

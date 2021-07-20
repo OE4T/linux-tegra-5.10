@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -214,7 +214,9 @@ struct gpu_ops {
 			void (**fn)(struct gk20a *g, struct nvgpu_mem *mem));
 	struct gops_pmu_perf pmu_perf;
 	struct gops_debug debug;
+#ifdef CONFIG_NVGPU_DGPU
 	struct gops_nvlink nvlink;
+#endif
 	struct gops_sec2 sec2;
 	struct gops_gsp gsp;
 /** @endcond */

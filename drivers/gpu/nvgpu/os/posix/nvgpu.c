@@ -132,14 +132,22 @@ int gk20a_busy(struct gk20a *g)
 		return -ENODEV;
 	}
 #endif
+#ifdef CONFIG_NVGPU_NON_FUSA
 	nvgpu_atomic_inc(&g->usage_count);
+#else
+	(void)g;
+#endif
 
 	return 0;
 }
 
 void gk20a_idle(struct gk20a *g)
 {
+#ifdef CONFIG_NVGPU_NON_FUSA
 	nvgpu_atomic_dec(&g->usage_count);
+#else
+	(void)g;
+#endif
 }
 
 static void nvgpu_posix_load_regs(struct gk20a *g)
