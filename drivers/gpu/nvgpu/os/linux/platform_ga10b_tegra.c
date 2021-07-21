@@ -45,10 +45,10 @@
 #define EMC3D_GA10B_RATIO 500
 
 #define GPCCLK_INIT_RATE 1000000000UL
-#define SYSCLK_INIT_RATE 204000000UL
 
+/* Run gpc0, gpc1 and sysclk at same rate */
 struct gk20a_platform_clk tegra_ga10b_clocks[] = {
-	{"sysclk", SYSCLK_INIT_RATE},
+	{"sysclk", GPCCLK_INIT_RATE},
 	{"gpc0clk", GPCCLK_INIT_RATE},
 	{"gpc1clk", GPCCLK_INIT_RATE},
 	{"fuse", UINT_MAX}
