@@ -147,5 +147,14 @@
 			gpio = <&tegra_main_gpio TEGRA234_MAIN_GPIO(A, 1) 1>;
 			enable-active-low;
 		};
+		p3737_vdd_sys_en: regulator@115 {
+			compatible = "regulator-fixed";
+			reg = <115>;
+			regulator-name = "vdd_sys_en";
+			regulator-min-microvolt = <1200000>;
+			regulator-max-microvolt = <1200000>;
+			gpio = <&tegra_main_gpio TEGRA234_MAIN_GPIO(AC, 7) 0>;
+			enable-active-high;
+		};
 	};
 };
