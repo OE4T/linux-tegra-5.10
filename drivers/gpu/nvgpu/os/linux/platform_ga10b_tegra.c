@@ -326,9 +326,9 @@ struct gk20a_platform ga10b_tegra_platform = {
 
 	.set_tpc_pg_mask	= ga10b_tegra_set_tpc_pg_mask,
 
-	.can_slcg               = false,
-	.can_blcg               = false,
-	.can_elcg               = false,
+	.can_slcg               = true,
+	.can_blcg               = true,
+	.can_elcg               = true,
 	.enable_slcg            = false,
 	.enable_blcg            = false,
 	.enable_elcg            = false,
