@@ -8742,9 +8742,12 @@ static int ufshcd_variant_hba_init(struct ufs_hba *hba)
 	if (err)
 		ufshcd_vops_exit(hba);
 out:
-	if (err)
-		dev_err(hba->dev, "%s: variant %s init failed err %d\n",
-			__func__, ufshcd_get_var_name(hba), err);
+	if (err) {
+		if (err != -EPROBE_DEFER) {
+			dev_err(hba->dev, "%s: variant %s init failed err %d\n",
+				__func__, ufshcd_get_var_name(hba), err);
+		}
+	}
 	return err;
 }
 
