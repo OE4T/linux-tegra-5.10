@@ -3925,7 +3925,8 @@ static int patch_tegra_t23x_hdmi(struct hda_codec *codec)
 	codec->hdmi_intr_trig_ctrl = true;
 	spec = codec->spec;
 	spec->dyn_pin_out = true;
-	spec->dyn_pcm_assign = true;
+	/* TODO: Enable dynamic pcm assignmend */
+	spec->dyn_pcm_assign = false;
 
 	return tegra_hdmi_init(codec);
 }
