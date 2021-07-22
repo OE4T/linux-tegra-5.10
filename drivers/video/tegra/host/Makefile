@@ -44,6 +44,10 @@ nvhost-$(CONFIG_TEGRA_GRHOST_OFA) += ofa/ofa.o
 nvhost-$(CONFIG_TEGRA_GRHOST_NVDEC) += nvdec/nvdec.o nvdec/nvdec_t23x.o
 nvhost-$(CONFIG_TEGRA_GRHOST_TSEC) += tsec/tsec.o tsec/tsec_t23x.o
 
+ifeq ($(CONFIG_TEGRA_T239_GRHOST),y)
+nvhost-$(CONFIG_TEGRA_GRHOST_VIC) += vic/vic_t239.o
+endif
+
 nvhost-$(CONFIG_TEGRA_GRHOST_LEGACY_PD) += nvhost_pd.o
 ifeq ($(CONFIG_SYNC),y)
 nvhost-$(CONFIG_TEGRA_GRHOST_SYNC) += nvhost_sync.o
