@@ -54,6 +54,9 @@
 			usb2-2 {
 				vbus-supply = <&battery_reg>;
 			};
+			usb2-3 {
+				vbus-supply = <&battery_reg>;
+			};
 		};
 	};
 
