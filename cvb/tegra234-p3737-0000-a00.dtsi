@@ -103,7 +103,7 @@
 	};
 
 	xusb_padctl: xusb_padctl@3520000 {
-		status = "disabled";
+		status = "okay";
 		pads {
 			usb2 {
 				lanes {
@@ -182,7 +182,7 @@
 	};
 
 	tegra_xudc: xudc@3550000 {
-		status = "disabled";
+		status = "okay";
 		phys = <&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-0}>,
 			<&{/xusb_padctl@3520000/pads/usb3/lanes/usb3-1}>;
 		phy-names = "usb2-0", "usb3-1";
