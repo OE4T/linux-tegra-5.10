@@ -83,6 +83,11 @@ int nvgpu_acr_wait_for_completion(struct gk20a *g, struct hs_acr *acr_desc,
 		error_type = ACR_BOOT_FAILED;
 		goto exit;
 	}
+	nvgpu_acr_dbg(g, "flcn-%d: Mailbox-0 %x", flcn_id,
+				data);
+	nvgpu_acr_dbg(g, "flcn-%d: Mailbox-1 : 0x%x", flcn_id,
+				nvgpu_falcon_mailbox_read(acr_desc->acr_flcn,
+				FALCON_MAILBOX_1));
 
 	/*
 	 * When engine-falcon is used for ACR bootstrap, validate the integrity
@@ -276,6 +281,7 @@ static int ga10b_load_riscv_acr_ucodes(struct gk20a *g, struct hs_acr *acr)
 {
 	int err = 0;
 
+	nvgpu_acr_dbg(g, "loading ACR's manifest bin\n");
 	acr->manifest_fw = nvgpu_request_firmware(g,
 					acr->acr_manifest_name,
 					NVGPU_REQUEST_FIRMWARE_NO_WARN);
@@ -285,6 +291,7 @@ static int ga10b_load_riscv_acr_ucodes(struct gk20a *g, struct hs_acr *acr)
 		return -ENOENT;
 	}
 
+	nvgpu_acr_dbg(g, "loading ACR's text bin\n");
 	acr->code_fw = nvgpu_request_firmware(g,
 					acr->acr_code_name,
 					NVGPU_REQUEST_FIRMWARE_NO_WARN);
@@ -295,6 +302,7 @@ static int ga10b_load_riscv_acr_ucodes(struct gk20a *g, struct hs_acr *acr)
 		return -ENOENT;
 	}
 
+	nvgpu_acr_dbg(g, "loading ACR's data bin\n");
 	acr->data_fw = nvgpu_request_firmware(g,
 					acr->acr_data_name,
 					NVGPU_REQUEST_FIRMWARE_NO_WARN);
@@ -374,9 +382,11 @@ int nvgpu_acr_bootstrap_hs_ucode_riscv(struct gk20a *g, struct nvgpu_acr *acr)
 
 	if (brom_complete == false) {
 		nvgpu_err(g, "RISCV BROM timed out, limit: %d ms", timeout);
+		nvgpu_riscv_dump_brom_stats(acr->acr_asc.acr_flcn);
 		err = -ETIMEDOUT;
 	} else {
-		nvgpu_info(g, "RISCV BROM passed");
+		nvgpu_err(g, "RISCV BROM passed");
+		nvgpu_riscv_dump_brom_stats(acr->acr_asc.acr_flcn);
 	}
 
 	/* wait for complete & halt */
