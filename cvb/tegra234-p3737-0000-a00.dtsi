@@ -78,20 +78,131 @@
 
 	i2c@c240000 {
 		ucsi_ccg: ucsi_ccg@8 {
-#if TEGRA_XUSB_DT_VERSION >= DT_VERSION_3
+			status = "okay";
 			compatible = "nvidia,ccgx-ucsi";
-#else
-			compatible = "nvidia,ucsi_ccg";
-			ccg,irqflags = <IRQF_TRIGGER_LOW>;
-#endif
+			ccgx,firmware-build = "gn";
 			reg = <0x08>;
 			interrupt-parent = <&tegra_aon_gpio>;
 			interrupts = <TEGRA234_AON_GPIO(BB, 2) IRQ_TYPE_LEVEL_LOW>;
-#if TEGRA_XUSB_DT_VERSION < DT_VERSION_3
-			wakeup-source;
-#endif
-			status = "okay";
+			ccg_typec_con0: connector@0 {
+				compatible = "usb-c-connector";
+				label = "USB-C";
+				data-role = "host";
+			};
+			ccg_typec_con1: connector@1 {
+				compatible = "usb-c-connector";
+				label = "USB-C";
+				data-role = "dual";
+				port {
+					ucsi_ccg_p1: endpoint {
+						remote-endpoint = <&usb_role_switch0>;
+					};
+				};
+			};
 		};
+	};
+
+	xusb_padctl: xusb_padctl@3520000 {
+		status = "disabled";
+		pads {
+			usb2 {
+				lanes {
+					usb2-0 {
+						nvidia,function = "xusb";
+						status = "okay";
+					};
+					usb2-1 {
+						nvidia,function = "xusb";
+						status = "okay";
+					};
+					usb2-2 {
+						nvidia,function = "xusb";
+						status = "okay";
+					};
+					usb2-3 {
+						nvidia,function = "xusb";
+						status = "okay";
+					};
+				};
+			};
+			usb3 {
+				lanes {
+					usb3-0 {
+						nvidia,function = "xusb";
+						status = "okay";
+					};
+					usb3-1 {
+						nvidia,function = "xusb";
+						status = "okay";
+					};
+					usb3-2 {
+						nvidia,function = "xusb";
+						status = "okay";
+					};
+				};
+			};
+		};
+
+		ports {
+			usb2-0 {
+				mode = "otg";
+				usb-role-switch;
+				status = "okay";
+				port {
+					usb_role_switch0: endpoint {
+						remote-endpoint = <&ucsi_ccg_p1>;
+					};
+				};
+			};
+			usb2-1 {
+				mode = "host";
+				status = "okay";
+			};
+			usb2-2 {
+				mode = "host";
+				status = "okay";
+			};
+			usb2-3 {
+				mode = "host";
+				status = "okay";
+			};
+			usb3-0 {
+				nvidia,usb2-companion = <1>;
+				status = "okay";
+			};
+			usb3-1 {
+				nvidia,usb2-companion = <0>;
+				status = "okay";
+			};
+			usb3-2 {
+				nvidia,usb2-companion = <3>;
+				status = "okay";
+			};
+		};
+	};
+
+	tegra_xudc: xudc@3550000 {
+		status = "disabled";
+		phys = <&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-0}>,
+			<&{/xusb_padctl@3520000/pads/usb3/lanes/usb3-1}>;
+		phy-names = "usb2-0", "usb3-1";
+		nvidia,xusb-padctl = <&xusb_padctl>;
+		nvidia,boost_cpu_freq = <1200>;
+	};
+
+	tegra_xhci: xhci@3610000 {
+		status = "disabled";
+		phys = <&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-0}>,
+			<&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-1}>,
+			<&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-2}>,
+			<&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-3}>,
+			<&{/xusb_padctl@3520000/pads/usb3/lanes/usb3-0}>,
+			<&{/xusb_padctl@3520000/pads/usb3/lanes/usb3-1}>,
+			<&{/xusb_padctl@3520000/pads/usb3/lanes/usb3-2}>;
+		phy-names = "usb2-0", "usb2-1", "usb2-2", "usb2-3",
+			"usb3-0", "usb3-1", "usb3-2";
+		nvidia,xusb-padctl = <&xusb_padctl>;
+		nvidia,boost_emc_freq = <500>;
 	};
 
 	spi@3210000{ /* SPI1 in 40 pin conn */
