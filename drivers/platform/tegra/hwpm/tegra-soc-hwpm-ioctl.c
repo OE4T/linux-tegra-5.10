@@ -897,6 +897,7 @@ static int exec_reg_ops_ioctl(struct tegra_soc_hwpm *hwpm,
 	struct hwpm_resource_aperture *aperture = NULL;
 	int op_idx = 0;
 	struct tegra_soc_hwpm_reg_op *reg_op = NULL;
+	u64 upadted_pa = 0ULL;
 
 	if (!hwpm->bind_completed) {
 		tegra_soc_hwpm_err("The EXEC_REG_OPS IOCTL can only be called"
@@ -932,7 +933,8 @@ static int exec_reg_ops_ioctl(struct tegra_soc_hwpm *hwpm,
 				op_idx, reg_op->phys_addr, reg_op->cmd);
 
 		/* The whitelist check is done here */
-		aperture = find_hwpm_aperture(hwpm, reg_op->phys_addr, true);
+		aperture = find_hwpm_aperture(hwpm, reg_op->phys_addr,
+						true, true, &upadted_pa);
 		if (!aperture) {
 			REG_OP_FAIL(INSUFFICIENT_PERMISSIONS,
 				"Invalid register address(0x%llx)",
@@ -944,29 +946,29 @@ static int exec_reg_ops_ioctl(struct tegra_soc_hwpm *hwpm,
 		case TEGRA_SOC_HWPM_REG_OP_CMD_RD32:
 			reg_op->reg_val_lo = ioctl_readl(hwpm,
 							aperture,
-							reg_op->phys_addr);
+							upadted_pa);
 			reg_op->status = TEGRA_SOC_HWPM_REG_OP_STATUS_SUCCESS;
 			break;
 
 		case TEGRA_SOC_HWPM_REG_OP_CMD_RD64:
 			reg_op->reg_val_lo = ioctl_readl(hwpm,
 							 aperture,
-							 reg_op->phys_addr);
+							 upadted_pa);
 			reg_op->reg_val_hi = ioctl_readl(hwpm,
 							 aperture,
-							 reg_op->phys_addr + 4);
+							 upadted_pa + 4);
 			reg_op->status = TEGRA_SOC_HWPM_REG_OP_STATUS_SUCCESS;
 			break;
 
 		/* Read Modify Write operation */
 		case TEGRA_SOC_HWPM_REG_OP_CMD_WR32:
 			ret = reg_rmw(hwpm, aperture, aperture->dt_aperture,
-				reg_op->phys_addr, reg_op->mask_lo,
+				upadted_pa, reg_op->mask_lo,
 				reg_op->reg_val_lo, true, aperture->is_ip);
 			if (ret < 0) {
 				REG_OP_FAIL(WR_FAILED,
 					"WR32 REGOP failed for register(0x%llx)",
-					reg_op->phys_addr);
+					upadted_pa);
 			} else {
 				reg_op->status = TEGRA_SOC_HWPM_REG_OP_STATUS_SUCCESS;
 			}
@@ -976,23 +978,23 @@ static int exec_reg_ops_ioctl(struct tegra_soc_hwpm *hwpm,
 		case TEGRA_SOC_HWPM_REG_OP_CMD_WR64:
 			/* Lower 32 bits */
 			ret = reg_rmw(hwpm, aperture, aperture->dt_aperture,
-				reg_op->phys_addr, reg_op->mask_lo,
+				upadted_pa, reg_op->mask_lo,
 				reg_op->reg_val_lo, true, aperture->is_ip);
 			if (ret < 0) {
 				REG_OP_FAIL(WR_FAILED,
 					"WR64 REGOP failed for register(0x%llx)",
-					reg_op->phys_addr);
+					upadted_pa);
 				continue;
 			}
 
 			/* Upper 32 bits */
 			ret = reg_rmw(hwpm, aperture, aperture->dt_aperture,
-				reg_op->phys_addr + 4, reg_op->mask_hi,
+				upadted_pa + 4, reg_op->mask_hi,
 				reg_op->reg_val_hi, true, aperture->is_ip);
 			if (ret < 0) {
 				REG_OP_FAIL(WR_FAILED,
 					"WR64 REGOP failed for register(0x%llx)",
-					reg_op->phys_addr + 4);
+					upadted_pa + 4);
 			} else {
 				reg_op->status = TEGRA_SOC_HWPM_REG_OP_STATUS_SUCCESS;
 			}
@@ -1277,6 +1279,8 @@ static int tegra_soc_hwpm_open(struct inode *inode, struct file *filp)
 		cmd_slice_rtr_map[0].fake_registers = pma_fake_regs;
 	}
 
+	hwpm_resources[TEGRA_SOC_HWPM_RESOURCE_PMA].reserved = true;
+
 	hwpm->dt_apertures[TEGRA_SOC_HWPM_RTR_DT] =
 				of_iomap(hwpm->np, TEGRA_SOC_HWPM_RTR_DT);
 	if (!hwpm->dt_apertures[TEGRA_SOC_HWPM_RTR_DT]) {
@@ -1308,6 +1312,7 @@ static int tegra_soc_hwpm_open(struct inode *inode, struct file *filp)
 			goto fail;
 		}
 	}
+	hwpm_resources[TEGRA_SOC_HWPM_RESOURCE_CMD_SLICE_RTR].reserved = true;
 
 	/* FIXME: Remove after verification */
 	/* Disable SLCG */
@@ -1376,6 +1381,7 @@ fail:
 		pma_map[1].fake_registers = NULL;
 		cmd_slice_rtr_map[0].fake_registers = NULL;
 	}
+	hwpm_resources[TEGRA_SOC_HWPM_RESOURCE_PMA].reserved = false;
 
 	if (hwpm->dt_apertures[TEGRA_SOC_HWPM_RTR_DT]) {
 		iounmap(hwpm->dt_apertures[TEGRA_SOC_HWPM_RTR_DT]);
@@ -1387,6 +1393,7 @@ fail:
 		kfree(cmd_slice_rtr_map[1].fake_registers);
 		cmd_slice_rtr_map[1].fake_registers = NULL;
 	}
+	hwpm_resources[TEGRA_SOC_HWPM_RESOURCE_CMD_SLICE_RTR].reserved = false;
 	tegra_soc_hwpm_err("%s failed", __func__);
 
 	return ret;
@@ -1485,6 +1492,9 @@ static int tegra_soc_hwpm_release(struct inode *inode, struct file *filp)
 	if (timeout && ret == 0) {
 		ret = -EIO;
 	}
+
+	hwpm_resources[TEGRA_SOC_HWPM_RESOURCE_PMA].reserved = false;
+	hwpm_resources[TEGRA_SOC_HWPM_RESOURCE_CMD_SLICE_RTR].reserved = false;
 
 	/* Disable all PERFMONs */
 	tegra_soc_hwpm_dbg("Disabling PERFMONs");

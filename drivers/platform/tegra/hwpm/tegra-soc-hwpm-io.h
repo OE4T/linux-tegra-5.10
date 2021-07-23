@@ -41,6 +41,8 @@ struct hwpm_resource_aperture {
 	enum tegra_soc_hwpm_dt_aperture dt_aperture;
 
 	/* Physical aperture */
+	u64 start_abs_pa;
+	u64 end_abs_pa;
 	u64 start_pa;
 	u64 end_pa;
 
@@ -70,7 +72,9 @@ extern struct hwpm_resource_aperture cmd_slice_rtr_map[];
 
 struct hwpm_resource_aperture *find_hwpm_aperture(struct tegra_soc_hwpm *hwpm,
 						  u64 phys_addr,
-						  bool check_reservation);
+						  bool use_absolute_base,
+						  bool check_reservation,
+						  u64 *updated_pa);
 u32 hwpm_readl(struct tegra_soc_hwpm *hwpm,
 		enum tegra_soc_hwpm_dt_aperture dt_aperture,
 		u32 reg_offset);

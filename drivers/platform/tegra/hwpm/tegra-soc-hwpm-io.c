@@ -124,6 +124,8 @@ struct hwpm_resource_aperture vi_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_VI0_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_VI0_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -133,6 +135,8 @@ struct hwpm_resource_aperture vi_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_VI1_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_VI1_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -142,6 +146,8 @@ struct hwpm_resource_aperture vi_map[] = {
 	{
 		.start_pa = addr_map_vi_thi_base_r(),
 		.end_pa = addr_map_vi_thi_limit_r(),
+		.start_abs_pa = addr_map_vi_thi_base_r(),
+		.end_abs_pa = addr_map_vi_thi_limit_r(),
 		.fake_registers = NULL,
 		.wlist = vi_thi_wlist,
 		.wlist_size = ARRAY_SIZE(vi_thi_wlist),
@@ -151,6 +157,8 @@ struct hwpm_resource_aperture vi_map[] = {
 	{
 		.start_pa = addr_map_vi2_thi_base_r(),
 		.end_pa = addr_map_vi2_thi_limit_r(),
+		.start_abs_pa = addr_map_vi2_thi_base_r(),
+		.end_abs_pa = addr_map_vi2_thi_limit_r(),
 		.fake_registers = NULL,
 		.wlist = vi2_thi_wlist,
 		.wlist_size = ARRAY_SIZE(vi2_thi_wlist),
@@ -173,6 +181,8 @@ struct hwpm_resource_aperture isp_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_ISP0_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_ISP0_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -182,6 +192,8 @@ struct hwpm_resource_aperture isp_map[] = {
 	{
 		.start_pa = addr_map_isp_thi_base_r(),
 		.end_pa = addr_map_isp_thi_limit_r(),
+		.start_abs_pa = addr_map_isp_thi_base_r(),
+		.end_abs_pa = addr_map_isp_thi_limit_r(),
 		.fake_registers = NULL,
 		.wlist = isp_thi_wlist,
 		.wlist_size = ARRAY_SIZE(isp_thi_wlist),
@@ -205,6 +217,8 @@ struct hwpm_resource_aperture vic_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_VICA0_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_VICA0_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -214,6 +228,8 @@ struct hwpm_resource_aperture vic_map[] = {
 	{
 		.start_pa = addr_map_vic_base_r(),
 		.end_pa = addr_map_vic_limit_r(),
+		.start_abs_pa = addr_map_vic_base_r(),
+		.end_abs_pa = addr_map_vic_limit_r(),
 		.fake_registers = NULL,
 		.wlist = vic_wlist,
 		.wlist_size = ARRAY_SIZE(vic_wlist),
@@ -235,6 +251,8 @@ struct hwpm_resource_aperture ofa_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_OFAA0_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_OFAA0_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -244,6 +262,8 @@ struct hwpm_resource_aperture ofa_map[] = {
 	{
 		.start_pa = addr_map_ofa_base_r(),
 		.end_pa = addr_map_ofa_limit_r(),
+		.start_abs_pa = addr_map_ofa_base_r(),
+		.end_abs_pa = addr_map_ofa_limit_r(),
 		.fake_registers = NULL,
 		.wlist = ofa_wlist,
 		.wlist_size = ARRAY_SIZE(ofa_wlist),
@@ -268,6 +288,8 @@ struct hwpm_resource_aperture pva_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_PVAV0_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_PVAV0_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -277,6 +299,8 @@ struct hwpm_resource_aperture pva_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_PVAV1_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_PVAV1_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -286,6 +310,8 @@ struct hwpm_resource_aperture pva_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_PVAC0_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_PVAC0_PERFMON_DT),
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
 		.fake_registers = NULL,
@@ -295,6 +321,8 @@ struct hwpm_resource_aperture pva_map[] = {
 	{
 		.start_pa = addr_map_pva0_pm_base_r(),
 		.end_pa = addr_map_pva0_pm_limit_r(),
+		.start_abs_pa = addr_map_pva0_pm_base_r(),
+		.end_abs_pa = addr_map_pva0_pm_limit_r(),
 		.fake_registers = NULL,
 		.wlist = pva0_pm_wlist,
 		.wlist_size = ARRAY_SIZE(pva0_pm_wlist),
@@ -318,6 +346,8 @@ struct hwpm_resource_aperture nvdla_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_NVDLAB0_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_NVDLAB0_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -327,6 +357,8 @@ struct hwpm_resource_aperture nvdla_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_NVDLAB1_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_NVDLAB1_PERFMON_DT),
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
 		.fake_registers = NULL,
@@ -336,6 +368,8 @@ struct hwpm_resource_aperture nvdla_map[] = {
 	{
 		.start_pa = addr_map_nvdla0_base_r(),
 		.end_pa = addr_map_nvdla0_limit_r(),
+		.start_abs_pa = addr_map_nvdla0_base_r(),
+		.end_abs_pa = addr_map_nvdla0_limit_r(),
 		.fake_registers = NULL,
 		.wlist = nvdla_wlist,
 		.wlist_size = ARRAY_SIZE(nvdla_wlist),
@@ -345,6 +379,8 @@ struct hwpm_resource_aperture nvdla_map[] = {
 	{
 		.start_pa = addr_map_nvdla1_base_r(),
 		.end_pa = addr_map_nvdla1_limit_r(),
+		.start_abs_pa = addr_map_nvdla1_base_r(),
+		.end_abs_pa = addr_map_nvdla1_limit_r(),
 		.fake_registers = NULL,
 		.wlist = nvdla_wlist,
 		.wlist_size = ARRAY_SIZE(nvdla_wlist),
@@ -361,6 +397,8 @@ struct hwpm_resource_aperture mgbe_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_MGBE0_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_MGBE0_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -370,6 +408,8 @@ struct hwpm_resource_aperture mgbe_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_MGBE1_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_MGBE1_PERFMON_DT),
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
 		.fake_registers = NULL,
@@ -379,6 +419,8 @@ struct hwpm_resource_aperture mgbe_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_MGBE2_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_MGBE2_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -388,6 +430,8 @@ struct hwpm_resource_aperture mgbe_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_MGBE3_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_MGBE3_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -397,6 +441,8 @@ struct hwpm_resource_aperture mgbe_map[] = {
 	{
 		.start_pa = addr_map_mgbe0_base_r(),
 		.end_pa = addr_map_mgbe0_limit_r(),
+		.start_abs_pa = addr_map_mgbe0_base_r(),
+		.end_abs_pa = addr_map_mgbe0_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mgbe_wlist,
 		.wlist_size = ARRAY_SIZE(mgbe_wlist),
@@ -406,6 +452,8 @@ struct hwpm_resource_aperture mgbe_map[] = {
 	{
 		.start_pa = addr_map_mgbe1_base_r(),
 		.end_pa = addr_map_mgbe1_limit_r(),
+		.start_abs_pa = addr_map_mgbe1_base_r(),
+		.end_abs_pa = addr_map_mgbe1_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mgbe_wlist,
 		.wlist_size = ARRAY_SIZE(mgbe_wlist),
@@ -415,6 +463,8 @@ struct hwpm_resource_aperture mgbe_map[] = {
 	{
 		.start_pa = addr_map_mgbe2_base_r(),
 		.end_pa = addr_map_mgbe2_limit_r(),
+		.start_abs_pa = addr_map_mgbe2_base_r(),
+		.end_abs_pa = addr_map_mgbe2_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mgbe_wlist,
 		.wlist_size = ARRAY_SIZE(mgbe_wlist),
@@ -424,6 +474,8 @@ struct hwpm_resource_aperture mgbe_map[] = {
 	{
 		.start_pa = addr_map_mgbe3_base_r(),
 		.end_pa = addr_map_mgbe3_limit_r(),
+		.start_abs_pa = addr_map_mgbe3_base_r(),
+		.end_abs_pa = addr_map_mgbe3_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mgbe_wlist,
 		.wlist_size = ARRAY_SIZE(mgbe_wlist),
@@ -436,6 +488,8 @@ struct hwpm_resource_aperture scf_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_SCF0_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_SCF0_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -457,6 +511,8 @@ struct hwpm_resource_aperture nvdec_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_NVDECA0_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_NVDECA0_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -466,6 +522,8 @@ struct hwpm_resource_aperture nvdec_map[] = {
 	{
 		.start_pa = addr_map_nvdec_base_r(),
 		.end_pa = addr_map_nvdec_limit_r(),
+		.start_abs_pa = addr_map_nvdec_base_r(),
+		.end_abs_pa = addr_map_nvdec_limit_r(),
 		.fake_registers = NULL,
 		.wlist = nvdec_wlist,
 		.wlist_size = ARRAY_SIZE(nvdec_wlist),
@@ -484,6 +542,8 @@ struct hwpm_resource_aperture nvenc_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_NVENCA0_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_NVENCA0_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -493,6 +553,8 @@ struct hwpm_resource_aperture nvenc_map[] = {
 	{
 		.start_pa = addr_map_nvenc_base_r(),
 		.end_pa = addr_map_nvenc_limit_r(),
+		.start_abs_pa = addr_map_nvenc_base_r(),
+		.end_abs_pa = addr_map_nvenc_limit_r(),
 		.fake_registers = NULL,
 		.wlist = nvenc_wlist,
 		.wlist_size = ARRAY_SIZE(nvenc_wlist),
@@ -509,6 +571,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_PCIE0_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_PCIE0_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -518,6 +582,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_PCIE1_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_PCIE1_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -527,6 +593,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_PCIE2_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_PCIE2_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -536,6 +604,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_PCIE3_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_PCIE3_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -545,6 +615,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_PCIE4_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_PCIE4_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -554,6 +626,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_PCIE5_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_PCIE5_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -563,6 +637,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_PCIE6_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_PCIE6_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -572,6 +648,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_PCIE7_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_PCIE7_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -581,6 +659,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_PCIE8_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_PCIE8_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -590,6 +670,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_PCIE9_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_PCIE9_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -599,6 +681,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_PCIE10_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_PCIE10_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -608,6 +692,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 	{
 		.start_pa = addr_map_pcie_c0_ctl_base_r(),
 		.end_pa = addr_map_pcie_c0_ctl_limit_r(),
+		.start_abs_pa = addr_map_pcie_c0_ctl_base_r(),
+		.end_abs_pa = addr_map_pcie_c0_ctl_limit_r(),
 		.fake_registers = NULL,
 		.wlist = pcie_ctl_wlist,
 		.wlist_size = ARRAY_SIZE(pcie_ctl_wlist),
@@ -617,6 +703,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 	{
 		.start_pa = addr_map_pcie_c1_ctl_base_r(),
 		.end_pa = addr_map_pcie_c1_ctl_limit_r(),
+		.start_abs_pa = addr_map_pcie_c1_ctl_base_r(),
+		.end_abs_pa = addr_map_pcie_c1_ctl_limit_r(),
 		.fake_registers = NULL,
 		.wlist = pcie_ctl_wlist,
 		.wlist_size = ARRAY_SIZE(pcie_ctl_wlist),
@@ -626,6 +714,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 	{
 		.start_pa = addr_map_pcie_c2_ctl_base_r(),
 		.end_pa = addr_map_pcie_c2_ctl_limit_r(),
+		.start_abs_pa = addr_map_pcie_c2_ctl_base_r(),
+		.end_abs_pa = addr_map_pcie_c2_ctl_limit_r(),
 		.fake_registers = NULL,
 		.wlist = pcie_ctl_wlist,
 		.wlist_size = ARRAY_SIZE(pcie_ctl_wlist),
@@ -635,6 +725,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 	{
 		.start_pa = addr_map_pcie_c3_ctl_base_r(),
 		.end_pa = addr_map_pcie_c3_ctl_limit_r(),
+		.start_abs_pa = addr_map_pcie_c3_ctl_base_r(),
+		.end_abs_pa = addr_map_pcie_c3_ctl_limit_r(),
 		.fake_registers = NULL,
 		.wlist = pcie_ctl_wlist,
 		.wlist_size = ARRAY_SIZE(pcie_ctl_wlist),
@@ -644,6 +736,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 	{
 		.start_pa = addr_map_pcie_c4_ctl_base_r(),
 		.end_pa = addr_map_pcie_c4_ctl_limit_r(),
+		.start_abs_pa = addr_map_pcie_c4_ctl_base_r(),
+		.end_abs_pa = addr_map_pcie_c4_ctl_limit_r(),
 		.fake_registers = NULL,
 		.wlist = pcie_ctl_wlist,
 		.wlist_size = ARRAY_SIZE(pcie_ctl_wlist),
@@ -653,6 +747,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 	{
 		.start_pa = addr_map_pcie_c5_ctl_base_r(),
 		.end_pa = addr_map_pcie_c5_ctl_limit_r(),
+		.start_abs_pa = addr_map_pcie_c5_ctl_base_r(),
+		.end_abs_pa = addr_map_pcie_c5_ctl_limit_r(),
 		.fake_registers = NULL,
 		.wlist = pcie_ctl_wlist,
 		.wlist_size = ARRAY_SIZE(pcie_ctl_wlist),
@@ -662,6 +758,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 	{
 		.start_pa = addr_map_pcie_c6_ctl_base_r(),
 		.end_pa = addr_map_pcie_c6_ctl_limit_r(),
+		.start_abs_pa = addr_map_pcie_c6_ctl_base_r(),
+		.end_abs_pa = addr_map_pcie_c6_ctl_limit_r(),
 		.fake_registers = NULL,
 		.wlist = pcie_ctl_wlist,
 		.wlist_size = ARRAY_SIZE(pcie_ctl_wlist),
@@ -671,6 +769,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 	{
 		.start_pa = addr_map_pcie_c7_ctl_base_r(),
 		.end_pa = addr_map_pcie_c7_ctl_limit_r(),
+		.start_abs_pa = addr_map_pcie_c7_ctl_base_r(),
+		.end_abs_pa = addr_map_pcie_c7_ctl_limit_r(),
 		.fake_registers = NULL,
 		.wlist = pcie_ctl_wlist,
 		.wlist_size = ARRAY_SIZE(pcie_ctl_wlist),
@@ -680,6 +780,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 	{
 		.start_pa = addr_map_pcie_c8_ctl_base_r(),
 		.end_pa = addr_map_pcie_c8_ctl_limit_r(),
+		.start_abs_pa = addr_map_pcie_c8_ctl_base_r(),
+		.end_abs_pa = addr_map_pcie_c8_ctl_limit_r(),
 		.fake_registers = NULL,
 		.wlist = pcie_ctl_wlist,
 		.wlist_size = ARRAY_SIZE(pcie_ctl_wlist),
@@ -689,6 +791,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 	{
 		.start_pa = addr_map_pcie_c9_ctl_base_r(),
 		.end_pa = addr_map_pcie_c9_ctl_limit_r(),
+		.start_abs_pa = addr_map_pcie_c9_ctl_base_r(),
+		.end_abs_pa = addr_map_pcie_c9_ctl_limit_r(),
 		.fake_registers = NULL,
 		.wlist = pcie_ctl_wlist,
 		.wlist_size = ARRAY_SIZE(pcie_ctl_wlist),
@@ -698,6 +802,8 @@ struct hwpm_resource_aperture pcie_map[] = {
 	{
 		.start_pa = addr_map_pcie_c10_ctl_base_r(),
 		.end_pa = addr_map_pcie_c10_ctl_limit_r(),
+		.start_abs_pa = addr_map_pcie_c10_ctl_base_r(),
+		.end_abs_pa = addr_map_pcie_c10_ctl_limit_r(),
 		.fake_registers = NULL,
 		.wlist = pcie_ctl_wlist,
 		.wlist_size = ARRAY_SIZE(pcie_ctl_wlist),
@@ -715,6 +821,8 @@ struct hwpm_resource_aperture display_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_NVDISPLAY0_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_NVDISPLAY0_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -724,6 +832,8 @@ struct hwpm_resource_aperture display_map[] = {
 	{
 		.start_pa = addr_map_disp_base_r(),
 		.end_pa = addr_map_disp_limit_r(),
+		.start_abs_pa = addr_map_disp_base_r(),
+		.end_abs_pa = addr_map_disp_limit_r(),
 		.fake_registers = NULL,
 		.wlist = disp_wlist,
 		.wlist_size = ARRAY_SIZE(disp_wlist),
@@ -750,6 +860,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = addr_map_mc0_base_r(),
 		.end_pa = addr_map_mc0_limit_r(),
+		.start_abs_pa = addr_map_mc0_base_r(),
+		.end_abs_pa = addr_map_mc0_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -759,6 +871,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = addr_map_mc1_base_r(),
 		.end_pa = addr_map_mc1_limit_r(),
+		.start_abs_pa = addr_map_mc1_base_r(),
+		.end_abs_pa = addr_map_mc1_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -768,6 +882,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = addr_map_mc2_base_r(),
 		.end_pa = addr_map_mc2_limit_r(),
+		.start_abs_pa = addr_map_mc2_base_r(),
+		.end_abs_pa = addr_map_mc2_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -777,6 +893,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = addr_map_mc3_base_r(),
 		.end_pa = addr_map_mc3_limit_r(),
+		.start_abs_pa = addr_map_mc3_base_r(),
+		.end_abs_pa = addr_map_mc3_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -786,6 +904,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = addr_map_mc4_base_r(),
 		.end_pa = addr_map_mc4_limit_r(),
+		.start_abs_pa = addr_map_mc4_base_r(),
+		.end_abs_pa = addr_map_mc4_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -795,6 +915,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = addr_map_mc5_base_r(),
 		.end_pa = addr_map_mc5_limit_r(),
+		.start_abs_pa = addr_map_mc5_base_r(),
+		.end_abs_pa = addr_map_mc5_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -804,6 +926,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = addr_map_mc6_base_r(),
 		.end_pa = addr_map_mc6_limit_r(),
+		.start_abs_pa = addr_map_mc6_base_r(),
+		.end_abs_pa = addr_map_mc6_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -813,6 +937,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = addr_map_mc7_base_r(),
 		.end_pa = addr_map_mc7_limit_r(),
+		.start_abs_pa = addr_map_mc7_base_r(),
+		.end_abs_pa = addr_map_mc7_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -822,6 +948,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = addr_map_mc8_base_r(),
 		.end_pa = addr_map_mc8_limit_r(),
+		.start_abs_pa = addr_map_mc8_base_r(),
+		.end_abs_pa = addr_map_mc8_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -831,6 +959,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = addr_map_mc9_base_r(),
 		.end_pa = addr_map_mc9_limit_r(),
+		.start_abs_pa = addr_map_mc9_base_r(),
+		.end_abs_pa = addr_map_mc9_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -840,6 +970,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = addr_map_mc10_base_r(),
 		.end_pa = addr_map_mc10_limit_r(),
+		.start_abs_pa = addr_map_mc10_base_r(),
+		.end_abs_pa = addr_map_mc10_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -849,6 +981,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = addr_map_mc11_base_r(),
 		.end_pa = addr_map_mc11_limit_r(),
+		.start_abs_pa = addr_map_mc11_base_r(),
+		.end_abs_pa = addr_map_mc11_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -858,6 +992,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = addr_map_mc12_base_r(),
 		.end_pa = addr_map_mc12_limit_r(),
+		.start_abs_pa = addr_map_mc12_base_r(),
+		.end_abs_pa = addr_map_mc12_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -867,6 +1003,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = addr_map_mc13_base_r(),
 		.end_pa = addr_map_mc13_limit_r(),
+		.start_abs_pa = addr_map_mc13_base_r(),
+		.end_abs_pa = addr_map_mc13_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -876,6 +1014,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = addr_map_mc14_base_r(),
 		.end_pa = addr_map_mc14_limit_r(),
+		.start_abs_pa = addr_map_mc14_base_r(),
+		.end_abs_pa = addr_map_mc14_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -885,6 +1025,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = addr_map_mc15_base_r(),
 		.end_pa = addr_map_mc15_limit_r(),
+		.start_abs_pa = addr_map_mc15_base_r(),
+		.end_abs_pa = addr_map_mc15_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc_res_mss_channel_wlist,
 		.wlist_size = ARRAY_SIZE(mc_res_mss_channel_wlist),
@@ -894,6 +1036,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_MSSCHANNELPARTA0_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_MSSCHANNELPARTA0_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -903,6 +1047,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_MSSCHANNELPARTA1_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_MSSCHANNELPARTA1_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -912,6 +1058,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_MSSCHANNELPARTA2_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_MSSCHANNELPARTA2_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -921,6 +1069,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_MSSCHANNELPARTA3_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_MSSCHANNELPARTA3_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -930,6 +1080,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_MSSCHANNELPARTB0_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_MSSCHANNELPARTB0_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -939,6 +1091,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_MSSCHANNELPARTB1_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_MSSCHANNELPARTB1_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -948,6 +1102,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_MSSCHANNELPARTB2_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_MSSCHANNELPARTB2_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -957,6 +1113,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_MSSCHANNELPARTB3_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_MSSCHANNELPARTB3_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -966,6 +1124,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_MSSCHANNELPARTC0_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_MSSCHANNELPARTC0_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -975,6 +1135,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_MSSCHANNELPARTC1_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_MSSCHANNELPARTC1_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -984,6 +1146,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_MSSCHANNELPARTC2_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_MSSCHANNELPARTC2_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -993,6 +1157,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_MSSCHANNELPARTC3_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_MSSCHANNELPARTC3_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -1002,6 +1168,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_MSSCHANNELPARTD0_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_MSSCHANNELPARTD0_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -1011,6 +1179,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_MSSCHANNELPARTD1_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_MSSCHANNELPARTD1_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -1020,6 +1190,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_MSSCHANNELPARTD2_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_MSSCHANNELPARTD2_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -1029,6 +1201,8 @@ struct hwpm_resource_aperture mss_channel_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_MSSCHANNELPARTD3_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_MSSCHANNELPARTD3_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -1045,6 +1219,8 @@ struct hwpm_resource_aperture mss_gpu_hub_map[] = {
 	{
 		.start_pa = addr_map_mss_nvlink_1_base_r(),
 		.end_pa = addr_map_mss_nvlink_1_limit_r(),
+		.start_abs_pa = addr_map_mss_nvlink_1_base_r(),
+		.end_abs_pa = addr_map_mss_nvlink_1_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mss_nvlink_wlist,
 		.wlist_size = ARRAY_SIZE(mss_nvlink_wlist),
@@ -1054,6 +1230,8 @@ struct hwpm_resource_aperture mss_gpu_hub_map[] = {
 	{
 		.start_pa = addr_map_mss_nvlink_2_base_r(),
 		.end_pa = addr_map_mss_nvlink_2_limit_r(),
+		.start_abs_pa = addr_map_mss_nvlink_2_base_r(),
+		.end_abs_pa = addr_map_mss_nvlink_2_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mss_nvlink_wlist,
 		.wlist_size = ARRAY_SIZE(mss_nvlink_wlist),
@@ -1063,6 +1241,8 @@ struct hwpm_resource_aperture mss_gpu_hub_map[] = {
 	{
 		.start_pa = addr_map_mss_nvlink_3_base_r(),
 		.end_pa = addr_map_mss_nvlink_3_limit_r(),
+		.start_abs_pa = addr_map_mss_nvlink_3_base_r(),
+		.end_abs_pa = addr_map_mss_nvlink_3_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mss_nvlink_wlist,
 		.wlist_size = ARRAY_SIZE(mss_nvlink_wlist),
@@ -1072,6 +1252,8 @@ struct hwpm_resource_aperture mss_gpu_hub_map[] = {
 	{
 		.start_pa = addr_map_mss_nvlink_4_base_r(),
 		.end_pa = addr_map_mss_nvlink_4_limit_r(),
+		.start_abs_pa = addr_map_mss_nvlink_4_base_r(),
+		.end_abs_pa = addr_map_mss_nvlink_4_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mss_nvlink_wlist,
 		.wlist_size = ARRAY_SIZE(mss_nvlink_wlist),
@@ -1081,6 +1263,8 @@ struct hwpm_resource_aperture mss_gpu_hub_map[] = {
 	{
 		.start_pa = addr_map_mss_nvlink_5_base_r(),
 		.end_pa = addr_map_mss_nvlink_5_limit_r(),
+		.start_abs_pa = addr_map_mss_nvlink_5_base_r(),
+		.end_abs_pa = addr_map_mss_nvlink_5_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mss_nvlink_wlist,
 		.wlist_size = ARRAY_SIZE(mss_nvlink_wlist),
@@ -1090,6 +1274,8 @@ struct hwpm_resource_aperture mss_gpu_hub_map[] = {
 	{
 		.start_pa = addr_map_mss_nvlink_6_base_r(),
 		.end_pa = addr_map_mss_nvlink_6_limit_r(),
+		.start_abs_pa = addr_map_mss_nvlink_6_base_r(),
+		.end_abs_pa = addr_map_mss_nvlink_6_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mss_nvlink_wlist,
 		.wlist_size = ARRAY_SIZE(mss_nvlink_wlist),
@@ -1099,6 +1285,8 @@ struct hwpm_resource_aperture mss_gpu_hub_map[] = {
 	{
 		.start_pa = addr_map_mss_nvlink_7_base_r(),
 		.end_pa = addr_map_mss_nvlink_7_limit_r(),
+		.start_abs_pa = addr_map_mss_nvlink_7_base_r(),
+		.end_abs_pa = addr_map_mss_nvlink_7_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mss_nvlink_wlist,
 		.wlist_size = ARRAY_SIZE(mss_nvlink_wlist),
@@ -1108,6 +1296,8 @@ struct hwpm_resource_aperture mss_gpu_hub_map[] = {
 	{
 		.start_pa = addr_map_mss_nvlink_8_base_r(),
 		.end_pa = addr_map_mss_nvlink_8_limit_r(),
+		.start_abs_pa = addr_map_mss_nvlink_8_base_r(),
+		.end_abs_pa = addr_map_mss_nvlink_8_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mss_nvlink_wlist,
 		.wlist_size = ARRAY_SIZE(mss_nvlink_wlist),
@@ -1117,6 +1307,8 @@ struct hwpm_resource_aperture mss_gpu_hub_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_MSSNVLHSH0_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_MSSNVLHSH0_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -1138,6 +1330,8 @@ struct hwpm_resource_aperture mss_iso_niso_hub_map[] = {
 	{
 		.start_pa = addr_map_mc0_base_r(),
 		.end_pa = addr_map_mc0_limit_r(),
+		.start_abs_pa = addr_map_mc0_base_r(),
+		.end_abs_pa = addr_map_mc0_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc0to7_res_mss_iso_niso_hub_wlist,
 		.wlist_size = ARRAY_SIZE(mc0to7_res_mss_iso_niso_hub_wlist),
@@ -1147,6 +1341,8 @@ struct hwpm_resource_aperture mss_iso_niso_hub_map[] = {
 	{
 		.start_pa = addr_map_mc1_base_r(),
 		.end_pa = addr_map_mc1_limit_r(),
+		.start_abs_pa = addr_map_mc1_base_r(),
+		.end_abs_pa = addr_map_mc1_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc0to7_res_mss_iso_niso_hub_wlist,
 		.wlist_size = ARRAY_SIZE(mc0to7_res_mss_iso_niso_hub_wlist),
@@ -1156,6 +1352,8 @@ struct hwpm_resource_aperture mss_iso_niso_hub_map[] = {
 	{
 		.start_pa = addr_map_mc2_base_r(),
 		.end_pa = addr_map_mc2_limit_r(),
+		.start_abs_pa = addr_map_mc2_base_r(),
+		.end_abs_pa = addr_map_mc2_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc0to7_res_mss_iso_niso_hub_wlist,
 		.wlist_size = ARRAY_SIZE(mc0to7_res_mss_iso_niso_hub_wlist),
@@ -1165,6 +1363,8 @@ struct hwpm_resource_aperture mss_iso_niso_hub_map[] = {
 	{
 		.start_pa = addr_map_mc3_base_r(),
 		.end_pa = addr_map_mc3_limit_r(),
+		.start_abs_pa = addr_map_mc3_base_r(),
+		.end_abs_pa = addr_map_mc3_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc0to7_res_mss_iso_niso_hub_wlist,
 		.wlist_size = ARRAY_SIZE(mc0to7_res_mss_iso_niso_hub_wlist),
@@ -1174,6 +1374,8 @@ struct hwpm_resource_aperture mss_iso_niso_hub_map[] = {
 	{
 		.start_pa = addr_map_mc4_base_r(),
 		.end_pa = addr_map_mc4_limit_r(),
+		.start_abs_pa = addr_map_mc4_base_r(),
+		.end_abs_pa = addr_map_mc4_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc0to7_res_mss_iso_niso_hub_wlist,
 		.wlist_size = ARRAY_SIZE(mc0to7_res_mss_iso_niso_hub_wlist),
@@ -1183,6 +1385,8 @@ struct hwpm_resource_aperture mss_iso_niso_hub_map[] = {
 	{
 		.start_pa = addr_map_mc5_base_r(),
 		.end_pa = addr_map_mc5_limit_r(),
+		.start_abs_pa = addr_map_mc5_base_r(),
+		.end_abs_pa = addr_map_mc5_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc0to7_res_mss_iso_niso_hub_wlist,
 		.wlist_size = ARRAY_SIZE(mc0to7_res_mss_iso_niso_hub_wlist),
@@ -1192,6 +1396,8 @@ struct hwpm_resource_aperture mss_iso_niso_hub_map[] = {
 	{
 		.start_pa = addr_map_mc6_base_r(),
 		.end_pa = addr_map_mc6_limit_r(),
+		.start_abs_pa = addr_map_mc6_base_r(),
+		.end_abs_pa = addr_map_mc6_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc0to7_res_mss_iso_niso_hub_wlist,
 		.wlist_size = ARRAY_SIZE(mc0to7_res_mss_iso_niso_hub_wlist),
@@ -1201,6 +1407,8 @@ struct hwpm_resource_aperture mss_iso_niso_hub_map[] = {
 	{
 		.start_pa = addr_map_mc7_base_r(),
 		.end_pa = addr_map_mc7_limit_r(),
+		.start_abs_pa = addr_map_mc7_base_r(),
+		.end_abs_pa = addr_map_mc7_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc0to7_res_mss_iso_niso_hub_wlist,
 		.wlist_size = ARRAY_SIZE(mc0to7_res_mss_iso_niso_hub_wlist),
@@ -1210,6 +1418,8 @@ struct hwpm_resource_aperture mss_iso_niso_hub_map[] = {
 	{
 		.start_pa = addr_map_mc8_base_r(),
 		.end_pa = addr_map_mc8_limit_r(),
+		.start_abs_pa = addr_map_mc8_base_r(),
+		.end_abs_pa = addr_map_mc8_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc8_res_mss_iso_niso_hub_wlist,
 		.wlist_size = ARRAY_SIZE(mc8_res_mss_iso_niso_hub_wlist),
@@ -1219,6 +1429,8 @@ struct hwpm_resource_aperture mss_iso_niso_hub_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_MSSHUB0_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_MSSHUB0_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -1228,6 +1440,8 @@ struct hwpm_resource_aperture mss_iso_niso_hub_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_MSSHUB1_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_MSSHUB1_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -1257,6 +1471,8 @@ struct hwpm_resource_aperture mss_mcf_map[] = {
 	{
 		.start_pa = addr_map_mc0_base_r(),
 		.end_pa = addr_map_mc0_limit_r(),
+		.start_abs_pa = addr_map_mc0_base_r(),
+		.end_abs_pa = addr_map_mc0_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc0to1_res_mss_mcf_wlist,
 		.wlist_size = ARRAY_SIZE(mc0to1_res_mss_mcf_wlist),
@@ -1266,6 +1482,8 @@ struct hwpm_resource_aperture mss_mcf_map[] = {
 	{
 		.start_pa = addr_map_mc1_base_r(),
 		.end_pa = addr_map_mc1_limit_r(),
+		.start_abs_pa = addr_map_mc1_base_r(),
+		.end_abs_pa = addr_map_mc1_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc0to1_res_mss_mcf_wlist,
 		.wlist_size = ARRAY_SIZE(mc0to1_res_mss_mcf_wlist),
@@ -1275,6 +1493,8 @@ struct hwpm_resource_aperture mss_mcf_map[] = {
 	{
 		.start_pa = addr_map_mc2_base_r(),
 		.end_pa = addr_map_mc2_limit_r(),
+		.start_abs_pa = addr_map_mc2_base_r(),
+		.end_abs_pa = addr_map_mc2_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc2to7_res_mss_mcf_wlist,
 		.wlist_size = ARRAY_SIZE(mc2to7_res_mss_mcf_wlist),
@@ -1284,6 +1504,8 @@ struct hwpm_resource_aperture mss_mcf_map[] = {
 	{
 		.start_pa = addr_map_mc3_base_r(),
 		.end_pa = addr_map_mc3_limit_r(),
+		.start_abs_pa = addr_map_mc3_base_r(),
+		.end_abs_pa = addr_map_mc3_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc2to7_res_mss_mcf_wlist,
 		.wlist_size = ARRAY_SIZE(mc2to7_res_mss_mcf_wlist),
@@ -1293,6 +1515,8 @@ struct hwpm_resource_aperture mss_mcf_map[] = {
 	{
 		.start_pa = addr_map_mc4_base_r(),
 		.end_pa = addr_map_mc4_limit_r(),
+		.start_abs_pa = addr_map_mc4_base_r(),
+		.end_abs_pa = addr_map_mc4_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc2to7_res_mss_mcf_wlist,
 		.wlist_size = ARRAY_SIZE(mc2to7_res_mss_mcf_wlist),
@@ -1302,6 +1526,8 @@ struct hwpm_resource_aperture mss_mcf_map[] = {
 	{
 		.start_pa = addr_map_mc5_base_r(),
 		.end_pa = addr_map_mc5_limit_r(),
+		.start_abs_pa = addr_map_mc5_base_r(),
+		.end_abs_pa = addr_map_mc5_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc2to7_res_mss_mcf_wlist,
 		.wlist_size = ARRAY_SIZE(mc2to7_res_mss_mcf_wlist),
@@ -1311,6 +1537,8 @@ struct hwpm_resource_aperture mss_mcf_map[] = {
 	{
 		.start_pa = addr_map_mc6_base_r(),
 		.end_pa = addr_map_mc6_limit_r(),
+		.start_abs_pa = addr_map_mc6_base_r(),
+		.end_abs_pa = addr_map_mc6_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc2to7_res_mss_mcf_wlist,
 		.wlist_size = ARRAY_SIZE(mc2to7_res_mss_mcf_wlist),
@@ -1320,6 +1548,8 @@ struct hwpm_resource_aperture mss_mcf_map[] = {
 	{
 		.start_pa = addr_map_mc7_base_r(),
 		.end_pa = addr_map_mc7_limit_r(),
+		.start_abs_pa = addr_map_mc7_base_r(),
+		.end_abs_pa = addr_map_mc7_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mc2to7_res_mss_mcf_wlist,
 		.wlist_size = ARRAY_SIZE(mc2to7_res_mss_mcf_wlist),
@@ -1329,6 +1559,8 @@ struct hwpm_resource_aperture mss_mcf_map[] = {
 	{
 		.start_pa = addr_map_mcb_base_r(),
 		.end_pa = addr_map_mcb_limit_r(),
+		.start_abs_pa = addr_map_mcb_base_r(),
+		.end_abs_pa = addr_map_mcb_limit_r(),
 		.fake_registers = NULL,
 		.wlist = mcb_res_mss_mcf_wlist,
 		.wlist_size = ARRAY_SIZE(mcb_res_mss_mcf_wlist),
@@ -1338,6 +1570,8 @@ struct hwpm_resource_aperture mss_mcf_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_MSSMCFCLIENT0_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_MSSMCFCLIENT0_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -1347,6 +1581,8 @@ struct hwpm_resource_aperture mss_mcf_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_MSSMCFMEM0_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_MSSMCFMEM0_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -1356,6 +1592,8 @@ struct hwpm_resource_aperture mss_mcf_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_MSSMCFMEM1_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_MSSMCFMEM1_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -1381,6 +1619,8 @@ struct hwpm_resource_aperture pma_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = PERFMON_BASE(TEGRA_SOC_HWPM_SYS0_PERFMON_DT),
+		.end_abs_pa = PERFMON_LIMIT(TEGRA_SOC_HWPM_SYS0_PERFMON_DT),
 		.fake_registers = NULL,
 		.wlist = perfmon_wlist,
 		.wlist_size = ARRAY_SIZE(perfmon_wlist),
@@ -1390,6 +1630,8 @@ struct hwpm_resource_aperture pma_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = addr_map_pma_base_r(),
+		.end_abs_pa = addr_map_pma_limit_r(),
 		.fake_registers = NULL,
 		.wlist = pma_res_pma_wlist,
 		.wlist_size = ARRAY_SIZE(pma_res_pma_wlist),
@@ -1500,6 +1742,8 @@ struct hwpm_resource_aperture cmd_slice_rtr_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = addr_map_pma_base_r(),
+		.end_abs_pa = addr_map_pma_limit_r(),
 		.fake_registers = NULL,
 		.wlist = pma_res_cmd_slice_rtr_wlist,
 		.wlist_size = ARRAY_SIZE(pma_res_cmd_slice_rtr_wlist),
@@ -1509,6 +1753,8 @@ struct hwpm_resource_aperture cmd_slice_rtr_map[] = {
 	{
 		.start_pa = 0,
 		.end_pa = 0,
+		.start_abs_pa = addr_map_rtr_base_r(),
+		.end_abs_pa = addr_map_rtr_limit_r(),
 		.fake_registers = NULL,
 		.wlist = rtr_wlist,
 		.wlist_size = ARRAY_SIZE(rtr_wlist),
@@ -1611,25 +1857,63 @@ struct hwpm_resource hwpm_resources[TERGA_SOC_HWPM_NUM_RESOURCES] = {
 };
 
 static bool whitelist_check(struct hwpm_resource_aperture *aperture,
-			    u64 phys_addr)
+			    u64 phys_addr, bool use_absolute_base,
+			    u64 *updated_pa)
 {
-	u32 idx = 0;
+	u32 idx = 0U;
+	u64 start_pa = 0ULL;
 
 	if (!aperture) {
 		tegra_soc_hwpm_err("Aperture is NULL");
 		return false;
 	}
 	if (!aperture->wlist) {
-		tegra_soc_hwpm_err("NULL whitelist in aperture(0x%llx - 0x%llx)",
-				aperture->start_pa, aperture->end_pa);
+		tegra_soc_hwpm_err("NULL whitelist in dt_aperture(%d)",
+				aperture->dt_aperture);
 		return false;
 	}
 
+	start_pa = use_absolute_base ? aperture->start_abs_pa :
+					aperture->start_pa;
+
 	for (idx = 0; idx < aperture->wlist_size; idx++) {
-		if (phys_addr == aperture->start_pa + aperture->wlist[idx].reg)
+		if (phys_addr == start_pa + aperture->wlist[idx].reg) {
+			*updated_pa = aperture->start_pa +
+						aperture->wlist[idx].reg;
 			return true;
+		}
 	}
 
+	return false;
+}
+
+static bool ip_reg_check(struct hwpm_resource_aperture *aperture,
+			    u64 phys_addr, bool use_absolute_base,
+			    u64 *updated_pa)
+{
+	u64 start_pa = 0ULL;
+	u64 end_pa = 0ULL;
+
+	if (!aperture) {
+		tegra_soc_hwpm_err("Aperture is NULL");
+		return false;
+	}
+
+	if (use_absolute_base) {
+		start_pa = aperture->start_abs_pa;
+		end_pa = aperture->end_abs_pa;
+	} else {
+		start_pa = aperture->start_pa;
+		end_pa = aperture->end_pa;
+	}
+
+	if ((phys_addr >= start_pa) && (phys_addr <= end_pa)) {
+		tegra_soc_hwpm_dbg("Found aperture:"
+			" phys_addr(0x%llx), aperture(0x%llx - 0x%llx)",
+			phys_addr, start_pa, end_pa);
+		*updated_pa = phys_addr - start_pa + aperture->start_pa;
+		return true;
+	}
 	return false;
 }
 
@@ -1639,7 +1923,9 @@ static bool whitelist_check(struct hwpm_resource_aperture *aperture,
  */
 struct hwpm_resource_aperture *find_hwpm_aperture(struct tegra_soc_hwpm *hwpm,
 						  u64 phys_addr,
-						  bool check_reservation)
+						  bool use_absolute_base,
+						  bool check_reservation,
+						  u64 *updated_pa)
 {
 	struct hwpm_resource_aperture *aperture = NULL;
 	int res_idx = 0;
@@ -1653,41 +1939,14 @@ struct hwpm_resource_aperture *find_hwpm_aperture(struct tegra_soc_hwpm *hwpm,
 		     aprt_idx < hwpm_resources[res_idx].map_size;
 		     aprt_idx++) {
 			aperture = &(hwpm_resources[res_idx].map[aprt_idx]);
-			if ((phys_addr >= aperture->start_pa) &&
-			    (phys_addr <= aperture->end_pa)) {
-				if (!check_reservation) {
-					/*
-					 * This is the driver's internal usecase.
-					 * The driver doesn't need to check
-					 * reservation before reading/writing
-					 * registers.
-					 */
-					tegra_soc_hwpm_dbg("Found aperture:"
-						" phys_addr(0x%llx),"
-						" aperture(0x%llx - 0x%llx)",
-						phys_addr,
-						aperture->start_pa,
-						aperture->end_pa);
+			if (check_reservation) {
+				if (whitelist_check(aperture, phys_addr,
+					use_absolute_base, updated_pa)) {
 					return aperture;
-				} else if (whitelist_check(aperture, phys_addr)) {
-					/*
-					 * This is the IOCTL (EXEC_REG_OPS) use case.
-					 *
-					 * If whitelist check passes, then we've found
-					 * the right aperture. If the check fails, we
-					 * continue checking the remaining apertures. In
-					 * some cases (ex: PMA and MC), apertures in
-					 * different resources may have the
-					 * same start/end range but the
-					 * whitelist may differ. Therefore, we have to
-					 * check all apertures.
-					 */
-					tegra_soc_hwpm_dbg("Found aperture:"
-						" phys_addr(0x%llx),"
-						" aperture(0x%llx - 0x%llx)",
-						phys_addr,
-						aperture->start_pa,
-						aperture->end_pa);
+				}
+			} else {
+				if (ip_reg_check(aperture, phys_addr,
+					use_absolute_base, updated_pa)) {
 					return aperture;
 				}
 			}
@@ -1701,6 +1960,7 @@ struct hwpm_resource_aperture *find_hwpm_aperture(struct tegra_soc_hwpm *hwpm,
 static u32 fake_readl(struct tegra_soc_hwpm *hwpm, u64 phys_addr)
 {
 	u32 reg_val = 0;
+	u64 updated_pa = 0ULL;
 	struct hwpm_resource_aperture *aperture = NULL;
 
 	if (!hwpm->fake_registers_enabled) {
@@ -1708,13 +1968,13 @@ static u32 fake_readl(struct tegra_soc_hwpm *hwpm, u64 phys_addr)
 		return 0;
 	}
 
-	aperture = find_hwpm_aperture(hwpm, phys_addr, false);
+	aperture = find_hwpm_aperture(hwpm, phys_addr, false, false, &updated_pa);
 	if (!aperture) {
 		tegra_soc_hwpm_err("Invalid reg op address(0x%llx)", phys_addr);
 		return 0;
 	}
 
-	reg_val = aperture->fake_registers[(phys_addr - aperture->start_pa)/4];
+	reg_val = aperture->fake_registers[(updated_pa - aperture->start_pa)/4];
 	return reg_val;
 }
 
@@ -1723,19 +1983,20 @@ static void fake_writel(struct tegra_soc_hwpm *hwpm,
 			u32 val)
 {
 	struct hwpm_resource_aperture *aperture = NULL;
+	u64 updated_pa = 0ULL;
 
 	if (!hwpm->fake_registers_enabled) {
 		tegra_soc_hwpm_err("Fake registers are disabled!");
 		return;
 	}
 
-	aperture = find_hwpm_aperture(hwpm, phys_addr, false);
+	aperture = find_hwpm_aperture(hwpm, phys_addr, false, false, &updated_pa);
 	if (!aperture) {
 		tegra_soc_hwpm_err("Invalid reg op address(0x%llx)", phys_addr);
 		return;
 	}
 
-	aperture->fake_registers[(phys_addr - aperture->start_pa)/4] = val;
+	aperture->fake_registers[(updated_pa - aperture->start_pa)/4] = val;
 }
 
 /* Read a HWPM (PERFMON, PMA, or RTR) register */
