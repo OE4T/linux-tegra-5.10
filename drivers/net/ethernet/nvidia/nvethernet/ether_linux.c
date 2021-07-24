@@ -3415,12 +3415,6 @@ static int ether_handle_priv_rmdio_ioctl(struct ether_priv_data *pdata,
 	unsigned int prtad, devad;
 	int ret = 0;
 
-	if (!ifr->ifr_data) {
-		dev_err(pdata->dev, "%s: Invalid data for priv ioctl\n",
-			__func__);
-		return -EFAULT;
-	}
-
 	if (mdio_phy_id_is_c45(mii_data->phy_id)) {
 		prtad = mdio_phy_id_prtad(mii_data->phy_id);
 		devad = mdio_phy_id_devad(mii_data->phy_id);
@@ -3466,12 +3460,6 @@ static int ether_handle_priv_wmdio_ioctl(struct ether_priv_data *pdata,
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(5, 9, 0))
 	struct mii_ioctl_data *mii_data = if_mii(ifr);
 	unsigned int prtad, devad;
-
-	if (!ifr->ifr_data) {
-		dev_err(pdata->dev, "%s: Invalid data for priv ioctl\n",
-			__func__);
-		return -EFAULT;
-	}
 
 	if (mdio_phy_id_is_c45(mii_data->phy_id)) {
 		prtad = mdio_phy_id_prtad(mii_data->phy_id);
