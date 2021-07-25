@@ -23,6 +23,7 @@
 	gpio-keys {
 		compatible = "gpio-keys";
 		gpio-keys,name = "gpio-keys";
+		status = "okay";
 
 		forcerecovery {
 			label = "force-recovery";
@@ -35,6 +36,12 @@
 			gpios = <&tegra_aon_gpio TEGRA234_AON_GPIO(EE, 4) GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_POWER>;
 			gpio-key,wakeup;
+		};
+
+		sleep {
+			label = "sleep";
+			gpios = <&tegra_main_gpio TEGRA234_MAIN_GPIO(G, 2) GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_SLEEP>;
 		};
 	};
 
