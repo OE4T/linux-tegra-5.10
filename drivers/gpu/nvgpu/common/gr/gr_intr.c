@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -640,7 +640,7 @@ int nvgpu_gr_intr_handle_gpc_exception(struct gk20a *g, bool *post_event,
 	struct nvgpu_gr_config *gr_config, struct nvgpu_channel *fault_ch,
 	u32 *hww_global_esr)
 {
-	int ret = 0;
+	int tmp_ret, ret = 0;
 	u32 gpc;
 	u32 exception1 = g->ops.gr.intr.read_exception1(g);
 	u32 gpc_exception, tpc_exception;
@@ -659,8 +659,10 @@ int nvgpu_gr_intr_handle_gpc_exception(struct gk20a *g, bool *post_event,
 							gpc_exception);
 
 		/* check and handle if any tpc has an exception */
-		ret = gr_intr_check_handle_tpc_exception(g, gpc, tpc_exception,
+		tmp_ret = gr_intr_check_handle_tpc_exception(g, gpc, tpc_exception,
 			post_event, gr_config, fault_ch, hww_global_esr);
+
+		ret = (ret != 0) ? ret : tmp_ret;
 
 		/* Handle GCC exception */
 		if (g->ops.gr.intr.handle_gcc_exception != NULL) {
