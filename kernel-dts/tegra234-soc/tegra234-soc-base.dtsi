@@ -584,6 +584,7 @@
 		compatible = "nvidia,tegra234-xudc";
 		reg = <0x0 0x03550000 0x0 0x8000>,
 			<0x0 0x03558000 0x0 0x8000>;
+		reg-names = "base", "fpci";
 		interrupts = <0 166 0x4>;
 		clocks = <&bpmp_clks TEGRA234_CLK_XUSB_CORE_DEV>,
 			<&bpmp_clks TEGRA234_CLK_XUSB_SS_SUPERSPEED>,
@@ -611,8 +612,8 @@
 		reg = <0x0 0x03610000 0x0 0x40000>,
 			<0x0 0x03600000 0x0 0x10000>,
 			<0x0 0x03650000 0x0 0x10000>;
+		reg-names = "base", "fpci", "bar2";
 		interrupts = <0 163 0x4>, <0 164 0x4>, <0 167 0x4>;
-		interrupt-parent = <&tegra_pm_irq>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_XUSB_CORE_MUX>,
 			<&bpmp_clks TEGRA234_CLK_XUSB_CORE_HOST>,
