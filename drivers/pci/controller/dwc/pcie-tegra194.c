@@ -42,6 +42,9 @@
 #include <soc/tegra/fuse.h>
 #include "../../pci.h"
 
+#define TEGRA194_DWC_IP_VER			0x490A
+#define TEGRA234_DWC_IP_VER			0x562A
+
 #define APPL_PINMUX				0x0
 #define APPL_PINMUX_PEX_RST			BIT(0)
 #define APPL_PINMUX_CLKREQ_IN			BIT(1)
@@ -327,6 +330,7 @@ struct tegra_pcie_dw {
 	bool disable_power_down;
 	bool update_fc_fixup;
 	bool gic_v2m;
+	bool enable_ext_refclk;
 	u8 init_link_width;
 	u32 msi_ctrl_int;
 	u32 num_lanes;
@@ -2163,6 +2167,16 @@ static int tegra_pcie_dw_parse_dt(struct tegra_pcie_dw *pcie)
 	if (of_property_read_bool(np, "nvidia,update-fc-fixup"))
 		pcie->update_fc_fixup = true;
 
+	pcie->enable_ext_refclk = of_property_read_bool(pcie->dev->of_node,
+							"nvidia,enable-ext-refclk");
+	/* RP using an external REFCLK is supported only in Tegra234 */
+	if (pcie->of_data->version == TEGRA194_DWC_IP_VER) {
+		if (pcie->mode == DW_PCIE_RC_TYPE)
+			pcie->enable_ext_refclk = false;
+		else
+			pcie->enable_ext_refclk = true;
+	}
+
 	pcie->supports_clkreq =
 		of_property_read_bool(pcie->dev->of_node, "supports-clkreq");
 
@@ -2465,6 +2479,16 @@ static int tegra_pcie_config_controller(struct tegra_pcie_dw *pcie,
 			return ret;
 		}
 
+		if (pcie->enable_ext_refclk) {
+			ret = tegra_pcie_bpmp_set_pll_state(pcie, true);
+			if (ret) {
+				dev_err(pcie->dev,
+					"Failed to init UPHY for RP: %d\n",
+					ret);
+				goto fail_pll_init;
+			}
+		}
+
 		ret = tegra_pcie_enable_slot_regulators(pcie);
 		if (ret < 0)
 			goto fail_slot_reg_en;
@@ -2534,8 +2558,13 @@ static int tegra_pcie_config_controller(struct tegra_pcie_dw *pcie,
 	val |= (APPL_CFG_MISC_ARCACHE_VAL << APPL_CFG_MISC_ARCACHE_SHIFT);
 	appl_writel(pcie, val, APPL_CFG_MISC);
 
-	if (pcie->enable_srns) {
-		/* Cut the REFCLK to EP as it is using its internal clock */
+	if (pcie->enable_srns || pcie->enable_ext_refclk) {
+		/*
+		 * When Tegra PCIe RP is using external clock, it cannot
+		 * supply same clock back to EP, which makes it separate clock.
+		 * Gate PCIe RP REFCLK out pads when RP & EP are using separate
+		 * clock or RP is using external REFCLK.
+		 */
 		val = appl_readl(pcie, APPL_PINMUX);
 		val |= APPL_PINMUX_CLK_OUTPUT_IN_OVERRIDE_EN;
 		val &= ~APPL_PINMUX_CLK_OUTPUT_IN_OVERRIDE;
@@ -2588,6 +2617,9 @@ fail_reg_en:
 	if (tegra_platform_is_silicon())
 		tegra_pcie_disable_slot_regulators(pcie);
 fail_slot_reg_en:
+	if (tegra_platform_is_silicon() && pcie->enable_ext_refclk)
+		tegra_pcie_bpmp_set_pll_state(pcie, false);
+fail_pll_init:
 	if (tegra_platform_is_silicon())
 		tegra_pcie_bpmp_set_ctrl_state(pcie, false);
 
@@ -2619,6 +2651,14 @@ static void tegra_pcie_unconfig_controller(struct tegra_pcie_dw *pcie)
 				ret);
 
 		tegra_pcie_disable_slot_regulators(pcie);
+
+		if (pcie->enable_ext_refclk) {
+			ret = tegra_pcie_bpmp_set_pll_state(pcie, false);
+			if (ret)
+				dev_err(pcie->dev,
+					"Failed to deinit UPHY for RP: %d\n",
+					ret);
+		}
 
 		ret = tegra_pcie_bpmp_set_ctrl_state(pcie, false);
 		if (ret)
@@ -2874,7 +2914,7 @@ static void pex_ep_event_pex_rst_assert(struct tegra_pcie_dw *pcie)
 
 	pm_runtime_put_sync(pcie->dev);
 
-	if (tegra_platform_is_silicon() && !pcie->enable_srns) {
+	if (tegra_platform_is_silicon() && pcie->enable_ext_refclk) {
 		ret = tegra_pcie_bpmp_set_pll_state(pcie, false);
 		if (ret)
 			dev_err(pcie->dev, "Failed to turn off UPHY: %d\n",
@@ -2925,7 +2965,7 @@ static void pex_ep_event_pex_rst_deassert(struct tegra_pcie_dw *pcie)
 		}
 	}
 
-	if (tegra_platform_is_silicon() && !pcie->enable_srns) {
+	if (tegra_platform_is_silicon() && pcie->enable_ext_refclk) {
 		ret = tegra_pcie_bpmp_set_pll_state(pcie, true);
 		if (ret) {
 			dev_err(dev, "Failed to init UPHY for PCIe EP: %d\n",
@@ -3864,7 +3904,7 @@ static void tegra_pcie_dw_shutdown(struct platform_device *pdev)
 }
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t194 = {
-	.version = 0x490A,
+	.version = TEGRA194_DWC_IP_VER,
 	.mode = DW_PCIE_RC_TYPE,
 	.msix_doorbell_access_fixup = true,
 	.sbr_reset_fixup = true,
@@ -3876,7 +3916,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t194 = {
 };
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t194_ep = {
-	.version = 0x490A,
+	.version = TEGRA194_DWC_IP_VER,
 	.mode = DW_PCIE_EP_TYPE,
 	.msix_doorbell_access_fixup = false,
 	.sbr_reset_fixup = false,
@@ -3888,7 +3928,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t194_ep = {
 };
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t234 = {
-	.version = 0x562A,
+	.version = TEGRA234_DWC_IP_VER,
 	.mode = DW_PCIE_RC_TYPE,
 	.msix_doorbell_access_fixup = false,
 	.sbr_reset_fixup = false,
@@ -3900,7 +3940,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t234 = {
 };
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t234_ep = {
-	.version = 0x562A,
+	.version = TEGRA234_DWC_IP_VER,
 	.mode = DW_PCIE_EP_TYPE,
 	.msix_doorbell_access_fixup = false,
 	.sbr_reset_fixup = false,
