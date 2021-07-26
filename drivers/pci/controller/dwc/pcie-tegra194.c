@@ -2166,8 +2166,11 @@ static int tegra_pcie_bpmp_set_ctrl_state(struct tegra_pcie_dw *pcie,
 	struct tegra_bpmp_message msg;
 	struct mrq_uphy_request req;
 
-	/* Controller-5 doesn't need to have its state set by BPMP-FW */
-	if (pcie->cid == 5)
+	/*
+	 * Controller-5 doesn't need to have its state set by BPMP-FW in
+	 * Tegra194
+	 */
+	if (pcie->cid == 5 && pcie->of_data->version == 0x490A)
 		return 0;
 
 	memset(&req, 0, sizeof(req));
@@ -2751,6 +2754,14 @@ static void pex_ep_event_pex_rst_assert(struct tegra_pcie_dw *pcie)
 				ret);
 	}
 
+	if (tegra_platform_is_silicon()) {
+		ret = tegra_pcie_bpmp_set_ctrl_state(pcie, false);
+		if (ret)
+			dev_err(pcie->dev,
+				"Failed to disable controller %u: %d\n",
+				pcie->cid, ret);
+	}
+
 	pcie->ep_state = EP_STATE_DISABLED;
 
 	dw_pcie_ep_deinit(ep);
@@ -2775,6 +2786,16 @@ static void pex_ep_event_pex_rst_deassert(struct tegra_pcie_dw *pcie)
 		dev_err(dev, "Failed to get runtime sync for PCIe dev: %d\n",
 			ret);
 		return;
+	}
+
+	if (tegra_platform_is_silicon()) {
+		ret = tegra_pcie_bpmp_set_ctrl_state(pcie, true);
+		if (ret) {
+			dev_err(pcie->dev,
+				"Failed to enable controller %u: %d\n",
+				pcie->cid, ret);
+			goto fail_set_ctrl_state;
+		}
 	}
 
 	if (tegra_platform_is_silicon() && !pcie->enable_srns) {
@@ -2998,6 +3019,9 @@ fail_core_clk_enable:
 	if (tegra_platform_is_silicon())
 		tegra_pcie_bpmp_set_pll_state(pcie, false);
 fail_pll_init:
+	if (tegra_platform_is_silicon())
+		tegra_pcie_bpmp_set_ctrl_state(pcie, false);
+fail_set_ctrl_state:
 	pm_runtime_put_sync(dev);
 }
 
