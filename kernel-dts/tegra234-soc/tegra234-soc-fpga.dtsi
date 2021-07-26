@@ -210,7 +210,7 @@
 
 	efuse@3810000 {
 		compatible = "nvidia,tegra234-efuse";
-		reg = <0x0 0x03810000 0x0 0x600>;
+		reg = <0x0 0x03810000 0x0 0x19000>;
 		clocks = <&bpmp_clks TEGRA234_CLK_FUSE>,
 		         <&bpmp_clks TEGRA234_CLK_CLK_M>;
 		clock-names = "fuse", "clk_m";
@@ -232,14 +232,6 @@
 		status = "disabled";
 	};
 #endif
-
-	kfuse@3828000 {
-		compatible = "nvidia,tegra194-kfuse";
-		reg = <0x0 0x3828000 0x0 0x1000>;
-		clocks = <&bpmp_clks TEGRA234_CLK_FUSE_BURN>;
-		clock-names = "kfuse";
-		status = "disabled";
-	};
 
 	se: se_ahb@3ac0000 {
 		compatible = "nvidia,tegra234-se-ahb";
