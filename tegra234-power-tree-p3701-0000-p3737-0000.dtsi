@@ -16,22 +16,12 @@
 #include "cvb/tegra234-p3737-fixed-regulator.dtsi"
 
 / {
-	pcie@14100000 {
-		vddio-pex-ctl-supply = <&battery_reg>;
-	};
-
-	pcie@14160000 {
-		vddio-pex-ctl-supply = <&battery_reg>;
-	};
-
 	pcie@141a0000 {
-		vddio-pex-ctl-supply = <&battery_reg>;
 		vpcie3v3-supply = <&p3737_vdd_3v3_pcie>;
 		vpcie12v-supply = <&p3737_vdd_12v_pcie>;
 	};
 
 	pcie_ep@141a0000 {
-		vddio-pex-ctl-supply = <&battery_reg>;
 		vpcie3v3-supply = <&p3737_vdd_3v3_pcie>;
 		vpcie12v-supply = <&p3737_vdd_12v_pcie>;
 	};
