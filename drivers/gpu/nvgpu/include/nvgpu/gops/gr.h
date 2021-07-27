@@ -473,6 +473,30 @@ struct gops_gr_intr {
 	 */
 	void (*flush_channel_tlb)(struct gk20a *g);
 
+	/**
+	 * @brief Record error state registers for given SM.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 * @param gpc [in]		Index of GPC that includes SM.
+	 * @param tpc [in]		Index of TPC that includes SM.
+	 * @param sm [in]		Index of SM within TPC for which
+	 * 				error state should be recorded.
+	 * @param fault_ch [in]		Pointer to faulting channel.
+	 *
+	 * SM error state needs to be recorded from Error status registers
+	 * upon any SM exception. This error state can be later queried by
+	 * userspace clients to decode the reason of SM exception.
+	 *
+	 * This function records the Error status registers for requested
+	 * \a sm and stores them into \a tsg->sm_error_states array.
+	 * TSG pointer is extracted from \a fault_ch channel pointer.
+	 *
+	 * @return Logical global SM index of requested \a sm.
+	 */
+	u32 (*record_sm_error_state)(struct gk20a *g, u32 gpc,
+				     u32 tpc, u32 sm,
+				     struct nvgpu_channel *fault_ch);
+
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 	int (*retrigger)(struct gk20a *g);
@@ -554,9 +578,6 @@ struct gops_gr_intr {
 	void (*clear_sm_hww)(struct gk20a *g, u32 gpc, u32 tpc,
 			     u32 sm, u32 global_esr);
 	void (*handle_ssync_hww)(struct gk20a *g, u32 *ssync_esr);
-	u32 (*record_sm_error_state)(struct gk20a *g, u32 gpc,
-				     u32 tpc, u32 sm,
-				     struct nvgpu_channel *fault_ch);
 	u32 (*get_sm_hww_warp_esr)(struct gk20a *g,
 				   u32 gpc, u32 tpc, u32 sm);
 	u32 (*get_sm_hww_global_esr)(struct gk20a *g,
@@ -662,13 +683,12 @@ struct gops_gr_init {
 	 * @param g [in]	Pointer to GPU driver struct.
 	 * @param gr_ctx [in]	Pointer to GR engine context image.
 	 *
-	 * This function sets below compute specific bits in given registers
-	 * using patch context in safety build :
-	 * Register : gr_sked_hww_esr_en_r()
-	 * Value : gr_sked_hww_esr_en_skedcheck18_l1_config_too_small_disabled_f()
-	 *
-	 * Register : gr_gpcs_tpcs_sm_l1tag_ctrl_r()
-	 * Value : gr_gpcs_tpcs_sm_l1tag_ctrl_always_cut_collector_enable_f()
+	 * This function programs compute functionality specific register
+	 * values using patch context in safety build. Bit
+	 * gr_sked_hww_esr_en_skedcheck18_l1_config_too_small_disabled_f() is
+	 * set in register gr_sked_hww_esr_en_r() and bit
+	 * gr_gpcs_tpcs_sm_l1tag_ctrl_always_cut_collector_enable_f() is set
+	 * in register gr_gpcs_tpcs_sm_l1tag_ctrl_r().
 	 */
 	void (*set_default_compute_regs)(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx);
 #endif
