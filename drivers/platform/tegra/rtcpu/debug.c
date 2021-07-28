@@ -842,9 +842,12 @@ static void camrtc_run_rmem_unmap_all(struct camrtc_debug *crd,
 	if (mem->ptr == NULL)
 		return;
 
-	for (i = 0; i < ARRAY_SIZE(mem->devices); i++) {
+	for (i = 0; i < mem->dev_index; i++) {
 		struct device *dev = mem->devices[i].dev;
 		dma_addr_t iova = mem->devices[i].dev_iova;
+
+		if (dev == NULL)
+			break;
 
 		/* keep mem_dev mapped unless forced */
 		if (!all && (dev == mem_dev))
