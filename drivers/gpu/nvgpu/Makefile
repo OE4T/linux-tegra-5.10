@@ -14,6 +14,7 @@ ccflags-y += -I$(srctree.nvgpu)/include/uapi
 
 ccflags-y += -I$(srctree)/drivers/devfreq
 
+ccflags-y += $(call cc-option, -Wimplicit-fallthrough=3)
 ccflags-y += -Wframe-larger-than=2048
 ccflags-y += -Wno-multichar
 ccflags-y += -Werror
