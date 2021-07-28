@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -130,15 +130,15 @@ void nvgpu_debugfs_swprofile_init(struct gk20a *g,
 	if (IS_ERR_OR_NULL(swprofile_root))
 		return;
 
-	debugfs_create_file("enable", 0600, swprofile_root, p,
+	debugfs_create_file("enable", 0200, swprofile_root, p,
 		&nvgpu_debugfs_swprofile_enable_debugfs_fops);
 
-	debugfs_create_file("percentiles", 0600, swprofile_root, p,
+	debugfs_create_file("percentiles", 0400, swprofile_root, p,
 		&nvgpu_debugfs_swprofile_stats_debugfs_fops);
 
-	debugfs_create_file("raw_data", 0600, swprofile_root, p,
+	debugfs_create_file("raw_data", 0400, swprofile_root, p,
 		&nvgpu_debugfs_swprofile_raw_data_debugfs_fops);
 
-	debugfs_create_file("basic_stats", 0600, swprofile_root, p,
+	debugfs_create_file("basic_stats", 0400, swprofile_root, p,
 		&nvgpu_debugfs_swprofile_basic_stats_debugfs_fops);
 }
