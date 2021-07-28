@@ -242,6 +242,7 @@ static void print_errlog_err(struct seq_file *file,
 	u8 beat_size = 0, access_type = 0, access_id = 0;
 	u8 mstr_id = 0, grpsec = 0, vqc = 0, falconsec = 0;
 	u8 slave_id = 0, fab_id = 0, burst_type = 0;
+	char fabric_name[10];
 
 	cache_type = get_em_el_subfield(errmon->attr0, 27, 24);
 	prot_type = get_em_el_subfield(errmon->attr0, 22, 20);
@@ -274,8 +275,14 @@ static void print_errlog_err(struct seq_file *file,
 	print_cbb_err(file, "\t  Access_Type\t\t: %s",
 			(access_type) ? "Write\n" : "Read");
 
-	print_cbb_err(file, "\t  Fabric\t\t: %s\n",
-		      fabric_sn_map[fab_id].fab_name);
+	if (fab_id == PSC_FAB_ID)
+		strcpy(fabric_name, "PSC");
+	else if (fab_id == FSI_FAB_ID)
+		strcpy(fabric_name, "FSI");
+	else
+		strcpy(fabric_name, fabric_sn_map[fab_id].fab_name);
+
+	print_cbb_err(file, "\t  Fabric\t\t: %s\n", fabric_name);
 	print_cbb_err(file, "\t  Slave_Id\t\t: %d\n", slave_id);
 	print_cbb_err(file, "\t  Burst_length\t\t: %d\n", burst_length);
 	print_cbb_err(file, "\t  Burst_type\t\t: %d\n", burst_type);
@@ -283,6 +290,9 @@ static void print_errlog_err(struct seq_file *file,
 	print_cbb_err(file, "\t  VQC\t\t\t: %d\n", vqc);
 	print_cbb_err(file, "\t  GRPSEC\t\t: %d\n", grpsec);
 	print_cbb_err(file, "\t  FALCONSEC\t\t: %d\n", falconsec);
+
+	if ((fab_id == PSC_FAB_ID) || (fab_id == FSI_FAB_ID))
+		return;
 
 	if (!strcmp(tegra234_errmon_errors[errmon->err_type].errcode,
 		    "TIMEOUT_ERR")) {
