@@ -42,61 +42,51 @@
 	i2c@31c0000 {
 		/* Two INA sensors connected to I2C-7 at slave addresses
 		 * 0x41 and 0x43 */
-		ina3221x_41: ina3221x@41 {
-			compatible = "ti,ina3221x";
+		ina3221_7_41: ina3221@41 {
+			compatible = "ti,ina3221";
 			reg = <0x41>;
-			ti,trigger-config = <0x7003>;
-			ti,continuous-config = <0x7c07>;
-			ti,enable-forced-continuous;
 			#address-cells = <1>;
 			#size-cells = <0>;
 			#io-channel-cells = <1>;
 			vcc-supply = <&p3711_vdd_3v3_cvb>;
 			channel@0 {
 				reg = <0x0>;
-				ti,rail-name = "CAM_INA";
-				ti,shunt-resistor-mohm = <5>;
-				ti,current-warning-limit-ma = <3000>;
-				ti,current-critical-limit-ma = <5000>;
+				label = "CVB_HV";
+				shunt-resistor-micro-ohms = <2000>;
 			};
 			channel@1 {
 				reg = <0x1>;
-				ti,rail-name = "CVB_3V3";
-				ti,shunt-resistor-mohm = <5>;
+				label = "CVB_MV";
+				shunt-resistor-micro-ohms = <2000>;
 			};
 			channel@2 {
 				reg = <0x2>;
-				ti,rail-name = "CVB_1V8";
-				ti,shunt-resistor-mohm = <5>;
+				label = "CVB_12V";
+				shunt-resistor-micro-ohms = <2000>;
 			};
 		};
 
-		ina3221x_43: ina3221x@43 {
-			compatible = "ti,ina3221x";
+		ina3221_7_43: ina3221@43 {
+			compatible = "ti,ina3221";
 			reg = <0x43>;
-			ti,trigger-config = <0x7003>;
-			ti,continuous-config = <0x7c07>;
-			ti,enable-forced-continuous;
 			#address-cells = <1>;
 			#size-cells = <0>;
 			#io-channel-cells = <1>;
 			vcc-supply = <&p3711_vdd_3v3_cvb>;
 			channel@0 {
 				reg = <0x0>;
-				ti,rail-name = "CAM_INA";
-				ti,shunt-resistor-mohm = <5>;
-				ti,current-warning-limit-ma = <3000>;
-				ti,current-critical-limit-ma = <5000>;
+				label = "CAM_VDD";
+				shunt-resistor-micro-ohms = <2000>;
 			};
 			channel@1 {
 				reg = <0x1>;
-				ti,rail-name = "CVB_3V3";
-				ti,shunt-resistor-mohm = <5>;
+				label = "CVB_3V3";
+				shunt-resistor-micro-ohms = <2000>;
 			};
 			channel@2 {
 				reg = <0x2>;
-				ti,rail-name = "CVB_1V8";
-				ti,shunt-resistor-mohm = <5>;
+				label = "CVB_1V8";
+				shunt-resistor-micro-ohms = <2000>;
 			};
 		};
 

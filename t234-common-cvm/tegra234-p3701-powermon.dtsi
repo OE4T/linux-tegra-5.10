@@ -13,33 +13,47 @@
 
 / {
 	i2c@c240000 {
-		/* There are two INA connected to GEN2_I2C at slave address
-		 * 0x40 and 0x41 */
-		ina3221x_40: ina3221x@40 {
-			compatible = "ti,ina3221x";
+		ina32211_1_40: ina3221@40 {
+			compatible = "ti,ina3221";
 			reg = <0x40>;
-			ti,trigger-config = <0x7003>;
-			ti,continuous-config = <0x7c07>;
-			ti,enable-forced-continuous;
 			#address-cells = <1>;
 			#size-cells = <0>;
 			#io-channel-cells = <1>;
 			channel@0 {
 				reg = <0x0>;
-				ti,rail-name = "VDD_IN";
-				ti,shunt-resistor-mohm = <5>;
-				ti,current-warning-limit-ma = <3000>;
-				ti,current-critical-limit-ma = <3600>;
+				label = "VDD_GPU_SOC";
+				shunt-resistor-micro-ohms = <2000>;
 			};
 			channel@1 {
 				reg = <0x1>;
-				ti,rail-name = "VDD_CPU_GPU_CV";
-				ti,shunt-resistor-mohm = <5>;
+				label = "VDD_CPU_CV";
+				shunt-resistor-micro-ohms = <2000>;
 			};
 			channel@2 {
 				reg = <0x2>;
-				ti,rail-name = "VDD_SOC";
-				ti,shunt-resistor-mohm = <5>;
+				label = "VIN_SYS_5V0";
+				shunt-resistor-micro-ohms = <2000>;
+			};
+		};
+
+		ina3221_1_41: ina3221@41 {
+			compatible = "ti,ina3221";
+			reg = <0x41>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			#io-channel-cells = <1>;
+			channel@0 {
+				reg = <0x0>;
+				label = "NC";
+			};
+			channel@1 {
+				reg = <0x1>;
+				label = "VDDQ_VDD2_1V8AO";
+				shunt-resistor-micro-ohms = <2000>;
+			};
+			channel@2 {
+				reg = <0x2>;
+				label = "NC";
 			};
 		};
 	};
