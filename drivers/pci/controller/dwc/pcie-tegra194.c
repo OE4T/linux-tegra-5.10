@@ -348,6 +348,9 @@ struct tegra_pcie_dw {
 	unsigned int phy_count;
 	struct phy **phys;
 
+	struct gpio_desc *pex_wake_gpiod;
+	int wake_irq;
+
 	u32 target_speed;
 	u32 flr_rid;
 #if defined(CONFIG_PCIE_RP_DMA_TEST)
@@ -3724,6 +3727,26 @@ static int tegra_pcie_dw_probe(struct platform_device *pdev)
 
 	switch (pcie->mode) {
 	case DW_PCIE_RC_TYPE:
+		pcie->pex_wake_gpiod = devm_gpiod_get_optional(dev, "nvidia,pex-wake",
+							       GPIOD_IN);
+		if (IS_ERR_OR_NULL(pcie->pex_wake_gpiod)) {
+			int err = PTR_ERR(pcie->pex_wake_gpiod);
+
+			if (err == -EPROBE_DEFER)
+				goto fail;
+
+			dev_dbg(dev, "Failed to get PCIe wake GPIO: %d\n", err);
+			pcie->pex_wake_gpiod = NULL;
+		} else {
+			device_init_wakeup(dev, true);
+
+			pcie->wake_irq = gpiod_to_irq(pcie->pex_wake_gpiod);
+			if (pcie->wake_irq < 0) {
+				dev_info(dev, "Invalid pcie_wake irq %d\n", pcie->wake_irq);
+				pcie->wake_irq = 0;
+			}
+		}
+
 		ret = devm_request_threaded_irq(dev, pp->irq, tegra_pcie_rp_irq_handler,
 						tegra_pcie_rp_irq_thread,
 						IRQF_SHARED,
@@ -3892,6 +3915,7 @@ static int tegra_pcie_dw_suspend_late(struct device *dev)
 static int tegra_pcie_dw_suspend_noirq(struct device *dev)
 {
 	struct tegra_pcie_dw *pcie = dev_get_drvdata(dev);
+	int ret;
 
 	if (!pcie->link_state && !pcie->disable_power_down)
 		return 0;
@@ -3903,6 +3927,12 @@ static int tegra_pcie_dw_suspend_noirq(struct device *dev)
 	tegra_pcie_dw_pme_turnoff(pcie);
 	tegra_pcie_unconfig_controller(pcie);
 
+	if (pcie->wake_irq && device_may_wakeup(dev)) {
+		ret = enable_irq_wake(pcie->wake_irq);
+		if (ret < 0)
+			dev_err(dev, "Failed to enable wake irq: %d\n", ret);
+	}
+
 	return 0;
 }
 
@@ -3913,6 +3943,12 @@ static int tegra_pcie_dw_resume_noirq(struct device *dev)
 
 	if (!pcie->link_state && !pcie->disable_power_down)
 		return 0;
+
+	if (pcie->wake_irq && device_may_wakeup(dev)) {
+		ret = disable_irq_wake(pcie->wake_irq);
+		if (ret < 0)
+			dev_err(dev, "Failed to disable wake irq: %d\n", ret);
+	}
 
 	ret = tegra_pcie_config_controller(pcie, true);
 	if (ret < 0)
