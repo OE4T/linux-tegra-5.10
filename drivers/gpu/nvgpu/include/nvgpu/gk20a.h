@@ -153,10 +153,6 @@ enum nvgpu_profiler_pm_reservation_scope;
 
 #include <nvgpu/gpu_ops.h>
 
-#if defined(CONFIG_NVGPU_NEXT)
-#include "nvgpu_next_dt_bindings.h"
-#endif
-
 #include "hal/clk/clk_gk20a.h"
 
 /**

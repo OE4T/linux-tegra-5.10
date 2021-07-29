@@ -50,10 +50,6 @@
 #include <nvgpu/device.h>
 #endif
 
-#if defined(CONFIG_NVGPU_NEXT)
-#include "nvgpu_next_dt_bindings.h"
-#endif
-
 #define PTIMER_FP_FACTOR			1000000
 
 #define ROOTRW (S_IRWXU|S_IRGRP|S_IROTH)

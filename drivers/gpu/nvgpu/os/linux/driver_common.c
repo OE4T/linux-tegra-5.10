@@ -41,9 +41,6 @@
 #include "os_linux.h"
 #include "sysfs.h"
 #include "ioctl.h"
-#if defined(CONFIG_NVGPU_NEXT)
-#include "nvgpu_next_dt_bindings.h"
-#endif
 
 #define EMC3D_DEFAULT_RATIO 750
 
