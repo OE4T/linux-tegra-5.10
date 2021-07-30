@@ -3501,6 +3501,7 @@ static int ether_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
 {
 	int ret = -EOPNOTSUPP;
 	struct ether_priv_data *pdata = netdev_priv(dev);
+	struct mii_ioctl_data *mii_data = if_mii(rq);
 
 	if (!dev || !rq) {
 		dev_err(pdata->dev, "%s: Invalid arg\n", __func__);
@@ -3514,14 +3515,37 @@ static int ether_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
 
 	switch (cmd) {
 	case SIOCGMIIPHY:
-	case SIOCGMIIREG:
-	case SIOCSMIIREG:
-		if (!dev->phydev) {
-			return -EINVAL;
+		if (pdata->mdio_addr != FIXED_PHY_INVALID_MDIO_ADDR) {
+			mii_data->phy_id = pdata->mdio_addr;
+			ret = 0;
+		} else {
+			if (!dev->phydev) {
+				return -EINVAL;
+			}
+			ret = phy_mii_ioctl(dev->phydev, rq, cmd);
 		}
+		break;
 
-		/* generic PHY MII ioctl interface */
-		ret = phy_mii_ioctl(dev->phydev, rq, cmd);
+	case SIOCGMIIREG:
+		if (pdata->mdio_addr != FIXED_PHY_INVALID_MDIO_ADDR) {
+			ret = ether_handle_priv_rmdio_ioctl(pdata, rq);
+		} else {
+			if (!dev->phydev) {
+				return -EINVAL;
+			}
+			ret = phy_mii_ioctl(dev->phydev, rq, cmd);
+		}
+		break;
+
+	case SIOCSMIIREG:
+		if (pdata->mdio_addr != FIXED_PHY_INVALID_MDIO_ADDR) {
+			ret = ether_handle_priv_wmdio_ioctl(pdata, rq);
+		} else {
+			if (!dev->phydev) {
+				return -EINVAL;
+			}
+			ret = phy_mii_ioctl(dev->phydev, rq, cmd);
+		}
 		break;
 
 	case SIOCDEVPRIVATE:
@@ -5221,6 +5245,13 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 	unsigned int i, mtlq, chan, bitmap;
 	unsigned int dt_pad_calibration_enable;
 
+	/* Read MDIO address */
+	ret = of_property_read_u32(np, "nvidia,mdio_addr",
+				   &pdata->mdio_addr);
+	if (ret != 0) {
+		dev_info(dev, "failed to read MDIO address\n");
+		pdata->mdio_addr = FIXED_PHY_INVALID_MDIO_ADDR;
+	}
 	/* read ptp clock */
 	ret = of_property_read_u32(np, "nvidia,ptp_ref_clock_speed",
 				   &pdata->ptp_ref_clock_speed);
