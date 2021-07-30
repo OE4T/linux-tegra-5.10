@@ -19,7 +19,7 @@
  */
 
 #include <dt-bindings/types.h>
-#include <tegra234-soc/tegra234-soc-base.dtsi>
+#include <tegra234-soc/tegra234-soc-cvm.dtsi>
 #include "tegra234-p3701-fixed-regulator.dtsi"
 #include "tegra234-p3701-power-tree.dtsi"
 #include "tegra234-p3701-thermal.dtsi"
