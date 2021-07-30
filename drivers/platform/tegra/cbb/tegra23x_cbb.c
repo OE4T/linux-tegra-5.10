@@ -542,6 +542,14 @@ static int tegra234_cbb_mn_mask_erd(u64 mask_erd)
 	return 0;
 }
 
+static struct tegra_cbb_noc_data tegra239_cbb_en_data = {
+	.name   = "CBB-EN",
+	.is_clk_rst = false,
+	.erd_mask_inband_err = true,
+	.off_mask_erd = 0x3d004,
+	.tegra_cbb_noc_set_erd = tegra234_cbb_mn_mask_erd
+};
+
 static struct tegra_cbb_noc_data tegra234_aon_en_data = {
 	.name   = "AON-EN",
 	.is_clk_rst = false,
@@ -593,6 +601,8 @@ static const struct of_device_id tegra234_cbb_match[] = {
 		.data = &tegra234_rce_en_data},
 	{.compatible    = "nvidia,tegra234-SCE-EN",
 		.data = &tegra234_sce_en_data},
+	{.compatible    = "nvidia,tegra239-CBB-EN",
+		.data = &tegra239_cbb_en_data},
 	{},
 };
 MODULE_DEVICE_TABLE(of, tegra234_cbb_match);
