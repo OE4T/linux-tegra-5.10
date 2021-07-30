@@ -17,7 +17,6 @@
 #include "tegra234-p3737-fixed-regulator.dtsi"
 #include "tegra234-ethernet-3737-0000.dtsi"
 #include "tegra234-p3737-pcie.dtsi"
-#include "tegra234-p3737-plugin-manager.dtsi"
 #include "tegra234-p3737-super-module-e2614.dtsi"
 
 / {

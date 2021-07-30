@@ -10,6 +10,7 @@ BUILD_ENABLE=y
 endif
 
 dtb-$(BUILD_ENABLE) += tegra234-p3701-0000-p3737-0000.dtb
+dtbo-$(BUILD_ENABLE) += tegra234-p3737-overlay-pcie.dtbo
 
 ifneq ($(dtb-y),)
 dtb-y := $(addprefix $(makefile-path)/,$(dtb-y))
