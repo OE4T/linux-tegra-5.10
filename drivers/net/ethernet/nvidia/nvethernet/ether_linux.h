@@ -216,6 +216,12 @@
 #endif
 
 /**
+ * @brief Invalid MDIO address for fixed link
+ */
+#define FIXED_PHY_INVALID_MDIO_ADDR	0xFFU
+
+
+/**
  * @brief Check if Tx data buffer length is within bounds.
  *
  * Algorithm: Check the data length if it is valid.
@@ -559,6 +565,8 @@ struct ether_priv_data {
 	/** NVGRO packet dropped count */
 	u64 nvgro_dropped;
 #endif
+	/** Platform MDIO address */
+	unsigned int mdio_addr;
 };
 
 /**
