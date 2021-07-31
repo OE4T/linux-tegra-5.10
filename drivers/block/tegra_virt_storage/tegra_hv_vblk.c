@@ -303,8 +303,8 @@ end:
 				vsc_req->sg_lst,
 				vsc_req->sg_num_ents,
 				DMA_BIDIRECTIONAL);
+			devm_kfree(vblkdev->device, vsc_req->sg_lst);
 		}
-		devm_kfree(vblkdev->device, vsc_req->sg_lst);
 	}
 
 	if (!invoke_req_err_hand) {
