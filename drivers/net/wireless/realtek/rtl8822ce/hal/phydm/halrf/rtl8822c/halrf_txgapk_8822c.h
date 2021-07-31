@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2007 - 2017 Realtek Corporation.
+ * Copyright(c) 2007 - 2017  Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -8,7 +8,7 @@
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
  * more details.
  *
  * The full GNU General Public License is included in this distribution in the
@@ -23,20 +23,17 @@
  *
  *****************************************************************************/
 
-/*Image2HeaderVersion: R3 1.5.8*/
+#ifndef __HALRF_TXGAPK_8822C_H__
+#define __HALRF_TXGAPK_8822C_H__
+
 #if (RTL8822C_SUPPORT == 1)
-#ifndef __INC_MP_MAC_HW_IMG_8822C_H
-#define __INC_MP_MAC_HW_IMG_8822C_H
 
-/******************************************************************************
- *                           mac_reg.TXT
- ******************************************************************************/
+void halrf_txgapk_save_all_tx_gain_table_8822c(void *dm_void);
 
-/* tc: Test Chip, mp: mp Chip*/
-void
-odm_read_and_config_mp_8822c_mac_reg(struct dm_struct *dm);
-u32 odm_get_version_mp_8822c_mac_reg(void);
+void halrf_txgapk_reload_tx_gain_8822c(void *dm_void);
 
-#endif
-#endif /* end of HWIMG_SUPPORT*/
+void halrf_txgapk_8822c(void *dm_void);
 
+
+#endif /* RTL8822C_SUPPORT */
+#endif /*#ifndef __HALRF_TSSI_8822C_H__*/

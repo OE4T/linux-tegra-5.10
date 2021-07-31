@@ -108,36 +108,8 @@ static void intf_chip_configure(PADAPTER padapter)
 	struct dvobj_priv *pdvobjpriv = adapter_to_dvobj(padapter);
 	struct pwrctrl_priv *pwrpriv = dvobj_to_pwrctl(pdvobjpriv);
 
-	/* close ASPM for AMD defaultly */
-	pdvobjpriv->const_amdpci_aspm = 0;
-
-	/* ASPM PS mode. */
-	/* 0 - Disable ASPM, 1 - Enable ASPM without Clock Req, */
-	/* 2 - Enable ASPM with Clock Req, 3- Alwyas Enable ASPM with Clock Req, */
-	/* 4-  Always Enable ASPM without Clock Req. */
-	/* set default to rtl8188ee:3 RTL8192E:2 */
-	pdvobjpriv->const_pci_aspm = 0;
-
-	/* Setting for PCI-E device */
-	pdvobjpriv->const_devicepci_aspm_setting = 0x03;
-
-	/* Setting for PCI-E bridge */
-	pdvobjpriv->const_hostpci_aspm_setting = 0x03;
-
-	/* In Hw/Sw Radio Off situation. */
-	/* 0 - Default, 1 - From ASPM setting without low Mac Pwr, */
-	/* 2 - From ASPM setting with low Mac Pwr, 3 - Bus D3 */
-	/* set default to RTL8192CE:0 RTL8192SE:2 */
-	pdvobjpriv->const_hwsw_rfoff_d3 = 0;
-
-	/* This setting works for those device with backdoor ASPM setting such as EPHY setting. */
-	/* 0: Not support ASPM, 1: Support ASPM, 2: According to chipset. */
-	pdvobjpriv->const_support_pciaspm = 1;
-
 	pwrpriv->reg_rfoff = 0;
 	pwrpriv->rfoff_reason = 0;
-
-	pHalData->bL1OffSupport = _FALSE;
 }
 
 /*
@@ -391,7 +363,7 @@ static void rtl8822ce_rx_handler(PADAPTER Adapter, u32 handled[])
 	}
 }
 
-#if (!(defined (CONFIG_PCI_TX_POLLING) || defined (CONFIG_PCI_TX_POLLING_V2)))
+#ifndef CONFIG_PCI_TX_POLLING
 static void rtl8822ce_tx_handler(PADAPTER Adapter, u32 events[], u32 handled[])
 {
 	PHAL_DATA_TYPE pHalData = GET_HAL_DATA(Adapter);
@@ -485,7 +457,7 @@ static s32 rtl8822ce_interrupt(PADAPTER Adapter)
 	rtl8822ce_rx_handler(Adapter, handled);
 
 	/* <3> Tx related */
-#if (!(defined (CONFIG_PCI_TX_POLLING) || defined (CONFIG_PCI_TX_POLLING_V2)))
+#ifndef CONFIG_PCI_TX_POLLING
 	rtl8822ce_tx_handler(Adapter, pHalData->IntArray, handled);
 #endif
 
@@ -849,9 +821,7 @@ static void rtl8822ce_tx_poll_handler(PADAPTER Adapter)
 	rtl8822ce_tx_isr(Adapter, MGT_QUEUE_INX);
 	rtl8822ce_tx_isr(Adapter, HIGH_QUEUE_INX);
 	rtl8822ce_tx_isr(Adapter, BK_QUEUE_INX);
-#ifndef CONFIG_PCI_TX_POLLING_V2
 	rtl8822ce_tx_isr(Adapter, BE_QUEUE_INX);
-#endif
 	rtl8822ce_tx_isr(Adapter, VI_QUEUE_INX);
 	rtl8822ce_tx_isr(Adapter, VO_QUEUE_INX);
 	_exit_critical(&pdvobjpriv->irq_th_lock, &irqL);
