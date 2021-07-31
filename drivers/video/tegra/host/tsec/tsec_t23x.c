@@ -222,10 +222,6 @@ static int nvhost_tsec_riscv_poweron(struct platform_device *dev)
 
 	m = (struct riscv_data *)pdata->riscv_data;
 
-	/* Load transcfg configuration if defined */
-	if (pdata->transcfg_addr)
-		host1x_writel(dev, pdata->transcfg_addr, pdata->transcfg_val);
-
 	/* Select RISC-V core */
 	host1x_writel(dev, tsec_riscv_bcr_ctrl_r(),
 			tsec_riscv_bcr_ctrl_core_select_riscv_f());
