@@ -29,3 +29,5 @@
 		status = "okay";
 	};
 };
+
+#include "tegra234-disabled_nodes.dtsi"

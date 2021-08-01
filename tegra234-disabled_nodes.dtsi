@@ -1,0 +1,293 @@
+/*
+ * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms and conditions of the GNU General Public License,
+ * version 2, as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/*
+ * tegra234-disabled_nodes.dts: Disabled nodes for T234
+ */
+
+/ {
+        /* Disabled Nodes */
+
+        cpufreq {
+                status = "disabled";
+        };
+
+        tegra-hsp@b150000 {
+                status = "disabled";
+        };
+
+        miscreg@00100000 {
+                status = "disabled";
+        };
+
+        spi@3300000 {/* QSPI NOR */
+                status = "disabled";
+        };
+
+        pmc@c360000 {
+                status = "disabled";
+        };
+
+        cbb-en@1300000 {
+                status = "disabled";
+        };
+
+        aon-en@C600000 {
+                status = "disabled";
+        };
+
+        bpmp-en@D600000 {
+                status = "disabled";
+        };
+
+        dce-en@BE00000 {
+                status = "disabled";
+        };
+
+        rce-en@BE00000 {
+                status = "disabled";
+        };
+
+        sce-en@B600000 {
+                status = "disabled";
+        };
+
+        i2c@3160000 {
+                status = "disabled";
+        };
+
+        i2c@3180000 {
+                status = "disabled";
+        };
+
+        arm-pmu {
+                status = "disabled";
+        };
+
+        usb_cd {
+                status = "disabled";
+        };
+
+        bwmgr {
+                status = "disabled";
+        };
+
+        nvpmodel {
+                status = "disabled";
+        };
+
+        icc {
+                status = "disabled";
+        };
+
+        pcie@14180000 {
+                status = "disabled";
+        };
+
+        ethernet@2310000 {
+                status = "disabled";
+        };
+
+        ethernet@6810000 {
+                status = "disabled";
+        };
+
+        ethernet@6910000 {
+                status = "disabled";
+        };
+
+        ethernet@6A10000 {
+                status = "disabled";
+        };
+
+        ethernet@6B10000 {
+                status = "disabled";
+        };
+
+        psc@e800000 {
+                status = "disabled";
+        };
+
+        power-domain {
+                status = "disabled";
+        };
+
+        se_ahb@3ac0000 {
+                status = "disabled";
+        };
+
+        host1x@13e00000 {
+                status = "disabled";
+
+                nvcsi@15a00000 {
+                        status = "disabled";
+                };
+
+                vi0@15c00000 {
+                        status = "disabled";
+                };
+
+                vi1@14c00000 {
+                        status = "disabled";
+                };
+
+                vi0-thi@15f00000 {
+                        status = "disabled";
+                };
+
+                vi1-thi@14f00000 {
+                        status = "disabled";
+                };
+
+                isp@14800000 {
+                        status = "disabled";
+                };
+
+                isp-thi@14b00000 {
+                        status = "disabled";
+                };
+
+                se@15810000 {
+                        status = "disabled";
+                };
+
+                se@15820000 {
+                        status = "disabled";
+                };
+
+                se@15840000 {
+                        status = "disabled";
+                };
+        };
+
+        nvrng@3ae0000 {
+                status = "disabled";
+        };
+
+        tegra-hsp@b950000 {
+                status = "disabled";
+        };
+
+        efuse@3810000 {
+                status = "disabled";
+        };
+
+        efuse-burn {
+                status = "disabled";
+        };
+
+        rtcpu@bc00000 {
+                status = "disabled";
+        };
+
+        dce@d800000 {
+                status = "disabled";
+        };
+
+        camera-ivc-channels {
+                status = "disabled";
+        };
+
+        tegra-capture-vi {
+                status = "disabled";
+        };
+
+        ethernet@03b40000 {
+                status = "disabled";
+        };
+
+        pinmux@2430000 {
+                status = "disabled";
+        };
+
+        gpcdma@2600000 {
+                status = "disabled";
+        };
+
+        trusty {
+                status = "disabled";
+        };
+
+        rtc@c2a0000 {
+                status = "disabled";
+        };
+
+        dsu-pmu-0 {
+                status = "disabled";
+        };
+
+        spe-pmu {
+                status = "disabled";
+        };
+
+	aconnect@2a41000 {
+		status = "disabled";
+
+		agic-controller@2a41000 {
+			status = "disabled";
+		};
+
+		adsp@2993000 {
+			status = "disabled";
+		};
+
+		ahub {
+			status = "disabled";
+		};
+	};
+
+	hda@3510000 {
+		status = "disabled";
+	};
+
+	i2c@3180000 {
+		rt5659.2-001a@1a {
+			status = "disabled";
+		};
+	};
+
+	i2c@3190000 {
+		rt5659.3-001a@1a {
+			status = "disabled";
+		};
+	};
+
+	i2c@31b0000 {
+		rt5659.5-001a@1a {
+			status = "disabled";
+		};
+	};
+
+	sound {
+		status = "disabled";
+	};
+
+	spdif_dit {
+		status = "disabled";
+	};
+
+	ufshci@2500000 {
+		status = "disabled";
+	};
+
+	sdhci@3400000 {
+		status = "disabled";
+	};
+
+	ga10b {
+		status = "disabled";
+	};
+};
