@@ -229,6 +229,50 @@ static struct ptp_clock_info ether_ptp_clock_ops = {
 	.settime64 = ether_set_time,
 };
 
+int ether_early_ptp_init(struct ether_priv_data *pdata)
+{
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_ioctl ioctl_data = {};
+	int ret = 0;
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
+	struct timespec now;
+#else
+	struct timespec64 now;
+#endif
+
+	osi_core->ptp_config.ptp_filter =
+		OSI_MAC_TCR_TSENA | OSI_MAC_TCR_TSCFUPDT |
+		OSI_MAC_TCR_TSCTRLSSR | OSI_MAC_TCR_TSVER2ENA |
+		OSI_MAC_TCR_TSIPENA | OSI_MAC_TCR_TSIPV6ENA |
+		OSI_MAC_TCR_TSIPV4ENA | OSI_MAC_TCR_SNAPTYPSEL_1;
+
+	/* Store default PTP clock frequency, so that we
+	 * can make use of it for coarse correction */
+	osi_core->ptp_config.ptp_clock = pdata->ptp_ref_clock_speed;
+	/* initialize system time */
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
+	getnstimeofday(&now);
+#else
+	ktime_get_real_ts64(&now);
+#endif
+	/* Store sec and nsec */
+	osi_core->ptp_config.sec = now.tv_sec;
+	osi_core->ptp_config.nsec = now.tv_nsec;
+	/* one nsec accuracy */
+	osi_core->ptp_config.one_nsec_accuracy = OSI_ENABLE;
+
+	/* enable the PTP configuration */
+	ioctl_data.arg1_u32 = OSI_ENABLE;
+	ioctl_data.cmd = OSI_CMD_CONFIG_PTP;
+	ret = osi_handle_ioctl(osi_core, &ioctl_data);
+	if (ret < 0) {
+		dev_err(pdata->dev, "Failure to enable CONFIG_PTP\n");
+		return -EFAULT;
+	}
+
+	return ret;
+}
+
 int ether_ptp_init(struct ether_priv_data *pdata)
 {
 	if (pdata->hw_feat.tsstssel == OSI_DISABLE) {
@@ -251,6 +295,10 @@ int ether_ptp_init(struct ether_priv_data *pdata)
 
 	/* By default enable nano second accuracy */
 	pdata->osi_core->ptp_config.one_nsec_accuracy = OSI_ENABLE;
+	if ((pdata->osi_core->m2m_role == OSI_PTP_M2M_PRIMARY) ||
+	    (pdata->osi_core->m2m_role == OSI_PTP_M2M_SECONDARY)) {
+		return ether_early_ptp_init(pdata);
+	}
 
 	return 0;
 }
