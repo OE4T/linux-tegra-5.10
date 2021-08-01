@@ -5335,6 +5335,8 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 	int ret = -EINVAL;
 	unsigned int i, mtlq, chan, bitmap;
 	unsigned int dt_pad_calibration_enable;
+	/* This variable is for DT entry which should not fail bootup */
+	int ret_val = 0;
 
 	/* Read flag to skip MAC reset on platform */
 	ret = of_property_read_u32(np, "nvidia,skip_mac_reset",
@@ -5796,6 +5798,13 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 			ret = PTR_ERR(pdata->pin);
 			goto exit;
 		}
+	}
+
+	/* Set MAC to MAC time sync role */
+	ret_val = of_property_read_u32(np, "nvidia,ptp_m2m_role",
+				       &osi_core->m2m_role);
+	if (ret_val < 0 || osi_core->m2m_role > OSI_PTP_M2M_SECONDARY) {
+		osi_core->m2m_role = OSI_PTP_M2M_INACTIVE;
 	}
 exit:
 	return ret;
