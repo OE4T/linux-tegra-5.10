@@ -279,7 +279,9 @@ static inline int tegra_register_component(struct device *dev,
 	if (ret < 0)
 		return ret;
 
+#ifdef CONFIG_DEBUG_FS
 	component->debugfs_prefix = debugfs_prefix;
+#endif
 
 	return snd_soc_add_component(component, dai_drv, num_dai);
 }
