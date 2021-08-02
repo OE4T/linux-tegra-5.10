@@ -65,4 +65,16 @@
 	ga10b {
 		status = "okay";
 	};
+
+	iommu@12000000 {
+		status = "okay";
+	};
+
+	iommu@10000000 {
+		status = "okay";
+	};
+
+	iommu@8000000 {
+		status = "okay";
+	};
 };
