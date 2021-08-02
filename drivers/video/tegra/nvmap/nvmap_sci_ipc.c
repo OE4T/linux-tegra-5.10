@@ -3,7 +3,7 @@
  *
  * mapping between nvmap_hnadle and sci_ipc entery
  *
- * Copyright (c) 2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -191,8 +191,10 @@ int nvmap_create_sci_ipc_id(struct nvmap_client *client,
 	}
 unlock:
 	mutex_unlock(&nvmapsciipc->mlock);
-	if (!ret)
+	if (!ret) {
 		(void)nvmap_handle_get(h);
+		get_dma_buf(h->dmabuf);
+	}
 	return ret;
 }
 
@@ -244,6 +246,7 @@ int nvmap_get_handle_from_sci_ipc_id(struct nvmap_client *client, u32 flags,
 		ret = -EINVAL;
 		goto unlock;
 	}
+	dma_buf_put(h_org->dmabuf);
 	nvmap_handle_put(h_org);
 
 	fd = nvmap_get_dmabuf_fd(client, ref->handle);
