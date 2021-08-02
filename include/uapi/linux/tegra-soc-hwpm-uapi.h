@@ -314,7 +314,7 @@ struct tegra_soc_hwpm_ip_ops {
 	 * SOC HWPM should be able to map this identifier to one
 	 * of supported IP aperture.
 	 */
-	 u64 ip_base_address;
+	__u64 ip_base_address;
 
 	/*
 	 * Opaque ip device handle used for callback from
@@ -351,7 +351,7 @@ struct tegra_soc_hwpm_ip_ops {
 	 */
 	int (*hwpm_ip_reg_op)(void *dev,
 				enum tegra_soc_hwpm_ip_reg_op reg_op,
-				u64 reg_offset, u32 *reg_data);
+				__u64 reg_offset, __u32 *reg_data);
 
 };
 
