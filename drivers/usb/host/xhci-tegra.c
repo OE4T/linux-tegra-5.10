@@ -156,6 +156,7 @@ MODULE_PARM_DESC(max_burst_war_enable, "Max burst WAR");
 
 /* CSB ARU  registers */
 #define XUSB_CSB_ARU_SCRATCH0			0x100100
+#define XUSB_CSB_ARU_SCRATCH1			0x100104
 
 /* MP CSB registers */
 #define XUSB_CSB_MP_ILOAD_ATTR			0x101a00
@@ -187,6 +188,8 @@ MODULE_PARM_DESC(max_burst_war_enable, "Max burst WAR");
 #define FW_IOCTL_LOG_DEQUEUE_LOW        (4)
 #define FW_IOCTL_LOG_DEQUEUE_HIGH       (5)
 #define FW_IOCTL_CFGTBL_READ		(17)
+#define FW_IOCTL_INIT_LOG_BUF		(31)
+#define FW_IOCTL_LOG_DEQUEUE_IDX	(32)
 #define FW_IOCTL_DATA_SHIFT             (0)
 #define FW_IOCTL_DATA_MASK              (0x00ffffff)
 #define FW_IOCTL_TYPE_SHIFT             (24)
@@ -376,6 +379,7 @@ struct tegra_xusb_soc {
 
 	bool has_bar2;
 	bool has_ifr;
+	bool load_ifr_rom;
 };
 
 struct tegra_xusb_context {
@@ -835,6 +839,7 @@ static inline void fw_log_update_deq_pointer(
 	struct device *dev = tegra->dev;
 	struct log_entry *deq = tegra->log.dequeue;
 	dma_addr_t physical_addr;
+	u16 log_index;
 	u32 reg;
 
 	dev_vdbg(dev, "curr 0x%p fast-forward %d entries\n", deq, n);
@@ -844,23 +849,38 @@ static inline void fw_log_update_deq_pointer(
 	tegra->log.dequeue = deq;
 	physical_addr = tegra->log.phys_addr +
 		((u8 *)deq - (u8 *)tegra->log.virt_addr);
+	log_index = (u16)((u8 *)deq - (u8 *)tegra->log.virt_addr) /
+			   sizeof(struct log_entry);
 
-	/* update dequeue pointer to firmware */
-	reg = (FW_IOCTL_LOG_DEQUEUE_LOW << FW_IOCTL_TYPE_SHIFT);
-	reg |= (physical_addr & 0xffff); /* lower 16-bits */
-	if (tegra->soc->has_bar2)
-		bar2_writel(tegra, reg, XUSB_BAR2_ARU_FW_SCRATCH);
-	else
-		fpci_writel(tegra, reg, XUSB_CFG_ARU_FW_SCRATCH);
+	if (tegra->soc->has_ifr) {
+		/* update 16 bit log index to firmware */
+		reg = (FW_IOCTL_LOG_DEQUEUE_IDX << FW_IOCTL_TYPE_SHIFT);
+		reg |= (log_index & 0xffff);
+		if (tegra->soc->has_bar2)
+			bar2_writel(tegra, reg, XUSB_BAR2_ARU_FW_SCRATCH);
+		else
+			fpci_writel(tegra, reg, XUSB_CFG_ARU_FW_SCRATCH);
 
-	reg = (FW_IOCTL_LOG_DEQUEUE_HIGH << FW_IOCTL_TYPE_SHIFT);
-	reg |= ((physical_addr >> 16) & 0xffff); /* higher 16-bits */
-	if (tegra->soc->has_bar2)
-		bar2_writel(tegra, reg, XUSB_BAR2_ARU_FW_SCRATCH);
-	else
-		fpci_writel(tegra, reg, XUSB_CFG_ARU_FW_SCRATCH);
+		dev_vdbg(dev, "new 0x%p log_index 0x%x\n", deq, (u32)log_index);
+	} else {
+		/* update dequeue pointer to firmware */
+		reg = (FW_IOCTL_LOG_DEQUEUE_LOW << FW_IOCTL_TYPE_SHIFT);
+		reg |= (physical_addr & 0xffff); /* lower 16-bits */
+		if (tegra->soc->has_bar2)
+			bar2_writel(tegra, reg, XUSB_BAR2_ARU_FW_SCRATCH);
+		else
+			fpci_writel(tegra, reg, XUSB_CFG_ARU_FW_SCRATCH);
 
-	dev_vdbg(dev, "new 0x%p physical addr 0x%x\n", deq, (u32)physical_addr);
+		reg = (FW_IOCTL_LOG_DEQUEUE_HIGH << FW_IOCTL_TYPE_SHIFT);
+		reg |= ((physical_addr >> 16) & 0xffff); /* higher 16-bits */
+		if (tegra->soc->has_bar2)
+			bar2_writel(tegra, reg, XUSB_BAR2_ARU_FW_SCRATCH);
+		else
+			fpci_writel(tegra, reg, XUSB_CFG_ARU_FW_SCRATCH);
+
+		dev_vdbg(dev, "new 0x%p physical addr 0x%x\n", deq, (u32)physical_addr);
+	}
+
 }
 
 static inline bool circ_buffer_full(struct circ_buf *circ)
@@ -2040,6 +2060,28 @@ static int tegra_xusb_init_ifr_firmware(struct tegra_xusb *tegra)
 	struct tm time;
 	u32 version_id;
 
+	if (tegra->soc->load_ifr_rom) {
+		dev_info(tegra->dev, "load ifr firmware: %llx %ld\n",
+			tegra->fw.phys, tegra->fw.size);
+
+		if (tegra_platform_is_fpga()) {
+			/* set IFRDMA address */
+			bar2_writel(tegra, cpu_to_le32(tegra->fw.phys),
+					XUSB_BAR2_ARU_IFRDMA_CFG0);
+			bar2_writel(tegra,
+				(cpu_to_le64(tegra->fw.phys) >> 32) & 0xff,
+				XUSB_BAR2_ARU_IFRDMA_CFG1);
+
+			/* set streamid */
+			val = bar2_readl(tegra,
+					 XUSB_BAR2_ARU_IFRDMA_STREAMID_FIELD);
+			val &= ~((u32) 0xff);
+			val |= 0x7F;
+			bar2_writel(tegra, val,
+				    XUSB_BAR2_ARU_IFRDMA_STREAMID_FIELD);
+		}
+	}
+
 	if (tegra_xusb_check_controller(tegra))
 		return -EIO;
 
@@ -2048,8 +2090,7 @@ static int tegra_xusb_init_ifr_firmware(struct tegra_xusb *tegra)
 	build_log = (tegra_xusb_read_firmware_header(tegra,
 				offsetof_32(struct tegra_xusb_fw_header,
 					num_hsic_port)) >> 16) & 0xf;
-	/* Allow up to 32bit addressing for fw logging */
-	dma_set_mask_and_coherent(tegra->dev, DMA_BIT_MASK(32));
+
 	if (build_log == LOG_MEMORY) {
 
 		fw_log_init(tegra);
@@ -2057,14 +2098,16 @@ static int tegra_xusb_init_ifr_firmware(struct tegra_xusb *tegra)
 		/* set up fw log buffer address */
 		csb_writel(tegra, (u32) tegra->log.phys_addr,
 				XUSB_CSB_ARU_SCRATCH0);
+		if (tegra->soc->has_ifr)
+			csb_writel(tegra, (u32) (tegra->log.phys_addr >> 32),
+				   XUSB_CSB_ARU_SCRATCH1);
 
 		/* set up fw log buffer size */
-		val = (FW_IOCTL_LOG_BUFFER_LEN << FW_IOCTL_TYPE_SHIFT);
+		val = (FW_IOCTL_INIT_LOG_BUF << FW_IOCTL_TYPE_SHIFT);
 		val |= FW_LOG_COUNT;
 		bar2_writel(tegra, val, XUSB_BAR2_ARU_FW_SCRATCH);
 	}
 
-	dma_set_mask_and_coherent(tegra->dev, DMA_BIT_MASK(39));
 	timestamp = tegra_xusb_read_firmware_header(tegra,
 			offsetof_32(struct tegra_xusb_fw_header,
 				fwimg_created_time));
@@ -2951,7 +2994,7 @@ skip_clock_and_reg_en:
 	if (tegra->soc->is_xhci_vf)
 		goto skip_firmware_load;
 
-	if (!tegra->soc->has_ifr) {
+	if (!tegra->soc->has_ifr || tegra->soc->load_ifr_rom) {
 		err = tegra_xusb_request_firmware(tegra);
 		if (err < 0) {
 			dev_err(&pdev->dev,
@@ -3758,7 +3801,10 @@ skip_clock_and_powergate:
 
 	tegra_xusb_restore_context(tegra);
 
-	err = tegra_xusb_load_firmware(tegra);
+	if (tegra->soc->has_ifr)
+		err = tegra_xusb_init_ifr_firmware(tegra);
+	else
+		err = tegra_xusb_load_firmware(tegra);
 	if (err < 0) {
 		dev_err(tegra->dev, "failed to load firmware: %d\n", err);
 		goto disable_phy;
@@ -4351,6 +4397,7 @@ static const struct tegra_xusb_soc tegra234_soc = {
 
 	.has_bar2 = true,
 	.has_ifr = true,
+	.load_ifr_rom = true,
 };
 MODULE_FIRMWARE("nvidia/tegra234/xusb.bin");
 
