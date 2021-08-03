@@ -380,5 +380,8 @@ void dce_admin_ipc_handle_signal(struct tegra_dce *d, u32 ch_type);
 void dce_config_ast(struct tegra_dce *d);
 int dce_reset_dce(struct tegra_dce *d);
 
+#ifdef CONFIG_DEBUG_FS
 void dce_init_debug(struct tegra_dce *d);
+#endif
+
 #endif
