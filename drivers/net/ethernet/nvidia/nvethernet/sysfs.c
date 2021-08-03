@@ -3061,9 +3061,10 @@ static void ether_remove_debugfs(struct ether_priv_data *pdata)
 int ether_sysfs_register(struct ether_priv_data *pdata)
 {
 	struct device *dev = pdata->dev;
-	int ret = 0;
 
 #ifdef CONFIG_DEBUG_FS
+	int ret = 0;
+
 	ret = ether_create_debugfs(pdata);
 	if (ret < 0)
 		return ret;
