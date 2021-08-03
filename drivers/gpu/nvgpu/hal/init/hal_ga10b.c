@@ -175,6 +175,7 @@
 #include "hal/gr/falcon/gr_falcon_gp10b.h"
 #include "hal/gr/falcon/gr_falcon_gv11b.h"
 #include "hal/gr/falcon/gr_falcon_tu104.h"
+#include "hal/gr/falcon/gr_falcon_ga100.h"
 #include "hal/gr/falcon/gr_falcon_ga10b.h"
 #include "hal/gr/config/gr_config_gm20b.h"
 #ifdef CONFIG_NVGPU_GRAPHICS
@@ -721,7 +722,7 @@ static const struct gops_gr_falcon ga10b_ops_gr_falcon = {
 	.bind_instblk = NULL,
 	.wait_mem_scrubbing = gm20b_gr_falcon_wait_mem_scrubbing,
 	.wait_ctxsw_ready = gm20b_gr_falcon_wait_ctxsw_ready,
-	.ctrl_ctxsw = tu104_gr_falcon_ctrl_ctxsw,
+	.ctrl_ctxsw = ga100_gr_falcon_ctrl_ctxsw,
 	.get_current_ctx = gm20b_gr_falcon_get_current_ctx,
 	.get_ctx_ptr = gm20b_gr_falcon_get_ctx_ptr,
 	.get_fecs_current_ctx_data = gm20b_gr_falcon_get_fecs_current_ctx_data,
