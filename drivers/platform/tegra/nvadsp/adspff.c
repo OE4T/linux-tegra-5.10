@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -619,6 +619,7 @@ static int adspff_set(void *data, u64 val)
 }
 DEFINE_SIMPLE_ATTRIBUTE(adspff_fops, NULL, adspff_set, "%llu\n");
 
+#ifdef CONFIG_DEBUG_FS
 static int adspff_debugfs_init(struct nvadsp_drv_data *drv)
 {
 	int ret = -ENOMEM;
@@ -638,13 +639,17 @@ static int adspff_debugfs_init(struct nvadsp_drv_data *drv)
 
 	return 0;
 }
+#endif
 
 int adspff_init(struct platform_device *pdev)
 {
 	int ret = 0;
 	nvadsp_app_handle_t handle;
 	nvadsp_app_info_t *app_info;
+
+#ifdef CONFIG_DEBUG_FS
 	struct nvadsp_drv_data *drv = platform_get_drvdata(pdev);
+#endif
 
 	handle = nvadsp_app_load("adspff", "adspff.elf");
 	if (!handle)
@@ -668,9 +673,11 @@ int adspff_init(struct platform_device *pdev)
 
 	spin_lock_init(&adspff_lock);
 
+#ifdef CONFIG_DEBUG_FS
 	ret = adspff_debugfs_init(drv);
 	if (ret)
 		pr_warn("adspff: failed to create debugfs entry\n");
+#endif
 
 	INIT_LIST_HEAD(&adspff_kthread_msgq_head);
 	INIT_LIST_HEAD(&file_list);
