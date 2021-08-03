@@ -25,3 +25,4 @@ obj-y += tegra-ivc-rpc.o tegra-ivc-rpc-test.o
 obj-y += capture-ivc.o
 obj-y += syncpt-display-channel.o
 obj-y += tegra-rtcpu-coverage.o
+obj-m += i2c_util.o
