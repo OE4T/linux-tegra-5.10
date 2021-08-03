@@ -74,45 +74,12 @@
         };
 
 	aconnect@2a41000 {
-		status = "disabled";
-
-		agic-controller@2a41000 {
-			status = "disabled";
-		};
-
 		adsp@2993000 {
 			status = "disabled";
 		};
-
-		ahub {
+		adsp_audio {
 			status = "disabled";
 		};
-	};
-
-	i2c@3180000 {
-		rt5659.2-001a@1a {
-			status = "disabled";
-		};
-	};
-
-	i2c@3190000 {
-		rt5659.3-001a@1a {
-			status = "disabled";
-		};
-	};
-
-	i2c@31b0000 {
-		rt5659.5-001a@1a {
-			status = "disabled";
-		};
-	};
-
-	sound {
-		status = "disabled";
-	};
-
-	spdif_dit {
-		status = "disabled";
 	};
 
 	ufshci@2500000 {
