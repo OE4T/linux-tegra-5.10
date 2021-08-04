@@ -24,6 +24,7 @@
 #include "tegra234-p3701-power-tree.dtsi"
 #include "tegra234-p3701-thermal.dtsi"
 #include "tegra234-p3701-powermon.dtsi"
+#include <t234-common-cvm/tegra234-platforms-vrs.dtsi>
 
 / {
 	model = "Jetson-AGX";
@@ -40,7 +41,7 @@
 
 	cpufreq {
 		compatible = "nvidia,t234-cpufreq";
-		status = "okay";
+		status = "disabled";
 		cpu_emc_map = <1907200 1600000>,
 			    <1881600 800000>,
 			    <1574400 665000>,
@@ -71,6 +72,38 @@
 		status = "okay";
 	};
 
+	interrupt-controller@f400000 {
+		status = "okay";
+	};
+
+	timer {
+		status = "okay";
+	};
+
+	aon-en@C600000 {
+		status = "disabled";
+	};
+
+	cbb-en@1300000 {
+		status = "disabled";
+	};
+
+	bpmp-en@D600000 {
+		status = "disabled";
+	};
+
+	dce-en@BE00000 {
+		status = "disabled";
+	};
+
+	rce-en@BE00000 {
+		status = "disabled";
+	};
+
+	sce-en@B600000 {
+		status = "disabled";
+	};
+
 	cpuidle {
 		compatible = "nvidia,tegra19x-cpuidle";
 		status = "okay";
@@ -84,19 +117,59 @@
 		ramoops_carveout {
 			status = "okay";
 		};
+		grid-of-semaphores {
+			status = "okay";
+		};
+		vpr-carveout {
+			compatible = "nvidia,vpr-carveout";
+			size = <0 0x10000000>;
+			alignment = <0 0x400000>;
+			alloc-ranges = <0x0 0x80000000 0x0 0x70000000>;
+			status = "okay";
+		};
 	};
+
+        tegra-cache {
+                status = "okay";
+        };
 
 	serial@3100000 {
 		compatible = "nvidia,tegra186-hsuart";
 		status = "okay";
 	};
 
+        mc {
+                status = "okay";
+                /delete-property/ ranges;
+                /delete-node/ mssnvlink@1f20000;
+        };
+
+        mc_sid@2c00000 {
+                status = "okay";
+        };
+
+        iommu@12000000 {
+                status = "okay";
+        };
+
+        smmu_suspend {
+                status = "disabled";
+        };
+
+        iommu@10000000 {
+                status = "okay";
+        };
+
+        iommu@8000000 {
+                status = "okay";
+        };
 	serial@3140000 {
 		compatible = "nvidia,tegra186-hsuart";
-		status = "okay";
+		status = "disabled";
 	};
 
 	combined-uart {
+		compatible = "nvidia,tegra194-tcu";
 		console-port;
 		combined-uart;
 		status = "okay";
@@ -123,6 +196,10 @@
 	};
 
 	soctherm-oc-event {
+		status = "disabled";
+	};
+
+	display@13800000 {
 		status = "disabled";
 	};
 
@@ -160,22 +237,66 @@
 	};
 
 	sdhci@3460000 {
-		uhs-mask = <0x0>;
+                uhs-mask = <0x0>;
 		no-sdio;
 		no-sd;
 		supports-cqe;
 		status = "okay";
 	};
 
+	gpio@2200000 {
+                status = "okay";
+        };
+
+        host1x@13e00000 {
+                status = "disabled";
+        };
+
+        tegra-hsp@c150000 {
+                status = "okay";
+        };
+
+        tegra-hsp@3c00000 {
+                status = "okay";
+        };
+
+        chipid@100000 {
+                status = "okay";
+        };
+
+	gpcdma@2600000 {
+                status = "disabled";
+        };
+
+	ldpc-enc {
+                status = "disabled";
+        };
+
 	efuse@3810000 {
-		status = "okay";
+		status = "disabled";
 	};
 
 	efuse-burn {
-		status = "okay";
+		status = "disaled";
+	};
+
+	psci {
+		status = "disaled";
 	};
 
 	rtc@c2a0000 {
+		status = "okay";
+	};
+
+	nvrng@3ae0000 {
+		status = "okay";
+	};
+
+	tachometer@39c0000 {
+		status = "okay";
+	};
+
+	bpmp {
 		status = "okay";
 	};
 
