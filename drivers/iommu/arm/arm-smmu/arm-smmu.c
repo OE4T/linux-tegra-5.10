@@ -276,12 +276,12 @@ static void arm_smmu_tlb_sync_context(struct arm_smmu_domain *smmu_domain)
 static void arm_smmu_tlb_inv_context_s1(void *cookie)
 {
 	struct arm_smmu_domain *smmu_domain = cookie;
-#ifdef CONFIG_TRACEPOINTS
+#if defined(CONFIG_TRACEPOINTS) && defined(CONFIG_ARM_SMMU_DEBUG)
 	struct arm_smmu_device *smmu = smmu_domain->smmu;
 #endif
 	u64 time_before = 0;
 
-#ifdef CONFIG_TRACEPOINTS
+#if defined(CONFIG_TRACEPOINTS) && defined(CONFIG_ARM_SMMU_DEBUG)
 	if (static_key_false(&__tracepoint_arm_smmu_tlb_inv_context.key)
 		&& test_bit(smmu_domain->cfg.cbndx, smmu->debug_info->context_filter))
 		time_before = local_clock();
@@ -306,7 +306,7 @@ static void arm_smmu_tlb_inv_context_s2(void *cookie)
 	struct arm_smmu_device *smmu = smmu_domain->smmu;
 	u64 time_before = 0;
 
-#ifdef CONFIG_TRACEPOINTS
+#if defined(CONFIG_TRACEPOINTS) && defined(CONFIG_ARM_SMMU_DEBUG)
 	if (static_key_false(&__tracepoint_arm_smmu_tlb_inv_context.key)
 		&& test_bit(smmu_domain->cfg.cbndx,
 					smmu->debug_info->context_filter))
@@ -332,7 +332,7 @@ static void arm_smmu_tlb_inv_range_s1(unsigned long iova, size_t size,
 	int idx = cfg->cbndx;
 	u64 time_before = 0;
 
-#ifdef CONFIG_TRACEPOINTS
+#if defined(CONFIG_TRACEPOINTS) && defined(CONFIG_ARM_SMMU_DEBUG)
 	if (static_key_false(&__tracepoint_arm_smmu_tlb_inv_range.key)
 		&& test_bit(cfg->cbndx, smmu->debug_info->context_filter))
 		time_before = local_clock();
@@ -1302,7 +1302,7 @@ static int arm_smmu_map(struct iommu_domain *domain, unsigned long iova,
 	if (!ops)
 		return -ENODEV;
 
-#ifdef CONFIG_TRACEPOINTS
+#if defined(CONFIG_TRACEPOINTS) && defined(CONFIG_ARM_SMMU_DEBUG)
 	if (static_key_false(&__tracepoint_arm_smmu_handle_mapping.key)
 		&& test_bit(smmu_domain->cfg.cbndx,
 				smmu_domain->smmu->debug_info->context_filter))
@@ -1336,7 +1336,7 @@ static size_t arm_smmu_unmap(struct iommu_domain *domain, unsigned long iova,
 	if (!ops)
 		return 0;
 
-#ifdef CONFIG_TRACEPOINTS
+#if defined(CONFIG_TRACEPOINTS) && defined(CONFIG_ARM_SMMU_DEBUG)
 	if (static_key_false(&__tracepoint_arm_smmu_handle_mapping.key)
 		&& test_bit(smmu_domain->cfg.cbndx,
 				smmu_domain->smmu->debug_info->context_filter))
@@ -1583,7 +1583,7 @@ static void arm_smmu_release_device(struct device *dev)
 	if (ret < 0)
 		return;
 
-#ifdef CONFIG_DEBUG_FS
+#if defined(CONFIG_ARM_SMMU_DEBUG)
 	arm_smmu_debugfs_remove_master(dev, smmu->debug_info);
 #endif
 
