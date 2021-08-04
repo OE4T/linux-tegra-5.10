@@ -22,9 +22,9 @@
 #include <tegra234-soc/tegra234-soc-cvm.dtsi>
 #include "tegra234-p3701-fixed-regulator.dtsi"
 #include "tegra234-p3701-power-tree.dtsi"
-#include "tegra234-p3701-thermal.dtsi"
 #include "tegra234-p3701-powermon.dtsi"
 #include <t234-common-cvm/tegra234-platforms-vrs.dtsi>
+#include "tegra234-thermal.dtsi"
 
 / {
 	model = "Jetson-AGX";
