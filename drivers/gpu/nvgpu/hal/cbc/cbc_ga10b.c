@@ -33,6 +33,17 @@
 
 #include <nvgpu/hw/ga10b/hw_ltc_ga10b.h>
 
+u64 ga10b_cbc_get_base_divisor(struct gk20a *g)
+{
+	/*
+	 * For Tegra, the addressing works differently. Unlike DGPU, all
+	 * partitions talk to the same memory.
+	 */
+	u64 ltc_count = 1ULL;
+
+	return ltc_count << ltc_ltcs_ltss_cbc_base_alignment_shift_v();
+}
+
 int ga10b_cbc_alloc_comptags(struct gk20a *g, struct nvgpu_cbc *cbc)
 {
 	/*
@@ -108,8 +119,8 @@ int ga10b_cbc_alloc_comptags(struct gk20a *g, struct nvgpu_cbc *cbc)
 			gobs_per_comptagline_per_slice), compstatus_per_gob);
 
 	/* aligned to 2KB * ltc_count */
-	compbit_backing_size +=
-		ltc_count << ltc_ltcs_ltss_cbc_base_alignment_shift_v();
+	compbit_backing_size += nvgpu_safe_cast_u64_to_u32(
+		g->ops.cbc.get_base_divisor(g));
 
 	/* must be a multiple of 64KB */
 	compbit_backing_size = round_up(compbit_backing_size, SZ_64K);

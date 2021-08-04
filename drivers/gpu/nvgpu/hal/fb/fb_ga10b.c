@@ -41,27 +41,50 @@ void ga10b_fb_cbc_configure(struct gk20a *g, struct nvgpu_cbc *cbc)
 	u64 base_divisor;
 	u64 compbit_store_base;
 	u64 compbit_store_pa;
-	u32 cbc_max;
+	u64 combit_top_size;
+	u32 cbc_max_rval;
 
-	compbit_store_pa = nvgpu_mem_get_addr(g, &cbc->compbit_store.mem);
+	/*
+	 * Update CBC registers
+	 * Note: CBC Base value should be updated after CBC MAX
+	 */
 	base_divisor = g->ops.cbc.get_base_divisor(g);
-	compbit_store_base = DIV_ROUND_UP(compbit_store_pa, base_divisor);
+	combit_top_size = cbc->compbit_backing_size;
+	combit_top_size = round_up(combit_top_size, base_divisor);
+	nvgpu_assert(combit_top_size < U64(U32_MAX));
+	nvgpu_writel(g, fb_mmu_cbc_top_r(),
+		fb_mmu_cbc_top_address_f(U32(combit_top_size)));
 
-	cbc_max = nvgpu_readl(g, fb_mmu_cbc_max_r());
-	cbc_max = set_field(cbc_max,
+	cbc_max_rval = nvgpu_readl(g, fb_mmu_cbc_max_r());
+	cbc_max_rval = set_field(cbc_max_rval,
 		  fb_mmu_cbc_max_comptagline_m(),
 		  fb_mmu_cbc_max_comptagline_f(cbc->max_comptag_lines));
-	nvgpu_writel(g, fb_mmu_cbc_max_r(), cbc_max);
+	nvgpu_writel(g, fb_mmu_cbc_max_r(), cbc_max_rval);
+
+	compbit_store_pa = nvgpu_mem_get_addr(g, &cbc->compbit_store.mem);
+	compbit_store_base = round_down(compbit_store_pa, base_divisor);
 
 	nvgpu_assert(compbit_store_base < U64(U32_MAX));
 	nvgpu_writel(g, fb_mmu_cbc_base_r(),
 		fb_mmu_cbc_base_address_f(U32(compbit_store_base)));
 
 	nvgpu_log(g, gpu_dbg_info | gpu_dbg_map_v | gpu_dbg_pte,
+		"compbit top size: 0x%x,%08x \n",
+		(u32)(combit_top_size >> 32),
+		(u32)(combit_top_size & 0xffffffffU));
+
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_map_v | gpu_dbg_pte,
 		"compbit base.pa: 0x%x,%08x cbc_base:0x%llx\n",
 		(u32)(compbit_store_pa >> 32),
 		(u32)(compbit_store_pa & 0xffffffffU),
 		compbit_store_base);
+
+	/* Make sure cbc is marked safe by MMU */
+	cbc_max_rval = nvgpu_readl(g, fb_mmu_cbc_max_r());
+	if ((cbc_max_rval & fb_mmu_cbc_max_safe_m()) !=
+		fb_mmu_cbc_max_safe_true_f()) {
+		nvgpu_err(g, "CBC marked unsafe by MMU, check cbc config");
+	}
 
 	cbc->compbit_store.base_hw = compbit_store_base;
 }
