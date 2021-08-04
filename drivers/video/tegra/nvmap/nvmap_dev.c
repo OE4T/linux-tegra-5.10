@@ -1390,10 +1390,6 @@ int __init nvmap_probe(struct platform_device *pdev)
 	nvmap_stats_init(nvmap_debug_root);
 	platform_set_drvdata(pdev, dev);
 
-	e = nvmap_dmabuf_stash_init();
-	if (e)
-		goto fail_heaps;
-
 	for (i = 0; i < dev->nr_carveouts; i++)
 		if (dev->heaps[i].heap_bit & NVMAP_HEAP_CARVEOUT_GENERIC)
 			generic_carveout_present = 1;
