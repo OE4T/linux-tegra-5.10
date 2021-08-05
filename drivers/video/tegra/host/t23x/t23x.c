@@ -272,6 +272,7 @@ struct nvhost_device_data t23x_nvdec_info = {
 		{"nvdec", UINT_MAX},
 		{"kfuse", 0, 0},
 		{"efuse", 0, 0},
+		{"tsec_pka", 204000000, 0},
 		{"emc", 0,
 		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
 		 TEGRA_SET_EMC_FLOOR}
@@ -405,6 +406,7 @@ struct nvhost_device_data t23x_tsec_info = {
 	.clocks			= {
 		{"tsec", UINT_MAX},
 		{"efuse", 0, 0},
+		{"tsec_pka", 204000000, 0},
 		{"emc", 0,
 		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
 		 TEGRA_SET_EMC_FLOOR}
