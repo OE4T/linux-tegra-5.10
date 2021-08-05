@@ -200,9 +200,11 @@ struct nvgpu_worker {
  *
  * This function returns true if the running status of the underlying worker
  * thread is set to zero. This indicates that the worker thread is no longer
- * running.
+ * running. Invokes the function #nvgpu_thread_should_stop() with variable
+ * \a poll_task in #nvgpu_worker struct passed as parameter.
  *
- * @param worker [in]	The worker
+ * @param worker [in] The worker struct. Function does not perform any validation
+ *		      of the parameter.
  *
  * @return Boolean value indicating if the thread should stop or not.
  *
@@ -218,9 +220,28 @@ bool nvgpu_worker_should_stop(struct nvgpu_worker *worker);
  * up immediately. If the work item already existed in the list, it's not added,
  * because in that case it has been scheduled already but has not yet been
  * processed.
+ * - Checks if the thread associated with \a poll_task in #nvgpu_worker is
+ *   already started. If not, try to start the thread. Return -1 if the thread
+ *   creation fails.
+ * - Function #nvgpu_spinlock_acquire() is called with variable \a
+ *   items_lock in #nvgpu_worker as parameter to acquire the lock before
+ *   trying to add the work item.
+ * - #nvgpu_list_empty is called with \a work_item as parameter to check if the
+ *   item is already added or not.
+ * - If the item is already added, invoke the function #nvgpu_spinlock_release
+ *   with variable \a items_lock in #nvgpu_worker as parameter to release the
+ *   lock, and return -1.
+ * - Invokes #nvgpu_list_add_tail with \a work_item and \a items in
+ *   #nvgpu_worker as parameters to add the work item, if it is not already
+ *   present in the list.
+ * - Function #nvgpu_spinlock_release() is invoked with variable \a items_lock
+ *   in #nvgpu_worker as parameter to release the lock acquired.
+ * The worker thread is woken up after the addition of the work item.
  *
- * @param worker [in]	The worker.
- * @param worker [in]	The work item for the worker to work on.
+ * @param worker [in] The worker. Function does not perform any validation
+ *		      of the parameter.
+ * @param worker [in] The work item for the worker to work on. Function does
+ *		      not perform any validation of the parameter.
  *
  * @return Integer value indicating the status of enqueue operation.
  *
@@ -234,9 +255,17 @@ int nvgpu_worker_enqueue(struct nvgpu_worker *worker,
  * @brief This API is used to initialize the worker with a name that's a
  * conjunction of the two parameters: {worker_name}_{gpu_name}.
  *
- * @param worker [in]		The worker.
- * @param worker_name [in]	The name of the worker.
- * @param gpu_name [in]		The name of the GPU.
+ * Uses the library function \a strncat to populate the variable \a thread_name
+ * in #nvgpu_worker. The input parameters \a worker_name and \a gpu_name are
+ * used as parameters to \a strncat in multiple stages to populate the name of
+ * the worker thread.
+ *
+ * @param worker [in] The worker. Function does not perform any
+ *		      validation of the parameter.
+ * @param worker_name [in] The name of the worker. Function does not perform
+ *			   any validation of the parameter.
+ * @param gpu_name [in] The name of the GPU. Function does not perform any
+ *			validation of the parameter.
  */
 void nvgpu_worker_init_name(struct nvgpu_worker *worker,
 		const char* worker_name, const char *gpu_name);
@@ -244,14 +273,36 @@ void nvgpu_worker_init_name(struct nvgpu_worker *worker,
 /**
  * @brief Initialize the worker's metadata and start the background thread.
  *
- * @param g [in]	The GPU superstructure.
- * @param worker [in]	The worker.
- * @param ops [in]	The worker ops specific for this worker.
+ * - Invokes the function #nvgpu_atomic_set with variable \a put in
+ *   #nvgpu_worker and 0 as parameters to initialize the atomic variable.
+ * - Invokes the function #nvgpu_cond_init() with variable \a wq in
+ *   #nvgpu_worker as parameter to initialize the condition variable.
+ * - Invokes the function #nvgpu_init_list_node with variable \a items in
+ *   #nvgpu_worker as parameter to initialize the list.
+ * - Invokes the function #nvgpu_spinlock_init() with variable \a items_lock in
+ *   #nvgpu_worker as parameter to initialize the spin lock.
+ * - Invokes the function #nvgpu_mutex_init() with variable \a start_lock in
+ *   #nvgpu_worker as parameter to initialize the mutex variable.
+ * - Starts the thread associated with the \a worker. #nvgpu_thread_create()
+ *   is the function used internally to create the worker thread, the
+ *   parameters passed are \a poll_task in #nvgpu_worker, \a worker, a static
+ *   callback function associated with the thread and \a thread_name in
+ *   #nvgpu_worker. Any error value from the function #nvgpu_thread_create()
+ *   is returned by this function as it is.
+ *  On a successful completion of this function, 0 is returned.
+ *
+ * @param g [in] The GPU super structure. Function does not perform any
+ *		 validation of the parameter.
+ * @param worker [in] The worker. Function does not perform any validation of
+ *		      the parameter.
+ * @param worker_ops [in] The worker ops specific for this worker. Function
+ *			  does not perform any validation of the parameter.
  *
  * @return 0 for success, < 0 for error. This function internally invokes
  * the thread creation API for worker thread. The error codes generated by the
  * thread creation API will be returned by this function.
  *
+ * @retval 0 on success.
  * @retval EINVAL invalid thread attribute object.
  * @retval EAGAIN insufficient system resources to create thread.
  * @retval EFAULT error occurred trying to access the buffers or the
@@ -261,9 +312,18 @@ int nvgpu_worker_init(struct gk20a *g, struct nvgpu_worker *worker,
 		const struct nvgpu_worker_ops *ops);
 
 /**
- * @brief Stop the background thread and cleanup the metadata in the worker.
+ * @brief Stop the background thread associated with the worker.
  *
- * @param worker [in]	The worker.
+ * - Invokes the function #nvgpu_mutex_acquire() with variable \a start_lock in
+ *   #nvgpu_worker as parameter to acquire the lock.
+ * - Invokes the function #nvgpu_thread_stop() with variable \a poll_task in
+ *   #nvgpu_worker as parameter to stop the poll task associated with the
+ *   worker.
+ * - Invokes the function #nvgpu_mutex_release() with variable \a start_lock in
+ *   #nvgpu_worker as parameter to release the lock.
+ *
+ * @param worker [in] The worker. Function does not perform any validation of
+ *		      the parameter.
  */
 void nvgpu_worker_deinit(struct nvgpu_worker *worker);
 

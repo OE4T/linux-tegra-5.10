@@ -230,39 +230,65 @@ enum enum_enabled_flags {
 /**
  * @brief Check if the passed flag is enabled.
  *
- * @param g [in]	The GPU.
- * @param flag [in]	Which flag to check.
+ * Uses the function #nvgpu_test_bit() internally to check the status of the
+ * bit position indicated by the parameter \a flag. The input parameter \a flag
+ * and the variable \a enabled_flags in #gk20a are passed as parameters to the
+ * function #nvgpu_test_bit().
+ *
+ * @param g [in] GPU super structure. Function does not perform any
+ *		 validation of this parameter.
+ * @param flag [in] Which flag to check. Function validates if this
+ *		    parameter value is less than #NVGPU_MAX_ENABLED_BITS.
  *
  * @return Boolean value to indicate the status of the bit.
  *
  * @retval TRUE if the flag bit is enabled.
- * @retval FALSE if the flag bit is not enabled.
+ * @retval FALSE if the flag bit is not enabled or if the flag value is greater
+ * than or equal to #NVGPU_MAX_ENABLED_BITS.
  */
 bool nvgpu_is_enabled(struct gk20a *g, u32 flag);
 
 /**
  * @brief Set the state of a flag.
  *
- * Set the state of the passed \a flag to \a state.
- * This is generally a somewhat low level operation with lots of potential
- * side effects. Be weary about where and when you use this. Typically a bunch
- * of calls to this early in the driver boot sequence makes sense (as
- * information is determined about the GPU at run time). Calling this in steady
- * state operation is probably an incorrect thing to do.
+ * Set the value of the passed \a flag to \a state.
+ * This is a low level operation with lots of potential side effects.
+ * Typically a bunch of calls to this early in the driver boot sequence makes
+ * sense (as information is determined about the GPU at run time). Calling this
+ * after GPU boot has completed is probably an incorrect thing to do.
+ * Invokes the function #nvgpu_set_bit() or #nvgpu_clear_bit() based on the
+ * value of \a state, and the parameters passed are \a flag and the variable
+ * \a enabled_flags in #gk20a. The caller of this function needs to ensure that
+ * the value of \a flag is less than #NVGPU_MAX_ENABLED_BITS.
  *
- * @param g [in]	The GPU.
- * @param flag [in]	Which flag to modify.
- * @param state [in]	The state to set the \a flag to.
+ * @param g [in] GPU super structure. Function does not perform any
+ *		 validation of this parameter.
+ * @param flag [in] Which flag to modify. Function validates if the value
+ *		    of this parameter is less than #NVGPU_MAX_ENABLED_BITS.
+ *		    If the value provided is not less than
+ *		    #NVGPU_MAX_ENABLED_BITS, the function returns without
+ *		    performing any operation.
+ * @param state [in] The state to set the \a flag to. Function does not
+ *		     perform any validation of this parameter.
  */
 void nvgpu_set_enabled(struct gk20a *g, u32 flag, bool state);
 
 /**
  * @brief Allocate the memory for the enabled flags.
  *
- * @param g [in]	The GPU superstructure.
+ * Allocates memory for the variable \a enabled_flags in #gk20a. Uses the
+ * wrapper macro to invoke the function #nvgpu_kzalloc_impl() to allocate
+ * the memory with \a g and the size required for allocation as parameters.
+ * Variable \a enabled_flags in struct #gk20a is a pointer to unsigned long,
+ * hence the size requested for allocation is equal to the size of number of
+ * unsigned long variables required to hold #NVGPU_MAX_ENABLED_BITS.
+ *
+ * @param g [in] GPU super structure. Function does not perform any
+ *		 validation of this parameter.
  *
  * @return 0 for success, < 0 for error.
  *
+ * @retval 0 for success.
  * @retval -ENOMEM if fails to allocate the necessary memory.
  */
 int nvgpu_init_enabled_flags(struct gk20a *g);
@@ -270,14 +296,18 @@ int nvgpu_init_enabled_flags(struct gk20a *g);
 /**
  * @brief Free the memory for the enabled flags. Called during driver exit.
  *
- * @param g [in]	The GPU superstructure.
+ * Calls the wrapper macro to invoke the function #nvgpu_kfree_impl() with
+ * \a g and variable \a enabled_flags in #gk20a as parameters.
+ *
+ * @param g [in] GPU super structure. Function does not perform any
+ *		 validation of this parameter.
  */
 void nvgpu_free_enabled_flags(struct gk20a *g);
 
 /**
  * @brief Print enabled flags value.
  *
- * @param g [in]	The GPU superstructure.
+ * @param g [in] The GPU superstructure.
  */
 void nvgpu_print_enabled_flags(struct gk20a *g);
 

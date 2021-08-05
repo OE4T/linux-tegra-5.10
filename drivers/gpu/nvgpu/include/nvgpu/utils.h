@@ -60,9 +60,12 @@
 /**
  * @brief Higher 32 bits from 64 bit.
  *
- * Returns the most significant 32 bits of the 64 bit input value.
+ * Returns the most significant 32 bits of the 64 bit input value. Invokes the
+ * function #nvgpu_safe_cast_u64_to_u32 with \a n right shifted by 32 as
+ * parameter.
  *
- * @param n [in]	Input value.
+ * @param n [in] Input value. Function does not perform any validation
+ *		 of the parameter.
  *
  * @return Most significant 32 bits of \a n.
  */
@@ -74,9 +77,12 @@ static inline u32 u64_hi32(u64 n)
 /**
  * @brief Lower 32 bits from 64 bit.
  *
- * Returns the least significant 32 bits of the 64 bit input value.
+ * Returns the least significant 32 bits of the 64 bit input value. Invokes the
+ * function #nvgpu_safe_cast_u64_to_u32 with higher 32 bits masked out \a n as
+ * parameter.
  *
- * @param n [in]	Input value.
+ * @param n [in] Input value. Function does not perform any validation of
+ *		 the parameter.
  *
  * @return Least significant 32 bits of \a n.
  */
@@ -90,8 +96,10 @@ static inline u32 u64_lo32(u64 n)
  *
  * Returns a 64 bit value by combining the two 32 bit input values.
  *
- * @param hi [in]	Higher 32 bits.
- * @param lo [in]	Lower 32 bits.
+ * @param hi [in] Higher 32 bits. Function does not perform any validation
+ *		  of the parameter.
+ * @param lo [in] Lower 32 bits. Function does not perform any validation
+ *		  of the parameter.
  *
  * @return 64 bit value of which the least significant 32 bits are \a lo and
  * most significant 32 bits are \a hi.
@@ -104,14 +112,17 @@ static inline u64 hi32_lo32_to_u64(u32 hi, u32 lo)
 /**
  * @brief Sets a particular field value in input data.
  *
- * Uses the \a mask value to clear the bits that are part of the field and
- * sets the value mentioned in \a field in those bit positions.
+ * Uses the \a mask value to clear those bit positions in \a val and the value
+ * of \a field is used to set the bits in the value to be returned.
  *
- * @param val [in]	Value to set the field in.
- * @param mask [in]	Mask for the field.
- * @param field [in]	Field value.
+ * @param val [in] Value to set the field in. Function does not perform any
+ *		   validation of the parameter.
+ * @param mask [in] Mask for the field. Function does not perform any
+ *		    validation of the parameter.
+ * @param field [in] Field value. Function does not perform any validation
+ *		     of the parameter.
  *
- * @return Returns \a val with updated field.
+ * @return Returns a value with updated bits.
  */
 static inline u32 set_field(u32 val, u32 mask, u32 field)
 {
@@ -121,10 +132,12 @@ static inline u32 set_field(u32 val, u32 mask, u32 field)
 /**
  * @brief Gets a particular field value from input data.
  *
- * Returns the field value at mask position in reg.
+ * Returns the field value at \a mask position in \a reg.
  *
- * @param reg [in]	Value to get the field from.
- * @param mask [in]	Mask for the field.
+ * @param reg [in] Value to get the field from. Function does not perform any
+ *		   validation of the parameter.
+ * @param mask [in] Mask for the field. Function does not perform any
+ *		    validation of the parameter.
  *
  * @return Field value from \a reg according to the \a mask.
  */

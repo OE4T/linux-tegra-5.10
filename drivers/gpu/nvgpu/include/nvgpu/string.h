@@ -34,25 +34,33 @@ struct gk20a;
 /**
  * @brief Copy memory buffer
  *
- * Copy memory from source buffer to destination buffer.
+ * Copy memory from source buffer \a srcb to destination buffer \a destb.
+ * This function uses the library function \a memcpy internally.
  *
- * @param destb [out]	Buffer into which data is to be copied.
- * @param srcb [in]	Buffer from which data is to be copied.
- * @param n [in]	Number of bytes to copy from src buffer to dest buffer.
+ * @param destb [out] Buffer into which data is to be copied.
+ *		      Function does not perform validation of this parameter.
+ * @param srcb [in] Buffer from which data is to be copied.
+ *		    Function does not perform validation of this parameter.
+ * @param n [in] Number of bytes to copy from src buffer to dest buffer.
+ *		 Function does not perform validation of this parameter.
  */
 void nvgpu_memcpy(u8 *destb, const u8 *srcb, size_t n);
 
 /**
  * @brief Compare memory buffers
  *
- * Compare the first \a n bytes of two memory buffers.  If the contents of the
- * two buffers match then zero is returned.  If the contents of b1 are less
- * than b2 then a value less than zero is returned.  If the contents of b1
- * are greater than b2 then a value greater than zero is returned.
+ * Compare the first \a n bytes of two memory buffers. If the contents of the
+ * two buffers match, then zero is returned. If the contents of \a b1 are less
+ * than \a b2 then a value less than zero is returned. If the contents of \a b1
+ * are greater than \a b2 then a value greater than zero is returned. This
+ * function uses the library function \a memcmp internally.
  *
- * @param b1 [in]	First buffer to use in memory comparison.
- * @param b2 [in]	Second buffer to use in memory comparison.
- * @param n [in]	Number of bytes to compare between two buffers.
+ * @param b1 [in] First buffer to use in memory comparison.
+ *		  Function does not perform validation of this parameter.
+ * @param b2 [in] Second buffer to use in memory comparison.
+ *		  Function does not perform validation of this parameter.
+ * @param n [in] Number of bytes to compare between two buffers.
+ *		 Function does not perform validation of this parameter.
  *
  * @return 0 if the comparison matches else a non-zero value is returned.
  *
@@ -67,13 +75,20 @@ int nvgpu_memcmp(const u8 *b1, const u8 *b2, size_t n);
 /**
  * @brief Formats u32 into null-terminated string
  *
- * Formats the integer variable \a value into a null terminated string.
+ * Formats the integer variable \a value into a null terminated string. Uses
+ * the function #nvgpu_safe_add_u32 to count the number of digits in the
+ * input parameter \a value. A local variable is passed as an input parameter
+ * to the function #nvgpu_safe_add_u32 to store the count of the digits.
  *
- * @param dst [in,out]	Buffer to copy the value into.
- * @param value [in]	Value to be added with the string.
- * @param size [in]	Size available in the destination buffer.
- * @param radix	[in]	Radix value to be used. Should be in the range
- *                      2 - 16, both inclusive.
+ * @param dst [in,out] Buffer to copy the value into.
+ *		       Function does not perform validation of this parameter.
+ * @param value [in] Value to be formatted into string.
+ *		     Function does not perform validation of this parameter.
+ * @param size [in] Size available in the destination buffer. Returns 0 If the
+ *		    size available is less than the length required to create a
+ *					NULL terminated string equivalent of \a value parameter.
+ * @param radix	[in] Radix value to be used. Should be in the range 2 - 16,both
+ *		     inclusive.
  *
  * @return Returns number of digits added to string (not including '\0') if
  * successful, else 0.
@@ -83,12 +98,14 @@ int nvgpu_memcmp(const u8 *b1, const u8 *b2, size_t n);
 int nvgpu_strnadd_u32(char *dst, const u32 value, size_t size, u32 radix);
 
 /**
- * @brief Check that memory address is word (4-byte) aligned.
+ * @brief Check if the memory address is word (4-byte) aligned.
  *
  * Checks if the provided address is word aligned or not.
  *
- * @param g [in]	struct gk20a.
- * @param addr [in]	Memory address.
+ * @param g [in] The GPU structure, struct gk20a.
+ *		 Function does not perform validation of this parameter.
+ * @param addr [in] Memory address. Checks if the parameter is aligned with 4
+ *		    bytes or not.
  *
  * @return Boolean value to indicate the alignment status of the address.
  *

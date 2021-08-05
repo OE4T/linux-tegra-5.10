@@ -38,9 +38,11 @@ struct nvgpu_list_node {
 /**
  * @brief Initialize a list node.
  *
- * @param node [in]     List node to initialize.
+ * Initializes a list node by setting the \a prev and \a next pointers
+ * in #nvgpu_list_node \a node to \a node itself.
  *
- * Initializes a list node by setting the prev and next pointer to itself.
+ * @param node [in] List node to initialize. Function does not perform
+ *		    any validation of the parameter.
  */
 static inline void nvgpu_init_list_node(struct nvgpu_list_node *node)
 {
@@ -53,8 +55,10 @@ static inline void nvgpu_init_list_node(struct nvgpu_list_node *node)
  *
  * Adds the node \a new_node to the head of the list pointed by \a head.
  *
- * @param node [in]     Node to be added.
- * @param head [in]     Head of the list.
+ * @param node [in] Node to be added. Function does not perform any
+ *		    validation of the parameter.
+ * @param head [in] Head of the list. Function does not perform any
+ *		    validation of the parameter.
  */
 static inline void nvgpu_list_add(struct nvgpu_list_node *new_node,
 					struct nvgpu_list_node *head)
@@ -70,9 +74,11 @@ static inline void nvgpu_list_add(struct nvgpu_list_node *new_node,
  *
  * Adds the node \a new_node to the tail of the list pointed by \a head.
  *
- * @param node [in]     Node to be added.
- * @param head [in]     Tail node of the list where the
- * 			addition has to be done.
+ * @param new_node [in]	Node to be added. Function does not perform any
+ *			validation of the parameter.
+ * @param head [in] Tail node of the list where the
+ *		    addition has to be done. Function does not perform any
+ *		    validation of the parameter.
  *
  */
 static inline void nvgpu_list_add_tail(struct nvgpu_list_node *new_node,
@@ -88,9 +94,11 @@ static inline void nvgpu_list_add_tail(struct nvgpu_list_node *new_node,
  * @brief Delete a node from the list.
  *
  * Deletes the node \a node from the list and initialize the node pointers to
- * point to itself.
+ * point to itself. Uses the function #nvgpu_init_list_node with \a node as
+ * parameter to initialize the node after deleting it from the list.
  *
- * @param node [in]     Condition variable to wait.
+ * @param node [in] Node to be deleted. Function does not perform any
+ *		    validation of the parameter.
  */
 static inline void nvgpu_list_del(struct nvgpu_list_node *node)
 {
@@ -104,7 +112,8 @@ static inline void nvgpu_list_del(struct nvgpu_list_node *node)
  *
  * Checks if the list pointed by \a head is empty or not.
  *
- * @param head [in]    Head node of the list to be checked.
+ * @param head [in] Head node of the list to be checked. Function does not
+ *		    perform any validation of the parameter.
  *
  * @return Boolean value to indicate the status of the list.
  *
@@ -120,10 +129,15 @@ static inline bool nvgpu_list_empty(struct nvgpu_list_node *head)
  * @brief Move a node from the list to head.
  *
  * Moves the node pointed by \a node to the head of the list pointed
- * by \a head.
+ * by \a head. Invokes the function #nvgpu_list_del with \a node as parameter
+ * to delete the node from the list first and then uses the function
+ * #nvgpu_list_add with \a node and \a head as parameters to add the node
+ * back in the list.
  *
- * @param node [in]     Node to move.
- * @param head [in]     Head of the list.
+ * @param node [in] Node to move. Function does not perform any validation
+ *		    of the parameter.
+ * @param head [in] Head of the list. Function does not perform any validation
+ *		    of the parameter.
  */
 static inline void nvgpu_list_move(struct nvgpu_list_node *node,
 					struct nvgpu_list_node *head)
@@ -136,10 +150,13 @@ static inline void nvgpu_list_move(struct nvgpu_list_node *node,
  * @brief Replace a node in the list.
  *
  * Replaces the node pointed by \a old_node with the node pointed
- * by \a new_node.
+ * by \a new_node. Uses the function #nvgpu_init_list_node with \a old_node
+ * as parameter to initialize the node after replacing it with the \a new_node.
  *
- * @param old_node [in]     Node to replace.
- * @param new_node [in]     Node to replace with.
+ * @param old_node [in]	Node to replace. Function does not perform any
+ *			validation of the parameter.
+ * @param new_node [in]	Node to replace with. Function does not perform any
+ *			validation of the parameter.
  */
 static inline void nvgpu_list_replace_init(struct nvgpu_list_node *old_node,
 					struct nvgpu_list_node *new_node)
@@ -181,7 +198,8 @@ static inline void nvgpu_list_replace_init(struct nvgpu_list_node *old_node,
 /**
  * @brief First entry from the list.
  *
- * Fetches the first entry from the list.
+ * Fetches the first entry from the list. Does not perform any validation of
+ * the macro parameters.
  *
  * @param ptr [in]	Pointer to the head.
  * @param type [in]	Type of the entry.
@@ -195,7 +213,8 @@ static inline void nvgpu_list_replace_init(struct nvgpu_list_node *old_node,
 /**
  * @brief Last entry from the list.
  *
- * Fetches the last entry from the list.
+ * Fetches the last entry from the list. Does not perform any validation of
+ * the macro parameters.
  *
  * @param ptr [in]	Pointer to list.
  * @param type [in]	Type of the entry.
@@ -209,7 +228,8 @@ static inline void nvgpu_list_replace_init(struct nvgpu_list_node *old_node,
 /**
  * @brief Loop through each entry in the list.
  *
- * Loops through each entry in the list.
+ * Loops through each entry in the list. Does not perform any validation of
+ * the macro parameters.
  *
  * @param pos [in, out] Entry node in the list.
  * @param head [in]	Pointer to the list.
@@ -225,7 +245,7 @@ static inline void nvgpu_list_replace_init(struct nvgpu_list_node *old_node,
  * @brief Safe loop through each entry in the list.
  *
  * Loops through each entry in the list and safe against removal of the list
- * entry.
+ * entry. Does not perform any validation of the macro parameters.
  *
  * @param pos [in, out]	Entry node in the list.
  * @param n [in, out]	Next node in the list.

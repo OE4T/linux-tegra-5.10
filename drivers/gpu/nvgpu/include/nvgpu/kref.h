@@ -41,9 +41,11 @@ struct nvgpu_ref {
  * @brief Initialize the reference object.
  *
  * Initializes the reference count of the object pointed by \a ref by
- * atomically setting it to 1.
+ * atomically setting it to 1. Invokes function #nvgpu_atomic_set with variable
+ * \a refcount in #nvgpu_ref and 1 as parameters to set the value atomically.
  *
- * @param ref [in]	The nvgpu_ref object to initialize.
+ * @param ref [in] The nvgpu_ref object to initialize. Function does not
+ *		   perform any validation of the parameter.
  */
 static inline void nvgpu_ref_init(struct nvgpu_ref *ref)
 {
@@ -51,11 +53,13 @@ static inline void nvgpu_ref_init(struct nvgpu_ref *ref)
 }
 
 /**
- * @brief Increment the reference count.
+ * @brief Atomically increment the reference count.
  *
- * Increment the reference count for the object atomically.
+ * Increment the reference count for the object atomically. Invokes function
+ * #nvgpu_atomic_inc with variable \a refcount in #nvgpu_ref as parameter.
  *
- * @param ref [in]	The nvgpu_ref object.
+ * @param ref [in] The nvgpu_ref object. Function does not perform any
+ *		   validation of the parameter.
  */
 static inline void nvgpu_ref_get(struct nvgpu_ref *ref)
 {
@@ -63,15 +67,17 @@ static inline void nvgpu_ref_get(struct nvgpu_ref *ref)
 }
 
 /**
- * @brief Decrement the reference count.
+ * @brief Atomically decrement the reference count.
  *
- * Decrement reference count for the object and call \a release if it becomes
- * zero.
+ * Decrement reference count for the object atomically and call \a release if
+ * it becomes zero. Invokes the function #nvgpu_atomic_sub_and_test with
+ * variable \a refcount in #nvgpu_ref as parameter to decrement atomically.
  *
- * @param ref[in]	The nvgpu_ref object.
- * @param release [in]	Pointer to the function that would be invoked to
- * 			clean up the object when the reference count becomes
- * 			zero.
+ * @param ref[in] The nvgpu_ref object. Function does not perform any
+ *		  validation of the parameter.
+ * @param release [in] Pointer to the function that would be invoked to clean
+ *		       up the object when the reference count becomes zero.
+ *		       Function uses the parameter only if it is not NULL.
  */
 static inline void nvgpu_ref_put(struct nvgpu_ref *ref,
 		void (*release)(struct nvgpu_ref *r))
@@ -84,18 +90,23 @@ static inline void nvgpu_ref_put(struct nvgpu_ref *ref,
 }
 
 /**
- * @brief Decrement reference count for the object, call release() if it
- * becomes zero and return the status of the removal.
+ * @brief Atomically decrement the reference count for the object and invoke
+ * the callback function if it becomes zero and return the status of the
+ * removal.
  *
- * Decrement the reference count for the object pointed by \a ref, invokes the
- * callback function \a release if it becomes zero and returns the status of
+ * Atomically decrement the reference count for the object pointed by \a ref
+ * using the function #nvgpu_atomic_sub_and_test. \a refcount in #nvgpu_ref is
+ * passed as the parameter to decrement atomically. Invokes the callback
+ * function \a release if the refcount becomes zero and returns the status of
  * the removal.
  *
- * @param ref [in]	The nvgpu_ref object.
- * @param release [in]	Pointer to the function that would be invoked to
- * 			clean up the object when the reference count becomes
- * 			zero, i.e. the last reference corresponding to this
- * 			object is removed.
+ * @param ref [in] The nvgpu_ref object. Function does not perform any
+ *		   validation of the parameter.
+ * @param release [in] Pointer to the function that would be invoked to
+ *		       clean up the object when the reference count becomes
+ *		       zero, i.e. the last reference corresponding to this
+ *		       object is removed. Function uses the parameter only if
+ *		       it is not NULL
  *
  * @return Return 1 if object was removed, otherwise return 0. The user should
  * not make any assumptions about the status of the object in the memory when
@@ -118,12 +129,14 @@ static inline int nvgpu_ref_put_return(struct nvgpu_ref *ref,
 }
 
 /**
- * @brief Increment reference count of the object unless it is zero.
+ * @brief Atomically increment reference count of the object unless it is zero.
  *
  * Increment the reference count of the object pointed by \a ref unless it
- * is zero.
+ * is zero. Invokes the function #nvgpu_atomic_add_unless with \a refcount in
+ * #nvgpu_ref as the parameter to set.
  *
- * @param ref [in]	The nvgpu_ref object.
+ * @param ref [in] The nvgpu_ref object. Function does not perform any
+ *		   validation of the parameter.
  *
  * @return Return non-zero if the increment succeeds, Otherwise return 0.
  */
