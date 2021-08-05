@@ -12,6 +12,7 @@
  * more details.
  */
 
+#include "tegra234-platforms-simple-bus.dtsi"
 / {
 	fixed-regulators {
 		p3701_ddr_vddq: regulator@0 {
