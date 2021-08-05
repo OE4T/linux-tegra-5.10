@@ -23,7 +23,6 @@
 #if defined(CONFIG_TRUSTED_LITTLE_KERNEL) || defined(CONFIG_TRUSTY)
 #include <linux/ote_protocol.h>
 #endif
-#include <soc/tegra/kfuse.h>
 
 #include "dev.h"
 #include "bus_client.h"
@@ -299,12 +298,6 @@ int nvhost_nvdec_finalize_poweron_t23x(struct platform_device *dev)
 		return -ENODATA;
 	}
 
-	if (!tegra_platform_is_vdk()) {
-		err = tegra_kfuse_enable_sensing();
-		if (err)
-			return err;
-	}
-
 	if (pdata->enable_riscv_boot) {
 		err = nvhost_nvdec_riscv_finalize_poweron(dev);
 	} else {
@@ -312,19 +305,11 @@ int nvhost_nvdec_finalize_poweron_t23x(struct platform_device *dev)
 		err = nvhost_nvdec_finalize_poweron(dev);
 	}
 
-	if (err && !tegra_platform_is_vdk()) {
-		tegra_kfuse_disable_sensing();
-	}
-
 	return err;
 }
 
 int nvhost_nvdec_prepare_poweroff_t23x(struct platform_device *dev)
 {
-	if (!tegra_platform_is_vdk()) {
-		tegra_kfuse_disable_sensing();
-	}
-
 	return 0;
 }
 
