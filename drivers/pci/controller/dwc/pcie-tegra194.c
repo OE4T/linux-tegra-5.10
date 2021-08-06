@@ -2,7 +2,7 @@
 /*
  * PCIe host controller driver for Tegra194 SoC
  *
- * Copyright (C) 2019-2021 NVIDIA Corporation.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * Author: Vidya Sagar <vidyas@nvidia.com>
  */
@@ -323,6 +323,7 @@ struct tegra_pcie_dw {
 	bool enable_cdm_check;
 	bool enable_srns;
 	bool link_state;
+	bool link_status_change;
 	bool disable_power_down;
 	bool update_fc_fixup;
 	bool gic_v2m;
@@ -490,15 +491,15 @@ static irqreturn_t tegra_pcie_rp_irq_handler(int irq, void *arg)
 	struct tegra_pcie_dw *pcie = arg;
 	struct dw_pcie *pci = &pcie->pci;
 	struct pcie_port *pp = &pci->pp;
-	u32 val, tmp;
+	u32 val, status_l0, status_l1;
 	u16 val_w;
-	int handled = 1;
+	int irq_ret = IRQ_HANDLED;
 
-	val = appl_readl(pcie, APPL_INTR_STATUS_L0);
-	if (val & APPL_INTR_STATUS_L0_LINK_STATE_INT) {
-		val = appl_readl(pcie, APPL_INTR_STATUS_L1_0_0);
-		writel(val, pcie->appl_base + APPL_INTR_STATUS_L1_0_0);
-		if (val & APPL_INTR_STATUS_L1_0_0_LINK_REQ_RST_NOT_CHGED) {
+	status_l0 = appl_readl(pcie, APPL_INTR_STATUS_L0);
+	if (status_l0 & APPL_INTR_STATUS_L0_LINK_STATE_INT) {
+		status_l1 = appl_readl(pcie, APPL_INTR_STATUS_L1_0_0);
+		writel(status_l1, pcie->appl_base + APPL_INTR_STATUS_L1_0_0);
+		if (status_l1 & APPL_INTR_STATUS_L1_0_0_LINK_REQ_RST_NOT_CHGED) {
 			/* SBR & Surprise Link Down WAR */
 			val = appl_readl(pcie, APPL_CAR_RESET_OVRD);
 			val &= ~APPL_CAR_RESET_OVRD_CYA_OVERRIDE_CORE_RST_N;
@@ -512,25 +513,33 @@ static irqreturn_t tegra_pcie_rp_irq_handler(int irq, void *arg)
 			val |= PORT_LOGIC_SPEED_CHANGE;
 			dw_pcie_writel_dbi(pci, PCIE_LINK_WIDTH_SPEED_CONTROL, val);
 		}
+		if (status_l1 & APPL_INTR_STATUS_L1_0_0_RDLH_LINK_UP_CHGED) {
+			val = appl_readl(pcie, APPL_LINK_STATUS);
+			if (val & APPL_LINK_STATUS_RDLH_LINK_UP) {
+				dev_info(pcie->dev, "Link is up\n");
+				pcie->link_status_change = true;
+				irq_ret = IRQ_WAKE_THREAD;
+			}
+		}
 	}
 
-	if (val & APPL_INTR_STATUS_L0_INT_INT) {
-		val = appl_readl(pcie, APPL_INTR_STATUS_L1_8_0);
-		if (val & APPL_INTR_STATUS_L1_8_0_EDMA_INT_MASK) {
+	if (status_l0 & APPL_INTR_STATUS_L0_INT_INT) {
+		status_l1 = appl_readl(pcie, APPL_INTR_STATUS_L1_8_0);
+		if (status_l1 & APPL_INTR_STATUS_L1_8_0_EDMA_INT_MASK) {
 #if defined(CONFIG_PCIE_RP_DMA_TEST)
 			tegra_pcie_dma_status_clr(pcie);
 #else
-			handled = 0;
+			irq_ret = IRQ_NONE;
 #endif
 		}
 
-		if (val & APPL_INTR_STATUS_L1_8_0_AUTO_BW_INT_STS) {
+		if (status_l1 & APPL_INTR_STATUS_L1_8_0_AUTO_BW_INT_STS) {
 			appl_writel(pcie,
 				    APPL_INTR_STATUS_L1_8_0_AUTO_BW_INT_STS,
 				    APPL_INTR_STATUS_L1_8_0);
 			apply_bad_link_workaround(pp);
 		}
-		if (val & APPL_INTR_STATUS_L1_8_0_BW_MGT_INT_STS) {
+		if (status_l1 & APPL_INTR_STATUS_L1_8_0_BW_MGT_INT_STS) {
 			appl_writel(pcie,
 				    APPL_INTR_STATUS_L1_8_0_BW_MGT_INT_STS,
 				    APPL_INTR_STATUS_L1_8_0);
@@ -546,28 +555,54 @@ static irqreturn_t tegra_pcie_rp_irq_handler(int irq, void *arg)
 		}
 	}
 
-	val = appl_readl(pcie, APPL_INTR_STATUS_L0);
-	if (val & APPL_INTR_STATUS_L0_CDM_REG_CHK_INT) {
-		val = appl_readl(pcie, APPL_INTR_STATUS_L1_18);
-		tmp = dw_pcie_readl_dbi(pci, PCIE_PL_CHK_REG_CONTROL_STATUS);
-		if (val & APPL_INTR_STATUS_L1_18_CDM_REG_CHK_CMPLT) {
+	if (status_l0 & APPL_INTR_STATUS_L0_CDM_REG_CHK_INT) {
+		status_l1 = appl_readl(pcie, APPL_INTR_STATUS_L1_18);
+		val = dw_pcie_readl_dbi(pci, PCIE_PL_CHK_REG_CONTROL_STATUS);
+		if (status_l1 & APPL_INTR_STATUS_L1_18_CDM_REG_CHK_CMPLT) {
 			dev_info(pci->dev, "CDM check complete\n");
-			tmp |= PCIE_PL_CHK_REG_CHK_REG_COMPLETE;
+			val |= PCIE_PL_CHK_REG_CHK_REG_COMPLETE;
 		}
-		if (val & APPL_INTR_STATUS_L1_18_CDM_REG_CHK_CMP_ERR) {
+		if (status_l1 & APPL_INTR_STATUS_L1_18_CDM_REG_CHK_CMP_ERR) {
 			dev_err(pci->dev, "CDM comparison mismatch\n");
-			tmp |= PCIE_PL_CHK_REG_CHK_REG_COMPARISON_ERROR;
+			val |= PCIE_PL_CHK_REG_CHK_REG_COMPARISON_ERROR;
 		}
-		if (val & APPL_INTR_STATUS_L1_18_CDM_REG_CHK_LOGIC_ERR) {
+		if (status_l1 & APPL_INTR_STATUS_L1_18_CDM_REG_CHK_LOGIC_ERR) {
 			dev_err(pci->dev, "CDM Logic error\n");
-			tmp |= PCIE_PL_CHK_REG_CHK_REG_LOGIC_ERROR;
+			val |= PCIE_PL_CHK_REG_CHK_REG_LOGIC_ERROR;
 		}
-		dw_pcie_writel_dbi(pci, PCIE_PL_CHK_REG_CONTROL_STATUS, tmp);
-		tmp = dw_pcie_readl_dbi(pci, PCIE_PL_CHK_REG_ERR_ADDR);
-		dev_err(pci->dev, "CDM Error Address Offset = 0x%08X\n", tmp);
+		dw_pcie_writel_dbi(pci, PCIE_PL_CHK_REG_CONTROL_STATUS, val);
+		val = dw_pcie_readl_dbi(pci, PCIE_PL_CHK_REG_ERR_ADDR);
+		dev_err(pci->dev, "CDM Error Address Offset = 0x%08X\n", val);
 	}
 
-	return IRQ_RETVAL(handled);
+	return irq_ret;
+}
+
+static irqreturn_t tegra_pcie_rp_irq_thread(int irq, void *arg)
+{
+	struct tegra_pcie_dw *pcie = arg;
+	struct dw_pcie *pci = &pcie->pci;
+	struct pcie_port *pp;
+	struct pci_bus *bus;
+	u32 speed;
+
+	pp = &pcie->pci.pp;
+	bus = pp->bridge->bus;
+
+	if (!pcie->link_status_change || !bus)
+		return IRQ_HANDLED;
+
+	pcie->link_status_change = false;
+	pci_lock_rescan_remove();
+	pci_rescan_bus(bus);
+	pci_unlock_rescan_remove();
+
+	speed = dw_pcie_readw_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKSTA) &
+		PCI_EXP_LNKSTA_CLS;
+	if (speed > 0)
+		clk_set_rate(pcie->core_clk, pcie_gen_freq[speed - 1]);
+
+	return IRQ_HANDLED;
 }
 
 static void pex_ep_event_hot_rst_done(struct tegra_pcie_dw *pcie)
@@ -1635,6 +1670,10 @@ static void tegra_pcie_enable_system_interrupts(struct pcie_port *pp)
 	val |= APPL_INTR_EN_L0_0_LINK_STATE_INT_EN;
 	appl_writel(pcie, val, APPL_INTR_EN_L0_0);
 
+	val = appl_readl(pcie, APPL_INTR_EN_L1_0_0);
+	val |= APPL_INTR_EN_L1_0_0_RDLH_LINK_UP_INT_EN;
+	appl_writel(pcie, val, APPL_INTR_EN_L1_0_0);
+
 	if (pcie->of_data->sbr_reset_fixup) {
 		val = appl_readl(pcie, APPL_INTR_EN_L1_0_0);
 		val |= APPL_INTR_EN_L1_0_0_LINK_REQ_RST_NOT_INT_EN;
@@ -1917,7 +1956,7 @@ static int tegra_pcie_dw_host_init(struct pcie_port *pp)
 		tmp &= APPL_LINK_STATUS_RDLH_LINK_UP;
 		if (!(val == 0x11 && !tmp)) {
 			/* Link is down for all good reasons */
-			return 0;
+			goto link_down;
 		}
 
 		dev_info(pci->dev, "Link is down in DLL");
@@ -1938,13 +1977,15 @@ static int tegra_pcie_dw_host_init(struct pcie_port *pp)
 		tegra_pcie_prepare_host(pp);
 
 		if (dw_pcie_wait_for_link(pci))
-			return 0;
+			goto link_down;
 	}
 
 	speed = dw_pcie_readw_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKSTA) &
 		PCI_EXP_LNKSTA_CLS;
-	clk_set_rate(pcie->core_clk, pcie_gen_freq[speed - 1]);
+	if (speed > 0)
+		clk_set_rate(pcie->core_clk, pcie_gen_freq[speed - 1]);
 
+link_down:
 	tegra_pcie_enable_interrupts(pp);
 
 	return 0;
@@ -3496,8 +3537,10 @@ static int tegra_pcie_dw_probe(struct platform_device *pdev)
 
 	switch (pcie->mode) {
 	case DW_PCIE_RC_TYPE:
-		ret = devm_request_irq(dev, pp->irq, tegra_pcie_rp_irq_handler,
-				       IRQF_SHARED, "tegra-pcie-intr", pcie);
+		ret = devm_request_threaded_irq(dev, pp->irq, tegra_pcie_rp_irq_handler,
+						tegra_pcie_rp_irq_thread,
+						IRQF_SHARED,
+						"tegra-pcie-intr", (void *)pcie);
 		if (ret) {
 			dev_err(dev, "Failed to request IRQ %d: %d\n", pp->irq,
 				ret);
