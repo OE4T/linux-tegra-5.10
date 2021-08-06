@@ -106,36 +106,6 @@
         };
 
         host1x@13e00000 {
-                status = "disabled";
-
-                nvcsi@15a00000 {
-                        status = "disabled";
-                };
-
-                vi0@15c00000 {
-                        status = "disabled";
-                };
-
-                vi1@14c00000 {
-                        status = "disabled";
-                };
-
-                vi0-thi@15f00000 {
-                        status = "disabled";
-                };
-
-                vi1-thi@14f00000 {
-                        status = "disabled";
-                };
-
-                isp@14800000 {
-                        status = "disabled";
-                };
-
-                isp-thi@14b00000 {
-                        status = "disabled";
-                };
-
                 se@15810000 {
                         status = "disabled";
                 };
@@ -153,10 +123,6 @@
                 status = "disabled";
         };
 
-        tegra-hsp@b950000 {
-                status = "disabled";
-        };
-
         efuse@3810000 {
                 status = "disabled";
         };
@@ -165,19 +131,7 @@
                 status = "disabled";
         };
 
-        rtcpu@bc00000 {
-                status = "disabled";
-        };
-
         dce@d800000 {
-                status = "disabled";
-        };
-
-        camera-ivc-channels {
-                status = "disabled";
-        };
-
-        tegra-capture-vi {
                 status = "disabled";
         };
 
