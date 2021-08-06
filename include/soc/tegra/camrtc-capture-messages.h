@@ -174,7 +174,7 @@ struct CAPTURE_CHANNEL_RESET_REQ_MSG {
 	/** See @ref CapResetFlags "Reset flags" */
 	uint32_t reset_flags;
 	/** Reserved */
-	uint32_t __pad;
+	uint32_t pad__;
 } CAPTURE_IVC_ALIGN;
 
 /**
@@ -188,7 +188,7 @@ struct CAPTURE_CHANNEL_RESET_REQ_MSG {
 struct CAPTURE_CHANNEL_RESET_RESP_MSG {
 	/** Reset status return value. See @ref CapErrorCodes "Return values" */
 	capture_result result;
-	uint32_t __pad;
+	uint32_t pad__;
 } CAPTURE_IVC_ALIGN;
 
 /**
@@ -199,7 +199,7 @@ struct CAPTURE_CHANNEL_RESET_RESP_MSG {
 struct CAPTURE_CHANNEL_RELEASE_REQ_MSG {
 	/** Reset flags. Currently not used in release request. */
 	uint32_t reset_flags;
-	uint32_t __pad;
+	uint32_t pad__;
 } CAPTURE_IVC_ALIGN;
 
 /**
@@ -211,7 +211,7 @@ struct CAPTURE_CHANNEL_RELEASE_REQ_MSG {
 struct CAPTURE_CHANNEL_RELEASE_RESP_MSG {
 	/** Release status return value. See @ref CapErrorCodes "Return values" */
 	capture_result result;
-	uint32_t __pad;
+	uint32_t pad__;
 } CAPTURE_IVC_ALIGN;
 
 /**
@@ -238,7 +238,7 @@ struct CAPTURE_COMPAND_CONFIG_REQ_MSG {
 struct CAPTURE_COMPAND_CONFIG_RESP_MSG {
 	/** Companding config setup result. See @ref CapErrorCodes "Return values". */
 	capture_result result;
-	uint32_t __pad;
+	uint32_t pad__;
 } CAPTURE_IVC_ALIGN;
 
 /**
@@ -262,7 +262,7 @@ struct CAPTURE_PDAF_CONFIG_RESP_MSG {
 	/** PDAF config setup result. See @ref CapErrorCodes "Return values". */
 	capture_result result;
 	/** Reserved */
-	uint32_t __pad;
+	uint32_t pad__;
 } CAPTURE_IVC_ALIGN;
 
 /*
@@ -275,7 +275,7 @@ struct CAPTURE_SYNCGEN_ENABLE_REQ_MSG {
 	/** Syncgen unit */
 	uint32_t unit;
 	/** Reserved */
-	uint32_t __pad;
+	uint32_t pad__;
 	/** VI SYNCGEN unit configuration */
 	struct vi_syncgen_config syncgen_config;
 } CAPTURE_IVC_ALIGN;
@@ -347,7 +347,7 @@ struct CAPTURE_PHY_STREAM_OPEN_REQ_MSG {
 	/** See @ref NvPhyType "NvCSI Physical stream type" */
 	uint32_t phy_type;
 	/** Reserved */
-	uint32_t __pad32;
+	uint32_t pad32__;
 } CAPTURE_IVC_ALIGN;
 
 /**
@@ -358,7 +358,7 @@ struct CAPTURE_PHY_STREAM_OPEN_RESP_MSG {
 	/** Stream open request status. See @ref CapErrorCodes "Return values". */
 	uint32_t result;
 	/** Reserved */
-	uint32_t __pad32;
+	uint32_t pad32__;
 } CAPTURE_IVC_ALIGN;
 
 /**
@@ -373,7 +373,7 @@ struct CAPTURE_PHY_STREAM_CLOSE_REQ_MSG {
 	/** See @ref NvPhyType "NvCSI Physical stream type" */
 	uint32_t phy_type;
 	/** Reserved */
-	uint32_t __pad32;
+	uint32_t pad32__;
 } CAPTURE_IVC_ALIGN;
 
 /**
@@ -384,7 +384,7 @@ struct CAPTURE_PHY_STREAM_CLOSE_RESP_MSG {
 	/** Stream close request status. See @ref CapErrorCodes "Return values". */
 	uint32_t result;
 	/** Reserved */
-	uint32_t __pad32;
+	uint32_t pad32__;
 } CAPTURE_IVC_ALIGN;
 
 /**
@@ -403,7 +403,7 @@ struct CAPTURE_PHY_STREAM_DUMPREGS_REQ_MSG {
 struct CAPTURE_PHY_STREAM_DUMPREGS_RESP_MSG {
 	/** Stream dump registers request status. See @ref CapErrorCodes "Return values". */
 	uint32_t result;
-	uint32_t __pad32;
+	uint32_t pad32__;
 } CAPTURE_IVC_ALIGN;
 
 /**
@@ -417,7 +417,7 @@ struct CAPTURE_CSI_STREAM_SET_CONFIG_REQ_MSG {
 	/** @ref See NvCsiConfigFlags "NVCSI Configuration Flags" */
 	uint32_t config_flags;
 	/** Reserved */
-	uint32_t __pad32;
+	uint32_t pad32__;
 	/** NVCSI super control and interface logic (SCIL aka brick) configuration */
 	struct nvcsi_brick_config brick_config;
 	/** NVCSI control and interface logic (CIL) partition configuration */
@@ -433,7 +433,7 @@ struct CAPTURE_CSI_STREAM_SET_CONFIG_RESP_MSG {
 	/** NVCSI stream config request status. See @ref CapErrorCodes "Return values". */
 	uint32_t result;
 	/** Reserved */
-	uint32_t __pad32;
+	uint32_t pad32__;
 } CAPTURE_IVC_ALIGN;
 
 /**
@@ -447,7 +447,7 @@ struct CAPTURE_CSI_STREAM_SET_PARAM_REQ_MSG {
 	/** The parameter to set. See @ref NvCsiParamType "NVCSI Parameter Type" */
 	uint32_t param_type;
 	/** Reserved */
-	uint32_t __pad32;
+	uint32_t pad32__;
 	/** @anon_union */
 	union {
 		/** Set DPCM config for an NVCSI stream @anon_union_member */
@@ -464,7 +464,7 @@ struct CAPTURE_CSI_STREAM_SET_PARAM_RESP_MSG {
 	/** NVCSI set stream parameter request status. See @ref CapErrorCodes "Return values". */
 	uint32_t result;
 	/** Reserved */
-	uint32_t __pad32;
+	uint32_t pad32__;
 } CAPTURE_IVC_ALIGN;
 
 /**
@@ -482,7 +482,7 @@ struct CAPTURE_CSI_STREAM_TPG_SET_CONFIG_RESP_MSG {
 	/** Set TPG config request status. See @ref CapErrorCodes "Return values". */
 	uint32_t result;
 	/** Reserved */
-	uint32_t __pad32;
+	uint32_t pad32__;
 } CAPTURE_IVC_ALIGN;
 
 /**
@@ -504,7 +504,7 @@ struct CAPTURE_CSI_STREAM_TPG_START_RESP_MSG {
 	/** TPG start request status. See @ref CapErrorCodes "Return values". */
 	uint32_t result;
 	/** Reserved */
-	uint32_t __pad32;
+	uint32_t pad32__;
 } CAPTURE_IVC_ALIGN;
 
 
@@ -532,7 +532,7 @@ struct CAPTURE_CSI_STREAM_TPG_START_RATE_RESP_MSG {
 	/** TPG start rate request status. See @ref CapErrorCodes "Return values". */
 	uint32_t result;
 	/** Reserved */
-	uint32_t __pad32;
+	uint32_t pad32__;
 } CAPTURE_IVC_ALIGN;
 
 /**
@@ -590,7 +590,7 @@ struct CAPTURE_CSI_STREAM_TPG_STOP_REQ_MSG {
 struct CAPTURE_CSI_STREAM_TPG_STOP_RESP_MSG {
 	/** Stop TPG steaming request status. See @ref CapErrorCodes "Return values". */
 	uint32_t result;
-	uint32_t __pad32;
+	uint32_t pad32__;
 } CAPTURE_IVC_ALIGN;
 
 /**
@@ -609,7 +609,7 @@ struct CAPTURE_CHANNEL_EI_REQ_MSG {
 	/** Number of error events */
 	uint8_t num_events;
 	/** Reserved */
-	uint8_t __pad[7];
+	uint8_t pad__[7];
 } CAPTURE_IVC_ALIGN;
 
 /**
@@ -619,7 +619,7 @@ struct CAPTURE_CHANNEL_EI_RESP_MSG {
 	/** Stop TPG steaming request status. See @ref CapErrorCodes "Return values". */
 	capture_result result;
 	/** Reserved */
-	uint32_t __pad;
+	uint32_t pad__;
 } CAPTURE_IVC_ALIGN;
 
 /**
@@ -627,7 +627,7 @@ struct CAPTURE_CHANNEL_EI_RESP_MSG {
  */
 struct CAPTURE_CHANNEL_EI_RESET_REQ_MSG {
 	/** Reserved */
-	uint8_t __pad[8];
+	uint8_t pad__[8];
 } CAPTURE_IVC_ALIGN;
 
 /**
@@ -637,7 +637,7 @@ struct CAPTURE_CHANNEL_EI_RESET_RESP_MSG {
 	/** Event injection channel reset request result. See @ref CapErrorCodes "Return values". */
 	capture_result result;
 	/** Reserved */
-	uint32_t __pad;
+	uint32_t pad__;
 } CAPTURE_IVC_ALIGN;
 
 /**
@@ -709,7 +709,7 @@ struct CAPTURE_HSM_CHANSEL_ERROR_MASK_RESP_MSG {
 	/** HSM CHANSEL error mask request result. See @ref CapErrorCodes "Return values". */
 	capture_result result;
 	/** Reserved */
-	uint32_t __pad;
+	uint32_t pad__;
 } CAPTURE_IVC_ALIGN;
 /** @} */
 
@@ -911,7 +911,7 @@ struct CAPTURE_REQUEST_REQ_MSG {
 	/** Buffer index identifying capture descriptor. */
 	uint32_t buffer_index;
 	/** Reserved */
-	uint32_t __pad;
+	uint32_t pad__;
 } CAPTURE_IVC_ALIGN;
 
 /**
@@ -924,7 +924,7 @@ struct CAPTURE_STATUS_IND_MSG {
 	/** Buffer index identifying capture descriptor. */
 	uint32_t buffer_index;
 	/** Reserved */
-	uint32_t __pad;
+	uint32_t pad__;
 } CAPTURE_IVC_ALIGN;
 
 

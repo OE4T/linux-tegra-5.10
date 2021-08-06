@@ -67,7 +67,7 @@ struct camrtc_diag_isp5_sdl_setup_resp {
 	/** SDL setup status returned to caller. */
 	uint32_t result;
 	/** Reserved. */
-	uint32_t _pad32[1];
+	uint32_t pad32_[1];
 } CAMRTC_DIAG_IVC_ALIGN;
 
 /**
@@ -79,7 +79,7 @@ struct camrtc_diag_isp5_sdl_release_resp {
 	/** SDL release status returned to caller. */
 	uint32_t result;
 	/** Explicit padding. */
-	uint32_t _pad32[1];
+	uint32_t pad32_[1];
 } CAMRTC_DIAG_IVC_ALIGN;
 
 /**
@@ -102,7 +102,7 @@ struct camrtc_diag_isp5_sdl_status_resp {
 	/** Number of CRC failures in tests. (Counter stops at UINT32_MAX.) */
 	uint32_t crc_failed;
 	/** Explicit padding */
-	uint32_t _pad32[1];
+	uint32_t pad32_[1];
 } CAMRTC_DIAG_IVC_ALIGN;
 
 /**
