@@ -82,6 +82,7 @@
 #include "fecs_trace_linux.h"
 #include "driver_common.h"
 #include "channel.h"
+#include "debug_ce.h"
 #include "debug_pmgr.h"
 #include "dmabuf_priv.h"
 
@@ -306,6 +307,11 @@ int nvgpu_finalize_poweron_linux(struct nvgpu_os_linux *l)
 		nvgpu_err(g, "failed to init linux pmgr debugfs");
 		return err;
 	}
+
+#ifdef CONFIG_NVGPU_DGPU
+	if (!g->is_virtual)
+		nvgpu_ce_debugfs_init(g);
+#endif
 
 	l->init_done = true;
 

@@ -15,7 +15,6 @@
  */
 
 #include "debug_cde.h"
-#include "debug_ce.h"
 #include "debug_fifo.h"
 #include "debug_gr.h"
 #include "debug_allocator.h"
@@ -520,8 +519,6 @@ void gk20a_debug_init(struct gk20a *g, const char *debugfs_symlink)
 #endif
 	nvgpu_ltc_debugfs_init(g);
 #ifdef CONFIG_NVGPU_DGPU
-	if (!g->is_virtual)
-		nvgpu_ce_debugfs_init(g);
 	if (g->pci_vendor_id) {
 		nvgpu_xve_debugfs_init(g);
 		nvgpu_bios_debugfs_init(g);
