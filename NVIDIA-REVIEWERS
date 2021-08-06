@@ -365,3 +365,9 @@ L:	sw-libdrm@exchange.nvidia.com
 B:	Mobile_Graphics_DRM
 S:	Supported
 F:	drivers/gpu/drm/tegra_udrm/
+
+USS-IOPROXY
+M:	JC Kuo <jckuo@nvidia.com>
+L:	Ultrasonics-SW@exchange.nvidia.com
+S:	Supported
+F:	drivers/platform/tegra/tegra-uss-io-proxy.c
