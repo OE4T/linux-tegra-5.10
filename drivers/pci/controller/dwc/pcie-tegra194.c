@@ -2138,7 +2138,7 @@ void tegra_pcie_parse_msi_parent(struct tegra_pcie_dw *pcie)
 		return;
 	}
 
-	if (!of_device_is_compatible(np, "arm,gic-v2m-frame")) {
+	if (!of_device_is_compatible(msi_node, "arm,gic-v2m-frame")) {
 		dev_err(pcie->dev, "msi-parent is not gic-v2m\n");
 		return;
 	}
