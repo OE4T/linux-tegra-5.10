@@ -664,6 +664,11 @@ mm:
                  include/nvgpu/mm.h,
                  include/nvgpu/gops/mm.h ]
       deps: [ ]
+    ipa_pa_cache:
+      safe: yes
+      sources: [ common/mm/ipa_pa_cache.c,
+                 include/nvgpu/ipa_pa_cache.h ]
+      deps: [ ]
     nvgpu_mem:
       safe: yes
       sources: [ common/mm/nvgpu_mem.c,

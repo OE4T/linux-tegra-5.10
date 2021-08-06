@@ -571,6 +571,7 @@ nvgpu-y += \
 	common/mm/vm_area.o \
 	common/mm/nvgpu_mem.o \
 	common/mm/nvgpu_sgt.o \
+	common/mm/ipa_pa_cache.o \
 	common/mm/mm.o \
 	common/mm/dma.o \
 	common/vbios/bios.o \

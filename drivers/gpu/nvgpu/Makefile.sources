@@ -109,6 +109,7 @@ srcs +=	common/device.c \
 	common/mm/vm_area.c \
 	common/mm/nvgpu_mem.c \
 	common/mm/nvgpu_sgt.c \
+	common/mm/ipa_pa_cache.c \
 	common/mm/mm.c \
 	common/mm/dma.c \
 	common/therm/therm.c \

@@ -18,6 +18,7 @@
 #include <soc/tegra/fuse.h>
 #ifdef CONFIG_TEGRA_HV_MANAGER
 #include <soc/tegra/virt/syscalls.h>
+#include <nvgpu/ipa_pa_cache.h>
 #endif
 
 #include <nvgpu/soc.h>
@@ -73,6 +74,11 @@ static u64 nvgpu_tegra_hv_ipa_pa(struct gk20a *g, u64 ipa, u64 *pa_len)
 	int err;
 	u64 pa = 0ULL;
 
+	pa = nvgpu_ipa_to_pa_cache_lookup_locked(g, ipa, pa_len);
+	if (pa != 0UL) {
+		return pa;
+	}
+
 	err = hyp_read_ipa_pa_info(&info, platform->vmid, ipa);
 	if (err < 0) {
 		nvgpu_err(g, "ipa=%llx translation failed vmid=%u err=%d",
@@ -92,6 +98,11 @@ static u64 nvgpu_tegra_hv_ipa_pa(struct gk20a *g, u64 ipa, u64 *pa_len)
 				ipa, platform->vmid, pa, info.base,
 				info.offset, info.size);
 	}
+
+	if (pa != 0U) {
+		nvgpu_ipa_to_pa_add_to_cache(g, ipa, pa, &info);
+	}
+
 	return pa;
 }
 #endif
