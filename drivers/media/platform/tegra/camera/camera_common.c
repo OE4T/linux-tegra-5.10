@@ -1,7 +1,7 @@
 /*
  * camera_common.c - utilities for tegra camera driver
  *
- * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -1018,7 +1018,7 @@ int camera_common_initialize(struct camera_common_data *s_data,
 		const char *dev_name)
 {
 	int err = 0;
-	char debugfs_name[10];
+	char debugfs_name[35];
 
 	if (s_data->dev == NULL)
 		return -EINVAL;
