@@ -323,7 +323,7 @@ void nvgpu_rc_mmu_fault(struct gk20a *g, u32 act_eng_bitmask,
 	if ((id != INVAL_ID) && (id_type == ID_TYPE_TSG)) {
 		struct nvgpu_tsg *tsg = &g->fifo.tsg[id];
 		nvgpu_tsg_set_ctx_mmu_error(g, tsg);
-		nvgpu_tsg_mark_error(g, tsg);
+		(void)nvgpu_tsg_mark_error(g, tsg);
 	}
 
 	WARN_ON(!g->sw_quiesce_pending);

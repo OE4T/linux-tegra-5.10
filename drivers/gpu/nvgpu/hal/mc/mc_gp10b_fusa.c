@@ -1,7 +1,7 @@
 /*
  * GP10B master
  *
- * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -290,6 +290,6 @@ void mc_gp10b_ltc_isr(struct gk20a *g)
 		if ((mc_intr & BIT32(ltc)) == 0U) {
 			continue;
 		}
-		g->ops.ltc.intr.isr(g, ltc);
+		(void)g->ops.ltc.intr.isr(g, ltc);
 	}
 }
