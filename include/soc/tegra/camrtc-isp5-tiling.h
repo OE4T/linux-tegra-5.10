@@ -197,10 +197,6 @@ static bool isp5_find_tile_width_dpcm(const struct isp5_program * const prg,
 	const uint16_t prg_alignment = prg->overfetch.alignment;
 	const uint16_t alignment = isp5_max_u16(prg_alignment, 8U);
 
-	if (alignment == 0U) {
-		return false;
-	}
-
 	const uint16_t prg_right = prg->overfetch.right;
 	const uint16_t max_width_middle = isp5_align_down(ISP5_MAX_TILE_WIDTH - prg_right -
 						prg->overfetch.left,
