@@ -510,7 +510,7 @@ int gv11b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
 			index = nvgpu_safe_add_u32(gpc_index, index);
 			tpc_sm_id[index] |= (tpc_id <<
 						nvgpu_safe_mult_u32(
-							tpc_index,
+							(tpc_index & 3U),
 							bit_stride));
 		}
 		nvgpu_gr_ctx_patch_write(g, gr_ctx,
