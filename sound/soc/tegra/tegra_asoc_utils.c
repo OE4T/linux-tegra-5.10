@@ -50,6 +50,7 @@ int tegra_asoc_utils_set_rate(struct tegra_asoc_utils_data *data, int srate,
 		break;
 	case 8000:
 	case 16000:
+	case 24000:
 	case 32000:
 	case 48000:
 	case 64000:
@@ -189,8 +190,10 @@ int tegra_asoc_utils_set_tegra210_rate(struct tegra_asoc_utils_data *data,
 		break;
 	case 8000:
 	case 16000:
+	case 24000:
 	case 32000:
 	case 48000:
+	case 64000:
 	case 96000:
 	case 192000:
 		new_pll_base = data->pll_base_rate[EVEN_RATE];

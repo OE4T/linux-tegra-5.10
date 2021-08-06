@@ -71,8 +71,10 @@ static int tegra_audio_graph_update_pll(struct snd_pcm_substream *substream,
 		break;
 	case 8000:
 	case 16000:
+	case 24000:
 	case 32000:
 	case 48000:
+	case 64000:
 	case 96000:
 	case 192000:
 		plla_out0_rate = data->plla_out0_rates[x8_RATE];

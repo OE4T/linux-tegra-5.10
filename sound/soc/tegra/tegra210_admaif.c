@@ -40,6 +40,16 @@
 		chip ## _ADMAIF_TX_BASE,				       \
 		chip ## _ADMAIF_RX_BASE)
 
+static unsigned int tegra_supported_admaif_rate[] = {
+	8000, 11025, 16000, 22050, 24000, 32000, 44100, 48000,
+	64000, 88200, 96000, 176400, 192000,
+};
+
+static struct snd_pcm_hw_constraint_list tegra_admaif_rate_constraints = {
+	.count = ARRAY_SIZE(tegra_supported_admaif_rate),
+	.list = tegra_supported_admaif_rate,
+};
+
 static const struct reg_default tegra186_admaif_reg_defaults[] = {
 	{(TEGRA_ADMAIF_GLOBAL_CG_0 + TEGRA186_ADMAIF_GLOBAL_BASE), 0x00000003},
 	ADMAIF_REG_DEFAULTS(1, TEGRA186),
@@ -445,8 +455,16 @@ static int tegra_admaif_trigger(struct snd_pcm_substream *substream, int cmd,
 	}
 }
 
+static int tegra_admaif_startup(struct snd_pcm_substream *substream,
+					struct snd_soc_dai *dai)
+{
+	return snd_pcm_hw_constraint_list(substream->runtime, 0,
+			SNDRV_PCM_HW_PARAM_RATE, &tegra_admaif_rate_constraints);
+}
+
 static const struct snd_soc_dai_ops tegra_admaif_dai_ops = {
 	.hw_params	= tegra_admaif_hw_params,
+	.startup	= tegra_admaif_startup,
 	.trigger	= tegra_admaif_trigger,
 	.shutdown	= tegra_admaif_shutdown,
 	.prepare	= tegra_admaif_prepare,
@@ -595,7 +613,7 @@ static int tegra_admaif_dai_probe(struct snd_soc_dai *dai)
 			.stream_name = dai_name " Playback",	\
 			.channels_min = 1,			\
 			.channels_max = 16,			\
-			.rates = SNDRV_PCM_RATE_8000_192000,	\
+			.rates = SNDRV_PCM_RATE_KNOT,		\
 			.formats = SNDRV_PCM_FMTBIT_S8 |	\
 				SNDRV_PCM_FMTBIT_S16_LE |	\
 				SNDRV_PCM_FMTBIT_S24_LE |	\
@@ -605,7 +623,7 @@ static int tegra_admaif_dai_probe(struct snd_soc_dai *dai)
 			.stream_name = dai_name " Capture",	\
 			.channels_min = 1,			\
 			.channels_max = 16,			\
-			.rates = SNDRV_PCM_RATE_8000_192000,	\
+			.rates = SNDRV_PCM_RATE_KNOT,		\
 			.formats = SNDRV_PCM_FMTBIT_S8 |	\
 				SNDRV_PCM_FMTBIT_S16_LE |	\
 				SNDRV_PCM_FMTBIT_S24_LE |	\
@@ -621,7 +639,7 @@ static int tegra_admaif_dai_probe(struct snd_soc_dai *dai)
 			.stream_name = "ADMAIF" #id " FIFO Transmit",	\
 			.channels_min = 1,				\
 			.channels_max = 16,				\
-			.rates = SNDRV_PCM_RATE_8000_192000,		\
+			.rates = SNDRV_PCM_RATE_KNOT,			\
 			.formats = SNDRV_PCM_FMTBIT_S8 |		\
 				SNDRV_PCM_FMTBIT_S16_LE |		\
 				SNDRV_PCM_FMTBIT_S24_LE |		\
@@ -631,7 +649,7 @@ static int tegra_admaif_dai_probe(struct snd_soc_dai *dai)
 			.stream_name = "ADMAIF" #id " FIFO Receive",	\
 			.channels_min = 1,				\
 			.channels_max = 16,				\
-			.rates = SNDRV_PCM_RATE_8000_192000,		\
+			.rates = SNDRV_PCM_RATE_KNOT,			\
 			.formats = SNDRV_PCM_FMTBIT_S8 |		\
 				SNDRV_PCM_FMTBIT_S16_LE |		\
 				SNDRV_PCM_FMTBIT_S24_LE |		\
@@ -647,7 +665,7 @@ static int tegra_admaif_dai_probe(struct snd_soc_dai *dai)
 			.stream_name = "ADMAIF" #id " CIF Transmit",	\
 			.channels_min = 1,				\
 			.channels_max = 16,				\
-			.rates = SNDRV_PCM_RATE_8000_192000,		\
+			.rates = SNDRV_PCM_RATE_KNOT,			\
 			.formats = SNDRV_PCM_FMTBIT_S8 |		\
 				SNDRV_PCM_FMTBIT_S16_LE |		\
 				SNDRV_PCM_FMTBIT_S24_LE |		\
@@ -657,7 +675,7 @@ static int tegra_admaif_dai_probe(struct snd_soc_dai *dai)
 			.stream_name = "ADMAIF" #id " CIF Receive",	\
 			.channels_min = 1,				\
 			.channels_max = 16,				\
-			.rates = SNDRV_PCM_RATE_8000_192000,		\
+			.rates = SNDRV_PCM_RATE_KNOT,			\
 			.formats = SNDRV_PCM_FMTBIT_S8 |		\
 				SNDRV_PCM_FMTBIT_S16_LE |		\
 				SNDRV_PCM_FMTBIT_S24_LE |		\

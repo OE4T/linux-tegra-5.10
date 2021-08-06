@@ -2,7 +2,7 @@
 /*
  * tegra210_ahub.h - TEGRA210 AHUB
  *
- * Copyright (c) 2020 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021 NVIDIA CORPORATION.  All rights reserved.
  *
  */
 
@@ -102,7 +102,7 @@
 			.stream_name = #sname " XBAR-Playback",		\
 			.channels_min = 1,				\
 			.channels_max = 16,				\
-			.rates = SNDRV_PCM_RATE_8000_192000,		\
+			.rates = SNDRV_PCM_RATE_KNOT,		\
 			.formats = SNDRV_PCM_FMTBIT_S8 |		\
 				SNDRV_PCM_FMTBIT_S16_LE |		\
 				SNDRV_PCM_FMTBIT_S24_LE |		\
@@ -112,12 +112,13 @@
 			.stream_name = #sname " XBAR-Capture",		\
 			.channels_min = 1,				\
 			.channels_max = 16,				\
-			.rates = SNDRV_PCM_RATE_8000_192000,		\
+			.rates = SNDRV_PCM_RATE_KNOT,		\
 			.formats = SNDRV_PCM_FMTBIT_S8 |		\
 				SNDRV_PCM_FMTBIT_S16_LE |		\
 				SNDRV_PCM_FMTBIT_S24_LE |		\
 				SNDRV_PCM_FMTBIT_S32_LE,		\
 		},							\
+		.ops = &tegra_ahub_dai_ops,		\
 	}
 
 struct tegra_ahub_soc_data {

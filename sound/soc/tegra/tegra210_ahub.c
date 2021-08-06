@@ -14,6 +14,16 @@
 #include <sound/soc.h>
 #include "tegra210_ahub.h"
 
+static unsigned int tegra_supported_ahub_rate[] = {
+	8000, 11025, 16000, 22050, 24000, 32000, 44100, 48000,
+	64000, 88200, 96000, 176400, 192000,
+};
+
+static struct snd_pcm_hw_constraint_list tegra_ahub_rate_constraints = {
+	.count = ARRAY_SIZE(tegra_supported_ahub_rate),
+	.list = tegra_supported_ahub_rate,
+};
+
 static int tegra_ahub_get_value_enum(struct snd_kcontrol *kctl,
 				     struct snd_ctl_elem_value *uctl)
 {
@@ -135,6 +145,17 @@ void tegra210_ahub_read_ram(struct regmap *regmap, unsigned int reg_ctrl,
 	return;
 }
 EXPORT_SYMBOL_GPL(tegra210_ahub_read_ram);
+
+static int tegra_ahub_startup(struct snd_pcm_substream *substream,
+					struct snd_soc_dai *dai)
+{
+	return snd_pcm_hw_constraint_list(substream->runtime, 0,
+			SNDRV_PCM_HW_PARAM_RATE, &tegra_ahub_rate_constraints);
+}
+
+static struct snd_soc_dai_ops tegra_ahub_dai_ops = {
+	.startup	= tegra_ahub_startup,
+};
 
 static struct snd_soc_dai_driver tegra210_ahub_dais[] = {
 	DAI(ADMAIF1),
