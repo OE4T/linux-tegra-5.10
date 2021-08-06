@@ -100,6 +100,50 @@
 		cpu@0 {
 			reg = <0x0 0x0>;
 		};
+
+		cpu@1 {
+			status = "disabled";
+		};
+
+		cpu@2 {
+			status = "disabled";
+		};
+
+		cpu@3 {
+			status = "disabled";
+		};
+
+		cpu@4 {
+			status = "disabled";
+		};
+
+		cpu@5 {
+			status = "disabled";
+		};
+
+		cpu@6 {
+			status = "disabled";
+		};
+
+		cpu@7 {
+			status = "disabled";
+		};
+
+		cpu@8 {
+			status = "disabled";
+		};
+
+		cpu@9 {
+			status = "disabled";
+		};
+
+		cpu@10 {
+			status = "disabled";
+		};
+
+		cpu@11 {
+			status = "disabled";
+		};
 	};
 
 	kfuse@3828000 {

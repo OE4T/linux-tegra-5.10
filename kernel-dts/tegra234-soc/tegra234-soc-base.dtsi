@@ -754,7 +754,7 @@
 		cpu_off = <0x84000002>;
 		cpu_on = <0xC4000003>;
 		cpu_suspend = <0xC4000001>;
-		status = "disabled";
+		status = "okay";
 	};
 
 	bwmgr: bwmgr {
