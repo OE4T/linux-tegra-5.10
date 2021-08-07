@@ -41,30 +41,6 @@
                 status = "disabled";
         };
 
-        cbb-en@1300000 {
-                status = "disabled";
-        };
-
-        aon-en@C600000 {
-                status = "disabled";
-        };
-
-        bpmp-en@D600000 {
-                status = "disabled";
-        };
-
-        dce-en@BE00000 {
-                status = "disabled";
-        };
-
-        rce-en@BE00000 {
-                status = "disabled";
-        };
-
-        sce-en@B600000 {
-                status = "disabled";
-        };
-
         i2c@3160000 {
                 status = "disabled";
         };
