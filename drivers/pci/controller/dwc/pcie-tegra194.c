@@ -2383,7 +2383,8 @@ static int tegra_pcie_config_controller(struct tegra_pcie_dw *pcie,
 		appl_writel(pcie, val, APPL_CTRL);
 	}
 
-	if (tegra_platform_is_silicon()) {
+	if (tegra_platform_is_silicon() &&
+	    pcie->of_data->version == 0x562A && pcie->cid != 5) {
 		ret = tegra_pcie_enable_phy(pcie);
 		if (ret) {
 			dev_err(pcie->dev, "Failed to enable PHY: %d\n", ret);
@@ -2819,7 +2820,8 @@ static void pex_ep_event_pex_rst_deassert(struct tegra_pcie_dw *pcie)
 		goto fail_core_apb_rst;
 	}
 
-	if (tegra_platform_is_silicon()) {
+	if (tegra_platform_is_silicon() &&
+	    pcie->of_data->version == 0x562A && pcie->cid != 5) {
 		ret = tegra_pcie_enable_phy(pcie);
 		if (ret) {
 			dev_err(dev, "Failed to enable PHY: %d\n", ret);
