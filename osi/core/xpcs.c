@@ -218,9 +218,11 @@ static nve32_t xpcs_uphy_lane_bring_up(struct osi_core_priv_data *osi_core,
 	nveu32_t val = 0;
 	nveu32_t count;
 
-	val = xpcs_read(xpcs_base, XPCS_WRAP_UPHY_HW_INIT_CTRL);
+	val = osi_readla(osi_core,
+			(nveu8_t *)xpcs_base + XPCS_WRAP_UPHY_HW_INIT_CTRL);
 	val |= lane_init_en;
-	xpcs_write(xpcs_base, XPCS_WRAP_UPHY_HW_INIT_CTRL, val);
+	osi_writela(osi_core, val,
+		    (nveu8_t *)xpcs_base + XPCS_WRAP_UPHY_HW_INIT_CTRL);
 
 	count = 0;
 	while (cond == COND_NOT_MET) {
@@ -229,7 +231,8 @@ static nve32_t xpcs_uphy_lane_bring_up(struct osi_core_priv_data *osi_core,
 		}
 		count++;
 
-		val = xpcs_read(xpcs_base, XPCS_WRAP_UPHY_HW_INIT_CTRL);
+		val = osi_readla(osi_core,
+				 (nveu8_t *)xpcs_base + XPCS_WRAP_UPHY_HW_INIT_CTRL);
 		if ((val & lane_init_en) == OSI_NONE) {
 			/* exit loop */
 			cond = COND_MET;
@@ -266,7 +269,8 @@ static nve32_t xpcs_check_pcs_lock_status(struct osi_core_priv_data *osi_core)
 		}
 		count++;
 
-		val = xpcs_read(xpcs_base, XPCS_WRAP_IRQ_STATUS);
+		val = osi_readla(osi_core,
+				 (nveu8_t *)xpcs_base + XPCS_WRAP_IRQ_STATUS);
 		if ((val & XPCS_WRAP_IRQ_STATUS_PCS_LINK_STS) ==
 		    XPCS_WRAP_IRQ_STATUS_PCS_LINK_STS) {
 			/* exit loop */
@@ -277,7 +281,7 @@ static nve32_t xpcs_check_pcs_lock_status(struct osi_core_priv_data *osi_core)
 	}
 
 	/* Clear the status */
-	xpcs_write(xpcs_base, XPCS_WRAP_IRQ_STATUS, val);
+	osi_writela(osi_core, val, (nveu8_t *)xpcs_base + XPCS_WRAP_IRQ_STATUS);
 
 	return 0;
 }
