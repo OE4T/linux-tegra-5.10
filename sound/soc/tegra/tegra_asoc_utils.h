@@ -20,6 +20,7 @@ enum tegra_asoc_utils_soc {
 	TEGRA_ASOC_UTILS_SOC_TEGRA210,
 	TEGRA_ASOC_UTILS_SOC_TEGRA186,
 	TEGRA_ASOC_UTILS_SOC_TEGRA194,
+	TEGRA_ASOC_UTILS_SOC_TEGRA234,
 };
 
 struct tegra_asoc_utils_data {

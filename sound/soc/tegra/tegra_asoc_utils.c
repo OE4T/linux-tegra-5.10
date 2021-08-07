@@ -284,6 +284,8 @@ int tegra_asoc_utils_init(struct tegra_asoc_utils_data *data,
 		data->soc = TEGRA_ASOC_UTILS_SOC_TEGRA186;
 	else if (of_machine_is_compatible("nvidia,tegra194"))
 		data->soc = TEGRA_ASOC_UTILS_SOC_TEGRA194;
+	else if (of_machine_is_compatible("nvidia,tegra234"))
+		data->soc = TEGRA_ASOC_UTILS_SOC_TEGRA234;
 	else {
 		dev_err(data->dev, "SoC unknown to Tegra ASoC utils\n");
 		return -EINVAL;
