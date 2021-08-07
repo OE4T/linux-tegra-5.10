@@ -145,54 +145,6 @@ unsigned long dram_clk_to_mc_clk(unsigned long dram_clk)
 }
 EXPORT_SYMBOL(dram_clk_to_mc_clk);
 
-unsigned long bw_disruption_latency(unsigned long dram_freq,
-				    unsigned long mc_freq,
-				    u32 dram)
-{
-	unsigned long smmu_disruption, ring0_disruption, hum_disruption,
-		      exprired_iso, refresh, periodic_training, calibration,
-		      total_bw_disruption_latency;
-
-	if (dram == DRAM_LPDDR4) {
-		smmu_disruption = ((SMMU_DISRUPTION_DRAM_CLK_LP4 * 1000) + dram_freq - 1)
-				  / dram_freq;
-		ring0_disruption = ((RING0_DISRUPTION_MC_CLK_LP4 * 1000) + mc_freq - 1)
-				   / mc_freq;
-		hum_disruption = (((HUM_DISRUPTION_DRAM_CLK_LP4 * 1000) + dram_freq - 1)
-				 / dram_freq) + HUM_DISRUPTION_NS_LP4;
-		exprired_iso = (((EXPIRED_ISO_DRAM_CLK_LP4 * 1000) + dram_freq - 1)
-			       / dram_freq) + EXPIRED_ISO_NS_LP4;
-		refresh = REFRESH_RATE_LP4;
-		periodic_training = PERIODIC_TRAINING_LP4;
-		calibration = CALIBRATION_LP4;
-	} else if (dram == DRAM_LPDDR5) {
-		smmu_disruption = ((SMMU_DISRUPTION_DRAM_CLK_LP5 * 1000) + dram_freq - 1)
-				  / dram_freq;
-		ring0_disruption = ((RING0_DISRUPTION_MC_CLK_LP5 * 1000) + mc_freq - 1)
-				   / mc_freq;
-		hum_disruption = (((HUM_DISRUPTION_DRAM_CLK_LP5 * 1000) + dram_freq - 1)
-				 / dram_freq) + HUM_DISRUPTION_NS_LP5;
-		exprired_iso = (((EXPIRED_ISO_DRAM_CLK_LP5 * 1000) + dram_freq - 1)
-			       / dram_freq) + EXPIRED_ISO_NS_LP5;
-		refresh = REFRESH_RATE_LP5;
-		periodic_training = PERIODIC_TRAINING_LP5;
-		calibration = CALIBRATION_LP5;
-	} else {
-		pr_err("Unknown frequency configuration\n");
-		return 0;
-	}
-
-	total_bw_disruption_latency = smmu_disruption +
-				      ring0_disruption +
-				      hum_disruption +
-				      exprired_iso +
-				      refresh +
-				      periodic_training +
-				      calibration;
-	return total_bw_disruption_latency;
-}
-EXPORT_SYMBOL(bw_disruption_latency);
-
 static void set_dram_type(void)
 {
 	dram_type = DRAM_TYPE_INVAL;
@@ -359,32 +311,6 @@ unsigned long tegra_get_emc_max_rate(void)
 EXPORT_SYMBOL(tegra_get_emc_max_rate);
 
 #if defined(CONFIG_DEBUG_FS)
-static int bw_disruption_latency_show(struct seq_file *s, void *data)
-{
-	unsigned long dram_freq_khz = tegra_get_emc_rate();
-	unsigned long mc_freq_khz = dram_clk_to_mc_clk(dram_freq_khz / 1000)
-			 * 1000;
-	unsigned long bw_dis_latency;
-
-	bw_dis_latency = bw_disruption_latency(dram_freq_khz, mc_freq_khz,
-				emc_param.dram);
-
-	seq_printf(s, "BW disruption latency: %lu (Khz)\n",
-				 bw_dis_latency);
-	return 0;
-}
-static int bw_disruption_latency_open(struct inode *inode, struct file *file)
-{
-	return single_open(file, bw_disruption_latency_show, inode->i_private);
-}
-
-static const struct file_operations fops_debugfs_bw_disruption_latency = {
-	.open = bw_disruption_latency_open,
-	.read = seq_read,
-	.llseek = seq_lseek,
-	.release = single_release,
-};
-
 static void tegra_mc_utils_debugfs_init(void)
 {
 	struct dentry *tegra_mc_debug_root = NULL;
@@ -400,10 +326,6 @@ static void tegra_mc_utils_debugfs_init(void)
 
 	debugfs_create_u32("num_channel", 0444, tegra_mc_debug_root,
 			&ch_num);
-
-	debugfs_create_file("bw_disruption_latency", 0444,
-			tegra_mc_debug_root, NULL,
-			&fops_debugfs_bw_disruption_latency);
 }
 #endif
 

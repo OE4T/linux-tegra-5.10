@@ -103,19 +103,6 @@ u8 get_dram_num_channels(void);
 unsigned long dram_clk_to_mc_clk(unsigned long dram_clk);
 
 /*
- * Return bw disruption latency from dram_clk.
- *
- * Return total bandwidth disruption latency.
- *
- * dram_freq: dram frequency in MHz.
- * mc_freq: mc frequency in MHz.
- * dram: dram to mention as "DRAM_LPDDR4" OR "DRAM_LPDDR5"
- * Return: bw disruption latency in nanoseconds.
- */
-unsigned long bw_disruption_latency(unsigned long dram_freq,
-				    unsigned long mc_freq,
-				    u32 dram);
-/*
  * Return current emc rate.
  *
  * Return current emc rate in Hz
