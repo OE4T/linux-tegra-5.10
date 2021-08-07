@@ -803,8 +803,13 @@ static int tegra_xusb_add_usb2_port(struct tegra_xusb_padctl *padctl,
 
 	err = tegra_xusb_usb2_port_parse_dt(usb2);
 	if (err < 0) {
-		tegra_xusb_port_unregister(&usb2->base);
-		goto out;
+		if (err != -EPROBE_DEFER) {
+			dev_err(&usb2->base.dev, "ignore regulator_get failure\n");
+			err = 0;
+		} else  {
+			tegra_xusb_port_unregister(&usb2->base);
+			goto out;
+		}
 	}
 
 	list_add_tail(&usb2->base.list, &padctl->ports);

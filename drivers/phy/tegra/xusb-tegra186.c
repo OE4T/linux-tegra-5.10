@@ -260,6 +260,9 @@ struct tegra186_xusb_padctl {
 
 	/* padctl context */
 	struct tegra186_xusb_padctl_context context;
+
+	/* fuse programming */
+	bool ignore_fuse;
 };
 
 static inline void ao_writel(struct tegra186_xusb_padctl *priv, u32 value, unsigned offset)
@@ -915,7 +918,13 @@ static int tegra186_utmi_phy_power_on(struct phy *phy)
 	value = padctl_readl(padctl, XUSB_PADCTL_USB2_OTG_PADX_CTL0(index));
 	value &= ~USB2_OTG_PD_ZI;
 	value |= TERM_SEL;
-	value &= ~HS_CURR_LEVEL(~0);
+	if (priv->ignore_fuse) {
+		padctl_writel(padctl, value,
+			      XUSB_PADCTL_USB2_OTG_PADX_CTL0(index));
+		return 0;
+	} else {
+		value &= ~HS_CURR_LEVEL(~0);
+	}
 
 	if (usb2->hs_curr_level_offset) {
 		int hs_current_level;
@@ -1552,7 +1561,7 @@ tegra186_xusb_padctl_probe(struct device *dev,
 
 	err = tegra186_xusb_read_fuse_calibration(priv);
 	if (err < 0)
-		return ERR_PTR(err);
+		priv->ignore_fuse = true;
 
 	return &priv->base;
 }
