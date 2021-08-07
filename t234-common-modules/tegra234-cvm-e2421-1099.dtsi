@@ -18,5 +18,11 @@
 / {
 	pmc@c360000 {
 		nvidia,invert-interrupt;
+		iopad-defaults {
+			sdmmc-io-pads {
+				pins = "sdmmc1-hv", "sdmmc3-hv";
+				nvidia,enable-voltage-switching;
+			};
+		};
 	};
 };
