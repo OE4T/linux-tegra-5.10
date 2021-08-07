@@ -719,7 +719,8 @@ static int tegra234_cbb_probe(struct platform_device *pdev)
 	struct tegra_cbb_init_data cbb_init_data;
 	int err = 0;
 
-	if (!of_machine_is_compatible("nvidia,tegra234")) {
+	if (!of_machine_is_compatible("nvidia,tegra23x") &&
+	    !of_machine_is_compatible("nvidia,tegra234")) {
 		dev_err(&pdev->dev, "Wrong SOC\n");
 		return -EINVAL;
 	}
