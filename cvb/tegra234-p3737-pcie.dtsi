@@ -16,14 +16,14 @@
 / {
 
 	pcie@14100000 {
-		status = "disabled";
+		status = "okay";
 
 		phys = <&p2u_hsio_3>;
 		phy-names = "p2u-0";
 	};
 
 	pcie@14160000 {
-		status = "disabled";
+		status = "okay";
 
 		phys = <&p2u_hsio_4>, <&p2u_hsio_5>, <&p2u_hsio_6>,
 		       <&p2u_hsio_7>;
@@ -31,7 +31,7 @@
 	};
 
 	pcie@141a0000 {
-		status = "disabled";
+		status = "okay";
 
 		phys = <&p2u_nvhs_0>, <&p2u_nvhs_1>, <&p2u_nvhs_2>,
 		       <&p2u_nvhs_3>, <&p2u_nvhs_4>, <&p2u_nvhs_5>,

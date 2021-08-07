@@ -63,14 +63,6 @@
 		status = "okay";
 	};
 
-	pcie@14160000 {
-		status = "disabled";
-	};
-
-	pcie@141a0000 {
-		status = "disabled";
-	};
-
 	mttcan@c310000 {
 		status = "disabled";
 	};

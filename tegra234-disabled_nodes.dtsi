@@ -57,10 +57,6 @@
                 status = "disabled";
         };
 
-        pcie@14180000 {
-                status = "disabled";
-        };
-
         ethernet@2310000 {
                 status = "disabled";
         };
