@@ -1,7 +1,7 @@
 /*
  * tegra_wdt_t18x.c: watchdog driver for NVIDIA tegra internal watchdog
  *
- * Copyright (c) 2012-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2012-2021, NVIDIA CORPORATION. All rights reserved.
  * Based on:
  *	drivers/watchdog/softdog.c and
  *	drivers/watchdog/omap_wdt.c
@@ -66,8 +66,12 @@
 #define WDT_ENABLED_ON_INIT	1
 #define WDT_ENABLED_USERSPACE	2
 
+#define TIMER_INDEX_T186	0
+#define TIMER_INDEX_T234	1
+
 struct tegra_wdt_t18x_soc {
 	bool unmask_hw_irq;
+	bool timer_index;
 };
 
 struct tegra_wdt_t18x {
@@ -128,6 +132,7 @@ static struct tegra_wdt_t18x *to_tegra_wdt_t18x(struct watchdog_device *wdt)
 #define WDT_CFG_REMOTE_INT_EN		BIT(14)
 #define WDT_CFG_DBG_RST_EN		BIT(15)
 #define WDT_CFG_SYS_PORST_EN		BIT(16)
+#define WDT_CFG_DISALLOW_FREEZE		BIT(25)
 #define WDT_CFG_ERR_THRESHOLD		(7 << 20)
 #define WDT_STATUS			(0x4)
 #define WDT_INTR_STAT			BIT(1)
@@ -140,6 +145,8 @@ static struct tegra_wdt_t18x *to_tegra_wdt_t18x(struct watchdog_device *wdt)
 #define WDT_SKIP_VAL(i, val)		(((val) & 0x7) << (4 * (i)))
 #define TIMER_INDEX(add)		((((add) >> 16) & 0xF) - 0x2)
 #define WATCHDOG_INDEX(add)		((((add) >> 16) & 0xF) - 0xc)
+#define T234_TIMER_INDEX(add)		((((add) >> 16) & 0xF) - 0x9)
+#define T234_WATCHDOG_INDEX(add)	((((add) >> 16) & 0xF) - 0x9)
 
 static int __tegra_wdt_t18x_ping(struct tegra_wdt_t18x *twdt_t18x)
 {
@@ -506,7 +513,15 @@ static int tegra_wdt_t18x_probe(struct platform_device *pdev)
 	}
 
 	/* WDT ID from base address */
-	wdt_id = WATCHDOG_INDEX(res_wdt->start);
+	switch (twdt_t18x->soc->timer_index) {
+	case TIMER_INDEX_T234:
+		wdt_id = T234_WATCHDOG_INDEX(res_wdt->start);
+		break;
+	default:
+		wdt_id = WATCHDOG_INDEX(res_wdt->start);
+		break;
+	}
+
 	ret = of_property_read_u32(np, "nvidia,watchdog-index", &pval);
 	if (!ret) {
 		twdt_t18x->wdt_index = pval;
@@ -558,7 +573,15 @@ static int tegra_wdt_t18x_probe(struct platform_device *pdev)
 	 * If timer ID from address different then timer index
 	 * then adjust address.
 	 */
-	timer_id = TIMER_INDEX(res_tmr->start);
+	switch (twdt_t18x->soc->timer_index) {
+	case TIMER_INDEX_T234:
+		timer_id = T234_TIMER_INDEX(res_tmr->start);
+		break;
+	default:
+		timer_id = TIMER_INDEX(res_tmr->start);
+		break;
+	}
+
 	if (timer_id != twdt_t18x->tmr_index) {
 		if (timer_id) {
 			dev_err(dev, "Timer base address must be Timer0\n");
@@ -604,6 +627,9 @@ static int tegra_wdt_t18x_probe(struct platform_device *pdev)
 
 		/* Enable local FIQ and remote interrupt for debug dump */
 		twdt_t18x->config |= WDT_CFG_FINT_EN;
+
+		if (of_property_read_bool(np, "nvidia,disallow-wdt-freeze"))
+			twdt_t18x->config |= WDT_CFG_DISALLOW_FREEZE;
 
 		if (!of_property_read_bool(np,
 					   "nvidia,disable-remote-interrupt"))
@@ -771,15 +797,23 @@ static const struct dev_pm_ops tegra_wdt_t18x_pm_ops = {
 	SET_SYSTEM_SLEEP_PM_OPS(tegra_wdt_t18x_suspend, tegra_wdt_t18x_resume)
 };
 
+static const struct tegra_wdt_t18x_soc t234_wdt_silicon = {
+	.unmask_hw_irq	= true,
+	.timer_index	= TIMER_INDEX_T234,
+};
+
 static const struct tegra_wdt_t18x_soc t18x_wdt_silicon = {
-	.unmask_hw_irq = true,
+	.unmask_hw_irq	= true,
+	.timer_index	= TIMER_INDEX_T186,
 };
 
 static const struct tegra_wdt_t18x_soc t18x_wdt_sim = {
-	.unmask_hw_irq = false,
+	.unmask_hw_irq	= false,
+	.timer_index	= TIMER_INDEX_T186,
 };
 
 static const struct of_device_id tegra_wdt_t18x_match[] = {
+	{ .compatible = "nvidia,tegra-wdt-t234", .data = &t234_wdt_silicon},
 	{ .compatible = "nvidia,tegra-wdt-t19x", .data = &t18x_wdt_silicon},
 	{ .compatible = "nvidia,tegra-wdt-t18x", .data = &t18x_wdt_silicon},
 	{ .compatible = "nvidia,tegra-wdt-t18x-linsim", .data = &t18x_wdt_sim},
