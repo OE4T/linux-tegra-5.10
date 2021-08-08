@@ -396,12 +396,6 @@ fail:
 
 }
 
-int nvgpu_tsg_force_unbind_channel(struct nvgpu_tsg *tsg,
-				   struct nvgpu_channel *ch)
-{
-	return nvgpu_tsg_unbind_channel(tsg, ch, true);
-}
-
 int nvgpu_tsg_unbind_channel_check_hw_state(struct nvgpu_tsg *tsg,
 		struct nvgpu_channel *ch)
 {

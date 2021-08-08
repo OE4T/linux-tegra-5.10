@@ -27,7 +27,9 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/nvgpu_err.h>
+#ifdef CONFIG_NVGPU_DGPU
 #include <nvgpu/boardobjgrp.h>
+#endif
 #include <nvgpu/pmu.h>
 
 /* PMU H/W error functions */

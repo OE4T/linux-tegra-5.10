@@ -168,7 +168,9 @@ enum nvgpu_profiler_pm_reservation_scope;
 
 #include <nvgpu/gpu_ops.h>
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 #include "hal/clk/clk_gk20a.h"
+#endif
 
 /**
  * @addtogroup unit-common-nvgpu

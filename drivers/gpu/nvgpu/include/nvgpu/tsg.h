@@ -467,21 +467,6 @@ struct nvgpu_tsg *nvgpu_tsg_check_and_get_from_id(struct gk20a *g, u32 tsgid);
 int nvgpu_tsg_unbind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch,
 			     bool force);
 
-
-/**
- * @brief Unbind a channel from the TSG it is bound to.
- *
- * @param tsg [in]			Pointer to TSG struct.
- * @param ch [in]			Pointer to Channel struct.
- *
- * Call #nvgpu_tsg_unbind_channel with argument force set. Thus, if the
- * channel has work, it still gets unbound.
- *
- * @return return value by #nvgpu_tsg_unbind_channel
- */
-int nvgpu_tsg_force_unbind_channel(struct nvgpu_tsg *tsg,
-				   struct nvgpu_channel *ch);
-
 /**
  * @brief Check h/w channel status before unbinding Channel.
  *

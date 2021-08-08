@@ -154,7 +154,7 @@ static int gr_test_setup_unbind_tsg(struct unit_module *m, struct gk20a *g)
 		goto unbind_tsg;
 	}
 
-	err = nvgpu_tsg_force_unbind_channel(gr_setup_tsg, gr_setup_ch);
+	err = nvgpu_tsg_unbind_channel(gr_setup_tsg, gr_setup_ch, true);
 	if (err != 0) {
 		unit_err(m, "failed tsg channel unbind\n");
 	}

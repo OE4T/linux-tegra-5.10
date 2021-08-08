@@ -439,8 +439,6 @@ done:
 #define F_CHANNEL_CLOSE_AS_BOUND			BIT(14)
 #define F_CHANNEL_CLOSE_LAST				BIT(15)
 
-/* nvgpu_tsg_force_unbind_channel always return 0 */
-
 static const char *f_channel_close[] = {
 	"already_freed",
 	"force",
@@ -485,7 +483,6 @@ static bool channel_close_pruned(u32 branches, u32 final)
 		return true;
 	}
 
-	/* TODO: nvgpu_tsg_force_unbind_channel always returns 0 */
 	branches &= ~F_CHANNEL_CLOSE_TSG_UNBIND_FAIL;
 
 
@@ -1227,7 +1224,7 @@ int test_channel_enable_disable_tsg(struct unit_module *m,
 
 	subtest_setup(branches);
 
-	err = nvgpu_tsg_force_unbind_channel(tsg, ch);
+	err = nvgpu_tsg_unbind_channel(tsg, ch, true);
 	unit_assert(err == 0, goto done);
 
 	err = nvgpu_channel_enable_tsg(g, ch);
@@ -1648,7 +1645,7 @@ done:
 					f_channel_suspend_resume));
 	}
 	if (ch != NULL) {
-		nvgpu_tsg_force_unbind_channel(tsg, ch);
+		nvgpu_tsg_unbind_channel(tsg, ch, true);
 		nvgpu_channel_close(ch);
 	}
 	if (tsg != NULL) {
@@ -1747,7 +1744,7 @@ done:
 			branches_str(branches, f_channel_debug_dump));
 	}
 	if (ch != NULL) {
-		nvgpu_tsg_force_unbind_channel(tsg, ch);
+		nvgpu_tsg_unbind_channel(tsg, ch, true);
 		nvgpu_channel_close(ch);
 	}
 	if (tsg != NULL) {
@@ -2091,7 +2088,7 @@ int test_channel_abort_cleanup(struct unit_module *m, struct gk20a *g,
 	err = nvgpu_tsg_bind_channel(tsg, ch);
 	unit_assert(err == 0, goto done);
 
-	err = nvgpu_tsg_force_unbind_channel(tsg, ch);
+	err = nvgpu_tsg_unbind_channel(tsg, ch, true);
 	unit_assert(err == 0, goto done);
 
 	nvgpu_channel_close(ch);
