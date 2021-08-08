@@ -954,8 +954,13 @@ static void ether_adjust_link(struct net_device *dev)
 			ether_set_mgbe_mac_div_rate(pdata->mac_div_clk,
 						    pdata->speed);
 		} else {
-			ether_set_eqos_tx_clk(pdata->tx_clk,
+			if (pdata->osi_core->mac_ver == OSI_EQOS_MAC_5_30) {
+				ether_set_eqos_tx_clk(pdata->tx_div_clk,
 					      phydev->speed);
+			} else {
+				ether_set_eqos_tx_clk(pdata->tx_clk,
+					      phydev->speed);
+			}
 			if (phydev->speed != SPEED_10) {
 				if (ether_pad_calibrate(pdata) < 0) {
 					dev_err(pdata->dev,
@@ -4449,6 +4454,11 @@ static int ether_get_mac_address(struct ether_priv_data *pdata)
 			 * MAC address
 			 */
 			eth_mac_addr = of_get_mac_address(np);
+
+			if (IS_ERR_OR_NULL(eth_mac_addr)) {
+				dev_err(dev, "No MAC address in local DT!\n");
+				return -EINVAL;
+			}
 		}
 
 		/* If neither chosen node nor kernel supported dt strings are
@@ -4543,6 +4553,18 @@ static void ether_put_eqos_clks(struct ether_priv_data *pdata)
 
 	if (!IS_ERR_OR_NULL(pdata->tx_clk)) {
 		devm_clk_put(dev, pdata->tx_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->tx_div_clk)) {
+		devm_clk_put(dev, pdata->tx_div_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->rx_m_clk)) {
+		devm_clk_put(dev, pdata->rx_m_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->rx_input_clk)) {
+		devm_clk_put(dev, pdata->rx_input_clk);
 	}
 
 	if (!IS_ERR_OR_NULL(pdata->ptp_ref_clk)) {
@@ -4766,16 +4788,12 @@ err_rx_m:
 static int ether_get_eqos_clks(struct ether_priv_data *pdata)
 {
 	struct device *dev = pdata->dev;
-	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	int ret;
 
 	/* Skip pll_refe clock initialisation for t18x platform */
-	if (osi_core->mac_ver >= OSI_EQOS_MAC_5_00) {
-		pdata->pllrefe_clk = devm_clk_get(dev, "pllrefe_vcoout");
-		if (IS_ERR(pdata->pllrefe_clk)) {
-			dev_info(dev, "failed to get pllrefe_vcoout clk\n");
-			return PTR_ERR(pdata->pllrefe_clk);
-		}
+	pdata->pllrefe_clk = devm_clk_get(dev, "pllrefe_vcoout");
+	if (IS_ERR(pdata->pllrefe_clk)) {
+		dev_info(dev, "failed to get pllrefe_vcoout clk\n");
 	}
 
 	pdata->axi_cbb_clk = devm_clk_get(dev, "axi_cbb");
@@ -4813,37 +4831,32 @@ static int ether_get_eqos_clks(struct ether_priv_data *pdata)
 		goto err_tx;
 	}
 
-	if (osi_core->mac_ver == OSI_EQOS_MAC_5_30) {
-		pdata->rx_m_clk = devm_clk_get(dev, "eqos_rx_m");
-		if (IS_ERR(pdata->rx_m_clk)) {
-			ret =  PTR_ERR(pdata->rx_m_clk);
-			dev_err(dev, "failed to get eqos_rx_m clk\n");
-			goto err_rx_m;
-		}
+	pdata->rx_m_clk = devm_clk_get(dev, "eqos_rx_m");
+	if (IS_ERR(pdata->rx_m_clk)) {
+		ret =  PTR_ERR(pdata->rx_m_clk);
+		dev_info(dev, "failed to get eqos_rx_m clk\n");
+	}
 
-		pdata->rx_input_clk = devm_clk_get(dev, "eqos_rx_input");
-		if (IS_ERR(pdata->rx_input_clk)) {
-			ret = PTR_ERR(pdata->rx_input_clk);
-			dev_err(dev, "failed to get eqos_rx_input clk\n");
-			goto err_rx_input;
-		}
+	pdata->rx_input_clk = devm_clk_get(dev, "eqos_rx_input");
+	if (IS_ERR(pdata->rx_input_clk)) {
+		ret = PTR_ERR(pdata->rx_input_clk);
+		dev_info(dev, "failed to get eqos_rx_input clk\n");
+	}
 
-		/* Set default rate to 1G */
+	pdata->tx_div_clk = devm_clk_get(dev, "eqos_tx_divider");
+	if (IS_ERR(pdata->tx_div_clk)) {
+		ret = PTR_ERR(pdata->tx_div_clk);
+		dev_info(dev, "failed to get eqos_tx_divider clk\n");
+	}
+
+	/* Set default rate to 1G */
+	if (!IS_ERR_OR_NULL(pdata->rx_input_clk)) {
 		clk_set_rate(pdata->rx_input_clk,
 			     ETHER_RX_INPUT_CLK_RATE);
-	} else {
-		pdata->rx_m_clk = NULL;
-		pdata->rx_input_clk = NULL;
 	}
 
 	return 0;
 
-err_rx_input:
-	if (osi_core->mac_ver == OSI_EQOS_MAC_5_30) {
-		devm_clk_put(dev, pdata->rx_m_clk);
-err_rx_m:
-		devm_clk_put(dev, pdata->tx_clk);
-	}
 err_tx:
 	devm_clk_put(dev, pdata->ptp_ref_clk);
 err_ptp_ref:
@@ -4853,7 +4866,9 @@ err_rx:
 err_axi:
 	devm_clk_put(dev, pdata->axi_cbb_clk);
 err_axi_cbb:
-	devm_clk_put(dev, pdata->pllrefe_clk);
+	if (!IS_ERR_OR_NULL(pdata->pllrefe_clk)) {
+		devm_clk_put(dev, pdata->pllrefe_clk);
+	}
 
 	return ret;
 }
@@ -6505,5 +6520,21 @@ static struct platform_driver ether_driver = {
 	},
 };
 
-module_platform_driver(ether_driver);
+static int __init nvethernet_driver_init(void)
+{
+	return platform_driver_register(&ether_driver);
+}
+
+#if IS_MODULE(CONFIG_NVETHERNET)
+static void __exit nvethernet_driver_deinit(void)
+{
+	platform_driver_unregister(&ether_driver);
+}
+
+module_init(nvethernet_driver_init);
+module_exit(nvethernet_driver_deinit);
+#else
+late_initcall(nvethernet_driver_init);
+#endif
+
 MODULE_LICENSE("GPL v2");
