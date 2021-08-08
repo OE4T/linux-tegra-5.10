@@ -400,6 +400,8 @@ struct ether_priv_data {
 	struct clk *ptp_ref_clk;
 	/** Transmit clock */
 	struct clk *tx_clk;
+	/** Transmit clock divider */
+	struct clk *tx_div_clk;
 	/** Receive Monitoring clock */
 	struct clk *rx_m_clk;
 	/** RX PCS monitoring clock */
