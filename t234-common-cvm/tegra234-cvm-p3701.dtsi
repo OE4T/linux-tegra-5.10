@@ -81,27 +81,27 @@
 	};
 
 	aon-en@C600000 {
-		status = "disabled";
+		status = "okay";
 	};
 
 	cbb-en@1300000 {
-		status = "disabled";
+		status = "okay";
 	};
 
 	bpmp-en@D600000 {
-		status = "disabled";
+		status = "okay";
 	};
 
 	dce-en@BE00000 {
-		status = "disabled";
+		status = "okay";
 	};
 
 	rce-en@BE00000 {
-		status = "disabled";
+		status = "okay";
 	};
 
 	sce-en@B600000 {
-		status = "disabled";
+		status = "okay";
 	};
 
 	cpuidle {
@@ -180,8 +180,7 @@
 	};
 
 	rtcpu@bc00000 {
-		status = "disabled";
-		nvidia,cmd-timeout = <2000>;
+		status = "okay";
 	};
 
 	eeprom-manager {
@@ -249,7 +248,7 @@
         };
 
         host1x@13e00000 {
-                status = "disabled";
+                status = "okay";
         };
 
         tegra-hsp@c150000 {
@@ -257,6 +256,10 @@
         };
 
         tegra-hsp@3c00000 {
+                status = "okay";
+        };
+
+        tegra-hsp@b950000 {
                 status = "okay";
         };
 
