@@ -563,6 +563,8 @@ void dw_pcie_setup_rc(struct pcie_port *pp)
 {
 	u32 val, ctrl, num_ctrls;
 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
+	struct resource_entry *entry;
+	int atu_idx;
 
 	/*
 	 * Enable DBI read-only registers for writing/updating configuration.
@@ -615,37 +617,33 @@ void dw_pcie_setup_rc(struct pcie_port *pp)
 	 * the platform uses its own address translation component rather than
 	 * ATU, so we should not program the ATU here.
 	 */
-	if (pp->bridge->child_ops == &dw_child_pcie_ops) {
-		int atu_idx = 0;
-		struct resource_entry *entry;
+	atu_idx = (pp->bridge->child_ops == &dw_child_pcie_ops) ? 0 : -1;
 
-		/* Get last memory resource entry */
-		resource_list_for_each_entry(entry, &pp->bridge->windows) {
-			if (resource_type(entry->res) != IORESOURCE_MEM)
-				continue;
+	resource_list_for_each_entry(entry, &pp->bridge->windows) {
+		if (resource_type(entry->res) != IORESOURCE_MEM)
+			continue;
 
-			if (pci->num_viewport <= ++atu_idx)
-				break;
+		if (pci->num_viewport <= ++atu_idx)
+			break;
 
-			dw_pcie_prog_outbound_atu(pci, atu_idx,
-						  PCIE_ATU_TYPE_MEM, entry->res->start,
-						  entry->res->start - entry->offset,
-						  resource_size(entry->res));
-		}
-
-		if (pp->io_size) {
-			if (pci->num_viewport > ++atu_idx)
-				dw_pcie_prog_outbound_atu(pci, atu_idx,
-							  PCIE_ATU_TYPE_IO, pp->io_base,
-							  pp->io_bus_addr, pp->io_size);
-			else
-				pci->io_cfg_atu_shared = true;
-		}
-
-		if (pci->num_viewport <= atu_idx)
-			dev_warn(pci->dev, "Resources exceed number of ATU entries (%d)",
-				 pci->num_viewport);
+		dw_pcie_prog_outbound_atu(pci, atu_idx,
+					  PCIE_ATU_TYPE_MEM, entry->res->start,
+					  entry->res->start - entry->offset,
+					  resource_size(entry->res));
 	}
+
+	if (pp->io_size) {
+		if (pci->num_viewport > ++atu_idx)
+			dw_pcie_prog_outbound_atu(pci, atu_idx,
+						  PCIE_ATU_TYPE_IO, pp->io_base,
+						  pp->io_bus_addr, pp->io_size);
+		else
+			pci->io_cfg_atu_shared = true;
+	}
+
+	if (pci->num_viewport <= atu_idx)
+		dev_warn(pci->dev, "Resources exceed number of ATU entries (%d)",
+			 pci->num_viewport);
 
 	dw_pcie_writel_dbi(pci, PCI_BASE_ADDRESS_0, 0);
 
