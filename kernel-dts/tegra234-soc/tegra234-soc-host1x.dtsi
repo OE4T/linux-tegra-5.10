@@ -236,8 +236,9 @@
 			reg = <0x0 0x15500000 0x0 0x00040000>;
 			resets = <&bpmp_resets TEGRA234_RESET_TSEC>;
 			clocks = <&bpmp_clks TEGRA234_CLK_TSEC>,
-				 <&bpmp_clks TEGRA234_CLK_FUSE>;
-			clock-names = "tsec", "efuse";
+				 <&bpmp_clks TEGRA234_CLK_FUSE>,
+				 <&bpmp_clks TEGRA234_CLK_TSEC_PKA>;
+			clock-names = "tsec", "efuse", "tsec_pka";
 
 			iommus = <&smmu_niso1 TEGRA_SID_NISO1_TSEC>;
 			dma-coherent;
@@ -251,8 +252,9 @@
 			resets = <&bpmp_resets TEGRA234_RESET_NVDEC>;
 			clocks = <&bpmp_clks TEGRA234_CLK_NVDEC>,
 				 <&bpmp_clks TEGRA234_CLK_FUSE_BURN>,
-				 <&bpmp_clks TEGRA234_CLK_FUSE>;
-			clock-names = "nvdec", "kfuse", "efuse";
+				 <&bpmp_clks TEGRA234_CLK_FUSE>,
+				 <&bpmp_clks TEGRA234_CLK_TSEC_PKA>;
+			clock-names = "nvdec", "kfuse", "efuse", "tsec_pka";
 
 			iommus = <&smmu_niso1 TEGRA_SID_NISO1_NVDEC>;
 			dma-coherent;
