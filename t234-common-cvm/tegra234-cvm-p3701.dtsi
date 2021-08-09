@@ -247,6 +247,14 @@
                 status = "okay";
         };
 
+	gpio@c2f0000 {
+                status = "okay";
+        };
+
+	pinmux@2430000 {
+		status = "okay";
+	};
+
         host1x@13e00000 {
                 status = "okay";
         };
