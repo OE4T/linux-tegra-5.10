@@ -529,11 +529,6 @@ int gv11b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
 	return 0;
 }
 
-void gv11b_gr_init_tpc_mask(struct gk20a *g, u32 gpc_index, u32 pes_tpc_mask)
-{
-	nvgpu_writel(g, gr_fe_tpc_fs_r(gpc_index), pes_tpc_mask);
-}
-
 void gv11b_gr_init_fs_state(struct gk20a *g)
 {
 	u32 data;

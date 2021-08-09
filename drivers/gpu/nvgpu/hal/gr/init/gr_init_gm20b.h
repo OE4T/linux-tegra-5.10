@@ -49,6 +49,8 @@ void gm20b_gr_init_pd_skip_table_gpc(struct gk20a *g,
 			      struct nvgpu_gr_config *gr_config);
 void gm20b_gr_init_cwd_gpcs_tpcs_num(struct gk20a *g,
 				     u32 gpc_count, u32 tpc_count);
+void gm20b_gr_init_load_tpc_mask(struct gk20a *g,
+				struct nvgpu_gr_config *gr_config);
 int gm20b_gr_init_wait_idle(struct gk20a *g);
 int gm20b_gr_init_wait_fe_idle(struct gk20a *g);
 int gm20b_gr_init_fe_pwr_mode_force_on(struct gk20a *g, bool force_on);

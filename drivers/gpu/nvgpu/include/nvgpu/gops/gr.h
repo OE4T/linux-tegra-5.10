@@ -752,6 +752,8 @@ struct gops_gr_init {
 				  struct nvgpu_gr_config *gr_config);
 	void (*cwd_gpcs_tpcs_num)(struct gk20a *g,
 				  u32 gpc_count, u32 tpc_count);
+	void (*gr_load_tpc_mask)(struct gk20a *g,
+			struct nvgpu_gr_config *gr_config);
 	int (*wait_empty)(struct gk20a *g);
 	void (*override_context_reset)(struct gk20a *g);
 	void (*fe_go_idle_timeout)(struct gk20a *g, bool enable);

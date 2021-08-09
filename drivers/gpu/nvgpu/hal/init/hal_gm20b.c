@@ -327,6 +327,7 @@ static const struct gops_gr_init gm20b_ops_gr_init = {
 	.pd_tpc_per_gpc = gm20b_gr_init_pd_tpc_per_gpc,
 	.pd_skip_table_gpc = gm20b_gr_init_pd_skip_table_gpc,
 	.cwd_gpcs_tpcs_num = gm20b_gr_init_cwd_gpcs_tpcs_num,
+	.gr_load_tpc_mask = gm20b_gr_init_load_tpc_mask,
 	.wait_empty = gm20b_gr_init_wait_idle,
 	.wait_idle = gm20b_gr_init_wait_idle,
 	.wait_fe_idle = gm20b_gr_init_wait_fe_idle,

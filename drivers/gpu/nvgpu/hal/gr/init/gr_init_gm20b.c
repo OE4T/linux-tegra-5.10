@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -36,6 +36,7 @@
 
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/config.h>
+#include <nvgpu/gr/gr_instances.h>
 
 #include "gr_init_gm20b.h"
 
@@ -387,6 +388,65 @@ void gm20b_gr_init_rop_mapping(struct gk20a *g,
 	nvgpu_writel(g, gr_rstr2d_gpc_map5_r(), map5);
 }
 #endif
+
+void gm20b_gr_init_load_tpc_mask(struct gk20a *g,
+			struct nvgpu_gr_config *config)
+{
+	u32 pes_tpc_mask = 0;
+	u32 gpc, pes;
+	u32 num_tpc_per_gpc = nvgpu_get_litter_value(g,
+				GPU_LIT_NUM_TPC_PER_GPC);
+#ifdef CONFIG_NVGPU_NON_FUSA
+	u32 max_tpc_count = nvgpu_gr_config_get_max_tpc_count(config);
+	u32 fuse_tpc_mask;
+	u32 val;
+	u32 cur_gr_instance = nvgpu_gr_get_cur_instance_id(g);
+	u32 gpc_phys_id;
+#endif
+	/* gv11b has 1 GPC and 4 TPC/GPC, so mask will not overflow u32 */
+	for (gpc = 0; gpc < nvgpu_gr_config_get_gpc_count(config); gpc++) {
+		for (pes = 0;
+		     pes < nvgpu_gr_config_get_pe_count_per_gpc(config);
+		     pes++) {
+			pes_tpc_mask |= nvgpu_gr_config_get_pes_tpc_mask(
+					config, gpc, pes) <<
+					nvgpu_safe_mult_u32(num_tpc_per_gpc, gpc);
+		}
+	}
+
+	nvgpu_log_info(g, "pes_tpc_mask %u\n", pes_tpc_mask);
+
+#ifdef CONFIG_NVGPU_NON_FUSA
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		/*
+		 * Fuse registers must be queried with physical gpc-id and not
+		 * the logical ones. For tu104 and before chips logical gpc-id
+		 * is same as physical gpc-id for non-floorswept config but for
+		 * chips after tu104 it may not be true.
+		 */
+		gpc_phys_id = nvgpu_grmgr_get_gr_gpc_phys_id(g,
+				cur_gr_instance, 0U);
+		fuse_tpc_mask = g->ops.gr.config.get_gpc_tpc_mask(g, config, gpc_phys_id);
+		if ((g->tpc_fs_mask_user != 0U) &&
+					(g->tpc_fs_mask_user != fuse_tpc_mask)) {
+			if (fuse_tpc_mask == nvgpu_safe_sub_u32(BIT32(max_tpc_count),
+									U32(1))) {
+				val = g->tpc_fs_mask_user;
+				val &= nvgpu_safe_sub_u32(BIT32(max_tpc_count), U32(1));
+				/*
+				 * skip tpc to disable the other tpc cause channel
+				 * timeout
+				 */
+				val = nvgpu_safe_sub_u32(BIT32(hweight32(val)), U32(1));
+				pes_tpc_mask = val;
+			}
+		}
+	}
+#endif
+
+	g->ops.gr.init.tpc_mask(g, 0, pes_tpc_mask);
+
+}
 
 void gm20b_gr_init_fs_state(struct gk20a *g)
 {

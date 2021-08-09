@@ -53,7 +53,6 @@ int gv11b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
 				struct nvgpu_gr_config *gr_config,
 				struct nvgpu_gr_ctx *gr_ctx,
 				bool patch);
-void gv11b_gr_init_tpc_mask(struct gk20a *g, u32 gpc_index, u32 pes_tpc_mask);
 void gv11b_gr_init_fs_state(struct gk20a *g);
 
 void gv11b_gr_init_commit_global_timeslice(struct gk20a *g);
