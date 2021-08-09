@@ -48,6 +48,7 @@ struct nvhost_interrupt_syncpt *nvhost_interrupt_syncpt_get(
 	struct platform_device *host1x_pdev;
 	struct nvhost_interrupt_syncpt *is;
 	struct device_node *host1x_np;
+	struct nvhost_master *master;
 	int err;
 
 	host1x_np = of_parse_phandle(np, "nvidia,host1x", 0);
@@ -73,7 +74,8 @@ struct nvhost_interrupt_syncpt *nvhost_interrupt_syncpt_get(
 		goto free_is;
 	}
 
-	is->value = nvhost_syncpt_read_minval(host1x_pdev, is->syncpt);
+	master = nvhost_get_host(is->host1x_pdev);
+	is->value = nvhost_syncpt_read(&master->syncpt, is->syncpt);
 
 	return is;
 
@@ -96,6 +98,18 @@ void nvhost_interrupt_syncpt_free(struct nvhost_interrupt_syncpt *is)
 	kfree(is);
 }
 EXPORT_SYMBOL(nvhost_interrupt_syncpt_free);
+
+void nvhost_interrupt_syncpt_reset(struct nvhost_interrupt_syncpt *is)
+{
+	struct nvhost_master *master = nvhost_get_host(is->host1x_pdev);
+
+	if (is->ref) {
+		nvhost_intr_put_ref(&master->intr, is->syncpt, is->ref);
+	}
+
+	is->value = nvhost_syncpt_read(&master->syncpt, is->syncpt);
+}
+EXPORT_SYMBOL(nvhost_interrupt_syncpt_reset);
 
 static void notifier_callback(void *private_data, int count)
 {
