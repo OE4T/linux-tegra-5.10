@@ -995,7 +995,7 @@ bool gv11b_gr_sm_debugger_attached(struct gk20a *g)
 			for (sm = 0U; sm < sm_per_tpc; sm++) {
 				if (!gv11b_gr_single_sm_debugger_attached(g,
 							gpc, tpc, sm)) {
-					nvgpu_err(g,
+					nvgpu_log(g, gpu_dbg_gpu_dbg,
 					"gpc(%d) tpc(%d) sm(%d) debugger NOT attached, "
 					, gpc, tpc, sm);
 					return false;
