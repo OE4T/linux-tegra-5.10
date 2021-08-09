@@ -569,6 +569,8 @@ struct ether_priv_data {
 #endif
 	/** Platform MDIO address */
 	unsigned int mdio_addr;
+	/** Skip MAC reset */
+	unsigned int skip_mac_reset;
 };
 
 /**

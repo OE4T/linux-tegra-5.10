@@ -4917,11 +4917,13 @@ static int ether_configure_car(struct platform_device *pdev,
 
 
 	/* get MAC reset */
-	pdata->mac_rst = devm_reset_control_get(&pdev->dev, "mac_rst");
-	if (IS_ERR_OR_NULL(pdata->mac_rst)) {
-		if (PTR_ERR(pdata->mac_rst) != -EPROBE_DEFER)
-			dev_err(&pdev->dev, "failed to get MAC reset\n");
-		return PTR_ERR(pdata->mac_rst);
+	if (!pdata->skip_mac_reset) {
+		pdata->mac_rst = devm_reset_control_get(&pdev->dev, "mac_rst");
+		if (IS_ERR_OR_NULL(pdata->mac_rst)) {
+			if (PTR_ERR(pdata->mac_rst) != -EPROBE_DEFER)
+				dev_err(&pdev->dev, "failed to get MAC rst\n");
+			return PTR_ERR(pdata->mac_rst);
+		}
 	}
 
 	if (osi_core->mac == OSI_MAC_HW_MGBE) {
@@ -5260,6 +5262,13 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 	unsigned int i, mtlq, chan, bitmap;
 	unsigned int dt_pad_calibration_enable;
 
+	/* Read flag to skip MAC reset on platform */
+	ret = of_property_read_u32(np, "nvidia,skip_mac_reset",
+				   &pdata->skip_mac_reset);
+	if (ret != 0) {
+		dev_info(dev, "failed to read skip mac reset flag, default 0\n");
+		pdata->skip_mac_reset = 0U;
+	}
 	/* Read MDIO address */
 	ret = of_property_read_u32(np, "nvidia,mdio_addr",
 				   &pdata->mdio_addr);
@@ -5895,6 +5904,9 @@ static void ether_init_rss(struct ether_priv_data *pdata,
 		return;
 	}
 
+	/* FIXME: Disable RSS as WAR for bringup */
+	osi_core->rss.enable = 0;
+
 	/* generate random key */
 	netdev_rss_key_fill(osi_core->rss.key, sizeof(osi_core->rss.key));
 
@@ -5931,7 +5943,61 @@ static int ether_probe(struct platform_device *pdev)
 	struct osi_dma_priv_data *osi_dma;
 	struct osi_ioctl ioctl_data = {};
 	struct net_device *ndev;
-	int ret = 0, i;
+	int ret = 0, i, val;
+	void __iomem *reg;
+
+	/* WAR to program PAD control registers until MB1 changes done */
+	if (tegra_get_chip_id() == TEGRA234) {
+		reg = ioremap(0x2445038, 4);
+		val = 0x2440;
+		writel(val, reg);
+		iounmap(reg);
+
+		reg = ioremap(0x2445048, 4);
+		val = 0x2400;
+		writel(val, reg);
+		iounmap(reg);
+
+		reg = ioremap(0x2440000, 4);
+		val = 0x440;
+		writel(val, reg);
+		iounmap(reg);
+
+		reg = ioremap(0x2440008, 4);
+		val = 0x400;
+		writel(val, reg);
+		iounmap(reg);
+
+		reg = ioremap(0x2440018, 4);
+		val = 0x440;
+		writel(val, reg);
+		iounmap(reg);
+
+		reg = ioremap(0x2440028, 4);
+		val = 0x400;
+		writel(val, reg);
+		iounmap(reg);
+
+		reg = ioremap(0x2440048, 4);
+		val = 0x440;
+		writel(val, reg);
+		iounmap(reg);
+
+		reg = ioremap(0x2440010, 4);
+		val = 0x400;
+		writel(val, reg);
+		iounmap(reg);
+
+		reg = ioremap(0x2440038, 4);
+		val = 0x440;
+		writel(val, reg);
+		iounmap(reg);
+
+		reg = ioremap(0x2440040, 4);
+		val = 0x400;
+		writel(val, reg);
+		iounmap(reg);
+	}
 
 	ether_get_num_dma_chan_mtl_q(pdev, &num_dma_chans,
 				     &mac, &num_mtl_queues);
@@ -6356,7 +6422,6 @@ static int ether_resume(struct ether_priv_data *pdata)
 		dev_err(dev, "failed to do pad caliberation\n");
 		return ret;
 	}
-
 	osi_set_rx_buf_len(osi_dma);
 
 	ret = ether_allocate_dma_resources(pdata);
