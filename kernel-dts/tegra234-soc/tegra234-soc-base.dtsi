@@ -972,7 +972,9 @@
 			 <&bpmp_clks TEGRA234_CLK_SOR1_REF>,
 			 <&bpmp_clks TEGRA234_CLK_OSC>,
 			 <&bpmp_clks TEGRA234_CLK_DSC>,
-			 <&bpmp_clks TEGRA234_CLK_MAUD>;
+			 <&bpmp_clks TEGRA234_CLK_MAUD>,
+			 <&bpmp_clks TEGRA234_CLK_AZA_2XBIT>,
+			 <&bpmp_clks TEGRA234_CLK_AZA_BIT>;
 		clock-names = "nvdisplayhub_clk",
 			      "nvdisplay_disp_clk",
 			      "nvdisplay_p0_clk",
@@ -1029,7 +1031,9 @@
 			      "sor1_ref_clk",
 			      "osc_clk",
 			      "dsc_clk",
-			      "maud_clk";
+			      "maud_clk",
+			      "aza_2xbit_clk",
+			      "aza_bit_clk";
 		resets = <&bpmp_resets TEGRA234_RESET_NVDISPLAY>,
 			 <&bpmp_resets TEGRA234_RESET_DPAUX>,
 			 <&bpmp_resets TEGRA234_RESET_HDACODEC>,
