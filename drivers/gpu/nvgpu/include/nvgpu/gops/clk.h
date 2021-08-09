@@ -63,14 +63,34 @@ struct gops_clk {
 		unsigned long rate);
 #endif
 	/**
-	 * @brief Get max rate of gpu clock.
+	 * @brief Get max rate of gpu clock in Hertz.
 	 *
 	 * @param g [in]		gpu device struct pointer
+	 * - The function does not perform validation of g parameter.
 	 * @param api_domain [in]	clock domains type
-	 *				- CTRL_CLK_DOMAIN_GPCCLK
+	 * - Only CTRL_CLK_DOMAIN_GPCCLK value is valid.
 	 *
-	 * This routine helps to get max supported rate for given clock domain.
-	 * Currently API only supports Graphics clock domain.
+	 * This routine helps to get max supported rate (in Hz) for given clock
+	 * domain. Currently API only supports Graphics clock domain. Steps
+	 * involved are
+	 * - Pointer to struct \ref nvgpu_os_rmos which embeds \a g is retrieved
+	 *   using function \ref nvgpu_os_rmos_from_gk20a
+	 *   "nvgpu_os_rmos_from_gk20a(g)".
+	 * - Then pointer to struct \ref nvgpu_power_ctx is obtained using
+	 *   \ref nvgpu_os_rmos "nvgpu_os_rmos.context" in a local variable
+	 *   ctx.
+	 * - If \a api_domain CTRL_CLK_DOMAIN_GPCCLK is used, handle of
+	 *   NvClockClock is obtained by calling \ref nvgpu_power_ctx_get_clk
+	 *   "nvgpu_power_ctx_get_clk(ctx, 0, &gpu_clk)" in a local variable
+	 *   gpu_clk. If the call fails return 0.
+	 * - Finally, QNX-BSP external call
+	 *   NvClockGetMaxDeviceClockFreq(gpu_clk, &freq) is made and the
+	 *   frequency corresponding to \a api_domain CTRL_CLK_DOMAIN_GPCCLK is
+	 *   returned in a local variable freq. If the call fails then set freq
+	 *   to 0.
+	 * - If the \a api_domain passed is not CTRL_CLK_DOMAIN_GPCCLK, then log
+	 *   error that "unknown clock domain".
+	 * - Return freq variable after typecasting to u64.
 	 *
 	 * @return 0 in case of failure and > 0 in case of success
 	 */

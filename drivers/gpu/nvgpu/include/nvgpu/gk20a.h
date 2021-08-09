@@ -190,7 +190,8 @@ struct railgate_stats {
 /**
  * @defgroup NVGPU_COMMON_NVGPU_DEFINES
  *
- * GPU litters defines.
+ * GPU litters defines which corresponds to various chip specific values related
+ * to h/w units.
  */
 
 /**
@@ -210,55 +211,55 @@ struct railgate_stats {
 #define GPU_LIT_NUM_SM_PER_TPC  4
 /** Number of fbps. */
 #define GPU_LIT_NUM_FBPS	5
-/** Gpc base address. */
+/** Gpc base address (in bytes). */
 #define GPU_LIT_GPC_BASE	6
-/** Gpc stride. */
+/** Gpc stride (in bytes). */
 #define GPU_LIT_GPC_STRIDE	7
-/** Gpc shared base offset. */
+/** Gpc shared base offset (in bytes). */
 #define GPU_LIT_GPC_SHARED_BASE 8
-/** Tpc's base offset in gpc. */
+/** Tpc's base offset in gpc (in bytes). */
 #define GPU_LIT_TPC_IN_GPC_BASE 9
-/** Tpc's stride in gpc. */
+/** Tpc's stride in gpc (in bytes). */
 #define GPU_LIT_TPC_IN_GPC_STRIDE 10
-/** Tpc's shared base offset in gpc. */
+/** Tpc's shared base offset in gpc (in bytes). */
 #define GPU_LIT_TPC_IN_GPC_SHARED_BASE 11
-/** Ppc's base offset in gpc. */
+/** Ppc's base offset in gpc (in bytes). */
 #define GPU_LIT_PPC_IN_GPC_BASE	12
-/** Ppc's stride in gpc. */
+/** Ppc's stride in gpc (in bytes). */
 #define GPU_LIT_PPC_IN_GPC_STRIDE 13
-/** Ppc's shared base offset in gpc. */
+/** Ppc's shared base offset in gpc (in bytes). */
 #define GPU_LIT_PPC_IN_GPC_SHARED_BASE 14
-/** Rop base offset. */
+/** Rop base offset (in bytes). */
 #define GPU_LIT_ROP_BASE	15
-/** Rop stride. */
+/** Rop stride (in bytes). */
 #define GPU_LIT_ROP_STRIDE	16
-/** Rop shared base offset. */
+/** Rop shared base offset (in bytes). */
 #define GPU_LIT_ROP_SHARED_BASE 17
 /** Number of host engines. */
 #define GPU_LIT_HOST_NUM_ENGINES 18
 /** Number of host pbdma. */
 #define GPU_LIT_HOST_NUM_PBDMA	19
-/** LTC stride. */
+/** LTC stride (in bytes). */
 #define GPU_LIT_LTC_STRIDE	20
-/** LTS stride. */
+/** LTS stride (in bytes). */
 #define GPU_LIT_LTS_STRIDE	21
 /** Number of fbpas. */
 #define GPU_LIT_NUM_FBPAS	22
-/** Fbpa stride. */
+/** Fbpa stride (in bytes). */
 #define GPU_LIT_FBPA_STRIDE	23
-/** Fbpa base offset. */
+/** Fbpa base offset (in bytes). */
 #define GPU_LIT_FBPA_BASE	24
-/** Fbpa shared base offset. */
+/** Fbpa shared base offset (in bytes). */
 #define GPU_LIT_FBPA_SHARED_BASE 25
-/** Sm pri stride. */
+/** Sm pri stride (in bytes). */
 #define GPU_LIT_SM_PRI_STRIDE	26
-/** Smpc pri base offset. */
+/** Smpc pri base offset (in bytes). */
 #define GPU_LIT_SMPC_PRI_BASE		27
-/** Smpc pri shared base offset. */
+/** Smpc pri shared base offset (in bytes). */
 #define GPU_LIT_SMPC_PRI_SHARED_BASE	28
-/** Smpc pri unique base offset. */
+/** Smpc pri unique base offset (in bytes). */
 #define GPU_LIT_SMPC_PRI_UNIQUE_BASE	29
-/** Smpc pri stride. */
+/** Smpc pri stride (in bytes). */
 #define GPU_LIT_SMPC_PRI_STRIDE		30
 /** Twod class. */
 #define GPU_LIT_TWOD_CLASS	31
@@ -272,7 +273,7 @@ struct railgate_stats {
 #define GPU_LIT_I2M_CLASS	35
 /** Dma copy class. */
 #define GPU_LIT_DMA_COPY_CLASS	36
-/** Gpc priv stride. */
+/** Gpc priv stride (in bytes). */
 #define GPU_LIT_GPC_PRIV_STRIDE	37
 #ifdef CONFIG_NVGPU_DEBUGGER
 #define GPU_LIT_PERFMON_PMMGPCTPCA_DOMAIN_START 38
@@ -426,7 +427,10 @@ struct gk20a {
 	/** Name of the gpu. */
 	const char *name;
 
-	/** Is the GPU ready to be used? */
+	/**
+	 * Is the GPU ready to be used? Access to this field is protected by
+	 * lock \ref gk20a "gk20a.power_spinlock".
+	 */
 	u32 power_on_state;
 
 	/** Is the GPU probe complete? */
@@ -452,7 +456,7 @@ struct gk20a {
 	struct nvgpu_thread sw_quiesce_thread;
 	/**
 	 * Struct having callback and it's arguments. The callback gets called
-	 * when BUG() is hit by the code.
+	 * when \ref BUG is hit by the code.
 	 */
 	struct nvgpu_bug_cb sw_quiesce_bug_cb;
 
@@ -556,7 +560,7 @@ struct gk20a {
 	struct nvgpu_mutex power_lock;
 #endif
 
-	/** Lock to protect accessing \a power_on_state. */
+	/** Lock to protect accessing \ref gk20a "gk20a.power_on_state". */
 	struct nvgpu_spinlock power_spinlock;
 
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
@@ -905,7 +909,8 @@ struct gk20a {
 /**
  * @brief Check if watchdog and context switch timeouts are enabled.
  *
- * @param g [in]	The GPU superstucture.
+ * @param g [in]	The GPU superstructure.
+ * - The function does not perform validation of g parameter.
  *
  * @return timeouts enablement status
  * @retval True  always for safety or if these timeouts are actually enabled on
@@ -923,18 +928,19 @@ static inline bool nvgpu_is_timeouts_enabled(struct gk20a *g)
 #endif
 }
 
-/** Minimum poll delay value in us */
+/** Minimum poll delay value for h/w interactions(in microseconds). */
 #define POLL_DELAY_MIN_US	10U
-/** Maximum poll delay value in us */
+/** Maximum poll delay value for h/w interactions(in microseconds). */
 #define POLL_DELAY_MAX_US	200U
 
 /**
  * @brief Get the global poll timeout value
  *
- * @param g [in]	The GPU superstucture.
+ * @param g [in]	The GPU superstructure.
+ * - The function does not perform validation of g parameter.
  *
- * @return The value of the global poll timeout value in us.
- * @retval NVGPU_DEFAULT_POLL_TIMEOUT_MS for safety as timeout is always
+ * @return The value of the global poll timeout value in microseconds.
+ * @retval \ref NVGPU_DEFAULT_POLL_TIMEOUT_MS for safety as timeout is always
  *         enabled.
  */
 static inline u32 nvgpu_get_poll_timeout(struct gk20a *g)
