@@ -135,10 +135,6 @@
                 status = "disabled";
         };
 
-        pinmux@2430000 {
-                status = "disabled";
-        };
-
         gpcdma@2600000 {
                 status = "disabled";
         };
