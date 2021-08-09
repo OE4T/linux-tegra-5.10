@@ -37,14 +37,6 @@
                 status = "disabled";
         };
 
-        i2c@3160000 {
-                status = "disabled";
-        };
-
-        i2c@3180000 {
-                status = "disabled";
-        };
-
         arm-pmu {
                 status = "disabled";
         };
@@ -132,10 +124,6 @@
         };
 
         ethernet@03b40000 {
-                status = "disabled";
-        };
-
-        gpcdma@2600000 {
                 status = "disabled";
         };
 
