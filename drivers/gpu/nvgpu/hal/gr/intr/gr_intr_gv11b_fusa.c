@@ -87,18 +87,17 @@ static void gv11b_gr_intr_handle_fecs_ecc_error(struct gk20a *g)
 			GPU_FECS_FALCON_IMEM_ECC_CORRECTED,
 			fecs_ecc_status.ecc_addr,
 			g->ecc.gr.fecs_ecc_corrected_err_count[0].counter);
-		nvgpu_log(g, gpu_dbg_intr, "imem ecc error corrected");
+		nvgpu_err(g, "imem ecc error corrected");
 	}
 	if (fecs_ecc_status.imem_uncorrected_err) {
 		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_FECS, 0,
 			GPU_FECS_FALCON_IMEM_ECC_UNCORRECTED,
 			fecs_ecc_status.ecc_addr,
 			g->ecc.gr.fecs_ecc_uncorrected_err_count[0].counter);
-		nvgpu_log(g, gpu_dbg_intr, "imem ecc error uncorrected");
+		nvgpu_err(g, "imem ecc error uncorrected");
 	}
 	if (fecs_ecc_status.dmem_corrected_err) {
-		nvgpu_log(g, gpu_dbg_intr,
-			"unexpected dmem ecc error corrected");
+		nvgpu_err(g, "unexpected dmem ecc error corrected");
 		/* This error is not expected to occur in gv11b and hence,
 		 * this scenario is considered as a fatal error.
 		 */
@@ -109,12 +108,10 @@ static void gv11b_gr_intr_handle_fecs_ecc_error(struct gk20a *g)
 			GPU_FECS_FALCON_DMEM_ECC_UNCORRECTED,
 			fecs_ecc_status.ecc_addr,
 			g->ecc.gr.fecs_ecc_uncorrected_err_count[0].counter);
-		nvgpu_log(g, gpu_dbg_intr,
-					"dmem ecc error uncorrected");
+		nvgpu_err(g, "dmem ecc error uncorrected");
 	}
 
-	nvgpu_log(g, gpu_dbg_intr,
-		"ecc error count corrected: %d, uncorrected %d",
+	nvgpu_err(g, "error count corrected: %d, uncorrected %d",
 		g->ecc.gr.fecs_ecc_corrected_err_count[0].counter,
 		g->ecc.gr.fecs_ecc_uncorrected_err_count[0].counter);
 }
@@ -309,7 +306,7 @@ void gv11b_gr_intr_handle_gcc_exception(struct gk20a *g, u32 gpc,
 
 	if ((gcc_l15_corrected_err_count_delta > 0U) ||
 	    is_gcc_l15_ecc_corrected_total_err_overflow) {
-		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
+		nvgpu_err(g,
 			"unexpected corrected error (SBE) detected in GCC L1.5!"
 			"err_mask [%08x] is_overf [%d]",
 			gcc_l15_ecc_corrected_err_status,
@@ -322,7 +319,7 @@ void gv11b_gr_intr_handle_gcc_exception(struct gk20a *g, u32 gpc,
 	}
 	if ((gcc_l15_uncorrected_err_count_delta > 0U) ||
 	    is_gcc_l15_ecc_uncorrected_total_err_overflow) {
-		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
+		nvgpu_err(g,
 			"Uncorrected error (DBE) detected in GCC L1.5!"
 			"err_mask [%08x] is_overf [%d]",
 			gcc_l15_ecc_uncorrected_err_status,
@@ -359,8 +356,7 @@ static void gv11b_gr_intr_report_gpcmmu_ecc_err(struct gk20a *g,
 	if ((ecc_status &
 	     gr_gpc0_mmu_l1tlb_ecc_status_corrected_err_l1tlb_sa_data_m()) !=
 									0U) {
-		nvgpu_log(g, gpu_dbg_intr,
-			"unexpected corrected ecc sa data error");
+		nvgpu_err(g, "unexpected corrected ecc sa data error");
 		/* This error is not expected to occur in gv11b and hence,
 		 * this scenario is considered as a fatal error.
 		 */
@@ -372,13 +368,12 @@ static void gv11b_gr_intr_report_gpcmmu_ecc_err(struct gk20a *g,
 		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_MMU, gpc,
 				GPU_MMU_L1TLB_SA_DATA_ECC_UNCORRECTED,
 				0, uncorrect_err);
-		nvgpu_log(g, gpu_dbg_intr, "uncorrected ecc sa data error");
+		nvgpu_err(g, "uncorrected ecc sa data error");
 	}
 	if ((ecc_status &
 	     gr_gpc0_mmu_l1tlb_ecc_status_corrected_err_l1tlb_fa_data_m()) !=
 									0U) {
-		nvgpu_log(g, gpu_dbg_intr,
-			"unexpected corrected ecc fa data error");
+		nvgpu_err(g, "unexpected corrected ecc fa data error");
 		/* This error is not expected to occur in gv11b and hence,
 		 * this scenario is considered as a fatal error.
 		 */
@@ -390,7 +385,7 @@ static void gv11b_gr_intr_report_gpcmmu_ecc_err(struct gk20a *g,
 		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_MMU, gpc,
 				GPU_MMU_L1TLB_FA_DATA_ECC_UNCORRECTED,
 				0, uncorrect_err);
-		nvgpu_log(g, gpu_dbg_intr, "uncorrected ecc fa data error");
+		nvgpu_err(g, "uncorrected ecc fa data error");
 	}
 }
 
@@ -456,28 +451,26 @@ void gv11b_gr_intr_handle_gpc_gpcmmu_exception(struct gk20a *g, u32 gpc,
 	if (corrected_overflow != 0U) {
 		corrected_delta = nvgpu_safe_add_u32(corrected_delta,
 		   BIT32(gr_gpc0_mmu_l1tlb_ecc_corrected_err_count_total_s()));
-		nvgpu_info(g, "mmu l1tlb ecc counter corrected overflow!");
+		nvgpu_err(g, "mmu l1tlb ecc counter corrected overflow!");
 	}
 	if (uncorrected_overflow != 0U) {
 		uncorrected_delta = nvgpu_safe_add_u32(uncorrected_delta,
 		  BIT32(gr_gpc0_mmu_l1tlb_ecc_uncorrected_err_count_total_s()));
-		nvgpu_info(g, "mmu l1tlb ecc counter uncorrected overflow!");
+		nvgpu_err(g, "mmu l1tlb ecc counter uncorrected overflow!");
 	}
 
 	*corrected_err = nvgpu_safe_add_u32(*corrected_err, corrected_delta);
 	*uncorrected_err = nvgpu_safe_add_u32(
 				*uncorrected_err, uncorrected_delta);
 
-	nvgpu_log(g, gpu_dbg_intr,
-		"mmu l1tlb gpc:%d ecc interrupt intr: 0x%x", gpc, hww_esr);
+	nvgpu_err(g, "mmu l1tlb gpc:%d ecc interrupt intr: 0x%x",
+			gpc, hww_esr);
 
 	gv11b_gr_intr_report_gpcmmu_ecc_err(g, ecc_status, gpc,
 			(u32)*corrected_err, (u32)*uncorrected_err);
 
-	nvgpu_log(g, gpu_dbg_intr,
-		"ecc error address: 0x%x", ecc_addr);
-	nvgpu_log(g, gpu_dbg_intr,
-		"ecc error count corrected: %d, uncorrected %d",
+	nvgpu_err(g, "ecc error address: 0x%x", ecc_addr);
+	nvgpu_err(g, "ecc error count corrected: %d, uncorrected %d",
 		(u32)*corrected_err, (u32)*uncorrected_err);
 }
 
@@ -490,19 +483,18 @@ static void gv11b_gr_intr_report_gpccs_ecc_err(struct gk20a *g,
 		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_GPCCS,
 				gpc, GPU_GPCCS_FALCON_IMEM_ECC_CORRECTED,
 				ecc_addr, correct_err);
-		nvgpu_log(g, gpu_dbg_intr, "imem ecc error corrected");
+		nvgpu_err(g, "imem ecc error corrected");
 	}
 	if ((ecc_status &
 	     gr_gpc0_gpccs_falcon_ecc_status_uncorrected_err_imem_m()) != 0U) {
 		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_GPCCS,
 				gpc, GPU_GPCCS_FALCON_IMEM_ECC_UNCORRECTED,
 				ecc_addr, uncorrect_err);
-		nvgpu_log(g, gpu_dbg_intr, "imem ecc error uncorrected");
+		nvgpu_err(g, "imem ecc error uncorrected");
 	}
 	if ((ecc_status &
 	     gr_gpc0_gpccs_falcon_ecc_status_corrected_err_dmem_m()) != 0U) {
-		nvgpu_log(g, gpu_dbg_intr,
-			"unexpected dmem ecc error corrected");
+		nvgpu_err(g, "unexpected dmem ecc error corrected");
 		/* This error is not expected to occur in gv11b and hence,
 		 * this scenario is considered as a fatal error.
 		 */
@@ -513,7 +505,7 @@ static void gv11b_gr_intr_report_gpccs_ecc_err(struct gk20a *g,
 		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_GPCCS,
 				gpc, GPU_GPCCS_FALCON_DMEM_ECC_UNCORRECTED,
 				ecc_addr, uncorrect_err);
-		nvgpu_log(g, gpu_dbg_intr, "dmem ecc error uncorrected");
+		nvgpu_err(g, "dmem ecc error uncorrected");
 	}
 }
 
@@ -715,22 +707,19 @@ void gv11b_gr_intr_handle_gpc_gpccs_exception(struct gk20a *g, u32 gpc,
 	*uncorrected_err = nvgpu_safe_add_u32(
 				*uncorrected_err, uncorrected_delta);
 
-	nvgpu_log(g, gpu_dbg_intr,
-			"gppcs gpc:%d ecc interrupt intr: 0x%x", gpc, hww_esr);
+	nvgpu_err(g, "gppcs gpc:%d ecc interrupt intr: 0x%x", gpc, hww_esr);
 
 	gv11b_gr_intr_report_gpccs_ecc_err(g, ecc_status, ecc_addr, gpc,
 			(u32)*corrected_err, (u32)*uncorrected_err);
 
 	if ((corrected_overflow != 0U) || (uncorrected_overflow != 0U)) {
-		nvgpu_info(g, "gpccs ecc counter overflow!");
+		nvgpu_err(g, "gpccs ecc counter overflow!");
 	}
 
-	nvgpu_log(g, gpu_dbg_intr,
-		"ecc error row address: 0x%x",
+	nvgpu_err(g, "ecc error row address: 0x%x",
 		gr_gpc0_gpccs_falcon_ecc_address_row_address_v(ecc_addr));
 
-	nvgpu_log(g, gpu_dbg_intr,
-			"ecc error count corrected: %d, uncorrected %d",
+	nvgpu_err(g, "ecc error count corrected: %d, uncorrected %d",
 			(u32)*corrected_err, (u32)*uncorrected_err);
 }
 
@@ -1105,7 +1094,7 @@ static void gv11b_gr_intr_handle_l1_tag_exception(struct gk20a *g, u32 gpc, u32 
 		gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_uncorrected_err_total_counter_overflow_v(l1_tag_ecc_status) != 0U;
 
 	if ((l1_tag_corrected_err_count_delta > 0U) || is_l1_tag_ecc_corrected_total_err_overflow) {
-		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
+		nvgpu_err(g,
 			"corrected error (SBE) detected in SM L1 tag! err_mask [%08x] is_overf [%d]",
 			ecc_status.corrected_err_status, is_l1_tag_ecc_corrected_total_err_overflow);
 
@@ -1126,7 +1115,7 @@ static void gv11b_gr_intr_handle_l1_tag_exception(struct gk20a *g, u32 gpc, u32 
 			0U);
 	}
 	if ((l1_tag_uncorrected_err_count_delta > 0U) || is_l1_tag_ecc_uncorrected_total_err_overflow) {
-		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
+		nvgpu_err(g,
 			"Uncorrected error (DBE) detected in SM L1 tag! err_mask [%08x] is_overf [%d]",
 			ecc_status.uncorrected_err_status, is_l1_tag_ecc_uncorrected_total_err_overflow);
 
@@ -1255,8 +1244,7 @@ static void gv11b_gr_intr_handle_lrf_exception(struct gk20a *g, u32 gpc, u32 tpc
 
 	if ((lrf_corrected_err_count_delta > 0U) ||
 			is_lrf_ecc_corrected_total_err_overflow) {
-		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
-			"unexpected corrected error (SBE) detected in SM LRF!"
+		nvgpu_err(g, "unexpected corrected error (SBE) detected in SM LRF!"
 			" err_mask [%08x] is_overf [%d]",
 			ecc_status.corrected_err_status,
 			is_lrf_ecc_corrected_total_err_overflow);
@@ -1267,7 +1255,7 @@ static void gv11b_gr_intr_handle_lrf_exception(struct gk20a *g, u32 gpc, u32 tpc
 		BUG();
 	}
 	if ((lrf_uncorrected_err_count_delta > 0U) || is_lrf_ecc_uncorrected_total_err_overflow) {
-		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
+		nvgpu_err(g,
 			"Uncorrected error (DBE) detected in SM LRF! err_mask [%08x] is_overf [%d]",
 			ecc_status.uncorrected_err_status, is_lrf_ecc_uncorrected_total_err_overflow);
 
@@ -1390,8 +1378,7 @@ static void gv11b_gr_intr_handle_cbu_exception(struct gk20a *g, u32 gpc, u32 tpc
 
 	if ((cbu_corrected_err_count_delta > 0U) ||
 		is_cbu_ecc_corrected_total_err_overflow) {
-		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
-			"unexpected corrected error (SBE) detected in SM CBU!"
+		nvgpu_err(g, "unexpected corrected error (SBE) detected in SM CBU!"
 			" err_mask [%08x] is_overf [%d]",
 			ecc_status.corrected_err_status,
 			is_cbu_ecc_corrected_total_err_overflow);
@@ -1402,7 +1389,7 @@ static void gv11b_gr_intr_handle_cbu_exception(struct gk20a *g, u32 gpc, u32 tpc
 		BUG();
 	}
 	if ((cbu_uncorrected_err_count_delta > 0U) || is_cbu_ecc_uncorrected_total_err_overflow) {
-		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
+		nvgpu_err(g,
 			"Uncorrected error (DBE) detected in SM CBU! err_mask [%08x] is_overf [%d]",
 			ecc_status.uncorrected_err_status, is_cbu_ecc_uncorrected_total_err_overflow);
 
@@ -1519,8 +1506,7 @@ static void gv11b_gr_intr_handle_l1_data_exception(struct gk20a *g, u32 gpc, u32
 
 	if ((l1_data_corrected_err_count_delta > 0U) ||
 		is_l1_data_ecc_corrected_total_err_overflow) {
-		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
-			"unexpected corrected error (SBE) detected in SM L1 data!"
+		nvgpu_err(g, "unexpected corrected error (SBE) detected in SM L1 data!"
 			" err_mask [%08x] is_overf [%d]",
 			ecc_status.corrected_err_status,
 			is_l1_data_ecc_corrected_total_err_overflow);
@@ -1532,7 +1518,7 @@ static void gv11b_gr_intr_handle_l1_data_exception(struct gk20a *g, u32 gpc, u32
 	}
 
 	if ((l1_data_uncorrected_err_count_delta > 0U) || is_l1_data_ecc_uncorrected_total_err_overflow) {
-		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
+		nvgpu_err(g,
 			"Uncorrected error (DBE) detected in SM L1 data! err_mask [%08x] is_overf [%d]",
 			ecc_status.uncorrected_err_status, is_l1_data_ecc_uncorrected_total_err_overflow);
 
@@ -1716,7 +1702,7 @@ static void gv11b_gr_intr_handle_icache_exception(struct gk20a *g, u32 gpc, u32 
 		gr_pri_gpc0_tpc0_sm_icache_ecc_status_uncorrected_err_total_counter_overflow_v(icache_ecc_status) != 0U;
 
 	if ((icache_corrected_err_count_delta > 0U) || is_icache_ecc_corrected_total_err_overflow) {
-		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
+		nvgpu_err(g,
 			"corrected error (SBE) detected in SM L0 && L1 icache! err_mask [%08x] is_overf [%d]",
 			ecc_status.corrected_err_status, is_icache_ecc_corrected_total_err_overflow);
 
@@ -1736,7 +1722,7 @@ static void gv11b_gr_intr_handle_icache_exception(struct gk20a *g, u32 gpc, u32 
 	}
 
 	if ((icache_uncorrected_err_count_delta > 0U) || is_icache_ecc_uncorrected_total_err_overflow) {
-		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
+		nvgpu_err(g,
 			"Uncorrected error (DBE) detected in SM L0 && L1 icache! err_mask [%08x] is_overf [%d]",
 			ecc_status.uncorrected_err_status, is_icache_ecc_uncorrected_total_err_overflow);
 
