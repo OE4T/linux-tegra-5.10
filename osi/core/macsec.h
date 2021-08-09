@@ -428,7 +428,7 @@
 #define MTU_LENGTH_MASK			0xFFFF
 #define MTU_ADDONS			(8 + 14 + 4)
 #define DVLAN_TAG_ETHERTYPE	0x88A8
-#define SOT_LENGTH_MASK		0x1F
+#define SOT_LENGTH_MASK		0xFF
 #define EQOS_MACSEC_SOT_DELAY	0x4E
 
 /**
