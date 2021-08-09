@@ -37,10 +37,6 @@
                 status = "disabled";
         };
 
-        pmc@c360000 {
-                status = "disabled";
-        };
-
         i2c@3160000 {
                 status = "disabled";
         };
@@ -210,10 +206,6 @@
 	};
 
 	ufshci@2500000 {
-		status = "disabled";
-	};
-
-	sdhci@3400000 {
 		status = "disabled";
 	};
 
