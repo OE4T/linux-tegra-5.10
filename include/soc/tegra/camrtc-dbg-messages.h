@@ -329,7 +329,7 @@ struct camrtc_dbg_coverage_data {
 	uint8_t falcon_id;
 	uint8_t flush;
 	uint8_t reset;
-	uint8_t _pad;
+	uint8_t pad__;
 	uint32_t size;
 	uint64_t iova;
 } CAMRTC_PACKED;
@@ -345,7 +345,7 @@ struct camrtc_dbg_coverage_stat {
 	uint8_t falcon_id;
 	uint8_t enabled;
 	uint8_t full;
-	uint8_t _pad;
+	uint8_t pad__;
 	uint32_t bytes_written;
 } CAMRTC_PACKED;
 

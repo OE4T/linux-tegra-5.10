@@ -568,7 +568,7 @@ struct vi_channel_config {
 	/** VI Companding module enable flag */
 	unsigned compand_enable:1;
 	/** Reserved bits */
-	unsigned __pad_flags:19;
+	unsigned pad_flags__:19;
 
 	/* VI channel selector */
 	struct match_rec {
@@ -601,7 +601,7 @@ struct vi_channel_config {
 	/** DPCM mode to be used. Currently DPCM is not used */
 	uint8_t dpcm_mode;
 	/** Reserved */
-	uint8_t __pad_dol_dt_dpcm;
+	uint8_t pad_dol_dt_dpcm__;
 
 	struct vi_frame_config {
 		/** Pixel width of frame before cropping */
@@ -646,7 +646,7 @@ struct vi_channel_config {
 		/** Zero padding control for RAW8/10/12/14->T_R16 and RAW20/24->T_R32 */
 		uint8_t pad0_en;
 		/** Reserved */
-		uint8_t __pad;
+		uint8_t pad__;
 		struct pdaf_rec {
 			/** Within a line, X pixel position at which PDAF separation begins */
 			uint16_t crop_left;
@@ -673,7 +673,7 @@ struct vi_channel_config {
 			/** Memory format in which the PDAF pixels will be written in */
 			uint8_t format;
 			/** Reserved */
-			uint8_t __pad_pdaf;
+			uint8_t pad_pdaf__;
 		} pdaf;
 	} pixfmt;
 
@@ -699,7 +699,7 @@ struct vi_channel_config {
 		/** Number of packets in final generated chunk (including OVERFETCH region, if enabled) */
 		uint16_t chunk_last;
 		/** Reserved */
-		uint16_t __pad;
+		uint16_t pad__;
 		/** Maximum value to truncate input data to */
 		uint32_t clamp_high;
 		/** Minimum value to truncate input data to */
@@ -721,7 +721,7 @@ struct vi_channel_config {
 	} atomp;
 
 	/** Reserved */
-	uint16_t __pad[2];
+	uint16_t pad__[2];
 
 } CAPTURE_IVC_ALIGN;
 
@@ -1198,9 +1198,9 @@ struct vi_syncgen_config {
 	/** Resevred - UNUSED */
 	uint16_t cvs_interval;
 	/** Reserved */
-	uint16_t __pad1;
+	uint16_t pad1__;
 	/** Reserved */
-	uint32_t __pad2;
+	uint32_t pad2__;
 } CAPTURE_IVC_ALIGN;
 
 
@@ -1326,7 +1326,7 @@ struct capture_descriptor {
 	struct capture_status status;
 
 	/** Reserved */
-	uint32_t __pad32[14];
+	uint32_t pad32__[14];
 
 } CAPTURE_DESCRIPTOR_ALIGN;
 
@@ -1547,7 +1547,7 @@ struct nvcsi_brick_config {
 	 */
 	uint8_t lane_polarity[NVCSI_BRICK_NUM_LANES];
 	/** Reserved */
-	uint32_t __pad32;
+	uint32_t pad32__;
 } CAPTURE_IVC_ALIGN;
 
 /**
@@ -1567,7 +1567,7 @@ struct nvcsi_cil_config {
 	/** MIPI clock rate for D-Phy. Symbol rate for C-Phy [kHz] */
 	uint32_t mipi_clock_rate;
 	/** Reserved */
-	uint32_t __pad32;
+	uint32_t pad32__;
 } CAPTURE_IVC_ALIGN;
 
 /**
@@ -1781,7 +1781,7 @@ struct nvcsi_error_config {
 	uint32_t cil_intr1_mask_lic;
 
 	/** Reserved */
-	uint32_t __pad32;
+	uint32_t pad32__;
 
 	/** VI EC/HSM error masking configuration */
 	struct vi_hsm_csimux_error_mask_config csimux_config;
@@ -1878,7 +1878,7 @@ struct nvcsi_error_config {
 
 struct nvcsi_dpcm_config {
 	uint32_t dpcm_ratio;
-	uint32_t __pad32;
+	uint32_t pad32__;
 } CAPTURE_IVC_ALIGN;
 
 /**
@@ -1888,7 +1888,7 @@ struct nvcsi_watchdog_config {
 	/** Enable/disable the pixel parser watchdog */
 	uint8_t enable;
 	/** Reserved */
-	uint8_t __pad8[3];
+	uint8_t pad8__[3];
 	/** The watchdog timer timeout period */
 	uint32_t period;
 } CAPTURE_IVC_ALIGN;
@@ -1916,7 +1916,7 @@ struct nvcsi_tpg_config_t186 {
 	/** Initial frame number */
 	uint16_t initial_frame_number;
 	/** Reserved */
-	uint16_t __pad16;
+	uint16_t pad16__;
 	/** Enable frame number generation */
 	uint32_t enable_frame_counter;
 	/** NvCSI datatype */
@@ -2178,7 +2178,7 @@ struct capture_channel_isp_config {
 	/** Unique ISP process channel ID */
 	uint8_t channel_id;
 	/** Reserved */
-	uint8_t __pad_chan[3];
+	uint8_t pad_chan__[3];
 	/** See ISP process channel specific @ref ISPProcessChannelFlags "flags" */
 	uint32_t channel_flags;
 	/**
@@ -2261,7 +2261,7 @@ struct capture_isp_status {
 	/** ISP channel id */
 	uint8_t chan_id;
 	/** Reserved */
-	uint8_t __pad;
+	uint8_t pad__;
 	/** Frame sequence number */
 	uint16_t frame_id;
 	/** See @ref IspProcesStatus "ISP process status codes" */
@@ -2273,7 +2273,7 @@ struct capture_isp_status {
 	 */
 	uint32_t error_mask;
 	/** Reserved */
-	uint32_t __pad2;
+	uint32_t pad2__;
 } CAPTURE_IVC_ALIGN;
 
 /**
@@ -2303,7 +2303,7 @@ struct capture_isp_program_status {
 	 */
 	uint8_t settings_id;
 	/** Reserved */
-	uint16_t __pad_id;
+	uint16_t pad_id__;
 	/** @ref IspProgramStatus "Program status" */
 	uint32_t status;
 	/**
@@ -2313,7 +2313,7 @@ struct capture_isp_program_status {
 	 */
 	uint32_t error_mask;
 	/** Reserved */
-	uint32_t __pad2;
+	uint32_t pad2__;
 } CAPTURE_IVC_ALIGN;
 
 /**
@@ -2341,7 +2341,7 @@ struct isp_program_descriptor {
 	uint8_t vi_channel_id;
 #define CAPTURE_NO_VI_ISP_BINDING MK_U8(0xFF)
 	/** Reserved */
-	uint8_t __pad_sid[2];
+	uint8_t pad_sid__[2];
 	/**
 	 * Capture sequence id, frame id; Given ISP program will be used from this frame ID onwards
 	 * until new ISP program does replace it.
@@ -2371,7 +2371,7 @@ struct isp_program_descriptor {
 	uint32_t activate_flags;
 
 	/** Pad to aligned size */
-	uint32_t __pad[5];
+	uint32_t pad__[5];
 } CAPTURE_DESCRIPTOR_ALIGN;
 
 /**
@@ -2394,7 +2394,7 @@ struct image_surface {
 	/** The surface stride in bytes */
 	uint32_t surface_stride;
 	/** Reserved */
-	uint32_t __pad_surf;
+	uint32_t pad_surf__;
 } CAPTURE_IVC_ALIGN;
 
 /**
@@ -2497,7 +2497,7 @@ struct isp_capture_descriptor {
 		/** Input image cfa */
 		uint8_t mr_image_cfa;
 		/** Reserved */
-		uint8_t _pad;
+		uint8_t pad__;
 		/** MR unit input image format value */
 		uint32_t mr_image_def;
 		/* TODO: should this be exposed to user mode? */
@@ -2512,14 +2512,14 @@ struct isp_capture_descriptor {
 	} surface_configs;
 
 	/** Reserved */
-	uint32_t __pad2;
+	uint32_t pad2__;
 	/** Base address of ISP PB2 memory */
 	iova_t isp_pb2_mem;
 	/* TODO: Isn't PB2 size constant, do we need this? */
 	/** Size of the pushbuffer 2 memory */
 	uint32_t isp_pb2_size;
 	/** Reserved */
-	uint32_t __pad_pb;
+	uint32_t pad_pb__;
 
 	/** Frame processing timeout in microseconds */
 	uint32_t frame_timeout;
@@ -2543,7 +2543,7 @@ struct isp_capture_descriptor {
 	 */
 	uint32_t num_prefences;
 	/** Reserved */
-	uint32_t __pad_prefences;
+	uint32_t pad_prefences__;
 
 	/** Syncpoint for each one of prefences */
 	struct syncpoint_info prefences[ISP_MAX_PREFENCES];
@@ -2558,7 +2558,7 @@ struct isp_capture_descriptor {
 	uint32_t program_buffer_index;
 
 	/** Reserved */
-	uint32_t __pad[1];
+	uint32_t pad__[1];
 } CAPTURE_DESCRIPTOR_ALIGN;
 
 /**
@@ -2730,7 +2730,7 @@ struct isp_overfetch {
 	 */
 	uint8_t alignment;
 	/** Reserved */
-	uint8_t _pad1[2];
+	uint8_t pad1__[2];
 };
 
 /**
@@ -2801,7 +2801,7 @@ struct isp5_program {
 	struct isp_overfetch overfetch;
 
 	/** Reserved */
-	uint32_t _pad1[3];
+	uint32_t pad1__[3];
 
 	/**
 	 * Push buffer containing ISP settings related to this program.

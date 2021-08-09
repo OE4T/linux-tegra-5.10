@@ -46,7 +46,7 @@ struct isp5_sdl_header {
 	/** Byte offset to MW[0/1/2] output buffers scratch surface from payload_offset.*/
 	uint32_t output_buffers_offset;
 	/** Reserved. */
-	uint32_t __reserved[9];
+	uint32_t reserved__[9];
 } CAMRTC_DIAG_DMA_ALIGN;
 
 /**
@@ -64,7 +64,7 @@ struct isp5_sdl_test_descriptor {
 	/** Golden CRC32 values for MW0, MW1 and MW2 output. */
 	uint32_t output_crc32[3];
 	/** Reserved. */
-	uint32_t __reserved[7];
+	uint32_t reserved__[7];
 	/** ISP5 push buffer 1 size in dwords. */
 	uint32_t push_buffer1_size;
 	/** ISP5 frame push buffer 1 */
