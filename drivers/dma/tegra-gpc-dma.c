@@ -25,6 +25,7 @@
 #include <linux/version.h>
 #include <dt-bindings/memory/tegra186-mc.h>
 #include "virt-dma.h"
+#include <soc/tegra/fuse.h>
 
 /* Common space stream_idx mask register */
 #define TEGRA_GPCDMA_COMMON_STREAM_IDx_MASK(i)	(0x180 + (i * 0x80))
@@ -1845,7 +1846,7 @@ static int tegra_dma_probe(struct platform_device *pdev)
 		tegra_dma_program_sid(tdc, i, stream_id);
 	}
 
-	if (tdma->chip_data->hw_sid_check_enabled) {
+	if (tdma->chip_data->hw_sid_check_enabled && !is_tegra_hypervisor_mode()) {
 		/*
 		 * For each channel, the channel space streamId will be compared
 		 * with the common space stream_idx_mask in HW. The streamIDs
