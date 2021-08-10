@@ -61,6 +61,7 @@
 #include "tegra234-soc/tegra234-automotive-nvguard-srvprop.dtsi"
 
 #include "tegra234-soc-coresight.dtsi"
+#include "tegra234-soc-fsicom.dtsi"
 
 / {
 	aliases {
