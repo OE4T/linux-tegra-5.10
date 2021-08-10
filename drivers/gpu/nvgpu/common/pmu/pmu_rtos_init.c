@@ -91,7 +91,7 @@ int nvgpu_pmu_lock_release(struct gk20a *g, struct nvgpu_pmu *pmu,
 		return 0;
 	}
 
-#ifdef CONFIG_PMU_POWER_PG
+#ifdef CONFIG_NVGPU_POWER_PG
 	if (!pmu->pg->initialized) {
 		return -EINVAL;
 	}
@@ -169,7 +169,7 @@ static void remove_pmu_support(struct nvgpu_pmu *pmu)
 
 	nvgpu_pmu_debug_deinit(g, pmu);
 	nvgpu_pmu_lsfm_deinit(g, pmu, pmu->lsfm);
-#ifdef CONFIG_PMU_POWER_PG
+#ifdef CONFIG_NVGPU_POWER_PG
 	nvgpu_pmu_pg_deinit(g, pmu, pmu->pg);
 #endif
 	nvgpu_pmu_sequences_deinit(g, pmu, pmu->sequences);

@@ -704,8 +704,8 @@ static int pmu_pg_task(void *arg)
 		case PMU_FW_STATE_LOADING_ZBC:
 			nvgpu_pmu_dbg(g, "loaded zbc");
 			err = pmu_pg_setup_hw_enable_elpg(g, pmu, pmu->pg);
-			nvgpu_pmu_dbg(g, "PMU booted, thread exiting");
-			return 0;
+			nvgpu_pmu_dbg(g, "PMU booted");
+			break;
 		default:
 			nvgpu_pmu_dbg(g, "invalid state");
 			err = -EINVAL;
@@ -797,6 +797,10 @@ int nvgpu_pmu_pg_sw_setup(struct gk20a *g, struct nvgpu_pmu *pmu,
 		}
 	}
 
+	if (nvgpu_thread_is_running(&pg->pg_init.state_task)) {
+		return 0;
+	}
+
 	/* Create thread to handle PMU state machine */
 	return pmu_pg_task_init(g, pg);
 }
@@ -809,8 +813,6 @@ void nvgpu_pmu_pg_destroy(struct gk20a *g, struct nvgpu_pmu *pmu,
 	if (!is_pg_supported(g, pg)) {
 		return;
 	}
-
-	pmu_pg_kill_task(g, pmu, pg);
 
 	nvgpu_pmu_get_pg_stats(g,
 		PMU_PG_ELPG_ENGINE_ID_GRAPHICS, &pg_stat_data);
@@ -904,6 +906,8 @@ void nvgpu_pmu_pg_deinit(struct gk20a *g, struct nvgpu_pmu *pmu,
 	if (!is_pg_supported(g, pg)) {
 		return;
 	}
+
+	pmu_pg_kill_task(g, pmu, pg);
 
 	if (nvgpu_mem_is_valid(&pg->seq_buf)) {
 		nvgpu_dma_unmap_free(vm, &pg->seq_buf);
