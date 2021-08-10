@@ -1,7 +1,7 @@
 /*
  * gk20a clock scaling profile
  *
- * Copyright (c) 2013-2020, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2013-2021, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -472,6 +472,9 @@ void gk20a_scale_exit(struct device *dev)
 	struct gk20a *g = platform->g;
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	int err;
+
+	if (!platform->devfreq_governor && !platform->qos_notify)
+		return;
 
 #ifdef CONFIG_GK20A_PM_QOS
 	if (platform->qos_notify) {
