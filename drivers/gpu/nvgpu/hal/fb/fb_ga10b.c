@@ -38,22 +38,24 @@
 #ifdef CONFIG_NVGPU_COMPRESSION
 void ga10b_fb_cbc_configure(struct gk20a *g, struct nvgpu_cbc *cbc)
 {
-	u64 base_divisor;
 	u64 compbit_store_base;
 	u64 compbit_store_pa;
 	u64 combit_top_size;
+	u64 combit_top;
 	u32 cbc_max_rval;
+	/* Unlike dgpu, partition swizzling is disabled for ga10b */
+	u32 num_swizzled_ltcs = 1U;
 
 	/*
 	 * Update CBC registers
 	 * Note: CBC Base value should be updated after CBC MAX
 	 */
-	base_divisor = g->ops.cbc.get_base_divisor(g);
 	combit_top_size = cbc->compbit_backing_size;
-	combit_top_size = round_up(combit_top_size, base_divisor);
-	nvgpu_assert(combit_top_size < U64(U32_MAX));
+	combit_top = (combit_top_size / num_swizzled_ltcs) >>
+				fb_mmu_cbc_top_alignment_shift_v();
+	nvgpu_assert(combit_top < U64(U32_MAX));
 	nvgpu_writel(g, fb_mmu_cbc_top_r(),
-		fb_mmu_cbc_top_address_f(U32(combit_top_size)));
+		fb_mmu_cbc_top_size_f(u64_lo32(combit_top)));
 
 	cbc_max_rval = nvgpu_readl(g, fb_mmu_cbc_max_r());
 	cbc_max_rval = set_field(cbc_max_rval,
@@ -62,11 +64,11 @@ void ga10b_fb_cbc_configure(struct gk20a *g, struct nvgpu_cbc *cbc)
 	nvgpu_writel(g, fb_mmu_cbc_max_r(), cbc_max_rval);
 
 	compbit_store_pa = nvgpu_mem_get_addr(g, &cbc->compbit_store.mem);
-	compbit_store_base = round_down(compbit_store_pa, base_divisor);
-
+	compbit_store_base = (compbit_store_pa / num_swizzled_ltcs) >>
+				fb_mmu_cbc_base_alignment_shift_v();
 	nvgpu_assert(compbit_store_base < U64(U32_MAX));
 	nvgpu_writel(g, fb_mmu_cbc_base_r(),
-		fb_mmu_cbc_base_address_f(U32(compbit_store_base)));
+		fb_mmu_cbc_base_address_f(u64_lo32(compbit_store_base)));
 
 	nvgpu_log(g, gpu_dbg_info | gpu_dbg_map_v | gpu_dbg_pte,
 		"compbit top size: 0x%x,%08x \n",

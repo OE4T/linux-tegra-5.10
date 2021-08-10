@@ -142,15 +142,16 @@ int ga10b_cbc_alloc_comptags(struct gk20a *g, struct nvgpu_cbc *cbc)
 	cbc->gobs_per_comptagline_per_slice = gobs_per_comptagline_per_slice;
 	cbc->compbit_backing_size = compbit_backing_size;
 
-	nvgpu_log(g, gpu_dbg_pte, "supported LTCs: 0x%x",
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_pte, "supported LTCs: 0x%x",
 		nvgpu_ltc_get_ltc_count(g));
-	nvgpu_log(g, gpu_dbg_pte, "ltc_count used for calculations: 0x%x",
-		ltc_count);
-	nvgpu_log(g, gpu_dbg_pte, "compbit backing store size : 0x%x",
-		compbit_backing_size);
-	nvgpu_log(g, gpu_dbg_pte, "max comptag lines: %d",
-		max_comptag_lines);
-	nvgpu_log(g, gpu_dbg_pte, "gobs_per_comptagline_per_slice: %d",
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_pte,
+		"ltc_count used for calculations: 0x%x", ltc_count);
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_pte,
+		"compbit backing store size : 0x%x", compbit_backing_size);
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_pte,
+		"max comptag lines: %d", max_comptag_lines);
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_pte,
+		"gobs_per_comptagline_per_slice: %d",
 		cbc->gobs_per_comptagline_per_slice);
 
 	return 0;
