@@ -1751,6 +1751,7 @@ int ga10b_init_hal(struct gk20a *g)
 	nvgpu_set_errata(g, NVGPU_ERRATA_3154076, true);
 	nvgpu_set_errata(g, NVGPU_ERRATA_3288192, true);
 	nvgpu_set_errata(g, NVGPU_ERRATA_SYNCPT_INVALID_ID_0, true);
+	nvgpu_set_errata(g, NVGPU_ERRATA_200761358, true);
 
 	nvgpu_set_enabled(g, NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP, false);
 
