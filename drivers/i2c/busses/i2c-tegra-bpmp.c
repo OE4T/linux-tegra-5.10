@@ -274,10 +274,8 @@ static int tegra_bpmp_i2c_xfer_common(struct i2c_adapter *adapter,
 	}
 
 	err = tegra_bpmp_i2c_msg_xfer(i2c, &request, &response, atomic);
-	if (err < 0) {
-		dev_err(i2c->dev, "failed to transfer message: %d\n", err);
+	if (err < 0)
 		return err;
-	}
 
 	err = tegra_bpmp_i2c_deserialize(i2c, &response, msgs, num);
 	if (err < 0) {
