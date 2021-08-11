@@ -64,7 +64,7 @@
 /**
  * Return size of FUSE_OPT_DLA_DISABLE register read
  */
-#define FUSE_OPT_DLA_DISABLE_SIZE	1
+#define FUSE_OPT_DLA_DISABLE_SIZE	4
 
 /**
  * Value of FUSE_OPT_DLA_DISABLE register

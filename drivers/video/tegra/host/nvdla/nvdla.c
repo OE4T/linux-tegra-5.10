@@ -698,7 +698,7 @@ static int nvhost_nvdla_read_chip_option_register(struct platform_device *pdev)
 	struct nvmem_cell *cell = NULL;
 	struct device *dev = &pdev->dev;
 	size_t len = 0ULL;
-	char *pbuf = NULL;
+	int *pbuf = NULL;
 	int ret = 0;
 
 	cell = nvmem_cell_get(dev, "dla-disable");
