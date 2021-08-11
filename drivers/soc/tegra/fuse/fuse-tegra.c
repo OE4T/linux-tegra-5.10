@@ -203,9 +203,9 @@ static const struct nvmem_cell_info tegra_fuse_cells[] = {
 	}, {
 		.name = "opt-dla-disable",
 		.offset = 0x3f0,
-		.bytes = 1,
+		.bytes = 4,
 		.bit_offset = 0,
-		.nbits = 2,
+		.nbits = 32,
 	},
 };
 
