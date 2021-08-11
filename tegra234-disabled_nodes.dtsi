@@ -81,28 +81,6 @@
                 status = "disabled";
         };
 
-        se_ahb@3ac0000 {
-                status = "disabled";
-        };
-
-        host1x@13e00000 {
-                se@15810000 {
-                        status = "disabled";
-                };
-
-                se@15820000 {
-                        status = "disabled";
-                };
-
-                se@15840000 {
-                        status = "disabled";
-                };
-        };
-
-        nvrng@3ae0000 {
-                status = "disabled";
-        };
-
         dce@d800000 {
                 status = "disabled";
         };
