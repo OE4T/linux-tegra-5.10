@@ -71,12 +71,15 @@ enum nvgpu_log_type {
 #define	gpu_dbg_mem		BIT(31)	/* memory accesses; very verbose. */
 #define gpu_dbg_device		BIT(32) /* Device initialization and
                                            querying. */
-#define gpu_dbg_mig		BIT(33) /* MIG info */
+#define gpu_dbg_mig		BIT(33) /* MIG info. */
 #define gpu_dbg_rec		BIT(34) /* Recovery sequence debugging. */
-#define gpu_dbg_zbc		BIT(35) /* Gr ZBC */
-#define gpu_dbg_vab		BIT(36) /* VAB */
+#define gpu_dbg_zbc		BIT(35) /* Gr ZBC. */
+#define gpu_dbg_vab		BIT(36) /* VAB. */
 #define gpu_dbg_runlists	BIT(38) /* Runlist related debugging. */
 #define gpu_dbg_cic		BIT(39) /* Interrupt Handling debugging. */
 #define gpu_dbg_falcon		BIT(40) /* Falcon/NVRISCV debugging */
+#define gpu_dbg_mm		BIT(41) /* Memory management debugging. */
+#define gpu_dbg_hwpm		BIT(42) /* GPU HWPM. */
+#define gpu_dbg_verbose		BIT(43) /* More verbose logs. */
 
 #endif

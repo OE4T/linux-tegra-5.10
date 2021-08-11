@@ -528,7 +528,7 @@ int gr_gk20a_get_pm_ctx_buffer_offsets(struct gk20a *g,
 		nvgpu_gr_config_get_max_tpc_per_gpc_count(gr->config) *
 		sm_per_tpc;
 
-	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, "addr=0x%x", addr);
+	nvgpu_log(g, gpu_dbg_gpu_dbg, "addr=0x%x", addr);
 
 	/* implementation is crossed-up if either of these happen */
 	if (max_offsets > potential_offsets) {

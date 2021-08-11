@@ -1750,7 +1750,7 @@ int gr_gv11b_decode_priv_addr(struct gk20a *g, u32 addr,
 {
 	u32 gpc_addr, tpc_addr;
 
-	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, "addr=0x%x", addr);
+	nvgpu_log(g, gpu_dbg_gpu_dbg, "addr=0x%x", addr);
 
 	/* setup defaults */
 	*addr_type = CTXSW_ADDR_TYPE_SYS;
@@ -1905,7 +1905,7 @@ int gr_gv11b_create_priv_addr_table(struct gk20a *g,
 	t = 0;
 	*num_registers = 0;
 
-	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, "addr=0x%x", addr);
+	nvgpu_log(g, gpu_dbg_gpu_dbg, "addr=0x%x", addr);
 
 	err = g->ops.gr.decode_priv_addr(g, addr, &addr_type,
 					&gpc_num, &tpc_num, &ppc_num, &rop_num,

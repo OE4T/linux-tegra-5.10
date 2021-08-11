@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@ int gv11b_mm_l2_flush(struct gk20a *g, bool invalidate)
 {
 	int err = 0;
 
-	nvgpu_log(g, gpu_dbg_fn, "gv11b_mm_l2_flush");
+	nvgpu_log(g, gpu_dbg_mm, "gv11b_mm_l2_flush");
 
 	err = g->ops.mm.cache.fb_flush(g);
 	if (err != 0) {

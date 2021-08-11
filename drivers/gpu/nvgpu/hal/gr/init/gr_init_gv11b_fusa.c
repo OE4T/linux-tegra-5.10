@@ -805,7 +805,8 @@ static int gv11b_gr_init_write_bundle_veid_state(struct gk20a *g, u32 index,
 		nvgpu_gr_get_cur_instance_id(g));
 
 	for (j = 0U; j < num_subctx; j++) {
-		nvgpu_log_fn(g, "write bundle_address_r for subctx: %d", j);
+		nvgpu_log(g, gpu_dbg_verbose,
+			"write bundle_address_r for subctx: %d", j);
 		nvgpu_writel(g, gr_pipe_bundle_address_r(),
 			sw_veid_bundle_init->l[index].addr |
 			gr_pipe_bundle_address_veid_f(j));
@@ -825,7 +826,7 @@ int gv11b_gr_init_load_sw_veid_bundle(struct gk20a *g,
 	int context = 0;
 
 	for (i = 0U; i < sw_veid_bundle_init->count; i++) {
-		nvgpu_log_fn(g, "veid bundle count: %d", i);
+		nvgpu_log(g, gpu_dbg_verbose, "veid bundle count: %d", i);
 		if (!g->ops.gr.init.is_allowed_sw_bundle(g,
 				sw_veid_bundle_init->l[i].addr,
 				sw_veid_bundle_init->l[i].value,
@@ -838,13 +839,13 @@ int gv11b_gr_init_load_sw_veid_bundle(struct gk20a *g,
 			nvgpu_writel(g, gr_pipe_bundle_data_r(),
 				sw_veid_bundle_init->l[i].value);
 			last_bundle_data = sw_veid_bundle_init->l[i].value;
-			nvgpu_log_fn(g, "last_bundle_data : 0x%08x",
+			nvgpu_log(g, gpu_dbg_verbose, "last_bundle_data : 0x%08x",
 						last_bundle_data);
 		}
 
 		if (gr_pipe_bundle_address_value_v(
 			sw_veid_bundle_init->l[i].addr) == GR_GO_IDLE_BUNDLE) {
-			nvgpu_log_fn(g, "go idle bundle");
+			nvgpu_log(g, gpu_dbg_verbose, "go idle bundle");
 				nvgpu_writel(g, gr_pipe_bundle_address_r(),
 					sw_veid_bundle_init->l[i].addr);
 				err = g->ops.gr.init.wait_idle(g);

@@ -39,7 +39,7 @@ int gk20a_mm_fb_flush(struct gk20a *g)
 	struct nvgpu_timeout timeout;
 	u32 retries;
 
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_mm, " ");
 
 	gk20a_busy_noresume(g);
 	if (nvgpu_is_powered_off(g)) {
@@ -76,7 +76,7 @@ int gk20a_mm_fb_flush(struct gk20a *g)
 				flush_fb_flush_outstanding_true_v()) ||
 			(flush_fb_flush_pending_v(data) ==
 				flush_fb_flush_pending_busy_v())) {
-				nvgpu_log_info(g, "fb_flush 0x%x", data);
+				nvgpu_log(g, gpu_dbg_mm, "fb_flush 0x%x", data);
 				nvgpu_udelay(5);
 		} else {
 			break;
@@ -133,8 +133,8 @@ static void gk20a_mm_l2_invalidate_locked(struct gk20a *g)
 			flush_l2_system_invalidate_outstanding_true_v()) ||
 			(flush_l2_system_invalidate_pending_v(data) ==
 				flush_l2_system_invalidate_pending_busy_v())) {
-				nvgpu_log_info(g, "l2_system_invalidate 0x%x",
-						data);
+				nvgpu_log(g, gpu_dbg_mm,
+					"l2_system_invalidate 0x%x", data);
 				nvgpu_udelay(5);
 		} else {
 			break;
@@ -170,7 +170,7 @@ int gk20a_mm_l2_flush(struct gk20a *g, bool invalidate)
 	u32 retries = 2000;
 	int err = -ETIMEDOUT;
 
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_mm, " ");
 
 	gk20a_busy_noresume(g);
 	if (nvgpu_is_powered_off(g)) {
@@ -203,7 +203,8 @@ int gk20a_mm_l2_flush(struct gk20a *g, bool invalidate)
 				flush_l2_flush_dirty_outstanding_true_v()) ||
 			(flush_l2_flush_dirty_pending_v(data) ==
 				flush_l2_flush_dirty_pending_busy_v())) {
-				nvgpu_log_info(g, "l2_flush_dirty 0x%x", data);
+				nvgpu_log(g, gpu_dbg_mm, "l2_flush_dirty 0x%x",
+					data);
 				nvgpu_udelay(5);
 		} else {
 			err = 0;

@@ -560,10 +560,12 @@ static int nvgpu_gr_hwpm_map_create(struct gk20a *g,
 	hwpm_map->count = count;
 	hwpm_map->init = true;
 
-	nvgpu_log_info(g, "Reg Addr => HWPM Ctxt switch buffer offset");
+	nvgpu_log(g, gpu_dbg_hwpm,
+		"Reg Addr => HWPM Ctxt switch buffer offset");
 
 	for (i = 0; i < count; i++) {
-		nvgpu_log_info(g, "%08x => %08x", map[i].addr, map[i].offset);
+		nvgpu_log(g, gpu_dbg_hwpm, "%08x => %08x",
+			map[i].addr, map[i].offset);
 	}
 
 	return 0;

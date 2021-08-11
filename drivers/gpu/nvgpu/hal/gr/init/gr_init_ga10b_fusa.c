@@ -332,7 +332,7 @@ int ga10b_gr_init_wait_idle(struct gk20a *g)
 	bool gr_busy;
 	struct nvgpu_timeout timeout;
 
-	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
+	nvgpu_log(g, gpu_dbg_verbose | gpu_dbg_gr, " ");
 
 	err = nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
                                  NVGPU_TIMER_CPU_TIMER);
@@ -355,7 +355,7 @@ int ga10b_gr_init_wait_idle(struct gk20a *g)
 				gr_status_state_busy_v()) != 0U;
 
 		if (!gr_busy) {
-			nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "done");
+			nvgpu_log(g, gpu_dbg_verbose | gpu_dbg_gr, "done");
 			return 0;
 		}
 

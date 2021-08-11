@@ -244,7 +244,7 @@ int gm20b_gr_init_wait_fe_idle(struct gk20a *g)
 	}
 #endif
 
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_verbose, " ");
 
 	err = nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
 				 NVGPU_TIMER_CPU_TIMER);
@@ -256,7 +256,7 @@ int gm20b_gr_init_wait_fe_idle(struct gk20a *g)
 		val = nvgpu_readl(g, gr_status_r());
 
 		if (gr_status_fe_method_lower_v(val) == 0U) {
-			nvgpu_log_fn(g, "done");
+			nvgpu_log(g, gpu_dbg_verbose, "done");
 			return 0;
 		}
 

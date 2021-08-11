@@ -1,7 +1,7 @@
 /*
  * GM20B GPC MMU
  *
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -80,7 +80,7 @@ int gm20b_fb_tlb_invalidate(struct gk20a *g, struct nvgpu_mem *pdb)
 	u32 data;
 	int err = 0;
 
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_mm, " ");
 
 	/* pagetables are considered sw states which are preserved after
 	   prepare_poweroff. When gk20a deinit releases those pagetables,
