@@ -44,6 +44,7 @@ static const struct vi_capture_setup default_setup = {
 	,
 
 	.vi_channel_mask = ~0ULL,
+	.vi2_channel_mask = ~0ULL,
 
 	.queue_depth = CAPTURE_MIN_BUFFERS,
 	.request_size = sizeof(struct capture_descriptor),
