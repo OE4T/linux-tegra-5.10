@@ -1936,6 +1936,7 @@ static void tegra_se_read_cmac_result(struct tegra_se_dev *se_dev, u8 *pdata,
 	for (i = 0; i < nbytes / 4; i++) {
 		if (se_dev->chipdata->kac_type == SE_KAC_T23X) {
 			result[i] = se_readl(se_dev,
+					     se_dev->opcode_addr +
 					     T234_SE_CMAC_RESULT_REG_OFFSET +
 					     (i * sizeof(u32)));
 		} else  {
@@ -1955,9 +1956,17 @@ static void tegra_se_clear_cmac_result(struct tegra_se_dev *se_dev, u32 nbytes)
 
 	nvhost_module_busy(se_dev->pdev);
 
-	for (i = 0; i < nbytes / 4; i++)
-		se_writel(se_dev, 0x0, T234_SE_CMAC_RESULT_REG_OFFSET +
-			  (i * sizeof(u32)));
+	for (i = 0; i < nbytes / 4; i++) {
+		if (se_dev->chipdata->kac_type == SE_KAC_T23X) {
+			se_writel(se_dev, 0x0, se_dev->opcode_addr +
+				  T234_SE_CMAC_RESULT_REG_OFFSET +
+				  (i * sizeof(u32)));
+		} else {
+			se_writel(se_dev, 0x0,
+				  SE_CMAC_RESULT_REG_OFFSET +
+				  (i * sizeof(u32)));
+		}
+	}
 
 	nvhost_module_idle(se_dev->pdev);
 }
