@@ -645,6 +645,7 @@ static nve32_t eqos_set_mode(struct osi_core_priv_data *const osi_core,
  *    MAC HW is being shared equally among the queues that are
  *    configured.
  *
+ * @param[in] mac_ver: MAC version value.
  * @param[in] fifo_size: Total Tx/RX HW FIFO size.
  * @param[in] queue_count: Total number of Queues configured.
  *
@@ -658,7 +659,8 @@ static nve32_t eqos_set_mode(struct osi_core_priv_data *const osi_core,
  *
  * @retval Queue size that need to be programmed.
  */
-static nveu32_t eqos_calculate_per_queue_fifo(nveu32_t fifo_size,
+static nveu32_t eqos_calculate_per_queue_fifo(nveu32_t mac_ver,
+					      nveu32_t fifo_size,
 					      nveu32_t queue_count)
 {
 	nveu32_t q_fifo_size = 0;  /* calculated fifo size per queue */
@@ -698,7 +700,11 @@ static nveu32_t eqos_calculate_per_queue_fifo(nveu32_t fifo_size,
 		q_fifo_size = FIFO_SIZE_KB(32U);
 		break;
 	case 9:
-		q_fifo_size = FIFO_SIZE_KB(36U);
+		if (mac_ver == OSI_EQOS_MAC_5_30) {
+			q_fifo_size = FIFO_SIZE_KB(64U);
+		} else {
+			q_fifo_size = FIFO_SIZE_KB(36U);
+		}
 		break;
 	case 10:
 		q_fifo_size = FIFO_SIZE_KB(128U);
@@ -2128,10 +2134,12 @@ static nve32_t eqos_core_init(struct osi_core_priv_data *const osi_core,
 	}
 
 	/* Calculate value of Transmit queue fifo size to be programmed */
-	tx_fifo = eqos_calculate_per_queue_fifo(tx_fifo_size,
+	tx_fifo = eqos_calculate_per_queue_fifo(osi_core->mac_ver,
+						tx_fifo_size,
 						osi_core->num_mtl_queues);
 	/* Calculate value of Receive queue fifo size to be programmed */
-	rx_fifo = eqos_calculate_per_queue_fifo(rx_fifo_size,
+	rx_fifo = eqos_calculate_per_queue_fifo(osi_core->mac_ver,
+						rx_fifo_size,
 						osi_core->num_mtl_queues);
 
 	/* Configure MTL Queues */
