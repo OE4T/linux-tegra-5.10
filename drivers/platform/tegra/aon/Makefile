@@ -20,5 +20,7 @@ else
 tegra234-aon-y += aon-hsp-combo.o
 endif
 tegra234-aon-y += tegra-aon-mail.o
+ifeq ($(CONFIG_DEBUG_FS), y)
 tegra234-aon-y += tegra-aon-debug.o
+endif
 tegra234-aon-y += tegra-aon-module.o
