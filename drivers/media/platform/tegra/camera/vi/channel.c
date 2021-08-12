@@ -2557,11 +2557,11 @@ int tegra_channel_cleanup(struct tegra_channel *chan)
 	struct device *vi_unit_dev = tegra_channel_get_vi_unit(chan);
 
 	/* release embedded data buffer */
-	if (chan->vi->emb_buf_size > 0) {
+	if (chan->emb_buf_size > 0) {
 		dma_free_coherent(vi_unit_dev,
-			chan->vi->emb_buf_size,
-			chan->vi->emb_buf_addr, chan->vi->emb_buf);
-		chan->vi->emb_buf_size = 0;
+			chan->emb_buf_size,
+			chan->emb_buf_addr, chan->emb_buf);
+		chan->emb_buf_size = 0;
 	}
 
 	tegra_channel_dealloc_buffer_queue(chan);

@@ -345,7 +345,7 @@ static void vi5_setup_surface(struct tegra_channel *chan,
 		desc->ch_cfg.frame.embed_y = chan->embedded_data_height;
 
 		desc_memoryinfo->surface[VI_ATOMP_SURFACE_EMBEDDED].base_address
-			= chan->vi->emb_buf;
+			= chan->emb_buf;
 		desc_memoryinfo->surface[VI_ATOMP_SURFACE_EMBEDDED].size
 			= desc->ch_cfg.frame.embed_x * desc->ch_cfg.frame.embed_y;
 
@@ -801,7 +801,7 @@ static int vi5_channel_start_streaming(struct vb2_queue *vq, u32 count)
 			}
 
 			/* Allocate buffer for Embedded Data if need to*/
-			if (emb_buf_size > chan->vi->emb_buf_size) {
+			if (emb_buf_size > chan->emb_buf_size) {
 				struct device *vi_unit_dev;
 
 				vi5_unit_get_device_handle(chan->vi->ndev,
@@ -811,25 +811,25 @@ static int vi5_channel_start_streaming(struct vb2_queue *vq, u32 count)
 				 * release the old buffer and re-allocate a
 				 * bigger one below.
 				 */
-				if (chan->vi->emb_buf_size > 0) {
+				if (chan->emb_buf_size > 0) {
 					dma_free_coherent(vi_unit_dev,
-						chan->vi->emb_buf_size,
-						chan->vi->emb_buf_addr,
-						chan->vi->emb_buf);
-					chan->vi->emb_buf_size = 0;
+						chan->emb_buf_size,
+						chan->emb_buf_addr,
+						chan->emb_buf);
+					chan->emb_buf_size = 0;
 				}
 
-				chan->vi->emb_buf_addr =
+				chan->emb_buf_addr =
 					dma_alloc_coherent(vi_unit_dev,
 						emb_buf_size,
-						&chan->vi->emb_buf, GFP_KERNEL);
-				if (!chan->vi->emb_buf_addr) {
+						&chan->emb_buf, GFP_KERNEL);
+				if (!chan->emb_buf_addr) {
 					dev_err(&chan->video->dev,
 							"Can't allocate memory"
 							"for embedded data\n");
 					goto err_setup;
 				}
-				chan->vi->emb_buf_size = emb_buf_size;
+				chan->emb_buf_size = emb_buf_size;
 			}
 		}
 

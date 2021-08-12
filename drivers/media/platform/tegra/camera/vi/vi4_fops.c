@@ -257,7 +257,7 @@ static void tegra_channel_surface_setup(
 	u32 stride = 0;
 
 	if (chan->embedded_data_height > 0) {
-		addr = chan->vi->emb_buf;
+		addr = chan->emb_buf;
 		stride = chan->embedded_data_width * BPP_MEM;
 	}
 
@@ -1065,29 +1065,29 @@ static int vi4_channel_start_streaming(struct vb2_queue *vq, u32 count)
 		}
 
 		/* Allocate buffer for Embedded Data if need to*/
-		if (emb_buf_size > chan->vi->emb_buf_size) {
+		if (emb_buf_size > chan->emb_buf_size) {
 			/*
 			 * if old buffer is smaller than what we need,
 			 * release the old buffer and re-allocate a bigger
 			 * one below
 			 */
-			if (chan->vi->emb_buf_size > 0) {
+			if (chan->emb_buf_size > 0) {
 				dma_free_coherent(chan->vi->dev,
-					chan->vi->emb_buf_size,
-					chan->vi->emb_buf_addr, chan->vi->emb_buf);
-				chan->vi->emb_buf_size = 0;
+					chan->emb_buf_size,
+					chan->emb_buf_addr, chan->emb_buf);
+				chan->emb_buf_size = 0;
 			}
 
-			chan->vi->emb_buf_addr =
+			chan->emb_buf_addr =
 				dma_alloc_coherent(chan->vi->dev,
 					emb_buf_size,
-					&chan->vi->emb_buf, GFP_KERNEL);
-			if (!chan->vi->emb_buf_addr) {
+					&chan->emb_buf, GFP_KERNEL);
+			if (!chan->emb_buf_addr) {
 				dev_err(&chan->video->dev,
 						"Can't allocate memory for embedded data\n");
 				goto error_capture_setup;
 			}
-			chan->vi->emb_buf_size = emb_buf_size;
+			chan->emb_buf_size = emb_buf_size;
 		}
 	}
 

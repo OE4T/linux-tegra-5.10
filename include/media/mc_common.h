@@ -264,6 +264,10 @@ struct tegra_channel {
 
 	atomic_t syncpt_depth;
 	struct rw_semaphore reset_lock;
+
+	dma_addr_t emb_buf;
+	void *emb_buf_addr;
+	unsigned int emb_buf_size;
 };
 
 #define to_tegra_channel(vdev) \
@@ -324,10 +328,6 @@ struct tegra_mc_vi {
 	bool bypass;
 
 	const struct tegra_vi_fops *fops;
-
-	dma_addr_t emb_buf;
-	void *emb_buf_addr;
-	unsigned int emb_buf_size;
 };
 
 int tegra_vi_get_port_info(struct tegra_channel *chan,
