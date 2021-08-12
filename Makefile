@@ -800,6 +800,8 @@ ifdef CONFIG_CC_IS_CLANG
 KBUILD_CPPFLAGS += -Qunused-arguments
 KBUILD_CFLAGS += -Wno-format-invalid-specifier
 KBUILD_CFLAGS += -Wno-gnu
+KBUILD_CFLAGS += -Wno-typedef-redefinition -Wno-uninitialized -Wno-asm-operand-widths -Wno-parentheses-equality -Wno-enum-conversion -Wno-implicit-function-declaration -Wno-shift-count-negative -Wno-tautological-pointer-compare -Wno-shift-count-negative -Wno-shift-overflow -Wno-self-assign -Wno-incompatible-pointer-types-discards-qualifiers -Wno-deprecated-declarations -Wno-tentative-definition-incomplete-type
+
 # CLANG uses a _MergedGlobals as optimization, but this breaks modpost, as the
 # source of a reference will be _MergedGlobals and not on of the whitelisted names.
 # See modpost pattern 2
