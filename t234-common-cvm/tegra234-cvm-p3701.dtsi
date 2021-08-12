@@ -41,7 +41,7 @@
 
 	cpufreq {
 		compatible = "nvidia,t234-cpufreq";
-		status = "disabled";
+		status = "okay";
 		cpu_emc_map = <1907200 1600000>,
 			    <1881600 800000>,
 			    <1574400 665000>,
@@ -163,6 +163,11 @@
         iommu@8000000 {
                 status = "okay";
         };
+
+	serial@3130000 {
+		status = "okay";
+	};
+
 	serial@3140000 {
 		compatible = "nvidia,tegra186-hsuart";
 		status = "disabled";
@@ -280,15 +285,11 @@
         };
 
 	efuse@3810000 {
-		status = "disabled";
+		status = "okay";
 	};
 
 	efuse-burn {
-		status = "disaled";
-	};
-
-	psci {
-		status = "disaled";
+		status = "okay";
 	};
 
 	rtc@c2a0000 {
