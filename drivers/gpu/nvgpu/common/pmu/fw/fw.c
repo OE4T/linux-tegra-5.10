@@ -40,6 +40,9 @@
 #define NVGPU_PMU_UCODE_NEXT_IMAGE "gpmu_ucode_next_image.bin"
 #define NVGPU_PMU_UCODE_NEXT_DESC "gpmu_ucode_next_desc.bin"
 #define NVGPU_PMU_UCODE_NEXT_SIG "pmu_pkc_sig.bin"
+#define NVGPU_PMU_UCODE_NEXT_PROD_IMAGE "gpmu_ucode_next_prod_image.bin"
+#define NVGPU_PMU_UCODE_NEXT_PROD_DESC "gpmu_ucode_next_prod_desc.bin"
+#define NVGPU_PMU_UCODE_NEXT_PROD_SIG "pmu_pkc_prod_sig.bin"
 
 void nvgpu_pmu_fw_get_cmd_line_args_offset(struct gk20a *g,
 	u32 *args_offset)
@@ -269,6 +272,8 @@ static int pmu_fw_init_ops(struct gk20a *g, struct nvgpu_pmu *pmu)
 		ncore_desc = (struct falcon_next_core_ucode_desc *)(void *)
 						rtos_fw->fw_desc->data;
 		app_version = ncore_desc->app_version;
+                nvgpu_pmu_dbg(g, "app version %d ", app_version);
+                app_version = 0;
 	} else {
 		desc = (struct pmu_ucode_desc *)(void *)rtos_fw->fw_desc->data;
 		app_version = desc->app_version;
@@ -304,10 +309,19 @@ int nvgpu_pmu_init_pmu_fw(struct gk20a *g, struct nvgpu_pmu *pmu,
 	*rtos_fw_p = rtos_fw;
 
 	if (nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
-		nvgpu_pmu_dbg(g, "FW read for RISCV/PKC\n");
-		err = pmu_fw_read(g, NVGPU_PMU_UCODE_NEXT_IMAGE,
-				NVGPU_PMU_UCODE_NEXT_DESC,
-				NVGPU_PMU_UCODE_NEXT_SIG);
+		if (g->ops.pmu.is_debug_mode_enabled(g)) {
+			nvgpu_pmu_dbg(g, "FW read for DBG RISCV/PKC");
+			err = pmu_fw_read(g,
+					NVGPU_PMU_UCODE_NEXT_IMAGE,
+					NVGPU_PMU_UCODE_NEXT_DESC,
+					NVGPU_PMU_UCODE_NEXT_SIG);
+		} else {
+			nvgpu_pmu_dbg(g, "FW read for PROD RISCV/PKC");
+			err = pmu_fw_read(g,
+					NVGPU_PMU_UCODE_NEXT_PROD_IMAGE,
+					NVGPU_PMU_UCODE_NEXT_PROD_DESC,
+					NVGPU_PMU_UCODE_NEXT_PROD_SIG);
+		}
 	} else {
 		nvgpu_pmu_dbg(g, "FW read for Falcon/AES\n");
 		err = pmu_fw_read(g, NVGPU_PMU_UCODE_IMAGE,
