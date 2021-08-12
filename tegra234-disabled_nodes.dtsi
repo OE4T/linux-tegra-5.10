@@ -53,26 +53,6 @@
                 status = "disabled";
         };
 
-        ethernet@2310000 {
-                status = "disabled";
-        };
-
-        ethernet@6810000 {
-                status = "disabled";
-        };
-
-        ethernet@6910000 {
-                status = "disabled";
-        };
-
-        ethernet@6A10000 {
-                status = "disabled";
-        };
-
-        ethernet@6B10000 {
-                status = "disabled";
-        };
-
         psc@e800000 {
                 status = "disabled";
         };
