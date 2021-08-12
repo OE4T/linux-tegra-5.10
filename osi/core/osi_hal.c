@@ -837,6 +837,9 @@ nve32_t osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
 			ssinc = OSI_PTP_SSINC_16;
 		} else {
 			ssinc = OSI_PTP_SSINC_4;
+			if (osi_core->mac_ver == OSI_EQOS_MAC_5_30) {
+				ssinc = OSI_PTP_SSINC_6;
+			}
 		}
 
 		temp = ((nveu64_t)1000 << 32);
