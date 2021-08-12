@@ -177,7 +177,7 @@
 		};
 
 		tegra_axbar: ahub {
-			compatible = "nvidia,tegra186-ahub";
+			compatible = "nvidia,tegra234-ahub";
 			wakeup-disable;
 			reg = <0x0 0x02900800 0x0 0x800>;
 			clocks = <&bpmp_clks TEGRA234_CLK_AHUB>,
