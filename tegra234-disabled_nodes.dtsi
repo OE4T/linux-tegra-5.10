@@ -103,14 +103,6 @@
                 status = "disabled";
         };
 
-        efuse@3810000 {
-                status = "disabled";
-        };
-
-        efuse-burn {
-                status = "disabled";
-        };
-
         dce@d800000 {
                 status = "disabled";
         };
