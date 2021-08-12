@@ -53,10 +53,6 @@
                 status = "disabled";
         };
 
-        icc {
-                status = "disabled";
-        };
-
         ethernet@2310000 {
                 status = "disabled";
         };
