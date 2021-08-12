@@ -272,6 +272,7 @@ typedef my_lint_64		nvel64_t;
  */
 #define OSI_PTP_SSINC_16	16U
 #define OSI_PTP_SSINC_4		4U
+#define OSI_PTP_SSINC_6		6U
 /** @} */
 
 /**

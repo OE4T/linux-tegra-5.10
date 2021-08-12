@@ -4304,6 +4304,8 @@ static void eqos_config_ssir(struct osi_core_priv_data *const osi_core,
 	if ((mac_tcr & EQOS_MAC_TCR_TSCFUPDT) == EQOS_MAC_TCR_TSCFUPDT) {
 		if (osi_core->mac_ver <= OSI_EQOS_MAC_4_10) {
 			val = OSI_PTP_SSINC_16;
+		} else if (osi_core->mac_ver == OSI_EQOS_MAC_5_30) {
+			val = OSI_PTP_SSINC_6;
 		} else {
 			val = OSI_PTP_SSINC_4;
 		}
