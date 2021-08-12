@@ -210,9 +210,9 @@
 
 			#phy-cells = <0>;
 		};
-		p2u_nvhs_5: p2u@03ee00000 {
+		p2u_nvhs_5: p2u@03ee0000 {
 			compatible = "nvidia,tegra234-p2u";
-			reg = <0x03ee00000 0x00010000>;
+			reg = <0x03ee0000 0x00010000>;
 			reg-names = "ctl";
 
 			interrupts = <0 349 0x04>;
