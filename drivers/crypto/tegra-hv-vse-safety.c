@@ -611,6 +611,7 @@ static int tegra_hv_vse_safety_send_sha_data(struct tegra_virtual_se_dev *se_dev
 		if (req_ctx->is_first) {
 			psha->op_hash.msg_total_length[0] = msg_len & 0xFFFFFFFF;
 			psha->op_hash.msg_total_length[1] = msg_len >> 32;
+			req_ctx->is_first = false;
 		} else {
 			msg_len += 8;
 			psha->op_hash.msg_total_length[0] = msg_len & 0xFFFFFFFF;
@@ -824,7 +825,6 @@ unmap:
 		}
 	}
 
-	req_ctx->is_first = false;
 	if (is_last) {
 		/* handle the last data in finup() , digest() */
 		if (req_ctx->residual_bytes > 0) {
@@ -859,6 +859,7 @@ static int tegra_hv_vse_safety_sha_slow_path(struct ahash_request *req,
 	u32 length = 0, skip = 0, offset = 0;
 	u64 total_bytes = 0, left_bytes = 0;
 	int err = 0;
+	bool data_processed;
 
 	if ((process_cur_req == false && is_last == false) ||
 		(process_cur_req == true && is_last == true)) {
@@ -874,6 +875,7 @@ static int tegra_hv_vse_safety_sha_slow_path(struct ahash_request *req,
 
 		left_bytes = req->nbytes;
 
+		data_processed = false;
 		while (total_bytes >= req_ctx->blk_size) {
 			/* Copy to linear buffer */
 			num_blks = total_bytes / req_ctx->blk_size;
@@ -897,9 +899,10 @@ static int tegra_hv_vse_safety_sha_slow_path(struct ahash_request *req,
 			total_bytes -= (length + offset);
 			left_bytes -= length;
 			offset = 0;
+			data_processed = true;
 		}
 
-		if (left_bytes != req->nbytes) {
+		if (data_processed == true) {
 			/* Processed in while() loop */
 			sg_pcopy_to_buffer(req->src, sg_nents(req->src),
 					req_ctx->sha_buf, left_bytes, skip);
@@ -923,7 +926,6 @@ static int tegra_hv_vse_safety_sha_slow_path(struct ahash_request *req,
 		}
 	}
 
-	req_ctx->is_first = false;
 	if (is_last) {
 		/* handle the last data in finup() , digest() */
 		if (req_ctx->residual_bytes > 0) {
