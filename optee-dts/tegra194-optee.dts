@@ -18,4 +18,15 @@
 	 *	reg = <xxx xxx xxx xxx>;
 	 * };
 	 */
+
+	/* MB2 will fill the address and size of EKB blob */
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+
+		ekb-blob@0 {
+			compatible = "jetson-ekb-blob";
+			reg = <0 0 0 0>;
+		};
+	};
 };
