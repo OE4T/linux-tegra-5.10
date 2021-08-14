@@ -153,6 +153,11 @@ static int edma_init(struct pcie_epf_dma *epfnv, bool lie)
 		val &= ~0xf;
 		val &= ~(0xf << 16);
 		dma_common_wr(epfnv->dma_base, val, DMA_WRITE_INT_MASK_OFF);
+	} else {
+		val = dma_common_rd(epfnv->dma_base, DMA_WRITE_INT_MASK_OFF);
+		val |= 0xf;
+		val |= (0xf << 16);
+		dma_common_wr(epfnv->dma_base, val, DMA_WRITE_INT_MASK_OFF);
 	}
 
 	val = DMA_CH_CONTROL1_OFF_WRCH_LIE;
@@ -167,6 +172,11 @@ static int edma_init(struct pcie_epf_dma *epfnv, bool lie)
 		val = dma_common_rd(epfnv->dma_base, DMA_READ_INT_MASK_OFF);
 		val &= ~0x3;
 		val &= ~(0x3 << 16);
+		dma_common_wr(epfnv->dma_base, val, DMA_READ_INT_MASK_OFF);
+	} else {
+		val = dma_common_rd(epfnv->dma_base, DMA_READ_INT_MASK_OFF);
+		val |= 0x3;
+		val |= (0x3 << 16);
 		dma_common_wr(epfnv->dma_base, val, DMA_READ_INT_MASK_OFF);
 	}
 
@@ -977,7 +987,7 @@ static int pcie_dma_epf_core_init(struct pci_epf *epf)
 		return 0;
 	}
 	ret = platform_msi_domain_alloc_irqs(cdev,
-					     DMA_WR_CHNL_NUM + DMA_WR_CHNL_NUM,
+					     DMA_WR_CHNL_NUM + DMA_RD_CHNL_NUM,
 					     pcie_dma_epf_write_msi_msg);
 	if (ret < 0) {
 		dev_err(fdev, "failed to allocate MSIs\n");
