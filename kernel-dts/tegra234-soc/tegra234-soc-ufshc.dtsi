@@ -61,13 +61,26 @@
 				<&bpmp_clks TEGRA234_CLK_PLLP_OUT0>,
 				<&bpmp_clks TEGRA234_CLK_CLK_M>,
 				<&bpmp_clks TEGRA234_CLK_MPHY_FORCE_LS_MODE>,
-				<&bpmp_clks TEGRA234_CLK_UPHY_PLL3>;
+				<&bpmp_clks TEGRA234_CLK_UPHY_PLL3>,
+				<&bpmp_clks TEGRA234_CLK_MPHY_L0_TX_LS_3XBIT_DIV>,
+				<&bpmp_clks TEGRA234_CLK_MPHY_L0_TX_LS_SYMB_DIV>,
+				<&bpmp_clks TEGRA234_CLK_MPHY_L0_RX_LS_BIT_DIV>,
+				<&bpmp_clks TEGRA234_CLK_MPHY_L0_RX_LS_SYMB_DIV>,
+				<&bpmp_clks TEGRA234_CLK_MPHY_L0_TX_2X_SYMB>,
+				<&bpmp_clks TEGRA234_CLK_MPHY_L0_TX_HS_SYMB_DIV>,
+				<&bpmp_clks TEGRA234_CLK_MPHY_L0_RX_HS_SYMB_DIV>,
+				<&bpmp_clks TEGRA234_CLK_MPHY_L0_TX_MUX_SYMB_DIV>,
+				<&bpmp_clks TEGRA234_CLK_MPHY_L0_RX_MUX_SYMB_DIV>;
 		clock-names = "pllrefe_vcoout", "mphy_core_pll_fixed", "mphy_l0_tx_symb",
 				"mphy_tx_1mhz_ref", "mphy_l0_rx_ana",
 				"mphy_l0_rx_symb", "mphy_l0_tx_ls_3xbit",
 				"mphy_l0_rx_ls_bit", "mphy_l1_rx_ana",
 				"ufshc", "ufsdev_ref", "pll_p", "clk_m",
-				"mphy_force_ls_mode", "uphy_pll3";
+				"mphy_force_ls_mode", "uphy_pll3",
+				"mphy_l0_tx_ls_3xbit_div", "mphy_l0_tx_ls_symb_div",
+				"mphy_l0_rx_ls_bit_div", "mphy_l0_rx_ls_symb_div", "mphy_l0_tx_2x_symb",
+				"mphy_l0_tx_hs_symb_div", "mphy_l0_rx_hs_symb_div",
+				"mphy_l0_tx_mux_symb_div", "mphy_l0_rx_mux_symb_div";
 		resets = <&bpmp_resets TEGRA234_RESET_MPHY_L0_RX>,
 				<&bpmp_resets TEGRA234_RESET_MPHY_L0_TX>,
 				<&bpmp_resets TEGRA234_RESET_MPHY_L1_RX>,
@@ -81,7 +94,8 @@
 				"ufs-axi-m-rst", "ufshc-lp-rst";
 		nvidia,enable-x2-config;
 		nvidia,mask-fast-auto-mode;
-		nvidia,max-hs-gear = <0>;
+		nvidia,enable-hs-mode;
+		nvidia,max-hs-gear = <4>;
 		nvidia,max-pwm-gear = <0>;
 		vcc-max-microamp = <0>;
 		vccq-max-microamp = <0>;
