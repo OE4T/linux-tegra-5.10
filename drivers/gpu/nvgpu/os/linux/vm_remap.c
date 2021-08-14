@@ -28,6 +28,7 @@
 #include <nvgpu/vm.h>
 #include <nvgpu/vm_remap.h>
 #include <nvgpu/nvgpu_sgt.h>
+#include <nvgpu/power_features/pg.h>
 
 #include "os_linux.h"
 #include "dmabuf_priv.h"
@@ -127,6 +128,7 @@ void nvgpu_vm_remap_os_buf_put(struct vm_gk20a *vm,
 	struct gk20a *g = gk20a_from_vm(vm);
 	struct device *dev = dev_from_gk20a(g);
 	struct gk20a_comptags comptags;
+	int err = 0;
 
 	nvgpu_mm_unpin(dev, remap_os_buf->os_priv.dmabuf,
 		remap_os_buf->os_priv.attachment, remap_os_buf->os_priv.sgt);
@@ -139,7 +141,12 @@ void nvgpu_vm_remap_os_buf_put(struct vm_gk20a *vm,
 	 */
 	if (comptags.offset != 0) {
 		g->ops.cbc.ctrl(g, nvgpu_cbc_op_clean, 0, 0);
-		g->ops.mm.cache.l2_flush(g, true);
+		err = nvgpu_pg_elpg_ms_protected_call(g,
+				g->ops.mm.cache.l2_flush(g, true));
+		if (err != 0) {
+			nvgpu_err(g, "l2 flush failed");
+			return;
+		}
 	}
 
 	nvgpu_sgt_free(g, remap_os_buf->nv_sgt);

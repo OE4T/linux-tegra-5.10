@@ -32,6 +32,7 @@
 #endif
 
 #include <nvgpu/gr/global_ctx.h>
+#include <nvgpu/power_features/pg.h>
 
 #include "global_ctx_priv.h"
 
@@ -453,7 +454,8 @@ void nvgpu_gr_global_ctx_load_local_golden_image(struct gk20a *g,
 {
 	/* Channel gr_ctx buffer is gpu cacheable.
 	   Flush and invalidate before cpu update. */
-	if (g->ops.mm.cache.l2_flush(g, true) != 0) {
+	if (nvgpu_pg_elpg_ms_protected_call(g,
+				g->ops.mm.cache.l2_flush(g, true)) != 0) {
 		nvgpu_err(g, "l2_flush failed");
 	}
 

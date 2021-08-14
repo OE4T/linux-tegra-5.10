@@ -1952,7 +1952,7 @@ static int nvgpu_dbg_gpu_ioctl_get_gr_context(struct dbg_session_gk20a *dbg_s,
 
 	/* Channel gr_ctx buffer is gpu cacheable.
 	   Flush and invalidate before cpu update. */
-	err = g->ops.mm.cache.l2_flush(g, true);
+	err = nvgpu_pg_elpg_ms_protected_call(g, g->ops.mm.cache.l2_flush(g, true));
 	if (err != 0) {
 		nvgpu_err(g, "l2_flush failed");
 		goto done;

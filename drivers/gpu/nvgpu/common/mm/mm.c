@@ -36,6 +36,7 @@
 #include <nvgpu/engines.h>
 #include <nvgpu/static_analysis.h>
 #include <nvgpu/power_features/cg.h>
+#include <nvgpu/power_features/pg.h>
 
 int nvgpu_mm_suspend(struct gk20a *g)
 {
@@ -50,7 +51,8 @@ int nvgpu_mm_suspend(struct gk20a *g)
 #ifdef CONFIG_NVGPU_COMPRESSION
 	g->ops.mm.cache.cbc_clean(g);
 #endif
-	err = g->ops.mm.cache.l2_flush(g, false);
+	err = nvgpu_pg_elpg_ms_protected_call(g,
+			g->ops.mm.cache.l2_flush(g, false));
 	if (err != 0) {
 		nvgpu_err(g, "l2_flush failed");
 		return err;

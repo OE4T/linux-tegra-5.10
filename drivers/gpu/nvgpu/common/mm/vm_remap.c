@@ -26,6 +26,7 @@
 #include <nvgpu/vm_remap.h>
 #include <nvgpu/comptags.h>
 #include <nvgpu/string.h>
+#include <nvgpu/power_features/pg.h>
 
 /*
  * Return page size index of page size for VM areas that can be used with
@@ -89,7 +90,7 @@ static void nvgpu_vm_remap_mpool_release(struct nvgpu_ref *ref)
 
 	/* L2 must be flushed before we destroy any SMMU mappings. */
 	if (*mpool->l2_flushed == false) {
-		(void) g->ops.mm.cache.l2_flush(g, true);
+		(void) nvgpu_pg_elpg_ms_protected_call(g, g->ops.mm.cache.l2_flush(g, true));
 		*mpool->l2_flushed = true;
 	}
 

@@ -45,6 +45,7 @@
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/hwpm_map.h>
 #include <nvgpu/preempt.h>
+#include <nvgpu/power_features/pg.h>
 
 #include "gr_gk20a.h"
 #include "gr_pri_gk20a.h"
@@ -1480,7 +1481,8 @@ static int gr_exec_ctx_ops(struct nvgpu_tsg *tsg,
 
 	nvgpu_gr_ctx_patch_write_begin(g, gr_ctx, false);
 
-	err = g->ops.mm.cache.l2_flush(g, true);
+	err = nvgpu_pg_elpg_ms_protected_call(g,
+			g->ops.mm.cache.l2_flush(g, true));
 	if (err != 0) {
 		nvgpu_err(g, "l2_flush failed");
 		goto cleanup;

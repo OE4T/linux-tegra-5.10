@@ -25,6 +25,7 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gmmu.h>
 #include <nvgpu/dma.h>
+#include <nvgpu/power_features/pg.h>
 
 #include "common/gr/subctx_priv.h"
 
@@ -85,7 +86,7 @@ void nvgpu_gr_subctx_load_ctx_header(struct gk20a *g,
 	struct nvgpu_mem *ctxheader = &subctx->ctx_header;
 	int err = 0;
 
-	err = g->ops.mm.cache.l2_flush(g, true);
+	err = nvgpu_pg_elpg_ms_protected_call(g, g->ops.mm.cache.l2_flush(g, true));
 	if (err != 0) {
 		nvgpu_err(g, "l2_flush failed");
 	}

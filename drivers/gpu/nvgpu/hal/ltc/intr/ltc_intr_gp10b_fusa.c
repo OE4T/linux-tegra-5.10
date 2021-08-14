@@ -1,7 +1,7 @@
 /*
  * GP10B L2 INTR
  *
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/static_analysis.h>
+#include <nvgpu/power_features/pg.h>
 
 #include <nvgpu/hw/gp10b/hw_ltc_gp10b.h>
 
@@ -67,7 +68,8 @@ void gp10b_ltc_intr_handle_lts_interrupts(struct gk20a *g, u32 ltc, u32 slice)
 			nvgpu_safe_add_u32(
 				ltc_ltc0_lts0_dstg_ecc_report_r(), offset),
 			ecc_stats_reg_val);
-		if (g->ops.mm.cache.l2_flush(g, true) != 0) {
+		if (nvgpu_pg_elpg_ms_protected_call(g,
+					g->ops.mm.cache.l2_flush(g, true)) != 0) {
 			nvgpu_err(g, "l2_flush failed");
 		}
 	}
