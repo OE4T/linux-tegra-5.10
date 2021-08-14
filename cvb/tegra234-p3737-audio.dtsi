@@ -39,6 +39,10 @@
 		};
 	};
 
+	tegra_acsl_audio: acsl_audio {
+		status = "okay";
+	};
+
 	hda@3510000 {
 		nvidia,model = "NVIDIA Jetson Concord HDA";
 		status = "okay";
