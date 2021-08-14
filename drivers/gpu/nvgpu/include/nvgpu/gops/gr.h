@@ -475,7 +475,7 @@ struct gops_gr_intr {
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA)
-	void (*retrigger)(struct gk20a *g);
+	int (*retrigger)(struct gk20a *g);
 	u32 (*enable_mask)(struct gk20a *g);
 #endif
 	int (*handle_fecs_error)(struct gk20a *g,

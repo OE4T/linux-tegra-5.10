@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -64,7 +64,7 @@ void ga10b_gr_intr_handle_tpc_sm_ecc_exception(struct gk20a *g, u32 gpc,
 bool ga10b_gr_intr_sm_ecc_status_errors(struct gk20a *g,
 	u32 ecc_status_reg, enum nvgpu_gr_sm_ecc_error_types err_type,
 	struct nvgpu_gr_sm_ecc_status *ecc_status);
-void ga10b_gr_intr_retrigger(struct gk20a *g);
+int ga10b_gr_intr_retrigger(struct gk20a *g);
 void ga10b_gr_intr_enable_gpc_crop_hww(struct gk20a *g);
 void ga10b_gr_intr_enable_gpc_zrop_hww(struct gk20a *g);
 void ga10b_gr_intr_handle_gpc_crop_hww(struct gk20a *g, u32 gpc, u32 exception);

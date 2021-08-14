@@ -1028,10 +1028,12 @@ void ga10b_gr_intr_enable_interrupts(struct gk20a *g, bool enable)
 	}
 }
 
-void ga10b_gr_intr_retrigger(struct gk20a *g)
+int ga10b_gr_intr_retrigger(struct gk20a *g)
 {
 	nvgpu_writel(g, gr_intr_retrigger_r(),
 			gr_intr_retrigger_trigger_true_f());
+
+	return 0;
 }
 
 u32 ga10b_gr_intr_read_pending_interrupts(struct gk20a *g,
