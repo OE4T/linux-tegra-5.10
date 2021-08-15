@@ -428,10 +428,12 @@ static void ether_disable_eqos_clks(struct ether_priv_data *pdata)
  */
 static void ether_disable_clks(struct ether_priv_data *pdata)
 {
-	if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
-		ether_disable_mgbe_clks(pdata);
-	} else {
-		ether_disable_eqos_clks(pdata);
+	if (pdata->osi_core->use_virtualization == OSI_DISABLE) {
+		if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
+			ether_disable_mgbe_clks(pdata);
+		} else {
+			ether_disable_eqos_clks(pdata);
+		}
 	}
 }
 
@@ -706,11 +708,15 @@ err_axi_cbb:
  */
 static int ether_enable_clks(struct ether_priv_data *pdata)
 {
-	if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
-		return ether_enable_mgbe_clks(pdata);
+	if (pdata->osi_core->use_virtualization == OSI_DISABLE) {
+		if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
+			return ether_enable_mgbe_clks(pdata);
+		}
+
+		return ether_enable_eqos_clks(pdata);
 	}
 
-	return ether_enable_eqos_clks(pdata);
+	return 0;
 }
 
 /**
@@ -5119,6 +5125,8 @@ static int ether_init_plat_resources(struct platform_device *pdev,
 			if (ret != -EPROBE_DEFER)
 				dev_err(&pdev->dev, "failed to get clks/reset");
 		}
+	} else {
+		pdata->clks_enable = true;
 	}
 
 	return ret;
