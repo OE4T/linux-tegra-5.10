@@ -597,8 +597,9 @@
 
 #if defined(LINUX_VERSION) && LINUX_VERSION > 414
                 power-domains =  <&bpmp TEGRA234_POWER_DOMAIN_XUSBB>,
-                        <&bpmp TEGRA234_POWER_DOMAIN_XUSBA>;
-                power-domain-names = "dev", "ss";
+                        <&bpmp TEGRA234_POWER_DOMAIN_XUSBA>,
+                        <&bpmp TEGRA234_POWER_DOMAIN_XUSBC>;
+                power-domain-names = "dev", "ss", "host";
 #endif
 
 		nvidia,xusb-padctl = <&xusb_padctl>;
