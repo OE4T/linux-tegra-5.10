@@ -1158,6 +1158,9 @@ int vgpu_ga10b_init_hal(struct gk20a *g)
 
 	if (!priv->constants.can_set_clkrate) {
 		gops->clk_arb.get_arbiter_clk_domains = NULL;
+		nvgpu_set_enabled(g, NVGPU_CLK_ARB_ENABLED, false);
+	} else {
+		nvgpu_set_enabled(g, NVGPU_CLK_ARB_ENABLED, true);
 	}
 
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)){
