@@ -2079,6 +2079,34 @@ static int tegra_xusb_init_ifr_firmware(struct tegra_xusb *tegra)
 			val |= 0x7F;
 			bar2_writel(tegra, val,
 				    XUSB_BAR2_ARU_IFRDMA_STREAMID_FIELD);
+		} else {
+			static void __iomem *ao_base;
+			static void __iomem *pad_base;
+
+			ao_base = devm_ioremap(tegra->dev, 0x3540000, 0x10000);
+			if (IS_ERR(ao_base)) {
+				dev_err(tegra->dev, "failed to map AO mmio\n");
+				return PTR_ERR(ao_base);
+			}
+
+			pad_base = devm_ioremap(tegra->dev, 0x3520000, 0x20000);
+			if (IS_ERR(pad_base)) {
+				dev_err(tegra->dev, "failed to map pad mmio\n");
+				return PTR_ERR(pad_base);
+			}
+
+			iowrite32(0xE, pad_base + 0x10000);
+
+			/* set IFRDMA address */
+			iowrite32(cpu_to_le32(tegra->fw.phys), ao_base + 0x1bc);
+			iowrite32((cpu_to_le64(tegra->fw.phys) >> 32) & 0xffffffff,
+					ao_base + 0x1c0);
+
+			/* set streamid */
+			val = ioread32(ao_base + 0x1c4);
+			val &= ~((u32) 0xff);
+			val |= 0xE;
+			iowrite32(val, ao_base + 0x1c4);
 		}
 	}
 

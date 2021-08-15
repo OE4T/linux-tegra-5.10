@@ -3947,6 +3947,20 @@ static int tegra_xudc_probe(struct platform_device *pdev)
 	xudc->gadget.name = "tegra-xudc";
 	xudc->gadget.max_speed = USB_SPEED_SUPER;
 
+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "padctl");
+	if (res) {
+		static void __iomem *pad_base;
+
+		pad_base = devm_ioremap(&pdev->dev, res->start, resource_size(res));
+
+		if (IS_ERR(pad_base)) {
+			dev_err(&pdev->dev, "failed to map pad mmio\n");
+			return PTR_ERR(pad_base);
+		}
+
+		iowrite32(0xF, pad_base + 0x1002c);
+	}
+
 	err = usb_add_gadget_udc(&pdev->dev, &xudc->gadget);
 	if (err) {
 		dev_err(&pdev->dev, "failed to add USB gadget: %d\n", err);
