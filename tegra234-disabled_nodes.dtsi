@@ -89,10 +89,6 @@
                 status = "disabled";
         };
 
-        rtc@c2a0000 {
-                status = "disabled";
-        };
-
         dsu-pmu-0 {
                 status = "disabled";
         };
