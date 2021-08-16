@@ -1692,6 +1692,15 @@ static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 	eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
 				EQOS_MAC_MCR, EQOS_MAC_MCR_IDX);
 
+	/* Enable common interrupt at wrapper level */
+	if (osi_core->mac_ver >= OSI_EQOS_MAC_5_30) {
+		value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				   EQOS_WRAP_COMMON_INTR_ENABLE);
+		value |= EQOS_MAC_SBD_INTR;
+		osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
+			    EQOS_WRAP_COMMON_INTR_ENABLE);
+	}
+
 	/* enable Packet Duplication Control */
 	value = osi_readla(osi_core, (nveu8_t *)osi_core->base + EQOS_MAC_EXTR);
 	if (osi_core->mac_ver >= OSI_EQOS_MAC_5_00) {
@@ -2520,8 +2529,17 @@ static void eqos_handle_common_intr(struct osi_core_priv_data *const osi_core)
 	nveu32_t i = 0;
 	nveu32_t dma_sr = 0;
 	nveu32_t dma_ier = 0;
-	unsigned int mtl_isr = 0;
-	unsigned int frp_isr = 0U;
+	nveu32_t mtl_isr = 0;
+	nveu32_t frp_isr = 0U;
+	nveu32_t val = 0U;
+
+	if (osi_core->mac_ver >= OSI_EQOS_MAC_5_30) {
+		val = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				 EQOS_WRAP_COMMON_INTR_STATUS);
+		val |= EQOS_MAC_SBD_INTR;
+		osi_writela(osi_core, val, (nveu8_t *)osi_core->base +
+			    EQOS_WRAP_COMMON_INTR_STATUS);
+	}
 
 	dma_isr = osi_readla(osi_core, (nveu8_t *)base + EQOS_DMA_ISR);
 	if (dma_isr == 0U) {
