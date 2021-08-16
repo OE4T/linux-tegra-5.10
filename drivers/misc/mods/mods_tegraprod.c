@@ -25,8 +25,7 @@
 #include <linux/of_address.h>
 #include <linux/of_device.h>
 #include <linux/tegra_prod.h>
-#include <soc/tegra/bpmp_abi.h>
-#include <soc/tegra/tegra_bpmp.h>
+
 
 #define MAX_REG_INFO_ENTRY	400
 #define MAX_IO_MAP_ENTRY	200
@@ -638,68 +637,130 @@ int esc_mods_tegra_prod_set_prod_exact(
 	return ret;
 }
 
-static int bpmp_send_uphy_message_atomic(
-	struct mrq_uphy_request *req, int size,
-	struct mrq_uphy_response *reply,
-	int reply_size
-)
+
+#ifdef MODS_ENABLE_BPMP_MRQ_API
+static int tegra_pcie_bpmp_set_ctrl_state(struct mods_smmu_dev *pcie_dev,
+					  bool enable)
 {
-	unsigned long flags;
-	int err;
+	struct mrq_uphy_response resp;
+	struct tegra_bpmp_message msg;
+	struct mrq_uphy_request req;
 
-	local_irq_save(flags);
-	err = tegra_bpmp_send_receive_atomic(MRQ_UPHY, req, size, reply,
-					     reply_size);
-	local_irq_restore(flags);
+	memset(&req, 0, sizeof(req));
+	memset(&resp, 0, sizeof(resp));
 
-	return err;
+	req.cmd = CMD_UPHY_PCIE_CONTROLLER_STATE;
+	req.controller_state.pcie_controller = pcie_dev->cid;
+	req.controller_state.enable = enable;
+
+	memset(&msg, 0, sizeof(msg));
+	msg.mrq = MRQ_UPHY;
+	msg.tx.data = &req;
+	msg.tx.size = sizeof(req);
+	msg.rx.data = &resp;
+	msg.rx.size = sizeof(resp);
+
+	return tegra_bpmp_transfer(pcie_dev->bpmp, &msg);
 }
 
-static int bpmp_send_uphy_message(
-	struct mrq_uphy_request *req, int size,
-	struct mrq_uphy_response *reply,
-	int reply_size
-)
+int uphy_bpmp_pcie_controller_state_set(int controller, int enable)
 {
-	int err;
+	#define MAX_DEV_NAME_LEN 32
+	char dev_name[MAX_DEV_NAME_LEN];
+	struct mods_smmu_dev *smmu_pdev = NULL;
+	int smmudev_idx;
 
-	err = tegra_bpmp_send_receive(MRQ_UPHY, req, size, reply, reply_size);
-	if (err != -EAGAIN)
-		return err;
-
-	/*
-	 * in case the mail systems worker threads haven't been started yet,
-	 * use the atomic send/receive interface. This happens because the
-	 * clocks are initialized before the IPC mechanism.
-	 */
-	return bpmp_send_uphy_message_atomic(req, size, reply, reply_size);
+	memset(dev_name, 0, MAX_DEV_NAME_LEN);
+	snprintf(dev_name, MAX_DEV_NAME_LEN, "mods_pcie%d", controller);
+	smmudev_idx = get_mods_smmu_device_index(dev_name);
+	if (smmudev_idx >= 0)
+		smmu_pdev = get_mods_smmu_device(smmudev_idx);
+	if (!smmu_pdev || smmudev_idx < 0) {
+		mods_error_printk("smmu device %s is not found\n", dev_name);
+		return -ENODEV;
+	}
+	smmu_pdev->cid = controller;
+	return tegra_pcie_bpmp_set_ctrl_state(smmu_pdev, enable);
 }
+#else
+
+int uphy_bpmp_pcie_controller_state_set(int controller, int enable)
+{
+	mods_error_printk("bpmp mrq api is not supported\n");
+	return -ENODEV;
+}
+#endif
 
 int esc_mods_bpmp_set_pcie_state(
 	struct mods_client *client,
 	struct MODS_SET_PCIE_STATE *p
 )
 {
-	struct mrq_uphy_request req;
-	struct mrq_uphy_response resp;
 
-	req.cmd = CMD_UPHY_PCIE_CONTROLLER_STATE;
-	req.controller_state.pcie_controller = p->controller;
-	req.controller_state.enable = p->enable;
-
-	return bpmp_send_uphy_message(&req, sizeof(req), &resp, sizeof(resp));
+	return uphy_bpmp_pcie_controller_state_set(p->controller, p->enable);
 }
+
+#ifdef MODS_ENABLE_BPMP_MRQ_API
+static int tegra_pcie_bpmp_set_pll_state(struct mods_smmu_dev *pcie_dev,
+					 bool enable)
+{
+	struct mrq_uphy_response resp;
+	struct tegra_bpmp_message msg;
+	struct mrq_uphy_request req;
+
+	memset(&req, 0, sizeof(req));
+	memset(&resp, 0, sizeof(resp));
+
+	if (enable) {
+		req.cmd = CMD_UPHY_PCIE_EP_CONTROLLER_PLL_INIT;
+		req.ep_ctrlr_pll_init.ep_controller = pcie_dev->cid;
+	} else {
+		req.cmd = CMD_UPHY_PCIE_EP_CONTROLLER_PLL_OFF;
+		req.ep_ctrlr_pll_off.ep_controller = pcie_dev->cid;
+	}
+
+	memset(&msg, 0, sizeof(msg));
+	msg.mrq = MRQ_UPHY;
+	msg.tx.data = &req;
+	msg.tx.size = sizeof(req);
+	msg.rx.data = &resp;
+	msg.rx.size = sizeof(resp);
+
+	return tegra_bpmp_transfer(pcie_dev->bpmp, &msg);
+}
+
+int uphy_bpmp_pcie_set_pll_state(int controller, int enable)
+{
+	#define MAX_DEV_NAME_LEN 32
+	char dev_name[MAX_DEV_NAME_LEN];
+	struct mods_smmu_dev *smmu_pdev = NULL;
+	int smmudev_idx;
+
+	memset(dev_name, 0, MAX_DEV_NAME_LEN);
+	snprintf(dev_name, MAX_DEV_NAME_LEN, "mods_pcie%d", controller);
+	smmudev_idx = get_mods_smmu_device_index(dev_name);
+	if (smmudev_idx >= 0)
+		smmu_pdev = get_mods_smmu_device(smmudev_idx);
+	if (!smmu_pdev || smmudev_idx < 0) {
+		mods_error_printk("smmu device %s is not found\n", dev_name);
+		return -ENODEV;
+	}
+	smmu_pdev->cid = controller;
+	return tegra_pcie_bpmp_set_pll_state(smmu_pdev, enable);
+}
+#else
+
+int uphy_bpmp_pcie_set_pll_state(int controller, int enable)
+{
+	mods_error_printk("bpmp mrq api is not supported\n");
+	return -ENODEV;
+}
+#endif
 
 int esc_mods_bpmp_init_pcie_ep_pll(
 	struct mods_client *client,
 	struct MODS_INIT_PCIE_EP_PLL *p
 )
 {
-	struct mrq_uphy_request req;
-	struct mrq_uphy_response resp;
-
-	req.cmd = CMD_UPHY_PCIE_EP_CONTROLLER_PLL_INIT;
-	req.ep_ctrlr_pll_init.ep_controller = p->ep_id;
-
-	return bpmp_send_uphy_message(&req, sizeof(req), &resp, sizeof(resp));
+	return uphy_bpmp_pcie_set_pll_state(p->ep_id, 1);
 }

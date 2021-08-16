@@ -2,7 +2,7 @@
 /*
  * mods_internal.h - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2008-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2008-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -36,6 +36,11 @@
 #include <asm/set_memory.h>
 #elif defined(MODS_HAS_SET_MEMORY_HEADER)
 #include <linux/set_memory.h>
+#endif
+
+#if KERNEL_VERSION(5, 1, 0) <= LINUX_VERSION_CODE
+#define MODS_ENABLE_BPMP_MRQ_API
+#include <soc/tegra/bpmp.h>
 #endif
 
 #ifndef true
@@ -205,6 +210,10 @@ struct SYS_MAP_MEMORY {
 
 struct mods_smmu_dev {
 	struct device *dev;
+#ifdef MODS_ENABLE_BPMP_MRQ_API
+	struct tegra_bpmp *bpmp;   //bpmp node for mrq
+	int cid;                   //pcie ctrl id
+#endif
 	char dev_name[MAX_DT_SIZE];
 };
 

@@ -1,7 +1,7 @@
 /*
  * mods_dma_mapping.c - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -92,6 +92,10 @@ static int mods_smmu_driver_probe(struct platform_device *pdev)
 	strncpy(mods_smmu_devs[dev_idx].dev_name,
 		dev_name,
 		MAX_DT_SIZE - 1);
+#ifdef MODS_ENABLE_BPMP_MRQ_API
+	mods_smmu_devs[dev_idx].bpmp = tegra_bpmp_get(dev);
+#endif
+
 
 	LOG_EXT();
 	return err;
