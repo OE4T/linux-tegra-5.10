@@ -104,7 +104,7 @@ struct pci_epc_mem {
  * @num_windows: number of windows supported by device
  * @max_functions: max number of functions that can be configured in this EPC
  * @group: configfs group representing the PCI EPC device
- * @lock: mutex to protect pci_epc ops
+ * @lock: spinlock to protect pci_epc ops
  * @function_num_map: bitmap to manage physical function number
  * @notifier: used to notify EPF of any EPC events (like linkup)
  */
@@ -117,8 +117,8 @@ struct pci_epc {
 	unsigned int			num_windows;
 	u8				max_functions;
 	struct config_group		*group;
-	/* mutex to protect against concurrent access of EP controller */
-	struct mutex			lock;
+	/* spinlock to protect against concurrent access of EP controller */
+	spinlock_t			lock;
 	unsigned long			function_num_map;
 	struct atomic_notifier_head	notifier;
 };
