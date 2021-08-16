@@ -1277,6 +1277,16 @@ static int eqos_config_frp(struct osi_core_priv_data *const osi_core,
 	val &= ~EQOS_MCR_RE;
 	osi_writel(val, base + EQOS_MAC_MCR);
 
+	op_mode = osi_readl(base + EQOS_MTL_OP_MODE);
+	if (enabled == OSI_ENABLE) {
+		/* Set FRPE bit of MTL_Operation_Mode register */
+		op_mode |= EQOS_MTL_OP_MODE_FRPE;
+	} else {
+		/* Reset FRPE bit of MTL_Operation_Mode register */
+		op_mode &= ~EQOS_MTL_OP_MODE_FRPE;
+	}
+	osi_writel(op_mode, base + EQOS_MTL_OP_MODE);
+
 	/* Verify RXPI bit set in MTL_RXP_Control_Status */
 	ret = osi_readl_poll_timeout((base + EQOS_MTL_RXP_CS),
 				     (osi_core->osd_ops.udelay),
@@ -1292,29 +1302,20 @@ static int eqos_config_frp(struct osi_core_priv_data *const osi_core,
 		goto frp_enable_re;
 	}
 
-	op_mode = osi_readl(base + EQOS_MTL_OP_MODE);
 	val = osi_readl(base + EQOS_MTL_RXP_INTR_CS);
 	if (enabled == OSI_ENABLE) {
-		/* Set FRPE bit of MTL_Operation_Mode register */
-		op_mode |= EQOS_MTL_OP_MODE_FRPE;
-
 		/* Enable FRP Interrupt MTL_RXP_Interrupt_Control_Status */
 		val |= (EQOS_MTL_RXP_INTR_CS_NVEOVIE |
 			EQOS_MTL_RXP_INTR_CS_NPEOVIE |
 			EQOS_MTL_RXP_INTR_CS_FOOVIE |
 			EQOS_MTL_RXP_INTR_CS_PDRFIE);
 	} else {
-		/* Reset FRPE bit of MTL_Operation_Mode register */
-		op_mode &= ~EQOS_MTL_OP_MODE_FRPE;
-
 		/* Disable FRP Interrupt MTL_RXP_Interrupt_Control_Status */
-		val = osi_readl(base + EQOS_MTL_RXP_INTR_CS);
 		val &= ~(EQOS_MTL_RXP_INTR_CS_NVEOVIE |
 			 EQOS_MTL_RXP_INTR_CS_NPEOVIE |
 			 EQOS_MTL_RXP_INTR_CS_FOOVIE |
 			 EQOS_MTL_RXP_INTR_CS_PDRFIE);
 	}
-	osi_writel(op_mode, base + EQOS_MTL_OP_MODE);
 	osi_writel(val, base + EQOS_MTL_RXP_INTR_CS);
 
 frp_enable_re:
