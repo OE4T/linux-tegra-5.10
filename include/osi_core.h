@@ -49,14 +49,23 @@ typedef my_lint_64		nvel64_t;
 /** @} */
 
 /**
- * @addtogroup PTP related information
+ * @addtogroup PTP PTP related information
  *
  * @brief PTP SSINC values
  * @{
  */
 #define OSI_PTP_SSINC_16	16U
 #define OSI_PTP_SSINC_4		4U
+/** @} */
 
+/**
+ * @addtogroup PTP PTP related information
+ *
+ * @brief PTP MAC-to-MAC sync role
+ */
+#define OSI_PTP_M2M_INACTIVE	0U
+#define OSI_PTP_M2M_PRIMARY	1U
+#define OSI_PTP_M2M_SECONDARY	2U
 /** @} */
 
 /**
@@ -1295,6 +1304,10 @@ struct osi_core_priv_data {
 	nveu32_t instance_id;
 	/** Packet error stats */
 	struct osi_core_pkt_err_stats pkt_err_stats;
+	/** Ethernet controller MAC to MAC Time sync role
+	 * 1 - Primary interface, 2 - secondary interface, 0 - inactive interface
+	 */
+	nveu32_t m2m_role;
 };
 
 /**

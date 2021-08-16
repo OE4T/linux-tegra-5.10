@@ -1457,12 +1457,189 @@ done:
 	return ret;
 }
 
+#if DRIFT_CAL
+/**
+ * @brief read time counters from HW register
+ *
+ * Algorithm:
+ * - read HW time counters and take care of roll-over
+ *
+ * @param[in] addr: base address
+ * @param[in] mac: IP type
+ * @param[out] sec: sec counter
+ * @param[out] nsec: nsec counter
+ */
+static void read_sec_ns(void *addr, nveu32_t mac,
+			nveu32_t *sec,
+			nveu32_t *nsec)
+{
+	nveu32_t ns1, ns2;
+	nveu32_t time_reg_offset[][2] = {{EQOS_SEC_OFFSET, EQOS_NSEC_OFFSET},
+					 {MGBE_SEC_OFFSET, MGBE_NSEC_OFFSET}};
+
+	ns1 = osi_readl((nveu8_t *)addr + time_reg_offset[mac][1]);
+	ns1 = (ns1 & ETHER_NSEC_MASK);
+
+	*sec = osi_readl((nveu8_t *)addr + time_reg_offset[mac][0]);
+
+	ns2 = osi_readl((nveu8_t *)addr + time_reg_offset[mac][1]);
+	ns2 = (ns2 & ETHER_NSEC_MASK);
+
+	/* if ns1 is greater than ns2, it means nsec counter rollover
+	 * happened. In that case read the updated sec counter again
+	 */
+	if (ns1 >= ns2) {
+		*sec = osi_readl((nveu8_t *)addr + time_reg_offset[mac][0]);
+		*nsec = ns2;
+	} else {
+		*nsec = ns1;
+	}
+}
+
+/**
+ * @brief calculate time drift between primary and secondary
+ *  interface.
+ * Algorithm:
+ * - Get drift using last difference = 0 and
+ *   current differance as  MGBE time - EQOS time
+ *   drift  =  current differance with which EQOS should
+ *   update.
+ *
+ * @param[in] sec: primary interface sec counter
+ * @param[in] nsec: primary interface nsec counter
+ * @param[in] secondary_sec: Secondary interface sec counter
+ * @param[in] secondary_nsec: Secondary interface nsec counter
+ *
+ * @retval calculated drift value
+ */
+static inline nvel64_t dirft_calculation(nveu32_t sec, nveu32_t nsec,
+					 nveu32_t secondary_sec,
+					 nveu32_t secondary_nsec)
+{
+	nvel64_t val = 0LL;
+
+	val = (nvel64_t)sec - (nvel64_t)secondary_sec;
+	val = (nvel64_t)(val * 1000000000LL);
+	val += (nvel64_t)nsec - (nvel64_t)secondary_nsec;
+
+	return val;
+}
+
+/**
+ * @brief calculate frequency adjustment between primary and secondary
+ *  controller.
+ * Algorithm:
+ * - Convert Offset between primary and secondary interface to
+ *   frequency adjustment value.
+ *
+ * @param[in] sec_osi_core: secondary interface osi core pointer
+ * @param[in] offset: offset btween primary and secondary interface
+ * @param[in] secondary_time: Secondary interface time in ns
+ *
+ * @retval calculated frequency adjustment value in ppb
+ */
+static inline nve32_t freq_offset_calculate(struct osi_core_priv_data *sec_osi_core,
+					    nvel64_t offset, nvel64_t secondary_time)
+{
+	struct core_ptp_servo *s;
+	struct core_local *secondary_osi_lcore = (struct core_local *)sec_osi_core;
+	nvel64_t ki_term, ppb = 0;
+	nvel64_t cofficient;
+
+	s = &secondary_osi_lcore->serv;
+	ppb = s->last_ppb;
+
+	/* if drift is too big in positive / negative  don't take any action,
+	 * it should be corrected with adjust time
+	 * threshold value 1 sec
+	 */
+	if (offset >= 1000000000 || offset <= -1000000000) {
+		s->count = SERVO_STATS_0; /* JUMP */
+		return s->last_ppb;
+	}
+
+	switch (s->count) {
+	case SERVO_STATS_0:
+		s->offset[0] = offset;
+		s->local[0] = secondary_time;
+		s->count = SERVO_STATS_1;
+		break;
+
+	case SERVO_STATS_1:
+		s->offset[1] = offset;
+		s->local[1] = secondary_time;
+
+		/* Make sure the first sample is older than the second. */
+		if (s->local[0] >= s->local[1]) {
+			s->count = SERVO_STATS_0;
+			break;
+		}
+
+		/* Adjust drift by the measured frequency offset. */
+		cofficient = (1000000000LL - s->drift) / (s->local[1] - s->local[0]);
+		s->drift += cofficient * s->offset[1];
+
+		/* update this with constant */
+		if (s->drift < -MAX_FREQ) {
+			s->drift = -MAX_FREQ;
+		} else if (s->drift > MAX_FREQ) {
+			s->drift = MAX_FREQ;
+		}
+
+		ppb = s->drift;
+		s->count = SERVO_STATS_2;
+		s->offset[0] = s->offset[1];
+		s->local[0] = s->local[1];
+		break;
+
+	case SERVO_STATS_2:
+		s->offset[1] = offset;
+		s->local[1] = secondary_time;
+		cofficient = (1000000000LL) / (s->local[1] - s->local[0]);
+		/* calculate ppb */
+		ki_term = (s->const_i * cofficient * offset * WEIGHT_BY_10) / (100);//weight;
+		ppb = (s->const_p * cofficient * offset * WEIGHT_BY_10) / (100) + s->drift +
+		      ki_term;
+
+		/* FIXME tune cofficients */
+		if (ppb < -MAX_FREQ) {
+			ppb = -MAX_FREQ;
+		} else if (ppb > MAX_FREQ) {
+			ppb = MAX_FREQ;
+		} else {
+			s->drift += ki_term;
+		}
+		s->offset[0] = s->offset[1];
+		s->local[0] = s->local[1];
+		break;
+	default:
+		break;
+	}
+
+	s->last_ppb = ppb;
+
+	return (nve32_t)ppb;
+}
+#endif
+
 nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 			     struct osi_ioctl *data)
 {
 	struct core_local *l_core = (struct core_local *)osi_core;
 	struct core_ops *ops_p;
 	nve32_t ret = -1;
+#if DRIFT_CAL
+	struct osi_core_priv_data *sec_osi_core;
+	struct core_local *secondary_osi_lcore;
+	struct core_ops *secondary_ops_p;
+	nvel64_t drift_value = 0x0;
+	nveu32_t sec = 0x0;
+	nveu32_t nsec = 0x0;
+	nveu32_t secondary_sec = 0x0;
+	nveu32_t secondary_nsec = 0x0;
+	nve32_t freq_adj_value = 0x0;
+	nvel64_t secondary_time;
+#endif
 
 	if (validate_args(osi_core, l_core) < 0) {
 		return ret;
@@ -1558,6 +1735,10 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 #endif /* !OSI_STRIPPED_LIB */
 	case OSI_CMD_POLL_FOR_MAC_RST:
 		ret = ops_p->poll_for_swr(osi_core);
+		/* For ethernet server */
+		if (ret == 0) {
+			l_core->hw_init_successful = OSI_ENABLE;
+		}
 		break;
 
 	case OSI_CMD_START_MAC:
@@ -1606,14 +1787,140 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 
 	case OSI_CMD_ADJ_FREQ:
 		ret = osi_adjust_freq(osi_core, data->arg6_32);
+#if DRIFT_CAL
+		if (ret < 0) {
+			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				     "CORE: adjust freq failed\n", 0ULL);
+			break;
+		}
+
+		if ((l_core->ether_m2m_role == OSI_PTP_M2M_PRIMARY) &&
+		    (l_core->m2m_tsync != OSI_ENABLE)) {
+			break;
+		}
+
+		sec_osi_core = get_role_pointer(OSI_PTP_M2M_SECONDARY);
+		secondary_osi_lcore = (struct core_local *)sec_osi_core;
+		if ((validate_args(sec_osi_core, secondary_osi_lcore) < 0) ||
+		    (secondary_osi_lcore->hw_init_successful != OSI_ENABLE) ||
+		    (secondary_osi_lcore->m2m_tsync != OSI_ENABLE)) {
+			break;
+		}
+
+		if (l_core->ether_m2m_role == OSI_PTP_M2M_PRIMARY) {
+			drift_value = 0x0;
+			osi_lock_irq_enabled(&secondary_osi_lcore->serv.m2m_lock);
+			read_sec_ns(sec_osi_core->base,
+				    sec_osi_core->mac, &secondary_sec, &secondary_nsec);
+			read_sec_ns(osi_core->base,
+				    osi_core->mac, &sec, &nsec);
+			osi_unlock_irq_enabled(&secondary_osi_lcore->serv.m2m_lock);
+
+			drift_value = dirft_calculation(sec, nsec, secondary_sec, secondary_nsec);
+			secondary_time = (secondary_sec * 1000000000LL) + secondary_nsec;
+			secondary_osi_lcore->serv.const_i = I_COMPONENT_BY_10;
+			secondary_osi_lcore->serv.const_p = P_COMPONENT_BY_10;
+			freq_adj_value = freq_offset_calculate(sec_osi_core,
+							       drift_value,
+							       secondary_time);
+			if (secondary_osi_lcore->serv.count == SERVO_STATS_0) {
+				/* call adjust time as JUMP happened */
+				ret = osi_adjust_time(sec_osi_core,
+						      drift_value);
+			} else {
+				ret = osi_adjust_freq(sec_osi_core,
+						      freq_adj_value);
+			}
+		}
+
+		if (ret < 0) {
+			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				     "CORE: adjust_freq for sec_controller failed\n",
+				     0ULL);
+			ret = 0;
+		}
+#endif
 		break;
 
 	case OSI_CMD_ADJ_TIME:
 		ret = osi_adjust_time(osi_core, data->arg8_64);
+#if DRIFT_CAL
+		if (ret < 0) {
+			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				     "CORE: adjust_time failed\n", 0ULL);
+			break;
+		}
+
+		if ((l_core->ether_m2m_role == OSI_PTP_M2M_PRIMARY) &&
+		    (l_core->m2m_tsync != OSI_ENABLE)) {
+			break;
+		}
+
+		sec_osi_core = get_role_pointer(OSI_PTP_M2M_SECONDARY);
+		secondary_osi_lcore = (struct core_local *)sec_osi_core;
+		if ((validate_args(sec_osi_core, secondary_osi_lcore) < 0) ||
+		    (secondary_osi_lcore->hw_init_successful != OSI_ENABLE) ||
+		    (secondary_osi_lcore->m2m_tsync != OSI_ENABLE)) {
+			break;
+		}
+
+		if (l_core->ether_m2m_role == OSI_PTP_M2M_PRIMARY) {
+			drift_value = 0x0;
+			osi_lock_irq_enabled(&secondary_osi_lcore->serv.m2m_lock);
+			read_sec_ns(sec_osi_core->base,
+				    sec_osi_core->mac, &secondary_sec, &secondary_nsec);
+			read_sec_ns(osi_core->base,
+				    osi_core->mac, &sec, &nsec);
+			osi_unlock_irq_enabled(&secondary_osi_lcore->serv.m2m_lock);
+			drift_value = dirft_calculation(sec, nsec,
+							secondary_sec,
+							secondary_nsec);
+			ret = osi_adjust_time(sec_osi_core, drift_value);
+			if (ret == 0) {
+				secondary_osi_lcore->serv.count = SERVO_STATS_0;
+				secondary_osi_lcore->serv.drift = 0;
+				secondary_osi_lcore->serv.last_ppb = 0;
+			}
+		}
+
+		if (ret < 0) {
+			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				     "CORE: adjust_time for sec_controller failed\n",
+				     0ULL);
+			ret = 0;
+		}
+#endif
 		break;
 
 	case OSI_CMD_CONFIG_PTP:
 		ret = osi_ptp_configuration(osi_core, data->arg1_u32);
+#if DRIFT_CAL
+		if (ret < 0) {
+			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				     "CORE: configure_ptp failed\n", 0ULL);
+			break;
+		}
+
+		if ((l_core->ether_m2m_role == OSI_PTP_M2M_PRIMARY) &&
+		    (l_core->m2m_tsync != OSI_ENABLE)) {
+			break;
+		}
+
+		sec_osi_core = get_role_pointer(OSI_PTP_M2M_SECONDARY);
+		secondary_osi_lcore = (struct core_local *)sec_osi_core;
+		if ((validate_args(sec_osi_core, secondary_osi_lcore) < 0) ||
+		    (secondary_osi_lcore->hw_init_successful != OSI_ENABLE) ||
+		    (secondary_osi_lcore->m2m_tsync != OSI_ENABLE)) {
+			break;
+		}
+
+		if ((l_core->ether_m2m_role == OSI_PTP_M2M_PRIMARY) &&
+		    (data->arg1_u32 == OSI_ENABLE)) {
+			secondary_osi_lcore->serv.count = SERVO_STATS_0;
+			secondary_osi_lcore->serv.drift = 0;
+			secondary_osi_lcore->serv.last_ppb = 0;
+		}
+#endif
 		break;
 
 	case OSI_CMD_GET_HW_FEAT:
@@ -1623,6 +1930,48 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 	case OSI_CMD_SET_SYSTOHW_TIME:
 		ret = ops_p->set_systime_to_mac(osi_core, data->arg1_u32,
 						data->arg2_u32);
+#if DRIFT_CAL
+		if (ret < 0) {
+			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				     "CORE: set systohw time failed\n", 0ULL);
+			break;
+		}
+
+		if ((l_core->ether_m2m_role == OSI_PTP_M2M_PRIMARY) &&
+		    (l_core->m2m_tsync != OSI_ENABLE)) {
+			break;
+		}
+
+		sec_osi_core = get_role_pointer(OSI_PTP_M2M_SECONDARY);
+		secondary_osi_lcore = (struct core_local *)sec_osi_core;
+		if ((validate_args(sec_osi_core, secondary_osi_lcore) < 0) ||
+		    (secondary_osi_lcore->hw_init_successful != OSI_ENABLE) ||
+		    (secondary_osi_lcore->m2m_tsync != OSI_ENABLE)) {
+			break;
+		}
+
+		if (l_core->ether_m2m_role == OSI_PTP_M2M_PRIMARY) {
+			drift_value = 0x0;
+			osi_lock_irq_enabled(&secondary_osi_lcore->serv.m2m_lock);
+			read_sec_ns(osi_core->base,
+				    osi_core->mac, &sec, &nsec);
+			osi_unlock_irq_enabled(&secondary_osi_lcore->serv.m2m_lock);
+			secondary_ops_p = secondary_osi_lcore->ops_p;
+			ret = secondary_ops_p->set_systime_to_mac(sec_osi_core, sec,
+								  nsec);
+			if (ret == 0) {
+				secondary_osi_lcore->serv.count = SERVO_STATS_0;
+				secondary_osi_lcore->serv.drift = 0;
+				secondary_osi_lcore->serv.last_ppb = 0;
+			}
+		}
+		if (ret < 0) {
+			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				     "CORE: set_time for sec_controller failed\n",
+				     0ULL);
+			ret = 0;
+		}
+#endif
 		break;
 	case OSI_CMD_CONFIG_PTP_OFFLOAD:
 		ret = conf_ptp_offload(osi_core, &data->pto_config);

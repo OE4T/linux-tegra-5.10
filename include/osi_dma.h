@@ -579,8 +579,11 @@ struct osi_dma_priv_data {
 	/** Tegra Pre-si platform info */
 	nveu32_t pre_si;
 	/** PTP flags
-	 * bit 0 PTP mode master(1) slave(0)
-	 * bit 1 PTP sync method twostep(1) onestep(0) */
+	 * OSI_PTP_SYNC_MASTER - acting as master
+	 * OSI_PTP_SYNC_SLAVE  - acting as slave
+	 * OSI_PTP_SYNC_ONESTEP - one-step mode
+	 * OSI_PTP_SYNC_TWOSTEP - two step mode
+	 */
 	unsigned int ptp_flag;
 	/** OSI DMA IOCTL data */
 	struct osi_dma_ioctl_data ioctl_data;
