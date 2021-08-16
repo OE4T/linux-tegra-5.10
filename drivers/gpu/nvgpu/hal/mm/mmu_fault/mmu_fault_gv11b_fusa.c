@@ -41,6 +41,7 @@
 #include <nvgpu/rc.h>
 #include <nvgpu/mmu_fault.h>
 #include <nvgpu/nvgpu_init.h>
+#include <nvgpu/power_features/pg.h>
 
 #include <nvgpu/hw/gv11b/hw_gmmu_gv11b.h>
 
@@ -862,7 +863,12 @@ static int gv11b_fb_fix_page_fault(struct gk20a *g,
 		return err;
 	}
 	/* invalidate tlb so that GMMU does not use old cached translation */
-	g->ops.fb.tlb_invalidate(g, mmufault->refch->vm->pdb.mem);
+	err = nvgpu_pg_elpg_ms_protected_call(g,
+			g->ops.fb.tlb_invalidate(g, mmufault->refch->vm->pdb.mem));
+	if (err != 0) {
+		nvgpu_err(g, "tlb invalidate failed");
+		return err;
+	}
 
 	err = nvgpu_get_pte(g,
 			mmufault->refch->vm, mmufault->fault_addr, &pte[0]);

@@ -37,6 +37,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/static_analysis.h>
 #include <nvgpu/errata.h>
+#include <nvgpu/power_features/pg.h>
 
 #ifdef CONFIG_NVGPU_TRACE
 #define nvgpu_gmmu_dbg(g, attrs, fmt, args...)				\
@@ -856,7 +857,8 @@ static int nvgpu_gmmu_cache_maint_map(struct gk20a *g, struct vm_gk20a *vm,
 	int err = 0;
 
 	if (batch == NULL) {
-		err = g->ops.fb.tlb_invalidate(g, vm->pdb.mem);
+		err = nvgpu_pg_elpg_ms_protected_call(g,
+				g->ops.fb.tlb_invalidate(g, vm->pdb.mem));
 		if (err != 0) {
 			nvgpu_err(g, "fb.tlb_invalidate() failed err=%d", err);
 		}
@@ -877,7 +879,8 @@ static int nvgpu_gmmu_cache_maint_unmap(struct gk20a *g, struct vm_gk20a *vm,
 			g->ops.mm.cache.l2_flush(g, true))) != 0) {
 			nvgpu_err(g, "gk20a_mm_l2_flush[1] failed");
 		}
-		err = g->ops.fb.tlb_invalidate(g, vm->pdb.mem);
+		err = nvgpu_pg_elpg_ms_protected_call(g,
+				g->ops.fb.tlb_invalidate(g, vm->pdb.mem));
 		if (err != 0) {
 			nvgpu_err(g, "fb.tlb_invalidate() failed err=%d", err);
 		}

@@ -39,6 +39,7 @@
 #include <nvgpu/vgpu/vm_vgpu.h>
 #include <nvgpu/cbc.h>
 #include <nvgpu/static_analysis.h>
+#include <nvgpu/power_features/pg.h>
 #include <nvgpu/nvhost.h>
 
 struct nvgpu_ctag_buffer_info {
@@ -297,7 +298,7 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
 
 	if (mapping_batch->need_tlb_invalidate) {
 		struct gk20a *g = gk20a_from_vm(vm);
-		err = g->ops.fb.tlb_invalidate(g, vm->pdb.mem);
+		err = nvgpu_pg_elpg_ms_protected_call(g, g->ops.fb.tlb_invalidate(g, vm->pdb.mem));
 		if (err != 0) {
 			nvgpu_err(g, "fb.tlb_invalidate() failed err=%d", err);
 		}
