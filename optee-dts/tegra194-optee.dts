@@ -29,4 +29,25 @@
 			reg = <0 0 0 0>;
 		};
 	};
+
+	efuse@03820000 {
+		compatible = "nvidia,tegra194-efuse";
+		reg = <0x0 0x03820000 0x0 0x600>;
+		status = "disabled";
+		secure-status = "okay";
+	};
+
+	se0@03ac0000 {
+		compatible = "nvidia,tegra194-se0";
+		reg = <0x0 0x03ac0000 0x0 0x2000>;
+		status = "disabled";
+		secure-status = "okay";
+	};
+
+	se0-rng1@03ae0000 {
+		compatible = "nvidia,tegra194-se0-elp-rng1";
+		reg = <0x0 0x03ae0000 0x0 0x10000>;
+		status = "disabled";
+		secure-status = "okay";
+	};
 };
