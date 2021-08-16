@@ -274,6 +274,50 @@ struct core_ops {
 			       struct osi_core_ptp_tsc_data *data);
 };
 
+/**
+ * @brief constant values for drift MAC to MAC sync.
+ */
+#ifndef	DRIFT_CAL
+#define	DRIFT_CAL		1
+#define	I_COMPONENT_BY_10	3
+#define	P_COMPONENT_BY_10	7
+#define	WEIGHT_BY_10		10
+#define	CONST_FACTOR		8 //(1sec/125ns)
+#define	MAX_FREQ		 85000000LL
+#endif
+#define EQOS_SEC_OFFSET		0xB08
+#define EQOS_NSEC_OFFSET	0xB0C
+#define MGBE_SEC_OFFSET		0xD08
+#define MGBE_NSEC_OFFSET	0xD0C
+#define ETHER_NSEC_MASK		0x7FFFFFFF
+#define SERVO_STATS_0		0
+#define SERVO_STATS_1		1
+#define SERVO_STATS_2		2
+
+/**
+ * @brief servo data structure.
+ */
+struct core_ptp_servo {
+	/** Offset/drift array to maintain current and last value */
+	nvel64_t offset[2];
+	/** Target MAC HW time counter array to maintain current and last
+	 *  value
+	 */
+	nvel64_t local[2];
+	/* Servo state. initialized with 0. This states are used to monitor
+	 * if there is sudden change in offset */
+	nveu32_t count;
+	/* Accumulated freq drift */
+	nvel64_t drift;
+	/* P component */
+	nvel64_t const_p;
+	/* I component */
+	nvel64_t const_i;
+	/* Last know ppb */
+	nvel64_t last_ppb;
+	/* MAC to MAC locking to access HW time register within OSI calls */
+	nveu32_t m2m_lock;
+};
 
 /**
  * @brief Core local data structure.
@@ -303,6 +347,14 @@ struct core_local {
 	nveu32_t gcl_width_val;
 	/** TS lock */
 	nveu32_t ts_lock;
+	/** Controller mac to mac role */
+	nveu32_t ether_m2m_role;
+	/** Servo structure */
+	struct core_ptp_servo serv;
+	/** HW comeout from reset successful OSI_ENABLE else OSI_DISABLE */
+	nveu32_t hw_init_successful;
+	/** Dynamic MAC to MAC time sync control for secondary interface */
+	nveu32_t m2m_tsync;
 };
 
 /**
@@ -383,4 +435,35 @@ void hw_interface_init_core_ops(struct if_core_ops *if_ops_p);
  */
 void ivc_interface_init_core_ops(struct if_core_ops *if_ops_p);
 
+/**
+ * @brief get osi pointer for PTP primary/sec interface
+ *
+ * @note
+ * Algorithm:
+ *  - Returns OSI core data structure corresponding to mac-to-mac PTP
+ *    role.
+ *
+ * @pre OSD layer should use this as first API to get osi_core pointer and
+ * use the same in remaning API invocation for mac-to-mac time sync.
+ *
+ * @note
+ * Traceability Details:
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval valid and unique osi_core pointer on success
+ * @retval NULL on failure.
+ */
+struct osi_core_priv_data *get_role_pointer(nveu32_t role);
 #endif /* INCLUDED_CORE_LOCAL_H */
