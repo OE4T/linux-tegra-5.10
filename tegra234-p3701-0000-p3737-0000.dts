@@ -28,6 +28,10 @@
 	display@13800000 {
 		status = "okay";
 	};
+
+	pwm@32a0000 {
+		status = "okay";
+	};
 };
 
 #include "tegra234-disabled_nodes.dtsi"
