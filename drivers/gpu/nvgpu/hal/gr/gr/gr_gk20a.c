@@ -1532,8 +1532,7 @@ static int gr_exec_ctx_ops(struct nvgpu_tsg *tsg,
 							offsets, offset_addrs,
 							&num_offsets);
 				if (err != 0) {
-					nvgpu_log(g, gpu_dbg_gpu_dbg,
-					   "ctx op invalid offset: offset=0x%x",
+					nvgpu_err(g, "ctx op invalid offset: offset=0x%x",
 					   ctx_ops[i].offset);
 					ctx_ops[i].status =
 						REGOP(STATUS_INVALID_OFFSET);

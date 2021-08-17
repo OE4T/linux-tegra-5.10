@@ -607,7 +607,6 @@ int nvgpu_gr_hwmp_map_find_priv_offset(struct gk20a *g,
 	if (result != NULL) {
 		*priv_offset = result->offset;
 	} else {
-		nvgpu_err(g, "Lookup failed for address 0x%x", addr);
 		err = -EINVAL;
 	}
 
