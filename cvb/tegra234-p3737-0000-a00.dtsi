@@ -256,9 +256,15 @@
 	serial@3110000 {
 		status = "disabled";
 	};
+
 	tachometer@39c0000 {
-		status = "disabled";
+		status = "okay";
 	};
+
+	generic_pwm_tachometer {
+		status = "okay";
+	};
+
 	pwm@3280000 {
 		status = "disabled";
 	};
