@@ -749,6 +749,7 @@ static const struct gops_tsg vgpu_ga10b_ops_tsg = {
 	.set_timeslice = vgpu_tsg_set_timeslice,
 	.default_timeslice_us = vgpu_tsg_default_timeslice_us,
 	.set_interleave = vgpu_tsg_set_interleave,
+	.set_long_timeslice = vgpu_tsg_set_long_timeslice,
 };
 
 static const struct gops_usermode vgpu_ga10b_ops_usermode = {
