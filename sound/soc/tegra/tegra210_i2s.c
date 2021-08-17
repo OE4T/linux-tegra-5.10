@@ -2,7 +2,7 @@
 //
 // tegra210_i2s.c - Tegra210 I2S driver
 //
-// Copyright (c) 2020 NVIDIA CORPORATION.  All rights reserved.
+// Copyright (c) 2020-2021 NVIDIA CORPORATION.  All rights reserved.
 
 #include <linux/clk.h>
 #include <linux/device.h>
@@ -554,7 +554,7 @@ static int tegra210_i2s_hw_params(struct snd_pcm_substream *substream,
 		 */
 		sample_size = 32;
 
-		cif_conf.audio_bits = TEGRA_ACIF_BITS_24;
+		cif_conf.audio_bits = TEGRA_ACIF_BITS_32;
 		cif_conf.client_bits = TEGRA_ACIF_BITS_24;
 		break;
 	case SNDRV_PCM_FORMAT_S32_LE:

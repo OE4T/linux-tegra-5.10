@@ -226,8 +226,6 @@ static int tegra186_asrc_set_audio_cif(struct tegra186_asrc *asrc,
 		audio_bits = TEGRA_ACIF_BITS_16;
 		break;
 	case SNDRV_PCM_FORMAT_S24_LE:
-		audio_bits = TEGRA_ACIF_BITS_24;
-		break;
 	case SNDRV_PCM_FORMAT_S32_LE:
 		audio_bits = TEGRA_ACIF_BITS_32;
 		break;

@@ -2,7 +2,7 @@
 //
 // tegra210_admaif.c - Tegra ADMAIF driver
 //
-// Copyright (c) 2020 NVIDIA CORPORATION.  All rights reserved.
+// Copyright (c) 2020-2021 NVIDIA CORPORATION.  All rights reserved.
 
 #include <linux/clk.h>
 #include <linux/device.h>
@@ -301,7 +301,7 @@ static int tegra_admaif_hw_params(struct snd_pcm_substream *substream,
 		valid_bit = DATA_16BIT;
 		break;
 	case SNDRV_PCM_FORMAT_S24_LE:
-		cif_conf.audio_bits = TEGRA_ACIF_BITS_24;
+		cif_conf.audio_bits = TEGRA_ACIF_BITS_32;
 		cif_conf.client_bits = TEGRA_ACIF_BITS_24;
 		valid_bit = DATA_32BIT;
 		break;
