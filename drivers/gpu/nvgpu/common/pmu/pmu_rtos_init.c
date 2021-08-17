@@ -162,7 +162,6 @@ static void remove_pmu_support(struct nvgpu_pmu *pmu)
 
 #ifdef CONFIG_NVGPU_FALCON_DEBUG
 	if (nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
-		nvgpu_falcon_dbg_buf_display(pmu->flcn);
 		nvgpu_falcon_dbg_buf_destroy(pmu->flcn);
 	}
 #endif

@@ -50,7 +50,7 @@ void nvgpu_falcon_dbg_buf_destroy(struct nvgpu_falcon *flcn)
 	debug_buffer->first_msg_received = false;
 	debug_buffer->read_offset = 0;
 	debug_buffer->buffer_size = 0;
-	debug_buffer->dmem_offset = g->ops.falcon.get_mem_size(flcn, MEM_DMEM);
+	debug_buffer->dmem_offset = 0;
 }
 
 int nvgpu_falcon_dbg_buf_init(struct nvgpu_falcon *flcn,
