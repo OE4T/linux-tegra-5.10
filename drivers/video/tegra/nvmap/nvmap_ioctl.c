@@ -1077,6 +1077,10 @@ int nvmap_ioctl_query_heap_params(struct file *filp, void __user *arg)
 				break;
 			}
 		}
+		/* If queried heap is not present */
+		if (i >= nvmap_dev->nr_carveouts)
+			return -ENODEV;
+
 	} else if (type & iovmm_mask) {
 		op.total = system_heap_total_mem();
 		op.free = system_heap_free_mem();
