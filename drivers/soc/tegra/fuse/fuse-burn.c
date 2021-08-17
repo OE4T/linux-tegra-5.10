@@ -976,7 +976,7 @@ static struct tegra_fuse_hw_feature tegra234_fuse_chip_data = {
 	.power_down_mode = true,
 	.mirroring_support = true,
 	.hw_mutex_support = true,
-	.has_power_switch = false,
+	.has_power_switch = true,
 	.pgm_time = 5,
 	.burn_data = {
 		FUSE_BURN_DATA(reserved_odm0, 0x2, 2, 32, 0xc8, true, false),
