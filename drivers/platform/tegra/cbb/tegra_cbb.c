@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -59,31 +59,21 @@ void print_cbb_err(struct seq_file *file, const char *fmt, ...)
 
 void print_cache(struct seq_file *file, u32 cache)
 {
-	if ((cache & 0x3) == 0x0) {
-		print_cbb_err(file, "\t  Cache\t\t\t: 0x%x -- "
-			"Non-cacheable/Non-Bufferable)\n", cache);
-		return;
-	}
-	if ((cache & 0x3) == 0x1) {
-		print_cbb_err(file, "\t  Cache\t\t\t: 0x%x -- Device\n", cache);
-		return;
-	}
+	char *buff_str;
+	char *mod_str;
+	char *rd_str;
+	char *wr_str;
 
-	switch (cache) {
-	case 0x2:
-		print_cbb_err(file,
-		"\t  Cache\t\t\t: 0x%x -- Cacheable/Non-Bufferable\n", cache);
-		break;
+	buff_str = (cache & BIT(0)) ? "Bufferable " : "";
+	mod_str = (cache & BIT(1)) ? "Modifiable " : "";
+	rd_str = (cache & BIT(2)) ? "Read-Allocate " : "";
+	wr_str = (cache & BIT(3)) ? "Write-Allocate" : "";
 
-	case 0x3:
-		print_cbb_err(file,
-		"\t  Cache\t\t\t: 0x%x -- Cacheable/Bufferable\n", cache);
-		break;
+	if (cache == 0x0)
+		buff_str = "Device Non-Bufferable";
 
-	default:
-		print_cbb_err(file,
-		"\t  Cache\t\t\t: 0x%x -- Cacheable\n", cache);
-	}
+	print_cbb_err(file, "\t  Cache\t\t\t: 0x%x -- %s%s%s%s\n",
+		      cache, buff_str, mod_str, rd_str, wr_str);
 }
 
 void print_prot(struct seq_file *file, u32 prot)
