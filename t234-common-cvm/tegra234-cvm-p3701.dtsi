@@ -326,4 +326,7 @@
 	};
 #endif
 
+	trusty {
+		status = "okay";
+	};
 };
