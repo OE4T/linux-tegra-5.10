@@ -597,22 +597,6 @@ static void vgpu_remove_gr_support(struct gk20a *g)
 
 	nvgpu_log_fn(gr->g, " ");
 
-	nvgpu_kfree(gr->g, gr->config->sm_to_cluster);
-	gr->config->sm_to_cluster = NULL;
-
-#ifdef CONFIG_NVGPU_SM_DIVERSITY
-	if (gr->config->sm_to_cluster_redex_config != NULL) {
-		nvgpu_kfree(g, gr->config->sm_to_cluster_redex_config);
-		gr->config->sm_to_cluster_redex_config = NULL;
-	}
-#endif
-
-	nvgpu_gr_config_deinit(gr->g, gr->config);
-
-#ifdef CONFIG_NVGPU_GRAPHICS
-	nvgpu_gr_zcull_deinit(gr->g, gr->zcull);
-#endif
-
 	nvgpu_gr_free(g);
 }
 

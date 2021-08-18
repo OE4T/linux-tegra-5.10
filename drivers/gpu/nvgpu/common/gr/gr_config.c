@@ -692,12 +692,15 @@ void nvgpu_gr_config_deinit(struct gk20a *g, struct nvgpu_gr_config *config)
 	nvgpu_kfree(g, config->map_tiles);
 #endif
 	nvgpu_kfree(g, config->sm_to_cluster);
+	config->sm_to_cluster = NULL;
 #ifdef CONFIG_NVGPU_SM_DIVERSITY
 	if (config->sm_to_cluster_redex_config != NULL) {
 		nvgpu_kfree(g, config->sm_to_cluster_redex_config);
 		config->sm_to_cluster_redex_config = NULL;
 	}
 #endif
+
+	nvgpu_kfree(g, config);
 }
 
 u32 nvgpu_gr_config_get_max_gpc_count(struct nvgpu_gr_config *config)

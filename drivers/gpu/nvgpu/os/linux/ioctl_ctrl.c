@@ -1951,12 +1951,18 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 	switch (cmd) {
 #ifdef CONFIG_NVGPU_GRAPHICS
 	case NVGPU_GPU_IOCTL_ZCULL_GET_CTX_SIZE:
+		if (gr_zcull == NULL)
+			return -ENODEV;
+
 		get_ctx_size_args = (struct nvgpu_gpu_zcull_get_ctx_size_args *)buf;
 
 		get_ctx_size_args->size = nvgpu_gr_get_ctxsw_zcull_size(g, gr_zcull);
 
 		break;
 	case NVGPU_GPU_IOCTL_ZCULL_GET_INFO:
+		if (gr_zcull == NULL)
+			return -ENODEV;
+
 		get_info_args = (struct nvgpu_gpu_zcull_get_info_args *)buf;
 
 		(void) memset(get_info_args, 0,
@@ -1987,6 +1993,9 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 		nvgpu_kfree(g, zcull_info);
 		break;
 	case NVGPU_GPU_IOCTL_ZBC_SET_TABLE:
+		if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_ZBC))
+			return -ENODEV;
+
 		set_table_args = (struct nvgpu_gpu_zbc_set_table_args *)buf;
 
 		zbc_val = nvgpu_gr_zbc_entry_alloc(g);
@@ -2027,6 +2036,9 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 			nvgpu_gr_zbc_entry_free(g, zbc_val);
 		break;
 	case NVGPU_GPU_IOCTL_ZBC_QUERY_TABLE:
+		if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_ZBC))
+			return -ENODEV;
+
 		query_table_args = (struct nvgpu_gpu_zbc_query_table_args *)buf;
 
 		zbc_tbl = nvgpu_kzalloc(g, sizeof(struct nvgpu_gr_zbc_query_params));

@@ -477,7 +477,7 @@ struct gk20a {
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	struct nvgpu_nvlink_dev nvlink;
 	/** @endcond */
-	/** Pointer to struct maintaining GR unit's software state. */
+	/** Pointer to struct maintaining multiple GR instance's software state. */
 	struct nvgpu_gr *gr;
 	u32 num_gr_instances;
 	/** Pointer to struct maintaining fbp unit's software state. */

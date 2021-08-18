@@ -305,29 +305,31 @@ out:
 
 static void gr_remove_support(struct gk20a *g)
 {
-	struct nvgpu_gr *gr = g->gr;
+	struct nvgpu_gr *gr = NULL;
+	u32 i;
 
 	nvgpu_log_fn(g, " ");
 
-	nvgpu_gr_global_ctx_buffer_free(g, gr->global_ctx_buffer);
-	nvgpu_gr_global_ctx_desc_free(g, gr->global_ctx_buffer);
-
-	nvgpu_gr_ctx_desc_free(g, gr->gr_ctx_desc);
-
-	nvgpu_gr_config_deinit(g, gr->config);
-
 	nvgpu_netlist_deinit_ctx_vars(g);
 
-#ifdef CONFIG_NVGPU_DEBUGGER
-	nvgpu_gr_hwpm_map_deinit(g, gr->hwpm_map);
-#endif
+	for (i = 0U; i < g->num_gr_instances; i++) {
+		gr = &g->gr[i];
 
-#ifdef CONFIG_NVGPU_GRAPHICS
-	nvgpu_gr_zbc_deinit(g, gr->zbc);
-	nvgpu_gr_zcull_deinit(g, gr->zcull);
-#endif /* CONFIG_NVGPU_GRAPHICS */
+		nvgpu_gr_global_ctx_buffer_free(g, gr->global_ctx_buffer);
+		nvgpu_gr_global_ctx_desc_free(g, gr->global_ctx_buffer);
+		gr->global_ctx_buffer = NULL;
 
-	nvgpu_gr_obj_ctx_deinit(g, gr->golden_image);
+		nvgpu_gr_ctx_desc_free(g, gr->gr_ctx_desc);
+		gr->gr_ctx_desc = NULL;
+
+	#ifdef CONFIG_NVGPU_DEBUGGER
+		nvgpu_gr_hwpm_map_deinit(g, gr->hwpm_map);
+		gr->hwpm_map = NULL;
+	#endif
+
+		nvgpu_gr_obj_ctx_deinit(g, gr->golden_image);
+		gr->golden_image = NULL;
+	}
 
 	nvgpu_gr_free(g);
 }
@@ -522,6 +524,9 @@ static int gr_init_setup_sw(struct gk20a *g, struct nvgpu_gr *gr)
 		if (err != 0) {
 			goto clean_up;
 		}
+	} else {
+		gr->zbc = NULL;
+		gr->zcull = NULL;
 	}
 #endif /* CONFIG_NVGPU_GRAPHICS */
 
@@ -1026,11 +1031,21 @@ void nvgpu_gr_free(struct gk20a *g)
 	for (i = 0U; i < g->num_gr_instances; i++) {
 		gr = &g->gr[i];
 
+		nvgpu_gr_config_deinit(g, gr->config);
+		gr->config = NULL;
+
 		nvgpu_gr_falcon_remove_support(g, gr->falcon);
 		gr->falcon = NULL;
 
 		nvgpu_gr_intr_remove_support(g, gr->intr);
 		gr->intr = NULL;
+
+#ifdef CONFIG_NVGPU_GRAPHICS
+		nvgpu_gr_zbc_deinit(g, gr->zbc);
+		nvgpu_gr_zcull_deinit(g, gr->zcull);
+		gr->zbc = NULL;
+		gr->zcull = NULL;
+#endif /* CONFIG_NVGPU_GRAPHICS */
 	}
 
 	nvgpu_kfree(g, g->gr);

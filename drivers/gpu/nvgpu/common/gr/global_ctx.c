@@ -67,7 +67,9 @@ nvgpu_gr_global_ctx_desc_alloc(struct gk20a *g)
 void nvgpu_gr_global_ctx_desc_free(struct gk20a *g,
 	struct nvgpu_gr_global_ctx_buffer_desc *desc)
 {
-	nvgpu_kfree(g, desc);
+	if (desc != NULL) {
+		nvgpu_kfree(g, desc);
+	}
 }
 
 
