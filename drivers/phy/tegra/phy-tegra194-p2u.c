@@ -27,9 +27,17 @@
 #define P2U_RX_DEBOUNCE_TIME_DEBOUNCE_TIMER_MASK	0xffff
 #define P2U_RX_DEBOUNCE_TIME_DEBOUNCE_TIMER_VAL		160
 
+#define P2U_DIR_SEARCH_CTRL				0xd4
+#define P2U_DIR_SEARCH_CTRL_GEN4_FINE_GRAIN_SEARCH_TWICE	BIT(18)
+
+struct tegra_p2u_of_data {
+	bool one_dir_search;
+};
+
 struct tegra_p2u {
 	void __iomem *base;
 	bool skip_sz_protection_en;	/* Needed to support two retimers */
+	struct tegra_p2u_of_data *of_data;
 };
 
 static inline void p2u_writel(struct tegra_p2u *phy, const u32 value,
@@ -68,6 +76,12 @@ static int tegra_p2u_power_on(struct phy *x)
 	val |= P2U_RX_DEBOUNCE_TIME_DEBOUNCE_TIMER_VAL;
 	p2u_writel(phy, val, P2U_RX_DEBOUNCE_TIME);
 
+	if (phy->of_data->one_dir_search) {
+		val = p2u_readl(phy, P2U_DIR_SEARCH_CTRL);
+		val &= ~P2U_DIR_SEARCH_CTRL_GEN4_FINE_GRAIN_SEARCH_TWICE;
+		p2u_writel(phy, val, P2U_DIR_SEARCH_CTRL);
+	}
+
 	return 0;
 }
 
@@ -87,6 +101,11 @@ static int tegra_p2u_probe(struct platform_device *pdev)
 	phy = devm_kzalloc(dev, sizeof(*phy), GFP_KERNEL);
 	if (!phy)
 		return -ENOMEM;
+
+	phy->of_data =
+		(struct tegra_p2u_of_data *)of_device_get_match_data(dev);
+	if (!phy->of_data)
+		return -EINVAL;
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ctl");
 	phy->base = devm_ioremap_resource(dev, res);
@@ -112,12 +131,22 @@ static int tegra_p2u_probe(struct platform_device *pdev)
 	return 0;
 }
 
+static const struct tegra_p2u_of_data tegra_p2u_of_data_t194 = {
+	.one_dir_search = false,
+};
+
+static const struct tegra_p2u_of_data tegra_p2u_of_data_t234 = {
+	.one_dir_search = true,
+};
+
 static const struct of_device_id tegra_p2u_id_table[] = {
 	{
 		.compatible = "nvidia,tegra194-p2u",
+		.data = &tegra_p2u_of_data_t194,
 	},
 	{
 		.compatible = "nvidia,tegra234-p2u",
+		.data = &tegra_p2u_of_data_t234,
 	},
 	{}
 };
