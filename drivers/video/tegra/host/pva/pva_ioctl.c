@@ -681,8 +681,16 @@ static int pva_release(struct inode *inode, struct file *file)
 	}
 
 	/* make sure all tasks have been finished */
-	for (i = 0; i < MAX_PVA_TASK_COUNT_PER_QUEUE; i++)
-		down(&priv->queue->task_pool_sem);
+	for (i = 0; i < MAX_PVA_TASK_COUNT_PER_QUEUE; i++) {
+		if (down_killable(&priv->queue->task_pool_sem) != 0) {
+			nvhost_err(
+				&priv->pva->pdev->dev,
+				"interrupted while waiting %d tasks\n",
+				MAX_PVA_TASK_COUNT_PER_QUEUE - i);
+			pva_abort(priv->pva);
+			break;
+		}
+	}
 
 	/* Release reference to client */
 	nvpva_client_context_put(priv->client);
