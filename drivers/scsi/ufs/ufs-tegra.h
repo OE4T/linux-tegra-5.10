@@ -140,6 +140,10 @@
 #define UFS_CLK_UPHY_PLL3_RATEA 4992000000
 #define UFS_CLK_UPHY_PLL3_RATEB 5840000000
 
+/* HS clock frequencies */
+#define MPHY_TX_HS_BIT_DIV_CLK	499200000
+#define MPHY_RX_HS_BIT_DIV_CLK	625000000
+
 enum ufs_state {
 	UFSHC_INIT,
 	UFSHC_SUSPEND,
@@ -321,6 +325,11 @@ struct ufs_tegra_host {
 	struct clk *mphy_l0_tx_ls_3xbit;
 	struct clk *mphy_l0_rx_ls_bit;
 	struct clk *mphy_l1_rx_ana;
+	struct clk *mphy_l0_tx_2x_symb;
+	struct clk *mphy_tx_hs_symb_div;
+	struct clk *mphy_tx_hs_mux_symb_div;
+	struct clk *mphy_rx_hs_symb_div;
+	struct clk *mphy_rx_hs_mux_symb_div;
 	struct clk *mphy_force_ls_mode;
 	struct clk *ufshc_parent;
 	struct clk *ufsdev_parent;
