@@ -51,6 +51,17 @@ irqreturn_t pva_ccq_isr(int irq, void *dev_id)
 	int_status = host1x_readl(pdev, cfg_ccq_status_r(pva->version,
 				queue_id, PVA_CCQ_STATUS2_INDEX))
 				& ~PVA_MASK_LOW_16BITS;
+
+	if (int_status != 0x0) {
+		nvhost_dbg_info("Clear ccq interrrupt for %d, \
+				current status: 0x%x",
+				queue_id, int_status);
+		host1x_writel(pdev,
+			      cfg_ccq_status_r(pva->version, queue_id,
+					       PVA_CCQ_STATUS2_INDEX),
+			      int_status);
+	}
+
 	if (int_status & PVA_VALID_CCQ_ISR) {
 		isr_status = host1x_readl(pdev, cfg_ccq_status_r(pva->version,
 					queue_id, PVA_CCQ_STATUS7_INDEX));
@@ -105,13 +116,6 @@ irqreturn_t pva_ccq_isr(int irq, void *dev_id)
 	}
 	if (isr_status & PVA_INT_PENDING) {
 		pva_ccq_isr_handler(pva, queue_id);
-	}
-	if (int_status != 0x0) {
-		nvhost_dbg_info("Clear ccq interrrupt for %d, \
-				current status: 0x%x",
-				queue_id, int_status);
-		host1x_writel(pdev, cfg_ccq_status_r(pva->version,
-				queue_id, PVA_CCQ_STATUS2_INDEX), int_status);
 	}
 	if (recover)
 		pva_abort(pva);
