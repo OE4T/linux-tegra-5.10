@@ -93,10 +93,6 @@
 		};
 	};
 
-	hda@3510000 {
-		status = "disabled";
-	};
-
 	i2c@3180000 {
 		rt5659.2-001a@1a {
 			status = "disabled";
