@@ -21,6 +21,7 @@
 	ethernet@6810000 {
 		status = "okay";
 		nvidia,mac-addr-idx = <0>;
+		nvidia,max-platform-mtu = <16383>;
 		/* 0=enable, 1=disable */
 		nvidia,pause_frames = <0>;
 		phy-handle = <&mgbe0_aqr113c_phy>;
