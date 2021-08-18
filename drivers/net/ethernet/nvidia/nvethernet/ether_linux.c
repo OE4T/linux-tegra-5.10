@@ -3641,7 +3641,9 @@ static int ether_change_mtu(struct net_device *ndev, int new_mtu)
 		return -EBUSY;
 	}
 
-	if (new_mtu > OSI_MTU_SIZE_9000 && osi_dma->num_dma_chans != 1U) {
+	if ((new_mtu > OSI_MTU_SIZE_9000) &&
+	    (osi_dma->num_dma_chans != 1U) &&
+	    (osi_core->mac == OSI_MAC_HW_EQOS)) {
 		netdev_err(pdata->ndev,
 			   "MTU greater than %d is valid only in single channel configuration\n"
 			   , OSI_MTU_SIZE_9000);
