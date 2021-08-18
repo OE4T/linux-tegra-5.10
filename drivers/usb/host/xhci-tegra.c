@@ -1695,6 +1695,7 @@ out:
 
 static void tegra_xusb_config(struct tegra_xusb *tegra)
 {
+	static void __iomem *pad_base;
 	u32 regs = tegra->hcd->rsrc_start;
 	u32 value;
 
@@ -1736,6 +1737,15 @@ static void tegra_xusb_config(struct tegra_xusb *tegra)
 
 		/* Set hysteresis */
 		ipfs_writel(tegra, 0x80, IPFS_XUSB_HOST_CLKGATE_HYSTERESIS_0);
+	}
+
+	if (tegra->soc->has_ifr) {
+		pad_base = devm_ioremap(tegra->dev, 0x3520000, 0x20000);
+		if (IS_ERR(pad_base)) {
+			dev_err(tegra->dev, "failed to map pad mmio\n");
+			return;
+		}
+		iowrite32(0xE, pad_base + 0x10000);
 	}
 }
 
@@ -2081,21 +2091,12 @@ static int tegra_xusb_init_ifr_firmware(struct tegra_xusb *tegra)
 				    XUSB_BAR2_ARU_IFRDMA_STREAMID_FIELD);
 		} else {
 			static void __iomem *ao_base;
-			static void __iomem *pad_base;
 
 			ao_base = devm_ioremap(tegra->dev, 0x3540000, 0x10000);
 			if (IS_ERR(ao_base)) {
 				dev_err(tegra->dev, "failed to map AO mmio\n");
 				return PTR_ERR(ao_base);
 			}
-
-			pad_base = devm_ioremap(tegra->dev, 0x3520000, 0x20000);
-			if (IS_ERR(pad_base)) {
-				dev_err(tegra->dev, "failed to map pad mmio\n");
-				return PTR_ERR(pad_base);
-			}
-
-			iowrite32(0xE, pad_base + 0x10000);
 
 			/* set IFRDMA address */
 			iowrite32(cpu_to_le32(tegra->fw.phys), ao_base + 0x1bc);
@@ -4425,7 +4426,7 @@ static const struct tegra_xusb_soc tegra234_soc = {
 
 	.has_bar2 = true,
 	.has_ifr = true,
-	.load_ifr_rom = true,
+	.load_ifr_rom = false,
 };
 MODULE_FIRMWARE("nvidia/tegra234/xusb.bin");
 
