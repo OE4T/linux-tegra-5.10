@@ -306,6 +306,8 @@ static ssize_t railgate_enable_store(struct device *dev,
 		return -EINVAL;
 	}
 
+	nvgpu_log_info(g, "railgating is enabled %ld", railgate_enable);
+
 	if (railgate_enable) {
 		nvgpu_set_enabled(g, NVGPU_CAN_RAILGATE, true);
 		pm_runtime_set_autosuspend_delay(dev, g->railgate_delay);

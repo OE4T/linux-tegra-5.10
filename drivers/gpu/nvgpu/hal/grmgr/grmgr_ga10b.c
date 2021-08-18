@@ -653,7 +653,6 @@ static void ga10b_grmgr_set_smc_state(struct gk20a *g, bool enable)
 				smcarb_sys_pipe_info_mode_legacy_v());
 		}
 		nvgpu_writel(g, smcarb_sys_pipe_info_r(), smc_state);
-		nvgpu_set_enabled(g, NVGPU_SUPPORT_MIG, enable);
 		nvgpu_log(g, gpu_dbg_mig, "MIG boot reg_val[%x] enable[%d]",
 			smc_state, enable);
 	}

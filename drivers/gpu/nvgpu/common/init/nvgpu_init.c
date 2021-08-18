@@ -1173,6 +1173,19 @@ const char *nvgpu_get_power_state(struct gk20a *g)
 	return str;
 }
 
+bool nvgpu_poweron_started(struct gk20a *g)
+{
+	unsigned long flags = 0U;
+	u32 power_on;
+
+	nvgpu_spinlock_irqsave(&g->power_spinlock, flags);
+	power_on = g->power_on_state;
+	nvgpu_spinunlock_irqrestore(&g->power_spinlock, flags);
+
+	return (power_on == NVGPU_STATE_POWERED_ON ||
+		power_on == NVGPU_STATE_POWERING_ON);
+}
+
 bool nvgpu_is_powered_on(struct gk20a *g)
 {
 	unsigned long flags = 0U;

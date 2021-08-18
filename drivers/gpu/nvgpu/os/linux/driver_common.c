@@ -185,7 +185,8 @@ static void nvgpu_init_pm_vars(struct gk20a *g)
 #endif
 	g->ptimer_src_freq = platform->ptimer_src_freq;
 
-	nvgpu_set_enabled(g, NVGPU_CAN_RAILGATE, platform->can_railgate_init);
+	nvgpu_set_enabled(g, NVGPU_CAN_RAILGATE,
+		nvgpu_platform_is_simulation(g)? true : platform->can_railgate_init);
 	g->can_tpc_powergate = platform->can_tpc_powergate;
 
 	for (i = 0; i < MAX_TPC_PG_CONFIGS; i++)

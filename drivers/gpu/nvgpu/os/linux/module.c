@@ -688,18 +688,18 @@ static struct of_device_id tegra_gk20a_of_match[] = {
 MODULE_DEVICE_TABLE(of, tegra_gk20a_of_match);
 
 #ifdef CONFIG_PM
-/**
- * gk20a_do_idle() - force the GPU to idle and railgate
- *
- * In success, this call MUST be balanced by caller with gk20a_do_unidle()
- *
- * Acquires two locks : &l->busy_lock and &platform->railgate_lock
- * In success, we hold these locks and return
- * In failure, we release these locks and return
+/* Caller of this API can assume the following return values
+ *  1) -EBUSY indicates failure of the API, no locks are held. (Failure)
+ *  2) 1 indicates pm_runtime_status_suspended without any locks held
+ *     and g->probe_done = false. (Success)
+ *  3) 0 indicates function successfully idles the driver and prevents
+ *     further jobs. Following steps are executed,
+ *	  a) Hold back Deterministic Submits
+ *	  b) Down-Write Busy lock
+ *	  c) Acquire platform->railgate lock.
  */
-int gk20a_do_idle(void *_g)
+int gk20a_block_new_jobs_and_idle(struct gk20a *g)
 {
-	struct gk20a *g = (struct gk20a *)_g;
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	struct device *dev = dev_from_gk20a(g);
 	struct gk20a_platform *platform = dev_get_drvdata(dev);
@@ -716,7 +716,7 @@ int gk20a_do_idle(void *_g)
 		 */
 		pm_runtime_put_sync_autosuspend(dev);
 		if (pm_runtime_status_suspended(dev)) {
-			return 0;
+			return 1;
 		} else {
 			nvgpu_err(g, "failed to idle");
 			return -EBUSY;
@@ -779,6 +779,92 @@ int gk20a_do_idle(void *_g)
 		return -EBUSY;
 	}
 
+	return 0;
+}
+
+int gk20a_block_new_jobs_and_poweroff(struct gk20a *g)
+{
+	struct device *dev = dev_from_gk20a(g);
+	struct gk20a_platform *platform = dev_get_drvdata(dev);
+	int ret;
+
+	ret = gk20a_block_new_jobs_and_idle(g);
+	if (ret == -EBUSY) {
+		return ret;
+	}
+
+	if (ret == 1) {
+		return 0;
+	}
+
+	/* check if it is already railgated ? */
+	if (platform->is_railgated(dev)) {
+		nvgpu_mutex_release(&platform->railgate_lock);
+		return 0;
+	}
+
+	nvgpu_mutex_release(&platform->railgate_lock);
+
+	/* For joint_xpu_rail platforms, This will decrement the
+	 * extra refcount taken by us.
+	 */
+	if (!nvgpu_is_enabled(g, NVGPU_CAN_RAILGATE)) {
+		pm_runtime_dont_use_autosuspend(dev);
+	}
+
+	pm_runtime_put_sync_suspend(dev);
+
+	nvgpu_log_info(g, "power usage_count = %d", atomic_read(&dev->power.usage_count));
+
+	return 0;
+}
+
+static void gk20a_unblock_jobs(struct gk20a *g)
+{
+	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
+	struct device *dev = dev_from_gk20a(g);
+
+	/*  For joint_xpu_rail, its unsafe to keep the rail gated. */
+	if (!nvgpu_is_enabled(g, NVGPU_CAN_RAILGATE)) {
+		pm_runtime_set_autosuspend_delay(dev, -1);
+		pm_runtime_use_autosuspend(dev);
+	}
+
+	/* release the lock and open up all other busy() calls */
+	up_write(&l->busy_lock);
+
+	nvgpu_channel_deterministic_unidle(g);
+}
+
+/**
+ * gk20a_do_idle() - force the GPU to idle and railgate
+ *
+ * In success, this call MUST be balanced by caller with gk20a_do_unidle()
+ *
+ * Acquires two locks : &l->busy_lock and &platform->railgate_lock
+ * In success, we hold these locks and return
+ * In failure, we release these locks and return
+ */
+int gk20a_do_idle(void *_g)
+{
+	struct gk20a *g = (struct gk20a *)_g;
+	struct device *dev = dev_from_gk20a(g);
+	struct gk20a_platform *platform = dev_get_drvdata(dev);
+	int ret;
+
+	ret = gk20a_block_new_jobs_and_idle(g);
+	if (ret == -EBUSY) {
+		return ret;
+	}
+
+	if (ret == 1) {
+		return 0;
+	}
+
+	/* check if it is already railgated ? */
+	if (platform->is_railgated(dev)) {
+		return 0;
+	}
 	/*
 	 * If railgating is enabled, autosuspend delay will be > 0. Set it to
 	 * 0 to suspend immediately. If railgating is disabled setting it to
@@ -800,6 +886,8 @@ int gk20a_do_idle(void *_g)
 		(void) gk20a_do_unidle(g);
 		return -EBUSY;
 	}
+
+	return 0;
 }
 
 /**
@@ -829,8 +917,7 @@ int gk20a_do_unidle(void *_g)
 	nvgpu_mutex_release(&platform->railgate_lock);
 
 	if (g->railgate_delay && nvgpu_is_enabled(g, NVGPU_CAN_RAILGATE))
-		pm_runtime_set_autosuspend_delay(dev,
-				 g->railgate_delay);
+		pm_runtime_set_autosuspend_delay(dev, g->railgate_delay);
 	else
 		pm_runtime_set_autosuspend_delay(dev, -1);
 
@@ -1716,6 +1803,44 @@ return_err_platform:
 	 */
 	nvgpu_kmem_fini(gk20a, NVGPU_KMEM_FINI_FORCE_CLEANUP);
 	kfree(l);
+
+	return err;
+}
+
+int gk20a_driver_force_power_off(struct gk20a *g)
+{
+	struct device *dev = dev_from_gk20a(g);
+	struct gk20a_platform *platform = gk20a_get_platform(dev);
+	int err = 0;
+
+#ifdef CONFIG_NVGPU_DGPU
+	if (g->pci_class) {
+		nvgpu_err(g, "Poweroff is not supported for device yet.");
+		return -EINVAL;
+	}
+#endif
+
+	err = gk20a_block_new_jobs_and_poweroff(g);
+	if (err != 0)
+		goto done;
+
+	nvgpu_gr_remove_support(g);
+
+	/*
+	 * This is a WAR.
+	 * For T210, powernode must not allow device nodes to be powered off
+	 * even during a force poweroff. Once the WAR for T210 is removed,
+	 * this will hold true for all chips.
+	 */
+	if (platform->platform_chip_id != TEGRA_210)
+		gk20a_user_nodes_deinit(dev);
+
+	gk20a_unblock_jobs(g);
+
+done:
+	if (err != 0) {
+		nvgpu_err(g, "failed to poweroff");
+	}
 
 	return err;
 }

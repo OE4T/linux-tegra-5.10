@@ -273,6 +273,14 @@ void nvgpu_set_power_state(struct gk20a *g, u32 state);
 const char *nvgpu_get_power_state(struct gk20a *g);
 
 /**
+ * @brief Get whether power state is
+ *  NVGPU_STATE_POWERING_ON or NVGPU_STATE_POWERED_ON
+ *
+ * @param g [in] The GPU
+ */
+bool nvgpu_poweron_started(struct gk20a *g);
+
+/**
  * @brief Return the nvgpu power-on state
  *
  * @param g [in] The GPU

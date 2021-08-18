@@ -34,8 +34,10 @@
 
 #include "platform_gk20a.h"
 #include "os_linux.h"
+#include "module.h"
 
 #define NVGPU_DRIVER_POWER_ON_NEEDED	1
+#define NVGPU_DRIVER_POWER_OFF_NEEDED	0
 
 int gk20a_power_open(struct inode *inode, struct file *filp)
 {
@@ -117,9 +119,8 @@ int gk20a_power_write(struct file *filp, const char __user *buf,
 	}
 
 	if (power_status == NVGPU_DRIVER_POWER_ON_NEEDED) {
-		if ((g->power_on_state == NVGPU_STATE_POWERING_ON) ||
-				(g->power_on_state == NVGPU_STATE_POWERED_ON)) {
-					goto free_input;
+		if (nvgpu_poweron_started(g)) {
+			goto free_input;
 		}
 
 		err = gk20a_busy(g);
@@ -130,8 +131,15 @@ int gk20a_power_write(struct file *filp, const char __user *buf,
 		}
 
 		gk20a_idle(g);
+	} else if (power_status == NVGPU_DRIVER_POWER_OFF_NEEDED) {
+		err = gk20a_driver_force_power_off(g);
+		if (err) {
+			nvgpu_err(g, "power_node_write failed at busy");
+			kfree(userinput);
+			return -EINVAL;
+		}
 	} else {
-		nvgpu_err(g, "1 is the valid value to power-on the GPU");
+		nvgpu_err(g, "1/0 are the valid values to power-on the GPU");
 		kfree(userinput);
 		return -EINVAL;
 	}

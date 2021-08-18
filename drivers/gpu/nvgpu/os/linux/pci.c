@@ -696,6 +696,8 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 	nvgpu_mutex_init(&l->dmabuf_priv_list_lock);
 	nvgpu_init_list_node(&l->dmabuf_priv_list);
 
+	g->probe_done = true;
+
 	return 0;
 
 err_free_irq:
@@ -759,10 +761,6 @@ static void nvgpu_pci_remove(struct pci_dev *pdev)
 			nvgpu_platform_is_silicon(g)) {
 		nvgpu_thermal_deinit(g);
 	}
-
-	err = nvgpu_quiesce(g);
-	/* TODO: handle failure to idle */
-	WARN(err, "gpu failed to idle during driver removal");
 
 	nvgpu_free_irq(g);
 
