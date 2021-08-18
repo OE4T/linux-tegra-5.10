@@ -20,6 +20,7 @@
 #include "tegra234-dcb-p3701-0000-a02-p3737-0000-a01.dtsi"
 #include <tegra234-soc/mods-simple-bus.dtsi>
 #include "cvb/tegra234-p3737-0000-camera-imx274-dual.dtsi"
+#include <t234-common-cvm/tegra234-thermal.dtsi>
 
 / {
 	nvidia,dtsfilename = __FILE__;
@@ -33,6 +34,13 @@
 
 	pwm@32a0000 {
 		status = "okay";
+	};
+	bpmp {
+		i2c {
+			tegra_tmp451: temp-sensor@4c {
+				vdd-supply = <&p3737_vdd_1v8_sys>;
+			};
+		};
 	};
 };
 
