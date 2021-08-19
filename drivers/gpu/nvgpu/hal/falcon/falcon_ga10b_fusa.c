@@ -118,10 +118,15 @@ bool ga10b_falcon_is_priv_lockdown(struct nvgpu_falcon *flcn)
 bool ga10b_falcon_check_brom_passed(u32 retcode)
 {
 	return (priscv_priscv_br_retcode_result_v(retcode) ==
-			priscv_priscv_br_retcode_result_pass_f()) ||
-			(priscv_priscv_br_retcode_result_v(retcode) ==
-				priscv_priscv_br_retcode_result_fail_f());
+			priscv_priscv_br_retcode_result_pass_f());
 }
+
+bool ga10b_falcon_check_brom_failed(u32 retcode)
+{
+	return (priscv_priscv_br_retcode_result_v(retcode) ==
+			priscv_priscv_br_retcode_result_fail_f());
+}
+
 
 void ga10b_falcon_brom_config(struct nvgpu_falcon *flcn, u64 fmc_code_addr,
 		u64 fmc_data_addr, u64 manifest_addr)

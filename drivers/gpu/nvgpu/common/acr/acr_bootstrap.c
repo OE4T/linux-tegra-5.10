@@ -317,7 +317,7 @@ static int ga10b_load_riscv_acr_ucodes(struct gk20a *g, struct hs_acr *acr)
 	return err;
 }
 
-static bool nvgpu_acr_wait_for_riscv_brom_completion(struct nvgpu_falcon *flcn,
+static int nvgpu_acr_wait_for_riscv_brom_completion(struct nvgpu_falcon *flcn,
 						signed int timeoutms)
 {
 	u32 reg = 0;
@@ -328,8 +328,12 @@ static bool nvgpu_acr_wait_for_riscv_brom_completion(struct nvgpu_falcon *flcn,
 			break;
 		}
 
+		if (flcn->g->ops.falcon.check_brom_failed(reg)) {
+			return -ENOTRECOVERABLE;
+		}
+
 		if (timeoutms <= 0) {
-			return false;
+			return -ETIMEDOUT;
 		}
 
 		nvgpu_msleep(10);
@@ -337,16 +341,17 @@ static bool nvgpu_acr_wait_for_riscv_brom_completion(struct nvgpu_falcon *flcn,
 
 	} while (true);
 
-    return true;
+    return 0;
 }
 
 int nvgpu_acr_bootstrap_hs_ucode_riscv(struct gk20a *g, struct nvgpu_acr *acr)
 {
 	int err = 0;
-	bool brom_complete = false;
 	u32 timeout = 0;
 	u64 acr_sysmem_desc_addr = 0LL;
+	struct nvgpu_falcon *flcn = NULL;
 
+	flcn = acr->acr_asc.acr_flcn;
 	err = ga10b_load_riscv_acr_ucodes(g, &acr->acr_asc);
 	if (err !=0) {
 		nvgpu_err(g, "RISCV ucode loading failed");
@@ -362,31 +367,34 @@ int nvgpu_acr_bootstrap_hs_ucode_riscv(struct gk20a *g, struct nvgpu_acr *acr)
 	acr_sysmem_desc_addr = nvgpu_mem_get_addr(g,
 				&acr->acr_asc.acr_falcon2_sysmem_desc);
 
-	nvgpu_riscv_dump_brom_stats(acr->acr_asc.acr_flcn);
+	nvgpu_acr_dbg(g, "BROM stats before starting RISCV execution");
+	nvgpu_riscv_dump_brom_stats(flcn);
 
-	nvgpu_riscv_hs_ucode_load_bootstrap(acr->acr_asc.acr_flcn,
-						acr->acr_asc.manifest_fw,
-						acr->acr_asc.code_fw,
-						acr->acr_asc.data_fw,
-						acr_sysmem_desc_addr);
+	nvgpu_riscv_hs_ucode_load_bootstrap(flcn,
+					    acr->acr_asc.manifest_fw,
+					    acr->acr_asc.code_fw,
+					    acr->acr_asc.data_fw,
+					    acr_sysmem_desc_addr);
 
 	if (nvgpu_platform_is_silicon(g)) {
 		timeout = RISCV_BR_COMPLETION_TIMEOUT_SILICON_MS;
 	} else {
 		timeout = RISCV_BR_COMPLETION_TIMEOUT_NON_SILICON_MS;
 	}
-	brom_complete = nvgpu_acr_wait_for_riscv_brom_completion(
-			acr->acr_asc.acr_flcn, timeout);
 
-	nvgpu_riscv_dump_brom_stats(acr->acr_asc.acr_flcn);
+	err = nvgpu_acr_wait_for_riscv_brom_completion(flcn, timeout);
 
-	if (brom_complete == false) {
-		nvgpu_err(g, "RISCV BROM timed out, limit: %d ms", timeout);
-		nvgpu_riscv_dump_brom_stats(acr->acr_asc.acr_flcn);
-		err = -ETIMEDOUT;
+	if (err == 0x0) {
+		nvgpu_acr_dbg(g, "RISCV BROM passed");
+		nvgpu_riscv_dump_brom_stats(flcn);
 	} else {
-		nvgpu_err(g, "RISCV BROM passed");
-		nvgpu_riscv_dump_brom_stats(acr->acr_asc.acr_flcn);
+		if (err == -ENOTRECOVERABLE) {
+			nvgpu_err(g, "RISCV BROM Failed");
+		} else {
+			nvgpu_err(g, "RISCV BROM timed out, limit: %d ms", timeout);
+		}
+		nvgpu_riscv_dump_brom_stats(flcn);
+		goto exit;
 	}
 
 	/* wait for complete & halt */
@@ -396,7 +404,7 @@ int nvgpu_acr_bootstrap_hs_ucode_riscv(struct gk20a *g, struct nvgpu_acr *acr)
 		timeout = ACR_COMPLETION_TIMEOUT_NON_SILICON_MS;
 	}
 	err = nvgpu_acr_wait_for_completion(g, &acr->acr_asc, timeout);
-
+exit:
 	ga10b_riscv_release_firmware(g, acr);
 
 	return err;

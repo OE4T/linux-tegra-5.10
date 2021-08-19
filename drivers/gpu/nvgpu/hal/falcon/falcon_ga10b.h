@@ -36,6 +36,7 @@ void ga10b_falcon_dump_brom_stats(struct nvgpu_falcon *flcn);
 u32  ga10b_falcon_get_brom_retcode(struct nvgpu_falcon *flcn);
 bool ga10b_falcon_is_priv_lockdown(struct nvgpu_falcon *flcn);
 bool ga10b_falcon_check_brom_passed(u32 retcode);
+bool ga10b_falcon_check_brom_failed(u32 retcode);
 void ga10b_falcon_brom_config(struct nvgpu_falcon *flcn, u64 fmc_code_addr,
 		u64 fmc_data_addr, u64 manifest_addr);
 void ga10b_falcon_dump_stats(struct nvgpu_falcon *flcn);

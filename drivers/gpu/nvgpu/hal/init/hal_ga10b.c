@@ -1541,6 +1541,7 @@ static const struct gops_falcon ga10b_ops_falcon = {
 	.get_brom_retcode = ga10b_falcon_get_brom_retcode,
 	.is_priv_lockdown = ga10b_falcon_is_priv_lockdown,
 	.check_brom_passed = ga10b_falcon_check_brom_passed,
+	.check_brom_failed = ga10b_falcon_check_brom_failed,
 	.set_bcr = ga10b_falcon_set_bcr,
 	.brom_config = ga10b_falcon_brom_config,
 	.mailbox_read = gk20a_falcon_mailbox_read,
