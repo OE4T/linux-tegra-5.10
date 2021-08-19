@@ -196,6 +196,19 @@ int vgpu_gr_alloc_obj_ctx(struct nvgpu_channel  *c, u32 class_num, u32 flags)
 		return -EINVAL;
 	}
 
+#ifdef CONFIG_NVGPU_GFXP
+	if (g->ops.gpu_class.is_valid_gfx(class_num) &&
+		nvgpu_gr_ctx_desc_force_preemption_gfxp(g->gr->gr_ctx_desc)) {
+		flags |= NVGPU_OBJ_CTX_FLAGS_SUPPORT_GFXP;
+	}
+#endif
+#ifdef CONFIG_NVGPU_CILP
+	if (g->ops.gpu_class.is_valid_compute(class_num) &&
+		nvgpu_gr_ctx_desc_force_preemption_cilp(g->gr->gr_ctx_desc)) {
+		flags |= NVGPU_OBJ_CTX_FLAGS_SUPPORT_CILP;
+	}
+#endif
+
 	gr_ctx = tsg->gr_ctx;
 
 	nvgpu_mutex_acquire(&tsg->ctx_init_lock);
