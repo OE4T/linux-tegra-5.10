@@ -1087,15 +1087,19 @@ static int ufs_tegra_suspend(struct ufs_hba *hba, enum ufs_pm_op pm_op)
 		return 0;
 
 	ufs_tegra->ufshc_state = UFSHC_SUSPEND;
-	/*
-	 * Enable DPD for UFS
-	 */
-	if (ufs_tegra->ufs_pinctrl && !IS_ERR_OR_NULL(ufs_tegra->dpd_enable)) {
-		ret = pinctrl_select_state(ufs_tegra->ufs_pinctrl,
-					   ufs_tegra->dpd_enable);
-		if (ret)
-			dev_err(dev, "pinctrl power down fail %d\n", ret);
 
+	if (ufs_tegra->chip_id != TEGRA234) {
+		/*
+		 * Enable DPD for UFS
+		 */
+		if (ufs_tegra->ufs_pinctrl &&
+				!IS_ERR_OR_NULL(ufs_tegra->dpd_enable)) {
+			ret = pinctrl_select_state(ufs_tegra->ufs_pinctrl,
+						   ufs_tegra->dpd_enable);
+			if (ret)
+				dev_err(dev, "pinctrl power down fail %d\n",
+						ret);
+		}
 	}
 
 	do {
@@ -1180,15 +1184,16 @@ static int ufs_tegra_resume(struct ufs_hba *hba, enum ufs_pm_op pm_op)
 	ufs_tegra_ufs_deassert_reset(ufs_tegra);
 	ufs_tegra_ufs_aux_prog(ufs_tegra);
 
-	if (ufs_tegra->ufs_pinctrl &&
-		!IS_ERR_OR_NULL(ufs_tegra->dpd_disable)) {
-		ret = pinctrl_select_state(ufs_tegra->ufs_pinctrl,
+	if (ufs_tegra->chip_id != TEGRA234) {
+		if (ufs_tegra->ufs_pinctrl &&
+			!IS_ERR_OR_NULL(ufs_tegra->dpd_disable)) {
+			ret = pinctrl_select_state(ufs_tegra->ufs_pinctrl,
 					   ufs_tegra->dpd_disable);
-		if (ret) {
-			dev_err(dev, "pinctrl power up fail %d\n", ret);
-			goto out_disable_mphylane_clks;
+			if (ret) {
+				dev_err(dev, "pinctrl power up fail %d\n", ret);
+				goto out_disable_mphylane_clks;
+			}
 		}
-
 	}
 
 	ufs_tegra_context_restore(ufs_tegra);
@@ -1651,31 +1656,34 @@ static int ufs_tegra_init(struct ufs_hba *hba)
 	ufs_tegra->ufshc_state = UFSHC_INIT;
 	ufs_tegra->hba = hba;
 	hba->priv = (void *)ufs_tegra;
+	ufs_tegra->chip_id = tegra_get_chip_id();
 
 	ufs_tegra_config_soc_data(ufs_tegra);
 	hba->spm_lvl = UFS_PM_LVL_3;
 	hba->rpm_lvl = UFS_PM_LVL_1;
 	hba->caps |= UFSHCD_CAP_INTR_AGGR;
 
-	ufs_tegra->ufs_pinctrl = devm_pinctrl_get(dev);
-	if (IS_ERR_OR_NULL(ufs_tegra->ufs_pinctrl)) {
-		err = PTR_ERR(ufs_tegra->ufs_pinctrl);
-		ufs_tegra->ufs_pinctrl = NULL;
-		dev_err(dev, "pad control get failed, error:%d\n", err);
-		goto out;
-	}
+	if (ufs_tegra->chip_id != TEGRA234) {
+		ufs_tegra->ufs_pinctrl = devm_pinctrl_get(dev);
+		if (IS_ERR_OR_NULL(ufs_tegra->ufs_pinctrl)) {
+			err = PTR_ERR(ufs_tegra->ufs_pinctrl);
+			ufs_tegra->ufs_pinctrl = NULL;
+			dev_err(dev, "pad control get failed, error:%d\n", err);
+			goto out;
+		}
 
-	ufs_tegra->dpd_enable = pinctrl_lookup_state(ufs_tegra->ufs_pinctrl,
+		ufs_tegra->dpd_enable = pinctrl_lookup_state(ufs_tegra->ufs_pinctrl,
 						     "ufs_dpd_enable");
-	if (IS_ERR_OR_NULL(ufs_tegra->dpd_enable))
-		dev_err(dev, "Missing dpd_enable state, err: %ld\n",
-			PTR_ERR(ufs_tegra->dpd_enable));
+		if (IS_ERR_OR_NULL(ufs_tegra->dpd_enable))
+			dev_err(dev, "Missing dpd_enable state, err: %ld\n",
+				PTR_ERR(ufs_tegra->dpd_enable));
 
-	ufs_tegra->dpd_disable = pinctrl_lookup_state(ufs_tegra->ufs_pinctrl,
+		ufs_tegra->dpd_disable = pinctrl_lookup_state(ufs_tegra->ufs_pinctrl,
 						     "ufs_dpd_disable");
-	if (IS_ERR_OR_NULL(ufs_tegra->dpd_disable))
-		dev_err(dev, "Missing dpd_disable state, err: %ld\n",
-			PTR_ERR(ufs_tegra->dpd_disable));
+		if (IS_ERR_OR_NULL(ufs_tegra->dpd_disable))
+			dev_err(dev, "Missing dpd_disable state, err: %ld\n",
+				PTR_ERR(ufs_tegra->dpd_disable));
+	}
 
 	if (gpio_is_valid(ufs_tegra->cd_gpio) &&
 			ufs_tegra->cd_wakeup_capable) {
@@ -1709,8 +1717,6 @@ static int ufs_tegra_init(struct ufs_hba *hba)
 		 */
 		hba->card_present = 1;
 	}
-
-	ufs_tegra->chip_id = tegra_get_chip_id();
 
 	/* UFS Aux base address, mphy addr range changed in T234 */
 	if (ufs_tegra->chip_id == TEGRA234) {
