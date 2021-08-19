@@ -1870,17 +1870,22 @@ int ga10b_init_hal(struct gk20a *g)
 	}
 #endif
 
+#ifdef CONFIG_NVGPU_CLK_ARB
+	/* Enable clock arbitration support for silicon */
+	if (nvgpu_platform_is_silicon(g)) {
+		nvgpu_set_enabled(g, NVGPU_CLK_ARB_ENABLED, true);
+	} else {
+		nvgpu_set_enabled(g, NVGPU_CLK_ARB_ENABLED, false);
+		gops->clk_arb.get_arbiter_clk_domains = NULL;
+	}
+#endif
+
 #ifdef CONFIG_NVGPU_SIM
 	/* SIM specific overrides for ga10b */
 	nvgpu_init_sim_support_ga10b(g);
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)){
 		/* Disable fb mem_unlock */
 		gops->fb.mem_unlock = NULL;
-
-		/* Disable clock support */
-#ifdef CONFIG_NVGPU_CLK_ARB
-		gops->clk_arb.get_arbiter_clk_domains = NULL;
-#endif
 	}
 
 #endif
