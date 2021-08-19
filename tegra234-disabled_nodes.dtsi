@@ -53,10 +53,6 @@
                 status = "disabled";
         };
 
-        psc@e800000 {
-                status = "disabled";
-        };
-
         power-domain {
                 status = "disabled";
         };
