@@ -40,8 +40,8 @@
 			#size-cells = <0>;
 			skip_mux_detect = "yes";
 			vcc-supply = <&p3737_vdd_1v8_sys>;
-			vcc_lp = "vcc";
-                        force_bus_start = <CAMERA_I2C_MUX_BUS(0)>;
+			vcc-pullup-supply = <&battery_reg>;
+			force_bus_start = <CAMERA_I2C_MUX_BUS(0)>;
 
 			i2c@0 {
 				reg = <0>;

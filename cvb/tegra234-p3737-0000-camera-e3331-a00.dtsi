@@ -38,6 +38,7 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 			vcc-supply = <&p3737_vdd_1v8_sys>;
+			vcc-pullup-supply = <&battery_reg>;
 			skip_mux_detect;
 			force_bus_start = <CAMERA_I2C_MUX_BUS(0)>;
 			i2c@0 {
