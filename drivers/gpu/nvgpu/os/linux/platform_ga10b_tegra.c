@@ -30,12 +30,18 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/nvhost.h>
+#include <nvgpu/soc.h>
+
+#ifdef CONFIG_NV_TEGRA_BPMP
+#include <soc/tegra/tegra-bpmp-dvfs.h>
+#endif /* CONFIG_NV_TEGRA_BPMP */
 
 #include <uapi/linux/nvgpu.h>
 
 #include "os/linux/platform_gk20a.h"
 #include "os/linux/clk.h"
 #include "os/linux/scale.h"
+#include "os/linux/module.h"
 
 #include "os/linux/platform_gp10b.h"
 
@@ -54,9 +60,70 @@ struct gk20a_platform_clk tegra_ga10b_clocks[] = {
 	{"fuse", UINT_MAX}
 };
 
+/*
+ * This function finds clocks in tegra platform and populates
+ * the clock information to platform data.
+ */
+
+static int ga10b_tegra_acquire_platform_clocks(struct device *dev,
+		struct gk20a_platform_clk *clk_entries,
+		unsigned int num_clk_entries)
+{
+	struct gk20a_platform *platform = dev_get_drvdata(dev);
+	struct gk20a *g = platform->g;
+	struct device_node *np = nvgpu_get_node(g);
+	unsigned int i, num_clks_dt;
+
+	/* Get clocks only on supported platforms(silicon and fpga) */
+	if (!nvgpu_platform_is_silicon(g) && !nvgpu_platform_is_fpga(g)) {
+		return 0;
+	}
+
+	num_clks_dt = of_clk_get_parent_count(np);
+	if (num_clks_dt > num_clk_entries) {
+		nvgpu_err(g, "maximum number of clocks supported is %d",
+			num_clk_entries);
+		return -EINVAL;
+	} else if (num_clks_dt == 0) {
+		nvgpu_err(g, "unable to read clocks from DT");
+		return -ENODEV;
+	}
+
+	platform->num_clks = 0;
+
+	/* TODO add floorsweep check before requesting clocks */
+	for (i = 0; i < num_clks_dt; i++) {
+		long rate;
+		struct clk *c = of_clk_get_by_name(np, clk_entries[i].name);
+
+		if (IS_ERR(c)) {
+			nvgpu_info(g, "cannot get clock %s",
+					clk_entries[i].name);
+			/* Continue with other clocks enable */
+		} else {
+			rate = clk_entries[i].default_rate;
+			clk_set_rate(c, rate);
+			platform->clk[i] = c;
+		}
+	}
+
+	platform->num_clks = i;
+
+#ifdef CONFIG_NV_TEGRA_BPMP
+	if (platform->clk[0]) {
+		i = tegra_bpmp_dvfs_get_clk_id(dev->of_node,
+					       clk_entries[0].name);
+		if (i > 0)
+			platform->maxmin_clk_id = i;
+	}
+#endif
+
+	return 0;
+}
+
 static int ga10b_tegra_get_clocks(struct device *dev)
 {
-	return gp10b_tegra_acquire_platform_clocks(dev, tegra_ga10b_clocks,
+	return ga10b_tegra_acquire_platform_clocks(dev, tegra_ga10b_clocks,
 			ARRAY_SIZE(tegra_ga10b_clocks));
 }
 
