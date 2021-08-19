@@ -299,6 +299,13 @@ static nve32_t xpcs_check_pcs_lock_status(struct osi_core_priv_data *osi_core)
  */
 static nve32_t xpcs_lane_bring_up(struct osi_core_priv_data *osi_core)
 {
+	unsigned int retry = 1000;
+	unsigned int count;
+	int cond;
+	nveu32_t cnt = 0;
+	nveu32_t val = 0;
+#define PCS_RETRY_MAX 300
+
 	if (xpcs_uphy_lane_bring_up(osi_core,
 				    XPCS_WRAP_UPHY_HW_INIT_CTRL_TX_EN) < 0) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
@@ -306,16 +313,115 @@ static nve32_t xpcs_lane_bring_up(struct osi_core_priv_data *osi_core)
 		return -1;
 	}
 
-	if (xpcs_uphy_lane_bring_up(osi_core,
-				    XPCS_WRAP_UPHY_HW_INIT_CTRL_RX_EN) < 0) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
-			     "UPHY RX lane bring-up failed\n", 0ULL);
-		return -1;
+	val = osi_readla(osi_core,
+			(nveu8_t *)osi_core->xpcs_base +
+			XPCS_WRAP_UPHY_RX_CONTROL_0_0);
+	/* Step1 RX_SW_OVRD */
+	val |= XPCS_WRAP_UPHY_RX_CONTROL_0_0_RX_SW_OVRD;
+	osi_writela(osi_core, val,
+			(nveu8_t *)osi_core->xpcs_base +
+			XPCS_WRAP_UPHY_RX_CONTROL_0_0);
+
+	val = osi_readla(osi_core,
+			(nveu8_t *)osi_core->xpcs_base +
+			XPCS_WRAP_UPHY_RX_CONTROL_0_0);
+	/* Step2 RX_IDDQ */
+	val &= ~(XPCS_WRAP_UPHY_RX_CONTROL_0_0_RX_IDDQ);
+	osi_writela(osi_core, val,
+			(nveu8_t *)osi_core->xpcs_base +
+			XPCS_WRAP_UPHY_RX_CONTROL_0_0);
+
+	val = osi_readla(osi_core,
+			(nveu8_t *)osi_core->xpcs_base +
+			XPCS_WRAP_UPHY_RX_CONTROL_0_0);
+	/* Step2 AUX_RX_IDDQ */
+	val &= ~(XPCS_WRAP_UPHY_RX_CONTROL_0_0_AUX_RX_IDDQ);
+	osi_writela(osi_core, val,
+			(nveu8_t *)osi_core->xpcs_base +
+			XPCS_WRAP_UPHY_RX_CONTROL_0_0);
+
+	val = osi_readla(osi_core,
+			(nveu8_t *)osi_core->xpcs_base +
+			XPCS_WRAP_UPHY_RX_CONTROL_0_0);
+	/* Step3 RX_SLEEP */
+	val &= ~(XPCS_WRAP_UPHY_RX_CONTROL_0_0_RX_SLEEP);
+	osi_writela(osi_core, val,
+			(nveu8_t *)osi_core->xpcs_base +
+			XPCS_WRAP_UPHY_RX_CONTROL_0_0);
+
+	val = osi_readla(osi_core,
+			(nveu8_t *)osi_core->xpcs_base +
+			XPCS_WRAP_UPHY_RX_CONTROL_0_0);
+	/* Step4 RX_CAL_EN */
+	val |= XPCS_WRAP_UPHY_RX_CONTROL_0_0_RX_CAL_EN;
+	osi_writela(osi_core, val,
+			(nveu8_t *)osi_core->xpcs_base +
+			XPCS_WRAP_UPHY_RX_CONTROL_0_0);
+
+	/* Step5 poll for Rx cal enable */
+	cond = COND_NOT_MET;
+	count = 0;
+	while (cond == COND_NOT_MET) {
+		if (count > retry) {
+			return -1;
+		}
+
+		count++;
+
+		val = osi_readla(osi_core,
+				(nveu8_t *)osi_core->xpcs_base +
+				XPCS_WRAP_UPHY_RX_CONTROL_0_0);
+		if ((val & XPCS_WRAP_UPHY_RX_CONTROL_0_0_RX_CAL_EN) == 0) {
+			cond = COND_MET;
+		} else {
+			osi_core->osd_ops.udelay(1000U);
+		}
 	}
 
-	if (xpcs_check_pcs_lock_status(osi_core) < 0) {
+	/* Step6 RX_DATA_EN */
+	val = osi_readla(osi_core, (nveu8_t *)osi_core->xpcs_base +
+			XPCS_WRAP_UPHY_RX_CONTROL_0_0);
+	val |= XPCS_WRAP_UPHY_RX_CONTROL_0_0_RX_DATA_EN;
+	osi_writela(osi_core, val, (nveu8_t *)osi_core->xpcs_base +
+			XPCS_WRAP_UPHY_RX_CONTROL_0_0);
+
+
+	while (cnt < PCS_RETRY_MAX) {
+		/* Step7 RX_CDR_RESET */
+		val = osi_readla(osi_core, (nveu8_t *)osi_core->xpcs_base +
+				 XPCS_WRAP_UPHY_RX_CONTROL_0_0);
+		val |= XPCS_WRAP_UPHY_RX_CONTROL_0_0_RX_CDR_RESET;
+		osi_writela(osi_core, val, (nveu8_t *)osi_core->xpcs_base +
+			    XPCS_WRAP_UPHY_RX_CONTROL_0_0);
+
+		/* Step8 RX_CDR_RESET */
+		val = osi_readla(osi_core, (nveu8_t *)osi_core->xpcs_base +
+				 XPCS_WRAP_UPHY_RX_CONTROL_0_0);
+		val &= ~(XPCS_WRAP_UPHY_RX_CONTROL_0_0_RX_CDR_RESET);
+		osi_writela(osi_core, val, (nveu8_t *)osi_core->xpcs_base +
+			    XPCS_WRAP_UPHY_RX_CONTROL_0_0);
+
+		val = osi_readla(osi_core, (nveu8_t *)osi_core->xpcs_base +
+				 XPCS_WRAP_UPHY_RX_CONTROL_0_0);
+		/* Step9 RX_PCS_PHY_RDY */
+		val |= XPCS_WRAP_UPHY_RX_CONTROL_0_0_RX_PCS_PHY_RDY;
+		osi_writela(osi_core, val, (nveu8_t *)osi_core->xpcs_base +
+			    XPCS_WRAP_UPHY_RX_CONTROL_0_0);
+
+		if (xpcs_check_pcs_lock_status(osi_core) < 0) {
+			cnt += 1;
+			osi_core->osd_ops.udelay(1000U);
+		} else {
+			OSI_CORE_INFO(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+				      "PCS block lock SUCCESS\n", 0ULL);
+			break;
+		}
+	}
+
+	if (cnt == PCS_RETRY_MAX) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
-			     "PCS block lock not achieved\n", 0ULL);
+			     "Failed to get PCS block lock after max retries\n",
+			     cnt);
 		return -1;
 	}
 
