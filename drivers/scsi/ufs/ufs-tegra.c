@@ -1339,6 +1339,13 @@ static int ufs_tegra_pwr_change_notify(struct ufs_hba *hba,
 			}
 			if (ufs_tegra->enable_scramble)
 				ufs_tegra_scramble_enable(hba);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+			if (dev_req_params->gear_rx == 4) {
+				ufshcd_dme_configure_adapt(hba,
+						UFS_HS_G4,
+						PA_INITIAL_ADAPT);
+			}
+#endif
 		} else {
 			if (ufs_tegra->max_pwm_gear) {
 				ufshcd_dme_get(hba,
