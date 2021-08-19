@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2021, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -55,6 +55,7 @@
 #define XPCS_VR_XS_PCS_EEE_MCTRL0		0xE00018
 #define XPCS_WRAP_UPHY_HW_INIT_CTRL		0x8020
 #define XPCS_WRAP_IRQ_STATUS			0x8050
+#define XPCS_WRAP_UPHY_RX_CONTROL_0_0		0x801C
 /** @} */
 
 
@@ -93,6 +94,16 @@
 #define XPCS_WRAP_UPHY_HW_INIT_CTRL_TX_EN	OSI_BIT(0)
 #define XPCS_WRAP_UPHY_HW_INIT_CTRL_RX_EN	OSI_BIT(2)
 #define XPCS_WRAP_IRQ_STATUS_PCS_LINK_STS	OSI_BIT(6)
+#define XPCS_WRAP_UPHY_RX_CONTROL_0_0_RX_DATA_EN	OSI_BIT(0)
+#define XPCS_WRAP_UPHY_RX_CONTROL_0_0_RX_IDDQ		OSI_BIT(4)
+#define XPCS_WRAP_UPHY_RX_CONTROL_0_0_AUX_RX_IDDQ	OSI_BIT(5)
+#define XPCS_WRAP_UPHY_RX_CONTROL_0_0_RX_SLEEP		(OSI_BIT(6) | \
+							 OSI_BIT(7))
+#define XPCS_WRAP_UPHY_RX_CONTROL_0_0_RX_CAL_EN		OSI_BIT(8)
+#define XPCS_WRAP_UPHY_RX_CONTROL_0_0_RX_CDR_RESET	OSI_BIT(9)
+#define XPCS_WRAP_UPHY_RX_CONTROL_0_0_RX_PCS_PHY_RDY	OSI_BIT(10)
+#define XPCS_WRAP_UPHY_RX_CONTROL_0_0_RX_SW_OVRD	OSI_BIT(31)
+
 /** @} */
 
 int xpcs_init(struct osi_core_priv_data *osi_core);
