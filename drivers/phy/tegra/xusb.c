@@ -1171,6 +1171,30 @@ static void tegra_xusb_remove_ports(struct tegra_xusb_padctl *padctl)
 	mutex_unlock(&padctl->lock);
 }
 
+static int padctl_reset_hack(struct platform_device *pdev)
+{
+#define CLK_RST_CONTROLLER_RST_DEV_XUSB_SET	(0x470004)
+#define CLK_RST_CONTROLLER_RST_DEV_XUSB_CLR	(0x470008)
+#define   SWR_XUSB_HOST_RST			(1 << 0)
+#define   SWR_XUSB_DEV_RST			(1 << 1)
+#define   SWR_XUSB_PADCTL_RST			(1 << 2)
+#define   SWR_XUSB_SS_RST			(1 << 3)
+
+	static void __iomem *car_base;
+
+	car_base = devm_ioremap(&pdev->dev, 0x20000000, 0x1000000);
+	if (IS_ERR(car_base)) {
+		dev_err(&pdev->dev, "failed to map CAR mmio\n");
+		return PTR_ERR(car_base);
+	}
+
+	iowrite32(SWR_XUSB_PADCTL_RST, car_base + CLK_RST_CONTROLLER_RST_DEV_XUSB_SET);
+	usleep_range(1000, 2000);
+	iowrite32(SWR_XUSB_PADCTL_RST, car_base + CLK_RST_CONTROLLER_RST_DEV_XUSB_CLR);
+
+	return 0;
+}
+
 static int tegra_xusb_padctl_probe(struct platform_device *pdev)
 {
 	struct device_node *np = pdev->dev.of_node;
@@ -1231,6 +1255,11 @@ static int tegra_xusb_padctl_probe(struct platform_device *pdev)
 		if (IS_ERR(padctl->rst)) {
 			err = PTR_ERR(padctl->rst);
 			goto remove;
+		}
+
+		if (!strcmp(match->compatible,
+			    "nvidia,tegra234-xusb-padctl")) {
+			padctl_reset_hack(pdev); // TODO: Bug 200764047
 		}
 
 		padctl->supplies = devm_kcalloc(&pdev->dev,
