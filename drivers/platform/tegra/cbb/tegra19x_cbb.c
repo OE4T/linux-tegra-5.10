@@ -97,9 +97,9 @@ static void cbbcentralnoc_parse_userbits
 	noc_trans_usrbits->axcache = get_noc_errlog_subfield(usrbits, 3, 0);
 	noc_trans_usrbits->non_mod = get_noc_errlog_subfield(usrbits, 4, 4);
 	noc_trans_usrbits->axprot = get_noc_errlog_subfield(usrbits, 7, 5);
-	noc_trans_usrbits->vqc = get_noc_errlog_subfield(usrbits, 9, 8);
+	noc_trans_usrbits->falconsec = get_noc_errlog_subfield(usrbits, 9, 8);
 	noc_trans_usrbits->grpsec = get_noc_errlog_subfield(usrbits, 16, 10);
-	noc_trans_usrbits->falconsec = get_noc_errlog_subfield(usrbits, 18, 17);
+	noc_trans_usrbits->vqc = get_noc_errlog_subfield(usrbits, 18, 17);
 	noc_trans_usrbits->mstr_id = get_noc_errlog_subfield(usrbits, 22, 19)-1;
 	noc_trans_usrbits->axi_id = get_noc_errlog_subfield(usrbits, 30, 23);
 }
@@ -107,12 +107,12 @@ static void cbbcentralnoc_parse_userbits
 static void clusternoc_parse_userbits
 	(struct tegra_noc_userbits *noc_trans_usrbits, u64 usrbits)
 {
-	noc_trans_usrbits->mstr_id = get_noc_errlog_subfield(usrbits, 21, 18)-1;
-	noc_trans_usrbits->vqc = get_noc_errlog_subfield(usrbits, 17, 16);
-	noc_trans_usrbits->grpsec = get_noc_errlog_subfield(usrbits, 15, 9);
-	noc_trans_usrbits->falconsec = get_noc_errlog_subfield(usrbits, 8, 7);
-	noc_trans_usrbits->axprot = get_noc_errlog_subfield(usrbits, 6, 4);
 	noc_trans_usrbits->axcache = get_noc_errlog_subfield(usrbits, 3, 0);
+	noc_trans_usrbits->axprot = get_noc_errlog_subfield(usrbits, 6, 4);
+	noc_trans_usrbits->falconsec = get_noc_errlog_subfield(usrbits, 8, 7);
+	noc_trans_usrbits->grpsec = get_noc_errlog_subfield(usrbits, 15, 9);
+	noc_trans_usrbits->vqc = get_noc_errlog_subfield(usrbits, 17, 16);
+	noc_trans_usrbits->mstr_id = get_noc_errlog_subfield(usrbits, 21, 18)-1;
 }
 
 static void tegra194_cbb_errlogger_faulten(void __iomem *addr)

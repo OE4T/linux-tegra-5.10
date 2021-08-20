@@ -283,13 +283,13 @@ static void print_errlog_err(struct seq_file *file,
 		strcpy(fabric_name, fabric_sn_map[fab_id].fab_name);
 
 	print_cbb_err(file, "\t  Fabric\t\t: %s\n", fabric_name);
-	print_cbb_err(file, "\t  Slave_Id\t\t: %d\n", slave_id);
-	print_cbb_err(file, "\t  Burst_length\t\t: %d\n", burst_length);
-	print_cbb_err(file, "\t  Burst_type\t\t: %d\n", burst_type);
-	print_cbb_err(file, "\t  Beat_size\t\t: %d\n", beat_size);
-	print_cbb_err(file, "\t  VQC\t\t\t: %d\n", vqc);
-	print_cbb_err(file, "\t  GRPSEC\t\t: %d\n", grpsec);
-	print_cbb_err(file, "\t  FALCONSEC\t\t: %d\n", falconsec);
+	print_cbb_err(file, "\t  Slave_Id\t\t: 0x%x\n", slave_id);
+	print_cbb_err(file, "\t  Burst_length\t\t: 0x%x\n", burst_length);
+	print_cbb_err(file, "\t  Burst_type\t\t: 0x%x\n", burst_type);
+	print_cbb_err(file, "\t  Beat_size\t\t: 0x%x\n", beat_size);
+	print_cbb_err(file, "\t  VQC\t\t\t: 0x%x\n", vqc);
+	print_cbb_err(file, "\t  GRPSEC\t\t: 0x%x\n", grpsec);
+	print_cbb_err(file, "\t  FALCONSEC\t\t: 0x%x\n", falconsec);
 
 	if ((fab_id == PSC_FAB_ID) || (fab_id == FSI_FAB_ID))
 		return;
@@ -297,7 +297,10 @@ static void print_errlog_err(struct seq_file *file,
 	if (!strcmp(tegra234_errmon_errors[errmon->err_type].errcode,
 		    "TIMEOUT_ERR")) {
 		tegra234_lookup_slave_timeout(file, slave_id, fab_id);
+		return;
 	}
+	print_cbb_err(file, "\t  Slave\t\t\t: %s\n",
+		      fabric_sn_map[fab_id].sn_lookup[slave_id].slave_name);
 }
 
 static void print_errmonX_info(
