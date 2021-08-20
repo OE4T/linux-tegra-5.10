@@ -249,12 +249,14 @@ static int csi5_stream_set_config(struct tegra_csi_channel *chan, u32 stream_id,
 	memset(&cil_config, 0, sizeof(cil_config));
 	cil_config.num_lanes = csi_lanes;
 	cil_config.lp_bypass_mode = is_cphy ? 0 : 1;
-	cil_config.t_clk_settle = is_cphy ? 1 : 33;
 	cil_config.t_hs_settle = cil_settletime;
 	cil_config.cil_clock_rate = NVCSI_CIL_CLOCK_RATE; /* hard-coding */
 
 	if (s_data && !chan->pg_mode)
-		cil_config.mipi_clock_rate = read_pixel_clk_from_dt(chan)/ 1000;
+		/* mipi clock rate should be half of the pixel clock rate since
+		 * the sampling happens on both edges of the clocks.
+		 */
+		cil_config.mipi_clock_rate = read_pixel_clk_from_dt(chan) / 2000;
 	else
 		cil_config.mipi_clock_rate = csi->clk_freq / 1000;
 
