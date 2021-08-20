@@ -460,6 +460,7 @@ struct tegra_xusb_padctl {
 
 	unsigned int enable;
 	bool is_xhci_iov;
+	bool is_disable_regulator;
 
 	struct clk *clk;
 

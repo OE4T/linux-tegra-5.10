@@ -807,8 +807,12 @@ static int tegra_xusb_add_usb2_port(struct tegra_xusb_padctl *padctl,
 			dev_err(&usb2->base.dev, "ignore regulator_get failure\n");
 			err = 0;
 		} else  {
-			tegra_xusb_port_unregister(&usb2->base);
-			goto out;
+			if (padctl->is_disable_regulator) {
+				err = 0;
+			} else {
+				tegra_xusb_port_unregister(&usb2->base);
+				goto out;
+			}
 		}
 	}
 
@@ -1202,6 +1206,11 @@ static int tegra_xusb_padctl_probe(struct platform_device *pdev)
 	else
 		padctl->is_xhci_iov = false;
 
+	if (of_find_property(np, "is_disable_regulator", NULL))
+		padctl->is_disable_regulator = true;
+	else
+		padctl->is_disable_regulator = false;
+
 	of_node_put(np);
 
 	platform_set_drvdata(pdev, padctl);
@@ -1237,24 +1246,29 @@ static int tegra_xusb_padctl_probe(struct platform_device *pdev)
 						padctl->soc->supply_names,
 						padctl->soc->num_supplies);
 
-		err = devm_regulator_bulk_get(&pdev->dev,
-					      padctl->soc->num_supplies,
-					      padctl->supplies);
-		if (err < 0) {
-			dev_err(&pdev->dev, "failed to get regulators: %d\n",
-				err);
-			goto remove;
+		if (!padctl->is_disable_regulator) {
+			err = devm_regulator_bulk_get(&pdev->dev,
+				padctl->soc->num_supplies,
+				padctl->supplies);
+			if (err < 0) {
+				dev_err(&pdev->dev,
+					"failed to get regulators: %d\n", err);
+				goto remove;
+			}
 		}
 
 		err = reset_control_deassert(padctl->rst);
 		if (err < 0)
 			goto remove;
 
-		err = regulator_bulk_enable(padctl->soc->num_supplies,
-					    padctl->supplies);
-		if (err < 0) {
-			dev_err(&pdev->dev, "failed to enable supplies: %d\n", err);
-			goto reset;
+		if (!padctl->is_disable_regulator) {
+			err = regulator_bulk_enable(padctl->soc->num_supplies,
+				padctl->supplies);
+			if (err < 0) {
+				dev_err(&pdev->dev,
+					"failed to enable supplies: %d\n", err);
+				goto reset;
+			}
 		}
 	}
 
@@ -1287,6 +1301,7 @@ power_down:
 reset:
 	if (tegra_platform_is_silicon() && !padctl->is_xhci_iov)
 		reset_control_assert(padctl->rst);
+
 remove:
 	platform_set_drvdata(pdev, NULL);
 	soc->ops->remove(padctl);

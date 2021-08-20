@@ -784,17 +784,21 @@ static int tegra186_xusb_padctl_vbus_power_on(struct phy *phy)
 
 	mutex_lock(&padctl->lock);
 
-	status = regulator_is_enabled(port->supply);
-	if (!status) {
-		rc = regulator_enable(port->supply);
-		if (rc)
-			dev_err(padctl->dev,
-				"enable usb2-%d vbus failed %d\n", index, rc);
-	}
+	if (!padctl->is_disable_regulator) {
+		status = regulator_is_enabled(port->supply);
+		if (!status) {
+			rc = regulator_enable(port->supply);
+			if (rc) {
+				dev_err(padctl->dev,
+					"enable usb2-%d vbus failed %d\n",
+					index, rc);
+			}
+		}
 
-	dev_dbg(padctl->dev, "%s: usb2-%d vbus status: %d->%d\n",
-		__func__, index, status,
-		regulator_is_enabled(port->supply));
+		dev_dbg(padctl->dev, "%s: usb2-%d vbus status: %d->%d\n",
+			__func__, index, status,
+			regulator_is_enabled(port->supply));
+	}
 
 	mutex_unlock(&padctl->lock);
 	return rc;
@@ -823,18 +827,21 @@ static int tegra186_xusb_padctl_vbus_power_off(struct phy *phy)
 
 	mutex_lock(&padctl->lock);
 
-	status = regulator_is_enabled(port->supply);
-	if (status) {
-		rc = regulator_disable(port->supply);
-		if (rc)
-			dev_err(padctl->dev,
-				"disable usb2-%d vbus failed %d\n",
-				index, rc);
-	}
+	if (!padctl->is_disable_regulator) {
+		status = regulator_is_enabled(port->supply);
+		if (status) {
+			rc = regulator_disable(port->supply);
+			if (rc) {
+				dev_err(padctl->dev,
+					"disable usb2-%d vbus failed %d\n",
+					index, rc);
+			}
+		}
 
-	dev_dbg(padctl->dev, "%s: usb2-%d vbus status: %d->%d\n",
-		__func__, index, status,
-		regulator_is_enabled(port->supply));
+		dev_dbg(padctl->dev, "%s: usb2-%d vbus status: %d->%d\n",
+			__func__, index, status,
+			regulator_is_enabled(port->supply));
+	}
 
 	mutex_unlock(&padctl->lock);
 	return rc;
@@ -857,7 +864,9 @@ static int tegra186_utmi_phy_set_mode(struct phy *phy, enum phy_mode mode,
 		if (submode == USB_ROLE_HOST) {
 			tegra186_xusb_padctl_id_override(padctl, true);
 
-			err = regulator_enable(port->supply);
+			if (!padctl->is_disable_regulator)
+				err = regulator_enable(port->supply);
+
 		} else if (submode == USB_ROLE_DEVICE) {
 			tegra186_xusb_padctl_vbus_override(padctl, true);
 		} else if (submode == USB_ROLE_NONE) {
@@ -866,8 +875,10 @@ static int tegra186_utmi_phy_set_mode(struct phy *phy, enum phy_mode mode,
 			 * USB_ROLE_NONE from USB_ROLE_DEVICE, regulator is not
 			 * enabled.
 			 */
-			if (regulator_is_enabled(port->supply))
+			if ((!padctl->is_disable_regulator) &&
+				regulator_is_enabled(port->supply)) {
 				regulator_disable(port->supply);
+			}
 
 			tegra186_xusb_padctl_id_override(padctl, false);
 			tegra186_xusb_padctl_vbus_override(padctl, false);
@@ -984,13 +995,16 @@ static int tegra186_utmi_phy_init(struct phy *phy)
 	reg |= ID_OVERRIDE_FLOATING;
 	padctl_writel(padctl, reg, USB2_VBUS_ID);
 
-	if (port->supply && port->mode == USB_DR_MODE_HOST &&
-	    !regulator_is_enabled(port->supply)) {
-		err = regulator_enable(port->supply);
-		if (err) {
-			dev_err(dev, "failed to enable port %u VBUS: %d\n",
-				index, err);
-			return err;
+	if (!padctl->is_disable_regulator) {
+		if (port->supply && port->mode == USB_DR_MODE_HOST &&
+			!regulator_is_enabled(port->supply)) {
+			err = regulator_enable(port->supply);
+			if (err) {
+				dev_err(dev,
+					"failed to enable port %u VBUS: %d\n",
+					index, err);
+				return err;
+			}
 		}
 	}
 
@@ -1005,20 +1019,22 @@ static int tegra186_utmi_phy_exit(struct phy *phy)
 	unsigned int index = lane->index;
 	struct device *dev = padctl->dev;
 	int err;
-
 	port = tegra_xusb_find_usb2_port(padctl, index);
 	if (!port) {
 		dev_err(dev, "no port found for USB2 lane %u\n", index);
 		return -ENODEV;
 	}
 
-	if (port->supply && port->mode == USB_DR_MODE_HOST &&
-	    regulator_is_enabled(port->supply)) {
-		err = regulator_disable(port->supply);
-		if (err) {
-			dev_err(dev, "failed to disable port %u VBUS: %d\n",
-				index, err);
-			return err;
+	if (!padctl->is_disable_regulator) {
+		if (port->supply && port->mode == USB_DR_MODE_HOST &&
+			regulator_is_enabled(port->supply)) {
+			err = regulator_disable(port->supply);
+			if (err) {
+				dev_err(dev,
+					"failed to disable port %u VBUS: %d\n",
+					index, err);
+				return err;
+			}
 		}
 	}
 
