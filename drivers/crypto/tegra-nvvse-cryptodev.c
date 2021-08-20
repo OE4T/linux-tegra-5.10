@@ -912,7 +912,6 @@ static long tnvvse_crypto_dev_ioctl(struct file *filp,
 
 	switch (ioctl_num) {
 	case NVVSE_IOCTL_CMDID_INIT_SHA:
-		pr_info("%s(): Init sha\n", __func__);
 		ret = copy_from_user(&sha_init_ctl, (void __user *)arg, sizeof(sha_init_ctl));
 		if (ret) {
 			pr_err("%s(): Failed to copy_from_user sha_init_ctl:%d\n", __func__, ret);
@@ -923,7 +922,6 @@ static long tnvvse_crypto_dev_ioctl(struct file *filp,
 		break;
 
 	case NVVSE_IOCTL_CMDID_UPDATE_SHA:
-		pr_info("%s(): Update sha\n", __func__);
 		ret = copy_from_user(&sha_update_ctl, (void __user *)arg, sizeof(sha_update_ctl));
 		if (ret) {
 			pr_err("%s(): Failed to copy_from_user sha_update_ctl:%d\n", __func__, ret);
@@ -935,7 +933,6 @@ static long tnvvse_crypto_dev_ioctl(struct file *filp,
 
 
 	case NVVSE_IOCTL_CMDID_FINAL_SHA:
-		pr_info("%s(): Final sha\n", __func__);
 		ret = copy_from_user(&sha_final_ctl, (void __user *)arg, sizeof(sha_final_ctl));
 		if (ret) {
 			pr_err("%s(): Failed to copy_from_user sha_final_ctl:%d\n", __func__, ret);
