@@ -53,6 +53,7 @@
 #include <trace/events/nvmap.h>
 
 #include "nvmap_priv.h"
+#include "nvmap_heap.h"
 #include "nvmap_ioctl.h"
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
@@ -579,17 +580,56 @@ next_page:
 	nvmap_ref_unlock(client);
 }
 
-bool is_nvmap_memory_available(size_t size)
+bool is_nvmap_memory_available(size_t size, uint32_t heap)
 {
-	unsigned long total_num_pages =
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0)
-		totalram_pages();
-#else
-		totalram_pages;
-#endif
-	if ((size >> PAGE_SHIFT) > total_num_pages) {
-		pr_debug("Requested allocation size is more than system memory");
+	unsigned long total_num_pages;
+	unsigned int carveout_mask = NVMAP_HEAP_CARVEOUT_MASK;
+	unsigned int iovmm_mask = NVMAP_HEAP_IOVMM;
+	struct nvmap_device *dev = nvmap_dev;
+	int i;
+
+	if (!heap)
 		return false;
+
+	if (nvmap_convert_carveout_to_iovmm) {
+		carveout_mask &= ~NVMAP_HEAP_CARVEOUT_GENERIC;
+		iovmm_mask |= NVMAP_HEAP_CARVEOUT_GENERIC;
+	} else if (nvmap_convert_iovmm_to_carveout) {
+		if (heap & NVMAP_HEAP_IOVMM) {
+			heap &= ~NVMAP_HEAP_IOVMM;
+			heap |= NVMAP_HEAP_CARVEOUT_GENERIC;
+		}
+	}
+
+	if (heap & NVMAP_HEAP_IOVMM) {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0)
+		total_num_pages = totalram_pages();
+#else
+		total_num_pages = totalram_pages;
+#endif
+		if ((size >> PAGE_SHIFT) > total_num_pages) {
+			pr_debug("Requested size is more than available memory\n");
+			pr_debug("Requested size : %lu B, Available memory : %lu B\n", size,
+					total_num_pages << PAGE_SHIFT);
+			return false;
+		}
+	}
+
+	for (i = 0; i < dev->nr_carveouts; i++) {
+		struct nvmap_carveout_node *co_heap;
+		struct nvmap_heap *h;
+
+		co_heap = &dev->heaps[i];
+		if (!(co_heap->heap_bit & heap))
+			continue;
+
+		h = co_heap->carveout;
+		if (size > h->free_size) {
+			pr_debug("Requested size is more than available memory");
+			pr_debug("Requested size : %lu B, Available memory : %lu B\n", size,
+					h->free_size);
+                        return false;
+                }
 	}
 	return true;
 }

@@ -3,7 +3,7 @@
  *
  * GPU heap allocator.
  *
- * Copyright (c) 2011-2020, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -66,24 +66,6 @@ struct list_block {
 	size_t align;
 	struct nvmap_heap *heap;
 	struct list_head free_list;
-};
-
-struct nvmap_heap {
-	struct list_head all_list;
-	struct mutex lock;
-	const char *name;
-	void *arg;
-	/* heap base */
-	phys_addr_t base;
-	/* heap size */
-	size_t len;
-	struct device *cma_dev;
-	struct device *dma_dev;
-	bool is_ivm;
-	bool can_alloc; /* Used only if is_ivm == true */
-	int peer; /* Used only if is_ivm == true */
-	int vm_id; /* Used only if is_ivm == true */
-	struct nvmap_pm_ops pm_ops;
 };
 
 struct device *dma_dev_from_handle(unsigned long type)
@@ -286,6 +268,7 @@ static struct nvmap_heap_block *do_heap_alloc(struct nvmap_heap *heap,
 
 	list_add_tail(&heap_block->all_list, &heap->all_list);
 	heap_block->heap = heap;
+	heap->free_size -= len;
 	heap_block->mem_prot = mem_prot;
 	heap_block->align = align;
 	return &heap_block->block;
@@ -305,6 +288,7 @@ static struct list_block *do_heap_free(struct nvmap_heap_block *block)
 
 	nvmap_free_mem(heap, block->base, b->size);
 	kmem_cache_free(heap_block_cache, b);
+	heap->free_size += b->size;
 
 	return b;
 }
@@ -492,6 +476,7 @@ struct nvmap_heap *nvmap_heap_create(struct device *parent,
 	h->can_alloc = !!co->can_alloc;
 	h->is_ivm = co->is_ivm;
 	h->len = len;
+	h->free_size = len;
 	h->peer = co->peer;
 	h->vm_id = co->vmid;
 	if (co->pm_ops.busy)
