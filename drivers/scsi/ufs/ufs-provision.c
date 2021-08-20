@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Author:
  *      Abhinav Site    <asite@nvidia.com>
@@ -30,9 +30,9 @@
 
 #define START_PROVISIONING 1
 #define MAX_LUN_COUNT 8
-#define CONFIG_DESC_SIZE 144
-#define UNIT_DESC_SIZE 16
-#define CONFIG_DESC_HEADER_SIZE 16
+#define CONFIG_DESC_SIZE 0xe6
+#define UNIT_DESC_SIZE 26
+#define CONFIG_DESC_HEADER_SIZE 22
 #define ACTIVE_MODE 0x01
 #define EQUAL_PRIORITY 0x7F
 
@@ -109,7 +109,7 @@ int validate_desc_header(struct ufs_hba *hba, u8 *lun_desc_buf)
 	u8 desc_param;
 
 	#define GET_PARAM_VAL(i, offset) \
-			((lun_desc_buf + (i+1)*(UNIT_DESC_SIZE))[(offset)])
+			((lun_desc_buf + CONFIG_DESC_HEADER_SIZE + (i * UNIT_DESC_SIZE))[(offset)])
 
 	if (lun_desc_buf == NULL) {
 		dev_err(hba->dev, "lun_desc_buf is null\n");
