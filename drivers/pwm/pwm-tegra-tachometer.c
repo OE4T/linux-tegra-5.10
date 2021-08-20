@@ -18,10 +18,12 @@
 #include <linux/platform_device.h>
 #include <linux/err.h>
 #include <linux/pwm.h>
+#include <linux/interrupt.h>
 #include <linux/slab.h>
 #include <linux/reset.h>
 #include <linux/of_device.h>
 #include <linux/io.h>
+#define DRIVER_NAME "pwm-tach"
 
 /* Since oscillator clock (38.4MHz) serves as a clock source for
  * the tach input controller, 1.0105263MHz (i.e. 38.4/38) has to be
@@ -40,14 +42,64 @@
 #define TACH_FAN_TACH1					0x4
 #define TACH_FAN_TACH1_HI_MASK				0x7FFFF
 
+#define TACH_FAN_TACH_UPPER_THRESHOLD_0			0x8
+#define TACH_UPPER_THRESHOLD_MASK			0xffffff
+#define TACH_UPPER_THRESHOLD_SHIFT			0
+
+#define TACH_FAN_TACH_LOWER_THRESHOLD_0			0xc
+#define TACH_LOWER_THRESHOLD_MASK			0xffffff
+#define TACH_LOWER_THRESHOLD_SHIFT			0
+
+#define DEFAULT_UPPER_THRESHOLD				4
+#define DEFAULT_LOWER_THRESHOLD				1
+
+#define TACH_FAN_TACH_INTERRUPT_ENABLE_0		0x10
+#define TACH_FAN_TACH_INTR_OVERRUN			BIT(0)
+#define TACH_FAN_TACH_INTR_UNDERRUN			BIT(1)
+#define TACH_FAN_TACH_INTR_CNT_OVERFLOW			BIT(2)
+#define TACH_FAN_ENABLE_INTERRUPT_VAL	(TACH_FAN_TACH_INTR_OVERRUN | \
+					TACH_FAN_TACH_INTR_UNDERRUN	| \
+					TACH_FAN_TACH_INTR_CNT_OVERFLOW)
+#define TACH_FAN_ENABLE_INTERRUPT_MASK			0x7
+#define TACH_FAN_ENABLE_INTERRUPT_SHIFT			0
+#define TACH_FAN_TACH_INTERRUPT_DISABLE			0x0
+
+#define	TACH_FAN_TACH_CONTROL_0				0x14
+#define	TACH_FAN_LOAD_CONFIG				BIT(0)
+#define	TACH_FAN_STOP_ON_ERR				BIT(1)
+#define	TACH_FAN_ERR_CONFIG					BIT(2)
+#define TACH_FAN_MONITOR_TIME_MASK				0xffffff00
+
+#define TACH_FAN_TACH_CONTROL_0_MASK			1
+#define TACH_FAN_TACH_CONTROL_0_SHIFT			0
+#define TACH_ERR_CONFIG_MONITOR_PERIOD_VAL		1
+#define TACH_ERR_CONFIG_MONITOR_PULSES_VAL		1
+
+#define TACH_FAN_TACH_ERR_STATUS_0			0x18
+#define	TACH_FAN_ERR_OVERRUN				BIT(0)
+#define	TACH_FAN_ERR_UNDERRUN				BIT(1)
+#define TACH_FAN_ERR_MASK					0x3
+#define	TACH_FAN_ERR_PERIOD_MASK			0xFFFFFF00
+#define TACH_FAN_ERR_PERIOD_SHIFT			0x8
+#define TACH_FAN_INTERRUPT_ENABLE			0x1
+
+
+struct pwm_tegra_tach_soc_data {
+	bool has_interrupt_support;
+};
+
 struct pwm_tegra_tach {
 	struct device		*dev;
 	void __iomem		*regs;
 	struct clk		*clk;
 	struct reset_control	*rst;
 	unsigned int		pulse_per_rev;
+	int			irq;
 	unsigned int		capture_win_len;
+	unsigned int		upper_threshold;
+	unsigned int		lower_threshold;
 	struct pwm_chip		chip;
+	const struct pwm_tegra_tach_soc_data	*soc_data;
 };
 
 static struct pwm_tegra_tach *to_tegra_pwm_chip(struct pwm_chip *chip)
@@ -82,6 +134,17 @@ static int tegra_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
 static void tegra_pwm_disable(struct pwm_chip *chip, struct pwm_device *pwm)
 {
 	/* Dummy implementation for avoiding error from core */
+}
+
+static inline void tach_update_mask(struct pwm_tegra_tach *ptt,
+					u32 val, u32 reg_offset, u32 mask,
+						u32 bit_offset)
+{
+	u32 update_val;
+
+	update_val = tachometer_readl(ptt, reg_offset);
+	update_val = ((update_val & (~mask)) | (val << bit_offset));
+	tachometer_writel(ptt, update_val, reg_offset);
 }
 
 static int pwm_tegra_tacho_set_wlen(struct pwm_tegra_tach *ptt,
@@ -122,6 +185,22 @@ static int pwm_tegra_tacho_set_capture_wlen(struct pwm_chip *chip,
 	ptt->capture_win_len = window_length;
 
 	return 0;
+}
+
+static void pwm_tegra_tacho_set_threshold(struct pwm_chip *chip)
+{
+	struct pwm_tegra_tach *ptt = to_tegra_pwm_chip(chip);
+
+	tach_update_mask(ptt, ptt->upper_threshold,
+			TACH_FAN_TACH_UPPER_THRESHOLD_0,
+			TACH_UPPER_THRESHOLD_MASK,
+			TACH_UPPER_THRESHOLD_SHIFT);
+
+	tach_update_mask(ptt, ptt->lower_threshold,
+			TACH_FAN_TACH_LOWER_THRESHOLD_0,
+			TACH_LOWER_THRESHOLD_MASK,
+			TACH_LOWER_THRESHOLD_SHIFT);
+
 }
 
 static int pwm_tegra_tacho_capture(struct pwm_chip *chip,
@@ -168,6 +247,33 @@ static int pwm_tegra_tacho_capture(struct pwm_chip *chip,
 	return 0;
 }
 
+static irqreturn_t tegra_pwm_tach_irq(int irq, void *dev)
+{
+	struct pwm_tegra_tach *ptt = dev;
+	u32 tach0, period_val;
+
+	/* Read tachometer error status reg to know the status of error */
+	tach0 = tachometer_readl(ptt, TACH_FAN_TACH_ERR_STATUS_0);
+
+	/* Clear Interrupts */
+	tachometer_writel(ptt, TACH_FAN_ERR_MASK, TACH_FAN_TACH_ERR_STATUS_0);
+
+	/* Disable Interrupt */
+	tachometer_writel(ptt, TACH_FAN_TACH_INTERRUPT_DISABLE, TACH_FAN_TACH_INTERRUPT_ENABLE_0);
+
+	/* Get period value captured by TACH controller when the err occurred */
+	period_val  = (tach0 >> TACH_FAN_ERR_PERIOD_SHIFT);
+	if (tach0 & TACH_FAN_ERR_OVERRUN)
+		dev_err(ptt->dev, "Tach overrun error. Period value: 0x%x \n",
+			period_val);
+
+	if (tach0 & TACH_FAN_ERR_UNDERRUN)
+		dev_err(ptt->dev, "Tach underrun error. Period value: 0x%x \n",
+			period_val);
+
+	return IRQ_HANDLED;
+}
+
 static const struct pwm_ops pwm_tegra_tach_ops = {
 	.config = tegra_pwm_config,
 	.enable = tegra_pwm_enable,
@@ -190,6 +296,15 @@ static void pwm_tegra_tach_read_platform_data(struct pwm_tegra_tach *ptt)
 	ret = of_property_read_u32(np, "capture-window-length", &pval);
 	if (!ret)
 		ptt->capture_win_len = pval;
+
+	if (ptt->soc_data->has_interrupt_support) {
+	/* get the threshold values only in case of t234 based on chipdata */
+		ret = of_property_read_u32(np, "upper-threshold", &pval);
+		ptt->upper_threshold = (ret == 0) ? pval : DEFAULT_UPPER_THRESHOLD;
+
+		ret = of_property_read_u32(np, "lower-threshold", &pval);
+		ptt->lower_threshold = (ret == 0) ? pval : DEFAULT_LOWER_THRESHOLD;
+	}
 }
 
 static int pwm_tegra_tach_probe(struct platform_device *pdev)
@@ -204,6 +319,12 @@ static int pwm_tegra_tach_probe(struct platform_device *pdev)
 		return -ENOMEM;
 
 	ptt->dev = &pdev->dev;
+
+	ptt->soc_data = of_device_get_match_data(&pdev->dev);
+	if (!ptt->soc_data) {
+		dev_err(&pdev->dev, "unsupported tegra\n");
+		return -ENODEV;
+	}
 
 	pwm_tegra_tach_read_platform_data(ptt);
 
@@ -246,6 +367,22 @@ static int pwm_tegra_tach_probe(struct platform_device *pdev)
 
 	reset_control_reset(ptt->rst);
 
+	if (ptt->soc_data->has_interrupt_support) {
+		ptt->irq = platform_get_irq(pdev, 0);
+		if (ptt->irq < 0) {
+			dev_err(&pdev->dev, "platform_get_irq failed\n");
+			goto clk_unprep;
+		}
+
+		ret = devm_request_irq(&pdev->dev, ptt->irq, tegra_pwm_tach_irq, 0,
+			       DRIVER_NAME, ptt);
+		if (ret) {
+			dev_err(&pdev->dev, "request_irq failed - irq[%d] err[%d]\n",
+					ptt->irq, ret);
+			goto clk_unprep;
+		}
+	}
+
 	ptt->chip.dev = &pdev->dev;
 	ptt->chip.ops = &pwm_tegra_tach_ops;
 	ptt->chip.base = -1;
@@ -271,6 +408,23 @@ static int pwm_tegra_tach_probe(struct platform_device *pdev)
 		goto pwm_remove;
 	}
 
+	if (ptt->soc_data->has_interrupt_support) {
+		/* set upper and lower threshold values */
+		pwm_tegra_tacho_set_threshold(&ptt->chip);
+
+		/* program tach fan control reg */
+		tach_update_mask(ptt, TACH_ERR_CONFIG_MONITOR_PERIOD_VAL,
+				TACH_FAN_TACH_CONTROL_0,
+				TACH_FAN_TACH_CONTROL_0_MASK,
+				TACH_FAN_TACH_CONTROL_0_SHIFT);
+
+		/* enable interrupts in interrupt enable register */
+		tach_update_mask(ptt, TACH_FAN_ENABLE_INTERRUPT_VAL,
+				TACH_FAN_TACH_INTERRUPT_ENABLE_0,
+				TACH_FAN_ENABLE_INTERRUPT_MASK,
+				TACH_FAN_ENABLE_INTERRUPT_SHIFT);
+
+	}
 	return 0;
 
 pwm_remove:
@@ -318,9 +472,29 @@ static const struct dev_pm_ops pwm_tegra_tach_pm_ops = {
 	.resume         = pwm_tegra_tach_resume,
 };
 
+
+static struct pwm_tegra_tach_soc_data tegra186_tach_soc_data = {
+		.has_interrupt_support = false,
+};
+
+static struct pwm_tegra_tach_soc_data tegra194_tach_soc_data = {
+		.has_interrupt_support = false,
+};
+
+static struct pwm_tegra_tach_soc_data tegra234_tach_soc_data = {
+		.has_interrupt_support = true,
+};
+
 static const struct of_device_id pwm_tegra_tach_of_match[] = {
-	{ .compatible = "nvidia,pwm-tegra186-tachometer" },
-	{ .compatible = "nvidia,pwm-tegra194-tachometer" },
+	{ .compatible = "nvidia,pwm-tegra186-tachometer",
+	  .data =	&tegra186_tach_soc_data,
+	},
+	{ .compatible = "nvidia,pwm-tegra194-tachometer",
+	  .data =	&tegra194_tach_soc_data,
+	},
+	{ .compatible = "nvidia,pwm-tegra234-tachometer",
+	  .data =	&tegra234_tach_soc_data,
+	},
 	{}
 };
 MODULE_DEVICE_TABLE(of, tegra_tach_of_match);
@@ -340,4 +514,5 @@ module_platform_driver(tegra_tach_driver);
 MODULE_DESCRIPTION("PWM based NVIDIA Tegra Tachometer driver");
 MODULE_AUTHOR("Laxman Dewangan <ldewangan@nvidia.com>");
 MODULE_AUTHOR("R Raj Kumar <rrajk@nvidia.com>");
+MODULE_AUTHOR("Vishwaroop A <va@nvidia.com>");
 MODULE_LICENSE("GPL v2");
