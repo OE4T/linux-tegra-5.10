@@ -319,11 +319,6 @@ struct PVA_PACKED pva_bin_info_s {
 	struct pva_vpu_data_section_s data[PVA_MAX_VPU_DATA_SECTION];
 	/** Base address of the data. Should be aligned at 64. */
 	pva_iova data_base;
-
-	/** Metadata sections */
-	struct pva_vpu_data_section_s metadata[PVA_MAX_VPU_METADATA];
-	/** Base address of the metadata. Recommended alignment is 16. */
-	pva_iova meta_base;
 };
 
 /*

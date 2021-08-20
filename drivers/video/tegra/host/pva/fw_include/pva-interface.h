@@ -165,7 +165,7 @@ typedef uint8_t pva_status_cmds_t;
 #define PVA_CCQ_ADDR_LSB 0
 #define PVA_CCQ_QUEUE_ID_MSB 47
 #define PVA_CCQ_QUEUE_ID_LSB 40
-#define PVA_CCQ_BATCH_SIZE_MSB 51
+#define PVA_CCQ_BATCH_SIZE_MSB 55
 #define PVA_CCQ_BATCH_SIZE_LSB 48
 
 /*
