@@ -4691,8 +4691,7 @@ static int tegra_xhci_hcd_reinit(struct usb_hcd *hcd)
 	struct xhci_hcd *xhci = hcd_to_xhci(hcd);
 	struct tegra_xusb *tegra = hcd_to_tegra_xusb(hcd);
 
-	if ((en_hcd_reinit || tegra->soc->has_ifr)
-			&& !xhci->recovery_in_progress) {
+	if (en_hcd_reinit && !xhci->recovery_in_progress) {
 		xhci->recovery_in_progress = true;
 
 		schedule_work(&xhci->tegra_xhci_reinit_work);
