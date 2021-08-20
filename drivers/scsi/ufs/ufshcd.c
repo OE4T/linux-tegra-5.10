@@ -47,6 +47,8 @@
 
 #define NOP_OUT_TIMEOUT    100 /* msecs */
 
+#define UFS_CONG_DESC_SIZE 0xe6 /* confg desc size */
+
 /* Query request retries */
 #define QUERY_REQ_RETRIES 3
 /* Query request timeout */
@@ -3265,10 +3267,7 @@ static void ufshcd_update_desc_length(struct ufs_hba *hba,
  */
 int ufshcd_set_config_desc(struct ufs_hba *hba, u8 *desc_buf)
 {
-	u32 lun_desc_len;
-
-	ufshcd_map_desc_id_to_length(hba,
-		QUERY_DESC_IDN_CONFIGURATION, &lun_desc_len);
+	u32 lun_desc_len = UFS_CONG_DESC_SIZE;
 
 	return  ufshcd_query_descriptor_retry(hba, UPIU_QUERY_OPCODE_WRITE_DESC,
 		QUERY_DESC_IDN_CONFIGURATION, 0, 0, desc_buf, &lun_desc_len);
