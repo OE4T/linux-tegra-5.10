@@ -957,12 +957,9 @@ static void pcie_dma_epf_write_msi_msg(struct msi_desc *desc,
 
 static int pcie_dma_epf_core_init(struct pci_epf *epf)
 {
-	struct pcie_epf_dma *epfnv = epf_get_drvdata(epf);
 	struct pci_epc *epc = epf->epc;
-	struct device *cdev = epc->dev.parent;
 	struct device *fdev = &epf->dev;
 	struct pci_epf_bar *epf_bar;
-	struct msi_desc *desc;
 	int ret;
 
 	ret = pci_epc_write_header(epc, epf->func_no, epf->header);
@@ -980,6 +977,18 @@ static int pcie_dma_epf_core_init(struct pci_epf *epf)
 
 	dev_info(fdev, "BAR0 phy_addr: %llx size: %lx\n",
 		 epf_bar->phys_addr, epf_bar->size);
+
+	return 0;
+}
+
+static int pcie_dma_epf_msi_init(struct pci_epf *epf)
+{
+	struct pcie_epf_dma *epfnv = epf_get_drvdata(epf);
+	struct pci_epc *epc = epf->epc;
+	struct device *cdev = epc->dev.parent;
+	struct device *fdev = &epf->dev;
+	struct msi_desc *desc;
+	int ret;
 
 	/* LL DMA in sanity test will not work without MSI for EP */
 	if (!cdev->msi_domain) {
@@ -1041,6 +1050,26 @@ static int pcie_dma_epf_core_init(struct pci_epf *epf)
 	return 0;
 }
 
+static void pcie_dma_epf_msi_deinit(struct pci_epf *epf)
+{
+	struct pcie_epf_dma *epfnv = epf_get_drvdata(epf);
+	struct pci_epc *epc = epf->epc;
+	struct device *cdev = epc->dev.parent;
+	struct device *fdev = &epf->dev;
+	struct msi_desc *desc;
+
+	/* LL DMA in sanity test will not work without MSI for EP */
+	if (!cdev->msi_domain) {
+		dev_info(fdev, "msi_domain absent, no interrupts\n");
+		return;
+	}
+
+	for_each_msi_entry(desc, cdev)
+		free_irq(desc->irq, epfnv);
+
+	platform_msi_domain_free_irqs(cdev);
+}
+
 static int pcie_dma_epf_notifier(struct notifier_block *nb,
 				 unsigned long val, void *data)
 {
@@ -1071,6 +1100,7 @@ static void pcie_dma_epf_unbind(struct pci_epf *epf)
 	struct pci_epc *epc = epf->epc;
 	struct pci_epf_bar *epf_bar = &epf->bar[BAR_0];
 
+	pcie_dma_epf_msi_deinit(epf);
 	pci_epc_stop(epc);
 	pci_epc_clear_bar(epc, epf->func_no, epf_bar);
 	pci_epf_free_space(epf, epfnv->bar0_virt, BAR_0);
@@ -1140,6 +1170,12 @@ static int pcie_dma_epf_bind(struct pci_epf *epf)
 					name, epfnv);
 	if (ret < 0) {
 		dev_err(fdev, "failed to request \"intr\" irq\n");
+		goto fail_atu_dma;
+	}
+
+	ret = pcie_dma_epf_msi_init(epf);
+	if (ret < 0) {
+		dev_err(fdev, "failed to init platform msi: %d\n", ret);
 		goto fail_atu_dma;
 	}
 
