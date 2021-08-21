@@ -391,6 +391,8 @@ struct tegra_pcie_of_data {
 	bool sbr_reset_fixup;
 	/* Bug 200390637 */
 	bool l1ss_exit_fixup;
+	/* Bug 200337652 */
+	bool ltr_req_fixup;
 	u32 cdm_chk_int_en;
 	/* Bug 200760279 */
 	u32 gen4_preset_vec;
@@ -603,6 +605,9 @@ static irqreturn_t tegra_pcie_ep_irq_thread(int irq, void *arg)
 	speed = dw_pcie_readw_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKSTA) &
 		PCI_EXP_LNKSTA_CLS;
 	clk_set_rate(pcie->core_clk, pcie_gen_freq[speed - 1]);
+
+	if (!pcie->of_data->ltr_req_fixup)
+		return IRQ_HANDLED;
 
 	/* If EP doesn't advertise L1SS, just return */
 	val = dw_pcie_readl_dbi(pci, pcie->cfg_link_cap_l1sub);
@@ -2938,11 +2943,6 @@ static void pex_ep_event_pex_rst_deassert(struct tegra_pcie_dw *pcie)
 	val |= (val << LTR_MST_NO_SNOOP_SHIFT);
 	appl_writel(pcie, val, APPL_LTR_MSG_1);
 
-	/* Send LTR upstream */
-	val = appl_readl(pcie, APPL_LTR_MSG_2);
-	val |= APPL_LTR_MSG_2_LTR_MSG_REQ_STATE;
-	appl_writel(pcie, val, APPL_LTR_MSG_2);
-
 	reset_control_deassert(pcie->core_rst);
 
 	/* FPGA specific PHY initialization */
@@ -3056,6 +3056,13 @@ static void pex_ep_event_pex_rst_deassert(struct tegra_pcie_dw *pcie)
 	}
 
 	dw_pcie_ep_init_notify(ep);
+
+	/* Send LTR upstream */
+	if (!pcie->of_data->ltr_req_fixup) {
+		val = appl_readl(pcie, APPL_LTR_MSG_2);
+		val |= APPL_LTR_MSG_2_LTR_MSG_REQ_STATE;
+		appl_writel(pcie, val, APPL_LTR_MSG_2);
+	}
 
 	/* Enable LTSSM */
 	val = appl_readl(pcie, APPL_CTRL);
@@ -3745,6 +3752,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t194 = {
 	.msix_doorbell_access_fixup = true,
 	.sbr_reset_fixup = true,
 	.l1ss_exit_fixup = true,
+	.ltr_req_fixup = false,
 	.cdm_chk_int_en = BIT(19),
 	/* Gen4 - 5, 6, 8 and 9 presets enabled */
 	.gen4_preset_vec = 0x360,
@@ -3756,6 +3764,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t194_ep = {
 	.msix_doorbell_access_fixup = false,
 	.sbr_reset_fixup = false,
 	.l1ss_exit_fixup = true,
+	.ltr_req_fixup = true,
 	.cdm_chk_int_en = BIT(19),
 	/* Gen4 - 5, 6, 8 and 9 presets enabled */
 	.gen4_preset_vec = 0x360,
@@ -3767,6 +3776,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t234 = {
 	.msix_doorbell_access_fixup = false,
 	.sbr_reset_fixup = false,
 	.l1ss_exit_fixup = false,
+	.ltr_req_fixup = false,
 	.cdm_chk_int_en = BIT(18),
 	/* Gen4 - 6, 8 and 9 presets enabled */
 	.gen4_preset_vec = 0x340,
@@ -3778,6 +3788,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t234_ep = {
 	.msix_doorbell_access_fixup = false,
 	.sbr_reset_fixup = false,
 	.l1ss_exit_fixup = false,
+	.ltr_req_fixup = false,
 	.cdm_chk_int_en = BIT(18),
 	/* Gen4 - 6, 8 and 9 presets enabled */
 	.gen4_preset_vec = 0x340,
