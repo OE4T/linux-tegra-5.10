@@ -168,7 +168,6 @@
 	};
 
 	serial@3140000 {
-		compatible = "nvidia,tegra186-hsuart";
 		status = "disabled";
 	};
 
