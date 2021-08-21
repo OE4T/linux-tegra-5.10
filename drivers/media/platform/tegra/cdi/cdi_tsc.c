@@ -455,6 +455,7 @@ SIMPLE_DEV_PM_OPS(cdi_tsc_pm, cdi_tsc_suspend, cdi_tsc_resume);
 static struct platform_driver cdi_tsc_driver = {
 	.driver = {
 		.name = "cdi_tsc",
+		.owner = THIS_MODULE,
 		.of_match_table = cdi_tsc_of_match,
 		.pm = &cdi_tsc_pm,
 	},
@@ -466,3 +467,5 @@ module_platform_driver(cdi_tsc_driver);
 MODULE_AUTHOR("Ian Kaszubski <ikaszubski@nvidia.com>");
 MODULE_DESCRIPTION("CDI TSC Signal Generation Driver");
 MODULE_LICENSE("GPL v2");
+MODULE_ALIAS("platform:cdi_tsc");
+
