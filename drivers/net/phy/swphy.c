@@ -8,6 +8,7 @@
  *         Anton Vorontsov <avorontsov@ru.mvista.com>
  *
  * Copyright (c) 2006-2007 MontaVista Software, Inc.
+ * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
  */
 #include <linux/export.h>
 #include <linux/mii.h>
@@ -29,6 +30,8 @@ enum {
 	SWMII_SPEED_10 = 0,
 	SWMII_SPEED_100,
 	SWMII_SPEED_1000,
+	SWMII_SPEED_5000,
+	SWMII_SPEED_10000,
 	SWMII_DUPLEX_HALF = 0,
 	SWMII_DUPLEX_FULL,
 };
@@ -71,6 +74,10 @@ static const struct swmii_regs duplex[] = {
 static int swphy_decode_speed(int speed)
 {
 	switch (speed) {
+	case 10000:
+		return SWMII_SPEED_10000;
+	case 5000:
+		return SWMII_SPEED_5000;
 	case 1000:
 		return SWMII_SPEED_1000;
 	case 100:
