@@ -170,6 +170,10 @@
 /* FIXME: Hack to support FSI Client on VDK */
 #define TEGRA_SID_NISO0_FSI			0x5DU
 
+/* Additional APE stream-ids */
+#define TEGRA_SID_NISO0_APE_2		0x5EU
+#define TEGRA_SID_NISO0_APE_3		0x5FU
+
 /*
  ********* NISO1 SMMU STREAM IDs **********
  */
