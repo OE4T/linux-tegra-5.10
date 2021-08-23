@@ -368,7 +368,7 @@ static int vi_capture_ivc_send_control(
 			&capture->control_resp, timeout);
 	if (timeout <= 0) {
 		dev_err(chan->dev,
-			"no reply from camera processor\n");
+			"capture control message timed out\n");
 		err = -ETIMEDOUT;
 		goto fail;
 	}
@@ -1479,8 +1479,8 @@ int vi_capture_status(
 				&capture->capture_resp,
 				msecs_to_jiffies(timeout_ms));
 		if (ret == 0) {
-			dev_err(chan->dev,
-				"no reply from camera processor\n");
+			dev_dbg(chan->dev,
+				"capture status timed out\n");
 			return -ETIMEDOUT;
 		}
 	}

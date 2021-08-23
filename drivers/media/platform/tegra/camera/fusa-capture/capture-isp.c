@@ -859,7 +859,7 @@ static int isp_capture_ivc_send_control(struct tegra_isp_channel *chan,
 	timeout = wait_for_completion_timeout(&capture->control_resp, timeout);
 	if (timeout <= 0) {
 		dev_err(chan->isp_dev,
-			"no reply from camera processor\n");
+			"isp capture control message timed out\n");
 		err = -ETIMEDOUT;
 		goto fail;
 	}
@@ -1811,8 +1811,8 @@ int isp_capture_status(
 				&capture->capture_resp,
 				msecs_to_jiffies(timeout_ms));
 		if (err == 0) {
-			dev_err(chan->isp_dev,
-				"no reply from camera processor\n");
+			dev_dbg(chan->isp_dev,
+				"isp capture status timed out\n");
 			return -ETIMEDOUT;
 		}
 	}
@@ -1913,7 +1913,7 @@ int isp_capture_program_status(
 	err = wait_for_completion_killable(&capture->capture_program_resp);
 	if (err < 0) {
 		dev_err(chan->isp_dev,
-			"no reply from camera processor\n");
+			"isp program status wait failed\n");
 		return err;
 	}
 
