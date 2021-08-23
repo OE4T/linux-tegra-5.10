@@ -61,7 +61,9 @@ struct nvgpu_queue {
 /**
  * @brief Calculate the length of the message queue in use.
  *
- * Returns the size of all the messages currently enqueued in the queue.
+ * Returns the size of all the messages currently enqueued in the queue
+ * referenced by \a queue. Function does not perform any validation of the
+ * parameter.
  *
  * @param queue [in]	Queue structure to use.
  *
@@ -72,8 +74,11 @@ unsigned int nvgpu_queue_available(struct nvgpu_queue *queue);
 /**
  * @brief Allocate memory and initialize the message queue variables.
  *
- * Allocates memory for the message queue. Also initializes the message queue
- * variables "in", "out" and "mask".
+ * Allocates memory for the message queue. Uses the wrapper define to invoke
+ * the function #nvgpu_kzalloc_impl() with #NULL and \a size as parameters to
+ * allocate the required memory. The allocated memory is referenced by \a data
+ * pointer in struct #nvgpu_queue. Also, initializes the variables \a in,
+ * \a out and \a mask in struct #nvgpu_queue.
  *
  * @param queue [in]	Queue structure to use.
  * 			  - Structure should not be equal to NULL
@@ -94,8 +99,10 @@ int nvgpu_queue_alloc(struct nvgpu_queue *queue, unsigned int size);
 /**
  * @brief Free the allocated memory for the message queue.
  *
- * Free the allocated memory for the message queue. Also resets the message
- * queue variables "in", "out" and "mask".
+ * Free the allocated memory for the message queue. Uses the wrapper define to
+ * invoke the function #nvgpu_kfree_impl() with #NULL and variable \a data in
+ * #nvgpu_queue as parameters to free the allocated memory. Also, reset the
+ * variables \a in, \a out and \a mask in #nvgpu_queue.
  *
  * @param queue [in]	Queue structure to use.
  */
@@ -126,11 +133,20 @@ int nvgpu_queue_in(struct nvgpu_queue *queue, const void *buf,
 /**
  * @brief Enqueue message into message queue after acquiring the mutex lock.
  *
- * Acquires the mutex lock pointed by \a lock before enqueue operation.
- * Enqueues the message pointed by \a buf into the message queue and advances
- * the "in" index of the message queue by \a len which is the size of the
- * enqueued message once the lock is acquired. The lock is released after the
- * enqueue operation is completed.
+ * Invokes the function #nvgpu_mutex_acquire() to acquire the mutex \a lock
+ * before enqueue operation.
+ * Invokes the function #nvgpu_queue_unused() with \a queue as parameter to
+ * check if the queue has enough free space available to enqueue the new
+ * message. If the queue doesn't have enough space to hold the new message,
+ * release the acquired lock using the function #nvgpu_mutex_release() with
+ * \a lock as parameter and return -ENOMEM.
+ * Enqueues the message pointed by \a buf into the message queue and ensure
+ * that the data addition is updated in the queue before updating the index.
+ * Advance the \a in index of the message queue #nvgpu_queue according to the
+ * length of the enqueued message.
+ * The lock is released using the function #nvgpu_mutex_release() with \a lock
+ * as parameter after the enqueue operation is completed.
+ * Function does not perform any validation of the parameters.
  *
  * @param queue [in]	Queue structure to use.
  * @param buf [in]	Pointer to source message buffer.
@@ -170,10 +186,21 @@ int nvgpu_queue_out(struct nvgpu_queue *queue, void *buf,
 /**
  * @brief Dequeue message from message queue after acquiring the mutex lock.
  *
- * Acquires the mutex lock pointed by \a lock before dequeue operation.
+ * Invokes the function #nvgpu_mutex_acquire() to acquire the mutex \a lock
+ * before dequeue operation.
+ * Invokes the function #nvgpu_queue_available() with \a queue as parameter to
+ * check the available messages in the queue.
+ * If the available messages in the queue is less than \a len, release the
+ * acquired lock using function #nvgpu_mutex_release() with \a lock as
+ * parameter and return -ENOMEM.
  * Dequeues the message of size \a len from the message queue and copies the
- * same to \a buf. Also advances the "out" index of the queue by \a len.
- * Releases the mutex after the dequeue operation is completed.
+ * same to \a buf. Ensure that the dequeue operation is reflected in the queue
+ * before updating the index.
+ * Update the \a out index in #nvgpu_queue according to the length of the
+ * message dequeued.
+ * Release the mutex using the function #nvgpu_mutex_release() with \a lock
+ * as parameter after the dequeue operation is completed.
+ * Function does not perform and validation of the parameters.
  *
  * @param queue [in]	Queue structure to use.
  * @param buf [in]	Pointer to destination message buffer.

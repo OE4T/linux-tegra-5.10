@@ -45,7 +45,10 @@ struct nvgpu_posix_lock {
  * @brief Acquire the lock.
  *
  * Internal implementation of lock acquire used by public APIs of mutex,
- * spinlock and raw spinlock. Uses pthread_mutex_lock to acquire the lock.
+ * spinlock and raw spinlock. Uses the library function #pthread_mutex_lock
+ * with \a mutex in #nvgpu_posix_lock as parameter to acquire the lock.
+ * Assert using #nvgpu_assert if the library function returns error.
+ * Function does not perform any validation of the parameter.
  *
  * @param lock [in]	Lock to acquire.
  */
@@ -59,7 +62,10 @@ static inline void nvgpu_posix_lock_acquire(struct nvgpu_posix_lock *lock)
  * @brief Attempt to acquire the lock.
  *
  * Internal implementation of lock try and acquire used by public mutex APIs.
- * Uses pthread_mutex_trylock to try and acquire the lock.
+ * Uses the library function #pthread_mutex_trylock with \a mutex in
+ * #nvgpu_posix_lock as parameter to try and acquire the lock. The return
+ * value from the library function is returned as it is. Function does not
+ * perform any validation of the parameter.
  *
  * @param lock [in]	Lock to acquire.
  *
@@ -87,7 +93,9 @@ static inline int nvgpu_posix_lock_try_acquire(
  * @brief Release the lock.
  *
  * Internal implementation of lock release used by public APIs of mutex,
- * spinlock and raw spinlock. Uses pthread_mutex_unlock to release the lock.
+ * spinlock and raw spinlock. Uses the library function #pthread_mutex_unlock
+ * with \a mutex in nvgpu_posix_lock ad parameter to release the lock.
+ * Function does not perform any validation of the parameter.
  *
  * @param lock [in]	Lock to release.
  */
@@ -126,12 +134,39 @@ struct nvgpu_raw_spinlock {
 	struct nvgpu_posix_lock lock;
 };
 
+/**
+ * @brief Acquire the spinlock object with IRQ save.
+ *
+ * Acquire the spinlock object. Underlying implementation and behaviour is
+ * dependent on the OS. Since pthread mutex is used internally for posix
+ * implementation, this function might put the calling thread in sleep state
+ * if the lock is not available and also does not perform the irq state save.
+ * Uses the function #nvgpu_posix_lock_acquire() with \a lock in
+ * #nvgpu_spinlock as parameter to acquire the lock. Function does not
+ * perform any validation of the parameters.
+ *
+ * @param mutex [in]	Lock to acquire.
+ * @param flags [in]	Flags to save the IRQ state.
+ */
 static inline void nvgpu_spinlock_irqsave(struct nvgpu_spinlock *mutex,
 					  unsigned long flags)
 {
 	nvgpu_posix_lock_acquire(&mutex->lock);
 }
 
+/**
+ * @brief Release the lock with IRQ restore.
+ *
+ * Releases the spinlock object referenced by \a mutex. Underlying
+ * implementation and behaviour is dependent on the OS. Since pthread mutex is
+ * used internally for posix implementation, this function does not perform any
+ * IRQ restore operation. Uses the function #nvgpu_posix_lock_release() with
+ * \a lock in #nvgpu_spinlock as parameter to release the lock. Function does
+ * not perform any validation of the parameter.
+ *
+ * @param mutex [in]	Lock to release.
+ * @param flags [in]	Flags to restore the IRQ state.
+ */
 static inline void nvgpu_spinunlock_irqrestore(struct nvgpu_spinlock *mutex,
 					       unsigned long flags)
 {

@@ -30,6 +30,7 @@
  *
  * Calculates the number of elements present in the circular buffer and
  * returns the value. The circular buffer should have a power of 2 size.
+ * Macro does not perform any validation of the parameters.
  *
  * @param head [in]        Head of the buffer.
  * @param tail [in]        Tail of the buffer.
@@ -44,6 +45,7 @@
  *
  * Calculates the space available in the circular buffer and returns the value.
  * The circular buffer should have a power of 2 size.
+ * Macro does not perform any validation of the parameters.
  *
  * @param head [in]        Head of the buffer.
  * @param tail [in]        Tail of the buffer.

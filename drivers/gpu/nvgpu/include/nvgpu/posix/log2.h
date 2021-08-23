@@ -30,6 +30,7 @@
  *
  * Calculates the log to the base 2 of input value \a x and returns the
  * integer value of the same.
+ * Macro does not perform any validation of the parameter.
  *
  * @param x [in]	The number to get the log for.
  *
@@ -93,6 +94,7 @@
  * @brief Check for power of 2.
  *
  * Checks if the input value \a x is a power of two or not.
+ * Macro does not perform any validation of the parameter.
  *
  * @param x [in]     Number to check.
  *

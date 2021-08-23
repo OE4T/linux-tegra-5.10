@@ -50,19 +50,19 @@
 /**
  * @brief Dumps the stack.
  *
- * @param void.
- *
- * Dumps the call stack in user space build.
+ * Dumps the call stack in user space build. Function does not perform
+ * stack dump for QNX.
  */
 void dump_stack(void);
 
 /**
  * @brief Bug.
  *
- * Function to be invoked upon identifying a bug in the code. This function
- * checks for any callbacks registered by other units, and invoke them for a
- * bug condition. If the callback list is empty, a SIGSEGV is raised to
- * terminate the process.
+ * Function to be invoked upon identifying an unexpected state or result in the
+ * code. This function invokes the quiesce callback if it is already registered.
+ * If the callback is not yet registered, a SIGSEGV is raised using library
+ * function #raise to terminate the process. Function does not perform any
+ * validation of the parameters.
  *
  * @param msg [in]	Message to be printed in log.
  * @param line_no [in]	Line number.
@@ -73,7 +73,10 @@ void nvgpu_posix_bug(const char *msg, int line_no) __attribute__ ((noreturn));
  * @brief Issues Warning.
  *
  * Used to report significant issues that needs prompt attention.
- * Warning print is invoked if the condition is met.
+ * Warning print is invoked if the condition \a cond is met. Return without
+ * doing anything if the \a cond is not true, else, issue a warning print using
+ * #nvgpu_warn() and dump the stack using function #dump_stack(). Function does
+ * not perform any validation of the parameters.
  *
  * @param cond [in]	Condition to check to issue warning.
  * @param fmt [in]	Format of variable argument list.
@@ -113,13 +116,21 @@ void nvgpu_bug_cb_longjmp(void *arg);
 #endif
 
 /**
- * Macro to be used upon identifying a buggy behaviour in the code.
- * Implementation is specific to OS.  For QNX and Posix implementation
- * refer to nvgpu_posix_bug.
+ * @brief Macro to be used upon identifying a buggy behaviour in the code.
+ *
+ * Implementation is specific to OS.  For QNX and Posix implementation, invokes
+ * the function #nvgpu_posix_bug() with function name and line number as
+ * parameters.
  */
 #define BUG()		nvgpu_posix_bug(__func__, __LINE__)
 
-/** Define for issuing bug on condition with message. */
+/**
+ * @brief Define for issuing bug on condition.
+ *
+ * Macro to check a given condition \a cond and raise a bug according to the
+ * condition value. Invokes #nvgpu_posix_bug() with function name and line
+ * number as parameters if the condition is true.
+ */
 #define BUG_ON(cond)	bug_on_internal(cond, __func__, __LINE__)
 
 static inline void bug_on_internal(bool cond, const char *func, int line)
@@ -134,23 +145,24 @@ struct nvgpu_bug_cb;
 /**
  * @brief Exit current process
  *
- * This function is used during BUG() handling to exit
- * current process.
+ * This function is used during the handling of a bug to exit the calling
+ * program. Uses the library function #exit with \a status as parameter.
+ * Function does not perform any validation of the parameter.
  *
- * @param status [in]	Status to return
+ * @param status [in]	Exit status to be used for the program.
  */
 void nvgpu_bug_exit(int status);
 
 /**
  * @brief Register callback to be invoked on BUG()
  *
- * Register a callback to be invoked on BUG().
- * The nvgpu_bug_cb structure contains a function pointer
- * and an argument to be passed to this function.
- * This mechanism can be used to perform some emergency
- * operations on a GPU before exiting the process.
- * Note: callback is automatically unregistered before
- * being invoked.
+ * Register a callback to be invoked on BUG(). The #nvgpu_bug_cb structure
+ * contains a function pointer \a cb and an argument \a arg to be passed to
+ * this function. The calling unit has to populate the callback function
+ * pointer and the data to be passed to the callback function before invoking
+ * this function. This mechanism can be used to invoke the callback function to
+ * perform some emergency operations on a GPU before exiting the process.
+ * Function does not perform any validation of the parameter.
  *
  * @param cb [in]	Pointer to callback structure
  */
@@ -159,8 +171,8 @@ void nvgpu_bug_register_cb(struct nvgpu_bug_cb *cb);
 /**
  * @brief Unregister a callback for BUG()
  *
- * Remove a callback from the list of callbacks to be
- * invoked on BUG().
+ * Remove the callback details from the registered state.
+ * Function does not perform any validation of the parameter.
  *
  * @param cb [in]	Pointer to callback structure
  */

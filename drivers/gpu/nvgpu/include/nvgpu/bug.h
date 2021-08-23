@@ -30,18 +30,16 @@
 #include <nvgpu/cov_whitelist.h>
 #include <nvgpu/list.h>
 
-/*
- * Define an assert macro that code within nvgpu can use.
+/**
+ * @brief Assert macro based on condition check that code within nvgpu can use.
  *
- * The goal of this macro is for debugging but what that means varies from OS
- * to OS. On Linux wee don't want to BUG() for general driver misbehaving. BUG()
- * is a very heavy handed tool - in fact there's probably no where within the
- * nvgpu core code where it makes sense to use a BUG() when running under Linux.
+ * The goal of this macro is to support handling an unexpected state in SW
+ * based on the \a cond parameter passed. The implementation is OS specific.
+ * In QNX and POSIX implementation, this macro will invoke the #BUG_ON() macro
+ * with parameter as #true or #false which is based on the evaluation of
+ * \a cond. MAcro does not perform any validation of the parameter.
  *
- * However, on QNX (and POSIX) BUG() will just kill the current process. This
- * means we can use it for handling bugs in nvgpu.
- *
- * As a result this macro varies depending on platform.
+ * @param cond [in]   The condition to check.
  */
 #if defined(__KERNEL__)
 #define nvgpu_assert(cond)	((void) WARN_ON(!(cond)))
@@ -59,10 +57,11 @@
 	})
 #endif
 
-/*
- * Define simple macros to force the consequences of a failed assert
- * (presumably done in a previous if statement).
- * The exact behavior will be OS dependent. See above.
+/**
+ * @brief Macro to force a failed assert.
+ *
+ * The goal of this macro is to force the consequences of a failed assert.
+ * Invokes the macro #nvgpu_assert with parameter as #true.
  */
 #define nvgpu_do_assert()						\
 NVGPU_COV_WHITELIST(false_positive, NVGPU_MISRA(Rule, 10_3), "Bug 2623654") \
@@ -80,6 +79,14 @@ NVGPU_COV_WHITELIST(false_positive, NVGPU_MISRA(Rule, 10_3), "Bug 2623654") \
 
 struct gk20a;
 
+/**
+ * @brief Macro to force a failed assert with error prints.
+ *
+ * The goal of this macro is to print an error message and force the
+ * consequences of a failed assert. Invokes the macro #nvgpu_err with
+ * parameters \a g, \a fmt and \a arg to print an error info and then invokes
+ * #nvgpu_do_assert to force a failed assert.
+ */
 #define nvgpu_do_assert_print(g, fmt, arg...)				\
 	do {								\
 		nvgpu_err(g, fmt, ##arg);				\
