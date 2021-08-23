@@ -755,6 +755,7 @@ static void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaadd
 				return;
 			}
 
+			pdata->tx_ts_skb[idx].in_use = OSI_ENABLE;
 			pnode = &pdata->tx_ts_skb[idx];
 			pnode->skb = skb;
 			pnode->pktid = txdone_pkt_cx->pktid;
