@@ -86,6 +86,7 @@ static struct nvgpu_posix_io_callbacks default_posix_reg_callbacks = {
 	.bar1_readl      = readl_access_reg_fn,
 };
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 /*
  * Somewhat meaningless in userspace...
  */
@@ -94,6 +95,7 @@ void nvgpu_kernel_restart(void *cmd)
 	(void)cmd;
 	BUG();
 }
+#endif
 
 void nvgpu_start_gpu_idle(struct gk20a *g)
 {

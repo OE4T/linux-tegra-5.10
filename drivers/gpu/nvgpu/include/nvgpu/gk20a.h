@@ -370,6 +370,7 @@ struct nvgpu_gpu_params {
  * and not in the main gk20a struct.
  */
 struct gk20a {
+#ifdef CONFIG_NVGPU_NON_FUSA
 	/**
 	 * @brief Free data in the struct allocated during its creation.
 	 *
@@ -381,6 +382,7 @@ struct gk20a {
 	 * have had the opportunity to free their private data.
 	 */
 	void (*gfree)(struct gk20a *g);
+#endif
 
 	/** Starting virtual address of mapped bar0 io region. */
 	uintptr_t regs;
@@ -619,10 +621,12 @@ struct gk20a {
 	u32 emc3d_ratio;
 #endif
 
+#ifdef CONFIG_NVGPU_SW_SEMAPHORE
 	/**
 	 * A group of semaphore pools. One for each channel.
 	 */
 	struct nvgpu_semaphore_sea *sema_sea;
+#endif
 
 #ifdef CONFIG_NVGPU_DEBUGGER
 	/* held while manipulating # of debug/profiler sessions present */
@@ -828,18 +832,18 @@ struct gk20a {
 	/* PCIe power states. */
 	bool xve_l0s;
 	bool xve_l1;
-#endif
 
+#if defined(CONFIG_PCI_MSI)
+	/* Check if msi is enabled */
+	bool msi_enabled;
+#endif
+#endif
 	/**
 	 * The per-device identifier. The iGPUs without a PDI will use
 	 * the SoC PDI if one exists. Zero if neither exists.
 	 */
 	u64 per_device_identifier;
 
-#if defined(CONFIG_PCI_MSI)
-	/* Check if msi is enabled */
-	bool msi_enabled;
-#endif
 #ifdef CONFIG_NVGPU_TRACK_MEM_USAGE
 	struct nvgpu_mem_alloc_tracker *vmallocs;
 	struct nvgpu_mem_alloc_tracker *kmallocs;

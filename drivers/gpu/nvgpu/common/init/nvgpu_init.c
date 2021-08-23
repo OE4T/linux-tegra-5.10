@@ -1187,9 +1187,11 @@ static void gk20a_free_cb(struct nvgpu_ref *refcount)
 
 	gk20a_debug_deinit(g);
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 	if (g->gfree != NULL) {
 		g->gfree(g);
 	}
+#endif
 }
 
 struct gk20a *nvgpu_get(struct gk20a *g)

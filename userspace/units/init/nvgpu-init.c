@@ -295,8 +295,8 @@ int test_get_put(struct unit_module *m,
 	/* to cover the cases where these are set */
 #ifdef CONFIG_NVGPU_NON_FUSA
 	g->remove_support = no_return;
-#endif
 	g->gfree = no_return;
+#endif
 	g->ops.ecc.ecc_remove_support = no_return;
 	g->ops.ltc.ltc_remove_support = no_return;
 
