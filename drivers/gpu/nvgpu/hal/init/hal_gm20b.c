@@ -201,8 +201,10 @@ static const struct gops_gr_ctxsw_prog gm20b_ops_gr_ctxsw_prog = {
 	.set_patch_addr = gm20b_ctxsw_prog_set_patch_addr,
 	.init_ctxsw_hdr_data = gm20b_ctxsw_prog_init_ctxsw_hdr_data,
 	.set_compute_preemption_mode_cta = gm20b_ctxsw_prog_set_compute_preemption_mode_cta,
+#ifdef CONFIG_NVGPU_SET_FALCON_ACCESS_MAP
 	.set_priv_access_map_config_mode = gm20b_ctxsw_prog_set_config_mode_priv_access_map,
 	.set_priv_access_map_addr = gm20b_ctxsw_prog_set_addr_priv_access_map,
+#endif
 	.disable_verif_features = gm20b_ctxsw_prog_disable_verif_features,
 #ifdef CONFIG_NVGPU_GRAPHICS
 	.set_zcull_ptr = gm20b_ctxsw_prog_set_zcull_ptr,

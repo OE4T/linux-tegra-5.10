@@ -63,31 +63,6 @@ void gm20b_ctxsw_prog_init_ctxsw_hdr_data(struct gk20a *g,
 		ctxsw_prog_main_image_num_restore_ops_o(), 0);
 }
 
-void gm20b_ctxsw_prog_set_config_mode_priv_access_map(struct gk20a *g,
-	struct nvgpu_mem *ctx_mem, bool allow_all)
-{
-	if (allow_all) {
-		nvgpu_mem_wr(g, ctx_mem,
-			ctxsw_prog_main_image_priv_access_map_config_o(),
-			ctxsw_prog_main_image_priv_access_map_config_mode_allow_all_f());
-	} else {
-		nvgpu_mem_wr(g, ctx_mem,
-			ctxsw_prog_main_image_priv_access_map_config_o(),
-			ctxsw_prog_main_image_priv_access_map_config_mode_use_map_f());
-	}
-}
-
-void gm20b_ctxsw_prog_set_addr_priv_access_map(struct gk20a *g,
-	struct nvgpu_mem *ctx_mem, u64 addr)
-{
-	nvgpu_mem_wr(g, ctx_mem,
-		ctxsw_prog_main_image_priv_access_map_addr_lo_o(),
-		u64_lo32(addr));
-	nvgpu_mem_wr(g, ctx_mem,
-		ctxsw_prog_main_image_priv_access_map_addr_hi_o(),
-		u64_hi32(addr));
-}
-
 void gm20b_ctxsw_prog_disable_verif_features(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem)
 {

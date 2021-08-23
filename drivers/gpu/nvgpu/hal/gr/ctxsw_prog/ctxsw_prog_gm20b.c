@@ -37,6 +37,31 @@ void gm20b_ctxsw_prog_set_compute_preemption_mode_cta(struct gk20a *g,
 		ctxsw_prog_main_image_preemption_options_control_cta_enabled_f());
 }
 
+void gm20b_ctxsw_prog_set_config_mode_priv_access_map(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem, bool allow_all)
+{
+	if (allow_all) {
+		nvgpu_mem_wr(g, ctx_mem,
+			ctxsw_prog_main_image_priv_access_map_config_o(),
+			ctxsw_prog_main_image_priv_access_map_config_mode_allow_all_f());
+	} else {
+		nvgpu_mem_wr(g, ctx_mem,
+			ctxsw_prog_main_image_priv_access_map_config_o(),
+			ctxsw_prog_main_image_priv_access_map_config_mode_use_map_f());
+	}
+}
+
+void gm20b_ctxsw_prog_set_addr_priv_access_map(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem, u64 addr)
+{
+	nvgpu_mem_wr(g, ctx_mem,
+		ctxsw_prog_main_image_priv_access_map_addr_lo_o(),
+		u64_lo32(addr));
+	nvgpu_mem_wr(g, ctx_mem,
+		ctxsw_prog_main_image_priv_access_map_addr_hi_o(),
+		u64_hi32(addr));
+}
+
 #ifdef CONFIG_NVGPU_FECS_TRACE
 u32 gm20b_ctxsw_prog_hw_get_ts_tag_invalid_timestamp(void)
 {

@@ -36,10 +36,12 @@ void gm20b_ctxsw_prog_set_patch_addr(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem, u64 addr);
 void gm20b_ctxsw_prog_init_ctxsw_hdr_data(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem);
+#if defined(CONFIG_NVGPU_SET_FALCON_ACCESS_MAP)
 void gm20b_ctxsw_prog_set_config_mode_priv_access_map(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem, bool allow_all);
 void gm20b_ctxsw_prog_set_addr_priv_access_map(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem, u64 addr);
+#endif
 void gm20b_ctxsw_prog_disable_verif_features(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem);
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA)

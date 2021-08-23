@@ -497,12 +497,14 @@ void nvgpu_gr_ctx_load_golden_ctx_image(struct gk20a *g,
 	}
 #endif
 
+#ifdef CONFIG_NVGPU_SET_FALCON_ACCESS_MAP
 	/* set priv access map */
 	g->ops.gr.ctxsw_prog.set_priv_access_map_config_mode(g, mem,
 		g->allow_all);
 	g->ops.gr.ctxsw_prog.set_priv_access_map_addr(g, mem,
 		nvgpu_gr_ctx_get_global_ctx_va(gr_ctx,
 			NVGPU_GR_CTX_PRIV_ACCESS_MAP_VA));
+#endif
 
 	/* disable verif features */
 	g->ops.gr.ctxsw_prog.disable_verif_features(g, mem);

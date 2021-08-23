@@ -58,8 +58,6 @@ struct unit_module;
  *          nvgpu_gr_ctx_get_global_ctx_va,
  *          gops_gr_setup.alloc_obj_ctx,
  *          nvgpu_gr_ctx_load_golden_ctx_image,
- *          gm20b_ctxsw_prog_set_config_mode_priv_access_map,
- *          gm20b_ctxsw_prog_set_addr_priv_access_map,
  *          gm20b_ctxsw_prog_set_patch_addr,
  *          gm20b_ctxsw_prog_disable_verif_features,
  *          gv11b_gr_init_commit_global_attrib_cb,

@@ -908,11 +908,13 @@ struct gops_gr_ctxsw_prog {
 				       u64 addr);
 	void (*set_type_per_veid_header)(struct gk20a *g,
 					 struct nvgpu_mem *ctx_mem);
+#ifdef CONFIG_NVGPU_SET_FALCON_ACCESS_MAP
 	void (*set_priv_access_map_config_mode)(struct gk20a *g,
 			struct nvgpu_mem *ctx_mem, bool allow_all);
 	void (*set_priv_access_map_addr)(struct gk20a *g,
 					 struct nvgpu_mem *ctx_mem,
 					 u64 addr);
+#endif
 	void (*disable_verif_features)(struct gk20a *g,
 				       struct nvgpu_mem *ctx_mem);
 	void (*init_ctxsw_hdr_data)(struct gk20a *g,
