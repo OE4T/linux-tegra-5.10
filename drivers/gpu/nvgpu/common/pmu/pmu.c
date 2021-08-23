@@ -75,9 +75,7 @@ void nvgpu_pmu_enable_irq(struct gk20a *g, bool enable)
 {
 	if ((g->pmu != NULL) && (g->ops.pmu.pmu_enable_irq != NULL)) {
 		nvgpu_mutex_acquire(&g->pmu->isr_mutex);
-		if (!nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
-			g->ops.pmu.pmu_enable_irq(g->pmu, enable);
-		}
+		g->ops.pmu.pmu_enable_irq(g->pmu, enable);
 		g->pmu->isr_enabled = enable;
 		nvgpu_mutex_release(&g->pmu->isr_mutex);
 	}

@@ -44,6 +44,7 @@
 #include <nvgpu/pmu/fw.h>
 #include <nvgpu/pmu/debug.h>
 #include <nvgpu/pmu/pmu_pstate.h>
+#include <nvgpu/riscv.h>
 
 #include "boardobj/boardobj.h"
 
@@ -438,12 +439,6 @@ int nvgpu_pmu_rtos_init(struct gk20a *g)
 			}
 #endif
 			g->ops.falcon.bootstrap(g->pmu->flcn, 0U);
-			err = nvgpu_pmu_wait_for_priv_lockdown_release(g,
-					g->pmu->flcn, U32_MAX);
-			if(err != 0) {
-				nvgpu_err(g, "PRIV lockdown polling failed");
-				return err;
-			}
 		} else
 #endif
 		{
@@ -458,20 +453,20 @@ int nvgpu_pmu_rtos_init(struct gk20a *g)
 		if (err != 0) {
 			goto exit;
 		}
-#if defined(CONFIG_NVGPU_NON_FUSA)
-		if (nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
-			err = nvgpu_pmu_wait_for_priv_lockdown_release(g,
-					g->pmu->flcn, U32_MAX);
-			if(err != 0) {
-				nvgpu_err(g, "PRIV lockdown polling failed");
-				return err;
-			}
-		}
-#endif
 	}
 
 	nvgpu_pmu_fw_state_change(g, g->pmu, PMU_FW_STATE_STARTING, false);
-
+#if defined(CONFIG_NVGPU_NON_FUSA)
+	if (nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
+		err = nvgpu_pmu_wait_for_priv_lockdown_release(g,
+				g->pmu->flcn, nvgpu_get_poll_timeout(g));
+		if(err != 0) {
+			nvgpu_err(g, "PRIV lockdown polling failed");
+			nvgpu_riscv_dump_brom_stats(g->pmu->flcn);
+			return err;
+		}
+	}
+#endif
 exit:
 	return err;
 }
