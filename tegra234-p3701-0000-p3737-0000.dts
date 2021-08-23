@@ -32,9 +32,6 @@
 		status = "okay";
 	};
 
-	pwm@32a0000 {
-		status = "okay";
-	};
 	bpmp {
 		i2c {
 			tegra_tmp451: temp-sensor@4c {

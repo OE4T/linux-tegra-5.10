@@ -273,11 +273,15 @@
 	};
 
 	pwm@3280000 {
-		status = "disabled";
+		status = "okay";
+	};
+
+	pwm@32a0000 {
+		status = "okay";
 	};
 
 	pwm@32c0000 {
-		status = "disabled";
+		status = "okay";
 	};
 
 	pwm@32d0000 {
@@ -285,7 +289,7 @@
 	};
 
 	pwm@32f0000 {
-		status = "disabled";
+		status = "okay";
 	};
 	spi@c260000 {
 		status = "disabled";
