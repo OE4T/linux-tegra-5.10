@@ -489,7 +489,9 @@ void nvgpu_gr_ctx_load_golden_ctx_image(struct gk20a *g,
 	nvgpu_gr_global_ctx_load_local_golden_image(g,
 		local_golden_image, mem);
 
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	g->ops.gr.ctxsw_prog.init_ctxsw_hdr_data(g, mem);
+#endif
 
 #ifdef CONFIG_NVGPU_DEBUGGER
 	if ((g->ops.gr.ctxsw_prog.set_cde_enabled != NULL) && cde) {
@@ -506,8 +508,10 @@ void nvgpu_gr_ctx_load_golden_ctx_image(struct gk20a *g,
 			NVGPU_GR_CTX_PRIV_ACCESS_MAP_VA));
 #endif
 
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	/* disable verif features */
 	g->ops.gr.ctxsw_prog.disable_verif_features(g, mem);
+#endif
 
 #ifdef CONFIG_NVGPU_DEBUGGER
 	if (g->ops.gr.ctxsw_prog.set_pmu_options_boost_clock_frequencies !=

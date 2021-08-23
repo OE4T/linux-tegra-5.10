@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -60,8 +60,6 @@ struct unit_module;
  *          nvgpu_gr_obj_ctx_set_golden_image_size,
  *          nvgpu_gr_obj_ctx_commit_global_ctx_buffers,
  *          nvgpu_gr_ctx_init_compute_preemption_mode,
- *          gp10b_ctxsw_prog_init_ctxsw_hdr_data,
- *          gm20b_ctxsw_prog_init_ctxsw_hdr_data,
  *          gv11b_ctxsw_prog_set_context_buffer_ptr,
  *          gv11b_ctxsw_prog_set_type_per_veid_header,
  *          gp10b_gr_init_get_ctx_attrib_cb_size,

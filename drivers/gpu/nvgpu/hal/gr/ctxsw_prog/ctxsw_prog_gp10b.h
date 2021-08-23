@@ -30,8 +30,10 @@ struct nvgpu_mem;
 
 void gp10b_ctxsw_prog_set_compute_preemption_mode_cta(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem);
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 void gp10b_ctxsw_prog_init_ctxsw_hdr_data(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem);
+#endif
 #ifdef CONFIG_NVGPU_GFXP
 void gp10b_ctxsw_prog_set_graphics_preemption_mode_gfxp(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem);

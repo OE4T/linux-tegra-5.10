@@ -915,10 +915,12 @@ struct gops_gr_ctxsw_prog {
 					 struct nvgpu_mem *ctx_mem,
 					 u64 addr);
 #endif
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	void (*disable_verif_features)(struct gk20a *g,
 				       struct nvgpu_mem *ctx_mem);
 	void (*init_ctxsw_hdr_data)(struct gk20a *g,
 				    struct nvgpu_mem *ctx_mem);
+#endif
 #ifdef CONFIG_NVGPU_GRAPHICS
 	void (*set_zcull_ptr)(struct gk20a *g,
 			      struct nvgpu_mem *ctx_mem, u64 addr);

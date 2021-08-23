@@ -54,28 +54,6 @@ void gm20b_ctxsw_prog_set_patch_addr(struct gk20a *g,
 		ctxsw_prog_main_image_patch_adr_hi_o(), u64_hi32(addr));
 }
 
-void gm20b_ctxsw_prog_init_ctxsw_hdr_data(struct gk20a *g,
-	struct nvgpu_mem *ctx_mem)
-{
-	nvgpu_mem_wr(g, ctx_mem,
-		ctxsw_prog_main_image_num_save_ops_o(), 0);
-	nvgpu_mem_wr(g, ctx_mem,
-		ctxsw_prog_main_image_num_restore_ops_o(), 0);
-}
-
-void gm20b_ctxsw_prog_disable_verif_features(struct gk20a *g,
-	struct nvgpu_mem *ctx_mem)
-{
-	u32 data;
-
-	data = nvgpu_mem_rd(g, ctx_mem, ctxsw_prog_main_image_misc_options_o());
-
-	data = data & ~ctxsw_prog_main_image_misc_options_verif_features_m();
-	data = data | ctxsw_prog_main_image_misc_options_verif_features_disabled_f();
-
-	nvgpu_mem_wr(g, ctx_mem, ctxsw_prog_main_image_misc_options_o(), data);
-}
-
 #ifdef CONFIG_NVGPU_GRAPHICS
 void gm20b_ctxsw_prog_set_zcull_ptr(struct gk20a *g, struct nvgpu_mem *ctx_mem,
 	u64 addr)

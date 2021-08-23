@@ -120,3 +120,27 @@ void gm20b_ctxsw_prog_set_ts_buffer_ptr(struct gk20a *g,
 		aperture_mask);
 }
 #endif
+
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
+void gm20b_ctxsw_prog_init_ctxsw_hdr_data(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem)
+{
+	nvgpu_mem_wr(g, ctx_mem,
+		ctxsw_prog_main_image_num_save_ops_o(), 0);
+	nvgpu_mem_wr(g, ctx_mem,
+		ctxsw_prog_main_image_num_restore_ops_o(), 0);
+}
+
+void gm20b_ctxsw_prog_disable_verif_features(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem)
+{
+	u32 data;
+
+	data = nvgpu_mem_rd(g, ctx_mem, ctxsw_prog_main_image_misc_options_o());
+
+	data = data & ~ctxsw_prog_main_image_misc_options_verif_features_m();
+	data = data | ctxsw_prog_main_image_misc_options_verif_features_disabled_f();
+
+	nvgpu_mem_wr(g, ctx_mem, ctxsw_prog_main_image_misc_options_o(), data);
+}
+#endif

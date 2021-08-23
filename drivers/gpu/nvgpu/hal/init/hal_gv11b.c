@@ -331,13 +331,15 @@ static const struct gops_gr_ctxsw_prog gv11b_ops_gr_ctxsw_prog = {
 	.get_patch_count = gm20b_ctxsw_prog_get_patch_count,
 	.set_patch_count = gm20b_ctxsw_prog_set_patch_count,
 	.set_patch_addr = gm20b_ctxsw_prog_set_patch_addr,
-	.init_ctxsw_hdr_data = gp10b_ctxsw_prog_init_ctxsw_hdr_data,
 	.set_compute_preemption_mode_cta = gp10b_ctxsw_prog_set_compute_preemption_mode_cta,
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
+	.init_ctxsw_hdr_data = gp10b_ctxsw_prog_init_ctxsw_hdr_data,
+	.disable_verif_features = gm20b_ctxsw_prog_disable_verif_features,
+#endif
 #ifdef CONFIG_NVGPU_SET_FALCON_ACCESS_MAP
 	.set_priv_access_map_config_mode = gm20b_ctxsw_prog_set_config_mode_priv_access_map,
 	.set_priv_access_map_addr = gm20b_ctxsw_prog_set_addr_priv_access_map,
 #endif
-	.disable_verif_features = gm20b_ctxsw_prog_disable_verif_features,
 	.set_context_buffer_ptr = gv11b_ctxsw_prog_set_context_buffer_ptr,
 	.set_type_per_veid_header = gv11b_ctxsw_prog_set_type_per_veid_header,
 #ifdef CONFIG_NVGPU_GRAPHICS
