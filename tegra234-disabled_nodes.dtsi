@@ -21,10 +21,6 @@
 / {
         /* Disabled Nodes */
 
-        cpufreq {
-                status = "disabled";
-        };
-
         tegra-hsp@b150000 {
                 status = "disabled";
         };
