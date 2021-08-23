@@ -191,6 +191,12 @@ static void nvgpu_init_pm_vars(struct gk20a *g)
 	g->elcg_enabled =
 		nvgpu_platform_is_silicon(g) ? platform->enable_elcg : false;
 
+	/* disable devfreq for pre-silicon */
+	if (!nvgpu_platform_is_silicon(g)) {
+		platform->devfreq_governor = NULL;
+		platform->qos_notify = NULL;
+	}
+
 	nvgpu_set_enabled(g, NVGPU_GPU_CAN_ELCG,
 		nvgpu_platform_is_silicon(g) ? platform->can_elcg : false);
 	nvgpu_set_enabled(g, NVGPU_GPU_CAN_SLCG,

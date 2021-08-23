@@ -676,10 +676,9 @@ struct gk20a_platform ga10b_tegra_platform = {
 	.initscale = ga10b_tegra_scale_init,
 	.prescale = gp10b_tegra_prescale,
 	.postscale = gp10b_tegra_postscale,
-	/* Enable ga10b frequency scaling - JIRA NVGPU-4683 */
-	/* Disable frequency scaling */
-	.devfreq_governor = NULL,
-	.qos_notify = NULL,
+	.devfreq_governor = "nvhost_podgov",
+
+	.qos_notify = gk20a_scale_qos_notify,
 
 	.dump_platform_dependencies = gk20a_tegra_debug_dump,
 
