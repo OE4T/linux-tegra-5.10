@@ -1,7 +1,9 @@
+ifeq ($(CONFIG_TEGRA_PVA_V1),y)
+V2 := n
 BRINGUP := y
-
-ifneq ($(BRINGUP), y)
-V2 := $(CONFIG_TEGRA_GRHOST_PVA)
+else
+V2 := y
+BRINGUP := n
 endif
 
 obj-$(BRINGUP) = bringup/

@@ -14,6 +14,14 @@ config TEGRA_T239_GRHOST
 	help
 	  Driver for the Tegra graphics host hardware.
 
+config TEGRA_T23X_GRHOST_PVA
+        bool "Tegra 23x PVA support"
+        depends on TEGRA_GRHOST && ARCH_TEGRA_23x_SOC
+        default y
+        help
+          Enables Programmable Vision Accelerator engine support under nvhost
+          Say Y here if not sure.
+
 config TEGRA_GRHOST_NVDLA
 	bool "Tegra NVDLA support"
 	depends on TEGRA_GRHOST && (ARCH_TEGRA_19x_SOC || ARCH_TEGRA_194_SOC)
@@ -64,5 +72,7 @@ config TEGRA_GRHOST_GOS
 	default y
 	help
 	  Grid of Semaphores management support.
+
+source "drivers/video/tegra/host/pva/Kconfig"
 
 endif
