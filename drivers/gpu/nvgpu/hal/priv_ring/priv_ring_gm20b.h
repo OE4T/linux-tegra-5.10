@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,8 +24,31 @@
 
 struct gk20a;
 
+/**
+ * @addtogroup unit-common-priv-ring
+ * @{
+ */
+
+/**
+ * @defgroup PRIV_RING_HAL_DEFINES
+ *
+ * Priv Ring Hal defines
+ */
+
+/**
+ * @ingroup PRIV_RING_HAL_DEFINES
+ * @{
+ */
+
+#define COMMAND_CMD_ENUMERATE_AND_START_RING 0x4
+#define CONFIG_RING_WAIT_FOR_RING_START_COMPLETE 0x2
+
 #define GM20B_PRIV_RING_POLL_CLEAR_INTR_RETRIES	100
 #define GM20B_PRIV_RING_POLL_CLEAR_INTR_UDELAY	20
+
+/**
+ * @}
+ */
 
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
 void gm20b_priv_ring_isr(struct gk20a *g);
