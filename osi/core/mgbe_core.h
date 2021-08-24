@@ -122,6 +122,9 @@
  * @brief MGBE Wrapper register offsets
  * @{
  */
+#define MGBE_WRAP_AXI_ASID0_CTRL	0x8400
+#define MGBE_WRAP_AXI_ASID1_CTRL	0x8404
+#define MGBE_WRAP_AXI_ASID2_CTRL	0x8408
 #define MGBE_WRAP_COMMON_INTR_ENABLE	0x8704
 #define MGBE_WRAP_COMMON_INTR_STATUS	0x8708
 #define MGBE_VIRT_INTR_APB_CHX_CNTRL(x)	(0x8200U + ((x) * 4U))
@@ -670,6 +673,27 @@
 #define MGBE_MAC_EXT_CNF_EIPG 			0x1U
 /* TX timestamp */
 #define MGBE_MAC_TSS_TXTSC			OSI_BIT(15)
+#define MGBE_SID_SHIFT_24			24U
+#define MGBE_SID_SHIFT_16			16U
+#define MGBE_SID_SHIFT_8			8U
+#define MGBE_SID				(nveu32_t)0x6U
+#define MGBE_SID_CH3				((MGBE_SID) << MGBE_SID_SHIFT_24)
+#define MGBE_SID_CH2				((MGBE_SID) << MGBE_SID_SHIFT_16)
+#define MGBE_SID_CH1				((MGBE_SID) << MGBE_SID_SHIFT_8)
+#define MGBE_ASID_CTRL_VAL			((MGBE_SID_CH3) |\
+						 (MGBE_SID_CH2) |\
+						 (MGBE_SID_CH1) |\
+						 (MGBE_SID))
+#define MGBE_SID_CH7				((MGBE_SID) << MGBE_SID_SHIFT_24)
+#define MGBE_SID_CH6				((MGBE_SID) << MGBE_SID_SHIFT_16)
+#define MGBE_SID_CH5				((MGBE_SID) << MGBE_SID_SHIFT_8)
+#define MGBE_ASID1_CTRL_VAL			((MGBE_SID_CH7) |\
+						 (MGBE_SID_CH6) |\
+						 (MGBE_SID_CH5) |\
+						 (MGBE_SID))
+#define MGBE_SID_CH9				((MGBE_SID) << MGBE_SID_SHIFT_8)
+#define MGBE_ASID2_CTRL_VAL			((MGBE_SID_CH9) |\
+						 (MGBE_SID))
 /** @} */
 
 /**
