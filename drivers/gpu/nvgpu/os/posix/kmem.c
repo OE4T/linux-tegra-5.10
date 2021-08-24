@@ -74,9 +74,9 @@ struct nvgpu_kmem_cache *nvgpu_kmem_cache_create(struct gk20a *g, size_t size)
 	}
 #endif
 	NVGPU_COV_WHITELIST_BLOCK_BEGIN(deviate, 1, NVGPU_MISRA(Rule, 21_3), "TID-1131")
-	NVGPU_COV_WHITELIST_BLOCK_BEGIN(deviate, 1, NVGPU_MISRA(Rule, 4_12), "TID-1129")
+	NVGPU_COV_WHITELIST_BLOCK_BEGIN(deviate, 1, NVGPU_MISRA(Directive, 4_12), "TID-1129")
 	cache = malloc(sizeof(struct nvgpu_kmem_cache));
-	NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 4_12))
+	NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Directive, 4_12))
 	NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 21_3))
 
 	if (cache == NULL) {
@@ -112,9 +112,9 @@ void *nvgpu_kmem_cache_alloc(struct nvgpu_kmem_cache *cache)
 	}
 #endif
 	NVGPU_COV_WHITELIST_BLOCK_BEGIN(deviate, 1, NVGPU_MISRA(Rule, 21_3), "TID-1131")
-	NVGPU_COV_WHITELIST_BLOCK_BEGIN(deviate, 1, NVGPU_MISRA(Rule, 4_12), "TID-1129")
+	NVGPU_COV_WHITELIST_BLOCK_BEGIN(deviate, 1, NVGPU_MISRA(Directive, 4_12), "TID-1129")
 	ptr = malloc(cache->size);
-	NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 4_12))
+	NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Directive, 4_12))
 	NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 21_3))
 
 	if (ptr == NULL) {
@@ -153,9 +153,9 @@ void *nvgpu_kmalloc_impl(struct gk20a *g, size_t size, void *ip)
 	 * calls).
 	 */
 	NVGPU_COV_WHITELIST_BLOCK_BEGIN(deviate, 1, NVGPU_MISRA(Rule, 21_3), "TID-1131")
-	NVGPU_COV_WHITELIST_BLOCK_BEGIN(deviate, 1, NVGPU_MISRA(Rule, 4_12), "TID-1129")
+	NVGPU_COV_WHITELIST_BLOCK_BEGIN(deviate, 1, NVGPU_MISRA(Directive, 4_12), "TID-1129")
 	ptr = malloc(size);
-	NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 4_12))
+	NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Directive, 4_12))
 	NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 21_3))
 
 	if (ptr == NULL) {

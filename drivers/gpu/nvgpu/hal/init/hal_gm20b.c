@@ -1,7 +1,7 @@
 /*
  * GM20B Graphics
  *
- * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -54,7 +54,9 @@
 #include <nvgpu/pmu/pmu_pstate.h>
 #endif
 #include <nvgpu/therm.h>
+#ifdef CONFIG_NVGPU_CLK_ARB
 #include <nvgpu/clk_arb.h>
+#endif
 #include <nvgpu/grmgr.h>
 #ifdef CONFIG_NVGPU_POWER_PG
 #include <nvgpu/pmu/pmu_pg.h>

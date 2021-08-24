@@ -31,7 +31,9 @@
 #include <nvgpu/pmu/pmu_pstate.h>
 #endif
 #include <nvgpu/therm.h>
+#ifdef CONFIG_NVGPU_CLK_ARB
 #include <nvgpu/clk_arb.h>
+#endif
 #include <nvgpu/fuse.h>
 #include <nvgpu/pbdma.h>
 #include <nvgpu/preempt.h>
