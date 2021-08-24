@@ -65,8 +65,9 @@
 	ethernet@2310000 {
 		compatible = "nvidia,nveqos";
 		reg = <0x0 0x02310000 0x0 0x10000>,    /* EQOS Base Register */
-		      <0x0 0x023D0000 0x0 0x10000>;    /* MACSEC Base Register */
-		reg-names = "mac-base", "macsec-base";
+		      <0x0 0x023D0000 0x0 0x10000>,    /* MACSEC Base Register */
+		      <0x0 0x02300000 0x0 0x10000>;    /* HV Base Register */
+		reg-names = "mac-base", "macsec-base", "hv-base";
 		interrupts = <0 194 0x4>,       /* common */
 			     <0 186 0x4>, /* vm0 */
 			     <0 187 0x4>, /* vm1 */
@@ -95,6 +96,7 @@
 			      "eqos_rx_m", "eqos_rx_input",
 			      "eqos_macsec_tx", "eqos_tx_divider",
 			      "eqos_macsec_rx";
+		iommus = <&smmu_niso1 TEGRA_SID_NISO1_EQOS>;
 		nvidia,num-dma-chans = <8>;
 		nvidia,num-mtl-queues = <8>;
 		nvidia,mtl-queues = <0 1 2 3 4 5 6 7>;
