@@ -5047,6 +5047,19 @@ static int ether_init_plat_resources(struct platform_device *pdev,
 	}
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
+					   "hv-base");
+	if (res) {
+		osi_core->hv_base = devm_ioremap_resource(&pdev->dev, res);
+		if (IS_ERR(osi_core->hv_base)) {
+			dev_err(&pdev->dev, "failed to ioremap HV address\n");
+			return PTR_ERR(osi_core->hv_base);
+		}
+	} else {
+		osi_core->hv_base = NULL;
+		dev_dbg(&pdev->dev, "HV base address is not present\n");
+	}
+
+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
 					   "dma_base");
 	if (res) {
 		/* Update dma base */
