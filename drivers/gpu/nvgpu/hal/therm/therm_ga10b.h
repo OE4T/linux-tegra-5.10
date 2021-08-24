@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@
 struct gk20a;
 
 u32 ga10b_therm_max_fpdiv_factor(void);
+u32 ga10b_therm_grad_stepping_pdiv_duration(void);
 int ga10b_elcg_init_idle_filters(struct gk20a *g);
 
 #endif /* THERM_GA10B_H */

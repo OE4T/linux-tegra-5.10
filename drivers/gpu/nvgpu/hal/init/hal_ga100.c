@@ -1248,6 +1248,8 @@ static const struct gops_mm ga100_ops_mm = {
 
 static const struct gops_therm ga100_ops_therm = {
 	.therm_max_fpdiv_factor = ga10b_therm_max_fpdiv_factor,
+	.therm_grad_stepping_pdiv_duration =
+				ga10b_therm_grad_stepping_pdiv_duration,
 	.init_therm_support = nvgpu_init_therm_support,
 	/* PROD values match with H/W INIT values */
 	.init_elcg_mode = gv11b_therm_init_elcg_mode,

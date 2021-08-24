@@ -1,7 +1,7 @@
 /*
  * GV11B Therm
  *
- * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -190,4 +190,10 @@ int gv11b_elcg_init_idle_filters(struct gk20a *g)
 u32 gv11b_therm_max_fpdiv_factor(void)
 {
 	return therm_grad_stepping_table_slowdown_factor0_fpdiv_by32_f();
+}
+
+u32 gv11b_therm_grad_stepping_pdiv_duration(void)
+{
+	/* minimum duration between steps 15usec * UTILSCLK@204 MHz */
+	return 0xBF4;
 }

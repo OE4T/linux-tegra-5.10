@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,6 +34,12 @@
 #include <nvgpu/hw/ga10b/hw_therm_ga10b.h>
 
 u32 ga10b_therm_max_fpdiv_factor(void)
+{
+	/* minimum duration between steps 15usec * UTILSCLK@102 MHz */
+	return 0x5FA;
+}
+
+u32 ga10b_therm_grad_stepping_pdiv_duration(void)
 {
 	return therm_grad_stepping_table_slowdown_factor0_fpdiv_by31_f();
 }

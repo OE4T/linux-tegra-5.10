@@ -137,6 +137,7 @@ struct gops_therm {
 	void (*therm_debugfs_init)(struct gk20a *g);
 #endif
 	u32 (*therm_max_fpdiv_factor)(void);
+	u32 (*therm_grad_stepping_pdiv_duration)(void);
 	void (*get_internal_sensor_curr_temp)(struct gk20a *g, u32 *temp_f24_8);
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 };
