@@ -120,7 +120,7 @@ int gv11b_syncpt_get_sync_ro_map(struct vm_gk20a *vm,
 	*base_gpuva = vm->syncpt_ro_map_gpu_va;
 	*sync_size = g->syncpt_size;
 
-	tmp = g->syncpt_size ? (g->syncpt_unit_size / g->syncpt_size) : 0U;
+	tmp = (g->syncpt_size != 0UL) ? (g->syncpt_unit_size / g->syncpt_size) : 0U;
 	*num_syncpoints = (tmp <= U32_MAX) ? (u32)tmp : U32_MAX;
 
 	return 0;
