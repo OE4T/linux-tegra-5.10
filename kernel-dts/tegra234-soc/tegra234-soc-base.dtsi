@@ -483,13 +483,14 @@
 	};
 
 	tegra_tachometer: tachometer@39c0000 {
-		compatible = "nvidia,pwm-tegra194-tachometer";
+		compatible = "nvidia,pwm-tegra234-tachometer";
 		reg = <0x0 0x039c0000 0x0 0x10>;
 		#pwm-cells = <2>;
 		clocks = <&bpmp_clks TEGRA234_CLK_TACH0>;
 		clock-names = "tach";
 		resets = <&bpmp_resets TEGRA234_RESET_TACH0>;
 		reset-names = "tach";
+		interrupts = <0 192 0x4>;
 		pulse-per-rev = <2>;
 		capture-window-length = <2>;
 		disable-clk-gate;
