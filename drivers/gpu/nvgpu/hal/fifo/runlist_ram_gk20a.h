@@ -34,5 +34,6 @@ u32 gk20a_runlist_max_timeslice(void);
 void gk20a_runlist_get_tsg_entry(struct nvgpu_tsg *tsg,
 		u32 *runlist, u32 timeslice);
 void gk20a_runlist_get_ch_entry(struct nvgpu_channel *ch, u32 *runlist);
+u32 gk20a_runlist_get_max_channels_per_tsg(void);
 
 #endif /* NVGPU_RUNLIST_RAM_GK20A_H */

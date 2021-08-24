@@ -169,6 +169,7 @@
 #define ram_rl_entry_tsg_timeslice_scale_f(v)           ((U32(v) & 0xfU) << 16U)
 #define ram_rl_entry_tsg_timeslice_timeout_f(v)        ((U32(v) & 0xffU) << 24U)
 #define ram_rl_entry_tsg_length_f(v)                    ((U32(v) & 0xffU) << 0U)
+#define ram_rl_entry_tsg_length_max_v()                            (0x00000080U)
 #define ram_rl_entry_tsg_tsgid_f(v)                    ((U32(v) & 0xfffU) << 0U)
 #define ram_rl_entry_chan_userd_ptr_align_shift_v()                (0x00000008U)
 #define ram_rl_entry_chan_inst_ptr_align_shift_v()                 (0x0000000cU)

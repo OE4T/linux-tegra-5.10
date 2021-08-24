@@ -118,3 +118,7 @@ void gv11b_runlist_get_ch_entry(struct nvgpu_channel *ch, u32 *runlist)
 			runlist[0], runlist[1], runlist[2], runlist[3]);
 }
 
+u32 gv11b_runlist_get_max_channels_per_tsg(void)
+{
+	return ram_rl_entry_tsg_length_max_v();
+}

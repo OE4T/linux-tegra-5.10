@@ -1117,6 +1117,7 @@ static const struct gops_runlist ga10b_ops_runlist = {
 	.init_enginfo = nvgpu_runlist_init_enginfo,
 	.get_tsg_max_timeslice = gv11b_runlist_max_timeslice,
 	.get_esched_fb_thread_id = ga10b_runlist_get_esched_fb_thread_id,
+	.get_max_channels_per_tsg = gv11b_runlist_get_max_channels_per_tsg,
 };
 
 static const struct gops_userd ga10b_ops_userd = {

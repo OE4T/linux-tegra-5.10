@@ -68,6 +68,16 @@ struct gops_runlist {
 	int (*reload)(struct gk20a *g, struct nvgpu_runlist *rl,
 			bool add, bool wait_for_finish);
 
+	/**
+	 * @brief Get maximum number of channels supported per TSG entry
+	 *        in runlist.
+	 *
+	 * @param none.
+	 *
+	 * @return maximum number of channels supported per TSG in runlist.
+	 */
+	u32 (*get_max_channels_per_tsg)(void);
+
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 
 	int (*update)(struct gk20a *g, struct nvgpu_runlist *rl,

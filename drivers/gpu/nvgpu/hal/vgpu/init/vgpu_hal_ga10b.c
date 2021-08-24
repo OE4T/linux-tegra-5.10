@@ -700,6 +700,7 @@ static const struct gops_runlist vgpu_ga10b_ops_runlist = {
 	.hw_submit = NULL,
 	.wait_pending = NULL,
 	.init_enginfo = nvgpu_runlist_init_enginfo,
+	.get_max_channels_per_tsg = gv11b_runlist_get_max_channels_per_tsg,
 };
 
 static const struct gops_userd vgpu_ga10b_ops_userd = {

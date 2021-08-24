@@ -129,10 +129,20 @@ struct nvgpu_tsg {
 	 * #ch_list.
 	 */
 	struct nvgpu_rwsem ch_list_lock;
+
 	/**
-	 * Total number of channels that are bound to a TSG. This can change
-	 * during run time whenever channels are bound to a TSG or unbound
-	 * from a TSG.
+	 * Total number of channels that are bound to a TSG. This count is
+	 * incremented when a channel is bound to TSG, and decremented when
+	 * channel is unbound from TSG.
+	 */
+	u32 ch_count;
+
+	/**
+	 * Total number of active channels that are bound to a TSG. This count
+	 * is incremented when a channel bound to TSG is added into the runlist
+	 * under the same TSG header. Count is decremented when channel bound
+	 * to TSG is removed from the runlist. This count is specifically
+	 * tracked for runlist construction of TSG entry.
 	 */
 	u32 num_active_channels;
 

@@ -81,3 +81,8 @@ void gk20a_runlist_get_ch_entry(struct nvgpu_channel *ch, u32 *runlist)
 	runlist[0] = ram_rl_entry_chid_f(ch->chid);
 	runlist[1] = 0;
 }
+
+u32 gk20a_runlist_get_max_channels_per_tsg(void)
+{
+	return ram_rl_entry_tsg_length_max_v();
+}

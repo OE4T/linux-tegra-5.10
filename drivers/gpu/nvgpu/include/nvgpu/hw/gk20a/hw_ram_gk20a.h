@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -157,4 +157,5 @@
 #define ram_rl_entry_timeslice_timeout_v(r)               (((r) >> 18U) & 0xffU)
 #define ram_rl_entry_timeslice_timeout_128_f()                      (0x2000000U)
 #define ram_rl_entry_tsg_length_f(v)                   ((U32(v) & 0x3fU) << 26U)
+#define ram_rl_entry_tsg_length_max_v()                            (0x00000020U)
 #endif

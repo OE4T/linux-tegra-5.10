@@ -698,6 +698,7 @@ static const struct gops_runlist gm20b_ops_runlist = {
 	.write_state = gk20a_runlist_write_state,
 	.init_enginfo = nvgpu_runlist_init_enginfo,
 	.get_tsg_max_timeslice = gk20a_runlist_max_timeslice,
+	.get_max_channels_per_tsg = gk20a_runlist_get_max_channels_per_tsg,
 };
 
 static const struct gops_userd gm20b_ops_userd = {

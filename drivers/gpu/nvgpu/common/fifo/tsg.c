@@ -96,6 +96,7 @@ static bool nvgpu_tsg_is_channel_active(struct gk20a *g,
 int nvgpu_tsg_bind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 {
 	struct gk20a *g = ch->g;
+	u32 max_ch_per_tsg;
 	int err = 0;
 
 	nvgpu_log_fn(g, "bind tsg:%u ch:%u\n", tsg->tsgid, ch->chid);
@@ -109,6 +110,17 @@ int nvgpu_tsg_bind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 	if (nvgpu_tsg_is_channel_active(tsg->g, ch)) {
 		return -EINVAL;
 	}
+
+	/* cannot bind more channels than MAX channels supported per TSG */
+	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
+	max_ch_per_tsg = g->ops.runlist.get_max_channels_per_tsg();
+	if (tsg->ch_count == max_ch_per_tsg) {
+		nvgpu_rwsem_up_read(&tsg->ch_list_lock);
+		nvgpu_warn(g, "TSG %u trying to bind more than supported channels (%u)",
+			tsg->tsgid, max_ch_per_tsg);
+		return -EINVAL;
+	}
+	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
 
 	/* Use runqueue selector 1 for all ASYNC ids */
 	if (ch->subctx_id > CHANNEL_INFO_VEID0) {
@@ -141,6 +153,7 @@ int nvgpu_tsg_bind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 
 	nvgpu_rwsem_down_write(&tsg->ch_list_lock);
 	nvgpu_list_add_tail(&ch->ch_entry, &tsg->ch_list);
+	tsg->ch_count = nvgpu_safe_add_u32(tsg->ch_count, 1U);
 	ch->tsgid = tsg->tsgid;
 	/* channel is serviceable after it is bound to tsg */
 	ch->unserviceable = false;
@@ -234,6 +247,7 @@ static int nvgpu_tsg_unbind_channel_common(struct nvgpu_tsg *tsg,
 	/* Remove channel from TSG and re-enable rest of the channels */
 	nvgpu_rwsem_down_write(&tsg->ch_list_lock);
 	nvgpu_list_del(&ch->ch_entry);
+	tsg->ch_count = nvgpu_safe_sub_u32(tsg->ch_count, 1U);
 	ch->tsgid = NVGPU_INVALID_TSG_ID;
 
 	/* another thread could have re-enabled the channel because it was
@@ -807,6 +821,7 @@ int nvgpu_tsg_open_common(struct gk20a *g, struct nvgpu_tsg *tsg, pid_t pid)
 	tsg->tgid = pid;
 	tsg->g = g;
 	tsg->num_active_channels = 0U;
+	tsg->ch_count = 0U;
 	nvgpu_ref_init(&tsg->refcount);
 
 	tsg->vm = NULL;
