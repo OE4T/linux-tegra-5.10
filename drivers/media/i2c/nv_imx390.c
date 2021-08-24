@@ -614,7 +614,7 @@ static int imx390_board_setup(struct imx390 *priv)
 	of_node_put(ser_node);
 
 	if (ser_i2c == NULL) {
-		dev_err(dev, "missing serializer dev handle\n");
+		err = -EPROBE_DEFER;
 		goto error;
 	}
 	if (ser_i2c->dev.driver == NULL) {
@@ -636,7 +636,7 @@ static int imx390_board_setup(struct imx390 *priv)
 	of_node_put(dser_node);
 
 	if (dser_i2c == NULL) {
-		dev_err(dev, "missing deserializer dev handle\n");
+		err = -EPROBE_DEFER;
 		goto error;
 	}
 	if (dser_i2c->dev.driver == NULL) {
@@ -754,7 +754,6 @@ static int imx390_board_setup(struct imx390 *priv)
 	return 0;
 
 error:
-	dev_err(dev, "board setup failed\n");
 	return err;
 }
 
