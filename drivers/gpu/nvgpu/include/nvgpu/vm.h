@@ -240,7 +240,7 @@ struct vm_gk20a {
 	char name[NVGPU_VM_NAME_LEN];
 
 	/** Start GPU address of the context. */
-	u64 va_start;
+	u64 virtaddr_start;
 	/** End GPU address of the context. */
 	u64 va_limit;
 

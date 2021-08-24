@@ -177,7 +177,7 @@ int nvgpu_timeout_init_flags(struct gk20a *g, struct nvgpu_timeout *timeout,
 	} else {
 		duration_ns = (s64)duration;
 		duration_ns = nvgpu_safe_mult_s64(duration_ns, NSEC_PER_MSEC);
-		timeout->time = nvgpu_safe_add_s64(nvgpu_current_time_ns(),
+		timeout->time_duration = nvgpu_safe_add_s64(nvgpu_current_time_ns(),
 								duration_ns);
 	}
 
@@ -190,7 +190,7 @@ bool nvgpu_timeout_peek_expired(struct nvgpu_timeout *timeout)
 		return (timeout->retries.attempted >=
 			timeout->retries.max_attempts);
 	} else {
-		return time_after(get_time_ns(), timeout->time);
+		return time_after(get_time_ns(), timeout->time_duration);
 	}
 }
 

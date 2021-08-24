@@ -48,7 +48,7 @@
 ({									\
 	const struct nvgpu_timeout *t_ptr = (timeout);			\
 	int ret_cpu = 0;						\
-	if (nvgpu_current_time_ns() > t_ptr->time) {			\
+	if (nvgpu_current_time_ns() > t_ptr->time_duration) {			\
 		if ((t_ptr->flags & NVGPU_TIMER_SILENT_TIMEOUT) == 0U) { \
 			nvgpu_err(t_ptr->g, "Timeout detected @ %p" fmt, \
 							caller, ##arg);	\

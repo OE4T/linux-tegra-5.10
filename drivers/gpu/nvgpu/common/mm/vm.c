@@ -640,7 +640,7 @@ static int nvgpu_vm_init_vma(struct gk20a *g, struct vm_gk20a *vm,
 		 * is set.
 		 */
 		if (!big_pages || unified_va) {
-			user_vma_start = vm->va_start;
+			user_vma_start = vm->virtaddr_start;
 			user_vma_limit = nvgpu_safe_sub_u64(vm->va_limit,
 							kernel_reserved);
 			user_lp_vma_start = user_vma_limit;
@@ -650,14 +650,14 @@ static int nvgpu_vm_init_vma(struct gk20a *g, struct vm_gk20a *vm,
 			 * Ensure small_big_split falls between user vma
 			 * start and end.
 			 */
-			if ((small_big_split <= vm->va_start) ||
+			if ((small_big_split <= vm->virtaddr_start) ||
 				(small_big_split >=
 					nvgpu_safe_sub_u64(vm->va_limit,
 							kernel_reserved))) {
 				return -EINVAL;
 			}
 
-			user_vma_start = vm->va_start;
+			user_vma_start = vm->virtaddr_start;
 			user_vma_limit = small_big_split;
 			user_lp_vma_start = small_big_split;
 			user_lp_vma_limit = nvgpu_safe_sub_u64(vm->va_limit,
@@ -759,7 +759,7 @@ static int nvgpu_vm_init_attributes(struct mm_gk20a *mm,
 		vm->vma[GMMU_PAGE_SIZE_BIG] = &vm->user_lp;
 	}
 
-	vm->va_start = low_hole;
+	vm->virtaddr_start = low_hole;
 	vm->va_limit = aperture_size;
 
 	vm->big_page_size     = vm->gmmu_page_sizes[GMMU_PAGE_SIZE_BIG];
