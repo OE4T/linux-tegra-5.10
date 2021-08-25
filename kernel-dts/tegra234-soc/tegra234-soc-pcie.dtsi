@@ -157,7 +157,7 @@
 			interrupts = <0 336 0x04>;
 			interrupt-names = "intr";
 
-			nvidia,uphy-id = <0>;
+			nvidia,bpmp = <&bpmp 0>;
 
 			#phy-cells = <0>;
 		};
@@ -169,7 +169,7 @@
 			interrupts = <0 337 0x04>;
 			interrupt-names = "intr";
 
-			nvidia,uphy-id = <1>;
+			nvidia,bpmp = <&bpmp 1>;
 
 			#phy-cells = <0>;
 		};
@@ -181,7 +181,7 @@
 			interrupts = <0 338 0x04>;
 			interrupt-names = "intr";
 
-			nvidia,uphy-id = <2>;
+			nvidia,bpmp = <&bpmp 2>;
 
 			#phy-cells = <0>;
 		};
@@ -193,7 +193,7 @@
 			interrupts = <0 339 0x04>;
 			interrupt-names = "intr";
 
-			nvidia,uphy-id = <3>;
+			nvidia,bpmp = <&bpmp 3>;
 
 			#phy-cells = <0>;
 		};
@@ -205,7 +205,7 @@
 			interrupts = <0 340 0x04>;
 			interrupt-names = "intr";
 
-			nvidia,uphy-id = <4>;
+			nvidia,bpmp = <&bpmp 4>;
 
 			#phy-cells = <0>;
 		};
@@ -217,7 +217,7 @@
 			interrupts = <0 341 0x04>;
 			interrupt-names = "intr";
 
-			nvidia,uphy-id = <5>;
+			nvidia,bpmp = <&bpmp 5>;
 
 			#phy-cells = <0>;
 		};
@@ -229,7 +229,7 @@
 			interrupts = <0 342 0x04>;
 			interrupt-names = "intr";
 
-			nvidia,uphy-id = <6>;
+			nvidia,bpmp = <&bpmp 6>;
 
 			#phy-cells = <0>;
 		};
@@ -241,7 +241,7 @@
 			interrupts = <0 343 0x04>;
 			interrupt-names = "intr";
 
-			nvidia,uphy-id = <7>;
+			nvidia,bpmp = <&bpmp 7>;
 
 			#phy-cells = <0>;
 		};
@@ -253,7 +253,7 @@
 			interrupts = <0 344 0x04>;
 			interrupt-names = "intr";
 
-			nvidia,uphy-id = <8>;
+			nvidia,bpmp = <&bpmp 8>;
 
 			#phy-cells = <0>;
 		};
@@ -265,7 +265,7 @@
 			interrupts = <0 345 0x04>;
 			interrupt-names = "intr";
 
-			nvidia,uphy-id = <9>;
+			nvidia,bpmp = <&bpmp 9>;
 
 			#phy-cells = <0>;
 		};
@@ -277,7 +277,7 @@
 			interrupts = <0 346 0x04>;
 			interrupt-names = "intr";
 
-			nvidia,uphy-id = <10>;
+			nvidia,bpmp = <&bpmp 10>;
 
 			#phy-cells = <0>;
 		};
@@ -289,7 +289,7 @@
 			interrupts = <0 347 0x04>;
 			interrupt-names = "intr";
 
-			nvidia,uphy-id = <11>;
+			nvidia,bpmp = <&bpmp 11>;
 
 			#phy-cells = <0>;
 		};
@@ -301,7 +301,7 @@
 			interrupts = <0 348 0x04>;
 			interrupt-names = "intr";
 
-			nvidia,uphy-id = <12>;
+			nvidia,bpmp = <&bpmp 12>;
 
 			#phy-cells = <0>;
 		};
@@ -313,7 +313,7 @@
 			interrupts = <0 349 0x04>;
 			interrupt-names = "intr";
 
-			nvidia,uphy-id = <13>;
+			nvidia,bpmp = <&bpmp 13>;
 
 			#phy-cells = <0>;
 		};
@@ -325,7 +325,7 @@
 			interrupts = <0 350 0x04>;
 			interrupt-names = "intr";
 
-			nvidia,uphy-id = <14>;
+			nvidia,bpmp = <&bpmp 14>;
 
 			#phy-cells = <0>;
 		};
@@ -337,7 +337,7 @@
 			interrupts = <0 351 0x04>;
 			interrupt-names = "intr";
 
-			nvidia,uphy-id = <15>;
+			nvidia,bpmp = <&bpmp 15>;
 
 			#phy-cells = <0>;
 		};
@@ -349,7 +349,7 @@
 			interrupts = <0 203 0x04>;
 			interrupt-names = "intr";
 
-			nvidia,uphy-id = <16>;
+			nvidia,bpmp = <&bpmp 16>;
 
 			#phy-cells = <0>;
 		};
@@ -361,7 +361,7 @@
 			interrupts = <0 220 0x04>;
 			interrupt-names = "intr";
 
-			nvidia,uphy-id = <17>;
+			nvidia,bpmp = <&bpmp 17>;
 
 			#phy-cells = <0>;
 		};
@@ -373,7 +373,7 @@
 			interrupts = <0 221 0x04>;
 			interrupt-names = "intr";
 
-			nvidia,uphy-id = <18>;
+			nvidia,bpmp = <&bpmp 18>;
 
 			#phy-cells = <0>;
 		};
@@ -385,7 +385,7 @@
 			interrupts = <0 222 0x04>;
 			interrupt-names = "intr";
 
-			nvidia,uphy-id = <19>;
+			nvidia,bpmp = <&bpmp 19>;
 
 			#phy-cells = <0>;
 		};
@@ -397,7 +397,7 @@
 			interrupts = <0 108 0x04>;
 			interrupt-names = "intr";
 
-			nvidia,uphy-id = <20>;
+			nvidia,bpmp = <&bpmp 20>;
 
 			#phy-cells = <0>;
 		};
@@ -409,7 +409,7 @@
 			interrupts = <0 109 0x04>;
 			interrupt-names = "intr";
 
-			nvidia,uphy-id = <21>;
+			nvidia,bpmp = <&bpmp 21>;
 
 			#phy-cells = <0>;
 		};
@@ -421,7 +421,7 @@
 			interrupts = <0 110 0x04>;
 			interrupt-names = "intr";
 
-			nvidia,uphy-id = <22>;
+			nvidia,bpmp = <&bpmp 22>;
 
 			#phy-cells = <0>;
 		};
@@ -433,7 +433,7 @@
 			interrupts = <0 111 0x04>;
 			interrupt-names = "intr";
 
-			nvidia,uphy-id = <23>;
+			nvidia,bpmp = <&bpmp 23>;
 
 			#phy-cells = <0>;
 		};
