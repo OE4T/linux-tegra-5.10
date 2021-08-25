@@ -33,10 +33,6 @@
                 status = "disabled";
         };
 
-        arm-pmu {
-                status = "disabled";
-        };
-
         usb_cd {
                 status = "disabled";
         };
@@ -58,10 +54,6 @@
         };
 
         ethernet@03b40000 {
-                status = "disabled";
-        };
-
-        dsu-pmu-0 {
                 status = "disabled";
         };
 
