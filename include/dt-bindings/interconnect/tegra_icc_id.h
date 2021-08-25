@@ -62,6 +62,7 @@
 #define TEGRA_ICC_VIFAL				41
 #define TEGRA_ICC_VI2FAL			42
 #define TEGRA_ICC_VI2				43
+#define TEGRA_ICC_RCE				44
 
 /* remove later */
 #define NV_NVDISPLAYR2MC_SR_ID			TEGRA_ICC_DISPLAY
