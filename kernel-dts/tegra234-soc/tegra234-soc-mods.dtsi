@@ -89,7 +89,7 @@
 
 	mods_pcie7: mods_pcie7 {
 		compatible = "nvidia,mods_smmu";
-		iommus = <&smmu_niso0 TEGRA_SID_NISO1_PCIE7>;
+		iommus = <&smmu_niso1 TEGRA_SID_NISO1_PCIE7>;
 		dma-coherent;
 		dev-names = "mods_pcie7";
 		status = "disabled";
@@ -98,7 +98,7 @@
 
 	mods_pcie8: mods_pcie8 {
 		compatible = "nvidia,mods_smmu";
-		iommus = <&smmu_niso0 TEGRA_SID_NISO1_PCIE8>;
+		iommus = <&smmu_niso1 TEGRA_SID_NISO1_PCIE8>;
 		dma-coherent;
 		dev-names = "mods_pcie8";
 		status = "disabled";
@@ -107,7 +107,7 @@
 
 	mods_pcie9: mods_pcie9 {
 		compatible = "nvidia,mods_smmu";
-		iommus = <&smmu_niso0 TEGRA_SID_NISO1_PCIE9>;
+		iommus = <&smmu_niso1 TEGRA_SID_NISO1_PCIE9>;
 		dma-coherent;
 		dev-names = "mods_pcie9";
 		status = "disabled";
@@ -116,7 +116,7 @@
 
 	mods_pcie10: mods_pcie10 {
 		compatible = "nvidia,mods_smmu";
-		iommus = <&smmu_niso0 TEGRA_SID_NISO1_PCIE10>;
+		iommus = <&smmu_niso1 TEGRA_SID_NISO1_PCIE10>;
 		dma-coherent;
 		dev-names = "mods_pcie10";
 		status = "disabled";
