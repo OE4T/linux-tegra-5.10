@@ -116,7 +116,7 @@
 		nvidia,promisc_mode = <1>;
 		nvidia,slot_num_check = <0x0 0x0 0x0 0x0 0x0 0x0 0x0 0x0>;
 		nvidia,slot_intvl_vals = <0x0 0x7D 0x7D 0x7D 0x7D 0x7D 0x7D 0x7D>;
-		nvidia,ptp_ref_clock_speed = <208300000>;
+		nvidia,ptp_ref_clock_speed = <208333334>;
 		nvidia,instance_id = <4>; /* EQOS instance */
 		pinctrl-names = "mii_rx_disable", "mii_rx_enable";
 		pinctrl-0 = <&eqos_mii_rx_input_state_disable>;
