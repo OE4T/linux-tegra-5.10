@@ -117,6 +117,7 @@ static struct host1x_device_info host1x04_info = {
 	.nb_resources	= 5,
 	.secure_cmdfifo = true,
 	.syncpt_page_size = 0x10000,
+	.rw_mlock_register = true,
 };
 
 struct nvhost_device_data t23x_host1x_info = {

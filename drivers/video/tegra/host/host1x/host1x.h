@@ -92,6 +92,8 @@ struct host1x_device_info {
 	const char	*ctrl_name;
 	/* Size of a syncpoint page in the syncpoint<->mss interface */
 	uint32_t	syncpt_page_size;
+	/* If MLOCK locked-state can be written through register */
+	bool		rw_mlock_register;
 };
 
 struct nvhost_master {
