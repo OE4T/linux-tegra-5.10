@@ -460,7 +460,7 @@ out:
 	is_empty = list_empty(&cdma->sync_queue);
 	mutex_unlock(&cdma->sync_queue_lock);
 	if (!is_empty)
-		get_restart = job->first_get;
+		get_restart = (job->first_get + job->num_slots * 8) & (PUSH_BUFFER_SIZE - 1);
 
 	/* do CPU increments as long as this context continues */
 	mutex_lock(&cdma->sync_queue_lock);
@@ -487,6 +487,8 @@ out:
 		/* cleanup push buffer */
 		cdma_op().timeout_pb_cleanup(cdma, job->first_get,
 			job->num_slots);
+
+		get_restart = (job->first_get + job->num_slots * 8) & (PUSH_BUFFER_SIZE - 1);
 	}
 	mutex_unlock(&cdma->sync_queue_lock);
 
