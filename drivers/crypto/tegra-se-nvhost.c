@@ -52,6 +52,7 @@
 #include <linux/pm_qos.h>
 #include <linux/jiffies.h>
 #include <linux/platform/tegra/emc_bwmgr.h>
+#include <dt-bindings/interconnect/tegra_icc_id.h>
 
 #include "tegra-se-nvhost.h"
 #include "t186/hardware_t186.h"
@@ -6958,7 +6959,7 @@ static struct nvhost_device_data nvhost_t234_se1_info = {
 	.clocks = {{"se", 600000000},
 		   {"emc", UINT_MAX,
 		   NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		   0, TEGRA_BWMGR_SET_EMC_FLOOR}, {} },
+		   TEGRA_SET_EMC_FLOOR}, {} },
 	.can_powergate          = true,
 	.autosuspend_delay      = 500,
 	.class = NV_SE1_CLASS_ID,
@@ -6967,7 +6968,7 @@ static struct nvhost_device_data nvhost_t234_se1_info = {
 	.push_work_done = 1,
 	.vm_regs		= {{SE_STREAMID_REG_OFFSET, true} },
 	.kernel_only = true,
-	.bwmgr_client_id = TEGRA_BWMGR_CLIENT_SE1,
+	.icc_id	= TEGRA_ICC_SE,
 	.prepare_poweroff = tegra_se_nvhost_prepare_poweroff,
 };
 
@@ -6975,7 +6976,7 @@ static struct nvhost_device_data nvhost_t234_se2_info = {
 	.clocks = {{"se", 600000000},
 		   {"emc", UINT_MAX,
 		   NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		   0, TEGRA_BWMGR_SET_EMC_FLOOR}, {} },
+		   TEGRA_SET_EMC_FLOOR}, {} },
 	.can_powergate          = true,
 	.autosuspend_delay      = 500,
 	.class = NV_SE2_CLASS_ID,
@@ -6984,7 +6985,7 @@ static struct nvhost_device_data nvhost_t234_se2_info = {
 	.push_work_done = 1,
 	.vm_regs		= {{SE_STREAMID_REG_OFFSET, true} },
 	.kernel_only = true,
-	.bwmgr_client_id = TEGRA_BWMGR_CLIENT_SE2,
+	.icc_id	= TEGRA_ICC_SE,
 	.prepare_poweroff = tegra_se_nvhost_prepare_poweroff,
 };
 
@@ -6992,7 +6993,7 @@ static struct nvhost_device_data nvhost_t234_se4_info = {
 	.clocks = {{"se", 600000000},
 		   {"emc", UINT_MAX,
 		   NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		   0, TEGRA_BWMGR_SET_EMC_FLOOR}, {} },
+		   TEGRA_SET_EMC_FLOOR}, {} },
 	.can_powergate          = true,
 	.autosuspend_delay      = 500,
 	.class = NV_SE4_CLASS_ID,
@@ -7001,7 +7002,7 @@ static struct nvhost_device_data nvhost_t234_se4_info = {
 	.push_work_done = 1,
 	.vm_regs		= {{SE_STREAMID_REG_OFFSET, true} },
 	.kernel_only = true,
-	.bwmgr_client_id = TEGRA_BWMGR_CLIENT_SE4,
+	.icc_id	= TEGRA_ICC_SE,
 	.prepare_poweroff = tegra_se_nvhost_prepare_poweroff,
 };
 
