@@ -86,6 +86,23 @@ void nvhost_vm_get(struct nvhost_vm *vm)
 	kref_get(&vm->kref);
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,0,0)
+static struct device *dev_get_iommu(struct device *dev)
+{
+	return dev->iommu->iommu_dev->dev;
+}
+
+static bool iommu_match(struct device *a, struct device *b)
+{
+	return dev_get_iommu(a) == dev_get_iommu(b);
+}
+#else
+static bool iommu_match(struct device *a, struct device *b)
+{
+	return true;
+}
+#endif
+
 static inline bool nvhost_vm_can_be_reused(
 	struct platform_device *pdev,
 	struct nvhost_vm *vm,
@@ -98,9 +115,14 @@ static inline bool nvhost_vm_can_be_reused(
 	if (!pdata->isolate_contexts)
 		return vm->pdev == pdev;
 
+	if (pdev_iommu != vm_iommu)
+		return false;
+
+	if (pdev_iommu && !iommu_match(&pdev->dev, &vm->pdev->dev))
+		return false;
+
 	return vm->identifier == identifier &&
-		vm->enable_hw == pdata->isolate_contexts &&
-		pdev_iommu == vm_iommu;
+		vm->enable_hw == pdata->isolate_contexts;
 }
 
 struct nvhost_vm *nvhost_vm_allocate(struct platform_device *pdev,
