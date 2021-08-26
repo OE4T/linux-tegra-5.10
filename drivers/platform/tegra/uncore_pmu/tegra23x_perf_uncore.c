@@ -567,9 +567,6 @@ static int scf_uncore_event_init(struct perf_event *event)
 	hwc->idx = -1;
 	hwc->config_base = event->attr.config;
 
-	/* Choose cpu 0 to read the events */
-	event->cpu = 0;
-
 	return 0;
 }
 
