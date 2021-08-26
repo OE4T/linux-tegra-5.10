@@ -274,6 +274,8 @@
 
 	tachometer@39c0000 {
 		status = "okay";
+		upper-threshold = <0xfffff>;
+		lower-threshold = <0x0>;
 	};
 
 	generic_pwm_tachometer {
