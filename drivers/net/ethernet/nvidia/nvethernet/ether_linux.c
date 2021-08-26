@@ -3760,6 +3760,10 @@ static int ether_vlan_rx_add_vid(struct net_device *ndev, __be16 vlan_proto,
 	struct osi_ioctl ioctl_data = {};
 	int ret = -1;
 
+	if (!netif_running(ndev)) {
+		return 0;
+	}
+
 	if (pdata->vlan_hash_filtering == OSI_HASH_FILTER_MODE) {
 		dev_err(pdata->dev,
 			"HASH FILTERING for VLAN tag is not supported in SW\n");
