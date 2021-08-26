@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,6 @@ enum nvgpu_cbc_op;
 struct gk20a;
 struct nvgpu_cbc;
 
-u64 tu104_cbc_get_base_divisor(struct gk20a *g);
 int tu104_cbc_alloc_comptags(struct gk20a *g, struct nvgpu_cbc *cbc);
 int tu104_cbc_ctrl(struct gk20a *g, enum nvgpu_cbc_op op,
 		       u32 min, u32 max);

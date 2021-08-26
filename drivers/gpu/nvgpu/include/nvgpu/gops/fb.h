@@ -440,6 +440,18 @@ struct gops_fb {
 							(struct gk20a *g);
 #ifdef CONFIG_NVGPU_COMPRESSION
 	void (*cbc_configure)(struct gk20a *g, struct nvgpu_cbc *cbc);
+	/**
+	 * @brief Get cbc base and top alignment specs.
+	 *
+	 * @param g [in]	Pointer to GPU driver struct.
+	 *
+	 * The function calculates and returns required CBC base and top
+	 * alignment values.
+	 *
+	 * @return None.
+	 */
+	void (*cbc_get_alignment)(struct gk20a *g,
+		u64 *base_divisor, u64 *top_divisor);
 	bool (*set_use_full_comp_tag_line)(struct gk20a *g);
 
 	/*

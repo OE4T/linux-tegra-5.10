@@ -30,7 +30,6 @@
 struct gk20a;
 struct nvgpu_cbc;
 
-u64 ga10b_cbc_get_base_divisor(struct gk20a *g);
 int ga10b_cbc_alloc_comptags(struct gk20a *g, struct nvgpu_cbc *cbc);
 void ga10b_cbc_init(struct gk20a *g, struct nvgpu_cbc *cbc);
 

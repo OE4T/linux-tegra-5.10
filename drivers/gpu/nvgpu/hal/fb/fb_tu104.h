@@ -31,6 +31,9 @@ struct nvgpu_mem;
 int  fb_tu104_tlb_invalidate(struct gk20a *g, struct nvgpu_mem *pdb);
 #ifdef CONFIG_NVGPU_COMPRESSION
 struct nvgpu_cbc;
+
+void tu104_fb_cbc_get_alignment(struct gk20a *g,
+		u64 *base_divisor, u64 *top_divisor);
 void tu104_fb_cbc_configure(struct gk20a *g, struct nvgpu_cbc *cbc);
 #endif
 int  tu104_fb_apply_pdb_cache_errata(struct gk20a *g);

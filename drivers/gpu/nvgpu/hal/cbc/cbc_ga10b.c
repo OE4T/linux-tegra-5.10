@@ -33,17 +33,6 @@
 
 #include <nvgpu/hw/ga10b/hw_ltc_ga10b.h>
 
-u64 ga10b_cbc_get_base_divisor(struct gk20a *g)
-{
-	/*
-	 * For Tegra, the addressing works differently. Unlike DGPU, all
-	 * partitions talk to the same memory.
-	 */
-	u64 ltc_count = 1ULL;
-
-	return ltc_count << ltc_ltcs_ltss_cbc_base_alignment_shift_v();
-}
-
 int ga10b_cbc_alloc_comptags(struct gk20a *g, struct nvgpu_cbc *cbc)
 {
 	/*
@@ -83,11 +72,7 @@ int ga10b_cbc_alloc_comptags(struct gk20a *g, struct nvgpu_cbc *cbc)
 		ltc_ltcs_ltss_cbc_param_bytes_per_comptagline_per_slice_v(
 			nvgpu_readl(g, ltc_ltcs_ltss_cbc_param_r()));
 
-	/*
-	 * For Tegra, the addressing works differently. Unlike DGPU, all
-	 * partitions talk to the same memory.
-	 */
-	u32 ltc_count = 1U;
+	u64 base_divisor = 0ULL;
 
 	/* check if vidmem is present */
 	bool alloc_vidmem = g->ops.fb.get_vidmem_size != NULL ? true : false;
@@ -111,7 +96,8 @@ int ga10b_cbc_alloc_comptags(struct gk20a *g, struct nvgpu_cbc *cbc)
 	/* Memory required for comptag lines in all slices of all ltcs */
 	compbit_backing_size =  nvgpu_safe_mult_u32(
 		nvgpu_safe_mult_u32(max_comptag_lines,
-			nvgpu_ltc_get_slices_per_ltc(g)), ltc_count);
+			nvgpu_ltc_get_slices_per_ltc(g)),
+		nvgpu_ltc_get_ltc_count(g));
 
 	/* Total memory required for compstatus */
 	compbit_backing_size =  nvgpu_safe_mult_u32(
@@ -119,13 +105,41 @@ int ga10b_cbc_alloc_comptags(struct gk20a *g, struct nvgpu_cbc *cbc)
 			gobs_per_comptagline_per_slice), compstatus_per_gob);
 
 	/* aligned to 2KB * ltc_count */
-	compbit_backing_size += nvgpu_safe_cast_u64_to_u32(
-		g->ops.cbc.get_base_divisor(g));
+	g->ops.fb.cbc_get_alignment(g, &base_divisor, NULL);
+	compbit_backing_size = nvgpu_safe_cast_u64_to_u32(
+		nvgpu_safe_add_u64(compbit_backing_size, base_divisor));
 
 	/* must be a multiple of 64KB */
 	compbit_backing_size = round_up(compbit_backing_size, SZ_64K);
 
-	err = nvgpu_cbc_alloc(g, compbit_backing_size, alloc_vidmem);
+	/*
+	 * Address calculation for CBC applies swizzle to the lower 16 bits
+	 * of physical address. So, CBC start and end address should be 64KB
+	 * aligned.
+	 * Memory allocated is aligned corresponding to PAGE_SIZE and can be
+	 * seen as:
+	 *
+	 * ------------------------ Allocated physical memory end address
+	 * ^     -------------- 64KB aligned CBC end address
+	 * |             ^
+	 * | allocated   |
+	 * | physical    |
+	 * | address     | CBC occupied
+	 * | space       | address space
+	 * |             |
+	 * |             v
+	 * v     -------------- 64KB aligned CBC start address
+	 * ------------------------ Allocated physical memory start address
+	 *
+	 * With PAGE_SIZE other than 64KB, the physical memory start address
+	 * may not be 64KB aligned. So, choose CBC start address to be the
+	 * lower 64KB multiple within the allocated memory.
+	 * However, offsetting start address will put the CBC memory beyond
+	 * the allocated space. Hence, request for 64KB additional memory to
+	 * incorporate the offset.
+	 */
+
+	err = nvgpu_cbc_alloc(g, (compbit_backing_size + SZ_64K), alloc_vidmem);
 	if (err != 0) {
 		return err;
 	}
@@ -144,8 +158,6 @@ int ga10b_cbc_alloc_comptags(struct gk20a *g, struct nvgpu_cbc *cbc)
 
 	nvgpu_log(g, gpu_dbg_info | gpu_dbg_pte, "supported LTCs: 0x%x",
 		nvgpu_ltc_get_ltc_count(g));
-	nvgpu_log(g, gpu_dbg_info | gpu_dbg_pte,
-		"ltc_count used for calculations: 0x%x", ltc_count);
 	nvgpu_log(g, gpu_dbg_info | gpu_dbg_pte,
 		"compbit backing store size : 0x%x", compbit_backing_size);
 	nvgpu_log(g, gpu_dbg_info | gpu_dbg_pte,

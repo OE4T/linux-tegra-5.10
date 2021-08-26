@@ -104,9 +104,26 @@ int fb_tu104_tlb_invalidate(struct gk20a *g, struct nvgpu_mem *pdb)
 }
 
 #ifdef CONFIG_NVGPU_COMPRESSION
+void tu104_fb_cbc_get_alignment(struct gk20a *g,
+		u64 *base_divisor, u64 *top_divisor)
+{
+	u64 ltc_count = (u64)nvgpu_ltc_get_ltc_count(g);
+
+	if (base_divisor != NULL) {
+		*base_divisor =
+			ltc_count << fb_mmu_cbc_base_alignment_shift_v();
+	}
+
+	if (top_divisor != NULL) {
+		*top_divisor =
+			ltc_count << fb_mmu_cbc_top_alignment_shift_v();
+	}
+}
+
 void tu104_fb_cbc_configure(struct gk20a *g, struct nvgpu_cbc *cbc)
 {
 	u64 base_divisor;
+	u64 top_divisor;
 	u64 compbit_store_base;
 	u64 compbit_store_pa;
 	u64 cbc_start_addr, cbc_end_addr;
@@ -114,17 +131,14 @@ void tu104_fb_cbc_configure(struct gk20a *g, struct nvgpu_cbc *cbc)
 	u64 cbc_top_size;
 	u32 cbc_max;
 
+	g->ops.fb.cbc_get_alignment(g, &base_divisor, &top_divisor);
 	compbit_store_pa = nvgpu_mem_get_addr(g, &cbc->compbit_store.mem);
-	base_divisor = g->ops.cbc.get_base_divisor(g);
 	compbit_store_base = DIV_ROUND_UP(compbit_store_pa, base_divisor);
 
-	cbc_start_addr = (u64)nvgpu_ltc_get_ltc_count(g) *
-			(compbit_store_base <<
-			 fb_mmu_cbc_base_address_alignment_shift_v());
+	cbc_start_addr = compbit_store_base * base_divisor;
 	cbc_end_addr = cbc_start_addr + cbc->compbit_backing_size;
 
-	cbc_top = (cbc_end_addr / nvgpu_ltc_get_ltc_count(g)) >>
-		  fb_mmu_cbc_base_address_alignment_shift_v();
+	cbc_top = (cbc_end_addr / top_divisor);
 	cbc_top_size = u64_lo32(cbc_top) - compbit_store_base;
 
 	nvgpu_assert(cbc_top_size < U64(U32_MAX));

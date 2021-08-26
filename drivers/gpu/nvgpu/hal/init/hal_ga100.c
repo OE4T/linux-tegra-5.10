@@ -403,7 +403,6 @@ static const struct gops_cbc ga100_ops_cbc = {
 	.cbc_init_support = nvgpu_cbc_init_support,
 	.cbc_remove_support = nvgpu_cbc_remove_support,
 	.init = tu104_cbc_init,
-	.get_base_divisor = tu104_cbc_get_base_divisor,
 	.alloc_comptags = ga100_cbc_alloc_comptags,
 	.ctrl = tu104_cbc_ctrl,
 	.fix_config = NULL,
@@ -882,6 +881,7 @@ static const struct gops_fb ga100_ops_fb = {
 #ifdef CONFIG_NVGPU_COMPRESSION
 	.is_comptagline_mode_enabled = ga100_fb_is_comptagline_mode_enabled,
 	.cbc_configure = tu104_fb_cbc_configure,
+	.cbc_get_alignment = tu104_fb_cbc_get_alignment,
 	.set_use_full_comp_tag_line = gm20b_fb_set_use_full_comp_tag_line,
 	.compression_page_size = ga100_fb_compression_page_size,
 	.compressible_page_size = gp10b_fb_compressible_page_size,

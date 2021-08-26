@@ -366,7 +366,6 @@ static const struct gops_cbc ga10b_ops_cbc = {
 	.cbc_init_support = nvgpu_cbc_init_support,
 	.cbc_remove_support = nvgpu_cbc_remove_support,
 	.init = ga10b_cbc_init,
-	.get_base_divisor = ga10b_cbc_get_base_divisor,
 	.alloc_comptags = ga10b_cbc_alloc_comptags,
 	.ctrl = tu104_cbc_ctrl,
 };
@@ -871,6 +870,7 @@ static const struct gops_fb ga10b_ops_fb = {
 	.mmu_debug_rd = gm20b_fb_mmu_debug_rd,
 #ifdef CONFIG_NVGPU_COMPRESSION
 	.cbc_configure = ga10b_fb_cbc_configure,
+	.cbc_get_alignment = tu104_fb_cbc_get_alignment,
 	.set_use_full_comp_tag_line = NULL,
 	.compression_page_size = gp10b_fb_compression_page_size,
 	.compressible_page_size = gp10b_fb_compressible_page_size,

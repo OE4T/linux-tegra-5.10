@@ -1,7 +1,7 @@
 /*
  * TU104 CBC
  *
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,13 +33,6 @@
 #include <nvgpu/hw/tu104/hw_ltc_tu104.h>
 
 #include "cbc_tu104.h"
-
-
-u64 tu104_cbc_get_base_divisor(struct gk20a *g)
-{
-	return (u64)nvgpu_ltc_get_ltc_count(g) <<
-		       ltc_ltcs_ltss_cbc_base_alignment_shift_v();
-}
 
 int tu104_cbc_alloc_comptags(struct gk20a *g, struct nvgpu_cbc *cbc)
 {

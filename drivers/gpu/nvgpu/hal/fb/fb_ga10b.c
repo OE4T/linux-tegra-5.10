@@ -38,21 +38,23 @@
 #ifdef CONFIG_NVGPU_COMPRESSION
 void ga10b_fb_cbc_configure(struct gk20a *g, struct nvgpu_cbc *cbc)
 {
-	u64 compbit_store_base;
-	u64 compbit_store_pa;
-	u64 combit_top_size;
-	u64 combit_top;
-	u32 cbc_max_rval;
-	/* Unlike dgpu, partition swizzling is disabled for ga10b */
-	u32 num_swizzled_ltcs = 1U;
+	u64 base_divisor = 0ULL;
+	u64 top_divisor = 0ULL;
+	u64 compbit_store_base = 0ULL;
+	u64 compbit_start_pa = 0ULL;
+	u64 compbit_store_pa = 0ULL;
+	u64 combit_top_size = 0ULL;
+	u64 combit_top = 0ULL;
+	u32 cbc_max_rval = 0U;
+
+	g->ops.fb.cbc_get_alignment(g, &base_divisor, &top_divisor);
 
 	/*
 	 * Update CBC registers
 	 * Note: CBC Base value should be updated after CBC MAX
 	 */
 	combit_top_size = cbc->compbit_backing_size;
-	combit_top = (combit_top_size / num_swizzled_ltcs) >>
-				fb_mmu_cbc_top_alignment_shift_v();
+	combit_top = combit_top_size / top_divisor;
 	nvgpu_assert(combit_top < U64(U32_MAX));
 	nvgpu_writel(g, fb_mmu_cbc_top_r(),
 		fb_mmu_cbc_top_size_f(u64_lo32(combit_top)));
@@ -64,11 +66,33 @@ void ga10b_fb_cbc_configure(struct gk20a *g, struct nvgpu_cbc *cbc)
 	nvgpu_writel(g, fb_mmu_cbc_max_r(), cbc_max_rval);
 
 	compbit_store_pa = nvgpu_mem_get_addr(g, &cbc->compbit_store.mem);
-	compbit_store_base = (compbit_store_pa / num_swizzled_ltcs) >>
-				fb_mmu_cbc_base_alignment_shift_v();
+	/* must be a multiple of 64KB within allocated memory */
+	compbit_store_base = round_up(compbit_store_pa, SZ_64K);
+	/* Calculate post-divide cbc address */
+	compbit_store_base = compbit_store_base / base_divisor;
+
+	/*
+	 * CBC start address is calculated from the CBC_BASE register value
+	 * Check that CBC start address lies within cbc allocated memory.
+	 */
+	compbit_start_pa = compbit_store_base * base_divisor;
+	nvgpu_assert(compbit_start_pa >= compbit_store_pa);
+
 	nvgpu_assert(compbit_store_base < U64(U32_MAX));
 	nvgpu_writel(g, fb_mmu_cbc_base_r(),
 		fb_mmu_cbc_base_address_f(u64_lo32(compbit_store_base)));
+
+	if (nvgpu_platform_is_silicon(g)) {
+		/* Make sure cbc is marked safe by MMU */
+		cbc_max_rval = nvgpu_readl(g, fb_mmu_cbc_max_r());
+		if ((cbc_max_rval & fb_mmu_cbc_max_safe_m()) !=
+			fb_mmu_cbc_max_safe_true_f()) {
+			nvgpu_err(g,
+				"CBC marked unsafe by MMU, check cbc config");
+		}
+	}
+
+	cbc->compbit_store.base_hw = compbit_store_base;
 
 	nvgpu_log(g, gpu_dbg_info | gpu_dbg_map_v | gpu_dbg_pte,
 		"compbit top size: 0x%x,%08x \n",
@@ -76,19 +100,10 @@ void ga10b_fb_cbc_configure(struct gk20a *g, struct nvgpu_cbc *cbc)
 		(u32)(combit_top_size & 0xffffffffU));
 
 	nvgpu_log(g, gpu_dbg_info | gpu_dbg_map_v | gpu_dbg_pte,
-		"compbit base.pa: 0x%x,%08x cbc_base:0x%llx\n",
+		"compbit mem.pa: 0x%x,%08x cbc_base:0x%llx\n",
 		(u32)(compbit_store_pa >> 32),
 		(u32)(compbit_store_pa & 0xffffffffU),
 		compbit_store_base);
-
-	/* Make sure cbc is marked safe by MMU */
-	cbc_max_rval = nvgpu_readl(g, fb_mmu_cbc_max_r());
-	if ((cbc_max_rval & fb_mmu_cbc_max_safe_m()) !=
-		fb_mmu_cbc_max_safe_true_f()) {
-		nvgpu_err(g, "CBC marked unsafe by MMU, check cbc config");
-	}
-
-	cbc->compbit_store.base_hw = compbit_store_base;
 }
 #endif
 
