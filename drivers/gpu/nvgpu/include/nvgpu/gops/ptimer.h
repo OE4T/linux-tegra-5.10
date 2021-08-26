@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,39 +40,65 @@ struct nvgpu_cpu_time_correlation_sample;
  */
 struct gops_ptimer {
 	/**
-	 * @brief Handles specific type of PRI errors
+	 * @brief Handles specific types of PRI errors
 	 *
 	 * @param g [in]		GPU driver struct pointer
+	 *                               - No validation is performed on this
+	 *                                 parameter.
 	 *
-	 * 1. ISR is called when one of the below PRI error occurs:
+	 * - ISR is called when one of the below PRI error occurs:
 	 *      - PRI_SQUASH: error due to pri access while target block is
 	 *		      in reset
 	 *      - PRI_FECSERR: FECS detected an error while processing a PRI
 	 * 		      request
 	 *      - PRI_TIMEOUT: non-existent host register / timeout waiting for
 	 *                    FECS
-	 * 2. In the ISR, we read PRI_TIMEOUT_SAVE registers - that is, SAVE_0,
-	 *    SAVE_1 and FECS_ERRCODE, which contain information about the first
-	 *    PRI error since the previous error was cleared.
-	 * 3. We extract the address of the first PRI access that resulted in
-	 *    error from PRI_TIMEOUT_SAVE_0 register. Note this address field
-	 *    has 4-byte granularity and is multiplied by 4 to obtain the byte
-	 *    address. Also we find out if the PRI access was a write or a read
-	 *    based on whether PRI_TIMEOUT_SAVE_0_WRITE is true or false
-	 *    respectively.
-	 * 4. We read PRI_TIMEOUT_SAVE_1 which contains the PRI write data for
-	 *    the failed request. Note data is set to
-	 *    NV_PTIMER_PRI_TIMEOUT_SAVE_1_DATA_WAS_READ when the failed request
-	 *    was a read.
-	 * 5. NV_PTIMER_PRI_TIMEOUT_SAVE_0_FECS_TGT field indicates if fecs was
-	 *    the target of the PRI access. If FECS_TGT is TRUE, all other
-	 *    fields in the PRI_TIMEOUT_SAVE_* registers are unreliable except
-	 *    the PRI_TIMEOUT_SAVE_0_TO field and the PRI_TIMEOUT_FECS_ERRCODE
-	 *    So if FECS_TGT is set, we read PRI_TIMEOUT_FECS_ERRCODE and call
-	 *    priv ring HAL to decode the error.
-	 * 6. We clear SAVE_0 and SAVE_1 registers so that the next pri access
-	 *    error can be recorded.
-	 * 7. Report the PRI_TIMEOUT_ERROR to SDL unit.
+	 * - Below registers contain information about the first PRI error since
+	 *   the previous error was cleared:
+	 *    - timer_pri_timeout_save_0_r()
+	 *    - timer_pri_timeout_save_1_r()
+	 *    - timer_pri_timeout_fecs_errcode_r()
+	 *
+	 * Algorithm:
+	 * - timer_pri_timeout_save_0_r() register contains the dword address
+	 *   of the failed PRI access. Read value of register
+	 *   timer_pri_timeout_save_0_r() in \a save0.
+	 * - Extract the address of the PRI access that resulted in
+	 *   error from \a save0 using timer_pri_timeout_save_0_addr_v(save0).
+	 *   This address field has 4-byte granularity, so multiply by 4 to
+	 *   obtain the byte address and store it in \a error_addr.
+	 * - timer_pri_timeout_save_1_r() register contains the PRI write data for
+	 *   the failed request. Note data is set to 0 when the failed request
+	 *   was a read. Read value of register timer_pri_timeout_save_1_r()
+	 *   in \a save1.
+	 * - FECS_TGT field in timer_pri_timeout_save_0_r() register indicates
+	 *   if fecs was the target of the PRI access. Extract bit FECS_TGT in
+	 *   \a save0 using timer_pri_timeout_save_0_fecs_tgt_v(save0). If
+	 *   FECS_TGT is not 0(FALSE), only register timer_pri_timeout_fecs_errcode_r()
+	 *   has reliable value. Read value of register
+	 *   timer_pri_timeout_fecs_errcode_r() in \a fecs_errcode.
+	 * - If \a fecs_errcode is not 0,
+	 *    - Call \ref gops_priv_ring.decode_error_code() HAL to decode error
+	 *      code. The inputs \ref gops_priv_ring.decode_error_code()
+	 *      to are \a g and \a fecs_errcode.
+	 *    - Print error message with FECS error code \a fecs_errcode.
+	 *    - Set \a error_addr to 0, since it is not relevant in case of fecs error.
+	 *    - Also set \a inst to 1 as the target of PRI access was FECS.
+	 * - Print "PRI timeout" error message along with address (\a error_addr),
+	 *   data (\a save1) and if the PRI access was a READ or WRITE operation.
+	 *   Find out if the PRI access was a write or a read by extracting
+	 *   WRITE field from \a save0 using timer_pri_timeout_save_0_write_v(save0).
+	 * - Clear timer_pri_timeout_save_0_r() and timer_pri_timeout_save_1_r()
+	 *   registers so that the next pri access error can be recorded. Write
+	 *   0 to these two registers to clear the previous error information.
+	 * - Report the PRI_TIMEOUT_ERROR to SDL unit using \ref nvgpu_report_pri_err()
+	 *   API. The inputs to \ref nvgpu_report_pri_err() are -
+	 *    - g,
+	 *    - NVGPU_ERR_MODULE_PRI,
+	 *    - inst,
+	 *    - GPU_PRI_TIMEOUT_ERROR,
+	 *    - error_addr,
+	 *    - fecs_errcode
 	 */
 	void (*isr)(struct gk20a *g);
 

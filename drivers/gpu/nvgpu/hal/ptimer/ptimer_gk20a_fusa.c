@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -36,6 +36,10 @@ void gk20a_ptimer_isr(struct gk20a *g)
 	u32 error_addr;
 
 	save0 = gk20a_readl(g, timer_pri_timeout_save_0_r());
+	error_addr = timer_pri_timeout_save_0_addr_v(save0) << 2;
+
+	save1 = gk20a_readl(g, timer_pri_timeout_save_1_r());
+
 	if (timer_pri_timeout_save_0_fecs_tgt_v(save0) != 0U) {
 		/*
 		 * write & addr fields in timeout_save0
@@ -44,17 +48,6 @@ void gk20a_ptimer_isr(struct gk20a *g)
 		fecs_errcode = gk20a_readl(g,
 				timer_pri_timeout_fecs_errcode_r());
 	}
-
-	save1 = gk20a_readl(g, timer_pri_timeout_save_1_r());
-	error_addr = timer_pri_timeout_save_0_addr_v(save0) << 2;
-	nvgpu_err(g, "PRI timeout: ADR 0x%08x "
-		"%s  DATA 0x%08x",
-		error_addr,
-		(timer_pri_timeout_save_0_write_v(save0) != 0U) ?
-		"WRITE" : "READ", save1);
-
-	gk20a_writel(g, timer_pri_timeout_save_0_r(), 0);
-	gk20a_writel(g, timer_pri_timeout_save_1_r(), 0);
 
 	if (fecs_errcode != 0U) {
 		nvgpu_err(g, "FECS_ERRCODE 0x%08x", fecs_errcode);
@@ -67,6 +60,15 @@ void gk20a_ptimer_isr(struct gk20a *g)
 		/* SAVE_0_ADDR cannot be used in this case */
 		error_addr = 0U;
 	}
+
+	nvgpu_err(g, "PRI timeout: ADR 0x%08x "
+		"%s  DATA 0x%08x",
+		error_addr,
+		(timer_pri_timeout_save_0_write_v(save0) != 0U) ?
+		"WRITE" : "READ", save1);
+
+	gk20a_writel(g, timer_pri_timeout_save_0_r(), 0);
+	gk20a_writel(g, timer_pri_timeout_save_1_r(), 0);
 
 	nvgpu_report_pri_err(g, NVGPU_ERR_MODULE_PRI,
 		inst, GPU_PRI_TIMEOUT_ERROR,

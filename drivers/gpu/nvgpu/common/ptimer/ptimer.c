@@ -38,14 +38,25 @@ int nvgpu_ptimer_scale(struct gk20a *g, u32 timeout, u32 *scaled_timeout)
 {
 	u32 scale10x;
 
-	nvgpu_assert(g->ptimer_src_freq != 0U);
-	scale10x = ptimer_scalingfactor10x(g->ptimer_src_freq);
-	nvgpu_assert(scale10x != 0U);
+	/* Validate the input parameters */
+	if (scaled_timeout == NULL) {
+		return -EINVAL;
+	}
 
 	if (timeout > U32_MAX / 10U) {
 		return -EINVAL;
 	}
 
+	/* Calculate the scaling factor */
+	if (g->ptimer_src_freq == 0U) {
+		return -EINVAL;
+	}
+	scale10x = ptimer_scalingfactor10x(g->ptimer_src_freq);
+	if (scale10x == 0U) {
+		return -EINVAL;
+	}
+
+	/* Scale the timeout value */
 	if (((timeout * 10U) % scale10x) >= (scale10x / 2U)) {
 		*scaled_timeout = ((timeout * 10U) / scale10x) + 1U;
 	} else {
