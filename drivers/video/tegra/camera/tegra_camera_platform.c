@@ -679,22 +679,68 @@ static const struct file_operations tegra_camera_ops = {
 	.release = tegra_camera_release,
 };
 
+static bool is_isomgr_up(struct device *dev)
+{
+#if (IS_ENABLED(CONFIG_INTERCONNECT) && IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST))
+	if (tegra_get_chip_id() == TEGRA234) {
+		bool ret = false;
+		struct icc_path *icc_iso_path_handle =
+			icc_get(dev, TEGRA_ICC_VI, TEGRA_ICC_PRIMARY);
+		struct icc_path *icc_niso_path_handle =
+			icc_get(dev, TEGRA_ICC_ISP, TEGRA_ICC_PRIMARY);
 
+		if (PTR_ERR(icc_iso_path_handle) == -EPROBE_DEFER ||
+		PTR_ERR(icc_niso_path_handle) == -EPROBE_DEFER) {
+			dev_dbg(dev,
+			"%s unable to get icc path, as icc driver not up yet\n",
+			__func__);
+			ret = false;
+		} else if (icc_iso_path_handle == NULL ||
+			icc_niso_path_handle == NULL) {
+			dev_err(dev, "%s ICC disabled\n", __func__);
+			ret = false;
+		} else if (IS_ERR(icc_iso_path_handle) ||
+			IS_ERR(icc_niso_path_handle)) {
+			dev_err(dev, "%s icc error, iso : %ld non-iso : %ld\n",
+				__func__, PTR_ERR(icc_iso_path_handle),
+				PTR_ERR(icc_niso_path_handle));
+			ret = false;
+		} else {
+			ret = true;
+		}
+
+		if (!IS_ERR_OR_NULL(icc_iso_path_handle))
+			icc_put(icc_iso_path_handle);
+		if (!IS_ERR_OR_NULL(icc_niso_path_handle))
+			icc_put(icc_niso_path_handle);
+
+		return ret;
+	}
+#endif
+
+#if defined(CONFIG_TEGRA_ISOMGR)
+	if (tegra_get_chip_id() != TEGRA234)
+		return tegra_isomgr_init_status();
+#endif
+
+return true;
+}
 
 static int tegra_camera_probe(struct platform_device *pdev)
 {
 	int ret;
 	struct tegra_camera_info *info;
 
-	dev_dbg(&pdev->dev, "%s:camera_platform_driver probe\n", __func__);
-
-#if defined(CONFIG_TEGRA_ISOMGR)
-	if (tegra_get_chip_id() != TEGRA234) {
-		/* Defer the probe till isomgr is initialized */
-		if (!tegra_isomgr_init_status())
-			return -EPROBE_DEFER;
+	/* Defer the probe till isomgr is initialized */
+	if (!is_isomgr_up(&pdev->dev)) {
+		dev_dbg(&pdev->dev,
+		"%s:camera_platform_driver probe deferred as isomgr not up\n",
+		__func__);
+		return -EPROBE_DEFER;
 	}
-#endif
+
+	dev_dbg(&pdev->dev,
+		"%s:tegra_camera_platform driver probe\n", __func__);
 
 	tegra_camera_misc.minor = MISC_DYNAMIC_MINOR;
 	tegra_camera_misc.name = CAMDEV_NAME;
