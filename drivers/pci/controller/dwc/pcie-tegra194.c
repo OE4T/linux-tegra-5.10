@@ -3092,8 +3092,8 @@ static irqreturn_t tegra_pcie_prsnt_irq(int irq, void *arg)
 
 	wait_event(pcie->config_rp_waitq, pcie->config_rp_done);
 
-	if (gpiod_get_value(pcie->pex_prsnt_gpiod)) {
-		if (!pcie->link_state)
+	if (!gpiod_get_value(pcie->pex_prsnt_gpiod)) {
+		if (!pcie->link_state && !pcie->disable_power_down)
 			return IRQ_HANDLED;
 
 		debugfs_remove_recursive(pcie->debugfs);
@@ -3555,9 +3555,12 @@ static int tegra_pcie_dw_probe(struct platform_device *pdev)
 					ret);
 				goto fail;
 			}
+			if (gpiod_get_value(pcie->pex_prsnt_gpiod))
+				ret = tegra_pcie_config_rp(pcie);
+		} else {
+			ret = tegra_pcie_config_rp(pcie);
 		}
 
-		ret = tegra_pcie_config_rp(pcie);
 		/* Now PRST# IRQ thread is ready to execute */
 		pcie->config_rp_done = true;
 		wake_up(&pcie->config_rp_waitq);
