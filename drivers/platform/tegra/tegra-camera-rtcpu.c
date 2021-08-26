@@ -19,6 +19,10 @@
 #include <linux/bitops.h>
 #include <linux/completion.h>
 #include <linux/delay.h>
+#if IS_ENABLED(CONFIG_INTERCONNECT)
+#include <linux/interconnect.h>
+#include <dt-bindings/interconnect/tegra_icc_id.h>
+#endif
 #include <linux/interrupt.h>
 #include <linux/io.h>
 #include <linux/iommu.h>
@@ -32,7 +36,9 @@
 #include <linux/of_irq.h>
 #include <linux/of_platform.h>
 #include <linux/platform_device.h>
+#if IS_ENABLED(CONFIG_TEGRA_BWMGR)
 #include <linux/platform/tegra/emc_bwmgr.h>
+#endif
 #include <linux/pm_runtime.h>
 #include <linux/sched.h>
 #include <linux/seq_buf.h>
@@ -227,9 +233,15 @@ struct tegra_cam_rtcpu {
 	};
 	const struct tegra_cam_rtcpu_pdata *pdata;
 	struct camrtc_device_group *camera_devices;
+#if IS_ENABLED(CONFIG_INTERCONNECT)
+	struct icc_path *icc_path;
+	u32 mem_bw;
+#endif
+#if IS_ENABLED(CONFIG_TEGRA_BWMGR)
 	struct tegra_bwmgr_client *bwmgr;
-	struct tegra_camrtc_mon *monitor;
 	unsigned long full_bw;
+#endif
+	struct tegra_camrtc_mon *monitor;
 	u32 max_reboot_retry;
 	bool powered;
 	bool boot_sync_done;
@@ -393,15 +405,39 @@ static int tegra_camrtc_deassert_resets(struct device *dev)
 	return ret;
 }
 
-static void tegra_camrtc_init_bwmgr(struct device *dev)
+#define CAMRTC_MAX_BW (0xFFFFFFFFU)
+
+#if IS_ENABLED(CONFIG_INTERCONNECT)
+
+#define RCE_MAX_BW_MBPS (160)
+
+static void tegra_camrtc_init_icc(struct device *dev, u32 bw)
 {
 	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
-	u32 bw;
 
-	if (of_property_read_u32(dev->of_node, NV(memory-bw), &bw) != 0)
+	if (bw == CAMRTC_MAX_BW)
+		rtcpu->mem_bw = MBps_to_icc(RCE_MAX_BW_MBPS);
+	else
+		rtcpu->mem_bw = bw;
+
+	rtcpu->icc_path = icc_get(dev, TEGRA_ICC_RCE, TEGRA_ICC_PRIMARY);
+
+	if (IS_ERR_OR_NULL(rtcpu->icc_path)) {
+		dev_warn(dev, "no interconnect control\n");
+		rtcpu->icc_path = NULL;
 		return;
+	}
 
-	if (bw == 0xFFFFFFFFU)
+	dev_dbg(dev, "using icc rate %u for power-on\n", rtcpu->mem_bw);
+}
+#endif
+
+#if IS_ENABLED(CONFIG_TEGRA_BWMGR)
+static void tegra_camrtc_init_bwmgr(struct device *dev, u32 bw)
+{
+	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
+
+	if (bw == CAMRTC_MAX_BW)
 		rtcpu->full_bw = tegra_bwmgr_get_max_emc_rate();
 	else
 		rtcpu->full_bw = tegra_bwmgr_round_rate(bw);
@@ -416,11 +452,41 @@ static void tegra_camrtc_init_bwmgr(struct device *dev)
 
 	dev_dbg(dev, "using emc rate %lu for power-on\n", rtcpu->full_bw);
 }
+#endif
+
+static void tegra_camrtc_init_membw(struct device *dev)
+{
+	u32 bw = CAMRTC_MAX_BW;
+
+	if (of_property_read_u32(dev->of_node, "nvidia,memory-bw", &bw) != 0) {
+		;
+	} else if (tegra_get_chip_id() == TEGRA234) {
+#if IS_ENABLED(CONFIG_INTERCONNECT)
+		tegra_camrtc_init_icc(dev, bw);
+#endif
+	} else {
+#if IS_ENABLED(CONFIG_TEGRA_BWMGR)
+		tegra_camrtc_init_bwmgr(dev, bw);
+#endif
+	}
+}
 
 static void tegra_camrtc_full_mem_bw(struct device *dev)
 {
 	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
 
+#if IS_ENABLED(CONFIG_INTERCONNECT)
+	if (rtcpu->icc_path != NULL) {
+		int ret = icc_set_bw(rtcpu->icc_path, 0, rtcpu->mem_bw);
+
+		if (ret)
+			dev_err(dev, "set icc bw [%u] failed: %d\n", rtcpu->mem_bw, ret);
+		else
+			dev_dbg(dev, "requested icc bw %u\n", rtcpu->mem_bw);
+	}
+#endif
+
+#if IS_ENABLED(CONFIG_TEGRA_BWMGR)
 	if (rtcpu->bwmgr != NULL) {
 		int ret = tegra_bwmgr_set_emc(rtcpu->bwmgr, rtcpu->full_bw,
 				TEGRA_BWMGR_SET_EMC_FLOOR);
@@ -431,11 +497,17 @@ static void tegra_camrtc_full_mem_bw(struct device *dev)
 			dev_dbg(dev, "requested emc rate %lu\n",
 				rtcpu->full_bw);
 	}
+#endif
 }
 
 static void tegra_camrtc_slow_mem_bw(struct device *dev)
 {
 	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
+
+#if IS_ENABLED(CONFIG_INTERCONNECT)
+	if (rtcpu->icc_path != NULL)
+		(void)icc_set_bw(rtcpu->icc_path, 0, 0);
+#endif
 
 	if (rtcpu->bwmgr != NULL)
 		(void)tegra_bwmgr_set_emc(rtcpu->bwmgr, 0,
@@ -1050,10 +1122,15 @@ static int tegra_cam_rtcpu_remove(struct platform_device *pdev)
 	rtcpu->coverage = NULL;
 
 	tegra_camrtc_poweroff(&pdev->dev);
+#if IS_ENABLED(CONFIG_TEGRA_BWMGR)
 	if (rtcpu->bwmgr != NULL)
 		tegra_bwmgr_unregister(rtcpu->bwmgr);
 	rtcpu->bwmgr = NULL;
-
+#endif
+#if IS_ENABLED(CONFIG_INTERCONNECT)
+	icc_put(rtcpu->icc_path);
+	rtcpu->icc_path = NULL;
+#endif
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	tegra_pd_remove_device(&pdev->dev);
 #else
@@ -1126,7 +1203,7 @@ static int tegra_cam_rtcpu_probe(struct platform_device *pdev)
 		pm_runtime_set_autosuspend_delay(&pdev->dev, timeout);
 	}
 
-	tegra_camrtc_init_bwmgr(dev);
+	tegra_camrtc_init_membw(dev);
 
 	dev->dma_parms = &rtcpu->dma_parms;
 	dma_set_max_seg_size(dev, UINT_MAX);
