@@ -11,13 +11,16 @@
 #include <linux/mailbox_client.h>
 #include <linux/module.h>
 #include <linux/of.h>
+#include <linux/of_platform.h>
 #include <linux/phy/phy.h>
 #include <linux/platform_device.h>
+#include <linux/regmap.h>
 #include <linux/regulator/consumer.h>
 #include <linux/reset.h>
 #include <linux/slab.h>
-#include <linux/regmap.h>
-#include <linux/of_platform.h>
+#include <linux/tegra_prod.h>
+
+
 
 #include <soc/tegra/fuse.h>
 
@@ -435,6 +438,8 @@ struct tegra210_xusb_padctl {
 	struct tegra_xusb_padctl base;
 	struct regmap *regmap;
 
+	/* prod settings */
+	struct tegra_prod *prod_list;
 	struct tegra210_xusb_fuse_calibration fuse;
 	struct tegra210_xusb_padctl_context context;
 };
@@ -2002,6 +2007,24 @@ static int tegra210_usb2_phy_power_on(struct phy *phy)
 
 	mutex_lock(&padctl->lock);
 
+	if (priv->prod_list) {
+		char prod_name[] = "prod_c_utmiX";
+
+		sprintf(prod_name, "prod_c_utmi%d", port->base.index);
+		err = tegra_prod_set_by_name(&padctl->regs, prod_name,
+							priv->prod_list);
+		if (err)
+			dev_dbg(&phy->dev,
+				"failed to apply prod for utmi pad%d\n",
+							port->base.index);
+
+		err = tegra_prod_set_by_name(&padctl->regs, "prod_c_bias",
+							priv->prod_list);
+		if (err)
+			dev_dbg(&phy->dev,
+				"failed to apply prod for bias pad\n");
+	}
+
 	if (port->usb3_port_fake != -1) {
 		value = padctl_readl(padctl, XUSB_PADCTL_SS_PORT_MAP);
 		value &= ~XUSB_PADCTL_SS_PORT_MAP_PORTX_MAP_MASK(
@@ -2349,9 +2372,21 @@ static int tegra210_hsic_phy_power_on(struct phy *phy)
 	struct tegra_xusb_hsic_lane *hsic = to_hsic_lane(lane);
 	struct tegra_xusb_hsic_pad *pad = to_hsic_pad(lane->pad);
 	struct tegra_xusb_padctl *padctl = lane->pad->padctl;
+	struct tegra210_xusb_padctl *priv = to_tegra210_xusb_padctl(padctl);
 	unsigned int index = lane->index;
 	u32 value;
 	int err;
+
+	if (priv->prod_list) {
+		char prod_name[] = "prod_c_hsicX";
+
+		sprintf(prod_name, "prod_c_hsic%d", 0);
+		err = tegra_prod_set_by_name(&padctl->regs, prod_name,
+							priv->prod_list);
+		if (err)
+			dev_dbg(&phy->dev,
+			"failed to apply prod for hsic pad%d\n", 0);
+	}
 
 	err = regulator_enable(pad->supply);
 	if (err)
@@ -2775,9 +2810,23 @@ static int tegra210_pcie_phy_power_on(struct phy *phy)
 {
 	struct tegra_xusb_lane *lane = phy_get_drvdata(phy);
 	struct tegra_xusb_padctl *padctl = lane->pad->padctl;
+	struct tegra210_xusb_padctl *priv = to_tegra210_xusb_padctl(padctl);
 	int err = 0;
 
 	mutex_lock(&padctl->lock);
+
+	if (priv->prod_list) {
+		char prod_name[] = "prod_c_ssX";
+
+		sprintf(prod_name, "prod_c_ss%d", tegra210_usb3_lane_map(lane));
+
+		err = tegra_prod_set_by_name(&padctl->regs, prod_name,
+				priv->prod_list);
+		if (err)
+			dev_dbg(&phy->dev,
+				"failed to apply prod for ss pad%d\n",
+							tegra210_usb3_lane_map(lane));
+	}
 
 	if (tegra_xusb_lane_check(lane, "usb3-ss"))
 		err = tegra210_usb3_phy_power_on(phy);
@@ -2944,9 +2993,22 @@ static int tegra210_sata_phy_power_on(struct phy *phy)
 {
 	struct tegra_xusb_lane *lane = phy_get_drvdata(phy);
 	struct tegra_xusb_padctl *padctl = lane->pad->padctl;
+	struct tegra210_xusb_padctl *priv = to_tegra210_xusb_padctl(padctl);
 	int err = 0;
 
 	mutex_lock(&padctl->lock);
+
+	if (priv->prod_list) {
+		char prod_name[] = "prod_c_ssX";
+
+		sprintf(prod_name, "prod_c_ss%d", tegra210_usb3_lane_map(lane));
+		err = tegra_prod_set_by_name(&padctl->regs, prod_name,
+				priv->prod_list);
+		if (err)
+			dev_dbg(&phy->dev,
+				"failed to apply prod for ss pad%d\n",
+				tegra210_usb3_lane_map(lane));
+	}
 
 	if (tegra_xusb_lane_check(lane, "usb3-ss"))
 		err = tegra210_usb3_phy_power_on(phy);
@@ -3207,6 +3269,12 @@ tegra210_xusb_padctl_probe(struct device *dev,
 	padctl->regmap = dev_get_regmap(&pdev->dev, "usb_sleepwalk");
 	if (!padctl->regmap)
 		dev_info(dev, "pmc regmap is not available.\n");
+
+	padctl->prod_list = devm_tegra_prod_get(dev);
+	if (IS_ERR(padctl->prod_list)) {
+		dev_warn(dev, "Prod-settings is not available\n");
+		padctl->prod_list = NULL;
+	}
 
 out:
 	return &padctl->base;
