@@ -55,6 +55,7 @@ struct host1x_job *host1x_job_alloc(struct host1x_channel *ch,
 	job->enable_firewall = enable_firewall;
 
 	kref_init(&job->ref);
+	init_completion(&job->fence_cb_done);
 	job->channel = ch;
 
 	/* Redistribute memory to the structs  */
@@ -84,13 +85,24 @@ EXPORT_SYMBOL(host1x_job_get);
 static void job_free(struct kref *ref)
 {
 	struct host1x_job *job = container_of(ref, struct host1x_job, ref);
+	bool removed;
 
 	if (job->release)
 		job->release(job);
 
-	if (job->waiter)
-		host1x_intr_put_ref(job->syncpt->host, job->syncpt->id,
-				    job->waiter, false);
+	if (job->fence) {
+		removed = dma_fence_remove_callback(job->fence, &job->fence_cb);
+		if (!removed) {
+			/*
+			 * Wait until possible pending callback is no longer
+			 * using the job structure.
+			 */
+
+			wait_for_completion(&job->fence_cb_done);
+		}
+
+		dma_fence_put(job->fence);
+	}
 
 	if (job->syncpt)
 		host1x_syncpt_put(job->syncpt);

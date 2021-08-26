@@ -8,6 +8,7 @@
 
 #include <linux/device.h>
 #include <linux/dma-direction.h>
+#include <linux/dma-fence.h>
 #include <linux/spinlock.h>
 #include <linux/types.h>
 
@@ -296,8 +297,10 @@ struct host1x_job {
 	/* Non-job tracking related syncpoint */
 	struct host1x_syncpt *secondary_syncpt;
 
-	/* Completion waiter ref */
-	void *waiter;
+	/* Completion fence for job tracking */
+	struct dma_fence *fence;
+	struct dma_fence_cb fence_cb;
+	struct completion fence_cb_done;
 
 	/* Maximum time to wait for this job */
 	unsigned int timeout;
