@@ -2009,8 +2009,9 @@ u32 hwpm_readl(struct tegra_soc_hwpm *hwpm,
 		return 0;
 	}
 
-	tegra_soc_hwpm_dbg("reg read: dt_aperture(%d), reg_offset(0x%x)",
-			dt_aperture, reg_offset);
+	tegra_soc_hwpm_dbg(
+		"dt_aperture(%d): dt_aperture addr(0x%llx) reg_offset(0x%x)",
+		dt_aperture, hwpm->dt_apertures[dt_aperture], reg_offset);
 
 	if (hwpm->fake_registers_enabled) {
 		u64 base_pa = 0;
@@ -2040,8 +2041,9 @@ void hwpm_writel(struct tegra_soc_hwpm *hwpm,
 	}
 
 	tegra_soc_hwpm_dbg(
-		"reg write: dt_aperture(%d), reg_offset(0x%x), val(0x%x)",
-		dt_aperture, reg_offset, val);
+		"dt_aperture(%d): dt_aperture addr(0x%llx) "
+		"reg_offset(0x%x), val(0x%x)",
+		dt_aperture, hwpm->dt_apertures[dt_aperture], reg_offset, val);
 
 	if (hwpm->fake_registers_enabled) {
 		u64 base_pa = 0;
