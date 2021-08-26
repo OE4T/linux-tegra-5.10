@@ -53,6 +53,8 @@
 #endif /* !NVMAP_LOADABLE_MODULE */
 #endif
 
+#define MEMINFO_PATH "/proc/meminfo"
+#define MEMINFO_SIZE 1536
 extern struct device tegra_vpr_dev;
 
 static ssize_t rw_handle(struct nvmap_client *client, struct nvmap_handle *h,
@@ -1019,13 +1021,78 @@ int nvmap_ioctl_handle_from_sci_ipc_id(struct file *filp, void __user *arg)
 }
 #endif
 
-static unsigned long system_heap_free_mem(void)
+/*
+ * This function read /proc/meminfo file, and retrieve CMA free value out of it.
+ */
+static int find_free_cma_mem(unsigned long *cma_free)
 {
-	struct sysinfo sys_heap;
+	struct file *file;
+	loff_t pos = 0;
+	u8 buf[MEMINFO_SIZE];
+	int rc;
+	char *buffer, *ptr;
+	bool free_cma_found = false;
 
-	si_meminfo(&sys_heap);
+	file = filp_open(MEMINFO_PATH, O_RDONLY, 0);
+	if (IS_ERR(file))
+		return -EPERM;
+	memset(buf, 0, sizeof(buf));
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+	rc = kernel_read(file, buf, MEMINFO_SIZE - 1, &pos);
+#else
+	rc = kernel_read(file, pos, buf, MEMINFO_SIZE - 1);
+#endif
+	buf[rc] = '\n';
+	filp_close(file, NULL);
+	buffer = buf;
+	ptr = buf;
+	while ((ptr = strsep(&buffer, "\n")) != NULL) {
+		if (!ptr[0])
+			continue;
+		if (sscanf(ptr, "CmaFree: %lu kB\n", cma_free) == 1) {
+			free_cma_found = true;
+			break;
+		}
+	}
+	if (!free_cma_found)
+		return -EINVAL;
+	return 0;
+}
 
-	return sys_heap.freeram << PAGE_SHIFT;
+/*
+ * This function calculates allocatable free memory using following formula:
+ * free_mem = avail mem - cma free - (avail mem - cma free) / 16
+ * The CMA memory is not allocatable by NvMap for regular allocations and it
+ * is part of Available memory reported, so subtract it from available memory.
+ * NvMap allocates 1/16 extra memory in page coloring, so subtract it as well.
+ */
+static int system_heap_free_mem(unsigned long *mem_val)
+{
+	long available_mem = 0;
+	unsigned long free_mem = 0;
+	unsigned long cma_free = 0;
+	int err = 0;
+
+	available_mem = si_mem_available();
+	if (available_mem <= 0) {
+		*mem_val = 0;
+		return 0;
+	}
+	err = find_free_cma_mem(&cma_free);
+	if (err)
+		return err;
+
+	cma_free = cma_free << 10;
+	if ((available_mem << PAGE_SHIFT) - cma_free < 0) {
+		*mem_val = 0;
+		return 0;
+	}
+	free_mem = (available_mem << PAGE_SHIFT) - cma_free;
+#ifdef CONFIG_NVMAP_COLOR_PAGES
+	free_mem = free_mem - (free_mem >> 4);
+#endif /* CONFIG_NVMAP_COLOR_PAGES */
+	*mem_val = free_mem;
+	return 0;
 }
 
 static unsigned long system_heap_total_mem(void)
@@ -1046,6 +1113,7 @@ int nvmap_ioctl_query_heap_params(struct file *filp, void __user *arg)
 	unsigned int type;
 	int ret = 0;
 	int i;
+	unsigned long free_mem = 0;
 
 	memset(&op, 0, sizeof(op));
 	if (copy_from_user(&op, arg, sizeof(op))) {
@@ -1084,7 +1152,10 @@ int nvmap_ioctl_query_heap_params(struct file *filp, void __user *arg)
 
 	} else if (type & iovmm_mask) {
 		op.total = system_heap_total_mem();
-		op.free = system_heap_free_mem();
+		ret = system_heap_free_mem(&free_mem);
+		if (ret)
+			goto exit;
+		op.free = free_mem;
 	}
 
 	if (copy_to_user(arg, &op, sizeof(op)))
