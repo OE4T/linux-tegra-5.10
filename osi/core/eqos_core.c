@@ -2113,29 +2113,15 @@ static nve32_t eqos_core_init(struct osi_core_priv_data *const osi_core,
 	osi_writela(osi_core, EQOS_MMC_CNTRL_CNTRST,
 		    (nveu8_t *)osi_core->base + EQOS_MMC_CNTRL);
 
-	if (osi_core->use_virtualization == OSI_DISABLE) {
-		if ((osi_core->hv_base != OSI_NULL) &&
-		    (osi_core->mac_ver == OSI_EQOS_MAC_5_30)) {
-			osi_writela(osi_core, EQOS_5_30_ASID_CTRL_VAL,
-				    (nveu8_t *)osi_core->hv_base +
-				    EQOS_AXI_ASID_CTRL);
+	/* AXI ASID CTRL for channel 0 to 3 */
+	osi_writela(osi_core, EQOS_AXI_ASID_CTRL_VAL,
+		    (nveu8_t *)osi_core->base + EQOS_AXI_ASID_CTRL);
 
-			osi_writela(osi_core, EQOS_5_30_ASID1_CTRL_VAL,
-				    (nveu8_t *)osi_core->hv_base +
-				    EQOS_AXI_ASID1_CTRL);
-		} else {
-			/* AXI ASID CTRL for channel 0 to 3 */
-			osi_writela(osi_core, EQOS_AXI_ASID_CTRL_VAL,
-				    (nveu8_t *)osi_core->base +
-				    EQOS_AXI_ASID_CTRL);
-
-			/* AXI ASID1 CTRL for channel 4 to 7 */
-			if (osi_core->mac_ver > OSI_EQOS_MAC_5_00) {
-				osi_writela(osi_core, EQOS_AXI_ASID1_CTRL_VAL,
-					    (nveu8_t *)osi_core->base +
-					    EQOS_AXI_ASID1_CTRL);
-			}
-		}
+	/* AXI ASID1 CTRL for channel 4 to 7 */
+	if (osi_core->mac_ver > OSI_EQOS_MAC_5_00) {
+		osi_writela(osi_core, EQOS_AXI_ASID1_CTRL_VAL,
+			    (nveu8_t *)osi_core->base +
+			    EQOS_AXI_ASID1_CTRL);
 	}
 
 	/* Mapping MTL Rx queue and DMA Rx channel */

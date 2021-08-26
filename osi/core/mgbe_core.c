@@ -3062,20 +3062,7 @@ static void mgbe_dma_chan_to_vmirq_map(struct osi_core_priv_data *osi_core)
 		}
 	}
 
-	if ((osi_core->use_virtualization == OSI_DISABLE) &&
-	    (osi_core->hv_base != OSI_NULL)) {
-		osi_writela(osi_core, MGBE_ASID_CTRL_VAL,
-			    (nveu8_t *)osi_core->hv_base +
-			    MGBE_WRAP_AXI_ASID0_CTRL);
-
-		osi_writela(osi_core, MGBE_ASID1_CTRL_VAL,
-			    (nveu8_t *)osi_core->hv_base +
-			    MGBE_WRAP_AXI_ASID1_CTRL);
-
-		osi_writela(osi_core, MGBE_ASID2_CTRL_VAL,
-			    (nveu8_t *)osi_core->hv_base +
-			    MGBE_WRAP_AXI_ASID2_CTRL);
-	}
+	osi_writel(0xD, (nveu8_t *)osi_core->base + 0x8400);
 }
 
 
