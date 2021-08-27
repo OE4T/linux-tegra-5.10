@@ -99,7 +99,7 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 
 		.disable_aspm = true,
 		.disable_nvlink = false,
-		.pstate = true,
+		.pstate = false,
 
 		/* power management callbacks */
 		.is_railgated = nvgpu_pci_tegra_is_railgated,
@@ -142,7 +142,7 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 
 		.disable_aspm = true,
 		.disable_nvlink = false,
-		.pstate = true,
+		.pstate = false,
 
 		/* power management callbacks */
 		.is_railgated = nvgpu_pci_tegra_is_railgated,
