@@ -571,6 +571,8 @@ struct ether_priv_data {
 	unsigned int mdio_addr;
 	/** Skip MAC reset */
 	unsigned int skip_mac_reset;
+	/** Fixed link enable/disable */
+	unsigned int fixed_link;
 };
 
 /**
