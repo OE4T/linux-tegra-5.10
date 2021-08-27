@@ -1174,6 +1174,8 @@ static int tegra_soc_hwpm_open(struct inode *inode, struct file *filp)
 	unsigned int minor = iminor(inode);
 	struct tegra_soc_hwpm *hwpm = NULL;
 	struct resource *res = NULL;
+	u32 field_mask = 0U;
+	u32 field_val = 0U;
 	u32 i;
 	u64 num_regs = 0;
 
@@ -1314,7 +1316,6 @@ static int tegra_soc_hwpm_open(struct inode *inode, struct file *filp)
 	}
 	hwpm_resources[TEGRA_SOC_HWPM_RESOURCE_CMD_SLICE_RTR].reserved = true;
 
-	/* FIXME: Remove after verification */
 	/* Disable SLCG */
 	ret = reg_rmw(hwpm, NULL, TEGRA_SOC_HWPM_PMA_DT,
 		pmasys_cg2_r() - addr_map_pma_base_r(),
@@ -1326,11 +1327,15 @@ static int tegra_soc_hwpm_open(struct inode *inode, struct file *filp)
 		goto fail;
 	}
 
+	field_mask = pmmsys_sys0router_cg2_slcg_perfmon_m() |
+		pmmsys_sys0router_cg2_slcg_router_m() |
+		pmmsys_sys0router_cg2_slcg_m();
+	field_val = pmmsys_sys0router_cg2_slcg_perfmon_disabled_f() |
+		pmmsys_sys0router_cg2_slcg_router_disabled_f() |
+		pmmsys_sys0router_cg2_slcg_disabled_f();
 	ret = reg_rmw(hwpm, NULL, TEGRA_SOC_HWPM_RTR_DT,
 		pmmsys_sys0router_cg2_r() - addr_map_rtr_base_r(),
-		pmmsys_sys0router_cg2_slcg_m(),
-		pmmsys_sys0router_cg2_slcg_disabled_f(),
-		false, false);
+		field_mask, field_val, false, false);
 	if (ret < 0) {
 		tegra_soc_hwpm_err("Unable to disable ROUTER SLCG");
 		ret = -EIO;
@@ -1605,7 +1610,6 @@ static int tegra_soc_hwpm_release(struct inode *inode, struct file *filp)
 	}
 	hwpm->mem_bytes_dma_buf = NULL;
 
-	/* FIXME: Remove after verification */
 	/* Enable SLCG */
 	err = reg_rmw(hwpm, NULL, TEGRA_SOC_HWPM_PMA_DT,
 		pmasys_cg2_r() - addr_map_pma_base_r(),
@@ -1613,10 +1617,15 @@ static int tegra_soc_hwpm_release(struct inode *inode, struct file *filp)
 		pmasys_cg2_slcg_enabled_f(), false, false);
 	RELEASE_FAIL("Unable to enable PMA SLCG");
 
+	field_mask = pmmsys_sys0router_cg2_slcg_perfmon_m() |
+		pmmsys_sys0router_cg2_slcg_router_m() |
+		pmmsys_sys0router_cg2_slcg_m();
+	field_val = pmmsys_sys0router_cg2_slcg_perfmon__prod_f() |
+		pmmsys_sys0router_cg2_slcg_router__prod_f() |
+		pmmsys_sys0router_cg2_slcg__prod_f();
 	err = reg_rmw(hwpm, NULL, TEGRA_SOC_HWPM_RTR_DT,
 		pmmsys_sys0router_cg2_r() - addr_map_rtr_base_r(),
-		pmmsys_sys0router_cg2_slcg_m(),
-		pmmsys_sys0router_cg2_slcg_enabled_f(), false, false);
+		field_mask, field_val, false, false);
 	RELEASE_FAIL("Unable to enable ROUTER SLCG");
 
 	/* Unmap PMA and RTR apertures */
