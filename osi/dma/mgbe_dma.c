@@ -502,9 +502,18 @@ static void mgbe_configure_dma_channel(nveu32_t chan,
 		/* Conversion of usec to Rx Interrupt Watchdog Timer Count */
 		/* TODO: Need to fix AXI clock for silicon */
 		value |= ((osi_dma->rx_riwt *
-			 ((nveu32_t)13000000 / OSI_ONE_MEGA_HZ)) /
+			 ((nveu32_t)MGBE_AXI_CLK_FREQ / OSI_ONE_MEGA_HZ)) /
 			 MGBE_DMA_CHX_RX_WDT_RWTU) &
 			 MGBE_DMA_CHX_RX_WDT_RWT_MASK;
+		osi_writel(value, (nveu8_t *)osi_dma->base +
+			   MGBE_DMA_CHX_RX_WDT(chan));
+
+		value = osi_readl((nveu8_t *)osi_dma->base +
+				  MGBE_DMA_CHX_RX_WDT(chan));
+		value &= ~(MGBE_DMA_CHX_RX_WDT_RWTU_MASK <<
+			   MGBE_DMA_CHX_RX_WDT_RWTU_SHIFT);
+		value |= (MGBE_DMA_CHX_RX_WDT_RWTU_2048_CYCLE <<
+			  MGBE_DMA_CHX_RX_WDT_RWTU_SHIFT);
 		osi_writel(value, (nveu8_t *)osi_dma->base +
 			   MGBE_DMA_CHX_RX_WDT(chan));
 	}
