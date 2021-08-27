@@ -24,6 +24,15 @@
 #define INCLUDED_MGBE_DMA_H
 
 /**
+ * @addtogroup MGBE AXI Clock defines
+ *
+ * @brief AXI Clock defines
+ * @{
+ */
+#define MGBE_AXI_CLK_FREQ	408000000U
+/** @} */
+
+/**
  * @@addtogroup Timestamp Capture Register
  * @brief MGBE MAC Timestamp Register offset
  * @{
@@ -78,7 +87,10 @@
 #define MGBE_DMA_CHX_TX_CTRL_OSP		OSI_BIT(4)
 #define MGBE_DMA_CHX_TX_CTRL_TSE		OSI_BIT(12)
 #define MGBE_DMA_CHX_RX_WDT_RWT_MASK		0xFFU
-#define MGBE_DMA_CHX_RX_WDT_RWTU		256U
+#define MGBE_DMA_CHX_RX_WDT_RWTU		2048U
+#define MGBE_DMA_CHX_RX_WDT_RWTU_2048_CYCLE	3U
+#define MGBE_DMA_CHX_RX_WDT_RWTU_MASK		3U
+#define MGBE_DMA_CHX_RX_WDT_RWTU_SHIFT		12U
 #define MGBE_DMA_CHX_RBSZ_MASK			0x7FFEU
 #define MGBE_DMA_CHX_RBSZ_SHIFT			1U
 #define MGBE_AXI_BUS_WIDTH			0x10U
