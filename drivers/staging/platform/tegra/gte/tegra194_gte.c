@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License version 2
@@ -99,6 +99,10 @@ static LIST_HEAD(gte_devices);
 #define NV_AON_GTE_SLICE2_IRQ_GPIO_25	25
 #define NV_AON_GTE_SLICE2_IRQ_GPIO_26	26
 #define NV_AON_GTE_SLICE2_IRQ_GPIO_27	27
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_28	28
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_29	29
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_30	30
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_31	31
 
 #define GTE_TECTRL		0x0
 #define GTE_TETSCH		0x4
@@ -224,9 +228,50 @@ static const struct tegra_gte_ev_mapped tegra194_aon_gpio_map[] = {
 	[29] = {32, 1, NV_AON_GTE_SLICE1_IRQ_GPIO_29},
 };
 
-static const struct tegra_gte_ev_table aon_gte_map = {
+static const struct tegra_gte_ev_mapped tegra234_aon_gpio_map[] = {
+		/* pin num, slice, bit_index */
+	[0]  = {11, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_0},
+	[1]  = {10, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_1},
+	[2]  = {9, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_2},
+	[3]  = {8, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_3},
+	[4]  = {7, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_4},
+	[5]  = {6, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_5},
+	[6]  = {5, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_6},
+	[7]  = {4, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_7},
+	[8]  = {3, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_8},
+	[9]  = {2, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_9},
+	[10] = {1, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_10},
+	[11] = {0, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_11},
+	[12] = {26, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_12},
+	[13] = {25, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_13},
+	[14] = {24, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_14},
+	[15] = {23, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_15},
+	[16] = {22, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_16},
+	[17] = {21, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_17},
+	[18] = {20, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_18},
+	[19] = {19, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_19},
+	[20] = {18, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_20},
+	[21] = {17, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_21},
+	[22] = {16, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_22},
+	[23] = {40, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_23},
+	[24] = {39, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_24},
+	[25] = {38, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_25},
+	[26] = {37, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_26},
+	[27] = {36, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_27},
+	[28] = {35, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_28},
+	[29] = {34, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_29},
+	[30] = {33, 2, NV_AON_GTE_SLICE1_IRQ_GPIO_30},
+	[31] = {32, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_31},
+};
+
+static const struct tegra_gte_ev_table t194_aon_gte_map = {
 	.map_sz = ARRAY_SIZE(tegra194_aon_gpio_map),
 	.map = tegra194_aon_gpio_map,
+};
+
+static const struct tegra_gte_ev_table t234_aon_gte_map = {
+	.map_sz = ARRAY_SIZE(tegra234_aon_gpio_map),
+	.map = tegra234_aon_gpio_map,
 };
 
 static inline u32 tegra_gte_readl(struct tegra_gte_dev *gte, u32 reg)
@@ -1052,7 +1097,8 @@ err_remove_chardev:
 
 static const struct of_device_id tegra_gte_of_match[] = {
 	{ .compatible = "nvidia,tegra194-gte-lic"},
-	{ .compatible = "nvidia,tegra194-gte-aon", .data = &aon_gte_map},
+	{ .compatible = "nvidia,tegra194-gte-aon", .data = &t194_aon_gte_map},
+	{ .compatible = "nvidia,tegra234-gte-aon", .data = &t234_aon_gte_map},
 	{ }
 };
 MODULE_DEVICE_TABLE(of, tegra_gte_of_match);
