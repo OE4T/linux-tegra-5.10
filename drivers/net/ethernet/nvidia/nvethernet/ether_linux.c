@@ -867,6 +867,16 @@ static void ether_adjust_link(struct net_device *dev)
 			}
 		}
 
+		if (pdata->fixed_link == OSI_ENABLE) {
+			if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
+				if (iface_mode == OSI_XFI_MODE_10G) {
+					phydev->speed = OSI_SPEED_10000;
+				} else if (iface_mode == OSI_XFI_MODE_5G) {
+					phydev->speed = OSI_SPEED_5000;
+				}
+				phydev->duplex = OSI_FULL_DUPLEX;
+			}
+		}
 		if (phydev->duplex != pdata->oldduplex) {
 			new_state = 1;
 			ioctl_data.cmd = OSI_CMD_SET_MODE;
@@ -5144,6 +5154,7 @@ static int ether_parse_phy_dt(struct ether_priv_data *pdata,
 	if ((pdata->phy_node == NULL) && of_phy_is_fixed_link(node)) {
 		if ((of_phy_register_fixed_link(node) < 0))
 			return -ENODEV;
+		pdata->fixed_link = OSI_ENABLE;
 		pdata->phy_node = of_node_get(node);
 	}
 
