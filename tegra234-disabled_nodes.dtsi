@@ -61,15 +61,6 @@
                 status = "disabled";
         };
 
-	aconnect@2a41000 {
-		adsp@2993000 {
-			status = "disabled";
-		};
-		adsp_audio {
-			status = "disabled";
-		};
-	};
-
 	ufshci@2500000 {
 		status = "disabled";
 	};
