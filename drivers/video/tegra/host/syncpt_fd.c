@@ -113,3 +113,10 @@ int nvhost_syncpt_fd_get(int fd, struct nvhost_syncpt *syncpt, u32 *id)
 	return 0;
 }
 
+int nvhost_syncpt_fd_get_ext(int fd, struct platform_device *pdev, u32 *id)
+{
+	struct nvhost_syncpt *syncpt = &nvhost_get_host(pdev)->syncpt;
+
+	return nvhost_syncpt_fd_get(fd, syncpt, id);
+}
+EXPORT_SYMBOL(nvhost_syncpt_fd_get_ext);
