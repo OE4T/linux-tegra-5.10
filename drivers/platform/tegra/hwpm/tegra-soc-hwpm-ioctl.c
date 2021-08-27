@@ -1605,14 +1605,6 @@ static int tegra_soc_hwpm_release(struct inode *inode, struct file *filp)
 	}
 	hwpm->mem_bytes_dma_buf = NULL;
 
-	if (tegra_platform_is_silicon()) {
-		err = reset_control_assert(hwpm->hwpm_rst);
-		RELEASE_FAIL("hwpm reset assert failed");
-		err = reset_control_assert(hwpm->la_rst);
-		RELEASE_FAIL("la reset assert failed");
-		clk_disable_unprepare(hwpm->la_clk);
-	}
-
 	/* FIXME: Remove after verification */
 	/* Enable SLCG */
 	err = reg_rmw(hwpm, NULL, TEGRA_SOC_HWPM_PMA_DT,
@@ -1690,6 +1682,15 @@ static int tegra_soc_hwpm_release(struct inode *inode, struct file *filp)
 			}
 		}
 	}
+
+	if (tegra_platform_is_silicon()) {
+		err = reset_control_assert(hwpm->hwpm_rst);
+		RELEASE_FAIL("hwpm reset assert failed");
+		err = reset_control_assert(hwpm->la_rst);
+		RELEASE_FAIL("la reset assert failed");
+		clk_disable_unprepare(hwpm->la_clk);
+	}
+
 	return ret;
 }
 
