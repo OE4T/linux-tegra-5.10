@@ -23,11 +23,27 @@ static int therm_get_internal_sensor_curr_temp(void *data, u64 *val)
 {
 	struct gk20a *g = (struct gk20a *)data;
 	u32 readval;
-	int err;
+	int err = 0;
 
-	err = nvgpu_pmu_therm_channel_get_curr_temp(g, &readval);
-	if (!err)
+	/*
+	 * If PSTATE is enabled, temp value is taken from THERM_GET_STATUS.
+	 * If PSTATE is disable, temp value is read from NV_THERM_I2CS_SENSOR_00
+	 * register value.
+	 */
+	if (nvgpu_is_enabled(g, NVGPU_PMU_PSTATE)) {
+		err = nvgpu_pmu_therm_channel_get_curr_temp(g, &readval);
+		if (!err) {
+			*val = readval;
+		}
+	} else {
+		if (!g->ops.therm.get_internal_sensor_curr_temp) {
+			nvgpu_err(g, "reading NV_THERM_I2CS_SENSOR_00 not enabled");
+			return -EINVAL;
+		}
+
+		g->ops.therm.get_internal_sensor_curr_temp(g, &readval);
 		*val = readval;
+	}
 
 	return err;
 }

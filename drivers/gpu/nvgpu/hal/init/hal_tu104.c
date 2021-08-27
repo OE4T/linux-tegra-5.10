@@ -1146,6 +1146,8 @@ static const struct gops_therm tu104_ops_therm = {
 #endif
 	.elcg_init_idle_filters = NULL,
 #ifdef CONFIG_NVGPU_LS_PMU
+	.get_internal_sensor_curr_temp =
+		tu104_get_internal_sensor_curr_temp,
 	.get_internal_sensor_limits = tu104_get_internal_sensor_limits,
 #endif
 };

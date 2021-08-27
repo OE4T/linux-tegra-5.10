@@ -1744,9 +1744,24 @@ static int nvgpu_gpu_get_temperature(struct gk20a *g,
 	if (err)
 		return err;
 
-	err = nvgpu_pmu_therm_channel_get_curr_temp(g, &temp_f24_8);
-	if (err) {
-		return err;
+	/*
+	 * If PSTATE is enabled, temp value is taken from THERM_GET_STATUS.
+	 * If PSTATE is disable, temp value is read from NV_THERM_I2CS_SENSOR_00
+	 * register value.
+	 */
+	if (nvgpu_is_enabled(g, NVGPU_PMU_PSTATE)) {
+		err = nvgpu_pmu_therm_channel_get_curr_temp(g, &temp_f24_8);
+		if (err) {
+			nvgpu_err(g, "pmu therm channel get status failed");
+			return err;
+		}
+	} else {
+		if (!g->ops.therm.get_internal_sensor_curr_temp) {
+			nvgpu_err(g, "reading NV_THERM_I2CS_SENSOR_00 not enabled");
+			return -EINVAL;
+		}
+
+		g->ops.therm.get_internal_sensor_curr_temp(g, &temp_f24_8);
 	}
 
 	gk20a_idle(g);
