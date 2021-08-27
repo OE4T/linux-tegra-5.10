@@ -48,12 +48,10 @@ static struct nvhost_gating_register __attribute__((__unused__))
 
 static struct nvhost_gating_register __attribute__((__unused__))
 	t23x_tsec_gating_registers[] = {
-	/* NV_PSEC_THI_CLK_OVERRIDE */
-	{ .addr = 0x00000e00, .prod = 0x00000000, .disable = 0xffffffff },
-	/* NV_PSEC_THI_SLCG_OVERRIDE_HIGH_A */
-	{ .addr = 0x00000088, .prod = 0x00000000, .disable = 0x000000ff },
-	/* NV_PSEC_THI_SLCG_OVERRIDE_LOW_A */
-	{ .addr = 0x0000008c, .prod = 0x00000000, .disable = 0xffffffff },
+	/* NV_PSEC_PRIV_BLOCKER_CTRL_CG1 */
+	{ .addr = 0x00001e28, .prod = 0x00000000, .disable = 0x00000001 },
+	/* NV_PSEC_RISCV_CG */
+	{ .addr = 0x00002398, .prod = 0x00000003, .disable = 0x00000000 },
 	{}
 };
 
