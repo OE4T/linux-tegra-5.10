@@ -21,6 +21,7 @@
 #include <linux/errno.h>
 #include <linux/linkage.h>
 #include <linux/init.h>
+#include <linux/version.h>
 #include <asm/assembler.h>
 #include <asm/cpufeature.h>
 #include <asm/alternative.h>
@@ -63,6 +64,9 @@ SYM_FUNC_END(invalidate_icache_range)
  *	- size    - size in question
  */
 SYM_FUNC_START_PI(__flush_dcache_area)
+#if LINUX_VERSION_CODE > KERNEL_VERSION(5, 13, 0)
+	add	x1, x0, x1
+#endif
 	dcache_by_line_op civac, sy, x0, x1, x2, x3
 	ret
 SYM_FUNC_END_PI(__flush_dcache_area)
@@ -81,6 +85,9 @@ alternative_if ARM64_HAS_CACHE_IDC
 	dsb	ishst
 	ret
 alternative_else_nop_endif
+#if LINUX_VERSION_CODE > KERNEL_VERSION(5, 13, 0)
+	add	x1, x0, x1
+#endif
 	dcache_by_line_op cvau, ish, x0, x1, x2, x3
 	ret
 SYM_FUNC_END(__clean_dcache_area_pou)
@@ -143,6 +150,9 @@ SYM_FUNC_START_PI(__clean_dcache_area_poc)
  *	- start   - virtual start address of region
  *	- size    - size in question
  */
+#if LINUX_VERSION_CODE > KERNEL_VERSION(5, 13, 0)
+	add	x1, x0, x1
+#endif
 	dcache_by_line_op cvac, sy, x0, x1, x2, x3
 	ret
 SYM_FUNC_END_PI(__clean_dcache_area_poc)
@@ -161,6 +171,9 @@ SYM_FUNC_START_PI(__clean_dcache_area_pop)
 	alternative_if_not ARM64_HAS_DCPOP
 	b	__clean_dcache_area_poc
 	alternative_else_nop_endif
+#if LINUX_VERSION_CODE > KERNEL_VERSION(5, 13, 0)
+	add	x1, x0, x1
+#endif
 	dcache_by_line_op cvap, sy, x0, x1, x2, x3
 	ret
 SYM_FUNC_END_PI(__clean_dcache_area_pop)
@@ -174,6 +187,9 @@ SYM_FUNC_END_PI(__clean_dcache_area_pop)
  *	- size    - size in question
  */
 SYM_FUNC_START_PI(__dma_flush_area)
+#if LINUX_VERSION_CODE > KERNEL_VERSION(5, 13, 0)
+	add	x1, x0, x1
+#endif
 	dcache_by_line_op civac, sy, x0, x1, x2, x3
 	ret
 SYM_FUNC_END_PI(__dma_flush_area)
