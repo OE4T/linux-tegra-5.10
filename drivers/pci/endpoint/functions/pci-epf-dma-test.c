@@ -1132,6 +1132,9 @@ static int pcie_dma_epf_bind(struct pci_epf *epf)
 	/* Update BAR header with EP DMA PHY addr */
 	epf_bar0 = (struct pcie_epf_bar0 *)epfnv->bar0_virt;
 	epf_bar0->ep_phy_addr = epf_bar->phys_addr;
+	/* Set BAR0 mem type as 64-bit */
+	epf_bar->flags |= PCI_BASE_ADDRESS_MEM_TYPE_64 |
+			PCI_BASE_ADDRESS_MEM_PREFETCH;
 
 	epf->nb.notifier_call = pcie_dma_epf_notifier;
 	pci_epc_register_notifier(epc, &epf->nb);
