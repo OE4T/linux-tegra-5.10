@@ -380,7 +380,7 @@
 		compatible = "nvidia,scf-pmu";
 		interrupts = <GIC_SPI  551 IRQ_TYPE_LEVEL_HIGH>;
 		interrupt-affinity = <&{/cpus/cpu@0}>;
-		status = "disabled";
+		status = "okay";
 	};
 
 	spe-pmu {
