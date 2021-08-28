@@ -43,7 +43,7 @@ static irqreturn_t ep_isr(int irq, void *arg)
 				      DMA_WRITE_INT_CLEAR_OFF);
 			epf_bar0->wr_data[bit].crc =
 				crc32_le(~0,
-					 ep->bar0_virt + DMA_LL_WR_BUF(bit),
+					 ep->dma_virt + BAR0_DMA_BUF_OFFSET,
 					 epf_bar0->wr_data[bit].size);
 			/* Trigger interrupt to endpoint */
 			writel(epf_bar0->msi_data[bit],
@@ -58,7 +58,7 @@ static irqreturn_t ep_isr(int irq, void *arg)
 				      DMA_READ_INT_CLEAR_OFF);
 			epf_bar0->rd_data[bit].crc =
 				crc32_le(~0,
-					 ep->bar0_virt + DMA_LL_RD_BUF(bit),
+					 ep->dma_virt + BAR0_DMA_BUF_OFFSET,
 					 epf_bar0->rd_data[bit].size);
 			/* Trigger interrupt to endpoint */
 			writel(epf_bar0->msi_data[DMA_WR_CHNL_NUM + bit],

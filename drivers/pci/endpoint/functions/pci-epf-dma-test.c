@@ -824,13 +824,16 @@ static int sanity_test(struct seq_file *s, void *data)
 		desc.dst = rp_dma_addr;
 		desc.sz = epfnv->dma_size;
 		epf_bar0->wr_data[i].size = desc.sz;
+		/* generate random bytes to transfer */
+		get_random_bytes(epfnv->bar0_virt + BAR0_DMA_BUF_OFFSET,
+				 desc.sz);
 		ret = edma_submit_direct_tx(epfnv, &desc, i);
 		if (ret < 0) {
 			dev_err(epfnv->fdev, "%s: DD WR CH: %d failed\n",
 				__func__, i);
 			goto fail;
 		}
-		crc = crc32_le(~0, epfnv->bar0_virt + DMA_LL_WR_BUF(i),
+		crc = crc32_le(~0, epfnv->bar0_virt + BAR0_DMA_BUF_OFFSET,
 			       desc.sz);
 		if (crc != epf_bar0->wr_data[i].crc) {
 			dev_err(epfnv->fdev, "%s: DD WR, SZ: %lu B CH: %d CRC failed\n",
@@ -846,13 +849,15 @@ static int sanity_test(struct seq_file *s, void *data)
 		desc.dst = ep_dma_addr;
 		desc.sz = epfnv->dma_size;
 		epf_bar0->rd_data[i].size = desc.sz;
+		/* Clear memory to receive data */
+		memset(epfnv->bar0_virt + BAR0_DMA_BUF_OFFSET, 0, desc.sz);
 		ret = edma_submit_direct_rx(epfnv, &desc, i);
 		if (ret < 0) {
 			dev_err(epfnv->fdev, "%s: DD RD CH: %d failed\n",
 				__func__, i);
 			goto fail;
 		}
-		crc = crc32_le(~0, epfnv->bar0_virt + DMA_LL_RD_BUF(i),
+		crc = crc32_le(~0, epfnv->bar0_virt + BAR0_DMA_BUF_OFFSET,
 			       desc.sz);
 		if (crc != epf_bar0->rd_data[i].crc) {
 			dev_err(epfnv->fdev, "%s: DD RD, SZ: %lu B CH: %d CRC failed\n",
@@ -863,7 +868,7 @@ static int sanity_test(struct seq_file *s, void *data)
 			 __func__, desc.sz, i);
 	}
 
-	/* Clean DMA LL */
+	/* Clean DMA LL all 6 channels */
 	memset(epfnv->bar0_virt + DMA_LL_WR_OFFSET(0), 0, 6 * DMA_LL_SIZE);
 	edma_ll_init(epfnv);
 
@@ -875,6 +880,9 @@ static int sanity_test(struct seq_file *s, void *data)
 			ll_desc[j].sz = epfnv->dma_size;
 		}
 		epf_bar0->wr_data[i].size = epfnv->dma_size * nents;
+		/* generate random bytes to transfer */
+		get_random_bytes(epfnv->bar0_virt + BAR0_DMA_BUF_OFFSET,
+				 epf_bar0->wr_data[i].size);
 
 		ret = edma_submit_sync_tx(epfnv, ll_desc, nents, i, 0);
 		if (ret < 0) {
@@ -882,7 +890,7 @@ static int sanity_test(struct seq_file *s, void *data)
 				__func__, i);
 			goto fail;
 		}
-		crc = crc32_le(~0, epfnv->bar0_virt + DMA_LL_WR_BUF(i),
+		crc = crc32_le(~0, epfnv->bar0_virt + BAR0_DMA_BUF_OFFSET,
 			       epfnv->dma_size * nents);
 		if (crc != epf_bar0->wr_data[i].crc) {
 			dev_err(epfnv->fdev, "%s: LL WR, SZ: %u B CH: %d CRC failed\n",
@@ -900,13 +908,16 @@ static int sanity_test(struct seq_file *s, void *data)
 			ll_desc[j].sz = epfnv->dma_size;
 		}
 		epf_bar0->rd_data[i].size = epfnv->dma_size * nents;
+		/* Clear memory to receive data */
+		memset(epfnv->bar0_virt + BAR0_DMA_BUF_OFFSET, 0,
+		       epf_bar0->rd_data[i].size);
 
 		ret = edma_submit_sync_rx(epfnv, ll_desc, nents, i, 0);
 		if (ret < 0) {
 			dev_err(epfnv->fdev, "%s: LL RD failed\n", __func__);
 			goto fail;
 		}
-		crc = crc32_le(~0, epfnv->bar0_virt + DMA_LL_RD_BUF(i),
+		crc = crc32_le(~0, epfnv->bar0_virt + BAR0_DMA_BUF_OFFSET,
 			       epfnv->dma_size * nents);
 		if (crc != epf_bar0->rd_data[i].crc) {
 			dev_err(epfnv->fdev, "%s: LL RD, SZ: %u B CH: %d CRC failed\n",
