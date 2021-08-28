@@ -1074,6 +1074,7 @@ int nvmap_ioctl_query_heap_params(struct file *filp, void __user *arg)
 			if (type & nvmap_dev->heaps[i].heap_bit) {
 				heap = nvmap_dev->heaps[i].carveout;
 				op.total = nvmap_query_heap_size(heap);
+				op.free = heap->free_size;
 				break;
 			}
 		}
