@@ -382,6 +382,7 @@ struct tegra_pcie_of_data {
 	bool sbr_reset_fixup;
 	/* Bug 200390637 */
 	bool l1ss_exit_fixup;
+	u32 cdm_chk_int_en;
 };
 
 static void tegra_pcie_downstream_dev_to_D0(struct tegra_pcie_dw *pcie);
@@ -1626,7 +1627,7 @@ static void tegra_pcie_enable_system_interrupts(struct pcie_port *pp)
 
 	if (pcie->enable_cdm_check) {
 		val = appl_readl(pcie, APPL_INTR_EN_L0_0);
-		val |= APPL_INTR_EN_L0_0_CDM_REG_CHK_INT_EN;
+		val |= pcie->of_data->cdm_chk_int_en;
 		appl_writel(pcie, val, APPL_INTR_EN_L0_0);
 
 		val = appl_readl(pcie, APPL_INTR_EN_L1_18);
@@ -3698,6 +3699,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t194 = {
 	.msix_doorbell_access_fixup = true,
 	.sbr_reset_fixup = true,
 	.l1ss_exit_fixup = true,
+	.cdm_chk_int_en = BIT(19),
 };
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t194_ep = {
@@ -3706,6 +3708,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t194_ep = {
 	.msix_doorbell_access_fixup = false,
 	.sbr_reset_fixup = false,
 	.l1ss_exit_fixup = true,
+	.cdm_chk_int_en = BIT(19),
 };
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t234 = {
@@ -3714,6 +3717,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t234 = {
 	.msix_doorbell_access_fixup = false,
 	.sbr_reset_fixup = false,
 	.l1ss_exit_fixup = false,
+	.cdm_chk_int_en = BIT(18),
 };
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t234_ep = {
@@ -3722,6 +3726,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t234_ep = {
 	.msix_doorbell_access_fixup = false,
 	.sbr_reset_fixup = false,
 	.l1ss_exit_fixup = false,
+	.cdm_chk_int_en = BIT(18),
 };
 
 static const struct of_device_id tegra_pcie_dw_of_match[] = {
