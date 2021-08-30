@@ -70,6 +70,16 @@
 		host1x = &host1x;
 	};
 
+	uss-asic {
+		compatible = "nvidia,uss-io-proxy";
+		reg = <0x0 0x2460000 0x0 0x124>;
+		clocks = <&bpmp_clks TEGRA234_CLK_I2S8>;
+		clock-names = "i2s8";
+		resets = <&bpmp_resets TEGRA234_RESET_I2S8>;
+		reset-names = "i2s8";
+		status = "disabled";
+	};
+
 	timer@3010000 {
 		/* Do not enable this node (SOC Timer) as ARM Generic Timer
 		 * (DT node="timer") should be used instead
