@@ -80,6 +80,10 @@
 		status = "okay";
 	};
 
+	watchdog@2190000 {
+		status = "okay";
+	};
+
 	aon-en@C600000 {
 		status = "okay";
 	};
