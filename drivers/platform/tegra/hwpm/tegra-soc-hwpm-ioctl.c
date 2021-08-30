@@ -1246,6 +1246,22 @@ static int tegra_soc_hwpm_open(struct inode *inode, struct file *filp)
 		hwpm->ip_fs_info[TEGRA_SOC_HWPM_IP_MSS_MCF] = 0x1;
 		hwpm->ip_fs_info[TEGRA_SOC_HWPM_IP_MSS_NVLINK] = 0x1;
 	}
+	if (tegra_platform_is_silicon()) {
+		/* Update fs_info once IP is validated */
+		/* Static IP instances corresponding to silicon */
+		hwpm->ip_fs_info[TEGRA_SOC_HWPM_IP_ISP] = 0x1;
+		hwpm->ip_fs_info[TEGRA_SOC_HWPM_IP_VIC] = 0x1;
+		hwpm->ip_fs_info[TEGRA_SOC_HWPM_IP_PVA] = 0x1;
+		/*
+		 * Bug 3362415: MSS Channel cannot be force enabled on TOT
+		 * Mark MSS channels as floorswept.
+		 */
+		/* hwpm->ip_fs_info[TEGRA_SOC_HWPM_IP_MSS_CHANNEL] = 0xFFFF; */
+		hwpm->ip_fs_info[TEGRA_SOC_HWPM_IP_MSS_GPU_HUB] = 0x1;
+		hwpm->ip_fs_info[TEGRA_SOC_HWPM_IP_MSS_ISO_NISO_HUBS] = 0x1;
+		hwpm->ip_fs_info[TEGRA_SOC_HWPM_IP_MSS_MCF] = 0x1;
+		hwpm->ip_fs_info[TEGRA_SOC_HWPM_IP_MSS_NVLINK] = 0x1;
+	}
 
 	/* Map PMA and RTR apertures */
 	hwpm->dt_apertures[TEGRA_SOC_HWPM_PMA_DT] =
