@@ -118,7 +118,7 @@ int tegra_xusb_lane_parse_dt(struct tegra_xusb_lane *lane,
 	struct tegra_xusb_usb2_lane *usb2 = to_usb2_lane(lane);
 	struct device *dev = &lane->pad->dev;
 	const char *function;
-	u32 offset;
+	s32 offset;
 	int err;
 
 	err = of_property_read_string(np, "nvidia,function", &function);
@@ -134,7 +134,7 @@ int tegra_xusb_lane_parse_dt(struct tegra_xusb_lane *lane,
 
 	lane->function = err;
 
-	err = of_property_read_u32(np, "nvidia,hs_curr_level_offset", &offset);
+	err = of_property_read_s32(np, "nvidia,hs_curr_level_offset", &offset);
 	if (err == 0)
 		usb2->hs_curr_level_offset = offset;
 

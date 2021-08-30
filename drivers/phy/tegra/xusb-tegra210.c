@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  * Copyright (C) 2015 Google, Inc.
  */
 
@@ -100,6 +100,7 @@
 #define XUSB_PADCTL_USB2_OTG_PAD_CTL0_PD (1 << 26)
 #define XUSB_PADCTL_USB2_OTG_PAD_CTL0_HS_CURR_LEVEL_SHIFT 0
 #define XUSB_PADCTL_USB2_OTG_PAD_CTL0_HS_CURR_LEVEL_MASK 0x3f
+#define   HS_CURR_LEVEL(x)			((x) & 0x3f)
 
 #define XUSB_PADCTL_USB2_OTG_PADX_CTL1(x) (0x08c + (x) * 0x40)
 #define XUSB_PADCTL_USB2_OTG_PAD_CTL1_RPD_CTRL_SHIFT 26
@@ -2086,9 +2087,21 @@ static int tegra210_usb2_phy_power_on(struct phy *phy)
 		   XUSB_PADCTL_USB2_OTG_PAD_CTL0_PD |
 		   XUSB_PADCTL_USB2_OTG_PAD_CTL0_PD2 |
 		   XUSB_PADCTL_USB2_OTG_PAD_CTL0_PD_ZI);
-	value |= (priv->fuse.hs_curr_level[index] +
-		  usb2->hs_curr_level_offset) <<
-		 XUSB_PADCTL_USB2_OTG_PAD_CTL0_HS_CURR_LEVEL_SHIFT;
+	value &= ~HS_CURR_LEVEL(~0);
+	if (usb2->hs_curr_level_offset) {
+		int hs_current_level;
+
+		hs_current_level = (int) priv->fuse.hs_curr_level[index] +
+			usb2->hs_curr_level_offset;
+
+		if (hs_current_level < 0)
+			hs_current_level = 0;
+		if (hs_current_level > 0x3f)
+			hs_current_level = 0x3f;
+
+		value |= HS_CURR_LEVEL(hs_current_level);
+	} else
+		value |= HS_CURR_LEVEL(priv->fuse.hs_curr_level[index]);
 	padctl_writel(padctl, value, XUSB_PADCTL_USB2_OTG_PADX_CTL0(index));
 
 	value = padctl_readl(padctl, XUSB_PADCTL_USB2_OTG_PADX_CTL1(index));
