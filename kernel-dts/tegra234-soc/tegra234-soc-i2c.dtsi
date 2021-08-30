@@ -34,7 +34,7 @@
 		#size-cells = <0>;
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_GPCDMA_0>;
 		dma-coherent;
-		compatible = "nvidia,tegra194-i2c";
+		compatible = "nvidia,tegra234-i2c";
 		reg = <0x0 0x3160000 0x0 0x100>;
 		nvidia,hw-instance-id = <0x0>;
 		interrupts = <0 TEGRA234_IRQ_I2C1 0x04>;
@@ -58,7 +58,7 @@
 		#size-cells = <0>;
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_GPCDMA_0>;
 		dma-coherent;
-		compatible = "nvidia,tegra194-i2c";
+		compatible = "nvidia,tegra234-i2c";
 		reg = <0x0 0xc240000 0x0 0x100>;
 		nvidia,hw-instance-id = <0x1>;
 		interrupts = <0 TEGRA234_IRQ_I2C2 0x04>;
@@ -82,7 +82,7 @@
 		#size-cells = <0>;
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_GPCDMA_0>;
 		dma-coherent;
-		compatible = "nvidia,tegra194-i2c";
+		compatible = "nvidia,tegra234-i2c";
 		reg = <0x0 0x3180000 0x0 0x100>;
 		nvidia,hw-instance-id = <0x2>;
 		interrupts = <0 TEGRA234_IRQ_I2C3 0x04>;
@@ -106,7 +106,7 @@
 		#size-cells = <0>;
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_GPCDMA_0>;
 		dma-coherent;
-		compatible = "nvidia,tegra194-i2c";
+		compatible = "nvidia,tegra234-i2c";
 		reg = <0x0 0x3190000 0x0 0x100>;
 		nvidia,hw-instance-id = <0x3>;
 		interrupts = <0 TEGRA234_IRQ_I2C4 0x04>;
@@ -139,7 +139,7 @@
 		#size-cells = <0>;
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_GPCDMA_0>;
 		dma-coherent;
-		compatible = "nvidia,tegra194-i2c";
+		compatible = "nvidia,tegra234-i2c";
 		reg = <0x0 0x31b0000 0x0 0x100>;
 		nvidia,hw-instance-id = <0x5>;
 		interrupts = <0 TEGRA234_IRQ_I2C6 0x04>;
@@ -161,7 +161,7 @@
 		#size-cells = <0>;
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_GPCDMA_0>;
 		dma-coherent;
-		compatible = "nvidia,tegra194-i2c";
+		compatible = "nvidia,tegra234-i2c";
 		reg = <0x0 0x31c0000 0x0 0x100>;
 		nvidia,hw-instance-id = <0x6>;
 		interrupts = <0 TEGRA234_IRQ_I2C7 0x04>;
@@ -183,7 +183,7 @@
 		#size-cells = <0>;
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_GPCDMA_0>;
 		dma-coherent;
-		compatible = "nvidia,tegra194-i2c";
+		compatible = "nvidia,tegra234-i2c";
 		reg = <0x0 0xc250000 0x0 0x100>;
 		nvidia,hw-instance-id = <0x7>;
 		interrupts = <0 TEGRA234_IRQ_I2C8 0x04>;
@@ -207,7 +207,7 @@
 		#size-cells = <0>;
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_GPCDMA_0>;
 		dma-coherent;
-		compatible = "nvidia,tegra194-i2c";
+		compatible = "nvidia,tegra234-i2c";
 		reg = <0x0 0x31e0000 0x0 0x100>;
 		nvidia,hw-instance-id = <0x8>;
 		interrupts = <0 TEGRA234_IRQ_I2C9 0x04>;
