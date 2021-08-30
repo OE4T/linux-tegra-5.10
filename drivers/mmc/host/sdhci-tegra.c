@@ -401,10 +401,10 @@ static void tegra_sdhci_dump_vendor_regs(struct sdhci_host *host)
 			mmc_hostname(host->mmc), i, tuning_status);
 	}
 	reg = sdhci_readl(host, SDHCI_TEGRA_VENDOR_CLOCK_CTRL);
-	tap_delay = reg >> SDHCI_CLOCK_CTRL_TAP_SHIFT;
-	tap_delay &= SDHCI_CLOCK_CTRL_TAP_MASK;
-	trim_delay = reg >> SDHCI_CLOCK_CTRL_TRIM_SHIFT;
-	trim_delay &= SDHCI_CLOCK_CTRL_TRIM_MASK;
+	tap_delay = reg & SDHCI_CLOCK_CTRL_TAP_MASK;
+	tap_delay >>= SDHCI_CLOCK_CTRL_TAP_SHIFT;
+	trim_delay = reg & SDHCI_CLOCK_CTRL_TRIM_MASK;
+	trim_delay >>= SDHCI_CLOCK_CTRL_TRIM_SHIFT;
 	pr_debug("sdhci: Tap value: %u | Trim value: %u\n", tap_delay,
 			trim_delay);
 	pr_debug("==================================\n");
@@ -669,8 +669,8 @@ static void tegra_sdhci_apply_tuning_correction(struct sdhci_host *host,
 		WARN_ON("No edge detected\n");
 		reg = sdhci_readl(host, SDHCI_TEGRA_VENDOR_CLOCK_CTRL);
 		tegra_host->tuned_tap_delay =
-			((reg >> SDHCI_CLOCK_CTRL_TAP_SHIFT) &
-				SDHCI_CLOCK_CTRL_TAP_MASK);
+			((reg & SDHCI_CLOCK_CTRL_TAP_MASK) >>
+				SDHCI_CLOCK_CTRL_TAP_SHIFT);
 	}
 	/*
 	 * Set tap based on fixed value relative to first edge
@@ -763,13 +763,13 @@ static void tegra_sdhci_post_tuning(struct sdhci_host *host)
 retain_hw_tun_tap:
 		reg = sdhci_readl(host, SDHCI_TEGRA_VENDOR_CLOCK_CTRL);
 		tegra_host->tuned_tap_delay =
-			((reg >> SDHCI_CLOCK_CTRL_TAP_SHIFT) &
-				SDHCI_CLOCK_CTRL_TAP_MASK);
+			((reg & SDHCI_CLOCK_CTRL_TAP_MASK) >>
+				SDHCI_CLOCK_CTRL_TAP_SHIFT);
 	}
 	tegra_sdhci_set_tap(host, tegra_host->tuned_tap_delay);
 	tegra_host->tuning_status = TUNING_STATUS_DONE;
 
-	pr_info("%s: hw tuning done ...\n", mmc_hostname(host->mmc));
+	pr_debug("%s: hw tuning done ...\n", mmc_hostname(host->mmc));
 	tegra_sdhci_dump_vendor_regs(host);
 }
 
@@ -1751,7 +1751,7 @@ static bool tegra_sdhci_skip_retuning(struct sdhci_host *host)
 	struct sdhci_tegra *tegra_host = sdhci_pltfm_priv(pltfm_host);
 
 	if (tegra_host->tuning_status == TUNING_STATUS_DONE) {
-		dev_info(mmc_dev(host->mmc),
+		dev_dbg(mmc_dev(host->mmc),
 			"Tuning done, restoring the best tap value : %u\n",
 				tegra_host->tuned_tap_delay);
 		tegra_sdhci_set_tap(host, tegra_host->tuned_tap_delay);
