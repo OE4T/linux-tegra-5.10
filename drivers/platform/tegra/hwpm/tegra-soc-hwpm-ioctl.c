@@ -1504,7 +1504,7 @@ static int tegra_soc_hwpm_release(struct inode *inode, struct file *filp)
 
 	field_mask = pmasys_enginestatus_status_m() |
 		     pmasys_enginestatus_rbufempty_m();
-	field_val = pmasys_enginestatus_status_empty_f() ||
+	field_val = pmasys_enginestatus_status_empty_f() |
 		pmasys_enginestatus_rbufempty_empty_f();
 	timeout = HWPM_TIMEOUT((hwpm_readl(hwpm, TEGRA_SOC_HWPM_PMA_DT,
 			pmasys_enginestatus_r() -
