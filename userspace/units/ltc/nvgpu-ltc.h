@@ -78,15 +78,10 @@ int test_ltc_init_support(struct unit_module *m,
  *   the failure paths.
  * - Save the current ecc count pointers from the gk20a struct and set the gk20a
  *   pointers to NULL.
- * - Setup kmem fault injection to trigger fault on allocation for first alloc.
- * - Call ltc ecc counter init and verify error is returned.
- * - Setup kmem fault injection to trigger fault on allocation for third alloc
- *   to validate failures to allocate on second dimension of array.
- * - Call ltc ecc counter init and verify error is returned.
- * - Re-init ecc support.
- * - Setup kmem fault injection to trigger fault on allocation for fifth alloc
- *   to validate failures to allocate for second ltc ecc stat.
- * - Call ltc ecc counter init and verify error is returned.
+ * - Do following to check fault while allocating ECC counters for SEC, DED, TSTG and DSTG BE
+ *   - Re-init ecc support.
+ *   - Setup kmem fault injection to trigger fault on allocation for particular ECC counter.
+ *   - Call ltc ecc counter init and verify error is returned.
  * - Re-init ecc support.
  * - Disable kmem fault injection.
  * - Call ltc ecc counter init and verify no error is returned.
@@ -180,64 +175,52 @@ int test_ltc_remove_support(struct unit_module *m,
  *
  * Steps:
  * - Allocate ECC stat counter objects used by handler (ecc_sec_count,
- *   ecc_ded_count).
+ *   ecc_ded_count, tstg_ecc_parity_count, dstg_be_ecc_parity_count).
  * - Test LTC isr with no interrupts pending.
- * - Test with corrected and uncorrected bits in the first LTC instances.
- *   - Set the corrected & uncorrected counter overflow bits in the first
+ * - Test LTC isr with corrected interrupt. Expect BUG.
+ * - Test with uncorrected bits in the first LTC instances.
+ *   - Set the uncorrected counter overflow bits in the first
  *     ecc_status register (NV_PLTCG_LTC0_LTS0_L2_CACHE_ECC_STATUS).
  *   - Set the interrupt pending bit in the first LTC interrupt register
  *     (NV_PLTCG_LTC0_LTS0_INTR).
  *   - Call the LTC isr.
- * - Test with corrected and uncorrected bits in the second LTC instance.
- *   - Set the corrected & uncorrected counter overflow bits in the second
+ * - Test with uncorrected bits in the second LTC instance.
+ *   - Set the uncorrected counter overflow bits in the second
  *     ecc_status register.
  *   - Set the interrupt pending bit in the second LTC interrupt register.
  *   - Call the LTC isr.
- * - Test with corrected bits only (for branch coverage).
- *   - Set the corrected counter overflow bit and not the uncorrected bit in
- *     the ecc_status register.
- *   - Set the interrupt pending bit in the LTC interrupt register.
- *   - Call the LTC isr.
- * - Test with uncorrected bits only (for branch coverage).
- *   - Set the uncorrected counter overflow bit and not the corrected bit in
- *     the ecc_status register.
- *   - Set the interrupt pending bit in the LTC interrupt register.
- *   - Call the LTC isr.
- * - Test with corrected and uncorrected error counts but without err bits (for
+ * - Test with uncorrected error counts but without err bits (for
  *   branch coverage).
- *   - Clear the corrected & uncorrected counter overflow bits in the second
- *     ecc_status register.
- *   - Write values to the corrected & uncorrected count registers.
- *   - Set the interrupt pending bit in the second LTC interrupt register.
+ *   - Clear the uncorrected counter overflow bits in the ecc_status register.
+ *   - Write values to the uncorrected count registers.
+ *   - Set the interrupt pending bit in the LTC interrupt register.
  *   - Call the LTC isr.
- * - Test handling of dstg error in data RAM.
- *   - Set the dstg corrected & uncorrected error bits in the ecc_status
- *     register.
- *   - Set the dstg RAM mask field of the dstg_ecc_address register
- *     (NV_PLTCG_LTC0_LTS0_DSTG_ECC_ADDRESS) to report data RAM.
- *   - Set the interrupt pending bit in the first LTC interrupt register.
+ * - Test handling of rstg error.
+ *   - Set the rstg uncorrected counter error bits in the ecc_status register.
+ *   - Set the interrupt pending bit in the LTC interrupt register.
  *   - Call the LTC isr.
- * - Test handling of dstg error in byte enable (BE) RAM.
- *   - Set the dstg corrected & uncorrected error bits in the ecc_status
- *     register.
- *   - Set the dstg RAM mask field of the dstg_ecc_address register to report
- *     BE RAM.
- *   - Set the interrupt pending bit in the first LTC interrupt register.
+ *   - Expect BUG.
+ * - Test handling of tstg errors.
+ *   - Set the tstg uncorrected counter error bits in the ecc_status register.
+ *   - Set the interrupt pending bit in the LTC interrupt register.
  *   - Call the LTC isr.
- * - Test handling of tstg and rstg errors.
- *   - Set the tstg and rstg, corrected & uncorrected counter error bits in the
- *     ecc_status register.
- *   - Set the interrupt pending bit in the first LTC interrupt register.
+ * - Test handling of dstg errors.
+ *   - Set the dstg uncorrected counter error bits in the ecc_status register.
+ *   - Set the interrupt pending bit in the LTC interrupt register.
  *   - Call the LTC isr.
- * - Test handling of sec and ded errors.
- *   - Set the sec and ded pending error bits in the ecc_status register.
- *   - Set the interrupt pending bit in the first LTC interrupt register.
- *   - Call the LTC isr.
- * - Test handling of sec and ded errors when the l2 flush API succeeds (for
- *     branch coverage).
+ * - Test handling of sec error when the l2 flush API succeeds
  *   - Override the MM l2_flush HAL to return success.
- *   - Set the sec and ded pending error bits in the ecc_status register.
- *   - Set the interrupt pending bit in the first LTC interrupt register.
+ *   - Set the sec pending error bits in the ecc_status register.
+ *   - Set the interrupt pending bit in the LTC interrupt register.
+ *   - Call the LTC isr.
+ * - Test handling of ded error.
+ *   - Set the ded pending error bits in the ecc_status register.
+ *   - Set the interrupt pending bit in the LTC interrupt register.
+ *   - Call the LTC isr.
+ * - Test handling of sec error when the l2 flush API fails (for
+ *     branch coverage).
+ *   - Set the sec pending error bits in the ecc_status register.
+ *   - Set the interrupt pending bit in the LTC interrupt register.
  *   - Call the LTC isr.
  *
  * Output: Returns PASS unless counter initialization fails or an except occurs

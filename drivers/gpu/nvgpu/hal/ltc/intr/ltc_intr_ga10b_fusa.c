@@ -391,7 +391,7 @@ void ga10b_ltc_intr_configure(struct gk20a *g)
 static void ga10b_ltc_intr3_ecc_interrupts(struct gk20a *g, u32 ltc, u32 slice,
 				u32 offset, u32 ltc_intr3)
 {
-	u32 ecc_status, ecc_addr, dstg_ecc_addr, corrected_cnt, uncorrected_cnt;
+	u32 ecc_status, ecc_addr, corrected_cnt, uncorrected_cnt;
 	u32 corrected_delta, uncorrected_delta;
 	u32 corrected_overflow, uncorrected_overflow;
 
@@ -404,8 +404,6 @@ static void ga10b_ltc_intr3_ecc_interrupts(struct gk20a *g, u32 ltc, u32 slice,
 				ltc_ltc0_lts0_l2_cache_ecc_status_r(), offset));
 		ecc_addr = nvgpu_readl(g, nvgpu_safe_add_u32(
 			ltc_ltc0_lts0_l2_cache_ecc_address_r(), offset));
-		dstg_ecc_addr = nvgpu_readl(g, nvgpu_safe_add_u32(
-				ltc_ltc0_lts0_dstg_ecc_address_r(), offset));
 		corrected_cnt = nvgpu_readl(g, nvgpu_safe_add_u32(
 			ltc_ltc0_lts0_l2_cache_ecc_corrected_err_count_r(),
 			offset));
@@ -425,7 +423,6 @@ static void ga10b_ltc_intr3_ecc_interrupts(struct gk20a *g, u32 ltc, u32 slice,
 			ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_total_counter_overflow_m();
 
 		gv11b_ltc_intr_init_counters(g,
-			corrected_delta, corrected_overflow,
 			uncorrected_delta, uncorrected_overflow, offset);
 
 		nvgpu_writel(g, nvgpu_safe_add_u32(
@@ -465,14 +462,16 @@ static void ga10b_ltc_intr3_ecc_interrupts(struct gk20a *g, u32 ltc, u32 slice,
 		}
 
 		gv11b_ltc_intr_handle_rstg_ecc_interrupts(g, ltc, slice,
-						ecc_status, ecc_addr);
+						ecc_status, ecc_addr,
+						uncorrected_delta);
 
 		gv11b_ltc_intr_handle_tstg_ecc_interrupts(g, ltc, slice,
-						ecc_status, ecc_addr);
+						ecc_status, ecc_addr,
+						uncorrected_delta);
 
 		gv11b_ltc_intr_handle_dstg_ecc_interrupts(g, ltc, slice,
-						ecc_status, dstg_ecc_addr,
-								ecc_addr);
+						ecc_status, ecc_addr,
+						uncorrected_delta);
 
 		if ((corrected_overflow != 0U) ||
 				(uncorrected_overflow != 0U)) {

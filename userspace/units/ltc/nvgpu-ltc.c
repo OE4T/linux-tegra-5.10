@@ -284,12 +284,38 @@ static void nvgpu_init_gr_manager(struct gk20a *g)
 	gr_syspipe->num_gpc = 1;
 }
 
+static int ltc_ecc_init_fault_check(struct unit_module *m, struct gk20a *g,
+				    unsigned int number)
+{
+	struct nvgpu_posix_fault_inj *kmem_fi =
+			nvgpu_kmem_get_fault_injection();
+	int err;
+
+	/* Re-Init dependent ECC unit */
+	err = nvgpu_ecc_init_support(g);
+	if (err != 0) {
+		unit_err(m, "ecc init failed\n");
+		return err;
+	}
+
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, number);
+	err = g->ops.ltc.ecc_init(g);
+	if (err == 0) {
+		unit_err(m, "nvgpu_ecc_counter_init_per_lts() failed to return error\n");
+		return -1;
+	}
+
+	return 0;
+}
+
 int test_ltc_ecc_init_free(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int ret = UNIT_SUCCESS;
 	int err;
 	struct nvgpu_ecc_stat **save_sec_ptr = g->ecc.ltc.ecc_sec_count;
 	struct nvgpu_ecc_stat **save_ded_ptr = g->ecc.ltc.ecc_ded_count;
+	struct nvgpu_ecc_stat **save_tstg_ecc_ptr = g->ecc.ltc.tstg_ecc_parity_count;
+	struct nvgpu_ecc_stat **save_dstg_ecc_ptr = g->ecc.ltc.dstg_be_ecc_parity_count;
 	struct nvgpu_posix_fault_inj *kmem_fi =
 			nvgpu_kmem_get_fault_injection();
 
@@ -312,14 +338,15 @@ int test_ltc_ecc_init_free(struct unit_module *m, struct gk20a *g, void *args)
 
 	g->ecc.ltc.ecc_sec_count = NULL;
 	g->ecc.ltc.ecc_ded_count = NULL;
+	g->ecc.ltc.tstg_ecc_parity_count = NULL;
+	g->ecc.ltc.dstg_be_ecc_parity_count = NULL;
 
 	/*
-	 * Call with failure on first kzalloc
+	 * Call with failure on first kzalloc for sec_ecc_count
 	 */
-	nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
-	err = g->ops.ltc.ecc_init(g);
-	if (err == 0) {
-		unit_err(m, "nvgpu_ecc_counter_init_per_lts() failed to return error\n");
+	err = ltc_ecc_init_fault_check(m, g, 0);
+	if (err) {
+		unit_err(m, "sec_ecc_count alloc fault check failed\n");
 		ret = UNIT_FAIL;
 		goto done;
 	}
@@ -328,28 +355,42 @@ int test_ltc_ecc_init_free(struct unit_module *m, struct gk20a *g, void *args)
 	 * Call with failure on third kzalloc for the 2nd array dimension and to
 	 * validate unrolling.
 	 */
-	nvgpu_posix_enable_fault_injection(kmem_fi, true, 2);
-	err = g->ops.ltc.ecc_init(g);
-	if (err == 0) {
-		unit_err(m, "nvgpu_ecc_counter_init_per_lts() failed to return error\n");
+	err = ltc_ecc_init_fault_check(m, g, 2);
+	if (err) {
+		unit_err(m, "sec_ecc_count alloc for LTC 1 fault check failed\n");
 		ret = UNIT_FAIL;
 		goto done;
 	}
 
-	/* Re-Init dependent ECC unit */
-	err = nvgpu_ecc_init_support(g);
-	if (err != 0) {
-		unit_return_fail(m, "ecc init failed\n");
+	/*
+	 * Call with failure on 4th kzalloc for ded_ecc_count and get more
+	 * branch/line coverage.
+	 */
+	err = ltc_ecc_init_fault_check(m, g, 4);
+	if (err) {
+		unit_err(m, "dec_ecc_count alloc fault check failed\n");
+		ret = UNIT_FAIL;
+		goto done;
 	}
 
 	/*
-	 * Call with failure on 4th kzalloc for second stat and get more
+	 * Call with failure on 8th kzalloc for tstg_ecc_parity_count and get more
 	 * branch/line coverage.
 	 */
-	nvgpu_posix_enable_fault_injection(kmem_fi, true, 4);
-	err = g->ops.ltc.ecc_init(g);
-	if (err == 0) {
-		unit_err(m, "nvgpu_ecc_counter_init_per_lts() failed to return error\n");
+	err = ltc_ecc_init_fault_check(m, g, 8);
+	if (err) {
+		unit_err(m, "tstg_ecc_parity_count alloc fault check failed\n");
+		ret = UNIT_FAIL;
+		goto done;
+	}
+
+	/*
+	 * Call with failure on 11th kzalloc for dstg_be_ecc_parity_count and get more
+	 * branch/line coverage.
+	 */
+	err = ltc_ecc_init_fault_check(m, g, 11);
+	if (err) {
+		unit_err(m, "dstg_be_ecc_parity_count alloc fault check failed\n");
 		ret = UNIT_FAIL;
 		goto done;
 	}
@@ -373,6 +414,8 @@ done:
 	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
 	g->ecc.ltc.ecc_sec_count = save_sec_ptr;
 	g->ecc.ltc.ecc_ded_count = save_ded_ptr;
+	g->ecc.ltc.tstg_ecc_parity_count = save_tstg_ecc_ptr;
+	g->ecc.ltc.dstg_be_ecc_parity_count = save_dstg_ecc_ptr;
 	nvgpu_gr_free(g);
 
 	return ret;
@@ -464,104 +507,101 @@ int test_ltc_intr(struct unit_module *m, struct gk20a *g, void *args)
 		goto done;
 	}
 
+	err = NVGPU_ECC_COUNTER_INIT_PER_LTS(tstg_ecc_parity_count);
+	if (err != 0) {
+		unit_err(m, "failed to init tstg_ecc_parity_count\n");
+		err = UNIT_FAIL;
+		goto done;
+	}
+
+	err = NVGPU_ECC_COUNTER_INIT_PER_LTS(dstg_be_ecc_parity_count);
+	if (err != 0) {
+		unit_err(m, "failed to init dstg_be_ecc_parity_count\n");
+		err = UNIT_FAIL;
+		goto done;
+	}
+
 	/* test with no intr pending */
 	g->ops.ltc.intr.isr(g, 0);
+
+	/* test with corrected intr, expect BUG */
+	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_intr3_r(),
+			ltc_ltcs_ltss_intr3_ecc_corrected_m());
+	EXPECT_BUG(g->ops.ltc.intr.isr(g, 0));
 
 	/* test with intr, but no corrected or uncorrected bits */
 	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_intr3_r(),
 			ltc_ltcs_ltss_intr3_ecc_uncorrected_m());
 	g->ops.ltc.intr.isr(g, 0);
 
-	/* set corrected & uncorrected overflow bits */
+	/* set uncorrected overflow bits */
 	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_l2_cache_ecc_status_r(),
-		ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_total_counter_overflow_m() |
 		ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_total_counter_overflow_m());
 	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_intr3_r(),
 			ltc_ltcs_ltss_intr3_ecc_uncorrected_m());
 	g->ops.ltc.intr.isr(g, 0);
 
-	/* set corrected & uncorrected overflow bits in second instance */
+	/* set uncorrected overflow bits in second instance */
 	nvgpu_posix_io_writel_reg_space(g,
 		ltc_ltc0_lts0_l2_cache_ecc_status_r() + offset1,
-		ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_total_counter_overflow_m() |
 		ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_total_counter_overflow_m());
 	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_intr3_r() + offset1,
 			ltc_ltcs_ltss_intr3_ecc_uncorrected_m());
 	g->ops.ltc.intr.isr(g, 0);
 
-	/* set corrected overflow bit independently for branch coverage */
-	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_l2_cache_ecc_status_r(),
-		ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_total_counter_overflow_m());
-	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_intr3_r(),
-			ltc_ltcs_ltss_intr3_ecc_uncorrected_m());
-	g->ops.ltc.intr.isr(g, 0);
-
-	/* set uncorrected overflow bit independently for branch coverage */
-	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_l2_cache_ecc_status_r(),
-		ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_total_counter_overflow_m());
-	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_intr3_r(),
-			ltc_ltcs_ltss_intr3_ecc_uncorrected_m());
-	g->ops.ltc.intr.isr(g, 0);
-
 	/*
-	 * Clear the corrected & uncorrected overflow bits. And for branch
-	 * coverage, set the uncorrected & corrected err counts.
+	 * Clear the uncorrected overflow bits. And for branch
+	 * coverage, set the uncorrected err count.
 	 */
 	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_l2_cache_ecc_status_r(), 0x0);
-	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_l2_cache_ecc_corrected_err_count_r(),
-		ltc_ltc0_lts0_l2_cache_ecc_corrected_err_count_total_m());
 	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_l2_cache_ecc_uncorrected_err_count_r(),
 		ltc_ltc0_lts0_l2_cache_ecc_uncorrected_err_count_total_m());
 	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_intr3_r(),
 			ltc_ltcs_ltss_intr3_ecc_uncorrected_m());
 	g->ops.ltc.intr.isr(g, 0);
 
-	/* set dstg bits with data RAM  */
+	/* set rstg bits */
 	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_l2_cache_ecc_status_r(),
-		ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_dstg_m() |
-		ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_dstg_m());
-	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_intr3_r(),
-			ltc_ltcs_ltss_intr3_ecc_uncorrected_m());
-	g->ops.ltc.intr.isr(g, 0);
-
-	/* set dstg bits with byte enable (BE) RAM */
-	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_l2_cache_ecc_status_r(),
-		ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_dstg_m() |
-		ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_dstg_m());
-	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_dstg_ecc_address_r(),
-		ltc_ltc0_lts0_dstg_ecc_address_info_ram_m());
-	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_intr3_r(),
-			ltc_ltcs_ltss_intr3_ecc_uncorrected_m());
-	EXPECT_BUG(g->ops.ltc.intr.isr(g, 0));
-
-	/* set tstg & rstg bits */
-	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_l2_cache_ecc_status_r(),
-		ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_tstg_m() |
-		ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_tstg_m() |
-		ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_rstg_m() |
 		ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_rstg_m());
 	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_intr3_r(),
 			ltc_ltcs_ltss_intr3_ecc_uncorrected_m());
 	EXPECT_BUG(g->ops.ltc.intr.isr(g, 0));
 
-	/* set sec & ded error bits */
-	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_intr_r(),
-			ltc_ltcs_ltss_intr_ecc_sec_error_pending_f() |
-			ltc_ltcs_ltss_intr_ecc_ded_error_pending_f());
+	/* set tstg bits */
+	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_l2_cache_ecc_status_r(),
+		ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_tstg_m());
 	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_intr3_r(),
 			ltc_ltcs_ltss_intr3_ecc_uncorrected_m());
 	g->ops.ltc.intr.isr(g, 0);
 
-	/* For branch coverage, set sec & ded error bits and make l2 flush succeed */
-	save_func = g->ops.mm.cache.l2_flush;
-	g->ops.mm.cache.l2_flush = mock_l2_flush;
-	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_intr_r(),
-			ltc_ltcs_ltss_intr_ecc_sec_error_pending_f() |
-			ltc_ltcs_ltss_intr_ecc_ded_error_pending_f());
+	/* set dstg bits */
+	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_l2_cache_ecc_status_r(),
+		ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_dstg_m());
 	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_intr3_r(),
 			ltc_ltcs_ltss_intr3_ecc_uncorrected_m());
 	g->ops.ltc.intr.isr(g, 0);
+
+	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_intr3_r(), 0);
+
+	/* set sec error bits */
+	save_func = g->ops.mm.cache.l2_flush;
+	g->ops.mm.cache.l2_flush = mock_l2_flush;
+	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_intr_r(),
+			ltc_ltcs_ltss_intr_ecc_sec_error_pending_f());
+	g->ops.ltc.intr.isr(g, 0);
 	g->ops.mm.cache.l2_flush = save_func;
+
+	/* set ded error bits */
+	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_intr_r(),
+			ltc_ltcs_ltss_intr_ecc_ded_error_pending_f());
+	g->ops.ltc.intr.isr(g, 0);
+
+	/* For branch coverage, set sec error bits and make l2 flush fail */
+	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_intr_r(),
+			ltc_ltcs_ltss_intr_ecc_sec_error_pending_f());
+	EXPECT_BUG(g->ops.ltc.intr.isr(g, 0));
+
+	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_intr_r(), 0);
 
 done:
 	nvgpu_ltc_ecc_free(g);
