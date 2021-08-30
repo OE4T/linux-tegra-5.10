@@ -172,4 +172,5 @@ typedef struct mcerr_ops *(*of_mcerr_init_fn)(struct device_node *);
 #define MCERR_OF_DECLARE(name, compat, fn) \
 	_OF_DECLARE(mcerr, name, compat, fn, of_mcerr_init_fn)
 
+void disable_interrupt(unsigned int irq);
 #endif /* __MCERR_H */

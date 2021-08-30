@@ -468,6 +468,7 @@ u32 __weak tegra_get_dvfs_clk_change_latency_nsec(unsigned long emc_freq_khz)
 
 static int tegra_mc_remove(struct platform_device *pdev)
 {
+	disable_interrupt(0);
 	return 0;
 }
 

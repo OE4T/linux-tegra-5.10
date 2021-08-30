@@ -56,8 +56,9 @@ static void unthrottle_prints(struct work_struct *work)
 	atomic_set(&error_count, 0);
 }
 
-static void disable_interrupt(unsigned int irq)
+void disable_interrupt(unsigned int irq)
 {
+	pr_info("Disabling MC Error interrupts\n");
 	mc_writel(0, MC_INTMASK);
 	mc_writel(0, MC_HUB_INTMASK);
 }
