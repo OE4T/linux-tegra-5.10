@@ -1334,6 +1334,9 @@ static int ufs_tegra_pwr_change_notify(struct ufs_hba *hba,
 			if (ufs_tegra->mask_fast_auto_mode) {
 				dev_req_params->pwr_rx = FAST_MODE;
 				dev_req_params->pwr_tx = FAST_MODE;
+			} else {
+				dev_req_params->pwr_rx = FASTAUTO_MODE;
+				dev_req_params->pwr_tx = FASTAUTO_MODE;
 			}
 			if (ufs_tegra->mask_hs_mode_b) {
 				dev_req_params->hs_rate = PA_HS_MODE_A;
