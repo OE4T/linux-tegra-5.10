@@ -201,6 +201,7 @@ static void gr_config_free_mem(struct gk20a *g,
 #endif
 	nvgpu_kfree(g, config->gpc_tpc_mask);
 	nvgpu_kfree(g, config->gpc_tpc_count);
+	nvgpu_kfree(g, config->gpc_tpc_mask_physical);
 }
 
 static bool gr_config_alloc_struct_mem(struct gk20a *g,

@@ -912,6 +912,9 @@ void nvgpu_pmu_pg_deinit(struct gk20a *g, struct nvgpu_pmu *pmu,
 	if (nvgpu_mem_is_valid(&pg->seq_buf)) {
 		nvgpu_dma_unmap_free(vm, &pg->seq_buf);
 	}
+	if (nvgpu_mem_is_valid(&pg->pg_buf)) {
+		nvgpu_dma_unmap_free(vm, &pg->pg_buf);
+	}
 	nvgpu_mutex_destroy(&pg->elpg_mutex);
 	nvgpu_mutex_destroy(&pg->pg_mutex);
 	nvgpu_kfree(g, pg);

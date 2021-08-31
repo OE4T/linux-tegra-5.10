@@ -794,6 +794,8 @@ void nvgpu_netlist_deinit_ctx_vars(struct gk20a *g)
 	nvgpu_kfree(g, netlist_vars->ctxsw_regs.perf_pma.l);
 	nvgpu_kfree(g, netlist_vars->ctxsw_regs.pm_rop.l);
 	nvgpu_kfree(g, netlist_vars->ctxsw_regs.pm_ucgpc.l);
+	nvgpu_kfree(g, netlist_vars->ctxsw_regs.etpc.l);
+
 #if defined(CONFIG_NVGPU_NON_FUSA)
 	nvgpu_kfree(g, netlist_vars->ctxsw_regs.sys_compute.l);
 	nvgpu_kfree(g, netlist_vars->ctxsw_regs.gpc_compute.l);

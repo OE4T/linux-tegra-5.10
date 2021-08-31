@@ -115,6 +115,11 @@ static int nvgpu_alloc_sysmem_flush(struct gk20a *g)
 	return nvgpu_dma_alloc_sys(g, SZ_4K, &g->mm.sysmem_flush);
 }
 
+static void nvgpu_free_sysmem_flush(struct gk20a *g)
+{
+	nvgpu_dma_free(g, &g->mm.sysmem_flush);
+}
+
 #ifdef CONFIG_NVGPU_DGPU
 static void nvgpu_remove_mm_ce_support(struct mm_gk20a *mm)
 {
@@ -171,6 +176,8 @@ static void nvgpu_remove_mm_support(struct mm_gk20a *mm)
 	if (g->has_cde) {
 		nvgpu_vm_put(mm->cde.vm);
 	}
+
+	nvgpu_free_sysmem_flush(g);
 
 #ifdef CONFIG_NVGPU_SW_SEMAPHORE
 	nvgpu_semaphore_sea_destroy(g);

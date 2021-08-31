@@ -116,6 +116,25 @@ static void gk20a_tegra_secure_page_destroy(struct gk20a *g,
 	secure_buffer->destroy = NULL;
 }
 
+static void gk20a_free_secure_buffer(struct gk20a *g,
+				struct nvgpu_mem *mem)
+{
+	if (!nvgpu_mem_is_valid(mem))
+		return;
+
+	if (mem->priv.sgt != NULL) {
+		sg_free_table(mem->priv.sgt);
+	}
+
+	nvgpu_kfree(g, mem->priv.sgt);
+	mem->priv.sgt = NULL;
+
+	mem->size = 0;
+	mem->aligned_size = 0;
+	mem->aperture = APERTURE_INVALID;
+
+}
+
 static int gk20a_tegra_secure_alloc(struct gk20a *g,
 				struct nvgpu_mem *desc_mem, size_t size,
 				global_ctx_mem_destroy_fn *destroy)
@@ -156,7 +175,7 @@ static int gk20a_tegra_secure_alloc(struct gk20a *g,
 	/* This bypasses SMMU for VPR during gmmu_map. */
 	sg_dma_address(sgt->sgl) = 0;
 
-	*destroy = NULL;
+	*destroy = gk20a_free_secure_buffer;
 
 	desc_mem->priv.sgt = sgt;
 	desc_mem->size = size;
