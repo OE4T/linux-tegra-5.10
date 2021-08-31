@@ -17,6 +17,10 @@
 #include "soc/tegra/camrtc-dbg-messages.h"
 
 #include <linux/debugfs.h>
+#if IS_ENABLED(CONFIG_INTERCONNECT)
+#include <linux/interconnect.h>
+#include <dt-bindings/interconnect/tegra_icc_id.h>
+#endif
 #include <linux/io.h>
 #include <linux/iommu.h>
 #include <linux/kernel.h>
@@ -39,7 +43,14 @@
 #include <linux/tegra-ivc.h>
 #include <linux/tegra-ivc-bus.h>
 #include <linux/platform/tegra/common.h>
+#if IS_ENABLED(CONFIG_TEGRA_BWMGR)
 #include <linux/platform/tegra/emc_bwmgr.h>
+#endif
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
+#include <soc/tegra/chip-id.h>
+#else
+#include <soc/tegra/fuse.h>
+#endif
 
 #include <dt-bindings/memory/tegra-swgroup.h>
 
@@ -95,7 +106,7 @@ struct camrtc_debug {
 		char *test_case;
 		size_t test_case_size;
 		u32 test_timeout;
-		unsigned long test_bw;
+		u32 test_bw;
 	} parameters;
 	struct camrtc_falcon_coverage vi_falc_coverage;
 	struct camrtc_falcon_coverage isp_falc_coverage;
@@ -916,12 +927,88 @@ done:
 	return ret;
 }
 
+struct camrtc_run_membw {
+	struct device *dev;
+#if IS_ENABLED(CONFIG_INTERCONNECT)
+	struct icc_path *icc_path;
+#endif
+#if IS_ENABLED(CONFIG_TEGRA_BWMGR)
+	struct tegra_bwmgr_client *bwmgr;
+#endif
+};
+
+static void camrtc_membw_set(struct camrtc_run_membw *membw, u32 bw)
+{
+	struct device *dev = membw->dev;
+
+	if (bw == 0) {
+		;
+	} else if (tegra_get_chip_id() == TEGRA234) {
+#if IS_ENABLED(CONFIG_INTERCONNECT)
+		struct icc_path *icc_path;
+		int ret;
+
+		icc_path = icc_get(dev, TEGRA_ICC_RCE, TEGRA_ICC_PRIMARY);
+
+		if (!IS_ERR_OR_NULL(icc_path)) {
+			ret = icc_set_bw(icc_path, 0, bw);
+
+			if (ret)
+				dev_err(dev, "set icc bw [%u] failed: %d\n", bw, ret);
+			else
+				dev_dbg(dev, "requested icc bw %u\n", bw);
+
+			membw->icc_path = icc_path;
+		}
+#endif
+	} else {
+#if IS_ENABLED(CONFIG_TEGRA_BWMGR)
+		struct tegra_bwmgr_client *bwmgr;
+		unsigned long emc_rate;
+		int ret;
+
+		bwmgr = tegra_bwmgr_register(TEGRA_BWMGR_CLIENT_CAMERA_NON_ISO);
+
+		if (!IS_ERR_OR_NULL(bwmgr)) {
+			if (bw == 0xFFFFFFFFU)
+				emc_rate = tegra_bwmgr_get_max_emc_rate();
+			else
+				emc_rate = tegra_bwmgr_round_rate(bw);
+
+			ret = tegra_bwmgr_set_emc(bwmgr,
+						emc_rate, TEGRA_BWMGR_SET_EMC_SHARED_BW);
+
+			if (ret < 0)
+				dev_info(dev, "emc request rate %lu failed, %d\n", emc_rate, ret);
+			else
+				dev_dbg(dev, "requested emc rate %lu\n", emc_rate);
+
+			membw->bwmgr = bwmgr;
+		}
+#endif
+	}
+}
+
+static void camrtc_membw_reset(struct camrtc_run_membw *membw)
+{
+#if IS_ENABLED(CONFIG_INTERCONNECT)
+	if (membw->icc_path)
+		icc_put(membw->icc_path);
+#endif
+
+#if IS_ENABLED(CONFIG_TEGRA_BWMGR)
+	if (membw->bwmgr)
+		tegra_bwmgr_unregister(membw->bwmgr);
+#endif
+}
+
 static int camrtc_run_mem_test(struct seq_file *file,
 			struct camrtc_dbg_request *req,
 			struct camrtc_dbg_response *resp)
 {
 	struct tegra_ivc_channel *ch = file->private;
 	struct camrtc_debug *crd = tegra_ivc_channel_get_drvdata(ch);
+	struct camrtc_run_membw membw = { .dev = crd->mem_devices[0], };
 	struct camrtc_dbg_test_mem *testmem;
 	size_t i;
 	int ret = 0;
@@ -935,7 +1022,6 @@ static int camrtc_run_mem_test(struct seq_file *file,
 	struct device *vi2_dev = crd->mem_devices[3];
 	struct sg_table vi2_sgt[ARRAY_SIZE(crd->mem)];
 	struct camrtc_test_mem *mem0 = &crd->mem[0];
-	struct tegra_bwmgr_client *bwmgr = NULL;
 
 	memset(rce_sgt, 0, sizeof(rce_sgt));
 	memset(vi_sgt, 0, sizeof(vi_sgt));
@@ -998,6 +1084,8 @@ static int camrtc_run_mem_test(struct seq_file *file,
 		mem0->used = size;
 	}
 
+	camrtc_membw_set(&membw, crd->parameters.test_bw);
+
 	for (i = 0; i < ARRAY_SIZE(crd->mem); i++) {
 		struct camrtc_test_mem *mem = &crd->mem[i];
 
@@ -1034,21 +1122,6 @@ static int camrtc_run_mem_test(struct seq_file *file,
 				DMA_BIDIRECTIONAL);
 	}
 
-	if (crd->parameters.test_bw != 0)
-		bwmgr = tegra_bwmgr_register(TEGRA_BWMGR_CLIENT_CAMERA_NON_ISO);
-
-	if (!IS_ERR_OR_NULL(bwmgr)) {
-		ret = tegra_bwmgr_set_emc(bwmgr, crd->parameters.test_bw,
-				TEGRA_BWMGR_SET_EMC_SHARED_BW);
-		if (ret < 0)
-			dev_info(rce_dev, "emc request rate %lu failed, %d\n",
-				crd->parameters.test_bw, ret);
-		else
-			dev_dbg(rce_dev, "requested emc rate %lu\n",
-				crd->parameters.test_bw);
-	}
-
-
 	BUILD_BUG_ON_MISMATCH(
 		struct camrtc_dbg_request, run_mem_test_data.data,
 		struct camrtc_dbg_response, run_mem_test_data.data);
@@ -1074,9 +1147,7 @@ static int camrtc_run_mem_test(struct seq_file *file,
 	}
 
 unmap:
-	if (!IS_ERR_OR_NULL(bwmgr)) {
-		tegra_bwmgr_unregister(bwmgr);
-	}
+	camrtc_membw_reset(&membw);
 
 	for (i = 0; i < ARRAY_SIZE(vi_sgt); i++) {
 		if (rce_sgt[i].sgl) {
@@ -1903,16 +1974,9 @@ static int camrtc_debug_probe(struct tegra_ivc_channel *ch)
 	crd->isp_falc_coverage.ch = ch;
 
 	if (of_property_read_u32(dev->of_node, NV(test-bw), &bw) == 0) {
-		unsigned long test_bw;
+		crd->parameters.test_bw = bw;
 
-		if (bw == 0xFFFFFFFFU)
-			test_bw = tegra_bwmgr_get_max_emc_rate();
-		else
-			test_bw = tegra_bwmgr_round_rate(bw);
-
-		crd->parameters.test_bw = test_bw;
-
-		dev_dbg(dev, "using emc rate %lu for tests\n", test_bw);
+		dev_dbg(dev, "using emc bw %u for tests\n", bw);
 	}
 
 	if (crd->mem_devices[0] == NULL) {
