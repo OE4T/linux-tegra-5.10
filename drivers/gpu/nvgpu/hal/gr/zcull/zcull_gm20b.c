@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -70,9 +70,11 @@ int gm20b_gr_init_zcull_hw(struct gk20a *g,
 		}
 	}
 
-	/* ceil(1.0f / SM_NUM * gr_gpc0_zcull_sm_num_rcp_conservative__max_v()) */
+	/* ceil(1.0f / SM_NUM * gr_gpc0_zcull_sm_num_rcp_conservative__max_v())
+	 * sm_num in the register manual actually means TPC count
+	 */
 	rcp_conserv = DIV_ROUND_UP(gr_gpc0_zcull_sm_num_rcp_conservative__max_v(),
-		nvgpu_gr_config_get_gpc_tpc_count(gr_config, 0U));
+		nvgpu_gr_config_get_tpc_count(gr_config));
 
 	for (gpc_index = 0;
 	     gpc_index < nvgpu_gr_config_get_gpc_count(gr_config);
