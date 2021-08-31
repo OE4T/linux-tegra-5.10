@@ -5826,6 +5826,7 @@ static const char * const tegra234_reset_sources[] = {
 
 static const struct tegra_wake_event tegra234_wake_events[] = {
 	TEGRA_WAKE_IRQ("rtc", 73, 10),
+	TEGRA_WAKE_IRQ("sw_wake", 83, 179),
 };
 
 static const struct tegra_pmc_soc tegra234_pmc_soc = {
