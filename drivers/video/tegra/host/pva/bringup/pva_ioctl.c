@@ -1,7 +1,7 @@
 /*
  * PVA Ioctl Handling for T194
  *
- * Copyright (c) 2016-2020, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -745,7 +745,7 @@ static int pva_abort_req(struct pva_private *priv, void *arg)
 	nregs = pva_cmd_abort(&cmd, ioctl_abort->queue_id, flags);
 
 	/* Submit request to PVA and wait for response */
-	err = priv->pva->version_config->submit_cmd_sync(priv->pva, &cmd,
+	err = pva_mailbox_send_cmd_sync(priv->pva, &cmd,
 			nregs, &status);
 
 	if (err < 0) {

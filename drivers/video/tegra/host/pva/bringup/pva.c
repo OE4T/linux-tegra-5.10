@@ -456,7 +456,7 @@ static int pva_alloc_vpu_function_table(struct pva *pva,
 
 	nregs = pva_cmd_get_vpu_func_table(&cmd, 0, 0, flags);
 
-	err = pva->version_config->submit_cmd_sync(pva, &cmd, nregs, &status);
+	err = pva_mailbox_send_cmd_sync(pva, &cmd, nregs, &status);
 	if (err < 0) {
 		nvhost_warn(&pva->pdev->dev,
 			"mbox function table cmd failed: %d\n", err);
@@ -500,7 +500,7 @@ static int pva_get_vpu_function_table(struct pva *pva,
 	nregs = pva_cmd_get_vpu_func_table(&cmd, table_size, dma_handle, flags);
 
 	/* Submit request to PVA and wait for response */
-	err = pva->version_config->submit_cmd_sync(pva, &cmd, nregs, &status);
+	err = pva_mailbox_send_cmd_sync(pva, &cmd, nregs, &status);
 	if (err < 0)
 		nvhost_warn(&pva->pdev->dev,
 			"mbox function table cmd failed: %d\n", err);
@@ -521,7 +521,7 @@ int pva_get_firmware_version(struct pva *pva,
 	nregs = pva_cmd_R5_version(&cmd, flags);
 
 	/* Submit request to PVA and wait for response */
-	err = pva->version_config->submit_cmd_sync(pva, &cmd, nregs, &status);
+	pva_mailbox_send_cmd_sync(pva, &cmd, nregs, &status);
 	if (err < 0) {
 		nvhost_warn(&pva->pdev->dev,
 			"mbox get firmware version cmd failed: %d\n", err);
@@ -609,12 +609,12 @@ int pva_set_log_level(struct pva *pva,
 	nregs = pva_cmd_set_logging_level(&cmd, log_level, flags);
 
 	if (mailbox_locked)
-		err = pva->version_config->submit_cmd_sync_locked(pva,
+		err = pva_mailbox_send_cmd_sync_locked(pva,
 								  &cmd,
 								  nregs,
 								  &status);
 	else
-		err = pva->version_config->submit_cmd_sync(pva, &cmd,
+		err = pva_mailbox_send_cmd_sync(pva, &cmd,
 							   nregs,
 							   &status);
 
