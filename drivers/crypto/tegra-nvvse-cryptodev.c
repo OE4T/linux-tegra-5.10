@@ -53,6 +53,12 @@
 /** Defines the Maximum Random Number length supported */
 #define NVVSE_MAX_RANDOM_NUMBER_LEN_SUPPORTED		512U
 
+/**
+ * Define preallocated SHA result buffer size, if digest size is bigger
+ * than this then allocate new buffer
+ */
+#define NVVSE_MAX_ALLOCATED_SHA_RESULT_BUFF_SIZE	256U
+
 /* SHA Algorithm Names */
 static const char *sha_alg_names[] = {
 	"sha256",
@@ -85,11 +91,11 @@ struct crypto_sha_state {
 
 /* Tegra NVVSE crypt context */
 struct tnvvse_crypto_ctx {
-	struct mutex				lock;
+	struct mutex			lock;
 	struct crypto_sha_state		sha_state;
-	char						*rng_buff;
-	uint32_t					max_rng_buff;
-	char						*sha_result;
+	char				*rng_buff;
+	uint32_t			max_rng_buff;
+	char				*sha_result;
 };
 
 static void tnvvse_crypto_complete(struct crypto_async_request *req, int err)
@@ -148,6 +154,7 @@ static int tnvvse_crypto_sha_init(struct tnvvse_crypto_ctx *ctx,
 	struct ahash_request *req;
 	const char *driver_name;
 	int ret = -ENOMEM;
+	char *result_buff = NULL;
 
 	if (init_ctl->sha_type >= TEGRA_NVVSE_SHA_TYPE_MAX) {
 		pr_err("%s(): SHA Type requested %d is not supported\n",
@@ -190,16 +197,29 @@ static int tnvvse_crypto_sha_init(struct tnvvse_crypto_ctx *ctx,
 	init_completion(&sha_state->sha_complete.restart);
 	sha_state->sha_complete.req_err = 0;
 
+	/* Shake128/Shake256 have variable digest size */
+	if ((init_ctl->sha_type == TEGRA_NVVSE_SHA_TYPE_SHAKE128) ||
+	     (init_ctl->sha_type == TEGRA_NVVSE_SHA_TYPE_SHAKE256)) {
+		req->dst_size = init_ctl->digest_size;
+		if (init_ctl->digest_size > NVVSE_MAX_ALLOCATED_SHA_RESULT_BUFF_SIZE) {
+			result_buff = kzalloc(init_ctl->digest_size, GFP_KERNEL);
+			if (!result_buff) {
+				ret = -ENOMEM;
+				goto free_xbuf;
+			}
+		}
+	}
+
 	ret = wait_async_op(&sha_state->sha_complete, crypto_ahash_init(req));
 	if (ret) {
 		pr_err("%s(): Failed to ahash_init for %s: ret=%d\n",
 					__func__, sha_alg_names[init_ctl->sha_type], ret);
-		goto free_xbuf;
+		goto free_result_buf;
 	}
 
 	sha_state->req = req;
 	sha_state->tfm = tfm;
-	sha_state->result_buff = ctx->sha_result;
+	sha_state->result_buff = (result_buff) ? result_buff : ctx->sha_result;
 	sha_state->sha_type = init_ctl->sha_type;
 	sha_state->total_bytes = init_ctl->total_msg_size;
 	sha_state->digest_size = init_ctl->digest_size;
@@ -211,6 +231,8 @@ static int tnvvse_crypto_sha_init(struct tnvvse_crypto_ctx *ctx,
 	ret = 0;
 	goto out;
 
+free_result_buf:
+	kfree(result_buff);
 free_xbuf:
 	free_bufs(ctx->sha_state.xbuf);
 free_req:
@@ -282,6 +304,8 @@ stop_sha:
 
 	sha_state->req = NULL;
 	sha_state->tfm = NULL;
+	if (sha_state->result_buff != ctx->sha_result)
+		kfree(sha_state->result_buff);
 	sha_state->result_buff = NULL;
 	sha_state->total_bytes = 0;
 	sha_state->digest_size = 0;
@@ -310,17 +334,25 @@ static int tnvvse_crypto_sha_final(struct tnvvse_crypto_ctx *ctx,
 		goto stop_sha;
 	}
 
-	if (final_ctl->digest_size != crypto_ahash_digestsize(tfm)) {
-		pr_err("%s(): digest size not matching req %d and calculated %d for %s\n",
+	/* Shake128/Shake256 have variable digest size */
+	if ((sha_state->sha_type == TEGRA_NVVSE_SHA_TYPE_SHAKE128) ||
+	    (sha_state->sha_type == TEGRA_NVVSE_SHA_TYPE_SHAKE256)) {
+		ret = copy_to_user((void __user *)final_ctl->digest_buffer,
+				(const void *)sha_state->result_buff,
+				final_ctl->digest_size);
+	} else {
+		if (final_ctl->digest_size != crypto_ahash_digestsize(tfm)) {
+			pr_err("%s(): digest size not matching req %d and calculated %d for %s\n",
 				__func__, final_ctl->digest_size, crypto_ahash_digestsize(tfm),
 				sha_alg_names[sha_state->sha_type]);
-		ret = -EINVAL;
-		goto stop_sha;
-	}
+			ret = -EINVAL;
+			goto stop_sha;
+		}
 
-	ret = copy_to_user((void __user *)final_ctl->digest_buffer,
+		ret = copy_to_user((void __user *)final_ctl->digest_buffer,
 				(const void *)sha_state->result_buff,
 				crypto_ahash_digestsize(tfm));
+	}
 	if (ret) {
 		pr_err("%s(): Failed to copy_to_user for %s: %d\n",
 					__func__, sha_alg_names[sha_state->sha_type], ret);
@@ -333,6 +365,8 @@ stop_sha:
 
 	sha_state->req = NULL;
 	sha_state->tfm = NULL;
+	if (sha_state->result_buff != ctx->sha_result)
+		kfree(sha_state->result_buff);
 	sha_state->result_buff = NULL;
 	sha_state->total_bytes = 0;
 	sha_state->digest_size = 0;
@@ -851,7 +885,7 @@ static int tnvvse_crypto_dev_open(struct inode *inode, struct file *filp)
 	ctx->max_rng_buff = NVVSE_MAX_RANDOM_NUMBER_LEN_SUPPORTED;
 
 	/* Allocate buffer for SHA result */
-	ctx->sha_result = kzalloc(64, GFP_KERNEL);
+	ctx->sha_result = kzalloc(NVVSE_MAX_ALLOCATED_SHA_RESULT_BUFF_SIZE, GFP_KERNEL);
 	if (!ctx->sha_result) {
 		ret = -ENOMEM;
 		goto free_rng_buf;
