@@ -162,14 +162,18 @@ static int iommu_context_dev_probe(struct platform_device *pdev)
 	   Due to the above HW issue limiting DMA_MASK to 38 bit IOVA to all of the context banks.
 	*/
 #if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
-	if (tegra_get_chipid() == TEGRA_CHIPID_TEGRA19) {
+	if (tegra_get_chipid() == TEGRA_CHIPID_TEGRA23) {
 #else
-	if (tegra_get_chip_id() == TEGRA194) {
+	if (tegra_get_chip_id() == TEGRA234) {
 #endif
+		if (dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(39)))
+			dev_err(&pdev->dev, "Error: setting DMA_MASK: 0x%llx failed\n",
+				DMA_BIT_MASK(39));
+	} else {
 		if (dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(38)))
-			dev_info(&pdev->dev, "Error: setting DMA_MASK: 0x%llx failed\n",
+			dev_err(&pdev->dev, "Error: setting DMA_MASK: 0x%llx failed\n",
 				DMA_BIT_MASK(38));
-	}
+        }
 
 	ctx = devm_kzalloc(&pdev->dev, sizeof(*ctx), GFP_KERNEL);
 	if (!ctx) {
