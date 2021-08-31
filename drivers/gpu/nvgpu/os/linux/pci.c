@@ -762,6 +762,10 @@ static void nvgpu_pci_remove(struct pci_dev *pdev)
 		nvgpu_thermal_deinit(g);
 	}
 
+	err = nvgpu_quiesce(g);
+	/* TODO: handle failure to idle */
+	WARN(err, "gpu failed to idle during driver removal");
+
 	nvgpu_free_irq(g);
 
 	nvgpu_remove(dev);
