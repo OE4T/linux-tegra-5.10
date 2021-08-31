@@ -62,6 +62,10 @@
 		status = "okay";
 	};
 
+	gpio-keys {
+		status = "okay";
+	};
+
 	ga10b {
 		status = "okay";
 	};
