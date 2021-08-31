@@ -25,7 +25,7 @@
 
 		clocks = <&bpmp_clks TEGRA234_CLK_DBGAPB>, <&bpmp_clks TEGRA234_CLK_CSITE>;
 		clock-names = "apb_pclk", "atclk";
-		status = "disabled";
+		status = "okay";
 
 		out-ports {
 			port {
@@ -43,7 +43,7 @@
 		cpu = <&{/cpus/cpu@0}>;
 		clocks = <&bpmp_clks TEGRA234_CLK_DBGAPB>, <&bpmp_clks TEGRA234_CLK_CSITE>;
 		clock-names = "apb_pclk", "atclk";
-		status = "disabled";
+		status = "okay";
 
 		out-ports {
 			port {
@@ -61,7 +61,7 @@
 		cpu = <&{/cpus/cpu@1}>;
 		clocks = <&bpmp_clks TEGRA234_CLK_DBGAPB>, <&bpmp_clks TEGRA234_CLK_CSITE>;
 		clock-names = "apb_pclk", "atclk";
-		status = "disabled";
+		status = "okay";
 
 		out-ports {
 			port {
@@ -79,7 +79,7 @@
 		cpu = <&{/cpus/cpu@2}>;
 		clocks = <&bpmp_clks TEGRA234_CLK_DBGAPB>, <&bpmp_clks TEGRA234_CLK_CSITE>;
 		clock-names = "apb_pclk", "atclk";
-		status = "disabled";
+		status = "okay";
 
 		out-ports {
 			port {
@@ -97,7 +97,7 @@
 		cpu = <&{/cpus/cpu@3}>;
 		clocks = <&bpmp_clks TEGRA234_CLK_DBGAPB>, <&bpmp_clks TEGRA234_CLK_CSITE>;
 		clock-names = "apb_pclk", "atclk";
-		status = "disabled";
+		status = "okay";
 
 		out-ports {
 			port {
@@ -115,7 +115,7 @@
 		cpu = <&{/cpus/cpu@4}>;
 		clocks = <&bpmp_clks TEGRA234_CLK_DBGAPB>, <&bpmp_clks TEGRA234_CLK_CSITE>;
 		clock-names = "apb_pclk", "atclk";
-		status = "disabled";
+		status = "okay";
 
 		out-ports {
 			port {
@@ -133,7 +133,7 @@
 		cpu = <&{/cpus/cpu@5}>;
 		clocks = <&bpmp_clks TEGRA234_CLK_DBGAPB>, <&bpmp_clks TEGRA234_CLK_CSITE>;
 		clock-names = "apb_pclk", "atclk";
-		status = "disabled";
+		status = "okay";
 
 		out-ports {
 			port {
@@ -151,7 +151,7 @@
 		cpu = <&{/cpus/cpu@6}>;
 		clocks = <&bpmp_clks TEGRA234_CLK_DBGAPB>, <&bpmp_clks TEGRA234_CLK_CSITE>;
 		clock-names = "apb_pclk", "atclk";
-		status = "disabled";
+		status = "okay";
 
 		out-ports {
 			port {
@@ -169,7 +169,7 @@
 		cpu = <&{/cpus/cpu@7}>;
 		clocks = <&bpmp_clks TEGRA234_CLK_DBGAPB>, <&bpmp_clks TEGRA234_CLK_CSITE>;
 		clock-names = "apb_pclk", "atclk";
-		status = "disabled";
+		status = "okay";
 
 		out-ports {
 			port {
@@ -187,7 +187,7 @@
 		cpu = <&{/cpus/cpu@8}>;
 		clocks = <&bpmp_clks TEGRA234_CLK_DBGAPB>, <&bpmp_clks TEGRA234_CLK_CSITE>;
 		clock-names = "apb_pclk", "atclk";
-		status = "disabled";
+		status = "okay";
 
 		out-ports {
 			port {
@@ -205,7 +205,7 @@
 		cpu = <&{/cpus/cpu@9}>;
 		clocks = <&bpmp_clks TEGRA234_CLK_DBGAPB>, <&bpmp_clks TEGRA234_CLK_CSITE>;
 		clock-names = "apb_pclk", "atclk";
-		status = "disabled";
+		status = "okay";
 
 		out-ports {
 			port {
@@ -223,7 +223,7 @@
 		cpu = <&{/cpus/cpu@10}>;
 		clocks = <&bpmp_clks TEGRA234_CLK_DBGAPB>, <&bpmp_clks TEGRA234_CLK_CSITE>;
 		clock-names = "apb_pclk", "atclk";
-		status = "disabled";
+		status = "okay";
 
 		out-ports {
 			port {
@@ -241,7 +241,7 @@
 		cpu = <&{/cpus/cpu@11}>;
 		clocks = <&bpmp_clks TEGRA234_CLK_DBGAPB>, <&bpmp_clks TEGRA234_CLK_CSITE>;
 		clock-names = "apb_pclk", "atclk";
-		status = "disabled";
+		status = "okay";
 
 		out-ports {
 			port {
@@ -258,7 +258,7 @@
 
 		clocks = <&bpmp_clks TEGRA234_CLK_DBGAPB>, <&bpmp_clks TEGRA234_CLK_CSITE>;
 		clock-names = "apb_pclk", "atclk";
-		status = "disabled";
+		status = "okay";
 
 		out-ports {
 			#address-cells = <1>;
@@ -314,7 +314,7 @@
 
 		clocks = <&bpmp_clks TEGRA234_CLK_DBGAPB>, <&bpmp_clks TEGRA234_CLK_CSITE>;
 		clock-names = "apb_pclk", "atclk";
-		status = "disabled";
+		status = "okay";
 
 		out-ports {
 			#address-cells = <1>;
@@ -370,7 +370,7 @@
 
 		clocks = <&bpmp_clks TEGRA234_CLK_DBGAPB>, <&bpmp_clks TEGRA234_CLK_CSITE>;
 		clock-names = "apb_pclk", "atclk";
-		status = "disabled";
+		status = "okay";
 
 		out-ports {
 			#address-cells = <1>;
@@ -426,7 +426,7 @@
 
 		clocks = <&bpmp_clks TEGRA234_CLK_DBGAPB>, <&bpmp_clks TEGRA234_CLK_CSITE>;
 		clock-names = "apb_pclk", "atclk";
-		status = "disabled";
+		status = "okay";
 
 		out-ports {
 			#address-cells = <1>;
@@ -474,7 +474,7 @@
 
 		clocks = <&bpmp_clks TEGRA234_CLK_DBGAPB>, <&bpmp_clks TEGRA234_CLK_CSITE>;
 		clock-names = "apb_pclk", "atclk";
-		status = "disabled";
+		status = "okay";
 
 		out-ports {
 			#address-cells = <1>;
@@ -510,12 +510,12 @@
 	};
 
 	replicator@24060000 {
-		compatible = "arm,coresight-static-replicator";
+		compatible = "arm,coresight-dynamic-replicator", "arm,primecell";
 		reg = <0x0 0x24060000 0x0 0x1000>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_DBGAPB>, <&bpmp_clks TEGRA234_CLK_CSITE>;
 		clock-names = "apb_pclk", "atclk";
-		status = "disabled";
+		status = "okay";
 
 		in-ports {
 			#address-cells = <1>;
@@ -548,7 +548,7 @@
 
 		clocks = <&bpmp_clks TEGRA234_CLK_DBGAPB>, <&bpmp_clks TEGRA234_CLK_CSITE>;
 		clock-names = "apb_pclk", "atclk";
-		status = "disabled";
+		status = "okay";
 
 		in-ports {
 			#address-cells = <1>;
@@ -580,7 +580,7 @@
 
 		clocks = <&bpmp_clks TEGRA234_CLK_DBGAPB>, <&bpmp_clks TEGRA234_CLK_CSITE>;
 		clock-names = "apb_pclk", "atclk";
-		status = "disabled";
+		status = "okay";
 
 		in-ports {
 			port {
