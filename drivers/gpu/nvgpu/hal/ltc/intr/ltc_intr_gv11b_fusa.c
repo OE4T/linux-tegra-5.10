@@ -1,7 +1,7 @@
 /*
  * GV11B LTC INTR
  *
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -294,6 +294,10 @@ static void gv11b_ltc_intr_handle_lts_interrupts(struct gk20a *g,
 		}
 
 		nvgpu_log(g, gpu_dbg_intr, "ecc error address: 0x%x", ecc_addr);
+
+		nvgpu_writel(g,
+			nvgpu_safe_add_u32(ltc_ltc0_lts0_intr3_r(), offset),
+			ltc_intr3);
 	}
 
 	gp10b_ltc_intr_handle_lts_interrupts(g, ltc, slice);
