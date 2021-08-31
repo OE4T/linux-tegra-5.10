@@ -59,6 +59,12 @@ static nve32_t ivc_handle_ioctl(struct osi_core_priv_data *osi_core,
 				(void *)data,
 				sizeof(struct osi_ioctl));
 
+	if (data->cmd == OSI_CMD_CONFIG_PTP) {
+		osi_memcpy((void *)&data->ptp_config,
+			   (void *)&osi_core->ptp_config,
+			   sizeof(struct osi_ptp_config));
+	}
+
 	ret = osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
 
 	if (data->cmd == OSI_CMD_READ_MMC) {

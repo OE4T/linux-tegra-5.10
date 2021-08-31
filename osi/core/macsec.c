@@ -3119,18 +3119,17 @@ static struct osi_macsec_lut_status lut_status[OSI_NUM_CTLR];
 
 nve32_t osi_init_macsec_ops(struct osi_core_priv_data *const osi_core)
 {
-	if (osi_core->macsec_base == OSI_NULL) {
-		return -1;
+	if (osi_core->use_virtualization == OSI_ENABLE) {
+		osi_core->macsec_ops = &virt_macsec_ops;
+		ivc_init_macsec_ops(osi_core->macsec_ops);
 	} else {
-		if (osi_core->use_virtualization == OSI_ENABLE) {
-			osi_core->macsec_ops = &virt_macsec_ops;
-			ivc_init_macsec_ops(osi_core->macsec_ops);
-		} else {
-			osi_core->macsec_ops = &macsec_ops;
+		if (osi_core->macsec_base == OSI_NULL) {
+			return -1;
 		}
-		osi_core->macsec_lut_status = lut_status;
-		return 0;
+		osi_core->macsec_ops = &macsec_ops;
 	}
+	osi_core->macsec_lut_status = lut_status;
+	return 0;
 }
 
 nve32_t osi_macsec_init(struct osi_core_priv_data *const osi_core)
