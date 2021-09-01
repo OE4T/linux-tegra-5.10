@@ -51,9 +51,18 @@ static int nvgpu_clk_arb_release_completion_dev(struct inode *inode,
 {
 	struct nvgpu_clk_dev *dev = filp->private_data;
 	struct nvgpu_clk_session *session = dev->session;
+	struct gk20a *g = session->g;
+	struct nvgpu_clk_arb *arb = g->clk_arb;
 
+	clk_arb_dbg(g, " ");
 
-	clk_arb_dbg(session->g, " ");
+	nvgpu_spinlock_acquire(&session->session_lock);
+	nvgpu_spinlock_acquire(&arb->requests_lock);
+
+	nvgpu_list_del(&dev->node);
+
+	nvgpu_spinlock_release(&arb->requests_lock);
+	nvgpu_spinlock_release(&session->session_lock);
 
 	/* This is done to account for the extra refcount taken in
 	 * nvgpu_clk_arb_commit_request_fd without events support in iGPU
