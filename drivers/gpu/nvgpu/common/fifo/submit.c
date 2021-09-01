@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -74,6 +74,7 @@ static int nvgpu_submit_create_wait_cmd(struct nvgpu_channel *c,
 			err = nvgpu_channel_sync_wait_syncpt(sync_syncpt,
 					fence->id, fence->value, wait_cmd);
 		} else {
+			nvgpu_info(c->g, "need syncpoint support");
 			err = -EINVAL;
 		}
 	}
@@ -541,16 +542,19 @@ static int nvgpu_submit_deterministic(struct nvgpu_channel *c,
 
 	/* sync framework on post fences would not be deterministic */
 	if (flag_fence_get && flag_sync_fence) {
+		nvgpu_info(g, "can't use sync fence in deterministic mode");
 		return -EINVAL;
 	}
 
 	/* this would be O(n) */
 	if (!skip_buffer_refcounting) {
+		nvgpu_info(g, "can't use buf refcounting in deterministic mode");
 		return -EINVAL;
 	}
 
 	/* the watchdog needs periodic job cleanup */
 	if (nvgpu_channel_wdt_enabled(c->wdt)) {
+		nvgpu_info(g, "can't use watchdog in deterministic mode");
 		return -EINVAL;
 	}
 
@@ -565,11 +569,13 @@ static int nvgpu_submit_deterministic(struct nvgpu_channel *c,
 	if (need_job_tracking) {
 		/* nvgpu_semaphore is dynamically allocated, not pooled */
 		if (!nvgpu_has_syncpoints(g)) {
+			nvgpu_info(g, "can't use sema tracking in deterministic mode");
 			return -EINVAL;
 		}
 
 		/* dynamic sync allocation wouldn't be deterministic */
 		if (g->aggressive_sync_destroy_thresh != 0U) {
+			nvgpu_info(g, "can't use dynamic syncs in deterministic mode");
 			return -EINVAL;
 		}
 
@@ -597,6 +603,7 @@ static int nvgpu_submit_deterministic(struct nvgpu_channel *c,
 		 * job like normal ones do, the GPU might railgate any time now
 		 * and thus submit is disallowed.
 		 */
+		nvgpu_info(g, "can't submit on dormant deterministic channel");
 		err = -EINVAL;
 		goto clean_up;
 	}
@@ -695,18 +702,22 @@ static int check_submit_allowed(struct nvgpu_channel *c)
 	struct gk20a *g = c->g;
 
 	if (nvgpu_is_enabled(g, NVGPU_DRIVER_IS_DYING)) {
+		nvgpu_info(g, "can't submit, driver dying");
 		return -ENODEV;
 	}
 
 	if (nvgpu_channel_check_unserviceable(c)) {
+		nvgpu_info(g, "can't submit, channel is unserviceable");
 		return -ETIMEDOUT;
 	}
 
 	if (c->usermode_submit_enabled) {
+		nvgpu_info(g, "can't submit, user mode only");
 		return -EINVAL;
 	}
 
 	if (!nvgpu_mem_is_valid(&c->gpfifo.mem)) {
+		nvgpu_info(g, "can't submit without gpfifo");
 		return -ENOMEM;
 	}
 
