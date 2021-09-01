@@ -2,7 +2,7 @@
  * @file drivers/platform/tegra/rtcpu/capture-ivc.c
  * @brief Capture IVC driver
  *
- * Copyright (c) 2017-2020 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2021 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -24,6 +24,7 @@
 #include <linux/platform_device.h>
 #include <linux/of.h>
 #include <linux/of_device.h>
+#include <linux/pm_runtime.h>
 #include <linux/tegra-ivc.h>
 #include <linux/tegra-ivc-bus.h>
 #include <linux/nospec.h>
@@ -324,48 +325,71 @@ int tegra_capture_ivc_unregister_capture_cb(uint32_t chan_id)
 }
 EXPORT_SYMBOL(tegra_capture_ivc_unregister_capture_cb);
 
-static void tegra_capture_ivc_worker(struct work_struct *work)
+static inline void tegra_capture_ivc_recv_msg(
+	struct tegra_capture_ivc *civc,
+	uint32_t id,
+	const struct tegra_capture_ivc_resp *msg)
 {
-	struct tegra_capture_ivc *civc = container_of(work,
-					struct tegra_capture_ivc, work);
-	struct tegra_ivc_channel *chan = civc->chan;
+	struct device *dev = &civc->chan->dev;
 
-	WARN_ON(!chan->is_ready);
-
-	while (tegra_ivc_can_read(&chan->ivc)) {
-		const struct tegra_capture_ivc_resp *msg =
-			tegra_ivc_read_get_next_frame(&chan->ivc);
-		uint32_t id = msg->header.channel_id;
-
-		/* Check if message is valid */
-		if (WARN(id >= TOTAL_CHANNELS, "Invalid rtcpu response id %u", id))
-			goto skip;
-
-		id = array_index_nospec(id, TOTAL_CHANNELS);
-
-		/* Check if callback function available */
-		if (unlikely(!civc->cb_ctx[id].cb_func)) {
-			dev_dbg(&chan->dev, "No callback for id %u\n", id);
-			goto skip;
-		}
-
+	/* Check if callback function available */
+	if (unlikely(!civc->cb_ctx[id].cb_func)) {
+		dev_dbg(dev, "No callback for id %u\n", id);
+	} else if (msg->header.msg_id >= CAPTURE_CHANNEL_ISP_RELEASE_RESP &&
+		id == CSI_TEMP_CHANNEL_ID) {
 		/* WAR: Skip the callback if channel-id is 65, and msg-id is
 		 * greater than CAPTURE_CHANNEL_ISP_RELEASE_RESP. Channel id
 		 * 65 is used for csi and it is specific to v4l2.
 		 * TODO: Bug 200619454
 		 */
-		/* Invoke client callback.*/
-		if (msg->header.msg_id >= CAPTURE_CHANNEL_ISP_RELEASE_RESP &&
-			id == CSI_TEMP_CHANNEL_ID) {
-			dev_err(&chan->dev,
-				"No callback found for msg id: 0x%x",
-				msg->header.msg_id);
-		} else {
-			civc->cb_ctx[id].cb_func(msg,
-				civc->cb_ctx[id].priv_context);
+		dev_err(dev, "Unknown msg id: 0x%x", msg->header.msg_id);
+	} else {
+		/* Invoke client callback. */
+		civc->cb_ctx[id].cb_func(msg, civc->cb_ctx[id].priv_context);
+	}
+}
+
+static inline void tegra_capture_ivc_recv(struct tegra_capture_ivc *civc)
+{
+	struct ivc *ivc = &civc->chan->ivc;
+	const struct tegra_capture_ivc_resp *msg;
+	uint32_t id;
+
+	while (tegra_ivc_can_read(ivc)) {
+		msg = tegra_ivc_read_get_next_frame(ivc);
+		id = msg->header.channel_id;
+
+		/* Check if message is valid */
+		if (!WARN(id >= TOTAL_CHANNELS, "Invalid rtcpu response id %u", id)) {
+			id = array_index_nospec(id, TOTAL_CHANNELS);
+			tegra_capture_ivc_recv_msg(civc, id, msg);
 		}
-skip:
-		tegra_ivc_read_advance(&chan->ivc);
+
+		tegra_ivc_read_advance(ivc);
+	}
+}
+
+static void tegra_capture_ivc_worker(struct work_struct *work)
+{
+	struct tegra_capture_ivc *civc;
+	struct tegra_ivc_channel *chan;
+
+	civc = container_of(work, struct tegra_capture_ivc, work);
+	chan = civc->chan;
+
+	/*
+	 * Do not process IVC events if worker gets woken up while
+	 * this channel is suspended.  There is a Christmas tree
+	 * notify when RCE resumes and IVC bus gets set up.
+	 */
+	if (pm_runtime_get_if_in_use(&chan->dev) > 0) {
+		WARN_ON(!chan->is_ready);
+
+		tegra_capture_ivc_recv(civc);
+
+		pm_runtime_put(&chan->dev);
+	} else {
+		dev_dbg(&chan->dev, "extra wakeup");
 	}
 }
 
