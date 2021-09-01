@@ -5963,6 +5963,7 @@ static int ether_probe(struct platform_device *pdev)
 	struct net_device *ndev;
 	int ret = 0, i, val;
 	void __iomem *reg;
+	const char *if_name;
 
 	/* WAR to program PAD control registers until MB1 changes done */
 	if (tegra_get_chip_id() == TEGRA234) {
@@ -6030,9 +6031,18 @@ static int ether_probe(struct platform_device *pdev)
 		return -ENOMEM;
 	}
 
-	/* allocate and set up the ethernet device */
-	ndev = alloc_etherdev_mq((int)sizeof(struct ether_priv_data),
-				 num_dma_chans);
+	if_name = (const char *)of_get_property(pdev->dev.of_node,
+						"nvidia,if-name", NULL);
+	if (if_name) {
+		ndev = alloc_netdev_mqs((int)sizeof(struct ether_priv_data), if_name,
+					NET_NAME_UNKNOWN, ether_setup,
+					num_dma_chans, num_dma_chans);
+	} else {
+		/* allocate and set up the ethernet device */
+		ndev = alloc_etherdev_mq((int)sizeof(struct ether_priv_data),
+					 num_dma_chans);
+	}
+
 	if (ndev == NULL) {
 		dev_err(&pdev->dev, "failed to allocate net device\n");
 		return -ENOMEM;
