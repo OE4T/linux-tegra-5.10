@@ -351,7 +351,7 @@ static bool isp5_find_tile_width_dpcm(const struct isp5_program * const prg,
 					cd->surface_configs.chunk_width_first,
 					cd->surface_configs.chunk_width_middle,
 					&tmp_round_up);
-	if (!ret_val) {
+	if ((!ret_val) || (tmp_round_up == 0xffffU)) {
 		return false;
 	}
 
