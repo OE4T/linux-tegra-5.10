@@ -145,7 +145,6 @@ struct gr_sm_mcerr_info {
 #define GPU_FECS_CTXSW_CRC_MISMATCH		(5U)
 #define GPU_FECS_FAULT_DURING_CTXSW		(6U)
 #define GPU_FECS_CTXSW_INIT_ERROR		(7U)
-#define GPU_FECS_INVALID_ERROR			(8U)
 /**
  * @}
  */
@@ -396,40 +395,73 @@ struct nvgpu_hw_err_inject_info_desc {
 
 /**
  * @brief This function provides an interface to report errors from HOST
- *        (FIFO/PBDMA/PBUS) unit to SDL unit.
+ *        (PFIFO/PBDMA/PBUS) unit to SDL unit.
  *
  * @param g [in]		- The GPU driver struct.
- * @param hw_unit [in]		- Index of HW unit (HOST).
- *				  - NVGPU_ERR_MODULE_HOST
+ *                                - The function does not perform validation of
+ *                                  g parameter.
+ * @param hw_unit [in]		- Index of HW unit.
+ *				  - The function validates that hw_unit ==
+ *				    \link NVGPU_ERR_MODULE_HOST \endlink.
  * @param inst [in]		- Instance ID.
  *				  - In case of multiple instances of the same HW
  *				    unit (e.g., there are multiple instances of
  *				    PBDMA), it is used to identify the instance
  *				    that encountered a fault.
+ *				  - The function does not perform any validation
+ *				    on this parameter.
  * @param err_id [in]		- Error index.
- *				  - Min: GPU_HOST_PFIFO_BIND_ERROR
- *				  - Max: GPU_HOST_PFIFO_FB_FLUSH_TIMEOUT_ERROR
+ *				  - The function validates that, this paramter
+ *				    has a value within valid range.
+ *				  - Min: \link GPU_HOST_PFIFO_BIND_ERROR \endlink
+ *				  - Max: \link GPU_HOST_PFIFO_FB_FLUSH_TIMEOUT_ERROR \endlink
  * @param intr_info [in]	- Content of interrupt status register.
+ *				  - The function does not perform any validation
+ *				    on this parameter.
  *
- * - Checks whether SDL is supported in the current GPU platform. If SDL is not
- *   supported, it simply returns.
- * - Validates both \a hw_unit and \a err_id indices. In case of a failure,
- *   invokes #nvgpu_sdl_handle_report_failure() api.
- * - Gets the current time of a clock. In case of a failure, invokes
- *   #nvgpu_sdl_handle_report_failure() api.
- * - Gets error description from internal look-up table using \a hw_unit and
- *   \a err_id indices.
- * - Forms error packet using details such as time-stamp, \a hw_unit, \a err_id,
- *   criticality of the error, \a inst, error description, \a intr_info and
- *   size of the error packet.
- * - Performs compile-time assert check to ensure that the size of the error
- *   packet does not exceed the maximum allowable size specified in
- *   #MAX_ERR_MSG_SIZE.
- * - Invokes #nvgpu_sdl_report_error_rmos() to enqueue the error packet into
- *   error message queue. In case of any failure during this enqueue operation,
- *   #nvgpu_sdl_handle_report_failure() api is invoked to handle the failure.
- * - The error packet will be dequeued from the error message queue and reported
- *   to Safety_Services by #nvgpu_sdl_worker thread.
+ * - Check nvgpu_os_rmos.is_sdl_supported equals true (pointer to nvgpu_os_rmos
+ *   is obtained using \ref nvgpu_os_rmos_from_gk20a()
+ *   "nvgpu_os_rmos_from_gk20a(g)"), return on failure.
+ * - Perform validation of input paramters, see paramter section for detailed
+ *   validation criteria. In case of a failure, print error message and invoke
+ *   \ref nvgpu_sdl_handle_report_failure()
+ *   "nvgpu_sdl_handle_report_failure(g)" and return.
+ * - Get the current time using api clock_gettime(CLOCK_MONOTONIC, &ts).
+ *   In case of a failure, print error message and invoke
+ *   \ref nvgpu_sdl_handle_report_failure()
+ *   "nvgpu_sdl_handle_report_failure(g)" and return.
+ * - Declare and initialize an error message packet err_pkt of type
+ *   nvgpu_err_msg, using \ref nvgpu_init_host_err_msg()
+ *   "nvgpu_init_host_err_msg(&err_pkt)".
+ * - Get error description err_desc of type nvgpu_err_desc from internal
+ *   look-up table \ref nvgpu_os_rmos.sdl_rmos "nvgpu_os_rmos.sdl_rmos".\ref
+ *   nvgpu_sdl_rmos.err_lut "err_lut" using hw_unit and err_id.
+ * - Update the following fields in the error message packet err_pkt.
+ *   - nvgpu_err_msg.hw_unit_id = hw_unit
+ *   - nvgpu_err_msg.err_id = err_desc->error_id
+ *   - nvgpu_err_msg.is_critical = err_desc->is_critical
+ *   - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *     gpu_error_info.host_info "host_info".\ref gpu_host_error_info.header
+ *     "header".\ref gpu_err_header.sub_unit_id "sub_unit_id" = inst
+ *   - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *     gpu_error_info.host_info "host_info".\ref gpu_host_error_info.header
+ *     "header".\ref gpu_err_header.sub_err_type "sub_err_type" = intr_info
+ *   - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *     gpu_error_info.host_info "host_info".\ref gpu_host_error_info.header
+ *     "header".\ref gpu_err_header.timestamp_ns "timestamp_ns" =
+ *     \ref nvgpu_timespec2nsec() "nvgpu_timespec2nsec(&ts)"
+ *   - nvgpu_err_msg.err_desc = err_desc
+ *   - nvgpu_err_msg.err_size = sizeof(gpu_error_info.host_info)
+ * - Invoke \ref nvgpu_sdl_report_error_rmos()
+ *   "nvgpu_sdl_report_error_rmos(g, &err_pkt, sizeof(err_pkt))" to enqueue
+ *   the packet err_pkt into the circular buffer \ref nvgpu_os_rmos.sdl_rmos
+ *   "nvgpu_os_rmos.sdl_rmos".\ref nvgpu_sdl_rmos.emsg_q "emsg_q". In case
+ *   of failure, print error message and invoke
+ *   \ref nvgpu_sdl_handle_report_failure() "nvgpu_sdl_handle_report_failure(g)"
+ *   and return.
+ * - The error packet err_pkt will be dequeued from \ref
+ *   nvgpu_os_rmos.sdl_rmos "nvgpu_os_rmos.sdl_rmos".\ref nvgpu_sdl_rmos.emsg_q
+ *   "emsg_q" and reported to Safety Service by nvgpu_sdl_worker() thread.
  *
  * @return	None
  */
@@ -481,9 +513,11 @@ void nvgpu_report_host_err(struct gk20a *g, u32 hw_unit,
  *   nvgpu_sdl_rmos.err_lut "err_lut" using hw_unit and err_id.
  * - Update the following fields in the error message packet err_pkt.
  *   - nvgpu_err_msg.hw_unit_id = hw_unit
- *   - nvgpu_err_msg.is_critical = err_desc->is_critical
  *   - nvgpu_err_msg.err_id = err_desc->error_id
- *   - nvgpu_err_msg.err_size = sizeof(gpu_error_info.ce_info)
+ *   - nvgpu_err_msg.is_critical = err_desc->is_critical
+ *   - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *     gpu_error_info.ce_info "ce_info".\ref gpu_ce_error_info.header
+ *     "header".\ref gpu_err_header.sub_unit_id "sub_unit_id" = 0
  *   - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
  *     gpu_error_info.ce_info "ce_info".\ref gpu_ce_error_info.header
  *     "header".\ref gpu_err_header.sub_err_type "sub_err_type" = intr_info
@@ -492,6 +526,7 @@ void nvgpu_report_host_err(struct gk20a *g, u32 hw_unit,
  *     "header".\ref gpu_err_header.timestamp_ns "timestamp_ns" =
  *     \ref nvgpu_timespec2nsec() "nvgpu_timespec2nsec(&ts)"
  *   - nvgpu_err_msg.err_desc = err_desc
+ *   - nvgpu_err_msg.err_size = sizeof(gpu_error_info.ce_info)
  * - Invoke \ref nvgpu_sdl_report_error_rmos()
  *   "nvgpu_sdl_report_error_rmos(g, &err_pkt, sizeof(err_pkt))" to enqueue
  *   the packet err_pkt into the circular buffer \ref nvgpu_os_rmos.sdl_rmos
@@ -512,70 +547,111 @@ void nvgpu_report_ce_err(struct gk20a *g, u32 hw_unit,
  * @brief This function provides an interface to report ECC erros to SDL unit.
  *
  * @param g [in]		- The GPU driver struct.
+ *                                - The function does not perform validation of
+ *                                  g parameter.
  * @param hw_unit [in]		- Index of HW unit.
- *				  - List of valid HW unit IDs
- *				    - NVGPU_ERR_MODULE_SM
- *				    - NVGPU_ERR_MODULE_FECS
- *				    - NVGPU_ERR_MODULE_GPCCS
- *				    - NVGPU_ERR_MODULE_MMU
- *				    - NVGPU_ERR_MODULE_GCC
- *				    - NVGPU_ERR_MODULE_PMU
- *				    - NVGPU_ERR_MODULE_LTC
- *				    - NVGPU_ERR_MODULE_HUBMMU
+ *				  - The function validates that this parameter
+ *				    has anyone of the following values:
+ *				  - \link NVGPU_ERR_MODULE_SM \endlink
+ *				  - \link NVGPU_ERR_MODULE_FECS \endlink
+ *				  - \link NVGPU_ERR_MODULE_GPCCS \endlink
+ *				  - \link NVGPU_ERR_MODULE_MMU \endlink
+ *				  - \link NVGPU_ERR_MODULE_GCC \endlink
+ *				  - \link NVGPU_ERR_MODULE_PMU \endlink
+ *				  - \link NVGPU_ERR_MODULE_LTC \endlink
+ *				  - \link NVGPU_ERR_MODULE_HUBMMU \endlink
  * @param inst [in]		- Instance ID.
  *				  - In case of multiple instances of the same HW
  *				    unit (e.g., there are multiple instances of
  *				    SM), it is used to identify the instance
  *				    that encountered a fault.
+ *				  - The function does not perform any validation
+ *				    on this parameter.
  * @param err_id [in]		- Error index.
- *				  - For SM:
- *				    - Min: GPU_SM_L1_TAG_ECC_CORRECTED
- *				    - Max: GPU_SM_ICACHE_L1_PREDECODE_ECC_UNCORRECTED
- *				  - For FECS:
- *				    - Min: GPU_FECS_FALCON_IMEM_ECC_CORRECTED
- *				    - Max: GPU_FECS_INVALID_ERROR
- *				  - For GPCCS:
- *				    - Min: GPU_GPCCS_FALCON_IMEM_ECC_CORRECTED
- *				    - Max: GPU_GPCCS_FALCON_DMEM_ECC_UNCORRECTED
- *				  - For MMU:
- *				    - Min: GPU_MMU_L1TLB_SA_DATA_ECC_UNCORRECTED
- *				    - Max: GPU_MMU_L1TLB_FA_DATA_ECC_UNCORRECTED
- *				  - For GCC:
- *				    - Min: GPU_GCC_L15_ECC_UNCORRECTED
- *				    - Max: GPU_GCC_L15_ECC_UNCORRECTED
- *				  - For PMU:
- *				    - Min: GPU_PMU_FALCON_IMEM_ECC_CORRECTED
- *				    - Max: GPU_PMU_FALCON_DMEM_ECC_UNCORRECTED
- *				  - For LTC:
- *				    - Min: GPU_LTC_CACHE_DSTG_ECC_CORRECTED
- *				    - Max: GPU_LTC_CACHE_DSTG_BE_ECC_UNCORRECTED
- *				  - For HUBMMU:
- *				    - Min: GPU_HUBMMU_L2TLB_SA_DATA_ECC_UNCORRECTED
- *				    - Max: GPU_HUBMMU_PDE0_DATA_ECC_UNCORRECTED
+ *				  - The function validates that this parameter
+ *				    has a value within valid range.
+ *				  - For \link NVGPU_ERR_MODULE_SM \endlink
+ *				    - Min: \link GPU_SM_L1_TAG_ECC_CORRECTED \endlink
+ *				    - Max: \link GPU_SM_ICACHE_L1_PREDECODE_ECC_UNCORRECTED \endlink
+ *				  - For \link NVGPU_ERR_MODULE_FECS \endlink
+ *				    - Min: \link GPU_FECS_FALCON_IMEM_ECC_CORRECTED \endlink
+ *				    - Max: \link GPU_FECS_CTXSW_INIT_ERROR \endlink
+ *				  - \link NVGPU_ERR_MODULE_GPCCS \endlink
+ *				    - Min: \link GPU_GPCCS_FALCON_IMEM_ECC_CORRECTED \endlink
+ *				    - Max: \link GPU_GPCCS_FALCON_DMEM_ECC_UNCORRECTED \endlink
+ *				  - \link NVGPU_ERR_MODULE_MMU \endlink
+ *				    - Min: \link GPU_MMU_L1TLB_SA_DATA_ECC_UNCORRECTED \endlink
+ *				    - Max: \link GPU_MMU_L1TLB_FA_DATA_ECC_UNCORRECTED \endlink
+ *				  - \link NVGPU_ERR_MODULE_GCC \endlink
+ *				    - Min: \link GPU_GCC_L15_ECC_UNCORRECTED \endlink
+ *				    - Max: \link GPU_GCC_L15_ECC_UNCORRECTED \endlink
+ *				  - \link NVGPU_ERR_MODULE_PMU \endlink
+ *				    - Min: \link GPU_PMU_FALCON_IMEM_ECC_CORRECTED \endlink
+ *				    - Max: \link GPU_PMU_FALCON_DMEM_ECC_UNCORRECTED \endlink
+ *				  - \link NVGPU_ERR_MODULE_LTC \endlink
+ *				    - Min: \link GPU_LTC_CACHE_DSTG_ECC_CORRECTED \endlink
+ *				    - Max: \link GPU_LTC_CACHE_DSTG_BE_ECC_UNCORRECTED \endlink
+ *				  - \link NVGPU_ERR_MODULE_HUBMMU \endlink
+ *				    - Min: \link GPU_HUBMMU_L2TLB_SA_DATA_ECC_UNCORRECTED \endlink
+ *				    - Max: \link GPU_HUBMMU_PDE0_DATA_ECC_UNCORRECTED \endlink
+ * @param intr_info [in]	- Content of interrupt status register.
+ *				  - The function does not perform any validation
+ *				    on this parameter.
  * @param err_addr [in]		- Error address.
  *				  - This is the location at which correctable or
  *				    uncorrectable error has occurred.
+ *				  - The function does not perform any validation
+ *				    on this parameter.
  * @param err_count [in]	- Error count.
+ *				  - The function does not perform any validation
+ *				    on this parameter.
  *
- * - Checks whether SDL is supported in the current GPU platform. If SDL is not
- *   supported, it simply returns.
- * - Validates both \a hw_unit and \a err_id indices. In case of a failure,
- *   invokes #nvgpu_sdl_handle_report_failure() api.
- * - Gets the current time of a clock. In case of a failure, invokes
- *   #nvgpu_sdl_handle_report_failure() api.
- * - Gets error description from internal look-up table using \a hw_unit and
- *   \a err_id indices.
- * - Forms error packet using details such as time-stamp, \a hw_unit, \a err_id,
- *   criticality of the error, \a inst, \a err_addr, \a err_count, error
- *   description, and size of the error packet.
- * - Performs compile-time assert check to ensure that the size of the error
- *   packet does not exceed the maximum allowable size specified in
- *   #MAX_ERR_MSG_SIZE.
- * - Invokes #nvgpu_sdl_report_error_rmos() to enqueue the error packet into
- *   error message queue. In case of any failure during this enqueue operation,
- *   #nvgpu_sdl_handle_report_failure() api is invoked to handle the failure.
- * - The error packet will be dequeued from the error message queue and reported
- *   to Safety_Services by #nvgpu_sdl_worker thread.
+ * - Check nvgpu_os_rmos.is_sdl_supported equals true (pointer to nvgpu_os_rmos
+ *   is obtained using \ref nvgpu_os_rmos_from_gk20a()
+ *   "nvgpu_os_rmos_from_gk20a(g)"), return on failure.
+ * - Perform validation of input paramters, see paramter section for detailed
+ *   validation criteria. In case of a failure, print error message and invoke
+ *   \ref nvgpu_sdl_handle_report_failure()
+ *   "nvgpu_sdl_handle_report_failure(g)" and return.
+ * - Get the current time using api clock_gettime(CLOCK_MONOTONIC, &ts).
+ *   In case of a failure, print error message and invoke
+ *   \ref nvgpu_sdl_handle_report_failure()
+ *   "nvgpu_sdl_handle_report_failure(g)" and return.
+ * - Declare and initialize an error message packet err_pkt of type
+ *   nvgpu_err_msg, using \ref nvgpu_init_ecc_err_msg()
+ *   "nvgpu_init_ecc_err_msg(&err_pkt)".
+ * - Get error description err_desc of type nvgpu_err_desc from internal
+ *   look-up table \ref nvgpu_os_rmos.sdl_rmos "nvgpu_os_rmos.sdl_rmos".\ref
+ *   nvgpu_sdl_rmos.err_lut "err_lut" using hw_unit and err_id.
+ * - Update the following fields in the error message packet err_pkt.
+ *   - nvgpu_err_msg.hw_unit_id = hw_unit
+ *   - nvgpu_err_msg.err_id = err_desc->error_id
+ *   - nvgpu_err_msg.is_critical = err_desc->is_critical
+ *   - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *     gpu_error_info.ecc_info "ecc_info".\ref gpu_ecc_error_info.header
+ *     "header".\ref gpu_err_header.timestamp_ns "timestamp_ns" =
+ *     \ref nvgpu_timespec2nsec() "nvgpu_timespec2nsec(&ts)"
+ *   - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *     gpu_error_info.ecc_info "ecc_info".\ref gpu_ecc_error_info.header
+ *     "header".\ref gpu_err_header.sub_unit_id "sub_unit_id" = inst
+ *   - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *     gpu_error_info.ecc_info "ecc_info".\ref gpu_ecc_error_info.header
+ *     "header".\ref gpu_err_header.address "address" = err_addr
+ *   - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *     gpu_error_info.ecc_info "ecc_info".\ref gpu_ecc_error_info.err_cnt
+ *     "err_cnt" = err_count
+ *   - nvgpu_err_msg.err_desc = err_desc
+ *   - nvgpu_err_msg.err_size = sizeof(gpu_error_info.ecc_info)
+ * - Invoke \ref nvgpu_sdl_report_error_rmos()
+ *   "nvgpu_sdl_report_error_rmos(g, &err_pkt, sizeof(err_pkt))" to enqueue
+ *   the packet err_pkt into the circular buffer \ref nvgpu_os_rmos.sdl_rmos
+ *   "nvgpu_os_rmos.sdl_rmos".\ref nvgpu_sdl_rmos.emsg_q "emsg_q". In case
+ *   of failure, print error message and invoke
+ *   \ref nvgpu_sdl_handle_report_failure() "nvgpu_sdl_handle_report_failure(g)"
+ *   and return.
+ * - The error packet err_pkt will be dequeued from \ref
+ *   nvgpu_os_rmos.sdl_rmos "nvgpu_os_rmos.sdl_rmos".\ref nvgpu_sdl_rmos.emsg_q
+ *   "emsg_q" and reported to Safety Service by nvgpu_sdl_worker() thread.
  *
  * @return	None
  */
@@ -608,34 +684,80 @@ static inline void nvgpu_report_fb_ecc_err(struct gk20a *g, u32 err_id, u64 err_
 /**
  * @brief This function provides an interface to report CTXSW erros to SDL unit.
  *
- * @param g [in]	- The GPU driver struct.
- * @param hw_unit [in]	- Index of HW unit (FECS).
- *			  - NVGPU_ERR_MODULE_FECS
- * @param err_id [in]	- Error index.
- *			  - Min: GPU_FECS_CTXSW_WATCHDOG_TIMEOUT
- *			  - Max: GPU_FECS_CTXSW_INIT_ERROR
- * @param data [in]	- CTXSW error information.
- *			  - This can be type-casted to struct ctxsw_err_info.
+ * @param g [in]		- The GPU driver struct.
+ *                                - The function does not perform validation of
+ *                                  g parameter.
+ * @param hw_unit [in]		- Index of HW unit.
+ *				  - The function validates that hw_unit ==
+ *				    \link NVGPU_ERR_MODULE_FECS \endlink.
+ * @param err_id [in]		- Error index.
+ *				  - The function validates that, this paramter
+ *				    has a value within valid range.
+ *				  - Min: \link GPU_FECS_CTXSW_WATCHDOG_TIMEOUT \endlink
+ *				  - Max: \link GPU_FECS_CTXSW_INIT_ERROR \endlink
+ * @param intr_info [in]	- Content of interrupt status register.
+ *				  - The function does not perform any validation
+ *				    on this parameter.
+ * @param data [in]		- CTXSW error information.
+ *				  - The function does not perform any validation
+ *				    on this parameter.
  *
- * - Checks whether SDL is supported in the current GPU platform. If SDL is not
- *   supported, it simply returns.
- * - Validates both \a hw_unit and \a err_id indices. In case of a failure,
- *   invokes #nvgpu_sdl_handle_report_failure() api.
- * - Gets the current time of a clock. In case of a failure, invokes
- *   #nvgpu_sdl_handle_report_failure() api.
- * - Gets error description from internal look-up table using \a hw_unit and
- *   \a err_id indices.
- * - Forms error packet using details such as time-stamp, \a hw_unit, \a err_id,
- *   criticality of the error, CTXSW error information, error description, and
- *   size of the error packet.
- * - Performs compile-time assert check to ensure that the size of the error
- *   packet does not exceed the maximum allowable size specified in
- *   #MAX_ERR_MSG_SIZE.
- * - Invokes #nvgpu_sdl_report_error_rmos() to enqueue the error packet into
- *   error message queue. In case of any failure during this enqueue operation,
- *   #nvgpu_sdl_handle_report_failure() api is invoked to handle the failure.
- * - The error packet will be dequeued from the error message queue and reported
- *   to Safety_Services by #nvgpu_sdl_worker thread.
+ * - Check nvgpu_os_rmos.is_sdl_supported equals true (pointer to nvgpu_os_rmos
+ *   is obtained using \ref nvgpu_os_rmos_from_gk20a()
+ *   "nvgpu_os_rmos_from_gk20a(g)"), return on failure.
+ * - Perform validation of input paramters, see paramter section for detailed
+ *   validation criteria. In case of a failure, print error message and invoke
+ *   \ref nvgpu_sdl_handle_report_failure()
+ *   "nvgpu_sdl_handle_report_failure(g)" and return.
+ * - Get the current time using api clock_gettime(CLOCK_MONOTONIC, &ts).
+ *   In case of a failure, print error message and invoke
+ *   \ref nvgpu_sdl_handle_report_failure()
+ *   "nvgpu_sdl_handle_report_failure(g)" and return.
+ * - Declare and initialize an error message packet err_pkt of type
+ *   nvgpu_err_msg, using \ref nvgpu_init_ctxsw_err_msg()
+ *   "nvgpu_init_ctxsw_err_msg(&err_pkt)".
+ * - Get error description err_desc of type nvgpu_err_desc from internal
+ *   look-up table \ref nvgpu_os_rmos.sdl_rmos "nvgpu_os_rmos.sdl_rmos".\ref
+ *   nvgpu_sdl_rmos.err_lut "err_lut" using hw_unit and err_id.
+ * - Typecast the input \a data to the type #ctxsw_err_info.
+ * - Update the following fields in the error message packet err_pkt.
+ *   - nvgpu_err_msg.hw_unit_id = hw_unit
+ *   - nvgpu_err_msg.is_critical = err_desc->is_critical
+ *   - nvgpu_err_msg.err_id = err_desc->error_id
+ *   - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *     gpu_error_info.ctxsw_info "ctxsw_info".\ref gpu_ctxsw_error_info.header
+ *     "header".\ref gpu_err_header.sub_unit_id "sub_unit_id" = 0
+ *   - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *     gpu_error_info.ctxsw_info "ctxsw_info".\ref gpu_ctxsw_error_info.curr_ctx
+ *     "curr_ctx" = data->curr_ctx
+ *   - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *     gpu_error_info.ctxsw_info "ctxsw_info".\ref gpu_ctxsw_error_info.chid
+ *     "chid" = data->chid
+ *   - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *     gpu_error_info.ctxsw_info "ctxsw_info".\ref gpu_ctxsw_error_info.ctxsw_status0
+ *     "cxtsw_status0" = data->cxtsw_status0
+ *   - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *     gpu_error_info.ctxsw_info "ctxsw_info".\ref gpu_ctxsw_error_info.ctxsw_status1
+ *     "cxtsw_status1" = data->cxtsw_status1
+ *   - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *     gpu_error_info.ctxsw_info "ctxsw_info".\ref gpu_ctxsw_error_info.mailbox_value
+ *     "mailbox_value" = data->mailbox_value
+ *   - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *     gpu_error_info.ctxsw_info "ctxsw_info".\ref gpu_ctxsw_error_info.header
+ *     "header".\ref gpu_err_header.timestamp_ns "timestamp_ns" =
+ *     \ref nvgpu_timespec2nsec() "nvgpu_timespec2nsec(&ts)"
+ *   - nvgpu_err_msg.err_desc = err_desc
+ *   - nvgpu_err_msg.err_size = sizeof(gpu_error_info.ctxsw_info)
+ * - Invoke \ref nvgpu_sdl_report_error_rmos()
+ *   "nvgpu_sdl_report_error_rmos(g, &err_pkt, sizeof(err_pkt))" to enqueue
+ *   the packet err_pkt into the circular buffer \ref nvgpu_os_rmos.sdl_rmos
+ *   "nvgpu_os_rmos.sdl_rmos".\ref nvgpu_sdl_rmos.emsg_q "emsg_q". In case
+ *   of failure, print error message and invoke
+ *   \ref nvgpu_sdl_handle_report_failure() "nvgpu_sdl_handle_report_failure(g)"
+ *   and return.
+ * - The error packet err_pkt will be dequeued from \ref
+ *   nvgpu_os_rmos.sdl_rmos "nvgpu_os_rmos.sdl_rmos".\ref nvgpu_sdl_rmos.emsg_q
+ *   "emsg_q" and reported to Safety Service by nvgpu_sdl_worker() thread.
  *
  * @return	None
  */
@@ -647,48 +769,82 @@ void nvgpu_report_ctxsw_err(struct gk20a *g, u32 hw_unit, u32 err_id,
  *        to SDL unit.
  *
  * @param g [in]		- The GPU driver struct.
+ *                                - The function does not perform validation of
+ *                                  g parameter.
  * @param hw_unit [in]		- Index of HW unit.
- *				  - List of valid HW unit IDs
- *				    - NVGPU_ERR_MODULE_SM
- *				    - NVGPU_ERR_MODULE_PGRAPH
+ *				  - The function validates that this paramter
+ *				    has anyone of the following values.
+ *				  - \link NVGPU_ERR_MODULE_SM \endlink
+ *				  - \link NVGPU_ERR_MODULE_PGRAPH \endlink
  * @param inst [in]		- Instance ID.
  *				  - In case of multiple instances of the same HW
  *				    unit (e.g., there are multiple instances of
  *				    SM), it is used to identify the instance
  *				    that encountered a fault.
+ *				  - The function does not perform any validation
+ *				    on this parameter.
  * @param err_id [in]		- Error index.
- *				  - For SM:
- *				    - GPU_SM_MACHINE_CHECK_ERROR
- *				  - For PGRAPH:
- *				    - Min: GPU_PGRAPH_FE_EXCEPTION
- *				    - Max: GPU_PGRAPH_GPC_GFX_EXCEPTION
- * @param err_info [in]		- Error information.
- *				  - For SM: Machine Check Error Information.
- *				  - For PGRAPH: Exception Information.
+ *				  - The function validates that this parameter
+ *				    has a value within valid range.
+ *				  - For \link NVGPU_ERR_MODULE_SM \endlink
+ *				    - \link GPU_SM_MACHINE_CHECK_ERROR \endlink
+ *				  - For \link NVGPU_ERR_MODULE_PGRAPH \endlink
+ *				    - Min: \link GPU_PGRAPH_FE_EXCEPTION \endlink
+ *				    - Max: \link GPU_PGRAPH_GPC_GFX_EXCEPTION \endlink
  * @param sub_err_type [in]	- Sub error type.
  *				  - This is a sub-error of the error that is
  *				    being reported.
+ *				  - The function does not perform any validation
+ *				    on this parameter.
+ * @param err_info [in]		- Error information.
+ *				  - For SM: Machine Check Error Information.
+ *				  - For PGRAPH: Exception Information.
+ *				  - The function does not perform any validation
+ *				    on this parameter.
  *
- * - Checks whether SDL is supported in the current GPU platform. If SDL is not
- *   supported, it simply returns.
- * - Validates both \a hw_unit and \a err_id indices. In case of a failure,
- *   invokes #nvgpu_sdl_handle_report_failure() api.
- * - Gets the current time of a clock. In case of a failure, invokes
- *   #nvgpu_sdl_handle_report_failure() api.
- * - Gets error description from internal look-up table using \a hw_unit and
- *   \a err_id indices.
- * - Forms error packet using details such as time-stamp, \a hw_unit, \a err_id,
- *   criticality of the error, status, \a sub_err_type, error description, and
- *   size of the error packet. It also includes appropriate \a err_info
- *   depending on \a hw_unit type (SM/PGRAPH).
- * - Performs compile-time assert check to ensure that the size of the error
- *   packet does not exceed the maximum allowable size specified in
- *   #MAX_ERR_MSG_SIZE.
- * - Invokes #nvgpu_sdl_report_error_rmos() to enqueue the error packet into
- *   error message queue. In case of any failure during this enqueue operation,
- *   #nvgpu_sdl_handle_report_failure() api is invoked to handle the failure.
- * - The error packet will be dequeued from the error message queue and reported
- *   to Safety_Services by #nvgpu_sdl_worker thread.
+ * - Check nvgpu_os_rmos.is_sdl_supported equals true (pointer to nvgpu_os_rmos
+ *   is obtained using \ref nvgpu_os_rmos_from_gk20a()
+ *   "nvgpu_os_rmos_from_gk20a(g)"), return on failure.
+ * - Perform validation of input paramters, see paramter section for detailed
+ *   validation criteria. In case of a failure, print error message and invoke
+ *   \ref nvgpu_sdl_handle_report_failure()
+ *   "nvgpu_sdl_handle_report_failure(g)" and return.
+ * - Get the current time using api clock_gettime(CLOCK_MONOTONIC, &ts).
+ *   In case of a failure, print error message and invoke
+ *   \ref nvgpu_sdl_handle_report_failure()
+ *   "nvgpu_sdl_handle_report_failure(g)" and return.
+ * - Declare and initialize an error message packet err_pkt of type
+ *   nvgpu_err_msg, using \ref nvgpu_init_ce_err_msg()
+ *   "nvgpu_init_gr_err_msg(&err_pkt)".
+ * - Get error description err_desc of type nvgpu_err_desc from internal
+ *   look-up table \ref nvgpu_os_rmos.sdl_rmos "nvgpu_os_rmos.sdl_rmos".\ref
+ *   nvgpu_sdl_rmos.err_lut "err_lut" using hw_unit and err_id.
+ * - Update the following fields in the error message packet err_pkt.
+ *   - nvgpu_err_msg.hw_unit_id = hw_unit
+ *   - nvgpu_err_msg.err_id = err_desc->error_id
+ *   - nvgpu_err_msg.is_critical = err_desc->is_critical
+ *   - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *     gpu_error_info.ce_info "gr_info".\ref gpu_gr_error_info.header
+ *     "header".\ref gpu_err_header.sub_err_type "sub_err_type" = sub_err_type
+ *   - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *     gpu_error_info.ce_info "gr_info".\ref gpu_gr_error_info.header
+ *     "header".\ref gpu_err_header.sub_unit_id "sub_unit_id" = inst
+ *   - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *     gpu_error_info.gr_info "gr_info".\ref gpu_gr_error_info.header
+ *     "header".\ref gpu_err_header.timestamp_ns "timestamp_ns" =
+ *     \ref nvgpu_timespec2nsec() "nvgpu_timespec2nsec(&ts)"
+ *   - nvgpu_err_msg.err_desc = err_desc
+ *   - nvgpu_err_msg.err_size = sizeof(gpu_error_info.gr_info)
+ * - Invoke \ref nvgpu_sdl_report_error_rmos()
+ *   "nvgpu_sdl_report_error_rmos(g, &err_pkt, sizeof(err_pkt))" to enqueue
+ *   the packet err_pkt into the circular buffer \ref nvgpu_os_rmos.sdl_rmos
+ *   "nvgpu_os_rmos.sdl_rmos".\ref nvgpu_sdl_rmos.emsg_q "emsg_q". In case
+ *   of failure, print error message and invoke
+ *   \ref nvgpu_sdl_handle_report_failure() "nvgpu_sdl_handle_report_failure(g)"
+ *   and return.
+ * - The error packet err_pkt will be dequeued from \ref
+ *   nvgpu_os_rmos.sdl_rmos "nvgpu_os_rmos.sdl_rmos".\ref nvgpu_sdl_rmos.emsg_q
+ *   "emsg_q" and reported to Safety Service by nvgpu_sdl_worker() thread.
  *
  * @return	None
  */
@@ -699,34 +855,66 @@ void nvgpu_report_gr_err(struct gk20a *g, u32 hw_unit, u32 inst,
  * @brief This function provides an interface to report PMU erros to SDL unit.
  *
  * @param g [in]		- The GPU driver struct.
- * @param hw_unit [in]		- Index of HW unit (PMU).
- *				  - NVGPU_ERR_MODULE_PMU
+ *                                - The function does not perform validation of
+ *                                  g parameter.
+ * @param hw_unit [in]		- Index of HW unit.
+ *				  - The function validates that hw_unit ==
+ *				    \link NVGPU_ERR_MODULE_PMU \endlink.
  * @param err_id [in]		- Error index.
- *				  - GPU_PMU_BAR0_ERROR_TIMEOUT
+ *				  - The function validates that err_id ==
+ *				    \link GPU_PMU_BAR0_ERROR_TIMEOUT \endlink.
  * @param sub_err_type [in]	- Sub error type.
  *				  - This is a sub-error of the error that is
  *				    being reported.
+ *				  - The function does not perform any validation
+ *				    on this parameter.
  * @param status [in]		- Error information.
+ *				  - The function does not perform any validation
+ *				    on this parameter.
  *
- * - Checks whether SDL is supported in the current GPU platform. If SDL is not
- *   supported, it simply returns.
- * - Validates both \a hw_unit and \a err_id indices. In case of a failure,
- *   invokes #nvgpu_sdl_handle_report_failure() api.
- * - Gets the current time of a clock. In case of a failure, invokes
- *   #nvgpu_sdl_handle_report_failure() api.
- * - Gets error description from internal look-up table using \a hw_unit and
- *   \a err_id indices.
- * - Forms error packet using details such as time-stamp, \a hw_unit, \a err_id,
- *   criticality of the error, \a status, \a sub_err_type, error description,
- *   and size of the error packet.
- * - Performs compile-time assert check to ensure that the size of the error
- *   packet does not exceed the maximum allowable size specified in
- *   #MAX_ERR_MSG_SIZE.
- * - Invokes #nvgpu_sdl_report_error_rmos() to enqueue the error packet into
- *   error message queue. In case of any failure during this enqueue operation,
- *   #nvgpu_sdl_handle_report_failure() api is invoked to handle the failure.
- * - The error packet will be dequeued from the error message queue and reported
- *   to Safety_Services by #nvgpu_sdl_worker thread.
+ * - Check nvgpu_os_rmos.is_sdl_supported equals true (pointer to nvgpu_os_rmos
+ *   is obtained using \ref nvgpu_os_rmos_from_gk20a()
+ *   "nvgpu_os_rmos_from_gk20a(g)"), return on failure.
+ * - Perform validation of input paramters, see paramter section for detailed
+ *   validation criteria. In case of a failure, print error message and invoke
+ *   \ref nvgpu_sdl_handle_report_failure()
+ *   "nvgpu_sdl_handle_report_failure(g)" and return.
+ * - Get the current time using api clock_gettime(CLOCK_MONOTONIC, &ts).
+ *   In case of a failure, print error message and invoke
+ *   \ref nvgpu_sdl_handle_report_failure()
+ *   "nvgpu_sdl_handle_report_failure(g)" and return.
+ * - Declare and initialize an error message packet err_pkt of type
+ *   nvgpu_err_msg, using \ref nvgpu_init_ce_err_msg()
+ *   "nvgpu_init_pmu_err_msg(&err_pkt)".
+ * - Get error description err_desc of type nvgpu_err_desc from internal
+ *   look-up table \ref nvgpu_os_rmos.sdl_rmos "nvgpu_os_rmos.sdl_rmos".\ref
+ *   nvgpu_sdl_rmos.err_lut "err_lut" using hw_unit and err_id.
+ * - Update the following fields in the error message packet err_pkt.
+ *   - nvgpu_err_msg.hw_unit_id = hw_unit
+ *   - nvgpu_err_msg.err_id = err_desc->error_id
+ *   - nvgpu_err_msg.is_critical = err_desc->is_critical
+ *   - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *     gpu_error_info.pmu_info "pmu_info".\ref gpu_pmu_error_info.status
+ *     "status" = status
+ *   - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *     gpu_error_info.ce_info "pmu_info".\ref gpu_pmu_error_info.header
+ *     "header".\ref gpu_err_header.sub_err_type "sub_err_type" = sub_err_type
+ *   - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *     gpu_error_info.pmu_info "pmu_info".\ref gpu_pmu_error_info.header
+ *     "header".\ref gpu_err_header.timestamp_ns "timestamp_ns" =
+ *     \ref nvgpu_timespec2nsec() "nvgpu_timespec2nsec(&ts)"
+ *   - nvgpu_err_msg.err_desc = err_desc
+ *   - nvgpu_err_msg.err_size = sizeof(gpu_error_info.pmu_info)
+ * - Invoke \ref nvgpu_sdl_report_error_rmos()
+ *   "nvgpu_sdl_report_error_rmos(g, &err_pkt, sizeof(err_pkt))" to enqueue
+ *   the packet err_pkt into the circular buffer \ref nvgpu_os_rmos.sdl_rmos
+ *   "nvgpu_os_rmos.sdl_rmos".\ref nvgpu_sdl_rmos.emsg_q "emsg_q". In case
+ *   of failure, print error message and invoke
+ *   \ref nvgpu_sdl_handle_report_failure() "nvgpu_sdl_handle_report_failure(g)"
+ *   and return.
+ * - The error packet err_pkt will be dequeued from \ref
+ *   nvgpu_os_rmos.sdl_rmos "nvgpu_os_rmos.sdl_rmos".\ref nvgpu_sdl_rmos.emsg_q
+ *   "emsg_q" and reported to Safety Service by nvgpu_sdl_worker() thread.
  *
  * @return	None
  */
@@ -737,41 +925,79 @@ void nvgpu_report_pmu_err(struct gk20a *g, u32 hw_unit, u32 err_id,
  * @brief This function provides an interface to report PRI erros to SDL unit.
  *
  * @param g [in]		- The GPU driver struct.
- * @param hw_unit [in]		- Index of HW unit (PRI).
- *				  - NVGPU_ERR_MODULE_PRI
+ *                                - The function does not perform validation of
+ *                                  g parameter.
+ * @param hw_unit [in]		- Index of HW unit.
+ *				  - The function validates that hw_unit ==
+ *				    \link NVGPU_ERR_MODULE_PRI \endlink.
  * @param inst [in]		- Instance ID.
  *				  - In case of multiple instances of the same HW
  *				    unit, it is used to identify the instance
  *				    that encountered a fault.
+ *				  - The function does not perform any validation
+ *				    on this parameter.
  * @param err_id [in]		- Error index.
- *				  - Min: GPU_PRI_TIMEOUT_ERROR
- *				  - Max: GPU_PRI_ACCESS_VIOLATION
+ *				  - The function validates that this paramter
+ *				    has a value within valid range.
+ *				  - Min: \link GPU_PRI_TIMEOUT_ERROR \endlink
+ *				  - Max: \link GPU_PRI_ACCESS_VIOLATION \endlink
  * @param err_addr [in]		- Error address.
  *				  - This is the address of the first PRI access
  *				    that resulted in an error.
+ *				  - The function does not perform any validation
+ *				    on this parameter.
  * @param err_code [in]		- Error code.
  *				  - This is an unique code associated with the
  *				    error that is being reported.
+ *				  - The function does not perform any validation
+ *				    on this parameter.
  *
- * - Checks whether SDL is supported in the current GPU platform. If SDL is not
- *   supported, it simply returns.
- * - Validates both \a hw_unit and \a err_id indices. In case of a failure,
- *   invokes #nvgpu_sdl_handle_report_failure() api.
- * - Gets the current time of a clock. In case of a failure, invokes
- *   #nvgpu_sdl_handle_report_failure() api.
- * - Gets error description from internal look-up table using \a hw_unit and
- *   \a err_id indices.
- * - Forms error packet using details such as time-stamp, \a hw_unit, \a err_id,
- *   criticality of the error, \a inst, \a err_addr, error description,
- *   \a err_code, and size of the error packet.
- * - Performs compile-time assert check to ensure that the size of the error
- *   packet does not exceed the maximum allowable size specified in
- *   #MAX_ERR_MSG_SIZE.
- * - Invokes #nvgpu_sdl_report_error_rmos() to enqueue the error packet into
- *   error message queue. In case of any failure during this enqueue operation,
- *   #nvgpu_sdl_handle_report_failure() api is invoked to handle the failure.
- * - The error packet will be dequeued from the error message queue and reported
- *   to Safety_Services by #nvgpu_sdl_worker thread.
+ * - Check nvgpu_os_rmos.is_sdl_supported equals true (pointer to nvgpu_os_rmos
+ *   is obtained using \ref nvgpu_os_rmos_from_gk20a()
+ *   "nvgpu_os_rmos_from_gk20a(g)"), return on failure.
+ * - Perform validation of input paramters, see paramter section for detailed
+ *   validation criteria. In case of a failure, print error message and invoke
+ *   \ref nvgpu_sdl_handle_report_failure()
+ *   "nvgpu_sdl_handle_report_failure(g)" and return.
+ * - Get the current time using api clock_gettime(CLOCK_MONOTONIC, &ts).
+ *   In case of a failure, print error message and invoke
+ *   \ref nvgpu_sdl_handle_report_failure()
+ *   "nvgpu_sdl_handle_report_failure(g)" and return.
+ * - Declare and initialize an error message packet err_pkt of type
+ *   nvgpu_err_msg, using \ref nvgpu_init_pri_err_msg()
+ *   "nvgpu_init_pri_err_msg(&err_pkt)".
+ * - Get error description err_desc of type nvgpu_err_desc from internal
+ *   look-up table \ref nvgpu_os_rmos.sdl_rmos "nvgpu_os_rmos.sdl_rmos".\ref
+ *   nvgpu_sdl_rmos.err_lut "err_lut" using hw_unit and err_id.
+ * - Update the following fields in the error message packet err_pkt.
+ *   - nvgpu_err_msg.hw_unit_id = hw_unit
+ *   - nvgpu_err_msg.err_id = err_desc->error_id
+ *   - nvgpu_err_msg.is_critical = err_desc->is_critical
+ *   - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *     gpu_error_info.pri_info "pri_info".\ref gpu_pri_error_info.header
+ *     "header".\ref gpu_err_header.sub_unit_id "sub_unit_id" = inst
+ *   - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *     gpu_error_info.ce_info "pri_info".\ref gpu_pri_error_info.header
+ *     "header".\ref gpu_err_header.address "address" = err_addr
+ *   - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *     gpu_error_info.ce_info "pri_info".\ref gpu_pri_error_info.header
+ *     "header".\ref gpu_err_header.sub_err_type "sub_err_type" = err_code
+ *   - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *     gpu_error_info.pri_info "pri_info".\ref gpu_pri_error_info.header
+ *     "header".\ref gpu_err_header.timestamp_ns "timestamp_ns" =
+ *     \ref nvgpu_timespec2nsec() "nvgpu_timespec2nsec(&ts)"
+ *   - nvgpu_err_msg.err_desc = err_desc
+ *   - nvgpu_err_msg.err_size = sizeof(gpu_error_info.pri_info)
+ * - Invoke \ref nvgpu_sdl_report_error_rmos()
+ *   "nvgpu_sdl_report_error_rmos(g, &err_pkt, sizeof(err_pkt))" to enqueue
+ *   the packet err_pkt into the circular buffer \ref nvgpu_os_rmos.sdl_rmos
+ *   "nvgpu_os_rmos.sdl_rmos".\ref nvgpu_sdl_rmos.emsg_q "emsg_q". In case
+ *   of failure, print error message and invoke
+ *   \ref nvgpu_sdl_handle_report_failure() "nvgpu_sdl_handle_report_failure(g)"
+ *   and return.
+ * - The error packet err_pkt will be dequeued from \ref
+ *   nvgpu_os_rmos.sdl_rmos "nvgpu_os_rmos.sdl_rmos".\ref nvgpu_sdl_rmos.emsg_q
+ *   "emsg_q" and reported to Safety Service by nvgpu_sdl_worker() thread.
  *
  * @return	None
  */
@@ -782,36 +1008,149 @@ void nvgpu_report_pri_err(struct gk20a *g, u32 hw_unit, u32 inst,
  * @brief This function provides an interface to report HUBMMU erros to SDL.
  *
  * @param g [in]		- The GPU driver struct.
- * @param hw_unit [in]		- Index of HW unit (HUBMMU).
- *				  - NVGPU_ERR_MODULE_HUBMMU
+ *                                - The function does not perform validation of
+ *                                  g parameter.
+ * @param hw_unit [in]		- Index of HW unit.
+ *				  - The function validates that hw_unit ==
+ *				    \link NVGPU_ERR_MODULE_HUBMMU \endlink.
  * @param err_id [in]		- Error index.
- *				  - GPU_HUBMMU_PAGE_FAULT_ERROR
+ *				  - The function validates that hw_unit ==
+ *				    \link GPU_HUBMMU_PAGE_FAULT_ERROR \endlink.
  * @param fault_info [in]	- MMU page fault information.
+ *				  - The function does not perform any validation
+ *				    on this parameter.
  * @param status [in]		- Error information.
+ *				  - The function does not perform any validation
+ *				    on this parameter.
  * @param sub_err_type [in]	- Sub error type.
  *				  - This is a sub-error of the error that is
  *				    being reported.
+ *				  - The function does not perform any validation
+ *				    on this parameter.
  *
- * - Checks whether SDL is supported in the current GPU platform. If SDL is not
- *   supported, it simply returns.
- * - Validates both \a hw_unit and \a err_id indices. In case of a failure,
- *   invokes #nvgpu_sdl_handle_report_failure() api.
- * - Gets the current time of a clock. In case of a failure, invokes
- *   #nvgpu_sdl_handle_report_failure() api.
- * - Gets error description from internal look-up table using \a hw_unit and
- *   \a err_id indices.
- * - Forms error packet using details such as time-stamp, \a hw_unit, \a err_id,
- *   criticality of the error, \a sub_err_type, error description, and size of
- *   the error packet. It also includes page fault information, if it is
- *   available.
- * - Performs compile-time assert check to ensure that the size of the error
- *   packet does not exceed the maximum allowable size specified in
- *   #MAX_ERR_MSG_SIZE.
- * - Invokes #nvgpu_sdl_report_error_rmos() to enqueue the error packet into
- *   error message queue. In case of any failure during this enqueue operation,
- *   #nvgpu_sdl_handle_report_failure() api is invoked to handle the failure.
- * - The error packet will be dequeued from the error message queue and reported
- *   to Safety_Services by #nvgpu_sdl_worker thread.
+ * - Check nvgpu_os_rmos.is_sdl_supported equals true (pointer to nvgpu_os_rmos
+ *   is obtained using \ref nvgpu_os_rmos_from_gk20a()
+ *   "nvgpu_os_rmos_from_gk20a(g)"), return on failure.
+ * - Perform validation of input paramters, see paramter section for detailed
+ *   validation criteria. In case of a failure, print error message and invoke
+ *   \ref nvgpu_sdl_handle_report_failure()
+ *   "nvgpu_sdl_handle_report_failure(g)" and return.
+ * - Get the current time using api clock_gettime(CLOCK_MONOTONIC, &ts).
+ *   In case of a failure, print error message and invoke
+ *   \ref nvgpu_sdl_handle_report_failure()
+ *   "nvgpu_sdl_handle_report_failure(g)" and return.
+ * - Declare and initialize an error message packet err_pkt of type
+ *   nvgpu_err_msg, using \ref nvgpu_init_mmu_err_msg()
+ *   "nvgpu_init_mmu_err_msg(&err_pkt)".
+ * - Get error description err_desc of type nvgpu_err_desc from internal
+ *   look-up table \ref nvgpu_os_rmos.sdl_rmos "nvgpu_os_rmos.sdl_rmos".\ref
+ *   nvgpu_sdl_rmos.err_lut "err_lut" using hw_unit and err_id.
+ * - Update the following fields in the error message packet err_pkt.
+ *   - nvgpu_err_msg.hw_unit_id = hw_unit
+ *   - nvgpu_err_msg.err_id = err_desc->error_id
+ *   - nvgpu_err_msg.is_critical = err_desc->is_critical
+ *   - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *     gpu_error_info.mmu_info "mmu_info".\ref gpu_mmu_error_info.header
+ *     "header".\ref gpu_err_header.sub_err_type "sub_err_type" = sub_err_type
+ *   - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *     gpu_error_info.mmu_info "mmu_info".\ref gpu_mmu_error_info.status
+ *     "status" = status
+ *   - If \a fault_info is not NULL, then copy the content of mmu fault info.
+ *     - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *       gpu_error_info.mmu_info "mmu_info".\ref gpu_mmu_error_info.info
+ *       "info".\ref mmu_page_fault_info.inst_ptr "inst_ptr"
+ *       = fault_info->inst_ptr
+ *     - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *       gpu_error_info.mmu_info "mmu_info".\ref gpu_mmu_error_info.info
+ *       "info".\ref mmu_page_fault_info.inst_aperture "inst_aperture"
+ *       = fault_info->inst_aperture
+ *     - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *       gpu_error_info.mmu_info "mmu_info".\ref gpu_mmu_error_info.info
+ *       "info".\ref mmu_page_fault_info.fault_addr "fault_addr"
+ *       = fault_info->fault_addr
+ *     - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *       gpu_error_info.mmu_info "mmu_info".\ref gpu_mmu_error_info.info
+ *       "info".\ref mmu_page_fault_info.fault_addr_aperture
+ *       "fault_addr_aperture" = fault_info->fault_addr_aperture
+ *     - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *       gpu_error_info.mmu_info "mmu_info".\ref gpu_mmu_error_info.info
+ *       "info".\ref mmu_page_fault_info.timestamp_lo "timestamp_lo"
+ *       = fault_info->timestamp_lo
+ *     - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *       gpu_error_info.mmu_info "mmu_info".\ref gpu_mmu_error_info.info
+ *       "info".\ref mmu_page_fault_info.timestamp_hi "timestamp_hi"
+ *       = fault_info->timestamp_hi
+ *     - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *       gpu_error_info.mmu_info "mmu_info".\ref gpu_mmu_error_info.info
+ *       "info".\ref mmu_page_fault_info.mmu_engine_id "mmu_engine_id"
+ *       = fault_info->mmu_engine_id
+ *     - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *       gpu_error_info.mmu_info "mmu_info".\ref gpu_mmu_error_info.info
+ *       "info".\ref mmu_page_fault_info.gpc_id "gpc_id"
+ *       = fault_info->gpc_id
+ *     - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *       gpu_error_info.mmu_info "mmu_info".\ref gpu_mmu_error_info.info
+ *       "info".\ref mmu_page_fault_info.client_type "client_type"
+ *       = fault_info->client_type
+ *     - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *       gpu_error_info.mmu_info "mmu_info".\ref gpu_mmu_error_info.info
+ *       "info".\ref mmu_page_fault_info.client_id "client_id"
+ *       = fault_info->client_id
+ *     - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *       gpu_error_info.mmu_info "mmu_info".\ref gpu_mmu_error_info.info
+ *       "info".\ref mmu_page_fault_info.fault_type "fault_type"
+ *       = fault_info->fault_type
+ *     - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *       gpu_error_info.mmu_info "mmu_info".\ref gpu_mmu_error_info.info
+ *       "info".\ref mmu_page_fault_info.access_type "access_type"
+ *       = fault_info->access_type
+ *     - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *       gpu_error_info.mmu_info "mmu_info".\ref gpu_mmu_error_info.info
+ *       "info".\ref mmu_page_fault_info.protected_mode "protected_mode"
+ *       = fault_info->protected_mode
+ *     - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *       gpu_error_info.mmu_info "mmu_info".\ref gpu_mmu_error_info.info
+ *       "info".\ref mmu_page_fault_info.replayable_fault "replayable_fault"
+ *       = fault_info->replayable_fault
+ *     - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *       gpu_error_info.mmu_info "mmu_info".\ref gpu_mmu_error_info.info
+ *       "info".\ref mmu_page_fault_info.replay_fault_en "replay_fault_en"
+ *       = fault_info->replay_fault_en
+ *     - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *       gpu_error_info.mmu_info "mmu_info".\ref gpu_mmu_error_info.info
+ *       "info".\ref mmu_page_fault_info.valid "valid"
+ *       = fault_info->valid
+ *     - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *       gpu_error_info.mmu_info "mmu_info".\ref gpu_mmu_error_info.info
+ *       "info".\ref mmu_page_fault_info.faulted_pbdma "faulted_pbdma"
+ *       = fault_info->faulted_pbdma
+ *     - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *       gpu_error_info.mmu_info "mmu_info".\ref gpu_mmu_error_info.info
+ *       "info".\ref mmu_page_fault_info.faulted_engine "faulted_engine"
+ *       = fault_info->faulted_engine
+ *     - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *       gpu_error_info.mmu_info "mmu_info".\ref gpu_mmu_error_info.info
+ *       "info".\ref mmu_page_fault_info.faulted_subid "faulted_subid"
+ *       = fault_info->faulted_subid
+ *     - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *       gpu_error_info.mmu_info "mmu_info".\ref gpu_mmu_error_info.info
+ *       "info".\ref mmu_page_fault_info.chid "chid" = fault_info->chid
+ *   - \ref nvgpu_err_msg.err_info "nvgpu_err_msg.err_info".\ref
+ *     gpu_error_info.mmu_info "mmu_info".\ref gpu_mmu_error_info.header
+ *     "header".\ref gpu_err_header.timestamp_ns "timestamp_ns" =
+ *     \ref nvgpu_timespec2nsec() "nvgpu_timespec2nsec(&ts)"
+ *   - nvgpu_err_msg.err_desc = err_desc
+ *   - nvgpu_err_msg.err_size = sizeof(gpu_error_info.mmu_info)
+ * - Invoke \ref nvgpu_sdl_report_error_rmos()
+ *   "nvgpu_sdl_report_error_rmos(g, &err_pkt, sizeof(err_pkt))" to enqueue
+ *   the packet err_pkt into the circular buffer \ref nvgpu_os_rmos.sdl_rmos
+ *   "nvgpu_os_rmos.sdl_rmos".\ref nvgpu_sdl_rmos.emsg_q "emsg_q". In case
+ *   of failure, print error message and invoke
+ *   \ref nvgpu_sdl_handle_report_failure() "nvgpu_sdl_handle_report_failure(g)"
+ *   and return.
+ * - The error packet err_pkt will be dequeued from \ref
+ *   nvgpu_os_rmos.sdl_rmos "nvgpu_os_rmos.sdl_rmos".\ref nvgpu_sdl_rmos.emsg_q
+ *   "emsg_q" and reported to Safety Service by nvgpu_sdl_worker() thread.
  *
  * @return	None
  */
@@ -823,16 +1162,34 @@ void nvgpu_report_mmu_err(struct gk20a *g, u32 hw_unit,
  * @brief This is a wrapper function to report CTXSW errors to SDL unit.
  *
  * @param g [in]		- The GPU driver struct.
+ *                                - The function does not perform validation of
+ *                                  g parameter.
  * @param err_type [in]		- Error index.
- *				  - Min: GPU_FECS_CTXSW_WATCHDOG_TIMEOUT
- *				  - Max: GPU_FECS_CTXSW_INIT_ERROR
+ *				  - The function validates that, this paramter
+ *				    has a value within valid range.
+ *				  - Min: \link GPU_FECS_CTXSW_WATCHDOG_TIMEOUT \endlink
+ *				  - Max: \link GPU_FECS_CTXSW_INIT_ERROR \endlink
  * @param chid [in]		- Channel ID.
+ *				  - The function does not perform any validation
+ *				    on this parameter.
  * @param mailbox_value [in]	- Mailbox value.
+ *				  - The function does not perform any validation
+ *				    on this parameter.
  *
- * - Creates an instance of #ctxsw_err_info structure.
+ * - Creates the variable \a err_info of type #ctxsw_err_info structure.
  * - Fills the details related to current context, ctxsw status, mailbox value,
  *   channel ID in #ctxsw_err_info strucutre.
- * - Invokes #nvgpu_report_ctxsw_err() and passes #ctxsw_err_info.
+ *   - \ref ctxsw_err_info.curr_ctx "curr_ctx" =
+ *   g->ops.gr.falcon.get_current_ctx(g)
+ *   - \ref ctxsw_err_info.ctxsw_status0 "ctxsw_status0" =
+ *   g->ops.gr.falcon.read_fecs_ctxsw_status0(g)
+ *   - \ref ctxsw_err_info.ctxsw_status1 "ctxsw_status1" =
+ *   g->ops.gr.falcon.read_fecs_ctxsw_status1(g)
+ *   - \ref ctxsw_err_info.mailbox_value "mailbox_value" = mailbox_value
+ *   - \ref ctxsw_err_info.chid "chid" = chid
+ * - Invokes #nvgpu_report_ctxsw_err() with the following arguments: (1) g,
+ *   (2) \link NVGPU_ERR_MODULE_FECS \endlink (3) err_type,
+ *   (4) (void *)&err_info.
  *
  * @return	None
  */
