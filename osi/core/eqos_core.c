@@ -2093,6 +2093,7 @@ static nve32_t eqos_core_init(struct osi_core_priv_data *const osi_core,
 	nve32_t ret = 0;
 	nveu32_t qinx = 0;
 	nveu32_t value = 0;
+	nveu32_t value1 = 0;
 	nveu32_t tx_fifo = 0;
 	nveu32_t rx_fifo = 0;
 
@@ -2125,16 +2126,24 @@ static nve32_t eqos_core_init(struct osi_core_priv_data *const osi_core,
 	}
 
 	/* Mapping MTL Rx queue and DMA Rx channel */
-	/* TODO: Need to add EQOS_MTL_RXQ_DMA_MAP1 for EQOS */
 	if (osi_core->dcs_en == OSI_ENABLE) {
 		value = EQOS_RXQ_TO_DMA_CHAN_MAP_DCS_EN;
+		value1 = EQOS_RXQ_TO_DMA_CHAN_MAP1_DCS_EN;
 	} else {
 		value = EQOS_RXQ_TO_DMA_CHAN_MAP;
+		value1 = EQOS_RXQ_TO_DMA_CHAN_MAP1;
 	}
 
 	eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
 				EQOS_MTL_RXQ_DMA_MAP0,
 				EQOS_MTL_RXQ_DMA_MAP0_IDX);
+
+	if (osi_core->mac_ver >= OSI_EQOS_MAC_5_30) {
+		eqos_core_safety_writel(osi_core, value1,
+					(nveu8_t *)osi_core->base +
+					EQOS_MTL_RXQ_DMA_MAP1,
+					EQOS_MTL_RXQ_DMA_MAP1_IDX);
+	}
 
 	if (osi_unlikely(osi_core->num_mtl_queues > OSI_EQOS_MAX_NUM_QUEUES)) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
