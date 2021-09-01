@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2021, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2010-2020, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,7 +54,6 @@ static struct mcerr_ops *mcerr_ops;
 static void unthrottle_prints(struct work_struct *work)
 {
 	atomic_set(&error_count, 0);
-	cancel_delayed_work(&unthrottle_prints_work);
 }
 
 static void disable_interrupt(unsigned int irq)
@@ -73,6 +72,7 @@ static irqreturn_t tegra_mcerr_thread(int irq, void *data)
 {
 	unsigned long count;
 
+	cancel_delayed_work(&unthrottle_prints_work);
 	count = atomic_inc_return(&error_count);
 
 	if (mcerr_throttle_enabled && count >= MAX_PRINTS) {
