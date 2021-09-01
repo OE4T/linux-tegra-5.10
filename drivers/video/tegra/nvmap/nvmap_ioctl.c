@@ -36,7 +36,7 @@
 #include <soc/tegra/common.h>
 #include <trace/events/nvmap.h>
 
-#ifdef CONFIG_NVMAP_SCIIPC
+#ifdef NVMAP_CONFIG_SCIIPC
 #include <linux/nvscierror.h>
 #include <linux/nvsciipc_interface.h>
 #include "nvmap_sci_ipc.h"
@@ -941,7 +941,7 @@ exit:
 	return -ENODEV;
 }
 
-#ifdef CONFIG_NVMAP_SCIIPC
+#ifdef NVMAP_CONFIG_SCIIPC
 int nvmap_ioctl_get_sci_ipc_id(struct file *filp, void __user *arg)
 {
 	struct nvmap_client *client = filp->private_data;

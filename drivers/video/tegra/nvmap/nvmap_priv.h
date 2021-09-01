@@ -275,7 +275,7 @@ struct nvmap_handle_ref {
 	atomic_t	dupes;	/* number of times to free on file close */
 };
 
-#if defined(CONFIG_NVMAP_PAGE_POOLS) || defined(NVMAP_LOADABLE_MODULE)
+#if defined(NVMAP_CONFIG_PAGE_POOLS) || defined(NVMAP_LOADABLE_MODULE)
 /*
  * This is the default ratio defining pool size. It can be thought of as pool
  * size in either MB per GB or KB per MB. That means the max this number can
@@ -299,7 +299,7 @@ struct nvmap_page_pool {
 	struct list_head zero_list;
 	struct list_head page_list_bp;
 
-#ifdef CONFIG_NVMAP_PAGE_POOL_DEBUG
+#ifdef NVMAP_CONFIG_PAGE_POOL_DEBUG
 	u64 allocs;
 	u64 fills;
 	u64 hits;
@@ -349,7 +349,7 @@ struct nvmap_device {
 	struct nvmap_carveout_node *heaps;
 	int nr_heaps;
 	int nr_carveouts;
-#if defined(CONFIG_NVMAP_PAGE_POOLS) || defined(NVMAP_LOADABLE_MODULE)
+#if defined(NVMAP_CONFIG_PAGE_POOLS) || defined(NVMAP_LOADABLE_MODULE)
 	struct nvmap_page_pool pool;
 #endif
 	struct list_head clients;
@@ -827,7 +827,7 @@ extern struct of_device_id __nvmapcache_of_table;
 	_OF_DECLARE(nvmapcache, nvmapcache_of, compat, fn, \
 			nvmap_setup_chip_cache_fn)
 
-#ifdef CONFIG_NVMAP_SCIIPC
+#ifdef NVMAP_CONFIG_SCIIPC
 int nvmap_sci_ipc_init(void);
 void nvmap_sci_ipc_exit(void);
 #else

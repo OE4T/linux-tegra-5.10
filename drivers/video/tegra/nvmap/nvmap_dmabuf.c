@@ -540,15 +540,15 @@ int __nvmap_dmabuf_fd(struct nvmap_client *client,
 		      struct dma_buf *dmabuf, int flags)
 {
 #ifndef NVMAP_LOADABLE_MODULE
-	int start_fd = CONFIG_NVMAP_FD_START;
+	int start_fd = NVMAP_CONFIG_FD_START;
 #endif /* !NVMAP_LOADABLE_MODULE */
 
-#ifdef CONFIG_NVMAP_DEFER_FD_RECYCLE
-	if (client->next_fd < CONFIG_NVMAP_FD_START)
-		client->next_fd = CONFIG_NVMAP_FD_START;
+#ifdef NVMAP_CONFIG_DEFER_FD_RECYCLE
+	if (client->next_fd < NVMAP_CONFIG_FD_START)
+		client->next_fd = NVMAP_CONFIG_FD_START;
 	start_fd = client->next_fd++;
-	if (client->next_fd >= CONFIG_NVMAP_DEFER_FD_RECYCLE_MAX_FD)
-		client->next_fd = CONFIG_NVMAP_FD_START;
+	if (client->next_fd >= NVMAP_CONFIG_DEFER_FD_RECYCLE_MAX_FD)
+		client->next_fd = NVMAP_CONFIG_FD_START;
 #endif
 	if (!dmabuf || !dmabuf->file)
 		return -EINVAL;

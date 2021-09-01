@@ -41,7 +41,7 @@ endif
 # Section 2
 # This config is used to include the memory management driver for the
 # Tegra GPU, multimedia and display subsystems
-CONFIG_TEGRA_NVMAP := y
+NVMAP_CONFIG := y
 
 # Config to reduce the alloction overhead, which is significant
 # for uncached, writecombine and inner cacheable memories as it
@@ -50,15 +50,15 @@ CONFIG_TEGRA_NVMAP := y
 # ahead and keeping them aside. The reserved pages would be released
 # when system is low on memory and acquired back during release of
 # memory.
-CONFIG_NVMAP_PAGE_POOLS := y
+NVMAP_CONFIG_PAGE_POOLS := y
 
 # Config to include some debugging info in the page pools. This
 # adds a bit of unnecessary overhead so only enable this is you
 # suspect there is an issue with the nvmap page pools.
-CONFIG_NVMAP_PAGE_POOL_DEBUG := n
+NVMAP_CONFIG_PAGE_POOL_DEBUG := n
 
 # Config for page pool size in pages
-CONFIG_NVMAP_PAGE_POOL_SIZE := 0x0
+NVMAP_CONFIG_PAGE_POOL_SIZE := 0x0
 
 # Config to enable page coloring
 # Page coloring rearranges the pages allocated based on the color
@@ -66,13 +66,13 @@ CONFIG_NVMAP_PAGE_POOL_SIZE := 0x0
 # The coloring option enable can optionally overallocate a portion of
 # reqeusted allcoation size to improve the probabilty of better
 # page coloring. If unsure, say Y.
-CONFIG_NVMAP_COLOR_PAGES := y
+NVMAP_CONFIG_COLOR_PAGES := y
 
 # Config for FD number to start allocation from
 # NvMap handles are represented with FD's in the user processes.
 # To avoid Linux FD usage limitations, NvMap allocates FD starting
 # from this number.
-CONFIG_NVMAP_FD_START := 0x400
+NVMAP_CONFIG_FD_START := 0x400
 
 # Config for enabling deferred FD recycle
 # A released nvmap handle would release memory and FD. This FD
@@ -83,25 +83,25 @@ CONFIG_NVMAP_FD_START := 0x400
 # Enabling this option would defer recycling FD for longer time and
 # allows debugging incorrect FD references by clients by returning errors
 # for the accesses that occur after handle/FD release.
-CONFIG_NVMAP_DEFER_FD_RECYCLE := n
+NVMAP_CONFIG_DEFER_FD_RECYCLE := n
 
 # Config for FD number to start free FD recycle
 # Once last allocated FD reaches this number, allocation of subsequent
 # FD's start from NVMAP_START_FD.
-CONFIG_NVMAP_DEFER_FD_RECYCLE_MAX_FD := 0x8000
+NVMAP_CONFIG_DEFER_FD_RECYCLE_MAX_FD := 0x8000
 
 # Config for enabling nvmap mapping with SciIpc secure buffer sharing
 # Enable nvmap mapping with SciIpc secure buffer sharing.
 # Supports nvmap ioctls to get Unique SciIpcId and attach
 # it with nvmap_handle.
 # Suppports getting nvmap_handle from SciIpcId passed via ioctl.
-CONFIG_NVMAP_SCIIPC := n
+NVMAP_CONFIG_SCIIPC := n
 
 # Config for enabling NvMap as OOT module
-CONFIG_NVMAP_LOADABLE_MODULE := n
+NVMAP_CONFIG_LOADABLE_MODULE := n
 
 # Config for enabling PROCRANK functionality
-CONFIG_NVMAP_PROCRANK := y
+NVMAP_CONFIG_PROCRANK := y
 
 ################################################################################
 # Section 3
@@ -110,15 +110,15 @@ CONFIG_NVMAP_PROCRANK := y
 
 #Enable/Disable the below configs for kstable
 ifneq ($(findstring stable,$(NV_BUILD_KERNEL_OPTIONS)),)
-CONFIG_NVMAP_COLOR_PAGES := n
-CONFIG_NVMAP_FD_START := 0x0
-CONFIG_NVMAP_LOADABLE_MODULE := y
-CONFIG_NVMAP_PROCRANK := n
+NVMAP_CONFIG_COLOR_PAGES := n
+NVMAP_CONFIG_FD_START := 0x0
+NVMAP_CONFIG_LOADABLE_MODULE := y
+NVMAP_CONFIG_PROCRANK := n
 endif
 
 ifneq ($(findstring 5.10,$(NV_BUILD_KERNEL_OPTIONS)),)
 # For 5.10
-CONFIG_NVMAP_SCIIPC := y
+NVMAP_CONFIG_SCIIPC := y
 endif
 
 ################################################################################
@@ -127,59 +127,59 @@ endif
 # in the section 2. These ccflags would be actually used in the
 # source files.
 
-ifeq ($(CONFIG_TEGRA_NVMAP),y)
-# All other flags make sense only when CONFIG_TEGRA_NVMAP is enabled
-ccflags-y += -DCONFIG_TEGRA_NVMAP
+ifeq ($(NVMAP_CONFIG),y)
+# All other flags make sense only when NVMAP_CONFIG is enabled
+ccflags-y += -DNVMAP_CONFIG
 
-ifeq ($(CONFIG_NVMAP_PAGE_POOLS),y)
-ccflags-y += -DCONFIG_NVMAP_PAGE_POOLS
+ifeq ($(NVMAP_CONFIG_PAGE_POOLS),y)
+ccflags-y += -DNVMAP_CONFIG_PAGE_POOLS
 
-# CONFIG_NVMAP_PAGE_POOL_DEBUG depends upon CONFIG_NVMAP_PAGE_POOLS
-ifeq ($(CONFIG_NVMAP_PAGE_POOL_DEBUG),y)
-ccflags-y += -DCONFIG_NVMAP_PAGE_POOL_DEBUG
-endif #CONFIG_NVMAP_PAGE_POOL_DEBUG
+# NVMAP_CONFIG_PAGE_POOL_DEBUG depends upon NVMAP_CONFIG_PAGE_POOLS
+ifeq ($(NVMAP_CONFIG_PAGE_POOL_DEBUG),y)
+ccflags-y += -DNVMAP_CONFIG_PAGE_POOL_DEBUG
+endif #NVMAP_CONFIG_PAGE_POOL_DEBUG
 
-# CONFIG_NVMAP_PAGE_POOL_SIZE depends upon CONFIG_NVMAP_PAGE_POOLS
-ifdef CONFIG_NVMAP_PAGE_POOL_SIZE
-ccflags-y += -DCONFIG_NVMAP_PAGE_POOL_SIZE=${CONFIG_NVMAP_PAGE_POOL_SIZE}
-endif #CONFIG_NVMAP_PAGE_POOL_SIZE
-endif #CONFIG_NVMAP_PAGE_POOLS
+# NVMAP_CONFIG_PAGE_POOL_SIZE depends upon NVMAP_CONFIG_PAGE_POOLS
+ifdef NVMAP_CONFIG_PAGE_POOL_SIZE
+ccflags-y += -DNVMAP_CONFIG_PAGE_POOL_SIZE=${NVMAP_CONFIG_PAGE_POOL_SIZE}
+endif #NVMAP_CONFIG_PAGE_POOL_SIZE
+endif #NVMAP_CONFIG_PAGE_POOLS
 
-# CONFIG_NVMAP_COLOR_PAGES depends upon CONFIG_ARM64_4K_PAGES
+# NVMAP_CONFIG_COLOR_PAGES depends upon CONFIG_ARM64_4K_PAGES
 ifeq ($(CONFIG_ARM64_4K_PAGES),y)
-ifeq ($(CONFIG_NVMAP_COLOR_PAGES),y)
-ccflags-y += -DCONFIG_NVMAP_COLOR_PAGES
+ifeq ($(NVMAP_CONFIG_COLOR_PAGES),y)
+ccflags-y += -DNVMAP_CONFIG_COLOR_PAGES
 endif #CONFIG_ARM64_4K_PAGES
-endif #CONFIG_NVMAP_COLOR_PAGES
+endif #NVMAP_CONFIG_COLOR_PAGES
 
-ifdef CONFIG_NVMAP_FD_START
-ccflags-y += -DCONFIG_NVMAP_FD_START=${CONFIG_NVMAP_FD_START}
-endif #CONFIG_NVMAP_FD_START
+ifdef NVMAP_CONFIG_FD_START
+ccflags-y += -DNVMAP_CONFIG_FD_START=${NVMAP_CONFIG_FD_START}
+endif #NVMAP_CONFIG_FD_START
 
-ifeq ($(CONFIG_NVMAP_DEFER_FD_RECYCLE),y)
-ccflags-y += -DCONFIG_NVMAP_DEFER_FD_RECYCLE
-# CONFIG_NVMAP_DEFER_FD_RECYCLE_MAX_FD depends upon CONFIG_NVMAP_DEFER_FD_RECYCLE
-ifdef CONFIG_NVMAP_DEFER_FD_RECYCLE_MAX_FD
-ccflags-y += -DNVMAP_DEFER_FD_RECYCLE_MAX_FD=${CONFIG_NVMAP_DEFER_FD_RECYCLE_MAX_FD}
-endif #CONFIG_NVMAP_DEFER_FD_RECYCLE_MAX_FD
-endif #CONFIG_NVMAP_DEFER_FD_RECYCLE
+ifeq ($(NVMAP_CONFIG_DEFER_FD_RECYCLE),y)
+ccflags-y += -DNVMAP_CONFIG_DEFER_FD_RECYCLE
+# NVMAP_CONFIG_DEFER_FD_RECYCLE_MAX_FD depends upon CONFIG_NVMAP_DEFER_FD_RECYCLE
+ifdef NVMAP_CONFIG_DEFER_FD_RECYCLE_MAX_FD
+ccflags-y += -DNVMAP_CONFIG_DEFER_FD_RECYCLE_MAX_FD=${NVMAP_CONFIG_DEFER_FD_RECYCLE_MAX_FD}
+endif #NVMAP_CONFIG_DEFER_FD_RECYCLE_MAX_FD
+endif #NVMAP_CONFIG_DEFER_FD_RECYCLE
 
 
 ifeq ($(CONFIG_NVSCIIPC),y)
 ifeq (y, $(filter y, $(CONFIG_ARCH_TEGRA_19x_SOC) $(CONFIG_ARCH_TEGRA_194_SOC)))
-ifeq ($(CONFIG_NVMAP_SCIIPC),y)
-ccflags-y += -DCONFIG_NVMAP_SCIIPC
-endif #CONFIG_NVMAP_SCIIPC
+ifeq ($(NVMAP_CONFIG_SCIIPC),y)
+ccflags-y += -DNVMAP_CONFIG_SCIIPC
+endif #NVMAP_CONFIG_SCIIPC
 endif #CONFIG_ARCH_TEGRA_19x_SOC || CONFIG_ARCH_TEGRA_194_SOC
 endif #CONFIG_NVSCIIPC
 
-ifeq ($(CONFIG_NVMAP_LOADABLE_MODULE),y)
+ifeq ($(NVMAP_CONFIG_LOADABLE_MODULE),y)
 ccflags-y += -DNVMAP_LOADABLE_MODULE
-endif #CONFIG_NVMAP_LOADABLE_MODULE
+endif #NVMAP_CONFIG_LOADABLE_MODULE
 
-ifeq ($(CONFIG_NVMAP_PROCRANK),y)
-ccflags-y += -DCONFIG_NVMAP_PROCRANK
-endif #CONFIG_NVMAP_PROCRANK
+ifeq ($(NVMAP_CONFIG_PROCRANK),y)
+ccflags-y += -DNVMAP_CONFIG_PROCRANK
+endif #NVMAP_CONFIG_PROCRANK
 
-endif #CONFIG_TEGRA_NVMAP
+endif #NVMAP_CONFIG
 endif #CONFIG_ARCH_TEGRA

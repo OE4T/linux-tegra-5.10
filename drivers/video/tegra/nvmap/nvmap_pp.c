@@ -46,7 +46,7 @@ static u32 pool_size;
 static struct task_struct *background_allocator;
 static DECLARE_WAIT_QUEUE_HEAD(nvmap_bg_wait);
 
-#ifdef CONFIG_NVMAP_PAGE_POOL_DEBUG
+#ifdef NVMAP_CONFIG_PAGE_POOL_DEBUG
 static inline void __pp_dbg_var_add(u64 *dbg_var, u32 nr)
 {
 	*dbg_var += nr;
@@ -294,7 +294,7 @@ int nvmap_page_pool_alloc_lots(struct nvmap_page_pool *pool,
 		}
 
 		pages[ind++] = page;
-		if (IS_ENABLED(CONFIG_NVMAP_PAGE_POOL_DEBUG)) {
+		if (IS_ENABLED(NVMAP_CONFIG_PAGE_POOL_DEBUG)) {
 			nvmap_pgcount(page, false);
 			BUG_ON(page_count(page) != 1);
 		}
@@ -389,7 +389,7 @@ static int __nvmap_page_pool_fill_lots_locked(struct nvmap_page_pool *pool,
 		return 0;
 
 	while (real_nr > 0) {
-		if (IS_ENABLED(CONFIG_NVMAP_PAGE_POOL_DEBUG)) {
+		if (IS_ENABLED(NVMAP_CONFIG_PAGE_POOL_DEBUG)) {
 			nvmap_pgcount(pages[ind], true);
 			BUG_ON(page_count(pages[ind]) != 2);
 		}
@@ -662,7 +662,7 @@ int nvmap_page_pool_debugfs_init(struct dentry *nvmap_root)
 			   S_IRUGO, pp_root,
 			   &nvmap_total_page_allocs);
 
-#ifdef CONFIG_NVMAP_PAGE_POOL_DEBUG
+#ifdef NVMAP_CONFIG_PAGE_POOL_DEBUG
 	debugfs_create_u64("page_pool_allocs",
 			   S_IRUGO, pp_root,
 			   &nvmap_dev->pool.allocs);
@@ -697,12 +697,12 @@ int nvmap_page_pool_init(struct nvmap_device *dev)
 	si_meminfo(&info);
 	pr_info("Total RAM pages: %lu\n", info.totalram);
 
-	if (!CONFIG_NVMAP_PAGE_POOL_SIZE)
+	if (!NVMAP_CONFIG_PAGE_POOL_SIZE)
 		/* The ratio is pool pages per 1K ram pages.
 		 * So, the >> 10 */
 		pool->max = (info.totalram * NVMAP_PP_POOL_SIZE) >> 10;
 	else
-		pool->max = CONFIG_NVMAP_PAGE_POOL_SIZE;
+		pool->max = NVMAP_CONFIG_PAGE_POOL_SIZE;
 
 	if (pool->max >= info.totalram)
 		goto fail;

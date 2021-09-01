@@ -6,8 +6,8 @@ include $(srctree.nvidia)/drivers/video/tegra/nvmap/Makefile.memory.configs
 
 ccflags-y += -I$(srctree.nvidia)/include/
 
-ifeq ($(CONFIG_TEGRA_NVMAP), y)
-# Build NvMap only when CONFIG_TEGRA_NVMAP is set to y
+ifeq ($(NVMAP_CONFIG), y)
+# Build NvMap only when NVMAP_CONFIG is set to y
 nvmap-y := nvmap_core.o \
 	nvmap_alloc.o \
 	nvmap_cache.o \
@@ -23,11 +23,11 @@ nvmap-y := nvmap_core.o \
 	nvmap_stats.o \
 	nvmap_carveout.o \
 	nvmap_kasan_wrapper.o
-nvmap-$(CONFIG_NVMAP_SCIIPC) += nvmap_sci_ipc.o
+nvmap-$(NVMAP_CONFIG_SCIIPC) += nvmap_sci_ipc.o
 
-ifeq ($(CONFIG_NVMAP_PAGE_POOLS), y)
+ifeq ($(NVMAP_CONFIG_PAGE_POOLS), y)
 nvmap-y += nvmap_pp.o
-endif #CONFIG_NVMAP_PAGE_POOLS
+endif #NVMAP_CONFIG_PAGE_POOLS
 
 ifneq ($(filter y,$(CONFIG_ARCH_TEGRA_19x_SOC) $(CONFIG_ARCH_TEGRA_194_SOC)),)
 nvmap-y += nvmap_init_t19x.o
@@ -45,4 +45,4 @@ else
 # Kernel is not kstable
 obj-y += nvmap.o
 endif #stable
-endif #CONFIG_TEGRA_NVMAP
+endif #NVMAP_CONFIG

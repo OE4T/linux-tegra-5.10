@@ -1102,7 +1102,7 @@ static int nvmap_debug_lru_allocations_show(struct seq_file *s, void *unused)
 
 DEBUGFS_OPEN_FOPS(lru_allocations);
 
-#ifdef CONFIG_NVMAP_PROCRANK
+#ifdef NVMAP_CONFIG_PROCRANK
 struct procrank_stats {
 	struct vm_area_struct *vma;
 	u64 pss;
@@ -1274,7 +1274,7 @@ static int nvmap_debug_iovmm_procrank_show(struct seq_file *s, void *unused)
 }
 
 DEBUGFS_OPEN_FOPS(iovmm_procrank);
-#endif /* CONFIG_NVMAP_PROCRANK */
+#endif /* NVMAP_CONFIG_PROCRANK */
 
 ulong nvmap_iovmm_get_used_pages(void)
 {
@@ -1305,7 +1305,7 @@ static void nvmap_iovmm_debugfs_init(void)
 			debugfs_create_file("maps", S_IRUGO, iovmm_root,
 				(void *)(uintptr_t)NVMAP_HEAP_IOVMM,
 				&debug_maps_fops);
-#ifdef CONFIG_NVMAP_PROCRANK
+#ifdef NVMAP_CONFIG_PROCRANK
 			debugfs_create_file("procrank", S_IRUGO, iovmm_root,
 				nvmap_dev, &debug_iovmm_procrank_fops);
 #endif
@@ -1380,7 +1380,7 @@ int __init nvmap_probe(struct platform_device *pdev)
 	dev->dev_user.parent = &pdev->dev;
 	dev->handles = RB_ROOT;
 
-#ifdef CONFIG_NVMAP_PAGE_POOLS
+#ifdef NVMAP_CONFIG_PAGE_POOLS
 	e = nvmap_page_pool_init(dev);
 	if (e)
 		goto fail;
@@ -1423,7 +1423,7 @@ int __init nvmap_probe(struct platform_device *pdev)
 		for (i = 0; i < plat->nr_carveouts; i++)
 			nvmap_create_carveout(&plat->carveouts[i]);
 	nvmap_iovmm_debugfs_init();
-#ifdef CONFIG_NVMAP_PAGE_POOLS
+#ifdef NVMAP_CONFIG_PAGE_POOLS
 	nvmap_page_pool_debugfs_init(nvmap_dev->debug_root);
 #endif
 	nvmap_cache_debugfs_init(nvmap_dev->debug_root);
@@ -1445,7 +1445,7 @@ int __init nvmap_probe(struct platform_device *pdev)
 		nvmap_convert_carveout_to_iovmm = 1;
 	}
 
-#ifdef CONFIG_NVMAP_PAGE_POOLS
+#ifdef NVMAP_CONFIG_PAGE_POOLS
 	if (nvmap_convert_iovmm_to_carveout)
 		nvmap_page_pool_fini(dev);
 #endif
@@ -1462,7 +1462,7 @@ fail_heaps:
 		nvmap_heap_destroy(node->carveout);
 	}
 fail:
-#ifdef CONFIG_NVMAP_PAGE_POOLS
+#ifdef NVMAP_CONFIG_PAGE_POOLS
 	nvmap_page_pool_fini(nvmap_dev);
 #endif
 	kfree(dev->heaps);
@@ -1481,12 +1481,12 @@ int nvmap_remove(struct platform_device *pdev)
 	struct nvmap_handle *h;
 	int i;
 
-#ifdef CONFIG_NVMAP_SCIIPC
+#ifdef NVMAP_CONFIG_SCIIPC
 	nvmap_sci_ipc_exit();
 #endif
 	debugfs_remove_recursive(dev->debug_root);
 	misc_deregister(&dev->dev_user);
-#ifdef CONFIG_NVMAP_PAGE_POOLS
+#ifdef NVMAP_CONFIG_PAGE_POOLS
 	nvmap_page_pool_clear();
 	nvmap_page_pool_fini(nvmap_dev);
 #endif

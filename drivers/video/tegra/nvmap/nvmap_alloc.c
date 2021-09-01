@@ -238,7 +238,7 @@ static struct color_list *init_color_list(struct nvmap_alloc_state *state,
 	if (!list)
 		return NULL;
 
-#ifdef CONFIG_NVMAP_PAGE_POOLS
+#ifdef NVMAP_CONFIG_PAGE_POOLS
 	/* Allocated page from nvmap page pool if possible */
 	page_index = nvmap_page_pool_alloc_lots(&nvmap_dev->pool, list->pages, nr_pages);
 #endif
@@ -470,7 +470,7 @@ static int handle_page_alloc(struct nvmap_client *client,
 	int i = 0, page_index = 0;
 	struct page **pages;
 	gfp_t gfp = GFP_NVMAP | __GFP_ZERO;
-#ifdef CONFIG_NVMAP_PAGE_POOLS
+#ifdef NVMAP_CONFIG_PAGE_POOLS
 	int pages_per_big_pg = NVMAP_PP_BIG_PAGE_SIZE >> PAGE_SHIFT;
 #else
 	int pages_per_big_pg = 0;
@@ -482,7 +482,7 @@ static int handle_page_alloc(struct nvmap_client *client,
 #endif
 
 	if (!chipid) {
-#ifdef CONFIG_NVMAP_COLOR_PAGES
+#ifdef NVMAP_CONFIG_COLOR_PAGES
 #if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 		chipid = tegra_hidrev_get_chipid(tegra_read_chipid());
 #else
@@ -507,7 +507,7 @@ static int handle_page_alloc(struct nvmap_client *client,
 			pages[i] = nth_page(page, i);
 
 	} else {
-#ifdef CONFIG_NVMAP_PAGE_POOLS
+#ifdef NVMAP_CONFIG_PAGE_POOLS
 		/* Get as many big pages from the pool as possible. */
 		page_index = nvmap_page_pool_alloc_lots_bp(&nvmap_dev->pool, pages,
 								 nr_page);
@@ -537,7 +537,7 @@ static int handle_page_alloc(struct nvmap_client *client,
 		nvmap_big_page_allocs += page_index;
 
 		if (s_nr_colors <= 1) {
-#ifdef CONFIG_NVMAP_PAGE_POOLS
+#ifdef NVMAP_CONFIG_PAGE_POOLS
 			/* Get as many 4K pages from the pool as possible. */
 			page_index += nvmap_page_pool_alloc_lots(
 				      &nvmap_dev->pool, &pages[page_index],
@@ -996,7 +996,7 @@ void _nvmap_handle_free(struct nvmap_handle *h)
 	for (i = 0; i < nr_page; i++)
 		h->pgalloc.pages[i] = nvmap_to_page(h->pgalloc.pages[i]);
 
-#ifdef CONFIG_NVMAP_PAGE_POOLS
+#ifdef NVMAP_CONFIG_PAGE_POOLS
 	if (!h->from_va)
 		page_index = nvmap_page_pool_fill_lots(&nvmap_dev->pool,
 					h->pgalloc.pages, nr_page);
