@@ -71,11 +71,7 @@ EXPORT_SYMBOL(tegra_ivc_channel_runtime_get);
 void tegra_ivc_channel_runtime_put(struct tegra_ivc_channel *ch)
 {
 	BUG_ON(ch == NULL);
-	BUG_ON(ch->dev.parent == NULL);
-	BUG_ON(ch->dev.parent->parent == NULL);
 
-	pm_runtime_mark_last_busy(ch->dev.parent->parent);
-	pm_runtime_mark_last_busy(ch->dev.parent);
 	pm_runtime_put(&ch->dev);
 }
 EXPORT_SYMBOL(tegra_ivc_channel_runtime_put);
