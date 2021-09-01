@@ -70,7 +70,7 @@ static inline bool isp5_align_up(const uint16_t val, const uint16_t alignment, u
 		ret_val = true;
 	} else {
 		aligned_width = isp5_align_down(val, alignment);
-		if ((aligned_width + alignment) > UINT16_MAX) {
+		if ((aligned_width + alignment) > (uint32_t)UINT16_MAX) {
 			ret_val = false;
 		} else {
 			*result = aligned_width + alignment;
@@ -82,7 +82,7 @@ static inline bool isp5_align_up(const uint16_t val, const uint16_t alignment, u
 
 static inline bool isp5_div_round_up(const uint16_t x, const uint16_t y, uint16_t *result)
 {
-	if (y == 0) {
+	if (y == 0U) {
 		return false;
 	}
 	//coverity[cert_int30_c_violation] # x & y are uint16_t
@@ -133,15 +133,13 @@ static bool isp5_find_tile_width(const struct isp5_program * const prg,
 	}
 
 	const uint16_t max_width_first = (uint16_t)tmp_width;
+	tmp_width = (ISP5_MAX_TILE_WIDTH - prg->overfetch.right) - prg->overfetch.left;
 
-	if (0 > ((ISP5_MAX_TILE_WIDTH - prg->overfetch.right) - prg->overfetch.left)) {
+	if ((0 > tmp_width) || (tmp_width > UINT16_MAX)) {
 		return false;
 	}
 
-	const uint16_t max_width_middle = isp5_align_down((ISP5_MAX_TILE_WIDTH -
-							prg->overfetch.right) -
-							prg->overfetch.left,
-							alignment);
+	const uint16_t max_width_middle = isp5_align_down((uint16_t)tmp_width, alignment);
 
 	/* Last tile right edge does not need to be aligned */
 	const uint16_t max_width_last = ISP5_MAX_TILE_WIDTH - prg->overfetch.left;
@@ -339,7 +337,7 @@ static bool isp5_find_tile_width_dpcm(const struct isp5_program * const prg,
 	}
 
 	/* cd->surface_configs.chunk_width_middle can't 0 here */
-	if (cd->surface_configs.chunk_width_middle == 0) {
+	if (cd->surface_configs.chunk_width_middle == 0U) {
 		return false;
 	}
 	/*
