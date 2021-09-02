@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /* Copyright (c) 2010-2020 NVIDIA Corporation */
 
-#include "../drm.h"
-#include "../uapi.h"
-
+#include "drm.h"
 #include "submit.h"
+#include "uapi.h"
 
 struct tegra_drm_firewall {
 	struct tegra_drm_submit_data *submit;
@@ -108,8 +107,12 @@ static int fw_check_regs_imm(struct tegra_drm_firewall *fw, u32 offset)
 
 static int fw_check_class(struct tegra_drm_firewall *fw, u32 class)
 {
-	if (!fw->client->ops->is_valid_class)
-		return -EINVAL;
+	if (!fw->client->ops->is_valid_class) {
+		if (class == fw->client->base.class)
+			return 0;
+		else
+			return -EINVAL;
+	}
 
 	if (!fw->client->ops->is_valid_class(class))
 		return -EINVAL;
@@ -118,21 +121,21 @@ static int fw_check_class(struct tegra_drm_firewall *fw, u32 class)
 }
 
 enum {
-        HOST1X_OPCODE_SETCLASS  = 0x00,
-        HOST1X_OPCODE_INCR      = 0x01,
-        HOST1X_OPCODE_NONINCR   = 0x02,
-        HOST1X_OPCODE_MASK      = 0x03,
-        HOST1X_OPCODE_IMM       = 0x04,
-        HOST1X_OPCODE_RESTART   = 0x05,
-        HOST1X_OPCODE_GATHER    = 0x06,
-        HOST1X_OPCODE_SETSTRMID = 0x07,
-        HOST1X_OPCODE_SETAPPID  = 0x08,
-        HOST1X_OPCODE_SETPYLD   = 0x09,
-        HOST1X_OPCODE_INCR_W    = 0x0a,
-        HOST1X_OPCODE_NONINCR_W = 0x0b,
-        HOST1X_OPCODE_GATHER_W  = 0x0c,
-        HOST1X_OPCODE_RESTART_W = 0x0d,
-        HOST1X_OPCODE_EXTEND    = 0x0e,
+	HOST1X_OPCODE_SETCLASS  = 0x00,
+	HOST1X_OPCODE_INCR      = 0x01,
+	HOST1X_OPCODE_NONINCR   = 0x02,
+	HOST1X_OPCODE_MASK      = 0x03,
+	HOST1X_OPCODE_IMM       = 0x04,
+	HOST1X_OPCODE_RESTART   = 0x05,
+	HOST1X_OPCODE_GATHER    = 0x06,
+	HOST1X_OPCODE_SETSTRMID = 0x07,
+	HOST1X_OPCODE_SETAPPID  = 0x08,
+	HOST1X_OPCODE_SETPYLD   = 0x09,
+	HOST1X_OPCODE_INCR_W    = 0x0a,
+	HOST1X_OPCODE_NONINCR_W = 0x0b,
+	HOST1X_OPCODE_GATHER_W  = 0x0c,
+	HOST1X_OPCODE_RESTART_W = 0x0d,
+	HOST1X_OPCODE_EXTEND    = 0x0e,
 };
 
 int tegra_drm_fw_validate(struct tegra_drm_client *client, u32 *data, u32 start,
@@ -170,26 +173,46 @@ int tegra_drm_fw_validate(struct tegra_drm_client *client, u32 *data, u32 start,
 			*job_class = class;
 			if (!err)
 				err = fw_check_regs_mask(&fw, offset, mask);
+			if (err)
+				dev_warn(client->base.dev,
+					 "illegal SETCLASS(offset=0x%x, mask=0x%x, class=0x%x) at word %u",
+					 offset, mask, class, fw.pos-1);
 			break;
 		case HOST1X_OPCODE_INCR:
 			offset = (word >> 16) & 0xfff;
 			count = word & 0xffff;
 			err = fw_check_regs_seq(&fw, offset, count, true);
+			if (err)
+				dev_warn(client->base.dev,
+					 "illegal INCR(offset=0x%x, count=%u) in class 0x%x at word %u",
+					 offset, count, fw.class, fw.pos-1);
 			break;
 		case HOST1X_OPCODE_NONINCR:
 			offset = (word >> 16) & 0xfff;
 			count = word & 0xffff;
 			err = fw_check_regs_seq(&fw, offset, count, false);
+			if (err)
+				dev_warn(client->base.dev,
+					 "illegal NONINCR(offset=0x%x, count=%u) in class 0x%x at word %u",
+					 offset, count, fw.class, fw.pos-1);
 			break;
 		case HOST1X_OPCODE_MASK:
 			offset = (word >> 16) & 0xfff;
 			mask = word & 0xffff;
 			err = fw_check_regs_mask(&fw, offset, mask);
+			if (err)
+				dev_warn(client->base.dev,
+					 "illegal MASK(offset=0x%x, mask=0x%x) in class 0x%x at word %u",
+					 offset, mask, fw.class, fw.pos-1);
 			break;
 		case HOST1X_OPCODE_IMM:
 			/* IMM cannot reasonably be used to write a pointer */
 			offset = (word >> 16) & 0xfff;
 			err = fw_check_regs_imm(&fw, offset);
+			if (err)
+				dev_warn(client->base.dev,
+					 "illegal IMM(offset=0x%x) in class 0x%x at word %u",
+					 offset, fw.class, fw.pos-1);
 			break;
 		case HOST1X_OPCODE_SETPYLD:
 			payload = word & 0xffff;
@@ -201,6 +224,10 @@ int tegra_drm_fw_validate(struct tegra_drm_client *client, u32 *data, u32 start,
 
 			offset = word & 0x3fffff;
 			err = fw_check_regs_seq(&fw, offset, payload, true);
+			if (err)
+				dev_warn(client->base.dev,
+					 "illegal INCR_W(offset=0x%x) in class 0x%x at word %u",
+					 offset, fw.class, fw.pos-1);
 			break;
 		case HOST1X_OPCODE_NONINCR_W:
 			if (!payload_valid)
@@ -208,8 +235,14 @@ int tegra_drm_fw_validate(struct tegra_drm_client *client, u32 *data, u32 start,
 
 			offset = word & 0x3fffff;
 			err = fw_check_regs_seq(&fw, offset, payload, false);
+			if (err)
+				dev_warn(client->base.dev,
+					 "illegal NONINCR(offset=0x%x) in class 0x%x at word %u",
+					 offset, fw.class, fw.pos-1);
 			break;
 		default:
+			dev_warn(client->base.dev, "illegal opcode at word %u",
+				 fw.pos-1);
 			return -EINVAL;
 		}
 

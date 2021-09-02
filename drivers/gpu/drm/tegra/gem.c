@@ -26,13 +26,13 @@
 MODULE_IMPORT_NS(DMA_BUF);
 #endif
 
-static unsigned int __sgt_dma_count_chunks(struct sg_table *sgt)
+static unsigned int sg_dma_count_chunks(struct scatterlist *sgl, unsigned int nents)
 {
 	dma_addr_t next = ~(dma_addr_t)0;
 	unsigned int count = 0, i;
 	struct scatterlist *s;
 
-	for_each_sg(sgt->sgl, s, sgt->nents, i) {
+	for_each_sg(sgl, s, nents, i) {
 		/* sg_dma_address(s) is only valid for entries that have sg_dma_len(s) != 0. */
 		if (!sg_dma_len(s))
 			continue;
@@ -44,6 +44,11 @@ static unsigned int __sgt_dma_count_chunks(struct sg_table *sgt)
 	}
 
 	return count;
+}
+
+static inline unsigned int sgt_dma_count_chunks(struct sg_table *sgt)
+{
+	return sg_dma_count_chunks(sgt->sgl, sgt->nents);
 }
 
 static void tegra_bo_put(struct host1x_bo *bo)
@@ -89,7 +94,7 @@ static struct host1x_bo_mapping *tegra_bo_pin(struct device *dev, struct host1x_
 			goto free;
 		}
 
-		err = __sgt_dma_count_chunks(map->sgt);
+		err = sgt_dma_count_chunks(map->sgt);
 		map->size = gem->size;
 
 		goto out;
@@ -487,7 +492,6 @@ static struct tegra_bo *tegra_bo_import(struct drm_device *drm,
 	}
 
 	bo->gem.import_attach = attach;
-	bo->gem.resv = buf->resv;
 
 	return bo;
 
@@ -764,7 +768,6 @@ struct dma_buf *tegra_gem_prime_export(struct drm_gem_object *gem,
 	exp_info.size = gem->size;
 	exp_info.flags = flags;
 	exp_info.priv = gem;
-	exp_info.resv = gem->resv;
 
 	return drm_gem_dmabuf_export(gem->dev, &exp_info);
 }
@@ -788,4 +791,17 @@ struct drm_gem_object *tegra_gem_prime_import(struct drm_device *drm,
 		return ERR_CAST(bo);
 
 	return &bo->gem;
+}
+
+struct host1x_bo *tegra_gem_lookup(struct drm_file *file, u32 handle)
+{
+	struct drm_gem_object *gem;
+	struct tegra_bo *bo;
+
+	gem = drm_gem_object_lookup(file, handle);
+	if (!gem)
+		return NULL;
+
+	bo = to_tegra_bo(gem);
+	return &bo->base;
 }
