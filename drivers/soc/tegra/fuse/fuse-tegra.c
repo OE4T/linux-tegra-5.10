@@ -443,11 +443,55 @@ static ssize_t platform_show(struct device *dev, struct device_attribute *attr,
 
 static DEVICE_ATTR_RO(platform);
 
+#if IS_ENABLED(CONFIG_ARCH_TEGRA_23x_SOC)
+#define OPT_FUSE_ATTR(name, offset)				\
+static ssize_t name ## _show(struct device *dev,		\
+			     struct device_attribute *attr,	\
+			     char *buf)				\
+{								\
+	u32 reg = 0;						\
+	int ret;						\
+								\
+	if (tegra_get_platform() == TEGRA_PLATFORM_SILICON) {	\
+		ret = tegra_fuse_readl(offset, &reg);		\
+		if (ret)					\
+			reg = 0;				\
+	}							\
+								\
+	return sprintf(buf, "%d\n", reg);			\
+}								\
+static DEVICE_ATTR_RO(name)
+
+OPT_FUSE_ATTR(opt_ccplex_cluster_disable,
+					TEGRA_FUSE_OPT_CCPLEX_CLUSTER_DISABLE);
+OPT_FUSE_ATTR(opt_dla_disable,		TEGRA_FUSE_OPT_DLA_DISABLE);
+OPT_FUSE_ATTR(opt_emc_disable,		TEGRA_FUSE_OPT_EMC_DISABLE);
+OPT_FUSE_ATTR(opt_fbp_disable,		TEGRA_FUSE_OPT_FBP_DISABLE);
+OPT_FUSE_ATTR(opt_fsi_disable,		TEGRA_FUSE_OPT_FSI_DISABLE);
+OPT_FUSE_ATTR(opt_gpc_disable,		TEGRA_FUSE_OPT_GPC_DISABLE);
+OPT_FUSE_ATTR(opt_nvdec_disable,	TEGRA_FUSE_OPT_NVENC_DISABLE);
+OPT_FUSE_ATTR(opt_nvenc_disable,	TEGRA_FUSE_OPT_NVDEC_DISABLE);
+OPT_FUSE_ATTR(opt_pva_disable,		TEGRA_FUSE_OPT_PVA_DISABLE);
+OPT_FUSE_ATTR(opt_tpc_disable,		TEGRA_FUSE_OPT_TPC_DISABLE);
+#endif
+
 static struct attribute *tegra194_soc_attr[] = {
 	&dev_attr_major.attr,
 	&dev_attr_minor.attr,
 	&dev_attr_production.attr,
 	&dev_attr_platform.attr,
+#if IS_ENABLED(CONFIG_ARCH_TEGRA_23x_SOC)
+	&dev_attr_opt_ccplex_cluster_disable.attr,
+	&dev_attr_opt_dla_disable.attr,
+	&dev_attr_opt_emc_disable.attr,
+	&dev_attr_opt_fbp_disable.attr,
+	&dev_attr_opt_fsi_disable.attr,
+	&dev_attr_opt_gpc_disable.attr,
+	&dev_attr_opt_nvdec_disable.attr,
+	&dev_attr_opt_nvenc_disable.attr,
+	&dev_attr_opt_pva_disable.attr,
+	&dev_attr_opt_tpc_disable.attr,
+#endif
 	NULL,
 };
 
