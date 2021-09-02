@@ -53,7 +53,7 @@ static struct ch_list_t RTW_ChannelPlan2G[RTW_RD_2G_MAX];
 static struct ch_list_t RTW_ChannelPlan5G[RTW_RD_5G_MAX]; 
 #endif /* CONFIG_IEEE80211_BAND_5GHZ */
 
-static struct chplan_ent_t RTW_ChannelPlanMap[RTW_CHPLAN_MAX];
+static struct chplan_ent_t RTW_ChannelPlanMap[RTW_CHPLAN_HEXFILE_MAX];
 static struct country_chplan country_chplan_map[238];
 int rtw_get_channel_plan_from_file(const char *path)
 {
