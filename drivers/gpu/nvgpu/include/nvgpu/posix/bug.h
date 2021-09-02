@@ -147,12 +147,10 @@ struct nvgpu_bug_cb;
  * @brief Exit current process
  *
  * This function is used during the handling of a bug to exit the calling
- * program. Uses the library function #exit with \a status as parameter.
- * Function does not perform any validation of the parameter.
- *
- * @param status [in]	Exit status to be used for the program.
+ * program, a SIGSEGV is raised using library function #raise to terminate
+ * the process.
  */
-void nvgpu_bug_exit(int status);
+void nvgpu_bug_exit(void);
 
 /**
  * @brief Register callback to be invoked on BUG()

@@ -101,12 +101,18 @@ static void nvgpu_bug_init(void)
 }
 #endif
 
-void nvgpu_bug_exit(int status)
+void nvgpu_bug_exit(void)
 {
-	(void)status;
 #ifndef __NVGPU_UNIT_TEST__
+	int err;
 	nvgpu_err(NULL, "SW quiesce done. Exiting.");
-	exit(status);
+	while ((err = raise(SIGSEGV)) != 0) {
+		/*
+		 * Make sure that SIGSEGV signal is raised.
+		 */
+	}
+
+	pthread_exit(NULL);
 #endif
 }
 

@@ -116,7 +116,7 @@ static int nvgpu_sw_quiesce_thread(void *data)
 
 	nvgpu_disable_irqs(g);
 	nvgpu_channel_sw_quiesce(g);
-	nvgpu_bug_exit(1);
+	nvgpu_bug_exit();
 
 done:
 	nvgpu_log_info(g, "done");
