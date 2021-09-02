@@ -42,6 +42,18 @@ static void host1x_syncpt_base_free(struct host1x_syncpt_base *base)
 		base->requested = false;
 }
 
+/**
+ * host1x_syncpt_alloc() - allocate a syncpoint
+ * @host: host1x device data
+ * @flags: bitfield of HOST1X_SYNCPT_* flags
+ * @name: name for the syncpoint for use in debug prints
+ *
+ * Allocates a hardware syncpoint for the caller's use. The caller then has
+ * the sole authority to mutate the syncpoint's value until it is freed again.
+ *
+ * If no free syncpoints are available, or a NULL name was specified, returns
+ * NULL.
+ */
 struct host1x_syncpt *host1x_syncpt_alloc(struct host1x *host,
 					  unsigned long flags,
 					  const char *name)
@@ -49,6 +61,9 @@ struct host1x_syncpt *host1x_syncpt_alloc(struct host1x *host,
 	struct host1x_syncpt *sp = host->syncpt;
 	char *full_name;
 	unsigned int i;
+
+	if (!name)
+		return NULL;
 
 	mutex_lock(&host->syncpt_mutex);
 
@@ -391,6 +406,7 @@ static void syncpt_release(struct kref *ref)
 	struct host1x_syncpt *sp = container_of(ref, struct host1x_syncpt, ref);
 
 	atomic_set(&sp->max_val, host1x_syncpt_read(sp));
+
 	sp->locked = false;
 
 	mutex_lock(&sp->host->syncpt_mutex);
@@ -560,6 +576,7 @@ static void do_nothing(struct kref *ref)
  *   available for allocation
  *
  * @client: host1x bus client
+ * @syncpt_id: syncpoint ID to make available
  *
  * Makes VBLANK<i> syncpoint available for allocatation if it was
  * reserved at initialization time. This should be called by the display
