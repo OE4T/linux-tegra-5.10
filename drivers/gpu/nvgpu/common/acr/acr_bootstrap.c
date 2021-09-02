@@ -357,7 +357,7 @@ int nvgpu_acr_bootstrap_hs_ucode_riscv(struct gk20a *g, struct nvgpu_acr *acr)
 		nvgpu_err(g, "RISCV ucode loading failed");
 		return -EINVAL;
 	}
-
+	// TODO: Based on Railgating/Cold boot use True/False flag with this call.
 	err = acr->patch_wpr_info_to_ucode(g, acr, &acr->acr_asc, false);
 	if (err != 0) {
 		nvgpu_err(g, "RISCV ucode patch wpr info failed");

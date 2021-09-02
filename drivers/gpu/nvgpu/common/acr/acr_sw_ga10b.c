@@ -81,13 +81,14 @@ static int ga10b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 		/*
 		 * In case of recovery ucode blob size is 0 as it has already
 		 * been authenticated during cold boot.
+		 * TODO: Set blob size as 0x0
+		 * i.e. nonwpr_ucode_blob_size = RECOVERY_UCODE_BLOB_SIZE
+		 * and call with true flag.
 		 */
 		if (!nvgpu_mem_is_valid(&acr_desc->acr_falcon2_sysmem_desc)) {
 			nvgpu_err(g, "invalid mem acr_falcon2_sysmem_desc");
 			return -EINVAL;
                 }
-		acr_sysmem_desc->nonwpr_ucode_blob_size =
-						RECOVERY_UCODE_BLOB_SIZE;
 	} else
 #endif
         {
@@ -95,34 +96,40 @@ static int ga10b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 		 * Alloc space for  sys mem space to which interface struct is
 		 * copied.
 		 */
-		if (nvgpu_mem_is_valid(acr_falcon2_sysmem_desc)) {
-			acr_sysmem_desc->nonwpr_ucode_blob_size =
-						RECOVERY_UCODE_BLOB_SIZE;
-			goto load;
-                }
-		err = nvgpu_dma_alloc_flags_sys(g,
+		if (!nvgpu_mem_is_valid(acr_falcon2_sysmem_desc)) {
+			err = nvgpu_dma_alloc_flags_sys(g,
 				NVGPU_DMA_PHYSICALLY_ADDRESSED,
 				sizeof(struct flcn2_acr_desc),
 				acr_falcon2_sysmem_desc);
-		if (err != 0) {
-			goto end;
-        	}
+			if (err != 0) {
+				nvgpu_err(g, "alloc for sysmem desc failed");
+				goto end;
+			}
+		} else {
+			/*
+			 * TODO: Set blob size as 0x0.
+			 * i.e.nonwpr_ucode_blob_size=RECOVERY_UCODE_BLOB_SIZE
+			 * and call with true flag.
+			 */
+			goto load;
+		}
 
 #ifdef CONFIG_NVGPU_LS_PMU
 		if(g->support_ls_pmu &&
 			nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
 			err = nvgpu_dma_alloc_flags_sys(g,
-					NVGPU_DMA_PHYSICALLY_ADDRESSED,
-					sizeof(struct falcon_next_core_ucode_desc),
-					ls_pmu_desc);
+				NVGPU_DMA_PHYSICALLY_ADDRESSED,
+				sizeof(struct falcon_next_core_ucode_desc),
+				ls_pmu_desc);
 			if (err != 0) {
 				goto end;
 			}
 
 			fw_desc = nvgpu_pmu_fw_desc_desc(g, g->pmu);
 
-			nvgpu_mem_wr_n(g, ls_pmu_desc, 0U, fw_desc->data,
-					sizeof(struct falcon_next_core_ucode_desc));
+			nvgpu_mem_wr_n(g, ls_pmu_desc, 0U,
+				fw_desc->data,
+				sizeof(struct falcon_next_core_ucode_desc));
 
 			acr_sysmem_desc->ls_pmu_desc =
 					nvgpu_mem_get_addr(g, ls_pmu_desc);
