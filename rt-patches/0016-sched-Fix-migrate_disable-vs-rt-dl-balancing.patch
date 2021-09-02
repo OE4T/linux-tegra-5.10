@@ -1,7 +1,7 @@
-From a7e4994b1eb926e78a18eeb130a6ae72d0dca5d6 Mon Sep 17 00:00:00 2001
+From 9085bae52725af4e9fd1045c10b88a20122667fa Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:13 +0200
-Subject: [PATCH 016/296] sched: Fix migrate_disable() vs rt/dl balancing
+Subject: [PATCH 016/304] sched: Fix migrate_disable() vs rt/dl balancing
 
 In order to minimize the interference of migrate_disable() on lower
 priority tasks, which can be deprived of runtime due to being stuck
@@ -25,16 +25,16 @@ interference equivalent to the worst case migrate_disable() section.
 Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- include/linux/preempt.h | 40 ++++++++++++++++-------------
- include/linux/sched.h   |  3 ++-
- kernel/sched/core.c     | 67 +++++++++++++++++++++++++++++++++++++++++--------
- kernel/sched/deadline.c | 29 +++++++++++++++------
- kernel/sched/rt.c       | 63 +++++++++++++++++++++++++++++++++++++---------
- kernel/sched/sched.h    | 32 +++++++++++++++++++++++
+ include/linux/preempt.h | 40 +++++++++++++-----------
+ include/linux/sched.h   |  3 +-
+ kernel/sched/core.c     | 67 +++++++++++++++++++++++++++++++++++------
+ kernel/sched/deadline.c | 29 +++++++++++++-----
+ kernel/sched/rt.c       | 63 ++++++++++++++++++++++++++++++--------
+ kernel/sched/sched.h    | 32 ++++++++++++++++++++
  6 files changed, 186 insertions(+), 48 deletions(-)
 
 diff --git a/include/linux/preempt.h b/include/linux/preempt.h
-index 97ba7c9..8b43922 100644
+index 97ba7c920653..8b43922e65df 100644
 --- a/include/linux/preempt.h
 +++ b/include/linux/preempt.h
 @@ -325,24 +325,28 @@ static inline void preempt_notifier_init(struct preempt_notifier *notifier,
@@ -85,10 +85,10 @@ index 97ba7c9..8b43922 100644
   *
   * The reason we have it anyway.
 diff --git a/include/linux/sched.h b/include/linux/sched.h
-index 71accd9..b47c446 100644
+index 9f2ee718bb3e..a7020a5c62f9 100644
 --- a/include/linux/sched.h
 +++ b/include/linux/sched.h
-@@ -724,8 +724,9 @@ struct task_struct {
+@@ -732,8 +732,9 @@ struct task_struct {
  	cpumask_t			cpus_mask;
  	void				*migration_pending;
  #if defined(CONFIG_SMP) && defined(CONFIG_PREEMPT_RT)
@@ -100,10 +100,10 @@ index 71accd9..b47c446 100644
  #ifdef CONFIG_PREEMPT_RCU
  	int				rcu_read_lock_nesting;
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 53b5af00..ec9df83 100644
+index 8d727f0c0474..bb1f764e2979 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
-@@ -1761,11 +1761,6 @@ void migrate_enable(void)
+@@ -1759,11 +1759,6 @@ void migrate_enable(void)
  }
  EXPORT_SYMBOL_GPL(migrate_enable);
  
@@ -115,7 +115,7 @@ index 53b5af00..ec9df83 100644
  static inline bool rq_has_pinned_tasks(struct rq *rq)
  {
  	return rq->nr_pinned;
-@@ -1970,6 +1965,49 @@ static int migration_cpu_stop(void *data)
+@@ -1968,6 +1963,49 @@ static int migration_cpu_stop(void *data)
  	return 0;
  }
  
@@ -165,7 +165,7 @@ index 53b5af00..ec9df83 100644
  /*
   * sched_class::set_cpus_allowed must do the below, but is not required to
   * actually call this function.
-@@ -2050,6 +2088,14 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
+@@ -2048,6 +2086,14 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
  
  	/* Can the task run on the task's current CPU? If so, we're done */
  	if (cpumask_test_cpu(task_cpu(p), &p->cpus_mask)) {
@@ -180,7 +180,7 @@ index 53b5af00..ec9df83 100644
  		pending = p->migration_pending;
  		if (pending) {
  			refcount_inc(&pending->refs);
-@@ -2058,6 +2104,11 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
+@@ -2056,6 +2102,11 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
  		}
  		task_rq_unlock(rq, p, rf);
  
@@ -192,7 +192,7 @@ index 53b5af00..ec9df83 100644
  		if (complete)
  			goto do_complete;
  
-@@ -2094,6 +2145,7 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
+@@ -2092,6 +2143,7 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
  	if (flags & SCA_MIGRATE_ENABLE) {
  
  		refcount_inc(&pending->refs); /* pending->{arg,stop_work} */
@@ -200,7 +200,7 @@ index 53b5af00..ec9df83 100644
  		task_rq_unlock(rq, p, rf);
  
  		pending->arg = (struct migration_arg) {
-@@ -2712,11 +2764,6 @@ static inline int __set_cpus_allowed_ptr(struct task_struct *p,
+@@ -2710,11 +2762,6 @@ static inline int __set_cpus_allowed_ptr(struct task_struct *p,
  
  static inline void migrate_disable_switch(struct rq *rq, struct task_struct *p) { }
  
@@ -213,7 +213,7 @@ index 53b5af00..ec9df83 100644
  {
  	return false;
 diff --git a/kernel/sched/deadline.c b/kernel/sched/deadline.c
-index f38650b..8d615aa 100644
+index 9dae542af347..dd2a8c5954b2 100644
 --- a/kernel/sched/deadline.c
 +++ b/kernel/sched/deadline.c
 @@ -2135,6 +2135,9 @@ static int push_dl_task(struct rq *rq)
@@ -277,7 +277,7 @@ index f38650b..8d615aa 100644
  	}
  
  	if (resched)
-@@ -2530,6 +2544,7 @@ const struct sched_class dl_sched_class
+@@ -2532,6 +2546,7 @@ const struct sched_class dl_sched_class
  	.rq_online              = rq_online_dl,
  	.rq_offline             = rq_offline_dl,
  	.task_woken		= task_woken_dl,
@@ -286,7 +286,7 @@ index f38650b..8d615aa 100644
  
  	.task_tick		= task_tick_dl,
 diff --git a/kernel/sched/rt.c b/kernel/sched/rt.c
-index cf63346a..c592e47 100644
+index 37a6758e2b99..d7b33935e22a 100644
 --- a/kernel/sched/rt.c
 +++ b/kernel/sched/rt.c
 @@ -1859,7 +1859,7 @@ static struct task_struct *pick_next_pushable_task(struct rq *rq)
@@ -417,7 +417,7 @@ index cf63346a..c592e47 100644
  	}
  
  	if (resched)
-@@ -2449,6 +2487,7 @@ const struct sched_class rt_sched_class
+@@ -2456,6 +2494,7 @@ const struct sched_class rt_sched_class
  	.rq_offline             = rq_offline_rt,
  	.task_woken		= task_woken_rt,
  	.switched_from		= switched_from_rt,
@@ -426,7 +426,7 @@ index cf63346a..c592e47 100644
  
  	.task_tick		= task_tick_rt,
 diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index 59da79e..7db3cea 100644
+index 8a3f44651cc6..56aaab7f5ec8 100644
 --- a/kernel/sched/sched.h
 +++ b/kernel/sched/sched.h
 @@ -1060,6 +1060,8 @@ struct rq {
@@ -490,5 +490,5 @@ index 59da79e..7db3cea 100644
  
  #ifdef CONFIG_CPU_IDLE
 -- 
-2.7.4
+2.33.0
 

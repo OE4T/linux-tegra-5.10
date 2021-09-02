@@ -1,7 +1,7 @@
-From ed676bf7bc806a83157533f9a7767468c69b9467 Mon Sep 17 00:00:00 2001
+From f7a8cc517f26f258059f2e5fad3a4cb34ceda950 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Mon, 9 Nov 2020 15:54:03 +0100
-Subject: [PATCH 021/296] sched: Unlock the rq in affine_move_task() error path
+Subject: [PATCH 021/304] sched: Unlock the rq in affine_move_task() error path
 
 Unlock the rq if returned early in the error path.
 
@@ -13,10 +13,10 @@ Link: https://lkml.kernel.org/r/20201106203921.GA48461@zipoli.concurrent-rt.com
  1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 0fe6bb3..e12bb99 100644
+index 063424136f87..d49549b2a109 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
-@@ -2212,8 +2212,10 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
+@@ -2210,8 +2210,10 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
  	 *
  	 * Either way, we really should have a @pending here.
  	 */
@@ -29,5 +29,5 @@ index 0fe6bb3..e12bb99 100644
  	if (flags & SCA_MIGRATE_ENABLE) {
  
 -- 
-2.7.4
+2.33.0
 

@@ -1,7 +1,7 @@
-From e34d37e9d2693639186a39463563c6f8ca8178ed Mon Sep 17 00:00:00 2001
+From acbac37502d8440f1dc71f8ffa839e5088bed7ae Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:33 +0100
-Subject: [PATCH 044/296] Documentation/io-mapping: Remove outdated blurb
+Subject: [PATCH 044/304] Documentation/io-mapping: Remove outdated blurb
 
 The implementation details in the documentation are outdated and not really
 helpful. Remove them.
@@ -13,7 +13,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 22 deletions(-)
 
 diff --git a/Documentation/driver-api/io-mapping.rst b/Documentation/driver-api/io-mapping.rst
-index a966239..e33b882 100644
+index a966239f04e4..e33b88268554 100644
 --- a/Documentation/driver-api/io-mapping.rst
 +++ b/Documentation/driver-api/io-mapping.rst
 @@ -73,25 +73,3 @@ for pages mapped with io_mapping_map_wc.
@@ -43,5 +43,5 @@ index a966239..e33b882 100644
 -performs an IPI to inform all processors about the new mapping. This results
 -in a significant performance penalty.
 -- 
-2.7.4
+2.33.0
 

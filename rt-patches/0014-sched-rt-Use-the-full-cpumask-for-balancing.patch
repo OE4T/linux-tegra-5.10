@@ -1,7 +1,7 @@
-From c013e4bc6868a2908a97358ba4f0da7e8176ef79 Mon Sep 17 00:00:00 2001
+From 57e0f759af5dc7f4b1f1ea647867fa4a42f8c332 Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:11 +0200
-Subject: [PATCH 014/296] sched,rt: Use the full cpumask for balancing
+Subject: [PATCH 014/304] sched,rt: Use the full cpumask for balancing
 
 We want migrate_disable() tasks to get PULLs in order for them to PUSH
 away the higher priority task.
@@ -16,7 +16,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  4 files changed, 8 insertions(+), 8 deletions(-)
 
 diff --git a/kernel/sched/cpudeadline.c b/kernel/sched/cpudeadline.c
-index 8cb06c8..ceb03d7 100644
+index 8cb06c8c7eb1..ceb03d76c0cc 100644
 --- a/kernel/sched/cpudeadline.c
 +++ b/kernel/sched/cpudeadline.c
 @@ -120,7 +120,7 @@ int cpudl_find(struct cpudl *cp, struct task_struct *p,
@@ -38,7 +38,7 @@ index 8cb06c8..ceb03d7 100644
  			if (later_mask)
  				cpumask_set_cpu(best_cpu, later_mask);
 diff --git a/kernel/sched/cpupri.c b/kernel/sched/cpupri.c
-index 0033731..11c4df2 100644
+index 0033731a0797..11c4df2010de 100644
 --- a/kernel/sched/cpupri.c
 +++ b/kernel/sched/cpupri.c
 @@ -73,11 +73,11 @@ static inline int __cpupri_find(struct cpupri *cp, struct task_struct *p,
@@ -56,7 +56,7 @@ index 0033731..11c4df2 100644
  		/*
  		 * We have to ensure that we have at least one bit
 diff --git a/kernel/sched/deadline.c b/kernel/sched/deadline.c
-index 3c6b3d1..f38650b 100644
+index 486ee6aeb178..9dae542af347 100644
 --- a/kernel/sched/deadline.c
 +++ b/kernel/sched/deadline.c
 @@ -1918,7 +1918,7 @@ static void task_fork_dl(struct task_struct *p)
@@ -78,7 +78,7 @@ index 3c6b3d1..f38650b 100644
  				     !dl_task(task) ||
  				     !task_on_rq_queued(task))) {
 diff --git a/kernel/sched/rt.c b/kernel/sched/rt.c
-index 2525a1b..cf63346a 100644
+index 5d15c875be2d..37a6758e2b99 100644
 --- a/kernel/sched/rt.c
 +++ b/kernel/sched/rt.c
 @@ -1658,7 +1658,7 @@ static void put_prev_task_rt(struct rq *rq, struct task_struct *p)
@@ -100,5 +100,5 @@ index 2525a1b..cf63346a 100644
  				     !rt_task(task) ||
  				     !task_on_rq_queued(task))) {
 -- 
-2.7.4
+2.33.0
 

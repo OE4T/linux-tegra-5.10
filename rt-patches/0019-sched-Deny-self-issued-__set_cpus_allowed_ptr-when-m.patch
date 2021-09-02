@@ -1,7 +1,7 @@
-From cf0800bbcb9997859a529417199ef695ece233a0 Mon Sep 17 00:00:00 2001
+From eabafc6bdddbefd0520e0782174c90f9aa2eb845 Mon Sep 17 00:00:00 2001
 From: Valentin Schneider <valentin.schneider@arm.com>
 Date: Fri, 23 Oct 2020 12:12:16 +0200
-Subject: [PATCH 019/296] sched: Deny self-issued __set_cpus_allowed_ptr() when
+Subject: [PATCH 019/304] sched: Deny self-issued __set_cpus_allowed_ptr() when
  migrate_disable()
 
   migrate_disable();
@@ -17,10 +17,10 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 11 insertions(+), 2 deletions(-)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index d33b77b..f01fe77 100644
+index 149327e861b1..1bf276942880 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
-@@ -2238,8 +2238,17 @@ static int __set_cpus_allowed_ptr(struct task_struct *p,
+@@ -2236,8 +2236,17 @@ static int __set_cpus_allowed_ptr(struct task_struct *p,
  		goto out;
  	}
  
@@ -41,5 +41,5 @@ index d33b77b..f01fe77 100644
  	/*
  	 * Picking a ~random cpu helps in cases where we are changing affinity
 -- 
-2.7.4
+2.33.0
 

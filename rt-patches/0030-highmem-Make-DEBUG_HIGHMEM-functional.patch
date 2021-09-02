@@ -1,7 +1,7 @@
-From 28538327abca07bc31dd0892f2435629616898ba Mon Sep 17 00:00:00 2001
+From b6b28d27789207c5dee8d221cd9563b79ceab36d Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:19 +0100
-Subject: [PATCH 030/296] highmem: Make DEBUG_HIGHMEM functional
+Subject: [PATCH 030/304] highmem: Make DEBUG_HIGHMEM functional
 
 For some obscure reason when CONFIG_DEBUG_HIGHMEM is enabled the stack
 depth is increased from 20 to 41. But the only thing DEBUG_HIGHMEM does is
@@ -22,7 +22,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 12 insertions(+), 2 deletions(-)
 
 diff --git a/mm/highmem.c b/mm/highmem.c
-index bb4ce13..67d2d59 100644
+index bb4ce13ee7e7..67d2d5983cb0 100644
 --- a/mm/highmem.c
 +++ b/mm/highmem.c
 @@ -376,9 +376,19 @@ EXPORT_SYMBOL(kunmap_high);
@@ -56,5 +56,5 @@ index bb4ce13..67d2d59 100644
  	BUG_ON(idx < 0);
  }
 -- 
-2.7.4
+2.33.0
 

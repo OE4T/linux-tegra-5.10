@@ -1,7 +1,7 @@
-From 008c77226a94a7a555fc90ef1482efedc872be89 Mon Sep 17 00:00:00 2001
+From 14d1fa98d03afac723fca72cf7f404d992ca2b87 Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:15 +0200
-Subject: [PATCH 018/296] sched: Add migrate_disable() tracepoints
+Subject: [PATCH 018/304] sched: Add migrate_disable() tracepoints
 
 XXX write a tracer:
 
@@ -22,7 +22,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  4 files changed, 24 insertions(+), 1 deletion(-)
 
 diff --git a/include/trace/events/sched.h b/include/trace/events/sched.h
-index c96a433..e48f584 100644
+index c96a4337afe6..e48f584abf5f 100644
 --- a/include/trace/events/sched.h
 +++ b/include/trace/events/sched.h
 @@ -650,6 +650,18 @@ DECLARE_TRACE(sched_update_nr_running_tp,
@@ -45,10 +45,10 @@ index c96a433..e48f584 100644
  
  /* This part must be outside protection */
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index ec9df83..d33b77b 100644
+index bb1f764e2979..149327e861b1 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
-@@ -1726,6 +1726,8 @@ void migrate_disable(void)
+@@ -1724,6 +1724,8 @@ void migrate_disable(void)
  		return;
  	}
  
@@ -57,7 +57,7 @@ index ec9df83..d33b77b 100644
  	preempt_disable();
  	this_rq()->nr_pinned++;
  	p->migration_disabled = 1;
-@@ -1758,6 +1760,8 @@ void migrate_enable(void)
+@@ -1756,6 +1758,8 @@ void migrate_enable(void)
  	p->migration_disabled = 0;
  	this_rq()->nr_pinned--;
  	preempt_enable();
@@ -67,7 +67,7 @@ index ec9df83..d33b77b 100644
  EXPORT_SYMBOL_GPL(migrate_enable);
  
 diff --git a/kernel/sched/deadline.c b/kernel/sched/deadline.c
-index 8d615aa..56faef8 100644
+index dd2a8c5954b2..15b312e98e5b 100644
 --- a/kernel/sched/deadline.c
 +++ b/kernel/sched/deadline.c
 @@ -2278,6 +2278,7 @@ static void pull_dl_task(struct rq *this_rq)
@@ -79,7 +79,7 @@ index 8d615aa..56faef8 100644
  			} else {
  				deactivate_task(src_rq, p, 0);
 diff --git a/kernel/sched/rt.c b/kernel/sched/rt.c
-index c592e47..1ed7e3d 100644
+index d7b33935e22a..d906118ba451 100644
 --- a/kernel/sched/rt.c
 +++ b/kernel/sched/rt.c
 @@ -1877,7 +1877,12 @@ static int push_rt_task(struct rq *rq, bool pull)
@@ -105,5 +105,5 @@ index c592e47..1ed7e3d 100644
  			} else {
  				deactivate_task(src_rq, p, 0);
 -- 
-2.7.4
+2.33.0
 
