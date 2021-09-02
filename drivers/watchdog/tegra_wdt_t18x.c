@@ -71,7 +71,7 @@
 
 struct tegra_wdt_t18x_soc {
 	bool unmask_hw_irq;
-	bool timer_index;
+	int timer_index;
 };
 
 struct tegra_wdt_t18x {
