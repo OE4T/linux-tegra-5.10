@@ -42,7 +42,8 @@ struct gops_fifo {
  	 *
 	 * This HAL is used to initialize FIFO software context,
 	 * then perform GPU h/w initializations. It always maps to
-	 * #nvpgu_fifo_init_support, except for vgpu case.
+	 * \ref nvpgu_fifo_init_support "nvpgu_fifo_init_support(g)",
+	 * except for vgpu case.
 	 *
  	 * @return 0 in case of success, < 0 in case of failure.
  	 */
@@ -153,11 +154,45 @@ struct gops_fifo {
 	 */
 	u32  (*intr_1_isr)(struct gk20a *g);
 
+	/**
+	 * @brief Initialize and read chip specific HW data.
+	 *
+	 * @param g [in]	The GPU driver struct.
+	 *                      - The function does not perform g parameter validation.
+	 *
+	 * For gv11b, this pointer is mapped to \ref gv11b_init_fifo_setup_hw(g).
+	 *
+	 * @return error as an integer.
+	 */
+	int (*init_fifo_setup_hw)(struct gk20a *g);
+
+	/**
+	 * @brief Initialize FIFO software metadata and mark it ready to be used.
+	 *
+	 * @param g [in]	The GPU driver struct.
+	 *                      - The function does not perform g parameter validation.
+	 *
+	 * - Check if #nvgpu_fifo.sw_ready is set to true i.e. s/w setup is
+	 * already done (pointer to nvgpu_fifo is obtained using g->fifo).
+	 * In case setup is ready, return 0, else continue to setup.
+	 * - Invoke \ref nvgpu_fifo_setup_sw_common(g) to perform sw setup.
+	 * - Mark FIFO sw setup ready by setting #nvgpu_fifo.sw_ready to true.
+	 *
+	 * @retval 0 in case of success.
+	 * @retval -ENOMEM in case there is not enough memory available.
+	 * @retval -EINVAL in case condition variable has invalid value.
+	 * @retval -EBUSY in case reference condition variable pointer isn't NULL.
+	 * @retval -EFAULT in case any faults occurred while accessing condition
+	 * variable or attribute.
+	 */
+	int (*setup_sw)(struct gk20a *g);
+
+
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 
-	int (*setup_sw)(struct gk20a *g);
+
 	void (*cleanup_sw)(struct gk20a *g);
-	int (*init_fifo_setup_hw)(struct gk20a *g);
+
 	int (*preempt_channel)(struct gk20a *g, struct nvgpu_channel *ch);
 	/**
 	 * @brief Preempt requested channel,tsg or runlist.

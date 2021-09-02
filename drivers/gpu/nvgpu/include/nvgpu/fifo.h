@@ -414,90 +414,115 @@ static inline const char *nvgpu_id_type_to_str(unsigned int id_type)
 }
 
 /**
- * @brief Initialize FIFO software context.
+ * @brief Initialize FIFO unit.
  *
  * @param g [in]	The GPU driver struct.
+ *                      - The function does not perform g parameter validation.
  *
- * Calls function to do setup_sw. Refer #nvgpu_fifo_setup_sw.
- * If setup_sw was successful, call function to do setup_hw. This is to take
- * care of h/w specific setup related to FIFO module.
+ * - Invoke \ref gops_fifo.setup_sw(g) to initialize nvgpu_fifo variables
+ * and sub-modules. In case of failure, return and propagate the resulting
+ * error code.
+ * - Check if \ref gops_fifo.init_fifo_setup_hw(g) is initialized.
+ * If yes, invoke \ref gops_fifo.init_fifo_setup_hw(g) to handle FIFO unit
+ * h/w setup. In case of failure, use \ref nvgpu_fifo_cleanup_sw_common(g)
+ * to clear FIFO s/w metadata.
  *
- * @return 0 in case of success, < 0 in case of failure.
- * @retval -ENOMEM in case there is not enough memory available.
- * @retval -EINVAL in case condition variable has invalid value.
- * @retval -EBUSY in case reference condition variable pointer isn't NULL.
- * @retval -EFAULT in case any faults occurred while accessing condition
- * variable or attribute.
+ * @retval 0		in case of success.
+ * @retval -ENOMEM	in case there is not enough memory available.
+ * @retval <0		other unspecified errors.
  */
 int nvgpu_fifo_init_support(struct gk20a *g);
 
 /**
- * @brief Initialize FIFO software context and mark it ready to be used.
+ * @brief Initialize FIFO software metadata and mark it ready to be used.
  *
  * @param g [in]	The GPU driver struct.
+ *                      - The function does not perform g parameter validation.
  *
- * Return if #nvgpu_fifo.sw_ready is set to true i.e. s/w set up is already
- * done.
- * Call #nvgpu_fifo_setup_sw_common to do s/w set up.
- * Init channel worker.
- * Mark FIFO s/w ready by setting #nvgpu_fifo.sw_ready to true.
+ * - Check if #nvgpu_fifo.sw_ready is set to true i.e. s/w setup is already done
+ * (pointer to nvgpu_fifo is obtained using g->fifo). In case setup is ready,
+ * return 0, else continue to setup.
+ * - Invoke \ref nvgpu_fifo_setup_sw_common(g) to perform sw setup.
+ * - Mark FIFO sw setup ready by setting #nvgpu_fifo.sw_ready to true.
  *
- * @return 0 in case of success, < 0 in case of failure.
- * @retval -ENOMEM in case there is not enough memory available.
- * @retval -EINVAL in case condition variable has invalid value.
- * @retval -EBUSY in case reference condition variable pointer isn't NULL.
- * @retval -EFAULT in case any faults occurred while accessing condition
- * variable or attribute.
+ * @retval 0		in case of success.
+ * @retval -ENOMEM	in case there is not enough memory available.
+ * @retval <0		other unspecified errors.
  */
 int nvgpu_fifo_setup_sw(struct gk20a *g);
 
 /**
- * @brief Initialize FIFO software context.
+ * @brief Initialize FIFO software metadata sequentially for sub-units channel,
+ *        tsg, pbdma, engine, runlist and userd.
  *
  * @param g [in]	The GPU driver struct.
+ *                      - The function does not perform g parameter validation.
  *
- * - Init mutexes needed by FIFO module. Refer #nvgpu_fifo struct.
- * - Do #nvgpu_channel_setup_sw.
- * - Do #nvgpu_tsg_setup_sw.
- * - Do pbdma.setup_sw.
- * - Do #nvgpu_engine_setup_sw.
- * - Do #nvgpu_runlist_setup_sw.
- * - Do userd.setup_sw.
- * - Init #nvgpu_fifo.remove_support function pointer.
+ * - Obtain #nvgpu_fifo pointer from GPU pointer as g->fifo.
+ * - Initialize mutexes of type nvgpu_mutex needed by the FIFO module using
+ * \ref nvgpu_mutex_init(&nvgpu_fifo.intr.isr.mutex) and
+ * \ref nvgpu_mutex_init(&nvgpu_fifo.engines_reset_mutex).
+ * - Use \ref nvgpu_channel_setup_sw(g) to setup channel data structures. In case
+ * of failure, print error and return with error.
+ * - Use \ref nvgpu_tsg_setup_sw(g) to setup tsg data structures. In case
+ * of failure, clean up channel structures using \ref nvgpu_channel_cleanup_sw(g)
+ * and return with error.
+ * - Check if \ref gops_pbdma.setup_sw(g) is set. If yes, invoke
+ * \ref gops_pbdma.setup_sw(g) to setup pbdma data structures. In case of
+ * failure, clean up tsg using \ref nvgpu_tsg_cleanup_sw() and channel
+ * structures, then return with error.
+ * - Use nvgpu_engine_setup_sw(g) to setup engine data structures. In case
+ * of failure, if \ref gops_pbdma.cleanup_sw(g) is set, clean up pbdma
+ * using \ref gops_pbdma.cleanup_sw(g). Further clean up tsg and channel
+ * structures then return with error.
+ * - Use \ref nvgpu_runlist_setup_sw(g) to setup runlist data structures.
+ * In case of failure, clean up engine using \ref nvgpu_engine_cleanup_sw(g) and
+ * pbdma, tsg, channel structures then return with error.
+ * - Invoke \ref gops_userd.setup_sw(g)" to setup userd data structures.
+ * In case of failure, clean up runlist using \ref nvgpu_runlist_cleanup_sw(g)
+ * and engine, pbdma, tsg, channel structures then return with error.
+ * - Initialize \ref nvgpu_fifo.remove_support(g) function pointer.
  *
- * @note In case of failure, cleanup_sw for the blocks that are already
- *       initialized is also taken care of by this function.
- * @return 0 in case of success, < 0 in case of failure.
- * @retval -ENOMEM in case there is not enough memory available.
- * @retval -EINVAL in case condition variable has invalid value.
- * @retval -EBUSY in case reference condition variable pointer isn't NULL.
- * @retval -EFAULT in case any faults occurred while accessing condition
- * variable or attribute.
+ * @note In case of failure, cleanup sw metadata for sub-units that are
+ *       initialized.
+ *
+ * @retval 0		in case of success.
+ * @retval -ENOMEM	in case there is not enough memory available.
+ * @retval <0		other unspecified errors.
  */
 int nvgpu_fifo_setup_sw_common(struct gk20a *g);
 
 /**
- * @brief Clean up FIFO software context.
+ * @brief Clean up FIFO software metadata.
  *
  * @param g [in]	The GPU driver struct.
+ *                      - The function does not perform g parameter validation.
  *
- * Deinit Channel worker thread.
- * Calls #nvgpu_fifo_cleanup_sw_common.
+ * Use \ref nvgpu_fifo_cleanup_sw_common(g) to free FIFO software metadata.
+ *
+ * @return	None
  */
 void nvgpu_fifo_cleanup_sw(struct gk20a *g);
 
 /**
- * @brief Clean up FIFO software context and related resources.
+ * @brief Clean up FIFO sub-unit metadata.
  *
  * @param g [in]	The GPU driver struct.
+ *                      - The function does not perform g parameter validation.
  *
- * - Do userd.cleanup_sw.
- * - Do #nvgpu_channel_cleanup_sw.
- * - Do #nvgpu_tsg_cleanup_sw.
- * - Do #nvgpu_runlist_cleanup_sw.
- * - Do #nvgpu_engine_cleanup_sw.
- * - Do pbdma.setup_sw.
- * - Destroy mutexes used by FIFO module. Refer #nvgpu_fifo struct.
+ * - Invoke \ref gops_userd.cleanup_sw(g) to free userd data structures.
+ * - Use \ref nvgpu_channel_cleanup_sw(g) to free channel data structures.
+ * - Use \ref nvgpu_tsg_cleanup_sw(g) to free tsg data structures.
+ * - Use \ref nvgpu_runlist_cleanup_sw(g) to free runlist data structures.
+ * - Use \ref nvgpu_engine_cleanup_sw(g) to free engine data structures.
+ * - Check if \ref gops_pbdma.cleanup_sw(g) is set. If yes, invoke
+ * \ref gops_pbdma.cleanup_sw(g) to free pbdma data structures.
+ * - Destroy mutexes of type #nvgpu_mutex needed by the FIFO module using
+ * \ref nvgpu_mutex_destroy(&nvgpu_fifo.intr.isr.mutex) and
+ * \ref nvgpu_mutex_destroy(&nvgpu_fifo.engines_reset_mutex).
+ * Mark FIFO s/w clean up complete by setting #nvgpu_fifo.sw_ready to false.
+ *
+ * @return	None
  */
 void nvgpu_fifo_cleanup_sw_common(struct gk20a *g);
 
@@ -506,9 +531,14 @@ void nvgpu_fifo_cleanup_sw_common(struct gk20a *g);
  *
  * @param index [in]	Status value used to index into the constant array of
  *			constant characters.
+ *                      - The function validates that \a index is not greater
+ *                        than #pbdma_ch_eng_status_str array size.
  *
- * Decode PBDMA channel status and Engine status value read from h/w
- * register into string format.
+ * Check \a index is within #pbdma_ch_eng_status_str array size. If \a index
+ * is valid, return string at \a index of #pbdma_ch_eng_status_str array. Else
+ * return "not found" string.
+ *
+ * @return PBDMA and channel status as a string
  */
 const char *nvgpu_fifo_decode_pbdma_ch_eng_status(u32 index);
 
@@ -516,9 +546,14 @@ const char *nvgpu_fifo_decode_pbdma_ch_eng_status(u32 index);
  * @brief Suspend FIFO support while preparing GPU for poweroff.
  *
  * @param g [in]	The GPU driver struct.
+ *                      - The function does not perform g parameter validation.
  *
- * Suspending FIFO will disable BAR1 snooping (if supported by h/w) and also
- * FIFO stalling and non-stalling interrupts at FIFO unit and MC level.
+ * - Check if \ref gops_mm.is_bar1_supported(g) is set. If yes, invoke
+ * \ref gops_mm.is_bar1_supported(g) to disable BAR1 snooping.
+ * - Invoke \ref disable_fifo_interrupts(g) to disable FIFO stalling and
+ * non-stalling interrupts at FIFO unit and MC level.
+ *
+ * @retval 0 is always returned.
  */
 int nvgpu_fifo_suspend(struct gk20a *g);
 
@@ -526,13 +561,19 @@ int nvgpu_fifo_suspend(struct gk20a *g);
  * @brief Emergency quiescing of FIFO.
  *
  * @param g [in]	The GPU driver struct.
+ *                      - The function does not perform g parameter validation.
  *
  * Put FIFO into a non-functioning state to ensure that no corrupted
  * work is completed because of the fault. This is because the freedom
  * from interference may not always be shown between the faulted and
  * the non-faulted TSG contexts.
- * - Disable all runlists
- * - Preempt all runlists
+ * - Set runlist_mask = U32_MAX, to indicate all runlists
+ * - Invoke \ref gops_runlist.write_state(g, runlist_mask, RUNLIST_DISABLED)
+ * to disable all runlists.
+ * - Invoke \ref gops_fifo.preempt_runlists_for_rc(g, runlist_mask)
+ * to preempt all runlists.
+ *
+ * @return	None
  */
 void nvgpu_fifo_sw_quiesce(struct gk20a *g);
 
