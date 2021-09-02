@@ -1232,7 +1232,9 @@ static int host1x_drm_probe(struct host1x_device *dev)
 
 	drm_mode_config_reset(drm);
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 14, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0)
+	err = drm_aperture_remove_framebuffers(false, &tegra_drm_driver);
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(5, 14, 0)
 	err = drm_aperture_remove_framebuffers(false, "tegradrmfb");
 #else
 	err = drm_fb_helper_remove_conflicting_framebuffers(NULL, "tegradrmfb",
