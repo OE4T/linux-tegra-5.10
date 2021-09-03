@@ -528,6 +528,7 @@ static int __cdi_create_dev(
 	cdi_dev->pdata.reg_bits = cdi_dev->cfg.reg_bits;
 	cdi_dev->pdata.val_bits = cdi_dev->cfg.val_bits;
 	cdi_dev->pdata.pdev = cdi_mgr->dev;
+	cdi_dev->pdata.np = cdi_mgr->pdev->of_node;
 
 	mutex_init(&cdi_dev->mutex);
 	INIT_LIST_HEAD(&cdi_dev->list);
@@ -539,7 +540,7 @@ static int __cdi_create_dev(
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	cdi_dev->client = i2c_new_device(cdi_mgr->adap, &brd);
 #else
-	 cdi_dev->client = i2c_new_client_device(cdi_mgr->adap, &brd);
+	cdi_dev->client = i2c_new_client_device(cdi_mgr->adap, &brd);
 #endif
 	if (!cdi_dev->client) {
 		dev_err(cdi_mgr->dev,
@@ -659,6 +660,33 @@ static int cdi_mgr_get_pwr_info(struct cdi_mgr_priv *cdi_mgr,
 
 pwr_info_end:
 	if (copy_to_user(arg, &pinfo, sizeof(pinfo))) {
+		dev_err(cdi_mgr->pdev,
+			"%s: failed to copy to user\n", __func__);
+		return -EFAULT;
+	}
+	return err;
+}
+
+static int cdi_mgr_get_pwr_mode(struct cdi_mgr_priv *cdi_mgr,
+				void __user *arg)
+{
+	struct cdi_mgr_pwr_mode pmode;
+	int err;
+
+	if (copy_from_user(&pmode, arg, sizeof(pmode))) {
+		dev_err(cdi_mgr->pdev,
+			"%s: failed to copy from user\n", __func__);
+		return -EFAULT;
+	}
+
+	pmode.des_pwr_mode = (cdi_mgr->des_pwr_gpio) ?
+				DES_PWR_GPIO :
+				DES_PWR_NVCCP;
+	pmode.cam_pwr_mode = (cdi_mgr->cam_pwr_max20087) ?
+				CAM_PWR_MAX20087 :
+				CAM_PWR_NVCCP;
+
+	if (copy_to_user(arg, &pmode, sizeof(pmode))) {
 		dev_err(cdi_mgr->pdev,
 			"%s: failed to copy to user\n", __func__);
 		return -EFAULT;
@@ -950,6 +978,9 @@ static long cdi_mgr_ioctl(
 		break;
 	case CDI_MGR_IOCTL_ENABLE_ERROR_REPORT:
 		cdi_mgr->err_irq_reported = true;
+		break;
+	case CDI_MGR_IOCTL_GET_PWR_MODE:
+		err = cdi_mgr_get_pwr_mode(cdi_mgr, (void __user *)arg);
 		break;
 	default:
 		dev_err(cdi_mgr->pdev, "%s unsupported ioctl: %x\n",
@@ -1352,6 +1383,7 @@ static int cdi_mgr_probe(struct platform_device *pdev)
 	struct cdi_mgr_platform_data *pd;
 	unsigned int i;
 	struct device_node *child = NULL;
+	struct device_node *child_max20087 = NULL, *child_tca9539 = NULL;
 
 	dev_info(&pdev->dev, "%sing...\n", __func__);
 
@@ -1499,7 +1531,6 @@ static int cdi_mgr_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "Unable to add cdev %d\n", err);
 		goto err_probe;
 	}
-
 	/* send uevents to udev, it will create /dev node for cdi-mgr */
 	cdi_mgr->dev = device_create(cdi_mgr->cdi_class, &pdev->dev,
 				     cdi_mgr->cdev.dev,
@@ -1512,16 +1543,22 @@ static int cdi_mgr_probe(struct platform_device *pdev)
 		goto err_probe;
 	}
 
-	/* get the max20087 information */
 	child = of_get_child_by_name(pdev->dev.of_node, "pwr_ctrl");
 	if (child != NULL) {
-		child = of_get_child_by_name(child, "max20087");
-		if (child != NULL) {
-			err = of_property_read_u32(child, "i2c-bus",
+		cdi_mgr->des_pwr_gpio =
+			of_property_read_bool(child,
+					"deserializer-pwr-gpio");
+		cdi_mgr->cam_pwr_max20087 =
+			of_property_read_bool(child,
+					"cam-pwr-max20087");
+		/* get the max20087 information */
+		child_max20087 = of_get_child_by_name(child, "max20087");
+		if (child_max20087 != NULL) {
+			err = of_property_read_u32(child_max20087, "i2c-bus",
 					&cdi_mgr->max20087.bus);
 			if (err)
 				cdi_mgr->max20087.bus = pd->bus;
-			err = of_property_read_u32(child, "addr",
+			err = of_property_read_u32(child_max20087, "addr",
 				&cdi_mgr->max20087.addr);
 			if (err || !cdi_mgr->max20087.addr) {
 				dev_err(&pdev->dev, "%s: ERROR %d addr = %d\n",
@@ -1529,7 +1566,7 @@ static int cdi_mgr_probe(struct platform_device *pdev)
 					cdi_mgr->max20087.addr);
 				goto err_probe;
 			}
-			err = of_property_read_u32(child, "reg_len",
+			err = of_property_read_u32(child_max20087, "reg_len",
 				&cdi_mgr->max20087.reg_len);
 			if (err || !cdi_mgr->max20087.reg_len) {
 				dev_err(&pdev->dev, "%s: ERROR %d reg_len = %d\n",
@@ -1537,7 +1574,7 @@ static int cdi_mgr_probe(struct platform_device *pdev)
 					cdi_mgr->max20087.reg_len);
 				goto err_probe;
 			}
-			err = of_property_read_u32(child, "dat_len",
+			err = of_property_read_u32(child_max20087, "dat_len",
 				&cdi_mgr->max20087.dat_len);
 			if (err || !cdi_mgr->max20087.dat_len) {
 				dev_err(&pdev->dev, "%s: ERROR %d dat_len = %d\n",
@@ -1559,18 +1596,14 @@ static int cdi_mgr_probe(struct platform_device *pdev)
 				goto err_probe;
 			}
 		}
-	}
-
-	/* get the io expander information */
-	child = of_get_child_by_name(pdev->dev.of_node, "pwr_ctrl");
-	if (child != NULL) {
-		child = of_get_child_by_name(child, "tca9539");
-		if (child != NULL) {
-			err = of_property_read_u32(child, "i2c-bus",
+		/* get the I/O expander information */
+		child_tca9539 = of_get_child_by_name(child, "tca9539");
+		if (child_tca9539 != NULL) {
+			err = of_property_read_u32(child_tca9539, "i2c-bus",
 					&cdi_mgr->tca9539.bus);
 			if (err)
 				cdi_mgr->tca9539.bus = pd->bus;
-			err = of_property_read_u32(child, "addr",
+			err = of_property_read_u32(child_tca9539, "addr",
 				&cdi_mgr->tca9539.addr);
 			if (err || !cdi_mgr->tca9539.addr) {
 				dev_err(&pdev->dev, "%s: ERROR %d addr = %d\n",
@@ -1578,7 +1611,7 @@ static int cdi_mgr_probe(struct platform_device *pdev)
 					cdi_mgr->tca9539.addr);
 				goto err_probe;
 			}
-			err = of_property_read_u32(child, "reg_len",
+			err = of_property_read_u32(child_tca9539, "reg_len",
 				&cdi_mgr->tca9539.reg_len);
 			if (err || !cdi_mgr->tca9539.reg_len) {
 				dev_err(&pdev->dev, "%s: ERROR %d reg_len = %d\n",
@@ -1586,7 +1619,7 @@ static int cdi_mgr_probe(struct platform_device *pdev)
 					cdi_mgr->tca9539.reg_len);
 				goto err_probe;
 			}
-			err = of_property_read_u32(child, "dat_len",
+			err = of_property_read_u32(child_tca9539, "dat_len",
 				&cdi_mgr->tca9539.dat_len);
 			if (err || !cdi_mgr->tca9539.dat_len) {
 				dev_err(&pdev->dev, "%s: ERROR %d dat_len = %d\n",
@@ -1594,8 +1627,9 @@ static int cdi_mgr_probe(struct platform_device *pdev)
 					cdi_mgr->tca9539.dat_len);
 				goto err_probe;
 			}
-			err = of_property_read_u32(child->parent, "power_port",
-						&cdi_mgr->tca9539.power_port);
+			err = of_property_read_u32(child_tca9539->parent,
+					"power_port",
+					&cdi_mgr->tca9539.power_port);
 			if (err) {
 				dev_err(&pdev->dev, "%s: ERROR %d power_port = %d\n",
 					__func__, err,
@@ -1618,15 +1652,27 @@ static int cdi_mgr_probe(struct platform_device *pdev)
 			/* Set the init values */
 			/* TODO : read the array to initialize */
 			/* the registers in TCA9539 */
-            /* Use the IO expander to control PWDN signals */
-			if (tca9539_raw_wr(cdi_mgr, 0x6, 0x0E) != 0)
+			/* Use the IO expander to control PWDN signals */
+			if (tca9539_raw_wr(cdi_mgr, 0x6, 0x0E) != 0) {
+				dev_err(&pdev->dev,
+						"%s: ERR %d: TCA9539: Failed to select PWDN signal source\n",
+						__func__, err);
 				return -EFAULT;
+			}
 			/* Output mode for AGGA/B/C/D_PWRDN */
-			if (tca9539_raw_wr(cdi_mgr, 0x6, 0x0F) != 0)
+			if (tca9539_raw_wr(cdi_mgr, 0x6, 0x0F) != 0) {
+				dev_err(&pdev->dev,
+						"%s: ERR %d: TCA9539: Failed to set the output mode\n",
+						__func__, err);
 				return -EFAULT;
+			}
 			/* Output low for AGGA/B/C/D_PWRDN */
-			if (tca9539_raw_wr(cdi_mgr, 0x2, 0x0F) != 0)
+			if (tca9539_raw_wr(cdi_mgr, 0x2, 0x0F) != 0) {
+				dev_err(&pdev->dev,
+						"%s: ERR %d: TCA9539: Failed to set the output level\n",
+						__func__, err);
 				return -EFAULT;
+			}
 		}
 	}
 

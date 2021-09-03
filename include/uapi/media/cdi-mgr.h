@@ -20,24 +20,30 @@
 #include <linux/ioctl.h>
 #include <linux/types.h>
 
-#define CDI_MGR_IOCTL_PWR_DN		_IOW('o', 1, __s16)
-#define CDI_MGR_IOCTL_PWR_UP		_IOR('o', 2, __s16)
-#define CDI_MGR_IOCTL_SET_PID		_IOW('o', 3, struct cdi_mgr_sinfo)
-#define CDI_MGR_IOCTL_SIGNAL		_IOW('o', 4, int)
-#define CDI_MGR_IOCTL_DEV_ADD		_IOW('o', 5, struct cdi_mgr_new_dev)
-#define CDI_MGR_IOCTL_DEV_DEL		_IOW('o', 6, int)
-#define CDI_MGR_IOCTL_PWR_INFO		_IOW('o', 7, struct cdi_mgr_pwr_info)
-#define CDI_MGR_IOCTL_PWM_ENABLE	_IOW('o', 8, int)
-#define CDI_MGR_IOCTL_PWM_CONFIG	_IOW('o', 9, struct cdi_mgr_pwm_info)
-#define CDI_MGR_IOCTL_WAIT_ERR		_IO('o', 10)
-#define CDI_MGR_IOCTL_ABORT_WAIT_ERR	_IO('o', 11)
-#define CDI_MGR_IOCTL_GET_EXT_PWR_CTRL	_IOR('o', 12, __u8)
+#define CDI_MGR_IOCTL_PWR_DN	        _IOW('o', 1, __s16)
+#define CDI_MGR_IOCTL_PWR_UP	        _IOR('o', 2, __s16)
+#define CDI_MGR_IOCTL_SET_PID	        _IOW('o', 3, struct cdi_mgr_sinfo)
+#define CDI_MGR_IOCTL_SIGNAL	        _IOW('o', 4, int)
+#define CDI_MGR_IOCTL_DEV_ADD	        _IOW('o', 5, struct cdi_mgr_new_dev)
+#define CDI_MGR_IOCTL_DEV_DEL	        _IOW('o', 6, int)
+#define CDI_MGR_IOCTL_PWR_INFO	        _IOW('o', 7, struct cdi_mgr_pwr_info)
+#define CDI_MGR_IOCTL_PWM_ENABLE        _IOW('o', 8, int)
+#define CDI_MGR_IOCTL_PWM_CONFIG        _IOW('o', 9, struct cdi_mgr_pwm_info)
+#define CDI_MGR_IOCTL_WAIT_ERR	        _IO('o', 10)
+#define CDI_MGR_IOCTL_ABORT_WAIT_ERR	    _IO('o', 11)
+#define CDI_MGR_IOCTL_GET_EXT_PWR_CTRL	    _IOR('o', 12, __u8)
 #define CDI_MGR_IOCTL_SET_CAM_PWR_ON		_IOW('o', 13, uint8_t)
 #define CDI_MGR_IOCTL_SET_CAM_PWR_OFF		_IOW('o', 14, uint8_t)
 #define CDI_MGR_IOCTL_ENABLE_ERROR_REPORT	_IO('o', 15)
+#define CDI_MGR_IOCTL_GET_PWR_MODE	_IOW('o', 16, struct cdi_mgr_pwr_mode)
 
 #define CDI_MGR_POWER_ALL	5
 #define MAX_CDI_NAME_LENGTH	32
+
+#define DES_PWR_NVCCP    0U
+#define DES_PWR_GPIO     1U
+#define CAM_PWR_NVCCP    0U
+#define CAM_PWR_MAX20087 1U
 
 struct cdi_mgr_new_dev {
 	__u16 addr;
@@ -55,6 +61,11 @@ struct cdi_mgr_sinfo {
 struct cdi_mgr_pwr_info {
 	__s32 pwr_gpio;
 	__s32 pwr_status;
+};
+
+struct cdi_mgr_pwr_mode {
+	__s8 des_pwr_mode;
+	__s8 cam_pwr_mode;
 };
 
 struct cdi_mgr_pwm_info {

@@ -1,7 +1,7 @@
 /*
  * cdi_dev.c - CDI generic i2c driver.
  *
- * Copyright (c) 2015-2020, NVIDIA Corporation. All Rights Reserved.
+ * Copyright (c) 2015-2021, NVIDIA Corporation. All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -401,6 +401,31 @@ static int cdi_dev_get_package(
 	return 0;
 }
 
+static int cdi_dev_get_pwr_mode(
+	struct cdi_dev_info *info,
+	void __user *arg)
+{
+	struct cdi_dev_pwr_mode pmode;
+
+	if (copy_from_user(&pmode, arg, sizeof(pmode))) {
+		dev_err(info->dev,
+			"%s: failed to copy from user\n", __func__);
+		return -EFAULT;
+	}
+
+	pmode.des_pwr_mode = (info->des_pwr_gpio) ? DES_PWR_GPIO :
+						DES_PWR_NVCCP;
+	pmode.cam_pwr_mode = (info->cam_pwr_max20087) ? CAM_PWR_MAX20087 :
+						CAM_PWR_NVCCP;
+
+	if (copy_to_user(arg, &pmode, sizeof(pmode))) {
+		dev_err(info->dev,
+			"%s: failed to copy to user\n", __func__);
+		return -EFAULT;
+	}
+	return 0;
+}
+
 static long cdi_dev_ioctl(struct file *file,
 			unsigned int cmd, unsigned long arg)
 {
@@ -414,6 +439,9 @@ static long cdi_dev_ioctl(struct file *file,
 			break;
 
 		err = cdi_dev_raw_rw(info);
+		break;
+	case CDI_DEV_IOCTL_GET_PWR_MODE:
+		err = cdi_dev_get_pwr_mode(info, (void __user *)arg);
 		break;
 	default:
 		dev_dbg(info->dev, "%s: invalid cmd %x\n", __func__, cmd);
@@ -437,6 +465,9 @@ static long cdi_dev_ioctl32(struct file *file,
 			break;
 
 		err = cdi_dev_raw_rw(info);
+		break;
+	case CDI_DEV_IOCTL_GET_PWR_MODE:
+		err = cdi_dev_get_pwr_mode(info, (void __user *)arg);
 		break;
 	default:
 		return cdi_dev_ioctl(file, cmd, arg);
@@ -487,7 +518,9 @@ static int cdi_dev_probe(struct i2c_client *client,
 			const struct i2c_device_id *id)
 {
 	struct cdi_dev_info *info;
+	struct cdi_mgr_priv *cdi_mgr = NULL;
 	struct device *pdev;
+	struct device_node *child = NULL;
 	int err;
 
 	dev_dbg(&client->dev, "%s: initializing link @%x-%04x\n",
@@ -508,6 +541,18 @@ static int cdi_dev_probe(struct i2c_client *client,
 	} else {
 		dev_notice(&client->dev, "%s NO platform data\n", __func__);
 		return -ENODEV;
+	}
+	if (info->pdata->np != NULL) {
+		child = of_get_child_by_name(info->pdata->np,
+				"pwr_ctrl");
+		if (child != NULL) {
+			info->des_pwr_gpio =
+				of_property_read_bool(child,
+						"deserializer-pwr-gpio");
+			info->cam_pwr_max20087 =
+				of_property_read_bool(child,
+						"cam-pwr-max20087");
+		}
 	}
 
 	if (info->pdata->reg_bits)
@@ -557,6 +602,10 @@ static int cdi_dev_probe(struct i2c_client *client,
 		devm_kfree(&client->dev, info);
 		return PTR_ERR(info->dev);
 	}
+
+	/* parse the power control method */
+	if (info->pdata)
+		cdi_mgr = dev_get_drvdata(info->pdata->pdev);
 
 	info->power_is_on = 1;
 	i2c_set_clientdata(client, info);

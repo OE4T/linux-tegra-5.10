@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -21,6 +21,7 @@
 
 struct cdi_dev_platform_data {
 	struct device *pdev; /* parent device of cdi_dev */
+	struct device_node *np;
 	int reg_bits;
 	int val_bits;
 	char drv_name[MAX_CDI_NAME_LENGTH];
