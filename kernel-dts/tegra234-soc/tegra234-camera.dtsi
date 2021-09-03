@@ -59,6 +59,9 @@
 		iommu-resv-regions = <0x0 0x0 0x0 0xA0000000 0x0 0xc0000000 0xffffffff 0xffffffff>;
 		dma-coherent;
 
+		/* Memory bandwidth in kB/s during boot */
+		nvidia,test-bw = <2400000>;
+
 		nvidia,trace = <&{/tegra-rtcpu-trace} 4 0x70100000 0x100000>;
 		nvidia,ivc-channels = <&{/camera-ivc-channels} 2 0x90000000 0x10000>;
 
@@ -139,8 +142,8 @@
 			nvidia,ivc-timeout = <50>;
 			nvidia,test-timeout = <5000>;
 			nvidia,mem-map = <&tegra_rce &vi0 &isp &vi1>;
-			/* Max EMC bandwidth during tests */
-			nvidia,test-bw = <0xffFFffFF>;
+			/* Memory bandwidth in kB/s during tests */
+			nvidia,test-bw = <2400000>;
 		};
 		ivccontrol@3 {
 			compatible = "nvidia,tegra186-camera-ivc-protocol-capture-control";
