@@ -108,6 +108,11 @@
 #define ETHER_DFLT_PTP_CLK		312500000U
 
 /**
+ * @brief Ethernet default PTP default RxQ
+ */
+#define ETHER_DEFAULT_PTP_QUEUE		3U
+
+/**
  * @brief Ethernet clk rates
  */
 #define ETHER_RX_INPUT_CLK_RATE		125000000UL
