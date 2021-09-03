@@ -218,8 +218,8 @@ int macsec_open(struct macsec_priv_data *macsec_pdata,
 int macsec_close(struct macsec_priv_data *macsec_pdata);
 
 #ifdef MACSEC_DEBUG
-#define PRINT_ENTRY()	(pr_info("-->%s()\n", __func__))
-#define PRINT_EXIT()	(pr_info("<--%s()\n", __func__))
+#define PRINT_ENTRY()	(printk(KERN_DEBUG "-->%s()\n", __func__))
+#define PRINT_EXIT()	(printk(KERN_DEBUG "<--%s()\n", __func__))
 #else
 #define PRINT_ENTRY()
 #define PRINT_EXIT()
