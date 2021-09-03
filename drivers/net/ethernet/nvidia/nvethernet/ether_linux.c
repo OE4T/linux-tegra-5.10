@@ -5369,7 +5369,7 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 				   &osi_core->ptp_config.ptp_rx_queue);
 	if (ret != 0) {
 		dev_info(dev, "Setting default PTP RX queue\n");
-		osi_core->ptp_config.ptp_rx_queue = osi_core->mtl_queues[0];
+		osi_core->ptp_config.ptp_rx_queue = ETHER_DEFAULT_PTP_QUEUE;
 	} else {
 		/* Validate PTP Rx queue index */
 		for (i = 0; i < osi_core->num_mtl_queues; i++) {
@@ -5381,7 +5381,7 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 			dev_err(dev, "Invalid PTP RX queue in DT:%d\n",
 				osi_core->ptp_config.ptp_rx_queue);
 			osi_core->ptp_config.ptp_rx_queue =
-				osi_core->mtl_queues[0];
+				ETHER_DEFAULT_PTP_QUEUE;
 		}
 	}
 
