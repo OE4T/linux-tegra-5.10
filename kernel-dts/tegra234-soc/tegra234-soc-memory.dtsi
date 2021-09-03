@@ -63,6 +63,15 @@
 			alloc-ranges = <0x0 0x80000000 0x0 0x70000000>;
 			status = "disabled";
 		};
+
+		linux,cma {
+			compatible = "shared-dma-pool";
+			reusable;
+			size = <0x0 0x10000000>;
+			alignment = <0x0 0x10000>;
+			linux,cma-default;
+			status = "disabled";
+		};
 	};
 
 	tegra-carveouts {
