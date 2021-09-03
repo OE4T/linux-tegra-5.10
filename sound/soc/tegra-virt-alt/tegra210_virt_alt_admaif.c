@@ -850,22 +850,30 @@ int tegra210_virt_admaif_register_component(struct platform_device *pdev,
 	for (i = 0; i < soc_data->num_ch; i++) {
 		if ((i + 1) != admaif_ch_list[adma_count])
 			continue;
-	if (of_device_is_compatible(pdev->dev.of_node,
-		"nvidia,tegra186-virt-pcm")) {
-		admaif->playback_dma_data[i].addr = TEGRA186_ADMAIF_BASE +
-				TEGRA186_ADMAIF_XBAR_TX_FIFO_WRITE +
-				(i * TEGRA186_ADMAIF_CHANNEL_REG_STRIDE);
-		admaif->capture_dma_data[i].addr = TEGRA186_ADMAIF_BASE +
-				TEGRA186_ADMAIF_XBAR_RX_FIFO_READ +
-				(i * TEGRA186_ADMAIF_CHANNEL_REG_STRIDE);
+		if (of_device_is_compatible(pdev->dev.of_node,
+			"nvidia,tegra186-virt-pcm")) {
+			admaif->playback_dma_data[i].addr = TEGRA186_ADMAIF_BASE +
+					TEGRA186_ADMAIF_XBAR_TX_FIFO_WRITE +
+					(i * TEGRA186_ADMAIF_CHANNEL_REG_STRIDE);
+			admaif->capture_dma_data[i].addr = TEGRA186_ADMAIF_BASE +
+					TEGRA186_ADMAIF_XBAR_RX_FIFO_READ +
+					(i * TEGRA186_ADMAIF_CHANNEL_REG_STRIDE);
 		} else if (of_device_is_compatible(pdev->dev.of_node,
-		"nvidia,tegra210-virt-pcm")) {
-		admaif->playback_dma_data[i].addr = TEGRA210_ADMAIF_BASE +
-				TEGRA210_ADMAIF_XBAR_TX_FIFO_WRITE +
-				(i * TEGRA210_ADMAIF_CHANNEL_REG_STRIDE);
-		admaif->capture_dma_data[i].addr = TEGRA210_ADMAIF_BASE +
-				TEGRA210_ADMAIF_XBAR_RX_FIFO_READ +
-				(i * TEGRA210_ADMAIF_CHANNEL_REG_STRIDE);
+			"nvidia,tegra234-virt-pcm")) {
+			admaif->playback_dma_data[i].addr = TEGRA186_ADMAIF_BASE +
+					TEGRA186_ADMAIF_XBAR_TX_FIFO_WRITE +
+					(i * TEGRA186_ADMAIF_CHANNEL_REG_STRIDE);
+			admaif->capture_dma_data[i].addr = TEGRA186_ADMAIF_BASE +
+					TEGRA186_ADMAIF_XBAR_RX_FIFO_READ +
+					(i * TEGRA186_ADMAIF_CHANNEL_REG_STRIDE);
+		} else if (of_device_is_compatible(pdev->dev.of_node,
+			"nvidia,tegra210-virt-pcm")) {
+			admaif->playback_dma_data[i].addr = TEGRA210_ADMAIF_BASE +
+					TEGRA210_ADMAIF_XBAR_TX_FIFO_WRITE +
+					(i * TEGRA210_ADMAIF_CHANNEL_REG_STRIDE);
+			admaif->capture_dma_data[i].addr = TEGRA210_ADMAIF_BASE +
+					TEGRA210_ADMAIF_XBAR_RX_FIFO_READ +
+					(i * TEGRA210_ADMAIF_CHANNEL_REG_STRIDE);
 		} else {
 			dev_err(&pdev->dev,
 				"Uncompatible device driver\n");
