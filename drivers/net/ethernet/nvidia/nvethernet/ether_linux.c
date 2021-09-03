@@ -1463,13 +1463,14 @@ static int ether_request_irqs(struct ether_priv_data *pdata)
 {
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
-	static char irq_names[ETHER_IRQ_MAX_IDX][ETHER_IRQ_NAME_SZ] = {0};
-	int ret = 0, i, j = 0;
+	int ret = 0, i, j = 1;
 	unsigned int chan;
 
+	snprintf(pdata->irq_names[0], ETHER_IRQ_NAME_SZ, "%s.common_irq",
+		 netdev_name(pdata->ndev));
 	ret = devm_request_irq(pdata->dev, (unsigned int)pdata->common_irq,
 			       ether_common_isr, IRQF_SHARED,
-			       "ether_common_irq", pdata);
+			       pdata->irq_names[0], pdata);
 	if (unlikely(ret < 0)) {
 		dev_err(pdata->dev, "failed to register common interrupt: %d\n",
 			pdata->common_irq);
@@ -1480,11 +1481,11 @@ static int ether_request_irqs(struct ether_priv_data *pdata)
 	if (osi_core->mac_ver > OSI_EQOS_MAC_5_00 ||
 	    osi_core->mac == OSI_MAC_HW_MGBE) {
 		for (i = 0; i < osi_core->num_vm_irqs; i++) {
-			snprintf(irq_names[j], ETHER_IRQ_NAME_SZ, "%s.vm%d",
+			snprintf(pdata->irq_names[j], ETHER_IRQ_NAME_SZ, "%s.vm%d",
 				 netdev_name(pdata->ndev), i);
 			ret = devm_request_irq(pdata->dev, pdata->vm_irqs[i],
 					       ether_vm_isr, IRQF_TRIGGER_NONE,
-					       irq_names[j++],
+					       pdata->irq_names[j++],
 					       &pdata->vm_irq_data[i]);
 			if (unlikely(ret < 0)) {
 				dev_err(pdata->dev,
@@ -1499,12 +1500,12 @@ static int ether_request_irqs(struct ether_priv_data *pdata)
 		for (i = 0; i < osi_dma->num_dma_chans; i++) {
 			chan = osi_dma->dma_chans[i];
 
-			snprintf(irq_names[j], ETHER_IRQ_NAME_SZ, "%s.rx%d",
+			snprintf(pdata->irq_names[j], ETHER_IRQ_NAME_SZ, "%s.rx%d",
 				 netdev_name(pdata->ndev), chan);
 			ret = devm_request_irq(pdata->dev, pdata->rx_irqs[i],
 					       ether_rx_chan_isr,
 					       IRQF_TRIGGER_NONE,
-					       irq_names[j++],
+					       pdata->irq_names[j++],
 					       pdata->rx_napi[chan]);
 			if (unlikely(ret < 0)) {
 				dev_err(pdata->dev,
@@ -1515,13 +1516,13 @@ static int ether_request_irqs(struct ether_priv_data *pdata)
 
 			pdata->rx_irq_alloc_mask |= (OSI_ENABLE << i);
 
-			snprintf(irq_names[j], ETHER_IRQ_NAME_SZ, "%s.tx%d",
+			snprintf(pdata->irq_names[j], ETHER_IRQ_NAME_SZ, "%s.tx%d",
 				 netdev_name(pdata->ndev), chan);
 			ret = devm_request_irq(pdata->dev,
 					       (unsigned int)pdata->tx_irqs[i],
 					       ether_tx_chan_isr,
 					       IRQF_TRIGGER_NONE,
-					       irq_names[j++],
+					       pdata->irq_names[j++],
 					       pdata->tx_napi[chan]);
 			if (unlikely(ret < 0)) {
 				dev_err(pdata->dev,

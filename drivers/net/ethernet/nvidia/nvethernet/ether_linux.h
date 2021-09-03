@@ -78,7 +78,7 @@
 /**
  * @brief Maximum index for IRQ numbers array.
  */
-#define ETHER_IRQ_MAX_IDX		8
+#define ETHER_IRQ_MAX_IDX		9
 /**
  * @brief Size of Ethernet IRQ name.
  */
@@ -455,6 +455,8 @@ struct ether_priv_data {
 	int rx_irqs[ETHER_MAX_IRQS];
 	/** Array of VM IRQ numbers */
 	int vm_irqs[OSI_MAX_VM_IRQS];
+	/** IRQ name */
+	char irq_names[ETHER_IRQ_MAX_IDX][ETHER_IRQ_NAME_SZ];
 	/** memory allocation mask */
 	unsigned long long dma_mask;
 	/** Current state of features enabled in HW*/
