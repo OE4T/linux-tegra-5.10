@@ -316,6 +316,10 @@ ifeq ($(CONFIG_NVGPU_GSP_SCHEDULER),1)
 CONFIG_NVGPU_GSP_STRESS_TEST    := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_GSP_STRESS_TEST
 endif
+# Enable Nonstall interrupt support for normal build
+CONFIG_NVGPU_NONSTALL_INTR           := 1
+NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_NONSTALL_INTR
+
 endif
 endif
 

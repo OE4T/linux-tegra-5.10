@@ -426,6 +426,7 @@ u32 nvgpu_cic_mon_intr_stall_isr(struct gk20a *g);
  */
 void nvgpu_cic_mon_intr_stall_handle(struct gk20a *g);
 
+#ifdef CONFIG_NVGPU_NONSTALL_INTR
 /**
  * @brief Top half of nonstall interrupt ISR.
  *
@@ -452,6 +453,7 @@ u32 nvgpu_cic_mon_intr_nonstall_isr(struct gk20a *g);
  * nonstall operations.
  */
 void nvgpu_cic_mon_intr_nonstall_handle(struct gk20a *g);
+#endif
 
 /**
  * @brief Clear the GPU device interrupts at master level.
@@ -516,6 +518,7 @@ void nvgpu_cic_mon_intr_mask(struct gk20a *g);
  */
 void nvgpu_cic_mon_intr_stall_unit_config(struct gk20a *g, u32 unit, bool enable);
 
+#ifdef CONFIG_NVGPU_NONSTALL_INTR
 /**
  * @brief Enable/Disable the non-stalling interrupts for given GPU unit at the
  *        master level.
@@ -557,6 +560,7 @@ void nvgpu_cic_mon_intr_stall_unit_config(struct gk20a *g, u32 unit, bool enable
  * - Release the spinlock g->mc.intr_lock.
  */
 void nvgpu_cic_mon_intr_nonstall_unit_config(struct gk20a *g, u32 unit, bool enable);
+#endif
 
 /**
  * @brief Disable/Pause the stalling interrupts.
@@ -591,6 +595,7 @@ void nvgpu_cic_mon_intr_stall_pause(struct gk20a *g);
  */
 void nvgpu_cic_mon_intr_stall_resume(struct gk20a *g);
 
+#ifdef CONFIG_NVGPU_NONSTALL_INTR
 /**
  * @brief Disable/Pause the non-stalling interrupts.
  *
@@ -625,6 +630,7 @@ void nvgpu_cic_mon_intr_nonstall_pause(struct gk20a *g);
  * - Release the spinlock g->mc.intr_lock.
  */
 void nvgpu_cic_mon_intr_nonstall_resume(struct gk20a *g);
+#endif
 
 void nvgpu_cic_mon_intr_enable(struct gk20a *g);
 
