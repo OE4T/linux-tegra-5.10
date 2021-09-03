@@ -5308,7 +5308,7 @@ static void ether_parse_queue_prio(struct ether_priv_data *pdata,
 	for (i = 0; i < num_entries; i++) {
 		mtlq = osi_core->mtl_queues[i];
 		if ((tval[i] > val_max) || ((pmask & (1U << tval[i])) != 0U)) {
-			dev_err(pdata->dev, "%s():Wrong or duplicate priority"
+			dev_dbg(pdata->dev, "%s():Wrong or duplicate priority"
 				" in DT entry for Q(%d)\n", __func__, mtlq);
 			pval[mtlq] = val_def;
 			continue;
