@@ -60,9 +60,10 @@ static bool ls_le = false;
 module_param(ls_le, bool, 0644);
 MODULE_PARM_DESC(ls_le, "Enable/disable LS/LE (line start and line end) in TPG. Default is OFF");
 
-static bool emb_data = true;
+/* Leaving uninitialised to keep default value as false */
+static bool emb_data;
 module_param(emb_data, bool, 0644);
-MODULE_PARM_DESC(emb_data, "Embedded-data generation by TPG. Default is ON");
+MODULE_PARM_DESC(emb_data, "Embedded-data generation by TPG. Default is OFF");
 
 static bool phy = 0; /* 0 - DPHY, 1 - CPHY */
 module_param(phy, bool, 0644);
