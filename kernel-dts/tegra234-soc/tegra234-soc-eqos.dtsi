@@ -118,6 +118,7 @@
 		nvidia,slot_intvl_vals = <0x0 0x7D 0x7D 0x7D 0x7D 0x7D 0x7D 0x7D>;
 		nvidia,ptp_ref_clock_speed = <208333334>;
 		nvidia,instance_id = <4>; /* EQOS instance */
+		nvidia,ptp-rx-queue = <3>;
 		pinctrl-names = "mii_rx_disable", "mii_rx_enable";
 		pinctrl-0 = <&eqos_mii_rx_input_state_disable>;
 		pinctrl-1 = <&eqos_mii_rx_input_state_enable>;
