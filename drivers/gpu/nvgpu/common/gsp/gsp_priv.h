@@ -23,6 +23,11 @@
 #ifndef NVGPU_GSP_PRIV
 #define NVGPU_GSP_PRIV
 
+#include <nvgpu/lock.h>
+
+#define GSP_DEBUG_BUFFER_QUEUE	3U
+#define GSP_DMESG_BUFFER_SIZE	0x1000U
+
 struct gsp_fw {
 	/* gsp ucode */
 	struct nvgpu_firmware *code;
@@ -32,7 +37,12 @@ struct gsp_fw {
 
 /* GSP descriptor's */
 struct nvgpu_gsp {
+	struct gk20a *g;
+
 	struct gsp_fw gsp_ucode;
 	struct nvgpu_falcon *gsp_flcn;
+
+	bool isr_enabled;
+	struct nvgpu_mutex isr_mutex;
 };
 #endif /* NVGPU_GSP_PRIV */

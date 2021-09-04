@@ -23,8 +23,14 @@
 #ifndef NVGPU_GSP
 #define NVGPU_GSP
 struct gk20a;
+struct nvgpu_gsp;
 
 int nvgpu_gsp_sw_init(struct gk20a *g);
 int nvgpu_gsp_bootstrap(struct gk20a *g);
 void nvgpu_gsp_sw_deinit(struct gk20a *g);
+void nvgpu_gsp_isr_support(struct gk20a *g, bool enable);
+void nvgpu_gsp_isr_mutex_aquire(struct gk20a *g);
+void nvgpu_gsp_isr_mutex_release(struct gk20a *g);
+bool nvgpu_gsp_is_isr_enable(struct gk20a *g);
+struct nvgpu_falcon *nvgpu_gsp_falcon_instance(struct gk20a *g);
 #endif /* NVGPU_GSP */

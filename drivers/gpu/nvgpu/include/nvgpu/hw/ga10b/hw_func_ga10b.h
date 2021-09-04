@@ -82,6 +82,7 @@
 #define func_priv_cpu_intr_pfb_vector_v()                          (0x0000008dU)
 #define func_priv_cpu_intr_pmu_vector_v()                          (0x00000098U)
 #define func_priv_cpu_intr_ltc_all_vector_v()                      (0x00000099U)
+#define func_priv_cpu_intr_gsp_vector_v()                          (0x0000009bU)
 #define func_priv_cpu_intr_pbus_vector_v()                         (0x0000009cU)
 #define func_priv_cpu_intr_priv_ring_vector_v()                    (0x0000009eU)
 #endif

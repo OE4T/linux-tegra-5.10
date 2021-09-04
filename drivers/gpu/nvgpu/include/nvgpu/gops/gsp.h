@@ -25,12 +25,23 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
+struct nvgpu_gsp;
 
 struct gops_gsp {
 	u32 (*falcon_base_addr)(void);
 	u32 (*falcon2_base_addr)(void);
 	void (*falcon_setup_boot_config)(struct gk20a *g);
 	int (*gsp_reset)(struct gk20a *g);
+#ifdef CONFIG_NVGPU_GSP_SCHEDULER
+	/* queue */
+	u32 (*gsp_get_queue_head)(u32 i);
+	u32 (*gsp_get_queue_head_size)(void);
+	u32 (*gsp_get_queue_tail_size)(void);
+	u32 (*gsp_get_queue_tail)(u32 i);
+
+	void (*enable_irq)(struct gk20a *g, bool enable);
+	void (*gsp_isr)(struct gk20a *g);
+#endif /* CONFIG_NVGPU_GSP_SCHEDULER */
 };
 
 #endif /* NVGPU_GOPS_GSP_H */

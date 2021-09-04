@@ -1251,6 +1251,17 @@ static const struct gops_gsp ga10b_ops_gsp = {
 	.falcon_base_addr = ga10b_gsp_falcon_base_addr,
 	.falcon2_base_addr = ga10b_gsp_falcon2_base_addr,
 	.gsp_reset = ga10b_gsp_engine_reset,
+#ifdef CONFIG_NVGPU_GSP_SCHEDULER
+	/* interrupt */
+	.enable_irq = ga10b_gsp_enable_irq,
+	.gsp_isr = ga10b_gsp_isr,
+
+	/* queue */
+	.gsp_get_queue_head = ga10b_gsp_queue_head_r,
+	.gsp_get_queue_head_size = ga10b_gsp_queue_head__size_1_v,
+	.gsp_get_queue_tail = ga10b_gsp_queue_tail_r,
+	.gsp_get_queue_tail_size = ga10b_gsp_queue_tail__size_1_v,
+#endif /* CONFIG_NVGPU_GSP_SCHEDULER */
 };
 
 static const struct gops_pmu ga10b_ops_pmu = {

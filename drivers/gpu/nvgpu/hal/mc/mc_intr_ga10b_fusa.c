@@ -440,6 +440,15 @@ bool ga10b_mc_intr_get_unit_info(struct gk20a *g, u32 unit)
 	case NVGPU_CIC_INTR_UNIT_RUNLIST_TREE_1:
 		nvgpu_log(g, gpu_dbg_intr, "RUNLIST interrupts");
 		break;
+
+#ifdef CONFIG_NVGPU_GSP_SCHEDULER
+	case NVGPU_CIC_INTR_UNIT_GSP:
+		intr_unit_info->vectorid[0] =
+			func_priv_cpu_intr_gsp_vector_v();
+		intr_unit_info->vectorid_size = NVGPU_CIC_INTR_VECTORID_SIZE_ONE;
+		break;
+#endif /* CONFIG_NVGPU_GSP_SCHEDULER */
+
 	default:
 		nvgpu_err(g, "non supported intr unit");
 		return false;
@@ -686,6 +695,15 @@ static void ga10b_intr_isr_stall_host2soc_2(struct gk20a *g)
 		ga10b_intr_subtree_clear(g, subtree, unit_subtree_mask);
 		g->ops.pmu.pmu_isr(g);
 	}
+
+#ifdef CONFIG_NVGPU_GSP_SCHEDULER
+	if (ga10b_intr_is_unit_pending(g, NVGPU_CIC_INTR_UNIT_GSP, intr_leaf0, intr_leaf1,
+				&unit_subtree_mask) == true) {
+		handled_subtree_mask |= unit_subtree_mask;
+		ga10b_intr_subtree_clear(g, subtree, unit_subtree_mask);
+		g->ops.gsp.gsp_isr(g);
+	}
+#endif /* CONFIG_NVGPU_GSP_SCHEDULER */
 
 	ga10b_intr_subtree_clear_unhandled(g, subtree, intr_leaf0, intr_leaf1,
 				handled_subtree_mask);

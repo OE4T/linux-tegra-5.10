@@ -26,5 +26,15 @@
 u32 ga10b_gsp_falcon_base_addr(void);
 u32 ga10b_gsp_falcon2_base_addr(void);
 int ga10b_gsp_engine_reset(struct gk20a *g);
+#ifdef CONFIG_NVGPU_GSP_SCHEDULER
+/* queue */
+u32 ga10b_gsp_queue_head_r(u32 i);
+u32 ga10b_gsp_queue_head__size_1_v(void);
+u32 ga10b_gsp_queue_tail_r(u32 i);
+u32 ga10b_gsp_queue_tail__size_1_v(void);
 
+/* interrupt */
+void ga10b_gsp_enable_irq(struct gk20a *g, bool enable);
+void ga10b_gsp_isr(struct gk20a *g);
+#endif /* CONFIG_NVGPU_GSP_SCHEDULER */
 #endif /* GSP_GA10B_H */

@@ -40,7 +40,9 @@
 #include <nvgpu/fb.h>
 #include <nvgpu/device.h>
 #include <nvgpu/gr/gr.h>
+#ifdef CONFIG_NVGPU_GSP_SCHEDULER
 #include <nvgpu/gsp.h>
+#endif
 #include <nvgpu/pm_reservation.h>
 #include <nvgpu/netlist.h>
 #include <nvgpu/hal_init.h>

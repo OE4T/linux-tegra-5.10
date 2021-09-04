@@ -159,7 +159,7 @@ extern void ga10b_falcon_sw_init(struct nvgpu_falcon *flcn)
 		flcn->flcn_base = g->ops.gsp.falcon_base_addr();
 		flcn->flcn2_base = g->ops.gsp.falcon2_base_addr();
 		flcn->is_falcon_supported = true;
-		flcn->is_interrupt_enabled = false;
+		flcn->is_interrupt_enabled = true;
 
 		check_and_enable_falcon2(flcn, &flcn->fuse_settings);
 		break;

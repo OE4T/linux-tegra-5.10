@@ -96,13 +96,6 @@ static int gsp_ucode_load_and_bootstrap(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	/* core reset */
-	err = nvgpu_falcon_reset(flcn);
-	if (err != 0) {
-		nvgpu_err(g, "gsp core reset failed err=%d", err);
-		goto exit;
-	}
-
 	g->ops.falcon.set_bcr(flcn);
 	err = nvgpu_falcon_get_mem_size(flcn, MEM_DMEM, &dmem_size);
 	if (err != 0) {
@@ -224,6 +217,16 @@ int gsp_bootstrap_ns(struct gk20a *g, struct nvgpu_gsp *gsp)
 		nvgpu_err(g, "gsp firmware reading failed");
 		goto exit;
 	}
+
+	/* core reset */
+	err = nvgpu_falcon_reset(gsp->gsp_flcn);
+	if (err != 0) {
+		nvgpu_err(g, "gsp core reset failed err=%d", err);
+		goto exit;
+	}
+
+	/* Enable required interrupts support and isr */
+	nvgpu_gsp_isr_support(g, true);
 
 	err = gsp_ucode_load_and_bootstrap(g, gsp->gsp_flcn, gsp_ucode);
 	if (err != 0) {
