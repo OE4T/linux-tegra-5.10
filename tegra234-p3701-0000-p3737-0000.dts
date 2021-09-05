@@ -103,6 +103,7 @@
 
 		cpu_core_power_states {
 			c7 {
+				min-residency-us = <30000>;
 				status = "okay";
 			};
 		};
