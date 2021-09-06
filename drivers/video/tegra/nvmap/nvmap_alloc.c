@@ -470,11 +470,13 @@ static int handle_page_alloc(struct nvmap_client *client,
 	int i = 0, page_index = 0;
 	struct page **pages;
 	gfp_t gfp = GFP_NVMAP | __GFP_ZERO;
+#ifdef CONFIG_ARM64_4K_PAGES
 #ifdef NVMAP_CONFIG_PAGE_POOLS
 	int pages_per_big_pg = NVMAP_PP_BIG_PAGE_SIZE >> PAGE_SHIFT;
 #else
 	int pages_per_big_pg = 0;
 #endif
+#endif /* CONFIG_ARM64_4K_PAGES */
 #if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 	static u32 chipid;
 #else
@@ -507,6 +509,7 @@ static int handle_page_alloc(struct nvmap_client *client,
 			pages[i] = nth_page(page, i);
 
 	} else {
+#ifdef CONFIG_ARM64_4K_PAGES
 #ifdef NVMAP_CONFIG_PAGE_POOLS
 		/* Get as many big pages from the pool as possible. */
 		page_index = nvmap_page_pool_alloc_lots_bp(&nvmap_dev->pool, pages,
@@ -535,10 +538,10 @@ static int handle_page_alloc(struct nvmap_client *client,
 			nvmap_clean_cache(&pages[i], pages_per_big_pg);
 		}
 		nvmap_big_page_allocs += page_index;
-
+#endif /* CONFIG_ARM64_4K_PAGES */
 		if (s_nr_colors <= 1) {
 #ifdef NVMAP_CONFIG_PAGE_POOLS
-			/* Get as many 4K pages from the pool as possible. */
+			/* Get as many pages from the pool as possible. */
 			page_index += nvmap_page_pool_alloc_lots(
 				      &nvmap_dev->pool, &pages[page_index],
 				      nr_page - page_index);

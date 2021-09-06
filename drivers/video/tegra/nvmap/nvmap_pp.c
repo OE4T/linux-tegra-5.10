@@ -97,6 +97,7 @@ static inline struct page *get_page_list_page(struct nvmap_page_pool *pool)
 	return page;
 }
 
+#ifdef CONFIG_ARM64_4K_PAGES
 static inline struct page *get_page_list_page_bp(struct nvmap_page_pool *pool)
 {
 	struct page *page;
@@ -112,6 +113,7 @@ static inline struct page *get_page_list_page_bp(struct nvmap_page_pool *pool)
 
 	return page;
 }
+#endif /* CONFIG_ARM64_4K_PAGES */
 
 static inline bool nvmap_bg_should_run(struct nvmap_page_pool *pool)
 {
@@ -217,16 +219,22 @@ static ulong nvmap_page_pool_free_pages_locked(struct nvmap_page_pool *pool,
 {
 	struct page *page;
 	bool use_page_list = false;
+#ifdef CONFIG_ARM64_4K_PAGES
 	bool use_page_list_bp = false;
+	int i;
+#endif /* CONFIG_ARM64_4K_PAGES */
 
 	pr_debug("req to release pages=%ld\n", nr_pages);
 
 	while (nr_pages) {
-		int i;
 
+#ifdef CONFIG_ARM64_4K_PAGES
 		if (use_page_list_bp)
 			page = get_page_list_page_bp(pool);
 		else if (use_page_list)
+#else
+		if (use_page_list)
+#endif /* CONFIG_ARM64_4K_PAGES */
 			page = get_page_list_page(pool);
 		else
 			page = get_zero_list_page(pool);
@@ -235,13 +243,17 @@ static ulong nvmap_page_pool_free_pages_locked(struct nvmap_page_pool *pool,
 			if (!use_page_list) {
 				use_page_list = true;
 				continue;
-			} else if (!use_page_list_bp) {
+			}
+#ifdef CONFIG_ARM64_4K_PAGES
+			else if (!use_page_list_bp) {
 				use_page_list_bp = true;
 				continue;
 			}
+#endif /* CONFIG_ARM64_4K_PAGES */
 			break;
 		}
 
+#ifdef CONFIG_ARM64_4K_PAGES
 		if (use_page_list_bp) {
 			for (i = 0; i < pool->pages_per_big_pg; i++)
 				__free_page(nth_page(page, i));
@@ -251,10 +263,13 @@ static ulong nvmap_page_pool_free_pages_locked(struct nvmap_page_pool *pool,
 			else
 				nr_pages = 0;
 		} else {
+#endif /* CONFIG_ARM64_4K_PAGES */
 			__free_page(page);
 			nr_pages--;
 			pr_debug("released 1 page\n");
+#ifdef CONFIG_ARM64_4K_PAGES
 		}
+#endif /* CONFIG_ARM64_4K_PAGES */
 	}
 
 	pr_debug("remaining pages to release=%ld\n", nr_pages);
@@ -315,6 +330,7 @@ int nvmap_page_pool_alloc_lots(struct nvmap_page_pool *pool,
 	return ind;
 }
 
+#ifdef CONFIG_ARM64_4K_PAGES
 int nvmap_page_pool_alloc_lots_bp(struct nvmap_page_pool *pool,
 				struct page **pages, u32 nr)
 {
@@ -366,6 +382,7 @@ static bool nvmap_is_big_page(struct nvmap_page_pool *pool,
 
 	return i == pool->pages_per_big_pg ? true: false;
 }
+#endif /* CONFIG_ARM64_4K_PAGES */
 
 /*
  * Fill a bunch of pages into the page pool. This will fill as many as it can
@@ -394,15 +411,19 @@ static int __nvmap_page_pool_fill_lots_locked(struct nvmap_page_pool *pool,
 			BUG_ON(page_count(pages[ind]) != 2);
 		}
 
+#ifdef CONFIG_ARM64_4K_PAGES
 		if (nvmap_is_big_page(pool, pages, ind, nr)) {
 			list_add_tail(&pages[ind]->lru, &pool->page_list_bp);
 			ind += pool->pages_per_big_pg;
 			real_nr -= pool->pages_per_big_pg;
 			pool->big_page_count += pool->pages_per_big_pg;
 		} else {
+#endif /* CONFIG_ARM64_4K_PAGES */
 			list_add_tail(&pages[ind++]->lru, &pool->page_list);
 			real_nr--;
+#ifdef CONFIG_ARM64_4K_PAGES
 		}
+#endif /* CONFIG_ARM64_4K_PAGES */
 	}
 
 	pool->count += ind;
@@ -649,6 +670,7 @@ int nvmap_page_pool_debugfs_init(struct dentry *nvmap_root)
 	debugfs_create_u32("page_pool_pages_to_zero",
 			   S_IRUGO, pp_root,
 			   &nvmap_dev->pool.to_zero);
+#ifdef CONFIG_ARM64_4K_PAGES
 	debugfs_create_u32("page_pool_available_big_pages",
 			   S_IRUGO, pp_root,
 			   &nvmap_dev->pool.big_page_count);
@@ -658,6 +680,7 @@ int nvmap_page_pool_debugfs_init(struct dentry *nvmap_root)
 	debugfs_create_u64("total_big_page_allocs",
 			   S_IRUGO, pp_root,
 			   &nvmap_big_page_allocs);
+#endif /* CONFIG_ARM64_4K_PAGES */
 	debugfs_create_u64("total_page_allocs",
 			   S_IRUGO, pp_root,
 			   &nvmap_total_page_allocs);
@@ -689,10 +712,12 @@ int nvmap_page_pool_init(struct nvmap_device *dev)
 	rt_mutex_init(&pool->lock);
 	INIT_LIST_HEAD(&pool->page_list);
 	INIT_LIST_HEAD(&pool->zero_list);
+#ifdef CONFIG_ARM64_4K_PAGES
 	INIT_LIST_HEAD(&pool->page_list_bp);
 
 	pool->big_pg_sz = NVMAP_PP_BIG_PAGE_SIZE;
 	pool->pages_per_big_pg = NVMAP_PP_BIG_PAGE_SIZE >> PAGE_SHIFT;
+#endif /* CONFIG_ARM64_4K_PAGES */
 
 	si_meminfo(&info);
 	pr_info("Total RAM pages: %lu\n", info.totalram);

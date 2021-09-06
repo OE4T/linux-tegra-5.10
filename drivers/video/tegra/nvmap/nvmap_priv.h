@@ -284,20 +284,25 @@ struct nvmap_handle_ref {
  */
 #define NVMAP_PP_POOL_SIZE               (128)
 
+#ifdef CONFIG_ARM64_4K_PAGES
 #define NVMAP_PP_BIG_PAGE_SIZE           (0x10000)
-
+#endif /* CONFIG_ARM64_4K_PAGES */
 struct nvmap_page_pool {
 	struct rt_mutex lock;
 	u32 count;      /* Number of pages in the page & dirty list. */
 	u32 max;        /* Max no. of pages in all lists. */
 	u32 to_zero;    /* Number of pages on the zero list */
 	u32 under_zero; /* Number of pages getting zeroed */
+#ifdef CONFIG_ARM64_4K_PAGES
 	u32 big_pg_sz;  /* big page size supported(64k, etc.) */
 	u32 big_page_count;   /* Number of zeroed big pages avaialble */
 	u32 pages_per_big_pg; /* Number of pages in big page */
+#endif /* CONFIG_ARM64_4K_PAGES */
 	struct list_head page_list;
 	struct list_head zero_list;
+#ifdef CONFIG_ARM64_4K_PAGES
 	struct list_head page_list_bp;
+#endif /* CONFIG_ARM64_4K_PAGES */
 
 #ifdef NVMAP_CONFIG_PAGE_POOL_DEBUG
 	u64 allocs;
@@ -312,8 +317,10 @@ int nvmap_page_pool_fini(struct nvmap_device *dev);
 struct page *nvmap_page_pool_alloc(struct nvmap_page_pool *pool);
 int nvmap_page_pool_alloc_lots(struct nvmap_page_pool *pool,
 					struct page **pages, u32 nr);
+#ifdef CONFIG_ARM64_4K_PAGES
 int nvmap_page_pool_alloc_lots_bp(struct nvmap_page_pool *pool,
 					struct page **pages, u32 nr);
+#endif /* CONFIG_ARM64_4K_PAGES */
 int nvmap_page_pool_fill_lots(struct nvmap_page_pool *pool,
 				       struct page **pages, u32 nr);
 int nvmap_page_pool_clear(void);
