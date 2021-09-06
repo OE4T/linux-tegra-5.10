@@ -462,7 +462,7 @@
 		interconnects = <&tegra_icc TEGRA_ICC_PCIE_5 &tegra_icc TEGRA_ICC_PRIMARY>;
 		interconnect-names = "icc_bwmgr";
 
-		nvidia,bpmp = <&bpmp 0x5>;
+		nvidia,bpmp = <&bpmp 5>;
 		nvidia,aspm-cmrt-us = <60>;
 		nvidia,aspm-pwr-on-t-us = <20>;
 		nvidia,aspm-l0s-entrance-latency-us = <3>;
@@ -536,7 +536,7 @@
 		interconnects = <&tegra_icc TEGRA_ICC_PCIE_6 &tegra_icc TEGRA_ICC_PRIMARY>;
 		interconnect-names = "icc_bwmgr";
 
-		nvidia,bpmp = <&bpmp 0x6>;
+		nvidia,bpmp = <&bpmp 6>;
 		nvidia,aspm-cmrt-us = <60>;
 		nvidia,aspm-pwr-on-t-us = <20>;
 		nvidia,aspm-l0s-entrance-latency-us = <3>;
@@ -610,7 +610,7 @@
 		interconnects = <&tegra_icc TEGRA_ICC_PCIE_7 &tegra_icc TEGRA_ICC_PRIMARY>;
 		interconnect-names = "icc_bwmgr";
 
-		nvidia,bpmp = <&bpmp 0x7>;
+		nvidia,bpmp = <&bpmp 7>;
 		nvidia,aspm-cmrt-us = <60>;
 		nvidia,aspm-pwr-on-t-us = <20>;
 		nvidia,aspm-l0s-entrance-latency-us = <3>;
@@ -654,7 +654,7 @@
 		nvidia,max-speed = <4>;
 		nvidia,bar0-size = <0x100000>;	/* 1 MB */
 		nvidia,device-id = /bits/ 16 <0x229D>;
-		nvidia,controller-id = <&bpmp 0x10>;
+		nvidia,controller-id = <&bpmp 0xa>;
 		nvidia,aux-clk-freq = <0x13>;
 		nvidia,disable-aspm-states = <0xf>;
 		nvidia,aspm-cmrt = <0x3C>;
@@ -684,7 +684,7 @@
 		interconnects = <&tegra_icc TEGRA_ICC_PCIE_10 &tegra_icc TEGRA_ICC_PRIMARY>;
 		interconnect-names = "icc_bwmgr";
 
-		nvidia,bpmp = <&bpmp 0x10>;
+		nvidia,bpmp = <&bpmp 10>;
 		nvidia,aspm-cmrt-us = <60>;
 		nvidia,aspm-pwr-on-t-us = <20>;
 		nvidia,aspm-l0s-entrance-latency-us = <3>;
