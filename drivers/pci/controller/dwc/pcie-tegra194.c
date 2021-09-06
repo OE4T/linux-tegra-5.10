@@ -383,6 +383,8 @@ struct tegra_pcie_of_data {
 	/* Bug 200390637 */
 	bool l1ss_exit_fixup;
 	u32 cdm_chk_int_en;
+	/* Bug 200760279 */
+	u32 gen4_preset_vec;
 };
 
 static void tegra_pcie_downstream_dev_to_D0(struct tegra_pcie_dw *pcie);
@@ -1757,7 +1759,8 @@ static void config_gen3_gen4_eq_presets(struct tegra_pcie_dw *pcie)
 
 	val = dw_pcie_readl_dbi(pci, GEN3_EQ_CONTROL_OFF);
 	val &= ~GEN3_EQ_CONTROL_OFF_PSET_REQ_VEC_MASK;
-	val |= (0x360 << GEN3_EQ_CONTROL_OFF_PSET_REQ_VEC_SHIFT);
+	val |= (pcie->of_data->gen4_preset_vec <<
+		GEN3_EQ_CONTROL_OFF_PSET_REQ_VEC_SHIFT);
 	val &= ~GEN3_EQ_CONTROL_OFF_FB_MODE_MASK;
 	dw_pcie_writel_dbi(pci, GEN3_EQ_CONTROL_OFF, val);
 
@@ -3707,6 +3710,8 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t194 = {
 	.sbr_reset_fixup = true,
 	.l1ss_exit_fixup = true,
 	.cdm_chk_int_en = BIT(19),
+	/* Gen4 - 5, 6, 8 and 9 presets enabled */
+	.gen4_preset_vec = 0x360,
 };
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t194_ep = {
@@ -3716,6 +3721,8 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t194_ep = {
 	.sbr_reset_fixup = false,
 	.l1ss_exit_fixup = true,
 	.cdm_chk_int_en = BIT(19),
+	/* Gen4 - 5, 6, 8 and 9 presets enabled */
+	.gen4_preset_vec = 0x360,
 };
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t234 = {
@@ -3725,6 +3732,8 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t234 = {
 	.sbr_reset_fixup = false,
 	.l1ss_exit_fixup = false,
 	.cdm_chk_int_en = BIT(18),
+	/* Gen4 - 6, 8 and 9 presets enabled */
+	.gen4_preset_vec = 0x340,
 };
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t234_ep = {
@@ -3734,6 +3743,8 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t234_ep = {
 	.sbr_reset_fixup = false,
 	.l1ss_exit_fixup = false,
 	.cdm_chk_int_en = BIT(18),
+	/* Gen4 - 6, 8 and 9 presets enabled */
+	.gen4_preset_vec = 0x340,
 };
 
 static const struct of_device_id tegra_pcie_dw_of_match[] = {
