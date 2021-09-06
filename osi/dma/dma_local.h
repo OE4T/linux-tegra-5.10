@@ -249,7 +249,7 @@ nve32_t dma_desc_init(struct osi_dma_priv_data *osi_dma,
 	}								\
 }									\
 
-#define BOOLEAN_FALSE		(0U != 0U)
+#define BOOLEAN_FALSE	(0U != 0U)
 #define L32(data)       ((data) & 0xFFFFFFFFU)
 #define H32(data)       (((data) & 0xFFFFFFFF00000000UL) >> 32UL)
 /** @} */

@@ -578,6 +578,10 @@ struct osi_xtra_stat_counters {
 	nveu64_t link_connect_count;
 	/** link disconnect count */
 	nveu64_t link_disconnect_count;
+	/** lock fail count node addition */
+	nveu64_t ts_lock_add_fail;
+	/** lock fail count node removal */
+	nveu64_t ts_lock_del_fail;
 };
 
 #ifdef MACSEC_SUPPORT

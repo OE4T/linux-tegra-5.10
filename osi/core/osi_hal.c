@@ -1425,6 +1425,15 @@ static inline nve32_t get_tx_ts(struct osi_core_priv_data *osi_core,
 	nve32_t ret = -1;
 	nveu32_t count = 0U;
 
+	if (__sync_fetch_and_add(&l_core->ts_lock, 1) == 1U) {
+		/* mask return as initial value is returned always */
+		(void)__sync_fetch_and_sub(&l_core->ts_lock, 1);
+		osi_core->xstats.ts_lock_del_fail =
+				osi_update_stats_counter(
+				osi_core->xstats.ts_lock_del_fail, 1U);
+		goto done;
+	}
+
 	while ((temp != head) && (count < MAX_TX_TS_CNT)) {
 		if ((temp->pkt_id == ts->pkt_id) &&
 		    (temp->in_use != OSI_NONE)) {
@@ -1442,6 +1451,9 @@ static inline nve32_t get_tx_ts(struct osi_core_priv_data *osi_core,
 		temp = temp->next;
 	}
 
+	/* mask return as initial value is returned always */
+	(void)__sync_fetch_and_sub(&l_core->ts_lock, 1);
+done:
 	return ret;
 }
 

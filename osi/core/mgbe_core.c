@@ -3270,6 +3270,15 @@ static void mgbe_handle_mac_intrs(struct osi_core_priv_data *osi_core,
 	if ((mac_isr & MGBE_ISR_TSIS) == MGBE_ISR_TSIS) {
 		struct osi_core_tx_ts *head = &l_core->tx_ts_head;
 
+		if (__sync_fetch_and_add(&l_core->ts_lock, 1) == 1U) {
+			/* mask return as initial value is returned always */
+			(void)__sync_fetch_and_sub(&l_core->ts_lock, 1);
+			osi_core->xstats.ts_lock_add_fail =
+					osi_update_stats_counter(
+					osi_core->xstats.ts_lock_add_fail, 1U);
+			goto done;
+		}
+
 		/* TXTSC bit should get reset when all timestamp read */
 		while (((osi_readla(osi_core, (nveu8_t *)osi_core->base +
 					       MGBE_MAC_TSS) &
@@ -3299,7 +3308,11 @@ static void mgbe_handle_mac_intrs(struct osi_core_priv_data *osi_core,
 			l_core->ts[i].prev = head->prev;
 			head->prev = &l_core->ts[i];
 		}
+
+		/* mask return as initial value is returned always */
+		(void)__sync_fetch_and_sub(&l_core->ts_lock, 1);
 	}
+done:
 	mac_isr &= ~MGBE_ISR_TSIS;
 
 	osi_writela(osi_core, mac_isr,
