@@ -100,6 +100,11 @@
 			};
 		};
 	};
+
+	cpuidle {
+		compatible = "nvidia,tegra23x-cpuidle-debugfs";
+		status = "okay";
+	};
 };
 
 #include "tegra234-disabled_nodes.dtsi"
