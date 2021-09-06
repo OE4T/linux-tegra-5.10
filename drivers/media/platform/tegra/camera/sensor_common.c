@@ -1,7 +1,7 @@
 /*
  * sensor_common.c - utilities for tegra sensor drivers
  *
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -62,6 +62,25 @@ static int sensor_common_parse_signal_props(
 	int err = 0;
 	u32 value = 0;
 	u64 val64 = 0;
+	u64 rate;
+	int depth;
+
+	err = of_property_read_string(node, "phy_mode", &temp_str);
+	if (err) {
+		dev_dbg(dev, "%s: use default phy mode DPHY\n", __func__);
+		signal->phy_mode = CSI_PHY_MODE_DPHY;
+	} else {
+		if (strcmp(temp_str, "CPHY") == 0)
+			signal->phy_mode = CSI_PHY_MODE_CPHY;
+		else if (strcmp(temp_str, "DPHY") == 0)
+			signal->phy_mode = CSI_PHY_MODE_DPHY;
+		else if (strcmp(temp_str, "SLVS") == 0)
+			signal->phy_mode = SLVS_EC;
+		else {
+			dev_err(dev, "%s: Invalid Phy mode\n", __func__);
+			return -EINVAL;
+		}
+	}
 
 	/* Do not report error for these properties yet */
 	err = read_property_u32(node, "readout_orientation", &value);
@@ -95,11 +114,38 @@ static int sensor_common_parse_signal_props(
 	else
 		signal->serdes_pixel_clock.val = val64;
 
-	if (signal->serdes_pixel_clock.val != 0ULL &&
-		signal->serdes_pixel_clock.val < signal->pixel_clock.val) {
-		dev_err(dev, "%s: serdes_pix_clk_hz is lower than pix_clk_hz!\n",
+	if (signal->serdes_pixel_clock.val != 0ULL) {
+		if (signal->serdes_pixel_clock.val < signal->pixel_clock.val) {
+			dev_err(dev,
+				"%s: serdes_pix_clk_hz is lower than pix_clk_hz!\n",
 				__func__);
-		return -EINVAL;
+			return -EINVAL;
+		}
+		rate = signal->serdes_pixel_clock.val;
+	} else {
+		rate = signal->pixel_clock.val;
+	}
+
+	err = read_property_u32(node, "csi_pixel_bit_depth", &depth);
+	if (err) {
+		dev_err(dev,
+			"%s:csi_pixel_bit_depth property missing.\n",
+			__func__);
+		return err;
+	}
+
+	/* Convert pixel rate to lane data rate */
+	rate = rate * depth / signal->num_lanes;
+
+	if (signal->phy_mode == CSI_PHY_MODE_DPHY) {
+		/* MIPI clock rate */
+		signal->mipi_clock.val = rate / 2;
+	} else if (signal->phy_mode == CSI_PHY_MODE_CPHY) {
+		/* Symbol rate */
+		signal->mipi_clock.val = rate * 7 / 16;
+	} else {
+		/* Data rate */
+		signal->mipi_clock.val = rate;
 	}
 
 	err = read_property_u32(node, "cil_settletime", &value);
@@ -170,23 +216,6 @@ static int sensor_common_parse_signal_props(
 			"%s: tegra_sinterface property out of range\n",
 			__func__);
 		return -EINVAL;
-	}
-
-	err = of_property_read_string(node, "phy_mode", &temp_str);
-	if (err) {
-		dev_dbg(dev, "%s: use default phy mode DPHY\n", __func__);
-		signal->phy_mode = CSI_PHY_MODE_DPHY;
-	} else {
-		if (strcmp(temp_str, "CPHY") == 0)
-			signal->phy_mode = CSI_PHY_MODE_CPHY;
-		else if (strcmp(temp_str, "DPHY") == 0)
-			signal->phy_mode = CSI_PHY_MODE_DPHY;
-		else if (strcmp(temp_str, "SLVS") == 0)
-			signal->phy_mode = SLVS_EC;
-		else {
-			dev_err(dev, "%s: Invalid Phy mode\n", __func__);
-			return -EINVAL;
-		}
 	}
 
 	return 0;

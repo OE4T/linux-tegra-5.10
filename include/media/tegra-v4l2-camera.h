@@ -113,7 +113,7 @@ struct sensor_signal_properties {
 	__u32 deskew_initial_enable;
 	__u32 deskew_periodic_enable;
 	union __u64val serdes_pixel_clock;
-	__u32 reserved[2];
+	union __u64val mipi_clock;
 };
 
 struct sensor_image_properties {

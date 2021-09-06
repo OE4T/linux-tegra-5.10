@@ -149,24 +149,21 @@ u32 read_phy_mode_from_dt(struct tegra_csi_channel *chan)
 	return phy_mode;
 }
 
-u64 read_pixel_clk_from_dt(struct tegra_csi_channel *chan)
+u64 read_mipi_clk_from_dt(struct tegra_csi_channel *chan)
 {
 	struct sensor_signal_properties *sig_props;
 	struct sensor_properties *props;
-	u64 pix_clk = 0;
+	u64 mipi_clk = 0;
 	int mode_idx;
 
 	if (chan && chan->s_data) {
 		mode_idx = chan->s_data->mode_prop_idx;
 		props =  &chan->s_data->sensor_props;
 		sig_props = &props->sensor_modes[mode_idx].signal_properties;
-		if (sig_props->serdes_pixel_clock.val != 0ULL)
-			pix_clk = sig_props->serdes_pixel_clock.val;
-		else
-			pix_clk = sig_props->pixel_clock.val;
+		mipi_clk = sig_props->mipi_clock.val;
 	}
 
-	return pix_clk;
+	return mipi_clk;
 }
 
 void set_csi_portinfo(struct tegra_csi_device *csi,

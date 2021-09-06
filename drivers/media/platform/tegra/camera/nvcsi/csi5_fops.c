@@ -29,8 +29,6 @@
 
 #define TOTAL_CHANNELS (NUM_CAPTURE_CHANNELS + NUM_CAPTURE_TRANSACTION_IDS)
 
-#define NVCSI_CIL_CLOCK_RATE 204000
-
 static inline u32 csi5_port_to_stream(u32 csi_port)
 {
 	return (csi_port < NVCSI_PORT_E) ?
@@ -250,13 +248,9 @@ static int csi5_stream_set_config(struct tegra_csi_channel *chan, u32 stream_id,
 	cil_config.num_lanes = csi_lanes;
 	cil_config.lp_bypass_mode = is_cphy ? 0 : 1;
 	cil_config.t_hs_settle = cil_settletime;
-	cil_config.cil_clock_rate = NVCSI_CIL_CLOCK_RATE; /* hard-coding */
 
 	if (s_data && !chan->pg_mode)
-		/* mipi clock rate should be half of the pixel clock rate since
-		 * the sampling happens on both edges of the clocks.
-		 */
-		cil_config.mipi_clock_rate = read_pixel_clk_from_dt(chan) / 2000;
+		cil_config.mipi_clock_rate = read_mipi_clk_from_dt(chan) / 1000;
 	else
 		cil_config.mipi_clock_rate = csi->clk_freq / 1000;
 

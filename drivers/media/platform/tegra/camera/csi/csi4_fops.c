@@ -1,7 +1,7 @@
 /*
  * Tegra CSI4 device common APIs
  *
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Author: Frank Chen <frankc@nvidia.com>
  *
@@ -198,7 +198,7 @@ static void csi4_phy_config(
 	if (chan->pg_mode || !(chan->s_data))
 		mipi_clk_mhz = csi->clk_freq / 1000000;
 	else
-		mipi_clk_mhz = read_pixel_clk_from_dt(chan) / 1000000;
+		mipi_clk_mhz = read_mipi_clk_from_dt(chan) / 1000000;
 
 	dev_dbg(csi->dev, "cil core clock: %u, csi clock: %u", cil_clk_mhz,
 		mipi_clk_mhz);
