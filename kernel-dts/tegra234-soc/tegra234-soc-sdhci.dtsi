@@ -129,7 +129,8 @@
 		assigned-clocks = <&bpmp TEGRA234_CLK_SDMMC1>,
 				  <&bpmp TEGRA234_CLK_PLLC4_MUXED>;
 		assigned-clock-parents =
-				  <&bpmp TEGRA234_CLK_PLLC4_MUXED>;
+				  <&bpmp TEGRA234_CLK_PLLC4_MUXED>,
+				  <&bpmp TEGRA234_CLK_PLLC4_VCO_DIV2>;
 #else
 
 		pinctrl-names = "sdmmc_e_33v_enable", "sdmmc_e_33v_disable";
