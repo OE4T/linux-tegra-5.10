@@ -6,7 +6,7 @@
  * Author: Johnson Leung <r58129@freescale.com>
  *
  * Copyright (c) 2004 Freescale Semiconductor, Inc.
- * Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION. All rights reserved.
  */
 #include <linux/bitops.h>
 #include <linux/phy.h>
@@ -275,6 +275,11 @@ static int rtl8211f_config_init(struct phy_device *phydev)
 		dev_err(dev, "Failed to EEE LED registers\n");
 		return ret;
 	}
+
+	/* Advertise Flow Control */
+	linkmode_set_bit(SUPPORTED_Pause, phydev->supported);
+	linkmode_set_bit(SUPPORTED_Asym_Pause, phydev->supported);
+	linkmode_copy(phydev->advertising, phydev->supported);
 
 	return 0;
 }

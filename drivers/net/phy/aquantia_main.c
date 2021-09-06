@@ -576,6 +576,16 @@ static int aqr107_config_init(struct phy_device *phydev)
 				     VEND1_GLOBAL_MDIO_PHYXS_PROV2, ret);
 	}
 
+	/* Advertize flow control */
+	linkmode_set_bit(SUPPORTED_Pause, phydev->supported);
+	linkmode_set_bit(SUPPORTED_Asym_Pause, phydev->supported);
+	linkmode_copy(phydev->advertising, phydev->supported);
+
+	/* Configure flow control */
+	ret = phy_read_mmd(phydev, MDIO_MMD_AN, 0x10);
+	ret |= MDIO_AN_PAUSE | MDIO_AN_ASYM_PAUSE;
+	phy_write_mmd(phydev, MDIO_MMD_AN, 0x10, ret);
+
 	/* Check that the PHY interface type is compatible */
 	if (phydev->interface != PHY_INTERFACE_MODE_SGMII &&
 	    phydev->interface != PHY_INTERFACE_MODE_2500BASEX &&
