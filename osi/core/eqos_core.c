@@ -2001,6 +2001,14 @@ static void eqos_tsn_init(struct osi_core_priv_data *osi_core,
 		osi_writela(osi_core, val, (nveu8_t *)osi_core->base +
 			   EQOS_MTL_EST_CONTROL);
 
+		val = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				EQOS_MTL_EST_OVERHEAD);
+		val &= ~EQOS_MTL_EST_OVERHEAD_OVHD;
+		/* As per hardware team recommendation */
+		val |= EQOS_MTL_EST_OVERHEAD_RECOMMEND;
+		osi_writela(osi_core, val, (nveu8_t *)osi_core->base +
+			   EQOS_MTL_EST_OVERHEAD);
+
 		eqos_enable_mtl_interrupts(osi_core);
 	}
 
