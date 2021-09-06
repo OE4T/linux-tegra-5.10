@@ -22,9 +22,9 @@
 
 	/* PCIe C5 root port */
 	fragment@0 {
-		target_path = "/";
+		target-path = "/";
 		board_config {
-			odm-data = "nvhs-uphy-config=0x0";
+			odm-data = "nvhs-uphy-config-0";
 		};
 		__overlay__ {
 			pcie@141a0000 {
@@ -37,10 +37,10 @@
 	};
 
 	/* PCIe C5 endpoint */
-	fragment-pcie-c5-ep {
-		target_path = "/";
+	fragment@1 {
+		target-path = "/";
 		board_config {
-			odm-data = "nvhs-uphy-config=0x1";
+			odm-data = "nvhs-uphy-config-1";
 		};
 		__overlay__ {
 			pcie@141a0000 {
