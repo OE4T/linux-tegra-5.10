@@ -5590,14 +5590,25 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 	if (ret < 0) {
 		osi_dma->use_riwt = OSI_DISABLE;
 	} else {
-		if ((osi_dma->rx_riwt > OSI_MAX_RX_COALESCE_USEC) ||
-		    (osi_dma->rx_riwt < OSI_MIN_RX_COALESCE_USEC)) {
+		if (osi_dma->mac == OSI_MAC_HW_MGBE &&
+		    (osi_dma->rx_riwt  > OSI_MAX_RX_COALESCE_USEC ||
+		     osi_dma->rx_riwt  < OSI_MGBE_MIN_RX_COALESCE_USEC)) {
 			dev_err(dev,
 				"invalid rx_riwt, must be inrange %d to %d\n",
-				OSI_MIN_RX_COALESCE_USEC,
+				OSI_MGBE_MIN_RX_COALESCE_USEC,
+				OSI_MAX_RX_COALESCE_USEC);
+			return -EINVAL;
+		} else if (osi_dma->mac == OSI_MAC_HW_EQOS &&
+			   (osi_dma->rx_riwt  > OSI_MAX_RX_COALESCE_USEC ||
+			    osi_dma->rx_riwt  <
+			    OSI_EQOS_MIN_RX_COALESCE_USEC)) {
+			dev_err(dev,
+				"invalid rx_riwt, must be inrange %d to %d\n",
+				OSI_EQOS_MIN_RX_COALESCE_USEC,
 				OSI_MAX_RX_COALESCE_USEC);
 			return -EINVAL;
 		}
+
 		osi_dma->use_riwt = OSI_ENABLE;
 	}
 	/* rx_frames value to be set */

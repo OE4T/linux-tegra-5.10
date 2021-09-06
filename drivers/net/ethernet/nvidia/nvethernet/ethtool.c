@@ -1010,11 +1010,20 @@ static int ether_set_coalesce(struct net_device *dev,
 
 	if (ec->rx_coalesce_usecs == OSI_DISABLE) {
 		osi_dma->use_riwt = OSI_DISABLE;
-	} else if ((ec->rx_coalesce_usecs > OSI_MAX_RX_COALESCE_USEC) ||
-		   (ec->rx_coalesce_usecs < OSI_MIN_RX_COALESCE_USEC)) {
+	} else if (osi_dma->mac == OSI_MAC_HW_EQOS &&
+		   (ec->rx_coalesce_usecs > OSI_MAX_RX_COALESCE_USEC ||
+		    ec->rx_coalesce_usecs < OSI_EQOS_MIN_RX_COALESCE_USEC)) {
+		netdev_err(dev, "invalid rx_usecs, must be in a range of %d to %d usec\n",
+			   OSI_EQOS_MIN_RX_COALESCE_USEC,
+			   OSI_MAX_RX_COALESCE_USEC);
+		return -EINVAL;
+
+	} else if (osi_dma->mac == OSI_MAC_HW_MGBE &&
+		   (ec->rx_coalesce_usecs > OSI_MAX_RX_COALESCE_USEC ||
+		    ec->rx_coalesce_usecs < OSI_MGBE_MIN_RX_COALESCE_USEC)) {
 		netdev_err(dev,
-			   "invalid rx_usecs, must be in a range of"
-			   " %d to %d usec\n", OSI_MIN_RX_COALESCE_USEC,
+			   "invalid rx_usecs, must be in a range of %d to %d usec\n",
+			   OSI_MGBE_MIN_RX_COALESCE_USEC,
 			   OSI_MAX_RX_COALESCE_USEC);
 		return -EINVAL;
 	} else {
