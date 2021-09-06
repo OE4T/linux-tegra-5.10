@@ -1459,9 +1459,9 @@ static int sanity_test(struct seq_file *s, void *data)
 				__func__, i);
 			goto fail;
 		}
-		rp_crc = crc32_le(~0, pcie->dma_virt + DMA_LL_WR_BUF(i),
+		rp_crc = crc32_le(~0, pcie->dma_virt + BAR0_DMA_BUF_OFFSET,
 				  desc.sz);
-		ep_crc = crc32_le(~0, bar0_virt + DMA_LL_WR_BUF(i), desc.sz);
+		ep_crc = crc32_le(~0, bar0_virt + BAR0_DMA_BUF_OFFSET, desc.sz);
 		if (rp_crc != ep_crc) {
 			dev_err(pcie->dev, "%s: DD WR, SZ: %lu B CH: %d CRC failed\n",
 				__func__, desc.sz, i);
@@ -1481,9 +1481,9 @@ static int sanity_test(struct seq_file *s, void *data)
 				__func__, i);
 			goto fail;
 		}
-		rp_crc = crc32_le(~0, pcie->dma_virt + DMA_LL_RD_BUF(i),
+		rp_crc = crc32_le(~0, pcie->dma_virt + BAR0_DMA_BUF_OFFSET,
 				  desc.sz);
-		ep_crc = crc32_le(~0, bar0_virt + DMA_LL_RD_BUF(i), desc.sz);
+		ep_crc = crc32_le(~0, bar0_virt + BAR0_DMA_BUF_OFFSET, desc.sz);
 		if (rp_crc != ep_crc) {
 			dev_err(pcie->dev, "%s: DD RD, SZ: %lu B CH: %d CRC failed\n",
 				__func__, desc.sz, i);
@@ -1511,9 +1511,9 @@ static int sanity_test(struct seq_file *s, void *data)
 				__func__, i);
 			goto fail;
 		}
-		rp_crc = crc32_le(~0, pcie->dma_virt + DMA_LL_WR_BUF(i),
+		rp_crc = crc32_le(~0, pcie->dma_virt + BAR0_DMA_BUF_OFFSET,
 				  pcie->dma_size * nents);
-		ep_crc = crc32_le(~0, bar0_virt + DMA_LL_WR_BUF(i),
+		ep_crc = crc32_le(~0, bar0_virt + BAR0_DMA_BUF_OFFSET,
 				  pcie->dma_size * nents);
 		if (rp_crc != ep_crc) {
 			dev_err(pcie->dev, "%s: LL WR, SZ: %u B CH: %d CRC failed\n",
@@ -1536,9 +1536,9 @@ static int sanity_test(struct seq_file *s, void *data)
 			dev_err(pcie->dev, "%s: LL RD failed\n", __func__);
 			goto fail;
 		}
-		rp_crc = crc32_le(~0, pcie->dma_virt + DMA_LL_RD_BUF(i),
+		rp_crc = crc32_le(~0, pcie->dma_virt + BAR0_DMA_BUF_OFFSET,
 				  pcie->dma_size * nents);
-		ep_crc = crc32_le(~0, bar0_virt + DMA_LL_RD_BUF(i),
+		ep_crc = crc32_le(~0, bar0_virt + BAR0_DMA_BUF_OFFSET,
 				  pcie->dma_size * nents);
 		if (rp_crc != ep_crc) {
 			dev_err(pcie->dev, "%s: LL RD, SZ: %u B CH: %d CRC failed\n",
