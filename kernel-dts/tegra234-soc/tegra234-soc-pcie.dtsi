@@ -1445,10 +1445,10 @@
 		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE9AR>,
 			        <&mc TEGRA234_MEMORY_CLIENT_PCIE9AW>;
 		interconnect-names = "dma-mem", "dma-mem";
-		iommus = <&smmu_niso1 TEGRA_SID_NISO1_PCIE9>;
-		iommu-map = <0x0 &smmu_niso1 TEGRA_SID_NISO1_PCIE9 0x1000>;
-		msi-parent = <&gic_v2m TEGRA_SID_NISO1_PCIE9>;
-		msi-map = <0x0 &gic_v2m TEGRA_SID_NISO1_PCIE9 0x1000>;
+		iommus = <&smmu_niso0 TEGRA_SID_NISO0_PCIE9>;
+		iommu-map = <0x0 &smmu_niso0 TEGRA_SID_NISO0_PCIE9 0x1000>;
+		msi-parent = <&gic_v2m TEGRA_SID_NISO0_PCIE9>;
+		msi-map = <0x0 &gic_v2m TEGRA_SID_NISO0_PCIE9 0x1000>;
 		dma-coherent;
 		iommu-map-mask = <0x0>;
 

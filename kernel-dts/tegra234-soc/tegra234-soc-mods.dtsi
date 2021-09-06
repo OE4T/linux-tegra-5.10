@@ -107,7 +107,7 @@
 
 	mods_pcie9: mods_pcie9 {
 		compatible = "nvidia,mods_smmu";
-		iommus = <&smmu_niso1 TEGRA_SID_NISO1_PCIE9>;
+		iommus = <&smmu_niso0 TEGRA_SID_NISO0_PCIE9>;
 		dma-coherent;
 		dev-names = "mods_pcie9";
 		status = "disabled";
