@@ -611,7 +611,7 @@ struct gk20a_platform ga10b_tegra_platform = {
 	.enable_perfmon         = true,
 
 	/* power management configuration  JIRA NVGPU-4683 */
-	.enable_elpg            = false,
+	.enable_elpg            = true,
 	.enable_elpg_ms         = false,
 	.can_elpg_init          = true,
 	.enable_aelpg           = false,
