@@ -29,9 +29,15 @@
 #include <linux/mutex.h>
 #include <linux/cred.h>
 
+#include <linux/version.h>
 #ifdef CONFIG_TEGRA_VIRTUALIZATION
 #include <soc/tegra/virt/syscalls.h>
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
+#include <soc/tegra/chip-id.h>
+#else
+#include <soc/tegra/fuse.h>
 #endif
+#endif /* CONFIG_TEGRA_VIRTUALIZATION */
 
 #include "nvsciipc.h"
 
@@ -297,7 +303,8 @@ static int nvsciipc_ioctl_set_db(struct nvsciipc *ctx, unsigned int cmd,
 	}
 
 #ifdef CONFIG_TEGRA_VIRTUALIZATION
-	hyp_read_gid(&vmid);
+	if (is_tegra_hypervisor_mode())
+		hyp_read_gid(&vmid);
 #endif
 
 	for (i = 0; i < ctx->num_eps; i++) {
