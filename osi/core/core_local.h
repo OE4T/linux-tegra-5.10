@@ -299,6 +299,8 @@ struct core_local {
 	nveu32_t gcl_dep;
 	/** Max GCL width (time + gate) value supported by HW */
 	nveu32_t gcl_width_val;
+	/** TS lock */
+	nveu32_t ts_lock;
 };
 
 /**

@@ -167,6 +167,7 @@ nve32_t osi_init_core_ops(struct osi_core_priv_data *const osi_core)
 		return ret;
 	}
 	l_core->if_init_done = OSI_ENABLE;
+	l_core->ts_lock = OSI_DISABLE;
 
 	return ret;
 }
