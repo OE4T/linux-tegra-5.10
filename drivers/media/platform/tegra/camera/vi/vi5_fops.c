@@ -534,6 +534,7 @@ static int vi5_channel_error_recover(struct tegra_channel *chan,
 	}
 
 	vi_channel_close_ex(chan->id, chan->tegra_vi_channel);
+	chan->tegra_vi_channel = NULL;
 
 	/* release all previously-enqueued capture buffers to v4l2 */
 	while (!list_empty(&chan->capture)) {
@@ -869,8 +870,10 @@ err_start_kthreads:
 			CAPTURE_CHANNEL_RESET_FLAG_IMMEDIATE);
 
 err_setup:
-	if (!chan->bypass)
+	if (!chan->bypass) {
 		vi_channel_close_ex(chan->id, chan->tegra_vi_channel);
+		chan->tegra_vi_channel = NULL;
+	}
 
 err_open_ex:
 	vq->start_streaming_called = 0;
@@ -898,6 +901,7 @@ static int vi5_channel_stop_streaming(struct vb2_queue *vq)
 				"vi capture release failed\n");
 
 		vi_channel_close_ex(chan->id, chan->tegra_vi_channel);
+		chan->tegra_vi_channel = NULL;
 
 		/* release all remaining buffers to v4l2 */
 		tegra_channel_queued_buf_done(chan, VB2_BUF_STATE_ERROR, false);
