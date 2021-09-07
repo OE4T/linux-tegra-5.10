@@ -24,6 +24,7 @@
 #define NVGPU_GSP_PRIV
 
 #include <nvgpu/lock.h>
+#include <nvgpu/nvgpu_mem.h>
 
 #define GSP_DEBUG_BUFFER_QUEUE	3U
 #define GSP_DMESG_BUFFER_SIZE	0xC00U
@@ -54,6 +55,9 @@ struct nvgpu_gsp {
 
 	bool isr_enabled;
 	struct nvgpu_mutex isr_mutex;
+
+	struct gsp_sequences *sequences;
+
 #ifdef CONFIG_NVGPU_GSP_STRESS_TEST
 	struct gsp_stress_test gsp_test;
 #endif

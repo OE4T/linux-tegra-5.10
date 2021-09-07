@@ -29,6 +29,7 @@
 #include <nvgpu/dma.h>
 #endif
 
+#include "ipc/gsp_seq.h"
 #include "gsp_priv.h"
 #include "gsp_bootstrap.h"
 
@@ -58,6 +59,8 @@ void nvgpu_gsp_sw_deinit(struct gk20a *g)
 #ifdef CONFIG_NVGPU_GSP_STRESS_TEST
 		nvgpu_dma_free(g, &g->gsp->gsp_test.gsp_test_sysmem_block);
 #endif
+		nvgpu_gsp_sequences_free(g, g->gsp->sequences);
+
 		nvgpu_kfree(g, g->gsp);
 		g->gsp = NULL;
 	}
@@ -98,6 +101,14 @@ int nvgpu_gsp_sw_init(struct gk20a *g)
 
 	/* Init isr mutex */
 	nvgpu_mutex_init(&gsp->isr_mutex);
+
+	err = nvgpu_gsp_sequences_init(g, g->gsp);
+	if (err != 0) {
+		nvgpu_err(g, "GSP sequences init failed");
+		nvgpu_mutex_destroy(&gsp->isr_mutex);
+		nvgpu_kfree(g, g->gsp);
+		g->gsp = NULL;
+	}
 
 exit:
 	return err;

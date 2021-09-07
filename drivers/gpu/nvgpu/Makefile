@@ -410,7 +410,8 @@ nvgpu-y += \
 ifeq ($(CONFIG_NVGPU_GSP_SCHEDULER),y)
 nvgpu-$(CONFIG_NVGPU_GSP_SCHEDULER) += \
 	common/gsp/gsp_init.o \
-	common/gsp/gsp_bootstrap.o
+	common/gsp/gsp_bootstrap.o \
+	common/gsp/ipc/gsp_seq.o
 endif
 
 ifeq ($(CONFIG_NVGPU_GSP_STRESS_TEST),y)

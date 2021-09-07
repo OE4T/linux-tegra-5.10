@@ -180,7 +180,8 @@ srcs +=	common/device.c \
 
 ifeq ($(CONFIG_NVGPU_GSP_SCHEDULER),1)
 srcs += common/gsp/gsp_init.c \
-	common/gsp/gsp_bootstrap.c
+	common/gsp/gsp_bootstrap.c \
+	common/gsp/ipc/gsp_seq.c
 endif
 
 # Source files below are functionaly safe (FuSa) and must always be included.
