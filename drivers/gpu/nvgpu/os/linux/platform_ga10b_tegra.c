@@ -616,9 +616,9 @@ struct gk20a_platform ga10b_tegra_platform = {
 	.can_slcg               = true,
 	.can_blcg               = true,
 	.can_elcg               = true,
-	.enable_slcg            = false,
-	.enable_blcg            = false,
-	.enable_elcg            = false,
+	.enable_slcg            = true,
+	.enable_blcg            = true,
+	.enable_elcg            = true,
 	.enable_perfmon         = true,
 
 	/* power management configuration  JIRA NVGPU-4683 */
