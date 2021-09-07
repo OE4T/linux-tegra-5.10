@@ -219,8 +219,11 @@ static void nvgpu_init_pm_vars(struct gk20a *g)
 		platform->devfreq_governor = NULL;
 		platform->qos_notify = NULL;
 	} else {
+		/* Always enable railgating on simulation platform */
+		platform->can_railgate_init = nvgpu_platform_is_simulation(g) ?
+			true : platform->can_railgate_init;
 		nvgpu_set_enabled(g, NVGPU_CAN_RAILGATE,
-			nvgpu_platform_is_simulation(g) ? true : platform->can_railgate_init);
+				platform->can_railgate_init);
 	}
 #ifdef CONFIG_NVGPU_STATIC_POWERGATE
 	g->can_tpc_pg = platform->can_tpc_pg;

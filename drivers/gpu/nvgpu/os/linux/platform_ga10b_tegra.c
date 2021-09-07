@@ -1,7 +1,7 @@
 /*
  * GA10B Tegra Platform Interface
  *
- * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -622,7 +622,7 @@ struct gk20a_platform ga10b_tegra_platform = {
 	.late_probe = ga10b_tegra_late_probe,
 	.remove = ga10b_tegra_remove,
 	.railgate_delay_init    = 500,
-	.can_railgate_init      = false,
+	.can_railgate_init      = true,
 
 #ifdef CONFIG_NVGPU_STATIC_POWERGATE
 	/* add tpc powergate JIRA NVGPU-4683 */
