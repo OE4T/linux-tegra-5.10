@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2018, NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2017-2021, NVIDIA Corporation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -14,8 +14,14 @@
 #include <linux/module.h>
 #include <linux/of_device.h>
 #include <linux/reset.h>
+#if IS_ENABLED(CONFIG_INTERCONNECT)
+#include <linux/interconnect.h>
+#include <dt-bindings/interconnect/tegra_icc_id.h>
+#endif
 #include <linux/platform/tegra/emc_bwmgr.h>
 #include <linux/platform/tegra/actmon_common.h>
+
+#include <linux/platform/tegra/mc_utils.h>
 
 /************ START OF REG DEFINITION **************/
 /* Actmon common registers */
@@ -211,9 +217,34 @@ static void actmon_dev_reg_ops_init(struct actmon_dev *adev)
 	adev->ops.disb_dev_dn_wm = disb_dev_dn_wm;
 }
 
+static unsigned long actmon_dev_get_max_rate(struct actmon_dev *adev)
+{
+	unsigned long rate = 0;
+
+	if (!adev->bwmgr_disable)
+		return tegra_bwmgr_get_max_emc_rate();
+
+	if (adev->dram_clk_handle) {
+		rate = clk_round_rate(adev->dram_clk_handle, ULONG_MAX);
+		return rate;
+	}
+
+	return 0;
+}
+
 static unsigned long actmon_dev_get_rate(struct actmon_dev *adev)
 {
-	return tegra_bwmgr_get_emc_rate();
+	unsigned long rate = 0;
+
+	if (!adev->bwmgr_disable)
+		return tegra_bwmgr_get_emc_rate();
+
+	if (adev->dram_clk_handle) {
+		rate = clk_get_rate(adev->dram_clk_handle);
+		return rate;
+	}
+
+	return 0;
 }
 
 static unsigned long actmon_dev_post_change_rate(
@@ -223,14 +254,33 @@ static unsigned long actmon_dev_post_change_rate(
 
 	return clk_data->new_rate;
 }
+
+static void icc_set_rate(struct actmon_dev *adev, unsigned long freq)
+{
+#if IS_ENABLED(CONFIG_INTERCONNECT)
+	struct icc_path *icc_path_handle = NULL;
+	u32 floor_bw_kbps = 0;
+
+	icc_path_handle = (struct icc_path *)adev->clnt;
+	floor_bw_kbps = emc_freq_to_bw(freq / 1000);
+
+	icc_set_bw(icc_path_handle, 0, floor_bw_kbps);
+#endif
+}
+
 static void actmon_dev_set_rate(struct actmon_dev *adev,
 		unsigned long freq)
 {
-	struct tegra_bwmgr_client *bwclnt = (struct tegra_bwmgr_client *)
-			adev->clnt;
+	struct tegra_bwmgr_client *bwclnt = NULL;
 
-	tegra_bwmgr_set_emc(bwclnt, freq * 1000,
-		TEGRA_BWMGR_SET_EMC_FLOOR);
+	if (!adev->bwmgr_disable) {
+		bwclnt = (struct tegra_bwmgr_client *)adev->clnt;
+
+		tegra_bwmgr_set_emc(bwclnt, freq * 1000,
+			TEGRA_BWMGR_SET_EMC_FLOOR);
+	} else {
+		icc_set_rate(adev, freq);
+	}
 }
 
 static int cactmon_bwmgr_register(
@@ -270,27 +320,99 @@ static void cactmon_bwmgr_unregister(
 	}
 }
 
+static int cactmon_icc_register(
+	struct actmon_dev *adev, struct platform_device *pdev)
+{
+	int ret = 0;
+
+#if IS_ENABLED(CONFIG_INTERCONNECT)
+	struct icc_path *icc_path_handle = NULL;
+	struct device *mon_dev = &pdev->dev;
+
+	icc_path_handle = icc_get(mon_dev, TEGRA_ICC_CACTMON, TEGRA_ICC_PRIMARY);
+	if (IS_ERR_OR_NULL(icc_path_handle)) {
+		ret = -ENODEV;
+		dev_err(mon_dev, "icc registration failed for %s\n",
+			adev->dn->name);
+		return ret;
+	}
+
+	adev->clnt = icc_path_handle;
+#endif
+
+	return ret;
+}
+
+static void cactmon_icc_unregister(
+	struct actmon_dev *adev, struct platform_device *pdev)
+{
+#if IS_ENABLED(CONFIG_INTERCONNECT)
+	struct icc_path *icc_path_handle = (struct icc_path *)
+		adev->clnt;
+	struct device *mon_dev = &pdev->dev;
+
+	if (icc_path_handle) {
+		dev_dbg(mon_dev, "unregistering icc for %s\n",
+			adev->dn->name);
+		icc_put(icc_path_handle);
+		adev->clnt = NULL;
+	}
+#endif
+}
+
+static int cactmon_register_bw(
+	struct actmon_dev *adev, struct platform_device *pdev)
+{
+	int ret = 0;
+
+	if (adev->bwmgr_disable)
+		ret = cactmon_icc_register(adev, pdev);
+	else
+		ret = cactmon_bwmgr_register(adev, pdev);
+
+	return ret;
+}
+
+static void cactmon_unregister_bw(
+	struct actmon_dev *adev, struct platform_device *pdev)
+{
+	if (adev->bwmgr_disable)
+		cactmon_icc_unregister(adev, pdev);
+	else
+		cactmon_bwmgr_unregister(adev, pdev);
+}
+
 static int actmon_dev_platform_init(struct actmon_dev *adev,
 		struct platform_device *pdev)
 {
 	struct tegra_bwmgr_client *bwclnt;
 	int ret = 0;
 
-	ret = cactmon_bwmgr_register(adev, pdev);
+	ret = cactmon_register_bw(adev, pdev);
 	if (ret)
 		goto end;
 
-	bwclnt = (struct tegra_bwmgr_client *) adev->clnt;
 	adev->dev_name = adev->dn->name;
-	adev->max_freq = tegra_bwmgr_get_max_emc_rate();
-	tegra_bwmgr_set_emc(bwclnt, adev->max_freq,
-		TEGRA_BWMGR_SET_EMC_FLOOR);
+	adev->max_freq = actmon_dev_get_max_rate(adev);
+
+	if (!adev->bwmgr_disable) {
+		bwclnt = (struct tegra_bwmgr_client *) adev->clnt;
+		tegra_bwmgr_set_emc(bwclnt, adev->max_freq,
+			TEGRA_BWMGR_SET_EMC_FLOOR);
+	} else {
+		icc_set_rate(adev, adev->max_freq);
+	}
+
 	adev->max_freq /= 1000;
 	actmon_dev_reg_ops_init(adev);
 	adev->actmon_dev_set_rate = actmon_dev_set_rate;
 	adev->actmon_dev_get_rate = actmon_dev_get_rate;
 	if (adev->rate_change_nb.notifier_call) {
-		ret = tegra_bwmgr_notifier_register(&adev->rate_change_nb);
+		if (!adev->bwmgr_disable)
+			ret = tegra_bwmgr_notifier_register(&adev->rate_change_nb);
+		else
+			ret = clk_notifier_register(adev->dram_clk_handle, &adev->rate_change_nb);
+
 		if (ret) {
 			pr_err("Failed to register bw manager rate change notifier for %s\n",
 				adev->dev_name);
@@ -298,7 +420,6 @@ static int actmon_dev_platform_init(struct actmon_dev *adev,
 		}
 	}
 	adev->actmon_dev_post_change_rate = actmon_dev_post_change_rate;
-
 end:
 	return ret;
 }
@@ -306,16 +427,20 @@ end:
 static void cactmon_free_resource(
 	struct actmon_dev *adev, struct platform_device *pdev)
 {
-	int ret;
+	int ret = 0;
 
 	if (adev->rate_change_nb.notifier_call) {
-		ret = tegra_bwmgr_notifier_unregister(&adev->rate_change_nb);
+		if (!adev->bwmgr_disable)
+			ret = tegra_bwmgr_notifier_unregister(&adev->rate_change_nb);
+		else
+			ret = clk_notifier_unregister(adev->dram_clk_handle, &adev->rate_change_nb);
+
 		if (ret) {
 			pr_err("Failed to register bw manager rate change notifier for %s\n",
 			adev->dev_name);
 		}
 	}
-	cactmon_bwmgr_unregister(adev, pdev);
+	cactmon_unregister_bw(adev, pdev);
 }
 
 static int cactmon_reset_dinit(struct platform_device *pdev)
@@ -413,6 +538,7 @@ static struct actmon_drv_data actmon_data =
 static const struct of_device_id tegra_actmon_of_match[] = {
 	{ .compatible = "nvidia,tegra194-cactmon", .data = &actmon_data, },
 	{ .compatible = "nvidia,tegra186-cactmon", .data = &actmon_data, },
+	{ .compatible = "nvidia,tegra234-cactmon", .data = &actmon_data, },
 	{},
 };
 
@@ -440,5 +566,15 @@ static struct platform_driver tegra19x_actmon_driver __refdata = {
 	},
 };
 
-module_platform_driver(tegra19x_actmon_driver);
+static int __init cactmon_init(void)
+{
+	return platform_driver_register(&tegra19x_actmon_driver);
+}
 
+static void __exit cactmon_exit(void)
+{
+	platform_driver_unregister(&tegra19x_actmon_driver);
+}
+
+late_initcall(cactmon_init);
+module_exit(cactmon_exit);

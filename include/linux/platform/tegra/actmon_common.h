@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016-2018, NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2016-2021, NVIDIA Corporation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -130,6 +130,9 @@ struct actmon_dev {
 	enum actmon_type type;
 	enum actmon_state state;
 	enum actmon_state saved_state;
+
+	bool bwmgr_disable;
+	struct clk *dram_clk_handle;
 
 	struct dev_reg_ops ops;
 	void (*actmon_dev_set_rate)(struct actmon_dev *, unsigned long);

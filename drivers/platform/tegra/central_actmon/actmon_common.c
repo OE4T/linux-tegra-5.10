@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016-2020, NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2016-2021, NVIDIA Corporation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -28,6 +28,8 @@
 #include <linux/version.h>
 
 #include <linux/platform/tegra/actmon_common.h>
+#include <linux/platform/tegra/mc_utils.h>
+#include <soc/tegra/fuse.h>
 
 /* Global definitions */
 static struct actmon_drv_data *actmon;
@@ -748,6 +750,14 @@ static int actmon_dev_parse_dt(struct actmon_dev *dev,
 	int ret = 0;
 	const void *prop;
 
+	if (dev->bwmgr_disable) {
+		dev->dram_clk_handle = of_clk_get_by_name(dev->dn, "emc");
+		if (IS_ERR_OR_NULL(dev->dram_clk_handle)) {
+			dev_err(mon_dev, "couldn't find emc clock\n");
+			dev->dram_clk_handle = NULL;
+		}
+	}
+
 	ret = of_property_read_u32(dev->dn, "nvidia,reg_offs", &dev->reg_offs);
 	if (ret) {
 		dev_err(mon_dev, "<nvidia,reg_offs> property is not provided for the device %s\n",
@@ -852,7 +862,13 @@ static int actmon_dev_parse_dt(struct actmon_dev *dev,
 	if (ret) {
 		dev_info(mon_dev, "<nvidia,max_dram_channels> property is not provided for the device %s\n",dev->dn->name);
 	}
+
+#if IS_ENABLED(CONFIG_ARCH_TEGRA_23x_SOC)
+	ch_num = get_dram_num_channels();
+#else
 	ch_num = tegra_bwmgr_get_dram_num_channels();
+#endif
+
 	if (ch_num && max_dram_channels)
 		dev->count_weight *= (u32)(max_dram_channels / ch_num);
 
@@ -876,6 +892,10 @@ static int actmon_dev_init(struct actmon_dev *dev,
 	int ret = 0;
 
 	spin_lock_init(&dev->lock);
+
+	dev->bwmgr_disable = !!(tegra_get_chip_id() == TEGRA234);
+
+	dev_info(&pdev->dev, "bwmgr_disable = %d\n", dev->bwmgr_disable);
 
 	ret = actmon_dev_parse_dt(dev, pdev);
 	if (ret) {
