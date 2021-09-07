@@ -1832,6 +1832,11 @@ int gk20a_driver_force_power_off(struct gk20a *g)
 	struct gk20a_platform *platform = gk20a_get_platform(dev);
 	int err = 0;
 
+	if (!capable(CAP_SYS_NICE)) {
+		nvgpu_err(g, "User doesn't have the permission for this operation");
+		return -EPERM;
+	}
+
 #ifdef CONFIG_NVGPU_DGPU
 	if (g->pci_class) {
 		nvgpu_err(g, "Poweroff is not supported for device yet.");

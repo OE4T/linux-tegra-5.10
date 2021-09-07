@@ -136,7 +136,7 @@ int gk20a_power_write(struct file *filp, const char __user *buf,
 		if (err) {
 			nvgpu_err(g, "power_node_write failed at busy");
 			kfree(userinput);
-			return -EINVAL;
+			return err;
 		}
 	} else {
 		nvgpu_err(g, "1/0 are the valid values to power-on the GPU");

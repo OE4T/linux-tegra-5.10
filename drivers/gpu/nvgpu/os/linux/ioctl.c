@@ -198,10 +198,6 @@ static char *nvgpu_devnode(const char *cdev_name)
 
 static char *nvgpu_pci_devnode(struct device *dev, umode_t *mode)
 {
-	if (mode) {
-		*mode = S_IRUSR | S_IWUSR;
-	}
-
 	/* Special case to maintain legacy names */
 	if (strcmp(dev_name(dev), "channel") == 0) {
 		return kasprintf(GFP_KERNEL, "nvgpu-pci/card-%s",
@@ -214,19 +210,11 @@ static char *nvgpu_pci_devnode(struct device *dev, umode_t *mode)
 
 static char *nvgpu_devnode_v2(struct device *dev, umode_t *mode)
 {
-	if (mode) {
-		*mode = S_IRUSR | S_IWUSR;
-	}
-
 	return kasprintf(GFP_KERNEL, "nvgpu/igpu0/%s", dev_name(dev));
 }
 
 static char *nvgpu_pci_devnode_v2(struct device *dev, umode_t *mode)
 {
-	if (mode) {
-		*mode = S_IRUSR | S_IWUSR;
-	}
-
 	return kasprintf(GFP_KERNEL, "nvgpu/dgpu-%s/%s", dev_name(dev->parent),
 			dev_name(dev));
 }
@@ -234,10 +222,6 @@ static char *nvgpu_pci_devnode_v2(struct device *dev, umode_t *mode)
 static char *nvgpu_mig_fgpu_devnode(struct device *dev, umode_t *mode)
 {
 	struct nvgpu_cdev_class_priv_data *priv_data;
-
-	if (mode) {
-		*mode = S_IRUSR | S_IWUSR;
-	}
 
 	priv_data = dev_get_drvdata(dev);
 
