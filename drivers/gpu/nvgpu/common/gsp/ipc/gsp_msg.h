@@ -20,24 +20,55 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_GSP
-#define NVGPU_GSP
-struct gk20a;
+#ifndef NVGPU_GSP_MSG_H
+#define NVGPU_GSP_MSG_H
+
+#include <nvgpu/types.h>
+#include <nvgpu/gsp.h>
+
+#include "gsp_cmd.h"
+
 struct nvgpu_gsp;
 
-int nvgpu_gsp_sw_init(struct gk20a *g);
-int nvgpu_gsp_bootstrap(struct gk20a *g);
-void nvgpu_gsp_sw_deinit(struct gk20a *g);
-void nvgpu_gsp_isr_support(struct gk20a *g, bool enable);
-void nvgpu_gsp_isr_mutex_aquire(struct gk20a *g);
-void nvgpu_gsp_isr_mutex_release(struct gk20a *g);
-bool nvgpu_gsp_is_isr_enable(struct gk20a *g);
-u32 nvgpu_gsp_get_last_cmd_id(struct gk20a *g);
-struct nvgpu_falcon *nvgpu_gsp_falcon_instance(struct gk20a *g);
-int nvgpu_gsp_process_message(struct gk20a *g);
-#ifdef CONFIG_NVGPU_GSP_STRESS_TEST
-int nvgpu_gsp_stress_test_bootstrap(struct gk20a *g, bool start);
-int nvgpu_gsp_stress_test_halt(struct gk20a *g, bool restart);
-bool nvgpu_gsp_is_stress_test(struct gk20a *g);
-#endif
-#endif /* NVGPU_GSP */
+#define GSP_CMD_FLAGS_MASK		U8(0xF0U)
+#define GSP_CMD_FLAGS_STATUS		BIT8(0U)
+#define GSP_CMD_FLAGS_INTR		BIT8(1U)
+#define GSP_CMD_FLAGS_EVENT		BIT8(2U)
+#define GSP_CMD_FLAGS_RPC_EVENT		BIT8(3U)
+
+#define GSP_DMEM_ALLOC_ALIGNMENT	32U
+#define GSP_DMEM_ALIGNMENT		4U
+
+enum {
+	NV_GSP_INIT_MSG_ID_GSP_INIT = 0U,
+};
+
+struct gsp_init_msg_gsp_init {
+	u8 msg_type;
+	u8 num_queues;
+
+	struct {
+		u32 queue_offset;
+		u16 queue_size;
+		u8  queue_phy_id;
+		u8  queue_log_id;
+	} q_info[GSP_QUEUE_NUM];
+};
+
+union nv_flcn_msg_gsp_init {
+	u8 msg_type;
+	struct gsp_init_msg_gsp_init gsp_init;
+};
+
+
+struct nv_flcn_msg_gsp {
+	struct gsp_hdr hdr;
+	union {
+		union nv_flcn_msg_gsp_init init;
+	} msg;
+};
+
+int nvgpu_gsp_wait_message_cond(struct nvgpu_gsp *gsp, u32 timeout_ms,
+	void *var, u8 val);
+
+#endif /* NVGPU_GSP_MSG_H */

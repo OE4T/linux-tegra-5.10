@@ -64,6 +64,9 @@ struct nvgpu_gsp {
 
 	u32 command_ack;
 
+	/* set to true once init received */
+	bool gsp_ready;
+
 #ifdef CONFIG_NVGPU_GSP_STRESS_TEST
 	struct gsp_stress_test gsp_test;
 #endif

@@ -64,6 +64,8 @@ void nvgpu_gsp_sw_deinit(struct gk20a *g)
 
 		nvgpu_gsp_queues_free(g, g->gsp->queues);
 
+		g->gsp->gsp_ready = false;
+
 		nvgpu_kfree(g, g->gsp);
 		g->gsp = NULL;
 	}
