@@ -176,31 +176,6 @@ static void nvhost_unregister_bw(struct nvhost_device_data *pdata)
 #endif
 }
 
-static int nvhost_get_emc_rate(struct nvhost_device_data *pdata,
-				unsigned long *rate)
-{
-	int ret = -EINVAL;
-
-	/*
-	 * Below APIs are not framework specific, however in this file we need
-	 * them when respective framework is enabled. Keeping it simple.
-	 */
-
-#if IS_ENABLED(CONFIG_INTERCONNECT)
-	if (!IS_ERR_OR_NULL(pdata->icc_path_handle)) {
-		*rate = tegra_get_emc_rate();
-		ret = 0;
-	}
-#endif
-#if IS_ENABLED(CONFIG_TEGRA_BWMGR)
-	if (pdata->bwmgr_handle) {
-		*rate = tegra_bwmgr_get_emc_rate();
-		ret = 0;
-	}
-#endif
-	return ret;
-}
-
 static int nvhost_set_emc_rate(struct device *devp,
 				struct nvhost_device_data *pdata,
 				int index,
@@ -532,9 +507,8 @@ int nvhost_module_get_rate(struct platform_device *dev, unsigned long *rate,
 
 	index = array_index_nospec(index, NVHOST_MODULE_MAX_CLOCKS);
 
-	if (nvhost_is_bw_clk(pdata, index)) {
-		return nvhost_get_emc_rate(pdata, rate);
-	}
+	if (nvhost_is_bw_clk(pdata, index))
+		return -EINVAL;
 
 	if (pdata->clk[index]) {
 		/* Terrible and racy, but so is the whole concept of
