@@ -20,23 +20,40 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_GSP
-#define NVGPU_GSP
-struct gk20a;
-struct nvgpu_gsp;
+#ifndef NVGPU_GSP_CMD_IF_H
+#define NVGPU_GSP_CMD_IF_H
 
-int nvgpu_gsp_sw_init(struct gk20a *g);
-int nvgpu_gsp_bootstrap(struct gk20a *g);
-void nvgpu_gsp_sw_deinit(struct gk20a *g);
-void nvgpu_gsp_isr_support(struct gk20a *g, bool enable);
-void nvgpu_gsp_isr_mutex_aquire(struct gk20a *g);
-void nvgpu_gsp_isr_mutex_release(struct gk20a *g);
-bool nvgpu_gsp_is_isr_enable(struct gk20a *g);
-u32 nvgpu_gsp_get_last_cmd_id(struct gk20a *g);
-struct nvgpu_falcon *nvgpu_gsp_falcon_instance(struct gk20a *g);
-#ifdef CONFIG_NVGPU_GSP_STRESS_TEST
-int nvgpu_gsp_stress_test_bootstrap(struct gk20a *g, bool start);
-int nvgpu_gsp_stress_test_halt(struct gk20a *g, bool restart);
-bool nvgpu_gsp_is_stress_test(struct gk20a *g);
-#endif
-#endif /* NVGPU_GSP */
+#include <nvgpu/types.h>
+#include "gsp_seq.h"
+
+struct gk20a;
+
+#define GSP_NV_CMDQ_LOG_ID		0U
+#define GSP_NV_CMDQ_LOG_ID__LAST	0U
+#define GSP_NV_MSGQ_LOG_ID		1U
+
+#define  NV_GSP_UNIT_REWIND		NV_FLCN_UNIT_ID_REWIND
+#define  NV_GSP_UNIT_NULL		0x01U
+#define  NV_GSP_UNIT_INIT		0x02U
+#define  NV_GSP_UNIT_END		0x0AU
+
+#define GSP_MSG_HDR_SIZE	U32(sizeof(struct gsp_hdr))
+#define GSP_CMD_HDR_SIZE	U32(sizeof(struct gsp_hdr))
+
+struct gsp_hdr {
+	u8 unit_id;
+	u8 size;
+	u8 ctrl_flags;
+	u8 seq_id;
+};
+
+struct nv_flcn_cmd_gsp {
+	struct gsp_hdr hdr;
+};
+
+u8 gsp_unit_id_is_valid(u8 id);
+/* command handling methods*/
+int nvgpu_gsp_cmd_post(struct gk20a *g, struct nv_flcn_cmd_gsp *cmd,
+	u32 queue_id, gsp_callback callback, void *cb_param, u32 timeout);
+
+#endif /* NVGPU_GSP_CMD_IF_H */

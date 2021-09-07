@@ -62,6 +62,8 @@ struct nvgpu_gsp {
 
 	struct nvgpu_engine_mem_queue *queues[GSP_QUEUE_NUM];
 
+	u32 command_ack;
+
 #ifdef CONFIG_NVGPU_GSP_STRESS_TEST
 	struct gsp_stress_test gsp_test;
 #endif
