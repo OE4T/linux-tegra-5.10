@@ -30,6 +30,7 @@
 #endif
 
 #include "ipc/gsp_seq.h"
+#include "ipc/gsp_queue.h"
 #include "gsp_priv.h"
 #include "gsp_bootstrap.h"
 
@@ -60,6 +61,8 @@ void nvgpu_gsp_sw_deinit(struct gk20a *g)
 		nvgpu_dma_free(g, &g->gsp->gsp_test.gsp_test_sysmem_block);
 #endif
 		nvgpu_gsp_sequences_free(g, g->gsp->sequences);
+
+		nvgpu_gsp_queues_free(g, g->gsp->queues);
 
 		nvgpu_kfree(g, g->gsp);
 		g->gsp = NULL;

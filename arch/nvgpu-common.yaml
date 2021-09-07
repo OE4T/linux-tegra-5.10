@@ -314,6 +314,8 @@ gsp:
              include/nvgpu/gsp/gsp_test.h,
              common/gsp/ipc/gsp_seq.c,
              common/gsp/ipc/gsp_seq.h,
+             common/gsp/ipc/gsp_queue.c,
+             common/gsp/ipc/gsp_queue.h,
              include/nvgpu/gsp.h ]
 
 engine_queues:

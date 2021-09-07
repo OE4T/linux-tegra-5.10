@@ -20,50 +20,35 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_GSP_PRIV
-#define NVGPU_GSP_PRIV
+#ifndef NVGPU_GSP_QUEUE_H
+#define NVGPU_GSP_QUEUE_H
 
-#include <nvgpu/lock.h>
-#include <nvgpu/nvgpu_mem.h>
+#include <nvgpu/types.h>
 
-#define GSP_DEBUG_BUFFER_QUEUE	3U
-#define GSP_DMESG_BUFFER_SIZE	0xC00U
+struct gk20a;
+struct nvgpu_falcon;
+struct nv_flcn_cmd_gsp;
+struct nvgpu_engine_mem_queue;
+struct gsp_init_msg_gsp_init;
 
-#define GSP_QUEUE_NUM	2U
+int nvgpu_gsp_queues_init(struct gk20a *g,
+			   struct nvgpu_engine_mem_queue **queues,
+			   struct gsp_init_msg_gsp_init *init);
+void nvgpu_gsp_queues_free(struct gk20a *g,
+			    struct nvgpu_engine_mem_queue **queues);
+u32 nvgpu_gsp_queue_get_size(struct nvgpu_engine_mem_queue **queues,
+			      u32 queue_id);
+int nvgpu_gsp_queue_push(struct nvgpu_engine_mem_queue **queues,
+			  u32 queue_id, struct nvgpu_falcon *flcn,
+			  struct nv_flcn_cmd_gsp *cmd, u32 size);
+bool nvgpu_gsp_queue_is_empty(struct nvgpu_engine_mem_queue **queues,
+			       u32 queue_id);
+bool nvgpu_gsp_queue_read(struct gk20a *g,
+			   struct nvgpu_engine_mem_queue **queues,
+			   u32 queue_id, struct nvgpu_falcon *flcn, void *data,
+			   u32 bytes_to_read, int *status);
+int nvgpu_gsp_queue_rewind(struct nvgpu_falcon *flcn,
+			    struct nvgpu_engine_mem_queue **queues,
+			    u32 queue_id);
 
-struct gsp_fw {
-	/* gsp ucode */
-	struct nvgpu_firmware *code;
-	struct nvgpu_firmware *data;
-	struct nvgpu_firmware *manifest;
-};
-
-#ifdef CONFIG_NVGPU_GSP_STRESS_TEST
-struct gsp_stress_test {
-	bool load_stress_test;
-	bool enable_stress_test;
-	bool stress_test_fail_status;
-	u32 test_iterations;
-	u32 test_name;
-	struct nvgpu_mem gsp_test_sysmem_block;
-};
-#endif
-/* GSP descriptor's */
-struct nvgpu_gsp {
-	struct gk20a *g;
-
-	struct gsp_fw gsp_ucode;
-	struct nvgpu_falcon *gsp_flcn;
-
-	bool isr_enabled;
-	struct nvgpu_mutex isr_mutex;
-
-	struct gsp_sequences *sequences;
-
-	struct nvgpu_engine_mem_queue *queues[GSP_QUEUE_NUM];
-
-#ifdef CONFIG_NVGPU_GSP_STRESS_TEST
-	struct gsp_stress_test gsp_test;
-#endif
-};
-#endif /* NVGPU_GSP_PRIV */
+#endif /* NVGPU_GSP_QUEUE_H */
