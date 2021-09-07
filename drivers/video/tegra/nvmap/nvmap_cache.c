@@ -77,6 +77,10 @@ static void heap_page_cache_maint(
 	struct nvmap_handle *h, unsigned long start, unsigned long end,
 	unsigned int op, bool inner, bool outer, bool clean_only_dirty)
 {
+	/* Don't perform cache maint for RO mapped buffers */
+	if (h->from_va && h->is_ro)
+		return;
+
 	if (h->userflags & NVMAP_HANDLE_CACHE_SYNC) {
 		/*
 		 * zap user VA->PA mappings so that any access to the pages
