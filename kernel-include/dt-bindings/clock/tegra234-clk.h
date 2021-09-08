@@ -569,12 +569,14 @@
 /* free 278:279 */
 
 /** @brief NAFLL clock source for CPU cluster 0 */
-#define TEGRA234_CLK_NAFLL_CLUSTER0		280U
+#define TEGRA234_CLK_NAFLL_CLUSTER0		280U /* TODO: remove */
+#define TEGRA234_CLK_NAFLL_CLUSTER0_CORE	280U
 /** @brief NAFLL clock source for CPU cluster 1 */
-#define TEGRA234_CLK_NAFLL_CLUSTER1		281U
+#define TEGRA234_CLK_NAFLL_CLUSTER1		281U /* TODO: remove */
+#define TEGRA234_CLK_NAFLL_CLUSTER1_CORE	281U
 /** @brief NAFLL clock source for CPU cluster 2 */
-#define TEGRA234_CLK_NAFLL_CLUSTER2		282U
-
+#define TEGRA234_CLK_NAFLL_CLUSTER2		282U /* TODO: remove */
+#define TEGRA234_CLK_NAFLL_CLUSTER2_CORE	282U
 /* free 283 */
 
 /** @brief CLK_RST_CONTROLLER_CAN1_CORE_RATE divider output */
@@ -870,11 +872,14 @@
 /** @brief NAFLL clock source for GPU SYSCLK */
 #define TEGRA234_CLK_NAFLL_GPUSYS		428U
 /** @brief NAFLL clock source for CPU cluster 0 DSUCLK */
-#define TEGRA234_CLK_NAFLL_DSU0			429U
+#define TEGRA234_CLK_NAFLL_DSU0			429U /* TODO: remove */
+#define TEGRA234_CLK_NAFLL_CLUSTER0_DSU		429U
 /** @brief NAFLL clock source for CPU cluster 1 DSUCLK */
-#define TEGRA234_CLK_NAFLL_DSU1			430U
+#define TEGRA234_CLK_NAFLL_DSU1			430U /* TODO: remove */
+#define TEGRA234_CLK_NAFLL_CLUSTER1_DSU		430U
 /** @brief NAFLL clock source for CPU cluster 2 DSUCLK */
-#define TEGRA234_CLK_NAFLL_DSU2			431U
+#define TEGRA234_CLK_NAFLL_DSU2			431U /* TODO: remove */
+#define TEGRA234_CLK_NAFLL_CLUSTER2_DSU		431U
 /** @brief output of gate CLK_ENB_SCE_CPU */
 #define TEGRA234_CLK_SCE_CPU			432U
 /** @brief output of gate CLK_ENB_RCE_CPU */
