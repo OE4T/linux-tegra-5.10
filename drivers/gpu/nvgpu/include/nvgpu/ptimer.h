@@ -133,7 +133,6 @@ struct nvgpu_cpu_time_correlation_sample {
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * - Return 0 to indicate success
  *
- * @return 0 in case of success, < 0 in case of failure.
  * @retval -EINVAL in case invalid \a timeout value is passed.
  * @retval -EINVAL in case NULL pointer is passed for \a scaled_timeout.
  * @retval -EINVAL in case \ref gk20a.ptimer_src_freq "g->ptimer_src_freq" is 0.
