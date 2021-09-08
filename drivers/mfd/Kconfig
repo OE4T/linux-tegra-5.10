@@ -874,6 +874,15 @@ config MFD_MAX77843
 	  additional drivers must be enabled in order to use the functionality
 	  of the device.
 
+config MFD_MAX77851
+	tristate "Maxim Semiconductor MAX77851 PMIC Support"
+        depends on I2C
+        select MFD_CORE
+        select REGMAP_I2C
+        select REGMAP_IRQ
+        help
+          Say yes here to add support for Maxim Semiconductor MAX77851.
+
 config MFD_MAX8907
 	tristate "Maxim Semiconductor MAX8907 PMIC Support"
 	select MFD_CORE
