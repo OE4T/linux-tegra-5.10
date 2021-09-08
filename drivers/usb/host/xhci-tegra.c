@@ -426,6 +426,7 @@ struct tegra_xusb {
 	resource_size_t fpci_len;
 	void __iomem *bar2_base;
 	resource_size_t bar2_start;
+	resource_size_t bar2_len;
 
 	const struct tegra_xusb_soc *soc;
 
@@ -2786,6 +2787,7 @@ static int tegra_xusb_probe(struct platform_device *pdev)
 			return PTR_ERR(tegra->bar2_base);
 
 		tegra->bar2_start = res->start;
+		tegra->bar2_len = resource_size(res);
 	}
 
 	tegra->xhci_irq = platform_get_irq(pdev, 0);
@@ -3282,6 +3284,13 @@ static int tegra_xusb_remove(struct platform_device *pdev)
 		devm_release_mem_region(&pdev->dev, tegra->fpci_start,
 			tegra->fpci_len);
 	}
+
+	if (tegra->soc->has_bar2) {
+		devm_iounmap(&pdev->dev, tegra->bar2_base);
+		devm_release_mem_region(&pdev->dev, tegra->bar2_start,
+			tegra->bar2_len);
+	}
+
 	devm_iounmap(&pdev->dev, tegra->hcd->regs);
 	devm_release_mem_region(&pdev->dev, tegra->hcd->rsrc_start,
 		tegra->hcd->rsrc_len);
