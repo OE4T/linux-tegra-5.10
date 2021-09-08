@@ -833,6 +833,9 @@ struct gk20a {
 	/** Cache to store IPA to PA translations. */
 	struct nvgpu_ipa_pa_cache ipa_pa_cache;
 #endif
+
+	/** To enable emulate mode */
+	u32 emulate_mode;
 };
 
 /**

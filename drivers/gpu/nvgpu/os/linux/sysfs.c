@@ -1170,6 +1170,41 @@ static DEVICE_ATTR(mig_mode_config, ROOTRW,
 
 #endif
 
+static ssize_t emulate_mode_store(struct device *dev,
+	struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct gk20a *g = get_gk20a(dev);
+	unsigned long val = 0;
+
+	if (kstrtoul(buf, 10, &val) < 0)
+		return -EINVAL;
+
+	if (nvgpu_is_powered_on(g)) {
+		nvgpu_err(g, "GPU is powered on already, emulate mode "
+					"cannot be enabled");
+		return -EINVAL;
+	}
+
+	if (val < EMULATE_MODE_MAX_CONFIG) {
+		g->emulate_mode = val;
+		nvgpu_info(g, "emulate mode is set to %d.", g->emulate_mode);
+	} else {
+		nvgpu_err(g, "Unsupported emulate_mode %lx", val);
+	}
+
+	return count;
+}
+
+static ssize_t emulate_mode_read(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	struct gk20a *g = get_gk20a(dev);
+
+	return snprintf(buf, NVGPU_CPU_PAGE_SIZE, "%d\n", g->emulate_mode);
+}
+
+static DEVICE_ATTR(emulate_mode, ROOTRW, emulate_mode_read, emulate_mode_store);
+
 void nvgpu_remove_sysfs(struct device *dev)
 {
 	device_remove_file(dev, &dev_attr_elcg_enable);
@@ -1215,6 +1250,7 @@ void nvgpu_remove_sysfs(struct device *dev)
 	device_remove_file(dev, &dev_attr_mig_mode_config_list);
 	device_remove_file(dev, &dev_attr_mig_mode_config);
 #endif
+	device_remove_file(dev, &dev_attr_emulate_mode);
 	if (strcmp(dev_name(dev), "gpu.0")) {
 		struct kobject *kobj = &dev->kobj;
 		struct device *parent = container_of((kobj->parent),
@@ -1279,6 +1315,7 @@ int nvgpu_create_sysfs(struct device *dev)
 	error |= device_create_file(dev, &dev_attr_mig_mode_config_list);
 	error |= device_create_file(dev, &dev_attr_mig_mode_config);
 #endif
+	error |= device_create_file(dev, &dev_attr_emulate_mode);
 	if (strcmp(dev_name(dev), "gpu.0")) {
 		struct kobject *kobj = &dev->kobj;
 		struct device *parent = container_of((kobj->parent),

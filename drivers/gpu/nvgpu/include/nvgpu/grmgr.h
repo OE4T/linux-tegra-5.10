@@ -30,6 +30,15 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/gk20a.h>
 
+#define EMULATE_MODE_MASK          0X000000FFU
+
+enum emulate_mode_config {
+	EMULATE_MODE_DISABLE = 0U,
+	EMULATE_MODE_1_GPC = 1U,
+	EMULATE_MODE_2_GPC = 2U,
+	EMULATE_MODE_MAX_CONFIG = 3U
+};
+
 struct gk20a;
 
 int nvgpu_init_gr_manager(struct gk20a *g);

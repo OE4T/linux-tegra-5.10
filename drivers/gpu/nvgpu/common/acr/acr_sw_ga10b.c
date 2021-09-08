@@ -25,6 +25,7 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/pmu.h>
+#include <nvgpu/grmgr.h>
 #ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/fw.h>
 #endif
@@ -154,6 +155,11 @@ static int ga10b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 		 * Offset from the WPR region holding the wpr header
 		 */
 		acr_sysmem_desc->wpr_offset = WPR_OFFSET;
+
+		if (g->emulate_mode < EMULATE_MODE_MAX_CONFIG) {
+			acr_sysmem_desc->gpu_mode &= (~EMULATE_MODE_MASK);
+			acr_sysmem_desc->gpu_mode |= g->emulate_mode;
+		}
         }
 load:
 	/*

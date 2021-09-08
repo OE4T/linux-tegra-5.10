@@ -775,6 +775,13 @@ struct flcn2_acr_desc {
 	u64 nonwpr_ucode_blob_start;
 
 	u64 ls_pmu_desc;
+
+	/**
+	 * stores flag value to enable:
+	 * emulate_mode       7:0 bit
+	 * MIG mode          15:8 bit
+	 */
+	u32 gpu_mode;
 };
 
 /** @} */
