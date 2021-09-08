@@ -69,14 +69,25 @@ int nvgpu_pmu_lsfm_int_wpr_region(struct gk20a *g,
 int nvgpu_pmu_lsfm_bootstrap_ls_falcon(struct gk20a *g,
 	struct nvgpu_pmu *pmu, struct nvgpu_pmu_lsfm *lsfm, u32 falcon_id_mask)
 {
+	int status = 0;
+
 	if (is_lsfm_supported(g, pmu, lsfm)) {
-		if (lsfm->bootstrap_ls_falcon != NULL) {
-			return lsfm->bootstrap_ls_falcon(g, pmu, lsfm,
+		if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+			if (lsfm->bootstrap_ls_falcon != NULL) {
+				status = lsfm->bootstrap_ls_falcon(g, pmu, lsfm,
 					falcon_id_mask);
+			}
+		} else {
+			status = lsfm->bootstrap_ls_falcon(g, pmu, lsfm, FALCON_ID_FECS);
+			if (status != 0) {
+				return status;
+			}
+
+			status = lsfm->bootstrap_ls_falcon(g, pmu, lsfm, FALCON_ID_GPCCS);
 		}
 	}
 
-	return 0;
+	return status;
 }
 
 int nvgpu_pmu_lsfm_ls_pmu_cmdline_args_copy(struct gk20a *g,
@@ -110,6 +121,10 @@ void nvgpu_pmu_lsfm_rpc_handler(struct gk20a *g,
 	case NV_PMU_RPC_ID_ACR_BOOTSTRAP_GR_FALCONS:
 		nvgpu_pmu_dbg(g,
 			"reply NV_PMU_RPC_ID_ACR_BOOTSTRAP_GR_FALCONS");
+		pmu->lsfm->loaded_falcon_id = 1U;
+		break;
+	case NV_PMU_RPC_ID_ACR_BOOTSTRAP_FALCON:
+		nvgpu_pmu_dbg(g, "reply NV_PMU_RPC_ID_ACR_BOOTSTRAP_FALCON");
 		pmu->lsfm->loaded_falcon_id = 1U;
 		break;
 	default:

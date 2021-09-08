@@ -743,6 +743,9 @@ struct flcn_acr_desc {
 	u32 dummy[DUMMY_SPACE_SIZE];
 };
 
+/* MIG mode selection*/
+#define MIG_MODE                      BIT(8U)
+
 struct flcn2_acr_desc {
 	/**
 	 * WPR Region ID holding the WPR header and its details

@@ -28,8 +28,13 @@
 #include <nvgpu/pmu/cmd.h>
 #include <nvgpu/pmu/lsfm.h>
 #include <nvgpu/pmu/fw.h>
+#include <nvgpu/gr/config.h>
+#include <nvgpu/gr/gr_utils.h>
+#include <nvgpu/gr/gr_instances.h>
 
 #include "lsfm_sw_gv100.h"
+
+#define LSF_INDEX_MASK_DEFAULT	0x0U
 
 static int gv100_pmu_lsfm_init_acr_wpr_region(struct gk20a *g,
 	struct nvgpu_pmu *pmu)
@@ -104,6 +109,79 @@ exit:
 	return status;
 }
 
+static u32 fetch_gpc_falcon_idx_mask(struct gk20a *g)
+{
+	u32 gpc_falcon_idx_mask = 0U;
+
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		gpc_falcon_idx_mask = nvgpu_grmgr_get_gr_logical_gpc_mask(g,
+			nvgpu_gr_get_cur_instance_id(g));
+	} else {
+		u32 gpc_fs_mask;
+		struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
+
+		gpc_fs_mask = nvgpu_gr_config_get_gpc_mask(gr_config);
+		gpc_falcon_idx_mask =
+			nvgpu_safe_sub_u32(
+			(1U << U32(hweight32(gpc_fs_mask))), 1U);
+	}
+
+	return gpc_falcon_idx_mask;
+}
+
+static int gv100_pmu_lsfm_bootstrap_ls_falcon_eng(struct gk20a *g,
+	struct nvgpu_pmu *pmu, struct nvgpu_pmu_lsfm *lsfm, u32 falcon_id)
+{
+	struct nv_pmu_rpc_struct_acr_bootstrap_falcon rpc;
+	u32 flags = PMU_ACR_CMD_BOOTSTRAP_FALCON_FLAGS_RESET_YES;
+	int status = 0;
+
+	lsfm->loaded_falcon_id = 0U;
+
+	/* check whether pmu is ready to bootstrap lsf if not wait for it */
+	if (!lsfm->is_wpr_init_done) {
+		pmu_wait_message_cond(g->pmu,
+			nvgpu_get_poll_timeout(g),
+			&lsfm->is_wpr_init_done, 1U);
+		/* check again if it still not ready indicate an error */
+		if (!lsfm->is_wpr_init_done) {
+			nvgpu_err(g, "PMU not ready to load LSF");
+			status = -ETIMEDOUT;
+			goto exit;
+		}
+	}
+
+	(void) memset(&rpc, 0,
+		sizeof(struct nv_pmu_rpc_struct_acr_bootstrap_falcon));
+
+	rpc.falcon_id = falcon_id;
+	rpc.flags = flags;
+
+	rpc.engine_instance =
+			nvgpu_grmgr_get_gr_syspipe_id(g,
+				nvgpu_gr_get_cur_instance_id(g));
+	rpc.engine_index_mask = LSF_INDEX_MASK_DEFAULT;
+
+	if (falcon_id == FALCON_ID_GPCCS) {
+		rpc.engine_index_mask = fetch_gpc_falcon_idx_mask(g);
+	}
+
+	PMU_RPC_EXECUTE(status, pmu, ACR, BOOTSTRAP_FALCON, &rpc, 0);
+	if (status != 0) {
+		nvgpu_err(g, "Failed to execute RPC, status=0x%x", status);
+		goto exit;
+	}
+
+	pmu_wait_message_cond(g->pmu, nvgpu_get_poll_timeout(g),
+		&lsfm->loaded_falcon_id, 1U);
+
+	if (lsfm->loaded_falcon_id != 1U) {
+		status =  -ETIMEDOUT;
+	}
+exit:
+	return status;
+}
+
 int gv100_update_lspmu_cmdline_args_copy(struct gk20a *g,
 	struct nvgpu_pmu *pmu)
 {
@@ -145,6 +223,10 @@ void nvgpu_gv100_lsfm_sw_init(struct gk20a *g, struct nvgpu_pmu_lsfm *lsfm)
 	lsfm->loaded_falcon_id = 0U;
 
 	lsfm->init_wpr_region = gv100_pmu_lsfm_init_acr_wpr_region;
-	lsfm->bootstrap_ls_falcon = gv100_pmu_lsfm_bootstrap_ls_falcon;
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		lsfm->bootstrap_ls_falcon = gv100_pmu_lsfm_bootstrap_ls_falcon;
+	} else {
+		lsfm->bootstrap_ls_falcon = gv100_pmu_lsfm_bootstrap_ls_falcon_eng;
+	}
 	lsfm->ls_pmu_cmdline_args_copy = gv100_update_lspmu_cmdline_args_copy;
 }

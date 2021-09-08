@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -156,6 +156,31 @@ struct nv_pmu_rpc_struct_acr_bootstrap_gr_falcons {
 	 * during the falcon boot
 	 */
 	struct falc_u64  wpr_base_virtual;
+	u32  scratch[1];
+};
+
+/*
+ * structure that holds data used to
+ * execute BOOTSTRAP_FALCON RPC.
+ */
+struct nv_pmu_rpc_struct_acr_bootstrap_falcon {
+	/*[IN/OUT] Must be first field in RPC structure */
+	struct nv_pmu_rpc_header hdr;
+
+	/* [IN] Falcon ID */
+	u32 falcon_id;
+
+	/* [IN] Engine Instance to be bootstrapped by ACR */
+	u32 engine_instance;
+
+	/* [IN] Mask of indexes of same engine to be multi bootstrapped by ACR */
+	u32 engine_index_mask;
+
+	/*
+	 * [IN] Boostrapping flags
+	 */
+	u32 flags;
+
 	u32  scratch[1];
 };
 

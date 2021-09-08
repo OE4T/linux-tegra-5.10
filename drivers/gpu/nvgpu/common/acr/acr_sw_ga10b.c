@@ -160,7 +160,14 @@ static int ga10b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 			acr_sysmem_desc->gpu_mode &= (~EMULATE_MODE_MASK);
 			acr_sysmem_desc->gpu_mode |= g->emulate_mode;
 		}
-        }
+
+		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+			acr_sysmem_desc->gpu_mode |= MIG_MODE;
+		} else {
+			acr_sysmem_desc->gpu_mode &= ~MIG_MODE;
+		}
+	}
+
 load:
 	/*
 	 * Push the acr descriptor data to sysmem.
@@ -233,8 +240,11 @@ static u32 ga10b_acr_lsf_fecs(struct gk20a *g,
 	 * not supported.
 	 */
 	lsf->is_lazy_bootstrap = g->support_ls_pmu ? true : false;
-
-	lsf->is_priv_load = false;
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		lsf->is_priv_load = true;
+	} else {
+		lsf->is_priv_load = false;
+	}
 	lsf->get_lsf_ucode_details = nvgpu_acr_lsf_fecs_ucode_details;
 	lsf->get_cmd_line_args_offset = NULL;
 
@@ -256,7 +266,6 @@ static u32 ga10b_acr_lsf_gpccs(struct gk20a *g,
 	 * not supported.
 	 */
 	lsf->is_lazy_bootstrap = g->support_ls_pmu ? true : false;
-
 	lsf->is_priv_load = true;
 	lsf->get_lsf_ucode_details = nvgpu_acr_lsf_gpccs_ucode_details;
 	lsf->get_cmd_line_args_offset = NULL;
