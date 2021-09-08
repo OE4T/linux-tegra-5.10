@@ -664,7 +664,6 @@ int32_t pva_release_vpu_app(struct nvpva_elf_context *d, uint16_t exe_id)
 		if (atomic_read(&image->submit_refcount) <= 0)
 			(void)pva_unload_vpu_app(d, exe_id);
 	} else {
-		pr_err("ERROR: ELF Unregister failed");
 		err = -EINVAL;
 	}
 	return err;

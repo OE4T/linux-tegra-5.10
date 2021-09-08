@@ -519,8 +519,6 @@ static int pva_get_symbol_id(struct pva_private *priv, void *arg)
 	err = pva_get_sym_info(&priv->client->elf_ctx, symbol_in->exe_id,
 			     symbol_buffer, &symbol);
 	if (err) {
-		nvhost_err(&priv->pva->pdev->dev, "failed to get symbol id:%s",
-			   symbol_buffer);
 		goto free_mem;
 	}
 
