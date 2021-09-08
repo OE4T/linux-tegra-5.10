@@ -2300,6 +2300,7 @@ static void nvgpu_dbg_gpu_get_valid_mappings(struct nvgpu_channel *ch, u64 start
 	struct dma_buf *dmabuf = NULL;
 	u32 f_mode = FMODE_READ;
 	u32 count = 0;
+	bool just_count = *buf_count ? false : true;
 
 	nvgpu_mutex_acquire(&vm->update_gmmu_lock);
 
@@ -2340,10 +2341,14 @@ static void nvgpu_dbg_gpu_get_valid_mappings(struct nvgpu_channel *ch, u64 start
 		} else {
 			size = min(end, mbuf_curr->addr
 				+ mbuf_curr->size) - key;
-			buffer[count].gpu_va = mbuf_curr->addr;
+			if (just_count == false) {
+				buffer[count].gpu_va = mbuf_curr->addr;
+			}
 		}
 
-		buffer[count].size = size;
+		if (just_count == false) {
+			buffer[count].size = size;
+		}
 
 		(count)++;
 		if (count == count_lmt) {
@@ -2368,18 +2373,12 @@ static int nvgpu_dbg_gpu_get_mappings(struct dbg_session_gk20a *dbg_s,
 	struct nvgpu_channel *ch;
 	u64 start = arg->va_lo;
 	u64 end = arg->va_hi;
-	u32 count_in = 0U;
+	u32 count_in = arg->count;
 	u32 buf_len = 0U;
 	struct nvgpu_dbg_gpu_get_mappings_entry *buffer = NULL;
 
 	if (start > end) {
 		nvgpu_err(g, "start is greater than end");
-		return -EINVAL;
-	}
-
-	count_in = arg->count;
-	if (count_in == 0U) {
-		nvgpu_err(g, "Invalid input param");
 		return -EINVAL;
 	}
 
@@ -2396,11 +2395,18 @@ static int nvgpu_dbg_gpu_get_mappings(struct dbg_session_gk20a *dbg_s,
 		goto clean_up;
 	}
 
-	buf_len = sizeof(*buffer) * count_in;
-	buffer = nvgpu_kzalloc(g, buf_len);
-	if (!buffer) {
-		err = -ENOMEM;
-		goto clean_up;
+	if (count_in) {
+		if (arg->ops_buffer == 0UL) {
+			err = -EINVAL;
+			nvgpu_err(g, "ops_buffer is pointing to NULL");
+			goto clean_up;
+		}
+		buf_len = sizeof(*buffer) * count_in;
+		buffer = nvgpu_kzalloc(g, buf_len);
+		if (!buffer) {
+			err = -ENOMEM;
+			goto clean_up;
+		}
 	}
 
 	nvgpu_dbg_gpu_get_valid_mappings(ch, start, end, &arg->count,
@@ -2410,7 +2416,7 @@ static int nvgpu_dbg_gpu_get_mappings(struct dbg_session_gk20a *dbg_s,
 	 * Buffer will be copied to userspace only when arg->ops_buffer is not
 	 * 0. If value of arg->ops_buffer is 0 then interface only sets count.
 	 */
-	if (arg->ops_buffer) {
+	if (count_in) {
 		err = copy_to_user((void __user *)arg->ops_buffer, buffer,
 			(arg->count * sizeof(*buffer)));
 		if (err != 0) {
@@ -2674,11 +2680,11 @@ static int nvgpu_dbg_gpu_access_gpu_va(struct dbg_session_gk20a *dbg_s,
 
 		if (size > allocated_size) {
 			if (buffer) {
-				nvgpu_kfree(g, buffer);
+				nvgpu_big_free(g, buffer);
 				buffer = NULL;
 			}
 
-			buffer = nvgpu_kzalloc(g, size);
+			buffer = nvgpu_big_zalloc(g, size);
 			if (buffer == NULL) {
 				ret = -ENOMEM;
 				goto fail;
@@ -2713,7 +2719,7 @@ static int nvgpu_dbg_gpu_access_gpu_va(struct dbg_session_gk20a *dbg_s,
 	}
 fail:
 	if (buffer) {
-		 nvgpu_kfree(g, buffer);
+		 nvgpu_big_free(g, buffer);
 	}
 
 	if (ops_buffer) {
