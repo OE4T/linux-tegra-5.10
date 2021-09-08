@@ -284,6 +284,7 @@ int gsp_bootstrap_ns(struct gk20a *g, struct nvgpu_gsp *gsp)
 {
 	int err = 0;
 	struct gsp_fw *gsp_ucode = &gsp->gsp_ucode;
+	struct nvgpu_falcon *flcn = gsp->gsp_flcn;
 
 	nvgpu_log_fn(g, " ");
 
@@ -302,6 +303,11 @@ int gsp_bootstrap_ns(struct gk20a *g, struct nvgpu_gsp *gsp)
 
 	/* Enable required interrupts support and isr */
 	nvgpu_gsp_isr_support(g, true);
+
+	/* setup falcon apertures */
+	if (flcn->flcn_engine_dep_ops.setup_bootstrap_config != NULL) {
+		flcn->flcn_engine_dep_ops.setup_bootstrap_config(flcn->g);
+	}
 
 	err = gsp_ucode_load_and_bootstrap(g, gsp->gsp_flcn, gsp_ucode);
 	if (err != 0) {

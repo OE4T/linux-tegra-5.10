@@ -1259,12 +1259,20 @@ static const struct gops_gsp ga10b_ops_gsp = {
 	/* interrupt */
 	.enable_irq = ga10b_gsp_enable_irq,
 	.gsp_isr = ga10b_gsp_isr,
+	.set_msg_intr = ga10b_gsp_set_msg_intr,
 
 	/* queue */
 	.gsp_get_queue_head = ga10b_gsp_queue_head_r,
 	.gsp_get_queue_head_size = ga10b_gsp_queue_head__size_1_v,
 	.gsp_get_queue_tail = ga10b_gsp_queue_tail_r,
 	.gsp_get_queue_tail_size = ga10b_gsp_queue_tail__size_1_v,
+	.gsp_copy_to_emem = ga10b_gsp_flcn_copy_to_emem,
+	.gsp_copy_from_emem = ga10b_gsp_flcn_copy_from_emem,
+	.gsp_queue_head = ga10b_gsp_queue_head,
+	.gsp_queue_tail = ga10b_gsp_queue_tail,
+	.msgq_tail = ga10b_gsp_msgq_tail,
+
+	.falcon_setup_boot_config = ga10b_gsp_flcn_setup_boot_config,
 #endif /* CONFIG_NVGPU_GSP_SCHEDULER */
 };
 

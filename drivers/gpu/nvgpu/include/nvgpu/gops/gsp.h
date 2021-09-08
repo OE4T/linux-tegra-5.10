@@ -33,14 +33,25 @@ struct gops_gsp {
 	void (*falcon_setup_boot_config)(struct gk20a *g);
 	int (*gsp_reset)(struct gk20a *g);
 #ifdef CONFIG_NVGPU_GSP_SCHEDULER
-	/* queue */
 	u32 (*gsp_get_queue_head)(u32 i);
 	u32 (*gsp_get_queue_head_size)(void);
 	u32 (*gsp_get_queue_tail_size)(void);
 	u32 (*gsp_get_queue_tail)(u32 i);
-
+	int (*gsp_copy_to_emem)(struct gk20a *g, u32 dst,
+			u8 *src, u32 size, u8 port);
+	int (*gsp_copy_from_emem)(struct gk20a *g,
+			u32 src, u8 *dst, u32 size, u8 port);
+	int (*gsp_queue_head)(struct gk20a *g,
+			u32 queue_id, u32 queue_index,
+			u32 *head, bool set);
+	int (*gsp_queue_tail)(struct gk20a *g,
+			u32 queue_id, u32 queue_index,
+			u32 *tail, bool set);
+	void (*msgq_tail)(struct gk20a *g, struct nvgpu_gsp *gsp,
+			u32 *tail, bool set);
 	void (*enable_irq)(struct gk20a *g, bool enable);
 	void (*gsp_isr)(struct gk20a *g);
+	void (*set_msg_intr)(struct gk20a *g);
 #endif /* CONFIG_NVGPU_GSP_SCHEDULER */
 };
 

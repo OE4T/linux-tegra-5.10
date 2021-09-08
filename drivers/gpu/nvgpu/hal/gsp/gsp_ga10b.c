@@ -28,6 +28,7 @@
 #include <nvgpu/bug.h>
 #ifdef CONFIG_NVGPU_GSP_SCHEDULER
 #include <nvgpu/gsp.h>
+#include <nvgpu/string.h>
 #endif
 #ifdef CONFIG_NVGPU_GSP_STRESS_TEST
 #include <nvgpu/gsp/gsp_test.h>
@@ -91,10 +92,13 @@ static bool ga10b_gsp_is_interrupted(struct gk20a *g, u32 *intr)
 	u32 intr_stat = gk20a_readl(g, pgsp_falcon_irqstat_r());
 
 	supported_gsp_int = pgsp_falcon_irqstat_halt_true_f() |
-			pgsp_falcon_irqstat_swgen1_true_f();
+			pgsp_falcon_irqstat_swgen1_true_f() |
+			pgsp_falcon_irqstat_swgen0_true_f() |
+			pgsp_falcon_irqstat_exterr_true_f();
+
+	*intr = intr_stat;
 
 	if ((intr_stat & supported_gsp_int) != 0U) {
-		*intr = intr_stat;
 		return true;
 	}
 
@@ -139,6 +143,8 @@ static void ga10b_gsp_clr_intr(struct gk20a *g, u32 intr)
 
 void ga10b_gsp_handle_interrupts(struct gk20a *g, u32 intr)
 {
+	int err = 0;
+
 	nvgpu_log_fn(g, " ");
 
 	/* swgen1 interrupt handle */
@@ -149,6 +155,25 @@ void ga10b_gsp_handle_interrupts(struct gk20a *g, u32 intr)
 	/* halt interrupt handle */
 	if ((intr & pgsp_falcon_irqstat_halt_true_f()) != 0U) {
 		ga10b_gsp_handle_halt_irq(g);
+	}
+
+	/* exterr interrupt handle */
+	if ((intr & pgsp_falcon_irqstat_exterr_true_f()) != 0U) {
+		nvgpu_err(g,
+			"gsp exterr intr not implemented. Clearing interrupt.");
+
+		nvgpu_writel(g, pgsp_falcon_exterrstat_r(),
+			nvgpu_readl(g, pgsp_falcon_exterrstat_r()) &
+				~pgsp_falcon_exterrstat_valid_m());
+	}
+
+	/* swgen0 interrupt handle */
+	if ((intr & pgsp_falcon_irqstat_swgen0_true_f()) != 0U) {
+		err = nvgpu_gsp_process_message(g);
+		if (err != 0) {
+			nvgpu_err(g, "nvgpu_gsp_process_message failed err=%d",
+				err);
+		}
 	}
 }
 
@@ -251,5 +276,260 @@ void ga10b_gsp_enable_irq(struct gk20a *g, bool enable)
 		nvgpu_cic_mon_intr_stall_unit_config(g,
 				NVGPU_CIC_INTR_UNIT_GSP, NVGPU_CIC_INTR_ENABLE);
 	}
+}
+
+static void gsp_get_emem_boundaries(struct gk20a *g,
+	u32 *start_emem, u32 *end_emem)
+{
+	/*
+	 * EMEM is mapped at the top of DMEM VA space
+	 * START_EMEM = DMEM_VA_MAX = 2^(DMEM_TAG_WIDTH + 8)
+	 */
+	if (start_emem == NULL) {
+		return;
+	}
+	*start_emem = (u32)1U << ((u32)pgsp_falcon_hwcfg1_dmem_tag_width_v(
+			gk20a_readl(g, pgsp_falcon_hwcfg1_r())) + (u32)8U);
+
+
+	if (end_emem == NULL) {
+		return;
+	}
+	*end_emem = *start_emem +
+		((u32)pgsp_hwcfg_emem_size_f(gk20a_readl(g, pgsp_hwcfg_r()))
+		* (u32)256U);
+}
+
+static int gsp_memcpy_params_check(struct gk20a *g, u32 dmem_addr,
+	u32 size_in_bytes, u8 port)
+{
+	u8 max_emem_ports = (u8)pgsp_ememc__size_1_v();
+	u32 start_emem = 0;
+	u32 end_emem = 0;
+	int status = 0;
+
+	if (size_in_bytes == 0U) {
+		nvgpu_err(g, "zero-byte copy requested");
+		status = -EINVAL;
+		goto exit;
+	}
+
+	if (port >= max_emem_ports) {
+		nvgpu_err(g, "only %d ports supported. Accessed port=%d",
+			max_emem_ports, port);
+		status = -EINVAL;
+		goto exit;
+	}
+
+	if ((dmem_addr & 0x3U) != 0U) {
+		nvgpu_err(g, "offset (0x%08x) not 4-byte aligned", dmem_addr);
+		status = -EINVAL;
+		goto exit;
+	}
+
+	gsp_get_emem_boundaries(g, &start_emem, &end_emem);
+
+	if (dmem_addr < start_emem ||
+		(dmem_addr + size_in_bytes) > end_emem) {
+		nvgpu_err(g, "copy must be in emem aperature [0x%x, 0x%x]",
+			start_emem, end_emem);
+		status = -EINVAL;
+		goto exit;
+	}
+
+	return 0;
+
+exit:
+	return status;
+}
+
+static int ga10b_gsp_emem_transfer(struct gk20a *g, u32 dmem_addr, u8 *buf,
+	u32 size_in_bytes, u8 port, bool is_copy_from)
+{
+	u32 *data = (u32 *)(void *)buf;
+	u32 num_words = 0;
+	u32 num_bytes = 0;
+	u32 start_emem = 0;
+	u32 reg = 0;
+	u32 i = 0;
+	u32 emem_c_offset = 0;
+	u32 emem_d_offset = 0;
+	int status = 0;
+
+	status = gsp_memcpy_params_check(g, dmem_addr, size_in_bytes, port);
+	if (status != 0) {
+		goto exit;
+	}
+
+	/*
+	 * Get the EMEMC/D register addresses
+	 * for the specified port
+	 */
+	emem_c_offset = pgsp_ememc_r(port);
+	emem_d_offset = pgsp_ememd_r(port);
+
+	/* Only start address needed */
+	gsp_get_emem_boundaries(g, &start_emem, NULL);
+
+	/* Convert to emem offset for use by EMEMC/EMEMD */
+	dmem_addr -= start_emem;
+
+	/* Mask off all but the OFFSET and BLOCK in EMEM offset */
+	reg = dmem_addr & (pgsp_ememc_offs_m() |
+		pgsp_ememc_blk_m());
+
+	if (is_copy_from) {
+		/* mark auto-increment on read */
+		reg |= pgsp_ememc_aincr_m();
+	} else {
+		/* mark auto-increment on write */
+		reg |= pgsp_ememc_aincw_m();
+	}
+
+	gk20a_writel(g, emem_c_offset, reg);
+
+	/* Calculate the number of words and bytes */
+	num_words = size_in_bytes >> 2U;
+	num_bytes = size_in_bytes & 0x3U;
+
+	/* Directly copy words to emem*/
+	for (i = 0; i < num_words; i++) {
+		if (is_copy_from) {
+			data[i] = gk20a_readl(g, emem_d_offset);
+		} else {
+			gk20a_writel(g, emem_d_offset, data[i]);
+		}
+	}
+
+	/* Check if there are leftover bytes to copy */
+	if (num_bytes > 0U) {
+		u32 bytes_copied = num_words << 2U;
+
+		reg = gk20a_readl(g, emem_d_offset);
+		if (is_copy_from) {
+			nvgpu_memcpy((buf + bytes_copied), ((u8 *)&reg),
+					num_bytes);
+		} else {
+			nvgpu_memcpy(((u8 *)&reg), (buf + bytes_copied),
+					num_bytes);
+			gk20a_writel(g, emem_d_offset, reg);
+		}
+	}
+
+exit:
+	return status;
+}
+
+int ga10b_gsp_flcn_copy_to_emem(struct gk20a *g,
+	u32 dst, u8 *src, u32 size, u8 port)
+{
+	return ga10b_gsp_emem_transfer(g, dst, src, size, port, false);
+}
+
+int ga10b_gsp_flcn_copy_from_emem(struct gk20a *g,
+	u32 src, u8 *dst, u32 size, u8 port)
+{
+	return ga10b_gsp_emem_transfer(g, src, dst, size, port, true);
+}
+
+void ga10b_gsp_flcn_setup_boot_config(struct gk20a *g)
+{
+	nvgpu_log_fn(g, " ");
+
+	/* setup apertures - virtual */
+	gk20a_writel(g, pgsp_fbif_transcfg_r(GK20A_PMU_DMAIDX_UCODE),
+			pgsp_fbif_transcfg_mem_type_physical_f() |
+			pgsp_fbif_transcfg_target_local_fb_f());
+	gk20a_writel(g, pgsp_fbif_transcfg_r(GK20A_PMU_DMAIDX_VIRT),
+			pgsp_fbif_transcfg_mem_type_virtual_f());
+	/* setup apertures - physical */
+	gk20a_writel(g, pgsp_fbif_transcfg_r(GK20A_PMU_DMAIDX_PHYS_VID),
+			pgsp_fbif_transcfg_mem_type_physical_f() |
+			pgsp_fbif_transcfg_target_local_fb_f());
+	gk20a_writel(g, pgsp_fbif_transcfg_r(GK20A_PMU_DMAIDX_PHYS_SYS_COH),
+			pgsp_fbif_transcfg_mem_type_physical_f() |
+			pgsp_fbif_transcfg_target_coherent_sysmem_f());
+	gk20a_writel(g, pgsp_fbif_transcfg_r(GK20A_PMU_DMAIDX_PHYS_SYS_NCOH),
+			pgsp_fbif_transcfg_mem_type_physical_f() |
+			pgsp_fbif_transcfg_target_noncoherent_sysmem_f());
+
+}
+
+int ga10b_gsp_queue_head(struct gk20a *g, u32 queue_id, u32 queue_index,
+	u32 *head, bool set)
+{
+	u32 queue_head_size = 8;
+
+	if (queue_id <= nvgpu_gsp_get_last_cmd_id(g)) {
+		if (queue_index >= queue_head_size) {
+			return -EINVAL;
+		}
+
+		if (!set) {
+			*head = pgsp_queue_head_address_v(
+				gk20a_readl(g, pgsp_queue_head_r(queue_index)));
+		} else {
+			gk20a_writel(g, pgsp_queue_head_r(queue_index),
+				pgsp_queue_head_address_f(*head));
+		}
+	} else {
+		if (!set) {
+			*head = pgsp_msgq_head_val_v(
+				gk20a_readl(g, pgsp_msgq_head_r(0U)));
+		} else {
+			gk20a_writel(g,
+				pgsp_msgq_head_r(0U),
+				pgsp_msgq_head_val_f(*head));
+		}
+	}
+
+	return 0;
+}
+
+int ga10b_gsp_queue_tail(struct gk20a *g, u32 queue_id, u32 queue_index,
+	u32 *tail, bool set)
+{
+	u32 queue_tail_size = 8;
+
+	if (queue_id == nvgpu_gsp_get_last_cmd_id(g)) {
+		if (queue_index >= queue_tail_size) {
+			return -EINVAL;
+		}
+
+		if (!set) {
+			*tail = pgsp_queue_tail_address_v(
+				gk20a_readl(g, pgsp_queue_tail_r(queue_index)));
+		} else {
+			gk20a_writel(g,
+				pgsp_queue_tail_r(queue_index),
+				pgsp_queue_tail_address_f(*tail));
+		}
+	} else {
+		if (!set) {
+			*tail = pgsp_msgq_tail_val_v(
+				gk20a_readl(g, pgsp_msgq_tail_r(0U)));
+		} else {
+			gk20a_writel(g, pgsp_msgq_tail_r(0U),
+				pgsp_msgq_tail_val_f(*tail));
+		}
+	}
+
+	return 0;
+}
+
+void ga10b_gsp_msgq_tail(struct gk20a *g, struct nvgpu_gsp *gsp,
+	u32 *tail, bool set)
+{
+	if (!set) {
+		*tail = gk20a_readl(g, pgsp_msgq_tail_r(0U));
+	} else {
+		gk20a_writel(g, pgsp_msgq_tail_r(0U), *tail);
+	}
+}
+
+void ga10b_gsp_set_msg_intr(struct gk20a *g)
+{
+	gk20a_writel(g, pgsp_riscv_irqmset_r(),
+		pgsp_riscv_irqmset_swgen0_f(1));
 }
 #endif /* CONFIG_NVGPU_GSP_SCHEDULER */

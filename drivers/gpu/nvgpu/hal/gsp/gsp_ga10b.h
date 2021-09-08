@@ -27,14 +27,27 @@ u32 ga10b_gsp_falcon_base_addr(void);
 u32 ga10b_gsp_falcon2_base_addr(void);
 int ga10b_gsp_engine_reset(struct gk20a *g);
 #ifdef CONFIG_NVGPU_GSP_SCHEDULER
+void ga10b_gsp_flcn_setup_boot_config(struct gk20a *g);
+
 /* queue */
 u32 ga10b_gsp_queue_head_r(u32 i);
 u32 ga10b_gsp_queue_head__size_1_v(void);
 u32 ga10b_gsp_queue_tail_r(u32 i);
 u32 ga10b_gsp_queue_tail__size_1_v(void);
+int ga10b_gsp_queue_head(struct gk20a *g, u32 queue_id, u32 queue_index,
+	u32 *head, bool set);
+int ga10b_gsp_queue_tail(struct gk20a *g, u32 queue_id, u32 queue_index,
+	u32 *tail, bool set);
+void ga10b_gsp_msgq_tail(struct gk20a *g, struct nvgpu_gsp *gsp,
+	u32 *tail, bool set);
+int ga10b_gsp_flcn_copy_to_emem(struct gk20a *g,
+	u32 dst, u8 *src, u32 size, u8 port);
+int ga10b_gsp_flcn_copy_from_emem(struct gk20a *g,
+	u32 src, u8 *dst, u32 size, u8 port);
 
 /* interrupt */
 void ga10b_gsp_enable_irq(struct gk20a *g, bool enable);
 void ga10b_gsp_isr(struct gk20a *g);
+void ga10b_gsp_set_msg_intr(struct gk20a *g);
 #endif /* CONFIG_NVGPU_GSP_SCHEDULER */
 #endif /* GSP_GA10B_H */

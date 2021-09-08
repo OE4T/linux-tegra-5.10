@@ -21,6 +21,7 @@
  */
 #include <nvgpu/gk20a.h>
 #include <nvgpu/falcon.h>
+#include <nvgpu/gops/gsp.h>
 
 #include "common/falcon/falcon_sw_gk20a.h"
 #include "common/falcon/falcon_sw_ga10b.h"
@@ -131,6 +132,13 @@ static void ga10b_falcon_engine_dependency_ops(struct nvgpu_falcon *flcn)
 		break;
 	case FALCON_ID_GSPLITE:
 		flcn_eng_dep_ops->reset_eng = g->ops.gsp.gsp_reset;
+#ifdef CONFIG_NVGPU_GSP_SCHEDULER
+		flcn_eng_dep_ops->setup_bootstrap_config =
+				g->ops.gsp.falcon_setup_boot_config;
+		flcn_eng_dep_ops->copy_to_emem = g->ops.gsp.gsp_copy_to_emem;
+		flcn_eng_dep_ops->copy_from_emem =
+						g->ops.gsp.gsp_copy_from_emem;
+#endif
 		break;
 	default:
 		/* NULL assignment make sure
@@ -160,6 +168,7 @@ extern void ga10b_falcon_sw_init(struct nvgpu_falcon *flcn)
 		flcn->flcn2_base = g->ops.gsp.falcon2_base_addr();
 		flcn->is_falcon_supported = true;
 		flcn->is_interrupt_enabled = true;
+		flcn->emem_supported = true;
 
 		check_and_enable_falcon2(flcn, &flcn->fuse_settings);
 		break;
