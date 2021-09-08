@@ -312,7 +312,7 @@ int nvgpu_finalize_poweron_linux(struct nvgpu_os_linux *l)
 		return err;
 	}
 
-#ifdef CONFIG_NVGPU_DGPU
+#if defined(CONFIG_NVGPU_DGPU) && defined(CONFIG_DEBUG_FS)
 	if (!g->is_virtual)
 		nvgpu_ce_debugfs_init(g);
 #endif
