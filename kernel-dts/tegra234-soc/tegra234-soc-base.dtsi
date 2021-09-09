@@ -795,6 +795,7 @@
 		resets = <&bpmp_resets TEGRA234_RESET_GPU>;
 		dma-coherent;
 		nvidia,bpmp = <&bpmp>;
+		support-gpu-tools = <1>;
 		status = "disabled";
 	};
 
