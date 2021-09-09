@@ -184,14 +184,17 @@ static void nvgpu_init_pm_vars(struct gk20a *g)
 
 	nvgpu_set_enabled(g, NVGPU_CAN_RAILGATE,
 		nvgpu_platform_is_simulation(g)? true : platform->can_railgate_init);
+#ifdef CONFIG_NVGPU_STATIC_POWERGATE
 	g->can_tpc_pg = platform->can_tpc_pg;
+	g->can_gpc_pg = platform->can_gpc_pg;
+	g->can_fbp_pg = platform->can_fbp_pg;
 
-	for (i = 0; i < MAX_TPC_PG_CONFIGS; i++)
-		g->valid_tpc_mask[i] = platform->valid_tpc_mask[i];
+	for (i = 0; i < MAX_PG_TPC_CONFIGS; i++)
+		g->valid_tpc_pg_mask[i] = platform->valid_tpc_pg_mask[i];
 
-	for (i = 0; i < MAX_GPC_FBP_FS_CONFIGS; i++)
-		g->valid_gpc_fbp_fs_mask[i] = platform->valid_gpc_fbp_fs_mask[i];
-
+	for (i = 0; i < MAX_PG_GPC_FBP_CONFIGS; i++)
+		g->valid_gpc_fbp_pg_mask[i] = platform->valid_gpc_fbp_pg_mask[i];
+#endif
 	g->ldiv_slowdown_factor = platform->ldiv_slowdown_factor_init;
 	/* if default delay is not set, set default delay to 500msec */
 	if (platform->railgate_delay_init)

@@ -1588,6 +1588,7 @@ static int nvgpu_read_fuse_overrides(struct gk20a *g)
 	struct gk20a_platform *platform = dev_get_drvdata(dev_from_gk20a(g));
 	u32 *fuses;
 	int count, i;
+	int ret = 0;
 
 	if (!np) /* may be pcie device */
 		return 0;
@@ -1612,24 +1613,44 @@ static int nvgpu_read_fuse_overrides(struct gk20a *g)
 		case GP10B_FUSE_OPT_ECC_EN:
 			g->fecs_feature_override_ecc_val = value;
 			break;
+#ifdef CONFIG_NVGPU_STATIC_POWERGATE
 		case GV11B_FUSE_OPT_TPC_DISABLE:
-			if (platform->set_tpc_pg_mask != NULL)
-				platform->set_tpc_pg_mask(dev_from_gk20a(g),
+			if (platform->set_tpc_pg_mask != NULL) {
+				ret = platform->set_tpc_pg_mask(dev_from_gk20a(g),
 								value);
+				if (ret != 0) {
+					return -EINVAL;
+				}
+			}
 			break;
 		case GA10B_FUSE_OPT_TPC_DISABLE:
-			/* TBD- JIRA NVGPU-6433 */
+			if (platform->set_tpc_pg_mask != NULL) {
+				ret = platform->set_tpc_pg_mask(dev_from_gk20a(g),
+								value);
+				if (ret != 0) {
+					return -EINVAL;
+				}
+			}
 			break;
 		case GA10B_FUSE_OPT_GPC_DISABLE:
-			if (platform->set_gpc_mask != NULL)
-				platform->set_gpc_mask(dev_from_gk20a(g),
+			if (platform->set_gpc_pg_mask != NULL) {
+				ret = platform->set_gpc_pg_mask(dev_from_gk20a(g),
 								value);
+				if (ret != 0) {
+					return -EINVAL;
+				}
+			}
 			break;
 		case GA10B_FUSE_OPT_FBP_DISABLE:
-			if (platform->set_fbp_mask != NULL)
-				platform->set_fbp_mask(dev_from_gk20a(g),
+			if (platform->set_fbp_pg_mask != NULL) {
+				ret = platform->set_fbp_pg_mask(dev_from_gk20a(g),
 								value);
+				if (ret != 0) {
+					return -EINVAL;
+				}
+			}
 			break;
+#endif
 		default:
 			nvgpu_err(g, "ignore unknown fuse override %08x", fuse);
 			break;

@@ -281,13 +281,19 @@ static int ga10b_tegra_suspend(struct device *dev)
 	return 0;
 }
 
-static bool is_tpc_mask_valid(struct gk20a_platform *platform, u32 tpc_pg_mask)
+#ifdef CONFIG_NVGPU_STATIC_POWERGATE
+static bool ga10b_tegra_is_gpc_fbp_pg_mask_valid(struct gk20a_platform *platform,
+					u32 dt_gpc_fbp_pg_mask)
 {
 	u32 i;
 	bool valid = false;
 
-	for (i = 0; i < MAX_TPC_PG_CONFIGS; i++) {
-		if (tpc_pg_mask == platform->valid_tpc_mask[i]) {
+	for (i = 0U; i < MAX_PG_GPC_FBP_CONFIGS; i++) {
+		/*
+		 * check if gpc/fbp pg mask passed by DT node
+		 * is valid gpc/fbp pg mask
+		 */
+		if (dt_gpc_fbp_pg_mask == platform->valid_gpc_fbp_pg_mask[i]) {
 			valid = true;
 			break;
 		}
@@ -295,15 +301,161 @@ static bool is_tpc_mask_valid(struct gk20a_platform *platform, u32 tpc_pg_mask)
 	return valid;
 }
 
-static void ga10b_tegra_set_tpc_pg_mask(struct device *dev, u32 tpc_pg_mask)
+static int ga10b_tegra_set_gpc_pg_mask(struct device *dev, u32 dt_gpc_pg_mask)
 {
 	struct gk20a_platform *platform = gk20a_get_platform(dev);
 	struct gk20a *g = get_gk20a(dev);
 
-	if (is_tpc_mask_valid(platform, tpc_pg_mask)) {
-		g->tpc_pg_mask = tpc_pg_mask;
+	if (ga10b_tegra_is_gpc_fbp_pg_mask_valid(platform, dt_gpc_pg_mask)) {
+		g->gpc_pg_mask = dt_gpc_pg_mask;
+		/*
+		 * update FBP PG mask same as GPC PG mask
+		 * as there is 1:1 mapping for GPC and FBP
+		 */
+		g->fbp_pg_mask = dt_gpc_pg_mask;
+		return 0;
+	}
+
+	nvgpu_err(g, "Invalid GPC-PG mask");
+	return -EINVAL;
+}
+
+static int ga10b_tegra_set_fbp_pg_mask(struct device *dev, u32 dt_fbp_pg_mask)
+{
+	struct gk20a_platform *platform = gk20a_get_platform(dev);
+	struct gk20a *g = get_gk20a(dev);
+
+	if (ga10b_tegra_is_gpc_fbp_pg_mask_valid(platform, dt_fbp_pg_mask)) {
+		g->fbp_pg_mask = dt_fbp_pg_mask;
+		/*
+		 * update GPC PG mask same as FBP PG mask
+		 * as there is 1:1 mapping for GPC and FBP
+		 */
+		g->gpc_pg_mask = dt_fbp_pg_mask;
+		return 0;
+	}
+
+	nvgpu_err(g, "Invalid FBP-PG mask");
+	return -EINVAL;
+}
+
+static void ga10b_tegra_set_valid_tpc_pg_mask(struct gk20a_platform *platform)
+{
+	u32 i;
+
+	for (i = 0U; i < MAX_PG_TPC_CONFIGS; i++) {
+		/*
+		 * There are 4 TPCs in each GPC in ga10b
+		 * thus, valid tpc pg mask ranges from
+		 * 0x0 to 0xF
+		 * 0XF will powergate all TPCs, but this
+		 * value will be re-checked again as per the
+		 * the GPC-PG mask
+		 */
+		platform->valid_tpc_pg_mask[i] = i;
 	}
 }
+
+static int ga10b_tegra_set_tpc_pg_mask(struct device *dev, u32 dt_tpc_pg_mask)
+{
+	struct gk20a *g = get_gk20a(dev);
+	struct gk20a_platform *platform = gk20a_get_platform(dev);
+	u32 i, j;
+	bool pg_status, valid = false;
+	/* Hold tpc pg mask value for validation */
+	u32 tmp_tpc_pg_mask[MAX_PG_GPC];
+	/* Hold user requested combined tpc pg mask value */
+	u32 combined_tpc_pg_mask;
+
+	/* first set the valid masks ranges for tpc pg */
+	ga10b_tegra_set_valid_tpc_pg_mask(platform);
+
+	/*
+	 * if tpc pg mask sent from DT node tries
+	 * to powergate all the TPCs in both GPC0 and GPC1
+	 * then it is inavlid pg config
+	 */
+	if (dt_tpc_pg_mask == 0xFF) {
+		nvgpu_err(g, "Invalid TPC_PG_MASK:0x%x", dt_tpc_pg_mask);
+		return -EINVAL;
+	} else {
+		/* store dt_tpc_pg_mask in a temp variable */
+		combined_tpc_pg_mask = dt_tpc_pg_mask;
+
+		/* separately store tpc pg mask in a temp array */
+		for (i = 0U; i < MAX_PG_GPC; i++) {
+			tmp_tpc_pg_mask[i] = (combined_tpc_pg_mask >> (4*i)) & 0xFU;
+		}
+
+		/* check if the tpc pg mask sent from DT is valid or not */
+		for (i = 0U ; i < MAX_PG_GPC; i++) {
+			for (j = 0U; j < MAX_PG_TPC_CONFIGS; j++) {
+				if (tmp_tpc_pg_mask[i] == platform->valid_tpc_pg_mask[j]) {
+					/* store the valid config */
+					g->tpc_pg_mask[i] = tmp_tpc_pg_mask[i];
+					valid = true;
+					break;
+				}
+			}
+			if (valid == false) {
+				nvgpu_err(g, "Invalid TPC PG mask: 0x%x",
+								tmp_tpc_pg_mask[i]);
+				return -EINVAL;
+			}
+		}
+		/*
+		 * check if all TPCs of a GPC are powergated
+		 * then powergate the corresponding GPC
+		 */
+		for (i = 0U; i < MAX_PG_GPC; i++) {
+			if (g->tpc_pg_mask[i] == 0xFU) {
+				g->gpc_pg_mask = (0x1U << i);
+				g->fbp_pg_mask = (0x1U << i);
+			}
+		}
+
+		/*
+		 * If any one GPC is already floorswept
+		 * then all the TPCs in that GPC are floorswept
+		 * based on gpc_mask update the tpc_pg_mask
+		 */
+		switch (g->gpc_pg_mask) {
+		case 0x0: /* do nothing as all GPCs are active */
+			break;
+		case 0x1:
+			g->tpc_pg_mask[PG_GPC0] = 0xFU;
+			break;
+		case 0x2:
+			g->tpc_pg_mask[PG_GPC1] = 0xFU;
+			break;
+		default:
+			nvgpu_err(g, "Invalid GPC PG mask: 0x%x",
+					 g->gpc_pg_mask);
+			return -EINVAL;
+		}
+	}
+
+	/*
+	 * If both GPC0_TPC and GPC1_TPC mask are 0xF
+	 * then it is invalid as we cannot powergate
+	 * all the TPCs on the chip. This is invalid
+	 * configuration
+	 */
+	for (i = 0U; i < MAX_PG_GPC; i++) {
+		if (g->tpc_pg_mask[i] == 0xF) {
+			pg_status = true;
+		} else {
+			pg_status = false;
+			break;
+		}
+	}
+	if (pg_status == true) {
+		nvgpu_err(g, "Disabling all TPCs isn't allowed!");
+		return -EINVAL;
+	}
+	return 0;
+}
+#endif
 
 struct gk20a_platform ga10b_tegra_platform = {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
@@ -321,11 +473,28 @@ struct gk20a_platform ga10b_tegra_platform = {
 	.railgate_delay_init    = 500,
 	.can_railgate_init      = false,
 
+#ifdef CONFIG_NVGPU_STATIC_POWERGATE
 	/* add tpc powergate JIRA NVGPU-4683 */
 	.can_tpc_pg             = false,
+	.can_gpc_pg             = false,
+	.can_fbp_pg             = false,
 
-	.set_tpc_pg_mask	= ga10b_tegra_set_tpc_pg_mask,
+	/*
+	 * there are 2 GPCs and 2 FBPs
+	 * so the valid config to powergate
+	 * is 0x0 (all active)
+	 * 0x1 (GPC1/FBP1 active)
+	 * 0x2 (GPC0/FBP0 active)
+	 * 0x3 (both powergated) becomes invalid
+	 */
+	.valid_gpc_fbp_pg_mask[0]  = 0x0,
+	.valid_gpc_fbp_pg_mask[1]  = 0x1,
+	.valid_gpc_fbp_pg_mask[2]  = 0x2,
 
+	.set_tpc_pg_mask        = ga10b_tegra_set_tpc_pg_mask,
+	.set_gpc_pg_mask        = ga10b_tegra_set_gpc_pg_mask,
+	.set_fbp_pg_mask        = ga10b_tegra_set_fbp_pg_mask,
+#endif
 	.can_slcg               = true,
 	.can_blcg               = true,
 	.can_elcg               = true,

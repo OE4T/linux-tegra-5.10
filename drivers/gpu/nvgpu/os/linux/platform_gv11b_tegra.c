@@ -207,13 +207,14 @@ static int gv11b_tegra_suspend(struct device *dev)
 	return 0;
 }
 
-static bool is_tpc_mask_valid(struct gk20a_platform *platform, u32 tpc_pg_mask)
+static bool gv11b_tegra_is_tpc_mask_valid(struct gk20a_platform *platform,
+						u32 dt_tpc_pg_mask)
 {
 	u32 i;
 	bool valid = false;
 
-	for (i = 0; i < MAX_TPC_PG_CONFIGS; i++) {
-		if (tpc_pg_mask == platform->valid_tpc_mask[i]) {
+	for (i = 0U; i < MAX_PG_TPC_CONFIGS; i++) {
+		if (dt_tpc_pg_mask == platform->valid_tpc_pg_mask[i]) {
 			valid = true;
 			break;
 		}
@@ -221,13 +222,17 @@ static bool is_tpc_mask_valid(struct gk20a_platform *platform, u32 tpc_pg_mask)
 	return valid;
 }
 
-static void gv11b_tegra_set_tpc_pg_mask(struct device *dev, u32 tpc_pg_mask)
+static int gv11b_tegra_set_tpc_pg_mask(struct device *dev, u32 dt_tpc_pg_mask)
 {
 	struct gk20a_platform *platform = gk20a_get_platform(dev);
 	struct gk20a *g = get_gk20a(dev);
 
-	if (is_tpc_mask_valid(platform, tpc_pg_mask)) {
-		g->tpc_pg_mask = tpc_pg_mask;
+	if (gv11b_tegra_is_tpc_mask_valid(platform, dt_tpc_pg_mask)) {
+		g->tpc_pg_mask[PG_GPC0] = dt_tpc_pg_mask;
+		return 0;
+	} else {
+		nvgpu_err(g, "Invalid TPC-PG mask");
+		return -EINVAL;
 	}
 }
 
@@ -245,21 +250,22 @@ struct gk20a_platform gv11b_tegra_platform = {
 	.late_probe = gv11b_tegra_late_probe,
 	.remove = gv11b_tegra_remove,
 	.railgate_delay_init    = 500,
-	.can_railgate_init      = true,
 
-	.can_tpc_pg             = true,
-	.valid_tpc_mask[0]      = 0x0,
-	.valid_tpc_mask[1]      = 0x1,
-	.valid_tpc_mask[2]      = 0x2,
-	.valid_tpc_mask[3]      = 0x4,
-	.valid_tpc_mask[4]      = 0x8,
-	.valid_tpc_mask[5]      = 0x5,
-	.valid_tpc_mask[6]      = 0x6,
-	.valid_tpc_mask[7]      = 0x9,
-	.valid_tpc_mask[8]      = 0xa,
+	.can_railgate_init      = true,
+#ifdef CONFIG_NVGPU_STATIC_POWERGATE
+	.can_tpc_pg                = true,
+	.valid_tpc_pg_mask[0]      = 0x0,
+	.valid_tpc_pg_mask[1]      = 0x1,
+	.valid_tpc_pg_mask[2]      = 0x2,
+	.valid_tpc_pg_mask[3]      = 0x4,
+	.valid_tpc_pg_mask[4]      = 0x8,
+	.valid_tpc_pg_mask[5]      = 0x5,
+	.valid_tpc_pg_mask[6]      = 0x6,
+	.valid_tpc_pg_mask[7]      = 0x9,
+	.valid_tpc_pg_mask[8]      = 0xa,
 
 	.set_tpc_pg_mask	= gv11b_tegra_set_tpc_pg_mask,
-
+#endif
 	.can_slcg               = true,
 	.can_blcg               = true,
 	.can_elcg               = true,

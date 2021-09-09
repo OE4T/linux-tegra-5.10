@@ -287,21 +287,24 @@ struct railgate_stats {
 /**
  * @}
  */
-
 /** @cond DOXYGEN_SHOULD_SKIP_THIS */
-/* MAX_TPC_PG_CONFIGS describes the maximum number of
- * valid confiurations we can have for the TPC mask. The valid
- * mask is used by SW to write to NV_FUSE_OPT_CTRL_GPC_TPC
- * register to powergate the TPC in each GPC
- *
- * MAX_GPC_FBP_FS_CONFIGS describes the maximum number of
- * valid confiurations we can have for the GPC and FBP mask.
- * The valid mask is used by SW to write to NV_FUSE_OPT_CTRL_GPC
- * NV_FUSE_OPT_CTRL_FBP registers to powergate the GPC and
- * floorsweep FBP
+#ifdef CONFIG_NVGPU_STATIC_POWERGATE
+#define MAX_PG_GPC		2
+#define MAX_TPC_PER_GPC		4
+#define PG_GPC0			0
+#define PG_GPC1			1
+/*
+ * MAX_PG_TPC_CONFIGS describes the maximum number of
+ * valid configurations we can have for the TPC mask.
  */
-#define MAX_TPC_PG_CONFIGS      9
-#define MAX_GPC_FBP_FS_CONFIGS	3
+#define MAX_PG_TPC_CONFIGS	(0x1 << MAX_TPC_PER_GPC)
+/*
+ * MAX_PG_GPC_FBP_CONFIGS describes the maximum number of
+ * valid configurations we can have for the GPC and FBP mask.
+ */
+#define MAX_PG_GPC_FBP_CONFIGS	((0x1 << MAX_PG_GPC) - 1)
+
+#endif
 
 struct nvgpu_gpfifo_userdata {
 	struct nvgpu_gpfifo_entry nvgpu_user *entries;
@@ -724,17 +727,25 @@ struct gk20a {
 	u32 fecs_feature_override_ecc_val;
 #endif
 
+#ifdef CONFIG_NVGPU_STATIC_POWERGATE
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
-	u32 tpc_pg_mask;
+	/* tpc pg mask array for available GPCs */
+	u32 tpc_pg_mask[MAX_PG_GPC];
 	u32 fbp_pg_mask;
 	u32 gpc_pg_mask;
 	bool can_tpc_pg;
 	bool can_fbp_pg;
 	bool can_gpc_pg;
 
-	u32 valid_tpc_mask[MAX_TPC_PG_CONFIGS];
-	u32 valid_gpc_fbp_fs_mask[MAX_GPC_FBP_FS_CONFIGS];
-
+	/*
+	 * Valid config array for tpc pg mask
+	 * and gpc/fbp mask. These valid values
+	 * are chip specific and calculated based
+	 * on available number of GPC, FBP and TPC
+	 */
+	u32 valid_tpc_pg_mask[MAX_PG_TPC_CONFIGS];
+	u32 valid_gpc_fbp_pg_mask[MAX_PG_GPC_FBP_CONFIGS];
+#endif
 	struct nvgpu_bios *bios;
 	bool bios_is_init;
 

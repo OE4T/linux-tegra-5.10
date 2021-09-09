@@ -836,14 +836,6 @@ static ssize_t force_idle_read(struct device *dev,
 static DEVICE_ATTR(force_idle, ROOTRW, force_idle_read, force_idle_store);
 #endif
 
-static ssize_t tpc_pg_mask_read(struct device *dev,
-	struct device_attribute *attr, char *buf)
-{
-	struct gk20a *g = get_gk20a(dev);
-
-	return snprintf(buf, NVGPU_CPU_PAGE_SIZE, "%d\n", g->tpc_pg_mask);
-}
-
 static ssize_t gpc_fs_mask_show(struct device *dev,
 	struct device_attribute *attr, char *buf)
 {
@@ -886,18 +878,28 @@ static ssize_t fbp_fs_mask_show(struct device *dev,
 
 static DEVICE_ATTR_RO(fbp_fs_mask);
 
+#ifdef CONFIG_NVGPU_STATIC_POWERGATE
 static bool is_tpc_mask_valid(struct gk20a *g, u32 tpc_mask)
 {
 	u32 i;
 	bool valid = false;
 
-	for (i = 0; i < MAX_TPC_PG_CONFIGS; i++) {
-		if (tpc_mask == g->valid_tpc_mask[i]) {
+	for (i = 0U; i < MAX_PG_TPC_CONFIGS; i++) {
+		if (tpc_mask == g->valid_tpc_pg_mask[i]) {
 			valid = true;
 			break;
 		}
 	}
 	return valid;
+}
+
+static ssize_t tpc_pg_mask_read(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	struct gk20a *g = get_gk20a(dev);
+
+	return snprintf(buf, NVGPU_CPU_PAGE_SIZE, "%d\n",
+					g->tpc_pg_mask[PG_GPC0]);
 }
 
 static ssize_t tpc_pg_mask_store(struct device *dev,
@@ -915,7 +917,7 @@ static ssize_t tpc_pg_mask_store(struct device *dev,
 		return -EINVAL;
 	}
 
-	if (val == g->tpc_pg_mask) {
+	if (val == g->tpc_pg_mask[PG_GPC0]) {
 		nvgpu_info(g, "no value change, same mask already set");
 		goto exit;
 	}
@@ -935,7 +937,7 @@ static ssize_t tpc_pg_mask_store(struct device *dev,
 	 * the  possible valid TPC configurations.
 	 */
 	if (is_tpc_mask_valid(g, (u32)val)) {
-		g->tpc_pg_mask = val;
+		g->tpc_pg_mask[PG_GPC0] = val;
 	} else {
 		nvgpu_err(g, "TPC-PG mask is invalid");
 		nvgpu_mutex_release(&g->static_pg_lock);
@@ -946,6 +948,7 @@ exit:
 
 	return count;
 }
+#endif
 
 static DEVICE_ATTR(tpc_pg_mask, ROOTRW, tpc_pg_mask_read, tpc_pg_mask_store);
 

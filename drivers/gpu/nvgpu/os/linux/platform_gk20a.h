@@ -81,6 +81,7 @@ struct gk20a_platform {
 	/* controls gc off feature for pci gpu */
 	bool can_pci_gc_off;
 
+#ifdef CONFIG_NVGPU_STATIC_POWERGATE
 	/* Should be populated at probe. */
 	bool can_tpc_pg;
 
@@ -89,7 +90,7 @@ struct gk20a_platform {
 
 	/* Should be populated at probe. */
 	bool can_gpc_pg;
-
+#endif
 	/* Should be populated at probe. */
 	bool can_elpg_init;
 
@@ -118,12 +119,14 @@ struct gk20a_platform {
 	/* Reset control for device */
 	struct reset_control *reset_control;
 #endif
-	/* valid TPC-MASK */
-	u32 valid_tpc_mask[MAX_TPC_PG_CONFIGS];
 
-	/* Valid GPC and FBP mask */
-	u32 valid_gpc_fbp_fs_mask[MAX_GPC_FBP_FS_CONFIGS];
+#ifdef CONFIG_NVGPU_STATIC_POWERGATE
+	/* valid TPC-PG MASK */
+	u32 valid_tpc_pg_mask[MAX_PG_TPC_CONFIGS];
 
+	/* Valid GPC-PG and FBP-PG mask */
+	u32 valid_gpc_fbp_pg_mask[MAX_PG_GPC_FBP_CONFIGS];
+#endif
 	/* Delay before rail gated */
 	int railgate_delay_init;
 
@@ -244,15 +247,16 @@ struct gk20a_platform {
 	/* Pre callback is called before frequency change */
 	void (*prescale)(struct device *dev);
 
+#ifdef CONFIG_NVGPU_STATIC_POWERGATE
 	/* Set TPC_PG_MASK during probe */
-	void (*set_tpc_pg_mask)(struct device *dev, u32 tpc_pg_mask);
+	int (*set_tpc_pg_mask)(struct device *dev, u32 dt_tpc_pg_mask);
 
-	/* Set GPC_MASK during probe */
-	void (*set_gpc_mask)(struct device *dev, u32 gpc_mask);
+	/* Set GPC_PG_MASK during probe */
+	int (*set_gpc_pg_mask)(struct device *dev, u32 dt_gpc_pg_mask);
 
-	/* Set FBP_MASK during probe */
-	void (*set_fbp_mask)(struct device *dev, u32 fbp_mask);
-
+	/* Set FBP_PG_MASK during probe */
+	int (*set_fbp_pg_mask)(struct device *dev, u32 dt_fbp_pg_mask);
+#endif
 	/* Devfreq governor name. If scaling is enabled, we request
 	 * this governor to be used in scaling */
 	const char *devfreq_governor;

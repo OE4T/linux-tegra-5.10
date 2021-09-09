@@ -25,10 +25,12 @@
 #ifndef NVGPU_TPC_GV11B_H
 #define NVGPU_TPC_GV11B_H
 
+#ifdef CONFIG_NVGPU_STATIC_POWERGATE
 struct gk20a;
 
-int gv11b_tpc_pg(struct gk20a *g, u32 fuse_status);
+int gv11b_tpc_pg(struct gk20a *g, bool *can_tpc_pg);
 void gv11b_gr_pg_tpc(struct gk20a *g);
+#endif
 
 #endif /* NVGPU_TPC_GV11B_H */
 

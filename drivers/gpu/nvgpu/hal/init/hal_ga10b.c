@@ -1637,7 +1637,7 @@ static const struct gops_tpc_pg ga10b_ops_tpc_pg = {
 	 * HALs for static-pg will be updated
 	 * for pre-silicon platform during HAL init.
 	 * For silicon, static-pg feature related settings
-	 * will be taken care of by BPMP.
+	 * will be taken care by BPMP.
 	 * Silicon: assigining the HALs to NULL.
 	 * Pre-Silicon: To-do JIRA-NVGPU-7112
 	 *              to add these HALs
@@ -1757,8 +1757,8 @@ int ga10b_init_hal(struct gk20a *g)
 	gops->priv_ring = ga10b_ops_priv_ring;
 	gops->fuse = ga10b_ops_fuse;
 	gops->top = ga10b_ops_top;
-#ifdef CONFIG_NVGPU_TPC_POWERGATE
-	gops->tpc = ga10b_ops_tpc;
+#ifdef CONFIG_NVGPU_STATIC_POWERGATE
+	gops->tpc_pg = ga10b_ops_tpc_pg;
 #endif
 	gops->grmgr = ga10b_ops_grmgr;
 	gops->chip_init_gpu_characteristics = ga10b_init_gpu_characteristics;

@@ -436,7 +436,6 @@ static int nvgpu_init_fbpa_ecc(struct gk20a *g)
 static int nvgpu_init_power_gate(struct gk20a *g)
 {
 	int err;
-	u32 fuse_status = 0x0;
 
 	/*
 	 * Pre-Silicon - Static pg feature related settings
@@ -478,12 +477,8 @@ static int nvgpu_init_power_gate(struct gk20a *g)
 	 * halt the GPU poweron.
 	 */
 	g->can_tpc_pg = false;
-	if (g->ops.fuse.fuse_status_opt_tpc_gpc != NULL) {
-		fuse_status = g->ops.fuse.fuse_status_opt_tpc_gpc(g, 0);
-	}
-
 	if (g->ops.tpc_pg.init_tpc_pg != NULL) {
-		err = g->ops.tpc_pg.init_tpc_pg(g, fuse_status);
+		err = g->ops.tpc_pg.init_tpc_pg(g, &g->can_tpc_pg);
 		if (err != 0) {
 			return err;
 		}
@@ -518,7 +513,7 @@ static int nvgpu_init_power_gate_gr(struct gk20a *g)
 	}
 	return 0;
 }
-#endif
+#endif /* CONFIG_NVGPU_STATIC_POWERGATE */
 
 static int nvgpu_init_boot_clk_or_clk_arb(struct gk20a *g)
 {
