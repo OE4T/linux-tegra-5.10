@@ -588,7 +588,6 @@ static int ufs_tegra_init_ufs_clks(struct ufs_tegra_host *ufs_tegra)
 		"ufshc", &ufs_tegra->ufshc_clk);
 	if (err)
 		goto out;
-
 	err = ufs_tegra_host_clk_get(dev,
 		"clk_m", &ufs_tegra->ufsdev_parent);
 	if (err)
@@ -597,6 +596,12 @@ static int ufs_tegra_init_ufs_clks(struct ufs_tegra_host *ufs_tegra)
 		"ufsdev_ref", &ufs_tegra->ufsdev_ref_clk);
 	if (err)
 		goto out;
+	if (ufs_tegra->enable_38mhz_clk) {
+		err = ufs_tegra_host_clk_get(dev,
+			"osc", &ufs_tegra->ufsdev_osc);
+		if (err)
+			goto out;
+	}
 
 out:
 	return err;
@@ -1291,6 +1296,7 @@ static int ufs_tegra_pwr_change_notify(struct ufs_hba *hba,
 	u32 vs_save_config;
 	int ret = 0;
 	u32 pa_reg_check;
+	u32 ref_clk;
 
 	if (!dev_req_params) {
 		pr_err("%s: incoming dev_req_params is NULL\n", __func__);
@@ -1300,6 +1306,26 @@ static int ufs_tegra_pwr_change_notify(struct ufs_hba *hba,
 
 	switch (status) {
 	case PRE_CHANGE:
+		/* If the prefetched reference clock is two and if 38Mhz is
+		 * enabled in DT then set the reference clock to 38Mhz
+		 */
+		if ((hba->init_prefetch_data.ref_clk_freq  == 2) &&
+				(ufs_tegra->enable_38mhz_clk)) {
+			ret = clk_set_parent(ufs_tegra->ufsdev_ref_clk,
+					ufs_tegra->ufsdev_osc);
+			if (ret) {
+				pr_err("Function clk_set_parent failed\n");
+				goto out;
+			}
+		} else if ((hba->init_prefetch_data.ref_clk_freq  == 2) ||
+				(hba->init_prefetch_data.ref_clk_freq  == 1)) {
+			ref_clk = 0;
+			ufshcd_set_refclk_value(hba, &ref_clk);
+			ufshcd_get_refclk_value(hba, &hba->init_prefetch_data.ref_clk_freq);
+			dev_info(hba->dev, "Configured ref_clk_freq = %u\n",
+				hba->init_prefetch_data.ref_clk_freq);
+		}
+
 		/* Update VS_DebugSaveConfigTime Tref */
 		ufshcd_dme_get(hba, UIC_ARG_MIB(VS_DEBUGSAVECONFIGTIME),
 			&vs_save_config);
@@ -1315,7 +1341,9 @@ static int ufs_tegra_pwr_change_notify(struct ufs_hba *hba,
 
 		memcpy(dev_req_params, dev_max_params,
 			sizeof(struct ufs_pa_layer_attr));
-		if (hba->init_prefetch_data.ref_clk_freq)
+		if ((hba->init_prefetch_data.ref_clk_freq != 0) &&
+			(hba->init_prefetch_data.ref_clk_freq != 1) &&
+				(hba->init_prefetch_data.ref_clk_freq != 2))
 			ufs_tegra->enable_hs_mode = false;
 		if ((ufs_tegra->enable_hs_mode) && (dev_max_params->hs_rate)) {
 			if (ufs_tegra->max_hs_gear) {
@@ -1549,6 +1577,9 @@ static void ufs_tegra_config_soc_data(struct ufs_tegra_host *ufs_tegra)
 	ufs_tegra->enable_hs_mode =
 		of_property_read_bool(np, "nvidia,enable-hs-mode");
 
+	ufs_tegra->enable_38mhz_clk =
+		of_property_read_bool(np, "nvidia,enable-38mhz-clk");
+
 	ufs_tegra->mask_fast_auto_mode =
 		of_property_read_bool(np, "nvidia,mask-fast-auto-mode");
 
@@ -1557,6 +1588,7 @@ static void ufs_tegra_config_soc_data(struct ufs_tegra_host *ufs_tegra)
 
 	ufs_tegra->enable_ufs_provisioning =
 		of_property_read_bool(np, "nvidia,enable-ufs-provisioning");
+
 	ufs_tegra->configure_uphy_pll3 =
 		of_property_read_bool(np, "nvidia,configure-uphy-pll3");
 

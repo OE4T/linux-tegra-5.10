@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Authors:
  *      VenkataJagadish.p	<vjagadish@nvidia.com>
@@ -142,7 +142,7 @@
 
 /* HS clock frequencies */
 #define MPHY_TX_HS_BIT_DIV_CLK	499200000
-#define MPHY_RX_HS_BIT_DIV_CLK	625000000
+#define MPHY_RX_HS_BIT_DIV_CLK	312500000
 
 enum ufs_state {
 	UFSHC_INIT,
@@ -298,6 +298,7 @@ struct ufs_tegra_host {
 	bool x2config;
 	bool enable_mphy_rx_calib;
 	bool enable_hs_mode;
+	bool enable_38mhz_clk;
 	bool enable_ufs_provisioning;
 	u32 max_hs_gear;
 	bool mask_fast_auto_mode;
@@ -335,6 +336,7 @@ struct ufs_tegra_host {
 	struct clk *ufsdev_parent;
 	struct clk *ufshc_clk;
 	struct clk *ufsdev_ref_clk;
+	struct clk *ufsdev_osc;
 	struct clk *ufs_uphy_pll3;
 	struct clk *pllrefe_clk;
 	struct regulator *vddio_ufs;
