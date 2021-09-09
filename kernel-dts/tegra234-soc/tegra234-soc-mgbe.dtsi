@@ -52,8 +52,9 @@
 		compatible = "nvidia,nvmgbe";
 		reg = <0x0 0x06810000 0x0 0x10000>, /* MGBE base */
 		      <0x0 0x068A0000 0x0 0x10000>, /* XPCS base */
-		      <0x0 0x068D0000 0x0 0x10000>; /* MACsec RM base */
-		reg-names = "mac-base", "xpcs-base", "macsec-base";
+		      <0x0 0x068D0000 0x0 0x10000>, /* MACsec RM base */
+		      <0x0 0x06800000 0x0 0x10000>; /* HV base */
+		reg-names = "mac-base", "xpcs-base", "macsec-base", "hv-base";
 		interrupts = 	<0 384 0x4>,	/* common */
 				<0 385 0x4>,	/* vm0 */
 				<0 386 0x4>,	/* vm1 */
@@ -85,6 +86,7 @@
 			      "rx_pcs", "tx", "tx_pcs", "mac_divider",
 			      "mac", "eee_pcs", "app", "ptp_ref",
 			      "mgbe_macsec", "rx_input";
+		iommus = <&smmu_niso0 TEGRA_SID_NISO0_MGBE>;
 		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_MGBEBA>;
 		nvidia,num-dma-chans = <10>;
 		nvidia,dma-chans = <0 1 2 3 4 5 6 7 8 9>;
@@ -115,8 +117,9 @@
 		compatible = "nvidia,nvmgbe";
 		reg = <0x0 0x06910000 0x0 0x10000>, /* MGBE base */
 		      <0x0 0x069A0000 0x0 0x10000>, /* XPCS base */
-		      <0x0 0x069D0000 0x0 0x10000>; /* MACsec RM base */
-		reg-names = "mac-base", "xpcs-base", "macsec-base";
+		      <0x0 0x069D0000 0x0 0x10000>, /* MACsec RM base */
+		      <0x0 0x06900000 0x0 0x10000>; /* HV base */
+		reg-names = "mac-base", "xpcs-base", "macsec-base", "hv-base";
 		interrupts = 	<0 392 0x4>,	/* common */
 				<0 393 0x4>,	/* vm0 */
 				<0 394 0x4>,	/* vm1 */
@@ -148,6 +151,7 @@
 			      "rx_pcs", "tx", "tx_pcs", "mac_divider",
 			      "mac", "eee_pcs", "app", "ptp_ref",
 			      "mgbe_macsec", "rx_input";
+		iommus = <&smmu_niso0 TEGRA_SID_NISO0_MGBE_VF1>;
 		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_MGBEBB>;
 		nvidia,num-dma-chans = <10>;
 		nvidia,dma-chans = <0 1 2 3 4 5 6 7 8 9>;
@@ -178,8 +182,9 @@
 		compatible = "nvidia,nvmgbe";
 		reg = <0x0 0x06A10000 0x0 0x10000>, /* MGBE base */
 		      <0x0 0x06AA0000 0x0 0x10000>, /* XPCS base */
-		      <0x0 0x06AD0000 0x0 0x10000>; /* MACsec RM base */
-		reg-names = "mac-base", "xpcs-base", "macsec-base";
+		      <0x0 0x06AD0000 0x0 0x10000>, /* MACsec RM base */
+		      <0x0 0x06A00000 0x0 0x10000>; /* HV base */
+		reg-names = "mac-base", "xpcs-base", "macsec-base", "hv-base";
 		interrupts = 	<0 400 0x4>,	/* common */
 				<0 401 0x4>,	/* vm0 */
 				<0 402 0x4>,	/* vm1 */
@@ -211,6 +216,7 @@
 			      "rx_pcs", "tx", "tx_pcs", "mac_divider",
 			      "mac", "eee_pcs", "app", "ptp_ref",
 			      "mgbe_macsec", "rx_input";
+		iommus = <&smmu_niso0 TEGRA_SID_NISO0_MGBE_VF2>;
 		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_MGBEBC>;
 		nvidia,num-dma-chans = <10>;
 		nvidia,dma-chans = <0 1 2 3 4 5 6 7 8 9>;
@@ -241,8 +247,9 @@
 		compatible = "nvidia,nvmgbe";
 		reg = <0x0 0x06B10000 0x0 0x10000>, /* MGBE base */
 		      <0x0 0x06BA0000 0x0 0x10000>, /* XPCS base */
-		      <0x0 0x06BD0000 0x0 0x10000>; /* MACsec RM base */
-		reg-names = "mac-base", "xpcs-base", "macsec-base";
+		      <0x0 0x06BD0000 0x0 0x10000>, /* MACsec RM base */
+		      <0x0 0x06B00000 0x0 0x10000>; /* HV base */
+		reg-names = "mac-base", "xpcs-base", "macsec-base", "hv-base";
 		interrupts = 	<0 408 0x4>,	/* common */
 				<0 409 0x4>,	/* vm0 */
 				<0 410 0x4>,	/* vm1 */
@@ -274,6 +281,7 @@
 			      "rx_pcs", "tx", "tx_pcs", "mac_divider",
 			      "mac", "eee_pcs", "app", "ptp_ref",
 			      "mgbe_macsec", "rx_input";
+		iommus = <&smmu_niso0 TEGRA_SID_NISO0_MGBE_VF3>;
 		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_MGBEA>;
 		nvidia,num-dma-chans = <10>;
 		nvidia,dma-chans = <0 1 2 3 4 5 6 7 8 9>;
