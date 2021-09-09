@@ -581,8 +581,7 @@ fbp:
   owner: Deepak N
   sources: [ common/fbp/fbp.c,
              common/fbp/fbp_priv.h,
-             include/nvgpu/fbp.h,
-             include/nvgpu/gops/fbp.h ]
+             include/nvgpu/fbp.h ]
 
 init:
   safe: yes

@@ -53,7 +53,6 @@
 #ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/pmu_pstate.h>
 #endif
-#include <nvgpu/fbp.h>
 #include <nvgpu/therm.h>
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/grmgr.h>
@@ -1013,10 +1012,6 @@ static const struct gops_falcon gm20b_ops_falcon = {
 #endif
 };
 
-static const struct gops_fbp gm20b_ops_fbp = {
-	.fbp_init_support = nvgpu_fbp_init_support,
-};
-
 static const struct gops_priv_ring gm20b_ops_priv_ring = {
 	.enable_priv_ring = gm20b_priv_ring_enable,
 	.isr = gm20b_priv_ring_isr,
@@ -1180,7 +1175,6 @@ int gm20b_init_hal(struct gk20a *g)
 	gops->css = gm20b_ops_css;
 #endif
 	gops->falcon = gm20b_ops_falcon;
-	gops->fbp = gm20b_ops_fbp;
 	gops->priv_ring = gm20b_ops_priv_ring;
 	gops->fuse = gm20b_ops_fuse;
 	gops->top = gm20b_ops_top;

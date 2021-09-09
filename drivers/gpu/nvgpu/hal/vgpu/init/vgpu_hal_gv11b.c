@@ -110,7 +110,6 @@
 #ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/pmu_pstate.h>
 #endif
-#include <nvgpu/fbp.h>
 #include <nvgpu/therm.h>
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/grmgr.h>
@@ -982,10 +981,6 @@ static const struct gops_falcon vgpu_gv11b_ops_falcon = {
 	.falcon_sw_free = nvgpu_falcon_sw_free,
 };
 
-static const struct gops_fbp vgpu_gv11b_ops_fbp = {
-	.fbp_init_support = nvgpu_fbp_init_support,
-};
-
 static const struct gops_priv_ring vgpu_gv11b_ops_priv_ring = {
 	.enable_priv_ring = NULL,
 	.isr = NULL,
@@ -1110,7 +1105,6 @@ int vgpu_gv11b_init_hal(struct gk20a *g)
 	gops->css = vgpu_gv11b_ops_css;
 #endif
 	gops->falcon = vgpu_gv11b_ops_falcon;
-	gops->fbp = vgpu_gv11b_ops_fbp;
 	gops->priv_ring = vgpu_gv11b_ops_priv_ring;
 	gops->fuse = vgpu_gv11b_ops_fuse;
 	gops->top = vgpu_gv11b_ops_top;

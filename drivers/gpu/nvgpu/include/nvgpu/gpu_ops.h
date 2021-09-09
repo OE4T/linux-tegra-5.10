@@ -30,7 +30,6 @@
 #include <nvgpu/gops/debugger.h>
 #include <nvgpu/gops/profiler.h>
 #include <nvgpu/gops/cyclestats.h>
-#include <nvgpu/gops/fbp.h>
 #include <nvgpu/gops/floorsweep.h>
 #include <nvgpu/gops/sbr.h>
 #include <nvgpu/gops/func.h>
@@ -187,8 +186,6 @@ struct gpu_ops {
 #endif
 	/** Falcon hal ops. */
 	struct gops_falcon falcon;
-	/** Fbp hal ops. */
-	struct gops_fbp fbp;
 	/** Priv ring hal ops. */
 	struct gops_priv_ring priv_ring;
 	/** Top hal ops. */

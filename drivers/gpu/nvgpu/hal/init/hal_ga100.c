@@ -31,7 +31,6 @@
 #ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/pmu_pstate.h>
 #endif
-#include <nvgpu/fbp.h>
 #include <nvgpu/therm.h>
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/fuse.h>
@@ -1593,12 +1592,6 @@ static const struct gops_falcon ga100_ops_falcon = {
 #endif
 
 #ifdef CONFIG_NVGPU_LS_PMU
-static const struct gops_fbp ga100_ops_fbp = {
-	.fbp_init_support = nvgpu_fbp_init_support,
-};
-#endif
-
-#ifdef CONFIG_NVGPU_LS_PMU
 static const struct gops_priv_ring ga100_ops_priv_ring = {
 	.enable_priv_ring = gm20b_priv_ring_enable,
 	.isr = gp10b_priv_ring_isr,
@@ -1807,7 +1800,6 @@ int ga100_init_hal(struct gk20a *g)
 #endif
 	gops->xve = ga100_ops_xve;
 	gops->falcon = ga100_ops_falcon;
-	gops->fbp = ga100_ops_fbp;
 	gops->priv_ring = ga100_ops_priv_ring;
 	gops->fuse = ga100_ops_fuse;
 #if defined(CONFIG_NVGPU_NVLINK)
