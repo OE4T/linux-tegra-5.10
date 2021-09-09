@@ -70,7 +70,8 @@
 				<&bpmp_clks TEGRA234_CLK_MPHY_L0_TX_HS_SYMB_DIV>,
 				<&bpmp_clks TEGRA234_CLK_MPHY_L0_RX_HS_SYMB_DIV>,
 				<&bpmp_clks TEGRA234_CLK_MPHY_L0_TX_MUX_SYMB_DIV>,
-				<&bpmp_clks TEGRA234_CLK_MPHY_L0_RX_MUX_SYMB_DIV>;
+				<&bpmp_clks TEGRA234_CLK_MPHY_L0_RX_MUX_SYMB_DIV>,
+				<&bpmp_clks TEGRA234_CLK_OSC>;
 		clock-names = "pllrefe_vcoout", "mphy_core_pll_fixed", "mphy_l0_tx_symb",
 				"mphy_tx_1mhz_ref", "mphy_l0_rx_ana",
 				"mphy_l0_rx_symb", "mphy_l0_tx_ls_3xbit",
@@ -80,7 +81,7 @@
 				"mphy_l0_tx_ls_3xbit_div", "mphy_l0_tx_ls_symb_div",
 				"mphy_l0_rx_ls_bit_div", "mphy_l0_rx_ls_symb_div", "mphy_l0_tx_2x_symb",
 				"mphy_l0_tx_hs_symb_div", "mphy_l0_rx_hs_symb_div",
-				"mphy_l0_tx_mux_symb_div", "mphy_l0_rx_mux_symb_div";
+				"mphy_l0_tx_mux_symb_div", "mphy_l0_rx_mux_symb_div", "osc";
 		resets = <&bpmp_resets TEGRA234_RESET_MPHY_L0_RX>,
 				<&bpmp_resets TEGRA234_RESET_MPHY_L0_TX>,
 				<&bpmp_resets TEGRA234_RESET_MPHY_L1_RX>,
@@ -95,6 +96,7 @@
 		nvidia,enable-x2-config;
 		nvidia,mask-fast-auto-mode;
 		nvidia,enable-hs-mode;
+		nvidia,enable-38mhz-clk;
 		nvidia,max-hs-gear = <4>;
 		nvidia,max-pwm-gear = <0>;
 		vcc-max-microamp = <0>;
