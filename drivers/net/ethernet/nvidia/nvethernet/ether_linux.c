@@ -2830,6 +2830,9 @@ static int ether_tx_swcx_alloc(struct ether_priv_data *pdata,
 		if (skb->ip_summed == CHECKSUM_PARTIAL) {
 			tx_pkt_cx->flags |= OSI_PKT_CX_CSUM;
 		}
+
+		tx_pkt_cx->flags |= OSI_PKT_CX_LEN;
+		tx_pkt_cx->payload_len = skb->len;
 	} else {
 		tx_pkt_cx->flags |= OSI_PKT_CX_TSO;
 	}
