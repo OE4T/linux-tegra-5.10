@@ -836,6 +836,58 @@ static ssize_t force_idle_read(struct device *dev,
 static DEVICE_ATTR(force_idle, ROOTRW, force_idle_read, force_idle_store);
 #endif
 
+#ifdef CONFIG_NVGPU_STATIC_POWERGATE
+static ssize_t gpc_pg_mask_read(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	struct gk20a *g = get_gk20a(dev);
+
+	return snprintf(buf, NVGPU_CPU_PAGE_SIZE, "%d", g->gpc_pg_mask);
+}
+
+static ssize_t gpc_pg_mask_store(struct device *dev,
+	struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct gk20a *g = get_gk20a(dev);
+	struct gk20a_platform *platform = dev_get_drvdata(dev);
+	unsigned long val = 0;
+	int err = 0;
+
+	nvgpu_mutex_acquire(&g->static_pg_lock);
+
+	if (kstrtoul(buf, 10, &val) < 0) {
+		nvgpu_err(g, "invalid value");
+		nvgpu_mutex_release(&g->static_pg_lock);
+		return -EINVAL;
+	}
+
+	if (nvgpu_is_powered_on(g)) {
+		nvgpu_err(g, "gpu already powered on");
+		nvgpu_mutex_release(&g->static_pg_lock);
+		return -ENODEV;
+	}
+
+	if (val == g->gpc_pg_mask) {
+		nvgpu_info(g, "no value change, same mask already set");
+		goto exit;
+	}
+
+	if (platform->set_gpc_pg_mask != NULL) {
+		err = platform->set_gpc_pg_mask(dev, val);
+		if (err != 0) {
+			nvgpu_err(g, "GPC-PG mask is invalid");
+			nvgpu_mutex_release(&g->static_pg_lock);
+			return -EINVAL;
+		}
+	}
+exit:
+	nvgpu_mutex_release(&g->static_pg_lock);
+	return count;
+}
+
+static DEVICE_ATTR(gpc_pg_mask, ROOTRW, gpc_pg_mask_read, gpc_pg_mask_store);
+#endif
+
 static ssize_t gpc_fs_mask_show(struct device *dev,
 	struct device_attribute *attr, char *buf)
 {
@@ -856,6 +908,58 @@ static ssize_t gpc_fs_mask_show(struct device *dev,
 }
 
 static DEVICE_ATTR_RO(gpc_fs_mask);
+
+#ifdef CONFIG_NVGPU_STATIC_POWERGATE
+static ssize_t fbp_pg_mask_read(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	struct gk20a *g = get_gk20a(dev);
+
+	return snprintf(buf, NVGPU_CPU_PAGE_SIZE, "%d", g->fbp_pg_mask);
+}
+
+static ssize_t fbp_pg_mask_store(struct device *dev,
+	struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct gk20a *g = get_gk20a(dev);
+	struct gk20a_platform *platform = dev_get_drvdata(dev);
+	unsigned long val = 0;
+	int err = 0;
+
+	nvgpu_mutex_acquire(&g->static_pg_lock);
+
+	if (kstrtoul(buf, 10, &val) < 0) {
+		nvgpu_err(g, "invalid user given FBP-PG mask");
+		nvgpu_mutex_release(&g->static_pg_lock);
+		return -EINVAL;
+	}
+
+	if (nvgpu_is_powered_on(g)) {
+		nvgpu_err(g, "gpu is already powered on");
+		nvgpu_mutex_release(&g->static_pg_lock);
+		return -ENODEV;
+	}
+
+	if (val == g->fbp_pg_mask) {
+		nvgpu_info(g, "no value change, same mask already set");
+		goto exit;
+	}
+
+	if (platform->set_fbp_pg_mask != NULL) {
+		err = platform->set_fbp_pg_mask(dev, val);
+		if (err != 0) {
+			nvgpu_err(g, "FBP-PG mask is invalid");
+			nvgpu_mutex_release(&g->static_pg_lock);
+			return -EINVAL;
+		}
+	}
+exit:
+	nvgpu_mutex_release(&g->static_pg_lock);
+	return count;
+}
+
+static DEVICE_ATTR(fbp_pg_mask, ROOTRW, fbp_pg_mask_read, fbp_pg_mask_store);
+#endif
 
 static ssize_t fbp_fs_mask_show(struct device *dev,
 	struct device_attribute *attr, char *buf)
@@ -879,35 +983,29 @@ static ssize_t fbp_fs_mask_show(struct device *dev,
 static DEVICE_ATTR_RO(fbp_fs_mask);
 
 #ifdef CONFIG_NVGPU_STATIC_POWERGATE
-static bool is_tpc_mask_valid(struct gk20a *g, u32 tpc_mask)
-{
-	u32 i;
-	bool valid = false;
-
-	for (i = 0U; i < MAX_PG_TPC_CONFIGS; i++) {
-		if (tpc_mask == g->valid_tpc_pg_mask[i]) {
-			valid = true;
-			break;
-		}
-	}
-	return valid;
-}
-
 static ssize_t tpc_pg_mask_read(struct device *dev,
 	struct device_attribute *attr, char *buf)
 {
 	struct gk20a *g = get_gk20a(dev);
+	u32 i;
+	/* hold the combined tpc pg mask */
+	u32 combined_tpc_pg_mask = 0x0U;
 
-	return snprintf(buf, NVGPU_CPU_PAGE_SIZE, "%d\n",
-					g->tpc_pg_mask[PG_GPC0]);
+	for (i = 0U; i < MAX_PG_GPC; i++) {
+		combined_tpc_pg_mask = combined_tpc_pg_mask |
+					(g->tpc_pg_mask[i] << 4*i);
+	}
+
+	return snprintf(buf, NVGPU_CPU_PAGE_SIZE, "%d", combined_tpc_pg_mask);
 }
 
 static ssize_t tpc_pg_mask_store(struct device *dev,
 	struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct gk20a *g = get_gk20a(dev);
+	struct gk20a_platform *platform = dev_get_drvdata(dev);
 	unsigned long val = 0;
-	struct nvgpu_gr_obj_ctx_golden_image *gr_golden_image = NULL;
+	int err = 0;
 
 	nvgpu_mutex_acquire(&g->static_pg_lock);
 
@@ -917,35 +1015,21 @@ static ssize_t tpc_pg_mask_store(struct device *dev,
 		return -EINVAL;
 	}
 
-	if (val == g->tpc_pg_mask[PG_GPC0]) {
-		nvgpu_info(g, "no value change, same mask already set");
-		goto exit;
+	if (nvgpu_is_powered_on(g)) {
+		nvgpu_err(g, "gpu is already powered on");
+		nvgpu_mutex_release(&g->static_pg_lock);
+		err = -ENODEV;
 	}
 
-	if (g->gr != NULL) {
-		gr_golden_image = nvgpu_gr_get_golden_image_ptr(g);
+	if (platform->set_tpc_pg_mask != NULL) {
+		err = platform->set_tpc_pg_mask(dev, val);
+		if (err != 0) {
+			nvgpu_err(g, "TPC-PG mask is invalid");
+			nvgpu_mutex_release(&g->static_pg_lock);
+			return -EINVAL;
+		}
 	}
-
-	if (gr_golden_image &&
-			nvgpu_gr_obj_ctx_get_golden_image_size(gr_golden_image)
-			!= 0) {
-		nvgpu_err(g, "golden image size already initialized");
-		nvgpu_mutex_release(&g->static_pg_lock);
-		return -ENODEV;
-	}
-	/* checking that the value from userspace is within
-	 * the  possible valid TPC configurations.
-	 */
-	if (is_tpc_mask_valid(g, (u32)val)) {
-		g->tpc_pg_mask[PG_GPC0] = val;
-	} else {
-		nvgpu_err(g, "TPC-PG mask is invalid");
-		nvgpu_mutex_release(&g->static_pg_lock);
-		return -EINVAL;
-	}
-exit:
 	nvgpu_mutex_release(&g->static_pg_lock);
-
 	return count;
 }
 #endif
@@ -1238,7 +1322,9 @@ void nvgpu_remove_sysfs(struct device *dev)
 	device_remove_file(dev, &dev_attr_tpc_fs_mask);
 	device_remove_file(dev, &dev_attr_tpc_pg_mask);
 	device_remove_file(dev, &dev_attr_gpc_fs_mask);
+	device_remove_file(dev, &dev_attr_gpc_pg_mask);
 	device_remove_file(dev, &dev_attr_fbp_fs_mask);
+	device_remove_file(dev, &dev_attr_fbp_pg_mask);
 	device_remove_file(dev, &dev_attr_tsg_timeslice_min_us);
 	device_remove_file(dev, &dev_attr_tsg_timeslice_max_us);
 
@@ -1303,7 +1389,9 @@ int nvgpu_create_sysfs(struct device *dev)
 	error |= device_create_file(dev, &dev_attr_tpc_fs_mask);
 	error |= device_create_file(dev, &dev_attr_tpc_pg_mask);
 	error |= device_create_file(dev, &dev_attr_gpc_fs_mask);
+	error |= device_create_file(dev, &dev_attr_gpc_pg_mask);
 	error |= device_create_file(dev, &dev_attr_fbp_fs_mask);
+	error |= device_create_file(dev, &dev_attr_fbp_pg_mask);
 	error |= device_create_file(dev, &dev_attr_tsg_timeslice_min_us);
 	error |= device_create_file(dev, &dev_attr_tsg_timeslice_max_us);
 
