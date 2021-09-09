@@ -29,11 +29,7 @@ static void tegra_drm_mapping_release(struct kref *ref)
 	struct tegra_drm_mapping *mapping =
 		container_of(ref, struct tegra_drm_mapping, ref);
 
-	if (mapping->sgt)
-		dma_unmap_sgtable(mapping->dev, mapping->sgt,
-				  mapping->direction, DMA_ATTR_SKIP_CPU_SYNC);
-
-	host1x_bo_unpin(mapping->dev, mapping->bo, mapping->sgt);
+	host1x_bo_unpin(mapping->map);
 	host1x_bo_put(mapping->bo);
 
 	kfree(mapping);
@@ -163,6 +159,7 @@ int tegra_drm_ioctl_channel_map(struct drm_device *drm, void *data,
 	struct drm_tegra_channel_map *args = data;
 	struct tegra_drm_channel_ctx *ctx;
 	struct tegra_drm_mapping *mapping;
+	enum dma_data_direction direction;
 	struct drm_gem_object *gem;
 	u32 mapping_id;
 	int err = 0;
@@ -185,39 +182,23 @@ int tegra_drm_ioctl_channel_map(struct drm_device *drm, void *data,
 	gem = drm_gem_object_lookup(file, args->handle);
 	if (!gem) {
 		err = -EINVAL;
-		goto unlock;
+		goto free;
 	}
 
-	mapping->dev = ctx->client->base.dev;
 	mapping->bo = &container_of(gem, struct tegra_bo, gem)->base;
 
-	if (ctx->client->base.group) {
-		/* Domain managed directly */
-		host1x_bo_pin(mapping->dev, mapping->bo,
-			      &mapping->iova);
-	} else {
-		/* No IOMMU or DMA API managed domain */
-		mapping->direction = DMA_TO_DEVICE;
-		if (args->flags & DRM_TEGRA_CHANNEL_MAP_READWRITE)
-			mapping->direction = DMA_BIDIRECTIONAL;
+	if (args->flags & DRM_TEGRA_CHANNEL_MAP_READWRITE)
+		direction = DMA_BIDIRECTIONAL;
+	else
+		direction = DMA_TO_DEVICE;
 
-		mapping->sgt =
-			host1x_bo_pin(mapping->dev, mapping->bo, NULL);
-		if (IS_ERR(mapping->sgt)) {
-			err = PTR_ERR(mapping->sgt);
-			goto put_gem;
-		}
-
-		err = dma_map_sgtable(mapping->dev, mapping->sgt,
-				      mapping->direction,
-				      DMA_ATTR_SKIP_CPU_SYNC);
-		if (err)
-			goto unpin;
-
-		/* TODO only map the requested part */
-		mapping->iova = sg_dma_address(mapping->sgt->sgl);
+	mapping->map = host1x_bo_pin(ctx->client->base.dev, mapping->bo, direction);
+	if (IS_ERR(mapping->map)) {
+		err = PTR_ERR(mapping->map);
+		goto put_gem;
 	}
 
+	mapping->iova = mapping->map->phys;
 	mapping->iova_end = mapping->iova + gem->size;
 
 	mutex_unlock(&fpriv->lock);
@@ -225,21 +206,17 @@ int tegra_drm_ioctl_channel_map(struct drm_device *drm, void *data,
 	err = xa_alloc(&ctx->mappings, &mapping_id, mapping,
 		       XA_LIMIT(1, U32_MAX), GFP_KERNEL);
 	if (err < 0)
-		goto unmap;
+		goto unpin;
 
 	args->mapping_id = mapping_id;
 
 	return 0;
 
-unmap:
-	if (mapping->sgt) {
-		dma_unmap_sgtable(mapping->dev, mapping->sgt,
-				  mapping->direction, DMA_ATTR_SKIP_CPU_SYNC);
-	}
 unpin:
-	host1x_bo_unpin(mapping->dev, mapping->bo, mapping->sgt);
+	host1x_bo_unpin(mapping->map);
 put_gem:
 	drm_gem_object_put(gem);
+free:
 	kfree(mapping);
 unlock:
 	mutex_unlock(&fpriv->lock);
