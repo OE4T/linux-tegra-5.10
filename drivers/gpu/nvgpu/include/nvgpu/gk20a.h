@@ -851,6 +851,9 @@ struct gk20a {
 
 	/** To enable emulate mode */
 	u32 emulate_mode;
+
+	/** Flag to check if debugger and profiler support is enabled. */
+	u32 support_gpu_tools;
 };
 
 /**

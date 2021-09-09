@@ -49,6 +49,28 @@ void nvgpu_kernel_restart(void *cmd)
 	kernel_restart(cmd);
 }
 
+void nvgpu_read_support_gpu_tools(struct gk20a *g)
+{
+	struct device_node *np;
+	int ret = 0;
+	u32 val = 0;
+
+	np = nvgpu_get_node(g);
+	ret = of_property_read_u32(np, "support-gpu-tools", &val);
+	if (ret != 0) {
+		nvgpu_info(g, "Missing support-gpu-tools property, ret =%d", ret);
+		/* The debugger/profiler support should be enabled by default.
+		 * So, set support_gpu_tools to 1 even if the property is missing. */
+		g->support_gpu_tools = 1;
+	} else {
+		if (val != 0U) {
+			g->support_gpu_tools = 1;
+		} else {
+			g->support_gpu_tools = 0;
+		}
+	}
+}
+
 static void nvgpu_init_vars(struct gk20a *g)
 {
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
@@ -319,6 +341,11 @@ int nvgpu_probe(struct gk20a *g,
 		nvgpu_err(g, "power_node creation failed");
 		return err;
 	}
+
+	/* Read the DT 'support-gpu-tools' property before creating
+	 * user nodes (via gk20a_user_nodes_init().
+	 */
+	nvgpu_read_support_gpu_tools(g);
 
 	/*
 	* TODO: While removing the legacy nodes the following condition

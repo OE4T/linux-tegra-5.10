@@ -168,22 +168,24 @@ struct nvgpu_dev_node {
 	const struct file_operations *fops;
 	/* If node should be created for physical instance in MIG mode */
 	bool mig_physical_node;
+	/* Flag to check if node is used by debugger/profiler. */
+	bool tools_node;
 };
 
 static const struct nvgpu_dev_node dev_node_list[] = {
-	{"power",	&gk20a_power_node_ops,	false   },
-	{"as",		&gk20a_as_ops,		false	},
-	{"channel",	&gk20a_channel_ops,	false	},
-	{"ctrl",	&gk20a_ctrl_ops,	true	},
+	{"power",	&gk20a_power_node_ops,	false,	false   },
+	{"as",		&gk20a_as_ops,		false,	false	},
+	{"channel",	&gk20a_channel_ops,	false,	false	},
+	{"ctrl",	&gk20a_ctrl_ops,	true,	false	},
 #if defined(CONFIG_NVGPU_FECS_TRACE)
-	{"ctxsw",	&gk20a_ctxsw_ops,	false	},
+	{"ctxsw",	&gk20a_ctxsw_ops,	false,	true	},
 #endif
-	{"dbg",		&gk20a_dbg_ops,		false	},
-	{"prof",	&gk20a_prof_ops,	false	},
-	{"prof-ctx",	&gk20a_prof_ctx_ops,	false	},
-	{"prof-dev",	&gk20a_prof_dev_ops,	false	},
-	{"sched",	&gk20a_sched_ops,	false	},
-	{"tsg",		&gk20a_tsg_ops,		false	},
+	{"dbg",		&gk20a_dbg_ops,		false,	true	},
+	{"prof",	&gk20a_prof_ops,	false,	true	},
+	{"prof-ctx",	&gk20a_prof_ctx_ops,	false,	true	},
+	{"prof-dev",	&gk20a_prof_dev_ops,	false,	true	},
+	{"sched",	&gk20a_sched_ops,	false,	false	},
+	{"tsg",		&gk20a_tsg_ops,		false,	false	},
 };
 
 static char *nvgpu_devnode(const char *cdev_name)
@@ -520,6 +522,12 @@ static bool check_valid_dev_node(struct gk20a *g, struct nvgpu_class *class,
 		}
 	}
 
+	/* Do not create nodes used by GPU tools if support for debugger
+	 * and profilers is disabled.
+	 */
+	if ((!g->support_gpu_tools) && (node->tools_node)) {
+		return false;
+	}
 	return true;
 }
 

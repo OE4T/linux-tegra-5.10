@@ -401,6 +401,8 @@ int vgpu_probe(struct platform_device *pdev)
 		return err;
 	}
 
+	nvgpu_read_support_gpu_tools(gk20a);
+
 	vgpu_init_vars(gk20a, platform);
 
 	init_rwsem(&l->busy_lock);
