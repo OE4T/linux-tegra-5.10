@@ -4,7 +4,7 @@
 
 config MLX_MFT
 	tristate "Mellanox Flash Tool Module "
-	---help---
+	help
 	  This driver supports Mellanox Technologies Firmware
 	  flashing tool.
 
