@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License version 2
@@ -74,8 +74,11 @@ static ssize_t store_gpio_en_dis(struct kobject *kobj,
 	np = of_find_compatible_node(NULL, NULL, "nvidia,tegra194-gte-aon");
 
 	if (!np) {
-		pr_err("Could not locate aon gte node\n");
-		return -EINVAL;
+		np = of_find_compatible_node(NULL, NULL, "nvidia,tegra234-gte-aon");
+		if (!np) {
+			pr_err("Could not locate aon gte node\n");
+			return -EINVAL;
+		}
 	}
 
 	if (kstrtoul(buf, 10, &val) < 0) {

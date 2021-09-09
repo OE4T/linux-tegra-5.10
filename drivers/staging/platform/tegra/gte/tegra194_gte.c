@@ -564,7 +564,7 @@ struct tegra_gte_ev_desc *tegra_gte_register_event(struct device_node *np,
 		return ERR_PTR(-EPROBE_DEFER);
 	}
 
-	if (of_device_is_compatible(np, "nvidia,tegra194-gte-aon")) {
+	if (!of_device_is_compatible(np, "nvidia,tegra194-gte-lic")) {
 		offset = tegra_gte_convert_to_offset(ev_id, gte_dev);
 		if (offset < 0)
 			return ERR_PTR(offset);
@@ -1205,7 +1205,7 @@ static int tegra_gte_probe(struct platform_device *pdev)
 	}
 	gte_dev->kobj = &dev->kobj;
 
-	if (of_device_is_compatible(dev->of_node, "nvidia,tegra194-gte-aon"))
+	if (!of_device_is_compatible(dev->of_node, "nvidia,tegra194-gte-lic"))
 		tegra_gte_chardv_create(gte_dev);
 
 	ret = tegra_gte_sysfs_create(pdev);
