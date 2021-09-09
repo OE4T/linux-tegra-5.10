@@ -780,8 +780,6 @@ static void nvgpu_pci_remove(struct pci_dev *pdev)
 		nvgpu_enable_irqs(g);
 	}
 #endif
-	(void)nvgpu_cic_mon_remove(g);
-	(void)nvgpu_cic_rm_remove(g);
 
 	nvgpu_pci_pm_deinit(&pdev->dev);
 

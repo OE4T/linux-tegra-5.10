@@ -1919,12 +1919,6 @@ int nvgpu_remove(struct device *dev)
 
 	nvgpu_mutex_destroy(&g->clk_arb_enable_lock);
 
-	err = nvgpu_cic_rm_deinit_vars(g);
-	if (err != 0) {
-		nvgpu_err(g, "CIC-RM deinit vars failed.");
-		return err;
-	}
-
 	nvgpu_log_fn(g, "removed");
 
 	return err;
@@ -1941,18 +1935,6 @@ static int __exit gk20a_remove(struct platform_device *pdev)
 		return vgpu_remove(pdev);
 
 	err = nvgpu_remove(dev);
-
-	err = nvgpu_cic_mon_remove(g);
-	if (err != 0) {
-		nvgpu_err(g, "CIC-MON remove failed");
-		return err;
-	}
-
-	err = nvgpu_cic_rm_remove(g);
-	if (err != 0) {
-		nvgpu_err(g, "CIC-RM remove failed.");
-		return err;
-	}
 
 	gk20a_dma_buf_priv_list_clear(l);
 	nvgpu_mutex_destroy(&l->dmabuf_priv_list_lock);

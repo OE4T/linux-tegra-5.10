@@ -1102,6 +1102,10 @@ static void gk20a_free_cb(struct nvgpu_ref *refcount)
 		g->ops.ltc.ltc_remove_support(g);
 	}
 
+	(void)nvgpu_cic_rm_deinit_vars(g);
+	(void)nvgpu_cic_mon_remove(g);
+	(void)nvgpu_cic_rm_remove(g);
+
 	/*
 	 * Free the device list once the gk20a struct is removed. We don't want
 	 * to do this during the railgate poweroff sequence since that means
