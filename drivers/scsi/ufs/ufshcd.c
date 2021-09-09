@@ -7896,8 +7896,14 @@ static int ufshcd_probe_hba(struct ufs_hba *hba, bool async)
 	hba->wlun_dev_clr_ua = true;
 	ufshcd_get_ref_clk_value(hba, &hba->init_prefetch_data.ref_clk_freq);
 	dev_info(hba->dev, "default ref_clk_freq = %u\n",
-		 hba->init_prefetch_data.ref_clk_freq);
-	if (hba->init_prefetch_data.ref_clk_freq != 0) {
+		hba->init_prefetch_data.ref_clk_freq);
+
+	/* If the prefetched reference clock is neither one nor
+	 * two nor three then configure reference clock to zero
+	 */
+	if ((hba->init_prefetch_data.ref_clk_freq != 0) &&
+		(hba->init_prefetch_data.ref_clk_freq != 1) &&
+			(hba->init_prefetch_data.ref_clk_freq != 2)) {
 		ref_clk = 0;
 		ufshcd_set_refclk_value(hba, &ref_clk);
 		ufshcd_get_ref_clk_value(hba, &hba->init_prefetch_data.ref_clk_freq);
