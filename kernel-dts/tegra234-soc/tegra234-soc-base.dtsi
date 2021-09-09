@@ -425,7 +425,7 @@
                 reg = <0x0 0x3aa0000 0x0 0x10000>;
                 interrupts = <0 11 0x4>;
                 nvidia,int-threshold = <1>;
-                nvidia,num-slices = <11>;
+                nvidia,num-slices = <17>;
                 status = "disabled";
         };
 
