@@ -5050,6 +5050,7 @@ exit:
 static int ether_init_plat_resources(struct platform_device *pdev,
 				     struct ether_priv_data *pdata)
 {
+	bool tegra_hypervisor_mode = is_tegra_hypervisor_mode();
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 	struct resource *res;
@@ -5061,6 +5062,26 @@ static int ether_init_plat_resources(struct platform_device *pdev,
 	if (IS_ERR(osi_core->base)) {
 		dev_err(&pdev->dev, "failed to ioremap MAC base address\n");
 		return PTR_ERR(osi_core->base);
+	}
+
+	if (!tegra_hypervisor_mode) {
+		res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
+						   "hv-base");
+		if (res) {
+			osi_core->hv_base = devm_ioremap_resource(&pdev->dev,
+								  res);
+			if (IS_ERR(osi_core->hv_base)) {
+				dev_err(&pdev->dev,
+					"failed to ioremap HV address\n");
+				return PTR_ERR(osi_core->hv_base);
+			}
+		} else {
+			osi_core->hv_base = NULL;
+			dev_dbg(&pdev->dev, "HV base address is not present\n");
+		}
+	} else {
+		osi_core->hv_base = NULL;
+		dev_dbg(&pdev->dev, "Hypervisor mode enabled\n");
 	}
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
