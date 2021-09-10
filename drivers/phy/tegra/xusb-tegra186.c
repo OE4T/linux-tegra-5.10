@@ -141,6 +141,8 @@
 #define   MODE_HS				MODE(0)
 #define   MODE_RST				MODE(1)
 
+#define XUSB_AO_UTMIP_SLEEPWALK_STATUS(x)	(0xa0 + (x) * 4)
+
 #define XUSB_AO_UTMIP_SLEEPWALK_CFG(x)		(0xd0 + (x) * 4)
 #define XUSB_AO_UHSIC_SLEEPWALK_CFG(x)		(0xf0 + (x) * 4)
 #define   FAKE_USBOP_VAL			(1 << 0)
@@ -168,24 +170,28 @@
 #define   AP_A					(1 << 4)
 #define   AN_A					(1 << 5)
 #define   HIGHZ_A				(1 << 6)
+#define   MASTER_ENABLE_A			(1 << 7)
 /* phase B */
 #define   USBOP_RPD_B				(1 << 8)
 #define   USBON_RPD_B				(1 << 9)
 #define   AP_B					(1 << 12)
 #define   AN_B					(1 << 13)
 #define   HIGHZ_B				(1 << 14)
+#define   MASTER_ENABLE_B			(1 << 15)
 /* phase C */
 #define   USBOP_RPD_C				(1 << 16)
 #define   USBON_RPD_C				(1 << 17)
 #define   AP_C					(1 << 20)
 #define   AN_C					(1 << 21)
 #define   HIGHZ_C				(1 << 22)
+#define   MASTER_ENABLE_C			(1 << 23)
 /* phase D */
 #define   USBOP_RPD_D				(1 << 24)
 #define   USBON_RPD_D				(1 << 25)
 #define   AP_D					(1 << 28)
 #define   AN_D					(1 << 29)
 #define   HIGHZ_D				(1 << 30)
+#define   MASTER_ENABLE_D			(1 << 31)
 
 #define XUSB_AO_UHSIC_SLEEPWALK(x)		(0x120 + (x) * 4)
 /* phase A */
@@ -388,8 +394,7 @@ static int tegra186_utmi_enable_phy_sleepwalk(struct tegra_xusb_lane *lane,
 
 	/* enable the trigger of the sleepwalk logic */
 	value = ao_readl(priv, XUSB_AO_UTMIP_SLEEPWALK_CFG(index));
-	value |= LINEVAL_WALK_EN;
-	value &= ~WAKE_WALK_EN;
+	value |= LINEVAL_WALK_EN | WAKE_WALK_EN;
 	ao_writel(priv, value, XUSB_AO_UTMIP_SLEEPWALK_CFG(index));
 
 	/* reset the walk pointer and clear the alarm of the sleepwalk logic,
@@ -413,11 +418,13 @@ static int tegra186_utmi_enable_phy_sleepwalk(struct tegra_xusb_lane *lane,
 		value |= HIGHZ_A;
 		value |= (AP_A);
 		value |= (AN_B | AN_C | AN_D);
+		value |= (MASTER_ENABLE_B | MASTER_ENABLE_C | MASTER_ENABLE_D);
 	} else if (speed == USB_SPEED_LOW) {
 		/* J state: D+/D- = low/high, K state: D+/D- = high/low */
 		value |= HIGHZ_A;
 		value |= AN_A;
 		value |= (AP_B | AP_C | AP_D);
+		value |= (MASTER_ENABLE_B | MASTER_ENABLE_C | MASTER_ENABLE_D);
 	}
 	ao_writel(priv, value, XUSB_AO_UTMIP_SLEEPWALK(index));
 
@@ -478,6 +485,12 @@ static int tegra186_utmi_disable_phy_sleepwalk(struct tegra_xusb_lane *lane)
 	value &= ~WAKE_VAL(~0);
 	value |= WAKE_VAL_NONE;
 	ao_writel(priv, value, XUSB_AO_UTMIP_SLEEPWALK_CFG(index));
+
+	/* disable the four stages of sleepwalk */
+	value = ao_readl(priv, XUSB_AO_UTMIP_SLEEPWALK(index));
+	value &= ~(MASTER_ENABLE_A | MASTER_ENABLE_B |
+		MASTER_ENABLE_C | MASTER_ENABLE_D);
+	ao_writel(priv, value, XUSB_AO_UTMIP_SLEEPWALK(index));
 
 	/* power down the line state detectors of the port */
 	value = ao_readl(priv, XUSB_AO_UTMIP_PAD_CFG(index));
