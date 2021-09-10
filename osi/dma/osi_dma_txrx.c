@@ -728,8 +728,6 @@ static inline nve32_t need_cntx_desc(struct osi_tx_pkt_cx *tx_pkt_cx,
 		if ((tx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) {
 			/* Set context type */
 			tx_desc->tdes3 |= TDES3_CTXT;
-			/* Remove any overflow bits. VT field is 16bit field */
-			tx_pkt_cx->vtag_id &= TDES3_VT_MASK;
 			/* Fill VLAN Tag ID */
 			tx_desc->tdes3 |= tx_pkt_cx->vtag_id;
 			/* Set VLAN TAG Valid */
@@ -744,8 +742,6 @@ static inline nve32_t need_cntx_desc(struct osi_tx_pkt_cx *tx_pkt_cx,
 		if ((tx_pkt_cx->flags & OSI_PKT_CX_TSO) == OSI_PKT_CX_TSO) {
 			/* Set context type */
 			tx_desc->tdes3 |= TDES3_CTXT;
-			/* Remove any overflow bits. MSS is 13bit field */
-			tx_pkt_cx->mss &= TDES2_MSS_MASK;
 			/* Fill MSS */
 			tx_desc->tdes2 |= tx_pkt_cx->mss;
 			/* Set MSS valid */
@@ -870,8 +866,6 @@ static inline void fill_first_desc(struct osi_tx_ring *tx_ring,
 
 	/* if LEN bit is set, update packet payload len */
 	if ((tx_pkt_cx->flags & OSI_PKT_CX_LEN) == OSI_PKT_CX_LEN) {
-		/* Remove any overflow bits. PL field is 15 bit wide */
-		tx_pkt_cx->payload_len &= ~TDES3_PL_MASK;
 		/* Update packet len in desc */
 		tx_desc->tdes3 |= tx_pkt_cx->payload_len;
 	}
@@ -885,13 +879,11 @@ static inline void fill_first_desc(struct osi_tx_ring *tx_ring,
 		 * Typical TCP hdr len = 20B / 4 = 5
 		 */
 		tx_pkt_cx->tcp_udp_hdrlen /= OSI_TSO_HDR_LEN_DIVISOR;
-		/* Remove any overflow bits. THL field is only 4 bit wide */
-		tx_pkt_cx->tcp_udp_hdrlen &= TDES3_THL_MASK;
+
 		/* Update hdr len in desc */
 		tx_desc->tdes3 |= (tx_pkt_cx->tcp_udp_hdrlen <<
 				   TDES3_THL_SHIFT);
-		/* Remove any overflow bits. TPL field is 18 bit wide */
-		tx_pkt_cx->payload_len &= TDES3_TPL_MASK;
+
 		/* Update TCP payload len in desc */
 		tx_desc->tdes3 &= ~TDES3_TPL_MASK;
 		tx_desc->tdes3 |= tx_pkt_cx->payload_len;
@@ -920,6 +912,68 @@ static inline void fill_first_desc(struct osi_tx_ring *tx_ring,
 static inline void dmb_oshst(void)
 {
 	asm volatile("dmb oshst" : : : "memory");
+}
+
+/**
+ * @brief validate_ctx - validate inputs form tx_pkt_cx
+ *
+ * @note
+ * Algorithm:
+ *	- Validate tx_pkt_cx with expected value
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @param[in] osi_dma:	OSI private data structure.
+ * @param[in] tx_pkt_cx: Pointer to transmit packet context structure
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static inline nve32_t validate_ctx(struct osi_dma_priv_data *osi_dma,
+				   struct osi_tx_pkt_cx *tx_pkt_cx)
+{
+	if ((tx_pkt_cx->flags & OSI_PKT_CX_TSO) == OSI_PKT_CX_TSO) {
+		if (osi_unlikely((tx_pkt_cx->tcp_udp_hdrlen /
+				  OSI_TSO_HDR_LEN_DIVISOR) > TDES3_THL_MASK)) {
+			OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				    "dma_txrx: Invalid TSO header len\n",
+				    (nveul64_t)tx_pkt_cx->tcp_udp_hdrlen);
+			goto fail;
+		} else if (osi_unlikely(tx_pkt_cx->payload_len >
+					TDES3_TPL_MASK)) {
+			OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				    "dma_txrx: Invalid TSO payload len\n",
+				    (nveul64_t)tx_pkt_cx->payload_len);
+			goto fail;
+		} else if (osi_unlikely(tx_pkt_cx->mss > TDES2_MSS_MASK)) {
+			OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				    "dma_txrx: Invalid MSS\n",
+				    (nveul64_t)tx_pkt_cx->mss);
+			goto fail;
+		}
+	}  else if ((tx_pkt_cx->flags & OSI_PKT_CX_LEN) == OSI_PKT_CX_LEN) {
+		if (osi_unlikely(tx_pkt_cx->payload_len > TDES3_PL_MASK)) {
+			OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				    "dma_txrx: Invalid frame len\n",
+				    (nveul64_t)tx_pkt_cx->payload_len);
+			goto fail;
+		}
+	}
+
+	if (osi_unlikely(tx_pkt_cx->vtag_id > TDES3_VT_MASK)) {
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "dma_txrx: Invalid VTAG_ID\n",
+			    (nveul64_t)tx_pkt_cx->vtag_id);
+		goto fail;
+	}
+
+	return 0;
+fail:
+	return -1;
 }
 
 nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
@@ -963,6 +1017,11 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 			    "dma_txrx: Invalid desc_cnt\n", 0ULL);
 		return -1;
 	}
+
+	if (validate_ctx(osi_dma, tx_pkt_cx) < 0) {
+		return -1;
+	}
+
 	/* Context descriptor for VLAN/TSO */
 	if ((tx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) {
 		osi_dma->dstats.tx_vlan_pkt_n =
