@@ -343,6 +343,7 @@
 		nvcsi: nvcsi@15a00000 {
 			compatible = "nvidia,tegra194-nvcsi";
 			clocks = <&bpmp_clks TEGRA234_CLK_NVCSI>;
+			clock-names = "nvcsi";
 			status = "okay";
 		};
 
