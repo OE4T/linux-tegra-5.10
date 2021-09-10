@@ -166,7 +166,7 @@
 						tegra_sinterface = "serial_a";
 						discontinuous_clk = "no";
 						dpcm_enable = "false";
-						cil_settletime = "20";
+						cil_settletime = "30";
 
 						active_w = "5488";
 						active_h = "4112";
