@@ -2994,9 +2994,13 @@ static void mgbe_tsn_init(struct osi_core_priv_data *osi_core,
  *
  * @note OSD layer needs to update number of VM channels and
  *	DMA channel list in osi_vm_irq_data.
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
-static void mgbe_dma_chan_to_vmirq_map(struct osi_core_priv_data *osi_core)
+static nve32_t mgbe_dma_chan_to_vmirq_map(struct osi_core_priv_data *osi_core)
 {
+	nveu32_t sid[4] = { MGBE0_SID, MGBE1_SID, MGBE2_SID, MGBE3_SID };
 	struct osi_vm_irq_data *irq_data;
 	nveu32_t i, j;
 	nveu32_t chan;
@@ -3017,7 +3021,29 @@ static void mgbe_dma_chan_to_vmirq_map(struct osi_core_priv_data *osi_core)
 		}
 	}
 
-	osi_writel(0xD, (nveu8_t *)osi_core->base + 0x8400);
+	if ((osi_core->use_virtualization == OSI_DISABLE) &&
+	    (osi_core->hv_base != OSI_NULL)) {
+		if (osi_core->instance_id > 3U) {
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+				     "Wrong MAC instance-ID\n",
+				     osi_core->instance_id);
+			return -1;
+		}
+
+		osi_writela(osi_core, MGBE_SID_VAL1(sid[osi_core->instance_id]),
+			    (nveu8_t *)osi_core->hv_base +
+			    MGBE_WRAP_AXI_ASID0_CTRL);
+
+		osi_writela(osi_core, MGBE_SID_VAL1(sid[osi_core->instance_id]),
+			    (nveu8_t *)osi_core->hv_base +
+			    MGBE_WRAP_AXI_ASID1_CTRL);
+
+		osi_writela(osi_core, MGBE_SID_VAL2(sid[osi_core->instance_id]),
+			    (nveu8_t *)osi_core->hv_base +
+			    MGBE_WRAP_AXI_ASID2_CTRL);
+	}
+
+	return 0;
 }
 
 
@@ -3127,9 +3153,7 @@ static nve32_t mgbe_core_init(struct osi_core_priv_data *osi_core,
 			      osi_core->hw_feature->fpe_sel);
 	}
 
-	mgbe_dma_chan_to_vmirq_map(osi_core);
-
-	return 0;
+	return mgbe_dma_chan_to_vmirq_map(osi_core);
 }
 
 /**
