@@ -1558,12 +1558,12 @@ struct nvcsi_cil_config {
 	uint8_t num_lanes;
 	/** LP bypass mode (boolean) */
 	uint8_t lp_bypass_mode;
-	/** Set MIPI THS-SETTLE timing (204 MHz lp clock cycles) */
+	/** Set MIPI THS-SETTLE timing (LP clock cycles with SoC default clock rate) */
 	uint8_t t_hs_settle;
-	/** Set MIPI TCLK-SETTLE timing (204 MHz lp clock cycles) */
+	/** Set MIPI TCLK-SETTLE timing (LP clock cycles with SoC default clock rate) */
 	uint8_t t_clk_settle;
-	/** NVCSI CIL clock rate [kHz] */
-	uint32_t cil_clock_rate;
+	/** @deprecated  */
+	uint32_t cil_clock_rate CAMRTC_DEPRECATED;
 	/** MIPI clock rate for D-Phy. Symbol rate for C-Phy [kHz] */
 	uint32_t mipi_clock_rate;
 	/** Reserved */
