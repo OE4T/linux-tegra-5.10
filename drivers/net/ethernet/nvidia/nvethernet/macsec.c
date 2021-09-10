@@ -1283,6 +1283,8 @@ int macsec_probe(struct ether_priv_data *pdata)
 		macsec_pdata->id = 0;
 	}
 
+	osi_core->instance_id = macsec_pdata->id;
+
 	/* Get OSI MACsec ops */
 	if (osi_init_macsec_ops(osi_core) != 0) {
 		dev_err(dev, "osi_init_macsec_ops failed\n");
