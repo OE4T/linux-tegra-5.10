@@ -1145,6 +1145,8 @@ struct core_padctrl {
 struct osi_core_priv_data {
 	/** Memory mapped base address of MAC IP */
 	void *base;
+	/** Memory mapped base address of HV window */
+	void *hv_base;
 	/** Memory mapped base address of DMA window of MAC IP */
 	void *dma_base;
 	/** Memory mapped base address of XPCS IP */
@@ -1256,6 +1258,8 @@ struct osi_core_priv_data {
 	nveu32_t phy_iface_mode;
 	/** eqos pad control structure */
 	struct core_padctrl padctrl;
+	/** MGBE MAC instance ID's */
+	nveu32_t instance_id;
 };
 
 /**

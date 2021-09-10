@@ -122,6 +122,9 @@
  * @brief MGBE Wrapper register offsets
  * @{
  */
+#define MGBE_WRAP_AXI_ASID0_CTRL	0x8400
+#define MGBE_WRAP_AXI_ASID1_CTRL	0x8404
+#define MGBE_WRAP_AXI_ASID2_CTRL	0x8408
 #define MGBE_WRAP_COMMON_INTR_ENABLE	0x8704
 #define MGBE_WRAP_COMMON_INTR_STATUS	0x8708
 #define MGBE_VIRT_INTR_APB_CHX_CNTRL(x)	(0x8200U + ((x) * 4U))
@@ -671,6 +674,16 @@
 #define MGBE_MAC_EXT_CNF_EIPG_MASK		0x7FU
 /* TX timestamp */
 #define MGBE_MAC_TSS_TXTSC			OSI_BIT(15)
+#define MGBE0_SID				((nveu32_t)0x6U)
+#define MGBE1_SID				((nveu32_t)0x49U)
+#define MGBE2_SID				((nveu32_t)0x4AU)
+#define MGBE3_SID				((nveu32_t)0x4BU)
+#define MGBE_SID_VAL1(x)			(((x) << 24U) |\
+						 ((x) << 16U) |\
+						 ((x) << 8U) |\
+						 (x))
+#define MGBE_SID_VAL2(x)			(((x) << 8U) |\
+						 (x))
 /** @} */
 
 /**
