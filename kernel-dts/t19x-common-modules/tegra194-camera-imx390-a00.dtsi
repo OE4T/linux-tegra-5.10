@@ -220,7 +220,7 @@
 					line_length = "2200";
 					inherent_gain = "1";
 					pix_clk_hz = "74250000";
-					serdes_pix_clk_hz = "833333333";
+					serdes_pix_clk_hz = "200000000";
 
 					gain_factor = "10";
 					min_gain_val = "0"; /* dB */
@@ -392,7 +392,7 @@
 					line_length = "2200";
 					inherent_gain = "1";
 					pix_clk_hz = "74250000";
-					serdes_pix_clk_hz = "833333333";
+					serdes_pix_clk_hz = "200000000";
 
 					gain_factor = "10";
 					min_gain_val = "0"; /* dB */
