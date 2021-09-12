@@ -1,8 +1,8 @@
 ifeq ($(CONFIG_TEGRA_PVA_V1),y)
 V2 := n
-BRINGUP := y
+BRINGUP := $(CONFIG_TEGRA_GRHOST_PVA)
 else
-V2 := y
+V2 := $(CONFIG_TEGRA_GRHOST_PVA)
 BRINGUP := n
 endif
 
