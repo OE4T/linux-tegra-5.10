@@ -1935,35 +1935,34 @@ static void eqos_tsn_init(struct osi_core_priv_data *osi_core,
 			/* 6*1/(78.6 MHz) in ns*/
 			temp = (6U * 13U);
 		} else {
-			/* 6*1/(312 MHz) in ns*/
-			temp = (6U * 3U);
+			temp = EQOS_MTL_EST_PTOV_RECOMMEND;
 		}
 		temp = temp << EQOS_MTL_EST_CONTROL_PTOV_SHIFT;
 		val |= temp;
 
-		/* We have a bug on CTOV for Qbv that synopsys is yet to
-		 * fix[Case – 8001147927, Bug 200468714]. You can go ahead
-		 * with 128*8ns for now. TODO */
 		val &= ~EQOS_MTL_EST_CONTROL_CTOV;
-		temp = (128U * 8U);
+		temp = EQOS_MTL_EST_CTOV_RECOMMEND;
 		temp = temp << EQOS_MTL_EST_CONTROL_CTOV_SHIFT;
 		val |= temp;
 
 		/*Loop Count to report Scheduling Error*/
 		val &= ~EQOS_MTL_EST_CONTROL_LCSE;
 		val |= EQOS_MTL_EST_CONTROL_LCSE_VAL;
-		/* Drop Frames causing Scheduling Error */
-		val |= EQOS_MTL_EST_CONTROL_DFBS;
+
+		val &= ~(EQOS_MTL_EST_CONTROL_DDBF |
+			 EQOS_MTL_EST_CONTROL_DFBS);
+		val |= EQOS_MTL_EST_CONTROL_DDBF;
+
 		osi_writela(osi_core, val, (nveu8_t *)osi_core->base +
-			   EQOS_MTL_EST_CONTROL);
+			    EQOS_MTL_EST_CONTROL);
 
 		val = osi_readla(osi_core, (nveu8_t *)osi_core->base +
-				EQOS_MTL_EST_OVERHEAD);
+				 EQOS_MTL_EST_OVERHEAD);
 		val &= ~EQOS_MTL_EST_OVERHEAD_OVHD;
 		/* As per hardware team recommendation */
 		val |= EQOS_MTL_EST_OVERHEAD_RECOMMEND;
 		osi_writela(osi_core, val, (nveu8_t *)osi_core->base +
-			   EQOS_MTL_EST_OVERHEAD);
+			    EQOS_MTL_EST_OVERHEAD);
 
 		eqos_enable_mtl_interrupts(osi_core);
 	}
@@ -2400,12 +2399,13 @@ static inline void update_dma_sr_stats(
  */
 static void eqos_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 {
-	unsigned int val = 0;
-	unsigned int sch_err = 0;
-	unsigned int frm_err = 0;
+	unsigned int val = 0U;
+	unsigned int sch_err = 0U;
+	unsigned int frm_err = 0U;
 	unsigned int temp = 0U;
 	unsigned int i = 0;
-	unsigned long stat_val = 0;
+	unsigned long stat_val = 0U;
+	unsigned int value = 0U;
 
 	val = osi_readla(osi_core,
 			 (unsigned char *)osi_core->base + EQOS_MTL_EST_STATUS);
@@ -2446,6 +2446,18 @@ static void eqos_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 		sch_err &= 0xFFU; /* only 8 TC allowed so clearing all */
 		osi_writela(osi_core, sch_err,
 			   (nveu8_t *)osi_core->base + EQOS_MTL_EST_SCH_ERR);
+		/* Disable est as error happen */
+		value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				   EQOS_MTL_EST_CONTROL);
+		/* DBFS 0 means do not packet */
+		if ((value & EQOS_MTL_EST_CONTROL_DFBS) == OSI_DISABLE) {
+			value &= ~EQOS_MTL_EST_CONTROL_EEST;
+			osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
+				    EQOS_MTL_EST_CONTROL);
+			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				     "Disabling EST due to HLBS, correct GCL\n",
+				     OSI_NONE);
+		}
 	}
 
 	if ((val & EQOS_MTL_EST_STATUS_HLBF) == EQOS_MTL_EST_STATUS_HLBF) {
@@ -2468,6 +2480,19 @@ static void eqos_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 		frm_err &= 0xFFU; /* 8 TC allowed so clearing all */
 		osi_writela(osi_core, frm_err, (nveu8_t *)osi_core->base +
 			   EQOS_MTL_EST_FRMS_ERR);
+		/* Disable est as error happen */
+		value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				   EQOS_MTL_EST_CONTROL);
+		/* DDBF 1 means don't drop packet */
+		if ((value & EQOS_MTL_EST_CONTROL_DDBF) ==
+		    EQOS_MTL_EST_CONTROL_DDBF) {
+			value &= ~EQOS_MTL_EST_CONTROL_EEST;
+			osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
+				    EQOS_MTL_EST_CONTROL);
+			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				     "Disabling EST due to HLBF, correct GCL\n",
+				     OSI_NONE);
+		}
 	}
 
 	if ((val & EQOS_MTL_EST_STATUS_SWLC) == EQOS_MTL_EST_STATUS_SWLC) {
@@ -4675,24 +4700,26 @@ static int eqos_hw_config_fpe(struct osi_core_priv_data *osi_core,
 
 	osi_core->fpe_ready = OSI_DISABLE;
 
-	val = osi_readla(osi_core,
-			 (unsigned char *)osi_core->base + EQOS_MTL_FPE_CTS);
 
 	if (((fpe->tx_queue_preemption_enable << EQOS_MTL_FPE_CTS_PEC_SHIFT) &
 	     EQOS_MTL_FPE_CTS_PEC) == OSI_DISABLE) {
-		val &= ~EQOS_MAC_FPE_CTS_EFPE;
-		osi_writela(osi_core, val, (unsigned char *)osi_core->base +
-			   EQOS_MAC_FPE_CTS);
+		val = osi_readla(osi_core,
+				 (nveu8_t *)osi_core->base + EQOS_MTL_FPE_CTS);
+		val &= ~EQOS_MTL_FPE_CTS_PEC;
+		osi_writela(osi_core, val,
+			    (nveu8_t *)osi_core->base + EQOS_MTL_FPE_CTS);
 
-		val = osi_readla(osi_core, (unsigned char *)osi_core->base +
-				EQOS_MAC_RQC1R);
-		val &= ~EQOS_MAC_RQC1R_FPRQ;
-		osi_writela(osi_core, val, (unsigned char *)osi_core->base +
-			   EQOS_MAC_RQC1R);
+		val = osi_readla(osi_core,
+				 (nveu8_t *)osi_core->base + EQOS_MAC_FPE_CTS);
+		val &= ~EQOS_MAC_FPE_CTS_EFPE;
+		osi_writela(osi_core, val, (nveu8_t *)osi_core->base +
+			   EQOS_MAC_FPE_CTS);
 
 		return 0;
 	}
 
+	val = osi_readla(osi_core,
+			 (nveu8_t *)osi_core->base + EQOS_MTL_FPE_CTS);
 	val &= ~EQOS_MTL_FPE_CTS_PEC;
 	for (i = 0U; i < OSI_MAX_TC_NUM; i++) {
 	/* max 8 bit for this structure fot TC/TXQ. Set the TC for express or
@@ -4712,7 +4739,7 @@ static int eqos_hw_config_fpe(struct osi_core_priv_data *osi_core,
 		}
 	}
 	osi_writela(osi_core, val,
-		    (unsigned char *)osi_core->base + EQOS_MTL_FPE_CTS);
+		    (nveu8_t *)osi_core->base + EQOS_MTL_FPE_CTS);
 
 	/* Setting RQ as RxQ 0 is not allowed */
 	if (fpe->rq == 0x0U || fpe->rq >= OSI_EQOS_MAX_NUM_CHANS) {
@@ -5330,6 +5357,7 @@ static nve32_t eqos_set_avb_algorithm(
 				EQOS_MTL_CH0_TX_OP_MODE_IDX + qinx);
 
 	/* Set Algo and Credit control */
+	value = OSI_DISABLE;
 	if (avb->algo == OSI_MTL_TXQ_AVALG_CBS) {
 		value = (avb->credit_control << EQOS_MTL_TXQ_ETS_CR_CC_SHIFT) &
 			 EQOS_MTL_TXQ_ETS_CR_CC;

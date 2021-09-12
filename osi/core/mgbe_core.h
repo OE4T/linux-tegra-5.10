@@ -609,6 +609,7 @@
 						 OSI_BIT(29) | OSI_BIT(30) | \
 						 OSI_BIT(31))
 #define MGBE_MTL_EST_CONTROL_PTOV_SHIFT		23U
+#define MGBE_MTL_EST_PTOV_RECOMMEND		32U
 #define MGBE_MTL_EST_CONTROL_CTOV		(OSI_BIT(11) | OSI_BIT(12) | \
 						 OSI_BIT(13) | OSI_BIT(14) | \
 						 OSI_BIT(15) | OSI_BIT(16) | \
@@ -616,6 +617,7 @@
 						 OSI_BIT(19) | OSI_BIT(20) | \
 						 OSI_BIT(21) | OSI_BIT(22))
 #define MGBE_MTL_EST_CONTROL_CTOV_SHIFT		11U
+#define MGBE_MTL_EST_CTOV_RECOMMEND		42U
 #define MGBE_MTL_EST_CONTROL_TILS		(OSI_BIT(8) | OSI_BIT(9) | \
 						 OSI_BIT(10))
 #define MGBE_MTL_EST_CONTROL_LCSE		(OSI_BIT(7) | OSI_BIT(6))
@@ -627,6 +629,7 @@
 #define MGBE_MTL_EST_OVERHEAD_OVHD		(OSI_BIT(0) | OSI_BIT(1) | \
 						 OSI_BIT(2) | OSI_BIT(3) | \
 						 OSI_BIT(4) | OSI_BIT(5))
+#define MGBE_MTL_EST_OVERHEAD_RECOMMEND		56U
 /* EST controlOSI_BITmap */
 #define MGBE_MTL_EST_EEST			OSI_BIT(0)
 #define MGBE_MTL_EST_SSWL			OSI_BIT(1)
@@ -852,14 +855,6 @@
 #define MGBE_MAX_BAK_IDX		((MGBE_MAC_DCHSEL_BAK_IDX(0) + \
 					 OSI_MGBE_MAX_MAC_ADDRESS_FILTER + 1U))
 /** @} */
-
-/**
- * @addtogroup IPG over head
- *
- * @brief OVHD value for MGBE MAC
- * @{
- */
-#define OVHD_MGBE_MAC			56U
 
 /**
  * @addtogroup MGBE-MAC MGBE MAC HW feature registers
