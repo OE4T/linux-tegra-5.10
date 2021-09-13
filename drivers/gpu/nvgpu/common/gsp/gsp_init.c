@@ -38,7 +38,9 @@ void nvgpu_gsp_isr_support(struct gk20a *g, bool enable)
 
 	/* Enable irq*/
 	nvgpu_mutex_acquire(&g->gsp->isr_mutex);
-	g->ops.gsp.enable_irq(g, enable);
+	if (g->ops.gsp.enable_irq != NULL) {
+		g->ops.gsp.enable_irq(g, enable);
+	}
 	g->gsp->isr_enabled = enable;
 	nvgpu_mutex_release(&g->gsp->isr_mutex);
 }
