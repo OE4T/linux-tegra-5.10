@@ -1130,7 +1130,7 @@ config SND_SOC_RT5631
 	depends on I2C
 
 config SND_SOC_RT5640
-	tristate
+	tristate "Realtek RT5639/RT5640 Codec"
 	depends on I2C
 
 config SND_SOC_RT5645
