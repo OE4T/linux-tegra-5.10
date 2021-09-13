@@ -271,45 +271,6 @@ enum dram_types tegra_dram_types(void)
 }
 EXPORT_SYMBOL(tegra_dram_types);
 
-/*
- * Return emc rate in Hz
- */
-unsigned long tegra_get_emc_rate(void)
-{
-	struct clk *emc_clk;
-
-	emc_clk = clk_get_sys(NULL, "emc");
-	if (!IS_ERR_OR_NULL(emc_clk))
-		return clk_get_rate(emc_clk);
-
-	pr_err("EMC clock is not found\n");
-	return 0;
-}
-EXPORT_SYMBOL(tegra_get_emc_rate);
-
-/*
- * Return max emc rate in Hz
- */
-unsigned long tegra_get_emc_max_rate(void)
-{
-	struct clk *emc_clk;
-	long round_rate;
-
-	emc_clk = clk_get_sys(NULL, "emc");
-	if (emc_clk) {
-		round_rate = clk_round_rate(emc_clk, LONG_MAX);
-		if (round_rate < 0) {
-			pr_err("mc_utils: couldn't get emc clock max rate.\n");
-			return 0;
-		} else
-			return round_rate;
-	}
-
-	pr_err("EMC clock is not found\n");
-	return 0;
-}
-EXPORT_SYMBOL(tegra_get_emc_max_rate);
-
 #if defined(CONFIG_DEBUG_FS)
 static void tegra_mc_utils_debugfs_init(void)
 {

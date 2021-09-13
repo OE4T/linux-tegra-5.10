@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020, NVIDIA Corporation.  All rights reserved.
+ * Copyright (C) 2020-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -12,8 +12,8 @@
  *
  */
 
-#ifndef __MACH_TEGRA_MC_UTILS_H
-#define __MACH_TEGRA_MC_UTILS_H
+#ifndef __TEGRA_MC_UTILS_H
+#define __TEGRA_MC_UTILS_H
 
 enum dram_types {
 	DRAM_TYPE_INVAL,
@@ -101,18 +101,4 @@ u8 get_dram_num_channels(void);
  * Return: mc clk in MHz.
  */
 unsigned long dram_clk_to_mc_clk(unsigned long dram_clk);
-
-/*
- * Return current emc rate.
- *
- * Return current emc rate in Hz
- */
-unsigned long tegra_get_emc_rate(void);
-
-/*
- * Return emc max rate.
- *
- * Return emc max rate in Hz
- */
-unsigned long tegra_get_emc_max_rate(void);
-#endif
+#endif /* __TEGRA_MC_UTILS_H */
