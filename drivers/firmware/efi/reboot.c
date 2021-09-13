@@ -7,10 +7,11 @@
 #include <linux/reboot.h>
 
 static void (*orig_pm_power_off)(void);
+extern void (*uefi_handle_reboot_cmd)(const char *cmd);
 
 int efi_reboot_quirk_mode = -1;
 
-void efi_reboot(enum reboot_mode reboot_mode, const char *__unused)
+void efi_reboot(enum reboot_mode reboot_mode, const char *cmd)
 {
 	const char *str[] = { "cold", "warm", "shutdown", "platform" };
 	int efi_mode, cap_reset_mode;
@@ -27,6 +28,9 @@ void efi_reboot(enum reboot_mode reboot_mode, const char *__unused)
 		efi_mode = EFI_RESET_COLD;
 		break;
 	}
+
+	if (uefi_handle_reboot_cmd)
+		uefi_handle_reboot_cmd(cmd);
 
 	/*
 	 * If a quirk forced an EFI reset mode, always use that.

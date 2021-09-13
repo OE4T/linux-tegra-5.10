@@ -203,7 +203,7 @@ void machine_restart(char *cmd)
 	 * ResetSystem().
 	 */
 	if (efi_enabled(EFI_RUNTIME_SERVICES))
-		efi_reboot(reboot_mode, NULL);
+		efi_reboot(reboot_mode, cmd);
 
 	/* Now call the architecture specific reboot code. */
 	if (arm_pm_restart)
