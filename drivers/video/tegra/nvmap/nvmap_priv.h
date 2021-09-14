@@ -275,7 +275,7 @@ struct nvmap_handle_ref {
 	atomic_t	dupes;	/* number of times to free on file close */
 };
 
-#if defined(NVMAP_CONFIG_PAGE_POOLS) || defined(NVMAP_LOADABLE_MODULE)
+#if defined(NVMAP_CONFIG_PAGE_POOLS)
 /*
  * This is the default ratio defining pool size. It can be thought of as pool
  * size in either MB per GB or KB per MB. That means the max this number can
