@@ -62,6 +62,14 @@ enum nv_macsec_tz_attrs {
 	NV_MACSEC_TZ_ATTR_MAX = __NV_MACSEC_TZ_ATTR_END - 1,
 };
 
+enum nv_macsec_tz_kt_reset_attrs {
+	NV_MACSEC_TZ_KT_RESET_ATTR_UNSPEC,
+	NV_MACSEC_TZ_KT_RESET_INSTANCE_ID,
+	__NV_MACSEC_TZ_KT_RESET_ATTR_END,
+	NUM_KT_RESET_ATTR = __NV_MACSEC_TZ_KT_RESET_ATTR_END,
+	NV_MACSEC_TZ_KT_RESET_ATTR_MAX = __NV_MACSEC_TZ_KT_RESET_ATTR_END - 1,
+};
+
 enum nv_macsec_attrs {
 	NV_MACSEC_ATTR_UNSPEC,
 	NV_MACSEC_ATTR_IFNAME,
@@ -73,6 +81,7 @@ enum nv_macsec_attrs {
 	NV_MACSEC_ATTR_CTRL_PORT_EN,
 	NV_MACSEC_ATTR_SA_CONFIG, /* Nested SA config */
 	NV_MACSEC_ATTR_TZ_CONFIG, /* Nested TZ config */
+	NV_MACSEC_ATTR_TZ_KT_RESET, /* Nested TZ KT config */
 	__NV_MACSEC_ATTR_END,
 	NUM_NV_MACSEC_ATTR = __NV_MACSEC_ATTR_END,
 	NV_MACSEC_ATTR_MAX = __NV_MACSEC_ATTR_END - 1,
@@ -97,6 +106,10 @@ static const struct nla_policy nv_macsec_tz_genl_policy[NUM_NV_MACSEC_TZ_ATTR] =
 	[NV_MACSEC_TZ_ATTR_FLAG] = { .type = NLA_U32 },
 };
 
+static const struct nla_policy nv_kt_reset_genl_policy[NUM_KT_RESET_ATTR] = {
+	[NV_MACSEC_TZ_KT_RESET_INSTANCE_ID] = { .type = NLA_U32 },
+};
+
 static const struct nla_policy nv_macsec_genl_policy[NUM_NV_MACSEC_ATTR] = {
 	[NV_MACSEC_ATTR_IFNAME] = { .type = NLA_STRING },
 	[NV_MACSEC_ATTR_TXSC_PORT] = { .type = NLA_U16 },
@@ -104,6 +117,7 @@ static const struct nla_policy nv_macsec_genl_policy[NUM_NV_MACSEC_ATTR] = {
 	[NV_MACSEC_ATTR_REPLAY_WINDOW] = { .type = NLA_U32 },
 	[NV_MACSEC_ATTR_SA_CONFIG] = { .type = NLA_NESTED },
 	[NV_MACSEC_ATTR_TZ_CONFIG] = { .type = NLA_NESTED },
+	[NV_MACSEC_ATTR_TZ_KT_RESET] = { .type = NLA_NESTED },
 };
 
 enum nv_macsec_nl_commands {
