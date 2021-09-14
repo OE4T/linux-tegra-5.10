@@ -6021,65 +6021,20 @@ static int ether_probe(struct platform_device *pdev)
 	struct osi_dma_priv_data *osi_dma;
 	struct osi_ioctl ioctl_data = {};
 	struct net_device *ndev;
-	int ret = 0, i, val;
-	void __iomem *reg;
+	int ret = 0, i;
 	const char *if_name;
-
-	/* WAR to program PAD control registers until MB1 changes done */
-	if (tegra_get_chip_id() == TEGRA234) {
-		reg = ioremap(0x2445038, 4);
-		val = 0x2440;
-		writel(val, reg);
-		iounmap(reg);
-
-		reg = ioremap(0x2445048, 4);
-		val = 0x2400;
-		writel(val, reg);
-		iounmap(reg);
-
-		reg = ioremap(0x2440000, 4);
-		val = 0x440;
-		writel(val, reg);
-		iounmap(reg);
-
-		reg = ioremap(0x2440008, 4);
-		val = 0x400;
-		writel(val, reg);
-		iounmap(reg);
-
-		reg = ioremap(0x2440018, 4);
-		val = 0x440;
-		writel(val, reg);
-		iounmap(reg);
-
-		reg = ioremap(0x2440028, 4);
-		val = 0x400;
-		writel(val, reg);
-		iounmap(reg);
-
-		reg = ioremap(0x2440048, 4);
-		val = 0x440;
-		writel(val, reg);
-		iounmap(reg);
-
-		reg = ioremap(0x2440010, 4);
-		val = 0x400;
-		writel(val, reg);
-		iounmap(reg);
-
-		reg = ioremap(0x2440038, 4);
-		val = 0x440;
-		writel(val, reg);
-		iounmap(reg);
-
-		reg = ioremap(0x2440040, 4);
-		val = 0x400;
-		writel(val, reg);
-		iounmap(reg);
-	}
 
 	ether_get_num_dma_chan_mtl_q(pdev, &num_dma_chans,
 				     &mac, &num_mtl_queues);
+
+	if (mac == OSI_MAC_HW_MGBE) {
+		ret = pinctrl_pm_select_default_state(&pdev->dev);
+		if (ret < 0) {
+			dev_err(&pdev->dev,
+				"Failed to apply pinctl states: %d\n", ret);
+			return ret;
+		}
+	}
 
 	osi_core = osi_get_core();
 	if (osi_core == NULL) {

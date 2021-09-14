@@ -19,6 +19,7 @@
 
 #include <linux/platform/tegra/ptp-notifier.h>
 #include <linux/ptp_clock_kernel.h>
+#include <linux/pinctrl/consumer.h>
 #include <linux/platform_device.h>
 #include <linux/etherdevice.h>
 #include <linux/net_tstamp.h>
