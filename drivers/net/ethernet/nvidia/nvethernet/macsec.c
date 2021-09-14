@@ -1399,6 +1399,16 @@ static int macsec_tz_kt_config(struct ether_priv_data *pdata,
 		ret = -EINVAL;
 		goto failure;
 	}
+	if (cmd == NV_MACSEC_CMD_TZ_KT_RESET) {
+		nest = nla_nest_start(msg, NV_MACSEC_ATTR_TZ_KT_RESET);
+		if (!nest) {
+			ret = EINVAL;
+			goto failure;
+		}
+		nla_put_u32(msg, NV_MACSEC_TZ_KT_RESET_INSTANCE_ID,
+			    macsec_pdata->id);
+		nla_nest_end(msg, nest);
+	}
 
 	if (cmd == NV_MACSEC_CMD_TZ_CONFIG && kt_config != NULL) {
 		/* pr_err("%s: ctrl: %hu rw: %hu idx: %hu flags: %#x\n"
