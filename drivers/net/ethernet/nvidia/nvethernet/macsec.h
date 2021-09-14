@@ -154,6 +154,8 @@ struct macsec_priv_data {
 	int s_irq;
 	/** Non secure irq */
 	int ns_irq;
+	/** is_irq_allocated BIT(0)for s_irq and BIT(1)for ns_irq*/
+	unsigned int is_irq_allocated;
 	/** pointer to ether private data struct */
 	struct ether_priv_data *ether_pdata;
 	/** macsec IRQ name strings */
