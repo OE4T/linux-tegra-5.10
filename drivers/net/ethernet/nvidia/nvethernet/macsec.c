@@ -152,8 +152,15 @@ int macsec_close(struct macsec_priv_data *macsec_pdata)
 	macsec_pdata->enabled = OSI_DISABLE;
 	osi_macsec_deinit(pdata->osi_core);
 
-	devm_free_irq(dev, macsec_pdata->ns_irq, macsec_pdata);
-	devm_free_irq(dev, macsec_pdata->s_irq, macsec_pdata);
+	if (macsec_pdata->is_irq_allocated & OSI_BIT(1)) {
+		devm_free_irq(dev, macsec_pdata->ns_irq, macsec_pdata);
+		macsec_pdata->is_irq_allocated &= ~OSI_BIT(1);
+	}
+	if (macsec_pdata->is_irq_allocated & OSI_BIT(0)) {
+		devm_free_irq(dev, macsec_pdata->s_irq, macsec_pdata);
+		macsec_pdata->is_irq_allocated &= ~OSI_BIT(0);
+	}
+
 	PRINT_EXIT();
 
 	return ret;
@@ -180,6 +187,7 @@ int macsec_open(struct macsec_priv_data *macsec_pdata,
 
 	dev_info(dev, "%s: requested s_irq %d: %s\n", __func__,
 		 macsec_pdata->s_irq, macsec_pdata->irq_name[0]);
+	macsec_pdata->is_irq_allocated |= OSI_BIT(0);
 
 	snprintf(macsec_pdata->irq_name[1], MACSEC_IRQ_NAME_SZ, "%s.macsec_ns",
 		 netdev_name(pdata->ndev));
@@ -193,6 +201,7 @@ int macsec_open(struct macsec_priv_data *macsec_pdata,
 
 	dev_info(dev, "%s: requested ns_irq %d: %s\n", __func__,
 		 macsec_pdata->ns_irq, macsec_pdata->irq_name[1]);
+	macsec_pdata->is_irq_allocated |= OSI_BIT(1);
 
 	/* Invoke OSI HW initialization, initialize standard BYP entries */
 	ret = osi_macsec_init(pdata->osi_core);
