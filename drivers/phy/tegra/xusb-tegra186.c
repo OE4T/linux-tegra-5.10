@@ -896,6 +896,95 @@ static int tegra186_xusb_padctl_vbus_power_off(struct phy *phy)
 	return rc;
 }
 
+static void tegra186_xusb_padctl_set_port_cap(struct tegra_xusb_padctl *padctl,
+			unsigned int index, unsigned int port_cap)
+{
+	struct tegra_xusb_usb2_port *port;
+	struct tegra_xusb_usb3_port *usb3;
+	int i;
+	u32 value;
+
+	port = tegra_xusb_find_usb2_port(padctl, index);
+	if (!port) {
+		dev_err(padctl->dev, "no port found for USB2 lane %u\n", index);
+		return;
+	}
+
+	for (i = 0; i < padctl->soc->ports.usb3.count; i++) {
+		usb3 = tegra_xusb_find_usb3_port(padctl, i);
+		if (usb3 && usb3->port == index)
+			break;
+		usb3 = NULL;
+	}
+
+	dev_dbg(padctl->dev, "setting usb2 port %u cap to %u\n", index,
+		port_cap);
+
+
+	value = padctl_readl(padctl, XUSB_PADCTL_USB2_PORT_CAP);
+	value &= ~(PORT_CAP_MASK << PORTX_CAP_SHIFT(index));
+
+	value |= (port_cap << PORTX_CAP_SHIFT(index));
+	padctl_writel(padctl, value, XUSB_PADCTL_USB2_PORT_CAP);
+
+	if (usb3) {
+
+		dev_dbg(padctl->dev, "setting usb3 port %u cap to %u\n",
+			usb3->base.index, port_cap);
+
+		value = padctl_readl(padctl, XUSB_PADCTL_SS_PORT_CAP);
+		value &= ~(PORT_CAP_MASK << PORTX_CAP_SHIFT(usb3->base.index));
+
+		value |= (port_cap << PORTX_CAP_SHIFT(usb3->base.index));
+		padctl_writel(padctl, value, XUSB_PADCTL_SS_PORT_CAP);
+	}
+
+
+}
+
+static void tegra_phy_xusb_set_unused_port_cap_to_host(struct phy *phy)
+{
+	struct tegra_xusb_lane *lane = phy_get_drvdata(phy);
+	struct tegra_xusb_padctl *padctl = lane->pad->padctl;
+	struct tegra_xusb_usb2_port *port;
+	unsigned int index = lane->index;
+	unsigned int i;
+
+	for (i = 0; i < padctl->soc->ports.usb2.count; i++) {
+		if (i == index)
+			continue;
+
+		port = tegra_xusb_find_usb2_port(padctl, i);
+		if (port && (port->mode == USB_DR_MODE_OTG
+				|| port->mode == USB_DR_MODE_PERIPHERAL))
+			tegra186_xusb_padctl_set_port_cap(padctl, i, PORT_CAP_HOST);
+	}
+
+}
+
+static void tegra_phy_xusb_restore_unused_port_cap(struct phy *phy)
+{
+	struct tegra_xusb_lane *lane = phy_get_drvdata(phy);
+	struct tegra_xusb_padctl *padctl = lane->pad->padctl;
+	struct tegra_xusb_usb2_port *port;
+	unsigned int index = lane->index;
+	unsigned int i;
+
+	for (i = 0; i < padctl->soc->ports.usb2.count; i++) {
+		if (i == index)
+			continue;
+
+		port = tegra_xusb_find_usb2_port(padctl, i);
+		if (port) {
+			if (port->mode == USB_DR_MODE_OTG)
+				tegra186_xusb_padctl_set_port_cap(padctl, i, PORT_CAP_OTG);
+			else if (port->mode == USB_DR_MODE_PERIPHERAL)
+				tegra186_xusb_padctl_set_port_cap(padctl, i, PORT_CAP_DEVICE);
+		}
+	}
+
+}
+
 static int tegra186_utmi_phy_set_mode(struct phy *phy, enum phy_mode mode,
 				      int submode)
 {
@@ -917,6 +1006,10 @@ static int tegra186_utmi_phy_set_mode(struct phy *phy, enum phy_mode mode,
 				err = regulator_enable(port->supply);
 
 		} else if (submode == USB_ROLE_DEVICE) {
+
+			if (padctl->soc->port_cap_quirk)
+				tegra_phy_xusb_set_unused_port_cap_to_host(phy);
+
 			tegra186_xusb_padctl_vbus_override(padctl, true);
 		} else if (submode == USB_ROLE_NONE) {
 			/*
@@ -928,6 +1021,9 @@ static int tegra186_utmi_phy_set_mode(struct phy *phy, enum phy_mode mode,
 				regulator_is_enabled(port->supply)) {
 				regulator_disable(port->supply);
 			}
+
+			if (padctl->soc->port_cap_quirk)
+				tegra_phy_xusb_restore_unused_port_cap(phy);
 
 			tegra186_xusb_padctl_id_override(padctl, false);
 			tegra186_xusb_padctl_vbus_override(padctl, false);
@@ -1830,6 +1926,7 @@ const struct tegra_xusb_padctl_soc tegra194_xusb_padctl_soc = {
 	.supply_names = tegra194_xusb_padctl_supply_names,
 	.num_supplies = ARRAY_SIZE(tegra194_xusb_padctl_supply_names),
 	.supports_gen2 = true,
+	.port_cap_quirk = true,
 	.poll_trk_completed = true,
 };
 EXPORT_SYMBOL_GPL(tegra194_xusb_padctl_soc);
