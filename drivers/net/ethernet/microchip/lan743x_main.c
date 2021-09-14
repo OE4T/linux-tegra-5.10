@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0+ */
 /* Copyright (C) 2018 Microchip Technology Inc. */
+/* Copyright (C) 2021 NVIDIA CORPORATION. All rights reserved.*/
 
 #include <linux/module.h>
 #include <linux/pci.h>
@@ -15,6 +16,7 @@
 #include <linux/rtnetlink.h>
 #include <linux/iopoll.h>
 #include <linux/crc16.h>
+#include <linux/version.h>
 #include "lan743x_main.h"
 #include "lan743x_ethtool.h"
 
@@ -1029,12 +1031,15 @@ static int lan743x_phy_open(struct lan743x_adapter *adapter)
 
 		if (of_phy_is_fixed_link(phynode)) {
 			ret = of_phy_register_fixed_link(phynode);
+			phy->fixed = true;
 			if (ret) {
 				netdev_err(netdev,
 					   "cannot register fixed PHY\n");
 				of_node_put(phynode);
 				goto return_error;
 			}
+			ret = of_property_read_u32(phynode, "nvidia,mdio_addr",
+						   &phy->mdio_addr);
 		}
 		phydev = of_phy_connect(netdev, phynode,
 					lan743x_phy_link_status_change, 0,
@@ -2604,14 +2609,136 @@ static netdev_tx_t lan743x_netdev_xmit_frame(struct sk_buff *skb,
 	return lan743x_tx_xmit_frame(&adapter->tx[0], skb);
 }
 
+/**
+ * @brief Function to handle MDIO IOCTL in phyless move
+ *
+ * Algorithm: This function is used to write the data
+ * into the specified register.
+ *
+ * @param [in] pdata: Pointer to private data structure.
+ * @param [in] ifr: Interface request structure used for socket ioctl
+ *
+ * @retval 0 on success.
+ * @retval "negative value" on failure.
+ */
+
+static int lan7431_handle_priv_rmdio_ioctl(struct lan743x_adapter *adapter,
+					   struct ifreq *ifr)
+{
+	struct mii_ioctl_data *mii_data = if_mii(ifr);
+	unsigned int prtad, devad;
+	int ret = 0;
+
+	if (mdio_phy_id_is_c45(mii_data->phy_id)) {
+		prtad = mdio_phy_id_prtad(mii_data->phy_id);
+		devad = mdio_phy_id_devad(mii_data->phy_id);
+		devad = mdiobus_c45_addr(devad, mii_data->reg_num);
+	} else {
+		prtad = mii_data->phy_id;
+		devad = mii_data->reg_num;
+	}
+
+	netif_dbg(adapter, drv, adapter->netdev, "%s: phy_id:%d regadd: %d devaddr:%d\n",
+		  __func__, mii_data->phy_id, prtad, devad);
+	ret = lan743x_mdiobus_read(adapter->mdiobus, prtad, devad);
+	if (ret < 0) {
+		netif_err(adapter, drv, adapter->netdev, "%s: Data read failed\n", __func__);
+		return -EFAULT;
+	}
+
+	mii_data->val_out = ret;
+	return 0;
+}
+
+/**
+ * @brief Function to handle MDIO IOCTL in phyless move
+ *
+ * Algorithm: This function is used to write the data
+ * into the specified register.
+ *
+ * @param [in] pdata: Pointer to private data structure.
+ * @param [in] ifr: Interface request structure used for socket ioctl
+ *
+ * @retval 0 on success.
+ * @retval "negative value" on failure.
+ */
+static int lan7431_handle_priv_wmdio_ioctl(struct lan743x_adapter *adapter,
+					   struct ifreq *ifr)
+{
+	struct mii_ioctl_data *mii_data = if_mii(ifr);
+	unsigned int prtad, devad;
+
+	if (mdio_phy_id_is_c45(mii_data->phy_id)) {
+		prtad = mdio_phy_id_prtad(mii_data->phy_id);
+		devad = mdio_phy_id_devad(mii_data->phy_id);
+		devad = mdiobus_c45_addr(devad, mii_data->reg_num);
+	} else {
+		prtad = mii_data->phy_id;
+		devad = mii_data->reg_num;
+	}
+	netif_dbg(adapter, drv, adapter->netdev, "%s: phy_id:%d regadd: %d devaddr:%d val:%04x\n",
+		  __func__, mii_data->phy_id, prtad, devad, mii_data->val_in);
+	return lan743x_mdiobus_write(adapter->mdiobus, prtad, devad, mii_data->val_in);
+}
+
 static int lan743x_netdev_ioctl(struct net_device *netdev,
 				struct ifreq *ifr, int cmd)
 {
-	if (!netif_running(netdev))
+	int ret = -EINVAL;
+	struct lan743x_adapter *adapter = NULL;
+
+	if (!netdev || !ifr) {
+		netif_err(adapter, drv, adapter->netdev, "%s: Invalid arg\n", __func__);
 		return -EINVAL;
-	if (cmd == SIOCSHWTSTAMP)
-		return lan743x_ptp_ioctl(netdev, ifr, cmd);
-	return phy_mii_ioctl(netdev->phydev, ifr, cmd);
+	}
+	adapter = netdev_priv(netdev);
+	if (!adapter) {
+		netif_err(adapter, drv, adapter->netdev, "%s: bad priv\n", __func__);
+		return -EINVAL;
+	}
+
+	if (netif_running(netdev)) {
+		switch (cmd) {
+		case SIOCSHWTSTAMP:
+			ret = lan743x_ptp_ioctl(netdev, ifr, cmd);
+			break;
+		case SIOCGMIIPHY:
+		case SIOCGMIIREG:
+		case SIOCSMIIREG:
+			if (!netdev->phydev) {
+				ret = -EINVAL;
+				break;
+			}
+			if (adapter->phy.fixed) {
+				if (cmd == SIOCGMIIPHY) {
+					struct mii_ioctl_data *mii_data = if_mii(ifr);
+
+					mii_data->phy_id = adapter->phy.mdio_addr;
+					ret = 0;
+				} else if (cmd == SIOCGMIIREG) {
+					ret = lan7431_handle_priv_rmdio_ioctl(adapter, ifr);
+				} else if (cmd == SIOCSMIIREG) {
+					ret = lan7431_handle_priv_wmdio_ioctl(adapter, ifr);
+				} else {
+					netif_err(adapter, drv, adapter->netdev,
+						  "%s: impossible case\n", __func__);
+				}
+			} else {
+				if (!netdev->phydev)
+					ret = -EINVAL;
+				else
+					ret = phy_mii_ioctl(netdev->phydev, ifr, cmd);
+			}
+			break;
+		default:
+			ret = (!netdev->phydev) ? -EINVAL : phy_mii_ioctl(netdev->phydev, ifr, cmd);
+			break;
+		}
+	} else {
+		netif_err(adapter, drv, adapter->netdev, "%s: Interface not up\n", __func__);
+		ret = -EINVAL;
+	}
+	return ret;
 }
 
 static void lan743x_netdev_set_multicast(struct net_device *netdev)
