@@ -4207,6 +4207,9 @@ static void eqos_config_tscr(struct osi_core_priv_data *const osi_core,
 				case OSI_MAC_TCR_TSENALL:
 					mac_tcr |= OSI_MAC_TCR_TSENALL;
 					break;
+				case OSI_MAC_TCR_CSC:
+					mac_tcr |= OSI_MAC_TCR_CSC;
+					break;
 				default:
 					/* To avoid MISRA violation */
 					mac_tcr |= mac_tcr;
