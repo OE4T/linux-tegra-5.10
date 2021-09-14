@@ -973,7 +973,7 @@ static ssize_t tpc_fs_mask_show(struct device *dev,
 		if (g->ops.gr.config.get_gpc_tpc_mask)
 			tpc_fs_mask |=
 				g->ops.gr.config.get_gpc_tpc_mask(g, gr_config, gpc_phys_id) <<
-				(nvgpu_gr_config_get_max_tpc_per_gpc_count(gr_config) * gpc_index);
+				(nvgpu_gr_config_get_max_tpc_per_gpc_count(gr_config) * gpc_phys_id);
 	}
 
 	gk20a_idle(g);
