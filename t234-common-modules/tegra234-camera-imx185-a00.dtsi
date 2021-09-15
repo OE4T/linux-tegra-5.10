@@ -182,7 +182,7 @@
 					phy_mode = "DPHY";
 					discontinuous_clk = "no";
 					dpcm_enable = "false";
-					cil_settletime = "0";
+					cil_settletime = "43";
 					dynamic_pixel_bit_depth = "12";
 					csi_pixel_bit_depth = "12";
 					mode_type = "bayer";
@@ -222,7 +222,7 @@
 					phy_mode = "DPHY";
 					discontinuous_clk = "no";
 					dpcm_enable = "false";
-					cil_settletime = "0";
+					cil_settletime = "43";
 					dynamic_pixel_bit_depth = "10";
 					csi_pixel_bit_depth = "10";
 					mode_type = "bayer";
@@ -263,7 +263,7 @@
 					phy_mode = "DPHY";
 					discontinuous_clk = "no";
 					dpcm_enable = "false";
-					cil_settletime = "0";
+					cil_settletime = "43";
 					dynamic_pixel_bit_depth = "12";
 					csi_pixel_bit_depth = "12";
 					mode_type = "bayer";
@@ -304,7 +304,7 @@
 					phy_mode = "DPHY";
 					discontinuous_clk = "no";
 					dpcm_enable = "false";
-					cil_settletime = "0";
+					cil_settletime = "43";
 					dynamic_pixel_bit_depth = "10";
 					csi_pixel_bit_depth = "10";
 					mode_type = "bayer";
@@ -344,7 +344,7 @@
 					phy_mode = "DPHY";
 					discontinuous_clk = "no";
 					dpcm_enable = "false";
-					cil_settletime = "0";
+					cil_settletime = "43";
 					dynamic_pixel_bit_depth = "16";
 					csi_pixel_bit_depth = "12";
 					mode_type = "bayer_wdr_pwl";

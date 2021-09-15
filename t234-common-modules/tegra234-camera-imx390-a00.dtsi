@@ -208,7 +208,7 @@
 					vc_id = "0";
 					discontinuous_clk = "no";
 					dpcm_enable = "false";
-					cil_settletime = "0";
+					cil_settletime = "23";
 					dynamic_pixel_bit_depth = "12";
 					csi_pixel_bit_depth = "12";
 					mode_type = "bayer";
@@ -380,7 +380,7 @@
 					vc_id = "1";
 					discontinuous_clk = "no";
 					dpcm_enable = "false";
-					cil_settletime = "0";
+					cil_settletime = "23";
 					dynamic_pixel_bit_depth = "12";
 					csi_pixel_bit_depth = "12";
 					mode_type = "bayer";
