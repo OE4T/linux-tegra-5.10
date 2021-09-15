@@ -241,7 +241,7 @@ int nvmap_get_handle_from_sci_ipc_id(struct nvmap_client *client, u32 flags,
 	h_org = entry->handle;
 
 	/* h->dmabuf can't be NULL anymore. Duplicate the handle. */
-	ref = nvmap_duplicate_handle(client, h_org, true);
+	ref = nvmap_duplicate_handle(client, h_org, true, false);
 	if (!ref) {
 		ret = -EINVAL;
 		goto unlock;
@@ -249,7 +249,7 @@ int nvmap_get_handle_from_sci_ipc_id(struct nvmap_client *client, u32 flags,
 	dma_buf_put(h_org->dmabuf);
 	nvmap_handle_put(h_org);
 
-	fd = nvmap_get_dmabuf_fd(client, ref->handle);
+	fd = nvmap_get_dmabuf_fd(client, ref->handle, false);
 	*h = fd;
 	fd_install(fd, ref->handle->dmabuf->file);
 

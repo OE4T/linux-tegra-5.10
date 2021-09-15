@@ -243,7 +243,10 @@ static void destroy_client(struct nvmap_client *client)
 		if (ref->handle->owner == client)
 			ref->handle->owner = NULL;
 
-		dma_buf_put(ref->handle->dmabuf);
+		if (ref->is_ro)
+			dma_buf_put(ref->handle->dmabuf_ro);
+		else
+			dma_buf_put(ref->handle->dmabuf);
 		rb_erase(&ref->node, &client->handle_refs);
 		atomic_dec(&ref->handle->share_count);
 
@@ -371,6 +374,10 @@ static long nvmap_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 
 	case NVMAP_IOC_FREE:
 		err = nvmap_ioctl_free(filp, arg);
+		break;
+
+	case NVMAP_IOC_DUP_HANDLE:
+		err = nvmap_ioctl_dup_handle(filp, uarg);
 		break;
 
 #ifdef CONFIG_COMPAT

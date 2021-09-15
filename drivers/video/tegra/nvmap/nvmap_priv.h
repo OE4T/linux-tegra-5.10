@@ -238,6 +238,7 @@ struct nvmap_handle {
 	size_t align;
 	struct nvmap_client *owner;
 	struct dma_buf *dmabuf;
+	struct dma_buf *dmabuf_ro;
 	union {
 		struct nvmap_pgalloc pgalloc;
 		struct nvmap_heap_block *carveout;
@@ -258,13 +259,18 @@ struct nvmap_handle {
 	u64 ivm_id;
 	int peer;		/* Peer VM number */
 	int offs;		/* Offset in IVM mem pool */
-	bool is_ro;		/* Is handle read-only? */
+	/*
+	 * To be set only in handle created from VA case if the handle is
+	 * read-only.
+	 */
+	bool is_ro;
 };
 
 struct nvmap_handle_info {
 	struct nvmap_handle *handle;
 	struct list_head maps;
 	struct mutex maps_lock;
+	bool is_ro;
 };
 
 struct nvmap_tag_entry {
@@ -281,6 +287,7 @@ struct nvmap_handle_ref {
 	struct nvmap_handle *handle;
 	struct rb_node	node;
 	atomic_t	dupes;	/* number of times to free on file close */
+	bool is_ro;
 };
 
 #if defined(NVMAP_CONFIG_PAGE_POOLS)
@@ -499,7 +506,8 @@ struct nvmap_carveout_node;
 void nvmap_handle_put(struct nvmap_handle *h);
 
 struct nvmap_handle_ref *__nvmap_validate_locked(struct nvmap_client *priv,
-						 struct nvmap_handle *h);
+						 struct nvmap_handle *h,
+						 bool is_ro);
 
 struct nvmap_handle *nvmap_validate_get(struct nvmap_handle *h);
 
@@ -510,8 +518,17 @@ struct nvmap_handle_ref *nvmap_create_handle_from_va(struct nvmap_client *client
 						     ulong addr, size_t size,
 						     unsigned int access_flags);
 
+struct nvmap_handle_ref *nvmap_dup_handle_ro(struct nvmap_client *client,
+					int fd);
+
+bool is_nvmap_dmabuf_fd_ro(int fd);
+
+int is_nvmap_handle_fd_ro(struct nvmap_client *client, struct nvmap_handle *h,
+			  bool *is_ro);
+
 struct nvmap_handle_ref *nvmap_duplicate_handle(struct nvmap_client *client,
-					struct nvmap_handle *h, bool skip_val);
+					struct nvmap_handle *h, bool skip_val,
+					bool is_ro);
 
 struct nvmap_handle_ref *nvmap_try_duplicate_by_ivmid(
 			struct nvmap_client *client, u64 ivm_id,
@@ -535,7 +552,7 @@ int nvmap_alloc_handle_from_va(struct nvmap_client *client,
 			       ulong addr,
 			       unsigned int flags);
 
-void nvmap_free_handle(struct nvmap_client *c, struct nvmap_handle *h);
+void nvmap_free_handle(struct nvmap_client *c, struct nvmap_handle *h, bool is_ro);
 
 void nvmap_free_handle_fd(struct nvmap_client *c, int fd);
 
@@ -545,7 +562,8 @@ void nvmap_handle_add(struct nvmap_device *dev, struct nvmap_handle *h);
 
 int is_nvmap_vma(struct vm_area_struct *vma);
 
-int nvmap_get_dmabuf_fd(struct nvmap_client *client, struct nvmap_handle *h);
+int nvmap_get_dmabuf_fd(struct nvmap_client *client, struct nvmap_handle *h,
+			bool is_ro);
 struct nvmap_handle *nvmap_handle_get_from_dmabuf_fd(
 				struct nvmap_client *client, int fd);
 int nvmap_dmabuf_duplicate_gen_fd(struct nvmap_client *client,
@@ -583,8 +601,6 @@ int __nvmap_cache_maint(struct nvmap_client *client,
 int nvmap_cache_debugfs_init(struct dentry *nvmap_root);
 
 /* Internal API to support dmabuf */
-struct dma_buf *__nvmap_dmabuf_export(struct nvmap_client *client,
-				 struct nvmap_handle *handle);
 struct dma_buf *__nvmap_make_dmabuf(struct nvmap_client *client,
 				    struct nvmap_handle *handle, bool ro_buf);
 struct sg_table *__nvmap_sg_table(struct nvmap_client *client,
