@@ -288,6 +288,8 @@ static const struct ether_stats ether_gstrings_stats[] = {
 	ETHER_EXTRA_STAT(rx_normal_irq_n[9]),
 	ETHER_EXTRA_STAT(link_disconnect_count),
 	ETHER_EXTRA_STAT(link_connect_count),
+	ETHER_EXTRA_STAT(ts_lock_add_fail),
+	ETHER_EXTRA_STAT(ts_lock_del_fail),
 };
 
 /**
