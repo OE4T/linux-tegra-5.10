@@ -289,6 +289,80 @@ static int parse_dt_codec_confs(struct snd_soc_card *card)
 	return 0;
 }
 
+static int parse_dai_link_params(struct platform_device *pdev,
+				 struct device_node *link_node,
+				 struct snd_soc_dai_link *dai_link)
+{
+	struct snd_soc_pcm_stream *params;
+	char *str;
+
+	params = devm_kzalloc(&pdev->dev, sizeof(*params), GFP_KERNEL);
+	if (!params)
+		return -ENOMEM;
+
+	/* Copy default settings */
+	memcpy(params, &link_params, sizeof(*params));
+
+	if (!of_property_read_u32(link_node, "srate",
+				  &params->rate_min)) {
+		if (params->rate_min < link_params.rate_min ||
+		    params->rate_min > link_params.rate_max) {
+			dev_err(&pdev->dev,
+				"Unsupported rate %d for DAI link (%pOF)\n",
+				params->rate_min, link_node);
+
+			return -EOPNOTSUPP;
+		}
+
+		params->rate_max = params->rate_min;
+	}
+
+	if (!of_property_read_u32(link_node, "num-channel",
+				  &params->channels_min)) {
+		if (params->channels_min < link_params.channels_min ||
+		    params->channels_min > link_params.channels_max) {
+			dev_err(&pdev->dev,
+				"Unsupported channel %d for DAI link (%pOF)\n",
+				params->channels_min, link_node);
+
+			return -EOPNOTSUPP;
+		}
+
+		params->channels_max = params->channels_min;
+	}
+
+	if (!of_property_read_string(link_node, "bit-format",
+				     (const char **)&str)) {
+		if (!strcmp("s8", str)) {
+			params->formats = SNDRV_PCM_FMTBIT_S8;
+		} else if (!strcmp("s16_le", str)) {
+			params->formats = SNDRV_PCM_FMTBIT_S16_LE;
+		} else if (!strcmp("s24_le", str)) {
+			params->formats = SNDRV_PCM_FMTBIT_S24_LE;
+		} else if (!strcmp("s32_le", str)) {
+			params->formats = SNDRV_PCM_FMTBIT_S32_LE;
+		} else {
+			dev_err(&pdev->dev,
+				"Unsupported format %s for DAI link (%pOF)\n",
+				str, link_node);
+
+			return -EOPNOTSUPP;
+		}
+
+		if (!(params->formats & link_params.formats)) {
+			dev_err(&pdev->dev,
+				"Unsupported format %s for DAI link (%pOF)\n",
+				str, link_node);
+
+			return -EOPNOTSUPP;
+		}
+	}
+
+	dai_link->params = params;
+
+	return 0;
+}
+
 static int parse_dt_dai_links(struct snd_soc_card *card,
 			      struct snd_soc_ops *pcm_ops,
 			      struct snd_soc_compr_ops *compr_ops)
@@ -418,7 +492,12 @@ static int parse_dt_dai_links(struct snd_soc_card *card,
 				dai_link->compr_ops = compr_ops;
 				break;
 			case C2C_LINK:
-				dai_link->params = &link_params;
+				/* Parse DT provided link params */
+				ret = parse_dai_link_params(pdev, link_node,
+							    dai_link);
+				if (ret < 0)
+					goto cleanup;
+
 				break;
 			default:
 				dev_err(&pdev->dev, "DAI link type invalid\n");
