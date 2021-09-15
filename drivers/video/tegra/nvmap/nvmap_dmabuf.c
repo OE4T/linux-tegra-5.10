@@ -225,8 +225,13 @@ static void nvmap_dmabuf_release(struct dma_buf *dmabuf)
 				   dmabuf);
 
 	mutex_lock(&info->handle->lock);
-	BUG_ON(dmabuf != info->handle->dmabuf);
-	info->handle->dmabuf = NULL;
+	if (info->is_ro) {
+		BUG_ON(dmabuf != info->handle->dmabuf_ro);
+		info->handle->dmabuf_ro = NULL;
+	} else {
+		BUG_ON(dmabuf != info->handle->dmabuf);
+		info->handle->dmabuf = NULL;
+	}
 	mutex_unlock(&info->handle->lock);
 
 	nvmap_handle_put(info->handle);
@@ -545,6 +550,7 @@ struct dma_buf *__nvmap_make_dmabuf(struct nvmap_client *client,
 		goto err_nomem;
 	}
 	info->handle = handle;
+	info->is_ro = ro_buf;
 	INIT_LIST_HEAD(&info->maps);
 	mutex_init(&info->maps_lock);
 
@@ -591,30 +597,19 @@ int __nvmap_dmabuf_fd(struct nvmap_client *client,
 #endif /* !NVMAP_LOADABLE_MODULE */
 }
 
-int nvmap_get_dmabuf_fd(struct nvmap_client *client, struct nvmap_handle *h)
-{
-	int fd;
-	struct dma_buf *dmabuf;
-
-	dmabuf = __nvmap_dmabuf_export(client, h);
-	if (IS_ERR(dmabuf))
-		return PTR_ERR(dmabuf);
-
-	fd = __nvmap_dmabuf_fd(client, dmabuf, O_CLOEXEC);
-	if (IS_ERR_VALUE((uintptr_t)fd))
-		dma_buf_put(dmabuf);
-	return fd;
-}
-
-struct dma_buf *__nvmap_dmabuf_export(struct nvmap_client *client,
-				 struct nvmap_handle *handle)
+static struct dma_buf *__nvmap_dmabuf_export(struct nvmap_client *client,
+				 struct nvmap_handle *handle, bool is_ro)
 {
 	struct dma_buf *buf;
 
 	handle = nvmap_handle_get(handle);
 	if (!handle)
 		return ERR_PTR(-EINVAL);
-	buf = handle->dmabuf;
+	if (is_ro)
+		buf = handle->dmabuf_ro;
+	else
+		buf = handle->dmabuf;
+
 	if (WARN(!buf, "Attempting to get a freed dma_buf!\n")) {
 		nvmap_handle_put(handle);
 		return NULL;
@@ -627,9 +622,24 @@ struct dma_buf *__nvmap_dmabuf_export(struct nvmap_client *client,
 	 */
 	nvmap_handle_put(handle);
 
-	return handle->dmabuf;
+	return buf;
 }
-EXPORT_SYMBOL(__nvmap_dmabuf_export);
+
+int nvmap_get_dmabuf_fd(struct nvmap_client *client, struct nvmap_handle *h,
+			bool is_ro)
+{
+	int fd;
+	struct dma_buf *dmabuf;
+
+	dmabuf = __nvmap_dmabuf_export(client, h, is_ro);
+	if (IS_ERR(dmabuf))
+		return PTR_ERR(dmabuf);
+
+	fd = __nvmap_dmabuf_fd(client, dmabuf, O_CLOEXEC);
+	if (IS_ERR_VALUE((uintptr_t)fd))
+		dma_buf_put(dmabuf);
+	return fd;
+}
 
 /*
  * Returns the nvmap handle ID associated with the passed dma_buf's fd. This
@@ -658,6 +668,23 @@ struct nvmap_handle *nvmap_handle_get_from_dmabuf_fd(
 	}
 	dma_buf_put(dmabuf);
 	return handle;
+}
+
+bool is_nvmap_dmabuf_fd_ro(int fd)
+{
+	struct dma_buf *dmabuf;
+	struct nvmap_handle_info *info = NULL;
+
+	dmabuf = dma_buf_get(fd);
+	if (IS_ERR(dmabuf)) {
+		return false;
+	}
+	if (dmabuf_is_nvmap(dmabuf)) {
+		info = dmabuf->priv;
+	}
+	dma_buf_put(dmabuf);
+
+	return (info != NULL) ? info->is_ro : false;
 }
 
 /*

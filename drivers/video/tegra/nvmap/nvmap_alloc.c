@@ -1021,14 +1021,14 @@ out:
 }
 
 void nvmap_free_handle(struct nvmap_client *client,
-		       struct nvmap_handle *handle)
+		       struct nvmap_handle *handle, bool is_ro)
 {
 	struct nvmap_handle_ref *ref;
 	struct nvmap_handle *h;
 
 	nvmap_ref_lock(client);
 
-	ref = __nvmap_validate_locked(client, handle);
+	ref = __nvmap_validate_locked(client, handle, is_ro);
 	if (!ref) {
 		nvmap_ref_unlock(client);
 		return;
@@ -1054,7 +1054,10 @@ void nvmap_free_handle(struct nvmap_client *client,
 	if (h->owner == client)
 		h->owner = NULL;
 
-	dma_buf_put(ref->handle->dmabuf);
+	if (is_ro)
+		dma_buf_put(ref->handle->dmabuf_ro);
+	else
+		dma_buf_put(ref->handle->dmabuf);
 	NVMAP_TAG_TRACE(trace_nvmap_free_handle,
 		NVMAP_TP_ARGS_CHR(client, h, ref));
 	kfree(ref);
@@ -1069,8 +1072,10 @@ void nvmap_free_handle_fd(struct nvmap_client *client,
 			       int fd)
 {
 	struct nvmap_handle *handle = nvmap_handle_get_from_fd(fd);
+	bool is_ro = is_nvmap_dmabuf_fd_ro(fd);
+
 	if (handle) {
-		nvmap_free_handle(client, handle);
+		nvmap_free_handle(client, handle, is_ro);
 		nvmap_handle_put(handle);
 	}
 }
