@@ -36,6 +36,10 @@
 #include <soc/tegra/tegra-bpmp-dvfs.h>
 #endif /* CONFIG_NV_TEGRA_BPMP */
 
+#ifdef CONFIG_TEGRA_BPMP
+#include <soc/tegra/bpmp.h>
+#endif /* CONFIG_TEGRA_BPMP */
+
 #include <uapi/linux/nvgpu.h>
 
 #include "os/linux/platform_gk20a.h"
@@ -51,6 +55,20 @@
 #define EMC3D_GA10B_RATIO 500
 
 #define GPCCLK_INIT_RATE 1000000000UL
+
+/*
+ * To-do: clean these defines and include
+ * BPMP header.
+ * JIRA NVGPU-7124
+ */
+/** @brief Controls NV_FUSE_CTRL_OPT_GPC */
+#define TEGRA234_STRAP_NV_FUSE_CTRL_OPT_GPC		1U
+/** @brief Controls NV_FUSE_CTRL_OPT_FBP */
+#define TEGRA234_STRAP_NV_FUSE_CTRL_OPT_FBP		2U
+/** @brief Controls NV_FUSE_CTRL_OPT_TPC_GPC(0) */
+#define TEGRA234_STRAP_NV_FUSE_CTRL_OPT_TPC_GPC0	3U
+/** @brief Controls NV_FUSE_CTRL_OPT_TPC_GPC(1) */
+#define TEGRA234_STRAP_NV_FUSE_CTRL_OPT_TPC_GPC1	4U
 
 /* Run gpc0, gpc1 and sysclk at same rate */
 struct gk20a_platform_clk tegra_ga10b_clocks[] = {
@@ -223,6 +241,23 @@ static int ga10b_tegra_remove(struct device *dev)
 	return 0;
 }
 
+#if defined(CONFIG_TEGRA_BPMP) && defined(CONFIG_NVGPU_STATIC_POWERGATE)
+int ga10b_tegra_static_pg_control(struct device *dev, struct tegra_bpmp *bpmp,
+		struct mrq_strap_request *req)
+{
+	struct tegra_bpmp_message msg;
+	int err;
+
+	memset(&msg, 0, sizeof(msg));
+	msg.mrq = MRQ_STRAP;
+	msg.tx.data = req;
+	msg.tx.size = sizeof(*req);
+
+	err = tegra_bpmp_transfer(bpmp, &msg);
+	return err;
+}
+#endif
+
 static bool ga10b_tegra_is_railgated(struct device *dev)
 {
 	struct gk20a *g = get_gk20a(dev);
@@ -263,6 +298,60 @@ static int ga10b_tegra_unrailgate(struct device *dev)
 	struct gk20a_scale_profile *profile = platform->g->scale_profile;
 #endif
 
+#if defined(CONFIG_TEGRA_BPMP) && defined(CONFIG_NVGPU_STATIC_POWERGATE)
+	struct tegra_bpmp *bpmp;
+	struct mrq_strap_request req;
+	struct gk20a *g = get_gk20a(dev);
+	u32 i;
+
+	/*
+	 * Silicon - Static pg feature fuse settings will done in BPMP
+	 * Pre- Silicon - Static pg feature fuse settings will be done
+	 * in NvGPU driver during gpu poweron
+	 * Send computed GPC, FBP and TPC PG masks to BPMP
+	 */
+	if (nvgpu_platform_is_silicon(g)) {
+		bpmp = tegra_bpmp_get(dev);
+		if (bpmp != NULL) {
+			/* send GPC-PG mask */
+			memset(&req, 0, sizeof(req));
+			req.cmd = STRAP_SET;
+			req.id = TEGRA234_STRAP_NV_FUSE_CTRL_OPT_GPC;
+			req.value = g->gpc_pg_mask;
+			ret = ga10b_tegra_static_pg_control(dev, bpmp, &req);
+			if (ret != 0) {
+				nvgpu_err(g, "GPC-PG mask send failed");
+				return ret;
+			}
+
+			/* send FBP-PG mask */
+			memset(&req, 0, sizeof(req));
+			req.cmd = STRAP_SET;
+			req.id = TEGRA234_STRAP_NV_FUSE_CTRL_OPT_FBP;
+			req.value = g->fbp_pg_mask;
+			ret = ga10b_tegra_static_pg_control(dev, bpmp, &req);
+			if (ret != 0) {
+				nvgpu_err(g, "FBP-PG mask send failed");
+				return ret;
+			}
+
+			/* send TPC-PG mask */
+			for (i = 0U; i < MAX_PG_GPC; i++) {
+				memset(&req, 0, sizeof(req));
+				req.cmd = STRAP_SET;
+				req.id = TEGRA234_STRAP_NV_FUSE_CTRL_OPT_TPC_GPC0 + i;
+				req.value = g->tpc_pg_mask[i];
+				ret = ga10b_tegra_static_pg_control(dev, bpmp, &req);
+				if (ret != 0) {
+					nvgpu_err(g, "TPC-PG mask send failed "
+							"for GPC: %d", i);
+					return ret;
+				}
+			}
+		}
+	}
+#endif
+	/* Setting clk controls */
 	gp10b_tegra_clks_control(dev, true);
 
 #ifdef CONFIG_TEGRA_BWMGR
