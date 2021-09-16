@@ -2309,6 +2309,9 @@ static void tegra_pcie_downstream_dev_to_D0(struct tegra_pcie_dw *pcie)
 	struct pci_bus *child, *root_bus = NULL;
 	struct pci_dev *pdev;
 
+	if (!tegra_pcie_dw_link_up(&pcie->pci))
+		return;
+
 	/*
 	 * link doesn't go into L2 state with some of the endpoints with Tegra
 	 * if they are not in D0 state. So, need to make sure that immediate
@@ -3652,12 +3655,23 @@ static int tegra_pcie_dw_remove(struct platform_device *pdev)
 {
 	struct tegra_pcie_dw *pcie = platform_get_drvdata(pdev);
 
-	if (!pcie->link_state && !pcie->disable_power_down)
-		return 0;
+	if (pcie->mode == DW_PCIE_RC_TYPE) {
+		if (!pcie->link_state && !pcie->disable_power_down)
+			return 0;
+		if (!pm_runtime_enabled(pcie->dev))
+			return 0;
+		disable_irq(pcie->prsnt_irq);
+		debugfs_remove_recursive(pcie->debugfs);
+		tegra_pcie_deinit_controller(pcie);
+		pm_runtime_put_sync(pcie->dev);
+	} else {
+		if (pcie->perst_irq_enabled)
+			disable_irq(pcie->pex_rst_irq);
+		if (pcie->pex_prsnt_gpiod)
+			gpiod_set_value_cansleep(pcie->pex_prsnt_gpiod, 0);
+		pex_ep_event_pex_rst_assert(pcie);
+	}
 
-	debugfs_remove_recursive(pcie->debugfs);
-	tegra_pcie_deinit_controller(pcie);
-	pm_runtime_put_sync(pcie->dev);
 	pm_runtime_disable(pcie->dev);
 	tegra_bpmp_put(pcie->bpmp);
 	if (pcie->pex_refclk_sel_gpiod)
@@ -3775,18 +3789,26 @@ static void tegra_pcie_dw_shutdown(struct platform_device *pdev)
 {
 	struct tegra_pcie_dw *pcie = platform_get_drvdata(pdev);
 
-	if (!pcie->link_state && !pcie->disable_power_down)
-		return;
-
-	debugfs_remove_recursive(pcie->debugfs);
-	tegra_pcie_downstream_dev_to_D0(pcie);
-
-	disable_irq(pcie->pci.pp.irq);
-	if (IS_ENABLED(CONFIG_PCI_MSI))
-		disable_irq(pcie->pci.pp.msi_irq);
-
-	tegra_pcie_dw_pme_turnoff(pcie);
-	tegra_pcie_unconfig_controller(pcie);
+	if (pcie->mode == DW_PCIE_RC_TYPE) {
+		if (!pcie->link_state && !pcie->disable_power_down)
+			return;
+		if (!pm_runtime_enabled(pcie->dev))
+			return;
+		disable_irq(pcie->prsnt_irq);
+		tegra_pcie_downstream_dev_to_D0(pcie);
+		disable_irq(pcie->pci.pp.irq);
+		if (IS_ENABLED(CONFIG_PCI_MSI))
+			disable_irq(pcie->pci.pp.msi_irq);
+		tegra_pcie_dw_pme_turnoff(pcie);
+		tegra_pcie_unconfig_controller(pcie);
+		pm_runtime_put_sync(pcie->dev);
+	} else {
+		if (pcie->perst_irq_enabled)
+			disable_irq(pcie->pex_rst_irq);
+		if (pcie->pex_prsnt_gpiod)
+			gpiod_set_value_cansleep(pcie->pex_prsnt_gpiod, 0);
+		pex_ep_event_pex_rst_assert(pcie);
+	}
 }
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t194 = {
