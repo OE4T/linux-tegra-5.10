@@ -337,6 +337,7 @@ struct tegra_pcie_dw {
 	u32 aspm_cmrt;
 	u32 aspm_pwr_on_t;
 	u32 aspm_l0s_enter_lat;
+	u32 disabled_aspm_states;
 
 	struct regulator *pex_ctl_supply;
 	struct regulator *slot_ctl_3v3;
@@ -779,6 +780,23 @@ static struct pci_ops tegra_pci_ops = {
 };
 
 #if defined(CONFIG_PCIEASPM)
+static void disable_aspm_l0s(struct tegra_pcie_dw *pcie)
+{
+	u32 val = 0;
+
+	val = dw_pcie_readl_dbi(&pcie->pci, pcie->pcie_cap_base + PCI_EXP_LNKCAP);
+	val &= ~PCI_EXP_LNKCAP_ASPM_L0S;
+	dw_pcie_writel_dbi(&pcie->pci, pcie->pcie_cap_base + PCI_EXP_LNKCAP, val);
+}
+
+static void disable_aspm_l10(struct tegra_pcie_dw *pcie)
+{
+	u32 val = 0;
+
+	val = dw_pcie_readl_dbi(&pcie->pci, pcie->pcie_cap_base + PCI_EXP_LNKCAP);
+	val &= ~PCI_EXP_LNKCAP_ASPM_L1;
+	dw_pcie_writel_dbi(&pcie->pci, pcie->pcie_cap_base + PCI_EXP_LNKCAP, val);
+}
 static void disable_aspm_l11(struct tegra_pcie_dw *pcie)
 {
 	u32 val;
@@ -1882,6 +1900,19 @@ static void tegra_pcie_prepare_host(struct pcie_port *pp)
 		disable_aspm_l12(pcie);
 	}
 
+	/* Disable ASPM advertisement as per device-tree configuration */
+	if (pcie->disabled_aspm_states & 0x1)
+		disable_aspm_l0s(pcie);
+	if (pcie->disabled_aspm_states & 0x2) {
+		disable_aspm_l10(pcie);
+		disable_aspm_l11(pcie);
+		disable_aspm_l12(pcie);
+	}
+	if (pcie->disabled_aspm_states & 0x4)
+		disable_aspm_l11(pcie);
+	if (pcie->disabled_aspm_states & 0x8)
+		disable_aspm_l12(pcie);
+
 	if (pcie->of_data->l1ss_exit_fixup) {
 		val = dw_pcie_readl_dbi(pci, GEN3_RELATED_OFF);
 		val &= ~GEN3_RELATED_OFF_GEN3_ZRXDC_NONCOMPL;
@@ -2080,6 +2111,14 @@ static int tegra_pcie_dw_parse_dt(struct tegra_pcie_dw *pcie)
 	struct device_node *np = pcie->dev->of_node;
 	int ret;
 	enum gpiod_flags flags;
+
+	ret = of_property_read_u32(np, "nvidia,disable-aspm-states",
+				   &pcie->disabled_aspm_states);
+	if (ret < 0) {
+		dev_info(pcie->dev,
+			 "Disabling advertisement of all ASPM states\n");
+		pcie->disabled_aspm_states = 0xF;
+	}
 
 	ret = of_property_read_u32(np, "nvidia,aspm-cmrt-us", &pcie->aspm_cmrt);
 	if (ret < 0) {
@@ -3043,6 +3082,19 @@ static void pex_ep_event_pex_rst_deassert(struct tegra_pcie_dw *pcie)
 		disable_aspm_l11(pcie);
 		disable_aspm_l12(pcie);
 	}
+
+	/* Disable ASPM advertisement as per device-tree configuration */
+	if (pcie->disabled_aspm_states & 0x1)
+		disable_aspm_l0s(pcie);
+	if (pcie->disabled_aspm_states & 0x2) {
+		disable_aspm_l10(pcie);
+		disable_aspm_l11(pcie);
+		disable_aspm_l12(pcie);
+	}
+	if (pcie->disabled_aspm_states & 0x4)
+		disable_aspm_l11(pcie);
+	if (pcie->disabled_aspm_states & 0x8)
+		disable_aspm_l12(pcie);
 
 	if (pcie->of_data->l1ss_exit_fixup) {
 		val = dw_pcie_readl_dbi(pci, GEN3_RELATED_OFF);
