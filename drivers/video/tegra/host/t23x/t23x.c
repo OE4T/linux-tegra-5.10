@@ -256,7 +256,7 @@ struct nvhost_device_data t23x_msenc_info = {
 	.get_reloc_phys_addr	= nvhost_t23x_get_reloc_phys_addr,
 	.engine_cg_regs		= t23x_nvenc_gating_registers,
 	.engine_can_cg		= false,
-	.can_powergate		= false,
+	.can_powergate		= true,
 	.isolate_contexts	= true,
 	.enable_timestamps	= flcn_enable_timestamps,
 };
@@ -294,7 +294,7 @@ struct nvhost_device_data t23x_nvdec_info = {
 	.get_reloc_phys_addr	= nvhost_t23x_get_reloc_phys_addr,
 	.engine_cg_regs		= t23x_nvdec_gating_registers,
 	.engine_can_cg		= false,
-	.can_powergate		= false,
+	.can_powergate		= true,
 	.isolate_contexts	= true,
 	.enable_riscv_boot	= true,
 	.riscv_desc_bin		= "nvhost_nvdec050_desc_dev.bin",
@@ -328,7 +328,7 @@ struct nvhost_device_data t23x_nvjpg_info = {
 	.icc_id			= TEGRA_ICC_NVJPG_0,
 	.engine_cg_regs		= t23x_nvjpg_gating_registers,
 	.engine_can_cg		= false,
-	.can_powergate		= false,
+	.can_powergate		= true,
 	.isolate_contexts	= true,
 };
 
@@ -358,7 +358,7 @@ struct nvhost_device_data t23x_nvjpg1_info = {
 	.icc_id			= TEGRA_ICC_NVJPG_1,
 	.engine_cg_regs		= t23x_nvjpg_gating_registers,
 	.engine_can_cg		= false,
-	.can_powergate		= false,
+	.can_powergate		= true,
 	.isolate_contexts	= true,
 };
 #endif
@@ -392,7 +392,7 @@ struct nvhost_device_data t23x_ofa_info = {
 	.get_reloc_phys_addr	= nvhost_t23x_get_reloc_phys_addr,
 	.engine_cg_regs		= t23x_ofa_gating_registers,
 	.engine_can_cg		= false,
-	.can_powergate		= false,
+	.can_powergate		= true,
 	.isolate_contexts	= true,
 };
 #endif
@@ -427,7 +427,7 @@ struct nvhost_device_data t23x_tsec_info = {
 	.icc_id			= TEGRA_ICC_TSEC,
 	.engine_cg_regs		= t23x_tsec_gating_registers,
 	.engine_can_cg		= true,
-	.can_powergate		= false,
+	.can_powergate		= true,
 	.isolate_contexts	= true,
 	.enable_riscv_boot	= true,
 	.riscv_desc_bin		= "nvhost_tsec_desc.fw",
@@ -466,7 +466,7 @@ struct nvhost_device_data t23x_vic_info = {
 	.module_irq		= 1,
 	.engine_cg_regs		= t23x_vic_gating_registers,
 	.engine_can_cg		= false,
-	.can_powergate		= false,
+	.can_powergate		= true,
 	.isolate_contexts	= true,
 };
 #endif
