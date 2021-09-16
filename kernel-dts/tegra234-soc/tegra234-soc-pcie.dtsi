@@ -430,6 +430,7 @@
 				    204000000 408000000 666000000  1066000000
 				    408000000 666000000 1066000000 2133000000 >;
 
+		nvidia,enable-ext-refclk;
 		nvidia,max-speed = <4>;
 		nvidia,bar0-size = <0x100000>;	/* 1 MB */
 		nvidia,device-id = /bits/ 16 <0x229B>;
@@ -504,6 +505,7 @@
 				    204000000 408000000 800000000  1600000000
 				    0         0         0          0 >;
 
+		nvidia,enable-ext-refclk;
 		nvidia,max-speed = <4>;
 		nvidia,bar0-size = <0x100000>;	/* 1 MB */
 		nvidia,device-id = /bits/ 16 <0x229D>;
@@ -577,6 +579,7 @@
 				    204000000 408000000 666000000  1066000000
 				    408000000 666000000 1066000000 2133000000 >;
 
+		nvidia,enable-ext-refclk;
 		nvidia,max-speed = <4>;
 		nvidia,bar0-size = <0x100000>;	/* 1 MB */
 		nvidia,device-id = /bits/ 16 <0x229B>;
@@ -651,6 +654,7 @@
 				    204000000 408000000 800000000  1600000000
 				    0         0         0          0 >;
 
+		nvidia,enable-ext-refclk;
 		nvidia,max-speed = <4>;
 		nvidia,bar0-size = <0x100000>;	/* 1 MB */
 		nvidia,device-id = /bits/ 16 <0x229D>;
