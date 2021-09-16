@@ -88,7 +88,7 @@ int gv11b_init_therm_setup_hw(struct gk20a *g)
 	nvgpu_writel(g, therm_config2_r(), v);
 
 	nvgpu_writel(g, therm_grad_stepping1_r(),
-			therm_grad_stepping1_pdiv_duration_f(0xbf4));
+			g->ops.therm.therm_grad_stepping_pdiv_duration());
 
 	v = nvgpu_readl(g, therm_grad_stepping0_r());
 	v |= therm_grad_stepping0_feature_enable_f();
