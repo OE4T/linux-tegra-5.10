@@ -1,0 +1,44 @@
+Thermal driver for MAX77851 Power management IC from Maxim Semiconductor.
+
+
+For more details, please refer generic thermal DT binding document
+<devicetree/bindings/thermal/thermal.txt>.
+
+
+Example:
+--------
+#include <dt-bindings/mfd/max77851.h>
+#include <dt-bindings/thermal/thermal.h>
+...
+
+i2c1: i2c@7e804000 {
+	max77851: max77851@3c {
+		compatible = "maxim,max77851-pmic";
+		:::::
+		#thermal-sensor-cells = <0>;
+		:::
+	};
+};
+
+thermal-zones {
+	pmic_thermal: pmic-thermal {
+		polling-delay-passive = <0>;
+		polling-delay = <1000>;
+		thermal-sensors = <&max77851>;
+
+		trips {
+			pmic_die_warn_temp_thresh: hot-die {
+				temperature = <120000>;
+				type = "hot";
+				hysteresis = <0>;
+			};
+			pmic_die_cirt_temp_thresh: cirtical-die {
+				temperature = <140000>;
+				type = "critical";
+				hysteresis = <0>;
+			};
+		};
+		cooling-maps {
+		};
+	};
+};
