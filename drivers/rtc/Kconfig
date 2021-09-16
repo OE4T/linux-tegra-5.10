@@ -374,6 +374,16 @@ config RTC_DRV_MAX77686
 	  This driver can also be built as a module. If so, the module
 	  will be called rtc-max77686.
 
+config RTC_DRV_MAX77851
+	tristate "Maxim MAX77851"
+	depends on MFD_MAX77851
+	help
+	  If you say yes here you will get support for the
+	  RTC of Maxim MAX77851 PMIC.
+
+	  This driver can also be built as a module. If so, the module
+	  will be called rtc-max77851.
+
 config RTC_DRV_RK808
 	tristate "Rockchip RK805/RK808/RK809/RK817/RK818 RTC"
 	depends on MFD_RK808
