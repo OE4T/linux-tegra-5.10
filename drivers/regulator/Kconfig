@@ -525,6 +525,13 @@ config REGULATOR_MAX77650
 	  Semiconductor. This device has a SIMO with three independent
 	  power rails and an LDO.
 
+config REGULATOR_MAX77851
+	tristate "Maxim 77851 voltage regulator"
+	depends on MFD_MAX77851
+	help
+	  This driver controls Maxim MAX77851 voltage output regulator
+	  via I2C bus.
+
 config REGULATOR_MAX16989
 	tristate "Maxim 16989 2-Channel Step Down controller"
 	depends on I2C

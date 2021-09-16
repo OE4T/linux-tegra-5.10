@@ -1,0 +1,258 @@
+Regulator DT binding for MAX77851 Power management IC from Maxim Semiconductor.
+
+- maxim,out-voltage-range:	Output Voltage Range
+					enabled/disabled when system is in
+					active state.  Valid values are:
+					- MAX77620_FPS_SRC_0,
+						FPS source is FPS0.
+					- MAX77620_FPS_SRC_1,
+						FPS source is FPS1
+					- MAX77620_FPS_SRC_2 and
+						FPS source is FPS2
+					- MAX77620_FPS_SRC_NONE.
+						Regulator is not controlled
+						by FPS events and it gets
+						enabled/disabled by register
+						access.
+					Absence of this property will leave
+					the FPS configuration register for that
+					regulator to default configuration.
+
+- maxim,fps-user-setting-enable: using default setting (OTP/SHADOW)
+
+- maxim,regulator-dvs-mode-enable: DVS Mode Enable
+					the regulator get disabled when master
+					FPS input event set to LOW.
+					Valid values are 0 to 7.
+					This is applicable if FPS source is
+					selected as FPS0, FPS1 or FPS2.
+
+- maxim,regulator-dvs-voltage: VOUT0/VOUT1 Voltage array
+
+- maxim,pu-slot:	FPS Power-Up Slot
+- maxim,pd-slot:	FPS Power-Down Slot
+- maxim,slpx-slot:	FPS Sleep Exit Slot
+- maxim,slpy-slot:	FPS Sleep Enter Slot
+					Valid values are 0 to F.
+
+Example:
+--------
+#include <dt-bindings/mfd/max77851.h>
+...
+max77851: max77851@3c {
+	regulators {
+
+		max77851_ldo0: ldo0 {
+			regulator-name = "VDDIO_UPHY";
+			regulator-min-microvolt = <950000>;
+			regulator-max-microvolt = <950000>;
+			regulator-always-on;
+			regulator-boot-on;
+
+			#maxim,fps-default-enable;
+			maxim,fps-user-setting-enable;
+
+			maxim,out-voltage-range = <MAX77851_VOUT_RNG_LOW>;
+			maxim,pu-slpx-master-slot = <MAX77851_FPS_MASTER_SLOT_1>;
+			maxim,pd-slpy-master-slot = <MAX77851_FPS_MASTER_SLOT_1>;
+			maxim,pu-slot = <MAX77851_FPS_SLOT_5>;
+			maxim,pd-slot = <MAX77851_FPS_SLOT_7>;
+		};
+
+		max77851_ldo1: ldo1 {
+			regulator-name = "VDD_AO";
+			regulator-min-microvolt = <700000>;
+			regulator-max-microvolt = <750000>;
+			regulator-always-on;
+			regulator-boot-on;
+
+			maxim,fps-user-setting-enable;
+
+			maxim,regulator-dvs-mode-enable;
+			/*
+			 * 0x38(56h) : 0.75V
+			 * 0x30(48h) : 0.70V
+			 */
+			maxim,regulator-dvs-voltage = <0x38>, <0x30>;
+
+			maxim,out-voltage-range = <MAX77851_VOUT_RNG_LOW>;
+			maxim,pu-slpx-master-slot = <MAX77851_FPS_MASTER_SLOT_2>;
+			maxim,pd-slpy-master-slot = <MAX77851_FPS_MASTER_SLOT_2>;
+			maxim,pu-slot = <MAX77851_FPS_SLOT_1>;
+			maxim,pd-slot = <MAX77851_FPS_SLOT_2>;
+		};
+
+		max77851_ldo2: ldo2 {
+			regulator-name = "VDDIO_HDMI";
+			regulator-min-microvolt = <950000>;
+			regulator-max-microvolt = <950000>;
+
+			regulator-always-on;
+			regulator-boot-on;
+
+			maxim,fps-user-setting-enable;
+
+			maxim,out-voltage-range = <MAX77851_VOUT_RNG_LOW>;
+			maxim,pu-slpx-master-slot = <MAX77851_FPS_MASTER_SLOT_1>;
+			maxim,pd-slpy-master-slot = <MAX77851_FPS_MASTER_SLOT_1>;
+			maxim,pd-slot = <MAX77851_FPS_SLOT_8>;
+			maxim,slpx-slot = <MAX77851_FPS_SLOT_2>;
+			maxim,slpy-slot = <MAX77851_FPS_SLOT_5>;
+		};
+
+		max77851_ldo3: ldo3 {
+			regulator-name = "VDDIO";
+			regulator-min-microvolt = <400000>;
+			regulator-max-microvolt = <400000>;
+
+			regulator-always-on;
+			regulator-boot-on;
+
+			maxim,fps-user-setting-enable;
+
+			maxim,out-voltage-range = <MAX77851_VOUT_RNG_LOW>;
+			maxim,pu-slpx-master-slot = <MAX77851_FPS_MASTER_SLOT_1>;
+			maxim,pd-slpy-master-slot = <MAX77851_FPS_MASTER_SLOT_1>;
+			maxim,pd-slot = <MAX77851_FPS_SLOT_8>;
+			maxim,slpx-slot = <MAX77851_FPS_SLOT_2>;
+			maxim,slpy-slot = <MAX77851_FPS_SLOT_5>;
+		};
+
+		max77851_ldo4: ldo4 {
+			regulator-name = "LDO4";
+			regulator-min-microvolt = <1800000>;
+			regulator-max-microvolt = <3300000>;
+
+			regulator-boot-on;
+
+			maxim,out-voltage-range = <MAX77851_VOUT_RNG_LOW>;
+			maxim,pu-slpx-master-slot = <MAX77851_FPS_MASTER_SLOT_0>;
+			maxim,pd-slpy-master-slot = <MAX77851_FPS_MASTER_SLOT_0>;
+			maxim,pd-slot = <MAX77851_FPS_SLOT_8>;
+		};
+
+		max77851_ldo5: ldo5 {
+			regulator-name = "LDO5";
+			regulator-min-microvolt = <1800000>;
+			regulator-max-microvolt = <3300000>;
+
+			maxim,out-voltage-range = <MAX77851_VOUT_RNG_LOW>;
+			maxim,pu-slpx-master-slot = <MAX77851_FPS_MASTER_SLOT_0>;
+			maxim,pd-slpy-master-slot = <MAX77851_FPS_MASTER_SLOT_0>;
+			maxim,pd-slot = <MAX77851_FPS_SLOT_8>;
+		};
+
+		max77851_ldo6: ldo6 {
+			regulator-name = "LDO6";
+			regulator-min-microvolt = <1800000>;
+			regulator-max-microvolt = <3300000>;
+
+			regulator-always-on;
+			regulator-boot-on;
+
+			maxim,out-voltage-range = <MAX77851_VOUT_RNG_LOW>;
+			maxim,pu-slpx-master-slot = <MAX77851_FPS_MASTER_SLOT_0>;
+			maxim,pd-slpy-master-slot = <MAX77851_FPS_MASTER_SLOT_0>;
+			maxim,pd-slot = <MAX77851_FPS_SLOT_8>;
+		};
+
+		max77851_buck0: buck0 {
+			regulator-name = "VDDIO_DDR_VDD_1";
+			regulator-min-microvolt = <1050000>;
+			regulator-max-microvolt = <1050000>;
+			regulator-ramp-delay = <10000>;
+
+			regulator-always-on; /* Check this */
+			regulator-boot-on;
+
+			maxim,fps-user-setting-enable;
+
+			maxim,out-voltage-range = <MAX77851_VOUT_RNG_LOW>;
+			maxim,pu-slpx-master-slot = <MAX77851_FPS_MASTER_SLOT_3>;
+			maxim,pd-slpy-master-slot = <MAX77851_FPS_MASTER_SLOT_3>;
+			maxim,pu-slot = <MAX77851_FPS_SLOT_6>;
+			maxim,pd-slot = <MAX77851_FPS_SLOT_6>;
+		};
+
+		max77851_buck1: buck1 {
+			regulator-name = "VDDIO_DDR_VDD_2";
+			regulator-min-microvolt = <1050000>;
+			regulator-max-microvolt = <1050000>;
+			regulator-ramp-delay = <10000>;
+
+			regulator-always-on; /* Check this */
+			regulator-boot-on;
+
+			maxim,fps-user-setting-enable;
+
+			maxim,out-voltage-range = <MAX77851_VOUT_RNG_LOW>;
+			maxim,pu-slpx-master-slot = <MAX77851_FPS_MASTER_SLOT_3>;
+			maxim,pd-slpy-master-slot = <MAX77851_FPS_MASTER_SLOT_3>;
+			maxim,pu-slot = <MAX77851_FPS_SLOT_6>;
+			maxim,pd-slot = <MAX77851_FPS_SLOT_6>;
+		};
+
+		max77851_buck2: buck2 {
+			regulator-name = "VDDIO_DDR_VDDQ";
+			regulator-min-microvolt = <450000>;
+			regulator-max-microvolt = <500000>;
+
+			regulator-ramp-delay = <10000>;
+			regulator-always-on; /* Check this */
+			regulator-boot-on;
+
+			maxim,fps-user-setting-enable;
+
+			maxim,regulator-dvs-mode-enable;
+			/*
+			 * 0x50(80h) : 0.50V
+			 * 0x3C(60h) : 0.45V
+			 */
+			maxim,regulator-dvs-voltage = <0x50>, <0x3C>;
+
+			maxim,out-voltage-range = <MAX77851_VOUT_RNG_LOW>;
+			maxim,pu-slpx-master-slot = <MAX77851_FPS_MASTER_SLOT_1>;
+			maxim,pd-slpy-master-slot = <MAX77851_FPS_MASTER_SLOT_1>;
+			maxim,pu-slot = <MAX77851_FPS_SLOT_7>;
+			maxim,pd-slot = <MAX77851_FPS_SLOT_7>;
+
+			maxim,slpx-slot = <MAX77851_FPS_SLOT_3>;
+			maxim,slpy-slot = <MAX77851_FPS_SLOT_3>;
+		};
+
+		max77851_buck3: buck3 {
+			regulator-name = "VDD_SYS_1V2";
+			regulator-min-microvolt = <1200000>;
+			regulator-max-microvolt = <1200000>;
+
+			regulator-ramp-delay = <10000>;
+			regulator-always-on; /* Check this */
+			regulator-boot-on;
+
+			maxim,fps-user-setting-enable;
+
+			maxim,out-voltage-range = <MAX77851_VOUT_RNG_MID>;
+			maxim,pu-slpx-master-slot = <MAX77851_FPS_MASTER_SLOT_3>;
+			maxim,pd-slpy-master-slot = <MAX77851_FPS_MASTER_SLOT_3>;
+			maxim,pu-slot = <MAX77851_FPS_SLOT_0>;
+			maxim,pd-slot = <MAX77851_FPS_SLOT_2>;
+		};
+		max77851_buck4: buck4 {
+			regulator-name = "VDD_SYS_1V8";
+			regulator-min-microvolt = <1800000>;
+			regulator-max-microvolt = <1800000>;
+
+			regulator-ramp-delay = <10000>;
+			regulator-always-on; /* Check this */
+			regulator-boot-on;
+
+			maxim,fps-user-setting-enable;
+
+			maxim,out-voltage-range = <MAX77851_VOUT_RNG_MID>;
+			maxim,pu-slpx-master-slot = <MAX77851_FPS_MASTER_SLOT_3>;
+			maxim,pd-slpy-master-slot = <MAX77851_FPS_MASTER_SLOT_3>;
+			maxim,pu-slot = <MAX77851_FPS_SLOT_2>;
+			maxim,pd-slot = <MAX77851_FPS_SLOT_3>;
+		};
+	};
+};
