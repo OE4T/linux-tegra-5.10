@@ -2256,11 +2256,22 @@ enum mmc_issued mmc_blk_mq_issue_rq(struct mmc_queue *mq, struct request *req)
 	case MMC_ISSUE_ASYNC:
 		switch (req_op(req)) {
 		case REQ_OP_FLUSH:
-			if (!mmc_cache_enabled(host)) {
+			if (!mmc_cache_enabled(host) ||
+			    (host->en_periodic_cflush && host->flush_timeout &&
+			     !host->cache_flush_needed)) {
 				blk_mq_end_request(req, BLK_STS_OK);
 				return MMC_REQ_FINISHED;
 			}
+
 			ret = mmc_blk_cqe_issue_flush(mq, req);
+
+			if (host->en_periodic_cflush && host->flush_timeout &&
+					!ret) {
+				host->cache_flush_needed = false;
+				mod_timer(&host->flush_timer, jiffies +
+						msecs_to_jiffies(host->flush_timeout));
+			}
+
 			break;
 		case REQ_OP_READ:
 		case REQ_OP_WRITE:
