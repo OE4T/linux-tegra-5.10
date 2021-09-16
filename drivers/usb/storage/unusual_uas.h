@@ -3,6 +3,7 @@
  * Driver for USB Attached SCSI devices - Unusual Devices File
  *
  *   (c) 2013 Hans de Goede <hdegoede@redhat.com>
+ *   Copyright (c) 2021, NVIDIA CORPORATION. All rights reserved.
  *
  * Based on the same file for the usb-storage driver, which is:
  *   (c) 2000-2002 Matthew Dharm (mdharm-usb@one-eyed-alien.net)
@@ -155,5 +156,12 @@ UNUSUAL_DEV(0x4971, 0x8017, 0x0000, 0x9999,
 UNUSUAL_DEV(0x4971, 0x8024, 0x0000, 0x9999,
 		"SimpleTech",
 		"External HDD",
+		USB_SC_DEVICE, USB_PR_DEVICE, NULL,
+		US_FL_ALWAYS_SYNC),
+
+/* Mushkin Ventura Plus" hangs on enumeration without these. */
+UNUSUAL_DEV(0x0dd8, 0x3908, 0x0000, 0x9999,
+		"VENTURA",
+		"PLUS",
 		USB_SC_DEVICE, USB_PR_DEVICE, NULL,
 		US_FL_ALWAYS_SYNC),
