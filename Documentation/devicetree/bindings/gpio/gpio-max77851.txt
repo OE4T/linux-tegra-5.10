@@ -1,0 +1,18 @@
+GPIO driver for MAX77851 Power management IC from Maxim Semiconductor.
+
+Device has 8 GPIO pins and 4 FPSO pins which can be configured as GPIO as well as the
+special IO functions.
+
+For more details, please refer generic GPIO DT binding document
+<devicetree/bindings/gpio/gpio.txt>.
+
+Example:
+--------
+#include <dt-bindings/mfd/max77851.h>
+...
+max77851: max77851@3c {
+	compatible = "maxim,max77851-pmic";
+
+	gpio-controller;
+	#gpio-cells = <2>;
+};
