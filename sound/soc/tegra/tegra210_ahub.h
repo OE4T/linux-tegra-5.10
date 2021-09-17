@@ -118,7 +118,6 @@
 				SNDRV_PCM_FMTBIT_S24_LE |		\
 				SNDRV_PCM_FMTBIT_S32_LE,		\
 		},							\
-		.ops = &tegra_ahub_dai_ops,		\
 	}
 
 struct tegra_ahub_soc_data {

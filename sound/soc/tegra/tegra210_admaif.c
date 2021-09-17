@@ -40,16 +40,6 @@
 		chip ## _ADMAIF_TX_BASE,				       \
 		chip ## _ADMAIF_RX_BASE)
 
-static unsigned int tegra_supported_admaif_rate[] = {
-	8000, 11025, 16000, 22050, 24000, 32000, 44100, 48000,
-	64000, 88200, 96000, 176400, 192000,
-};
-
-static struct snd_pcm_hw_constraint_list tegra_admaif_rate_constraints = {
-	.count = ARRAY_SIZE(tegra_supported_admaif_rate),
-	.list = tegra_supported_admaif_rate,
-};
-
 static const struct reg_default tegra186_admaif_reg_defaults[] = {
 	{(TEGRA_ADMAIF_GLOBAL_CG_0 + TEGRA186_ADMAIF_GLOBAL_BASE), 0x00000003},
 	ADMAIF_REG_DEFAULTS(1, TEGRA186),
@@ -455,16 +445,8 @@ static int tegra_admaif_trigger(struct snd_pcm_substream *substream, int cmd,
 	}
 }
 
-static int tegra_admaif_startup(struct snd_pcm_substream *substream,
-					struct snd_soc_dai *dai)
-{
-	return snd_pcm_hw_constraint_list(substream->runtime, 0,
-			SNDRV_PCM_HW_PARAM_RATE, &tegra_admaif_rate_constraints);
-}
-
 static const struct snd_soc_dai_ops tegra_admaif_dai_ops = {
 	.hw_params	= tegra_admaif_hw_params,
-	.startup	= tegra_admaif_startup,
 	.trigger	= tegra_admaif_trigger,
 	.shutdown	= tegra_admaif_shutdown,
 	.prepare	= tegra_admaif_prepare,

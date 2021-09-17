@@ -3,7 +3,7 @@
  * tegra_pcm.c - Tegra PCM driver
  *
  * Author: Stephen Warren <swarren@nvidia.com>
- * Copyright (c) 2010-2020 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2010-2021 NVIDIA CORPORATION.  All rights reserved.
  *
  * Based on code copyright/by:
  *
@@ -23,6 +23,16 @@
 #include <sound/soc.h>
 #include <sound/dmaengine_pcm.h>
 #include "tegra_pcm.h"
+
+static unsigned int tegra_supported_rate[] = {
+	8000, 11025, 16000, 22050, 24000, 32000, 44100, 48000,
+	64000, 88200, 96000, 176400, 192000,
+};
+
+static struct snd_pcm_hw_constraint_list tegra_rate_constraints = {
+	.count = ARRAY_SIZE(tegra_supported_rate),
+	.list = tegra_supported_rate,
+};
 
 static const struct snd_pcm_hardware tegra_pcm_hardware = {
 	.info			= SNDRV_PCM_INFO_MMAP |
@@ -95,6 +105,13 @@ int tegra_pcm_open(struct snd_soc_component *component,
 					 SNDRV_PCM_HW_PARAM_PERIOD_BYTES, 0x8);
 	if (ret) {
 		dev_err(rtd->dev, "failed to set constraint %d\n", ret);
+		return ret;
+	}
+
+	ret = snd_pcm_hw_constraint_list(substream->runtime, 0,
+			SNDRV_PCM_HW_PARAM_RATE, &tegra_rate_constraints);
+	if (ret) {
+		dev_err(rtd->dev, "failed to set rate constraint %d\n", ret);
 		return ret;
 	}
 
