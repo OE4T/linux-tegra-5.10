@@ -26,6 +26,7 @@
 #include "../../kernel/irq/internals.h"
 #include "../../kernel/time/tick-internal.h"
 
+#define T23x_CPUIDLE_C1_STATE		1
 #define T23x_CPUIDLE_C7_STATE		7
 #define T23x_OIST_STATE			8
 #define C7_PSCI_PARAM			0x40000007
@@ -94,7 +95,9 @@ static int forced_idle_write(void *data, u64 val)
 	uint32_t psci_state = 0;
 	uint32_t idle_state = forced_idle_state & 0xF;
 
-	if (idle_state == T23x_CPUIDLE_C7_STATE)
+	if (idle_state == T23x_CPUIDLE_C1_STATE)
+		pr_debug("forcing C1\n");
+	else if (idle_state == T23x_CPUIDLE_C7_STATE)
 		psci_state = C7_PSCI_PARAM;
 	else if (idle_state == T23x_OIST_STATE) {
 		psci_state = forced_idle_state & 0xFFFFFFFF;
@@ -114,15 +117,19 @@ static int forced_idle_write(void *data, u64 val)
 	local_irq_disable();
 
 	/* Program timer for C7 wake IRQ */
-	if (idle_state == T23x_CPUIDLE_C7_STATE) {
+	if (idle_state == T23x_CPUIDLE_C7_STATE ||
+			idle_state == T23x_CPUIDLE_C1_STATE) {
 		interval = ktime_set(0, (NSEC_PER_USEC * timer_interval_us));
 		time = ktime_get();
 		sleep = ktime_add(time, interval);
 		tick_program_event(sleep, true);
 	}
 
+	if (idle_state == T23x_CPUIDLE_C1_STATE)
+		asm volatile("wfi\n");
+	else
 #if KERNEL_VERSION(4, 15, 0) < LINUX_VERSION_CODE
-	ret = CPU_PM_CPU_IDLE_ENTER_PARAM(psci_cpu_suspend_enter,
+		ret = CPU_PM_CPU_IDLE_ENTER_PARAM(psci_cpu_suspend_enter,
 							idle_state, psci_state);
 #endif
 
