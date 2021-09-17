@@ -815,6 +815,18 @@ static int nvmap_debug_allocations_show(struct seq_file *s, void *unused)
 
 DEBUGFS_OPEN_FOPS(allocations);
 
+static int nvmap_debug_free_size_show(struct seq_file *s, void *unused)
+{
+	unsigned long free_mem = 0;
+
+	if (system_heap_free_mem(&free_mem))
+		seq_printf(s, "Error while fetching free size of IOVMM memory\n");
+	else
+		seq_printf(s, "Max allocatable IOVMM memory: %lu bytes\n", free_mem);
+	return 0;
+}
+DEBUGFS_OPEN_FOPS(free_size);
+
 static int nvmap_debug_all_allocations_show(struct seq_file *s, void *unused)
 {
 	u32 heap_type = (u32)(uintptr_t)s->private;
@@ -1305,6 +1317,10 @@ static void nvmap_iovmm_debugfs_init(void)
 			debugfs_create_file("maps", S_IRUGO, iovmm_root,
 				(void *)(uintptr_t)NVMAP_HEAP_IOVMM,
 				&debug_maps_fops);
+			debugfs_create_file("free_size", S_IRUGO, iovmm_root,
+				(void *)(uintptr_t)NVMAP_HEAP_IOVMM,
+				&debug_free_size_fops);
+
 #ifdef NVMAP_CONFIG_PROCRANK
 			debugfs_create_file("procrank", S_IRUGO, iovmm_root,
 				nvmap_dev, &debug_iovmm_procrank_fops);

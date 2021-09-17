@@ -1066,7 +1066,7 @@ static int find_free_cma_mem(unsigned long *cma_free)
  * is part of Available memory reported, so subtract it from available memory.
  * NvMap allocates 1/16 extra memory in page coloring, so subtract it as well.
  */
-static int system_heap_free_mem(unsigned long *mem_val)
+int system_heap_free_mem(unsigned long *mem_val)
 {
 	long available_mem = 0;
 	unsigned long free_mem = 0;

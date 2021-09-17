@@ -114,6 +114,12 @@ void nvmap_heap_debugfs_init(struct dentry *heap_root, struct nvmap_heap *heap)
 	else
 		debugfs_create_x32("size", S_IRUGO,
 			heap_root, (u32 *)&heap->len);
+	if (sizeof(heap->free_size) == sizeof(u64))
+		debugfs_create_x64("free_size", S_IRUGO,
+			heap_root, (u64 *)&heap->free_size);
+	else
+		debugfs_create_x32("free_size", S_IRUGO,
+			heap_root, (u32 *)&heap->free_size);
 }
 
 static phys_addr_t nvmap_alloc_mem(struct nvmap_heap *h, size_t len,
