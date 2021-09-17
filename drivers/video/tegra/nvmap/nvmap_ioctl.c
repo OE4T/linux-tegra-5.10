@@ -1088,9 +1088,9 @@ static int system_heap_free_mem(unsigned long *mem_val)
 		return 0;
 	}
 	free_mem = (available_mem << PAGE_SHIFT) - cma_free;
-#ifdef CONFIG_NVMAP_COLOR_PAGES
+#ifdef NVMAP_CONFIG_COLOR_PAGES
 	free_mem = free_mem - (free_mem >> 4);
-#endif /* CONFIG_NVMAP_COLOR_PAGES */
+#endif /* NVMAP_CONFIG_COLOR_PAGES */
 	*mem_val = free_mem;
 	return 0;
 }
