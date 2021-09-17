@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0
 
 srctree.tegra-drm := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+srctree.host1x := $(abspath $(srctree.tegra-drm)/../../host1x)
 
 ccflags-$(CONFIG_DRM_TEGRA_DEBUG) += -DDEBUG
 ccflags-y += -I$(srctree.tegra-drm)/include
