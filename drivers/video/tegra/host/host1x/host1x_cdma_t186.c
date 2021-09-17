@@ -19,6 +19,7 @@
 #include <linux/slab.h>
 #include <linux/scatterlist.h>
 #include <linux/delay.h>
+#include <linux/iopoll.h>
 
 #include "nvhost_acm.h"
 #include "nvhost_cdma.h"
@@ -332,7 +333,10 @@ static void cdma_timeout_teardown_begin(struct nvhost_cdma *cdma, bool skip_rese
 {
 	struct nvhost_channel *ch = cdma_to_channel(cdma);
 	struct nvhost_master *dev;
-	u32 cmdproc_stop;
+	u32 val;
+#if IS_ENABLED(CONFIG_TEGRA_T239_GRHOST)
+	int err;
+#endif
 
 	dev = cdma_to_dev(cdma);
 	if (cdma->torndown && !cdma->running) {
@@ -343,9 +347,9 @@ static void cdma_timeout_teardown_begin(struct nvhost_cdma *cdma, bool skip_rese
 	dev_dbg(&dev->dev->dev,
 		"begin channel teardown (channel id %d)\n", ch->chid);
 
-	cmdproc_stop = host1x_channel_readl(ch, host1x_sync_cmdproc_stop_r());
-	cmdproc_stop |= BIT(0);
-	host1x_channel_writel(ch, host1x_sync_cmdproc_stop_r(), cmdproc_stop);
+	val = host1x_channel_readl(ch, host1x_sync_cmdproc_stop_r());
+	val |= BIT(0);
+	host1x_channel_writel(ch, host1x_sync_cmdproc_stop_r(), val);
 
 	dev_dbg(&dev->dev->dev,
 		"%s: DMA GET 0x%x, PUT HW 0x%x / shadow 0x%x\n",
@@ -356,6 +360,18 @@ static void cdma_timeout_teardown_begin(struct nvhost_cdma *cdma, bool skip_rese
 
 	host1x_channel_writel(ch, host1x_channel_dmactrl_r(),
 			host1x_channel_dmactrl(true, false, false));
+
+#if IS_ENABLED(CONFIG_TEGRA_T239_GRHOST)
+	/*
+	 * Wait for channel to be idle for teardown. This should be
+	 * basically instant. 10us is just a random short value.
+	 */
+	err = read_poll_timeout_atomic(
+		host1x_channel_readl, val, (val == 0), 0, 10, false,
+		ch, host1x_sync_ch_teardown_r());
+	if (err)
+		dev_err(&dev->dev->dev, "channel did not go into idle state before teardown\n");
+#endif
 
 	host1x_channel_writel(ch, host1x_sync_ch_teardown_r(), BIT(0));
 
