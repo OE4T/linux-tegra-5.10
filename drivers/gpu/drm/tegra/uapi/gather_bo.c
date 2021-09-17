@@ -19,7 +19,8 @@ static void gather_bo_release(struct kref *ref)
 {
 	struct gather_bo *bo = container_of(ref, struct gather_bo, ref);
 
-	kfree(bo->gather_data);
+	dma_free_attrs(bo->dev, bo->gather_data_words * 4, bo->gather_data, bo->gather_data_dma,
+		       0);
 	kfree(bo);
 }
 

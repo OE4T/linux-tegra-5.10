@@ -82,8 +82,10 @@ static int submit_copy_gather_data(struct drm_device *drm,
 
 	kref_init(&bo->ref);
 	host1x_bo_init(&bo->base, &gather_bo_ops);
+	bo->dev = drm->dev;
 
-	bo->gather_data = kmalloc(copy_len, GFP_KERNEL | __GFP_NOWARN);
+	bo->gather_data = dma_alloc_attrs(bo->dev, copy_len, &bo->gather_data_dma,
+					  GFP_KERNEL | __GFP_NOWARN, 0);
 	if (!bo->gather_data) {
 		kfree(bo);
 		return -ENOMEM;
@@ -93,6 +95,7 @@ static int submit_copy_gather_data(struct drm_device *drm,
 				  u64_to_user_ptr(args->gather_data_ptr),
 				  copy_len);
 	if (copy_err) {
+		dma_free_attrs(drm->dev, copy_len, bo->gather_data, bo->gather_data_dma, 0);
 		kfree(bo->gather_data);
 		kfree(bo);
 		return -EFAULT;
