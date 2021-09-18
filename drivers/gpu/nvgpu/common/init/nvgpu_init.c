@@ -439,47 +439,51 @@ static int nvgpu_init_power_gate(struct gk20a *g)
 	u32 fuse_status = 0x0;
 
 	/*
-	 *  Floorsweep the FBP as per the FBP_FS mask
-	 *  and the fuse_status register.
-	 *  If FBP_FS mask is invalid, return error.
+	 * Pre-Silicon - Static pg feature related settings
+	 * are done in nvgpu driver.
+	 * Silicon - Static pg feature related settings
+	 * are done in BPMP.
 	 */
+	if (!(nvgpu_platform_is_silicon(g))) {
+		/*
+		 * Set the fbp_pg mask. If fbp_pg mask is invalid
+		 * halt the GPU poweron.
+		 */
+		g->can_fbp_pg = false;
 
-	g->can_fbp_fs = false;
+		if (g->ops.fbp_pg.init_fbp_pg != NULL) {
+			err = g->ops.fbp_pg.init_fbp_pg(g, &g->can_fbp_pg);
+			if (err != 0) {
+				return err;
+			}
+		}
 
-	if (g->ops.fbp_fs.init_fbp_floorsweep != NULL) {
-		err = g->ops.fbp_fs.init_fbp_floorsweep(g, &g->can_fbp_fs);
-		if (err != 0) {
-			return err;
+		/*
+		 * Set the gpc_pg mask. If gpc_pg mask is invalid
+		 * halt the GPU poweron.
+		 */
+		g->can_gpc_pg = false;
+
+		if (g->ops.gpc_pg.init_gpc_pg != NULL) {
+			err = g->ops.gpc_pg.init_gpc_pg(g, &g->can_gpc_pg);
+			if (err != 0) {
+				return err;
+			}
 		}
 	}
 
 	/*
-	 *  Floorsweep the GPC as per the GPC_FS mask
-	 *  and the fuse_status register.
-	 *  If GPC_FS mask is invalid halt the GPU poweron.
+	 * static TPC PG for GV11b is done in NvGPU driver
+	 * set the tpc_pg mask. If tpc_pg mask is invalid
+	 * halt the GPU poweron.
 	 */
-
-	g->can_gpc_fs = false;
-
-	if (g->ops.gpc_pg.init_gpc_powergate != NULL) {
-		err = g->ops.gpc_pg.init_gpc_powergate(g, &g->can_gpc_fs);
-		if (err != 0) {
-			return err;
-		}
-	}
-
-	/*
-	 *  Powergate the chip as per the TPC PG mask
-	 *  and the fuse_status register.
-	 *  If TPC PG mask is invalid halt the GPU poweron.
-	 */
-	g->can_tpc_powergate = false;
+	g->can_tpc_pg = false;
 	if (g->ops.fuse.fuse_status_opt_tpc_gpc != NULL) {
 		fuse_status = g->ops.fuse.fuse_status_opt_tpc_gpc(g, 0);
 	}
 
-	if (g->ops.tpc.init_tpc_powergate != NULL) {
-		err = g->ops.tpc.init_tpc_powergate(g, fuse_status);
+	if (g->ops.tpc_pg.init_tpc_pg != NULL) {
+		err = g->ops.tpc_pg.init_tpc_pg(g, fuse_status);
 		if (err != 0) {
 			return err;
 		}
@@ -490,19 +494,27 @@ static int nvgpu_init_power_gate(struct gk20a *g)
 
 static int nvgpu_init_power_gate_gr(struct gk20a *g)
 {
-	/* Floorsweep FBP */
-	if (g->can_fbp_fs && (g->ops.fbp_fs.fbp_static_fs != NULL)) {
-		g->ops.fbp_fs.fbp_static_fs(g);
+	/*
+	 * Pre-Silicon - Static pg feature related settings
+	 * are done in nvgpu driver.
+	 * Silicon - Static pg feature related settings
+	 * are done in BPMP.
+	 */
+	if (!(nvgpu_platform_is_silicon(g))) {
+		/* powergate FBP as per fbp_pg mask */
+		if (g->can_fbp_pg && (g->ops.fbp_pg.fbp_pg != NULL)) {
+			g->ops.fbp_pg.fbp_pg(g);
+		}
+
+		/* powergate GPC as per gpc_pg mask*/
+		if (g->can_gpc_pg && (g->ops.gpc_pg.gpc_pg != NULL)) {
+			g->ops.gpc_pg.gpc_pg(g);
+		}
 	}
 
-	/* Floorsweep GPC */
-	if (g->can_gpc_fs && (g->ops.gpc_pg.gpc_static_pg != NULL)) {
-		g->ops.gpc_pg.gpc_static_pg(g);
-	}
-
-	/* Floorsweep TPC */
-	if (g->can_tpc_powergate && (g->ops.tpc.tpc_gr_pg != NULL)) {
-		g->ops.tpc.tpc_gr_pg(g);
+	/* powergate TPC as per tpc_pg mask*/
+	if (g->can_tpc_pg && (g->ops.tpc_pg.tpc_pg != NULL)) {
+		g->ops.tpc_pg.tpc_pg(g);
 	}
 	return 0;
 }

@@ -726,11 +726,11 @@ struct gk20a {
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	u32 tpc_pg_mask;
-	bool can_tpc_powergate;
-	u32 fbp_mask;
-	bool can_fbp_fs;
-	u32 gpc_mask;
-	bool can_gpc_fs;
+	u32 fbp_pg_mask;
+	u32 gpc_pg_mask;
+	bool can_tpc_pg;
+	bool can_fbp_pg;
+	bool can_gpc_pg;
 
 	u32 valid_tpc_mask[MAX_TPC_PG_CONFIGS];
 	u32 valid_gpc_fbp_fs_mask[MAX_GPC_FBP_FS_CONFIGS];

@@ -246,7 +246,7 @@
 #include "hal/fifo/channel_gv11b.h"
 #include "hal/fifo/channel_ga10b.h"
 
-#ifdef CONFIG_NVGPU_TPC_POWERGATE
+#ifdef CONFIG_NVGPU_STATIC_POWERGATE
 #include "hal/tpc/tpc_gv11b.h"
 #endif
 
@@ -1631,10 +1631,19 @@ static const struct gops_top ga10b_ops_top = {
 	.get_num_lce = gv11b_top_get_num_lce,
 };
 
-#ifdef CONFIG_NVGPU_TPC_POWERGATE
-static const struct gops_tpc ga10b_ops_tpc = {
-	.init_tpc_powergate = gv11b_tpc_powergate,
-	.tpc_gr_pg = gv11b_gr_pg_tpc,
+#ifdef CONFIG_NVGPU_STATIC_POWERGATE
+static const struct gops_tpc_pg ga10b_ops_tpc_pg = {
+	/*
+	 * HALs for static-pg will be updated
+	 * for pre-silicon platform during HAL init.
+	 * For silicon, static-pg feature related settings
+	 * will be taken care of by BPMP.
+	 * Silicon: assigining the HALs to NULL.
+	 * Pre-Silicon: To-do JIRA-NVGPU-7112
+	 *              to add these HALs
+	 */
+	.init_tpc_pg = NULL,
+	.tpc_pg = NULL,
 };
 #endif
 

@@ -1,7 +1,7 @@
 /*
  * GV11B TPC
  *
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,7 +27,7 @@
 
 struct gk20a;
 
-int gv11b_tpc_powergate(struct gk20a *g, u32 fuse_status);
+int gv11b_tpc_pg(struct gk20a *g, u32 fuse_status);
 void gv11b_gr_pg_tpc(struct gk20a *g);
 
 #endif /* NVGPU_TPC_GV11B_H */

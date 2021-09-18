@@ -322,7 +322,7 @@ struct gk20a_platform ga10b_tegra_platform = {
 	.can_railgate_init      = false,
 
 	/* add tpc powergate JIRA NVGPU-4683 */
-	.can_tpc_powergate      = false,
+	.can_tpc_pg             = false,
 
 	.set_tpc_pg_mask	= ga10b_tegra_set_tpc_pg_mask,
 

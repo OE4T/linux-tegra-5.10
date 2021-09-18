@@ -184,7 +184,7 @@ static void nvgpu_init_pm_vars(struct gk20a *g)
 
 	nvgpu_set_enabled(g, NVGPU_CAN_RAILGATE,
 		nvgpu_platform_is_simulation(g)? true : platform->can_railgate_init);
-	g->can_tpc_powergate = platform->can_tpc_powergate;
+	g->can_tpc_pg = platform->can_tpc_pg;
 
 	for (i = 0; i < MAX_TPC_PG_CONFIGS; i++)
 		g->valid_tpc_mask[i] = platform->valid_tpc_mask[i];

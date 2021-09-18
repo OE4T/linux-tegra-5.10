@@ -23,19 +23,19 @@
 #define NVGPU_GOPS_FLOORSWEEP_H
 
 #ifdef CONFIG_NVGPU_STATIC_POWERGATE
-struct gops_tpc {
-	int (*init_tpc_powergate)(struct gk20a *g, u32 fuse_status);
-	void (*tpc_gr_pg)(struct gk20a *g);
+struct gops_tpc_pg {
+	int (*init_tpc_pg)(struct gk20a *g, u32 fuse_status);
+	void (*tpc_pg)(struct gk20a *g);
 };
 
-struct gops_fbp_fs {
-	int (*init_fbp_floorsweep)(struct gk20a *g, bool *can_fbp_fs);
-	void (*fbp_static_fs)(struct gk20a *g);
+struct gops_fbp_pg {
+	int (*init_fbp_pg)(struct gk20a *g, bool *can_fbp_fs);
+	void (*fbp_pg)(struct gk20a *g);
 };
 
 struct gops_gpc_pg {
-	int (*init_gpc_powergate)(struct gk20a *g, bool *can_gpc_fs);
-	void (*gpc_static_pg)(struct gk20a *g);
+	int (*init_gpc_pg)(struct gk20a *g, bool *can_gpc_fs);
+	void (*gpc_pg)(struct gk20a *g);
 };
 
 #endif

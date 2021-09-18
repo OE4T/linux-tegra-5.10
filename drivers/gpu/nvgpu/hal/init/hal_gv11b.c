@@ -1438,19 +1438,19 @@ static const struct gops_top gv11b_ops_top = {
 };
 
 #ifdef CONFIG_NVGPU_STATIC_POWERGATE
-static const struct gops_tpc gv11b_ops_tpc = {
-	.init_tpc_powergate = gv11b_tpc_powergate,
-	.tpc_gr_pg = gv11b_gr_pg_tpc,
+static const struct gops_tpc_pg gv11b_ops_tpc_pg = {
+	.init_tpc_pg = gv11b_tpc_pg,
+	.tpc_pg = gv11b_gr_pg_tpc,
 };
 
-static const struct gops_fbp_fs gv11b_ops_fbp_fs = {
-	.init_fbp_floorsweep = NULL,
-	.fbp_static_fs = NULL,
+static const struct gops_fbp_pg gv11b_ops_fbp_pg = {
+	.init_fbp_pg = NULL,
+	.fbp_pg = NULL,
 };
 
 static const struct gops_gpc_pg gv11b_ops_gpc_pg = {
-	.init_gpc_powergate = NULL,
-	.gpc_static_pg = NULL,
+	.init_gpc_pg = NULL,
+	.gpc_pg = NULL,
 };
 
 #endif
@@ -1556,8 +1556,8 @@ int gv11b_init_hal(struct gk20a *g)
 	gops->fuse = gv11b_ops_fuse;
 	gops->top = gv11b_ops_top;
 #ifdef CONFIG_NVGPU_STATIC_POWERGATE
-	gops->tpc = gv11b_ops_tpc;
-	gops->fbp_fs = gv11b_ops_fbp_fs;
+	gops->tpc_pg = gv11b_ops_tpc_pg;
+	gops->fbp_pg = gv11b_ops_fbp_pg;
 	gops->gpc_pg = gv11b_ops_gpc_pg;
 #endif
 	gops->grmgr = gv11b_ops_grmgr;

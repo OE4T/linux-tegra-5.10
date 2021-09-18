@@ -1,7 +1,7 @@
 /*
  * GV11B TPC
  *
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,12 +24,12 @@
 #include <nvgpu/gk20a.h>
 #include "tpc_gv11b.h"
 
-int gv11b_tpc_powergate(struct gk20a *g, u32 fuse_status)
+int gv11b_tpc_pg(struct gk20a *g, u32 fuse_status)
 {
 	int err = 0;
 
 	if (fuse_status == 0x0) {
-		g->can_tpc_powergate = true;
+		g->can_tpc_pg = true;
 
 	} else {
 		/* if hardware has already floorswept any TPC
@@ -40,15 +40,15 @@ int gv11b_tpc_powergate(struct gk20a *g, u32 fuse_status)
 		 * thus, set g->tpc_pg_mask to fuse_status value
 		 */
 		if (g->tpc_pg_mask == 0x0) {
-			g->can_tpc_powergate = true;
+			g->can_tpc_pg = true;
 			g->tpc_pg_mask = fuse_status;
 
 		} else if (fuse_status == g->tpc_pg_mask) {
-			g->can_tpc_powergate = true;
+			g->can_tpc_pg = true;
 
 		} else if ((fuse_status & g->tpc_pg_mask) ==
 					fuse_status) {
-			g->can_tpc_powergate = true;
+			g->can_tpc_pg = true;
 
 		} else {
 			/* If userspace sends a TPC PG mask such that
@@ -60,7 +60,7 @@ int gv11b_tpc_powergate(struct gk20a *g, u32 fuse_status)
 			 */
 			nvgpu_err(g, "Invalid TPC_PG mask: 0x%x",
 							g->tpc_pg_mask);
-			g->can_tpc_powergate = false;
+			g->can_tpc_pg = false;
 			g->tpc_pg_mask = 0x0;
 			err = -EINVAL;
 		}

@@ -82,13 +82,13 @@ struct gk20a_platform {
 	bool can_pci_gc_off;
 
 	/* Should be populated at probe. */
-	bool can_tpc_powergate;
+	bool can_tpc_pg;
 
 	/* Should be populated at probe. */
-	bool can_fbp_fs;
+	bool can_fbp_pg;
 
 	/* Should be populated at probe. */
-	bool can_gpc_fs;
+	bool can_gpc_pg;
 
 	/* Should be populated at probe. */
 	bool can_elpg_init;
