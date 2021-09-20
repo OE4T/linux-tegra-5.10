@@ -30,7 +30,12 @@
 	FsiComAppChConfApp1{
 		compatible = "nvidia,tegra-fsicom-sampleApp1";
 		status = "disabled";
-		channelid_list = <0>, <1>;
+		channelid_list = <0>;
+	};
+	FsiComAppChConfApp2{
+		compatible = "nvidia,tegra-fsicom-sampleApp2";
+		status = "disabled";
+		channelid_list = <1>;
 	};
 
 	FsiComIvc {
