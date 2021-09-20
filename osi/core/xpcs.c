@@ -219,6 +219,14 @@ static nve32_t xpcs_uphy_lane_bring_up(struct osi_core_priv_data *osi_core,
 	nveu32_t count;
 
 	val = osi_readla(osi_core,
+			 (nveu8_t *)xpcs_base + XPCS_WRAP_UPHY_STATUS);
+	if ((val & XPCS_WRAP_UPHY_STATUS_TX_P_UP_STATUS) ==
+	    XPCS_WRAP_UPHY_STATUS_TX_P_UP_STATUS) {
+		/* return success if TX lane is already UP */
+		return 0;
+	}
+
+	val = osi_readla(osi_core,
 			(nveu8_t *)xpcs_base + XPCS_WRAP_UPHY_HW_INIT_CTRL);
 	val |= lane_init_en;
 	osi_writela(osi_core, val,
