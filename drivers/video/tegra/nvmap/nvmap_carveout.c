@@ -109,6 +109,8 @@ int nvmap_create_carveout(const struct nvmap_platform_carveout *co)
 				heap_root,
 				(void *)(uintptr_t)node->heap_bit,
 				&debug_maps_fops);
+			debugfs_create_bool("no_cpu_access", S_IRUGO,
+				heap_root, (bool *)&co->no_cpu_access);
 			nvmap_heap_debugfs_init(heap_root,
 						node->carveout);
 		}
