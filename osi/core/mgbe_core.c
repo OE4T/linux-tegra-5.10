@@ -2226,6 +2226,7 @@ static void update_rfa_rfd(unsigned int rx_fifo, unsigned int *value)
  *	4) Configure Tx and Rx MTL Queue sizes
  *	5) Configure TxQ weight
  *	6) Enable Rx Queues
+ *	7) Enable TX Underflow Interrupt for MTL Q
  *
  * @param[in] qinx: Queue number that need to be configured.
  * @param[in] osi_core: OSI core private data.
@@ -2314,6 +2315,13 @@ static nve32_t mgbe_configure_mtl_queue(nveu32_t qinx,
 		  (MGBE_MAC_RXQC0_RXQEN_SHIFT(qinx)));
 	osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
 		   MGBE_MAC_RQC0R);
+
+	/* Enable TX Underflow Interrupt for MTL Q */
+	value = osi_readl((unsigned char *)osi_core->base +
+			  MGBE_MTL_QINT_ENABLE(qinx));
+	value |= MGBE_MTL_QINT_TXUIE;
+	osi_writel(value, (unsigned char *)osi_core->base +
+		   MGBE_MTL_QINT_ENABLE(qinx));
 	return 0;
 }
 
@@ -2602,8 +2610,9 @@ static int mgbe_configure_mac(struct osi_core_priv_data *osi_core)
 	/* Read MAC IMR Register */
 	value = osi_readla(osi_core, (nveu8_t *)osi_core->base + MGBE_MAC_IER);
 	/* RGSMIIIM - RGMII/SMII interrupt and TSIE Enable */
+	/* TXESIE - Transmit Error Status Interrupt Enable */
 	/* TODO: LPI need to be enabled during EEE implementation */
-	value |= (MGBE_IMR_RGSMIIIE | MGBE_IMR_TSIE);
+	value |= (MGBE_IMR_RGSMIIIE | MGBE_IMR_TSIE | MGBE_IMR_TXESIE);
 	osi_writela(osi_core, value, (nveu8_t *)osi_core->base + MGBE_MAC_IER);
 
 	/* Enable common interrupt at wrapper level */
@@ -3248,6 +3257,7 @@ static void mgbe_handle_mac_intrs(struct osi_core_priv_data *osi_core,
 	struct core_local *l_core = (struct core_local *)osi_core;
 	nveu32_t mac_isr = 0;
 	nveu32_t mac_ier = 0;
+	nveu32_t tx_errors = 0;
 
 	mac_isr = osi_readla(osi_core,
 			     (unsigned char *)osi_core->base + MGBE_MAC_ISR);
@@ -3262,6 +3272,35 @@ static void mgbe_handle_mac_intrs(struct osi_core_priv_data *osi_core,
 	    ((mac_ier & MGBE_IMR_FPEIE) == MGBE_IMR_FPEIE)) {
 		mgbe_handle_mac_fpe_intrs(osi_core);
 		mac_isr &= ~MGBE_MAC_IMR_FPEIS;
+	}
+	/* Check for any MAC Transmit Error Status Interrupt */
+	if ((mac_isr & MGBE_IMR_TXESIE) == MGBE_IMR_TXESIE) {
+		/* Check for the type of Tx error by reading  MAC_Rx_Tx_Status
+		 * register
+		 */
+		tx_errors = osi_readl((unsigned char *)osi_core->base +
+				      MGBE_MAC_RX_TX_STS);
+		if ((tx_errors & MGBE_MAC_TX_TJT) == MGBE_MAC_TX_TJT) {
+			/* increment Tx Jabber timeout stats */
+			osi_core->pkt_err_stats.mgbe_jabber_timeout_err =
+				osi_update_stats_counter(
+				osi_core->pkt_err_stats.mgbe_jabber_timeout_err,
+				1UL);
+		}
+		if ((tx_errors & MGBE_MAC_TX_IHE) == MGBE_MAC_TX_IHE) {
+			/* IP Header Error */
+			osi_core->pkt_err_stats.mgbe_ip_header_err =
+				osi_update_stats_counter(
+				osi_core->pkt_err_stats.mgbe_ip_header_err,
+				1UL);
+		}
+		if ((tx_errors & MGBE_MAC_TX_PCE) == MGBE_MAC_TX_PCE) {
+			/* Payload Checksum error */
+			osi_core->pkt_err_stats.mgbe_payload_cs_err =
+				osi_update_stats_counter(
+				osi_core->pkt_err_stats.mgbe_payload_cs_err,
+				1UL);
+		}
 	}
 
 	osi_writela(osi_core, mac_isr,
@@ -3610,7 +3649,8 @@ static int mgbe_get_avb_algorithm(struct osi_core_priv_data *const osi_core,
  *
  * @note MAC should be init and started. see osi_start_mac()
  */
-static void mgbe_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
+static void mgbe_handle_mtl_intrs(struct osi_core_priv_data *osi_core,
+				  unsigned int mtl_isr)
 {
 	unsigned int val = 0U;
 	unsigned int sch_err = 0U;
@@ -3619,6 +3659,32 @@ static void mgbe_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 	unsigned int i = 0;
 	unsigned long stat_val = 0U;
 	unsigned int value = 0U;
+	unsigned int qstatus = 0U;
+	unsigned int qinx = 0U;
+
+	/* Check for all MTL queues */
+	for (i = 0; i < osi_core->num_mtl_queues; i++) {
+		qinx = osi_core->mtl_queues[i];
+		if (mtl_isr & OSI_BIT(qinx)) {
+			/* check if Q has underflow error */
+			qstatus = osi_readl((unsigned char *)osi_core->base +
+					    MGBE_MTL_QINT_STATUS(qinx));
+			/* Transmit Queue Underflow Interrupt Status */
+			if (qstatus & MGBE_MTL_QINT_TXUNIFS) {
+				osi_core->pkt_err_stats.mgbe_tx_underflow_err =
+				osi_update_stats_counter(
+				osi_core->pkt_err_stats.mgbe_tx_underflow_err,
+				1UL);
+			}
+			/* Clear interrupt status by writing back with 1 */
+			osi_writel(1U, (unsigned char *)osi_core->base +
+				   MGBE_MTL_QINT_STATUS(qinx));
+		}
+	}
+
+	if ((mtl_isr & MGBE_MTL_IS_ESTIS) != MGBE_MTL_IS_ESTIS) {
+		return;
+	}
 
 	val = osi_readla(osi_core,
 			 (nveu8_t *)osi_core->base + MGBE_MTL_EST_STATUS);
@@ -3725,6 +3791,10 @@ static void mgbe_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 	/* clear EST status register as interrupt is handled */
 	osi_writela(osi_core, val,
 		    (nveu8_t *)osi_core->base + MGBE_MTL_EST_STATUS);
+
+	mtl_isr &= ~MGBE_MTL_IS_ESTIS;
+	osi_writela(osi_core, mtl_isr, (unsigned char *)osi_core->base +
+		    MGBE_MTL_INTR_STATUS);
 }
 
 /**
@@ -3908,12 +3978,8 @@ static void mgbe_handle_common_intr(struct osi_core_priv_data *osi_core)
 	/* Handle MTL inerrupts */
 	mtl_isr = osi_readla(osi_core,
 			     (unsigned char *)base + MGBE_MTL_INTR_STATUS);
-	if (((mtl_isr & MGBE_MTL_IS_ESTIS) == MGBE_MTL_IS_ESTIS) &&
-	    ((dma_isr & MGBE_DMA_ISR_MTLIS) == MGBE_DMA_ISR_MTLIS)) {
-		mgbe_handle_mtl_intrs(osi_core);
-		mtl_isr &= ~MGBE_MTL_IS_ESTIS;
-		osi_writela(osi_core, mtl_isr, (unsigned char *)base +
-			   MGBE_MTL_INTR_STATUS);
+	if ((dma_isr & MGBE_DMA_ISR_MTLIS) == MGBE_DMA_ISR_MTLIS) {
+		mgbe_handle_mtl_intrs(osi_core, mtl_isr);
 	}
 
 	/* Clear common interrupt status in wrapper register */

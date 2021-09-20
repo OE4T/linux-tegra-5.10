@@ -1140,6 +1140,20 @@ struct core_padctrl {
 };
 
 /**
+ * @brief OSI CORE packet error stats
+ */
+struct osi_core_pkt_err_stats {
+	/** IP Header Error */
+	nveu64_t mgbe_ip_header_err;
+	/** Jabber time out Error */
+	nveu64_t mgbe_jabber_timeout_err;
+	/** Payload Checksum Error */
+	nveu64_t mgbe_payload_cs_err;
+	/** Under Flow Error */
+	nveu64_t mgbe_tx_underflow_err;
+};
+
+/**
  * @brief The OSI Core (MAC & MTL) private data structure.
  */
 struct osi_core_priv_data {
@@ -1260,6 +1274,8 @@ struct osi_core_priv_data {
 	struct core_padctrl padctrl;
 	/** MGBE MAC instance ID's */
 	nveu32_t instance_id;
+	/** Packet error stats */
+	struct osi_core_pkt_err_stats pkt_err_stats;
 };
 
 /**
