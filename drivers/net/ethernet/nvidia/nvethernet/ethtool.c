@@ -81,17 +81,43 @@ static const struct ether_stats ether_frpstrings_stats[] = {
 { (#y), sizeof_field(struct osi_pkt_err_stats, y), \
 	offsetof(struct osi_dma_priv_data, pkt_err_stats.y)}
 #endif
+
+#if KERNEL_VERSION(5, 5, 0) > LINUX_VERSION_CODE
+#define ETHER_CORE_PKT_ERR_STAT(z) \
+{ (#z), FIELD_SIZEOF(struct osi_core_pkt_err_stats, z), \
+	offsetof(struct osi_core_priv_data, pkt_err_stats.z)}
+#else
+#define ETHER_CORE_PKT_ERR_STAT(z) \
+{ (#z), sizeof_field(struct osi_core_pkt_err_stats, z), \
+	offsetof(struct osi_core_priv_data, pkt_err_stats.z)}
+#endif
+
 /**
- * @brief ETHER clear pkt_err statistics
+ * @brief ETHER pkt_err statistics
  */
 static const struct ether_stats ether_cstrings_stats[] = {
-	/* Counter for pkt_err stats got cleared */
+	ETHER_PKT_ERR_STAT(ip_header_error),
+	ETHER_PKT_ERR_STAT(jabber_timeout_error),
+	ETHER_PKT_ERR_STAT(pkt_flush_error),
+	ETHER_PKT_ERR_STAT(payload_cs_error),
+	ETHER_PKT_ERR_STAT(loss_of_carrier_error),
+	ETHER_PKT_ERR_STAT(no_carrier_error),
+	ETHER_PKT_ERR_STAT(late_collision_error),
+	ETHER_PKT_ERR_STAT(excessive_collision_error),
+	ETHER_PKT_ERR_STAT(excessive_deferal_error),
+	ETHER_PKT_ERR_STAT(underflow_error),
+	ETHER_PKT_ERR_STAT(rx_crc_error),
+	ETHER_PKT_ERR_STAT(rx_frame_error),
 	ETHER_PKT_ERR_STAT(clear_tx_err),
 	ETHER_PKT_ERR_STAT(clear_rx_err),
+	ETHER_CORE_PKT_ERR_STAT(mgbe_ip_header_err),
+	ETHER_CORE_PKT_ERR_STAT(mgbe_jabber_timeout_err),
+	ETHER_CORE_PKT_ERR_STAT(mgbe_payload_cs_err),
+	ETHER_CORE_PKT_ERR_STAT(mgbe_tx_underflow_err),
 };
 
 /**
- * @brief clear pkt_err statistics array length
+ * @brief pkt_err statistics array length
  */
 #define ETHER_PKT_ERR_STAT_LEN OSI_ARRAY_SIZE(ether_cstrings_stats)
 
