@@ -6423,6 +6423,28 @@ static int ether_remove(struct platform_device *pdev)
 	return 0;
 }
 
+/**
+ * @brief Ethernet platform driver shutdown.
+ *
+ * Alogorithm: Stops and Deinits PHY, MAC, DMA and Clks hardware and
+ *             release SW allocated resources(buffers, workqueues etc).
+ *
+ * @param[in] pdev: Platform device associated with platform driver.
+ */
+static void ether_shutdown(struct platform_device *pdev)
+{
+	struct net_device *ndev = platform_get_drvdata(pdev);
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	int ret = -1;
+
+	if (!netif_running(ndev))
+		return;
+
+	ret = ether_close(ndev);
+	if (ret)
+		dev_err(pdata->dev, "Failure in ether_close");
+}
+
 #ifdef CONFIG_PM
 /**
  * @brief Ethernet platform driver suspend noirq callback.
@@ -6716,6 +6738,7 @@ MODULE_DEVICE_TABLE(of, ether_of_match);
 static struct platform_driver ether_driver = {
 	.probe = ether_probe,
 	.remove = ether_remove,
+	.shutdown = ether_shutdown,
 	.driver = {
 		.name = "nvethernet",
 		.of_match_table = ether_of_match,
