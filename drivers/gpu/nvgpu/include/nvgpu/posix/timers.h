@@ -44,6 +44,7 @@
  * @return Shall return 0 if the timeout has not expired; otherwise, an error
  * number indicating a timeout is returned.
  *
+ * @retval 0 if timeout has not expired.
  * @retval -ETIMEDOUT for timeout.
  */
 #define nvgpu_timeout_expired_msg_cpu(timeout, caller, fmt, arg...)	\
@@ -75,6 +76,7 @@
  * @return Shall return 0 if the timeout has not expired; otherwise, an error
  * number indicating a timeout is returned.
  *
+ * @retval 0 if timeout has not expired.
  * @retval -ETIMEDOUT for timeout.
  */
 #define nvgpu_timeout_expired_msg_retry(timeout, caller, fmt, arg...)	\
@@ -97,7 +99,8 @@
  * @brief Private handler of userspace timeout, should not be used directly.
  *
  * Posix implementation of the timeout handler. Differentiates between a CPU
- * timer and a retry timer and handles accordingly.
+ * timer and a retry timer and handles accordingly. Macro does not perform
+ * any validation of the parameters.
  *
  * @param timeout [in]	Timeout object.
  * @param caller [in]	Instruction pointer of the caller.
@@ -107,6 +110,7 @@
  * @return Shall return 0 if the timeout has not expired; otherwise, an error
  * number indicating a timeout is returned.
  *
+ * @retval 0 if timeout has not expired.
  * @retval -ETIMEDOUT for timeout.
  */
 #define nvgpu_timeout_expired_msg_impl(timeout, caller, fmt, arg...)	\

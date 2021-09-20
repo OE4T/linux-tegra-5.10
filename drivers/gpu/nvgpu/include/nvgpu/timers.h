@@ -116,7 +116,25 @@ struct nvgpu_timeout {
 /**
  * @brief Initialize a timeout.
  *
- * Initialize a timeout object referenced by \a timeout.
+ * Initialize a timeout object referenced by \a timeout. The \a flags parameter
+ * should not have an unsupported bit set, an error value is returned in that
+ * case. Refer to struct #nvgpu_timeout for supported flag values. Initialize
+ * the memory of struct #nvgpu_timeout using #memset. Populate the variables
+ * \a g and \a flags in #nvgpu_timeout with the input parameters \a g and
+ * \a flags. Populate the \a max_attempts in #nvgpu_timeout with the input
+ * parameter \a duration if the timer is a retry based timer, else, if the
+ * timer is a duration based timer, calculate the duration value that has to be
+ * populated in \a time_duration variable in #nvgpu_timeout. The duration value
+ * is calculated from the input parameter \a duration. The value of the input
+ * parameter \a duration is converted in to nanoseconds by invoking the safe
+ * multiple function #nvgpu_safe_mult_s64(), the resulting nanosecond value
+ * has to be added with the current nanosecond time value which is fetched
+ * using the function #nvgpu_current_time_ns(). Uses the safe addition function
+ * #nvgpu_safe_add_s64() to add the current nanosecond time value with the
+ * duration nanosecond value. The result is populated in the #time_duration
+ * variable in #nvgpu_timeout. Function does the validation of the input
+ * parameter \a flags to check if it has any bit positions other than the
+ * allowed ones set.
  *
  * @param g [in]	GPU driver structure.
  * @param timeout [in]	Timeout object to initialize.
@@ -138,7 +156,10 @@ int nvgpu_timeout_init(struct gk20a *g, struct nvgpu_timeout *timeout,
  * @brief Check the timeout status.
  *
  * Checks the status of \a timeout and returns if the timeout has expired or
- * not.
+ * not. Uses the function #time_after() with current time value in nanoseconds
+ * and \a time_duration in #nvgpu_timeout as parameters to check the timeout
+ * status of a duration timer. Function does not perform any validation of the
+ * parameters.
  *
  * @param timeout [in]	Timeout object to check the status.
  *
@@ -157,7 +178,8 @@ bool nvgpu_timeout_peek_expired(struct nvgpu_timeout *timeout);
  * retry count has reached maximum allowed retry limit. For CPU based timers,
  * a call of this macro checks whether the required duration has elapsed.
  * Refer to the documentation of the function #nvgpu_timeout_expired_msg_impl
- * for underlying implementation.
+ * for underlying implementation. Macro does not perform any validation of the
+ * parameter.
  *
  * @param __timeout [in]	Timeout object to handle.
  */
@@ -169,7 +191,8 @@ bool nvgpu_timeout_peek_expired(struct nvgpu_timeout *timeout);
  *
  * Along with handling the timeout, this macro also takes in a variable list
  * of arguments which is used in constructing the debug message for a timeout.
- * Refer to #nvgpu_timeout_expired for further details.
+ * Refer to #nvgpu_timeout_expired_msg_impl for further details. Macro does
+ * not perform any validation of the input parameters.
  *
  * @param __timeout [in]	Timeout object to handle.
  * @param fmt [in]		Format of the variable arguments.
@@ -185,7 +208,19 @@ bool nvgpu_timeout_peek_expired(struct nvgpu_timeout *timeout);
 /**
  * @brief Sleep for millisecond intervals.
  *
- * Function sleeps for requested millisecond duration.
+ * Function sleeps for requested millisecond duration. The current time value
+ * is fetched using the function \a clock_gettime and converted into nanosecond
+ * equivalent using safe operations. The input parameter \a msecs is converted
+ * into equivalent nanosecond value using the function #nvgpu_safe_mult_s64().
+ * Add the current time value with the duration value in nanosecond using the
+ * safe add function #nvgpu_safe_add_s64(). The resulting nanosecond value is
+ * populated into a \a timespec structure, which is then used as a parameter
+ * in the invocation of the function \a clock_nanosleep() to sleep for the
+ * requested duration. The clock id paramater is passed as CLOCK_MONOTONIC and
+ * TIMER_ABSTIME is used as the flags parameter for the invocation of the
+ * function \a clock_nanosleep. A NULL pointer is passed as parameter for the
+ * remaining time interval  parameter. Function does not perform any validation
+ * of the parameter.
  *
  * @param msecs [in]	Milliseconds to sleep.
  */
@@ -195,10 +230,12 @@ void nvgpu_msleep(unsigned int msecs);
  * @brief Sleep for a duration in the range of input parameters.
  *
  * Sleeps for a value in the range between min_us and max_us. The underlying
- * implementation is OS dependent. In nvgpu posix implementation, the sleep is
+ * implementation is OS dependent. In nvgpu Posix implementation, the sleep is
  * always for min_us duration and the function sleeps only if the input min_us
  * value is greater than or equal to 1000 microseconds, else the function just
- * delays execution for requested duration of time without sleeping.
+ * delays execution for requested duration of time without sleeping. Invokes
+ * the function #nvgpu_udelay() internally with \a min_us as parameter.
+ * Function does not perform any validation of the parameters.
  *
  * @param min_us [in]	Minimum duration to sleep in microseconds.
  * @param max_us [in]	Maximum duration to sleep in microseconds.
@@ -209,8 +246,11 @@ void nvgpu_usleep_range(unsigned int min_us, unsigned int max_us);
  * @brief Delay execution.
  *
  * Delays the execution for requested duration of time in microseconds. In
- * posix implementation, if the requested duration is greater than or equal to
- * 1000 microseconds, the function sleeps.
+ * Posix implementation, if the requested duration is greater than or equal to
+ * 1000 microseconds, the function sleeps by invoking the function
+ * #nvgpu_usleep() with \a usecs as parameter, else invokes the function
+ * #nvgpu_delay_usecs() with \a usecs as parameter to delay the execution.
+ * Function does not perform any validation of the parameter.
  *
  * @param usecs [in]	Delay duration in microseconds.
  */
@@ -223,6 +263,9 @@ void nvgpu_udelay(unsigned int usecs);
 /**
  * @brief Current time in milliseconds.
  *
+ * Invokes the function \a clock_gettime internally to fetch the current time
+ * value and returns the value in milliseconds.
+ *
  * @return Current time value as milliseconds.
  */
 s64 nvgpu_current_time_ms(void);
@@ -230,12 +273,20 @@ s64 nvgpu_current_time_ms(void);
 /**
  * @brief Current time in nanoseconds.
  *
+ * Invokes the function \a clock_gettime internally to fetch the current time.
+ * The value is converted into nanosecond equivalent using safe operations.
+ *
  * @return Current time value as nanoseconds.
  */
 s64 nvgpu_current_time_ns(void);
 
 /**
  * @brief Current time in microseconds.
+ *
+ * Invokes the library function \a gettimeofday internally to get the current
+ * time value. The received current time value is converted into microsecond
+ * equivalent using safe multiplication function #nvgpu_safe_mult_s64() and
+ * safe addition #nvgpu_safe_add_s64().
  *
  * @return Current time value as microseconds.
  */

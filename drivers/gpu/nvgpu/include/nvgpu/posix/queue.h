@@ -91,6 +91,7 @@ unsigned int nvgpu_queue_available(struct nvgpu_queue *queue);
  * @return Return 0 on success, otherwise returns error number to indicate the
  * error.
  *
+ * @retval 0 on success.
  * @retval -EINVAL for invalid input parameters.
  * @retval -ENOMEM for memory allocation failure.
  */
@@ -156,6 +157,7 @@ int nvgpu_queue_in(struct nvgpu_queue *queue, const void *buf,
  * @return Returns 0 on success, otherwise returns error number to indicate
  * the error.
  *
+ * @retval 0 on success.
  * @retval -ENOMEM if the message queue doesn't have enough free space to
  * hold the message.
  */
@@ -210,6 +212,7 @@ int nvgpu_queue_out(struct nvgpu_queue *queue, void *buf,
  * @return Returns 0 on success, otherwise returns error number to indicate
  * the error.
  *
+ * @retval 0 on success.
  * @retval -ENOMEM if the length of the messages held by the message queue is
  * less than \a len.
  */

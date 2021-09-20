@@ -30,6 +30,8 @@
 /**
  * @brief Minimum of two values using the specified type.
  *
+ * Macro does not perform any validation of the input parameters.
+ *
  * @param type	Type of the input values.
  * @param a	First value.
  * @param b	Second value.
@@ -76,6 +78,9 @@
 /**
  * @brief Minimum of three values.
  *
+ * Uses the macro #min internally to identify the minimal value from the
+ * given three values. Macro does not perform any validation of the parameters.
+ *
  * @param a	First value.
  * @param b	Second value.
  * @param c	Third value.
@@ -103,6 +108,12 @@
 /**
  * @brief Round up division for unsigned long.
  *
+ * Rounds up the value of the dividend \a n according to the value of the
+ * divisor \a d and does the division. The value of \a d should not be passed
+ * as 0. Safe addition and subtraction APIs, #nvgpu_safe_add_u64() and
+ * #nvgpu_safe_sub_u64() are used to round up the value of the dividend.
+ * Macro does not perform any validation of the parameters.
+ *
  * @param n	Numerator.
  * @param d	Denominator.
  *
@@ -120,6 +131,10 @@
 /**
  * @brief Round up division.
  *
+ * Invokes the macro #DIV_ROUND_UP_U64 internally to perform the round up
+ * operation. Refer to #DIV_ROUND_UP_U64 for further details. Macro does not
+ * perform any validation of the parameters.
+ *
  * @param n	Numerator.
  * @param d	Denominator.
  *
@@ -133,7 +148,11 @@
 	val;								\
 })
 
-/** Round up division for unsigned long long. */
+/**
+ * @brief Round up division for unsigned long long.
+ *
+ * Wrapper macro over #DIV_ROUND_UP.
+ */
 #define DIV_ROUND_UP_ULL	DIV_ROUND_UP
 
 #ifdef CONFIG_NVGPU_NON_FUSA
@@ -162,6 +181,9 @@
 /**
  * @brief Division of two values.
  *
+ * Divides the input paramater \a a by \a b and updates the quotient value in
+ * \a a. Macro does not perform any validation of the input parameters.
+ *
  * @param a	Dividend, should be an lvalue.
  * @param b	Divisor.
  *
@@ -172,6 +194,9 @@
 /**
  * @brief Division of two 64 bit values.
  *
+ * Divides the input paramater \a a by \a b. Macro does not perform any
+ * validation of the input parameters.
+ *
  * @param a	Dividend.
  * @param b	Divisor.
  *
@@ -180,20 +205,26 @@
 #define div64_u64(a, b)		((a) / (b))
 
 /**
- *  @brief Generate mask value for round operations.
+ * @brief Generate mask value for round operations.
  *
- *  @param x	Data type of this param is used to type cast.
- *  @param y	Value for which the mask is generated.
+ * Macro does not perform any validation of the parameters.
  *
- *  @return Mask value based on \a y is returned.
+ * @param x	Data type of this param is used to type cast.
+ * @param y	Value for which the mask is generated.
+ *
+ * @return Mask value based on \a y is returned.
  */
 #define round_mask(x, y)	((__typeof__(x))((y) - 1U))
 
 /**
  * @brief Round up the value of its argument \a x.
  *
+ * Uses the macro #round_mask to generate the mask value based on input
+ * parameter \a y and uses that value to round up the value of the input
+ * parameter \a x. Macro does not perform any validation of the parameters.
+ *
  * @param x	Value to be rounded.
- * @param y	Value to be used to round up x.  Must be power-of-two.
+ * @param y	Value to be used to round up x. Must be power-of-two.
  *
  * @return Rounded up value of \a x.
  */
@@ -201,6 +232,10 @@
 
 /**
  * @brief Round down the value of its argument \a x.
+ *
+ * Uses the macro #round_mask to generate the mask value based on input
+ * parameter \a y and uses that value to round down the value of the input
+ * parameter \a x. Macro does not perform any validation of the parameters.
  *
  * @param x	Value to be rounded.
  * @param y	Value to be used to round down x.
@@ -211,6 +246,9 @@
 
 /**
  * @brief To identify whether the data type of input value is unsigned.
+ *
+ * Uses the builtin function \a __builtin_types_compatible_p to identify if the
+ * input paramater \x is of unsigned type.
  *
  * @param x	Input value.
  *
@@ -224,6 +262,9 @@
 /**
  * @brief To identify whether the data type of input value is unsigned long.
  *
+ * Uses the builtin function \a __builtin_types_compatible_p to identify if the
+ * input paramater \x is of unsigned long type.
+ *
  * @param x	Input value.
  *
  * @return Returns TRUE for unsigned long data types, FALSE otherwise.
@@ -235,6 +276,9 @@
 /**
  * @brief To identify whether the data type of input value is signed long.
  *
+ * Uses the builtin function \a __builtin_types_compatible_p to identify if the
+ * input paramater \x is of signed long type.
+ *
  * @param x	Input value.
  *
  * @return Returns TRUE for signed long data types, FALSE otherwise.
@@ -245,6 +289,14 @@
 
 /**
  * @brief Align with mask value.
+ *
+ * Uses the builtin function \a __builtin_choose_expr to evaluate code
+ * depending on the input parameters. The types of the input parameters are
+ * confirmed to be unsigned using the macro #IS_UNSIGNED_TYPE and uses the
+ * macro #IS_UNSIGNED_LONG_TYPE to check if the input parameters are of type
+ * unsigned long or not. Respective safe addition API for the data type is
+ * invoked to fetch the result. Macro performs the validation of the input
+ * parameters to check if they are of unsgined type.
  *
  * @param x	Value to be aligned.
  * @param mask	Mask value to align with.
@@ -263,6 +315,11 @@
 
 /**
  * @brief Align the parameter \a x with \a a.
+ *
+ * Uses the builtin function \a __builtin_choose_expr to evaluate the code.
+ * Uses the macros #IS_UNSIGNED_TYPE, #IS_UNSIGNED_LONG_TYPE and #ALIGN_MASK
+ * internally to perform the alignment operation. Macro verifies if both the
+ * input parameters are of unsigned type.
  *
  * @param x	Value to be aligned.
  * @param mask	Value to align with.
@@ -284,6 +341,9 @@
 /**
  * @brief Align with #PAGE_SIZE.
  *
+ * Wrapper macro over #NVGPU_ALIGN to align the input paramater \a x with
+ * \a PAGE_SIZE. Macro does ont perform any validation of the input parameter.
+ *
  * @param x	Input value to be aligned.
  *
  * @return Returns \a x aligned with the page size value.
@@ -292,6 +352,8 @@
 
 /**
  * @brief Convert hertz to kilo hertz.
+ *
+ * Macro does not perform any validation of the parameter.
  *
  * @param x	Value to convert.
  *
@@ -303,6 +365,8 @@
 /**
  * @brief Convert hertz to mega hertz.
  *
+ * Macro does not perform any validation of the parameter.
+ *
  * @param x	Value to convert.
  *
  * @return Converts \a x into mega hertz and returns.  Fractional value is not
@@ -312,6 +376,8 @@
 
 /**
  * @brief Convert hertz value in unsigned long long to mega hertz.
+ *
+ * Macro does not perform any validation of the parameter.
  *
  * @param x	Value to convert.
  *
@@ -324,6 +390,8 @@
 /**
  * @brief Convert kilo hertz to hertz.
  *
+ * Macro does not perform any validation of the parameter.
+ *
  * @param x	Value to convert.
  *
  * @return Equivalent value of \a x in hertz.
@@ -332,6 +400,8 @@
 
 /**
  * @brief Convert mega hertz to kilo hertz.
+ *
+ * Macro does not perform any validation of the parameter.
  *
  * @param x	Value to convert.
  *
@@ -342,6 +412,8 @@
 /**
  * @brief Convert kilo hertz to mega hertz.
  *
+ * Macro does not perform any validation of the parameter.
+ *
  * @param x	Value to convert.
  *
  * @return Equivalent value of \a a in mega hertz.
@@ -350,6 +422,8 @@
 
 /**
  * @brief Convert mega hertz to 64 bit hertz value.
+ *
+ * Macro does not perform any validation of the parameter.
  *
  * @param x	Value to convert.
  *
@@ -360,7 +434,9 @@
 /**
  * @brief Endian conversion.
  *
- * Converts the input value x in big endian to CPU byte order.
+ * Converts the input value \a x in big endian to CPU byte order.
+ * Uses the library function \a ntohl internally. Function does not perform
+ * any validation of the input paramater.
  *
  * @param x [in] Value to be converted.
  *
@@ -383,6 +459,7 @@ static inline u32 be32_to_cpu(u32 x)
  * @brief Hamming weight of 8 bit input value.
  *
  * Returns the hamming weight(number of non zero bits) of the input param \a x.
+ * Function does not perform any validation of the input parameter.
  *
  * @param x [in]	Input to find the hamming weight of.
  *
@@ -413,6 +490,8 @@ static inline unsigned int nvgpu_posix_hweight8(uint8_t x)
  * @brief Hamming weight of 16 bit input value.
  *
  * Returns the hamming weight(number of non zero bits) of the input param \a x.
+ * Uses the function #nvgpu_posix_hweight8() internally to compute the result.
+ * Function does not perform any validation of the input parameter.
  *
  * @param x [in]	Input to find the hamming weight of.
  *
@@ -434,6 +513,8 @@ static inline unsigned int nvgpu_posix_hweight16(uint16_t x)
  * @brief Hamming weight of 32 bit input value.
  *
  * Returns the hamming weight(number of non zero bits) of the input param \a x.
+ * Uses the function #nvgpu_posix_hweight16() internally to compute the result.
+ * Function does not perform any validation of the input parameter.
  *
  * @param x [in]	Input to find the hamming weight of.
  *
@@ -455,6 +536,8 @@ static inline unsigned int nvgpu_posix_hweight32(uint32_t x)
  * @brief Hamming weight of 64 bit input value.
  *
  * Returns the hamming weight(number of non zero bits) of the input param \a x.
+ * Uses the function #nvgpu_posix_hweight32() internally to compute the result.
+ * Function does not perform any validation of the input parameter.
  *
  * @param x [in]	Input to find the hamming weight of.
  *
@@ -478,13 +561,13 @@ static inline unsigned int nvgpu_posix_hweight64(uint64_t x)
 
 /**
  * Hamming weight of 32 bit input value. Wrapper define for
- * nvgpu_posix_hweight32.
+ * #nvgpu_posix_hweight32().
  */
 #define hweight32		nvgpu_posix_hweight32
 
 /**
  * Hamming weight of 64 bit input value. Wrapper define for
- * nvgpu_posix_hweight64.
+ * #nvgpu_posix_hweight64().
  */
 #define hweight_long		nvgpu_posix_hweight64
 
@@ -498,6 +581,8 @@ static inline unsigned int nvgpu_posix_hweight64(uint64_t x)
 
 /**
  * @brief Get the container which holds the member.
+ *
+ * Macro does not perform any validation of the input parameters.
  *
  * @param ptr		Address of the member.
  * @param type		Type of the container holding member.

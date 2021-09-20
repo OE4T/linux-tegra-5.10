@@ -36,7 +36,10 @@
 /**
  * @brief Set atomic variable.
  *
- * Sets the value \a i atomically in structure \a v.
+ * Sets the value \a i atomically in structure \a v. Invokes the standard
+ * function \a atomic_store internally with the atomic variable \a v in
+ * #nvgpu_atomic_t and \a i as parameters for the atomic operation.
+ * Function does not perform any validation of the parameters.
  *
  * @param v [in]	Structure holding atomic variable.
  * @param i [in]	Value to set.
@@ -49,7 +52,10 @@ static inline void nvgpu_atomic_set(nvgpu_atomic_t *v, int i)
 /**
  * @brief Read atomic variable.
  *
- * Atomically reads the value from structure \a v.
+ * Atomically reads the value from structure \a v. Invokes the standard
+ * function \a atomic_load internally with the atomic variable \a v in
+ * #nvgpu_atomic_t as parameter for the atomic operation. Function
+ * does not perform any validation of the parameters.
  *
  * @param v [in]	Structure holding atomic variable to read.
  *
@@ -63,7 +69,10 @@ static inline int nvgpu_atomic_read(nvgpu_atomic_t *v)
 /**
  * @brief Increment the atomic variable.
  *
- * Atomically increments the value in structure \a v by 1.
+ * Atomically increments the value in structure \a v by 1. Invokes the standard
+ * function \a atomic_fetch_add internally with the atomic variable \a v in
+ * #nvgpu_atomic_t and 1 as parameters for the atomic operation. Function
+ * does not perform any validation of the parameters.
  *
  * @param v [in]	Structure holding atomic variable.
  */
@@ -75,7 +84,11 @@ static inline void nvgpu_atomic_inc(nvgpu_atomic_t *v)
 /**
  * @brief Increment the atomic variable and return.
  *
- * Atomically increases the value in structure \a v by 1 and returns.
+ * Atomically increases the value in structure \a v by 1 and returns the
+ * incremented value. Invokes the standard  function \a atomic_fetch_add
+ * internally with the atomic variable \a v in #nvgpu_atomic_t and 1 as the
+ * parameters for the atomic operation. Function does not perform any
+ * validation of the parameters.
  *
  * @param v [in]	Structure holding atomic variable.
  *
@@ -89,7 +102,10 @@ static inline int nvgpu_atomic_inc_return(nvgpu_atomic_t *v)
 /**
  * @brief Decrement the atomic variable.
  *
- * Atomically decrements the value in structure \a v by 1.
+ * Atomically decrements the value in structure \a v by 1. Invokes the standard
+ * function \a atomic_fetch_sub internally with the atomic variable \a v in
+ * #nvgpu_atomic_t and 1 as parameters for the atomic operation. Function
+ * does not perform any validation of the parameters.
  *
  * @param v [in]	Structure holding atomic variable.
  */
@@ -101,7 +117,11 @@ static inline void nvgpu_atomic_dec(nvgpu_atomic_t *v)
 /**
  * @brief Decrement the atomic variable and return.
  *
- * Atomically decrements the value in structure \a v by 1 and returns.
+ * Atomically decrements the value in structure \a v by 1 and returns the
+ * decremented value. Invokes the standard function \a atomic_fetch_sub
+ * internally with the atomic variable \a v in #nvgpu_atomic_t and 1 as
+ * parameters for the atomic operation. Function does not perform any
+ * validation of the parameters.
  *
  * @param v [in]	Structure holding atomic variable.
  *
@@ -118,6 +138,10 @@ static inline int nvgpu_atomic_dec_return(nvgpu_atomic_t *v)
  * Reads the value stored in \a v, replace the value with \a new if the read
  * value is equal to \a old. In cases where the current value in \a v is not
  * equal to \a old, this function acts as a read operation of atomic variable.
+ * Uses the standard function \a atomic_compare_exchange_strong internally with
+ * the atomic variable \a v in #nvgpu_atomic_t, \a old and \a new as parameters
+ * for the atomic operation. Function does not perform any validation of the
+ * input parameters.
  *
  * @param v [in]	Structure holding atomic variable.
  * @param old [in]	Value to compare.
@@ -135,7 +159,10 @@ static inline int nvgpu_atomic_cmpxchg(nvgpu_atomic_t *v, int old, int new)
 /**
  * @brief Exchange the value in atomic variable.
  *
- * Atomically exchanges the value stored in \a v with \a new.
+ * Atomically exchanges the value stored in \a v with \a new. Invokes the
+ * standard function \a atomic_exchange internally with the atomic variable
+ * \a v in #nvgpu_atomic_t and \a new as parameters for the atomic operation.
+ * Function does not perform any validation of the parameters.
  *
  * @param v [in]	Structure holding atomic variable.
  * @param new [in]	Value to set.
@@ -151,7 +178,9 @@ static inline int nvgpu_atomic_xchg(nvgpu_atomic_t *v, int new)
  * @brief Increment the atomic variable and test for zero.
  *
  * Atomically increments the value stored in \a v by 1 and compare the result
- * with zero.
+ * with zero. Uses the standard function \a atomic_fetch_add with the atomic
+ * variable \a v in #nvgpu_atomic_t and 1 as parameters for the atomic
+ * operation. Function does not perform any validation of the parameters.
  *
  * @param v [in]	Structure holding atomic variable.
  *
@@ -170,7 +199,9 @@ static inline bool nvgpu_atomic_inc_and_test(nvgpu_atomic_t *v)
  * @brief Decrement the atomic variable and test for zero.
  *
  * Atomically decrements the value stored in \a v by 1 and compare the result
- * with zero.
+ * with zero. Uses the standard function \a atomic_fetch_sub with the atomic
+ * variable \a v in #nvgpu_atomic_t and 1 as parameters for the atomic
+ * operation. Function does not perform any validation of the parameters.
  *
  * @param v [in]	Structure holding atomic variable.
  *
@@ -189,7 +220,9 @@ static inline bool nvgpu_atomic_dec_and_test(nvgpu_atomic_t *v)
  * @brief Subtract integer from atomic variable and test.
  *
  * Atomically subtracts \a i from the value stored in \a v and compare the
- * result with zero.
+ * result with zero. Uses the standard function \a atomic_fetch_sub with the
+ * atomic variable \a v in #nvgpu_atomic_t and \a i as parameters for the
+ * atomic operation. Function does not perform any validation of the parameters.
  *
  * @param i [in]	Value to subtract.
  * @param v [in]	Structure holding atomic variable.
@@ -208,7 +241,10 @@ static inline bool nvgpu_atomic_sub_and_test(int i, nvgpu_atomic_t *v)
 /**
  * @brief Add integer to atomic variable.
  *
- * Atomically adds \a i to the value stored in structure \a v.
+ * Atomically adds \a i to the value stored in structure \a v. Uses the
+ * standard function \a atomic_fetch_add with the atomic variable \a v in
+ * #nvgpu_atomic_t and \a i as parameters for the atomic operation. Function
+ * does not perform any validation of the parameters.
  *
  * @param i [in]	Value to add.
  * @param v [in]	Structure holding atomic variable.
@@ -222,7 +258,9 @@ static inline void nvgpu_atomic_add(int i, nvgpu_atomic_t *v)
  * @brief Subtract integer form atomic variable and return.
  *
  * Atomically subtracts \a i from the value stored in structure \a v and
- * returns.
+ * returns. Uses the standard function \a atomic_fetch_sub with the
+ * atomic variable \a v in #nvgpu_atomic_t and \a i as parameters for the
+ * atomic operation. Function does not perform any validation of the parameters.
  *
  * @param i [in]	Value to subtract.
  * @param v [in]	Structure holding atomic variable.
@@ -237,7 +275,10 @@ static inline int nvgpu_atomic_sub_return(int i, nvgpu_atomic_t *v)
 /**
  * @brief Subtract integer from atomic variable.
  *
- * Atomically subtracts \a i from the value stored in structure \a v.
+ * Atomically subtracts \a i from the value stored in structure \a v. Uses the
+ * standard function \a atomic_fetch_sub with the atomic variable \a v in
+ * #nvgpu_atomic_t and \a i as parameters for the atomic operation. Function
+ * does not perform any validation of the parameters.
  *
  * @param i [in]	Value to set.
  * @param v [in]	Structure holding atomic variable.
@@ -250,7 +291,10 @@ static inline void nvgpu_atomic_sub(int i, nvgpu_atomic_t *v)
 /**
  * @brief Add integer to atomic variable and return.
  *
- * Atomically adds \a i to the value in structure \a v and returns.
+ * Atomically adds \a i to the value in structure \a v and returns. Uses the
+ * standard function \a atomic_fetch_add with the atomic variable \a v in
+ * #nvgpu_atomic_t and \a i as parameters for the atomic operation. Function
+ * does not perform any validation of the parameters.
  *
  * @param i [in]	Value to add.
  * @param v [in]	Structure holding atomic variable.
@@ -265,7 +309,14 @@ static inline int nvgpu_atomic_add_return(int i, nvgpu_atomic_t *v)
 /**
  * @brief Add integer to atomic variable on unless condition.
  *
- * Atomically adds \a a to \a v if \a v is not \a u.
+ * Atomically adds \a a to \a v if \a v is not \a u. Uses the standard function
+ * \a atomic_load with atomic variable \a v in nvgpu_atomic_t as parameter to
+ * load the current value of the variable. If the current value of the atomic
+ * variable is not equal to \a u, Use the standard atomic function
+ * \a atomic_compare_exchange_strong with the atomic variable \a v in
+ * #nvgpu_atomic_t, the current value in the variable and the new value to be
+ * populated in the variable as parameters. Function does not perform any
+ * validation of the parameters.
  *
  * @param v [in]	Structure holding atomic variable.
  * @param a [in]	Value to add.
@@ -281,7 +332,10 @@ static inline int nvgpu_atomic_add_unless(nvgpu_atomic_t *v, int a, int u)
 /**
  * @brief Set the 64 bit atomic variable.
  *
- * Atomically sets the 64 bit value \a x in structure \a v.
+ * Atomically sets the 64 bit value \a x in structure \a v. Invokes the standard
+ * function \a atomic_store with the atomic variable \a v in #nvgpu_atomic64_t
+ * and \a x as parameters internally for the atomic operation. Function
+ * does not perform any validation of the parameters.
  *
  * @param v [in]	Structure holding atomic variable.
  * @param x [in]	Value to set.
@@ -294,7 +348,10 @@ static inline void nvgpu_atomic64_set(nvgpu_atomic64_t *v, long x)
 /**
  * @brief Read the 64 bit atomic variable.
  *
- * Atomically reads the 64 bit value in structure \a v.
+ * Atomically reads the 64 bit value in structure \a v. Invokes the standard
+ * function \a atomic_load internally with the atomic variable \a v in
+ * #nvgpu_atomic64_t as parameter for the atomic operation. Function does not
+ * perform any validation of the parameters.
  *
  * @param v [in]	Structure holding atomic variable.
  *
@@ -308,7 +365,10 @@ static inline long nvgpu_atomic64_read(nvgpu_atomic64_t *v)
 /**
  * @brief Addition of 64 bit integer to atomic variable.
  *
- * Atomically adds the 64 bit value \a x to \a v.
+ * Atomically adds the 64 bit value \a x to \a v. Uses the standard function
+ * \a atomic_fetch_add with the atomic variable \a v in #nvgpu_atomic64_t and
+ * \a x as parameters for the atomic operation. Function does not perform any
+ * validation of the parameters.
  *
  * @param x [in]	Value to add.
  * @param v [in]	Structure holding atomic variable.
@@ -321,7 +381,10 @@ static inline void nvgpu_atomic64_add(long x, nvgpu_atomic64_t *v)
 /**
  * @brief Increment the 64 bit atomic variable.
  *
- * Atomically increments the value in structure \a v by 1.
+ * Atomically increments the value in structure \a v by 1. Invokes the standard
+ * function \a atomic_fetch_add internally with the atomic variable \a v in
+ * #nvgpu_atomic64_t and 1 as parameters for the atomic operation. Function
+ * does not perform any validation of the parameters.
  *
  * @param v [in]	Structure holding atomic variable.
  */
@@ -333,7 +396,11 @@ static inline void nvgpu_atomic64_inc(nvgpu_atomic64_t *v)
 /**
  * @brief  Increment the 64 bit atomic variable and return.
  *
- * Atomically increments the value in structure \a v by 1 and returns.
+ * Atomically increases the value in structure \a v by 1 and returns the
+ * incremented value. Invokes the standard  function \a atomic_fetch_add
+ * internally with the atomic variable \a v in #nvgpu_atomic64_t and 1 as the
+ * parameters for the atomic operation. Function does not perform any
+ * validation of the parameters.
  *
  * @param v [in]	Structure holding atomic variable.
  *
@@ -348,6 +415,10 @@ static inline long nvgpu_atomic64_inc_return(nvgpu_atomic64_t *v)
  * @brief Decrement the 64 bit atomic variable.
  *
  * Atomically decrements the value in structure \a v by 1.
+ * Atomically decrements the value in structure \a v by 1. Invokes the standard
+ * function \a atomic_fetch_sub internally with the atomic variable \a v in
+ * #nvgpu_atomic64_t and 1 as parameters for the atomic operation. Function
+ * does not perform any validation of the parameters.
  *
  * @param v [in]	Structure holding atomic variable.
  */
@@ -359,7 +430,11 @@ static inline void nvgpu_atomic64_dec(nvgpu_atomic64_t *v)
 /**
  * @brief Decrement the 64 bit atomic variable and return.
  *
- * Atomically decrements the value in structure \a v by 1 and returns.
+ * Atomically decrements the value in structure \a v by 1 and returns the.
+ * decremented value. Invokes the standard  function \a atomic_fetch_sub
+ * internally with the atomic variable \a v in #nvgpu_atomic64_t and 1 as
+ * parameters for the atomic operation. Function does not perform any
+ * validation of the parameters.
  *
  * @param v [in]	Structure holding atomic variable.
  *
@@ -373,7 +448,10 @@ static inline long nvgpu_atomic64_dec_return(nvgpu_atomic64_t *v)
 /**
  * @brief Exchange the 64 bit atomic variable value.
  *
- * Atomically exchanges the value \a new with the value in \a v.
+ * Atomically exchanges the value \a new with the value in \a v. Invokes the
+ * standard function \a atomic_exchange internally with the atomic variable
+ * \a v in #nvgpu_atomic64_t and \a new as parameters for the atomic operation.
+ * Function does not perform any validation of the parameters.
  *
  * @param v [in]	Structure holding atomic variable.
  * @param new [in]	Value to set.
@@ -391,6 +469,10 @@ static inline long nvgpu_atomic64_xchg(nvgpu_atomic64_t *v, long new)
  * Reads the value stored in \a v, replace the value with \a new if the read
  * value is equal to \a old. In cases where the current value in \a v is not
  * equal to \a old, this function acts as a read operation of atomic variable.
+ * Uses the standard function \a atomic_compare_exchange_strong internally with
+ * the atomic variable \a v in #nvgpu_atomic64_t, \a old and \a new as parameters
+ * for the atomic operation. Function does not perform any validation of the
+ * input parameters.
  *
  * @param v [in]	Structure holding atomic variable.
  * @param old [in]	Value to compare.
@@ -407,7 +489,10 @@ static inline long nvgpu_atomic64_cmpxchg(nvgpu_atomic64_t *v, long old,
 /**
  * @brief Addition of 64 bit integer to atomic variable and return.
  *
- * Atomically add the value \a x with \a v and returns.
+ * Atomically add the value \a x with \a v and returns. Uses the
+ * standard function \a atomic_fetch_add with the atomic variable \a v in
+ * #nvgpu_atomic64_t and \a x as parameters for the atomic operation. Function
+ * does not perform any validation of the parameters.
  *
  * @param x [in]	Value to add.
  * @param v [in]	Structure holding atomic variable.
@@ -422,7 +507,14 @@ static inline long nvgpu_atomic64_add_return(long x, nvgpu_atomic64_t *v)
 /**
  * @brief Addition of 64 bit atomic variable on unless condition.
  *
- * Atomically adds 64 bit value \a a to \a v if \a v is not \a u.
+ * Atomically adds 64 bit value \a a to \a v if \a v is not \a u. Uses the
+ * standard function \a atomic_load with atomic variable \a v in nvgpu_atomic_t
+ * as parameter to load the current value of the variable. If the current value
+ * of the atomic variable is not equal to \a u, Use the standard atomic function
+ * \a atomic_compare_exchange_strong with the atomic variable \a v in
+ * #nvgpu_atomic64_t, the current value in the variable and the new value to be
+ * populated in the variable as parameters. Function does not perform any
+ * validation of the parameters.
  *
  * @param v [in]	Structure holding atomic variable.
  * @param a [in]	Value to add.
@@ -439,7 +531,10 @@ static inline long nvgpu_atomic64_add_unless(nvgpu_atomic64_t *v, long a,
 /**
  * @brief Subtraction of 64 bit integer from atomic variable.
  *
- * Atomically subtracts the 64 bit value \a x from structure \a v.
+ * Atomically subtracts the 64 bit value \a x from structure \a v. Uses the
+ * standard function \a atomic_fetch_sub with the atomic variable \a v in
+ * #nvgpu_atomic64_t and \a x as parameters for the atomic operation. Function
+ * does not perform any validation of the parameters.
  *
  * @param x [in]	Value to subtract.
  * @param v [in]	Structure holding atomic variable.
@@ -453,7 +548,9 @@ static inline void nvgpu_atomic64_sub(long x, nvgpu_atomic64_t *v)
  * @brief Increment the 64 bit atomic variable and test.
  *
  * Atomically increments the value stored in \a v and compare the result with
- * zero.
+ * zero. Uses the standard function \a atomic_fetch_add with the atomic
+ * variable \a v in #nvgpu_atomic64_t and 1 as parameters for the atomic
+ * operation. Function does not perform any validation of the parameters.
  *
  * @param v [in]	Structure holding atomic variable.
  *
@@ -472,7 +569,9 @@ static inline bool nvgpu_atomic64_inc_and_test(nvgpu_atomic64_t *v)
  * @brief Decrement the 64 bit atomic variable and test.
  *
  * Atomically decrements the value stored in \a v and compare the result with
- * zero.
+ * zero. Uses the standard function \a atomic_fetch_sub with the atomic
+ * variable \a v in #nvgpu_atomic64_t and 1 as parameters for the atomic
+ * operation. Function does not perform any validation of the parameters.
  *
  * @param v [in]	Structure holding atomic variable.
  *
@@ -491,6 +590,9 @@ static inline bool nvgpu_atomic64_dec_and_test(nvgpu_atomic64_t *v)
  * @brief Subtract 64 bit integer from atomic variable and test.
  *
  * Atomically subtracts \a x from \a v and compare the result with zero.
+ * Uses the standard function \a atomic_fetch_sub with the atomic
+ * variable \a v in #nvgpu_atomic64_t and \a x as parameters for the atomic
+ * operation. Function does not perform any validation of the parameters.
  *
  * @param x [in]	Value to subtract.
  * @param v [in]	Structure holding atomic variable.
@@ -509,7 +611,10 @@ static inline bool nvgpu_atomic64_sub_and_test(long x, nvgpu_atomic64_t *v)
 /**
  * @brief Subtract 64 bit integer from atomic variable and return.
  *
- * Atomically subtracts \a x from \a v and returns.
+ * Atomically subtracts \a x from \a v and returns the subtracted value.
+ * Uses the standard function \a atomic_fetch_sub with the atomic
+ * variable \a v in #nvgpu_atomic64_t and \a x as parameters for the atomic
+ * operation. Function does not perform any validation of the parameters.
  *
  * @param x [in]	Value to subtract.
  * @param v [in]	Structure holding atomic variable.

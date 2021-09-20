@@ -51,6 +51,9 @@ struct nvgpu_posix_fault_inj *nvgpu_file_ops_get_fread_injection(void);
  *
  * @return Upon successful completion, 0 shall be returned. Otherwise, -1 shall
  * be returned.
+ *
+ * @retval 0 on success.
+ * @retval -1 on failure.
  */
 int nvgpu_fstat(int fd, struct stat *buf);
 
