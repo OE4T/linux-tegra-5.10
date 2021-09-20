@@ -307,7 +307,7 @@
 						phy_mode = "DPHY";
 						discontinuous_clk = "yes";
 						dpcm_enable = "false";
-						cil_settletime = "32";
+						cil_settletime = "0";
 
 						active_w = "2592";
 						active_h = "1944";
@@ -347,7 +347,7 @@
 						phy_mode = "DPHY";
 						discontinuous_clk = "yes";
 						dpcm_enable = "false";
-						cil_settletime = "32";
+						cil_settletime = "0";
 
 						active_w = "2592";
 						active_h = "1458";
@@ -387,7 +387,7 @@
 						phy_mode = "DPHY";
 						discontinuous_clk = "yes";
 						dpcm_enable = "false";
-						cil_settletime = "32";
+						cil_settletime = "0";
 
 						active_w = "1280";
 						active_h = "720";
@@ -535,7 +535,7 @@
 						phy_mode = "DPHY";
 						discontinuous_clk = "yes";
 						dpcm_enable = "false";
-						cil_settletime = "32";
+						cil_settletime = "0";
 
 						active_w = "2592";
 						active_h = "1944";
@@ -575,7 +575,7 @@
 						phy_mode = "DPHY";
 						discontinuous_clk = "yes";
 						dpcm_enable = "false";
-						cil_settletime = "32";
+						cil_settletime = "0";
 
 						active_w = "2592";
 						active_h = "1458";
@@ -615,7 +615,7 @@
 						phy_mode = "DPHY";
 						discontinuous_clk = "yes";
 						dpcm_enable = "false";
-						cil_settletime = "32";
+						cil_settletime = "0";
 
 						active_w = "1280";
 						active_h = "720";
@@ -763,7 +763,7 @@
 						phy_mode = "DPHY";
 						discontinuous_clk = "yes";
 						dpcm_enable = "false";
-						cil_settletime = "32";
+						cil_settletime = "0";
 
 						active_w = "2592";
 						active_h = "1944";
@@ -803,7 +803,7 @@
 						phy_mode = "DPHY";
 						discontinuous_clk = "yes";
 						dpcm_enable = "false";
-						cil_settletime = "32";
+						cil_settletime = "0";
 
 						active_w = "2592";
 						active_h = "1458";
@@ -843,7 +843,7 @@
 						phy_mode = "DPHY";
 						discontinuous_clk = "yes";
 						dpcm_enable = "false";
-						cil_settletime = "32";
+						cil_settletime = "0";
 
 						active_w = "1280";
 						active_h = "720";
@@ -991,7 +991,7 @@
 						phy_mode = "DPHY";
 						discontinuous_clk = "yes";
 						dpcm_enable = "false";
-						cil_settletime = "32";
+						cil_settletime = "0";
 
 						active_w = "2592";
 						active_h = "1944";
@@ -1031,7 +1031,7 @@
 						phy_mode = "DPHY";
 						discontinuous_clk = "yes";
 						dpcm_enable = "false";
-						cil_settletime = "32";
+						cil_settletime = "0";
 
 						active_w = "2592";
 						active_h = "1458";
@@ -1071,7 +1071,7 @@
 						phy_mode = "DPHY";
 						discontinuous_clk = "yes";
 						dpcm_enable = "false";
-						cil_settletime = "32";
+						cil_settletime = "0";
 
 						active_w = "1280";
 						active_h = "720";
@@ -1219,7 +1219,7 @@
 						phy_mode = "DPHY";
 						discontinuous_clk = "yes";
 						dpcm_enable = "false";
-						cil_settletime = "32";
+						cil_settletime = "0";
 
 						active_w = "2592";
 						active_h = "1944";
@@ -1259,7 +1259,7 @@
 						phy_mode = "DPHY";
 						discontinuous_clk = "yes";
 						dpcm_enable = "false";
-						cil_settletime = "32";
+						cil_settletime = "0";
 
 						active_w = "2592";
 						active_h = "1458";
@@ -1299,7 +1299,7 @@
 						phy_mode = "DPHY";
 						discontinuous_clk = "yes";
 						dpcm_enable = "false";
-						cil_settletime = "32";
+						cil_settletime = "0";
 
 						active_w = "1280";
 						active_h = "720";
@@ -1447,7 +1447,7 @@
 						phy_mode = "DPHY";
 						discontinuous_clk = "yes";
 						dpcm_enable = "false";
-						cil_settletime = "32";
+						cil_settletime = "0";
 
 						active_w = "2592";
 						active_h = "1944";
@@ -1487,7 +1487,7 @@
 						phy_mode = "DPHY";
 						discontinuous_clk = "yes";
 						dpcm_enable = "false";
-						cil_settletime = "32";
+						cil_settletime = "0";
 
 						active_w = "2592";
 						active_h = "1458";
@@ -1527,7 +1527,7 @@
 						phy_mode = "DPHY";
 						discontinuous_clk = "yes";
 						dpcm_enable = "false";
-						cil_settletime = "32";
+						cil_settletime = "0";
 
 						active_w = "1280";
 						active_h = "720";
