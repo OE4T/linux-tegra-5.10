@@ -23,6 +23,7 @@
 #include <nvgpu/types.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/io.h>
+#include <nvgpu/log.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/regops.h>
 #include <nvgpu/errata.h>
@@ -187,4 +188,47 @@ int ga10b_get_l2_max_ways_evict_last(struct gk20a *g, struct nvgpu_tsg *tsg,
 	nvgpu_log_info(g, "current max_ways_l2_evict_last value=0x%x", *num_ways);
 
 	return err;
+}
+
+u64 ga10b_determine_L2_size_bytes(struct gk20a *g)
+{
+	u32 reg_val;
+	u32 slice_size;
+	u32 slices_per_l2;
+	u64 size = 0ULL;
+#if defined(CONFIG_NVGPU_NON_FUSA)
+	u32 active_sets = 0U;
+#endif
+
+	nvgpu_log_fn(g, " ");
+
+	reg_val = nvgpu_readl(g, ltc_ltc0_lts0_tstg_info_1_r());
+	slice_size = ltc_ltc0_lts0_tstg_info_1_slice_size_in_kb_v(reg_val);
+	slices_per_l2 = ltc_ltc0_lts0_tstg_info_1_slices_per_l2_v(reg_val);
+
+	/* L2 size = ltc_count * slice_size in KB * 1024 * slices_per_l2 */
+	size = nvgpu_safe_mult_u64(U64(nvgpu_ltc_get_ltc_count(g)),
+			nvgpu_safe_mult_u64(
+				nvgpu_safe_mult_u64(U64(slice_size), 1024ULL),
+				U64(slices_per_l2)));
+
+#if defined(CONFIG_NVGPU_NON_FUSA)
+	reg_val = nvgpu_readl(g, ltc_ltcs_ltss_tstg_cfg1_r());
+	active_sets = ltc_ltcs_ltss_tstg_cfg1_active_sets_v(reg_val);
+	if (active_sets == ltc_ltcs_ltss_tstg_cfg1_active_sets_all_v()) {
+		nvgpu_log(g, gpu_dbg_info, "L2 active sets ALL");
+	} else if (active_sets ==
+				ltc_ltcs_ltss_tstg_cfg1_active_sets_half_v()) {
+		nvgpu_log(g, gpu_dbg_info, "L2 active sets HALF");
+	} else {
+		nvgpu_err(g, "Invalid L2 Active sets %d", active_sets);
+		return 0ULL;
+	}
+	/* Update size to reflect active sets */
+	size = size >> active_sets;
+#endif
+	nvgpu_log(g, gpu_dbg_info, "L2 size: %llu\n", size);
+	nvgpu_log_fn(g, "done");
+
+	return size;
 }
