@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -95,8 +95,9 @@ void ga10b_gr_init_get_access_map(struct gk20a *g,
 		0x419864, /* gr_pri_gpcs_tpcs_pe_l2_evict_policy */
 		0x419a04, /* gr_pri_gpcs_tpcs_tex_lod_dbg      */
 		0x419a08, /* gr_pri_gpcs_tpcs_tex_samp_dbg     */
-		0x419e84, /* gr_pri_gpcs_tpcs_sms_dbgr_control0 */
 		0x419ba4, /* gr_pri_gpcs_tpcs_sm_disp_ctrl     */
+		0x419e84, /* gr_pri_gpcs_tpcs_sms_dbgr_control0 */
+		0x419ea8, /* gr_pri_gpcs_tpcs_sms_hww_warp_esr_report_mask */
 	};
 	size_t array_size;
 
