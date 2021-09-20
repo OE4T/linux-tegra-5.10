@@ -789,6 +789,7 @@
 		clock-names = "sysclk", "gpc0clk", "gpc1clk", "fuse";
 		resets = <&bpmp_resets TEGRA234_RESET_GPU>;
 		dma-coherent;
+		nvidia,bpmp = <&bpmp>;
 		status = "disabled";
 	};
 
