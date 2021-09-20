@@ -586,6 +586,7 @@ bool is_nvmap_memory_available(size_t size, uint32_t heap)
 	unsigned int carveout_mask = NVMAP_HEAP_CARVEOUT_MASK;
 	unsigned int iovmm_mask = NVMAP_HEAP_IOVMM;
 	struct nvmap_device *dev = nvmap_dev;
+	bool heap_present = false;
 	int i;
 
 	if (!heap)
@@ -601,7 +602,7 @@ bool is_nvmap_memory_available(size_t size, uint32_t heap)
 		}
 	}
 
-	if (heap & NVMAP_HEAP_IOVMM) {
+	if (heap & iovmm_mask) {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0)
 		total_num_pages = totalram_pages();
 #else
@@ -613,6 +614,7 @@ bool is_nvmap_memory_available(size_t size, uint32_t heap)
 					total_num_pages << PAGE_SHIFT);
 			return false;
 		}
+		return true;
 	}
 
 	for (i = 0; i < dev->nr_carveouts; i++) {
@@ -623,6 +625,7 @@ bool is_nvmap_memory_available(size_t size, uint32_t heap)
 		if (!(co_heap->heap_bit & heap))
 			continue;
 
+		heap_present = true;
 		h = co_heap->carveout;
 		if (size > h->free_size) {
 			pr_debug("Requested size is more than available memory");
@@ -630,8 +633,9 @@ bool is_nvmap_memory_available(size_t size, uint32_t heap)
 					h->free_size);
                         return false;
                 }
+		break;
 	}
-	return true;
+	return heap_present;
 }
 
 /* compute the total amount of handle physical memory that is mapped
