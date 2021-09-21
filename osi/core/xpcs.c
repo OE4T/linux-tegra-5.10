@@ -589,19 +589,17 @@ int xpcs_eee(void *xpcs_base, unsigned int en_dis)
 	 * clk_eee_i() is 102MHz. MULT_FACT_100NS = 9 because 9.8ns*10 = 98
 	 * which is between 80 and 120  this leads to default setting match */
 
-	/* TODO for uFPGA */
-
 	val = xpcs_read(xpcs_base, XPCS_VR_XS_PCS_EEE_MCTRL0);
 	/* 3. If FEC is enabled in the KR mode (skip in FPGA)*/
 	/* 4. enable the EEE feature on the Tx path and Rx path */
-	//val &= ~XPCS_VR_XS_PCS_EEE_MCTRL0_EEE_SLR_BYP;
-	val &= ~XPCS_VR_XS_PCS_EEE_MCTRL0_LTX_EN;
-	val &= ~XPCS_VR_XS_PCS_EEE_MCTRL0_LRX_EN;
-
 	val |= (XPCS_VR_XS_PCS_EEE_MCTRL0_LTX_EN |
-	//	XPCS_VR_XS_PCS_EEE_MCTRL0_LTX_EN |
 		XPCS_VR_XS_PCS_EEE_MCTRL0_LRX_EN);
 	xpcs_write(xpcs_base, XPCS_VR_XS_PCS_EEE_MCTRL0, val);
+
+	/* Transparent Tx LPI Mode Enable */
+	val = xpcs_read(xpcs_base, XPCS_VR_XS_PCS_EEE_MCTRL1);
+	val |= XPCS_VR_XS_PCS_EEE_MCTRL1_TRN_LPI;
+	xpcs_write(xpcs_base, XPCS_VR_XS_PCS_EEE_MCTRL1, val);
 
 	return 0;
 }

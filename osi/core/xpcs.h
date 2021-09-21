@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -52,7 +52,8 @@
 #define XPCS_SR_AN_CTRL				0x1C0000
 #define XPCS_SR_MII_CTRL			0x7C0000
 #define XPCS_VR_MII_AN_INTR_STS			0x7E0008
-#define XPCS_VR_XS_PCS_EEE_MCTRL0		0xE00018
+#define XPCS_VR_XS_PCS_EEE_MCTRL0		0xE0018
+#define XPCS_VR_XS_PCS_EEE_MCTRL1		0xE002C
 #define XPCS_WRAP_UPHY_HW_INIT_CTRL		0x8020
 #define XPCS_WRAP_UPHY_STATUS			0x8044
 #define XPCS_WRAP_IRQ_STATUS			0x8050
@@ -73,6 +74,7 @@
 #define XPCS_VR_XS_PCS_DIG_CTRL1_VR_RST		OSI_BIT(15)
 #define XPCS_VR_XS_PCS_DIG_CTRL1_USRA_RST	OSI_BIT(10)
 #define XPCS_VR_XS_PCS_DIG_CTRL1_CL37_BP	OSI_BIT(12)
+#define XPCS_VR_XS_PCS_EEE_MCTRL1_TRN_LPI	OSI_BIT(0)
 #define XPCS_VR_XS_PCS_EEE_MCTRL0_LTX_EN	OSI_BIT(0)
 #define XPCS_VR_XS_PCS_EEE_MCTRL0_LRX_EN	OSI_BIT(1)
 #define XPCS_SR_AN_CTRL_AN_EN			OSI_BIT(12)
