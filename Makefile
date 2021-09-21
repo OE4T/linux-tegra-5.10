@@ -17,6 +17,13 @@ dtb-$(BUILD_ENABLE) += tegra234-p3701-0000-as-pxxxx-p3737-0000.dtb
 dtbo-$(BUILD_ENABLE) += tegra234-p3737-overlay-pcie.dtbo
 dtbo-$(BUILD_ENABLE) += tegra234-p3737-audio-codec-rt5658.dtbo
 dtbo-$(BUILD_ENABLE) += tegra234-p3737-audio-codec-rt5658-40pin.dtbo
+dtbo-$(BUILD_ENABLE) += tegra234-p3737-0000-p3701-0000-adafruit-sph0645lm4h.dtbo
+dtbo-$(BUILD_ENABLE) += tegra234-p3737-0000-p3701-0000-adafruit-uda1334a.dtbo
+dtbo-$(BUILD_ENABLE) += tegra234-p3737-0000-p3701-0000-csi.dtbo
+dtbo-$(BUILD_ENABLE) += tegra234-p3737-0000-p3701-0000-fe-pi-audio.dtbo
+dtbo-$(BUILD_ENABLE) += tegra234-p3737-0000-p3701-0000-hdr40.dtbo
+dtbo-$(BUILD_ENABLE) += tegra234-p3737-0000-p3701-0000-m2ke.dtbo
+dtbo-$(BUILD_ENABLE) += tegra234-p3737-0000-p3701-0000-respeaker-4-mic-array.dtbo
 
 ifneq ($(dtb-y),)
 dtb-y := $(addprefix $(makefile-path)/,$(dtb-y))
