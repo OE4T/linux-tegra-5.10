@@ -49,10 +49,6 @@
                 status = "disabled";
         };
 
-        dce@d800000 {
-                status = "disabled";
-        };
-
         ethernet@03b40000 {
                 status = "disabled";
         };
