@@ -61,38 +61,44 @@
  *                           NV_RUNLIST_INTR_0_intr_bit
  */
 
+static u32 runlist_intr_0_mask(void)
+{
+	u32 mask = (runlist_intr_0_en_set_tree_ctxsw_timeout_eng0_enabled_f() |
+		runlist_intr_0_en_set_tree_ctxsw_timeout_eng1_enabled_f() |
+		runlist_intr_0_en_set_tree_ctxsw_timeout_eng2_enabled_f() |
+		runlist_intr_0_en_set_tree_pbdma0_intr_tree_0_enabled_f() |
+		runlist_intr_0_en_set_tree_pbdma1_intr_tree_0_enabled_f() |
+		runlist_intr_0_en_set_tree_bad_tsg_enabled_f());
 
-#define RUNLIST_INTR_0_MASK \
-		(runlist_intr_0_en_set_tree_ctxsw_timeout_eng0_enabled_f() | \
-		runlist_intr_0_en_set_tree_ctxsw_timeout_eng1_enabled_f() | \
-		runlist_intr_0_en_set_tree_ctxsw_timeout_eng2_enabled_f() | \
-		runlist_intr_0_en_set_tree_pbdma0_intr_tree_0_enabled_f() | \
-		runlist_intr_0_en_set_tree_pbdma1_intr_tree_0_enabled_f() | \
-		runlist_intr_0_en_set_tree_bad_tsg_enabled_f())
+	return mask;
+}
 
-#define RUNLIST_INTR_0_RECOVER_MASK \
-		(runlist_intr_0_en_clear_tree_ctxsw_timeout_eng0_enabled_f() | \
-		runlist_intr_0_en_clear_tree_ctxsw_timeout_eng1_enabled_f() | \
-		runlist_intr_0_en_clear_tree_ctxsw_timeout_eng2_enabled_f())
+static u32 runlist_intr_0_recover(void)
+{
+	u32 mask = runlist_intr_0_en_clear_tree_ctxsw_timeout_eng0_enabled_f() |
+		runlist_intr_0_en_clear_tree_ctxsw_timeout_eng1_enabled_f() |
+		runlist_intr_0_en_clear_tree_ctxsw_timeout_eng2_enabled_f();
 
-#define RUNLIST_INTR_0_RECOVER_UNMASK \
-		(runlist_intr_0_en_set_tree_ctxsw_timeout_eng0_enabled_f() | \
-		runlist_intr_0_en_set_tree_ctxsw_timeout_eng1_enabled_f() | \
-		runlist_intr_0_en_set_tree_ctxsw_timeout_eng2_enabled_f())
+	return mask;
+}
 
-#define RUNLIST_INTR_0_CTXSW_TIMEOUT_MASK \
-		( \
-		runlist_intr_0_en_clear_tree_ctxsw_timeout_eng0_enabled_f() | \
-		runlist_intr_0_en_clear_tree_ctxsw_timeout_eng1_enabled_f() | \
-		runlist_intr_0_en_clear_tree_ctxsw_timeout_eng2_enabled_f() \
-		)
+static u32 runlist_intr_0_recover_unmask(void)
+{
+	u32 mask = runlist_intr_0_en_set_tree_ctxsw_timeout_eng0_enabled_f() |
+		runlist_intr_0_en_set_tree_ctxsw_timeout_eng1_enabled_f() |
+		runlist_intr_0_en_set_tree_ctxsw_timeout_eng2_enabled_f();
 
+	return mask;
+}
 
-#define RUNLIST_INTR_0_PBDMA_MASK \
-		( \
-		runlist_intr_0_en_set_tree_pbdma0_intr_tree_0_enabled_f() | \
-		runlist_intr_0_en_set_tree_pbdma1_intr_tree_0_enabled_f() \
-		)
+static u32 runlist_intr_0_ctxsw_timeout_mask(void)
+{
+	u32 mask = runlist_intr_0_en_clear_tree_ctxsw_timeout_eng0_enabled_f() |
+		runlist_intr_0_en_clear_tree_ctxsw_timeout_eng1_enabled_f() |
+		runlist_intr_0_en_clear_tree_ctxsw_timeout_eng2_enabled_f();
+
+	return mask;
+}
 
 static const char *const ga10b_bad_tsg_error_str[] = {
 	"no_error",
@@ -196,7 +202,7 @@ static void ga10b_fifo_runlist_intr_enable(struct gk20a *g)
 
 	intr_tree_0 = 0U;
 	intr_tree_1 = 1U;
-	intr0_en_mask = RUNLIST_INTR_0_MASK;
+	intr0_en_mask = runlist_intr_0_mask();
 
 	for (i = 0U; i < g->fifo.num_runlists; i++) {
 		runlist = &g->fifo.active_runlists[i];
@@ -346,10 +352,10 @@ void ga10b_fifo_intr_0_isr(struct gk20a *g)
 			}
 		}
 
-		if (intr_0 & RUNLIST_INTR_0_CTXSW_TIMEOUT_MASK) {
+		if ((intr_0 & runlist_intr_0_ctxsw_timeout_mask()) != 0U) {
 			ga10b_fifo_ctxsw_timeout_isr(g, runlist);
 			handled_intr_0 |=
-				(RUNLIST_INTR_0_CTXSW_TIMEOUT_MASK & intr_0);
+				(runlist_intr_0_ctxsw_timeout_mask() & intr_0);
 		}
 
 		/*
@@ -409,7 +415,7 @@ void ga10b_fifo_intr_set_recover_mask(struct gk20a *g)
 		 */
 		nvgpu_runlist_writel(g, runlist,
 			runlist_intr_0_en_clear_tree_r(intr_tree_0),
-			RUNLIST_INTR_0_RECOVER_MASK);
+			runlist_intr_0_recover());
 	}
 }
 
@@ -443,7 +449,7 @@ void ga10b_fifo_intr_unset_recover_mask(struct gk20a *g)
 		 */
 		nvgpu_runlist_writel(g, runlist,
 			runlist_intr_0_en_set_tree_r(intr_tree_0),
-			RUNLIST_INTR_0_RECOVER_UNMASK);
+			runlist_intr_0_recover_unmask());
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -36,12 +36,15 @@
 
 #include <nvgpu/hw/gv11b/hw_fifo_gv11b.h>
 
-#define FIFO_INTR_0_ERR_MASK (fifo_intr_0_bind_error_pending_f() |	\
-				fifo_intr_0_sched_error_pending_f() |	\
-				fifo_intr_0_chsw_error_pending_f() |	\
-				fifo_intr_0_memop_timeout_pending_f() | \
-				fifo_intr_0_lb_error_pending_f())
-
+static u32 fifo_intr_0_err_mask(void)
+{
+	u32 mask = (fifo_intr_0_bind_error_pending_f() |
+				fifo_intr_0_sched_error_pending_f() |
+				fifo_intr_0_chsw_error_pending_f() |
+				fifo_intr_0_memop_timeout_pending_f() |
+				fifo_intr_0_lb_error_pending_f());
+	return mask;
+}
 
 static const char *const gv11b_sched_error_str[] = {
 	"xxx-0",
@@ -81,7 +84,7 @@ static const char *const gv11b_sched_error_str[] = {
 
 static u32 gv11b_fifo_intr_0_en_mask(struct gk20a *g)
 {
-	u32 intr_0_en_mask = FIFO_INTR_0_ERR_MASK;
+	u32 intr_0_en_mask = fifo_intr_0_err_mask();
 
 	intr_0_en_mask |= fifo_intr_0_pbdma_intr_pending_f() |
 				 fifo_intr_0_ctxsw_timeout_pending_f();
@@ -195,7 +198,7 @@ void gv11b_fifo_intr_0_isr(struct gk20a *g)
 
 	nvgpu_log(g, gpu_dbg_intr, "fifo isr %08x", fifo_intr);
 
-	intr_0_en_mask = FIFO_INTR_0_ERR_MASK;
+	intr_0_en_mask = fifo_intr_0_err_mask();
 
 	if (unlikely((fifo_intr & intr_0_en_mask) != 0U)) {
 		clear_intr |= gv11b_fifo_intr_handle_errors(g,

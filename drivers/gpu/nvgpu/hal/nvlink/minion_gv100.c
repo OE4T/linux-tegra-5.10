@@ -31,23 +31,31 @@
 
 #include <nvgpu/hw/gv100/hw_minion_gv100.h>
 
-#define MINION_FALCON_INTR_MASK (minion_falcon_irqmset_wdtmr_set_f() | \
-				 minion_falcon_irqmset_halt_set_f()  | \
-				 minion_falcon_irqmset_exterr_set_f()| \
-				 minion_falcon_irqmset_swgen0_set_f()| \
-				 minion_falcon_irqmset_swgen1_set_f())
+static u32 get_minion_falcon_intr_mask(void)
+{
+	u32 mask = minion_falcon_irqmset_wdtmr_set_f() |
+				 minion_falcon_irqmset_halt_set_f()  |
+				 minion_falcon_irqmset_exterr_set_f()|
+				 minion_falcon_irqmset_swgen0_set_f()|
+				 minion_falcon_irqmset_swgen1_set_f();
+	return mask;
+}
 
-#define MINION_FALCON_INTR_DEST ( \
-		minion_falcon_irqdest_host_wdtmr_host_f() | \
-		minion_falcon_irqdest_host_halt_host_f() | \
-		minion_falcon_irqdest_host_exterr_host_f() | \
-		minion_falcon_irqdest_host_swgen0_host_f() | \
-		minion_falcon_irqdest_host_swgen1_host_f() | \
-		minion_falcon_irqdest_target_wdtmr_host_normal_f() | \
-		minion_falcon_irqdest_target_halt_host_normal_f() | \
-		minion_falcon_irqdest_target_exterr_host_normal_f() | \
-		minion_falcon_irqdest_target_swgen0_host_normal_f() | \
-		minion_falcon_irqdest_target_swgen1_host_normal_f())
+static u32 get_minion_falcon_intr_dest(void)
+{
+	u32 mask = minion_falcon_irqdest_host_wdtmr_host_f() |
+		minion_falcon_irqdest_host_halt_host_f() |
+		minion_falcon_irqdest_host_exterr_host_f() |
+		minion_falcon_irqdest_host_swgen0_host_f() |
+		minion_falcon_irqdest_host_swgen1_host_f() |
+		minion_falcon_irqdest_target_wdtmr_host_normal_f() |
+		minion_falcon_irqdest_target_halt_host_normal_f() |
+		minion_falcon_irqdest_target_exterr_host_normal_f() |
+		minion_falcon_irqdest_target_swgen0_host_normal_f() |
+		minion_falcon_irqdest_target_swgen1_host_normal_f();
+
+	return mask;
+}
 
 u32 gv100_nvlink_minion_base_addr(struct gk20a *g)
 {
@@ -217,8 +225,8 @@ int gv100_nvlink_minion_send_dlcmd(struct gk20a *g, u32 link_id,
  */
 void gv100_nvlink_minion_clear_intr(struct gk20a *g)
 {
-	nvgpu_falcon_set_irq(&g->minion_flcn, true, MINION_FALCON_INTR_MASK,
-						MINION_FALCON_INTR_DEST);
+	nvgpu_falcon_set_irq(&g->minion_flcn, true, get_minion_falcon_intr_mask(),
+						get_minion_falcon_intr_dest());
 }
 
 /*

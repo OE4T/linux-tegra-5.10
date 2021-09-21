@@ -37,42 +37,45 @@
 
 #include <nvgpu/hw/gm20b/hw_gr_gm20b.h>
 
-#define SM_HWW_WARP_ESR_REPORT_MASK  \
-	(\
-	 gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_stack_error_report_f() |\
-	 gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_api_stack_error_report_f() |\
-	 gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_ret_empty_stack_error_report_f() |\
-	 gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_pc_wrap_report_f() |\
-	 gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_misaligned_pc_report_f() |\
-	 gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_pc_overflow_report_f() |\
-	 gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_misaligned_immc_addr_report_f() |\
-	 gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_misaligned_reg_report_f() |\
-	 gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_illegal_instr_encoding_report_f() |\
-	 gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_illegal_sph_instr_combo_report_f() |\
-	 gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_illegal_instr_param_report_f() |\
-	 gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_invalid_const_addr_report_f() |\
-	 gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_oor_reg_report_f() |\
-	 gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_oor_addr_report_f() |\
-	 gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_misaligned_addr_report_f() |\
-	 gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_invalid_addr_space_report_f() |\
-	 gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_illegal_instr_param2_report_f() |\
-	 gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_invalid_const_addr_ldc_report_f() |\
-	 gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_mmu_fault_report_f() |\
-	 gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_stack_overflow_report_f() |\
-	 gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_geometry_sm_error_report_f() |\
-	 gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_divergent_report_f() \
-        )
+static u32 get_sm_hww_warp_esr_report_mask(void)
+{
+	u32 mask = gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_stack_error_report_f() |
+		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_api_stack_error_report_f() |
+		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_ret_empty_stack_error_report_f() |
+		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_pc_wrap_report_f() |
+		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_misaligned_pc_report_f() |
+		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_pc_overflow_report_f() |
+		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_misaligned_immc_addr_report_f() |
+		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_misaligned_reg_report_f() |
+		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_illegal_instr_encoding_report_f() |
+		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_illegal_sph_instr_combo_report_f() |
+		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_illegal_instr_param_report_f() |
+		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_invalid_const_addr_report_f() |
+		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_oor_reg_report_f() |
+		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_oor_addr_report_f() |
+		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_misaligned_addr_report_f() |
+		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_invalid_addr_space_report_f() |
+		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_illegal_instr_param2_report_f() |
+		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_invalid_const_addr_ldc_report_f() |
+		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_mmu_fault_report_f() |
+		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_stack_overflow_report_f() |
+		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_geometry_sm_error_report_f() |
+		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_divergent_report_f();
 
-#define SM_HWW_GLOBAL_ESR_REPORT_MASK \
-	(\
-	 gr_gpcs_tpcs_sm_hww_global_esr_report_mask_sm_to_sm_fault_report_f() |\
-	 gr_gpcs_tpcs_sm_hww_global_esr_report_mask_l1_error_report_f() |\
-	 gr_gpcs_tpcs_sm_hww_global_esr_report_mask_multiple_warp_errors_report_f() |\
-	 gr_gpcs_tpcs_sm_hww_global_esr_report_mask_physical_stack_overflow_error_report_f() |\
-	 gr_gpcs_tpcs_sm_hww_global_esr_report_mask_bpt_int_report_f() |\
-	 gr_gpcs_tpcs_sm_hww_global_esr_report_mask_bpt_pause_report_f() |\
-	 gr_gpcs_tpcs_sm_hww_global_esr_report_mask_single_step_complete_report_f() \
-	)
+	return mask;
+}
+
+static u32 get_sm_hww_global_esr_report_mask(void)
+{	u32 mask = gr_gpcs_tpcs_sm_hww_global_esr_report_mask_sm_to_sm_fault_report_f() |
+		gr_gpcs_tpcs_sm_hww_global_esr_report_mask_l1_error_report_f() |
+		gr_gpcs_tpcs_sm_hww_global_esr_report_mask_multiple_warp_errors_report_f() |
+		gr_gpcs_tpcs_sm_hww_global_esr_report_mask_physical_stack_overflow_error_report_f() |
+		gr_gpcs_tpcs_sm_hww_global_esr_report_mask_bpt_int_report_f() |
+		gr_gpcs_tpcs_sm_hww_global_esr_report_mask_bpt_pause_report_f() |
+		gr_gpcs_tpcs_sm_hww_global_esr_report_mask_single_step_complete_report_f();
+
+	return mask;
+}
 
 #define NVA297_SET_SHADER_EXCEPTIONS_ENABLE_FALSE	U32(0)
 
@@ -270,16 +273,16 @@ void gm20b_gr_intr_set_hww_esr_report_mask(struct gk20a *g)
 
 	/* setup sm warp esr report masks */
 	nvgpu_writel(g, gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_r(),
-		sm_hww_warp_esr_report_mask | SM_HWW_WARP_ESR_REPORT_MASK);
+		sm_hww_warp_esr_report_mask | get_sm_hww_warp_esr_report_mask());
 
 	/* setup sm global esr report mask */
 	nvgpu_writel(g, gr_gpcs_tpcs_sm_hww_global_esr_report_mask_r(),
-		sm_hww_global_esr_report_mask | SM_HWW_GLOBAL_ESR_REPORT_MASK);
+		sm_hww_global_esr_report_mask | get_sm_hww_global_esr_report_mask());
 
 	nvgpu_log_info(g,
 		"configured (global, warp)_esr_report_mask(0x%x, 0x%x)",
-		sm_hww_global_esr_report_mask | SM_HWW_GLOBAL_ESR_REPORT_MASK,
-		sm_hww_warp_esr_report_mask | SM_HWW_WARP_ESR_REPORT_MASK);
+		sm_hww_global_esr_report_mask | get_sm_hww_global_esr_report_mask(),
+		sm_hww_warp_esr_report_mask | get_sm_hww_warp_esr_report_mask());
 }
 
 void gm20b_gr_intr_get_esr_sm_sel(struct gk20a *g, u32 gpc, u32 tpc,

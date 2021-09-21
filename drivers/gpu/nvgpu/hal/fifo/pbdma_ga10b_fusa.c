@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,63 +39,70 @@
 
 #include <nvgpu/hw/ga10b/hw_pbdma_ga10b.h>
 
-#define PBDMA_INTR_0_EN_SET_TREE_MASK \
-		( \
-			pbdma_intr_0_en_set_tree_gpfifo_enabled_f()    | \
-			pbdma_intr_0_en_set_tree_gpptr_enabled_f()     | \
-			pbdma_intr_0_en_set_tree_gpentry_enabled_f()   | \
-			pbdma_intr_0_en_set_tree_gpcrc_enabled_f()     | \
-			pbdma_intr_0_en_set_tree_pbptr_enabled_f()     | \
-			pbdma_intr_0_en_set_tree_pbentry_enabled_f()   | \
-			pbdma_intr_0_en_set_tree_pbcrc_enabled_f()     | \
-			pbdma_intr_0_en_set_tree_method_enabled_f()    | \
-			pbdma_intr_0_en_set_tree_device_enabled_f()    | \
-			pbdma_intr_0_en_set_tree_eng_reset_enabled_f() | \
-			pbdma_intr_0_en_set_tree_semaphore_enabled_f() | \
-			pbdma_intr_0_en_set_tree_acquire_enabled_f()   | \
-			pbdma_intr_0_en_set_tree_pri_enabled_f()       | \
-			pbdma_intr_0_en_set_tree_pbseg_enabled_f()     | \
-			pbdma_intr_0_en_set_tree_signature_enabled_f()  \
-		)
+static u32 pbdma_intr_0_en_set_tree_mask(void)
+{
+	u32 mask = pbdma_intr_0_en_set_tree_gpfifo_enabled_f()    |
+			pbdma_intr_0_en_set_tree_gpptr_enabled_f()     |
+			pbdma_intr_0_en_set_tree_gpentry_enabled_f()   |
+			pbdma_intr_0_en_set_tree_gpcrc_enabled_f()     |
+			pbdma_intr_0_en_set_tree_pbptr_enabled_f()     |
+			pbdma_intr_0_en_set_tree_pbentry_enabled_f()   |
+			pbdma_intr_0_en_set_tree_pbcrc_enabled_f()     |
+			pbdma_intr_0_en_set_tree_method_enabled_f()    |
+			pbdma_intr_0_en_set_tree_device_enabled_f()    |
+			pbdma_intr_0_en_set_tree_eng_reset_enabled_f() |
+			pbdma_intr_0_en_set_tree_semaphore_enabled_f() |
+			pbdma_intr_0_en_set_tree_acquire_enabled_f()   |
+			pbdma_intr_0_en_set_tree_pri_enabled_f()       |
+			pbdma_intr_0_en_set_tree_pbseg_enabled_f()     |
+			pbdma_intr_0_en_set_tree_signature_enabled_f();
 
-#define PBDMA_INTR_0_EN_CLEAR_TREE_MASK \
-		( \
-			pbdma_intr_0_en_clear_tree_gpfifo_enabled_f()    | \
-			pbdma_intr_0_en_clear_tree_gpptr_enabled_f()     | \
-			pbdma_intr_0_en_clear_tree_gpentry_enabled_f()   | \
-			pbdma_intr_0_en_clear_tree_gpcrc_enabled_f()     | \
-			pbdma_intr_0_en_clear_tree_pbptr_enabled_f()     | \
-			pbdma_intr_0_en_clear_tree_pbentry_enabled_f()   | \
-			pbdma_intr_0_en_clear_tree_pbcrc_enabled_f()     | \
-			pbdma_intr_0_en_clear_tree_method_enabled_f()    | \
-			pbdma_intr_0_en_clear_tree_device_enabled_f()    | \
-			pbdma_intr_0_en_clear_tree_eng_reset_enabled_f() | \
-			pbdma_intr_0_en_clear_tree_semaphore_enabled_f() | \
-			pbdma_intr_0_en_clear_tree_acquire_enabled_f()   | \
-			pbdma_intr_0_en_clear_tree_pri_enabled_f()       | \
-			pbdma_intr_0_en_clear_tree_pbseg_enabled_f()     | \
-			pbdma_intr_0_en_clear_tree_signature_enabled_f()  \
-		)
+	return mask;
+}
 
-#define PBDMA_INTR_1_EN_SET_TREE_MASK \
-		( \
-			pbdma_intr_1_en_set_tree_hce_re_illegal_op_enabled_f() | \
-			pbdma_intr_1_en_set_tree_hce_re_alignb_enabled_f()     | \
-			pbdma_intr_1_en_set_tree_hce_priv_enabled_f()          | \
-			pbdma_intr_1_en_set_tree_hce_illegal_mthd_enabled_f()  | \
-			pbdma_intr_1_en_set_tree_hce_illegal_class_enabled_f() | \
-			pbdma_intr_1_en_set_tree_ctxnotvalid_enabled_f()   \
-		)
+static u32 pbdma_intr_0_en_clear_tree_mask(void)
+{
+	u32 mask = pbdma_intr_0_en_clear_tree_gpfifo_enabled_f()    |
+			pbdma_intr_0_en_clear_tree_gpptr_enabled_f()     |
+			pbdma_intr_0_en_clear_tree_gpentry_enabled_f()   |
+			pbdma_intr_0_en_clear_tree_gpcrc_enabled_f()     |
+			pbdma_intr_0_en_clear_tree_pbptr_enabled_f()     |
+			pbdma_intr_0_en_clear_tree_pbentry_enabled_f()   |
+			pbdma_intr_0_en_clear_tree_pbcrc_enabled_f()     |
+			pbdma_intr_0_en_clear_tree_method_enabled_f()    |
+			pbdma_intr_0_en_clear_tree_device_enabled_f()    |
+			pbdma_intr_0_en_clear_tree_eng_reset_enabled_f() |
+			pbdma_intr_0_en_clear_tree_semaphore_enabled_f() |
+			pbdma_intr_0_en_clear_tree_acquire_enabled_f()   |
+			pbdma_intr_0_en_clear_tree_pri_enabled_f()       |
+			pbdma_intr_0_en_clear_tree_pbseg_enabled_f()     |
+			pbdma_intr_0_en_clear_tree_signature_enabled_f();
 
-#define PBDMA_INTR_1_EN_CLEAR_TREE_MASK \
-		( \
-			pbdma_intr_1_en_clear_tree_hce_re_illegal_op_enabled_f() | \
-			pbdma_intr_1_en_clear_tree_hce_re_alignb_enabled_f()     | \
-			pbdma_intr_1_en_clear_tree_hce_priv_enabled_f()          | \
-			pbdma_intr_1_en_clear_tree_hce_illegal_mthd_enabled_f()  | \
-			pbdma_intr_1_en_clear_tree_hce_illegal_class_enabled_f() | \
-			pbdma_intr_1_en_clear_tree_ctxnotvalid_enabled_f() \
-		)
+	return mask;
+}
+
+static u32 pbdma_intr_1_en_set_tree_mask(void)
+{	u32 mask = pbdma_intr_1_en_set_tree_hce_re_illegal_op_enabled_f() |
+			pbdma_intr_1_en_set_tree_hce_re_alignb_enabled_f()     |
+			pbdma_intr_1_en_set_tree_hce_priv_enabled_f()          |
+			pbdma_intr_1_en_set_tree_hce_illegal_mthd_enabled_f()  |
+			pbdma_intr_1_en_set_tree_hce_illegal_class_enabled_f() |
+			pbdma_intr_1_en_set_tree_ctxnotvalid_enabled_f();
+
+	return mask;
+}
+
+static u32 pbdma_intr_1_en_clear_tree_mask(void)
+{
+	u32 mask = pbdma_intr_1_en_clear_tree_hce_re_illegal_op_enabled_f() |
+			pbdma_intr_1_en_clear_tree_hce_re_alignb_enabled_f()     |
+			pbdma_intr_1_en_clear_tree_hce_priv_enabled_f()          |
+			pbdma_intr_1_en_clear_tree_hce_illegal_mthd_enabled_f()  |
+			pbdma_intr_1_en_clear_tree_hce_illegal_class_enabled_f() |
+			pbdma_intr_1_en_clear_tree_ctxnotvalid_enabled_f();
+
+	return mask;
+}
 /**
  * nvgpu will route all pbdma intr to tree_0
  * The interrupt registers NV_PPBDMA_INTR_* contain and control the interrupt
@@ -196,9 +203,9 @@ static void ga10b_pbdma_disable_all_intr(struct gk20a *g)
 		for (tree = 0U; tree < pbdma_intr_0_en_clear_tree__size_2_v();
 			tree++) {
 			nvgpu_writel(g, pbdma_intr_0_en_clear_tree_r(pbdma_id,
-				tree), PBDMA_INTR_0_EN_CLEAR_TREE_MASK);
+				tree), pbdma_intr_0_en_clear_tree_mask());
 			nvgpu_writel(g, pbdma_intr_1_en_clear_tree_r(pbdma_id,
-				tree), PBDMA_INTR_1_EN_CLEAR_TREE_MASK);
+				tree), pbdma_intr_1_en_clear_tree_mask());
 		}
 	}
 }
@@ -343,9 +350,9 @@ void ga10b_pbdma_intr_enable(struct gk20a *g, bool enable)
 
 		/* enable pbdma interrupts and route to tree_0 */
 		nvgpu_writel(g, pbdma_intr_0_en_set_tree_r(pbdma_id,
-			tree), PBDMA_INTR_0_EN_SET_TREE_MASK);
+			tree), pbdma_intr_0_en_set_tree_mask());
 		nvgpu_writel(g, pbdma_intr_1_en_set_tree_r(pbdma_id,
-			tree), PBDMA_INTR_1_EN_SET_TREE_MASK);
+			tree), pbdma_intr_1_en_set_tree_mask());
 	}
 }
 

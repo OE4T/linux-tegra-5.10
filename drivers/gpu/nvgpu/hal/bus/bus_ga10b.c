@@ -32,20 +32,24 @@
 
 #include <nvgpu/hw/ga10b/hw_bus_ga10b.h>
 
-#define BUS_INTR_0_PRI_MASK \
-	(\
-	bus_intr_0_pri_fecserr_m() | \
-	bus_intr_0_pri_timeout_m() \
-	)
+static u32 bus_intr0_pri_mask(void)
+{
+	u32 mask = bus_intr_0_pri_fecserr_m() |
+		bus_intr_0_pri_timeout_m();
 
-#define BUS_INTR_0_FB_MASK \
-	( \
-	bus_intr_0_fb_req_timeout_m() | \
-	bus_intr_0_fb_ack_timeout_m() | \
-	bus_intr_0_fb_ack_extra_m() | \
-	bus_intr_0_fb_rdata_timeout_m() | \
-	bus_intr_0_fb_rdata_extra_m() \
-	)
+	return mask;
+}
+
+static u32 bus_intr_0_fb_mask(void)
+{
+	u32 mask = bus_intr_0_fb_req_timeout_m() |
+		bus_intr_0_fb_ack_timeout_m() |
+		bus_intr_0_fb_ack_extra_m() |
+		bus_intr_0_fb_rdata_timeout_m() |
+		bus_intr_0_fb_rdata_extra_m();
+
+	return mask;
+}
 
 int ga10b_bus_init_hw(struct gk20a *g)
 {
@@ -96,22 +100,22 @@ void ga10b_bus_isr(struct gk20a *g)
 	 * pri_fecserr_m(): fecs initiated PRI transaction failed.
 	 * pri_timeout_m(): PRI transaction timed out.
 	 */
-	if ((bus_intr_0 & BUS_INTR_0_PRI_MASK) != 0U) {
+	if ((bus_intr_0 & bus_intr0_pri_mask()) != 0U) {
 		if ((bus_intr_0 & bus_intr_0_pri_fecserr_m()) != 0U) {
 			err_type = GPU_HOST_PBUS_FECS_ERROR;
 		}
 		g->ops.ptimer.isr(g);
 
-		bus_intr_0_handled |= (bus_intr_0 & BUS_INTR_0_PRI_MASK);
+		bus_intr_0_handled |= (bus_intr_0 & bus_intr0_pri_mask());
 	}
 
 	/*
 	 * These bits indicate fatal errors in the CPU-to-Frame buffer memory.
 	 */
-	if ((bus_intr_0 & BUS_INTR_0_FB_MASK) != 0U) {
+	if ((bus_intr_0 & bus_intr_0_fb_mask()) != 0U) {
 		nvgpu_err(g, "errors detected on FB access path, status: 0x%08x",
-				bus_intr_0 & BUS_INTR_0_FB_MASK);
-		bus_intr_0_handled |= (bus_intr_0 & BUS_INTR_0_FB_MASK);
+				bus_intr_0 & bus_intr_0_fb_mask());
+		bus_intr_0_handled |= (bus_intr_0 & bus_intr_0_fb_mask());
 	}
 
 	/*

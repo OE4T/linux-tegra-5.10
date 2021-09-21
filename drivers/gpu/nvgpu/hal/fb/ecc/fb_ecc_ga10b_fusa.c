@@ -32,17 +32,21 @@
 
 #include <nvgpu/hw/ga10b/hw_fb_ga10b.h>
 
-#define FB_ECC_L2TLB_CORRECTED_ERROR_MASK \
-	(\
-	 fb_mmu_l2tlb_ecc_status_corrected_err_l2tlb_sa_data_m() |\
-	 fb_mmu_l2tlb_ecc_status_corrected_err_l2tlb1_sa_data_m() \
-	)
+static u32 fb_ecc_l2tlb_corrected_error_mask(void)
+{
+	u32 mask = fb_mmu_l2tlb_ecc_status_corrected_err_l2tlb_sa_data_m() |
+	 fb_mmu_l2tlb_ecc_status_corrected_err_l2tlb1_sa_data_m();
 
-#define FB_ECC_L2TLB_UNCORRECTED_ERROR_MASK \
-	(\
-	 fb_mmu_l2tlb_ecc_status_uncorrected_err_l2tlb_sa_data_m() |\
-	 fb_mmu_l2tlb_ecc_status_uncorrected_err_l2tlb1_sa_data_m() \
-	)
+	return mask;
+}
+
+static u32 fb_ecc_l2tlb_uncorrected_error_mask(void)
+{
+	u32 mask = fb_mmu_l2tlb_ecc_status_uncorrected_err_l2tlb_sa_data_m() |
+	 fb_mmu_l2tlb_ecc_status_uncorrected_err_l2tlb1_sa_data_m();
+
+	return mask;
+}
 
 int ga10b_fb_ecc_init(struct gk20a *g)
 {
@@ -102,9 +106,9 @@ void ga10b_fb_ecc_free(struct gk20a *g)
 void ga10b_fb_ecc_l2tlb_error_mask(u32 *corrected_error_mask,
 		u32 *uncorrected_error_mask)
 {
-	*corrected_error_mask = FB_ECC_L2TLB_CORRECTED_ERROR_MASK;
+	*corrected_error_mask = fb_ecc_l2tlb_corrected_error_mask();
 
-	*uncorrected_error_mask = FB_ECC_L2TLB_UNCORRECTED_ERROR_MASK;
+	*uncorrected_error_mask = fb_ecc_l2tlb_uncorrected_error_mask();
 
 	return;
 }
