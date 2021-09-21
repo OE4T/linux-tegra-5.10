@@ -51,7 +51,8 @@
  * cycles of CSR clock that constitutes a period of 1us.
  * it should be APB clock in MHZ i.e 408-1 for silicon and 13MHZ-1 for uFPGA
  */
-#define MGBE_1US_TIC_COUNTER		0xC
+#define MGBE_1US_TIC_COUNTER		0x197
+
 /** @} */
 
 /**
