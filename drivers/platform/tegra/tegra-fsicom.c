@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2021, NVIDIA CORPORATION. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -34,6 +34,10 @@
 #include <linux/mailbox_client.h>
 #include <linux/sched/signal.h>
 #include "linux/tegra-fsicom.h"
+
+
+/*Timeout in millisec*/
+#define TIMEOUT		1000
 
 /* =================[Data types]======================================== */
 
@@ -130,7 +134,7 @@ static void tegra_hsp_rx_notify(struct mbox_client *cl, void *msg)
 static void tegra_hsp_tx_empty_notify(struct mbox_client *cl,
 					 void *data, int empty_value)
 {
-	pr_err("tx empty callback came\n");
+	pr_err("TX empty callback came\n");
 }
 static int tegra_hsp_mb_init(struct device *dev)
 {
@@ -139,8 +143,11 @@ static int tegra_hsp_mb_init(struct device *dev)
 	fsi_hsp_v = devm_kzalloc(dev, sizeof(*fsi_hsp_v), GFP_KERNEL);
 	if (!fsi_hsp_v)
 		return -ENOMEM;
+
 	fsi_hsp_v->tx.client.dev = dev;
 	fsi_hsp_v->rx.client.dev = dev;
+	fsi_hsp_v->tx.client.tx_block = true;
+	fsi_hsp_v->tx.client.tx_tout = TIMEOUT;
 	fsi_hsp_v->rx.client.rx_callback = tegra_hsp_rx_notify;
 	fsi_hsp_v->tx.client.tx_done = tegra_hsp_tx_empty_notify;
 
@@ -211,28 +218,30 @@ static ssize_t device_file_ioctl(
 		if (copy_to_user((void __user *)&user_input->iova,
 				(void *)&dma_addr, sizeof(uint64_t)))
 			return -EACCES;
-		break;
+		ret = 0;
+	break;
+
 	case NVMAP_SMMU_UNMAP:
 		dma_buf_unmap_attachment(attach, sgt, DMA_BIDIRECTIONAL);
 		dma_buf_detach(dmabuf, attach);
 		dma_buf_put(dmabuf);
-		break;
+	break;
 
 	case TEGRA_HSP_WRITE:
 		ret = mbox_send_message(fsi_hsp_v->tx.chan,
 			(void *) (unsigned long) input.handle);
-		/*TODO: wait for empty callback*/
-		break;
+	break;
 
 	case TEGRA_SIGNAL_REG:
 		task = get_current();
-		break;
+		ret = 0;
+	break;
 
 	default:
 		return -EINVAL;
 	}
 
-	return 0;
+	return ret;
 }
 
 static const struct of_device_id fsicom_client_dt_match[] = {
