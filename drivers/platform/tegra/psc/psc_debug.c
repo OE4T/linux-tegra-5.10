@@ -413,6 +413,7 @@ int psc_debugfs_create(struct platform_device *pdev)
 
 	setup_extcfg(pdev, dbg, debugfs_root);
 
+	dma_set_mask_and_coherent(dev, DMA_BIT_MASK(39));
 
 	return 0;
 }
