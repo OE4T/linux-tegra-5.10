@@ -831,6 +831,39 @@ static int nvmap_debug_free_size_show(struct seq_file *s, void *unused)
 }
 DEBUGFS_OPEN_FOPS(free_size);
 
+#ifdef NVMAP_CONFIG_DEBUG_MAPS
+static int nvmap_debug_device_list_show(struct seq_file *s, void *unused)
+{
+	u32 heap_type = (u32)(uintptr_t)s->private;
+	struct rb_node *n = NULL;
+	struct nvmap_device_list *dl = NULL;
+	int i;
+
+	if (heap_type == NVMAP_HEAP_IOVMM) {
+		n = rb_first(&nvmap_dev->device_names);
+	} else {
+		/* Iterate over all heaps to find the matching heap */
+		for (i = 0; i < nvmap_dev->nr_carveouts; i++) {
+			if (heap_type & nvmap_dev->heaps[i].heap_bit) {
+				if (nvmap_dev->heaps[i].carveout) {
+					n = rb_first(&nvmap_dev->heaps[i].carveout->device_names);
+					break;
+				}
+			}
+		}
+	}
+	if (n) {
+		seq_printf(s, "Device list is\n");
+		for (; n != NULL; n = rb_next(n)) {
+			dl = rb_entry(n, struct nvmap_device_list, node);
+			seq_printf(s, "%s %llu\n", dl->device_name, dl->dma_mask);
+		}
+	}
+	return 0;
+}
+DEBUGFS_OPEN_FOPS(device_list);
+#endif /* NVMAP_CONFIG_DEBUG_MAPS */
+
 static int nvmap_debug_all_allocations_show(struct seq_file *s, void *unused)
 {
 	u32 heap_type = (u32)(uintptr_t)s->private;
@@ -1324,6 +1357,11 @@ static void nvmap_iovmm_debugfs_init(void)
 			debugfs_create_file("free_size", S_IRUGO, iovmm_root,
 				(void *)(uintptr_t)NVMAP_HEAP_IOVMM,
 				&debug_free_size_fops);
+#ifdef NVMAP_CONFIG_DEBUG_MAPS
+			debugfs_create_file("device_list", S_IRUGO, iovmm_root,
+				(void *)(uintptr_t)NVMAP_HEAP_IOVMM,
+				&debug_device_list_fops);
+#endif /* NVMAP_CONFIG_DEBUG_MAPS */
 
 #ifdef NVMAP_CONFIG_PROCRANK
 			debugfs_create_file("procrank", S_IRUGO, iovmm_root,
@@ -1442,6 +1480,9 @@ int __init nvmap_probe(struct platform_device *pdev)
 	if (plat)
 		for (i = 0; i < plat->nr_carveouts; i++)
 			nvmap_create_carveout(&plat->carveouts[i]);
+#ifdef NVMAP_CONFIG_DEBUG_MAPS
+	nvmap_dev->device_names = RB_ROOT;
+#endif /* NVMAP_CONFIG_DEBUG_MAPS */
 	nvmap_iovmm_debugfs_init();
 #ifdef NVMAP_CONFIG_PAGE_POOLS
 	nvmap_page_pool_debugfs_init(nvmap_dev->debug_root);

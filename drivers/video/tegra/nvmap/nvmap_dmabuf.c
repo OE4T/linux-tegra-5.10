@@ -92,6 +92,11 @@ struct sg_table *_nvmap_dmabuf_map_dma_buf(
 	struct nvmap_handle_info *info = attach->dmabuf->priv;
 	int ents = 0;
 	struct sg_table *sgt;
+#ifdef NVMAP_CONFIG_DEBUG_MAPS
+	char *device_name = NULL;
+	u32 heap_type;
+	u64 dma_mask;
+#endif /* NVMAP_CONFIG_DEBUG_MAPS */
 	DEFINE_DMA_ATTRS(attrs);
 
 	trace_nvmap_dmabuf_map_dma_buf(attach->dmabuf, attach->dev);
@@ -135,6 +140,17 @@ struct sg_table *_nvmap_dmabuf_map_dma_buf(
 	}
 
 	attach->priv = sgt;
+
+#ifdef NVMAP_CONFIG_DEBUG_MAPS
+	/* Insert device name into the carveout's device name rb tree */
+	heap_type = info->handle->heap_type;
+	device_name = (char *)dev_name(attach->dev);
+	dma_mask = *(attach->dev->dma_mask);
+	if (device_name && !nvmap_is_device_present(device_name, heap_type)) {
+		/* If the device name is not already present in the tree, then only add */
+		nvmap_add_device_name(device_name, dma_mask, heap_type);
+	}
+#endif /* NVMAP_CONFIG_DEBUG_MAPS */
 	mutex_unlock(&info->maps_lock);
 	return sgt;
 
@@ -156,6 +172,10 @@ void _nvmap_dmabuf_unmap_dma_buf(struct dma_buf_attachment *attach,
 				       enum dma_data_direction dir)
 {
 	struct nvmap_handle_info *info = attach->dmabuf->priv;
+#ifdef NVMAP_CONFIG_DEBUG_MAPS
+	char *device_name = NULL;
+	u32 heap_type = 0;
+#endif /* NVMAP_CONFIG_DEBUG_MAPS */
 
 	trace_nvmap_dmabuf_unmap_dma_buf(attach->dmabuf, attach->dev);
 
@@ -177,6 +197,14 @@ void _nvmap_dmabuf_unmap_dma_buf(struct dma_buf_attachment *attach,
 				   dir, DMA_ATTR_SKIP_IOVA_GAP | DMA_ATTR_SKIP_CPU_SYNC);
 	}
 	__nvmap_free_sg_table(NULL, info->handle, sgt);
+
+#ifdef NVMAP_CONFIG_DEBUG_MAPS
+	/* Remove the device name from the list of carveout accessing devices */
+	heap_type = info->handle->heap_type;
+	device_name = (char *)dev_name(attach->dev);
+	if (device_name)
+		nvmap_remove_device_name(device_name, heap_type);
+#endif /* NVMAP_CONFIG_DEBUG_MAPS */
 	mutex_unlock(&info->maps_lock);
 }
 

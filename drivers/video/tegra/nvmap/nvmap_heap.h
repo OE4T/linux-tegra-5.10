@@ -45,6 +45,9 @@ struct nvmap_heap {
 	int peer; /* Used only if is_ivm == true */
 	int vm_id; /* Used only if is_ivm == true */
 	struct nvmap_pm_ops pm_ops;
+#ifdef NVMAP_CONFIG_DEBUG_MAPS
+	struct rb_root device_names;
+#endif /* NVMAP_CONFIG_DEBUG_MAPS */
 };
 
 struct nvmap_heap *nvmap_heap_create(struct device *parent,

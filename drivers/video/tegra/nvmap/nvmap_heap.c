@@ -493,6 +493,9 @@ struct nvmap_heap *nvmap_heap_create(struct device *parent,
 
 	INIT_LIST_HEAD(&h->all_list);
 	mutex_init(&h->lock);
+#ifdef NVMAP_CONFIG_DEBUG_MAPS
+	h->device_names = RB_ROOT;
+#endif /* NVMAP_CONFIG_DEBUG_MAPS */
 	if (!co->no_cpu_access && co->usage_mask != NVMAP_HEAP_CARVEOUT_VPR
 		&& nvmap_cache_maint_phys_range(NVMAP_CACHE_OP_WB_INV,
 				base, base + len, true, true)) {

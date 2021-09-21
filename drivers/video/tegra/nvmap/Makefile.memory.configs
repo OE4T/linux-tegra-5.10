@@ -103,6 +103,11 @@ NVMAP_CONFIG_LOADABLE_MODULE := n
 # Config for enabling PROCRANK functionality
 NVMAP_CONFIG_PROCRANK := y
 
+# Config for enabling few debugfs which would impact the NvMap performance
+# There are few debugfs which would impact NvMap performance.
+# Disable this when perf regression is observed.
+NVMAP_CONFIG_DEBUG_MAPS := n
+
 ################################################################################
 # Section 3
 # Enable/Disable configs based upon the kernel version
@@ -180,6 +185,10 @@ endif #NVMAP_CONFIG_LOADABLE_MODULE
 ifeq ($(NVMAP_CONFIG_PROCRANK),y)
 ccflags-y += -DNVMAP_CONFIG_PROCRANK
 endif #NVMAP_CONFIG_PROCRANK
+
+ifeq ($(NVMAP_CONFIG_DEBUG_MAPS),y)
+ccflags-y += -DNVMAP_CONFIG_DEBUG_MAPS
+endif #NVMAP_CONFIG_DEBUG_MAPS
 
 endif #NVMAP_CONFIG
 endif #CONFIG_ARCH_TEGRA

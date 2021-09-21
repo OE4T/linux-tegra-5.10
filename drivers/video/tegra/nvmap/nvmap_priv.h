@@ -198,6 +198,14 @@ struct nvmap_pgalloc {
 	atomic_t ndirty;	/* count number of dirty pages */
 };
 
+#ifdef NVMAP_CONFIG_DEBUG_MAPS
+struct nvmap_device_list {
+	struct rb_node node;
+	u64 dma_mask;
+	char *device_name;
+};
+#endif /* NVMAP_CONFIG_DEBUG_MAPS */
+
 /* bit 31-29: IVM peer
  * bit 28-16: offset (aligned to 32K)
  * bit 15-00: len (aligned to page_size)
@@ -372,6 +380,9 @@ struct nvmap_device {
 	struct mutex carveout_lock; /* needed to serialize carveout creation */
 	u32 dynamic_dma_map_mask;
 	u32 cpu_access_mask;
+#ifdef NVMAP_CONFIG_DEBUG_MAPS
+	struct rb_root device_names;
+#endif /* NVMAP_CONFIG_DEBUG_MAPS */
 };
 
 
@@ -853,6 +864,13 @@ void *nvmap_dmabuf_get_drv_data(struct dma_buf *dmabuf,
 		struct device *dev);
 bool is_nvmap_memory_available(size_t size, uint32_t heap);
 int system_heap_free_mem(unsigned long *mem_val);
+
+#ifdef NVMAP_CONFIG_DEBUG_MAPS
+struct nvmap_device_list *nvmap_is_device_present(char *device_name, u32 heap_type);
+void nvmap_add_device_name(char *device_name, u64 dma_mask, u32 heap_type);
+void nvmap_remove_device_name(char *device_name, u32 heap_type);
+#endif /* NVMAP_CONFIG_DEBUG_MAPS */
+
 #ifdef NVMAP_LOADABLE_MODULE
 void *nvmap_dma_alloc_attrs(struct device *dev, size_t size,
 			    dma_addr_t *dma_handle, gfp_t flag,
