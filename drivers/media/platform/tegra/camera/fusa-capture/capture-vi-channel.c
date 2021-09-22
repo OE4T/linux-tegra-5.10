@@ -210,8 +210,10 @@ void vi_capture_request_unpin(
 	unpins = &capture->unpins_list[buffer_index];
 
 	if (unpins->num_unpins != 0) {
-		for (i = 0; i < unpins->num_unpins; i++)
-			put_mapping(capture->buf_ctx, unpins->data[i]);
+		for (i = 0; i < unpins->num_unpins; i++) {
+			if (capture->buf_ctx != NULL && unpins->data[i] != NULL)
+				put_mapping(capture->buf_ctx, unpins->data[i]);
+		}
 		(void)memset(unpins, 0U,sizeof(*unpins));
 	}
 	mutex_unlock(&capture->unpins_list_lock);
