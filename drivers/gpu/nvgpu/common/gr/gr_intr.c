@@ -105,8 +105,9 @@ static int gr_intr_handle_tpc_exception(struct gk20a *g, u32 gpc, u32 tpc,
 {
 	int ret = 0;
 	struct nvgpu_gr_tpc_exception pending_tpc;
-	u32 offset = nvgpu_safe_add_u32(nvgpu_gr_gpc_offset(g, gpc),
-					nvgpu_gr_tpc_offset(g, tpc));
+	u32 gpc_offset = nvgpu_gr_gpc_offset(g, gpc);
+	u32 tpc_offset = nvgpu_gr_tpc_offset(g, tpc);
+	u32 offset = nvgpu_safe_add_u32(gpc_offset, tpc_offset);
 	u32 tpc_exception = g->ops.gr.intr.get_tpc_exception(g, offset,
 							&pending_tpc);
 
@@ -426,8 +427,9 @@ int nvgpu_gr_intr_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 		u32 *hww_global_esr)
 {
 	int ret = 0;
-	u32 offset = nvgpu_safe_add_u32(nvgpu_gr_gpc_offset(g, gpc),
-					  nvgpu_gr_tpc_offset(g, tpc));
+	u32 gpc_offset = nvgpu_gr_gpc_offset(g, gpc);
+	u32 tpc_offset = nvgpu_gr_tpc_offset(g, tpc);
+	u32 offset = nvgpu_safe_add_u32(gpc_offset, tpc_offset);
 	u32 global_esr, warp_esr, global_mask;
 #ifdef CONFIG_NVGPU_DEBUGGER
 	bool sm_debugger_attached;

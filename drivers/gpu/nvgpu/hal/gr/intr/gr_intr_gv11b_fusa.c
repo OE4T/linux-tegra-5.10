@@ -726,8 +726,11 @@ void gv11b_gr_intr_handle_gpc_gpccs_exception(struct gk20a *g, u32 gpc,
 void gv11b_gr_intr_handle_tpc_mpc_exception(struct gk20a *g, u32 gpc, u32 tpc)
 {
 	u32 esr;
-	u32 offset = nvgpu_safe_add_u32(nvgpu_gr_gpc_offset(g, gpc),
-					nvgpu_gr_tpc_offset(g, tpc));
+	u32 gpc_offset, tpc_offset, offset;
+
+	gpc_offset = nvgpu_gr_gpc_offset(g, gpc);
+	tpc_offset = nvgpu_gr_tpc_offset(g, tpc);
+	offset = nvgpu_safe_add_u32(gpc_offset, tpc_offset);
 
 	esr = nvgpu_readl(g,
 			nvgpu_safe_add_u32(gr_gpc0_tpc0_mpc_hww_esr_r(),
@@ -754,8 +757,11 @@ void gv11b_gr_intr_handle_tpc_mpc_exception(struct gk20a *g, u32 gpc, u32 tpc)
 void gv11b_gr_intr_handle_tpc_pe_exception(struct gk20a *g, u32 gpc, u32 tpc)
 {
 	u32 esr;
-	u32 offset = nvgpu_safe_add_u32(nvgpu_gr_gpc_offset(g, gpc),
-					nvgpu_gr_tpc_offset(g, tpc));
+	u32 gpc_offset, tpc_offset, offset;
+
+	gpc_offset = nvgpu_gr_gpc_offset(g, gpc);
+	tpc_offset = nvgpu_gr_tpc_offset(g, tpc);
+	offset = nvgpu_safe_add_u32(gpc_offset, tpc_offset);
 
 	esr = nvgpu_readl(g, nvgpu_safe_add_u32(gr_gpc0_tpc0_pe_hww_esr_r(),
 						offset));
@@ -1797,10 +1803,11 @@ void gv11b_gr_intr_get_esr_sm_sel(struct gk20a *g, u32 gpc, u32 tpc,
 				u32 *esr_sm_sel)
 {
 	u32 reg_val;
-	u32 offset;
+	u32 gpc_offset, tpc_offset, offset;
 
-	offset = nvgpu_safe_add_u32(nvgpu_gr_gpc_offset(g, gpc),
-				    nvgpu_gr_tpc_offset(g, tpc));
+	gpc_offset = nvgpu_gr_gpc_offset(g, gpc);
+	tpc_offset = nvgpu_gr_tpc_offset(g, tpc);
+	offset = nvgpu_safe_add_u32(gpc_offset, tpc_offset);
 
 	reg_val = nvgpu_readl(g, nvgpu_safe_add_u32(
 			gr_gpc0_tpc0_sm_tpc_esr_sm_sel_r(), offset));
@@ -1821,10 +1828,14 @@ void gv11b_gr_intr_clear_sm_hww(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 				u32 global_esr)
 {
 	u32 offset;
+	u32 gpc_offset, tpc_offset, sm_offset;
 
-	offset = nvgpu_safe_add_u32(nvgpu_gr_gpc_offset(g, gpc),
-			nvgpu_safe_add_u32(nvgpu_gr_tpc_offset(g, tpc),
-					   nvgpu_gr_sm_offset(g, sm)));
+	gpc_offset = nvgpu_gr_gpc_offset(g, gpc);
+	tpc_offset = nvgpu_gr_tpc_offset(g, tpc);
+	sm_offset = nvgpu_gr_sm_offset(g, sm);
+
+	offset = nvgpu_safe_add_u32(gpc_offset,
+			nvgpu_safe_add_u32(tpc_offset, sm_offset));
 
 	nvgpu_writel(g, nvgpu_safe_add_u32(
 				gr_gpc0_tpc0_sm0_hww_global_esr_r(), offset),
@@ -1936,11 +1947,17 @@ record_fail:
 u32 gv11b_gr_intr_get_warp_esr_sm_hww(struct gk20a *g,
 			u32 gpc, u32 tpc, u32 sm)
 {
-	u32 offset = nvgpu_safe_add_u32(nvgpu_gr_gpc_offset(g, gpc),
-			nvgpu_safe_add_u32(nvgpu_gr_tpc_offset(g, tpc),
-					   nvgpu_gr_sm_offset(g, sm)));
+	u32 gpc_offset, tpc_offset, sm_offset, offset;
+	u32 hww_warp_esr;
 
-	u32 hww_warp_esr = nvgpu_readl(g, nvgpu_safe_add_u32(
+	gpc_offset = nvgpu_gr_gpc_offset(g, gpc);
+	tpc_offset = nvgpu_gr_tpc_offset(g, tpc);
+	sm_offset = nvgpu_gr_sm_offset(g, sm);
+
+	offset = nvgpu_safe_add_u32(gpc_offset,
+			nvgpu_safe_add_u32(tpc_offset, sm_offset));
+
+	hww_warp_esr = nvgpu_readl(g, nvgpu_safe_add_u32(
 				gr_gpc0_tpc0_sm0_hww_warp_esr_r(), offset));
 	return hww_warp_esr;
 }
@@ -1948,11 +1965,17 @@ u32 gv11b_gr_intr_get_warp_esr_sm_hww(struct gk20a *g,
 u32 gv11b_gr_intr_get_sm_hww_global_esr(struct gk20a *g,
 			u32 gpc, u32 tpc, u32 sm)
 {
-	u32 offset = nvgpu_safe_add_u32(nvgpu_gr_gpc_offset(g, gpc),
-			nvgpu_safe_add_u32(nvgpu_gr_tpc_offset(g, tpc),
-					   nvgpu_gr_sm_offset(g, sm)));
+	u32 gpc_offset, tpc_offset, sm_offset, offset;
+	u32 hww_global_esr;
 
-	u32 hww_global_esr = nvgpu_readl(g, nvgpu_safe_add_u32(
+	gpc_offset = nvgpu_gr_gpc_offset(g, gpc);
+	tpc_offset = nvgpu_gr_tpc_offset(g, tpc);
+	sm_offset = nvgpu_gr_sm_offset(g, sm);
+
+	offset = nvgpu_safe_add_u32(gpc_offset,
+			nvgpu_safe_add_u32(tpc_offset, sm_offset));
+
+	hww_global_esr = nvgpu_readl(g, nvgpu_safe_add_u32(
 				 gr_gpc0_tpc0_sm0_hww_global_esr_r(), offset));
 
 	return hww_global_esr;
