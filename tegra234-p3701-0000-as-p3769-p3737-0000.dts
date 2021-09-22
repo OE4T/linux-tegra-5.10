@@ -41,6 +41,12 @@
 		};
 	};
 
+	reserved-memory {
+		linux,cma {
+			status = "okay";
+		};
+	};
+
 	tegra_soc_hwpm {
                 status = "okay";
         };
