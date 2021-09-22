@@ -152,9 +152,16 @@ int tegra_dc_dp_dpcd_read(struct tegra_dc_dp_data *dp, u32 cmd,
 
 	return ret;
 }
-
+static u32 tegra_dp_i2c_functionality(struct i2c_adapter *adapter)
+{
+	return I2C_FUNC_I2C |
+	    I2C_FUNC_SMBUS_EMUL |
+	    I2C_FUNC_SMBUS_READ_BLOCK_DATA |
+	    I2C_FUNC_SMBUS_BLOCK_PROC_CALL |
+	    I2C_FUNC_10BIT_ADDR;
+}
 static int tegra_dc_dp_i2c_xfer(struct tegra_dc *dc, struct i2c_msg *msgs,
-	int num)
+	int num, u32 write_cmd)
 {
 	struct i2c_msg *pmsg;
 	int i;
@@ -174,7 +181,7 @@ static int tegra_dc_dp_i2c_xfer(struct tegra_dc *dc, struct i2c_msg *msgs,
 			len = pmsg->len;
 
 			status = tegra_dc_dpaux_i2c_write(dp->dpaux,
-					DPAUX_DP_AUXCTL_CMD_MOTWR,
+					write_cmd,
 					pmsg->addr, pmsg->buf, &len, &aux_stat);
 			if (status) {
 				dev_err(&dp->dc->ndev->dev,
@@ -206,12 +213,63 @@ static int tegra_dc_dp_i2c_xfer(struct tegra_dc *dc, struct i2c_msg *msgs,
 	return i;
 }
 
+static int tegra_dc_dp_edid_i2c_xfer(struct tegra_dc *dc,
+	    struct i2c_msg *msgs, int num)
+{
+	return tegra_dc_dp_i2c_xfer(dc, msgs, num, DPAUX_DP_AUXCTL_CMD_MOTWR);
+}
+
+static int tegra_dc_dp_ddc_i2c_xfer(struct i2c_adapter *adapter,
+	    struct i2c_msg *msgs, int num)
+{
+	struct tegra_dc *dc = adapter->algo_data;
+
+	if (!dc)
+		return -EINVAL;
+
+	return tegra_dc_dp_i2c_xfer(dc, msgs, num, DPAUX_DP_AUXCTL_CMD_I2CWR);
+}
+static const struct i2c_algorithm tegra_dp_i2c_algo = {
+	.functionality = tegra_dp_i2c_functionality,
+	.master_xfer = tegra_dc_dp_ddc_i2c_xfer,
+};
+
+int tegra_dp_aux_register_i2c_bus(struct tegra_dc_dp_data *dp)
+{
+#define DPAUX_I2C_ADAPTER_BASE 100
+
+	dp->ddc.algo = &tegra_dp_i2c_algo;
+	dp->ddc.algo_data = dp->dc;
+	dp->ddc.retries = 3;
+	dp->ddc.class = I2C_CLASS_DDC;
+	dp->ddc.owner = THIS_MODULE;
+	dp->ddc.dev.parent = &dp->dc->ndev->dev;
+	dp->ddc.dev.of_node = dp->dc->ndev->dev.of_node;
+	/*
+	 *  I2C transactions for DP are sent over the AUX channel.
+	 *  As such, we don't need to use a predefined I2C bus number here,
+	 *  and can just assign an arbitrary adapter number
+	 *  to avoid any collisions with existing I2C controllers
+	 */
+	dp->ddc.nr = dp->dc->ctrl_num + DPAUX_I2C_ADAPTER_BASE;
+
+	strncpy(dp->ddc.name, dev_name(&dp->dc->ndev->dev),
+		    sizeof(dp->ddc.name));
+
+	return i2c_add_numbered_adapter(&dp->ddc);
+#undef DPAUX_I2C_ADAPTER_BASE
+}
+
+void tegra_dp_aux_unregister_i2c_bus(struct tegra_dc_dp_data *dp)
+{
+	i2c_del_adapter(&dp->ddc);
+}
 static i2c_transfer_func_t tegra_dp_hpd_op_edid_read(void *drv_data)
 {
 	struct tegra_dc_dp_data *dp = drv_data;
 
 	return (dp->edid_src == EDID_SRC_DT) ?
-		tegra_dc_edid_blob : tegra_dc_dp_i2c_xfer;
+		tegra_dc_edid_blob : tegra_dc_dp_edid_i2c_xfer;
 }
 
 int tegra_dc_dp_dpcd_write(struct tegra_dc_dp_data *dp, u32 cmd,
@@ -2249,6 +2307,10 @@ static int tegra_dc_dp_init(struct tegra_dc *dc)
 			tegra_dc_set_fb_mode(dc, &tegra_dc_vga_mode, false);
 	}
 
+	if (tegra_dp_aux_register_i2c_bus(dp))
+		dev_warn(&dc->ndev->dev,
+		    "%s: failed to register i2c adapter\n", __func__);
+
 	tegra_dc_dp_debugfs_create(dp);
 	dp_instance++;
 
@@ -3001,6 +3063,8 @@ static void tegra_dc_dp_destroy(struct tegra_dc *dc)
 		return;
 
 	dp = tegra_dc_get_outdata(dc);
+
+	tegra_dp_aux_unregister_i2c_bus(dp);
 
 	if (dp->dc->out->type != TEGRA_DC_OUT_FAKE_DP) {
 		tegra_dp_disable_irq(dp->irq);
