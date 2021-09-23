@@ -735,6 +735,29 @@ static int nvgpu_gmmu_do_update_page_table_no_iommu(struct vm_gk20a *vm,
 	return 0;
 }
 
+static struct nvgpu_gmmu_attrs gmmu_unmap_attrs(u32 pgsz)
+{
+	/*
+	 * Most fields are not relevant for unmapping (zero physical address)
+	 * because the lowest PTE-level entries are written with only zeros.
+	 */
+	return (struct nvgpu_gmmu_attrs){
+		/*
+		 * page size has to match the original mapping, so that we'll
+		 * reach the correct PDEs/PTEs.
+		 */
+		.pgsz = pgsz,
+		/* just in case as this is an enum */
+		.aperture = APERTURE_INVALID,
+		/*
+		 * note: mappings with zero phys addr may be sparse; access to
+		 * such memory would not fault, so we'll want this to be false
+		 * explicitly.
+		 */
+		.sparse = false,
+	};
+}
+
 static int nvgpu_gmmu_do_update_page_table(struct vm_gk20a *vm,
 					   struct nvgpu_sgt *sgt,
 					   u64 space_to_skip,
@@ -794,20 +817,36 @@ static int nvgpu_gmmu_do_update_page_table(struct vm_gk20a *vm,
 					 virt_addr,
 					 length,
 					 attrs);
-
-		return err;
+	} else {
+		/*
+		 * Handle cases (2), (3), and (4): do the no-IOMMU mapping. In this case
+		 * we really are mapping physical pages directly.
+		 */
+		err = nvgpu_gmmu_do_update_page_table_no_iommu(vm, sgt, space_to_skip,
+							virt_addr, length, attrs);
 	}
-
-	/*
-	 * Handle cases (2), (3), and (4): do the no-IOMMU mapping. In this case
-	 * we really are mapping physical pages directly.
-	 */
-	err = nvgpu_gmmu_do_update_page_table_no_iommu(vm, sgt, space_to_skip,
-						virt_addr, length, attrs);
 
 	if (err < 0) {
-		nvgpu_err(g, "Failed!");
+		struct nvgpu_gmmu_attrs unmap_attrs = gmmu_unmap_attrs(attrs->pgsz);
+		int err_unmap;
+
+		nvgpu_err(g, "Map failed! Backing off.");
+		err_unmap = nvgpu_set_pd_level(vm, &vm->pdb,
+					 0U,
+					 0,
+					 virt_addr, length,
+					 &unmap_attrs);
+		/*
+		 * If the mapping attempt failed, this unmap attempt may also
+		 * fail, but it can only up to the point where the map did,
+		 * correctly undoing what was mapped at first. Log and discard
+		 * this error code.
+		 */
+		if (err_unmap != 0) {
+			nvgpu_err(g, "unmap err: %d", err_unmap);
+		}
 	}
+
 	return err;
 }
 
@@ -828,10 +867,10 @@ static int nvgpu_gmmu_cache_maint_map(struct gk20a *g, struct vm_gk20a *vm,
 	return err;
 }
 
-static void nvgpu_gmmu_cache_maint_unmap(struct gk20a *g, struct vm_gk20a *vm,
+static int nvgpu_gmmu_cache_maint_unmap(struct gk20a *g, struct vm_gk20a *vm,
 		struct vm_gk20a_mapping_batch *batch)
 {
-	int err;
+	int err = 0;
 
 	if (batch == NULL) {
 		if (g->ops.mm.cache.l2_flush(g, true) != 0) {
@@ -850,6 +889,8 @@ static void nvgpu_gmmu_cache_maint_unmap(struct gk20a *g, struct vm_gk20a *vm,
 		}
 		batch->need_tlb_invalidate = true;
 	}
+
+	return err;
 }
 
 /*
@@ -979,6 +1020,7 @@ u64 nvgpu_gmmu_map_locked(struct vm_gk20a *vm,
 {
 	struct gk20a *g = gk20a_from_vm(vm);
 	int err = 0;
+	int err_maint;
 	bool allocated = false;
 	struct nvgpu_gmmu_attrs attrs = {
 		.pgsz      = pgsz_idx,
@@ -1040,18 +1082,61 @@ u64 nvgpu_gmmu_map_locked(struct vm_gk20a *vm,
 	err = nvgpu_gmmu_update_page_table(vm, sgt, buffer_offset,
 					   vaddr, size, &attrs);
 	if (err != 0) {
-		nvgpu_err(g, "failed to update ptes on map");
-		goto fail_validate;
+		nvgpu_err(g, "failed to update ptes on map, err=%d", err);
+		/*
+		 * The PTEs were partially filled and then unmapped again. Act
+		 * as if this was an unmap to guard against concurrent GPU
+		 * accesses to the buffer.
+		 */
+		err_maint = nvgpu_gmmu_cache_maint_unmap(g, vm, batch);
+		if (err_maint != 0) {
+			nvgpu_err(g,
+				  "failed cache maintenance on failed map, err=%d",
+				  err_maint);
+			err = err_maint;
+		}
+	} else {
+		err_maint = nvgpu_gmmu_cache_maint_map(g, vm, batch);
+		if (err_maint != 0) {
+			nvgpu_err(g,
+				  "failed cache maintenance on map! Backing off, err=%d",
+				  err_maint);
+			/*
+			 * Record this original error, and log and discard the
+			 * below if anything goes further wrong.
+			 */
+			err = err_maint;
+
+			/*
+			 * This should not fail because the PTEs were just
+			 * filled successfully above.
+			 */
+			attrs = gmmu_unmap_attrs(pgsz_idx);
+			err_maint = nvgpu_gmmu_update_page_table(vm, NULL, 0, vaddr,
+					size, &attrs);
+			if (err_maint != 0) {
+				nvgpu_err(g,
+					  "failed to update gmmu ptes, err=%d",
+					  err_maint);
+			}
+
+			/* Try the unmap maintenance in any case */
+			err_maint = nvgpu_gmmu_cache_maint_unmap(g, vm, batch);
+			if (err_maint != 0) {
+				nvgpu_err(g,
+					  "failed cache maintenance twice, err=%d",
+					  err_maint);
+			}
+		}
 	}
 
-	err = nvgpu_gmmu_cache_maint_map(g, vm, batch);
 	if (err != 0) {
-		goto fail_validate;
+		goto fail_free_va;
 	}
 
 	return vaddr;
 
-fail_validate:
+fail_free_va:
 	if (allocated) {
 		nvgpu_vm_free_va(vm, vaddr, pgsz_idx);
 	}
@@ -1071,38 +1156,21 @@ void nvgpu_gmmu_unmap_locked(struct vm_gk20a *vm,
 {
 	int err = 0;
 	struct gk20a *g = gk20a_from_vm(vm);
-	struct nvgpu_gmmu_attrs attrs = {
-		.pgsz      = pgsz_idx,
-		.kind_v    = 0,
-#ifdef CONFIG_NVGPU_COMPRESSION
-		.ctag      = 0,
-#endif
-		.cacheable = false,
-		.rw_flag   = rw_flag,
-		.sparse    = sparse,
-		.priv      = false,
-		.valid     = false,
-		.aperture  = APERTURE_INVALID,
-	};
-#ifdef CONFIG_NVGPU_COMPRESSION
-#if defined(CONFIG_NVGPU_NON_FUSA)
-	attrs.cbc_comptagline_mode =
-		g->ops.fb.is_comptagline_mode_enabled != NULL ?
-			g->ops.fb.is_comptagline_mode_enabled(g) : true;
-#endif
-#endif
+	struct nvgpu_gmmu_attrs attrs = gmmu_unmap_attrs(pgsz_idx);
+
+	attrs.sparse = sparse;
+
 	if (va_allocated) {
 		nvgpu_vm_free_va(vm, vaddr, pgsz_idx);
 	}
 
-	/* unmap here needs to know the page size we assigned at mapping */
 	err = nvgpu_gmmu_update_page_table(vm, NULL, 0,
 					   vaddr, size, &attrs);
 	if (err != 0) {
 		nvgpu_err(g, "failed to update gmmu ptes on unmap");
 	}
 
-	nvgpu_gmmu_cache_maint_unmap(g, vm, batch);
+	(void)nvgpu_gmmu_cache_maint_unmap(g, vm, batch);
 }
 
 u32 nvgpu_pte_words(struct gk20a *g)
