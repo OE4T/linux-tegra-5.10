@@ -494,6 +494,150 @@ exit:
 	return ret;
 }
 
+int test_map_buffer_security(struct unit_module *m, struct gk20a *g,
+	void *__args)
+{
+	struct vm_gk20a *vm;
+	int ret = UNIT_FAIL;
+	struct nvgpu_os_buffer os_buf = {0};
+	struct nvgpu_mem_sgl sgl_list[1];
+	struct nvgpu_mem mem = {0};
+	struct nvgpu_sgt *sgt = NULL;
+	/*
+	 * - small pages are used
+	 * - four pages of page directories, one per level (0, 1, 2, 3)
+	 * - 4KB/8B = 512 entries per page table chunk
+	 * - a PD cache size of 64K fits 16x 4k-sized PTE pages
+	 */
+	size_t buf_size = SZ_4K * ((16 - 4 + 1) * (SZ_4K / 8U) + 1);
+	struct nvgpu_mapped_buf *mapped_buf = NULL;
+	struct nvgpu_posix_fault_inj *kmem_fi =
+		nvgpu_kmem_get_fault_injection();
+
+	vm = create_test_vm(m, g);
+
+	if (vm == NULL) {
+		unit_err(m, "vm is NULL\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/* Allocate a CPU buffer */
+	os_buf.buf = nvgpu_kzalloc(g, buf_size);
+	if (os_buf.buf == NULL) {
+		unit_err(m, "Failed to allocate a CPU buffer\n");
+		ret = UNIT_FAIL;
+		goto free_sgt_os_buf;
+	}
+	os_buf.size = buf_size;
+
+	memset(&sgl_list[0], 0, sizeof(sgl_list[0]));
+	sgl_list[0].phys = BUF_CPU_PA;
+	sgl_list[0].dma = 0;
+	sgl_list[0].length = buf_size;
+
+	mem.size = buf_size;
+	mem.cpu_va = os_buf.buf;
+
+	/* Create sgt */
+	sgt = custom_sgt_create(m, g, &mem, sgl_list, 1);
+	if (sgt == NULL) {
+		ret = UNIT_FAIL;
+		goto free_sgt_os_buf;
+	}
+
+	/*
+	 * Make pentry allocation fail. Note that the PD cache size is 64K
+	 * during these unit tests.
+	 */
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, 6);
+
+	u64 gpuva = buf_size;
+	u32 pte[2];
+
+	/*
+	 * If this PTE exists now, it should be invalid; make sure for the
+	 * check after the map call so we know when something changed.
+	 */
+	ret = nvgpu_get_pte(g, vm, gpuva, pte);
+	if (ret == 0 && pte_is_valid(pte)) {
+		/* This is just a big warning though; don't exit yet */
+		unit_err(m, "PTE already valid before mapping anything\n");
+	}
+
+	ret = nvgpu_vm_map(vm,
+			   &os_buf,
+			   sgt,
+			   gpuva,
+			   buf_size,
+			   0,
+			   gk20a_mem_flag_none,
+			   NVGPU_VM_MAP_ACCESS_READ_WRITE,
+			   NVGPU_VM_MAP_CACHEABLE,
+			   NV_KIND_INVALID,
+			   0,
+			   NULL,
+			   APERTURE_SYSMEM,
+			   &mapped_buf);
+
+	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+
+	if (ret != -ENOMEM) {
+		unit_err(m, "nvgpu_vm_map did not fail as expected\n");
+		ret = UNIT_FAIL;
+		goto free_sgt_os_buf;
+	}
+
+	ret = nvgpu_get_pte(g, vm, gpuva, pte);
+	if (ret != 0) {
+		unit_err(m, "PTE lookup after map failed\n");
+		ret = UNIT_FAIL;
+		goto free_sgt_os_buf;
+	}
+
+	/*
+	 * And now the reason this test exists: make sure the attempted address
+	 * does not contain anything. Note that a simple pte_is_valid() is not
+	 * sufficient here - a sparse mapping is invalid and volatile, and we
+	 * don't want sparse mappings here.
+	 *
+	 * Only the PTE pointing at the start address is checked; we assume
+	 * that if that's zero, the rest of the mapping is too, because the
+	 * update code visits the entries in that order. (But if this one is
+	 * errornously valid, others might be too.)
+	 */
+	if (pte[0] != 0U || pte[1] != 0U) {
+		unit_err(m, "Mapping failed but pte is not zero (0x%x 0x%x)\n",
+			 pte[0], pte[1]);
+		unit_err(m, "Pte addr %llx, buf %llx\n",
+			 pte_get_phys_addr(m, pte), sgl_list[0].phys);
+
+		ret = UNIT_FAIL;
+		goto free_sgt_os_buf;
+	}
+
+	ret = UNIT_SUCCESS;
+
+free_sgt_os_buf:
+	if (sgt != NULL) {
+		nvgpu_sgt_free(g, sgt);
+	}
+	if (os_buf.buf != NULL) {
+		nvgpu_kfree(g, os_buf.buf);
+	}
+
+exit:
+	if (ret == UNIT_FAIL) {
+		unit_err(m, "Buffer mapping failed\n");
+	}
+
+	if (vm != NULL) {
+		nvgpu_vm_put(vm);
+	}
+
+	return ret;
+}
+
 /*
  * Try mapping a buffer into the GPU virtual address space:
  *    - Allocate a new CPU buffer
@@ -2063,6 +2207,7 @@ struct unit_module_test vm_tests[] = {
 		      0),
 	UNIT_TEST(init_error_paths, test_init_error_paths, NULL, 0),
 	UNIT_TEST(map_buffer_error_cases, test_map_buffer_error_cases, NULL, 0),
+	UNIT_TEST(map_buffer_security, test_map_buffer_security, NULL, 0),
 	UNIT_TEST(nvgpu_vm_alloc_va, test_nvgpu_vm_alloc_va, NULL, 0),
 	UNIT_TEST(vm_bind, test_vm_bind, NULL, 2),
 	UNIT_TEST(vm_aspace_id, test_vm_aspace_id, NULL, 0),

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -243,6 +243,43 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args);
  * otherwise.
  */
 int test_map_buffer_error_cases(struct unit_module *m, struct gk20a *g,
+	void *__args);
+
+/**
+ * Test specification for: test_map_buffer_security
+ *
+ * Description: This negative test targets mapping security within the
+ * nvgpu_vm_map API.
+ *
+ * Test Type: Error injection, Security, Safety
+ *
+ * Targets: nvgpu_vm_init, nvgpu_vm_map, nvgpu_vm_put
+ *
+ * Input: None
+ *
+ * Steps:
+ * - Initialize a VM with the following characteristics:
+ *   - 64KB large page support enabled
+ *   - Low hole size = 64MB
+ *   - Address space size = 128GB
+ *   - Kernel reserved space size = 4GB
+ * - Obtain a buffer whose size would not fit in one set of PTEs that fit in
+ *   the first allocated PD cache entry
+ * - Prepare a fixed mapping address at the same address as the buffer size
+ * - Check that a PTE that matches that virtual address is not valid to prepare
+ *   for the check below.
+ * - Inject a memory allocation error at allocation 6 and ensure that
+ *   nvgpu_vm_map reports a failure of type ENOMEM. This makes the allocation
+ *   of the second PD cache entry to fail.
+ * - Check that a PTE that matches that virtual address is not valid. Because
+ *   the PD allocation failed mid-update, the prior written entries must be
+ *   undone.
+ * - Uninitialize the VM
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_map_buffer_security(struct unit_module *m, struct gk20a *g,
 	void *__args);
 
 /**
