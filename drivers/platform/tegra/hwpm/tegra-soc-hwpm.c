@@ -92,6 +92,8 @@ static int tegra_soc_hwpm_probe(struct platform_device *pdev)
 		goto device_create;
 	}
 
+	(void) dma_set_mask_and_coherent(hwpm->dev, DMA_BIT_MASK(39));
+
 	if (tegra_platform_is_silicon()) {
 		hwpm->la_clk = devm_clk_get(hwpm->dev, "la");
 		if (IS_ERR(hwpm->la_clk)) {
