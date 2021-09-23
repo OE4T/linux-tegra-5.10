@@ -738,6 +738,7 @@ static int ether_enable_clks(struct ether_priv_data *pdata)
  */
 int ether_conf_eee(struct ether_priv_data *pdata, unsigned int tx_lpi_enable)
 {
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	int ret = 0;
 	struct phy_device *phydev = pdata->phydev;
 	unsigned int enable = tx_lpi_enable;
@@ -745,7 +746,9 @@ int ether_conf_eee(struct ether_priv_data *pdata, unsigned int tx_lpi_enable)
 
 	if (tx_lpi_enable) {
 		/* phy_init_eee() returns 0 if EEE is supported by the PHY */
-		if (phy_init_eee(phydev, OSI_ENABLE)) {
+		if (phy_init_eee(phydev,
+				 (osi_core->mac_ver == OSI_EQOS_MAC_5_30) ?
+				 false : true)) {
 			/* PHY does not support EEE, disable it in MAC */
 			enable = OSI_DISABLE;
 		} else {
