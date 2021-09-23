@@ -16,12 +16,14 @@
 #include <linux/pcie_dma.h>
 #include <linux/platform_device.h>
 #include <linux/kthread.h>
+#include <linux/tegra-pcie-edma.h>
 
 static struct pcie_epf_dma *gepfnv;
 
 struct pcie_epf_dma {
 	struct pci_epf_header header;
 	struct device *fdev;
+	struct device *cdev;
 	void *bar0_virt;
 	struct dentry *debugfs;
 	void __iomem *dma_base;
@@ -39,6 +41,8 @@ struct pcie_epf_dma {
 	struct task_struct *rd1_task;
 	u8 task_done;
 	wait_queue_head_t task_wq;
+	void *cookie;
+
 	wait_queue_head_t wr_wq[DMA_WR_CHNL_NUM];
 	wait_queue_head_t rd_wq[DMA_RD_CHNL_NUM];
 	unsigned long wr_busy;
@@ -51,6 +55,10 @@ struct pcie_epf_dma {
 	u32 rd_cnt[DMA_WR_CHNL_NUM + DMA_RD_CHNL_NUM];
 	bool pcs[DMA_WR_CHNL_NUM + DMA_RD_CHNL_NUM];
 	bool async_dma;
+	ktime_t edma_start_time[DMA_WR_CHNL_NUM];
+	u64 tsz;
+	u32 edma_ch;
+	u32 prev_edma_ch;
 };
 
 struct edma_desc {
@@ -864,6 +872,168 @@ fail:
 	return 0;
 }
 
+static struct pcie_epf_dma *l_epfnv;
+#define EDMA_PERF (epfnv->tsz / (diff / 1000))
+#define EDMA_ABORT_TEST_EN	(epfnv->edma_ch & 0x100)
+
+static void edma_final_complete(void *priv, edma_xfer_status_t status,
+				struct tegra_pcie_edma_desc *desc)
+{
+	struct pcie_epf_dma *epfnv = l_epfnv;
+	int cb = *(int *)priv;
+	u32 ch = (cb >> 16);
+	u64 diff = ktime_to_ns(ktime_get()) - ktime_to_ns(epfnv->edma_start_time[ch]);
+
+	cb = cb & 0xFFFF;
+	if (EDMA_ABORT_TEST_EN && status == EDMA_XFER_SUCCESS)
+		dma_common_wr(epfnv->dma_base, DMA_WRITE_DOORBELL_OFF_WR_STOP | (ch + 1),
+			      DMA_WRITE_DOORBELL_OFF);
+
+	dev_info(epfnv->fdev, "%s: status %d. cb %d Perf %llu\n", __func__, status, cb, EDMA_PERF);
+}
+
+static void edma_complete(void *priv, edma_xfer_status_t status, struct tegra_pcie_edma_desc *desc)
+{
+	struct pcie_epf_dma *epfnv = l_epfnv;
+	int cb = *(int *)priv;
+
+	if (status == 0)
+		dev_dbg(epfnv->fdev, "%s: status %d, cb %d\n", __func__, status, cb);
+}
+
+static int priv_iter[DMA_WR_CHNL_NUM];
+
+/* debugfs to perform eDMA lib transfers and do CRC check */
+static int edmalib_test(struct seq_file *s, void *data)
+{
+	struct pcie_epf_dma *epfnv = (struct pcie_epf_dma *)
+						dev_get_drvdata(s->private);
+	struct pcie_epf_bar0 *epf_bar0 = (struct pcie_epf_bar0 *)
+						epfnv->bar0_virt;
+	struct edma_desc ll_desc[DMA_LL_DEFAULT_SIZE];
+	dma_addr_t ep_dma_addr = epf_bar0->ep_phy_addr + BAR0_DMA_BUF_OFFSET;
+	dma_addr_t rp_dma_addr = epf_bar0->rp_phy_addr + BAR0_DMA_BUF_OFFSET;
+	int nents = DMA_LL_DEFAULT_SIZE;
+	int i, j, k;
+	edma_xfer_status_t ret;
+	struct tegra_pcie_edma_init_info info = {};
+	struct tegra_pcie_edma_xfer_info tx_info = {};
+	u64 diff;
+
+	l_epfnv = epfnv;
+	epfnv->tsz = (u64)epfnv->stress_count * (DMA_LL_DEFAULT_SIZE / DMA_WR_CHNL_NUM) *
+		     (u64)epfnv->dma_size * 8UL;
+
+	if (epfnv->dma_size > MAX_DMA_ELE_SIZE) {
+		dev_err(epfnv->fdev, "%s: dma_size should be <= 0x%x\n",
+			__func__, MAX_DMA_ELE_SIZE);
+		return 0;
+	}
+
+	if (!rp_dma_addr) {
+		dev_err(epfnv->fdev, "RP DMA address is null\n");
+		return 0;
+	}
+
+	if (!epfnv->stress_count) {
+		tegra_pcie_edma_deinit(epfnv->cookie);
+		epfnv->cookie = NULL;
+		return 0;
+	}
+
+	if (EDMA_ABORT_TEST_EN) {
+		epfnv->edma_ch &= ~0xF;
+		/* only channel 0, 2 is ASYNC, where chan 0 async gets aborted */
+		epfnv->edma_ch |= 0x5;
+	}
+
+	if (epfnv->cookie && epfnv->prev_edma_ch != epfnv->edma_ch) {
+		dev_info(epfnv->fdev, "edma_ch changed from 0x%x -> 0x%x, deinit\n",
+			 epfnv->prev_edma_ch, epfnv->edma_ch);
+		tegra_pcie_edma_deinit(epfnv->cookie);
+		epfnv->cookie = NULL;
+	}
+
+	/* Clean DMA LL all 6 channels */
+	memset(epfnv->bar0_virt + DMA_LL_WR_OFFSET(0), 0, 6 * DMA_LL_SIZE);
+	for (j = 0; j < nents; j++) {
+		ll_desc[j].src = ep_dma_addr + (j * epfnv->dma_size);
+		ll_desc[j].dst = rp_dma_addr + (j * epfnv->dma_size);
+		ll_desc[j].sz = epfnv->dma_size;
+	}
+
+	info.np = epfnv->cdev->of_node;
+	for (i = 0; i < DMA_WR_CHNL_NUM; i++) {
+		info.tx[i].ch_type = (epfnv->edma_ch & BIT(i)) ? EDMA_CHAN_XFER_ASYNC :
+								 EDMA_CHAN_XFER_SYNC;
+		info.tx[i].num_descriptors = 4096;
+	}
+
+	if (!epfnv->cookie) {
+		epfnv->cookie = tegra_pcie_edma_initialize(&info);
+		epfnv->prev_edma_ch = epfnv->edma_ch;
+	}
+
+	/* LL DMA with size epfnv->dma_size per desc */
+	for (i = 0; i < DMA_WR_CHNL_NUM; i++) {
+		int ch = i;
+
+		epf_bar0->wr_data[ch].size = epfnv->dma_size * nents / DMA_WR_CHNL_NUM;
+		/* generate random bytes to transfer */
+		get_random_bytes(epfnv->bar0_virt + BAR0_DMA_BUF_OFFSET,
+				 epf_bar0->wr_data[ch].size);
+		epfnv->edma_start_time[i] = ktime_get();
+		for (k = 0; k < epfnv->stress_count; k++) {
+			tx_info.desc = (struct tegra_pcie_edma_desc *)&ll_desc[ch * 2];
+			tx_info.channel_num = ch;
+			tx_info.type = EDMA_XFER_WRITE;
+			tx_info.nents = nents / DMA_WR_CHNL_NUM;
+			if (info.tx[ch].ch_type == EDMA_CHAN_XFER_ASYNC) {
+				if (k == epfnv->stress_count - 1)
+					tx_info.complete = edma_final_complete;
+				else
+					tx_info.complete = edma_complete;
+			}
+			priv_iter[ch] = k | (ch << 16);
+			tx_info.priv = &priv_iter[ch];
+			ret = tegra_pcie_edma_submit_xfer(epfnv->cookie, &tx_info);
+			if (ret == EDMA_XFER_FAIL_NOMEM) {
+				/** Retry after 20 msec */
+				dev_dbg(epfnv->fdev, "%s: EDMA_XFER_FAIL_NOMEM stress count %d on channel %d iter %d\n",
+					__func__, epfnv->stress_count, i, k);
+				msleep(20);
+				k--;
+				continue;
+			} else if ((ret != EDMA_XFER_SUCCESS) && (ret != EDMA_XFER_FAIL_NOMEM)) {
+				dev_err(epfnv->fdev, "%s: LL WR, SZ: %u B CH: %d failed. %d at iter %d ret: %d\n",
+					__func__, epfnv->dma_size, ch, ret, k, ret);
+				if (EDMA_ABORT_TEST_EN) {
+					msleep(5000);
+					break;
+				} else {
+					goto fail;
+				}
+			}
+			dev_dbg(epfnv->fdev, "%s: LL EDMA LIB WR, SZ: %u B CH: %d iter %d\n",
+				__func__, epfnv->dma_size, ch, i);
+		}
+		if (EDMA_ABORT_TEST_EN && i == 0) {
+			msleep(epfnv->stress_count);
+			dma_common_wr(epfnv->dma_base, DMA_WRITE_DOORBELL_OFF_WR_STOP,
+				      DMA_WRITE_DOORBELL_OFF);
+		}
+		diff = ktime_to_ns(ktime_get()) - ktime_to_ns(epfnv->edma_start_time[i]);
+		dev_info(epfnv->fdev, "%s: EDMA LIB WR done for %d iter on channel %d. Size %llu, time %llu, Perf is %llu\n",
+			 __func__, epfnv->stress_count, i, epfnv->tsz, diff, EDMA_PERF);
+	}
+
+	return 0;
+fail:
+	tegra_pcie_edma_deinit(epfnv->cookie);
+	epfnv->cookie = NULL;
+	return -1;
+}
+
 /* debugfs to perform direct & LL DMA and do CRC check */
 static int sanity_test(struct seq_file *s, void *data)
 {
@@ -1308,9 +1478,16 @@ static void init_debugfs(struct pcie_epf_dma *epfnv)
 
 	debugfs_create_devm_seqfile(epfnv->fdev, "async_dma_test",
 				    epfnv->debugfs, async_dma_test);
+	debugfs_create_devm_seqfile(epfnv->fdev, "edmalib_test", epfnv->debugfs,
+				    edmalib_test);
 
 	debugfs_create_u32("dma_size", 0644, epfnv->debugfs, &epfnv->dma_size);
-	epfnv->dma_size = SZ_64K;
+	epfnv->dma_size = SZ_1M;
+
+	debugfs_create_u32("edma_ch", 0644, epfnv->debugfs, &epfnv->edma_ch);
+	/* Enable ASYNC for ch 0 as default */
+	epfnv->edma_ch = 0x1;
+
 	debugfs_create_u32("stress_count", 0644, epfnv->debugfs,
 			   &epfnv->stress_count);
 	epfnv->stress_count = DEFAULT_STRESS_COUNT;
@@ -1477,6 +1654,9 @@ static void pcie_dma_epf_unbind(struct pci_epf *epf)
 	struct pci_epc *epc = epf->epc;
 	struct pci_epf_bar *epf_bar = &epf->bar[BAR_0];
 
+	tegra_pcie_edma_deinit(epfnv->cookie);
+	epfnv->cookie = NULL;
+
 	pcie_dma_epf_msi_deinit(epf);
 	pci_epc_stop(epc);
 	pci_epc_clear_bar(epc, epf->func_no, epf_bar);
@@ -1497,6 +1677,7 @@ static int pcie_dma_epf_bind(struct pci_epf *epf)
 	int ret, i;
 
 	epfnv->fdev = fdev;
+	epfnv->cdev = cdev;
 
 	epfnv->bar0_virt = pci_epf_alloc_space(epf, BAR0_SIZE, BAR_0, SZ_64K);
 	if (!epfnv->bar0_virt) {
