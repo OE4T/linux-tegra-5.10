@@ -109,15 +109,39 @@ static int tegra210_mvc_get_vol(struct snd_kcontrol *kcontrol,
 			TEGRA210_MUTE_MASK_EN;
 
 		if (strstr(kcontrol->id.name, "Per Chan Mute Mask")) {
-			ucontrol->value.integer.value[0] = mute_mask;
-		} else {
-			if (mute_mask == TEGRA210_MUTE_MASK_EN ||
-							mute_mask == 0) {
-				ucontrol->value.integer.value[0] =
-						mute_mask ? 1 : 0;
+			/*
+			 * If per channel control is enabled, then return
+			 * exact mute/unmute setting of all channels.
+			 *
+			 * Else report setting based on CH0 bit to reflect
+			 * the correct HW state.
+			 */
+			if (val & TEGRA210_MVC_PER_CHAN_CTRL_EN) {
+				ucontrol->value.integer.value[0] = mute_mask;
 			} else {
-				dev_err(cmpnt->dev, "Use Per Chan Mute Mask!");
-				return -EINVAL;
+				if (mute_mask & TEGRA210_MVC_CH0_MUTE_EN)
+					ucontrol->value.integer.value[0] =
+						TEGRA210_MUTE_MASK_EN;
+				else
+					ucontrol->value.integer.value[0] = 0;
+			}
+		} else {
+			/*
+			 * If per channel control is disabled, then return
+			 * master mute/unmute setting based on CH0 bit.
+			 *
+			 * Else report settings based on state of all
+			 * channels.
+			 */
+			if (!(val & TEGRA210_MVC_PER_CHAN_CTRL_EN)) {
+				ucontrol->value.integer.value[0] =
+					mute_mask & TEGRA210_MVC_CH0_MUTE_EN;
+			} else {
+				if (mute_mask == TEGRA210_MUTE_MASK_EN)
+					ucontrol->value.integer.value[0] =
+						TEGRA210_MVC_CH0_MUTE_EN;
+				else
+					ucontrol->value.integer.value[0] = 0;
 			}
 		}
 	} else {
@@ -172,18 +196,28 @@ static int tegra210_mvc_put_vol(struct snd_kcontrol *kcontrol,
 		goto end;
 
 	if (reg == TEGRA210_MVC_CTRL) {
+		u32 reg_mask;
 		u8 mute_mask;
 
-		if (strstr(kcontrol->id.name, "Per Chan Mute Mask"))
-			mute_mask = ucontrol->value.integer.value[0];
-		else
-			mute_mask =
-				ucontrol->value.integer.value[0] ?
-					TEGRA210_MUTE_MASK_EN : 0;
+		mute_mask = ucontrol->value.integer.value[0];
 
-		err = regmap_update_bits(mvc->regmap, reg,
-			TEGRA210_MVC_MUTE_MASK,
-			mute_mask << TEGRA210_MVC_MUTE_SHIFT);
+		if (strstr(kcontrol->id.name, "Per Chan Mute Mask")) {
+			regmap_update_bits(mvc->regmap, TEGRA210_MVC_CTRL,
+					   TEGRA210_MVC_PER_CHAN_CTRL_EN_MASK,
+					   TEGRA210_MVC_PER_CHAN_CTRL_EN);
+
+			reg_mask = TEGRA210_MVC_MUTE_MASK;
+
+		} else {
+			regmap_update_bits(mvc->regmap, TEGRA210_MVC_CTRL,
+					   TEGRA210_MVC_PER_CHAN_CTRL_EN_MASK,
+					   0);
+
+			reg_mask = TEGRA210_MVC_CH0_MUTE_MASK;
+		}
+
+		regmap_update_bits(mvc->regmap, reg, reg_mask,
+				   mute_mask << TEGRA210_MVC_MUTE_SHIFT);
 	} else {
 		u8 chan;
 
@@ -193,28 +227,33 @@ static int tegra210_mvc_put_vol(struct snd_kcontrol *kcontrol,
 
 		/* Config init vol same as target vol */
 		if (strstr(kcontrol->id.name, "Channel")) {
+			regmap_update_bits(mvc->regmap, TEGRA210_MVC_CTRL,
+					   TEGRA210_MVC_PER_CHAN_CTRL_EN_MASK,
+					   TEGRA210_MVC_PER_CHAN_CTRL_EN);
+
 			regmap_write(mvc->regmap,
 				TEGRA210_MVC_REG_OFFSET(
 				TEGRA210_MVC_INIT_VOL, chan),
 				mvc->volume[chan]);
-			err = regmap_write(mvc->regmap, reg, mvc->volume[chan]);
-		} else {
-			for (i = 0; i < TEGRA210_MVC_MAX_CHAN_COUNT; i++) {
-				if (i != 0)
-					mvc->volume[i] = mvc->volume[0];
-				regmap_write(mvc->regmap,
-					TEGRA210_MVC_REG_OFFSET(
-					TEGRA210_MVC_INIT_VOL, i),
-					mvc->volume[i]);
-				err |= regmap_write(mvc->regmap,
-					TEGRA210_MVC_REG_OFFSET(reg, i),
-					mvc->volume[i]);
 
-			}
+			regmap_write(mvc->regmap, reg, mvc->volume[chan]);
+		} else {
+			regmap_update_bits(mvc->regmap, TEGRA210_MVC_CTRL,
+					   TEGRA210_MVC_PER_CHAN_CTRL_EN_MASK,
+					   0);
+
+			for (i = 1; i < TEGRA210_MVC_MAX_CHAN_COUNT; i++)
+				mvc->volume[i] = mvc->volume[0];
+
+			regmap_write(mvc->regmap, TEGRA210_MVC_INIT_VOL,
+				     mvc->volume[0]);
+
+			regmap_write(mvc->regmap, TEGRA210_MVC_TARGET_VOL,
+				     mvc->volume[0]);
 		}
 	}
 
-	err |= regmap_update_bits(mvc->regmap, TEGRA210_MVC_SWITCH,
+	regmap_update_bits(mvc->regmap, TEGRA210_MVC_SWITCH,
 			TEGRA210_MVC_VOLUME_SWITCH_MASK,
 			TEGRA210_MVC_VOLUME_SWITCH_TRIGGER);
 
@@ -510,10 +549,8 @@ static const struct snd_kcontrol_new tegra210_mvc_vol_ctrl[] = {
 	TEGRA210_MVC_VOL_CTRL(6),
 	TEGRA210_MVC_VOL_CTRL(7),
 	TEGRA210_MVC_VOL_CTRL(8),
-	/* Will be deprecated in future */
 	SOC_SINGLE_EXT("Volume", TEGRA210_MVC_TARGET_VOL, 0, 16000, 0,
 		tegra210_mvc_get_vol, tegra210_mvc_put_vol),
-	/* Will be deprecated in future */
 	SOC_SINGLE_EXT("Mute", TEGRA210_MVC_CTRL, 0, 1, 0,
 		tegra210_mvc_get_vol, tegra210_mvc_put_vol),
 	SOC_SINGLE_EXT("Per Chan Mute Mask", TEGRA210_MVC_CTRL, 0,
