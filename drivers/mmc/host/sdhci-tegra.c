@@ -2913,6 +2913,7 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 	if (host->mmc->caps2 & MMC_CAP2_SD_EXPRESS_SUPPORT) {
 		BLOCKING_INIT_NOTIFIER_HEAD(&tegra_host->notifier_from_sd);
 		BLOCKING_INIT_NOTIFIER_HEAD(&tegra_host->notifier_to_sd);
+		sdhci_tegra_sd_express_mode_select(host, false);
 		tegra_host->sd_exp_support = true;
 	}
 
