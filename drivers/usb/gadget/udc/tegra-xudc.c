@@ -787,11 +787,23 @@ static void tegra_xudc_usb_role_sw_work(struct work_struct *work)
 {
 	struct tegra_xudc *xudc = container_of(work, struct tegra_xudc,
 					       usb_role_sw_work);
+	unsigned int i;
 
 	if (xudc->device_mode)
 		tegra_xudc_device_mode_on(xudc);
-	else
+	else {
 		tegra_xudc_device_mode_off(xudc);
+		/*enable device mode with another port connected to the host*/
+		for (i = 0; i < xudc->soc->num_phys; i++) {
+			if (xudc->usbphy[i] && xudc->usbphy[i]->last_event == USB_EVENT_VBUS) {
+				xudc->curr_utmi_phy = xudc->utmi_phy[i];
+				xudc->curr_usb3_phy = xudc->usb3_phy[i];
+				xudc->curr_usbphy = xudc->usbphy[i];
+				xudc->device_mode = true;
+				tegra_xudc_device_mode_on(xudc);
+			}
+		}
+	}
 }
 
 static int tegra_xudc_get_phy_index(struct tegra_xudc *xudc,
@@ -812,6 +824,9 @@ static void tegra_xudc_update_data_role(struct tegra_xudc *xudc,
 					      struct usb_phy *usbphy)
 {
 	int phy_index;
+
+	if (xudc->device_mode && xudc->curr_usbphy != usbphy)
+		return;
 
 	if ((xudc->device_mode && usbphy->last_event == USB_EVENT_VBUS) ||
 	    (!xudc->device_mode && usbphy->last_event != USB_EVENT_VBUS)) {
