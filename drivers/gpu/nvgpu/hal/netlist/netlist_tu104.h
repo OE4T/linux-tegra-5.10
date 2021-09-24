@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 #define NVGPU_NETLIST_TU104_H
 
 #include <nvgpu/types.h>
-#include "common/netlist/netlist_defs.h"
+#include <nvgpu/netlist_defs.h>
 
 struct gk20a;
 

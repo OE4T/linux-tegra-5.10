@@ -23,7 +23,7 @@
 #define NVGPU_NETLIST_GA10B_H
 
 #include <nvgpu/types.h>
-#include "common/netlist/netlist_defs.h"
+#include <nvgpu/netlist_defs.h>
 
 struct gk20a;
 

@@ -153,7 +153,7 @@ netlist:
   owner: Seshendra G
   sources: [ common/netlist/netlist.c,
              common/netlist/netlist_priv.h,
-             common/netlist/netlist_defs.h,
+             include/nvgpu/netlist_defs.h,
              include/nvgpu/netlist.h ]
 
 nvlink:
