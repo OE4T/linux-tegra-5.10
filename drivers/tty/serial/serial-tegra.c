@@ -4,7 +4,7 @@
  *
  * High-speed serial driver for NVIDIA Tegra SoCs
  *
- * Copyright (c) 2012-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Author: Laxman Dewangan <ldewangan@nvidia.com>
  */
@@ -935,6 +935,9 @@ static void tegra_uart_handle_rx_dma(struct tegra_uart_port *tup)
 		set_rts(tup, false);
 
 	tegra_uart_terminate_rx_dma(tup);
+
+	if (tup->rts_active  && tup->is_hw_flow_enabled)
+		set_rts(tup, true);
 }
 
 static int tegra_uart_start_rx_dma(struct tegra_uart_port *tup)
@@ -952,12 +955,13 @@ static int tegra_uart_start_rx_dma(struct tegra_uart_port *tup)
 		return -EIO;
 	}
 
-	tup->rx_dma_active = true;
 	tup->rx_dma_desc->callback = tegra_uart_rx_dma_complete;
 	tup->rx_dma_desc->callback_param = tup;
 	tup->rx_bytes_requested = count;
 	tup->rx_cookie = dmaengine_submit(tup->rx_dma_desc);
 	dma_async_issue_pending(tup->rx_dma_chan);
+	tup->rx_dma_active = true;
+
 	return 0;
 }
 
