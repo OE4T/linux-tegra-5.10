@@ -36,6 +36,7 @@ static void ether_get_tx_ts(struct work_struct *work)
 	struct list_head *head_node, *temp_head_node;
 	struct skb_shared_hwtstamps shhwtstamp;
 	struct osi_ioctl ioctl_data = {};
+	static unsigned int miss_count;
 	unsigned long long nsec = 0x0;
 	struct ether_tx_ts_skb_list *pnode;
 	int ret = -1;
@@ -56,6 +57,7 @@ static void ether_get_tx_ts(struct work_struct *work)
 		ioctl_data.tx_ts.pkt_id = pnode->pktid;
 		ret = osi_handle_ioctl(pdata->osi_core, &ioctl_data);
 		if (ret == 0) {
+			miss_count = 0U;
 			/* get time stamp form ethernet server */
 			dev_dbg(pdata->dev, "%s() pktid = %x, skb = %p\n",
 				__func__, pnode->pktid, pnode->skb);
@@ -86,6 +88,9 @@ update_skb:
 
 		} else {
 			dev_dbg(pdata->dev, "Unable to retrieve TS from OSI\n");
+			miss_count++;
+			if (miss_count < TS_MISS_THRESHOLD)
+				schedule_work(&pdata->tx_ts_work);
 		}
 	}
 }
