@@ -323,8 +323,12 @@ static void tegra_dma_desc_free(struct virt_dma_desc *vd)
 	struct tegra_dma_desc *dma_desc = vd_to_tegra_dma_desc(vd);
 	unsigned long flags;
 
-	if(!dma_desc)
+	if (!dma_desc)
 		return;
+
+	if (!dma_desc->tdc)
+		return;
+
 	raw_spin_lock_irqsave(&dma_desc->tdc->lock, flags);
 	list_add_tail(&dma_desc->node, &dma_desc->tdc->free_dma_desc);
 	raw_spin_unlock_irqrestore(&dma_desc->tdc->lock, flags);
