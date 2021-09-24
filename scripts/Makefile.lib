@@ -311,7 +311,9 @@ DTC_FLAGS += \
 	-Wno-gpios_property \
 	-Wno-clocks_property \
 	-Wno-pci_bridge \
-	-Wno-pci_device_bus_num
+	-Wno-pci_device_bus_num \
+	-Wno-avoid_default_addr_size \
+	-Wno-ranges_format
 endif
 
 ifneq ($(findstring 2,$(KBUILD_EXTRA_WARN)),)
