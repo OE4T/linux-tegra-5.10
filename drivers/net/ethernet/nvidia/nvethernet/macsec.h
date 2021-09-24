@@ -28,6 +28,17 @@
 #include <net/genetlink.h>
 #include <linux/crypto.h>
 
+
+/**
+ * @brief Expected number of inputs in BYP or SCI LUT sysfs config
+ */
+#define LUT_INPUTS_LEN			39
+
+/**
+ * @brief Expected number of extra inputs in BYP LUT sysfs config
+ */
+#define BYP_LUT_INPUTS			1
+
 /**
  * @brief Size of Macsec IRQ name.
  */

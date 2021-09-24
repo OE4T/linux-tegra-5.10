@@ -15,6 +15,7 @@
  */
 
 #include "ether_linux.h"
+#include "macsec.h"
 
 #ifdef CONFIG_DEBUG_FS
 /* As per IAS Docs */
@@ -568,7 +569,6 @@ static void format_output(char **buf_p,
 	return;
 }
 
-#define LUT_INPUTS_LEN	37
 
 static int parse_inputs(const char *buf,
 			struct osi_macsec_lut_config *lut_config, int *bufp)
@@ -587,6 +587,7 @@ static int parse_inputs(const char *buf,
 	unsigned short controller;
 	int mac_da_valid, mac_sa_valid, ethtype_valid, vlan_valid;
 	int dvlan, dvlan_outer_tag;
+	int prempt, prempt_valid;
 	int byte_valid[OSI_LUT_BYTE_PATTERN_MAX];
 	int i, valid, index;;
 
@@ -599,7 +600,8 @@ static int parse_inputs(const char *buf,
 			"%x %u %d "
 			"%x %u %d "
 			"%x %u %d "
-			"%u %u %d %d %d%n",
+			"%u %u %d %d %d "
+			"%d %d%n",
 		   &valid, &index, &controller,
 		   &temp[0], &temp[1], &temp[2],
 		   &temp[3], &temp[4], &temp[5], &mac_da_valid,
@@ -610,7 +612,8 @@ static int parse_inputs(const char *buf,
 		   &temp3[1], &byte_offset[1], &byte_valid[1],
 		   &temp3[2], &byte_offset[2], &byte_valid[2],
 		   &temp3[3], &byte_offset[3], &byte_valid[3],
-		   &vlan_pcp, &vlan_id, &vlan_valid, &dvlan, &dvlan_outer_tag, bufp);
+		   &vlan_pcp, &vlan_id, &vlan_valid, &dvlan, &dvlan_outer_tag,
+		   &prempt, &prempt_valid, bufp);
 
 	if (i != LUT_INPUTS_LEN) {
 		pr_err("%s: Invalid LUT inputs(read %d)", __func__, i);
@@ -705,6 +708,12 @@ static int parse_inputs(const char *buf,
 		if (dvlan_outer_tag) {
 			flags |= OSI_LUT_FLAGS_DVLAN_OUTER_INNER_TAG_SEL;
 		}
+	}
+
+	if (prempt_valid) {
+		flags |= OSI_LUT_FLAGS_PREEMPT_VALID;
+		if (prempt)
+			flags |= OSI_LUT_FLAGS_PREEMPT;
 	}
 
 	if (valid) {
@@ -808,7 +817,7 @@ static ssize_t macsec_byp_lut_store(struct device *dev,
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct osi_macsec_lut_config lut_config;
-	int ret, bufp;
+	int ret, bufp, ctrl_port;
 
 	if (!netif_running(ndev)) {
 		dev_err(pdata->dev, "Not Allowed. Ether interface is not up\n");
@@ -820,6 +829,15 @@ static ssize_t macsec_byp_lut_store(struct device *dev,
 		dev_err(pdata->dev, "Failed to parse inputs");
 		goto exit;
 	}
+
+	ret = sscanf(buf + bufp, " %d", &ctrl_port);
+
+	if (ret != BYP_LUT_INPUTS) {
+		dev_err(pdata->dev, "Failed to parse BYP LUT arguments");
+		goto exit;
+	}
+	if (ctrl_port)
+		lut_config.flags |= OSI_LUT_FLAGS_CONTROLLED_PORT;
 
 	lut_config.lut_sel = OSI_LUT_SEL_BYPASS;
 	lut_config.table_config.rw = OSI_LUT_WRITE;
