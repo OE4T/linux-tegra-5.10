@@ -290,19 +290,14 @@ static int ga10b_tegra_railgate(struct device *dev)
 	return 0;
 }
 
-static int ga10b_tegra_unrailgate(struct device *dev)
-{
-	int ret = 0;
-#ifdef CONFIG_TEGRA_BWMGR
-	struct gk20a_platform *platform = gk20a_get_platform(dev);
-	struct gk20a_scale_profile *profile = platform->g->scale_profile;
-#endif
-
 #if defined(CONFIG_TEGRA_BPMP) && defined(CONFIG_NVGPU_STATIC_POWERGATE)
+static int ga10b_tegra_bpmp_mrq_set(struct device *dev)
+{
 	struct tegra_bpmp *bpmp;
 	struct mrq_strap_request req;
 	struct gk20a *g = get_gk20a(dev);
-	u32 i;
+	u32 i = 0;
+	int ret = 0;
 
 	/*
 	 * Silicon - Static pg feature fuse settings will done in BPMP
@@ -350,7 +345,26 @@ static int ga10b_tegra_unrailgate(struct device *dev)
 			}
 		}
 	}
+	return 0;
+}
 #endif
+
+static int ga10b_tegra_unrailgate(struct device *dev)
+{
+	int ret = 0;
+	struct gk20a_platform *platform = gk20a_get_platform(dev);
+#ifdef CONFIG_TEGRA_BWMGR
+	struct gk20a_scale_profile *profile = platform->g->scale_profile;
+#endif
+
+#if defined(CONFIG_TEGRA_BPMP)
+	ret = ga10b_tegra_bpmp_mrq_set(dev);
+	if (ret != 0) {
+		nvgpu_err(platform->g, "ga10b_tegra_bpmp_mrq_set failed");
+		return ret;
+	}
+#endif
+
 	/* Setting clk controls */
 	gp10b_tegra_clks_control(dev, true);
 
@@ -402,7 +416,11 @@ static int ga10b_tegra_set_gpc_pg_mask(struct device *dev, u32 dt_gpc_pg_mask)
 		 * as there is 1:1 mapping for GPC and FBP
 		 */
 		g->fbp_pg_mask = dt_gpc_pg_mask;
+#if defined(CONFIG_TEGRA_BPMP)
+		return ga10b_tegra_bpmp_mrq_set(dev);
+#else
 		return 0;
+#endif
 	}
 
 	nvgpu_err(g, "Invalid GPC-PG mask");
@@ -421,7 +439,11 @@ static int ga10b_tegra_set_fbp_pg_mask(struct device *dev, u32 dt_fbp_pg_mask)
 		 * as there is 1:1 mapping for GPC and FBP
 		 */
 		g->gpc_pg_mask = dt_fbp_pg_mask;
+#if defined(CONFIG_TEGRA_BPMP)
+		return ga10b_tegra_bpmp_mrq_set(dev);
+#else
 		return 0;
+#endif
 	}
 
 	nvgpu_err(g, "Invalid FBP-PG mask");
@@ -542,7 +564,11 @@ static int ga10b_tegra_set_tpc_pg_mask(struct device *dev, u32 dt_tpc_pg_mask)
 		nvgpu_err(g, "Disabling all TPCs isn't allowed!");
 		return -EINVAL;
 	}
+#if defined(CONFIG_TEGRA_BPMP)
+	return ga10b_tegra_bpmp_mrq_set(dev);
+#else
 	return 0;
+#endif
 }
 #endif
 
