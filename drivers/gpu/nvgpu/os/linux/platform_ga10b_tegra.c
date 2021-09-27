@@ -414,11 +414,6 @@ static int ga10b_tegra_set_gpc_pg_mask(struct device *dev, u32 dt_gpc_pg_mask)
 
 	if (ga10b_tegra_is_gpc_fbp_pg_mask_valid(platform, dt_gpc_pg_mask)) {
 		g->gpc_pg_mask = dt_gpc_pg_mask;
-		/*
-		 * update FBP PG mask same as GPC PG mask
-		 * as there is 1:1 mapping for GPC and FBP
-		 */
-		g->fbp_pg_mask = dt_gpc_pg_mask;
 #if defined(CONFIG_TEGRA_BPMP)
 		return ga10b_tegra_bpmp_mrq_set(dev);
 #else
@@ -437,11 +432,6 @@ static int ga10b_tegra_set_fbp_pg_mask(struct device *dev, u32 dt_fbp_pg_mask)
 
 	if (ga10b_tegra_is_gpc_fbp_pg_mask_valid(platform, dt_fbp_pg_mask)) {
 		g->fbp_pg_mask = dt_fbp_pg_mask;
-		/*
-		 * update GPC PG mask same as FBP PG mask
-		 * as there is 1:1 mapping for GPC and FBP
-		 */
-		g->gpc_pg_mask = dt_fbp_pg_mask;
 #if defined(CONFIG_TEGRA_BPMP)
 		return ga10b_tegra_bpmp_mrq_set(dev);
 #else
@@ -524,7 +514,6 @@ static int ga10b_tegra_set_tpc_pg_mask(struct device *dev, u32 dt_tpc_pg_mask)
 		for (i = 0U; i < MAX_PG_GPC; i++) {
 			if (g->tpc_pg_mask[i] == 0xFU) {
 				g->gpc_pg_mask = (0x1U << i);
-				g->fbp_pg_mask = (0x1U << i);
 			}
 		}
 
