@@ -5,6 +5,7 @@
  * Copyright (C) 2002-2003 TiVo Inc.
  * Copyright (C) 2017-2018 ASIX
  * Copyright (C) 2018 Aquantia Corp.
+ * Copyright (c) 2021, NVIDIA CORPORATION. All rights reserved.
  */
 
 #include <linux/module.h>
@@ -317,7 +318,8 @@ static int aqc111_get_link_ksettings(struct net_device *net,
 	return 0;
 }
 
-static void aqc111_set_phy_speed(struct usbnet *dev, u8 autoneg, u16 speed)
+static void aqc111_set_phy_speed(struct usbnet *dev, u8 autoneg,
+				 u16 speed, bool nopm)
 {
 	struct aqc111_data *aqc111_data = dev->driver_priv;
 
@@ -361,7 +363,12 @@ static void aqc111_set_phy_speed(struct usbnet *dev, u8 autoneg, u16 speed)
 		}
 	}
 
-	aqc111_write32_cmd(dev, AQ_PHY_OPS, 0, 0, &aqc111_data->phy_cfg);
+	if (nopm)
+		aqc111_write32_cmd_nopm(dev, AQ_PHY_OPS, 0, 0,
+					&aqc111_data->phy_cfg);
+	else
+		aqc111_write32_cmd(dev, AQ_PHY_OPS, 0, 0,
+				   &aqc111_data->phy_cfg);
 }
 
 static int aqc111_set_link_ksettings(struct net_device *net,
@@ -380,7 +387,8 @@ static int aqc111_set_link_ksettings(struct net_device *net,
 					(usb_speed == USB_SPEED_SUPER) ?
 					 SPEED_5000 : SPEED_1000;
 			aqc111_set_phy_speed(dev, aqc111_data->autoneg,
-					     aqc111_data->advertised_speed);
+					     aqc111_data->advertised_speed,
+					     false);
 		}
 	} else {
 		if (speed != SPEED_100 &&
@@ -401,7 +409,7 @@ static int aqc111_set_link_ksettings(struct net_device *net,
 			aqc111_data->advertised_speed = speed;
 
 		aqc111_set_phy_speed(dev, aqc111_data->autoneg,
-				     aqc111_data->advertised_speed);
+				     aqc111_data->advertised_speed, false);
 	}
 
 	return 0;
@@ -1025,7 +1033,7 @@ static int aqc111_reset(struct usbnet *dev)
 
 	/* Phy advertise */
 	aqc111_set_phy_speed(dev, aqc111_data->autoneg,
-			     aqc111_data->advertised_speed);
+			     aqc111_data->advertised_speed, false);
 
 	return 0;
 }
@@ -1391,14 +1399,14 @@ static int aqc111_suspend(struct usb_interface *intf, pm_message_t message)
 		aqc111_write16_cmd_nopm(dev, AQ_ACCESS_MAC,
 					SFR_MEDIUM_STATUS_MODE, 2, &reg16);
 
-		aqc111_write_cmd(dev, AQ_WOL_CFG, 0, 0,
-				 WOL_CFG_SIZE, &wol_cfg);
-		aqc111_write32_cmd(dev, AQ_PHY_OPS, 0, 0,
-				   &aqc111_data->phy_cfg);
+		aqc111_write_cmd_nopm(dev, AQ_WOL_CFG, 0, 0,
+				      WOL_CFG_SIZE, &wol_cfg);
+		aqc111_write32_cmd_nopm(dev, AQ_PHY_OPS, 0, 0,
+					&aqc111_data->phy_cfg);
 	} else {
 		aqc111_data->phy_cfg |= AQ_LOW_POWER;
-		aqc111_write32_cmd(dev, AQ_PHY_OPS, 0, 0,
-				   &aqc111_data->phy_cfg);
+		aqc111_write32_cmd_nopm(dev, AQ_PHY_OPS, 0, 0,
+					&aqc111_data->phy_cfg);
 
 		/* Disable RX path */
 		aqc111_read16_cmd_nopm(dev, AQ_ACCESS_MAC,
@@ -1437,7 +1445,7 @@ static int aqc111_resume(struct usb_interface *intf)
 	aqc111_write16_cmd_nopm(dev, AQ_ACCESS_MAC, SFR_RX_CTL, 2, &reg16);
 
 	aqc111_set_phy_speed(dev, aqc111_data->autoneg,
-			     aqc111_data->advertised_speed);
+			     aqc111_data->advertised_speed, true);
 
 	aqc111_read16_cmd_nopm(dev, AQ_ACCESS_MAC, SFR_MEDIUM_STATUS_MODE,
 			       2, &reg16);
@@ -1448,7 +1456,7 @@ static int aqc111_resume(struct usb_interface *intf)
 	aqc111_write_cmd_nopm(dev, AQ_ACCESS_MAC, SFR_ETH_MAC_PATH,
 			      1, 1, &reg8);
 	reg8 = 0x0;
-	aqc111_write_cmd(dev, AQ_ACCESS_MAC, SFR_BMRX_DMA_CONTROL, 1, 1, &reg8);
+	aqc111_write_cmd_nopm(dev, AQ_ACCESS_MAC, SFR_BMRX_DMA_CONTROL, 1, 1, &reg8);
 
 	return usbnet_resume(intf);
 }
