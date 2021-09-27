@@ -648,6 +648,7 @@
 /* EST controlOSI_BITmap */
 #define MGBE_MTL_EST_EEST			OSI_BIT(0)
 #define MGBE_MTL_EST_SSWL			OSI_BIT(1)
+#define MGBE_MTL_EST_QHLBF			OSI_BIT(3)
 /* EST GCL controlOSI_BITmap */
 #define MGBE_MTL_EST_ADDR_SHIFT			8
 #define MGBE_MTL_EST_ADDR_MASK			(OSI_BIT(8) | OSI_BIT(9) | \

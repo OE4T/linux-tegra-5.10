@@ -4810,6 +4810,7 @@ static int mgbe_hw_config_est(struct osi_core_priv_data *osi_core,
 	/* Store table */
 	val |= MGBE_MTL_EST_SSWL;
 	val |= MGBE_MTL_EST_EEST;
+	val |= MGBE_MTL_EST_QHLBF;
 	osi_writela(osi_core, val, (unsigned char *)
 		    base + MGBE_MTL_EST_CONTROL);
 
