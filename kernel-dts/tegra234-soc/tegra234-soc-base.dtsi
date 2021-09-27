@@ -478,20 +478,6 @@
 		status = "disabled";
 	};
 
-	fan_control_tachometer: tachometer@39b0000 {
-		compatible = "nvidia,pwm-tegra194-tachometer";
-		reg = <0x0 0x039b0000 0x0 0x10>;
-		#pwm-cells = <2>;
-		clocks = <&bpmp_clks TEGRA234_CLK_TACH1>;
-		clock-names = "tach";
-		resets = <&bpmp_resets TEGRA234_RESET_TACH1>;
-		reset-names = "tach";
-		pulse-per-rev = <2>;
-		capture-window-length = <2>;
-		disable-clk-gate;
-		status = "disabled";
-	};
-
 	tegra_tachometer: tachometer@39c0000 {
 		compatible = "nvidia,pwm-tegra234-tachometer";
 		reg = <0x0 0x039c0000 0x0 0x10>;
@@ -507,9 +493,29 @@
 		status = "disabled";
 	};
 
+	tegra_tachometer1: tachometer@39b0000 {
+		compatible = "nvidia,pwm-tegra194-tachometer";
+		reg = <0x0 0x039b0000 0x0 0x10>;
+		#pwm-cells = <2>;
+		clocks = <&bpmp_clks TEGRA234_CLK_TACH1>;
+		clock-names = "tach";
+		resets = <&bpmp_resets TEGRA234_RESET_TACH1>;
+		reset-names = "tach";
+		pulse-per-rev = <2>;
+		capture-window-length = <2>;
+		disable-clk-gate;
+		status = "disabled";
+	};
+
 	generic_pwm_tachometer {
 		compatible = "generic-pwm-tachometer";
 		pwms = <&tegra_tachometer 0 1000000>;
+		status = "disabled";
+	};
+
+	generic_pwm_tachometer1 {
+		compatible = "generic-pwm-tachometer";
+		pwms = <&tegra_tachometer1 0 1000000>;
 		status = "disabled";
 	};
 
