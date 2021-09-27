@@ -16,6 +16,7 @@ dtbo-$(BUILD_ENABLE) += tegra194-p3668-all-p3509-0000-adafruit-sph0645lm4h.dtbo
 dtbo-$(BUILD_ENABLE) += tegra194-p3668-all-p3509-0000-adafruit-uda1334a.dtbo
 dtbo-$(BUILD_ENABLE) += tegra194-p3668-all-p3509-0000-fe-pi-audio.dtbo
 dtbo-$(BUILD_ENABLE) += tegra194-p3668-all-p3509-0000-respeaker-4-mic-array.dtbo
+dtbo-$(BUILD_ENABLE) += tegra194-p3668-all-p3509-0000-respeaker-4-mic-lin-array.dtbo
 dtbo-$(BUILD_ENABLE) += tegra194-p3668-all-p3509-0000-m2ke.dtbo
 
 ifneq ($(dtb-y),)
