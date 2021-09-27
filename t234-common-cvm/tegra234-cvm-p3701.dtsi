@@ -15,7 +15,7 @@
  */
 
 /*
- * T234 P3701-0000 common DTSI file.
+ * T234 P3701 common DTSI file.
  */
 
 #include <dt-bindings/types.h>
@@ -330,5 +330,12 @@
 
 	trusty {
 		status = "okay";
+	};
+
+	actmon@d230000 {
+		status = "disabled";
+		mc_all {
+			status = "disabled";
+		};
 	};
 };
