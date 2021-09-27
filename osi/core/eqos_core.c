@@ -4731,6 +4731,7 @@ static int eqos_hw_config_est(struct osi_core_priv_data *osi_core,
 	/* Store table */
 	val |= EQOS_MTL_EST_CONTROL_SSWL;
 	val |= EQOS_MTL_EST_CONTROL_EEST;
+	val |= EQOS_MTL_EST_CONTROL_QHLBF;
 	osi_writela(osi_core, val, (nveu8_t *)base + EQOS_MTL_EST_CONTROL);
 
 	return ret;
