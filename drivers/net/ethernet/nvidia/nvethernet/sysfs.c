@@ -1298,7 +1298,7 @@ static void dump_kt(char **buf_p, unsigned short ctlr_sel,
 		kt_config.table_config.ctlr_sel = ctlr_sel;
 		kt_config.table_config.rw = OSI_LUT_READ;
 		kt_config.table_config.index = i;
-		if (osi_macsec_kt_config(osi_core, &kt_config, OSI_NULL) < 0) {
+		if (osi_macsec_kt_config(osi_core, &kt_config) < 0) {
 			pr_err("%s: Failed to read KT\n", __func__);
 			*buf_p = buf;
 			return;
@@ -1486,7 +1486,7 @@ static ssize_t macsec_kt_store(struct device *dev,
 		kt_config.flags |= OSI_LUT_FLAGS_ENTRY_VALID;
 	}
 
-	ret = osi_macsec_kt_config(osi_core, &kt_config, OSI_NULL);
+	ret = osi_macsec_kt_config(osi_core, &kt_config);
 	if (ret < 0) {
 		pr_err("%s: Failed to set SAK", __func__);
 		goto exit;

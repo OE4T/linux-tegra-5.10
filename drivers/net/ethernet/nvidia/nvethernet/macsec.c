@@ -21,10 +21,12 @@
  */
 static int is_nv_macsec_fam_registered = OSI_DISABLE;
 
+#ifndef MACSEC_KEY_PROGRAM
 static int macsec_tz_kt_config(struct ether_priv_data *pdata,
 			unsigned char cmd,
 			struct osi_macsec_kt_config *const kt_config,
 			struct genl_info *const info);
+#endif
 
 static irqreturn_t macsec_s_isr(int irq, void *data)
 {
@@ -1242,6 +1244,9 @@ int macsec_probe(struct ether_priv_data *pdata)
 	struct resource *res = NULL;
 	struct device_node *np = dev->of_node;
 	int ret = 0;
+#ifdef MACSEC_KEY_PROGRAM
+	unsigned long tz_addr = 0;
+#endif
 
 	PRINT_ENTRY();
 	/* Check if MACsec is enabled in DT, if so map the I/O base addr */
@@ -1253,6 +1258,10 @@ int macsec_probe(struct ether_priv_data *pdata)
 			ret = PTR_ERR(osi_core->macsec_base);
 			goto exit;
 		}
+#ifdef MACSEC_KEY_PROGRAM
+		/* store TZ window base address */
+		tz_addr = (res->start - MACSEC_SIZE);
+#endif
 	} else {
 		/* MACsec not enabled in DT, nothing more to do */
 		osi_core->macsec_base = NULL;
@@ -1264,8 +1273,7 @@ int macsec_probe(struct ether_priv_data *pdata)
 	}
 
 #ifdef MACSEC_KEY_PROGRAM
-	//TODO: Move to TZ window
-	osi_core->tz_base = devm_ioremap(dev, 0x68C0000, 0x10000);
+	osi_core->tz_base = devm_ioremap(dev, tz_addr, MACSEC_SIZE);
 	if (IS_ERR(osi_core->tz_base)) {
 		dev_err(dev, "failed to ioremap TZ base addr\n");
 		ret = PTR_ERR(osi_core->tz_base);
@@ -1342,6 +1350,7 @@ exit:
 	return ret;
 }
 
+#ifndef MACSEC_KEY_PROGRAM
 /**
  * @brief macsec_tz_kt_config - Program macsec key table entry.
  *
@@ -1450,3 +1459,4 @@ fail:
 	PRINT_EXIT();
 	return ret;
 }
+#endif /* MACSEC_KEY_PROGRAM */
