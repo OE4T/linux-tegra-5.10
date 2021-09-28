@@ -135,7 +135,7 @@ int nvgpu_semaphore_pool_map(struct nvgpu_semaphore_pool *p,
 		goto fail_unmap;
 	}
 
-	addr = nvgpu_gmmu_map(vm, &p->rw_mem, SZ_4K, 0,
+	addr = nvgpu_gmmu_map_partial(vm, &p->rw_mem, SZ_4K, 0,
 			      gk20a_mem_flag_none, 0,
 			      p->rw_mem.aperture);
 

@@ -42,7 +42,7 @@ static int set_syncpt_ro_map_gpu_va_locked(struct vm_gk20a *vm)
 		return 0;
 	}
 
-	vm->syncpt_ro_map_gpu_va = nvgpu_gmmu_map(vm,
+	vm->syncpt_ro_map_gpu_va = nvgpu_gmmu_map_partial(vm,
 			&g->syncpt_mem, g->syncpt_unit_size,
 			0, gk20a_mem_flag_read_only,
 			false, APERTURE_SYSMEM);
@@ -85,7 +85,7 @@ int gv11b_syncpt_alloc_buf(struct nvgpu_channel *c,
 		return err;
 	}
 
-	syncpt_buf->gpu_va = nvgpu_gmmu_map(c->vm, syncpt_buf,
+	syncpt_buf->gpu_va = nvgpu_gmmu_map_partial(c->vm, syncpt_buf,
 			g->syncpt_size, 0, gk20a_mem_flag_none,
 			false, APERTURE_SYSMEM);
 

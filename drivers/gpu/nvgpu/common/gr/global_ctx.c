@@ -326,7 +326,7 @@ u64 nvgpu_gr_global_ctx_buffer_map(struct nvgpu_gr_global_ctx_buffer_desc *desc,
 		return 0;
 	}
 
-	gpu_va = nvgpu_gmmu_map(vm, &desc[index].mem, desc[index].mem.size,
+	gpu_va = nvgpu_gmmu_map(vm, &desc[index].mem,
 			flags, gk20a_mem_flag_none, priv,
 			desc[index].mem.aperture);
 	return gpu_va;

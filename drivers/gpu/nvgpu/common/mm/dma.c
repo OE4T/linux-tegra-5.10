@@ -158,7 +158,7 @@ int nvgpu_dma_alloc_map_flags_sys(struct vm_gk20a *vm, unsigned long flags,
 		return err;
 	}
 
-	mem->gpu_va = nvgpu_gmmu_map(vm, mem, size, 0,
+	mem->gpu_va = nvgpu_gmmu_map(vm, mem, 0,
 				     gk20a_mem_flag_none, false,
 				     mem->aperture);
 	if (mem->gpu_va == 0ULL) {
@@ -190,7 +190,7 @@ int nvgpu_dma_alloc_map_flags_vid(struct vm_gk20a *vm, unsigned long flags,
 		return err;
 	}
 
-	mem->gpu_va = nvgpu_gmmu_map(vm, mem, size, 0,
+	mem->gpu_va = nvgpu_gmmu_map(vm, mem, 0,
 				     gk20a_mem_flag_none, false,
 				     mem->aperture);
 	if (mem->gpu_va == 0ULL) {

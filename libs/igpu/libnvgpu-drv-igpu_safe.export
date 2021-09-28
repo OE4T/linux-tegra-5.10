@@ -422,8 +422,9 @@ nvgpu_get_pte
 nvgpu_gmmu_default_big_page_size
 nvgpu_gmmu_init_page_table
 nvgpu_gmmu_map
-nvgpu_gmmu_map_locked
 nvgpu_gmmu_map_fixed
+nvgpu_gmmu_map_locked
+nvgpu_gmmu_map_partial
 nvgpu_gmmu_unmap
 nvgpu_gmmu_unmap_addr
 nvgpu_gmmu_unmap_locked

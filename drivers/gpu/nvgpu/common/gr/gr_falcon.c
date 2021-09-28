@@ -225,7 +225,6 @@ static int nvgpu_gr_falcon_init_ctxsw_ucode_vaspace(struct gk20a *g,
 	/* Map ucode surface to GMMU */
 	ucode_info->surface_desc.gpu_va = nvgpu_gmmu_map(vm,
 					&ucode_info->surface_desc,
-					ucode_info->surface_desc.size,
 					0, /* flags */
 					gk20a_mem_flag_read_only,
 					false,

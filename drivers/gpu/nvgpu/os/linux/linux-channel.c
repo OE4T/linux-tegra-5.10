@@ -530,7 +530,7 @@ static int nvgpu_channel_alloc_usermode_buffers(struct nvgpu_channel *c,
 	}
 
 	c->usermode_gpfifo.gpu_va = nvgpu_gmmu_map(c->vm, &c->usermode_gpfifo,
-			c->usermode_gpfifo.size, 0, gk20a_mem_flag_read_only,
+			0, gk20a_mem_flag_read_only,
 			false, c->usermode_gpfifo.aperture);
 
 	if (c->usermode_gpfifo.gpu_va == 0) {

@@ -348,7 +348,7 @@ int test_sync_get_ro_map(struct unit_module *m, struct gk20a *g, void *args)
 
 	for (branches = 0U; branches <= F_SYNC_GET_RO_MAP_MAX; branches++) {
 		if (branches == F_SYNC_GET_RO_MAP_PRE_ALLOCATED) {
-			ch->vm->syncpt_ro_map_gpu_va = nvgpu_gmmu_map(ch->vm,
+			ch->vm->syncpt_ro_map_gpu_va = nvgpu_gmmu_map_partial(ch->vm,
 					&g->syncpt_mem, g->syncpt_unit_size,
 					0, gk20a_mem_flag_read_only,
 					false, APERTURE_SYSMEM);

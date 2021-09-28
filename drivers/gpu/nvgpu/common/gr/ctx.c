@@ -87,7 +87,6 @@ int nvgpu_gr_ctx_alloc(struct gk20a *g,
 
 	gr_ctx->mem.gpu_va = nvgpu_gmmu_map(vm,
 					&gr_ctx->mem,
-					gr_ctx->mem.size,
 					0, /* not GPU-cacheable */
 					gk20a_mem_flag_none, true,
 					gr_ctx->mem.aperture);
@@ -802,7 +801,7 @@ static int nvgpu_gr_ctx_alloc_ctxsw_buffer(struct vm_gk20a *vm, size_t size,
 		return err;
 	}
 
-	mem->gpu_va = nvgpu_gmmu_map(vm,
+	mem->gpu_va = nvgpu_gmmu_map_partial(vm,
 				mem,
 				mem->aligned_size,
 				NVGPU_VM_MAP_CACHEABLE,
@@ -1004,7 +1003,6 @@ int nvgpu_gr_ctx_alloc_pm_ctx(struct gk20a *g,
 
 	pm_ctx->mem.gpu_va = nvgpu_gmmu_map(vm,
 					&pm_ctx->mem,
-					pm_ctx->mem.size,
 					NVGPU_VM_MAP_CACHEABLE,
 					gk20a_mem_flag_none, true,
 					pm_ctx->mem.aperture);

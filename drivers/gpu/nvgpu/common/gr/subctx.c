@@ -51,7 +51,6 @@ struct nvgpu_gr_subctx *nvgpu_gr_subctx_alloc(struct gk20a *g,
 
 	subctx->ctx_header.gpu_va = nvgpu_gmmu_map(vm,
 				&subctx->ctx_header,
-				subctx->ctx_header.size,
 				0, /* not GPU-cacheable */
 				gk20a_mem_flag_none, true,
 				subctx->ctx_header.aperture);

@@ -479,7 +479,7 @@ int test_nvgpu_gmmu_map_unmap(struct unit_module *m, struct gk20a *g,
 				params->flags, params->rw_flag, params->priv,
 				params->aperture);
 	} else {
-		mem.gpu_va = nvgpu_gmmu_map(g->mm.pmu.vm, &mem, mem.size,
+		mem.gpu_va = nvgpu_gmmu_map(g->mm.pmu.vm, &mem,
 				params->flags, params->rw_flag, params->priv,
 				params->aperture);
 	}
@@ -607,7 +607,7 @@ int test_nvgpu_gmmu_map_unmap_map_fail(struct unit_module *m, struct gk20a *g,
 		g->ops.fb.tlb_invalidate = hal_fb_tlb_invalidate_fail;
 	}
 
-	mem.gpu_va = nvgpu_gmmu_map(g->mm.pmu.vm, &mem, mem.size,
+	mem.gpu_va = nvgpu_gmmu_map(g->mm.pmu.vm, &mem,
 				NVGPU_VM_MAP_CACHEABLE, gk20a_mem_flag_none,
 				true, APERTURE_SYSMEM);
 
@@ -656,7 +656,7 @@ int test_nvgpu_gmmu_set_pte(struct unit_module *m, struct gk20a *g, void *args)
 	p->mm_is_iommuable = params->is_iommuable;
 	mem.size = TEST_SIZE;
 	mem.cpu_va = (void *) TEST_PA_ADDRESS;
-	mem.gpu_va = nvgpu_gmmu_map(g->mm.pmu.vm, &mem, mem.size,
+	mem.gpu_va = nvgpu_gmmu_map(g->mm.pmu.vm, &mem,
 			params->flags, params->rw_flag, params->priv,
 			params->aperture);
 
@@ -1053,7 +1053,7 @@ int test_nvgpu_page_table_c1_full(struct unit_module *m, struct gk20a *g,
 				&test_iommu_sysmem, NULL, vm, mixed_sgt);
 		} else {
 			mem[mem_i].gpu_va = nvgpu_gmmu_map(vm, &mem[mem_i],
-				mem[mem_i].size, NVGPU_VM_MAP_CACHEABLE,
+				NVGPU_VM_MAP_CACHEABLE,
 				gk20a_mem_flag_none, true, APERTURE_SYSMEM);
 		}
 

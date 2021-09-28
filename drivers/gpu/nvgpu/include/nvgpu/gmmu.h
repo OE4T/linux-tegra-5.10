@@ -281,8 +281,8 @@ int nvgpu_gmmu_init_page_table(struct vm_gk20a *vm);
  * context on the GR, CE to access the given virtual address.
  *
  * @param vm		[in]	Pointer to virtual memory structure.
- * @param mem		[in]	Structure for storing the memory informati on.
- * @param size		[in]	Size of the buffer in bytes.
+ * @param mem		[in]	The previously allocated buffer to map.
+ * @param size		[in]	Size of the mapping in bytes.
  * @param flags		[in]	Mapping flags.
  *                              - Min: NVGPU_VM_MAP_FIXED_OFFSET
  *                              - Max: NVGPU_VM_MAP_PLATFORM_ATOMIC
@@ -311,6 +311,8 @@ int nvgpu_gmmu_init_page_table(struct vm_gk20a *vm);
  * Invalidates the GPU TLB, gm20b_fb_tlb_invalidate does the tlb invalidate.
  * Release the VM GMMU lock.
  *
+ * Note that mem->gpu_va is not updated.
+ *
  * @return	valid GMMU VA start address in case of success.
  * @retval	0 in case of all possible failures.
  * 		Possible Failure cases:
@@ -320,9 +322,22 @@ int nvgpu_gmmu_init_page_table(struct vm_gk20a *vm);
  * 			- invalid inputs.
  *
  */
-u64 nvgpu_gmmu_map(struct vm_gk20a *vm,
+u64 nvgpu_gmmu_map_partial(struct vm_gk20a *vm,
 		   struct nvgpu_mem *mem,
 		   u64 size,
+		   u32 flags,
+		   enum gk20a_mem_rw_flag rw_flag,
+		   bool priv,
+		   enum nvgpu_aperture aperture);
+
+/**
+ * @brief Map a whole buffer into the GMMU.
+ *
+ * This is like nvgpu_gmmu_map_partial() but with the full requested size of
+ * the buffer in nvgpu_mem.size.
+ */
+u64 nvgpu_gmmu_map(struct vm_gk20a *vm,
+		   struct nvgpu_mem *mem,
 		   u32 flags,
 		   enum gk20a_mem_rw_flag rw_flag,
 		   bool priv,

@@ -131,7 +131,7 @@ static u64 nvgpu_gmmu_map_core(struct vm_gk20a *vm,
 /*
  * Map a nvgpu_mem into the GMMU. This is for kernel space to use.
  */
-u64 nvgpu_gmmu_map(struct vm_gk20a *vm,
+u64 nvgpu_gmmu_map_partial(struct vm_gk20a *vm,
 		   struct nvgpu_mem *mem,
 		   u64 size,
 		   u32 flags,
@@ -140,6 +140,20 @@ u64 nvgpu_gmmu_map(struct vm_gk20a *vm,
 		   enum nvgpu_aperture aperture)
 {
 	return nvgpu_gmmu_map_core(vm, mem, 0, size, flags, rw_flag, priv,
+				   aperture);
+}
+
+/*
+ * Map a nvgpu_mem into the GMMU. This is for kernel space to use.
+ */
+u64 nvgpu_gmmu_map(struct vm_gk20a *vm,
+		   struct nvgpu_mem *mem,
+		   u32 flags,
+		   enum gk20a_mem_rw_flag rw_flag,
+		   bool priv,
+		   enum nvgpu_aperture aperture)
+{
+	return nvgpu_gmmu_map_core(vm, mem, 0, mem->size, flags, rw_flag, priv,
 				   aperture);
 }
 
