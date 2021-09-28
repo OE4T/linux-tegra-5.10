@@ -29,7 +29,7 @@
  * @brief MACsec controller register offsets
  * @{
  */
-#define MASCEC_GCM_KEYTABLE_CONFIG		0x0000
+#define MACSEC_GCM_KEYTABLE_CONFIG		0x0000
 #define MACSEC_GCM_KEYTABLE_DATA(x)		(0x0004 + (x * 4))
 #define MACSEC_RX_ICV_ERR_CNTRL 		0x4000
 #define MACSEC_INTERRUPT_COMMON_SR		0x4004
