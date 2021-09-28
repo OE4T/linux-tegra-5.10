@@ -539,11 +539,11 @@ static struct tegra_mce_ops t23x_mce_ops = {
 
 static int t23x_mce_probe(struct platform_device *pdev)
 {
-	int cpu;
+	unsigned int cpu;
 	struct resource *res;
 
 	/* this ARI NS mapping applies to Split, Lock-step and FS */
-	for_each_possible_cpu(cpu) {
+	for (cpu = 0; cpu < MAX_CPUS; cpu++) {
 		res = platform_get_resource(pdev, IORESOURCE_MEM, cpu);
 		ari_bar_array[cpu] = devm_ioremap_resource(&pdev->dev, res);
 		if (IS_ERR(ari_bar_array[cpu])) {
