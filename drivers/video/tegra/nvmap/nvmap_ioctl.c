@@ -911,6 +911,7 @@ int nvmap_ioctl_get_handle_parameters(struct file *filp, void __user *arg)
 {
 	struct nvmap_handle_parameters op;
 	struct nvmap_handle *handle;
+	bool is_ro = false;
 
 	if (copy_from_user(&op, arg, sizeof(op)))
 		return -EFAULT;
@@ -941,6 +942,11 @@ int nvmap_ioctl_get_handle_parameters(struct file *filp, void __user *arg)
 	op.offset = handle->offs;
 
 	op.coherency = handle->flags;
+
+	is_ro = is_nvmap_dmabuf_fd_ro(op.handle);
+
+	if (is_ro)
+		op.access_flags = NVMAP_HANDLE_RO;
 
 	nvmap_handle_put(handle);
 
