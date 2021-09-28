@@ -48,6 +48,10 @@
 #define NV_MACSEC_GENL_NAME	"nv_macsec"
 #define NV_MACSEC_GENL_VERSION	1
 
+#ifdef MACSEC_KEY_PROGRAM
+#define MACSEC_SIZE 0x10000U
+#endif
+
 /* keep the same enum definition in nv macsec supplicant driver */
 enum nv_macsec_sa_attrs {
 	NV_MACSEC_SA_ATTR_UNSPEC,
