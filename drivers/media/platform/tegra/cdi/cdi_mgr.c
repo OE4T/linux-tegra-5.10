@@ -679,12 +679,8 @@ static int cdi_mgr_get_pwr_mode(struct cdi_mgr_priv *cdi_mgr,
 		return -EFAULT;
 	}
 
-	pmode.des_pwr_mode = (cdi_mgr->des_pwr_gpio) ?
-				DES_PWR_GPIO :
-				DES_PWR_NVCCP;
-	pmode.cam_pwr_mode = (cdi_mgr->cam_pwr_max20087) ?
-				CAM_PWR_MAX20087 :
-				CAM_PWR_NVCCP;
+	pmode.des_pwr_mode = cdi_mgr->des_pwr_method;
+	pmode.cam_pwr_mode = cdi_mgr->cam_pwr_method;
 
 	if (copy_to_user(arg, &pmode, sizeof(pmode))) {
 		dev_err(cdi_mgr->pdev,
@@ -947,34 +943,38 @@ static long cdi_mgr_ioctl(
 		wake_up_interruptible(&cdi_mgr->err_queue);
 		break;
 	case CDI_MGR_IOCTL_SET_CAM_PWR_ON:
-		if (down_timeout(&cdi_mgr->max20087.sem,
-			usecs_to_jiffies(TIMEOUT_US)) != 0)
-			dev_err(cdi_mgr->dev,
-				"%s: failed to wait for the semaphore\n",
-				__func__);
-		if (cdi_mgr->max20087.enable) {
-			if (max20087_raw_rd(cdi_mgr, 0x01, &val) != 0)
-				return -EFAULT;
-			val |= (1 << arg);
-			if (max20087_raw_wr(cdi_mgr, 0x01, val) != 0)
-				return -EFAULT;
+		if (cdi_mgr->cam_pwr_method == CAM_PWR_MAX20087) {
+			if (down_timeout(&cdi_mgr->max20087.sem,
+				usecs_to_jiffies(TIMEOUT_US)) != 0)
+				dev_err(cdi_mgr->dev,
+					"%s: failed to wait for the semaphore\n",
+					__func__);
+			if (cdi_mgr->max20087.enable) {
+				if (max20087_raw_rd(cdi_mgr, 0x01, &val) != 0)
+					return -EFAULT;
+				val |= (1 << arg);
+				if (max20087_raw_wr(cdi_mgr, 0x01, val) != 0)
+					return -EFAULT;
+			}
+			up(&cdi_mgr->max20087.sem);
 		}
-		up(&cdi_mgr->max20087.sem);
 		break;
 	case CDI_MGR_IOCTL_SET_CAM_PWR_OFF:
-		if (down_timeout(&cdi_mgr->max20087.sem,
-			usecs_to_jiffies(TIMEOUT_US)) != 0)
-			dev_err(cdi_mgr->dev,
-				"%s: failed to wait for the semaphore\n",
-				__func__);
-		if (cdi_mgr->max20087.enable) {
-			if (max20087_raw_rd(cdi_mgr, 0x01, &val) != 0)
-				return -EFAULT;
-			val &= ~(1 << arg);
-			if (max20087_raw_wr(cdi_mgr, 0x01, val) != 0)
-				return -EFAULT;
+		if (cdi_mgr->cam_pwr_method == CAM_PWR_MAX20087) {
+			if (down_timeout(&cdi_mgr->max20087.sem,
+				usecs_to_jiffies(TIMEOUT_US)) != 0)
+				dev_err(cdi_mgr->dev,
+					"%s: failed to wait for the semaphore\n",
+					__func__);
+			if (cdi_mgr->max20087.enable) {
+				if (max20087_raw_rd(cdi_mgr, 0x01, &val) != 0)
+					return -EFAULT;
+				val &= ~(1 << arg);
+				if (max20087_raw_wr(cdi_mgr, 0x01, val) != 0)
+					return -EFAULT;
+			}
+			up(&cdi_mgr->max20087.sem);
 		}
-		up(&cdi_mgr->max20087.sem);
 		break;
 	case CDI_MGR_IOCTL_ENABLE_ERROR_REPORT:
 		cdi_mgr->err_irq_reported = true;
@@ -1545,12 +1545,24 @@ static int cdi_mgr_probe(struct platform_device *pdev)
 
 	child = of_get_child_by_name(pdev->dev.of_node, "pwr_ctrl");
 	if (child != NULL) {
-		cdi_mgr->des_pwr_gpio =
-			of_property_read_bool(child,
-					"deserializer-pwr-gpio");
-		cdi_mgr->cam_pwr_max20087 =
-			of_property_read_bool(child,
-					"cam-pwr-max20087");
+		if (of_property_read_bool(child,
+					"deserializer-pwr-gpio"))
+			cdi_mgr->des_pwr_method = DES_PWR_GPIO;
+		else if (of_property_read_bool(child,
+					"deserializer-pwr-nvccp"))
+			cdi_mgr->des_pwr_method = DES_PWR_NVCCP;
+		else
+			cdi_mgr->des_pwr_method = DES_PWR_NO_PWR;
+
+		if (of_property_read_bool(child,
+					"cam-pwr-max20087"))
+			cdi_mgr->cam_pwr_method = CAM_PWR_MAX20087;
+		else if (of_property_read_bool(child,
+					"cam-pwr-nvccp"))
+			cdi_mgr->cam_pwr_method = CAM_PWR_NVCCP;
+		else
+			cdi_mgr->cam_pwr_method = CAM_PWR_NO_PWR;
+
 		/* get the max20087 information */
 		child_max20087 = of_get_child_by_name(child, "max20087");
 		if (child_max20087 != NULL) {

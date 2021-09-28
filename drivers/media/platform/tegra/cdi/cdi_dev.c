@@ -413,10 +413,8 @@ static int cdi_dev_get_pwr_mode(
 		return -EFAULT;
 	}
 
-	pmode.des_pwr_mode = (info->des_pwr_gpio) ? DES_PWR_GPIO :
-						DES_PWR_NVCCP;
-	pmode.cam_pwr_mode = (info->cam_pwr_max20087) ? CAM_PWR_MAX20087 :
-						CAM_PWR_NVCCP;
+	pmode.des_pwr_mode = info->des_pwr_method;
+	pmode.cam_pwr_mode = info->cam_pwr_method;
 
 	if (copy_to_user(arg, &pmode, sizeof(pmode))) {
 		dev_err(info->dev,
@@ -546,12 +544,23 @@ static int cdi_dev_probe(struct i2c_client *client,
 		child = of_get_child_by_name(info->pdata->np,
 				"pwr_ctrl");
 		if (child != NULL) {
-			info->des_pwr_gpio =
-				of_property_read_bool(child,
-						"deserializer-pwr-gpio");
-			info->cam_pwr_max20087 =
-				of_property_read_bool(child,
-						"cam-pwr-max20087");
+			if (of_property_read_bool(child,
+						"deserializer-pwr-gpio"))
+				info->des_pwr_method = DES_PWR_GPIO;
+			else if (of_property_read_bool(child,
+						"deserializer-pwr-nvccp"))
+				info->des_pwr_method = DES_PWR_NVCCP;
+			else
+				info->des_pwr_method = DES_PWR_NO_PWR;
+
+			if (of_property_read_bool(child,
+						"cam-pwr-max20087"))
+				info->cam_pwr_method = CAM_PWR_MAX20087;
+			else if (of_property_read_bool(child,
+						"cam-pwr-nvccp"))
+				info->cam_pwr_method = CAM_PWR_NVCCP;
+			else
+				info->cam_pwr_method = CAM_PWR_NO_PWR;
 		}
 	}
 

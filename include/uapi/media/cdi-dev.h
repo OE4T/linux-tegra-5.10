@@ -24,8 +24,10 @@
 
 #define DES_PWR_NVCCP    0U
 #define DES_PWR_GPIO     1U
+#define DES_PWR_NO_PWR   2U
 #define CAM_PWR_NVCCP    0U
 #define CAM_PWR_MAX20087 1U
+#define CAM_PWR_NO_PWR   2U
 
 struct cdi_dev_pwr_mode {
 	__s8 des_pwr_mode;

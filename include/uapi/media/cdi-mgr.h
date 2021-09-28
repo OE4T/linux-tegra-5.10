@@ -42,8 +42,10 @@
 
 #define DES_PWR_NVCCP    0U
 #define DES_PWR_GPIO     1U
+#define DES_PWR_NO_PWR   2U
 #define CAM_PWR_NVCCP    0U
 #define CAM_PWR_MAX20087 1U
+#define CAM_PWR_NO_PWR   2U
 
 struct cdi_mgr_new_dev {
 	__u16 addr;

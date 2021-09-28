@@ -70,8 +70,8 @@ struct cdi_mgr_priv {
 	wait_queue_head_t err_queue;
 	bool err_irq_recvd;
 	bool err_irq_reported;
-	bool des_pwr_gpio;
-	bool cam_pwr_max20087;
+	u8 des_pwr_method;
+	u8 cam_pwr_method;
 	struct max20087_priv max20087;
 	struct tca9539_priv tca9539;
 };

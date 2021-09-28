@@ -29,8 +29,8 @@ struct cdi_dev_info {
 	u32 reg_off;
 	char devname[32];
 	u8 power_is_on;
-	bool des_pwr_gpio;
-	bool cam_pwr_max20087;
+	u8 des_pwr_method;
+	u8 cam_pwr_method;
 };
 
 int cdi_dev_raw_rd(struct cdi_dev_info *info, unsigned int offset,
