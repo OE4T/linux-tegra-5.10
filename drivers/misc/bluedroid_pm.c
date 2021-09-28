@@ -146,9 +146,9 @@ static int bluedroid_pm_gpio_get_value(unsigned int gpio)
 static void bluedroid_pm_gpio_set_value(unsigned int gpio, int value)
 {
 	if (gpio_cansleep(gpio))
-		gpio_set_value_cansleep(gpio, value);
+		gpiod_set_value_cansleep(gpio_to_desc(gpio), value);
 	else
-		gpio_set_value(gpio, value);
+		gpiod_set_value(gpio_to_desc(gpio), value);
 }
 
 /**
@@ -269,6 +269,8 @@ static int bluedroid_pm_probe(struct platform_device *pdev)
 	int ret;
 	bool enable = false;  /* off */
 	struct device_node *node;
+	enum of_gpio_flags of_flags;
+	unsigned long flags;
 
 	bluedroid_pm = kzalloc(sizeof(*bluedroid_pm), GFP_KERNEL);
 	if (!bluedroid_pm)
@@ -292,7 +294,8 @@ static int bluedroid_pm_probe(struct platform_device *pdev)
 	}
 
 	bluedroid_pm->gpio_reset =
-		of_get_named_gpio(node, "bluedroid_pm,reset-gpio", 0);
+		of_get_named_gpio_flags(node, "bluedroid_pm,reset-gpio",
+								 0, &of_flags);
 	bluedroid_pm->gpio_shutdown =
 		of_get_named_gpio(node, "bluedroid_pm,shutdown-gpio", 0);
 	bluedroid_pm->host_wake =
@@ -305,7 +308,9 @@ static int bluedroid_pm_probe(struct platform_device *pdev)
 			     &bluedroid_pm->resume_min_frequency);
 
 	if (gpio_is_valid(bluedroid_pm->gpio_reset)) {
-		ret = gpio_request(bluedroid_pm->gpio_reset, "reset_gpio");
+		flags = (of_flags == OF_GPIO_ACTIVE_LOW) ? GPIOF_ACTIVE_LOW : 0;
+		ret = gpio_request_one(bluedroid_pm->gpio_reset, flags,
+								 "reset_gpio");
 		if (ret) {
 			BDP_ERR("Failed to get reset gpio\n");
 			goto free_bluedriod_pm;
