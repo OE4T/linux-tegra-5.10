@@ -1,7 +1,7 @@
 /*
  * GV11B syncpt cmdbuf
  *
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
 *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -100,8 +100,7 @@ int gv11b_syncpt_alloc_buf(struct nvgpu_channel *c,
 void gv11b_syncpt_free_buf(struct nvgpu_channel *c,
 		struct nvgpu_mem *syncpt_buf)
 {
-	nvgpu_gmmu_unmap(c->vm, syncpt_buf, syncpt_buf->gpu_va);
-	nvgpu_dma_free(c->g, syncpt_buf);
+	nvgpu_dma_unmap_free(c->vm, syncpt_buf);
 }
 
 int gv11b_syncpt_get_sync_ro_map(struct vm_gk20a *vm,

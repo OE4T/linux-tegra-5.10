@@ -163,10 +163,7 @@ void nvgpu_gr_ctx_free_patch_ctx(struct gk20a *g, struct vm_gk20a *vm,
 	struct patch_desc *patch_ctx = &gr_ctx->patch_ctx;
 
 	if (nvgpu_mem_is_valid(&patch_ctx->mem)) {
-		nvgpu_gmmu_unmap(vm, &patch_ctx->mem,
-				 patch_ctx->mem.gpu_va);
-
-		nvgpu_dma_free(g, &patch_ctx->mem);
+		nvgpu_dma_unmap_free(vm, &patch_ctx->mem);
 		patch_ctx->data_count = 0;
 	}
 }
@@ -1027,9 +1024,7 @@ void nvgpu_gr_ctx_free_pm_ctx(struct gk20a *g, struct vm_gk20a *vm,
 	struct pm_ctx_desc *pm_ctx = &gr_ctx->pm_ctx;
 
 	if (pm_ctx->mem.gpu_va != 0ULL) {
-		nvgpu_gmmu_unmap(vm, &pm_ctx->mem, pm_ctx->mem.gpu_va);
-
-		nvgpu_dma_free(g, &pm_ctx->mem);
+		nvgpu_dma_unmap_free(vm, &pm_ctx->mem);
 	}
 }
 

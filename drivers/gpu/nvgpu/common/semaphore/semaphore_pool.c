@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -160,7 +160,7 @@ int nvgpu_semaphore_pool_map(struct nvgpu_semaphore_pool *p,
 fail_free_submem:
 	nvgpu_dma_free(pool_to_gk20a(p), &p->rw_mem);
 fail_unmap:
-	nvgpu_gmmu_unmap(vm, &p->sema_sea->sea_mem, p->gpu_va_ro);
+	nvgpu_gmmu_unmap_addr(vm, &p->sema_sea->sea_mem, p->gpu_va_ro);
 	gpu_sema_dbg(pool_to_gk20a(p),
 		     "  %llu: Failed to map semaphore pool!", p->page_idx);
 fail_unlock:
@@ -176,8 +176,8 @@ void nvgpu_semaphore_pool_unmap(struct nvgpu_semaphore_pool *p,
 {
 	nvgpu_semaphore_sea_lock(p->sema_sea);
 
-	nvgpu_gmmu_unmap(vm, &p->sema_sea->sea_mem, p->gpu_va_ro);
-	nvgpu_gmmu_unmap(vm, &p->rw_mem, p->gpu_va);
+	nvgpu_gmmu_unmap_addr(vm, &p->sema_sea->sea_mem, p->gpu_va_ro);
+	nvgpu_gmmu_unmap_addr(vm, &p->rw_mem, p->gpu_va);
 	nvgpu_dma_free(pool_to_gk20a(p), &p->rw_mem);
 
 	p->gpu_va = 0;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -125,7 +125,7 @@ int vgpu_gv11b_syncpt_alloc_buf(struct nvgpu_channel *c,
 void vgpu_gv11b_syncpt_free_buf(struct nvgpu_channel *c,
 					struct nvgpu_mem *syncpt_buf)
 {
-	nvgpu_gmmu_unmap(c->vm, syncpt_buf, syncpt_buf->gpu_va);
+	nvgpu_gmmu_unmap(c->vm, syncpt_buf);
 	nvgpu_vm_free_va(c->vm, syncpt_buf->gpu_va, GMMU_PAGE_SIZE_KERNEL);
 	nvgpu_dma_free(c->g, syncpt_buf);
 }

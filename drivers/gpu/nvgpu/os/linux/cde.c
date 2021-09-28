@@ -109,7 +109,7 @@ __must_hold(&cde_app->mutex)
 
 	/* release mapped memory */
 	gk20a_deinit_cde_img(cde_ctx);
-	nvgpu_gmmu_unmap(vm, &cbc->compbit_store.mem,
+	nvgpu_gmmu_unmap_addr(vm, &cbc->compbit_store.mem,
 			 cde_ctx->backing_store_vaddr);
 
 	/*
@@ -1442,7 +1442,7 @@ static int gk20a_cde_load(struct gk20a_cde_ctx *cde_ctx)
 	return 0;
 
 err_init_cde_img:
-	nvgpu_gmmu_unmap(ch->vm, &cbc->compbit_store.mem, vaddr);
+	nvgpu_gmmu_unmap_addr(ch->vm, &cbc->compbit_store.mem, vaddr);
 err_map_backingstore:
 err_setup_bind:
 	nvgpu_vm_put(ch->vm);

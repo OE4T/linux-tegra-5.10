@@ -338,7 +338,7 @@ void nvgpu_gr_global_ctx_buffer_unmap(
 	struct vm_gk20a *vm, u64 gpu_va)
 {
 	if (nvgpu_mem_is_valid(&desc[index].mem)) {
-		nvgpu_gmmu_unmap(vm, &desc[index].mem, gpu_va);
+		nvgpu_gmmu_unmap_addr(vm, &desc[index].mem, gpu_va);
 	}
 }
 

@@ -210,7 +210,7 @@ done:
 
 	if (nvgpu_mem_is_valid(&g->syncpt_mem) &&
 			ch->vm->syncpt_ro_map_gpu_va != 0ULL) {
-		nvgpu_gmmu_unmap(ch->vm, &g->syncpt_mem,
+		nvgpu_gmmu_unmap_addr(ch->vm, &g->syncpt_mem,
 				ch->vm->syncpt_ro_map_gpu_va);
 		ch->vm->syncpt_ro_map_gpu_va = 0ULL;
 	}
@@ -262,7 +262,7 @@ done:
 
 	if (nvgpu_mem_is_valid(&g->syncpt_mem) &&
 			ch->vm->syncpt_ro_map_gpu_va != 0ULL) {
-		nvgpu_gmmu_unmap(ch->vm, &g->syncpt_mem,
+		nvgpu_gmmu_unmap_addr(ch->vm, &g->syncpt_mem,
 				ch->vm->syncpt_ro_map_gpu_va);
 		ch->vm->syncpt_ro_map_gpu_va = 0ULL;
 	}
@@ -305,7 +305,7 @@ done:
 
 	if (nvgpu_mem_is_valid(&g->syncpt_mem) &&
 			ch->vm->syncpt_ro_map_gpu_va != 0ULL) {
-		nvgpu_gmmu_unmap(ch->vm, &g->syncpt_mem,
+		nvgpu_gmmu_unmap_addr(ch->vm, &g->syncpt_mem,
 				ch->vm->syncpt_ro_map_gpu_va);
 		ch->vm->syncpt_ro_map_gpu_va = 0ULL;
 	}
@@ -326,7 +326,7 @@ static void syncpt_ro_map_gpu_va_clear(struct gk20a *g, struct nvgpu_channel *ch
 {
 		if (nvgpu_mem_is_valid(&g->syncpt_mem) &&
 				ch->vm->syncpt_ro_map_gpu_va != 0ULL) {
-			nvgpu_gmmu_unmap(ch->vm, &g->syncpt_mem,
+			nvgpu_gmmu_unmap_addr(ch->vm, &g->syncpt_mem,
 					ch->vm->syncpt_ro_map_gpu_va);
 			ch->vm->syncpt_ro_map_gpu_va = 0ULL;
 		} else if (ch->vm->syncpt_ro_map_gpu_va != 0ULL) {

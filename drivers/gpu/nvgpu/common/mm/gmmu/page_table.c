@@ -159,7 +159,7 @@ u64 nvgpu_gmmu_map_fixed(struct vm_gk20a *vm,
 				   aperture);
 }
 
-void nvgpu_gmmu_unmap(struct vm_gk20a *vm, struct nvgpu_mem *mem, u64 gpu_va)
+void nvgpu_gmmu_unmap_addr(struct vm_gk20a *vm, struct nvgpu_mem *mem, u64 gpu_va)
 {
 	struct gk20a *g = gk20a_from_vm(vm);
 
@@ -174,6 +174,11 @@ void nvgpu_gmmu_unmap(struct vm_gk20a *vm, struct nvgpu_mem *mem, u64 gpu_va)
 			     NULL);
 
 	nvgpu_mutex_release(&vm->update_gmmu_lock);
+}
+
+void nvgpu_gmmu_unmap(struct vm_gk20a *vm, struct nvgpu_mem *mem)
+{
+	nvgpu_gmmu_unmap_addr(vm, mem, mem->gpu_va);
 }
 
 int nvgpu_gmmu_init_page_table(struct vm_gk20a *vm)

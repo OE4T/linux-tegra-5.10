@@ -948,7 +948,7 @@ static void nvgpu_vm_remove(struct vm_gk20a *vm)
 
 	if (nvgpu_mem_is_valid(&g->syncpt_mem) &&
 		(vm->syncpt_ro_map_gpu_va != 0ULL)) {
-		nvgpu_gmmu_unmap(vm, &g->syncpt_mem,
+		nvgpu_gmmu_unmap_addr(vm, &g->syncpt_mem,
 				vm->syncpt_ro_map_gpu_va);
 	}
 

@@ -75,9 +75,7 @@ void nvgpu_gr_subctx_free(struct gk20a *g,
 {
 	nvgpu_log_fn(g, " ");
 
-	nvgpu_gmmu_unmap(vm, &subctx->ctx_header,
-		subctx->ctx_header.gpu_va);
-	nvgpu_dma_free(g, &subctx->ctx_header);
+	nvgpu_dma_unmap_free(vm, &subctx->ctx_header);
 	nvgpu_kfree(g, subctx);
 }
 

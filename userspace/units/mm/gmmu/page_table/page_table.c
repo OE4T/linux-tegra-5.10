@@ -552,7 +552,7 @@ int test_nvgpu_gmmu_map_unmap(struct unit_module *m, struct gk20a *g,
 	}
 
 	/* Now unmap the buffer and make sure the PTE is now invalid */
-	nvgpu_gmmu_unmap(g->mm.pmu.vm, &mem, mem.gpu_va);
+	nvgpu_gmmu_unmap(g->mm.pmu.vm, &mem);
 
 	result = nvgpu_get_pte(g, g->mm.pmu.vm, mem.gpu_va, &pte[0]);
 	if (result != 0) {
@@ -856,7 +856,7 @@ int test_nvgpu_gmmu_map_unmap_adv(struct unit_module *m,
 		g->ops.fb.tlb_invalidate = hal_fb_tlb_invalidate_fail;
 	}
 
-	nvgpu_gmmu_unmap(g->mm.pmu.vm, &mem, vaddr);
+	nvgpu_gmmu_unmap_addr(g->mm.pmu.vm, &mem, vaddr);
 
 	if (params->special_unmap_tbl_invalidate_fail) {
 		/* Restore previous op */
@@ -1074,7 +1074,7 @@ int test_nvgpu_page_table_c1_full(struct unit_module *m, struct gk20a *g,
 		}
 
 		/* 3.3. Free the mapping */
-		nvgpu_gmmu_unmap(vm, &mem[mem_i], mem[mem_i].gpu_va);
+		nvgpu_gmmu_unmap(vm, &mem[mem_i]);
 
 		/* 3.4. Verify that the mapping has been cleared */
 		if (check_pte_invalidated(m, g, vm, &mem[mem_i]) != 0) {
@@ -1115,7 +1115,7 @@ static int c2_fixed_allocation(struct unit_module *m, struct gk20a *g,
 	}
 
 	/* Free the mapping */
-	nvgpu_gmmu_unmap(vm, mem_fixed, mem_fixed->gpu_va);
+	nvgpu_gmmu_unmap(vm, mem_fixed);
 
 	/* Verify that the mapping has been cleared */
 	if (check_pte_invalidated(m, g, vm, mem_fixed) != 0) {

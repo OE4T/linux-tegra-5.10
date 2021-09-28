@@ -403,9 +403,16 @@ u64 nvgpu_gmmu_map_fixed(struct vm_gk20a *vm,
  *
  * @return	None.
  */
-void nvgpu_gmmu_unmap(struct vm_gk20a *vm,
+void nvgpu_gmmu_unmap_addr(struct vm_gk20a *vm,
 		      struct nvgpu_mem *mem,
 		      u64 gpu_va);
+
+/**
+ * @brief Unmap a memory mapped by nvgpu_gmmu_map()/nvgpu_gmmu_map_fixed().
+ *
+ * This is like nvgpu_gmmu_unmap_addr() but with the address in nvgpu_mem.gpu_va.
+ */
+void nvgpu_gmmu_unmap(struct vm_gk20a *vm, struct nvgpu_mem *mem);
 
 /**
  * @brief Compute number of words in a PTE.
