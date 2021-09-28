@@ -95,13 +95,13 @@ static void no_return_u32_param(struct gk20a *g, u32 dummy)
 	/* no op  */
 }
 
-int test_setup_env(struct unit_module *m,
+int init_test_setup_env(struct unit_module *m,
 			  struct gk20a *g, void *args)
 {
 	return UNIT_SUCCESS;
 }
 
-int test_free_env(struct unit_module *m,
+int init_test_free_env(struct unit_module *m,
 			 struct gk20a *g, void *args)
 {
 	/* Clean up quiesce thread */
@@ -809,7 +809,7 @@ int test_quiesce(struct unit_module *m, struct gk20a *g, void *args)
 }
 
 struct unit_module_test init_tests[] = {
-	UNIT_TEST(init_setup_env,			test_setup_env,		NULL, 0),
+	UNIT_TEST(init_setup_env,			init_test_setup_env,	NULL, 0),
 	UNIT_TEST(get_litter_value,			test_get_litter_value,	NULL, 0),
 	UNIT_TEST(init_can_busy,			test_can_busy,		NULL, 0),
 	UNIT_TEST(init_get_put,				test_get_put,		NULL, 0),
@@ -819,7 +819,7 @@ struct unit_module_test init_tests[] = {
 	UNIT_TEST(init_poweroff,			test_poweroff,		NULL, 2),
 	UNIT_TEST(init_check_gpu_state,			test_check_gpu_state,	NULL, 2),
 	UNIT_TEST(init_quiesce,				test_quiesce,		NULL, 2),
-	UNIT_TEST(init_free_env,			test_free_env,		NULL, 0),
+	UNIT_TEST(init_free_env,			init_test_free_env,	NULL, 0),
 };
 
 UNIT_MODULE(init, init_tests, UNIT_PRIO_NVGPU_TEST);
