@@ -398,7 +398,7 @@ static int ivc_macsec_kt_config(struct osi_core_priv_data *const osi_core,
 				(void *)kt_config,
 				sizeof(struct osi_macsec_kt_config));
 
-	return osi_core->osd_ops.ivc_send(osi_core, (char *)&msg, sizeof(msg));
+	return osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
 }
 #endif /* MACSEC_KEY_PROGRAM */
 
