@@ -705,7 +705,8 @@ static void lsfm_fill_static_lsb_hdr_info(struct gk20a *g,
 						ndesc->bootloader_param_size;
 		base_size = pnode->lsb_header_v2.ucode_size +
 						ndesc->next_core_elf_size;
-		image_padding_size = PAGE_ALIGN(base_size) - base_size;
+		image_padding_size = NVGPU_ALIGN(base_size,
+					LSF_UCODE_DATA_ALIGNMENT) - base_size;
 		pnode->lsb_header_v2.data_size = ndesc->next_core_elf_size +
 						image_padding_size;
 		pnode->lsb_header_v2.bl_code_size = 0;
