@@ -1125,7 +1125,8 @@ static int erase_sector(struct qspi *flash, u32 offset,
 	/* Set up command buffer. */
 	cmd_addr_buf[0] = flash->cmd_table.qcmd.op_code;
 
-	if (info->jedec_id == JEDEC_ID_S25FX512S)
+	if (info->jedec_id == JEDEC_ID_S25FX512S ||
+		info->jedec_id == JEDEC_ID_S25FS256S)
 		cmd_addr_buf[0] = erase_opcode;
 
 	if (flash->cmd_table.qaddr.len == 3) {
