@@ -275,9 +275,13 @@ static int dce_client_ipc_wait_rpc(struct tegra_dce *d, u32 int_type)
 		return -EINVAL;
 	}
 
+retry_wait:
 	DCE_COND_WAIT_INTERRUPTIBLE(&cl->recv_wait,
 			atomic_read(&cl->complete) == 1,
 			0);
+	if (atomic_read(&cl->complete) != 1)
+		goto retry_wait;
+
 	atomic_set(&cl->complete, 0);
 
 	return 0;
