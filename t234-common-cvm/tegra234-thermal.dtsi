@@ -20,6 +20,8 @@
 
 /* THERMAL gpio definitions */
 #define TEMP_ALERT TEGRA234_MAIN_GPIO(G, 1)
+#define TEGRA234_THERMAL_ZONE_TBOARD (TEGRA234_THERMAL_ZONE_COUNT + 1)
+#define TEGRA234_THERMAL_ZONE_TDIODE (TEGRA234_THERMAL_ZONE_COUNT + 2)
 
 / {
 	bpmp {
@@ -91,6 +93,29 @@
 
 		tj_therm: tj-therm {
 			status = "okay";
+		};
+
+		Tboard_tegra {
+			status = "disabled";
+			polling-delay = <0>;
+			polling-delay-passive = <0>;
+			thermal-sensors = <&tegra_tmp451 TEGRA234_THERMAL_ZONE_TBOARD>;
+
+			thermal-zone-params {
+				governor-name = "pid_thermal_gov";
+			};
+
+		};
+
+		Tdiode_zone: Tdiode_tegra {
+			status = "okay";
+			polling-delay = <0>;
+			polling-delay-passive = <1000>;
+			thermal-sensors = <&tegra_tmp451 TEGRA234_THERMAL_ZONE_TDIODE>;
+
+			thermal-zone-params {
+				governor-name = "pid_thermal_gov";
+			};
 		};
 	};
 };
