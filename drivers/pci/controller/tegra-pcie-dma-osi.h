@@ -88,6 +88,21 @@ struct edma_hw_desc {
 	uint32_t dar_high;
 };
 
+struct edma_hw_desc_llp {
+	volatile union {
+		struct edma_ctrl ctrl_e;
+		uint32_t ctrl_d;
+	} ctrl_reg;
+	uint32_t size;
+	uint32_t sar_low;
+	uint32_t sar_high;
+};
+
+struct edma_dblock {
+	struct edma_hw_desc desc[2];
+	struct edma_hw_desc_llp llp;
+};
+
 static inline unsigned int osi_readl(void *addr)
 {
 	return *(volatile unsigned int *)addr;

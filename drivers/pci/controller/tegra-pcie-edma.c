@@ -27,7 +27,7 @@
 /** TODO: How to handle overflow */
 #define GET_SYNC_TIMEOUT(s)	((((s) * 8)/2000000) + 1000)
 
-#define INCR_DESC(idx, i) ((idx) = ((idx) + (i)) & (ch->desc_sz - 1U))
+#define INCR_DESC(idx, i) ((idx) = ((idx) + (i)) % (ch->desc_sz))
 
 struct edma_chan {
 	void *desc;
@@ -41,8 +41,10 @@ struct edma_chan {
 	struct mutex lock;
 	wait_queue_head_t wq;
 	edma_chan_type_t type;
-	u64 count;
+	u64 wcount;
+	u64 rcount;
 	bool pcs;
+	bool db_pos;
 };
 
 struct edma_prv {
@@ -151,6 +153,7 @@ static inline u32 get_dma_idx_from_llp(struct edma_prv *prv, u32 chan)
 	u64 cur_iova;
 	u32 cur_idx;
 	struct edma_chan *ch = &prv->tx[chan];
+	u64 block_idx, idx_in_block;
 
 	/*
 	 * Read current element address in DMA_LLP register which pending
@@ -161,30 +164,59 @@ static inline u32 get_dma_idx_from_llp(struct edma_prv *prv, u32 chan)
 	cur_iova |= dma_channel_rd(prv->edma_base, chan, DMA_LLP_LOW_OFF_WRCH);
 	/* Compute DMA desc index */
 	/* TODO: Add checks for index spill over */
-	cur_idx = ((cur_iova - ch->dma_iova) / sizeof(struct edma_hw_desc));
+	block_idx = ((cur_iova - ch->dma_iova) / sizeof(struct edma_dblock));
+	idx_in_block = (cur_iova & (sizeof(struct edma_dblock) - 1)) /
+		       sizeof(struct edma_hw_desc);
 
-	return cur_idx % (ch->desc_sz - 1);
+	cur_idx = (block_idx * 2) + idx_in_block;
+
+	return cur_idx % (ch->desc_sz);
 }
 
 static irqreturn_t edma_irq_handler(int irq, void *cookie)
 {
 	struct edma_prv *prv = (struct edma_prv *)cookie;
 	int bit = 0;
-	u32 val;
+	u32 val, idx;
+	struct tegra_pcie_edma_xfer_info *ring;
+	struct edma_hw_desc *dma_ll_virt;
+	struct edma_dblock *db;
 
 	/* TODO: Add Abort handling also here */
 	val = dma_common_rd(prv->edma_base, DMA_WRITE_INT_STATUS_OFF);
-	for_each_set_bit(bit, &prv->wr_busy, DMA_WR_CHNL_NUM) {
+	for (bit = 0; bit < DMA_WR_CHNL_NUM; bit++) {
 		if (BIT(bit) & val) {
 			/* TODO: schedule a work queue for processing */
 			struct edma_chan *ch = &prv->tx[bit];
 
 			dma_common_wr(prv->edma_base, BIT(bit),
 				      DMA_WRITE_INT_CLEAR_OFF);
-			prv->wr_busy &= ~(BIT(bit));
-			wake_up(&ch->wq);
-			//INCR_DESC(ch->r_idx, get_dma_idx_from_llp(prv, bit));
-			ch->r_idx = get_dma_idx_from_llp(prv, bit);
+
+			if (ch->type == EDMA_CHAN_XFER_SYNC) {
+				if (prv->wr_busy & BIT(bit)) {
+					prv->wr_busy &= ~(BIT(bit));
+					wake_up(&ch->wq);
+				} else {
+					dev_err(&prv->pdev->dev, "SYNC mode with wr_busy not set.\n");
+				}
+			}
+
+			idx = get_dma_idx_from_llp(prv, bit);
+			/* TODO add an another pre-defined exit condition */
+			while (ch->r_idx != idx) {
+				ring = &ch->ring[ch->r_idx];
+				db = (struct edma_dblock *)ch->desc + ch->r_idx/2;
+				dma_ll_virt = &db->desc[ch->r_idx % 2];
+				INCR_DESC(ch->r_idx, 1);
+				ch->rcount++;
+				if (ch->type == EDMA_CHAN_XFER_ASYNC && ring->complete) {
+					ring->complete(ring->priv, EDMA_XFER_SUCCESS, NULL);
+					/* Clear ring callback and lie,rie */
+					ring->complete = NULL;
+					dma_ll_virt->ctrl_reg.ctrl_e.lie = 0;
+					dma_ll_virt->ctrl_reg.ctrl_e.rie = 0;
+				}
+			}
 		}
 	}
 
@@ -195,9 +227,10 @@ void *tegra_pcie_edma_initialize(struct tegra_pcie_edma_init_info *info)
 {
 	struct edma_prv *prv;
 	struct resource *dma_res;
-	int32_t ret, i;
+	int32_t ret, i, j;
 	struct edma_chan *ch = NULL;
-	struct edma_hw_desc *dma_ll_virt;
+	struct edma_dblock *db;
+	dma_addr_t addr;
 
 	prv = kzalloc(sizeof(*prv), GFP_KERNEL);
 	if (!prv) {
@@ -236,9 +269,8 @@ void *tegra_pcie_edma_initialize(struct tegra_pcie_edma_init_info *info)
 			ch->type = info->tx[i].ch_type;
 			ch->desc_sz = (info->tx[i].num_descriptors == 0) ?
 				NUM_EDMA_DESC : info->tx[i].num_descriptors;
-			//ch->desc_sz = (ch->desc_sz * 3 ) / 2;
 			ch->desc = dma_alloc_coherent(&prv->pdev->dev,
-			(sizeof(struct edma_hw_desc)) * ch->desc_sz,
+			(sizeof(struct edma_dblock)) * ((ch->desc_sz/2) + 1),
 			&ch->dma_iova, GFP_KERNEL);
 			if (!ch->desc) {
 				dev_err(&prv->pdev->dev, "Cannot allocate required tx descriptos(%d) of size (%lu) for channel:%d\n",
@@ -248,14 +280,26 @@ void *tegra_pcie_edma_initialize(struct tegra_pcie_edma_init_info *info)
 				goto dma_iounmap;
 			}
 
-			memset(ch->desc, 0,
-			       (sizeof(struct edma_hw_desc)) * ch->desc_sz);
+			memset(ch->desc, 0, (sizeof(struct edma_dblock)) *
+					    ((ch->desc_sz/2) + 1));
 
-			dma_ll_virt = (struct edma_hw_desc *)ch->desc + (prv->tx[i].desc_sz - 1);
-			dma_ll_virt->sar_low = lower_32_bits(ch->dma_iova);
-			dma_ll_virt->sar_high = upper_32_bits(ch->dma_iova);
-			dma_ll_virt->ctrl_reg.ctrl_e.llp = 1;
-			dma_ll_virt->ctrl_reg.ctrl_e.tcb = 1;
+			ch->ring = kcalloc(ch->desc_sz, sizeof(*(ch->ring)), GFP_KERNEL);
+			if (!ch->ring)
+				dev_err(&prv->pdev->dev, "Failed to allocate %d channel ring\n",
+					i);
+
+			db = (struct edma_dblock *)ch->desc + ((ch->desc_sz/2) - 1);
+			db->llp.sar_low = lower_32_bits(ch->dma_iova);
+			db->llp.sar_high = upper_32_bits(ch->dma_iova);
+			db->llp.ctrl_reg.ctrl_e.llp = 1;
+			db->llp.ctrl_reg.ctrl_e.tcb = 1;
+			for (j = 0; j < (ch->desc_sz/2 - 1); j++) {
+				db = (struct edma_dblock *)ch->desc + j;
+				addr = ch->dma_iova + (sizeof(struct edma_dblock) * (j+1));
+				db->llp.sar_low = lower_32_bits(addr);
+				db->llp.sar_high = upper_32_bits(addr);
+				db->llp.ctrl_reg.ctrl_e.llp = 1;
+			}
 			ch->pcs = 1;
 		}
 
@@ -271,9 +315,10 @@ void *tegra_pcie_edma_initialize(struct tegra_pcie_edma_init_info *info)
 		if (!prv->irq_name)
 			goto free_dma_desc;
 
-		ret = request_irq(prv->irq, edma_irq_handler,
-				  IRQF_SHARED | IRQF_ONESHOT,
-				  prv->irq_name, prv);
+
+		ret = request_threaded_irq(prv->irq, NULL, edma_irq_handler,
+					   IRQF_SHARED | IRQF_ONESHOT,
+					   prv->irq_name, prv);
 		if (ret < 0) {
 			dev_err(&prv->pdev->dev, "failed to request \"intr\" irq\n");
 			goto free_irq_name;
@@ -321,10 +366,12 @@ edma_xfer_status_t tegra_pcie_edma_submit_xfer(void *cookie,
 	struct edma_prv *prv = (struct edma_prv *)cookie;
 	struct edma_chan *ch;
 	struct edma_hw_desc *dma_ll_virt;
+	struct edma_dblock *db;
 	int i, ret;
 	u64 total_sz = 0;
 	edma_xfer_status_t st = EDMA_XFER_SUCCESS;
 	u32 avail;
+	struct tegra_pcie_edma_xfer_info *ring;
 
 	if (prv == NULL || tx_info == NULL ||
 	    ((tx_info->channel_num >= DMA_WR_CHNL_NUM) &&
@@ -342,7 +389,7 @@ edma_xfer_status_t tegra_pcie_edma_submit_xfer(void *cookie,
 	/* Get hold of the hardware - locking */
 	mutex_lock(&ch->lock);
 
-	avail = (ch->r_idx - ch->w_idx - 2U) & (ch->desc_sz - 1U);
+	avail = (ch->r_idx - ch->w_idx - 1U) & (ch->desc_sz - 1U);
 	if (tx_info->nents > avail) {
 		dev_err(&prv->pdev->dev, "Descriptors full. w_idx %d. r_idx %d, avail %d, req %d\n",
 			ch->w_idx, ch->r_idx, avail, tx_info->nents);
@@ -354,17 +401,9 @@ edma_xfer_status_t tegra_pcie_edma_submit_xfer(void *cookie,
 
 	dev_dbg(&prv->pdev->dev, "xmit for %d nents at %d widx and %d ridx\n",
 		 tx_info->nents, ch->w_idx, ch->r_idx);
-	dma_ll_virt = (struct edma_hw_desc *)ch->desc + ch->w_idx;
+	db = (struct edma_dblock *)ch->desc + (ch->w_idx/2);
 	for (i = 0; i < tx_info->nents; i++) {
-		/* for last index toggle pcs and proceed to next value */
-		if (ch->w_idx == (ch->desc_sz - 1)) {
-			ch->pcs = !ch->pcs;
-			dma_ll_virt = (struct edma_hw_desc *)ch->desc + ch->w_idx;
-			dma_ll_virt->ctrl_reg.ctrl_e.cb = ch->pcs;
-			dev_dbg(&prv->pdev->dev, "Toggled pcs at w_idx %d\n", ch->w_idx);
-			INCR_DESC(ch->w_idx, 1);
-		}
-		dma_ll_virt = (struct edma_hw_desc *)ch->desc + ch->w_idx;
+		dma_ll_virt = &db->desc[ch->db_pos];
 		dma_ll_virt->size = tx_info->desc[i].sz;
 		/* calculate number of packets and add those many headers */
 		total_sz += ((tx_info->desc[i].sz/4096) + 1)*30;
@@ -374,13 +413,29 @@ edma_xfer_status_t tegra_pcie_edma_submit_xfer(void *cookie,
 		dma_ll_virt->dar_low = lower_32_bits(tx_info->desc[i].dst);
 		dma_ll_virt->dar_high = upper_32_bits(tx_info->desc[i].dst);
 		dma_ll_virt->ctrl_reg.ctrl_e.cb = ch->pcs;
+		ch->db_pos = !ch->db_pos;
 		avail = ch->w_idx;
-		INCR_DESC(ch->w_idx, 1);
-		//dma_ll_virt++;
+		ch->w_idx++;
+		if (!ch->db_pos) {
+			ch->wcount = 0;
+			db->llp.ctrl_reg.ctrl_e.cb = ch->pcs;
+			if (ch->w_idx == ch->desc_sz) {
+				ch->pcs = !ch->pcs;
+				db->llp.ctrl_reg.ctrl_e.cb = ch->pcs;
+				dev_dbg(&prv->pdev->dev, "Toggled pcs at w_idx %d\n", ch->w_idx);
+				ch->w_idx = 0;
+			}
+			db = (struct edma_dblock *)ch->desc + (ch->w_idx/2);
+		}
 	}
 
+	ring = &ch->ring[avail];
+	ring->complete = tx_info->complete;
+	ring->priv = tx_info->priv;
+	ring->nents = tx_info->nents;
+	ring->desc = tx_info->desc;
+
 	/* Set LIE or RIE in last element */
-	dma_ll_virt = (struct edma_hw_desc *)ch->desc + avail;
 	dma_ll_virt->ctrl_reg.ctrl_e.lie = 1;
 	if (prv->is_remote_dma)
 		dma_ll_virt->ctrl_reg.ctrl_e.rie = 1;
@@ -396,12 +451,14 @@ edma_xfer_status_t tegra_pcie_edma_submit_xfer(void *cookie,
 				"%s: timeout at %d ch, w_idx(%d), r_idx(%d)\n",
 				__func__, tx_info->channel_num, ch->w_idx,
 				ch->r_idx);
+			dev_err(&prv->pdev->dev, "int status %x",  dma_common_rd(prv->edma_base,
+				DMA_WRITE_INT_STATUS_OFF));
 			st = EDMA_XFER_FAIL_TIMEOUT;
 			goto unlock;
 		}
+		dev_dbg(&prv->pdev->dev, "xmit done for %d nents at %d widx and %d ridx\n",
+			tx_info->nents, ch->w_idx, ch->r_idx);
 	}
-	dev_dbg(&prv->pdev->dev, "xmit done for %d nents at %d widx and %d ridx\n",
-		tx_info->nents, ch->w_idx, ch->r_idx);
 unlock:
 	/* release hardware - unlocking */
 	mutex_unlock(&ch->lock);
