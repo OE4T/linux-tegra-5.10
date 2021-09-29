@@ -41,7 +41,12 @@ Optional properties:
   GM20B_FUSE_OPT_TPC_DISABLE,
   GP10B_FUSE_OPT_ECC_EN,
   GV11B_FUSE_OPT_TPC_DISABLE
-
+- support-gpu-tools: Controls the support for debug tools like profiler,
+  debugger and feature like CTXSW tracing. Value of 0 indicates that the
+  above debug tools are not supported. Any value other than 0 indicates
+  that the driver support for above debug tools is enabled. The debug
+  tools support is enabled by default, even if the property is missing
+  in the GPU DT node.
 
 Example for GP10B:
 
@@ -80,4 +85,5 @@ Example for GV11B:
                 clock-names = "gpu", "gpu_sys";
                 resets = <&bpmp_resets TEGRA194_RESET_GPU>;
                 dma-coherent;
+                support-gpu-tools = <1>;
         };
