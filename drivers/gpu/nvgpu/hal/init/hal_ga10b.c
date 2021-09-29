@@ -628,6 +628,7 @@ static const struct gops_gr_init ga10b_ops_gr_init = {
 	.rop_mapping = gv11b_gr_init_rop_mapping,
 	.get_rtv_cb_size = tu104_gr_init_get_rtv_cb_size,
 	.commit_rtv_cb = tu104_gr_init_commit_rtv_cb,
+	.commit_rops_crop_override = ga10b_gr_init_commit_rops_crop_override,
 #endif /* CONFIG_NVGPU_GRAPHICS */
 #ifdef CONFIG_NVGPU_GFXP
 	.preemption_state = gv11b_gr_init_preemption_state,

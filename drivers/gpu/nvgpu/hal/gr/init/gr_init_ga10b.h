@@ -61,6 +61,8 @@ u32 ga10b_gr_init_get_attrib_cb_gfxp_size(struct gk20a *g);
 
 u32 ga10b_gr_init_get_ctx_spill_size(struct gk20a *g);
 u32 ga10b_gr_init_get_ctx_betacb_size(struct gk20a *g);
+void ga10b_gr_init_commit_rops_crop_override(struct gk20a *g,
+			struct nvgpu_gr_ctx *gr_ctx, bool patch);
 
 #endif /* CONFIG_NVGPU_GRAPHICS */
 

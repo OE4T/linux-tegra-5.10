@@ -840,6 +840,8 @@ struct gops_gr_init {
 	u32 (*get_rtv_cb_size)(struct gk20a *g);
 	void (*commit_rtv_cb)(struct gk20a *g, u64 addr,
 			      struct nvgpu_gr_ctx *gr_ctx, bool patch);
+	void (*commit_rops_crop_override)(struct gk20a *g,
+			      struct nvgpu_gr_ctx *gr_ctx, bool patch);
 #endif
 #ifdef CONFIG_NVGPU_GFXP
 	int (*preemption_state)(struct gk20a *g);

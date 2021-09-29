@@ -25,6 +25,7 @@
 #include <nvgpu/soc.h>
 #include <nvgpu/log.h>
 #include <nvgpu/bug.h>
+#include <nvgpu/gr/ctx.h>
 #include <nvgpu/static_analysis.h>
 
 #include "gr_init_ga10b.h"
@@ -58,6 +59,19 @@ u32 ga10b_gr_init_get_ctx_betacb_size(struct gk20a *g)
 			gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v()));
 }
 
+void ga10b_gr_init_commit_rops_crop_override(struct gk20a *g,
+				struct nvgpu_gr_ctx *gr_ctx, bool patch)
+{
+	if (g->emulate_mode) {
+		u32 data = 0U;
+		data = nvgpu_readl(g, gr_pri_gpcs_rops_crop_debug1_r());
+		data = set_field(data,
+			gr_pri_gpcs_rops_crop_debug1_crd_cond_read_m(),
+			gr_pri_gpcs_rops_crop_debug1_crd_cond_read_disable_f());
+		nvgpu_gr_ctx_patch_write(g, gr_ctx,
+			gr_pri_gpcs_rops_crop_debug1_r(), data, patch);
+	}
+}
 #endif
 
 #ifdef CONFIG_NVGPU_SET_FALCON_ACCESS_MAP

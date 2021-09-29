@@ -400,6 +400,12 @@ void nvgpu_gr_obj_ctx_commit_global_ctx_buffers(struct gk20a *g,
 	}
 #endif
 
+#ifdef CONFIG_NVGPU_GRAPHICS
+	if (g->ops.gr.init.commit_rops_crop_override != NULL) {
+		g->ops.gr.init.commit_rops_crop_override(g, gr_ctx, patch);
+	}
+#endif
+
 	if (patch) {
 		nvgpu_gr_ctx_patch_write_end(g, gr_ctx, false);
 	}
