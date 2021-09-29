@@ -348,7 +348,7 @@ static int nvdec_probe(struct platform_device *pdev)
 	struct device *dev = &pdev->dev;
 	struct host1x_syncpt **syncpts;
 	struct nvdec *nvdec;
-	u32 instance;
+	u32 host_class;
 	int err;
 
 	/* inherit DMA mask from host1x parent */
@@ -378,12 +378,16 @@ static int nvdec_probe(struct platform_device *pdev)
 		return PTR_ERR(nvdec->clk);
 	}
 
-	err = of_property_read_u32(dev->of_node, "nvidia,instance", &instance);
-	if (err < 0)
-		instance = 0;
+	err = clk_set_rate(nvdec->clk, ULONG_MAX);
+	if (err < 0) {
+		dev_err(&pdev->dev, "failed to set clock rate\n");
+		return err;
+	}
 
-	if (instance >= nvdec->config->num_instances)
-		return -EINVAL;
+	err = of_property_read_u32(dev->of_node, "nvidia,host1x-class",
+				   &host_class);
+	if (err < 0)
+		host_class = HOST1X_CLASS_NVDEC;
 
 	nvdec->falcon.dev = dev;
 	nvdec->falcon.regs = nvdec->regs;
@@ -397,10 +401,7 @@ static int nvdec_probe(struct platform_device *pdev)
 	INIT_LIST_HEAD(&nvdec->client.base.list);
 	nvdec->client.base.ops = &nvdec_client_ops;
 	nvdec->client.base.dev = dev;
-	if (instance == 0)
-		nvdec->client.base.class = HOST1X_CLASS_NVDEC;
-	else
-		nvdec->client.base.class = HOST1X_CLASS_NVDEC1;
+	nvdec->client.base.class = host_class;
 	nvdec->client.base.syncpts = syncpts;
 	nvdec->client.base.num_syncpts = 1;
 	nvdec->dev = dev;
