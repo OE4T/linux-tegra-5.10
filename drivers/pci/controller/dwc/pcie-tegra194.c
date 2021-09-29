@@ -538,7 +538,7 @@ static irqreturn_t tegra_pcie_rp_irq_handler(int irq, void *arg)
 		status_l1 = appl_readl(pcie, APPL_INTR_STATUS_L1_8_0);
 		if (status_l1 & APPL_INTR_STATUS_L1_8_0_EDMA_INT_MASK) {
 #if defined(CONFIG_PCIE_RP_DMA_TEST)
-			tegra_pcie_dma_status_clr(pcie);
+			irq_ret = IRQ_WAKE_THREAD;
 #else
 			irq_ret = IRQ_NONE;
 #endif
@@ -596,22 +596,33 @@ static irqreturn_t tegra_pcie_rp_irq_thread(int irq, void *arg)
 	struct pcie_port *pp;
 	struct pci_bus *bus;
 	u32 speed;
+	u32 status_l0, status_l1;
 
 	pp = &pcie->pci.pp;
 	bus = pp->bridge->bus;
 
-	if (!pcie->link_status_change || !bus)
-		return IRQ_HANDLED;
+	status_l0 = appl_readl(pcie, APPL_INTR_STATUS_L0);
+	if (status_l0 & APPL_INTR_STATUS_L0_INT_INT) {
+		status_l1 = appl_readl(pcie, APPL_INTR_STATUS_L1_8_0);
+		if (status_l1 & APPL_INTR_STATUS_L1_8_0_EDMA_INT_MASK) {
+#if defined(CONFIG_PCIE_RP_DMA_TEST)
+			tegra_pcie_dma_status_clr(pcie);
+#endif
+		}
+	}
 
-	pcie->link_status_change = false;
-	pci_lock_rescan_remove();
-	pci_rescan_bus(bus);
-	pci_unlock_rescan_remove();
+	if (bus && pcie->link_status_change) {
+		pcie->link_status_change = false;
+		pci_lock_rescan_remove();
+		pci_rescan_bus(bus);
+		pci_unlock_rescan_remove();
 
-	speed = dw_pcie_readw_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKSTA) &
-		PCI_EXP_LNKSTA_CLS;
-	if (speed > 0)
-		clk_set_rate(pcie->core_clk, pcie_gen_freq[speed - 1]);
+		speed = dw_pcie_readw_dbi(pci,
+					  pcie->pcie_cap_base + PCI_EXP_LNKSTA);
+		speed &= PCI_EXP_LNKSTA_CLS;
+		if (speed > 0)
+			clk_set_rate(pcie->core_clk, pcie_gen_freq[speed - 1]);
+	}
 
 	return IRQ_HANDLED;
 }
