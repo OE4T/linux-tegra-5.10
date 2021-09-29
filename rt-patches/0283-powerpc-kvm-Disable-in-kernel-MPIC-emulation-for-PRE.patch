@@ -1,4 +1,4 @@
-From 3f7156c68ad7a76b2166f8b4b3e9fd458beda70b Mon Sep 17 00:00:00 2001
+From 981e656e82a1d0a27e89df0a8319eeaa5b97973b Mon Sep 17 00:00:00 2001
 From: Bogdan Purcareata <bogdan.purcareata@freescale.com>
 Date: Fri, 24 Apr 2015 15:53:13 +0000
 Subject: [PATCH 283/304] powerpc/kvm: Disable in-kernel MPIC emulation for
@@ -28,7 +28,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 1 insertion(+)
 
 diff --git a/arch/powerpc/kvm/Kconfig b/arch/powerpc/kvm/Kconfig
-index 549591d9aaa2..efb5bfe93f70 100644
+index 549591d..efb5bfe 100644
 --- a/arch/powerpc/kvm/Kconfig
 +++ b/arch/powerpc/kvm/Kconfig
 @@ -178,6 +178,7 @@ config KVM_E500MC
@@ -40,5 +40,5 @@ index 549591d9aaa2..efb5bfe93f70 100644
  	select HAVE_KVM_IRQFD
  	select HAVE_KVM_IRQ_ROUTING
 -- 
-2.33.0
+2.7.4
 

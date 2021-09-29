@@ -1,4 +1,4 @@
-From 38417312595dfe3f3391d82ef4c5ede5c83c8dd2 Mon Sep 17 00:00:00 2001
+From d7ad253685b758d6e1fc64903d1462a9e792790b Mon Sep 17 00:00:00 2001
 From: Haris Okanovic <haris.okanovic@ni.com>
 Date: Tue, 15 Aug 2017 15:13:08 -0500
 Subject: [PATCH 288/304] tpm_tis: fix stall after iowrite*()s
@@ -25,7 +25,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 27 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/char/tpm/tpm_tis.c b/drivers/char/tpm/tpm_tis.c
-index 4ed6e660273a..c2bd0d40b5fc 100644
+index 4ed6e66..c2bd0d4 100644
 --- a/drivers/char/tpm/tpm_tis.c
 +++ b/drivers/char/tpm/tpm_tis.c
 @@ -50,6 +50,31 @@ static inline struct tpm_tis_tcg_phy *to_tpm_tis_tcg_phy(struct tpm_tis_data *da
@@ -79,5 +79,5 @@ index 4ed6e660273a..c2bd0d40b5fc 100644
  	return 0;
  }
 -- 
-2.33.0
+2.7.4
 

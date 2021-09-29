@@ -1,4 +1,4 @@
-From 27f601349c94e90684c64e75357191e66717ade0 Mon Sep 17 00:00:00 2001
+From 6e63888bc2eca8972a3a442412420e22ef32a30a Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Tue, 8 Jun 2021 00:37:31 -0400
 Subject: [PATCH 296/304] sched: Simplify migration_cpu_stop()
@@ -23,14 +23,14 @@ Link: https://lkml.kernel.org/r/20210224131355.430014682@infradead.org
 Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
 Signed-off-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
 ---
- kernel/sched/core.c | 56 +++++++--------------------------------------
+ kernel/sched/core.c | 56 ++++++++---------------------------------------------
  1 file changed, 8 insertions(+), 48 deletions(-)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 9833ede9ac2f..7cbf732732f3 100644
+index 21520c7..0be7ee9 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
-@@ -1932,8 +1932,8 @@ static struct rq *__migrate_task(struct rq *rq, struct rq_flags *rf,
+@@ -1945,8 +1945,8 @@ static struct rq *__migrate_task(struct rq *rq, struct rq_flags *rf,
   */
  static int migration_cpu_stop(void *data)
  {
@@ -40,7 +40,7 @@ index 9833ede9ac2f..7cbf732732f3 100644
  	struct task_struct *p = arg->task;
  	int dest_cpu = arg->dest_cpu;
  	struct rq *rq = this_rq();
-@@ -1955,25 +1955,6 @@ static int migration_cpu_stop(void *data)
+@@ -1968,25 +1968,6 @@ static int migration_cpu_stop(void *data)
  	raw_spin_lock(&p->pi_lock);
  	rq_lock(rq, &rf);
  
@@ -66,7 +66,7 @@ index 9833ede9ac2f..7cbf732732f3 100644
  	/*
  	 * If task_rq(p) != rq, it cannot be migrated here, because we're
  	 * holding rq->lock, if p->on_rq == 0 it cannot get enqueued because
-@@ -1984,31 +1965,20 @@ static int migration_cpu_stop(void *data)
+@@ -1997,31 +1978,20 @@ static int migration_cpu_stop(void *data)
  			goto out;
  
  		if (pending) {
@@ -102,7 +102,7 @@ index 9833ede9ac2f..7cbf732732f3 100644
  		/*
  		 * This happens when we get migrated between migrate_enable()'s
  		 * preempt_enable() and scheduling the stopper task. At that
-@@ -2023,22 +1993,13 @@ static int migration_cpu_stop(void *data)
+@@ -2036,23 +2006,14 @@ static int migration_cpu_stop(void *data)
  		 * ->pi_lock, so the allowed mask is stable - if it got
  		 * somewhere allowed, we're done.
  		 */
@@ -115,7 +115,7 @@ index 9833ede9ac2f..7cbf732732f3 100644
  			goto out;
  		}
  
--		/*
+ 		/*
 -		 * When this was migrate_enable() but we no longer have an
 -		 * @pending, a concurrent SCA 'fixed' things and we should be
 -		 * valid again. Nothing to do.
@@ -125,10 +125,11 @@ index 9833ede9ac2f..7cbf732732f3 100644
 -			goto out;
 -		}
 -
- 		/*
+-		/*
  		 * When migrate_enable() hits a rq mis-match we can't reliably
  		 * determine is_migration_disabled() and so have to chase after
-@@ -2056,7 +2017,6 @@ static int migration_cpu_stop(void *data)
+ 		 * it.
+@@ -2069,7 +2030,6 @@ static int migration_cpu_stop(void *data)
  		complete_all(&pending->done);
  
  	/* For pending->{arg,stop_work} */
@@ -137,5 +138,5 @@ index 9833ede9ac2f..7cbf732732f3 100644
  		wake_up_var(&pending->refs);
  
 -- 
-2.33.0
+2.7.4
 

@@ -1,4 +1,4 @@
-From e2135d51c7b3fe7bcaf46ad440dab6e096fcdd63 Mon Sep 17 00:00:00 2001
+From de77d5e22f0e213e0c3283dffb1b02073198be43 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Sat, 27 May 2017 19:02:06 +0200
 Subject: [PATCH 193/304] net/core: disable NET_RX_BUSY_POLL on RT
@@ -26,7 +26,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/net/Kconfig b/net/Kconfig
-index d6567162c1cf..05b0f041f039 100644
+index d656716..05b0f04 100644
 --- a/net/Kconfig
 +++ b/net/Kconfig
 @@ -282,7 +282,7 @@ config CGROUP_NET_CLASSID
@@ -39,5 +39,5 @@ index d6567162c1cf..05b0f041f039 100644
  config BQL
  	bool
 -- 
-2.33.0
+2.7.4
 

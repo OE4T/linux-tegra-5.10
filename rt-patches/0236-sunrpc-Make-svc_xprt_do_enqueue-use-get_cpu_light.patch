@@ -1,4 +1,4 @@
-From 09c2c75274b70456d8ac8a9da2eccd48bf2998e1 Mon Sep 17 00:00:00 2001
+From fddc31d80b536f0885c89097935ec6d88bb7066a Mon Sep 17 00:00:00 2001
 From: Mike Galbraith <umgwanakikbuti@gmail.com>
 Date: Wed, 18 Feb 2015 16:05:28 +0100
 Subject: [PATCH 236/304] sunrpc: Make svc_xprt_do_enqueue() use
@@ -34,7 +34,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/net/sunrpc/svc_xprt.c b/net/sunrpc/svc_xprt.c
-index 06e503466c32..16bd1278a989 100644
+index 06e5034..16bd127 100644
 --- a/net/sunrpc/svc_xprt.c
 +++ b/net/sunrpc/svc_xprt.c
 @@ -422,7 +422,7 @@ void svc_xprt_do_enqueue(struct svc_xprt *xprt)
@@ -56,5 +56,5 @@ index 06e503466c32..16bd1278a989 100644
  }
  EXPORT_SYMBOL_GPL(svc_xprt_do_enqueue);
 -- 
-2.33.0
+2.7.4
 

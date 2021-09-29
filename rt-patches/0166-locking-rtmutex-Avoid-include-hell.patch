@@ -1,4 +1,4 @@
-From 5f204877a8504c8d1f7fb9fd7e4a89bdaee1b4ca Mon Sep 17 00:00:00 2001
+From e0f1b88c6868e704e171621d09fcf0e99f80fd70 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Wed, 29 Jun 2011 20:06:39 +0200
 Subject: [PATCH 166/304] locking/rtmutex: Avoid include hell
@@ -12,7 +12,7 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/include/linux/rtmutex.h b/include/linux/rtmutex.h
-index 243fabc2c85f..add1dab27df5 100644
+index 243fabc..add1dab 100644
 --- a/include/linux/rtmutex.h
 +++ b/include/linux/rtmutex.h
 @@ -15,7 +15,7 @@
@@ -25,5 +25,5 @@ index 243fabc2c85f..add1dab27df5 100644
  extern int max_lock_depth; /* for sysctl */
  
 -- 
-2.33.0
+2.7.4
 

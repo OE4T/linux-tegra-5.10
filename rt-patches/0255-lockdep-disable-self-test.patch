@@ -1,4 +1,4 @@
-From 7efeb917aea170f7c90773f9431e9b3da719a5b9 Mon Sep 17 00:00:00 2001
+From da5b5bd6ad25cf43e392c3be4832e7191efdadf9 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 17 Oct 2017 16:36:18 +0200
 Subject: [PATCH 255/304] lockdep: disable self-test
@@ -17,7 +17,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
-index ffccc13d685b..b9bded0e249b 100644
+index bf17479..474f781 100644
 --- a/lib/Kconfig.debug
 +++ b/lib/Kconfig.debug
 @@ -1329,7 +1329,7 @@ config DEBUG_ATOMIC_SLEEP
@@ -30,5 +30,5 @@ index ffccc13d685b..b9bded0e249b 100644
  	  Say Y here if you want the kernel to run a short self-test during
  	  bootup. The self-test checks whether common types of locking bugs
 -- 
-2.33.0
+2.7.4
 

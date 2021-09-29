@@ -1,4 +1,4 @@
-From dd7b51e4a1517d7102072fd04a45ad49a72ef3fd Mon Sep 17 00:00:00 2001
+From f7facf89d0b8fa055faa98cf96ec362791a0af80 Mon Sep 17 00:00:00 2001
 From: Matt Fleming <matt@codeblueprint.co.uk>
 Date: Tue, 7 Apr 2020 10:54:13 +0100
 Subject: [PATCH 290/304] signal: Prevent double-free of user struct
@@ -32,7 +32,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/kernel/signal.c b/kernel/signal.c
-index bad7873f8949..0be3c40c5662 100644
+index bad7873..0be3c40 100644
 --- a/kernel/signal.c
 +++ b/kernel/signal.c
 @@ -495,8 +495,8 @@ static void sigqueue_free_current(struct sigqueue *q)
@@ -47,5 +47,5 @@ index bad7873f8949..0be3c40c5662 100644
  		  __sigqueue_free(q);
  }
 -- 
-2.33.0
+2.7.4
 

@@ -1,4 +1,4 @@
-From 085ad6e4a95b6ca659d2ea29b545860159a0282d Mon Sep 17 00:00:00 2001
+From ea8bee9e843c839e7719a189d6103025c5a88c28 Mon Sep 17 00:00:00 2001
 From: Scott Wood <swood@redhat.com>
 Date: Wed, 11 Sep 2019 17:57:29 +0100
 Subject: [PATCH 231/304] rcutorture: Avoid problematic critical section
@@ -38,11 +38,11 @@ happening elsewhere.
 Signed-off-by: Scott Wood <swood@redhat.com>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- kernel/rcu/rcutorture.c | 97 +++++++++++++++++++++++++++++++++++------
+ kernel/rcu/rcutorture.c | 97 ++++++++++++++++++++++++++++++++++++++++++-------
  1 file changed, 83 insertions(+), 14 deletions(-)
 
 diff --git a/kernel/rcu/rcutorture.c b/kernel/rcu/rcutorture.c
-index 916ea4f66e4b..eb089d3035d5 100644
+index 916ea4f6..eb089d3 100644
 --- a/kernel/rcu/rcutorture.c
 +++ b/kernel/rcu/rcutorture.c
 @@ -61,10 +61,13 @@ MODULE_AUTHOR("Paul E. McKenney <paulmck@linux.ibm.com> and Josh Triplett <josh@
@@ -191,5 +191,5 @@ index 916ea4f66e4b..eb089d3035d5 100644
  }
  
 -- 
-2.33.0
+2.7.4
 

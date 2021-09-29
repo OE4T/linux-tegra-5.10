@@ -1,4 +1,4 @@
-From a0a15ed22952a576171a9714e0b396a83fdb9ad3 Mon Sep 17 00:00:00 2001
+From 2136f53117eb06f8c336876d58d70129d938ceaa Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Wed, 7 Mar 2012 20:51:03 +0100
 Subject: [PATCH 237/304] rt: Introduce cpu_chill()
@@ -61,7 +61,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  2 files changed, 36 insertions(+)
 
 diff --git a/include/linux/delay.h b/include/linux/delay.h
-index 1d0e2ce6b6d9..02b37178b54f 100644
+index 1d0e2ce..02b3717 100644
 --- a/include/linux/delay.h
 +++ b/include/linux/delay.h
 @@ -76,4 +76,10 @@ static inline void fsleep(unsigned long usecs)
@@ -76,10 +76,10 @@ index 1d0e2ce6b6d9..02b37178b54f 100644
 +
  #endif /* defined(_LINUX_DELAY_H) */
 diff --git a/kernel/time/hrtimer.c b/kernel/time/hrtimer.c
-index 9505b1f21cdf..1256f2ce948b 100644
+index 4ef9071..6eb4432 100644
 --- a/kernel/time/hrtimer.c
 +++ b/kernel/time/hrtimer.c
-@@ -2006,6 +2006,36 @@ SYSCALL_DEFINE2(nanosleep_time32, struct old_timespec32 __user *, rqtp,
+@@ -2052,6 +2052,36 @@ SYSCALL_DEFINE2(nanosleep_time32, struct old_timespec32 __user *, rqtp,
  }
  #endif
  
@@ -117,5 +117,5 @@ index 9505b1f21cdf..1256f2ce948b 100644
   * Functions related to boot-time initialization:
   */
 -- 
-2.33.0
+2.7.4
 

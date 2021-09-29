@@ -1,4 +1,4 @@
-From 2745a0d531609914f2375434959208c9bcc9f52b Mon Sep 17 00:00:00 2001
+From 3db1ce263ac8b91f70fac38f147fa316d7be84e1 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 12 Jul 2011 15:38:34 +0200
 Subject: [PATCH 240/304] net: Use skbufhead with raw lock
@@ -14,7 +14,7 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
  2 files changed, 10 insertions(+), 3 deletions(-)
 
 diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index 2d01b2bbb746..4277cbc5c6f5 100644
+index 0a12398..9e2a8e6a 100644
 --- a/include/linux/skbuff.h
 +++ b/include/linux/skbuff.h
 @@ -295,6 +295,7 @@ struct sk_buff_head {
@@ -39,7 +39,7 @@ index 2d01b2bbb746..4277cbc5c6f5 100644
  		struct lock_class_key *class)
  {
 diff --git a/net/core/dev.c b/net/core/dev.c
-index 13c1daa53f41..05858294da96 100644
+index 13c1daa..0585829 100644
 --- a/net/core/dev.c
 +++ b/net/core/dev.c
 @@ -222,14 +222,14 @@ static inline struct hlist_head *dev_index_hash(struct net *net, int ifindex)
@@ -69,5 +69,5 @@ index 13c1daa53f41..05858294da96 100644
  #ifdef CONFIG_XFRM_OFFLOAD
  		skb_queue_head_init(&sd->xfrm_backlog);
 -- 
-2.33.0
+2.7.4
 

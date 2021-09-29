@@ -1,4 +1,4 @@
-From e389a1dd2901d9105f04e36a946a51c630a565b1 Mon Sep 17 00:00:00 2001
+From 172dc6e9ece12165e1ada4ceb1ff360a697097e8 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 8 Jan 2013 21:36:51 +0100
 Subject: [PATCH 273/304] tty/serial/pl011: Make the locking work on RT
@@ -12,7 +12,7 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
  1 file changed, 11 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/tty/serial/amba-pl011.c b/drivers/tty/serial/amba-pl011.c
-index 87dc3fc15694..c529a804b6fc 100644
+index 87dc3fc..c529a80 100644
 --- a/drivers/tty/serial/amba-pl011.c
 +++ b/drivers/tty/serial/amba-pl011.c
 @@ -2201,18 +2201,24 @@ pl011_console_write(struct console *co, const char *s, unsigned int count)
@@ -55,5 +55,5 @@ index 87dc3fc15694..c529a804b6fc 100644
  	clk_disable(uap->clk);
  }
 -- 
-2.33.0
+2.7.4
 

@@ -1,4 +1,4 @@
-From 7e2128fa00dd3a1cda7e865f4c2ffee7048d7820 Mon Sep 17 00:00:00 2001
+From ae0879219292eaf429839de883a8d2a629907079 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Fri, 23 Oct 2020 12:12:04 +0200
 Subject: [PATCH 007/304] sched/hotplug: Consolidate task migration on CPU
@@ -33,12 +33,12 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
  include/linux/cpuhotplug.h    |   1 +
  include/linux/sched/hotplug.h |   2 +
- kernel/cpu.c                  |   9 +-
- kernel/sched/core.c           | 154 ++++++++--------------------------
+ kernel/cpu.c                  |   9 ++-
+ kernel/sched/core.c           | 154 ++++++++++--------------------------------
  4 files changed, 46 insertions(+), 120 deletions(-)
 
 diff --git a/include/linux/cpuhotplug.h b/include/linux/cpuhotplug.h
-index 8fb893ed205e..5c0a0883b91a 100644
+index 8fb893e..5c0a088 100644
 --- a/include/linux/cpuhotplug.h
 +++ b/include/linux/cpuhotplug.h
 @@ -153,6 +153,7 @@ enum cpuhp_state {
@@ -50,7 +50,7 @@ index 8fb893ed205e..5c0a0883b91a 100644
  	CPUHP_AP_X86_VDSO_VMA_ONLINE,
  	CPUHP_AP_IRQ_AFFINITY_ONLINE,
 diff --git a/include/linux/sched/hotplug.h b/include/linux/sched/hotplug.h
-index 9a62ffdd296f..412cdaba33eb 100644
+index 9a62ffd..412cdab 100644
 --- a/include/linux/sched/hotplug.h
 +++ b/include/linux/sched/hotplug.h
 @@ -11,8 +11,10 @@ extern int sched_cpu_activate(unsigned int cpu);
@@ -65,7 +65,7 @@ index 9a62ffdd296f..412cdaba33eb 100644
  #endif
  
 diff --git a/kernel/cpu.c b/kernel/cpu.c
-index 67c22941b5f2..016f2d0686b6 100644
+index 67c2294..016f2d06 100644
 --- a/kernel/cpu.c
 +++ b/kernel/cpu.c
 @@ -1655,7 +1655,7 @@ static struct cpuhp_step cpuhp_hp_states[] = {
@@ -92,10 +92,10 @@ index 67c22941b5f2..016f2d0686b6 100644
  	[CPUHP_AP_SMPBOOT_THREADS] = {
  		.name			= "smpboot/threads:online",
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index af46a8101021..e29e2484532f 100644
+index 54f418e..14d75fd 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
-@@ -6721,120 +6721,6 @@ void idle_task_exit(void)
+@@ -6734,120 +6734,6 @@ void idle_task_exit(void)
  	/* finish_cpu(), as ran on the BP, will clean up the active_mm state */
  }
  
@@ -216,7 +216,7 @@ index af46a8101021..e29e2484532f 100644
  static int __balance_push_cpu_stop(void *arg)
  {
  	struct task_struct *p = arg;
-@@ -7103,10 +6989,6 @@ int sched_cpu_deactivate(unsigned int cpu)
+@@ -7116,10 +7002,6 @@ int sched_cpu_deactivate(unsigned int cpu)
  		return ret;
  	}
  	sched_domains_numa_masks_clear(cpu);
@@ -227,7 +227,7 @@ index af46a8101021..e29e2484532f 100644
  	return 0;
  }
  
-@@ -7126,6 +7008,41 @@ int sched_cpu_starting(unsigned int cpu)
+@@ -7139,6 +7021,41 @@ int sched_cpu_starting(unsigned int cpu)
  }
  
  #ifdef CONFIG_HOTPLUG_CPU
@@ -269,7 +269,7 @@ index af46a8101021..e29e2484532f 100644
  int sched_cpu_dying(unsigned int cpu)
  {
  	struct rq *rq = cpu_rq(cpu);
-@@ -7139,7 +7056,6 @@ int sched_cpu_dying(unsigned int cpu)
+@@ -7152,7 +7069,6 @@ int sched_cpu_dying(unsigned int cpu)
  		BUG_ON(!cpumask_test_cpu(cpu, rq->rd->span));
  		set_rq_offline(rq);
  	}
@@ -278,5 +278,5 @@ index af46a8101021..e29e2484532f 100644
  	rq_unlock_irqrestore(rq, &rf);
  
 -- 
-2.33.0
+2.7.4
 

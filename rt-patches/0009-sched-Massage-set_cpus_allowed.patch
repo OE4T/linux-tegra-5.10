@@ -1,4 +1,4 @@
-From 38cc00bb5330ecd6d075076473be1cc5b3141a7d Mon Sep 17 00:00:00 2001
+From 77941dbdb05f5e2ce3bc135bef8da4b7165f2095 Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:06 +0200
 Subject: [PATCH 009/304] sched: Massage set_cpus_allowed()
@@ -15,10 +15,10 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  3 files changed, 26 insertions(+), 14 deletions(-)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index eaa3c18dcde1..81067f54dc65 100644
+index 93b60da..3ba9f4b 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
-@@ -1820,13 +1820,14 @@ static int migration_cpu_stop(void *data)
+@@ -1833,13 +1833,14 @@ static int migration_cpu_stop(void *data)
   * sched_class::set_cpus_allowed must do the below, but is not required to
   * actually call this function.
   */
@@ -35,7 +35,7 @@ index eaa3c18dcde1..81067f54dc65 100644
  {
  	struct rq *rq = task_rq(p);
  	bool queued, running;
-@@ -1847,7 +1848,7 @@ void do_set_cpus_allowed(struct task_struct *p, const struct cpumask *new_mask)
+@@ -1860,7 +1861,7 @@ void do_set_cpus_allowed(struct task_struct *p, const struct cpumask *new_mask)
  	if (running)
  		put_prev_task(rq, p);
  
@@ -44,7 +44,7 @@ index eaa3c18dcde1..81067f54dc65 100644
  
  	if (queued)
  		enqueue_task(rq, p, ENQUEUE_RESTORE | ENQUEUE_NOCLOCK);
-@@ -1855,6 +1856,11 @@ void do_set_cpus_allowed(struct task_struct *p, const struct cpumask *new_mask)
+@@ -1868,6 +1869,11 @@ void do_set_cpus_allowed(struct task_struct *p, const struct cpumask *new_mask)
  		set_next_task(rq, p);
  }
  
@@ -56,7 +56,7 @@ index eaa3c18dcde1..81067f54dc65 100644
  /*
   * Change a given task's CPU affinity. Migrate the thread to a
   * proper CPU and schedule it away if the CPU it's executing on
-@@ -1865,7 +1871,8 @@ void do_set_cpus_allowed(struct task_struct *p, const struct cpumask *new_mask)
+@@ -1878,7 +1884,8 @@ void do_set_cpus_allowed(struct task_struct *p, const struct cpumask *new_mask)
   * call is not atomic; no spinlocks may be held.
   */
  static int __set_cpus_allowed_ptr(struct task_struct *p,
@@ -66,7 +66,7 @@ index eaa3c18dcde1..81067f54dc65 100644
  {
  	const struct cpumask *cpu_valid_mask = cpu_active_mask;
  	unsigned int dest_cpu;
-@@ -1887,7 +1894,7 @@ static int __set_cpus_allowed_ptr(struct task_struct *p,
+@@ -1900,7 +1907,7 @@ static int __set_cpus_allowed_ptr(struct task_struct *p,
  	 * Must re-check here, to close a race against __kthread_bind(),
  	 * sched_setaffinity() is not guaranteed to observe the flag.
  	 */
@@ -75,7 +75,7 @@ index eaa3c18dcde1..81067f54dc65 100644
  		ret = -EINVAL;
  		goto out;
  	}
-@@ -1906,7 +1913,7 @@ static int __set_cpus_allowed_ptr(struct task_struct *p,
+@@ -1919,7 +1926,7 @@ static int __set_cpus_allowed_ptr(struct task_struct *p,
  		goto out;
  	}
  
@@ -84,7 +84,7 @@ index eaa3c18dcde1..81067f54dc65 100644
  
  	if (p->flags & PF_KTHREAD) {
  		/*
-@@ -1943,7 +1950,7 @@ static int __set_cpus_allowed_ptr(struct task_struct *p,
+@@ -1956,7 +1963,7 @@ static int __set_cpus_allowed_ptr(struct task_struct *p,
  
  int set_cpus_allowed_ptr(struct task_struct *p, const struct cpumask *new_mask)
  {
@@ -93,7 +93,7 @@ index eaa3c18dcde1..81067f54dc65 100644
  }
  EXPORT_SYMBOL_GPL(set_cpus_allowed_ptr);
  
-@@ -2402,7 +2409,8 @@ void sched_set_stop_task(int cpu, struct task_struct *stop)
+@@ -2415,7 +2422,8 @@ void sched_set_stop_task(int cpu, struct task_struct *stop)
  #else
  
  static inline int __set_cpus_allowed_ptr(struct task_struct *p,
@@ -103,7 +103,7 @@ index eaa3c18dcde1..81067f54dc65 100644
  {
  	return set_cpus_allowed_ptr(p, new_mask);
  }
-@@ -5991,7 +5999,7 @@ long sched_setaffinity(pid_t pid, const struct cpumask *in_mask)
+@@ -6004,7 +6012,7 @@ long sched_setaffinity(pid_t pid, const struct cpumask *in_mask)
  	}
  #endif
  again:
@@ -112,7 +112,7 @@ index eaa3c18dcde1..81067f54dc65 100644
  
  	if (!retval) {
  		cpuset_cpus_allowed(p, cpus_allowed);
-@@ -6570,7 +6578,7 @@ void __init init_idle(struct task_struct *idle, int cpu)
+@@ -6583,7 +6591,7 @@ void __init init_idle(struct task_struct *idle, int cpu)
  	 *
  	 * And since this is boot we can forgo the serialization.
  	 */
@@ -122,10 +122,10 @@ index eaa3c18dcde1..81067f54dc65 100644
  	/*
  	 * We're having a chicken and egg problem, even though we are
 diff --git a/kernel/sched/deadline.c b/kernel/sched/deadline.c
-index 1cecc1886428..4b6df340d452 100644
+index a47e32f..23089fa 100644
 --- a/kernel/sched/deadline.c
 +++ b/kernel/sched/deadline.c
-@@ -2307,7 +2307,8 @@ static void task_woken_dl(struct rq *rq, struct task_struct *p)
+@@ -2308,7 +2308,8 @@ static void task_woken_dl(struct rq *rq, struct task_struct *p)
  }
  
  static void set_cpus_allowed_dl(struct task_struct *p,
@@ -135,7 +135,7 @@ index 1cecc1886428..4b6df340d452 100644
  {
  	struct root_domain *src_rd;
  	struct rq *rq;
-@@ -2336,7 +2337,7 @@ static void set_cpus_allowed_dl(struct task_struct *p,
+@@ -2337,7 +2338,7 @@ static void set_cpus_allowed_dl(struct task_struct *p,
  		raw_spin_unlock(&src_dl_b->lock);
  	}
  
@@ -145,10 +145,10 @@ index 1cecc1886428..4b6df340d452 100644
  
  /* Assumes rq->lock is held */
 diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index 64bc742e9e9e..fd45ee8c9769 100644
+index 7472a6d..76695d3 100644
 --- a/kernel/sched/sched.h
 +++ b/kernel/sched/sched.h
-@@ -1817,7 +1817,8 @@ struct sched_class {
+@@ -1819,7 +1819,8 @@ struct sched_class {
  	void (*task_woken)(struct rq *this_rq, struct task_struct *task);
  
  	void (*set_cpus_allowed)(struct task_struct *p,
@@ -158,7 +158,7 @@ index 64bc742e9e9e..fd45ee8c9769 100644
  
  	void (*rq_online)(struct rq *rq);
  	void (*rq_offline)(struct rq *rq);
-@@ -1910,7 +1911,9 @@ extern void update_group_capacity(struct sched_domain *sd, int cpu);
+@@ -1912,7 +1913,9 @@ extern void update_group_capacity(struct sched_domain *sd, int cpu);
  
  extern void trigger_load_balance(struct rq *rq);
  
@@ -170,5 +170,5 @@ index 64bc742e9e9e..fd45ee8c9769 100644
  #endif
  
 -- 
-2.33.0
+2.7.4
 

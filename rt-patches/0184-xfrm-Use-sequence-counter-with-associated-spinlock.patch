@@ -1,4 +1,4 @@
-From 426aec4e4182a0cb08d7f560f7f47fddb6b7ca79 Mon Sep 17 00:00:00 2001
+From 1a129a523fdaa341ab390033c78fe36aee78a3e1 Mon Sep 17 00:00:00 2001
 From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
 Date: Wed, 10 Jun 2020 12:53:22 +0200
 Subject: [PATCH 184/304] xfrm: Use sequence counter with associated spinlock
@@ -27,7 +27,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/net/xfrm/xfrm_state.c b/net/xfrm/xfrm_state.c
-index c158e70e8ae1..ca93d225df35 100644
+index c158e70..ca93d22 100644
 --- a/net/xfrm/xfrm_state.c
 +++ b/net/xfrm/xfrm_state.c
 @@ -2673,7 +2673,8 @@ int __net_init xfrm_state_init(struct net *net)
@@ -41,5 +41,5 @@ index c158e70e8ae1..ca93d225df35 100644
  
  out_byspi:
 -- 
-2.33.0
+2.7.4
 

@@ -1,4 +1,4 @@
-From f39148d539c54466a77919f3a3d5fa40440d0630 Mon Sep 17 00:00:00 2001
+From d70657c8e652fa5e163bfd058a438e7e4c2a7fe1 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Thu, 26 Jul 2018 15:06:10 +0200
 Subject: [PATCH 195/304] efi: Allow efi=runtime
@@ -13,7 +13,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 3 insertions(+)
 
 diff --git a/drivers/firmware/efi/efi.c b/drivers/firmware/efi/efi.c
-index 39031cfcb6b9..ae79c3300129 100644
+index 39031cf..ae79c33 100644
 --- a/drivers/firmware/efi/efi.c
 +++ b/drivers/firmware/efi/efi.c
 @@ -97,6 +97,9 @@ static int __init parse_efi_cmdline(char *str)
@@ -27,5 +27,5 @@ index 39031cfcb6b9..ae79c3300129 100644
  		set_bit(EFI_MEM_NO_SOFT_RESERVE, &efi.flags);
  
 -- 
-2.33.0
+2.7.4
 

@@ -1,4 +1,4 @@
-From dcf4c8b01e2af714ad8b63321df1b6a4c0dae75e Mon Sep 17 00:00:00 2001
+From 0195cd18b7d1d6e142f121f46163c718783a4597 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Wed, 8 Jul 2015 17:14:48 +0200
 Subject: [PATCH 270/304] jump-label: disable if stop_machine() is used
@@ -24,7 +24,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index 229a806a3dd7..07f43a0e8189 100644
+index 229a806..07f43a0 100644
 --- a/arch/arm/Kconfig
 +++ b/arch/arm/Kconfig
 @@ -66,7 +66,7 @@ config ARM
@@ -37,5 +37,5 @@ index 229a806a3dd7..07f43a0e8189 100644
  	select HAVE_ARCH_MMAP_RND_BITS if MMU
  	select HAVE_ARCH_SECCOMP
 -- 
-2.33.0
+2.7.4
 

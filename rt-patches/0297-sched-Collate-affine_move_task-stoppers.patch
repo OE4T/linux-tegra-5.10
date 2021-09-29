@@ -1,4 +1,4 @@
-From d5c530f26f5815720b7a3877b477c5d682f50a19 Mon Sep 17 00:00:00 2001
+From 78f20c59f2c169f625cde0de0b971cdd0c75678f Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Tue, 8 Jun 2021 00:37:32 -0400
 Subject: [PATCH 297/304] sched: Collate affine_move_task() stoppers
@@ -21,10 +21,10 @@ Signed-off-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
  1 file changed, 8 insertions(+), 15 deletions(-)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 7cbf732732f3..1d3c63e5f6c3 100644
+index 0be7ee9..acc90c8 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
-@@ -2273,30 +2273,23 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
+@@ -2286,30 +2286,23 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
  		return -EINVAL;
  	}
  
@@ -64,5 +64,5 @@ index 7cbf732732f3..1d3c63e5f6c3 100644
  
  		if (!is_migration_disabled(p)) {
 -- 
-2.33.0
+2.7.4
 

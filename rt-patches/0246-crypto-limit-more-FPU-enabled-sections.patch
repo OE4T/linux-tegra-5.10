@@ -1,4 +1,4 @@
-From d80e6f5f0cfa901ab2324dd03627ec7647c7d6b7 Mon Sep 17 00:00:00 2001
+From 6bbe1128b3451a86fcab9f4ebb3e63bb6f203bda Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Thu, 30 Nov 2017 13:40:10 +0100
 Subject: [PATCH 246/304] crypto: limit more FPU-enabled sections
@@ -34,7 +34,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  2 files changed, 13 insertions(+)
 
 diff --git a/arch/x86/include/asm/fpu/api.h b/arch/x86/include/asm/fpu/api.h
-index ad2fee785310..d31b0886592a 100644
+index ad2fee7..d31b088 100644
 --- a/arch/x86/include/asm/fpu/api.h
 +++ b/arch/x86/include/asm/fpu/api.h
 @@ -28,6 +28,7 @@ extern void kernel_fpu_begin_mask(unsigned int kfpu_mask);
@@ -46,7 +46,7 @@ index ad2fee785310..d31b0886592a 100644
  /* Code that is unaware of kernel_fpu_begin_mask() can use this */
  static inline void kernel_fpu_begin(void)
 diff --git a/arch/x86/kernel/fpu/core.c b/arch/x86/kernel/fpu/core.c
-index 571220ac8bea..d315d45b64fa 100644
+index 571220a..d315d45 100644
 --- a/arch/x86/kernel/fpu/core.c
 +++ b/arch/x86/kernel/fpu/core.c
 @@ -159,6 +159,18 @@ void kernel_fpu_end(void)
@@ -69,5 +69,5 @@ index 571220ac8bea..d315d45b64fa 100644
   * Save the FPU state (mark it for reload if necessary):
   *
 -- 
-2.33.0
+2.7.4
 

@@ -1,4 +1,4 @@
-From 3fe1c3a3ba756a398be80918897087f6958a713f Mon Sep 17 00:00:00 2001
+From 547d32c48ffc2d6e143504a1489451ac49591054 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 26 Mar 2019 18:31:29 +0100
 Subject: [PATCH 284/304] powerpc/stackprotector: work around stack-guard init
@@ -15,7 +15,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 4 insertions(+)
 
 diff --git a/arch/powerpc/include/asm/stackprotector.h b/arch/powerpc/include/asm/stackprotector.h
-index 1c8460e23583..b1653c160bab 100644
+index 1c8460e..b1653c1 100644
 --- a/arch/powerpc/include/asm/stackprotector.h
 +++ b/arch/powerpc/include/asm/stackprotector.h
 @@ -24,7 +24,11 @@ static __always_inline void boot_init_stack_canary(void)
@@ -31,5 +31,5 @@ index 1c8460e23583..b1653c160bab 100644
  	canary ^= LINUX_VERSION_CODE;
  	canary &= CANARY_MASK;
 -- 
-2.33.0
+2.7.4
 

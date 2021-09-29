@@ -1,4 +1,4 @@
-From cfff6cbc30de4d14a5a229e65e9fe2027729c2e2 Mon Sep 17 00:00:00 2001
+From 6462732310e7478e9eff372a46c3f69e06dfb5b0 Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Mon, 28 May 2018 15:24:20 +0200
 Subject: [PATCH 198/304] Split IRQ-off and zone->lock while freeing pages from
@@ -13,11 +13,11 @@ free_pcppages_bulk().
 Signed-off-by: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- mm/page_alloc.c | 81 +++++++++++++++++++++++++++++++------------------
+ mm/page_alloc.c | 81 ++++++++++++++++++++++++++++++++++++---------------------
  1 file changed, 51 insertions(+), 30 deletions(-)
 
 diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 0166558d3d64..d295692570be 100644
+index e8e0f1c..e26f834 100644
 --- a/mm/page_alloc.c
 +++ b/mm/page_alloc.c
 @@ -1331,7 +1331,7 @@ static inline void prefetch_buddy(struct page *page)
@@ -167,5 +167,5 @@ index 0166558d3d64..d295692570be 100644
  }
  
 -- 
-2.33.0
+2.7.4
 

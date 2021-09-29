@@ -1,4 +1,4 @@
-From ff3a24964843608b40921b4660c4d2edf3224af2 Mon Sep 17 00:00:00 2001
+From e2af38d4f08a1aa64d9ee7702cafb101dfe7f57f Mon Sep 17 00:00:00 2001
 From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
 Date: Tue, 16 Mar 2021 11:56:30 +0100
 Subject: [PATCH 294/304] net: xfrm: Use sequence counter with associated
@@ -25,7 +25,7 @@ Signed-off-by: Steffen Klassert <steffen.klassert@secunet.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/include/net/netns/xfrm.h b/include/net/netns/xfrm.h
-index 22e1bc72b979..9b376b87bd54 100644
+index 22e1bc7..9b376b8 100644
 --- a/include/net/netns/xfrm.h
 +++ b/include/net/netns/xfrm.h
 @@ -73,7 +73,7 @@ struct netns_xfrm {
@@ -38,5 +38,5 @@ index 22e1bc72b979..9b376b87bd54 100644
  
  	spinlock_t xfrm_policy_lock;
 -- 
-2.33.0
+2.7.4
 

@@ -1,4 +1,4 @@
-From 37443baea85ea95f6cdfa03dc3ad4409438b0c36 Mon Sep 17 00:00:00 2001
+From 119b8a12c029eb49a0d4797a264081eff3adbac9 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Wed, 7 Mar 2012 21:00:34 +0100
 Subject: [PATCH 238/304] fs: namespace: Use cpu_chill() in trylock loops
@@ -13,7 +13,7 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
  1 file changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/fs/namespace.c b/fs/namespace.c
-index 175312428cdf..e8a1e90b4d34 100644
+index 046b08413..6a550e3 100644
 --- a/fs/namespace.c
 +++ b/fs/namespace.c
 @@ -14,6 +14,7 @@
@@ -39,5 +39,5 @@ index 175312428cdf..e8a1e90b4d34 100644
  	 * After the slowpath clears MNT_WRITE_HOLD, mnt_is_readonly will
  	 * be set to match its requirements. So we must not load that until
 -- 
-2.33.0
+2.7.4
 

@@ -1,4 +1,4 @@
-From 825453989518ccc56f8fdb4679e288bd2846c2db Mon Sep 17 00:00:00 2001
+From 4dcb86cbee8f64954a11d26310a3eecf4aeda805 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Thu, 28 Jul 2011 13:32:57 +0200
 Subject: [PATCH 272/304] tty/serial/omap: Make the locking RT aware
@@ -13,7 +13,7 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
  1 file changed, 4 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 84e8158088cd..342005ed5ebf 100644
+index 84e8158..342005e 100644
 --- a/drivers/tty/serial/omap-serial.c
 +++ b/drivers/tty/serial/omap-serial.c
 @@ -1311,13 +1311,10 @@ serial_omap_console_write(struct console *co, const char *s,
@@ -44,5 +44,5 @@ index 84e8158088cd..342005ed5ebf 100644
  
  static int __init
 -- 
-2.33.0
+2.7.4
 

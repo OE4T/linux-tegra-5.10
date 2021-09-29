@@ -1,4 +1,4 @@
-From eabafc6bdddbefd0520e0782174c90f9aa2eb845 Mon Sep 17 00:00:00 2001
+From 966a056d776f31a1d98155de870033dd86328eed Mon Sep 17 00:00:00 2001
 From: Valentin Schneider <valentin.schneider@arm.com>
 Date: Fri, 23 Oct 2020 12:12:16 +0200
 Subject: [PATCH 019/304] sched: Deny self-issued __set_cpus_allowed_ptr() when
@@ -17,10 +17,10 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 11 insertions(+), 2 deletions(-)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 149327e861b1..1bf276942880 100644
+index 82fc436..7da0405 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
-@@ -2236,8 +2236,17 @@ static int __set_cpus_allowed_ptr(struct task_struct *p,
+@@ -2249,8 +2249,17 @@ static int __set_cpus_allowed_ptr(struct task_struct *p,
  		goto out;
  	}
  
@@ -41,5 +41,5 @@ index 149327e861b1..1bf276942880 100644
  	/*
  	 * Picking a ~random cpu helps in cases where we are changing affinity
 -- 
-2.33.0
+2.7.4
 

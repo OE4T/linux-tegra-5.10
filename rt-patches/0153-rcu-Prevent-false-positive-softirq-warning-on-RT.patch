@@ -1,4 +1,4 @@
-From 5255830c0ec80a2eb86098b984b53e3fbba35c40 Mon Sep 17 00:00:00 2001
+From 61acce3ffca6029598865a827cb85e8cf4b155bd Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 9 Mar 2021 09:55:58 +0100
 Subject: [PATCH 153/304] rcu: Prevent false positive softirq warning on RT
@@ -16,10 +16,10 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/include/linux/rcupdate.h b/include/linux/rcupdate.h
-index 7d12c76e8fa4..2ad3b8a130da 100644
+index 0d7013d..690a840 100644
 --- a/include/linux/rcupdate.h
 +++ b/include/linux/rcupdate.h
-@@ -327,7 +327,8 @@ static inline void rcu_preempt_sleep_check(void) { }
+@@ -329,7 +329,8 @@ static inline void rcu_preempt_sleep_check(void) { }
  #define rcu_sleep_check()						\
  	do {								\
  		rcu_preempt_sleep_check();				\
@@ -30,5 +30,5 @@ index 7d12c76e8fa4..2ad3b8a130da 100644
  		RCU_LOCKDEP_WARN(lock_is_held(&rcu_sched_lock_map),	\
  				 "Illegal context switch in RCU-sched read-side critical section"); \
 -- 
-2.33.0
+2.7.4
 

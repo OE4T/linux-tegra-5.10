@@ -1,4 +1,4 @@
-From b13488600c3a4fe17873d87c6f5ff3db056aefda Mon Sep 17 00:00:00 2001
+From 9134fb369973706c430ab028b6202c6c2711d07b Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Mon, 6 Jun 2011 12:12:51 +0200
 Subject: [PATCH 216/304] sched: Limit the number of task migrations per batch
@@ -12,7 +12,7 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
  1 file changed, 4 insertions(+)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index f6efc444ae23..2e6177e81e73 100644
+index 41fcbbf..518af99 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -64,7 +64,11 @@ const_debug unsigned int sysctl_sched_features =
@@ -28,5 +28,5 @@ index f6efc444ae23..2e6177e81e73 100644
  /*
   * period over which we measure -rt task CPU usage in us.
 -- 
-2.33.0
+2.7.4
 

@@ -1,4 +1,4 @@
-From 9b839aeca38a101214804b98f0235c753fe12eaf Mon Sep 17 00:00:00 2001
+From e05b7b373715ea7c2a393962a3053205e404915a Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Sat, 25 Jun 2011 09:21:04 +0200
 Subject: [PATCH 171/304] sched: Add saved_state for tasks blocked on sleeping
@@ -18,7 +18,7 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
  3 files changed, 36 insertions(+), 2 deletions(-)
 
 diff --git a/include/linux/sched.h b/include/linux/sched.h
-index f8c0d493ba87..f8d30d5c85e8 100644
+index f8c0d49..f8d30d5 100644
 --- a/include/linux/sched.h
 +++ b/include/linux/sched.h
 @@ -663,6 +663,8 @@ struct task_struct {
@@ -39,10 +39,10 @@ index f8c0d493ba87..f8d30d5c85e8 100644
  
  #ifdef CONFIG_SMP
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 768fa549b753..26ea09d7b145 100644
+index 479549a..53200f8 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
-@@ -3280,7 +3280,7 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags)
+@@ -3293,7 +3293,7 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags)
  	int cpu, success = 0;
  
  	preempt_disable();
@@ -51,7 +51,7 @@ index 768fa549b753..26ea09d7b145 100644
  		/*
  		 * We're waking current, this means 'p->on_rq' and 'task_cpu(p)
  		 * == smp_processor_id()'. Together this means we can special
-@@ -3310,8 +3310,26 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags)
+@@ -3323,8 +3323,26 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags)
  	 */
  	raw_spin_lock_irqsave(&p->pi_lock, flags);
  	smp_mb__after_spinlock();
@@ -79,7 +79,7 @@ index 768fa549b753..26ea09d7b145 100644
  
  	trace_sched_waking(p);
  
-@@ -3500,6 +3518,18 @@ int wake_up_process(struct task_struct *p)
+@@ -3513,6 +3531,18 @@ int wake_up_process(struct task_struct *p)
  }
  EXPORT_SYMBOL(wake_up_process);
  
@@ -99,10 +99,10 @@ index 768fa549b753..26ea09d7b145 100644
  {
  	return try_to_wake_up(p, state, 0);
 diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index c915fe87663f..baf5904d7f84 100644
+index b69e84f..6356c50 100644
 --- a/kernel/sched/sched.h
 +++ b/kernel/sched/sched.h
-@@ -1752,6 +1752,7 @@ static inline int task_on_rq_migrating(struct task_struct *p)
+@@ -1754,6 +1754,7 @@ static inline int task_on_rq_migrating(struct task_struct *p)
  #define WF_FORK			0x02		/* Child wakeup after fork */
  #define WF_MIGRATED		0x04		/* Internal use, task got migrated */
  #define WF_ON_CPU		0x08		/* Wakee is on_cpu */
@@ -111,5 +111,5 @@ index c915fe87663f..baf5904d7f84 100644
  /*
   * To aid in avoiding the subversion of "niceness" due to uneven distribution
 -- 
-2.33.0
+2.7.4
 

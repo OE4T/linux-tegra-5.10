@@ -1,4 +1,4 @@
-From 95a3fa37af4d980459d83c5543ebd0d8a9d3091e Mon Sep 17 00:00:00 2001
+From 262fedbe90253e7e51584c4be09854f4600bdf0d Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Mon, 9 Nov 2020 21:30:41 +0100
 Subject: [PATCH 068/304] kthread: Move prio/affinite change into the newly
@@ -33,10 +33,10 @@ Link: https://lkml.kernel.org/r/a23a826af7c108ea5651e73b8fbae5e653f16e86.camel@g
  1 file changed, 8 insertions(+), 8 deletions(-)
 
 diff --git a/kernel/kthread.c b/kernel/kthread.c
-index 9825cf89c614..3a7ecfbe0f50 100644
+index 508fe52..3ce6a31 100644
 --- a/kernel/kthread.c
 +++ b/kernel/kthread.c
-@@ -243,6 +243,7 @@ EXPORT_SYMBOL_GPL(kthread_parkme);
+@@ -264,6 +264,7 @@ EXPORT_SYMBOL_GPL(kthread_parkme);
  
  static int kthread(void *_create)
  {
@@ -44,7 +44,7 @@ index 9825cf89c614..3a7ecfbe0f50 100644
  	/* Copy data: it's on kthread's stack */
  	struct kthread_create_info *create = _create;
  	int (*threadfn)(void *data) = create->threadfn;
-@@ -273,6 +274,13 @@ static int kthread(void *_create)
+@@ -294,6 +295,13 @@ static int kthread(void *_create)
  	init_completion(&self->parked);
  	current->vfork_done = &self->exited;
  
@@ -58,7 +58,7 @@ index 9825cf89c614..3a7ecfbe0f50 100644
  	/* OK, tell user we're spawned, wait for stop or wakeup */
  	__set_current_state(TASK_UNINTERRUPTIBLE);
  	create->result = current;
-@@ -370,7 +378,6 @@ struct task_struct *__kthread_create_on_node(int (*threadfn)(void *data),
+@@ -391,7 +399,6 @@ struct task_struct *__kthread_create_on_node(int (*threadfn)(void *data),
  	}
  	task = create->result;
  	if (!IS_ERR(task)) {
@@ -66,7 +66,7 @@ index 9825cf89c614..3a7ecfbe0f50 100644
  		char name[TASK_COMM_LEN];
  
  		/*
-@@ -379,13 +386,6 @@ struct task_struct *__kthread_create_on_node(int (*threadfn)(void *data),
+@@ -400,13 +407,6 @@ struct task_struct *__kthread_create_on_node(int (*threadfn)(void *data),
  		 */
  		vsnprintf(name, sizeof(name), namefmt, args);
  		set_task_comm(task, name);
@@ -81,5 +81,5 @@ index 9825cf89c614..3a7ecfbe0f50 100644
  	kfree(create);
  	return task;
 -- 
-2.33.0
+2.7.4
 

@@ -1,4 +1,4 @@
-From 4f9389f6076659fce48edce19a8a42cb1b14ac68 Mon Sep 17 00:00:00 2001
+From 5e8d58a3429f27a9261216e98dca7d87c3a554e2 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Thu, 26 Jul 2018 18:52:00 +0200
 Subject: [PATCH 247/304] crypto: cryptd - add a lock instead
@@ -19,7 +19,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 9 insertions(+), 10 deletions(-)
 
 diff --git a/crypto/cryptd.c b/crypto/cryptd.c
-index a1bea0f4baa8..5f8ca8c1f59c 100644
+index a1bea0f..5f8ca8c 100644
 --- a/crypto/cryptd.c
 +++ b/crypto/cryptd.c
 @@ -36,6 +36,7 @@ static struct workqueue_struct *cryptd_wq;
@@ -80,5 +80,5 @@ index a1bea0f4baa8..5f8ca8c1f59c 100644
  	if (!req)
  		return;
 -- 
-2.33.0
+2.7.4
 

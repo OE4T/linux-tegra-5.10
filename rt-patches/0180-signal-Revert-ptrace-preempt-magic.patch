@@ -1,4 +1,4 @@
-From 5acee686a3040e4c09cd2d932ef6e94c6f30de20 Mon Sep 17 00:00:00 2001
+From ebdc6e70c902dafb8300eca9175b1a8199a1de74 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Wed, 21 Sep 2011 19:57:12 +0200
 Subject: [PATCH 180/304] signal: Revert ptrace preempt magic
@@ -13,7 +13,7 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
  1 file changed, 8 deletions(-)
 
 diff --git a/kernel/signal.c b/kernel/signal.c
-index ef8f2a28d37c..bbd1e9dd7e50 100644
+index ef8f2a2..bbd1e9d 100644
 --- a/kernel/signal.c
 +++ b/kernel/signal.c
 @@ -2203,16 +2203,8 @@ static void ptrace_stop(int exit_code, int why, int clear_code, kernel_siginfo_t
@@ -34,5 +34,5 @@ index ef8f2a28d37c..bbd1e9dd7e50 100644
  		cgroup_leave_frozen(true);
  	} else {
 -- 
-2.33.0
+2.7.4
 

@@ -1,4 +1,4 @@
-From c2957c1e558c70115fe4ea8d69ae0c6390033306 Mon Sep 17 00:00:00 2001
+From a89f86c241239fc6012d54011b569f5f0089e025 Mon Sep 17 00:00:00 2001
 From: Valentin Schneider <valentin.schneider@arm.com>
 Date: Tue, 8 Jun 2021 00:37:36 -0400
 Subject: [PATCH 301/304] sched: Don't defer CPU pick to migration_cpu_stop()
@@ -36,10 +36,10 @@ Signed-off-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
  1 file changed, 12 insertions(+), 8 deletions(-)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 1afd56baf658..42937b6c69b4 100644
+index f375d78..6a9fdaf 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
-@@ -1940,7 +1940,6 @@ static int migration_cpu_stop(void *data)
+@@ -1953,7 +1953,6 @@ static int migration_cpu_stop(void *data)
  	struct migration_arg *arg = data;
  	struct set_affinity_pending *pending = arg->pending;
  	struct task_struct *p = arg->task;
@@ -47,7 +47,7 @@ index 1afd56baf658..42937b6c69b4 100644
  	struct rq *rq = this_rq();
  	bool complete = false;
  	struct rq_flags rf;
-@@ -1973,19 +1972,15 @@ static int migration_cpu_stop(void *data)
+@@ -1986,19 +1985,15 @@ static int migration_cpu_stop(void *data)
  			if (p->migration_pending == pending)
  				p->migration_pending = NULL;
  			complete = true;
@@ -69,7 +69,7 @@ index 1afd56baf658..42937b6c69b4 100644
  
  		/*
  		 * XXX __migrate_task() can fail, at which point we might end
-@@ -2264,7 +2259,7 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
+@@ -2277,7 +2272,7 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
  			init_completion(&my_pending.done);
  			my_pending.arg = (struct migration_arg) {
  				.task = p,
@@ -78,7 +78,7 @@ index 1afd56baf658..42937b6c69b4 100644
  				.pending = &my_pending,
  			};
  
-@@ -2272,6 +2267,15 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
+@@ -2285,6 +2280,15 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
  		} else {
  			pending = p->migration_pending;
  			refcount_inc(&pending->refs);
@@ -95,5 +95,5 @@ index 1afd56baf658..42937b6c69b4 100644
  	}
  	pending = p->migration_pending;
 -- 
-2.33.0
+2.7.4
 

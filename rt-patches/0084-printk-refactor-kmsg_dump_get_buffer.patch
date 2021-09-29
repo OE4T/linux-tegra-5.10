@@ -1,4 +1,4 @@
-From 4a1e18eb825bd6919ffdf14ce889fa76dcc0ad3f Mon Sep 17 00:00:00 2001
+From bbe07fd861819e773c5b45545059d4cd6d5b945f Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Mon, 30 Nov 2020 01:41:56 +0106
 Subject: [PATCH 084/304] printk: refactor kmsg_dump_get_buffer()
@@ -17,11 +17,11 @@ Reviewed-by: Petr Mladek <pmladek@suse.com>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
  include/linux/kmsg_dump.h |  2 +-
- kernel/printk/printk.c    | 60 +++++++++++++++++++++------------------
+ kernel/printk/printk.c    | 60 +++++++++++++++++++++++++----------------------
  2 files changed, 33 insertions(+), 29 deletions(-)
 
 diff --git a/include/linux/kmsg_dump.h b/include/linux/kmsg_dump.h
-index 235c50982c2d..4095a34db0fa 100644
+index 235c509..4095a34 100644
 --- a/include/linux/kmsg_dump.h
 +++ b/include/linux/kmsg_dump.h
 @@ -62,7 +62,7 @@ bool kmsg_dump_get_line(struct kmsg_dumper *dumper, bool syslog,
@@ -34,7 +34,7 @@ index 235c50982c2d..4095a34db0fa 100644
  void kmsg_dump_rewind_nolock(struct kmsg_dumper *dumper);
  
 diff --git a/kernel/printk/printk.c b/kernel/printk/printk.c
-index 411787b900ac..b4f72b5f70b9 100644
+index 411787b..b4f72b5 100644
 --- a/kernel/printk/printk.c
 +++ b/kernel/printk/printk.c
 @@ -3420,7 +3420,7 @@ EXPORT_SYMBOL_GPL(kmsg_dump_get_line);
@@ -140,5 +140,5 @@ index 411787b900ac..b4f72b5f70b9 100644
  }
  EXPORT_SYMBOL_GPL(kmsg_dump_get_buffer);
 -- 
-2.33.0
+2.7.4
 

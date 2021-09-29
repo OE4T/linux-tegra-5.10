@@ -1,4 +1,4 @@
-From 9867285845fd1c425ccc7eacc83f66ca1c284d78 Mon Sep 17 00:00:00 2001
+From b5fc253113d69a48aedbf07d54a9cfbb7718abdb Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 26 Mar 2019 18:31:54 +0100
 Subject: [PATCH 282/304] powerpc/pseries/iommu: Use a locallock instead
@@ -13,11 +13,11 @@ Use local_irq_save() instead of local_irq_disable().
 Cc: stable-rt@vger.kernel.org
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- arch/powerpc/platforms/pseries/iommu.c | 31 +++++++++++++++++---------
+ arch/powerpc/platforms/pseries/iommu.c | 31 ++++++++++++++++++++-----------
  1 file changed, 20 insertions(+), 11 deletions(-)
 
 diff --git a/arch/powerpc/platforms/pseries/iommu.c b/arch/powerpc/platforms/pseries/iommu.c
-index e4198700ed1a..62bd38cd80d1 100644
+index e419870..62bd38c 100644
 --- a/arch/powerpc/platforms/pseries/iommu.c
 +++ b/arch/powerpc/platforms/pseries/iommu.c
 @@ -24,6 +24,7 @@
@@ -112,5 +112,5 @@ index e4198700ed1a..62bd38cd80d1 100644
  }
  
 -- 
-2.33.0
+2.7.4
 

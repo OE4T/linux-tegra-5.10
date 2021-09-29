@@ -1,4 +1,4 @@
-From 452903a19ab6509b0a498aa6a9dff2ebc947c16d Mon Sep 17 00:00:00 2001
+From 7357f3afda5c7027d9f886c67328e2c25579ea32 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Wed, 9 Dec 2020 01:50:52 +0106
 Subject: [PATCH 080/304] printk: inline log_output(),log_store() in
@@ -15,11 +15,11 @@ Signed-off-by: Petr Mladek <pmladek@suse.com>
 Link: https://lore.kernel.org/r/20201209004453.17720-2-john.ogness@linutronix.de
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- kernel/printk/printk.c | 145 +++++++++++++++++++----------------------
+ kernel/printk/printk.c | 145 +++++++++++++++++++++++--------------------------
  1 file changed, 67 insertions(+), 78 deletions(-)
 
 diff --git a/kernel/printk/printk.c b/kernel/printk/printk.c
-index d0df95346ab3..f9953f12f3ca 100644
+index d0df953..f9953f1 100644
 --- a/kernel/printk/printk.c
 +++ b/kernel/printk/printk.c
 @@ -491,52 +491,6 @@ static void truncate_msg(u16 *text_len, u16 *trunc_msg_len)
@@ -196,5 +196,5 @@ index d0df95346ab3..f9953f12f3ca 100644
  
  asmlinkage int vprintk_emit(int facility, int level,
 -- 
-2.33.0
+2.7.4
 

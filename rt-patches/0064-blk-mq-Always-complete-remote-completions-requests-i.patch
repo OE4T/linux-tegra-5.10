@@ -1,4 +1,4 @@
-From 59e2015f1cd05d242a228407b6ffd3a1439673cf Mon Sep 17 00:00:00 2001
+From 56a742633df4f3510bda657d172d2ea3a6c30eb9 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Sat, 23 Jan 2021 21:10:26 +0100
 Subject: [PATCH 064/304] blk-mq: Always complete remote completions requests
@@ -19,7 +19,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 1 insertion(+), 13 deletions(-)
 
 diff --git a/block/blk-mq.c b/block/blk-mq.c
-index bb18cb1f8709..460003cae846 100644
+index d77bdcd..cdf7e6c 100644
 --- a/block/blk-mq.c
 +++ b/block/blk-mq.c
 @@ -626,19 +626,7 @@ static void __blk_mq_complete_request_remote(void *data)
@@ -44,5 +44,5 @@ index bb18cb1f8709..460003cae846 100644
  
  static inline bool blk_mq_complete_need_ipi(struct request *rq)
 -- 
-2.33.0
+2.7.4
 

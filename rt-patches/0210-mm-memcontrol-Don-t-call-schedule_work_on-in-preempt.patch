@@ -1,4 +1,4 @@
-From e9a1cd683e9a888b81241e086d6c6db505cdd6b3 Mon Sep 17 00:00:00 2001
+From 5fb5466c1ddae1f0f568e7f6a5d93dc372001e1a Mon Sep 17 00:00:00 2001
 From: Yang Shi <yang.shi@windriver.com>
 Date: Wed, 30 Oct 2013 11:48:33 -0700
 Subject: [PATCH 210/304] mm/memcontrol: Don't call schedule_work_on in
@@ -48,7 +48,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/mm/memcontrol.c b/mm/memcontrol.c
-index c7cdcbb0da68..802aa08e376a 100644
+index c7cdcbb..802aa08 100644
 --- a/mm/memcontrol.c
 +++ b/mm/memcontrol.c
 @@ -2349,7 +2349,7 @@ static void drain_all_stock(struct mem_cgroup *root_memcg)
@@ -70,5 +70,5 @@ index c7cdcbb0da68..802aa08e376a 100644
  }
  
 -- 
-2.33.0
+2.7.4
 

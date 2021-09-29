@@ -1,4 +1,4 @@
-From 093d92d5e0e2d42654669ab6d3625953175284e0 Mon Sep 17 00:00:00 2001
+From 618673b3a26dc743e7cd81fac74894f7e28cda71 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 9 Mar 2021 09:42:17 +0100
 Subject: [PATCH 147/304] tasklets: Switch tasklet_disable() to the sleep wait
@@ -16,7 +16,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 1 insertion(+), 2 deletions(-)
 
 diff --git a/include/linux/interrupt.h b/include/linux/interrupt.h
-index 4b3ec31189db..e58f9b0650d3 100644
+index 4b3ec31..e58f9b0 100644
 --- a/include/linux/interrupt.h
 +++ b/include/linux/interrupt.h
 @@ -707,8 +707,7 @@ static inline void tasklet_disable_in_atomic(struct tasklet_struct *t)
@@ -30,5 +30,5 @@ index 4b3ec31189db..e58f9b0650d3 100644
  }
  
 -- 
-2.33.0
+2.7.4
 

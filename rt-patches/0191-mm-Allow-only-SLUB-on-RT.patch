@@ -1,4 +1,4 @@
-From 1821dfacd1d197f41d6f6b8ebdbb2c2cdf5e14bc Mon Sep 17 00:00:00 2001
+From f0554fadf5a7303ff854b5c67f97ecd42c507abc Mon Sep 17 00:00:00 2001
 From: Ingo Molnar <mingo@elte.hu>
 Date: Fri, 3 Jul 2009 08:44:03 -0500
 Subject: [PATCH 191/304] mm: Allow only SLUB on RT
@@ -22,7 +22,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 2 insertions(+)
 
 diff --git a/init/Kconfig b/init/Kconfig
-index fc4c9f416fad..1f6c20e56ea9 100644
+index fc4c9f4..1f6c20e 100644
 --- a/init/Kconfig
 +++ b/init/Kconfig
 @@ -1895,6 +1895,7 @@ choice
@@ -42,5 +42,5 @@ index fc4c9f416fad..1f6c20e56ea9 100644
  	   SLOB replaces the stock allocator with a drastically simpler
  	   allocator. SLOB is generally more space efficient but
 -- 
-2.33.0
+2.7.4
 

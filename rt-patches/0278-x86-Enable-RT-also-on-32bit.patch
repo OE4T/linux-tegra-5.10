@@ -1,4 +1,4 @@
-From 28894bc04a39b2543b4bdae7c5d1960fb42350a3 Mon Sep 17 00:00:00 2001
+From 7ad13c4f6b3e7ca03d48de085b79f4e65a3fe173 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Thu, 7 Nov 2019 17:49:20 +0100
 Subject: [PATCH 278/304] x86: Enable RT also on 32bit
@@ -9,7 +9,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 8d96d5fc624c..78f90306ca39 100644
+index 8d96d5f..78f9030 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
 @@ -27,7 +27,6 @@ config X86_64
@@ -29,5 +29,5 @@ index 8d96d5fc624c..78f90306ca39 100644
  	select ARCH_USE_QUEUED_RWLOCKS
  	select ARCH_USE_QUEUED_SPINLOCKS
 -- 
-2.33.0
+2.7.4
 

@@ -1,4 +1,4 @@
-From 095712c11e8126af2d2a42d01f1c6c562a3aa0c2 Mon Sep 17 00:00:00 2001
+From 2f6d71f8406a0dcf655c590e129d7c974047256f Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Fri, 13 Nov 2020 15:02:15 +0100
 Subject: [PATCH 122/304] sh: irqstat: Use the generic irq_cpustat_t
@@ -15,7 +15,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 4 insertions(+), 10 deletions(-)
 
 diff --git a/arch/sh/include/asm/hardirq.h b/arch/sh/include/asm/hardirq.h
-index edaea3559a23..9fe4495a8e90 100644
+index edaea35..9fe4495 100644
 --- a/arch/sh/include/asm/hardirq.h
 +++ b/arch/sh/include/asm/hardirq.h
 @@ -2,16 +2,10 @@
@@ -40,5 +40,5 @@ index edaea3559a23..9fe4495a8e90 100644
  
  #endif /* __ASM_SH_HARDIRQ_H */
 -- 
-2.33.0
+2.7.4
 

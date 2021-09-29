@@ -1,4 +1,4 @@
-From 3164202baf9dcba4f12f087186459e70080988b5 Mon Sep 17 00:00:00 2001
+From 42ad1ab8e9a020de699828ef28a1060e04f622eb Mon Sep 17 00:00:00 2001
 From: Clark Williams <williams@redhat.com>
 Date: Sat, 30 Jul 2011 21:55:53 -0500
 Subject: [PATCH 292/304] sysfs: Add /sys/kernel/realtime entry
@@ -19,7 +19,7 @@ Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
  1 file changed, 12 insertions(+)
 
 diff --git a/kernel/ksysfs.c b/kernel/ksysfs.c
-index 35859da8bd4f..dfff31ed644a 100644
+index 35859da..dfff31e 100644
 --- a/kernel/ksysfs.c
 +++ b/kernel/ksysfs.c
 @@ -138,6 +138,15 @@ KERNEL_ATTR_RO(vmcoreinfo);
@@ -38,16 +38,16 @@ index 35859da8bd4f..dfff31ed644a 100644
  /* whether file capabilities are enabled */
  static ssize_t fscaps_show(struct kobject *kobj,
  				  struct kobj_attribute *attr, char *buf)
-@@ -228,6 +237,9 @@ static struct attribute * kernel_attrs[] = {
- #ifndef CONFIG_TINY_RCU
+@@ -229,6 +238,9 @@ static struct attribute * kernel_attrs[] = {
  	&rcu_expedited_attr.attr,
  	&rcu_normal_attr.attr,
-+#endif
+ #endif
 +#ifdef CONFIG_PREEMPT_RT
 +	&realtime_attr.attr,
- #endif
++#endif
  	NULL
  };
+ 
 -- 
-2.33.0
+2.7.4
 

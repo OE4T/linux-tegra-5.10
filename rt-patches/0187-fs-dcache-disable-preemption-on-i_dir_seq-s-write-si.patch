@@ -1,4 +1,4 @@
-From 17e53892b12d69f145161d9615228519ebb9fad9 Mon Sep 17 00:00:00 2001
+From 8344f10fc75a006af1659640b626d94ad098d74f Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Fri, 20 Oct 2017 11:29:53 +0200
 Subject: [PATCH 187/304] fs/dcache: disable preemption on i_dir_seq's write
@@ -23,7 +23,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  3 files changed, 9 insertions(+), 7 deletions(-)
 
 diff --git a/fs/dcache.c b/fs/dcache.c
-index 1f4255ef8722..26a187abf13a 100644
+index 1f4255e..26a187a 100644
 --- a/fs/dcache.c
 +++ b/fs/dcache.c
 @@ -2503,9 +2503,10 @@ EXPORT_SYMBOL(d_rehash);
@@ -68,7 +68,7 @@ index 1f4255ef8722..26a187abf13a 100644
  		rcu_read_unlock();
  		goto retry;
 diff --git a/fs/inode.c b/fs/inode.c
-index 5eea9912a0b9..85da949d9083 100644
+index 5eea991..85da949 100644
 --- a/fs/inode.c
 +++ b/fs/inode.c
 @@ -158,7 +158,7 @@ int inode_init_always(struct super_block *sb, struct inode *inode)
@@ -81,7 +81,7 @@ index 5eea9912a0b9..85da949d9083 100644
  	inode->dirtied_when = 0;
  
 diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 8bde32cf9711..61ad6d7bfc95 100644
+index 43bb6a5..981b0fe 100644
 --- a/include/linux/fs.h
 +++ b/include/linux/fs.h
 @@ -699,7 +699,7 @@ struct inode {
@@ -94,5 +94,5 @@ index 8bde32cf9711..61ad6d7bfc95 100644
  
  	__u32			i_generation;
 -- 
-2.33.0
+2.7.4
 

@@ -1,4 +1,4 @@
-From 92dfacd5d1a55eca4fd1958d6bfd7158353d270d Mon Sep 17 00:00:00 2001
+From 6796a2c129e49f607c71d3862149e7b2d6928d41 Mon Sep 17 00:00:00 2001
 From: Josh Cartwright <joshc@ni.com>
 Date: Thu, 11 Feb 2016 11:54:01 -0600
 Subject: [PATCH 276/304] KVM: arm/arm64: downgrade preempt_disable()d region
@@ -23,7 +23,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/arch/arm64/kvm/arm.c b/arch/arm64/kvm/arm.c
-index 5e5dd99e8cee..a94211fb63c8 100644
+index 5e5dd99..a94211f 100644
 --- a/arch/arm64/kvm/arm.c
 +++ b/arch/arm64/kvm/arm.c
 @@ -708,7 +708,7 @@ int kvm_arch_vcpu_ioctl_run(struct kvm_vcpu *vcpu)
@@ -54,5 +54,5 @@ index 5e5dd99e8cee..a94211fb63c8 100644
  		/*
  		 * The ARMv8 architecture doesn't give the hypervisor
 -- 
-2.33.0
+2.7.4
 

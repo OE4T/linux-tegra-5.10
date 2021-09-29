@@ -1,4 +1,4 @@
-From d0930b34ffdada0be0ac98c150eb88caec99cd56 Mon Sep 17 00:00:00 2001
+From 054c864373f5bfc7837dad925a62b91544dd6c70 Mon Sep 17 00:00:00 2001
 From: Mike Galbraith <efault@gmx.de>
 Date: Sun, 8 Jan 2017 09:32:25 +0100
 Subject: [PATCH 261/304] cpuset: Convert callback_lock to raw_spinlock_t
@@ -46,11 +46,11 @@ Cc: stable-rt@vger.kernel.org
 Signed-off-by: Mike Galbraith <efault@gmx.de>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- kernel/cgroup/cpuset.c | 70 +++++++++++++++++++++---------------------
- 1 file changed, 35 insertions(+), 35 deletions(-)
+ kernel/cgroup/cpuset.c | 82 +++++++++++++++++++++++++-------------------------
+ 1 file changed, 41 insertions(+), 41 deletions(-)
 
 diff --git a/kernel/cgroup/cpuset.c b/kernel/cgroup/cpuset.c
-index 53c70c470a38..8f4b2b9aa06c 100644
+index 1999fce..2c27d80 100644
 --- a/kernel/cgroup/cpuset.c
 +++ b/kernel/cgroup/cpuset.c
 @@ -345,7 +345,7 @@ void cpuset_read_unlock(void)
@@ -62,7 +62,7 @@ index 53c70c470a38..8f4b2b9aa06c 100644
  
  static struct workqueue_struct *cpuset_migrate_mm_wq;
  
-@@ -1280,7 +1280,7 @@ static int update_parent_subparts_cpumask(struct cpuset *cpuset, int cmd,
+@@ -1282,7 +1282,7 @@ static int update_parent_subparts_cpumask(struct cpuset *cpuset, int cmd,
  	 * Newly added CPUs will be removed from effective_cpus and
  	 * newly deleted ones will be added back to effective_cpus.
  	 */
@@ -71,16 +71,16 @@ index 53c70c470a38..8f4b2b9aa06c 100644
  	if (adding) {
  		cpumask_or(parent->subparts_cpus,
  			   parent->subparts_cpus, tmp->addmask);
-@@ -1299,7 +1299,7 @@ static int update_parent_subparts_cpumask(struct cpuset *cpuset, int cmd,
- 	}
+@@ -1304,7 +1304,7 @@ static int update_parent_subparts_cpumask(struct cpuset *cpuset, int cmd,
  
- 	parent->nr_subparts_cpus = cpumask_weight(parent->subparts_cpus);
+ 	if (cpuset->partition_root_state != new_prs)
+ 		cpuset->partition_root_state = new_prs;
 -	spin_unlock_irq(&callback_lock);
 +	raw_spin_unlock_irq(&callback_lock);
  
  	return cmd == partcmd_update;
  }
-@@ -1404,7 +1404,7 @@ static void update_cpumasks_hier(struct cpuset *cs, struct tmpmasks *tmp)
+@@ -1407,7 +1407,7 @@ static void update_cpumasks_hier(struct cpuset *cs, struct tmpmasks *tmp)
  			continue;
  		rcu_read_unlock();
  
@@ -88,17 +88,17 @@ index 53c70c470a38..8f4b2b9aa06c 100644
 +		raw_spin_lock_irq(&callback_lock);
  
  		cpumask_copy(cp->effective_cpus, tmp->new_cpus);
- 		if (cp->nr_subparts_cpus &&
-@@ -1435,7 +1435,7 @@ static void update_cpumasks_hier(struct cpuset *cs, struct tmpmasks *tmp)
- 					= cpumask_weight(cp->subparts_cpus);
- 			}
- 		}
+ 		if (cp->nr_subparts_cpus && (new_prs != PRS_ENABLED)) {
+@@ -1441,7 +1441,7 @@ static void update_cpumasks_hier(struct cpuset *cs, struct tmpmasks *tmp)
+ 		if (new_prs != cp->partition_root_state)
+ 			cp->partition_root_state = new_prs;
+ 
 -		spin_unlock_irq(&callback_lock);
 +		raw_spin_unlock_irq(&callback_lock);
  
  		WARN_ON(!is_in_v2_mode() &&
  			!cpumask_equal(cp->cpus_allowed, cp->effective_cpus));
-@@ -1553,7 +1553,7 @@ static int update_cpumask(struct cpuset *cs, struct cpuset *trialcs,
+@@ -1559,7 +1559,7 @@ static int update_cpumask(struct cpuset *cs, struct cpuset *trialcs,
  			return -EINVAL;
  	}
  
@@ -107,7 +107,7 @@ index 53c70c470a38..8f4b2b9aa06c 100644
  	cpumask_copy(cs->cpus_allowed, trialcs->cpus_allowed);
  
  	/*
-@@ -1564,7 +1564,7 @@ static int update_cpumask(struct cpuset *cs, struct cpuset *trialcs,
+@@ -1570,7 +1570,7 @@ static int update_cpumask(struct cpuset *cs, struct cpuset *trialcs,
  			       cs->cpus_allowed);
  		cs->nr_subparts_cpus = cpumask_weight(cs->subparts_cpus);
  	}
@@ -116,7 +116,7 @@ index 53c70c470a38..8f4b2b9aa06c 100644
  
  	update_cpumasks_hier(cs, &tmp);
  
-@@ -1758,9 +1758,9 @@ static void update_nodemasks_hier(struct cpuset *cs, nodemask_t *new_mems)
+@@ -1764,9 +1764,9 @@ static void update_nodemasks_hier(struct cpuset *cs, nodemask_t *new_mems)
  			continue;
  		rcu_read_unlock();
  
@@ -128,7 +128,7 @@ index 53c70c470a38..8f4b2b9aa06c 100644
  
  		WARN_ON(!is_in_v2_mode() &&
  			!nodes_equal(cp->mems_allowed, cp->effective_mems));
-@@ -1828,9 +1828,9 @@ static int update_nodemask(struct cpuset *cs, struct cpuset *trialcs,
+@@ -1834,9 +1834,9 @@ static int update_nodemask(struct cpuset *cs, struct cpuset *trialcs,
  	if (retval < 0)
  		goto done;
  
@@ -140,7 +140,7 @@ index 53c70c470a38..8f4b2b9aa06c 100644
  
  	/* use trialcs->mems_allowed as a temp variable */
  	update_nodemasks_hier(cs, &trialcs->mems_allowed);
-@@ -1921,9 +1921,9 @@ static int update_flag(cpuset_flagbits_t bit, struct cpuset *cs,
+@@ -1927,9 +1927,9 @@ static int update_flag(cpuset_flagbits_t bit, struct cpuset *cs,
  	spread_flag_changed = ((is_spread_slab(cs) != is_spread_slab(trialcs))
  			|| (is_spread_page(cs) != is_spread_page(trialcs)));
  
@@ -152,7 +152,19 @@ index 53c70c470a38..8f4b2b9aa06c 100644
  
  	if (!cpumask_empty(trialcs->cpus_allowed) && balance_flag_changed)
  		rebuild_sched_domains_locked();
-@@ -2432,7 +2432,7 @@ static int cpuset_common_seq_show(struct seq_file *sf, void *v)
+@@ -2020,9 +2020,9 @@ static int update_prstate(struct cpuset *cs, int new_prs)
+ 	rebuild_sched_domains_locked();
+ out:
+ 	if (!err) {
+-		spin_lock_irq(&callback_lock);
++		raw_spin_lock_irq(&callback_lock);
+ 		cs->partition_root_state = new_prs;
+-		spin_unlock_irq(&callback_lock);
++		raw_spin_unlock_irq(&callback_lock);
+ 	}
+ 
+ 	free_cpumasks(NULL, &tmpmask);
+@@ -2438,7 +2438,7 @@ static int cpuset_common_seq_show(struct seq_file *sf, void *v)
  	cpuset_filetype_t type = seq_cft(sf)->private;
  	int ret = 0;
  
@@ -161,7 +173,7 @@ index 53c70c470a38..8f4b2b9aa06c 100644
  
  	switch (type) {
  	case FILE_CPULIST:
-@@ -2454,7 +2454,7 @@ static int cpuset_common_seq_show(struct seq_file *sf, void *v)
+@@ -2460,7 +2460,7 @@ static int cpuset_common_seq_show(struct seq_file *sf, void *v)
  		ret = -EINVAL;
  	}
  
@@ -170,7 +182,7 @@ index 53c70c470a38..8f4b2b9aa06c 100644
  	return ret;
  }
  
-@@ -2767,14 +2767,14 @@ static int cpuset_css_online(struct cgroup_subsys_state *css)
+@@ -2773,14 +2773,14 @@ static int cpuset_css_online(struct cgroup_subsys_state *css)
  
  	cpuset_inc();
  
@@ -187,7 +199,7 @@ index 53c70c470a38..8f4b2b9aa06c 100644
  
  	if (!test_bit(CGRP_CPUSET_CLONE_CHILDREN, &css->cgroup->flags))
  		goto out_unlock;
-@@ -2801,12 +2801,12 @@ static int cpuset_css_online(struct cgroup_subsys_state *css)
+@@ -2807,12 +2807,12 @@ static int cpuset_css_online(struct cgroup_subsys_state *css)
  	}
  	rcu_read_unlock();
  
@@ -202,7 +214,7 @@ index 53c70c470a38..8f4b2b9aa06c 100644
  out_unlock:
  	percpu_up_write(&cpuset_rwsem);
  	put_online_cpus();
-@@ -2862,7 +2862,7 @@ static void cpuset_css_free(struct cgroup_subsys_state *css)
+@@ -2868,7 +2868,7 @@ static void cpuset_css_free(struct cgroup_subsys_state *css)
  static void cpuset_bind(struct cgroup_subsys_state *root_css)
  {
  	percpu_down_write(&cpuset_rwsem);
@@ -211,7 +223,7 @@ index 53c70c470a38..8f4b2b9aa06c 100644
  
  	if (is_in_v2_mode()) {
  		cpumask_copy(top_cpuset.cpus_allowed, cpu_possible_mask);
-@@ -2873,7 +2873,7 @@ static void cpuset_bind(struct cgroup_subsys_state *root_css)
+@@ -2879,7 +2879,7 @@ static void cpuset_bind(struct cgroup_subsys_state *root_css)
  		top_cpuset.mems_allowed = top_cpuset.effective_mems;
  	}
  
@@ -220,7 +232,7 @@ index 53c70c470a38..8f4b2b9aa06c 100644
  	percpu_up_write(&cpuset_rwsem);
  }
  
-@@ -2970,12 +2970,12 @@ hotplug_update_tasks_legacy(struct cpuset *cs,
+@@ -2976,12 +2976,12 @@ hotplug_update_tasks_legacy(struct cpuset *cs,
  {
  	bool is_empty;
  
@@ -235,7 +247,7 @@ index 53c70c470a38..8f4b2b9aa06c 100644
  
  	/*
  	 * Don't call update_tasks_cpumask() if the cpuset becomes empty,
-@@ -3012,10 +3012,10 @@ hotplug_update_tasks(struct cpuset *cs,
+@@ -3018,10 +3018,10 @@ hotplug_update_tasks(struct cpuset *cs,
  	if (nodes_empty(*new_mems))
  		*new_mems = parent_cs(cs)->effective_mems;
  
@@ -248,7 +260,32 @@ index 53c70c470a38..8f4b2b9aa06c 100644
  
  	if (cpus_updated)
  		update_tasks_cpumask(cs);
-@@ -3170,7 +3170,7 @@ static void cpuset_hotplug_workfn(struct work_struct *work)
+@@ -3088,10 +3088,10 @@ static void cpuset_hotplug_update_tasks(struct cpuset *cs, struct tmpmasks *tmp)
+ 	if (is_partition_root(cs) && (cpumask_empty(&new_cpus) ||
+ 	   (parent->partition_root_state == PRS_ERROR))) {
+ 		if (cs->nr_subparts_cpus) {
+-			spin_lock_irq(&callback_lock);
++			raw_spin_lock_irq(&callback_lock);
+ 			cs->nr_subparts_cpus = 0;
+ 			cpumask_clear(cs->subparts_cpus);
+-			spin_unlock_irq(&callback_lock);
++			raw_spin_unlock_irq(&callback_lock);
+ 			compute_effective_cpumask(&new_cpus, cs, parent);
+ 		}
+ 
+@@ -3105,9 +3105,9 @@ static void cpuset_hotplug_update_tasks(struct cpuset *cs, struct tmpmasks *tmp)
+ 		     cpumask_empty(&new_cpus)) {
+ 			update_parent_subparts_cpumask(cs, partcmd_disable,
+ 						       NULL, tmp);
+-			spin_lock_irq(&callback_lock);
++			raw_spin_lock_irq(&callback_lock);
+ 			cs->partition_root_state = PRS_ERROR;
+-			spin_unlock_irq(&callback_lock);
++			raw_spin_unlock_irq(&callback_lock);
+ 		}
+ 		cpuset_force_rebuild();
+ 	}
+@@ -3187,7 +3187,7 @@ static void cpuset_hotplug_workfn(struct work_struct *work)
  
  	/* synchronize cpus_allowed to cpu_active_mask */
  	if (cpus_updated) {
@@ -257,7 +294,7 @@ index 53c70c470a38..8f4b2b9aa06c 100644
  		if (!on_dfl)
  			cpumask_copy(top_cpuset.cpus_allowed, &new_cpus);
  		/*
-@@ -3190,17 +3190,17 @@ static void cpuset_hotplug_workfn(struct work_struct *work)
+@@ -3207,17 +3207,17 @@ static void cpuset_hotplug_workfn(struct work_struct *work)
  			}
  		}
  		cpumask_copy(top_cpuset.effective_cpus, &new_cpus);
@@ -278,7 +315,7 @@ index 53c70c470a38..8f4b2b9aa06c 100644
  		update_tasks_nodemask(&top_cpuset);
  	}
  
-@@ -3301,11 +3301,11 @@ void cpuset_cpus_allowed(struct task_struct *tsk, struct cpumask *pmask)
+@@ -3318,11 +3318,11 @@ void cpuset_cpus_allowed(struct task_struct *tsk, struct cpumask *pmask)
  {
  	unsigned long flags;
  
@@ -292,7 +329,7 @@ index 53c70c470a38..8f4b2b9aa06c 100644
  }
  
  /**
-@@ -3366,11 +3366,11 @@ nodemask_t cpuset_mems_allowed(struct task_struct *tsk)
+@@ -3383,11 +3383,11 @@ nodemask_t cpuset_mems_allowed(struct task_struct *tsk)
  	nodemask_t mask;
  	unsigned long flags;
  
@@ -306,7 +343,7 @@ index 53c70c470a38..8f4b2b9aa06c 100644
  
  	return mask;
  }
-@@ -3462,14 +3462,14 @@ bool __cpuset_node_allowed(int node, gfp_t gfp_mask)
+@@ -3479,14 +3479,14 @@ bool __cpuset_node_allowed(int node, gfp_t gfp_mask)
  		return true;
  
  	/* Not hardwall and node outside mems_allowed: scan up cpusets */
@@ -324,5 +361,5 @@ index 53c70c470a38..8f4b2b9aa06c 100644
  }
  
 -- 
-2.33.0
+2.7.4
 

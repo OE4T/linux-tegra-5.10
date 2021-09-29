@@ -1,4 +1,4 @@
-From 61c1f55359762d938b48f333650bc5684dcb9016 Mon Sep 17 00:00:00 2001
+From 555e2a9fd8120d56224b27e67bfad54d2c36db5e Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 3 Feb 2021 11:05:24 -0500
 Subject: [PATCH 077/304] tracing: Inline tracing_gen_ctx_flags()
@@ -17,13 +17,13 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- include/linux/trace_events.h | 54 ++++++++++++++++++++++++++++++++++--
- kernel/trace/trace.c         | 38 ++-----------------------
- kernel/trace/trace.h         | 19 -------------
+ include/linux/trace_events.h | 54 +++++++++++++++++++++++++++++++++++++++++---
+ kernel/trace/trace.c         | 38 ++-----------------------------
+ kernel/trace/trace.h         | 19 ----------------
  3 files changed, 53 insertions(+), 58 deletions(-)
 
 diff --git a/include/linux/trace_events.h b/include/linux/trace_events.h
-index 091250b0895a..67ae708de40d 100644
+index 091250b0..67ae708 100644
 --- a/include/linux/trace_events.h
 +++ b/include/linux/trace_events.h
 @@ -160,9 +160,57 @@ static inline void tracing_generic_entry_update(struct trace_entry *entry,
@@ -88,7 +88,7 @@ index 091250b0895a..67ae708de40d 100644
  struct trace_event_file;
  
 diff --git a/kernel/trace/trace.c b/kernel/trace/trace.c
-index ae0c7eb2ec5d..7fe1947d3d48 100644
+index ae0c7eb2..7fe1947 100644
 --- a/kernel/trace/trace.c
 +++ b/kernel/trace/trace.c
 @@ -2586,20 +2586,13 @@ enum print_line_t trace_handle_return(struct trace_seq *s)
@@ -149,7 +149,7 @@ index ae0c7eb2ec5d..7fe1947d3d48 100644
  trace_buffer_lock_reserve(struct trace_buffer *buffer,
  			  int type,
 diff --git a/kernel/trace/trace.h b/kernel/trace/trace.h
-index b37601bee8b5..2ad9faef718a 100644
+index b37601b..2ad9fae 100644
 --- a/kernel/trace/trace.h
 +++ b/kernel/trace/trace.h
 @@ -136,25 +136,6 @@ struct kretprobe_trace_entry_head {
@@ -179,5 +179,5 @@ index b37601bee8b5..2ad9faef718a 100644
  
  struct trace_array;
 -- 
-2.33.0
+2.7.4
 

@@ -1,4 +1,4 @@
-From 868fb3fea16452eaa79f136e21f0102823c9729a Mon Sep 17 00:00:00 2001
+From 30ebef92e6e839d5819c8cbab27a966884f6e12f Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Mon, 12 Oct 2020 17:33:54 +0200
 Subject: [PATCH 114/304] tcp: Remove superfluous BH-disable around
@@ -25,7 +25,7 @@ Link: https://lkml.kernel.org/r/X9CheYjuXWc75Spa@hirez.programming.kicks-ass.net
  2 files changed, 13 insertions(+), 11 deletions(-)
 
 diff --git a/net/ipv4/inet_hashtables.c b/net/ipv4/inet_hashtables.c
-index 45fb450b4522..5fb95030e7c0 100644
+index 45fb450..5fb9503 100644
 --- a/net/ipv4/inet_hashtables.c
 +++ b/net/ipv4/inet_hashtables.c
 @@ -635,7 +635,9 @@ int __inet_hash(struct sock *sk, struct sock *osk)
@@ -87,7 +87,7 @@ index 45fb450b4522..5fb95030e7c0 100644
  EXPORT_SYMBOL_GPL(inet_unhash);
  
 diff --git a/net/ipv6/inet6_hashtables.c b/net/ipv6/inet6_hashtables.c
-index 55c290d55605..9bad345cba9a 100644
+index 55c290d5..9bad345 100644
 --- a/net/ipv6/inet6_hashtables.c
 +++ b/net/ipv6/inet6_hashtables.c
 @@ -333,11 +333,8 @@ int inet6_hash(struct sock *sk)
@@ -104,5 +104,5 @@ index 55c290d55605..9bad345cba9a 100644
  	return err;
  }
 -- 
-2.33.0
+2.7.4
 

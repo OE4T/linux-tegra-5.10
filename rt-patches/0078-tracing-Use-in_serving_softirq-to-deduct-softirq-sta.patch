@@ -1,4 +1,4 @@
-From b9864cbc74956bd70591c31f966a909d02a27096 Mon Sep 17 00:00:00 2001
+From e9b2eeaed91a6e199b4ec3d0a15253d76c2d7091 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 3 Feb 2021 11:05:25 -0500
 Subject: [PATCH 078/304] tracing: Use in_serving_softirq() to deduct softirq
@@ -29,7 +29,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 1 insertion(+), 2 deletions(-)
 
 diff --git a/kernel/trace/trace.c b/kernel/trace/trace.c
-index 7fe1947d3d48..42cc9af3ce02 100644
+index 7fe1947..42cc9af 100644
 --- a/kernel/trace/trace.c
 +++ b/kernel/trace/trace.c
 @@ -2597,8 +2597,7 @@ unsigned int tracing_gen_ctx_irq_test(unsigned int irqs_status)
@@ -43,5 +43,5 @@ index 7fe1947d3d48..42cc9af3ce02 100644
  
  	if (tif_need_resched())
 -- 
-2.33.0
+2.7.4
 

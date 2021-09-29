@@ -1,4 +1,4 @@
-From 51d8d540b904f56b9b55ee57a57453f608626bb9 Mon Sep 17 00:00:00 2001
+From e21f899d8f745a1dce15131f814d762ef80ae9ac Mon Sep 17 00:00:00 2001
 From: Ingo Molnar <mingo@elte.hu>
 Date: Fri, 3 Jul 2009 08:29:37 -0500
 Subject: [PATCH 205/304] mm: page_alloc: rt-friendly per-cpu pages
@@ -17,7 +17,7 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
  1 file changed, 28 insertions(+), 19 deletions(-)
 
 diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index e1677637ac3b..accab201af7c 100644
+index 1099910..25023e2 100644
 --- a/mm/page_alloc.c
 +++ b/mm/page_alloc.c
 @@ -61,6 +61,7 @@
@@ -192,5 +192,5 @@ index e1677637ac3b..accab201af7c 100644
  
  #ifdef CONFIG_MEMORY_HOTREMOVE
 -- 
-2.33.0
+2.7.4
 

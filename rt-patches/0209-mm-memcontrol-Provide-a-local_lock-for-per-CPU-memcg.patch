@@ -1,4 +1,4 @@
-From 87cce4dc7a5f7afc9f6e5068851716919225af14 Mon Sep 17 00:00:00 2001
+From f200f85d533e88fb45871435741937c6fc7f4a4f Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 18 Aug 2020 10:30:00 +0200
 Subject: [PATCH 209/304] mm: memcontrol: Provide a local_lock for per-CPU
@@ -21,7 +21,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 18 insertions(+), 13 deletions(-)
 
 diff --git a/mm/memcontrol.c b/mm/memcontrol.c
-index 4fae1b7ec36c..c7cdcbb0da68 100644
+index 4fae1b7..c7cdcbb 100644
 --- a/mm/memcontrol.c
 +++ b/mm/memcontrol.c
 @@ -2202,6 +2202,7 @@ void unlock_page_memcg(struct page *page)
@@ -139,5 +139,5 @@ index 4fae1b7ec36c..c7cdcbb0da68 100644
  	for_each_node(node) {
  		struct mem_cgroup_tree_per_node *rtpn;
 -- 
-2.33.0
+2.7.4
 

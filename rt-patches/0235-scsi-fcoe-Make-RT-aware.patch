@@ -1,4 +1,4 @@
-From 68d11eb72af82ae802425fa48b13bb6b04490711 Mon Sep 17 00:00:00 2001
+From e26b98f348a3b0fab98b3a1f4123dce9e58f2247 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Sat, 12 Nov 2011 14:00:48 +0100
 Subject: [PATCH 235/304] scsi/fcoe: Make RT aware.
@@ -14,7 +14,7 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
  3 files changed, 12 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/scsi/fcoe/fcoe.c b/drivers/scsi/fcoe/fcoe.c
-index 0f9274960dc6..dc97e4f1f4ad 100644
+index 0f92749..dc97e4f 100644
 --- a/drivers/scsi/fcoe/fcoe.c
 +++ b/drivers/scsi/fcoe/fcoe.c
 @@ -1452,11 +1452,11 @@ static int fcoe_rcv(struct sk_buff *skb, struct net_device *netdev,
@@ -72,7 +72,7 @@ index 0f9274960dc6..dc97e4f1f4ad 100644
  }
  
 diff --git a/drivers/scsi/fcoe/fcoe_ctlr.c b/drivers/scsi/fcoe/fcoe_ctlr.c
-index 5ea426effa60..0d6b9acc7cf8 100644
+index 5ea426e..0d6b9ac 100644
 --- a/drivers/scsi/fcoe/fcoe_ctlr.c
 +++ b/drivers/scsi/fcoe/fcoe_ctlr.c
 @@ -828,7 +828,7 @@ static unsigned long fcoe_ctlr_age_fcfs(struct fcoe_ctlr *fip)
@@ -94,7 +94,7 @@ index 5ea426effa60..0d6b9acc7cf8 100644
  	list_for_each_entry_safe(fcf, next, &del_list, list) {
  		/* Removes fcf from current list */
 diff --git a/drivers/scsi/libfc/fc_exch.c b/drivers/scsi/libfc/fc_exch.c
-index a50f1eef0e0c..0b2acad7c354 100644
+index a50f1ee..0b2acad 100644
 --- a/drivers/scsi/libfc/fc_exch.c
 +++ b/drivers/scsi/libfc/fc_exch.c
 @@ -826,10 +826,10 @@ static struct fc_exch *fc_exch_em_alloc(struct fc_lport *lport,
@@ -111,5 +111,5 @@ index a50f1eef0e0c..0b2acad7c354 100644
  	/* peek cache of free slot */
  	if (pool->left != FC_XID_UNKNOWN) {
 -- 
-2.33.0
+2.7.4
 

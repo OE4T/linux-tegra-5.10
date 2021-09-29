@@ -1,4 +1,4 @@
-From 1dcd69a53b496cf21fc55d4474085de5ea7bec52 Mon Sep 17 00:00:00 2001
+From 2211b97b61cf696471958ec961a666d82b20ea54 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 3 Feb 2021 11:05:23 -0500
 Subject: [PATCH 076/304] tracing: Merge irqflags + preempt counter.
@@ -58,27 +58,27 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- include/linux/trace_events.h         |  25 +++-
+ include/linux/trace_events.h         |  25 +++--
  kernel/trace/blktrace.c              |  17 +--
- kernel/trace/trace.c                 | 206 +++++++++++++++------------
- kernel/trace/trace.h                 |  38 +++--
+ kernel/trace/trace.c                 | 206 +++++++++++++++++++----------------
+ kernel/trace/trace.h                 |  38 +++----
  kernel/trace/trace_branch.c          |   6 +-
  kernel/trace/trace_event_perf.c      |   5 +-
  kernel/trace/trace_events.c          |  18 +--
  kernel/trace/trace_events_inject.c   |   6 +-
- kernel/trace/trace_functions.c       |  28 ++--
- kernel/trace/trace_functions_graph.c |  32 ++---
+ kernel/trace/trace_functions.c       |  28 ++---
+ kernel/trace/trace_functions_graph.c |  32 +++---
  kernel/trace/trace_hwlat.c           |   7 +-
- kernel/trace/trace_irqsoff.c         |  86 +++++------
+ kernel/trace/trace_irqsoff.c         |  86 ++++++---------
  kernel/trace/trace_kprobe.c          |  10 +-
- kernel/trace/trace_mmiotrace.c       |  14 +-
- kernel/trace/trace_sched_wakeup.c    |  71 +++++----
- kernel/trace/trace_syscalls.c        |  20 ++-
+ kernel/trace/trace_mmiotrace.c       |  14 ++-
+ kernel/trace/trace_sched_wakeup.c    |  71 ++++++------
+ kernel/trace/trace_syscalls.c        |  20 ++--
  kernel/trace/trace_uprobe.c          |   4 +-
  17 files changed, 286 insertions(+), 307 deletions(-)
 
 diff --git a/include/linux/trace_events.h b/include/linux/trace_events.h
-index d321fe5ad1a1..091250b0895a 100644
+index d321fe5..091250b0 100644
 --- a/include/linux/trace_events.h
 +++ b/include/linux/trace_events.h
 @@ -148,17 +148,29 @@ enum print_line_t {
@@ -127,7 +127,7 @@ index d321fe5ad1a1..091250b0895a 100644
  };
  
 diff --git a/kernel/trace/blktrace.c b/kernel/trace/blktrace.c
-index f1022945e346..c300ac337573 100644
+index f102294..c300ac3 100644
 --- a/kernel/trace/blktrace.c
 +++ b/kernel/trace/blktrace.c
 @@ -72,17 +72,17 @@ static void trace_note(struct blk_trace *bt, pid_t pid, int action,
@@ -194,7 +194,7 @@ index f1022945e346..c300ac337573 100644
  		}
  	}
 diff --git a/kernel/trace/trace.c b/kernel/trace/trace.c
-index 61e955ebb154..ae0c7eb2ec5d 100644
+index 61e955e..ae0c7eb2 100644
 --- a/kernel/trace/trace.c
 +++ b/kernel/trace/trace.c
 @@ -176,7 +176,7 @@ static union trace_eval_map_item *trace_eval_maps;
@@ -763,7 +763,7 @@ index 61e955ebb154..ae0c7eb2ec5d 100644
  		/* Ring buffer disabled, return as if not open for write */
  		return -EBADF;
 diff --git a/kernel/trace/trace.h b/kernel/trace/trace.h
-index 6784b572ce59..b37601bee8b5 100644
+index 6784b57..b37601b 100644
 --- a/kernel/trace/trace.h
 +++ b/kernel/trace/trace.h
 @@ -766,8 +766,7 @@ struct ring_buffer_event *
@@ -890,7 +890,7 @@ index 6784b572ce59..b37601bee8b5 100644
  	if (tt)
  		event_triggers_post_call(file, tt);
 diff --git a/kernel/trace/trace_branch.c b/kernel/trace/trace_branch.c
-index eff099123aa2..e47fdb4c92fb 100644
+index eff0991..e47fdb4 100644
 --- a/kernel/trace/trace_branch.c
 +++ b/kernel/trace/trace_branch.c
 @@ -37,7 +37,7 @@ probe_likely_condition(struct ftrace_likely_data *f, int val, int expect)
@@ -916,7 +916,7 @@ index eff099123aa2..e47fdb4c92fb 100644
  		goto out;
  
 diff --git a/kernel/trace/trace_event_perf.c b/kernel/trace/trace_event_perf.c
-index 643e0b19920d..0443dd61667b 100644
+index 643e0b1..0443dd6 100644
 --- a/kernel/trace/trace_event_perf.c
 +++ b/kernel/trace/trace_event_perf.c
 @@ -421,11 +421,8 @@ NOKPROBE_SYMBOL(perf_trace_buf_alloc);
@@ -933,7 +933,7 @@ index 643e0b19920d..0443dd61667b 100644
  NOKPROBE_SYMBOL(perf_trace_buf_update);
  
 diff --git a/kernel/trace/trace_events.c b/kernel/trace/trace_events.c
-index ab3cb67b869e..546a535f1490 100644
+index ab3cb67..546a535 100644
 --- a/kernel/trace/trace_events.c
 +++ b/kernel/trace/trace_events.c
 @@ -258,22 +258,19 @@ void *trace_event_buffer_reserve(struct trace_event_buffer *fbuffer,
@@ -999,7 +999,7 @@ index ab3cb67b869e..546a535f1490 100644
  	atomic_dec(&per_cpu(ftrace_test_event_disable, cpu));
  	preempt_enable_notrace();
 diff --git a/kernel/trace/trace_events_inject.c b/kernel/trace/trace_events_inject.c
-index 22bcf7c51d1e..c188045c5f97 100644
+index 22bcf7c..c188045 100644
 --- a/kernel/trace/trace_events_inject.c
 +++ b/kernel/trace/trace_events_inject.c
 @@ -192,7 +192,6 @@ static void *trace_alloc_entry(struct trace_event_call *call, int *size)
@@ -1023,7 +1023,7 @@ index 22bcf7c51d1e..c188045c5f97 100644
  	while ((len = parse_field(str, call, &field, &val)) > 0) {
  		if (is_function_field(field))
 diff --git a/kernel/trace/trace_functions.c b/kernel/trace/trace_functions.c
-index 2c2126e1871d..9a4362c1e5f0 100644
+index 2c2126e..9a4362c 100644
 --- a/kernel/trace/trace_functions.c
 +++ b/kernel/trace/trace_functions.c
 @@ -133,15 +133,14 @@ function_trace_call(unsigned long ip, unsigned long parent_ip,
@@ -1098,7 +1098,7 @@ index 2c2126e1871d..9a4362c1e5f0 100644
  
  static void
 diff --git a/kernel/trace/trace_functions_graph.c b/kernel/trace/trace_functions_graph.c
-index 60d66278aa0d..b086ba8bb3d6 100644
+index 60d6627..b086ba8 100644
 --- a/kernel/trace/trace_functions_graph.c
 +++ b/kernel/trace/trace_functions_graph.c
 @@ -96,8 +96,7 @@ print_graph_duration(struct trace_array *tr, unsigned long long duration,
@@ -1212,7 +1212,7 @@ index 60d66278aa0d..b086ba8bb3d6 100644
  	atomic_dec(&data->disabled);
  	local_irq_restore(flags);
 diff --git a/kernel/trace/trace_hwlat.c b/kernel/trace/trace_hwlat.c
-index d071fc271eef..4c01c5d8b9a7 100644
+index d071fc2..4c01c5d 100644
 --- a/kernel/trace/trace_hwlat.c
 +++ b/kernel/trace/trace_hwlat.c
 @@ -108,14 +108,9 @@ static void trace_hwlat_sample(struct hwlat_sample *sample)
@@ -1232,7 +1232,7 @@ index d071fc271eef..4c01c5d8b9a7 100644
  		return;
  	entry	= ring_buffer_event_data(event);
 diff --git a/kernel/trace/trace_irqsoff.c b/kernel/trace/trace_irqsoff.c
-index ee4571b624bc..f11add83c108 100644
+index ee4571b..f11add8 100644
 --- a/kernel/trace/trace_irqsoff.c
 +++ b/kernel/trace/trace_irqsoff.c
 @@ -143,11 +143,14 @@ irqsoff_tracer_call(unsigned long ip, unsigned long parent_ip,
@@ -1466,7 +1466,7 @@ index ee4571b624bc..f11add83c108 100644
  
  static int preemptoff_tracer_init(struct trace_array *tr)
 diff --git a/kernel/trace/trace_kprobe.c b/kernel/trace/trace_kprobe.c
-index 68150b9cbde9..54b8378071d4 100644
+index 68150b9..54b8378 100644
 --- a/kernel/trace/trace_kprobe.c
 +++ b/kernel/trace/trace_kprobe.c
 @@ -1386,8 +1386,7 @@ __kprobe_trace_func(struct trace_kprobe *tk, struct pt_regs *regs,
@@ -1508,7 +1508,7 @@ index 68150b9cbde9..54b8378071d4 100644
  		return;
  
 diff --git a/kernel/trace/trace_mmiotrace.c b/kernel/trace/trace_mmiotrace.c
-index 84582bf1ed5f..7221ae0b4c47 100644
+index 84582bf..7221ae0 100644
 --- a/kernel/trace/trace_mmiotrace.c
 +++ b/kernel/trace/trace_mmiotrace.c
 @@ -300,10 +300,11 @@ static void __trace_mmiotrace_rw(struct trace_array *tr,
@@ -1558,7 +1558,7 @@ index 84582bf1ed5f..7221ae0b4c47 100644
  
  void mmio_trace_mapping(struct mmiotrace_map *map)
 diff --git a/kernel/trace/trace_sched_wakeup.c b/kernel/trace/trace_sched_wakeup.c
-index 97b10bb31a1f..f1c603358ff3 100644
+index 97b10bb..f1c6033 100644
 --- a/kernel/trace/trace_sched_wakeup.c
 +++ b/kernel/trace/trace_sched_wakeup.c
 @@ -67,7 +67,7 @@ static bool function_enabled;
@@ -1799,7 +1799,7 @@ index 97b10bb31a1f..f1c603358ff3 100644
  out_locked:
  	arch_spin_unlock(&wakeup_lock);
 diff --git a/kernel/trace/trace_syscalls.c b/kernel/trace/trace_syscalls.c
-index d85a2f0f316b..8bfcd3b09422 100644
+index d85a2f0..8bfcd3b0 100644
 --- a/kernel/trace/trace_syscalls.c
 +++ b/kernel/trace/trace_syscalls.c
 @@ -298,9 +298,8 @@ static void ftrace_syscall_enter(void *data, struct pt_regs *regs, long id)
@@ -1873,7 +1873,7 @@ index d85a2f0f316b..8bfcd3b09422 100644
  
  static int reg_event_syscall_enter(struct trace_event_file *file,
 diff --git a/kernel/trace/trace_uprobe.c b/kernel/trace/trace_uprobe.c
-index 3cf7128e1ad3..a1ed96a7a462 100644
+index 3cf7128..a1ed96a 100644
 --- a/kernel/trace/trace_uprobe.c
 +++ b/kernel/trace/trace_uprobe.c
 @@ -961,7 +961,7 @@ static void __uprobe_trace_func(struct trace_uprobe *tu,
@@ -1895,5 +1895,5 @@ index 3cf7128e1ad3..a1ed96a7a462 100644
  
  /* uprobe handler */
 -- 
-2.33.0
+2.7.4
 

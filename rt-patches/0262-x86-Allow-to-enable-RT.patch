@@ -1,4 +1,4 @@
-From 83d893fb86ff9341aea87d6d9ccc86fdee138f94 Mon Sep 17 00:00:00 2001
+From 4b69efaea2db509f1bc375f550e1189187cdf3ff Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 7 Aug 2019 18:15:38 +0200
 Subject: [PATCH 262/304] x86: Allow to enable RT
@@ -11,7 +11,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 1 insertion(+)
 
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 2ae9cf11b995..3ea2b0b5d9d6 100644
+index 2ae9cf1..3ea2b0b 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
 @@ -27,6 +27,7 @@ config X86_64
@@ -23,5 +23,5 @@ index 2ae9cf11b995..3ea2b0b5d9d6 100644
  	select HAVE_ARCH_SOFT_DIRTY
  	select MODULES_USE_ELF_RELA
 -- 
-2.33.0
+2.7.4
 

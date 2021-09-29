@@ -1,4 +1,4 @@
-From 7825717b901336aae9bfde09d234903f82c16de5 Mon Sep 17 00:00:00 2001
+From 3a3c01d4de8eaedc5a0a057bbc4b3c6315af72f8 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Sat, 23 Jan 2021 21:10:27 +0100
 Subject: [PATCH 065/304] blk-mq: Use llist_head for blk_cpu_done
@@ -21,12 +21,12 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- block/blk-mq.c         | 101 ++++++++++++++++++-----------------------
+ block/blk-mq.c         | 101 +++++++++++++++++++++----------------------------
  include/linux/blkdev.h |   2 +-
  2 files changed, 44 insertions(+), 59 deletions(-)
 
 diff --git a/block/blk-mq.c b/block/blk-mq.c
-index 460003cae846..3860a0858be0 100644
+index cdf7e6c..4de3a2e 100644
 --- a/block/blk-mq.c
 +++ b/block/blk-mq.c
 @@ -41,7 +41,7 @@
@@ -173,7 +173,7 @@ index 460003cae846..3860a0858be0 100644
  }
  EXPORT_SYMBOL_GPL(blk_mq_complete_request_remote);
  
-@@ -3948,7 +3933,7 @@ static int __init blk_mq_init(void)
+@@ -3961,7 +3946,7 @@ static int __init blk_mq_init(void)
  	int i;
  
  	for_each_possible_cpu(i)
@@ -183,7 +183,7 @@ index 460003cae846..3860a0858be0 100644
  
  	cpuhp_setup_state_nocalls(CPUHP_BLOCK_SOFTIRQ_DEAD,
 diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
-index 542471b76f41..c53febd7d169 100644
+index 8aae375..ee72ff3 100644
 --- a/include/linux/blkdev.h
 +++ b/include/linux/blkdev.h
 @@ -153,7 +153,7 @@ struct request {
@@ -196,5 +196,5 @@ index 542471b76f41..c53febd7d169 100644
  
  	/*
 -- 
-2.33.0
+2.7.4
 

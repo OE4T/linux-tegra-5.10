@@ -1,4 +1,4 @@
-From e9880dc863d5266e79b747e093ad0c043d26f365 Mon Sep 17 00:00:00 2001
+From 664bcfed30301a4987c9b8673f7941a3262623d5 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 7 Oct 2020 12:11:33 +0200
 Subject: [PATCH 161/304] locking/rtmutex: Remove rt_mutex_timed_lock()
@@ -11,11 +11,11 @@ Remove rt_mutex_timed_lock().
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
  include/linux/rtmutex.h  |  3 ---
- kernel/locking/rtmutex.c | 46 ----------------------------------------
+ kernel/locking/rtmutex.c | 46 ----------------------------------------------
  2 files changed, 49 deletions(-)
 
 diff --git a/include/linux/rtmutex.h b/include/linux/rtmutex.h
-index 2dc10b582d4a..243fabc2c85f 100644
+index 2dc10b5..243fabc 100644
 --- a/include/linux/rtmutex.h
 +++ b/include/linux/rtmutex.h
 @@ -99,9 +99,6 @@ extern void rt_mutex_lock(struct rt_mutex *lock);
@@ -29,14 +29,13 @@ index 2dc10b582d4a..243fabc2c85f 100644
  
  extern void rt_mutex_unlock(struct rt_mutex *lock);
 diff --git a/kernel/locking/rtmutex.c b/kernel/locking/rtmutex.c
-index d2a90977ea7c..1d0e9bf0487a 100644
+index d2a9097..1d0e9bf 100644
 --- a/kernel/locking/rtmutex.c
 +++ b/kernel/locking/rtmutex.c
-@@ -1405,21 +1405,6 @@ rt_mutex_fastlock(struct rt_mutex *lock, int state,
- 	return slowfn(lock, state, NULL, RT_MUTEX_MIN_CHAINWALK);
+@@ -1406,21 +1406,6 @@ rt_mutex_fastlock(struct rt_mutex *lock, int state,
  }
  
--static inline int
+ static inline int
 -rt_mutex_timed_fastlock(struct rt_mutex *lock, int state,
 -			struct hrtimer_sleeper *timeout,
 -			enum rtmutex_chainwalk chwalk,
@@ -51,14 +50,14 @@ index d2a90977ea7c..1d0e9bf0487a 100644
 -	return slowfn(lock, state, timeout, chwalk);
 -}
 -
- static inline int
+-static inline int
  rt_mutex_fasttrylock(struct rt_mutex *lock,
  		     int (*slowfn)(struct rt_mutex *lock))
-@@ -1527,37 +1512,6 @@ int __sched __rt_mutex_futex_trylock(struct rt_mutex *lock)
- 	return __rt_mutex_slowtrylock(lock);
+ {
+@@ -1528,37 +1513,6 @@ int __sched __rt_mutex_futex_trylock(struct rt_mutex *lock)
  }
  
--/**
+ /**
 - * rt_mutex_timed_lock - lock a rt_mutex interruptible
 - *			the timeout structure is provided
 - *			by the caller
@@ -89,9 +88,10 @@ index d2a90977ea7c..1d0e9bf0487a 100644
 -}
 -EXPORT_SYMBOL_GPL(rt_mutex_timed_lock);
 -
- /**
+-/**
   * rt_mutex_trylock - try to lock a rt_mutex
   *
+  * @lock:	the rt_mutex to be locked
 -- 
-2.33.0
+2.7.4
 

@@ -1,4 +1,4 @@
-From 24c407507f42acf1aaa6df8bbc95572e4291d145 Mon Sep 17 00:00:00 2001
+From 67a3e1db4fff85d8525280f03152235245df18d2 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 9 Mar 2021 09:42:15 +0100
 Subject: [PATCH 145/304] PCI: hv: Use tasklet_disable_in_atomic()
@@ -28,7 +28,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/pci/controller/pci-hyperv.c b/drivers/pci/controller/pci-hyperv.c
-index 44e15f0e3a2e..dc23b21263ce 100644
+index 44e15f0..dc23b21 100644
 --- a/drivers/pci/controller/pci-hyperv.c
 +++ b/drivers/pci/controller/pci-hyperv.c
 @@ -1457,7 +1457,7 @@ static void hv_compose_msi_msg(struct irq_data *data, struct msi_msg *msg)
@@ -41,5 +41,5 @@ index 44e15f0e3a2e..dc23b21263ce 100644
  	/*
  	 * Since this function is called with IRQ locks held, can't
 -- 
-2.33.0
+2.7.4
 

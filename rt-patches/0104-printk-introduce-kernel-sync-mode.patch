@@ -1,4 +1,4 @@
-From a4a2ee8eb209df7759436a44517fcdb518be8957 Mon Sep 17 00:00:00 2001
+From f8b306871f25bc0e71d4973ced46a30d30e9dd64 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Mon, 30 Nov 2020 01:42:06 +0106
 Subject: [PATCH 104/304] printk: introduce kernel sync mode
@@ -15,12 +15,12 @@ Signed-off-by: John Ogness <john.ogness@linutronix.de>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
  include/linux/console.h |   4 ++
- include/linux/printk.h  |   6 ++
- kernel/printk/printk.c  | 133 ++++++++++++++++++++++++++++++++++++++--
+ include/linux/printk.h  |   6 +++
+ kernel/printk/printk.c  | 133 +++++++++++++++++++++++++++++++++++++++++++++---
  3 files changed, 137 insertions(+), 6 deletions(-)
 
 diff --git a/include/linux/console.h b/include/linux/console.h
-index 46c27780ea39..d0109ec4e78b 100644
+index 46c2778..d0109ec 100644
 --- a/include/linux/console.h
 +++ b/include/linux/console.h
 @@ -16,6 +16,7 @@
@@ -42,7 +42,7 @@ index 46c27780ea39..d0109ec4e78b 100644
  	struct	 console *next;
  };
 diff --git a/include/linux/printk.h b/include/linux/printk.h
-index 2476796c1150..1ebd93581acc 100644
+index 2476796..1ebd935 100644
 --- a/include/linux/printk.h
 +++ b/include/linux/printk.h
 @@ -46,6 +46,12 @@ static inline const char *printk_skip_headers(const char *buffer)
@@ -59,7 +59,7 @@ index 2476796c1150..1ebd93581acc 100644
  #define MESSAGE_LOGLEVEL_DEFAULT CONFIG_MESSAGE_LOGLEVEL_DEFAULT
  
 diff --git a/kernel/printk/printk.c b/kernel/printk/printk.c
-index a3763f25cede..1f225b32fcbd 100644
+index a3763f2..1f225b3 100644
 --- a/kernel/printk/printk.c
 +++ b/kernel/printk/printk.c
 @@ -44,6 +44,7 @@
@@ -304,5 +304,5 @@ index a3763f25cede..1f225b32fcbd 100644
  	list_for_each_entry_rcu(dumper, &dump_list, list) {
  		enum kmsg_dump_reason max_reason = dumper->max_reason;
 -- 
-2.33.0
+2.7.4
 

@@ -1,4 +1,4 @@
-From 3217d661baa38b3a627ac49eae2c4cb600e54428 Mon Sep 17 00:00:00 2001
+From 599c70dd43261b685cff21c30217182653606e68 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Sun, 13 Nov 2011 17:17:09 +0100
 Subject: [PATCH 221/304] softirq: Check preemption after reenabling interrupts
@@ -20,7 +20,7 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
  3 files changed, 15 insertions(+)
 
 diff --git a/include/linux/preempt.h b/include/linux/preempt.h
-index 5ceac863e729..fb140e00f74d 100644
+index 5ceac86..fb140e0 100644
 --- a/include/linux/preempt.h
 +++ b/include/linux/preempt.h
 @@ -190,8 +190,10 @@ do { \
@@ -43,7 +43,7 @@ index 5ceac863e729..fb140e00f74d 100644
  
  #endif /* CONFIG_PREEMPT_COUNT */
 diff --git a/lib/irq_poll.c b/lib/irq_poll.c
-index 2f17b488d58e..7557bf7ecf1f 100644
+index 2f17b48..7557bf7 100644
 --- a/lib/irq_poll.c
 +++ b/lib/irq_poll.c
 @@ -37,6 +37,7 @@ void irq_poll_sched(struct irq_poll *iop)
@@ -87,7 +87,7 @@ index 2f17b488d58e..7557bf7ecf1f 100644
  	return 0;
  }
 diff --git a/net/core/dev.c b/net/core/dev.c
-index e2dc177daf55..78188566a770 100644
+index e2dc177..7818856 100644
 --- a/net/core/dev.c
 +++ b/net/core/dev.c
 @@ -3049,6 +3049,7 @@ static void __netif_reschedule(struct Qdisc *q)
@@ -146,5 +146,5 @@ index e2dc177daf55..78188566a770 100644
  #ifdef CONFIG_RPS
  	remsd = oldsd->rps_ipi_list;
 -- 
-2.33.0
+2.7.4
 

@@ -1,4 +1,4 @@
-From dc214fd2d3330289554c533f63483c35f3b5b494 Mon Sep 17 00:00:00 2001
+From 74d3e30b277342319922aba1b54d52a0e7b8e9cc Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Thu, 12 Oct 2017 16:36:39 +0200
 Subject: [PATCH 170/304] locking/rtmutex: export lockdep-less version of
@@ -9,12 +9,12 @@ Required for lock implementation ontop of rtmutex.
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- kernel/locking/rtmutex.c        | 54 +++++++++++++++++++++++----------
- kernel/locking/rtmutex_common.h |  3 ++
+ kernel/locking/rtmutex.c        | 54 +++++++++++++++++++++++++++++------------
+ kernel/locking/rtmutex_common.h |  3 +++
  2 files changed, 41 insertions(+), 16 deletions(-)
 
 diff --git a/kernel/locking/rtmutex.c b/kernel/locking/rtmutex.c
-index e7645a09d0fb..e59243a6d7f4 100644
+index e7645a0..e59243a 100644
 --- a/kernel/locking/rtmutex.c
 +++ b/kernel/locking/rtmutex.c
 @@ -1469,12 +1469,33 @@ rt_mutex_fastunlock(struct rt_mutex *lock,
@@ -111,7 +111,7 @@ index e7645a09d0fb..e59243a6d7f4 100644
   * rt_mutex_unlock - unlock a rt_mutex
   *
 diff --git a/kernel/locking/rtmutex_common.h b/kernel/locking/rtmutex_common.h
-index b5a2affa59d5..9d1e974ca9c3 100644
+index b5a2aff..9d1e974 100644
 --- a/kernel/locking/rtmutex_common.h
 +++ b/kernel/locking/rtmutex_common.h
 @@ -156,6 +156,9 @@ extern bool __rt_mutex_futex_unlock(struct rt_mutex *lock,
@@ -125,5 +125,5 @@ index b5a2affa59d5..9d1e974ca9c3 100644
  				     struct hrtimer_sleeper *timeout,
  				     enum rtmutex_chainwalk chwalk,
 -- 
-2.33.0
+2.7.4
 

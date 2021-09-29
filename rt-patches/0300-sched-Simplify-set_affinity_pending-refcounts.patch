@@ -1,4 +1,4 @@
-From c7b09a6327c53a6d9f2feb95fbba1d7a3a8be227 Mon Sep 17 00:00:00 2001
+From 0572dc810b57a2db03d037cb5b134759e0dd93a5 Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Tue, 8 Jun 2021 00:37:35 -0400
 Subject: [PATCH 300/304] sched: Simplify set_affinity_pending refcounts
@@ -23,10 +23,10 @@ Signed-off-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
  1 file changed, 20 insertions(+), 12 deletions(-)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 94fd6a35c4f6..1afd56baf658 100644
+index e16d545..f375d78 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
-@@ -1896,6 +1896,10 @@ struct migration_arg {
+@@ -1909,6 +1909,10 @@ struct migration_arg {
  	struct set_affinity_pending	*pending;
  };
  
@@ -37,7 +37,7 @@ index 94fd6a35c4f6..1afd56baf658 100644
  struct set_affinity_pending {
  	refcount_t		refs;
  	unsigned int		stop_pending;
-@@ -2031,10 +2035,6 @@ static int migration_cpu_stop(void *data)
+@@ -2044,10 +2048,6 @@ static int migration_cpu_stop(void *data)
  	if (complete)
  		complete_all(&pending->done);
  
@@ -48,7 +48,7 @@ index 94fd6a35c4f6..1afd56baf658 100644
  	return 0;
  }
  
-@@ -2233,12 +2233,16 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
+@@ -2246,12 +2246,16 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
  			push_task = get_task_struct(p);
  		}
  
@@ -67,7 +67,7 @@ index 94fd6a35c4f6..1afd56baf658 100644
  		task_rq_unlock(rq, p, rf);
  
  		if (push_task) {
-@@ -2247,7 +2251,7 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
+@@ -2260,7 +2264,7 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
  		}
  
  		if (complete)
@@ -76,7 +76,7 @@ index 94fd6a35c4f6..1afd56baf658 100644
  
  		return 0;
  	}
-@@ -2298,9 +2302,9 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
+@@ -2311,9 +2315,9 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
  		if (!stop_pending)
  			pending->stop_pending = true;
  
@@ -87,7 +87,7 @@ index 94fd6a35c4f6..1afd56baf658 100644
  		task_rq_unlock(rq, p, rf);
  
  		if (!stop_pending) {
-@@ -2316,12 +2320,13 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
+@@ -2329,12 +2333,13 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
  			if (task_on_rq_queued(p))
  				rq = move_queued_task(rq, rf, p, dest_cpu);
  
@@ -104,7 +104,7 @@ index 94fd6a35c4f6..1afd56baf658 100644
  		if (complete)
  			complete_all(&pending->done);
  	}
-@@ -2329,7 +2334,7 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
+@@ -2342,7 +2347,7 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
  	wait_for_completion(&pending->done);
  
  	if (refcount_dec_and_test(&pending->refs))
@@ -113,7 +113,7 @@ index 94fd6a35c4f6..1afd56baf658 100644
  
  	/*
  	 * Block the original owner of &pending until all subsequent callers
-@@ -2337,6 +2342,9 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
+@@ -2350,6 +2355,9 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
  	 */
  	wait_var_event(&my_pending.refs, !refcount_read(&my_pending.refs));
  
@@ -124,5 +124,5 @@ index 94fd6a35c4f6..1afd56baf658 100644
  }
  
 -- 
-2.33.0
+2.7.4
 

@@ -1,4 +1,4 @@
-From 8f1ce158ecdd5957b3d39a2eb2d03d41e286d79e Mon Sep 17 00:00:00 2001
+From 355526ebc1ff5447166eb5864f834e4c263c572e Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Thu, 12 Oct 2017 17:18:06 +0200
 Subject: [PATCH 176/304] locking/rtmutex: add rwlock implementation based on
@@ -9,10 +9,10 @@ The implementation is bias-based, similar to the rwsem implementation.
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- include/linux/rwlock_rt.h       | 109 +++++++++++
- include/linux/rwlock_types_rt.h |  56 ++++++
+ include/linux/rwlock_rt.h       | 109 +++++++++++++
+ include/linux/rwlock_types_rt.h |  56 +++++++
  kernel/Kconfig.locks            |   2 +-
- kernel/locking/rwlock-rt.c      | 328 ++++++++++++++++++++++++++++++++
+ kernel/locking/rwlock-rt.c      | 328 ++++++++++++++++++++++++++++++++++++++++
  4 files changed, 494 insertions(+), 1 deletion(-)
  create mode 100644 include/linux/rwlock_rt.h
  create mode 100644 include/linux/rwlock_types_rt.h
@@ -20,7 +20,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
 diff --git a/include/linux/rwlock_rt.h b/include/linux/rwlock_rt.h
 new file mode 100644
-index 000000000000..aafdb0a685d5
+index 00000000..aafdb0a
 --- /dev/null
 +++ b/include/linux/rwlock_rt.h
 @@ -0,0 +1,109 @@
@@ -135,7 +135,7 @@ index 000000000000..aafdb0a685d5
 +#endif
 diff --git a/include/linux/rwlock_types_rt.h b/include/linux/rwlock_types_rt.h
 new file mode 100644
-index 000000000000..4762391d659b
+index 00000000..4762391
 --- /dev/null
 +++ b/include/linux/rwlock_types_rt.h
 @@ -0,0 +1,56 @@
@@ -196,7 +196,7 @@ index 000000000000..4762391d659b
 +
 +#endif
 diff --git a/kernel/Kconfig.locks b/kernel/Kconfig.locks
-index 3de8fd11873b..4198f0273ecd 100644
+index 3de8fd1..4198f027 100644
 --- a/kernel/Kconfig.locks
 +++ b/kernel/Kconfig.locks
 @@ -251,7 +251,7 @@ config ARCH_USE_QUEUED_RWLOCKS
@@ -210,7 +210,7 @@ index 3de8fd11873b..4198f0273ecd 100644
  	bool
 diff --git a/kernel/locking/rwlock-rt.c b/kernel/locking/rwlock-rt.c
 new file mode 100644
-index 000000000000..1ee16b8fedd7
+index 00000000..1ee16b8
 --- /dev/null
 +++ b/kernel/locking/rwlock-rt.c
 @@ -0,0 +1,328 @@
@@ -543,5 +543,5 @@ index 000000000000..1ee16b8fedd7
 +}
 +EXPORT_SYMBOL(__rt_rwlock_init);
 -- 
-2.33.0
+2.7.4
 

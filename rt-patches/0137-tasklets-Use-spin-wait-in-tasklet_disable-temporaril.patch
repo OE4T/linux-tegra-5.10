@@ -1,4 +1,4 @@
-From 884a0c683147d70f9896b16605eba41c9431e051 Mon Sep 17 00:00:00 2001
+From 12710ee84b7a2bda1ca2d77878a0cd789f1c3de6 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 9 Mar 2021 09:42:07 +0100
 Subject: [PATCH 137/304] tasklets: Use spin wait in tasklet_disable()
@@ -14,7 +14,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/include/linux/interrupt.h b/include/linux/interrupt.h
-index 9a9dd3ed6fdc..77bbb7e4e0f9 100644
+index 9a9dd3e..77bbb7e 100644
 --- a/include/linux/interrupt.h
 +++ b/include/linux/interrupt.h
 @@ -724,7 +724,8 @@ static inline void tasklet_disable_in_atomic(struct tasklet_struct *t)
@@ -28,5 +28,5 @@ index 9a9dd3ed6fdc..77bbb7e4e0f9 100644
  }
  
 -- 
-2.33.0
+2.7.4
 

@@ -1,4 +1,4 @@
-From 516c92a48f7719c283062cd2ac4d7bade36032f1 Mon Sep 17 00:00:00 2001
+From 683b2a39db91fd0694347a6131ec5c10d0607cc6 Mon Sep 17 00:00:00 2001
 From: "Yadi.hu" <yadi.hu@windriver.com>
 Date: Wed, 10 Dec 2014 10:32:09 +0800
 Subject: [PATCH 274/304] ARM: enable irq in translation/section permission
@@ -67,7 +67,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 6 insertions(+)
 
 diff --git a/arch/arm/mm/fault.c b/arch/arm/mm/fault.c
-index efa402025031..59487ee9fd61 100644
+index efa4020..59487ee 100644
 --- a/arch/arm/mm/fault.c
 +++ b/arch/arm/mm/fault.c
 @@ -400,6 +400,9 @@ do_translation_fault(unsigned long addr, unsigned int fsr,
@@ -91,5 +91,5 @@ index efa402025031..59487ee9fd61 100644
  	return 0;
  }
 -- 
-2.33.0
+2.7.4
 
