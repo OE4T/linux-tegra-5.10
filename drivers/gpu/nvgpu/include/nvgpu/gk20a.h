@@ -556,6 +556,7 @@ struct gk20a {
 	bool elcg_enabled;
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	bool elpg_enabled;
+	bool elpg_ms_enabled;
 	bool aelpg_enabled;
 	bool can_elpg;
 	bool mscg_enabled;

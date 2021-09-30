@@ -292,10 +292,12 @@ static int ga10b_pmu_pg_load_buff(struct gk20a *g, struct nvgpu_pmu *pmu)
 }
 
 static void ga10b_pg_rpc_handler(struct gk20a *g, struct nvgpu_pmu *pmu,
-		struct nv_pmu_rpc_header *rpc)
+		struct nv_pmu_rpc_header *rpc, struct rpc_handler_payload *rpc_payload)
 {
-	nvgpu_log_fn(g, " ");
+	struct pmu_rpc_struct_lpwr_pg_ctrl_allow *rpc_allow;
+	struct pmu_rpc_struct_lpwr_pg_ctrl_disallow *rpc_disallow;
 
+	nvgpu_log_fn(g, " ");
 	switch (rpc->function) {
 	case NV_PMU_RPC_ID_PG_LOADING_PRE_INIT:
 		nvgpu_pmu_dbg(g, "Reply to PG_PRE_INIT");
@@ -320,11 +322,25 @@ static void ga10b_pg_rpc_handler(struct gk20a *g, struct nvgpu_pmu *pmu,
 		break;
 	case NV_PMU_RPC_ID_PG_ALLOW:
 		nvgpu_pmu_dbg(g, "Reply to PG_ALLOW");
+		rpc_allow = (struct pmu_rpc_struct_lpwr_pg_ctrl_allow *)rpc_payload->rpc_buff;
+		if (rpc_allow->ctrl_id == PMU_PG_ELPG_ENGINE_ID_GRAPHICS) {
 			pmu->pg->elpg_stat = PMU_ELPG_STAT_ON;
+		} else if (rpc_allow->ctrl_id == PMU_PG_ELPG_ENGINE_ID_MS_LTC) {
+			pmu->pg->elpg_ms_stat = PMU_ELPG_MS_STAT_ON;
+		} else {
+			nvgpu_err(g, "Invalid pg_engine_id");
+		}
 		break;
 	case NV_PMU_RPC_ID_PG_DISALLOW:
 		nvgpu_pmu_dbg(g, "Reply to PG_DISALLOW");
+		rpc_disallow = (struct pmu_rpc_struct_lpwr_pg_ctrl_disallow *)(void *)rpc_payload->rpc_buff;
+		if (rpc_disallow->ctrl_id == PMU_PG_ELPG_ENGINE_ID_GRAPHICS) {
 			pmu->pg->elpg_stat = PMU_ELPG_STAT_OFF;
+		} else if (rpc_disallow->ctrl_id == PMU_PG_ELPG_ENGINE_ID_MS_LTC) {
+			pmu->pg->elpg_ms_stat = PMU_ELPG_MS_STAT_OFF;
+		} else {
+			nvgpu_err(g, "Invalid pg_engine_id");
+		}
 		break;
 	default:
 		nvgpu_err(g,

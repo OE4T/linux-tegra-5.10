@@ -585,7 +585,7 @@ static void pmu_rpc_handler(struct gk20a *g, struct pmu_msg *msg,
 	case PMU_UNIT_PG_LOADING:
 	case PMU_UNIT_PG:
 		if (pmu->pg->rpc_handler != NULL) {
-			pmu->pg->rpc_handler(g, pmu, &rpc);
+			pmu->pg->rpc_handler(g, pmu, &rpc, rpc_payload);
 		}
 		break;
 	default:

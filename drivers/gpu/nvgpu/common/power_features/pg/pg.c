@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -116,3 +116,50 @@ done:
 	nvgpu_mutex_release(&g->cg_pg_lock);
 	return err;
 }
+
+int nvgpu_pg_elpg_ms_enable(struct gk20a *g)
+{
+	int err = 0;
+#ifdef CONFIG_NVGPU_LS_PMU
+	nvgpu_log_fn(g, " ");
+
+	if (!g->can_elpg) {
+		return 0;
+	}
+
+	if (g->pmu->pg->initialized) {
+		g->ops.gr.init.wait_initialized(g);
+
+		nvgpu_mutex_acquire(&g->cg_pg_lock);
+		if ((g->elpg_enabled) && (g->elpg_ms_enabled)) {
+			err = nvgpu_pmu_enable_elpg_ms(g);
+		}
+		nvgpu_mutex_release(&g->cg_pg_lock);
+	}
+#endif
+	return err;
+}
+
+int nvgpu_pg_elpg_ms_disable(struct gk20a *g)
+{
+	int err = 0;
+#ifdef CONFIG_NVGPU_LS_PMU
+	nvgpu_log_fn(g, " ");
+
+	if (!g->can_elpg) {
+		return 0;
+	}
+
+	if (g->pmu->pg->initialized) {
+		g->ops.gr.init.wait_initialized(g);
+
+		nvgpu_mutex_acquire(&g->cg_pg_lock);
+		if ((g->elpg_enabled) && (g->elpg_ms_enabled)) {
+			err = nvgpu_pmu_disable_elpg_ms(g);
+		}
+		nvgpu_mutex_release(&g->cg_pg_lock);
+	}
+#endif
+	return err;
+}
+

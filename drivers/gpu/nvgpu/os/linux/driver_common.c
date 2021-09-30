@@ -223,6 +223,7 @@ static void nvgpu_init_pm_vars(struct gk20a *g)
 		if (g->elpg_enabled) {
 			nvgpu_set_enabled(g, NVGPU_ELPG_MS_ENABLED,
 						platform->enable_elpg_ms);
+			g->elpg_ms_enabled = platform->enable_elpg_ms;
 		}
 	}
 

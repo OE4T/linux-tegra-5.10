@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,6 +39,19 @@
  * cmd hasn't been sent due to ENABLE_ALLOW delay
  */
 #define PMU_ELPG_STAT_OFF_ON_PENDING	4U
+
+/* elpg_ms is off */
+#define PMU_ELPG_MS_STAT_OFF		0U
+/* elpg_ms is on */
+#define PMU_ELPG_MS_STAT_ON		1U
+/* elpg_ms is off, ALLOW cmd has been sent, wait for ack */
+#define PMU_ELPG_MS_STAT_ON_PENDING	2U
+/* elpg_ms is on, DISALLOW cmd has been sent, wait for ack */
+#define PMU_ELPG_MS_STAT_OFF_PENDING	3U
+/* elpg_ms is off, caller has requested on, but ALLOW
+ * cmd hasn't been sent due to ENABLE_ALLOW delay
+ */
+#define PMU_ELPG_MS_STAT_OFF_ON_PENDING	4U
 
 #define PMU_PGENG_GR_BUFFER_IDX_INIT	0U
 #define PMU_PGENG_GR_BUFFER_IDX_ZBC	1U

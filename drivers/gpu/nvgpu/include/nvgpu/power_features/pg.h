@@ -42,12 +42,29 @@ struct gk20a;
 		} \
 		err; \
 	})
+
+#define nvgpu_pg_elpg_ms_protected_call(g, func) \
+	({ \
+		int status = 0; \
+		status = nvgpu_pg_elpg_ms_disable(g);\
+		if (status != 0) {\
+			(void)nvgpu_pg_elpg_ms_enable(g);\
+		} \
+		if (status == 0) { \
+			status = (func); \
+			(void)nvgpu_pg_elpg_ms_enable(g);\
+		} \
+		status; \
+	})
 #else
 #define nvgpu_pg_elpg_protected_call(g, func) func
+#define nvgpu_pg_elpg_ms_protected_call(g, func) func
 #endif
 
 int nvgpu_pg_elpg_disable(struct gk20a *g);
 int nvgpu_pg_elpg_enable(struct gk20a *g);
+int nvgpu_pg_elpg_ms_disable(struct gk20a *g);
+int nvgpu_pg_elpg_ms_enable(struct gk20a *g);
 bool nvgpu_pg_elpg_is_enabled(struct gk20a *g);
 int nvgpu_pg_elpg_set_elpg_enabled(struct gk20a *g, bool enable);
 

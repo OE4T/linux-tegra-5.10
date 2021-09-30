@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,10 +32,12 @@
 #include <nvgpu/pmu/pmuif/pg.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/nvgpu_mem.h>
+#include <include/nvgpu/pmu.h>
 
 struct nvgpu_pmu;
 struct vm_gk20a;
 struct pmu_pg_stats_data;
+struct rpc_handler_payload;
 
 /*PG defines used by nvpgu-pmu*/
 #define PMU_PG_SEQ_BUF_SIZE		4096U
@@ -70,12 +72,15 @@ struct nvgpu_pg_init {
 
 struct nvgpu_pmu_pg {
 	u32 elpg_stat;
+	u32 elpg_ms_stat;
 #define PMU_ELPG_ENABLE_ALLOW_DELAY_MSEC	1U /* msec */
 	struct nvgpu_pg_init pg_init;
 	struct nvgpu_mutex pg_mutex; /* protect pg-RPPG/MSCG enable/disable */
 	struct nvgpu_mutex elpg_mutex; /* protect elpg enable/disable */
+	struct nvgpu_mutex elpg_ms_mutex; /* protect elpg_ms enable/disable */
 	/* disable -1, enable +1, <=0 elpg disabled, > 0 elpg enabled */
 	int elpg_refcnt;
+	int elpg_ms_refcnt;
 	u32 aelpg_param[5];
 	bool zbc_ready;
 	bool zbc_save_done;
@@ -113,7 +118,7 @@ struct nvgpu_pmu_pg {
 	int (*load_buff)(struct gk20a *g, struct nvgpu_pmu *pmu);
 	int (*hw_load_zbc)(struct gk20a *g, struct nvgpu_pmu *pmu);
 	void (*rpc_handler)(struct gk20a *g, struct nvgpu_pmu *pmu,
-			struct nv_pmu_rpc_header *rpc);
+			struct nv_pmu_rpc_header *rpc, struct rpc_handler_payload *rpc_payload);
 	int (*init_send)(struct gk20a *g, struct nvgpu_pmu *pmu, u8 pg_engine_id);
 };
 
@@ -140,6 +145,9 @@ void nvgpu_pmu_pg_destroy(struct gk20a *g, struct nvgpu_pmu *pmu,
 int nvgpu_pmu_reenable_elpg(struct gk20a *g);
 int nvgpu_pmu_enable_elpg(struct gk20a *g);
 int nvgpu_pmu_disable_elpg(struct gk20a *g);
+int nvgpu_pmu_enable_elpg_ms(struct gk20a *g);
+int nvgpu_pmu_disable_elpg_ms(struct gk20a *g);
+
 int nvgpu_pmu_pg_global_enable(struct gk20a *g, bool enable_pg);
 
 int nvgpu_pmu_get_pg_stats(struct gk20a *g, u32 pg_engine_id,
