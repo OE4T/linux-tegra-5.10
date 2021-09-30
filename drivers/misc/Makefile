@@ -16,7 +16,6 @@ obj-$(CONFIG_TEGRA_ACSL)        += nv_acsl/
 obj-$(CONFIG_TEGRA_SKIN)	+= tegra-skin.o
 obj-$(CONFIG_TEGRA186_AHC) += tegra186-ahc/
 obj-$(CONFIG_EVENTLIB)		+= eventlib/
-obj-$(CONFIG_NVSCIC2C) += nvscic2c/
 obj-$(CONFIG_NVSCIIPC)		+= nvsciipc/
 obj-$(CONFIG_TEGRA_PCIE_DMA_TEST)	+= tegra-pcie-dma-test.o
 
