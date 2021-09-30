@@ -4273,7 +4273,6 @@ static int mgbe_mdio_busy_wait(struct osi_core_priv_data *const osi_core)
 static inline int mgbe_save_registers(
 				struct osi_core_priv_data *const osi_core)
 {
-	void *base = osi_core->base;
 	unsigned int i = 0;
 	struct core_backup *config = &osi_core->backup_config;
 	int ret = 0;
@@ -4289,37 +4288,37 @@ static inline int mgbe_save_registers(
 
 	/* Save L3 and L4 indirect addressing registers */
 	for (i = 0; i < OSI_MGBE_MAX_L3_L4_FILTER; i++) {
-		ret = mgbe_l3l4_filter_read(base, i, MGBE_MAC_L3L4_CTR,
+		ret = mgbe_l3l4_filter_read(osi_core, i, MGBE_MAC_L3L4_CTR,
 				&config->reg_val[MGBE_MAC_L3L4_CTR_BAK_IDX(i)]);
 		if (ret < 0) {
 			/* MGBE_MAC_L3L4_CTR read fail return here */
 			return ret;
 		}
-		ret = mgbe_l3l4_filter_read(base, i, MGBE_MAC_L4_ADDR,
+		ret = mgbe_l3l4_filter_read(osi_core, i, MGBE_MAC_L4_ADDR,
 				&config->reg_val[MGBE_MAC_L4_ADR_BAK_IDX(i)]);
 		if (ret < 0) {
 			/* MGBE_MAC_L4_ADDR read fail return here */
 			return ret;
 		}
-		ret = mgbe_l3l4_filter_read(base, i, MGBE_MAC_L3_AD0R,
+		ret = mgbe_l3l4_filter_read(osi_core, i, MGBE_MAC_L3_AD0R,
 				&config->reg_val[MGBE_MAC_L3_AD0R_BAK_IDX(i)]);
 		if (ret < 0) {
 			/* MGBE_MAC_L3_AD0R read fail return here */
 			return ret;
 		}
-		ret = mgbe_l3l4_filter_read(base, i, MGBE_MAC_L3_AD1R,
+		ret = mgbe_l3l4_filter_read(osi_core, i, MGBE_MAC_L3_AD1R,
 				&config->reg_val[MGBE_MAC_L3_AD1R_BAK_IDX(i)]);
 		if (ret < 0) {
 			/* MGBE_MAC_L3_AD1R read fail return here */
 			return ret;
 		}
-		ret = mgbe_l3l4_filter_read(base, i, MGBE_MAC_L3_AD2R,
+		ret = mgbe_l3l4_filter_read(osi_core, i, MGBE_MAC_L3_AD2R,
 				&config->reg_val[MGBE_MAC_L3_AD2R_BAK_IDX(i)]);
 		if (ret < 0) {
 			/* MGBE_MAC_L3_AD2R read fail return here */
 			return ret;
 		}
-		ret = mgbe_l3l4_filter_read(base, i, MGBE_MAC_L3_AD3R,
+		ret = mgbe_l3l4_filter_read(osi_core, i, MGBE_MAC_L3_AD3R,
 				&config->reg_val[MGBE_MAC_L3_AD3R_BAK_IDX(i)]);
 		if (ret < 0) {
 			/* MGBE_MAC_L3_AD3R read fail return here */
@@ -4355,7 +4354,6 @@ static inline int mgbe_save_registers(
 static inline int mgbe_restore_registers(
 				struct osi_core_priv_data *const osi_core)
 {
-	void *base = osi_core->base;
 	unsigned int i = 0;
 	struct core_backup *config = &osi_core->backup_config;
 	int ret = 0;
@@ -4371,37 +4369,37 @@ static inline int mgbe_restore_registers(
 
 	/* Restore L3 and L4 indirect addressing registers */
 	for (i = 0; i < OSI_MGBE_MAX_L3_L4_FILTER; i++) {
-		ret = mgbe_l3l4_filter_write(base, i, MGBE_MAC_L3L4_CTR,
+		ret = mgbe_l3l4_filter_write(osi_core, i, MGBE_MAC_L3L4_CTR,
 				config->reg_val[MGBE_MAC_L3L4_CTR_BAK_IDX(i)]);
 		if (ret < 0) {
 			/* MGBE_MAC_L3L4_CTR write fail return here */
 			return ret;
 		}
-		ret = mgbe_l3l4_filter_write(base, i, MGBE_MAC_L4_ADDR,
+		ret = mgbe_l3l4_filter_write(osi_core, i, MGBE_MAC_L4_ADDR,
 				config->reg_val[MGBE_MAC_L4_ADR_BAK_IDX(i)]);
 		if (ret < 0) {
 			/* MGBE_MAC_L4_ADDR write fail return here */
 			return ret;
 		}
-		ret = mgbe_l3l4_filter_write(base, i, MGBE_MAC_L3_AD0R,
+		ret = mgbe_l3l4_filter_write(osi_core, i, MGBE_MAC_L3_AD0R,
 				config->reg_val[MGBE_MAC_L3_AD0R_BAK_IDX(i)]);
 		if (ret < 0) {
 			/* MGBE_MAC_L3_AD0R write fail return here */
 			return ret;
 		}
-		ret = mgbe_l3l4_filter_write(base, i, MGBE_MAC_L3_AD1R,
+		ret = mgbe_l3l4_filter_write(osi_core, i, MGBE_MAC_L3_AD1R,
 				config->reg_val[MGBE_MAC_L3_AD1R_BAK_IDX(i)]);
 		if (ret < 0) {
 			/* MGBE_MAC_L3_AD1R write fail return here */
 			return ret;
 		}
-		ret = mgbe_l3l4_filter_write(base, i, MGBE_MAC_L3_AD2R,
+		ret = mgbe_l3l4_filter_write(osi_core, i, MGBE_MAC_L3_AD2R,
 				config->reg_val[MGBE_MAC_L3_AD2R_BAK_IDX(i)]);
 		if (ret < 0) {
 			/* MGBE_MAC_L3_AD2R write fail return here */
 			return ret;
 		}
-		ret = mgbe_l3l4_filter_write(base, i, MGBE_MAC_L3_AD3R,
+		ret = mgbe_l3l4_filter_write(osi_core, i, MGBE_MAC_L3_AD3R,
 				config->reg_val[MGBE_MAC_L3_AD3R_BAK_IDX(i)]);
 		if (ret < 0) {
 			/* MGBE_MAC_L3_AD3R write fail return here */
