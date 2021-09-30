@@ -1178,8 +1178,8 @@ static int pcie_dma_epf_bind(struct pci_epf *epf)
 		goto fail_atu_dma;
 	}
 
-	ret = devm_request_threaded_irq(fdev, epfnv->irq,
-					pcie_dma_epf_irq_handler, NULL,
+	ret = devm_request_threaded_irq(fdev, epfnv->irq, NULL,
+					pcie_dma_epf_irq_handler,
 					IRQF_SHARED | IRQF_ONESHOT,
 					name, epfnv);
 	if (ret < 0) {
