@@ -26,7 +26,9 @@
 #include <nvgpu/mm.h>
 #include <nvgpu/io.h>
 #include <nvgpu/soc.h>
+#include <nvgpu/cic_mon.h>
 
+#include "pmu_gv11b.h"
 #include "pmu_ga10b.h"
 
 #include <nvgpu/hw/ga10b/hw_pwr_ga10b.h>
@@ -335,10 +337,10 @@ bool ga10b_pmu_is_debug_mode_en(struct gk20a *g)
 
 	if (pwr_falcon_hwcfg2_dbgmode_v(ctl_stat) ==
 		pwr_falcon_hwcfg2_dbgmode_enable_v()) {
-		nvgpu_info(g, "DEBUG MODE");
+		nvgpu_pmu_dbg(g, "DEBUG MODE");
 		return true;
 	} else {
-		nvgpu_info(g, "PROD MODE");
+		nvgpu_pmu_dbg(g, "PROD MODE");
 		return false;
 	}
 }
@@ -356,5 +358,35 @@ void ga10b_pmu_handle_swgen1_irq(struct gk20a *g, u32 intr)
 				err);
 		}
 #endif
+	}
+}
+
+/*
+ * GA10B PMU IRQ registers are not accessible when NVRISCV PRIV lockdown is
+ * engaged, so need to skip modifying/configuring IRQ registers.
+ *
+ * HAL checks for PRIV lockdown and if enabled then just enable PMU interrupt
+ * from MC, if not enabled then follows legacy chip method to configure
+ * the PMU interrupt.
+ *
+ * Interrupts required for LS-PMU are configured by LS-PMU ucode as part of
+ * LS-PMU init code.
+ *
+ * Legacy chip path helps to configure interrupt required of non LS-PMU ucode
+ * or power-off path to clear interrupt.
+ *
+ */
+void ga10b_pmu_enable_irq(struct nvgpu_pmu *pmu, bool enable)
+{
+	struct gk20a *g = pmu->g;
+
+	nvgpu_log_fn(g, " ");
+
+	if (g->ops.falcon.is_priv_lockdown(pmu->flcn)) {
+		nvgpu_cic_mon_intr_stall_unit_config(g,
+				NVGPU_CIC_INTR_UNIT_PMU,
+				enable);
+	} else {
+		gv11b_pmu_enable_irq(pmu, enable);
 	}
 }

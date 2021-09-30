@@ -53,5 +53,5 @@ void ga10b_pmu_reset_idle_counter(struct gk20a *g, u32 counter_id);
 u32 ga10b_pmu_get_irqmask(struct gk20a *g);
 bool ga10b_pmu_is_debug_mode_en(struct gk20a *g);
 void ga10b_pmu_handle_swgen1_irq(struct gk20a *g, u32 intr);
-
+void ga10b_pmu_enable_irq(struct nvgpu_pmu *pmu, bool enable);
 #endif /* NVGPU_PMU_GA10B_H */
