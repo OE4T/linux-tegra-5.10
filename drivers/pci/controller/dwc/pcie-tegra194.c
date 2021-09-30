@@ -510,7 +510,8 @@ static irqreturn_t tegra_pcie_rp_irq_handler(int irq, void *arg)
 	if (status_l0 & APPL_INTR_STATUS_L0_LINK_STATE_INT) {
 		status_l1 = appl_readl(pcie, APPL_INTR_STATUS_L1_0_0);
 		writel(status_l1, pcie->appl_base + APPL_INTR_STATUS_L1_0_0);
-		if (status_l1 & APPL_INTR_STATUS_L1_0_0_LINK_REQ_RST_NOT_CHGED) {
+		if (pcie->of_data->sbr_reset_fixup &&
+		    status_l1 & APPL_INTR_STATUS_L1_0_0_LINK_REQ_RST_NOT_CHGED) {
 			/* SBR & Surprise Link Down WAR */
 			val = appl_readl(pcie, APPL_CAR_RESET_OVRD);
 			val &= ~APPL_CAR_RESET_OVRD_CYA_OVERRIDE_CORE_RST_N;
@@ -1708,10 +1709,6 @@ static void tegra_pcie_enable_system_interrupts(struct pcie_port *pp)
 	val = appl_readl(pcie, APPL_INTR_EN_L0_0);
 	val |= APPL_INTR_EN_L0_0_LINK_STATE_INT_EN;
 	appl_writel(pcie, val, APPL_INTR_EN_L0_0);
-
-	val = appl_readl(pcie, APPL_INTR_EN_L1_0_0);
-	val |= APPL_INTR_EN_L1_0_0_RDLH_LINK_UP_INT_EN;
-	appl_writel(pcie, val, APPL_INTR_EN_L1_0_0);
 
 	if (pcie->of_data->sbr_reset_fixup) {
 		val = appl_readl(pcie, APPL_INTR_EN_L1_0_0);
