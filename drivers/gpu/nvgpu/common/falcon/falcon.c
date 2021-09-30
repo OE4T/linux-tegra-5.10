@@ -765,7 +765,7 @@ static void falcon_print_mem(struct nvgpu_falcon *flcn, u32 src,
 		return;
 	}
 
-	nvgpu_info(g, " offset 0x%x  size %d bytes", src, size);
+	nvgpu_falcon_dbg(g, " offset 0x%x  size %d bytes", src, size);
 
 	total_block_read = size >> 8;
 	do {
@@ -790,7 +790,7 @@ static void falcon_print_mem(struct nvgpu_falcon *flcn, u32 src,
 		}
 
 		for (i = 0U; i < (byte_read_count >> 2U); i += 4U) {
-			nvgpu_info(g, "0x%04x: 0x%08x 0x%08x 0x%08x 0x%08x",
+			nvgpu_falcon_dbg(g, "0x%04x: 0x%08x 0x%08x 0x%08x 0x%08x",
 				src + (i << 2U), buff[i], buff[i+1U],
 				buff[i+2U], buff[i+3U]);
 		}
@@ -806,7 +806,7 @@ void nvgpu_falcon_print_dmem(struct nvgpu_falcon *flcn, u32 src, u32 size)
 		return;
 	}
 
-	nvgpu_info(flcn->g, " PRINT DMEM ");
+	nvgpu_falcon_dbg(flcn->g, " PRINT DMEM ");
 	falcon_print_mem(flcn, src, size, MEM_DMEM);
 }
 
@@ -816,7 +816,7 @@ void nvgpu_falcon_print_imem(struct nvgpu_falcon *flcn, u32 src, u32 size)
 		return;
 	}
 
-	nvgpu_info(flcn->g, " PRINT IMEM ");
+	nvgpu_falcon_dbg(flcn->g, " PRINT IMEM ");
 	falcon_print_mem(flcn, src, size, MEM_IMEM);
 }
 

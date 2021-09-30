@@ -800,4 +800,10 @@ void nvgpu_falcon_dbg_buf_destroy(struct nvgpu_falcon *flcn);
 int nvgpu_falcon_dbg_buf_display(struct nvgpu_falcon *flcn);
 #endif
 
+/**
+ *  The falcon unit debugging macro
+ */
+#define nvgpu_falcon_dbg(g, fmt, args...) \
+	nvgpu_log(g, gpu_dbg_falcon, fmt, ##args)
+
 #endif /* NVGPU_FALCON_H */

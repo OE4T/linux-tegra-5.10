@@ -438,8 +438,5 @@ int ga10b_fetch_falcon_fuse_settings(struct gk20a *g, u32 falcon_id,
 		break;
 	}
 
-	nvgpu_info(g, "falcon ID-%x fuse-settings 0x%lx",
-			falcon_id, *fuse_settings);
-
 	return err;
 }

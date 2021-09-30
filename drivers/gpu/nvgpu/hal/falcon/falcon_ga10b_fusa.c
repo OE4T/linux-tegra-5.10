@@ -81,21 +81,21 @@ void ga10b_falcon_dump_brom_stats(struct nvgpu_falcon *flcn)
 {
 	u32 reg;
 
-        reg = nvgpu_riscv_readl(flcn, priscv_priscv_bcr_ctrl_r());
-        nvgpu_info(flcn->g, "Bootrom Configuration: 0x%08x", reg);
+	reg = nvgpu_riscv_readl(flcn, priscv_priscv_bcr_ctrl_r());
+	nvgpu_falcon_dbg(flcn->g, "Bootrom Configuration: 0x%08x", reg);
 
-        reg = nvgpu_falcon_readl(flcn, falcon_falcon_hwcfg2_r());
-        nvgpu_pmu_dbg(flcn->g, "HWCFG2: 0x%08x", reg);
+	reg = nvgpu_falcon_readl(flcn, falcon_falcon_hwcfg2_r());
+	nvgpu_falcon_dbg(flcn->g, "HWCFG2: 0x%08x", reg);
 
 	if (falcon_falcon_hwcfg2_riscv_br_priv_lockdown_v(reg) ==
 		falcon_falcon_hwcfg2_riscv_br_priv_lockdown_lock_v()) {
-		nvgpu_info(flcn->g, "PRIV LOCKDOWN enabled");
+		nvgpu_falcon_dbg(flcn->g, "PRIV LOCKDOWN enabled");
 	} else {
-		nvgpu_info(flcn->g, "PRIV LOCKDOWN disabled");
+		nvgpu_falcon_dbg(flcn->g, "PRIV LOCKDOWN disabled");
 	}
 
-        reg = nvgpu_riscv_readl(flcn, priscv_priscv_br_retcode_r());
-        nvgpu_log_info(flcn->g,"RISCV BROM RETCODE: 0x%08x", reg);
+	reg = nvgpu_riscv_readl(flcn, priscv_priscv_br_retcode_r());
+	nvgpu_falcon_dbg(flcn->g, "RISCV BROM RETCODE: 0x%08x", reg);
 }
 
 u32 ga10b_falcon_get_brom_retcode(struct nvgpu_falcon *flcn)

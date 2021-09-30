@@ -33,7 +33,7 @@ static void check_and_enable_falcon2(struct nvgpu_falcon *flcn,
 	bool is_falcon2_enabled = false;
 	int err = 0;
 
-	nvgpu_info(g, "Fetch FUSE settings for FALCON - %d *", flcn->flcn_id);
+	nvgpu_falcon_dbg(g, "Fetch FUSE settings for FALCON - %d *", flcn->flcn_id);
 
 	err = g->ops.fuse.fetch_falcon_fuse_settings(g, flcn->flcn_id,
 			fuse_settings);
@@ -46,7 +46,7 @@ static void check_and_enable_falcon2(struct nvgpu_falcon *flcn,
 		return;
 	}
 
-	nvgpu_info(g, "fuse_settings -  %lx", *fuse_settings);
+	nvgpu_falcon_dbg(g, "fuse_settings -  %lx", *fuse_settings);
 
 	is_falcon_enabled =
 		(!(nvgpu_falcon_is_feature_supported(flcn, FCD)) &&
@@ -61,60 +61,60 @@ static void check_and_enable_falcon2(struct nvgpu_falcon *flcn,
 		nvgpu_err(g, "Further execution will try on FALCON core");
 		flcn->is_falcon2_enabled = false;
 	} else if (is_falcon_enabled && !is_falcon2_enabled) {
-		nvgpu_info(g, "FALCON is enabled");
+		nvgpu_falcon_dbg(g, "FALCON is enabled");
 		/* FALCON is enabled*/
 		flcn->is_falcon2_enabled = false;
 	} else {
-		nvgpu_info(g, "FALCON/RISCV can be enabled, default RISCV is enabled");
+		nvgpu_falcon_dbg(g, "FALCON/RISCV can be enabled, default RISCV is enabled");
 		flcn->is_falcon2_enabled = true;
 	}
 
 	if (flcn->is_falcon2_enabled) {
 		if (nvgpu_falcon_is_feature_supported(flcn,
 				NVRISCV_BRE_EN)) {
-			nvgpu_info(g, "BRE info enabled");
+			nvgpu_falcon_dbg(g, "BRE info enabled");
 		} else {
-			nvgpu_info(g, "BRE info not enabled");
+			nvgpu_falcon_dbg(g, "BRE info not enabled");
 		}
 
 		if (nvgpu_falcon_is_feature_supported(flcn, NVRISCV_DEVD)) {
-			nvgpu_info(g, "DevD");
+			nvgpu_falcon_dbg(g, "DevD");
 		} else {
-			nvgpu_info(g, "DevE");
+			nvgpu_falcon_dbg(g, "DevE");
 		}
 
 		if (nvgpu_falcon_is_feature_supported(flcn,
 			NVRISCV_PLD)) {
-			nvgpu_info(g, "PL request disabled");
+			nvgpu_falcon_dbg(g, "PL request disabled");
 		} else {
-			nvgpu_info(g, "PL request enabled");
+			nvgpu_falcon_dbg(g, "PL request enabled");
 		}
 
 		if (nvgpu_falcon_is_feature_supported(flcn, NVRISCV_SEN)) {
-			nvgpu_info(g, "S enabled");
+			nvgpu_falcon_dbg(g, "S enabled");
 
 			if (nvgpu_falcon_is_feature_supported(flcn,
 				NVRISCV_SA)) {
-				nvgpu_info(g, "assert enabled");
+				nvgpu_falcon_dbg(g, "assert enabled");
 			} else {
-				nvgpu_info(g, "assert disabled");
+				nvgpu_falcon_dbg(g, "assert disabled");
 			}
 
 			if (nvgpu_falcon_is_feature_supported(flcn,
 				NVRISCV_SH)) {
-				nvgpu_info(g, "HALT enabled");
+				nvgpu_falcon_dbg(g, "HALT enabled");
 			} else {
-				nvgpu_info(g, "HALT disabled");
+				nvgpu_falcon_dbg(g, "HALT disabled");
 			}
 
 			if (nvgpu_falcon_is_feature_supported(flcn,
 				NVRISCV_SI)) {
-				nvgpu_info(g, "interrupt enabled");
+				nvgpu_falcon_dbg(g, "interrupt enabled");
 			} else {
-				nvgpu_info(g, "interrupt disabled");
+				nvgpu_falcon_dbg(g, "interrupt disabled");
 			}
 		} else {
-			nvgpu_info(g, "S not enabled");
+			nvgpu_falcon_dbg(g, "S not enabled");
 		}
 	}
 }

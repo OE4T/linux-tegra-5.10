@@ -220,12 +220,13 @@ static int falcon_fetch_debug_buffer_metadata(struct nvgpu_falcon *flcn)
 		return -EINVAL;
 	}
 
-	nvgpu_info(g, "metadata magic        - 0x%x", buffer_metadata_copy.magic);
-	nvgpu_info(g, "metadata buffer size  - 0x%x",
+	nvgpu_falcon_dbg(g, "metadata magic        - 0x%x",
+			buffer_metadata_copy.magic);
+	nvgpu_falcon_dbg(g, "metadata buffer size  - 0x%x",
 			buffer_metadata_copy.buffer_size);
-	nvgpu_info(g, "metadata write offset - 0x%x",
+	nvgpu_falcon_dbg(g, "metadata write offset - 0x%x",
 			buffer_metadata_copy.write_offset);
-	nvgpu_info(g, "metadata read offset  - 0x%x",
+	nvgpu_falcon_dbg(g, "metadata read offset  - 0x%x",
 			buffer_metadata_copy.read_offset);
 
 	if (buffer_metadata_copy.magic != NV_NVRISCV_DEBUG_BUFFER_MAGIC) {
@@ -358,7 +359,7 @@ int nvgpu_falcon_dbg_buf_display(struct nvgpu_falcon *flcn)
 				return status;
 			}
 
-			nvgpu_info(g, "Flcn-%d Async: %s", flcn->flcn_id, curr_data);
+			nvgpu_falcon_dbg(g, "Flcn-%d Async: %s", flcn->flcn_id, curr_data);
 
 			/* Cleanup in case we had to allocate a temp buffer */
 			if (tmp_buf != NULL) {
