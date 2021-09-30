@@ -116,7 +116,7 @@ static int forced_idle_write(void *data, u64 val)
 	stop_critical_timings();
 	local_irq_disable();
 
-	/* Program timer for C7 wake IRQ */
+	/* Program timer for C1/C7 wake IRQ */
 	if (idle_state == T23x_CPUIDLE_C7_STATE ||
 			idle_state == T23x_CPUIDLE_C1_STATE) {
 		interval = ktime_set(0, (NSEC_PER_USEC * timer_interval_us));
@@ -127,11 +127,15 @@ static int forced_idle_write(void *data, u64 val)
 
 	if (idle_state == T23x_CPUIDLE_C1_STATE)
 		asm volatile("wfi\n");
-	else
+	else {
 #if KERNEL_VERSION(4, 15, 0) < LINUX_VERSION_CODE
-		ret = CPU_PM_CPU_IDLE_ENTER_PARAM(psci_cpu_suspend_enter,
-							idle_state, psci_state);
+		ret = cpu_pm_enter();
+		if (!ret) {
+			ret = psci_cpu_suspend_enter(psci_state);
+			cpu_pm_exit();
+		}
 #endif
+	}
 
 	local_irq_enable();
 	start_critical_timings();
