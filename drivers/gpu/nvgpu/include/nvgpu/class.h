@@ -29,14 +29,10 @@
  */
 
 /**
- * @ingroup NVGPU_CLASS_VALID_NUM
- *
  * Class number for DMA copy class methods on Kepler chips.
  */
 #define	KEPLER_DMA_COPY_A		0xA0B5U
 /**
- * @ingroup NVGPU_CLASS_VALID_NUM
- *
  * Class number for Inline to memory class methods on Kepler and chips beyond.
  * The source data is always from the pushbuffer, hence the name
  * inline_to_memory.
@@ -44,27 +40,19 @@
 #define	KEPLER_INLINE_TO_MEMORY_B	0xA140U
 
 /**
- * @ingroup NVGPU_CLASS_VALID_NUM
- *
  * Class number for Channel_GPFIFO class methods on Maxwell chips.
  */
 #define	MAXWELL_CHANNEL_GPFIFO_A	0xB06FU
 /**
- * @ingroup NVGPU_CLASS_VALID_NUM
- *
  * Class number for DMA copy class methods on Maxwell chips.
  */
 #define	MAXWELL_DMA_COPY_A		0xB0B5U
 
 /**
- * @ingroup NVGPU_CLASS_VALID_NUM
- *
  * Class number for Channel_GPFIFO class methods on Pascal chips.
  */
 #define	PASCAL_CHANNEL_GPFIFO_A		0xC06FU
 /**
- * @ingroup NVGPU_CLASS_VALID_NUM
- *
  * Class number for DMA copy class methods on Pascal chips.
  */
 #define	PASCAL_DMA_COPY_A		0xC0B5U

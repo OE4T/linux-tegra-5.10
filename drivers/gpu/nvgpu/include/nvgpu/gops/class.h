@@ -43,18 +43,19 @@ struct gops_class {
 	 *        validate the class associated with the channel.
 	 *
 	 * List of valid class numbers:
-	 *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	 * 1. Compute class:
-	 * 	a. VOLTA_COMPUTE_A           --> 0xC3C0U
+	 * 	- \ref #VOLTA_COMPUTE_A           -> 0xC3C0U
 	 * 2. DMA copy class:
-	 *	a. VOLTA_DMA_COPY_A          --> 0xC3B5U
+	 *	- \ref #VOLTA_DMA_COPY_A          -> 0xC3B5U
 	 * 3. Channel Gpfifo class:
-	 *	a. VOLTA_CHANNEL_GPFIFO_A    --> 0xC36FU
+	 *	- \ref #VOLTA_CHANNEL_GPFIFO_A    -> 0xC36FU
 	 * 4. Graphics class:
-	 * 	a. VOLTA_A                   --> 0xC397U
-	 *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	 *	- \ref #VOLTA_A                   -> 0xC397U
 	 *
-	 * @param class_num [in]	Class number to be checked.
+	 * @param class_num [in]	Class number to be validated based on
+	 *                              GPU architecture.
+	 *				- No validation is performed on this
+	 * 				  parameter
 	 *
 	 * @return true when \a class_num is one of the numbers in above list or
 	 *	   false otherwise.
@@ -69,11 +70,12 @@ struct gops_class {
 	 *        on the class type.
 	 *
 	 * List of valid compute class numbers:
-	 *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	 * 	a. VOLTA_COMPUTE_A          --> 0xC3C0U
-	 *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	 * 	- \ref #VOLTA_COMPUTE_A           -> 0xC3C0U
 	 *
-	 * @param class_num [in]	Class number to be checked.
+	 * @param class_num [in]	Class number to be validated based on
+	 * 				GPU architecture.
+	 *				- No validation is performed on this
+	 * 				  parameter
 	 *
 	 * @return true when \a class_num is one of the numbers in above list or
 	 *	   false otherwise.
