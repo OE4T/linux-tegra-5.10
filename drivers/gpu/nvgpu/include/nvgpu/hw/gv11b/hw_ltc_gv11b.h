@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -157,10 +157,10 @@
 #define ltc_ltcs_ltss_intr3_ecc_corrected_m()                  (U32(0x1U) << 7U)
 #define ltc_ltcs_ltss_intr3_ecc_uncorrected_m()                (U32(0x1U) << 8U)
 #define ltc_ltc0_lts0_intr3_r()                                    (0x00140588U)
-#define ltc_ltc0_lts0_l1_cache_ecc_control_r()                     (0x001404ecU)
-#define ltc_ltc0_lts0_l1_cache_ecc_control_inject_corrected_err_f(v)\
+#define ltc_ltc0_lts0_l2_cache_ecc_control_r()                     (0x001404ecU)
+#define ltc_ltc0_lts0_l2_cache_ecc_control_inject_corrected_err_f(v)\
 				((U32(v) & 0x1U) << 4U)
-#define ltc_ltc0_lts0_l1_cache_ecc_control_inject_uncorrected_err_f(v)\
+#define ltc_ltc0_lts0_l2_cache_ecc_control_inject_uncorrected_err_f(v)\
 				((U32(v) & 0x1U) << 5U)
 #define ltc_ltc0_lts0_l2_cache_ecc_status_r()                      (0x001404f0U)
 #define ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_rstg_f(v)\
