@@ -1,7 +1,7 @@
 /*
  * Tegra Graphics Virtualization Communication Framework
  *
- * Copyright (c) 2013-2019, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2013-2021, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -526,7 +526,7 @@ int tegra_gr_comm_recv(u32 index, void **handle, void **data,
 	if (!queue->valid)
 		return -EINVAL;
 
-	err = down_timeout(&queue->sem, 20 * HZ);
+	err = down_timeout(&queue->sem, 40 * HZ);
 	if (unlikely(err))
 		return err;
 	mutex_lock(&queue->lock);
