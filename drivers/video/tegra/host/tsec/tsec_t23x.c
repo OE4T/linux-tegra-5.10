@@ -34,6 +34,7 @@
 
 #define TSEC_RISCV_INIT_SUCCESS		(0xa5a5a5a5)
 #define NV_RISCV_AMAP_FBGPA_START	0x0000040000000000ULL
+#define NV_RISCV_AMAP_SMMU_IDX		BIT_ULL(40)
 
 /* 'N' << 24 | 'V' << 16 | 'R' << 8 | 'M' */
 #define RM_RISCV_BOOTLDR_BOOT_TYPE_RM	0x4e56524d
@@ -208,12 +209,12 @@ static int nvhost_tsec_riscv_poweron(struct platform_device *dev)
 	int err = 0;
 	struct riscv_data *m;
 	u32 val;
-	unsigned long long dma_pa, pa, dma_pa_bl_args;
+	phys_addr_t dma_pa, pa;
 	struct iommu_domain *domain;
 	void __iomem *cpuctl_addr, *retcode_addr, *mailbox0_addr;
 	struct mc_carveout_info inf;
 	unsigned int gscid = 0x0;
-	u8 *bl_args_pa;
+	dma_addr_t bl_args_iova;
 	struct nvhost_device_data *pdata = platform_get_drvdata(dev);
 
 	err = nvhost_tsec_riscv_init_sw(dev);
@@ -228,7 +229,6 @@ static int nvhost_tsec_riscv_poweron(struct platform_device *dev)
 
 	/* Get the physical address of corresponding dma address */
 	domain = iommu_get_domain_for_dev(&dev->dev);
-	dma_pa_bl_args = iommu_iova_to_phys(domain, m->dma_addr_bl_args);
 
 	/* Get GSC carvout info */
 	err = mc_get_carveout_info(&inf, NULL, MC_SECURITY_CARVEOUT4);
@@ -279,11 +279,12 @@ static int nvhost_tsec_riscv_poweron(struct platform_device *dev)
 			tsec_riscv_bcr_dmacfg_lock_locked_f());
 
 	/* Pass the address of BL argument struct via mailbox registers */
-	bl_args_pa = (u8 *)dma_pa_bl_args + NV_RISCV_AMAP_FBGPA_START;
+	bl_args_iova = m->dma_addr_bl_args + NV_RISCV_AMAP_FBGPA_START;
+	bl_args_iova |= NV_RISCV_AMAP_SMMU_IDX;
 	host1x_writel(dev, tsec_falcon_mailbox0_r(),
-			lower_32_bits((unsigned long long)bl_args_pa));
+			lower_32_bits((unsigned long long)bl_args_iova));
 	host1x_writel(dev, tsec_falcon_mailbox1_r(),
-			upper_32_bits((unsigned long long)bl_args_pa));
+			upper_32_bits((unsigned long long)bl_args_iova));
 
 	/* Kick start RISC-V and let BR take over */
 	host1x_writel(dev, tsec_riscv_cpuctl_r(),
