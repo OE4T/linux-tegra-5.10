@@ -95,38 +95,35 @@ int gk20a_power_write(struct file *filp, const char __user *buf,
 		size_t size, loff_t *off)
 {
 	struct gk20a *g = filp->private_data;
+	unsigned char userinput[3] = {0};
 	u32 power_status = 0U;
 	int err = 0;
-	unsigned char *userinput = NULL;
 
 	if (!g) {
 		return -ENODEV;
 	}
 
-	userinput = (unsigned char *)kzalloc(size, GFP_KERNEL);
-	if (!userinput) {
-		return -ENOMEM;
+	/* Valid inputs are "0", "1", "0\n", "1\n". */
+	if (size >= sizeof(userinput)) {
+		return -EINVAL;
 	}
 
 	if (copy_from_user(userinput, buf, size)) {
-		kfree(userinput);
 		return -EFAULT;
 	}
 
 	if (kstrtouint(userinput, 10, &power_status)) {
-		kfree(userinput);
 		return -EINVAL;
 	}
 
 	if (power_status == NVGPU_DRIVER_POWER_ON_NEEDED) {
 		if (nvgpu_poweron_started(g)) {
-			goto free_input;
+			goto out;
 		}
 
 		err = gk20a_busy(g);
 		if (err) {
 			nvgpu_err(g, "power_node_write failed at busy");
-			kfree(userinput);
 			return err;
 		}
 
@@ -135,18 +132,15 @@ int gk20a_power_write(struct file *filp, const char __user *buf,
 		err = gk20a_driver_force_power_off(g);
 		if (err) {
 			nvgpu_err(g, "power_node_write failed at busy");
-			kfree(userinput);
 			return err;
 		}
 	} else {
 		nvgpu_err(g, "1/0 are the valid values to power-on the GPU");
-		kfree(userinput);
 		return -EINVAL;
 	}
 
-free_input:
+out:
 	*off += size;
-	kfree(userinput);
 	return size;
 }
 
