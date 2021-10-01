@@ -20,6 +20,9 @@
 
 /* THERMAL gpio definitions */
 #define TEMP_ALERT TEGRA234_MAIN_GPIO(G, 1)
+#define TMP451_SLAVE_ADDR               0x4c
+#define REMOTE_SENS_OFFSET              (-16)
+#define REMOTE_SENS_SHUTDOWN_LIMIT      115
 #define TEGRA234_THERMAL_ZONE_TBOARD (TEGRA234_THERMAL_ZONE_COUNT + 1)
 #define TEGRA234_THERMAL_ZONE_TDIODE (TEGRA234_THERMAL_ZONE_COUNT + 2)
 
@@ -34,10 +37,10 @@
 				status = "okay";
 				#thermal-sensor-cells = <1>;
 				compatible = "ti,tmp451";
-				reg = <0x4c>;
+				reg = <TMP451_SLAVE_ADDR>;
 				sensor-name = "tmp451-ext";
 				supported-hwrev = <1>;
-				offset = <(16)>;
+				offset = <REMOTE_SENS_OFFSET>; /* Actual value will be programmed as REMOTE_SENS_OFFSET/4 */
 				conv-rate = <0x06>;
 				extended-rage = <1>;
 
@@ -52,7 +55,7 @@
 					shutdown-limit = <107>;
 				};
 				ext {
-					shutdown-limit = <115>;
+					shutdown-limit = <REMOTE_SENS_SHUTDOWN_LIMIT>;
 				};
 			};
 		};
