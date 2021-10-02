@@ -97,7 +97,6 @@ static u64 nvgpu_bitmap_balloc_fixed(struct nvgpu_allocator *na,
 
 	a->bytes_alloced = nvgpu_safe_add_u64(a->bytes_alloced,
 				nvgpu_safe_mult_u64(blks, a->blk_size));
-NVGPU_COV_WHITELIST(false_positive, NVGPU_MISRA(Rule, 14_3), "Bug 2615925")
 	nvgpu_assert(a->nr_fixed_allocs < U64_MAX);
 	a->nr_fixed_allocs++;
 	alloc_unlock(na);
@@ -396,9 +395,7 @@ static void nvgpu_bitmap_print_stats(struct nvgpu_allocator *na,
 }
 #endif
 
-NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 8_7), "Bug 2823817")
 static const struct nvgpu_allocator_ops bitmap_ops = {
-NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 	.alloc		= nvgpu_bitmap_balloc,
 	.free_alloc	= nvgpu_bitmap_free,
 

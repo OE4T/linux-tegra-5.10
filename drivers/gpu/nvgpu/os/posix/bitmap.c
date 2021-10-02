@@ -51,7 +51,6 @@ unsigned long nvgpu_posix_ffs(unsigned long word)
 			nvgpu_safe_cast_u64_to_s64(
 				(word & (unsigned long) LONG_MAX)));
 	} else {
-NVGPU_COV_WHITELIST(false_positive, NVGPU_MISRA(Rule, 14_3), "Bug 2615925")
 		if (word > (unsigned long) LONG_MAX) {
 			ret = maxvalue;
 		}

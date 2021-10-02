@@ -93,14 +93,8 @@ static struct nvgpu_channel *allocate_channel(struct nvgpu_fifo *f)
 		ch = nvgpu_list_first_entry(&f->free_chs, nvgpu_channel,
 							  free_chs);
 		nvgpu_list_del(&ch->free_chs);
-NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 2, NVGPU_MISRA(Rule, 10_3), "Bug 2277532")
-NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 2, NVGPU_MISRA(Rule, 14_4), "Bug 2277532")
-NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 2, NVGPU_MISRA(Rule, 15_6), "Bug 2277532")
 		WARN_ON(nvgpu_atomic_read(&ch->ref_count) != 0);
 		WARN_ON(ch->referenceable);
-NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 10_3))
-NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 14_4))
-NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
 		f->used_channels = nvgpu_safe_add_u32(f->used_channels, 1U);
 	}
 	nvgpu_mutex_release(&f->free_chs_mutex);
@@ -1200,18 +1194,12 @@ void nvgpu_channel_put__func(struct nvgpu_channel *ch, const char *caller)
 
 	/* More puts than gets. Channel is probably going to get
 	 * stuck. */
-NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 2, NVGPU_MISRA(Rule, 10_3), "Bug 2277532")
-NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 2, NVGPU_MISRA(Rule, 14_4), "Bug 2277532")
-NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 2, NVGPU_MISRA(Rule, 15_6), "Bug 2277532")
 	WARN_ON(nvgpu_atomic_read(&ch->ref_count) < 0);
 
 	/* Also, more puts than gets. ref_count can go to 0 only if
 	 * the channel is closing. Channel is probably going to get
 	 * stuck. */
 	WARN_ON((nvgpu_atomic_read(&ch->ref_count) == 0) && ch->referenceable);
-NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 10_3))
-NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 14_4))
-NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
 }
 
 struct nvgpu_channel *nvgpu_channel_from_id__func(struct gk20a *g,
@@ -1265,11 +1253,7 @@ struct nvgpu_channel *nvgpu_channel_open_new(struct gk20a *g,
 	trace_nvgpu_channel_open_new(ch->chid);
 #endif
 
-NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 14_4), "Bug 2277532")
-NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 15_6), "Bug 2277532")
 	BUG_ON(ch->g != NULL);
-NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 14_4))
-NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
 	ch->g = g;
 
 	/* Runlist for the channel */

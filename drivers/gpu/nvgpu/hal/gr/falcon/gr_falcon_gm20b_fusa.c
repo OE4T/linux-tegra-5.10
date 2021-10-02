@@ -151,11 +151,7 @@ void gm20b_gr_falcon_bind_instblk(struct gk20a *g,
 	nvgpu_writel(g, gr_fecs_arb_ctx_adr_r(), 0x0);
 
 	inst_ptr >>= 12;
-NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 14_4), "Bug 2277532")
-NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 15_6), "Bug 2277532")
 	BUG_ON(u64_hi32(inst_ptr) != 0U);
-NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 14_4))
-NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
 	inst_ptr_u32 = (u32)inst_ptr;
 	nvgpu_writel(g, gr_fecs_new_ctx_r(),
 		     gr_fecs_new_ctx_ptr_f(inst_ptr_u32) |
