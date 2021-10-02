@@ -114,7 +114,6 @@ static inline s32 nvgpu_safe_add_s32(s32 si_a, s32 si_b)
  */
 static inline u64 nvgpu_safe_add_u64(u64 ul_a, u64 ul_b)
 {
-NVGPU_COV_WHITELIST(false_positive, NVGPU_CERT(INT30_C), "Bug 2643092")
 	if ((ULONG_MAX - ul_a) < ul_b) {
 		BUG();
 		return 0U;
@@ -604,7 +603,6 @@ static inline u32 nvgpu_safe_cast_bool_to_u32(bool bl_a)
  */
 static inline u8 nvgpu_safe_cast_s8_to_u8(s8 sc_a)
 {
-NVGPU_COV_WHITELIST(false_positive, NVGPU_CERT(STR34_C), "Bug 2673832")
 	if (sc_a < 0) {
 		BUG();
 		return 0U;
@@ -770,7 +768,6 @@ static inline s32 nvgpu_safe_cast_u64_to_s32(u64 ul_a)
  */
 static inline s64 nvgpu_safe_cast_u64_to_s64(u64 ul_a)
 {
-NVGPU_COV_WHITELIST(false_positive, NVGPU_MISRA(Rule, 14_3), "Bug 2615925")
 	if (ul_a > nvgpu_safe_cast_s64_to_u64(LONG_MAX)) {
 		BUG();
 		return 0;
