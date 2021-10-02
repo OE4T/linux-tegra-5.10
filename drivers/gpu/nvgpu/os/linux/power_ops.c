@@ -32,6 +32,8 @@
 
 #include "ioctl.h"
 
+#include "power_ops.h"
+
 #include "platform_gk20a.h"
 #include "os_linux.h"
 #include "module.h"
@@ -56,7 +58,7 @@ int gk20a_power_open(struct inode *inode, struct file *filp)
 	return 0;
 }
 
-int gk20a_power_read(struct file *filp, char __user *buf,
+ssize_t gk20a_power_read(struct file *filp, char __user *buf,
 		size_t size, loff_t *off)
 {
 	struct gk20a *g = filp->private_data;
@@ -90,8 +92,7 @@ int gk20a_power_read(struct file *filp, char __user *buf,
 	return size;
 }
 
-
-int gk20a_power_write(struct file *filp, const char __user *buf,
+ssize_t gk20a_power_write(struct file *filp, const char __user *buf,
 		size_t size, loff_t *off)
 {
 	struct gk20a *g = filp->private_data;
