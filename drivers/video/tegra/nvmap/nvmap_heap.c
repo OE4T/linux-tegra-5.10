@@ -125,7 +125,11 @@ void nvmap_heap_debugfs_init(struct dentry *heap_root, struct nvmap_heap *heap)
 static phys_addr_t nvmap_alloc_mem(struct nvmap_heap *h, size_t len,
 				   phys_addr_t *start)
 {
-	phys_addr_t pa;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
+	phys_addr_t pa = DMA_ERROR_CODE;
+#else
+	phys_addr_t pa = DMA_MAPPING_ERROR;
+#endif
 	struct device *dev = h->dma_dev;
 
 #ifdef CONFIG_TEGRA_VIRTUALIZATION
