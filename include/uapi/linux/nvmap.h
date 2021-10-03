@@ -295,15 +295,6 @@ struct nvmap_query_heap_params {
 	__u64 largest_free_block;
 };
 
-/**
- * Struct used while duplicating memory handle
- */
-struct nvmap_duplicate_handle {
-	__u32 handle;
-	__u32 access_flags;
-	__u32 dup_handle;
-};
-
 #define NVMAP_IOC_MAGIC 'N'
 
 /* Creates a new memory handle. On input, the argument is the size of the new
@@ -430,10 +421,6 @@ struct nvmap_duplicate_handle {
 #define NVMAP_IOC_QUERY_HEAP_PARAMS _IOR(NVMAP_IOC_MAGIC, 105, \
 		struct nvmap_query_heap_params)
 
-/* Duplicate NvRmMemHandle with same/reduced permission */
-#define NVMAP_IOC_DUP_HANDLE _IOWR(NVMAP_IOC_MAGIC, 106, \
-		struct nvmap_duplicate_handle)
-
-#define NVMAP_IOC_MAXNR (_IOC_NR(NVMAP_IOC_DUP_HANDLE))
+#define NVMAP_IOC_MAXNR (_IOC_NR(NVMAP_IOC_QUERY_HEAP_PARAMS))
 
 #endif /* __UAPI_LINUX_NVMAP_H */

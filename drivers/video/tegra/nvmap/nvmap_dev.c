@@ -373,10 +373,6 @@ static long nvmap_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		err = nvmap_ioctl_free(filp, arg);
 		break;
 
-	case NVMAP_IOC_DUP_HANDLE:
-		err = nvmap_ioctl_dup_handle(filp, uarg);
-		break;
-
 #ifdef CONFIG_COMPAT
 	case NVMAP_IOC_WRITE_32:
 	case NVMAP_IOC_READ_32:

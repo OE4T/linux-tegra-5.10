@@ -54,9 +54,8 @@ struct sg_table *nvmap_dmabuf_map_dma_buf(
 			return ERR_PTR(-ENOMEM);
 
 		atomic_set(&handle_t19x->nc_pin, 0);
-		nvmap_dmabuf_set_drv_data(info->is_ro ? handle->dmabuf_ro :
-					  handle->dmabuf, dev, handle_t19x,
-					  nvmap_handle_t19x_free);
+		nvmap_dmabuf_set_drv_data(handle->dmabuf, dev,
+				handle_t19x, nvmap_handle_t19x_free);
 	}
 
 	if (!of_dma_is_coherent(attach->dev->of_node))
@@ -82,8 +81,7 @@ void nvmap_dmabuf_unmap_dma_buf(struct dma_buf_attachment *attach,
 
 	_nvmap_dmabuf_unmap_dma_buf(attach, sgt, dir);
 
-	handle_t19x = nvmap_dmabuf_get_drv_data(info->is_ro ?
-				handle->dmabuf_ro : handle->dmabuf, dev);
+	handle_t19x = nvmap_dmabuf_get_drv_data(handle->dmabuf, dev);
 	if (handle_t19x && !of_dma_is_coherent(attach->dev->of_node))
 		atomic_dec(&handle_t19x->nc_pin);
 }

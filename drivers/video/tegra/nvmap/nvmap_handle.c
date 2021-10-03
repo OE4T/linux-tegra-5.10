@@ -47,15 +47,14 @@
  * Note: to call this function make sure you own the client ref lock.
  */
 struct nvmap_handle_ref *__nvmap_validate_locked(struct nvmap_client *c,
-						 struct nvmap_handle *h,
-						 bool is_ro)
+						 struct nvmap_handle *h)
 {
 	struct rb_node *n = c->handle_refs.rb_node;
 
 	while (n) {
 		struct nvmap_handle_ref *ref;
 		ref = rb_entry(n, struct nvmap_handle_ref, node);
-		if ((ref->handle == h) && (ref->is_ro == is_ro))
+		if (ref->handle == h)
 			return ref;
 		else if ((uintptr_t)h > (uintptr_t)ref->handle)
 			n = n->rb_right;
@@ -210,7 +209,6 @@ struct nvmap_handle_ref *nvmap_create_handle(struct nvmap_client *client,
 	void *err = ERR_PTR(-ENOMEM);
 	struct nvmap_handle *h;
 	struct nvmap_handle_ref *ref = NULL;
-	struct dma_buf *dmabuf;
 
 	if (!client)
 		return ERR_PTR(-EINVAL);
@@ -243,15 +241,11 @@ struct nvmap_handle_ref *nvmap_create_handle(struct nvmap_client *client,
 	 * This takes out 1 ref on the dambuf. This corresponds to the
 	 * handle_ref that gets automatically made by nvmap_create_handle().
 	 */
-	dmabuf = __nvmap_make_dmabuf(client, h, ro_buf);
-	if (IS_ERR(dmabuf)) {
-		err = dmabuf;
+	h->dmabuf = __nvmap_make_dmabuf(client, h, ro_buf);
+	if (IS_ERR(h->dmabuf)) {
+		err = h->dmabuf;
 		goto make_dmabuf_fail;
 	}
-	if (!ro_buf)
-		h->dmabuf = dmabuf;
-	else
-		h->dmabuf_ro = dmabuf;
 
 	nvmap_handle_add(nvmap_dev, h);
 
@@ -262,10 +256,6 @@ struct nvmap_handle_ref *nvmap_create_handle(struct nvmap_client *client,
 	atomic_set(&ref->dupes, 1);
 	ref->handle = h;
 	add_handle_ref(client, ref);
-	if (ro_buf)
-		ref->is_ro = true;
-	else
-		ref->is_ro = false;
 	trace_nvmap_create_handle(client, client->name, h, size, ref);
 	return ref;
 
@@ -330,7 +320,7 @@ found:
 	mutex_unlock(&h->lock);
 
 	/* h->dmabuf can't be NULL anymore. Duplicate the handle. */
-	ref = nvmap_duplicate_handle(client, h, true, false);
+	ref = nvmap_duplicate_handle(client, h, true);
 	/* put the extra ref taken using get_dma_buf. */
 	dma_buf_put(h->dmabuf);
 finish:
@@ -344,8 +334,7 @@ fail:
 }
 
 struct nvmap_handle_ref *nvmap_duplicate_handle(struct nvmap_client *client,
-					struct nvmap_handle *h, bool skip_val,
-					bool is_ro)
+					struct nvmap_handle *h, bool skip_val)
 {
 	struct nvmap_handle_ref *ref = NULL;
 
@@ -371,9 +360,11 @@ struct nvmap_handle_ref *nvmap_duplicate_handle(struct nvmap_client *client,
 	}
 
 	nvmap_ref_lock(client);
-	ref = __nvmap_validate_locked(client, h, is_ro);
+	ref = __nvmap_validate_locked(client, h);
 
 	if (ref) {
+		/* handle already duplicated in client; just increment
+		 * the reference count rather than re-duplicating it */
 		atomic_inc(&ref->dupes);
 		nvmap_ref_unlock(client);
 		goto out;
@@ -391,13 +382,13 @@ struct nvmap_handle_ref *nvmap_duplicate_handle(struct nvmap_client *client,
 	ref->handle = h;
 	add_handle_ref(client, ref);
 
-	if (is_ro) {
-		ref->is_ro = true;
-		get_dma_buf(h->dmabuf_ro);
-	} else {
-		ref->is_ro = false;
-		get_dma_buf(h->dmabuf);
-	}
+	/*
+	 * Ref counting on the dma_bufs follows the creation and destruction of
+	 * nvmap_handle_refs. That is every time a handle_ref is made the
+	 * dma_buf ref count goes up and everytime a handle_ref is destroyed
+	 * the dma_buf ref count goes down.
+	 */
+	get_dma_buf(h->dmabuf);
 
 out:
 	NVMAP_TAG_TRACE(trace_nvmap_duplicate_handle,
@@ -416,41 +407,7 @@ struct nvmap_handle_ref *nvmap_create_handle_from_fd(
 	handle = nvmap_handle_get_from_dmabuf_fd(client, fd);
 	if (IS_ERR(handle))
 		return ERR_CAST(handle);
-	ref = nvmap_duplicate_handle(client, handle, false, false);
+	ref = nvmap_duplicate_handle(client, handle, false);
 	nvmap_handle_put(handle);
-	return ref;
-}
-
-struct nvmap_handle_ref *nvmap_dup_handle_ro(struct nvmap_client *client,
-					     int fd)
-{
-	struct nvmap_handle *h;
-	struct nvmap_handle_ref *ref = NULL;
-
-	if (!client)
-		return ERR_PTR(-EINVAL);
-
-	h = nvmap_handle_get_from_dmabuf_fd(client, fd);
-	if (IS_ERR(h))
-		return ERR_CAST(h);
-
-	BUG_ON(!h->owner);
-
-	if (h->dmabuf_ro == NULL) {
-		h->dmabuf_ro = __nvmap_make_dmabuf(client, h, true);
-		if (IS_ERR(h->dmabuf_ro)) {
-			nvmap_handle_put(h);
-			return ERR_CAST(h->dmabuf_ro);
-		}
-	}
-
-	ref = nvmap_duplicate_handle(client, h, false, true);
-	if (!ref) {
-		nvmap_handle_put(h);
-		return ref;
-	}
-
-	nvmap_handle_put(h);
-
 	return ref;
 }
