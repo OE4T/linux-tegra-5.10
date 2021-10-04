@@ -182,19 +182,24 @@ int gv11b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 
 	nvgpu_log_fn(g, " ");
 
-#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	if (class_num == VOLTA_COMPUTE_A) {
 		switch (offset << 2) {
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 		case NVC0C0_SET_SHADER_EXCEPTIONS:
 			g->ops.gr.intr.set_shader_exceptions(g, data);
 			err = 0;
 			break;
+#endif
 		case NVC3C0_SET_SKEDCHECK:
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 			gv11b_gr_intr_set_skedcheck(g, data);
+#endif
 			err = 0;
 			break;
 		case NVC3C0_SET_SHADER_CUT_COLLECTOR:
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 			gv11b_gr_intr_set_shader_cut_collector(g, data);
+#endif
 			err = 0;
 			break;
 		default:
@@ -202,7 +207,6 @@ int gv11b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 			break;
 		}
 	}
-#endif
 
 #if defined(CONFIG_NVGPU_DEBUGGER) && defined(CONFIG_NVGPU_GRAPHICS)
 	if (class_num == VOLTA_A) {
