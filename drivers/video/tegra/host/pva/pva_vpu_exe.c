@@ -578,7 +578,8 @@ static void vpu_bin_clean(struct pva *dev, struct pva_elf_image *elf_img)
 	}
 }
 
-static int32_t pva_get_vpu_app_id(struct nvpva_elf_context *d, uint16_t *exe_id)
+static int32_t pva_get_vpu_app_id(struct nvpva_elf_context *d, uint16_t *exe_id,
+					bool is_system_app)
 {
 	int32_t ret = 0;
 	uint16_t index = 0;
@@ -595,6 +596,7 @@ static int32_t pva_get_vpu_app_id(struct nvpva_elf_context *d, uint16_t *exe_id)
 
 	*exe_id = index;
 	d->elf_images->elf_img[*exe_id].elf_id = *exe_id;
+	d->elf_images->elf_img[*exe_id].is_system_app = is_system_app;
 
 	rmos_set_bit32(index, &d->elf_images->alloctable);
 
@@ -704,7 +706,7 @@ int32_t pva_task_acquire_ref_vpu_app(struct nvpva_elf_context *d,
 }
 
 int32_t pva_load_vpu_app(struct nvpva_elf_context *d, uint8_t *buffer,
-			 size_t size, uint16_t *exe_id)
+			 size_t size, uint16_t *exe_id, bool is_system_app)
 {
 	void *elf = NULL;
 	int32_t err = 0;
@@ -718,7 +720,7 @@ int32_t pva_load_vpu_app(struct nvpva_elf_context *d, uint8_t *buffer,
 		dev_err(dev, "Not valid elf or null elf");
 		goto out;
 	}
-	err = pva_get_vpu_app_id(d, &assigned_exe_id);
+	err = pva_get_vpu_app_id(d, &assigned_exe_id, is_system_app);
 	if (err) {
 		dev_err(dev, "Unable to get valid VPU id");
 		goto out;

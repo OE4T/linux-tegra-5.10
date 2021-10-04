@@ -176,6 +176,13 @@ enum nvpva_hwseq_trigger_mode {
 	NVPVA_HWSEQTM_DMATRIG = 1U,
 };
 
+enum nvpva_system_test_id {
+	NVPVA_STRESS_POWER	= 0U,
+	NVPVA_STRESS_POWER_DIDT	= 1U,
+	NVPVA_STRESS_TIMING	= 2U,
+	NVPVA_MAX_TEST_ID	= 2U,
+};
+
 #define NVPVA_MEM_REGISTERED_SIZE (0U)
 struct nvpva_mem {
 	uint32_t pin_id;
@@ -341,6 +348,8 @@ struct nvpva_ioctl_task {
 	uint16_t exe_id;
 	uint32_t flags;
 	uint32_t l2_alloc_size; /* Not applicable for Xavier */
+	uint32_t system_channel_mask;
+	uint64_t system_descriptor_mask;
 	struct nvpva_ioctl_part prefences;
 	struct nvpva_ioctl_part user_fence_actions;
 	struct nvpva_ioctl_part input_task_status;

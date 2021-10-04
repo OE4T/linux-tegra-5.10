@@ -31,6 +31,7 @@
 #include <linux/kref.h>
 #include <uapi/linux/nvdev_fence.h>
 #include <uapi/linux/nvpva_ioctl.h>
+#include <linux/firmware.h>
 
 #include "pva.h"
 #include "pva_queue.h"
@@ -51,6 +52,12 @@ struct pva_private {
 	struct nvhost_queue *queue;
 	struct nvpva_client_context *client;
 };
+
+static char *tests_app_names[3] = {
+					"nvpva_stress_power.elf",
+					"nvpva_stress_power_didt.elf",
+					"nvpva_stress_timing.elf"
+				};
 
 static int copy_part_from_user(void *kbuffer, size_t kbuffer_size,
 			       struct nvpva_ioctl_part part)
@@ -106,6 +113,16 @@ static int pva_copy_task(struct nvpva_ioctl_task *ioctl_task,
 	task->l2_alloc_size = ioctl_task->l2_alloc_size;
 	task->symbol_payload_size = ioctl_task->symbol_payload.size;
 	task->flags = ioctl_task->flags;
+	if (task->exe_id < 32 &&
+		task->client->elf_ctx.elf_images->elf_img[task->exe_id].is_system_app) {
+		task->system_descriptor_mask = ioctl_task->system_descriptor_mask;
+		task->system_channel_mask = ioctl_task->system_channel_mask;
+		task->is_system_app = true;
+	} else {
+		task->system_descriptor_mask = 0;
+		task->system_channel_mask = 0;
+		task->is_system_app = false;
+	}
 
 #define IOCTL_ARRAY_SIZE(field_name)                                           \
 	(ioctl_task->field_name.size / sizeof(task->field_name[0]))
@@ -438,26 +455,58 @@ static int pva_register_vpu_exec(struct pva_private *priv, void *arg)
 		(struct nvpva_vpu_exe_register_in_arg *)arg;
 	struct nvpva_vpu_exe_register_out_arg *reg_out =
 		(struct nvpva_vpu_exe_register_out_arg *)arg;
-	void *exec_data;
+	void *exec_data = NULL;
 	int err = 0;
 	uint16_t exe_id;
+	uint16_t system_app_id;
+	const struct firmware *test_app;
 
-	exec_data = kmalloc(reg_in->exe_data.size, GFP_KERNEL);
-	if (exec_data == NULL) {
-		err = -ENOMEM;
-		goto out;
+	if (reg_in->exe_data.addr == 0xFFFFFFFFFFFFFFFFULL) {
+		system_app_id = reg_in->exe_data.size;
+		if (system_app_id > NVPVA_MAX_TEST_ID) {
+			nvhost_dbg_fn("invalid test app ID");
+			err = -ENOENT;
+			return err;
+		}
+
+		test_app = nvhost_client_request_firmware(priv->pva->pdev,
+				tests_app_names[system_app_id], true);
+		if (!test_app) {
+			nvhost_dbg_fn("pva test app request failed");
+			dev_err(&priv->pva->pdev->dev, "Failed to load the %s test_app\n",
+				tests_app_names[system_app_id]);
+			err = -ENOENT;
+			return err;
+		}
+		err = pva_load_vpu_app(&priv->client->elf_ctx, (uint8_t *)(test_app->data),
+				       test_app->size, &exe_id, true);
+		release_firmware(test_app);
+	} else {
+		uint64_t data_size = reg_in->exe_data.size;
+		bool is_system = ((data_size & 0x8000000000000000ULL) != 0);
+
+		data_size &= 0x7FFFFFFFFFFFFFFFULL;
+		reg_in->exe_data.size &= 0x7FFFFFFFFFFFFFFFULL;
+		exec_data = kmalloc(data_size, GFP_KERNEL);
+		if (exec_data == NULL) {
+			nvhost_err(&priv->pva->pdev->dev,
+				   "failed to allocate memory for elf");
+			err = -ENOMEM;
+			goto out;
+		}
+
+		err = copy_part_from_user(exec_data, data_size,
+					  reg_in->exe_data);
+		if (err) {
+			nvhost_err(&priv->pva->pdev->dev,
+				"failed to copy vpu exe data");
+			goto free_mem;
+		}
+
+		err = pva_load_vpu_app(&priv->client->elf_ctx, exec_data,
+				       data_size, &exe_id, is_system);
 	}
 
-	err = copy_part_from_user(exec_data, reg_in->exe_data.size,
-				  reg_in->exe_data);
-	if (err) {
-		nvhost_err(&priv->pva->pdev->dev,
-			   "failed to copy vpu exe data");
-		goto free_mem;
-	}
-
-	err = pva_load_vpu_app(&priv->client->elf_ctx, exec_data,
-			       reg_in->exe_data.size, &exe_id);
 	if (err) {
 		nvhost_err(&priv->pva->pdev->dev, "failed to register vpu app");
 		goto free_mem;
@@ -471,7 +520,8 @@ static int pva_register_vpu_exec(struct pva_private *priv, void *arg)
 			.symbol_size_total;
 
 free_mem:
-	kfree(exec_data);
+	if (exec_data != NULL)
+		kfree(exec_data);
 out:
 	return err;
 }

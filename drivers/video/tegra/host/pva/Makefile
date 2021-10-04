@@ -14,6 +14,7 @@ ccflags-$(V2) += -I$(srctree.nvidia)/drivers/video/tegra/host
 ccflags-$(V2) += -I$(srctree.nvidia)/drivers/video/tegra/host/pva/fw_include
 ccflags-$(V2) += -I$(srctree.nvidia)/include
 ccflags-$(V2) += -Werror
+ccflags-$(V2) += -DSYSTEM_TESTS_ENABLED
 
 
 nvhost-pva-objs  = \

@@ -22,6 +22,7 @@
 #include "pva_vpu_exe.h"
 #include "nvpva_client.h"
 #include "dev.h"
+#include "pva-bit.h"
 
 static int32_t patch_dma_desc_address(struct pva_submit_task *task,
 				      struct nvpva_dma_descriptor *umd_dma_desc,
@@ -110,8 +111,16 @@ static int32_t patch_dma_desc_address(struct pva_submit_task *task,
 
 		break;
 	}
-	case DMA_DESC_SRC_XFER_INVAL:
 	case DMA_DESC_SRC_XFER_R5TCM:
+		if (!task->is_system_app) { /* check if system app */
+			err = -EFAULT;
+			goto out;
+		} else {
+			task->special_access = 1;
+			addr_base = 0;
+			break;
+		}
+	case DMA_DESC_SRC_XFER_INVAL:
 	case DMA_DESC_SRC_XFER_RSVD:
 	default:
 		err = -EFAULT;
@@ -178,8 +187,16 @@ static int32_t patch_dma_desc_address(struct pva_submit_task *task,
 		addr_base |= (u64)umd_dma_desc->dstFormat << 39U;
 		break;
 	}
-	case DMA_DESC_DST_XFER_INVAL:
 	case DMA_DESC_DST_XFER_R5TCM:
+		if (!task->is_system_app) { /* check if system app */
+			err = -EFAULT;
+			goto out;
+		} else {
+			task->special_access = 1;
+			addr_base = 0;
+			break;
+		}
+	case DMA_DESC_DST_XFER_INVAL:
 	case DMA_DESC_DST_XFER_RSVD1:
 	case DMA_DESC_DST_XFER_RSVD2:
 	default:
@@ -207,6 +224,8 @@ static int32_t nvpva_task_dma_desc_mapping(struct pva_submit_task *task,
 	int valid_link_did = 0;
 	int is_cfg = 0;
 
+	task->special_access = 0;
+
 	for (numDesc = 0U; numDesc < task->num_dma_descriptors; numDesc++) {
 		umd_dma_desc = &task->dma_descriptors[numDesc];
 		dma_desc = &hw_task->dma_desc[numDesc];
@@ -232,6 +251,7 @@ static int32_t nvpva_task_dma_desc_mapping(struct pva_submit_task *task,
 			} else
 				goto out;
 		}
+		hw_task->dma_info.special_access = task->special_access;
 		/* DMA_DESC_TRANS CNTL0 */
 		dma_desc->transfer_control0 =
 			umd_dma_desc->srcTransferMode |
@@ -453,6 +473,9 @@ int pva_task_write_dma_info(struct pva_submit_task *task,
 	/* write dma channel info */
 	hw_task->dma_info.num_channels = task->num_dma_channels;
 	hw_task->dma_info.num_descriptors = task->num_dma_descriptors;
+	hw_task->dma_info.r5_channel_mask = task->system_channel_mask;
+	hw_task->dma_info.r5_descriptor_mask[0] = PVA_LOW32(task->system_descriptor_mask);
+	hw_task->dma_info.r5_descriptor_mask[1] = PVA_HI32(task->system_descriptor_mask);
 	hw_task->dma_info.descriptor_id = 1U; /* PVA_DMA_DESC0 */
 
 	for (i = 0; i < task->num_dma_channels; i++) {
@@ -543,7 +566,8 @@ int pva_task_write_dma_info(struct pva_submit_task *task,
 			}
 			break;
 		default:
-			task_err(task, "trigger value is not set");
+			if (!task->client->elf_ctx.elf_images->elf_img[task->exe_id].is_system_app)
+				task_err(task, "trigger value is not set");
 			break;
 		}
 	}

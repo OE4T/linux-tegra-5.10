@@ -70,6 +70,9 @@ struct PVA_PACKED pva_dma_info_s {
 	uint8_t num_channels;
 	/**< Number of used descriptors*/
 	uint8_t num_descriptors;
+#ifdef SYSTEM_TESTS_ENABLED
+	uint16_t r5_channel_mask; /**< channel is used by R5*/
+#endif
 	/**< Number of bytes used in hwseq */
 	uint16_t num_hwseq;
 
@@ -78,7 +81,12 @@ struct PVA_PACKED pva_dma_info_s {
 	 * Valid range:  [1,PVA_SYS_DMA_MAX_DESCRIPTORS]
 	 */
 	uint8_t descriptor_id;
-	uint8_t pva_dma_info_pad_0[3];
+#ifndef SYSTEM_TESTS_ENABLED
+	uint8_t pva_dma_info_pad_0[3]; /**< Padding for alignment. */
+#else
+	uint8_t special_access; /**< Padding for alignment. */
+	uint32_t r5_descriptor_mask[2];
+#endif
 
 	/**@brief DMA done triggers used by the VPU app.
 	 * Correspond to COMMON_DMA_OUTPUT_ENABLE registers.

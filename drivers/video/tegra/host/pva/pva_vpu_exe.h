@@ -114,6 +114,7 @@ struct pva_elf_image {
 	uint16_t elf_id;
 	/**<True if user has successfully registered a VPU ELF */
 	bool user_registered;
+	bool is_system_app;
 	/**<Count of how many tasks submitted to FW use this ELF image */
 	atomic_t submit_refcount;
 	/**< Number of symbols in the VPU app */
@@ -233,7 +234,7 @@ static inline bool pva_vpu_elf_is_registered(struct nvpva_elf_context *d,
  *			loaded successfully
  */
 int32_t pva_load_vpu_app(struct nvpva_elf_context *d, uint8_t *buffer,
-			 size_t size, uint16_t *exe_id);
+			 size_t size, uint16_t *exe_id, bool is_system_app);
 
 /**
  * Unload VPU APP elf file
@@ -304,4 +305,5 @@ void pva_vpu_deinit(struct nvpva_elf_context *d);
 int32_t pva_vpu_init(struct pva *dev, struct nvpva_elf_context *d);
 
 void print_segments_info(struct pva_elf_image *elf_img);
+
 #endif
