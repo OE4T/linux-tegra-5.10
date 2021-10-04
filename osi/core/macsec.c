@@ -2455,12 +2455,12 @@ static nve32_t macsec_deinit(struct osi_core_priv_data *const osi_core)
 			   sizeof(struct osi_macsec_lut_status));
 	}
 
-	/* Update MAC ipg value as per macsec requirement */
-	if (l_core->ops_p->config_macsec_ipg != OSI_NULL) {
-		l_core->ops_p->config_macsec_ipg(osi_core, OSI_DISABLE);
+	/* Update MAC as per macsec requirement */
+	if (l_core->ops_p->macsec_config_mac != OSI_NULL) {
+		l_core->ops_p->macsec_config_mac(osi_core, OSI_DISABLE);
 	} else {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
-			     "Failed config macsec IPG\n", 0ULL);
+			     "Failed config MAC per macsec\n", 0ULL);
 	}
 
 	return 0;
@@ -2482,12 +2482,12 @@ static nve32_t macsec_init(struct osi_core_priv_data *const osi_core)
 	nve32_t ret = 0;
 	nveu16_t i, j;
 
-	/* Update MAC ipg value as per macsec requirement */
-	if (l_core->ops_p->config_macsec_ipg != OSI_NULL) {
-		l_core->ops_p->config_macsec_ipg(osi_core, OSI_ENABLE);
+	/* Update MAC value as per macsec requirement */
+	if (l_core->ops_p->macsec_config_mac != OSI_NULL) {
+		l_core->ops_p->macsec_config_mac(osi_core, OSI_ENABLE);
 	} else {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
-			     "Failed config macsec IPG\n", 0ULL);
+			     "Failed to config mac per macsec\n", 0ULL);
 	}
 
 	/* Set MTU */
