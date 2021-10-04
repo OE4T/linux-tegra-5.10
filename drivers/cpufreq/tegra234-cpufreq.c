@@ -262,8 +262,6 @@ static void set_cpufreq_to_emcfreq(enum cluster cl, uint32_t cluster_freq)
 		return;
 
 	emc_freq_khz = tegra_cpu_to_emc_freq(cluster_freq, cpu_emc_map_ptr);
-	if (!emc_freq_khz)
-		return;
 
 	emc_freq_kbps = emc_freq_to_bw(emc_freq_khz);
 
