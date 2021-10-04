@@ -48,16 +48,17 @@ int nvgpu_init_ltc_support(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	g->mm.ltc_enabled_current = true;
-	g->mm.ltc_enabled_target = true;
-
 	if (ltc == NULL) {
 		ltc = nvgpu_kzalloc(g, sizeof(*ltc));
 		if (ltc == NULL) {
 			return -ENOMEM;
 		}
 		g->ltc = ltc;
+#if defined(CONFIG_NVGPU_NON_FUSA) || defined(CONFIG_NVGPU_KERNEL_MODE_SUBMIT)
 		nvgpu_spinlock_init(&g->ltc->ltc_enabled_lock);
+		g->mm.ltc_enabled_current = true;
+		g->mm.ltc_enabled_target = true;
+#endif
 	}
 
 	if (g->ops.ltc.init_fs_state != NULL) {
@@ -86,6 +87,7 @@ int nvgpu_init_ltc_support(struct gk20a *g)
 	return 0;
 }
 
+#if defined(CONFIG_NVGPU_NON_FUSA) || defined(CONFIG_NVGPU_KERNEL_MODE_SUBMIT)
 void nvgpu_ltc_sync_enabled(struct gk20a *g)
 {
 	if (g->ops.ltc.set_enabled == NULL) {
@@ -99,6 +101,7 @@ void nvgpu_ltc_sync_enabled(struct gk20a *g)
 	}
 	nvgpu_spinlock_release(&g->ltc->ltc_enabled_lock);
 }
+#endif
 
 u32 nvgpu_ltc_get_ltc_count(struct gk20a *g)
 {

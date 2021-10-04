@@ -357,10 +357,14 @@ struct mm_gk20a {
 	int physical_bits;
 	/** True if whole comptag memory is used for compress rendering. */
 	bool use_full_comp_tag_line;
+
+#if defined(CONFIG_NVGPU_NON_FUSA) || defined(CONFIG_NVGPU_KERNEL_MODE_SUBMIT)
 	/** True if LTC sw setup is ready. */
 	bool ltc_enabled_current;
 	/** True if LTC hw setup is ready. */
 	bool ltc_enabled_target;
+#endif
+
 	/** Disable big page support. */
 	bool disable_bigpage;
 

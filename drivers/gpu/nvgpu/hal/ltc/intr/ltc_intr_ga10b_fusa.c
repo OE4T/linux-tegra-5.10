@@ -1,7 +1,7 @@
 /*
  * GA10B LTC INTR
  *
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -95,6 +95,7 @@ static void ga10b_ltc_intr1_configure(struct gk20a *g)
 	/* Read back register for write synchronization */
 	reg = nvgpu_readl(g, ltc_ltcs_ltss_intr_r());
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 	/* illegal_compstat interrupts can be also controlled through
 	 * debug_fs, so enable/disable based on g->ltc_intr_en_illegal_compstat
 	 * settings
@@ -103,6 +104,7 @@ static void ga10b_ltc_intr1_configure(struct gk20a *g)
 		g->ops.ltc.intr.en_illegal_compstat(g,
 					g->ltc_intr_en_illegal_compstat);
 	}
+#endif
 }
 
 /* LTC interrupts included in intr2 are not used for ga10b */

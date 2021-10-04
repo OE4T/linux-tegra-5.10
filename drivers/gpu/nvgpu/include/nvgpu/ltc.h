@@ -39,10 +39,12 @@ struct nvgpu_ecc_stat;
  * This structure stores data related to ltc unit.
  */
 struct nvgpu_ltc {
+#if defined(CONFIG_NVGPU_NON_FUSA) || defined(CONFIG_NVGPU_KERNEL_MODE_SUBMIT)
 	/**
 	 * Spinlock to protect all ltc operations.
 	 */
 	struct nvgpu_spinlock ltc_enabled_lock;
+#endif
 	/** Maximum ltc count value is read from h/w top config register. */
 	u32 max_ltc_count;
 	/** Enumerated ltc count value is read from h/w priv ring register. */
@@ -117,22 +119,6 @@ int nvgpu_init_ltc_support(struct gk20a *g);
  */
 void nvgpu_ltc_remove_support(struct gk20a *g);
 /**
- * @brief Enable/Disable caching feature of L2.
- *
- * @param g [in]		Pointer to GPU driver struct.
- *
- * This function will enable/disable caching feature of L2 based on
- * #mm.ltc_enabled_target. With #mm.ltc_enabled_target set to true,
- * gpu l2 caching feature will be enabled. Gpu L2 caching is enabled with h/w
- * power-on and can only be changed after h/w reset, before the first
- * transaction received by L2.
- * With #mm.ltc_enabled_target set to false, Gpu L2 caching will be disabled.
- * With Gpu L2 cache disabled, all transactions will miss in L2 and data will
- * be always write-through to main memory.
- *
- */
-void nvgpu_ltc_sync_enabled(struct gk20a *g);
-/**
  * @brief Get enumerated ltcs count.
  *
  * @param g [in]		Pointer to GPU driver struct.
@@ -169,4 +155,22 @@ u32 nvgpu_ltc_get_slices_per_ltc(struct gk20a *g);
  */
 u32 nvgpu_ltc_get_cacheline_size(struct gk20a *g);
 
+#if defined(CONFIG_NVGPU_NON_FUSA) || defined(CONFIG_NVGPU_KERNEL_MODE_SUBMIT)
+/**
+ * @brief Enable/Disable caching feature of L2.
+ *
+ * @param g [in]		Pointer to GPU driver struct.
+ *
+ * This function will enable/disable caching feature of L2 based on
+ * #mm.ltc_enabled_target. With #mm.ltc_enabled_target set to true,
+ * gpu l2 caching feature will be enabled. Gpu L2 caching is enabled with h/w
+ * power-on and can only be changed after h/w reset, before the first
+ * transaction received by L2.
+ * With #mm.ltc_enabled_target set to false, Gpu L2 caching will be disabled.
+ * With Gpu L2 cache disabled, all transactions will miss in L2 and data will
+ * be always write-through to main memory.
+ *
+ */
+void nvgpu_ltc_sync_enabled(struct gk20a *g);
+#endif
 #endif /* NVGPU_LTC_H */

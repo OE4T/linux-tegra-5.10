@@ -149,7 +149,9 @@ static const struct gops_bios gm20b_ops_bios = {
 static const struct gops_ltc_intr gm20b_ops_ltc_intr = {
 	.configure = gm20b_ltc_intr_configure,
 	.isr = gm20b_ltc_intr_isr,
+#ifdef CONFIG_NVGPU_NON_FUSA
 	.en_illegal_compstat = NULL,
+#endif
 };
 
 static const struct gops_ltc gm20b_ops_ltc = {
@@ -159,6 +161,8 @@ static const struct gops_ltc gm20b_ops_ltc = {
 #ifdef CONFIG_NVGPU_FALCON_NON_FUSA
 	.determine_L2_size_bytes = gm20b_determine_L2_size_bytes,
 	.init_fs_state = gm20b_ltc_init_fs_state,
+#endif
+#if defined(CONFIG_NVGPU_NON_FUSA) || defined(CONFIG_NVGPU_KERNEL_MODE_SUBMIT)
 	.set_enabled = gm20b_ltc_set_enabled,
 #endif
 #ifdef CONFIG_NVGPU_GRAPHICS

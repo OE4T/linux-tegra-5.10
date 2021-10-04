@@ -385,8 +385,10 @@ int test_ltc_functionality_tests(struct unit_module *m,
 	u32 slice_per_ltc;
 	u32 cacheline_size;
 
+#if defined(CONFIG_NVGPU_NON_FUSA) || defined(CONFIG_NVGPU_KERNEL_MODE_SUBMIT)
 	g->mm.ltc_enabled_current = false;
 	nvgpu_ltc_sync_enabled(g);
+#endif
 
 	ltc_count = nvgpu_ltc_get_ltc_count(g);
 	if (ltc_count != NUM_LTC) {
@@ -409,10 +411,13 @@ int test_ltc_negative_tests(struct unit_module *m,
 {
 	int err = 0;
 
+#if defined(CONFIG_NVGPU_NON_FUSA) || defined(CONFIG_NVGPU_KERNEL_MODE_SUBMIT)
 	g->mm.ltc_enabled_current = g->mm.ltc_enabled_target;
 	nvgpu_ltc_sync_enabled(g);
 	g->ops.ltc.set_enabled = NULL;
 	nvgpu_ltc_sync_enabled(g);
+#endif
+
 	g->ops.ltc.ltc_remove_support(g);
 	g->ops.ltc.ltc_remove_support(g);
 	err = g->ops.ltc.init_ltc_support(g);
@@ -564,34 +569,13 @@ done:
 	return err;
 }
 
-int test_ltc_intr_en_illegal_compstat(struct unit_module *m,
-				struct gk20a *g, void *args)
-{
-	u32 val;
-
-	/* clear the reg to be sure */
-	nvgpu_posix_io_writel_reg_space(g, ltc_ltcs_ltss_intr_r(), 0);
-
-	g->ops.ltc.intr.en_illegal_compstat(g, true);
-	val = nvgpu_posix_io_readl_reg_space(g, ltc_ltcs_ltss_intr_r());
-	if ((val & ltc_ltcs_ltss_intr_en_illegal_compstat_m()) == 0) {
-		unit_return_fail(m, "failed to enable illegal compstat\n");
-	}
-
-	g->ops.ltc.intr.en_illegal_compstat(g, false);
-	val = nvgpu_posix_io_readl_reg_space(g, ltc_ltcs_ltss_intr_r());
-	if ((val & ltc_ltcs_ltss_intr_en_illegal_compstat_m()) != 0) {
-		unit_return_fail(m, "failed to disable illegal compstat\n");
-	}
-
-	return UNIT_SUCCESS;
-}
-
 int test_ltc_intr_configure(struct unit_module *m,
 				struct gk20a *g, void *args)
 {
 	u32 val;
+#ifdef CONFIG_NVGPU_NON_FUSA
 	void (*save_func)(struct gk20a *g, bool en);
+#endif
 
 	g->ops.ltc.intr.configure(g);
 	val = nvgpu_posix_io_readl_reg_space(g, ltc_ltcs_ltss_intr_r());
@@ -602,9 +586,11 @@ int test_ltc_intr_configure(struct unit_module *m,
 		unit_return_fail(m, "failed to configure intr\n");
 	}
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 	/* for branch coverage test case where this HAL isn't configured */
 	save_func = g->ops.ltc.intr.en_illegal_compstat;
 	g->ops.ltc.intr.en_illegal_compstat = NULL;
+#endif
 	g->ops.ltc.intr.configure(g);
 	val = nvgpu_posix_io_readl_reg_space(g, ltc_ltcs_ltss_intr_r());
 	if ((val & (ltc_ltcs_ltss_intr_en_ecc_sec_error_enabled_f() |
@@ -613,7 +599,10 @@ int test_ltc_intr_configure(struct unit_module *m,
 		 ltc_ltcs_ltss_intr_en_ecc_ded_error_enabled_f())) {
 		unit_return_fail(m, "failed to configure intr\n");
 	}
+
+#ifdef CONFIG_NVGPU_NON_FUSA
 	g->ops.ltc.intr.en_illegal_compstat = save_func;
+#endif
 
 	return UNIT_SUCCESS;
 }
@@ -633,6 +622,30 @@ int test_determine_L2_size_bytes(struct unit_module *m,
 	if (val != expected_size) {
 		unit_return_fail(m, "incorrect L2 size reported %lld, expected %lld\n",
 				 val, expected_size);
+	}
+
+	return UNIT_SUCCESS;
+}
+
+#ifdef CONFIG_NVGPU_NON_FUSA
+int test_ltc_intr_en_illegal_compstat(struct unit_module *m,
+				struct gk20a *g, void *args)
+{
+	u32 val;
+
+	/* clear the reg to be sure */
+	nvgpu_posix_io_writel_reg_space(g, ltc_ltcs_ltss_intr_r(), 0);
+
+	g->ops.ltc.intr.en_illegal_compstat(g, true);
+	val = nvgpu_posix_io_readl_reg_space(g, ltc_ltcs_ltss_intr_r());
+	if ((val & ltc_ltcs_ltss_intr_en_illegal_compstat_m()) == 0) {
+		unit_return_fail(m, "failed to enable illegal compstat\n");
+	}
+
+	g->ops.ltc.intr.en_illegal_compstat(g, false);
+	val = nvgpu_posix_io_readl_reg_space(g, ltc_ltcs_ltss_intr_r());
+	if ((val & ltc_ltcs_ltss_intr_en_illegal_compstat_m()) != 0) {
+		unit_return_fail(m, "failed to disable illegal compstat\n");
 	}
 
 	return UNIT_SUCCESS;
@@ -668,6 +681,7 @@ int test_ltc_set_enabled(struct unit_module *m,	struct gk20a *g, void *args)
 
 	return UNIT_SUCCESS;
 }
+#endif
 
 int test_flush_ltc(struct unit_module *m, struct gk20a *g, void *args)
 {
@@ -711,11 +725,13 @@ struct unit_module_test nvgpu_ltc_tests[] = {
 	UNIT_TEST(ltc_functionality_tests, test_ltc_functionality_tests,
 								NULL, 0),
 	UNIT_TEST(ltc_intr, test_ltc_intr, NULL, 0),
-	UNIT_TEST(ltc_intr_en_illegal_compstat,
-				test_ltc_intr_en_illegal_compstat, NULL, 0),
 	UNIT_TEST(ltc_intr_configure, test_ltc_intr_configure, NULL, 0),
 	UNIT_TEST(ltc_determine_L2_size, test_determine_L2_size_bytes, NULL, 0),
+#ifdef CONFIG_NVGPU_NON_FUSA
+	UNIT_TEST(ltc_intr_en_illegal_compstat,
+				test_ltc_intr_en_illegal_compstat, NULL, 0),
 	UNIT_TEST(ltc_set_enabled, test_ltc_set_enabled, NULL, 0),
+#endif
 	UNIT_TEST(ltc_flush, test_flush_ltc, NULL, 0),
 	UNIT_TEST(ltc_negative_tests, test_ltc_negative_tests, NULL, 0),
 	UNIT_TEST(ltc_remove_support, test_ltc_remove_support, NULL, 0),

@@ -51,7 +51,9 @@ struct gops_ltc_intr {
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	void (*configure)(struct gk20a *g);
+#ifdef CONFIG_NVGPU_NON_FUSA
 	void (*en_illegal_compstat)(struct gk20a *g, bool enable);
+#endif
 	void (*isr_extra)(struct gk20a *g, u32 ltc, u32 slice, u32 *reg_value);
 	void (*ltc_intr3_configure_extra)(struct gk20a *g, u32 *reg);
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
@@ -134,7 +136,9 @@ struct gops_ltc {
 	int (*ecc_init)(struct gk20a *g);
 
 	void (*init_fs_state)(struct gk20a *g);
+#if defined(CONFIG_NVGPU_NON_FUSA) || defined(CONFIG_NVGPU_KERNEL_MODE_SUBMIT)
 	void (*set_enabled)(struct gk20a *g, bool enabled);
+#endif
 	void (*ltc_lts_set_mgmt_setup)(struct gk20a *g);
 #ifdef CONFIG_NVGPU_GRAPHICS
 	void (*set_zbc_color_entry)(struct gk20a *g,

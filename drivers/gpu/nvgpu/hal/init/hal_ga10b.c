@@ -337,7 +337,9 @@ static const struct gops_ltc_intr ga10b_ops_ltc_intr = {
 	.isr = ga10b_ltc_intr_isr,
 	.isr_extra = ga10b_ltc_intr_handle_lts_intr3_extra,
 	.ltc_intr3_configure_extra = ga10b_ltc_intr3_configure_extra,
+#ifdef CONFIG_NVGPU_NON_FUSA
 	.en_illegal_compstat = gv11b_ltc_intr_en_illegal_compstat,
+#endif
 };
 
 static const struct gops_ltc ga10b_ops_ltc = {
@@ -348,7 +350,9 @@ static const struct gops_ltc ga10b_ops_ltc = {
 	.init_fs_state = ga10b_ltc_init_fs_state,
 	.ltc_lts_set_mgmt_setup = ga10b_ltc_lts_set_mgmt_setup,
 	.flush = gm20b_flush_ltc,
+#if defined(CONFIG_NVGPU_NON_FUSA) || defined(CONFIG_NVGPU_KERNEL_MODE_SUBMIT)
 	.set_enabled = gp10b_ltc_set_enabled,
+#endif
 #ifdef CONFIG_NVGPU_GRAPHICS
 	.set_zbc_s_entry = ga10b_ltc_set_zbc_stencil_entry,
 	.set_zbc_color_entry = ga10b_ltc_set_zbc_color_entry,

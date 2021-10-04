@@ -308,7 +308,9 @@ static const struct gops_ecc tu104_ops_ecc = {
 static const struct gops_ltc_intr tu104_ops_ltc_intr = {
 	.configure = gv11b_ltc_intr_configure,
 	.isr = gv11b_ltc_intr_isr,
+#ifdef CONFIG_NVGPU_NON_FUSA
 	.en_illegal_compstat = gv11b_ltc_intr_en_illegal_compstat,
+#endif
 };
 
 static const struct gops_ltc tu104_ops_ltc = {
@@ -318,7 +320,9 @@ static const struct gops_ltc tu104_ops_ltc = {
 	.determine_L2_size_bytes = gp10b_determine_L2_size_bytes,
 	.init_fs_state = ltc_tu104_init_fs_state,
 	.flush = gm20b_flush_ltc,
+#if defined(CONFIG_NVGPU_NON_FUSA) || defined(CONFIG_NVGPU_KERNEL_MODE_SUBMIT)
 	.set_enabled = gp10b_ltc_set_enabled,
+#endif
 #ifdef CONFIG_NVGPU_GRAPHICS
 	.set_zbc_s_entry = gv11b_ltc_set_zbc_stencil_entry,
 	.set_zbc_color_entry = gm20b_ltc_set_zbc_color_entry,

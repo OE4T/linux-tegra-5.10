@@ -198,7 +198,9 @@ static const struct gops_bios vgpu_gv11b_ops_bios = {
 static const struct gops_ltc_intr vgpu_gv11b_ops_ltc_intr = {
 	.configure = NULL,
 	.isr = NULL,
+#ifdef CONFIG_NVGPU_NON_FUSA
 	.en_illegal_compstat = NULL,
+#endif
 };
 
 static const struct gops_ltc vgpu_gv11b_ops_ltc = {
@@ -207,7 +209,9 @@ static const struct gops_ltc vgpu_gv11b_ops_ltc = {
 	.determine_L2_size_bytes = vgpu_determine_L2_size_bytes,
 	.init_fs_state = vgpu_ltc_init_fs_state,
 	.flush = NULL,
+#if defined(CONFIG_NVGPU_NON_FUSA) || defined(CONFIG_NVGPU_KERNEL_MODE_SUBMIT)
 	.set_enabled = NULL,
+#endif
 #ifdef CONFIG_NVGPU_GRAPHICS
 	.set_zbc_s_entry = NULL,
 	.set_zbc_color_entry = NULL,

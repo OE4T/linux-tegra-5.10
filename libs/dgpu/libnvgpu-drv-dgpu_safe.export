@@ -526,7 +526,6 @@ nvgpu_ltc_get_cacheline_size
 nvgpu_ltc_get_ltc_count
 nvgpu_ltc_get_slices_per_ltc
 nvgpu_ltc_remove_support
-nvgpu_ltc_sync_enabled
 nvgpu_local_golden_image_get_fault_injection
 nvgpu_log_msg_impl
 nvgpu_cic_mon_intr_mask

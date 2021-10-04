@@ -108,14 +108,12 @@ int test_ltc_ecc_init_free(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_ltc_sync_enabled, nvgpu_ltc_get_ltc_count,
+ * Targets: nvgpu_ltc_get_ltc_count,
  *          nvgpu_ltc_get_slices_per_ltc, nvgpu_ltc_get_cacheline_size
  *
  * Input: None
  *
  * Steps:
- * - Set ltc_enabled_current to false and then call
- *   nvgpu_ltc_sync_enabled.
  * - Call nvgpu_ltc_get_ltc_count
  * - Call nvgpu_ltc_get_slices_per_ltc
  * - Call nvgpu_ltc_get_cacheline_size
@@ -133,14 +131,13 @@ int test_ltc_functionality_tests(struct unit_module *m,
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: nvgpu_ltc_sync_enabled, gops_ltc.ltc_remove_support,
+ * Targets: gops_ltc.ltc_remove_support,
  *          gops_ltc.init_ltc_support, nvgpu_init_ltc_support,
  *          nvgpu_ltc_remove_support
  *
  * Input: None
  *
  * Steps:
- * - Set ltc.set_enabled to NULL and then call nvgpu_ltc_sync_enabled
  * - Call gops_ltc.ltc_remove_support twice
  * - Call gops_ltc.init_ltc_support
  *
@@ -249,29 +246,6 @@ int test_ltc_remove_support(struct unit_module *m,
 int test_ltc_intr(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
- * Test specification for: test_ltc_intr_en_illegal_compstat
- *
- * Description: Validate the inter_en_illegal_compstat API.
- *
- * Test Type: Feature
- *
- * Targets: gops_ltc_intr.en_illegal_compstat, gv11b_ltc_intr_en_illegal_compstat
- *
- * Input: None
- *
- * Steps:
- * - Clear the LTC intr register (NV_PLTCG_LTCS_LTSS_INTR).
- * - Call the gv11b_ltc_intr_en_illegal_compstat HAL requesting enable.
- * - Verify correct setting in LTC intr register.
- * - Call the gv11b_ltc_intr_en_illegal_compstat HAL requesting disable.
- * - Verify correct setting in LTC intr register.
- *
- * Output: Returns PASS if register is configured correctly. FAIL otherwise.
- */
-int test_ltc_intr_en_illegal_compstat(struct unit_module *m,
-				struct gk20a *g, void *args);
-
-/**
  * Test specification for: test_ltc_intr_configure
  *
  * Description: Validate the ltc interrupt configure API.
@@ -316,6 +290,30 @@ int test_ltc_intr_configure(struct unit_module *m,
 int test_determine_L2_size_bytes(struct unit_module *m,
 				struct gk20a *g, void *args);
 
+#ifdef CONFIG_NVGPU_NON_FUSA
+/**
+ * Test specification for: test_ltc_intr_en_illegal_compstat
+ *
+ * Description: Validate the inter_en_illegal_compstat API.
+ *
+ * Test Type: Feature
+ *
+ * Targets: gops_ltc_intr.en_illegal_compstat, gv11b_ltc_intr_en_illegal_compstat
+ *
+ * Input: None
+ *
+ * Steps:
+ * - Clear the LTC intr register (NV_PLTCG_LTCS_LTSS_INTR).
+ * - Call the gv11b_ltc_intr_en_illegal_compstat HAL requesting enable.
+ * - Verify correct setting in LTC intr register.
+ * - Call the gv11b_ltc_intr_en_illegal_compstat HAL requesting disable.
+ * - Verify correct setting in LTC intr register.
+ *
+ * Output: Returns PASS if register is configured correctly. FAIL otherwise.
+ */
+int test_ltc_intr_en_illegal_compstat(struct unit_module *m,
+				struct gk20a *g, void *args);
+
 /**
  * Test specification for: test_ltc_set_enabled
  *
@@ -338,6 +336,7 @@ int test_determine_L2_size_bytes(struct unit_module *m,
  * Output: Returns PASS if register is configured correctly. FAIL otherwise.
  */
 int test_ltc_set_enabled(struct unit_module *m,	struct gk20a *g, void *args);
+#endif
 
 /**
  * Test specification for: test_flush_ltc

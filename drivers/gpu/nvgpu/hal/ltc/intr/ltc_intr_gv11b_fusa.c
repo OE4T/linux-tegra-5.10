@@ -38,12 +38,13 @@ void gv11b_ltc_intr_configure(struct gk20a *g)
 {
 	u32 reg;
 
-	/* Disable ltc interrupts to reduce nosie and increase perf */
+	/* Disable ltc interrupts to reduce noise and increase perf */
 	reg = nvgpu_readl(g, ltc_ltcs_ltss_intr_r());
 	reg &= ~ltc_ltcs_ltss_intr_en_evicted_cb_m();
 	reg &= ~ltc_ltcs_ltss_intr_en_illegal_compstat_access_m();
 	nvgpu_writel(g, ltc_ltcs_ltss_intr_r(), reg);
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 	/* illegal_compstat interrupts can be also controlled through
 	 * debug_fs, so enable/disable based on g->ltc_intr_en_illegal_compstat
 	 * settings
@@ -52,6 +53,7 @@ void gv11b_ltc_intr_configure(struct gk20a *g)
 		g->ops.ltc.intr.en_illegal_compstat(g,
 					g->ltc_intr_en_illegal_compstat);
 	}
+#endif
 
 	/* Enable ECC interrupts */
 	reg = nvgpu_readl(g, ltc_ltcs_ltss_intr_r());
@@ -60,6 +62,7 @@ void gv11b_ltc_intr_configure(struct gk20a *g)
 	nvgpu_writel(g, ltc_ltcs_ltss_intr_r(), reg);
 }
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 void gv11b_ltc_intr_en_illegal_compstat(struct gk20a *g, bool enable)
 {
 	u32 val;
@@ -77,6 +80,7 @@ void gv11b_ltc_intr_en_illegal_compstat(struct gk20a *g, bool enable)
 	}
 	nvgpu_writel(g, ltc_ltcs_ltss_intr_r(), val);
 }
+#endif
 
 void gv11b_ltc_intr_init_counters(struct gk20a *g,
 			u32 corrected_delta, u32 corrected_overflow,

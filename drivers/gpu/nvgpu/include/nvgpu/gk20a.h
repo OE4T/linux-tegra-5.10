@@ -761,7 +761,10 @@ struct gk20a {
 
 	struct nvgpu_ce_app *ce_app;
 
+#ifdef CONFIG_NVGPU_NON_FUSA
+	/** Flag to control enabling/disabling of illegal compstat intr. */
 	bool ltc_intr_en_illegal_compstat;
+#endif
 	/** @endcond */
 
 	/** Are we currently running on a FUSA device configuration? */
