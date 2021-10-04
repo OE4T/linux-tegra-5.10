@@ -635,8 +635,6 @@ nve32_t osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 			     struct osi_rx_ring *rx_ring, nveu32_t chan)
 {
 	struct dma_local *l_dma = (struct dma_local *)osi_dma;
-	/* for CERT-C error */
-	nveu64_t temp;
 	nveu64_t tailptr = 0;
 	struct osi_rx_swcx *rx_swcx = OSI_NULL;
 	struct osi_rx_desc *rx_desc = OSI_NULL;
@@ -660,24 +658,8 @@ nve32_t osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 		rx_swcx->flags = 0;
 
 		/* Populate the newly allocated buffer address */
-		temp = L32(rx_swcx->buf_phy_addr);
-		if (temp > UINT_MAX) {
-			OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-				    "dma: Invalid buf_phy_addr\n", 0ULL);
-			/* error case do nothing */
-		} else {
-			/* Store Receive Descriptor 0 */
-			rx_desc->rdes0 = (nveu32_t)temp;
-		}
-
-		temp = H32(rx_swcx->buf_phy_addr);
-		if (temp <= UINT_MAX) {
-			/* Store Receive Descriptor 1 */
-			rx_desc->rdes1 = (nveu32_t)temp;
-		} else {
-			OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-				    "dma: Invalid buf_phy_addr\n", 0ULL);
-		}
+		rx_desc->rdes0 = L32(rx_swcx->buf_phy_addr);
+		rx_desc->rdes1 = H32(rx_swcx->buf_phy_addr);
 
 		rx_desc->rdes2 = 0;
 		rx_desc->rdes3 = RDES3_IOC;
