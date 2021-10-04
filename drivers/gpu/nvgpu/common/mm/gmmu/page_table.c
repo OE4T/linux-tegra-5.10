@@ -811,6 +811,47 @@ static int nvgpu_gmmu_do_update_page_table(struct vm_gk20a *vm,
 	return err;
 }
 
+static int nvgpu_gmmu_cache_maint_map(struct gk20a *g, struct vm_gk20a *vm,
+		struct vm_gk20a_mapping_batch *batch)
+{
+	int err = 0;
+
+	if (batch == NULL) {
+		err = g->ops.fb.tlb_invalidate(g, vm->pdb.mem);
+		if (err != 0) {
+			nvgpu_err(g, "fb.tlb_invalidate() failed err=%d", err);
+		}
+	} else {
+		batch->need_tlb_invalidate = true;
+	}
+
+	return err;
+}
+
+static void nvgpu_gmmu_cache_maint_unmap(struct gk20a *g, struct vm_gk20a *vm,
+		struct vm_gk20a_mapping_batch *batch)
+{
+	int err;
+
+	if (batch == NULL) {
+		if (g->ops.mm.cache.l2_flush(g, true) != 0) {
+			nvgpu_err(g, "gk20a_mm_l2_flush[1] failed");
+		}
+		err = g->ops.fb.tlb_invalidate(g, vm->pdb.mem);
+		if (err != 0) {
+			nvgpu_err(g, "fb.tlb_invalidate() failed err=%d", err);
+		}
+	} else {
+		if (!batch->gpu_l2_flushed) {
+			if (g->ops.mm.cache.l2_flush(g, true) != 0) {
+				nvgpu_err(g, "gk20a_mm_l2_flush[2] failed");
+			}
+			batch->gpu_l2_flushed = true;
+		}
+		batch->need_tlb_invalidate = true;
+	}
+}
+
 /*
  * This is the true top level GMMU mapping logic. This breaks down the incoming
  * scatter gather table and does actual programming of GPU virtual address to
@@ -1003,14 +1044,9 @@ u64 nvgpu_gmmu_map_locked(struct vm_gk20a *vm,
 		goto fail_validate;
 	}
 
-	if (batch == NULL) {
-		err = g->ops.fb.tlb_invalidate(g, vm->pdb.mem);
-		if (err != 0) {
-			nvgpu_err(g, "fb.tlb_invalidate() failed err=%d", err);
-			goto fail_validate;
-		}
-	} else {
-		batch->need_tlb_invalidate = true;
+	err = nvgpu_gmmu_cache_maint_map(g, vm, batch);
+	if (err != 0) {
+		goto fail_validate;
 	}
 
 	return vaddr;
@@ -1066,23 +1102,7 @@ void nvgpu_gmmu_unmap_locked(struct vm_gk20a *vm,
 		nvgpu_err(g, "failed to update gmmu ptes on unmap");
 	}
 
-	if (batch == NULL) {
-		if (g->ops.mm.cache.l2_flush(g, true) != 0) {
-			nvgpu_err(g, "gk20a_mm_l2_flush[1] failed");
-		}
-		err = g->ops.fb.tlb_invalidate(g, vm->pdb.mem);
-		if (err != 0) {
-			nvgpu_err(g, "fb.tlb_invalidate() failed err=%d", err);
-		}
-	} else {
-		if (!batch->gpu_l2_flushed) {
-			if (g->ops.mm.cache.l2_flush(g, true) != 0) {
-				nvgpu_err(g, "gk20a_mm_l2_flush[2] failed");
-			}
-			batch->gpu_l2_flushed = true;
-		}
-		batch->need_tlb_invalidate = true;
-	}
+	nvgpu_gmmu_cache_maint_unmap(g, vm, batch);
 }
 
 u32 nvgpu_pte_words(struct gk20a *g)
