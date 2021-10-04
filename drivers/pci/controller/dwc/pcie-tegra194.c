@@ -268,7 +268,8 @@
 #define GEN4_LANE_MARGINING_2_UP_DOWN_VOLTAGE		BIT(25)
 #define GEN4_LANE_MARGINING_2_LEFT_RIGHT_TIMING		BIT(26)
 
-#define PME_ACK_TIMEOUT 10000
+#define PME_ACK_DELAY	100	/* 100 us */
+#define PME_ACK_TIMEOUT	10000	/* 10 ms */
 
 #define LTSSM_DELAY	10000	/* 10 ms */
 #define LTSSM_TIMEOUT	120000	/* 120 ms */
@@ -2750,8 +2751,8 @@ static int tegra_pcie_try_link_l2(struct tegra_pcie_dw *pcie)
 	appl_writel(pcie, val, APPL_RADM_STATUS);
 
 	return readl_poll_timeout_atomic(pcie->appl_base + APPL_DEBUG, val,
-				 val & APPL_DEBUG_PM_LINKST_IN_L2_LAT,
-				 1, PME_ACK_TIMEOUT);
+					 val & APPL_DEBUG_PM_LINKST_IN_L2_LAT,
+					 PME_ACK_DELAY, PME_ACK_TIMEOUT);
 }
 
 static void tegra_pcie_dw_pme_turnoff(struct tegra_pcie_dw *pcie)
