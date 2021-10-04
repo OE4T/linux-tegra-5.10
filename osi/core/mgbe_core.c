@@ -5777,13 +5777,14 @@ static void mgbe_set_mdc_clk_rate(struct osi_core_priv_data *const osi_core,
 
 #ifdef MACSEC_SUPPORT
 /**
- * @brief mgbe_config_macsec_ipg - Configure MAC IPG according to macsec IAS
+ * @brief mgbe_config_for_macsec - Configure MAC according to macsec IAS
  *
  * @note
  * Algorithm:
  *  - Stop MAC Tx
  *  - Update MAC IPG value to accommodate macsec 32 byte SECTAG.
  *  - Start MAC Tx
+ *  - Update MTL_EST value as MACSEC is enabled/disabled
  *
  * @param[in] osi_core: OSI core private data.
  * @param[in] enable: Enable or Disable MAC Tx engine
@@ -5798,11 +5799,15 @@ static void mgbe_set_mdc_clk_rate(struct osi_core_priv_data *const osi_core,
  * - Run time: Yes
  * - De-initialization: No
  */
-void mgbe_config_macsec_ipg(struct osi_core_priv_data *const osi_core,
-					    const nveu32_t enable)
+void mgbe_config_for_macsec(struct osi_core_priv_data *const osi_core,
+			    const nveu32_t enable)
 {
 	nveu32_t value = 0U;
-
+	if (enable != OSI_ENABLE && enable != OSI_DISABLE) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "Failed to config MGBE per MACSEC\n", 0ULL);
+		return;
+	}
 	/* stop MAC Tx */
 	mgbe_config_mac_tx(osi_core, OSI_DISABLE);
 	if (enable == OSI_ENABLE) {
@@ -5837,6 +5842,26 @@ void mgbe_config_macsec_ipg(struct osi_core_priv_data *const osi_core,
 	}
 	/* start MAC Tx */
 	mgbe_config_mac_tx(osi_core, OSI_ENABLE);
+
+	/* Program MTL_EST depending on MACSEC enable/disable */
+	if (osi_core->hw_feature->est_sel == OSI_ENABLE) {
+		value = osi_readla(osi_core,
+				  (unsigned char *)osi_core->base +
+				   MGBE_MTL_EST_CONTROL);
+		value &= ~MGBE_MTL_EST_CONTROL_CTOV;
+		if (enable == OSI_ENABLE) {
+			value |= (MGBE_MTL_EST_CTOV_MACSEC_RECOMMEND <<
+				  MGBE_MTL_EST_CONTROL_CTOV_SHIFT) &
+				  MGBE_MTL_EST_CONTROL_CTOV;
+		} else {
+			value |= (MGBE_MTL_EST_CTOV_RECOMMEND <<
+				  MGBE_MTL_EST_CONTROL_CTOV_SHIFT) &
+				  MGBE_MTL_EST_CONTROL_CTOV;
+		}
+		osi_writela(osi_core, value,
+			   (unsigned char *)osi_core->base +
+			    MGBE_MTL_EST_CONTROL);
+	}
 }
 #endif /*  MACSEC_SUPPORT */
 
@@ -5903,6 +5928,6 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->write_reg = mgbe_write_reg;
 	ops->read_reg = mgbe_read_reg;
 #ifdef MACSEC_SUPPORT
-	ops->config_macsec_ipg = mgbe_config_macsec_ipg;
+	ops->macsec_config_mac = mgbe_config_for_macsec;
 #endif /*  MACSEC_SUPPORT */
 };

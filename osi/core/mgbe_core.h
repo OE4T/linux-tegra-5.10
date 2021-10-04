@@ -633,6 +633,13 @@
 						 OSI_BIT(21) | OSI_BIT(22))
 #define MGBE_MTL_EST_CONTROL_CTOV_SHIFT		11U
 #define MGBE_MTL_EST_CTOV_RECOMMEND		42U
+#ifdef MACSEC_SUPPORT
+/**
+ * MACSEC Recommended value
+ * By default PCS and UPHY are present
+ */
+#define MGBE_MTL_EST_CTOV_MACSEC_RECOMMEND	295U
+#endif /*  MACSEC_SUPPORT */
 #define MGBE_MTL_EST_CONTROL_TILS		(OSI_BIT(8) | OSI_BIT(9) | \
 						 OSI_BIT(10))
 #define MGBE_MTL_EST_CONTROL_LCSE		(OSI_BIT(7) | OSI_BIT(6))
