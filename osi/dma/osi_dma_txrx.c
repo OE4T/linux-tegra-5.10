@@ -820,19 +820,8 @@ static inline void fill_first_desc(struct osi_tx_ring *tx_ring,
 				   struct osi_tx_swcx *tx_swcx,
 				   unsigned int ptp_flag)
 {
-	nveu64_t tmp;
-
-	/* update the first buffer pointer and length */
-	tmp = L32(tx_swcx->buf_phy_addr);
-	if (tmp < UINT_MAX) {
-		tx_desc->tdes0 = (nveu32_t)tmp;
-	}
-
-	tmp = H32(tx_swcx->buf_phy_addr);
-	if (tmp < UINT_MAX) {
-		tx_desc->tdes1 = (nveu32_t)tmp;
-	}
-
+	tx_desc->tdes0 = L32(tx_swcx->buf_phy_addr);
+	tx_desc->tdes1 = H32(tx_swcx->buf_phy_addr);
 	tx_desc->tdes2 = tx_swcx->len;
 	/* Mark it as First descriptor */
 	tx_desc->tdes3 |= TDES3_FD;
@@ -995,7 +984,7 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 	nve32_t cntx_desc_consumed;
 	nveu32_t pkt_id = 0x0U;
 	nveu32_t desc_cnt = 0U;
-	nveu64_t tailptr, tmp;
+	nveu64_t tailptr;
 	nveu32_t entry = 0U;
 	nveu32_t i;
 
@@ -1082,15 +1071,8 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 
 	/* Fill remaining descriptors */
 	for (i = 0; i < desc_cnt; i++) {
-		tmp = L32(tx_swcx->buf_phy_addr);
-		if (tmp < UINT_MAX) {
-			tx_desc->tdes0 = (nveu32_t)tmp;
-		}
-
-		tmp = H32(tx_swcx->buf_phy_addr);
-		if (tmp < UINT_MAX) {
-			tx_desc->tdes1 = (nveu32_t)tmp;
-		}
+		tx_desc->tdes0 = L32(tx_swcx->buf_phy_addr);
+		tx_desc->tdes1 = H32(tx_swcx->buf_phy_addr);
 		tx_desc->tdes2 = tx_swcx->len;
 		/* set HW OWN bit for descriptor*/
 		tx_desc->tdes3 |= TDES3_OWN;
@@ -1202,7 +1184,7 @@ static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
 	struct osi_rx_ring *rx_ring = OSI_NULL;
 	struct osi_rx_desc *rx_desc = OSI_NULL;
 	struct osi_rx_swcx *rx_swcx = OSI_NULL;
-	nveu64_t tailptr = 0, tmp;
+	nveu64_t tailptr = 0;
 	nveu32_t i;
 	nve32_t ret = 0;
 
@@ -1226,24 +1208,8 @@ static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
 		rx_desc->rdes2 = 0;
 		rx_desc->rdes3 = 0;
 
-		tmp = L32(rx_swcx->buf_phy_addr);
-		if (tmp < UINT_MAX) {
-			rx_desc->rdes0 = (nveu32_t)tmp;
-		} else {
-			OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-				    "dma_txrx: Invalid buf_phy_addr\n", 0ULL);
-			return -1;
-		}
-
-		tmp = H32(rx_swcx->buf_phy_addr);
-		if (tmp < UINT_MAX) {
-			rx_desc->rdes1 = (nveu32_t)tmp;
-		} else {
-			OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-				    "dma_txrx: Invalid buf_phy_addr\n", 0ULL);
-			return -1;
-		}
-
+		rx_desc->rdes0 = L32(rx_swcx->buf_phy_addr);
+		rx_desc->rdes1 = H32(rx_swcx->buf_phy_addr);
 		rx_desc->rdes2 = 0;
 		rx_desc->rdes3 = RDES3_IOC;
 
