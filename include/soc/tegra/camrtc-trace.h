@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -184,7 +184,7 @@ struct camrtc_event_header {
 	uint32_t len;		/* Size in bytes including this field */
 	uint32_t id;		/* Event ID */
 	uint64_t tstamp;	/* Timestamp from TKE TSC */
-} CAMRTC_PACKED;
+};
 
 struct camrtc_event_struct {
 	struct camrtc_event_header header;
@@ -192,7 +192,7 @@ struct camrtc_event_struct {
 		uint8_t data8[CAMRTC_TRACE_EVENT_PAYLOAD_SIZE];
 		uint32_t data32[CAMRTC_TRACE_EVENT_PAYLOAD_SIZE / 4];
 	} data;
-} CAMRTC_PACKED;
+};
 
 // camrtc_event_type
 #define CAMRTC_EVENT_TYPE_ARRAY			MK_U32(0)
