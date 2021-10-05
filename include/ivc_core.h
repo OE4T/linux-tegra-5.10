@@ -28,7 +28,7 @@
 /**
  * @brief Ethernet Maximum IVC BUF
  */
-#define ETHER_MAX_IVC_BUF	2048
+#define ETHER_MAX_IVC_BUF	2048U
 
 /**
  * @brief IVC maximum arguments
