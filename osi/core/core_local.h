@@ -30,7 +30,7 @@
  * @brief Maximum number of OSI core instances.
  */
 #ifndef MAX_CORE_INSTANCES
-#define MAX_CORE_INSTANCES	5U
+#define MAX_CORE_INSTANCES	10U
 #endif
 
 /**
