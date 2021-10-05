@@ -976,6 +976,11 @@ static int apply_speed_change(struct seq_file *s, void *data)
 		return 0;
 	}
 
+	/* Clear BW Management Status */
+	val_w = dw_pcie_readw_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKSTA);
+	val_w |= PCI_EXP_LNKSTA_LBMS;
+	dw_pcie_writew_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKSTA, val_w);
+
 	val_w = dw_pcie_readw_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKCTL);
 	val_w |= PCI_EXP_LNKCTL_RL;
 	dw_pcie_writew_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKCTL, val_w);
@@ -987,6 +992,27 @@ static int apply_speed_change(struct seq_file *s, void *data)
 					  pcie->pcie_cap_base + PCI_EXP_LNKSTA);
 		if (!(val_w & PCI_EXP_LNKSTA_LT))
 			break;
+		if (time_after(jiffies, start + msecs_to_jiffies(1000))) {
+			seq_puts(s, "Link Training Timeout\n");
+			break;
+		}
+		usleep_range(1000, 1100);
+	}
+
+	/* Wait for link BW management status to be updated */
+	start = jiffies;
+	for (;;) {
+		val_w = dw_pcie_readw_dbi(pci,
+					  pcie->pcie_cap_base + PCI_EXP_LNKSTA);
+		if (val_w & PCI_EXP_LNKSTA_LBMS) {
+			/* Clear BW Management Status */
+			val_w = dw_pcie_readw_dbi(pci, pcie->pcie_cap_base +
+						  PCI_EXP_LNKSTA);
+			val_w |= PCI_EXP_LNKSTA_LBMS;
+			dw_pcie_writew_dbi(pci, pcie->pcie_cap_base +
+					   PCI_EXP_LNKSTA, val_w);
+			break;
+		}
 		if (time_after(jiffies, start + msecs_to_jiffies(1000))) {
 			seq_puts(s, "Bandwidth Management Status Timeout\n");
 			break;
@@ -1755,7 +1781,6 @@ static void tegra_pcie_enable_legacy_interrupts(struct pcie_port *pp)
 	val = appl_readl(pcie, APPL_INTR_EN_L1_8_0);
 	val |= APPL_INTR_EN_L1_8_INTX_EN;
 	val |= APPL_INTR_EN_L1_8_AUTO_BW_INT_EN;
-	val |= APPL_INTR_EN_L1_8_BW_MGT_INT_EN;
 	val |= APPL_INTR_EN_L1_8_EDMA_INT_EN;
 	if (IS_ENABLED(CONFIG_PCIEAER))
 		val |= APPL_INTR_EN_L1_8_AER_INT_EN;
