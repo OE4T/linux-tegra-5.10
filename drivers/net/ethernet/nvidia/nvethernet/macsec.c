@@ -20,6 +20,7 @@
  * @brief is_nv_macsec_fam_registered - Is nv macsec nl registered
  */
 static int is_nv_macsec_fam_registered = OSI_DISABLE;
+static int macsec_get_tx_next_pn(struct sk_buff *skb, struct genl_info *info);
 
 #ifndef MACSEC_KEY_PROGRAM
 static int macsec_tz_kt_config(struct ether_priv_data *pdata,
@@ -218,7 +219,7 @@ int macsec_open(struct macsec_priv_data *macsec_pdata,
 				  genl_info);
 	if (ret < 0) {
 		dev_err(dev, "TZ key config failed %d\n", ret);
-		goto err_osi_init;
+		goto err_osi_en;
 	}
 #endif /* !MACSEC_KEY_PROGRAM */
 
@@ -228,12 +229,14 @@ int macsec_open(struct macsec_priv_data *macsec_pdata,
 	if (ret < 0) {
 		dev_err(dev, "%s: Failed to enable macsec Tx/Rx, %d\n",
 			__func__, ret);
-		goto err_osi_init;
+		goto err_osi_en;
 	}
 	macsec_pdata->enabled = (OSI_MACSEC_TX_EN | OSI_MACSEC_RX_EN);
 
 	goto exit;
 
+err_osi_en:
+	osi_macsec_deinit(pdata->osi_core);
 err_osi_init:
 	devm_free_irq(dev, macsec_pdata->ns_irq, macsec_pdata);
 err_ns_irq:
@@ -1183,6 +1186,11 @@ static const struct genl_ops nv_macsec_genl_ops[] = {
 		.doit = macsec_dis_rx_sa,
 		.flags = GENL_ADMIN_PERM,
 	},
+	{
+		.cmd = NV_MACSEC_CMD_GET_TX_NEXT_PN,
+		.doit = macsec_get_tx_next_pn,
+		.flags = GENL_ADMIN_PERM,
+	},
 };
 
 static struct genl_family nv_macsec_fam __ro_after_init = {
@@ -1460,3 +1468,99 @@ fail:
 	return ret;
 }
 #endif /* MACSEC_KEY_PROGRAM */
+
+static int macsec_get_tx_next_pn(struct sk_buff *skb, struct genl_info *info)
+{
+	struct nlattr **attrs = info->attrs;
+	struct macsec_priv_data *macsec_pdata;
+	struct ether_priv_data *pdata;
+	struct osi_macsec_sc_info tx_sa;
+	struct nlattr *tb_sa[NUM_NV_MACSEC_SA_ATTR];
+	int ret = 0;
+	struct device *dev = NULL;
+	unsigned char cmd;
+	struct sk_buff *msg;
+	void *msg_head;
+	struct nlattr *nest;
+	struct osi_macsec_lut_config lut_config = {0};
+	unsigned int  key_index = 0;
+	struct osi_core_priv_data *osi_core = NULL;
+
+	PRINT_ENTRY();
+
+	macsec_pdata = genl_to_macsec_pdata(info);
+	if (macsec_pdata) {
+		pdata = macsec_pdata->ether_pdata;
+	} else {
+		ret = -EPROTO;
+		goto exit;
+	}
+	dev = pdata->dev;
+	osi_core = pdata->osi_core;
+
+	if (!netif_running(pdata->ndev)) {
+		ret = -ENETDOWN;
+		dev_err(dev, "%s: MAC interface down!!\n", __func__);
+		goto exit;
+	}
+
+	if (!attrs[NV_MACSEC_ATTR_IFNAME] ||
+	    parse_sa_config(attrs, tb_sa, &tx_sa)) {
+		dev_err(dev, "%s: failed to parse nlattrs", __func__);
+		ret = -EINVAL;
+		goto exit;
+	}
+
+	ret = osi_macsec_get_sc_lut_key_index(osi_core, tx_sa.sci, &key_index,
+					      OSI_CTLR_SEL_TX);
+	if (ret < 0) {
+		dev_err(dev, "Failed to get Key_index\n");
+		goto exit;
+	}
+
+	memset(&lut_config, OSI_NONE, sizeof(lut_config));
+	lut_config.table_config.ctlr_sel = OSI_CTLR_SEL_TX;
+	lut_config.table_config.rw = OSI_LUT_READ;
+	lut_config.table_config.index = key_index + tx_sa.curr_an;
+	lut_config.lut_sel = OSI_LUT_SEL_SA_STATE;
+	if (osi_macsec_lut_config(osi_core, &lut_config) < 0) {
+		pr_err("%s: Failed to read SA STATE LUT\n", __func__);
+		goto exit;
+	}
+
+	cmd = NV_MACSEC_CMD_GET_TX_NEXT_PN;
+	msg = genlmsg_new(NLMSG_GOODSIZE, GFP_KERNEL);
+	if (!msg) {
+		dev_err(dev, "Unable to alloc genl reply\n");
+		ret = -ENOMEM;
+		goto exit;
+	}
+
+	msg_head = genlmsg_put_reply(msg, info, &nv_macsec_fam, 0, cmd);
+	if (!msg_head) {
+		dev_err(dev, "unable to get replyhead\n");
+		ret = -EINVAL;
+		goto failure;
+	}
+	nest = nla_nest_start(msg, NV_MACSEC_ATTR_SA_CONFIG);
+	if (!nest) {
+		ret = -EINVAL;
+		goto failure;
+	}
+	nla_put_u32(msg, NV_MACSEC_SA_ATTR_PN, lut_config.sa_state_out.next_pn);
+	nla_put_u8(msg, NV_MACSEC_SA_ATTR_AN, tx_sa.curr_an);
+	nla_put(msg, NV_MACSEC_SA_ATTR_SCI, OSI_SCI_LEN, tx_sa.sci);
+	nla_nest_end(msg, nest);
+	genlmsg_end(msg, msg_head);
+	ret = genlmsg_reply(msg, info);
+	if (ret != 0)
+		dev_err(dev, "Unable to send reply\n");
+
+	PRINT_EXIT();
+	return ret;
+failure:
+	nlmsg_free(msg);
+exit:
+	PRINT_EXIT();
+	return ret;
+}
