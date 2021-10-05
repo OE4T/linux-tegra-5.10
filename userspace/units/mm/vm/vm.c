@@ -789,18 +789,25 @@ static int map_buffer(struct unit_module *m,
 
 free_mapped_buf:
 	if ((mapped_buf != NULL) && !(subcase & SPECIAL_CASE_NO_FREE)) {
+		/*
+		 * A second unmap will be attempted; the first one will free
+		 * mapped_buf, so get the address before that happens.
+		 */
+		u64 buf_addr = mapped_buf->addr;
+
 		if (subcase & SPECIAL_CASE_TIMEOUT_INIT_FAIL) {
 			nvgpu_posix_enable_fault_injection(timers_fi, true, 0);
-			nvgpu_vm_unmap(vm, mapped_buf->addr, batch);
+			nvgpu_vm_unmap(vm, buf_addr, batch);
 			nvgpu_posix_enable_fault_injection(timers_fi, false, 0);
 		} else {
-			nvgpu_vm_unmap(vm, mapped_buf->addr, batch);
+			nvgpu_vm_unmap(vm, buf_addr, batch);
 		}
+		mapped_buf = NULL;
 		/*
 		 * Unmapping an already unmapped buffer should not cause any
 		 * errors.
 		 */
-		nvgpu_vm_unmap(vm, mapped_buf->addr, batch);
+		nvgpu_vm_unmap(vm, buf_addr, batch);
 	}
 free_vm_area:
 	if (fixed_gpu_va && !(subcase & SPECIAL_CASE_NO_FREE)) {
