@@ -261,5 +261,6 @@ void nvgpu_posix_cleanup(struct gk20a *g)
 
 	nvgpu_kmem_fini(g, 0);
 	nvgpu_free_enabled_flags(g);
+	nvgpu_free_errata_flags(g);
 	free(p);
 }
