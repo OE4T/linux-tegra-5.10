@@ -61,6 +61,7 @@
 #include <dt-bindings/pinctrl/pinctrl-tegra-io-pad.h>
 #include <dt-bindings/gpio/tegra186-gpio.h>
 #include <dt-bindings/gpio/tegra194-gpio.h>
+#include <dt-bindings/gpio/tegra234-gpio.h>
 #include <dt-bindings/soc/tegra-pmc.h>
 
 #define PMC_CNTRL			0x0
@@ -5826,6 +5827,7 @@ static const char * const tegra234_reset_sources[] = {
 
 static const struct tegra_wake_event tegra234_wake_events[] = {
 	TEGRA_WAKE_IRQ("rtc", 73, 10),
+	TEGRA_WAKE_GPIO("power", 29, 1, TEGRA234_AON_GPIO(EE, 4)),
 	TEGRA_WAKE_IRQ("sw_wake", 83, 179),
 };
 
