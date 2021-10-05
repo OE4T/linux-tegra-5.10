@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -18,7 +18,6 @@
 #include <linux/debugfs.h>
 #include <linux/mm.h>
 #include <linux/vmalloc.h>
-#include <linux/platform/tegra/emc_bwmgr.h>
 
 #include "cpufreq_cpu_emc_table.h"
 
@@ -100,13 +99,8 @@ static ssize_t cpu_emc_map_read(struct file *file, char __user *buf,
 	copied = snprintf(kbuf, count, "(cpufreq, emcfreq)\n");
 
 	while (mapping->cpu_freq_khz) {
-		uint32_t emc_freq_khz;
-
-		emc_freq_khz = mapping->emc_freq_khz == UINT_MAX ?
-			tegra_bwmgr_get_max_emc_rate()/1000 : mapping->emc_freq_khz;
-
 		copied += sprintf(kbuf + copied, "%u %u\n",
-			mapping->cpu_freq_khz, emc_freq_khz);
+			mapping->cpu_freq_khz, mapping->emc_freq_khz);
 		mapping++;
 	}
 
