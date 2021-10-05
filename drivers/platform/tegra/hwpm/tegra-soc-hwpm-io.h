@@ -22,10 +22,7 @@
 
 #include "tegra-soc-hwpm.h"
 
-struct whitelist {
-	u64 reg;
-	bool zero_in_init;
-};
+struct allowlist;
 
 struct hwpm_resource_aperture {
 	/*
@@ -46,9 +43,9 @@ struct hwpm_resource_aperture {
 	u64 start_pa;
 	u64 end_pa;
 
-	/* Whitelist */
-	struct whitelist *wlist;
-	u64 wlist_size;
+	/* Allowlist */
+	struct allowlist *alist;
+	u64 alist_size;
 
 	/* Fake registers for VDK which doesn't have a SOC HWPM fmodel */
 	u32 *fake_registers;
@@ -70,6 +67,10 @@ extern struct hwpm_resource_aperture mss_mcf_map[];
 extern struct hwpm_resource_aperture pma_map[];
 extern struct hwpm_resource_aperture cmd_slice_rtr_map[];
 
+void tegra_soc_hwpm_zero_alist_regs(struct tegra_soc_hwpm *hwpm,
+		struct hwpm_resource_aperture *aperture);
+int tegra_soc_hwpm_update_allowlist(struct tegra_soc_hwpm *hwpm,
+				 void *ioctl_struct);
 struct hwpm_resource_aperture *find_hwpm_aperture(struct tegra_soc_hwpm *hwpm,
 						  u64 phys_addr,
 						  bool use_absolute_base,

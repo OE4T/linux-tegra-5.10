@@ -57,7 +57,7 @@ static int alloc_pma_stream_ioctl(struct tegra_soc_hwpm *hwpm,
 				  void *ioctl_struct);
 static int bind_ioctl(struct tegra_soc_hwpm *hwpm,
 		      void *ioctl_struct);
-static int query_whitelist_ioctl(struct tegra_soc_hwpm *hwpm,
+static int query_allowlist_ioctl(struct tegra_soc_hwpm *hwpm,
 				 void *ioctl_struct);
 static int exec_reg_ops_ioctl(struct tegra_soc_hwpm *hwpm,
 			      void *ioctl_struct);
@@ -95,10 +95,10 @@ static const struct tegra_soc_hwpm_ioctl ioctls[] = {
 		.struct_size		= 0,
 		.handler		= bind_ioctl,
 	},
-	[TEGRA_SOC_HWPM_IOCTL_QUERY_WHITELIST] = {
-		.name			= "query_whitelist",
-		.struct_size		= sizeof(struct tegra_soc_hwpm_query_whitelist),
-		.handler		= query_whitelist_ioctl,
+	[TEGRA_SOC_HWPM_IOCTL_QUERY_ALLOWLIST] = {
+		.name			= "query_allowlist",
+		.struct_size		= sizeof(struct tegra_soc_hwpm_query_allowlist),
+		.handler		= query_allowlist_ioctl,
 	},
 	[TEGRA_SOC_HWPM_IOCTL_EXEC_REG_OPS] = {
 		.name			= "exec_reg_ops",
@@ -703,7 +703,6 @@ static int bind_ioctl(struct tegra_soc_hwpm *hwpm,
 	int ret = 0;
 	int res_idx = 0;
 	int aprt_idx = 0;
-	u32 wlist_idx = 0;
 	struct hwpm_resource_aperture *aperture = NULL;
 
 	for (res_idx = 0; res_idx < TERGA_SOC_HWPM_NUM_RESOURCES; res_idx++) {
@@ -717,22 +716,12 @@ static int bind_ioctl(struct tegra_soc_hwpm *hwpm,
 			aperture = &(hwpm_resources[res_idx].map[aprt_idx]);
 
 			/* Zero out necessary registers */
-			if (aperture->wlist) {
-				for (wlist_idx = 0;
-				     wlist_idx < aperture->wlist_size;
-				     wlist_idx++) {
-					if (aperture->wlist[wlist_idx].zero_in_init) {
-						ioctl_writel(hwpm,
-							aperture,
-							aperture->start_pa +
-								aperture->wlist[wlist_idx].reg,
-							0);
-					}
-				}
+			if (aperture->alist) {
+				tegra_soc_hwpm_zero_alist_regs(hwpm, aperture);
 			} else {
-				tegra_soc_hwpm_err("NULL whitelist in aperture(0x%llx - 0x%llx)",
-						   aperture->start_pa,
-						   aperture->end_pa);
+				tegra_soc_hwpm_err(
+				"NULL allowlist in aperture(0x%llx - 0x%llx)",
+					aperture->start_pa, aperture->end_pa);
 			}
 
 			/*
@@ -764,142 +753,55 @@ static int bind_ioctl(struct tegra_soc_hwpm *hwpm,
 	return 0;
 }
 
-static int query_whitelist_ioctl(struct tegra_soc_hwpm *hwpm,
+static int query_allowlist_ioctl(struct tegra_soc_hwpm *hwpm,
 				 void *ioctl_struct)
 {
 	int ret = 0;
 	int res_idx = 0;
 	int aprt_idx = 0;
 	struct hwpm_resource_aperture *aperture = NULL;
-	struct tegra_soc_hwpm_query_whitelist *query_whitelist =
-			(struct tegra_soc_hwpm_query_whitelist *)ioctl_struct;
+	struct tegra_soc_hwpm_query_allowlist *query_allowlist =
+			(struct tegra_soc_hwpm_query_allowlist *)ioctl_struct;
 
 	if (!hwpm->bind_completed) {
-		tegra_soc_hwpm_err("The QUERY_WHITELIST IOCTL can only be called"
+		tegra_soc_hwpm_err("The QUERY_ALLOWLIST IOCTL can only be called"
 				   " after the BIND IOCTL.");
 		return -EPERM;
 	}
 
-	if (!query_whitelist->whitelist) { /* Return whitelist_size */
-		if (hwpm->full_wlist_size >= 0) {
-			query_whitelist->whitelist_size = hwpm->full_wlist_size;
-			return 0;
-		}
-
-		hwpm->full_wlist_size = 0;
-		for (res_idx = 0; res_idx < TERGA_SOC_HWPM_NUM_RESOURCES; res_idx++) {
-			if (!(hwpm_resources[res_idx].reserved))
-				continue;
-			tegra_soc_hwpm_dbg("Found reserved IP(%d)", res_idx);
-
-			for (aprt_idx = 0;
-			     aprt_idx < hwpm_resources[res_idx].map_size;
-			     aprt_idx++) {
-				aperture = &(hwpm_resources[res_idx].map[aprt_idx]);
-				if (aperture->wlist) {
-					hwpm->full_wlist_size += aperture->wlist_size;
-				} else {
-					tegra_soc_hwpm_err("NULL whitelist in aperture(0x%llx - 0x%llx)",
-							   aperture->start_pa,
-							   aperture->end_pa);
-				}
-
-			}
-		}
-
-		query_whitelist->whitelist_size = hwpm->full_wlist_size;
-	} else { /* Fill in whitelist array */
-		unsigned long user_va =
-				(unsigned long)(query_whitelist->whitelist);
-		unsigned long offset = user_va & ~PAGE_MASK;
-		u64 wlist_buf_size = 0;
-		u64 num_pages = 0;
-		long pinned_pages = 0;
-		struct page **pages = NULL;
-		long page_idx = 0;
-		void *full_wlist = NULL;
-		u64 *full_wlist_u64 = NULL;
-		u32 full_wlist_idx = 0;
-		u32 aprt_wlist_idx = 0;
-
-		if (hwpm->full_wlist_size < 0) {
-			tegra_soc_hwpm_err("Invalid whitelist size");
-			return -EINVAL;
-		}
-		wlist_buf_size = hwpm->full_wlist_size *
-					sizeof(*(query_whitelist->whitelist));
-
-		/* Memory map user buffer into kernel address space */
-		num_pages = DIV_ROUND_UP(offset + wlist_buf_size, PAGE_SIZE);
-		pages = (struct page **)kzalloc(sizeof(*pages) * num_pages,
-						GFP_KERNEL);
-		if (!pages) {
-			tegra_soc_hwpm_err("Couldn't allocate memory for pages array");
-			ret = -ENOMEM;
-			goto wlist_unmap;
-		}
-		pinned_pages = get_user_pages(user_va & PAGE_MASK,
-					      num_pages,
-					      0,
-					      pages,
-					      NULL);
-		if (pinned_pages != num_pages) {
-			tegra_soc_hwpm_err("Requested %llu pages / Got %ld pages",
-					num_pages, pinned_pages);
-			ret = -ENOMEM;
-			goto wlist_unmap;
-		}
-		full_wlist = vmap(pages, num_pages, VM_MAP, PAGE_KERNEL);
-		if (!full_wlist) {
-			tegra_soc_hwpm_err("Couldn't map whitelist buffer into"
-					   " kernel address space");
-			ret = -ENOMEM;
-			goto wlist_unmap;
-		}
-		full_wlist_u64 = (u64 *)(full_wlist + offset);
-
-		/* Fill in whitelist buffer */
-		for (res_idx = 0, full_wlist_idx = 0;
-		     res_idx < TERGA_SOC_HWPM_NUM_RESOURCES;
-		     res_idx++) {
-			if (!(hwpm_resources[res_idx].reserved))
-				continue;
-			tegra_soc_hwpm_dbg("Found reserved IP(%d)", res_idx);
-
-			for (aprt_idx = 0;
-			     aprt_idx < hwpm_resources[res_idx].map_size;
-			     aprt_idx++) {
-				aperture = &(hwpm_resources[res_idx].map[aprt_idx]);
-				if (aperture->wlist) {
-					for (aprt_wlist_idx = 0;
-					     aprt_wlist_idx < aperture->wlist_size;
-					     aprt_wlist_idx++, full_wlist_idx++) {
-						full_wlist_u64[full_wlist_idx] =
-							aperture->start_pa +
-							aperture->wlist[aprt_wlist_idx].reg;
-					}
-				} else {
-					tegra_soc_hwpm_err("NULL whitelist in aperture(0x%llx - 0x%llx)",
-							   aperture->start_pa,
-							   aperture->end_pa);
-				}
-			}
-		}
-
-wlist_unmap:
-		if (full_wlist)
-			vunmap(full_wlist);
-		if (pinned_pages > 0) {
-			for (page_idx = 0; page_idx < pinned_pages; page_idx++) {
-				set_page_dirty(pages[page_idx]);
-				put_page(pages[page_idx]);
-			}
-		}
-		if (pages)
-			kfree(pages);
+	if (query_allowlist->allowlist != NULL) {
+		/* Concatenate allowlists and return */
+		ret = tegra_soc_hwpm_update_allowlist(hwpm, ioctl_struct);
+		return ret;
 	}
 
+	 /* Return allowlist_size */
+	if (hwpm->full_alist_size >= 0) {
+		query_allowlist->allowlist_size = hwpm->full_alist_size;
+		return 0;
+	}
 
+	hwpm->full_alist_size = 0;
+	for (res_idx = 0; res_idx < TERGA_SOC_HWPM_NUM_RESOURCES; res_idx++) {
+		if (!(hwpm_resources[res_idx].reserved))
+			continue;
+		tegra_soc_hwpm_dbg("Found reserved IP(%d)", res_idx);
+
+		for (aprt_idx = 0;
+		     aprt_idx < hwpm_resources[res_idx].map_size;
+		     aprt_idx++) {
+			aperture = &(hwpm_resources[res_idx].map[aprt_idx]);
+			if (aperture->alist) {
+				hwpm->full_alist_size += aperture->alist_size;
+			} else {
+				tegra_soc_hwpm_err(
+				"NULL allowlist in aperture(0x%llx - 0x%llx)",
+					aperture->start_pa, aperture->end_pa);
+			}
+		}
+	}
+
+	query_allowlist->allowlist_size = hwpm->full_alist_size;
 	return ret;
 }
 
@@ -947,7 +849,7 @@ static int exec_reg_ops_ioctl(struct tegra_soc_hwpm *hwpm,
 		tegra_soc_hwpm_dbg("reg op: idx(%d), phys(0x%llx), cmd(%u)",
 				op_idx, reg_op->phys_addr, reg_op->cmd);
 
-		/* The whitelist check is done here */
+		/* The allowlist check is done here */
 		aperture = find_hwpm_aperture(hwpm, reg_op->phys_addr,
 						true, true, &upadted_pa);
 		if (!aperture) {
@@ -1398,7 +1300,7 @@ static int tegra_soc_hwpm_open(struct inode *inode, struct file *filp)
 
 	/* Initialize SW state */
 	hwpm->bind_completed = false;
-	hwpm->full_wlist_size = -1;
+	hwpm->full_alist_size = -1;
 
 	return 0;
 

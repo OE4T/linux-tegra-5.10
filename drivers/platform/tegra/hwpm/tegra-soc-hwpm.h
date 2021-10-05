@@ -86,7 +86,7 @@ struct tegra_soc_hwpm {
 
 	/* SW State */
 	bool bind_completed;
-	s32 full_wlist_size;
+	s32 full_alist_size;
 
 	/* Debugging */
 #ifdef CONFIG_DEBUG_FS

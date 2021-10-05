@@ -158,24 +158,24 @@ struct tegra_soc_hwpm_alloc_pma_stream {
 };
 
 /*
- * TEGRA_CTRL_CMD_SOC_HWPM_QUERY_WHITELIST IOCTL
+ * TEGRA_CTRL_CMD_SOC_HWPM_QUERY_ALLOWLIST IOCTL
  *
  * This IOCTL needs to be called twice. In the first IOCTL call userspace will
- * set the whitelist pointer to NULL and the driver will return whitelist_size.
- * Userspace will then allocate a buffer to hold whitelist_size entries. In the
- * 2nd IOCTL call, userspace will provide the whitelist buffer pointer, and the
+ * set the allowlist pointer to NULL and the driver will return allowlist_size.
+ * Userspace will then allocate a buffer to hold allowlist_size entries. In the
+ * 2nd IOCTL call, userspace will provide the allowlist buffer pointer, and the
  * driver will fill in the buffer.
  */
-struct tegra_soc_hwpm_query_whitelist {
+struct tegra_soc_hwpm_query_allowlist {
 	/*
 	 * Inputs and Outputs
 	 */
-	__u64 *whitelist;
+	__u64 *allowlist;
 
 	/*
 	 * Outputs
 	 */
-	__u64 whitelist_size; /* The number of entires in the map */
+	__u64 allowlist_size; /* The number of entires in the map */
 };
 
 /* Register read/write op */
@@ -224,7 +224,7 @@ struct tegra_soc_hwpm_reg_op {
 #define TEGRA_SOC_HWPM_REG_OP_STATUS_INVALID_CMD		1
  /* FIXME: What is this error code for? */
 #define TEGRA_SOC_HWPM_REG_OP_STATUS_INVALID_ADDR		2
- /* not in whitelist */
+ /* not in allowlist */
 #define TEGRA_SOC_HWPM_REG_OP_STATUS_INSUFFICIENT_PERMISSIONS	3
 #define TEGRA_SOC_HWPM_REG_OP_STATUS_WR_FAILED			4
 	__u8 status;
@@ -374,7 +374,7 @@ enum tegra_soc_hwpm_ioctl_num {
 	TEGRA_SOC_HWPM_IOCTL_RESERVE_RESOURCE,
 	TEGRA_SOC_HWPM_IOCTL_ALLOC_PMA_STREAM,
 	TEGRA_SOC_HWPM_IOCTL_BIND,
-	TEGRA_SOC_HWPM_IOCTL_QUERY_WHITELIST,
+	TEGRA_SOC_HWPM_IOCTL_QUERY_ALLOWLIST,
 	TEGRA_SOC_HWPM_IOCTL_EXEC_REG_OPS,
 	TEGRA_SOC_HWPM_IOCTL_UPDATE_GET_PUT,
 	TERGA_SOC_HWPM_NUM_IOCTLS
@@ -433,7 +433,7 @@ enum tegra_soc_hwpm_ioctl_num {
  *    - ALLOC_PMA_STREAM
  *
  * The following IOCTLs can only be called after BIND:
- *    - QUERY_WHITELIST
+ *    - QUERY_ALLOWLIST
  *    - EXEC_REG_OPS
  *    - UPDATE_GET_PUT
  */
@@ -442,16 +442,16 @@ enum tegra_soc_hwpm_ioctl_num {
 				TEGRA_SOC_HWPM_IOCTL_BIND)
 
 /*
- * IOCTL for requesting the driver's whitelist map
+ * IOCTL for requesting the driver's allowlist map
  *
  * This IOCTL can only be called after the BIND IOCTL
  *
- * FIXME: "WHITELIST" might have to be renamed to "ALLOWLIST"
+ * FIXME: "ALLOWLIST" might have to be renamed to "ALLOWLIST"
  */
-#define	TEGRA_CTRL_CMD_SOC_HWPM_QUERY_WHITELIST				\
+#define	TEGRA_CTRL_CMD_SOC_HWPM_QUERY_ALLOWLIST				\
 			_IOWR(TEGRA_SOC_HWPM_IOC_MAGIC,			\
-				TEGRA_SOC_HWPM_IOCTL_QUERY_WHITELIST,	\
-				struct tegra_soc_hwpm_query_whitelist)
+				TEGRA_SOC_HWPM_IOCTL_QUERY_ALLOWLIST,	\
+				struct tegra_soc_hwpm_query_allowlist)
 
 /*
  * IOCTL for executing register read/write operations

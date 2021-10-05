@@ -4,6 +4,8 @@
 
 GCOV_PROFILE := y
 
+ccflags-y += -I$(srctree.nvidia)/drivers/platform/tegra/hwpm/include/regops/t234
+
 obj-y += tegra-soc-hwpm.o
 obj-y += tegra-soc-hwpm-io.o
 obj-y += tegra-soc-hwpm-ioctl.o
