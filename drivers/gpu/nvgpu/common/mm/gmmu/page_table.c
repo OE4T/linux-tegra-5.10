@@ -1270,7 +1270,14 @@ static int nvgpu_locate_pte(struct gk20a *g, struct vm_gk20a *vm,
 		 * then find the next level PD and recurse.
 		 */
 		if (next_l->update_entry != NULL) {
-			struct nvgpu_gmmu_pd *pd_next = pd->entries + pd_idx;
+			struct nvgpu_gmmu_pd *pd_next;
+
+			/* Not mapped yet, invalid entry */
+			if (pd->entries == NULL) {
+				return -EINVAL;
+			}
+
+			pd_next = pd->entries + pd_idx;
 
 			/* Invalid entry! */
 			if (pd_next->mem == NULL) {
