@@ -62,5 +62,7 @@
 #define TEGRA_ICC_VIFAL				41
 #define TEGRA_ICC_VI2FAL			42
 #define TEGRA_ICC_VI2				43
+#define TEGRA_ICC_RCE				44
+#define TEGRA_ICC_PVA				45
 
 #endif /* _DT_BINDINGS_TEGRA_ICC_ID_H */
