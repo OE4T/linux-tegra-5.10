@@ -31,7 +31,7 @@
  * @brief Maximum number of OSI DMA instances.
  */
 #ifndef MAX_DMA_INSTANCES
-#define MAX_DMA_INSTANCES	5U
+#define MAX_DMA_INSTANCES	10U
 #endif
 
 /**
