@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef BUS_GK20A_H
-#define BUS_GK20A_H
+#ifndef NVGPU_BUS_GK20A_H
+#define NVGPU_BUS_GK20A_H
 
 #include <nvgpu/types.h>
 
@@ -35,4 +35,4 @@ u32 gk20a_bus_set_bar0_window(struct gk20a *g, struct nvgpu_mem *mem,
 			struct nvgpu_sgt *sgt, void *sgl, u32 w);
 #endif
 
-#endif /* BUS_GK20A_H */
+#endif /* NVGPU_BUS_GK20A_H */

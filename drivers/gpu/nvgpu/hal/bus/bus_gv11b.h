@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,11 +19,11 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef BUS_GV11B_H
-#define BUS_GV11B_H
+#ifndef NVGPU_BUS_GV11B_H
+#define NVGPU_BUS_GV11B_H
 
 struct gk20a;
 
 void gv11b_bus_configure_debug_bus(struct gk20a *g);
 
-#endif /* BUS_GV11B_H */
+#endif /* NVGPU_BUS_GV11B_H */
