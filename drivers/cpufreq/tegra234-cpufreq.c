@@ -69,6 +69,7 @@ struct tegra234_cpufreq_data {
 	struct cpufreq_frequency_table **tables;
 	struct cpumask *cl_cpu_mask;
 	struct mrq_cpu_ndiv_limits_response *ndiv_limits;
+	bool bypass_icc;
 };
 
 struct tegra_cpu_ctr {
@@ -258,7 +259,7 @@ static void set_cpufreq_to_emcfreq(enum cluster cl, uint32_t cluster_freq)
 	unsigned long emc_freq_khz;
 	unsigned long emc_freq_kbps;
 
-	if (!data->icc_handle[cl])
+	if (!data->icc_handle[cl] || data->bypass_icc)
 		return;
 
 	emc_freq_khz = tegra_cpu_to_emc_freq(cluster_freq, cpu_emc_map_ptr);
@@ -566,10 +567,33 @@ static const struct of_device_id tegra234_cpufreq_of_match[] = {
 };
 MODULE_DEVICE_TABLE(of, tegra234_cpufreq_of_match);
 
+#ifdef CONFIG_PM_SLEEP
+static int tegra234_cpufreq_suspend(struct device *dev)
+{
+	struct tegra234_cpufreq_data *data = cpufreq_get_driver_data();
+
+	data->bypass_icc = true;
+	return 0;
+}
+
+static int tegra234_cpufreq_resume(struct device *dev)
+{
+	struct tegra234_cpufreq_data *data = cpufreq_get_driver_data();
+
+	data->bypass_icc = false;
+	return 0;
+}
+#endif
+
+static const struct dev_pm_ops tegra234_cpufreq_pm_ops = {
+	SET_SYSTEM_SLEEP_PM_OPS(tegra234_cpufreq_suspend, tegra234_cpufreq_resume)
+};
+
 static struct platform_driver tegra234_ccplex_driver = {
 	.driver = {
 		.name = "tegra234-cpufreq",
 		.of_match_table = tegra234_cpufreq_of_match,
+		.pm = &tegra234_cpufreq_pm_ops,
 	},
 	.probe = tegra234_cpufreq_probe,
 	.remove = tegra234_cpufreq_remove,
