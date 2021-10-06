@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -2985,6 +2985,48 @@ static int ether_handle_tso(struct osi_tx_pkt_cx *tx_pkt_cx,
 }
 
 /**
+ * @brief Rollback previous descriptor if failure.
+ *
+ * Algorithm:
+ * - Go over all descriptor until count is 0
+ *  - Unmap physical address.
+ *  - Reset length.
+ *  - Reset flags.
+ *
+ * @param[in] pdata: OSD private data.
+ * @param[in] tx_ring: Tx ring instance associated with channel number.
+ * @param[in] cur_tx_idx: Local descriptor index
+ * @param[in] count: Number of descriptor filled
+ */
+static void ether_tx_swcx_rollback(struct ether_priv_data *pdata,
+				   struct osi_tx_ring *tx_ring,
+				   unsigned int cur_tx_idx,
+				   unsigned int count)
+{
+	struct device *dev = pdata->dev;
+	struct osi_tx_swcx *tx_swcx = NULL;
+
+	while (count > 0) {
+		DECR_TX_DESC_INDEX(cur_tx_idx, 1U);
+		tx_swcx = tx_ring->tx_swcx + cur_tx_idx;
+		if (tx_swcx->buf_phy_addr) {
+			if ((tx_swcx->flags & OSI_PKT_CX_PAGED_BUF) ==
+			     OSI_PKT_CX_PAGED_BUF) {
+				dma_unmap_page(dev, tx_swcx->buf_phy_addr,
+					       tx_swcx->len, DMA_TO_DEVICE);
+			} else {
+				dma_unmap_single(dev, tx_swcx->buf_phy_addr,
+						 tx_swcx->len, DMA_TO_DEVICE);
+			}
+			tx_swcx->buf_phy_addr = 0;
+		}
+		tx_swcx->len = 0;
+		tx_swcx->flags = 0;
+		count--;
+	}
+}
+
+/**
  * @brief Tx ring software context allocation.
  *
  * Algorithm:
@@ -3191,25 +3233,7 @@ desc_not_free:
 
 dma_map_failed:
 	/* Failed to fill current desc. Rollback previous desc's */
-	while (cnt > 0) {
-		DECR_TX_DESC_INDEX(cur_tx_idx, 1U);
-		tx_swcx = tx_ring->tx_swcx + cur_tx_idx;
-		if (tx_swcx->buf_phy_addr) {
-			if ((tx_swcx->flags & OSI_PKT_CX_PAGED_BUF) ==
-			    OSI_PKT_CX_PAGED_BUF) {
-				dma_unmap_page(dev, tx_swcx->buf_phy_addr,
-					       tx_swcx->len, DMA_TO_DEVICE);
-			} else {
-				dma_unmap_single(dev, tx_swcx->buf_phy_addr,
-						 tx_swcx->len, DMA_TO_DEVICE);
-			}
-			tx_swcx->buf_phy_addr = 0;
-		}
-		tx_swcx->len = 0;
-
-		tx_swcx->flags &= ~OSI_PKT_CX_PAGED_BUF;
-		cnt--;
-	}
+	ether_tx_swcx_rollback(pdata, tx_ring, cur_tx_idx, cnt);
 	return ret;
 }
 
@@ -3281,7 +3305,11 @@ static int ether_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 	unsigned int qinx = skb_get_queue_mapping(skb);
 	unsigned int chan = osi_dma->dma_chans[qinx];
 	struct osi_tx_ring *tx_ring = osi_dma->tx_ring[chan];
+#ifdef OSI_ERR_DEBUG
+	unsigned int cur_tx_idx = tx_ring->cur_tx_idx;
+#endif
 	int count = 0;
+	int ret;
 
 	count = ether_tx_swcx_alloc(pdata, tx_ring, skb);
 	if (count <= 0) {
@@ -3294,7 +3322,16 @@ static int ether_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 		return NETDEV_TX_OK;
 	}
 
-	osi_hw_transmit(osi_dma, chan);
+	ret = osi_hw_transmit(osi_dma, chan);
+#ifdef OSI_ERR_DEBUG
+	if (ret < 0) {
+		INCR_TX_DESC_INDEX(cur_tx_idx, count);
+		ether_tx_swcx_rollback(pdata, tx_ring, cur_tx_idx, count);
+		netdev_err(ndev, "%s() dropping corrupted skb\n", __func__);
+		dev_kfree_skb_any(skb);
+		return NETDEV_TX_OK;
+	}
+#endif
 
 	if (ether_avail_txdesc_cnt(tx_ring) <= ETHER_TX_DESC_THRESHOLD) {
 		netif_stop_subqueue(ndev, qinx);
