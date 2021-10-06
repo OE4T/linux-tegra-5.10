@@ -459,7 +459,6 @@
 		nvidia,timer-index = <7>;
 		nvidia,enable-on-init;
 		nvidia,extend-watchdog-suspend;
-		nvidia,disallow-wdt-freeze;
 		timeout-sec = <120>;
 		nvidia,disable-debug-reset;
 		status = "disabled";
