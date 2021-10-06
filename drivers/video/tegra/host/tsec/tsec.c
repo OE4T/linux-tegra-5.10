@@ -855,6 +855,9 @@ static int tsec_probe(struct platform_device *dev)
 	nvhost_module_init(dev);
 
 	err = nvhost_client_device_init(dev);
+	if (!err && tegra_get_chip_id() == TEGRA234) {
+		err = nvhost_t23x_tsec_intr_init(dev);
+	}
 
 	return err;
 }

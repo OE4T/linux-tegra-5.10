@@ -22,15 +22,18 @@
 #include <linux/iopoll.h>
 #include <linux/dma-mapping.h>
 #include <linux/platform/tegra/tegra_mc.h>
+#include <soc/tegra/fuse.h>
 
 #include "dev.h"
 #include "bus_client.h"
-#include "tsec/tsec.h"
+#include "tsec.h"
 #include "tsec_t23x.h"
 #include "hw_tsec_t23x.h"
 #include "flcn/flcn.h"
+#include "flcn/hw_flcn.h"
 #include "riscv/riscv.h"
-
+#include "hw_tsec_t23x.h"
+#include "rm_flcn_cmds.h"
 
 #define TSEC_RISCV_INIT_SUCCESS		(0xa5a5a5a5)
 #define NV_RISCV_AMAP_FBGPA_START	0x0000040000000000ULL
@@ -41,6 +44,10 @@
 
 /* Version of bootloader struct, increment on struct changes (while on prod) */
 #define RM_RISCV_BOOTLDR_VERSION	1
+
+/* Pointer to this device */
+static struct platform_device *tsec;
+static void (*cmd_resp_callback)(void *);
 
 /* Configuration for bootloader */
 typedef struct {
@@ -204,8 +211,16 @@ static int nvhost_tsec_riscv_deinit_sw(struct platform_device *dev)
 	return 0;
 }
 
+#define CMD_INTERFACE_TEST 0
+
 static int nvhost_tsec_riscv_poweron(struct platform_device *dev)
 {
+#if CMD_INTERFACE_TEST
+	union RM_FLCN_CMD cmd;
+	struct RM_FLCN_HDCP22_CMD_MONITOR_OFF hdcp22Cmd;
+	u8 cmd_size = RM_FLCN_CMD_SIZE(HDCP22, MONITOR_OFF);
+	u32 cmdDataSize = RM_FLCN_CMD_BODY_SIZE(HDCP22, MONITOR_OFF);
+#endif //CMD_INTERFACE_TEST
 	int err = 0;
 	struct riscv_data *m;
 	u32 val;
@@ -329,10 +344,27 @@ static int nvhost_tsec_riscv_poweron(struct platform_device *dev)
 		goto clean_up;
 	}
 
+	enable_irq(pdata->irq);
+
 	/* Booted-up successfully */
 	dev_info(&dev->dev, "RISC-V boot success\n");
-	return err;
 
+
+#if CMD_INTERFACE_TEST
+
+	hdcp22Cmd.cmdType = RM_FLCN_HDCP22_CMD_ID_MONITOR_OFF;
+	hdcp22Cmd.sorNum = -1;
+	hdcp22Cmd.dfpSublinkMask = -1;
+
+	cmd.cmdGen.hdr.size = cmd_size;
+	cmd.cmdGen.hdr.unitId = RM_GSP_UNIT_HDCP22WIRED;
+	memcpy(&cmd.cmdGen.cmd, &hdcp22Cmd, cmdDataSize);
+
+	nvhost_tsec_send_cmd((void *)&cmd, 0, NULL);
+
+#endif //CMD_INTERFACE_TEST
+
+	return err;
 clean_up:
 	nvhost_tsec_riscv_deinit_sw(dev);
 	return err;
@@ -368,3 +400,365 @@ int nvhost_tsec_prepare_poweroff_t23x(struct platform_device *dev)
 	return 0;
 }
 
+#define TSEC_CMD_EMEM_SIZE 4
+#define MSG_QUEUE_PORT 0
+#define TSEC_EMEM_START 0x1000000
+#define TSEC_EMEM_SIZE 0x2000
+#define TSEC_TASK_START 0xa5a5a5a5
+#define INIT_MSG_WAIT_TIME_MS 2000
+#define TASK_START_WAIT_TIME_MS 2000
+#define TSEC_TAIL_POLL_TIME 50
+
+/* Init message from RISCV
+ * Keep Init message received check disabled.
+ */
+static bool init_msg_rcvd = true;
+
+static int emem_transfer(struct platform_device *pdev,
+	u32 dmem_addr, u8 *buff, u32 size, u8 port, bool copy_from)
+{
+	u32     num_words;
+	u32     num_bytes;
+	u32    *pData = (u32 *)buff;
+	u32     reg32;
+	u32     i;
+	u32     ememc_offset = tsec_ememc_r(port);
+	u32     ememd_offset = tsec_ememd_r(port);
+	u32     emem_start = TSEC_EMEM_START;
+	u32     emem_end = TSEC_EMEM_START + TSEC_EMEM_SIZE;
+
+	if (!size || (port >= TSEC_CMD_EMEM_SIZE))
+		return -EINVAL;
+
+	if ((dmem_addr < emem_start) || ((dmem_addr + size) > emem_end)) {
+		dev_err(&pdev->dev, "CMD: FAILED: copy must be in EMEM aperature [0x%x, 0x%x)\n",
+			emem_start, emem_end);
+		return -EINVAL;
+	}
+
+	dmem_addr -= emem_start;
+
+	num_words = size >> 2;
+	num_bytes = size & 0x3; /* MASK_BITS(2); */
+
+	/* (DRF_SHIFTMASK(NV_PGSP_EMEMC_OFFS) |
+	 * DRF_SHIFTMASK(NV_PGSP_EMEMC_BLK));
+	 */
+	reg32 = dmem_addr & 0x00007ffc;
+
+	if (copy_from) {
+		/* PSEC_EMEMC EMEMC_AINCR enable
+		 * indicate auto increment on read
+		 */
+		reg32 = reg32 | 0x02000000;
+	} else {
+		/* PSEC_EMEMC EMEMC_AINCW enable
+		 * mark auto-increment on write
+		 */
+		reg32 = reg32 | 0x01000000;
+	}
+
+	host1x_writel(pdev, ememc_offset, reg32);
+
+	for (i = 0; i < num_words; i++) {
+		if (copy_from)
+			pData[i] = host1x_readl(pdev, ememd_offset);
+		else
+			host1x_writel(pdev, ememd_offset, pData[i]);
+	}
+
+	/* Check if there are leftover bytes to copy */
+	if (num_bytes > 0) {
+		u32 bytes_copied = num_words << 2;
+
+		/* Read the contents first. If we're copying to the EMEM,
+		 * we've set autoincrement on write,
+		 * so reading does not modify the pointer.
+		 * We can, thus, do a read/modify/write without needing
+		 * to worry about the pointer having moved forward.
+		 * There is no special explanation needed
+		 * if we're copying from the EMEM since this is the last
+		 * access to HW in that case.
+		 */
+		reg32 = host1x_readl(pdev, ememd_offset);
+		if (copy_from) {
+			for (i = 0; i < num_bytes; i++)
+				buff[bytes_copied + i] = ((u8 *)&reg32)[i];
+		} else {
+			for (i = 0; i < num_bytes; i++)
+				((u8 *)&reg32)[i] = buff[bytes_copied + i];
+
+			host1x_writel(pdev, ememd_offset, reg32);
+		}
+	}
+
+	return 0;
+}
+
+static irqreturn_t tsec_riscv_isr(int irq, void *dev_id)
+{
+	unsigned long flags;
+	struct platform_device *pdev = (struct platform_device *)(dev_id);
+	struct nvhost_device_data *pdata = nvhost_get_devdata(pdev);
+
+	spin_lock_irqsave(&pdata->mirq_lock, flags);
+
+	/* logic to clear the interrupt */
+	host1x_writel(pdev, flcn_thi_int_stat_r(),
+		      flcn_thi_int_stat_clr_f());
+	host1x_writel(pdev, flcn_irqsclr_r(),
+		      flcn_irqsclr_swgen0_set_f());
+
+	spin_unlock_irqrestore(&pdata->mirq_lock, flags);
+
+	return IRQ_WAKE_THREAD;
+}
+
+static int emem_copy_to(u32 head, u8 *pSrc, u32 num_bytes, u32 port)
+{
+	return emem_transfer(tsec, head, pSrc, num_bytes, port, false);
+}
+
+static int emem_copy_from(u32 tail, u8 *pdst, u32 num_bytes, u32 port)
+{
+	return emem_transfer(tsec, tail, pdst, num_bytes, port, true);
+}
+
+/* gspQueueCmdValidate */
+static int validate_cmd(union RM_FLCN_CMD *flcn_cmd,  u32 queue_id)
+{
+	if (flcn_cmd == NULL)
+		return -EINVAL;
+
+	if ((flcn_cmd->cmdGen.hdr.size < RM_FLCN_QUEUE_HDR_SIZE) ||
+		(queue_id != RM_DPU_CMDQ_LOG_ID) ||
+		(flcn_cmd->cmdGen.hdr.unitId  >= RM_GSP_UNIT_END)) {
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+/*
+ * cmd - Falcon command
+ * queue_id - ID of queue (usually 0)
+ * callback_func - callback func to caller on command completion
+ *
+ */
+int nvhost_tsec_send_cmd(void *cmd, u32 queue_id,
+	void (*callback_func)(void *))
+{
+	union RM_FLCN_CMD *flcn_cmd;
+	u8 cmd_size;
+	u32 head;
+	u32 cmdq_head_base;
+	u32 cmdq_head_stride;
+
+	if (!init_msg_rcvd) {
+		int i;
+
+		/* wait for tasks to start */
+		for (i = 0; i < TASK_START_WAIT_TIME_MS ; i += 20) {
+			if (host1x_readl(tsec, tsec_falcon_mailbox0_r()) ==
+				TSEC_TASK_START)
+				break;
+			msleep(20);
+		}
+
+		/* wait for init message for 2 seconds */
+		for (i = 0; i < INIT_MSG_WAIT_TIME_MS; i += 20) {
+			if (init_msg_rcvd == true)
+				break;
+			msleep(20);
+		}
+
+		if (host1x_readl(tsec, tsec_falcon_mailbox0_r()) !=
+					TSEC_TASK_START) {
+			dev_err(&tsec->dev, "Err:TSEC-FW tasks are not started\n");
+			return -ENODEV;
+		}
+
+		if (!init_msg_rcvd) {
+			dev_err(&tsec->dev, "Err:Init message not received from TSEC-FW\n");
+			return -ENODEV;
+		}
+	}
+
+	cmdq_head_base = tsec_queue_head_r(0);
+	cmdq_head_stride = tsec_queue_head_r(1) - tsec_queue_head_r(0);
+
+	if (validate_cmd(cmd, queue_id != 0)) {
+		dev_dbg(&tsec->dev, "CMD: %s: %d Invalid command\n",
+			__func__, __LINE__);
+		return -EINVAL;
+	}
+
+	if ((cmd_resp_callback == NULL) && (callback_func == NULL)) {
+		dev_dbg(&tsec->dev, "CMD: %s: %d No Callback set up. Can't notify client\n",
+			__func__, __LINE__);
+	} else if ((cmd_resp_callback != NULL) && (callback_func != NULL)) {
+		dev_dbg(&tsec->dev, "CMD: %s: %d callback function already setup.\n",
+			__func__, __LINE__);
+	} else {
+		cmd_resp_callback = callback_func;
+	}
+
+	flcn_cmd = (union RM_FLCN_CMD *)cmd;
+	cmd_size = flcn_cmd->cmdGen.hdr.size;
+	head = host1x_readl(tsec,
+		(cmdq_head_base + (queue_id * cmdq_head_stride)));
+
+	if (emem_copy_to(head, (u8 *)flcn_cmd, cmd_size, 0))
+		return -EINVAL;
+
+	head += ALIGN(cmd_size, 4);
+	host1x_writel(tsec, (cmdq_head_base +
+		(queue_id * cmdq_head_stride)), head);
+
+	return 0;
+}
+
+static irqreturn_t process_msg(int irq, void *args)
+{
+	u32 tail = 0;
+	u32 head = 0;
+	u32 msgq_head_base;
+	u32 msgq_tail_base;
+
+	u32 msgq_head_stride;
+	u32 msgq_tail_stride;
+	u32 queue_id = 0;
+	struct RM_FLCN_MSG_GSP gsp_msg;
+	struct RM_GSP_INIT_MSG_GSP_INIT *gsp_init_msg;
+
+	msgq_head_base = tsec_msgq_head_r(MSG_QUEUE_PORT);
+	msgq_tail_base = tsec_msgq_tail_r(MSG_QUEUE_PORT);
+
+	msgq_head_stride = tsec_msgq_head_r(1) - tsec_msgq_head_r(0);
+	msgq_tail_stride = tsec_msgq_tail_r(1) - tsec_msgq_tail_r(0);
+	gsp_init_msg = (struct RM_GSP_INIT_MSG_GSP_INIT *) &gsp_msg.msg;
+
+	tail = host1x_readl(tsec, (msgq_tail_base +
+				   (msgq_tail_stride * queue_id)));
+	head = host1x_readl(tsec, (msgq_head_base +
+				   (msgq_head_stride * queue_id)));
+
+	if (tail == 0) {
+		dev_err(&tsec->dev, "Err: Invalid MSGQ tail: 0x%x\n",
+			tail);
+		return IRQ_HANDLED;
+	}
+
+	if (tail == head) {
+		dev_info(&tsec->dev, "Empty MSGQ tail(0x%x): 0x%x head(0x%x): 0x%x\n",
+			(msgq_tail_base + (msgq_tail_stride * queue_id)),
+			tail,
+			(msgq_head_base + (msgq_head_stride * queue_id)),
+			head);
+		return IRQ_HANDLED;
+	}
+
+	while (tail < head) {
+
+		/* read header */
+		emem_copy_from(tail, (u8 *)&gsp_msg.hdr,
+			RM_FLCN_QUEUE_HDR_SIZE, 0);
+		if (gsp_msg.hdr.unitId == RM_GSP_UNIT_INIT) {
+			dev_dbg(&tsec->dev, "MSGQ: %s(%d) init msg\n",
+				__func__, __LINE__);
+			/* copy msg body */
+			emem_copy_from(tail, (u8 *)&gsp_msg.msg,
+				gsp_msg.hdr.size - RM_FLCN_QUEUE_HDR_SIZE, 0);
+
+			init_msg_rcvd = true;
+
+			if (gsp_init_msg->numQueues < 2) {
+				dev_err(&tsec->dev, "MSGQ: Initing less queues than expected %d\n",
+					gsp_init_msg->numQueues);
+			goto FAIL;
+			}
+		} else {
+			if (cmd_resp_callback != NULL)
+				cmd_resp_callback((void *)&gsp_msg);
+
+			if (gsp_msg.hdr.unitId == RM_GSP_UNIT_HDCP22WIRED) {
+				dev_dbg(&tsec->dev, "MSGQ: %s(%d) RM_GSP_UNIT_HDCP22WIRED\n",
+					__func__, __LINE__);
+			} else {
+				dev_dbg(&tsec->dev, "MSGQ: %s(%d) what msg could it be 0x%x?\n",
+					__func__, __LINE__, gsp_msg.hdr.unitId);
+			}
+		}
+
+FAIL:
+		tail += ALIGN(gsp_msg.hdr.size, 4);
+		head = host1x_readl(tsec,
+			(msgq_head_base + (msgq_head_stride * queue_id)));
+		host1x_writel(tsec,
+			(msgq_tail_base + (msgq_tail_stride * queue_id)), tail);
+	}
+
+	return IRQ_HANDLED;
+}
+
+int nvhost_t23x_tsec_intr_init(struct platform_device *pdev)
+{
+	int ret = 0;
+	struct nvhost_device_data *pdata = nvhost_get_devdata(pdev);
+
+	tsec = pdev;
+	pdata->irq = platform_get_irq(pdev, 0);
+	if (pdata->irq < 0) {
+		dev_err(&pdev->dev, "CMD: failed to get irq %d\n", -pdata->irq);
+		return -ENXIO;
+	}
+
+	spin_lock_init(&pdata->mirq_lock);
+	ret = request_threaded_irq(pdata->irq, tsec_riscv_isr,
+				   process_msg, 0, "tsec_riscv_irq", pdev);
+	if (ret) {
+		dev_err(&pdev->dev, "CMD: failed to request irq %d\n", ret);
+		return ret;
+	}
+
+	/* keep irq disabled */
+	disable_irq(pdata->irq);
+
+	return 0;
+}
+
+void *nvhost_tsec_alloc_payload_mem(size_t size, dma_addr_t *dma_addr)
+{
+	void *cpu_addr;
+
+	if (!size || !dma_addr)
+		return ERR_PTR(-EINVAL);
+
+	cpu_addr = dma_alloc_attrs(&tsec->dev, size, dma_addr, GFP_KERNEL, 0);
+
+	if (!cpu_addr)
+		return ERR_PTR(-ENOMEM);
+
+	*dma_addr |= TSEC_SMMU_IDX;
+
+	return cpu_addr;
+}
+EXPORT_SYMBOL(nvhost_tsec_alloc_payload_mem);
+
+void nvhost_tsec_free_payload_mem(size_t size, void *cpu_addr, dma_addr_t dma_addr)
+{
+	dma_addr &= ~TSEC_SMMU_IDX;
+	dma_free_attrs(&tsec->dev, size, cpu_addr, dma_addr, 0);
+}
+EXPORT_SYMBOL(nvhost_tsec_free_payload_mem);
+
+
+int nvhost_tsec_cmdif_open(void)
+{
+	return nvhost_module_busy(tsec);
+}
+
+void nvhost_tsec_cmdif_close(void)
+{
+	nvhost_module_idle(tsec);
+}

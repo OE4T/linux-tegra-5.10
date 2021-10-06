@@ -179,4 +179,36 @@ static inline u32 tsec_riscv_irqmset_ext_f(u32 v)
 {
 	return (v & 0xff) << 8;
 }
+static inline u32 tsec_ememc_r(u32 r)
+{
+	return (0x00001ac0+(r)*8);
+}
+static inline u32 tsec_ememd_r(u32 r)
+{
+	return (0x00001ac4+(r)*8);
+}
+static inline u32 tsec_hwcfg_r(void)
+{
+	return 0x00001abc;
+}
+static inline u32 tsec_hwcfg1_r(void)
+{
+	return 0x0000112c;
+}
+static inline u32 tsec_queue_head_r(u32 r)
+{
+	return (0x00001c00+(r)*8);
+}
+static inline u32 tsec_queue_tail_r(u32 r)
+{
+	return (0x00001c04+(r)*8);
+}
+static inline u32 tsec_msgq_head_r(u32 r)
+{
+	return (0x00001c80+(r)*8);
+}
+static inline u32 tsec_msgq_tail_r(u32 r)
+{
+	return (0x00001c84+(r)*8);
+}
 #endif
