@@ -2630,6 +2630,8 @@ static int mgbe_configure_mac(struct osi_core_priv_data *osi_core)
 
 	value = osi_readla(osi_core,
 			   (unsigned char *)osi_core->base + MGBE_MAC_TMCR);
+	/* DDIC bit set is needed to improve MACSEC Tput */
+	value |= MGBE_MAC_TMCR_DDIC;
 	/* Jabber Disable */
 	if (osi_core->mtu > OSI_DFLT_MTU_SIZE) {
 		value |= MGBE_MAC_TMCR_JD;
