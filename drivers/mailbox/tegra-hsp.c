@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/delay.h>
@@ -46,6 +46,12 @@
 #define HSP_SM_SHRD_MBOX_FULL_INT_IE	0x04
 #define HSP_SM_SHRD_MBOX_EMPTY_INT_IE	0x08
 
+#define HSP_SHRD_MBOX_TYPE1_TAG		0x40
+#define HSP_SHRD_MBOX_TYPE1_DATA0	0x48
+#define HSP_SHRD_MBOX_TYPE1_DATA1	0x4c
+#define HSP_SHRD_MBOX_TYPE1_DATA2	0x50
+#define HSP_SHRD_MBOX_TYPE1_DATA3	0x54
+
 #define HSP_DB_CCPLEX		1
 #define HSP_DB_BPMP		3
 #define HSP_DB_MAX		7
@@ -70,6 +76,7 @@ struct tegra_hsp_doorbell {
 struct tegra_hsp_mailbox {
 	struct tegra_hsp_channel channel;
 	unsigned int index;
+	unsigned int type;
 	bool producer;
 };
 
@@ -82,6 +89,7 @@ struct tegra_hsp_db_map {
 struct tegra_hsp_soc {
 	const struct tegra_hsp_db_map *map;
 	bool has_per_mb_ie;
+	bool has_128_bit_mb;
 };
 
 struct tegra_hsp {
@@ -208,7 +216,7 @@ static irqreturn_t tegra_hsp_shared_irq(int irq, void *data)
 {
 	struct tegra_hsp *hsp = data;
 	unsigned long bit, mask;
-	u32 status, value;
+	u32 status, value[4];
 	void *msg;
 
 	status = tegra_hsp_readl(hsp, HSP_INT_IR) & hsp->mask;
@@ -246,23 +254,51 @@ static irqreturn_t tegra_hsp_shared_irq(int irq, void *data)
 		struct tegra_hsp_mailbox *mb = &hsp->mailboxes[bit];
 
 		if (!mb->producer) {
-			value = tegra_hsp_channel_readl(&mb->channel,
-							HSP_SM_SHRD_MBOX);
-			value &= ~HSP_SM_SHRD_MBOX_FULL;
-			msg = (void *)(unsigned long)value;
-			mbox_chan_received_data(mb->channel.chan, msg);
+			if (mb->type == TEGRA_HSP_MBOX_TYPE_SM_128BIT) {
+				value[0] = tegra_hsp_channel_readl(&mb->channel,
+						HSP_SHRD_MBOX_TYPE1_DATA0);
+				value[1] = tegra_hsp_channel_readl(&mb->channel,
+						HSP_SHRD_MBOX_TYPE1_DATA1);
+				value[2] = tegra_hsp_channel_readl(&mb->channel,
+						HSP_SHRD_MBOX_TYPE1_DATA2);
+				value[3] = tegra_hsp_channel_readl(&mb->channel,
+						HSP_SHRD_MBOX_TYPE1_DATA3);
 
-			/*
-			 * Need to clear all bits here since some producers,
-			 * such as TCU, depend on fields in the register
-			 * getting cleared by the consumer.
-			 *
-			 * The mailbox API doesn't give the consumers a way
-			 * of doing that explicitly, so we have to make sure
-			 * we cover all possible cases.
-			 */
-			tegra_hsp_channel_writel(&mb->channel, 0x0,
-						 HSP_SM_SHRD_MBOX);
+				msg = (void *)(unsigned long)value;
+				mbox_chan_received_data(mb->channel.chan, msg);
+
+				/*
+				 * Clear data registers and tag.
+				 */
+				tegra_hsp_channel_writel(&mb->channel, 0x0,
+						HSP_SHRD_MBOX_TYPE1_DATA0);
+				tegra_hsp_channel_writel(&mb->channel, 0x0,
+						HSP_SHRD_MBOX_TYPE1_DATA1);
+				tegra_hsp_channel_writel(&mb->channel, 0x0,
+						HSP_SHRD_MBOX_TYPE1_DATA2);
+				tegra_hsp_channel_writel(&mb->channel, 0x0,
+						HSP_SHRD_MBOX_TYPE1_DATA3);
+				tegra_hsp_channel_writel(&mb->channel, 0x0,
+						HSP_SHRD_MBOX_TYPE1_TAG);
+			} else {
+				value[0] = tegra_hsp_channel_readl(&mb->channel,
+							HSP_SM_SHRD_MBOX);
+				value[0] &= ~HSP_SM_SHRD_MBOX_FULL;
+				msg = (void *)(unsigned long)value[0];
+				mbox_chan_received_data(mb->channel.chan, msg);
+
+				/*
+				 * Need to clear all bits here since some
+				 * producers, such as TCU, depend on fields in
+				 * the register getting cleared by the consumer.
+				 *
+				 * The mailbox API doesn't give the consumers a
+				 * way of doing that explicitly, so we have to
+				 * make sure we cover all possible cases.
+				 */
+				tegra_hsp_channel_writel(&mb->channel, 0x0,
+							 HSP_SM_SHRD_MBOX);
+			}
 		}
 	}
 
@@ -372,21 +408,53 @@ static const struct mbox_chan_ops tegra_hsp_db_ops = {
 	.shutdown = tegra_hsp_doorbell_shutdown,
 };
 
-static int tegra_hsp_mailbox_send_data(struct mbox_chan *chan, void *data)
+static void tegra_hsp_mailbox_send_32bit_data(struct tegra_hsp_mailbox *mb,
+					     struct tegra_hsp *hsp, void *data)
 {
-	struct tegra_hsp_mailbox *mb = chan->con_priv;
-	struct tegra_hsp *hsp = mb->channel.hsp;
-	unsigned long flags;
 	u32 value;
-
-	if (WARN_ON(!mb->producer))
-		return -EPERM;
 
 	/* copy data and mark mailbox full */
 	value = (u32)(unsigned long)data;
 	value |= HSP_SM_SHRD_MBOX_FULL;
 
 	tegra_hsp_channel_writel(&mb->channel, value, HSP_SM_SHRD_MBOX);
+}
+
+static void tegra_hsp_mailbox_send_128bit_data(struct tegra_hsp_mailbox *mb,
+					      struct tegra_hsp *hsp, void *data)
+{
+	u32 value[4] = { 0 };
+
+	memcpy(value, data, sizeof(value));
+
+	/* Copy data */
+	tegra_hsp_channel_writel(&mb->channel, value[0],
+				 HSP_SHRD_MBOX_TYPE1_DATA0);
+	tegra_hsp_channel_writel(&mb->channel, value[1],
+				 HSP_SHRD_MBOX_TYPE1_DATA1);
+	tegra_hsp_channel_writel(&mb->channel, value[2],
+				 HSP_SHRD_MBOX_TYPE1_DATA2);
+	tegra_hsp_channel_writel(&mb->channel, value[3],
+				 HSP_SHRD_MBOX_TYPE1_DATA3);
+
+	/* Update tag to mark mailbox full */
+	tegra_hsp_channel_writel(&mb->channel, HSP_SM_SHRD_MBOX_FULL,
+				 HSP_SHRD_MBOX_TYPE1_TAG);
+}
+
+static int tegra_hsp_mailbox_send_data(struct mbox_chan *chan, void *data)
+{
+	struct tegra_hsp_mailbox *mb = chan->con_priv;
+	struct tegra_hsp *hsp = mb->channel.hsp;
+	unsigned long flags;
+
+	if (WARN_ON(!mb->producer))
+		return -EPERM;
+
+	if (mb->type == TEGRA_HSP_MBOX_TYPE_SM_128BIT)
+		tegra_hsp_mailbox_send_128bit_data(mb, hsp, data);
+	else
+		tegra_hsp_mailbox_send_32bit_data(mb, hsp, data);
 
 	/* enable EMPTY interrupt for the shared mailbox */
 	spin_lock_irqsave(&hsp->lock, flags);
@@ -547,11 +615,18 @@ static struct mbox_chan *tegra_hsp_sm_xlate(struct mbox_controller *mbox,
 
 	index = args->args[1] & TEGRA_HSP_SM_MASK;
 
-	if (type != TEGRA_HSP_MBOX_TYPE_SM || !hsp->shared_irqs ||
+	if ((type != TEGRA_HSP_MBOX_TYPE_SM &&
+	     type != TEGRA_HSP_MBOX_TYPE_SM_128BIT) ||
+	    !hsp->shared_irqs ||
 	    index >= hsp->num_sm)
 		return ERR_PTR(-ENODEV);
 
+	if ((type == TEGRA_HSP_MBOX_TYPE_SM_128BIT) &&
+	    !hsp->soc->has_128_bit_mb)
+		return ERR_PTR(-ENODEV);
+
 	mb = &hsp->mailboxes[index];
+	mb->type = type;
 
 	if ((args->args[1] & TEGRA_HSP_SM_FLAG_TX) == 0)
 		mb->producer = false;
@@ -828,16 +903,25 @@ static const struct tegra_hsp_db_map tegra186_hsp_db_map[] = {
 static const struct tegra_hsp_soc tegra186_hsp_soc = {
 	.map = tegra186_hsp_db_map,
 	.has_per_mb_ie = false,
+	.has_128_bit_mb = false,
 };
 
 static const struct tegra_hsp_soc tegra194_hsp_soc = {
 	.map = tegra186_hsp_db_map,
 	.has_per_mb_ie = true,
+	.has_128_bit_mb = false,
+};
+
+static const struct tegra_hsp_soc tegra234_hsp_soc = {
+	.map = tegra186_hsp_db_map,
+	.has_per_mb_ie = false,
+	.has_128_bit_mb = true,
 };
 
 static const struct of_device_id tegra_hsp_match[] = {
 	{ .compatible = "nvidia,tegra186-hsp", .data = &tegra186_hsp_soc },
 	{ .compatible = "nvidia,tegra194-hsp", .data = &tegra194_hsp_soc },
+	{ .compatible = "nvidia,tegra234-hsp", .data = &tegra234_hsp_soc },
 	{ }
 };
 

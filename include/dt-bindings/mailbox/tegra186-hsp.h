@@ -14,6 +14,7 @@
 #define TEGRA_HSP_MBOX_TYPE_SM 0x1
 #define TEGRA_HSP_MBOX_TYPE_SS 0x2
 #define TEGRA_HSP_MBOX_TYPE_AS 0x3
+#define TEGRA_HSP_MBOX_TYPE_SM_128BIT 0x4
 
 /*
  * These defines represent the bit associated with the given master ID in the
