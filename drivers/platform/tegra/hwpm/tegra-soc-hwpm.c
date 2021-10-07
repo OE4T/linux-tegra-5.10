@@ -129,6 +129,7 @@ static int tegra_soc_hwpm_probe(struct platform_device *pdev)
 		hwpm->fake_registers_enabled = false;
 
 	platform_set_drvdata(pdev, hwpm);
+	tegra_soc_hwpm_pdev = pdev;
 
 	tegra_soc_hwpm_dbg("Probe successful!");
 	goto success;
@@ -189,6 +190,7 @@ static int tegra_soc_hwpm_remove(struct platform_device *pdev)
 	class_unregister(&hwpm->class);
 
 	kfree(hwpm);
+	tegra_soc_hwpm_pdev = NULL;
 
 	return 0;
 }

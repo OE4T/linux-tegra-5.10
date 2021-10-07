@@ -351,6 +351,8 @@ static int reserve_resource_ioctl(struct tegra_soc_hwpm *hwpm,
 	u32 resource = reserve_resource->resource;
 	struct hwpm_resource_aperture *aperture = NULL;
 	int aprt_idx = 0;
+	struct tegra_soc_hwpm_ip_ops *ip_ops;
+	int err;
 
 	if (hwpm->bind_completed) {
 		tegra_soc_hwpm_err("The RESERVE_RESOURCE IOCTL can only be"
@@ -390,7 +392,20 @@ static int reserve_resource_ioctl(struct tegra_soc_hwpm *hwpm,
 
 			tegra_soc_hwpm_dbg("Found PERFMON(0x%llx - 0x%llx)",
 				aperture->start_pa, aperture->end_pa);
-
+			ip_ops = &hwpm->ip_info[aperture->dt_aperture];
+			if (ip_ops && (*ip_ops->hwpm_ip_pm)) {
+				err = (*ip_ops->hwpm_ip_pm)
+						(ip_ops->ip_dev, true);
+				if (err) {
+					tegra_soc_hwpm_err(
+						"Disable Runtime PM(%d) Failed",
+							aperture->dt_aperture);
+				}
+			} else {
+				tegra_soc_hwpm_dbg(
+					"No Runtime PM(%d) for IP",
+							aperture->dt_aperture);
+			}
 			hwpm->dt_apertures[aperture->dt_aperture] =
 					of_iomap(hwpm->np, aperture->dt_aperture);
 			if (!hwpm->dt_apertures[aperture->dt_aperture]) {
@@ -1441,6 +1456,7 @@ static int tegra_soc_hwpm_release(struct inode *inode, struct file *filp)
 	u32 *mem_bytes_kernel_u32 = NULL;
 	struct tegra_soc_hwpm *hwpm = NULL;
 	struct hwpm_resource_aperture *aperture = NULL;
+	struct tegra_soc_hwpm_ip_ops *ip_ops;
 #define RELEASE_FAIL(msg, ...)					\
 	do {							\
 		if (err < 0) {					\
@@ -1540,6 +1556,20 @@ static int tegra_soc_hwpm_release(struct inode *inode, struct file *filp)
 				RELEASE_FAIL("Unable to disable PERFMON(0x%llx - 0x%llx)",
 					     aperture->start_pa,
 					     aperture->end_pa);
+			}
+			ip_ops = &hwpm->ip_info[aperture->dt_aperture];
+			if (ip_ops && (*ip_ops->hwpm_ip_pm)) {
+				err = (*ip_ops->hwpm_ip_pm)
+							(ip_ops->ip_dev, false);
+				if (err) {
+					tegra_soc_hwpm_err(
+						"Enable Runtime PM(%d) Failed",
+							aperture->dt_aperture);
+				}
+			} else {
+				tegra_soc_hwpm_dbg(
+					"No Runtime PM(%d) for IP",
+							aperture->dt_aperture);
 			}
 		}
 	}

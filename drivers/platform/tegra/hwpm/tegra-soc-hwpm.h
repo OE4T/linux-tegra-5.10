@@ -73,6 +73,8 @@ struct tegra_soc_hwpm {
 	struct reset_control *la_rst;
 	struct reset_control *hwpm_rst;
 
+	struct tegra_soc_hwpm_ip_ops ip_info[TEGRA_SOC_HWPM_NUM_DT_APERTURES];
+
 	/* Memory Management */
 	struct dma_buf *stream_dma_buf;
 	struct dma_buf_attachment *stream_attach;
@@ -93,6 +95,7 @@ struct tegra_soc_hwpm {
 	bool fake_registers_enabled;
 };
 
+extern struct platform_device *tegra_soc_hwpm_pdev;
 extern const struct file_operations tegra_soc_hwpm_ops;
 
 #ifdef CONFIG_DEBUG_FS
