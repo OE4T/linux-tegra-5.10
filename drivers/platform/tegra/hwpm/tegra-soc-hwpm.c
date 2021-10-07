@@ -221,7 +221,7 @@ static void __exit tegra_soc_hwpm_exit(void)
 	platform_driver_unregister(&tegra_soc_hwpm_pdrv);
 }
 
-module_init(tegra_soc_hwpm_init);
+postcore_initcall(tegra_soc_hwpm_init);
 module_exit(tegra_soc_hwpm_exit);
 
 MODULE_ALIAS(TEGRA_SOC_HWPM_MODULE_NAME);
