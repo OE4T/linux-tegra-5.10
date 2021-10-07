@@ -2257,6 +2257,117 @@ static int ether_update_mac_addr_filter(struct ether_priv_data *pdata,
 }
 
 /**
+ * @brief MII call back for MDIO register write.
+ *
+ * Algorithm: Invoke OSI layer for PHY register write.
+ * phy_write() API from Linux PHY subsystem will call this.
+ *
+ * @param[in] bus: MDIO bus instances.
+ * @param[in] phyaddr: PHY address (ID).
+ * @param[in] phyreg: PHY register to write.
+ * @param[in] phydata: Data to be written in register.
+ *
+ * @note  MAC has to be out of reset.
+ *
+ * @retval 0 on success
+ * @retval "negative value" on failure.
+ */
+static int ether_mdio_write(struct mii_bus *bus, int phyaddr, int phyreg,
+			    u16 phydata)
+{
+	struct net_device *ndev = bus->priv;
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+
+	if (!pdata->clks_enable) {
+		dev_err(pdata->dev,
+			"%s:No clks available, skipping PHY write\n", __func__);
+		return -ENODEV;
+	}
+
+	return osi_write_phy_reg(pdata->osi_core, (unsigned int)phyaddr,
+				 (unsigned int)phyreg, phydata);
+}
+
+/**
+ * @brief MII call back for MDIO register read.
+ *
+ * Algorithm: Invoke OSI layer for PHY register read.
+ * phy_read() API from Linux subsystem will call this.
+ *
+ * @param[in] bus: MDIO bus instances.
+ * @param[in] phyaddr: PHY address (ID).
+ * @param[in] phyreg: PHY register to read.
+ *
+ * @note  MAC has to be out of reset.
+ *
+ * @retval data from PHY register on success
+ * @retval "nagative value" on failure.
+ */
+static int ether_mdio_read(struct mii_bus *bus, int phyaddr, int phyreg)
+{
+	struct net_device *ndev = bus->priv;
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+
+	if (!pdata->clks_enable) {
+		dev_err(pdata->dev,
+			"%s:No clks available, skipping PHY read\n", __func__);
+		return -ENODEV;
+	}
+
+	return osi_read_phy_reg(pdata->osi_core, (unsigned int)phyaddr,
+				(unsigned int)phyreg);
+}
+
+/**
+ * @brief MDIO bus registration.
+ *
+ * Algorithm: Registers MDIO bus if there is mdio sub DT node
+ * as part of MAC DT node.
+ *
+ * @param[in] pdata: OSD private data.
+ *
+ * @retval 0 on success
+ * @retval "negative value" on failure.
+ */
+static int ether_mdio_register(struct ether_priv_data *pdata)
+{
+	struct device *dev = pdata->dev;
+	struct mii_bus *new_bus = NULL;
+	int ret = 0;
+
+	if (pdata->mdio_node == NULL) {
+		pdata->mii = NULL;
+		return 0;
+	}
+
+	new_bus = devm_mdiobus_alloc(dev);
+	if (new_bus == NULL) {
+		ret = -ENOMEM;
+		dev_err(dev, "failed to allocate MDIO bus\n");
+		goto exit;
+	}
+
+	new_bus->name = "nvethernet_mdio_bus";
+	new_bus->read = ether_mdio_read;
+	new_bus->write = ether_mdio_write;
+	snprintf(new_bus->id, MII_BUS_ID_SIZE, "%s", dev_name(dev));
+	new_bus->priv = pdata->ndev;
+	new_bus->parent = dev;
+
+	ret = of_mdiobus_register(new_bus, pdata->mdio_node);
+	if (ret) {
+		dev_err(dev, "failed to register MDIO bus (%s)\n",
+			new_bus->name);
+		goto exit;
+	}
+
+	pdata->mii = new_bus;
+
+exit:
+	return ret;
+}
+
+/**
  * @brief Call back to handle bring up of Ethernet interface
  *
  * Algorithm: This routine takes care of below
@@ -2328,6 +2439,12 @@ static int ether_open(struct net_device *dev)
 	if (ret < 0) {
 		dev_err(&dev->dev, "failed to poll MAC Software reset\n");
 		goto err_poll_swr;
+	}
+
+	ret = ether_mdio_register(pdata);
+	if (ret < 0) {
+		dev_err(&dev->dev, "failed to register MDIO bus\n");
+		goto err_mdio_reg;
 	}
 
 	atomic_set(&pdata->padcal_in_progress, OSI_DISABLE);
@@ -2470,7 +2587,11 @@ err_alloc:
 		phy_disconnect(pdata->phydev);
 	}
 err_phy_init:
+	if (pdata->mii != NULL) {
+		mdiobus_unregister(pdata->mii);
+	}
 err_poll_swr:
+err_mdio_reg:
 	if (pdata->xpcs_rst) {
 		reset_control_assert(pdata->xpcs_rst);
 	}
@@ -2717,6 +2838,10 @@ static int ether_close(struct net_device *ndev)
 	/* Assert MAC RST gpio */
 	if (pdata->mac_rst) {
 		reset_control_assert(pdata->mac_rst);
+	}
+
+	if (pdata->mii != NULL) {
+		mdiobus_unregister(pdata->mii);
 	}
 
 	/* Disable clock */
@@ -4056,117 +4181,6 @@ static int ether_alloc_napi(struct ether_priv_data *pdata)
 	}
 
 	return 0;
-}
-
-/**
- * @brief MII call back for MDIO register write.
- *
- * Algorithm: Invoke OSI layer for PHY register write.
- * phy_write() API from Linux PHY subsystem will call this.
- *
- * @param[in] bus: MDIO bus instances.
- * @param[in] phyaddr: PHY address (ID).
- * @param[in] phyreg: PHY register to write.
- * @param[in] phydata: Data to be written in register.
- *
- * @note  MAC has to be out of reset.
- *
- * @retval 0 on success
- * @retval "negative value" on failure.
- */
-static int ether_mdio_write(struct mii_bus *bus, int phyaddr, int phyreg,
-			    u16 phydata)
-{
-	struct net_device *ndev = bus->priv;
-	struct ether_priv_data *pdata = netdev_priv(ndev);
-
-	if (!pdata->clks_enable) {
-		dev_err(pdata->dev,
-			"%s:No clks available, skipping PHY write\n", __func__);
-		return -ENODEV;
-	}
-
-	return osi_write_phy_reg(pdata->osi_core, (unsigned int)phyaddr,
-				 (unsigned int)phyreg, phydata);
-}
-
-/**
- * @brief MII call back for MDIO register read.
- *
- * Algorithm: Invoke OSI layer for PHY register read.
- * phy_read() API from Linux subsystem will call this.
- *
- * @param[in] bus: MDIO bus instances.
- * @param[in] phyaddr: PHY address (ID).
- * @param[in] phyreg: PHY register to read.
- *
- * @note  MAC has to be out of reset.
- *
- * @retval data from PHY register on success
- * @retval "nagative value" on failure.
- */
-static int ether_mdio_read(struct mii_bus *bus, int phyaddr, int phyreg)
-{
-	struct net_device *ndev = bus->priv;
-	struct ether_priv_data *pdata = netdev_priv(ndev);
-
-	if (!pdata->clks_enable) {
-		dev_err(pdata->dev,
-			"%s:No clks available, skipping PHY read\n", __func__);
-		return -ENODEV;
-	}
-
-	return osi_read_phy_reg(pdata->osi_core, (unsigned int)phyaddr,
-				(unsigned int)phyreg);
-}
-
-/**
- * @brief MDIO bus registration.
- *
- * Algorithm: Registers MDIO bus if there is mdio sub DT node
- * as part of MAC DT node.
- *
- * @param[in] pdata: OSD private data.
- *
- * @retval 0 on success
- * @retval "negative value" on failure.
- */
-static int ether_mdio_register(struct ether_priv_data *pdata)
-{
-	struct device *dev = pdata->dev;
-	struct mii_bus *new_bus = NULL;
-	int ret = 0;
-
-	if (pdata->mdio_node == NULL) {
-		pdata->mii = NULL;
-		return 0;
-	}
-
-	new_bus = devm_mdiobus_alloc(dev);
-	if (new_bus == NULL) {
-		ret = -ENOMEM;
-		dev_err(dev, "failed to allocate MDIO bus\n");
-		goto exit;
-	}
-
-	new_bus->name = "nvethernet_mdio_bus";
-	new_bus->read = ether_mdio_read;
-	new_bus->write = ether_mdio_write;
-	snprintf(new_bus->id, MII_BUS_ID_SIZE, "%s", dev_name(dev));
-	new_bus->priv = pdata->ndev;
-	new_bus->parent = dev;
-
-	ret = of_mdiobus_register(new_bus, pdata->mdio_node);
-	if (ret) {
-		dev_err(dev, "failed to register MDIO bus (%s)\n",
-			new_bus->name);
-		goto exit;
-	}
-
-	pdata->mii = new_bus;
-
-exit:
-	return ret;
 }
 
 /**
@@ -6165,19 +6179,13 @@ static int ether_probe(struct platform_device *pdev)
 		goto err_dma_mask;
 	}
 
-	ret = ether_mdio_register(pdata);
-	if (ret < 0) {
-		dev_err(&pdev->dev, "failed to register MDIO bus\n");
-		goto err_dma_mask;
-	}
-
 	ndev->netdev_ops = &ether_netdev_ops;
 	ether_set_ethtool_ops(ndev);
 
 	ret = ether_alloc_napi(pdata);
 	if (ret < 0) {
 		dev_err(&pdev->dev, "failed to allocate NAPI\n");
-		goto err_napi;
+		goto err_dma_mask;
 	}
 
 	/* Setup the tx_usecs timer */
@@ -6267,8 +6275,6 @@ err_netdev:
 #ifdef MACSEC_SUPPORT
 err_macsec:
 #endif /* MACSEC_SUPPORT */
-err_napi:
-	mdiobus_unregister(pdata->mii);
 err_dma_mask:
 	ether_disable_clks(pdata);
 	ether_put_clks(pdata);
@@ -6307,10 +6313,6 @@ static int ether_remove(struct platform_device *pdev)
 
 	/* remove nvethernet sysfs group under /sys/devices/<ether_device>/ */
 	ether_sysfs_unregister(pdata);
-
-	if (pdata->mii != NULL) {
-		mdiobus_unregister(pdata->mii);
-	}
 
 	ether_put_clks(pdata);
 
