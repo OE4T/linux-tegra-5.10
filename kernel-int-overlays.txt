@@ -2,5 +2,4 @@ nvidia
 nvlink
 nvgpu
 nvgpu-next
-display-t23x
 nvidia-t239
