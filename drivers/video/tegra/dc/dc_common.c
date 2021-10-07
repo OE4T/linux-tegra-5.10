@@ -1,7 +1,8 @@
 /*
  * drivers/video/tegra/dc/dc_common.c
  *
- * Copyright (c) 2017-2020, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION. All rights reserved.
+ *
  * Author: Arun Swain <arswain@nvidia.com>
  *
  * This software is licensed under the terms of the GNU General Public
@@ -1084,7 +1085,7 @@ static int tegra_dc_common_probe(struct platform_device *pdev)
 	}
 
 	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
-	if (!dc_common) {
+	if (!pdata) {
 		dev_err(&pdev->dev, "can't allocate memory for nvhost_device_data\n");
 		goto err_free_dc_common;
 	}
