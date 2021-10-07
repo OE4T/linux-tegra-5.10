@@ -114,4 +114,22 @@ int nvgpu_strnadd_u32(char *dst, const u32 value, size_t size, u32 radix);
  */
 bool nvgpu_mem_is_word_aligned(struct gk20a *g, u8 *addr);
 
+/**
+ * @brief Construct single string from multiple strings.
+ *
+ * Concatenates multiple source strings to generate single string.
+ *
+ * @param dest [in] Pointer to the destination string.
+ * @param dest_len [in] Maximum length of destination string
+ *			including NULL character.
+ * @param src_str_list [in] Pointer to list of strings to be concatenated.
+ * @param str_list_len [in] Number of strings in \a src_str_list.
+ * @param joiner [in] Pointer to string used to join strings in
+ *		      \a src_str_list.
+ *
+ * @return Number of bytes copied to \a dest.
+ */
+u32 nvgpu_str_join(char *dest, u32 dest_len, const char **src_str_list,
+	u32 str_list_len, const char *joiner);
+
 #endif /* NVGPU_STRING_H */

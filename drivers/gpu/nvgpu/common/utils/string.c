@@ -88,3 +88,46 @@ bool nvgpu_mem_is_word_aligned(struct gk20a *g, u8 *addr)
 
 	return true;
 }
+
+u32 nvgpu_str_join(char *dest, u32 dest_len, const char **src_str_list,
+	u32 str_list_len, const char *joiner)
+{
+	u64 dest_empty_len = nvgpu_safe_sub_u64(dest_len, 1ULL);
+	u64 joiner_len = strlen(joiner);
+	u32 i = 0U;
+
+	/* Initialize destination buffer */
+	*dest = '\0';
+
+	if (str_list_len == 0U) {
+		return 0;
+	}
+
+	/* Copy first string */
+	(void) strncat(dest, src_str_list[0], dest_empty_len);
+
+	/*
+	 * Calculate available size in destination buffer
+	 * Subtract extra 1U for the NULL byte
+	 */
+	dest_empty_len = nvgpu_safe_sub_u64(
+		nvgpu_safe_sub_u64(dest_len, strlen(dest)), 1ULL);
+
+	for (i = 1; i < str_list_len; i++) {
+		/* Make sure we are not writing beyond destination buffer */
+		if (dest_empty_len < nvgpu_safe_add_u64(joiner_len,
+						strlen(src_str_list[i]))) {
+			goto ret;
+		}
+
+		(void) strncat(dest, joiner, dest_empty_len);
+		(void) strncat(dest, src_str_list[i], dest_empty_len);
+
+		dest_empty_len = nvgpu_safe_sub_u64(
+			nvgpu_safe_sub_u64(dest_len, strlen(dest)), 1ULL);
+	}
+
+ret:
+	/* Return number of bytes (or chars) copied */
+	return nvgpu_safe_cast_u64_to_u32(strlen(dest));
+}

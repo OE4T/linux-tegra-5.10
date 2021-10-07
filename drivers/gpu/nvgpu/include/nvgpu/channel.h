@@ -153,6 +153,8 @@ struct gpfifo_desc {
 #endif
 };
 
+#define NVGPU_CHANNEL_STATUS_STRING_LENGTH	120U
+
 /**
  * Structure abstracting H/W state for channel.
  * Used when unbinding a channel from TSG.
@@ -172,7 +174,7 @@ struct nvgpu_channel_hw_state {
 	/** Channel has encountered an engine page fault. */
 	bool eng_faulted;
 	/** Human-readable status string. */
-	const char *status_string;
+	char status_string[NVGPU_CHANNEL_STATUS_STRING_LENGTH];
 };
 
 /**

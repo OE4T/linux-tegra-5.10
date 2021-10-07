@@ -27,6 +27,11 @@
 #include <nvgpu/atomic.h>
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/bug.h>
+#include <nvgpu/string.h>
+#include <nvgpu/kmem.h>
+#include <nvgpu/log2.h>
+#include <nvgpu/static_analysis.h>
 
 #include <hal/fifo/fifo_utils_ga10b.h>
 #include "channel_ga10b.h"
@@ -139,45 +144,46 @@ void ga10b_channel_unbind(struct nvgpu_channel *ch)
 	}
 }
 
+#define NUM_STATUS_STR		8U
+
+static u32 ga10b_channel_status_mask(void)
+{
+	u32 mask = (runlist_chram_channel_on_pbdma_m() |
+		runlist_chram_channel_on_eng_m() |
+		runlist_chram_channel_pending_m() |
+		runlist_chram_channel_ctx_reload_m() |
+		runlist_chram_channel_pbdma_busy_m() |
+		runlist_chram_channel_eng_busy_m() |
+		runlist_chram_channel_acquire_fail_m());
+
+	return mask;
+}
+
 static const char * const chram_status_str[] = {
-	[runlist_chram_channel_status_idle_v()] = "idle",
-	[runlist_chram_channel_status_pending_v()] = "pending",
-	[runlist_chram_channel_status_pending_ctx_reload_v()] =
-		"pending_ctx_reload",
-	[runlist_chram_channel_status_pending_acquire_fail_v()] =
-		"pending_acquire_fail",
-	[runlist_chram_channel_status_pending_acquire_fail_ctx_reload_v()] =
-		"pending_acq_fail_ctx_reload",
-	[runlist_chram_channel_status_pbdma_busy_v()] = "pbdma_busy",
-	[runlist_chram_channel_status_pbdma_busy_and_eng_busy_v()] =
-		"pbdma_and_eng_busy",
-	[runlist_chram_channel_status_eng_busy_v()] = "eng_busy",
-	[runlist_chram_channel_status_eng_busy_pending_acquire_fail_v()] =
-		"eng_busy_pending_acquire_fail",
-	[runlist_chram_channel_status_eng_busy_pending_v()] = "eng_busy_pending",
-	[runlist_chram_channel_status_pbdma_busy_ctx_reload_v()] =
-		"pbdma_busy_ctx_reload",
-	[runlist_chram_channel_status_pbdma_busy_eng_busy_ctx_reload_v()] =
-		"pbdma_and_eng_busy_ctx_reload",
-	[runlist_chram_channel_status_busy_ctx_reload_v()] = "busy_ctx_reload",
-	[runlist_chram_channel_status_eng_busy_pending_ctx_reload_v()] =
-		"eng_busy_pending_ctx_reload",
-	[runlist_chram_channel_status_eng_busy_pending_acquire_fail_ctx_reload_v()] =
-		"eng_busy_pending_acq_fail_ctx_reload",
+	[runlist_chram_channel_on_pbdma_m()] = "on_pbdma",
+	[runlist_chram_channel_on_eng_m()] = "on_eng",
+	[runlist_chram_channel_pending_m()] = "pending",
+	[runlist_chram_channel_ctx_reload_m()] = "ctx_reload",
+	[runlist_chram_channel_pbdma_busy_m()] = "pbdma_busy",
+	[runlist_chram_channel_eng_busy_m()] = "eng_busy",
+	[runlist_chram_channel_acquire_fail_m()] = "acquire_fail",
 };
 
 void ga10b_channel_read_state(struct gk20a *g, struct nvgpu_channel *ch,
 			struct nvgpu_channel_hw_state *state)
 {
-	struct nvgpu_runlist *runlist = NULL;
 	u32 reg = 0U;
-	u32 status = 0U;
+	unsigned long bit = 0UL;
+	unsigned long status_str_bits = 0UL;
+	u32 status_str_count = 0U;
+	bool idle = true;
+	struct nvgpu_runlist *runlist = NULL;
+	const char **chram_status_list = NULL;
 
 	runlist = ch->runlist;
 
 	reg = nvgpu_chram_bar0_readl(g, runlist,
 			runlist_chram_channel_r(ch->chid));
-	status = runlist_chram_channel_status_v(reg);
 
 	state->next = runlist_chram_channel_next_v(reg) ==
 				runlist_chram_channel_next_true_v();
@@ -188,17 +194,47 @@ void ga10b_channel_read_state(struct gk20a *g, struct nvgpu_channel *ch,
         state->busy = runlist_chram_channel_busy_v(reg) ==
 				runlist_chram_channel_busy_true_v();
 	state->pending_acquire =
-		(status ==
-			runlist_chram_channel_status_pending_acquire_fail_v()) ||
-		(status ==
-			runlist_chram_channel_status_eng_busy_pending_acquire_fail_ctx_reload_v()) ||
-		(status ==
-			runlist_chram_channel_status_pending_acquire_fail_ctx_reload_v());
+		((runlist_chram_channel_pending_v(reg) ==
+			runlist_chram_channel_pending_true_v()) &&
+		(runlist_chram_channel_acquire_fail_v(reg) ==
+			runlist_chram_channel_acquire_fail_true_v()));
 
 	state->eng_faulted = runlist_chram_channel_eng_faulted_v(reg) ==
 				runlist_chram_channel_eng_faulted_true_v();
-	state->status_string = chram_status_str[status] == NULL ? "N/A" :
-						chram_status_str[status];
+
+	/* Construct status string for below status fields */
+	status_str_bits = (u64)(reg & ga10b_channel_status_mask());
+
+	/* Allocate memory for status string list */
+	chram_status_list = nvgpu_kzalloc(g, (sizeof(char *) * NUM_STATUS_STR));
+	if (chram_status_list == NULL) {
+		nvgpu_err(g, "Status string list pointer allocation failed");
+		state->status_string[0] = '\0';
+		return;
+	}
+
+	/*
+	 * Status is true if the corresponding bit is set.
+	 * Go through each set bit and copy status string to status string list.
+	 */
+	for_each_set_bit(bit, &status_str_bits, ilog2(U32_MAX)) {
+		chram_status_list[status_str_count] =
+					chram_status_str[BIT32(bit)];
+		status_str_count = nvgpu_safe_add_u32(status_str_count, 1UL);
+		idle = false;
+	}
+
+	if (idle) {
+		chram_status_list[status_str_count] = "idle";
+		status_str_count = nvgpu_safe_add_u32(status_str_count, 1UL);
+	}
+
+	/* Combine all status strings */
+	(void) nvgpu_str_join(state->status_string,
+		NVGPU_CHANNEL_STATUS_STRING_LENGTH, chram_status_list,
+		status_str_count, ", ");
+
+	nvgpu_err(g, "status_string %s", state->status_string);
 
 	nvgpu_log_info(g, "Channel id:%d state next:%s enabled:%s ctx_reload:%s"
 		" busy:%s pending_acquire:%s eng_faulted:%s status_string:%s",
@@ -209,6 +245,8 @@ void ga10b_channel_read_state(struct gk20a *g, struct nvgpu_channel *ch,
 		state->busy ? "true" : "false",
 		state->pending_acquire ? "true" : "false",
 		state->eng_faulted ? "true" : "false", state->status_string);
+
+	nvgpu_kfree(g, chram_status_list);
 }
 
 void ga10b_channel_reset_faulted(struct gk20a *g, struct nvgpu_channel *ch,

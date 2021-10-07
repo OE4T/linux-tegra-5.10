@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -97,5 +97,10 @@ void gk20a_channel_read_state(struct gk20a *g, struct nvgpu_channel *ch,
 	state->pending_acquire =
 		(status_v == ccsr_channel_status_pending_acquire_v()) ||
 		(status_v == ccsr_channel_status_on_eng_pending_acquire_v());
-	state->status_string = ccsr_chan_status_str[status_v];
+
+	/* Copy at the most NVGPU_CHANNEL_STATUS_STRING_LENGTH characters */
+	(void) strncpy(state->status_string, ccsr_chan_status_str[status_v],
+		NVGPU_CHANNEL_STATUS_STRING_LENGTH - 1U);
+
+	state->status_string[NVGPU_CHANNEL_STATUS_STRING_LENGTH - 1U] = '\0';
 }
