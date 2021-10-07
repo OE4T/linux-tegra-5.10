@@ -286,6 +286,52 @@ struct mc_client mc_clients[] = {
 	client("miu", "csw_miu5w", INVALID),
 	client("miu", "csr_miu6r", INVALID),
 	client("miu", "csw_miu6w", INVALID),
+	client("NA", "csr_ccplexistr", INVALID),
+	client("NA", "csw_ccplexistw", INVALID),
+	dummy_client,
+	dummy_client,
+	dummy_client,
+	dummy_client,
+	dummy_client,
+	dummy_client,
+	dummy_client,
+	dummy_client,
+	dummy_client,
+	dummy_client,
+	dummy_client,
+	dummy_client,
+	dummy_client,
+	dummy_client,
+	dummy_client,
+	dummy_client,
+	client("miu", "csr_miu14r", INVALID),
+	client("miu", "csr_miu14w", INVALID),
+	dummy_client,
+	dummy_client,
+	dummy_client,
+	dummy_client,
+	client("fsidbb0r", "csr_fsi_dbb0r", INVALID),
+	client("fsidbb0w", "csw_fsi_dbb0w", INVALID),
+	client("fsidbb1r", "csr_fsi_dbb1r", INVALID),
+	client("fsidbb1w", "csw_fsi_dbb1w", INVALID),
+	dummy_client,
+	dummy_client,
+	dummy_client,
+	dummy_client,
+	dummy_client,
+	dummy_client,
+	client("hwpm", "csw_pma0awr", INVALID),
+	client("nvjpg1", "csr_nvjpg1srd", INVALID),
+	client("nvjpg1", "csw_nvjpg1swr", INVALID),
+	dummy_client,
+	client("miu", "csr_miu15r", INVALID),
+	client("miu", "csw_miu15w", INVALID),
+	dummy_client,
+	dummy_client,
+	dummy_client,
+	dummy_client,
+	client("pcie5b", "csr_pcie5br", INVALID),
+	client("pcie5b", "csr_pcie5br1", INVALID),
 };
 int mc_client_last = ARRAY_SIZE(mc_clients) - 1;
 /*** Done. ***/
@@ -562,9 +608,12 @@ static void log_fault(int src_chan, const struct mc_error *fault)
 
 	secure = !!(status & MC_ERR_STATUS_SECURE);
 	write = !!(status & MC_ERR_STATUS_WRITE);
-	client_id = status & 0xff;
-	client = &mc_clients[client_id <= mc_client_last
-			     ? client_id : mc_client_last];
+	client_id = status & 0x1ff;
+	if (client_id > mc_client_last) {
+		mcerr_pr("MC fault - Unknown Client ID: 0x%x\n", client_id);
+		return;
+	}
+	client = &mc_clients[client_id];
 
 	if (fault->flags & E_GSC) {
 		gsc_status_1 = __mc_readl(src_chan, fault->addr_hi_reg);
@@ -585,9 +634,9 @@ static void log_fault(int src_chan, const struct mc_error *fault)
 			" GSC_STATUS_1=0x%12x\n",
 			status, (unsigned long long)addr, gsc_status_1);
 	else
-		mcerr_pr("  status = 0x%08x; addr = 0x%08llx;"
-			" hi_adr_reg=%x08\n",
-			status, (unsigned long long)addr, high_addr_reg);
+		mcerr_pr("  status = 0x%08x; hi_addr_reg = 0x%08x"
+			" addr = 0x%08llx\n",
+			status, high_addr_reg, (unsigned long long)addr);
 
 	mcerr_pr("  secure: %s, access-type: %s\n",
 		secure ? "yes" : "no", write ? "write" : "read");
