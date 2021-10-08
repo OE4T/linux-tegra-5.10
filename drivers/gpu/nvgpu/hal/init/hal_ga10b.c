@@ -1890,10 +1890,15 @@ int ga10b_init_hal(struct gk20a *g)
 #endif
 
 #ifdef CONFIG_NVGPU_COMPRESSION
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_COMPRESSION, true);
+	if (nvgpu_is_hypervisor_mode(g)) {
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_COMPRESSION, false);
+	} else {
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_COMPRESSION, true);
+	}
 
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_COMPRESSION)) {
 		nvgpu_set_enabled(g, NVGPU_SUPPORT_POST_L2_COMPRESSION, true);
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_BUFFER_METADATA, true);
 	} else {
 		gops->cbc.init = NULL;
 		gops->cbc.ctrl = NULL;

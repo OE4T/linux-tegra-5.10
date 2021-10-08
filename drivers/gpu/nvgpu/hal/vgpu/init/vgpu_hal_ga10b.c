@@ -1206,8 +1206,9 @@ int vgpu_ga10b_init_hal(struct gk20a *g)
 		priv->constants.max_sm_diversity_config_count;
 
 #ifdef CONFIG_NVGPU_COMPRESSION
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_COMPRESSION, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_POST_L2_COMPRESSION, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_COMPRESSION, false);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_POST_L2_COMPRESSION, false);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_BUFFER_METADATA, false);
 #endif
 
 #ifdef CONFIG_NVGPU_RECOVERY

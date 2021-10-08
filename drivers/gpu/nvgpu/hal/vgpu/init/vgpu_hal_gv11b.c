@@ -1175,6 +1175,7 @@ int vgpu_gv11b_init_hal(struct gk20a *g)
 
 #ifdef CONFIG_NVGPU_COMPRESSION
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_COMPRESSION, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_BUFFER_METADATA, true);
 #endif
 
 #ifdef CONFIG_NVGPU_RECOVERY
