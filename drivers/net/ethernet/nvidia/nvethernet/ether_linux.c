@@ -1018,16 +1018,10 @@ static int ether_phy_init(struct net_device *dev)
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
 	struct phy_device *phydev = NULL;
-#if (KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE)
-	const unsigned int long supported = (SUPPORTED_Pause |
-							SUPPORTED_Asym_Pause);
-	const unsigned int long not_supported = ~(SUPPORTED_Pause |
-							SUPPORTED_Asym_Pause);
-#endif
+
 	pdata->oldlink = 0;
 	pdata->speed = SPEED_UNKNOWN;
 	pdata->oldduplex = SPEED_UNKNOWN;
-
 
 	if (pdata->phy_node != NULL) {
 		phydev = of_phy_connect(dev, pdata->phy_node,
@@ -1044,32 +1038,6 @@ static int ether_phy_init(struct net_device *dev)
 		phy_disconnect(phydev);
 		return -ENODEV;
 	}
-
-	/* In marvel phy driver pause is disabled. Instead of enabling
-	 * in PHY driver, handle this in eqos driver so that enabling/disabling
-	 * of the pause frame feature can be controlled based on the platform
-	 */
-
-#if (KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE)
-	linkmode_or(phydev->supported, phydev->supported,
-		    &supported);
-#else
-	phydev->supported |= (SUPPORTED_Pause | SUPPORTED_Asym_Pause);
-#endif
-	if (pdata->osi_core->pause_frames == OSI_PAUSE_FRAMES_DISABLE)
-#if (KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE)
-		linkmode_and(phydev->supported,
-			     phydev->supported,
-			     &not_supported);
-#else
-		phydev->supported &= ~(SUPPORTED_Pause | SUPPORTED_Asym_Pause);
-#endif
-#if (KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE)
-	linkmode_copy(phydev->advertising,
-		      phydev->supported);
-#else
-	phydev->advertising = phydev->supported;
-#endif
 
 	pdata->phydev = phydev;
 
