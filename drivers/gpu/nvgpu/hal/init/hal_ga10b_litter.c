@@ -163,7 +163,10 @@ u32 ga10b_get_litter_value(struct gk20a *g, int value)
 	case GPU_LIT_NUM_LTC_LTS_WAYS:
 		ret = proj_scal_litter_num_ltc_lts_ways_v();
 		break;
-	/* TODO check these hardcoded values for ga10b: JIRA NVGPU-4709 */
+	/*
+	 * The perfmon start, count for various chiplets are taken
+	 * from the PM programming guide.
+	 */
 	case GPU_LIT_PERFMON_PMMGPCTPCA_DOMAIN_START:
 		ret = 2;
 		break;
@@ -177,12 +180,12 @@ u32 ga10b_get_litter_value(struct gk20a *g, int value)
 		ret = 1;
 		break;
 	case GPU_LIT_PERFMON_PMMFBP_LTC_DOMAIN_COUNT:
-		ret = 2;
+		ret = 4;
 		break;
-	case GPU_LIT_PERFMON_PMMFBP_ROP_DOMAIN_START:
-		ret = 3;
+	case GPU_LIT_PERFMON_PMMGPC_ROP_DOMAIN_START:
+		ret = 14;
 		break;
-	case GPU_LIT_PERFMON_PMMFBP_ROP_DOMAIN_COUNT:
+	case GPU_LIT_PERFMON_PMMGPC_ROP_DOMAIN_COUNT:
 		ret = 2;
 		break;
 	case GPU_LIT_ROP_IN_GPC_BASE:
