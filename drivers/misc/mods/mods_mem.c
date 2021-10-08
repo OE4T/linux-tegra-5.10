@@ -36,7 +36,7 @@ static int mods_post_alloc(struct mods_client     *client,
 			   u64                     phys_addr,
 			   struct MODS_MEM_INFO   *p_mem_info);
 
-#if defined(CONFIG_ARCH_TEGRA)
+#if defined(MODS_HAS_TEGRA)
 static int mods_smmu_unmap_memory(struct mods_client   *client,
 				  struct MODS_MEM_INFO *p_mem_info);
 #endif
@@ -535,7 +535,7 @@ static void mods_free_pages(struct mods_client   *client,
 
 	mods_restore_cache(client, p_mem_info);
 
-#if defined(CONFIG_ARCH_TEGRA)
+#if defined(MODS_HAS_TEGRA)
 	if (p_mem_info->iommu_mapped)
 		mods_smmu_unmap_memory(client, p_mem_info);
 #endif
@@ -2053,7 +2053,7 @@ int esc_mods_dma_unmap_memory(struct mods_client         *client,
 }
 #endif
 
-#ifdef CONFIG_ARCH_TEGRA
+#ifdef MODS_HAS_TEGRA
 /* map dma buffer by iommu */
 int esc_mods_iommu_dma_map_memory(struct mods_client               *client,
 				  struct MODS_IOMMU_DMA_MAP_MEMORY *p)
@@ -2244,7 +2244,7 @@ static void clear_contiguous_cache(struct mods_client *client,
 				   u64                 phys_start,
 				   u32                 size)
 {
-#ifdef CONFIG_ARCH_TEGRA
+#ifdef MODS_HAS_TEGRA
 	__flush_dcache_area((void *)(size_t)(virt_start), size);
 #else
 	/* __flush_dcache_area is not exported in upstream kernels */
@@ -2443,7 +2443,7 @@ static int mods_post_alloc(struct mods_client     *client,
 				cl_error("kmap failed\n");
 				return -ENOMEM;
 			}
-#if defined(CONFIG_ARCH_TEGRA) && !defined(CONFIG_CPA)
+#if defined(MODS_HAS_TEGRA) && !defined(CONFIG_CPA)
 			clear_contiguous_cache(client,
 					       (u64)(size_t)ptr,
 					       phys_addr + (i << PAGE_SHIFT),

@@ -96,4 +96,8 @@
 #       define MODS_HAS_ARM64_READ_FTR_REG 1
 #endif
 
+#if defined(CONFIG_ARCH_TEGRA)
+#       define MODS_HAS_TEGRA 1
+#endif
+
 #endif /* _MODS_CONFIG_H_  */

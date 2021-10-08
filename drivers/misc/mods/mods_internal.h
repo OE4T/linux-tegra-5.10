@@ -434,7 +434,7 @@ int mods_find_pci_dev(struct mods_client    *client,
 #endif
 
 /* clock */
-#if defined(CONFIG_ARCH_TEGRA) && defined(CONFIG_COMMON_CLK) && \
+#if defined(MODS_HAS_TEGRA) && defined(CONFIG_COMMON_CLK) && \
 		defined(CONFIG_OF_RESOLVE) && defined(CONFIG_OF_DYNAMIC)
 void mods_init_clock_api(void);
 void mods_shutdown_clock_api(void);
@@ -565,7 +565,7 @@ int esc_mods_pci_reset_function(struct mods_client    *client,
 				struct mods_pci_dev_2 *pcidev);
 #endif
 /* irq */
-#if defined(CONFIG_ARCH_TEGRA) && defined(CONFIG_OF) && defined(CONFIG_OF_IRQ)
+#if defined(MODS_HAS_TEGRA) && defined(CONFIG_OF) && defined(CONFIG_OF_IRQ)
 int esc_mods_map_irq(struct mods_client *client, struct MODS_DT_INFO *p);
 int esc_mods_map_irq_to_gpio(struct mods_client *client,
 						struct MODS_GPIO_INFO *p);
@@ -593,7 +593,7 @@ int esc_mods_register_irq_4(struct mods_client         *client,
 int esc_mods_query_irq_3(struct mods_client      *client,
 			 struct MODS_QUERY_IRQ_3 *p);
 
-#ifdef CONFIG_ARCH_TEGRA
+#ifdef MODS_HAS_TEGRA
 
 /* bpmp uphy */
 int esc_mods_bpmp_set_pcie_state(struct mods_client *client,
@@ -656,12 +656,12 @@ int esc_mods_tegra_dc_config_possible(struct mods_client *client,
 				      struct MODS_TEGRA_DC_CONFIG_POSSIBLE *p);
 #endif
 
-#if defined(CONFIG_ARCH_TEGRA) && defined(CONFIG_NET)
+#if defined(MODS_HAS_TEGRA) && defined(CONFIG_NET)
 int esc_mods_net_force_link(struct mods_client          *client,
 			    struct MODS_NET_DEVICE_NAME *p);
 #endif
 
-#if defined(CONFIG_ARCH_TEGRA) && defined(CONFIG_DMA_SHARED_BUFFER)
+#if defined(MODS_HAS_TEGRA) && defined(CONFIG_DMA_SHARED_BUFFER)
 int esc_mods_dmabuf_get_phys_addr(struct mods_client *client,
 				  struct MODS_DMABUF_GET_PHYSICAL_ADDRESS *p);
 #else
@@ -709,7 +709,7 @@ static inline int mods_create_debugfs(struct miscdevice *modsdev)
 static inline void mods_remove_debugfs(void) {}
 #endif /* CONFIG_DEBUG_FS */
 
-#if defined(CONFIG_ARCH_TEGRA) && defined(CONFIG_DMA_SHARED_BUFFER)
+#if defined(MODS_HAS_TEGRA) && defined(CONFIG_DMA_SHARED_BUFFER)
 int mods_init_dmabuf(void);
 void mods_exit_dmabuf(void);
 #else
@@ -717,7 +717,7 @@ static inline int mods_init_dmabuf(void) { return 0; }
 static inline void mods_exit_dmabuf(void) {}
 #endif
 
-#if defined(CONFIG_ARCH_TEGRA)
+#if defined(MODS_HAS_TEGRA)
 int get_mods_smmu_device_index(const char *name);
 struct mods_smmu_dev *get_mods_smmu_device(u32 index);
 int smmu_driver_init(void);
