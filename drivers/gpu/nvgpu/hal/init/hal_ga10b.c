@@ -1334,7 +1334,7 @@ static const struct gops_pmu ga10b_ops_pmu = {
 	.pmu_mutex_acquire = gk20a_pmu_mutex_acquire,
 	.pmu_mutex_release = gk20a_pmu_mutex_release,
 	/* power-gating */
-	.pmu_setup_elpg = gv11b_pmu_setup_elpg,
+	.pmu_setup_elpg = NULL,
 	.pmu_pg_idle_counter_config = gk20a_pmu_pg_idle_counter_config,
 	.pmu_dump_elpg_stats = ga10b_pmu_dump_elpg_stats,
 	/* perfmon */
