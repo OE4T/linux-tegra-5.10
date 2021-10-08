@@ -2681,6 +2681,8 @@ static int ether_close(struct net_device *ndev)
 		if (atomic_read(&pdata->tx_napi[chan]->tx_usecs_timer_armed)
 		    == OSI_ENABLE) {
 			hrtimer_cancel(&pdata->tx_napi[chan]->tx_usecs_timer);
+			atomic_set(&pdata->tx_napi[chan]->tx_usecs_timer_armed,
+				   OSI_DISABLE);
 		}
 	}
 
