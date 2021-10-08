@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -732,7 +732,10 @@ static int nvpps_probe(struct platform_device *pdev)
 	dev_info(&pdev->dev, "nvpps cdev(%d:%d)\n", MAJOR(s_nvpps_devt), pdev_data->id);
 	platform_set_drvdata(pdev, pdev_data);
 
-	np_gte = of_find_compatible_node(NULL, NULL, "nvidia,tegra194-gte-aon");
+	np_gte = of_find_compatible_node(NULL, NULL, "nvidia,tegra234-gte-aon");
+	if (!np_gte) {
+		np_gte = of_find_compatible_node(NULL, NULL, "nvidia,tegra194-gte-aon");
+	}
 	if (!np_gte) {
 		pdev_data->use_gpio_int_timesatmp = false;
 		dev_err(&pdev->dev, "of_find_compatible_node failed\n");
