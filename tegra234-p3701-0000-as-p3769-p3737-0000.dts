@@ -50,6 +50,10 @@
 	tegra_soc_hwpm {
                 status = "okay";
         };
+
+        tegra-cache {
+		status = "disabled";
+	};
 };
 
 #include "tegra234-disabled_nodes.dtsi"
