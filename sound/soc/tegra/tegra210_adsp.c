@@ -3,7 +3,7 @@
  * tegra210_adsp.c - Tegra ADSP audio driver
  *
  * Author: Sumit Bhattacharya <sumitb@nvidia.com>
- * Copyright (c) 2014-2020 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021 NVIDIA CORPORATION.  All rights reserved.
  *
  */
 
@@ -52,6 +52,7 @@
 
 #define NETLINK_ADSP_EVENT 31
 #define NETLINK_ADSP_EVENT_GROUP 1
+#define ADSP_SHUTDOWN_TIMEOUT 500
 
 struct adsp_event_nlmsg {
 	uint32_t err;
@@ -164,6 +165,7 @@ struct tegra210_adsp {
 	uint32_t i2s_rate;
 	struct mutex mutex;
 	int init_done;
+	struct completion init_complete;
 	int adsp_started;
 	uint32_t adma_ch_page;
 	uint32_t adma_ch_start;
@@ -382,6 +384,10 @@ static int tegra210_adsp_init(struct tegra210_adsp *adsp)
 	int i, ret = 0;
 
 	mutex_lock(&adsp->mutex);
+
+	if (adsp->init_done)
+		goto exit;
+
 	ret = nvadsp_os_load();
 	if (ret < 0) {
 		dev_err(adsp->dev, "Failed to load OS.");
@@ -417,6 +423,7 @@ static int tegra210_adsp_init(struct tegra210_adsp *adsp)
 	}
 
 	adsp->init_done = 1;
+	complete(&adsp->init_complete);
 
 exit:
 	mutex_unlock(&adsp->mutex);
@@ -430,6 +437,7 @@ static void tegra210_adsp_deinit(struct tegra210_adsp *adsp)
 		nvadsp_os_stop();
 		adsp->init_done = 0;
 	}
+	reinit_completion(&adsp->init_complete);
 	mutex_unlock(&adsp->mutex);
 }
 
@@ -1390,25 +1398,31 @@ static int tegra210_adsp_compr_open(struct snd_soc_component *component,
 	struct tegra210_adsp *adsp = snd_soc_component_get_drvdata(component);
 	struct tegra210_adsp_compr_rtd *prtd;
 	uint32_t fe_reg = rtd->dais[rtd->num_cpus]->id + 1;
-	int ret;
+	int ret = 0;
 	int i;
 
 	dev_vdbg(adsp->dev, "%s : DAI ID %d", __func__, rtd->dais[rtd->num_cpus]->id);
 
-	if (!adsp->init_done)
-		return -ENODEV;
+	mutex_lock(&adsp->mutex);
+	if (!adsp->init_done) {
+		ret = -ENODEV;
+		goto exit;
+	}
 
 	if (!adsp->pcm_path[fe_reg][cstream->direction].fe_reg ||
 		!adsp->pcm_path[fe_reg][cstream->direction].be_reg) {
 		dev_err(adsp->dev, "Broken Path%d - FE not linked to BE",
 			fe_reg);
-		return -EPIPE;
+		ret = -EPIPE;
+		goto exit;
 	}
 
 	prtd = devm_kzalloc(adsp->dev, sizeof(struct tegra210_adsp_compr_rtd),
 		GFP_KERNEL);
-	if (!prtd)
-		return -ENOMEM;
+	if (!prtd) {
+		ret = -ENOMEM;
+		goto exit;
+	}
 
 	/* Find out the APM connected with ADSP-FE DAI */
 	for (i = APM_IN_START; i <= APM_IN_END; i++) {
@@ -1427,7 +1441,8 @@ static int tegra210_adsp_compr_open(struct snd_soc_component *component,
 	if (!prtd->fe_apm) {
 		dev_err(adsp->dev, "No FE APM found\n");
 		devm_kfree(adsp->dev, prtd);
-		return -ENODEV;
+		ret = -ENODEV;
+		goto exit;
 	}
 
 	prtd->cstream = cstream;
@@ -1438,6 +1453,8 @@ static int tegra210_adsp_compr_open(struct snd_soc_component *component,
 		dev_err(adsp->dev, "%s pm_runtime_get_sync error 0x%x\n",
 			__func__, ret);
 	}
+exit:
+	mutex_unlock(&adsp->mutex);
 	return ret;
 }
 
@@ -2569,7 +2586,10 @@ static int tegra210_adsp_init_get(struct snd_kcontrol *kcontrol,
 	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
 	struct tegra210_adsp *adsp = snd_soc_component_get_drvdata(cmpnt);
 
+	mutex_lock(&adsp->mutex);
 	ucontrol->value.enumerated.item[0] = adsp->init_done;
+	mutex_unlock(&adsp->mutex);
+
 	return 0;
 }
 
@@ -2580,9 +2600,6 @@ static int tegra210_adsp_init_put(struct snd_kcontrol *kcontrol,
 	struct tegra210_adsp *adsp = snd_soc_component_get_drvdata(cmpnt);
 	int init = ucontrol->value.enumerated.item[0];
 	int ret = 0;
-
-	if (init == adsp->init_done)
-		return 0;
 
 	if (init) {
 		ret = tegra210_adsp_init(adsp);
@@ -4508,6 +4525,8 @@ static int tegra210_adsp_audio_probe(struct platform_device *pdev)
 		return -ENOMEM;
 	}
 
+	mutex_init(&adsp->mutex);
+	init_completion(&adsp->init_complete);
 	dev_set_drvdata(&pdev->dev, adsp);
 	adsp->dev = &pdev->dev;
 	adsp->soc_data = (struct adsp_soc_data *)match->data;
@@ -4540,7 +4559,6 @@ static int tegra210_adsp_audio_probe(struct platform_device *pdev)
 	/* TODO: Add mixer control to set I2S playback rate */
 	adsp->i2s_rate = 48000;
 	INIT_WORK(&adsp->override_freq_work, tegra_adsp_override_freq_worker);
-	mutex_init(&adsp->mutex);
 	pdev->dev.dma_mask = &tegra_dma_mask;
 	pdev->dev.coherent_dma_mask = tegra_dma_mask;
 
@@ -4763,6 +4781,20 @@ static int tegra210_adsp_audio_remove(struct platform_device *pdev)
 	return 0;
 }
 
+
+static void tegra210_adsp_audio_platform_shutdown(
+	struct platform_device *pdev)
+{
+	struct tegra210_adsp *adsp = dev_get_drvdata(&pdev->dev);
+
+	if (!wait_for_completion_timeout(&adsp->init_complete,
+		msecs_to_jiffies(ADSP_SHUTDOWN_TIMEOUT))) {
+		dev_err(&pdev->dev, "Wait on init complete timed out");
+		return;
+	}
+	tegra210_adsp_deinit(adsp);
+}
+
 static const struct dev_pm_ops tegra210_adsp_pm_ops = {
 	SET_RUNTIME_PM_OPS(tegra210_adsp_runtime_suspend,
 			   tegra210_adsp_runtime_resume, NULL)
@@ -4781,6 +4813,7 @@ static struct platform_driver tegra210_adsp_audio_driver = {
 	},
 	.probe = tegra210_adsp_audio_probe,
 	.remove = tegra210_adsp_audio_remove,
+	.shutdown = tegra210_adsp_audio_platform_shutdown,
 };
 module_platform_driver(tegra210_adsp_audio_driver);
 
