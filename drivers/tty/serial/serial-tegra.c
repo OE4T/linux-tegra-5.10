@@ -1156,6 +1156,16 @@ static void tegra_uart_hw_deinit(struct tegra_uart_port *tup)
 	tup->rx_in_progress = 0;
 	tup->tx_in_progress = 0;
 
+	/*
+	 * DMA channels keeps showing as BUSY as the controller is configured
+	 * in DMA mode. Causing DMA driver to fail while freeing DMA channel.
+	 * Reset the UART controller before freeing DMA channels.
+	 */
+	reset_control_assert(tup->rst);
+	udelay(10);
+	reset_control_deassert(tup->rst);
+	mdelay(20);
+
 	if (!tup->use_rx_pio)
 		tegra_uart_dma_channel_free(tup, true);
 	if (!tup->use_tx_pio)
