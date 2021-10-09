@@ -350,8 +350,10 @@ static int32_t nvpva_task_dma_desc_mapping(struct pva_submit_task *task,
 			dma_desc->frda |= (addr & 0x3FFC0) >> 6U;
 		}
 		/* DMA_DESC_NDTM_CNTL0 */
-		/* TODO: Need to handle this parameter */
-		dma_desc->cb_ext = 0U;
+		dma_desc->cb_ext = (((umd_dma_desc->srcCbStart >> 16) & 0x1) << 0)
+			| (((umd_dma_desc->dstCbStart >> 16) & 0x1) << 2)
+			| (((umd_dma_desc->srcCbSize >> 16) & 0x1) << 4)
+			| (((umd_dma_desc->dstCbSize >> 16) & 0x1) << 6);
 		/* DMA_DESC_NS1_ADV & DMA_DESC_ST1_ADV */
 		dma_desc->srcpt1_cntl =
 			(((umd_dma_desc->srcRpt1 & 0xFF) << 24U) |
