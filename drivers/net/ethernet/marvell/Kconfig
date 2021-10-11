@@ -176,6 +176,13 @@ config SKY2_DEBUG
 
 	  If unsure, say N.
 
+config OAK
+	tristate "Marvell SPRUCE/OAK PCI driver support"
+	depends on PCI
+	help
+	  This flag enables PCI driver support for 88Q6113 and 88Q5072
+	  11 port ethernet switch. Port 11 of the switch supports the
+	  PCI interface.
 
 source "drivers/net/ethernet/marvell/octeontx2/Kconfig"
 source "drivers/net/ethernet/marvell/prestera/Kconfig"
