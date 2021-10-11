@@ -48,7 +48,7 @@ int nvgpu_get_nvhost_dev(struct gk20a *g)
 	if (!np) {
 		nvgpu_warn(g, "Failed to find host1x, syncpt support disabled");
 		nvgpu_set_enabled(g, NVGPU_HAS_SYNCPOINTS, false);
-		return 0;
+		return -ENOSYS;
 	}
 
 	host1x_pdev = of_find_device_by_node(np);

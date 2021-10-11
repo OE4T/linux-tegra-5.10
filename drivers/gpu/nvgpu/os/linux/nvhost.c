@@ -54,7 +54,7 @@ int nvgpu_get_nvhost_dev(struct gk20a *g)
 			nvgpu_warn(g, "host1x reference not found. assuming no syncpoints support");
 			nvgpu_set_enabled(g, NVGPU_HAS_SYNCPOINTS, false);
 		}
-		return 0;
+		return -ENOSYS;
 	}
 
 	g->nvhost = nvgpu_kzalloc(g, sizeof(struct nvgpu_nvhost_dev));
