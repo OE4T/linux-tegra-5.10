@@ -818,9 +818,7 @@ int oak_net_verify_rx_checksum(oak_rx_chan_t* rxc, oak_rxs_t* rsr)
 
             if (rsr->l3_ipv4 == 1 && rsr->ipv4_hdr_ok == 1)
             {
-                //rc_1 = CHECKSUM_PARTIAL;
-		/* Making below change as per Marvell case 00248835 comment CC-393393 */
-                rc_1 = CHECKSUM_NONE;
+                rc_1 = CHECKSUM_PARTIAL;
                 /* UserCode{8288A2FC-CFFE-4f89-96DB-4A66044EB029}:1377JihQqw */
                 rxc->stat.rx_ip4_ok++;
                 /* UserCode{8288A2FC-CFFE-4f89-96DB-4A66044EB029} */
