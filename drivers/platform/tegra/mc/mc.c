@@ -79,7 +79,7 @@ int mc_get_carveout_info(struct mc_carveout_info *inf, int *nr,
 	do {								\
 		(infop)->desc = co;					\
 		(infop)->base = mc_readl(carveout ## _BOM) |		\
-			((u64)mc_readl(carveout ## _BOM_HI) & 0x3) << 32; \
+			((u64)mc_readl(carveout ## _BOM_HI) & 0xFF) << 32; \
 		(infop)->size = mc_readl(carveout ## _SIZE_128KB);	\
 		(infop)->size <<= 17; /* Convert to bytes. */		\
 	} while (0)
