@@ -15,6 +15,7 @@
 #include <linux/pci-epf.h>
 #include <linux/pcie_dma.h>
 #include <linux/platform_device.h>
+#include <linux/kthread.h>
 
 static struct pcie_epf_dma *gepfnv;
 
@@ -28,7 +29,16 @@ struct pcie_epf_dma {
 
 	u32 dma_size;
 	u32 stress_count;
+	u32 async_count;
 
+	struct task_struct *wr0_task;
+	struct task_struct *wr1_task;
+	struct task_struct *wr2_task;
+	struct task_struct *wr3_task;
+	struct task_struct *rd0_task;
+	struct task_struct *rd1_task;
+	u8 task_done;
+	wait_queue_head_t task_wq;
 	wait_queue_head_t wr_wq[DMA_WR_CHNL_NUM];
 	wait_queue_head_t rd_wq[DMA_RD_CHNL_NUM];
 	unsigned long wr_busy;
@@ -37,6 +47,10 @@ struct pcie_epf_dma {
 	ktime_t wr_end_time[DMA_WR_CHNL_NUM];
 	ktime_t rd_start_time[DMA_RD_CHNL_NUM];
 	ktime_t rd_end_time[DMA_RD_CHNL_NUM];
+	u32 wr_cnt[DMA_WR_CHNL_NUM + DMA_RD_CHNL_NUM];
+	u32 rd_cnt[DMA_WR_CHNL_NUM + DMA_RD_CHNL_NUM];
+	bool pcs[DMA_WR_CHNL_NUM + DMA_RD_CHNL_NUM];
+	bool async_dma;
 };
 
 struct edma_desc {
@@ -111,6 +125,58 @@ static irqreturn_t pcie_dma_epf_rd1_msi(int irq, void *arg)
 	return IRQ_HANDLED;
 }
 
+void pcie_async_dma_handler(struct pcie_epf_dma *epfnv)
+{
+	struct pcie_epf_bar0 *epf_bar0 = (struct pcie_epf_bar0 *)
+					 epfnv->bar0_virt;
+	u64 llp_base, llp_iova;
+	u32 llp_idx, ridx;
+	int i;
+
+	for (i = 0; i < DMA_WR_CHNL_NUM; i++) {
+		llp_iova = dma_channel_rd(epfnv->dma_base, i,
+					  DMA_LLP_HIGH_OFF_WRCH);
+		llp_iova = (llp_iova << 32);
+		llp_iova |= dma_channel_rd(epfnv->dma_base, i,
+					   DMA_LLP_LOW_OFF_WRCH);
+		llp_base = epf_bar0->ep_phy_addr + DMA_LL_WR_OFFSET(i);
+		llp_idx = ((llp_iova - llp_base) / sizeof(struct dma_ll));
+		llp_idx = llp_idx % DMA_ASYNC_LL_SIZE;
+
+		if (!llp_idx)
+			continue;
+
+		ridx = epfnv->rd_cnt[i] % DMA_ASYNC_LL_SIZE;
+
+		while (llp_idx != ridx) {
+			epfnv->rd_cnt[i]++;
+			ridx = epfnv->rd_cnt[i] % DMA_ASYNC_LL_SIZE;
+		}
+	}
+
+	for (i = 0; i < DMA_RD_CHNL_NUM; i++) {
+		llp_iova = dma_channel_rd(epfnv->dma_base, i,
+					  DMA_LLP_HIGH_OFF_RDCH);
+		llp_iova = (llp_iova << 32);
+		llp_iova |= dma_channel_rd(epfnv->dma_base, i,
+					   DMA_LLP_LOW_OFF_RDCH);
+		llp_base = epf_bar0->ep_phy_addr + DMA_LL_RD_OFFSET(i);
+		llp_idx = ((llp_iova - llp_base) / sizeof(struct dma_ll));
+		llp_idx = llp_idx % DMA_ASYNC_LL_SIZE;
+
+		if (!llp_idx)
+			continue;
+
+		ridx = epfnv->rd_cnt[DMA_WR_CHNL_NUM + i] % DMA_ASYNC_LL_SIZE;
+
+		while (llp_idx != ridx) {
+			epfnv->rd_cnt[DMA_WR_CHNL_NUM + i]++;
+			ridx = epfnv->rd_cnt[DMA_WR_CHNL_NUM + i] %
+				DMA_ASYNC_LL_SIZE;
+		}
+	}
+}
+
 static irqreturn_t pcie_dma_epf_irq_handler(int irq, void *arg)
 {
 	struct pcie_epf_dma *epfnv = (struct pcie_epf_dma *)arg;
@@ -137,6 +203,14 @@ static irqreturn_t pcie_dma_epf_irq_handler(int irq, void *arg)
 			epfnv->rd_busy &= ~(BIT(bit));
 			wake_up(&epfnv->rd_wq[bit]);
 		}
+	}
+
+	if (epfnv->async_dma) {
+		val = dma_common_rd(epfnv->dma_base, DMA_WRITE_INT_STATUS_OFF);
+		dma_common_wr(epfnv->dma_base, val, DMA_WRITE_INT_CLEAR_OFF);
+		val = dma_common_rd(epfnv->dma_base, DMA_READ_INT_STATUS_OFF);
+		dma_common_wr(epfnv->dma_base, val, DMA_READ_INT_CLEAR_OFF);
+		pcie_async_dma_handler(epfnv);
 	}
 
 	return IRQ_HANDLED;
@@ -935,6 +1009,292 @@ fail:
 	return 0;
 }
 
+static int async_dma_test_fn(struct pcie_epf_dma *epfnv, int ch)
+{
+	struct pcie_epf_bar0 *epf_bar0 = (struct pcie_epf_bar0 *)
+					 epfnv->bar0_virt;
+	dma_addr_t ep_dma_addr, rp_dma_addr, phy_addr;
+	struct dma_ll *dma_ll_virt;
+	u32 nents = epfnv->async_count, count = 0, idx, i;
+
+	ep_dma_addr = epf_bar0->ep_phy_addr + BAR0_DMA_BUF_OFFSET +
+		      (ch * DMA_ASYNC_LL_SIZE * SZ_64K);
+	rp_dma_addr = epf_bar0->rp_phy_addr + BAR0_DMA_BUF_OFFSET +
+		      (ch * DMA_ASYNC_LL_SIZE * SZ_64K);
+
+	epfnv->wr_cnt[ch] = 0;
+	epfnv->rd_cnt[ch] = 0;
+
+	dma_ll_virt = (struct dma_ll *)
+		      (epfnv->bar0_virt + DMA_LL_WR_OFFSET(ch));
+	phy_addr = epf_bar0->ep_phy_addr + DMA_LL_WR_OFFSET(ch);
+	dma_ll_virt[DMA_ASYNC_LL_SIZE].src_low = lower_32_bits(phy_addr);
+	dma_ll_virt[DMA_ASYNC_LL_SIZE].src_high = upper_32_bits(phy_addr);
+	dma_ll_virt[DMA_ASYNC_LL_SIZE].ele.llp = 1;
+	dma_ll_virt[DMA_ASYNC_LL_SIZE].ele.tcb = 1;
+	epfnv->pcs[ch] = 1;
+	dma_ll_virt[DMA_ASYNC_LL_SIZE].ele.cb = !epfnv->pcs[ch];
+
+	for (i = 0; i < nents; i++) {
+		while ((epfnv->wr_cnt[ch] - epfnv->rd_cnt[ch] + 2) >=
+			DMA_ASYNC_LL_SIZE) {
+			msleep(100);
+			if (++count == 100) {
+				dev_info(epfnv->fdev, "%s: CH: %d LL is full wr_cnt: %u rd_cnt: %u\n",
+					 __func__, ch, epfnv->wr_cnt[ch],
+					 epfnv->rd_cnt[ch]);
+				goto fail;
+			}
+		}
+		count = 0;
+
+		idx = i % DMA_ASYNC_LL_SIZE;
+
+		dma_ll_virt[idx].size = SZ_64K;
+		if (ch < DMA_WR_CHNL_NUM) {
+			phy_addr = ep_dma_addr +
+					(idx % DMA_ASYNC_LL_SIZE) * SZ_64K;
+			dma_ll_virt[idx].src_low = lower_32_bits(phy_addr);
+			dma_ll_virt[idx].src_high = upper_32_bits(phy_addr);
+			phy_addr = rp_dma_addr +
+					(idx % DMA_ASYNC_LL_SIZE) * SZ_64K;
+			dma_ll_virt[idx].dst_low = lower_32_bits(phy_addr);
+			dma_ll_virt[idx].dst_high = upper_32_bits(phy_addr);
+		} else {
+			phy_addr = rp_dma_addr +
+					(idx % DMA_ASYNC_LL_SIZE) * SZ_64K;
+			dma_ll_virt[idx].src_low = lower_32_bits(phy_addr);
+			dma_ll_virt[idx].src_high = upper_32_bits(phy_addr);
+			phy_addr = ep_dma_addr +
+					(idx % DMA_ASYNC_LL_SIZE) * SZ_64K;
+			dma_ll_virt[idx].dst_low = lower_32_bits(phy_addr);
+			dma_ll_virt[idx].dst_high = upper_32_bits(phy_addr);
+		}
+		dma_ll_virt[idx].ele.lie = 1;
+		/*
+		 * DMA desc should not be touched after CB bit set, add
+		 * write barrier to stop desc writes going out of order
+		 * wrt CB bit set.
+		 */
+		wmb();
+		dma_ll_virt[idx].ele.cb = epfnv->pcs[ch];
+		if (idx == (DMA_ASYNC_LL_SIZE - 1)) {
+			epfnv->pcs[ch] = !epfnv->pcs[ch];
+			dma_ll_virt[idx + 1].ele.cb  = epfnv->pcs[ch];
+		}
+		if (ch < DMA_WR_CHNL_NUM)
+			dma_common_wr(epfnv->dma_base, ch,
+				      DMA_WRITE_DOORBELL_OFF);
+		else
+			dma_common_wr(epfnv->dma_base, ch - DMA_WR_CHNL_NUM,
+				      DMA_READ_DOORBELL_OFF);
+		epfnv->wr_cnt[ch]++;
+		/* Print status for very 10000 iterations */
+		if ((i % 10000) == 0)
+			dev_info(epfnv->fdev, "%s: CH: %u async DMA test itr: %u done, wr_cnt: %u rd_cnt: %u\n",
+				 __func__, ch, i, epfnv->wr_cnt[ch],
+				 epfnv->rd_cnt[ch]);
+	}
+	count = 0;
+	while (epfnv->wr_cnt[ch] != epfnv->rd_cnt[ch]) {
+		msleep(20);
+		if (++count == 100) {
+			dev_info(epfnv->fdev, "%s: CH: %d async DMA test failed, wr_cnt: %u rd_cnt: %u\n",
+				 __func__, ch, epfnv->wr_cnt[ch],
+				 epfnv->rd_cnt[ch]);
+			goto fail;
+		}
+	}
+	dev_info(epfnv->fdev, "%s: CH: %d async DMA success\n", __func__, ch);
+
+fail:
+	epfnv->wr_cnt[ch] = 0;
+	epfnv->rd_cnt[ch] = 0;
+
+	return 0;
+}
+
+static int async_wr0_work(void *data)
+{
+	struct pcie_epf_dma *epfnv = data;
+
+	async_dma_test_fn(epfnv, 0);
+
+	epfnv->task_done++;
+	wake_up(&epfnv->task_wq);
+
+	return 0;
+}
+
+static int async_wr1_work(void *data)
+{
+	struct pcie_epf_dma *epfnv = data;
+
+	async_dma_test_fn(epfnv, 1);
+
+	epfnv->task_done++;
+	wake_up(&epfnv->task_wq);
+
+	return 0;
+}
+
+static int async_wr2_work(void *data)
+{
+	struct pcie_epf_dma *epfnv = data;
+
+	async_dma_test_fn(epfnv, 2);
+
+	epfnv->task_done++;
+	wake_up(&epfnv->task_wq);
+
+	return 0;
+}
+
+static int async_wr3_work(void *data)
+{
+	struct pcie_epf_dma *epfnv = data;
+
+	async_dma_test_fn(epfnv, 3);
+
+	epfnv->task_done++;
+	wake_up(&epfnv->task_wq);
+
+	return 0;
+}
+
+static int async_rd0_work(void *data)
+{
+	struct pcie_epf_dma *epfnv = data;
+
+	async_dma_test_fn(epfnv, 4);
+
+	epfnv->task_done++;
+	wake_up(&epfnv->task_wq);
+
+	return 0;
+}
+
+static int async_rd1_work(void *data)
+{
+	struct pcie_epf_dma *epfnv = data;
+
+	async_dma_test_fn(epfnv, 5);
+
+	epfnv->task_done++;
+	wake_up(&epfnv->task_wq);
+
+	return 0;
+}
+
+static int async_dma_test(struct seq_file *s, void *data)
+{
+	struct pcie_epf_dma *epfnv = (struct pcie_epf_dma *)
+				     dev_get_drvdata(s->private);
+	struct pcie_epf_bar0 *epf_bar0 = (struct pcie_epf_bar0 *)
+					 epfnv->bar0_virt;
+	dma_addr_t phy_addr;
+	int i;
+
+	epfnv->task_done = 0;
+	epfnv->async_dma = true;
+
+	edma_init(epfnv, 1);
+	/* Clean DMA LL all 6 channels */
+	memset(epfnv->bar0_virt + DMA_LL_WR_OFFSET(0), 0, 6 * DMA_LL_SIZE);
+	edma_ll_init(epfnv);
+
+	/* Program DMA LL base address in DMA LL pointer register */
+	for (i = 0; i < DMA_WR_CHNL_NUM; i++) {
+		phy_addr = epf_bar0->ep_phy_addr + DMA_LL_WR_OFFSET(i);
+		dma_channel_wr(epfnv->dma_base, i, lower_32_bits(phy_addr),
+			       DMA_LLP_LOW_OFF_WRCH);
+		dma_channel_wr(epfnv->dma_base, i, upper_32_bits(phy_addr),
+			       DMA_LLP_HIGH_OFF_WRCH);
+	}
+
+	for (i = 0; i < DMA_RD_CHNL_NUM; i++) {
+		phy_addr = epf_bar0->ep_phy_addr + DMA_LL_RD_OFFSET(i);
+		dma_channel_wr(epfnv->dma_base, i, lower_32_bits(phy_addr),
+			       DMA_LLP_LOW_OFF_RDCH);
+		dma_channel_wr(epfnv->dma_base, i, upper_32_bits(phy_addr),
+			       DMA_LLP_HIGH_OFF_RDCH);
+	}
+
+	epfnv->wr0_task = kthread_create_on_cpu(async_wr0_work, epfnv, 0,
+						"async_wr0_work");
+	if (IS_ERR(epfnv->wr0_task)) {
+		dev_err(epfnv->fdev, "failed to create async_wr0 thread\n");
+		goto wr0_task;
+	}
+	epfnv->wr1_task = kthread_create_on_cpu(async_wr1_work, epfnv, 1,
+						"async_wr1_work");
+	if (IS_ERR(epfnv->wr1_task)) {
+		dev_err(epfnv->fdev, "failed to create async_wr1 thread\n");
+		goto wr1_task;
+	}
+	epfnv->wr2_task = kthread_create_on_cpu(async_wr2_work, epfnv, 2,
+						"async_wr2_work");
+	if (IS_ERR(epfnv->wr2_task)) {
+		dev_err(epfnv->fdev, "failed to create async_wr2 thread\n");
+		goto wr2_task;
+	}
+	epfnv->wr3_task = kthread_create_on_cpu(async_wr3_work, epfnv, 3,
+						"async_wr3_work");
+	if (IS_ERR(epfnv->wr3_task)) {
+		dev_err(epfnv->fdev, "failed to create async_wr3 thread\n");
+		goto wr3_task;
+	}
+	epfnv->rd0_task = kthread_create_on_cpu(async_rd0_work, epfnv, 4,
+						"async_rd0_work");
+	if (IS_ERR(epfnv->rd0_task)) {
+		dev_err(epfnv->fdev, "failed to create async_rd0 thread\n");
+		goto rd0_task;
+	}
+	epfnv->rd1_task = kthread_create_on_cpu(async_rd1_work, epfnv, 5,
+						"async_rd1_work");
+	if (IS_ERR(epfnv->rd1_task)) {
+		dev_err(epfnv->fdev, "failed to create async_rd1 thread\n");
+		goto rd1_task;
+	}
+
+	init_waitqueue_head(&epfnv->task_wq);
+
+	wake_up_process(epfnv->wr0_task);
+	wake_up_process(epfnv->wr1_task);
+	wake_up_process(epfnv->wr2_task);
+	wake_up_process(epfnv->wr3_task);
+	wake_up_process(epfnv->rd0_task);
+	wake_up_process(epfnv->rd1_task);
+
+	wait_event(epfnv->task_wq,
+		   (epfnv->task_done == (DMA_WR_CHNL_NUM + DMA_RD_CHNL_NUM)));
+	dev_info(epfnv->fdev, "%s: Async DMA test done\n", __func__);
+
+	edma_ll_deinit(epfnv);
+	edma_deinit(epfnv);
+
+	epfnv->async_dma = false;
+	epfnv->task_done = 0;
+
+	return 0;
+
+rd1_task:
+	kthread_stop(epfnv->rd0_task);
+rd0_task:
+	kthread_stop(epfnv->wr3_task);
+wr3_task:
+	kthread_stop(epfnv->wr2_task);
+wr2_task:
+	kthread_stop(epfnv->wr1_task);
+wr1_task:
+	kthread_stop(epfnv->wr0_task);
+wr0_task:
+	epfnv->async_dma = false;
+	epfnv->task_done = 0;
+
+	return 0;
+}
+
 static void init_debugfs(struct pcie_epf_dma *epfnv)
 {
 	debugfs_create_devm_seqfile(epfnv->fdev, "perf_test", epfnv->debugfs,
@@ -946,11 +1306,17 @@ static void init_debugfs(struct pcie_epf_dma *epfnv)
 	debugfs_create_devm_seqfile(epfnv->fdev, "sanity_test", epfnv->debugfs,
 				    sanity_test);
 
+	debugfs_create_devm_seqfile(epfnv->fdev, "async_dma_test",
+				    epfnv->debugfs, async_dma_test);
+
 	debugfs_create_u32("dma_size", 0644, epfnv->debugfs, &epfnv->dma_size);
 	epfnv->dma_size = SZ_64K;
 	debugfs_create_u32("stress_count", 0644, epfnv->debugfs,
 			   &epfnv->stress_count);
 	epfnv->stress_count = DEFAULT_STRESS_COUNT;
+	debugfs_create_u32("async_count", 0644, epfnv->debugfs,
+			   &epfnv->async_count);
+	epfnv->async_count = 4096;
 }
 
 static void pcie_dma_epf_write_msi_msg(struct msi_desc *desc,

@@ -20,6 +20,7 @@
 #define  DMA_LL_RD_OFFSET(i)	(DMA_LL_WR_OFFSET(4) + ((i) * DMA_LL_SIZE))
 #define  DMA_LL_MIN_SIZE	1
 #define  DMA_LL_DEFAULT_SIZE	8
+#define  DMA_ASYNC_LL_SIZE	160
 
 #define  BAR0_MSI_OFFSET	SZ_64K
 
