@@ -117,6 +117,14 @@
 		compatible = "nvidia,tegra23x-cpuidle-debugfs";
 		status = "okay";
 	};
+
+	tegra-hsp@3d00000 {
+		status = "okay";
+	};
+
+	aon@c000000 {
+		status = "okay";
+	};
 };
 
 #include "tegra234-disabled_nodes.dtsi"
