@@ -17,6 +17,19 @@
 # Makefile for the Marvell(R) YukonXG PCI Express ethernet driver
 #
 
-obj-$(CONFIG_OAK) := oak_pci.o
+obj-m := oak_pci.o
 
 oak_pci-objs := oak.o oak_net.o oak_ctl.o oak_irq.o oak_ethtool.o oak_unimac.o
+
+EXTRA_CFLAGS += -DKERNEL
+
+ifeq ($(CONFIG_OAK_DEBUG),y)
+EXTRA_CFLAGS += -DDEBUG -DSIMULATION -DUNIMAC_MQ_RR
+endif
+
+clean:
+	rm -f core *.o *.a *.s *.ko .mrvl* .oak* .*.o.cmd Module.symvers Module.markers oak_pci.mod.c
+
+clobber: clean
+	rm -f *.log
+	rm -rf .tmp_versions
