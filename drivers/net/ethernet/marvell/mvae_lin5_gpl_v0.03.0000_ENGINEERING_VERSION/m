@@ -1,0 +1,9 @@
+
+
+KDIR=/lib/modules/5.4.2/build
+
+CONFIG_OAK_DEBUG=y
+export CONFIG_OAK_DEBUG
+
+make -C $KDIR M=`pwd` modules 
+
