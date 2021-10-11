@@ -72,44 +72,6 @@ int test_free_env(struct unit_module *m,
 			struct gk20a *g, void *args);
 
 /**
- * Test specification for: test_read_ptimer
- *
- * Description: Verify the read_ptimer API.
- *
- * Test Type: Feature Based
- *
- * Targets: gops_ptimer.read_ptimer, gk20a_read_ptimer
- *
- * Input: None
- *
- * Steps:
- * - Test case where the ptimer time values do not wrap.
- *   - Write values to ptimer regs timer_time_0 and timer_time_1 in mockio
- *     register space.
- *   - Call read_timer API.
- *   - Verify the expected value is returned.
- * - Test case where ptimer time values wrap once.
- *   - Configure mockio so that the timer_time_1 register reads a different
- *     value after the 1st read, but is consistent after 2nd read.
- *   - Call read_timer API.
- *   - Verify the expected value is returned.
-  * - Test case where ptimer time values wrap once.
- *   - Configure mockio so that the timer_time_1 register reads a different
- *     value for up to 4 reads.
- *   - Call read_timer API.
- *   - Verify API returns an error.
- * - Test parameter checking of the API
- *   - Call read_timer API with a NULL pointer for the time parameter.
- *   - Verify API returns an error.
- *
- * Output:
- * - UNIT_FAIL if encounters an error creating reg space
- * - UNIT_SUCCESS otherwise
- */
-int test_read_ptimer(struct unit_module *m,
-			struct gk20a *g, void *args);
-
-/**
  * Test specification for: test_ptimer_isr
  *
  * Description: Verify the ptimer isr API. The ISR only logs the errors and

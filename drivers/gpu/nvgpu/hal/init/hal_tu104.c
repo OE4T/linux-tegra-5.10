@@ -1413,8 +1413,8 @@ static const struct gops_bus tu104_ops_bus = {
 #ifdef CONFIG_NVGPU_LS_PMU
 static const struct gops_ptimer tu104_ops_ptimer = {
 	.isr = gk20a_ptimer_isr,
-	.read_ptimer = gk20a_read_ptimer,
 #ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
+	.read_ptimer = gk20a_read_ptimer,
 	.get_timestamps_zipper = nvgpu_get_timestamps_zipper,
 #endif
 #ifdef CONFIG_NVGPU_DEBUGGER

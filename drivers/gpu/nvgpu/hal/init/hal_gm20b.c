@@ -968,8 +968,8 @@ static const struct gops_bus gm20b_ops_bus = {
 
 static const struct gops_ptimer gm20b_ops_ptimer = {
 	.isr = gk20a_ptimer_isr,
-	.read_ptimer = gk20a_read_ptimer,
 #ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
+	.read_ptimer = gk20a_read_ptimer,
 	.get_timestamps_zipper = nvgpu_get_timestamps_zipper,
 #endif
 };

@@ -75,6 +75,7 @@ void gk20a_ptimer_isr(struct gk20a *g)
 		error_addr, fecs_errcode);
 }
 
+#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 int gk20a_read_ptimer(struct gk20a *g, u64 *value)
 {
 	const unsigned int max_iterations = 3;
@@ -115,3 +116,4 @@ int gk20a_read_ptimer(struct gk20a *g, u64 *value)
 	nvgpu_err(g, "failed to read ptimer");
 	return -EBUSY;
 }
+#endif

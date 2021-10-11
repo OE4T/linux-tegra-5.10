@@ -27,6 +27,8 @@
 struct gk20a;
 
 void gk20a_ptimer_isr(struct gk20a *g);
+#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 int gk20a_read_ptimer(struct gk20a *g, u64 *value);
+#endif /* CONFIG_NVGPU_IOCTL_NON_FUSA */
 
 #endif /* PTIMER_GK20A_H */

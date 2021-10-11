@@ -105,14 +105,11 @@ struct gops_ptimer {
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 
 	/**
-	 * Private HAL
-	 */
-	int (*read_ptimer)(struct gk20a *g, u64 *value);
-
-	/**
 	 * NON-FUSA HAL
 	 */
 #ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
+	int (*read_ptimer)(struct gk20a *g, u64 *value);
+
 	int (*get_timestamps_zipper)(struct gk20a *g,
 			u32 source_id, u32 count,
 			struct nvgpu_cpu_time_correlation_sample *samples);

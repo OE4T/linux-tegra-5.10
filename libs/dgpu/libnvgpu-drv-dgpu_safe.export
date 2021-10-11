@@ -26,7 +26,6 @@ gk20a_mm_l2_invalidate
 gk20a_ptimer_isr
 gk20a_ramin_alloc_size
 gk20a_ramin_base_shift
-gk20a_read_ptimer
 gk20a_runlist_length_max
 gk20a_runlist_hw_submit
 gk20a_runlist_wait_pending

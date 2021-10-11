@@ -87,7 +87,6 @@ int test_setup_env(struct unit_module *m,
 			  struct gk20a *g, void *args)
 {
 	/* Setup HAL */
-	g->ops.ptimer.read_ptimer = gk20a_read_ptimer;
 	g->ops.ptimer.isr = gk20a_ptimer_isr;
 
 	g->ops.cic_mon.init = gv11b_cic_mon_init;
@@ -126,68 +125,6 @@ int test_free_env(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-int test_read_ptimer(struct unit_module *m,
-			struct gk20a *g, void *args)
-{
-	int ret = UNIT_SUCCESS;
-	u32 timer0; /* low bits */
-	u32 timer1; /* high bits */
-	u64 time;
-	int err; /* return from API */
-
-	/* Standard, successful, easy case where there's no wrap */
-	timer0 = 1;
-	timer1 = 2;
-	nvgpu_posix_io_writel_reg_space(g, timer_time_0_r(), timer0);
-	timer1_index = 0;
-	timer1_values[timer1_index] = timer1;
-	timer1_values[timer1_index + 1] = timer1;
-	err = g->ops.ptimer.read_ptimer(g, &time);
-	if ((err != 0) || (time != ((u64)timer1 << 32 | timer0))) {
-		unit_err(m, "ptimer read_timer failed simple test, err=%d, time=0x%016llx\n",
-			 err, time);
-		ret = UNIT_FAIL;
-	}
-
-	/* Wrap timer1 once */
-	timer0 = 1;
-	nvgpu_posix_io_writel_reg_space(g, timer_time_0_r(), timer0);
-	timer1 = 3;
-	timer1_index = 0;
-	timer1_values[timer1_index] = timer1 + 1;
-	timer1_values[timer1_index + 1] = timer1;
-	timer1_values[timer1_index + 2] = timer1;
-	timer1_values[timer1_index + 3] = timer1 - 1;
-	err = g->ops.ptimer.read_ptimer(g, &time);
-	if ((err != 0) || (time != ((u64)timer1 << 32 | timer0))) {
-		unit_err(m, "ptimer read_timer failed single wrap test, err=%d, time=0x%016llx\n",
-			 err, time);
-		ret = UNIT_FAIL;
-	}
-
-	/* Wrap timer1 every time to timeout */
-	timer0 = 1;
-	nvgpu_posix_io_writel_reg_space(g, timer_time_0_r(), timer0);
-	timer1_index = 0;
-	timer1_values[timer1_index] = 4;
-	timer1_values[timer1_index + 1] = 3;
-	timer1_values[timer1_index + 2] = 2;
-	timer1_values[timer1_index + 3] = 1;
-	err = g->ops.ptimer.read_ptimer(g, &time);
-	if (err == 0) {
-		unit_err(m, "ptimer read_timer failed multiple wrap test\n");
-		ret = UNIT_FAIL;
-	}
-
-	/* branch testing */
-	err = g->ops.ptimer.read_ptimer(g, NULL);
-	if (err == 0) {
-		unit_err(m, "ptimer read_timer failed branch test\n");
-		ret = UNIT_FAIL;
-	}
-
-	return ret;
-}
 
 static u32 received_error_code;
 static void mock_decode_error_code(struct gk20a *g, u32 error_code)
@@ -315,7 +252,6 @@ int test_ptimer_scaling(struct unit_module *m,
 
 struct unit_module_test ptimer_tests[] = {
 	UNIT_TEST(ptimer_setup_env,	test_setup_env,		NULL, 0),
-	UNIT_TEST(ptimer_read_ptimer,	test_read_ptimer,	NULL, 0),
 	UNIT_TEST(ptimer_isr,		test_ptimer_isr,	NULL, 0),
 	UNIT_TEST(ptimer_scaling,	test_ptimer_scaling,	NULL, 0),
 	UNIT_TEST(ptimer_free_env,	test_free_env,		NULL, 0),

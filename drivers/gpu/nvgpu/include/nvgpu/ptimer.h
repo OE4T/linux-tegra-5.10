@@ -32,10 +32,12 @@
 
 struct gk20a;
 
+#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 struct nvgpu_cpu_time_correlation_sample {
 	u64 cpu_timestamp;
 	u64 gpu_timestamp;
 };
+#endif
 
 /**
  * @defgroup NVGPU_PTIMER_DEFINES

@@ -1059,8 +1059,8 @@ static const struct gops_bus gp10b_ops_bus = {
 
 static const struct gops_ptimer gp10b_ops_ptimer = {
 	.isr = gk20a_ptimer_isr,
-	.read_ptimer = gk20a_read_ptimer,
 #ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
+	.read_ptimer = gk20a_read_ptimer,
 	.get_timestamps_zipper = nvgpu_get_timestamps_zipper,
 #endif
 #ifdef CONFIG_NVGPU_DEBUGGER
