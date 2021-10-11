@@ -576,15 +576,12 @@ int oak_init_software(struct pci_dev* pdev)
             netdev->max_mtu = OAK_MAX_JUMBO_FRAME_SIZE - (ETH_HLEN + ETH_FCS_LEN);
             spin_lock_init(&oak->lock);
             /* UserCode{38D79BE3-9956-4d88-8279-6757E485A1FE} */
-	    /* Assign random MAC address */
-	    eth_hw_addr_random(netdev);
         }
     }
     else
     {
         return_2 = err = -ENOMEM;
     }
-
     /* UserCode{5AF52ED9-43FE-475f-84BF-964C2C4928A9}:mlR93Mg2NF */
     oakdbg(debug, PROBE, "pdev=%p ndev=%p err=%d", pdev, pci_get_drvdata(pdev), err);
     /* UserCode{5AF52ED9-43FE-475f-84BF-964C2C4928A9} */
