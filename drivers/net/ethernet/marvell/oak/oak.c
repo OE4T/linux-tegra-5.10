@@ -51,8 +51,8 @@ static struct net_device_ops oak_netdev_ops = {
     .ndo_change_mtu = oak_net_esu_ena_mtu,
 };
 int debug = 0;
-int txs = 2048;
-int rxs = 2048;
+int txs = 1024;
+int rxs = 1024;
 int chan = MAX_NUM_OF_CHANNELS;
 int rto = 100;
 int mhdr = 0;
