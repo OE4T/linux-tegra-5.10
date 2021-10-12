@@ -371,7 +371,7 @@ struct nvmap_device {
 	struct nvmap_carveout_node *heaps;
 	int nr_heaps;
 	int nr_carveouts;
-#if defined(NVMAP_CONFIG_PAGE_POOLS) || defined(NVMAP_LOADABLE_MODULE)
+#ifdef NVMAP_CONFIG_PAGE_POOLS
 	struct nvmap_page_pool pool;
 #endif
 	struct list_head clients;
