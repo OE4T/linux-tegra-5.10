@@ -36,6 +36,7 @@
 #include <linux/module.h>
 #include <linux/reset.h>
 #include <linux/slab.h>
+#include <linux/smp.h>
 #include <linux/clk.h>
 #include <linux/err.h>
 #include <linux/tcp.h>
@@ -84,6 +85,10 @@
  * @brief Size of Ethernet IRQ name.
  */
 #define ETHER_IRQ_NAME_SZ		32
+/**
+ * @brief CPU to handle ethernet common interrupt
+ */
+#define ETHER_COMMON_IRQ_DEFAULT_CPU	4U
 
 /**
  * @addtogroup MAC address DT string
@@ -466,6 +471,10 @@ struct ether_priv_data {
 	unsigned int common_irq_alloc_mask;
 	/** Common IRQ number for MAC */
 	int common_irq;
+	/** CPU affinity mask for Common IRQ */
+	cpumask_t common_isr_cpu_mask;
+	/** CPU ID for handling Common IRQ */
+	unsigned int common_isr_cpu_id;
 	/** Array of DMA Transmit channel IRQ numbers */
 	int tx_irqs[ETHER_MAX_IRQS];
 	/** Array of DMA Receive channel IRQ numbers */
