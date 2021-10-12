@@ -21,6 +21,7 @@
 #include <linux/nvmap.h>
 #include <linux/rbtree.h>
 #include <linux/list.h>
+#include <linux/mman.h>
 
 #include <linux/nvscierror.h>
 #include <linux/nvsciipc_interface.h>
@@ -150,7 +151,8 @@ int nvmap_create_sci_ipc_id(struct nvmap_client *client,
 				struct nvmap_handle *h,
 				u32 flags,
 				u32 *sci_ipc_id,
-				NvSciIpcEndpointVuid peer_vuid)
+				NvSciIpcEndpointVuid peer_vuid,
+				bool is_ro)
 {
 	struct nvmap_sci_ipc_entry *new_entry;
 	struct nvmap_sci_ipc_entry *entry;
@@ -191,10 +193,9 @@ int nvmap_create_sci_ipc_id(struct nvmap_client *client,
 	}
 unlock:
 	mutex_unlock(&nvmapsciipc->mlock);
-	if (!ret) {
+	if (!ret)
 		(void)nvmap_handle_get(h);
-		get_dma_buf(h->dmabuf);
-	}
+
 	return ret;
 }
 
@@ -214,11 +215,12 @@ found:
 }
 
 int nvmap_get_handle_from_sci_ipc_id(struct nvmap_client *client, u32 flags,
-		u32 sci_ipc_id, NvSciIpcEndpointVuid localu_vuid, u32 *h)
+		u32 sci_ipc_id, NvSciIpcEndpointVuid localu_vuid, u32 *handle)
 {
 	struct nvmap_handle_ref *ref = NULL;
 	struct nvmap_sci_ipc_entry *entry;
-	struct nvmap_handle *h_org;
+	struct nvmap_handle *h;
+	bool is_ro = (flags == PROT_READ) ? true : false;
 	int ret = 0;
 	int fd;
 
@@ -238,20 +240,26 @@ int nvmap_get_handle_from_sci_ipc_id(struct nvmap_client *client, u32 flags,
 		goto unlock;
 	}
 
-	h_org = entry->handle;
+	h = entry->handle;
 
-	/* h->dmabuf can't be NULL anymore. Duplicate the handle. */
-	ref = nvmap_duplicate_handle(client, h_org, true, false);
+	if (is_ro && h->dmabuf_ro == NULL) {
+		h->dmabuf_ro = __nvmap_make_dmabuf(client, h, true);
+		if (IS_ERR(h->dmabuf_ro)) {
+			ret = PTR_ERR(h->dmabuf_ro);
+			goto unlock;
+		}
+	}
+
+	ref = nvmap_duplicate_handle(client, h, true, is_ro);
 	if (!ref) {
 		ret = -EINVAL;
 		goto unlock;
 	}
-	dma_buf_put(h_org->dmabuf);
-	nvmap_handle_put(h_org);
+	nvmap_handle_put(h);
 
-	fd = nvmap_get_dmabuf_fd(client, ref->handle, false);
-	*h = fd;
-	fd_install(fd, ref->handle->dmabuf->file);
+	fd = nvmap_get_dmabuf_fd(client, h, is_ro);
+	*handle = fd;
+	fd_install(fd, is_ro ? h->dmabuf_ro->file : h->dmabuf->file);
 
 	entry->refcount--;
 	if (entry->refcount == 0U) {

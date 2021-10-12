@@ -29,6 +29,7 @@
 #include <linux/vmalloc.h>
 #include <linux/highmem.h>
 #include <linux/mm.h>
+#include <linux/mman.h>
 
 #include <asm/io.h>
 #include <asm/memory.h>
@@ -965,6 +966,7 @@ int nvmap_ioctl_get_sci_ipc_id(struct file *filp, void __user *arg)
 	NvSciIpcEndpointVuid pr_vuid, lclu_vuid;
 	struct nvmap_handle *handle = NULL;
 	struct nvmap_sciipc_map op;
+	bool is_ro = false;
 	int ret = 0;
 
 	if (copy_from_user(&op, arg, sizeof(op))) {
@@ -978,13 +980,21 @@ int nvmap_ioctl_get_sci_ipc_id(struct file *filp, void __user *arg)
 		goto exit;
 	}
 
+	is_ro = is_nvmap_dmabuf_fd_ro(op.handle);
+
+	/* Cannot create RW handle from RO handle */
+	if (is_ro && (op.flags & PROT_WRITE) != 0) {
+		ret = -EPERM;
+		goto exit;
+	}
+
 	ret = nvmap_validate_sci_ipc_params(client, op.auth_token,
 		&pr_vuid, &lclu_vuid);
 	if (ret)
 		goto exit;
 
 	ret = nvmap_create_sci_ipc_id(client, handle, op.flags,
-			 &op.sci_ipc_id, pr_vuid);
+			 &op.sci_ipc_id, pr_vuid, is_ro);
 	if (ret)
 		goto exit;
 
