@@ -11,6 +11,7 @@
 #include <linux/regmap.h>
 #include <sound/core.h>
 #include <sound/soc.h>
+#include <sound/tlv.h>
 
 #include "tegra210_ahub.h"
 #include "tegra210_mbdrc.h"
@@ -344,6 +345,43 @@ static int tegra210_mbdrc_param_info(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
+static int tegra210_mbdrc_vol_get(struct snd_kcontrol *kcontrol,
+	struct snd_ctl_elem_value *ucontrol)
+{
+	struct soc_mixer_control *mc =
+		(struct soc_mixer_control *)kcontrol->private_value;
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra210_ope *ope = snd_soc_component_get_drvdata(cmpnt);
+	unsigned long long fls_val = 1ULL << fls(mc->max);
+	unsigned int mask = fls_val -  1;
+	int val;
+
+	regmap_read(ope->mbdrc_regmap, mc->reg, &val);
+
+	ucontrol->value.integer.value[0] = ((val >> mc->shift) -
+		TEGRA210_MBDRC_MASTER_VOL_MIN) & mask;
+
+	return 0;
+}
+
+static int tegra210_mbdrc_vol_put(struct snd_kcontrol *kcontrol,
+	struct snd_ctl_elem_value *ucontrol)
+{
+	struct soc_mixer_control *mc =
+		(struct soc_mixer_control *)kcontrol->private_value;
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra210_ope *ope = snd_soc_component_get_drvdata(cmpnt);
+	unsigned long long fls_val = 1ULL << fls(mc->max);
+	unsigned int mask = fls_val -  1;
+	unsigned int val;
+
+	val = (ucontrol->value.integer.value[0] & mask);
+	val = val + TEGRA210_MBDRC_MASTER_VOL_MIN;
+	val = val << mc->shift;
+
+	return regmap_write(ope->mbdrc_regmap, mc->reg, val);
+}
+
 static const char * const tegra210_mbdrc_mode_text[] = {
 	"bypass", "fullband", "dualband", "multiband"
 };
@@ -389,6 +427,8 @@ static const struct soc_enum tegra210_mbdrc_frame_size_enum =
 	TEGRA_MBDRC_BYTES_EXT(xname, xbase, TEGRA210_MBDRC_FILTER_COUNT, \
 		xshift, xmask, xinfo)
 
+static const DECLARE_TLV_DB_MINMAX(mdbrc_vol_tlv, -25600, 25500);
+
 static const struct snd_kcontrol_new tegra210_mbdrc_controls[] = {
 	SOC_ENUM_EXT("mbdrc peak-rms mode", tegra210_mbdrc_peak_rms_enum,
 		tegra210_mbdrc_get_enum, tegra210_mbdrc_put_enum),
@@ -406,15 +446,17 @@ static const struct snd_kcontrol_new tegra210_mbdrc_controls[] = {
 	SOC_SINGLE_EXT("mbdrc shift control", TEGRA210_MBDRC_CONFIG,
 		TEGRA210_MBDRC_CONFIG_SHIFT_CTRL_SHIFT, 0x1f, 0,
 		tegra210_mbdrc_get, tegra210_mbdrc_put),
-	SOC_SINGLE_EXT("mbdrc master volume", TEGRA210_MBDRC_MASTER_VOLUME,
-		TEGRA210_MBDRC_MASTER_VOLUME_SHIFT, 0xffffffff, 0,
-		tegra210_mbdrc_get, tegra210_mbdrc_put),
 	SOC_SINGLE_EXT("mbdrc fast attack factor", TEGRA210_MBDRC_FAST_FACTOR,
 		TEGRA210_MBDRC_FAST_FACTOR_ATTACK_SHIFT, 0xffff, 0,
 		tegra210_mbdrc_get, tegra210_mbdrc_put),
 	SOC_SINGLE_EXT("mbdrc fast release factor", TEGRA210_MBDRC_FAST_FACTOR,
 		TEGRA210_MBDRC_FAST_FACTOR_RELEASE_SHIFT, 0xffff, 0,
 		tegra210_mbdrc_get, tegra210_mbdrc_put),
+
+	SOC_SINGLE_RANGE_EXT_TLV("mbdrc master volume", TEGRA210_MBDRC_MASTER_VOLUME,
+		TEGRA210_MBDRC_MASTER_VOLUME_SHIFT, TEGRA210_MBDRC_MASTER_VOL_MIN,
+		TEGRA210_MBDRC_MASTER_VOL_MAX, 0,
+		tegra210_mbdrc_vol_get, tegra210_mbdrc_vol_put, mdbrc_vol_tlv),
 
 	TEGRA_SOC_BYTES_EXT("mbdrc iir stages", TEGRA210_MBDRC_IIR_CONFIG,
 		TEGRA210_MBDRC_FILTER_COUNT,
@@ -602,6 +644,7 @@ static bool tegra210_mbdrc_volatile_reg(struct device *dev, unsigned int reg)
 
 	switch (reg) {
 	case TEGRA210_MBDRC_SOFT_RESET:
+	case TEGRA210_MBDRC_STATUS:
 	case TEGRA210_MBDRC_AHUBRAMCTL_CONFIG_RAM_CTRL:
 	case TEGRA210_MBDRC_AHUBRAMCTL_CONFIG_RAM_DATA:
 		return true;
