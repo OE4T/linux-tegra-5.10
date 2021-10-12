@@ -1267,6 +1267,10 @@ static void ether_free_irqs(struct ether_priv_data *pdata)
 	unsigned int chan;
 
 	if (pdata->common_irq_alloc_mask & 1U) {
+		if ((pdata->osi_core->mac == OSI_MAC_HW_MGBE) &&
+		    (pdata->osi_core->use_virtualization == OSI_DISABLE)) {
+			irq_set_affinity_hint(pdata->common_irq, NULL);
+		}
 		devm_free_irq(pdata->dev, pdata->common_irq, pdata);
 		pdata->common_irq_alloc_mask = 0U;
 	}
@@ -1461,7 +1465,17 @@ static int ether_request_irqs(struct ether_priv_data *pdata)
 			pdata->common_irq);
 		return ret;
 	}
+
 	pdata->common_irq_alloc_mask = 1;
+
+	if ((osi_core->mac == OSI_MAC_HW_MGBE) &&
+	    (cpu_online(pdata->common_isr_cpu_id)) &&
+	    (osi_core->use_virtualization == OSI_DISABLE)) {
+		cpumask_set_cpu(pdata->common_isr_cpu_id,
+				&pdata->common_isr_cpu_mask);
+		irq_set_affinity_hint(pdata->common_irq,
+				      &pdata->common_isr_cpu_mask);
+	}
 
 	if (osi_core->mac_ver > OSI_EQOS_MAC_5_00 ||
 	    osi_core->mac == OSI_MAC_HW_MGBE) {
@@ -5350,6 +5364,14 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 		dev_info(dev, "setting default promiscuous mode supported\n");
 		pdata->promisc_mode = OSI_ENABLE;
 	}
+
+	ret = of_property_read_u32(np, "nvidia,common_irq-cpu-id",
+				   &pdata->common_isr_cpu_id);
+	if (ret < 0) {
+		pdata->common_isr_cpu_id = ETHER_COMMON_IRQ_DEFAULT_CPU;
+		ret = 0;
+	}
+
 	/* any other invalid promiscuous mode DT value */
 	if (pdata->promisc_mode != OSI_DISABLE &&
 	    pdata->promisc_mode != OSI_ENABLE){
