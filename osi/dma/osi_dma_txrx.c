@@ -589,7 +589,8 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
 
 		/* check for Last Descriptor */
 		if ((tx_desc->tdes3 & TDES3_LD) == TDES3_LD) {
-			if ((tx_desc->tdes3 & TDES3_ES_BITS) != 0U) {
+			if (((tx_desc->tdes3 & TDES3_ES_BITS) != 0U) &&
+			    (osi_dma->mac != OSI_MAC_HW_MGBE)) {
 				txdone_pkt_cx->flags |= OSI_TXDONE_CX_ERROR;
 				/* fill packet error stats */
 				get_tx_err_stats(tx_desc,
