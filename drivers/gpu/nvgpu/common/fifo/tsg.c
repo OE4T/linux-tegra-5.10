@@ -109,6 +109,8 @@ int nvgpu_tsg_bind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 	 */
 	if (tsg->runlist == NULL) {
 		tsg->runlist = ch->runlist;
+		tsg->rl_domain = nvgpu_rl_domain_get(g, tsg->runlist->id, "(default)");
+		WARN_ON(tsg->rl_domain == NULL);
 	} else {
 		if (tsg->runlist != ch->runlist) {
 			nvgpu_err(tsg->g,
@@ -693,7 +695,7 @@ int nvgpu_tsg_set_interleave(struct nvgpu_tsg *tsg, u32 level)
 		return 0;
 	}
 
-	return g->ops.runlist.reload(g, tsg->runlist, true, true);
+	return g->ops.runlist.reload(g, tsg->runlist, tsg->rl_domain, true, true);
 }
 
 int nvgpu_tsg_set_timeslice(struct nvgpu_tsg *tsg, u32 timeslice_us)
@@ -715,7 +717,7 @@ int nvgpu_tsg_set_timeslice(struct nvgpu_tsg *tsg, u32 timeslice_us)
 		return 0;
 	}
 
-	return g->ops.runlist.reload(g, tsg->runlist, true, true);
+	return g->ops.runlist.reload(g, tsg->runlist, tsg->rl_domain, true, true);
 }
 
 u32 nvgpu_tsg_get_timeslice(struct nvgpu_tsg *tsg)
@@ -742,7 +744,7 @@ int nvgpu_tsg_set_long_timeslice(struct nvgpu_tsg *tsg, u32 timeslice_us)
 		return 0;
 	}
 
-	return g->ops.runlist.reload(g, tsg->runlist, true, true);
+	return g->ops.runlist.reload(g, tsg->runlist, tsg->rl_domain, true, true);
 }
 #endif
 

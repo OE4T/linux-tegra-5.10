@@ -402,13 +402,13 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
 }
 
 int nvgpu_runlist_update_locked(struct gk20a *g, struct nvgpu_runlist *rl,
+				struct nvgpu_runlist_domain *domain,
 				struct nvgpu_channel *ch, bool add,
 				bool wait_for_finish)
 {
 	int ret = 0;
 	bool add_entries;
 	struct nvgpu_runlist_mem *mem_tmp;
-	struct nvgpu_runlist_domain *domain = rl->domain;
 
 	if (ch != NULL) {
 		bool update = nvgpu_runlist_modify_active_locked(g, domain, ch, add);
@@ -524,6 +524,7 @@ int nvgpu_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next,
    (ch == NULL && !add) means remove all active channels from runlist.
    (ch == NULL &&  add) means restore all active channels on runlist. */
 static int nvgpu_runlist_do_update(struct gk20a *g, struct nvgpu_runlist *rl,
+				   struct nvgpu_runlist_domain *domain,
 				   struct nvgpu_channel *ch,
 				   bool add, bool wait_for_finish)
 {
@@ -540,7 +541,7 @@ static int nvgpu_runlist_do_update(struct gk20a *g, struct nvgpu_runlist *rl,
 	mutex_ret = nvgpu_pmu_lock_acquire(g, g->pmu,
 		PMU_MUTEX_ID_FIFO, &token);
 #endif
-	ret = nvgpu_runlist_update_locked(g, rl, ch, add, wait_for_finish);
+	ret = nvgpu_runlist_update_locked(g, rl, domain, ch, add, wait_for_finish);
 #ifdef CONFIG_NVGPU_LS_PMU
 	if (mutex_ret == 0) {
 		if (nvgpu_pmu_lock_release(g, g->pmu,
@@ -562,15 +563,23 @@ int nvgpu_runlist_update(struct gk20a *g, struct nvgpu_runlist *rl,
 			 struct nvgpu_channel *ch,
 			 bool add, bool wait_for_finish)
 {
+	struct nvgpu_tsg *tsg = NULL;
+
 	nvgpu_assert(ch != NULL);
 
-	return nvgpu_runlist_do_update(g, rl, ch, add, wait_for_finish);
+	tsg = nvgpu_tsg_from_ch(ch);
+	if (tsg == NULL) {
+		return -EINVAL;
+	}
+
+	return nvgpu_runlist_do_update(g, rl, tsg->rl_domain, ch, add, wait_for_finish);
 }
 
 int nvgpu_runlist_reload(struct gk20a *g, struct nvgpu_runlist *rl,
-			      bool add, bool wait_for_finish)
+			 struct nvgpu_runlist_domain *domain,
+			 bool add, bool wait_for_finish)
 {
-	return nvgpu_runlist_do_update(g, rl, NULL, add, wait_for_finish);
+	return nvgpu_runlist_do_update(g, rl, domain, NULL, add, wait_for_finish);
 }
 
 int nvgpu_runlist_reload_ids(struct gk20a *g, u32 runlist_ids, bool add)
@@ -589,7 +598,9 @@ int nvgpu_runlist_reload_ids(struct gk20a *g, u32 runlist_ids, bool add)
 	for_each_set_bit(runlist_id, &ulong_runlist_ids, 32U) {
 		/* Capture the last failure error code */
 		errcode = g->ops.runlist.reload(g,
-						f->runlists[runlist_id], add, true);
+						f->runlists[runlist_id],
+						f->runlists[runlist_id]->domain,
+						add, true);
 		if (errcode != 0) {
 			nvgpu_err(g,
 				"failed to update_runlist %lu %d",

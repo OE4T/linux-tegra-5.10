@@ -118,7 +118,7 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 			 * the update to finish on hw.
 			 */
 			err = nvgpu_runlist_update_locked(g,
-				runlist, NULL, false, false);
+				runlist, runlist->domain, NULL, false, false);
 			if (err != 0) {
 				nvgpu_err(g, "runlist id %d is not cleaned up",
 					runlist->id);

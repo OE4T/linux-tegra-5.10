@@ -33,6 +33,7 @@
 struct gk20a;
 struct nvgpu_channel;
 struct nvgpu_runlist;
+struct nvgpu_runlist_domain;
 
 /**
  * Runlist HAL operations.
@@ -67,6 +68,7 @@ struct gops_runlist {
 	 *         buffer to accommodate all active channels/TSGs.
 	 */
 	int (*reload)(struct gk20a *g, struct nvgpu_runlist *rl,
+			struct nvgpu_runlist_domain *domain,
 			bool add, bool wait_for_finish);
 
 	/**

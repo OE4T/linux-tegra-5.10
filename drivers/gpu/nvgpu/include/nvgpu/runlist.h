@@ -236,6 +236,7 @@ u32 nvgpu_runlist_construct_locked(struct nvgpu_fifo *f,
  *          describe all active channels and TSGs.
  */
 int nvgpu_runlist_update_locked(struct gk20a *g, struct nvgpu_runlist *rl,
+		struct nvgpu_runlist_domain *domain,
 		struct nvgpu_channel *ch, bool add, bool wait_for_finish);
 
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
@@ -296,6 +297,7 @@ int nvgpu_runlist_update(struct gk20a *g, struct nvgpu_runlist *rl,
  *         to accommodate all active channels/TSGs.
  */
 int nvgpu_runlist_reload(struct gk20a *g, struct nvgpu_runlist *rl,
+		struct nvgpu_runlist_domain *domain,
 		bool add, bool wait_for_finish);
 
 /**

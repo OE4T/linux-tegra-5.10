@@ -34,8 +34,9 @@
 #include "runlist_vgpu.h"
 #include "common/vgpu/ivc/comm_vgpu.h"
 
-static int vgpu_submit_runlist(struct gk20a *g, u64 handle, u8 runlist_id,
-			       u16 *runlist, u32 num_entries)
+static int vgpu_submit_runlist(struct gk20a *g, u64 handle,
+			       struct nvgpu_runlist *runlist,
+			       struct nvgpu_runlist_domain *domain)
 {
 	struct tegra_vgpu_cmd_msg msg;
 	struct tegra_vgpu_runlist_params *p;
@@ -51,7 +52,7 @@ static int vgpu_submit_runlist(struct gk20a *g, u64 handle, u8 runlist_id,
 		return -EINVAL;
 	}
 
-	size = sizeof(*runlist) * num_entries;
+	size = sizeof(u16) * domain->mem->count;
 	if (oob_size < size) {
 		err = -ENOMEM;
 		goto done;
@@ -60,10 +61,10 @@ static int vgpu_submit_runlist(struct gk20a *g, u64 handle, u8 runlist_id,
 	msg.cmd = TEGRA_VGPU_CMD_SUBMIT_RUNLIST;
 	msg.handle = handle;
 	p = &msg.params.runlist;
-	p->runlist_id = runlist_id;
-	p->num_entries = num_entries;
+	p->runlist_id = nvgpu_safe_cast_u32_to_u8(runlist->id);
+	p->num_entries = domain->mem->count;
 
-	nvgpu_memcpy((u8 *)oob, (u8 *)runlist, size);
+	nvgpu_memcpy((u8 *)oob, (u8 *)domain->mem->mem.cpu_va, size);
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 
 	err = (err || msg.ret) ? -1 : 0;
@@ -73,15 +74,11 @@ done:
 	return err;
 }
 
-static bool vgpu_runlist_modify_active_locked(struct gk20a *g, u32 runlist_id,
+static bool vgpu_runlist_modify_active_locked(struct gk20a *g,
+					    struct nvgpu_runlist *runlist,
 					    struct nvgpu_runlist_domain *domain,
 					    struct nvgpu_channel *ch, bool add)
 {
-	struct nvgpu_fifo *f = &g->fifo;
-	struct nvgpu_runlist *runlist;
-
-	runlist = f->runlists[runlist_id];
-
 	if (add) {
 		if (nvgpu_test_and_set_bit(ch->chid,
 				domain->active_channels)) {
@@ -99,14 +96,12 @@ static bool vgpu_runlist_modify_active_locked(struct gk20a *g, u32 runlist_id,
 	return true;
 }
 
-static void vgpu_runlist_reconstruct_locked(struct gk20a *g, u32 runlist_id,
+static void vgpu_runlist_reconstruct_locked(struct gk20a *g,
+				     struct nvgpu_runlist *runlist,
 				     struct nvgpu_runlist_domain *domain,
 				     bool add_entries)
 {
 	struct nvgpu_fifo *f = &g->fifo;
-	struct nvgpu_runlist *runlist;
-
-	runlist = f->runlists[runlist_id];
 
 	if (add_entries) {
 		u16 *runlist_entry;
@@ -129,19 +124,18 @@ static void vgpu_runlist_reconstruct_locked(struct gk20a *g, u32 runlist_id,
 	}
 }
 
-static int vgpu_runlist_update_locked(struct gk20a *g, u32 runlist_id,
+static int vgpu_runlist_update_locked(struct gk20a *g,
+					struct nvgpu_runlist *runlist,
+					struct nvgpu_runlist_domain *domain,
 					struct nvgpu_channel *ch, bool add,
 					bool wait_for_finish)
 {
-	struct nvgpu_fifo *f = &g->fifo;
-	struct nvgpu_runlist *runlist = f->runlists[runlist_id];
-	struct nvgpu_runlist_domain *domain = runlist->domain;
 	bool add_entries;
 
 	nvgpu_log_fn(g, " ");
 
 	if (ch != NULL) {
-		bool update = vgpu_runlist_modify_active_locked(g, runlist_id,
+		bool update = vgpu_runlist_modify_active_locked(g, runlist,
 				domain, ch, add);
 		if (!update) {
 			/* no change in runlist contents */
@@ -154,11 +148,9 @@ static int vgpu_runlist_update_locked(struct gk20a *g, u32 runlist_id,
 		add_entries = add;
 	}
 
-	vgpu_runlist_reconstruct_locked(g, runlist_id, domain, add_entries);
+	vgpu_runlist_reconstruct_locked(g, runlist, domain, add_entries);
 
-	return vgpu_submit_runlist(g, vgpu_get_handle(g), runlist_id,
-				domain->mem->mem.cpu_va,
-				domain->mem->count);
+	return vgpu_submit_runlist(g, vgpu_get_handle(g), runlist, domain);
 }
 
 /* add/remove a channel from runlist
@@ -166,6 +158,7 @@ static int vgpu_runlist_update_locked(struct gk20a *g, u32 runlist_id,
    (ch == NULL && !add) means remove all active channels from runlist.
    (ch == NULL &&  add) means restore all active channels on runlist. */
 static int vgpu_runlist_do_update(struct gk20a *g, struct nvgpu_runlist *rl,
+				struct nvgpu_runlist_domain *domain,
 				struct nvgpu_channel *ch,
 				bool add, bool wait_for_finish)
 {
@@ -175,7 +168,7 @@ static int vgpu_runlist_do_update(struct gk20a *g, struct nvgpu_runlist *rl,
 
 	nvgpu_mutex_acquire(&rl->runlist_lock);
 
-	ret = vgpu_runlist_update_locked(g, rl->id, ch, add,
+	ret = vgpu_runlist_update_locked(g, rl, domain, ch, add,
 					wait_for_finish);
 
 	nvgpu_mutex_release(&rl->runlist_lock);
@@ -186,15 +179,23 @@ int vgpu_runlist_update(struct gk20a *g, struct nvgpu_runlist *rl,
 			struct nvgpu_channel *ch,
 			bool add, bool wait_for_finish)
 {
+	struct nvgpu_tsg *tsg;
+
 	nvgpu_assert(ch != NULL);
 
-	return vgpu_runlist_do_update(g, rl, ch, add, wait_for_finish);
+	tsg = nvgpu_tsg_from_ch(ch);
+	if (tsg == NULL) {
+		return -EINVAL;
+	}
+
+	return vgpu_runlist_do_update(g, rl, tsg->rl_domain, ch, add, wait_for_finish);
 }
 
 int vgpu_runlist_reload(struct gk20a *g, struct nvgpu_runlist *rl,
+			struct nvgpu_runlist_domain *domain,
 			bool add, bool wait_for_finish)
 {
-	return vgpu_runlist_do_update(g, rl, NULL, add, wait_for_finish);
+	return vgpu_runlist_do_update(g, rl, domain, NULL, add, wait_for_finish);
 }
 
 u32 vgpu_runlist_length_max(struct gk20a *g)

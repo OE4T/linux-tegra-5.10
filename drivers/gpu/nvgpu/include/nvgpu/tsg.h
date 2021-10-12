@@ -176,6 +176,11 @@ struct nvgpu_tsg {
 	 */
 	struct nvgpu_runlist *runlist;
 
+	/**
+	 * Scheduling domain this TSG is bound to. Bound with an ioctl, initially the default domain.
+	 */
+	struct nvgpu_runlist_domain *rl_domain;
+
 	/** tgid (OS specific) of the process that openend the TSG. */
 
 	/**
