@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -205,7 +205,7 @@ static void tx_desc_dump(struct osi_dma_priv_data *osi_dma, unsigned int f_idx,
 		int cnt;
 
 		if (f_idx > l_idx) {
-			cnt = l_idx + TX_DESC_CNT - f_idx;
+			cnt = l_idx + osi_dma->tx_ring_sz - f_idx;
 		} else {
 			cnt = l_idx - f_idx;
 		}
@@ -223,7 +223,7 @@ static void tx_desc_dump(struct osi_dma_priv_data *osi_dma, unsigned int f_idx,
 				    tx_desc->tdes3, tx_desc->tdes2,
 				    tx_desc->tdes1, tx_desc->tdes0);
 
-			INCR_TX_DESC_INDEX(i, 1U);
+			INCR_TX_DESC_INDEX(i, osi_dma->tx_ring_sz);
 		}
 	}
 }

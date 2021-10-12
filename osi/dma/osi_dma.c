@@ -193,6 +193,8 @@ static nve32_t validate_func_ptrs(struct osi_dma_priv_data *osi_dma,
 nve32_t osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 {
 	struct dma_local *l_dma = (struct dma_local *)osi_dma;
+	nveu32_t default_rz[] = { EQOS_DEFAULT_RING_SZ, MGBE_DEFAULT_RING_SZ };
+	nveu32_t max_rz[] = { EQOS_DEFAULT_RING_SZ, MGBE_MAX_RING_SZ };
 	typedef void (*init_ops_arr)(struct dma_chan_ops *temp);
 	typedef void *(*safety_init)(void);
 
@@ -229,6 +231,26 @@ nve32_t osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			    "DMA: Invalid MAC HW type\n", 0ULL);
 		return -1;
+	}
+
+	if ((osi_dma->tx_ring_sz == 0U) ||
+	    !(is_power_of_two(osi_dma->tx_ring_sz)) ||
+	    (osi_dma->tx_ring_sz < HW_MIN_RING_SZ) ||
+	    (osi_dma->tx_ring_sz > default_rz[osi_dma->mac])) {
+		osi_dma->tx_ring_sz = default_rz[osi_dma->mac];
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "DMA: Using default Tx ring size: \n",
+			     osi_dma->tx_ring_sz);
+	}
+
+	if ((osi_dma->rx_ring_sz == 0U) ||
+	    !(is_power_of_two(osi_dma->rx_ring_sz)) ||
+	    (osi_dma->rx_ring_sz < HW_MIN_RING_SZ) ||
+	    (osi_dma->rx_ring_sz > max_rz[osi_dma->mac])) {
+		osi_dma->rx_ring_sz = default_rz[osi_dma->mac];
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "DMA: Using default rx ring size: \n",
+			     osi_dma->tx_ring_sz);
 	}
 
 	i_ops[osi_dma->mac](&g_ops[osi_dma->mac]);
@@ -542,15 +564,19 @@ nve32_t osi_stop_dma(struct osi_dma_priv_data *osi_dma,
 	return 0;
 }
 
-nveu32_t osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring)
+nveu32_t osi_get_refill_rx_desc_cnt(struct osi_dma_priv_data *osi_dma,
+				    unsigned int chan)
 {
+	struct osi_rx_ring *rx_ring = osi_dma->rx_ring[chan];
+
 	if ((rx_ring == OSI_NULL) ||
-	    (rx_ring->cur_rx_idx >= RX_DESC_CNT) ||
-	    (rx_ring->refill_idx >= RX_DESC_CNT)) {
+	    (rx_ring->cur_rx_idx >= osi_dma->rx_ring_sz) ||
+	    (rx_ring->refill_idx >= osi_dma->rx_ring_sz)) {
 		return 0;
 	}
 
-	return (rx_ring->cur_rx_idx - rx_ring->refill_idx) & (RX_DESC_CNT - 1U);
+	return (rx_ring->cur_rx_idx - rx_ring->refill_idx) &
+		(osi_dma->rx_ring_sz - 1U);
 }
 
 /**
@@ -649,7 +675,7 @@ nve32_t osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 
 	/* Refill buffers */
 	while ((rx_ring->refill_idx != rx_ring->cur_rx_idx) &&
-	       (rx_ring->refill_idx < RX_DESC_CNT)) {
+	       (rx_ring->refill_idx < osi_dma->rx_ring_sz)) {
 		rx_swcx = rx_ring->rx_swcx + rx_ring->refill_idx;
 		rx_desc = rx_ring->rx_desc + rx_ring->refill_idx;
 
@@ -675,7 +701,7 @@ nve32_t osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 		rx_dma_handle_ioc(osi_dma, rx_ring, rx_desc);
 		rx_desc->rdes3 |= RDES3_OWN;
 
-		INCR_RX_DESC_INDEX(rx_ring->refill_idx, 1U);
+		INCR_RX_DESC_INDEX(rx_ring->refill_idx, osi_dma->rx_ring_sz);
 	}
 
 	/* Update the Rx tail ptr  whenever buffer is replenished to
@@ -684,7 +710,7 @@ nve32_t osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 	 * knows to loop over to start of ring.
 	 */
 	tailptr = rx_ring->rx_desc_phy_addr +
-		  (sizeof(struct osi_rx_desc) * (RX_DESC_CNT));
+		  (sizeof(struct osi_rx_desc) * (osi_dma->rx_ring_sz));
 
 	if (osi_unlikely(tailptr < rx_ring->rx_desc_phy_addr)) {
 		/* Will not hit this case, used for CERT-C compliance */

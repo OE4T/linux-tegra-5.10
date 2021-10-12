@@ -150,7 +150,7 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 		return ret;
 	}
 
-	if (rx_ring->cur_rx_idx >= RX_DESC_CNT) {
+	if (rx_ring->cur_rx_idx >= osi_dma->rx_ring_sz) {
 		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			    "dma_txrx: Invalid cur_rx_idx\n", 0ULL);
 		return -1;
@@ -175,7 +175,7 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 		}
 #endif /* OSI_DEBUG */
 
-		INCR_RX_DESC_INDEX(rx_ring->cur_rx_idx, 1U);
+		INCR_RX_DESC_INDEX(rx_ring->cur_rx_idx, osi_dma->rx_ring_sz);
 
 		if (osi_unlikely(rx_swcx->buf_virt_addr ==
 		    osi_dma->resv_buf_virt_addr)) {
@@ -266,7 +266,7 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 				/* Context descriptor was consumed. Its skb
 				 * and DMA mapping will be recycled
 				 */
-				INCR_RX_DESC_INDEX(rx_ring->cur_rx_idx, 1U);
+				INCR_RX_DESC_INDEX(rx_ring->cur_rx_idx, osi_dma->rx_ring_sz);
 			}
 			if (osi_likely(osi_dma->osd_ops.receive_packet !=
 				       OSI_NULL)) {
@@ -571,7 +571,7 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
 	osi_dma->dstats.tx_clean_n[chan] =
 		osi_update_stats_counter(osi_dma->dstats.tx_clean_n[chan], 1U);
 
-	while ((entry != tx_ring->cur_tx_idx) && (entry < TX_DESC_CNT) &&
+	while ((entry != tx_ring->cur_tx_idx) && (entry < osi_dma->tx_ring_sz) &&
 	       (processed < budget)) {
 		osi_memset(txdone_pkt_cx, 0U, sizeof(*txdone_pkt_cx));
 
@@ -676,7 +676,7 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
 		tx_swcx->buf_virt_addr = OSI_NULL;
 		tx_swcx->buf_phy_addr = 0;
 		tx_swcx->flags = 0;
-		INCR_TX_DESC_INDEX(entry, 1U);
+		INCR_TX_DESC_INDEX(entry, osi_dma->tx_ring_sz);
 
 		/* Don't wait to update tx_ring->clean-idx. It will
 		 * be used by OSD layer to determine the num. of available
@@ -990,7 +990,7 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 	nveu32_t i;
 
 	entry = tx_ring->cur_tx_idx;
-	if (entry >= TX_DESC_CNT) {
+	if (entry >= osi_dma->tx_ring_sz) {
 		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			    "dma_txrx: Invalid cur_tx_idx\n", 0ULL);
 		return -1;
@@ -1042,7 +1042,7 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 			/* update packet id */
 			tx_desc->tdes0 = pkt_id;
 		}
-		INCR_TX_DESC_INDEX(entry, 1U);
+		INCR_TX_DESC_INDEX(entry, osi_dma->tx_ring_sz);
 
 		/* Storing context descriptor to set DMA_OWN at last */
 		cx_desc = tx_desc;
@@ -1062,7 +1062,7 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 		tx_swcx->pktid = pkt_id;
 	}
 
-	INCR_TX_DESC_INDEX(entry, 1U);
+	INCR_TX_DESC_INDEX(entry, osi_dma->tx_ring_sz);
 
 	first_desc = tx_desc;
 	last_desc = tx_desc;
@@ -1078,7 +1078,7 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 		/* set HW OWN bit for descriptor*/
 		tx_desc->tdes3 |= TDES3_OWN;
 
-		INCR_TX_DESC_INDEX(entry, 1U);
+		INCR_TX_DESC_INDEX(entry, osi_dma->tx_ring_sz);
 		last_desc = tx_desc;
 		tx_desc = tx_ring->tx_desc + entry;
 		tx_swcx = tx_ring->tx_swcx + entry;
@@ -1131,7 +1131,7 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 #ifdef OSI_DEBUG
 	if (osi_dma->enable_desc_dump == 1U) {
 		l_idx = entry;
-		desc_dump(osi_dma, f_idx, DECR_TX_DESC_INDEX(l_idx, 1U),
+		desc_dump(osi_dma, f_idx, DECR_TX_DESC_INDEX(l_idx, osi_dma->tx_ring_sz),
 			  (TX_DESC_DUMP | TX_DESC_DUMP_TX), chan);
 	}
 #endif /* OSI_DEBUG */
@@ -1199,7 +1199,7 @@ static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
 	rx_ring->cur_rx_idx = 0;
 	rx_ring->refill_idx = 0;
 
-	for (i = 0; i < RX_DESC_CNT; i++) {
+	for (i = 0; i < osi_dma->rx_ring_sz; i++) {
 		rx_swcx = rx_ring->rx_swcx + i;
 		rx_desc = rx_ring->rx_desc + i;
 
@@ -1237,7 +1237,7 @@ static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
 	}
 
 	tailptr = rx_ring->rx_desc_phy_addr +
-		  (sizeof(struct osi_rx_desc) * (RX_DESC_CNT));
+		  (sizeof(struct osi_rx_desc) * (osi_dma->rx_ring_sz));
 
 	if (osi_unlikely((tailptr < rx_ring->rx_desc_phy_addr))) {
 		/* Will not hit this case */
@@ -1246,7 +1246,7 @@ static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
 		return -1;
 	}
 
-	ops->set_rx_ring_len(osi_dma, chan, (RX_DESC_CNT - 1U));
+	ops->set_rx_ring_len(osi_dma, chan, (osi_dma->rx_ring_sz - 1U));
 	ops->update_rx_tailptr(osi_dma->base, chan, tailptr);
 	ops->set_rx_ring_start_addr(osi_dma->base, chan,
 				    rx_ring->rx_desc_phy_addr);
@@ -1333,7 +1333,7 @@ static nve32_t tx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 			return -1;
 		}
 
-		for (j = 0; j < TX_DESC_CNT; j++) {
+		for (j = 0; j < osi_dma->tx_ring_sz; j++) {
 			tx_desc = tx_ring->tx_desc + j;
 			tx_swcx = tx_ring->tx_swcx + j;
 
@@ -1356,7 +1356,7 @@ static nve32_t tx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 		tx_ring->slot_check = OSI_DISABLE;
 
 		ops->set_tx_ring_len(osi_dma, chan,
-				     (TX_DESC_CNT - 1U));
+				     (osi_dma->tx_ring_sz - 1U));
 		ops->set_tx_ring_start_addr(osi_dma->base, chan,
 					    tx_ring->tx_desc_phy_addr);
 	}
