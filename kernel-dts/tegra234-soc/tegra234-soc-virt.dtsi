@@ -298,37 +298,37 @@
 	};
 
 	vse@15810000 {
-		compatible = "nvidia,tegra186-hv-vse";
+		compatible = "nvidia,tegra234-hv-vse-safety";
 		se-engine-id = <0>;
 		status = "disabled";
 	};
 
 	vse@15820000 {
-		compatible = "nvidia,tegra186-hv-vse";
+		compatible = "nvidia,tegra234-hv-vse-safety";
 		se-engine-id = <1>;
 		status = "disabled";
 	};
 
 	vse@15830000 {
-		compatible = "nvidia,tegra186-hv-vse";
+		compatible = "nvidia,tegra234-hv-vse-safety";
 		se-engine-id = <2>;
 		status = "disabled";
 	};
 
 	vse@15840000 {
-		compatible = "nvidia,tegra186-hv-vse";
+		compatible = "nvidia,tegra234-hv-vse-safety";
 		se-engine-id = <3>;
 		status = "disabled";
 	};
 
 	vse@3ae0000 {
-		compatible = "nvidia,tegra186-hv-vse";
+		compatible = "nvidia,tegra234-hv-vse-safety";
 		se-engine-id = <4>;
 		status = "disabled";
 	};
 
 	vse@3ad0000 {
-		compatible = "nvidia,tegra186-hv-vse";
+		compatible = "nvidia,tegra234-hv-vse-safety";
 		se-engine-id = <5>;
 		status = "disabled";
 	};
