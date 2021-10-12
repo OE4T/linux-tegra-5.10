@@ -25,6 +25,7 @@
 
 #include <nvgpu/watchdog.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/runlist.h>
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/gk20a.h>
 
@@ -175,6 +176,7 @@ void nvgpu_channel_worker_poll_wakeup_post_process_item(
 
 	if (nvgpu_timeout_peek_expired(&ch_worker->timeout)) {
 		nvgpu_channel_poll_wdt(g);
+		nvgpu_runlist_tick(g);
 		nvgpu_timeout_init_cpu_timer(g, &ch_worker->timeout,
 				ch_worker->watchdog_interval);
 	}

@@ -35,6 +35,7 @@
 #ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/mutex.h>
 #endif
+#include <nvgpu/nvgpu_init.h>
 
 void nvgpu_runlist_lock_active_runlists(struct gk20a *g)
 {
@@ -557,6 +558,96 @@ static int nvgpu_runlist_do_update(struct gk20a *g, struct nvgpu_runlist *rl,
 	}
 
 	return ret;
+}
+
+static void runlist_select_locked(struct gk20a *g, struct nvgpu_runlist *runlist,
+		struct nvgpu_runlist_domain *next_domain)
+{
+	int err;
+
+	rl_dbg(g, "Runlist[%u]: switching to domain %s",
+	       runlist->id, next_domain->name);
+
+	runlist->domain = next_domain;
+
+	gk20a_busy_noresume(g);
+	if (nvgpu_is_powered_off(g)) {
+		gk20a_idle_nosuspend(g);
+		return;
+	}
+
+	err = gk20a_busy(g);
+	gk20a_idle_nosuspend(g);
+
+	if (err != 0) {
+		nvgpu_err(g, "failed to hold power for runlist switch");
+		/*
+		 * probably shutting down though, so don't bother propagating
+		 * the error. Power is already on when the domain scheduler is
+		 * actually in use.
+		 */
+		return;
+	}
+
+	/*
+	 * Just submit the previously built mem (in nvgpu_runlist_update_locked)
+	 * of the active domain to hardware. In the future, the main scheduling
+	 * loop will get signaled when the RL mem is modified and the same domain
+	 * with new data needs to be submitted (typically triggered by a channel
+	 * getting opened or closed). For now, that code path executes separately.
+	 */
+	g->ops.runlist.hw_submit(g, runlist);
+
+	gk20a_idle(g);
+}
+
+static void runlist_switch_domain_locked(struct gk20a *g,
+					 struct nvgpu_runlist *runlist)
+{
+	struct nvgpu_runlist_domain *domain;
+	struct nvgpu_runlist_domain *last;
+
+	if (nvgpu_list_empty(&runlist->domains)) {
+		return;
+	}
+
+	domain = runlist->domain;
+	last = nvgpu_list_last_entry(&runlist->domains,
+			nvgpu_runlist_domain, domains_list);
+
+	if (domain == last) {
+		domain = nvgpu_list_first_entry(&runlist->domains,
+				nvgpu_runlist_domain, domains_list);
+	} else {
+		domain = nvgpu_list_next_entry(domain,
+				nvgpu_runlist_domain, domains_list);
+	}
+
+	if (domain != runlist->domain) {
+		runlist_select_locked(g, runlist, domain);
+	}
+}
+
+static void runlist_switch_domain(struct gk20a *g, struct nvgpu_runlist *runlist)
+{
+	nvgpu_mutex_acquire(&runlist->runlist_lock);
+	runlist_switch_domain_locked(g, runlist);
+	nvgpu_mutex_release(&runlist->runlist_lock);
+}
+
+void nvgpu_runlist_tick(struct gk20a *g)
+{
+	struct nvgpu_fifo *f = &g->fifo;
+	u32 i;
+
+	rl_dbg(g, "domain tick");
+
+	for (i = 0U; i < f->num_runlists; i++) {
+		struct nvgpu_runlist *runlist;
+
+		runlist = &f->active_runlists[i];
+		runlist_switch_domain(g, runlist);
+	}
 }
 
 int nvgpu_runlist_update(struct gk20a *g, struct nvgpu_runlist *rl,

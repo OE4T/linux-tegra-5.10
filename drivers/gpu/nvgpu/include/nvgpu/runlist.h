@@ -193,6 +193,8 @@ nvgpu_runlist_domain_from_domains_list(struct nvgpu_list_node *node)
 	((uintptr_t)node - offsetof(struct nvgpu_runlist_domain, domains_list));
 }
 
+void nvgpu_runlist_tick(struct gk20a *g);
+
 /**
  * @brief Rebuild runlist
  *
