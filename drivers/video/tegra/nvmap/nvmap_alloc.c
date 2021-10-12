@@ -52,9 +52,9 @@ u64 nvmap_total_page_allocs;
 void *nvmap_altalloc(size_t len)
 {
 	if (len > PAGELIST_VMALLOC_MIN)
-		return vmalloc(len);
+		return vzalloc(len);
 	else
-		return kmalloc(len, GFP_KERNEL);
+		return kzalloc(len, GFP_KERNEL);
 }
 
 void nvmap_altfree(void *ptr, size_t len)
@@ -467,7 +467,7 @@ static int handle_page_alloc(struct nvmap_client *client,
 {
 	size_t size = h->size;
 	size_t nr_page = size >> PAGE_SHIFT;
-	int i = 0, page_index = 0;
+	int i = 0, page_index = 0, allocated = 0;
 	struct page **pages;
 	gfp_t gfp = GFP_NVMAP | __GFP_ZERO;
 #ifdef CONFIG_ARM64_4K_PAGES
@@ -546,8 +546,13 @@ static int handle_page_alloc(struct nvmap_client *client,
 				      &nvmap_dev->pool, &pages[page_index],
 				      nr_page - page_index);
 #endif
-
-			for (i = page_index; i < nr_page; i++) {
+			allocated = page_index;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 13, 0)
+			if (page_index < nr_page)
+				allocated = __alloc_pages_bulk(gfp, numa_mem_id(), NULL,
+						nr_page, NULL, pages);
+#endif
+			for (i = allocated; i < nr_page; i++) {
 				pages[i] = nvmap_alloc_pages_exact(gfp,
 								   PAGE_SIZE);
 				if (!pages[i])
