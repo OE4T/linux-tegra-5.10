@@ -183,6 +183,8 @@ struct nvgpu_runlist {
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 };
 
+int nvgpu_rl_domain_alloc(struct gk20a *g, const char *name);
+int nvgpu_rl_domain_delete(struct gk20a *g, const char *name);
 struct nvgpu_runlist_domain *nvgpu_rl_domain_get(struct gk20a *g, u32 runlist_id,
 						 const char *name);
 

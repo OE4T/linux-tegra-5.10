@@ -777,6 +777,52 @@ static void nvgpu_runlist_domain_free(struct gk20a *g,
 	nvgpu_kfree(g, domain);
 }
 
+int nvgpu_rl_domain_delete(struct gk20a *g, const char *name)
+{
+	struct nvgpu_fifo *f = &g->fifo;
+	u32 i;
+	struct nvgpu_runlist *runlist;
+
+	for (i = 0; i < f->num_runlists; i++) {
+		struct nvgpu_runlist_domain *domain;
+
+		runlist = &f->active_runlists[i];
+
+		nvgpu_mutex_acquire(&runlist->runlist_lock);
+		domain = nvgpu_rl_domain_get(g, i, name);
+		if (domain != NULL) {
+			struct nvgpu_runlist_domain *first;
+			struct nvgpu_runlist_domain *last;
+
+			/*
+			 * For now there has to be at least one domain, or else
+			 * we'd have to explicitly prepare for no domains and
+			 * submit nothing to the runlist HW in various corner
+			 * cases. Don't allow deletion if this is the last one.
+			 */
+			first = nvgpu_list_first_entry(&runlist->domains,
+					nvgpu_runlist_domain, domains_list);
+
+			last = nvgpu_list_last_entry(&runlist->domains,
+					nvgpu_runlist_domain, domains_list);
+
+			if (first == last) {
+				nvgpu_mutex_release(&runlist->runlist_lock);
+				return -EINVAL;
+			}
+
+			if (domain == runlist->domain) {
+				/* Don't let the HW access this anymore */
+				runlist_switch_domain_locked(g, runlist);
+			}
+			nvgpu_runlist_domain_free(g, domain);
+		}
+		nvgpu_mutex_release(&runlist->runlist_lock);
+	}
+
+	return 0;
+}
+
 void nvgpu_runlist_cleanup_sw(struct gk20a *g)
 {
 	struct nvgpu_fifo *f = &g->fifo;
@@ -996,6 +1042,11 @@ static struct nvgpu_runlist_domain *nvgpu_runlist_domain_alloc(struct gk20a *g,
 	/* deleted in nvgpu_runlist_domain_free() */
 	nvgpu_list_add_tail(&domain->domains_list, &runlist->domains);
 
+	/* Select the first created domain as the boot-time default */
+	if (runlist->domain == NULL) {
+		runlist->domain = domain;
+	}
+
 	return domain;
 free_active_channels:
 	nvgpu_kfree(g, domain->active_channels);
@@ -1023,6 +1074,40 @@ struct nvgpu_runlist_domain *nvgpu_rl_domain_get(struct gk20a *g, u32 runlist_id
 	}
 
 	return NULL;
+}
+
+int nvgpu_rl_domain_alloc(struct gk20a *g, const char *name)
+{
+	struct nvgpu_fifo *f = &g->fifo;
+	int err;
+	u32 i;
+
+	for (i = 0U; i < f->num_runlists; i++) {
+		struct nvgpu_runlist *runlist;
+		struct nvgpu_runlist_domain *domain;
+
+		runlist = &f->active_runlists[i];
+
+		nvgpu_mutex_acquire(&runlist->runlist_lock);
+		/* this may only happen on the very first runlist */
+		if (nvgpu_rl_domain_get(g, runlist->id, name) != NULL) {
+			nvgpu_mutex_release(&runlist->runlist_lock);
+			return -EEXIST;
+		}
+
+		domain = nvgpu_runlist_domain_alloc(g, runlist, name);
+		nvgpu_mutex_release(&runlist->runlist_lock);
+		if (domain == NULL) {
+			err = -ENOMEM;
+			goto clear;
+		}
+	}
+
+	return 0;
+clear:
+	/* deletion skips runlists where the domain isn't found */
+	(void)nvgpu_rl_domain_delete(g, name);
+	return err;
 }
 
 static void nvgpu_init_active_runlist_mapping(struct gk20a *g)
