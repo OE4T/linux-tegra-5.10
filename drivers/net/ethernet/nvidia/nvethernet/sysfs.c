@@ -3072,7 +3072,7 @@ static int ether_desc_dump_read(struct seq_file *seq, void *v)
 			   chan);
 		seq_printf(seq, "\tcurrent Tx idx = %u, clean idx = %u\n",
 			   tx_ring->cur_tx_idx, tx_ring->clean_idx);
-		for (j = 0; j < TX_DESC_CNT; j++) {
+		for (j = 0; j < osi_dma->tx_ring_sz; j++) {
 			tx_desc = tx_ring->tx_desc + j;
 
 			seq_printf(seq, "[%03u %p %#llx] = %#x:%#x:%#x:%#x\n",
@@ -3085,7 +3085,7 @@ static int ether_desc_dump_read(struct seq_file *seq, void *v)
 			   chan);
 		seq_printf(seq, "\tcurrent Rx idx = %u, refill idx = %u\n",
 			   rx_ring->cur_rx_idx, rx_ring->refill_idx);
-		for (j = 0; j < RX_DESC_CNT; j++) {
+		for (j = 0; j < osi_dma->rx_ring_sz; j++) {
 			rx_desc = rx_ring->rx_desc + j;
 
 			seq_printf(seq, "[%03u %p %#llx] = %#x:%#x:%#x:%#x\n",

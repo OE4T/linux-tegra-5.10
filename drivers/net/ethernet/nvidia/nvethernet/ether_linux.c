@@ -1719,10 +1719,11 @@ static void ether_free_rx_skbs(struct osi_rx_swcx *rx_swcx,
 			       unsigned int rx_buf_len,
 			       void *resv_buf_virt_addr)
 {
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 	struct osi_rx_swcx *prx_swcx = NULL;
 	unsigned int i;
 
-	for (i = 0; i < RX_DESC_CNT; i++) {
+	for (i = 0; i < osi_dma->rx_ring_sz; i++) {
 		prx_swcx = rx_swcx + i;
 
 		if (prx_swcx->buf_virt_addr != NULL) {
@@ -1755,7 +1756,7 @@ static void ether_free_rx_skbs(struct osi_rx_swcx *rx_swcx,
 static void free_rx_dma_resources(struct osi_dma_priv_data *osi_dma,
 				  struct ether_priv_data *pdata)
 {
-	unsigned long rx_desc_size = sizeof(struct osi_rx_desc) * RX_DESC_CNT;
+	unsigned long rx_desc_size = sizeof(struct osi_rx_desc) * osi_dma->rx_ring_sz;
 	struct osi_rx_ring *rx_ring = NULL;
 	unsigned int i;
 
@@ -1812,8 +1813,8 @@ static int allocate_rx_dma_resource(struct osi_dma_priv_data *osi_dma,
 	unsigned long rx_swcx_size;
 	int ret = 0;
 
-	rx_desc_size = sizeof(struct osi_rx_desc) * (unsigned long)RX_DESC_CNT;
-	rx_swcx_size = sizeof(struct osi_rx_swcx) * (unsigned long)RX_DESC_CNT;
+	rx_desc_size = sizeof(struct osi_rx_desc) * (unsigned long)osi_dma->rx_ring_sz;
+	rx_swcx_size = sizeof(struct osi_rx_swcx) * (unsigned long)osi_dma->rx_ring_sz;
 
 	osi_dma->rx_ring[chan] = kzalloc(sizeof(struct osi_rx_ring),
 					 GFP_KERNEL);
@@ -1870,7 +1871,7 @@ static int ether_allocate_rx_buffers(struct ether_priv_data *pdata,
 	struct osi_rx_swcx *rx_swcx = NULL;
 	unsigned int i = 0;
 
-	for (i = 0; i < RX_DESC_CNT; i++) {
+	for (i = 0; i < pdata->osi_dma->rx_ring_sz; i++) {
 #ifndef ETHER_PAGE_POOL
 		struct sk_buff *skb = NULL;
 #else
@@ -2016,7 +2017,7 @@ exit:
 static void free_tx_dma_resources(struct osi_dma_priv_data *osi_dma,
 				  struct device *dev)
 {
-	unsigned long tx_desc_size = sizeof(struct osi_tx_desc) * TX_DESC_CNT;
+	unsigned long tx_desc_size = sizeof(struct osi_tx_desc) * osi_dma->tx_ring_sz;
 	struct osi_tx_ring *tx_ring = NULL;
 	unsigned int i;
 
@@ -2059,12 +2060,13 @@ static int allocate_tx_dma_resource(struct osi_dma_priv_data *osi_dma,
 				    struct device *dev,
 				    unsigned int chan)
 {
+	unsigned int tx_ring_sz = osi_dma->tx_ring_sz;
 	unsigned long tx_desc_size;
 	unsigned long tx_swcx_size;
 	int ret = 0;
 
-	tx_desc_size = sizeof(struct osi_tx_desc) * (unsigned long)TX_DESC_CNT;
-	tx_swcx_size = sizeof(struct osi_tx_swcx) * (unsigned long)TX_DESC_CNT;
+	tx_desc_size = sizeof(struct osi_tx_desc) * (unsigned long)tx_ring_sz;
+	tx_swcx_size = sizeof(struct osi_tx_swcx) * (unsigned long)tx_ring_sz;
 
 	osi_dma->tx_ring[chan] = kzalloc(sizeof(struct osi_tx_ring),
 					 GFP_KERNEL);
@@ -3052,7 +3054,7 @@ static void ether_tx_swcx_rollback(struct ether_priv_data *pdata,
 	struct osi_tx_swcx *tx_swcx = NULL;
 
 	while (count > 0) {
-		DECR_TX_DESC_INDEX(cur_tx_idx, 1U);
+		DECR_TX_DESC_INDEX(cur_tx_idx, pdata->osi_dma->tx_ring_sz);
 		tx_swcx = tx_ring->tx_swcx + cur_tx_idx;
 		if (tx_swcx->buf_phy_addr) {
 			if ((tx_swcx->flags & OSI_PKT_CX_PAGED_BUF) ==
@@ -3151,7 +3153,7 @@ static int ether_tx_swcx_alloc(struct ether_priv_data *pdata,
 
 		tx_swcx->len = -1;
 		cnt++;
-		INCR_TX_DESC_INDEX(cur_tx_idx, 1U);
+		INCR_TX_DESC_INDEX(cur_tx_idx, pdata->osi_dma->tx_ring_sz);
 	}
 
 	if ((tx_pkt_cx->flags & OSI_PKT_CX_TSO) == OSI_PKT_CX_TSO) {
@@ -3188,7 +3190,7 @@ static int ether_tx_swcx_alloc(struct ether_priv_data *pdata,
 		len -= size;
 		offset += size;
 		cnt++;
-		INCR_TX_DESC_INDEX(cur_tx_idx, 1U);
+		INCR_TX_DESC_INDEX(cur_tx_idx, pdata->osi_dma->tx_ring_sz);
 	}
 
 	/* Map remaining payload from linear buffer
@@ -3220,7 +3222,7 @@ static int ether_tx_swcx_alloc(struct ether_priv_data *pdata,
 			len -= size;
 			offset += size;
 			cnt++;
-			INCR_TX_DESC_INDEX(cur_tx_idx, 1U);
+			INCR_TX_DESC_INDEX(cur_tx_idx, pdata->osi_dma->tx_ring_sz);
 		}
 	}
 
@@ -3264,7 +3266,7 @@ static int ether_tx_swcx_alloc(struct ether_priv_data *pdata,
 			len -= size;
 			offset += size;
 			cnt++;
-			INCR_TX_DESC_INDEX(cur_tx_idx, 1U);
+			INCR_TX_DESC_INDEX(cur_tx_idx, pdata->osi_dma->tx_ring_sz);
 		}
 	}
 
@@ -3378,7 +3380,7 @@ static int ether_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 	}
 #endif
 
-	if (ether_avail_txdesc_cnt(tx_ring) <= ETHER_TX_DESC_THRESHOLD) {
+	if (ether_avail_txdesc_cnt(osi_dma, tx_ring) <= ETHER_TX_DESC_THRESHOLD) {
 		netif_stop_subqueue(ndev, qinx);
 		netdev_dbg(ndev, "Tx ring[%d] insufficient desc.\n", chan);
 	}
@@ -5504,6 +5506,48 @@ static void ether_parse_queue_prio(struct ether_priv_data *pdata,
 	}
 }
 
+static void ether_get_dma_ring_size(struct device *dev,
+				    struct osi_dma_priv_data *osi_dma)
+{
+	unsigned int tx_ring_sz_max[] = {1024, 4096};
+	unsigned int rx_ring_sz_max[] = {1024, 16384};
+	/* 1K for EQOS and 4K for MGBE */
+	unsigned int default_sz[] = {1024, 4096};
+	struct device_node *np = dev->of_node;
+	int ret = 0;
+
+	/* Ovveride with DT if property is available */
+	ret = of_property_read_u32(np, "nvidia,dma_tx_ring_sz",
+				   &osi_dma->tx_ring_sz);
+	if (ret < 0) {
+		dev_info(dev, "Failed to read DMA Tx ring size, using default [%d]\n",
+			 default_sz[osi_dma->mac]);
+		osi_dma->tx_ring_sz = default_sz[osi_dma->mac];
+	}
+
+	if ((osi_dma->tx_ring_sz > tx_ring_sz_max[osi_dma->mac]) ||
+	    (!is_power_of_2(osi_dma->tx_ring_sz))) {
+		dev_info(dev, "Invalid Tx ring length - %d using default [%d]\n",
+			 osi_dma->tx_ring_sz, default_sz[osi_dma->mac]);
+		osi_dma->tx_ring_sz = default_sz[osi_dma->mac];
+	}
+
+	ret = of_property_read_u32(np, "nvidia,dma_rx_ring_sz",
+				   &osi_dma->rx_ring_sz);
+	if (ret < 0) {
+		dev_info(dev, "Failed to read DMA Tx ring size, using default [%d]\n",
+			 default_sz[osi_dma->mac]);
+		osi_dma->rx_ring_sz = default_sz[osi_dma->mac];
+	}
+
+	if ((osi_dma->rx_ring_sz > rx_ring_sz_max[osi_dma->mac]) ||
+	     (!is_power_of_2(osi_dma->rx_ring_sz))) {
+		dev_info(dev, "Invalid Rx ring length - %d using default [%d]\n",
+			 osi_dma->rx_ring_sz, default_sz[osi_dma->mac]);
+		osi_dma->rx_ring_sz = default_sz[osi_dma->mac];
+	}
+}
+
 /**
  * @brief Parse MAC and PHY DT.
  *
@@ -5803,6 +5847,8 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 		}
 	}
 
+	ether_get_dma_ring_size(dev, osi_dma);
+
 	/* tx_usecs value to be set */
 	ret = of_property_read_u32(np, "nvidia,tx_usecs", &osi_dma->tx_usecs);
 	if (ret < 0) {
@@ -5824,11 +5870,12 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 	if (ret < 0) {
 		osi_dma->use_tx_frames = OSI_DISABLE;
 	} else {
-		if (osi_dma->tx_frames > ETHER_TX_MAX_FRAME ||
+		if (osi_dma->tx_frames > ETHER_TX_MAX_FRAME(osi_dma->tx_ring_sz) ||
 		    osi_dma->tx_frames < OSI_MIN_TX_COALESCE_FRAMES) {
 			dev_err(dev,
 				"invalid tx-frames, must be inrange %d to %ld",
-				OSI_MIN_TX_COALESCE_FRAMES, ETHER_TX_MAX_FRAME);
+				OSI_MIN_TX_COALESCE_FRAMES,
+				ETHER_TX_MAX_FRAME(osi_dma->tx_ring_sz));
 			return -EINVAL;
 		}
 		osi_dma->use_tx_frames = OSI_ENABLE;
@@ -5873,11 +5920,11 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 	if (ret < 0) {
 		osi_dma->use_rx_frames = OSI_DISABLE;
 	} else {
-		if (osi_dma->rx_frames > RX_DESC_CNT ||
+		if (osi_dma->rx_frames > osi_dma->rx_ring_sz ||
 		    osi_dma->rx_frames < OSI_MIN_RX_COALESCE_FRAMES) {
 			dev_err(dev,
 				"invalid rx-frames, must be inrange %d to %d",
-				OSI_MIN_RX_COALESCE_FRAMES, RX_DESC_CNT);
+				OSI_MIN_RX_COALESCE_FRAMES, osi_dma->rx_ring_sz);
 			return -EINVAL;
 		}
 		osi_dma->use_rx_frames = OSI_ENABLE;

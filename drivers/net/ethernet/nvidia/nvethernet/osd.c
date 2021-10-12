@@ -217,7 +217,7 @@ static void ether_realloc_rx_skb(struct ether_priv_data *pdata,
 	int ret = 0;
 
 	while (local_refill_idx != rx_ring->cur_rx_idx &&
-	       local_refill_idx < RX_DESC_CNT) {
+	       local_refill_idx < osi_dma->rx_ring_sz) {
 		rx_swcx = rx_ring->rx_swcx + local_refill_idx;
 		rx_desc = rx_ring->rx_desc + local_refill_idx;
 
@@ -226,7 +226,7 @@ static void ether_realloc_rx_skb(struct ether_priv_data *pdata,
 		if (ret < 0) {
 			break;
 		}
-		INCR_RX_DESC_INDEX(local_refill_idx, 1U);
+		INCR_RX_DESC_INDEX(local_refill_idx, osi_dma->rx_ring_sz);
 	}
 
 	ret = osi_rx_dma_desc_init(osi_dma, rx_ring, chan);
@@ -646,7 +646,7 @@ done:
 	/* mark packet is processed */
 	rx_swcx->flags |= OSI_RX_SWCX_PROCESSED;
 
-	if (osi_get_refill_rx_desc_cnt(rx_ring) >= 16U)
+	if (osi_get_refill_rx_desc_cnt(pdata->osi_dma, chan) >= 16U)
 		ether_realloc_rx_skb(pdata, rx_ring, chan);
 }
 
@@ -735,7 +735,7 @@ static void osd_transmit_complete(void *priv, const struct osi_tx_swcx *swcx,
 		txq = netdev_get_tx_queue(ndev, qinx);
 
 		if (netif_tx_queue_stopped(txq) &&
-		    (ether_avail_txdesc_cnt(tx_ring) >
+		    (ether_avail_txdesc_cnt(osi_dma, tx_ring) >
 		    ETHER_TX_DESC_THRESHOLD)) {
 			netif_tx_wake_queue(txq);
 			netdev_dbg(ndev, "Tx ring[%d] - waking Txq\n", chan);
