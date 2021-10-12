@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,8 +29,11 @@
  * @brief Helper macros for defining Tx/Rx descriptor count
  * @{
  */
-#define TX_DESC_CNT	1024U
-#define RX_DESC_CNT	1024U
+#define OSI_EQOS_TX_DESC_CNT		1024U
+#define OSI_EQOS_RX_DESC_CNT		1024U
+#define OSI_MGBE_TX_DESC_CNT		4096U
+#define OSI_MGBE_RX_DESC_CNT		4096U
+#define OSI_MGBE_MAX_RX_DESC_CNT	16384U
 /** @} */
 
 /** TSO Header length divisor */
@@ -43,14 +46,14 @@
  * @{
  */
 /** Increment the tx descriptor index */
-#define INCR_TX_DESC_INDEX(idx, i) ((idx) = ((idx) + (i)) & (TX_DESC_CNT - 1U))
+#define INCR_TX_DESC_INDEX(idx, x) ((idx) = ((idx) + (1U)) & ((x) - 1U))
 /** Increment the rx descriptor index */
-#define INCR_RX_DESC_INDEX(idx, i) ((idx) = ((idx) + (i)) & (RX_DESC_CNT - 1U))
+#define INCR_RX_DESC_INDEX(idx, x) ((idx) = ((idx) + (1U)) & ((x) - 1U))
 #ifndef OSI_STRIPPED_LIB
 /** Decrement the tx descriptor index */
-#define DECR_TX_DESC_INDEX(idx, i) ((idx) = ((idx) - (i)) & (TX_DESC_CNT - 1U))
+#define DECR_TX_DESC_INDEX(idx, x) ((idx) = ((idx) - (1U)) & ((x) - 1U))
 /** Decrement the rx descriptor index */
-#define DECR_RX_DESC_INDEX(idx, i) ((idx) = ((idx) - (i)) & (RX_DESC_CNT - 1U))
+#define DECR_RX_DESC_INDEX(idx, x) ((idx) = ((idx) - (1U)) & ((x) - 1U))
 #endif /* !OSI_STRIPPED_LIB */
 /** @} */
 #endif /* INCLUDED_OSI_DMA_TXRX_H */

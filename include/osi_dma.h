@@ -604,6 +604,10 @@ struct osi_dma_priv_data {
 #endif /* OSI_DEBUG */
 	/** Flag which checks is ethernet server enabled(1) or disabled(0) */
 	nveu32_t is_ethernet_server;
+	/** DMA Tx channel ring size */
+	nveu32_t tx_ring_sz;
+	/** DMA Rx channel ring size */
+	nveu32_t rx_ring_sz;
 };
 
 /**
@@ -909,7 +913,8 @@ nve32_t osi_stop_dma(struct osi_dma_priv_data *osi_dma, nveu32_t chan);
  *
  * @retval "Number of available free descriptors."
  */
-nveu32_t osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring);
+nveu32_t osi_get_refill_rx_desc_cnt(struct osi_dma_priv_data *osi_dma,
+				    unsigned int chan);
 
 /**
  * @brief osi_rx_dma_desc_init - DMA Rx descriptor init

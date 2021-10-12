@@ -35,6 +35,14 @@
 #endif
 
 /**
+ * @brief Default DMA Tx/Rx ring sizes for EQOS/MGBE.
+ */
+#define EQOS_DEFAULT_RING_SZ	1024U
+#define MGBE_DEFAULT_RING_SZ	4096U
+#define MGBE_MAX_RING_SZ	16384U
+#define HW_MIN_RING_SZ		4U
+
+/**
  * @brief MAC DMA Channel operations
  */
 struct dma_chan_ops {
@@ -226,6 +234,15 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
  */
 nve32_t dma_desc_init(struct osi_dma_priv_data *osi_dma,
 		      struct dma_chan_ops *ops);
+
+static inline nveu32_t is_power_of_two(nveu32_t num)
+{
+	if ((num > 0U) && ((num & (num - 1U)) == 0U)) {
+		return OSI_ENABLE;
+	}
+
+	return OSI_DISABLE;
+}
 
 /**
  * @addtogroup Helper Helper MACROS
