@@ -109,7 +109,13 @@ int nvgpu_tsg_bind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 	 */
 	if (tsg->runlist == NULL) {
 		tsg->runlist = ch->runlist;
-		tsg->rl_domain = nvgpu_rl_domain_get(g, tsg->runlist->id, "(default)");
+		/*
+		 * The rl domain identifier is stashed in tsg->rl_domain->name
+		 * when the tsg is bound to a domain, but at that point there
+		 * are no channels yet to describe which runlist id should be
+		 * used. Now we know.
+		 */
+		tsg->rl_domain = nvgpu_rl_domain_get(g, tsg->runlist->id, tsg->rl_domain->name);
 		WARN_ON(tsg->rl_domain == NULL);
 	} else {
 		if (tsg->runlist != ch->runlist) {
@@ -145,6 +151,30 @@ int nvgpu_tsg_bind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 	nvgpu_ref_get(&tsg->refcount);
 
 	return err;
+}
+
+int nvgpu_tsg_bind_domain(struct nvgpu_tsg *tsg, const char *domain_name)
+{
+	struct nvgpu_runlist_domain *domain;
+	struct gk20a *g = tsg->g;
+
+	/* Hopping channels from one domain to another is not allowed */
+	if (tsg->num_active_channels != 0U) {
+		return -EINVAL;
+	}
+
+	/*
+	 * The domain ptr will get updated with the right id once the runlist
+	 * gets specified based on the first channel.
+	 */
+	domain = nvgpu_rl_domain_get(g, 0, domain_name);
+	if (domain == NULL) {
+		return -ENOENT;
+	}
+
+	tsg->rl_domain = domain;
+
+	return 0;
 }
 
 static bool nvgpu_tsg_is_multi_channel(struct nvgpu_tsg *tsg)
@@ -807,6 +837,11 @@ int nvgpu_tsg_open_common(struct gk20a *g, struct nvgpu_tsg *tsg, pid_t pid)
 	tsg->interleave_level = NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_LOW;
 	tsg->timeslice_us = g->ops.tsg.default_timeslice_us(g);
 	tsg->runlist = NULL;
+	/*
+	 * The domain ptr will get updated with the right id once the runlist
+	 * gets specified based on the first channel.
+	 */
+	tsg->rl_domain = nvgpu_rl_domain_get(g, 0, "(default)");
 #ifdef CONFIG_NVGPU_DEBUGGER
 	tsg->sm_exception_mask_type = NVGPU_SM_EXCEPTION_TYPE_MASK_NONE;
 #endif

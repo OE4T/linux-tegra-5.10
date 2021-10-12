@@ -373,6 +373,8 @@ void nvgpu_tsg_disable(struct nvgpu_tsg *tsg);
 int nvgpu_tsg_bind_channel(struct nvgpu_tsg *tsg,
 			struct nvgpu_channel *ch);
 
+int nvgpu_tsg_bind_domain(struct nvgpu_tsg *tsg, const char *domain_name);
+
 /**
  * @brief Get pointer to #nvgpu_tsg for the tsgid.
  *

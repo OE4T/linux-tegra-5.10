@@ -38,6 +38,12 @@ struct nvgpu_tsg_bind_channel_ex_args {
 	__u8 reserved[16];
 };
 
+struct nvgpu_tsg_bind_scheduling_domain_args {
+	/* in: name of the domain this tsg will be bound to */
+	__u8 domain_name[16];
+	__u8 reserved[16];
+};
+
 /*
  * This struct helps to report the SM error state of a single SM.
  * This acts upon the currently resident TSG context.
@@ -131,11 +137,14 @@ struct nvgpu_tsg_set_l2_sector_promotion_args {
 #define NVGPU_TSG_IOCTL_SET_L2_SECTOR_PROMOTION \
 	_IOW(NVGPU_TSG_IOCTL_MAGIC, 15, \
 			struct nvgpu_tsg_set_l2_sector_promotion_args)
+#define NVGPU_TSG_IOCTL_BIND_SCHEDULING_DOMAIN \
+	_IOW(NVGPU_TSG_IOCTL_MAGIC, 16, \
+			struct nvgpu_tsg_bind_scheduling_domain_args)
 #define NVGPU_TSG_IOCTL_MAX_ARG_SIZE	\
-		sizeof(struct nvgpu_tsg_bind_channel_ex_args)
+		sizeof(struct nvgpu_tsg_bind_scheduling_domain_args)
 
 #define NVGPU_TSG_IOCTL_LAST		\
-	_IOC_NR(NVGPU_TSG_IOCTL_SET_L2_SECTOR_PROMOTION)
+	_IOC_NR(NVGPU_TSG_IOCTL_BIND_SCHEDULING_DOMAIN)
 
 /*
  * /dev/nvhost-dbg-gpu device
