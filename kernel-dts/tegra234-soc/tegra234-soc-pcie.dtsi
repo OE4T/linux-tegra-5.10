@@ -53,7 +53,7 @@
 		pex_rst_c5_in_state: pex_rst_c5_in {
 			pex_rst {
 				nvidia,pins = "pex_l5_rst_n_paf1";
-				nvidia,function = "pe5";
+				nvidia,function = "rsvd1";
 				nvidia,pull = <TEGRA_PIN_PULL_NONE>;
 				nvidia,tristate = <TEGRA_PIN_ENABLE>;
 				nvidia,enable-input = <TEGRA_PIN_ENABLE>;
@@ -64,7 +64,7 @@
 		pex_rst_c6_in_state: pex_rst_c6_in {
 			pex_rst {
 				nvidia,pins = "pex_l6_rst_n_paf3";
-				nvidia,function = "pe6";
+				nvidia,function = "rsvd1";
 				nvidia,pull = <TEGRA_PIN_PULL_NONE>;
 				nvidia,tristate = <TEGRA_PIN_ENABLE>;
 				nvidia,enable-input = <TEGRA_PIN_ENABLE>;
@@ -76,7 +76,7 @@
 		pex_rst_c7_in_state: pex_rst_c7_in {
 			pex_rst {
 				nvidia,pins = "pex_l7_rst_n_pag1";
-				nvidia,function = "pe7";
+				nvidia,function = "rsvd1";
 				nvidia,pull = <TEGRA_PIN_PULL_NONE>;
 				nvidia,tristate = <TEGRA_PIN_ENABLE>;
 				nvidia,enable-input = <TEGRA_PIN_ENABLE>;
@@ -88,7 +88,7 @@
 		pex_rst_c10_in_state: pex_rst_c10_in {
 			pex_rst {
 				nvidia,pins = "pex_l10_rst_n_pag7";
-				nvidia,function = "pe10";
+				nvidia,function = "rsvd1";
 				nvidia,pull = <TEGRA_PIN_PULL_NONE>;
 				nvidia,tristate = <TEGRA_PIN_ENABLE>;
 				nvidia,enable-input = <TEGRA_PIN_ENABLE>;
