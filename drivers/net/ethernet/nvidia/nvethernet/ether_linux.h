@@ -276,7 +276,7 @@ static inline bool valid_tx_len(unsigned int length)
  */
 #define ETHER_TX_DESC_THRESHOLD	(MAX_SKB_FRAGS + ETHER_TX_MAX_SPLIT + 2)
 
-#define ETHER_TX_MAX_FRAME	(TX_DESC_CNT / ETHER_TX_DESC_THRESHOLD)
+#define ETHER_TX_MAX_FRAME(x)	((x) / ETHER_TX_DESC_THRESHOLD)
 /**
  *@brief Returns count of available transmit descriptors
  *
@@ -289,10 +289,11 @@ static inline bool valid_tx_len(unsigned int length)
  *
  * @returns Number of available descriptors in the given Tx ring.
  */
-static inline int ether_avail_txdesc_cnt(struct osi_tx_ring *tx_ring)
+static inline int ether_avail_txdesc_cnt(struct osi_dma_priv_data *osi_dma,
+					 struct osi_tx_ring *tx_ring)
 {
 	return ((tx_ring->clean_idx - tx_ring->cur_tx_idx - 1) &
-		(TX_DESC_CNT - 1));
+		(osi_dma->tx_ring_sz - 1));
 }
 
 /**

@@ -995,12 +995,12 @@ static int ether_set_coalesce(struct net_device *dev,
 
 	if (ec->tx_max_coalesced_frames == OSI_DISABLE) {
 		osi_dma->use_tx_frames = OSI_DISABLE;
-	} else if ((ec->tx_max_coalesced_frames > ETHER_TX_MAX_FRAME) ||
+	} else if ((ec->tx_max_coalesced_frames > ETHER_TX_MAX_FRAME(osi_dma->tx_ring_sz)) ||
 		(ec->tx_max_coalesced_frames < OSI_MIN_TX_COALESCE_FRAMES)) {
 		netdev_err(dev,
 			   "invalid tx-frames, must be in the range of"
 			   " %d to %ld frames\n", OSI_MIN_TX_COALESCE_FRAMES,
-			   ETHER_TX_MAX_FRAME);
+			   ETHER_TX_MAX_FRAME(osi_dma->tx_ring_sz));
 		return -EINVAL;
 	} else {
 		osi_dma->use_tx_frames = OSI_ENABLE;
@@ -1027,12 +1027,12 @@ static int ether_set_coalesce(struct net_device *dev,
 
 	if (ec->rx_max_coalesced_frames == OSI_DISABLE) {
 		osi_dma->use_rx_frames = OSI_DISABLE;
-	} else if ((ec->rx_max_coalesced_frames > RX_DESC_CNT) ||
+	} else if ((ec->rx_max_coalesced_frames > osi_dma->rx_ring_sz) ||
 		(ec->rx_max_coalesced_frames < OSI_MIN_RX_COALESCE_FRAMES)) {
 		netdev_err(dev,
 			   "invalid rx-frames, must be in the range of"
 			   " %d to %d frames\n", OSI_MIN_RX_COALESCE_FRAMES,
-			   RX_DESC_CNT);
+			   osi_dma->rx_ring_sz);
 		return -EINVAL;
 	} else {
 		osi_dma->use_rx_frames = OSI_ENABLE;
@@ -1553,6 +1553,56 @@ static int ether_set_rxfh(struct net_device *ndev, const u32 *indir,
 
 }
 
+static void ether_get_ringparam(struct net_device *ndev,
+				struct ethtool_ringparam *ring)
+{
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	unsigned int max_supported_sz[] = {1024, 4096};
+
+	ring->rx_max_pending = max_supported_sz[osi_dma->mac];
+	ring->tx_max_pending = max_supported_sz[osi_dma->mac];
+	ring->rx_pending = osi_dma->rx_ring_sz;
+	ring->tx_pending = osi_dma->tx_ring_sz;
+}
+
+static int ether_set_ringparam(struct net_device *ndev,
+			       struct ethtool_ringparam *ring)
+{
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	unsigned int tx_ring_sz_max[] = {1024, 4096};
+	unsigned int rx_ring_sz_max[] = {1024, 16384};
+	int ret = 0;
+
+	if (ring->rx_mini_pending ||
+	    ring->rx_jumbo_pending ||
+	    ring->rx_pending < 64 ||
+	    ring->rx_pending > rx_ring_sz_max[osi_dma->mac] ||
+	    !is_power_of_2(ring->rx_pending) ||
+	    ring->tx_pending < 64 ||
+	    ring->tx_pending > tx_ring_sz_max[osi_dma->mac] ||
+	    !is_power_of_2(ring->tx_pending))
+		return -EINVAL;
+
+	/* Stop the network device */
+	if (netif_running(ndev) &&
+	    ndev->netdev_ops &&
+	    ndev->netdev_ops->ndo_stop)
+		ndev->netdev_ops->ndo_stop(ndev);
+
+	osi_dma->rx_ring_sz = ring->rx_pending;
+	osi_dma->tx_ring_sz = ring->tx_pending;
+
+	/* Start the network device */
+	if (netif_running(ndev) &&
+	    ndev->netdev_ops &&
+	    ndev->netdev_ops->ndo_open)
+		ret = ndev->netdev_ops->ndo_open(ndev);
+
+	return ret;
+}
+
 /**
  * @brief Set of ethtool operations
  */
@@ -1582,6 +1632,8 @@ static const struct ethtool_ops ether_ethtool_ops = {
 	.get_rxfh_indir_size = ether_get_rxfh_indir_size,
 	.get_rxfh = ether_get_rxfh,
 	.set_rxfh = ether_set_rxfh,
+	.get_ringparam = ether_get_ringparam,
+	.set_ringparam = ether_set_ringparam,
 };
 
 void ether_set_ethtool_ops(struct net_device *ndev)
