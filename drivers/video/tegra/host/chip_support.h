@@ -3,7 +3,7 @@
  *
  * Tegra Graphics Host Chip Support
  *
- * Copyright (c) 2011-2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -231,6 +231,7 @@ struct nvhost_chip_support *nvhost_get_chip_ops(void);
 
 int nvhost_init_chip_support(struct nvhost_master *);
 
+bool nvhost_is_234(void);
 bool nvhost_is_194(void);
 bool nvhost_is_186(void);
 bool nvhost_is_210(void);

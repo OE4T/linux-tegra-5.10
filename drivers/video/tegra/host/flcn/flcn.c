@@ -29,6 +29,7 @@
 #include <linux/version.h>
 #include <linux/iopoll.h>
 #include <linux/string.h>
+#include <linux/platform/tegra/tegra23x_cbb_reg.h>
 
 #include "dev.h"
 #include "class_ids.h"
@@ -490,6 +491,55 @@ int nvhost_flcn_finalize_poweron_t186(struct platform_device *pdev)
 	return nvhost_flcn_finalize_poweron(pdev);
 }
 
+#if IS_ENABLED(CONFIG_ARCH_TEGRA_23x_SOC)
+static bool sec_is_writable(u32 offset_write, u32 offset_ctl)
+{
+	u32 sec_blf_ctl, sec_blf_write_ctl;
+	bool firewall_enabled, ccplex_accessible;
+
+	sec_blf_ctl = tegra234_cbb_readl(offset_ctl);
+	nvhost_dbg_info("sec_blf_ctl: 0x%08x\n", sec_blf_ctl);
+	firewall_enabled =
+		(sec_blf_ctl & cbb_sec_blf_ctl_blf_lck_f());
+
+	sec_blf_write_ctl = tegra234_cbb_readl(offset_write);
+	nvhost_dbg_info("sec_blf_write_ctl: 0x%08x\n", sec_blf_write_ctl);
+	ccplex_accessible =
+		(sec_blf_write_ctl & cbb_sec_blf_write_ctl_mstrid_1_f());
+
+	return !firewall_enabled || ccplex_accessible;
+}
+
+static void configure_intf_crc_ctrl(struct platform_device *pdev)
+{
+	const char *name = dev_name(&pdev->dev);
+	bool enable_crc = false;
+
+	if (strstr(name, "nvjpg"))
+		return;
+
+	if (tegra_platform_is_silicon()) {
+		if (strstr(name, "vic"))
+			enable_crc =
+				sec_is_writable(cbb_vic_sec_blf_write_ctl_r(),
+						cbb_vic_sec_blf_ctl_r());
+		if (strstr(name, "nvenc"))
+			enable_crc =
+				sec_is_writable(cbb_nvenc_sec_blf_write_ctl_r(),
+						cbb_nvenc_sec_blf_ctl_r());
+		if (strstr(name, "ofa"))
+			enable_crc =
+				sec_is_writable(cbb_ofa_sec_blf_write_ctl_r(),
+						cbb_ofa_sec_blf_ctl_r());
+	} else {
+		enable_crc = true;
+	}
+
+	if (enable_crc)
+		host1x_writel(pdev, sec_intf_crc_ctrl_r(), 1u);
+}
+#endif
+
 int nvhost_flcn_finalize_poweron(struct platform_device *pdev)
 {
 	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
@@ -525,8 +575,10 @@ int nvhost_flcn_finalize_poweron(struct platform_device *pdev)
 	nvhost_flcn_ctxtsw_init(pdev);
 	err = nvhost_flcn_start(pdev, 0);
 
-	if (!tegra_platform_is_silicon() && !strstr(dev_name(&pdev->dev), "nvjpg"))
-		host1x_writel(pdev, sec_intf_crc_ctrl_r(), 1u);
+#if IS_ENABLED(CONFIG_ARCH_TEGRA_23x_SOC)
+	if (nvhost_is_234())
+		configure_intf_crc_ctrl(pdev);
+#endif
 
 	return err;
 }

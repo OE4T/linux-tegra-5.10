@@ -306,4 +306,36 @@ static inline u32 flcn_hwcfg2_mem_scrubbing_done_v(void)
 {
 	return 0x0;
 }
+static inline u32 cbb_vic_sec_blf_write_ctl_r(void)
+{
+	return 0x00019508;
+}
+static inline u32 cbb_vic_sec_blf_ctl_r(void)
+{
+	return 0x00019510;
+}
+static inline u32 cbb_nvenc_sec_blf_write_ctl_r(void)
+{
+	return 0x000167a8;
+}
+static inline u32 cbb_nvenc_sec_blf_ctl_r(void)
+{
+	return 0x000167b0;
+}
+static inline u32 cbb_ofa_sec_blf_write_ctl_r(void)
+{
+	return 0x00016968;
+}
+static inline u32 cbb_ofa_sec_blf_ctl_r(void)
+{
+	return 0x00016970;
+}
+static inline u32 cbb_sec_blf_write_ctl_mstrid_1_f(void)
+{
+	return 0x00000002;
+}
+static inline u32 cbb_sec_blf_ctl_blf_lck_f(void)
+{
+	return 0x80000000;
+}
 #endif
