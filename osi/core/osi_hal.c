@@ -1666,6 +1666,10 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		ret = 0;
 		break;
 
+	case OSI_CMD_MAC_MTU:
+		ret = 0;
+		break;
+
 #ifdef OSI_DEBUG
 	case OSI_CMD_REG_DUMP:
 		core_reg_dump(osi_core);

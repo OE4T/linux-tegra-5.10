@@ -221,6 +221,7 @@ typedef my_lint_64		nvel64_t;
 #define OSI_CMD_STRUCTS_DUMP		45U
 #endif /* OSI_DEBUG */
 #define OSI_CMD_CAP_TSC_PTP		46U
+#define OSI_CMD_MAC_MTU			47U
 /** @} */
 
 /**
