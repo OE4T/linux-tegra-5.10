@@ -3,7 +3,7 @@
  * Coherent per-device memory handling.
  * Borrowed from i386
  *
- * Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION. All rights reserved.
  */
 #include <linux/io.h>
 #include <linux/slab.h>
@@ -51,10 +51,12 @@ struct heap_info {
 	size_t cma_chunk_size;
 	/* heap current base */
 	phys_addr_t curr_base;
+	phys_addr_t old_base;
 	/* heap current length */
 	/* heap current allocated memory in bytes */
 	size_t curr_used;
 	size_t curr_len;
+	size_t old_len;
 	/* heap lowest base */
 	phys_addr_t cma_base;
 	/* heap max length */
@@ -117,6 +119,93 @@ bool dma_is_coherent_dev(struct device *dev)
 }
 EXPORT_SYMBOL(dma_is_coherent_dev);
 
+static void update_alloc_range(struct heap_info *h)
+{
+	if (!h->curr_len)
+		h->dev.dma_mem->size = 0;
+	else
+		h->dev.dma_mem->size = (h->curr_base - h->cma_base +
+					h->curr_len) >> PAGE_SHIFT;
+}
+
+static int update_vpr_config(struct heap_info *h)
+{
+	int err;
+
+	/* Handle VPR configuration updates*/
+	if (h->update_resize_cfg) {
+		err = h->update_resize_cfg(h->curr_base, h->curr_len);
+		if (err) {
+			dev_err(&h->dev, "Failed to update heap resize\n");
+			return err;
+		}
+		dev_dbg(&h->dev, "update vpr base to %pa, size=%zx\n",
+			&h->curr_base, h->curr_len);
+	}
+
+	update_alloc_range(h);
+	return 0;
+}
+
+static int vpr_fops_open(struct inode *inode, struct file *filp)
+{
+	filp->private_data = inode->i_private;
+
+	return 0;
+}
+
+static ssize_t vpr_fops_read(struct file *filp, char __user *ubuf,
+			     size_t cnt, loff_t *ppos)
+{
+	struct heap_info *h = filp->private_data;
+	char buf[64];
+	int r;
+
+	r = h->curr_len == 0 ? 1 : 0;
+	r = sprintf(buf, "%d\n", r);
+
+	return simple_read_from_buffer(ubuf, cnt, ppos, buf, r);
+}
+
+static ssize_t dma_set_vpr_zero(struct file *filp, const char __user *ubuf,
+				size_t cnt, loff_t *ppos)
+{
+	struct heap_info *h = filp->private_data;
+	unsigned long val;
+	int err = 0;
+
+	if (!h)
+		return -ENODEV;
+
+	err = kstrtoul_from_user(ubuf, cnt, 10, &val);
+	if (err)
+		return err;
+
+	if (!!val) {
+		h->old_len = h->curr_len;
+		h->old_base = h->curr_base;
+		h->curr_len = 0;
+		h->curr_base = h->cma_base;
+	} else {
+		if (h->old_len) {
+			h->curr_len = h->old_len;
+			h->curr_base = h->old_base;
+		}
+	}
+	err = update_vpr_config(h);
+	(*ppos)++;
+
+	return cnt;
+}
+
+static const struct file_operations vpr_zero_fops = {
+	.owner		= THIS_MODULE,
+	.open		= vpr_fops_open,
+	.read		= vpr_fops_read,
+	.write		= dma_set_vpr_zero,
+	.llseek		= default_llseek,
+};
+
 static void dma_debugfs_init(struct device *dev, struct heap_info *heap)
 {
 	if (!heap->dma_debug_root) {
@@ -161,6 +250,7 @@ static void dma_debugfs_init(struct device *dev, struct heap_info *heap)
 	}
 	debugfs_create_x32("num_cma_chunks", S_IRUGO,
 		heap->dma_debug_root, (u32 *)&heap->num_chunks);
+	debugfs_create_file("set_vpr_zero", 0644, heap->dma_debug_root, heap, &vpr_zero_fops);
 }
 
 static phys_addr_t alloc_from_contiguous_heap(
@@ -203,32 +293,6 @@ static void release_from_contiguous_heap(
 	dma_release_from_contiguous(h->cma_dev, page, count);
 	dev_dbg(h->cma_dev, "released at base (%pa) size (0x%zx)\n",
 		&base, len);
-}
-
-static void update_alloc_range(struct heap_info *h)
-{
-	if (!h->curr_len)
-		h->dev.dma_mem->size = 0;
-	else
-		h->dev.dma_mem->size = (h->curr_base - h->cma_base +
-					h->curr_len) >> PAGE_SHIFT;
-}
-
-static int update_vpr_config(struct heap_info *h)
-{
-	/* Handle VPR configuration updates*/
-	if (h->update_resize_cfg) {
-		int err = h->update_resize_cfg(h->curr_base, h->curr_len);
-		if (err) {
-			dev_err(&h->dev, "Failed to update heap resize\n");
-			return err;
-		}
-		dev_dbg(&h->dev, "update vpr base to %pa, size=%zx\n",
-			&h->curr_base, h->curr_len);
-	}
-
-	update_alloc_range(h);
-	return 0;
 }
 
 static void get_first_and_last_idx(struct heap_info *h,
