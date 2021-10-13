@@ -204,8 +204,13 @@ static void nvgpu_init_pm_vars(struct gk20a *g)
 #endif
 	g->ptimer_src_freq = platform->ptimer_src_freq;
 
-	nvgpu_set_enabled(g, NVGPU_CAN_RAILGATE,
-		nvgpu_platform_is_simulation(g)? true : platform->can_railgate_init);
+	if (nvgpu_is_hypervisor_mode(g)) {
+		nvgpu_set_enabled(g, NVGPU_CAN_RAILGATE, false);
+		platform->can_railgate_init = false;
+	} else {
+		nvgpu_set_enabled(g, NVGPU_CAN_RAILGATE,
+			nvgpu_platform_is_simulation(g) ? true : platform->can_railgate_init);
+	}
 #ifdef CONFIG_NVGPU_STATIC_POWERGATE
 	g->can_tpc_pg = platform->can_tpc_pg;
 	g->can_gpc_pg = platform->can_gpc_pg;
@@ -227,14 +232,20 @@ static void nvgpu_init_pm_vars(struct gk20a *g)
 	g->support_ls_pmu = support_gk20a_pmu(dev_from_gk20a(g));
 
 	if (g->support_ls_pmu) {
-		g->elpg_enabled =
-			nvgpu_platform_is_silicon(g) ? platform->enable_elpg : false;
-		g->aelpg_enabled =
-			nvgpu_platform_is_silicon(g) ? platform->enable_aelpg : false;
+		if (nvgpu_is_hypervisor_mode(g)) {
+			g->elpg_enabled = false;
+			g->aelpg_enabled = false;
+			g->can_elpg = false;
+		} else {
+			g->elpg_enabled =
+				nvgpu_platform_is_silicon(g) ? platform->enable_elpg : false;
+			g->aelpg_enabled =
+				nvgpu_platform_is_silicon(g) ? platform->enable_aelpg : false;
+			g->can_elpg =
+				nvgpu_platform_is_silicon(g) ? platform->can_elpg_init : false;
+		}
 		g->mscg_enabled =
 			nvgpu_platform_is_silicon(g) ? platform->enable_mscg : false;
-		g->can_elpg =
-			nvgpu_platform_is_silicon(g) ? platform->can_elpg_init : false;
 		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
 			g->can_elpg = false;
 		}
