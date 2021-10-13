@@ -31,7 +31,8 @@
  */
 static void ether_get_tx_ts(struct work_struct *work)
 {
-	struct ether_priv_data *pdata = container_of(work,
+	struct delayed_work *dwork = to_delayed_work(work);
+	struct ether_priv_data *pdata = container_of(dwork,
 			struct ether_priv_data, tx_ts_work);
 	struct list_head *head_node, *temp_head_node;
 	struct skb_shared_hwtstamps shhwtstamp;
@@ -89,8 +90,10 @@ update_skb:
 		} else {
 			dev_dbg(pdata->dev, "Unable to retrieve TS from OSI\n");
 			miss_count++;
-			if (miss_count < TS_MISS_THRESHOLD)
-				schedule_work(&pdata->tx_ts_work);
+			if (miss_count < TS_MISS_THRESHOLD) {
+				schedule_delayed_work(&pdata->tx_ts_work,
+					   msecs_to_jiffies(ETHER_TS_MS_TIMER));
+			}
 		}
 	}
 }
@@ -2691,7 +2694,7 @@ static inline void ether_flush_tx_ts_skb_list(struct ether_priv_data *pdata)
 	struct list_head *head_node, *temp_head_node;
 
 	/* stop workqueue */
-	cancel_work_sync(&pdata->tx_ts_work);
+	cancel_delayed_work_sync(&pdata->tx_ts_work);
 
 	/* Delete nodes from list and rest static memory for reuse */
 	if (!list_empty(&pdata->tx_ts_skb_head)) {
@@ -2886,7 +2889,7 @@ static int ether_handle_tso(struct osi_tx_pkt_cx *tx_pkt_cx,
 	netdev_dbg(skb->dev, "tcp_udp_hdrlen=%u\n", tx_pkt_cx->tcp_udp_hdrlen);
 	netdev_dbg(skb->dev, "total_hdrlen  =%u\n", tx_pkt_cx->total_hdrlen);
 
-	return ret;
+	return 1;
 }
 
 /**
@@ -6235,7 +6238,7 @@ static int ether_probe(struct platform_device *pdev)
 	osi_core->hw_feature = &pdata->hw_feat;
 	INIT_LIST_HEAD(&pdata->mac_addr_list_head);
 	INIT_LIST_HEAD(&pdata->tx_ts_skb_head);
-	INIT_WORK(&pdata->tx_ts_work, ether_get_tx_ts);
+	INIT_DELAYED_WORK(&pdata->tx_ts_work, ether_get_tx_ts);
 
 #ifdef ETHER_NVGRO
 	__skb_queue_head_init(&pdata->mq);
@@ -6347,6 +6350,9 @@ static int ether_suspend_noirq(struct device *dev)
 		dev_err(dev, "Failed to backup MAC core registers\n");
 		return -EBUSY;
 	}
+
+	/* stop workqueue */
+	cancel_delayed_work_sync(&pdata->tx_ts_work);
 
 	/* Stop workqueue while DUT is going to suspend state */
 	ether_stats_work_queue_stop(pdata);

@@ -764,7 +764,8 @@ static void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaadd
 				skb, txdone_pkt_cx->pktid);
 			list_add_tail(&pnode->list_head,
 				      &pdata->tx_ts_skb_head);
-			schedule_work(&pdata->tx_ts_work);
+			schedule_delayed_work(&pdata->tx_ts_work,
+					      msecs_to_jiffies(ETHER_TS_MS_TIMER));
 		} else {
 			dev_consume_skb_any(skb);
 		}

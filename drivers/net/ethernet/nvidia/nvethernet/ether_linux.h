@@ -290,6 +290,12 @@ static inline int ether_avail_txdesc_cnt(struct osi_tx_ring *tx_ring)
  */
 #define ETHER_STATS_TIMER		3U
 
+/**
+ * @brief Timer to trigger Work queue periodically which read TX timestamp
+ * for PTP packets. Timer is in milisecond.
+ */
+#define ETHER_TS_MS_TIMER			1U
+
 #define ETHER_VM_IRQ_TX_CHAN_MASK(x)	BIT((x) * 2U)
 #define ETHER_VM_IRQ_RX_CHAN_MASK(x)	BIT(((x) * 2U) + 1U)
 
@@ -543,7 +549,7 @@ struct ether_priv_data {
 	/** local L2 filter address list head pointer */
 	struct list_head mac_addr_list_head;
 	/** skb tx timestamp update work queue */
-	struct work_struct tx_ts_work;
+	struct delayed_work tx_ts_work;
 	/** local skb list head */
 	struct list_head tx_ts_skb_head;
 	/** pre allocated memory for ether_tx_ts_skb_list list */
