@@ -3762,6 +3762,8 @@ static int ether_change_mtu(struct net_device *ndev, int new_mtu)
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	struct osi_ioctl ioctl_data = {};
+	int ret = 0;
 
 	if (netif_running(ndev)) {
 		netdev_err(pdata->ndev, "must be stopped to change its MTU\n");
@@ -3774,6 +3776,15 @@ static int ether_change_mtu(struct net_device *ndev, int new_mtu)
 		netdev_err(pdata->ndev,
 			   "MTU greater than %d is valid only in single channel configuration\n"
 			   , OSI_MTU_SIZE_9000);
+		return -EINVAL;
+	}
+
+	ioctl_data.cmd = OSI_CMD_MAC_MTU;
+	ioctl_data.arg1_u32 = new_mtu;
+	ret = osi_handle_ioctl(osi_core, &ioctl_data);
+	if (ret < 0) {
+		dev_info(pdata->dev, "HW Fail to set MTU to %d\n",
+			 new_mtu);
 		return -EINVAL;
 	}
 
