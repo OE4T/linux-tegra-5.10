@@ -207,6 +207,8 @@ struct macsec_priv_data {
 	unsigned int protect_frames;
 	/** MACsec enabled flags for Tx/Rx controller status */
 	unsigned int enabled;
+	/** MACsec enabled flags for Tx/Rx controller status before Suspend */
+	unsigned int enabled_before_suspend;
 	/** MACsec Rx PN Window */
 	unsigned int pn_window;
 	/** MACsec controller init reference count */
@@ -226,6 +228,8 @@ void macsec_remove(struct ether_priv_data *pdata);
 int macsec_open(struct macsec_priv_data *macsec_pdata,
 		void *const genl_info);
 int macsec_close(struct macsec_priv_data *macsec_pdata);
+int macsec_suspend(struct macsec_priv_data *macsec_pdata);
+int macsec_resume(struct macsec_priv_data *macsec_pdata);
 
 #ifdef MACSEC_DEBUG
 #define PRINT_ENTRY()	(printk(KERN_DEBUG "-->%s()\n", __func__))

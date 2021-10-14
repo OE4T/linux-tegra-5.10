@@ -6449,6 +6449,20 @@ static int ether_suspend_noirq(struct device *dev)
 	if (!netif_running(ndev))
 		return 0;
 
+	/* Keep MACSEC to suspend if MACSEC is supported on this platform */
+#ifdef MACSEC_SUPPORT
+	if ((osi_core->mac == OSI_MAC_HW_EQOS && osi_core->mac_ver == OSI_EQOS_MAC_5_30) ||
+	    (osi_core->mac == OSI_MAC_HW_MGBE && osi_core->mac_ver == OSI_MGBE_MAC_3_10)) {
+		pdata->macsec_pdata->enabled_before_suspend =
+			pdata->macsec_pdata->enabled;
+		if (pdata->macsec_pdata->enabled != OSI_DISABLE) {
+			ret = macsec_suspend(pdata->macsec_pdata);
+			if (ret < 0)
+				dev_err(pdata->dev, "Failed to suspend macsec");
+		}
+	}
+#endif /* MACSEC_SUPPORT */
+
 	/* Since MAC is placed in reset during suspend, take a backup of
 	 * current configuration so that SW view of HW is maintained across
 	 * suspend/resume.
@@ -6625,6 +6639,18 @@ static int ether_resume(struct ether_priv_data *pdata)
 	netif_tx_start_all_queues(ndev);
 	/* re-start workqueue */
 	ether_stats_work_queue_start(pdata);
+
+	/* Keep MACSEC also to Resume if MACSEC is supported on this platform */
+#ifdef MACSEC_SUPPORT
+	if ((osi_core->mac == OSI_MAC_HW_EQOS && osi_core->mac_ver == OSI_EQOS_MAC_5_30) ||
+	    (osi_core->mac == OSI_MAC_HW_MGBE && osi_core->mac_ver == OSI_MGBE_MAC_3_10)) {
+		if (pdata->macsec_pdata->enabled_before_suspend != OSI_DISABLE) {
+			ret = macsec_resume(pdata->macsec_pdata);
+			if (ret < 0)
+				dev_err(pdata->dev, "Failed to resume MACSEC ");
+		}
+	}
+#endif /* MACSEC_SUPPORT */
 
 	return 0;
 err_start_mac:
