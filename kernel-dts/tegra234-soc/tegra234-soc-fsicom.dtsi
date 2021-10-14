@@ -45,12 +45,12 @@
 		channel_0{
 			frame-count = <4>;
 			frame-size = <64>;
-			NvSciCh = "ipc_test_a";
+			NvSciCh = "nvfsicom_app1";
 		};
 		channel_1{
 			frame-count = <2>;
 			frame-size = <512>;
-			NvSciCh = "ipc_test";
+			NvSciCh = "nvfsicom_app2";
 		};
 	};
 };
