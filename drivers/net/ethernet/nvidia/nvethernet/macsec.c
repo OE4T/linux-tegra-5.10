@@ -215,8 +215,8 @@ int macsec_open(struct macsec_priv_data *macsec_pdata,
 
 #ifndef MACSEC_KEY_PROGRAM
 	/* Clear KT entries */
-	ret = macsec_tz_kt_config(pdata, OSI_MACSEC_CMD_TZ_KT_RESET, OSI_NULL,
-				  genl_info);
+	ret = macsec_tz_kt_config(pdata, OSI_MACSEC_CMD_TZ_KT_RESET,
+				  OSI_NULL, genl_info);
 	if (ret < 0) {
 		dev_err(dev, "TZ key config failed %d\n", ret);
 		goto err_osi_en;
@@ -244,6 +244,45 @@ err_ns_irq:
 exit:
 	PRINT_EXIT();
 	return ret;
+}
+
+/**
+ * Calling macsec_close as part of macsec_suspend as supplicant
+ * is disabling the current AN and creating new AN as part of
+ * resume.
+ */
+int macsec_suspend(struct macsec_priv_data *macsec_pdata)
+{
+	struct ether_priv_data *pdata = macsec_pdata->ether_pdata;
+	struct device *dev = pdata->dev;
+	int ret = 0;
+
+	ret = macsec_close(macsec_pdata);
+	if (ret < 0) {
+		dev_err(dev, "Failed to close macsec\n");
+		return ret;
+	}
+	macsec_disable_car(macsec_pdata);
+	return ret;
+}
+
+/**
+ * Calling macsec_open as part of macsec_resume as supplicant
+ * is disabling the current AN and creating new AN as part of
+ * resume.
+ */
+int macsec_resume(struct macsec_priv_data *macsec_pdata)
+{
+	struct ether_priv_data *pdata = macsec_pdata->ether_pdata;
+	struct device *dev = pdata->dev;
+	int ret = 0;
+
+	ret = macsec_enable_car(macsec_pdata);
+	if (ret < 0) {
+		dev_err(dev, "Unable to enable macsec clks & reset\n");
+		return ret;
+	}
+	return macsec_open(macsec_pdata, OSI_NULL);
 }
 
 static int macsec_get_platform_res(struct macsec_priv_data *macsec_pdata)
