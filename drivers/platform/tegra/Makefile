@@ -14,7 +14,7 @@ obj-$(CONFIG_TEGRA_CBB_NOC) += cbb/
 obj-$(CONFIG_TEGRA_DCE) += dce/
 obj-$(CONFIG_TEGRA_SPE) += aon/
 obj-$(CONFIG_TEGRA_PSC) += psc/
-ifeq ($(NV_BUILD_CONFIGURATION_IS_EXTERNAL),0)
+ifeq ($(_nv_build_configuration_is_external),0)
 obj-$(CONFIG_TEGRA_SOC_HWPM) += hwpm/
 endif
 obj-$(CONFIG_ARCH_TEGRA_18x_SOC) += tegra18_speedo.o
