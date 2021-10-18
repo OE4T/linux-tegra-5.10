@@ -1121,7 +1121,7 @@ static int tvnet_ep_alloc_multi_page_bar0_mem(struct pci_epf *epf,
 	if (!map)
 		return -ENOMEM;
 
-	amap->page = alloc_pages(GFP_KERNEL, page_count);
+	amap->page = alloc_pages(GFP_KERNEL, order);
 	if (!amap->page) {
 		dev_err(tvnet->fdev, "%s: alloc_pages() failed\n", __func__);
 		ret = -ENOMEM;
