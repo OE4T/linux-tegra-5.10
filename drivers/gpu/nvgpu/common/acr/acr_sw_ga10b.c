@@ -82,14 +82,13 @@ static int ga10b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 		/*
 		 * In case of recovery ucode blob size is 0 as it has already
 		 * been authenticated during cold boot.
-		 * TODO: Set blob size as 0x0
-		 * i.e. nonwpr_ucode_blob_size = RECOVERY_UCODE_BLOB_SIZE
-		 * and call with true flag.
 		 */
 		if (!nvgpu_mem_is_valid(&acr_desc->acr_falcon2_sysmem_desc)) {
 			nvgpu_err(g, "invalid mem acr_falcon2_sysmem_desc");
 			return -EINVAL;
                 }
+		acr_sysmem_desc->nonwpr_ucode_blob_size =
+						RECOVERY_UCODE_BLOB_SIZE;
 	} else
 #endif
         {
@@ -107,11 +106,8 @@ static int ga10b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 				goto end;
 			}
 		} else {
-			/*
-			 * TODO: Set blob size as 0x0.
-			 * i.e.nonwpr_ucode_blob_size=RECOVERY_UCODE_BLOB_SIZE
-			 * and call with true flag.
-			 */
+			acr_sysmem_desc->nonwpr_ucode_blob_size =
+						RECOVERY_UCODE_BLOB_SIZE;
 			goto load;
 		}
 

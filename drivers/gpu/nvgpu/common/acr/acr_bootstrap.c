@@ -349,16 +349,23 @@ int nvgpu_acr_bootstrap_hs_ucode_riscv(struct gk20a *g, struct nvgpu_acr *acr)
 	struct nvgpu_falcon *flcn = NULL;
 
 	flcn = acr->acr_asc.acr_flcn;
-	err = ga10b_load_riscv_acr_ucodes(g, &acr->acr_asc);
-	if (err !=0) {
-		nvgpu_err(g, "RISCV ucode loading failed");
-		return -EINVAL;
-	}
-	// TODO: Based on Railgating/Cold boot use True/False flag with this call.
-	err = acr->patch_wpr_info_to_ucode(g, acr, &acr->acr_asc, false);
-	if (err != 0) {
-		nvgpu_err(g, "RISCV ucode patch wpr info failed");
-		return err;
+	if (acr->acr_asc.manifest_fw != NULL) {
+		err = acr->patch_wpr_info_to_ucode(g, acr, &acr->acr_asc, true);
+		if (err != 0) {
+			nvgpu_err(g, "RISCV ucode patch wpr info failed");
+			return err;
+		}
+	} else {
+		err = ga10b_load_riscv_acr_ucodes(g, &acr->acr_asc);
+		if (err != 0) {
+			nvgpu_err(g, "RISCV ucode loading failed");
+			return -EINVAL;
+		}
+		err = acr->patch_wpr_info_to_ucode(g, acr, &acr->acr_asc, false);
+		if (err != 0) {
+			nvgpu_err(g, "RISCV ucode patch wpr info failed");
+			return err;
+		}
 	}
 
 	acr_sysmem_desc_addr = nvgpu_mem_get_addr(g,
@@ -401,8 +408,9 @@ int nvgpu_acr_bootstrap_hs_ucode_riscv(struct gk20a *g, struct nvgpu_acr *acr)
 		timeout = ACR_COMPLETION_TIMEOUT_NON_SILICON_MS;
 	}
 	err = nvgpu_acr_wait_for_completion(g, &acr->acr_asc, timeout);
+	return err;
+
 exit:
 	ga10b_riscv_release_firmware(g, acr);
-
 	return err;
 }
