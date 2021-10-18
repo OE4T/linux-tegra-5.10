@@ -54,8 +54,6 @@
 
 #define EMC3D_GA10B_RATIO 500
 
-#define GPCCLK_INIT_RATE 1000000000UL
-
 /*
  * To-do: clean these defines and include
  * BPMP header.
@@ -72,9 +70,9 @@
 
 /* Run gpc0, gpc1 and sysclk at same rate */
 struct gk20a_platform_clk tegra_ga10b_clocks[] = {
-	{"sysclk", GPCCLK_INIT_RATE},
-	{"gpc0clk", GPCCLK_INIT_RATE},
-	{"gpc1clk", GPCCLK_INIT_RATE},
+	{"sysclk", UINT_MAX},
+	{"gpc0clk", UINT_MAX},
+	{"gpc1clk", UINT_MAX},
 	{"fuse", UINT_MAX}
 };
 
