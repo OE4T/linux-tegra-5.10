@@ -5876,24 +5876,30 @@ void mgbe_config_for_macsec(struct osi_core_priv_data *const osi_core,
 	/* start MAC Tx */
 	mgbe_config_mac_tx(osi_core, OSI_ENABLE);
 
-	/* Program MTL_EST depending on MACSEC enable/disable */
-	if (osi_core->hw_feature->est_sel == OSI_ENABLE) {
-		value = osi_readla(osi_core,
-				  (unsigned char *)osi_core->base +
-				   MGBE_MTL_EST_CONTROL);
-		value &= ~MGBE_MTL_EST_CONTROL_CTOV;
-		if (enable == OSI_ENABLE) {
-			value |= (MGBE_MTL_EST_CTOV_MACSEC_RECOMMEND <<
-				  MGBE_MTL_EST_CONTROL_CTOV_SHIFT) &
-				  MGBE_MTL_EST_CONTROL_CTOV;
+	if (osi_core->hw_feature != OSI_NULL) {
+		/* Program MTL_EST depending on MACSEC enable/disable */
+		if (osi_core->hw_feature->est_sel == OSI_ENABLE) {
+			value = osi_readla(osi_core,
+					  (unsigned char *)osi_core->base +
+					   MGBE_MTL_EST_CONTROL);
+			value &= ~MGBE_MTL_EST_CONTROL_CTOV;
+			if (enable == OSI_ENABLE) {
+				value |= (MGBE_MTL_EST_CTOV_MACSEC_RECOMMEND <<
+					  MGBE_MTL_EST_CONTROL_CTOV_SHIFT) &
+					  MGBE_MTL_EST_CONTROL_CTOV;
+			} else {
+				value |= (MGBE_MTL_EST_CTOV_RECOMMEND <<
+					  MGBE_MTL_EST_CONTROL_CTOV_SHIFT) &
+					  MGBE_MTL_EST_CONTROL_CTOV;
+			}
+			osi_writela(osi_core, value,
+				   (unsigned char *)osi_core->base +
+				    MGBE_MTL_EST_CONTROL);
 		} else {
-			value |= (MGBE_MTL_EST_CTOV_RECOMMEND <<
-				  MGBE_MTL_EST_CONTROL_CTOV_SHIFT) &
-				  MGBE_MTL_EST_CONTROL_CTOV;
+			OSI_CORE_ERR(osi_core->osd,
+				OSI_LOG_ARG_HW_FAIL, "Error: osi_core->hw_feature is NULL\n",
+				0ULL);
 		}
-		osi_writela(osi_core, value,
-			   (unsigned char *)osi_core->base +
-			    MGBE_MTL_EST_CONTROL);
 	}
 }
 #endif /*  MACSEC_SUPPORT */
