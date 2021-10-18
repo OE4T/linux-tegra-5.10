@@ -2148,8 +2148,10 @@ static void tegra_se_send_gcm_data(struct tegra_se_dev *se_dev,
 		cpuvaddr[i++] = __nvhost_opcode_nonincr(
 				opcode_addr + SE_AES_OPERATION_OFFSET, 1);
 		val = SE_OPERATION_WRSTALL(WRSTALL_TRUE);
-		if (!req_ctx->init) /* GMAC not operated */
+		if (req_ctx->init != true) {/* GMAC not operated */
 			val |= SE_OPERATION_INIT(INIT_TRUE);
+			req_ctx->init = true;
+		}
 		val |= SE_OPERATION_FINAL(FINAL_TRUE);
 		if (total == nbytes) {
 			if (total == src_ll->data_len) {
@@ -5623,6 +5625,8 @@ static int tegra_se_aes_ccm_init(struct crypto_aead *tfm)
 	struct tegra_se_dev *se_dev = se_devices[SE_AEAD];
 	int i = 0, err = 0;
 
+	crypto_aead_set_reqsize(tfm, sizeof(struct tegra_se_req_context));
+
 	mutex_lock(&se_dev->mtx);
 
 	for (i = 0; i < 4; i++) {
@@ -5829,7 +5833,6 @@ static int tegra_se_gcm_gmac(struct aead_request *req, bool encrypt)
 	se_dev->dst_ll = se_dev->src_ll; /* dummy */
 
 	/* 2.2 Prepare and submit request */
-	req_ctx->op_mode = SE_AES_OP_MODE_GCM;
 	req_ctx->config = tegra_se_get_config(se_dev, req_ctx->op_mode,
 				encrypt ? ENCRYPT : DECRYPT, SE_AES_GMAC);
 	req_ctx->crypto_config = tegra_se_get_crypto_config(
@@ -5936,11 +5939,6 @@ static int tegra_se_gcm_op(struct aead_request *req, bool encrypt)
 		src_sg = sg_next(src_sg);
 	}
 
-	 /* If there is associated GMAC operation would have saved result */
-	 /* to keyslot so, shouldn't initialization it again. */
-	if (assoclen)
-		req_ctx->init = true;
-
 	/* 1.2 Add plain text to src_ll list */
 	ret = tegra_map_sg(se_dev->dev, src_sg, 1, DMA_TO_DEVICE,
 				src_ll, cryptlen - mapped_cryptlen);
@@ -5981,7 +5979,6 @@ static int tegra_se_gcm_op(struct aead_request *req, bool encrypt)
 	tegra_se_send_ctr_seed(se_dev, iv, se_dev->opcode_addr, cpuvaddr);
 
 	/* 2.3 Submit request */
-	req_ctx->op_mode = SE_AES_OP_MODE_GCM;
 	req_ctx->config = tegra_se_get_config(se_dev, req_ctx->op_mode,
 				0, encrypt ? SE_AES_GCM_ENC : SE_AES_GCM_DEC);
 	req_ctx->crypto_config = tegra_se_get_crypto_config(
@@ -6108,7 +6105,10 @@ static int tegra_se_gcm_final(struct aead_request *req, bool encrypt)
 	cpuvaddr[i++] = __nvhost_opcode_nonincr(
 			se_dev->opcode_addr + SE_AES_OPERATION_OFFSET, 1);
 	val = SE_OPERATION_WRSTALL(WRSTALL_TRUE);
-	if (req->cryptlen == 0)
+	/* If GMAC or GCM_ENC/GCM_DEC is not operated before then
+	 * set SE_OPERATION.INIT to true.
+	 */
+	if (req_ctx->init != true)
 		val |= SE_OPERATION_INIT(INIT_TRUE);
 	val |= SE_OPERATION_FINAL(FINAL_TRUE);
 	val |= SE_OPERATION_OP(OP_START);
@@ -6165,7 +6165,8 @@ static int tegra_se_aes_gcm_encrypt(struct aead_request *req)
 	int ret;
 
 	ctx->se_dev = se_devices[SE_AEAD];
-	req_ctx->init = 0;
+	req_ctx->init = false;
+	req_ctx->op_mode = SE_AES_OP_MODE_GCM;
 
 	mutex_lock(&ctx->se_dev->mtx);
 
@@ -6242,7 +6243,8 @@ static int tegra_se_aes_gcm_decrypt(struct aead_request *req)
 	int ret;
 
 	ctx->se_dev = se_devices[SE_AEAD];
-	req_ctx->init = 0;
+	req_ctx->init = false;
+	req_ctx->op_mode = SE_AES_OP_MODE_GCM;
 
 	mutex_lock(&ctx->se_dev->mtx);
 	if (req->assoclen) {
@@ -6280,6 +6282,8 @@ static int tegra_se_aes_gcm_init(struct crypto_aead *tfm)
 	struct tegra_se_dev *se_dev = se_devices[SE_AEAD];
 	int ret = 0;
 
+	crypto_aead_set_reqsize(tfm, sizeof(struct tegra_se_req_context));
+
 	mutex_lock(&se_dev->mtx);
 	ctx->mac = dma_alloc_coherent(se_dev->dev, TEGRA_SE_AES_BLOCK_SIZE,
 			&ctx->mac_addr, GFP_KERNEL);
@@ -6294,7 +6298,7 @@ static int tegra_se_aes_gcm_init(struct crypto_aead *tfm)
 static void tegra_se_aes_gcm_exit(struct crypto_aead *tfm)
 {
 	struct tegra_se_aes_gcm_ctx *ctx = crypto_aead_ctx(tfm);
-	struct tegra_se_dev *se_dev = ctx->se_dev;
+	struct tegra_se_dev *se_dev = se_devices[SE_AEAD];
 
 	mutex_lock(&se_dev->mtx);
 	tegra_se_free_key_slot(ctx->slot);
