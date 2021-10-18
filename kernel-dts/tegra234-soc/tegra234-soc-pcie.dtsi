@@ -448,6 +448,7 @@
 				    204000000 408000000 666000000  1066000000
 				    408000000 666000000 1066000000 2133000000 >;
 
+		nvidia,host1x = <&host1x>;
 		nvidia,enable-ext-refclk;
 		nvidia,max-speed = <4>;
 		nvidia,bar0-size = <0x100000>;	/* 1 MB */
