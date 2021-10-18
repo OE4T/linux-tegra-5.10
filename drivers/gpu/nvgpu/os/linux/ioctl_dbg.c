@@ -2294,13 +2294,13 @@ static void nvgpu_dbg_gpu_get_valid_mappings(struct nvgpu_channel *ch, u64 start
 {
 	struct vm_gk20a *vm = ch->vm;
 	u64 key = start;
-	u32 size = 0;
-	struct nvgpu_mapped_buf *mbuf_curr = NULL;
-	struct nvgpu_mapped_buf *mbuf_last = NULL;
+	u64 size = 0;
+	struct nvgpu_mapped_buf *mapped_buf = NULL;
 	struct nvgpu_rbtree_node *node = NULL;
 	struct dma_buf *dmabuf = NULL;
 	u32 f_mode = FMODE_READ;
 	u32 count = 0;
+	u64 offset = 0;
 	bool just_count = *buf_count ? false : true;
 
 	nvgpu_mutex_acquire(&vm->update_gmmu_lock);
@@ -2308,17 +2308,17 @@ static void nvgpu_dbg_gpu_get_valid_mappings(struct nvgpu_channel *ch, u64 start
 	nvgpu_rbtree_enum_start(0, &node, vm->mapped_buffers);
 
 	while (node != NULL) {
-		mbuf_curr = mapped_buffer_from_rbtree_node(node);
-		dmabuf = mbuf_curr->os_priv.dmabuf;
+		mapped_buf = mapped_buffer_from_rbtree_node(node);
+		dmabuf = mapped_buf->os_priv.dmabuf;
 
 		/* Find first key node */
-		if (key > (mbuf_curr->addr + mbuf_curr->size)) {
+		if (key > (mapped_buf->addr + mapped_buf->size)) {
 			nvgpu_rbtree_enum_next(&node, node);
 			continue;
 		}
 
-		if (key < mbuf_curr->addr) {
-			key = mbuf_curr->addr;
+		if (key < mapped_buf->addr) {
+			key = mapped_buf->addr;
 		}
 
 		if (key >= end) {
@@ -2332,18 +2332,17 @@ static void nvgpu_dbg_gpu_get_valid_mappings(struct nvgpu_channel *ch, u64 start
 		 * count to get the correct buffer index as it was increased in
 		 * last iteration.
 		 */
-
-		if (mbuf_last &&
-			(mbuf_last->addr + mbuf_last->size == mbuf_curr->addr)
-			&& (f_mode == dmabuf->file->f_mode)) {
+		if ((offset + size == mapped_buf->addr) && count &&
+			(f_mode == dmabuf->file->f_mode)) {
 			count--;
-			size += min(end, mbuf_curr->addr
-				+ mbuf_curr->size) - key;
+			size += min(end, mapped_buf->addr
+				+ mapped_buf->size) - key;
 		} else {
-			size = min(end, mbuf_curr->addr
-				+ mbuf_curr->size) - key;
+			size = min(end, mapped_buf->addr
+				+ mapped_buf->size) - key;
+			offset = key;
 			if (just_count == false) {
-				buffer[count].gpu_va = mbuf_curr->addr;
+				buffer[count].gpu_va = offset;
 			}
 		}
 
@@ -2357,7 +2356,6 @@ static void nvgpu_dbg_gpu_get_valid_mappings(struct nvgpu_channel *ch, u64 start
 			break;
 		}
 
-		mbuf_last = mbuf_curr;
 		f_mode = dmabuf->file->f_mode;
 		nvgpu_rbtree_enum_next(&node, node);
 	}
@@ -2447,21 +2445,21 @@ static int nvgpu_gpu_access_sysmem_gpu_va(struct gk20a *g, u8 cmd, u32 size,
 
 	ret = dma_buf_vmap(dmabuf, &map);
 	cpu_va = ret ? NULL : map.vaddr;
+#else
+	cpu_va = (u8 *)dma_buf_vmap(dmabuf);
+#endif
 
 	if (!cpu_va) {
 		return -ENOMEM;
 	}
-#else
-	cpu_va = (u8 *)dma_buf_vmap(dmabuf) + offset;
-#endif
 
 	switch (cmd) {
 	case NVGPU_DBG_GPU_IOCTL_ACCESS_GPUVA_CMD_READ:
-		nvgpu_memcpy((u8 *)data, cpu_va, size);
+		nvgpu_memcpy((u8 *)data, cpu_va + offset, size);
 		break;
 
 	case NVGPU_DBG_GPU_IOCTL_ACCESS_GPUVA_CMD_WRITE:
-		nvgpu_memcpy(cpu_va, (u8 *)data, size);
+		nvgpu_memcpy(cpu_va + offset, (u8 *)data, size);
 		break;
 
 	default:
@@ -2596,7 +2594,7 @@ static int nvgpu_dbg_gpu_access_gpu_va_mapping(struct gk20a *g,
 
 	nvgpu_mutex_acquire(&vm->update_gmmu_lock);
 	while (size > 0) {
-		mapped_buf = nvgpu_vm_find_mapped_buf(vm, gpu_va);
+		mapped_buf = nvgpu_vm_find_mapped_buf_range(vm, gpu_va);
 		if (mapped_buf == NULL) {
 			nvgpu_err(g, "gpuva is not mapped");
 			ret = -EINVAL;

@@ -546,8 +546,7 @@ struct nvgpu_dbg_gpu_get_mappings_entry {
 	/* out: start of GPU VA for this mapping */
 	__u64 gpu_va;
 	/* out: size in bytes of this mapping */
-	__u32 size;
-	__u32 reserved;
+	__u64 size;
 };
 
 struct nvgpu_dbg_gpu_get_mappings_args {
