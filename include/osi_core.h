@@ -1194,9 +1194,9 @@ struct osi_core_priv_data {
 	void *dma_base;
 	/** Memory mapped base address of XPCS IP */
 	void *xpcs_base;
-#ifdef MACSEC_SUPPORT
 	/** Memory mapped base address of MACsec IP */
 	void *macsec_base;
+#ifdef MACSEC_SUPPORT
 	/** Memory mapped base address of MACsec TZ page */
 	void *tz_base;
 	/** Address of MACsec HW operations structure */

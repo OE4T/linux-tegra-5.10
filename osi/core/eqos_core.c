@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -6468,24 +6468,30 @@ void eqos_config_for_macsec(struct osi_core_priv_data *const osi_core,
 		eqos_config_mac_tx(osi_core, OSI_ENABLE);
 	}
 
-	/* Updated MTL_EST depending on MACSEC enable/disable */
-	if (osi_core->hw_feature->est_sel == OSI_ENABLE) {
-		value = osi_readla(osi_core,
-				  (unsigned char *)osi_core->base +
-				   EQOS_MTL_EST_CONTROL);
-		value &= ~EQOS_MTL_EST_CONTROL_CTOV;
-		if (enable == OSI_ENABLE) {
-			value |= (EQOS_MTL_EST_CTOV_MACSEC_RECOMMEND <<
-				  EQOS_MTL_EST_CONTROL_CTOV_SHIFT) &
-				  EQOS_MTL_EST_CONTROL_CTOV;
-		} else {
-			value |= (EQOS_MTL_EST_CTOV_RECOMMEND <<
-				  EQOS_MTL_EST_CONTROL_CTOV_SHIFT) &
-				  EQOS_MTL_EST_CONTROL_CTOV;
+	if (osi_core->hw_feature != OSI_NULL) {
+		/* Updated MTL_EST depending on MACSEC enable/disable */
+		if (osi_core->hw_feature->est_sel == OSI_ENABLE) {
+			value = osi_readla(osi_core,
+					  (unsigned char *)osi_core->base +
+					   EQOS_MTL_EST_CONTROL);
+			value &= ~EQOS_MTL_EST_CONTROL_CTOV;
+			if (enable == OSI_ENABLE) {
+				value |= (EQOS_MTL_EST_CTOV_MACSEC_RECOMMEND <<
+					  EQOS_MTL_EST_CONTROL_CTOV_SHIFT) &
+					  EQOS_MTL_EST_CONTROL_CTOV;
+			} else {
+				value |= (EQOS_MTL_EST_CTOV_RECOMMEND <<
+					  EQOS_MTL_EST_CONTROL_CTOV_SHIFT) &
+					  EQOS_MTL_EST_CONTROL_CTOV;
+			}
+			osi_writela(osi_core, value,
+				   (nveu8_t *)osi_core->base +
+				    EQOS_MTL_EST_CONTROL);
 		}
-		osi_writela(osi_core, value,
-			   (nveu8_t *)osi_core->base +
-			    EQOS_MTL_EST_CONTROL);
+	} else {
+		OSI_CORE_ERR(osi_core->osd,
+			OSI_LOG_ARG_HW_FAIL, "Error: osi_core->hw_feature is NULL\n",
+			0ULL);
 	}
 }
 

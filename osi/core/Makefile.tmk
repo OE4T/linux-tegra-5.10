@@ -43,7 +43,18 @@ NV_COMPONENT_SOURCES           := \
 	debug.c \
 	$(NV_SOURCE)/nvethernetrm/osi/common/osi_common.c \
 	$(NV_SOURCE)/nvethernetrm/osi/common/eqos_common.c \
-	$(NV_SOURCE)/nvethernetrm/osi/common/mgbe_common.c
+	$(NV_SOURCE)/nvethernetrm/osi/common/mgbe_common.c \
+	$(NV_SOURCE)/nvethernetrm/osi/core/macsec.c
+
+#NV_COMPONENT_CFLAGS += -DMACSEC_SUPPORT
+#NV_COMPONENT_CFLAGS += -DMACSEC_KEY_PROGRAM
+#NV_COMPONENT_CFLAGS += -DDEBUG_MACSEC
+
+ifeq ($(NV_BUILD_CONFIGURATION_OS_IS_LINUX),1)
+        NV_COMPONENT_CFLAGS += -DLINUX_OS
+else ifeq ($(NV_BUILD_CONFIGURATION_OS_IS_QNX),1)
+        NV_COMPONENT_CFLAGS += -DQNX_OS
+endif
 
 ifeq ($(NV_BUILD_CONFIGURATION_IS_SAFETY),0)
 NV_COMPONENT_CFLAGS            += -DOSI_DEBUG
@@ -52,6 +63,9 @@ endif
 NV_COMPONENT_INCLUDES          := \
 	$(NV_SOURCE)/nvethernetrm/include \
 	$(NV_SOURCE)/nvethernetrm/osi/common/include
+#ifeq ($(NV_BUILD_CONFIGURATION_OS_IS_QNX),1)
+#NV_COMPONENT_SYSTEM_SHARED_LIBRARIES += qcrypto
+#endif
 
 include $(NV_BUILD_SHARED_LIBRARY)
 endif
