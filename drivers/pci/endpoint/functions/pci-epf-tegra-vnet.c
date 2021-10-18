@@ -997,7 +997,7 @@ static int tvnet_ep_pci_epf_setup_irqsp(struct pci_epf_tvnet *tvnet)
 
 	syncpt_addr = nvhost_interrupt_syncpt_get_syncpt_addr(ctrl_irqsp->is);
 	ret = iommu_map(domain, amap->iova, syncpt_addr, PAGE_SIZE,
-			IOMMU_READ | IOMMU_WRITE);
+			IOMMU_CACHE | IOMMU_READ | IOMMU_WRITE);
 	if (ret < 0) {
 		dev_err(fdev, "%s: iommu_map of ctrlsp mem failed: %d\n",
 			__func__, ret);
@@ -1009,7 +1009,7 @@ static int tvnet_ep_pci_epf_setup_irqsp(struct pci_epf_tvnet *tvnet)
 
 	syncpt_addr = nvhost_interrupt_syncpt_get_syncpt_addr(data_irqsp->is);
 	ret = iommu_map(domain, amap->iova + PAGE_SIZE, syncpt_addr, PAGE_SIZE,
-			IOMMU_READ | IOMMU_WRITE);
+			IOMMU_CACHE | IOMMU_READ | IOMMU_WRITE);
 	if (ret < 0) {
 		dev_err(fdev, "%s: iommu_map of datasp mem failed: %d\n",
 			__func__, ret);
@@ -1064,7 +1064,7 @@ static int tvnet_ep_alloc_single_page_bar0_mem(struct pci_epf *epf,
 	}
 
 	ret = iommu_map(domain, amap->iova, page_to_phys(amap->page), PAGE_SIZE,
-			IOMMU_READ | IOMMU_WRITE);
+			IOMMU_CACHE | IOMMU_READ | IOMMU_WRITE);
 	if (ret < 0) {
 		dev_err(tvnet->fdev, "%s: type: %d iommu_map(RAM) failed: %d\n",
 			__func__, type, ret);
@@ -1146,7 +1146,7 @@ static int tvnet_ep_alloc_multi_page_bar0_mem(struct pci_epf *epf,
 	kfree(map);
 
 	ret = iommu_map(domain, amap->iova, page_to_phys(amap->page),
-			amap->size, IOMMU_READ | IOMMU_WRITE);
+			amap->size, IOMMU_CACHE | IOMMU_READ | IOMMU_WRITE);
 	if (ret < 0) {
 		dev_err(tvnet->fdev, "%s: iommu_map(RAM) failed: %d\n",
 			__func__, ret);
