@@ -233,16 +233,22 @@ int arm_smmu_suspend_init(void __iomem **smmu_base, u32 *smmu_base_pa,
 
 	writel(arm_smmu_ctx.reg_list_pa >> 12, arm_smmu_ctx.scratch_va);
 
-	arm_smmu_ctx.smmu_base_pa = smmu_base_pa;
+	arm_smmu_ctx.smmu_base_pa =
+			kcalloc(num_smmus, sizeof(u32), GFP_KERNEL);
+	if (arm_smmu_ctx.smmu_base_pa == NULL) {
+		pr_err("Failed to allocate memory for base_pa\n");
+		goto unmap_reg_list;
+	}
 
 	arm_smmu_ctx.smmu_base = (void __iomem **)
-				kzalloc(num_smmus * sizeof(void *), GFP_KERNEL);
+				kcalloc(num_smmus, sizeof(void *), GFP_KERNEL);
 	if (arm_smmu_ctx.smmu_base == NULL) {
 		pr_err("Failed to allocate memory for base\n");
 		goto unmap_reg_list;
 	}
 	for (i = 0; i < num_smmus; i++) {
 		arm_smmu_ctx.smmu_base[i] = smmu_base[i];
+		arm_smmu_ctx.smmu_base_pa[i] = smmu_base_pa[i];
 	}
 	arm_smmu_ctx.smmu_size = smmu_size;
 	arm_smmu_ctx.smmu_pgshift = smmu_pgshift;
@@ -269,8 +275,8 @@ void arm_smmu_suspend_exit(void)
 	if (arm_smmu_ctx.reg_list_pa)
 		arm_smmu_free_reg_list();
 
-	if (arm_smmu_ctx.smmu_base)
-		kfree(arm_smmu_ctx.smmu_base);
+	kfree(arm_smmu_ctx.smmu_base);
+	kfree(arm_smmu_ctx.smmu_base_pa);
 }
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5,0,0)
