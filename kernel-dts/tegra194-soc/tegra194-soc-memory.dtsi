@@ -136,7 +136,7 @@
 
 		interrupts = <0 223 0x4>, <0 224 0x4>;
 		int_mask   = <0x1b3140>;
-		hub_int_mask   = <0x3>;
+		hub_int_mask   = <0x1>;
 		ecc_int_mask   = <0x1c00>;
 
 		channels   = <16>;
