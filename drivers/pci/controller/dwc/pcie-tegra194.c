@@ -220,9 +220,6 @@
 #define EVENT_COUNTER_GROUP_SEL_SHIFT	24
 #define EVENT_COUNTER_GROUP_5		0x5
 
-#define N_FTS_VAL					52
-#define FTS_VAL						52
-
 #define PORT_LOGIC_MSI_CTRL_INT_0_EN		0x828
 
 #define GEN3_EQ_CONTROL_OFF			0x8a8
@@ -409,6 +406,8 @@ struct tegra_pcie_of_data {
 	u32 cdm_chk_int_en;
 	/* Bug 200760279 */
 	u32 gen4_preset_vec;
+	/* Bug 200762207 */
+	u8 n_fts[2];
 };
 
 static void tegra_pcie_downstream_dev_to_D0(struct tegra_pcie_dw *pcie);
@@ -3549,14 +3548,14 @@ static int tegra_pcie_dw_probe(struct platform_device *pdev)
 	pci = &pcie->pci;
 	pci->dev = &pdev->dev;
 	pci->ops = &tegra_dw_pcie_ops;
-	pci->n_fts[0] = N_FTS_VAL;
-	pci->n_fts[1] = FTS_VAL;
 	pci->version = data->version;
 
 	pp = &pci->pp;
 	pcie->dev = &pdev->dev;
 	pcie->mode = (enum dw_pcie_device_mode)data->mode;
 	pcie->of_data = (struct tegra_pcie_of_data *)data;
+	pci->n_fts[0] = pcie->of_data->n_fts[0];
+	pci->n_fts[1] = pcie->of_data->n_fts[1];
 
 	ret = pinctrl_pm_select_default_state(dev);
 	if (ret < 0) {
@@ -3983,6 +3982,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t194 = {
 	.cdm_chk_int_en = BIT(19),
 	/* Gen4 - 5, 6, 8 and 9 presets enabled */
 	.gen4_preset_vec = 0x360,
+	.n_fts = { 52, 52 },
 };
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t194_ep = {
@@ -3995,6 +3995,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t194_ep = {
 	.cdm_chk_int_en = BIT(19),
 	/* Gen4 - 5, 6, 8 and 9 presets enabled */
 	.gen4_preset_vec = 0x360,
+	.n_fts = { 52, 52 },
 };
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t234 = {
@@ -4007,6 +4008,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t234 = {
 	.cdm_chk_int_en = BIT(18),
 	/* Gen4 - 6, 8 and 9 presets enabled */
 	.gen4_preset_vec = 0x340,
+	.n_fts = { 52, 80 },
 };
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t234_ep = {
@@ -4019,6 +4021,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t234_ep = {
 	.cdm_chk_int_en = BIT(18),
 	/* Gen4 - 6, 8 and 9 presets enabled */
 	.gen4_preset_vec = 0x340,
+	.n_fts = { 52, 80 },
 };
 
 static const struct of_device_id tegra_pcie_dw_of_match[] = {
