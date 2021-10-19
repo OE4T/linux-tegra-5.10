@@ -371,3 +371,12 @@ M:	JC Kuo <jckuo@nvidia.com>
 L:	Ultrasonics-SW@exchange.nvidia.com
 S:	Supported
 F:	drivers/platform/tegra/tegra-uss-io-proxy.c
+
+NVSCIC2CPCIE
+M:	Deepak Kumar Badgaiyan <dbadgaiyan@nvidia.com>
+M:	Arihant Jejani <ajejani@nvidia.com>
+M:	Sivagamy Govindasamy <sivagamyg@nvidia.com>
+B:	Automotive-NvSciC2C
+S:	Supported
+F:	drivers/misc/nvscic2c-pcie/
+F:	include/uapi/misc/nvscic2c-pcie-ioctl.h
