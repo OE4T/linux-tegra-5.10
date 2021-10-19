@@ -7096,6 +7096,8 @@ static int tegra_se_probe(struct platform_device *pdev)
 	se_dev->dev = &pdev->dev;
 	se_dev->pdev = pdev;
 
+	dma_set_mask_and_coherent(se_dev->dev, DMA_BIT_MASK(39));
+
 	mutex_init(&pdata->lock);
 	pdata->pdev = pdev;
 
