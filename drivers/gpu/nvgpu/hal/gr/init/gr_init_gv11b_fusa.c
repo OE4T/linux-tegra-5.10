@@ -74,19 +74,13 @@ static int gr_gv11b_ecc_scrub_is_done(struct gk20a *g,
 	u32 val;
 	u32 gpc, tpc;
 	u32 gpc_offset, tpc_offset;
-	int err;
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g,
 					GPU_LIT_TPC_IN_GPC_STRIDE);
 
-	err = nvgpu_timeout_init(g, &timeout,
+	nvgpu_timeout_init_retry(g, &timeout,
 		(GR_ECC_SCRUBBING_TIMEOUT_MAX_US /
-		 GR_ECC_SCRUBBING_TIMEOUT_DEFAULT_US),
-		NVGPU_TIMER_RETRY_TIMER);
-	if (err != 0) {
-		nvgpu_err(g, "timeout_init failed: %d", err);
-		return err;
-	}
+		 GR_ECC_SCRUBBING_TIMEOUT_DEFAULT_US));
 
 	for (gpc = 0; gpc < nvgpu_gr_config_get_gpc_count(gr_config); gpc++) {
 		gpc_offset = nvgpu_safe_mult_u32(gpc_stride, gpc);

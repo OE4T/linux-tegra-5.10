@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -48,12 +48,8 @@ int tu104_nvlink_setup_pll(struct gk20a *g, unsigned long link_mask)
 			return ret;
 		}
 
-		ret = nvgpu_timeout_init(g, &timeout,
-			NV_NVLINK_REG_POLL_TIMEOUT_MS, NVGPU_TIMER_CPU_TIMER);
-		if (ret != 0) {
-			nvgpu_err(g, "Error during timeout init");
-			return ret;
-		}
+		nvgpu_timeout_init_cpu_timer(g, &timeout, NV_NVLINK_REG_POLL_TIMEOUT_MS);
+
 		do {
 			reg = DLPL_REG_RD32(g, link_id, nvl_clk_status_r());
 			if (nvl_clk_status_txclk_sts_v(reg) ==
@@ -78,14 +74,8 @@ u32 tu104_nvlink_link_get_tx_sublink_state(struct gk20a *g, u32 link_id)
 {
 	u32 reg;
 	struct nvgpu_timeout timeout;
-	int err = 0;
 
-	err = nvgpu_timeout_init(g, &timeout, NV_NVLINK_REG_POLL_TIMEOUT_MS,
-							NVGPU_TIMER_CPU_TIMER);
-	if (err != 0) {
-		nvgpu_err(g, "Failed to init timeout: %d", err);
-		goto result;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &timeout, NV_NVLINK_REG_POLL_TIMEOUT_MS);
 
 	/* Poll till substate value becomes STABLE */
 	do {
@@ -102,7 +92,6 @@ u32 tu104_nvlink_link_get_tx_sublink_state(struct gk20a *g, u32 link_id)
 				nvl_sl0_slsm_status_tx_primary_state_v(reg),
 				nvl_sl0_slsm_status_tx_substate_v(reg));
 
-result:
 	return nvl_sl0_slsm_status_tx_primary_state_unknown_v();
 }
 
@@ -110,14 +99,8 @@ u32 tu104_nvlink_link_get_rx_sublink_state(struct gk20a *g, u32 link_id)
 {
 	u32 reg;
 	struct nvgpu_timeout timeout;
-	int err = 0;
 
-	err = nvgpu_timeout_init(g, &timeout, NV_NVLINK_REG_POLL_TIMEOUT_MS,
-							NVGPU_TIMER_CPU_TIMER);
-	if (err != 0) {
-		nvgpu_err(g, "Failed to init timeout: %d", err);
-		goto result;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &timeout, NV_NVLINK_REG_POLL_TIMEOUT_MS);
 
 	/* Poll till substate value becomes STABLE */
 	do {
@@ -134,7 +117,6 @@ u32 tu104_nvlink_link_get_rx_sublink_state(struct gk20a *g, u32 link_id)
 				nvl_sl1_slsm_status_rx_primary_state_v(reg),
 				nvl_sl1_slsm_status_rx_substate_v(reg));
 
-result:
 	return nvl_sl1_slsm_status_rx_primary_state_unknown_v();
 }
 

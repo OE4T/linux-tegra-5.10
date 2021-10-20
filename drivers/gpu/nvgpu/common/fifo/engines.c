@@ -339,7 +339,7 @@ int nvgpu_engine_wait_for_idle(struct gk20a *g)
 {
 	struct nvgpu_timeout timeout;
 	u32 delay = POLL_DELAY_MIN_US;
-	int ret = 0, err = 0;
+	int ret = 0;
 	u32 i, host_num_engines;
 	struct nvgpu_engine_status_info engine_status;
 
@@ -348,11 +348,7 @@ int nvgpu_engine_wait_for_idle(struct gk20a *g)
 	host_num_engines =
 		 nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_ENGINES);
 
-	err = nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
-			   NVGPU_TIMER_CPU_TIMER);
-	if (err != 0) {
-		return -EINVAL;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &timeout, nvgpu_get_poll_timeout(g));
 
 	for (i = 0; i < host_num_engines; i++) {
 		if (!nvgpu_engine_check_valid_id(g, i)) {

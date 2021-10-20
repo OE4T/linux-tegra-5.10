@@ -66,11 +66,7 @@ static int gm20b_ltc_wait_for_clean(struct gk20a *g)
 		 *
 		 * So 5ms timeout here should be more than sufficient.
 		 */
-		err = nvgpu_timeout_init(g, &timeout, 5, NVGPU_TIMER_CPU_TIMER);
-		if (err != 0) {
-			nvgpu_err(g, "nvgpu_timeout_init failed err=%d", err);
-			return -ETIMEDOUT;
-		}
+		nvgpu_timeout_init_cpu_timer(g, &timeout, 5);
 
 		do {
 			u32 cmgmt1 = nvgpu_safe_add_u32(
@@ -100,11 +96,7 @@ static int gm20b_ltc_wait_for_invalidate(struct gk20a *g)
 		u32 op_pending;
 
 		/* Again, 5ms. */
-		err = nvgpu_timeout_init(g, &timeout, 5, NVGPU_TIMER_CPU_TIMER);
-		if (err != 0) {
-			nvgpu_err(g, "nvgpu_timeout_init failed err=%d", err);
-			return -ETIMEDOUT;
-		}
+		nvgpu_timeout_init_cpu_timer(g, &timeout, 5);
 
 		do {
 			u32 cmgmt0 = nvgpu_safe_add_u32(

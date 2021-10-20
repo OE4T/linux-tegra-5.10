@@ -89,11 +89,7 @@ int ga10b_runlist_wait_pending(struct gk20a *g, u32 runlist_id)
 
 	runlist = g->fifo.runlists[runlist_id];
 
-	ret = nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
-				NVGPU_TIMER_CPU_TIMER);
-	if (ret != 0) {
-		return ret;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &timeout, nvgpu_get_poll_timeout(g));
 
 	ret = -ETIMEDOUT;
 	do {

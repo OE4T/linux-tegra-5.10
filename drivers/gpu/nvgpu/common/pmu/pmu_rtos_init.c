@@ -332,14 +332,11 @@ static int nvgpu_pmu_wait_for_priv_lockdown_release(struct gk20a *g,
 	struct nvgpu_falcon *flcn, unsigned int timeout)
 {
 	struct nvgpu_timeout to;
-	int status;
+	int status = 0;
 
 	nvgpu_log_fn(g, " ");
 
-	status = nvgpu_timeout_init(g, &to, timeout, NVGPU_TIMER_CPU_TIMER);
-	if (status != 0) {
-		return status;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &to, timeout);
 
 	/* poll for priv lockdown release */
 	do {

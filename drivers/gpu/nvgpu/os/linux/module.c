@@ -774,8 +774,7 @@ int gk20a_block_new_jobs_and_idle(struct gk20a *g)
 
 	nvgpu_mutex_acquire(&platform->railgate_lock);
 
-	nvgpu_timeout_init(g, &timeout, GK20A_WAIT_FOR_IDLE_MS,
-			   NVGPU_TIMER_CPU_TIMER);
+	nvgpu_timeout_init_cpu_timer(g, &timeout, GK20A_WAIT_FOR_IDLE_MS);
 
 	/* check and wait until GPU is idle (with a timeout) */
 	do {
@@ -1395,8 +1394,7 @@ static int gk20a_pm_suspend(struct device *dev)
 		return ret;
 	}
 
-	nvgpu_timeout_init(g, &timeout, GK20A_WAIT_FOR_IDLE_MS,
-			   NVGPU_TIMER_CPU_TIMER);
+	nvgpu_timeout_init_cpu_timer(g, &timeout, GK20A_WAIT_FOR_IDLE_MS);
 	/*
 	 * Hold back deterministic submits and changes to deterministic
 	 * channels - this must be outside the power busy locks.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -241,12 +241,8 @@ int gv100_nvlink_setup_pll(struct gk20a *g, unsigned long link_mask)
 	/* Poll for links to go up */
 	links_off = (u32) link_mask;
 
-	err = nvgpu_timeout_init(g, &timeout,
-			NVLINK_PLL_ON_TIMEOUT_MS, NVGPU_TIMER_CPU_TIMER);
-	if (err != 0) {
-		nvgpu_err(g, "PLL ON timeout init failed");
-		return err;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &timeout, NVLINK_PLL_ON_TIMEOUT_MS);
+
 	do {
 		for_each_set_bit(bit, &link_mask, NVLINK_MAX_LINKS_SW) {
 			link_id = (u32)bit;
@@ -303,13 +299,8 @@ static int gv100_nvlink_rxcal_en(struct gk20a *g, unsigned long mask)
 	for_each_set_bit(bit, &mask, NVLINK_MAX_LINKS_SW) {
 		link_id = (u32)bit;
 		/* Timeout from HW specs */
-		ret = nvgpu_timeout_init(g, &timeout,
-					8*NVLINK_SUBLINK_TIMEOUT_MS,
-					NVGPU_TIMER_CPU_TIMER);
-		if (ret != 0) {
-			nvgpu_err(g, "Timeout threshold init failed");
-			return ret;
-		}
+		nvgpu_timeout_init_cpu_timer(g, &timeout,
+					     8*NVLINK_SUBLINK_TIMEOUT_MS);
 		reg = DLPL_REG_RD32(g, link_id, nvl_br0_cfg_cal_r());
 		reg = set_field(reg, nvl_br0_cfg_cal_rxcal_m(),
 			nvl_br0_cfg_cal_rxcal_on_f());
@@ -496,14 +487,9 @@ static int gv100_nvlink_link_sublink_check_change(struct gk20a *g, u32 link_id)
 {
 	struct nvgpu_timeout timeout;
 	u32 reg;
-	int err = 0;
 
-	err = nvgpu_timeout_init(g, &timeout,
-			NVLINK_SUBLINK_TIMEOUT_MS, NVGPU_TIMER_CPU_TIMER);
-	if (err != 0) {
-		nvgpu_err(g, "Sublink mode change timeout init failed");
-		return err;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &timeout, NVLINK_SUBLINK_TIMEOUT_MS);
+
 	/* Poll for sublink status */
 	do {
 		reg = DLPL_REG_RD32(g, link_id, nvl_sublink_change_r());
@@ -524,7 +510,7 @@ static int gv100_nvlink_link_sublink_check_change(struct gk20a *g, u32 link_id)
 	if (nvgpu_timeout_peek_expired(&timeout)) {
 		return -ETIMEDOUT;
 	}
-	return err;
+	return 0;
 }
 
 int gv100_nvlink_link_set_sublink_mode(struct gk20a *g, u32 link_id,

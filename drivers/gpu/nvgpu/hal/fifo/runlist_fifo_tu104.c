@@ -70,11 +70,7 @@ int tu104_runlist_wait_pending(struct gk20a *g, u32 runlist_id)
 	u32 delay = POLL_DELAY_MIN_US;
 	int ret;
 
-	ret = nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
-			   NVGPU_TIMER_CPU_TIMER);
-	if (ret != 0) {
-		return ret;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &timeout, nvgpu_get_poll_timeout(g));
 
 	ret = -ETIMEDOUT;
 	do {

@@ -190,20 +190,14 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
 int gm20b_gr_falcon_wait_mem_scrubbing(struct gk20a *g)
 {
 	struct nvgpu_timeout timeout;
-	int err;
 	bool fecs_scrubbing;
 	bool gpccs_scrubbing;
 
 	nvgpu_log_fn(g, " ");
 
-	err = nvgpu_timeout_init(g, &timeout,
+	nvgpu_timeout_init_retry(g, &timeout,
 			   CTXSW_MEM_SCRUBBING_TIMEOUT_MAX_US /
-				CTXSW_MEM_SCRUBBING_TIMEOUT_DEFAULT_US,
-			   NVGPU_TIMER_RETRY_TIMER);
-	if (err != 0) {
-		nvgpu_err(g, "ctxsw mem scrub timeout_init failed: %d", err);
-		return err;
-	}
+				CTXSW_MEM_SCRUBBING_TIMEOUT_DEFAULT_US);
 
 	do {
 		fecs_scrubbing = (nvgpu_readl(g, gr_fecs_dmactl_r()) &
@@ -433,12 +427,7 @@ static int gm20b_gr_falcon_ctx_wait_ucode(struct gk20a *g, u32 mailbox_id,
 		delay = POLL_DELAY_MIN_US;
 	}
 
-	err = nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
-			   NVGPU_TIMER_CPU_TIMER);
-	if (err != 0) {
-		nvgpu_err(g, "ctxsw wait ucode timeout_init failed: %d", err);
-		return err;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &timeout, nvgpu_get_poll_timeout(g));
 
 	while (check == WAIT_UCODE_LOOP) {
 		if (nvgpu_timeout_expired(&timeout) != 0) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -98,12 +98,7 @@ int nvgpu_nvlink_minion_load(struct gk20a *g)
 		goto exit;
 	}
 
-	err = nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
-		NVGPU_TIMER_CPU_TIMER);
-	if (err != 0) {
-		nvgpu_err(g, "Minion boot timeout init failed");
-		goto exit;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &timeout, nvgpu_get_poll_timeout(g));
 
 	do {
 		err = g->ops.nvlink.minion.is_boot_complete(g, &boot_cmplte);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -208,11 +208,7 @@ int tu104_fb_mmu_invalidate_replay(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	/* retry 200 times */
-	err = nvgpu_timeout_init(g, &timeout, 200U, NVGPU_TIMER_RETRY_TIMER);
-	if (err != 0) {
-		return err;
-	}
+	nvgpu_timeout_init_retry(g, &timeout, 200U);
 
 	nvgpu_mutex_acquire(&g->mm.tlb_lock);
 

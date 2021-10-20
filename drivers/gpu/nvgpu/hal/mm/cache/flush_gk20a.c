@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -50,8 +50,7 @@ void gk20a_mm_cbc_clean(struct gk20a *g)
 		retries = g->ops.mm.get_flush_retries(g, NVGPU_FLUSH_CBC_CLEAN);
 	}
 
-	nvgpu_assert(nvgpu_timeout_init(g, &timeout, retries,
-			NVGPU_TIMER_RETRY_TIMER) == 0);
+	nvgpu_timeout_init_retry(g, &timeout, retries);
 
 	nvgpu_mutex_acquire(&mm->l2_op_lock);
 

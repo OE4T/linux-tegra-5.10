@@ -665,13 +665,8 @@ int ga10b_perf_wait_for_idle_pma(struct gk20a *g)
 	u32 status, rbufempty_status;
 	u32 timeout_ms = 1;
 	u32 reg_val;
-	int err;
 
-	err = nvgpu_timeout_init(g, &timeout, timeout_ms, NVGPU_TIMER_CPU_TIMER);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init timeout");
-		return err;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &timeout, timeout_ms);
 
 	do {
 		reg_val = nvgpu_readl(g, perf_pmasys_enginestatus_r());

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -158,11 +158,7 @@ static int pmu_write_cmd(struct nvgpu_pmu *pmu, struct pmu_cmd *cmd,
 
 	nvgpu_log_fn(g, " ");
 
-	err = nvgpu_timeout_init(g, &timeout, U32_MAX, NVGPU_TIMER_CPU_TIMER);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init timer");
-		return err;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &timeout, U32_MAX);
 
 	do {
 		err = nvgpu_pmu_queue_push(&pmu->queues, pmu->flcn,

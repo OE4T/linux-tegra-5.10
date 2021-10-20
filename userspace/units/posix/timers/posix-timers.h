@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -36,7 +36,7 @@
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_timeout_init
+ * Targets: nvgpu_timeout_init_flags
  *
  * Inputs:
  * 1) The type of timer to be tested is passed as an argument to the test.
@@ -69,7 +69,7 @@ int test_timer_init(struct unit_module *m,
  *
  * Test Type: Boundary values
  *
- * Targets: nvgpu_timeout_init
+ * Targets: nvgpu_timeout_init_flags
  *
  * Inputs:
  * 1) Global nvgpu_timeout structure instance.
@@ -98,7 +98,7 @@ int test_timer_init_err(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_timeout_init, nvgpu_timeout_expired,
+ * Targets: nvgpu_timeout_init_retry, nvgpu_timeout_expired,
  *          nvgpu_timeout_peek_expired
  *
  * Input:
@@ -131,7 +131,7 @@ int test_timer_counter(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_timeout_init, nvgpu_timeout_expired,
+ * Targets: nvgpu_timeout_init_cpu_timer, nvgpu_timeout_expired,
  *          nvgpu_timeout_peek_expired
  *
  * Input:

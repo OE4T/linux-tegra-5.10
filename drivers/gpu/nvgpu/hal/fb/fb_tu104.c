@@ -62,10 +62,7 @@ int fb_tu104_tlb_invalidate(struct gk20a *g, struct nvgpu_mem *pdb)
 
 	addr_lo = u64_lo32(nvgpu_mem_get_addr(g, pdb) >> 12);
 
-	err = nvgpu_timeout_init(g, &timeout, 1000, NVGPU_TIMER_RETRY_TIMER);
-	if (err != 0) {
-		return err;
-	}
+	nvgpu_timeout_init_retry(g, &timeout, 1000);
 
 	nvgpu_mutex_acquire(&g->mm.tlb_lock);
 
@@ -170,12 +167,8 @@ static int tu104_fb_wait_mmu_bind(struct gk20a *g)
 {
 	struct nvgpu_timeout timeout;
 	u32 val;
-	int err;
 
-	err = nvgpu_timeout_init(g, &timeout, 1000, NVGPU_TIMER_RETRY_TIMER);
-	if (err != 0) {
-		return err;
-	}
+	nvgpu_timeout_init_retry(g, &timeout, 1000);
 
 	do {
 		val = nvgpu_readl(g, fb_mmu_bind_r());

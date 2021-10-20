@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -170,14 +170,8 @@ void gv11b_fb_fault_buf_set_state_hw(struct gk20a *g,
 	} else {
 		struct nvgpu_timeout timeout;
 		u32 delay = POLL_DELAY_MIN_US;
-		int err;
 
-		err = nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
-			   NVGPU_TIMER_CPU_TIMER);
-		if (err != 0) {
-			nvgpu_err(g, "nvgpu_timeout_init() failed err=%d", err);
-			return;
-		}
+		nvgpu_timeout_init_cpu_timer(g, &timeout, nvgpu_get_poll_timeout(g));
 
 		reg_val &= (~(fb_mmu_fault_buffer_size_enable_m()));
 		g->ops.fb.write_mmu_fault_buffer_size(g, index, reg_val);
@@ -695,12 +689,8 @@ int gv11b_fb_mmu_invalidate_replay(struct gk20a *g,
 
 	nvgpu_writel(g, fb_mmu_invalidate_r(), reg_val);
 
-	/* retry 200 times */
-	err = nvgpu_timeout_init(g, &timeout, 200U, NVGPU_TIMER_RETRY_TIMER);
-	if (err != 0) {
-		nvgpu_err(g, "nvgpu_timeout_init() failed err=%d", err);
-		return err;
-	}
+	nvgpu_timeout_init_retry(g, &timeout, 200U);
+
 	do {
 		reg_val = nvgpu_readl(g, fb_mmu_ctrl_r());
 		if (fb_mmu_ctrl_pri_fifo_empty_v(reg_val) !=

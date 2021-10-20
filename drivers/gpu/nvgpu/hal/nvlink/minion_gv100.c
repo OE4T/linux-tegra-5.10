@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -104,14 +104,8 @@ static int gv100_nvlink_minion_command_complete(struct gk20a *g, u32 link_id)
 	u32 reg;
 	struct nvgpu_timeout timeout;
 	u32 delay = POLL_DELAY_MIN_US;
-	int err = 0;
 
-	err = nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
-				NVGPU_TIMER_CPU_TIMER);
-	if (err != 0) {
-		nvgpu_err(g, "Minion cmd complete timeout init failed");
-		return err;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &timeout, nvgpu_get_poll_timeout(g));
 
 	do {
 		reg = MINION_REG_RD32(g, minion_nvlink_dl_cmd_r(link_id));
@@ -145,7 +139,7 @@ static int gv100_nvlink_minion_command_complete(struct gk20a *g, u32 link_id)
 	}
 
 	nvgpu_log(g, gpu_dbg_nvlink, "minion cmd Complete");
-	return err;
+	return 0;
 }
 
 u32 gv100_nvlink_minion_get_dlcmd_ordinal(struct gk20a *g,

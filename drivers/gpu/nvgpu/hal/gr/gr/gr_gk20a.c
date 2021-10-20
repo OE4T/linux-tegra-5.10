@@ -1683,8 +1683,7 @@ int gk20a_gr_wait_for_sm_lock_down(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
 		"GPC%d TPC%d SM%d: locking down SM", gpc, tpc, sm);
 
-	nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
-			   NVGPU_TIMER_CPU_TIMER);
+	nvgpu_timeout_init_cpu_timer(g, &timeout, nvgpu_get_poll_timeout(g));
 
 	/* wait for the sm to lock down */
 	do {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -72,7 +72,7 @@ static int sec2_write_cmd(struct nvgpu_sec2 *sec2,
 
 	nvgpu_log_fn(g, " ");
 
-	nvgpu_timeout_init(g, &timeout, timeout_ms, NVGPU_TIMER_CPU_TIMER);
+	nvgpu_timeout_init_cpu_timer(g, &timeout, timeout_ms);
 
 	do {
 		err = nvgpu_sec2_queue_push(sec2->queues, queue_id, &sec2->flcn,

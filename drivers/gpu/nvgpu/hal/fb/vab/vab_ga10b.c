@@ -214,7 +214,6 @@ int ga10b_fb_vab_dump_and_clear(struct gk20a *g, u64 *user_buf,
 	 * poll NV_PFB_PRI_MMU_VIDMEM_ACCESS_BIT_DUMP_TRIGGER to be cleared
 	 * clear what? buffer or access bits or buffer_put_ptr
 	 */
-	int err;
 	struct nvgpu_mem *vab_buf = &g->mm.vab.buffer;
 	u64 buffer_offset = 0ULL;
 	u64 req_buf_size = 0U;
@@ -267,11 +266,7 @@ int ga10b_fb_vab_dump_and_clear(struct gk20a *g, u64 *user_buf,
 	vab_dump_reg = nvgpu_readl(g, fb_mmu_vidmem_access_bit_dump_r());
 	nvgpu_log(g, gpu_dbg_vab, "vab_dump_reg 0x%x", vab_dump_reg);
 
-	err = nvgpu_timeout_init(g, &timeout, 1000U, NVGPU_TIMER_CPU_TIMER);
-	if (err != 0) {
-		nvgpu_err(g, "Timeout init failed");
-		return err;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &timeout, 1000U);
 
 	/* Check if trigger is cleared vab bits collection complete */
 	do {

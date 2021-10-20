@@ -75,14 +75,8 @@ static int ga10b_mc_poll_device_enable(struct gk20a *g, u32 reg_idx,
 	u32 reg_val;
 	u32 delay = POLL_DELAY_MIN_US;
 	struct nvgpu_timeout timeout;
-	int err;
 
-	err = nvgpu_timeout_init(g, &timeout, MC_ENGINE_RESET_DELAY_US,
-				NVGPU_TIMER_CPU_TIMER);
-	if (err != 0) {
-		nvgpu_err(g, "Timeout init failed");
-		return err;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &timeout, MC_ENGINE_RESET_DELAY_US);
 
 	reg_val = nvgpu_readl(g, mc_device_enable_r(reg_idx));
 

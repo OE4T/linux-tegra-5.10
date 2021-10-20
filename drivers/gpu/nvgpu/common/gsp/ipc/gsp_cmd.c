@@ -79,10 +79,7 @@ static int gsp_write_cmd(struct nvgpu_gsp *gsp,
 
 	nvgpu_log_fn(g, " ");
 
-	err = nvgpu_timeout_init(g, &timeout, timeout_ms, NVGPU_TIMER_CPU_TIMER);
-	if (err != 0) {
-		return err;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &timeout, timeout_ms);
 
 	do {
 		err = nvgpu_gsp_queue_push(gsp->queues, queue_id, gsp->gsp_flcn,

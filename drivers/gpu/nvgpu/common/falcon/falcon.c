@@ -93,7 +93,7 @@ int nvgpu_falcon_wait_for_halt(struct nvgpu_falcon *flcn, unsigned int timeout)
 {
 	struct nvgpu_timeout to;
 	struct gk20a *g;
-	int status;
+	int status = 0;
 
 	if (!is_falcon_valid(flcn)) {
 		return -EINVAL;
@@ -101,10 +101,7 @@ int nvgpu_falcon_wait_for_halt(struct nvgpu_falcon *flcn, unsigned int timeout)
 
 	g = flcn->g;
 
-	status = nvgpu_timeout_init(g, &to, timeout, NVGPU_TIMER_CPU_TIMER);
-	if (status != 0) {
-		return status;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &to, timeout);
 
 	do {
 		if (g->ops.falcon.is_falcon_cpu_halted(flcn)) {
@@ -125,7 +122,6 @@ int nvgpu_falcon_wait_idle(struct nvgpu_falcon *flcn)
 {
 	struct nvgpu_timeout timeout;
 	struct gk20a *g;
-	int status;
 
 	if (!is_falcon_valid(flcn)) {
 		return -EINVAL;
@@ -133,10 +129,7 @@ int nvgpu_falcon_wait_idle(struct nvgpu_falcon *flcn)
 
 	g = flcn->g;
 
-	status = nvgpu_timeout_init(g, &timeout, 2000, NVGPU_TIMER_RETRY_TIMER);
-	if (status != 0) {
-		return status;
-	}
+	nvgpu_timeout_init_retry(g, &timeout, 2000);
 
 	/* wait for falcon idle */
 	do {
@@ -166,7 +159,7 @@ int nvgpu_falcon_mem_scrub_wait(struct nvgpu_falcon *flcn)
 	const u32 mem_scrubbing_max_timeout = 1000U;
 	const u32 mem_scrubbing_default_timeout = 10U;
 	struct gk20a *g;
-	int status;
+	int status = 0;
 
 	if (!is_falcon_valid(flcn)) {
 		return -EINVAL;
@@ -175,13 +168,9 @@ int nvgpu_falcon_mem_scrub_wait(struct nvgpu_falcon *flcn)
 	g = flcn->g;
 
 	/* check IMEM/DMEM scrubbing complete status */
-	status = nvgpu_timeout_init(g, &timeout,
-				    mem_scrubbing_max_timeout /
-					mem_scrubbing_default_timeout,
-				    NVGPU_TIMER_RETRY_TIMER);
-	if (status != 0) {
-		return status;
-	}
+	nvgpu_timeout_init_retry(g, &timeout,
+				 mem_scrubbing_max_timeout /
+				 mem_scrubbing_default_timeout);
 
 	do {
 		if (g->ops.falcon.is_falcon_scrubbing_done(flcn)) {
@@ -670,7 +659,7 @@ int nvgpu_falcon_clear_halt_intr_status(struct nvgpu_falcon *flcn,
 {
 	struct nvgpu_timeout to;
 	struct gk20a *g;
-	int status;
+	int status = 0;
 
 	if (!is_falcon_valid(flcn)) {
 		return -EINVAL;
@@ -678,10 +667,7 @@ int nvgpu_falcon_clear_halt_intr_status(struct nvgpu_falcon *flcn,
 
 	g = flcn->g;
 
-	status = nvgpu_timeout_init(g, &to, timeout, NVGPU_TIMER_CPU_TIMER);
-	if (status != 0) {
-		return status;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &to, timeout);
 
 	do {
 		if (g->ops.falcon.clear_halt_interrupt_status(flcn)) {

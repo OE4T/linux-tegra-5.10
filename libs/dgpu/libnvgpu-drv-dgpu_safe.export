@@ -682,7 +682,9 @@ nvgpu_rwsem_down_write
 nvgpu_rwsem_up_read
 nvgpu_rwsem_up_write
 nvgpu_timeout_expired_fault_injection
-nvgpu_timeout_init
+nvgpu_timeout_init_cpu_timer
+nvgpu_timeout_init_flags
+nvgpu_timeout_init_retry
 nvgpu_timeout_peek_expired
 nvgpu_timers_get_fault_injection
 nvgpu_tsg_abort

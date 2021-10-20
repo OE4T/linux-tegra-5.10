@@ -936,8 +936,7 @@ __acquires(&cde_app->mutex)
 	struct gk20a_cde_ctx *cde_ctx = NULL;
 	struct nvgpu_timeout timeout;
 
-	nvgpu_timeout_init(g, &timeout, MAX_CTX_RETRY_TIME,
-			   NVGPU_TIMER_CPU_TIMER);
+	nvgpu_timeout_init_cpu_timer(g, &timeout, MAX_CTX_RETRY_TIME);
 
 	do {
 		cde_ctx = gk20a_cde_do_get_context(l);

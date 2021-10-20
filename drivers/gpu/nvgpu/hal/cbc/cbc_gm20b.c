@@ -1,7 +1,7 @@
 /*
  * GM20B CBC
  *
- * Copyright (c) 2019-2020 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -180,8 +180,7 @@ int gm20b_cbc_ctrl(struct gk20a *g, enum nvgpu_cbc_op op,
 				ctrl1 = ltc_ltc0_lts0_cbc_ctrl1_r() +
 					ltc * ltc_stride + slice * lts_stride;
 
-				nvgpu_timeout_init(g, &timeout, 2000,
-						   NVGPU_TIMER_RETRY_TIMER);
+				nvgpu_timeout_init_retry(g, &timeout, 2000);
 				do {
 					val = gk20a_readl(g, ctrl1);
 					if ((val & hw_op) == 0U) {

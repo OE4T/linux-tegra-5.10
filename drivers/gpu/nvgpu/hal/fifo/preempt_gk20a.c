@@ -72,12 +72,7 @@ int gk20a_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 	u32 delay = POLL_DELAY_MIN_US;
 	int ret;
 
-	ret = nvgpu_timeout_init(g, &timeout, nvgpu_preempt_get_timeout(g),
-			   NVGPU_TIMER_CPU_TIMER);
-	if (ret != 0) {
-		nvgpu_err(g, "timeout_init failed: %d", ret);
-		return ret;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &timeout, nvgpu_preempt_get_timeout(g));
 
 	ret = -EBUSY;
 	do {

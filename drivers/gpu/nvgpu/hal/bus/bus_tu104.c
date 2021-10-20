@@ -66,10 +66,7 @@ int bus_tu104_bar2_bind(struct gk20a *g, struct nvgpu_mem *bar2_inst)
 
 	nvgpu_log_info(g, "bar2 inst block ptr: 0x%08x", ptr_v);
 
-	err = nvgpu_timeout_init(g, &timeout, 1000, NVGPU_TIMER_RETRY_TIMER);
-	if (err != 0) {
-		return err;
-	}
+	nvgpu_timeout_init_retry(g, &timeout, 1000);
 
 	nvgpu_func_writel(g, func_priv_bar2_block_r(),
 		     nvgpu_aperture_mask(g, bar2_inst,

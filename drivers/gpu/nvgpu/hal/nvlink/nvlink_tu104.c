@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -58,12 +58,7 @@ int tu104_nvlink_rxdet(struct gk20a *g, u32 link_id)
 		return ret;
 	}
 
-	ret = nvgpu_timeout_init(g, &timeout, NV_NVLINK_REG_POLL_TIMEOUT_MS,
-							NVGPU_TIMER_CPU_TIMER);
-	if (ret != 0) {
-		nvgpu_err(g, "Error during timeout init");
-		return ret;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &timeout, NV_NVLINK_REG_POLL_TIMEOUT_MS);
 
 	do {
 		reg = DLPL_REG_RD32(g, link_id, nvl_sl0_link_rxdet_status_r());

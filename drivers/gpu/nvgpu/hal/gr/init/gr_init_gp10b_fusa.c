@@ -65,16 +65,10 @@ int gp10b_gr_init_wait_empty(struct gk20a *g)
 	u32 gr_status;
 	u32 activity0, activity1, activity2, activity4;
 	struct nvgpu_timeout timeout;
-	int err;
 
 	nvgpu_log_fn(g, " ");
 
-	err = nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
-				 NVGPU_TIMER_CPU_TIMER);
-	if (err != 0) {
-		nvgpu_err(g, "timeout_init failed: %d", err);
-		return err;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &timeout, nvgpu_get_poll_timeout(g));
 
 	do {
 		/* fmodel: host gets fifo_engine_status(gr) from gr

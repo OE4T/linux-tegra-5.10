@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -139,15 +139,11 @@ void nvgpu_channel_worker_poll_init(struct nvgpu_worker *worker)
 {
 	struct nvgpu_channel_worker *ch_worker =
 		nvgpu_channel_worker_from_worker(worker);
-	int ret;
 
 	ch_worker->watchdog_interval = 100U;
 
-	ret = nvgpu_timeout_init(worker->g, &ch_worker->timeout,
-			ch_worker->watchdog_interval, NVGPU_TIMER_CPU_TIMER);
-	if (ret != 0) {
-		nvgpu_err(worker->g, "timeout_init failed: %d", ret);
-	}
+	nvgpu_timeout_init_cpu_timer(worker->g, &ch_worker->timeout,
+			ch_worker->watchdog_interval);
 }
 
 /**
@@ -176,16 +172,11 @@ void nvgpu_channel_worker_poll_wakeup_post_process_item(
 
 	struct nvgpu_channel_worker *ch_worker =
 		nvgpu_channel_worker_from_worker(worker);
-	int ret;
 
 	if (nvgpu_timeout_peek_expired(&ch_worker->timeout)) {
 		nvgpu_channel_poll_wdt(g);
-		ret = nvgpu_timeout_init(g, &ch_worker->timeout,
-				ch_worker->watchdog_interval,
-				NVGPU_TIMER_CPU_TIMER);
-		if (ret != 0) {
-			nvgpu_err(g, "timeout_init failed: %d", ret);
-		}
+		nvgpu_timeout_init_cpu_timer(g, &ch_worker->timeout,
+				ch_worker->watchdog_interval);
 	}
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -47,11 +47,7 @@ int gp10b_bus_bar2_bind(struct gk20a *g, struct nvgpu_mem *bar2_inst)
 					 bus_bar2_block_target_vid_mem_f()) |
 		     bus_bar2_block_mode_virtual_f() |
 		     bus_bar2_block_ptr_f(ptr_v));
-	err = nvgpu_timeout_init(g, &timeout, 1000, NVGPU_TIMER_RETRY_TIMER);
-	if (err != 0) {
-		nvgpu_err(g, "nvgpu_timeout_init failed err=%d", err);
-		return err;
-	}
+	nvgpu_timeout_init_retry(g, &timeout, 1000);
 
 	do {
 		u32 val = gk20a_readl(g, bus_bind_status_r());

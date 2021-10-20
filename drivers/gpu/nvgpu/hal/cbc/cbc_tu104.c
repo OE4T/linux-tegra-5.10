@@ -179,8 +179,7 @@ int tu104_cbc_ctrl(struct gk20a *g, enum nvgpu_cbc_op op,
 				ctrl1 = ltc_ltc0_lts0_cbc_ctrl1_r() +
 					ltc * ltc_stride + slice * lts_stride;
 
-				nvgpu_timeout_init(g, &timeout, 2000,
-						   NVGPU_TIMER_RETRY_TIMER);
+				nvgpu_timeout_init_retry(g, &timeout, 2000);
 				do {
 					val = nvgpu_readl(g, ctrl1);
 					if ((val & hw_op) == 0U) {

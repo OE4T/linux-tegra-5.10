@@ -108,15 +108,9 @@ int nvgpu_pmu_wait_fw_ack_status(struct gk20a *g, struct nvgpu_pmu *pmu,
 	u32 timeout_ms, void *var, u8 val)
 {
 	struct nvgpu_timeout timeout;
-	int err;
 	unsigned int delay = POLL_DELAY_MIN_US;
 
-	err = nvgpu_timeout_init(g, &timeout, timeout_ms,
-		NVGPU_TIMER_CPU_TIMER);
-	if (err != 0) {
-		nvgpu_err(g, "PMU wait timeout init failed.");
-		return err;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &timeout, timeout_ms);
 
 	do {
 		nvgpu_rmb();

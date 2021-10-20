@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -91,15 +91,8 @@ static void nvgpu_channel_wdt_init(struct nvgpu_channel_wdt *wdt,
 		struct nvgpu_channel_wdt_state *state)
 {
 	struct gk20a *g = wdt->g;
-	int ret;
 
-	ret = nvgpu_timeout_init(g, &wdt->timer,
-			   wdt->limit_ms,
-			   NVGPU_TIMER_CPU_TIMER);
-	if (ret != 0) {
-		nvgpu_err(g, "timeout_init failed: %d", ret);
-		return;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &wdt->timer, wdt->limit_ms);
 
 	wdt->ch_state = *state;
 	wdt->running = true;

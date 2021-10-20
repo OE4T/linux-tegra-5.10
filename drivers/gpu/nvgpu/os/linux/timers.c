@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -36,6 +36,24 @@ static int nvgpu_timeout_is_pre_silicon(struct nvgpu_timeout *timeout)
 	return !nvgpu_platform_is_silicon(timeout->g);
 }
 
+void nvgpu_timeout_init_cpu_timer(struct gk20a *g, struct nvgpu_timeout *timeout,
+		       u32 duration_ms)
+{
+	int err = nvgpu_timeout_init_flags(g, timeout, duration_ms,
+					   NVGPU_TIMER_CPU_TIMER);
+
+	nvgpu_assert(err == 0);
+}
+
+void nvgpu_timeout_init_retry(struct gk20a *g, struct nvgpu_timeout *timeout,
+		       u32 duration_count)
+{
+	int err = nvgpu_timeout_init_flags(g, timeout, duration_count,
+					   NVGPU_TIMER_RETRY_TIMER);
+
+	nvgpu_assert(err == 0);
+}
+
 /**
  * nvgpu_timeout_init - Init timer.
  *
@@ -55,7 +73,7 @@ static int nvgpu_timeout_is_pre_silicon(struct nvgpu_timeout *timeout)
  * If neither %NVGPU_TIMER_CPU_TIMER or %NVGPU_TIMER_RETRY_TIMER is passed then
  * a CPU timer is used by default.
  */
-int nvgpu_timeout_init(struct gk20a *g, struct nvgpu_timeout *timeout,
+int nvgpu_timeout_init_flags(struct gk20a *g, struct nvgpu_timeout *timeout,
 		       u32 duration, unsigned long flags)
 {
 	if (flags & ~NVGPU_TIMER_FLAG_MASK)

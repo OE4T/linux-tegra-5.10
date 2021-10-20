@@ -258,7 +258,7 @@ int nvgpu_sec2_wait_message_cond(struct nvgpu_sec2 *sec2, u32 timeout_ms,
 	struct nvgpu_timeout timeout;
 	u32 delay = POLL_DELAY_MIN_US;
 
-	nvgpu_timeout_init(g, &timeout, timeout_ms, NVGPU_TIMER_CPU_TIMER);
+	nvgpu_timeout_init_cpu_timer(g, &timeout, timeout_ms);
 
 	do {
 		if (*(u8 *)var == val) {

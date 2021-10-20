@@ -726,8 +726,7 @@ int gr_gp10b_suspend_contexts(struct gk20a *g,
 
 		gr_ctx = tsg->gr_ctx;
 
-		nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
-				   NVGPU_TIMER_CPU_TIMER);
+		nvgpu_timeout_init_cpu_timer(g, &timeout, nvgpu_get_poll_timeout(g));
 		do {
 			if (!nvgpu_gr_ctx_get_cilp_preempt_pending(gr_ctx)) {
 				break;

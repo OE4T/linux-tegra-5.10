@@ -1636,12 +1636,7 @@ static int nvgpu_vm_unmap_sync_buffer(struct vm_gk20a *vm,
 	/*
 	 * 100ms timer.
 	 */
-	ret = nvgpu_timeout_init(vm->mm->g, &timeout, 100,
-		NVGPU_TIMER_CPU_TIMER);
-	if (ret != 0) {
-		nvgpu_err(vm->mm->g, "timeout_init failed (%d)", ret);
-		return ret;
-	}
+	nvgpu_timeout_init_cpu_timer(vm->mm->g, &timeout, 100);
 
 	nvgpu_mutex_release(&vm->update_gmmu_lock);
 

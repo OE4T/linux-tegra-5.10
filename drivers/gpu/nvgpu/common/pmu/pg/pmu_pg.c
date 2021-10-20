@@ -788,7 +788,6 @@ static void pmu_pg_kill_task(struct gk20a *g, struct nvgpu_pmu *pmu,
 	struct nvgpu_pmu_pg *pg)
 {
 	struct nvgpu_timeout timeout;
-	int err = 0;
 
 	/* make sure the pending operations are finished before we continue */
 	if (nvgpu_thread_is_running(&pg->pg_init.state_task)) {
@@ -800,12 +799,7 @@ static void pmu_pg_kill_task(struct gk20a *g, struct nvgpu_pmu *pmu,
 		nvgpu_thread_stop(&pg->pg_init.state_task);
 
 		/* wait to confirm thread stopped */
-		err = nvgpu_timeout_init(g, &timeout, 1000,
-			NVGPU_TIMER_RETRY_TIMER);
-		if (err != 0) {
-			nvgpu_err(g, "timeout_init failed err=%d", err);
-			return;
-		}
+		nvgpu_timeout_init_retry(g, &timeout, 1000);
 		do {
 			if (!nvgpu_thread_is_running(&pg->pg_init.state_task)) {
 				break;

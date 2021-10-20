@@ -268,15 +268,10 @@ void ga10b_fb_dump_vpr_info(struct gk20a *g)
 static int ga10b_fb_vpr_mode_fetch_poll(struct gk20a *g, unsigned int poll_ms)
 {
 	struct nvgpu_timeout timeout;
-	int err = 0;
 	u32 val = 0U;
 	u32 delay = POLL_DELAY_MIN_US;
 
-	err = nvgpu_timeout_init(g, &timeout, poll_ms, NVGPU_TIMER_CPU_TIMER);
-	if (err != 0) {
-		nvgpu_err(g, "nvgpu_timeout_init failed err=%d", err);
-		return err;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &timeout, poll_ms);
 
 	do {
 		val = nvgpu_readl(g, fb_mmu_vpr_mode_r());

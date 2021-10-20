@@ -242,11 +242,7 @@ static int do_xve_set_speed_gp106(struct gk20a *g, u32 next_link_speed)
 	gk20a_writel(g, xp_dl_mgr_r(0), dl_mgr);
 	xv_sc_dbg(g, DL_SAFE_MODE, "  Done!");
 
-	if (nvgpu_timeout_init(g, &timeout, GPU_XVE_TIMEOUT_MS,
-				NVGPU_TIMER_CPU_TIMER) != 0) {
-		nvgpu_err(g, "failed to init timeout");
-		goto done;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &timeout, GPU_XVE_TIMEOUT_MS);
 
 	xv_sc_dbg(g, CHECK_LINK, "Checking for link idle...");
 	do {
@@ -324,11 +320,8 @@ static int do_xve_set_speed_gp106(struct gk20a *g, u32 next_link_speed)
 
 	xv_sc_dbg(g, EXEC_CHANGE, "Running link speed change...");
 
-	if (nvgpu_timeout_init(g, &timeout, GPU_XVE_TIMEOUT_MS,
-				NVGPU_TIMER_CPU_TIMER) != 0) {
-		nvgpu_err(g, "failed to init timeout");
-		goto done;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &timeout, GPU_XVE_TIMEOUT_MS);
+
 	do {
 		gk20a_writel(g, xp_pl_link_config_r(0), pl_link_config);
 		if (pl_link_config ==
@@ -360,11 +353,7 @@ static int do_xve_set_speed_gp106(struct gk20a *g, u32 next_link_speed)
 		 * Read NV_XP_PL_LINK_CONFIG until the link has swapped to
 		 * the target speed.
 		 */
-		if (nvgpu_timeout_init(g, &timeout, GPU_XVE_TIMEOUT_MS,
-					NVGPU_TIMER_CPU_TIMER)  != 0) {
-			nvgpu_err(g, "failed to init timeout");
-			goto done;
-		}
+		nvgpu_timeout_init_cpu_timer(g, &timeout, GPU_XVE_TIMEOUT_MS);
 		do {
 			pl_link_config = gk20a_readl(g, xp_pl_link_config_r(0));
 			if (pl_link_config != 0xfffffffU &&

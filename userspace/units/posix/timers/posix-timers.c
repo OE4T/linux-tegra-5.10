@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -64,7 +64,7 @@ int test_timer_init(struct unit_module *m,
 		flags = NVGPU_TIMER_CPU_TIMER;
 	}
 
-	ret = nvgpu_timeout_init(g, &test_timeout,
+	ret = nvgpu_timeout_init_flags(g, &test_timeout,
 			duration,
 			flags);
 
@@ -92,7 +92,7 @@ int test_timer_init_err(struct unit_module *m,
 		memset(&test_timeout, 0, sizeof(struct nvgpu_timeout));
 		/* nvgpu_tiemout_init accepts only BIT(0), BIT(8), and BIT(9) as
 		 * valid flag bits.  So ret should be EINVAL */
-		ret = nvgpu_timeout_init(g, &test_timeout, 10, (1 << i));
+		ret = nvgpu_timeout_init_flags(g, &test_timeout, 10, (1 << i));
 
 		if ((i == 0) || (i == 8) || (i == 9)) {
 			if (ret != 0) {
@@ -110,55 +110,55 @@ int test_timer_init_err(struct unit_module *m,
 	}
 
 	/* BIT(0), BIT(8) and BIT(9) set.  Return value should be 0 */
-	ret = nvgpu_timeout_init(g, &test_timeout, 10, 0x301);
+	ret = nvgpu_timeout_init_flags(g, &test_timeout, 10, 0x301);
 	if (ret != 0) {
 		unit_return_fail(m,"Timer init failed with flag 0x301\n");
 	}
 
 	/* BIT(8) and BIT(9) set.  Return value should be 0 */
-	ret = nvgpu_timeout_init(g, &test_timeout, 10, 0x300);
+	ret = nvgpu_timeout_init_flags(g, &test_timeout, 10, 0x300);
 	if (ret != 0) {
 		unit_return_fail(m,"Timer init failed with flag 0x300\n");
 	}
 
 	/* BIT(0) and BIT(8) set.  Return value should be 0 */
-	ret = nvgpu_timeout_init(g, &test_timeout, 10, 0x101);
+	ret = nvgpu_timeout_init_flags(g, &test_timeout, 10, 0x101);
 	if (ret != 0) {
 		unit_return_fail(m,"Timer init failed with flag 0x101\n");
 	}
 
 	/* BIT(0) and BIT(9) set.  Return value should be 0 */
-	ret = nvgpu_timeout_init(g, &test_timeout, 10, 0x201);
+	ret = nvgpu_timeout_init_flags(g, &test_timeout, 10, 0x201);
 	if (ret != 0) {
 		unit_return_fail(m,"Timer init failed with flag 0x201\n");
 	}
 
 	/* BIT(0), BIT(7) and BIT(9) set.  Return value should be -EINVAL */
-	ret = nvgpu_timeout_init(g, &test_timeout, 10, 0x281);
+	ret = nvgpu_timeout_init_flags(g, &test_timeout, 10, 0x281);
 	if (ret != -EINVAL) {
 		unit_return_fail(m,"Timer init failed with flag 0x281\n");
 	}
 
 	/* BIT(5), BIT(7) and BIT(9) set.  Return value should be -EINVAL */
-	ret = nvgpu_timeout_init(g, &test_timeout, 10, 0x2A0);
+	ret = nvgpu_timeout_init_flags(g, &test_timeout, 10, 0x2A0);
 	if (ret != -EINVAL) {
 		unit_return_fail(m,"Timer init failed with flag 0x2A0\n");
 	}
 
 	/* BIT(1), BIT(2) and BIT(3) set.  Return value should be -EINVAL */
-	ret = nvgpu_timeout_init(g, &test_timeout, 10, 0x00E);
+	ret = nvgpu_timeout_init_flags(g, &test_timeout, 10, 0x00E);
 	if (ret != -EINVAL) {
 		unit_return_fail(m,"Timer init failed with flag 0x00E\n");
 	}
 
 	/* BIT(1) to BIT(7) set.  Return value should be -EINVAL */
-	ret = nvgpu_timeout_init(g, &test_timeout, 10, 0x07E);
+	ret = nvgpu_timeout_init_flags(g, &test_timeout, 10, 0x07E);
 	if (ret != -EINVAL) {
 		unit_return_fail(m,"Timer init failed with flag 0x07E\n");
 	}
 
 	/* All bits set.  Return value should be -EINVAL */
-	ret = nvgpu_timeout_init(g, &test_timeout, 10, 0xFFFFFFFFFFFFFFFF);
+	ret = nvgpu_timeout_init_flags(g, &test_timeout, 10, 0xFFFFFFFFFFFFFFFF);
 	if (ret != -EINVAL) {
 		unit_return_fail(m,"Timer init failed with flag all 1s\n");
 	}
@@ -169,17 +169,9 @@ int test_timer_init_err(struct unit_module *m,
 int test_timer_counter(struct unit_module *m,
 			      struct gk20a *g, void *args)
 {
-	int ret;
-
 	memset(&test_timeout, 0, sizeof(struct nvgpu_timeout));
 
-	ret = nvgpu_timeout_init(g, &test_timeout,
-			TEST_TIMER_COUNT,
-			NVGPU_TIMER_RETRY_TIMER);
-
-	if (ret != 0) {
-		unit_return_fail(m, "Timer init failed %d\n", ret);
-	}
+	nvgpu_timeout_init_retry(g, &test_timeout, TEST_TIMER_COUNT);
 
 	do {
 		usleep(1);
@@ -200,13 +192,7 @@ int test_timer_duration(struct unit_module *m,
 
 	memset(&test_timeout, 0, sizeof(struct nvgpu_timeout));
 
-	ret = nvgpu_timeout_init(g, &test_timeout,
-			TEST_TIMER_DURATION,
-			NVGPU_TIMER_CPU_TIMER);
-
-	if (ret != 0) {
-		unit_return_fail(m, "Timer init failed %d\n", ret);
-	}
+	nvgpu_timeout_init_cpu_timer(g, &test_timeout, TEST_TIMER_DURATION);
 
 	/*
 	 * Timer should not be expired.
@@ -251,7 +237,7 @@ int test_timer_fault_injection(struct unit_module *m,
 
 	memset(&test_timeout, 0, sizeof(struct nvgpu_timeout));
 
-	ret = nvgpu_timeout_init(g, &test_timeout,
+	ret = nvgpu_timeout_init_flags(g, &test_timeout,
 			TEST_TIMER_DURATION,
 			NVGPU_TIMER_CPU_TIMER);
 

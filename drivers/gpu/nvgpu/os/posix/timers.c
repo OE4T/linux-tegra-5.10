@@ -122,7 +122,25 @@ static bool time_after(s64 a, s64 b)
 	return (nvgpu_safe_sub_s64(a, b) > 0);
 }
 
-int nvgpu_timeout_init(struct gk20a *g, struct nvgpu_timeout *timeout,
+void nvgpu_timeout_init_cpu_timer(struct gk20a *g, struct nvgpu_timeout *timeout,
+		       u32 duration_ms)
+{
+	int err = nvgpu_timeout_init_flags(g, timeout, duration_ms,
+					   NVGPU_TIMER_CPU_TIMER);
+
+	nvgpu_assert(err == 0);
+}
+
+void nvgpu_timeout_init_retry(struct gk20a *g, struct nvgpu_timeout *timeout,
+		       u32 duration_count)
+{
+	int err = nvgpu_timeout_init_flags(g, timeout, duration_count,
+					   NVGPU_TIMER_RETRY_TIMER);
+
+	nvgpu_assert(err == 0);
+}
+
+int nvgpu_timeout_init_flags(struct gk20a *g, struct nvgpu_timeout *timeout,
 		       u32 duration, unsigned long flags)
 {
 	s64 duration_ns;

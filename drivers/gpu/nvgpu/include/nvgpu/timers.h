@@ -149,8 +149,35 @@ struct nvgpu_timeout {
  *
  * @retval -EINVAL invalid input parameter.
  */
-int nvgpu_timeout_init(struct gk20a *g, struct nvgpu_timeout *timeout,
+int nvgpu_timeout_init_flags(struct gk20a *g, struct nvgpu_timeout *timeout,
 		       u32 duration, unsigned long flags);
+
+
+/**
+ * @brief Initialize a timeout.
+ *
+ * Init a cpu clock based timeout. See nvgpu_timeout_init_flags() and
+ * NVGPU_TIMER_CPU_TIMER for full explanation.
+ *
+ * @param g [in]	GPU driver structure.
+ * @param timeout [in]	Timeout object to initialize.
+ * @param duration [in]	Timeout duration in milliseconds.
+ */
+void nvgpu_timeout_init_cpu_timer(struct gk20a *g, struct nvgpu_timeout *timeout,
+		       u32 duration_ms);
+
+/**
+ * @brief Initialize a timeout.
+ *
+ * Init a retry based timeout. See nvgpu_timeout_init_flags() and
+ * NVGPU_TIMER_RETRY_TIMER for full explanation.
+ *
+ * @param g [in]	GPU driver structure.
+ * @param timeout [in]	Timeout object to initialize.
+ * @param duration [in]	Timeout duration in number of retries.
+ */
+void nvgpu_timeout_init_retry(struct gk20a *g, struct nvgpu_timeout *timeout,
+		       u32 duration_count);
 
 /**
  * @brief Check the timeout status.

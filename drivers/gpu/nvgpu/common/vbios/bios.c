@@ -853,13 +853,8 @@ u32 nvgpu_bios_read_u32(struct gk20a *g, u32 offset)
 bool nvgpu_bios_wait_for_init_done(struct gk20a *g)
 {
 	struct nvgpu_timeout timeout;
-	int err;
 
-	err = nvgpu_timeout_init(g, &timeout,
-		NVGPU_BIOS_DEVINIT_VERIFY_TIMEOUT_MS, NVGPU_TIMER_CPU_TIMER);
-	if (err != 0) {
-		return false;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &timeout, NVGPU_BIOS_DEVINIT_VERIFY_TIMEOUT_MS);
 
 	/* Wait till vbios is completed */
 	do {

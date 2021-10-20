@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -41,16 +41,12 @@
 void nvgpu_vidmem_destroy(struct gk20a *g)
 {
 	struct nvgpu_timeout timeout;
-	int err;
 
 	if (g->ops.fb.get_vidmem_size == NULL) {
 		return;
 	}
 
-	err = nvgpu_timeout_init(g, &timeout, 100, NVGPU_TIMER_RETRY_TIMER);
-	if (err != 0) {
-		nvgpu_err(g, "nvgpu_timeout_init() failed err=%d", err);
-	}
+	nvgpu_timeout_init_retry(g, &timeout, 100);
 
 	/*
 	 * Ensure that the thread runs one last time to flush anything in the
@@ -98,13 +94,7 @@ static int nvgpu_vidmem_clear_fence_wait(struct gk20a *g,
 	bool done;
 	int err;
 
-	err = nvgpu_timeout_init(g, &timeout,
-		   nvgpu_get_poll_timeout(g),
-		   NVGPU_TIMER_CPU_TIMER);
-	if (err != 0) {
-		nvgpu_err(g, "nvgpu_timeout_init() failed err=%d", err);
-		return err;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &timeout, nvgpu_get_poll_timeout(g));
 
 	do {
 		err = nvgpu_fence_wait(g, fence_out,

@@ -102,14 +102,7 @@ int gv11b_fifo_preempt_poll_pbdma(struct gk20a *g, u32 tsgid,
 	unsigned int loop_count = 0;
 	struct nvgpu_pbdma_status_info pbdma_status;
 
-	/* timeout in milli seconds */
-	ret = nvgpu_timeout_init(g, &timeout,
-			nvgpu_preempt_get_timeout(g),
-			NVGPU_TIMER_CPU_TIMER);
-	if (ret != 0) {
-		nvgpu_err(g, "timeout_init failed: %d", ret);
-		return ret;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &timeout, nvgpu_preempt_get_timeout(g));
 
 	/* Default return value */
 	ret = -EBUSY;
@@ -231,14 +224,7 @@ static int gv11b_fifo_preempt_poll_eng(struct gk20a *g, u32 id,
 	u32 eng_intr_pending;
 	struct nvgpu_engine_status_info engine_status;
 
-	/* timeout in milli seconds */
-	ret = nvgpu_timeout_init(g, &timeout,
-			nvgpu_preempt_get_timeout(g),
-			NVGPU_TIMER_CPU_TIMER);
-	if (ret != 0) {
-		nvgpu_err(g, "timeout_init failed: %d", ret);
-		return ret;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &timeout, nvgpu_preempt_get_timeout(g));
 
 	/* Default return value */
 	ret = -EBUSY;

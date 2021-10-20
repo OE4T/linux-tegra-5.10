@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -105,11 +105,7 @@ void gm20b_fifo_trigger_mmu_fault(struct gk20a *g,
 				     fifo_trigger_mmu_fault_enable_f(1U));
 	}
 
-	ret = nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
-			   NVGPU_TIMER_CPU_TIMER);
-	if (ret != 0) {
-		nvgpu_err(g, "timeout init failed err=%d", ret);
-	}
+	nvgpu_timeout_init_cpu_timer(g, &timeout, nvgpu_get_poll_timeout(g));
 
 	/* Wait for MMU fault to trigger */
 	ret = -EBUSY;

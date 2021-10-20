@@ -1256,7 +1256,6 @@ int gv11b_gr_wait_for_sm_lock_down(struct gk20a *g,
 	u32 dbgr_status0 = 0;
 	u32 warp_esr, global_esr;
 	struct nvgpu_timeout timeout;
-	int err;
 	u32 offset = nvgpu_gr_gpc_offset(g, gpc) +
 			nvgpu_gr_tpc_offset(g, tpc) +
 			nvgpu_gr_sm_offset(g, sm);
@@ -1264,12 +1263,7 @@ int gv11b_gr_wait_for_sm_lock_down(struct gk20a *g,
 	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
 		"GPC%d TPC%d: locking down SM%d", gpc, tpc, sm);
 
-	err = nvgpu_timeout_init(g, &timeout, g->poll_timeout_default,
-			   NVGPU_TIMER_CPU_TIMER);
-	if (err != 0) {
-		nvgpu_err(g, "timeout_init failed: %d", err);
-		return err;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &timeout, g->poll_timeout_default);
 
 	/* wait for the sm to lock down */
 	do {

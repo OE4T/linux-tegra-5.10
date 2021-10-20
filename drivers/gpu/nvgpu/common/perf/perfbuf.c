@@ -163,11 +163,7 @@ int nvgpu_perfbuf_update_get_put(struct gk20a *g, u64 bytes_consumed,
 	}
 
 	if (update_available_bytes && wait && available_bytes_va != NULL) {
-		err = nvgpu_timeout_init(g, &timeout, 10000, NVGPU_TIMER_CPU_TIMER);
-		if (err != 0) {
-			nvgpu_err(g, "nvgpu_timeout_init() failed err=%d", err);
-			return err;
-		}
+		nvgpu_timeout_init_cpu_timer(g, &timeout, 10000);
 
 		do {
 			if (*available_bytes_va != 0xffffffff) {

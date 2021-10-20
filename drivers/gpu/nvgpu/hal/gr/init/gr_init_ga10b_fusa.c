@@ -328,17 +328,12 @@ void ga10b_gr_init_commit_global_timeslice(struct gk20a *g)
 int ga10b_gr_init_wait_idle(struct gk20a *g)
 {
 	u32 delay = POLL_DELAY_MIN_US;
-	int err = 0;
 	bool gr_busy;
 	struct nvgpu_timeout timeout;
 
 	nvgpu_log(g, gpu_dbg_verbose | gpu_dbg_gr, " ");
 
-	err = nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
-                                 NVGPU_TIMER_CPU_TIMER);
-	if (err != 0) {
-                return err;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &timeout, nvgpu_get_poll_timeout(g));
 
 	do {
 		/*
@@ -468,16 +463,10 @@ int ga10b_gr_init_wait_empty(struct gk20a *g)
 	u32 gr_status;
 	u32 activity0, activity1, activity4;
 	struct nvgpu_timeout timeout;
-	int err;
 
 	nvgpu_log_fn(g, " ");
 
-	err = nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
-				NVGPU_TIMER_CPU_TIMER);
-	if (err != 0) {
-		nvgpu_err(g, "timeout_init failed: %d", err);
-		return err;
-	}
+	nvgpu_timeout_init_cpu_timer(g, &timeout, nvgpu_get_poll_timeout(g));
 
 	do {
 		gr_status = nvgpu_readl(g, gr_status_r());
