@@ -1462,20 +1462,20 @@ static int tegra_soc_hwpm_release(struct inode *inode, struct file *filp)
 				RELEASE_FAIL("Unable to disable PERFMON(0x%llx - 0x%llx)",
 					     aperture->start_pa,
 					     aperture->end_pa);
-			}
-			ip_ops = &hwpm->ip_info[aperture->dt_aperture];
-			if (ip_ops && (*ip_ops->hwpm_ip_pm)) {
-				err = (*ip_ops->hwpm_ip_pm)
-							(ip_ops->ip_dev, false);
-				if (err) {
-					tegra_soc_hwpm_err(
-						"Enable Runtime PM(%d) Failed",
-							aperture->dt_aperture);
+				ip_ops = &hwpm->ip_info[aperture->dt_aperture];
+				if (ip_ops && (*ip_ops->hwpm_ip_pm)) {
+					err = (*ip_ops->hwpm_ip_pm)
+								(ip_ops->ip_dev, false);
+					if (err) {
+						tegra_soc_hwpm_err(
+							"Enable Runtime PM(%d) Failed",
+								aperture->dt_aperture);
+					}
+				} else {
+					tegra_soc_hwpm_dbg(
+						"No Runtime PM(%d) for IP",
+								aperture->dt_aperture);
 				}
-			} else {
-				tegra_soc_hwpm_dbg(
-					"No Runtime PM(%d) for IP",
-							aperture->dt_aperture);
 			}
 		}
 	}
