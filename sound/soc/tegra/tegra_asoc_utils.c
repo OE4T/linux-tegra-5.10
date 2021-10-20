@@ -15,6 +15,7 @@
 
 #include "tegra_asoc_utils.h"
 
+#define MAX(X, Y) ((X > Y) ? (X) : (Y))
 /*
  * this will be used for platforms from Tegra210 onwards.
  * odd rates: sample rates multiple of 11.025kHz
@@ -26,8 +27,8 @@ enum rate_type {
 	NUM_RATE_TYPE,
 };
 unsigned int tegra210_pll_base_rate[NUM_RATE_TYPE] = {338688000, 368640000};
-unsigned int tegra186_pll_base_rate[NUM_RATE_TYPE] = {270950400, 294912000};
-unsigned int default_pll_out_rate[NUM_RATE_TYPE] = {45158400, 49152000};
+unsigned int tegra186_pll_stereo_base_rate[NUM_RATE_TYPE] = {270950400, 294912000};
+unsigned int default_pll_out_stereo_rate[NUM_RATE_TYPE] = {45158400, 49152000};
 
 int tegra_asoc_utils_set_rate(struct tegra_asoc_utils_data *data, int srate,
 			      int mclk)
@@ -170,10 +171,64 @@ int tegra_asoc_utils_set_ac97_rate(struct tegra_asoc_utils_data *data)
 }
 EXPORT_SYMBOL_GPL(tegra_asoc_utils_set_ac97_rate);
 
-int tegra_asoc_utils_set_tegra210_rate(struct tegra_asoc_utils_data *data,
-				       unsigned int sample_rate)
+static int modify_parent_clk_base_rates(unsigned int *new_pll_base,
+			unsigned int *pll_out,
+			unsigned int req_bclk,
+			struct tegra_asoc_utils_data *data)
 {
-	unsigned int new_pll_base, pll_out, aud_mclk = 0;
+	unsigned int bclk_div, pll_div;
+	bool pll_out_halved = false;
+
+	if (req_bclk == 0)
+		return 0;
+
+	if (req_bclk > *pll_out)
+		return -EOPNOTSUPP;
+
+	if ((*pll_out / req_bclk) > 128) {
+		/* reduce pll_out rate to support lower sampling rates */
+		*pll_out >>= 1;
+		pll_out_halved = true;
+	}
+
+	/* Modify base rates on chips >= T186 if fractional dividier is seen */
+	if (data->soc >= TEGRA_ASOC_UTILS_SOC_TEGRA186 &&
+			(*pll_out % req_bclk)) {
+
+		/* Below logic is added to reduce dynamic range
+		 * of PLLA (~37MHz). Min and max plla for chips >= t186
+		 * are 258.048 MHz and 294.912 MHz respectively. PLLA dynamic
+		 * range is kept minimal to avoid clk ramp up/down issues
+		 * and avoid halving plla if already halved
+		 */
+		if (!pll_out_halved && req_bclk <= (*pll_out >> 1))
+			*pll_out >>= 1;
+
+		*new_pll_base = MAX(data->pll_base_rate[EVEN_RATE],
+					data->pll_base_rate[ODD_RATE]);
+
+		/* Modifying base rates for i2s parent and grand parent
+		 * clocks so that i2s rate can be derived with integer division
+		 * as fractional divider is not supported in HW
+		 */
+
+		bclk_div =  *pll_out / req_bclk;
+		*pll_out = req_bclk * bclk_div;
+		pll_div = *new_pll_base / *pll_out;
+		*new_pll_base = pll_div * (*pll_out);
+		/* TODO: Make sure that the dynamic range is not violated
+		 * by having chip specific lower and upper limits of PLLA
+		 */
+	}
+	return 0;
+}
+
+int tegra_asoc_utils_set_tegra210_rate(struct tegra_asoc_utils_data *data,
+				       unsigned int sample_rate,
+				       unsigned int channels,
+				       unsigned int sample_size)
+{
+	unsigned int new_pll_base, pll_out, aud_mclk = 0, req_bclk;
 	int err;
 
 	if (data->fixed_pll)
@@ -186,7 +241,7 @@ int tegra_asoc_utils_set_tegra210_rate(struct tegra_asoc_utils_data *data,
 	case 88200:
 	case 176400:
 		new_pll_base = data->pll_base_rate[ODD_RATE];
-		pll_out = default_pll_out_rate[ODD_RATE];
+		pll_out = default_pll_out_stereo_rate[ODD_RATE];
 		break;
 	case 8000:
 	case 16000:
@@ -197,15 +252,21 @@ int tegra_asoc_utils_set_tegra210_rate(struct tegra_asoc_utils_data *data,
 	case 96000:
 	case 192000:
 		new_pll_base = data->pll_base_rate[EVEN_RATE];
-		pll_out = default_pll_out_rate[EVEN_RATE];
+		pll_out = default_pll_out_stereo_rate[EVEN_RATE];
 		break;
 	default:
 		return -EINVAL;
 	}
 
-	/* reduce pll_out rate to support lower sampling rates */
-	if (sample_rate <= 11025)
-		pll_out = pll_out >> 1;
+	req_bclk = sample_rate * channels * sample_size;
+
+	err = modify_parent_clk_base_rates(&new_pll_base,
+			&pll_out, req_bclk, data);
+	if (err) {
+		dev_err(data->dev, "Clk rate %d not supported\n",
+			req_bclk);
+		return err;
+	}
 
 	if (data->set_baseclock != new_pll_base) {
 		err = clk_set_rate(data->clk_pll_a, new_pll_base);
@@ -322,7 +383,7 @@ int tegra_asoc_utils_init(struct tegra_asoc_utils_data *data,
 	if (data->soc < TEGRA_ASOC_UTILS_SOC_TEGRA186)
 		data->pll_base_rate = tegra210_pll_base_rate;
 	else
-		data->pll_base_rate = tegra186_pll_base_rate;
+		data->pll_base_rate = tegra186_pll_stereo_base_rate;
 	/*
 	 * If clock parents are not set in DT, configure here to use clk_out_1
 	 * as mclk and extern1 as parent for Tegra30 and higher.

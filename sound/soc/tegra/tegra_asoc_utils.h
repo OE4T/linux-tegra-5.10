@@ -41,7 +41,9 @@ int tegra_asoc_utils_set_rate(struct tegra_asoc_utils_data *data, int srate,
 			      int mclk);
 int tegra_asoc_utils_set_ac97_rate(struct tegra_asoc_utils_data *data);
 int tegra_asoc_utils_set_tegra210_rate(struct tegra_asoc_utils_data *data,
-				       unsigned int sample_rate);
+				       unsigned int sample_rate,
+				       unsigned int channels,
+				       unsigned int sample_size);
 int tegra_asoc_utils_clk_enable(struct tegra_asoc_utils_data *data);
 void tegra_asoc_utils_clk_disable(struct tegra_asoc_utils_data *data);
 int tegra_asoc_utils_init(struct tegra_asoc_utils_data *data,

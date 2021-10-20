@@ -131,16 +131,40 @@ static int tegra_machine_dai_init(struct snd_soc_pcm_runtime *runtime,
 	struct snd_soc_pcm_stream *dai_params;
 	unsigned int aud_mclk, srate;
 	u64 format_k, fmt;
-	int err;
+	int err, sample_size;
 	struct snd_soc_pcm_runtime *rtd;
 
 	srate = (machine->rate_via_kcontrol) ?
 			tegra_machine_srate_values[machine->rate_via_kcontrol] :
 			rate;
 	format_k = (machine->fmt_via_kcontrol == 2) ?
-			(1ULL << SNDRV_PCM_FORMAT_S32_LE) : formats;
+			(1ULL << SNDRV_PCM_FORMAT_S32_LE) : (1 << formats);
+	switch (formats) {
+	case SNDRV_PCM_FORMAT_S8:
+		sample_size = 8;
+		break;
+	case SNDRV_PCM_FORMAT_S16_LE:
+		sample_size = 16;
+		break;
+	case SNDRV_PCM_FORMAT_S24_LE:
+	/*
+	 * I2S bit clock is derived from PLLA_OUT0 and size of
+	 * 24 bits results in fractional value and the clock
+	 * is not accurate with this. To have integer clock
+	 * division below is used. It means there are additional
+	 * bit clocks (8 cycles) which are ignored. Codec picks
+	 * up data for other channel when LRCK signal toggles.
+	 */
+	case SNDRV_PCM_FORMAT_S32_LE:
+		sample_size = 32;
+		break;
+	default:
+		pr_err("Wrong format!\n");
+		return -EINVAL;
+	}
 
-	err = tegra_asoc_utils_set_tegra210_rate(&machine->audio_clock, srate);
+	err = tegra_asoc_utils_set_tegra210_rate(&machine->audio_clock, srate,
+						channels, sample_size);
 	if (err < 0) {
 		dev_err(card->dev, "Can't configure clocks\n");
 		return err;
@@ -187,7 +211,7 @@ static int tegra_machine_pcm_hw_params(struct snd_pcm_substream *substream,
 
 	err = tegra_machine_dai_init(rtd, params_rate(params),
 				     params_channels(params),
-				     1ULL << params_format(params));
+				     params_format(params));
 	if (err < 0) {
 		dev_err(card->dev, "Failed dai init\n");
 		return err;
@@ -254,7 +278,7 @@ static int tegra_machine_compr_set_params(struct snd_compr_stream *cstream)
 
 	err = tegra_machine_dai_init(rtd, codec_params.sample_rate,
 				     codec_params.ch_out,
-				     SNDRV_PCM_FMTBIT_S16_LE);
+				     SNDRV_PCM_FORMAT_S16_LE);
 	if (err < 0) {
 		dev_err(card->dev, "Failed dai init\n");
 		return err;
