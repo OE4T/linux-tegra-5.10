@@ -1,7 +1,7 @@
 /*
  * GK20A Master Control
  *
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -46,20 +46,26 @@ int nvgpu_mc_reset_units(struct gk20a *g, u32 units)
 
 int nvgpu_mc_reset_dev(struct gk20a *g, const struct nvgpu_device *dev)
 {
-	int err;
+	int err = 0;
+
+	if (g->ops.mc.enable_dev == NULL) {
+		goto fail;
+	}
 
 	err = g->ops.mc.enable_dev(g, dev, false);
 	if (err != 0) {
 		nvgpu_device_dump_dev(g, dev);
-		return err;
+		goto fail;
 	}
 
 	err = g->ops.mc.enable_dev(g, dev, true);
 	if (err != 0) {
 		nvgpu_device_dump_dev(g, dev);
-		return err;
+		goto fail;
 	}
-	return 0;
+
+fail:
+	return err;
 }
 
 int nvgpu_mc_reset_devtype(struct gk20a *g, u32 devtype)

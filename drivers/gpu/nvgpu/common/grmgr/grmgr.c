@@ -39,13 +39,14 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 	u32 local_gpc_mask;
 	u32 ffs_bit = 0U;
 	u32 index;
+	int err = 0;
 	const struct nvgpu_device *gr_dev = NULL;
+
 #ifdef CONFIG_NVGPU_NON_FUSA
 	if (g->ops.grmgr.load_timestamp_prod != NULL) {
 		g->ops.grmgr.load_timestamp_prod(g);
 	}
 #endif
-
 	/* Number of gpu instance is 1 for legacy mode */
 	g->mig.max_gpc_count = g->ops.top.get_max_gpc_count(g);
 	nvgpu_assert(g->mig.max_gpc_count > 0U);
@@ -184,6 +185,46 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 		g->mig.max_fbps_count,
 		gpu_instance->num_fbp,
 		gpu_instance->fbp_en_mask);
+
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		/* No need to bring GR out of reset */
+		return 0;
+	}
+
+	/*
+	 * HW design is such that if any GR engine is not out of reset (reset is
+	 * not de-asserted), it still takes clock. So for iGPU, SW should bring
+	 * all supported GR engines out of reset during gpu boot.
+	 *
+	 * This will help low power feature like elcg to engage
+	 * correctly and improve dynamic power savings.
+	 *
+	 * for dGPU all GRs are out of reset by default by dev init.
+	 * Thus, this change is needed for iGPU only.
+	 */
+	if (g->pci_class == 0U) {
+		/* iGPU */
+		gr_dev = NULL;
+		nvgpu_device_for_each(g, gr_dev,
+				NVGPU_DEVTYPE_GRAPHICS) {
+			/*
+			 * Skip for GR0 as it will be put
+			 * out of reset later
+			 */
+			if (g->mig.usable_gr_syspipe_instance_id[0U] ==
+						gr_dev->inst_id) {
+				continue;
+			}
+
+			/* Bring other GR devices out of reset */
+			err = nvgpu_mc_reset_dev(g, gr_dev);
+			if (err != 0) {
+				nvgpu_err(g, "GR%u reset failed",
+					gr_dev->inst_id);
+				return err;
+			}
+		}
+	}
 
 	return 0;
 }
