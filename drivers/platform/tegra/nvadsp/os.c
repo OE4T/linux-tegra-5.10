@@ -526,7 +526,7 @@ static void *get_mailbox_shared_region(const struct firmware *fw)
 
 	shdr = nvadsp_get_section(fw, MAILBOX_REGION);
 	if (!shdr) {
-		dev_err(dev, "section %s not found\n", MAILBOX_REGION);
+		dev_dbg(dev, "section %s not found\n", MAILBOX_REGION);
 		return ERR_PTR(-EINVAL);
 	}
 
@@ -832,6 +832,7 @@ static int __nvadsp_os_secload(struct platform_device *pdev)
 static int nvadsp_firmware_load(struct platform_device *pdev)
 {
 	struct nvadsp_shared_mem *shared_mem;
+	struct nvadsp_drv_data *drv_data = platform_get_drvdata(pdev);
 	struct device *dev = &pdev->dev;
 	const struct firmware *fw;
 	int ret = 0;
@@ -864,6 +865,21 @@ static int nvadsp_firmware_load(struct platform_device *pdev)
 	}
 
 	shared_mem = get_mailbox_shared_region(fw);
+	if (IS_ERR(shared_mem)) {
+		if (drv_data->chip_data->adsp_shared_mem_hwmbox != 0) {
+			/*
+			 * If FW is not explicitly defining a shared memory
+			 * region then assume it to be placed at the start
+			 * of OS memory and communicate the same via MBX
+			 */
+			drv_data->shared_adsp_os_data_iova = priv.adsp_os_addr;
+			shared_mem = nvadsp_da_to_va_mappings(
+					priv.adsp_os_addr, priv.adsp_os_size);
+		} else {
+			dev_err(dev, "failed to locate shared memory\n");
+			goto deallocate_os_memory;
+		}
+	}
 	nvadsp_set_shared_mem(pdev, shared_mem, 1);
 
 	ret = dram_app_mem_init(priv.app_alloc_addr, priv.app_size);
