@@ -706,7 +706,9 @@ fail_dma_alloc:
 static int allocate_memory_for_adsp_os(void)
 {
 	struct platform_device *pdev = priv.pdev;
+	struct nvadsp_drv_data *drv_data = platform_get_drvdata(pdev);
 	struct device *dev = &pdev->dev;
+	struct resource *co_mem = &drv_data->co_mem;
 #if defined(CONFIG_TEGRA_NVADSP_ON_SMMU)
 	dma_addr_t addr;
 #else
@@ -718,6 +720,19 @@ static int allocate_memory_for_adsp_os(void)
 
 	addr = priv.adsp_os_addr;
 	size = priv.adsp_os_size;
+
+	if (co_mem->start) {
+		dram_va = devm_memremap(dev, co_mem->start,
+					size, MEMREMAP_WT);
+		if (IS_ERR(dram_va)) {
+			dev_err(dev, "unable to map CO mem: %pR\n", co_mem);
+			ret = -ENOMEM;
+			goto end;
+		}
+		dev_info(dev, "Mapped CO mem: %pR\n", co_mem);
+		goto map_and_end;
+	}
+
 #if defined(CONFIG_TEGRA_NVADSP_ON_SMMU)
 	dram_va = nvadsp_dma_alloc_and_map_at(pdev, size, addr, GFP_KERNEL);
 	if (!dram_va) {
@@ -733,16 +748,28 @@ static int allocate_memory_for_adsp_os(void)
 		goto end;
 	}
 #endif
+
+map_and_end:
 	nvadsp_add_load_mappings(addr, dram_va, size);
 end:
 	return ret;
 }
 
-static void deallocate_memory_for_adsp_os(struct device *dev)
+static void deallocate_memory_for_adsp_os(void)
 {
-#if defined(CONFIG_TEGRA_NVADSP_ON_SMMU)
+	struct platform_device *pdev = priv.pdev;
+	struct nvadsp_drv_data *drv_data = platform_get_drvdata(pdev);
+	struct device *dev = &pdev->dev;
+
 	void *va = nvadsp_da_to_va_mappings(priv.adsp_os_addr,
 			priv.adsp_os_size);
+
+	if (drv_data->co_mem.start) {
+		devm_memunmap(dev, va);
+		return;
+	}
+
+#if defined(CONFIG_TEGRA_NVADSP_ON_SMMU)
 	dma_free_coherent(dev, priv.adsp_os_size, va, priv.adsp_os_addr);
 #endif
 }
@@ -849,7 +876,7 @@ static int nvadsp_firmware_load(struct platform_device *pdev)
 	return 0;
 
 deallocate_os_memory:
-	deallocate_memory_for_adsp_os(dev);
+	deallocate_memory_for_adsp_os();
 release_firmware:
 	release_firmware(fw);
 end:

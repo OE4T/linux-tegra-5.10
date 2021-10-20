@@ -234,6 +234,9 @@ struct nvadsp_drv_data {
 	u32 evp_base[ADSP_EVP_END];
 
 	const struct nvadsp_chipdata *chip_data;
+
+	/* CO mem in backdoor boot */
+	struct resource co_mem;
 };
 
 #define ADSP_CONFIG	0x04

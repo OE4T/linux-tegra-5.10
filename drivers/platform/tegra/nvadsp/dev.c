@@ -205,6 +205,34 @@ static void nvadsp_bw_unregister(struct nvadsp_drv_data *drv_data)
 #endif
 }
 
+static int __init nvadsp_parse_co_mem(struct platform_device *pdev)
+{
+	struct nvadsp_drv_data *drv_data = platform_get_drvdata(pdev);
+	struct device *dev = &pdev->dev;
+	struct device_node *node;
+	int err = 0;
+
+	node = of_parse_phandle(dev->of_node, "nvidia,adsp_co", 0);
+	if (!node)
+		return 0;
+
+	if (!of_device_is_available(node))
+		goto exit;
+
+	err = of_address_to_resource(node, 0, &drv_data->co_mem);
+	if (err) {
+		dev_err(dev, "cannot get adsp CO memory (%d)\n", err);
+		goto exit;
+	}
+
+	drv_data->adsp_mem[ADSP_OS_SIZE] = resource_size(&drv_data->co_mem);
+
+exit:
+	of_node_put(node);
+
+	return err;
+}
+
 static void __init nvadsp_parse_clk_entries(struct platform_device *pdev)
 {
 	struct nvadsp_drv_data *drv_data = platform_get_drvdata(pdev);
@@ -277,6 +305,9 @@ static int __init nvadsp_parse_dt(struct platform_device *pdev)
 		}
 	}
 	nvadsp_parse_clk_entries(pdev);
+
+	if (nvadsp_parse_co_mem(pdev))
+		return -ENOMEM;
 
 	drv_data->state.evp = devm_kzalloc(dev,
 			drv_data->evp_base[ADSP_EVP_SIZE], GFP_KERNEL);
