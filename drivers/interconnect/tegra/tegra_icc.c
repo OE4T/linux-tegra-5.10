@@ -21,6 +21,9 @@
 #include <linux/of_platform.h>
 #include <linux/platform_device.h>
 #include "tegra_icc.h"
+#if KERNEL_VERSION(4, 15, 0) < LINUX_VERSION_CODE
+#include <soc/tegra/fuse.h>
+#endif
 
 DEFINE_TNODE(icc_primary, TEGRA_ICC_PRIMARY, TEGRA_ICC_NONE);
 DEFINE_TNODE(debug, TEGRA_ICC_DEBUG, TEGRA_ICC_NISO);
@@ -174,18 +177,20 @@ static int tegra_icc_probe(struct platform_device *pdev)
 	}
 	clk_prepare_enable(tp->dram_clk);
 
-	tp->max_rate = clk_round_rate(tp->dram_clk, ULONG_MAX);
-	if (tp->max_rate < 0) {
-		dev_err(&pdev->dev, "couldn't get emc clock max rate\n");
-		ret = tp->max_rate;
-		goto err_bpmp;
-	}
+	if (tegra_platform_is_silicon()) {
+		tp->max_rate = clk_round_rate(tp->dram_clk, ULONG_MAX);
+		if (tp->max_rate < 0) {
+			dev_err(&pdev->dev, "couldn't get emc clk max rate\n");
+			ret = tp->max_rate;
+			goto err_bpmp;
+		}
 
-	tp->min_rate = clk_round_rate(tp->dram_clk, 0);
-	if (tp->min_rate < 0) {
-		dev_err(&pdev->dev, "couldn't get emc clock min rate\n");
-		ret = tp->min_rate;
-		goto err_bpmp;
+		tp->min_rate = clk_round_rate(tp->dram_clk, 0);
+		if (tp->min_rate < 0) {
+			dev_err(&pdev->dev, "couldn't get emc clk min rate\n");
+			ret = tp->min_rate;
+			goto err_bpmp;
+		}
 	}
 
 	ret = icc_provider_add(provider);

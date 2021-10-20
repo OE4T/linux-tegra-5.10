@@ -185,7 +185,7 @@ static int tegra23x_icc_set(struct icc_node *src, struct icc_node *dst)
 	uint32_t iso_bw_disp = 0;
 	uint32_t sum_bw = 0;
 
-	if (tegra_platform_is_sim())
+	if (!tegra_platform_is_silicon())
 		return 0;
 
 	classify_bw_reqs(provider, &bwmgr_req, &max_floor_kbps, &init_bw_floor);
