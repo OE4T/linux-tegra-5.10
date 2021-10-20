@@ -45,6 +45,9 @@
 #define SE0_SC7_STATUS_0			0xc0
 #define		IDLE				0
 #define		BUSY				1
+#define SE0_FEATURES_0				0x114
+#define		CAP_RNG1			(1 << 1)
+#define		CAP_HOST1X			(1 << 0)
 
 #define	SC7_IDLE_TIMEOUT_2000MS	2000000 /* 2sec */
 #define	SC7_IDLE_TIMEOUT_200MS	200000 /* 200 MS */
@@ -221,7 +224,8 @@ static int tegra_se_softreset(struct tegra_se_nvrng_dev *nvrng_dev)
 				val == FALSE, 10, RESET_TIMEOUT_100MS);
 }
 
-static int tegra_se_sc7_check_error(struct tegra_se_nvrng_dev *nvrng_dev)
+static int tegra_se_sc7_check_error(struct tegra_se_nvrng_dev *nvrng_dev,
+					bool resume)
 {
 	u32 val;
 	int ret;
@@ -242,10 +246,13 @@ static int tegra_se_sc7_check_error(struct tegra_se_nvrng_dev *nvrng_dev)
 		ret = -EIO;
 	}
 
-	if (val & SC7_CTX_INTEGRITY_ERROR) {
-		pr_err("%s:%d SC7 integrity error SE engine is disabled\n",
+	if (resume && !ret) {
+		val = tegra_se_sap_readl(nvrng_dev, SE0_FEATURES_0);
+		if (val != (CAP_RNG1 | CAP_HOST1X)) {
+			pr_err("%s:%d SC7 SE features fail disable engine\n",
 						__func__, __LINE__);
-		ret = -EACCES;
+			ret = -EIO;
+		}
 	}
 
 	return ret;
@@ -283,7 +290,7 @@ static int tegra_se_nvrng_suspend(struct device *dev)
 	tegra_se_sap_writel(nvrng_dev, SE0_SC7_CTRL_0, SC7_CTX_SAVE);
 
 	/* 5. Check for SC7 start errors */
-	ret = tegra_se_sc7_check_error(nvrng_dev);
+	ret = tegra_se_sc7_check_error(nvrng_dev, false);
 
 	/* 6. Disable clock */
 	clk_disable_unprepare(nvrng_dev->clk);
@@ -317,7 +324,7 @@ static int tegra_se_nvrng_resume(struct device *dev)
 	tegra_se_sap_writel(nvrng_dev, SE0_SC7_CTRL_0, SC7_CTX_RESTORE);
 
 	/* 5. Check for SC7 start errors */
-	ret = tegra_se_sc7_check_error(nvrng_dev);
+	ret = tegra_se_sc7_check_error(nvrng_dev, true);
 
 	/* 6. Disable clock */
 	clk_disable_unprepare(nvrng_dev->clk);
