@@ -201,6 +201,11 @@ static int pmu_handle_event(struct nvgpu_pmu *pmu, struct pmu_msg *msg)
 			WARN_ON(true);
 		}
 		break;
+	case PMU_UNIT_PG:
+		if (pmu->pg->process_rpc_event != NULL) {
+			err = pmu->pg->process_rpc_event(g, (void *)&msg->hdr);
+		}
+		break;
 	default:
 		nvgpu_log_info(g, "Received invalid PMU unit event");
 		break;

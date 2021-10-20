@@ -39,12 +39,22 @@
 /* RPC function calls supported by PG unit */
 #define NV_PMU_RPC_ID_PG_LOADING_PRE_INIT	0x00U
 #define NV_PMU_RPC_ID_PG_LOADING_POST_INIT	0x01U
-#define NV_PMU_RPC_ID_PG_LOADING_INIT	0x0AU
+#define NV_PMU_RPC_ID_PG_LOADING_INIT		0x0AU
 #define NV_PMU_RPC_ID_PG_LOADING_BUF_LOAD	0x0BU
-#define NV_PMU_RPC_ID_PG_ALLOW	0x04U
-#define NV_PMU_RPC_ID_PG_DISALLOW	0x05U
+#define NV_PMU_RPC_ID_PG_ALLOW			0x04U
+#define NV_PMU_RPC_ID_PG_DISALLOW		0x05U
 #define NV_PMU_RPC_ID_PG_THRESHOLD_UPDATE	0x06U
-#define NV_PMU_RPC_ID_PG_SFM_UPDATE	0x08U
+#define NV_PMU_RPC_ID_PG_SFM_UPDATE		0x08U
+
+/* PG unit RPC functions sent by PMU */
+#define PMU_NV_RPC_ID_LPWR_PG_ASYNC_CMD_RESP	0x00U
+#define PMU_NV_RPC_ID_LPWR_PG_LOG_FLUSHED	0x01U
+#define PMU_NV_RPC_ID_LPWR_PG_IDLE_SNAP		0x02U
+
+/* Async PG message IDs */
+enum {
+	PMU_PG_MSG_ASYNC_CMD_DISALLOW,
+};
 
 /* PG message */
 enum {
@@ -420,6 +430,11 @@ struct pmu_pg_stats {
 	u32 pg_ungating_time_us;
 	u32 pg_gating_cnt;
 	u32 pg_gating_deny_cnt;
+};
+
+struct pmu_nvgpu_rpc_pg_event {
+	struct pmu_hdr msg_hdr;
+	struct pmu_nvgpu_rpc_header rpc_hdr;
 };
 
 #endif /* NVGPU_PMUIF_PG_H */

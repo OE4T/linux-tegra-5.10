@@ -400,6 +400,10 @@ int nvgpu_pmu_disable_elpg(struct gk20a *g)
 		if ((BIT32(pg_engine_id) & pg_engine_id_list) != 0U) {
 			if (pg_engine_id == PMU_PG_ELPG_ENGINE_ID_GRAPHICS) {
 				pmu->pg->elpg_stat = PMU_ELPG_STAT_OFF_PENDING;
+				if (pmu->pg->process_rpc_event != NULL) {
+					pmu->pg->disallow_state =
+						PMU_ELPG_STAT_OFF_PENDING;
+				}
 			} else if (pg_engine_id == PMU_PG_ELPG_ENGINE_ID_MS) {
 				pmu->pg->mscg_transition_state =
 					PMU_ELPG_STAT_OFF_PENDING;
@@ -438,6 +442,24 @@ int nvgpu_pmu_disable_elpg(struct gk20a *g)
 				nvgpu_pmu_dump_falcon_stats(pmu);
 				ret = -EBUSY;
 				goto exit_unlock;
+			}
+
+			/*
+			 * PMU will send ASYNC_CMD_RESP when disallow
+			 * command is successfully completed and ELPG
+			 * is exited.
+			 * Wait for DISALLOW_ACK RPC event from
+			 * PMU.
+			 */
+			if (pmu->pg->process_rpc_event != NULL) {
+				ptr = &pmu->pg->disallow_state;
+				pmu_wait_message_cond(pmu,
+					nvgpu_get_poll_timeout(g),
+					ptr, PMU_ELPG_STAT_OFF);
+				if (*ptr != PMU_ELPG_STAT_OFF) {
+					nvgpu_err(g, "DISALLOW_ACK failed");
+					goto exit_unlock;
+				}
 			}
 		}
 	}

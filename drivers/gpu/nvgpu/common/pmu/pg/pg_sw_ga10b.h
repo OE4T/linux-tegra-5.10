@@ -266,6 +266,24 @@ struct pmu_rpc_struct_lpwr_loading_pg_ctrl_buf_load
 	u32 scratch[1];
 };
 
+/*!
+ * Defines the structure that holds data used to execute PG_ASYNC_CMD_RESP RPC.
+ */
+struct pmu_rm_rpc_struct_lpwr_pg_async_cmd_resp {
+	/*!
+	 *  Must be first field in RPC structure.
+	 */
+	struct nv_pmu_rpc_header hdr;
+	/*!
+	 *  Control ID of the Async PG Command.
+	 */
+	u8 ctrl_id;
+	/*!
+	 *  Message ID of the Async PG Command.
+	 */
+	u8 msg_id;
+};
+
 /*
 * Brief Statistics structure for PG features
 */

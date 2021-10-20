@@ -72,6 +72,7 @@ struct nvgpu_pg_init {
 
 struct nvgpu_pmu_pg {
 	u32 elpg_stat;
+	u32 disallow_state;
 	u32 elpg_ms_stat;
 #define PMU_ELPG_ENABLE_ALLOW_DELAY_MSEC	1U /* msec */
 	struct nvgpu_pg_init pg_init;
@@ -120,6 +121,7 @@ struct nvgpu_pmu_pg {
 	void (*rpc_handler)(struct gk20a *g, struct nvgpu_pmu *pmu,
 			struct nv_pmu_rpc_header *rpc, struct rpc_handler_payload *rpc_payload);
 	int (*init_send)(struct gk20a *g, struct nvgpu_pmu *pmu, u8 pg_engine_id);
+	int (*process_rpc_event)(struct gk20a *g, void *pmumsg);
 };
 
 /*PG defines used by nvpgu-pmu*/

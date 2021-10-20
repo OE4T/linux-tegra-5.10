@@ -373,6 +373,53 @@ static int ga10b_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
 	return err;
 }
 
+static int ga10b_pmu_pg_handle_async_cmd_resp(struct gk20a *g, u32 ctrl_id,
+					u32 msg_id)
+{
+	int err = 0;
+
+	switch (msg_id) {
+	case PMU_PG_MSG_ASYNC_CMD_DISALLOW:
+		if (ctrl_id == PMU_PG_ELPG_ENGINE_ID_GRAPHICS) {
+			g->pmu->pg->disallow_state = PMU_ELPG_STAT_OFF;
+		} else if (ctrl_id == PMU_PG_ELPG_ENGINE_ID_MS_LTC) {
+			/* To-do for MS_LTC */
+		} else {
+			nvgpu_err(g, "Invalid engine id");
+			err = -EINVAL;
+		}
+		break;
+	default:
+		nvgpu_err(g, "Invalid message id: %d", msg_id);
+		err = -EINVAL;
+		break;
+	}
+	return err;
+}
+
+static int ga10b_pmu_pg_process_rpc_event(struct gk20a *g, void *pmumsg)
+{
+	int err = 0;
+	struct pmu_rm_rpc_struct_lpwr_pg_async_cmd_resp *async_cmd;
+	struct pmu_nvgpu_rpc_pg_event *msg =
+		(struct pmu_nvgpu_rpc_pg_event *)pmumsg;
+
+	switch (msg->rpc_hdr.function) {
+	case PMU_NV_RPC_ID_LPWR_PG_ASYNC_CMD_RESP:
+		async_cmd =
+		(struct pmu_rm_rpc_struct_lpwr_pg_async_cmd_resp *)
+			(void *)(&msg->rpc_hdr);
+		err = ga10b_pmu_pg_handle_async_cmd_resp(g, async_cmd->ctrl_id,
+					async_cmd->msg_id);
+		break;
+	default:
+		nvgpu_err(g, "Invalid PMU RPC: 0x%x", msg->rpc_hdr.function);
+		err = -EINVAL;
+		break;
+	}
+	return err;
+}
+
 void nvgpu_ga10b_pg_sw_init(struct gk20a *g,
 		struct nvgpu_pmu_pg *pg)
 {
@@ -392,4 +439,5 @@ void nvgpu_ga10b_pg_sw_init(struct gk20a *g,
 	pg->hw_load_zbc = NULL;
 	pg->rpc_handler = ga10b_pg_rpc_handler;
 	pg->init_send = ga10b_pmu_pg_init_send;
+	pg->process_rpc_event = ga10b_pmu_pg_process_rpc_event;
 }
