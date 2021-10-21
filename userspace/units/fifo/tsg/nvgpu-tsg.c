@@ -765,12 +765,14 @@ done:
 }
 
 #define F_TSG_UNBIND_CHANNEL_CHECK_HW_NEXT		BIT(0)
-#define F_TSG_UNBIND_CHANNEL_CHECK_HW_CTX_RELOAD	BIT(1)
-#define F_TSG_UNBIND_CHANNEL_CHECK_HW_ENG_FAULTED	BIT(2)
-#define F_TSG_UNBIND_CHANNEL_CHECK_HW_LAST		BIT(3)
+#define F_TSG_UNBIND_CHANNEL_CHECK_HW_NEXT_CLR		BIT(1)
+#define F_TSG_UNBIND_CHANNEL_CHECK_HW_CTX_RELOAD	BIT(2)
+#define F_TSG_UNBIND_CHANNEL_CHECK_HW_ENG_FAULTED	BIT(3)
+#define F_TSG_UNBIND_CHANNEL_CHECK_HW_LAST		BIT(4)
 
 static const char *f_tsg_unbind_channel_check_hw[] = {
 	"next",
+	"next clear",
 	"ctx_reload",
 	"eng_faulted",
 };
@@ -779,6 +781,12 @@ static void stub_channel_read_state_NEXT(struct gk20a *g,
 		struct nvgpu_channel *ch, struct nvgpu_channel_hw_state *state)
 {
 	state->next = true;
+}
+
+static void stub_channel_read_state_NEXT_CLR(struct gk20a *g,
+		struct nvgpu_channel *ch, struct nvgpu_channel_hw_state *state)
+{
+	state->next = false;
 }
 
 int test_tsg_unbind_channel_check_hw_state(struct unit_module *m,
@@ -814,9 +822,15 @@ int test_tsg_unbind_channel_check_hw_state(struct unit_module *m,
 		unit_verbose(m, "%s branches=%s\n", __func__,
 			branches_str(branches, f_tsg_unbind_channel_check_hw));
 
-		g->ops.channel.read_state =
-			branches & F_TSG_UNBIND_CHANNEL_CHECK_HW_NEXT ?
-			stub_channel_read_state_NEXT : gops.channel.read_state;
+		if (branches & F_TSG_UNBIND_CHANNEL_CHECK_HW_NEXT) {
+			g->ops.channel.read_state =
+				stub_channel_read_state_NEXT;
+		} else if (branches & F_TSG_UNBIND_CHANNEL_CHECK_HW_NEXT_CLR) {
+			g->ops.channel.read_state =
+				stub_channel_read_state_NEXT_CLR;
+		} else {
+			g->ops.channel.read_state =  gops.channel.read_state;
+		}
 
 		g->ops.tsg.unbind_channel_check_ctx_reload =
 			branches & F_TSG_UNBIND_CHANNEL_CHECK_HW_CTX_RELOAD ?
