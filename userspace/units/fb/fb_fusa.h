@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -80,13 +80,9 @@ int fb_gv11b_init_test(struct unit_module *m, struct gk20a *g, void *args);
  * - While the NVGPU is powered off, call gm20b_fb_tlb_invalidate and ensure
  *   it returned success.
  * - The power on state of NVGPU.
- * - Enable timer error injection (1st occurnce), call gm20b_fb_tlb_invalidate
- *   and ensure it failed.
  * - Call gm20b_fb_tlb_invalidate again and check that it still failed (because
  *   the fb_mmu_ctrl_r register is not set properly)
  * - Set the fb_mmu_ctrl_pri_fifo_space_v bit in fb_mmu_ctrl_r register.
- * - Enable timer error injection (2nd occurnce), call gm20b_fb_tlb_invalidate
- *   and ensure it failed.
  * - Using an helper during register writes, intercept writes to fb_mmu_ctrl_r
  *   to cause a timeout after the MMU invalidate. Ensure that
  *   gm20b_fb_tlb_invalidate returns a failure.
@@ -128,8 +124,6 @@ int fb_gm20b_tlb_invalidate_test(struct unit_module *m, struct gk20a *g,
  *   gm20b_fb_mmu_debug_rd HAL returns the same value.
  * - Call the VPR/WPR dump operations for code coverage. Ensure that none of
  *   those operations cause a crash.
- * - Enable timer error injection (1st occurnce), call gm20b_fb_vpr_info_fetch
- *   and ensure it failed.
  * - Write in the fb_mmu_vpr_info register so that calling
  *   gm20b_fb_vpr_info_fetch triggers timeout in the
  *   gm20b_fb_vpr_info_fetch_wait function. Ensure the return values reflects
@@ -187,8 +181,6 @@ int fb_mmu_fault_gv11b_init_test(struct unit_module *m, struct gk20a *g,
  *   empty.
  * - Call the gv11b_fb_fault_buf_configure_hw HAL and enable fault buffer.
  * - Enable fault buffer again which shouldn't cause any crash.
- * - While trying to disable the fault buffer, trigger a failure of
- *   nvgpu_timeout_init.
  * - Disable the fault buffer.
  * - Enable fault buffer, set the busy bit in fb_mmu_fault_status_r register,
  *   disable the fault buffer which should cause an internal timeout. Ensure

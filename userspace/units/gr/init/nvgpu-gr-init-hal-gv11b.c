@@ -113,8 +113,6 @@ int test_gr_init_hal_ecc_scrub_reg(struct unit_module *m,
 	u32 i;
 	int err;
 	struct nvgpu_gr_config *config = nvgpu_gr_get_config_ptr(g);
-	struct nvgpu_posix_fault_inj *timer_fi =
-		nvgpu_timers_get_fault_injection();
 
 	/* Code coverage */
 	nvgpu_set_enabled(g, NVGPU_ECC_ENABLED_SM_ICACHE, false);
@@ -134,19 +132,6 @@ int test_gr_init_hal_ecc_scrub_reg(struct unit_module *m,
 	nvgpu_set_enabled(g, NVGPU_ECC_ENABLED_SM_L1_TAG, true);
 	nvgpu_set_enabled(g, NVGPU_ECC_ENABLED_SM_L1_DATA, true);
 	nvgpu_set_enabled(g, NVGPU_ECC_ENABLED_SM_LRF, true);
-
-	/* Trigger timeout initialization failure */
-	for (i = 0;
-	     i < (sizeof(ecc_scrub_data) / sizeof(struct gr_ecc_scrub_reg_rec));
-	     i++) {
-		nvgpu_posix_enable_fault_injection(timer_fi, true, i);
-		err = g->ops.gr.init.ecc_scrub_reg(g, config);
-		if (err == 0) {
-			unit_return_fail(m, "Timeout was expected");
-		}
-	}
-
-	nvgpu_posix_enable_fault_injection(timer_fi, false, 0);
 
 	for (i = 0;
 	     i < (sizeof(ecc_scrub_data) / sizeof(struct gr_ecc_scrub_reg_rec));
@@ -181,17 +166,6 @@ int test_gr_init_hal_wait_empty(struct unit_module *m,
 {
 	int err;
 	int i;
-	struct nvgpu_posix_fault_inj *timer_fi =
-		nvgpu_timers_get_fault_injection();
-
-	/* Fail timeout initialization */
-	nvgpu_posix_enable_fault_injection(timer_fi, true, 0);
-	err = g->ops.gr.init.wait_empty(g);
-	if (err == 0) {
-		return UNIT_FAIL;
-	}
-
-	nvgpu_posix_enable_fault_injection(timer_fi, false, 0);
 
 	/* gr_status is non-zero, gr_activity are zero, expect failure */
 	nvgpu_writel(g, gr_status_r(), BIT32(7));
@@ -271,8 +245,6 @@ int test_gr_init_hal_wait_idle(struct unit_module *m,
 	bool expected_pass;
 	u32 entry_count;
 	struct nvgpu_fifo *f = &g->fifo;
-	struct nvgpu_posix_fault_inj *timer_fi =
-		nvgpu_timers_get_fault_injection();
 
 	/* Configure GR engine in DEVICE_INFO registers */
 	entry_count = top_device_info__size_1_v();
@@ -300,15 +272,6 @@ int test_gr_init_hal_wait_idle(struct unit_module *m,
 	if (err != 0) {
 		return UNIT_FAIL;
 	}
-
-	/* Fail timeout initialization */
-	nvgpu_posix_enable_fault_injection(timer_fi, true, 0);
-	err = g->ops.gr.init.wait_idle(g);
-	if (err != -ETIMEDOUT) {
-		return UNIT_FAIL;
-	}
-
-	nvgpu_posix_enable_fault_injection(timer_fi, false, 0);
 
 	/*
 	 * Set combinations of gr/fifo status registers.
@@ -395,17 +358,6 @@ int test_gr_init_hal_wait_fe_idle(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	int err;
-	struct nvgpu_posix_fault_inj *timer_fi =
-		nvgpu_timers_get_fault_injection();
-
-	/* Fail timeout initialization */
-	nvgpu_posix_enable_fault_injection(timer_fi, true, 0);
-	err = g->ops.gr.init.wait_fe_idle(g);
-	if (err != -ETIMEDOUT) {
-		return UNIT_FAIL;
-	}
-
-	nvgpu_posix_enable_fault_injection(timer_fi, false, 0);
 
 	/* Set FE status active */
 	nvgpu_writel(g, gr_status_r(), BIT32(2U));
@@ -430,19 +382,8 @@ int test_gr_init_hal_fe_pwr_mode(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	int err;
-	struct nvgpu_posix_fault_inj *timer_fi =
-		nvgpu_timers_get_fault_injection();
 	struct nvgpu_posix_fault_inj *readl_fi =
 		nvgpu_readl_get_fault_injection();
-
-	/* Fail timeout initialization */
-	nvgpu_posix_enable_fault_injection(timer_fi, true, 0);
-	err = g->ops.gr.init.fe_pwr_mode_force_on(g, true);
-	if (err != -ETIMEDOUT) {
-		return UNIT_FAIL;
-	}
-
-	nvgpu_posix_enable_fault_injection(timer_fi, false, 0);
 
 	/* Trigger timeout by default */
 	err = g->ops.gr.init.fe_pwr_mode_force_on(g, true);

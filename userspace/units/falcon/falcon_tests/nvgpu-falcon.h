@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -154,7 +154,7 @@ int test_falcon_mem_scrub(struct unit_module *m, struct gk20a *g, void *__args);
  * Description: The falcon unit shall be able to check and return the falcon
  * idle status.
  *
- * Test Type: Feature, Error guessing, Error injection
+ * Test Type: Feature, Error guessing
  *
  * Input: None.
  *
@@ -173,8 +173,6 @@ int test_falcon_mem_scrub(struct unit_module *m, struct gk20a *g, void *__args);
  * - Invoke nvgpu_falcon_wait_idle with initialized falcon struct where
  *   underlying falcon is not idle.
  *   - Verify that wait fails with -ETIMEDOUT return value.
- * - Enable fault injection for the timer init call for branch coverage.
- *   - Verify that wait fails with -ETIMEDOUT return value.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL
  * otherwise.
@@ -187,7 +185,7 @@ int test_falcon_idle(struct unit_module *m, struct gk20a *g, void *__args);
  * Description: The falcon unit shall be able to check and return the falcon
  * halt status.
  *
- * Test Type: Feature, Error guessing, Error injection
+ * Test Type: Feature, Error guessing
  *
  * Targets: nvgpu_falcon_wait_for_halt, gops_falcon.is_falcon_cpu_halted,
  *	    gk20a_is_falcon_cpu_halted
@@ -202,8 +200,6 @@ int test_falcon_idle(struct unit_module *m, struct gk20a *g, void *__args);
  *   - Verify that wait succeeds with 0 return value.
  * - Invoke nvgpu_falcon_wait_for_halt with initialized falcon struct where
  *   underlying falcon is not halted.
- *   - Verify that wait fails with -ETIMEDOUT return value.
- * - Enable fault injection for the timer init call for branch coverage.
  *   - Verify that wait fails with -ETIMEDOUT return value.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL

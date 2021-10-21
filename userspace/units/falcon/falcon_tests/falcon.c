@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -510,8 +510,6 @@ int test_falcon_reset(struct unit_module *m, struct gk20a *g, void *__args)
  */
 int test_falcon_mem_scrub(struct unit_module *m, struct gk20a *g, void *__args)
 {
-	struct nvgpu_posix_fault_inj *timer_fi =
-			nvgpu_timers_get_fault_injection();
 	struct {
 		struct nvgpu_falcon *flcn;
 		void (*pre_scrub)(void *);
@@ -533,16 +531,6 @@ int test_falcon_mem_scrub(struct unit_module *m, struct gk20a *g, void *__args)
 					    "expected err: %d\n",
 					 err, test_data[i].exp_err);
 		}
-	}
-
-	/* enable fault injection for the timer init call for branch coverage */
-	nvgpu_posix_enable_fault_injection(timer_fi, true, 0);
-	err = nvgpu_falcon_mem_scrub_wait(gpccs_flcn);
-	nvgpu_posix_enable_fault_injection(timer_fi, false, 0);
-
-	if (err != -ETIMEDOUT) {
-		unit_return_fail(m, "falcon mem scrub err: %d "
-				    "expected err: -ETIMEDOUT\n", err);
 	}
 
 	return UNIT_SUCCESS;
@@ -605,8 +593,6 @@ static void flcn_idle_fail(void *data)
  */
 int test_falcon_idle(struct unit_module *m, struct gk20a *g, void *__args)
 {
-	struct nvgpu_posix_fault_inj *timer_fi =
-			nvgpu_timers_get_fault_injection();
 	struct {
 		struct nvgpu_falcon *flcn;
 		void (*pre_idle)(void *);
@@ -629,16 +615,6 @@ int test_falcon_idle(struct unit_module *m, struct gk20a *g, void *__args)
 					    "expected err: %d\n",
 					 err, test_data[i].exp_err);
 		}
-	}
-
-	/* enable fault injection for the timer init call for branch coverage */
-	nvgpu_posix_enable_fault_injection(timer_fi, true, 0);
-	err = nvgpu_falcon_wait_idle(gpccs_flcn);
-	nvgpu_posix_enable_fault_injection(timer_fi, false, 0);
-
-	if (err != -ETIMEDOUT) {
-		unit_return_fail(m, "falcon wait for idle err: %d "
-				    "expected err: -ETIMEDOUT\n", err);
 	}
 
 	return UNIT_SUCCESS;
@@ -679,8 +655,6 @@ static void flcn_halt_fail(void *data)
 int test_falcon_halt(struct unit_module *m, struct gk20a *g, void *__args)
 {
 #define FALCON_WAIT_HALT 200
-	struct nvgpu_posix_fault_inj *timer_fi =
-			nvgpu_timers_get_fault_injection();
 	struct {
 		struct nvgpu_falcon *flcn;
 		void (*pre_halt)(void *);
@@ -703,17 +677,6 @@ int test_falcon_halt(struct unit_module *m, struct gk20a *g, void *__args)
 					    "expected err: %d\n",
 					 err, test_data[i].exp_err);
 		}
-	}
-
-	/* enable fault injection for the timer init call for branch coverage */
-	nvgpu_posix_enable_fault_injection(timer_fi, true, 0);
-	err = nvgpu_falcon_wait_for_halt(gpccs_flcn,
-					 FALCON_WAIT_HALT);
-	nvgpu_posix_enable_fault_injection(timer_fi, false, 0);
-
-	if (err != -ETIMEDOUT) {
-		unit_return_fail(m, "falcon wait for halt err: %d "
-				    "expected err: -ETIMEDOUT\n", err);
 	}
 
 	return UNIT_SUCCESS;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -141,7 +141,6 @@ int test_init_hw(struct unit_module *m, struct gk20a *g, void *args);
  * - Call bus.bar1_bind HAL again and except ret != 0 as the bind status
  *   will remain pending during this call.
  * - The HAL should return error this time as timeout is expected to expire.
- * - Enable fault injection for the timer init call for branch coverage.
  * - Repeat the above steps for BAR2 but with different cpu_va = 0x2670C000U.
  *
  * Output:

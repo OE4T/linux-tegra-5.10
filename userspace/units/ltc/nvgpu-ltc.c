@@ -674,8 +674,6 @@ int test_flush_ltc(struct unit_module *m, struct gk20a *g, void *args)
 	int ret = UNIT_SUCCESS;
 	int i;
 	u32 stride =  nvgpu_get_litter_value(g, GPU_LIT_LTC_STRIDE);
-	struct nvgpu_posix_fault_inj *timer_fi =
-			nvgpu_timers_get_fault_injection();
 
 	/* make it appear the clean & invalidate completed */
 	for (i = 0; i < NUM_LTC; i++) {
@@ -703,11 +701,6 @@ int test_flush_ltc(struct unit_module *m, struct gk20a *g, void *args)
 	}
 
 	g->ops.ltc.flush(g);
-
-	/* enable fault injection for the timer init call for branch coverage */
-	nvgpu_posix_enable_fault_injection(timer_fi, true, 0);
-	g->ops.ltc.flush(g);
-	nvgpu_posix_enable_fault_injection(timer_fi, false, 0);
 
 	return ret;
 }

@@ -61,7 +61,6 @@
 #define SPECIAL_CASE_DOUBLE_MAP		1
 #define SPECIAL_CASE_NO_FREE		2
 #define SPECIAL_CASE_NO_VM_AREA		4
-#define SPECIAL_CASE_TIMEOUT_INIT_FAIL	8
 
 /* Expected bit count from nvgpu_vm_pde_coverage_bit_count() */
 #define GP10B_PDE_BIT_COUNT		21U
@@ -671,8 +670,6 @@ static int map_buffer(struct unit_module *m,
 	u32 pte[2];
 	struct nvgpu_mapped_buf **mapped_buffers = NULL;
 	u32 num_mapped_buffers = 0;
-	struct nvgpu_posix_fault_inj *timers_fi =
-		nvgpu_timers_get_fault_injection();
 	struct nvgpu_posix_fault_inj *kmem_fi =
 		nvgpu_kmem_get_fault_injection();
 
@@ -939,13 +936,7 @@ free_mapped_buf:
 		 */
 		u64 buf_addr = mapped_buf->addr;
 
-		if (subcase & SPECIAL_CASE_TIMEOUT_INIT_FAIL) {
-			nvgpu_posix_enable_fault_injection(timers_fi, true, 0);
-			nvgpu_vm_unmap(vm, buf_addr, batch);
-			nvgpu_posix_enable_fault_injection(timers_fi, false, 0);
-		} else {
-			nvgpu_vm_unmap(vm, buf_addr, batch);
-		}
+		nvgpu_vm_unmap(vm, buf_addr, batch);
 		mapped_buf = NULL;
 		/*
 		 * Unmapping an already unmapped buffer should not cause any
@@ -1628,24 +1619,6 @@ int test_map_buf_gpu_va(struct unit_module *m,
 			 page_size,
 			 alignment,
 			 SPECIAL_CASE_DOUBLE_MAP);
-	if (ret != UNIT_SUCCESS) {
-		unit_err(m, "Mapping failed (already mapped case)\n");
-		goto exit;
-	}
-
-	/*
-	 * Corner case: Timeout init fails in nvgpu_vm_unmap
-	 */
-	ret = map_buffer(m,
-			 g,
-			 vm,
-			 NULL,
-			 BUF_CPU_PA,
-			 gpu_va,
-			 buf_size,
-			 page_size,
-			 alignment,
-			 SPECIAL_CASE_TIMEOUT_INIT_FAIL);
 	if (ret != UNIT_SUCCESS) {
 		unit_err(m, "Mapping failed (already mapped case)\n");
 		goto exit;

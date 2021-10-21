@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -98,7 +98,6 @@ int test_gk20a_runlist_hw_submit(struct unit_module *m,
  * - Check case where polling times out:
  *   - Set register to indicate that runlist is pending.
  *   - Call gk20a_runlist_wait_pending.
- * - Check case where nvgpu_timeout_init fails, using fault injection.
  *
  * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
  */

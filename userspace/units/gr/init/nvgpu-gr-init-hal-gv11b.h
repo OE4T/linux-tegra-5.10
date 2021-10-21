@@ -46,8 +46,6 @@ struct unit_module;
  *        been executed successfully.
  *
  * Steps:
- * - Inject timeout error and call g->ops.gr.init.wait_empty.
- *   Should fail since timeout initialization fails.
  * - Set various pass/fail values of gr_status and gr_activity registers
  *   and verify the pass/fail output of g->ops.gr.init.wait_empty as
  *   appropriate.
@@ -75,9 +73,6 @@ int test_gr_init_hal_wait_empty(struct unit_module *m,
  *   GR engine information is enumerated.
  * - Initialize required pieces of fifo (struct gk20a * pointer in struct
  *   nvgpu_fifo, engine and pbdma s/w setup).
- * - Inject timeout error and call g->ops.gr.init.wait_idle.
- *   Should fail since timeout initialization fails.
- * - Disable timeout error injection.
  * - Set combinations of gr/fifo status registers.
  *   Write register gr_engine_status_r() to update GR engine status.
  *   Write register fifo_engine_status_r() to update context and ctxsw status.
@@ -113,7 +108,6 @@ int test_gr_init_hal_wait_idle(struct unit_module *m,
  *        been executed successfully.
  *
  * Steps:
- * - Inject timeout error and call g->ops.gr.init.wait_fe_idle.
  *   Should fail since timeout initialization fails.
  * - Set FE active status in register gr_status_r(), and call
  *   g->ops.gr.init.wait_fe_idle. Should fail since FE fails to idle.
@@ -140,9 +134,6 @@ int test_gr_init_hal_wait_fe_idle(struct unit_module *m,
  *        been executed successfully.
  *
  * Steps:
- * - Inject timeout error and call g->ops.gr.init.fe_pwr_mode_force_on.
- *   should fail since timeout initialization fails.
- * - Disable timeout error injection.
  * - Call g->ops.gr.init.fe_pwr_mode_force_on. By default this should
  *   timeout and return error.
  * - Enable readl function error injection and call
@@ -173,8 +164,6 @@ int test_gr_init_hal_fe_pwr_mode(struct unit_module *m,
  * - Disable feature flags for common.gr ECC handling for code coverage
  *   and call g->ops.gr.init.ecc_scrub_reg.
  * - Re-enable all the feature flags.
- * - Inject timeout initialization failures and call
- *   g->ops.gr.init.ecc_scrub_reg.
  * - Set incorrect values of scrub_done for each error type so that scrub
  *   wait times out.
  * - Ensure that g->ops.gr.init.ecc_scrub_reg returns error.

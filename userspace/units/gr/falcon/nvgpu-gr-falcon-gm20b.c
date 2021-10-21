@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -180,20 +180,9 @@ static int gr_falcon_timer_init_error(struct unit_module *m,
 {
 	int err, i;
 	u32 fecs_imem = 0, gpccs_imem = 0;
-	struct nvgpu_gr_falcon_query_sizes sizes;
-	struct nvgpu_posix_fault_inj *timer_fi =
-		nvgpu_timers_get_fault_injection();
 	int (*gr_falcon_ctrl_ctxsw_local)(struct gk20a *g,
 			u32 fecs_method,
 			u32 data, u32 *ret_val);
-
-	nvgpu_posix_enable_fault_injection(timer_fi, true, 0);
-	err = g->ops.gr.falcon.wait_mem_scrubbing(g);
-	nvgpu_posix_enable_fault_injection(timer_fi, false, 0);
-	if (err == 0) {
-		unit_return_fail(m,
-			"gr_falcon_wait_mem_scrubbing timer failed\n");
-	}
 
 	for (i = 0; i < 2; i++) {
 		switch (i) {
@@ -214,22 +203,6 @@ static int gr_falcon_timer_init_error(struct unit_module *m,
 			unit_return_fail(m,
 			 "gr_falcon_wait_mem_scrubbing case %d failed\n", i);
 		}
-	}
-
-	nvgpu_posix_enable_fault_injection(timer_fi, true, 0);
-	err = g->ops.gr.falcon.wait_ctxsw_ready(g);
-	nvgpu_posix_enable_fault_injection(timer_fi, false, 0);
-	if (err == 0) {
-		unit_return_fail(m,
-			"gr_falcon_wait_ctxsw_ready timer failed\n");
-	}
-
-	nvgpu_posix_enable_fault_injection(timer_fi, true, 0);
-	err = g->ops.gr.falcon.init_ctx_state(g, &sizes);
-	nvgpu_posix_enable_fault_injection(timer_fi, false, 0);
-	if (err == 0) {
-		unit_return_fail(m,
-			"gr_falcon_init_ctx_state failed\n");
 	}
 
 	/* branch coverage check */

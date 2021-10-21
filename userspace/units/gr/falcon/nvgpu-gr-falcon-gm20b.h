@@ -55,10 +55,6 @@ struct gk20a;
  * Steps:
  * -  Call gm20b_gr_falcon_ctrl_ctxsw with watchdog timeout Method.
  * -  Call g->ops.gr.falcon.ctrl_ctxsw with Invalid Method.
- * -  Enable timer init failure injection in various functions.
- *    -  g->ops.gr.falcon.wait_ctxsw_ready.
- *    -  g->ops.gr.falcon.init_ctx_state.
- *    -  g->ops.gr.falcon.wait_mem_scrubbing.
  * -  Call gm20b_gr_falcon_submit_fecs_method_op with various
  *    method op codes.
  * -  Check that enable_set bit is set for ccsr_channel_r

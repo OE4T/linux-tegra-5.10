@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -43,8 +43,6 @@ int fb_gm20b_tlb_invalidate_test(struct unit_module *m, struct gk20a *g,
 {
 	int err;
 	struct nvgpu_mem pdb = {0};
-	struct nvgpu_posix_fault_inj *timer_fi =
-			nvgpu_timers_get_fault_injection();
 
 	/* Define the operations being tested in this unit test */
 	g->ops.fb.tlb_invalidate = gm20b_fb_tlb_invalidate;
@@ -61,15 +59,6 @@ int fb_gm20b_tlb_invalidate_test(struct unit_module *m, struct gk20a *g,
 	/* Set NVGPU as powered on */
 	g->power_on_state = NVGPU_STATE_POWERED_ON;
 
-	/* Timeout init fault injection (MMU FIFO space) */
-	nvgpu_posix_enable_fault_injection(timer_fi, true, 0);
-	err = g->ops.fb.tlb_invalidate(g, &pdb);
-	if (err != -ETIMEDOUT) {
-		unit_return_fail(m,
-			"tlb_invalidate did not fail as expected (1)\n");
-	}
-	nvgpu_posix_enable_fault_injection(timer_fi, false, 0);
-
 	/* Timeout fail on fb_mmu_ctrl_r() read */
 	err = g->ops.fb.tlb_invalidate(g, &pdb);
 	if (err != -ETIMEDOUT) {
@@ -82,15 +71,6 @@ int fb_gm20b_tlb_invalidate_test(struct unit_module *m, struct gk20a *g,
 	 * the fb_mmu_ctrl_pri_fifo_space_v field.
 	 */
 	nvgpu_writel(g, fb_mmu_ctrl_r(), 1 << 16U);
-
-	/* Timeout init fault injection (MMU invalidate) */
-	nvgpu_posix_enable_fault_injection(timer_fi, true, 1);
-	err = g->ops.fb.tlb_invalidate(g, &pdb);
-	if (err != -ETIMEDOUT) {
-		unit_return_fail(m,
-			"tlb_invalidate did not fail as expected (3)\n");
-	}
-	nvgpu_posix_enable_fault_injection(timer_fi, false, 0);
 
 	/*
 	 * Timeout on fb_mmu_ctrl_r read after MMU invalidate (does not return
@@ -117,8 +97,6 @@ int fb_gm20b_mmu_ctrl_test(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int err;
 	u64 wpr_base, wpr_size;
-	struct nvgpu_posix_fault_inj *timer_fi =
-			nvgpu_timers_get_fault_injection();
 
 	/* Define the operations being tested in this unit test */
 	g->ops.fb.mmu_ctrl = gm20b_fb_mmu_ctrl;
@@ -159,23 +137,6 @@ int fb_gm20b_mmu_ctrl_test(struct unit_module *m, struct gk20a *g, void *args)
 	g->ops.fb.dump_wpr_info(g);
 	g->ops.fb.read_wpr_info(g, &wpr_base, &wpr_size);
 	g->ops.fb.vpr_info_fetch(g);
-
-	/* Error injection for g->ops.fb.vpr_info_fetch */
-	nvgpu_posix_enable_fault_injection(timer_fi, true, 0);
-	err = g->ops.fb.vpr_info_fetch(g);
-	nvgpu_posix_enable_fault_injection(timer_fi, false, 0);
-	if (err != -ETIMEDOUT) {
-		unit_return_fail(m,
-			"vpr_info_fetch did not fail as expected (1)\n");
-	}
-
-	nvgpu_posix_enable_fault_injection(timer_fi, true, 1);
-	err = g->ops.fb.vpr_info_fetch(g);
-	nvgpu_posix_enable_fault_injection(timer_fi, false, 0);
-	if (err != -ETIMEDOUT) {
-		unit_return_fail(m,
-			"vpr_info_fetch did not fail as expected (2)\n");
-	}
 
 	/*
 	 * Trigger timeout in the gm20b_fb_vpr_info_fetch_wait function on

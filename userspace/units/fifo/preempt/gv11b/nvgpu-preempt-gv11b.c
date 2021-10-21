@@ -366,14 +366,9 @@ int test_gv11b_fifo_is_preempt_pending(struct unit_module *m, struct gk20a *g,
 	struct nvgpu_tsg *tsg = NULL;
 	struct gpu_ops gops = g->ops;
 	unsigned int id_type;
-	struct nvgpu_posix_fault_inj *timers_fi;
 	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
 	u32 ctx_stat = 0U;
 	u32 id = 0U, next_id = 0U;
-	/* Assuming runlist_id is 0 */
-	u32 runlist_served_pbdmas = g->fifo.runlists[0U]->pbdma_bitmask;
-
-	timers_fi = nvgpu_timers_get_fault_injection();
 
 	err = nvgpu_runlist_setup_sw(g);
 	unit_assert(err == 0, goto done);
@@ -407,10 +402,9 @@ int test_gv11b_fifo_is_preempt_pending(struct unit_module *m, struct gk20a *g,
 			true : false;
 
 		if (branches & F_PREEMPT_PENDING_POLL_PBDMA_FAIL) {
-			nvgpu_posix_enable_fault_injection(timers_fi, true, 0U);
+			/* TODO: make the poll loop time out */
 		} else if (branches & F_PREEMPT_PENDING_POLL_ENG_TIMEOUT_FAIL) {
-			nvgpu_posix_enable_fault_injection(timers_fi, true,
-				__builtin_popcount(runlist_served_pbdmas));
+			/* TODO: make the poll loop time out */
 		}
 
 		/*
@@ -420,10 +414,6 @@ int test_gv11b_fifo_is_preempt_pending(struct unit_module *m, struct gk20a *g,
 		stub.pbdma_st.chsw_status = NVGPU_PBDMA_CHSW_STATUS_INVALID;
 
 		if (branches & F_PREEMPT_PENDING_POLL_ENG_PRE_SI_RETRIES) {
-			/* Timeout should not expire */
-			nvgpu_posix_enable_fault_injection(timers_fi, true,
-				PREEMPT_PENDING_POLL_PRE_SI_RETRIES + 4U);
-
 			/* Force engine status = ctxsw_switch */
 			branches |= F_PREEMPT_PENDING_CTX_STAT_SWITCH;
 			/* Force eng_intr_pending = 0 */
@@ -495,8 +485,6 @@ int test_gv11b_fifo_is_preempt_pending(struct unit_module *m, struct gk20a *g,
 		} else {
 			unit_assert(err == 0, goto done);
 		}
-
-		nvgpu_posix_enable_fault_injection(timers_fi, false, 0);
 	}
 
 	ret = UNIT_SUCCESS;

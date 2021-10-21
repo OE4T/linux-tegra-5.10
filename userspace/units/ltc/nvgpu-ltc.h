@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -357,8 +357,6 @@ int test_ltc_set_enabled(struct unit_module *m,	struct gk20a *g, void *args);
  * - Configure the registers to reflect the clean and invalidate are pending
  *   for each ltc.
  * - Call the flush API to get branch coverage of the timeout handling.
- * - Enable the timer fault injection.
- * - Call the flush API to get branch coverage of the handling of the error.
  *
  * Output: Returns PASS if register is configured correctly. FAIL otherwise.
  */

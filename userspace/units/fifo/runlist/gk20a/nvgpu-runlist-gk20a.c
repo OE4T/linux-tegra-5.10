@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -161,16 +161,8 @@ int test_gk20a_runlist_wait_pending(struct unit_module *m,
 	u32 runlist_id = nvgpu_engine_get_gr_runlist_id(g);
 	u32 timeout = g->poll_timeout_default;
 	int err;
-	struct nvgpu_posix_fault_inj *timer_fi =
-		nvgpu_timers_get_fault_injection();
 
 	(void)nvgpu_posix_register_io(g, &test_reg_callbacks);
-
-	/* nvgpu_timeout_init failure */
-	nvgpu_posix_enable_fault_injection(timer_fi, true, 0);
-	err = gk20a_runlist_wait_pending(g, runlist_id);
-	unit_assert(err == -ETIMEDOUT, goto done);
-	nvgpu_posix_enable_fault_injection(timer_fi, false, 0);
 
 	g->poll_timeout_default = 10; /* ms */
 

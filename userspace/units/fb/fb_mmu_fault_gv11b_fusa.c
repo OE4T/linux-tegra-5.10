@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -115,8 +115,6 @@ int fb_mmu_fault_gv11b_buffer_test(struct unit_module *m, struct gk20a *g,
 	u32 get_idx;
 	u32 val;
 	u32 lo, hi;
-	struct nvgpu_posix_fault_inj *timers_fi =
-		nvgpu_timers_get_fault_injection();
 
 	if (g->ops.fb.is_fault_buf_enabled(g, 0)) {
 		unit_return_fail(m, "fault buffer not disabled as expected\n");
@@ -143,11 +141,6 @@ int fb_mmu_fault_gv11b_buffer_test(struct unit_module *m, struct gk20a *g,
 
 	/* Enabling again shouldn't cause an issue */
 	g->ops.fb.fault_buf_set_state_hw(g, 0, NVGPU_MMU_FAULT_BUF_ENABLED);
-
-	/* Make nvgpu_timeout_init fail during disable operation */
-	nvgpu_posix_enable_fault_injection(timers_fi, true, 0);
-	g->ops.fb.fault_buf_set_state_hw(g, 0, NVGPU_MMU_FAULT_BUF_DISABLED);
-	nvgpu_posix_enable_fault_injection(timers_fi, false, 0);
 
 	/* Disable */
 	g->ops.fb.fault_buf_set_state_hw(g, 0, NVGPU_MMU_FAULT_BUF_DISABLED);

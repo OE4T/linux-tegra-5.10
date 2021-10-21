@@ -225,8 +225,6 @@ int test_bar_bind(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int ret = UNIT_FAIL;
 	struct nvgpu_mem bar_inst = {0};
-	struct nvgpu_posix_fault_inj *timer_fi =
-					nvgpu_timers_get_fault_injection();
 
 	/* Initialize cpu_va to a known value */
 	bar_inst.cpu_va = (void *) 0xCE418000U;
@@ -281,15 +279,6 @@ int test_bar_bind(struct unit_module *m, struct gk20a *g, void *args)
 		ret = UNIT_FAIL;
 	}
 
-	/* Enable fault injection for the timer init call for branch coverage */
-	nvgpu_posix_enable_fault_injection(timer_fi, true, 0);
-	ret = g->ops.bus.bar1_bind(g, &bar_inst);
-	if (ret == 0U) {
-		unit_err(m, "Error injection for timeout init failed.\n");
-		ret = UNIT_FAIL;
-	}
-	nvgpu_posix_enable_fault_injection(timer_fi, false, 0);
-
 	bar_inst.cpu_va = (void *) 0x2670C000U;
 	read_bind_status_reg = 0U;
 	ret = g->ops.bus.bar2_bind(g, &bar_inst);
@@ -318,15 +307,6 @@ int test_bar_bind(struct unit_module *m, struct gk20a *g, void *args)
 		unit_err(m, "bus.bar2_bind did not fail as expected.\n");
 		ret = UNIT_FAIL;
 	}
-
-	/* Enable fault injection for the timer init call for branch coverage */
-	nvgpu_posix_enable_fault_injection(timer_fi, true, 0);
-	ret = g->ops.bus.bar2_bind(g, &bar_inst);
-	if (ret == 0U) {
-		unit_err(m, "Error injection for timeout init failed.\n");
-		ret = UNIT_FAIL;
-	}
-	nvgpu_posix_enable_fault_injection(timer_fi, false, 0);
 
 	ret = UNIT_SUCCESS;
 done:
