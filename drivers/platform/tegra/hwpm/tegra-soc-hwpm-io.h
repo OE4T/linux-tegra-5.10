@@ -47,6 +47,16 @@ struct hwpm_resource_aperture {
 	struct allowlist *alist;
 	u64 alist_size;
 
+	/*
+	 * Currently, perfmons and perfmuxes for all instances of an IP
+	 * are listed in a single aperture mask. It is possible that
+	 * some instances are disable. In this case, accessing corresponding
+	 * registers will result in kernel panic.
+	 * Bit set in the index_mask value will indicate the instance index
+	 * within that IP (or resource).
+	 */
+	u32 index_mask;
+
 	/* Fake registers for VDK which doesn't have a SOC HWPM fmodel */
 	u32 *fake_registers;
 };
@@ -59,13 +69,13 @@ struct hwpm_resource {
 
 /* Externs */
 extern struct hwpm_resource hwpm_resources[TERGA_SOC_HWPM_NUM_RESOURCES];
-extern u32 *pma_fake_regs;
 extern u32 *mc_fake_regs[16];
-extern struct hwpm_resource_aperture mss_channel_map[];
-extern struct hwpm_resource_aperture mss_iso_niso_hub_map[];
-extern struct hwpm_resource_aperture mss_mcf_map[];
-extern struct hwpm_resource_aperture pma_map[];
-extern struct hwpm_resource_aperture cmd_slice_rtr_map[];
+extern struct hwpm_resource_aperture t234_mss_channel_map[];
+extern struct hwpm_resource_aperture t234_mss_gpu_hub_map[];
+extern struct hwpm_resource_aperture t234_mss_iso_niso_hub_map[];
+extern struct hwpm_resource_aperture t234_mss_mcf_map[];
+extern struct hwpm_resource_aperture t234_pma_map[];
+extern struct hwpm_resource_aperture t234_cmd_slice_rtr_map[];
 
 void tegra_soc_hwpm_zero_alist_regs(struct tegra_soc_hwpm *hwpm,
 		struct hwpm_resource_aperture *aperture);

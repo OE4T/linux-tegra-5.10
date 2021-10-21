@@ -245,99 +245,99 @@ static void set_mc_fake_regs(struct tegra_soc_hwpm *hwpm,
 	case addr_map_mc0_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[0];
-		mss_channel_map[0].fake_registers = fake_regs;
-		mss_iso_niso_hub_map[0].fake_registers = fake_regs;
-		mss_mcf_map[0].fake_registers = fake_regs;
+		t234_mss_channel_map[0].fake_registers = fake_regs;
+		t234_mss_iso_niso_hub_map[0].fake_registers = fake_regs;
+		t234_mss_mcf_map[0].fake_registers = fake_regs;
 		break;
 	case addr_map_mc1_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[1];
-		mss_channel_map[1].fake_registers = fake_regs;
-		mss_iso_niso_hub_map[1].fake_registers = fake_regs;
-		mss_mcf_map[1].fake_registers = fake_regs;
+		t234_mss_channel_map[1].fake_registers = fake_regs;
+		t234_mss_iso_niso_hub_map[1].fake_registers = fake_regs;
+		t234_mss_mcf_map[1].fake_registers = fake_regs;
 		break;
 	case addr_map_mc2_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[2];
-		mss_channel_map[2].fake_registers = fake_regs;
-		mss_iso_niso_hub_map[2].fake_registers = fake_regs;
-		mss_mcf_map[2].fake_registers = fake_regs;
+		t234_mss_channel_map[2].fake_registers = fake_regs;
+		t234_mss_iso_niso_hub_map[2].fake_registers = fake_regs;
+		t234_mss_mcf_map[2].fake_registers = fake_regs;
 		break;
 	case addr_map_mc3_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[3];
-		mss_channel_map[3].fake_registers = fake_regs;
-		mss_iso_niso_hub_map[3].fake_registers = fake_regs;
-		mss_mcf_map[3].fake_registers = fake_regs;
+		t234_mss_channel_map[3].fake_registers = fake_regs;
+		t234_mss_iso_niso_hub_map[3].fake_registers = fake_regs;
+		t234_mss_mcf_map[3].fake_registers = fake_regs;
 		break;
 	case addr_map_mc4_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[4];
-		mss_channel_map[4].fake_registers = fake_regs;
-		mss_iso_niso_hub_map[4].fake_registers = fake_regs;
-		mss_mcf_map[4].fake_registers = fake_regs;
+		t234_mss_channel_map[4].fake_registers = fake_regs;
+		t234_mss_iso_niso_hub_map[4].fake_registers = fake_regs;
+		t234_mss_mcf_map[4].fake_registers = fake_regs;
 		break;
 	case addr_map_mc5_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[5];
-		mss_channel_map[5].fake_registers = fake_regs;
-		mss_iso_niso_hub_map[5].fake_registers = fake_regs;
-		mss_mcf_map[5].fake_registers = fake_regs;
+		t234_mss_channel_map[5].fake_registers = fake_regs;
+		t234_mss_iso_niso_hub_map[5].fake_registers = fake_regs;
+		t234_mss_mcf_map[5].fake_registers = fake_regs;
 		break;
 	case addr_map_mc6_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[6];
-		mss_channel_map[6].fake_registers = fake_regs;
-		mss_iso_niso_hub_map[6].fake_registers = fake_regs;
-		mss_mcf_map[6].fake_registers = fake_regs;
+		t234_mss_channel_map[6].fake_registers = fake_regs;
+		t234_mss_iso_niso_hub_map[6].fake_registers = fake_regs;
+		t234_mss_mcf_map[6].fake_registers = fake_regs;
 		break;
 	case addr_map_mc7_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[7];
-		mss_channel_map[7].fake_registers = fake_regs;
-		mss_iso_niso_hub_map[7].fake_registers = fake_regs;
-		mss_mcf_map[7].fake_registers = fake_regs;
+		t234_mss_channel_map[7].fake_registers = fake_regs;
+		t234_mss_iso_niso_hub_map[7].fake_registers = fake_regs;
+		t234_mss_mcf_map[7].fake_registers = fake_regs;
 		break;
 	case addr_map_mc8_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[8];
-		mss_channel_map[8].fake_registers = fake_regs;
-		mss_iso_niso_hub_map[8].fake_registers = fake_regs;
+		t234_mss_channel_map[8].fake_registers = fake_regs;
+		t234_mss_iso_niso_hub_map[8].fake_registers = fake_regs;
 		break;
 	case addr_map_mc9_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[9];
-		mss_channel_map[9].fake_registers = fake_regs;
+		t234_mss_channel_map[9].fake_registers = fake_regs;
 		break;
 	case addr_map_mc10_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[10];
-		mss_channel_map[10].fake_registers = fake_regs;
+		t234_mss_channel_map[10].fake_registers = fake_regs;
 		break;
 	case addr_map_mc11_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[11];
-		mss_channel_map[11].fake_registers = fake_regs;
+		t234_mss_channel_map[11].fake_registers = fake_regs;
 		break;
 	case addr_map_mc12_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[12];
-		mss_channel_map[12].fake_registers = fake_regs;
+		t234_mss_channel_map[12].fake_registers = fake_regs;
 		break;
 	case addr_map_mc13_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[13];
-		mss_channel_map[13].fake_registers = fake_regs;
+		t234_mss_channel_map[13].fake_registers = fake_regs;
 		break;
 	case addr_map_mc14_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[14];
-		mss_channel_map[14].fake_registers = fake_regs;
+		t234_mss_channel_map[14].fake_registers = fake_regs;
 		break;
 	case addr_map_mc15_base_r():
 		fake_regs = (!hwpm->fake_registers_enabled || set_null) ?
 							NULL : mc_fake_regs[15];
-		mss_channel_map[15].fake_registers = fake_regs;
+		t234_mss_channel_map[15].fake_registers = fake_regs;
 		break;
 	default:
 		break;
@@ -388,88 +388,94 @@ static int reserve_resource_ioctl(struct tegra_soc_hwpm *hwpm,
 		    (aperture->dt_aperture == TEGRA_SOC_HWPM_RTR_DT)) {
 			/* PMA and RTR apertures are handled in open(fd) */
 			continue;
-		} else if (IS_PERFMON(aperture->dt_aperture)) {
-			struct resource *res = NULL;
-			u64 num_regs = 0;
-
-			tegra_soc_hwpm_dbg("Found PERFMON(0x%llx - 0x%llx)",
-				aperture->start_pa, aperture->end_pa);
-			ip_ops = &hwpm->ip_info[aperture->dt_aperture];
-			if (ip_ops && (*ip_ops->hwpm_ip_pm)) {
-				err = (*ip_ops->hwpm_ip_pm)
-						(ip_ops->ip_dev, true);
-				if (err) {
-					tegra_soc_hwpm_err(
-						"Disable Runtime PM(%d) Failed",
-							aperture->dt_aperture);
-				}
-			} else {
-				tegra_soc_hwpm_dbg(
-					"No Runtime PM(%d) for IP",
-							aperture->dt_aperture);
-			}
-			hwpm->dt_apertures[aperture->dt_aperture] =
-					of_iomap(hwpm->np, aperture->dt_aperture);
-			if (!hwpm->dt_apertures[aperture->dt_aperture]) {
-				tegra_soc_hwpm_err("Couldn't map PERFMON(%d)",
-					aperture->dt_aperture);
-				ret = -ENOMEM;
-				goto fail;
-			}
-
-			res = platform_get_resource(hwpm->pdev,
-							IORESOURCE_MEM,
-							aperture->dt_aperture);
-			if ((!res) || (res->start == 0) || (res->end == 0)) {
-				tegra_soc_hwpm_err("Invalid resource for PERFMON(%d)",
-					aperture->dt_aperture);
-				ret = -ENOMEM;
-				goto fail;
-			}
-			aperture->start_pa = res->start;
-			aperture->end_pa = res->end;
-
-			if (hwpm->fake_registers_enabled) {
-				num_regs = (aperture->end_pa + 1 - aperture->start_pa) /
-					sizeof(*aperture->fake_registers);
-				aperture->fake_registers =
-					(u32 *)kzalloc(sizeof(*aperture->fake_registers) *
-										num_regs,
-							GFP_KERNEL);
-				if (!aperture->fake_registers) {
-					tegra_soc_hwpm_err("Aperture(0x%llx - 0x%llx):"
-						" Couldn't allocate memory for fake"
-						" registers",
-						aperture->start_pa,
-						aperture->end_pa);
-					ret = -ENOMEM;
-					goto fail;
-				}
-			}
-		} else { /* IP apertures */
-			if (hwpm->fake_registers_enabled) {
+		} else if ((aperture->dt_aperture == TEGRA_SOC_HWPM_SYS0_PERFMON_DT) ||
+			((hwpm->ip_fs_info[resource] & aperture->index_mask) != 0U)) {
+			if (IS_PERFMON(aperture->dt_aperture)) {
+				struct resource *res = NULL;
 				u64 num_regs = 0;
-				u32 **fake_regs = get_mc_fake_regs(hwpm, aperture);
-				if (!fake_regs)
-					fake_regs = &aperture->fake_registers;
 
-				num_regs = (aperture->end_pa + 1 - aperture->start_pa) /
-					sizeof(*(*fake_regs));
-				*fake_regs =
-					(u32 *)kzalloc(sizeof(*(*fake_regs)) * num_regs,
-							GFP_KERNEL);
-				if (!(*fake_regs)) {
-					tegra_soc_hwpm_err("Aperture(0x%llx - 0x%llx):"
-						" Couldn't allocate memory for fake"
-						" registers",
-						aperture->start_pa,
-						aperture->end_pa);
+				tegra_soc_hwpm_dbg("Found PERFMON(0x%llx - 0x%llx)",
+					aperture->start_pa, aperture->end_pa);
+				ip_ops = &hwpm->ip_info[aperture->dt_aperture];
+				if (ip_ops && (*ip_ops->hwpm_ip_pm)) {
+					err = (*ip_ops->hwpm_ip_pm)
+							(ip_ops->ip_dev, true);
+					if (err) {
+						tegra_soc_hwpm_err(
+							"Disable Runtime PM(%d) Failed",
+								aperture->dt_aperture);
+					}
+				} else {
+					tegra_soc_hwpm_dbg(
+						"No Runtime PM(%d) for IP",
+								aperture->dt_aperture);
+				}
+				hwpm->dt_apertures[aperture->dt_aperture] =
+						of_iomap(hwpm->np, aperture->dt_aperture);
+				if (!hwpm->dt_apertures[aperture->dt_aperture]) {
+					tegra_soc_hwpm_err("Couldn't map PERFMON(%d)",
+						aperture->dt_aperture);
 					ret = -ENOMEM;
 					goto fail;
 				}
 
-				set_mc_fake_regs(hwpm, aperture, false);
+				res = platform_get_resource(hwpm->pdev,
+								IORESOURCE_MEM,
+								aperture->dt_aperture);
+				if ((!res) || (res->start == 0) || (res->end == 0)) {
+					tegra_soc_hwpm_err("Invalid resource for PERFMON(%d)",
+						aperture->dt_aperture);
+					ret = -ENOMEM;
+					goto fail;
+				}
+				aperture->start_pa = res->start;
+				aperture->end_pa = res->end;
+
+				if (hwpm->fake_registers_enabled) {
+					num_regs = (aperture->end_pa + 1 - aperture->start_pa) /
+						sizeof(*aperture->fake_registers);
+					aperture->fake_registers =
+						(u32 *)kzalloc(sizeof(*aperture->fake_registers) *
+											num_regs,
+								GFP_KERNEL);
+					if (!aperture->fake_registers) {
+						tegra_soc_hwpm_err("Aperture(0x%llx - 0x%llx):"
+							" Couldn't allocate memory for fake"
+							" registers",
+							aperture->start_pa,
+							aperture->end_pa);
+						ret = -ENOMEM;
+						goto fail;
+					}
+				}
+			} else { /* IP apertures */
+				if (hwpm->fake_registers_enabled) {
+					u64 num_regs = 0;
+					u32 **fake_regs = get_mc_fake_regs(hwpm, aperture);
+					if (!fake_regs)
+						fake_regs = &aperture->fake_registers;
+
+					num_regs = (aperture->end_pa + 1 - aperture->start_pa) /
+						sizeof(*(*fake_regs));
+					*fake_regs =
+						(u32 *)kzalloc(sizeof(*(*fake_regs)) * num_regs,
+								GFP_KERNEL);
+					if (!(*fake_regs)) {
+						tegra_soc_hwpm_err("Aperture(0x%llx - 0x%llx):"
+							" Couldn't allocate memory for fake"
+							" registers",
+							aperture->start_pa,
+							aperture->end_pa);
+						ret = -ENOMEM;
+						goto fail;
+					}
+
+					set_mc_fake_regs(hwpm, aperture, false);
+				}
 			}
+		} else {
+			tegra_soc_hwpm_dbg("resource %d index_mask %d not available",
+				resource, aperture->index_mask);
 		}
 	}
 
@@ -485,24 +491,27 @@ fail:
 		    (aperture->dt_aperture == TEGRA_SOC_HWPM_RTR_DT)) {
 			/* PMA and RTR apertures are handled in open(fd) */
 			continue;
-		} else if (IS_PERFMON(aperture->dt_aperture)) {
-			if (hwpm->dt_apertures[aperture->dt_aperture]) {
-				iounmap(hwpm->dt_apertures[aperture->dt_aperture]);
-				hwpm->dt_apertures[aperture->dt_aperture] = NULL;
-			}
+		} else if ((aperture->dt_aperture == TEGRA_SOC_HWPM_SYS0_PERFMON_DT) ||
+			((hwpm->ip_fs_info[resource] & aperture->index_mask) != 0U)) {
+			if (IS_PERFMON(aperture->dt_aperture)) {
+				if (hwpm->dt_apertures[aperture->dt_aperture]) {
+					iounmap(hwpm->dt_apertures[aperture->dt_aperture]);
+					hwpm->dt_apertures[aperture->dt_aperture] = NULL;
+				}
 
-			aperture->start_pa = 0;
-			aperture->end_pa = 0;
+				aperture->start_pa = 0;
+				aperture->end_pa = 0;
 
-			if (aperture->fake_registers) {
-				kfree(aperture->fake_registers);
-				aperture->fake_registers = NULL;
-			}
-		} else { /* IP apertures */
-			if (aperture->fake_registers) {
-				kfree(aperture->fake_registers);
-				aperture->fake_registers = NULL;
-				set_mc_fake_regs(hwpm, aperture, true);
+				if (aperture->fake_registers) {
+					kfree(aperture->fake_registers);
+					aperture->fake_registers = NULL;
+				}
+			} else { /* IP apertures */
+				if (aperture->fake_registers) {
+					kfree(aperture->fake_registers);
+					aperture->fake_registers = NULL;
+					set_mc_fake_regs(hwpm, aperture, true);
+				}
 			}
 		}
 	}
@@ -717,35 +726,41 @@ static int bind_ioctl(struct tegra_soc_hwpm *hwpm,
 		     aprt_idx++) {
 			aperture = &(hwpm_resources[res_idx].map[aprt_idx]);
 
-			/* Zero out necessary registers */
-			if (aperture->alist) {
-				tegra_soc_hwpm_zero_alist_regs(hwpm, aperture);
-			} else {
-				tegra_soc_hwpm_err(
-				"NULL allowlist in aperture(0x%llx - 0x%llx)",
-					aperture->start_pa, aperture->end_pa);
-			}
+			if ((res_idx == TEGRA_SOC_HWPM_RESOURCE_PMA) ||
+					(res_idx == TEGRA_SOC_HWPM_RESOURCE_CMD_SLICE_RTR) ||
+					(res_idx == TEGRA_SOC_HWPM_SYS0_PERFMON_DT) ||
+					((hwpm->ip_fs_info[res_idx] & aperture->index_mask) != 0U)) {
 
-			/*
-			 * Enable reporting of PERFMON status to
-			 * NV_PERF_PMMSYS_SYS0ROUTER_PERFMONSTATUS_MERGED
-			 */
-			if (IS_PERFMON(aperture->dt_aperture)) {
-				tegra_soc_hwpm_dbg("Found PERFMON(0x%llx - 0x%llx)",
-						   aperture->start_pa,
-						   aperture->end_pa);
-				ret = reg_rmw(hwpm, NULL, aperture->dt_aperture,
-					pmmsys_sys0_enginestatus_r(0) -
-						addr_map_rpg_pm_base_r(),
-					pmmsys_sys0_enginestatus_enable_m(),
-					pmmsys_sys0_enginestatus_enable_out_f(),
-					false, false);
-				if (ret < 0) {
-					tegra_soc_hwpm_err("Unable to set PMM ENGINESTATUS_ENABLE"
-						" for PERFMON(0x%llx - 0x%llx)",
-						aperture->start_pa,
-						aperture->end_pa);
-					return -EIO;
+				/* Zero out necessary registers */
+				if (aperture->alist) {
+					tegra_soc_hwpm_zero_alist_regs(hwpm, aperture);
+				} else {
+					tegra_soc_hwpm_err(
+					"NULL allowlist in aperture(0x%llx - 0x%llx)",
+						aperture->start_pa, aperture->end_pa);
+				}
+
+				/*
+				 * Enable reporting of PERFMON status to
+				 * NV_PERF_PMMSYS_SYS0ROUTER_PERFMONSTATUS_MERGED
+				 */
+				if (IS_PERFMON(aperture->dt_aperture)) {
+					tegra_soc_hwpm_dbg("Found PERFMON(0x%llx - 0x%llx)",
+							   aperture->start_pa,
+							   aperture->end_pa);
+					ret = reg_rmw(hwpm, NULL, aperture->dt_aperture,
+						pmmsys_sys0_enginestatus_r(0) -
+							addr_map_rpg_pm_base_r(),
+						pmmsys_sys0_enginestatus_enable_m(),
+						pmmsys_sys0_enginestatus_enable_out_f(),
+						false, false);
+					if (ret < 0) {
+						tegra_soc_hwpm_err("Unable to set PMM ENGINESTATUS_ENABLE"
+							" for PERFMON(0x%llx - 0x%llx)",
+							aperture->start_pa,
+							aperture->end_pa);
+						return -EIO;
+					}
 				}
 			}
 		}
@@ -1087,6 +1102,17 @@ cleanup:
 	return ret;
 }
 
+/*
+ * Normally there is a 1-to-1 mapping between an MMIO aperture and a
+ * hwpm_resource_aperture struct. But the PMA MMIO aperture is used in
+ * multiple hwpm_resource_aperture structs. Therefore, we have to share the fake
+ * register array between these hwpm_resource_aperture structs. This is why we
+ * have to define the fake register array globally. For all other 1-to-1
+ * mapping apertures the fake register arrays are directly embedded inside the
+ * hwpm_resource_aperture structs.
+ */
+static u32 *pma_fake_regs;
+
 static int tegra_soc_hwpm_open(struct inode *inode, struct file *filp)
 {
 	int ret = 0;
@@ -1218,10 +1244,10 @@ static int tegra_soc_hwpm_open(struct inode *inode, struct file *filp)
 		ret = -ENOMEM;
 		goto fail;
 	}
-	pma_map[1].start_pa = res->start;
-	pma_map[1].end_pa = res->end;
-	cmd_slice_rtr_map[0].start_pa = res->start;
-	cmd_slice_rtr_map[0].end_pa = res->end;
+	t234_pma_map[1].start_pa = res->start;
+	t234_pma_map[1].end_pa = res->end;
+	t234_cmd_slice_rtr_map[0].start_pa = res->start;
+	t234_cmd_slice_rtr_map[0].end_pa = res->end;
 	if (hwpm->fake_registers_enabled) {
 		num_regs = (res->end + 1 - res->start) / sizeof(*pma_fake_regs);
 		pma_fake_regs = (u32 *)kzalloc(sizeof(*pma_fake_regs) * num_regs,
@@ -1232,8 +1258,8 @@ static int tegra_soc_hwpm_open(struct inode *inode, struct file *filp)
 			ret = -ENOMEM;
 			goto fail;
 		}
-		pma_map[1].fake_registers = pma_fake_regs;
-		cmd_slice_rtr_map[0].fake_registers = pma_fake_regs;
+		t234_pma_map[1].fake_registers = pma_fake_regs;
+		t234_cmd_slice_rtr_map[0].fake_registers = pma_fake_regs;
 	}
 
 	hwpm_resources[TEGRA_SOC_HWPM_RESOURCE_PMA].reserved = true;
@@ -1253,16 +1279,16 @@ static int tegra_soc_hwpm_open(struct inode *inode, struct file *filp)
 		ret = -ENOMEM;
 		goto fail;
 	}
-	cmd_slice_rtr_map[1].start_pa = res->start;
-	cmd_slice_rtr_map[1].end_pa = res->end;
+	t234_cmd_slice_rtr_map[1].start_pa = res->start;
+	t234_cmd_slice_rtr_map[1].end_pa = res->end;
 	if (hwpm->fake_registers_enabled) {
 		num_regs = (res->end + 1 - res->start) /
-				sizeof(*cmd_slice_rtr_map[1].fake_registers);
-		cmd_slice_rtr_map[1].fake_registers =
-			(u32 *)kzalloc(sizeof(*cmd_slice_rtr_map[1].fake_registers) *
+				sizeof(*t234_cmd_slice_rtr_map[1].fake_registers);
+		t234_cmd_slice_rtr_map[1].fake_registers =
+			(u32 *)kzalloc(sizeof(*t234_cmd_slice_rtr_map[1].fake_registers) *
 									num_regs,
 					GFP_KERNEL);
-		if (!cmd_slice_rtr_map[1].fake_registers) {
+		if (!t234_cmd_slice_rtr_map[1].fake_registers) {
 			tegra_soc_hwpm_err("Couldn't allocate memory for RTR"
 					   " fake registers");
 			ret = -ENOMEM;
@@ -1331,15 +1357,15 @@ fail:
 		iounmap(hwpm->dt_apertures[TEGRA_SOC_HWPM_PMA_DT]);
 		hwpm->dt_apertures[TEGRA_SOC_HWPM_PMA_DT] = NULL;
 	}
-	pma_map[1].start_pa = 0;
-	pma_map[1].end_pa = 0;
-	cmd_slice_rtr_map[0].start_pa = 0;
-	cmd_slice_rtr_map[0].end_pa = 0;
+	t234_pma_map[1].start_pa = 0;
+	t234_pma_map[1].end_pa = 0;
+	t234_cmd_slice_rtr_map[0].start_pa = 0;
+	t234_cmd_slice_rtr_map[0].end_pa = 0;
 	if (pma_fake_regs) {
 		kfree(pma_fake_regs);
 		pma_fake_regs = NULL;
-		pma_map[1].fake_registers = NULL;
-		cmd_slice_rtr_map[0].fake_registers = NULL;
+		t234_pma_map[1].fake_registers = NULL;
+		t234_cmd_slice_rtr_map[0].fake_registers = NULL;
 	}
 	hwpm_resources[TEGRA_SOC_HWPM_RESOURCE_PMA].reserved = false;
 
@@ -1347,11 +1373,11 @@ fail:
 		iounmap(hwpm->dt_apertures[TEGRA_SOC_HWPM_RTR_DT]);
 		hwpm->dt_apertures[TEGRA_SOC_HWPM_RTR_DT] = NULL;
 	}
-	cmd_slice_rtr_map[1].start_pa = 0;
-	cmd_slice_rtr_map[1].end_pa = 0;
-	if (cmd_slice_rtr_map[1].fake_registers) {
-		kfree(cmd_slice_rtr_map[1].fake_registers);
-		cmd_slice_rtr_map[1].fake_registers = NULL;
+	t234_cmd_slice_rtr_map[1].start_pa = 0;
+	t234_cmd_slice_rtr_map[1].end_pa = 0;
+	if (t234_cmd_slice_rtr_map[1].fake_registers) {
+		kfree(t234_cmd_slice_rtr_map[1].fake_registers);
+		t234_cmd_slice_rtr_map[1].fake_registers = NULL;
 	}
 	hwpm_resources[TEGRA_SOC_HWPM_RESOURCE_CMD_SLICE_RTR].reserved = false;
 	tegra_soc_hwpm_err("%s failed", __func__);
@@ -1469,30 +1495,35 @@ static int tegra_soc_hwpm_release(struct inode *inode, struct file *filp)
 		     aprt_idx++) {
 			aperture = &(hwpm_resources[res_idx].map[aprt_idx]);
 			if (IS_PERFMON(aperture->dt_aperture)) {
-				tegra_soc_hwpm_dbg("Found PERFMON(0x%llx - 0x%llx)",
-						   aperture->start_pa,
-						   aperture->end_pa);
-				err = reg_rmw(hwpm, NULL, aperture->dt_aperture,
-					pmmsys_control_r(0) - addr_map_rpg_pm_base_r(),
-					pmmsys_control_mode_m(),
-					pmmsys_control_mode_disable_f(),
-					false, false);
-				RELEASE_FAIL("Unable to disable PERFMON(0x%llx - 0x%llx)",
-					     aperture->start_pa,
-					     aperture->end_pa);
-				ip_ops = &hwpm->ip_info[aperture->dt_aperture];
-				if (ip_ops && (*ip_ops->hwpm_ip_pm)) {
-					err = (*ip_ops->hwpm_ip_pm)
-								(ip_ops->ip_dev, false);
-					if (err) {
-						tegra_soc_hwpm_err(
-							"Enable Runtime PM(%d) Failed",
-								aperture->dt_aperture);
+				if ((res_idx == TEGRA_SOC_HWPM_RESOURCE_PMA) ||
+					(res_idx == TEGRA_SOC_HWPM_RESOURCE_CMD_SLICE_RTR) ||
+					(res_idx == TEGRA_SOC_HWPM_SYS0_PERFMON_DT) ||
+					((hwpm->ip_fs_info[res_idx] & aperture->index_mask) != 0U)) {
+					tegra_soc_hwpm_dbg("Found PERFMON(0x%llx - 0x%llx)",
+							   aperture->start_pa,
+							   aperture->end_pa);
+					err = reg_rmw(hwpm, NULL, aperture->dt_aperture,
+						pmmsys_control_r(0) - addr_map_rpg_pm_base_r(),
+						pmmsys_control_mode_m(),
+						pmmsys_control_mode_disable_f(),
+						false, false);
+					RELEASE_FAIL("Unable to disable PERFMON(0x%llx - 0x%llx)",
+						     aperture->start_pa,
+						     aperture->end_pa);
+					ip_ops = &hwpm->ip_info[aperture->dt_aperture];
+					if (ip_ops && (*ip_ops->hwpm_ip_pm)) {
+						err = (*ip_ops->hwpm_ip_pm)
+									(ip_ops->ip_dev, false);
+						if (err) {
+							tegra_soc_hwpm_err(
+								"Enable Runtime PM(%d) Failed",
+									aperture->dt_aperture);
+						}
+					} else {
+						tegra_soc_hwpm_dbg(
+							"No Runtime PM(%d) for IP",
+									aperture->dt_aperture);
 					}
-				} else {
-					tegra_soc_hwpm_dbg(
-						"No Runtime PM(%d) for IP",
-								aperture->dt_aperture);
 				}
 			}
 		}
@@ -1604,25 +1635,25 @@ static int tegra_soc_hwpm_release(struct inode *inode, struct file *filp)
 		iounmap(hwpm->dt_apertures[TEGRA_SOC_HWPM_PMA_DT]);
 		hwpm->dt_apertures[TEGRA_SOC_HWPM_PMA_DT] = NULL;
 	}
-	pma_map[1].start_pa = 0;
-	pma_map[1].end_pa = 0;
-	cmd_slice_rtr_map[0].start_pa = 0;
-	cmd_slice_rtr_map[0].end_pa = 0;
+	t234_pma_map[1].start_pa = 0;
+	t234_pma_map[1].end_pa = 0;
+	t234_cmd_slice_rtr_map[0].start_pa = 0;
+	t234_cmd_slice_rtr_map[0].end_pa = 0;
 	if (pma_fake_regs) {
 		kfree(pma_fake_regs);
 		pma_fake_regs = NULL;
-		pma_map[1].fake_registers = NULL;
-		cmd_slice_rtr_map[0].fake_registers = NULL;
+		t234_pma_map[1].fake_registers = NULL;
+		t234_cmd_slice_rtr_map[0].fake_registers = NULL;
 	}
 	if (hwpm->dt_apertures[TEGRA_SOC_HWPM_RTR_DT]) {
 		iounmap(hwpm->dt_apertures[TEGRA_SOC_HWPM_RTR_DT]);
 		hwpm->dt_apertures[TEGRA_SOC_HWPM_RTR_DT] = NULL;
 	}
-	cmd_slice_rtr_map[1].start_pa = 0;
-	cmd_slice_rtr_map[1].end_pa = 0;
-	if (cmd_slice_rtr_map[1].fake_registers) {
-		kfree(cmd_slice_rtr_map[1].fake_registers);
-		cmd_slice_rtr_map[1].fake_registers = NULL;
+	t234_cmd_slice_rtr_map[1].start_pa = 0;
+	t234_cmd_slice_rtr_map[1].end_pa = 0;
+	if (t234_cmd_slice_rtr_map[1].fake_registers) {
+		kfree(t234_cmd_slice_rtr_map[1].fake_registers);
+		t234_cmd_slice_rtr_map[1].fake_registers = NULL;
 	}
 
 	/* Reset resource and aperture state */
