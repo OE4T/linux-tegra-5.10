@@ -1,4 +1,4 @@
-# Copyright (c) 2019, NVIDIA CORPORATION.  All Rights Reserved.
+# Copyright (c) 2019-2021, NVIDIA CORPORATION.  All Rights Reserved.
 #
 # OS interface units and utilities. Often represented by simply a header file.
 #
@@ -37,7 +37,7 @@ dma:
 
 # This one is likely not structured correctly.
 dt:
-  safe: yes
+  safe: no
   sources: [ include/nvgpu/dt.h ]
 
 # Also a problem.
