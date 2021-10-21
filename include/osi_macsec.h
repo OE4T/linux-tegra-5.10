@@ -396,6 +396,9 @@ struct osi_macsec_core_ops {
 	/** macsec debug buffer config */
 	nve32_t (*dbg_events_config)(struct osi_core_priv_data *const osi_core,
 		 struct osi_macsec_dbg_buf_config *const dbg_buf_config);
+	/** macsec get Key Index start for a given SCI */
+	nve32_t (*get_sc_lut_key_index)(struct osi_core_priv_data *const osi_core,
+		 nveu8_t *sci, nve32_t *key_index, nveu16_t ctlr);
 
 };
 
@@ -900,4 +903,43 @@ nve32_t osi_macsec_dbg_events_config(
 		struct osi_core_priv_data *const osi_core,
 		struct osi_macsec_dbg_buf_config *const dbg_buf_config);
 
+/**
+ * @brief MACSEC Key Index Start for a given SCI
+ *
+ * @note
+ * Algorithm:
+ * - Retrieves the Key_index used for a given SCI in SC.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] sci: Secure Channel Identifier
+ * @param[out] key_index: Pointer which will be filled with key_index start
+ * @param[in] ctrl: Tx or Rx controller
+ *
+ *
+ * @pre
+ * - MACSEC shall be initialized and enalbed
+ *
+ * @note
+ * Traceability Details:
+ * - SWUD_ID:
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval vaid Key Index Start on success
+ * @retval -1 on failure
+ */
+nve32_t osi_macsec_get_sc_lut_key_index(
+		struct osi_core_priv_data *const osi_core,
+		nveu8_t *sci, nve32_t *key_index, nveu16_t ctlr);
 #endif /* INCLUDED_OSI_MACSEC_H */

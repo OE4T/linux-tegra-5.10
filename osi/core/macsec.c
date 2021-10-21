@@ -2672,6 +2672,32 @@ static struct osi_macsec_sc_info *find_existing_sc(
 	return OSI_NULL;
 }
 
+nve32_t macsec_get_sc_lut_key_index(struct osi_core_priv_data *const osi_core,
+				nveu8_t *sci, nve32_t *key_index, nveu16_t ctlr)
+{
+	struct osi_macsec_sc_info sc;
+	struct osi_macsec_sc_info *sc_info = OSI_NULL;
+
+	/* Validate inputs */
+	if ((sci == OSI_NULL) || (key_index == OSI_NULL) ||
+	    (ctlr > OSI_CTLR_SEL_MAX)) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+			     "Params validation failed\n", 0ULL);
+		return -1;
+	}
+
+	osi_memcpy(sc.sci, sci, OSI_SCI_LEN);
+	sc_info = find_existing_sc(osi_core, &sc, ctlr);
+	if (sc_info == OSI_NULL) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+			     "SCI Not found\n", 0ULL);
+		return -1;
+	}
+
+	*key_index = (sc_info->sc_idx_start * OSI_MAX_NUM_SA);
+	return 0;
+}
+
 static nve32_t del_upd_sc(struct osi_core_priv_data *const osi_core,
 		      struct osi_macsec_sc_info *existing_sc,
 		      struct osi_macsec_sc_info *const sc,
@@ -3107,6 +3133,7 @@ static struct osi_macsec_core_ops macsec_ops = {
 	.read_mmc = macsec_read_mmc,
 	.dbg_buf_config = macsec_dbg_buf_config,
 	.dbg_events_config = macsec_dbg_events_config,
+	.get_sc_lut_key_index = macsec_get_sc_lut_key_index,
 };
 
 /**
@@ -3173,6 +3200,19 @@ nve32_t osi_macsec_lut_config(struct osi_core_priv_data *const osi_core,
 	if (osi_core != OSI_NULL && osi_core->macsec_ops != OSI_NULL &&
 	    osi_core->macsec_ops->lut_config != OSI_NULL) {
 		return osi_core->macsec_ops->lut_config(osi_core, lut_config);
+	}
+
+	return -1;
+}
+
+nve32_t osi_macsec_get_sc_lut_key_index(struct osi_core_priv_data *const osi_core,
+					nveu8_t *sci, nve32_t *key_index,
+					nveu16_t ctlr)
+{
+	if (osi_core != OSI_NULL && osi_core->macsec_ops != OSI_NULL &&
+			osi_core->macsec_ops->get_sc_lut_key_index != OSI_NULL) {
+		return osi_core->macsec_ops->get_sc_lut_key_index(osi_core, sci, key_index,
+								  ctlr);
 	}
 
 	return -1;
