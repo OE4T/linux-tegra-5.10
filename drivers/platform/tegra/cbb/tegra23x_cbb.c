@@ -210,14 +210,14 @@ static void tegra234_lookup_slave_timeout(struct seq_file *file, u8 slave_id,
 static void print_errmon_err(struct seq_file *file,
 		struct tegra_cbb_errmon_record *errmon,
 		unsigned int errmon_err_status,
-		unsigned int errmon_overflow_status)
+		unsigned int errmon_overflow_status, int max_errs)
 {
 	int err_type = 0;
 
 	if (errmon_err_status & (errmon_err_status - 1))
 		print_cbb_err(file, "\t  Multiple type of errors reported\n");
 
-	while (errmon_err_status) {
+	while (errmon_err_status && (err_type < max_errs)) {
 		if (errmon_err_status & 0x1)
 			print_cbb_err(file, "\t  Error Code\t\t: %s\n",
 				tegra234_errmon_errors[err_type].errcode);
@@ -226,7 +226,7 @@ static void print_errmon_err(struct seq_file *file,
 	}
 
 	err_type = 0;
-	while (errmon_overflow_status) {
+	while (errmon_overflow_status && (err_type < max_errs)) {
 		if (errmon_overflow_status & 0x1)
 			print_cbb_err(file, "\t  Overflow\t\t: Multiple %s\n",
 				tegra234_errmon_errors[err_type].errcode);
@@ -303,14 +303,16 @@ static void print_errlog_err(struct seq_file *file,
 		      fabric_sn_map[fab_id].sn_lookup[slave_id].slave_name);
 }
 
-static void print_errmonX_info(
+static int print_errmonX_info(
 		struct seq_file *file,
 		struct tegra_cbb_errmon_record *errmon)
 {
+	int max_errs = ARRAY_SIZE(tegra234_errmon_errors);
 	unsigned int errmon_err_status = 0;
 	unsigned int errlog_err_status = 0;
 	unsigned int errmon_overflow_status = 0;
 	u64 addr = 0;
+	int ret = 0;
 
 	errmon->err_type = 0;
 
@@ -326,16 +328,22 @@ static void print_errmonX_info(
 					FABRIC_MN_MASTER_ERR_OVERFLOW_STATUS_0);
 
 	print_errmon_err(file, errmon, errmon_err_status,
-					errmon_overflow_status);
+			 errmon_overflow_status, max_errs);
 
 	errlog_err_status = readl(errmon->addr_errmon+
 					FABRIC_MN_MASTER_LOG_ERR_STATUS_0);
 	if (!errlog_err_status) {
 		pr_info("Error Monitor doesn't have Error Logger\n");
-		return;
+		return -EINVAL;
 	}
 
-	while (errlog_err_status) {
+	if ((errmon_err_status == 0xFFFFFFFF) ||
+	    (errlog_err_status == 0xFFFFFFFF)) {
+		pr_err("CBB registers returning all 1's which is invalid\n");
+		return -EINVAL;
+	}
+
+	while (errlog_err_status && (errmon->err_type < max_errs)) {
 		if (errlog_err_status & BIT(0)) {
 			addr = readl(errmon->addr_errmon+
 					FABRIC_MN_MASTER_LOG_ADDR_HIGH_0);
@@ -357,15 +365,17 @@ static void print_errmonX_info(
 		errmon->err_type++;
 		errlog_err_status >>= 1;
 	}
+	return ret;
 }
 
-static void print_err_notifier(struct seq_file *file,
+static int print_err_notifier(struct seq_file *file,
 		struct tegra_cbb_errmon_record *errmon,
 		int err_notifier_status)
 {
 	u64 errmon_phys_addr = 0;
 	u64 errmon_addr_offset = 0;
 	int errmon_no = 1;
+	int ret = 0;
 
 	pr_crit("**************************************\n");
 	pr_crit("* For more Internal Decode Help\n");
@@ -393,14 +403,17 @@ static void print_err_notifier(struct seq_file *file,
 							errmon_addr_offset);
 			errmon->errmon_no = errmon_no;
 
-			print_errmonX_info(file, errmon);
+			ret = print_errmonX_info(file, errmon);
 			tegra234_cbb_errmon_errclr(errmon->addr_errmon);
+			if (ret)
+				return ret;
 		}
 		err_notifier_status >>= 1;
 		errmon_no <<= 1;
 	}
 
 	print_cbb_err(file, "\t**************************************\n");
+	return ret;
 }
 
 #ifdef CONFIG_DEBUG_FS
@@ -410,6 +423,7 @@ static int tegra234_cbb_err_show(struct seq_file *file, void *data)
 {
 	struct tegra_cbb_errmon_record *errmon;
 	unsigned int errvld_status = 0;
+	int ret = 0;
 
 	mutex_lock(&cbb_err_mutex);
 
@@ -420,14 +434,14 @@ static int tegra234_cbb_err_show(struct seq_file *file, void *data)
 			errvld_status = tegra_cbb_errvld(errmon->vaddr+
 						errmon->err_notifier_base);
 			if (errvld_status) {
-				print_err_notifier(file, errmon,
+				ret = print_err_notifier(file, errmon,
 						errvld_status);
 			}
 		}
 	}
 
 	mutex_unlock(&cbb_err_mutex);
-	return 0;
+	return ret;
 }
 #endif
 
@@ -441,6 +455,7 @@ static irqreturn_t tegra234_cbb_error_isr(int irq, void *dev_id)
 	unsigned long flags;
 	bool is_inband_err = 0;
 	u8 mstr_id = 0;
+	int ret = 0;
 
 	spin_lock_irqsave(&cbb_errmon_lock, flags);
 
@@ -457,7 +472,9 @@ static irqreturn_t tegra234_cbb_error_isr(int irq, void *dev_id)
 				"irq=%d\n", smp_processor_id(), errmon->name,
 				errmon->start, irq);
 
-				print_err_notifier(NULL, errmon, errvld_status);
+				ret = print_err_notifier(NULL, errmon, errvld_status);
+				if (ret)
+					goto en_isr_exit;
 
 				mstr_id = get_mstr_id(errmon->user_bits);
 				/* If illegal request is from CCPLEX(id:0x1)
@@ -469,6 +486,7 @@ static irqreturn_t tegra234_cbb_error_isr(int irq, void *dev_id)
 			}
 		}
 	}
+en_isr_exit:
 	spin_unlock_irqrestore(&cbb_errmon_lock, flags);
 
 	WARN_ON(is_inband_err);
