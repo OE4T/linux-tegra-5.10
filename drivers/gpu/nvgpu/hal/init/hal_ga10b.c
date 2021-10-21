@@ -1898,7 +1898,6 @@ int ga10b_init_hal(struct gk20a *g)
 
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_COMPRESSION)) {
 		nvgpu_set_enabled(g, NVGPU_SUPPORT_POST_L2_COMPRESSION, true);
-		nvgpu_set_enabled(g, NVGPU_SUPPORT_BUFFER_METADATA, true);
 	} else {
 		gops->cbc.init = NULL;
 		gops->cbc.ctrl = NULL;

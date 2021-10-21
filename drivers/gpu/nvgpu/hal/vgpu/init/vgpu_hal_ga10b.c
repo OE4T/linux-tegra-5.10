@@ -1208,7 +1208,6 @@ int vgpu_ga10b_init_hal(struct gk20a *g)
 #ifdef CONFIG_NVGPU_COMPRESSION
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_COMPRESSION, false);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_POST_L2_COMPRESSION, false);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_BUFFER_METADATA, false);
 #endif
 
 #ifdef CONFIG_NVGPU_RECOVERY

@@ -995,6 +995,8 @@ struct nvgpu_gpu_set_deterministic_opts_args {
  * return 0 on success, < 0 in case of failure.
  * retval -EINVAL if the enabled flag NVGPU_SUPPORT_BUFFER_METADATA
  *               isn't set or invalid params.
+ * retval -EINVAL if the enabled flag NVGPU_SUPPORT_COMPRESSION
+ *               isn't set and comptags are required.
  * retval -ENOMEM in case of sufficient memory is not available for
  *                privdata or comptags.
  * retval -EFAULT if the metadata blob copy fails.

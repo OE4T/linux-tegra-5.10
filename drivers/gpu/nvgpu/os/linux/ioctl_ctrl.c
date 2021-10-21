@@ -1917,7 +1917,6 @@ out:
 }
 #endif
 
-#ifdef CONFIG_NVGPU_COMPRESSION
 static int nvgpu_gpu_ioctl_get_buffer_info(struct gk20a *g,
 				struct nvgpu_gpu_get_buffer_info_args *args)
 {
@@ -1981,10 +1980,13 @@ static int nvgpu_gpu_ioctl_get_buffer_info(struct gk20a *g,
 			NVGPU_GPU_BUFFER_INFO_FLAGS_METADATA_REGISTERED;
 	}
 
-	if (priv->comptags.enabled) {
+#ifdef CONFIG_NVGPU_COMPRESSION
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_COMPRESSION) &&
+	    priv->comptags.enabled) {
 		args->out.flags |=
 			NVGPU_GPU_BUFFER_INFO_FLAGS_COMPTAGS_ALLOCATED;
 	}
+#endif
 
 	if (priv->mutable_metadata) {
 		args->out.flags |=
@@ -2001,6 +2003,7 @@ out:
 	return err;
 }
 
+#ifdef CONFIG_NVGPU_COMPRESSION
 static int nvgpu_handle_comptags_control(struct gk20a *g,
 					 struct dma_buf *dmabuf,
 					 struct gk20a_dmabuf_priv *priv,
@@ -2008,6 +2011,14 @@ static int nvgpu_handle_comptags_control(struct gk20a *g,
 {
 	struct nvgpu_os_buffer os_buf = {0};
 	int err = 0;
+
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_COMPRESSION)) {
+		if (comptags_alloc_control == NVGPU_GPU_COMPTAGS_ALLOC_REQUIRED) {
+			nvgpu_err(g, "Comptags allocation (required) failed. Compression disabled.");
+			return -EINVAL;
+		}
+		return 0;
+	}
 
 	if (comptags_alloc_control == NVGPU_GPU_COMPTAGS_ALLOC_NONE) {
 		if (priv->comptags.allocated) {
@@ -2060,6 +2071,7 @@ static int nvgpu_handle_comptags_control(struct gk20a *g,
 
 	return err;
 }
+#endif
 
 static int nvgpu_gpu_ioctl_register_buffer(struct gk20a *g,
 		struct nvgpu_gpu_register_buffer_args *args)
@@ -2144,6 +2156,7 @@ static int nvgpu_gpu_ioctl_register_buffer(struct gk20a *g,
 		goto out_priv_unlock;
 	}
 
+#ifdef CONFIG_NVGPU_COMPRESSION
 	/* Comptags allocation */
 	err = nvgpu_handle_comptags_control(g, dmabuf, priv,
 					    args->comptags_alloc_control);
@@ -2151,6 +2164,7 @@ static int nvgpu_gpu_ioctl_register_buffer(struct gk20a *g,
 		nvgpu_err(g, "Comptags alloc control failed %d", err);
 		goto out_priv_unlock;
 	}
+#endif
 
 	/* All done, update metadata blob */
 	nvgpu_kfree(g, priv->metadata_blob);
@@ -2165,10 +2179,14 @@ static int nvgpu_gpu_ioctl_register_buffer(struct gk20a *g,
 
 	/* Output variables */
 	args->flags = 0;
-	if (priv->comptags.enabled) {
+
+#ifdef CONFIG_NVGPU_COMPRESSION
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_COMPRESSION) &&
+	    priv->comptags.enabled) {
 		args->flags |=
 			NVGPU_GPU_REGISTER_BUFFER_FLAGS_COMPTAGS_ALLOCATED;
 	}
+#endif
 
 	nvgpu_log_info(g, "buffer registered: mutable: %s, metadata size: %u, flags: 0x%8x",
 		       priv->mutable_metadata ? "yes" : "no", priv->metadata_blob_size,
@@ -2182,7 +2200,6 @@ out:
 
 	return err;
 }
-#endif
 
 long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
@@ -2548,7 +2565,6 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 			(struct nvgpu_gpu_set_deterministic_opts_args *)buf);
 		break;
 
-#ifdef CONFIG_NVGPU_COMPRESSION
 	case NVGPU_GPU_IOCTL_REGISTER_BUFFER:
 		err = nvgpu_gpu_ioctl_register_buffer(g,
 			(struct nvgpu_gpu_register_buffer_args *)buf);
@@ -2558,7 +2574,6 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 		err = nvgpu_gpu_ioctl_get_buffer_info(g,
 			(struct nvgpu_gpu_get_buffer_info_args *)buf);
 		break;
-#endif
 
 	default:
 		nvgpu_log_info(g, "unrecognized gpu ioctl cmd: 0x%x", cmd);
