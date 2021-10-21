@@ -405,7 +405,7 @@ struct nvhost_device_data t23x_tsec_info = {
 	.modulemutexes		= {NV_HOST1X_MLOCK_ID_TSEC},
 	.class			= NV_TSEC_CLASS_ID,
 	.clocks			= {
-		{"tsec", UINT_MAX},
+		{"tsec", 192000000},
 		{"efuse", 0, 0},
 		{"tsec_pka", 204000000, 0},
 		{"emc", 0,
