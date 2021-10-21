@@ -58,6 +58,31 @@
 } while (0)
 
 /**
+ * wrapping unsigned addition tests
+ *
+ * parameters:
+ *   type_name: type (u8, u32 etc.)
+ *   type_max : Maximum value of the type.
+ *   tmp_operand: random value in the set (1, Maximum value)
+ *
+ * Boundary values: (0, 1, max-1, max)
+ *
+ * Valid tests: Addition result within range for each boundary value and
+ *              random value. Addition result wrapping for each boundary
+ *              and random value.
+ */
+#define GENERATE_ARITHMETIC_WRAPPING_ADD_TESTS(type_name, type_max, tmp_operand) do {\
+	unit_assert(nvgpu_wrapping_add_##type_name(type_max, 0) == type_max, return UNIT_FAIL); \
+	unit_assert(nvgpu_wrapping_add_##type_name(type_max - 1, 1) == type_max, return UNIT_FAIL); \
+	unit_assert(nvgpu_wrapping_add_##type_name(type_max - tmp_operand, tmp_operand) == type_max, \
+							return UNIT_FAIL); \
+	unit_assert(nvgpu_wrapping_add_##type_name(1, type_max) == 0, return UNIT_FAIL); \
+	unit_assert(nvgpu_wrapping_add_##type_name(tmp_operand, type_max - tmp_operand + 1) == 0, return UNIT_FAIL); \
+	unit_assert(nvgpu_wrapping_add_##type_name(type_max - 1, 2) == 0, return UNIT_FAIL); \
+	unit_assert(nvgpu_wrapping_add_##type_name(type_max, type_max) == (type_max - 1), return UNIT_FAIL); \
+} while (0)
+
+/**
  * signed addition tests
  *
  * parameters:
@@ -328,6 +353,9 @@ int test_arithmetic(struct unit_module *m, struct gk20a *g, void *args)
 
 	/* U32 add */
 	GENERATE_ARITHMETIC_ADD_TESTS(u32, U32_MAX, tmp_u32);
+
+	/* wrapping U32 add */
+	GENERATE_ARITHMETIC_WRAPPING_ADD_TESTS(u32, U32_MAX, tmp_u32);
 
 	/* S32 add */
 	GENERATE_ARITHMETIC_SIGNED_ADD_TESTS(s32, INT_MIN, INT_MAX, tmp_s32, tmp_s32_neg);

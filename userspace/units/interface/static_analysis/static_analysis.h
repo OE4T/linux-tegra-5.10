@@ -42,7 +42,8 @@ struct unit_module;
  * Targets: nvgpu_safe_sub_u8, nvgpu_safe_add_u32, nvgpu_safe_add_s32,
  *          nvgpu_safe_sub_u32, nvgpu_safe_sub_s32, nvgpu_safe_mult_u32,
  *          nvgpu_safe_add_u64, nvgpu_safe_add_s64, nvgpu_safe_sub_u64,
- *          nvgpu_safe_sub_s64, nvgpu_safe_mult_u64, nvgpu_safe_mult_s64
+ *          nvgpu_safe_sub_s64, nvgpu_safe_mult_u64, nvgpu_safe_mult_s64,
+ *          nvgpu_wrapping_add_u32
  *
  * Input: None
  *
