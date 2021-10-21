@@ -2,7 +2,7 @@
 /*
  * mods_dma.c - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -104,7 +104,7 @@ void mods_release_channel(u32 id)
 
 	/* do not call this when hold spin lock */
 	if (pch) {
-		dmaengine_terminate_all(pch);
+		dmaengine_terminate_sync(pch);
 		dma_release_channel(pch);
 	}
 }
