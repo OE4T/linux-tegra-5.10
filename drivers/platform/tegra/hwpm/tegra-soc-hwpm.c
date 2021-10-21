@@ -102,6 +102,13 @@ static int tegra_soc_hwpm_probe(struct platform_device *pdev)
 			goto clock_reset_fail;
 		}
 
+		hwpm->la_parent_clk = devm_clk_get(hwpm->dev, "parent");
+		if (IS_ERR(hwpm->la_parent_clk)) {
+			tegra_soc_hwpm_err("Missing la parent clk");
+			ret = PTR_ERR(hwpm->la_parent_clk);
+			goto clock_reset_fail;
+		}
+
 		hwpm->la_rst = devm_reset_control_get(hwpm->dev, "la");
 		if (IS_ERR(hwpm->la_rst)) {
 			tegra_soc_hwpm_err("Missing la reset");
@@ -139,6 +146,8 @@ clock_reset_fail:
 	if (tegra_platform_is_silicon()) {
 		if (hwpm->la_clk)
 			devm_clk_put(hwpm->dev, hwpm->la_clk);
+		if (hwpm->la_parent_clk)
+			devm_clk_put(hwpm->dev, hwpm->la_parent_clk);
 		if (hwpm->la_rst)
 			reset_control_assert(hwpm->la_rst);
 		if (hwpm->hwpm_rst)
@@ -178,6 +187,8 @@ static int tegra_soc_hwpm_remove(struct platform_device *pdev)
 	if (tegra_platform_is_silicon()) {
 		if (hwpm->la_clk)
 			devm_clk_put(hwpm->dev, hwpm->la_clk);
+		if (hwpm->la_parent_clk)
+			devm_clk_put(hwpm->dev, hwpm->la_parent_clk);
 		if (hwpm->la_rst)
 			reset_control_assert(hwpm->la_rst);
 		if (hwpm->hwpm_rst)

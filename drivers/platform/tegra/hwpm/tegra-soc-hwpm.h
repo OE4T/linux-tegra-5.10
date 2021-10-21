@@ -70,6 +70,7 @@ struct tegra_soc_hwpm {
 
 	/* Clocks and resets */
 	struct clk *la_clk;
+	struct clk *la_parent_clk;
 	struct reset_control *la_rst;
 	struct reset_control *hwpm_rst;
 

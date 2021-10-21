@@ -39,6 +39,8 @@
 #include "tegra-soc-hwpm.h"
 #include "tegra-soc-hwpm-io.h"
 
+#define LA_CLK_RATE 625000000UL
+
 struct tegra_soc_hwpm_ioctl {
 	const char *const name;
 	const size_t struct_size;
@@ -1126,6 +1128,22 @@ static int tegra_soc_hwpm_open(struct inode *inode, struct file *filp)
 		ret = reset_control_assert(hwpm->la_rst);
 		if (ret < 0) {
 			tegra_soc_hwpm_err("la reset assert failed");
+			ret = -ENODEV;
+			goto fail;
+		}
+		/* Set required parent for la_clk */
+		if (hwpm->la_clk && hwpm->la_parent_clk) {
+			ret = clk_set_parent(hwpm->la_clk, hwpm->la_parent_clk);
+			if (ret < 0) {
+				tegra_soc_hwpm_err("la clk set parent failed");
+				ret = -ENODEV;
+				goto fail;
+			}
+		}
+		/* set la_clk rate to 625 MHZ */
+		ret = clk_set_rate(hwpm->la_clk, LA_CLK_RATE);
+		if (ret < 0) {
+			tegra_soc_hwpm_err("la clock set rate failed");
 			ret = -ENODEV;
 			goto fail;
 		}
