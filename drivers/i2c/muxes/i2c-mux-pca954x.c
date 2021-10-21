@@ -30,6 +30,8 @@
  *	i2c-virtual_cb.c from Brian Kuschak <bkuschak@yahoo.com>
  * and
  *	pca9540.c from Jean Delvare <jdelvare@suse.de>.
+ *
+ * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/device.h>
@@ -442,7 +444,7 @@ static int pca954x_probe(struct i2c_client *client,
 	struct i2c_mux_core *muxc;
 	struct pca954x *data;
 	int num, force, class;
-	int ret;
+	int ret, err;
 	bool fskip = false;
 	int force_bus = 0;
 
@@ -529,7 +531,7 @@ pca954x_probe_skip_detect:
 		data->chip = &chips[id->driver_data];
 
 	data->last_chan = 0;		   /* force the first selection */
-  
+
 	if (data->chip->id.manufacturer_id != I2C_DEVICE_ID_NONE) {
 		struct i2c_device_identity id;
 
@@ -562,7 +564,7 @@ pca954x_probe_skip_detect:
 	ret = pca954x_init(client, data);
 	if (ret < 0) {
 		dev_warn(dev, "probe failed\n");
-		return -ENODEV;
+		goto fail_cleanup;
 	}
 
 	ret = pca954x_irq_setup(muxc);
@@ -620,6 +622,19 @@ pca954x_probe_skip_detect:
 	return 0;
 
 fail_cleanup:
+	/* Disable vcc regulator for pca954x */
+	if (data->vcc_reg) {
+		err = regulator_disable(data->vcc_reg);
+		if (err < 0)
+			dev_err(&client->dev, "failed to disable vcc\n");
+	}
+	/* Disable vcc-pullup regulator for pca954x */
+	if (data->pullup_reg) {
+		err = regulator_disable(data->pullup_reg);
+		if (err < 0)
+			dev_err(&client->dev, "failed to disable vcc-pullup\n");
+	}
+
 	pca954x_cleanup(muxc);
 	return ret;
 }
