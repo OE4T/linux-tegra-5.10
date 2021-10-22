@@ -201,7 +201,7 @@ int test_tsg_release(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_tsg_unbind_channel_check_hw_state
+ * Targets: nvgpu_tsg_unbind_channel_check_hw_state, gk20a_tsg_unbind_channel_check_hw_next
  *
  * Input: test_fifo_init_support() run for this GPU
  *
