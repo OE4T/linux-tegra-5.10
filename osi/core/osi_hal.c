@@ -2033,6 +2033,13 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		ret = ops_p->ptp_tsc_capture(osi_core, &data->ptp_tsc);
 		break;
 
+	case OSI_CMD_CONF_M2M_TS:
+		if (data->arg1_u32 <= OSI_ENABLE) {
+			l_core->m2m_tsync = data->arg1_u32;
+			ret = 0;
+		}
+		break;
+
 	default:
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			     "CORE: Incorrect command\n",
