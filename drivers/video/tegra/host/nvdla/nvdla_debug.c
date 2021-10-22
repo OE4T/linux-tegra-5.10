@@ -1,7 +1,7 @@
 /*
  * NVDLA debug utils
  *
- * Copyright (c) 2016 - 2020, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016 - 2021, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -22,10 +22,6 @@
 #include <linux/uaccess.h>
 #include <linux/delay.h>
 #include <linux/version.h>
-#include <soc/tegra/fuse.h>
-#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
-#include <soc/tegra/chip-id.h>
-#endif
 
 #include "host1x/host1x.h"
 #include "flcn/flcn.h"
@@ -547,79 +543,15 @@ static ssize_t debug_dla_fw_reload_set(struct file *file,
 	return count;
 }
 
-static ssize_t debug_dla_fw_a01_war_set(struct file *file,
-	const char __user *buffer, size_t count, loff_t *off)
-{
-	int err;
-	struct seq_file *p = file->private_data;
-	struct nvdla_device *nvdla_dev;
-	struct platform_device *pdev;
-	long val;
-
-	if (!p)
-		return -EFAULT;
-
-	nvdla_dev = (struct nvdla_device *)p->private;
-	if (!nvdla_dev)
-		return -EFAULT;
-
-	pdev = nvdla_dev->pdev;
-	if (!pdev)
-		return -EFAULT;
-
-	err = kstrtol_from_user(buffer, count, 10, &val);
-	if (err < 0)
-		return err;
-
-	if (val < 0) /* "0" to disable WAR, positive value to enable WAR */
-		return count;
-
-#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
-	if ((tegra_get_chipid() == TEGRA_CHIPID_TEGRA19) &&
-		(tegra_chip_get_revision() == TEGRA194_REVISION_A01))
-#else
-	if ((tegra_get_chip_id() == TEGRA194) &&
-		(tegra_chip_get_revision() == TEGRA_REVISION_A01))
-#endif
-		if (val)
-			nvdla_dev->quirks |= (NVDLA_QUIRK_T194_A01_WAR);
-		else
-			nvdla_dev->quirks &= (~NVDLA_QUIRK_T194_A01_WAR);
-	else
-		nvdla_dbg_info(pdev, "This WAR is valid only for T194-A01.");
-
-	return count;
-}
-
 static int debug_dla_fw_reload_show(struct seq_file *s, void *data)
 {
 	seq_puts(s, "0\n");
 	return 0;
 }
 
-static int debug_dla_fw_a01_war_show(struct seq_file *s, void *data)
-{
-	struct nvdla_device *nvdla_dev;
-
-	if (!s)
-		return -EFAULT;
-
-	nvdla_dev = (struct nvdla_device *)s->private;
-	if (!nvdla_dev)
-		return -EFAULT;
-
-	seq_printf(s, "%x\n", nvdla_dev->quirks);
-	return 0;
-}
-
 static int debug_dla_fw_reload_open(struct inode *inode, struct file *file)
 {
 	return single_open(file, debug_dla_fw_reload_show, inode->i_private);
-}
-
-static int debug_dla_fw_a01_war_open(struct inode *inode, struct file *file)
-{
-	return single_open(file, debug_dla_fw_a01_war_show, inode->i_private);
 }
 
 static const struct file_operations debug_dla_enable_trace_fops = {
@@ -682,14 +614,6 @@ static const struct file_operations nvdla_fw_reload_fops = {
 		.write		= debug_dla_fw_reload_set,
 };
 
-static const struct file_operations nvdla_a01_war_fops = {
-		.open		= debug_dla_fw_a01_war_open,
-		.read		= seq_read,
-		.llseek		= seq_lseek,
-		.release	= single_release,
-		.write		= debug_dla_fw_a01_war_set,
-};
-
 static void dla_fw_debugfs_init(struct platform_device *pdev)
 {
 	struct dentry *fw_dir, *fw_trace, *events, *fw_gcov;
@@ -710,10 +634,6 @@ static void dla_fw_debugfs_init(struct platform_device *pdev)
 
 	if (!debugfs_create_file("reload", 0600, fw_dir,
 			nvdla_dev, &nvdla_fw_reload_fops))
-		goto trace_failed;
-
-	if (!debugfs_create_file("a01_war", 0600, fw_dir,
-			nvdla_dev, &nvdla_a01_war_fops))
 		goto trace_failed;
 
 	fw_trace = debugfs_create_dir("trace", fw_dir);
