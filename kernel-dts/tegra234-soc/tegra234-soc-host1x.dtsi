@@ -234,6 +234,7 @@
 		tsec@15500000 {
 			compatible = "nvidia,tegra234-tsec";
 			reg = <0x0 0x15500000 0x0 0x00040000>;
+			interrupts = <0 228 0x04>;
 			resets = <&bpmp_resets TEGRA234_RESET_TSEC>;
 			clocks = <&bpmp_clks TEGRA234_CLK_TSEC>,
 				 <&bpmp_clks TEGRA234_CLK_FUSE>,
