@@ -156,6 +156,44 @@ static int ether_set_avb_algo(struct net_device *ndev,
 }
 
 /**
+ * @brief Function to handle private ioctl - EQOS_M2M_TSYNC
+ *
+ * Algorithm: Call osi_m2m_tsync with user passed data
+ *
+ * @param[in] ndev: network device structure
+ * @param[in] ifdata: interface private data structure
+ *
+ * @note Ethernet interface need to be up.
+ *
+ * @retval 0 on Success
+ * @retval "nagative value" on Failure
+ */
+static int ether_m2m_tsync(struct net_device *ndev,
+			   struct ether_ifr_data *ifdata)
+{
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_ioctl ioctl_data = {};
+	int ret = -1;
+
+	if (ifdata->ptr == NULL) {
+		dev_err(pdata->dev, "%s: Invalid data for priv ioctl %d\n",
+			__func__, ifdata->ifcmd);
+		return ret;
+	}
+
+	if (copy_from_user(&ioctl_data.arg1_u32,
+			   (unsigned int *)ifdata->ptr,
+			   sizeof(unsigned int)) != 0U) {
+		dev_err(pdata->dev,
+			"Failed to fetch input info from user\n");
+		return ret;
+	}
+
+	ioctl_data.cmd = OSI_CMD_CONF_M2M_TS;
+	return osi_handle_ioctl(osi_core, &ioctl_data);
+}
+/**
  * @brief Function to get TSC and PTP time capture. This function is called for
  * ETHER_CAP_TSC_PTP
  *
@@ -1306,6 +1344,10 @@ int ether_handle_priv_ioctl(struct net_device *ndev,
 #endif
 	case ETHER_CAP_TSC_PTP:
 		ret = ether_get_tsc_ptp_cap(ndev, &ifdata);
+		break;
+
+	case ETHER_M2M_TSYNC:
+		ret = ether_m2m_tsync(ndev, &ifdata);
 		break;
 	default:
 		break;
