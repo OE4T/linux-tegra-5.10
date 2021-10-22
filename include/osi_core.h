@@ -231,6 +231,7 @@ typedef my_lint_64		nvel64_t;
 #endif /* OSI_DEBUG */
 #define OSI_CMD_CAP_TSC_PTP		46U
 #define OSI_CMD_MAC_MTU			47U
+#define OSI_CMD_CONF_M2M_TS		48U
 /** @} */
 
 /**
@@ -2313,6 +2314,10 @@ nve32_t osi_get_hw_features(struct osi_core_priv_data *const osi_core,
  *      Capture TSC and PTP time stamp
  *      ptp_tsc_data - output structure with time
  *
+ *  - OSI_CMD_CONF_M2M_TS
+ *	Enable/Disable MAC to MAC time sync for Secondary interface
+ *	enable_disable - 1 - enable, 0- disable
+ *
  * @param[in] osi_core: OSI core private data structure.
  * @param[in] data: void pointer pointing to osi_ioctl
  *
@@ -2508,6 +2513,10 @@ struct osi_core_priv_data *osi_get_core(void);
  *  - OSI_CMD_CAP_TSC_PTP
  *      Capture TSC and PTP time stamp
  *      ptp_tsc_data - output structure with time
+ *
+ *  - OSI_CMD_CONF_M2M_TS
+ *	Enable/Disable MAC to MAC time sync for Secondary interface
+ *	enable_disable - 1 - enable, 0- disable
  *
  * @param[in] osi_core: OSI core private data structure.
  * @param[in] data: void pointer pointing to osi_ioctl
