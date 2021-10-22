@@ -51,6 +51,9 @@
 
 #include "class_ids_t194.h"
 
+#include "nvdla/dla_t19x_fw_version.h"
+#include "nvdla/dla_t23x_fw_version.h"
+
 /*
  * Work to handle engine reset for error recovery
  */
@@ -801,34 +804,22 @@ static int nvdla_probe(struct platform_device *pdev)
 		goto err_get_pdata;
 	}
 
-#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
-	if (tegra_get_chipid() == TEGRA_CHIPID_TEGRA19 &&
-#else
-	if (tegra_get_chip_id() == TEGRA194 &&
-#endif
-		tegra_get_sku_id() == 0x9E) {
+	if (pdata->version == FIRMWARE_ENCODE_VERSION(T19X) &&
+			tegra_get_sku_id() == 0x9E) {
 		dev_err(dev, "NVDLA IP is disabled in SKU\n");
 		err = -ENODEV;
 		goto err_no_ip;
 	}
 
-#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
-	if (tegra_get_chipid() == TEGRA_CHIPID_TEGRA19 &&
-#else
-	if (tegra_get_chip_id() == TEGRA194 &&
-#endif
-		tegra_get_sku_id() == 0x9F &&
-		pdata->class == NV_DLA1_CLASS_ID) {
+	if (pdata->version == FIRMWARE_ENCODE_VERSION(T19X) &&
+			tegra_get_sku_id() == 0x9F &&
+			pdata->class == NV_DLA1_CLASS_ID) {
 		dev_err(dev, "NVDLA1 IP is disabled in SKU\n");
 		err = -ENODEV;
 		goto err_no_ip;
 	}
 
-#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
-	if (tegra_get_chipid() == TEGRA_CHIPID_TEGRA23) {
-#else
-	if (tegra_get_chip_id() == TEGRA234) {
-#endif
+	if (pdata->version == FIRMWARE_ENCODE_VERSION(T23X)) {
 		fuse_ret = nvhost_nvdla_read_chip_option_register(pdev);
 
 		if ((fuse_ret & FUSE_OPT_DLA_0_DISABLED) &&
