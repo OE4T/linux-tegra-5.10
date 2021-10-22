@@ -220,6 +220,7 @@ static int nvhost_tsec_riscv_poweron(struct platform_device *dev)
 	struct RM_FLCN_HDCP22_CMD_MONITOR_OFF hdcp22Cmd;
 	u8 cmd_size = RM_FLCN_CMD_SIZE(HDCP22, MONITOR_OFF);
 	u32 cmdDataSize = RM_FLCN_CMD_BODY_SIZE(HDCP22, MONITOR_OFF);
+	int idx;
 #endif //CMD_INTERFACE_TEST
 	int err = 0;
 	struct riscv_data *m;
@@ -352,16 +353,17 @@ static int nvhost_tsec_riscv_poweron(struct platform_device *dev)
 
 #if CMD_INTERFACE_TEST
 
-	hdcp22Cmd.cmdType = RM_FLCN_HDCP22_CMD_ID_MONITOR_OFF;
-	hdcp22Cmd.sorNum = -1;
-	hdcp22Cmd.dfpSublinkMask = -1;
-
-	cmd.cmdGen.hdr.size = cmd_size;
-	cmd.cmdGen.hdr.unitId = RM_GSP_UNIT_HDCP22WIRED;
-	memcpy(&cmd.cmdGen.cmd, &hdcp22Cmd, cmdDataSize);
-
-	nvhost_tsec_send_cmd((void *)&cmd, 0, NULL);
-
+	pr_debug("cmd_size=%d, cmdDataSize=%d\n", cmd_size, cmdDataSize);
+	for (idx = 0; idx < 1; idx++) {
+		hdcp22Cmd.cmdType = RM_FLCN_HDCP22_CMD_ID_MONITOR_OFF;
+		hdcp22Cmd.sorNum = -1;
+		hdcp22Cmd.dfpSublinkMask = -1;
+		cmd.cmdGen.hdr.size = cmd_size;
+		cmd.cmdGen.hdr.unitId = RM_GSP_UNIT_HDCP22WIRED;
+		cmd.cmdGen.hdr.seqNumId = idx+1;
+		memcpy(&cmd.cmdGen.cmd, &hdcp22Cmd, cmdDataSize);
+		nvhost_tsec_send_cmd((void *)&cmd, 0, NULL);
+	}
 #endif //CMD_INTERFACE_TEST
 
 	return err;
@@ -401,13 +403,14 @@ int nvhost_tsec_prepare_poweroff_t23x(struct platform_device *dev)
 }
 
 #define TSEC_CMD_EMEM_SIZE 4
-#define MSG_QUEUE_PORT 0
+#define TSEC_MSG_QUEUE_PORT 0
 #define TSEC_EMEM_START 0x1000000
 #define TSEC_EMEM_SIZE 0x2000
 #define TSEC_TASK_START 0xa5a5a5a5
 #define INIT_MSG_WAIT_TIME_MS 2000
 #define TASK_START_WAIT_TIME_MS 2000
 #define TSEC_TAIL_POLL_TIME 50
+#define TSEC_SMMU_IDX BIT_ULL(40);
 
 /* Init message from RISCV
  * Keep Init message received check disabled.
@@ -549,10 +552,16 @@ int nvhost_tsec_send_cmd(void *cmd, u32 queue_id,
 	void (*callback_func)(void *))
 {
 	union RM_FLCN_CMD *flcn_cmd;
+	struct RM_FLCN_QUEUE_HDR hdr;
 	u8 cmd_size;
 	u32 head;
+	u32 tail;
 	u32 cmdq_head_base;
+	u32 cmdq_tail_base;
 	u32 cmdq_head_stride;
+	u32 cmdq_tail_stride;
+	static u32 cmdq_start;
+	u32 cmdq_size = 0x80;
 
 	if (!init_msg_rcvd) {
 		int i;
@@ -584,8 +593,17 @@ int nvhost_tsec_send_cmd(void *cmd, u32 queue_id,
 		}
 	}
 
+
 	cmdq_head_base = tsec_queue_head_r(0);
 	cmdq_head_stride = tsec_queue_head_r(1) - tsec_queue_head_r(0);
+	cmdq_tail_base = tsec_queue_tail_r(0);
+	cmdq_tail_stride = tsec_queue_tail_r(1) - tsec_queue_tail_r(0);
+
+	if (!cmdq_start) {
+		cmdq_start = host1x_readl(tsec, (cmdq_tail_base +
+						(queue_id * cmdq_tail_stride)));
+		dev_warn(&tsec->dev, "cmdq_start=0x%x\n", cmdq_start);
+	}
 
 	if (validate_cmd(cmd, queue_id != 0)) {
 		dev_dbg(&tsec->dev, "CMD: %s: %d Invalid command\n",
@@ -608,9 +626,46 @@ int nvhost_tsec_send_cmd(void *cmd, u32 queue_id,
 	head = host1x_readl(tsec,
 		(cmdq_head_base + (queue_id * cmdq_head_stride)));
 
+check_space:
+	tail = host1x_readl(tsec, (cmdq_tail_base +
+				   (queue_id * cmdq_tail_stride)));
+	if (head < cmdq_start || tail < cmdq_start)
+		pr_err("***** head/tail invalid, h=0x%x,t=0x%x\n", head, tail);
+
+	if (tail > head) {
+		if ((head + cmd_size) < tail)
+			goto enqueue;
+		udelay(TSEC_TAIL_POLL_TIME);
+		goto check_space;
+	} else {
+
+		if ((head + cmd_size) < (cmdq_start + cmdq_size)) {
+			goto enqueue;
+		} else {
+			if ((cmdq_start + cmd_size) < tail) {
+				goto rewind;
+			} else {
+				udelay(TSEC_TAIL_POLL_TIME);
+				goto check_space;
+			}
+		}
+	}
+
+rewind:
+	hdr.unitId = RM_GSP_UNIT_REWIND;
+	hdr.size = RM_FLCN_QUEUE_HDR_SIZE;
+	hdr.ctrlFlags = 0;
+	hdr.seqNumId = 0;
+	if (emem_copy_to(head, (u8 *)&hdr, hdr.size, 0))
+		return -EINVAL;
+	head = cmdq_start;
+	host1x_writel(tsec, (cmdq_head_base +
+			     (queue_id * cmdq_head_stride)), head);
+	pr_debug("CMDQ: rewind h=%x,t=%x\n", head, tail);
+
+enqueue:
 	if (emem_copy_to(head, (u8 *)flcn_cmd, cmd_size, 0))
 		return -EINVAL;
-
 	head += ALIGN(cmd_size, 4);
 	host1x_writel(tsec, (cmdq_head_base +
 		(queue_id * cmdq_head_stride)), head);
@@ -624,19 +679,30 @@ static irqreturn_t process_msg(int irq, void *args)
 	u32 head = 0;
 	u32 msgq_head_base;
 	u32 msgq_tail_base;
-
 	u32 msgq_head_stride;
 	u32 msgq_tail_stride;
+	static u32 msgq_start;
 	u32 queue_id = 0;
 	struct RM_FLCN_MSG_GSP gsp_msg;
 	struct RM_GSP_INIT_MSG_GSP_INIT *gsp_init_msg;
 
-	msgq_head_base = tsec_msgq_head_r(MSG_QUEUE_PORT);
-	msgq_tail_base = tsec_msgq_tail_r(MSG_QUEUE_PORT);
+	msgq_head_base = tsec_msgq_head_r(TSEC_MSG_QUEUE_PORT);
+	msgq_tail_base = tsec_msgq_tail_r(TSEC_MSG_QUEUE_PORT);
 
 	msgq_head_stride = tsec_msgq_head_r(1) - tsec_msgq_head_r(0);
 	msgq_tail_stride = tsec_msgq_tail_r(1) - tsec_msgq_tail_r(0);
 	gsp_init_msg = (struct RM_GSP_INIT_MSG_GSP_INIT *) &gsp_msg.msg;
+
+	if (!msgq_start) {
+		msgq_start = host1x_readl(tsec, (msgq_tail_base +
+						(msgq_tail_stride * queue_id)));
+		while (!msgq_start) {
+			dev_warn(&tsec->dev, "msgq_start=0x%x\n", msgq_start);
+			udelay(TSEC_TAIL_POLL_TIME);
+			msgq_start = host1x_readl(tsec, (msgq_tail_base +
+						(msgq_tail_stride * queue_id)));
+		}
+	}
 
 	tail = host1x_readl(tsec, (msgq_tail_base +
 				   (msgq_tail_stride * queue_id)));
@@ -650,7 +716,7 @@ static irqreturn_t process_msg(int irq, void *args)
 	}
 
 	if (tail == head) {
-		dev_info(&tsec->dev, "Empty MSGQ tail(0x%x): 0x%x head(0x%x): 0x%x\n",
+		dev_dbg(&tsec->dev, "Empty MSGQ tail(0x%x): 0x%x head(0x%x): 0x%x\n",
 			(msgq_tail_base + (msgq_tail_stride * queue_id)),
 			tail,
 			(msgq_head_base + (msgq_head_stride * queue_id)),
@@ -658,7 +724,7 @@ static irqreturn_t process_msg(int irq, void *args)
 		return IRQ_HANDLED;
 	}
 
-	while (tail < head) {
+	while (tail != head) {
 
 		/* read header */
 		emem_copy_from(tail, (u8 *)&gsp_msg.hdr,
@@ -684,6 +750,12 @@ static irqreturn_t process_msg(int irq, void *args)
 			if (gsp_msg.hdr.unitId == RM_GSP_UNIT_HDCP22WIRED) {
 				dev_dbg(&tsec->dev, "MSGQ: %s(%d) RM_GSP_UNIT_HDCP22WIRED\n",
 					__func__, __LINE__);
+			} else if (gsp_msg.hdr.unitId == RM_GSP_UNIT_REWIND) {
+				tail = msgq_start;
+				host1x_writel(tsec, (msgq_tail_base +
+						     (msgq_tail_stride * queue_id)), tail);
+				pr_debug("MSGQ tail rewinded\n");
+				continue;
 			} else {
 				dev_dbg(&tsec->dev, "MSGQ: %s(%d) what msg could it be 0x%x?\n",
 					__func__, __LINE__, gsp_msg.hdr.unitId);
@@ -751,7 +823,6 @@ void nvhost_tsec_free_payload_mem(size_t size, void *cpu_addr, dma_addr_t dma_ad
 	dma_free_attrs(&tsec->dev, size, cpu_addr, dma_addr, 0);
 }
 EXPORT_SYMBOL(nvhost_tsec_free_payload_mem);
-
 
 int nvhost_tsec_cmdif_open(void)
 {

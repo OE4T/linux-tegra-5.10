@@ -551,9 +551,10 @@ union RM_FLCN_CMD {
 };
 
 #define RM_DPU_LOG_QUEUE_NUM	2
+#define RM_GSP_UNIT_REWIND	(0x00)
 #define RM_GSP_UNIT_INIT	(0x02)
-#define RM_GSP_UNIT_END		(0x11)
 #define RM_GSP_UNIT_HDCP22WIRED	(0x06)
+#define RM_GSP_UNIT_END		(0x11)
 
 struct RM_GSP_INIT_MSG_GSP_INIT {
 	u8	msgType;
