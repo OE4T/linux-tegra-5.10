@@ -24,8 +24,8 @@
 		generic_reserved: generic_carveout {
 			compatible = "nvidia,generic_carveout";
 			size = <0 0>;
-			alignment = <0 0x200000>;
-			alloc-ranges = <0 0 0x1 0>;
+			alignment = <0 0x100000>;
+			alloc-ranges = <0x1 0 0x1 0>;
 			no-map;
 			status = "disabled";
 		};
