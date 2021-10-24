@@ -12,7 +12,6 @@
  *
  */
 
-#define DEBUG
 #include <linux/ioctl.h>
 #include <linux/types.h>
 #include <linux/of_platform.h>
@@ -178,6 +177,7 @@ static ssize_t psc_debug_write(struct file *file, const char __user *buffer,
 		ret = -EFAULT;
 		goto return_unlock;
 	}
+	atomic_set(&dbg->data_ready, RX_IDLE);
 	ret = mbox_send_message(dbg->chan, tx_buf);
 
 return_unlock:
@@ -250,6 +250,7 @@ static long xfer_data(struct file *file, char __user *data)
 	msg.tx_size = info.tx_size;
 	msg.rx_size = info.rx_size;
 
+	atomic_set(&dbg->data_ready, RX_IDLE);
 	ret = mbox_send_message(dbg->chan, &msg);
 	if (ret < 0) {
 		dev_err(dev, "mbox_send_message() failed: ret:%ld\n", ret);
@@ -264,9 +265,6 @@ static long xfer_data(struct file *file, char __user *data)
 		ret = -EINTR;
 		goto free_rx;
 	}
-
-	dev_dbg(dev, "dbg->msg[%x %x %x %x]\n",
-		dbg->rx_msg[0], dbg->rx_msg[1], dbg->rx_msg[2], dbg->rx_msg[3]);
 
 	/* copy mbox payload */
 	if (copy_to_user(&ptr_xfer->out[0],
