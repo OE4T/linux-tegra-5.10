@@ -289,6 +289,19 @@ exit:
 	return ret;
 }
 
+static u32 fb_tlb_invalidate_calls;
+static u32 fb_tlb_invalidate_fail_mask;
+
+static int test_fail_fb_tlb_invalidate(struct gk20a *g, struct nvgpu_mem *pdb)
+{
+	bool fail = (fb_tlb_invalidate_fail_mask & 1U) != 0U;
+
+	fb_tlb_invalidate_fail_mask >>= 1U;
+	fb_tlb_invalidate_calls++;
+
+	return fail ? -ETIMEDOUT : 0;
+}
+
 int test_map_buffer_error_cases(struct unit_module *m, struct gk20a *g,
 	void *__args)
 {
@@ -618,6 +631,222 @@ int test_map_buffer_security(struct unit_module *m, struct gk20a *g,
 	ret = UNIT_SUCCESS;
 
 free_sgt_os_buf:
+	if (sgt != NULL) {
+		nvgpu_sgt_free(g, sgt);
+	}
+	if (os_buf.buf != NULL) {
+		nvgpu_kfree(g, os_buf.buf);
+	}
+
+exit:
+	if (ret == UNIT_FAIL) {
+		unit_err(m, "Buffer mapping failed\n");
+	}
+
+	if (vm != NULL) {
+		nvgpu_vm_put(vm);
+	}
+
+	return ret;
+}
+
+int test_map_buffer_security_error_cases(struct unit_module *m, struct gk20a *g,
+	void *__args)
+{
+	struct vm_gk20a *vm;
+	int ret = UNIT_FAIL;
+	struct nvgpu_os_buffer os_buf = {0};
+	struct nvgpu_mem_sgl sgl_list[1];
+	struct nvgpu_mem mem = {0};
+	struct nvgpu_sgt *sgt = NULL;
+	/*
+	 * - small pages are used
+	 * - four pages of page directories, one per level (0, 1, 2, 3)
+	 * - 4KB/8B = 512 entries per page table chunk
+	 * - a PD cache size of 64K fits 16x 4k-sized PTE pages
+	 */
+	size_t buf_size = SZ_4K * ((16 - 4 + 1) * (SZ_4K / 8U) + 1);
+	struct nvgpu_mapped_buf *mapped_buf = NULL;
+	struct nvgpu_posix_fault_inj *kmem_fi =
+		nvgpu_kmem_get_fault_injection();
+
+	vm = create_test_vm(m, g);
+
+	if (vm == NULL) {
+		unit_err(m, "vm is NULL\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	int (*old_fb_tlb_invalidate)(struct gk20a *, struct nvgpu_mem *) = g->ops.fb.tlb_invalidate;
+
+	/* Allocate a CPU buffer */
+	os_buf.buf = nvgpu_kzalloc(g, buf_size);
+	if (os_buf.buf == NULL) {
+		unit_err(m, "Failed to allocate a CPU buffer\n");
+		ret = UNIT_FAIL;
+		goto free_sgt_os_buf;
+	}
+	os_buf.size = buf_size;
+
+	memset(&sgl_list[0], 0, sizeof(sgl_list[0]));
+	sgl_list[0].phys = BUF_CPU_PA;
+	sgl_list[0].dma = 0;
+	sgl_list[0].length = buf_size;
+
+	mem.size = buf_size;
+	mem.cpu_va = os_buf.buf;
+
+	/* Create sgt */
+	sgt = custom_sgt_create(m, g, &mem, sgl_list, 1);
+	if (sgt == NULL) {
+		ret = UNIT_FAIL;
+		goto free_sgt_os_buf;
+	}
+
+	u64 gpuva = buf_size;
+	u32 pte[2];
+
+	/* control nvgpu_gmmu_cache_maint_unmap and nvgpu_gmmu_cache_maint_map failures */
+	g->ops.fb.tlb_invalidate = test_fail_fb_tlb_invalidate;
+
+	/* Make nvgpu_gmmu_update_page_table fail; see test_map_buffer_security */
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, 6);
+
+	/* Make the unmap cache maint fail too */
+	fb_tlb_invalidate_fail_mask = 1U;
+	fb_tlb_invalidate_calls = 0U;
+	ret = nvgpu_vm_map(vm,
+			   &os_buf,
+			   sgt,
+			   gpuva,
+			   buf_size,
+			   0,
+			   gk20a_mem_flag_none,
+			   NVGPU_VM_MAP_ACCESS_READ_WRITE,
+			   NVGPU_VM_MAP_CACHEABLE,
+			   NV_KIND_INVALID,
+			   0,
+			   NULL,
+			   APERTURE_SYSMEM,
+			   &mapped_buf);
+
+	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+
+	if (ret != -ENOMEM) {
+		unit_err(m, "nvgpu_vm_map did not fail as expected (7)\n");
+		ret = UNIT_FAIL;
+		goto free_sgt_os_buf;
+	}
+
+	if (fb_tlb_invalidate_calls != 1U) {
+		unit_err(m, "tlb invalidate called %u, not as expected 1\n",
+				fb_tlb_invalidate_calls);
+		ret = UNIT_FAIL;
+		goto free_sgt_os_buf;
+	}
+	fb_tlb_invalidate_calls = 0U;
+
+	/* Successful map but failed cache maintenance once */
+	fb_tlb_invalidate_fail_mask = 1U;
+	fb_tlb_invalidate_calls = 0U;
+	ret = nvgpu_vm_map(vm,
+			   &os_buf,
+			   sgt,
+			   0,
+			   buf_size,
+			   0,
+			   gk20a_mem_flag_none,
+			   NVGPU_VM_MAP_ACCESS_READ_WRITE,
+			   NVGPU_VM_MAP_CACHEABLE,
+			   NV_KIND_INVALID,
+			   0,
+			   NULL,
+			   APERTURE_SYSMEM,
+			   &mapped_buf);
+
+	if (ret != -ENOMEM) {
+		unit_err(m, "nvgpu_vm_map did not fail as expected (8)\n");
+		ret = UNIT_FAIL;
+		goto free_sgt_os_buf;
+	}
+
+	if (fb_tlb_invalidate_calls != 2U) {
+		unit_err(m, "tlb invalidate called %u, not as expected 2\n",
+				fb_tlb_invalidate_calls);
+		ret = UNIT_FAIL;
+		goto free_sgt_os_buf;
+	}
+
+	ret = nvgpu_get_pte(g, vm, gpuva, pte);
+	if (ret != 0) {
+		unit_err(m, "PTE lookup after map failed\n");
+		ret = UNIT_FAIL;
+		goto free_sgt_os_buf;
+	}
+
+	if (pte[0] != 0U || pte[1] != 0U) {
+		unit_err(m, "Mapping failed but pte is not zero (0x%x 0x%x)\n",
+			 pte[0], pte[1]);
+		unit_err(m, "Pte addr %llx, buf %llx\n",
+			 pte_get_phys_addr(m, pte), sgl_list[0].phys);
+
+		ret = UNIT_FAIL;
+		goto free_sgt_os_buf;
+	}
+
+	/* Successful map but failed cache maintenance twice */
+	fb_tlb_invalidate_fail_mask = 3U;
+	fb_tlb_invalidate_calls = 0U;
+	ret = nvgpu_vm_map(vm,
+			   &os_buf,
+			   sgt,
+			   0,
+			   buf_size,
+			   0,
+			   gk20a_mem_flag_none,
+			   NVGPU_VM_MAP_ACCESS_READ_WRITE,
+			   NVGPU_VM_MAP_CACHEABLE,
+			   NV_KIND_INVALID,
+			   0,
+			   NULL,
+			   APERTURE_SYSMEM,
+			   &mapped_buf);
+
+	if (ret != -ENOMEM) {
+		unit_err(m, "nvgpu_vm_map did not fail as expected (9)\n");
+		ret = UNIT_FAIL;
+		goto free_sgt_os_buf;
+	}
+
+	if (fb_tlb_invalidate_calls != 2U) {
+		unit_err(m, "tlb invalidate called %u, not as expected 2\n",
+				fb_tlb_invalidate_calls);
+		ret = UNIT_FAIL;
+		goto free_sgt_os_buf;
+	}
+
+	ret = nvgpu_get_pte(g, vm, gpuva, pte);
+	if (ret != 0) {
+		unit_err(m, "PTE lookup after map failed (2)\n");
+		ret = UNIT_FAIL;
+		goto free_sgt_os_buf;
+	}
+
+	if (pte[0] != 0U || pte[1] != 0U) {
+		unit_err(m, "Mapping (2) failed but pte is not zero (0x%x 0x%x)\n",
+			 pte[0], pte[1]);
+		unit_err(m, "Pte addr %llx, buf %llx\n",
+			 pte_get_phys_addr(m, pte), sgl_list[0].phys);
+
+		ret = UNIT_FAIL;
+		goto free_sgt_os_buf;
+	}
+
+	ret = UNIT_SUCCESS;
+
+free_sgt_os_buf:
+	g->ops.fb.tlb_invalidate = old_fb_tlb_invalidate;
 	if (sgt != NULL) {
 		nvgpu_sgt_free(g, sgt);
 	}
@@ -2181,6 +2410,7 @@ struct unit_module_test vm_tests[] = {
 	UNIT_TEST(init_error_paths, test_init_error_paths, NULL, 0),
 	UNIT_TEST(map_buffer_error_cases, test_map_buffer_error_cases, NULL, 0),
 	UNIT_TEST(map_buffer_security, test_map_buffer_security, NULL, 0),
+	UNIT_TEST(map_buffer_security_error_cases, test_map_buffer_security_error_cases, NULL, 0),
 	UNIT_TEST(nvgpu_vm_alloc_va, test_nvgpu_vm_alloc_va, NULL, 0),
 	UNIT_TEST(vm_bind, test_vm_bind, NULL, 2),
 	UNIT_TEST(vm_aspace_id, test_vm_aspace_id, NULL, 0),

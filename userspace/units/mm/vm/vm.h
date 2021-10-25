@@ -283,6 +283,46 @@ int test_map_buffer_security(struct unit_module *m, struct gk20a *g,
 	void *__args);
 
 /**
+ * Test specification for: test_map_buffer_security_error_cases
+ *
+ * Description: This negative test targets mapping security related error
+ * conditions within the nvgpu_vm_map API.
+ *
+ * Test Type: Error injection, Security, Safety
+ *
+ * Targets: nvgpu_vm_init, nvgpu_vm_map, nvgpu_vm_put
+ *
+ * Input: None
+ *
+ * Steps:
+ * - Initialize a VM with the following characteristics:
+ *   - 64KB large page support enabled
+ *   - Low hole size = 64MB
+ *   - Address space size = 128GB
+ *   - Kernel reserved space size = 4GB
+ * - Obtain a buffer whose size would not fit in one set of PTEs that fit in
+ *   the first allocated PD cache entry
+ * - Prepare a fixed mapping address at the same address as the buffer size
+ * - Inject a memory allocation error at allocation 6 to fail PD entries and a
+ *   tlb invalidation error at next call to target the cache maint error after
+ *   page table updates. Validate that nvgpu_vm_map reports -ENOMEM.
+ * - Inject a tlb invalidation error at next call to target the cache maint
+ *   error after successful page table updates, causing the entries to get
+ *   unmapped. Validate that nvgpu_vm_map reports -ENOMEM.
+ * - Check that a PTE that matches that virtual address is not valid.
+ * - Inject two tlb invalidation errors at next calls to target the cache maint
+ *   error after successful page table updates, causing the entries to get
+ *   unmapped. Validate that nvgpu_vm_map reports -ENOMEM.
+ * - Check that a PTE that matches that virtual address is not valid.
+ * - Uninitialize the VM
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_map_buffer_security_error_cases(struct unit_module *m, struct gk20a *g,
+	void *__args);
+
+/**
  * Test specification for: test_nvgpu_vm_alloc_va
  *
  * Description: This test targets the nvgpu_vm_alloc_va API.
