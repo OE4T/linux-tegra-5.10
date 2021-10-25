@@ -73,8 +73,9 @@
 		       0x0 0xf14a000 0x0 0x2000   /* PMA */
 		       0x0 0xf14d000 0x0 0x1000>; /* RTR */
 
-		clocks = <&bpmp_clks TEGRA234_CLK_LA>;
-		clock-names = "la";
+		clocks = <&bpmp_clks TEGRA234_CLK_LA>,
+				<&bpmp_clks TEGRA234_CLK_PLLREFE_VCOOUT_GATED>;
+		clock-names = "la", "parent";
 		resets = <&bpmp_resets TEGRA234_RESET_LA>,
 			<&bpmp_resets TEGRA234_RESET_HWPM>;
 		reset-names = "la", "hwpm";
