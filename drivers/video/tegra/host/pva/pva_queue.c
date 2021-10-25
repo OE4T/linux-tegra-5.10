@@ -631,10 +631,23 @@ static int pva_task_write(struct pva_submit_task *task)
 	hw_task->task.bin_info =
 	    phys_get_bin_info(&task->client->elf_ctx, task->exe_id);
 
+	if (task->stdout) {
+		hw_task->stdout_cb_info.buffer = task->stdout->buffer_addr;
+		hw_task->stdout_cb_info.head = task->stdout->head_addr;
+		hw_task->stdout_cb_info.tail = task->stdout->tail_addr;
+		hw_task->stdout_cb_info.err = task->stdout->err_addr;
+		hw_task->stdout_cb_info.buffer_size = task->stdout->size;
+		hw_task->task.stdout_info =
+			task->dma_addr +
+			offsetof(struct pva_hw_task, stdout_cb_info);
+	} else
+		hw_task->task.stdout_info = 0;
+
 out:
 
 	return err;
 }
+
 void pva_task_free(struct kref *ref)
 {
 	struct pva_submit_task *task =
@@ -718,8 +731,9 @@ static void update_one_task(struct pva *pva)
 	    stats->input_actions_complete, stats->vpu_assigned_time,
 	    stats->vpu_start_time, stats->vpu_complete_time,
 	    stats->complete_time, stats->vpu_assigned, r5_overhead);
-		/* Not linked anymore so drop the reference */
-		kref_put(&task->ref, pva_task_free);
+
+	/* Not linked anymore so drop the reference */
+	kref_put(&task->ref, pva_task_free);
 }
 
 void pva_task_update(struct work_struct *work)

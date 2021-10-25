@@ -213,6 +213,8 @@ struct PVA_PACKED pva_td_s {
 	pva_iova bin_info;
 	/** IOVA pointer to a struct pva_dma_info_s structure */
 	pva_iova dma_info;
+	/** IOVA pointer to a pva_circular_info_t structure */
+	pva_iova stdout_info;
 
 	/** Number of pre-actions */
 	uint8_t num_preactions;
@@ -361,4 +363,15 @@ struct PVA_PACKED pva_task_error_s {
 	/* Queue to which the task belongs */
 	uint8_t queue;
 };
+
+
+struct PVA_PACKED pva_circular_buffer_info_s {
+	pva_iova head;
+	pva_iova tail;
+	pva_iova err;
+	pva_iova buffer;
+	uint32_t buffer_size;
+};
+
+
 #endif

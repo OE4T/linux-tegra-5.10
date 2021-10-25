@@ -15,6 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <linux/err.h>
 #include <linux/jiffies.h>
 #include <linux/list.h>
 #include <linux/mutex.h>
@@ -24,6 +25,7 @@
 #include <linux/fs.h>
 #include <linux/uaccess.h>
 #include <linux/slab.h>
+#include <linux/circ_buf.h>
 #include <linux/nospec.h>
 #include <asm/ioctls.h>
 #include <asm/barrier.h>
@@ -49,6 +51,7 @@
 struct pva_private {
 	struct pva *pva;
 	struct nvpva_queue *queue;
+	struct pva_cb *vpu_print_buffer;
 	struct nvpva_client_context *client;
 };
 
@@ -82,6 +85,81 @@ static int copy_part_from_user(void *kbuffer, size_t kbuffer_size,
 out:
 	return err;
 }
+
+static struct pva_cb *pva_alloc_cb(struct device *dev, uint32_t size)
+{
+	int err;
+	struct pva_cb *cb;
+
+	if ((size == 0) || (((size - 1) & size) != 0)) {
+		dev_err(dev, "invalid circular buffer size: %u; it must be 2^N.", size);
+		err = -EINVAL;
+		goto out;
+	}
+
+	cb = kzalloc(sizeof(*cb), GFP_KERNEL);
+	if (IS_ERR_OR_NULL(cb)) {
+		err = PTR_ERR(cb);
+		goto out;
+	}
+
+	cb->size = size;
+	cb->buffer_va =
+		dma_alloc_coherent(dev, cb->size, &cb->buffer_addr, GFP_KERNEL);
+
+	if (IS_ERR_OR_NULL(cb->buffer_va)) {
+		err = PTR_ERR(cb->buffer_va);
+		goto free_mem;
+	}
+
+	cb->head_va = dma_alloc_coherent(dev, sizeof(uint32_t), &cb->head_addr,
+					 GFP_KERNEL);
+	if (IS_ERR_OR_NULL(cb->head_va)) {
+		err = PTR_ERR(cb->head_va);
+		goto free_buffer;
+	}
+
+	cb->tail_va = dma_alloc_coherent(dev, sizeof(uint32_t), &cb->tail_addr,
+					 GFP_KERNEL);
+	if (IS_ERR_OR_NULL(cb->tail_va)) {
+		err = PTR_ERR(cb->tail_va);
+		goto free_head;
+	}
+
+	cb->err_va = dma_alloc_coherent(dev, sizeof(uint32_t), &cb->err_addr,
+					 GFP_KERNEL);
+	if (IS_ERR_OR_NULL(cb->err_va)) {
+		err = PTR_ERR(cb->err_va);
+		goto free_tail;
+	}
+
+	*cb->head_va = 0;
+	cb->tail = 0;
+	*cb->tail_va = cb->tail;
+	*cb->err_va = 0;
+	return cb;
+
+free_tail:
+	dma_free_coherent(dev, sizeof(uint32_t), cb->tail_va, cb->tail_addr);
+free_head:
+	dma_free_coherent(dev, sizeof(uint32_t), cb->head_va, cb->head_addr);
+free_buffer:
+	dma_free_coherent(dev, cb->size, cb->buffer_va, cb->buffer_addr);
+free_mem:
+	kfree(cb);
+out:
+	return ERR_PTR(err);
+}
+
+static void pva_free_cb(struct device *dev, struct pva_cb *cb)
+{
+	dma_free_coherent(dev, sizeof(uint32_t), cb->tail_va, cb->tail_addr);
+	dma_free_coherent(dev, sizeof(uint32_t), cb->head_va, cb->head_addr);
+	dma_free_coherent(dev, sizeof(uint32_t), cb->err_va, cb->err_addr);
+	dma_free_coherent(dev, cb->size, cb->buffer_va, cb->buffer_addr);
+	kfree(cb);
+}
+
 
 /**
  * @brief	Copy a single task from userspace to kernel space
@@ -353,6 +431,8 @@ static int pva_submit(struct pva_private *priv, void *arg)
 		if (err)
 			goto free_tasks;
 
+		if (priv->pva->vpu_printf_enabled)
+			task->stdout = priv->vpu_print_buffer;
 	}
 
 	/* Populate header structure */
@@ -636,6 +716,129 @@ out:
 	return err;
 }
 
+/* Maximum VPU print buffer size is 16M */
+#define MAX_VPU_PRINT_BUFFER_SIZE (16 * (1 << 20))
+static int pva_set_vpu_print_buffer_size(struct pva_private *priv, void *arg)
+{
+	union nvpva_set_vpu_print_buffer_size_args *in_arg =
+		(union nvpva_set_vpu_print_buffer_size_args *)arg;
+	uint32_t buffer_size = in_arg->in.size;
+	struct device *dev = &priv->pva->pdev->dev;
+	int err = 0;
+
+	if (buffer_size > MAX_VPU_PRINT_BUFFER_SIZE) {
+		dev_err(&priv->pva->pdev->dev,
+			"requested VPU print buffer too large: %u > %u\n",
+			buffer_size, MAX_VPU_PRINT_BUFFER_SIZE);
+		err = -EINVAL;
+		goto out;
+	}
+
+	mutex_lock(&priv->queue->list_lock);
+	if (!list_empty(&priv->queue->tasklist)) {
+		dev_err(&priv->pva->pdev->dev,
+			"can't set VPU print buffer size when there's unfinished tasks\n");
+		err = -EAGAIN;
+		goto unlock;
+	}
+
+	if (priv->vpu_print_buffer != NULL) {
+		pva_free_cb(dev, priv->vpu_print_buffer);
+		priv->vpu_print_buffer = NULL;
+	}
+
+	if (buffer_size == 0)
+		goto unlock;
+
+	priv->vpu_print_buffer = pva_alloc_cb(dev, buffer_size);
+
+	if (IS_ERR(priv->vpu_print_buffer)) {
+		err = PTR_ERR(priv->vpu_print_buffer);
+		priv->vpu_print_buffer = NULL;
+	}
+
+unlock:
+	mutex_unlock(&priv->queue->list_lock);
+out:
+	return err;
+}
+
+static ssize_t pva_read_cb(struct pva_cb *cb, u8 __user *buffer,
+			   size_t buffer_size)
+{
+	const u32 tail = cb->tail;
+	const u32 head = *cb->head_va;
+	const u32 size = cb->size;
+	ssize_t ret = 0;
+	u32 transfer1_size;
+	u32 transfer2_size;
+
+	/*
+	 * Check if overflow happened, and if so, report it.
+	 */
+	if (*cb->err_va != 0) {
+		pr_warn("pva: VPU print buffer overflowed!\n");
+		ret = -ENOSPC;
+		goto out;
+	}
+
+	transfer1_size = CIRC_CNT_TO_END(head, tail, size);
+	if (transfer1_size <= buffer_size) {
+		buffer_size -= transfer1_size;
+	} else {
+		transfer1_size = buffer_size;
+		buffer_size = 0;
+	}
+
+	transfer2_size =
+		CIRC_CNT(head, tail, size) - CIRC_CNT_TO_END(head, tail, size);
+	if (transfer2_size <= buffer_size) {
+		buffer_size -= transfer2_size;
+	} else {
+		transfer2_size = buffer_size;
+		buffer_size = 0;
+	}
+
+	if (transfer1_size > 0) {
+		unsigned long failed_count;
+
+		failed_count = copy_to_user(buffer, cb->buffer_va + tail,
+					    transfer1_size);
+		if (failed_count > 0) {
+			pr_err("pva: VPU print buffer: write to user buffer 1 failed\n");
+			ret = -EFAULT;
+			goto out;
+		}
+	}
+
+	if (transfer2_size > 0) {
+		unsigned long failed_count;
+
+		failed_count = copy_to_user(&buffer[transfer1_size],
+					    cb->buffer_va, transfer2_size);
+		if (failed_count > 0) {
+			pr_err("pva: VPU print buffer: write to user buffer 2 failed\n");
+			ret = -EFAULT;
+			goto out;
+		}
+	}
+
+	cb->tail =
+		(cb->tail + transfer1_size + transfer2_size) & (cb->size - 1);
+
+	/*
+	 * Update tail so that firmware knows the content is consumed; Memory
+	 * barrier is needed here because the update should only be visible to
+	 * firmware after the content is read.
+	 */
+	mb();
+	*cb->tail_va = cb->tail;
+	ret = transfer1_size + transfer2_size;
+
+out:
+	return ret;
+}
+
 static long pva_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
 	struct pva_private *priv = file->private_data;
@@ -680,6 +883,9 @@ static long pva_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		break;
 	case NVPVA_IOCTL_SUBMIT:
 		err = pva_submit(priv, buf);
+		break;
+	case NVPVA_IOCTL_SET_VPU_PRINT_BUFFER_SIZE:
+		err = pva_set_vpu_print_buffer_size(priv, buf);
 		break;
 	default:
 		err = -ENOIOCTLCMD;
@@ -823,6 +1029,28 @@ static int pva_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
+static ssize_t pva_read_vpu_print_buffer(struct file *file,
+					 char __user *user_buffer,
+					 size_t buffer_size, loff_t *off)
+{
+	struct pva_private *priv = file->private_data;
+	ssize_t ret;
+
+	mutex_lock(&priv->queue->list_lock);
+
+	if (priv->vpu_print_buffer != NULL) {
+		ret = pva_read_cb(priv->vpu_print_buffer, user_buffer,
+				  buffer_size);
+	} else {
+		pr_warn("pva: VPU print buffer size needs to be specified\n");
+		ret = -EIO;
+	}
+
+	mutex_unlock(&priv->queue->list_lock);
+
+	return ret;
+}
+
 const struct file_operations tegra_pva_ctrl_ops = {
 	.owner = THIS_MODULE,
 	.llseek = no_llseek,
@@ -832,4 +1060,5 @@ const struct file_operations tegra_pva_ctrl_ops = {
 #endif
 	.open = pva_open,
 	.release = pva_release,
+	.read = pva_read_vpu_print_buffer,
 };

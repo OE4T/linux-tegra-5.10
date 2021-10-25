@@ -463,6 +463,14 @@ union nvpva_ioctl_submit_args {
 	struct nvpva_ioctl_submit_in_arg in;
 };
 
+struct nvpva_set_vpu_print_buffer_size_in_arg {
+	uint32_t size;
+};
+
+union nvpva_set_vpu_print_buffer_size_args {
+	struct nvpva_set_vpu_print_buffer_size_in_arg in;
+};
+
 /* There are 64 DMA descriptors in T19x and T23x. But R5 FW reserves
  * 4 DMA descriptors for internal use.
  */
@@ -509,7 +517,10 @@ union nvpva_ioctl_submit_args {
 #define NVPVA_IOCTL_GET_SYM_TAB \
 	_IOWR(NVPVA_IOCTL_MAGIC, 10, union nvpva_get_sym_tab_args)
 
-#define NVPVA_IOCTL_NUMBER_MAX 10
+#define NVPVA_IOCTL_SET_VPU_PRINT_BUFFER_SIZE \
+	_IOW(NVPVA_IOCTL_MAGIC, 11, union nvpva_set_vpu_print_buffer_size_args)
+
+#define NVPVA_IOCTL_NUMBER_MAX 11
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define NVPVA_IOCTL_MAX_SIZE                                 \
@@ -520,7 +531,8 @@ union nvpva_ioctl_submit_args {
 	    MAX(sizeof(union nvpva_unpin_args), \
 	    MAX(sizeof(union nvpva_ioctl_submit_args), \
 	    MAX(sizeof(union nvpva_get_sym_tab_args), \
-	    0)))))))
+	    MAX(sizeof(union nvpva_set_vpu_print_buffer_size_args), \
+	    0))))))))
 
 /* NvPva Task param limits */
 #define NVPVA_TASK_MAX_PREFENCES 8U

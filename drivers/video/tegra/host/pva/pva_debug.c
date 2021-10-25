@@ -223,8 +223,8 @@ void pva_debugfs_init(struct platform_device *pdev)
 	debugfs_create_file("firmware_version", S_IRUGO, de, pva,
 			    &print_version_fops);
 	debugfs_create_u32("cg_disable", 0644, de, &pva->slcg_disable);
-	debugfs_create_bool("vpu_perf_counters_enable", 0644, de,
-			    &pva->vpu_perf_counters_enable);
+	debugfs_create_bool("vpu_printf_enabled", 0644, de,
+			    &pva->vpu_printf_enabled);
 	debugfs_create_file("log_level", 0644, de, pva, &log_level_fops);
 
 	err = pva_vpu_ocd_init(pva);

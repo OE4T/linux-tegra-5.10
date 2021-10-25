@@ -37,6 +37,19 @@ struct pva_pinned_memory {
 	enum nvpva_buffers_heap heap;
 };
 
+struct pva_cb {
+	dma_addr_t head_addr;
+	uint32_t *head_va;
+	dma_addr_t tail_addr;
+	uint32_t *tail_va;
+	dma_addr_t err_addr;
+	uint32_t *err_va;
+	dma_addr_t buffer_addr;
+	uint8_t *buffer_va;
+	uint32_t tail;
+	uint32_t size;
+};
+
 /**
  * @brief	Describe a task for PVA
  *
@@ -87,6 +100,7 @@ struct pva_submit_task {
 	u32 exe_id;
 
 	u32 l2_alloc_size; /* Not applicable for Xavier */
+	struct pva_cb *stdout;
 	u32 symbol_payload_size;
 
 	u32 flags;
@@ -235,6 +249,7 @@ struct pva_hw_task {
 	struct pva_vpu_parameters_s param_list[NVPVA_TASK_MAX_SYMBOLS];
 	u8 sym_payload[NVPVA_TASK_MAX_PAYLOAD_SIZE];
 	struct pva_task_statistics_s statistics;
+	struct pva_circular_buffer_info_s stdout_cb_info;
 };
 
 void pva_task_remove(struct pva_submit_task *task);

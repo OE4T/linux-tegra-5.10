@@ -762,7 +762,7 @@ static int pva_probe(struct platform_device *pdev)
 	pva->submit_task_mode = PVA_SUBMIT_MODE_MMIO_CCQ;
 	pva->slcg_disable = 0;
 	pva->vmem_war_disable = 0;
-	pva->vpu_perf_counters_enable = false;
+	pva->vpu_printf_enabled = true;
 	pva->vpu_debug_enabled = true;
 
 #ifdef __linux__
