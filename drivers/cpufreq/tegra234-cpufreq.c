@@ -396,6 +396,7 @@ init_freq_table(struct platform_device *pdev,
 	return freq_table;
 }
 
+#ifdef CONFIG_DEBUG_FS
 static struct dentry *tegra_cpufreq_debugfs_root;
 
 static int tegra_cpufreq_debug_init(void)
@@ -418,6 +419,7 @@ static void tegra_cpufreq_debug_exit(void)
 {
 	debugfs_remove_recursive(tegra_cpufreq_debugfs_root);
 }
+#endif
 
 static int tegra234_cpufreq_probe(struct platform_device *pdev)
 {
