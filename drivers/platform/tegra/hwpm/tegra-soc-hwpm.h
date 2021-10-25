@@ -102,10 +102,7 @@ extern const struct file_operations tegra_soc_hwpm_ops;
 void tegra_soc_hwpm_debugfs_init(struct tegra_soc_hwpm *hwpm);
 void tegra_soc_hwpm_debugfs_deinit(struct tegra_soc_hwpm *hwpm);
 #else
-static inline void tegra_soc_hwpm_debugfs_init(struct tegra_soc_hwpm *hwpm)
-{
-	hwpm->debugfs_root = NULL;
-}
+static inline void tegra_soc_hwpm_debugfs_init(struct tegra_soc_hwpm *hwpm) {}
 static inline void tegra_soc_hwpm_debugfs_deinit(struct tegra_soc_hwpm *hwpm) {}
 #endif  /* CONFIG_DEBUG_FS  */
 
