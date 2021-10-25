@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -311,7 +311,6 @@ int dce_ipc_channel_init(struct tegra_dce *d, u32 ch_type)
 	if ((ch->flags & DCE_IPC_CHANNEL_VALID) == 0U) {
 		dce_info(d, "Invalid Channel State [0x%x] for ch_type [%d]",
 		ch->flags, ch_type);
-		dce_mutex_destroy(&ch->lock);
 		goto out_lock_destroy;
 	}
 
@@ -321,7 +320,6 @@ int dce_ipc_channel_init(struct tegra_dce *d, u32 ch_type)
 	if (ret) {
 		dce_err(d, "Signaling init failed");
 		goto out_lock_destroy;
-		return ret;
 	}
 
 	q_info = &ch->q_info;
@@ -358,9 +356,8 @@ int dce_ipc_channel_init(struct tegra_dce *d, u32 ch_type)
 	d->d_ipc.ch[ch_type] = ch;
 	r->s_offset += (2 * q_sz);
 
-	dce_mutex_unlock(&ch->lock);
-
 out_lock_destroy:
+	dce_mutex_unlock(&ch->lock);
 	if (ret)
 		dce_mutex_destroy(&ch->lock);
 out:
