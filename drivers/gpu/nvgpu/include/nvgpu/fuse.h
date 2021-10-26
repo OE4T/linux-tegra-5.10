@@ -95,6 +95,19 @@ int nvgpu_tegra_fuse_read_reserved_calib(struct gk20a *g, u32 *val);
 int nvgpu_tegra_fuse_read_gcplex_config_fuse(struct gk20a *g, u32 *val);
 
 /**
+ * @brief - Reads FUSE_OPT_GPC_DISABLE_0 fuse.
+ *
+ * @param g [in] - GPU super structure.
+ * @param val [out] - Populated with register FUSE_OPT_GPC_DISABLE_0 value.
+ *
+ * - Provide information about the GPU GPC floor-sweep info
+ *
+ * @return 0 on success or negative value on failure.
+ *
+ */
+int nvgpu_tegra_fuse_read_opt_gpc_disable(struct gk20a *g, u32 *val);
+
+/**
  * @brief - Reads the per-device identifier fuses.
  *
  * @param g [in] - GPU super structure.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -31,6 +31,10 @@
 
 #ifndef FUSE_RESERVED_CALIB0_0
 #define FUSE_RESERVED_CALIB0_0          0x204
+#endif
+
+#ifndef FUSE_OPT_GPC_DISABLE_0
+#define FUSE_OPT_GPC_DISABLE_0		0x188
 #endif
 
 /* T186+ */

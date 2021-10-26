@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -32,6 +32,11 @@ int nvgpu_tegra_fuse_read_reserved_calib(struct gk20a *g, u32 *val)
 int nvgpu_tegra_fuse_read_gcplex_config_fuse(struct gk20a *g, u32 *val)
 {
 	return tegra_fuse_readl(FUSE_GCPLEX_CONFIG_FUSE_0, val);
+}
+
+int nvgpu_tegra_fuse_read_opt_gpc_disable(struct gk20a *g, u32 *val)
+{
+	return tegra_fuse_readl(FUSE_OPT_GPC_DISABLE_0, val);
 }
 
 int nvgpu_tegra_fuse_read_per_device_identifier(struct gk20a *g, u64 *pdi)

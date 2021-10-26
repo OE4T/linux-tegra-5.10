@@ -27,10 +27,13 @@
 #include <linux/platform/tegra/emc_bwmgr.h>
 #endif
 #include <linux/pm_runtime.h>
+#include <linux/fuse.h>
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/nvhost.h>
 #include <nvgpu/soc.h>
+#include <nvgpu/fuse.h>
+#include <nvgpu/linux/soc_fuse.h>
 
 #ifdef CONFIG_NV_TEGRA_BPMP
 #include <soc/tegra/tegra-bpmp-dvfs.h>
@@ -76,6 +79,34 @@ struct gk20a_platform_clk tegra_ga10b_clocks[] = {
 	{"fuse", UINT_MAX}
 };
 
+#define NVGPU_GPC0_DISABLE  BIT(0)
+#define NVGPU_GPC1_DISABLE  BIT(1)
+
+static bool ga10b_tegra_is_clock_available(struct gk20a *g, char *clk_name)
+{
+	u32 gpc_disable = 0U;
+
+	/* Check for gpc floor-sweeping and report availability of gpcclks */
+	if (nvgpu_tegra_fuse_read_opt_gpc_disable(g, &gpc_disable)) {
+		nvgpu_err(g, "unable to read opt_gpc_disable fuse");
+		return false;
+	}
+
+	if ((strcmp(clk_name, "gpc0clk") == 0) &&
+				(gpc_disable & NVGPU_GPC0_DISABLE)) {
+		nvgpu_info(g, "GPC0 is floor-swept");
+		return false;
+	}
+
+	if ((strcmp(clk_name, "gpc1clk") == 0) &&
+				(gpc_disable & NVGPU_GPC1_DISABLE)) {
+		nvgpu_info(g, "GPC1 is floor-swept");
+		return false;
+	}
+
+	return true;
+}
+
 /*
  * This function finds clocks in tegra platform and populates
  * the clock information to platform data.
@@ -89,6 +120,7 @@ static int ga10b_tegra_acquire_platform_clocks(struct device *dev,
 	struct gk20a *g = platform->g;
 	struct device_node *np = nvgpu_get_node(g);
 	unsigned int i, num_clks_dt;
+	int err;
 
 	/* Get clocks only on supported platforms(silicon and fpga) */
 	if (!nvgpu_platform_is_silicon(g) && !nvgpu_platform_is_fpga(g)) {
@@ -107,15 +139,21 @@ static int ga10b_tegra_acquire_platform_clocks(struct device *dev,
 
 	platform->num_clks = 0;
 
-	/* TODO add floorsweep check before requesting clocks */
 	for (i = 0; i < num_clks_dt; i++) {
 		long rate;
-		struct clk *c = of_clk_get_by_name(np, clk_entries[i].name);
+		struct clk *c;
+
+		if (ga10b_tegra_is_clock_available(g, clk_entries[i].name)) {
+			c = of_clk_get_by_name(np, clk_entries[i].name);
+		} else {
+			continue;
+		}
 
 		if (IS_ERR(c)) {
 			nvgpu_info(g, "cannot get clock %s",
 					clk_entries[i].name);
-			/* Continue with other clocks enable */
+			err = PTR_ERR(c);
+			goto err_get_clock;
 		} else {
 			rate = clk_entries[i].default_rate;
 			clk_set_rate(c, rate);
@@ -135,6 +173,14 @@ static int ga10b_tegra_acquire_platform_clocks(struct device *dev,
 #endif
 
 	return 0;
+
+err_get_clock:
+	while (i > 0 && i--) {
+		clk_put(platform->clk[i]);
+		platform->clk[i] = NULL;
+	}
+
+	return err;
 }
 
 static int ga10b_tegra_get_clocks(struct device *dev)
