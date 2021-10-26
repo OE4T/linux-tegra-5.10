@@ -578,6 +578,12 @@ static int set_flags(struct pva_submit_task *task, struct pva_hw_task *hw_task)
 
 	if (task->special_access)
 		hw_task->task.flags |= PVA_TASK_FL_SPECIAL_ACCESS;
+	if (flags & NVPVA_ERR_MASK_ILLEGAL_INSTR)
+		hw_task->task.flags |= PVA_TASK_FL_ERR_MASK_ILLEGAL_INSTR;
+	if (flags & NVPVA_ERR_MASK_DIVIDE_BY_0)
+		hw_task->task.flags |= PVA_TASK_FL_ERR_MASK_DIVIDE_BY_0;
+	if (flags & NVPVA_ERR_MASK_FP_NAN)
+		hw_task->task.flags |= PVA_TASK_FL_ERR_MASK_FP_NAN;
 out:
 	return err;
 }

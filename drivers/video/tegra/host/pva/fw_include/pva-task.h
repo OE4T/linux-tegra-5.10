@@ -245,6 +245,16 @@ struct PVA_PACKED pva_td_s {
 /** @addtogroup PVA_TASK_FL
  * @{
  */
+
+/** Flag to request masking of illegal instruction error for the task */
+#define PVA_TASK_FL_ERR_MASK_ILLEGAL_INSTR	PVA_BIT(1U)
+
+/** Flag to request masking of divide by zero error for the task */
+#define PVA_TASK_FL_ERR_MASK_DIVIDE_BY_0	PVA_BIT(2U)
+
+/** Flag to request masking of floating point NAN error for the task */
+#define PVA_TASK_FL_ERR_MASK_FP_NAN		PVA_BIT(3U)
+
 /** Schedule on VPU0 only */
 #define PVA_TASK_FL_VPU0 PVA_BIT(8U)
 
