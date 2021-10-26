@@ -124,8 +124,7 @@
 			status = "okay";
 		};
 		vpr-carveout {
-			reusable;
-			status = "okay";
+			status = "disabled";
 		};
 	};
 
