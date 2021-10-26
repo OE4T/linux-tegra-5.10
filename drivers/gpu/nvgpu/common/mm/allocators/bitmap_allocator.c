@@ -283,7 +283,6 @@ static u64 nvgpu_bitmap_balloc(struct nvgpu_allocator *na, u64 len)
 	alloc_dbg(na, "Alloc 0x%-10llx 0x%-5llx [bits=0x%x (%u)]",
 		  addr, len, blks, blks);
 
-NVGPU_COV_WHITELIST(false_positive, NVGPU_MISRA(Rule, 14_3), "Bug 2615925")
 	nvgpu_assert(a->nr_allocs < U64_MAX);
 	a->nr_allocs++;
 	a->bytes_alloced = nvgpu_safe_add_u64(a->bytes_alloced,
