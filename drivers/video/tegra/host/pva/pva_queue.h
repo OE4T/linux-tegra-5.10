@@ -130,8 +130,6 @@ struct pva_submit_task {
 	/** Store Suface base address */
 	u64 src_surf_base_addr;
 	u64 dst_surf_base_addr;
-	u64 system_descriptor_mask;
-	u16 system_channel_mask;
 	bool is_system_app;
 	u8   special_access;
 };

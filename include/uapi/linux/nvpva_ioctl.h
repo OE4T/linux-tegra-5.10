@@ -348,8 +348,6 @@ struct nvpva_ioctl_task {
 	uint16_t exe_id;
 	uint32_t flags;
 	uint32_t l2_alloc_size; /* Not applicable for Xavier */
-	uint32_t system_channel_mask;
-	uint64_t system_descriptor_mask;
 	struct nvpva_ioctl_part prefences;
 	struct nvpva_ioctl_part user_fence_actions;
 	struct nvpva_ioctl_part input_task_status;

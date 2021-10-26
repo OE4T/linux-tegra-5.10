@@ -575,6 +575,9 @@ static int set_flags(struct pva_submit_task *task, struct pva_hw_task *hw_task)
 	}
 	if (task->pva->vpu_debug_enabled)
 		hw_task->task.flags |= PVA_TASK_FL_VPU_DEBUG;
+
+	if (task->special_access)
+		hw_task->task.flags |= PVA_TASK_FL_SPECIAL_ACCESS;
 out:
 	return err;
 }

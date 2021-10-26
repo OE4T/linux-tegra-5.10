@@ -251,7 +251,6 @@ static int32_t nvpva_task_dma_desc_mapping(struct pva_submit_task *task,
 			} else
 				goto out;
 		}
-		hw_task->dma_info.special_access = task->special_access;
 		/* DMA_DESC_TRANS CNTL0 */
 		dma_desc->transfer_control0 =
 			umd_dma_desc->srcTransferMode |
@@ -475,9 +474,6 @@ int pva_task_write_dma_info(struct pva_submit_task *task,
 	/* write dma channel info */
 	hw_task->dma_info.num_channels = task->num_dma_channels;
 	hw_task->dma_info.num_descriptors = task->num_dma_descriptors;
-	hw_task->dma_info.r5_channel_mask = task->system_channel_mask;
-	hw_task->dma_info.r5_descriptor_mask[0] = PVA_LOW32(task->system_descriptor_mask);
-	hw_task->dma_info.r5_descriptor_mask[1] = PVA_HI32(task->system_descriptor_mask);
 	hw_task->dma_info.descriptor_id = 1U; /* PVA_DMA_DESC0 */
 
 	for (i = 0; i < task->num_dma_channels; i++) {

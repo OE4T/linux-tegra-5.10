@@ -271,6 +271,10 @@ struct PVA_PACKED pva_td_s {
 
 /** Flag to indicate timer stop */
 #define PVA_TASK_FL_TIMER_STOP PVA_BIT(14U)
+
+/** Flag to indicate specail access needed by task */
+#define PVA_TASK_FL_SPECIAL_ACCESS PVA_BIT(15U)
+
 /** @} */
 
 /** Version of the binary info */

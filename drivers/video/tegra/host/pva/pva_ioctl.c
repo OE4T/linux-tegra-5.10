@@ -115,12 +115,8 @@ static int pva_copy_task(struct nvpva_ioctl_task *ioctl_task,
 	task->flags = ioctl_task->flags;
 	if (task->exe_id < 32 &&
 		task->client->elf_ctx.elf_images->elf_img[task->exe_id].is_system_app) {
-		task->system_descriptor_mask = ioctl_task->system_descriptor_mask;
-		task->system_channel_mask = ioctl_task->system_channel_mask;
 		task->is_system_app = true;
 	} else {
-		task->system_descriptor_mask = 0;
-		task->system_channel_mask = 0;
 		task->is_system_app = false;
 	}
 
