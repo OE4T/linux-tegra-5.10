@@ -170,10 +170,7 @@ u32 nvgpu_ce_engine_interrupt_mask(struct gk20a *g)
 	/*
 	 * Now take care of LCEs.
 	 */
-	for (i = 0U; i < nvgpu_device_count(g, NVGPU_DEVTYPE_LCE); i++) {
-		dev = nvgpu_device_get(g, NVGPU_DEVTYPE_LCE, i);
-		nvgpu_assert(dev != NULL);
-
+	nvgpu_device_for_each(g, dev, NVGPU_DEVTYPE_LCE) {
 		mask |= BIT32(dev->intr_id);
 	}
 
@@ -801,6 +798,55 @@ static int nvgpu_engine_init_one_dev(struct nvgpu_fifo *f,
 	++f->num_engines;
 
 	return 0;
+}
+
+void nvgpu_engine_remove_one_dev(struct nvgpu_fifo *f,
+		const struct nvgpu_device *dev)
+{
+	u32 i, j;
+	struct gk20a *g = f->g;
+
+	/*
+	 * First remove the engine from fifo->host_engines list, for this, it
+	 * suffices to set the entry corresponding to the dev->engine_id to
+	 * NULL, this should prevent the entry from being used.
+	 */
+	f->host_engines[dev->engine_id] = NULL;
+#if defined(CONFIG_NVGPU_NON_FUSA)
+	/*
+	 * Remove the device from the runlist device list.
+	 */
+	f->runlists[dev->runlist_id]->rl_dev_list[dev->rleng_id] = NULL;
+
+	/*
+	 * Remove the engine id from runlist->eng_bitmask
+	 */
+	f->runlists[dev->runlist_id]->eng_bitmask &= (~BIT32(dev->engine_id));
+#endif
+	/*
+	 * For fifo->active_engines, we have to figure out the index of the
+	 * device to be removed and shift the remaining elements up to that
+	 * index.
+	 */
+	for (i = 0U; i < f->num_engines; i++) {
+		if (f->active_engines[i] == dev) {
+			nvgpu_log(g, gpu_dbg_device, "deleting device with"
+				" engine_id(%d) from active_engines list",
+				dev->engine_id);
+			for (j = i; j < nvgpu_safe_sub_u32(f->num_engines, 1U);
+					j++) {
+				f->active_engines[j] = f->active_engines[
+					nvgpu_safe_add_u32(j, 1U)];
+			}
+			break;
+		}
+	}
+	/*
+	 * Update f->num_engines if a device was removed from f->active_engines
+	 * list.
+	 */
+	f->num_engines = (i < f->num_engines) ?
+		nvgpu_safe_sub_u32(f->num_engines, 1U) : f->num_engines;
 }
 
 int nvgpu_engine_init_info(struct nvgpu_fifo *f)

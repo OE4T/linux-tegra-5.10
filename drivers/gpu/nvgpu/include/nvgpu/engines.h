@@ -410,4 +410,16 @@ u32 nvgpu_engine_mmu_fault_id_to_veid(struct gk20a *g, u32 mmu_fault_id,
  */
 void nvgpu_engine_mmu_fault_id_to_eng_ve_pbdma_id(struct gk20a *g,
 	u32 mmu_fault_id, u32 *engine_id, u32 *veid, u32 *pbdma_id);
+/**
+ * @brief Remove a device entry from engine list.
+ *
+ * @param g [in]		The GPU driver struct.
+ * @param dev [in]		A device.
+ *
+ * Remove the device entry \a dev from fifo->host_engines, fifo->active_engines.
+ * The device entry is retained in g->devs->devlist_heads list to ensure device
+ * reset.
+ */
+void nvgpu_engine_remove_one_dev(struct nvgpu_fifo *f,
+		const struct nvgpu_device *dev);
 #endif /*NVGPU_ENGINE_H*/

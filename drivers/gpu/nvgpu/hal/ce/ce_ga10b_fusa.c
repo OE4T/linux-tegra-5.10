@@ -131,15 +131,11 @@ static void ga10b_ce_intr_stall_nonstall_enable(struct gk20a *g,
 
 void ga10b_ce_init_hw(struct gk20a *g)
 {
-	u32 i = 0U;
 	u32 nonstall_vectorid_tree[NVGPU_CIC_INTR_VECTORID_SIZE_MAX];
 	u32 num_nonstall_vectors = 0;
+	const struct nvgpu_device *dev;
 
-	for (i = 0U; i < nvgpu_device_count(g, NVGPU_DEVTYPE_LCE); i++) {
-		const struct nvgpu_device *dev =
-			nvgpu_device_get(g, NVGPU_DEVTYPE_LCE, i);
-		nvgpu_assert(dev != NULL);
-
+	nvgpu_device_for_each(g, dev, NVGPU_DEVTYPE_LCE) {
 		/*
 		 * The intr_id in dev info is broken for non-stall interrupts
 		 * from grce0,1. Therefore, instead read the vectors from the
@@ -163,13 +159,9 @@ void ga10b_ce_init_hw(struct gk20a *g)
 
 void ga10b_ce_intr_enable(struct gk20a *g, bool enable)
 {
-	u32 i = 0U;
+	const struct nvgpu_device *dev;
 
-	for (i = 0U; i < nvgpu_device_count(g, NVGPU_DEVTYPE_LCE); i++) {
-		const struct nvgpu_device *dev =
-			nvgpu_device_get(g, NVGPU_DEVTYPE_LCE, i);
-		nvgpu_assert(dev != NULL);
-
+	nvgpu_device_for_each(g, dev, NVGPU_DEVTYPE_LCE) {
 		ga10b_ce_intr_stall_nonstall_enable(g, dev, enable);
 	}
 }

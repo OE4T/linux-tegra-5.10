@@ -37,6 +37,16 @@ int nvgpu_ce_init_support(struct gk20a *g)
 		g->ops.ce.set_pce2lce_mapping(g);
 	}
 
+	/*
+	 * Bug 1895019
+	 * Each time PCE2LCE config is updated and if it happens to
+	 * map a LCE which was previously unmapped, then ELCG would have turned
+	 * off the clock to the unmapped LCE and when the LCE config is updated,
+	 * a race occurs between the config update and ELCG turning on the clock
+	 * to that LCE, this might result in LCE dropping the config update.
+	 * To avoid such a race, each time PCE2LCE config is updated toggle
+	 * resets for all LCEs.
+	 */
 	err = nvgpu_mc_reset_devtype(g, NVGPU_DEVTYPE_LCE);
 	if (err != 0) {
 		nvgpu_err(g, "NVGPU_DEVTYPE_LCE reset failed");

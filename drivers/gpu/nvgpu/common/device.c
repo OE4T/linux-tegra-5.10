@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -277,10 +277,7 @@ static u32 nvgpu_device_do_get_copies(struct gk20a *g,
 		}
 	}
 
-	for (i = 0; i < nvgpu_device_count(g, NVGPU_DEVTYPE_LCE); i++) {
-		dev = nvgpu_device_get(g, NVGPU_DEVTYPE_LCE, i);
-		nvgpu_assert(dev != NULL);
-
+	nvgpu_device_for_each(g, dev, NVGPU_DEVTYPE_LCE) {
 		if (async_only &&
 		    dev->runlist_id == gr_dev->runlist_id) {
 			/* It's a GRCE, skip it per async_only. */

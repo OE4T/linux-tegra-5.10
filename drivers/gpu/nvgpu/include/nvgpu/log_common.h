@@ -81,5 +81,6 @@ enum nvgpu_log_type {
 #define gpu_dbg_mm		BIT(41) /* Memory management debugging. */
 #define gpu_dbg_hwpm		BIT(42) /* GPU HWPM. */
 #define gpu_dbg_verbose		BIT(43) /* More verbose logs. */
+#define gpu_dbg_ce		BIT(44) /* Copy Engine debugging */
 
 #endif

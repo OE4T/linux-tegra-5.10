@@ -34,19 +34,11 @@
 int gp10b_engine_init_ce_info(struct nvgpu_fifo *f)
 {
 	struct gk20a *g = f->g;
-	u32 i;
 	bool found;
+	const struct nvgpu_device *dev;
 
-	for (i = 0; i < nvgpu_device_count(g, NVGPU_DEVTYPE_LCE); i++) {
-		const struct nvgpu_device *dev;
-		struct nvgpu_device *dev_rw;
-
-		dev = nvgpu_device_get(g, NVGPU_DEVTYPE_LCE, i);
-		if (dev == NULL) {
-			nvgpu_err(g, "Failed to get LCE device %u", i);
-			return -EINVAL;
-		}
-		dev_rw = (struct nvgpu_device *)dev;
+	nvgpu_device_for_each(g, dev, NVGPU_DEVTYPE_LCE) {
+		struct nvgpu_device *dev_rw = (struct nvgpu_device *)dev;
 
 		/*
 		 * vGPU consideration. Not present in older chips. See
