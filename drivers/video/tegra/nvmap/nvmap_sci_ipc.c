@@ -311,6 +311,7 @@ void nvmap_sci_ipc_exit(void)
 		kfree(fnode);
 	}
 
-	nvmapsciipc = NULL;
 	mutex_unlock(&nvmapsciipc->mlock);
+	kfree(nvmapsciipc);
+	nvmapsciipc = NULL;
 }
