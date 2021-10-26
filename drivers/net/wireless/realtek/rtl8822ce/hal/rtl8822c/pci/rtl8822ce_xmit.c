@@ -1,6 +1,7 @@
 /******************************************************************************
  *
  * Copyright(c) 2015 - 2017 Realtek Corporation.
+ * Copyright (c) 2021, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -47,8 +48,6 @@ s32 rtl8822ce_init_xmit_priv(_adapter *padapter)
 	s32 ret = _SUCCESS;
 	struct xmit_priv *pxmitpriv = &padapter->xmitpriv;
 	struct dvobj_priv *pdvobjpriv = adapter_to_dvobj(padapter);
-
-	_rtw_spinlock_init(&pdvobjpriv->irq_th_lock);
 
 #ifdef PLATFORM_LINUX
 	tasklet_init(&pxmitpriv->xmit_tasklet,
