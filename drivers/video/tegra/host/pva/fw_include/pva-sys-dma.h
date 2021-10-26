@@ -161,6 +161,32 @@ struct PVA_PACKED pva_dtd_s {
 };
 
 /**
+ *
+ * @brief DMA MISR configuration information. This information is used by R5
+ * to program MISR registers if a task requests MISR computation on its
+ * output DMA channels.
+ *
+ */
+struct PVA_PACKED pva_dma_misr_config_s {
+	/* Reference value for CRC computed on
+	 * write addresses, i.e., MISR 1
+	 */
+	uint32_t ref_addr;
+	/* Seed value for address CRC */
+	uint32_t seed_crc0;
+	/* Reference value for CRC computed on
+	 * first 256-bits of AXI write data
+	 */
+	uint32_t ref_data_1;
+	/* Seed value for write data CRC */
+	uint32_t seed_crc1;
+	/* Reference value for CRC computed on
+	 * second 256-bits of AXI write data
+	 */
+	uint32_t ref_data_2;
+};
+
+/**
  * @defgroup PVA_DMA_TC0_BITS PVA Transfer Control 0 Bitfields
  * @{
  */

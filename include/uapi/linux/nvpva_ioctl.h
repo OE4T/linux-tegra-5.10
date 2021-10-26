@@ -336,6 +336,47 @@ struct nvpva_dma_channel {
 };
 
 /**
+ *
+ * @brief DMA MISR configuration information. This information is used by R5
+ * to program MISR registers if a task requests MISR computation on its
+ * output DMA channels.
+ *
+ */
+struct nvpva_dma_misr {
+	/* Enable flag for MISR. Set to 0 if MISR check
+	 * is not needed for the task, non-zero otherwise
+	 */
+	uint32_t enable;
+	/* Reference value for CRC computed on write
+	 * addresses, i.e., MISR 1
+	 */
+	uint32_t ref_addr;
+	/* Seed value for address CRC */
+	uint32_t seed_crc0;
+	/* Reference value for CRC computed on first
+	 * 256-bits of AXI write data
+	 */
+	uint32_t ref_data_1;
+	/* Seed value for write data CRC*/
+	uint32_t seed_crc1;
+	/* Reference value for CRC computed on
+	 * second 256-bits of AXI write data
+	 */
+	uint32_t ref_data_2;
+	/* Bitmap indicating channels participating
+	 * in MISR checks
+	 */
+	uint32_t channel_mask;
+	/* Bitmap indicating descriptors participating
+	 * in MISR checks. These are the descriptors on
+	 * channels identified by the channel_mask field
+	 * that perform write through AXI interface to
+	 * MC or L2SRAM
+	 */
+	uint64_t descriptor_mask;
+};
+
+/**
  * Used to pass config for Hardware Sequencer (HWSeq).
  * For HWSeq operations, all DMA channels will be configured
  * based on the selection of hardware sequencer trigger mode.
@@ -357,6 +398,7 @@ struct nvpva_ioctl_task {
 	struct nvpva_ioctl_part output_task_status;
 	struct nvpva_ioctl_part dma_descriptors;
 	struct nvpva_ioctl_part dma_channels;
+	struct nvpva_ioctl_part dma_misr_config;
 	struct nvpva_ioctl_part hwseq_config;
 	struct nvpva_ioctl_part symbols;
 	struct nvpva_ioctl_part symbol_payload;

@@ -26,7 +26,7 @@
 
 static int32_t patch_dma_desc_address(struct pva_submit_task *task,
 				      struct nvpva_dma_descriptor *umd_dma_desc,
-				      struct pva_dtd_s *dma_desc, int *is_cfg)
+				      struct pva_dtd_s *dma_desc, int *is_cfg, bool is_misr)
 {
 	int32_t err = 0;
 	uint64_t addr_base = 0;
@@ -131,77 +131,90 @@ static int32_t patch_dma_desc_address(struct pva_submit_task *task,
 	dma_desc->src_adr1 = (uint8_t)((addr_base >> 32U) & 0xFF);
 
 	addr_base = 0;
-	switch (umd_dma_desc->dstTransferMode) {
-	case DMA_DESC_DST_XFER_L2RAM:
-		if (task->pva->version == PVA_HW_GEN1) {
+	if (is_misr) {
+		if (umd_dma_desc->dstTransferMode == DMA_DESC_DST_XFER_L2RAM
+		    || umd_dma_desc->dstTransferMode == DMA_DESC_DST_XFER_MC) {
+			addr_base = umd_dma_desc->dstPtr;
+		} else {
+			err = -EINVAL;
+			task_err(
+				task,
+				"invalid dst transfer mode for MISR descriptor");
+			goto out;
+		}
+	} else {
+		switch (umd_dma_desc->dstTransferMode) {
+		case DMA_DESC_DST_XFER_L2RAM:
+			if (task->pva->version == PVA_HW_GEN1) {
+				struct pva_pinned_memory *mem =
+					pva_task_pin_mem(task, umd_dma_desc->dstPtr);
+				if (IS_ERR(mem)) {
+					err = PTR_ERR(mem);
+					task_err(
+						task,
+						"invalid memory handle in descriptor for dst L2RAM");
+					goto out;
+				}
+				addr_base = mem->dma_addr;
+			} else
+				addr_base = 0;
+			break;
+		case DMA_DESC_DST_XFER_VMEM: {
+			/* calculate symbol address */
+			u32 addr;
+
+			err = pva_get_sym_offset(&task->client->elf_ctx, task->exe_id,
+						umd_dma_desc->dstPtr, &addr);
+			if (err) {
+				err = -EINVAL;
+				task_err(
+					task,
+					"invalid symbol id in descriptor for dst VMEM");
+				goto out;
+			}
+			addr_base = addr;
+		} break;
+		case DMA_DESC_DST_XFER_MMIO:
+			/*
+			 * Currently passing Ptr as it is. To be updated later
+			 * as per update from UMD
+			 */
+			addr_base = umd_dma_desc->dstPtr;
+			break;
+		case DMA_DESC_DST_XFER_MC: {
 			struct pva_pinned_memory *mem =
 				pva_task_pin_mem(task, umd_dma_desc->dstPtr);
 			if (IS_ERR(mem)) {
 				err = PTR_ERR(mem);
 				task_err(
 					task,
-					"invalid memory handle in descriptor for dst L2RAM");
+					"invalid memory handle in descriptor for dst MC");
 				goto out;
 			}
 			addr_base = mem->dma_addr;
-		} else
-			addr_base = 0;
-		break;
-	case DMA_DESC_DST_XFER_VMEM: {
-		/* calculate symbol address */
-		u32 addr;
+			task->dst_surf_base_addr = addr_base;
 
-		err = pva_get_sym_offset(&task->client->elf_ctx, task->exe_id,
-					 umd_dma_desc->dstPtr, &addr);
-		if (err) {
-			err = -EINVAL;
-			task_err(
-				task,
-				"invalid symbol id in descriptor for dst VMEM");
-			goto out;
-		}
-		addr_base = addr;
-	} break;
-	case DMA_DESC_DST_XFER_MMIO:
-		/*
-		 * Currently passing Ptr as it is. To be updated later
-		 * as per update from UMD
-		 */
-		addr_base = umd_dma_desc->dstPtr;
-		break;
-	case DMA_DESC_DST_XFER_MC: {
-		struct pva_pinned_memory *mem =
-			pva_task_pin_mem(task, umd_dma_desc->dstPtr);
-		if (IS_ERR(mem)) {
-			err = PTR_ERR(mem);
-			task_err(
-				task,
-				"invalid memory handle in descriptor for dst MC");
-			goto out;
-		}
-		addr_base = mem->dma_addr;
-		task->dst_surf_base_addr = addr_base;
-
-		/* If BL format selected, set addr bit 39 to indicate */
-		/* XBAR_RAW swizzling is required */
-		addr_base |= (u64)umd_dma_desc->dstFormat << 39U;
-		break;
-	}
-	case DMA_DESC_DST_XFER_R5TCM:
-		if (!task->is_system_app) { /* check if system app */
-			err = -EFAULT;
-			goto out;
-		} else {
-			task->special_access = 1;
-			addr_base = 0;
+			/* If BL format selected, set addr bit 39 to indicate */
+			/* XBAR_RAW swizzling is required */
+			addr_base |= (u64)umd_dma_desc->dstFormat << 39U;
 			break;
 		}
-	case DMA_DESC_DST_XFER_INVAL:
-	case DMA_DESC_DST_XFER_RSVD1:
-	case DMA_DESC_DST_XFER_RSVD2:
-	default:
-		err = -EFAULT;
-		goto out;
+		case DMA_DESC_DST_XFER_R5TCM:
+			if (!task->is_system_app) { /* check if system app */
+				err = -EFAULT;
+				goto out;
+			} else {
+				task->special_access = 1;
+				addr_base = 0;
+				break;
+			}
+		case DMA_DESC_DST_XFER_INVAL:
+		case DMA_DESC_DST_XFER_RSVD1:
+		case DMA_DESC_DST_XFER_RSVD2:
+		default:
+			err = -EFAULT;
+			goto out;
+		}
 	}
 
 	addr_base += umd_dma_desc->dst_offset;
@@ -223,6 +236,7 @@ static int32_t nvpva_task_dma_desc_mapping(struct pva_submit_task *task,
 	uint32_t addr = 0U;
 	int valid_link_did = 0;
 	int is_cfg = 0;
+	bool is_misr;
 
 	task->special_access = 0;
 
@@ -230,9 +244,11 @@ static int32_t nvpva_task_dma_desc_mapping(struct pva_submit_task *task,
 		umd_dma_desc = &task->dma_descriptors[numDesc];
 		dma_desc = &hw_task->dma_desc[numDesc];
 		is_cfg = 0;
+		is_misr = !((task->dma_misr_config.descriptor_mask & PVA_BIT64(numDesc)) == 0U);
+		is_misr = is_misr && (task->dma_misr_config.enable != 0U);
 
 		err = patch_dma_desc_address(task, umd_dma_desc, dma_desc,
-					     &is_cfg);
+					     &is_cfg, is_misr);
 		if (err) {
 			/* @TODO: Check if this condition related to usage of
 			 * vpu_config transfer control mode can be detected
@@ -600,4 +616,47 @@ int pva_task_write_dma_info(struct pva_submit_task *task,
 	hw_task->dma_info.dma_info_size = sizeof(struct pva_dma_info_s);
 
 	return err;
+}
+
+int pva_task_write_dma_misr_info(struct pva_submit_task *task,
+				 struct pva_hw_task *hw_task)
+{
+	uint32_t common_config = hw_task->dma_info.dma_common_config;
+	// MISR channel mask bits in DMA COMMON CONFIG
+	uint32_t common_config_ch_mask = PVA_MASK(31, 16);
+	// AXI output enable bit in DMA COMMON CONFIG
+	uint32_t common_config_ao_enable_mask = PVA_BIT(15U);
+	// SW Event select bit in DMA COMMON CONFIG
+	uint32_t common_config_sw_event0 = PVA_BIT(5U);
+	// MISR TO interrupt enable bit in DMA COMMON CONFIG
+	uint32_t common_config_misr_to_enable_mask = PVA_BIT(0U);
+
+	hw_task->dma_info.dma_misr_base = 0U;
+	if (task->dma_misr_config.enable != 0U) {
+		hw_task->dma_misr_config.ref_addr	= task->dma_misr_config.ref_addr;
+		hw_task->dma_misr_config.seed_crc0	= task->dma_misr_config.seed_crc0;
+		hw_task->dma_misr_config.ref_data_1	= task->dma_misr_config.ref_data_1;
+		hw_task->dma_misr_config.seed_crc1	= task->dma_misr_config.seed_crc1;
+		hw_task->dma_misr_config.ref_data_2	= task->dma_misr_config.ref_data_2;
+
+		hw_task->dma_info.dma_misr_base = task->dma_addr +
+			offsetof(struct pva_hw_task, dma_misr_config);
+
+		/* Prepare data to be written to DMA COMMON CONFIG register */
+
+		// Select channels that will participate in MISR computation
+		common_config = ((common_config & ~common_config_ch_mask)
+				 | (~task->dma_misr_config.channel_mask << 16U));
+		// Set SW_EVENT0 bit to 0
+		common_config = (common_config & ~common_config_sw_event0);
+		// Disable AXI output
+		common_config = common_config & ~common_config_ao_enable_mask;
+		// common_config = common_config | common_config_ao_enable_mask;
+		// Enable MISR TO interrupts
+		common_config = common_config | common_config_misr_to_enable_mask;
+
+		hw_task->dma_info.dma_common_config = common_config;
+	}
+
+	return 0;
 }

@@ -117,6 +117,7 @@ struct pva_submit_task {
 		dma_descriptors[NVPVA_TASK_MAX_DMA_DESCRIPTORS];
 	struct nvpva_dma_channel dma_channels
 		[NVPVA_TASK_MAX_DMA_CHANNELS_T23X]; /* max of T19x & T23x */
+	struct nvpva_dma_misr dma_misr_config;
 	struct nvpva_hwseq_config hwseq_config;
 	struct nvpva_symbol_param symbols[NVPVA_TASK_MAX_SYMBOLS];
 	u8 symbol_payload[NVPVA_TASK_MAX_PAYLOAD_SIZE];
@@ -230,6 +231,7 @@ struct pva_hw_task {
 	struct pva_task_action_s preactions[PVA_MAX_PREACTION_LISTS];
 	struct pva_task_action_s postactions[PVA_MAX_POSTACTION_LISTS];
 	struct pva_dma_info_s dma_info;
+	struct pva_dma_misr_config_s dma_misr_config;
 	struct pva_dtd_s dma_desc[NVPVA_TASK_MAX_DMA_DESCRIPTORS];
 	struct pva_vpu_parameters_s param_list[NVPVA_TASK_MAX_SYMBOLS];
 	u8 sym_payload[NVPVA_TASK_MAX_PAYLOAD_SIZE];

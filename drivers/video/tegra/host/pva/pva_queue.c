@@ -618,6 +618,9 @@ static int pva_task_write(struct pva_submit_task *task)
 	err = pva_task_write_dma_info(task, hw_task);
 	if (err)
 		goto out;
+	err = pva_task_write_dma_misr_info(task, hw_task);
+	if (err)
+		goto out;
 	err = pva_task_write_vpu_parameter(task, hw_task);
 	if (err)
 		goto out;

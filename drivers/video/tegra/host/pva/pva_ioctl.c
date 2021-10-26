@@ -168,6 +168,12 @@ static int pva_copy_task(struct nvpva_ioctl_task *ioctl_task,
 	if (err)
 		goto out;
 
+	err = copy_part_from_user(&task->dma_misr_config,
+				  sizeof(task->dma_misr_config),
+				  ioctl_task->dma_misr_config);
+	if (err)
+		goto out;
+
 	err = copy_part_from_user(&task->hwseq_config,
 				  sizeof(task->hwseq_config),
 				  ioctl_task->hwseq_config);

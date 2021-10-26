@@ -65,4 +65,6 @@ enum pva_dma_chan_sig {
 int pva_task_write_dma_info(struct pva_submit_task *task,
 			    struct pva_hw_task *hw_task);
 
+int pva_task_write_dma_misr_info(struct pva_submit_task *task,
+			    struct pva_hw_task *hw_task);
 #endif
