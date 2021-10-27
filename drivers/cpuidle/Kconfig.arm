@@ -23,3 +23,13 @@ config CPU_IDLE_TEGRA19X
 	  Support for entering different power states on NVIDIA Tegra19x
 	  SoCs when CPUs become idle.
 	  Select this to enable cpuidle on NVIDIA Tegra19x SoCs.
+
+config CPU_IDLE_TEGRA_AUTO
+	tristate "CPU Idle Driver for NVIDIA Tegra auto platforms"
+	default n
+	select CPU_IDLE_MULTIPLE_DRIVERS
+	select DT_IDLE_STATES
+	help
+	  Support for entering different power states on NVIDIA Tegra auto
+	  platforms when CPUs become idle.
+	  Select this if you enable SC7 on Tegra auto platforms.
