@@ -26,7 +26,8 @@
 #include "pva-bit.h"
 
 #define ELF_MAXIMUM_SYMBOL_LENGTH 64
-#define MAX_NUM_VPU_EXE 32U
+#define MAX_NUM_VPU_EXE 256
+#define NUM_ALLOC_SEGMENTS (MAX_NUM_VPU_EXE/32U)
 
 /**
  * enum to identify different types of symbols
@@ -137,7 +138,7 @@ struct pva_elf_images {
 	/**< Stores information about all VPU APPs */
 	struct pva_elf_image elf_img[MAX_NUM_VPU_EXE];
 	/**< Alloctable keeping track of VPU APPs */
-	unsigned int alloctable;
+	uint32_t alloctable[NUM_ALLOC_SEGMENTS];
 };
 
 struct nvpva_elf_context {
@@ -196,13 +197,14 @@ int32_t pva_get_vpu_exe_id(struct nvpva_elf_context *d, uint16_t *exe_id);
  * @param exe_id	Unique VPU APP ID
  * @param sym_id	Unique Symbol ID
  * @param addr		Symbol offset
+ * @param size		Symbol size
  *
  * @return		EOK if valid offset is found else ERROR
  *
  * Must be called with registered exe_id or exe_id = NVPVA_NOOP_EXE_ID
  */
 int32_t pva_get_sym_offset(struct nvpva_elf_context *d, uint16_t exe_id,
-			   uint32_t sym_id, uint32_t *addr);
+			   uint32_t sym_id, uint32_t *addr, uint32_t *size);
 
 /**
  * Check if vpu id is registered in given context
@@ -216,7 +218,7 @@ static inline bool pva_vpu_elf_is_registered(struct nvpva_elf_context *d,
 					     uint16_t exe_id)
 {
 	return (exe_id < MAX_NUM_VPU_EXE) &&
-	       ((d->elf_images->alloctable >> exe_id) & 1U);
+	       ((d->elf_images->alloctable[(exe_id/32)] >> (exe_id%32)) & 1U);
 }
 
 /**
@@ -234,7 +236,8 @@ static inline bool pva_vpu_elf_is_registered(struct nvpva_elf_context *d,
  *			loaded successfully
  */
 int32_t pva_load_vpu_app(struct nvpva_elf_context *d, uint8_t *buffer,
-			 size_t size, uint16_t *exe_id, bool is_system_app);
+			 size_t size, uint16_t *exe_id,
+			 bool is_system_app, int hw_gen);
 
 /**
  * Unload VPU APP elf file
@@ -244,7 +247,8 @@ int32_t pva_load_vpu_app(struct nvpva_elf_context *d, uint8_t *buffer,
  *
  * @return		EOK if successful
  */
-int32_t pva_unload_vpu_app(struct nvpva_elf_context *d, uint16_t exe_id);
+int32_t
+pva_unload_vpu_app(struct nvpva_elf_context *d, uint16_t exe_id, bool locked);
 
 /**
  * Unload all VPU APP elf files associated with the given ELF context
@@ -273,7 +277,8 @@ int32_t pva_task_acquire_ref_vpu_app(struct nvpva_elf_context *d,
  *
  * @return		EOK if successful
  */
-int32_t pva_release_vpu_app(struct nvpva_elf_context *d, uint16_t exe_id);
+int32_t
+pva_release_vpu_app(struct nvpva_elf_context *d, uint16_t exe_id, bool locked);
 
 /**
  * Unref VPU APP elf file from task side
@@ -306,4 +311,8 @@ int32_t pva_vpu_init(struct pva *dev, struct nvpva_elf_context *d);
 
 void print_segments_info(struct pva_elf_image *elf_img);
 
+int32_t
+nvpva_validate_vmem_offset(const uint32_t vmem_offset,
+			   const uint32_t size,
+			   const int hw_gen);
 #endif

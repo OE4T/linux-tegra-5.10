@@ -21,6 +21,7 @@
 #include "nvpva_elf_parser.h"
 #include "pva_bit_helpers.h"
 #include "pva.h"
+#include  "hw_vmem_pva.h"
 
 #define ELF_MAXIMUM_SECTION_NAME 64
 #define ELF_EXPORTS_SECTION "EXPORTS"
@@ -45,16 +46,18 @@
 static const struct pack_rule {
 	const char *elf_section_name;
 	int32_t pva_type;
-} pack_rules[] = { {
-			   .elf_section_name = ".data",
-			   .pva_type = PVA_SEG_VPU_DATA,
-		   }, {
-			   .elf_section_name = ".rodata",
-			   .pva_type = PVA_SEG_VPU_DATA,
-		   }, {
-			   .elf_section_name = ".text",
-			   .pva_type = PVA_SEG_VPU_CODE,
-		   } };
+} pack_rules[] = {
+	{
+		.elf_section_name = ".data",
+		.pva_type = PVA_SEG_VPU_DATA,
+	}, {
+		.elf_section_name = ".rodata",
+		.pva_type = PVA_SEG_VPU_DATA,
+	}, {
+		.elf_section_name = ".text",
+		.pva_type = PVA_SEG_VPU_CODE,
+	}
+};
 
 static int32_t find_pva_ucode_segment_type(const char *section_name)
 {
@@ -100,12 +103,13 @@ void print_segments_info(struct pva_elf_image *elf_img)
 }
 
 int32_t pva_get_sym_offset(struct nvpva_elf_context *d, uint16_t exe_id,
-			   uint32_t sym_id, uint32_t *addr)
+			   uint32_t sym_id, uint32_t *addr, uint32_t *size)
 {
 	if ((!pva_vpu_elf_is_registered(d, exe_id)) || (addr == NULL))
 		return -EINVAL;
 
 	*addr = d->elf_images->elf_img[exe_id].sym[sym_id].addr;
+	*size = d->elf_images->elf_img[exe_id].sym[sym_id].size;
 	return 0;
 }
 
@@ -331,7 +335,7 @@ static int32_t copy_to_elf_buffer(struct pva_elf_buffer *buffer,
 
 static int32_t copy_segments(void *elf, struct pva_elf_image *elf_img,
 			     const struct elf_section_header *section_header,
-			     const char *section_name)
+			     const char *section_name, int hw_gen)
 {
 	int32_t segment_type = 0U;
 	int32_t ret = 0;
@@ -355,47 +359,58 @@ static int32_t copy_segments(void *elf, struct pva_elf_image *elf_img,
 	}
 
 	buffer = &elf_img->vpu_segments_buffer[segment_type];
-	dst_buffer_size_old =
-		elf_img->vpu_segments_buffer[segment_type].localsize;
+	dst_buffer_size_old = buffer->localsize;
 
 	elf_data = elf_section_contents(elf, section_header);
-	if (elf_data != NULL) {
-		if (segment_type == PVA_SEG_VPU_CODE) {
-			unsigned int idx;
+	if (elf_data == NULL)
+		goto inc_num_segments;
 
-			for (idx = 0; idx < (section_header->size / 4); idx++) {
-				data = ((uint32_t *)elf_data) + idx;
-				SWAP_DATA(sw_data, *data);
-				*data = sw_data;
-			}
-			ret = copy_to_elf_buffer_code(buffer, elf_data,
-						      section_header->size,
-						      section_header->addr);
+	if (segment_type == PVA_SEG_VPU_CODE) {
+		unsigned int idx;
 
-		} else {
-			ret = copy_to_elf_buffer(buffer, elf_data,
-						 section_header->size);
+		for (idx = 0; idx < (section_header->size / 4); idx++) {
+			data = ((uint32_t *)elf_data) + idx;
+			SWAP_DATA(sw_data, *data);
+			*data = sw_data;
 		}
+		ret = copy_to_elf_buffer_code(buffer,
+					      elf_data,
+					      section_header->size,
+					      section_header->addr);
+
+	} else {
+		ret = copy_to_elf_buffer(buffer,
+					 elf_data,
+					 section_header->size);
+	}
+
+	if (ret != 0)
+		goto out;
+
+	if (segment_type == PVA_SEG_VPU_DATA) {
+		struct pva_vpu_data_section_s *pdata;
+
+		pdata = &bin_info->data[buffer->num_segments];
+		pdata->offset = dst_buffer_size_old;
+		pdata->addr = section_header->addr;
+		pdata->size = (buffer->localsize - dst_buffer_size_old);
+		ret = nvpva_validate_vmem_offset(pdata->addr,
+						 pdata->size,
+						 hw_gen);
 		if (ret != 0)
 			goto out;
-
-		if (segment_type == PVA_SEG_VPU_DATA) {
-			bin_info->data[buffer->num_segments].offset =
-				dst_buffer_size_old;
-			bin_info->data[buffer->num_segments].addr =
-				section_header->addr;
-			bin_info->data[buffer->num_segments].size =
-				(buffer->localsize - dst_buffer_size_old);
-		} else if (segment_type == PVA_SEG_VPU_CODE) {
-			bin_info->code_size = buffer->localsize;
-		}
+	} else if (segment_type == PVA_SEG_VPU_CODE) {
+		bin_info->code_size = buffer->localsize;
 	}
+inc_num_segments:
 	buffer->num_segments++;
 out:
 	return ret;
 }
 
-static int32_t populate_segments(void *elf, struct pva_elf_image *elf_img)
+static int32_t
+populate_segments(void *elf, struct pva_elf_image *elf_img,
+				 int hw_gen)
 {
 	const struct elf_section_header *section_header;
 	int32_t ret = 0;
@@ -412,7 +427,7 @@ static int32_t populate_segments(void *elf, struct pva_elf_image *elf_img)
 		section_name = elf_section_name(elf, section_header);
 		if (section_header->type == SHT_PROGBITS) {
 			ret = copy_segments(elf, elf_img, section_header,
-					    section_name);
+					    section_name, hw_gen);
 			if (ret)
 				goto out;
 		}
@@ -451,8 +466,9 @@ static int32_t update_exports_symbol(void *elf, const struct elf_section_header 
 	return 0;
 }
 
-static int32_t populate_symtab(void *elf, struct nvpva_elf_context *d,
-			       uint16_t exe_id)
+static int32_t
+populate_symtab(void *elf, struct nvpva_elf_context *d,
+		uint16_t exe_id, int hw_gen)
 {
 	const struct elf_section_header *section_header;
 	const struct elf_section_header *sym_scn;
@@ -468,43 +484,56 @@ static int32_t populate_symtab(void *elf, struct nvpva_elf_context *d,
 	section_header =
 		(const struct elf_section_header *)elf_named_section_header(
 			elf, ".symtab");
-	if (section_header != NULL) {
-		count = section_header->size / section_header->entsize;
-		for (i = 0; i < count; i++) {
-			sym = elf_symbol(elf, i);
-			if ((sym != NULL) && (ELF_ST_BIND(sym) == STB_GLOBAL) &&
-			    (ELF_ST_TYPE(sym) != STT_FUNC) && sym->size > 0) {
-				symname =
-					elf_symbol_name(elf, section_header, i);
-				stringsize = strnlen(
-					symname,
-					(ELF_MAXIMUM_SYMBOL_LENGTH - 1));
-				symID = &d->elf_images->elf_img[exe_id]
-						 .sym[numSym];
-				symID->symbol_name =
-					kcalloc(ELF_MAXIMUM_SYMBOL_LENGTH,
-						sizeof(char), GFP_KERNEL);
-				if (symID->symbol_name == NULL) {
-					ret = -ENOMEM;
-					goto fail;
-				}
-				(void)strncpy(symID->symbol_name, symname,
-					      stringsize);
-				symID->symbol_name[stringsize] = '\0';
-				symID->symbolID = numSym;
-				symID->size = sym->size;
-				symID->addr = sym->value;
-				sym_scn = elf_section_header(elf, sym->shndx);
-				ret = update_exports_symbol(elf, sym_scn, symID);
-				if (ret != 0) {
-					kfree(symID->symbol_name);
-					goto fail;
-				}
-				numSym++;
-				totalSymsize += symID->size;
-			}
+	if (section_header == NULL)
+		goto update_elf_info;
+
+	count = section_header->size / section_header->entsize;
+	for (i = 0; i < count; i++) {
+		sym = elf_symbol(elf, i);
+		if ((sym == NULL)
+		   || (ELF_ST_BIND(sym) != STB_GLOBAL)
+		   || (ELF_ST_TYPE(sym) == STT_FUNC)
+		   || sym->size <= 0)
+			continue;
+
+		symname =
+			elf_symbol_name(elf, section_header, i);
+		stringsize = strnlen(
+			symname,
+			(ELF_MAXIMUM_SYMBOL_LENGTH - 1));
+		symID = &d->elf_images->elf_img[exe_id]
+					.sym[numSym];
+		symID->symbol_name =
+			kcalloc(ELF_MAXIMUM_SYMBOL_LENGTH,
+				sizeof(char), GFP_KERNEL);
+		if (symID->symbol_name == NULL) {
+			ret = -ENOMEM;
+			goto fail;
 		}
+
+		(void)strncpy(symID->symbol_name, symname,
+				stringsize);
+		symID->symbol_name[stringsize] = '\0';
+		symID->symbolID = numSym;
+		symID->size = sym->size;
+		symID->addr = sym->value;
+		sym_scn = elf_section_header(elf, sym->shndx);
+		ret = update_exports_symbol(elf, sym_scn, symID);
+		if (ret != 0) {
+			kfree(symID->symbol_name);
+			goto fail;
+		}
+
+		numSym++;
+		totalSymsize += symID->size;
+		ret = nvpva_validate_vmem_offset(symID->addr,
+						 symID->size,
+						 hw_gen);
+		if (ret != 0)
+			goto fail;
 	}
+
+update_elf_info:
 	d->elf_images->elf_img[exe_id].num_symbols = numSym;
 	d->elf_images->elf_img[exe_id].symbol_size_total = totalSymsize;
 
@@ -586,7 +615,7 @@ static int32_t pva_get_vpu_app_id(struct nvpva_elf_context *d, uint16_t *exe_id,
 
 	mutex_lock(&d->elf_mutex);
 
-	index = rmos_find_first_zero_bit(&d->elf_images->alloctable,
+	index = rmos_find_first_zero_bit(d->elf_images->alloctable,
 					 MAX_NUM_VPU_EXE);
 	if (index == MAX_NUM_VPU_EXE) {
 		pr_err("No space for more VPU binaries");
@@ -598,26 +627,33 @@ static int32_t pva_get_vpu_app_id(struct nvpva_elf_context *d, uint16_t *exe_id,
 	d->elf_images->elf_img[*exe_id].elf_id = *exe_id;
 	d->elf_images->elf_img[*exe_id].is_system_app = is_system_app;
 
-	rmos_set_bit32(index, &d->elf_images->alloctable);
+	rmos_set_bit32((index%32), &d->elf_images->alloctable[index/32U]);
 
 out:
 	mutex_unlock(&d->elf_mutex);
 	return ret;
 }
 
-int32_t pva_unload_vpu_app(struct nvpva_elf_context *d, uint16_t exe_id)
+int32_t
+pva_unload_vpu_app(struct nvpva_elf_context *d, uint16_t exe_id, bool locked)
 {
 	int32_t err = 0;
 
-	mutex_lock(&d->elf_mutex);
+	if (!locked)
+		mutex_lock(&d->elf_mutex);
 	if ((exe_id < MAX_NUM_VPU_EXE) &&
-	    (rmos_test_bit32(exe_id, &d->elf_images->alloctable))) {
+	    (rmos_test_bit32((exe_id % 32),
+		&d->elf_images->alloctable[exe_id / 32]))) {
 		vpu_bin_clean(d->dev, &d->elf_images->elf_img[exe_id]);
-		rmos_clear_bit32(exe_id, &d->elf_images->alloctable);
+		rmos_clear_bit32((exe_id%32),
+			&d->elf_images->alloctable[exe_id/32]);
 	} else {
 		err = -EINVAL;
 	}
-	mutex_unlock(&d->elf_mutex);
+
+	if (!locked)
+		mutex_unlock(&d->elf_mutex);
+
 	return err;
 }
 
@@ -655,7 +691,8 @@ static struct pva_elf_image *get_elf_image(struct nvpva_elf_context *d,
 	return image;
 }
 
-int32_t pva_release_vpu_app(struct nvpva_elf_context *d, uint16_t exe_id)
+int32_t
+pva_release_vpu_app(struct nvpva_elf_context *d, uint16_t exe_id, bool locked)
 {
 	int32_t err = 0;
 	struct pva_elf_image *image = NULL;
@@ -664,7 +701,7 @@ int32_t pva_release_vpu_app(struct nvpva_elf_context *d, uint16_t exe_id)
 	if (image != NULL && image->user_registered == true) {
 		image->user_registered = false;
 		if (atomic_read(&image->submit_refcount) <= 0)
-			(void)pva_unload_vpu_app(d, exe_id);
+			(void)pva_unload_vpu_app(d, exe_id, locked);
 	} else {
 		err = -EINVAL;
 	}
@@ -683,7 +720,7 @@ int32_t pva_task_release_ref_vpu_app(struct nvpva_elf_context *d,
 			atomic_sub(1, &image->submit_refcount);
 			if (atomic_read(&image->submit_refcount) <= 0 &&
 			    image->user_registered == false)
-				(void)pva_unload_vpu_app(d, exe_id);
+				(void)pva_unload_vpu_app(d, exe_id, false);
 		} else
 			err = -EINVAL;
 	}
@@ -706,7 +743,8 @@ int32_t pva_task_acquire_ref_vpu_app(struct nvpva_elf_context *d,
 }
 
 int32_t pva_load_vpu_app(struct nvpva_elf_context *d, uint8_t *buffer,
-			 size_t size, uint16_t *exe_id, bool is_system_app)
+			 size_t size, uint16_t *exe_id,
+			 bool is_system_app, int hw_gen)
 {
 	void *elf = NULL;
 	int32_t err = 0;
@@ -727,13 +765,13 @@ int32_t pva_load_vpu_app(struct nvpva_elf_context *d, uint8_t *buffer,
 	}
 	elf = (void *)buffer;
 	image = get_elf_image(d, assigned_exe_id);
-	err = populate_symtab(elf, d, assigned_exe_id);
+	err = populate_symtab(elf, d, assigned_exe_id, pva->version);
 	if (err) {
 		dev_err(dev, "Populating symbol table failed");
 		err = -EINVAL;
 		goto out_elf_end;
 	}
-	err = populate_segments(elf, image);
+	err = populate_segments(elf, image, hw_gen);
 	if (err) {
 		dev_err(dev, "Populating segments failed");
 		err = -EINVAL;
@@ -756,7 +794,7 @@ int32_t pva_load_vpu_app(struct nvpva_elf_context *d, uint8_t *buffer,
 	(void)atomic_set(&image->submit_refcount, 0);
 out_elf_end:
 	if (err)
-		pva_unload_vpu_app(d, assigned_exe_id);
+		pva_unload_vpu_app(d, assigned_exe_id, false);
 
 out:
 	return err;
@@ -766,15 +804,20 @@ void pva_unload_all_apps(struct nvpva_elf_context *d)
 {
 	uint32_t elf_alloc_table = 0U;
 	uint32_t id = 0U;
+	uint32_t i;
 
 	mutex_lock(&d->elf_mutex);
-	elf_alloc_table = d->elf_images->alloctable;
-	mutex_unlock(&d->elf_mutex);
-	while (elf_alloc_table != 0U) {
-		id = rmos_get_first_set_bit(elf_alloc_table);
-		(void)pva_release_vpu_app(d, id);
-		rmos_clear_bit32(id, &elf_alloc_table);
+	for (i = 0; i < NUM_ALLOC_SEGMENTS; i++) {
+		elf_alloc_table = d->elf_images->alloctable[i];
+		while (elf_alloc_table != 0U) {
+			id = rmos_get_first_set_bit(elf_alloc_table);
+			(void)pva_release_vpu_app(d, (i * 32 + id), true);
+			rmos_clear_bit32(id, &elf_alloc_table);
+		}
+
+		d->elf_images->alloctable[i] = 0;
 	}
+	mutex_unlock(&d->elf_mutex);
 }
 
 void pva_vpu_deinit(struct nvpva_elf_context *d)
@@ -797,8 +840,45 @@ int32_t pva_vpu_init(struct pva *dev, struct nvpva_elf_context *d)
 		err = -ENOMEM;
 		goto fail_elf_img_init;
 	}
+
 	mutex_init(&d->elf_mutex);
 	return 0;
 fail_elf_img_init:
+	return err;
+}
+struct vmem_region {
+	uint32_t start;
+	uint32_t end;
+};
+
+struct vmem_region vmem_regions_tab[NUM_HEM_GEN + 1][VMEM_REGION_COUNT] = {
+	{{.start = 0, .end = 0},
+	 {.start = 0, .end = 0},
+	 {.start = 0, .end = 0}},
+	{{.start = T19X_VMEM0_START, .end = T19X_VMEM0_END},
+	 {.start = T19X_VMEM1_START, .end = T19X_VMEM1_END},
+	 {.start = T19X_VMEM2_START, .end = T19X_VMEM2_END}},
+	{{.start = T23x_VMEM0_START, .end = T23x_VMEM0_END},
+	 {.start = T23x_VMEM1_START, .end = T23x_VMEM1_END},
+	 {.start = T23x_VMEM2_START, .end = T23x_VMEM2_END}},
+};
+
+int32_t
+nvpva_validate_vmem_offset(const uint32_t vmem_offset,
+			   const uint32_t size,
+			   const int hw_gen)
+{
+
+	int i;
+	int32_t err = -EINVAL;
+
+	for (i = VMEM_REGION_COUNT; i > 0; i--) {
+		if (vmem_offset >= vmem_regions_tab[hw_gen][i-1].start)
+			break;
+	}
+
+	if ((i > 0) && ((vmem_offset + size) <= vmem_regions_tab[hw_gen][i-1].end))
+		err = 0;
+
 	return err;
 }

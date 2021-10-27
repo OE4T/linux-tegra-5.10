@@ -168,9 +168,13 @@ static int pva_copy_task(struct nvpva_ioctl_task *ioctl_task,
 	if (err)
 		goto out;
 
-	err = copy_part_from_user(&task->dma_misr_config,
-				  sizeof(task->dma_misr_config),
-				  ioctl_task->dma_misr_config);
+	if (task->is_system_app)
+		err = copy_part_from_user(&task->dma_misr_config,
+					  sizeof(task->dma_misr_config),
+					  ioctl_task->dma_misr_config);
+	else
+		task->dma_misr_config.enable = 0;
+
 	if (err)
 		goto out;
 
@@ -274,7 +278,6 @@ static int pva_submit(struct pva_private *priv, void *arg)
 	}
 
 	num_tasks = array_index_nospec(num_tasks, NVPVA_SUBMIT_MAX_TASKS + 1);
-
 	if (ioctl_tasks_header->version > 0) {
 		err = -ENOSYS;
 		goto out;
@@ -283,6 +286,7 @@ static int pva_submit(struct pva_private *priv, void *arg)
 	/* Allocate memory for the UMD representation of the tasks */
 	ioctl_tasks = kzalloc(ioctl_tasks_header->tasks.size, GFP_KERNEL);
 	if (ioctl_tasks == NULL) {
+		pr_err("pva: submit: allocation for tasks failed");
 		err = -ENOMEM;
 		goto out;
 	}
@@ -475,13 +479,16 @@ static int pva_register_vpu_exec(struct pva_private *priv, void *arg)
 				tests_app_names[system_app_id], true);
 		if (!test_app) {
 			nvhost_dbg_fn("pva test app request failed");
-			dev_err(&priv->pva->pdev->dev, "Failed to load the %s test_app\n",
+			dev_err(&priv->pva->pdev->dev,
+				"Failed to load the %s test_app\n",
 				tests_app_names[system_app_id]);
 			err = -ENOENT;
 			return err;
 		}
-		err = pva_load_vpu_app(&priv->client->elf_ctx, (uint8_t *)(test_app->data),
-				       test_app->size, &exe_id, true);
+		err = pva_load_vpu_app(&priv->client->elf_ctx,
+				       (uint8_t *)(test_app->data),
+				       test_app->size, &exe_id, true,
+				       priv->pva->version);
 		release_firmware(test_app);
 	} else {
 		uint64_t data_size = reg_in->exe_data.size;
@@ -506,7 +513,8 @@ static int pva_register_vpu_exec(struct pva_private *priv, void *arg)
 		}
 
 		err = pva_load_vpu_app(&priv->client->elf_ctx, exec_data,
-				       data_size, &exe_id, is_system);
+				       data_size, &exe_id, is_system,
+				       priv->pva->version);
 	}
 
 	if (err) {
@@ -532,7 +540,8 @@ static int pva_unregister_vpu_exec(struct pva_private *priv, void *arg)
 {
 	struct nvpva_vpu_exe_unregister_in_arg *unreg_in =
 		(struct nvpva_vpu_exe_unregister_in_arg *)arg;
-	return pva_release_vpu_app(&priv->client->elf_ctx, unreg_in->exe_id);
+	return pva_release_vpu_app(&priv->client->elf_ctx,
+			unreg_in->exe_id, false);
 }
 
 static int pva_get_symbol_id(struct pva_private *priv, void *arg)
