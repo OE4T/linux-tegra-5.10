@@ -22,6 +22,7 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pm_reservation.h>
+#include <nvgpu/static_analysis.h>
 #include <nvgpu/profiler.h>
 #include <nvgpu/atomic.h>
 #include <nvgpu/log.h>
@@ -1050,18 +1051,18 @@ static bool allowlist_range_search(struct gk20a *g,
 		u32 map_count, u32 offset,
 		enum nvgpu_pm_resource_hwpm_register_type *type)
 {
-	u32 start = 0U;
-	u32 mid = 0U;
-	u32 end = map_count - 1U;
+	s32 start = 0;
+	s32 mid = 0;
+	s32 end = nvgpu_safe_sub_s32((s32)map_count, 1);
 	bool found = false;
 
 	while (start <= end) {
-		mid = (start + end) / 2U;
+		mid = start + (end - start) / 2;
 
 		if (offset < map[mid].start) {
-			end = mid - 1U;
+			end = mid - 1;
 		} else if (offset > map[mid].end) {
-			start = mid + 1U;
+			start = mid + 1;
 		} else {
 			found = true;
 			break;
@@ -1082,22 +1083,22 @@ static bool allowlist_range_search(struct gk20a *g,
 static bool allowlist_offset_search(struct gk20a *g,
 		const u32 *offset_allowlist, u32 count, u32 offset)
 {
-	u32 start = 0U;
-	u32 mid = 0U;
-	u32 end = count - 1U;
+	s32 start = 0;
+	s32 mid = 0;
+	s32 end = nvgpu_safe_sub_s32((s32)count, 1);
 	bool found = false;
 
 	while (start <= end) {
-		mid = (start + end) / 2U;
+		mid = start + (end - start) / 2;
 		if (offset_allowlist[mid] == offset) {
 			found = true;
 			break;
 		}
 
 		if (offset < offset_allowlist[mid]) {
-			end = mid - 1U;
+			end = mid - 1;
 		} else {
-			start = mid + 1U;
+			start = mid + 1;
 		}
 	}
 
