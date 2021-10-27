@@ -309,10 +309,8 @@ static nve32_t xpcs_lane_bring_up(struct osi_core_priv_data *osi_core)
 {
 	unsigned int retry = 1000;
 	unsigned int count;
-	int cond;
-	nveu32_t cnt = 0;
 	nveu32_t val = 0;
-#define PCS_RETRY_MAX 300
+	int cond;
 
 	if (xpcs_uphy_lane_bring_up(osi_core,
 				    XPCS_WRAP_UPHY_HW_INIT_CTRL_TX_EN) < 0) {
@@ -393,43 +391,30 @@ static nve32_t xpcs_lane_bring_up(struct osi_core_priv_data *osi_core)
 	osi_writela(osi_core, val, (nveu8_t *)osi_core->xpcs_base +
 			XPCS_WRAP_UPHY_RX_CONTROL_0_0);
 
+	/* Step7 RX_CDR_RESET */
+	val = osi_readla(osi_core, (nveu8_t *)osi_core->xpcs_base +
+			 XPCS_WRAP_UPHY_RX_CONTROL_0_0);
+	val |= XPCS_WRAP_UPHY_RX_CONTROL_0_0_RX_CDR_RESET;
+	osi_writela(osi_core, val, (nveu8_t *)osi_core->xpcs_base +
+		    XPCS_WRAP_UPHY_RX_CONTROL_0_0);
 
-	while (cnt < PCS_RETRY_MAX) {
-		/* Step7 RX_CDR_RESET */
-		val = osi_readla(osi_core, (nveu8_t *)osi_core->xpcs_base +
-				 XPCS_WRAP_UPHY_RX_CONTROL_0_0);
-		val |= XPCS_WRAP_UPHY_RX_CONTROL_0_0_RX_CDR_RESET;
-		osi_writela(osi_core, val, (nveu8_t *)osi_core->xpcs_base +
-			    XPCS_WRAP_UPHY_RX_CONTROL_0_0);
+	/* Step8 RX_CDR_RESET */
+	val = osi_readla(osi_core, (nveu8_t *)osi_core->xpcs_base +
+			 XPCS_WRAP_UPHY_RX_CONTROL_0_0);
+	val &= ~(XPCS_WRAP_UPHY_RX_CONTROL_0_0_RX_CDR_RESET);
+	osi_writela(osi_core, val, (nveu8_t *)osi_core->xpcs_base +
+		    XPCS_WRAP_UPHY_RX_CONTROL_0_0);
 
-		/* Step8 RX_CDR_RESET */
-		val = osi_readla(osi_core, (nveu8_t *)osi_core->xpcs_base +
-				 XPCS_WRAP_UPHY_RX_CONTROL_0_0);
-		val &= ~(XPCS_WRAP_UPHY_RX_CONTROL_0_0_RX_CDR_RESET);
-		osi_writela(osi_core, val, (nveu8_t *)osi_core->xpcs_base +
-			    XPCS_WRAP_UPHY_RX_CONTROL_0_0);
+	val = osi_readla(osi_core, (nveu8_t *)osi_core->xpcs_base +
+			 XPCS_WRAP_UPHY_RX_CONTROL_0_0);
+	/* Step9 RX_PCS_PHY_RDY */
+	val |= XPCS_WRAP_UPHY_RX_CONTROL_0_0_RX_PCS_PHY_RDY;
+	osi_writela(osi_core, val, (nveu8_t *)osi_core->xpcs_base +
+		    XPCS_WRAP_UPHY_RX_CONTROL_0_0);
 
-		val = osi_readla(osi_core, (nveu8_t *)osi_core->xpcs_base +
-				 XPCS_WRAP_UPHY_RX_CONTROL_0_0);
-		/* Step9 RX_PCS_PHY_RDY */
-		val |= XPCS_WRAP_UPHY_RX_CONTROL_0_0_RX_PCS_PHY_RDY;
-		osi_writela(osi_core, val, (nveu8_t *)osi_core->xpcs_base +
-			    XPCS_WRAP_UPHY_RX_CONTROL_0_0);
-
-		if (xpcs_check_pcs_lock_status(osi_core) < 0) {
-			cnt += 1;
-			osi_core->osd_ops.udelay(1000U);
-		} else {
-			OSI_CORE_INFO(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
-				      "PCS block lock SUCCESS\n", 0ULL);
-			break;
-		}
-	}
-
-	if (cnt == PCS_RETRY_MAX) {
+	if (xpcs_check_pcs_lock_status(osi_core) < 0) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
-			     "Failed to get PCS block lock after max retries\n",
-			     cnt);
+			     "Failed to get PCS block lock\n", 0ULL);
 		return -1;
 	}
 
