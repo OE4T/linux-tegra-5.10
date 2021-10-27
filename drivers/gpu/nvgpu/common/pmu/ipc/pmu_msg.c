@@ -507,17 +507,17 @@ int nvgpu_pmu_process_message(struct nvgpu_pmu *pmu)
 			return err;
 		}
 
-		err = nvgpu_pmu_lsfm_int_wpr_region(g, pmu, pmu->lsfm);
-		if (err != 0) {
-			return err;
-		}
-
 		if (nvgpu_is_enabled(g, NVGPU_PMU_PERFMON)) {
 			err = nvgpu_pmu_perfmon_initialization(g, pmu,
-						pmu->pmu_perfmon);
+							pmu->pmu_perfmon);
 			if (err != 0) {
 				return err;
 			}
+		}
+
+		err = nvgpu_pmu_lsfm_int_wpr_region(g, pmu, pmu->lsfm);
+		if (err != 0) {
+			return err;
 		}
 
 		return 0;

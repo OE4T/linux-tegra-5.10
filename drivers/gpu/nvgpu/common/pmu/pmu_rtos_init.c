@@ -114,6 +114,15 @@ int nvgpu_pmu_destroy(struct gk20a *g, struct nvgpu_pmu *pmu)
 
 	nvgpu_pmu_queues_free(g, &pmu->queues);
 
+	/*
+	 * This is to clear the content of FBQ command and message queue data
+	 * as part rail-gate sequence to make sure FBQ is clean for un-railgate
+	 * sequence.
+	 */
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_PMU_RTOS_FBQ)) {
+		nvgpu_pmu_ss_fbq_flush(g, pmu);
+	}
+
 	nvgpu_pmu_fw_state_change(g, pmu, PMU_FW_STATE_OFF, false);
 	nvgpu_pmu_set_fw_ready(g, pmu, false);
 	nvgpu_pmu_lsfm_clean(g, pmu, pmu->lsfm);

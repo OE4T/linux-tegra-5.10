@@ -76,6 +76,7 @@ u32 nvgpu_pmu_get_ss_msg_fbq_offset(struct gk20a *g,
 	struct nvgpu_pmu *pmu, struct nvgpu_pmu_super_surface *ss);
 u32 nvgpu_pmu_get_ss_msg_fbq_element_offset(struct gk20a *g,
 	struct nvgpu_pmu *pmu, struct nvgpu_pmu_super_surface *ss, u32 idx);
+void nvgpu_pmu_ss_fbq_flush(struct gk20a *g, struct nvgpu_pmu *pmu);
 
 void nvgpu_pmu_super_surface_deinit(struct gk20a *g, struct nvgpu_pmu *pmu,
 	struct nvgpu_pmu_super_surface *ss);

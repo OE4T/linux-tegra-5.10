@@ -40,6 +40,11 @@ int nvgpu_pmu_super_surface_buf_alloc(struct gk20a *g, struct nvgpu_pmu *pmu,
 		return 0;
 	}
 
+	if (nvgpu_mem_is_valid(&ss->super_surface_buf)) {
+		/* skip alloc/reinit for unrailgate sequence */
+		return 0;
+	}
+
 	err = nvgpu_dma_alloc_map(vm, sizeof(struct super_surface),
 		&ss->super_surface_buf);
 	if (err != 0) {
@@ -191,6 +196,19 @@ u32 nvgpu_pmu_get_ss_msg_fbq_element_offset(struct gk20a *g,
 		fbq.msg_queue.element[idx]);
 }
 
+void nvgpu_pmu_ss_fbq_flush(struct gk20a *g, struct nvgpu_pmu *pmu)
+{
+	nvgpu_memset(g, nvgpu_pmu_super_surface_mem(g,
+			pmu, pmu->super_surface),
+			(u64)offsetof(struct super_surface, fbq.cmd_queues),
+			0x00, sizeof(struct nv_pmu_fbq_cmd_queues));
+
+	nvgpu_memset(g, nvgpu_pmu_super_surface_mem(g,
+			pmu, pmu->super_surface),
+			(u64)offsetof(struct super_surface, fbq.msg_queue),
+			0x00, sizeof(struct nv_pmu_fbq_msg_queue));
+}
+
 void nvgpu_pmu_super_surface_deinit(struct gk20a *g, struct nvgpu_pmu *pmu,
 	struct nvgpu_pmu_super_surface *ss)
 {
@@ -210,6 +228,11 @@ void nvgpu_pmu_super_surface_deinit(struct gk20a *g, struct nvgpu_pmu *pmu,
 int nvgpu_pmu_super_surface_init(struct gk20a *g, struct nvgpu_pmu *pmu,
 	struct nvgpu_pmu_super_surface **super_surface)
 {
+	if (*super_surface != NULL) {
+		/* skip alloc/reinit for unrailgate sequence */
+		return 0;
+	}
+
 	*super_surface = (struct nvgpu_pmu_super_surface *) nvgpu_kzalloc(g,
 		sizeof(struct nvgpu_pmu_super_surface));
 	if (*super_surface == NULL) {
