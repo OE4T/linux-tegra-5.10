@@ -558,7 +558,8 @@ nvgpu-$(CONFIG_NVGPU_GR_VIRTUALIZATION) += \
 endif
 
 nvgpu-$(CONFIG_COMMON_CLK) += \
-	os/linux/clk.o
+	os/linux/clk.o \
+	os/linux/clk_ga10b.o
 
 nvgpu-$(CONFIG_GK20A_DEVFREQ) += \
 	os/linux/scale.o

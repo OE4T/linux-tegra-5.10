@@ -20,7 +20,8 @@ vpr:
   sources: [ os/linux/vpr.c ]
 
 clk:
-  sources: [ os/linux/clk.c, os/linux/clk.h ]
+  sources: [ os/linux/clk.c, os/linux/clk.h,
+             os/linux/clk_ga10b.c, os/linux/clk_ga10b.h ]
 
 cde:
   sources: [ os/linux/cde.c,       os/linux/cde.h,

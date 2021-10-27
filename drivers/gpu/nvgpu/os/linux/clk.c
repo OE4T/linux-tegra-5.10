@@ -1,7 +1,7 @@
 /*
  * Linux clock support
  *
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -29,11 +29,15 @@
 #include <nvgpu/pmu/clk/clk.h>
 
 #include "clk.h"
+#include "clk_ga10b.h"
 #include "os_linux.h"
 #include "platform_gk20a.h"
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/clk_arb.h>
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include <nvgpu_next_chips.h>
+#endif
 
 #define HZ_TO_MHZ(x) ((x) / 1000000)
 
@@ -292,8 +296,20 @@ static void nvgpu_linux_disable_unprepare(struct clk_gk20a *clk)
 
 void nvgpu_linux_init_clk_support(struct gk20a *g)
 {
-	g->ops.clk.get_rate = nvgpu_linux_clk_get_rate;
-	g->ops.clk.set_rate = nvgpu_linux_clk_set_rate;
+	struct device *dev = dev_from_gk20a(g);
+	struct gk20a_platform *platform = dev_get_drvdata(dev);
+
+	if ((platform->platform_chip_id == TEGRA_234)
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+		|| (platform->platform_chip_id == TEGRA_239)
+#endif
+	){
+		g->ops.clk.get_rate = nvgpu_ga10b_linux_clk_get_rate;
+		g->ops.clk.set_rate = nvgpu_ga10b_linux_clk_set_rate;
+	} else {
+		g->ops.clk.get_rate = nvgpu_linux_clk_get_rate;
+		g->ops.clk.set_rate = nvgpu_linux_clk_set_rate;
+	}
 	g->ops.clk.get_fmax_at_vmin_safe = nvgpu_linux_get_fmax_at_vmin_safe;
 	g->ops.clk.get_ref_clock_rate = nvgpu_linux_get_ref_clock_rate;
 	g->ops.clk.predict_mv_at_hz_cur_tfloor = nvgpu_linux_predict_mv_at_hz_cur_tfloor;
