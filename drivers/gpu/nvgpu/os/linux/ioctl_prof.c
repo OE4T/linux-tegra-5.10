@@ -818,7 +818,7 @@ static int nvgpu_prof_ioctl_vab_flush(struct nvgpu_profiler_object *prof,
 {
 	int err;
 	struct gk20a *g = prof->g;
-	u64 *user_data = nvgpu_kzalloc(g, arg->buffer_size);
+	u8 *user_data = nvgpu_kzalloc(g, arg->buffer_size);
 
 	err = gk20a_busy(g);
 	if (err != 0) {

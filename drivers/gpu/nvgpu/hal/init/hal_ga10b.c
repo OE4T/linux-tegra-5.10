@@ -776,6 +776,7 @@ static const struct gops_gr ga10b_ops_gr = {
 	.gr_suspend = nvgpu_gr_suspend,
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	.vab_init = ga10b_gr_vab_init,
+	.vab_recover = ga10b_gr_vab_recover,
 	.vab_release = ga10b_gr_vab_release,
 #endif
 #ifdef CONFIG_NVGPU_DEBUGGER
@@ -878,6 +879,7 @@ static const struct gops_fb_vab ga10b_ops_fb_vab = {
 	.dump_and_clear = ga10b_fb_vab_dump_and_clear,
 	.release = ga10b_fb_vab_release,
 	.teardown = ga10b_fb_vab_teardown,
+	.recover = ga10b_fb_vab_recover,
 };
 #endif
 

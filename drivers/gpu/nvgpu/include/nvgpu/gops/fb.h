@@ -182,7 +182,7 @@ struct gops_fb_vab {
 	 * @brief Trigger VAB dump, copy buffer to user and clear
 	 *
 	 */
-	int (*dump_and_clear)(struct gk20a *g, u64 *user_buf,
+	int (*dump_and_clear)(struct gk20a *g, u8 *user_buf,
 		u64 user_buf_size);
 
 	/**
@@ -196,6 +196,12 @@ struct gops_fb_vab {
 	 *
 	 */
 	int (*teardown)(struct gk20a *g);
+
+	/**
+	 * @brief Recover from VAB MMU fault
+	 *
+	 */
+	void (*recover)(struct gk20a *g);
 };
 #endif
 

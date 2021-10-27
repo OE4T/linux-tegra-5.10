@@ -466,6 +466,7 @@ static const struct gops_gr vgpu_ga10b_ops_gr = {
 	.gr_suspend = nvgpu_gr_suspend,
 	.vab_init = NULL,
 	.vab_release = NULL,
+	.vab_recover = NULL,
 #ifdef CONFIG_NVGPU_DEBUGGER
 	.set_alpha_circular_buffer_size = NULL,
 	.set_circular_buffer_size = NULL,
@@ -1060,6 +1061,7 @@ static const struct gops_fb_vab vgpu_ga10b_ops_fb_vab = {
 	.reserve = vgpu_fb_vab_reserve,
 	.dump_and_clear = vgpu_fb_vab_dump_and_clear,
 	.release = vgpu_fb_vab_release,
+	.recover = NULL,
 	.teardown = NULL,
 };
 

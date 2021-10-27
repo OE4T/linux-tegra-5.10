@@ -1099,4 +1099,10 @@ void ga10b_gr_vab_release(struct gk20a *g, u32 vab_reg)
 {
 	nvgpu_writel(g, gr_gpcs_mmu_vidmem_access_bit_r(), vab_reg);
 }
+
+void ga10b_gr_vab_recover(struct gk20a *g, u32 vab_reg)
+{
+	nvgpu_writel(g, gr_gpcs_mmu_vidmem_access_bit_r(), 0);
+	nvgpu_writel(g, gr_gpcs_mmu_vidmem_access_bit_r(), vab_reg);
+}
 #endif /* CONFIG_NVGPU_HAL_NON_FUSA */

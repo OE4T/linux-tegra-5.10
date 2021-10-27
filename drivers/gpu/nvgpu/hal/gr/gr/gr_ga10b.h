@@ -44,6 +44,7 @@ void ga10b_gr_set_gpcs_rops_crop_debug4(struct gk20a *g, u32 data);
 void ga10b_gr_vab_init(struct gk20a *g, u32 vab_reg, u32 num_range_checkers,
 	struct nvgpu_vab_range_checker *vab_range_checker);
 void ga10b_gr_vab_release(struct gk20a *g, u32 vab_reg);
+void ga10b_gr_vab_recover(struct gk20a *g, u32 vab_reg);
 #endif /* CONFIG_NVGPU_HAL_NON_FUSA */
 
 #ifdef CONFIG_NVGPU_DEBUGGER
