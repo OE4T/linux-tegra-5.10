@@ -525,6 +525,8 @@ struct ether_priv_data {
 	struct work_struct set_rx_mode_work;
 	/** rx lock */
 	struct mutex rx_mode_lock;
+	/** set speed work */
+	struct delayed_work set_speed_work;
 	/** Flag to check if EEE LPI is enabled for the MAC */
 	unsigned int eee_enabled;
 	/** Flag to check if EEE LPI is active currently */

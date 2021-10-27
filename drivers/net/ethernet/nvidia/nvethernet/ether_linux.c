@@ -847,6 +847,72 @@ static inline void ether_set_eqos_tx_clk(struct clk *tx_clk,
 }
 
 /**
+ * @brief Work Queue function to call set speed.
+ *
+ * @param[in] work: work structure
+ *
+ */
+static inline void set_speed_work_func(struct work_struct *work)
+{
+	struct delayed_work *dwork = to_delayed_work(work);
+	struct ether_priv_data *pdata = container_of(dwork,
+			struct ether_priv_data, set_speed_work);
+	/* store last call last_uc_filter_index in temporary variable */
+	struct osi_ioctl ioctl_data = {};
+	struct net_device *dev = pdata->ndev;
+	struct phy_device *phydev = pdata->phydev;
+	nveu32_t iface_mode = pdata->osi_core->phy_iface_mode;
+	unsigned int eee_enable = OSI_DISABLE;
+	int speed;
+	int ret = 0;
+
+	if (pdata->osi_core->mac != OSI_MAC_HW_MGBE) {
+		/* Handle retry for MGBE */
+		return;
+	}
+
+	if (!phydev) {
+		/* Return on no phydev */
+		return;
+	}
+
+	/* Speed will be overwritten as per the PHY interface mode */
+	speed = phydev->speed;
+	/* MAC and XFI speed should match in XFI mode */
+	if (iface_mode == OSI_XFI_MODE_10G) {
+		/* Set speed to 10G */
+		speed = OSI_SPEED_10000;
+	} else if (iface_mode == OSI_XFI_MODE_5G) {
+		/* Set speed to 5G */
+		speed = OSI_SPEED_5000;
+	}
+
+	/* Initiate OSI SET_SPEED ioctl */
+	ioctl_data.cmd = OSI_CMD_SET_SPEED;
+	ioctl_data.arg6_32 = speed;
+	ret = osi_handle_ioctl(pdata->osi_core, &ioctl_data);
+	if (ret < 0) {
+		netdev_dbg(dev, "Retry set speed\n");
+		schedule_delayed_work(&pdata->set_speed_work,
+				      msecs_to_jiffies(1000));
+		return;
+	}
+
+	/* Set MGBE MAC_DIV/TX clk rate */
+	pdata->speed = speed;
+	phy_print_status(phydev);
+	ether_set_mgbe_mac_div_rate(pdata->mac_div_clk,
+				    pdata->speed);
+
+	if (pdata->eee_enabled && pdata->tx_lpi_enabled) {
+		/* Configure EEE if it is enabled */
+		eee_enable = OSI_ENABLE;
+	}
+	pdata->eee_active = ether_conf_eee(pdata, eee_enable);
+	netif_carrier_on(dev);
+}
+
+/**
  * @brief Adjust link call back
  *
  * Algorithm: Callback function called by the PHY subsystem
@@ -872,6 +938,7 @@ static void ether_adjust_link(struct net_device *dev)
 		return;
 	}
 
+	cancel_delayed_work_sync(&pdata->set_speed_work);
 	if (phydev->link) {
 		if ((pdata->osi_core->pause_frames == OSI_PAUSE_FRAMES_ENABLE)
 		    && (phydev->pause || phydev->asym_pause)) {
@@ -946,6 +1013,13 @@ static void ether_adjust_link(struct net_device *dev)
 			ioctl_data.arg6_32 = speed;
 			ret = osi_handle_ioctl(pdata->osi_core, &ioctl_data);
 			if (ret < 0) {
+				if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
+					netdev_dbg(dev, "Retry set speed\n");
+					netif_carrier_off(dev);
+					schedule_delayed_work(&pdata->set_speed_work,
+							      msecs_to_jiffies(10));
+					return;
+				}
 				netdev_err(dev, "Failed to set speed\n");
 				return;
 			}
@@ -2774,6 +2848,7 @@ static int ether_close(struct net_device *ndev)
 		}
 		pdata->phydev = NULL;
 	}
+	cancel_delayed_work_sync(&pdata->set_speed_work);
 
 	/* turn off sources of data into dev */
 	netif_tx_disable(pdata->ndev);
@@ -6266,6 +6341,8 @@ static int ether_probe(struct platform_device *pdev)
 	mutex_init(&pdata->rx_mode_lock);
 	/* Initialization of delayed workqueue */
 	INIT_WORK(&pdata->set_rx_mode_work, set_rx_mode_work_func);
+	/* Initialization of set speed workqueue */
+	INIT_DELAYED_WORK(&pdata->set_speed_work, set_speed_work_func);
 	osi_core->hw_feature = &pdata->hw_feat;
 	INIT_LIST_HEAD(&pdata->mac_addr_list_head);
 	INIT_LIST_HEAD(&pdata->tx_ts_skb_head);
