@@ -234,8 +234,6 @@ void ga10b_channel_read_state(struct gk20a *g, struct nvgpu_channel *ch,
 		NVGPU_CHANNEL_STATUS_STRING_LENGTH, chram_status_list,
 		status_str_count, ", ");
 
-	nvgpu_err(g, "status_string %s", state->status_string);
-
 	nvgpu_log_info(g, "Channel id:%d state next:%s enabled:%s ctx_reload:%s"
 		" busy:%s pending_acquire:%s eng_faulted:%s status_string:%s",
 		ch->chid,
