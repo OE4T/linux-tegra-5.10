@@ -33,6 +33,10 @@
 		status = "okay";
 	};
 
+	dce@d800000 {
+		status = "okay";
+	};
+
 	bpmp {
 		i2c {
 			tegra_tmp451: temp-sensor@4c {
