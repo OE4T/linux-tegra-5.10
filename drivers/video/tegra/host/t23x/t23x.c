@@ -74,10 +74,13 @@
 
 #include "chip_support.h"
 
+#include "scale_emc.h"
+
 #include "streamid_regs.c"
 #include "cg_regs.c"
 #include "classid_vm_regs.c"
 #include "mmio_vm_regs.c"
+#include "actmon_regs.c"
 
 #include <dt-bindings/interconnect/tegra_icc_id.h>
 
@@ -462,12 +465,21 @@ struct nvhost_device_data t23x_vic_info = {
 	.transcfg_addr		= 0x2044,
 	.transcfg_val		= 0x20,
 	.icc_id			= TEGRA_ICC_VIC,
+	.scaling_init		= nvhost_scale_emc_init,
+	.scaling_deinit		= nvhost_scale_emc_deinit,
+	.scaling_post_cb	= &nvhost_scale_emc_callback,
 	.get_reloc_phys_addr	= nvhost_t23x_get_reloc_phys_addr,
 	.module_irq		= 1,
 	.engine_cg_regs		= t23x_vic_gating_registers,
 	.engine_can_cg		= false,
 	.can_powergate		= true,
 	.isolate_contexts	= true,
+	.actmon_regs		= HOST1X_THOST_ACTMON_VIC,
+	.actmon_enabled         = true,
+	.actmon_irq		= 3,
+	.actmon_weight_count	= 216,
+	.actmon_setting_regs	= t23x_vic_actmon_registers,
+	.devfreq_governor	= "userspace",
 };
 #endif
 

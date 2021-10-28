@@ -3,7 +3,7 @@
  *
  * Tegra T23X HOST1X Register Definitions
  *
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -44,6 +44,11 @@
 #define NV_HOST1X_MLOCK_ID_NVJPG1	16
 #define NV_HOST1X_MLOCK_ID_TSEC		22
 #define NV_HOST1X_MLOCK_ID_OFA		8
+
+#define HOST1X_THOST_ACTMON_NVENC	0x00000
+#define HOST1X_THOST_ACTMON_VIC 	0x10000
+#define HOST1X_THOST_ACTMON_NVDEC	0x20000
+#define HOST1X_THOST_ACTMON_NVJPG	0x30000
 
 /* Generic support */
 static inline u32 nvhost_class_host_wait_syncpt(
