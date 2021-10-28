@@ -94,6 +94,11 @@ struct nvgpu_runlist_mem {
 };
 
 struct nvgpu_runlist_domain {
+	/** Bitmap of active channels in the runlist domain. One bit per chid. */
+	unsigned long *active_channels;
+	/** Bitmap of active TSGs in the runlist domain. One bit per tsgid. */
+	unsigned long *active_tsgs;
+
 	/** Runlist buffer free to use in sw. Swapped with another mem on next load. */
 	struct nvgpu_runlist_mem *mem;
 
@@ -104,11 +109,6 @@ struct nvgpu_runlist_domain {
 struct nvgpu_runlist {
 	/** The HW has some designated RL IDs that are bound to engines. */
 	u32 id;
-
-	/** Bitmap of active channels in the runlist. One bit per chid. */
-	unsigned long *active_channels;
-	/** Bitmap of active TSGs in the runlist. One bit per tsgid. */
-	unsigned long *active_tsgs;
 
 	/* The default domain is the only one that currently exists. */
 	struct nvgpu_runlist_domain *domain;
@@ -157,7 +157,6 @@ struct nvgpu_runlist {
  * runlist buffer to describe all active channels and TSGs.
  */
 u32 nvgpu_runlist_construct_locked(struct nvgpu_fifo *f,
-		struct nvgpu_runlist *runlist,
 		struct nvgpu_runlist_domain *domain,
 		u32 max_entries);
 

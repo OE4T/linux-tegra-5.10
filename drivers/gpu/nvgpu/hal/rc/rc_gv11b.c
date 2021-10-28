@@ -80,7 +80,7 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 		nvgpu_log(g, gpu_dbg_info, "abort runlist id %d",
 				runlist->id);
 
-		for_each_set_bit(tsgid, runlist->active_tsgs, f->num_channels) {
+		for_each_set_bit(tsgid, runlist->domain->active_tsgs, f->num_channels) {
 			tsg = &g->fifo.tsg[tsgid];
 
 			if (!tsg->abortable) {

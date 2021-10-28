@@ -346,9 +346,9 @@ int test_tsg_bind_channel(struct unit_module *m,
 		/* ch already already active */
 		runlist = tsg->runlist;
 		if (branches & F_TSG_BIND_CHANNEL_ACTIVE) {
-			nvgpu_set_bit(ch->chid, runlist->active_channels);
+			nvgpu_set_bit(ch->chid, runlist->domain->active_channels);
 		} else {
-			nvgpu_clear_bit(ch->chid, runlist->active_channels);
+			nvgpu_clear_bit(ch->chid, runlist->domain->active_channels);
 		}
 
 		if ((branches & F_TSG_BIND_CHANNEL_BIND_HAL) ||

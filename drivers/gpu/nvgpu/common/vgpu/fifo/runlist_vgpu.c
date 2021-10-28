@@ -84,13 +84,13 @@ static bool vgpu_runlist_modify_active_locked(struct gk20a *g, u32 runlist_id,
 
 	if (add) {
 		if (nvgpu_test_and_set_bit(ch->chid,
-				runlist->active_channels)) {
+				domain->active_channels)) {
 			return false;
 			/* was already there */
 		}
 	} else {
 		if (!nvgpu_test_and_clear_bit(ch->chid,
-				runlist->active_channels)) {
+				domain->active_channels)) {
 			/* wasn't there */
 			return false;
 		}
@@ -117,7 +117,7 @@ static void vgpu_runlist_reconstruct_locked(struct gk20a *g, u32 runlist_id,
 
 		nvgpu_assert(f->num_channels <= (unsigned int)U16_MAX);
 		for_each_set_bit(chid,
-				runlist->active_channels, f->num_channels) {
+				domain->active_channels, f->num_channels) {
 			nvgpu_log_info(g, "add channel %lu to runlist", chid);
 			*runlist_entry++ = (u16)chid;
 			count++;

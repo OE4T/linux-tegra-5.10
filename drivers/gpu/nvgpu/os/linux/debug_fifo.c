@@ -80,7 +80,7 @@ static int gk20a_fifo_sched_debugfs_seq_show(
 		ret = 0;
 	}
 
-	if (!test_bit(ch->chid, runlist->active_channels))
+	if (!test_bit(ch->chid, runlist->domain->active_channels))
 		return ret;
 
 	if (nvgpu_channel_get(ch)) {

@@ -63,7 +63,7 @@ void nvgpu_runlist_unlock_active_runlists(struct gk20a *g)
 }
 
 static u32 nvgpu_runlist_append_tsg(struct gk20a *g,
-		struct nvgpu_runlist *runlist,
+		struct nvgpu_runlist_domain *domain,
 		u32 **runlist_entry,
 		u32 *entries_left,
 		struct nvgpu_tsg *tsg)
@@ -107,7 +107,7 @@ static u32 nvgpu_runlist_append_tsg(struct gk20a *g,
 	nvgpu_list_for_each_entry(ch, &tsg->ch_list,
 			nvgpu_channel, ch_entry) {
 		if (!nvgpu_test_bit(ch->chid,
-			      runlist->active_channels)) {
+			      domain->active_channels)) {
 			continue;
 		}
 
@@ -133,7 +133,7 @@ static u32 nvgpu_runlist_append_tsg(struct gk20a *g,
 
 
 static u32 nvgpu_runlist_append_prio(struct nvgpu_fifo *f,
-				struct nvgpu_runlist *runlist,
+				struct nvgpu_runlist_domain *domain,
 				u32 **runlist_entry,
 				u32 *entries_left,
 				u32 interleave_level)
@@ -143,12 +143,12 @@ static u32 nvgpu_runlist_append_prio(struct nvgpu_fifo *f,
 
 	nvgpu_log_fn(f->g, " ");
 
-	for_each_set_bit(tsgid, runlist->active_tsgs, f->num_channels) {
+	for_each_set_bit(tsgid, domain->active_tsgs, f->num_channels) {
 		struct nvgpu_tsg *tsg = nvgpu_tsg_get_from_id(f->g, (u32)tsgid);
 		u32 entries;
 
 		if (tsg->interleave_level == interleave_level) {
-			entries = nvgpu_runlist_append_tsg(f->g, runlist,
+			entries = nvgpu_runlist_append_tsg(f->g, domain,
 					runlist_entry, entries_left, tsg);
 			if (entries == RUNLIST_APPEND_FAILURE) {
 				return RUNLIST_APPEND_FAILURE;
@@ -161,7 +161,7 @@ static u32 nvgpu_runlist_append_prio(struct nvgpu_fifo *f,
 }
 
 static u32 nvgpu_runlist_append_hi(struct nvgpu_fifo *f,
-				struct nvgpu_runlist *runlist,
+				struct nvgpu_runlist_domain *domain,
 				u32 **runlist_entry,
 				u32 *entries_left)
 {
@@ -171,13 +171,13 @@ static u32 nvgpu_runlist_append_hi(struct nvgpu_fifo *f,
 	 * No higher levels - this is where the "recursion" ends; just add all
 	 * active TSGs at this level.
 	 */
-	return nvgpu_runlist_append_prio(f, runlist, runlist_entry,
+	return nvgpu_runlist_append_prio(f, domain, runlist_entry,
 			entries_left,
 			NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_HIGH);
 }
 
 static u32 nvgpu_runlist_append_med(struct nvgpu_fifo *f,
-				struct nvgpu_runlist *runlist,
+				struct nvgpu_runlist_domain *domain,
 				u32 **runlist_entry,
 				u32 *entries_left)
 {
@@ -186,7 +186,7 @@ static u32 nvgpu_runlist_append_med(struct nvgpu_fifo *f,
 
 	nvgpu_log_fn(f->g, " ");
 
-	for_each_set_bit(tsgid, runlist->active_tsgs, f->num_channels) {
+	for_each_set_bit(tsgid, domain->active_tsgs, f->num_channels) {
 		struct nvgpu_tsg *tsg = nvgpu_tsg_get_from_id(f->g, (u32)tsgid);
 		u32 entries;
 
@@ -197,14 +197,14 @@ static u32 nvgpu_runlist_append_med(struct nvgpu_fifo *f,
 
 		/* LEVEL_MEDIUM list starts with a LEVEL_HIGH, if any */
 
-		entries = nvgpu_runlist_append_hi(f, runlist,
+		entries = nvgpu_runlist_append_hi(f, domain,
 				runlist_entry, entries_left);
 		if (entries == RUNLIST_APPEND_FAILURE) {
 			return RUNLIST_APPEND_FAILURE;
 		}
 		count += entries;
 
-		entries = nvgpu_runlist_append_tsg(f->g, runlist,
+		entries = nvgpu_runlist_append_tsg(f->g, domain,
 				runlist_entry, entries_left, tsg);
 		if (entries == RUNLIST_APPEND_FAILURE) {
 			return RUNLIST_APPEND_FAILURE;
@@ -216,7 +216,7 @@ static u32 nvgpu_runlist_append_med(struct nvgpu_fifo *f,
 }
 
 static u32 nvgpu_runlist_append_low(struct nvgpu_fifo *f,
-				struct nvgpu_runlist *runlist,
+				struct nvgpu_runlist_domain *domain,
 				u32 **runlist_entry,
 				u32 *entries_left)
 {
@@ -225,7 +225,7 @@ static u32 nvgpu_runlist_append_low(struct nvgpu_fifo *f,
 
 	nvgpu_log_fn(f->g, " ");
 
-	for_each_set_bit(tsgid, runlist->active_tsgs, f->num_channels) {
+	for_each_set_bit(tsgid, domain->active_tsgs, f->num_channels) {
 		struct nvgpu_tsg *tsg = nvgpu_tsg_get_from_id(f->g, (u32)tsgid);
 		u32 entries;
 
@@ -236,21 +236,21 @@ static u32 nvgpu_runlist_append_low(struct nvgpu_fifo *f,
 
 		/* The medium level starts with the highs, if any. */
 
-		entries = nvgpu_runlist_append_med(f, runlist,
+		entries = nvgpu_runlist_append_med(f, domain,
 				runlist_entry, entries_left);
 		if (entries == RUNLIST_APPEND_FAILURE) {
 			return RUNLIST_APPEND_FAILURE;
 		}
 		count += entries;
 
-		entries = nvgpu_runlist_append_hi(f, runlist,
+		entries = nvgpu_runlist_append_hi(f, domain,
 				runlist_entry, entries_left);
 		if (entries == RUNLIST_APPEND_FAILURE) {
 			return RUNLIST_APPEND_FAILURE;
 		}
 		count += entries;
 
-		entries = nvgpu_runlist_append_tsg(f->g, runlist,
+		entries = nvgpu_runlist_append_tsg(f->g, domain,
 				runlist_entry, entries_left, tsg);
 		if (entries == RUNLIST_APPEND_FAILURE) {
 			return RUNLIST_APPEND_FAILURE;
@@ -264,10 +264,10 @@ static u32 nvgpu_runlist_append_low(struct nvgpu_fifo *f,
 		 * the next level once. If that's empty too, we have only
 		 * LEVEL_HIGH jobs.
 		 */
-		count = nvgpu_runlist_append_med(f, runlist,
+		count = nvgpu_runlist_append_med(f, domain,
 				runlist_entry, entries_left);
 		if (count == 0U) {
-			count = nvgpu_runlist_append_hi(f, runlist,
+			count = nvgpu_runlist_append_hi(f, domain,
 					runlist_entry, entries_left);
 		}
 	}
@@ -276,7 +276,7 @@ static u32 nvgpu_runlist_append_low(struct nvgpu_fifo *f,
 }
 
 static u32 nvgpu_runlist_append_flat(struct nvgpu_fifo *f,
-				struct nvgpu_runlist *runlist,
+				struct nvgpu_runlist_domain *domain,
 				u32 **runlist_entry,
 				u32 *entries_left)
 {
@@ -289,7 +289,7 @@ static u32 nvgpu_runlist_append_flat(struct nvgpu_fifo *f,
 	for (i = 0; i < NVGPU_FIFO_RUNLIST_INTERLEAVE_NUM_LEVELS; i++) {
 		u32 level = NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_HIGH - i;
 
-		entries = nvgpu_runlist_append_prio(f, runlist, runlist_entry,
+		entries = nvgpu_runlist_append_prio(f, domain, runlist_entry,
 				entries_left, level);
 		if (entries == RUNLIST_APPEND_FAILURE) {
 			return RUNLIST_APPEND_FAILURE;
@@ -301,7 +301,6 @@ static u32 nvgpu_runlist_append_flat(struct nvgpu_fifo *f,
 }
 
 u32 nvgpu_runlist_construct_locked(struct nvgpu_fifo *f,
-				struct nvgpu_runlist *runlist,
 				struct nvgpu_runlist_domain *domain,
 				u32 max_entries)
 {
@@ -313,16 +312,15 @@ u32 nvgpu_runlist_construct_locked(struct nvgpu_fifo *f,
 	 * and channel entries are ultimately appended.
 	 */
 	if (f->g->runlist_interleave) {
-		return nvgpu_runlist_append_low(f, runlist,
+		return nvgpu_runlist_append_low(f, domain,
 				&runlist_entry_base, &max_entries);
 	} else {
-		return nvgpu_runlist_append_flat(f, runlist,
+		return nvgpu_runlist_append_flat(f, domain,
 				&runlist_entry_base, &max_entries);
 	}
 }
 
 static bool nvgpu_runlist_modify_active_locked(struct gk20a *g,
-					       struct nvgpu_runlist *runlist,
 					       struct nvgpu_runlist_domain *domain,
 					       struct nvgpu_channel *ch, bool add)
 {
@@ -341,18 +339,18 @@ static bool nvgpu_runlist_modify_active_locked(struct gk20a *g,
 
 	if (add) {
 		if (nvgpu_test_and_set_bit(ch->chid,
-				runlist->active_channels)) {
+				domain->active_channels)) {
 			/* was already there */
 			return false;
 		} else {
 			/* new, and belongs to a tsg */
-			nvgpu_set_bit(tsg->tsgid, runlist->active_tsgs);
+			nvgpu_set_bit(tsg->tsgid, domain->active_tsgs);
 			tsg->num_active_channels = nvgpu_safe_add_u32(
 					tsg->num_active_channels, 1U);
 		}
 	} else {
 		if (!nvgpu_test_and_clear_bit(ch->chid,
-				runlist->active_channels)) {
+				domain->active_channels)) {
 			/* wasn't there */
 			return false;
 		} else {
@@ -361,7 +359,7 @@ static bool nvgpu_runlist_modify_active_locked(struct gk20a *g,
 			if (tsg->num_active_channels == 0U) {
 				/* was the only member of this tsg */
 				nvgpu_clear_bit(tsg->tsgid,
-						runlist->active_tsgs);
+						domain->active_tsgs);
 			}
 		}
 	}
@@ -385,7 +383,7 @@ static int nvgpu_runlist_reconstruct_locked(struct gk20a *g,
 		return 0;
 	}
 
-	num_entries = nvgpu_runlist_construct_locked(f, runlist, domain,
+	num_entries = nvgpu_runlist_construct_locked(f, domain,
 						f->num_runlist_entries);
 	if (num_entries == RUNLIST_APPEND_FAILURE) {
 		return -E2BIG;
@@ -413,7 +411,7 @@ int nvgpu_runlist_update_locked(struct gk20a *g, struct nvgpu_runlist *rl,
 	struct nvgpu_runlist_domain *domain = rl->domain;
 
 	if (ch != NULL) {
-		bool update = nvgpu_runlist_modify_active_locked(g, rl, domain, ch, add);
+		bool update = nvgpu_runlist_modify_active_locked(g, domain, ch, add);
 		if (!update) {
 			/* no change in runlist contents */
 			return 0;
@@ -659,6 +657,21 @@ static void free_rl_mem(struct gk20a *g, struct nvgpu_runlist_mem *mem)
 	nvgpu_kfree(g, mem);
 }
 
+static void nvgpu_runlist_domain_free(struct gk20a *g,
+				      struct nvgpu_runlist_domain *domain)
+{
+	free_rl_mem(g, domain->mem);
+	domain->mem = NULL;
+	free_rl_mem(g, domain->mem_hw);
+	domain->mem_hw = NULL;
+	nvgpu_kfree(g, domain->active_channels);
+	domain->active_channels = NULL;
+	nvgpu_kfree(g, domain->active_tsgs);
+	domain->active_tsgs = NULL;
+
+	nvgpu_kfree(g, domain);
+}
+
 void nvgpu_runlist_cleanup_sw(struct gk20a *g)
 {
 	struct nvgpu_fifo *f = &g->fifo;
@@ -675,19 +688,9 @@ void nvgpu_runlist_cleanup_sw(struct gk20a *g)
 		runlist = &f->active_runlists[i];
 
 		if (runlist->domain != NULL) {
-			free_rl_mem(g, runlist->domain->mem);
-			runlist->domain->mem = NULL;
-			free_rl_mem(g, runlist->domain->mem_hw);
-			runlist->domain->mem_hw = NULL;
-			nvgpu_kfree(g, runlist->domain);
+			nvgpu_runlist_domain_free(g, runlist->domain);
 			runlist->domain = NULL;
 		}
-
-		nvgpu_kfree(g, runlist->active_channels);
-		runlist->active_channels = NULL;
-
-		nvgpu_kfree(g, runlist->active_tsgs);
-		runlist->active_tsgs = NULL;
 
 		nvgpu_mutex_destroy(&runlist->runlist_lock);
 		f->runlists[runlist->id] = NULL;
@@ -844,6 +847,7 @@ static struct nvgpu_runlist_mem *init_rl_mem(struct gk20a *g, u32 runlist_size)
 static struct nvgpu_runlist_domain *nvgpu_init_rl_domain(struct gk20a *g, u32 runlist_size)
 {
 	struct nvgpu_runlist_domain *domain = nvgpu_kzalloc(g, sizeof(*domain));
+	struct nvgpu_fifo *f = &g->fifo;
 
 	if (domain == NULL) {
 		return NULL;
@@ -859,7 +863,25 @@ static struct nvgpu_runlist_domain *nvgpu_init_rl_domain(struct gk20a *g, u32 ru
 		goto free_mem;
 	}
 
+	domain->active_channels =
+		nvgpu_kzalloc(g, DIV_ROUND_UP(f->num_channels,
+					      BITS_PER_BYTE));
+	if (domain->active_channels == NULL) {
+		goto free_mem_hw;
+	}
+
+	domain->active_tsgs =
+		nvgpu_kzalloc(g, DIV_ROUND_UP(f->num_channels,
+					      BITS_PER_BYTE));
+	if (domain->active_tsgs == NULL) {
+		goto free_active_channels;
+	}
+
 	return domain;
+free_active_channels:
+	nvgpu_kfree(g, domain->active_channels);
+free_mem_hw:
+	free_rl_mem(g, domain->mem_hw);
 free_mem:
 	free_rl_mem(g, domain->mem);
 free_domain:
@@ -898,22 +920,6 @@ static int nvgpu_init_active_runlist_mapping(struct gk20a *g)
 		runlist->id = runlist_id;
 		f->runlists[runlist_id] = runlist;
 		i = nvgpu_safe_add_u32(i, 1U);
-
-		runlist->active_channels =
-			nvgpu_kzalloc(g, DIV_ROUND_UP(f->num_channels,
-						      BITS_PER_BYTE));
-		if (runlist->active_channels == NULL) {
-			err = -ENOMEM;
-			goto clean_up_runlist;
-		}
-
-		runlist->active_tsgs =
-			nvgpu_kzalloc(g, DIV_ROUND_UP(f->num_channels,
-						      BITS_PER_BYTE));
-		if (runlist->active_tsgs == NULL) {
-			err = -ENOMEM;
-			goto clean_up_runlist;
-		}
 
 		runlist_size = (size_t)f->runlist_entry_size *
 				(size_t)f->num_runlist_entries;
