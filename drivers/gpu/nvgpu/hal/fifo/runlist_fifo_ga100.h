@@ -30,6 +30,5 @@
 struct gk20a;
 
 u32 ga100_runlist_count_max(struct gk20a *g);
-void ga100_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
-					u32 count, u32 buffer_index);
+void ga100_runlist_hw_submit(struct gk20a *g, struct nvgpu_runlist *runlist);
 #endif /* NVGPU_RUNLIST_FIFO_GA100_H */

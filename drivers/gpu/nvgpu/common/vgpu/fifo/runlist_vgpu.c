@@ -74,6 +74,7 @@ done:
 }
 
 static bool vgpu_runlist_modify_active_locked(struct gk20a *g, u32 runlist_id,
+					    struct nvgpu_runlist_domain *domain,
 					    struct nvgpu_channel *ch, bool add)
 {
 	struct nvgpu_fifo *f = &g->fifo;
@@ -99,6 +100,7 @@ static bool vgpu_runlist_modify_active_locked(struct gk20a *g, u32 runlist_id,
 }
 
 static void vgpu_runlist_reconstruct_locked(struct gk20a *g, u32 runlist_id,
+				     struct nvgpu_runlist_domain *domain,
 				     bool add_entries)
 {
 	struct nvgpu_fifo *f = &g->fifo;
@@ -111,7 +113,7 @@ static void vgpu_runlist_reconstruct_locked(struct gk20a *g, u32 runlist_id,
 		u32 count = 0;
 		unsigned long chid;
 
-		runlist_entry = runlist->mem[0].cpu_va;
+		runlist_entry = domain->mem->mem.cpu_va;
 
 		nvgpu_assert(f->num_channels <= (unsigned int)U16_MAX);
 		for_each_set_bit(chid,
@@ -121,9 +123,9 @@ static void vgpu_runlist_reconstruct_locked(struct gk20a *g, u32 runlist_id,
 			count++;
 		}
 
-		runlist->count = count;
+		domain->mem->count = count;
 	} else {
-		runlist->count = 0;
+		domain->mem->count = 0;
 	}
 }
 
@@ -132,14 +134,15 @@ static int vgpu_runlist_update_locked(struct gk20a *g, u32 runlist_id,
 					bool wait_for_finish)
 {
 	struct nvgpu_fifo *f = &g->fifo;
-	struct nvgpu_runlist *runlist;
+	struct nvgpu_runlist *runlist = f->runlists[runlist_id];
+	struct nvgpu_runlist_domain *domain = runlist->domain;
 	bool add_entries;
 
 	nvgpu_log_fn(g, " ");
 
 	if (ch != NULL) {
 		bool update = vgpu_runlist_modify_active_locked(g, runlist_id,
-				ch, add);
+				domain, ch, add);
 		if (!update) {
 			/* no change in runlist contents */
 			return 0;
@@ -151,12 +154,11 @@ static int vgpu_runlist_update_locked(struct gk20a *g, u32 runlist_id,
 		add_entries = add;
 	}
 
-	runlist = f->runlists[runlist_id];
-
-	vgpu_runlist_reconstruct_locked(g, runlist_id, add_entries);
+	vgpu_runlist_reconstruct_locked(g, runlist_id, domain, add_entries);
 
 	return vgpu_submit_runlist(g, vgpu_get_handle(g), runlist_id,
-				runlist->mem[0].cpu_va, runlist->count);
+				domain->mem->mem.cpu_va,
+				domain->mem->count);
 }
 
 /* add/remove a channel from runlist

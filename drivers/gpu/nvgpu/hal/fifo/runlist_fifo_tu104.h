@@ -26,10 +26,10 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
+struct nvgpu_runlist;
 
 u32 tu104_runlist_count_max(struct gk20a *g);
-void tu104_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
-		u32 count, u32 buffer_index);
+void tu104_runlist_hw_submit(struct gk20a *g, struct nvgpu_runlist *runlist);
 int tu104_runlist_wait_pending(struct gk20a *g, u32 runlist_id);
 
 #endif /* NVGPU_RUNLIST_FIFO_TU104_H */

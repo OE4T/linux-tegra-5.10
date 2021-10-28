@@ -38,29 +38,24 @@ u32 gk20a_runlist_length_max(struct gk20a *g)
 	return fifo_eng_runlist_length_max_v();
 }
 
-void gk20a_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
-       u32 count, u32 buffer_index)
+void gk20a_runlist_hw_submit(struct gk20a *g, struct nvgpu_runlist *runlist)
 {
-	struct nvgpu_runlist *runlist = NULL;
-	u64 runlist_iova;
+	u64 runlist_iova = nvgpu_mem_get_addr(g, &runlist->domain->mem_hw->mem);
 
-       runlist = g->fifo.runlists[runlist_id];
-       runlist_iova = nvgpu_mem_get_addr(g, &runlist->mem[buffer_index]);
+	nvgpu_spinlock_acquire(&g->fifo.runlist_submit_lock);
 
-       nvgpu_spinlock_acquire(&g->fifo.runlist_submit_lock);
+	if (runlist->domain->mem_hw->count != 0U) {
+		nvgpu_writel(g, fifo_runlist_base_r(),
+			     fifo_runlist_base_ptr_f(u64_lo32(runlist_iova >> 12U)) |
+			     nvgpu_aperture_mask(g, &runlist->domain->mem_hw->mem,
+				fifo_runlist_base_target_sys_mem_ncoh_f(),
+				fifo_runlist_base_target_sys_mem_coh_f(),
+				fifo_runlist_base_target_vid_mem_f()));
+	}
 
-       if (count != 0U) {
-               nvgpu_writel(g, fifo_runlist_base_r(),
-                       fifo_runlist_base_ptr_f(u64_lo32(runlist_iova >> 12U)) |
-                       nvgpu_aperture_mask(g, &runlist->mem[buffer_index],
-                               fifo_runlist_base_target_sys_mem_ncoh_f(),
-                               fifo_runlist_base_target_sys_mem_coh_f(),
-                               fifo_runlist_base_target_vid_mem_f()));
-       }
-
-       nvgpu_writel(g, fifo_runlist_r(),
-               fifo_runlist_engine_f(runlist_id) |
-               fifo_eng_runlist_length_f(count));
+	nvgpu_writel(g, fifo_runlist_r(),
+		     fifo_runlist_engine_f(runlist->id) |
+		     fifo_eng_runlist_length_f(runlist->domain->mem_hw->count));
 
        nvgpu_spinlock_release(&g->fifo.runlist_submit_lock);
 }

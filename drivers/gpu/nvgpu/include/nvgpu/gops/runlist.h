@@ -32,6 +32,7 @@
  */
 struct gk20a;
 struct nvgpu_channel;
+struct nvgpu_runlist;
 
 /**
  * Runlist HAL operations.
@@ -89,8 +90,7 @@ struct gops_runlist {
 	void (*get_tsg_entry)(struct nvgpu_tsg *tsg,
 			u32 *runlist, u32 timeslice);
 	void (*get_ch_entry)(struct nvgpu_channel *ch, u32 *runlist);
-	void (*hw_submit)(struct gk20a *g, u32 runlist_id,
-		u32 count, u32 buffer_index);
+	void (*hw_submit)(struct gk20a *g, struct nvgpu_runlist *runlist);
 	int (*wait_pending)(struct gk20a *g, u32 runlist_id);
 	void (*write_state)(struct gk20a *g, u32 runlists_mask,
 			u32 runlist_state);

@@ -302,10 +302,10 @@ static u32 nvgpu_runlist_append_flat(struct nvgpu_fifo *f,
 
 u32 nvgpu_runlist_construct_locked(struct nvgpu_fifo *f,
 				struct nvgpu_runlist *runlist,
-				u32 buf_id,
+				struct nvgpu_runlist_domain *domain,
 				u32 max_entries)
 {
-	u32 *runlist_entry_base = runlist->mem[buf_id].cpu_va;
+	u32 *runlist_entry_base = domain->mem->mem.cpu_va;
 
 	/*
 	 * The entry pointer and capacity counter that live on the stack here
@@ -323,6 +323,7 @@ u32 nvgpu_runlist_construct_locked(struct nvgpu_fifo *f,
 
 static bool nvgpu_runlist_modify_active_locked(struct gk20a *g,
 					       struct nvgpu_runlist *runlist,
+					       struct nvgpu_runlist_domain *domain,
 					       struct nvgpu_channel *ch, bool add)
 {
 	struct nvgpu_tsg *tsg = NULL;
@@ -370,29 +371,31 @@ static bool nvgpu_runlist_modify_active_locked(struct gk20a *g,
 
 static int nvgpu_runlist_reconstruct_locked(struct gk20a *g,
 					    struct nvgpu_runlist *runlist,
-					    u32 buf_id, bool add_entries)
+					    struct nvgpu_runlist_domain *domain,
+					    bool add_entries)
 {
 	u32 num_entries;
 	struct nvgpu_fifo *f = &g->fifo;
 
 	rl_dbg(g, "[%u] switch to new buffer 0x%16llx",
-		runlist->id, (u64)nvgpu_mem_get_addr(g, &runlist->mem[buf_id]));
+		runlist->id, (u64)nvgpu_mem_get_addr(g, &domain->mem->mem));
 
 	if (!add_entries) {
-		runlist->count = 0;
+		domain->mem->count = 0;
 		return 0;
 	}
 
-	num_entries = nvgpu_runlist_construct_locked(f, runlist, buf_id,
+	num_entries = nvgpu_runlist_construct_locked(f, runlist, domain,
 						f->num_runlist_entries);
 	if (num_entries == RUNLIST_APPEND_FAILURE) {
 		return -E2BIG;
 	}
-	runlist->count = num_entries;
+
+	domain->mem->count = num_entries;
 NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 10_3), "Bug 2277532")
 NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 14_4), "Bug 2277532")
 NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 15_6), "Bug 2277532")
-	WARN_ON(runlist->count > f->num_runlist_entries);
+	WARN_ON(domain->mem->count > f->num_runlist_entries);
 NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 10_3))
 NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 14_4))
 NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
@@ -405,11 +408,12 @@ int nvgpu_runlist_update_locked(struct gk20a *g, struct nvgpu_runlist *rl,
 				bool wait_for_finish)
 {
 	int ret = 0;
-	u32 buf_id;
 	bool add_entries;
+	struct nvgpu_runlist_mem *mem_tmp;
+	struct nvgpu_runlist_domain *domain = rl->domain;
 
 	if (ch != NULL) {
-		bool update = nvgpu_runlist_modify_active_locked(g, rl, ch, add);
+		bool update = nvgpu_runlist_modify_active_locked(g, rl, domain, ch, add);
 		if (!update) {
 			/* no change in runlist contents */
 			return 0;
@@ -421,15 +425,29 @@ int nvgpu_runlist_update_locked(struct gk20a *g, struct nvgpu_runlist *rl,
 		add_entries = add;
 	}
 
-	/* double buffering, swap to next */
-	buf_id = (rl->cur_buffer == 0U) ? 1U : 0U;
-
-	ret = nvgpu_runlist_reconstruct_locked(g, rl, buf_id, add_entries);
+	ret = nvgpu_runlist_reconstruct_locked(g, rl, domain, add_entries);
 	if (ret != 0) {
 		return ret;
 	}
 
-	g->ops.runlist.hw_submit(g, rl->id, rl->count, buf_id);
+	/*
+	 * hw_submit updates mem_hw to hardware; swap the buffers now. mem
+	 * becomes the previously scheduled buffer and it can be modified once
+	 * the runlist lock is released.
+	 */
+
+	mem_tmp = domain->mem;
+	domain->mem = domain->mem_hw;
+	domain->mem_hw = mem_tmp;
+
+	/*
+	 * A non-active domain may be updated, but submit still the currently
+	 * active one just for simplicity.
+	 *
+	 * TODO: Later on, updates and submits will need to be totally
+	 * decoupled so that submits are done only in the domain scheduler.
+	 */
+	g->ops.runlist.hw_submit(g, rl);
 
 	if (wait_for_finish) {
 		ret = g->ops.runlist.wait_pending(g, rl->id);
@@ -445,8 +463,6 @@ int nvgpu_runlist_update_locked(struct gk20a *g, struct nvgpu_runlist *rl,
 			}
 		}
 	}
-
-	rl->cur_buffer = buf_id;
 
 	return ret;
 }
@@ -473,8 +489,12 @@ int nvgpu_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next,
 		g, g->pmu, PMU_MUTEX_ID_FIFO, &token);
 #endif
 
-	g->ops.runlist.hw_submit(
-		g, runlist->id, runlist->count, runlist->cur_buffer);
+	/*
+	 * Note that the runlist memory is not rewritten; the currently active
+	 * buffer is just resubmitted so that scheduling begins from the first
+	 * entry in it.
+	 */
+	g->ops.runlist.hw_submit(g, runlist);
 
 	if (preempt_next) {
 		if (g->ops.runlist.reschedule_preempt_next_locked(ch,
@@ -633,10 +653,16 @@ void nvgpu_runlist_set_state(struct gk20a *g, u32 runlists_mask,
 #endif
 }
 
+static void free_rl_mem(struct gk20a *g, struct nvgpu_runlist_mem *mem)
+{
+	nvgpu_dma_free(g, &mem->mem);
+	nvgpu_kfree(g, mem);
+}
+
 void nvgpu_runlist_cleanup_sw(struct gk20a *g)
 {
 	struct nvgpu_fifo *f = &g->fifo;
-	u32 i, j;
+	u32 i;
 	struct nvgpu_runlist *runlist;
 
 	if ((f->runlists == NULL) || (f->active_runlists == NULL)) {
@@ -647,8 +673,14 @@ void nvgpu_runlist_cleanup_sw(struct gk20a *g)
 
 	for (i = 0; i < f->num_runlists; i++) {
 		runlist = &f->active_runlists[i];
-		for (j = 0; j < MAX_RUNLIST_BUFFERS; j++) {
-			nvgpu_dma_free(g, &runlist->mem[j]);
+
+		if (runlist->domain != NULL) {
+			free_rl_mem(g, runlist->domain->mem);
+			runlist->domain->mem = NULL;
+			free_rl_mem(g, runlist->domain->mem_hw);
+			runlist->domain->mem_hw = NULL;
+			nvgpu_kfree(g, runlist->domain);
+			runlist->domain = NULL;
 		}
 
 		nvgpu_kfree(g, runlist->active_channels);
@@ -787,13 +819,61 @@ void nvgpu_runlist_init_enginfo(struct gk20a *g, struct nvgpu_fifo *f)
 	nvgpu_log_fn(g, "done");
 }
 
+static struct nvgpu_runlist_mem *init_rl_mem(struct gk20a *g, u32 runlist_size)
+{
+	struct nvgpu_runlist_mem *mem = nvgpu_kzalloc(g, sizeof(*mem));
+	int err;
+
+	if (mem == NULL) {
+		return NULL;
+	}
+
+	err = nvgpu_dma_alloc_flags_sys(g,
+			g->is_virtual ?
+			  0ULL : NVGPU_DMA_PHYSICALLY_ADDRESSED,
+			runlist_size,
+			&mem->mem);
+	if (err != 0) {
+		nvgpu_kfree(g, mem);
+		mem = NULL;
+	}
+
+	return mem;
+}
+
+static struct nvgpu_runlist_domain *nvgpu_init_rl_domain(struct gk20a *g, u32 runlist_size)
+{
+	struct nvgpu_runlist_domain *domain = nvgpu_kzalloc(g, sizeof(*domain));
+
+	if (domain == NULL) {
+		return NULL;
+	}
+
+	domain->mem = init_rl_mem(g, runlist_size);
+	if (domain->mem == NULL) {
+		goto free_domain;
+	}
+
+	domain->mem_hw = init_rl_mem(g, runlist_size);
+	if (domain->mem_hw == NULL) {
+		goto free_mem;
+	}
+
+	return domain;
+free_mem:
+	free_rl_mem(g, domain->mem);
+free_domain:
+	nvgpu_kfree(g, domain);
+	return NULL;
+}
+
 static int nvgpu_init_active_runlist_mapping(struct gk20a *g)
 {
 	struct nvgpu_runlist *runlist;
 	struct nvgpu_fifo *f = &g->fifo;
 	unsigned int runlist_id;
 	size_t runlist_size;
-	u32 i, j;
+	u32 i;
 	int err = 0;
 
 	rl_dbg(g, "Building active runlist map.");
@@ -840,26 +920,14 @@ static int nvgpu_init_active_runlist_mapping(struct gk20a *g)
 		rl_dbg(g, "    RL entries: %d", f->num_runlist_entries);
 		rl_dbg(g, "    RL size %zu", runlist_size);
 
-		for (j = 0; j < MAX_RUNLIST_BUFFERS; j++) {
-			err = nvgpu_dma_alloc_flags_sys(g,
-					g->is_virtual ?
-					  0ULL : NVGPU_DMA_PHYSICALLY_ADDRESSED,
-					runlist_size,
-					&runlist->mem[j]);
-			if (err != 0) {
-				nvgpu_err(g, "memory allocation failed");
-				err = -ENOMEM;
-				goto clean_up_runlist;
-			}
+		runlist->domain = nvgpu_init_rl_domain(g, runlist_size);
+		if (runlist->domain == NULL) {
+			nvgpu_err(g, "memory allocation failed");
+			err = -ENOMEM;
+			goto clean_up_runlist;
 		}
 
 		nvgpu_mutex_init(&runlist->runlist_lock);
-
-		/*
-                 * None of buffers is pinned if this value doesn't change.
-		 * Otherwise, one of them (cur_buffer) must have been pinned.
-                 */
-		runlist->cur_buffer = MAX_RUNLIST_BUFFERS;
 	}
 
 	return 0;

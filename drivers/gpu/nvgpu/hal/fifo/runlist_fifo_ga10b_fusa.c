@@ -48,24 +48,20 @@ u32 ga10b_runlist_length_max(struct gk20a *g)
 	return runlist_submit_length_max_v();
 }
 
-void ga10b_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
-				u32 count, u32 buffer_index)
+void ga10b_runlist_hw_submit(struct gk20a *g, struct nvgpu_runlist *runlist)
 {
-	struct nvgpu_runlist *runlist = NULL;
 	u64 runlist_iova;
 	u32 runlist_iova_lo, runlist_iova_hi;
 
-	runlist = g->fifo.runlists[runlist_id];
-
-	runlist_iova = nvgpu_mem_get_addr(g, &runlist->mem[buffer_index]);
+	runlist_iova = nvgpu_mem_get_addr(g, &runlist->domain->mem_hw->mem);
 	runlist_iova_lo = u64_lo32(runlist_iova) >>
 			runlist_submit_base_lo_ptr_align_shift_v();
 	runlist_iova_hi = u64_hi32(runlist_iova);
 
-	if (count != 0U) {
+	if (runlist->domain->mem_hw->count != 0U) {
 		nvgpu_runlist_writel(g, runlist, runlist_submit_base_lo_r(),
 			runlist_submit_base_lo_ptr_lo_f(runlist_iova_lo) |
-			nvgpu_aperture_mask(g, &runlist->mem[buffer_index],
+			nvgpu_aperture_mask(g, &runlist->domain->mem_hw->mem,
 			runlist_submit_base_lo_target_sys_mem_noncoherent_f(),
 			runlist_submit_base_lo_target_sys_mem_coherent_f(),
 			runlist_submit_base_lo_target_vid_mem_f()));
@@ -77,7 +73,7 @@ void ga10b_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
 	/* TODO offset in runlist support */
 	nvgpu_runlist_writel(g, runlist, runlist_submit_r(),
 			runlist_submit_offset_f(0U) |
-			runlist_submit_length_f(count));
+			runlist_submit_length_f(runlist->domain->mem_hw->count));
 }
 
 int ga10b_runlist_wait_pending(struct gk20a *g, u32 runlist_id)

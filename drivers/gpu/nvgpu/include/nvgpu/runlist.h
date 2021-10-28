@@ -75,31 +75,50 @@ struct nvgpu_pbdma_info;
 /** Enable runlist. */
 #define RUNLIST_ENABLED			1U
 
-/** Double buffering is used to build runlists */
-#define MAX_RUNLIST_BUFFERS		2U
-
 /** Runlist identifier is invalid. */
 #define NVGPU_INVALID_RUNLIST_ID		U32_MAX
 
+/*
+ * Updates to this memory are still serialized by the runlist lock.
+ *
+ * TODO: add a mutex when domain updates get more fine-grained. The buffers in
+ * nvgpu_runlist_domain are pointer members for a reason to make this easier in
+ * the future; the buffers may get juggled around.
+ */
+struct nvgpu_runlist_mem {
+	/** Rendered runlist memory suitable for HW. */
+	struct nvgpu_mem mem;
+
+	/** Number of entries written in the buffer. */
+	u32 count;
+};
+
+struct nvgpu_runlist_domain {
+	/** Runlist buffer free to use in sw. Swapped with another mem on next load. */
+	struct nvgpu_runlist_mem *mem;
+
+	/** Currently active buffer submitted for hardware. */
+	struct nvgpu_runlist_mem *mem_hw;
+};
+
 struct nvgpu_runlist {
-	/** Runlist identifier. */
+	/** The HW has some designated RL IDs that are bound to engines. */
 	u32 id;
+
 	/** Bitmap of active channels in the runlist. One bit per chid. */
 	unsigned long *active_channels;
 	/** Bitmap of active TSGs in the runlist. One bit per tsgid. */
 	unsigned long *active_tsgs;
-	/** Runlist buffers. Double buffering is used for each engine. */
-	struct nvgpu_mem mem[MAX_RUNLIST_BUFFERS];
-	/** Indicates current runlist buffer used by HW. */
-	u32  cur_buffer;
+
+	/* The default domain is the only one that currently exists. */
+	struct nvgpu_runlist_domain *domain;
+
 	/** Bitmask of PBDMAs supported for this runlist. */
 	u32  pbdma_bitmask;
 	/** Bitmask of engines using this runlist. */
 	u32  eng_bitmask;
 	/** Bitmask of engines to be reset during recovery. */
 	u32  reset_eng_bitmask;
-	/** Cached hw_submit parameter. */
-	u32  count;
 	/** Protect ch/tsg/runlist preempt & runlist update. */
 	struct nvgpu_mutex runlist_lock;
 
@@ -139,7 +158,8 @@ struct nvgpu_runlist {
  */
 u32 nvgpu_runlist_construct_locked(struct nvgpu_fifo *f,
 		struct nvgpu_runlist *runlist,
-		u32 buf_id, u32 max_entries);
+		struct nvgpu_runlist_domain *domain,
+		u32 max_entries);
 
 /**
  * @brief Add/remove channel to/from runlist (locked)
