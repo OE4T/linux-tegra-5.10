@@ -191,13 +191,29 @@ static void nvpps_get_ts(struct nvpps_device_data *pdev_data, bool in_isr)
 		irq_tsc = __arch_counter_get_cntvct();
 		if (pdev_data->use_gpio_int_timesatmp) {
 			int	err;
+			int	gte_event_found = 0;
+			int	safety = 33; /* GTE driver fifo depth is 32, plus one for margin */
 			struct tegra_gte_ev_detail hts;
-			err = tegra_gte_retrieve_event(pdev_data->gte_ev_desc, &hts);
-			if (!err) {
-				irq_tsc = hts.ts_raw;
-			}
-			if (err) {
+
+			/* 1PPS TSC timestamp is isochronous in nature
+			 * we only need the last event
+			 */
+			do {
+				err = tegra_gte_retrieve_event(pdev_data->gte_ev_desc, &hts);
+				if (!err) {
+					irq_tsc = hts.ts_raw;
+					gte_event_found = 1;
+				}
+				/* decrement the count so we don't risk looping
+				 * here forever
+				 */
+				safety--;
+			} while (!err && (safety >= 0));
+			if (gte_event_found == 0) {
 				dev_err(pdev_data->dev, "failed to read timestamp data err(%d)\n", err);
+			}
+			if (safety < 0) {
+				dev_err(pdev_data->dev, "tegra_gte_retrieve_event succeed beyond its fifo size err(%d)!)\n", err);
 			}
 		}
 	}
