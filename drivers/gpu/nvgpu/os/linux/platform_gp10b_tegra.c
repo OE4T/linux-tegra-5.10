@@ -56,12 +56,15 @@
 
 /* Select every GP10B_FREQ_SELECT_STEP'th frequency from h/w table */
 #define GP10B_FREQ_SELECT_STEP	8
-/* Allow limited set of frequencies to be available */
-#define GP10B_NUM_SUPPORTED_FREQS 15
+
 /* Max number of freq supported in h/w */
 #define GP10B_MAX_SUPPORTED_FREQS 120
+
+/* Allow limited set of frequencies to be available */
+#define GP10B_NUM_SUPPORTED_FREQS ((GP10B_MAX_SUPPORTED_FREQS) / (GP10B_FREQ_SELECT_STEP))
+
 static unsigned long
-gp10b_freq_table[GP10B_MAX_SUPPORTED_FREQS / GP10B_FREQ_SELECT_STEP];
+gp10b_freq_table[GP10B_NUM_SUPPORTED_FREQS];
 
 static bool freq_table_init_complete;
 static int num_supported_freq;
@@ -481,19 +484,18 @@ int gp10b_clk_get_freqs(struct device *dev,
 		 * add MAX freq to last
 		 */
 		sel_freq_cnt = 0;
-		for (i = 0; i < GP10B_MAX_SUPPORTED_FREQS; ++i) {
+		for (i = 0; i < GP10B_MAX_SUPPORTED_FREQS &&
+				sel_freq_cnt < GP10B_NUM_SUPPORTED_FREQS; ++i) {
 			new_rate = loc_freq_table[i];
 
-			if (i % GP10B_FREQ_SELECT_STEP == 0 ||
+			if ((i % GP10B_FREQ_SELECT_STEP == 0) ||
 					new_rate == max_rate) {
-				gp10b_freq_table[sel_freq_cnt++] =
-							new_rate;
+				gp10b_freq_table[sel_freq_cnt++] = new_rate;
 
 				if (new_rate == max_rate)
 					break;
 			}
 		}
-		WARN_ON(sel_freq_cnt == GP10B_MAX_SUPPORTED_FREQS);
 	}
 
 	/* Fill freq table */
