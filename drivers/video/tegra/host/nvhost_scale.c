@@ -338,6 +338,41 @@ static int nvhost_scale_set_high_wmark(struct device *dev,
 	return 0;
 }
 
+static void unregister_opp(struct platform_device *pdev)
+{
+#if LINUX_VERSION_CODE > KERNEL_VERSION(5, 8, 0)
+	dev_pm_opp_remove_all_dynamic(&pdev->dev);
+#endif
+}
+
+static int register_opp(struct platform_device *pdev)
+{
+#if LINUX_VERSION_CODE > KERNEL_VERSION(5, 8, 0)
+	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
+	struct nvhost_device_profile *profile = pdata->power_profile;
+	unsigned long *freq_table = profile->devfreq_profile.freq_table;
+	int max_states = profile->devfreq_profile.max_state;
+	int i;
+	int err = 0;
+
+	for (i = 0; i < max_states; ++i) {
+		err = dev_pm_opp_add(&pdev->dev, freq_table[i], 0);
+		if (err) {
+			nvhost_err(&pdev->dev,
+				"Failed to add OPP %lu: %d\n",
+				freq_table[i],
+				err);
+			unregister_opp(pdev);
+			break;
+		}
+	}
+
+	return err;
+#else
+	return 0;
+#endif
+}
+
 /*
  * nvhost_scale_init(pdev)
  */
@@ -425,6 +460,8 @@ void nvhost_scale_init(struct platform_device *pdev)
 		struct devfreq *devfreq;
 		int error = 0;
 
+		register_opp(pdev);
+
 		profile->devfreq_profile.initial_freq =
 			profile->devfreq_profile.freq_table[0];
 		profile->devfreq_profile.target = nvhost_scale_target;
@@ -501,8 +538,12 @@ void nvhost_scale_deinit(struct platform_device *pdev)
 		sysfs_remove_link(&pdev->dev.kobj, "devfreq_dev");
 	}
 
-	if (pdata->actmon_enabled)
+	if (pdata->actmon_enabled) {
+		if (pdata->devfreq_governor)
+			unregister_opp(pdev);
+
 		device_remove_file(&pdev->dev, &dev_attr_load);
+	}
 
 	kfree(profile->devfreq_profile.freq_table);
 	kfree(profile->actmon);
