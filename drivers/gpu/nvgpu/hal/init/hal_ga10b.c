@@ -250,6 +250,9 @@
 #include "hal/tpc/tpc_gv11b.h"
 #endif
 
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
+#include "hal/mssnvlink/mssnvlink_ga10b.h"
+#endif
 #include "hal_ga10b.h"
 #include "hal_ga10b_litter.h"
 
@@ -1673,6 +1676,12 @@ static const struct gops_grmgr ga10b_ops_grmgr = {
 	.discover_gpc_ids = ga10b_grmgr_discover_gpc_ids,
 };
 
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
+static const struct gops_mssnvlink ga10b_ops_mssnvlink = {
+	.init_soc_credits = ga10b_mssnvlink_init_soc_credits
+};
+#endif
+
 int ga10b_init_hal(struct gk20a *g)
 {
 	struct gpu_ops *gops = &g->ops;
@@ -1923,6 +1932,10 @@ int ga10b_init_hal(struct gk20a *g)
 		gops->fb.mem_unlock = NULL;
 	}
 
+#endif
+
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
+	gops->mssnvlink = ga10b_ops_mssnvlink;
 #endif
 	g->name = "ga10b";
 

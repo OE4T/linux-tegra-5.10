@@ -186,8 +186,7 @@ platform:
              os/linux/platform_gp10b.h,
              os/linux/platform_gp10b_tegra.c,
              os/linux/platform_gv11b_tegra.c,
-             os/linux/platform_ga10b_tegra.c,
-             os/linux/nvlink/hal/ga10b_mssnvlink.c ]
+             os/linux/platform_ga10b_tegra.c ]
 
 rwsem:
   sources: [ os/linux/rwsem.c ]

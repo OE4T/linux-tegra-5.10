@@ -150,7 +150,7 @@ void ga10b_fb_init_fs_state(struct gk20a *g)
 	nvgpu_log(g, gpu_dbg_fn, "initialize ga10b fb");
 
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA)
-	ga10b_init_nvlink_soc_credits(g);
+	g->ops.mssnvlink.init_soc_credits(g);
 #endif
 	ga10b_fb_check_ltcs_count(g);
 

@@ -349,7 +349,8 @@ srcs += hal/init/hal_gp10b.c \
 	hal/top/top_gp10b.c \
 	hal/gr/ctxsw_prog/ctxsw_prog_gm20b.c \
 	hal/gr/ctxsw_prog/ctxsw_prog_gp10b.c \
-	hal/gr/ctxsw_prog/ctxsw_prog_gv11b.c
+	hal/gr/ctxsw_prog/ctxsw_prog_gv11b.c \
+	hal/mssnvlink/mssnvlink_ga10b.c
 else
 ifeq ($(CONFIG_NVGPU_DGPU),1)
 # non-FUSA files needed to build dGPU in safety

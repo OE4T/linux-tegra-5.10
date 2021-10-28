@@ -1049,3 +1049,10 @@ sim:
   owner: Antony Alex
   sources: [ hal/sim/sim_ga10b.h,
              hal/sim/sim_ga10b.c ]
+
+mssnvlink:
+  safe: no
+  owner: Antony Alex
+  sources: [ include/nvgpu/gops/mssnvlink.h,
+             hal/mssnvlink/mssnvlink_ga10b.h,
+             hal/mssnvlink/mssnvlink_ga10b.c ]

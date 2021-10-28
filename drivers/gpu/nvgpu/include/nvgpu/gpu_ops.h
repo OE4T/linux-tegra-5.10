@@ -71,6 +71,9 @@
 #include <nvgpu/gops/ecc.h>
 #include <nvgpu/gops/grmgr.h>
 #include <nvgpu/gops/cic_mon.h>
+#ifdef CONFIG_NVGPU_NON_FUSA
+#include <nvgpu/gops/mssnvlink.h>
+#endif
 
 struct gk20a;
 struct nvgpu_debug_context;
@@ -226,6 +229,12 @@ struct gpu_ops {
 	struct gops_grmgr grmgr;
 
 	struct gops_cic_mon cic_mon;
+
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+#ifdef CONFIG_NVGPU_NON_FUSA
+	struct gops_mssnvlink mssnvlink;
+#endif
+/** @endcond */
 };
 
 #endif /* NVGPU_GOPS_OPS_H */

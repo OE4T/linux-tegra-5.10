@@ -815,7 +815,8 @@ nvgpu-$(CONFIG_NVGPU_HAL_NON_FUSA) += \
 	hal/regops/regops_tu104.o \
 	hal/regops/allowlist_tu104.o \
 	hal/therm/therm_gm20b.o \
-	hal/top/top_gm20b.o
+	hal/top/top_gm20b.o \
+	hal/mssnvlink/mssnvlink_ga10b.o
 
 ifeq ($(CONFIG_NVGPU_GR_VIRTUALIZATION),y)
 nvgpu-$(CONFIG_NVGPU_HAL_NON_FUSA) += \
@@ -952,5 +953,4 @@ endif
 endif
 
 nvgpu-y += \
-	os/linux/platform_ga10b_tegra.o \
-	os/linux/nvlink/hal/ga10b_mssnvlink.o
+	os/linux/platform_ga10b_tegra.o

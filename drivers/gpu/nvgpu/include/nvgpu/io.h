@@ -24,13 +24,15 @@
 
 #include <nvgpu/types.h>
 
+struct gk20a;
+
 /**
  * @brief Read a value from a register.
  *
  * @param addr [in]		Register cpu virtual address.
  *
  * Read a 32-bit value from the register cpu virtuall address.
- * OS layer much implement this function.
+ * OS layer must implement this function.
  *
  * @return Value of the given register.
  */
@@ -43,7 +45,7 @@ u32 nvgpu_os_readl(uintptr_t addr);
  *
  * Write a 32-bit value to the register cpu virtual address with an
  * ordering constraint on memory operations.
- * OS layer much implement this function.
+ * OS layer must implement this function.
  *
  * @return None.
  */
@@ -56,11 +58,38 @@ void nvgpu_os_writel(u32 v, uintptr_t addr);
  *
  * Write a 32-bit value to the register cpu virtual address without an
  * ordering constraint on memory operations.
- * OS layer much implement this function.
+ * OS layer must implement this function.
  *
  * @return None.
  */
 void nvgpu_os_writel_relaxed(u32 v, uintptr_t addr);
+
+/**
+ * @brief Create a virtual mapping for the specified physical address range.
+ *
+ * @param g [in]	The GPU driver structure.
+ * @param addr [in]	Physical address start.
+ * @param size [in]	Physical address range.
+ *
+ * Maps the specified physical address range into the kernel/process address
+ * space. OS layer must implement this function.
+ *
+ * @return Virtual address which maps to the physical address range.
+ */
+uintptr_t nvgpu_io_map(struct gk20a *g, uintptr_t addr, size_t size);
+
+/**
+ * @brief Unmap an already mapped io-region.
+ *
+ * @param g[in]		GPU super structure.
+ * @param addr[in]	Start virtual address of the io-region.
+ * @param size[in]	Size of the io-region.
+ *
+ * - OS layer must implement this function.
+ *
+ * @return None.
+ */
+void nvgpu_io_unmap(struct gk20a *g, uintptr_t ptr, size_t size);
 
 /**
  * @file
