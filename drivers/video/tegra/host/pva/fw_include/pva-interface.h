@@ -181,8 +181,8 @@ typedef uint8_t pva_status_cmds_t;
  */
 #define PVA_CMD_INT_ON_ERR PVA_BIT(30U)
 #define PVA_CMD_INT_ON_COMPLETE PVA_BIT(29U)
-#define PVA_GET_BATCH_SIZE(_c_, _t_) PVA_EXTRACT(_c_, 27U, 24U, _t_)
-#define PVA_SET_BATCH_SIZE(_c_) PVA_INSERT(_c_, 27U, 24U)
+#define PVA_GET_BATCH_SIZE(_c_, _t_) PVA_EXTRACT(_c_, 7U, 0U, _t_)
+#define PVA_SET_BATCH_SIZE(_c_) PVA_INSERT(_c_, 7U, 0U)
 #define PVA_GET_SUBCOMMAND(_c_, _t_) PVA_EXTRACT(_c_, 15U, 8U, _t_)
 #define PVA_SET_SUBCOMMAND(_c_) PVA_INSERT(_c_, 15U, 8U)
 #define PVA_GET_COMMAND(_c_) PVA_EXTRACT(_c_, 7U, 0U, pva_cmds_t)
@@ -387,10 +387,11 @@ static inline uint32_t pva_cmd_submit_batch(struct pva_cmd_s *const cmd,
 	cmd->mbox[0] =
 		flags | PVA_SET_COMMAND(CMD_SUBMIT) |
 		PVA_INSERT(queue_id, 15U, 8U) |
-		PVA_INSERT(PVA_EXTRACT64(addr, 39U, 32U, uint32_t), 23U, 16U) |
-		PVA_SET_BATCH_SIZE(batch_size);
+		PVA_INSERT(PVA_EXTRACT64(addr, 39U, 32U, uint32_t),
+		23U, 16U);
 	cmd->mbox[1] = PVA_LOW32(addr);
-	return 2U;
+	cmd->mbox[2] = PVA_SET_BATCH_SIZE(batch_size);
+	return 3U;
 }
 
 /*
