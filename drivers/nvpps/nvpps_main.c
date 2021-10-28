@@ -37,7 +37,6 @@
 /* the following contrl flags are for
  * debugging pirpose only
  */
-/* #define NVPPS_MAP_EQOS_REGS */
 /* #define NVPPS_ARM_COUNTER_PROFILING */
 /* #define NVPPS_EQOS_REG_PROFILING */
 
@@ -85,9 +84,10 @@ struct nvpps_device_data {
 	struct fasync_struct	*pps_event_async_queue;
 	struct tegra_gte_ev_desc *gte_ev_desc;
 
-#ifdef NVPPS_MAP_EQOS_REGS
-	u64			eqos_base_addr;
-#endif /* NVPPS_MAP_EQOS_REGS */
+	bool		memmap_phc_regs;
+	u64			mac_base_addr;
+	u32			sts_offset;
+	u32			stns_offset;
 };
 
 
@@ -98,25 +98,31 @@ struct nvpps_file_data {
 };
 
 
+/* MAC Base addrs */
+#define T194_EQOS_BASE_ADDR		0x2490000
+#define T234_EQOS_BASE_ADDR		0x2310000
+#define EQOS_STSR_OFFSET		0xb08
+#define EQOS_STNSR_OFFSET		0xb0c
+#define T234_MGBE0_BASE_ADDR	0x6810000
+#define T234_MGBE1_BASE_ADDR	0x6910000
+#define T234_MGBE2_BASE_ADDR	0x6a10000
+#define T234_MGBE3_BASE_ADDR	0x6b10000
+#define MGBE_STSR_OFFSET		0xd08
+#define MGBE_STNSR_OFFSET		0xd0c
 
-#ifdef NVPPS_MAP_EQOS_REGS
-
-#define EQOS_BASE_ADDR	0x2490000
-#define BASE_ADDRESS pdev_data->eqos_base_addr
+#define BASE_ADDRESS pdev_data->mac_base_addr
 #define MAC_STNSR_TSSS_LPOS 0
 #define MAC_STNSR_TSSS_HPOS 30
 
 #define GET_VALUE(data, lbit, hbit) ((data >> lbit) & (~(~0<<(hbit-lbit+1))))
-#define MAC_STNSR_OFFSET ((volatile u32 *)(BASE_ADDRESS + 0xb0c))
+#define MAC_STNSR_OFFSET ((volatile u32 *)(BASE_ADDRESS + pdev_data->stns_offset))
 #define MAC_STNSR_RD(data) do {\
 	(data) = ioread32((void *)MAC_STNSR_OFFSET);\
 } while (0)
-#define MAC_STSR_OFFSET ((volatile u32 *)(BASE_ADDRESS + 0xb08))
+#define MAC_STSR_OFFSET ((volatile u32 *)(BASE_ADDRESS + pdev_data->sts_offset))
 #define MAC_STSR_RD(data) do {\
 	(data) = ioread32((void *)MAC_STSR_OFFSET);\
 } while (0)
-
-#endif /* NVPPS_MAP_EQOS_REGS */
 
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 2, 0)
@@ -131,7 +137,6 @@ static inline u64 __arch_counter_get_cntvct(void)
 #endif /* LINUX_VERSION_CODE < KERNEL_VERSION(5, 2, 0) */
 
 
-#ifdef NVPPS_MAP_EQOS_REGS
 static inline u64 get_systime(struct nvpps_device_data *pdev_data, u64 *tsc)
 {
 	u64 ns1, ns2, ns;
@@ -167,7 +172,6 @@ static inline u64 get_systime(struct nvpps_device_data *pdev_data, u64 *tsc)
 
 	return ns;
 }
-#endif /* NVPPS_MAP_EQOS_REGS */
 
 
 
@@ -218,16 +222,14 @@ static void nvpps_get_ts(struct nvpps_device_data *pdev_data, bool in_isr)
 		}
 	}
 
-#ifdef NVPPS_MAP_EQOS_REGS
 	/* get the PTP timestamp */
-	if (pdev_data->eqos_base_addr) {
-		/* get both the phc and tsc */
+	if (pdev_data->memmap_phc_regs) {
+		/* get both the phc(using memmap reg) and tsc */
 		phc = get_systime(pdev_data, &tsc);
 	} else {
-#endif /* NVPPS_MAP_EQOS_REGS */
 		/* get the TSC time before the function call */
 		tsc1 = __arch_counter_get_cntvct();
-		/* get the phc from eqos driver */
+		/* get the phc(using ptp notifier) from eqos driver */
 		get_ptp_hwtime(&phc);
 		/* get the TSC time after the function call */
 		tsc2 = __arch_counter_get_cntvct();
@@ -237,9 +239,7 @@ static void nvpps_get_ts(struct nvpps_device_data *pdev_data, bool in_isr)
 		 * is sampled
 		 */
 		tsc = (tsc1 + tsc2) >> 1;
-#ifdef NVPPS_MAP_EQOS_REGS
 	}
-#endif /* NVPPS_MAP_EQOS_REGS */
 
 #ifdef NVPPS_ARM_COUNTER_PROFILING
 	{
@@ -617,6 +617,85 @@ static void nvpps_dev_release(struct device *dev)
 	kfree(pdev_data);
 }
 
+static int nvpps_fill_mac_phc_info(struct platform_device *pdev,
+								   struct nvpps_device_data *pdev_data)
+{
+	struct device_node *np = pdev->dev.of_node;
+	char *eth_iface = NULL;
+	bool use_eqos_mac = false;
+	int err = 0;
+
+	eth_iface = (char *)of_get_property(np, "interface", NULL);
+	pdev_data->memmap_phc_regs = of_property_read_bool(np, "memmap_phc_regs");
+
+	/* For orin, only use memmap method of accessing MAC PHC regs */
+	if (of_machine_is_compatible("nvidia,tegra234")) {
+		if (pdev_data->memmap_phc_regs) {
+			dev_info(&pdev->dev, "using mem mapped MAC PHC reg method\n");
+			if (eth_iface == NULL) {
+				dev_warn(&pdev->dev, "interface property not provided. Using default interface(eqos)\n");
+				use_eqos_mac = true;
+			} else {
+				if (!strncmp(eth_iface, "eqos", sizeof("eqos"))) {
+					use_eqos_mac = true;
+				} else if (!strncmp(eth_iface, "mgbe0", sizeof("mgbe0"))) {
+					/* remap base address for mgbe0 */
+					pdev_data->mac_base_addr = (u64)devm_ioremap(&pdev->dev, T234_MGBE0_BASE_ADDR, SZ_4K);
+					dev_info(&pdev->dev, "map MGBE0 to (%p)\n", (void *)pdev_data->mac_base_addr);
+					pdev_data->sts_offset = MGBE_STSR_OFFSET;
+					pdev_data->stns_offset = MGBE_STNSR_OFFSET;
+				} else if (!strncmp(eth_iface, "mgbe1", sizeof("mgbe1"))) {
+					/* remap base address for mgbe1 */
+					pdev_data->mac_base_addr = (u64)devm_ioremap(&pdev->dev, T234_MGBE1_BASE_ADDR, SZ_4K);
+					dev_info(&pdev->dev, "map MGBE1 to (%p)\n", (void *)pdev_data->mac_base_addr);
+					pdev_data->sts_offset = MGBE_STSR_OFFSET;
+					pdev_data->stns_offset = MGBE_STNSR_OFFSET;
+				} else if (!strncmp(eth_iface, "mgbe2", sizeof("mgbe2"))) {
+					/* remap base address for mgbe2 */
+					pdev_data->mac_base_addr = (u64)devm_ioremap(&pdev->dev, T234_MGBE2_BASE_ADDR, SZ_4K);
+					dev_info(&pdev->dev, "map MGBE2 to (%p)\n", (void *)pdev_data->mac_base_addr);
+					pdev_data->sts_offset = MGBE_STSR_OFFSET;
+					pdev_data->stns_offset = MGBE_STNSR_OFFSET;
+				} else if (!strncmp(eth_iface, "mgbe3", sizeof("mgbe3"))) {
+					/* remap base address for mgbe3 */
+					pdev_data->mac_base_addr = (u64)devm_ioremap(&pdev->dev, T234_MGBE3_BASE_ADDR, SZ_4K);
+					dev_info(&pdev->dev, "map MGBE3 to (%p)\n", (void *)pdev_data->mac_base_addr);
+					pdev_data->sts_offset = MGBE_STSR_OFFSET;
+					pdev_data->stns_offset = MGBE_STNSR_OFFSET;
+				} else {
+					dev_warn(&pdev->dev, "Invalid interface(%s). Using default interface(eqos)\n", eth_iface);
+					use_eqos_mac = true;
+				}
+			}
+
+			if (use_eqos_mac) {
+				/* remap base address for eqos */
+				pdev_data->mac_base_addr = (u64)devm_ioremap(&pdev->dev, T234_EQOS_BASE_ADDR, SZ_4K);
+				dev_info(&pdev->dev, "map EQOS to (%p)\n", (void *)pdev_data->mac_base_addr);
+				pdev_data->sts_offset = EQOS_STSR_OFFSET;
+				pdev_data->stns_offset = EQOS_STNSR_OFFSET;
+			}
+		} else {
+			dev_info(&pdev->dev, "using ptp notifier method with default interface(eqos)\n");
+		}
+	} else {
+		if (pdev_data->memmap_phc_regs) {
+			if (eth_iface && strncmp(eth_iface, "eqos", sizeof("eqos")))
+				dev_warn(&pdev->dev, "Invalid interface(%s). Using default interface(eqos)\n", eth_iface);
+
+			dev_info(&pdev->dev, "using mem mapped MAC PHC reg method with eqos MAC\n");
+			/* remap base address for eqos */
+			pdev_data->mac_base_addr = (u64)devm_ioremap(&pdev->dev, T194_EQOS_BASE_ADDR, SZ_4K);
+			dev_info(&pdev->dev, "map EQOS to (%p)\n", (void *)pdev_data->mac_base_addr);
+			pdev_data->sts_offset = EQOS_STSR_OFFSET;
+			pdev_data->stns_offset = EQOS_STNSR_OFFSET;
+		} else {
+			dev_info(&pdev->dev, "using ptp notifier method with default interface(eqos)\n");
+		}
+	}
+
+	return err;
+}
 
 
 static int nvpps_probe(struct platform_device *pdev)
@@ -673,12 +752,7 @@ static int nvpps_probe(struct platform_device *pdev)
 		dev_info(&pdev->dev, "gpio_to_irq(%d)\n", pdev_data->irq);
 	}
 
-#ifdef NVPPS_MAP_EQOS_REGS
-	/* remap base address for eqos */
-	pdev_data->eqos_base_addr = (u64)devm_ioremap(&pdev->dev,
-		EQOS_BASE_ADDR, 4096);
-	dev_info(&pdev->dev, "map EQOS to (%p)\n", (void *)pdev_data->eqos_base_addr);
-#endif /* NVPPS_MAP_EQOS_REGS */
+	nvpps_fill_mac_phc_info(pdev, pdev_data);
 
 	init_waitqueue_head(&pdev_data->pps_event_queue);
 	raw_spin_lock_init(&pdev_data->lock);
@@ -803,13 +877,11 @@ static int nvpps_remove(struct platform_device *pdev)
 			}
 			pdev_data->use_gpio_int_timesatmp = false;
 		}
-#ifdef NVPPS_MAP_EQOS_REGS
-		if (pdev_data->eqos_base_addr) {
-			devm_iounmap(&pdev->dev, (void *)pdev_data->eqos_base_addr);
-			dev_info(&pdev->dev, "unmap EQOS reg space %p for nvpps\n",
-				(void *)pdev_data->eqos_base_addr);
+		if (pdev_data->memmap_phc_regs) {
+			devm_iounmap(&pdev->dev, (void *)pdev_data->mac_base_addr);
+			dev_info(&pdev->dev, "unmap MAC reg space %p for nvpps\n",
+				(void *)pdev_data->mac_base_addr);
 		}
-#endif /* NVPPS_MAP_EQOS_REGS */
 		device_destroy(s_nvpps_class, pdev_data->dev->devt);
 	}
 
