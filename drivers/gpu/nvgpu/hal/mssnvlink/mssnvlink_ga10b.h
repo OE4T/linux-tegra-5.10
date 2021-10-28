@@ -25,6 +25,7 @@
 
 struct gk20a;
 
+u32 ga10b_mssnvlink_get_links(struct gk20a *g, u32 **links);
 void ga10b_mssnvlink_init_soc_credits(struct gk20a *g);
 
 #endif /* NVGPU_MSSNVLINK_GA10B_H */

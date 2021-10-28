@@ -1678,6 +1678,7 @@ static const struct gops_grmgr ga10b_ops_grmgr = {
 
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
 static const struct gops_mssnvlink ga10b_ops_mssnvlink = {
+	.get_links = ga10b_mssnvlink_get_links,
 	.init_soc_credits = ga10b_mssnvlink_init_soc_credits
 };
 #endif
