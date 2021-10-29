@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -45,14 +45,6 @@
 
 	serial@3100000 {
 		compatible = "nvidia,tegra194-hsuart";
-		reg = <0x03100000 0x40>;
-		interrupts = <GIC_SPI 112 IRQ_TYPE_LEVEL_HIGH>;
-		clocks = <&bpmp TEGRA194_CLK_UARTA>;
-		clock-names = "serial";
-		resets = <&bpmp TEGRA194_RESET_UARTA>;
-		reset-names = "serial";
-		/delete-property/ dma-names;
-		/delete-property/ dma-coherent;
 	};
 
 	tegra-cache {
