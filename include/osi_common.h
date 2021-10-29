@@ -214,6 +214,7 @@
 #define OSI_NULL                ((void *)0)
 #define OSI_ENABLE		1U
 #define OSI_NONE		0U
+#define OSI_NONE_SIGNED		0
 #define OSI_DISABLE		0U
 
 #define OSI_BIT(nr)             ((nveu32_t)1 << (nr))

@@ -35,30 +35,30 @@
  * @brief Helper macros for LUT programming
  * @{
  */
-#define OSI_SCI_LEN			8
-#define OSI_KEY_LEN_128 		16
-#define OSI_KEY_LEN_256 		32
+#define OSI_SCI_LEN			8U
+#define OSI_KEY_LEN_128			16U
+#define OSI_KEY_LEN_256			32U
 #define OSI_AN0_VALID			OSI_BIT(0)
 #define OSI_AN1_VALID			OSI_BIT(1)
 #define OSI_AN2_VALID			OSI_BIT(2)
 #define OSI_AN3_VALID			OSI_BIT(3)
-#define OSI_MAX_NUM_SC			8
-#define OSI_MAX_NUM_SA			4
+#define OSI_MAX_NUM_SC			8U
+#define OSI_MAX_NUM_SA			4U
 #define OSI_CURR_AN_MAX 		3
-#define OSI_KEY_INDEX_MAX		31
-#define OSI_PN_MAX_DEFAULT		0xFFFFFFFF
-#define OSI_PN_THRESHOLD_DEFAULT	0xC0000000
+#define OSI_KEY_INDEX_MAX		31U
+#define OSI_PN_MAX_DEFAULT		0xFFFFFFFFU
+#define OSI_PN_THRESHOLD_DEFAULT	0xC0000000U
 #define OSI_TCI_DEFAULT 		0x1
 #define OSI_VLAN_IN_CLEAR_DEFAULT	0x0
-#define OSI_SC_INDEX_MAX		15
+#define OSI_SC_INDEX_MAX		15U
 #define OSI_ETHTYPE_LEN 		2
-#define OSI_LUT_BYTE_PATTERN_MAX	4
+#define OSI_LUT_BYTE_PATTERN_MAX	4U
 /* LUT byte pattern offset range 0-63 */
-#define OSI_LUT_BYTE_PATTERN_MAX_OFFSET 63
+#define OSI_LUT_BYTE_PATTERN_MAX_OFFSET 63U
 /* VLAN PCP range 0-7 */
-#define OSI_VLAN_PCP_MAX		7
+#define OSI_VLAN_PCP_MAX		7U
 /* VLAN ID range 1-4095 */
-#define OSI_VLAN_ID_MAX 		4095
+#define OSI_VLAN_ID_MAX 		4095U
 #define OSI_LUT_SEL_BYPASS		0U
 #define OSI_LUT_SEL_SCI 		1U
 #define OSI_LUT_SEL_SC_PARAM		2U
@@ -130,7 +130,6 @@
 #define OSI_TX_DBG_BUF_IDX_MAX		12U
 /* Num of Rx debug buffers */
 #define OSI_RX_DBG_BUF_IDX_MAX		13U
-#define OSI_DBG_BUF_IDX_MAX		OSI_RX_DBG_BUF_IDX_MAX
 /** flag - encoding various debug event bits */
 #define OSI_TX_DBG_LKUP_MISS_EVT	OSI_BIT(0)
 #define OSI_TX_DBG_AN_NOT_VALID_EVT	OSI_BIT(1)
@@ -308,7 +307,7 @@ struct osi_macsec_lut_status {
 	/** List of max SC's supported */
 	struct osi_macsec_sc_info sc_info[OSI_MAX_NUM_SC];
 	/** next available BYP LUT index */
-	nveu32_t next_byp_idx;
+	nveu16_t next_byp_idx;
 	/** number of active SCs */
 	nveu32_t num_of_sc_used;
 };
@@ -414,7 +413,7 @@ struct osi_macsec_core_ops {
 		 struct osi_macsec_dbg_buf_config *const dbg_buf_config);
 	/** macsec get Key Index start for a given SCI */
 	nve32_t (*get_sc_lut_key_index)(struct osi_core_priv_data *const osi_core,
-		 nveu8_t *sci, nve32_t *key_index, nveu16_t ctlr);
+		 nveu8_t *sci, nveu32_t *key_index, nveu16_t ctlr);
 	/** macsec set MTU size */
 	nve32_t (*update_mtu)(struct osi_core_priv_data *const osi_core,
 			      nveu32_t mtu);
@@ -629,8 +628,8 @@ void osi_macsec_s_isr(struct osi_core_priv_data *const osi_core);
  * @retval 0 on success
  * @retval -1 on failure
  */
-nve32_t osi_macsec_lut_config(struct osi_core_priv_data *const osi_core,
-			  struct osi_macsec_lut_config *const lut_confg);
+nve32_t osi_macsec_config_lut(struct osi_core_priv_data *const osi_core,
+			  struct osi_macsec_lut_config *const lut_config);
 
 /**
  * @brief MACSEC Key table configuration
@@ -665,7 +664,7 @@ nve32_t osi_macsec_lut_config(struct osi_core_priv_data *const osi_core,
  * @retval 0 on success
  * @retval -1 on failure
  */
-nve32_t osi_macsec_kt_config(struct osi_core_priv_data *const osi_core,
+nve32_t osi_macsec_config_kt(struct osi_core_priv_data *const osi_core,
 			 struct osi_macsec_kt_config *const kt_config);
 
 /**
@@ -883,7 +882,7 @@ nve32_t osi_macsec_read_mmc(struct osi_core_priv_data *const osi_core);
  * @retval 0 on success
  * @retval -1 on failure
  */
-nve32_t osi_macsec_dbg_buf_config(
+nve32_t osi_macsec_config_dbg_buf(
 		struct osi_core_priv_data *const osi_core,
 		struct osi_macsec_dbg_buf_config *const dbg_buf_config);
 
@@ -962,7 +961,7 @@ nve32_t osi_macsec_dbg_events_config(
  */
 nve32_t osi_macsec_get_sc_lut_key_index(
 		struct osi_core_priv_data *const osi_core,
-		nveu8_t *sci, nve32_t *key_index, nveu16_t ctlr);
+		nveu8_t *sci, nveu32_t *key_index, nveu16_t ctlr);
 
 /**
  * @brief sets MACSEC MTU

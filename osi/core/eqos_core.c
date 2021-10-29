@@ -6785,12 +6785,12 @@ static nve32_t eqos_config_rss(struct osi_core_priv_data *const osi_core)
  * - Run time: Yes
  * - De-initialization: No
  */
-void eqos_config_for_macsec(struct osi_core_priv_data *const osi_core,
+static void eqos_config_for_macsec(struct osi_core_priv_data *const osi_core,
 			    const nveu32_t enable)
 {
-	nveu32_t value = 0U;
+	nveu32_t value = 0U, temp = 0U;
 
-	if (enable != OSI_ENABLE && enable != OSI_DISABLE) {
+	if ((enable != OSI_ENABLE) && (enable != OSI_DISABLE)) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			     "Failed to config EQOS per MACSEC\n", 0ULL);
 		return;
@@ -6805,15 +6805,17 @@ void eqos_config_for_macsec(struct osi_core_priv_data *const osi_core,
 			 */
 			value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
 					   EQOS_MAC_MCR);
-			value |= (EQOS_MCR_IPG << EQOS_MCR_IPG_SHIFT) &
-				  EQOS_MCR_IPG_MASK;
+			temp = EQOS_MCR_IPG;
+			temp = temp << EQOS_MCR_IPG_SHIFT;
+			value |= temp & EQOS_MCR_IPG_MASK;
 			osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
 				    EQOS_MAC_MCR);
 			value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
 					   EQOS_MAC_EXTR);
 			value |= EQOS_MAC_EXTR_EIPGEN;
-			value |= (EQOS_MAC_EXTR_EIPG << EQOS_MAC_EXTR_EIPG_SHIFT) &
-				  EQOS_MAC_EXTR_EIPG_MASK;
+			temp = EQOS_MAC_EXTR_EIPG;
+			temp = temp << EQOS_MAC_EXTR_EIPG_SHIFT;
+			value |= temp & EQOS_MAC_EXTR_EIPG_MASK;
 			osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
 				    EQOS_MAC_EXTR);
 		} else {
@@ -6838,17 +6840,17 @@ void eqos_config_for_macsec(struct osi_core_priv_data *const osi_core,
 		/* Updated MTL_EST depending on MACSEC enable/disable */
 		if (osi_core->hw_feature->est_sel == OSI_ENABLE) {
 			value = osi_readla(osi_core,
-					  (unsigned char *)osi_core->base +
+					  (nveu8_t *)osi_core->base +
 					   EQOS_MTL_EST_CONTROL);
 			value &= ~EQOS_MTL_EST_CONTROL_CTOV;
 			if (enable == OSI_ENABLE) {
-				value |= (EQOS_MTL_EST_CTOV_MACSEC_RECOMMEND <<
-					  EQOS_MTL_EST_CONTROL_CTOV_SHIFT) &
-					  EQOS_MTL_EST_CONTROL_CTOV;
+				temp = EQOS_MTL_EST_CTOV_MACSEC_RECOMMEND;
+				temp = temp << EQOS_MTL_EST_CONTROL_CTOV_SHIFT;
+				value |= temp & EQOS_MTL_EST_CONTROL_CTOV;
 			} else {
-				value |= (EQOS_MTL_EST_CTOV_RECOMMEND <<
-					  EQOS_MTL_EST_CONTROL_CTOV_SHIFT) &
-					  EQOS_MTL_EST_CONTROL_CTOV;
+				temp = EQOS_MTL_EST_CTOV_RECOMMEND;
+				temp = temp << EQOS_MTL_EST_CONTROL_CTOV_SHIFT;
+				value |= temp & EQOS_MTL_EST_CONTROL_CTOV;
 			}
 			osi_writela(osi_core, value,
 				   (nveu8_t *)osi_core->base +

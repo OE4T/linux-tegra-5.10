@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,6 +34,7 @@
 #define RETRY_COUNT	1000U
 #define COND_MET	0
 #define COND_NOT_MET	1
+#define RETRY_DELAY	1U
 /** @} */
 
 
