@@ -64,9 +64,6 @@ endif
 NV_COMPONENT_INCLUDES          := \
 	$(NV_SOURCE)/nvethernetrm/include \
 	$(NV_SOURCE)/nvethernetrm/osi/common/include
-#ifeq ($(NV_BUILD_CONFIGURATION_OS_IS_QNX),1)
-#NV_COMPONENT_SYSTEM_SHARED_LIBRARIES += qcrypto
-#endif
 
 include $(NV_BUILD_SHARED_LIBRARY)
 endif

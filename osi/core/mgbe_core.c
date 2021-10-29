@@ -6132,11 +6132,12 @@ static void mgbe_set_mdc_clk_rate(struct osi_core_priv_data *const osi_core,
  * - Run time: Yes
  * - De-initialization: No
  */
-void mgbe_config_for_macsec(struct osi_core_priv_data *const osi_core,
+static void mgbe_config_for_macsec(struct osi_core_priv_data *const osi_core,
 			    const nveu32_t enable)
 {
-	nveu32_t value = 0U;
-	if (enable != OSI_ENABLE && enable != OSI_DISABLE) {
+	nveu32_t value = 0U, temp = 0U;
+
+	if ((enable != OSI_ENABLE) && (enable != OSI_DISABLE)) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			     "Failed to config MGBE per MACSEC\n", 0ULL);
 		return;
@@ -6180,20 +6181,20 @@ void mgbe_config_for_macsec(struct osi_core_priv_data *const osi_core,
 		/* Program MTL_EST depending on MACSEC enable/disable */
 		if (osi_core->hw_feature->est_sel == OSI_ENABLE) {
 			value = osi_readla(osi_core,
-					  (unsigned char *)osi_core->base +
+					  (nveu8_t *)osi_core->base +
 					   MGBE_MTL_EST_CONTROL);
 			value &= ~MGBE_MTL_EST_CONTROL_CTOV;
 			if (enable == OSI_ENABLE) {
-				value |= (MGBE_MTL_EST_CTOV_MACSEC_RECOMMEND <<
-					  MGBE_MTL_EST_CONTROL_CTOV_SHIFT) &
-					  MGBE_MTL_EST_CONTROL_CTOV;
+				temp = MGBE_MTL_EST_CTOV_MACSEC_RECOMMEND;
+				temp = temp << MGBE_MTL_EST_CONTROL_CTOV_SHIFT;
+				value |= temp & MGBE_MTL_EST_CONTROL_CTOV;
 			} else {
-				value |= (MGBE_MTL_EST_CTOV_RECOMMEND <<
-					  MGBE_MTL_EST_CONTROL_CTOV_SHIFT) &
-					  MGBE_MTL_EST_CONTROL_CTOV;
+				temp = MGBE_MTL_EST_CTOV_RECOMMEND;
+				temp = temp << MGBE_MTL_EST_CONTROL_CTOV_SHIFT;
+				value |= temp & MGBE_MTL_EST_CONTROL_CTOV;
 			}
 			osi_writela(osi_core, value,
-				   (unsigned char *)osi_core->base +
+				   (nveu8_t *)osi_core->base +
 				    MGBE_MTL_EST_CONTROL);
 		} else {
 			OSI_CORE_ERR(osi_core->osd,

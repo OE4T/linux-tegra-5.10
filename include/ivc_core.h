@@ -113,7 +113,7 @@ typedef struct macsec_config {
 	/** MACsec KT index */
 	unsigned short kt_idx;
 	/** MACsec KT index */
-	nve32_t key_index;
+	nveu32_t key_index;
 	/** MACsec SCI */
 	nveu8_t sci[OSI_SCI_LEN];
 } macsec_config;

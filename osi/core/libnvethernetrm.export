@@ -39,11 +39,11 @@ osi_handle_ioctl
 #osi_macsec_cipher_config
 #osi_macsec_config
 #osi_init_macsec_ops
-#osi_macsec_lut_config
+#osi_macsec_config_lut
 #osi_macsec_loopback
 #osi_macsec_read_mmc
-#osi_macsec_dbg_buf_config
+#osi_macsec_config_dbg_buf
 #osi_macsec_dbg_events_config
-#osi_macsec_kt_config
+#osi_macsec_config_kt
 #osi_macsec_get_sc_lut_key_index
 #osi_macsec_update_mtu
