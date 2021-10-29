@@ -40,6 +40,7 @@
 #endif
 #include <linux/platform/tegra/tegra_cbb.h>
 #include <linux/platform/tegra/tegra23x_cbb.h>
+#include <linux/platform/tegra/tegra23x_cbb_reg.h>
 
 #define get_mstr_id(userbits) get_em_el_subfield(errmon->user_bits, 29, 24)
 
@@ -50,6 +51,54 @@ static LIST_HEAD(cbb_errmon_list);
 static DEFINE_SPINLOCK(cbb_errmon_lock);
 
 static struct tegra23x_cbb_fabric_sn_map fabric_sn_map[MAX_FAB_ID];
+
+
+u32 tegra234_cbb_readl(unsigned long offset)
+{
+	struct tegra_cbb_errmon_record *errmon;
+	bool flag = 0;
+	u32 val = 0;
+
+	if (offset > 0x3FFFFF) {
+		pr_err("%s: wrong offset value\n", __func__);
+		return 0;
+	}
+
+	list_for_each_entry(errmon, &cbb_errmon_list, node) {
+		if (strstr(errmon->name, "CBB")) {
+			val = readl(errmon->vaddr + offset);
+			flag = true;
+			break;
+		}
+	}
+	if (!flag)
+		pr_err("%s: cbb fabric not initialized\n", __func__);
+
+	return val;
+}
+EXPORT_SYMBOL(tegra234_cbb_readl);
+
+void tegra234_cbb_writel(unsigned long offset, u32 val)
+{
+	struct tegra_cbb_errmon_record *errmon;
+	bool flag = 0;
+
+	if (offset > 0x3FFFFF) {
+		pr_err("%s: wrong offset value\n", __func__);
+		return;
+	}
+
+	list_for_each_entry(errmon, &cbb_errmon_list, node) {
+		if (strstr(errmon->name, "CBB")) {
+			writel(val, errmon->vaddr + offset);
+			flag = true;
+			break;
+		}
+	}
+	if (!flag)
+		pr_err("%s: cbb fabric not initialized\n", __func__);
+}
+EXPORT_SYMBOL(tegra234_cbb_writel);
 
 static void tegra234_cbb_errmon_faulten(void __iomem *addr)
 {
