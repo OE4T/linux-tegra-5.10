@@ -1972,6 +1972,27 @@ fail:
 
 
 static void
+brcmf_pcie_shutdown(struct pci_dev *pdev)
+{
+	struct brcmf_pciedev_info *devinfo;
+	struct brcmf_bus *bus;
+	u32 status;
+
+	brcmf_dbg(PCIE, "Enter\n");
+
+	bus = dev_get_drvdata(&pdev->dev);
+	if (bus == NULL)
+		return;
+
+	devinfo = bus->bus_priv.pcie->devinfo;
+
+	brcmf_pcie_intr_disable(devinfo);
+
+	status = brcmf_pcie_read_reg32(devinfo, BRCMF_PCIE_PCIE2REG_MAILBOXINT);
+	brcmf_pcie_write_reg32(devinfo, BRCMF_PCIE_PCIE2REG_MAILBOXINT, status);
+}
+
+static void
 brcmf_pcie_remove(struct pci_dev *pdev)
 {
 	struct brcmf_pciedev_info *devinfo;
@@ -2141,6 +2162,7 @@ static struct pci_driver brcmf_pciedrvr = {
 	.id_table = brcmf_pcie_devid_table,
 	.probe = brcmf_pcie_probe,
 	.remove = brcmf_pcie_remove,
+	.shutdown = brcmf_pcie_shutdown,
 #ifdef CONFIG_PM
 	.driver.pm = &brcmf_pciedrvr_pm,
 #endif
