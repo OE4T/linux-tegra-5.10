@@ -6395,9 +6395,6 @@ static void ether_init_rss(struct ether_priv_data *pdata,
 		return;
 	}
 
-	/* FIXME: Disable RSS as WAR for bringup */
-	osi_core->rss.enable = 0;
-
 	/* generate random key */
 	netdev_rss_key_fill(osi_core->rss.key, sizeof(osi_core->rss.key));
 
