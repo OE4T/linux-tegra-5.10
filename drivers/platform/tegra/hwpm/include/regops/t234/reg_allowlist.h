@@ -297,6 +297,8 @@ struct allowlist nvdla_alist[] = {
 };
 
 struct allowlist mgbe_alist[] = {
+	{0x00008020, true},
+	{0x00008024, false},
 };
 
 struct allowlist nvdec_alist[] = {
@@ -328,6 +330,9 @@ struct allowlist pcie_ctl_alist[] = {
 };
 
 struct allowlist disp_alist[] = {
+	{0x0001e118, true},
+	{0x0001e120, true},
+	{0x0001e124, false},
 };
 
 struct allowlist mss_channel_alist[] = {
