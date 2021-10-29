@@ -228,9 +228,7 @@ static ssize_t macsec_enable_store(struct device *dev,
 {
 	struct net_device *ndev = (struct net_device *)dev_get_drvdata(dev);
 	struct ether_priv_data *pdata = netdev_priv(ndev);
-	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct macsec_priv_data *macsec_pdata = pdata->macsec_pdata;
-	unsigned int enable = 0;
 	int ret = 0;
 
 	if (!netif_running(ndev)) {
@@ -242,28 +240,6 @@ static ssize_t macsec_enable_store(struct device *dev,
 		ret = macsec_close(macsec_pdata);
 	} else if (strncmp(buf, "txrx", 4) == OSI_NONE) {
 		ret = macsec_open(macsec_pdata, OSI_NULL);
-	} else if (strncmp(buf, "tx", 2) == OSI_NONE) {
-		if (macsec_pdata->enabled == OSI_NONE) {
-			ret = macsec_open(macsec_pdata, OSI_NONE);
-		}
-		enable |= (OSI_MACSEC_TX_EN);
-		ret = osi_macsec_en(osi_core, enable);
-		if (ret < 0) {
-			dev_err(dev, "%s: Failed to enable macsec Tx\n",
-				__func__);
-		}
-		macsec_pdata->enabled = OSI_MACSEC_TX_EN;
-	} else if (strncmp(buf, "rx", 2) == OSI_NONE) {
-		if (macsec_pdata->enabled == OSI_NONE) {
-			ret = macsec_open(macsec_pdata, OSI_NONE);
-		}
-		enable |= (OSI_MACSEC_RX_EN);
-		ret = osi_macsec_en(osi_core, enable);
-		if (ret < 0) {
-			dev_err(dev, "%s: Failed to enable macsec Rx\n",
-				__func__);
-		}
-		macsec_pdata->enabled = OSI_MACSEC_RX_EN;
 	} else {
 		dev_err(pdata->dev,
 			"Invalid. Valid inputs are 0/tx/rx/txrx\n");
@@ -826,7 +802,7 @@ static void dump_byp_lut(char **buf_p, unsigned short ctlr_sel,
 		lut_config.lut_sel = OSI_LUT_SEL_BYPASS;
 		lut_config.table_config.rw = OSI_LUT_READ;
 		lut_config.table_config.index = i;
-		if (osi_macsec_lut_config(osi_core, &lut_config) < 0) {
+		if (osi_macsec_config_lut(osi_core, &lut_config) < 0) {
 			pr_err("%s: Failed to read BYP LUT\n", __func__);
 			*buf_p = buf;
 			return;
@@ -933,7 +909,7 @@ static ssize_t macsec_byp_lut_store(struct device *dev,
 		goto exit;
 	}
 
-	if (osi_macsec_lut_config(osi_core, &lut_config) < 0) {
+	if (osi_macsec_config_lut(osi_core, &lut_config) < 0) {
 		dev_err(dev, "%s: Failed to config BYP LUT\n", __func__);
 		goto exit;
 	} else {
@@ -1045,7 +1021,7 @@ static void dump_dbg_buffers(char **buf_p, unsigned short ctlr_sel,
 		dbg_buf_config.rw = OSI_DBG_TBL_READ;
 		dbg_buf_config.ctlr_sel = ctlr_sel;
 		dbg_buf_config.index = i;
-		if (osi_macsec_dbg_buf_config(osi_core, &dbg_buf_config) < 0) {
+		if (osi_macsec_config_dbg_buf(osi_core, &dbg_buf_config) < 0) {
 			pr_err("%s: Failed to read debug buffers\n", __func__);
 			*buf_p = buf;
 			return;
@@ -1064,7 +1040,7 @@ static void dump_dbg_buffers(char **buf_p, unsigned short ctlr_sel,
 		dbg_buf_config.rw = OSI_DBG_TBL_WRITE;
 		dbg_buf_config.ctlr_sel = ctlr_sel;
 		dbg_buf_config.index = i;
-		if (osi_macsec_dbg_buf_config(osi_core, &dbg_buf_config) < 0) {
+		if (osi_macsec_config_dbg_buf(osi_core, &dbg_buf_config) < 0) {
 			pr_err("%s: Failed to write debug buffers\n", __func__);
 			return;
 		}
@@ -1209,7 +1185,7 @@ static ssize_t macsec_sci_lut_show(struct device *dev,
 		lut_config.lut_sel = OSI_LUT_SEL_SCI;
 		lut_config.table_config.rw = OSI_LUT_READ;
 		lut_config.table_config.index = i;
-		if (osi_macsec_lut_config(osi_core, &lut_config) < 0) {
+		if (osi_macsec_config_lut(osi_core, &lut_config) < 0) {
 			dev_err(dev, "%s: Failed to read SCI LUT\n", __func__);
 			goto exit;
 		} else {
@@ -1243,7 +1219,7 @@ static ssize_t macsec_sci_lut_show(struct device *dev,
 		lut_config.lut_sel = OSI_LUT_SEL_SCI;
 		lut_config.table_config.rw = OSI_LUT_READ;
 		lut_config.table_config.index = i;
-		if (osi_macsec_lut_config(osi_core, &lut_config) < 0) {
+		if (osi_macsec_config_lut(osi_core, &lut_config) < 0) {
 			dev_err(dev, "%s: Failed to read BYP LUT\n", __func__);
 			goto exit;
 		} else {
@@ -1350,7 +1326,7 @@ static ssize_t macsec_sci_lut_store(struct device *dev,
 	}
 	lut_config.sci_lut_out.sc_index = sc_index;
 
-	if (osi_macsec_lut_config(osi_core, &lut_config) < 0) {
+	if (osi_macsec_config_lut(osi_core, &lut_config) < 0) {
 		dev_err(dev, "%s: Failed to config SCI LUT\n", __func__);
 		goto exit;
 	} else {
@@ -1383,7 +1359,7 @@ static void dump_kt(char **buf_p, unsigned short ctlr_sel,
 		kt_config.table_config.ctlr_sel = ctlr_sel;
 		kt_config.table_config.rw = OSI_LUT_READ;
 		kt_config.table_config.index = i;
-		if (osi_macsec_kt_config(osi_core, &kt_config) < 0) {
+		if (osi_macsec_config_kt(osi_core, &kt_config) < 0) {
 			pr_err("%s: Failed to read KT\n", __func__);
 			*buf_p = buf;
 			return;
@@ -1571,7 +1547,7 @@ static ssize_t macsec_kt_store(struct device *dev,
 		kt_config.flags |= OSI_LUT_FLAGS_ENTRY_VALID;
 	}
 
-	ret = osi_macsec_kt_config(osi_core, &kt_config);
+	ret = osi_macsec_config_kt(osi_core, &kt_config);
 	if (ret < 0) {
 		pr_err("%s: Failed to set SAK", __func__);
 		goto exit;
@@ -1619,7 +1595,7 @@ static void dump_sc_state_lut(char **buf_p, unsigned short ctlr_sel,
 		lut_config.table_config.rw = OSI_LUT_READ;
 		lut_config.table_config.index = i;
 		lut_config.lut_sel = OSI_LUT_SEL_SC_STATE;
-		if (osi_macsec_lut_config(osi_core, &lut_config) < 0) {
+		if (osi_macsec_config_lut(osi_core, &lut_config) < 0) {
 			pr_err("%s: Failed to read BYP LUT\n", __func__);
 			*buf_p = buf;
 			return;
@@ -1707,7 +1683,7 @@ static ssize_t macsec_sc_state_lut_store(struct device *dev,
 	lut_config.lut_sel = OSI_LUT_SEL_SC_STATE;
 	lut_config.sc_state_out.curr_an = curr_an;
 
-	if (osi_macsec_lut_config(osi_core, &lut_config) < 0) {
+	if (osi_macsec_config_lut(osi_core, &lut_config) < 0) {
 		dev_err(dev, "%s: Failed to config SC STATE LUT\n", __func__);
 		goto exit;
 	} else {
@@ -1740,7 +1716,7 @@ static void dump_sa_state_lut(char **buf_p, unsigned short ctlr_sel,
 		lut_config.table_config.rw = OSI_LUT_READ;
 		lut_config.table_config.index = i;
 		lut_config.lut_sel = OSI_LUT_SEL_SA_STATE;
-		if (osi_macsec_lut_config(osi_core, &lut_config) < 0) {
+		if (osi_macsec_config_lut(osi_core, &lut_config) < 0) {
 			pr_err("%s: Failed to read BYP LUT\n", __func__);
 			goto exit;
 		}
@@ -1849,7 +1825,7 @@ static ssize_t macsec_sa_state_lut_store(struct device *dev,
 	lut_config.sa_state_out.lowest_pn = lowest_pn;
 	lut_config.lut_sel = OSI_LUT_SEL_SA_STATE;
 
-	if (osi_macsec_lut_config(osi_core, &lut_config) < 0) {
+	if (osi_macsec_config_lut(osi_core, &lut_config) < 0) {
 		dev_err(dev, "%s: Failed to config SA STATE LUT\n", __func__);
 		goto exit;
 	} else {
@@ -1883,7 +1859,7 @@ static void dump_sc_param_lut(char **buf_p, unsigned short ctlr_sel,
 		lut_config.table_config.rw = OSI_LUT_READ;
 		lut_config.table_config.index = i;
 		lut_config.lut_sel = OSI_LUT_SEL_SC_PARAM;
-		if (osi_macsec_lut_config(osi_core, &lut_config) < 0) {
+		if (osi_macsec_config_lut(osi_core, &lut_config) < 0) {
 			pr_err("%s: Failed to read BYP LUT\n", __func__);
 			goto exit;
 		}
@@ -2017,7 +1993,7 @@ static ssize_t macsec_sc_param_lut_store(struct device *dev,
 		lut_config.sc_param_out.sci[i] = (unsigned char)sci[i];
 	}
 
-	if (osi_macsec_lut_config(osi_core, &lut_config) < 0) {
+	if (osi_macsec_config_lut(osi_core, &lut_config) < 0) {
 		dev_err(dev, "%s: Failed to config SC PARAM LUT\n", __func__);
 		goto exit;
 	} else {

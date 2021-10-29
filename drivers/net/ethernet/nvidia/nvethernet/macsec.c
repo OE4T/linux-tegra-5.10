@@ -208,7 +208,7 @@ int macsec_close(struct macsec_priv_data *macsec_pdata)
 	int ret = 0;
 
 	PRINT_ENTRY();
-	/* 1. Disable the macsec controller */
+	/* Disable the macsec controller */
 	ret = osi_macsec_en(pdata->osi_core, OSI_DISABLE);
 	if (ret < 0) {
 		dev_err(dev, "%s: Failed to enable macsec Tx/Rx, %d\n",
@@ -1796,7 +1796,7 @@ static int macsec_get_tx_next_pn(struct sk_buff *skb, struct genl_info *info)
 	lut_config.table_config.rw = OSI_LUT_READ;
 	lut_config.table_config.index = key_index + tx_sa.curr_an;
 	lut_config.lut_sel = OSI_LUT_SEL_SA_STATE;
-	if (osi_macsec_lut_config(osi_core, &lut_config) < 0) {
+	if (osi_macsec_config_lut(osi_core, &lut_config) < 0) {
 		pr_err("%s: Failed to read SA STATE LUT\n", __func__);
 		goto exit;
 	}
