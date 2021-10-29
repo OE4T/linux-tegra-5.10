@@ -956,7 +956,12 @@ static int tegra_spi_start_dma_based_transfer(struct
 		dma_sconfig.dst_addr = tspi->phys + SPI_TX_FIFO;
 		dma_sconfig.dst_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
 		dma_sconfig.dst_maxburst = maxburst;
-		dmaengine_slave_config(tspi->tx_dma_chan, &dma_sconfig);
+		ret = dmaengine_slave_config(tspi->tx_dma_chan, &dma_sconfig);
+		if (ret < 0) {
+			dev_err(tspi->dev,
+				"DMA slave config failed: %d\n", ret);
+			return ret;
+		}
 
 		tegra_spi_copy_client_txbuf_to_spi_txbuf(tspi, t);
 		ret = tegra_spi_start_tx_dma(tspi, len);
@@ -979,7 +984,12 @@ static int tegra_spi_start_dma_based_transfer(struct
 			dma_sconfig.src_maxburst = 1;
 		else
 			dma_sconfig.src_maxburst = maxburst;
-		dmaengine_slave_config(tspi->rx_dma_chan, &dma_sconfig);
+		ret = dmaengine_slave_config(tspi->rx_dma_chan, &dma_sconfig);
+		if (ret < 0) {
+			dev_err(tspi->dev,
+				"DMA slave config failed: %d\n", ret);
+			return ret;
+		}
 
 		/* align Rx Dma to receive size */
 		ret = tegra_spi_start_rx_dma(tspi,
