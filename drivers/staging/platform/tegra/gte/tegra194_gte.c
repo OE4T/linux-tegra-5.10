@@ -174,6 +174,7 @@ struct tegra_gte_dev {
 	const struct tegra_gte_ev_table *ev_map;
 	struct list_head list;
 	void __iomem *regs;
+	spinlock_t lock; /* Hardware access lock */
 };
 
 struct tegra_gte_ev_el {
@@ -290,6 +291,8 @@ static inline void tegra_gte_writel(struct tegra_gte_dev *gte, u32 reg,
 static struct kobj_type gte_ev_kobj_type = {
 	.sysfs_ops = &kobj_sysfs_ops,
 };
+
+static void tegra_gte_read_fifo(struct tegra_gte_dev *gte);
 
 /* Stat for the dropped events due to FIFO overflow */
 static ssize_t show_num_dropped_events(struct kobject *kobj,
@@ -593,6 +596,9 @@ int tegra_gte_retrieve_event(const struct tegra_gte_ev_desc *data,
 	ev = container_of(pri, struct tegra_gte_event_info, pv);
 	ev_id = pri->id;
 	gte_dev = ev->dev;
+
+	/* test - read from HW to make sure we are not missing anything */
+	tegra_gte_read_fifo(gte_dev);
 
 	spin_lock_irqsave(&ev->lock, flags);
 
@@ -958,9 +964,11 @@ static void tegra_gte_read_fifo(struct tegra_gte_dev *gte)
 	u32 tsh, tsl, src, pv, cv, acv, slice, bit_index, ev_id;
 	u64 tsc;
 	int dir;
-	unsigned long flags;
+	unsigned long flags, hw_spin_lock_flags;
 	struct tegra_gte_ev_el ts;
 	struct tegra_gte_event_info *ev = gte->ev;
+
+	spin_lock_irqsave(&gte->lock, hw_spin_lock_flags);
 
 	while ((tegra_gte_readl(gte, GTE_TESTATUS) >>
 		GTE_TESTATUS_OCCUPANCY_SHIFT) &
@@ -1007,6 +1015,8 @@ static void tegra_gte_read_fifo(struct tegra_gte_dev *gte)
 
 		tegra_gte_writel(gte, GTE_TECMD, GTE_TECMD_CMD_POP);
 	}
+
+	spin_unlock_irqrestore(&gte->lock, hw_spin_lock_flags);
 }
 
 static irqreturn_t tegra_gte_isr(int irq, void *dev_id)
@@ -1118,6 +1128,8 @@ static void tegra_gte_init_and_enable(struct tegra_gte_dev *gte)
 
 	slices = gte->num_events >> 5;
 	atomic_set(&gte->usage, 0);
+
+	spin_lock_init(&gte->lock);
 
 	for (i = 0; i < slices; i++) {
 		gte->sl[i].flags = 0;
