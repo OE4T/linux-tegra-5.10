@@ -70,24 +70,6 @@ struct nvgpu_tsg *nvgpu_tsg_get_from_id(struct gk20a *g, u32 tsgid)
 	return &f->tsg[tsgid];
 }
 
-
-static bool nvgpu_tsg_is_channel_active(struct gk20a *g,
-		struct nvgpu_channel *ch)
-{
-	struct nvgpu_fifo *f = &g->fifo;
-	struct nvgpu_runlist *runlist;
-	unsigned int i;
-
-	for (i = 0; i < f->num_runlists; ++i) {
-		runlist = &f->active_runlists[i];
-		if (nvgpu_test_bit(ch->chid, runlist->domain->active_channels)) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
 /*
  * API to mark channel as part of TSG
  *
@@ -103,11 +85,6 @@ int nvgpu_tsg_bind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 
 	/* check if channel is already bound to some TSG */
 	if (nvgpu_tsg_from_ch(ch) != NULL) {
-		return -EINVAL;
-	}
-
-	/* channel cannot be bound to TSG if it is already active */
-	if (nvgpu_tsg_is_channel_active(tsg->g, ch)) {
 		return -EINVAL;
 	}
 
