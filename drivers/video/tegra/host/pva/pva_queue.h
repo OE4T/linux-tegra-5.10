@@ -1,7 +1,6 @@
 /*
- * PVA Task Management
- *
- * Copyright (c) 2016-2021, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION & AFFILIATES.
+ * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -20,7 +19,7 @@
 #define PVA_QUEUE_H
 
 #include <uapi/linux/nvpva_ioctl.h>
-#include "nvhost_queue.h"
+#include "nvpva_queue.h"
 #include "nvhost_buffer.h"
 #include "pva-sys-params.h"
 #include "pva-interface.h"
@@ -28,7 +27,7 @@
 
 struct dma_buf;
 
-extern struct nvhost_queue_ops pva_queue_ops;
+extern struct nvpva_queue_ops pva_queue_ops;
 
 struct pva_pinned_memory {
 	int fd;
@@ -46,7 +45,7 @@ struct pva_pinned_memory {
  *
  * pva				Pointer to struct pva
  * buffers			Pointer to struct nvhost_buffers
- * queue			Pointer to struct nvhost_queue
+ * queue			Pointer to struct nvpva_queue
  * node				Used to build queue task list
  * kref				Used to manage allocation and freeing
  * dma_addr			task dma_addr_t
@@ -74,7 +73,7 @@ struct pva_pinned_memory {
  */
 struct pva_submit_task {
 	struct pva *pva;
-	struct nvhost_queue *queue;
+	struct nvpva_queue *queue;
 	struct nvpva_client_context *client;
 
 	struct list_head node;

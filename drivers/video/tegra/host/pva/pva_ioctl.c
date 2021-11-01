@@ -1,7 +1,6 @@
 /*
- * PVA Ioctl Handling
- *
- * Copyright (c) 2016-2021, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION & AFFILIATES.
+ * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -44,12 +43,12 @@
  * @brief pva_private - Per-fd specific data
  *
  * pdev		Pointer the pva device
- * queue	Pointer the struct nvhost_queue
+ * queue	Pointer the struct nvpva_queue
  * buffer	Pointer to the struct nvhost_buffer
  */
 struct pva_private {
 	struct pva *pva;
-	struct nvhost_queue *queue;
+	struct nvpva_queue *queue;
 	struct nvpva_client_context *client;
 };
 
@@ -305,7 +304,7 @@ static int pva_submit(struct pva_private *priv, void *arg)
 	/* Go through the tasks and make a KMD representation of them */
 	for (i = 0; i < num_tasks; i++) {
 		struct pva_submit_task *task;
-		struct nvhost_queue_task_mem_info task_mem_info;
+		struct nvpva_queue_task_mem_info task_mem_info;
 		long timeout_jiffies = usecs_to_jiffies(
 			ioctl_tasks_header->submission_timeout_us);
 
@@ -318,7 +317,7 @@ static int pva_submit(struct pva_private *priv, void *arg)
 			err = -EAGAIN;
 			goto free_tasks;
 		}
-		err = nvhost_queue_alloc_task_memory(priv->queue,
+		err = nvpva_queue_alloc_task_memory(priv->queue,
 						     &task_mem_info);
 		task = task_mem_info.kmem_addr;
 
@@ -361,7 +360,7 @@ static int pva_submit(struct pva_private *priv, void *arg)
 	/* TODO: submission timeout */
 
 	/* ..and submit them */
-	err = nvhost_queue_submit(priv->queue, &tasks_header);
+	err = nvpva_queue_submit(priv->queue, &tasks_header);
 
 	if (err < 0) {
 		goto free_tasks;
@@ -669,8 +668,8 @@ static int pva_open(struct inode *inode, struct file *file)
 	if (err < 0)
 		goto err_add_client;
 
-	priv->queue = nvhost_queue_alloc(pva->pool,
-					 MAX_PVA_TASK_COUNT_PER_QUEUE, false);
+	priv->queue = nvpva_queue_alloc(pva->pool,
+					 MAX_PVA_TASK_COUNT_PER_QUEUE);
 
 	if (IS_ERR(priv->queue)) {
 		err = PTR_ERR(priv->queue);
@@ -688,7 +687,7 @@ static int pva_open(struct inode *inode, struct file *file)
 	return nonseekable_open(inode, file);
 
 err_alloc_context:
-	nvhost_queue_put(priv->queue);
+	nvpva_queue_put(priv->queue);
 err_alloc_queue:
 	nvhost_module_remove_client(pdev, priv);
 err_add_client:
@@ -697,7 +696,7 @@ err_alloc_priv:
 	return err;
 }
 
-static void pva_queue_flush(struct pva *pva, struct nvhost_queue *queue)
+static void pva_queue_flush(struct pva *pva, struct nvpva_queue *queue)
 {
 	u32 flags = PVA_CMD_INT_ON_ERR | PVA_CMD_INT_ON_COMPLETE;
 	struct pva_cmd_status_regs status = {};
@@ -760,7 +759,7 @@ static int pva_release(struct inode *inode, struct file *file)
 	 * Release handle to the queue (on-going tasks have their
 	 * own references to the queue
 	 */
-	nvhost_queue_put(priv->queue);
+	nvpva_queue_put(priv->queue);
 
 	/* Release handle to nvhost_acm */
 	nvhost_module_remove_client(priv->pva->pdev, priv);

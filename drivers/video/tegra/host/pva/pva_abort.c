@@ -1,7 +1,6 @@
 /*
- * PVA abort handler
- *
- * Copyright (c) 2019-2021, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION & AFFILIATES.
+ * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -68,7 +67,7 @@ static void pva_abort_handler(struct work_struct *work)
 	nvhost_module_reset(pdev, true);
 
 	/* Remove pending tasks from the queue */
-	nvhost_queue_abort_all(pva->pool);
+	nvpva_queue_abort_all(pva->pool);
 
 	nvhost_warn(&pdev->dev, "Recovery finished");
 

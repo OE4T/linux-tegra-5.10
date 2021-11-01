@@ -25,7 +25,7 @@
 #include <linux/mutex.h>
 #include <linux/version.h>
 
-#include "nvhost_queue.h"
+#include "nvpva_queue.h"
 #include "pva_regs.h"
 #include "pva_nvhost.h"
 #include "pva-ucode-header.h"
@@ -49,7 +49,7 @@ struct pva_version_info {
  */
 #define MAX_PVA_QUEUE_COUNT 8
 #define MAX_PVA_CLIENTS 8
-#define MAX_PVA_TASK_COUNT_PER_QUEUE	64
+#define MAX_PVA_TASK_COUNT_PER_QUEUE	128
 
 /**
  * Maximum task count that a PVA engine can support
@@ -240,7 +240,7 @@ struct pva {
 	int version;
 	struct pva_version_config *version_config;
 	struct platform_device *pdev;
-	struct nvhost_queue_pool *pool;
+	struct nvpva_queue_pool *pool;
 	struct pva_fw fw_info;
 
 	int irq[MAX_PVA_IRQS];

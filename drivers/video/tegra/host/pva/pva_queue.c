@@ -1,7 +1,6 @@
 /*
- * PVA Task Management
- *
- * Copyright (c) 2016-2021, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION & AFFILIATES.
+ * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -51,7 +50,7 @@
 #include <linux/seq_file.h>
 #include "pva.h"
 #include "nvhost_buffer.h"
-#include "nvhost_queue.h"
+#include "nvpva_queue.h"
 #include "pva_mailbox.h"
 #include "pva_queue.h"
 #include "dev.h"
@@ -643,7 +642,7 @@ void pva_task_free(struct kref *ref)
 {
 	struct pva_submit_task *task =
 	    container_of(ref, struct pva_submit_task, ref);
-	struct nvhost_queue *my_queue = task->queue;
+	struct nvpva_queue *my_queue = task->queue;
 	pva_task_unpin_mem(task);
 	if (task->pinned_app)
 		pva_task_release_ref_vpu_app(&task->client->elf_ctx,
@@ -652,7 +651,7 @@ void pva_task_free(struct kref *ref)
 	nvhost_module_idle(task->pva->pdev);
 	nvpva_client_context_put(task->client);
 	/* Release memory that was allocated for the task */
-	nvhost_queue_free_task_memory(task->queue, task->pool_index);
+	nvpva_queue_free_task_memory(task->queue, task->pool_index);
 	up(&my_queue->task_pool_sem);
 }
 
@@ -660,7 +659,7 @@ static void update_one_task(struct pva *pva)
 {
 	struct platform_device *pdev = pva->pdev;
 	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
-	struct nvhost_queue *queue;
+	struct nvpva_queue *queue;
 	struct pva_task_error_s task_info;
 	struct pva_submit_task *task;
 	struct pva_hw_task *hw_task;
@@ -731,7 +730,8 @@ void pva_task_update(struct work_struct *work)
 	for (i = 0; i < n_tasks; i++)
 		update_one_task(pva);
 }
-static void pva_queue_dump(struct nvhost_queue *queue, struct seq_file *s)
+static void
+pva_queue_dump(struct nvpva_queue *queue, struct seq_file *s)
 {
 	struct pva_submit_task *task;
 	int i = 0;
@@ -753,7 +753,7 @@ static int pva_task_submit_mmio_ccq(struct pva_submit_task *task, u8 batchsize)
 }
 static int pva_task_submit_mailbox(struct pva_submit_task *task, u8 batchsize)
 {
-	struct nvhost_queue *queue = task->queue;
+	struct nvpva_queue *queue = task->queue;
 	struct pva_cmd_status_regs status;
 	struct pva_cmd_s cmd;
 	u32 flags, nregs;
@@ -791,7 +791,7 @@ static int pva_task_submit(const struct pva_submit_tasks *task_header)
 	struct pva_submit_task *first_task = task_header->tasks[0];
 	struct platform_device *host1x_pdev =
 	    to_platform_device(first_task->pva->pdev->dev.parent);
-	struct nvhost_queue *queue = first_task->queue;
+	struct nvpva_queue *queue = first_task->queue;
 	u64 timestamp;
 	int err = 0;
 	u32 i;
@@ -961,7 +961,7 @@ static int update_batch_tasks(const struct pva_submit_tasks *task_header)
 	return err;
 }
 
-static int pva_queue_submit(struct nvhost_queue *queue, void *args)
+static int pva_queue_submit(struct nvpva_queue *queue, void *args)
 {
 	const struct pva_submit_tasks *task_header = args;
 	int err = 0;
@@ -1088,7 +1088,7 @@ out:
 	return;
 }
 
-static void pva_queue_cleanup(struct nvhost_queue *queue,
+static void pva_queue_cleanup(struct nvpva_queue *queue,
 			      struct pva_submit_task *task)
 {
 	struct platform_device *pdev = queue->pool->pdev;
@@ -1112,7 +1112,7 @@ static void pva_queue_cleanup(struct nvhost_queue *queue,
 		nvhost_syncpt_cpu_incr_ext(pdev, queue->syncpt_id);
 }
 
-static int pva_queue_abort(struct nvhost_queue *queue)
+static int pva_queue_abort(struct nvpva_queue *queue)
 {
 	struct pva_submit_task *task, *n;
 
@@ -1129,7 +1129,7 @@ static int pva_queue_abort(struct nvhost_queue *queue)
 	return 0;
 }
 
-struct nvhost_queue_ops pva_queue_ops = {
+struct nvpva_queue_ops pva_queue_ops = {
 	.abort = pva_queue_abort,
 	.submit = pva_queue_submit,
 	.get_task_size = pva_task_get_memsize,

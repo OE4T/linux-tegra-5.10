@@ -1,7 +1,6 @@
 /*
- * PVA driver
- *
- * Copyright (c) 2016-2021, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION & AFFILIATES.
+ * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -53,7 +52,7 @@
 #include "pva_version_config_t23x.h"
 #include "pva_ccq_t23x.h"
 #endif
-#include "nvhost_queue.h"
+#include "nvpva_queue.h"
 #include "pva_queue.h"
 #include "pva.h"
 #include "pva_regs.h"
@@ -811,7 +810,7 @@ static int pva_probe(struct platform_device *pdev)
 		goto err_client_device_init;
 
 	pva->pool =
-		nvhost_queue_init(pdev, &pva_queue_ops, MAX_PVA_QUEUE_COUNT);
+		nvpva_queue_init(pdev, &pva_queue_ops, MAX_PVA_QUEUE_COUNT);
 	if (IS_ERR(pva->pool)) {
 		err = PTR_ERR(pva->pool);
 		goto err_queue_init;
@@ -853,7 +852,7 @@ err_isr_init:
 err_client_ctx_init:
 	pva_free_task_status_buffer(pva);
 err_status_init:
-	nvhost_queue_deinit(pva->pool);
+	nvpva_queue_deinit(pva->pool);
 err_queue_init:
 	nvhost_client_device_release(pdev);
 err_client_device_init:
@@ -876,7 +875,7 @@ static int __exit pva_remove(struct platform_device *pdev)
 
 	pva_free_task_status_buffer(pva);
 	nvpva_client_context_deinit(pva);
-	nvhost_queue_deinit(pva->pool);
+	nvpva_queue_deinit(pva->pool);
 	nvhost_client_device_release(pdev);
 	for (i = 0; i < pva->version_config->irq_count; i++)
 		free_irq(pva->irq[i], pdata);
