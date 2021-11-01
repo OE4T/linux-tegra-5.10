@@ -235,6 +235,12 @@ Required properties:
 				ex: If there is Ethernet controller DT node
 				with index 8, the controller MAC address
 				is at /chosen/nvidia,ether-mac8
+- nvidia,ptp_m2m_role:		Ethernet HW role in PTP MAC-TO-MAC time sync.
+				This  DT property holds the value to identify
+				role of HW. Ethernet HW can act as primary
+				interface(1), secondary interface(2) or
+				inactive interface(0). By default all HW are
+				inactive interface if DT property not defined.
 
 MDIO node
 - mdio:				Child of Ethernet controller which holds the PHY
