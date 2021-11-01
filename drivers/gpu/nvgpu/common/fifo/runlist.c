@@ -660,6 +660,9 @@ static void free_rl_mem(struct gk20a *g, struct nvgpu_runlist_mem *mem)
 static void nvgpu_runlist_domain_free(struct gk20a *g,
 				      struct nvgpu_runlist_domain *domain)
 {
+	/* added in nvgpu_runlist_domain_alloc() */
+	nvgpu_list_del(&domain->domains_list);
+
 	free_rl_mem(g, domain->mem);
 	domain->mem = NULL;
 	free_rl_mem(g, domain->mem_hw);
@@ -687,10 +690,16 @@ void nvgpu_runlist_cleanup_sw(struct gk20a *g)
 	for (i = 0; i < f->num_runlists; i++) {
 		runlist = &f->active_runlists[i];
 
-		if (runlist->domain != NULL) {
-			nvgpu_runlist_domain_free(g, runlist->domain);
-			runlist->domain = NULL;
+		while (!nvgpu_list_empty(&runlist->domains)) {
+			struct nvgpu_runlist_domain *domain;
+
+			domain = nvgpu_list_first_entry(&runlist->domains,
+						     nvgpu_runlist_domain,
+						     domains_list);
+			nvgpu_runlist_domain_free(g, domain);
 		}
+		/* this isn't an owning pointer, just reset */
+		runlist->domain = NULL;
 
 		nvgpu_mutex_destroy(&runlist->runlist_lock);
 		f->runlists[runlist->id] = NULL;
@@ -844,14 +853,19 @@ static struct nvgpu_runlist_mem *init_rl_mem(struct gk20a *g, u32 runlist_size)
 	return mem;
 }
 
-static struct nvgpu_runlist_domain *nvgpu_init_rl_domain(struct gk20a *g, u32 runlist_size)
+static struct nvgpu_runlist_domain *nvgpu_runlist_domain_alloc(struct gk20a *g,
+		struct nvgpu_runlist *runlist, const char *name)
 {
 	struct nvgpu_runlist_domain *domain = nvgpu_kzalloc(g, sizeof(*domain));
 	struct nvgpu_fifo *f = &g->fifo;
+	size_t runlist_size = (size_t)f->runlist_entry_size *
+				(size_t)f->num_runlist_entries;
 
 	if (domain == NULL) {
 		return NULL;
 	}
+
+	(void)strncpy(domain->name, name, sizeof(domain->name) - 1U);
 
 	domain->mem = init_rl_mem(g, runlist_size);
 	if (domain->mem == NULL) {
@@ -877,6 +891,9 @@ static struct nvgpu_runlist_domain *nvgpu_init_rl_domain(struct gk20a *g, u32 ru
 		goto free_active_channels;
 	}
 
+	/* deleted in nvgpu_runlist_domain_free() */
+	nvgpu_list_add_tail(&domain->domains_list, &runlist->domains);
+
 	return domain;
 free_active_channels:
 	nvgpu_kfree(g, domain->active_channels);
@@ -889,14 +906,29 @@ free_domain:
 	return NULL;
 }
 
-static int nvgpu_init_active_runlist_mapping(struct gk20a *g)
+struct nvgpu_runlist_domain *nvgpu_rl_domain_get(struct gk20a *g, u32 runlist_id,
+						 const char *name)
 {
-	struct nvgpu_runlist *runlist;
+	struct nvgpu_fifo *f = &g->fifo;
+	struct nvgpu_runlist *runlist = f->runlists[runlist_id];
+	struct nvgpu_runlist_domain *domain;
+
+	nvgpu_list_for_each_entry(domain, &runlist->domains, nvgpu_runlist_domain,
+				  domains_list) {
+		if (strcmp(domain->name, name) == 0) {
+			return domain;
+		}
+	}
+
+	return NULL;
+}
+
+static void nvgpu_init_active_runlist_mapping(struct gk20a *g)
+{
 	struct nvgpu_fifo *f = &g->fifo;
 	unsigned int runlist_id;
 	size_t runlist_size;
 	u32 i;
-	int err = 0;
 
 	rl_dbg(g, "Building active runlist map.");
 
@@ -907,6 +939,8 @@ static int nvgpu_init_active_runlist_mapping(struct gk20a *g)
 	 */
 	i = 0U;
 	for (runlist_id = 0; runlist_id < f->max_runlists; runlist_id++) {
+		struct nvgpu_runlist *runlist;
+
 		if (!nvgpu_engine_is_valid_runlist_id(g, runlist_id)) {
 			/* skip inactive runlist */
 			rl_dbg(g, "  Skipping invalid runlist: %d", runlist_id);
@@ -926,26 +960,15 @@ static int nvgpu_init_active_runlist_mapping(struct gk20a *g)
 		rl_dbg(g, "    RL entries: %d", f->num_runlist_entries);
 		rl_dbg(g, "    RL size %zu", runlist_size);
 
-		runlist->domain = nvgpu_init_rl_domain(g, runlist_size);
-		if (runlist->domain == NULL) {
-			nvgpu_err(g, "memory allocation failed");
-			err = -ENOMEM;
-			goto clean_up_runlist;
-		}
-
+		nvgpu_init_list_node(&runlist->domains);
 		nvgpu_mutex_init(&runlist->runlist_lock);
 	}
-
-	return 0;
-
-clean_up_runlist:
-	return err;
 }
 
 int nvgpu_runlist_setup_sw(struct gk20a *g)
 {
 	struct nvgpu_fifo *f = &g->fifo;
-	u32 num_runlists = 0U;
+	u32 num_runlists = 0U, i;
 	unsigned int runlist_id;
 	int err = 0;
 
@@ -984,10 +1007,19 @@ int nvgpu_runlist_setup_sw(struct gk20a *g)
 	rl_dbg(g, "  RL entry size:   %u bytes", f->runlist_entry_size);
 	rl_dbg(g, "  Max RL entries:  %u", f->num_runlist_entries);
 
-	err = nvgpu_init_active_runlist_mapping(g);
-	if (err != 0) {
-		goto clean_up_runlist;
+	nvgpu_init_active_runlist_mapping(g);
+
+	for (i = 0; i < g->fifo.num_runlists; i++) {
+		struct nvgpu_runlist *runlist = &f->active_runlists[i];
+
+		runlist->domain = nvgpu_runlist_domain_alloc(g, runlist, "(default)");
+		if (runlist->domain == NULL) {
+			nvgpu_err(g, "memory allocation failed");
+			err = -ENOMEM;
+			goto clean_up_runlist;
+		}
 	}
+
 
 	g->ops.runlist.init_enginfo(g, f);
 	return 0;

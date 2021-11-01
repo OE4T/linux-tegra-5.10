@@ -93,7 +93,42 @@ struct nvgpu_runlist_mem {
 	u32 count;
 };
 
+/*
+ * Data interface to be owned by another SW unit. The heart of the domain
+ * scheduler can be running outside nvgpu and as such cannot own these.
+ * However, nvgpu needs to do some bookkeeping for the domain scheduler anyway;
+ * this will be owned by that layer, and will be only presented to the runlist
+ * HW for submitting only. The contents will be filled by another SW unit
+ * responsible for only that.
+ *
+ * For now, we live in a transitional limbo where the domain scheduler does not
+ * exist yet in its final form but managing separate runlist domains will help
+ * bring it to existence.
+ *
+ * Intent of final interfaces ("a -> b": a uses b):
+ *
+ * nvgpu domain scheduler -> runlist domain
+ * channels -> runlist domain
+ * TSGs -> runlist domain
+ * nvgpu domain scheduler -> core scheduler
+ * core scheduler -> runlist HW
+ * fault reset/recovery -> core scheduler
+ * fault reset/recovery -> runlist HW
+ *
+ * Memory ownership of a runlist domain will be in the nvgpu domain scheduler.
+ */
 struct nvgpu_runlist_domain {
+	/**
+	 * Placeholder for metadata that will come in further patches.
+	 */
+	char name[32];
+	/**
+	 * All created domains are tracked in a list.
+	 *
+	 * The list head is nvgpu_runlist::domains
+	 */
+	struct nvgpu_list_node domains_list;
+
 	/** Bitmap of active channels in the runlist domain. One bit per chid. */
 	unsigned long *active_channels;
 	/** Bitmap of active TSGs in the runlist domain. One bit per tsgid. */
@@ -110,8 +145,18 @@ struct nvgpu_runlist {
 	/** The HW has some designated RL IDs that are bound to engines. */
 	u32 id;
 
-	/* The default domain is the only one that currently exists. */
+	/* The currently active scheduling domain. */
 	struct nvgpu_runlist_domain *domain;
+	/*
+	 * All scheduling domains of this RL, see nvgpu_runlist_domain::domain_node.
+	 *
+	 * Design note: the runlist hardware unit should not own the actual
+	 * domain memory; this arrangement is temporary to aid in transition
+	 * for a domain scheduler where a scheduling domain will own
+	 * domain-related runlist data (nvgpu_runlist_domain). See the
+	 * documentation of nvgpu_runlist_domain.
+	 */
+	struct nvgpu_list_node domains;
 
 	/** Bitmask of PBDMAs supported for this runlist. */
 	u32  pbdma_bitmask;
@@ -137,6 +182,16 @@ struct nvgpu_runlist {
 #endif
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 };
+
+struct nvgpu_runlist_domain *nvgpu_rl_domain_get(struct gk20a *g, u32 runlist_id,
+						 const char *name);
+
+static inline struct nvgpu_runlist_domain *
+nvgpu_runlist_domain_from_domains_list(struct nvgpu_list_node *node)
+{
+	return (struct nvgpu_runlist_domain *)
+	((uintptr_t)node - offsetof(struct nvgpu_runlist_domain, domains_list));
+}
 
 /**
  * @brief Rebuild runlist
