@@ -69,95 +69,37 @@ static DEVICE_ATTR(load, S_IRUGO, nvhost_scale_load_show, NULL);
  * This function initialises the frequency table for the given device profile
  */
 
-static int tegra_update_freq_table(struct clk *c,
-				   struct nvhost_device_data *pdata,
-				   int *num_freqs)
+static int nvhost_scale_make_freq_table(struct nvhost_device_profile *profile)
 {
-	long max_freq = clk_round_rate(c, UINT_MAX);
-	long min_freq = clk_round_rate(c, 0);
-	long clk_step, found_rate, last_rate, rate;
-	int cnt = 0;
+	struct nvhost_device_data *pdata = platform_get_drvdata(profile->pdev);
+	unsigned long max_freq  = clk_round_rate(profile->clk, UINT_MAX);
+	unsigned long min_freq  = clk_round_rate(profile->clk, 0);
+	unsigned long rate      = clk_round_rate(profile->clk, min_freq + 1);
+	unsigned long clk_step  = rate - min_freq;
+	size_t cnt = 0;
+	size_t num_freqs = ((max_freq - min_freq) / clk_step) + 1;
+
+	num_freqs = ((max_freq - min_freq) % clk_step) ? num_freqs + 1 : num_freqs;
 
 	/* check if clk scaling is available */
 	if (min_freq <= 0 || max_freq <= 0)
 		return 0;
 
-	/* initial default min freq */
-	pdata->freqs[0] = min_freq;
-	last_rate = min_freq;
-	cnt++;
+	pdata->freq_table = devm_kcalloc(&(profile->pdev->dev),
+					num_freqs,
+					sizeof(*pdata->freq_table),
+					GFP_KERNEL);
 
-	/* pick clk_step with assumption that all frequency table gets full.
-	 * If it is too small, we will not get any high frequencies to the table
-	 */
-	clk_step =  (max_freq + min_freq) / NVHOST_MODULE_MAX_FREQS;
-	/* tune to get next freq in steps */
-	for (rate = min_freq + clk_step; rate <= max_freq; rate += clk_step) {
-		found_rate = clk_round_rate(c, rate);
-		if (found_rate > last_rate) {
-			pdata->freqs[cnt] = (unsigned long)found_rate;
-			last_rate = found_rate;
-			cnt++;
-		}
-		if (cnt == NVHOST_MODULE_MAX_FREQS)
-			break;
-	}
+	if (!pdata->freq_table)
+		return -ENOMEM;
 
-	/* fill the remaining table with max_freq */
-	for (; cnt < NVHOST_MODULE_MAX_FREQS; cnt++)
-		pdata->freqs[cnt] = (unsigned long)max_freq;
+	for (rate = min_freq; rate <= max_freq; rate += clk_step)
+		pdata->freq_table[cnt++] = rate;
 
-	*num_freqs = cnt;
+	profile->devfreq_profile.freq_table = pdata->freq_table;
+	profile->devfreq_profile.max_state  = num_freqs;
 
 	return 0;
-}
-
-static int nvhost_scale_make_freq_table(struct nvhost_device_profile *profile)
-{
-	unsigned long *freqs = NULL;
-	int num_freqs = 0, err = 0, low_end_cnt = 0;
-	unsigned long max_freq =  clk_round_rate(profile->clk, UINT_MAX);
-	unsigned long min_freq =  clk_round_rate(profile->clk, 0);
-	struct nvhost_device_data *pdata = platform_get_drvdata(profile->pdev);
-
-	if (!tegra_platform_is_silicon())
-		goto exit;
-
-	if (nvhost_is_124() || nvhost_is_210()) {
-		err = tegra_dvfs_get_freqs(clk_get_parent(profile->clk),
-					&freqs, &num_freqs);
-		if (err)
-			return err;
-	}
-
-	if (!freqs)
-		err = tegra_update_freq_table(profile->clk, pdata, &num_freqs);
-
-	if (pdata->freqs[0])
-		freqs = pdata->freqs;
-
-	/* check for duplicate frequencies at higher end */
-	while (((num_freqs >= 2) &&
-		(freqs[num_freqs - 2] == freqs[num_freqs - 1])) ||
-	       (num_freqs && (max_freq < freqs[num_freqs - 1])))
-		num_freqs--;
-
-	/* check low end */
-	while (((num_freqs >= 2) && (freqs[low_end_cnt] == freqs[low_end_cnt + 1])) ||
-	       (num_freqs && (freqs[low_end_cnt] < min_freq))) {
-		low_end_cnt++;
-		num_freqs--;
-	}
-	freqs += low_end_cnt;
-
-exit:
-	if (!num_freqs)
-		dev_warn(&profile->pdev->dev, "dvfs table had no applicable frequencies!\n");
-
-	profile->devfreq_profile.freq_table = (unsigned long *)freqs;
-	profile->devfreq_profile.max_state = num_freqs;
-
-	return err;
 }
 
 /*

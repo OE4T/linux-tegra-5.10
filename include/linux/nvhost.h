@@ -62,7 +62,6 @@ struct dma_fence;
 #define NVHOST_MODULE_MAX_IORESOURCE_MEM	5
 #define NVHOST_NAME_SIZE			24
 #define NVSYNCPT_INVALID			(-1)
-#define NVHOST_MODULE_MAX_FREQS			8
 
 #define NVSYNCPT_AVP_0			(10)	/* t20, t30, t114, t148 */
 #define NVSYNCPT_3D			(22)	/* t20, t30, t114, t148 */
@@ -269,7 +268,7 @@ struct nvhost_device_data {
 	struct nvhost_actmon_register	*actmon_setting_regs;
 	/* Devfreq governor name */
 	const char			*devfreq_governor;
-	unsigned long freqs[NVHOST_MODULE_MAX_FREQS];
+	unsigned long *freq_table;
 
 	/* Marks if the device is booted when pm runtime is disabled */
 	bool				booted;

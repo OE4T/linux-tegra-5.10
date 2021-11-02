@@ -1,7 +1,7 @@
 /*
  * Tegra Graphics Init for T186 Architecture Chips
  *
- * Copyright (c) 2014-2020, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -388,8 +388,6 @@ struct nvhost_device_data t18_vic_info = {
 	.actmon_weight_count	= 213,
 	.actmon_setting_regs	= t18x_vic_actmon_registers,
 	.devfreq_governor	= "userspace",
-	.freqs			= {100000000, 200000000, 300000000,
-					400000000, 500000000, 600000000},
 	.isolate_contexts	= true,
 	.mlock_timeout_factor	= 3,
 	.module_irq		= 1,
