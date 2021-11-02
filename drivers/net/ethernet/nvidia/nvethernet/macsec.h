@@ -58,6 +58,7 @@ enum nv_macsec_sa_attrs {
 	NV_MACSEC_SA_ATTR_SCI,
 	NV_MACSEC_SA_ATTR_AN,
 	NV_MACSEC_SA_ATTR_PN,
+	NV_MACSEC_SA_ATTR_LOWEST_PN,
 	NV_MACSEC_SA_ATTR_KEY,
 	__NV_MACSEC_SA_ATTR_END,
 	NUM_NV_MACSEC_SA_ATTR = __NV_MACSEC_SA_ATTR_END,
@@ -107,6 +108,7 @@ static const struct nla_policy nv_macsec_sa_genl_policy[NUM_NV_MACSEC_SA_ATTR] =
 				    .len = 8, }, /* SCI is 64bit */
 	[NV_MACSEC_SA_ATTR_AN] = { .type = NLA_U8 },
 	[NV_MACSEC_SA_ATTR_PN] = { .type = NLA_U32 },
+	[NV_MACSEC_SA_ATTR_LOWEST_PN] = { .type = NLA_U32 },
 	[NV_MACSEC_SA_ATTR_KEY] = { .type = NLA_BINARY,
 				    .len = OSI_KEY_LEN_128,},
 };

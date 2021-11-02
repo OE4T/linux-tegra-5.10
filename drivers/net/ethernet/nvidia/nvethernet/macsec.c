@@ -599,6 +599,9 @@ static int parse_sa_config(struct nlattr **attrs, struct nlattr **tb_sa,
 	if (tb_sa[NV_MACSEC_SA_ATTR_PN]) {
 		sc_info->next_pn = nla_get_u32(tb_sa[NV_MACSEC_SA_ATTR_PN]);
 	}
+	if (tb_sa[NV_MACSEC_SA_ATTR_LOWEST_PN]) {
+		sc_info->lowest_pn = nla_get_u32(tb_sa[NV_MACSEC_SA_ATTR_LOWEST_PN]);
+	}
 	if (tb_sa[NV_MACSEC_SA_ATTR_KEY]) {
 		memcpy(sc_info->sak, nla_data(tb_sa[NV_MACSEC_SA_ATTR_KEY]),
 			sizeof(sc_info->sak));
@@ -731,11 +734,12 @@ static int macsec_en_rx_sa(struct sk_buff *skb, struct genl_info *info)
 		"\tsci: %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n"
 		"\tan: %u\n"
 		"\tpn: %u\n"
+		"\tlowest pn: %u\n"
 		"\twindow: %u",
 		__func__,
 		rx_sa.sci[0], rx_sa.sci[1], rx_sa.sci[2], rx_sa.sci[3],
 		rx_sa.sci[4], rx_sa.sci[5], rx_sa.sci[6], rx_sa.sci[7],
-		rx_sa.curr_an, rx_sa.next_pn, rx_sa.pn_window);
+		rx_sa.curr_an, rx_sa.next_pn, rx_sa.lowest_pn, rx_sa.pn_window);
 	pr_err("\tkey: ");
 	for (i = 0; i < 16; i++) {
 		pr_cont(" %02x", rx_sa.sak[i]);
@@ -1124,11 +1128,7 @@ static int macsec_set_replay_prot(struct sk_buff *skb, struct genl_info *info)
 		goto exit;
 	}
 
-	if (window != 0) {
-		macsec_pdata->pn_window = window;
-	} else {
-		macsec_pdata->pn_window = OSI_PN_MAX_DEFAULT;
-	}
+	macsec_pdata->pn_window = window;
 
 exit:
 	PRINT_EXIT();
