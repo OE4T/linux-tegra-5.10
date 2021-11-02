@@ -278,6 +278,8 @@ struct osi_macsec_sc_info {
 	nveu8_t curr_an;
 	/** Next PN to use for the current AN */
 	nveu32_t next_pn;
+	/** Lowest PN to use for the current AN */
+	nveu32_t lowest_pn;
 	/** bitmap of valid AN */
 	nveu32_t an_valid;
 	/** PN window */

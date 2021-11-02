@@ -2859,8 +2859,7 @@ static nve32_t add_upd_sc(struct osi_core_priv_data *const osi_core,
 	lut_config.lut_sel = OSI_LUT_SEL_SA_STATE;
 	table_config->index = (sc->sc_idx_start * OSI_MAX_NUM_SA) + sc->curr_an;
 	lut_config.sa_state_out.next_pn = sc->next_pn;
-	/* TODO - LLPN might have to be updated out of band for replay prot*/
-	lut_config.sa_state_out.lowest_pn = sc->next_pn;
+	lut_config.sa_state_out.lowest_pn = sc->lowest_pn;
 	lut_config.flags |= OSI_LUT_FLAGS_ENTRY_VALID;
 	ret = macsec_lut_config(osi_core, &lut_config);
 	if (ret < 0) {
