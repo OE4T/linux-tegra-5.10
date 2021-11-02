@@ -150,6 +150,17 @@
 #define SSPX_CORE_CNT0 0x610
 #define  SSPX_CORE_CNT0_PING_TBURST_MASK GENMASK(7, 0)
 #define  SSPX_CORE_CNT0_PING_TBURST(x) ((x) & SSPX_CORE_CNT0_PING_TBURST_MASK)
+
+#define SSPX_CORE_CNT13 0x644
+#define SSPX_CORE_CNT13_CRDTHP_TIMER_MASK GENMASK(29, 0)
+#define SSPX_CORE_CNT13_CRDTHP_TIMER(x) ((x) & \
+					SSPX_CORE_CNT13_CRDTHP_TIMER_MASK)
+
+#define SSPX_CORE_CNT20 0x660
+#define SSPX_CORE_CNT20_RCOV_ACT_TIMER_MASK GENMASK(29, 0)
+#define SSPX_CORE_CNT20_RCOV_ACT_TIMER(x) ((x) & \
+					SSPX_CORE_CNT20_RCOV_ACT_TIMER_MASK)
+
 #define SSPX_CORE_CNT30 0x688
 #define  SSPX_CORE_CNT30_LMPITP_TIMER_MASK GENMASK(19, 0)
 #define  SSPX_CORE_CNT30_LMPITP_TIMER(x) ((x) & \
@@ -3497,8 +3508,20 @@ static void tegra_xudc_device_params_init(struct tegra_xudc *xudc)
 	/* Default tPortConfiguration timeout is too small. */
 	val = xudc_readl(xudc, SSPX_CORE_CNT30);
 	val &= ~(SSPX_CORE_CNT30_LMPITP_TIMER_MASK);
-	val |= SSPX_CORE_CNT30_LMPITP_TIMER(0x978);
+	val |= SSPX_CORE_CNT30_LMPITP_TIMER(0x970);
 	xudc_writel(xudc, val, SSPX_CORE_CNT30);
+
+	/* Increase CREDIT_HP_TIMER timeout */
+	val = xudc_readl(xudc, SSPX_CORE_CNT13);
+	val &= ~(SSPX_CORE_CNT13_CRDTHP_TIMER_MASK);
+	val |= SSPX_CORE_CNT13_CRDTHP_TIMER(0x92800);
+	xudc_writel(xudc, val, SSPX_CORE_CNT13);
+
+	/* Increase tRecoveryActiveTimeout */
+	val = xudc_readl(xudc, SSPX_CORE_CNT20);
+	val &= ~(SSPX_CORE_CNT20_RCOV_ACT_TIMER_MASK);
+	val |= SSPX_CORE_CNT20_RCOV_ACT_TIMER(0x15F999);
+	xudc_writel(xudc, val, SSPX_CORE_CNT20);
 
 	if (xudc->soc->lpm_enable) {
 		/* Set L1 resume duration to 95 us. */
