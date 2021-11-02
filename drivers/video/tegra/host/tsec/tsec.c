@@ -815,6 +815,7 @@ static int tsec_probe(struct platform_device *dev)
 	pdata->pdev = dev;
 	mutex_init(&pdata->lock);
 	platform_set_drvdata(dev, pdata);
+	dma_set_mask_and_coherent(&dev->dev, DMA_BIT_MASK(39));
 
 	node = of_get_child_by_name(dev->dev.of_node, "carveout");
 	if (node) {
