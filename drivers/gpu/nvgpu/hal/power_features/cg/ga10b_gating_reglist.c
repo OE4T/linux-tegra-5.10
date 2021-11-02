@@ -123,8 +123,6 @@ static const struct gating_desc ga10b_slcg_gr[] = {
 
 /* slcg ltc */
 static const struct gating_desc ga10b_slcg_ltc[] = {
-	{.addr = 0x0017e050U, .prod = 0x00000000U, .disable = 0xfffffffeU},
-	{.addr = 0x0017e35cU, .prod = 0x00000000U, .disable = 0xfffffffeU},
 };
 
 /* slcg perf */
@@ -288,10 +286,6 @@ static const struct gating_desc ga10b_blcg_gr[] = {
 
 /* blcg ltc */
 static const struct gating_desc ga10b_blcg_ltc[] = {
-	{.addr = 0x0017e030U, .prod = 0x00000044U, .disable = 0x00000000U},
-	{.addr = 0x0017e040U, .prod = 0x00000044U, .disable = 0x00000000U},
-	{.addr = 0x0017e3e0U, .prod = 0x00000044U, .disable = 0x00000000U},
-	{.addr = 0x0017e3c8U, .prod = 0x00000044U, .disable = 0x00000000U},
 };
 
 /* blcg pmu */
