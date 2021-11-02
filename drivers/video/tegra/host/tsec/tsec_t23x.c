@@ -45,6 +45,9 @@
 /* Version of bootloader struct, increment on struct changes (while on prod) */
 #define RM_RISCV_BOOTLDR_VERSION	1
 
+static bool s_init_msg_rcvd;
+static bool s_riscv_booted;
+
 /* Pointer to this device */
 static struct platform_device *tsec;
 static void (*cmd_resp_callback)(void *);
@@ -347,6 +350,7 @@ static int nvhost_tsec_riscv_poweron(struct platform_device *dev)
 
 	enable_irq(pdata->irq);
 
+	s_riscv_booted = true;
 	/* Booted-up successfully */
 	dev_info(&dev->dev, "RISC-V boot success\n");
 
@@ -354,7 +358,8 @@ static int nvhost_tsec_riscv_poweron(struct platform_device *dev)
 #if CMD_INTERFACE_TEST
 
 	pr_debug("cmd_size=%d, cmdDataSize=%d\n", cmd_size, cmdDataSize);
-	for (idx = 0; idx < 1; idx++) {
+	msleep(3000);
+	for (idx = 0; idx < 5; idx++) {
 		hdcp22Cmd.cmdType = RM_FLCN_HDCP22_CMD_ID_MONITOR_OFF;
 		hdcp22Cmd.sorNum = -1;
 		hdcp22Cmd.dfpSublinkMask = -1;
@@ -363,11 +368,13 @@ static int nvhost_tsec_riscv_poweron(struct platform_device *dev)
 		cmd.cmdGen.hdr.seqNumId = idx+1;
 		memcpy(&cmd.cmdGen.cmd, &hdcp22Cmd, cmdDataSize);
 		nvhost_tsec_send_cmd((void *)&cmd, 0, NULL);
+		msleep(200);
 	}
 #endif //CMD_INTERFACE_TEST
 
 	return err;
 clean_up:
+	s_riscv_booted = false;
 	nvhost_tsec_riscv_deinit_sw(dev);
 	return err;
 }
@@ -406,16 +413,9 @@ int nvhost_tsec_prepare_poweroff_t23x(struct platform_device *dev)
 #define TSEC_MSG_QUEUE_PORT 0
 #define TSEC_EMEM_START 0x1000000
 #define TSEC_EMEM_SIZE 0x2000
-#define TSEC_TASK_START 0xa5a5a5a5
-#define INIT_MSG_WAIT_TIME_MS 2000
-#define TASK_START_WAIT_TIME_MS 2000
+#define TSEC_POLL_TIME_MS 2000
 #define TSEC_TAIL_POLL_TIME 50
 #define TSEC_SMMU_IDX BIT_ULL(40);
-
-/* Init message from RISCV
- * Keep Init message received check disabled.
- */
-static bool init_msg_rcvd = true;
 
 static int emem_transfer(struct platform_device *pdev,
 	u32 dmem_addr, u8 *buff, u32 size, u8 port, bool copy_from)
@@ -551,58 +551,39 @@ static int validate_cmd(union RM_FLCN_CMD *flcn_cmd,  u32 queue_id)
 int nvhost_tsec_send_cmd(void *cmd, u32 queue_id,
 	void (*callback_func)(void *))
 {
-	union RM_FLCN_CMD *flcn_cmd;
-	struct RM_FLCN_QUEUE_HDR hdr;
-	u8 cmd_size;
+	int i;
 	u32 head;
 	u32 tail;
+	u8 cmd_size;
 	u32 cmdq_head_base;
 	u32 cmdq_tail_base;
 	u32 cmdq_head_stride;
 	u32 cmdq_tail_stride;
-	static u32 cmdq_start;
 	u32 cmdq_size = 0x80;
+	static u32 cmdq_start;
+	union RM_FLCN_CMD *flcn_cmd;
+	struct RM_FLCN_QUEUE_HDR hdr;
 
-	if (!init_msg_rcvd) {
-		int i;
-
-		/* wait for tasks to start */
-		for (i = 0; i < TASK_START_WAIT_TIME_MS ; i += 20) {
-			if (host1x_readl(tsec, tsec_falcon_mailbox0_r()) ==
-				TSEC_TASK_START)
-				break;
-			msleep(20);
-		}
-
-		/* wait for init message for 2 seconds */
-		for (i = 0; i < INIT_MSG_WAIT_TIME_MS; i += 20) {
-			if (init_msg_rcvd == true)
-				break;
-			msleep(20);
-		}
-
-		if (host1x_readl(tsec, tsec_falcon_mailbox0_r()) !=
-					TSEC_TASK_START) {
-			dev_err(&tsec->dev, "Err:TSEC-FW tasks are not started\n");
-			return -ENODEV;
-		}
-
-		if (!init_msg_rcvd) {
-			dev_err(&tsec->dev, "Err:Init message not received from TSEC-FW\n");
-			return -ENODEV;
-		}
+	if (!s_riscv_booted) {
+		pr_err_once("TSEC RISCV hasn't booted successfully\n");
+		return -ENODEV;
 	}
-
 
 	cmdq_head_base = tsec_queue_head_r(0);
 	cmdq_head_stride = tsec_queue_head_r(1) - tsec_queue_head_r(0);
 	cmdq_tail_base = tsec_queue_tail_r(0);
 	cmdq_tail_stride = tsec_queue_tail_r(1) - tsec_queue_tail_r(0);
 
-	if (!cmdq_start) {
+	for (i = 0; !cmdq_start && i < TSEC_POLL_TIME_MS; i++) {
 		cmdq_start = host1x_readl(tsec, (cmdq_tail_base +
 						(queue_id * cmdq_tail_stride)));
+		if (!cmdq_start)
+			udelay(TSEC_TAIL_POLL_TIME);
+	}
+
+	if (!cmdq_start) {
 		dev_warn(&tsec->dev, "cmdq_start=0x%x\n", cmdq_start);
+		return -ENODEV;
 	}
 
 	if (validate_cmd(cmd, queue_id != 0)) {
@@ -675,14 +656,15 @@ enqueue:
 
 static irqreturn_t process_msg(int irq, void *args)
 {
+	int i;
 	u32 tail = 0;
 	u32 head = 0;
+	u32 queue_id = 0;
 	u32 msgq_head_base;
 	u32 msgq_tail_base;
 	u32 msgq_head_stride;
 	u32 msgq_tail_stride;
 	static u32 msgq_start;
-	u32 queue_id = 0;
 	struct RM_FLCN_MSG_GSP gsp_msg;
 	struct RM_GSP_INIT_MSG_GSP_INIT *gsp_init_msg;
 
@@ -693,26 +675,30 @@ static irqreturn_t process_msg(int irq, void *args)
 	msgq_tail_stride = tsec_msgq_tail_r(1) - tsec_msgq_tail_r(0);
 	gsp_init_msg = (struct RM_GSP_INIT_MSG_GSP_INIT *) &gsp_msg.msg;
 
-	if (!msgq_start) {
+	for (i = 0; !msgq_start && i < TSEC_POLL_TIME_MS; i++) {
 		msgq_start = host1x_readl(tsec, (msgq_tail_base +
-						(msgq_tail_stride * queue_id)));
-		while (!msgq_start) {
-			dev_warn(&tsec->dev, "msgq_start=0x%x\n", msgq_start);
+						 (msgq_tail_stride * queue_id)));
+		if (!msgq_start)
 			udelay(TSEC_TAIL_POLL_TIME);
-			msgq_start = host1x_readl(tsec, (msgq_tail_base +
-						(msgq_tail_stride * queue_id)));
-		}
 	}
 
-	tail = host1x_readl(tsec, (msgq_tail_base +
-				   (msgq_tail_stride * queue_id)));
-	head = host1x_readl(tsec, (msgq_head_base +
-				   (msgq_head_stride * queue_id)));
+	if (!msgq_start)
+		dev_warn(&tsec->dev, "msgq_start=0x%x\n", msgq_start);
 
-	if (tail == 0) {
-		dev_err(&tsec->dev, "Err: Invalid MSGQ tail: 0x%x\n",
-			tail);
-		return IRQ_HANDLED;
+	for (i = 0; i < TSEC_POLL_TIME_MS; i++) {
+		tail = host1x_readl(tsec, (msgq_tail_base +
+					   (msgq_tail_stride * queue_id)));
+		head = host1x_readl(tsec, (msgq_head_base +
+					   (msgq_head_stride * queue_id)));
+		if (tail != head)
+			break;
+		udelay(TSEC_TAIL_POLL_TIME);
+	}
+
+	if (head == 0 || tail == 0) {
+		dev_err(&tsec->dev, "Err: Invalid MSGQ head=0x%x, tail=0x%x\n",
+			head, tail);
+		goto exit;
 	}
 
 	if (tail == head) {
@@ -721,7 +707,7 @@ static irqreturn_t process_msg(int irq, void *args)
 			tail,
 			(msgq_head_base + (msgq_head_stride * queue_id)),
 			head);
-		return IRQ_HANDLED;
+		goto exit;
 	}
 
 	while (tail != head) {
@@ -729,6 +715,7 @@ static irqreturn_t process_msg(int irq, void *args)
 		/* read header */
 		emem_copy_from(tail, (u8 *)&gsp_msg.hdr,
 			RM_FLCN_QUEUE_HDR_SIZE, 0);
+		pr_debug("seqNumId=%d\n", gsp_msg.hdr.seqNumId);
 		if (gsp_msg.hdr.unitId == RM_GSP_UNIT_INIT) {
 			dev_dbg(&tsec->dev, "MSGQ: %s(%d) init msg\n",
 				__func__, __LINE__);
@@ -736,7 +723,7 @@ static irqreturn_t process_msg(int irq, void *args)
 			emem_copy_from(tail, (u8 *)&gsp_msg.msg,
 				gsp_msg.hdr.size - RM_FLCN_QUEUE_HDR_SIZE, 0);
 
-			init_msg_rcvd = true;
+			s_init_msg_rcvd = true;
 
 			if (gsp_init_msg->numQueues < 2) {
 				dev_err(&tsec->dev, "MSGQ: Initing less queues than expected %d\n",
@@ -744,9 +731,6 @@ static irqreturn_t process_msg(int irq, void *args)
 			goto FAIL;
 			}
 		} else {
-			if (cmd_resp_callback != NULL)
-				cmd_resp_callback((void *)&gsp_msg);
-
 			if (gsp_msg.hdr.unitId == RM_GSP_UNIT_HDCP22WIRED) {
 				dev_dbg(&tsec->dev, "MSGQ: %s(%d) RM_GSP_UNIT_HDCP22WIRED\n",
 					__func__, __LINE__);
@@ -760,6 +744,9 @@ static irqreturn_t process_msg(int irq, void *args)
 				dev_dbg(&tsec->dev, "MSGQ: %s(%d) what msg could it be 0x%x?\n",
 					__func__, __LINE__, gsp_msg.hdr.unitId);
 			}
+
+			if (cmd_resp_callback != NULL)
+				cmd_resp_callback((void *)&gsp_msg);
 		}
 
 FAIL:
@@ -770,6 +757,7 @@ FAIL:
 			(msgq_tail_base + (msgq_tail_stride * queue_id)), tail);
 	}
 
+exit:
 	return IRQ_HANDLED;
 }
 
