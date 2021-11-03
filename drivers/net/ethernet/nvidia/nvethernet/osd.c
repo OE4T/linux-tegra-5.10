@@ -539,7 +539,7 @@ exit:
  */
 void osd_receive_packet(void *priv, struct osi_rx_ring *rx_ring,
 			unsigned int chan, unsigned int dma_buf_len,
-			struct osi_rx_pkt_cx *rx_pkt_cx,
+			const struct osi_rx_pkt_cx *rx_pkt_cx,
 			struct osi_rx_swcx *rx_swcx)
 {
 	struct ether_priv_data *pdata = (struct ether_priv_data *)priv;
@@ -693,7 +693,8 @@ static inline unsigned int ether_get_free_tx_ts_node(struct ether_priv_data *pda
  */
 static void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaaddr,
 				  unsigned int len,
-				  struct osi_txdone_pkt_cx *txdone_pkt_cx)
+				  const struct osi_txdone_pkt_cx
+				  *txdone_pkt_cx)
 {
 	struct ether_priv_data *pdata = (struct ether_priv_data *)priv;
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
