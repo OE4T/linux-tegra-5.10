@@ -424,11 +424,6 @@ static int pva_read_ucode(struct platform_device *pdev, const char *fw_name,
 				useg->phys_addr =
 					DRAM_PVA_NO_IOMMU_START_ADDRESS;
 			break;
-		case PVA_UCODE_SEG_DRAM_UNCACHED:
-			/* Set the Uncache size as Zero */
-			useg->size = 0;
-			break;
-		case PVA_UCODE_SEG_R5_OVERLAY:
 		case PVA_UCODE_SEG_CRASHDUMP:
 			fw_info->priv2_buffer.size += useg->size;
 			break;
@@ -503,10 +498,8 @@ static int pva_read_ucode(struct platform_device *pdev, const char *fw_name,
 						    w));
 
 		switch (useg->type) {
-		case PVA_UCODE_SEG_R5_OVERLAY:
-			fw_info->priv2_reg_offset = useg->addr;
-			break;
 		case PVA_UCODE_SEG_CRASHDUMP:
+			fw_info->priv2_reg_offset = useg->addr;
 			break;
 		default:
 			break;
