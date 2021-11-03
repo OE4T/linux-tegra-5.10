@@ -969,16 +969,12 @@ int nvmap_ioctl_get_sci_ipc_id(struct file *filp, void __user *arg)
 	bool is_ro = false;
 	int ret = 0;
 
-	if (copy_from_user(&op, arg, sizeof(op))) {
-		ret =  -EFAULT;
-		goto exit;
-	}
+	if (copy_from_user(&op, arg, sizeof(op)))
+		return -EFAULT;
 
 	handle = nvmap_handle_get_from_fd(op.handle);
-	if (handle == NULL) {
-		ret = -ENODEV;
-		goto exit;
-	}
+	if (handle == NULL)
+		return -ENODEV;
 
 	is_ro = is_nvmap_dmabuf_fd_ro(op.handle);
 
@@ -1003,6 +999,8 @@ int nvmap_ioctl_get_sci_ipc_id(struct file *filp, void __user *arg)
 		ret = -EINVAL;
 	}
 exit:
+	if (ret)
+		nvmap_handle_put(handle);
 	return ret;
 }
 
