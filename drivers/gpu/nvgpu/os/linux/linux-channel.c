@@ -139,8 +139,15 @@ void nvgpu_set_err_notifier_locked(struct nvgpu_channel *ch, u32 error)
 		notification->info32 = error;
 		notification->status = 0xffff;
 
-		nvgpu_err(ch->g,
-		    "error notifier set to %d for ch %d", error, ch->chid);
+		if (error == NVGPU_CHANNEL_RESETCHANNEL_VERIF_ERROR) {
+			nvgpu_log_info(ch->g,
+			    "error notifier set to %d for ch %d",
+			    error, ch->chid);
+		} else {
+			nvgpu_err(ch->g,
+			    "error notifier set to %d for ch %d",
+			    error, ch->chid);
+		}
 	}
 }
 
