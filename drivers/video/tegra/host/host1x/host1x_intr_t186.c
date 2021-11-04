@@ -1,7 +1,7 @@
 /*
  * Tegra Graphics Host Interrupt Management
  *
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -212,7 +212,7 @@ static irqreturn_t intr_host1x_isr(int irq, void *dev_id)
 	u32 addr, i;
 	unsigned long intstat;
 
-	intstat = host1x_hypervisor_readl(dev->dev,
+	intstat = host1x_common_readl(dev->dev,
 			host1x_sync_intstatus_r());
 	intr->intstatus = intstat;
 
@@ -222,19 +222,19 @@ static irqreturn_t intr_host1x_isr(int irq, void *dev_id)
 	}
 
 	if (host1x_sync_intstatus_ip_read_int_v(intstat)) {
-		addr = host1x_hypervisor_readl(dev->dev,
+		addr = host1x_common_readl(dev->dev,
 				host1x_sync_ip_read_timeout_addr_r());
 		pr_err("Host read timeout at address %x\n", addr);
 	}
 
 	if (host1x_sync_intstatus_ip_write_int_v(intstat)) {
-		addr = host1x_hypervisor_readl(dev->dev,
+		addr = host1x_common_readl(dev->dev,
 				host1x_sync_ip_write_timeout_addr_r());
 		pr_err("Host write timeout at address %x\n", addr);
 	}
 
 	if (host1x_sync_intstatus_illegal_pb_access_v(intstat)) {
-		u32 stat = host1x_hypervisor_readl(dev->dev,
+		u32 stat = host1x_common_readl(dev->dev,
 			host1x_sync_illegal_syncpt_access_frm_pb_r());
 		u32 ch = host1x_sync_illegal_syncpt_access_frm_pb_ch_v(stat);
 		u32 id = host1x_sync_illegal_syncpt_access_frm_pb_syncpt_v(stat);
@@ -243,7 +243,7 @@ static irqreturn_t intr_host1x_isr(int irq, void *dev_id)
 	}
 
 	if (host1x_sync_intstatus_illegal_client_access_v(intstat)) {
-		u32 stat = host1x_hypervisor_readl(dev->dev,
+		u32 stat = host1x_common_readl(dev->dev,
 			host1x_sync_illegal_syncpt_access_frm_client_r());
 		u32 id = host1x_sync_illegal_syncpt_access_frm_client_syncpt_v(stat);
 		u32 ch = host1x_sync_illegal_syncpt_access_frm_client_ch_v(stat);
@@ -252,7 +252,7 @@ static irqreturn_t intr_host1x_isr(int irq, void *dev_id)
 		       ch, id);
 	}
 
-	host1x_hypervisor_writel(dev->dev, host1x_sync_intstatus_r(), intstat);
+	host1x_common_writel(dev->dev, host1x_sync_intstatus_r(), intstat);
 
 	return IRQ_HANDLED;
 }
@@ -263,10 +263,10 @@ static void intr_enable_host_irq(struct nvhost_intr *intr, int irq)
 	unsigned long val;
 
 	if (nvhost_dev_is_virtual(dev->dev) == false) {
-		val = host1x_hypervisor_readl(dev->dev,
+		val = host1x_common_readl(dev->dev,
 					      host1x_sync_intmask_r());
 		val |= BIT(irq);
-		host1x_hypervisor_writel(dev->dev, host1x_sync_intmask_r(),
+		host1x_common_writel(dev->dev, host1x_sync_intmask_r(),
 					 val);
 	}
 }
@@ -277,10 +277,10 @@ static void intr_disable_host_irq(struct nvhost_intr *intr, int irq)
 	unsigned long val;
 
 	if (nvhost_dev_is_virtual(dev->dev) == false) {
-		val = host1x_hypervisor_readl(dev->dev,
+		val = host1x_common_readl(dev->dev,
 					      host1x_sync_intmask_r());
 		val &= ~BIT(irq);
-		host1x_hypervisor_writel(dev->dev, host1x_sync_intmask_r(),
+		host1x_common_writel(dev->dev, host1x_sync_intmask_r(),
 					 val);
 	}
 }
@@ -292,9 +292,9 @@ static int intr_debug_dump(struct nvhost_intr *intr, struct output *o)
 
 	nvhost_debug_output(o, "\n---- host general irq ----\n\n");
 	nvhost_debug_output(o, "sync_intc0mask = 0x%08x\n",
-		host1x_hypervisor_readl(dev->dev, host1x_sync_intc0mask_r()));
+		host1x_common_readl(dev->dev, host1x_sync_intc0mask_r()));
 	nvhost_debug_output(o, "sync_intmask = 0x%08x\n",
-		host1x_hypervisor_readl(dev->dev, host1x_sync_intmask_r()));
+		host1x_common_readl(dev->dev, host1x_sync_intmask_r()));
 
 	nvhost_debug_output(o, "\n---- host syncpt irq mask ----\n\n");
 
@@ -328,12 +328,12 @@ static void intr_resume(struct nvhost_intr *intr)
 				host1x_sync_ctxsw_timeout_cfg_r(), 0xff);
 
 		/* enable host module interrupt to CPU0 */
-		host1x_hypervisor_writel(dev->dev,
+		host1x_common_writel(dev->dev,
 					 host1x_sync_intc0mask_r(), BIT(0));
-		host1x_hypervisor_writel(dev->dev,
+		host1x_common_writel(dev->dev,
 					 host1x_sync_intgmask_r(), BIT(0));
 		/* enable syncpoint interrupts */
-		host1x_hypervisor_writel(dev->dev,
+		host1x_common_writel(dev->dev,
 					 host1x_sync_syncpt_intgmask_r(),
 					 /* Camera CPUs 2 and 3 */
 					 BIT(2) | BIT(3) |
@@ -342,7 +342,7 @@ static void intr_resume(struct nvhost_intr *intr)
 
 		/* master enable for general (not syncpt) host interrupts
 		 * (AXIREAD, AXIWRITE, Syncpoint protection) */
-		host1x_hypervisor_writel(dev->dev, host1x_sync_intmask_r(),
+		host1x_common_writel(dev->dev, host1x_sync_intmask_r(),
 					 BIT(0) | BIT(1) | BIT(30) | BIT(28));
 	}
 }
@@ -353,8 +353,8 @@ static void intr_suspend(struct nvhost_intr *intr)
 
 	if (nvhost_dev_is_virtual(dev->dev) == false) {
 		/* master disable for general (not syncpt) host interrupts */
-		host1x_hypervisor_writel(dev->dev, host1x_sync_intmask_r(), 0);
-		host1x_hypervisor_writel(dev->dev,
+		host1x_common_writel(dev->dev, host1x_sync_intmask_r(), 0);
+		host1x_common_writel(dev->dev,
 					 host1x_sync_syncpt_intgmask_r(), 0);
 	}
 
@@ -387,10 +387,10 @@ static int intr_init(struct nvhost_intr *intr)
 
 	if (nvhost_dev_is_virtual(dev->dev) == false) {
 		/* master disable for general (not syncpt) host interrupts */
-		host1x_hypervisor_writel(dev->dev,
+		host1x_common_writel(dev->dev,
 					 host1x_sync_intc0mask_r(), 0);
-		host1x_hypervisor_writel(dev->dev, host1x_sync_intgmask_r(), 0);
-		host1x_hypervisor_writel(dev->dev, host1x_sync_intmask_r(), 0);
+		host1x_common_writel(dev->dev, host1x_sync_intgmask_r(), 0);
+		host1x_common_writel(dev->dev, host1x_sync_intmask_r(), 0);
 
 		if (!dev->info.vmserver_owns_engines) {
 			err = request_threaded_irq(intr->general_irq,
