@@ -22,10 +22,17 @@
 #include <linux/module.h>
 #include <linux/io.h>
 #include <linux/slab.h>
+#include <linux/reset.h>
+#include <linux/clk.h>
+#include <linux/dma-buf.h>
+#include <linux/debugfs.h>
 
 #include <soc/tegra/fuse.h>
 
 #include "tegra-soc-hwpm.h"
+#include "tegra-soc-hwpm-log.h"
+#include <hal/tegra_soc_hwpm_init.h>
+#include <hal/tegra-soc-hwpm-structures.h>
 
 static const struct of_device_id tegra_soc_hwpm_of_match[] = {
 	{
@@ -125,6 +132,8 @@ static int tegra_soc_hwpm_probe(struct platform_device *pdev)
 	}
 
 	tegra_soc_hwpm_debugfs_init(hwpm);
+	hwpm->dt_apertures = tegra_soc_hwpm_init_dt_apertures();
+	hwpm->ip_info = tegra_soc_hwpm_init_ip_ops_info();
 
 	/*
 	 * Currently VDK doesn't have a fmodel for SOC HWPM. Therefore, we

@@ -17,34 +17,18 @@
  * This file contains functions for SOC HWPM <-> IPC communication.
  */
 
-
 #include <uapi/linux/tegra-soc-hwpm-uapi.h>
+#include <hal/tegra-soc-hwpm-structures.h>
+#include <hal/tegra_soc_hwpm_init.h>
+#include "tegra-soc-hwpm-log.h"
 #include "tegra-soc-hwpm.h"
 
 struct platform_device *tegra_soc_hwpm_pdev;
 
-static enum tegra_soc_hwpm_dt_aperture tegra_soc_hwpm_get_apeture(
-			struct tegra_soc_hwpm *hwpm, u64 ip_base_address)
-{
-	enum tegra_soc_hwpm_dt_aperture aperture =
-					TEGRA_SOC_HWPM_NUM_DT_APERTURES;
-
-	/* TODO chip speciifc implementation for finding aperture */
-	if (ip_base_address == addr_map_vic_base_r()) {
-		aperture = TEGRA_SOC_HWPM_VICA0_PERFMON_DT;
-	} else if (ip_base_address == addr_map_nvenc_base_r()) {
-		aperture = TEGRA_SOC_HWPM_NVENCA0_PERFMON_DT;
-	} else if (ip_base_address == addr_map_ofa_base_r()) {
-		aperture = TEGRA_SOC_HWPM_OFAA0_PERFMON_DT;
-	}
-
-	return aperture;
-}
-
 void tegra_soc_hwpm_ip_register(struct tegra_soc_hwpm_ip_ops *hwpm_ip_ops)
 {
 	struct tegra_soc_hwpm *hwpm = NULL;
-	enum tegra_soc_hwpm_dt_aperture dt_aperture;
+	u32 dt_aperture;
 
 	tegra_soc_hwpm_dbg("HWPM Registered IP 0x%llx",
 					hwpm_ip_ops->ip_base_address);
@@ -59,9 +43,9 @@ void tegra_soc_hwpm_ip_register(struct tegra_soc_hwpm_ip_ops *hwpm_ip_ops)
 			return;
 		}
 		hwpm = platform_get_drvdata(tegra_soc_hwpm_pdev);
-		dt_aperture = tegra_soc_hwpm_get_apeture(hwpm,
-						hwpm_ip_ops->ip_base_address);
-		if (dt_aperture != TEGRA_SOC_HWPM_NUM_DT_APERTURES) {
+		dt_aperture = tegra_soc_hwpm_get_ip_aperture(hwpm,
+				hwpm_ip_ops->ip_base_address, NULL);
+		if (dt_aperture != TEGRA_SOC_HWPM_DT_APERTURE_INVALID) {
 			memcpy(&hwpm->ip_info[dt_aperture], hwpm_ip_ops,
 					sizeof(struct tegra_soc_hwpm_ip_ops));
 		} else {
@@ -76,7 +60,7 @@ void tegra_soc_hwpm_ip_register(struct tegra_soc_hwpm_ip_ops *hwpm_ip_ops)
 void tegra_soc_hwpm_ip_unregister(struct tegra_soc_hwpm_ip_ops *hwpm_ip_ops)
 {
 	struct tegra_soc_hwpm *hwpm = NULL;
-	enum tegra_soc_hwpm_dt_aperture dt_aperture;
+	u32 dt_aperture;
 
 	if (tegra_soc_hwpm_pdev == NULL) {
 		tegra_soc_hwpm_dbg("IP unregister before SOC HWPM 0x%llx",
@@ -87,9 +71,9 @@ void tegra_soc_hwpm_ip_unregister(struct tegra_soc_hwpm_ip_ops *hwpm_ip_ops)
 			return;
 		}
 		hwpm = platform_get_drvdata(tegra_soc_hwpm_pdev);
-		dt_aperture = tegra_soc_hwpm_get_apeture(hwpm,
-						hwpm_ip_ops->ip_base_address);
-		if (dt_aperture != TEGRA_SOC_HWPM_NUM_DT_APERTURES) {
+		dt_aperture = tegra_soc_hwpm_get_ip_aperture(hwpm,
+				hwpm_ip_ops->ip_base_address, NULL);
+		if (dt_aperture != TEGRA_SOC_HWPM_DT_APERTURE_INVALID) {
 			memset(&hwpm->ip_info[dt_aperture], 0,
 				sizeof(struct tegra_soc_hwpm_ip_ops));
 		}

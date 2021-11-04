@@ -17,6 +17,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stddef.h>
+#include <linux/debugfs.h>
+
+#include <hal/tegra-soc-hwpm-structures.h>
+#include "tegra-soc-hwpm-log.h"
 #include "tegra-soc-hwpm.h"
 
 /* FIXME: This is a placeholder for now. We can add debugfs nodes as needed. */

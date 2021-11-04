@@ -20,6 +20,7 @@
 #include <linux/kernel.h>
 
 #include "tegra-soc-hwpm.h"
+#include "tegra-soc-hwpm-log.h"
 
 #define LOG_BUF_SIZE	160
 
