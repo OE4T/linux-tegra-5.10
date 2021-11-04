@@ -60,7 +60,7 @@ void gk20a_runlist_hw_submit(struct gk20a *g, struct nvgpu_runlist *runlist)
        nvgpu_spinlock_release(&g->fifo.runlist_submit_lock);
 }
 
-int gk20a_runlist_wait_pending(struct gk20a *g, u32 runlist_id)
+int gk20a_runlist_wait_pending(struct gk20a *g, struct nvgpu_runlist *runlist)
 {
 	struct nvgpu_timeout timeout;
 	u32 delay = POLL_DELAY_MIN_US;
@@ -70,7 +70,7 @@ int gk20a_runlist_wait_pending(struct gk20a *g, u32 runlist_id)
 
 	ret = -ETIMEDOUT;
 	do {
-		if ((nvgpu_readl(g, fifo_eng_runlist_r(runlist_id)) &
+		if ((nvgpu_readl(g, fifo_eng_runlist_r(runlist->id)) &
 				fifo_eng_runlist_pending_true_f()) == 0U) {
 			ret = 0;
 			break;
@@ -82,7 +82,7 @@ int gk20a_runlist_wait_pending(struct gk20a *g, u32 runlist_id)
 
 	if (ret != 0) {
 		nvgpu_err(g, "runlist wait timeout: runlist id: %u",
-			runlist_id);
+			runlist->id);
 	}
 
 	return ret;

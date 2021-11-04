@@ -93,7 +93,7 @@ struct gops_runlist {
 			u32 *runlist, u32 timeslice);
 	void (*get_ch_entry)(struct nvgpu_channel *ch, u32 *runlist);
 	void (*hw_submit)(struct gk20a *g, struct nvgpu_runlist *runlist);
-	int (*wait_pending)(struct gk20a *g, u32 runlist_id);
+	int (*wait_pending)(struct gk20a *g, struct nvgpu_runlist *runlist);
 	void (*write_state)(struct gk20a *g, u32 runlists_mask,
 			u32 runlist_state);
 	int (*reschedule)(struct nvgpu_channel *ch, bool preempt_next);

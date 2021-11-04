@@ -61,7 +61,7 @@ void tu104_runlist_hw_submit(struct gk20a *g, struct nvgpu_runlist *runlist)
 		fifo_runlist_submit_length_f(runlist->domain->mem_hw->count));
 }
 
-int tu104_runlist_wait_pending(struct gk20a *g, u32 runlist_id)
+int tu104_runlist_wait_pending(struct gk20a *g, struct nvgpu_runlist *runlist)
 {
 	struct nvgpu_timeout timeout;
 	u32 delay = POLL_DELAY_MIN_US;
@@ -71,7 +71,7 @@ int tu104_runlist_wait_pending(struct gk20a *g, u32 runlist_id)
 
 	ret = -ETIMEDOUT;
 	do {
-		if ((nvgpu_readl(g, fifo_runlist_submit_info_r(runlist_id)) &
+		if ((nvgpu_readl(g, fifo_runlist_submit_info_r(runlist->id)) &
 			fifo_runlist_submit_info_pending_true_f()) == 0U) {
 			ret = 0;
 			break;

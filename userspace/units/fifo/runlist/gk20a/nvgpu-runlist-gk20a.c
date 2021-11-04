@@ -161,6 +161,7 @@ int test_gk20a_runlist_wait_pending(struct unit_module *m,
 	int ret = UNIT_FAIL;
 	struct unit_ctx *ctx = &unit_ctx;
 	u32 runlist_id = nvgpu_engine_get_gr_runlist_id(g);
+	struct nvgpu_runlist *runlist = g->fifo.runlists[runlist_id];
 	u32 timeout = g->poll_timeout_default;
 	int err;
 
@@ -169,28 +170,28 @@ int test_gk20a_runlist_wait_pending(struct unit_module *m,
 	g->poll_timeout_default = 10; /* ms */
 
 	ctx->m = m;
-	ctx->addr = fifo_eng_runlist_r(runlist_id);
+	ctx->addr = fifo_eng_runlist_r(runlist->id);
 	ctx->val_when_count_is_non_zero = fifo_eng_runlist_pending_true_f();
 	ctx->val_when_count_is_zero = 0;
 
 	/* no wait */
 	ctx->count = 0;
-	err = gk20a_runlist_wait_pending(g, runlist_id);
+	err = gk20a_runlist_wait_pending(g, runlist);
 	unit_assert(err == 0, goto done);
 
 	/* 1 loop */
 	ctx->count = 1;
-	err = gk20a_runlist_wait_pending(g, runlist_id);
+	err = gk20a_runlist_wait_pending(g, runlist);
 	unit_assert(err == 0, goto done);
 
 	/* 2 loops */
 	ctx->count = 2;
-	err = gk20a_runlist_wait_pending(g, runlist_id);
+	err = gk20a_runlist_wait_pending(g, runlist);
 	unit_assert(err == 0, goto done);
 
 	/* timeout  */
 	ctx->count = U32_MAX;
-	err = gk20a_runlist_wait_pending(g, runlist_id);
+	err = gk20a_runlist_wait_pending(g, runlist);
 	unit_assert(err == -ETIMEDOUT, goto done);
 
 	ret = UNIT_SUCCESS;

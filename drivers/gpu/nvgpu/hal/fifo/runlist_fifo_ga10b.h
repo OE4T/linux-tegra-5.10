@@ -1,7 +1,7 @@
 /*
  * GA10B runlist
  *
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@ struct nvgpu_runlist;
 u32 ga10b_runlist_count_max(struct gk20a *g);
 u32 ga10b_runlist_length_max(struct gk20a *g);
 void ga10b_runlist_hw_submit(struct gk20a *g, struct nvgpu_runlist *runlist);
-int ga10b_runlist_wait_pending(struct gk20a *g, u32 runlist_id);
+int ga10b_runlist_wait_pending(struct gk20a *g, struct nvgpu_runlist *runlist);
 void ga10b_runlist_write_state(struct gk20a *g, u32 runlists_mask,
 				u32 runlist_state);
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING

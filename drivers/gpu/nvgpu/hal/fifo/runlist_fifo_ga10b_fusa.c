@@ -76,14 +76,11 @@ void ga10b_runlist_hw_submit(struct gk20a *g, struct nvgpu_runlist *runlist)
 			runlist_submit_length_f(runlist->domain->mem_hw->count));
 }
 
-int ga10b_runlist_wait_pending(struct gk20a *g, u32 runlist_id)
+int ga10b_runlist_wait_pending(struct gk20a *g, struct nvgpu_runlist *runlist)
 {
 	struct nvgpu_timeout timeout;
 	u32 delay = POLL_DELAY_MIN_US;
 	int ret;
-	struct nvgpu_runlist *runlist = NULL;
-
-	runlist = g->fifo.runlists[runlist_id];
 
 	nvgpu_timeout_init_cpu_timer(g, &timeout, nvgpu_get_poll_timeout(g));
 

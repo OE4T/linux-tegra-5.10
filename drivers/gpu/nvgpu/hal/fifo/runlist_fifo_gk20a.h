@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -41,7 +41,7 @@ u32 gk20a_runlist_count_max(struct gk20a *g);
 
 u32 gk20a_runlist_length_max(struct gk20a *g);
 void gk20a_runlist_hw_submit(struct gk20a *g, struct nvgpu_runlist *runlist);
-int gk20a_runlist_wait_pending(struct gk20a *g, u32 runlist_id);
+int gk20a_runlist_wait_pending(struct gk20a *g, struct nvgpu_runlist *runlist);
 void gk20a_runlist_write_state(struct gk20a *g, u32 runlists_mask,
 		u32 runlist_state);
 

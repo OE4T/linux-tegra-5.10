@@ -448,7 +448,7 @@ int nvgpu_runlist_update_locked(struct gk20a *g, struct nvgpu_runlist *rl,
 	g->ops.runlist.hw_submit(g, rl);
 
 	if (wait_for_finish) {
-		ret = g->ops.runlist.wait_pending(g, rl->id);
+		ret = g->ops.runlist.wait_pending(g, rl);
 
 		if (ret == -ETIMEDOUT) {
 			nvgpu_err(g, "runlist %d update timeout", rl->id);
@@ -501,7 +501,7 @@ int nvgpu_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next,
 		}
 	}
 
-	if (g->ops.runlist.wait_pending(g, runlist->id) != 0) {
+	if (g->ops.runlist.wait_pending(g, runlist) != 0) {
 		nvgpu_err(g, "wait pending failed for runlist %u",
 				runlist->id);
 	}

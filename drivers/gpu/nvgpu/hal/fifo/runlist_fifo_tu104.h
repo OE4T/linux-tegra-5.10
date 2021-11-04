@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,6 +30,6 @@ struct nvgpu_runlist;
 
 u32 tu104_runlist_count_max(struct gk20a *g);
 void tu104_runlist_hw_submit(struct gk20a *g, struct nvgpu_runlist *runlist);
-int tu104_runlist_wait_pending(struct gk20a *g, u32 runlist_id);
+int tu104_runlist_wait_pending(struct gk20a *g, struct nvgpu_runlist *runlist);
 
 #endif /* NVGPU_RUNLIST_FIFO_TU104_H */
