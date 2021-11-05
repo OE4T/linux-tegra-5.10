@@ -294,7 +294,7 @@ static int tegra234_cpufreq_set_target(struct cpufreq_policy *policy,
 static struct cpufreq_driver tegra234_cpufreq_driver = {
 	.name = "tegra234",
 	.flags = CPUFREQ_STICKY | CPUFREQ_CONST_LOOPS |
-		CPUFREQ_NEED_INITIAL_FREQ_CHECK,
+		CPUFREQ_NEED_INITIAL_FREQ_CHECK | CPUFREQ_IS_COOLING_DEV,
 	.verify = cpufreq_generic_frequency_table_verify,
 	.target_index = tegra234_cpufreq_set_target,
 	.get = tegra234_get_speed,
