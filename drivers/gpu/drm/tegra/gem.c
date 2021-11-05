@@ -12,6 +12,7 @@
 
 #include <linux/dma-buf.h>
 #include <linux/iommu.h>
+#include <linux/module.h>
 #include <linux/version.h>
 
 #include <drm/drm_drv.h>
@@ -20,6 +21,10 @@
 
 #include "drm.h"
 #include "gem.h"
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 16, 0)
+MODULE_IMPORT_NS(DMA_BUF);
+#endif
 
 static unsigned int __sgt_dma_count_chunks(struct sg_table *sgt)
 {
