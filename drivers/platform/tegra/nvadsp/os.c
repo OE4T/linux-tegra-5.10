@@ -797,6 +797,13 @@ static void nvadsp_set_shared_mem(struct platform_device *pdev,
 	 */
 	os_args->chip_id = chip_id;
 
+	/*
+	 * Tegra platform is encoded in the upper 16 bits
+	 * of chip_id; can be improved to make this a
+	 * separate member in nvadsp_os_args
+	 */
+	os_args->chip_id |= (drv_data->tegra_platform << 16);
+
 	drv_data->shared_adsp_os_data = shared_mem;
 }
 

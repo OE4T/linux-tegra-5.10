@@ -238,6 +238,9 @@ struct nvadsp_drv_data {
 
 	/* CO mem in backdoor boot */
 	struct resource co_mem;
+
+	/* enum tegra_platform */
+	u32 tegra_platform;
 };
 
 #define ADSP_CONFIG	0x04
