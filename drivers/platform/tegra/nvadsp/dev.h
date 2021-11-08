@@ -241,6 +241,9 @@ struct nvadsp_drv_data {
 
 	/* enum tegra_platform */
 	u32 tegra_platform;
+
+	/* "nvidia,adsp_load_timeout" (in ms) */
+	u32 adsp_load_timeout;
 };
 
 #define ADSP_CONFIG	0x04

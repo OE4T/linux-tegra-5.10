@@ -1221,11 +1221,16 @@ end:
 static int wait_for_adsp_os_load_complete(void)
 {
 	struct device *dev = &priv.pdev->dev;
-	uint32_t data;
+	struct nvadsp_drv_data *drv_data = platform_get_drvdata(priv.pdev);
+	uint32_t timeout, data;
 	status_t ret;
 
+	timeout = drv_data->adsp_load_timeout;
+	if (!timeout)
+		timeout = ADSP_OS_LOAD_TIMEOUT;
+
 	ret = nvadsp_mbox_recv(&adsp_com_mbox, &data,
-			true, ADSP_OS_LOAD_TIMEOUT);
+			true, timeout);
 	if (ret) {
 		dev_err(dev, "ADSP OS loading timed out\n");
 		goto end;

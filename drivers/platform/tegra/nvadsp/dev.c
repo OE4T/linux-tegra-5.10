@@ -296,6 +296,9 @@ static int __init nvadsp_parse_dt(struct platform_device *pdev)
 	of_property_read_u32(dev->of_node, "nvidia,tegra_platform",
 				&drv_data->tegra_platform);
 
+	of_property_read_u32(dev->of_node, "nvidia,adsp_load_timeout",
+				&drv_data->adsp_load_timeout);
+
 	if (drv_data->adsp_unit_fpga) {
 		for (iter = 0; iter < ADSP_UNIT_FPGA_RESET_END; iter++) {
 			if (of_property_read_u32_index(dev->of_node,
