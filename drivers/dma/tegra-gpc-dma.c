@@ -1645,7 +1645,7 @@ static const struct tegra_dma_chip_data tegra234_dma_chip_data = {
 	.channel_reg_size = 0x10000,
 	.max_dma_count = 1024UL * 1024UL * 1024UL,
 	.hw_support_pause = true,
-	.hw_sid_check_enabled = true,
+	.hw_sid_check_enabled = false,
 };
 
 static const struct of_device_id tegra_dma_of_match[] = {
