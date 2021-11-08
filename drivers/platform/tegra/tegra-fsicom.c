@@ -197,7 +197,6 @@ static ssize_t device_file_ioctl(
 
 	case NVMAP_SMMU_MAP:
 		dmabuf = dma_buf_get(input.handle);
-		get_dma_buf(dmabuf);
 
 		attach = dma_buf_attach(dmabuf, &pdev_local->dev);
 
