@@ -45,8 +45,6 @@ struct acsl_drv {
 	struct cdev cdev;
 	struct class *class;
 	struct device *dev;
-	struct acsl_csm_args_t *csm_args;
-	struct acsl_buf_args_t *buf_args;
 	struct acsl_nvmap_args_t *map_args;
 	struct mutex map_lock;
 	struct list_head map_list;
@@ -77,17 +75,17 @@ void csm_app_deinit(struct acsl_drv *drv);
 
 status_t acsl_csm_cmd_send(struct acsl_drv *drv, uint32_t data,
 			uint32_t flags, bool block, bool ack);
-status_t acsl_comp_open(struct acsl_drv *drv);
-status_t acsl_comp_close(struct acsl_drv *drv);
+status_t acsl_comp_open(struct acsl_drv *drv, struct acsl_csm_args_t *csm_args);
+status_t acsl_comp_close(struct acsl_drv *drv, struct acsl_csm_args_t *csm_args);
 
-status_t acsl_intf_open(struct acsl_drv *drv);
-status_t acsl_intf_close(struct acsl_drv *drv);
+status_t acsl_intf_open(struct acsl_drv *drv, struct acsl_csm_args_t *csm_args);
+status_t acsl_intf_close(struct acsl_drv *drv, struct acsl_csm_args_t *csm_args);
 
-status_t acsl_open(struct acsl_drv *drv);
+status_t acsl_open(struct acsl_drv *drv,  struct acsl_csm_args_t *csm_args);
 status_t acsl_close(struct acsl_drv *drv);
 
-uint8_t acsl_acq_buf(struct acsl_drv *drv, uint8_t PORT);
-uint8_t acsl_rel_buf(struct acsl_drv *drv, uint8_t PORT);
+uint8_t acsl_acq_buf(struct acsl_drv *drv, struct acsl_buf_args_t *buf_args, uint8_t PORT);
+uint8_t acsl_rel_buf(struct acsl_drv *drv, struct acsl_buf_args_t *buf_args, uint8_t PORT);
 
 status_t acsl_map_iova_addr(struct acsl_drv *drv);
 status_t acsl_unmap_iova_addr(struct acsl_drv *drv);

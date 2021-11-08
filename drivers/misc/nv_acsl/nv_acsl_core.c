@@ -169,9 +169,8 @@ static status_t csm_buff_in_msg_handler(uint32_t msg, void *data)
 	return 0;
 }
 
-static void send_message(struct acsl_drv *drv)
+static void send_message(struct acsl_drv *drv, struct acsl_csm_args_t *csm_args)
 {
-	struct acsl_csm_args_t *csm_args = drv->csm_args;
 	struct csm_sm_state_t *csm_sm = drv->csm_sm;
 	struct device *dev = drv->dev;
 	union csm_message_t message;
@@ -344,9 +343,8 @@ status_t acsl_csm_cmd_send(struct acsl_drv *drv, uint32_t cmd,
 	return ret;
 }
 
-uint8_t acsl_acq_buf(struct acsl_drv *drv, uint8_t PORT)
+uint8_t acsl_acq_buf(struct acsl_drv *drv, struct acsl_buf_args_t *buf_args, uint8_t PORT)
 {
-	struct acsl_buf_args_t *buf_args = drv->buf_args;
 	struct device *dev = drv->dev;
 	uint8_t COMP_ID, buff_indx = UINT8_MAX;
 
@@ -366,9 +364,8 @@ uint8_t acsl_acq_buf(struct acsl_drv *drv, uint8_t PORT)
 	return buff_indx;
 }
 
-uint8_t acsl_rel_buf(struct acsl_drv *drv, uint8_t PORT)
+uint8_t acsl_rel_buf(struct acsl_drv *drv, struct acsl_buf_args_t *buf_args, uint8_t PORT)
 {
-	struct acsl_buf_args_t *buf_args = drv->buf_args;
 	struct device *dev = drv->dev;
 	status_t ret;
 	uint8_t COMP_ID, buf_index = buf_args->buf_index;
@@ -389,14 +386,13 @@ uint8_t acsl_rel_buf(struct acsl_drv *drv, uint8_t PORT)
 	return buf_index;
 }
 
-status_t acsl_comp_close(struct acsl_drv *drv)
+status_t acsl_comp_close(struct acsl_drv *drv, struct acsl_csm_args_t *csm_args)
 {
-	struct acsl_csm_args_t *csm_args = drv->csm_args;
 	struct device *dev = drv->dev;
 	status_t ret;
 	uint8_t COMP_ID = csm_args->comp_id;
 
-	send_message(drv);
+	send_message(drv, csm_args);
 
 	ret = acsl_csm_cmd_send(drv, CSM_COMP_CLOSE_CMD, 0, true, true);
 	if (ret) {
@@ -410,31 +406,31 @@ status_t acsl_comp_close(struct acsl_drv *drv)
 	return ret;
 }
 
-status_t acsl_comp_open(struct acsl_drv *drv)
+status_t acsl_comp_open(struct acsl_drv *drv, struct acsl_csm_args_t *csm_args)
 {
-	send_message(drv);
+	send_message(drv, csm_args);
 
 	return acsl_csm_cmd_send(drv, CSM_COMP_OPEN_CMD, 0, true, true);
 }
 
-status_t acsl_intf_close(struct acsl_drv *drv)
+status_t acsl_intf_close(struct acsl_drv *drv, struct acsl_csm_args_t *csm_args)
 {
 
-	send_message(drv);
+	send_message(drv, csm_args);
 
 	return acsl_csm_cmd_send(drv, CSM_INTF_CLOSE_CMD, 0, true, true);
 }
 
-status_t acsl_intf_open(struct acsl_drv *drv)
+status_t acsl_intf_open(struct acsl_drv *drv, struct acsl_csm_args_t *csm_args)
 {
-	send_message(drv);
+	send_message(drv, csm_args);
 
 	return acsl_csm_cmd_send(drv, CSM_INTF_OPEN_CMD, 0, true, true);
 }
 
-status_t acsl_open(struct acsl_drv *drv)
+status_t acsl_open(struct acsl_drv *drv, struct acsl_csm_args_t *csm_args)
 {
-	send_message(drv);
+	send_message(drv, csm_args);
 
 	return acsl_csm_cmd_send(drv, CSM_INIT_CMD, 0, true, true);
 }

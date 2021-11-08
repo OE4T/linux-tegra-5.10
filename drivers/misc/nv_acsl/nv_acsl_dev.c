@@ -179,11 +179,10 @@ static long acsl_dev_ioctl(struct file *filp,
 			break;
 		}
 
-		drv->csm_args = &csm_args;
 		ret = csm_app_init(drv);
 		if (ret)
 			dev_err(dev, "CSM init failed with ret:%d\n", ret);
-		ret = acsl_open(drv);
+		ret = acsl_open(drv, &csm_args);
 		if (ret)
 			dev_err(dev, "acsl open failed with ret:%d\n", ret);
 		break;
@@ -206,9 +205,7 @@ static long acsl_dev_ioctl(struct file *filp,
 			break;
 		}
 
-		drv->csm_args = &csm_args;
-
-		ret = acsl_intf_open(drv);
+		ret = acsl_intf_open(drv, &csm_args);
 		if (ret)
 			dev_err(dev, "intf open failed with ret:%d\n", ret);
 		break;
@@ -223,8 +220,7 @@ static long acsl_dev_ioctl(struct file *filp,
 			break;
 		}
 
-		drv->csm_args = &csm_args;
-		ret = acsl_intf_close(drv);
+		ret = acsl_intf_close(drv, &csm_args);
 		if (ret)
 			dev_err(dev, "intf close failed with ret:%d\n", ret);
 		break;
@@ -246,7 +242,7 @@ static long acsl_dev_ioctl(struct file *filp,
 			break;
 		}
 
-		ret = copy_to_user((void __user *)arg, &map_args,
+		ret = copy_to_user(uarg, &map_args,
 				sizeof(map_args));
 		if (ret)
 			ret = -EACCES;
@@ -274,8 +270,7 @@ static long acsl_dev_ioctl(struct file *filp,
 			ret = -EACCES;
 			break;
 		}
-		drv->csm_args = &csm_args;
-		ret = acsl_comp_open(drv);
+		ret = acsl_comp_open(drv, &csm_args);
 		if (ret)
 			dev_err(dev, "comp open failed with ret:%d\n", ret);
 		break;
@@ -289,8 +284,7 @@ static long acsl_dev_ioctl(struct file *filp,
 			ret = -EACCES;
 			break;
 		}
-		drv->csm_args = &csm_args;
-		ret = acsl_comp_close(drv);
+		ret = acsl_comp_close(drv, &csm_args);
 		if (ret)
 			dev_err(dev, "comp close failed with ret:%d\n", ret);
 		break;
@@ -305,10 +299,9 @@ static long acsl_dev_ioctl(struct file *filp,
 			break;
 		}
 
-		drv->buf_args = &buf_args;
-		buf_args.buf_index = acsl_acq_buf(drv, IN_PORT);
+		buf_args.buf_index = acsl_acq_buf(drv, &buf_args, IN_PORT);
 
-		ret = copy_to_user((void __user *)arg, &buf_args,
+		ret = copy_to_user(uarg, &buf_args,
 				sizeof(struct acsl_buf_args_t));
 		if (ret)
 			ret = -EACCES;
@@ -324,10 +317,9 @@ static long acsl_dev_ioctl(struct file *filp,
 			break;
 		}
 
-		drv->buf_args = &buf_args;
-		buf_args.buf_index = acsl_rel_buf(drv, IN_PORT);
+		buf_args.buf_index = acsl_rel_buf(drv, &buf_args, IN_PORT);
 
-		ret = copy_to_user((void __user *)arg, &buf_args,
+		ret = copy_to_user(uarg, &buf_args,
 				sizeof(struct acsl_buf_args_t));
 		if (ret)
 			ret = -EACCES;
@@ -341,10 +333,10 @@ static long acsl_dev_ioctl(struct file *filp,
 			ret = -EACCES;
 			break;
 		}
-		drv->buf_args = &buf_args;
-		buf_args.buf_index = acsl_acq_buf(drv, OUT_PORT);
 
-		ret = copy_to_user((void __user *)arg, &buf_args,
+		buf_args.buf_index = acsl_acq_buf(drv, &buf_args, OUT_PORT);
+
+		ret = copy_to_user(uarg, &buf_args,
 				sizeof(struct acsl_buf_args_t));
 		if (ret)
 			ret = -EACCES;
@@ -360,10 +352,10 @@ static long acsl_dev_ioctl(struct file *filp,
 			ret = -EACCES;
 			break;
 		}
-		drv->buf_args = &buf_args;
-		buf_args.buf_index = acsl_rel_buf(drv, OUT_PORT);
 
-		ret = copy_to_user((void __user *)arg, &buf_args,
+		buf_args.buf_index = acsl_rel_buf(drv, &buf_args, OUT_PORT);
+
+		ret = copy_to_user(uarg, &buf_args,
 				sizeof(struct acsl_buf_args_t));
 		if (ret)
 			ret = -EACCES;
@@ -408,6 +400,7 @@ static void acsl_ioctl_cleanup(struct acsl_drv *drv)
 {
 	cdev_del(&drv->cdev);
 	device_destroy(drv->class, drv->dev_t);
+	mutex_destroy(&drv->map_lock);
 	if (drv->class)
 		class_destroy(drv->class);
 	unregister_chrdev_region(drv->dev_t, 1);

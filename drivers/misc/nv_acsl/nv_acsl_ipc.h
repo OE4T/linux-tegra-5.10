@@ -18,7 +18,7 @@
 
 #include <linux/tegra_nvadsp.h>
 
-#define MAX_COMP 25   /** Max Components */
+#define MAX_COMP 120   /** Max Components */
 
 #define ACSL_TIMEOUT 5000 /* 5000 ms */
 #define ADSP_CORES 4      /* Numbers of ADSP Cores */
