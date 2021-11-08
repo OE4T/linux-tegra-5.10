@@ -318,6 +318,7 @@ struct tegra_pcie_dw {
 	void __iomem *appl_base;
 	void __iomem *dma_base;
 	struct clk *core_clk;
+	struct clk *core_clk_m;
 	struct reset_control *core_apb_rst;
 	struct reset_control *core_rst;
 	struct dw_pcie pci;
@@ -331,10 +332,12 @@ struct tegra_pcie_dw {
 	bool enable_srns;
 	bool link_state;
 	bool link_status_change;
+	bool link_speed_change;
 	bool disable_power_down;
 	bool update_fc_fixup;
 	bool gic_v2m;
 	bool enable_ext_refclk;
+	bool is_safety_platform;
 	u8 init_link_width;
 	u32 msi_ctrl_int;
 	u32 num_lanes;
@@ -552,16 +555,18 @@ static irqreturn_t tegra_pcie_rp_irq_handler(int irq, void *arg)
 			apply_bad_link_workaround(pp);
 		}
 		if (status_l1 & APPL_INTR_STATUS_L1_8_0_BW_MGT_INT_STS) {
-			appl_writel(pcie,
-				    APPL_INTR_STATUS_L1_8_0_BW_MGT_INT_STS,
-				    APPL_INTR_STATUS_L1_8_0);
-
 			/* Clear BW Management Status */
 			val_w = dw_pcie_readw_dbi(pci, pcie->pcie_cap_base +
 						  PCI_EXP_LNKSTA);
 			val_w |= PCI_EXP_LNKSTA_LBMS;
 			dw_pcie_writew_dbi(pci, pcie->pcie_cap_base +
 					   PCI_EXP_LNKSTA, val_w);
+
+			appl_writel(pcie,
+				    APPL_INTR_STATUS_L1_8_0_BW_MGT_INT_STS,
+				    APPL_INTR_STATUS_L1_8_0);
+			pcie->link_speed_change = true;
+			irq_ret = IRQ_WAKE_THREAD;
 			dev_dbg(pci->dev, "Link Speed : Gen-%u\n", val_w &
 				PCI_EXP_LNKSTA_CLS);
 		}
@@ -596,7 +601,7 @@ static irqreturn_t tegra_pcie_rp_irq_thread(int irq, void *arg)
 	struct dw_pcie *pci = &pcie->pci;
 	struct pcie_port *pp;
 	struct pci_bus *bus;
-	u32 speed;
+	u16 speed;
 	u32 status_l0, status_l1;
 
 	pp = &pcie->pci.pp;
@@ -613,15 +618,18 @@ static irqreturn_t tegra_pcie_rp_irq_thread(int irq, void *arg)
 	}
 
 	if (bus && pcie->link_status_change) {
-		pcie->link_status_change = false;
 		pci_lock_rescan_remove();
 		pci_rescan_bus(bus);
 		pci_unlock_rescan_remove();
+	}
 
+	if (pcie->link_status_change || pcie->link_speed_change) {
+		pcie->link_status_change = false;
+		pcie->link_speed_change = false;
 		speed = dw_pcie_readw_dbi(pci,
 					  pcie->pcie_cap_base + PCI_EXP_LNKSTA);
 		speed &= PCI_EXP_LNKSTA_CLS;
-		if (speed > 0)
+		if ((speed > 0) && (speed <= 4) && !pcie->is_safety_platform)
 			clk_set_rate(pcie->core_clk, pcie_gen_freq[speed - 1]);
 	}
 
@@ -662,7 +670,8 @@ static irqreturn_t tegra_pcie_ep_irq_thread(int irq, void *arg)
 
 	speed = dw_pcie_readw_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKSTA) &
 		PCI_EXP_LNKSTA_CLS;
-	clk_set_rate(pcie->core_clk, pcie_gen_freq[speed - 1]);
+	if ((speed > 0) && (speed <= 4) && !pcie->is_safety_platform)
+		clk_set_rate(pcie->core_clk, pcie_gen_freq[speed - 1]);
 
 	if (!pcie->of_data->ltr_req_fixup)
 		return IRQ_HANDLED;
@@ -1786,6 +1795,7 @@ static void tegra_pcie_enable_legacy_interrupts(struct pcie_port *pp)
 	val = appl_readl(pcie, APPL_INTR_EN_L1_8_0);
 	val |= APPL_INTR_EN_L1_8_INTX_EN;
 	val |= APPL_INTR_EN_L1_8_AUTO_BW_INT_EN;
+	val |= APPL_INTR_EN_L1_8_BW_MGT_INT_EN;
 	val |= APPL_INTR_EN_L1_8_EDMA_INT_EN;
 	if (IS_ENABLED(CONFIG_PCIEAER))
 		val |= APPL_INTR_EN_L1_8_AER_INT_EN;
@@ -1988,7 +1998,16 @@ static void tegra_pcie_prepare_host(struct pcie_port *pp)
 	val |= GEN4_LANE_MARGINING_2_UP_DOWN_VOLTAGE;
 	dw_pcie_writel_dbi(pci, GEN4_LANE_MARGINING_2, val);
 
+	/*
+	 * In safety platform link retrain can bump up or down link speed, so
+	 * set core clk to Gen4 freq and enable monitor clk.
+	 */
 	clk_set_rate(pcie->core_clk, GEN4_CORE_CLK_FREQ);
+
+	if (pcie->is_safety_platform)
+		if (clk_prepare_enable(pcie->core_clk_m))
+			dev_err(pci->dev,
+				"Failed to enable monitor core clock\n");
 
 	/* Assert RST */
 	val = appl_readl(pcie, APPL_PINMUX);
@@ -2062,7 +2081,7 @@ static int tegra_pcie_dw_host_init(struct pcie_port *pp)
 
 	speed = dw_pcie_readw_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKSTA) &
 		PCI_EXP_LNKSTA_CLS;
-	if (speed > 0)
+	if ((speed > 0) && (speed <= 4) && !pcie->is_safety_platform)
 		clk_set_rate(pcie->core_clk, pcie_gen_freq[speed - 1]);
 
 link_down:
@@ -2230,6 +2249,9 @@ static int tegra_pcie_dw_parse_dt(struct tegra_pcie_dw *pcie)
 
 	pcie->enable_cdm_check =
 		of_property_read_bool(np, "snps,enable-cdm-check");
+
+	pcie->is_safety_platform =
+		of_property_read_bool(np, "nvidia,enable-safety");
 
 	pcie->enable_srns = of_property_read_bool(np, "nvidia,enable-srns");
 
@@ -2859,6 +2881,8 @@ static void tegra_pcie_dw_pme_turnoff(struct tegra_pcie_dw *pcie)
 static void tegra_pcie_deinit_controller(struct tegra_pcie_dw *pcie)
 {
 	pcie->link_state = false;
+	if (pcie->is_safety_platform)
+		clk_disable_unprepare(pcie->core_clk_m);
 	tegra_pcie_downstream_dev_to_D0(pcie);
 	dw_pcie_host_deinit(&pcie->pci.pp);
 	tegra_pcie_dw_pme_turnoff(pcie);
@@ -2954,6 +2978,9 @@ static void pex_ep_event_pex_rst_assert(struct tegra_pcie_dw *pcie)
 
 	if (pcie->ep_state == EP_STATE_DISABLED)
 		return;
+
+	if (pcie->is_safety_platform)
+		clk_disable_unprepare(pcie->core_clk_m);
 
 	ret = readl_poll_timeout(pcie->appl_base + APPL_DEBUG, val,
 				 ((val & APPL_DEBUG_LTSSM_STATE_MASK) ==
@@ -3234,7 +3261,18 @@ static void pex_ep_event_pex_rst_deassert(struct tegra_pcie_dw *pcie)
 				   val_16);
 	}
 
+	/*
+	 * In safety platform link retrain can bump up or down link speed, so
+	 * set core clk to Gen4 freq and enable monitor clk.
+	 */
 	clk_set_rate(pcie->core_clk, GEN4_CORE_CLK_FREQ);
+	if (pcie->is_safety_platform) {
+		if (clk_prepare_enable(pcie->core_clk_m)) {
+			dev_err(pcie->dev,
+				"Failed to enable monitor core clock\n");
+			goto fail_core_clk_m;
+		}
+	}
 
 	/*
 	 * PTM responder capability can be disabled only after disabling
@@ -3286,6 +3324,9 @@ static void pex_ep_event_pex_rst_deassert(struct tegra_pcie_dw *pcie)
 	return;
 
 fail_init_complete:
+	if (pcie->is_safety_platform)
+		clk_disable_unprepare(pcie->core_clk_m);
+fail_core_clk_m:
 	reset_control_assert(pcie->core_rst);
 	if (tegra_platform_is_silicon())
 		tegra_pcie_disable_phy(pcie);
@@ -3616,6 +3657,15 @@ static int tegra_pcie_dw_probe(struct platform_device *pdev)
 		dev_err(dev, "Failed to get core clock: %ld\n",
 			PTR_ERR(pcie->core_clk));
 		return PTR_ERR(pcie->core_clk);
+	}
+
+	if (pcie->is_safety_platform) {
+		pcie->core_clk_m = devm_clk_get(dev, "core_m");
+		if (IS_ERR(pcie->core_clk_m)) {
+			dev_err(dev, "Failed to get monitor clock: %ld\n",
+				PTR_ERR(pcie->core_clk_m));
+			return PTR_ERR(pcie->core_clk_m);
+		}
 	}
 
 	pcie->appl_res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
