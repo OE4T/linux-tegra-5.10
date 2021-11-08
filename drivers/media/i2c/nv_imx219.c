@@ -362,7 +362,8 @@ skip_power_seqn:
 
 	/* Need to wait for t4 + t5 + t9 time as per the data sheet */
 	/* t4 - 200us, t5 - 6ms, t9 - 1.2ms */
-	usleep_range(7400, 7410);
+	/* also add 2ms to workaround the i2c timeout issue on 2nd camera */
+	usleep_range(10000, 10100);
 
 	pw->state = SWITCH_ON;
 
