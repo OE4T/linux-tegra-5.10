@@ -1067,13 +1067,18 @@ static int apply_sbr(struct seq_file *s, void *data)
 	tls = dw_pcie_readw_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKCTL2);
 	tls &= PCI_EXP_LNKCTL2_TLS;
 
-	val = dw_pcie_readw_dbi(pci, PCI_BRIDGE_CONTROL);
-	val |= PCI_BRIDGE_CTL_BUS_RESET;
-	dw_pcie_writew_dbi(pci, PCI_BRIDGE_CONTROL, val);
-	mdelay(1);
-	val = dw_pcie_readw_dbi(pci, PCI_BRIDGE_CONTROL);
-	val &= ~PCI_BRIDGE_CTL_BUS_RESET;
-	dw_pcie_writew_dbi(pci, PCI_BRIDGE_CONTROL, val);
+	pdev = pci_get_domain_bus_and_slot(domain, 0x0, 0x0);
+	if (!pdev) {
+		seq_printf(s, "RP pci_dev not found in domain: %d\n", domain);
+		return 0;
+	}
+
+	if (pci_bridge_secondary_bus_reset(pdev)) {
+		seq_printf(s, "%s: secondary bus reset failed\n", __func__);
+		return 0;
+	}
+
+	pci_dev_put(pdev);
 
 	/* Compare PCIE_CAP_TARGET_LINK_SPEED sticky bit before & after SBR */
 	val = dw_pcie_readw_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKSTA);
@@ -1095,6 +1100,7 @@ static int apply_sbr(struct seq_file *s, void *data)
 	mdelay(100);
 
 	/* restore config state */
+	pdev = NULL;
 	for_each_pci_dev(pdev) {
 		if (pci_domain_nr(pdev->bus) == domain) {
 			pci_restore_state(pdev);
