@@ -636,6 +636,7 @@
 						 OSI_BIT(21) | OSI_BIT(22))
 #define MGBE_MTL_EST_CONTROL_CTOV_SHIFT		11U
 #define MGBE_MTL_EST_CTOV_RECOMMEND		42U
+#define MGBE_8PTP_CYCLE				26U
 #ifdef MACSEC_SUPPORT
 /**
  * MACSEC Recommended value
@@ -650,7 +651,6 @@
 #define MGBE_MTL_EST_CONTROL_LCSE_SHIFT		6U
 #define MGBE_MTL_EST_CONTROL_DDBF		OSI_BIT(4)
 #define MGBE_MTL_EST_CONTROL_SSWL		OSI_BIT(1)
-#define MGBE_MTL_EST_CONTROL_EEST		OSI_BIT(0)
 #define MGBE_MTL_EST_OVERHEAD_OVHD		(OSI_BIT(0) | OSI_BIT(1) | \
 						 OSI_BIT(2) | OSI_BIT(3) | \
 						 OSI_BIT(4) | OSI_BIT(5))
@@ -667,8 +667,8 @@
 						 OSI_BIT(14) | OSI_BIT(15) | \
 						 OSI_BIT(16) | OSI_BIT(17) | \
 						 OSI_BIT(18) | OSI_BIT(19))
-#define MGBE_MTL_EST_GCRR			OSI_BIT(2)
 #define MGBE_MTL_EST_SRWO			OSI_BIT(0)
+#define MGBE_MTL_EST_GCRR			OSI_BIT(2)
 #define MGBE_MTL_EST_ERR0			OSI_BIT(20)
 /* EST GCRA addresses */
 #define MGBE_MTL_EST_BTR_LOW			((unsigned int)0x0 << \

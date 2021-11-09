@@ -366,6 +366,8 @@ struct core_local {
 	nveu32_t m2m_tsync;
 	/** control pps output signal */
 	nveu32_t pps_freq;
+	/** Time interval mask for GCL entry */
+	nveu32_t ti_mask;
 };
 
 /**

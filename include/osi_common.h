@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -133,6 +133,9 @@
 #define OSI_MAX_24BITS			0xFFFFFFU
 #define OSI_MAX_28BITS			0xFFFFFFFU
 #define OSI_MAX_32BITS			0xFFFFFFFFU
+#define OSI_MASK_16BITS			0xFFFFU
+#define OSI_MASK_20BITS			0xFFFFFU
+#define OSI_MASK_24BITS			0xFFFFFFU
 #define OSI_GCL_SIZE_64			64U
 #define OSI_GCL_SIZE_128		128U
 #define OSI_GCL_SIZE_256		256U

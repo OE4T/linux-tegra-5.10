@@ -556,6 +556,7 @@
 						 OSI_BIT(22) | OSI_BIT(23))
 #define EQOS_MTL_EST_CONTROL_CTOV_SHIFT		12U
 #define EQOS_MTL_EST_CTOV_RECOMMEND		94U
+#define EQOS_8PTP_CYCLE				40U
 #ifdef MACSEC_SUPPORT
 /* MACSEC Recommended value*/
 #define EQOS_MTL_EST_CTOV_MACSEC_RECOMMEND	758U
@@ -582,8 +583,8 @@
 						 OSI_BIT(14) | OSI_BIT(15) | \
 						 OSI_BIT(16) | OSI_BIT(17) | \
 						 OSI_BIT(18) | OSI_BIT(19))
-#define EQOS_MTL_EST_GCRR			OSI_BIT(2)
 #define EQOS_MTL_EST_SRWO			OSI_BIT(0)
+#define EQOS_MTL_EST_GCRR			OSI_BIT(2)
 #define EQOS_MTL_EST_ERR0			OSI_BIT(20)
 /* EST GCRA addresses */
 #define EQOS_MTL_EST_BTR_LOW			((unsigned int)0x0 << \
