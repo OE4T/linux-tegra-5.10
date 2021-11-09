@@ -456,6 +456,12 @@ static int tegra_mc_probe(struct platform_device *pdev)
 	return 0;
 }
 
+static int tegra_mc_resume_early(struct device *dev)
+{
+	tegra_mcerr_resume();
+	return 0;
+}
+
 void __weak tegra_mc_utils_init(void)
 {
 	return;
@@ -472,11 +478,16 @@ static int tegra_mc_remove(struct platform_device *pdev)
 	return 0;
 }
 
+static const struct dev_pm_ops tegra_mc_pm_ops = {
+	.resume_early = tegra_mc_resume_early,
+};
+
 static struct platform_driver mc_driver = {
 	.driver = {
 		.name	= "nv-tegra-mc",
 		.of_match_table = tegra_mc_of_ids,
 		.owner	= THIS_MODULE,
+		.pm     = &tegra_mc_pm_ops,
 	},
 
 	.probe		= tegra_mc_probe,

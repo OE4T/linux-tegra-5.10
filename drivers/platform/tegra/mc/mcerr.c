@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2010-2021, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -283,4 +283,10 @@ done:
 fail:
 	pr_err("init failied\n");
 	return -EINVAL;
+}
+
+void tegra_mcerr_resume(void)
+{
+	mc_writel(mc_int_mask, MC_INTMASK);
+	mc_writel(mc_hub_int_mask, MC_HUB_INTMASK);
 }
