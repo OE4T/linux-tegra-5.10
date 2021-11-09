@@ -41,6 +41,7 @@ NV_COMPONENT_SOURCES           := \
 	xpcs.c \
 	mgbe_mmc.c \
 	debug.c \
+	core_common.c \
 	$(NV_SOURCE)/nvethernetrm/osi/common/osi_common.c \
 	$(NV_SOURCE)/nvethernetrm/osi/common/eqos_common.c \
 	$(NV_SOURCE)/nvethernetrm/osi/common/mgbe_common.c \

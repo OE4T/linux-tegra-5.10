@@ -27,6 +27,7 @@
 #include "eqos_mmc.h"
 #include "core_local.h"
 #include "vlan_filter.h"
+#include "core_common.h"
 
 #ifdef UPDATED_PAD_CAL
 /*
@@ -1981,6 +1982,8 @@ static inline void eqos_save_gcl_params(struct osi_core_priv_data *osi_core)
 	struct core_local *l_core = (struct core_local *)osi_core;
 	unsigned int gcl_widhth[4] = {0, OSI_MAX_24BITS, OSI_MAX_28BITS,
 				      OSI_MAX_32BITS};
+	nveu32_t gcl_ti_mask[4] = {0, OSI_MASK_16BITS, OSI_MASK_20BITS,
+				   OSI_MASK_24BITS};
 	unsigned int gcl_depthth[6] = {0, OSI_GCL_SIZE_64, OSI_GCL_SIZE_128,
 				       OSI_GCL_SIZE_256, OSI_GCL_SIZE_512,
 				       OSI_GCL_SIZE_1024};
@@ -1993,6 +1996,7 @@ static inline void eqos_save_gcl_params(struct osi_core_priv_data *osi_core)
 	} else {
 		l_core->gcl_width_val =
 				    gcl_widhth[osi_core->hw_feature->gcl_width];
+		l_core->ti_mask = gcl_ti_mask[osi_core->hw_feature->gcl_width];
 	}
 
 	if ((osi_core->hw_feature->gcl_depth == 0) ||
@@ -4675,46 +4679,6 @@ static int eqos_hw_est_write(struct osi_core_priv_data *osi_core,
 }
 
 /**
- * @brief eqos_gcl_validate - validate GCL from user
- *
- * Algorithm: validate GCL size and width of time interval value
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] est: Configuration input argument.
- *
- * @note MAC should be init and started. see osi_start_mac()
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static inline int eqos_gcl_validate(struct osi_core_priv_data *osi_core,
-				    struct osi_est_config *est)
-{
-	struct core_local *l_core = (struct core_local *)osi_core;
-	unsigned int i;
-
-	if (est->llr > l_core->gcl_dep) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			     "input argument more than GCL depth\n",
-			     (unsigned long long)est->llr);
-		return -1;
-	}
-
-	for (i = 0U; i < est->llr; i++) {
-		if (est->gcl[i] <= l_core->gcl_width_val) {
-			continue;
-		}
-
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			     "validation of GCL entry failed\n",
-			     (unsigned long long)i);
-		return -1;
-	}
-
-	return 0;
-}
-
-/**
  * @brief eqos_hw_config_est - Read Setting for GCL from input and update
  * registers.
  *
@@ -4763,7 +4727,15 @@ static int eqos_hw_config_est(struct osi_core_priv_data *osi_core,
 		return 0;
 	}
 
-	if (eqos_gcl_validate(osi_core, est) < 0) {
+	btr[0] = est->btr[0];
+	btr[1] = est->btr[1];
+
+	if (btr[0] == 0U && btr[1] == 0U) {
+		common_get_systime_from_mac(osi_core->base, osi_core->mac,
+					    &btr[1], &btr[0]);
+	}
+
+	if (gcl_validate(osi_core, est, btr, osi_core->mac) < 0) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "GCL validation failed\n", 0LL);
 		return -1;
@@ -4816,14 +4788,6 @@ static int eqos_hw_config_est(struct osi_core_priv_data *osi_core,
 				     (unsigned long long)i);
 			return ret;
 		}
-	}
-
-	btr[0] = est->btr[0];
-	btr[1] = est->btr[1];
-
-	if (btr[0] == 0U && btr[1] == 0U) {
-		common_get_systime_from_mac(osi_core->base, osi_core->mac,
-					    &btr[1], &btr[0]);
 	}
 
 	/* Write parameters */
