@@ -310,7 +310,7 @@ static void tegra234_cpufreq_free_resources(void)
 	destroy_workqueue(read_counters_wq);
 
 	LOOP_FOR_EACH_CLUSTER(cl) {
-		if (!data->icc_handle[cl])
+		if (data->icc_handle[cl])
 			icc_put(data->icc_handle[cl]);
 	}
 
@@ -521,8 +521,7 @@ static int tegra234_cpufreq_probe(struct platform_device *pdev)
 					icc_id_array[i], TEGRA_ICC_MASTER);
 		if (IS_ERR_OR_NULL(data->icc_handle[i])) {
 			dev_err(&pdev->dev, "cpufreq icc register failed\n");
-			err = PTR_ERR(data->icc_handle[i]);
-			goto err_free_res;
+			data->icc_handle[i] = NULL;
 		}
 	}
 
