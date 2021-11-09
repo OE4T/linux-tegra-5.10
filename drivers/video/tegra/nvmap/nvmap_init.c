@@ -823,6 +823,21 @@ end:
 	return err;
 }
 
+#ifdef NVMAP_LOADABLE_MODULE
+static bool nvmap_is_carveout_node_present(void)
+{
+	struct device_node *np;
+
+	np = of_find_node_by_name(NULL, "tegra-carveouts");
+	if (of_device_is_available(np)) {
+		of_node_put(np);
+		return true;
+	}
+	of_node_put(np);
+	return false;
+}
+#endif /* NVMAP_LOADABLE_MODULE */
+
 static struct platform_driver __refdata nvmap_driver = {
 	.probe		= nvmap_probe,
 	.remove		= nvmap_remove,
@@ -865,12 +880,14 @@ static int __init nvmap_init_driver(void)
 		nvmap_heap_deinit();
 		goto fail;
 	}
-	pdev = platform_device_register_simple("tegra-carveouts", -1, NULL, 0);
-	if (IS_ERR(pdev)) {
-		nvmap_t19x_deinit();
-		platform_driver_unregister(&nvmap_driver);
-		nvmap_heap_deinit();
-		return PTR_ERR(pdev);
+	if (!nvmap_is_carveout_node_present()) {
+		pdev = platform_device_register_simple("tegra-carveouts", -1, NULL, 0);
+		if (IS_ERR(pdev)) {
+			nvmap_t19x_deinit();
+			platform_driver_unregister(&nvmap_driver);
+			nvmap_heap_deinit();
+			return PTR_ERR(pdev);
+		}
 	}
 #endif /* NVMAP_LOADABLE_MODULE */
 
@@ -887,7 +904,8 @@ fs_initcall(nvmap_init_driver);
 static void __exit nvmap_exit_driver(void)
 {
 #ifdef NVMAP_LOADABLE_MODULE
-	platform_device_unregister(pdev);
+	if (!nvmap_is_carveout_node_present())
+		platform_device_unregister(pdev);
 	nvmap_t19x_deinit();
 #endif /* NVMAP_LOADABLE_MODULE */
 	platform_driver_unregister(&nvmap_driver);
