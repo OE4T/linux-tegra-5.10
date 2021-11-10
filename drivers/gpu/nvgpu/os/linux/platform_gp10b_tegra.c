@@ -1,7 +1,7 @@
 /*
  * GP10B Tegra Platform Interface
  *
- * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -319,11 +319,15 @@ int gp10b_clk_get_freqs(struct device *dev,
 		new_rate = clk_round_rate(platform->clk[0],
 						prev_rate + 1);
 		loc_freq_table[i] = new_rate;
-		if (new_rate == max_rate)
+		if (new_rate == max_rate) {
+			++i;
 			break;
+		}
 	}
-	freq_counter = i + 1;
-	WARN_ON(freq_counter == GP10B_MAX_SUPPORTED_FREQS);
+	/* freq_counter indicates the count of frequencies capped
+	 * to GP10B_MAX_SUPPORTED_FREQS or till max_rate is reached.
+	*/
+	freq_counter = i;
 
 	/*
 	 * If the number of achievable frequencies is less than or
