@@ -148,6 +148,8 @@ Optional properties:
 - nvidia,enable-ext-refclk: Set this property if the controller is using the
    reference clock from an external source. This is supported only on Tegra234
    based platforms for controllers C5, C6 and C7.
+- nvidia,enable-safety: Set this property to enable safety features like
+   PCIe core clk monitoring, HSI, etc.
 
 RC mode:
 - vpcie3v3-supply: A phandle to the regulator node that supplies 3.3V to the slot
