@@ -2868,19 +2868,7 @@ static nve32_t add_upd_sc(struct osi_core_priv_data *const osi_core,
 		goto err_sa_state;
 	}
 
-	/* 3. SC state LUT */
-	lut_config.flags = OSI_NONE;
-	lut_config.lut_sel = OSI_LUT_SEL_SC_STATE;
-	table_config->index = sc->sc_idx_start;
-	lut_config.sc_state_out.curr_an = sc->curr_an;
-	ret = macsec_lut_config(osi_core, &lut_config);
-	if (ret < 0) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
-			     "Failed to set SC state\n", ret);
-		goto err_sc_state;
-	}
-
-	/* 4. SC param LUT */
+	/* 3. SC param LUT */
 	lut_config.flags = OSI_NONE;
 	lut_config.lut_sel = OSI_LUT_SEL_SC_PARAM;
 	table_config->index = sc->sc_idx_start;
@@ -2902,7 +2890,7 @@ static nve32_t add_upd_sc(struct osi_core_priv_data *const osi_core,
 		goto err_sc_param;
 	}
 
-	/* 5. SCI LUT */
+	/* 4. SCI LUT */
 	lut_config.flags = OSI_NONE;
 	lut_config.lut_sel = OSI_LUT_SEL_SCI;
 	table_config->index = sc->sc_idx_start;
@@ -2926,7 +2914,29 @@ static nve32_t add_upd_sc(struct osi_core_priv_data *const osi_core,
 		goto err_sci;
 	}
 
+	/* 5. SC state LUT */
+	lut_config.flags = OSI_NONE;
+	lut_config.lut_sel = OSI_LUT_SEL_SC_STATE;
+	table_config->index = sc->sc_idx_start;
+	lut_config.sc_state_out.curr_an = sc->curr_an;
+	ret = macsec_lut_config(osi_core, &lut_config);
+	if (ret < 0) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+			     "Failed to set SC state\n", ret);
+		goto err_sc_state;
+	}
+
 	return 0;
+
+err_sc_state:
+	/* Cleanup SCI LUT */
+	osi_memset(&lut_config, 0, sizeof(lut_config));
+	table_config = &lut_config.table_config;
+	table_config->ctlr_sel = ctlr;
+	table_config->rw = OSI_LUT_WRITE;
+	lut_config.lut_sel = OSI_LUT_SEL_SCI;
+	table_config->index = sc->sc_idx_start;
+	macsec_lut_config(osi_core, &lut_config);
 
 err_sci:
 	/* cleanup SC param */
@@ -2938,15 +2948,6 @@ err_sci:
 	macsec_lut_config(osi_core, &lut_config);
 
 err_sc_param:
-	/* cleanup SC state */
-	osi_memset(&lut_config, 0, sizeof(lut_config));
-	table_config = &lut_config.table_config;
-	table_config->ctlr_sel = ctlr;
-	lut_config.lut_sel = OSI_LUT_SEL_SC_STATE;
-	table_config->index = sc->sc_idx_start;
-	macsec_lut_config(osi_core, &lut_config);
-
-err_sc_state:
 	/* Cleanup SA state LUT */
 	osi_memset(&lut_config, 0, sizeof(lut_config));
 	table_config = &lut_config.table_config;
