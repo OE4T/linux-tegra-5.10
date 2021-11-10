@@ -37,6 +37,8 @@
 			mgbe0_aqr113c_phy: ethernet_phy@0 {
 				compatible = "ethernet-phy-ieee802.3-c45";
 				reg = <0x0>;
+				interrupt-parent = <&tegra_main_gpio>;
+				interrupts = <TEGRA234_MAIN_GPIO(Y, 3) IRQ_TYPE_LEVEL_LOW>;
 			};
 		};
 	};
