@@ -403,3 +403,10 @@ B:	Mobile_Linux_Kernel
 S:	Supported
 F:	drivers/platform/tegra/tegra-hsierrrptinj.c
 F:	include/linux/tegra-hsierrrptinj.h
+
+DEVFREQ PODGOV GOVERNOR
+M:  Peng Liu <pengliu@nvidia.com>
+B:  sw-mobile-graphics-performance-bugs@exchange.nvidia.com
+S:  Supported
+F:  drivers/devfreq/governor_pod_scaling*
+F:  drivers/devfreq/governor_v2.h
