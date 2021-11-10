@@ -11,6 +11,7 @@
  * more details.
  */
 
+#include <linux/aer.h>
 #include <linux/etherdevice.h>
 #include <linux/module.h>
 #include <linux/netdevice.h>
@@ -753,6 +754,8 @@ static int tvnet_host_probe(struct pci_dev *pdev,
 		dev_err(&pdev->dev, "pci_enable_device() failed: %d\n", ret);
 		goto free_netdev;
 	}
+
+	pci_enable_pcie_error_reporting(pdev);
 
 	/*
 	 * In CPU memory write case, skb->data buffer is copied to dst in BAR.

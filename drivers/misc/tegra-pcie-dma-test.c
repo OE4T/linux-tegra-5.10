@@ -5,6 +5,7 @@
  * Copyright (C) 2021 NVIDIA Corporation. All rights reserved.
  */
 
+#include <linux/aer.h>
 #include <linux/crc32.h>
 #include <linux/debugfs.h>
 #include <linux/device.h>
@@ -90,6 +91,8 @@ static int ep_test_dma_probe(struct pci_dev *pdev,
 		dev_err(&pdev->dev, "Failed to enable PCI device\n");
 		return ret;
 	}
+
+	pci_enable_pcie_error_reporting(pdev);
 
 	pci_set_master(pdev);
 
