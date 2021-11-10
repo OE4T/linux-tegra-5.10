@@ -102,6 +102,7 @@ static int pva_copy_task(struct nvpva_ioctl_task *ioctl_task,
 {
 	int err = 0;
 	u32 i;
+	struct pva_elf_image *image = NULL;
 
 	nvhost_dbg_fn("");
 	/*
@@ -112,12 +113,10 @@ static int pva_copy_task(struct nvpva_ioctl_task *ioctl_task,
 	task->l2_alloc_size = ioctl_task->l2_alloc_size;
 	task->symbol_payload_size = ioctl_task->symbol_payload.size;
 	task->flags = ioctl_task->flags;
-	if (task->exe_id < 32 &&
-		task->client->elf_ctx.elf_images->elf_img[task->exe_id].is_system_app) {
-		task->is_system_app = true;
-	} else {
-		task->is_system_app = false;
-	}
+	if (task->exe_id < NVPVA_NOOP_EXE_ID)
+		image = get_elf_image(&task->client->elf_ctx, task->exe_id);
+
+	task->is_system_app = (image != NULL) && image->is_system_app;
 
 #define IOCTL_ARRAY_SIZE(field_name)                                           \
 	(ioctl_task->field_name.size / sizeof(task->field_name[0]))
@@ -460,6 +459,7 @@ static int pva_register_vpu_exec(struct pva_private *priv, void *arg)
 		(struct nvpva_vpu_exe_register_in_arg *)arg;
 	struct nvpva_vpu_exe_register_out_arg *reg_out =
 		(struct nvpva_vpu_exe_register_out_arg *)arg;
+	struct pva_elf_image *image;
 	void *exec_data = NULL;
 	int err = 0;
 	uint16_t exe_id;
@@ -522,11 +522,9 @@ static int pva_register_vpu_exec(struct pva_private *priv, void *arg)
 	}
 
 	reg_out->exe_id = exe_id;
-	reg_out->num_of_symbols =
-		priv->client->elf_ctx.elf_images->elf_img[exe_id].num_symbols;
-	reg_out->symbol_size_total =
-		priv->client->elf_ctx.elf_images->elf_img[exe_id]
-			.symbol_size_total;
+	image = get_elf_image(&priv->client->elf_ctx, exe_id);
+	reg_out->num_of_symbols = image->num_symbols;
+	reg_out->symbol_size_total = image->symbol_size_total;
 
 free_mem:
 	if (exec_data != NULL)

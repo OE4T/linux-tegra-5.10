@@ -26,8 +26,9 @@
 #include "pva-bit.h"
 
 #define ELF_MAXIMUM_SYMBOL_LENGTH 64
-#define MAX_NUM_VPU_EXE 256
-#define NUM_ALLOC_SEGMENTS (MAX_NUM_VPU_EXE/32U)
+#define MAX_NUM_VPU_EXE		65535U
+#define ALOC_SEGMENT_SIZE	32U
+#define NUM_ALLOC_SEGMENTS	((MAX_NUM_VPU_EXE + 1)/ALOC_SEGMENT_SIZE)
 
 /**
  * enum to identify different types of symbols
@@ -129,16 +130,15 @@ struct pva_elf_image {
 };
 
 /**
- * Store multiple of elf image
+ * Store multiple elf images
  */
 struct pva_elf_images {
-	/* TODO: Implement hashtable and remove size restrictions. JIRA
-	 * PVAAS-4115
-	 */
 	/**< Stores information about all VPU APPs */
-	struct pva_elf_image elf_img[MAX_NUM_VPU_EXE];
+	struct pva_elf_image *elf_img[NUM_ALLOC_SEGMENTS];
 	/**< Alloctable keeping track of VPU APPs */
 	uint32_t alloctable[NUM_ALLOC_SEGMENTS];
+	uint32_t num_allocated;
+	uint32_t num_assigned;
 };
 
 struct nvpva_elf_context {
@@ -221,6 +221,24 @@ static inline bool pva_vpu_elf_is_registered(struct nvpva_elf_context *d,
 	       ((d->elf_images->alloctable[(exe_id/32)] >> (exe_id%32)) & 1U);
 }
 
+static inline
+struct pva_elf_image *get_elf_image(struct nvpva_elf_context *d,
+				    uint16_t exe_id)
+{
+	struct pva_elf_image *image = NULL;
+	u32 segment;
+	u32 index;
+
+	segment = exe_id / ALOC_SEGMENT_SIZE;
+	index = exe_id % ALOC_SEGMENT_SIZE;
+
+	if ((d->elf_images->elf_img[segment] != NULL)
+	    && (pva_vpu_elf_is_registered(d, exe_id)))
+		image = &d->elf_images->elf_img[segment][index];
+
+	return image;
+}
+
 /**
  * Load VPU APP elf file
  *
@@ -235,9 +253,10 @@ static inline bool pva_vpu_elf_is_registered(struct nvpva_elf_context *d,
  * @return		EOK if everything is valid and VPU APP is
  *			loaded successfully
  */
-int32_t pva_load_vpu_app(struct nvpva_elf_context *d, uint8_t *buffer,
-			 size_t size, uint16_t *exe_id,
-			 bool is_system_app, int hw_gen);
+int32_t
+pva_load_vpu_app(struct nvpva_elf_context *d, uint8_t *buffer,
+		     size_t size, uint16_t *exe_id,
+		     bool is_system_app, int hw_gen);
 
 /**
  * Unload VPU APP elf file

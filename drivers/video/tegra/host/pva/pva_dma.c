@@ -868,8 +868,14 @@ int pva_task_write_dma_info(struct pva_submit_task *task,
 			}
 			break;
 		default:
-			if (!task->client->elf_ctx.elf_images->elf_img[task->exe_id].is_system_app)
+			{
+			struct pva_elf_image *image;
+
+			image = get_elf_image(&task->client->elf_ctx,
+					      task->exe_id);
+			if ((image == NULL) || (!image->is_system_app))
 				task_err(task, "trigger value is not set");
+			}
 			break;
 		}
 	}
