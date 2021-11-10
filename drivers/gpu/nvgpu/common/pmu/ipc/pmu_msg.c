@@ -485,6 +485,16 @@ static int pmu_process_init_msg(struct nvgpu_pmu *pmu,
 	nvgpu_pmu_set_fw_ready(g, pmu, true);
 
 	nvgpu_pmu_fw_state_change(g, pmu, PMU_FW_STATE_INIT_RECEIVED, true);
+
+#ifdef CONFIG_NVGPU_FALCON_DEBUG
+	/*
+	 * set the flag true after PMU is initialised.
+	 * This will be used to print debug buffer data
+	 * when any error on PMU occurs
+	 */
+	nvgpu_falcon_dbg_error_print_enable(pmu->flcn, true);
+#endif
+
 exit:
 	nvgpu_pmu_dbg(g, "init received end, err %x", err);
 	return err;

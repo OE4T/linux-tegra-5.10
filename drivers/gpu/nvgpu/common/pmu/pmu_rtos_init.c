@@ -127,8 +127,9 @@ int nvgpu_pmu_destroy(struct gk20a *g, struct nvgpu_pmu *pmu)
 	nvgpu_pmu_set_fw_ready(g, pmu, false);
 	nvgpu_pmu_lsfm_clean(g, pmu, pmu->lsfm);
 	pmu->pmu_perfmon->perfmon_ready = false;
-
-
+#ifdef CONFIG_NVGPU_FALCON_DEBUG
+	nvgpu_falcon_dbg_error_print_enable(pmu->flcn, false);
+#endif
 	nvgpu_log_fn(g, "done");
 	return 0;
 }

@@ -233,6 +233,9 @@ struct nvgpu_falcon_dbg_buf {
 
 	/* Set once nvgpu get the first message from FLCN */
 	bool first_msg_received;
+
+	/* flag to print buffer when PMU error occurs */
+	bool is_prints_as_err;
 };
 #endif
 
@@ -798,6 +801,21 @@ void nvgpu_falcon_dbg_buf_destroy(struct nvgpu_falcon *flcn);
  * @return '0' if contents logged successfully, error otherwise.
  */
 int nvgpu_falcon_dbg_buf_display(struct nvgpu_falcon *flcn);
+
+/**
+ * @brief Enable/Disable falcon error print support
+ *
+ * @param flcn [in] The falcon.
+ * @param enable [in] true/false value to enable/disable error print
+ * support.
+ *
+ * This function sets the flag with true/false which respectively
+ * enables or disables the falcon error print support. This is used to
+ * print pc trace values when error is hit.
+ *
+ */
+void nvgpu_falcon_dbg_error_print_enable(struct nvgpu_falcon *flcn, bool enable);
+
 #endif
 
 /**

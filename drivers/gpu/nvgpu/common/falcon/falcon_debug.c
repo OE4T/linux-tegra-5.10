@@ -69,6 +69,9 @@ int nvgpu_falcon_dbg_buf_init(struct nvgpu_falcon *flcn,
 	debug_buffer->first_msg_received = false;
 	debug_buffer->read_offset = 0;
 
+	/* upon initialisation set the flag to false for all falcon */
+	nvgpu_falcon_dbg_error_print_enable(flcn, false);
+
 	if (debug_buffer->local_buf == NULL) {
 		/*
 		 * Allocate memory for nvgpu-side debug buffer, used for copies
@@ -359,7 +362,17 @@ int nvgpu_falcon_dbg_buf_display(struct nvgpu_falcon *flcn)
 				return status;
 			}
 
-			nvgpu_falcon_dbg(g, "Flcn-%d Async: %s", flcn->flcn_id, curr_data);
+			/*
+			 * if the flag is set to true print the riscv
+			 * buffer as error
+			 */
+			if (debug_buffer->is_prints_as_err == true) {
+				nvgpu_err(g, "Flcn-%d Async: %s", flcn->flcn_id,
+								curr_data);
+			} else {
+				nvgpu_falcon_dbg(g, "Flcn-%d Async: %s",
+							flcn->flcn_id, curr_data);
+			}
 
 			/* Cleanup in case we had to allocate a temp buffer */
 			if (tmp_buf != NULL) {
@@ -375,4 +388,11 @@ int nvgpu_falcon_dbg_buf_display(struct nvgpu_falcon *flcn)
 			debug_buffer->read_offset);
 
 	return 0;
+}
+
+void nvgpu_falcon_dbg_error_print_enable(struct nvgpu_falcon *flcn, bool enable)
+{
+	struct nvgpu_falcon_dbg_buf *debug_buffer = &flcn->debug_buffer;
+
+	debug_buffer->is_prints_as_err = enable;
 }
