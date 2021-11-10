@@ -25,7 +25,6 @@
 #include <linux/platform_device.h>
 
 #include <linux/platform/tegra/tegra-mc-sid.h>
-#include <dt-bindings/memory/tegra234-smmu-streamid.h>
 
 enum override_id {
 	HDAR,
