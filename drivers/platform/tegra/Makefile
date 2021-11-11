@@ -16,6 +16,8 @@ obj-$(CONFIG_TEGRA_SPE) += aon/
 obj-$(CONFIG_TEGRA_PSC) += psc/
 ifeq ($(_nv_build_configuration_is_external),0)
 obj-$(CONFIG_TEGRA_SOC_HWPM) += hwpm/
+else
+obj-$(CONFIG_TEGRA_SOC_HWPM) += tegra_hwpm.o
 endif
 obj-$(CONFIG_ARCH_TEGRA_18x_SOC) += tegra18_speedo.o
 obj-$(CONFIG_TEGRA_DC) += panel-simulator.o
