@@ -2408,6 +2408,20 @@ struct stats_surface {
 } CAPTURE_IVC_ALIGN;
 
 /**
+ * @brief Memory write crop region info
+ */
+struct isp_crop_rect {
+	/** Topmost line stored in memory (inclusive) relative to the MW input image */
+	uint16_t top;
+	/** Bottommost line stored in memory (inclusive) relative to the MW input image */
+	uint16_t bottom;
+	/** Leftmost pixel stored in memory (inclusive) relative to the MW input image */
+	uint16_t left;
+	/** Rightmost pixel stored in memory (inclusive) relative to the MW input image */
+	uint16_t right;
+};
+
+/**
  * @defgroup IspProcessFlag ISP process frame specific flags.
  */
 /** @{ */
@@ -2800,8 +2814,13 @@ struct isp5_program {
 	/** ISP overfetch requirements */
 	struct isp_overfetch overfetch;
 
+	/** memory write crop region info*/
+	struct {
+		struct isp_crop_rect mw_crop;
+	} outputs_mw[ISP_MAX_OUTPUTS];
+
 	/** Reserved */
-	uint32_t pad1__[3];
+	uint32_t pad1__[13];
 
 	/**
 	 * Push buffer containing ISP settings related to this program.
