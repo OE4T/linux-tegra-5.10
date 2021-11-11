@@ -430,8 +430,9 @@
 
 		num-lanes = <8>;
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX1_C5_CORE>;
-		clock-names = "core";
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX1_C5_CORE>,
+			 <&bpmp_clks TEGRA234_CLK_PEX1_C5_CORE_M>;
+		clock-names = "core", "core_m";
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX1_CORE_5_APB>,
 			 <&bpmp_resets TEGRA234_RESET_PEX1_CORE_5>;
@@ -506,8 +507,9 @@
 
 		num-lanes = <4>;
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX1_C6_CORE>;
-		clock-names = "core";
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX1_C6_CORE>,
+			 <&bpmp_clks TEGRA234_CLK_PEX1_C6_CORE_M>;
+		clock-names = "core", "core_m";
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX1_CORE_6_APB>,
 			 <&bpmp_resets TEGRA234_RESET_PEX1_CORE_6>;
@@ -580,8 +582,9 @@
 
 		num-lanes = <8>;
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_C7_CORE>;
-		clock-names = "core";
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_C7_CORE>,
+			 <&bpmp_clks TEGRA234_CLK_PEX2_C7_CORE_M>;
+		clock-names = "core", "core_m";
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX2_CORE_7_APB>,
 			 <&bpmp_resets TEGRA234_RESET_PEX2_CORE_7>;
@@ -655,8 +658,9 @@
 
 		num-lanes = <4>;
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_C10_CORE>;
-		clock-names = "core";
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_C10_CORE>,
+			 <&bpmp_clks TEGRA234_CLK_PEX2_C10_CORE_M>;
+		clock-names = "core", "core_m";
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX2_CORE_10_APB>,
 			 <&bpmp_resets TEGRA234_RESET_PEX2_CORE_10>;
