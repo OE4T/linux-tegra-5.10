@@ -53,8 +53,13 @@ static int tegra_bpmp_thermal_get_temp(void *data, int *out_temp)
 	if (err)
 		return err;
 	if (msg.rx.ret == -BPMP_EFAULT) {
-		/* Problem reading temperature measurement */
-		return -ENODATA;
+		/*
+		 * Problem reading temperature measurement, return an invalid
+		 * temperature so that thermal core can program thresholds and
+		 * get notified when the sensor starts operating again.
+		 */
+		*out_temp = -256000;
+		return 0;
 	} else if (msg.rx.ret != 0) {
 		return -EINVAL;
 	}
@@ -238,7 +243,7 @@ static int tegra_bpmp_thermal_probe(struct platform_device *pdev)
 		zone->tegra = tegra;
 
 		err = tegra_bpmp_thermal_get_temp(zone, &temp);
-		if ((err != 0) && (err != -ENODATA)) {
+		if (err != 0) {
 			devm_kfree(&pdev->dev, zone);
 			continue;
 		}
