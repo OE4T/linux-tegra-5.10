@@ -59,7 +59,7 @@ static const struct pack_rule {
 	}
 };
 
-static int32_t find_pva_ucode_segment_type(const char *section_name)
+static int32_t find_pva_ucode_segment_type(const char *section_name, uint32_t addr)
 {
 	uint32_t i;
 	int32_t ret = PVA_SEG_VPU_MAX_TYPE;
@@ -82,6 +82,8 @@ static int32_t find_pva_ucode_segment_type(const char *section_name)
 			     (section_name_len - exports_section_name_len)),
 			    ELF_EXPORTS_SECTION,
 			    exports_section_name_len) == 0) {
+			ret = PVA_SEG_VPU_IN_PARAMS;
+		} else if (addr == 0xc0000U) {
 			ret = PVA_SEG_VPU_IN_PARAMS;
 		}
 	}
@@ -353,7 +355,7 @@ static int32_t copy_segments(void *elf, struct pva_elf_image *elf_img,
 
 	struct pva_elf_buffer *buffer = NULL;
 
-	segment_type = find_pva_ucode_segment_type(section_name);
+	segment_type = find_pva_ucode_segment_type(section_name, section_header->addr);
 
 	bin_info = &elf_img->info;
 	if (!(segment_type == PVA_SEG_VPU_DATA) &&
@@ -453,7 +455,7 @@ static int32_t update_exports_symbol(void *elf, const struct elf_section_header 
 {
 	const u8 *data;
 	const char *section_name = elf_section_name(elf, section_header);
-	int32_t section_type = find_pva_ucode_segment_type(section_name);
+	int32_t section_type = find_pva_ucode_segment_type(section_name, section_header->addr);
 	if (section_type == PVA_SEG_VPU_IN_PARAMS) {
 		uint32_t symOffset = symID->addr - section_header->addr;
 		data = elf_section_contents(elf, section_header);
