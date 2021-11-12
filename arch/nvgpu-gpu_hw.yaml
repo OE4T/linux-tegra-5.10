@@ -259,6 +259,7 @@ headers:
              include/nvgpu/hw/ga100/hw_xp_ga100.h,
              include/nvgpu/hw/ga100/hw_xve_ga100.h,
              include/nvgpu/hw/ga100/hw_fbpa_ga100.h,
+             include/nvgpu/hw/ga100/hw_xbar_ga100.h,
              include/nvgpu/hw/ga10b/hw_bus_ga10b.h,
              include/nvgpu/hw/ga10b/hw_ccsr_ga10b.h,
              include/nvgpu/hw/ga10b/hw_ce_ga10b.h,
@@ -290,4 +291,5 @@ headers:
              include/nvgpu/hw/ga10b/hw_smcarb_ga10b.h,
              include/nvgpu/hw/ga10b/hw_therm_ga10b.h,
              include/nvgpu/hw/ga10b/hw_timer_ga10b.h,
-             include/nvgpu/hw/ga10b/hw_top_ga10b.h ]
+             include/nvgpu/hw/ga10b/hw_top_ga10b.h,
+             include/nvgpu/hw/ga10b/hw_xbar_ga10b.h ]

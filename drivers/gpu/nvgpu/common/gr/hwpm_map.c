@@ -286,7 +286,7 @@ static int add_ctxsw_buffer_map_entries_gpcs(struct gk20a *g,
 			return -EINVAL;
 		}
 
-		base = NV_XBAR_MXBAR_PRI_GPC_GNIC_STRIDE * gpc_num;
+		base = (g->ops.gr.ctxsw_prog.hw_get_pm_gpc_gnic_stride(g)) * gpc_num;
 		if (add_ctxsw_buffer_map_entries(map,
 				nvgpu_netlist_get_pm_ucgpc_ctxsw_regs(g),
 				count, offset, max_cnt, base, ~U32(0U)) != 0) {

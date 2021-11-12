@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,6 +34,7 @@ u32 ga100_ctxsw_prog_hw_get_fecs_header_size(void);
 u32 ga100_ctxsw_prog_hw_get_gpccs_header_size(void);
 bool ga100_ctxsw_prog_check_main_image_header_magic(u32 *context);
 bool ga100_ctxsw_prog_check_local_header_magic(u32 *context);
+u32 ga100_ctxsw_prog_hw_get_pm_gpc_gnic_stride(struct gk20a *g);
 #endif /* CONFIG_NVGPU_DEBUGGER */
 #ifdef CONFIG_DEBUG_FS
 void ga100_ctxsw_prog_dump_ctxsw_stats(struct gk20a *g,

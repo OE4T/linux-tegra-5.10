@@ -58,6 +58,9 @@ void gm20b_ctxsw_prog_set_zcull_mode_no_ctxsw(struct gk20a *g,
 bool gm20b_ctxsw_prog_is_zcull_mode_separate_buffer(u32 mode);
 #endif /* CONFIG_NVGPU_GRAPHICS */
 #ifdef CONFIG_NVGPU_DEBUGGER
+
+#define  NV_XBAR_MXBAR_PRI_GPC_GNIC_STRIDE 0x20U
+
 u32 gm20b_ctxsw_prog_hw_get_gpccs_header_size(void);
 u32 gm20b_ctxsw_prog_hw_get_extended_buffer_segments_size_in_bytes(void);
 u32 gm20b_ctxsw_prog_hw_extended_marker_size_in_bytes(void);
@@ -83,6 +86,7 @@ void gm20b_ctxsw_prog_get_extended_buffer_size_offset(u32 *context,
 	u32 *size, u32 *offset);
 void gm20b_ctxsw_prog_get_ppc_info(u32 *context, u32 *num_ppcs, u32 *ppc_mask);
 u32 gm20b_ctxsw_prog_get_local_priv_register_ctl_offset(u32 *context);
+u32 gm20b_ctxsw_prog_hw_get_pm_gpc_gnic_stride(struct gk20a *g);
 #endif /* CONFIG_NVGPU_DEBUGGER */
 #ifdef CONFIG_NVGPU_FECS_TRACE
 u32 gm20b_ctxsw_prog_hw_get_ts_tag_invalid_timestamp(void);

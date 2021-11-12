@@ -423,6 +423,7 @@ static const struct gops_gr_ctxsw_prog tu104_ops_gr_ctxsw_prog = {
 	.get_local_priv_register_ctl_offset = gm20b_ctxsw_prog_get_local_priv_register_ctl_offset,
 	.set_pmu_options_boost_clock_frequencies = gp10b_ctxsw_prog_set_pmu_options_boost_clock_frequencies,
 	.hw_get_perf_counter_register_stride = gv11b_ctxsw_prog_hw_get_perf_counter_register_stride,
+	.hw_get_pm_gpc_gnic_stride = gm20b_ctxsw_prog_hw_get_pm_gpc_gnic_stride,
 #endif /* CONFIG_NVGPU_DEBUGGER */
 #ifdef CONFIG_DEBUG_FS
 	.dump_ctxsw_stats = gp10b_ctxsw_prog_dump_ctxsw_stats,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -166,5 +166,10 @@ u32 gm20b_ctxsw_prog_get_local_priv_register_ctl_offset(u32 *context)
 {
 	u32 data = *(context + (ctxsw_prog_local_priv_register_ctl_o() >> 2));
 	return ctxsw_prog_local_priv_register_ctl_offset_v(data);
+}
+
+u32 gm20b_ctxsw_prog_hw_get_pm_gpc_gnic_stride(struct gk20a *g)
+{
+	return  NV_XBAR_MXBAR_PRI_GPC_GNIC_STRIDE;
 }
 #endif /* CONFIG_NVGPU_DEBUGGER */

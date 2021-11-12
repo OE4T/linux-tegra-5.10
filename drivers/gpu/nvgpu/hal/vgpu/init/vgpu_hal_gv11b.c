@@ -292,6 +292,7 @@ static const struct gops_gr_ctxsw_prog vgpu_gv11b_ops_gr_ctxsw_prog = {
 	.get_extended_buffer_size_offset = gm20b_ctxsw_prog_get_extended_buffer_size_offset,
 	.get_ppc_info = gm20b_ctxsw_prog_get_ppc_info,
 	.get_local_priv_register_ctl_offset = gm20b_ctxsw_prog_get_local_priv_register_ctl_offset,
+	.hw_get_pm_gpc_gnic_stride = gm20b_ctxsw_prog_hw_get_pm_gpc_gnic_stride,
 #endif /* CONFIG_NVGPU_DEBUGGER */
 #ifdef CONFIG_NVGPU_FECS_TRACE
 	.hw_get_ts_tag_invalid_timestamp = gm20b_ctxsw_prog_hw_get_ts_tag_invalid_timestamp,

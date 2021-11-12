@@ -200,6 +200,7 @@
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gp10b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gv11b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_ga10b.h"
+#include "hal/gr/ctxsw_prog/ctxsw_prog_ga100.h"
 #ifdef CONFIG_NVGPU_DEBUGGER
 #include "hal/gr/gr/gr_gk20a.h"
 #include "hal/gr/gr/gr_gm20b.h"
@@ -459,6 +460,7 @@ static const struct gops_gr_ctxsw_prog ga10b_ops_gr_ctxsw_prog = {
 	.get_local_priv_register_ctl_offset = gm20b_ctxsw_prog_get_local_priv_register_ctl_offset,
 	.set_pmu_options_boost_clock_frequencies = NULL,
 	.hw_get_perf_counter_register_stride = gv11b_ctxsw_prog_hw_get_perf_counter_register_stride,
+	.hw_get_pm_gpc_gnic_stride = ga100_ctxsw_prog_hw_get_pm_gpc_gnic_stride,
 	.hw_get_main_header_size = ga10b_ctxsw_prog_hw_get_main_header_size,
 	.hw_get_gpccs_header_stride = ga10b_ctxsw_prog_hw_get_gpccs_header_stride,
 	.get_compute_sysreglist_offset = ga10b_ctxsw_prog_get_compute_sysreglist_offset,

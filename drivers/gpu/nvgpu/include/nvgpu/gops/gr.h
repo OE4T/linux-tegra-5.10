@@ -1014,7 +1014,8 @@ struct gops_gr_ctxsw_prog {
 					struct gk20a *g,
 					struct nvgpu_mem *ctx_mem,
 					u32 boosted_ctx);
-#endif
+	u32 (*hw_get_pm_gpc_gnic_stride)(struct gk20a *g);
+#endif /* CONFIG_NVGPU_DEBUGGER */
 #ifdef CONFIG_DEBUG_FS
 	void (*dump_ctxsw_stats)(struct gk20a *g,
 				 struct nvgpu_mem *ctx_mem);
