@@ -525,7 +525,9 @@ void vi_capture_shutdown(
 				vi_capture_request_unpin(chan, i);
 		}
 		capture_common_unpin_memory(&capture->requests);
-		destroy_buffer_table(capture->buf_ctx);
+		if (capture->buf_ctx != NULL)
+			destroy_buffer_table(capture->buf_ctx);
+
 		vfree(capture->unpins_list);
 		capture->unpins_list = NULL;
 	}
