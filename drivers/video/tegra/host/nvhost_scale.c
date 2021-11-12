@@ -791,11 +791,11 @@ void nvhost_actmon_debug_init(struct host1x_actmon *actmon,
 	if (!actmon)
 		return;
 
-	debugfs_create_file("actmon_k", S_IRUGO, de,
+	debugfs_create_file("actmon_k", S_IRUGO | S_IWUSR, de,
 			actmon, &actmon_k_fops);
 	debugfs_create_file("actmon_sample_period", S_IRUGO, de,
 			actmon, &actmon_sample_period_fops);
-	debugfs_create_file("actmon_sample_period_norm", S_IRUGO, de,
+	debugfs_create_file("actmon_sample_period_norm", S_IRUGO | S_IWUSR, de,
 			actmon, &actmon_sample_period_norm_fops);
 	debugfs_create_file("actmon_avg_norm", S_IRUGO, de,
 			actmon, &actmon_avg_norm_fops);
