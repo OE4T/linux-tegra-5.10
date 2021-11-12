@@ -39,7 +39,7 @@
 			#size-cells = <0>;
 			skip_mux_detect = "yes";
 			vcc-supply = <&p2822_vdd_1v8_cvb>;
-			vcc_lp = "vcc";
+			vcc-pullup-supply = <&battery_reg>;
 			force_bus_start = <CAMERA_I2C_MUX_BUS(0)>;
 
 			i2c@0 {
