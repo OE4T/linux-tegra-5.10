@@ -1816,7 +1816,4 @@ struct rt5659_priv {
 	bool hda_mic_plugged;
 };
 
-int rt5659_set_jack_detect(struct snd_soc_component *component,
-	struct snd_soc_jack *hs_jack);
-
 #endif /* __RT5659_H__ */

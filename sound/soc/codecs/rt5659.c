@@ -1379,8 +1379,8 @@ static irqreturn_t rt5659_irq(int irq, void *data)
 	return IRQ_HANDLED;
 }
 
-int rt5659_set_jack_detect(struct snd_soc_component *component,
-	struct snd_soc_jack *hs_jack)
+static int rt5659_set_jack_detect(struct snd_soc_component *component,
+	struct snd_soc_jack *hs_jack, void *data)
 {
 	struct rt5659_priv *rt5659 = snd_soc_component_get_drvdata(component);
 
@@ -1390,7 +1390,6 @@ int rt5659_set_jack_detect(struct snd_soc_component *component,
 
 	return 0;
 }
-EXPORT_SYMBOL_GPL(rt5659_set_jack_detect);
 
 static void rt5659_jack_detect_work(struct work_struct *work)
 {
@@ -3862,6 +3861,7 @@ static const struct snd_soc_component_driver soc_component_dev_rt5659 = {
 	.num_dapm_routes	= ARRAY_SIZE(rt5659_dapm_routes),
 	.set_sysclk		= rt5659_set_component_sysclk,
 	.set_pll		= rt5659_set_component_pll,
+	.set_jack		= rt5659_set_jack_detect,
 	.use_pmdown_time	= 1,
 	.endianness		= 1,
 	.non_legacy_dai_naming	= 1,
