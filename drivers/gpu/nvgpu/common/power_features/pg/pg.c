@@ -43,11 +43,12 @@ int nvgpu_pg_elpg_enable(struct gk20a *g)
 {
 	int err = 0;
 #ifdef CONFIG_NVGPU_LS_PMU
-	nvgpu_log_fn(g, " ");
 
 	if (!g->can_elpg) {
 		return 0;
 	}
+
+	nvgpu_log_fn(g, " ");
 
 	g->ops.gr.init.wait_initialized(g);
 
@@ -64,11 +65,12 @@ int nvgpu_pg_elpg_disable(struct gk20a *g)
 {
 	int err = 0;
 #ifdef CONFIG_NVGPU_LS_PMU
-	nvgpu_log_fn(g, " ");
 
 	if (!g->can_elpg) {
 		return 0;
 	}
+
+	nvgpu_log_fn(g, " ");
 
 	g->ops.gr.init.wait_initialized(g);
 
