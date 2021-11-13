@@ -91,17 +91,20 @@ static void gv11b_gr_intr_handle_fecs_ecc_error(struct gk20a *g)
 			GPU_FECS_FALCON_IMEM_ECC_CORRECTED,
 			fecs_ecc_status.ecc_addr,
 			g->ecc.gr.fecs_ecc_corrected_err_count[0].counter);
-		nvgpu_err(g, "imem ecc error corrected");
+		nvgpu_err(g, "imem ecc error corrected - error count:%d",
+			g->ecc.gr.fecs_ecc_corrected_err_count[0].counter);
 	}
 	if (fecs_ecc_status.imem_uncorrected_err) {
 		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_FECS, 0,
 			GPU_FECS_FALCON_IMEM_ECC_UNCORRECTED,
 			fecs_ecc_status.ecc_addr,
 			g->ecc.gr.fecs_ecc_uncorrected_err_count[0].counter);
-		nvgpu_err(g, "imem ecc error uncorrected");
+		nvgpu_err(g, "imem ecc error uncorrected - error count:%d",
+			g->ecc.gr.fecs_ecc_uncorrected_err_count[0].counter);
 	}
 	if (fecs_ecc_status.dmem_corrected_err) {
-		nvgpu_err(g, "unexpected dmem ecc error corrected");
+		nvgpu_err(g, "unexpected dmem ecc error corrected - count: %d",
+			g->ecc.gr.fecs_ecc_corrected_err_count[0].counter);
 		/* This error is not expected to occur in gv11b and hence,
 		 * this scenario is considered as a fatal error.
 		 */
@@ -112,12 +115,9 @@ static void gv11b_gr_intr_handle_fecs_ecc_error(struct gk20a *g)
 			GPU_FECS_FALCON_DMEM_ECC_UNCORRECTED,
 			fecs_ecc_status.ecc_addr,
 			g->ecc.gr.fecs_ecc_uncorrected_err_count[0].counter);
-		nvgpu_err(g, "dmem ecc error uncorrected");
+		nvgpu_err(g, "dmem ecc error uncorrected - error count %d",
+			g->ecc.gr.fecs_ecc_uncorrected_err_count[0].counter);
 	}
-
-	nvgpu_err(g, "error count corrected: %d, uncorrected %d",
-		g->ecc.gr.fecs_ecc_corrected_err_count[0].counter,
-		g->ecc.gr.fecs_ecc_uncorrected_err_count[0].counter);
 }
 
 int gv11b_gr_intr_handle_fecs_error(struct gk20a *g,
