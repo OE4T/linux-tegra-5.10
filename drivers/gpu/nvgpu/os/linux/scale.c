@@ -17,6 +17,9 @@
  */
 
 #include <linux/devfreq.h>
+#ifdef CONFIG_DEVFREQ_THERMAL
+#include <linux/devfreq_cooling.h>
+#endif
 #include <linux/export.h>
 #include <linux/pm_qos.h>
 #include <linux/version.h>
@@ -384,6 +387,9 @@ void gk20a_scale_init(struct device *dev)
 	struct gk20a *g = platform->g;
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	struct gk20a_scale_profile *profile;
+#ifdef CONFIG_DEVFREQ_THERMAL
+	struct thermal_cooling_device *cooling;
+#endif
 	int err;
 
 	if (g->scale_profile)
@@ -434,6 +440,14 @@ void gk20a_scale_init(struct device *dev)
 
 		l->devfreq = devfreq;
 
+#ifdef CONFIG_DEVFREQ_THERMAL
+		cooling = of_devfreq_cooling_register(dev->of_node, devfreq);
+		if (IS_ERR(cooling))
+			dev_info(dev, "Failed to register cooling device\n");
+		else
+			l->cooling = cooling;
+#endif
+
 		/* create symlink /sys/devices/gpu.0/devfreq_dev */
 		if (devfreq != NULL) {
 			error = sysfs_create_link(&dev->kobj,
@@ -482,6 +496,13 @@ void gk20a_scale_exit(struct device *dev)
 				&g->scale_profile->qos_notify_block);
 		pm_qos_remove_max_notifier(PM_QOS_GPU_FREQ_BOUNDS,
 				&g->scale_profile->qos_notify_block);
+	}
+#endif
+
+#ifdef CONFIG_DEVFREQ_THERMAL
+	if (l->cooling) {
+		devfreq_cooling_unregister(l->cooling);
+		l->cooling = NULL;
 	}
 #endif
 

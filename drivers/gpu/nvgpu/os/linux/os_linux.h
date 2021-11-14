@@ -74,6 +74,9 @@ struct nvgpu_os_linux {
 	struct device *dev;
 	struct dgpu_thermal_alert thermal_alert;
 	struct nvgpu_interrupts interrupts;
+#ifdef CONFIG_DEVFREQ_THERMAL
+	struct thermal_cooling_device *cooling;
+#endif
 
 	struct nvgpu_list_node class_list_head;
 	struct nvgpu_list_node cdev_list_head;
