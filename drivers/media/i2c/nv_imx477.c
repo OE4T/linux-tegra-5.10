@@ -2,6 +2,7 @@
  * imx477.c - imx477 sensor driver
  *
  * Copyright (c) 2020, RidgeRun. All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Contact us: support@ridgerun.com
  *
@@ -61,7 +62,12 @@ static const struct regmap_config sensor_regmap_config = {
 	.reg_bits = 16,
 	.val_bits = 8,
 	.cache_type = REGCACHE_RBTREE,
-	.use_single_rw = true,
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
+		.use_single_rw = true,
+#else
+		.use_single_read = true,
+		.use_single_write = true,
+#endif
 };
 
 static inline void imx477_get_frame_length_regs(imx477_reg * regs,

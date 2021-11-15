@@ -5,7 +5,7 @@ ccflags-y += -I$(srctree)/drivers/video/tegra/camera
 
 obj-$(CONFIG_NV_VIDEO_IMX185) += nv_imx185.o
 obj-$(CONFIG_NV_VIDEO_IMX185) += nv_imx185_v1.o
-obj-$(CONFIG_VIDEO_IMX477) += imx477.o
+obj-$(CONFIG_NV_VIDEO_IMX477) += nv_imx477.o
 obj-$(CONFIG_NV_VIDEO_IMX219) += nv_imx219.o
 obj-$(CONFIG_NV_VIDEO_IMX268) += nv_imx268.o
 obj-$(CONFIG_NV_VIDEO_IMX274) += nv_imx274.o
