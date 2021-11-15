@@ -378,6 +378,11 @@ static void *nvmap_dmabuf_vmap(struct dma_buf *dmabuf)
 	struct nvmap_handle_info *info = dmabuf->priv;
 
 	trace_nvmap_dmabuf_vmap(dmabuf);
+
+	/* Don't allow vmap on RO buffers */
+	if (info->is_ro)
+		return ERR_PTR(-EPERM);
+
 	return __nvmap_mmap(info->handle);
 }
 
@@ -396,6 +401,11 @@ static int nvmap_dmabuf_vmap(struct dma_buf *dmabuf, struct dma_buf_map *map)
 	int ret = 0;
 
 	trace_nvmap_dmabuf_vmap(dmabuf);
+
+	/* Don't allow vmap on RO buffers */
+	if (info->is_ro)
+		return -EPERM;
+
 	res = __nvmap_mmap(info->handle);
 	if (res != NULL) {
 		map->vaddr = res;
