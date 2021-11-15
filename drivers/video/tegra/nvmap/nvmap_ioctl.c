@@ -349,6 +349,12 @@ int nvmap_ioctl_rw_handle(struct file *filp, int is_read, void __user *arg,
 	if (IS_ERR_OR_NULL(h))
 		return -EINVAL;
 
+	/* Don't allow write on RO handle */
+	if (!is_read && is_nvmap_dmabuf_fd_ro(handle)) {
+		nvmap_handle_put(h);
+		return -EPERM;
+	}
+
 	if (is_read && h->heap_type == NVMAP_HEAP_CARVEOUT_VPR) {
 		nvmap_handle_put(h);
 		return -EPERM;
