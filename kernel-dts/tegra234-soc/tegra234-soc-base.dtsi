@@ -773,8 +773,9 @@
 		status = "disabled";
 	};
 
-	ga10b {
+	tegra_ga10b: ga10b {
 		compatible = "nvidia,ga10b";
+		#cooling-cells = <2>;
 		reg = <0x0 0x17000000 0x0 0x1000000
 		       0x0 0x18000000 0x0 0x1000000
 		       0x0 0x03b41000 0x0 0x00001000>;
