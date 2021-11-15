@@ -110,15 +110,18 @@ int nvmap_ioctl_getfd(struct file *filp, void __user *arg)
 	struct nvmap_create_handle op;
 	struct nvmap_client *client = filp->private_data;
 	struct dma_buf *dmabuf;
+	bool is_ro = false;
 
 	if (copy_from_user(&op, arg, sizeof(op)))
 		return -EFAULT;
 
 	handle = nvmap_handle_get_from_fd(op.handle);
 	if (handle) {
-		op.fd = nvmap_get_dmabuf_fd(client, handle, false);
+		is_ro = is_nvmap_dmabuf_fd_ro(op.handle);
+		op.fd = nvmap_get_dmabuf_fd(client, handle, is_ro);
 		nvmap_handle_put(handle);
-		dmabuf = IS_ERR_VALUE((uintptr_t)op.fd) ? NULL : handle->dmabuf;
+		dmabuf = is_ro ? handle->dmabuf_ro : handle->dmabuf;
+		dmabuf = IS_ERR_VALUE((uintptr_t)op.fd) ? NULL : dmabuf;
 	} else {
 		/* if we get an error, the fd might be non-nvmap dmabuf fd */
 		dmabuf = dma_buf_get(op.handle);
@@ -213,6 +216,7 @@ int nvmap_ioctl_create(struct file *filp, unsigned int cmd, void __user *arg)
 	struct dma_buf *dmabuf = NULL;
 	struct nvmap_handle *handle = NULL;
 	int fd;
+	bool is_ro = false;
 
 	if (copy_from_user(&op, arg, sizeof(op)))
 		return -EFAULT;
@@ -228,6 +232,7 @@ int nvmap_ioctl_create(struct file *filp, unsigned int cmd, void __user *arg)
 		if (!IS_ERR(ref))
 			ref->handle->orig_size = op.size64;
 	} else if (cmd == NVMAP_IOC_FROM_FD) {
+		is_ro = is_nvmap_dmabuf_fd_ro(op.fd);
 		ref = nvmap_create_handle_from_fd(client, op.fd);
 
 		/* if we get an error, the fd might be non-nvmap dmabuf fd */
@@ -245,8 +250,8 @@ int nvmap_ioctl_create(struct file *filp, unsigned int cmd, void __user *arg)
 
 	if (!IS_ERR(ref)) {
 		handle = ref->handle;
-		dmabuf = handle->dmabuf;
-		fd = nvmap_get_dmabuf_fd(client, ref->handle, false);
+		dmabuf = is_ro ? handle->dmabuf_ro :  handle->dmabuf;
+		fd = nvmap_get_dmabuf_fd(client, ref->handle, is_ro);
 	} else if (!dmabuf) {
 		return PTR_ERR(ref);
 	}
@@ -255,6 +260,7 @@ int nvmap_ioctl_create(struct file *filp, unsigned int cmd, void __user *arg)
 		op.handle64 = fd;
 	else
 		op.handle = fd;
+
 	return nvmap_install_fd(client, handle, fd,
 				arg, &op, sizeof(op), 1, dmabuf);
 }
@@ -285,7 +291,7 @@ int nvmap_ioctl_create_from_va(struct file *filp, void __user *arg)
 	err = nvmap_alloc_handle_from_va(client, handle,
 					 op.va, op.flags);
 	if (err) {
-		nvmap_free_handle(client, handle, false);
+		nvmap_free_handle(client, handle, op.flags & NVMAP_HANDLE_RO);
 		return err;
 	}
 

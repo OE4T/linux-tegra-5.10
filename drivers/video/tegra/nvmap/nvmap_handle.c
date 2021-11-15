@@ -413,9 +413,13 @@ struct nvmap_handle_ref *nvmap_create_handle_from_fd(
 
 	BUG_ON(!client);
 
+	if (is_nvmap_dmabuf_fd_ro(fd))
+		return nvmap_dup_handle_ro(client, fd);
+
 	handle = nvmap_handle_get_from_dmabuf_fd(client, fd);
 	if (IS_ERR(handle))
 		return ERR_CAST(handle);
+
 	ref = nvmap_duplicate_handle(client, handle, false, false);
 	nvmap_handle_put(handle);
 	return ref;
