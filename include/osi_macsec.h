@@ -173,6 +173,13 @@
 /** @} */
 
 /**
+ * @brief Indicates different operations on MACSEC SA
+ */
+#define OSI_CREATE_SA           1U
+#define OSI_ENABLE_SA           2U
+#define OSI_DISABLE_SA          3U
+
+/**
  * @brief MACSEC SA State LUT entry outputs structure
  */
 struct osi_sa_state_outputs {
@@ -286,6 +293,8 @@ struct osi_macsec_sc_info {
 	nveu32_t pn_window;
 	/** SC LUT index */
 	nveu32_t sc_idx_start;
+	/** flags - encoding various states of SA */
+	nveu32_t flags;
 };
 
 /**
