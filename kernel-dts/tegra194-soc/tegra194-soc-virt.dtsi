@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -133,14 +133,8 @@
 	};
 #else
 	iommu@12000000 {
-#if LINUX_VERSION >= 414
-		reg = <0 0x12000000 0 0x800000>,
-		      <0 0x11000000 0 0x800000>;
-		/delete-property/ stream-match-mask;
-#else
 		reg = <0x0 0x12000000 0x0 0x01000000>, /* SMMU0 16MB */
 		      <0x0 0x11000000 0x0 0x01000000>; /* SMMU1 16MB */
-#endif
 		/delete-property/ iso-smmu-id;
 	};
 #endif
