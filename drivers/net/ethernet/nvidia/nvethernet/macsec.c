@@ -617,7 +617,7 @@ static int macsec_dis_rx_sa(struct sk_buff *skb, struct genl_info *info)
 	struct ether_priv_data *pdata;
 	struct osi_macsec_sc_info rx_sa;
 	struct nlattr *tb_sa[NUM_NV_MACSEC_SA_ATTR];
-	int ret = 0, i = 0;
+	int ret = 0;
 	unsigned short kt_idx;
 	struct device *dev = NULL;
 #ifndef MACSEC_KEY_PROGRAM
@@ -649,7 +649,7 @@ static int macsec_dis_rx_sa(struct sk_buff *skb, struct genl_info *info)
 		goto exit;
 	}
 
-	pr_err("%s:\n"
+	dev_info(dev, "%s:\n"
 		"\tsci: %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n"
 		"\tan: %u\n"
 		"\tpn: %u",
@@ -657,11 +657,9 @@ static int macsec_dis_rx_sa(struct sk_buff *skb, struct genl_info *info)
 		rx_sa.sci[0], rx_sa.sci[1], rx_sa.sci[2], rx_sa.sci[3],
 		rx_sa.sci[4], rx_sa.sci[5], rx_sa.sci[6], rx_sa.sci[7],
 		rx_sa.curr_an, rx_sa.next_pn);
-	pr_err("\tkey: ");
-	for (i = 0; i < 16; i++) {
-		pr_cont(" %02x", rx_sa.sak[i]);
-	}
-	pr_err("");
+	dev_info(dev, "\tkey: " KEYSTR, KEY2STR(rx_sa.sak));
+
+	rx_sa.flags = OSI_DISABLE_SA;
 
 	mutex_lock(&macsec_pdata->lock);
 	ret = osi_macsec_config(pdata->osi_core, &rx_sa, OSI_DISABLE,
@@ -691,7 +689,7 @@ exit:
 	return ret;
 }
 
-static int macsec_en_rx_sa(struct sk_buff *skb, struct genl_info *info)
+static int macsec_create_rx_sa(struct sk_buff *skb, struct genl_info *info)
 {
 	struct nlattr **attrs = info->attrs;
 	struct macsec_priv_data *macsec_pdata;
@@ -730,7 +728,7 @@ static int macsec_en_rx_sa(struct sk_buff *skb, struct genl_info *info)
 	}
 
 	rx_sa.pn_window = macsec_pdata->pn_window;
-	pr_err("%s:\n"
+	dev_info(dev, "%s:\n"
 		"\tsci: %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n"
 		"\tan: %u\n"
 		"\tpn: %u\n"
@@ -740,11 +738,9 @@ static int macsec_en_rx_sa(struct sk_buff *skb, struct genl_info *info)
 		rx_sa.sci[0], rx_sa.sci[1], rx_sa.sci[2], rx_sa.sci[3],
 		rx_sa.sci[4], rx_sa.sci[5], rx_sa.sci[6], rx_sa.sci[7],
 		rx_sa.curr_an, rx_sa.next_pn, rx_sa.lowest_pn, rx_sa.pn_window);
-	pr_err("\tkey: ");
-	for (i = 0; i < 16; i++) {
-		pr_cont(" %02x", rx_sa.sak[i]);
-	}
-	pr_err("");
+	dev_info(dev, "\tkey: " KEYSTR, KEY2STR(rx_sa.sak));
+
+	rx_sa.flags = OSI_CREATE_SA;
 
 	mutex_lock(&macsec_pdata->lock);
 	ret = osi_macsec_config(pdata->osi_core, &rx_sa, OSI_ENABLE,
@@ -781,6 +777,60 @@ exit:
 	return ret;
 }
 
+static int macsec_en_rx_sa(struct sk_buff *skb, struct genl_info *info)
+{
+	struct nlattr **attrs = info->attrs;
+	struct macsec_priv_data *macsec_pdata;
+	struct ether_priv_data *pdata;
+	struct osi_macsec_sc_info rx_sa;
+	struct nlattr *tb_sa[NUM_NV_MACSEC_SA_ATTR];
+	int ret = 0;
+	unsigned short kt_idx;
+	struct device *dev = NULL;
+
+	PRINT_ENTRY();
+	macsec_pdata = genl_to_macsec_pdata(info);
+	if (macsec_pdata) {
+		pdata = macsec_pdata->ether_pdata;
+	} else {
+		ret = -EPROTO;
+		goto exit;
+	}
+	dev = pdata->dev;
+
+	if (!netif_running(pdata->ndev)) {
+		ret = -ENETDOWN;
+		dev_err(dev, "%s: MAC interface down!!\n", __func__);
+		goto exit;
+	}
+
+	if (!attrs[NV_MACSEC_ATTR_IFNAME] ||
+	    parse_sa_config(attrs, tb_sa, &rx_sa)) {
+		dev_err(dev, "%s: failed to parse nlattrs", __func__);
+		ret = -EINVAL;
+		goto exit;
+	}
+
+	dev_err(dev, "%s: Enable receive SA", __func__);
+
+	rx_sa.pn_window = macsec_pdata->pn_window;
+	rx_sa.flags = OSI_ENABLE_SA;
+
+	mutex_lock(&macsec_pdata->lock);
+	ret = osi_macsec_config(pdata->osi_core, &rx_sa, OSI_ENABLE,
+				OSI_CTLR_SEL_RX, &kt_idx);
+	if (ret < 0) {
+		dev_err(dev, "%s: failed to enable Rx SA", __func__);
+		mutex_unlock(&macsec_pdata->lock);
+		goto exit;
+	}
+	mutex_unlock(&macsec_pdata->lock);
+
+exit:
+	PRINT_EXIT();
+	return ret;
+}
+
 static int macsec_dis_tx_sa(struct sk_buff *skb, struct genl_info *info)
 {
 	struct nlattr **attrs = info->attrs;
@@ -788,7 +838,7 @@ static int macsec_dis_tx_sa(struct sk_buff *skb, struct genl_info *info)
 	struct ether_priv_data *pdata;
 	struct osi_macsec_sc_info tx_sa;
 	struct nlattr *tb_sa[NUM_NV_MACSEC_SA_ATTR];
-	int ret = 0, i = 0;
+	int ret = 0;
 	unsigned short kt_idx;
 	struct device *dev = NULL;
 #ifndef MACSEC_KEY_PROGRAM
@@ -819,7 +869,7 @@ static int macsec_dis_tx_sa(struct sk_buff *skb, struct genl_info *info)
 		goto exit;
 	}
 
-	pr_err("%s:\n"
+	dev_info(dev, "%s:\n"
 		"\tsci: %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n"
 		"\tan: %u\n"
 		"\tpn: %u",
@@ -827,11 +877,9 @@ static int macsec_dis_tx_sa(struct sk_buff *skb, struct genl_info *info)
 		tx_sa.sci[0], tx_sa.sci[1], tx_sa.sci[2], tx_sa.sci[3],
 		tx_sa.sci[4], tx_sa.sci[5], tx_sa.sci[6], tx_sa.sci[7],
 		tx_sa.curr_an, tx_sa.next_pn);
-	pr_err("\tkey: ");
-	for (i = 0; i < 16; i++) {
-		pr_cont(" %02x", tx_sa.sak[i]);
-	}
-	pr_err("");
+	dev_info(dev, "\tkey: " KEYSTR, KEY2STR(tx_sa.sak));
+
+	tx_sa.flags = OSI_DISABLE_SA;
 
 	mutex_lock(&macsec_pdata->lock);
 	ret = osi_macsec_config(pdata->osi_core, &tx_sa, OSI_DISABLE,
@@ -863,7 +911,7 @@ exit:
 	return ret;
 }
 
-static int macsec_en_tx_sa(struct sk_buff *skb, struct genl_info *info)
+static int macsec_create_tx_sa(struct sk_buff *skb, struct genl_info *info)
 {
 	struct nlattr **attrs = info->attrs;
 	struct macsec_priv_data *macsec_pdata;
@@ -902,7 +950,7 @@ static int macsec_en_tx_sa(struct sk_buff *skb, struct genl_info *info)
 	}
 
 	tx_sa.pn_window = macsec_pdata->pn_window;
-	pr_err("%s:\n"
+	dev_info(dev, "%s:\n"
 		"\tsci: %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n"
 		"\tan: %u\n"
 		"\tpn: %u",
@@ -910,11 +958,8 @@ static int macsec_en_tx_sa(struct sk_buff *skb, struct genl_info *info)
 		tx_sa.sci[0], tx_sa.sci[1], tx_sa.sci[2], tx_sa.sci[3],
 		tx_sa.sci[4], tx_sa.sci[5], tx_sa.sci[6], tx_sa.sci[7],
 		tx_sa.curr_an, tx_sa.next_pn);
-	pr_err("\tkey: ");
-	for (i = 0; i < 16; i++) {
-		pr_cont(" %02x", tx_sa.sak[i]);
-	}
-	pr_err("");
+	dev_info(dev, "\tkey: " KEYSTR, KEY2STR(tx_sa.sak));
+	tx_sa.flags = OSI_CREATE_SA;
 
 	mutex_lock(&macsec_pdata->lock);
 	ret = osi_macsec_config(pdata->osi_core, &tx_sa, OSI_ENABLE,
@@ -945,6 +990,60 @@ static int macsec_en_tx_sa(struct sk_buff *skb, struct genl_info *info)
 		goto exit;
 	}
 #endif /* !MACSEC_KEY_PROGRAM */
+
+exit:
+	PRINT_EXIT();
+	return ret;
+}
+
+static int macsec_en_tx_sa(struct sk_buff *skb, struct genl_info *info)
+{
+	struct nlattr **attrs = info->attrs;
+	struct macsec_priv_data *macsec_pdata;
+	struct ether_priv_data *pdata;
+	struct osi_macsec_sc_info tx_sa;
+	struct nlattr *tb_sa[NUM_NV_MACSEC_SA_ATTR];
+	int ret = 0;
+	unsigned short kt_idx;
+	struct device *dev = NULL;
+
+	PRINT_ENTRY();
+	macsec_pdata = genl_to_macsec_pdata(info);
+	if (macsec_pdata) {
+		pdata = macsec_pdata->ether_pdata;
+	} else {
+		ret = -EPROTO;
+		goto exit;
+	}
+	dev = pdata->dev;
+
+	if (!netif_running(pdata->ndev)) {
+		ret = -ENETDOWN;
+		dev_err(dev, "%s: MAC interface down!!\n", __func__);
+		goto exit;
+	}
+
+	if (!attrs[NV_MACSEC_ATTR_IFNAME] ||
+	    parse_sa_config(attrs, tb_sa, &tx_sa)) {
+		dev_err(dev, "%s: failed to parse nlattrs", __func__);
+		ret = -EINVAL;
+		goto exit;
+	}
+	dev_info(dev, "%s: ENable Transmit SA", __func__);
+
+	tx_sa.pn_window = macsec_pdata->pn_window;
+	tx_sa.flags = OSI_ENABLE_SA;
+
+	mutex_lock(&macsec_pdata->lock);
+	ret = osi_macsec_config(pdata->osi_core, &tx_sa, OSI_ENABLE,
+				OSI_CTLR_SEL_TX, &kt_idx);
+	if (ret < 0) {
+		dev_err(dev, "%s: failed to enable Tx SA", __func__);
+		mutex_unlock(&macsec_pdata->lock);
+		goto exit;
+	}
+
+	mutex_unlock(&macsec_pdata->lock);
 
 exit:
 	PRINT_EXIT();
@@ -1172,6 +1271,11 @@ static const struct genl_ops nv_macsec_genl_ops[] = {
 		.flags = GENL_ADMIN_PERM,
 	},
 	{
+		.cmd = NV_MACSEC_CMD_CREATE_TX_SA,
+		.doit = macsec_create_tx_sa,
+		.flags = GENL_ADMIN_PERM,
+	},
+	{
 		.cmd = NV_MACSEC_CMD_DIS_TX_SA,
 		.doit = macsec_dis_tx_sa,
 		.flags = GENL_ADMIN_PERM,
@@ -1179,6 +1283,11 @@ static const struct genl_ops nv_macsec_genl_ops[] = {
 	{
 		.cmd = NV_MACSEC_CMD_EN_RX_SA,
 		.doit = macsec_en_rx_sa,
+		.flags = GENL_ADMIN_PERM,
+	},
+	{
+		.cmd = NV_MACSEC_CMD_CREATE_RX_SA,
+		.doit = macsec_create_rx_sa,
 		.flags = GENL_ADMIN_PERM,
 	},
 	{
