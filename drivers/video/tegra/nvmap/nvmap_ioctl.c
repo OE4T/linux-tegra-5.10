@@ -979,7 +979,7 @@ int nvmap_ioctl_get_sci_ipc_id(struct file *filp, void __user *arg)
 	is_ro = is_nvmap_dmabuf_fd_ro(op.handle);
 
 	/* Cannot create RW handle from RO handle */
-	if (is_ro && (op.flags & PROT_WRITE) != 0) {
+	if (is_ro && (op.flags != PROT_READ)) {
 		ret = -EPERM;
 		goto exit;
 	}
