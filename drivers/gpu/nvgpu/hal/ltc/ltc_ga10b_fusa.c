@@ -90,6 +90,7 @@ void ga10b_ltc_lts_set_mgmt_setup(struct gk20a *g)
 	}
 }
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 int ga10b_set_l2_max_ways_evict_last(struct gk20a *g, struct nvgpu_tsg *tsg,
 		u32 num_ways)
 {
@@ -189,6 +190,7 @@ int ga10b_get_l2_max_ways_evict_last(struct gk20a *g, struct nvgpu_tsg *tsg,
 
 	return err;
 }
+#endif /* CONFIG_NVGPU_DEBUGGER */
 
 u64 ga10b_determine_L2_size_bytes(struct gk20a *g)
 {

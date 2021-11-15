@@ -1033,11 +1033,9 @@ int nvgpu_pmu_pg_init(struct gk20a *g, struct nvgpu_pmu *pmu,
 		nvgpu_gv11b_pg_sw_init(g, *pg_p);
 		break;
 
-#if defined(CONFIG_NVGPU_NON_FUSA)
 	case NVGPU_GPUID_GA10B:
 		nvgpu_ga10b_pg_sw_init(g, *pg_p);
 		break;
-#endif /* CONFIG_NVGPU_NON_FUSA */
 
 	default:
 #if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)

@@ -32,9 +32,7 @@
  */
 struct gk20a;
 
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 struct nvgpu_fuse_feature_override_ecc;
-#endif
 
 /**
  * Fuse HAL operations.
@@ -241,18 +239,16 @@ struct gops_fuse {
 	int (*read_ucode_version)(struct gk20a *g, u32 falcon_id,
 			u32 *ucode_version);
 
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 	int (*fetch_falcon_fuse_settings)(struct gk20a *g, u32 falcon_id,
 			unsigned long *fuse_settings);
-#endif
-
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
-	void (*write_feature_override_ecc)(struct gk20a *g, u32 val);
-	void (*write_feature_override_ecc_1)(struct gk20a *g, u32 val);
 	void (*read_feature_override_ecc)(struct gk20a *g,
 			struct nvgpu_fuse_feature_override_ecc *ecc_feature);
 	u32 (*fuse_opt_sm_ttu_en)(struct gk20a *g);
 	u32 (*opt_sec_source_isolation_en)(struct gk20a *g);
+
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
+	void (*write_feature_override_ecc)(struct gk20a *g, u32 val);
+	void (*write_feature_override_ecc_1)(struct gk20a *g, u32 val);
 #endif
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 };

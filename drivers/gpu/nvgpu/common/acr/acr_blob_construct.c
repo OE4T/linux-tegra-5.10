@@ -105,7 +105,7 @@ int nvgpu_acr_lsf_pmu_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 exit:
 	return err;
 }
-#if defined(CONFIG_NVGPU_NON_FUSA)
+
 s32 nvgpu_acr_lsf_pmu_ncore_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 {
 	struct lsf_ucode_desc *lsf_desc = NULL;
@@ -163,7 +163,6 @@ exit:
 	return err;
 }
 #endif
-#endif
 
 int nvgpu_acr_lsf_fecs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 {
@@ -171,9 +170,7 @@ int nvgpu_acr_lsf_fecs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 	u32 ver = nvgpu_safe_add_u32(g->params.gpu_arch,
 					g->params.gpu_impl);
 	struct lsf_ucode_desc *lsf_desc = NULL;
-#if defined(CONFIG_NVGPU_NON_FUSA)
 	struct lsf_ucode_desc_wrapper *lsf_desc_wrapper = NULL;
-#endif
 	struct nvgpu_firmware *fecs_sig = NULL;
 	struct flcn_ucode_img *p_img =
 		(struct flcn_ucode_img *)lsf_ucode_img;
@@ -187,7 +184,6 @@ int nvgpu_acr_lsf_fecs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 			fecs_sig = nvgpu_request_firmware(g, GM20B_FECS_UCODE_SIG,
 				NVGPU_REQUEST_FIRMWARE_NO_WARN);
 			break;
-#if defined(CONFIG_NVGPU_NON_FUSA)
 		case NVGPU_GPUID_GA10B:
 			if (!nvgpu_is_enabled(g, NVGPU_PKC_LS_SIG_ENABLED)) {
 				fecs_sig = nvgpu_request_firmware(g,
@@ -199,7 +195,6 @@ int nvgpu_acr_lsf_fecs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 					NVGPU_REQUEST_FIRMWARE_NO_WARN);
 			}
 			break;
-#endif
 #ifdef CONFIG_NVGPU_DGPU
 		case NVGPU_GPUID_TU104:
 			fecs_sig = nvgpu_request_firmware(g, TU104_FECS_UCODE_SIG,
@@ -234,7 +229,6 @@ int nvgpu_acr_lsf_fecs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 			min_t(size_t, sizeof(*lsf_desc), fecs_sig->size));
 
 		lsf_desc->falcon_id = FALCON_ID_FECS;
-#if defined(CONFIG_NVGPU_NON_FUSA)
 	} else {
 		lsf_desc_wrapper =
 			nvgpu_kzalloc(g, sizeof(struct lsf_ucode_desc_wrapper));
@@ -246,7 +240,6 @@ int nvgpu_acr_lsf_fecs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 			min_t(size_t, sizeof(*lsf_desc_wrapper), fecs_sig->size));
 
 		lsf_desc_wrapper->lsf_ucode_desc_v2.falcon_id = FALCON_ID_FECS;
-#endif
 	}
 
 	p_img->desc = nvgpu_kzalloc(g, sizeof(struct ls_falcon_ucode_desc));
@@ -286,11 +279,9 @@ int nvgpu_acr_lsf_fecs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 
 	if (!nvgpu_is_enabled(g, NVGPU_PKC_LS_SIG_ENABLED)) {
 		p_img->lsf_desc = (struct lsf_ucode_desc *)lsf_desc;
-#if defined(CONFIG_NVGPU_NON_FUSA)
 	} else {
 		p_img->lsf_desc_wrapper =
 			(struct lsf_ucode_desc_wrapper *)lsf_desc_wrapper;
-#endif
 	}
 
 	nvgpu_acr_dbg(g, "fecs fw loaded\n");
@@ -301,10 +292,8 @@ int nvgpu_acr_lsf_fecs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 free_lsf_desc:
 	if (!nvgpu_is_enabled(g, NVGPU_PKC_LS_SIG_ENABLED)) {
 		nvgpu_kfree(g, lsf_desc);
-#if defined(CONFIG_NVGPU_NON_FUSA)
 	} else {
 		nvgpu_kfree(g, lsf_desc_wrapper);
-#endif
 	}
 rel_sig:
 	nvgpu_release_firmware(g, fecs_sig);
@@ -316,9 +305,7 @@ int nvgpu_acr_lsf_gpccs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 	u32 tmp_size;
 	u32 ver = nvgpu_safe_add_u32(g->params.gpu_arch, g->params.gpu_impl);
 	struct lsf_ucode_desc *lsf_desc = NULL;
-#if defined(CONFIG_NVGPU_NON_FUSA)
 	struct lsf_ucode_desc_wrapper *lsf_desc_wrapper = NULL;
-#endif
 	struct nvgpu_firmware *gpccs_sig = NULL;
 	struct flcn_ucode_img *p_img =
 		(struct flcn_ucode_img *)lsf_ucode_img;
@@ -340,7 +327,6 @@ int nvgpu_acr_lsf_gpccs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 			gpccs_sig = nvgpu_request_firmware(g, T18x_GPCCS_UCODE_SIG,
 					NVGPU_REQUEST_FIRMWARE_NO_WARN);
 			break;
-#if defined(CONFIG_NVGPU_NON_FUSA)
 		case NVGPU_GPUID_GA10B:
 			if (!nvgpu_is_enabled(g, NVGPU_PKC_LS_SIG_ENABLED)) {
 				gpccs_sig = nvgpu_request_firmware(g,
@@ -352,7 +338,6 @@ int nvgpu_acr_lsf_gpccs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 					NVGPU_REQUEST_FIRMWARE_NO_WARN);
 			}
 			break;
-#endif
 #ifdef CONFIG_NVGPU_DGPU
 		case NVGPU_GPUID_TU104:
 			gpccs_sig = nvgpu_request_firmware(g, TU104_GPCCS_UCODE_SIG,
@@ -387,7 +372,6 @@ int nvgpu_acr_lsf_gpccs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 		nvgpu_memcpy((u8 *)lsf_desc, gpccs_sig->data,
 			min_t(size_t, sizeof(*lsf_desc), gpccs_sig->size));
 		lsf_desc->falcon_id = FALCON_ID_GPCCS;
-#if defined(CONFIG_NVGPU_NON_FUSA)
 	} else {
 		lsf_desc_wrapper =
 			nvgpu_kzalloc(g, sizeof(struct lsf_ucode_desc_wrapper));
@@ -398,7 +382,6 @@ int nvgpu_acr_lsf_gpccs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 		nvgpu_memcpy((u8 *)lsf_desc_wrapper, gpccs_sig->data,
 			min_t(size_t, sizeof(*lsf_desc_wrapper), gpccs_sig->size));
 		lsf_desc_wrapper->lsf_ucode_desc_v2.falcon_id = FALCON_ID_GPCCS;
-#endif
 	}
 
 	nvgpu_acr_dbg(g, "gpccs fw copied to desc buffer\n");

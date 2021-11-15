@@ -113,11 +113,9 @@ struct hs_acr {
 		struct flcn_acr_desc *acr_dmem_desc;
 	};
 
-#if defined(CONFIG_NVGPU_NON_FUSA)
 	struct nvgpu_mem acr_falcon2_sysmem_desc;
 	struct flcn2_acr_desc acr_sysmem_desc;
 	struct nvgpu_mem ls_pmu_desc;
-#endif
 
 	/* Falcon used to execute ACR ucode */
 	struct nvgpu_falcon *acr_flcn;
@@ -134,9 +132,6 @@ int nvgpu_acr_wait_for_completion(struct gk20a *g, struct hs_acr *acr_desc,
 int nvgpu_acr_bootstrap_hs_ucode(struct gk20a *g, struct nvgpu_acr *acr,
 	struct hs_acr *acr_desc);
 
-
-#if defined(CONFIG_NVGPU_FALCON_NON_FUSA) && defined(CONFIG_NVGPU_HAL_NON_FUSA)
 int nvgpu_acr_bootstrap_hs_ucode_riscv(struct gk20a *g, struct nvgpu_acr *acr);
-#endif
 
 #endif /* ACR_BOOTSTRAP_H */

@@ -219,9 +219,11 @@ void ga10b_fifo_ctxsw_timeout_isr(struct gk20a *g,
 			struct nvgpu_runlist *runlist)
 {
 	u32 rleng, reg_val, timeout;
-	u32 active_eng_id;
 	u32 ms = 0U;
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
+	u32 active_eng_id;
 	bool recover = false;
+#endif
 	u32 info_status;
 	u32 tsgid = NVGPU_INVALID_TSG_ID;
 	const struct nvgpu_device *dev;

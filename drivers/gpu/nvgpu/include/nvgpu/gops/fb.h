@@ -438,6 +438,9 @@ struct gops_fb {
 
 	struct nvgpu_hw_err_inject_info_desc * (*get_hubmmu_err_desc)
 							(struct gk20a *g);
+
+	u32 (*get_num_active_ltcs)(struct gk20a *g);
+
 #ifdef CONFIG_NVGPU_COMPRESSION
 	void (*cbc_configure)(struct gk20a *g, struct nvgpu_cbc *cbc);
 	/**
@@ -492,8 +495,6 @@ struct gops_fb {
 #endif
 
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA)
-	u32 (*get_num_active_ltcs)(struct gk20a *g);
-
 #ifdef CONFIG_NVGPU_MIG
 	int (*config_veid_smc_map)(struct gk20a *g, bool enable);
 	int (*set_smc_eng_config)(struct gk20a *g, bool enable);
@@ -530,8 +531,8 @@ struct gops_fb {
 	size_t (*get_vidmem_size)(struct gk20a *g);
 	int (*apply_pdb_cache_errata)(struct gk20a *g);
 	int (*init_fbpa)(struct gk20a *g);
-	void (*handle_fbpa_intr)(struct gk20a *g, u32 fbpa_id);
 #endif
+	void (*handle_fbpa_intr)(struct gk20a *g, u32 fbpa_id);
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 };
 

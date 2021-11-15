@@ -357,6 +357,7 @@ void gr_ga100_set_circular_buffer_size(struct gk20a *g, u32 data)
 	}
 }
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 /*
  * The sys, tpc, etpc, ppc and gpc ctxsw_reg bundles are divided into compute
  * and gfx. These registers are stored contigously in a single buffer segment.
@@ -663,3 +664,4 @@ int gr_ga100_process_context_buffer_priv_segment(struct gk20a *g,
 	}
 	return -EINVAL;
 }
+#endif

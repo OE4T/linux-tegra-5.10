@@ -223,11 +223,9 @@ static int gr_init_setup_hw(struct gk20a *g, struct nvgpu_gr *gr)
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
-#if defined(CONFIG_NVGPU_NON_FUSA)
 	if (g->ops.gr.init.eng_config != NULL) {
 		g->ops.gr.init.eng_config(g);
 	}
-#endif
 
 	g->ops.gr.init.gpc_mmu(g);
 
@@ -565,10 +563,8 @@ static int gr_init_prepare_hw_impl(struct gk20a *g)
 			sw_non_ctx_load->l[i].value);
 	}
 
-#if defined(CONFIG_NVGPU_NON_FUSA)
 	nvgpu_gr_init_reset_enable_hw_non_ctx_local(g);
 	nvgpu_gr_init_reset_enable_hw_non_ctx_global(g);
-#endif
 	nvgpu_log_info(g, "end: netlist: sw_non_ctx_load: register writes");
 
 	err = g->ops.gr.falcon.wait_mem_scrubbing(g);
@@ -621,7 +617,6 @@ static int gr_reset_engine(struct gk20a *g)
 		return err;
 	}
 
-#if defined(CONFIG_NVGPU_NON_FUSA)
 	if (g->ops.gr.init.reset_gpcs != NULL) {
 		err = g->ops.gr.init.reset_gpcs(g);
 		if (err != 0) {
@@ -629,7 +624,6 @@ static int gr_reset_engine(struct gk20a *g)
 			return err;
 		}
 	}
-#endif
 
 	err = g->ops.mc.enable_dev(g, dev, true);
 	if (err != 0) {
@@ -797,7 +791,6 @@ int nvgpu_gr_reset(struct gk20a *g)
 }
 #endif
 
-#if defined(CONFIG_NVGPU_NON_FUSA)
 static int gr_init_sm_id_config_early(struct gk20a *g, struct nvgpu_gr *gr)
 {
 	int err;
@@ -811,7 +804,6 @@ static int gr_init_sm_id_config_early(struct gk20a *g, struct nvgpu_gr *gr)
 
 	return 0;
 }
-#endif
 
 static int gr_init_ctxsw_falcon_support(struct gk20a *g, struct nvgpu_gr *gr)
 {
@@ -853,7 +845,6 @@ static int gr_init_support_impl(struct gk20a *g)
 		}
 	}
 
-#if defined(CONFIG_NVGPU_NON_FUSA)
 	/*
 	 * Move sm id programming before loading ctxsw and gpccs firmwares. This
 	 * is the actual sequence expected by ctxsw ucode.
@@ -862,7 +853,6 @@ static int gr_init_support_impl(struct gk20a *g)
 	if (err != 0) {
 		return err;
 	}
-#endif
 
 	err = gr_init_ctxsw_falcon_support(g, gr);
 	if (err != 0) {
@@ -1214,7 +1204,6 @@ u32 nvgpu_gr_get_tpc_num(struct gk20a *g, u32 addr)
 	return 0;
 }
 
-#ifdef CONFIG_NVGPU_NON_FUSA
 void nvgpu_gr_init_reset_enable_hw_non_ctx_local(struct gk20a *g)
 {
 	u32 i = 0U;
@@ -1268,4 +1257,3 @@ void nvgpu_gr_init_reset_enable_hw_non_ctx_global(struct gk20a *g)
 
 	return;
 }
-#endif

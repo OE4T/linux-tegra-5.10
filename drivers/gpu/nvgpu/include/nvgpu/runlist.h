@@ -40,11 +40,9 @@ struct nvgpu_channel;
 struct nvgpu_device;
 
 /** @cond DOXYGEN_SHOULD_SKIP_THIS */
-#if defined(CONFIG_NVGPU_NON_FUSA)
 struct nvgpu_pbdma_info;
 
 #define RLENG_PER_RUNLIST_SIZE			3
-#endif
 
 /**
  * Low interleave level for runlist entry. TSGs with this interleave level
@@ -168,7 +166,6 @@ struct nvgpu_runlist {
 	struct nvgpu_mutex runlist_lock;
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
-#if defined(CONFIG_NVGPU_NON_FUSA)
 	/* Ampere+ runlist info additions */
 
 	/** Runlist pri base - offset into device's runlist space */
@@ -179,7 +176,6 @@ struct nvgpu_runlist {
 	const struct nvgpu_pbdma_info *pbdma_info;
 	/** Pointer to engine info for per runlist engine id */
 	const struct nvgpu_device *rl_dev_list[RLENG_PER_RUNLIST_SIZE];
-#endif
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 };
 

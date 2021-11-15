@@ -29,10 +29,7 @@
 #ifdef CONFIG_NVGPU_DGPU
 #include "falcon_sw_tu104.h"
 #endif
-
-#ifdef CONFIG_NVGPU_NON_FUSA
 #include "falcon_sw_ga10b.h"
-#endif /* CONFIG_NVGPU_NON_FUSA */
 
 #if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 #include <nvgpu_next_falcon.h>
@@ -394,7 +391,6 @@ u32 nvgpu_falcon_get_id(struct nvgpu_falcon *flcn)
 	return flcn->flcn_id;
 }
 
-#if defined(CONFIG_NVGPU_NON_FUSA)
 bool nvgpu_falcon_is_falcon2_enabled(struct nvgpu_falcon *flcn)
 {
 	return flcn->is_falcon2_enabled ? true : false;
@@ -405,7 +401,6 @@ bool nvgpu_falcon_is_feature_supported(struct nvgpu_falcon *flcn,
 {
 	return nvgpu_test_bit(feature, (void *)&flcn->fuse_settings);
 }
-#endif
 
 struct nvgpu_falcon *nvgpu_falcon_get_instance(struct gk20a *g, u32 flcn_id)
 {
@@ -455,9 +450,6 @@ static int falcon_sw_chip_init(struct gk20a *g, struct nvgpu_falcon *flcn)
 	case NVGPU_GPUID_GP10B:
 		gk20a_falcon_sw_init(flcn);
 		break;
-	case NVGPU_GPUID_GA10B:
-		ga10b_falcon_sw_init(flcn);
-		break;
 #ifdef CONFIG_NVGPU_DGPU
 	case NVGPU_GPUID_TU104:
 	case NVGPU_GPUID_GA100:
@@ -465,6 +457,9 @@ static int falcon_sw_chip_init(struct gk20a *g, struct nvgpu_falcon *flcn)
 		break;
 #endif /* CONFIG_NVGPU_DGPU */
 #endif /* CONFIG_NVGPU_NON_FUSA */
+	case NVGPU_GPUID_GA10B:
+		ga10b_falcon_sw_init(flcn);
+		break;
 	case NVGPU_GPUID_GV11B:
 		gk20a_falcon_sw_init(flcn);
 		break;
@@ -561,6 +556,18 @@ void nvgpu_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable,
 	g->ops.falcon.set_irq(flcn, enable, intr_mask, intr_dest);
 }
 
+int nvgpu_falcon_get_mem_size(struct nvgpu_falcon *flcn,
+			      enum falcon_mem_type type, u32 *size)
+{
+	if (!is_falcon_valid(flcn)) {
+		return -EINVAL;
+	}
+
+	*size = flcn->g->ops.falcon.get_mem_size(flcn, type);
+
+	return 0;
+}
+
 #ifdef CONFIG_NVGPU_DGPU
 int nvgpu_falcon_copy_from_emem(struct nvgpu_falcon *flcn,
 	u32 src, u8 *dst, u32 size, u8 port)
@@ -638,18 +645,6 @@ int nvgpu_falcon_bootstrap(struct nvgpu_falcon *flcn, u32 boot_vector)
 	}
 
 	flcn->g->ops.falcon.bootstrap(flcn, boot_vector);
-
-	return 0;
-}
-
-int nvgpu_falcon_get_mem_size(struct nvgpu_falcon *flcn,
-			      enum falcon_mem_type type, u32 *size)
-{
-	if (!is_falcon_valid(flcn)) {
-		return -EINVAL;
-	}
-
-	*size = flcn->g->ops.falcon.get_mem_size(flcn, type);
 
 	return 0;
 }

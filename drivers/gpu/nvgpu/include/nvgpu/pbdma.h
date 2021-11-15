@@ -37,7 +37,6 @@
 struct gk20a;
 
 /** @cond DOXYGEN_SHOULD_SKIP_THIS */
-#if defined(CONFIG_NVGPU_NON_FUSA)
 #define PBDMA_PER_RUNLIST_SIZE		2U
 #define NVGPU_INVALID_PBDMA_PRI_BASE	U32_MAX
 #define NVGPU_INVALID_PBDMA_ID		U32_MAX
@@ -48,7 +47,6 @@ struct nvgpu_pbdma_info {
 	/** The ID of the i'th PBDMA that runs channels on this runlist */
 	u32 pbdma_id[PBDMA_PER_RUNLIST_SIZE];
 };
-#endif
 /** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
 /**

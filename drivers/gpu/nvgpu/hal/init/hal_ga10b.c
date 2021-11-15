@@ -563,7 +563,9 @@ static const struct gops_gr_hwpm_map ga10b_ops_gr_hwpm_map = {
 static const struct gops_gr_init ga10b_ops_gr_init = {
 	.get_no_of_sm = nvgpu_gr_get_no_of_sm,
 	.get_nonpes_aware_tpc = gv11b_gr_init_get_nonpes_aware_tpc,
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	.wait_initialized = nvgpu_gr_wait_initialized,
+#endif
 	/* Since ecc scrubbing is moved to ctxsw ucode, setting HAL to NULL */
 	.ecc_scrub_reg = NULL,
 	.lg_coalesce = NULL,
@@ -761,8 +763,10 @@ static const struct gops_gr_falcon ga10b_ops_gr_falcon = {
 static const struct gops_gr ga10b_ops_gr = {
 	.gr_init_support = nvgpu_gr_init_support,
 	.gr_suspend = nvgpu_gr_suspend,
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	.vab_init = ga10b_gr_vab_init,
 	.vab_release = ga10b_gr_vab_release,
+#endif
 #ifdef CONFIG_NVGPU_DEBUGGER
 	.get_gr_status = gr_gm20b_get_gr_status,
 	.set_alpha_circular_buffer_size = gr_gv11b_set_alpha_circular_buffer_size,
@@ -856,6 +860,7 @@ static const struct gops_fb_intr ga10b_ops_fb_intr = {
 	.handle_ecc_fillunit = ga10b_fb_intr_handle_ecc_fillunit,
 };
 
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 static const struct gops_fb_vab ga10b_ops_fb_vab = {
 	.init = ga10b_fb_vab_init,
 	.reserve = ga10b_fb_vab_reserve,
@@ -863,6 +868,7 @@ static const struct gops_fb_vab ga10b_ops_fb_vab = {
 	.release = ga10b_fb_vab_release,
 	.teardown = ga10b_fb_vab_teardown,
 };
+#endif
 
 static const struct gops_fb ga10b_ops_fb = {
 #ifdef CONFIG_NVGPU_INJECT_HWERR
@@ -1302,8 +1308,6 @@ static const struct gops_pmu ga10b_ops_pmu = {
 	.is_debug_mode_enabled = ga10b_pmu_is_debug_mode_en,
 	/* aperture set up is moved to acr */
 	.setup_apertures = NULL,
-	.secured_pmu_start = gv11b_secured_pmu_start,
-	.write_dmatrfbase = gv11b_write_dmatrfbase,
 	.flcn_setup_boot_config = gv11b_pmu_flcn_setup_boot_config,
 	.pmu_clear_bar0_host_err_status = gv11b_clear_pmu_bar0_host_err_status,
 	.bar0_error_status = gv11b_pmu_bar0_error_status,
@@ -1351,6 +1355,8 @@ static const struct gops_pmu ga10b_ops_pmu = {
 	.pmu_dump_falcon_stats = gk20a_pmu_dump_falcon_stats,
 	/* PMU ucode */
 	.pmu_ns_bootstrap = ga10b_pmu_ns_bootstrap,
+	.secured_pmu_start = gv11b_secured_pmu_start,
+	.write_dmatrfbase = gv11b_write_dmatrfbase,
 #endif
 };
 
@@ -1435,7 +1441,9 @@ static const struct gops_mc ga10b_ops_mc = {
 	.fb_reset = NULL,
 	.ltc_isr = mc_tu104_ltc_isr,
 	.is_mmu_fault_pending = ga10b_intr_is_mmu_fault_pending,
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	.intr_get_unit_info = ga10b_mc_intr_get_unit_info,
+#endif
 };
 
 static const struct gops_debug ga10b_ops_debug = {
@@ -1623,8 +1631,10 @@ static const struct gops_fuse ga10b_ops_fuse = {
 	.read_vin_cal_gain_offset_fuse = NULL,
 	.read_gcplex_config_fuse = ga10b_fuse_read_gcplex_config_fuse,
 	.fuse_status_opt_gpc = ga10b_fuse_status_opt_gpc,
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 	.write_feature_override_ecc = ga10b_fuse_write_feature_override_ecc,
 	.write_feature_override_ecc_1 = ga10b_fuse_write_feature_override_ecc_1,
+#endif
 	.read_feature_override_ecc = ga10b_fuse_read_feature_override_ecc,
 	.read_per_device_identifier = ga10b_fuse_read_per_device_identifier,
 	.fetch_falcon_fuse_settings = ga10b_fetch_falcon_fuse_settings,
@@ -1672,7 +1682,9 @@ static const struct gops_grmgr ga10b_ops_grmgr = {
 #else
 	.init_gr_manager = nvgpu_init_gr_manager,
 #endif
+#ifdef CONFIG_NVGPU_NON_FUSA
 	.load_timestamp_prod = ga10b_grmgr_load_smc_arb_timestamp_prod,
+#endif
 	.discover_gpc_ids = ga10b_grmgr_discover_gpc_ids,
 };
 
@@ -1721,7 +1733,9 @@ int ga10b_init_hal(struct gk20a *g)
 	gops->fb = ga10b_ops_fb;
 	gops->fb.ecc = ga10b_ops_fb_ecc;
 	gops->fb.intr = ga10b_ops_fb_intr;
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	gops->fb.vab = ga10b_ops_fb_vab;
+#endif
 	gops->cg = ga10b_ops_cg;
 	gops->fifo = ga10b_ops_fifo;
 	gops->engine = ga10b_ops_engine;

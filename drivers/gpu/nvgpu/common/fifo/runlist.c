@@ -861,7 +861,6 @@ void nvgpu_runlist_cleanup_sw(struct gk20a *g)
 	f->max_runlists = 0;
 }
 
-#if defined(CONFIG_NVGPU_NON_FUSA)
 static void nvgpu_runlist_init_engine_info(struct gk20a *g,
 		struct nvgpu_runlist *runlist,
 		const struct nvgpu_device *dev)
@@ -919,7 +918,6 @@ static u32 nvgpu_runlist_get_pbdma_mask(struct gk20a *g,
 	}
 	return pbdma_mask;
 }
-#endif /* CONFIG_NVGPU_NON_FUSA */
 
 void nvgpu_runlist_init_enginfo(struct gk20a *g, struct nvgpu_fifo *f)
 {
@@ -943,13 +941,11 @@ void nvgpu_runlist_init_enginfo(struct gk20a *g, struct nvgpu_fifo *f)
 
 			if (dev->runlist_id == runlist->id) {
 				runlist->eng_bitmask |= BIT32(dev->engine_id);
-#ifdef CONFIG_NVGPU_NON_FUSA
 				/*
 				 * Populate additional runlist fields on
 				 * Ampere+ chips.
 				 */
 				nvgpu_runlist_init_engine_info(g, runlist, dev);
-#endif /* CONFIG_NVGPU_NON_FUSA */
 			}
 		}
 
@@ -966,12 +962,10 @@ void nvgpu_runlist_init_enginfo(struct gk20a *g, struct nvgpu_fifo *f)
 						runlist->id,
 						&runlist->pbdma_bitmask);
 		}
-#ifdef CONFIG_NVGPU_NON_FUSA
 		else {
 			runlist->pbdma_bitmask =
 				nvgpu_runlist_get_pbdma_mask(g, runlist);
 		}
-#endif /* CONFIG_NVGPU_NON_FUSA */
 		nvgpu_log(g, gpu_dbg_info, "  Active engine bitmask: 0x%x", runlist->eng_bitmask);
 		nvgpu_log(g, gpu_dbg_info, "          PBDMA bitmask: 0x%x", runlist->pbdma_bitmask);
 	}

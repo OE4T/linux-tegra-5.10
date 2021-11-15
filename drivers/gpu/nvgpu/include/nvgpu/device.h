@@ -150,7 +150,6 @@ struct nvgpu_device {
 	u32 pbdma_id;
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
-#if defined(CONFIG_NVGPU_NON_FUSA)
 	/* Ampere+ device info additions */
 
 	/**
@@ -179,7 +178,6 @@ struct nvgpu_device {
 	 * it may make sense to not have this link.
 	 */
 	struct nvgpu_pbdma_info pbdma_info;
-#endif
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 };
 

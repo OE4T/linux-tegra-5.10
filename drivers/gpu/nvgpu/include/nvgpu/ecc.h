@@ -173,12 +173,10 @@ struct nvgpu_ecc {
 		struct nvgpu_ecc_stat **sm_icache_ecc_corrected_err_count;
 		/** SM icache uncorrected error count. */
 		struct nvgpu_ecc_stat **sm_icache_ecc_uncorrected_err_count;
-#if defined(CONFIG_NVGPU_NON_FUSA)
 		/** SM RAMS corrected error count. */
 		struct nvgpu_ecc_stat **sm_rams_ecc_corrected_err_count;
 		/** SM RAMS uncorrected error count. */
 		struct nvgpu_ecc_stat **sm_rams_ecc_uncorrected_err_count;
-#endif
 
 		/** GCC l1.5-cache corrected error count. */
 		struct nvgpu_ecc_stat *gcc_l15_ecc_corrected_err_count;
@@ -229,7 +227,6 @@ struct nvgpu_ecc {
 		struct nvgpu_ecc_stat *mmu_fillunit_ecc_corrected_err_count;
 		/** hubmmu fillunit uncorrected error count. */
 		struct nvgpu_ecc_stat *mmu_fillunit_ecc_uncorrected_err_count;
-#if defined(CONFIG_NVGPU_NON_FUSA)
 		/* Leave extra tab to fit into nvgpu_ecc.fb structure */
 		struct nvgpu_ecc_stat *mmu_l2tlb_ecc_corrected_unique_err_count;
 		/** hubmmu l2tlb uncorrected unique error count. */
@@ -242,7 +239,6 @@ struct nvgpu_ecc {
 		struct nvgpu_ecc_stat *mmu_fillunit_ecc_corrected_unique_err_count;
 		/** hubmmu fillunit uncorrected unique error count. */
 		struct nvgpu_ecc_stat *mmu_fillunit_ecc_uncorrected_unique_err_count;
-#endif
 	} fb;
 
 	/**

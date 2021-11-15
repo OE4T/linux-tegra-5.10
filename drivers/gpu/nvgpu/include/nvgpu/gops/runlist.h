@@ -101,7 +101,6 @@ struct gops_runlist {
 			bool wait_preempt);
 	void (*init_enginfo)(struct gk20a *g, struct nvgpu_fifo *f);
 	u32 (*get_tsg_max_timeslice)(void);
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 	u32 (*get_runlist_id)(struct gk20a *g, u32 runlist_pri_base);
 	u32 (*get_engine_id_from_rleng_id)(struct gk20a *g,
 				u32 rleng_id, u32 runlist_pri_base);
@@ -111,7 +110,6 @@ struct gops_runlist {
 	u32 (*get_engine_intr_id)(struct gk20a *g, u32 runlist_pri_base,
 			u32 rleng_id);
 	u32 (*get_esched_fb_thread_id)(struct gk20a *g, u32 runlist_pri_base);
-#endif
 
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 };

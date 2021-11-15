@@ -61,7 +61,6 @@ struct gops_cg {
 	void (*blcg_pmu_load_gating_prod)(struct gk20a *g, bool prod);
 	void (*blcg_xbar_load_gating_prod)(struct gk20a *g, bool prod);
 	void (*blcg_hshub_load_gating_prod)(struct gk20a *g, bool prod);
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 	void (*slcg_runlist_load_gating_prod)(struct gk20a *g, bool prod);
 	void (*blcg_runlist_load_gating_prod)(struct gk20a *g, bool prod);
 
@@ -76,7 +75,6 @@ struct gops_cg {
 	void (*slcg_timer_load_gating_prod)(struct gk20a *g, bool prod);
 
 	void (*elcg_ce_load_gating_prod)(struct gk20a *g, bool prod);
-#endif
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 };
 

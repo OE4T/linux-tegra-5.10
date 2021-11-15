@@ -242,4 +242,5 @@ void ga10b_ce_request_idle(struct gk20a *g)
 	 */
 
 	num_pce = g->ops.ce.get_num_pce(g);
+	nvgpu_log_info(g, "num_pce=%u", num_pce);
 }

@@ -184,6 +184,7 @@ void ga10b_falcon_dump_stats(struct nvgpu_falcon *flcn)
 		gk20a_falcon_dump_stats(flcn);
 	}
 }
+#endif /* CONFIG_NVGPU_FALCON_DEBUG */
 
 bool ga10b_is_falcon_scrubbing_done(struct nvgpu_falcon *flcn)
 {
@@ -217,4 +218,3 @@ bool ga10b_is_falcon_idle(struct nvgpu_falcon *flcn)
 	}
 	return true;
 }
-#endif /* CONFIG_NVGPU_FALCON_DEBUG */

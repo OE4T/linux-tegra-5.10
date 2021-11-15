@@ -400,12 +400,14 @@ srcs += common/debugger.c \
 	common/perf/perfbuf.c \
 	hal/regops/regops_gv11b.c \
 	hal/regops/allowlist_gv11b.c \
+	hal/regops/allowlist_ga10b.c \
 	hal/gr/ctxsw_prog/ctxsw_prog_gm20b_dbg.c \
 	hal/gr/hwpm_map/hwpm_map_gv100.c \
 	hal/ltc/ltc_gm20b_dbg.c \
 	hal/ptimer/ptimer_gp10b.c \
 	hal/perf/perf_gv11b.c \
 	hal/perf/perf_tu104.c \
+	hal/perf/perf_ga10b.c \
 	hal/gr/gr/gr_gk20a.c \
 	hal/gr/gr/gr_gm20b.c \
 	hal/gr/gr/gr_gp10b.c \
@@ -416,6 +418,7 @@ ifeq ($(CONFIG_NVGPU_HAL_NON_FUSA),1)
 srcs += hal/regops/regops_gm20b.c \
 	hal/regops/regops_gp10b.c \
 	hal/regops/regops_tu104.c \
+	hal/regops/regops_ga10b.c \
 	hal/regops/allowlist_tu104.c \
 	hal/perf/perf_gm20b.c
 endif
@@ -536,6 +539,7 @@ srcs += \
 	common/pmu/perfmon/pmu_perfmon.c \
 	common/pmu/perfmon/pmu_perfmon_sw_gm20b.c \
 	common/pmu/perfmon/pmu_perfmon_sw_gv11b.c \
+	common/pmu/perfmon/pmu_perfmon_sw_ga10b.c \
 	common/pmu/pmgr/pmgr.c \
 	common/pmu/pmgr/pmgrpmu.c \
 	common/pmu/pmgr/pwrdev.c \
@@ -564,6 +568,7 @@ srcs += common/pmu/pg/pg_sw_gm20b.c \
 	common/pmu/pg/pg_sw_gp10b.c \
 	common/pmu/pg/pg_sw_gp106.c \
 	common/pmu/pg/pg_sw_gv11b.c \
+	common/pmu/pg/pg_sw_ga10b.c \
 	common/pmu/pg/pmu_pg.c \
 	common/pmu/pg/pmu_aelpg.c
 endif
@@ -669,17 +674,13 @@ srcs += common/sec2/sec2.c \
 	hal/mm/mm_gv100.c \
 	hal/mm/mm_tu104.c \
 	hal/mc/mc_gv100.c  \
-	hal/mc/mc_tu104.c  \
 	hal/bus/bus_gv100.c \
 	hal/bus/bus_tu104.c \
 	hal/ce/ce_tu104.c \
-	hal/class/class_tu104.c \
 	hal/clk/clk_tu104.c \
 	hal/clk/clk_mon_tu104.c \
 	hal/gr/init/gr_init_gv100.c \
-	hal/gr/init/gr_init_tu104.c \
 	hal/gr/intr/gr_intr_tu104.c \
-	hal/gr/falcon/gr_falcon_tu104.c \
 	hal/fbpa/fbpa_tu104.c \
 	hal/init/hal_tu104.c \
 	hal/init/hal_tu104_litter.c \
@@ -692,7 +693,6 @@ srcs += common/sec2/sec2.c \
 	hal/fb/intr/fb_intr_tu104.c \
 	hal/func/func_tu104.c \
 	hal/fifo/fifo_tu104.c \
-	hal/fifo/usermode_tu104.c \
 	hal/fifo/pbdma_tu104.c \
 	hal/fifo/ramfc_tu104.c  \
 	hal/fifo/ramin_tu104.c \
@@ -723,6 +723,12 @@ srcs +=	hal/cbc/cbc_tu104.c
 endif
 endif
 
+srcs += hal/gr/init/gr_init_tu104.c \
+	hal/class/class_tu104.c \
+	hal/mc/mc_tu104.c  \
+	hal/fifo/usermode_tu104.c \
+	hal/gr/falcon/gr_falcon_tu104.c \
+
 ifeq ($(CONFIG_NVGPU_SIM),1)
 srcs += common/sim/sim.c \
 	common/sim/sim_pci.c \
@@ -737,13 +743,9 @@ ifeq ($(CONFIG_NVGPU_STATIC_POWERGATE),1)
 srcs +=	hal/tpc/tpc_gv11b.c
 endif
 
-ifeq ($(CONFIG_NVGPU_HAL_NON_FUSA),1)
 srcs += \
 	common/riscv/riscv.c \
 	common/acr/acr_sw_ga10b.c \
-	common/acr/acr_sw_ga100.c \
-	common/pmu/perfmon/pmu_perfmon_sw_ga10b.c \
-	common/pmu/pg/pg_sw_ga10b.c \
 	common/falcon/falcon_sw_ga10b.c \
 
 srcs += hal/init/hal_ga10b.c \
@@ -787,6 +789,7 @@ srcs += hal/init/hal_ga10b.c \
 	hal/gr/intr/gr_intr_ga10b_fusa.c \
 	hal/gr/falcon/gr_falcon_ga10b_fusa.c \
 	hal/gr/falcon/gr_falcon_ga10b.c \
+	hal/gr/falcon/gr_falcon_ga100.c \
 	hal/gr/ecc/ecc_ga10b.c \
 	hal/gr/ecc/ecc_ga10b_fusa.c \
 	hal/netlist/netlist_ga10b_fusa.c \
@@ -804,17 +807,23 @@ srcs += hal/init/hal_ga10b.c \
 	hal/fb/ecc/fb_ecc_ga10b_fusa.c \
 	hal/fb/intr/fb_intr_ga10b_fusa.c \
 	hal/fb/intr/fb_intr_ecc_ga10b_fusa.c \
-	hal/fb/vab/vab_ga10b.c \
 	hal/priv_ring/priv_ring_ga10b_fusa.c \
 	hal/ptimer/ptimer_ga10b_fusa.c \
-	hal/perf/perf_ga10b.c \
-	hal/regops/regops_ga10b.c \
-	hal/regops/allowlist_ga10b.c \
 	hal/power_features/cg/ga10b_gating_reglist.c \
 	hal/therm/therm_ga10b_fusa.c \
 	hal/ce/ce_ga10b_fusa.c \
 	hal/grmgr/grmgr_ga10b.c \
 	hal/sim/sim_ga10b.c \
+
+ifeq ($(CONFIG_NVGPU_HAL_NON_FUSA),1)
+srcs += \
+	hal/fb/vab/vab_ga10b.c
+endif
+
+ifeq ($(CONFIG_NVGPU_NON_FUSA),1)
+srcs += \
+	common/acr/acr_sw_ga100.c
+endif
 
 ifeq ($(CONFIG_NVGPU_COMPRESSION),1)
 srcs += \
@@ -837,11 +846,9 @@ srcs += \
 	hal/gr/intr/gr_intr_ga100_fusa.c \
 	hal/gr/init/gr_init_ga100_fusa.c \
 	hal/gr/init/gr_init_ga100.c \
-	hal/gr/falcon/gr_falcon_ga100.c \
 	hal/clk/clk_ga100.c \
 	hal/nvdec/nvdec_ga100.c \
 	hal/pmu/pmu_ga100.c \
-	hal/perf/perf_ga100.c \
 	hal/fb/fb_ga100.c \
 	hal/fifo/channel_ga100_fusa.c \
 	hal/fifo/pbdma_ga100_fusa.c \
@@ -850,8 +857,13 @@ srcs += \
 	common/vbios/bios_sw_ga100.c \
 	hal/power_features/cg/ga100_gating_reglist.c \
 	hal/priv_ring/priv_ring_ga100_fusa.c \
+
+ifeq ($(CONFIG_NVGPU_DEBUGGER),1)
+srcs += \
+	hal/perf/perf_ga100.c \
 	hal/regops/regops_ga100.c \
 	hal/regops/allowlist_ga100.c
+endif
 endif
 
 ifeq ($(CONFIG_NVGPU_MIG),1)
@@ -859,6 +871,4 @@ ifeq ($(CONFIG_NVGPU_DGPU),1)
 srcs += \
 	hal/grmgr/grmgr_ga100.c
 endif
-endif
-
 endif

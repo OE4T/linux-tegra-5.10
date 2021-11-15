@@ -157,7 +157,6 @@ struct nvgpu_device;
 /** Bit offset of the Architecture field in the HW version register */
 #define NVGPU_GPU_ARCHITECTURE_SHIFT 4U
 
-#if defined(CONFIG_NVGPU_NON_FUSA)
 struct nvgpu_intr_unit_info {
 	/**
 	 * top bit 0 -> subtree 0 -> leaf0, leaf1 -> leaf 0, 1
@@ -181,7 +180,6 @@ struct nvgpu_intr_unit_info {
 	 */
 	bool valid;
 };
-#endif
 
 /**
  * This struct holds the variables needed to manage the configuration and
@@ -204,7 +202,6 @@ struct nvgpu_mc {
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 
-#if defined(CONFIG_NVGPU_NON_FUSA)
 	/**
 	 * intr info array indexed by s/w defined intr unit name
 	 */
@@ -214,7 +211,6 @@ struct nvgpu_mc {
 	 * Each subtree corresponds to a bit in intr_top register.
 	 */
 	u64 subtree_mask_restore[HOST2SOC_NUM_SUBTREE];
-#endif
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 };
 

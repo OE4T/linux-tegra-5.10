@@ -32,15 +32,10 @@
 #include "hal_gm20b.h"
 #include "hal_gp10b.h"
 #include "hal_gv11b.h"
+#include "hal_ga10b.h"
 #ifdef CONFIG_NVGPU_DGPU
 #include "hal_tu104.h"
-#endif
-
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
-#include "hal_ga10b.h"
-#if defined(CONFIG_NVGPU_DGPU)
 #include "hal_ga100.h"
-#endif
 #endif
 
 #if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
@@ -73,13 +68,12 @@ int nvgpu_init_hal(struct gk20a *g)
 			err = -ENODEV;
 		}
 		break;
+#endif
 	case NVGPU_GPUID_GA10B:
 		if (ga10b_init_hal(g) != 0) {
 			err = -ENODEV;
 		}
 		break;
-#endif
-
 	case NVGPU_GPUID_GV11B:
 		if (gv11b_init_hal(g) != 0) {
 			err = -ENODEV;

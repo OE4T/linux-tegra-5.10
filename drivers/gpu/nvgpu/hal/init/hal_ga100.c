@@ -584,7 +584,9 @@ static const struct gops_gr_hwpm_map ga100_ops_gr_hwpm_map = {
 static const struct gops_gr_init ga100_ops_gr_init = {
 	.get_no_of_sm = nvgpu_gr_get_no_of_sm,
 	.get_nonpes_aware_tpc = gv11b_gr_init_get_nonpes_aware_tpc,
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	.wait_initialized = nvgpu_gr_wait_initialized,
+#endif
 	.ecc_scrub_reg = NULL,
 	.lg_coalesce = NULL,
 	.su_coalesce = NULL,
@@ -1045,7 +1047,9 @@ static const struct gops_pbdma ga100_ops_pbdma = {
 	.set_channel_info_veid = gv11b_pbdma_set_channel_info_veid,
 	.set_channel_info_chid = ga10b_pbdma_set_channel_info_chid,
 	.set_intr_notify = ga10b_pbdma_set_intr_notify,
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	.pbdma_force_ce_split = ga100_pbdma_force_ce_split,
+#endif
 	.config_userd_writeback_enable = gv11b_pbdma_config_userd_writeback_enable,
 	.get_mmu_fault_id = ga10b_pbdma_get_mmu_fault_id,
 	.get_num_of_pbdmas = ga100_pbdma_get_num_of_pbdmas,
@@ -1426,7 +1430,9 @@ static const struct gops_mc ga100_ops_mc = {
 	.fb_reset = NULL,
 	.ltc_isr = mc_tu104_ltc_isr,
 	.is_mmu_fault_pending = ga10b_intr_is_mmu_fault_pending,
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	.intr_get_unit_info = ga10b_mc_intr_get_unit_info,
+#endif
 };
 #endif
 
@@ -1705,7 +1711,9 @@ static const struct gops_grmgr ga100_ops_grmgr = {
 #else
 	.init_gr_manager = nvgpu_init_gr_manager,
 #endif
+#ifdef CONFIG_NVGPU_NON_FUSA
 	.load_timestamp_prod = ga10b_grmgr_load_smc_arb_timestamp_prod,
+#endif
 	.discover_gpc_ids = ga10b_grmgr_discover_gpc_ids,
 };
 #endif

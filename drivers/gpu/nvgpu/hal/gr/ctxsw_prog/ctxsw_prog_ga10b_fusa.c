@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,6 +34,7 @@ u32 ga10b_ctxsw_prog_hw_get_fecs_header_size(void)
 	return ctxsw_prog_fecs_header_size_in_bytes_v();
 }
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 u32 ga10b_ctxsw_prog_hw_get_main_header_size(void)
 {
 	return ctxsw_prog_ctxsw_header_size_in_bytes_v();
@@ -120,3 +121,4 @@ u32 ga10b_ctxsw_prog_get_gfx_etpcreglist_offset(u32 *gpccs_hdr)
 		gpccs_hdr[ctxsw_prog_local_ext_tpc_reglist_offset_o() >>
 		BYTE_TO_DW_SHIFT]) * CTXSWBUF_SEGMENT_BLKSIZE;
 }
+#endif /* CONFIG_NVGPU_DEBUGGER */

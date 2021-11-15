@@ -97,11 +97,13 @@ u32 ga10b_gr_intr_enable_mask(struct gk20a *g)
 int ga10b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 			u32 class_num, u32 offset, u32 data)
 {
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) || (defined(CONFIG_NVGPU_DEBUGGER) && defined(CONFIG_NVGPU_GRAPHICS))
 	/*
 	 * Hardware divides sw_method enum value by 2 before passing as "offset".
 	 * Left shift given offset by 2 to obtain sw_method enum value.
 	 */
 	u32 left_shift_by_2 = 2U;
+#endif
 
 	nvgpu_log_fn(g, " ");
 

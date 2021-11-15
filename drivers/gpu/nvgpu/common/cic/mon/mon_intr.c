@@ -195,7 +195,6 @@ void nvgpu_cic_mon_intr_stall_handle(struct gk20a *g)
 	(void)nvgpu_cic_rm_broadcast_last_irq_stall(g);
 }
 
-#ifdef CONFIG_NVGPU_NON_FUSA
 void nvgpu_cic_mon_intr_enable(struct gk20a *g)
 {
 	unsigned long flags = 0;
@@ -272,4 +271,3 @@ bool nvgpu_cic_mon_intr_get_unit_info(struct gk20a *g, u32 unit, u32 *subtree,
 
 	return true;
 }
-#endif

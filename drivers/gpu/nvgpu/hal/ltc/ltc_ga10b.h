@@ -29,6 +29,8 @@ struct gk20a;
 
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
 u32 ga10b_ltc_zbc_table_size(struct gk20a *g);
+#endif
+#ifdef CONFIG_NVGPU_GRAPHICS
 void ga10b_ltc_set_zbc_stencil_entry(struct gk20a *g, u32 stencil_depth,
 			u32 index);
 void ga10b_ltc_set_zbc_color_entry(struct gk20a *g, u32 *color_l2, u32 index);

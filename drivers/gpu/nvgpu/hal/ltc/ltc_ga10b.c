@@ -29,6 +29,7 @@
 
 #include <nvgpu/hw/ga10b/hw_ltc_ga10b.h>
 
+#ifdef CONFIG_NVGPU_GRAPHICS
 void ga10b_ltc_set_zbc_stencil_entry(struct gk20a *g, u32 stencil_depth,
 					u32 index)
 {
@@ -65,7 +66,9 @@ void ga10b_ltc_set_zbc_depth_entry(struct gk20a *g, u32 depth_val, u32 index)
 	nvgpu_writel(g,
 		ltc_ltcs_ltss_dstg_zbc_depth_clear_value_r(), depth_val);
 }
+#endif
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 u32 ga10b_ltc_pri_shared_addr(struct gk20a *g, u32 addr)
 {
 	u32 ltc_stride = nvgpu_get_litter_value(g, GPU_LIT_LTC_STRIDE);
@@ -78,3 +81,4 @@ u32 ga10b_ltc_pri_shared_addr(struct gk20a *g, u32 addr)
 
 	return ltc_shared_base + lts_addr;
 }
+#endif

@@ -53,9 +53,7 @@ struct gops_falcon {
 	void (*set_bcr)(struct nvgpu_falcon *flcn);
 	void (*dump_brom_stats)(struct nvgpu_falcon *flcn);
 	u32  (*get_brom_retcode)(struct nvgpu_falcon *flcn);
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 	bool (*is_priv_lockdown)(struct nvgpu_falcon *flcn);
-#endif
 	u32 (*dmemc_blk_mask)(void);
 	bool (*check_brom_passed)(u32 retcode);
 	bool (*check_brom_failed)(u32 retcode);

@@ -136,14 +136,12 @@ struct nvgpu_netlist_vars {
 	struct netlist_av_list  sw_method_init;
 	struct netlist_aiv_list sw_ctx_load;
 	struct netlist_av_list  sw_non_ctx_load;
-#if defined(CONFIG_NVGPU_NON_FUSA)
 	struct netlist_av_list  sw_non_ctx_local_compute_load;
 	struct netlist_av_list  sw_non_ctx_global_compute_load;
 #ifdef CONFIG_NVGPU_GRAPHICS
 	struct netlist_av_list  sw_non_ctx_local_gfx_load;
 	struct netlist_av_list  sw_non_ctx_global_gfx_load;
 #endif  /* CONFIG_NVGPU_GRAPHICS */
-#endif
 	struct netlist_av_list  sw_veid_bundle_init;
 #ifdef CONFIG_NVGPU_DEBUGGER
 	struct {

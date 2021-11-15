@@ -96,7 +96,6 @@
 #define	TURING_A			0xC597U
 #endif
 
-#if defined(CONFIG_NVGPU_NON_FUSA) || defined(CONFIG_NVGPU_DGPU)
 /* FIXME: below defines are used in dGPU safety build. */
 #define	MAXWELL_COMPUTE_B		0xB1C0U
 #define	PASCAL_COMPUTE_A		0xC0C0U
@@ -113,6 +112,5 @@
 #define	AMPERE_COMPUTE_B		0xC7C0U
 #define AMPERE_CHANNEL_GPFIFO_A		0xC56FU
 #define AMPERE_CHANNEL_GPFIFO_B		0xC76FU
-#endif
 
 #endif /* NVGPU_CLASS_H */

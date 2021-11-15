@@ -31,10 +31,8 @@
 #include <nvgpu/acr.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/soc.h>
-#if defined(CONFIG_NVGPU_FALCON_NON_FUSA) && defined(CONFIG_NVGPU_HAL_NON_FUSA)
 #include <nvgpu/riscv.h>
 #include <nvgpu/io.h>
-#endif
 
 #include "acr_bootstrap.h"
 #include "acr_priv.h"
@@ -266,7 +264,6 @@ err_free_ucode:
 	return err;
 }
 
-#if defined(CONFIG_NVGPU_FALCON_NON_FUSA) && defined(CONFIG_NVGPU_HAL_NON_FUSA)
 #define RISCV_BR_COMPLETION_TIMEOUT_NON_SILICON_MS   10000 /*in msec */
 #define RISCV_BR_COMPLETION_TIMEOUT_SILICON_MS       100   /*in msec */
 
@@ -409,4 +406,3 @@ exit:
 
 	return err;
 }
-#endif

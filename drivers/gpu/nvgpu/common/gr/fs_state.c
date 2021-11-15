@@ -139,7 +139,6 @@ int nvgpu_gr_fs_state_init(struct gk20a *g, struct nvgpu_gr_config *config)
 	return err;
 }
 
-#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 int nvgpu_gr_init_sm_id_early_config(struct gk20a *g, struct nvgpu_gr_config *config)
 {
 	u32 tpc_index, gpc_index;
@@ -169,5 +168,3 @@ int nvgpu_gr_init_sm_id_early_config(struct gk20a *g, struct nvgpu_gr_config *co
 
 	return err;
 }
-#endif
-

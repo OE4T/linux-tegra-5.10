@@ -498,10 +498,8 @@ struct gops_gr_intr {
 				     struct nvgpu_channel *fault_ch);
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 	int (*retrigger)(struct gk20a *g);
 	u32 (*enable_mask)(struct gk20a *g);
-#endif
 	int (*handle_fecs_error)(struct gk20a *g,
 				 struct nvgpu_channel *ch,
 				 struct nvgpu_gr_isr_data *isr_data);
@@ -836,10 +834,8 @@ struct gops_gr_init {
 				   u64 addr, u32 size, bool patch);
 	u32 (*get_patch_slots)(struct gk20a *g,
 			       struct nvgpu_gr_config *config);
-#ifdef CONFIG_NVGPU_DGPU
 	int (*load_sw_bundle64)(struct gk20a *g,
 			struct netlist_av64_list *sw_bundle64_init);
-#endif
 #ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
 	void (*restore_stats_counter_bundle_data)(struct gk20a *g,
 			struct netlist_av_list *sw_bundle_init);
@@ -899,13 +895,11 @@ struct gops_gr_init {
 	bool (*is_allowed_sw_bundle)(struct gk20a *g,
 			u32 bundle_addr, u32 bundle_value, int *context);
 	bool (*is_allowed_reg)(struct gk20a *g, u32 addr);
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 	void (*auto_go_idle)(struct gk20a *g, bool enable);
 	void (*eng_config)(struct gk20a *g);
 	int (*reset_gpcs)(struct gk20a *g);
 	int (*sm_id_config_early)(struct gk20a *g,
 			struct nvgpu_gr_config *config);
-#endif
 	/** @endcond */
 };
 

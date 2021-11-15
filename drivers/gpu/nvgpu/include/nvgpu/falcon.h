@@ -178,7 +178,6 @@
 /**
  * Falcon/Falcon2 fuse settings bit
  */
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 #define FCD            (0U)
 #define FENEN          (1U)
 #define NVRISCV_BRE_EN (2U)
@@ -192,7 +191,6 @@
 #define SECURE_DBGD    (10U)
 #define AES_ALGO_DIS   (11U)
 #define PKC_ALGO_DIS   (12U)
-#endif
 
 struct gk20a;
 struct nvgpu_falcon;
@@ -275,20 +273,16 @@ struct nvgpu_falcon {
 	bool is_falcon2_enabled;
 	/** Indicates if the falcon interrupts are enabled. */
 	bool is_interrupt_enabled;
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 	/** Fuse settings */
 	unsigned long fuse_settings;
-#endif
 	/** Lock to access the falcon's IMEM. */
 	struct nvgpu_mutex imem_lock;
 	/** Lock to access the falcon's DMEM. */
 	struct nvgpu_mutex dmem_lock;
-#ifdef CONFIG_NVGPU_DGPU
 	/** Indicates if the falcon supports EMEM. */
 	bool emem_supported;
 	/** Lock to access the falcon's EMEM. */
 	struct nvgpu_mutex emem_lock;
-#endif
 	/** Functions for engine specific reset and memory access. */
 	struct nvgpu_falcon_engine_dependency_ops flcn_engine_dep_ops;
 #ifdef CONFIG_NVGPU_FALCON_DEBUG
@@ -691,11 +685,31 @@ void nvgpu_falcon_sw_free(struct gk20a *g, u32 flcn_id);
 void nvgpu_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable,
 	u32 intr_mask, u32 intr_dest);
 
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
+/**
+ * @brief Get the size of falcon's memory.
+ *
+ * @param flcn [in] The falcon.
+ * @param type [in] Falcon memory type (IMEM, DMEM).
+ *		    - Supported types: MEM_DMEM (0), MEM_IMEM (1)
+ * @param size [out] Size of the falcon memory type.
+ *
+ * This function is called to get the size of falcon's memory for validation
+ * while copying to IMEM/DMEM.
+ *
+ * Steps:
+ * - Validate that the passed in falcon struct is not NULL and is for supported
+ *   falcon. If not valid, return -EINVAL.
+ * - Read the size of the falcon memory of \a type in bytes from the HW config
+ *   register in output parameter \a size.
+ *
+ * @return 0 in case of success, < 0 in case of failure.
+ */
+int nvgpu_falcon_get_mem_size(struct nvgpu_falcon *flcn,
+			      enum falcon_mem_type type, u32 *size);
+
 bool nvgpu_falcon_is_falcon2_enabled(struct nvgpu_falcon *flcn);
 bool nvgpu_falcon_is_feature_supported(struct nvgpu_falcon *flcn,
 		u32 feature);
-#endif
 
 #ifdef CONFIG_NVGPU_DGPU
 int nvgpu_falcon_copy_from_emem(struct nvgpu_falcon *flcn,
@@ -727,28 +741,6 @@ void nvgpu_falcon_dump_stats(struct nvgpu_falcon *flcn);
  * @return 0 in case of success, < 0 in case of failure.
  */
 int nvgpu_falcon_bootstrap(struct nvgpu_falcon *flcn, u32 boot_vector);
-
-/**
- * @brief Get the size of falcon's memory.
- *
- * @param flcn [in] The falcon.
- * @param type [in] Falcon memory type (IMEM, DMEM).
- *		    - Supported types: MEM_DMEM (0), MEM_IMEM (1)
- * @param size [out] Size of the falcon memory type.
- *
- * This function is called to get the size of falcon's memory for validation
- * while copying to IMEM/DMEM.
- *
- * Steps:
- * - Validate that the passed in falcon struct is not NULL and is for supported
- *   falcon. If not valid, return -EINVAL.
- * - Read the size of the falcon memory of \a type in bytes from the HW config
- *   register in output parameter \a size.
- *
- * @return 0 in case of success, < 0 in case of failure.
- */
-int nvgpu_falcon_get_mem_size(struct nvgpu_falcon *flcn,
-			      enum falcon_mem_type type, u32 *size);
 
 int nvgpu_falcon_clear_halt_intr_status(struct nvgpu_falcon *flcn,
 		unsigned int timeout);

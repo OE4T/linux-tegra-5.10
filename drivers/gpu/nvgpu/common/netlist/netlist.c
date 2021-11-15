@@ -897,6 +897,32 @@ u32 *nvgpu_netlist_get_gpccs_data_list(struct gk20a *g)
 	return g->netlist_vars->ucode.gpccs.data.l;
 }
 
+struct netlist_av_list *nvgpu_netlist_get_sw_non_ctx_local_compute_load_av_list(
+							struct gk20a *g)
+{
+	return &g->netlist_vars->sw_non_ctx_local_compute_load;
+}
+
+struct netlist_av_list *nvgpu_netlist_get_sw_non_ctx_global_compute_load_av_list(
+							struct gk20a *g)
+{
+	return &g->netlist_vars->sw_non_ctx_global_compute_load;
+}
+
+#ifdef CONFIG_NVGPU_GRAPHICS
+struct netlist_av_list *nvgpu_netlist_get_sw_non_ctx_local_gfx_load_av_list(
+							struct gk20a *g)
+{
+	return &g->netlist_vars->sw_non_ctx_local_gfx_load;
+}
+
+struct netlist_av_list *nvgpu_netlist_get_sw_non_ctx_global_gfx_load_av_list(
+							struct gk20a *g)
+{
+	return &g->netlist_vars->sw_non_ctx_global_gfx_load;
+}
+#endif /* CONFIG_NVGPU_GRAPHICS */
+
 #ifdef CONFIG_NVGPU_DEBUGGER
 struct netlist_aiv_list *nvgpu_netlist_get_sys_ctxsw_regs(struct gk20a *g)
 {
@@ -1304,31 +1330,4 @@ u32 nvgpu_netlist_get_sys_ctxsw_regs_count(struct gk20a *g)
 	return count;
 }
 #endif /* CONFIG_NVGPU_DEBUGGER */
-
-struct netlist_av_list *nvgpu_netlist_get_sw_non_ctx_local_compute_load_av_list(
-							struct gk20a *g)
-{
-	return &g->netlist_vars->sw_non_ctx_local_compute_load;
-}
-
-struct netlist_av_list *nvgpu_netlist_get_sw_non_ctx_global_compute_load_av_list(
-							struct gk20a *g)
-{
-	return &g->netlist_vars->sw_non_ctx_global_compute_load;
-}
-
-#ifdef CONFIG_NVGPU_GRAPHICS
-struct netlist_av_list *nvgpu_netlist_get_sw_non_ctx_local_gfx_load_av_list(
-							struct gk20a *g)
-{
-	return &g->netlist_vars->sw_non_ctx_local_gfx_load;
-}
-
-struct netlist_av_list *nvgpu_netlist_get_sw_non_ctx_global_gfx_load_av_list(
-							struct gk20a *g)
-{
-	return &g->netlist_vars->sw_non_ctx_global_gfx_load;
-}
-#endif /* CONFIG_NVGPU_GRAPHICS */
-
 #endif

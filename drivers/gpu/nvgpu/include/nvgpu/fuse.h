@@ -32,7 +32,6 @@ struct gk20a;
 #include <nvgpu/types.h>
 #include <nvgpu/errno.h>
 
-#if defined(CONFIG_NVGPU_NON_FUSA)
 struct nvgpu_fuse_feature_override_ecc {
 	/** overide_ecc register feature */
 	/** sm_lrf enable */
@@ -70,7 +69,6 @@ struct nvgpu_fuse_feature_override_ecc {
 	/** sm_l1_icache overide */
 	bool sm_l1_icache_override;
 };
-#endif
 
 #define GCPLEX_CONFIG_VPR_AUTO_FETCH_DISABLE_MASK	BIT32(0)
 #define GCPLEX_CONFIG_VPR_ENABLED_MASK			BIT32(1)

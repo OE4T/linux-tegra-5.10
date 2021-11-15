@@ -353,10 +353,8 @@ int nvgpu_gr_reset(struct gk20a *g);
 #endif
 
 /** @cond DOXYGEN_SHOULD_SKIP_THIS */
-#if defined(CONFIG_NVGPU_NON_FUSA)
 void nvgpu_gr_init_reset_enable_hw_non_ctx_local(struct gk20a *g);
 void nvgpu_gr_init_reset_enable_hw_non_ctx_global(struct gk20a *g);
-#endif
 /** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
 #endif /* NVGPU_GR_H */

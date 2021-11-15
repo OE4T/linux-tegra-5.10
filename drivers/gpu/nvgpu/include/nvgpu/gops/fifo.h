@@ -237,6 +237,7 @@ struct gops_fifo {
 	void (*bar1_snooping_disable)(struct gk20a *g);
 	bool (*find_pbdma_for_runlist)(struct gk20a *g,
 				       u32 runlist_id, u32 *pbdma_id);
+	void (*runlist_intr_retrigger)(struct gk20a *g, u32 intr_tree);
 
 #ifdef CONFIG_NVGPU_RECOVERY
 	void (*recover)(struct gk20a *g, u32 act_eng_bitmask,
@@ -248,11 +249,6 @@ struct gops_fifo {
 	int (*set_sm_exception_type_mask)(struct nvgpu_channel *ch,
 			u32 exception_mask);
 #endif
-
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
-	void (*runlist_intr_retrigger)(struct gk20a *g, u32 intr_tree);
-#endif
-
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
 };

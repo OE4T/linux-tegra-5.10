@@ -141,16 +141,13 @@ struct gops_ce {
 	 */
 	void (*intr_enable)(struct gk20a *g, bool enable);
 
+	void (*intr_retrigger)(struct gk20a *g, u32 inst_id);
+
 #ifdef CONFIG_NVGPU_DGPU
 	int (*ce_app_init_support)(struct gk20a *g);
 	void (*ce_app_suspend)(struct gk20a *g);
 	void (*ce_app_destroy)(struct gk20a *g);
 #endif
-
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
-	void (*intr_retrigger)(struct gk20a *g, u32 inst_id);
-#endif
-
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 };
 

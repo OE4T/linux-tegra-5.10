@@ -707,7 +707,6 @@ u32 nvgpu_engine_get_mask_on_id(struct gk20a *g, u32 id, bool is_tsg)
 }
 
 
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 int nvgpu_engine_init_one_dev_extra(struct gk20a *g,
 		const struct nvgpu_device *dev)
 {
@@ -752,7 +751,6 @@ int nvgpu_engine_init_one_dev_extra(struct gk20a *g,
 
 	return 0;
 }
-#endif
 
 static int nvgpu_engine_init_one_dev(struct nvgpu_fifo *f,
 				     const struct nvgpu_device *dev)
@@ -781,7 +779,6 @@ static int nvgpu_engine_init_one_dev(struct nvgpu_fifo *f,
 		}
 	}
 
-#if defined(CONFIG_NVGPU_NON_FUSA)
 	{
 		/*
 		 * Fill Ampere+ device fields.
@@ -791,7 +788,6 @@ static int nvgpu_engine_init_one_dev(struct nvgpu_fifo *f,
 			return err;
 		}
 	}
-#endif
 
 	f->host_engines[dev->engine_id] = dev;
 	f->active_engines[f->num_engines] = dev;

@@ -27,8 +27,6 @@
 #include <nvgpu/static_analysis.h>
 #include <nvgpu/log.h>
 
-#if defined(CONFIG_NVGPU_NON_FUSA)
-
 #define U32_BITS		32U
 #define DIV_BY_U32_BITS(x)	((x) / U32_BITS)
 #define MOD_BY_U32_BITS(x)	((x) % U32_BITS)
@@ -90,8 +88,6 @@ void nvgpu_cic_mon_intr_unit_vectorid_init(struct gk20a *g, u32 unit, u32 *vecto
 bool nvgpu_cic_mon_intr_is_unit_info_valid(struct gk20a *g, u32 unit);
 bool nvgpu_cic_mon_intr_get_unit_info(struct gk20a *g, u32 unit, u32 *subtree,
 		u64 *subtree_mask);
-
-#endif
 
 struct nvgpu_err_desc;
 /**
@@ -641,8 +637,6 @@ void nvgpu_cic_mon_intr_nonstall_pause(struct gk20a *g);
  */
 void nvgpu_cic_mon_intr_nonstall_resume(struct gk20a *g);
 
-#ifdef CONFIG_NVGPU_NON_FUSA
 void nvgpu_cic_mon_intr_enable(struct gk20a *g);
-#endif
 
 #endif /* NVGPU_CIC_MON_H */

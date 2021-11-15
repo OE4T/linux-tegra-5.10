@@ -816,7 +816,9 @@ static void ga10b_intr_isr_stall_host2soc_3(struct gk20a *g)
 		u64 engine_intr_mask;
 		u32 vectorid;
 		const struct nvgpu_device *dev;
+#ifdef CONFIG_NVGPU_POWER_PG
 		int err;
+#endif
 
 		vectorid =
 		   g->mc.intr_unit_info[NVGPU_CIC_INTR_UNIT_CE_STALL].vectorid[0];
@@ -824,6 +826,7 @@ static void ga10b_intr_isr_stall_host2soc_3(struct gk20a *g)
 		handled_subtree_mask |= unit_subtree_mask;
 		ga10b_intr_subtree_clear(g, subtree, unit_subtree_mask);
 
+#ifdef CONFIG_NVGPU_POWER_PG
 		/* disable elpg before accessing CE registers */
 		err = nvgpu_pg_elpg_disable(g);
 		if (err != 0) {
@@ -832,6 +835,7 @@ static void ga10b_intr_isr_stall_host2soc_3(struct gk20a *g)
 			(void) nvgpu_pg_elpg_enable(g);
 			goto exit;
 		}
+#endif
 
 		for (i = 0U; i < g->fifo.num_engines; i++) {
 			dev = g->fifo.active_engines[i];
@@ -852,10 +856,14 @@ static void ga10b_intr_isr_stall_host2soc_3(struct gk20a *g)
 
 		}
 
+#ifdef CONFIG_NVGPU_POWER_PG
 		/* enable elpg again */
 		(void) nvgpu_pg_elpg_enable(g);
+#endif
 	}
+#ifdef CONFIG_NVGPU_POWER_PG
 exit:
+#endif
 	ga10b_intr_subtree_clear_unhandled(g, subtree, intr_leaf0, intr_leaf1,
 				handled_subtree_mask);
 }

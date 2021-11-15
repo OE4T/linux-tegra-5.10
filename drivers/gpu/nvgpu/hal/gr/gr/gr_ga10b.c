@@ -1063,6 +1063,7 @@ const u32 *ga10b_gr_get_hwpm_cau_init_data(u32 *count)
 
 #endif /* CONFIG_NVGPU_DEBUGGER */
 
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 void ga10b_gr_vab_init(struct gk20a *g, u32 vab_reg, u32 num_range_checkers,
 	struct nvgpu_vab_range_checker *vab_range_checker)
 {
@@ -1098,3 +1099,4 @@ void ga10b_gr_vab_release(struct gk20a *g, u32 vab_reg)
 {
 	nvgpu_writel(g, gr_gpcs_mmu_vidmem_access_bit_r(), vab_reg);
 }
+#endif /* CONFIG_NVGPU_HAL_NON_FUSA */

@@ -71,9 +71,11 @@ int ga10b_init_fifo_reset_enable_hw(struct gk20a *g)
 		g->ops.pbdma.setup_hw(g);
 	}
 
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	if (g->ops.pbdma.pbdma_force_ce_split != NULL) {
 		g->ops.pbdma.pbdma_force_ce_split(g);
 	}
+#endif
 
 	nvgpu_log_fn(g, "done");
 
