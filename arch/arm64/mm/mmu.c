@@ -22,7 +22,6 @@
 #include <linux/io.h>
 #include <linux/mm.h>
 #include <linux/vmalloc.h>
-#include <linux/cma.h>
 
 #include <asm/barrier.h>
 #include <asm/cputype.h>
@@ -184,7 +183,8 @@ static void alloc_init_cont_pte(pmd_t *pmdp, unsigned long addr,
 	unsigned long next;
 	pmd_t pmd = READ_ONCE(*pmdp);
 
-	if (pmd_none(pmd) || pmd_sect(pmd)) {
+	BUG_ON(pmd_sect(pmd));
+	if (pmd_none(pmd)) {
 		phys_addr_t pte_phys;
 		BUG_ON(!pgtable_alloc);
 		pte_phys = pgtable_alloc(PAGE_SHIFT);
@@ -237,6 +237,8 @@ static void init_pmd(pud_t *pudp, unsigned long addr, unsigned long end,
 			alloc_init_cont_pte(pmdp, addr, next, phys, prot,
 					    pgtable_alloc, flags);
 
+			BUG_ON(pmd_val(old_pmd) != 0 &&
+			       pmd_val(old_pmd) != READ_ONCE(pmd_val(*pmdp)));
 		}
 		phys += next - addr;
 	} while (pmdp++, addr = next, addr != end);
@@ -255,7 +257,8 @@ static void alloc_init_cont_pmd(pud_t *pudp, unsigned long addr,
 	/*
 	 * Check for initial section mappings in the pgd/pud.
 	 */
-	if (pud_none(pud) || pud_sect(pud)) {
+	BUG_ON(pud_sect(pud));
+	if (pud_none(pud)) {
 		phys_addr_t pmd_phys;
 		BUG_ON(!pgtable_alloc);
 		pmd_phys = pgtable_alloc(PMD_SHIFT);
@@ -334,6 +337,8 @@ static void alloc_init_pud(pgd_t *pgdp, unsigned long addr, unsigned long end,
 			alloc_init_cont_pmd(pudp, addr, next, phys, prot,
 					    pgtable_alloc, flags);
 
+			BUG_ON(pud_val(old_pud) != 0 &&
+			       pud_val(old_pud) != READ_ONCE(pud_val(*pudp)));
 		}
 		phys += next - addr;
 	} while (pudp++, addr = next, addr != end);
@@ -399,26 +404,12 @@ static phys_addr_t pgd_pgtable_alloc(int shift)
 	return pa;
 }
 
-static phys_addr_t __init early_pgd_pgtable_alloc(int unused)
-{
-	phys_addr_t phys;
-	void *ptr;
-
-	phys = memblock_phys_alloc(PAGE_SIZE, PAGE_SIZE);
-	BUG_ON(!phys);
-	ptr = __va(phys);
-	memset(ptr, 0, PAGE_SIZE);
-	/* Ensure the zeroed page is visible to the page table walker */
-	dsb(ishst);
-	return phys;
-}
-
 /*
  * This function can only be used to modify existing table entries,
  * without allocating new levels of table. Note that this permits the
  * creation of new section or page entries.
  */
-void __init create_mapping_noalloc(phys_addr_t phys, unsigned long virt,
+static void __init create_mapping_noalloc(phys_addr_t phys, unsigned long virt,
 				  phys_addr_t size, pgprot_t prot)
 {
 	if ((virt >= PAGE_END) && (virt < VMALLOC_START)) {
@@ -426,8 +417,8 @@ void __init create_mapping_noalloc(phys_addr_t phys, unsigned long virt,
 			&phys, virt);
 		return;
 	}
-	__create_pgd_mapping(init_mm.pgd, phys, virt, size, prot,
-			early_pgd_pgtable_alloc, NO_CONT_MAPPINGS);
+	__create_pgd_mapping(init_mm.pgd, phys, virt, size, prot, NULL,
+			     NO_CONT_MAPPINGS);
 }
 
 void __init create_pgd_mapping(struct mm_struct *mm, phys_addr_t phys,
@@ -711,8 +702,6 @@ static void __init map_kernel(pgd_t *pgdp)
 	kasan_copy_shadow(pgdp);
 }
 
-void __init dma_contiguous_remap(void);
-
 void __init paging_init(void)
 {
 	pgd_t *pgdp = pgd_set_fixmap(__pa_symbol(swapper_pg_dir));
@@ -729,9 +718,6 @@ void __init paging_init(void)
 		      __pa_symbol(init_pg_end) - __pa_symbol(init_pg_dir));
 
 	memblock_allow_resize();
-
-	dma_contiguous_remap();
-	local_flush_tlb_all();
 }
 
 /*
@@ -1440,40 +1426,6 @@ int pud_free_pmd_page(pud_t *pudp, unsigned long addr)
 int p4d_free_pud_page(p4d_t *p4d, unsigned long addr)
 {
 	return 0;	/* Don't attempt a block mapping */
-}
-
-struct dma_contig_early_reserve {
-	phys_addr_t base;
-	unsigned long size;
-};
-
-static struct dma_contig_early_reserve dma_mmu_remap[MAX_CMA_AREAS] __initdata;
-
-static int dma_mmu_remap_num __initdata;
-
-void __init dma_contiguous_early_fixup(phys_addr_t base, unsigned long size)
-{
-	dma_mmu_remap[dma_mmu_remap_num].base = base;
-	dma_mmu_remap[dma_mmu_remap_num].size = size;
-	dma_mmu_remap_num++;
-}
-
-void __init dma_contiguous_remap(void)
-{
-	int i;
-
-	for (i = 0; i < dma_mmu_remap_num; i++) {
-		unsigned long addr;
-		phys_addr_t start = dma_mmu_remap[i].base;
-		phys_addr_t end = start + dma_mmu_remap[i].size;
-
-		if (start >= end)
-			continue;
-
-		for (addr = start; addr < end; addr += PAGE_SIZE)
-			create_mapping_noalloc(addr, __phys_to_virt(addr),
-						PAGE_SIZE, PAGE_KERNEL_EXEC);
-	}
 }
 
 #ifdef CONFIG_MEMORY_HOTPLUG
