@@ -630,7 +630,6 @@ int dma_declare_coherent_resizable_cma_memory(struct device *dev,
 	pr_info("resizable cma heap=%s create successful", heap_info->name);
 	return 0;
 declare_fail:
-	debugfs_remove_recursive(heap_info->dma_debug_root);
 	kfree(heap_info->name);
 fail:
 	kfree(heap_info);
