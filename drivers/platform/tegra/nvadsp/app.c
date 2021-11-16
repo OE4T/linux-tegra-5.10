@@ -3,7 +3,7 @@
  *
  * ADSP OS App management
  *
- * Copyright (C) 2014-2018, NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2014-2021, NVIDIA Corporation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -32,6 +32,7 @@
 #include "adsp_shared_struct.h"
 
 #define DYN_APP_EXTN	".elf"
+#define ADSP_APP_INIT_TIMEOUT 2000 /* in ms */
 
 /*
  * structure to hold the list of app binaries loaded and
@@ -616,7 +617,7 @@ nvadsp_app_info_t __must_check *nvadsp_app_init(nvadsp_app_handle_t handle,
 	nvadsp_app_info_t *app;
 	msgq_t *msgq_send;
 	int *state;
-	unsigned long flags;
+	unsigned long flags, ret = 0;
 
 	if (IS_ERR_OR_NULL(priv.pdev)) {
 		pr_err("ADSP Driver is not initialized\n");
@@ -661,7 +662,12 @@ nvadsp_app_info_t __must_check *nvadsp_app_init(nvadsp_app_handle_t handle,
 
 	nvadsp_mbox_send(&priv.mbox, 0, NVADSP_MBOX_SMSG, false, 0);
 
-	wait_for_completion(&app->wait_for_app_start);
+	ret = wait_for_completion_timeout(&app->wait_for_app_start,
+			msecs_to_jiffies(ADSP_APP_INIT_TIMEOUT));
+	if (!ret) {
+		delete_app_instance(app);
+		return NULL;
+	}
 	init_completion(&app->wait_for_app_start);
 	return app;
 err:

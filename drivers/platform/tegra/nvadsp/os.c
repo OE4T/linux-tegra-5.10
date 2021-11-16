@@ -1805,7 +1805,18 @@ int nvadsp_os_start(void)
 #if defined(CONFIG_TEGRA_ADSP_FILEIO)
 	if (!drv_data->adspff_init) {
 		ret = adspff_init(priv.pdev);
-		if (!ret)
+		if (ret) {
+			priv.os_running = drv_data->adsp_os_running = false;
+			dev_err(dev,
+				"adsp boot failed at adspff init with ret = %d",
+				ret);
+			dump_adsp_sys();
+			free_interrupts(&priv);
+#ifdef CONFIG_PM
+			pm_runtime_put_sync(&priv.pdev->dev);
+#endif
+			goto unlock;
+		} else
 			drv_data->adspff_init = true;
 	}
 #endif
