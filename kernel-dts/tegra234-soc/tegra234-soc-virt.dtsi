@@ -251,6 +251,10 @@
 	};
 #endif
 
+	smmu_suspend {
+		status = "disabled";
+	};
+
 	xhci@3610000 {
 		vfs_num = <4>;
 		/* Index 0 : XUSB PF base address and size

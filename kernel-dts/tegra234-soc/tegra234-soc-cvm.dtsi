@@ -81,4 +81,8 @@
 	iommu@8000000 {
 		status = "okay";
 	};
+
+	smmu_suspend {
+		status = "okay";
+	};
 };
