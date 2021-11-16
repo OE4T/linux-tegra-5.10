@@ -863,6 +863,19 @@ fail:
 	return ret;
 }
 
+static void tvnet_host_remove(struct pci_dev *pdev)
+{
+	struct tvnet_priv *tvnet = pci_get_drvdata(pdev);
+
+	free_irq(pci_irq_vector(pdev, 0), tvnet->ndev);
+	free_irq(pci_irq_vector(pdev, 1), tvnet->ndev);
+	pci_free_irq_vectors(pdev);
+	unregister_netdev(tvnet->ndev);
+	netif_napi_del(&tvnet->napi);
+	pci_disable_device(pdev);
+	free_netdev(tvnet->ndev);
+}
+
 static int tvnet_host_suspend(struct pci_dev *pdev, pm_message_t state)
 {
 	struct tvnet_priv *tvnet = pci_get_drvdata(pdev);
@@ -907,6 +920,7 @@ static struct pci_driver tvnet_pci_driver = {
 	.name		= "tvnet",
 	.id_table	= tvnet_host_pci_tbl,
 	.probe		= tvnet_host_probe,
+	.remove		= tvnet_host_remove,
 #ifdef CONFIG_PM
 	.suspend        = tvnet_host_suspend,
 	.resume         = tvnet_host_resume,
