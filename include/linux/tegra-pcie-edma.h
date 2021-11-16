@@ -17,10 +17,11 @@
  */
 typedef enum {
 	EDMA_XFER_SUCCESS = 0,
-	EDMA_XFER_ABORT,
 	EDMA_XFER_FAIL_INVAL_INPUTS,
 	EDMA_XFER_FAIL_NOMEM,
 	EDMA_XFER_FAIL_TIMEOUT,
+	EDMA_XFER_ABORT,
+	EDMA_XFER_DEINIT,
 } edma_xfer_status_t;
 
 /** @brief typedef to define various values for xfer type passed tegra_pcie_edma_submit_xfer() */
@@ -38,7 +39,7 @@ typedef enum {
 	EDMA_CHAN_XFER_ASYNC,
 } edma_chan_type_t;
 
-/** Forward decleration */
+/** Forward declaration */
 struct tegra_pcie_edma_desc;
 
 /** @brief Tx Async callback function pointer */
@@ -78,7 +79,7 @@ struct tegra_pcie_edma_chans_info {
 	uint32_t num_descriptors;
 };
 
-/** @brief init data strucutre to be used for tegra_pcie_edma_init() API */
+/** @brief init data structure to be used for tegra_pcie_edma_init() API */
 struct tegra_pcie_edma_init_info {
 	/** configuration details for edma Tx channels */
 	struct tegra_pcie_edma_chans_info tx[DMA_WR_CHNL_NUM];
@@ -111,7 +112,7 @@ struct tegra_pcie_edma_xfer_info {
 	 *  Range 0 to (DMA_RD_CHNL_NUM-1)/(DMA_WR_CHNL_NUM-1)
 	 */
 	uint32_t channel_num;
-	/** EDMA descripter strucutre with source, destination DMA addr along with its size. */
+	/** EDMA descriptor structure with source, destination DMA addr along with its size. */
 	struct tegra_pcie_edma_desc *desc;
 	/** Number of desc entries. */
 	uint32_t nents;
