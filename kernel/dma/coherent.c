@@ -155,40 +155,21 @@ int dma_declare_coherent_memory(struct device *dev, phys_addr_t phys_addr,
 
 static void *__dma_alloc_from_coherent(struct device *dev,
 				       struct dma_coherent_mem *mem,
-				       ssize_t size, dma_addr_t *dma_handle,
-					unsigned long attrs)
+				       ssize_t size, dma_addr_t *dma_handle)
 {
 	int order = get_order(size);
 	unsigned long flags;
-	unsigned long align;
-	unsigned int count;
-	void *ret = NULL;
 	int pageno;
+	void *ret = NULL;
 
 	spin_lock_irqsave(&mem->spinlock, flags);
 
 	if (unlikely(size > ((dma_addr_t)mem->size << PAGE_SHIFT)))
 		goto err;
 
-	if (attrs & DMA_ATTR_ALLOC_EXACT_SIZE) {
-		align = 0;
-		count = PAGE_ALIGN(size) >> PAGE_SHIFT;
-	} else  {
-		if (order > DMA_BUF_ALIGNMENT)
-			align = (1 << DMA_BUF_ALIGNMENT) - 1;
-		else
-			align = (1 << order) - 1;
-
-		count = 1 << order;
-	}
-
-	pageno = bitmap_find_next_zero_area(mem->bitmap, mem->size,
-			0, count, align);
-
-	if (pageno >= mem->size)
+	pageno = bitmap_find_free_region(mem->bitmap, mem->size, order);
+	if (unlikely(pageno < 0))
 		goto err;
-
-	bitmap_set(mem->bitmap, pageno, count);
 
 	/*
 	 * Memory was found in the coherent area.
@@ -210,13 +191,12 @@ err:
 }
 
 /**
- * dma_alloc_from_dev_coherent_attr() - allocate memory from device coherent pool
+ * dma_alloc_from_dev_coherent() - allocate memory from device coherent pool
  * @dev:	device from which we allocate memory
  * @size:	size of requested memory area
  * @dma_handle:	This will be filled with the correct dma handle
  * @ret:	This pointer will be filled with the virtual address
  *		to allocated area.
- * @attrs:	DMA attribute
  *
  * This function should be only called from per-arch dma_alloc_coherent()
  * to support allocation from per-device coherent memory pools.
@@ -224,15 +204,15 @@ err:
  * Returns 0 if dma_alloc_coherent should continue with allocating from
  * generic memory areas, or !0 if dma_alloc_coherent should return @ret.
  */
-int dma_alloc_from_dev_coherent_attr(struct device *dev, ssize_t size,
-		dma_addr_t *dma_handle, void **ret, unsigned long attrs)
+int dma_alloc_from_dev_coherent(struct device *dev, ssize_t size,
+		dma_addr_t *dma_handle, void **ret)
 {
 	struct dma_coherent_mem *mem = dev_get_coherent_memory(dev);
 
 	if (!mem)
 		return 0;
 
-	*ret = __dma_alloc_from_coherent(dev, mem, size, dma_handle, attrs);
+	*ret = __dma_alloc_from_coherent(dev, mem, size, dma_handle);
 	return 1;
 }
 
@@ -243,12 +223,11 @@ void *dma_alloc_from_global_coherent(struct device *dev, ssize_t size,
 		return NULL;
 
 	return __dma_alloc_from_coherent(dev, dma_coherent_default_memory, size,
-					 dma_handle, 0);
+					 dma_handle);
 }
 
 static int __dma_release_from_coherent(struct dma_coherent_mem *mem,
-				       ssize_t size, void *vaddr,
-				       unsigned long attrs)
+				       int order, void *vaddr)
 {
 	void *mem_addr;
 
@@ -265,15 +244,9 @@ static int __dma_release_from_coherent(struct dma_coherent_mem *mem,
 
 		int page = (vaddr - mem_addr) >> PAGE_SHIFT;
 		unsigned long flags;
-		unsigned int count;
-
-		if (DMA_ATTR_ALLOC_EXACT_SIZE & attrs)
-			count = PAGE_ALIGN(size) >> PAGE_SHIFT;
-		else
-			count = 1 << get_order(size);
 
 		spin_lock_irqsave(&mem->spinlock, flags);
-		bitmap_clear(mem->bitmap, page, count);
+		bitmap_release_region(mem->bitmap, page, order);
 		spin_unlock_irqrestore(&mem->spinlock, flags);
 		return 1;
 	}
@@ -281,11 +254,10 @@ static int __dma_release_from_coherent(struct dma_coherent_mem *mem,
 }
 
 /**
- * dma_release_from_dev_coherent_attr() - free memory to device coherent memory pool
+ * dma_release_from_dev_coherent() - free memory to device coherent memory pool
  * @dev:	device from which the memory was allocated
  * @order:	the order of pages allocated
  * @vaddr:	virtual address of allocated pages
- * @attrs:	DMA attribute
  *
  * This checks whether the memory was allocated from the per-device
  * coherent memory pool and if so, releases that memory.
@@ -293,21 +265,20 @@ static int __dma_release_from_coherent(struct dma_coherent_mem *mem,
  * Returns 1 if we correctly released the memory, or 0 if the caller should
  * proceed with releasing memory from generic pools.
  */
-int dma_release_from_dev_coherent_attr(struct device *dev, ssize_t size,
-					void *vaddr, unsigned long attrs)
+int dma_release_from_dev_coherent(struct device *dev, int order, void *vaddr)
 {
 	struct dma_coherent_mem *mem = dev_get_coherent_memory(dev);
 
-	return __dma_release_from_coherent(mem, size, vaddr, attrs);
+	return __dma_release_from_coherent(mem, order, vaddr);
 }
 
-int dma_release_from_global_coherent(size_t size, void *vaddr)
+int dma_release_from_global_coherent(int order, void *vaddr)
 {
 	if (!dma_coherent_default_memory)
 		return 0;
 
-	return __dma_release_from_coherent(dma_coherent_default_memory, size,
-			vaddr, 0);
+	return __dma_release_from_coherent(dma_coherent_default_memory, order,
+			vaddr);
 }
 
 static int __dma_mmap_from_coherent(struct dma_coherent_mem *mem,
