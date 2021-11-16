@@ -5,8 +5,10 @@
  * Copyright (C) 2021 NVIDIA Corporation. All rights reserved.
  */
 
+#include <linux/delay.h>
 #include <linux/dma-iommu.h>
 #include <linux/io.h>
+#include <linux/iopoll.h>
 #include <linux/of_platform.h>
 #include <linux/slab.h>
 #include <linux/interrupt.h>
@@ -24,8 +26,7 @@
  *    2Gbps is max speed for Gen 1 with 2.5GT/s at 8/10 encoding.
  *  Convert to milli seconds and add 1sec timeout
  */
-/** TODO: How to handle overflow */
-#define GET_SYNC_TIMEOUT(s)	((((s) * 8)/2000000) + 1000)
+#define GET_SYNC_TIMEOUT(s)	((((s) * 8UL) / 2000000) + 1000)
 
 #define INCR_DESC(idx, i) ((idx) = ((idx) + (i)) % (ch->desc_sz))
 
@@ -45,6 +46,8 @@ struct edma_chan {
 	u64 rcount;
 	bool pcs;
 	bool db_pos;
+	/** This filed is updated to abort of de-init to stop further xfer submits */
+	edma_xfer_status_t st;
 };
 
 struct edma_prv {
@@ -80,6 +83,8 @@ static inline void edma_ll_ch_init(void *edma_base, uint32_t ch,
 	uint32_t lle_ccs = DMA_CH_CONTROL1_OFF_WRCH_LIE | DMA_CH_CONTROL1_OFF_WRCH_LLE |
 			   DMA_CH_CONTROL1_OFF_WRCH_CCS;
 	uint32_t rie = DMA_CH_CONTROL1_OFF_WRCH_RIE;
+	uint32_t err_off = DMA_WRITE_LINKED_LIST_ERR_EN_OFF;
+	uint32_t err_val = 0;
 
 	if (!rw_type) {
 		int_mask = DMA_READ_INT_MASK_OFF;
@@ -89,17 +94,22 @@ static inline void edma_ll_ch_init(void *edma_base, uint32_t ch,
 		lle_ccs = DMA_CH_CONTROL1_OFF_RDCH_LIE | DMA_CH_CONTROL1_OFF_RDCH_LLE |
 			   DMA_CH_CONTROL1_OFF_RDCH_CCS;
 		rie = DMA_CH_CONTROL1_OFF_RDCH_RIE;
+		err_off = DMA_READ_LINKED_LIST_ERR_EN_OFF;
 	}
 	/* Enable LIE or RIE for all write channels */
 	val = dma_common_rd(edma_base, int_mask);
+	err_val = dma_common_rd(edma_base, err_off);
 	if (!is_remote_dma) {
 		val &= ~int_mask_val;
 		val &= ~(int_mask_val << 16);
+		err_val |= OSI_BIT((16 + ch));
 	} else {
 		val |= int_mask_val;
 		val |= (int_mask_val << 16);
+		err_val |= OSI_BIT(ch);
 	}
 	dma_common_wr(edma_base, val, int_mask);
+	dma_common_wr(edma_base, err_val, err_off);
 
 	val = lle_ccs;
 	/* Enable RIE for remote DMA */
@@ -129,6 +139,35 @@ static inline void edma_hw_init(void *cookie)
 #endif
 }
 
+static inline void edma_ch_init(struct edma_chan *ch)
+{
+	struct edma_dblock *db;
+	dma_addr_t addr;
+	uint32_t j;
+
+	memset(ch->desc, 0, (sizeof(struct edma_dblock)) *
+			    ((ch->desc_sz / 2) + 1));
+
+	db = (struct edma_dblock *)ch->desc + ((ch->desc_sz / 2) - 1);
+	db->llp.sar_low = lower_32_bits(ch->dma_iova);
+	db->llp.sar_high = upper_32_bits(ch->dma_iova);
+	db->llp.ctrl_reg.ctrl_e.llp = 1;
+	db->llp.ctrl_reg.ctrl_e.tcb = 1;
+	for (j = 0; j < (ch->desc_sz / 2 - 1); j++) {
+		db = (struct edma_dblock *)ch->desc + j;
+		addr = ch->dma_iova + (sizeof(struct edma_dblock) * (j + 1));
+		db->llp.sar_low = lower_32_bits(addr);
+		db->llp.sar_high = upper_32_bits(addr);
+		db->llp.ctrl_reg.ctrl_e.llp = 1;
+	}
+	ch->wcount = 0;
+	ch->rcount = 0;
+	ch->w_idx  = 0;
+	ch->r_idx  = 0;
+	ch->pcs = 1;
+	ch->st = EDMA_XFER_SUCCESS;
+}
+
 static inline void edma_hw_deinit(void *cookie)
 {
 	struct edma_prv *prv = (struct edma_prv *)cookie;
@@ -151,19 +190,25 @@ static inline void edma_hw_deinit(void *cookie)
 static inline u32 get_dma_idx_from_llp(struct edma_prv *prv, u32 chan)
 {
 	u64 cur_iova;
+	u64 high_iova, tmp_iova;
 	u32 cur_idx;
 	struct edma_chan *ch = &prv->tx[chan];
 	u64 block_idx, idx_in_block;
 
 	/*
 	 * Read current element address in DMA_LLP register which pending
-	 * DMA request.
+	 * DMA request and validate for spill over.
 	 */
-	cur_iova = dma_channel_rd(prv->edma_base, chan, DMA_LLP_HIGH_OFF_WRCH);
-	cur_iova = (cur_iova << 32);
+	high_iova = dma_channel_rd(prv->edma_base, chan, DMA_LLP_HIGH_OFF_WRCH);
+	cur_iova = (high_iova << 32);
 	cur_iova |= dma_channel_rd(prv->edma_base, chan, DMA_LLP_LOW_OFF_WRCH);
+	tmp_iova = dma_channel_rd(prv->edma_base, chan, DMA_LLP_HIGH_OFF_WRCH);
+	if (tmp_iova > high_iova) {
+		/* Take latest reading of low offset and use it with new high offset */
+		cur_iova = dma_channel_rd(prv->edma_base, chan, DMA_LLP_LOW_OFF_WRCH);
+		cur_iova |= (tmp_iova << 32);
+	}
 	/* Compute DMA desc index */
-	/* TODO: Add checks for index spill over */
 	block_idx = ((cur_iova - ch->dma_iova) / sizeof(struct edma_dblock));
 	idx_in_block = (cur_iova & (sizeof(struct edma_dblock) - 1)) /
 		       sizeof(struct edma_hw_desc);
@@ -173,49 +218,105 @@ static inline u32 get_dma_idx_from_llp(struct edma_prv *prv, u32 chan)
 	return cur_idx % (ch->desc_sz);
 }
 
+static inline void process_r_idx(struct edma_chan *ch, edma_xfer_status_t st, u32 idx)
+{
+	u32 count = 0;
+	struct edma_hw_desc *dma_ll_virt;
+	struct edma_dblock *db;
+	struct tegra_pcie_edma_xfer_info *ring;
+
+	while ((ch->r_idx != idx) && (count < ch->desc_sz)) {
+		count++;
+		ring = &ch->ring[ch->r_idx];
+		db = (struct edma_dblock *)ch->desc + ch->r_idx / 2;
+		dma_ll_virt = &db->desc[ch->r_idx % 2];
+		INCR_DESC(ch->r_idx, 1);
+		ch->rcount++;
+		if (ch->type == EDMA_CHAN_XFER_ASYNC && ring->complete) {
+			ring->complete(ring->priv, st, NULL);
+			/* Clear ring callback and lie,rie */
+			ring->complete = NULL;
+			dma_ll_virt->ctrl_reg.ctrl_e.lie = 0;
+			dma_ll_virt->ctrl_reg.ctrl_e.rie = 0;
+		}
+	}
+}
+
+static inline void process_ch_irq(struct edma_prv *prv, u32 chan)
+{
+	u32 idx;
+	struct edma_chan *ch = &prv->tx[chan];
+
+	idx = get_dma_idx_from_llp(prv, chan);
+
+	if (ch->type == EDMA_CHAN_XFER_SYNC) {
+		if (prv->wr_busy & OSI_BIT(chan)) {
+			prv->wr_busy &= ~(OSI_BIT(chan));
+			wake_up(&ch->wq);
+		}
+	}
+
+	if (ch->st == EDMA_XFER_ABORT) {
+		dev_info(&prv->pdev->dev, "Abort: ch %d at r_idx %d->idx %d, w_idx is %d\n", chan,
+			 ch->r_idx, idx, ch->w_idx);
+		if (ch->r_idx == idx)
+			goto process_abort;
+	}
+
+	process_r_idx(ch, EDMA_XFER_SUCCESS, idx);
+
+process_abort:
+	if (ch->st == EDMA_XFER_ABORT)
+		process_r_idx(ch, EDMA_XFER_ABORT, ch->w_idx);
+}
+
 static irqreturn_t edma_irq_handler(int irq, void *cookie)
 {
 	struct edma_prv *prv = (struct edma_prv *)cookie;
 	int bit = 0;
-	u32 val, idx;
-	struct tegra_pcie_edma_xfer_info *ring;
-	struct edma_hw_desc *dma_ll_virt;
-	struct edma_dblock *db;
+	u32 val;
+	struct edma_chan *ch;
 
-	/* TODO: Add Abort handling also here */
+
 	val = dma_common_rd(prv->edma_base, DMA_WRITE_INT_STATUS_OFF);
-	for (bit = 0; bit < DMA_WR_CHNL_NUM; bit++) {
-		if (BIT(bit) & val) {
-			/* TODO: schedule a work queue for processing */
-			struct edma_chan *ch = &prv->tx[bit];
+	if ((val & OSI_GENMASK(31, 16)) != 0U) {
+		/**
+		 * If ABORT, immediately update state for all channels as aborted.
+		 * This setting stop further SW queuing
+		 */
+		dev_info(&prv->pdev->dev, "Abort int status 0x%x", val);
+		for (bit = 0; bit < DMA_WR_CHNL_NUM; bit++) {
+			ch = &prv->tx[bit];
+			ch->st = EDMA_XFER_ABORT;
+		}
 
-			dma_common_wr(prv->edma_base, BIT(bit),
+		edma_hw_deinit(prv);
+
+		/** Perform abort handling */
+		for (bit = 0; bit < DMA_WR_CHNL_NUM; bit++) {
+			ch = &prv->tx[bit];
+
+			/* Clear ABORT and DONE interrupt, as abort handles both */
+			dma_common_wr(prv->edma_base, OSI_BIT(16 + bit) | OSI_BIT(bit),
 				      DMA_WRITE_INT_CLEAR_OFF);
 
-			if (ch->type == EDMA_CHAN_XFER_SYNC) {
-				if (prv->wr_busy & BIT(bit)) {
-					prv->wr_busy &= ~(BIT(bit));
-					wake_up(&ch->wq);
-				} else {
-					dev_err(&prv->pdev->dev, "SYNC mode with wr_busy not set.\n");
-				}
-			}
+			/** wait until exisitng xfer submit completed */
+			mutex_lock(&ch->lock);
+			mutex_unlock(&ch->lock);
 
-			idx = get_dma_idx_from_llp(prv, bit);
-			/* TODO add an another pre-defined exit condition */
-			while (ch->r_idx != idx) {
-				ring = &ch->ring[ch->r_idx];
-				db = (struct edma_dblock *)ch->desc + ch->r_idx/2;
-				dma_ll_virt = &db->desc[ch->r_idx % 2];
-				INCR_DESC(ch->r_idx, 1);
-				ch->rcount++;
-				if (ch->type == EDMA_CHAN_XFER_ASYNC && ring->complete) {
-					ring->complete(ring->priv, EDMA_XFER_SUCCESS, NULL);
-					/* Clear ring callback and lie,rie */
-					ring->complete = NULL;
-					dma_ll_virt->ctrl_reg.ctrl_e.lie = 0;
-					dma_ll_virt->ctrl_reg.ctrl_e.rie = 0;
-				}
+			process_ch_irq(prv, bit);
+
+			edma_ch_init(ch);
+		}
+
+		edma_hw_init(prv);
+	} else {
+		for (bit = 0; bit < DMA_WR_CHNL_NUM; bit++) {
+			ch = &prv->tx[bit];
+			if (OSI_BIT(bit) & val) {
+				dma_common_wr(prv->edma_base, OSI_BIT(bit),
+					      DMA_WRITE_INT_CLEAR_OFF);
+				process_ch_irq(prv, bit);
 			}
 		}
 	}
@@ -227,10 +328,8 @@ void *tegra_pcie_edma_initialize(struct tegra_pcie_edma_init_info *info)
 {
 	struct edma_prv *prv;
 	struct resource *dma_res;
-	int32_t ret, i, j;
+	int32_t ret, i;
 	struct edma_chan *ch = NULL;
-	struct edma_dblock *db;
-	dma_addr_t addr;
 
 	prv = kzalloc(sizeof(*prv), GFP_KERNEL);
 	if (!prv) {
@@ -280,27 +379,13 @@ void *tegra_pcie_edma_initialize(struct tegra_pcie_edma_init_info *info)
 				goto dma_iounmap;
 			}
 
-			memset(ch->desc, 0, (sizeof(struct edma_dblock)) *
-					    ((ch->desc_sz/2) + 1));
-
 			ch->ring = kcalloc(ch->desc_sz, sizeof(*(ch->ring)), GFP_KERNEL);
-			if (!ch->ring)
-				dev_err(&prv->pdev->dev, "Failed to allocate %d channel ring\n",
-					i);
-
-			db = (struct edma_dblock *)ch->desc + ((ch->desc_sz/2) - 1);
-			db->llp.sar_low = lower_32_bits(ch->dma_iova);
-			db->llp.sar_high = upper_32_bits(ch->dma_iova);
-			db->llp.ctrl_reg.ctrl_e.llp = 1;
-			db->llp.ctrl_reg.ctrl_e.tcb = 1;
-			for (j = 0; j < (ch->desc_sz/2 - 1); j++) {
-				db = (struct edma_dblock *)ch->desc + j;
-				addr = ch->dma_iova + (sizeof(struct edma_dblock) * (j+1));
-				db->llp.sar_low = lower_32_bits(addr);
-				db->llp.sar_high = upper_32_bits(addr);
-				db->llp.ctrl_reg.ctrl_e.llp = 1;
+			if (!ch->ring) {
+				dev_err(&prv->pdev->dev, "Failed to allocate %d channel ring\n", i);
+				goto free_dma_desc;
 			}
-			ch->pcs = 1;
+
+			edma_ch_init(ch);
 		}
 
 		/* TODO RX descriptor creation */
@@ -351,6 +436,8 @@ free_dma_desc:
 			dma_free_coherent(&prv->pdev->dev,
 			(sizeof(struct edma_hw_desc) * prv->tx[i].desc_sz),
 			prv->tx[i].desc, prv->tx[i].dma_iova);
+
+		kfree(prv->tx[i].ring);
 	}
 dma_iounmap:
 	iounmap(prv->edma_base);
@@ -388,6 +475,11 @@ edma_xfer_status_t tegra_pcie_edma_submit_xfer(void *cookie,
 
 	/* Get hold of the hardware - locking */
 	mutex_lock(&ch->lock);
+
+	if (ch->st != EDMA_XFER_SUCCESS) {
+		st = ch->st;
+		goto unlock;
+	}
 
 	avail = (ch->r_idx - ch->w_idx - 1U) & (ch->desc_sz - 1U);
 	if (tx_info->nents > avail) {
@@ -445,16 +537,18 @@ edma_xfer_status_t tegra_pcie_edma_submit_xfer(void *cookie,
 	if (ch->type == EDMA_CHAN_XFER_SYNC) {
 		ret = wait_event_timeout(ch->wq,
 				!(prv->wr_busy & (1 << tx_info->channel_num)),
-				msecs_to_jiffies(GET_SYNC_TIMEOUT(total_sz)));
+				msecs_to_jiffies((uint32_t)(GET_SYNC_TIMEOUT(total_sz))));
 		if (ret == 0) {
 			dev_err(&prv->pdev->dev,
 				"%s: timeout at %d ch, w_idx(%d), r_idx(%d)\n",
 				__func__, tx_info->channel_num, ch->w_idx,
 				ch->r_idx);
-			dev_err(&prv->pdev->dev, "int status %x",  dma_common_rd(prv->edma_base,
-				DMA_WRITE_INT_STATUS_OFF));
+			dev_err(&prv->pdev->dev, "%s: int status 0x%x", __func__,
+				dma_common_rd(prv->edma_base, DMA_WRITE_INT_STATUS_OFF));
 			st = EDMA_XFER_FAIL_TIMEOUT;
 			goto unlock;
+		} else {
+			st = ch->st;
 		}
 		dev_dbg(&prv->pdev->dev, "xmit done for %d nents at %d widx and %d ridx\n",
 			tx_info->nents, ch->w_idx, ch->r_idx);
@@ -470,10 +564,22 @@ EXPORT_SYMBOL(tegra_pcie_edma_submit_xfer);
 void tegra_pcie_edma_deinit(void *cookie)
 {
 	struct edma_prv *prv = (struct edma_prv *)cookie;
-	int i;
+	int i, ret;
+	u32 val;
 
 	if (cookie == NULL)
 		return;
+
+	for (i = 0; i < DMA_WR_CHNL_NUM; i++)
+		prv->tx[i].st = EDMA_XFER_DEINIT;
+
+	/** Poll for 10 seconds to clear WR interrupts */
+	ret = readl_poll_timeout(prv->edma_base + DMA_WRITE_INT_STATUS_OFF, val,
+				 (val == 0), 20000, 10000000);
+	if (ret) {
+		dev_info(prv->dev, "DMA write interrupt pending: 0x%x\n", val);
+		dma_common_wr(prv->edma_base, val, DMA_WRITE_INT_STATUS_OFF);
+	}
 
 	edma_hw_deinit(cookie);
 
@@ -485,6 +591,8 @@ void tegra_pcie_edma_deinit(void *cookie)
 			dma_free_coherent(&prv->pdev->dev,
 			(sizeof(struct edma_hw_desc) * prv->tx[i].desc_sz),
 			prv->tx[i].desc, prv->tx[i].dma_iova);
+
+		kfree(prv->tx[i].ring);
 	}
 
 	iounmap(prv->edma_base);
