@@ -568,7 +568,7 @@ retry:
 
 	pr_debug("%s(): returned %p\n", __func__, page);
 
-	if (strstr(cma->name, "vpr") && page) {
+	if (page) {
 		__dma_remap(page, count << PAGE_SHIFT,
 			pgprot_writecombine(PAGE_KERNEL));
 		__dma_clear_buffer(page, count << PAGE_SHIFT);
@@ -606,8 +606,7 @@ bool cma_release(struct cma *cma, const struct page *pages, unsigned int count)
 
 	VM_BUG_ON(pfn + count > cma->base_pfn + cma->count);
 
-	if (strstr(cma->name, "vpr"))
-		__dma_remap((struct page *)pages, count << PAGE_SHIFT, PAGE_KERNEL_EXEC);
+	__dma_remap((struct page *)pages, count << PAGE_SHIFT, PAGE_KERNEL_EXEC);
 
 	free_contig_range(pfn, count);
 	cma_clear_bitmap(cma, pfn, count);
