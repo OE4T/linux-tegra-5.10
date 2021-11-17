@@ -304,6 +304,7 @@ struct nvhost_device_data t23x_nvdec_info = {
 	.isolate_contexts	= true,
 	.enable_riscv_boot	= true,
 	.riscv_desc_bin		= "nvhost_nvdec050_desc_dev.bin",
+	.riscv_image_bin	= "nvhost_nvdec050_sim.fw",
 	.scaling_init		= nvhost_scale_emc_init,
 	.scaling_deinit		= nvhost_scale_emc_deinit,
 	.scaling_post_cb	= &nvhost_scale_emc_callback,
