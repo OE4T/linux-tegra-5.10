@@ -36,6 +36,7 @@
 #include <crypto/rng.h>
 #include <crypto/hash.h>
 #include <crypto/akcipher.h>
+#include <crypto/aead.h>
 #include <crypto/internal/skcipher.h>
 #include <uapi/misc/tegra-nvvse-cryptodev.h>
 #include <asm/barrier.h>
@@ -738,6 +739,200 @@ out:
 	return ret;
 }
 
+static int tnvvse_crypto_aes_enc_dec_gcm(struct tnvvse_crypto_ctx *ctx,
+				struct tegra_nvvse_aes_enc_dec_ctl *aes_enc_dec_ctl)
+{
+	struct crypto_aead *tfm;
+	struct aead_request *req = NULL;
+	struct scatterlist in_sg, out_sg;
+	uint8_t *in_buf, *out_buf;
+	int32_t ret = 0;
+	uint32_t in_sz, out_sz, aad_length, data_length, tag_length, klen;
+	struct tnvvse_crypto_completion tcrypt_complete;
+	const char *driver_name;
+	char key_as_keyslot[AES_KEYSLOT_NAME_SIZE] = {0,};
+	uint8_t iv[TEGRA_NVVSE_AES_GCM_IV_LEN];
+	bool enc;
+
+	if (aes_enc_dec_ctl->aes_mode != TEGRA_NVVSE_AES_MODE_GCM) {
+		pr_err("%s(): The requested AES ENC/DEC (%d) is not supported\n",
+					__func__, aes_enc_dec_ctl->aes_mode);
+		ret = -EINVAL;
+		goto out;
+	}
+
+	tfm = crypto_alloc_aead("gcm(aes)", CRYPTO_ALG_TYPE_AEAD | CRYPTO_ALG_ASYNC, 0);
+	if (IS_ERR(tfm)) {
+		pr_err("%s(): Failed to load transform for gcm(aes): %ld\n",
+					__func__, PTR_ERR(tfm));
+		ret = PTR_ERR(tfm);
+		goto out;
+	}
+
+	req = aead_request_alloc(tfm, GFP_KERNEL);
+	if (!req) {
+		pr_err("%s(): Failed to allocate skcipher request\n", __func__);
+		ret = -ENOMEM;
+		goto free_tfm;
+	}
+
+	driver_name = crypto_tfm_alg_driver_name(crypto_aead_tfm(tfm));
+	if (driver_name == NULL) {
+		pr_err("%s(): Failed to get driver name for gcm(aes)\n", __func__);
+		goto free_req;
+	}
+	pr_debug("%s(): The aead driver name is %s for gcm(aes)\n",
+						__func__, driver_name);
+
+	if ((aes_enc_dec_ctl->key_length != TEGRA_CRYPTO_KEY_128_SIZE) &&
+		(aes_enc_dec_ctl->key_length != TEGRA_CRYPTO_KEY_192_SIZE) &&
+		(aes_enc_dec_ctl->key_length != TEGRA_CRYPTO_KEY_256_SIZE)) {
+		ret = -EINVAL;
+		pr_err("%s(): crypt_req keylen(%d) invalid", __func__, aes_enc_dec_ctl->key_length);
+		goto free_req;
+	}
+
+	crypto_aead_clear_flags(tfm, ~0);
+
+	if (!aes_enc_dec_ctl->skip_key) {
+		snprintf(key_as_keyslot, AES_KEYSLOT_NAME_SIZE, "NVSEAES %x",
+				aes_enc_dec_ctl->key_slot);
+		klen = strlen(key_as_keyslot);
+		if (klen != 16) { // TODO: is this check needed ?
+			pr_err("%s(): key length is invalid, length %d, key %s\n",
+					__func__, klen, key_as_keyslot);
+			return -EINVAL;
+			goto free_req;
+		}
+
+		ret = crypto_aead_setkey(tfm, key_as_keyslot, aes_enc_dec_ctl->key_length);
+		if (ret < 0) {
+			pr_err("%s(): Failed to set key: %d\n", __func__, ret);
+			goto free_req;
+		}
+	}
+
+	ret = crypto_aead_setauthsize(tfm, aes_enc_dec_ctl->tag_length);
+	if (ret < 0) {
+		pr_err("%s(): Failed to set tag size: %d\n", __func__, ret);
+		goto free_req;
+	}
+
+	init_completion(&tcrypt_complete.restart);
+	tcrypt_complete.req_err = 0;
+
+	enc = aes_enc_dec_ctl->is_encryption;
+	data_length = aes_enc_dec_ctl->data_length;
+	tag_length = aes_enc_dec_ctl->tag_length;
+	aad_length = aes_enc_dec_ctl->aad_length;
+
+	aead_request_set_callback(req, CRYPTO_TFM_REQ_MAY_BACKLOG,
+					tnvvse_crypto_complete, &tcrypt_complete);
+	aead_request_set_ad(req, aad_length);
+
+	memcpy(iv, aes_enc_dec_ctl->initial_vector, TEGRA_NVVSE_AES_GCM_IV_LEN);
+
+	/* Prepare buffers
+	 * - AEAD encryption input:  assoc data || plaintext
+	 * - AEAD encryption output: assoc data || cipherntext || auth tag
+	 * - AEAD decryption input:  assoc data || ciphertext || auth tag
+	 * - AEAD decryption output: assoc data || plaintext
+	 */
+	in_sz = enc ? aad_length + data_length :
+			aad_length + data_length + tag_length;
+	in_buf = kmalloc(in_sz, GFP_KERNEL);
+	if (in_buf == NULL) {
+		ret = -ENOMEM;
+		goto free_req;
+	}
+
+	out_sz = enc ? aad_length + data_length + tag_length :
+			aad_length + data_length;
+	out_buf = kmalloc(out_sz, GFP_KERNEL);
+	if (out_buf == NULL) {
+		ret = -ENOMEM;
+		goto free_in_buf;
+	}
+
+	sg_init_one(&in_sg, in_buf, in_sz);
+	sg_init_one(&out_sg, out_buf, out_sz);
+
+	ret = copy_from_user((void *)in_buf,
+		(void __user *)aes_enc_dec_ctl->aad_buffer, aad_length);
+	if (ret) {
+		pr_err("%s(): Failed to copy_from_user assoc data: %d\n", __func__, ret);
+		goto free_buf;
+	}
+
+	ret = copy_from_user((void *)(in_buf + aad_length),
+			(void __user *)aes_enc_dec_ctl->src_buffer, data_length);
+	if (ret) {
+		pr_err("%s(): Failed to copy_from_user src data: %d\n", __func__, ret);
+		goto free_buf;
+	}
+
+	if (!enc) {
+		ret = copy_from_user((void *)(in_buf + aad_length + data_length),
+				(void __user *)aes_enc_dec_ctl->tag_buffer, tag_length);
+		if (ret) {
+			pr_err("%s(): Failed to copy_from_user src data: %d\n", __func__, ret);
+			goto free_buf;
+		}
+	}
+
+	aead_request_set_crypt(req, &in_sg, &out_sg,
+				enc ? data_length : data_length + tag_length,
+				iv);
+
+	ret =  enc ? crypto_aead_encrypt(req) : crypto_aead_decrypt(req);
+	if ((ret == -EINPROGRESS) || (ret == -EBUSY)) {
+		/* crypto driver is asynchronous */
+		ret = wait_for_completion_timeout(&tcrypt_complete.restart,
+					msecs_to_jiffies(5000));
+		if (ret == 0)
+			goto free_buf;
+
+		if (tcrypt_complete.req_err < 0) {
+			ret = tcrypt_complete.req_err;
+			goto free_buf;
+		}
+	} else if (ret < 0) {
+		pr_err("%s(): Failed to %scrypt: %d\n",
+				__func__, enc ? "en" : "de", ret);
+		goto free_buf;
+	}
+
+	ret = copy_to_user((void __user *)aes_enc_dec_ctl->dest_buffer,
+					(const void *)(out_buf + aad_length), data_length);
+	if (ret) {
+		ret = -EFAULT;
+		pr_err("%s(): Failed to copy_to_user dst data: %d\n", __func__, ret);
+		goto free_buf;
+	}
+
+	if (enc) {
+		ret = copy_to_user((void __user *)aes_enc_dec_ctl->tag_buffer,
+			(const void *)(out_buf + aad_length + data_length), tag_length);
+		if (ret) {
+			ret = -EFAULT;
+			pr_err("%s(): Failed to copy_to_user tag: %d\n", __func__, ret);
+			goto free_buf;
+		}
+
+		memcpy(aes_enc_dec_ctl->initial_vector, req->iv, TEGRA_NVVSE_AES_GCM_IV_LEN);
+	}
+
+free_buf:
+	kfree(out_buf);
+free_in_buf:
+	kfree(in_buf);
+free_req:
+	aead_request_free(req);
+free_tfm:
+	crypto_free_aead(tfm);
+out:
+	return ret;
+}
 
 static int tnvvse_crypto_get_aes_drng(struct tnvvse_crypto_ctx *ctx,
 		struct tegra_nvvse_aes_drng_ctl *aes_drng_ctl)
@@ -900,14 +1095,19 @@ static long tnvvse_crypto_dev_ioctl(struct file *filp,
 			goto out;
 		}
 
-		ret = tnvvse_crypto_aes_enc_dec(ctx, &aes_enc_dec_ctl);
+		if (aes_enc_dec_ctl.aes_mode == TEGRA_NVVSE_AES_MODE_GCM)
+			ret = tnvvse_crypto_aes_enc_dec_gcm(ctx, &aes_enc_dec_ctl);
+		else
+			ret = tnvvse_crypto_aes_enc_dec(ctx, &aes_enc_dec_ctl);
+
 		if (ret) {
 			goto out;
 		}
 
 		/* Copy IV returned by VSE */
 		if (aes_enc_dec_ctl.is_encryption) {
-			if (aes_enc_dec_ctl.aes_mode == TEGRA_NVVSE_AES_MODE_CBC)
+			if (aes_enc_dec_ctl.aes_mode == TEGRA_NVVSE_AES_MODE_CBC ||
+				aes_enc_dec_ctl.aes_mode == TEGRA_NVVSE_AES_MODE_GCM)
 				ret = copy_to_user(arg_aes_enc_dec_ctl->initial_vector,
 							aes_enc_dec_ctl.initial_vector,
 							sizeof(aes_enc_dec_ctl.initial_vector));
