@@ -484,6 +484,38 @@ static int tegra_dma_pause(struct tegra_dma_channel *tdc)
 	return 0;
 }
 
+static int tegra_dma_device_pause(struct dma_chan *dc)
+{
+	struct tegra_dma_channel *tdc = to_tegra_dma_chan(dc);
+	struct tegra_dma_sg_req *sgreq;
+	unsigned long wcount, status, flags;
+	int ret = 0;
+
+	raw_spin_lock_irqsave(&tdc->lock, flags);
+	ret = tegra_dma_pause(tdc);
+	if (ret)
+		goto out;
+
+	status = tdc_read(tdc, TEGRA_GPCDMA_CHAN_STATUS);
+	wcount = tdc_read(tdc, TEGRA_GPCDMA_CHAN_XFER_COUNT);
+	if (status & TEGRA_GPCDMA_STATUS_ISE_EOC) {
+		dev_dbg(tdc2dev(tdc), "%s():handling isr\n", __func__);
+		tdc->isr_handler(tdc, true);
+		status = tdc_read(tdc, TEGRA_GPCDMA_CHAN_STATUS);
+		wcount = tdc_read(tdc, TEGRA_GPCDMA_CHAN_XFER_COUNT);
+	}
+
+	if (!list_empty(&tdc->pending_sg_req) && tdc->busy) {
+		sgreq = list_first_entry(&tdc->pending_sg_req,
+					typeof(*sgreq), node);
+		sgreq->dma_desc->bytes_transferred +=
+			sgreq->req_len - (wcount * 4);
+	}
+out:
+	raw_spin_unlock_irqrestore(&tdc->lock, flags);
+	return ret;
+}
+
 static void tegra_dma_resume(struct tegra_dma_channel *tdc)
 {
 	u32 val;
@@ -1884,6 +1916,7 @@ static int tegra_dma_probe(struct platform_device *pdev)
 	tdma->dma_dev.device_terminate_all = tegra_dma_terminate_all;
 	tdma->dma_dev.device_tx_status = tegra_dma_tx_status;
 	tdma->dma_dev.device_issue_pending = tegra_dma_issue_pending;
+	tdma->dma_dev.device_pause = tegra_dma_device_pause;
 
 	/* Register DMA channel interrupt handlers after everything is setup */
 	for (i = 0; i < cdata->nr_channels; i++) {
