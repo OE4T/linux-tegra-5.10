@@ -151,10 +151,6 @@
                 status = "okay";
         };
 
-        smmu_suspend {
-                status = "disabled";
-        };
-
         iommu@10000000 {
                 status = "okay";
         };
