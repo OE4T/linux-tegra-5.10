@@ -30,6 +30,7 @@
 #include <linux/amba/bus.h>
 #include <linux/amba/serial.h>
 #include <linux/clk.h>
+#include <linux/reset.h>
 #include <linux/slab.h>
 #include <linux/dmaengine.h>
 #include <linux/dma-mapping.h>
@@ -87,6 +88,8 @@ struct vendor_data {
 	bool			cts_event_workaround;
 	bool			always_enabled;
 	bool			fixed_options;
+	bool			enable_car;
+	bool			dma_workaround;
 
 	unsigned int (*get_fifosize)(struct amba_device *dev);
 };
@@ -95,6 +98,23 @@ static unsigned int get_fifosize_arm(struct amba_device *dev)
 {
 	return amba_rev(dev) < 3 ? 16 : 32;
 }
+
+static struct vendor_data vendor_nvidia = {
+	.reg_offset		= pl011_std_offsets,
+	.ifls			= UART011_IFLS_RX4_8|UART011_IFLS_TX4_8,
+	.fr_busy		= UART01x_FR_BUSY,
+	.fr_dsr			= UART01x_FR_DSR,
+	.fr_cts			= UART01x_FR_CTS,
+	.fr_ri			= UART011_FR_RI,
+	.oversampling		= false,
+	.dma_threshold		= false,
+	.cts_event_workaround	= false,
+	.always_enabled		= false,
+	.fixed_options		= false,
+	.enable_car		= true,
+	.dma_workaround		= true,
+	.get_fifosize		= get_fifosize_arm,
+};
 
 static struct vendor_data vendor_arm = {
 	.reg_offset		= pl011_std_offsets,
@@ -258,6 +278,7 @@ struct uart_amba_port {
 	struct uart_port	port;
 	const u16		*reg_offset;
 	struct clk		*clk;
+	struct reset_control	*rst;
 	const struct vendor_data *vendor;
 	unsigned int		dmacr;		/* dma control reg */
 	unsigned int		im;		/* interrupt mask */
@@ -620,6 +641,19 @@ static int pl011_dma_tx_refill(struct uart_amba_port *uap)
 	 * will prevent XON from notifying us to restart DMA.
 	 */
 	count -= 1;
+
+	/*
+	 * Tegra GPC DMA driver requires the data to be multiple of burst size.
+	 * Make count a multiple of burst size.
+	 */
+	if (uap->vendor->dma_workaround) {
+		count -= (count % (uap->fifosize >> 1));
+
+		if (count < (uap->fifosize >> 1)) {
+			uap->dmatx.queued = false;
+			return 0;
+		}
+	}
 
 	/* Else proceed to copy the TX chars to the DMA buffer and fire DMA */
 	if (count > PL011_DMA_BUFFER_SIZE)
@@ -2642,6 +2676,16 @@ static int pl011_register_port(struct uart_amba_port *uap)
 {
 	int ret, i;
 
+	/* Reset the controller and enable clock for initial reg_write.
+	 * This is required for Tegra Pl011 controller.
+	 */
+	if (uap->vendor->enable_car) {
+		reset_control_assert(uap->rst);
+		udelay(10);
+		reset_control_deassert(uap->rst);
+		clk_prepare_enable(uap->clk);
+	}
+
 	/* Ensure interrupts from this UART are masked and cleared */
 	pl011_write(0, uap, REG_IMSC);
 	pl011_write(0xffff, uap, REG_ICR);
@@ -2683,6 +2727,13 @@ static int pl011_probe(struct amba_device *dev, const struct amba_id *id)
 	uap->clk = devm_clk_get(&dev->dev, NULL);
 	if (IS_ERR(uap->clk))
 		return PTR_ERR(uap->clk);
+
+	if (vendor->enable_car) {
+		uap->rst = devm_reset_control_get_exclusive(&dev->dev,
+							    "serial");
+		if (IS_ERR(uap->rst))
+			return PTR_ERR(uap->rst);
+	}
 
 	uap->reg_offset = vendor->reg_offset;
 	uap->vendor = vendor;
@@ -2845,6 +2896,11 @@ static const struct amba_id pl011_ids[] = {
 		.id	= AMBA_LINUX_ID(0x00, 0x1, 0xffe),
 		.mask	= 0x00ffffff,
 		.data	= &vendor_zte,
+	},
+	{
+		.id	= 0x00051011,
+		.mask	= 0x00ffffff,
+		.data	= &vendor_nvidia,
 	},
 	{ 0, 0 },
 };
