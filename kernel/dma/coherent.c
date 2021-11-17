@@ -747,10 +747,10 @@ int dma_declare_coherent_memory(struct device *dev, phys_addr_t phys_addr,
 
 static inline struct page **kvzalloc_pages(u32 count)
 {
-        if (count * sizeof(struct page *) <= PAGE_SIZE)
-                return kzalloc(count * sizeof(struct page *), GFP_KERNEL);
-        else
-                return vzalloc(count * sizeof(struct page *));
+	if (count * sizeof(struct page *) <= PAGE_SIZE)
+		return kzalloc(count * sizeof(struct page *), GFP_KERNEL);
+	else
+		return vzalloc(count * sizeof(struct page *));
 }
 
 static void *__dma_alloc_from_coherent(struct device *dev,
@@ -759,87 +759,87 @@ static void *__dma_alloc_from_coherent(struct device *dev,
 					unsigned long attrs,
 					unsigned long start)
 {
-        int order = get_order(size);
-        unsigned long flags;
-        int pageno, i = 0;
-        unsigned int count;
-        unsigned int alloc_size;
-        unsigned long align;
-        void *ret = NULL;
-        struct page **pages = NULL;
-        int do_memset = 0;
+	int order = get_order(size);
+	unsigned long flags;
+	int pageno, i = 0;
+	unsigned int count;
+	unsigned int alloc_size;
+	unsigned long align;
+	void *ret = NULL;
+	struct page **pages = NULL;
+	int do_memset = 0;
 
-        if (dma_get_attr(DMA_ATTR_ALLOC_EXACT_SIZE, attrs))
-                count = PAGE_ALIGN(size) >> PAGE_SHIFT;
-        else
-                count = 1 << order;
+	if (attrs & DMA_ATTR_ALLOC_EXACT_SIZE)
+		count = PAGE_ALIGN(size) >> PAGE_SHIFT;
+	else
+		count = 1 << order;
 
-        if (!count)
-                return 0;
+	if (!count)
+		return 0;
 
-        if ((mem->flags & DMA_MEMORY_NOMAP) &&
-            dma_get_attr(DMA_ATTR_ALLOC_SINGLE_PAGES, attrs)) {
-                alloc_size = 1;
-                pages = kvzalloc_pages(count);
-                if (!pages)
-                        return 0;
-        } else {
-                alloc_size = count;
-        }
+	if ((mem->flags & DMA_MEMORY_NOMAP) &&
+	    (attrs & DMA_ATTR_ALLOC_SINGLE_PAGES)) {
+		alloc_size = 1;
+		pages = kvzalloc_pages(count);
+		if (!pages)
+			return 0;
+	} else {
+		alloc_size = count;
+	}
 
-        spin_lock_irqsave(&mem->spinlock, flags);
+	spin_lock_irqsave(&mem->spinlock, flags);
 
-        if (unlikely(size > (mem->size << PAGE_SHIFT)))
-                goto err;
+	if (unlikely(size > (mem->size << PAGE_SHIFT)))
+		goto err;
 
-        if ((mem->flags & DMA_MEMORY_NOMAP) &&
-            dma_get_attr(DMA_ATTR_ALLOC_SINGLE_PAGES, attrs)) {
-                align = 0;
-        } else  {
-                if (order > DMA_BUF_ALIGNMENT)
-                        align = (1 << DMA_BUF_ALIGNMENT) - 1;
-                else
-                        align = (1 << order) - 1;
-        }
+	if ((mem->flags & DMA_MEMORY_NOMAP) &&
+	    (DMA_ATTR_ALLOC_SINGLE_PAGES & attrs)) {
+		align = 0;
+	} else  {
+		if (order > DMA_BUF_ALIGNMENT)
+			align = (1 << DMA_BUF_ALIGNMENT) - 1;
+		else
+			align = (1 << order) - 1;
+	}
 
-        while (count) {
-                pageno = bitmap_find_next_zero_area(mem->bitmap, mem->size,
-                                start, alloc_size, align);
+	while (count) {
+		pageno = bitmap_find_next_zero_area(mem->bitmap, mem->size,
+				start, alloc_size, align);
 
-                if (pageno >= mem->size)
-                        goto err;
+		if (pageno >= mem->size)
+			goto err;
 
-                count -= alloc_size;
-                if (pages)
-                        pages[i++] = pfn_to_page(mem->pfn_base + pageno);
-                bitmap_set(mem->bitmap, pageno, alloc_size);
-        }
+		count -= alloc_size;
+		if (pages)
+			pages[i++] = pfn_to_page(mem->pfn_base + pageno);
+		bitmap_set(mem->bitmap, pageno, alloc_size);
+	}
 
-        /*
-         * Memory was found in the coherent area.
-         */
-        *dma_handle = mem->device_base + (pageno << PAGE_SHIFT);
-        if (!(mem->flags & DMA_MEMORY_NOMAP)) {
-                ret = mem->virt_base + (pageno << PAGE_SHIFT);
-                do_memset = 1;
-        } else if (dma_get_attr(DMA_ATTR_ALLOC_SINGLE_PAGES, attrs)) {
-                ret = pages;
-        }
+	/*
+	 * Memory was found in the coherent area.
+	 */
+	*dma_handle = mem->device_base + (pageno << PAGE_SHIFT);
+	if (!(mem->flags & DMA_MEMORY_NOMAP)) {
+		ret = mem->virt_base + (pageno << PAGE_SHIFT);
+		do_memset = 1;
+	} else if (attrs & DMA_ATTR_ALLOC_SINGLE_PAGES) {
+		ret = pages;
+	}
 
-        spin_unlock_irqrestore(&mem->spinlock, flags);
+	spin_unlock_irqrestore(&mem->spinlock, flags);
 
-        if (do_memset)
-                memset(ret, 0, size);
+	if (do_memset)
+		memset(ret, 0, size);
 
-        return ret;
+	return ret;
 err:
-        while (i--)
-                bitmap_clear(mem->bitmap, page_to_pfn(pages[i]) -
-                                        mem->pfn_base, alloc_size);
+	while (i--)
+		bitmap_clear(mem->bitmap, page_to_pfn(pages[i]) -
+					mem->pfn_base, alloc_size);
 
-        spin_unlock_irqrestore(&mem->spinlock, flags);
-        kvfree(pages);
-        return NULL;
+	spin_unlock_irqrestore(&mem->spinlock, flags);
+	kvfree(pages);
+	return NULL;
 }
 
 /**
@@ -906,54 +906,54 @@ static int __dma_release_from_coherent(struct dma_coherent_mem *mem,
 				       ssize_t size, void *vaddr,
 				       unsigned long attrs)
 {
-        void *mem_addr;
-        unsigned long flags;
-        unsigned int pageno;
+	void *mem_addr;
+	unsigned long flags;
+	unsigned int pageno;
 
-        if (!mem)
-                return 0;
+	if (!mem)
+		return 0;
 
-        if ((mem->flags & DMA_MEMORY_NOMAP) &&
-            dma_get_attr(DMA_ATTR_ALLOC_SINGLE_PAGES, attrs)) {
-                struct page **pages = vaddr;
-                int i;
+	if ((mem->flags & DMA_MEMORY_NOMAP) &&
+	    (DMA_ATTR_ALLOC_SINGLE_PAGES & attrs)) {
+		struct page **pages = vaddr;
+		int i;
 
-                spin_lock_irqsave(&mem->spinlock, flags);
-                for (i = 0; i < (size >> PAGE_SHIFT); i++) {
-                        pageno = page_to_pfn(pages[i]) - mem->pfn_base;
-                        if (WARN_ONCE(pageno > mem->size,
-                                "invalid pageno:%d\n", pageno))
-                                continue;
-                        bitmap_clear(mem->bitmap, pageno, 1);
-                }
-                spin_unlock_irqrestore(&mem->spinlock, flags);
-                kvfree(pages);
-                return 1;
-        }
+		spin_lock_irqsave(&mem->spinlock, flags);
+		for (i = 0; i < (size >> PAGE_SHIFT); i++) {
+			pageno = page_to_pfn(pages[i]) - mem->pfn_base;
+			if (WARN_ONCE(pageno > mem->size,
+				"invalid pageno:%d\n", pageno))
+				continue;
+			bitmap_clear(mem->bitmap, pageno, 1);
+		}
+		spin_unlock_irqrestore(&mem->spinlock, flags);
+		kvfree(pages);
+		return 1;
+	}
 
-        if (mem->flags & DMA_MEMORY_NOMAP)
-                mem_addr =  (void *)(uintptr_t)mem->device_base;
-        else
-                mem_addr =  mem->virt_base;
+	if (mem->flags & DMA_MEMORY_NOMAP)
+		mem_addr =  (void *)(uintptr_t)mem->device_base;
+	else
+		mem_addr =  mem->virt_base;
 
-        if (mem && vaddr >= mem_addr &&
-            vaddr - mem_addr < mem->size << PAGE_SHIFT) {
+	if (mem && vaddr >= mem_addr &&
+	    vaddr - mem_addr < mem->size << PAGE_SHIFT) {
 
-                int page = (vaddr - mem_addr) >> PAGE_SHIFT;
-                unsigned long flags;
-                unsigned int count;
+		int page = (vaddr - mem_addr) >> PAGE_SHIFT;
+		unsigned long flags;
+		unsigned int count;
 
-                if (DMA_ATTR_ALLOC_EXACT_SIZE & attrs)
-                        count = PAGE_ALIGN(size) >> PAGE_SHIFT;
-                else
-                        count = 1 << get_order(size);
+		if (DMA_ATTR_ALLOC_EXACT_SIZE & attrs)
+			count = PAGE_ALIGN(size) >> PAGE_SHIFT;
+		else
+			count = 1 << get_order(size);
 
-                spin_lock_irqsave(&mem->spinlock, flags);
-                bitmap_clear(mem->bitmap, page, count);
-                spin_unlock_irqrestore(&mem->spinlock, flags);
-                return 1;
-        }
-        return 0;
+		spin_lock_irqsave(&mem->spinlock, flags);
+		bitmap_clear(mem->bitmap, page, count);
+		spin_unlock_irqrestore(&mem->spinlock, flags);
+		return 1;
+	}
+	return 0;
 }
 
 /* retval: !0 on success, 0 on failure */
@@ -1014,7 +1014,7 @@ static int dma_release_from_coherent_heap_dev(struct device *dev, ssize_t len,
 		return 1;
 
 	mutex_lock(&h->resize_lock);
-	if (!dma_get_attr(DMA_ATTR_ALLOC_SINGLE_PAGES, attrs)) {
+	if ((DMA_ATTR_ALLOC_SINGLE_PAGES & attrs) == 0) {
 		if ((uintptr_t)base < h->curr_base || len > h->curr_len ||
 		    (uintptr_t)base - h->curr_base > h->curr_len - len) {
 			BUG();

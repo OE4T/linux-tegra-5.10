@@ -407,9 +407,9 @@ static int dma_info_to_prot(enum dma_data_direction dir, bool coherent,
 		return 0;
 	}
 
-	if (dma_get_attr(DMA_ATTR_READ_ONLY, (unsigned long)attrs))
+	if (DMA_ATTR_READ_ONLY & attrs)
 		prot &= ~IOMMU_WRITE;
-	else if (dma_get_attr(DMA_ATTR_WRITE_ONLY, (unsigned long)attrs))
+	else if (DMA_ATTR_WRITE_ONLY & attrs)
 		prot &= ~IOMMU_READ;
 
 	return prot;

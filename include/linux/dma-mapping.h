@@ -12,7 +12,6 @@
 #include <linux/scatterlist.h>
 #include <linux/bug.h>
 #include <linux/mem_encrypt.h>
-#include <linux/dma-attrs.h>
 
 #define DMA_ERROR_CODE	(~(dma_addr_t)0)
 
