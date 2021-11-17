@@ -659,31 +659,6 @@ static void tegra_xusb_boost_emc_deinit(struct tegra_xusb *tegra)
 	cancel_delayed_work_sync(&tegra->restore_emcfreq_work);
 }
 
-/* sysfs node for fw check*/
-static ssize_t fw_version_show(struct device *dev, char *buf, size_t size)
-{
-	struct tegra_xusb *tegra = dev_get_drvdata(dev);
-	struct tegra_xusb_fw_header *header = NULL;
-	time64_t timestamp;
-	struct tm time;
-
-	if (!tegra)
-		return scnprintf(buf, size, "device is not available\n");
-
-	header = (struct tegra_xusb_fw_header *)tegra->fw.virt;
-
-	timestamp = le32_to_cpu(header->fwimg_created_time);
-	time64_to_tm(timestamp, 0, &time);
-
-	return scnprintf(buf, size,
-		"Firmware timestamp: %ld-%02d-%02d %02d:%02d:%02d UTC, Version: %2x.%02x %s\n",
-		time.tm_year + 1900, time.tm_mon + 1, time.tm_mday,
-		time.tm_hour, time.tm_min, time.tm_sec,
-		FW_MAJOR_VERSION(header->version_id),
-		FW_MINOR_VERSION(header->version_id),
-		(header->build_log == LOG_MEMORY) ? "debug" : "release");
-}
-
 static bool xhci_err_init;
 static ssize_t show_xhci_stats(struct device *dev,
 		struct device_attribute *attr, char *buf) {
@@ -2730,6 +2705,48 @@ static ssize_t store_reload_hcd(struct device *dev,
 	return count;
 }
 static DEVICE_ATTR(reload_hcd, 0200, NULL, store_reload_hcd);
+
+/* sysfs node for fw check*/
+static ssize_t fw_version_show(struct device *dev, char *buf, size_t size)
+{
+	struct tegra_xusb *tegra = dev_get_drvdata(dev);
+	struct tegra_xusb_fw_header *header = NULL;
+	u8 build_log;
+	time64_t timestamp;
+	u32 version_id;
+	struct tm time;
+
+	if (!tegra)
+		return scnprintf(buf, size, "device is not available\n");
+
+	if (tegra->soc->has_ifr) {
+#define offsetof_32(X, Y) ((u8)(offsetof(X, Y) / sizeof(__le32)))
+		build_log = (tegra_xusb_read_firmware_header(tegra,
+					offsetof_32(struct tegra_xusb_fw_header,
+						num_hsic_port)) >> 16) & 0xf;
+		timestamp = tegra_xusb_read_firmware_header(tegra,
+				offsetof_32(struct tegra_xusb_fw_header,
+					fwimg_created_time));
+		version_id = tegra_xusb_read_firmware_header(tegra,
+				offsetof_32(struct tegra_xusb_fw_header,
+					version_id));
+#undef offsetof_32
+	} else {
+		header = (struct tegra_xusb_fw_header *)tegra->fw.virt;
+		build_log = header->build_log;
+		timestamp = le32_to_cpu(header->fwimg_created_time);
+		version_id = header->version_id;
+	}
+	time64_to_tm(timestamp, 0, &time);
+
+	return scnprintf(buf, size,
+		"Firmware timestamp: %ld-%02d-%02d %02d:%02d:%02d UTC, Version: %2x.%02x %s\n",
+		time.tm_year + 1900, time.tm_mon + 1, time.tm_mday,
+		time.tm_hour, time.tm_min, time.tm_sec,
+		FW_MAJOR_VERSION(version_id),
+		FW_MINOR_VERSION(version_id),
+		(build_log == LOG_MEMORY) ? "debug" : "release");
+}
 
 static int tegra_xusb_probe(struct platform_device *pdev)
 {
