@@ -27,7 +27,6 @@
 #define TEGRA_NVVSE_CMDID_AES_SET_KEY			1
 #define TEGRA_NVVSE_CMDID_AES_ENCDEC			2
 #define TEGRA_NVVSE_CMDID_AES_CMAC			3
-#define TEGRA_NVVSE_CMDID_AES_CMAC_MULTI		4
 #define TEGRA_NVVSE_CMDID_INIT_SHA			5
 #define TEGRA_NVVSE_CMDID_UPDATE_SHA			6
 #define TEGRA_NVVSE_CMDID_FINAL_SHA			7
@@ -39,8 +38,6 @@
 #define TEGRA_NVVSE_AES_CTR_LEN				16U
 /** Defines the length of the AES-GCM Tag buffer */
 #define TEGRA_NVVSE_AES_GCM_TAG_SIZE			16U
-/** Defines the Maximum number of AES CMAC Buffers in one NvVseAESCMACMulti() call */
-#define TEGRA_NVVSE_AES_CMAC_MAX_BUFFERS		64U
 /** Defines the counter offset byte in the AES Initial counter*/
 #define TEGRA_COUNTER_OFFSET				12U
 
@@ -251,33 +248,6 @@ struct tegra_nvvse_aes_cmac_ctl {
 };
 #define NVVSE_IOCTL_CMDID_AES_CMAC _IOWR(TEGRA_NVVSE_IOC_MAGIC, TEGRA_NVVSE_CMDID_AES_CMAC, \
 						struct tegra_nvvse_aes_cmac_ctl)
-
-/**
-  *  \brief Holds parameters to Multi AES CMAC IO control API.
-  */
-struct tegra_nvvse_aes_cmac_multi_ctl {
-	/** [in] Holds a keyslot number */
-	uint32_t	key_slot;
-	/** [in] Holds the Key length */
-	/** Supported keylength is only 16 bytes */
-	uint8_t		key_length;
-	/** [in] Holds the number of Buffers */
-	/** Range supported for number of buffers is 1 to 64 */
-	uint8_t		num_buffers;
-	/** [in] Holds the Length of the input buffer.
-	  * Range supported for data length is 0 to (16MB - 16) bytes.
-	  * uDataLength shall not be more than the size configured through "-aes_ip_max"
-	  * option during launch of driver (devc-nvvse-safety).
-	  */
-	uint32_t	data_length[TEGRA_NVVSE_AES_CMAC_MAX_BUFFERS];
-	/** [in] Holds a pointer to the input buffer for which
-		AES CMAC is to be calculated. */
-	uint8_t		*src_buff[TEGRA_NVVSE_AES_CMAC_MAX_BUFFERS];
-	/** [out] Holds a pointer the AES CMAC signature. */
-	uint8_t		*dest_buff[TEGRA_NVVSE_AES_CMAC_MAX_BUFFERS];
-} nvvseAESCMACMultiIOCtlMsg;
-#define NVVSE_IOCTL_CMDID_AES_CMAC_MULTI _IOWR(TEGRA_NVVSE_IOC_MAGIC, TEGRA_NVVSE_CMDID_AES_CMAC_MULTI, \
-						struct tegra_nvvse_aes_cmac_multi_ctl)
 
 /**
   * \brief Holds AES generated RNG IO control params

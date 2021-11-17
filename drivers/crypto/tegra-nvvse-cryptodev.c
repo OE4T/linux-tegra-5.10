@@ -510,98 +510,6 @@ free_result:
 	return ret;
 }
 
-static int tnvvse_crypto_aes_cmac_multi(struct tnvvse_crypto_ctx *ctx,
-					struct tegra_nvvse_aes_cmac_multi_ctl *aes_cmac_multi_ctl)
-{
-	struct crypto_ahash *tfm;
-	struct ahash_request *req;
-	struct tnvvse_crypto_completion sha_complete;
-	char *result;
-	const char *driver_name;
-	unsigned long *xbuf[XBUFSIZE];
-	uint8_t buf_index;
-	char key_as_keyslot[AES_KEYSLOT_NAME_SIZE] = {0,};
-	int klen;
-	int ret = -ENOMEM;
-
-	result = kzalloc(64, GFP_KERNEL);
-	if (!result)
-		return -ENOMEM;
-
-	tfm = crypto_alloc_ahash("cmac(aes)", 0, 0);
-	if (IS_ERR(tfm)) {
-		ret = PTR_ERR(tfm);
-		pr_err("%s(): Failed to load ahash for cmac(aes): %d\n", __func__, ret);
-		goto free_result;
-	}
-
-	driver_name = crypto_tfm_alg_driver_name(crypto_ahash_tfm(tfm));;
-	if (driver_name == NULL) {
-		pr_err("%s(): Failed to get driver name for cmac(aes)\n", __func__);
-		goto free_tfm;
-	}
-	pr_debug("%s(): Algo name cmac(aes), driver name %s\n", __func__, driver_name);
-
-	req = ahash_request_alloc(tfm, GFP_KERNEL);
-	if (!req) {
-		pr_err("%s(): Failed to allocate request for cmac(aes)\n", __func__);
-		ret = -EFAULT;
-		goto free_tfm;
-	}
-
-	ahash_request_set_callback(req, CRYPTO_TFM_REQ_MAY_BACKLOG,
-				   tnvvse_crypto_complete, &sha_complete);
-
-	ret = alloc_bufs(xbuf);
-	if (ret < 0) {
-		pr_err("%s(): Failed to allocate xbuffer: %d", __func__, ret);
-		goto free_req;
-	}
-
-	init_completion(&sha_complete.restart);
-	sha_complete.req_err = 0;
-
-	crypto_ahash_clear_flags(tfm, ~0);
-
-	snprintf(key_as_keyslot, AES_KEYSLOT_NAME_SIZE, "NVSEAES %x", aes_cmac_multi_ctl->key_slot);
-	klen = strlen(key_as_keyslot);
-	ret = crypto_ahash_setkey(tfm, key_as_keyslot, klen);
-	if (ret) {
-		pr_err("%s(): Failed to set keys for cmac(aes): %d\n", __func__, ret);
-		goto free_xbuf;
-	}
-
-	for (buf_index = 0; buf_index < aes_cmac_multi_ctl->num_buffers; ++buf_index) {
-		ret = wait_async_op(&sha_complete, crypto_ahash_init(req));
-		if (ret) {
-			pr_err("%s(): Failed to ahash init for cmac(aes): %d\n", __func__, ret);
-			goto free_xbuf;
-		}
-
-		ret = tnvvse_crypto_aes_cmac_single_buffer(ctx, tfm, req, aes_cmac_multi_ctl->src_buff[buf_index],
-				aes_cmac_multi_ctl->data_length[buf_index], aes_cmac_multi_ctl->dest_buff[buf_index],
-				result, xbuf, &sha_complete);
-		if (ret) {
-			pr_err("%s(): Failed to do AES CMAC for buffer %d: %d\n", __func__, buf_index, ret);
-			goto free_xbuf;
-		}
-	}
-
-free_xbuf:
-	free_bufs(xbuf);
-
-free_req:
-	ahash_request_free(req);
-
-free_tfm:
-	crypto_free_ahash(tfm);
-
-free_result:
-	kfree(result);
-
-	return ret;
-}
-
 static int tnvvse_crypto_aes_set_key(struct tnvvse_crypto_ctx *ctx,
 					struct tegra_nvvse_aes_set_key_ctl *aes_set_key_ctl)
 {
@@ -929,7 +837,6 @@ static long tnvvse_crypto_dev_ioctl(struct file *filp,
 	struct tegra_nvvse_aes_set_key_ctl aes_set_key;
 	struct tegra_nvvse_aes_enc_dec_ctl aes_enc_dec_ctl;
 	struct tegra_nvvse_aes_cmac_ctl aes_cmac;
-	struct tegra_nvvse_aes_cmac_multi_ctl aes_cmac_multi_ctl;
 	struct tegra_nvvse_aes_drng_ctl aes_drng_ctl;
 	int ret = 0;
 
@@ -1023,17 +930,6 @@ static long tnvvse_crypto_dev_ioctl(struct file *filp,
 		}
 
 		ret = tnvvse_crypto_aes_cmac(ctx, &aes_cmac);
-		break;
-
-	case NVVSE_IOCTL_CMDID_AES_CMAC_MULTI:
-		ret = copy_from_user(&aes_cmac_multi_ctl, (void __user *)arg, sizeof(aes_cmac_multi_ctl));
-		if (ret) {
-			pr_err("%s(): Failed to copy_from_user aes_cmac_multi_ctl:%d\n", __func__, ret);
-			ret = -EFAULT;
-			goto out;
-		}
-
-		ret = tnvvse_crypto_aes_cmac_multi(ctx, &aes_cmac_multi_ctl);
 		break;
 
 	case NVVSE_IOCTL_CMDID_AES_DRNG:
