@@ -53,7 +53,6 @@
 
 #define DMA_ERROR_CODE	(~(dma_addr_t)0)
 
-#ifdef NVMAP_LOADABLE_MODULE
 #define __DMA_ATTR(attrs) attrs
 #define DEFINE_DMA_ATTRS(attrs) unsigned long attrs = 0
 
@@ -70,7 +69,6 @@
  * @attrs: struct dma_attrs (may be NULL)
  */
 #define dma_get_attr(attr, attrs) (attrs & attr)
-#endif /* NVMAP_LOADABLE_MODULE */
 
 #define NVMAP_TAG_LABEL_MAXLEN	(63 - sizeof(struct nvmap_tag_entry))
 

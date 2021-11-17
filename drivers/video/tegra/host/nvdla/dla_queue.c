@@ -22,7 +22,6 @@
 #include <linux/slab.h>
 #include <linux/dma-mapping.h>
 #include <linux/debugfs.h>
-#include <linux/dma-attrs.h>
 
 #include <linux/nvhost.h>
 
