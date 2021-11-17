@@ -3,7 +3,7 @@
  *
  * Tegra T194 HOST1X Register Definitions
  *
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -47,6 +47,8 @@
 #define HOST1X_THOST_ACTMON_VIC 	0x10000
 #define HOST1X_THOST_ACTMON_NVDEC	0x20000
 #define HOST1X_THOST_ACTMON_NVJPG	0x30000
+#define HOST1X_THOST_ACTMON_NVENC1	0x40000
+#define HOST1X_THOST_ACTMON_NVDEC1	0x50000
 
 /* Generic support */
 static inline u32 nvhost_class_host_wait_syncpt(
