@@ -56,8 +56,6 @@
         };
 };
 
-#include "tegra234-disabled_nodes.dtsi"
-
 / {
 	funnel_top_ccplex@26020000 {
 		in-ports {
