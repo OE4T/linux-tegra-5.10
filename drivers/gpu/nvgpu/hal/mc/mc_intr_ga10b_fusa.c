@@ -867,7 +867,7 @@ void ga10b_intr_isr_stall(struct gk20a *g)
 
 	top_pending = g->ops.mc.intr_stall(g);
 	if (top_pending == 0U) {
-		nvgpu_err(g, "spurious stall intr");
+		nvgpu_log(g, gpu_dbg_intr, "stall intr already handled");
 		return;
 	}
 	/**
