@@ -80,6 +80,14 @@
 		status = "disabled";
 	};
 
+	firmware {
+		optee {
+			compatible = "linaro,optee-tz";
+			method = "smc";
+			status = "disabled";
+		};
+	};
+
 	timer@3010000 {
 		/* Do not enable this node (SOC Timer) as ARM Generic Timer
 		 * (DT node="timer") should be used instead
