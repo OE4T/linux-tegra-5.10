@@ -394,7 +394,8 @@ static int tegra210_adsp_init(struct tegra210_adsp *adsp)
 		goto exit;
 	}
 
-	if (nvadsp_os_start()) {
+	ret = nvadsp_os_start();
+	if (ret) {
 		dev_err(adsp->dev, "Failed to start OS");
 		goto exit;
 	}
