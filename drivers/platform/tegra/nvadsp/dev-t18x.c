@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA Corporation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -183,9 +183,19 @@ static int __assert_t18x_adsp(struct nvadsp_drv_data *d)
 	 * only ADSP reset is sufficient to reset all ADSP sub-modules.
 	 */
 	ret = reset_control_assert(d->adspall_rst);
-	if (ret)
+	if (ret) {
 		dev_err(dev, "failed to assert adsp\n");
+		goto end;
+	}
 
+	/* APE_TKE reset */
+	if (d->ape_tke_rst) {
+		ret = reset_control_assert(d->ape_tke_rst);
+		if (ret)
+			dev_err(dev, "failed to assert ape_tke\n");
+	}
+
+end:
 	return ret;
 }
 
@@ -194,6 +204,15 @@ static int __deassert_t18x_adsp(struct nvadsp_drv_data *d)
 	struct platform_device *pdev = d->pdev;
 	struct device *dev = &pdev->dev;
 	int ret = 0;
+
+	/* APE_TKE reset */
+	if (d->ape_tke_rst) {
+		ret = reset_control_deassert(d->ape_tke_rst);
+		if (ret) {
+			 dev_err(dev, "failed to deassert ape_tke\n");
+			 goto end;
+		}
+	}
 
 	/*
 	 * The ADSP_ALL reset in BPMP-FW is overloaded to de-assert
@@ -207,6 +226,7 @@ static int __deassert_t18x_adsp(struct nvadsp_drv_data *d)
 	if (ret)
 		dev_err(dev, "failed to deassert adsp\n");
 
+end:
 	return ret;
 }
 
@@ -284,6 +304,13 @@ int nvadsp_reset_t18x_init(struct platform_device *pdev)
 	if (IS_ERR(d->adspall_rst)) {
 		dev_err(dev, "can not get adspall reset\n");
 		ret = PTR_ERR(d->adspall_rst);
+		goto end;
 	}
+
+	d->ape_tke_rst = devm_reset_control_get(dev, "ape_tke");
+	if (IS_ERR(d->ape_tke_rst))
+		d->ape_tke_rst = NULL;
+
+end:
 	return ret;
 }

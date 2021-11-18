@@ -190,6 +190,7 @@ struct nvadsp_drv_data {
 	int (*assert_adsp)(struct nvadsp_drv_data *drv_data);
 	int (*deassert_adsp)(struct nvadsp_drv_data *drv_data);
 	struct reset_control *adspall_rst;
+	struct reset_control *ape_tke_rst;
 
 	struct nvadsp_pm_state state;
 	bool adsp_os_running;
