@@ -90,6 +90,7 @@ struct vendor_data {
 	bool			fixed_options;
 	bool			enable_car;
 	bool			dma_workaround;
+	bool			eord_interrupt;
 
 	unsigned int (*get_fifosize)(struct amba_device *dev);
 };
@@ -98,23 +99,6 @@ static unsigned int get_fifosize_arm(struct amba_device *dev)
 {
 	return amba_rev(dev) < 3 ? 16 : 32;
 }
-
-static struct vendor_data vendor_nvidia = {
-	.reg_offset		= pl011_std_offsets,
-	.ifls			= UART011_IFLS_RX4_8|UART011_IFLS_TX4_8,
-	.fr_busy		= UART01x_FR_BUSY,
-	.fr_dsr			= UART01x_FR_DSR,
-	.fr_cts			= UART01x_FR_CTS,
-	.fr_ri			= UART011_FR_RI,
-	.oversampling		= false,
-	.dma_threshold		= false,
-	.cts_event_workaround	= false,
-	.always_enabled		= false,
-	.fixed_options		= false,
-	.enable_car		= true,
-	.dma_workaround		= true,
-	.get_fifosize		= get_fifosize_arm,
-};
 
 static struct vendor_data vendor_arm = {
 	.reg_offset		= pl011_std_offsets,
@@ -161,6 +145,44 @@ static const struct vendor_data vendor_qdt_qdf2400_e44 = {
 	.fixed_options		= true,
 };
 #endif
+
+static u16 pl011_tegra_offsets[REG_ARRAY_SIZE] = {
+	[REG_DR] = UART01x_DR,
+	[REG_FR] = UART01x_FR,
+	[REG_LCRH_RX] = UART011_LCRH,
+	[REG_LCRH_TX] = UART011_LCRH,
+	[REG_IBRD] = UART011_IBRD,
+	[REG_FBRD] = UART011_FBRD,
+	[REG_CR] = UART011_CR,
+	[REG_IFLS] = UART011_IFLS,
+	[REG_IMSC] = UART011_IMSC,
+	[REG_RIS] = UART011_RIS,
+	[REG_MIS] = UART011_MIS,
+	[REG_ICR] = UART011_ICR,
+	[REG_DMACR] = UART011_DMACR,
+	[REG_NV_MIS] = NV_UART011_MIS,
+	[REG_NV_MIM] = NV_UART011_MIM,
+	[REG_NV_MMIS] = NV_UART011_MIS,
+	[REG_NV_MIC] = NV_UART011_MIC,
+};
+
+static struct vendor_data vendor_nvidia = {
+	.reg_offset		= pl011_tegra_offsets,
+	.ifls			= UART011_IFLS_RX4_8|UART011_IFLS_TX4_8,
+	.fr_busy		= UART01x_FR_BUSY,
+	.fr_dsr			= UART01x_FR_DSR,
+	.fr_cts			= UART01x_FR_CTS,
+	.fr_ri			= UART011_FR_RI,
+	.oversampling		= false,
+	.dma_threshold		= false,
+	.cts_event_workaround	= false,
+	.always_enabled		= false,
+	.fixed_options		= false,
+	.enable_car		= true,
+	.dma_workaround		= true,
+	.eord_interrupt		= true,
+	.get_fifosize		= get_fifosize_arm,
+};
 
 static u16 pl011_st_offsets[REG_ARRAY_SIZE] = {
 	[REG_DR] = UART01x_DR,
@@ -1358,6 +1380,9 @@ static void pl011_stop_rx(struct uart_port *port)
 		     UART011_PEIM|UART011_BEIM|UART011_OEIM);
 	pl011_write(uap->im, uap, REG_IMSC);
 
+	if (uap->vendor->eord_interrupt)
+		pl011_write(~NV_UART011_EORDIM, uap, REG_NV_MIM);
+
 	pl011_dma_rx_stop(uap);
 }
 
@@ -1368,6 +1393,9 @@ static void pl011_throttle(struct uart_port *port)
 
 	uap->im &= ~(UART011_RTIM);
 
+	if (uap->vendor->eord_interrupt)
+		pl011_write(~NV_UART011_EORDIM, uap, REG_NV_MIM);
+
 	pl011_write(uap->im, uap, REG_IMSC);
 }
 
@@ -1377,6 +1405,9 @@ static void pl011_unthrottle(struct uart_port *port)
 	    container_of(port, struct uart_amba_port, port);
 
 	uap->im |= UART011_RTIM;
+
+	if (uap->vendor->eord_interrupt)
+		pl011_write(NV_UART011_EORDIM, uap, REG_NV_MIM);
 
 	pl011_write(uap->im, uap, REG_IMSC);
 }
@@ -1542,6 +1573,14 @@ static irqreturn_t pl011_int(int irq, void *dev_id)
 					pl011_dma_rx_irq(uap);
 				else
 					pl011_rx_chars(uap);
+
+				/*
+				 * Clear EORD interrupt as receive timeout
+				 * interrupt already triggered.
+				 */
+				if (uap->vendor->eord_interrupt)
+					pl011_write(NV_UART011_EORDIC, uap,
+						    REG_NV_MIC);
 			}
 			if (status & (UART011_DSRMIS|UART011_DCDMIS|
 				      UART011_CTSMIS|UART011_RIMIS))
@@ -1555,8 +1594,36 @@ static irqreturn_t pl011_int(int irq, void *dev_id)
 			status = pl011_read(uap, REG_RIS) & uap->im;
 		} while (status != 0);
 		handled = 1;
+	} else {
+		/*
+		 * We are here because Receive timeout interrupt did not fire.
+		 * Check if EORD interrupt is supported.
+		 */
+		if (!uap->vendor->eord_interrupt)
+			goto out;
+
+		status = pl011_read(uap, REG_NV_MMIS);
+		if (!status)
+			goto out;
+
+		do {
+			pl011_write(NV_UART011_EORDIC, uap,
+				    REG_NV_MIC);
+
+			if (status & NV_UART011_EORDIS) {
+				if (pl011_dma_rx_running(uap))
+					pl011_dma_rx_irq(uap);
+				else
+					pl011_rx_chars(uap);
+			}
+
+			status = pl011_read(uap, REG_NV_MMIS);
+		} while (status != 0);
+
+		handled = 1;
 	}
 
+out:
 	spin_unlock_irqrestore(&uap->port.lock, flags);
 
 	return IRQ_RETVAL(handled);
@@ -1793,8 +1860,13 @@ static void pl011_enable_interrupts(struct uart_amba_port *uap)
 	}
 
 	uap->im = UART011_RTIM;
-	if (!pl011_dma_rx_running(uap))
+	if (!pl011_dma_rx_running(uap)) {
 		uap->im |= UART011_RXIM;
+	} else {
+		/* Enable EORD interrupt only if DMA is running. */
+		if (uap->vendor->eord_interrupt)
+			pl011_write(NV_UART011_EORDIM, uap, REG_NV_MIM);
+	}
 	pl011_write(uap->im, uap, REG_IMSC);
 	spin_unlock_irq(&uap->port.lock);
 }

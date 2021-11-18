@@ -27,6 +27,10 @@ enum {
 	REG_ST_ITIP,
 	REG_ST_ABCR,
 	REG_ST_ABIMSC,
+	REG_NV_MIS,
+	REG_NV_MIM,
+	REG_NV_MMIS,
+	REG_NV_MIC,
 
 	/* The size of the array - must be last */
 	REG_ARRAY_SIZE,
