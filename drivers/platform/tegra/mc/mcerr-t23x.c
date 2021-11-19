@@ -22,7 +22,7 @@
 #define ERR_GENERALIZED_ADR1_UPPER_BITS 12
 #define ERR_GENERALIZED_ID_SHIFT        9
 #define ERR_GENERALIZED_ID_MASK		0x1FF
-#define ERR_GENERALIZED_APERTURE_ID_SHIFT 5
+#define ERR_GENERALIZED_APERTURE_ID_SHIFT 0
 #define ERR_GENERALIZED_APERTURE_ID_MASK 0x1F
 #define ERR_GENERALIZED_CARVEOUT_APERTURE_ID_SHIFT 8
 #define ERR_GENERALIZED_CARVEOUT_APERTURE_ID_MASK 0x1F
@@ -630,8 +630,8 @@ static void log_fault(int src_chan, const struct mc_error *fault)
 
 	mcerr_pr("(%d) %s: %s\n", client->swgid, client->name, fault->msg);
 	if (fault->flags & E_GSC)
-		mcerr_pr("  GSC_STATUS = 0x%12x;  addr(Hi + Low) = 0x%08llx;"
-			" GSC_STATUS_1=0x%12x\n",
+		mcerr_pr("  GSC_STATUS = 0x%08x;  addr(Hi + Low) = 0x%08llx;"
+			" GSC_STATUS_1=0x%08x\n",
 			status, (unsigned long long)addr, gsc_status_1);
 	else
 		mcerr_pr("  status = 0x%08x; hi_addr_reg = 0x%08x"
