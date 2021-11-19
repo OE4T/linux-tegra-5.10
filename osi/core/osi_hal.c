@@ -234,6 +234,7 @@ nve32_t osi_hal_hw_core_init(struct osi_core_priv_data *const osi_core,
 			     nveu32_t tx_fifo_size, nveu32_t rx_fifo_size)
 {
 	struct core_local *l_core = (struct core_local *)osi_core;
+	nve32_t ret;
 
 	if (validate_args(osi_core, l_core) < 0) {
 		return -1;
@@ -244,7 +245,13 @@ nve32_t osi_hal_hw_core_init(struct osi_core_priv_data *const osi_core,
 	/* Init FRP */
 	init_frp(osi_core);
 
-	return l_core->ops_p->core_init(osi_core, tx_fifo_size, rx_fifo_size);
+	ret = l_core->ops_p->core_init(osi_core, tx_fifo_size, rx_fifo_size);
+
+	if (ret == 0) {
+		l_core->hw_init_successful = OSI_ENABLE;
+	}
+
+	return ret;
 }
 
 nve32_t osi_hal_hw_core_deinit(struct osi_core_priv_data *const osi_core)
@@ -255,6 +262,7 @@ nve32_t osi_hal_hw_core_deinit(struct osi_core_priv_data *const osi_core)
 		return -1;
 	}
 
+	l_core->hw_init_successful = OSI_DISABLE;
 	l_core->ops_p->core_deinit(osi_core);
 
 	/* FIXME: Should be fixed */
@@ -1735,10 +1743,6 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 #endif /* !OSI_STRIPPED_LIB */
 	case OSI_CMD_POLL_FOR_MAC_RST:
 		ret = ops_p->poll_for_swr(osi_core);
-		/* For ethernet server */
-		if (ret == 0) {
-			l_core->hw_init_successful = OSI_ENABLE;
-		}
 		break;
 
 	case OSI_CMD_START_MAC:
