@@ -131,18 +131,30 @@ patch_dma_desc_address(struct pva_submit_task *task,
 		 * same conversion is applied for dst
 		 */
 		if (task->pva->version == PVA_HW_GEN1) {
-			task_err(task, "CVNAS RAM not supported");
-			err = -EINVAL;
-			goto out;
+			struct pva_pinned_memory *mem =
+				pva_task_pin_mem(task, umd_dma_desc->srcPtr);
+			if (IS_ERR(mem)) {
+				err = PTR_ERR(mem);
+				task_err(task,
+					"invalid memory handle in"
+					" descriptor for SRC CVSRAM");
+				goto out;
+			}
+
+			addr_base = mem->dma_addr;
+			err = check_address_range(umd_dma_desc,
+						  mem->size,
+						  false);
+		} else {
+			addr_base = 0;
+			err = check_address_range(umd_dma_desc,
+						  task->l2_alloc_size,
+						  false);
 		}
 
-		err = check_address_range(umd_dma_desc,
-					  task->l2_alloc_size,
-					  false/*src*/);
 		if (err)
 			goto out;
 
-		addr_base = 0;
 		break;
 	case DMA_DESC_SRC_XFER_VMEM:{
 		/* calculate symbol address */
@@ -284,21 +296,33 @@ patch_dma_desc_address(struct pva_submit_task *task,
 	switch (umd_dma_desc->dstTransferMode) {
 	case DMA_DESC_DST_XFER_L2RAM:
 		if (task->pva->version == PVA_HW_GEN1) {
-			task_err(task, "CVNAS RAM not supported");
-			err = -EINVAL;
-			goto out;
+			struct pva_pinned_memory *mem =
+				pva_task_pin_mem(task, umd_dma_desc->dstPtr);
+			if (IS_ERR(mem)) {
+				err = PTR_ERR(mem);
+				task_err(task,
+					"invalid memory handle in"
+					" descriptor for dst CVSRAM");
+				goto out;
+			}
+
+			addr_base = mem->dma_addr;
+			err = check_address_range(umd_dma_desc,
+						  mem->size,
+						  true);
+		} else {
+			addr_base = 0;
+			err = check_address_range(umd_dma_desc,
+						  task->l2_alloc_size,
+						  true);
 		}
 
-		err = check_address_range(umd_dma_desc,
-					  task->l2_alloc_size,
-					  true);
 		if (err) {
 			task_err(task, "ERROR: Invalid offset or address");
 			err = -EINVAL;
 			goto out;
 		}
 
-		addr_base = 0;
 		break;
 	case DMA_DESC_DST_XFER_VMEM: {
 		/* calculate symbol address */
