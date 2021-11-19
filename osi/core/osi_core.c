@@ -195,6 +195,12 @@ nve32_t osi_init_core_ops(struct osi_core_priv_data *const osi_core)
 	l_core->hw_init_successful = OSI_DISABLE;
 	l_core->m2m_tsync = OSI_DISABLE;
 	l_core->if_init_done = OSI_ENABLE;
+	if ((osi_core->m2m_role == OSI_PTP_M2M_PRIMARY) ||
+	    (osi_core->m2m_role == OSI_PTP_M2M_SECONDARY)) {
+		l_core->m2m_tsync = OSI_ENABLE;
+	} else {
+		l_core->m2m_tsync = OSI_DISABLE;
+	}
 
 	return ret;
 }
@@ -229,36 +235,24 @@ nve32_t osi_hw_core_init(struct osi_core_priv_data *const osi_core,
 			 nveu32_t tx_fifo_size, nveu32_t rx_fifo_size)
 {
 	struct core_local *l_core = (struct core_local *)osi_core;
-	nve32_t ret;
 
 	if (validate_if_args(osi_core, l_core) < 0) {
 		return -1;
 	}
 
-	ret = l_core->if_ops_p->if_core_init(osi_core, tx_fifo_size,
-					     rx_fifo_size);
-	if (ret == 0) {
-		l_core->hw_init_successful = OSI_ENABLE;
-	}
-
-	return ret;
+	return l_core->if_ops_p->if_core_init(osi_core, tx_fifo_size,
+					      rx_fifo_size);
 }
 
 nve32_t osi_hw_core_deinit(struct osi_core_priv_data *const osi_core)
 {
 	struct core_local *l_core = (struct core_local *)osi_core;
-	nve32_t ret;
 
 	if (validate_if_args(osi_core, l_core) < 0) {
 		return -1;
 	}
 
-	ret = l_core->if_ops_p->if_core_deinit(osi_core);
-	if (ret == 0) {
-		l_core->hw_init_successful = OSI_DISABLE;
-	}
-
-	return ret;
+	return l_core->if_ops_p->if_core_deinit(osi_core);
 }
 
 nve32_t osi_handle_ioctl(struct osi_core_priv_data *osi_core,
