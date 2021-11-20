@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -103,16 +103,6 @@ struct PVA_PACKED pva_task_statistics_s {
 	uint8_t vpu_assigned; /* which VPU task was assigned */
 	uint8_t reserved[7];
 };
-
-/** @defgroup PVA_TASK_FL Flags in PVA runlist */
-/** @{ */
-#define PVA_TASK_FL_ATOMIC PVA_BIT(0U)
-#define PVA_TASK_FL_CV_RD_SCALARS PVA_BIT(1U)
-#define PVA_TASK_FL_CV_WR_SCALARS PVA_BIT(2U)
-#define PVA_TASK_FL_CV_WR_ROI PVA_BIT(3U)
-#define PVA_TASK_FL_VPU_DEBUG PVA_BIT(4U)
-#define PVA_TASK_FL_VPU_CRASH_DUMP PVA_BIT(5U)
-/** @} */
 
 enum pva_task_parameter_type_e {
 	PVA_PARAM_FIRST = 0U, /* must match first type */
@@ -245,6 +235,9 @@ struct PVA_PACKED pva_td_s {
 /** @addtogroup PVA_TASK_FL
  * @{
  */
+
+/** Flag to allow VPU debugger attach for the task */
+#define PVA_TASK_FL_VPU_DEBUG		PVA_BIT(0U)
 
 /** Flag to request masking of illegal instruction error for the task */
 #define PVA_TASK_FL_ERR_MASK_ILLEGAL_INSTR	PVA_BIT(1U)
