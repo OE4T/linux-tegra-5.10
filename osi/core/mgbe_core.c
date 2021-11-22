@@ -2133,11 +2133,7 @@ static int mgbe_update_frp_entry(struct osi_core_priv_data *const osi_core,
 	}
 
 	/** Write DCH into IE3 **/
-	/* TODO: The DCH position will be updated in the final RTL.
-	 * We need to update this on the final RTL.
-	 */
-	tmp = (data->dma_chsel >> MGBE_MTL_FRP_IE3_DCH_SHIFT);
-	val = (tmp & MGBE_MTL_FRP_IE3_DCH_MASK);
+	val = (data->dma_chsel & MGBE_MTL_FRP_IE3_DCH_MASK);
 	ret = mgbe_frp_write(osi_core, OSI_DISABLE, MGBE_MTL_FRP_IE3(pos), val);
 	if (ret < 0) {
 		/* DCH Write fail */
