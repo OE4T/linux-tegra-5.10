@@ -470,6 +470,10 @@ struct tegra_xusb {
 		dma_addr_t phys;
 	} fw;
 
+	u8 build_log;
+	time64_t timestamp;
+	u32 version_id;
+
 	struct dentry *debugfs_dir;
 	struct dentry *dump_ring_file;
 	struct tegra_xhci_firmware_log log;
@@ -1922,7 +1926,6 @@ static int tegra_xusb_load_firmware(struct tegra_xusb *tegra)
 	unsigned int code_tag_blocks, code_size_blocks, code_blocks;
 	struct tegra_xusb_fw_header *header;
 	struct device *dev = tegra->dev;
-	time64_t timestamp;
 	struct tm time;
 	u64 address;
 	u32 value;
@@ -2014,15 +2017,17 @@ static int tegra_xusb_load_firmware(struct tegra_xusb *tegra)
 	if (tegra_xusb_check_controller(tegra))
 		return -EIO;
 
-	timestamp = le32_to_cpu(header->fwimg_created_time);
-	time64_to_tm(timestamp, 0, &time);
+	tegra->build_log = header->build_log;
+	tegra->version_id = header->version_id;
+	tegra->timestamp = le32_to_cpu(header->fwimg_created_time);
+	time64_to_tm(tegra->timestamp, 0, &time);
 
 	dev_info(dev, "Firmware timestamp: %ld-%02d-%02d %02d:%02d:%02d UTC, Version: %2x.%02x %s\n",
 		time.tm_year + 1900, time.tm_mon + 1, time.tm_mday,
 		time.tm_hour, time.tm_min, time.tm_sec,
-		FW_MAJOR_VERSION(header->version_id),
-		FW_MINOR_VERSION(header->version_id),
-		(header->build_log == LOG_MEMORY) ? "debug" : "release");
+		FW_MAJOR_VERSION(tegra->version_id),
+		FW_MINOR_VERSION(tegra->version_id),
+		(tegra->build_log == LOG_MEMORY) ? "debug" : "release");
 
 	return 0;
 }
@@ -2040,11 +2045,7 @@ static u32 tegra_xusb_read_firmware_header(struct tegra_xusb *tegra, int i)
 static int tegra_xusb_init_ifr_firmware(struct tegra_xusb *tegra)
 {
 	u32 val;
-
-	u8 build_log;
-	time64_t timestamp;
 	struct tm time;
-	u32 version_id;
 
 	if (tegra->soc->load_ifr_rom) {
 		dev_info(tegra->dev, "load ifr firmware: %llx %ld\n",
@@ -2092,11 +2093,11 @@ static int tegra_xusb_init_ifr_firmware(struct tegra_xusb *tegra)
 
 	/* init fw log buffer if needed */
 #define offsetof_32(X, Y) ((u8)(offsetof(X, Y) / sizeof(__le32)))
-	build_log = (tegra_xusb_read_firmware_header(tegra,
+	tegra->build_log = (tegra_xusb_read_firmware_header(tegra,
 				offsetof_32(struct tegra_xusb_fw_header,
 					num_hsic_port)) >> 16) & 0xf;
 
-	if (build_log == LOG_MEMORY) {
+	if (tegra->build_log == LOG_MEMORY) {
 
 		fw_log_init(tegra);
 
@@ -2113,12 +2114,12 @@ static int tegra_xusb_init_ifr_firmware(struct tegra_xusb *tegra)
 		bar2_writel(tegra, val, XUSB_BAR2_ARU_FW_SCRATCH);
 	}
 
-	timestamp = tegra_xusb_read_firmware_header(tegra,
+	tegra->timestamp = tegra_xusb_read_firmware_header(tegra,
 			offsetof_32(struct tegra_xusb_fw_header,
 				fwimg_created_time));
-	time64_to_tm(timestamp, 0, &time);
+	time64_to_tm(tegra->timestamp, 0, &time);
 
-	version_id = tegra_xusb_read_firmware_header(tegra,
+	tegra->version_id = tegra_xusb_read_firmware_header(tegra,
 			offsetof_32(struct tegra_xusb_fw_header,
 				version_id));
 #undef offsetof_32
@@ -2126,9 +2127,9 @@ static int tegra_xusb_init_ifr_firmware(struct tegra_xusb *tegra)
 	dev_info(tegra->dev, "Firmware timestamp: %ld-%02d-%02d %02d:%02d:%02d UTC, Version: %2x.%02x %s\n",
 		 time.tm_year + 1900, time.tm_mon + 1, time.tm_mday,
 		 time.tm_hour, time.tm_min, time.tm_sec,
-		 FW_MAJOR_VERSION(version_id),
-		 FW_MINOR_VERSION(version_id),
-		 (build_log == LOG_MEMORY) ? "debug" : "release");
+		 FW_MAJOR_VERSION(tegra->version_id),
+		 FW_MINOR_VERSION(tegra->version_id),
+		 (tegra->build_log == LOG_MEMORY) ? "debug" : "release");
 
 	return 0;
 }
@@ -2710,42 +2711,20 @@ static DEVICE_ATTR(reload_hcd, 0200, NULL, store_reload_hcd);
 static ssize_t fw_version_show(struct device *dev, char *buf, size_t size)
 {
 	struct tegra_xusb *tegra = dev_get_drvdata(dev);
-	struct tegra_xusb_fw_header *header = NULL;
-	u8 build_log;
-	time64_t timestamp;
-	u32 version_id;
 	struct tm time;
 
 	if (!tegra)
 		return scnprintf(buf, size, "device is not available\n");
 
-	if (tegra->soc->has_ifr) {
-#define offsetof_32(X, Y) ((u8)(offsetof(X, Y) / sizeof(__le32)))
-		build_log = (tegra_xusb_read_firmware_header(tegra,
-					offsetof_32(struct tegra_xusb_fw_header,
-						num_hsic_port)) >> 16) & 0xf;
-		timestamp = tegra_xusb_read_firmware_header(tegra,
-				offsetof_32(struct tegra_xusb_fw_header,
-					fwimg_created_time));
-		version_id = tegra_xusb_read_firmware_header(tegra,
-				offsetof_32(struct tegra_xusb_fw_header,
-					version_id));
-#undef offsetof_32
-	} else {
-		header = (struct tegra_xusb_fw_header *)tegra->fw.virt;
-		build_log = header->build_log;
-		timestamp = le32_to_cpu(header->fwimg_created_time);
-		version_id = header->version_id;
-	}
-	time64_to_tm(timestamp, 0, &time);
+	time64_to_tm(tegra->timestamp, 0, &time);
 
 	return scnprintf(buf, size,
 		"Firmware timestamp: %ld-%02d-%02d %02d:%02d:%02d UTC, Version: %2x.%02x %s\n",
 		time.tm_year + 1900, time.tm_mon + 1, time.tm_mday,
 		time.tm_hour, time.tm_min, time.tm_sec,
-		FW_MAJOR_VERSION(version_id),
-		FW_MINOR_VERSION(version_id),
-		(build_log == LOG_MEMORY) ? "debug" : "release");
+		FW_MAJOR_VERSION(tegra->version_id),
+		FW_MINOR_VERSION(tegra->version_id),
+		(tegra->build_log == LOG_MEMORY) ? "debug" : "release");
 }
 
 static int tegra_xusb_probe(struct platform_device *pdev)
