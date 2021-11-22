@@ -44,6 +44,7 @@ struct edma_chan {
 	edma_chan_type_t type;
 	u64 wcount;
 	u64 rcount;
+	bool busy;
 	bool pcs;
 	bool db_pos;
 	/** This filed is updated to abort of de-init to stop further xfer submits */
@@ -56,16 +57,17 @@ struct edma_prv {
 	int irq;
 	char *irq_name;
 	bool is_remote_dma;
+	uint16_t msi_data;
+	uint64_t msi_addr;
 	/** EDMA base address */
 	void *edma_base;
 	/** EDMA base address size */
 	uint32_t edma_base_size;
-	struct platform_device *pdev;
 	struct device *dev;
-	unsigned long wr_busy;
-	unsigned long rd_busy;
 	struct edma_chan tx[DMA_WR_CHNL_NUM];
-	struct edma_chan rx[DMA_WR_CHNL_NUM];
+	struct edma_chan rx[DMA_RD_CHNL_NUM];
+	/* BIT(0) - Write initialized, BIT(1) - Read initialized */
+	uint32_t ch_init;
 };
 
 /** TODO: Define osi_ll_init strcuture and make this as OSI */
@@ -119,34 +121,56 @@ static inline void edma_ll_ch_init(void *edma_base, uint32_t ch,
 	dma_channel_wr(edma_base, ch, upper_32_bits(ll_phy_addr), high_offset);
 }
 
-static inline void edma_hw_init(void *cookie)
+static inline void edma_hw_init(void *cookie, bool rw_type)
 {
 	struct edma_prv *prv = (struct edma_prv *)cookie;
-	int i;
+	uint32_t msi_data;
+	u32 eng_off[2] = {DMA_WRITE_ENGINE_EN_OFF, DMA_READ_ENGINE_EN_OFF};
 
-	for (i = 0; i < DMA_WR_CHNL_NUM; i++)
-		edma_ll_ch_init(prv->edma_base, i, prv->tx[i].dma_iova, true,
-				prv->is_remote_dma);
+	if (prv->ch_init & OSI_BIT(rw_type))
+		dma_common_wr(prv->edma_base, WRITE_ENABLE, eng_off[rw_type]);
 
-	dma_common_wr(prv->edma_base, WRITE_ENABLE, DMA_WRITE_ENGINE_EN_OFF);
+	/* Program MSI addr & data for remote DMA use case */
+	if (prv->is_remote_dma) {
+		msi_data = prv->msi_data;
+		msi_data |= (msi_data << 16);
 
-#ifdef EDMA_RX_SUPPORT
-	for (i = 0; i < DMA_RD_CHNL_NUM; i++)
-		edma_ll_ch_init(prv->edma_base, i, prv->rx[i].dma_iova, false,
-				prv->is_remote_dma);
+		dma_common_wr(prv->edma_base, lower_32_bits(prv->msi_addr),
+			      DMA_WRITE_DONE_IMWR_LOW_OFF);
+		dma_common_wr(prv->edma_base, upper_32_bits(prv->msi_addr),
+			      DMA_WRITE_DONE_IMWR_HIGH_OFF);
+		dma_common_wr(prv->edma_base, lower_32_bits(prv->msi_addr),
+			      DMA_WRITE_ABORT_IMWR_LOW_OFF);
+		dma_common_wr(prv->edma_base, upper_32_bits(prv->msi_addr),
+			      DMA_WRITE_ABORT_IMWR_HIGH_OFF);
+		dma_common_wr(prv->edma_base, msi_data,
+			      DMA_WRITE_CH01_IMWR_DATA_OFF);
+		dma_common_wr(prv->edma_base, msi_data,
+			      DMA_WRITE_CH23_IMWR_DATA_OFF);
 
-	dma_common_wr(prv->edma_base, READ_ENABLE, DMA_READ_ENGINE_EN_OFF);
-#endif
+		dma_common_wr(prv->edma_base, lower_32_bits(prv->msi_addr),
+			      DMA_READ_DONE_IMWR_LOW_OFF);
+		dma_common_wr(prv->edma_base, upper_32_bits(prv->msi_addr),
+			      DMA_READ_DONE_IMWR_HIGH_OFF);
+		dma_common_wr(prv->edma_base, lower_32_bits(prv->msi_addr),
+			      DMA_READ_ABORT_IMWR_LOW_OFF);
+		dma_common_wr(prv->edma_base, upper_32_bits(prv->msi_addr),
+			      DMA_READ_ABORT_IMWR_HIGH_OFF);
+		dma_common_wr(prv->edma_base, msi_data,
+			      DMA_READ_CH01_IMWR_DATA_OFF);
+	}
 }
 
-static inline void edma_ch_init(struct edma_chan *ch)
+static inline int edma_ch_init(struct edma_prv *prv, struct edma_chan *ch)
 {
 	struct edma_dblock *db;
 	dma_addr_t addr;
 	uint32_t j;
 
-	memset(ch->desc, 0, (sizeof(struct edma_dblock)) *
-			    ((ch->desc_sz / 2) + 1));
+	if (prv->is_remote_dma)
+		memset_io(ch->desc, 0, (sizeof(struct edma_dblock)) * ((ch->desc_sz / 2) + 1));
+	else
+		memset(ch->desc, 0, (sizeof(struct edma_dblock)) * ((ch->desc_sz / 2) + 1));
 
 	db = (struct edma_dblock *)ch->desc + ((ch->desc_sz / 2) - 1);
 	db->llp.sar_low = lower_32_bits(ch->dma_iova);
@@ -166,46 +190,53 @@ static inline void edma_ch_init(struct edma_chan *ch)
 	ch->r_idx  = 0;
 	ch->pcs = 1;
 	ch->st = EDMA_XFER_SUCCESS;
+
+	if (!ch->ring) {
+		ch->ring = kcalloc(ch->desc_sz, sizeof(*ch->ring), GFP_KERNEL);
+		if (!ch->ring)
+			return -ENOMEM;
+	}
+
+	return 0;
 }
 
-static inline void edma_hw_deinit(void *cookie)
+static inline void edma_hw_deinit(void *cookie, bool rw_type)
 {
 	struct edma_prv *prv = (struct edma_prv *)cookie;
 	int i;
+	u32 eng_off[2] = {DMA_WRITE_ENGINE_EN_OFF, DMA_READ_ENGINE_EN_OFF};
+	u32 ctrl_off[2] = {DMA_CH_CONTROL1_OFF_WRCH, DMA_CH_CONTROL1_OFF_RDCH};
+	u32 mode_cnt[2] = {DMA_WR_CHNL_NUM, DMA_RD_CHNL_NUM};
 
-	for (i = 0; i < DMA_WR_CHNL_NUM; i++)
-		dma_channel_wr(prv->edma_base, i, 0, DMA_CH_CONTROL1_OFF_WRCH);
-
-	dma_common_wr(prv->edma_base, WRITE_DISABLE, DMA_WRITE_ENGINE_EN_OFF);
-
-#ifdef EDMA_RX_SUPPORT
-	for (i = 0; i < DMA_RD_CHNL_NUM; i++)
-		dma_channel_wr(prv->edma_base, i, 0, DMA_CH_CONTROL1_OFF_RDCH);
-
-	dma_common_wr(prv->edma_base, READ_DISABLE, DMA_READ_ENGINE_EN_OFF);
-#endif
+	if (prv->ch_init & OSI_BIT(rw_type)) {
+		dma_common_wr(prv->edma_base, 0, eng_off[rw_type]);
+		for (i = 0; i < mode_cnt[rw_type]; i++)
+			dma_channel_wr(prv->edma_base, i, 0, ctrl_off[rw_type]);
+	}
 }
 
 /** From OSI */
-static inline u32 get_dma_idx_from_llp(struct edma_prv *prv, u32 chan)
+static inline u32 get_dma_idx_from_llp(struct edma_prv *prv, u32 chan, struct edma_chan *ch,
+				       u32 type)
 {
 	u64 cur_iova;
 	u64 high_iova, tmp_iova;
 	u32 cur_idx;
-	struct edma_chan *ch = &prv->tx[chan];
+	u32 llp_low_off[2] = {DMA_LLP_LOW_OFF_WRCH, DMA_LLP_LOW_OFF_RDCH};
+	u32 llp_high_off[2] = {DMA_LLP_HIGH_OFF_WRCH, DMA_LLP_HIGH_OFF_RDCH};
 	u64 block_idx, idx_in_block;
 
 	/*
 	 * Read current element address in DMA_LLP register which pending
 	 * DMA request and validate for spill over.
 	 */
-	high_iova = dma_channel_rd(prv->edma_base, chan, DMA_LLP_HIGH_OFF_WRCH);
+	high_iova = dma_channel_rd(prv->edma_base, chan, llp_high_off[type]);
 	cur_iova = (high_iova << 32);
-	cur_iova |= dma_channel_rd(prv->edma_base, chan, DMA_LLP_LOW_OFF_WRCH);
-	tmp_iova = dma_channel_rd(prv->edma_base, chan, DMA_LLP_HIGH_OFF_WRCH);
+	cur_iova |= dma_channel_rd(prv->edma_base, chan, llp_low_off[type]);
+	tmp_iova = dma_channel_rd(prv->edma_base, chan, llp_high_off[type]);
 	if (tmp_iova > high_iova) {
 		/* Take latest reading of low offset and use it with new high offset */
-		cur_iova = dma_channel_rd(prv->edma_base, chan, DMA_LLP_LOW_OFF_WRCH);
+		cur_iova = dma_channel_rd(prv->edma_base, chan, llp_low_off[type]);
 		cur_iova |= (tmp_iova << 32);
 	}
 	/* Compute DMA desc index */
@@ -242,22 +273,22 @@ static inline void process_r_idx(struct edma_chan *ch, edma_xfer_status_t st, u3
 	}
 }
 
-static inline void process_ch_irq(struct edma_prv *prv, u32 chan)
+static inline void process_ch_irq(struct edma_prv *prv, u32 chan, struct edma_chan *ch,
+				  u32 type)
 {
 	u32 idx;
-	struct edma_chan *ch = &prv->tx[chan];
 
-	idx = get_dma_idx_from_llp(prv, chan);
+	idx = get_dma_idx_from_llp(prv, chan, ch, type);
 
 	if (ch->type == EDMA_CHAN_XFER_SYNC) {
-		if (prv->wr_busy & OSI_BIT(chan)) {
-			prv->wr_busy &= ~(OSI_BIT(chan));
+		if (ch->busy) {
+			ch->busy = false;
 			wake_up(&ch->wq);
 		}
 	}
 
 	if (ch->st == EDMA_XFER_ABORT) {
-		dev_info(&prv->pdev->dev, "Abort: ch %d at r_idx %d->idx %d, w_idx is %d\n", chan,
+		dev_info(prv->dev, "Abort: ch %d at r_idx %d->idx %d, w_idx is %d\n", chan,
 			 ch->r_idx, idx, ch->w_idx);
 		if (ch->r_idx == idx)
 			goto process_abort;
@@ -274,49 +305,60 @@ static irqreturn_t edma_irq_handler(int irq, void *cookie)
 {
 	struct edma_prv *prv = (struct edma_prv *)cookie;
 	int bit = 0;
-	u32 val;
+	u32 val, i = 0;
+	struct edma_chan *chan[2] = {&prv->tx[0], &prv->rx[0]};
 	struct edma_chan *ch;
+	u32 int_status_off[2] = {DMA_WRITE_INT_STATUS_OFF, DMA_READ_INT_STATUS_OFF};
+	u32 int_clear_off[2] = {DMA_WRITE_INT_CLEAR_OFF, DMA_READ_INT_CLEAR_OFF};
+	u32 mode_cnt[2] = {DMA_WR_CHNL_NUM, DMA_RD_CHNL_NUM};
 
+	for (i = 0; i < 2; i++) {
+		if (!(prv->ch_init & OSI_BIT(i)))
+			continue;
 
-	val = dma_common_rd(prv->edma_base, DMA_WRITE_INT_STATUS_OFF);
-	if ((val & OSI_GENMASK(31, 16)) != 0U) {
-		/**
-		 * If ABORT, immediately update state for all channels as aborted.
-		 * This setting stop further SW queuing
-		 */
-		dev_info(&prv->pdev->dev, "Abort int status 0x%x", val);
-		for (bit = 0; bit < DMA_WR_CHNL_NUM; bit++) {
-			ch = &prv->tx[bit];
-			ch->st = EDMA_XFER_ABORT;
-		}
+		val = dma_common_rd(prv->edma_base, int_status_off[i]);
+		if ((val & OSI_GENMASK(31, 16)) != 0U) {
+			/**
+			 * If ABORT, immediately update state for all channels as aborted.
+			 * This setting stop further SW queuing
+			 */
+			dev_info(prv->dev, "Abort int status 0x%x", val);
+			for (bit = 0; bit < mode_cnt[i]; bit++) {
+				ch = chan[i] + bit;
+				ch->st = EDMA_XFER_ABORT;
+			}
 
-		edma_hw_deinit(prv);
+			edma_hw_deinit(prv, !!i);
 
-		/** Perform abort handling */
-		for (bit = 0; bit < DMA_WR_CHNL_NUM; bit++) {
-			ch = &prv->tx[bit];
+			/** Perform abort handling */
+			for (bit = 0; bit < mode_cnt[i]; bit++) {
+				ch = chan[i] + bit;
+				if (!ch->ring)
+					continue;
 
-			/* Clear ABORT and DONE interrupt, as abort handles both */
-			dma_common_wr(prv->edma_base, OSI_BIT(16 + bit) | OSI_BIT(bit),
-				      DMA_WRITE_INT_CLEAR_OFF);
+				/* Clear ABORT and DONE interrupt, as abort handles both */
+				dma_common_wr(prv->edma_base, OSI_BIT(16 + bit) | OSI_BIT(bit),
+					      int_clear_off[i]);
+				/** wait until exisitng xfer submit completed */
+				mutex_lock(&ch->lock);
+				mutex_unlock(&ch->lock);
 
-			/** wait until exisitng xfer submit completed */
-			mutex_lock(&ch->lock);
-			mutex_unlock(&ch->lock);
+				process_ch_irq(prv, bit, ch, i);
 
-			process_ch_irq(prv, bit);
+				edma_ch_init(prv, ch);
+				edma_ll_ch_init(prv->edma_base, bit, ch->dma_iova, (i == 0),
+						prv->is_remote_dma);
+			}
 
-			edma_ch_init(ch);
-		}
-
-		edma_hw_init(prv);
-	} else {
-		for (bit = 0; bit < DMA_WR_CHNL_NUM; bit++) {
-			ch = &prv->tx[bit];
-			if (OSI_BIT(bit) & val) {
-				dma_common_wr(prv->edma_base, OSI_BIT(bit),
-					      DMA_WRITE_INT_CLEAR_OFF);
-				process_ch_irq(prv, bit);
+			edma_hw_init(prv, !!i);
+		} else {
+			for (bit = 0; bit < mode_cnt[i]; bit++) {
+				ch = chan[i] + bit;
+				if (OSI_BIT(bit) & val) {
+					dma_common_wr(prv->edma_base, OSI_BIT(bit),
+						      int_clear_off[i]);
+					process_ch_irq(prv, bit, ch, i);
+				}
 			}
 		}
 	}
@@ -328,8 +370,13 @@ void *tegra_pcie_edma_initialize(struct tegra_pcie_edma_init_info *info)
 {
 	struct edma_prv *prv;
 	struct resource *dma_res;
-	int32_t ret, i;
+	int32_t ret, i, j;
 	struct edma_chan *ch = NULL;
+	struct edma_chan *chan[2];
+	u32 mode_cnt[2] = {DMA_WR_CHNL_NUM, DMA_RD_CHNL_NUM};
+	struct tegra_pcie_edma_chans_info *chan_info[2];
+	struct tegra_pcie_edma_chans_info *ch_info;
+	struct platform_device *pdev;
 
 	prv = kzalloc(sizeof(*prv), GFP_KERNEL);
 	if (!prv) {
@@ -337,80 +384,117 @@ void *tegra_pcie_edma_initialize(struct tegra_pcie_edma_init_info *info)
 		return NULL;
 	}
 
+	chan[0] = &prv->tx[0];
+	chan[1] = &prv->rx[0];
+	chan_info[0] = &info->tx[0];
+	chan_info[1] = &info->rx[0];
+
 	if (info->edma_remote != NULL) {
-		pr_err("remote_edma mode not supported yet\n");
-		goto free_priv;
+		if (!info->edma_remote->dev) {
+			pr_err("%s: dev pointer is NULL\n", __func__);
+			goto free_priv;
+		}
+
+		prv->dev = info->edma_remote->dev;
+		prv->irq = info->edma_remote->msi_irq;
+		prv->msi_data = info->edma_remote->msi_data;
+		prv->msi_addr = info->edma_remote->msi_addr;
+		prv->is_remote_dma = true;
+
+		prv->edma_base = devm_ioremap(prv->dev, info->edma_remote->dma_phy_base,
+					      info->edma_remote->dma_size);
+		if (IS_ERR(prv->edma_base)) {
+			dev_err(prv->dev, "dma region map failed.\n");
+			goto free_priv;
+		}
 	} else if (info->np != NULL) {
 		prv->is_remote_dma = false;
 
-		prv->pdev = of_find_device_by_node(info->np);
-		if (prv->pdev == NULL) {
+		pdev = of_find_device_by_node(info->np);
+		if (!pdev) {
 			pr_err("Unable to retrieve pdev node\n");
 			goto free_priv;
 		}
+		prv->dev = &pdev->dev;
 
-		dma_res = platform_get_resource_byname(prv->pdev, IORESOURCE_MEM,
+		dma_res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
 						       "atu_dma");
 		if (!dma_res) {
-			dev_err(&prv->pdev->dev, "missing atu_dma resource in DT\n");
-			goto free_priv;
+			dev_err(prv->dev, "missing atu_dma resource in DT\n");
+			goto put_dev;
 		}
 
-		prv->edma_base = devm_ioremap(&prv->pdev->dev, dma_res->start + DMA_OFFSET,
-				       resource_size(dma_res) - DMA_OFFSET);
+		prv->edma_base = devm_ioremap(prv->dev, dma_res->start + DMA_OFFSET,
+					      resource_size(dma_res) - DMA_OFFSET);
 		if (IS_ERR(prv->edma_base)) {
-			dev_err(&prv->pdev->dev, "dma region map failed.\n");
-			goto free_priv;
+			dev_err(prv->dev, "dma region map failed.\n");
+			goto put_dev;
 		}
 
-		for (i = 0; i < DMA_WR_CHNL_NUM; i++) {
-			ch = &prv->tx[i];
-			ch->type = info->tx[i].ch_type;
-			ch->desc_sz = (info->tx[i].num_descriptors == 0) ?
-				NUM_EDMA_DESC : info->tx[i].num_descriptors;
-			ch->desc = dma_alloc_coherent(&prv->pdev->dev,
-			(sizeof(struct edma_dblock)) * ((ch->desc_sz/2) + 1),
-			&ch->dma_iova, GFP_KERNEL);
-			if (!ch->desc) {
-				dev_err(&prv->pdev->dev, "Cannot allocate required tx descriptos(%d) of size (%lu) for channel:%d\n",
-					prv->tx[i].desc_sz,
-					(sizeof(struct edma_hw_desc) *
-					prv->tx[i].desc_sz), i);
-				goto dma_iounmap;
-			}
-
-			ch->ring = kcalloc(ch->desc_sz, sizeof(*(ch->ring)), GFP_KERNEL);
-			if (!ch->ring) {
-				dev_err(&prv->pdev->dev, "Failed to allocate %d channel ring\n", i);
-				goto free_dma_desc;
-			}
-
-			edma_ch_init(ch);
-		}
-
-		/* TODO RX descriptor creation */
-
-		prv->irq = platform_get_irq_byname(prv->pdev, "intr");
+		prv->irq = platform_get_irq_byname(pdev, "intr");
 		if (!prv->irq) {
-			dev_err(&prv->pdev->dev, "failed to get intr interrupt\n");
-			goto free_dma_desc;
+			dev_err(prv->dev, "failed to get intr interrupt\n");
+			goto put_dev;
 		};
-
-		prv->irq_name = kasprintf(GFP_KERNEL, "%s_edma_lib", prv->pdev->name);
-		if (!prv->irq_name)
-			goto free_dma_desc;
-
-
-		ret = request_threaded_irq(prv->irq, NULL, edma_irq_handler,
-					   IRQF_SHARED | IRQF_ONESHOT,
-					   prv->irq_name, prv);
-		if (ret < 0) {
-			dev_err(&prv->pdev->dev, "failed to request \"intr\" irq\n");
-			goto free_irq_name;
-		}
 	} else {
 		pr_err("Neither device node nor edma remote available");
 		goto free_priv;
+	}
+
+	for (j = 0; j < 2; j++) {
+		for (i = 0; i < mode_cnt[j]; i++) {
+			ch_info = chan_info[j] + i;
+			ch = chan[j] + i;
+
+			if (ch_info->num_descriptors == 0)
+				continue;
+
+			ch->type = ch_info->ch_type;
+			ch->desc_sz = ch_info->num_descriptors;
+
+			if (prv->is_remote_dma) {
+				ch->dma_iova = ch_info->desc_iova;
+				ch->desc = devm_ioremap(prv->dev, ch_info->desc_phy_base,
+							(sizeof(struct edma_dblock)) *
+							((ch->desc_sz / 2) + 1));
+				if (!ch->desc) {
+					dev_err(prv->dev, "desc region map failed, phy: 0x%llx\n",
+						ch_info->desc_phy_base);
+					goto dma_iounmap;
+				}
+			} else {
+				ch->desc = dma_alloc_coherent(prv->dev,
+							      (sizeof(struct edma_dblock)) *
+							      ((ch->desc_sz / 2) + 1),
+							      &ch->dma_iova, GFP_KERNEL);
+				if (!ch->desc) {
+					dev_err(prv->dev, "Cannot allocate required descriptos(%d) of size (%lu) for channel:%d type: %d\n",
+						ch->desc_sz,
+						(sizeof(struct edma_hw_desc) * ch->desc_sz), i, j);
+					goto dma_iounmap;
+				}
+			}
+
+			prv->ch_init |= OSI_BIT(j);
+
+			if (edma_ch_init(prv, ch) < 0)
+				goto free_dma_desc;
+
+			edma_ll_ch_init(prv->edma_base, i, ch->dma_iova, (j == 0),
+					prv->is_remote_dma);
+		}
+	}
+
+	prv->irq_name = kasprintf(GFP_KERNEL, "%s_edma_lib", dev_name(prv->dev));
+	if (!prv->irq_name)
+		goto free_ring;
+
+	ret = request_threaded_irq(prv->irq, NULL, edma_irq_handler,
+				   IRQF_SHARED | IRQF_ONESHOT,
+				   prv->irq_name, prv);
+	if (ret < 0) {
+		dev_err(prv->dev, "failed to request \"intr\" irq\n");
+		goto free_irq_name;
 	}
 
 	for (i = 0; i < DMA_WR_CHNL_NUM; i++) {
@@ -418,29 +502,43 @@ void *tegra_pcie_edma_initialize(struct tegra_pcie_edma_init_info *info)
 		init_waitqueue_head(&prv->tx[i].wq);
 	}
 
-#ifdef EDMA_RX_SUPPORT
 	for (i = 0; i < DMA_RD_CHNL_NUM; i++) {
 		mutex_init(&prv->rx[i].lock);
 		init_waitqueue_head(&prv->rx[i].wq);
 	}
-#endif
 
-	edma_hw_init(prv);
-	dev_info(&prv->pdev->dev, "%s: success", __func__);
+	edma_hw_init(prv, false);
+	edma_hw_init(prv, true);
+	dev_info(prv->dev, "%s: success", __func__);
+
 	return prv;
+
 free_irq_name:
 	kfree(prv->irq_name);
+free_ring:
+	for (j = 0; j < 2; j++) {
+		for (i = 0; i < mode_cnt[j]; i++) {
+			ch = chan[j] + i;
+			kfree(ch->ring);
+		}
+	}
 free_dma_desc:
-	for (i = 0; i < DMA_WR_CHNL_NUM; i++) {
-		if (prv->tx[i].desc)
-			dma_free_coherent(&prv->pdev->dev,
-			(sizeof(struct edma_hw_desc) * prv->tx[i].desc_sz),
-			prv->tx[i].desc, prv->tx[i].dma_iova);
-
-		kfree(prv->tx[i].ring);
+	for (j = 0; j < 2; j++) {
+		for (i = 0; i < mode_cnt[j]; i++) {
+			ch = chan[j] + i;
+			if (prv->is_remote_dma && ch->desc)
+				devm_iounmap(prv->dev, ch->desc);
+			else if (ch->desc)
+				dma_free_coherent(prv->dev,
+						  (sizeof(struct edma_hw_desc) * ch->desc_sz),
+						  ch->desc, ch->dma_iova);
+		}
 	}
 dma_iounmap:
-	iounmap(prv->edma_base);
+	devm_iounmap(prv->dev, prv->edma_base);
+put_dev:
+	if (!prv->is_remote_dma)
+		put_device(prv->dev);
 free_priv:
 	kfree(prv);
 	return NULL;
@@ -459,16 +557,20 @@ edma_xfer_status_t tegra_pcie_edma_submit_xfer(void *cookie,
 	edma_xfer_status_t st = EDMA_XFER_SUCCESS;
 	u32 avail;
 	struct tegra_pcie_edma_xfer_info *ring;
+	u32 int_status_off[2] = {DMA_WRITE_INT_STATUS_OFF, DMA_READ_INT_STATUS_OFF};
+	u32 doorbell_off[2] = {DMA_WRITE_DOORBELL_OFF, DMA_READ_DOORBELL_OFF};
+	u32 mode_cnt[2] = {DMA_WR_CHNL_NUM, DMA_RD_CHNL_NUM};
+	bool pcs;
 
-	if (prv == NULL || tx_info == NULL ||
-	    ((tx_info->channel_num >= DMA_WR_CHNL_NUM) &&
-	     (tx_info->type == EDMA_XFER_WRITE)) ||
-	    (tx_info->nents == 0) || (tx_info->desc == NULL) ||
-	    (tx_info->type == EDMA_XFER_READ))
+	if (!prv || !tx_info || tx_info->nents == 0 || !tx_info->desc ||
+	    tx_info->channel_num >= mode_cnt[tx_info->type])
 		return EDMA_XFER_FAIL_INVAL_INPUTS;
 
 	ch = (tx_info->type == EDMA_XFER_WRITE) ? &prv->tx[tx_info->channel_num] :
 						  &prv->rx[tx_info->channel_num];
+
+	if (!ch->desc_sz)
+		return EDMA_XFER_FAIL_INVAL_INPUTS;
 
 	if ((tx_info->complete == NULL) && (ch->type == EDMA_CHAN_XFER_ASYNC))
 		return EDMA_XFER_FAIL_INVAL_INPUTS;
@@ -483,27 +585,33 @@ edma_xfer_status_t tegra_pcie_edma_submit_xfer(void *cookie,
 
 	avail = (ch->r_idx - ch->w_idx - 1U) & (ch->desc_sz - 1U);
 	if (tx_info->nents > avail) {
-		dev_err(&prv->pdev->dev, "Descriptors full. w_idx %d. r_idx %d, avail %d, req %d\n",
+		dev_err(prv->dev, "Descriptors full. w_idx %d. r_idx %d, avail %d, req %d\n",
 			ch->w_idx, ch->r_idx, avail, tx_info->nents);
 		st = EDMA_XFER_FAIL_NOMEM;
 		goto unlock;
 	}
 
-	prv->wr_busy |= 1 << tx_info->channel_num;
+	ch->busy = true;
 
-	dev_dbg(&prv->pdev->dev, "xmit for %d nents at %d widx and %d ridx\n",
-		 tx_info->nents, ch->w_idx, ch->r_idx);
+	dev_dbg(prv->dev, "xmit for %d nents at %d widx and %d ridx\n",
+		tx_info->nents, ch->w_idx, ch->r_idx);
 	db = (struct edma_dblock *)ch->desc + (ch->w_idx/2);
 	for (i = 0; i < tx_info->nents; i++) {
 		dma_ll_virt = &db->desc[ch->db_pos];
 		dma_ll_virt->size = tx_info->desc[i].sz;
 		/* calculate number of packets and add those many headers */
-		total_sz += ((tx_info->desc[i].sz/4096) + 1)*30;
+		total_sz += ((tx_info->desc[i].sz / ch->desc_sz) + 1) * 30;
 		total_sz += tx_info->desc[i].sz;
 		dma_ll_virt->sar_low = lower_32_bits(tx_info->desc[i].src);
 		dma_ll_virt->sar_high = upper_32_bits(tx_info->desc[i].src);
 		dma_ll_virt->dar_low = lower_32_bits(tx_info->desc[i].dst);
 		dma_ll_virt->dar_high = upper_32_bits(tx_info->desc[i].dst);
+		/* Set LIE or RIE in last element */
+		if (i == tx_info->nents - 1) {
+			dma_ll_virt->ctrl_reg.ctrl_e.lie = 1;
+			dma_ll_virt->ctrl_reg.ctrl_e.rie = !!prv->is_remote_dma;
+		}
+		/* CB should be updated last in the descriptor */
 		dma_ll_virt->ctrl_reg.ctrl_e.cb = ch->pcs;
 		ch->db_pos = !ch->db_pos;
 		avail = ch->w_idx;
@@ -514,7 +622,7 @@ edma_xfer_status_t tegra_pcie_edma_submit_xfer(void *cookie,
 			if (ch->w_idx == ch->desc_sz) {
 				ch->pcs = !ch->pcs;
 				db->llp.ctrl_reg.ctrl_e.cb = ch->pcs;
-				dev_dbg(&prv->pdev->dev, "Toggled pcs at w_idx %d\n", ch->w_idx);
+				dev_dbg(prv->dev, "Toggled pcs at w_idx %d\n", ch->w_idx);
 				ch->w_idx = 0;
 			}
 			db = (struct edma_dblock *)ch->desc + (ch->w_idx/2);
@@ -527,30 +635,31 @@ edma_xfer_status_t tegra_pcie_edma_submit_xfer(void *cookie,
 	ring->nents = tx_info->nents;
 	ring->desc = tx_info->desc;
 
-	/* Set LIE or RIE in last element */
-	dma_ll_virt->ctrl_reg.ctrl_e.lie = 1;
-	if (prv->is_remote_dma)
-		dma_ll_virt->ctrl_reg.ctrl_e.rie = 1;
+	/* Read back CB to avoid OOO in case of remote dma. */
+	pcs = dma_ll_virt->ctrl_reg.ctrl_e.cb;
 
-	dma_common_wr(prv->edma_base, tx_info->channel_num, DMA_WRITE_DOORBELL_OFF);
+	/* desc write should not go OOO wrt DMA DB ring */
+	wmb();
+
+	dma_common_wr(prv->edma_base, tx_info->channel_num, doorbell_off[tx_info->type]);
 
 	if (ch->type == EDMA_CHAN_XFER_SYNC) {
-		ret = wait_event_timeout(ch->wq,
-				!(prv->wr_busy & (1 << tx_info->channel_num)),
-				msecs_to_jiffies((uint32_t)(GET_SYNC_TIMEOUT(total_sz))));
+		ret = wait_event_timeout(ch->wq, !ch->busy,
+					 msecs_to_jiffies((uint32_t)(GET_SYNC_TIMEOUT(total_sz))));
 		if (ret == 0) {
-			dev_err(&prv->pdev->dev,
-				"%s: timeout at %d ch, w_idx(%d), r_idx(%d)\n",
+			/* dummy print to avoid misra-c voilations */
+			dev_dbg(prv->dev, "read back pcs: %d\n", pcs);
+			dev_err(prv->dev, "%s: timeout at %d ch, w_idx(%d), r_idx(%d)\n",
 				__func__, tx_info->channel_num, ch->w_idx,
 				ch->r_idx);
-			dev_err(&prv->pdev->dev, "%s: int status 0x%x", __func__,
-				dma_common_rd(prv->edma_base, DMA_WRITE_INT_STATUS_OFF));
+			dev_err(prv->dev, "%s: int status 0x%x", __func__,
+				dma_common_rd(prv->edma_base, int_status_off[tx_info->type]));
 			st = EDMA_XFER_FAIL_TIMEOUT;
 			goto unlock;
 		} else {
 			st = ch->st;
 		}
-		dev_dbg(&prv->pdev->dev, "xmit done for %d nents at %d widx and %d ridx\n",
+		dev_dbg(prv->dev, "xmit done for %d nents at %d widx and %d ridx\n",
 			tx_info->nents, ch->w_idx, ch->r_idx);
 	}
 unlock:
@@ -564,38 +673,57 @@ EXPORT_SYMBOL(tegra_pcie_edma_submit_xfer);
 void tegra_pcie_edma_deinit(void *cookie)
 {
 	struct edma_prv *prv = (struct edma_prv *)cookie;
-	int i, ret;
-	u32 val;
+	struct edma_chan *chan[2], *ch;
+	u32 int_status_off[2] = {DMA_WRITE_INT_STATUS_OFF, DMA_READ_INT_STATUS_OFF};
+	int i, j, ret;
+	u32 val, mode_cnt[2] = {DMA_WR_CHNL_NUM, DMA_RD_CHNL_NUM};
 
 	if (cookie == NULL)
 		return;
 
+	chan[0] = &prv->tx[0];
+	chan[1] = &prv->rx[0];
+
 	for (i = 0; i < DMA_WR_CHNL_NUM; i++)
 		prv->tx[i].st = EDMA_XFER_DEINIT;
+	for (i = 0; i < DMA_RD_CHNL_NUM; i++)
+		prv->rx[i].st = EDMA_XFER_DEINIT;
 
-	/** Poll for 10 seconds to clear WR interrupts */
-	ret = readl_poll_timeout(prv->edma_base + DMA_WRITE_INT_STATUS_OFF, val,
-				 (val == 0), 20000, 10000000);
-	if (ret) {
-		dev_info(prv->dev, "DMA write interrupt pending: 0x%x\n", val);
-		dma_common_wr(prv->edma_base, val, DMA_WRITE_INT_STATUS_OFF);
+	/** Poll for 10 seconds to clear WR & RD interrupts */
+	for (i = 0; i < 2; i++) {
+		if (prv->ch_init & OSI_BIT(i)) {
+			ret = readl_poll_timeout(prv->edma_base + int_status_off[i], val,
+						 (val == 0), 20000, 10000000);
+			if (ret) {
+				dev_info(prv->dev, "DMA %s interrupt pending: 0x%x\n",
+					 i == 0 ? "write" : "read", val);
+				dma_common_wr(prv->edma_base, val, int_status_off[i]);
+			}
+		}
 	}
 
-	edma_hw_deinit(cookie);
+	edma_hw_deinit(cookie, false);
+	edma_hw_deinit(cookie, true);
 
 	free_irq(prv->irq, prv);
 	kfree(prv->irq_name);
 
-	for (i = 0; i < DMA_WR_CHNL_NUM; i++) {
-		if (prv->tx[i].desc)
-			dma_free_coherent(&prv->pdev->dev,
-			(sizeof(struct edma_hw_desc) * prv->tx[i].desc_sz),
-			prv->tx[i].desc, prv->tx[i].dma_iova);
-
-		kfree(prv->tx[i].ring);
+	for (j = 0; j < 2; j++) {
+		for (i = 0; i < mode_cnt[j]; i++) {
+			ch = chan[j] + i;
+			if (prv->is_remote_dma && ch->desc)
+				devm_iounmap(prv->dev, ch->desc);
+			else if (ch->desc)
+				dma_free_coherent(prv->dev,
+						  (sizeof(struct edma_hw_desc) * ch->desc_sz),
+						  ch->desc, ch->dma_iova);
+			kfree(ch->ring);
+		}
 	}
 
-	iounmap(prv->edma_base);
+	devm_iounmap(prv->dev, prv->edma_base);
+	if (!prv->is_remote_dma)
+		put_device(prv->dev);
 	kfree(prv);
 }
 EXPORT_SYMBOL(tegra_pcie_edma_deinit);
