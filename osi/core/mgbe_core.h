@@ -368,7 +368,6 @@
 #define MGBE_MTL_FRP_IE2_IM			OSI_BIT(2)
 #define MGBE_MTL_FRP_IE2_RF			OSI_BIT(1)
 #define MGBE_MTL_FRP_IE2_AF			OSI_BIT(0)
-#define MGBE_MTL_FRP_IE3_DCH_SHIFT		8U
 #define MGBE_MTL_FRP_IE3_DCH_MASK		0xFFFFU
 /* Indirect register defines */
 #define MGBE_MTL_RXP_DROP_CNT			0U
