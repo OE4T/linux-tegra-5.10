@@ -10,6 +10,7 @@ mods-$(CONFIG_PCI)                 += mods_pci.o
 mods-$(CONFIG_ACPI)                += mods_acpi.o
 mods-$(CONFIG_DMA_SHARED_BUFFER)   += mods_dmabuf.o
 mods-$(CONFIG_ARCH_TEGRA)          += mods_smmu_drv.o
+mods-$(CONFIG_ARCH_TEGRA)          += mods_oist.o
 mods-$(CONFIG_DMA_ENGINE)          += mods_dma.o
 mods-$(CONFIG_DEBUG_FS)            += mods_debugfs.o
 mods-$(CONFIG_TEGRA_DC)            += mods_tegradc.o

@@ -2,7 +2,7 @@
 /*
  * mods.h - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2008-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2008-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -1795,6 +1795,21 @@ struct MODS_TZ_PARAMS {
 	int status;
 };
 
+/* Used by MODS_ESC_OIST_STATUS ioctl.
+ *
+ * Available only on Tegra.
+ */
+struct MODS_TEGRA_OIST_STATUS {
+	/* IN */
+	__u64 smc_func_id;
+	/* IN */
+	__u64 a1;
+	/* IN */
+	__u64 a2;
+	/* OUT */
+	__u64 smc_status;
+};
+
 #define MODS_IOMMU_MAP_CONTIGUOUS 1
 
 #pragma pack(pop)
@@ -1995,5 +2010,6 @@ struct MODS_TZ_PARAMS {
 #define MODS_ESC_BPMP_SET_PCIE_STATE MODSIO(W, 136, MODS_SET_PCIE_STATE)
 #define MODS_ESC_BPMP_INIT_PCIE_EP_PLL MODSIO(W, 137, MODS_INIT_PCIE_EP_PLL)
 #define MODS_ESC_SEND_TZ_MSG MODSIO(WR, 139, MODS_TZ_PARAMS)
+#define MODS_ESC_OIST_STATUS MODSIO(WR, 140, MODS_TEGRA_OIST_STATUS)
 
 #endif /* _UAPI_MODS_H_  */
