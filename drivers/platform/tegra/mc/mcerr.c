@@ -58,7 +58,6 @@ static void unthrottle_prints(struct work_struct *work)
 
 void disable_interrupt(unsigned int irq)
 {
-	pr_info("Disabling MC Error interrupts\n");
 	mc_writel(0, MC_INTMASK);
 	mc_writel(0, MC_HUB_INTMASK);
 }
