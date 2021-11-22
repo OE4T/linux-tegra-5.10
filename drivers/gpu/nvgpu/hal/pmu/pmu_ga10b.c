@@ -36,7 +36,12 @@
 
 bool ga10b_is_pmu_supported(struct gk20a *g)
 {
+#ifdef CONFIG_NVGPU_LS_PMU
 	return nvgpu_platform_is_simulation(g) ? false : true;
+#else
+	/* set to false to disable LS PMU ucode support */
+	return false;
+#endif
 }
 
 u32 ga10b_pmu_falcon2_base_addr(void)

@@ -336,22 +336,11 @@ void nvgpu_ga10b_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 	nvgpu_log_fn(g, " ");
 	acr->g = g;
 
-#ifdef CONFIG_NVGPU_NON_FUSA
 	if (nvgpu_falcon_is_falcon2_enabled(&g->gsp_flcn)) {
 		nvgpu_set_enabled(g, NVGPU_ACR_NEXT_CORE_ENABLED, true);
 		nvgpu_set_enabled(g, NVGPU_PKC_LS_SIG_ENABLED, true);
 		nvgpu_acr_dbg(g, "enabling PKC and next core for GSP/n");
 	}
-#else
-	if (nvgpu_falcon_is_falcon2_enabled(&g->pmu_flcn)) {
-		/*
-		 * ACR will be booting on PMU engine so need changes
-		 * in ACR unit
-		 */
-		nvgpu_set_enabled(g, NVGPU_ACR_NEXT_CORE_ENABLED, true);
-		nvgpu_set_enabled(g, NVGPU_PKC_LS_SIG_ENABLED, false);
-	}
-#endif
 
 	/* TODO: Make it generic for PMU/GSP */
 	if (nvgpu_is_enabled(g, NVGPU_ACR_NEXT_CORE_ENABLED)) {
