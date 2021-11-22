@@ -653,6 +653,10 @@ static void tdc_configure_next_head_desc(struct tegra_dma_channel *tdc)
 static void tegra_dma_abort_all(struct tegra_dma_channel *tdc)
 {
 	struct tegra_dma_sg_req *sgreq;
+	struct tegra_dma_desc *dma_desc;
+	struct virt_dma_desc *vd, *_vd;
+	unsigned long flags;
+	LIST_HEAD(head);
 
 	while (!list_empty(&tdc->pending_sg_req)) {
 		sgreq = list_first_entry(&tdc->pending_sg_req,
@@ -660,6 +664,20 @@ static void tegra_dma_abort_all(struct tegra_dma_channel *tdc)
 		list_move_tail(&sgreq->node, &tdc->free_sg_req);
 	}
 	tdc->isr_handler = NULL;
+
+	raw_spin_lock_irqsave(&tdc->vc.lock, flags);
+	vchan_get_all_descriptors(&tdc->vc, &head);
+	raw_spin_unlock_irqrestore(&tdc->vc.lock, flags);
+
+	list_for_each_entry_safe(vd, _vd, &head, node) {
+		list_del(&vd->node);
+		dma_desc = vd_to_tegra_dma_desc(vd);
+		if (dma_desc && dma_desc->tdc) {
+			list_add_tail(&dma_desc->node,
+				&dma_desc->tdc->free_dma_desc);
+			dma_desc->tdc = NULL;
+		}
+	}
 }
 
 static bool handle_continuous_head_request(struct tegra_dma_channel *tdc,
@@ -949,7 +967,6 @@ static int tegra_dma_terminate_all(struct dma_chan *dc)
 
 skip_dma_stop:
 	tegra_dma_abort_all(tdc);
-	vchan_free_chan_resources(&tdc->vc);
 	if(tdc->is_pending) {
 		list_add_tail(&tdc->dma_desc->node, &tdc->pending_dma_desc);
 		tdc->is_pending = false;
