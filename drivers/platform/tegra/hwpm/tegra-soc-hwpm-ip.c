@@ -50,10 +50,14 @@ void tegra_soc_hwpm_ip_register(struct tegra_soc_hwpm_ip_ops *hwpm_ip_ops)
 					hwpm_ip_ops->ip_base_address);
 
 	if (tegra_soc_hwpm_pdev == NULL) {
-		tegra_soc_hwpm_err(
-				"IP trying to register before SOC HWPM 0x%llx",
+		tegra_soc_hwpm_dbg(
+				"IP register before SOC HWPM 0x%llx",
 				hwpm_ip_ops->ip_base_address);
 	} else {
+		if (hwpm_ip_ops->ip_dev == NULL) {
+			tegra_soc_hwpm_err("IP dev is NULL");
+			return;
+		}
 		hwpm = platform_get_drvdata(tegra_soc_hwpm_pdev);
 		dt_aperture = tegra_soc_hwpm_get_apeture(hwpm,
 						hwpm_ip_ops->ip_base_address);
@@ -75,9 +79,13 @@ void tegra_soc_hwpm_ip_unregister(struct tegra_soc_hwpm_ip_ops *hwpm_ip_ops)
 	enum tegra_soc_hwpm_dt_aperture dt_aperture;
 
 	if (tegra_soc_hwpm_pdev == NULL) {
-		tegra_soc_hwpm_err("IP unregister before SOC HWPM 0x%llx",
+		tegra_soc_hwpm_dbg("IP unregister before SOC HWPM 0x%llx",
 						hwpm_ip_ops->ip_base_address);
 	} else {
+		if (hwpm_ip_ops->ip_dev == NULL) {
+			tegra_soc_hwpm_err("IP dev is NULL");
+			return;
+		}
 		hwpm = platform_get_drvdata(tegra_soc_hwpm_pdev);
 		dt_aperture = tegra_soc_hwpm_get_apeture(hwpm,
 						hwpm_ip_ops->ip_base_address);
