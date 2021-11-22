@@ -30,6 +30,9 @@
 #include <linux/iopoll.h>
 #include <linux/string.h>
 #include <linux/platform/tegra/tegra23x_cbb_reg.h>
+#ifdef CONFIG_TEGRA_SOC_HWPM
+#include <uapi/linux/tegra-soc-hwpm-uapi.h>
+#endif
 
 #include "dev.h"
 #include "class_ids.h"
@@ -803,10 +806,51 @@ static ssize_t reload_fw_write(struct device *device,
 
 static DEVICE_ATTR(reload_fw, 0200, NULL, reload_fw_write);
 
+#ifdef CONFIG_TEGRA_SOC_HWPM
+int flcn_hwpm_ip_pm(void *ip_dev, bool disable)
+{
+	int err = 0;
+	struct platform_device *dev = (struct platform_device *)ip_dev;
+
+	nvhost_dbg_fn("ip power management %s", disable ? "disable" : "enable");
+
+	if (disable) {
+		err = pm_runtime_get_sync(&dev->dev);
+		if (err != 0) {
+			nvhost_err(&dev->dev, "pm_runtime_get_sync failed");
+		}
+	} else {
+		err = pm_runtime_put_sync(&dev->dev);
+		if (err != 0) {
+			nvhost_err(&dev->dev, "pm_runtime_put_sync failed");
+		}
+	}
+	return err;
+}
+
+int flcn_hwpm_ip_reg_op(void *ip_dev, enum tegra_soc_hwpm_ip_reg_op reg_op,
+						u64 reg_offset, u32 *reg_data)
+{
+	struct platform_device *dev = (struct platform_device *)ip_dev;
+
+	nvhost_dbg_fn("reg_op %d reg_offset %llu", reg_op, reg_offset);
+
+	if (reg_op == TEGRA_SOC_HWPM_IP_REG_OP_READ) {
+		*reg_data = host1x_readl(dev, (unsigned int)reg_offset);
+	} else if (reg_op == TEGRA_SOC_HWPM_IP_REG_OP_WRITE) {
+		host1x_writel(dev, *reg_data, (unsigned int)reg_offset);
+	}
+	return 0;
+}
+#endif
+
 static int flcn_probe(struct platform_device *dev)
 {
 	int err;
 	struct nvhost_device_data *pdata = NULL;
+#ifdef CONFIG_TEGRA_SOC_HWPM
+	struct tegra_soc_hwpm_ip_ops hwpm_ip_ops;
+#endif
 
 	if (dev->dev.of_node) {
 		const struct of_device_id *match;
@@ -859,6 +903,13 @@ static int flcn_probe(struct platform_device *dev)
 
 	if (pdata->flcn_isr)
 		flcn_intr_init(dev);
+#ifdef CONFIG_TEGRA_SOC_HWPM
+	hwpm_ip_ops.ip_dev = (void *)dev;
+	hwpm_ip_ops.ip_base_address = dev->resource[0].start;
+	hwpm_ip_ops.hwpm_ip_pm = &flcn_hwpm_ip_pm;
+	hwpm_ip_ops.hwpm_ip_reg_op = &flcn_hwpm_ip_reg_op;
+	tegra_soc_hwpm_ip_register(&hwpm_ip_ops);
+#endif
 
 	return 0;
 }
