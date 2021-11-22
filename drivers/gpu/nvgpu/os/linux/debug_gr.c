@@ -477,7 +477,7 @@ int gr_gk20a_debugfs_init(struct gk20a *g)
 	if (!d)
 		return -ENOMEM;
 	/* Using debugfs_create_file_unsafe to allow mmap */
-	d = debugfs_create_file_unsafe("cbc_ctrl", S_IRUSR | S_IWUSR,
+	d = debugfs_create_file_unsafe("cbc_ctrl", S_IWUSR,
 		l->debugfs, g, &cbc_ctrl_debug_fops);
 	if (!d)
 		return -ENOMEM;
