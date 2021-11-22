@@ -166,7 +166,7 @@ static phys_addr_t nvmap_alloc_mem(struct nvmap_heap *h, size_t len,
 				GFP_KERNEL, DMA_ATTR_ALLOC_EXACT_SIZE);
 #endif /* !NVMAP_LOADABLE_MODULE */
 		if (!dma_mapping_error(dev, pa)) {
-#ifdef CONFIG_TEGRA_VPR
+#ifdef NVMAP_CONFIG_VPR_RESIZE
 			int ret;
 
 			dev_dbg(dev, "Allocated addr (%pa) len(%zu)\n",
@@ -260,7 +260,7 @@ static struct nvmap_heap_block *do_heap_alloc(struct nvmap_heap *heap,
 	if (dma_mapping_error(dev, dev_base)) {
 		dev_err(dev, "failed to alloc mem of size (%zu)\n",
 			len);
-#ifdef CONFIG_TEGRA_VPR
+#ifdef NVMAP_CONFIG_VPR_RESIZE
 		if (dma_is_coherent_dev(dev)) {
 			struct dma_coherent_stats stats;
 
@@ -436,7 +436,7 @@ struct nvmap_heap *nvmap_heap_create(struct device *parent,
 	h->dma_dev = co->dma_dev;
 	if (co->cma_dev) {
 #ifdef CONFIG_DMA_CMA
-#ifdef CONFIG_TEGRA_VPR
+#ifdef NVMAP_CONFIG_VPR_RESIZE
 		struct dma_contiguous_stats stats;
 
 		if (dma_get_contiguous_stats(co->cma_dev, &stats))

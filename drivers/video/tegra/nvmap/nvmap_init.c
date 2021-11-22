@@ -74,7 +74,7 @@ struct device __weak tegra_vpr_cma_dev;
 	struct platform_device *pdev;
 #endif /* NVMAP_LOADABLE_MODULE */
 
-#ifdef CONFIG_TEGRA_VPR
+#ifdef NVMAP_CONFIG_VPR_RESIZE
 struct dma_resize_notifier_ops __weak vpr_dev_ops;
 
 static struct dma_declare_info generic_dma_info = {
@@ -104,7 +104,7 @@ static struct nvmap_platform_carveout nvmap_carveouts[] = {
 		.size		= 0,
 		.dma_dev	= &tegra_generic_dev,
 		.cma_dev	= &tegra_generic_cma_dev,
-#ifdef CONFIG_TEGRA_VPR
+#ifdef NVMAP_CONFIG_VPR_RESIZE
 		.dma_info	= &generic_dma_info,
 #endif
 	},
@@ -115,7 +115,7 @@ static struct nvmap_platform_carveout nvmap_carveouts[] = {
 		.size		= 0,
 		.dma_dev	= &tegra_vpr_dev,
 		.cma_dev	= &tegra_vpr_cma_dev,
-#ifdef CONFIG_TEGRA_VPR
+#ifdef NVMAP_CONFIG_VPR_RESIZE
 		.dma_info	= &vpr_dma_info,
 #endif
 		.enable_static_dma_map = true,
@@ -574,7 +574,7 @@ static int __init nvmap_co_device_init(struct reserved_mem *rmem,
 					struct device *dev)
 {
 	struct nvmap_platform_carveout *co = rmem->priv;
-	int err;
+	int err = 0;
 
 	if (!co)
 		return -ENODEV;
@@ -611,7 +611,7 @@ static int __init nvmap_co_device_init(struct reserved_mem *rmem,
 				"%s :dma coherent mem declare fail %pa,%zu,err:%d\n",
 				co->name, &co->base, co->size, err);
 	} else {
-#ifdef CONFIG_TEGRA_VPR
+#ifdef NVMAP_CONFIG_VPR_RESIZE
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
 		/*
 		 * When vpr memory is reserved, kmemleak tries to scan vpr
@@ -658,7 +658,9 @@ int __init nvmap_co_setup(struct reserved_mem *rmem)
 {
 	struct nvmap_platform_carveout *co;
 	int ret = 0;
+#ifdef NVMAP_CONFIG_VPR_RESIZE
 	struct cma *cma;
+#endif
 	ulong start = sched_clock();
 
 	co = nvmap_get_carveout_pdata(rmem->name);
@@ -675,6 +677,7 @@ int __init nvmap_co_setup(struct reserved_mem *rmem)
 	co->base = rmem->base;
 	co->size = rmem->size;
 
+#ifdef NVMAP_CONFIG_VPR_RESIZE
 	if (!of_get_flat_dt_prop(rmem->fdt_node, "reusable", NULL) ||
 	    of_get_flat_dt_prop(rmem->fdt_node, "no-map", NULL))
 		goto skip_cma;
@@ -708,6 +711,7 @@ int __init nvmap_co_setup(struct reserved_mem *rmem)
 	goto finish;
 
 skip_cma:
+#endif
 	co->cma_dev = NULL;
 finish:
 	nvmap_init_time += sched_clock() - start;
