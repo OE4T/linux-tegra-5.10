@@ -57,10 +57,6 @@
                 status = "disabled";
         };
 
-	ufshci@2500000 {
-		status = "disabled";
-	};
-
 	ga10b {
 		status = "okay";
 	};
