@@ -322,7 +322,11 @@ struct arm_smmu_device {
 	struct clk_bulk_data		*clks;
 	int				num_clks;
 
+	bool				tlb_inv_throttle;
+
 	spinlock_t			global_sync_lock;
+
+	spinlock_t			inv_range_lock;
 
 #ifdef CONFIG_ARM_SMMU_DEBUG
 	struct smmu_debugfs_info	*debug_info;
