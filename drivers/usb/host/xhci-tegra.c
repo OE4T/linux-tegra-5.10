@@ -2167,6 +2167,9 @@ static int tegra_xusb_powerdomain_init(struct device *dev,
 		return err;
 	}
 
+	device_init_wakeup(tegra->genpd_dev_host, true);
+	device_init_wakeup(tegra->genpd_dev_ss, true);
+
 	tegra->use_genpd = true;
 
 	return 0;
