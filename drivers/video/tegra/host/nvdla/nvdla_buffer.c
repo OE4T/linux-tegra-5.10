@@ -1,7 +1,7 @@
 /*
  * NVHOST buffer management for T194
  *
- * Copyright (c) 2016-2020, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -23,7 +23,6 @@
 #include <linux/dma-buf.h>
 #include <linux/cvnas.h>
 
-#include "dev.h"
 #include "nvdla_buffer.h"
 
 /**
@@ -198,7 +197,7 @@ static void nvdla_free_buffers(struct kref *kref)
 static void nvdla_buffer_unmap(struct nvdla_buffers *nvdla_buffers,
 				struct nvdla_vm_buffer *vm)
 {
-	nvhost_dbg_fn("");
+	pr_debug("%s\n", __func__);
 
 	if ((vm->user_map_count != 0) || (vm->submit_map_count != 0))
 		return;
@@ -307,7 +306,7 @@ int nvdla_buffer_pin(struct nvdla_buffers *nvdla_buffers,
 
 		vm = kzalloc(sizeof(struct nvdla_vm_buffer), GFP_KERNEL);
 		if (!vm) {
-			nvhost_err(NULL, "could not allocate vm_buffer");
+			pr_err("%s: could not allocate vm_buffer\n", __func__);
 			goto unpin;
 		}
 
