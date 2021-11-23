@@ -66,6 +66,8 @@
 #define MSI_IOVA_BASE			0x8000000
 #define MSI_IOVA_LENGTH			0x100000
 
+#define TLB_INV_DELAY_NSEC	10000
+
 static int force_stage;
 module_param(force_stage, int, S_IRUGO);
 MODULE_PARM_DESC(force_stage,
@@ -325,7 +327,8 @@ static void arm_smmu_tlb_inv_range_s1(unsigned long iova, size_t size,
 	struct arm_smmu_device *smmu = smmu_domain->smmu;
 	struct arm_smmu_cfg *cfg = &smmu_domain->cfg;
 	int idx = cfg->cbndx;
-	u64 time_before = 0;
+	u64 time_before = 0, time1 = 0, time2 = 0;
+	bool throttle = smmu->tlb_inv_throttle;
 
 #if defined(CONFIG_TRACEPOINTS) && defined(CONFIG_ARM_SMMU_DEBUG)
 	if (static_key_false(&__tracepoint_arm_smmu_tlb_inv_range.key)
@@ -336,12 +339,22 @@ static void arm_smmu_tlb_inv_range_s1(unsigned long iova, size_t size,
 	if (smmu->features & ARM_SMMU_FEAT_COHERENT_WALK)
 		wmb();
 
+	if (throttle)
+		time1 = local_clock();
+
 	if (cfg->fmt != ARM_SMMU_CTX_FMT_AARCH64) {
 		iova = (iova >> 12) << 12;
 		iova |= cfg->asid;
 		do {
 			arm_smmu_cb_write(smmu, idx, reg, iova);
 			iova += granule;
+			if (throttle) {
+				time2 = local_clock() - time1;
+				if (time2 < TLB_INV_DELAY_NSEC)
+					udelay(round_up(TLB_INV_DELAY_NSEC -
+							time2, 1000) / 1000);
+				time1 = local_clock();
+			}
 		} while (size -= granule);
 	} else {
 		iova >>= 12;
@@ -349,6 +362,13 @@ static void arm_smmu_tlb_inv_range_s1(unsigned long iova, size_t size,
 		do {
 			arm_smmu_cb_writeq(smmu, idx, reg, iova);
 			iova += granule >> 12;
+			if (throttle) {
+				time2 = local_clock() - time1;
+				if (time2 < TLB_INV_DELAY_NSEC)
+					udelay(round_up(TLB_INV_DELAY_NSEC -
+							time2, 1000) / 1000);
+				time1 = local_clock();
+			}
 		} while (size -= granule);
 	}
 
@@ -2241,6 +2261,26 @@ err_reset_platform_ops: __maybe_unused;
 	return err;
 }
 
+/**
+ * It returns true if throttle is required between tlb invalidates
+ */
+static bool arm_smmu_get_tlb_inv_throttle(struct device_node *np)
+{
+	struct device_node *node;
+
+	node = of_node_get(np);
+
+	if (node) {
+		if (of_property_read_bool(node, "tlb-inv-throttle")) {
+			of_node_put(node);
+			return true;
+		}
+	}
+
+	of_node_put(node);
+	return false;
+}
+
 static int arm_smmu_device_probe(struct platform_device *pdev)
 {
 	struct resource *res;
@@ -2383,6 +2423,8 @@ static int arm_smmu_device_probe(struct platform_device *pdev)
 		pm_runtime_set_active(dev);
 		pm_runtime_enable(dev);
 	}
+
+	smmu->tlb_inv_throttle = arm_smmu_get_tlb_inv_throttle(dev->of_node);
 
 	/*
 	 * For ACPI and generic DT bindings, an SMMU will be probed before
