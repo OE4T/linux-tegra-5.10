@@ -1,7 +1,7 @@
 /*
  * Top level DTS file for CVM:P2888-0008 and CVB:P2822-0000
  *
- * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 	nvidia,dtsfilename = __FILE__;
 	nvidia,dtbbuildtime = __DATE__, __TIME__;
 	compatible = "nvidia,jetson-xavier-industrial", "nvidia,tegra194";
-	model = "Jetson-AGXi";
+	model = "Jetson-AGXi-Safety";
 
 	sce@b000000 {
 		status = "okay";
