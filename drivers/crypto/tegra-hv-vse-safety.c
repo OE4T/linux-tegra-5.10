@@ -71,11 +71,12 @@
 #define TEGRA_VIRTUAL_SE_CMD_AES_ENCRYPT			0x21
 #define TEGRA_VIRTUAL_SE_CMD_AES_DECRYPT			0x22
 #define TEGRA_VIRTUAL_SE_CMD_AES_CMAC				0x23
-#define TEGRA_VIRTUAL_SE_CMD_AES_CMAC_HWPAD			0x26
-#define TEGRA_VIRTUAL_SE_CMD_AES_CMAC_GEN_SUBKEY		0x24
-#define VIRTUAL_SE_CMD_AES_RNG_DBRG				0x25
-#define TEGRA_VIRTUAL_SE_CMD_AES_GCM_CMD_ENCRYPT		0x27
-#define TEGRA_VIRTUAL_SE_CMD_AES_GCM_CMD_DECRYPT		0x28
+#define TEGRA_VIRTUAL_SE_CMD_AES_CMAC_GEN_SUBKEY	0x24
+#define TEGRA_VIRTUAL_SE_CMD_AES_RNG_DBRG			0x25
+#define TEGRA_VIRTUAL_SE_CMD_AES_GCM_CMD_ENCRYPT	0x27
+#define TEGRA_VIRTUAL_SE_CMD_AES_GCM_CMD_DECRYPT	0x28
+#define TEGRA_VIRTUAL_SE_CMD_AES_CMAC_SIGN			0x32
+#define TEGRA_VIRTUAL_SE_CMD_AES_CMAC_VERIFY		0x33
 
 #define TEGRA_VIRTUAL_SE_CMD_AES_GMAC_CMD_INIT			(0x29U)
 #define TEGRA_VIRTUAL_SE_CMD_AES_GMAC_CMD_SIGN			(0x30U)
@@ -116,6 +117,9 @@
 #define TEGRA_VIRTUAL_SE_AES_CMAC_CONFIG_LASTBLK		0x01
 #define TEGRA_VIRTUAL_SE_AES_CMAC_CONFIG_FINAL			0x02
 
+#define TEGRA_VIRTUAL_SE_AES_CMAC_SV_CONFIG_FIRSTREQ	0x01
+#define TEGRA_VIRTUAL_SE_AES_CMAC_SV_CONFIG_LASTREQ		0x02
+
 #define TEGRA_VIRTUAL_SE_RNG_IV_SIZE	16
 #define TEGRA_VIRTUAL_SE_RNG_DT_SIZE	16
 #define TEGRA_VIRTUAL_SE_RNG_KEY_SIZE	16
@@ -124,6 +128,8 @@
 					TEGRA_VIRTUAL_SE_RNG_DT_SIZE)
 
 #define TEGRA_VIRTUAL_SE_MAX_SUPPORTED_BUFLEN		((1U << 24) - 1U)
+
+#define TEGRA_VIRTUAL_SE_ERR_MAC_INVALID	11
 
 static struct task_struct *tegra_vse_task;
 static bool vse_thread_start;
@@ -151,6 +157,18 @@ enum tegra_virtual_se_command {
 struct tegra_vse_cmac_data {
 	u8 status;
 	u8 data[TEGRA_VIRTUAL_SE_AES_BLOCK_SIZE];
+};
+
+enum cmac_request_type {
+	CMAC_SIGN = 0U,
+	CMAC_VERIFY
+};
+
+/* CMAC request data */
+struct tegra_vse_cmac_req_data {
+	enum cmac_request_type request_type;
+	/* For CMAC_VERIFY tag comparison result */
+	uint8_t result;
 };
 
 enum gmac_request_type {
@@ -284,6 +302,15 @@ union tegra_virtual_se_aes_args {
 		struct tegra_virtual_se_addr src_addr;
 		u32 key_length;
 	} op_cmac_s;
+	struct aes_cmac_sv {
+		u32 keyslot;
+		u32 config;
+		u32 lastblock_len;
+		u8 lastblock[TEGRA_VIRTUAL_SE_AES_BLOCK_SIZE];
+		struct tegra_virtual_se_addr src_addr;
+		u32 key_length;
+		u8 cmac_result[TEGRA_VIRTUAL_SE_AES_BLOCK_SIZE];
+	} op_cmac_sv;
 	struct aes_rng {
 		struct tegra_virtual_se_addr dst_addr;
 	} op_rng;
@@ -2113,7 +2140,6 @@ static int tegra_hv_vse_safety_cmac_op(struct ahash_request *req, bool is_last)
 
 	ivc_tx->aes.op_cmac_s.lastblock_len = last_block_bytes;
 
-	cmac_ctx = ahash_request_ctx(req);
 	if (cmac_ctx->is_first) {
 		ivc_tx->aes.op_cmac_s.ivsel = AES_ORIGINAL_IV;
 		cmac_ctx->is_first = false;
@@ -2172,23 +2198,44 @@ free_mem:
 
 }
 
-static int tegra_hv_vse_safety_cmac_hwpad_op(struct ahash_request *req, bool is_last)
+static int tegra_hv_vse_safety_cmac_sv_op(struct ahash_request *req, bool is_last)
 {
 	struct tegra_virtual_se_aes_cmac_context *cmac_ctx =
 			crypto_ahash_ctx(crypto_ahash_reqtfm(req));
+	struct tegra_vse_cmac_req_data *cmac_req_data;
 	struct tegra_virtual_se_dev *se_dev = g_virtual_se_dev[VIRTUAL_SE_AES0];
 	struct tegra_virtual_se_ivc_hdr_t *ivc_hdr;
 	struct tegra_virtual_se_ivc_tx_msg_t *ivc_tx;
 	struct tegra_virtual_se_ivc_msg_t *ivc_req_msg;
 	struct tegra_hv_ivc_cookie *pivck = g_ivck;
 	struct scatterlist *src_sg;
-	u32 num_sgs;
+	u32 blocks_to_process, last_block_bytes = 0;
+	int num_sgs;
+	unsigned int total_len;
 	int err = 0;
 	int num_lists = 0;
 	int time_left;
 	struct tegra_vse_priv_data *priv = NULL;
 	struct tegra_vse_tag *priv_data_ptr;
 	unsigned int num_mapped_sgs = 0;
+
+	if ((req->nbytes == 0) || (req->nbytes > TEGRA_VIRTUAL_SE_MAX_SUPPORTED_BUFLEN)) {
+		dev_err(se_dev->dev, "%s: input buffer size is invalid\n", __func__);
+		return -EINVAL;
+	}
+
+	blocks_to_process = req->nbytes / TEGRA_VIRTUAL_SE_AES_BLOCK_SIZE;
+	/* num of bytes less than block size */
+
+	if ((req->nbytes % TEGRA_VIRTUAL_SE_AES_BLOCK_SIZE) ||
+		blocks_to_process == 0) {
+		last_block_bytes =
+			req->nbytes % TEGRA_VIRTUAL_SE_AES_BLOCK_SIZE;
+	} else {
+		/* decrement num of blocks */
+		blocks_to_process--;
+		last_block_bytes = TEGRA_VIRTUAL_SE_AES_BLOCK_SIZE;
+	}
 
 	ivc_req_msg = devm_kzalloc(se_dev->dev,
 		sizeof(*ivc_req_msg), GFP_KERNEL);
@@ -2201,6 +2248,8 @@ static int tegra_hv_vse_safety_cmac_hwpad_op(struct ahash_request *req, bool is_
 		return -ENOMEM;
 	}
 
+	cmac_req_data = (struct tegra_vse_cmac_req_data *) req->priv;
+
 	ivc_tx = &ivc_req_msg->tx[0];
 	ivc_hdr = &ivc_req_msg->ivc_hdr;
 	ivc_hdr->num_reqs = 1;
@@ -2211,7 +2260,8 @@ static int tegra_hv_vse_safety_cmac_hwpad_op(struct ahash_request *req, bool is_
 
 	src_sg = req->src;
 	num_sgs = tegra_hv_vse_safety_count_sgs(src_sg, req->nbytes);
-	if (num_sgs > TEGRA_HV_VSE_AES_CMAC_MAX_LL_NUM) {
+	if ((num_sgs > TEGRA_HV_VSE_AES_CMAC_MAX_LL_NUM) ||
+			(num_sgs < 0)) {
 		dev_err(se_dev->dev,
 			"\n Unsupported number of linked list %d\n", num_sgs);
 		err = -ENOMEM;
@@ -2219,41 +2269,58 @@ static int tegra_hv_vse_safety_cmac_hwpad_op(struct ahash_request *req, bool is_
 	}
 	vse_thread_start = true;
 
-	err = tegra_hv_vse_safety_prepare_ivc_linked_list(se_dev, req->src,
-		req->nbytes, TEGRA_HV_VSE_AES_CMAC_MAX_LL_NUM,
-		TEGRA_VIRTUAL_SE_AES_BLOCK_SIZE,
-		&ivc_tx->aes.op_cmac_s.src_addr,
-		&num_lists,
-		DMA_TO_DEVICE, &num_mapped_sgs);
-	if (err)
-		goto free_mem;
+	/* first process all blocks except last block */
+	if (blocks_to_process) {
+		total_len = blocks_to_process * TEGRA_VIRTUAL_SE_AES_BLOCK_SIZE;
+
+		err = tegra_hv_vse_safety_prepare_ivc_linked_list(se_dev, req->src,
+			total_len, TEGRA_HV_VSE_AES_CMAC_MAX_LL_NUM,
+			TEGRA_VIRTUAL_SE_AES_BLOCK_SIZE,
+			&ivc_tx->aes.op_cmac_sv.src_addr,
+			&num_lists,
+			DMA_TO_DEVICE, &num_mapped_sgs);
+		if (err)
+			goto free_mem;
+
+	}
+	ivc_tx->aes.op_cmac_sv.lastblock_len = last_block_bytes;
+
+	sg_pcopy_to_buffer(req->src,
+			num_sgs,
+			ivc_tx->aes.op_cmac_sv.lastblock,
+			last_block_bytes,
+			blocks_to_process * TEGRA_VIRTUAL_SE_AES_BLOCK_SIZE);
 
 	ivc_hdr->engine = VIRTUAL_SE_AES0;
-	ivc_tx->cmd = TEGRA_VIRTUAL_SE_CMD_AES_CMAC_HWPAD;
-
-	ivc_tx->aes.op_cmac_s.keyslot = cmac_ctx->aes_keyslot;
-	ivc_tx->aes.op_cmac_s.key_length = cmac_ctx->keylen;
-	ivc_tx->aes.op_cmac_s.src_addr.hi = req->nbytes;
-	if (is_last == true)
-		ivc_tx->aes.op_cmac_s.config = TEGRA_VIRTUAL_SE_AES_CMAC_CONFIG_FINAL;
+	if (cmac_req_data->request_type == CMAC_SIGN)
+		ivc_tx->cmd = TEGRA_VIRTUAL_SE_CMD_AES_CMAC_SIGN;
 	else
-		ivc_tx->aes.op_cmac_s.config = TEGRA_VIRTUAL_SE_AES_CMAC_CONFIG_NONLASTBLK;
+		ivc_tx->cmd = TEGRA_VIRTUAL_SE_CMD_AES_CMAC_VERIFY;
 
-	cmac_ctx = ahash_request_ctx(req);
+	ivc_tx->aes.op_cmac_sv.keyslot = cmac_ctx->aes_keyslot;
+	ivc_tx->aes.op_cmac_sv.key_length = cmac_ctx->keylen;
+	ivc_tx->aes.op_cmac_sv.src_addr.hi = blocks_to_process * TEGRA_VIRTUAL_SE_AES_BLOCK_SIZE;
+	ivc_tx->aes.op_cmac_sv.config = 0;
+	if (is_last == true)
+		ivc_tx->aes.op_cmac_sv.config |= TEGRA_VIRTUAL_SE_AES_CMAC_SV_CONFIG_LASTREQ;
+
 	if (cmac_ctx->is_first) {
-		ivc_tx->aes.op_cmac_s.ivsel = AES_ORIGINAL_IV;
+		ivc_tx->aes.op_cmac_sv.config |= TEGRA_VIRTUAL_SE_AES_CMAC_SV_CONFIG_FIRSTREQ;
+		if (cmac_req_data->request_type == CMAC_VERIFY) {
+			memcpy(ivc_tx->aes.op_cmac_sv.cmac_result,
+					req->result,
+					TEGRA_VIRTUAL_SE_AES_CMAC_DIGEST_SIZE);
+		}
 		cmac_ctx->is_first = false;
-	} else {
-		ivc_tx->aes.op_cmac_s.ivsel = AES_IV_REG;
 	}
-
-	ivc_tx->aes.op_cmac_s.dst = (u64)cmac_ctx->hash_result_addr;
-	memcpy(ivc_tx->aes.op_cmac_s.cmac_reg,
-		cmac_ctx->hash_result, cmac_ctx->digest_size);
 
 	priv_data_ptr = (struct tegra_vse_tag *)ivc_req_msg->ivc_hdr.tag;
 	priv_data_ptr->priv_data = (unsigned int *)priv;
-	priv->cmd = VIRTUAL_SE_PROCESS;
+	if (is_last == true)
+		priv->cmd = VIRTUAL_CMAC_PROCESS;
+	else
+		priv->cmd = VIRTUAL_SE_PROCESS;
+
 	priv->se_dev = se_dev;
 	init_completion(&priv->alg_complete);
 	mutex_lock(&se_dev->server_lock);
@@ -2263,6 +2330,7 @@ static int tegra_hv_vse_safety_cmac_hwpad_op(struct ahash_request *req, bool is_
 		err = -ENODEV;
 		goto unmap_exit;
 	}
+
 	err = tegra_hv_vse_safety_send_ivc(se_dev, pivck, ivc_req_msg,
 			sizeof(struct tegra_virtual_se_ivc_msg_t));
 	if (err) {
@@ -2278,8 +2346,27 @@ static int tegra_hv_vse_safety_cmac_hwpad_op(struct ahash_request *req, bool is_
 		err = -ETIMEDOUT;
 	}
 
-	if (is_last)
-		memcpy(req->result, cmac_ctx->hash_result, TEGRA_VIRTUAL_SE_AES_CMAC_DIGEST_SIZE);
+	if (is_last) {
+		if (cmac_req_data->request_type == CMAC_SIGN) {
+			if (priv->rx_status[0] == 0) {
+				memcpy(req->result,
+						priv->cmac.data,
+						TEGRA_VIRTUAL_SE_AES_CMAC_DIGEST_SIZE);
+			}
+		} else {
+			if (priv->rx_status[0] == 0)
+				cmac_req_data->result = 0;
+			else
+				cmac_req_data->result = 1;
+		}
+	}
+
+	if ((priv->rx_status[0] != 0) &&
+			(priv->rx_status[0] != TEGRA_VIRTUAL_SE_ERR_MAC_INVALID)) {
+		err = status_to_errno(priv->rx_status[0]);
+		dev_err(se_dev->dev, "%s: SE server returned error %u\n",
+				__func__, priv->rx_status[0]);
+	}
 
 unmap_exit:
 	src_sg = req->src;
@@ -2310,15 +2397,15 @@ static int tegra_hv_vse_safety_cmac_init(struct ahash_request *req)
 		return -EINVAL;
 	}
 
-	cmac_ctx = ahash_request_ctx(req);
-	if (!cmac_ctx) {
-		dev_err(se_dev->dev, "AES-CMAC req_ctx not valid\n");
-		return -EINVAL;
-	}
-
 	tfm = crypto_ahash_reqtfm(req);
 	if (!tfm) {
 		dev_err(se_dev->dev, "AES-CMAC transform not valid\n");
+		return -EINVAL;
+	}
+
+	cmac_ctx = crypto_ahash_ctx(tfm);
+	if (!cmac_ctx) {
+		dev_err(se_dev->dev, "AES-CMAC req_ctx not valid\n");
 		return -EINVAL;
 	}
 
@@ -2339,7 +2426,13 @@ static int tegra_hv_vse_safety_cmac_init(struct ahash_request *req)
 static void tegra_hv_vse_safety_cmac_req_deinit(struct ahash_request *req)
 {
 	struct tegra_virtual_se_dev *se_dev = g_virtual_se_dev[VIRTUAL_SE_AES0];
-	struct tegra_virtual_se_aes_cmac_context *cmac_ctx = ahash_request_ctx(req);
+	struct tegra_virtual_se_aes_cmac_context *cmac_ctx;
+
+	cmac_ctx = crypto_ahash_ctx(crypto_ahash_reqtfm(req));
+	if (!cmac_ctx) {
+		dev_err(se_dev->dev, "AES-CMAC req_ctx not valid\n");
+		return;
+	}
 
 	dma_free_coherent(
 		se_dev->dev, (TEGRA_HV_VSE_SHA_MAX_BLOCK_SIZE * 2),
@@ -2364,7 +2457,12 @@ static int tegra_hv_vse_safety_cmac_update(struct ahash_request *req)
 	if (atomic_read(&se_dev->se_suspended))
 		return -ENODEV;
 
-	cmac_ctx = ahash_request_ctx(req);
+	cmac_ctx = crypto_ahash_ctx(crypto_ahash_reqtfm(req));
+	if (!cmac_ctx) {
+		dev_err(se_dev->dev, "AES-CMAC req_ctx not valid\n");
+		return -EINVAL;
+	}
+
 	if (!cmac_ctx->req_context_initialized) {
 		dev_err(se_dev->dev,
 			"%s Request ctx not initialized\n", __func__);
@@ -2375,7 +2473,7 @@ static int tegra_hv_vse_safety_cmac_update(struct ahash_request *req)
 
 	/* Do not process data in given request */
 	if (se_dev->chipdata->cmac_hw_padding_supported)
-		ret = tegra_hv_vse_safety_cmac_hwpad_op(req, false);
+		ret = tegra_hv_vse_safety_cmac_sv_op(req, false);
 	else
 		ret = tegra_hv_vse_safety_cmac_op(req, false);
 	if (ret)
@@ -2412,7 +2510,12 @@ static int tegra_hv_vse_safety_cmac_finup(struct ahash_request *req)
 	if (atomic_read(&se_dev->se_suspended))
 		return -ENODEV;
 
-	cmac_ctx = ahash_request_ctx(req);
+	cmac_ctx = crypto_ahash_ctx(crypto_ahash_reqtfm(req));
+	if (!cmac_ctx) {
+		dev_err(se_dev->dev, "AES-CMAC req_ctx not valid\n");
+		return -EINVAL;
+	}
+
 	if (!cmac_ctx->req_context_initialized) {
 		dev_err(se_dev->dev,
 			"%s Request ctx not initialized\n", __func__);
@@ -2422,7 +2525,7 @@ static int tegra_hv_vse_safety_cmac_finup(struct ahash_request *req)
 	mutex_lock(&se_dev->mtx);
 	/* Do not process data in given request */
 	if (se_dev->chipdata->cmac_hw_padding_supported)
-		ret = tegra_hv_vse_safety_cmac_hwpad_op(req, true);
+		ret = tegra_hv_vse_safety_cmac_sv_op(req, true);
 	else
 		ret = tegra_hv_vse_safety_cmac_op(req, true);
 	if (ret)
@@ -2459,7 +2562,7 @@ static int tegra_hv_vse_safety_cmac_setkey(struct crypto_ahash *tfm, const u8 *k
 	struct tegra_vse_priv_data *priv = NULL;
 	struct tegra_vse_tag *priv_data_ptr;
 	int err = 0;
-	int time_left;
+	unsigned long time_left;
 	s8 label[TEGRA_VIRTUAL_SE_AES_MAX_KEY_SIZE];
 	u32 slot;
 
@@ -2483,67 +2586,70 @@ static int tegra_hv_vse_safety_cmac_setkey(struct crypto_ahash *tfm, const u8 *k
 		}
 	}
 
-	ivc_req_msg = devm_kzalloc(se_dev->dev, sizeof(*ivc_req_msg),
-					GFP_KERNEL);
-	if (!ivc_req_msg)
-		return -ENOMEM;
+	if (se_dev->chipdata->cmac_hw_padding_supported == false) {
+		ivc_req_msg = devm_kzalloc(se_dev->dev, sizeof(*ivc_req_msg),
+						GFP_KERNEL);
+		if (!ivc_req_msg)
+			return -ENOMEM;
 
-	priv = devm_kzalloc(se_dev->dev, sizeof(*priv), GFP_KERNEL);
-	if (!priv) {
-		devm_kfree(se_dev->dev, ivc_req_msg);
-		dev_err(se_dev->dev, "Priv Data allocation failed\n");
-		return -ENOMEM;
-	}
+		priv = devm_kzalloc(se_dev->dev, sizeof(*priv), GFP_KERNEL);
+		if (!priv) {
+			devm_kfree(se_dev->dev, ivc_req_msg);
+			dev_err(se_dev->dev, "Priv Data allocation failed\n");
+			return -ENOMEM;
+		}
 
-	ivc_hdr = &ivc_req_msg->ivc_hdr;
-	ivc_tx = &ivc_req_msg->tx[0];
-	ivc_hdr->num_reqs = 1;
-	ivc_hdr->header_magic[0] = 'N';
-	ivc_hdr->header_magic[1] = 'V';
-	ivc_hdr->header_magic[2] = 'D';
-	ivc_hdr->header_magic[3] = 'A';
+		ivc_hdr = &ivc_req_msg->ivc_hdr;
+		ivc_tx = &ivc_req_msg->tx[0];
+		ivc_hdr->num_reqs = 1;
+		ivc_hdr->header_magic[0] = 'N';
+		ivc_hdr->header_magic[1] = 'V';
+		ivc_hdr->header_magic[2] = 'D';
+		ivc_hdr->header_magic[3] = 'A';
 
-	vse_thread_start = true;
+		vse_thread_start = true;
 
-	ivc_hdr->engine = VIRTUAL_SE_AES0;
-	ivc_tx->cmd = TEGRA_VIRTUAL_SE_CMD_AES_CMAC_GEN_SUBKEY;
-	ivc_tx->aes.op_cmac_subkey_s.keyslot = ctx->aes_keyslot;
-	ivc_tx->aes.op_cmac_subkey_s.key_length = ctx->keylen;
-	priv_data_ptr =
-		(struct tegra_vse_tag *)ivc_req_msg->ivc_hdr.tag;
-	priv_data_ptr->priv_data = (unsigned int *)priv;
-	priv->cmd = VIRTUAL_SE_PROCESS;
-	priv->se_dev = se_dev;
-	init_completion(&priv->alg_complete);
+		ivc_hdr->engine = VIRTUAL_SE_AES0;
+		ivc_tx->cmd = TEGRA_VIRTUAL_SE_CMD_AES_CMAC_GEN_SUBKEY;
+		ivc_tx->aes.op_cmac_subkey_s.keyslot = ctx->aes_keyslot;
+		ivc_tx->aes.op_cmac_subkey_s.key_length = ctx->keylen;
+		priv_data_ptr =
+			(struct tegra_vse_tag *)ivc_req_msg->ivc_hdr.tag;
+		priv_data_ptr->priv_data = (unsigned int *)priv;
+		priv->cmd = VIRTUAL_SE_PROCESS;
+		priv->se_dev = se_dev;
+		init_completion(&priv->alg_complete);
 
-	mutex_lock(&se_dev->server_lock);
-	/* Return error if engine is in suspended state */
-	if (atomic_read(&se_dev->se_suspended)) {
+		mutex_lock(&se_dev->server_lock);
+		/* Return error if engine is in suspended state */
+		if (atomic_read(&se_dev->se_suspended)) {
+			mutex_unlock(&se_dev->server_lock);
+			err = -ENODEV;
+			goto free_exit;
+		}
+		err = tegra_hv_vse_safety_send_ivc(se_dev, pivck, ivc_req_msg,
+				sizeof(struct tegra_virtual_se_ivc_msg_t));
+		if (err) {
+			mutex_unlock(&se_dev->server_lock);
+			goto free_exit;
+		}
+
+		time_left = wait_for_completion_timeout(
+				&priv->alg_complete,
+				TEGRA_HV_VSE_TIMEOUT);
 		mutex_unlock(&se_dev->server_lock);
-		err = -ENODEV;
-		goto free_exit;
-	}
-	err = tegra_hv_vse_safety_send_ivc(se_dev, pivck, ivc_req_msg,
-			sizeof(struct tegra_virtual_se_ivc_msg_t));
-	if (err) {
-		mutex_unlock(&se_dev->server_lock);
-		goto free_exit;
-	}
-
-	time_left = wait_for_completion_timeout(
-			&priv->alg_complete,
-			TEGRA_HV_VSE_TIMEOUT);
-	mutex_unlock(&se_dev->server_lock);
-	if (time_left == 0) {
-		dev_err(se_dev->dev, "%s timeout\n",
-			__func__);
-		err = -ETIMEDOUT;
-		goto free_exit;
-	}
+		if (time_left == 0) {
+			dev_err(se_dev->dev, "%s timeout\n",
+				__func__);
+			err = -ETIMEDOUT;
+			goto free_exit;
+		}
 
 free_exit:
-	devm_kfree(se_dev->dev, priv);
-	devm_kfree(se_dev->dev, ivc_req_msg);
+		devm_kfree(se_dev->dev, priv);
+		devm_kfree(se_dev->dev, ivc_req_msg);
+	}
+
 	return err;
 }
 
@@ -2758,7 +2864,7 @@ static int tegra_hv_vse_safety_rng_drbg_get_random(struct crypto_rng *tfm,
 	priv->cmd = VIRTUAL_SE_PROCESS;
 	priv->se_dev = se_dev;
 
-	ivc_tx->cmd = VIRTUAL_SE_CMD_AES_RNG_DBRG;
+	ivc_tx->cmd = TEGRA_VIRTUAL_SE_CMD_AES_RNG_DBRG;
 
 	for (j = 0; j <= num_blocks; j++) {
 		ivc_tx->aes.op_rng.dst_addr.lo = rng_ctx->rng_buf_adr & 0xFFFFFFFF;
@@ -4129,6 +4235,7 @@ static int tegra_vse_kthread(void *unused)
 				break;
 			case VIRTUAL_CMAC_PROCESS:
 				ivc_rx = &ivc_msg->rx[0];
+				priv->rx_status[0] = ivc_rx->status;
 				priv->cmac.status = ivc_rx->status;
 				if (!ivc_rx->status) {
 					memcpy(priv->cmac.data, ivc_rx->cmac_result, \

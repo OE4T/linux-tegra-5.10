@@ -616,6 +616,7 @@ static int tnvvse_crypto_aes_cmac(struct tnvvse_crypto_ctx *ctx,
 	const char *driver_name;
 	struct ahash_request *req;
 	struct tnvvse_crypto_completion sha_complete;
+	struct tnvvse_cmac_req_data priv_data;
 	unsigned long *xbuf[XBUFSIZE];
 	char key_as_keyslot[AES_KEYSLOT_NAME_SIZE] = {0,};
 	int klen;
@@ -644,6 +645,9 @@ static int tnvvse_crypto_aes_cmac(struct tnvvse_crypto_ctx *ctx,
 		pr_err("%s(): Failed to allocate request for cmac-vse(aes)\n", __func__);
 		goto free_tfm;
 	}
+
+	priv_data.request_type = CMAC_SIGN;
+	req->priv = &priv_data;
 
 	ahash_request_set_callback(req, CRYPTO_TFM_REQ_MAY_BACKLOG,
 				   tnvvse_crypto_complete, &sha_complete);
