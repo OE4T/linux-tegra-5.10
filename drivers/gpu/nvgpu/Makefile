@@ -364,7 +364,6 @@ nvgpu-y += \
 	hal/init/hal_init.o \
 	hal/perf/perf_gv11b.o \
 	hal/perf/perf_tu104.o \
-	hal/power_features/cg/gp10b_gating_reglist.o \
 	hal/power_features/cg/gv11b_gating_reglist.o \
 	hal/regops/regops_gv11b.o \
 	hal/regops/allowlist_gv11b.o \
@@ -782,8 +781,6 @@ nvgpu-y += \
 nvgpu-$(CONFIG_NVGPU_HAL_NON_FUSA) += \
 	hal/ce/ce_tu104.o \
 	hal/clk/clk_gm20b.o \
-	hal/init/hal_gp10b.o \
-	hal/init/hal_gp10b_litter.o \
 	hal/init/hal_gm20b.o \
 	hal/init/hal_gm20b_litter.o \
 	hal/fifo/engine_status_gm20b.o \
@@ -815,7 +812,6 @@ nvgpu-$(CONFIG_NVGPU_HAL_NON_FUSA) += \
 	hal/power_features/cg/gm20b_gating_reglist.o \
 	hal/priv_ring/priv_ring_gm20b.o \
 	hal/regops/regops_gm20b.o \
-	hal/regops/regops_gp10b.o \
 	hal/regops/regops_tu104.o \
 	hal/regops/allowlist_tu104.o \
 	hal/therm/therm_gm20b.o \

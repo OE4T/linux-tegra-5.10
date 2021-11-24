@@ -30,7 +30,6 @@
 #include <nvgpu/static_analysis.h>
 
 #include "hal_gm20b.h"
-#include "hal_gp10b.h"
 #include "hal_gv11b.h"
 #include "hal_ga10b.h"
 #ifdef CONFIG_NVGPU_DGPU
@@ -60,11 +59,6 @@ int nvgpu_init_hal(struct gk20a *g)
 	case GK20A_GPUID_GM20B_B:
 		nvgpu_log_info(g, "gm20b detected");
 		if (gm20b_init_hal(g) != 0) {
-			err = -ENODEV;
-		}
-		break;
-	case NVGPU_GPUID_GP10B:
-		if (gp10b_init_hal(g) != 0) {
 			err = -ENODEV;
 		}
 		break;

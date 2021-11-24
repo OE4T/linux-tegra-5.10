@@ -343,7 +343,6 @@ static inline struct gk20a_platform *gk20a_get_platform(
 
 #ifdef CONFIG_TEGRA_GK20A
 extern struct gk20a_platform gm20b_tegra_platform;
-extern struct gk20a_platform gp10b_tegra_platform;
 extern struct gk20a_platform gv11b_tegra_platform;
 #ifdef CONFIG_NVGPU_GR_VIRTUALIZATION
 extern struct gk20a_platform gv11b_vgpu_tegra_platform;

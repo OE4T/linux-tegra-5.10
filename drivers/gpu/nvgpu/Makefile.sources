@@ -280,9 +280,7 @@ srcs += hal/mm/mm_gv11b_fusa.c \
 # Source files below are not guaranteed to be functionaly safe (FuSa) and are
 # only included in the normal build.
 ifeq ($(CONFIG_NVGPU_HAL_NON_FUSA),1)
-srcs += hal/init/hal_gp10b.c \
-	hal/init/hal_gp10b_litter.c \
-	hal/init/hal_gm20b.c \
+srcs += hal/init/hal_gm20b.c \
 	hal/init/hal_gm20b_litter.c \
 	hal/mm/cache/flush_gk20a.c \
 	hal/mm/mm_gm20b.c \
@@ -306,7 +304,6 @@ srcs += hal/init/hal_gp10b.c \
 	hal/gr/falcon/gr_falcon_gm20b.c \
 	hal/priv_ring/priv_ring_gm20b.c \
 	hal/power_features/cg/gm20b_gating_reglist.c \
-	hal/power_features/cg/gp10b_gating_reglist.c \
 	hal/ce/ce2_gk20a.c \
 	hal/therm/therm_gm20b.c \
 	hal/therm/therm_gp10b.c \
@@ -416,7 +413,6 @@ srcs += common/debugger.c \
 	hal/gr/gr/gr_tu104.c
 ifeq ($(CONFIG_NVGPU_HAL_NON_FUSA),1)
 srcs += hal/regops/regops_gm20b.c \
-	hal/regops/regops_gp10b.c \
 	hal/regops/regops_tu104.c \
 	hal/regops/regops_ga10b.c \
 	hal/regops/allowlist_tu104.c \

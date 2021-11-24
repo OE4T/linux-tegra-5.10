@@ -75,8 +75,6 @@ init:
   owner: Philip E
   sources: [ hal/init/hal_gm20b.c,
              hal/init/hal_gm20b.h,
-             hal/init/hal_gp10b.c,
-             hal/init/hal_gp10b.h,
              hal/init/hal_tu104.c,
              hal/init/hal_tu104.h,
              hal/init/hal_ga100.c,
@@ -89,8 +87,6 @@ init:
              hal/init/hal_ga10b_litter.h,
              hal/init/hal_gm20b_litter.c,
              hal/init/hal_gm20b_litter.h,
-             hal/init/hal_gp10b_litter.c,
-             hal/init/hal_gp10b_litter.h,
              hal/init/hal_tu104_litter.c,
              hal/init/hal_tu104_litter.h ]
 
@@ -142,8 +138,6 @@ cg:
   owner: Seema K
   sources: [ hal/power_features/cg/gm20b_gating_reglist.c,
              hal/power_features/cg/gm20b_gating_reglist.h,
-             hal/power_features/cg/gp10b_gating_reglist.c,
-             hal/power_features/cg/gp10b_gating_reglist.h,
              hal/power_features/cg/tu104_gating_reglist.c,
              hal/power_features/cg/tu104_gating_reglist.h,
              hal/power_features/cg/ga10b_gating_reglist.c,
@@ -748,8 +742,6 @@ regops:
   owner: Deepak N
   sources: [ hal/regops/regops_gm20b.c,
              hal/regops/regops_gm20b.h,
-             hal/regops/regops_gp10b.c,
-             hal/regops/regops_gp10b.h,
              hal/regops/regops_gv11b.c,
              hal/regops/regops_gv11b.h,
              hal/regops/regops_tu104.c,
