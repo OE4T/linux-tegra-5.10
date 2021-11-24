@@ -996,7 +996,7 @@ static ssize_t tpc_pg_mask_read(struct device *dev,
 					(g->tpc_pg_mask[i] << 4*i);
 	}
 
-	return snprintf(buf, NVGPU_CPU_PAGE_SIZE, "%d", combined_tpc_pg_mask);
+	return snprintf(buf, NVGPU_CPU_PAGE_SIZE, "%d\n", combined_tpc_pg_mask);
 }
 
 static ssize_t tpc_pg_mask_store(struct device *dev,
@@ -1018,7 +1018,7 @@ static ssize_t tpc_pg_mask_store(struct device *dev,
 	if (nvgpu_is_powered_on(g)) {
 		nvgpu_err(g, "gpu is already powered on");
 		nvgpu_mutex_release(&g->static_pg_lock);
-		err = -ENODEV;
+		return -ENODEV;
 	}
 
 	if (platform->set_tpc_pg_mask != NULL) {
