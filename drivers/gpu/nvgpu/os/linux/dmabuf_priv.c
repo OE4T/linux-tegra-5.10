@@ -305,6 +305,9 @@ int gk20a_dmabuf_get_state(struct dma_buf *dmabuf, struct gk20a *g,
 	}
 
 	s->offset = offset;
+	s->fence = nvgpu_user_fence_init();
+	s->valid_compbits = 0;
+	s->zbc_color = 0;
 	nvgpu_init_list_node(&s->list);
 	nvgpu_mutex_init(&s->lock);
 	nvgpu_list_add_tail(&s->list, &priv->states);
