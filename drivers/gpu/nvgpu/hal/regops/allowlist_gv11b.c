@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,7 +26,7 @@
 #include <nvgpu/regops_allowlist.h>
 #include "allowlist_gv11b.h"
 
-static const u32 gv11b_hwpm_perfmon_register_offset_allowlist[] = {
+u32 gv11b_hwpm_perfmon_register_offset_allowlist[] = {
 	0x00000040,
 	0x00000044,
 	0x00000048,
@@ -71,6 +71,7 @@ static const u32 gv11b_hwpm_perfmon_register_offset_allowlist[] = {
 	0x000000ec,
 	0x000000f8,
 	0x000000fc,
+	0x00000100,
 	0x00000104,
 	0x00000108,
 	0x0000010c,
@@ -79,19 +80,19 @@ static const u32 gv11b_hwpm_perfmon_register_offset_allowlist[] = {
 	0x00000124,
 };
 
-static const u32 gv11b_hwpm_router_register_offset_allowlist[] = {
+u32 gv11b_hwpm_router_register_offset_allowlist[] = {
 	0x00000000,
 	0x00000008,
 	0x00000010,
 	0x00000014,
 };
 
-static const u32 gv11b_hwpm_pma_channel_register_offset_allowlist[] = {
+u32 gv11b_hwpm_pma_channel_register_offset_allowlist[] = {
 	0x00000080,
 	0x00000084,
 };
 
-static const u32 gv11b_hwpm_pma_trigger_register_offset_allowlist[] = {
+u32 gv11b_hwpm_pma_trigger_register_offset_allowlist[] = {
 	0x00000000,
 	0x00000008,
 	0x00000010,
@@ -130,7 +131,7 @@ static const u32 gv11b_hwpm_pma_trigger_register_offset_allowlist[] = {
 	0x00000608,
 };
 
-static const u32 gv11b_smpc_register_offset_allowlist[] = {
+u32 gv11b_smpc_register_offset_allowlist[] = {
 	0x00000200,
 	0x00000204,
 	0x00000208,
