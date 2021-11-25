@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,6 +37,7 @@
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/device.h>
+#include <nvgpu/fb.h>
 
 #include "init_vgpu.h"
 #include "hal/vgpu/init/init_hal_vgpu.h"
@@ -82,6 +83,16 @@ void vgpu_remove_support_common(struct gk20a *g)
 
 	if (g->fifo.remove_support) {
 		g->fifo.remove_support(&g->fifo);
+	}
+
+#if defined(CONFIG_NVGPU_NON_FUSA)
+	if (nvgpu_fb_vab_teardown_hal(g) != 0) {
+		nvgpu_err(g, "failed to teardown VAB");
+	}
+#endif
+
+	if (g->ops.mm.mmu_fault.info_mem_destroy != NULL) {
+		g->ops.mm.mmu_fault.info_mem_destroy(g);
 	}
 
 	nvgpu_pmu_remove_support(g, g->pmu);

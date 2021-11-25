@@ -65,6 +65,7 @@
 #include <nvgpu/mc.h>
 #include <nvgpu/cic_mon.h>
 #include <nvgpu/cic_rm.h>
+#include <nvgpu/fb.h>
 
 #include "platform_gk20a.h"
 #include "sysfs.h"
@@ -1036,6 +1037,16 @@ void gk20a_remove_support(struct gk20a *g)
 
 	if (g->fifo.remove_support)
 		g->fifo.remove_support(&g->fifo);
+
+#if defined(CONFIG_NVGPU_NON_FUSA)
+	if (nvgpu_fb_vab_teardown_hal(g) != 0) {
+		nvgpu_err(g, "failed to teardown VAB");
+	}
+#endif
+
+	if (g->ops.mm.mmu_fault.info_mem_destroy != NULL) {
+		g->ops.mm.mmu_fault.info_mem_destroy(g);
+	}
 
 	nvgpu_pmu_remove_support(g, g->pmu);
 

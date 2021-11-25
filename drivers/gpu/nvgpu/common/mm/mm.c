@@ -143,17 +143,6 @@ static void nvgpu_remove_mm_support(struct mm_gk20a *mm)
 	nvgpu_dma_free(g, &mm->mmu_wr_mem);
 	nvgpu_dma_free(g, &mm->mmu_rd_mem);
 
-#if defined(CONFIG_NVGPU_NON_FUSA)
-	if (nvgpu_fb_vab_teardown_hal(g) != 0) {
-		nvgpu_err(g, "failed to teardown VAB");
-	}
-
-#endif
-
-	if (g->ops.mm.mmu_fault.info_mem_destroy != NULL) {
-		g->ops.mm.mmu_fault.info_mem_destroy(g);
-	}
-
 	if (g->ops.mm.remove_bar2_vm != NULL) {
 		g->ops.mm.remove_bar2_vm(g);
 	}
