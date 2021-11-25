@@ -66,6 +66,7 @@
 #include <nvgpu/cic_mon.h>
 #include <nvgpu/cic_rm.h>
 #include <nvgpu/fb.h>
+#include <nvgpu/nvs.h>
 
 #include "platform_gk20a.h"
 #include "sysfs.h"
@@ -1026,6 +1027,8 @@ void gk20a_remove_support(struct gk20a *g)
 	if (g->mm.remove_ce_support)
 		g->mm.remove_ce_support(&g->mm);
 #endif
+
+	nvgpu_nvs_remove_support(g);
 
 	if (g->fifo.remove_support)
 		g->fifo.remove_support(&g->fifo);

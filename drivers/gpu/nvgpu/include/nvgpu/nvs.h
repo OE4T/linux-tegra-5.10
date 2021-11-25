@@ -29,6 +29,8 @@
 
 #include <nvgpu/atomic.h>
 #include <nvgpu/lock.h>
+#include <nvgpu/worker.h>
+#include <nvgpu/timers.h>
 
 /*
  * Max size we'll parse from an NVS log entry.
@@ -65,14 +67,24 @@ struct nvgpu_nvs_domain {
 	u32 ref;
 };
 
+struct nvgpu_nvs_worker {
+	struct nvgpu_worker worker;
+	struct nvgpu_timeout timeout;
+	u32 current_timeout;
+};
+
 struct nvgpu_nvs_scheduler {
 	struct nvs_sched *sched;
 	nvgpu_atomic64_t id_counter;
+	struct nvgpu_nvs_worker worker;
+	struct nvgpu_nvs_domain *active_domain;
 };
 
 #ifdef CONFIG_NVS_PRESENT
 int nvgpu_nvs_init(struct gk20a *g);
 int nvgpu_nvs_open(struct gk20a *g);
+void nvgpu_nvs_remove_support(struct gk20a *g);
+int nvgpu_nvs_suspend(struct gk20a *g);
 void nvgpu_nvs_get_log(struct gk20a *g, s64 *timestamp, const char **msg);
 u32 nvgpu_nvs_domain_count(struct gk20a *g);
 int nvgpu_nvs_del_domain(struct gk20a *g, u64 dom_id);
@@ -96,11 +108,22 @@ static inline int nvgpu_nvs_init(struct gk20a *g)
 {
 	return 0;
 }
+
+static inline void nvgpu_nvs_remove_support(struct gk20a *g)
+{
+}
+
+static inline int nvgpu_nvs_suspend(struct gk20a *g)
+{
+	return 0;
+}
+
 static inline struct nvgpu_nvs_domain *
 nvgpu_nvs_domain_get(struct gk20a *g, const char *name)
 {
 	return NULL;
 }
+
 static inline void nvgpu_nvs_domain_put(struct gk20a *g, struct nvgpu_nvs_domain *dom)
 {
 }

@@ -30,15 +30,9 @@ int nvgpu_nvs_dev_open(struct inode *inode, struct file *filp)
 {
 	struct nvgpu_cdev *cdev;
 	struct gk20a *g;
-	int err;
 
 	cdev = container_of(inode->i_cdev, struct nvgpu_cdev, cdev);
 	g = nvgpu_get_gk20a_from_cdev(cdev);
-
-	err = nvgpu_nvs_open(g);
-	if (err != 0) {
-		return err;
-	}
 
 	filp->private_data = g;
 
