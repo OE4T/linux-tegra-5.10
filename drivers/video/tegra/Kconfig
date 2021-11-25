@@ -222,6 +222,15 @@ config TEGRA_DS90UH948Q_DESER
 	  FPDLink signal to OpenLDI. This config enables deserializer driver for
 	  DS90UH948 chip.
 
+config MAXIM_GMSL_DP_SERIALIZER
+	bool "Maxim GMSL DP Serializer"
+	depends on I2C
+	help
+	 This driver supports the MAXIM DP GMSL Serializer.
+	 The Tegra SOC will send DP output to the Maxim serializer.
+	 The Maxim serializer will take this DP output,
+	 and convert it into GMSL video data.
+
 config TEGRA_EDP2LVDS_PS8625
 	bool "Enable EDP2LVDS PS8625 bridge."
 	default n
