@@ -17,6 +17,7 @@
 
 #include <nvgpu/types.h>
 #include <nvgpu/list.h>
+#include <nvgpu/mig.h>
 
 struct device;
 struct class;

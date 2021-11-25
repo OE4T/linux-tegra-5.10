@@ -46,7 +46,7 @@ int nvs_sched_create(struct nvs_sched *sched,
 
 void nvs_sched_close(struct nvs_sched *sched)
 {
-	nvs_domain_clear(sched);
+	nvs_domain_clear_all(sched);
 	nvs_free(sched, sched->domain_list);
 	nvs_log_destroy(sched);
 

@@ -200,6 +200,9 @@ sched:
              os/linux/sched.c,
              os/linux/sched.h ]
 
+nvsched:
+  sources: [ os/linux/ioctl_nvs.c, os/linux/ioctl_nvs.h ]
+
 sim:
   sources: [ os/linux/sim.c, os/linux/sim_pci.c ]
 

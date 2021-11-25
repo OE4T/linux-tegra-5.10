@@ -954,3 +954,15 @@ endif
 
 nvgpu-y += \
 	os/linux/platform_ga10b_tegra.o
+
+ifeq ($(CONFIG_NVS_PRESENT),y)
+include $(srctree.nvgpu)/nvsched/Makefile.sources
+nvgpu-y += $(patsubst %.c,../../../nvsched/%.o,$(NVS_SOURCES))
+nvgpu-y += \
+	os/linux/ioctl_nvs.o \
+	common/nvs/nvs_sched.o
+ccflags-y += \
+	$(patsubst %,-I$(srctree.nvgpu)/nvsched/%,$(NVS_INCLUDE)) \
+	-I$(srctree.nvgpu)/drivers/gpu/nvgpu/include/external-nvs \
+	-DNVS_USE_IMPL_TYPES
+endif

@@ -153,6 +153,7 @@ int nvgpu_tsg_bind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 	return err;
 }
 
+#ifdef CONFIG_NVS_PRESENT
 int nvgpu_tsg_bind_domain(struct nvgpu_tsg *tsg, const char *domain_name)
 {
 	struct nvgpu_runlist_domain *domain;
@@ -176,6 +177,7 @@ int nvgpu_tsg_bind_domain(struct nvgpu_tsg *tsg, const char *domain_name)
 
 	return 0;
 }
+#endif
 
 static bool nvgpu_tsg_is_multi_channel(struct nvgpu_tsg *tsg)
 {

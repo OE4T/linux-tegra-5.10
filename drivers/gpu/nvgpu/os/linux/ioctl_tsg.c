@@ -176,12 +176,14 @@ out:
 	return err;
 }
 
+#ifdef CONFIG_NVS_PRESENT
 static int nvgpu_tsg_bind_scheduling_domain(struct nvgpu_tsg *tsg,
 		struct nvgpu_tsg_bind_scheduling_domain_args *args)
 {
 
 	return nvgpu_tsg_bind_domain(tsg, args->domain_name);
 }
+#endif
 
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 static int gk20a_tsg_get_event_data_from_id(struct nvgpu_tsg *tsg,
@@ -821,6 +823,7 @@ long nvgpu_ioctl_tsg_dev_ioctl(struct file *filp, unsigned int cmd,
 		break;
 		}
 
+#ifdef CONFIG_NVS_PRESENT
 	case NVGPU_TSG_IOCTL_BIND_SCHEDULING_DOMAIN:
 		{
 		err = gk20a_busy(g);
@@ -834,6 +837,7 @@ long nvgpu_ioctl_tsg_dev_ioctl(struct file *filp, unsigned int cmd,
 		gk20a_idle(g);
 		break;
 		}
+#endif
 
 	case NVGPU_IOCTL_TSG_ENABLE:
 		{

@@ -82,5 +82,9 @@ enum nvgpu_log_type {
 #define gpu_dbg_hwpm		BIT(42) /* GPU HWPM. */
 #define gpu_dbg_verbose		BIT(43) /* More verbose logs. */
 #define gpu_dbg_ce		BIT(44) /* Copy Engine debugging */
+#ifdef CONFIG_NVS_PRESENT
+#define gpu_dbg_nvs		BIT(45) /* NvGPU's NVS logging. */
+#define gpu_dbg_nvs_internal	BIT(46) /* Internal NVS logging. */
+#endif
 
 #endif

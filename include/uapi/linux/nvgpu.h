@@ -20,6 +20,8 @@
 #include "nvgpu-event.h"
 #include "nvgpu-as.h"
 
+#include "nvgpu-nvs.h"
+
 /*
  * /dev/nvhost-tsg-gpu device
  *

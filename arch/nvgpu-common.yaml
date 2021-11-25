@@ -208,6 +208,14 @@ sched:
   owner: Thomas F
   sources: [ include/nvgpu/sched.h ]
 
+nvsched:
+  safe: no
+  owner: Alex W
+  sources: [ common/nvs/nvs_sched.c,
+             include/external-nvs/impl.h,
+             include/external-nvs/types.h,
+             include/nvgpu/nvs.h ]
+
 semaphore:
   safe: no
   owner: Alex W

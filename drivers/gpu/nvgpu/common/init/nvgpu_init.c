@@ -52,6 +52,9 @@
 #include <nvgpu/cic_mon.h>
 #include <nvgpu/cic_rm.h>
 #include <nvgpu/fbp.h>
+#ifdef CONFIG_NVS_PRESENT
+#include <nvgpu/nvs.h>
+#endif
 
 #ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/pmu_pstate.h>
@@ -920,6 +923,9 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 #if defined(CONFIG_NVGPU_GSP_SCHEDULER) || defined(CONFIG_NVGPU_GSP_STRESS_TEST)
 		/* Init gsp ops */
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_gsp_sw_init, NO_FLAG),
+#endif
+#ifdef CONFIG_NVS_PRESENT
+		NVGPU_INIT_TABLE_ENTRY(nvgpu_nvs_init, NO_FLAG),
 #endif
 	};
 	size_t i;

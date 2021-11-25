@@ -854,6 +854,11 @@ struct gk20a {
 
 	/** Flag to check if debugger and profiler support is enabled. */
 	u32 support_gpu_tools;
+
+#ifdef CONFIG_NVS_PRESENT
+	struct nvgpu_nvs_scheduler *scheduler;
+	struct nvgpu_mutex sched_mutex;
+#endif
 };
 
 /**

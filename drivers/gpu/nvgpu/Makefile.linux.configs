@@ -1,6 +1,9 @@
 # Turn off all other configs, if CONFIG_GK20A is not set
 CONFIG_GK20A := m
 
+# Enable the nv_sched build.
+CONFIG_NVS_PRESENT := y
+
 # Enable GK20A PMU features.
 CONFIG_GK20A_PMU := y
 
@@ -251,4 +254,7 @@ ccflags-y += -DCONFIG_NVGPU_GSP_SCHEDULER
 endif
 ifeq ($(CONFIG_NVGPU_GSP_STRESS_TEST),y)
 ccflags-y += -DCONFIG_NVGPU_GSP_STRESS_TEST
+endif
+ifeq ($(CONFIG_NVS_PRESENT),y)
+ccflags-y += -DCONFIG_NVS_PRESENT
 endif

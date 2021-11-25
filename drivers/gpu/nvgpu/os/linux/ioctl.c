@@ -32,6 +32,7 @@
 #include "ioctl_dbg.h"
 #include "ioctl_prof.h"
 #include "power_ops.h"
+#include "ioctl_nvs.h"
 #include "ioctl.h"
 #include "module.h"
 #include "os_linux.h"
@@ -161,6 +162,17 @@ static const struct file_operations gk20a_sched_ops = {
 	.read = gk20a_sched_dev_read,
 };
 
+static const struct file_operations nvgpu_nvs_ops = {
+	.owner          = THIS_MODULE,
+	.release        = nvgpu_nvs_dev_release,
+	.open           = nvgpu_nvs_dev_open,
+#ifdef CONFIG_COMPAT
+	.compat_ioctl   = nvgpu_nvs_dev_ioctl,
+#endif
+	.unlocked_ioctl = nvgpu_nvs_dev_ioctl,
+	.read           = nvgpu_nvs_dev_read,
+};
+
 struct nvgpu_dev_node {
 	/* Device node name */
 	char name[20];
@@ -185,6 +197,7 @@ static const struct nvgpu_dev_node dev_node_list[] = {
 	{"prof-ctx",	&gk20a_prof_ctx_ops,	false,	true	},
 	{"prof-dev",	&gk20a_prof_dev_ops,	false,	true	},
 	{"sched",	&gk20a_sched_ops,	false,	false	},
+	{"nvsched",	&nvgpu_nvs_ops,		false,	false	},
 	{"tsg",		&gk20a_tsg_ops,		false,	false	},
 };
 
