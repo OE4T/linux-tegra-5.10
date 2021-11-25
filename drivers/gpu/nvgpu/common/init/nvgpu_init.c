@@ -52,9 +52,7 @@
 #include <nvgpu/cic_mon.h>
 #include <nvgpu/cic_rm.h>
 #include <nvgpu/fbp.h>
-#ifdef CONFIG_NVS_PRESENT
 #include <nvgpu/nvs.h>
-#endif
 
 #ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/pmu_pstate.h>
@@ -858,6 +856,7 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 
 		NVGPU_INIT_TABLE_ENTRY(g->ops.mm.init_mm_support, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.fifo.fifo_init_support, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(nvgpu_nvs_init, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.therm.elcg_init_idle_filters,
 				       NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_netlist_init_ctx_vars, NO_FLAG),
@@ -923,9 +922,6 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 #if defined(CONFIG_NVGPU_GSP_SCHEDULER) || defined(CONFIG_NVGPU_GSP_STRESS_TEST)
 		/* Init gsp ops */
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_gsp_sw_init, NO_FLAG),
-#endif
-#ifdef CONFIG_NVS_PRESENT
-		NVGPU_INIT_TABLE_ENTRY(nvgpu_nvs_init, NO_FLAG),
 #endif
 	};
 	size_t i;

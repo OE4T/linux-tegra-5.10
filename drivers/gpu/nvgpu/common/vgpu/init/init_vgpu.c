@@ -38,6 +38,7 @@
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/device.h>
 #include <nvgpu/fb.h>
+#include <nvgpu/nvs.h>
 
 #include "init_vgpu.h"
 #include "hal/vgpu/init/init_hal_vgpu.h"
@@ -225,6 +226,12 @@ int vgpu_finalize_poweron_common(struct gk20a *g)
 	err = nvgpu_fifo_init_support(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init gk20a fifo");
+		return err;
+	}
+
+	err = nvgpu_nvs_init(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init gk20a nvs");
 		return err;
 	}
 

@@ -663,6 +663,14 @@ int nvgpu_runlist_update(struct gk20a *g, struct nvgpu_runlist *rl,
 		return -EINVAL;
 	}
 
+	if (tsg->rl_domain == NULL) {
+		/*
+		 * "Success" case because the TSG is not participating in
+		 * scheduling at the moment, so there is nothing to be done.
+		 */
+		return 0;
+	}
+
 	return nvgpu_runlist_do_update(g, rl, tsg->rl_domain, ch, add, wait_for_finish);
 }
 
@@ -1146,10 +1154,33 @@ static void nvgpu_init_active_runlist_mapping(struct gk20a *g)
 	}
 }
 
+static int nvgpu_runlist_alloc_default_domain(struct gk20a *g)
+{
+#ifndef CONFIG_NVS_PRESENT
+	struct nvgpu_fifo *f = &g->fifo;
+	u32 i;
+
+	for (i = 0; i < g->fifo.num_runlists; i++) {
+		struct nvgpu_runlist *runlist = &f->active_runlists[i];
+
+		runlist->domain = nvgpu_runlist_domain_alloc(g, runlist, "(default)");
+		if (runlist->domain == NULL) {
+			nvgpu_err(g, "memory allocation failed");
+			/*
+			 * deletion of prior domains happens in
+			 * nvgpu_runlist_cleanup_sw() via the caller.
+			 */
+			return -ENOMEM;
+		}
+	}
+#endif
+	return 0;
+}
+
 int nvgpu_runlist_setup_sw(struct gk20a *g)
 {
 	struct nvgpu_fifo *f = &g->fifo;
-	u32 num_runlists = 0U, i;
+	u32 num_runlists = 0U;
 	unsigned int runlist_id;
 	int err = 0;
 
@@ -1190,17 +1221,10 @@ int nvgpu_runlist_setup_sw(struct gk20a *g)
 
 	nvgpu_init_active_runlist_mapping(g);
 
-	for (i = 0; i < g->fifo.num_runlists; i++) {
-		struct nvgpu_runlist *runlist = &f->active_runlists[i];
-
-		runlist->domain = nvgpu_runlist_domain_alloc(g, runlist, "(default)");
-		if (runlist->domain == NULL) {
-			nvgpu_err(g, "memory allocation failed");
-			err = -ENOMEM;
-			goto clean_up_runlist;
-		}
+	err = nvgpu_runlist_alloc_default_domain(g);
+	if (err != 0) {
+		goto clean_up_runlist;
 	}
-
 
 	g->ops.runlist.init_enginfo(g, f);
 	return 0;

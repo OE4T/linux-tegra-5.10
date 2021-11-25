@@ -78,14 +78,17 @@ int test_gk20a_runlist_hw_submit(struct unit_module *m,
 	struct nvgpu_fifo *f = &g->fifo;
 	int ret = UNIT_FAIL;
 	u32 runlist_id = nvgpu_engine_get_gr_runlist_id(g);
+	struct nvgpu_runlist *runlist = g->fifo.runlists[runlist_id];
 	u32 count;
+
+	nvgpu_rl_domain_alloc(g, "(default)");
 
 	for (count = 0; count < 2; count++) {
 
 		nvgpu_writel(g, fifo_runlist_r(), 0);
 		nvgpu_writel(g, fifo_runlist_base_r(), 0);
 
-		f->runlists[runlist_id]->domain->mem_hw->count = count;
+		runlist->domain->mem_hw->count = count;
 
 		gk20a_runlist_hw_submit(g, f->runlists[runlist_id]);
 		if (count == 0) {

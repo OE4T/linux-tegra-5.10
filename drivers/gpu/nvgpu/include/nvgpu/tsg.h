@@ -55,6 +55,8 @@ struct nvgpu_gr_ctx;
 struct nvgpu_channel_hw_state;
 struct nvgpu_profiler_object;
 struct nvgpu_runlist;
+struct nvgpu_runlist_domain;
+struct nvgpu_nvs_domain;
 
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 enum nvgpu_event_id_type;
@@ -177,9 +179,14 @@ struct nvgpu_tsg {
 	struct nvgpu_runlist *runlist;
 
 	/**
-	 * Scheduling domain this TSG is bound to. Bound with an ioctl, initially the default domain.
+	 * Runlist domain this TSG is bound to. Bound with an ioctl, initially the default domain.
 	 */
 	struct nvgpu_runlist_domain *rl_domain;
+
+	/*
+	 * A TSG keeps a ref to its scheduling domain so that active domains can't be deleted.
+	 */
+	struct nvgpu_nvs_domain *nvs_domain;
 
 	/** tgid (OS specific) of the process that openend the TSG. */
 

@@ -124,6 +124,7 @@ int test_fifo_suspend(struct unit_module *m, struct gk20a *g, void *args)
 
 	gv11b_init_hal(g);
 	gops = g->ops;
+	nvgpu_device_init(g);
 	g->ops.fifo.bar1_snooping_disable = stub_fifo_bar1_snooping_disable;
 	err = nvgpu_fifo_init_support(g);
 	unit_assert(err == 0, goto done);
@@ -175,6 +176,7 @@ int test_fifo_sw_quiesce(struct unit_module *m, struct gk20a *g, void *args)
 
 	gv11b_init_hal(g);
 	gops = g->ops;
+	nvgpu_device_init(g);
 	err = nvgpu_fifo_init_support(g);
 	unit_assert(err == 0, goto done);
 
@@ -206,15 +208,19 @@ done:
  * NOTE: nvgpu_engine_setup_sw() consists of 2 memory allocations.
  * Selecting branch for nvgpu_runlist_setup_sw() fail case accordingly.
  */
+#define F_FIFO_SETUP_SW_COMMON_ENGINE_FAIL2	BIT(5)
 #define F_FIFO_SETUP_SW_COMMON_RUNLIST_FAIL	BIT(6)
-#define F_FIFO_SETUP_SW_PBDMA_NULL		BIT(7)
-#define F_FIFO_CLEANUP_SW_PBDMA_NULL		BIT(8)
-#define F_FIFO_SETUP_HW_PASS			BIT(9)
-#define F_FIFO_SETUP_HW_FAIL			BIT(10)
-#define F_FIFO_INIT_LAST			BIT(11)
+/*
+ * The fifo setup too contains another allocation.
+ */
+#define F_FIFO_SETUP_SW_COMMON_RUNLIST_FAIL2	BIT(7)
+#define F_FIFO_SETUP_SW_PBDMA_NULL		BIT(8)
+#define F_FIFO_CLEANUP_SW_PBDMA_NULL		BIT(9)
+#define F_FIFO_SETUP_HW_PASS			BIT(10)
+#define F_FIFO_SETUP_HW_FAIL			BIT(11)
+#define F_FIFO_INIT_LAST			BIT(12)
 
 static const char *f_fifo_init[] = {
-	"fifo init support",
 	"fifo init sw ready",
 	"channel setup sw fail",
 	"tsg setup sw fail",
@@ -222,6 +228,7 @@ static const char *f_fifo_init[] = {
 	"engine setup sw fail",
 	"",
 	"runlist setup sw fail",
+	"runlist setup 2 sw fail",
 	"pbdma setup sw NULL",
 	"pbdma cleanup sw NULL",
 	"fifo setup hw pass",
@@ -250,8 +257,7 @@ int test_init_support(struct unit_module *m, struct gk20a *g, void *args)
 			F_FIFO_SETUP_SW_COMMON_TSG_FAIL |
 			F_FIFO_SETUP_SW_COMMON_PBDMA_FAIL |
 			F_FIFO_SETUP_SW_COMMON_ENGINE_FAIL |
-			F_FIFO_SETUP_SW_COMMON_RUNLIST_FAIL |
-			F_FIFO_CLEANUP_SW_PBDMA_NULL;
+			F_FIFO_SETUP_SW_COMMON_RUNLIST_FAIL;
 	u32 fail = F_FIFO_SETUP_HW_FAIL | alloc_fail;
 	u32 prune = F_FIFO_SETUP_SW_READY | F_FIFO_SETUP_SW_PBDMA_NULL |
 			F_FIFO_SETUP_HW_PASS | fail;

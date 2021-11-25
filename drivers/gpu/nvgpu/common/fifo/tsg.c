@@ -33,6 +33,7 @@
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/runlist.h>
+#include <nvgpu/nvs.h>
 #include <nvgpu/static_analysis.h>
 #include <nvgpu/nvgpu_init.h>
 #ifdef CONFIG_NVGPU_PROFILER
@@ -156,7 +157,8 @@ int nvgpu_tsg_bind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 #ifdef CONFIG_NVS_PRESENT
 int nvgpu_tsg_bind_domain(struct nvgpu_tsg *tsg, const char *domain_name)
 {
-	struct nvgpu_runlist_domain *domain;
+	struct nvgpu_runlist_domain *rl_domain;
+	struct nvgpu_nvs_domain *nvs_domain;
 	struct gk20a *g = tsg->g;
 
 	/* Hopping channels from one domain to another is not allowed */
@@ -164,16 +166,28 @@ int nvgpu_tsg_bind_domain(struct nvgpu_tsg *tsg, const char *domain_name)
 		return -EINVAL;
 	}
 
+	nvs_domain = nvgpu_nvs_domain_get(g, domain_name);
+	if (nvs_domain == NULL) {
+		return -ENOENT;
+	}
+
 	/*
 	 * The domain ptr will get updated with the right id once the runlist
 	 * gets specified based on the first channel.
 	 */
-	domain = nvgpu_rl_domain_get(g, 0, domain_name);
-	if (domain == NULL) {
+	rl_domain = nvgpu_rl_domain_get(g, 0, domain_name);
+	if (rl_domain == NULL) {
+		/*
+		 * This shouldn't happen because the nvs domain guarantees RL domains.
+		 *
+		 * TODO: query this via the nvs domain.
+		 */
+		nvgpu_nvs_domain_put(g, nvs_domain);
 		return -ENOENT;
 	}
 
-	tsg->rl_domain = domain;
+	tsg->rl_domain = rl_domain;
+	tsg->nvs_domain = nvs_domain;
 
 	return 0;
 }
@@ -844,6 +858,7 @@ int nvgpu_tsg_open_common(struct gk20a *g, struct nvgpu_tsg *tsg, pid_t pid)
 	 * gets specified based on the first channel.
 	 */
 	tsg->rl_domain = nvgpu_rl_domain_get(g, 0, "(default)");
+	tsg->nvs_domain = nvgpu_nvs_domain_get(g, "(default)");
 #ifdef CONFIG_NVGPU_DEBUGGER
 	tsg->sm_exception_mask_type = NVGPU_SM_EXCEPTION_TYPE_MASK_NONE;
 #endif
@@ -925,6 +940,12 @@ void nvgpu_tsg_release_common(struct gk20a *g, struct nvgpu_tsg *tsg)
 		nvgpu_profiler_unbind_context(tsg->prof);
 	}
 #endif
+
+	if (tsg->nvs_domain != NULL) {
+		nvgpu_nvs_domain_put(g, tsg->nvs_domain);
+		tsg->nvs_domain = NULL;
+		tsg->rl_domain = NULL;
+	}
 
 	if (tsg->vm != NULL) {
 		nvgpu_vm_put(tsg->vm);

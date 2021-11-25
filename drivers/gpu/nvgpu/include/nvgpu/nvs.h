@@ -23,7 +23,9 @@
 #ifndef NVGPU_NVS_H
 #define NVGPU_NVS_H
 
+#ifdef CONFIG_NVS_PRESENT
 #include <nvs/domain.h>
+#endif
 
 #include <nvgpu/atomic.h>
 #include <nvgpu/lock.h>
@@ -52,6 +54,15 @@ struct nvgpu_nvs_domain {
 	 * Convenience pointer for linking back to the parent object.
 	 */
 	struct nvs_domain *parent;
+
+	/*
+	 * Domains are dynamically used by their participant TSGs and the
+	 * runlist HW. A refcount prevents them from getting prematurely freed.
+	 *
+	 * This is not the usual refcount. The primary owner is userspace via the
+	 * ioctl layer and a TSG putting a ref does not result in domain deletion.
+	 */
+	u32 ref;
 };
 
 struct nvgpu_nvs_scheduler {
@@ -59,6 +70,7 @@ struct nvgpu_nvs_scheduler {
 	nvgpu_atomic64_t id_counter;
 };
 
+#ifdef CONFIG_NVS_PRESENT
 int nvgpu_nvs_init(struct gk20a *g);
 int nvgpu_nvs_open(struct gk20a *g);
 void nvgpu_nvs_get_log(struct gk20a *g, s64 *timestamp, const char **msg);
@@ -70,10 +82,28 @@ struct nvgpu_nvs_domain *
 nvgpu_nvs_get_dom_by_id(struct gk20a *g, struct nvs_sched *sched, u64 dom_id);
 void nvgpu_nvs_print_domain(struct gk20a *g, struct nvgpu_nvs_domain *domain);
 
+struct nvgpu_nvs_domain *
+nvgpu_nvs_domain_get(struct gk20a *g, const char *name);
+void nvgpu_nvs_domain_put(struct gk20a *g, struct nvgpu_nvs_domain *dom);
 /*
  * Debug wrapper for NVS code.
  */
 #define nvs_dbg(g, fmt, arg...)			\
 	nvgpu_log(g, gpu_dbg_nvs, fmt, ##arg)
+
+#else
+static inline int nvgpu_nvs_init(struct gk20a *g)
+{
+	return 0;
+}
+static inline struct nvgpu_nvs_domain *
+nvgpu_nvs_domain_get(struct gk20a *g, const char *name)
+{
+	return NULL;
+}
+static inline void nvgpu_nvs_domain_put(struct gk20a *g, struct nvgpu_nvs_domain *dom)
+{
+}
+#endif
 
 #endif

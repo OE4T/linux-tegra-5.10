@@ -1529,6 +1529,13 @@ static int stub_fifo_preempt_channel(struct gk20a *g, struct nvgpu_channel *ch)
 	return -1;
 }
 
+static int stub_runlist_reload(struct gk20a *g, struct nvgpu_runlist *rl,
+			 struct nvgpu_runlist_domain *domain,
+			 bool add, bool wait_for_finish)
+{
+	return 0;
+}
+
 static void stub_channel_work_completion_cancel_sync(struct nvgpu_channel *ch)
 {
 
@@ -1560,6 +1567,7 @@ int test_channel_suspend_resume_serviceable_chs(struct unit_module *m,
 
 	g->ops.fifo.preempt_tsg = stub_fifo_preempt_tsg;
 	g->ops.fifo.preempt_channel = stub_fifo_preempt_channel;
+	g->ops.runlist.reload = stub_runlist_reload;
 	orig_ch_tsgid = ch->tsgid;
 
 	for (branches = 0U; branches < F_CHANNEL_SUSPEND_RESUME_CHS_LAST;

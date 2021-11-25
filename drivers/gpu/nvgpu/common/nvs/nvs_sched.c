@@ -26,19 +26,31 @@
 #include <nvgpu/nvs.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/runlist.h>
 
 static struct nvs_sched_ops nvgpu_nvs_ops = {
 	.preempt = NULL,
 	.recover = NULL,
 };
 
-/**
- * Init call to prepare the scheduler mutex. We won't actually allocate a
- * scheduler until someone opens the scheduler node.
- */
 int nvgpu_nvs_init(struct gk20a *g)
 {
+	struct nvgpu_nvs_domain *domain;
+	int err;
+
 	nvgpu_mutex_init(&g->sched_mutex);
+
+	err = nvgpu_nvs_open(g);
+	if (err != 0) {
+		return err;
+	}
+
+	if (nvgpu_rl_domain_get(g, 0, "(default)") == NULL) {
+		int err = nvgpu_nvs_add_domain(g, "(default)", 1000*1000, 10*1000, &domain);
+		if (err != 0) {
+			return err;
+		}
+	}
 
 	return 0;
 }
@@ -121,6 +133,7 @@ int nvgpu_nvs_add_domain(struct gk20a *g, const char *name, u32 timeslice,
 	}
 
 	nvgpu_dom->id = nvgpu_nvs_new_id(g);
+	nvgpu_dom->ref = 1U;
 
 	nvs_dom = nvs_domain_create(g->scheduler->sched, name,
 				    timeslice, preempt_grace, nvgpu_dom);
@@ -130,6 +143,14 @@ int nvgpu_nvs_add_domain(struct gk20a *g, const char *name, u32 timeslice,
 		err = -ENOMEM;
 		goto unlock;
 	}
+
+	err = nvgpu_rl_domain_alloc(g, name);
+	if (err != 0) {
+		nvs_domain_destroy(g->scheduler->sched, nvs_dom);
+		nvgpu_kfree(g, nvgpu_dom);
+		return err;
+	}
+
 
 	nvgpu_dom->parent = nvs_dom;
 
@@ -155,6 +176,36 @@ nvgpu_nvs_get_dom_by_id(struct gk20a *g, struct nvs_sched *sched, u64 dom_id)
 	return NULL;
 }
 
+struct nvgpu_nvs_domain *
+nvgpu_nvs_domain_get(struct gk20a *g, const char *name)
+{
+	struct nvs_domain *nvs_dom;
+	struct nvgpu_nvs_domain *dom = NULL;
+	struct nvgpu_nvs_scheduler *sched = g->scheduler;
+
+	nvgpu_mutex_acquire(&g->sched_mutex);
+
+	nvs_dom = nvs_domain_by_name(sched->sched, name);
+	if (nvs_dom == NULL) {
+		goto unlock;
+	}
+
+	dom = nvs_dom->priv;
+	dom->ref++;
+
+unlock:
+	nvgpu_mutex_release(&g->sched_mutex);
+	return dom;
+}
+
+void nvgpu_nvs_domain_put(struct gk20a *g, struct nvgpu_nvs_domain *dom)
+{
+	nvgpu_mutex_acquire(&g->sched_mutex);
+	dom->ref--;
+	WARN_ON(dom->ref == 0U);
+	nvgpu_mutex_release(&g->sched_mutex);
+}
+
 int nvgpu_nvs_del_domain(struct gk20a *g, u64 dom_id)
 {
 	struct nvgpu_nvs_domain *nvgpu_dom;
@@ -168,11 +219,31 @@ int nvgpu_nvs_del_domain(struct gk20a *g, u64 dom_id)
 	nvgpu_dom = nvgpu_nvs_get_dom_by_id(g, g->scheduler->sched, dom_id);
 	if (nvgpu_dom == NULL) {
 		nvs_dbg(g, "domain %llu does not exist!", dom_id);
-		err = -EINVAL;
+		err = -ENOENT;
+		goto unlock;
+	}
+
+	if (nvgpu_dom->ref != 1U) {
+		nvs_dbg(g, "domain %llu is still in use! refs: %u",
+				dom_id, nvgpu_dom->ref);
+		err = -EBUSY;
 		goto unlock;
 	}
 
 	nvs_dom = nvgpu_dom->parent;
+
+	err = nvgpu_rl_domain_delete(g, nvs_dom->name);
+	if (err != 0) {
+		nvs_dbg(g, "failed to delete RL domains on %llu!", dom_id);
+		/*
+		 * The RL domains require the existence of at least one domain;
+		 * this path inherits that logic until it's been made more
+		 * flexible.
+		 */
+		goto unlock;
+	}
+
+	nvgpu_dom->ref = 0U;
 
 	nvs_domain_destroy(g->scheduler->sched, nvs_dom);
 	nvgpu_kfree(g, nvgpu_dom);
