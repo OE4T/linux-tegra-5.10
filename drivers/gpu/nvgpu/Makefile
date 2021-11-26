@@ -4,8 +4,11 @@ GCOV_PROFILE := y
 # defined. Given that NVGPU knows where its header files are located
 # relatively, we can use the path information of this Makefile to
 # set srctree.nvgpu if it is not already defined. Please note that
-# 'lastword $(MAKEFILE_LIST)' refers to this Makefile.
-srctree.nvgpu ?= $(abspath $(shell dirname $(lastword $(MAKEFILE_LIST)))/../../..)
+# 'lastword $(MAKEFILE_LIST)' refers to this Makefile when evaluated
+# immediately.
+ifeq ($(origin srctree.nvgpu), undefined)
+srctree.nvgpu := $(abspath $(shell dirname $(lastword $(MAKEFILE_LIST)))/../../..)
+endif
 
 ccflags-y += -I$(srctree.nvgpu)/drivers/gpu/nvgpu/include
 ccflags-y += -I$(srctree.nvgpu)/drivers/gpu/nvgpu
