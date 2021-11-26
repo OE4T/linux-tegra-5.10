@@ -1,7 +1,7 @@
 /*
  * cdi manager.
  *
- * Copyright (c) 2015-2021, NVIDIA Corporation. All Rights Reserved.
+ * Copyright (c) 2015-2022, NVIDIA Corporation. All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -44,6 +44,7 @@
 #include <linux/seq_file.h>
 #include <media/cdi-dev.h>
 #include <media/cdi-mgr.h>
+#include <linux/gpio/consumer.h>
 
 #include <asm/barrier.h>
 
@@ -424,11 +425,20 @@ static irqreturn_t cdi_mgr_isr(int irq, void *data)
 	struct cdi_mgr_priv *cdi_mgr;
 	int ret;
 	unsigned long flags;
+	int i = 0, gpio_mask = 0;
 
 	if (data) {
 		cdi_mgr = (struct cdi_mgr_priv *)data;
-		cdi_mgr->err_irq_recvd = true;
+
+		spin_lock_irqsave(&cdi_mgr->spinlock, flags);
+		for (i = 0; i < cdi_mgr->gpio_count; i++) {
+			if (irq == cdi_mgr->gpio_arr[i].gpio_intr_irq)
+				gpio_mask |= (1 << cdi_mgr->gpio_arr[i].index);
+		}
+		spin_unlock_irqrestore(&cdi_mgr->spinlock, flags);
+		cdi_mgr->err_irq_recvd_status_mask = gpio_mask;
 		wake_up_interruptible(&cdi_mgr->err_queue);
+
 		spin_lock_irqsave(&cdi_mgr->spinlock, flags);
 		if (cdi_mgr->sinfo.si_signo && cdi_mgr->t) {
 			/* send the signal to user space */
@@ -844,24 +854,45 @@ static int cdi_mgr_pwm_config(
 }
 
 static int cdi_mgr_wait_err(
-	struct cdi_mgr_priv *cdi_mgr)
+	struct cdi_mgr_priv *cdi_mgr, void __user *arg)
 {
 	int err = 0, i = 0;
+	uint32_t gpio_irq_monitor_mask = 0;
+	uint32_t gpio_irq_status_mask = 0;
 
 	if (!atomic_xchg(&cdi_mgr->irq_in_use, 1)) {
-		for (i = 0; i < MAX_IRQ_GPIO; i++) {
-			if (cdi_mgr->err_irq[i]) {
-				enable_irq(cdi_mgr->err_irq[i]);
-				cdi_mgr->err_irq_recvd = false;
-			} else
-				break;
+		for (i = 0; i < cdi_mgr->gpio_count; i++) {
+			if ((cdi_mgr->gpio_arr[i].gpio_dir == CAM_DEVBLK_GPIO_INPUT_INTERRUPT) &&
+				cdi_mgr->gpio_arr[i].gpio_intr_irq >= 0)
+				enable_irq(cdi_mgr->gpio_arr[i].gpio_intr_irq);
 		}
+		cdi_mgr->err_irq_recvd_status_mask = 0;
+		cdi_mgr->stop_err_irq_wait = false;
+	}
+
+	if (get_user(gpio_irq_monitor_mask, (uint32_t *)arg)) {
+		dev_err(cdi_mgr->pdev,
+			"%s: failed to get_user\n", __func__);
+		return -EFAULT;
 	}
 
 	do {
 		err = wait_event_interruptible(cdi_mgr->err_queue,
-			cdi_mgr->err_irq_recvd);
-		cdi_mgr->err_irq_recvd = false;
+			 (cdi_mgr->err_irq_recvd_status_mask & gpio_irq_monitor_mask) != 0);
+		if (err < 0) {
+			dev_err(cdi_mgr->pdev, "%s: wait_event_interruptible failed\n", __func__);
+			break;
+		}
+
+		gpio_irq_status_mask = cdi_mgr->err_irq_recvd_status_mask & gpio_irq_monitor_mask;
+
+		if (!cdi_mgr->stop_err_irq_wait &&
+			put_user(gpio_irq_status_mask, (u32 __user *) arg)) {
+			dev_err(cdi_mgr->pdev,
+				"%s: failed to put_user\n", __func__);
+			return -EFAULT;
+		}
+		cdi_mgr->err_irq_recvd_status_mask = 0;
 	} while (cdi_mgr->err_irq_reported == false);
 
 	return err;
@@ -894,11 +925,11 @@ static long cdi_mgr_ioctl(
 		 * and then register PID
 		 */
 		if (!atomic_xchg(&cdi_mgr->irq_in_use, 1)) {
-			for (i = 0; i < MAX_IRQ_GPIO; i++) {
-				if (cdi_mgr->err_irq[i])
-					enable_irq(cdi_mgr->err_irq[i]);
-				else
-					break;
+			for (i = 0; i < cdi_mgr->gpio_count; i++) {
+				if ((cdi_mgr->gpio_arr[i].gpio_dir ==
+					CAM_DEVBLK_GPIO_INPUT_INTERRUPT) &&
+					cdi_mgr->gpio_arr[i].gpio_intr_irq >= 0)
+					enable_irq(cdi_mgr->gpio_arr[i].gpio_intr_irq);
 			}
 		}
 
@@ -936,10 +967,11 @@ static long cdi_mgr_ioctl(
 		err = cdi_mgr_pwm_config(cdi_mgr, (const void __user *)arg);
 		break;
 	case CDI_MGR_IOCTL_WAIT_ERR:
-		err = cdi_mgr_wait_err(cdi_mgr);
+		err = cdi_mgr_wait_err(cdi_mgr, (void __user *)arg);
 		break;
 	case CDI_MGR_IOCTL_ABORT_WAIT_ERR:
-		cdi_mgr->err_irq_recvd = true;
+		cdi_mgr->err_irq_recvd_status_mask = CDI_MGR_STOP_GPIO_INTR_EVENT_WAIT;
+		cdi_mgr->stop_err_irq_wait = true;
 		wake_up_interruptible(&cdi_mgr->err_queue);
 		break;
 	case CDI_MGR_IOCTL_SET_CAM_PWR_ON:
@@ -1058,24 +1090,16 @@ static int cdi_mgr_release(struct inode *inode, struct file *file)
 			pwm_disable(cdi_mgr->pwm);
 
 	cdi_mgr_mcdi_ctrl(cdi_mgr, false);
-		if (!atomic_xchg(&cdi_mgr->irq_in_use, 1)) {
-			for (i = 0; i < MAX_IRQ_GPIO; i++) {
-				if (cdi_mgr->err_irq[i]) {
-					enable_irq(cdi_mgr->err_irq[i]);
-					cdi_mgr->err_irq_recvd = false;
-				} else
-					break;
-			}
-		}
+
 	/* disable irq if irq is in use, when device is closed */
 	if (atomic_xchg(&cdi_mgr->irq_in_use, 0)) {
-		for (i = 0; i < MAX_IRQ_GPIO; i++) {
-			if (cdi_mgr->err_irq[i])
-				disable_irq(cdi_mgr->err_irq[i]);
-			else
-				break;
+		for (i = 0; i < cdi_mgr->gpio_count; i++) {
+			if ((cdi_mgr->gpio_arr[i].gpio_dir == CAM_DEVBLK_GPIO_INPUT_INTERRUPT) &&
+				cdi_mgr->gpio_arr[i].gpio_intr_irq >= 0)
+				disable_irq(cdi_mgr->gpio_arr[i].gpio_intr_irq);
 		}
-		cdi_mgr->err_irq_recvd = true;
+		cdi_mgr->err_irq_recvd_status_mask = CDI_MGR_STOP_GPIO_INTR_EVENT_WAIT;
+		cdi_mgr->stop_err_irq_wait = true;
 		wake_up_interruptible(&cdi_mgr->err_queue);
 	}
 
@@ -1135,6 +1159,11 @@ static void cdi_mgr_del(struct cdi_mgr_priv *cdi_mgr)
 	if (cdi_mgr->tca9539.enable)
 		i2c_put_adapter(cdi_mgr->tca9539.adap);
 	i2c_put_adapter(cdi_mgr->adap);
+
+	for (i = 0; i < MAX_CDI_GPIOS; i++) {
+		if (cdi_mgr->gpio_arr[i].desc)
+			devm_gpiod_put(cdi_mgr->dev, cdi_mgr->gpio_arr[i].desc);
+	}
 }
 
 static void cdi_mgr_dev_ins(struct work_struct *work)
@@ -1377,6 +1406,135 @@ static const struct dev_pm_ops cdi_mgr_pm_ops = {
 	.runtime_resume = cdi_mgr_resume,
 };
 
+static int cdi_mgr_setup_gpio_interrupt(struct device *dev, struct cdi_mgr_priv *cdi_mgr,
+					uint32_t idx, uint32_t gpio_idx, uint32_t intr_edge)
+{
+	int ret = 0;
+	int gpio_irq = 0;
+
+	ret = gpiod_direction_input(cdi_mgr->gpio_arr[idx].desc);
+	if (ret) {
+		dev_err(dev, "%s Failed to gpio direction : input 0\n",
+			__func__);
+		return ret;
+	}
+
+	gpio_irq = gpiod_to_irq(cdi_mgr->gpio_arr[idx].desc);
+	if (gpio_irq < 0) {
+		dev_err(dev, "gpiod_to_irq() failed: %d\n", gpio_irq);
+		return gpio_irq;
+	}
+
+	cdi_mgr->gpio_arr[idx].gpio_intr_irq = gpio_irq;
+	ret = devm_request_irq(dev,
+			cdi_mgr->gpio_arr[idx].gpio_intr_irq,
+			cdi_mgr_isr, intr_edge, dev_name(dev), cdi_mgr);
+	if (ret) {
+		dev_err(dev, "devm_request_irq failed with err %d\n", ret);
+		return ret;
+	}
+	disable_irq(cdi_mgr->gpio_arr[idx].gpio_intr_irq);
+	atomic_set(&cdi_mgr->irq_in_use, 0);
+
+	cdi_mgr->gpio_arr[idx].gpio_dir = CAM_DEVBLK_GPIO_INPUT_INTERRUPT;
+	cdi_mgr->gpio_arr[idx].index = gpio_idx;
+
+	return 0;
+}
+
+static int cdi_mgr_configure_gpios(struct device *dev, struct cdi_mgr_priv *cdi_mgr)
+{
+	struct device_node *node = NULL;
+	int gpio_count = 0;
+	uint32_t i = 0, j = 0;
+	int ret = 0;
+
+	node = of_get_child_by_name(dev->of_node, "tegra");
+
+	if (node != NULL) {
+		node = of_get_child_by_name(node, "gpios");
+
+		if (node != NULL) {
+			struct device_node *child = NULL;
+
+			gpio_count = of_get_child_count(node);
+			if (!gpio_count || gpio_count > MAX_CDI_GPIOS) {
+				dev_err(dev, "%s Invalid number of gpios : %d\n",
+					__func__, gpio_count);
+				return -EINVAL;
+			}
+			dev_dbg(dev, "%s gpio node count : %d\n", __func__, gpio_count);
+
+			for_each_child_of_node(node, child) {
+				uint32_t gpio_index = 0;
+
+				if (of_property_read_u32(child, "index", &gpio_index)) {
+					dev_err(dev, "%s \"index\" dt property not found\n",
+						__func__);
+					return -ENOENT;
+				}
+
+				if (gpio_index >= MAX_CDI_GPIOS) {
+					dev_err(dev, "%s Invalid gpios index: %d,"
+						" valid value is below %d\n",
+						__func__, gpio_index, MAX_CDI_GPIOS);
+					return -EINVAL;
+				}
+
+				for (j = 0; j < cdi_mgr->gpio_count; j++) {
+					if (cdi_mgr->gpio_arr[j].index == gpio_index) {
+						dev_err(dev, "%s GPIO already in use\n", __func__);
+						return -EPERM;
+					}
+				}
+
+				cdi_mgr->gpio_arr[i].desc = devm_fwnode_get_gpiod_from_child(dev,
+					"devblk", &child->fwnode, GPIOD_ASIS, NULL);
+				if (IS_ERR(cdi_mgr->gpio_arr[i].desc)) {
+					ret = PTR_ERR(cdi_mgr->gpio_arr[i].desc);
+					if (ret < 0)
+						dev_err(dev, "%s Failed to allocate gpio desc\n",
+							 __func__);
+					return ret;
+				}
+
+				if (of_property_read_bool(child, "intr-edge-falling")) {
+					ret = cdi_mgr_setup_gpio_interrupt(dev, cdi_mgr, i,
+							gpio_index, IRQF_TRIGGER_FALLING);
+					if (ret < 0) {
+						dev_err(dev, "%s():%d Failed to setup input"
+							"interrupt gpio\n",
+							__func__, __LINE__);
+						return ret;
+					}
+				} else if (of_property_read_bool(child, "intr-edge-rising")) {
+					ret = cdi_mgr_setup_gpio_interrupt(dev, cdi_mgr, i,
+							gpio_index, IRQF_TRIGGER_RISING);
+					if (ret < 0) {
+						dev_err(dev, "%s():%d Failed to setup input"
+							" interrupt gpio\n",
+							__func__, __LINE__);
+						return ret;
+					}
+				} else {
+					dev_err(dev, "%s(): Invalid DT property\n", __func__);
+					return -EINVAL;
+				}
+				i++;
+				cdi_mgr->gpio_count++;
+			}
+		} else {
+			dev_err(dev, "%s \"gpios\" dt node not found\n", __func__);
+			return -EINVAL;
+		}
+	} else {
+		dev_err(dev, "%s \"tegra\" dt node not found\n", __func__);
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
 static int cdi_mgr_probe(struct platform_device *pdev)
 {
 	int err = 0;
@@ -1401,7 +1559,7 @@ static int cdi_mgr_probe(struct platform_device *pdev)
 	INIT_LIST_HEAD(&cdi_mgr->dev_list);
 	mutex_init(&cdi_mgr->mutex);
 	init_waitqueue_head(&cdi_mgr->err_queue);
-	cdi_mgr->err_irq_recvd = false;
+	cdi_mgr->err_irq_recvd_status_mask = 0;
 	cdi_mgr->err_irq_reported = false;
 	cdi_mgr->pwm = NULL;
 
@@ -1467,30 +1625,10 @@ static int cdi_mgr_probe(struct platform_device *pdev)
 		}
 	}
 
-	memset(&cdi_mgr->err_irq, 0, sizeof(int) * MAX_IRQ_GPIO);
-	for (i = 0; i < MAX_IRQ_GPIO; i++) {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
-		cdi_mgr->err_irq[i] = platform_get_irq(pdev, i);
-#else
-		cdi_mgr->err_irq[i] = platform_get_irq_optional(pdev, i);
-#endif
-		if (cdi_mgr->err_irq[i] > 0) {
-			err = devm_request_irq(&pdev->dev,
-					cdi_mgr->err_irq[i],
-					cdi_mgr_isr, 0, pdev->name, cdi_mgr);
-			if (err) {
-				dev_err(&pdev->dev,
-					"request_irq failed with err %d\n",
-					err);
-				cdi_mgr->err_irq[i] = 0;
-				goto err_probe;
-			}
-			disable_irq(cdi_mgr->err_irq[i]);
-			atomic_set(&cdi_mgr->irq_in_use, 0);
-		} else
-			break;
+	if (cdi_mgr_configure_gpios(&pdev->dev, cdi_mgr) < 0) {
+		dev_err(&pdev->dev, "%s(): GPIO setup failed\n", __func__);
+		goto err_probe;
 	}
-
 	cdi_mgr->pdev = &pdev->dev;
 	dev_set_drvdata(&pdev->dev, cdi_mgr);
 
