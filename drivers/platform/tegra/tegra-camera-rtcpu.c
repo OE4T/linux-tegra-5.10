@@ -1181,6 +1181,8 @@ static int tegra_cam_rtcpu_probe(struct platform_device *pdev)
 	rtcpu->name = name;
 	platform_set_drvdata(pdev, rtcpu);
 
+	(void) dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
+
 	/* Enable runtime power management */
 	pm_runtime_enable(dev);
 
