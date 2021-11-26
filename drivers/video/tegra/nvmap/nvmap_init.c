@@ -916,6 +916,6 @@ module_exit(nvmap_exit_driver);
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 16, 0)
 MODULE_IMPORT_NS(DMA_BUF);
 #endif
-MODULE_DESCRIPTION("NVMAP");
+MODULE_DESCRIPTION("NvMap: Nvidia Tegra Memory Management Driver");
 MODULE_AUTHOR("Puneet Saxena <puneets@nvidia.com>");
 MODULE_LICENSE("GPL v2");
