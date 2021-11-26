@@ -258,23 +258,23 @@ static int nvgpu_falcons_sw_init(struct gk20a *g)
 		goto done_sec2;
 	}
 
+#endif
 	err = g->ops.falcon.falcon_sw_init(g, FALCON_ID_GSPLITE);
 	if (err != 0) {
 		nvgpu_err(g, "failed to sw init FALCON_ID_GSPLITE");
 		goto done_nvdec;
 	}
-#endif
 
 	return 0;
 
-#ifdef CONFIG_NVGPU_DGPU
 done_nvdec:
+#ifdef CONFIG_NVGPU_DGPU
 	g->ops.falcon.falcon_sw_free(g, FALCON_ID_NVDEC);
 done_sec2:
 	g->ops.falcon.falcon_sw_free(g, FALCON_ID_SEC2);
 done_fecs:
-	g->ops.falcon.falcon_sw_free(g, FALCON_ID_FECS);
 #endif
+	g->ops.falcon.falcon_sw_free(g, FALCON_ID_FECS);
 done_pmu:
 	g->ops.falcon.falcon_sw_free(g, FALCON_ID_PMU);
 
