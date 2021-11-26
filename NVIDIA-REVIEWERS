@@ -160,6 +160,13 @@ B:	Tegra-DLA
 S:	Supported
 F:	drivers/video/tegra/host/nvdla/
 
+EPL
+M:	Prashant Shaw <pshaw@nvidia.com>
+B:	Embedded Safety Services
+S:	Supported
+F:	drivers/platform/tegra/tegra-epl.c
+F:	include/linux/tegra-epl.h
+
 FSICOM
 M:	Prashant Shaw <pshaw@nvidia.com>
 B:	Embedded Safety Services

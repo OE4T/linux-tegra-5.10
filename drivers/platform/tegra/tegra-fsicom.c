@@ -128,7 +128,8 @@ static void fsicom_send_sgnal(int32_t data)
 
 static void tegra_hsp_rx_notify(struct mbox_client *cl, void *msg)
 {
-	fsicom_send_sgnal((u32) (unsigned long)msg);
+
+	fsicom_send_sgnal(*((uint32_t *)msg));
 }
 
 static void tegra_hsp_tx_empty_notify(struct mbox_client *cl,
@@ -187,6 +188,7 @@ static ssize_t device_file_ioctl(
 	dma_addr_t phys_addr;
 	struct rw_data *user_input;
 	int ret;
+	uint32_t pdata[4] = {0};
 
 	user_input = (struct rw_data *)arg;
 	if (copy_from_user(&input, (struct rw_data *)arg,
@@ -227,8 +229,9 @@ static ssize_t device_file_ioctl(
 	break;
 
 	case TEGRA_HSP_WRITE:
+		 pdata[0] = input.handle;
 		ret = mbox_send_message(fsi_hsp_v->tx.chan,
-			(void *) (unsigned long) input.handle);
+			(void *)pdata);
 	break;
 
 	case TEGRA_SIGNAL_REG:

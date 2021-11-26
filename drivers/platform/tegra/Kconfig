@@ -70,6 +70,11 @@ config TEGRA_FSICOM
 	depends on ARCH_TEGRA_23x_SOC && MAILBOX
 	default n
 
+config TEGRA_EPL
+	bool "Enable Tegra EPL client driver"
+	depends on ARCH_TEGRA_23x_SOC && MAILBOX
+	default n
+
 config TEGRA_DCE
 	bool "Tegra DCE driver"
 	depends on ARCH_TEGRA_23x_SOC
