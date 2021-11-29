@@ -92,7 +92,7 @@
 	};
 
 	bpmp-en@D600000 {
-		status = "okay";
+		status = "disabled";
 	};
 
 	dce-en@BE00000 {
