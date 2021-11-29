@@ -204,8 +204,6 @@ int test_gr_global_ctx_local_ctx_error_injection(struct unit_module *m,
 	struct nvgpu_mem mem;
 	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image;
 	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image_bk;
-	struct nvgpu_posix_fault_inj *kmem_fi =
-		nvgpu_kmem_get_fault_injection();
 
 	/* Allocate dummy memory */
 	err = nvgpu_dma_alloc(g, DUMMY_SIZE, &mem);
@@ -213,29 +211,13 @@ int test_gr_global_ctx_local_ctx_error_injection(struct unit_module *m,
 		unit_return_fail(m, "failed to allocate dummy memory");
 	}
 
-	/* Fail allocation of nvgpu_gr_global_ctx_local_golden_image struct */
-	nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
-	local_golden_image = nvgpu_gr_global_ctx_init_local_golden_image(g,
-				&mem, DUMMY_SIZE);
-	if (local_golden_image != NULL) {
-		unit_return_fail(m, "unexpected success");
-	}
-
-	/* Fail allocation of local_golden_image->context */
-	nvgpu_posix_enable_fault_injection(kmem_fi, true, 1);
-	local_golden_image = nvgpu_gr_global_ctx_init_local_golden_image(g,
-				&mem, DUMMY_SIZE);
-	if (local_golden_image != NULL) {
-		unit_return_fail(m, "unexpected success");
-	}
-
 	/* Successful allocation of local golden context */
-	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
-	local_golden_image = nvgpu_gr_global_ctx_init_local_golden_image(g,
-				&mem, DUMMY_SIZE);
-	if (local_golden_image == NULL) {
+	err = nvgpu_gr_global_ctx_alloc_local_golden_image(g, &local_golden_image, DUMMY_SIZE);
+	if (err != 0) {
 		unit_return_fail(m, "failed to initialize local golden image");
 	}
+
+	nvgpu_gr_global_ctx_init_local_golden_image(g, local_golden_image, &mem, DUMMY_SIZE);
 
 	/* Trigger flush error during context load */
 	g->ops.mm.cache.l2_flush = dummy_l2_flush;
@@ -243,11 +225,13 @@ int test_gr_global_ctx_local_ctx_error_injection(struct unit_module *m,
 		local_golden_image, &mem);
 
 	/* Allocate dummy local golden context image */
-	local_golden_image_bk = nvgpu_gr_global_ctx_init_local_golden_image(g,
-					&mem, DUMMY_SIZE);
-	if (local_golden_image_bk == NULL) {
+	err = nvgpu_gr_global_ctx_alloc_local_golden_image(g, &local_golden_image_bk, DUMMY_SIZE);
+	if (err != 0) {
 		unit_return_fail(m, "failed to initialize local golden image");
 	}
+
+	nvgpu_gr_global_ctx_init_local_golden_image(g, local_golden_image_bk, &mem, DUMMY_SIZE);
+
 #ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
 	bool valid;
 

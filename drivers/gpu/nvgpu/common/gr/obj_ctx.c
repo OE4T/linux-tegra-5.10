@@ -629,14 +629,11 @@ static int nvgpu_gr_obj_ctx_save_golden_ctx(struct gk20a *g,
 	struct nvgpu_mem *gr_mem;
 	u64 size;
 	u32 data;
-#ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
-	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image_temp =
-									NULL;
-#endif
 
 	nvgpu_log(g, gpu_dbg_gr, " ");
 
 	gr_mem = nvgpu_gr_ctx_get_ctx_mem(gr_ctx);
+	size = nvgpu_gr_obj_ctx_get_golden_image_size(golden_image);
 
 #ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
 	/*
@@ -644,15 +641,8 @@ static int nvgpu_gr_obj_ctx_save_golden_ctx(struct gk20a *g,
 	 * before second golden context save. This temporary copy is
 	 * saved in local_golden_image_temp.
 	 */
-
-	size = nvgpu_gr_obj_ctx_get_golden_image_size(golden_image);
-
-	local_golden_image_temp =
-		nvgpu_gr_global_ctx_init_local_golden_image(g, gr_mem, size);
-	if (local_golden_image_temp == NULL) {
-		err = -ENOMEM;
-		goto clean_up;
-	}
+	nvgpu_gr_global_ctx_init_local_golden_image(g,
+			golden_image->local_golden_image_copy, gr_mem, size);
 #endif
 
 	data = g->ops.gr.falcon.get_fecs_current_ctx_data(g, inst_block);
@@ -662,23 +652,13 @@ static int nvgpu_gr_obj_ctx_save_golden_ctx(struct gk20a *g,
 		goto clean_up;
 	}
 
-	size = nvgpu_gr_obj_ctx_get_golden_image_size(golden_image);
-
-	golden_image->local_golden_image =
-		nvgpu_gr_global_ctx_init_local_golden_image(g, gr_mem, size);
-	if (golden_image->local_golden_image == NULL) {
-		err = -ENOMEM;
-		goto clean_up;
-	}
+	nvgpu_gr_global_ctx_init_local_golden_image(g,
+			golden_image->local_golden_image, gr_mem, size);
 
 #ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
 	/* Before second golden context save restore to before known state */
 	nvgpu_gr_global_ctx_load_local_golden_image(g,
-					local_golden_image_temp, gr_mem);
-	/* free local copy now */
-	nvgpu_gr_global_ctx_deinit_local_golden_image(g,
-						local_golden_image_temp);
-	local_golden_image_temp = NULL;
+			golden_image->local_golden_image_copy, gr_mem);
 
 	/* Initiate second golden context save */
 	data = g->ops.gr.falcon.get_fecs_current_ctx_data(g, inst_block);
@@ -689,32 +669,26 @@ static int nvgpu_gr_obj_ctx_save_golden_ctx(struct gk20a *g,
 	}
 
 	/* Copy the data to local buffer */
-	local_golden_image_temp =
-		nvgpu_gr_global_ctx_init_local_golden_image(g, gr_mem, size);
-	if (local_golden_image_temp == NULL) {
-		err = -ENOMEM;
-		goto clean_up;
-	}
+	nvgpu_gr_global_ctx_init_local_golden_image(g,
+			golden_image->local_golden_image_copy, gr_mem, size);
 
 	/* Compare two golden context images */
 	if (!nvgpu_gr_global_ctx_compare_golden_images(g,
 		nvgpu_mem_is_sysmem(gr_mem),
 		golden_image->local_golden_image,
-		local_golden_image_temp,
+		golden_image->local_golden_image_copy,
 		size)) {
 		nvgpu_err(g, "golden context mismatch");
 		err = -ENOMEM;
 	}
+
+	/* free temporary copy now */
+	nvgpu_gr_global_ctx_deinit_local_golden_image(g,
+			golden_image->local_golden_image_copy);
+	golden_image->local_golden_image_copy = NULL;
 #endif
 
 clean_up:
-#ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
-	if (local_golden_image_temp != NULL) {
-		nvgpu_gr_global_ctx_deinit_local_golden_image(g,
-						local_golden_image_temp);
-	}
-#endif
-
 	if (err == 0) {
 		nvgpu_log(g, gpu_dbg_gr, "golden image saved with size = %llu", size);
 	}
@@ -961,6 +935,7 @@ int nvgpu_gr_obj_ctx_init(struct gk20a *g,
 	struct nvgpu_gr_obj_ctx_golden_image **gr_golden_image, u32 size)
 {
 	struct nvgpu_gr_obj_ctx_golden_image *golden_image;
+	int err;
 
 	nvgpu_log(g, gpu_dbg_gr, "size = %u", size);
 
@@ -972,6 +947,24 @@ int nvgpu_gr_obj_ctx_init(struct gk20a *g,
 	nvgpu_gr_obj_ctx_set_golden_image_size(golden_image, size);
 
 	nvgpu_mutex_init(&golden_image->ctx_mutex);
+
+	err = nvgpu_gr_global_ctx_alloc_local_golden_image(g,
+			&golden_image->local_golden_image, size);
+	if (err != 0) {
+		nvgpu_kfree(g, golden_image);
+		return err;
+	}
+
+#ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
+	err = nvgpu_gr_global_ctx_alloc_local_golden_image(g,
+			&golden_image->local_golden_image_copy, size);
+	if (err != 0) {
+		nvgpu_gr_global_ctx_deinit_local_golden_image(g,
+			golden_image->local_golden_image);
+		nvgpu_kfree(g, golden_image);
+		return err;
+	}
+#endif
 
 	*gr_golden_image = golden_image;
 

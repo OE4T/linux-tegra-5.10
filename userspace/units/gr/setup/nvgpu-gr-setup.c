@@ -720,6 +720,17 @@ int test_gr_setup_alloc_obj_ctx(struct unit_module *m,
 	/* Set a default size for golden image */
 	g->gr->golden_image->size = 0x800;
 
+	err = nvgpu_gr_global_ctx_alloc_local_golden_image(g,
+			&g->gr->golden_image->local_golden_image, 0x800);
+	if (err != 0) {
+		unit_return_fail(m, "local golden image alloc failed\n");
+	}
+	err = nvgpu_gr_global_ctx_alloc_local_golden_image(g,
+			&g->gr->golden_image->local_golden_image_copy, 0x800);
+	if (err != 0) {
+		unit_return_fail(m, "local golden image copy alloc failed\n");
+	}
+
 	/* Test with channel and tsg */
 	err = gr_test_setup_allocate_ch_tsg(m, g);
 	if (err != 0) {

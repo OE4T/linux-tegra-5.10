@@ -363,36 +363,35 @@ bool nvgpu_gr_global_ctx_buffer_ready(
 	return false;
 }
 
-struct nvgpu_gr_global_ctx_local_golden_image *
-nvgpu_gr_global_ctx_init_local_golden_image(struct gk20a *g,
-	struct nvgpu_mem *source_mem, size_t size)
+int nvgpu_gr_global_ctx_alloc_local_golden_image(struct gk20a *g,
+		struct nvgpu_gr_global_ctx_local_golden_image **img,
+		size_t size)
 {
 	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image;
 
-#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
-	if (nvgpu_posix_fault_injection_handle_call(
-			nvgpu_local_golden_image_get_fault_injection())) {
-		return NULL;
-	}
-#endif
-
 	local_golden_image = nvgpu_kzalloc(g, sizeof(*local_golden_image));
 	if (local_golden_image == NULL) {
-		return NULL;
+		return -ENOMEM;
 	}
 
 	local_golden_image->context = nvgpu_vzalloc(g, size);
 	if (local_golden_image->context == NULL) {
 		nvgpu_kfree(g, local_golden_image);
-		return NULL;
+		return -ENOMEM;
 	}
 
 	local_golden_image->size = size;
 
-	nvgpu_mem_rd_n(g, source_mem, 0, local_golden_image->context,
-		nvgpu_safe_cast_u64_to_u32(size));
+	*img = local_golden_image;
+	return 0;
+}
 
-	return local_golden_image;
+void nvgpu_gr_global_ctx_init_local_golden_image(struct gk20a *g,
+		struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image,
+		struct nvgpu_mem *source_mem, size_t size)
+{
+	nvgpu_mem_rd_n(g, source_mem, 0, local_golden_image->context,
+		nvgpu_safe_cast_u64_to_u32(local_golden_image->size));
 }
 
 #ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION

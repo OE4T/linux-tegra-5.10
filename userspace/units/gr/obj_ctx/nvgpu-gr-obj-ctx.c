@@ -314,42 +314,6 @@ int test_gr_obj_ctx_error_injection(struct unit_module *m,
 		unit_return_fail(m, "unexpected success");
 	}
 
-	/*
-	 * Fail first local golden image allocation in
-	 * nvgpu_gr_global_ctx_init_local_golden_image()
-	 */
-	nvgpu_posix_enable_fault_injection(local_golden_image_fi, true, 0);
-	err = nvgpu_gr_obj_ctx_alloc(g, golden_image, global_desc, desc,
-			config, gr_ctx, subctx, vm, &inst_block,
-			VOLTA_COMPUTE_A, 0, false, false);
-	if (err == 0) {
-		unit_return_fail(m, "unexpected success");
-	}
-
-	/*
-	 * Fail second local golden image allocation in
-	 * nvgpu_gr_global_ctx_init_local_golden_image()
-	 */
-	nvgpu_posix_enable_fault_injection(local_golden_image_fi, true, 1);
-	err = nvgpu_gr_obj_ctx_alloc(g, golden_image, global_desc, desc,
-			config, gr_ctx, subctx, vm, &inst_block,
-			VOLTA_COMPUTE_A, 0, false, false);
-	if (err == 0) {
-		unit_return_fail(m, "unexpected success");
-	}
-
-	/*
-	 * Fail third local golden image allocation in
-	 * nvgpu_gr_global_ctx_init_local_golden_image()
-	 */
-	nvgpu_posix_enable_fault_injection(local_golden_image_fi, true, 2);
-	err = nvgpu_gr_obj_ctx_alloc(g, golden_image, global_desc, desc,
-			config, gr_ctx, subctx, vm, &inst_block,
-			VOLTA_COMPUTE_A, 0, false, false);
-	if (err == 0) {
-		unit_return_fail(m, "unexpected success");
-	}
-
 	/* Disable error injection */
 	nvgpu_posix_enable_fault_injection(local_golden_image_fi, false, 0);
 
@@ -434,7 +398,7 @@ int test_gr_obj_ctx_error_injection(struct unit_module *m,
 
 struct unit_module_test nvgpu_gr_obj_ctx_tests[] = {
 	UNIT_TEST(gr_obj_ctx_setup, test_gr_init_setup_ready, NULL, 0),
-	UNIT_TEST(gr_obj_ctx_alloc_errors, test_gr_obj_ctx_error_injection, NULL, 0),
+	UNIT_TEST(gr_obj_ctx_alloc_errors, test_gr_obj_ctx_error_injection, NULL, 2),
 	UNIT_TEST(gr_obj_ctx_cleanup, test_gr_init_setup_cleanup, NULL, 0),
 };
 

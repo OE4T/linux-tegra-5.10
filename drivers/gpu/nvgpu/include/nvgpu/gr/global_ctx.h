@@ -240,14 +240,29 @@ bool nvgpu_gr_global_ctx_buffer_ready(
 	u32 index);
 
 /**
- * @brief Initialize local golden context image.
+ * @brief Allocate memory for local golden context image.
  *
- * @param g [in]		Pointer to GPU driver struct.
- * @param source_mem [in]	Pointer to source memory.
- * @param size [in]		Size of local golden context image.
+ * @param g [in]			Pointer to GPU driver struct.
+ * @param local_golden_image [in]	Pointer to local golden context image struct.
+ * @param size [in]			Size of local golden context image.
  *
  * This function allocates memory to store local golden context image
  * and also for #nvgpu_gr_global_ctx_local_golden_image structure.
+ *
+ * @return 0 in case of success, < 0 in case of failure.
+ * @retval -ENOMEM if local golden image memory allocation fails.
+ */
+int nvgpu_gr_global_ctx_alloc_local_golden_image(struct gk20a *g,
+		struct nvgpu_gr_global_ctx_local_golden_image **img,
+		size_t size);
+
+/**
+ * @brief Initialize local golden context image.
+ *
+ * @param g [in]			Pointer to GPU driver struct.
+ * @param local_golden_image [in]	Pointer to local golden image to be initialized.
+ * @param source_mem [in]		Pointer to source memory.
+ * @param size [in]			Size of local golden context image.
  *
  * This function will then initialize local golden context image by
  * copying contents of #source_mem into newly created image.
@@ -256,11 +271,9 @@ bool nvgpu_gr_global_ctx_buffer_ready(
  * ever graphics context image for any channel. Subsequent graphics
  * context allocations will re-use this local golden image to
  * initialize. See #nvgpu_gr_global_ctx_load_local_golden_image.
- *
- * @return Pointer to local golden context image struct.
  */
-struct nvgpu_gr_global_ctx_local_golden_image *
-nvgpu_gr_global_ctx_init_local_golden_image(struct gk20a *g,
+void nvgpu_gr_global_ctx_init_local_golden_image(struct gk20a *g,
+	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image,
 	struct nvgpu_mem *source_mem, size_t size);
 
 /**

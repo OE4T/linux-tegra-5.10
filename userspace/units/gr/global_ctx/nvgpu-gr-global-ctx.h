@@ -81,7 +81,8 @@ int test_gr_global_ctx_alloc_error_injection(struct unit_module *m,
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: nvgpu_gr_global_ctx_init_local_golden_image,
+ * Targets: nvgpu_gr_global_ctx_alloc_local_golden_image,
+ *          nvgpu_gr_global_ctx_init_local_golden_image,
  *          nvgpu_gr_global_ctx_load_local_golden_image,
  *          nvgpu_gr_global_ctx_compare_golden_images,
  *          nvgpu_gr_global_ctx_deinit_local_golden_image

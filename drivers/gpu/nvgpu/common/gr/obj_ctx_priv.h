@@ -53,6 +53,14 @@ struct nvgpu_gr_obj_ctx_golden_image {
 	 * Pointer to local Golden context image struct.
 	 */
 	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image;
+
+#ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
+	/**
+	 * Pointer to local Golden context image struct used for Golden
+	 * context verification.
+	 */
+	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image_copy;
+#endif
 };
 
 #endif /* NVGPU_GR_OBJ_CTX_PRIV_H */

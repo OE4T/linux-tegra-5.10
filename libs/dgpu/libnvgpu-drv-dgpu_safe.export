@@ -470,6 +470,7 @@ nvgpu_gr_falcon_remove_support
 nvgpu_gr_free
 nvgpu_gr_fs_state_init
 nvgpu_gr_get_config_ptr
+nvgpu_gr_global_ctx_alloc_local_golden_image
 nvgpu_gr_global_ctx_buffer_alloc
 nvgpu_gr_global_ctx_buffer_free
 nvgpu_gr_global_ctx_buffer_get_mem
