@@ -29,6 +29,7 @@
 #include <nvgpu/errata.h>
 
 #include "hal/gr/gr/gr_gk20a.h"
+#include "ltc_gv11b.h"
 #include "ltc_ga10b.h"
 
 #include <nvgpu/hw/ga10b/hw_ltc_ga10b.h>
@@ -233,4 +234,26 @@ u64 ga10b_determine_L2_size_bytes(struct gk20a *g)
 	nvgpu_log_fn(g, "done");
 
 	return size;
+}
+
+int ga10b_lts_ecc_init(struct gk20a *g)
+{
+	int err = 0;
+
+	err = gv11b_lts_ecc_init(g);
+	if (err != 0) {
+		goto done;
+	}
+
+	err = NVGPU_ECC_COUNTER_INIT_PER_LTS(rstg_ecc_parity_count);
+	if (err != 0) {
+		goto done;
+	}
+
+done:
+	if (err != 0) {
+		nvgpu_err(g, "ecc counter allocate failed, err=%d", err);
+	}
+
+	return err;
 }

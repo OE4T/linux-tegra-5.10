@@ -227,6 +227,10 @@ void nvgpu_ltc_ecc_free(struct gk20a *g)
 			ecc->ltc.ecc_ded_count[ltc] = NULL;
 		}
 
+		if (ecc->ltc.rstg_ecc_parity_count != NULL) {
+			nvgpu_kfree(g, ecc->ltc.rstg_ecc_parity_count[ltc]);
+		}
+
 		if (ecc->ltc.tstg_ecc_parity_count != NULL) {
 			nvgpu_kfree(g, ecc->ltc.tstg_ecc_parity_count[ltc]);
 		}
@@ -241,6 +245,9 @@ void nvgpu_ltc_ecc_free(struct gk20a *g)
 
 	nvgpu_kfree(g, ecc->ltc.ecc_ded_count);
 	ecc->ltc.ecc_ded_count = NULL;
+
+	nvgpu_kfree(g, ecc->ltc.rstg_ecc_parity_count);
+	ecc->ltc.rstg_ecc_parity_count = NULL;
 
 	nvgpu_kfree(g, ecc->ltc.tstg_ecc_parity_count);
 	ecc->ltc.tstg_ecc_parity_count = NULL;

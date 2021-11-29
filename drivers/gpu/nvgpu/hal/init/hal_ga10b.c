@@ -343,7 +343,7 @@ static const struct gops_ltc_intr ga10b_ops_ltc_intr = {
 };
 
 static const struct gops_ltc ga10b_ops_ltc = {
-	.ecc_init = gv11b_lts_ecc_init,
+	.ecc_init = ga10b_lts_ecc_init,
 	.init_ltc_support = nvgpu_init_ltc_support,
 	.ltc_remove_support = nvgpu_ltc_remove_support,
 	.determine_L2_size_bytes = ga10b_determine_L2_size_bytes,

@@ -204,6 +204,8 @@ struct nvgpu_ecc {
 	 * unit.
 	 */
 	struct {
+		/** L2 cache slice RSTG ECC PARITY error count. */
+		struct nvgpu_ecc_stat **rstg_ecc_parity_count;
 		/** L2 cache slice TSTG ECC PARITY error count. */
 		struct nvgpu_ecc_stat **tstg_ecc_parity_count;
 		/** L2 cache slice DSTG BE ECC PARITY error count. */
