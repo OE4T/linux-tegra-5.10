@@ -164,12 +164,12 @@ int test_warn_msg(struct unit_module *m,
 {
 	bool ret;
 
-	ret = nvgpu_posix_warn(0, "");
+	ret = nvgpu_posix_warn(__func__, __LINE__, 0, "");
 	if (ret != 0) {
 		unit_return_fail(m, "nvgpu_posix_warn failed for cond 0\n");
 	}
 
-	ret = nvgpu_posix_warn(1, "");
+	ret = nvgpu_posix_warn(__func__, __LINE__, 1, "");
 	if (ret != 1) {
 		unit_return_fail(m, "nvgpu_posix_warn failed for cond 1\n");
 	}

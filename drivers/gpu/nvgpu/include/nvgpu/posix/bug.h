@@ -30,10 +30,10 @@
 
 /** Define for issuing warning on condition with message. */
 #define WARN(cond, msg, arg...)			\
-			((void) nvgpu_posix_warn(cond, msg, ##arg))
+			((void) nvgpu_posix_warn(__func__, __LINE__, cond, msg, ##arg))
 /** Define for issuing warning on condition. */
 #define WARN_ON(cond)				\
-			((void) nvgpu_posix_warn(cond, ""))
+			((void) nvgpu_posix_warn(__func__, __LINE__, cond, ""))
 
 #ifdef CONFIG_NVGPU_NON_FUSA
 /** Define for issuing warning once on condition with message. */
@@ -78,13 +78,15 @@ void nvgpu_posix_bug(const char *msg, int line_no) __attribute__ ((noreturn));
  * #nvgpu_warn() and dump the stack using function #dump_stack(). Function does
  * not perform any validation of the parameters.
  *
+ * @param func [in]	Name of the calling function.
+ * @param line_no [in]	Line number in the file where called.
  * @param cond [in]	Condition to check to issue warning.
  * @param fmt [in]	Format of variable argument list.
  * @param ... [in]	Variable length arguments.
  *
  * @return Value of \a cond is returned.
  */
-bool nvgpu_posix_warn(bool cond, const char *fmt, ...);
+bool nvgpu_posix_warn(const char *func, int line_no, bool cond, const char *fmt, ...);
 
 #ifdef __NVGPU_UNIT_TEST__
 void nvgpu_bug_cb_longjmp(void *arg);

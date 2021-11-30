@@ -207,13 +207,18 @@ done:
 	pthread_exit(NULL);
 }
 
-bool nvgpu_posix_warn(bool cond, const char *fmt, ...)
+bool nvgpu_posix_warn(const char *func, int line_no, bool cond, const char *fmt, ...)
 {
 	if (!cond) {
 		goto done;
 	}
 
-	nvgpu_warn(NULL, "WARNING detected!");
+	/*
+	 * MISRA-C rule 17.1 forbids stdarg.h (va_list etc) and this is shared
+	 * with the safety build. Rule 21.6 forbids stdio.h so the warning
+	 * cannot be formatted to a local buffer either.
+	 */
+	nvgpu_warn(NULL, "%s:%d WARNING detected %s", func, line_no, fmt);
 
 	dump_stack();
 
