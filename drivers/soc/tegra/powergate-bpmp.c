@@ -360,6 +360,10 @@ static const struct of_device_id tegra_bpmp_powergate_match[] = {
 	{ .compatible = "nvidia,tegra186-bpmp", .data = &tegra186_soc },
 	{ .compatible = "nvidia,tegra194-bpmp", .data = &tegra186_soc },
 	{ .compatible = "nvidia,tegra234-bpmp", .data = &tegra234_soc },
+
+	{ .compatible = "nvidia,tegra186-bpmp-hv", .data = &tegra186_soc },
+	{ .compatible = "nvidia,tegra194-safe-bpmp-hv", .data = &tegra186_soc },
+
 	{ }
 };
 
