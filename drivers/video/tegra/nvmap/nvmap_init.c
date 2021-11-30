@@ -785,14 +785,15 @@ int __init nvmap_init(struct platform_device *pdev)
 	struct device_node *np = pdev->dev.of_node;
 	struct of_phandle_iterator it;
 
-	of_phandle_iterator_init(&it, np, "memory-region", NULL, 0);
-	while (of_phandle_iterator_next(&it) == 0) {
-		rmem2 = of_reserved_mem_lookup(it.node);
-		if (!rmem2) {
-			pr_err("unable to acquire memory-region\n");
-			return -EINVAL;
+	if (!of_phandle_iterator_init(&it, np, "memory-region", NULL, 0)) {
+		while (!of_phandle_iterator_next(&it) && it.node) {
+			rmem2 = of_reserved_mem_lookup(it.node);
+			if (!rmem2) {
+				pr_err("unable to acquire memory-region\n");
+				return -EINVAL;
+			}
+			nvmap_co_setup(rmem2);
 		}
-		nvmap_co_setup(rmem2);
 	}
 #endif /* NVMAP_LOADABLE_MODULE */
 
