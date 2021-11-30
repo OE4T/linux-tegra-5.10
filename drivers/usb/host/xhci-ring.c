@@ -4281,7 +4281,7 @@ int xhci_queue_stop_endpoint(struct xhci_hcd *xhci, struct xhci_command *cmd,
 	bool disable_u0_ts1_detect = false;
 	struct xhci_ring *ep_ring;
 
-	if (xhci->shared_hcd->driver->is_u0_ts1_detect_disabled)
+	if (xhci->shared_hcd && xhci->shared_hcd->driver->is_u0_ts1_detect_disabled)
 		disable_u0_ts1_detect =
 			xhci->shared_hcd->driver->is_u0_ts1_detect_disabled(
 					xhci->shared_hcd);
