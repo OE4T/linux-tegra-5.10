@@ -1,7 +1,7 @@
 /*
  * drivers/platform/tegra/tegra_bootloader_debug.c
  *
- * Copyright (C) 2014-2015 NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2014-2021 NVIDIA Corporation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -296,7 +296,8 @@ static int __init tegra_bootloader_debuginit(void)
 	}
 
 	tegra_bl_mapped_prof_start = phys_to_virt(tegra_bl_prof_start);
-	if (!pfn_valid(__phys_to_pfn(tegra_bl_prof_start))) {
+	if (tegra_bl_prof_start != 0
+			&& !pfn_valid(__phys_to_pfn(tegra_bl_prof_start))) {
 		ptr_bl_prof_start = ioremap(tegra_bl_prof_start, tegra_bl_prof_size);
 
 		WARN_ON(!ptr_bl_prof_start);
@@ -316,7 +317,8 @@ static int __init tegra_bootloader_debuginit(void)
 
 	tegra_bl_mapped_debug_data_start =
 		phys_to_virt(tegra_bl_debug_data_start);
-	if (!pfn_valid(__phys_to_pfn(tegra_bl_debug_data_start))) {
+	if (tegra_bl_debug_data_start != 0
+			&& !pfn_valid(__phys_to_pfn(tegra_bl_debug_data_start))) {
 		ptr_bl_debug_data_start = ioremap(tegra_bl_debug_data_start,
 				tegra_bl_debug_data_size);
 
