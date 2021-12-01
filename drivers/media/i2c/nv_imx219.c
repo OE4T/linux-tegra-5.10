@@ -414,6 +414,7 @@ static int imx219_power_off(struct camera_common_data *s_data)
 			regulator_disable(pw->avdd);
 	}
 
+	usleep_range(5000, 5000);
 	pw->state = SWITCH_OFF;
 
 	return 0;
