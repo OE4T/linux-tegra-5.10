@@ -595,6 +595,7 @@ static const struct gops_gr_init ga100_ops_gr_init = {
 	.gpc_mmu = ga10b_gr_init_gpc_mmu,
 	.reset_gpcs = ga10b_gr_init_reset_gpcs,
 	.fifo_access = gm20b_gr_init_fifo_access,
+	.set_sm_l1tag_surface_collector = ga100_gr_init_set_sm_l1tag_surface_collector,
 #ifdef CONFIG_NVGPU_SET_FALCON_ACCESS_MAP
 	.get_access_map = gv11b_gr_init_get_access_map,
 #endif
@@ -1831,6 +1832,7 @@ int ga100_init_hal(struct gk20a *g)
 	nvgpu_set_errata(g, NVGPU_ERRATA_200601972, true);
 	nvgpu_set_errata(g, NVGPU_ERRATA_200391931, true);
 	nvgpu_set_errata(g, NVGPU_ERRATA_SYNCPT_INVALID_ID_0, true);
+	nvgpu_set_errata(g, NVGPU_ERRATA_2557724, true);
 
 	if (gops->fuse.fuse_opt_sm_ttu_en(g) != 0U) {
 		nvgpu_set_enabled(g, NVGPU_SUPPORT_SM_TTU, true);

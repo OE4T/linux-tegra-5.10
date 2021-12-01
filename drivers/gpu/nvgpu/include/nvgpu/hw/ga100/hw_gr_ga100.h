@@ -1254,4 +1254,8 @@
 				(((r) >> 0U) & 0x1U)
 #define gr_gpc0_gpccs_engine_reset_ctl_gpc_engine_reset_disabled_v()\
 				(0x00000001U)
+#define gr_gpcs_tpcs_sm_l1tag_ctrl_r()                             (0x00419bf0U)
+#define gr_gpcs_tpcs_sm_l1tag_ctrl_surface_cut_collector_enable_f()\
+				(0x20000000U)
+#define gr_gpc0_tpc0_sm_l1tag_ctrl_r()                             (0x005043f0U)
 #endif

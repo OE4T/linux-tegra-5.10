@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,6 +22,7 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/static_analysis.h>
+#include <nvgpu/io.h>
 
 #include "gr_init_ga100.h"
 
@@ -54,3 +55,11 @@ u32 ga100_gr_init_get_ctx_betacb_size(struct gk20a *g)
 			gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v()));
 }
 #endif
+
+void ga100_gr_init_set_sm_l1tag_surface_collector(struct gk20a *g)
+{
+	u32 reg_val = 0U;
+	reg_val = nvgpu_readl(g, gr_gpc0_tpc0_sm_l1tag_ctrl_r());
+	reg_val |= gr_gpcs_tpcs_sm_l1tag_ctrl_surface_cut_collector_enable_f();
+	nvgpu_writel(g, gr_gpcs_tpcs_sm_l1tag_ctrl_r(), reg_val);
+}

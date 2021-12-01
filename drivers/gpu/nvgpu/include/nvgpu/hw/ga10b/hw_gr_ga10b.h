@@ -1214,4 +1214,8 @@
 #define gr_egpcs_etpcs_sm_dsm_perf_counter_control_r()             (0x00481a48U)
 #define gr_egpcs_etpcs_sm_dsm_perf_counter_control0_r()            (0x00481a08U)
 #define gr_egpcs_etpcs_sm_dsm_perf_counter_control5_r()            (0x00481a0cU)
+#define gr_gpcs_tpcs_sm_l1tag_ctrl_r()                             (0x00419bf0U)
+#define gr_gpcs_tpcs_sm_l1tag_ctrl_surface_cut_collector_enable_f()\
+				(0x20000000U)
+#define gr_gpc0_tpc0_sm_l1tag_ctrl_r()                             (0x005043f0U)
 #endif

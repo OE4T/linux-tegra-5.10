@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/errata.h>
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/io.h>
 #include <nvgpu/bug.h>
@@ -293,6 +294,11 @@ static int gr_init_setup_hw(struct gk20a *g, struct nvgpu_gr *gr)
 	err = nvgpu_gr_fs_state_init(g, gr->config);
 	if (err != 0) {
 		goto out;
+	}
+
+	if ((nvgpu_is_errata_present(g, NVGPU_ERRATA_2557724)) &&
+		(g->ops.gr.init.set_sm_l1tag_surface_collector != NULL)) {
+			g->ops.gr.init.set_sm_l1tag_surface_collector(g);
 	}
 
 	err = g->ops.gr.init.wait_idle(g);

@@ -781,6 +781,7 @@ srcs += hal/init/hal_ga10b.c \
 	hal/gr/ctxsw_prog/ctxsw_prog_ga100_fusa.c \
 	hal/gr/gr/gr_ga10b.c \
 	hal/gr/init/gr_init_ga10b.c \
+	hal/gr/init/gr_init_ga100.c \
 	hal/gr/init/gr_init_ga10b_fusa.c \
 	hal/gr/intr/gr_intr_ga10b_fusa.c \
 	hal/gr/falcon/gr_falcon_ga10b_fusa.c \
@@ -841,7 +842,6 @@ srcs += \
 	hal/fuse/fuse_ga100.c \
 	hal/gr/intr/gr_intr_ga100_fusa.c \
 	hal/gr/init/gr_init_ga100_fusa.c \
-	hal/gr/init/gr_init_ga100.c \
 	hal/clk/clk_ga100.c \
 	hal/nvdec/nvdec_ga100.c \
 	hal/pmu/pmu_ga100.c \

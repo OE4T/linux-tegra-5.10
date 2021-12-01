@@ -900,6 +900,7 @@ struct gops_gr_init {
 	int (*reset_gpcs)(struct gk20a *g);
 	int (*sm_id_config_early)(struct gk20a *g,
 			struct nvgpu_gr_config *config);
+	void (*set_sm_l1tag_surface_collector)(struct gk20a *g);
 	/** @endcond */
 };
 

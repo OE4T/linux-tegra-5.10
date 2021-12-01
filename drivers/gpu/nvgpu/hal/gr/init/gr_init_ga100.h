@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -36,7 +36,7 @@ u32 ga100_gr_init_get_bundle_cb_token_limit(struct gk20a *g);
 u32 ga100_gr_init_get_attrib_cb_default_size(struct gk20a *g);
 void ga100_gr_init_commit_global_bundle_cb(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, u64 addr, u32 size, bool patch);
-
+void ga100_gr_init_set_sm_l1tag_surface_collector(struct gk20a *g);
 #ifdef CONFIG_NVGPU_GRAPHICS
 u32 ga100_gr_init_get_attrib_cb_gfxp_default_size(struct gk20a *g);
 u32 ga100_gr_init_get_attrib_cb_gfxp_size(struct gk20a *g);

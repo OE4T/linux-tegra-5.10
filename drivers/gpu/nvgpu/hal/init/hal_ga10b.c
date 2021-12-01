@@ -189,6 +189,7 @@
 #include "hal/gr/init/gr_init_gv11b.h"
 #include "hal/gr/init/gr_init_tu104.h"
 #include "hal/gr/init/gr_init_ga10b.h"
+#include "hal/gr/init/gr_init_ga100.h"
 #include "hal/gr/intr/gr_intr_gm20b.h"
 #include "hal/gr/intr/gr_intr_gp10b.h"
 #include "hal/gr/intr/gr_intr_gv11b.h"
@@ -577,6 +578,7 @@ static const struct gops_gr_init ga10b_ops_gr_init = {
 	.eng_config = ga10b_gr_init_eng_config,
 	.reset_gpcs = ga10b_gr_init_reset_gpcs,
 	.fifo_access = gm20b_gr_init_fifo_access,
+	.set_sm_l1tag_surface_collector = ga100_gr_init_set_sm_l1tag_surface_collector,
 #ifdef CONFIG_NVGPU_SET_FALCON_ACCESS_MAP
 	.get_access_map = ga10b_gr_init_get_access_map,
 #endif
@@ -1809,6 +1811,7 @@ int ga10b_init_hal(struct gk20a *g)
 	nvgpu_set_errata(g, NVGPU_ERRATA_3154076, true);
 	nvgpu_set_errata(g, NVGPU_ERRATA_3288192, true);
 	nvgpu_set_errata(g, NVGPU_ERRATA_SYNCPT_INVALID_ID_0, true);
+	nvgpu_set_errata(g, NVGPU_ERRATA_2557724, true);
 
 	nvgpu_set_enabled(g, NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP, false);
 
