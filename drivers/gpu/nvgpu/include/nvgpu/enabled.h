@@ -216,6 +216,7 @@ struct gk20a;
 	DEFINE_FLAG(NVGPU_SUPPORT_VAB_ENABLED, "VAB feature supported"), \
 	DEFINE_FLAG(NVGPU_SUPPORT_ROP_IN_GPC, "ROP is part of GPC"), \
 	DEFINE_FLAG(NVGPU_SUPPORT_BUFFER_METADATA, "Buffer metadata support"), \
+	DEFINE_FLAG(NVGPU_SUPPORT_NVS, "Domain scheduler support"), \
 	DEFINE_FLAG(NVGPU_MAX_ENABLED_BITS, "Marks max number of flags"),
 
 /**

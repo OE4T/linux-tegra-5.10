@@ -305,6 +305,8 @@ static struct nvgpu_flags_mapping flags_mapping[] = {
 		NVGPU_SUPPORT_VAB_ENABLED},
 	{NVGPU_GPU_FLAGS_SUPPORT_BUFFER_METADATA,
 		NVGPU_SUPPORT_BUFFER_METADATA},
+	{NVGPU_GPU_FLAGS_SUPPORT_NVS,
+		NVGPU_SUPPORT_NVS},
 };
 
 static u64 nvgpu_ctrl_ioctl_gpu_characteristics_flags(struct gk20a *g)
@@ -468,6 +470,7 @@ static long gk20a_ctrl_ioctl_gpu_characteristics(
 	gpu.event_ioctl_nr_last = NVGPU_EVENT_IOCTL_LAST;
 	gpu.ctxsw_ioctl_nr_last = NVGPU_CTXSW_IOCTL_LAST;
 	gpu.prof_ioctl_nr_last = NVGPU_PROFILER_IOCTL_LAST;
+	gpu.nvs_ioctl_nr_last = NVGPU_NVS_IOCTL_LAST;
 	gpu.gpu_va_bit_count = 40;
 	gpu.max_dbg_tsg_timeslice = g->tsg_dbg_timeslice_max_us;
 

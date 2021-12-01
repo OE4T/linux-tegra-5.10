@@ -199,6 +199,8 @@ struct nvgpu_gpu_zbc_query_table_args {
 #define NVGPU_GPU_FLAGS_L2_MAX_WAYS_EVICT_LAST_ENABLED	(1ULL << 51)
 /* Vidmem access bits feature is supported */
 #define NVGPU_GPU_FLAGS_SUPPORT_VAB		(1ULL << 52)
+/* The NVS scheduler interface is usable */
+#define NVGPU_GPU_FLAGS_SUPPORT_NVS		(1ULL << 53)
 /* SM LRF ECC is enabled */
 #define NVGPU_GPU_FLAGS_ECC_ENABLED_SM_LRF	(1ULL << 60)
 /* SM SHM ECC is enabled */
@@ -315,7 +317,8 @@ struct nvgpu_gpu_characteristics {
 
 	__s16 ctxsw_ioctl_nr_last;
 	__s16 prof_ioctl_nr_last;
-	__u8 reserved2[4];
+	__s16 nvs_ioctl_nr_last;
+	__u8 reserved2[2];
 
 	__u32 max_ctxsw_ring_buffer_size;
 	__u32 reserved3;

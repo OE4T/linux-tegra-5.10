@@ -129,6 +129,8 @@ static void nvgpu_init_vars(struct gk20a *g)
 	nvgpu_init_list_node(&g->boardobjgrp_head);
 
 	nvgpu_set_enabled(g, NVGPU_HAS_SYNCPOINTS, platform->has_syncpoints);
+
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_NVS, true);
 }
 
 static void nvgpu_init_max_comptag(struct gk20a *g)
