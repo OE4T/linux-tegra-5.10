@@ -322,10 +322,14 @@ void tegra_mc_utils_init(void)
 		ch >>= 1;
 	}
 
-	/* pre silicon use LPDDR4 16ch no ecc 1-rank config*/
+	/* pre silicon use LPDDR4 16ch (for orin, 8 for t239) no ecc 1-rank config*/
 	if (tegra_platform_is_sim() || tegra_platform_is_fpga()) {
 		dram = DRAM_LPDDR4;
-		ch_num = 16;
+		if (tegra_get_chip_id() == TEGRA234 &&
+			((tegra_read_chipid() >> 4) & 0xf) == 9)
+			ch_num = 8;
+		else
+			ch_num = 16;
 	}
 
 	emc_param.ch = ch;
