@@ -199,11 +199,16 @@ static ssize_t gsp_start_test_write(struct file *file,
 
 	if (strtobool(buf, &bv) == 0) {
 		if (nvgpu_is_powered_on(g) && nvgpu_gsp_get_stress_test_load(g)) {
+			err = gk20a_busy(g);
+			if (err)
+				return err;
 			err = nvgpu_gsp_set_stress_test_start(g, bv);
 			if (err != 0) {
 				nvgpu_err(g, "failed to start GSP stress test");
+				gk20a_idle(g);
 				return -EFAULT;
 			}
+			gk20a_idle(g);
 		} else {
 			nvgpu_err(g,
 					  "Unable to start GSP stress test, check GPU state");
@@ -255,11 +260,16 @@ static ssize_t gsp_load_test_write(struct file *file,
 
 	if (strtobool(buf, &bv) == 0) {
 		if (nvgpu_is_powered_on(g)) {
+			err = gk20a_busy(g);
+			if (err)
+				return err;
 			err = nvgpu_gsp_set_stress_test_load(g, bv);
 			if (err != 0) {
 				nvgpu_err(g, "failed to load GSP stress test");
+				gk20a_idle(g);
 				return -EFAULT;
 			}
+			gk20a_idle(g);
 		} else {
 			nvgpu_err(g,
 					  "Unable to load GSP stress test, check GPU state");
