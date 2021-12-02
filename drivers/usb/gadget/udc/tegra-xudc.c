@@ -512,6 +512,7 @@ struct tegra_xudc {
 	resource_size_t phys_base;
 	void __iomem *ipfs;
 	void __iomem *fpci;
+	void __iomem *padctl_base;
 
 	struct regulator_bulk_data *supplies;
 
@@ -573,6 +574,7 @@ struct tegra_xudc_soc {
 	bool port_reset_quirk;
 	bool port_speed_quirk;
 	bool has_ipfs;
+	bool set_stream_id;
 };
 
 static inline u32 fpci_readl(struct tegra_xudc *xudc, unsigned int offset)
@@ -3481,6 +3483,9 @@ static void tegra_xudc_device_params_init(struct tegra_xudc *xudc)
 {
 	u32 val, imod;
 
+	if (xudc->soc->set_stream_id)
+		iowrite32(0xF, xudc->padctl_base + 0x1002c);
+
 	if (xudc->soc->has_ipfs) {
 		val = xudc_readl(xudc, BLCG);
 		val |= BLCG_ALL;
@@ -3781,6 +3786,7 @@ static struct tegra_xudc_soc tegra234_xudc_soc_data = {
 	.port_reset_quirk = false,
 	.port_speed_quirk = true,
 	.has_ipfs = false,
+	.set_stream_id = true,
 };
 
 static const struct of_device_id tegra_xudc_of_match[] = {
@@ -3890,6 +3896,16 @@ static int tegra_xudc_probe(struct platform_device *pdev)
 			return PTR_ERR(xudc->ipfs);
 	}
 
+	if (xudc->soc->set_stream_id) {
+		res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "padctl");
+		if (res) {
+			xudc->padctl_base = devm_ioremap(&pdev->dev, res->start,
+							resource_size(res));
+			if (IS_ERR(xudc->padctl_base))
+				return PTR_ERR(xudc->padctl_base);
+		}
+	}
+
 	xudc->irq = platform_get_irq(pdev, 0);
 	if (xudc->irq < 0)
 		return xudc->irq;
@@ -3984,20 +4000,6 @@ static int tegra_xudc_probe(struct platform_device *pdev)
 	xudc->gadget.ep0 = &xudc->ep[0].usb_ep;
 	xudc->gadget.name = "tegra-xudc";
 	xudc->gadget.max_speed = USB_SPEED_SUPER;
-
-	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "padctl");
-	if (res) {
-		static void __iomem *pad_base;
-
-		pad_base = devm_ioremap(&pdev->dev, res->start, resource_size(res));
-
-		if (IS_ERR(pad_base)) {
-			dev_err(&pdev->dev, "failed to map pad mmio\n");
-			return PTR_ERR(pad_base);
-		}
-
-		iowrite32(0xF, pad_base + 0x1002c);
-	}
 
 	err = usb_add_gadget_udc(&pdev->dev, &xudc->gadget);
 	if (err) {
