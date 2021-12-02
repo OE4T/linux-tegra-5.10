@@ -27,6 +27,7 @@ struct nvgpu_gsp;
 
 int nvgpu_gsp_sw_init(struct gk20a *g);
 int nvgpu_gsp_bootstrap(struct gk20a *g);
+void nvgpu_gsp_suspend(struct gk20a *g);
 void nvgpu_gsp_sw_deinit(struct gk20a *g);
 void nvgpu_gsp_isr_support(struct gk20a *g, bool enable);
 void nvgpu_gsp_isr_mutex_aquire(struct gk20a *g);

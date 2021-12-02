@@ -47,11 +47,14 @@ void nvgpu_gsp_isr_support(struct gk20a *g, bool enable)
 	nvgpu_mutex_release(&g->gsp->isr_mutex);
 }
 
+void nvgpu_gsp_suspend(struct gk20a *g)
+{
+	nvgpu_gsp_isr_support(g, false);
+}
+
 void nvgpu_gsp_sw_deinit(struct gk20a *g)
 {
 	if (g->gsp != NULL) {
-
-		nvgpu_gsp_isr_support(g, false);
 
 		nvgpu_mutex_destroy(&g->gsp->isr_mutex);
 #ifdef CONFIG_NVGPU_FALCON_DEBUG
