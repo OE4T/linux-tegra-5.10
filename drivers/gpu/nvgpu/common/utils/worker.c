@@ -153,13 +153,14 @@ static int nvgpu_worker_poll_work(void *arg)
 
 	nvgpu_worker_pre_process(worker);
 
-	while (!nvgpu_thread_should_stop(&worker->poll_task)) {
+	while (!nvgpu_worker_should_stop(worker)) {
 		int ret;
 
 		ret = NVGPU_COND_WAIT_INTERRUPTIBLE(
 				&worker->wq,
 				nvgpu_worker_pending(worker, get) ||
-				nvgpu_worker_wakeup_condition(worker),
+				nvgpu_worker_wakeup_condition(worker) ||
+				nvgpu_worker_should_stop(worker),
 				nvgpu_worker_wakeup_timeout(worker));
 
 		if (nvgpu_worker_wakeup_early_exit(worker)) {

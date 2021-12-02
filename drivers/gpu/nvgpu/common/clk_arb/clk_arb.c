@@ -404,13 +404,8 @@ static void nvgpu_clk_arb_worker_poll_init(struct nvgpu_worker *worker)
 
 const struct nvgpu_worker_ops clk_arb_worker_ops = {
 	.pre_process = nvgpu_clk_arb_worker_poll_init,
-	.wakeup_early_exit = nvgpu_worker_should_stop,
-	.wakeup_post_process = NULL,
 	.wakeup_process_item =
 		nvgpu_clk_arb_worker_poll_wakeup_process_item,
-	.wakeup_condition =
-		nvgpu_worker_should_stop,
-	.wakeup_timeout = NULL,
 };
 
 /**
