@@ -838,7 +838,7 @@ int flcn_hwpm_ip_reg_op(void *ip_dev, enum tegra_soc_hwpm_ip_reg_op reg_op,
 	if (reg_op == TEGRA_SOC_HWPM_IP_REG_OP_READ) {
 		*reg_data = host1x_readl(dev, (unsigned int)reg_offset);
 	} else if (reg_op == TEGRA_SOC_HWPM_IP_REG_OP_WRITE) {
-		host1x_writel(dev, *reg_data, (unsigned int)reg_offset);
+		host1x_writel(dev, (unsigned int)reg_offset, *reg_data);
 	}
 	return 0;
 }

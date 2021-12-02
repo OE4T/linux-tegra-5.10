@@ -27,6 +27,7 @@
 #include "tegra-soc-hwpm-log.h"
 #include <hal/tegra-soc-hwpm-structures.h>
 #include <hal/tegra_soc_hwpm_init.h>
+#include <uapi/linux/tegra-soc-hwpm-uapi.h>
 
 static u32 fake_readl(struct tegra_soc_hwpm *hwpm, u64 phys_addr)
 {
@@ -114,10 +115,6 @@ void hwpm_writel(struct tegra_soc_hwpm *hwpm, u32 dt_aperture,
 	}
 }
 
-/*
- * FIXME: Remove all non-HWPM register reads from the driver.
- * Replace them with inter-driver APIs?
- */
 u32 ip_readl(struct tegra_soc_hwpm *hwpm, u64 phys_addr)
 {
 	tegra_soc_hwpm_dbg("reg read: phys_addr(0x%llx)", phys_addr);
@@ -125,43 +122,91 @@ u32 ip_readl(struct tegra_soc_hwpm *hwpm, u64 phys_addr)
 	if (hwpm->fake_registers_enabled) {
 		return fake_readl(hwpm, phys_addr);
 	} else {
-		void __iomem *ptr = NULL;
-		u32 val = 0;
+		u64 ip_start_pa = 0ULL;
+		u32 reg_val = 0U;
+		u32 dt_aperture = tegra_soc_hwpm_get_ip_aperture(hwpm,
+			phys_addr, &ip_start_pa);
+		struct tegra_soc_hwpm_ip_ops *ip_ops =
+			dt_aperture == TEGRA_SOC_HWPM_DT_APERTURE_INVALID ?
+			NULL : &hwpm->ip_info[dt_aperture];
 
-		ptr = ioremap(phys_addr, 0x4);
-		if (!ptr) {
-			tegra_soc_hwpm_err("Failed to map register(0x%llx)",
-					   phys_addr);
-			return 0;
+		if (ip_ops && (*ip_ops->hwpm_ip_reg_op)) {
+			int err = 0;
+
+			tegra_soc_hwpm_dbg(
+				"aperture: %d ip_ops offset(0x%llx)",
+				dt_aperture, (phys_addr - ip_start_pa));
+			err = (*ip_ops->hwpm_ip_reg_op)(ip_ops->ip_dev,
+				TEGRA_SOC_HWPM_IP_REG_OP_READ,
+				(phys_addr - ip_start_pa), &reg_val);
+			if (err < 0) {
+				tegra_soc_hwpm_err(
+					"Failed to read ip register(0x%llx)",
+					phys_addr);
+				return 0U;
+			}
+		} else {
+			/* Fall back to un-registered IP method */
+			void __iomem *ptr = NULL;
+
+			ptr = ioremap(phys_addr, 0x4);
+			if (!ptr) {
+				tegra_soc_hwpm_err(
+					"Failed to map register(0x%llx)",
+					phys_addr);
+				return 0U;
+			}
+			reg_val = __raw_readl(ptr);
+			iounmap(ptr);
 		}
-		val = __raw_readl(ptr);
-		iounmap(ptr);
-		return val;
+		return reg_val;
 	}
 }
 
-/*
- * FIXME: Remove all non-HWPM register writes from the driver.
- * Replace them with inter-driver APIs?
- */
-void ip_writel(struct tegra_soc_hwpm *hwpm, u64 phys_addr, u32 val)
+void ip_writel(struct tegra_soc_hwpm *hwpm, u64 phys_addr, u32 reg_val)
 {
 	tegra_soc_hwpm_dbg("reg write: phys_addr(0x%llx), val(0x%x)",
-			   phys_addr, val);
+			   phys_addr, reg_val);
 
 	if (hwpm->fake_registers_enabled) {
-		fake_writel(hwpm, phys_addr, val);
+		fake_writel(hwpm, phys_addr, reg_val);
 	} else {
-		void __iomem *ptr = NULL;
+		u64 ip_start_pa = 0ULL;
+		u32 dt_aperture = tegra_soc_hwpm_get_ip_aperture(hwpm,
+			phys_addr, &ip_start_pa);
+		struct tegra_soc_hwpm_ip_ops *ip_ops =
+			dt_aperture == TEGRA_SOC_HWPM_DT_APERTURE_INVALID ?
+			NULL : &hwpm->ip_info[dt_aperture];
 
-		ptr = ioremap(phys_addr, 0x4);
-		if (!ptr) {
-			tegra_soc_hwpm_err("Failed to map register(0x%llx)",
-					   phys_addr);
-			return;
+		if (ip_ops && (*ip_ops->hwpm_ip_reg_op)) {
+			int err = 0;
+
+			tegra_soc_hwpm_dbg(
+				"aperture: %d ip_ops offset(0x%llx)",
+				dt_aperture, (phys_addr - ip_start_pa));
+			err = (*ip_ops->hwpm_ip_reg_op)(ip_ops->ip_dev,
+				TEGRA_SOC_HWPM_IP_REG_OP_WRITE,
+				(phys_addr - ip_start_pa), &reg_val);
+			if (err < 0) {
+				tegra_soc_hwpm_err(
+					"write ip reg(0x%llx) val 0x%x failed",
+					phys_addr, reg_val);
+				return;
+			}
+		} else {
+			/* Fall back to un-registered IP method */
+			void __iomem *ptr = NULL;
+
+			ptr = ioremap(phys_addr, 0x4);
+			if (!ptr) {
+				tegra_soc_hwpm_err(
+					"Failed to map register(0x%llx)",
+					phys_addr);
+				return;
+			}
+			__raw_writel(reg_val, ptr);
+			iounmap(ptr);
 		}
-		__raw_writel(val, ptr);
-		iounmap(ptr);
 	}
 }
 

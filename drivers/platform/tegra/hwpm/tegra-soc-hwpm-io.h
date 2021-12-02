@@ -35,7 +35,7 @@ void hwpm_writel(struct tegra_soc_hwpm *hwpm,
 		u32 dt_aperture,
 		u32 reg_offset, u32 val);
 u32 ip_readl(struct tegra_soc_hwpm *hwpm, u64 phys_addr);
-void ip_writel(struct tegra_soc_hwpm *hwpm, u64 phys_addr, u32 val);
+void ip_writel(struct tegra_soc_hwpm *hwpm, u64 phys_addr, u32 reg_val);
 u32 ioctl_readl(struct tegra_soc_hwpm *hwpm,
 		struct hwpm_resource_aperture *aperture,
 		u64 addr);
