@@ -289,7 +289,7 @@ struct PVA_PACKED pva_td_s {
 
 /** Version of the binary info */
 #define PVA_BIN_INFO_VERSION_ID (0x01U)
-#define PVA_MAX_VPU_DATA_SECTION (4U)
+#define PVA_MAX_VPU_DATA_SECTION (8U)
 #define PVA_MAX_VPU_METADATA (4U)
 
 #define PVA_CODE_SEC_BASE_ADDR_ALIGN (128ULL)
