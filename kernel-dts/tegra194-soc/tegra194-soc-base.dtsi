@@ -1839,7 +1839,20 @@
 			<0x0 0x03600000 0x0 0x10000>;
 		reg-names = "base", "fpci";
 
-		interrupts = <0 163 0x4>, <0 164 0x4>, <0 167 0x4>;
+		interrupts-extended = <&intc 0 163 0x4>,
+				      <&intc 0 164 0x4>,
+				      <&intc 0 167 0x4>,
+				      <&tegra_pmc 76 0x4>,
+				      <&tegra_pmc 77 0x4>,
+				      <&tegra_pmc 78 0x4>,
+				      <&tegra_pmc 79 0x4>,
+				      <&tegra_pmc 80 0x4>,
+				      <&tegra_pmc 81 0x4>,
+				      <&tegra_pmc 82 0x4>;
+		interrupt-names = "xhci", "mbox", "padctl",
+				  "wake0", "wake1", "wake2", "wake3",
+				  "wake4", "wake5", "wake6";
+
 #if defined(LINUX_VERSION) && LINUX_VERSION <= 414
 		interrupt-parent = <&tegra_pm_irq>;
 #endif
