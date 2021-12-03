@@ -26,6 +26,12 @@ dtbo-$(BUILD_ENABLE) += tegra234-p3737-0000-p3701-0000-hdr40.dtbo
 dtbo-$(BUILD_ENABLE) += tegra234-p3737-0000-p3701-0000-m2ke.dtbo
 dtbo-$(BUILD_ENABLE) += tegra234-p3737-0000-p3701-0000-respeaker-4-mic-array.dtbo
 dtbo-$(BUILD_ENABLE) += tegra234-p3737-0000-p3701-0000-respeaker-4-mic-lin-array.dtbo
+dtbo-$(BUILD_ENABLE) += tegra234-p3737-camera-dual-imx274-overlay.dtbo
+dtbo-$(BUILD_ENABLE) += tegra234-p3737-camera-e3331-overlay.dtbo
+dtbo-$(BUILD_ENABLE) += tegra234-p3737-camera-e3333-overlay.dtbo
+dtbo-$(BUILD_ENABLE) += tegra234-p3737-camera-imx185-overlay.dtbo
+dtbo-$(BUILD_ENABLE) += tegra234-p3737-camera-imx390-overlay.dtbo
+
 
 ifneq ($(dtb-y),)
 dtb-y := $(addprefix $(makefile-path)/,$(dtb-y))
