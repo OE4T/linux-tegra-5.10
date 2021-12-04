@@ -125,13 +125,9 @@ static void dce_client_async_event_work(struct work_struct *data)
 	struct tegra_dce *d = work->d;
 
 	cl = d->d_clients[DCE_CLIENT_IPC_TYPE_RM_EVENT];
-	if (cl == NULL) {
-		dce_err(d, "Failed to retrieve info for DCE_CLIENT_IPC_TYPE_RM_EVENT");
-		return;
-	}
 
 	dce_client_process_event_ipc(d, cl);
-	work->in_use = false;
+	atomic_set(&work->in_use, 0);
 }
 
 int tegra_dce_register_ipc_client(u32 type,
@@ -242,7 +238,7 @@ int dce_client_init(struct tegra_dce *d)
 		INIT_WORK(&d_work->async_event_work,
 			  dce_client_async_event_work);
 		d_work->d = d;
-		d_work->in_use = false;
+		atomic_set(&d_work->in_use, 0);
 	}
 
 	return ret;
@@ -347,10 +343,9 @@ static void dce_client_schedule_event_work(struct tegra_dce *d)
 	for (i = 0; i < DCE_MAX_ASYNC_WORK; i++) {
 		struct dce_async_work *d_work = &async_work_info->work[i];
 
-		if (d_work->in_use == false) {
+		if (atomic_add_unless(&d_work->in_use, 1, 1) > 0) {
 			queue_work(async_work_info->async_event_wq,
 				   &d_work->async_event_work);
-			d_work->in_use = true;
 			break;
 		}
 	}

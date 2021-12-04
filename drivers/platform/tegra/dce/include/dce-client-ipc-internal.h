@@ -49,7 +49,7 @@ struct tegra_dce_client_ipc {
 struct dce_async_work {
 	struct tegra_dce *d;
 	struct work_struct async_event_work;
-	bool in_use;
+	atomic_t in_use;
 };
 
 /**
