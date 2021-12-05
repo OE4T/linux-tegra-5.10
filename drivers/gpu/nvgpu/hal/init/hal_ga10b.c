@@ -1329,7 +1329,7 @@ static const struct gops_pmu ga10b_ops_pmu = {
 	.pmu_pstate_pmu_setup = nvgpu_pmu_pstate_pmu_setup,
 	.pmu_destroy = nvgpu_pmu_destroy,
 	/* ISR */
-	.pmu_is_interrupted = gk20a_pmu_is_interrupted,
+	.pmu_is_interrupted = ga10b_pmu_is_interrupted,
 	.handle_swgen1_irq = ga10b_pmu_handle_swgen1_irq,
 	/* queue */
 	.pmu_get_queue_head = gv11b_pmu_queue_head_r,

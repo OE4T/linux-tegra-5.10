@@ -28,6 +28,7 @@
 #include <nvgpu/soc.h>
 #include <nvgpu/cic_mon.h>
 
+#include "pmu_gk20a.h"
 #include "pmu_gv11b.h"
 #include "pmu_ga10b.h"
 
@@ -362,6 +363,23 @@ void ga10b_pmu_handle_swgen1_irq(struct gk20a *g, u32 intr)
 	}
 #endif
 }
+
+/*
+ * GA10B PMU IRQ registers are not accessible when NVRISCV PRIV
+ * lockdown is engaged, so need to skip accessing IRQ registers.
+ */
+#ifdef CONFIG_NVGPU_LS_PMU
+bool ga10b_pmu_is_interrupted(struct nvgpu_pmu *pmu)
+{
+	struct gk20a *g = pmu->g;
+
+	if (!g->ops.falcon.is_priv_lockdown(pmu->flcn)) {
+		return gk20a_pmu_is_interrupted(pmu);
+	}
+
+	return false;
+}
+#endif
 
 /*
  * GA10B PMU IRQ registers are not accessible when NVRISCV PRIV lockdown is
