@@ -26,31 +26,30 @@
 #define MAX_GMSL_DP_SER_CTRL3_LOCK_VAL		(1 << 3)
 
 #define MAX_GMSL_DP_SER_INTR8			0x20
-#define MAX_GMSL_DP_SER_INTR8_MASK		0x1
+#define MAX_GMSL_DP_SER_INTR8_MASK		(1 << 0)
 #define MAX_GMSL_DP_SER_INTR8_VAL		0x1
 
 #define MAX_GMSL_DP_SER_LINK_CTRL_PHY_A		0x29
-#define MAX_GMSL_DP_SER_LINK_CTRL_A_MASK	0x1
+#define MAX_GMSL_DP_SER_LINK_CTRL_A_MASK	(1 << 0)
 
 #define MAX_GMSL_DP_SER_LCTRL2_A		0x2A
+#define MAX_GMSL_DP_SER_LCTRL2_B		0x34
 #define MAX_GMSL_DP_SER_LCTRL2_LOCK_MASK	(1 << 0)
-#define MAX_GMSL_DP_SER_LCTRL2_LOCK_VAL		(1 << 0)
+#define MAX_GMSL_DP_SER_LCTRL2_LOCK_VAL		0x1
 
 #define MAX_GMSL_DP_SER_LINK_CTRL_PHY_B		0x33
-#define MAX_GMSL_DP_SER_LINK_CTRL_B_MASK	0x1
-
-#define MAX_GMSL_DP_SER_LCTRL2_B		0x34
-#define MAX_GMSL_DP_SER_LCTRL2_LOCK_B_MASK	(1 << 0)
-#define MAX_GMSL_DP_SER_LCTRL2_LOCK_B_VAL	(1 << 0)
+#define MAX_GMSL_DP_SER_LINK_CTRL_B_MASK	(1 << 0)
 
 #define MAX_GMSL_DP_SER_VID_TX_X		0x100
-#define MAX_GMSL_DP_SER_VID_TX_X_MASK		0x1
 #define MAX_GMSL_DP_SER_VID_TX_Y		0x110
-#define MAX_GMSL_DP_SER_VID_TX_Y_MASK		0x1
 #define MAX_GMSL_DP_SER_VID_TX_Z		0x120
-#define MAX_GMSL_DP_SER_VID_TX_Z_MASK		0x1
 #define MAX_GMSL_DP_SER_VID_TX_U		0x130
-#define MAX_GMSL_DP_SER_VID_TX_U_MASK		0x1
+#define MAX_GMSL_DP_SER_ENABLE_LINK_A		0x0
+#define MAX_GMSL_DP_SER_ENABLE_LINK_B		0x1
+#define MAX_GMSL_DP_SER_ENABLE_LINK_AB		0x2
+
+#define MAX_GMSL_DP_SER_VID_TX_MASK		(1 << 0)
+#define MAX_GMSL_DP_SER_VID_TX_LINK_MASK	(3 << 1)
 
 #define MAX_GMSL_DP_SER_PHY_EDP_0_CTRL0_B0	0x6064
 #define MAX_GMSL_DP_SER_PHY_EDP_0_CTRL0_B1	0x6065
@@ -62,11 +61,11 @@
 #define MAX_GMSL_DP_SER_PHY_EDP_3_CTRL0_B1	0x6365
 
 #define MAX_GMSL_DP_SER_DPRX_TRAIN		0x641A
-#define MAX_GMSL_DP_SER_DPRX_TRAIN_STATE_MASK	0xF0
+#define MAX_GMSL_DP_SER_DPRX_TRAIN_STATE_MASK	(0xF << 4)
 #define MAX_GMSL_DP_SER_DPRX_TRAIN_STATE_VAL	0xF0
 
 #define MAX_GMSL_DP_SER_LINK_ENABLE		0x7000
-#define MAX_GMSL_DP_SER_LINK_ENABLE_MASK	0x1
+#define MAX_GMSL_DP_SER_LINK_ENABLE_MASK	(1 << 0)
 
 #define MAX_GMSL_DP_SER_MISC_CONFIG_B1		0x7019
 #define MAX_GMSL_DP_SER_MAX_LINK_COUNT		0x7070
@@ -75,13 +74,8 @@
 #define MAX_GMSL_DP_SER_LOCAL_EDID		0x7084
 
 #define MAX_GMSL_DP_SER_I2C_SPEED_CAPABILITY		0x70A4
-#define MAX_GMSL_DP_SER_I2C_SPEED_CAPABILITY_MASK	0x3F
+#define MAX_GMSL_DP_SER_I2C_SPEED_CAPABILITY_MASK	(0x3F << 0)
 #define MAX_GMSL_DP_SER_I2C_SPEED_CAPABILITY_100KBPS	0x8
-
-struct max_gmsl_dp_ser_data {
-	bool has_link_a;
-	bool has_link_b;
-};
 
 struct max_gmsl_dp_ser_source {
 	struct fwnode_handle *fwnode;
@@ -97,6 +91,7 @@ struct max_gmsl_dp_ser_priv {
 	struct gpio_desc *gpiod_pwrdn;
 	u8 dprx_lane_count;
 	u8 dprx_link_rate;
+	u8 gmsl_link_select;
 	struct mutex mutex;
 	struct regmap *regmap;
 	struct work_struct work;
@@ -104,7 +99,6 @@ struct max_gmsl_dp_ser_priv {
 	struct workqueue_struct *wq;
 	int ser_errb;
 	unsigned int ser_irq;
-	const struct max_gmsl_dp_ser_data *ser_data;
 };
 
 static int max_gmsl_dp_ser_read(struct max_gmsl_dp_ser_priv *priv, int reg)
@@ -164,6 +158,19 @@ static void max_gmsl_dp_ser_sst_setup(struct max_gmsl_dp_ser_priv *priv)
 	max_gmsl_dp_ser_write(priv, MAX_GMSL_DP_SER_MAX_LINK_COUNT,
 			      priv->dprx_lane_count);
 
+	max_gmsl_dp_ser_update(priv, MAX_GMSL_DP_SER_VID_TX_X,
+			       MAX_GMSL_DP_SER_VID_TX_LINK_MASK,
+			       priv->gmsl_link_select);
+	max_gmsl_dp_ser_update(priv, MAX_GMSL_DP_SER_VID_TX_Y,
+			       MAX_GMSL_DP_SER_VID_TX_LINK_MASK,
+			       priv->gmsl_link_select);
+	max_gmsl_dp_ser_update(priv, MAX_GMSL_DP_SER_VID_TX_Z,
+			       MAX_GMSL_DP_SER_VID_TX_LINK_MASK,
+			       priv->gmsl_link_select);
+	max_gmsl_dp_ser_update(priv, MAX_GMSL_DP_SER_VID_TX_U,
+			       MAX_GMSL_DP_SER_VID_TX_LINK_MASK,
+			       priv->gmsl_link_select);
+
 	max_gmsl_dp_ser_update(priv, MAX_GMSL_DP_SER_I2C_SPEED_CAPABILITY,
 			       MAX_GMSL_DP_SER_I2C_SPEED_CAPABILITY_MASK,
 			       MAX_GMSL_DP_SER_I2C_SPEED_CAPABILITY_100KBPS);
@@ -194,6 +201,7 @@ static void tegra_poll_gmsl_training_lock(struct work_struct *work)
 	struct max_gmsl_dp_ser_priv *priv = container_of(dwork,
 					struct max_gmsl_dp_ser_priv, delay_work);
 	int ret = 0;
+	u32 lctrl_reg = 0;
 
 	ret = max_gmsl_read_lock(priv, MAX_GMSL_DP_SER_CTRL3,
 				 MAX_GMSL_DP_SER_CTRL3_LOCK_MASK,
@@ -203,29 +211,23 @@ static void tegra_poll_gmsl_training_lock(struct work_struct *work)
 		goto reschedule;
 	}
 
-	if (priv->ser_data->has_link_a) {
-		ret = max_gmsl_read_lock(priv,
-					 MAX_GMSL_DP_SER_LCTRL2_A,
-					 MAX_GMSL_DP_SER_LCTRL2_LOCK_MASK,
-					 MAX_GMSL_DP_SER_LCTRL2_LOCK_VAL);
-
-		if (ret < 0) {
-			dev_dbg(&priv->client->dev,
-				"GMSL Lock is not set for LINK A\n");
-			goto reschedule;
-		}
+	if (priv->gmsl_link_select == MAX_GMSL_DP_SER_ENABLE_LINK_A) {
+		lctrl_reg = MAX_GMSL_DP_SER_LCTRL2_A;
+		dev_dbg(&priv->client->dev,
+			"GMSL Lock is being set for Link A\n");
+	} else {
+		lctrl_reg = MAX_GMSL_DP_SER_LCTRL2_B;
+		dev_dbg(&priv->client->dev,
+			"GMSL Lock is being set for Link B\n");
 	}
 
-	if (priv->ser_data->has_link_b) {
-		ret = max_gmsl_read_lock(priv,
-					 MAX_GMSL_DP_SER_LCTRL2_B,
-					 MAX_GMSL_DP_SER_LCTRL2_LOCK_B_MASK,
-					 MAX_GMSL_DP_SER_LCTRL2_LOCK_B_VAL);
-		if (ret < 0) {
-			dev_dbg(&priv->client->dev,
-				"GSM Lock is not set for LINK B\n");
-			goto reschedule;
-		}
+	ret = max_gmsl_read_lock(priv, lctrl_reg,
+				 MAX_GMSL_DP_SER_LCTRL2_LOCK_MASK,
+				 MAX_GMSL_DP_SER_LCTRL2_LOCK_VAL);
+
+	if (ret < 0) {
+		dev_dbg(&priv->client->dev, "GMSL Lock set failed\n");
+		goto reschedule;
 	}
 
 	ret = max_gmsl_read_lock(priv, MAX_GMSL_DP_SER_DPRX_TRAIN,
@@ -238,13 +240,14 @@ static void tegra_poll_gmsl_training_lock(struct work_struct *work)
 	}
 
 	max_gmsl_dp_ser_update(priv, MAX_GMSL_DP_SER_VID_TX_X,
-			       MAX_GMSL_DP_SER_VID_TX_X_MASK, 0x1);
+			       MAX_GMSL_DP_SER_VID_TX_MASK, 0x1);
 	max_gmsl_dp_ser_update(priv, MAX_GMSL_DP_SER_VID_TX_Y,
-			       MAX_GMSL_DP_SER_VID_TX_Y_MASK, 0x1);
+			       MAX_GMSL_DP_SER_VID_TX_MASK, 0x1);
 	max_gmsl_dp_ser_update(priv, MAX_GMSL_DP_SER_VID_TX_Z,
-			       MAX_GMSL_DP_SER_VID_TX_Z_MASK, 0x1);
+			       MAX_GMSL_DP_SER_VID_TX_MASK, 0x1);
 	max_gmsl_dp_ser_update(priv, MAX_GMSL_DP_SER_VID_TX_U,
-			       MAX_GMSL_DP_SER_VID_TX_U_MASK, 0x1);
+			       MAX_GMSL_DP_SER_VID_TX_MASK, 0x1);
+
 	return;
 
 reschedule:
@@ -289,13 +292,13 @@ static int max_gmsl_dp_ser_init(struct device *dev)
 	 * for Pipe X, Y, Z and U
 	 */
 	max_gmsl_dp_ser_update(priv, MAX_GMSL_DP_SER_VID_TX_X,
-			       MAX_GMSL_DP_SER_VID_TX_X_MASK, 0x0);
+			       MAX_GMSL_DP_SER_VID_TX_MASK, 0x0);
 	max_gmsl_dp_ser_update(priv, MAX_GMSL_DP_SER_VID_TX_Y,
-			       MAX_GMSL_DP_SER_VID_TX_Y_MASK, 0x0);
+			       MAX_GMSL_DP_SER_VID_TX_MASK, 0x0);
 	max_gmsl_dp_ser_update(priv, MAX_GMSL_DP_SER_VID_TX_Z,
-			       MAX_GMSL_DP_SER_VID_TX_Z_MASK, 0x0);
+			       MAX_GMSL_DP_SER_VID_TX_MASK, 0x0);
 	max_gmsl_dp_ser_update(priv, MAX_GMSL_DP_SER_VID_TX_U,
-			       MAX_GMSL_DP_SER_VID_TX_U_MASK, 0x0);
+			       MAX_GMSL_DP_SER_VID_TX_MASK, 0x0);
 
 	/*
 	 * Set LINK_ENABLE=0 (0x7000) to force the DP HPD
@@ -375,6 +378,29 @@ static int max_gmsl_dp_ser_parse_dt(struct i2c_client *client,
 		dev_info(dev, "%s: - dprx-link-rate %i\n", __func__, val);
 	}
 
+	err = of_property_read_u32(ser, "gmsl-link-select", &val);
+	if (err) {
+		if (err == -EINVAL) {
+			dev_info(dev, "%s: - link-select property not found\n",
+				 __func__);
+			priv->gmsl_link_select = 0x0;
+			dev_info(dev, "%s: link-select set to LINK A: 0x0\n",
+				 __func__);
+		} else {
+			return err;
+		}
+	} else {
+		if ((val != MAX_GMSL_DP_SER_ENABLE_LINK_A) &&
+		    (val != MAX_GMSL_DP_SER_ENABLE_LINK_B)) {
+			dev_err(dev, "%s: Invalid gmsl-link-select %i\n",
+				__func__, val);
+			return -EINVAL;
+		}
+		/* set link-select*/
+		priv->gmsl_link_select = val;
+		dev_info(dev, "%s: - link-select %i\n",
+			 __func__, val);
+	}
 	return 0;
 }
 
@@ -389,11 +415,6 @@ static int max_gmsl_dp_ser_probe(struct i2c_client *client)
 	if (priv == NULL)
 		return -ENOMEM;
 
-	priv->ser_data = of_device_get_match_data(&client->dev);
-	if (!priv->ser_data) {
-		dev_err(&client->dev, "unsupported tegra\n");
-		return -ENODEV;
-	}
 	mutex_init(&priv->mutex);
 
 	priv->client = client;
@@ -445,15 +466,8 @@ static int max_gmsl_dp_ser_remove(struct i2c_client *client)
 	return 0;
 }
 
-static struct max_gmsl_dp_ser_data tegra234_max_gmsl_ser_data = {
-		.has_link_a = true,
-		.has_link_b = false,
-};
-
 static const struct of_device_id max_gmsl_dp_ser_dt_ids[] = {
-	{ .compatible = "maxim,max_gmsl_dp_ser",
-	  .data = &tegra234_max_gmsl_ser_data,
-	},
+	{ .compatible = "maxim,max_gmsl_dp_ser" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, max_gmsl_dp_ser_dt_ids);
