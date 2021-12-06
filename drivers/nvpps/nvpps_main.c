@@ -186,6 +186,7 @@ static void nvpps_get_ts(struct nvpps_device_data *pdev_data, bool in_isr)
 	u64		phc = 0;
 	u64		irq_latency = 0;
 	unsigned long	flags;
+	const char *intf_name = "eth0";
 
 	if (in_isr) {
 		/* initialize irq_tsc to the current TSC just in case the
@@ -230,13 +231,13 @@ static void nvpps_get_ts(struct nvpps_device_data *pdev_data, bool in_isr)
 		/* get the TSC time before the function call */
 		tsc1 = __arch_counter_get_cntvct();
 		/* get the phc(using ptp notifier) from eqos driver */
-		if (get_ptp_hwtime(&phc)) {
+		if (tegra_get_hwtime(intf_name, &phc, PTP_HWTIME)) {
 			dev_err(pdev_data->dev,
 				"pdev_data->dev, HW PTP not running\n");
 		}
 		/* get the TSC time after the function call */
 		tsc2 = __arch_counter_get_cntvct();
-		/* we do not know the latency of the get_ptp_hwtime() function
+		/* we do not know the latency of the tegra_get_hwtime() function
 		 * so we are measuring the before and after and use the two
 		 * samples average to approximate the time when the PTP clock
 		 * is sampled
@@ -496,6 +497,7 @@ static long nvpps_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 			u64	ns;
 			u32	reminder;
 			u64	tsc1, tsc2;
+			const char *intf_name = "eth0";
 
 			tsc1 = __arch_counter_get_cntvct();
 
@@ -529,7 +531,7 @@ static long nvpps_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 					"ioctl: Unsupported clockid\n");
 			}
 
-			err = get_ptp_hwtime(&ns);
+			err = tegra_get_hwtime(intf_name, &ns, PTP_HWTIME);
 			mutex_unlock(&pdev_data->ts_lock);
 			if (err) {
 				dev_dbg(pdev_data->dev,

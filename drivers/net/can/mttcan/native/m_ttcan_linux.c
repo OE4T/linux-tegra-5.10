@@ -1047,6 +1047,7 @@ static void mttcan_timer_cb(unsigned long data)
 	unsigned long flags;
 	u64 tref;
 	int ret = 0;
+	const char *intf_name = "eth0";
 #if LINUX_VERSION_CODE > KERNEL_VERSION(4,15,0)
 	struct mttcan_priv *priv = container_of(timer, struct mttcan_priv, timer);
 #else
@@ -1054,7 +1055,7 @@ static void mttcan_timer_cb(unsigned long data)
 #endif
 
 	raw_spin_lock_irqsave(&priv->tc_lock, flags);
-	ret = get_ptp_hwtime(&tref);
+	ret = tegra_get_hwtime(intf_name, &tref, PTP_HWTIME);
 	if (ret != 0) {
 		tref = ktime_to_ns(ktime_get());
 	}
@@ -1424,6 +1425,7 @@ static int mttcan_handle_hwtstamp_set(struct mttcan_priv *priv,
 	u64 tref;
 	bool rx_config_chg = false;
 	int ret = 0;
+	const char *intf_name = "eth0";
 
 	if (copy_from_user(&config, ifr->ifr_data,
 			   sizeof(struct hwtstamp_config)))
@@ -1476,7 +1478,7 @@ static int mttcan_handle_hwtstamp_set(struct mttcan_priv *priv,
 			raw_spin_unlock_irqrestore(&priv->tc_lock, flags);
 		} else {
 			raw_spin_lock_irqsave(&priv->tc_lock, flags);
-			ret = get_ptp_hwtime(&tref);
+			ret = tegra_get_hwtime(intf_name, &tref, PTP_HWTIME);
 			if (ret != 0) {
 				dev_err(priv->device, "HW PTP not running\n");
 				tref = ktime_to_ns(ktime_get());

@@ -2824,7 +2824,7 @@ static int ether_close(struct net_device *ndev)
 #endif
 
 	/* Unregister broadcasting MAC timestamp to clients */
-	tegra_unregister_hwtime_source();
+	tegra_unregister_hwtime_source(ndev);
 
 	/* Stop workqueue to get further scheduled */
 	ether_stats_work_queue_stop(pdata);
