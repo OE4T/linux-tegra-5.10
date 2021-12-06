@@ -87,6 +87,10 @@ static int tegra_aon_init_dev_data(struct platform_device *pdev)
 		goto exit;
 	}
 
+	if (dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32))) {
+		dev_err(&pdev->dev, "setting DMA MASK failed!\n");
+	}
+
 	tegra_aon_set_pdata(pdev, aon);
 	aon->dev = dev;
 
