@@ -131,7 +131,6 @@ struct sg_table *_nvmap_dmabuf_map_dma_buf(
 			access_vpr_phys(attach->dev)) {
 		sg_dma_address(sgt->sgl) = 0;
 	} else {
-		dma_set_attr(DMA_ATTR_SKIP_IOVA_GAP, __DMA_ATTR(attrs));
 		dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, __DMA_ATTR(attrs));
 		ents = dma_map_sg_attrs(attach->dev, sgt->sgl,
 					sgt->nents, dir, __DMA_ATTR(attrs));
@@ -194,7 +193,7 @@ void _nvmap_dmabuf_unmap_dma_buf(struct dma_buf_attachment *attach,
 	} else {
 		dma_unmap_sg_attrs(attach->dev,
 				   sgt->sgl, sgt->nents,
-				   dir, DMA_ATTR_SKIP_IOVA_GAP | DMA_ATTR_SKIP_CPU_SYNC);
+				   dir, DMA_ATTR_SKIP_CPU_SYNC);
 	}
 	__nvmap_free_sg_table(NULL, info->handle, sgt);
 

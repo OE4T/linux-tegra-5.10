@@ -100,11 +100,6 @@ do {                                                    \
 #define GFP_NVMAP       (GFP_KERNEL | __GFP_HIGHMEM | __GFP_NOWARN)
 
 #ifdef NVMAP_LOADABLE_MODULE
-/*
- * DMA_ATTR_SKIP_IOVA_GAP: This tells the DMA-mapping
- * subsystem to skip gap pages
- */
-#define DMA_ATTR_SKIP_IOVA_GAP		(DMA_ATTR_PRIVILEGED << 1)
 
 /*
  * DMA_ATTR_ALLOC_EXACT_SIZE: This tells the DMA-mapping

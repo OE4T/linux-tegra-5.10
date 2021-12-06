@@ -124,7 +124,7 @@ int pva_run_ucode_selftest(struct platform_device *pdev)
 
 	selftest_cpuaddr = pva_dma_alloc_and_map_at(&pdev->dev,
 			base_size, base_iova, GFP_KERNEL | __GFP_ZERO,
-			DMA_ATTR_SKIP_CPU_SYNC | DMA_ATTR_SKIP_IOVA_GAP);
+			DMA_ATTR_SKIP_CPU_SYNC);
 
 	if (!selftest_cpuaddr) {
 		dev_warn(&pdev->dev, "Failed to get Selftest Static memory\n");
@@ -174,7 +174,7 @@ err_selftest:
 		dma_free_attrs(&pdev->dev,
 			PVA_SELF_TESTMODE_ADDR_SIZE, selftest_cpuaddr,
 			PVA_SELF_TESTMODE_START_ADDR,
-			DMA_ATTR_SKIP_CPU_SYNC | DMA_ATTR_SKIP_IOVA_GAP);
+			DMA_ATTR_SKIP_CPU_SYNC);
 	}
 
 	return err;

@@ -553,7 +553,6 @@ static int nvmap_gosmem_notifier(struct notifier_block *nb,
 		enum dma_data_direction dir;
 
 		dir = DMA_BIDIRECTIONAL;
-		dma_set_attr(DMA_ATTR_SKIP_IOVA_GAP, __DMA_ATTR(attrs));
 		if (cvdev_info[i].np != dev->of_node) {
 			dma_set_attr(DMA_ATTR_READ_ONLY, __DMA_ATTR(attrs));
 			dir = DMA_TO_DEVICE;
