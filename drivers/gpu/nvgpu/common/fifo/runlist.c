@@ -789,15 +789,15 @@ int nvgpu_rl_domain_delete(struct gk20a *g, const char *name)
 {
 	struct nvgpu_fifo *f = &g->fifo;
 	u32 i;
-	struct nvgpu_runlist *runlist;
 
 	for (i = 0; i < f->num_runlists; i++) {
+		struct nvgpu_runlist *runlist;
 		struct nvgpu_runlist_domain *domain;
 
 		runlist = &f->active_runlists[i];
 
 		nvgpu_mutex_acquire(&runlist->runlist_lock);
-		domain = nvgpu_rl_domain_get(g, i, name);
+		domain = nvgpu_rl_domain_get(g, runlist->id, name);
 		if (domain != NULL) {
 			struct nvgpu_runlist_domain *first;
 			struct nvgpu_runlist_domain *last;
