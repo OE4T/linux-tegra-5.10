@@ -711,20 +711,36 @@ static void ga10b_intr_isr_stall_host2soc_2(struct gk20a *g)
 
 static int ga10b_intr_gr_stall_isr(struct gk20a *g)
 {
-	int err;
+	int err = 0;
 
-	err = nvgpu_pg_elpg_protected_call(g, g->ops.gr.intr.stall_isr(g));
+#ifdef CONFIG_NVGPU_POWER_PG
+	/* Disable ELPG before handling stall isr */
+	err = nvgpu_pg_elpg_disable(g);
+	if (err != 0) {
+		nvgpu_err(g, "ELPG disable failed."
+			"Going ahead with stall_isr handling");
+	}
+#endif
+	/* handle stall isr */
+	err = g->ops.gr.intr.stall_isr(g);
 	if (err != 0) {
 		nvgpu_err(g, "GR intr stall_isr failed");
 		return err;
 	}
 
-	err = nvgpu_pg_elpg_protected_call(g, g->ops.gr.intr.retrigger(g));
+	err = g->ops.gr.intr.retrigger(g);
 	if (err != 0) {
 		nvgpu_err(g, "GR intr retrigger failed");
 		return err;
 	}
 
+#ifdef CONFIG_NVGPU_POWER_PG
+	/* enable elpg again */
+	err = nvgpu_pg_elpg_enable(g);
+	if (err != 0) {
+		 nvgpu_err(g, "ELPG enable failed.");
+	}
+#endif
 	return err;
 }
 
