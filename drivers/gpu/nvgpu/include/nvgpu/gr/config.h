@@ -52,6 +52,12 @@ struct nvgpu_gr_config;
  *
  * This unit also exposes APIs to query each of above configuration data.
  *
+ * If incorrect or unexpected GR engine configuration is read (examples
+ * below) initialization is aborted and NULL is returned.
+ * - GPC count is 0.
+ * - SM count per TPC is 0.
+ * - PES count per GPC is more than #GK20A_GR_MAX_PES_PER_GPC.
+ *
  * @return pointer to nvgpu_gr_config struct in case of success,
  *         NULL in case of failure.
  */
