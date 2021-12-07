@@ -662,7 +662,23 @@
 			<0x0 0x03520000 0x0 0x20000>,
 			<0x0 0x03540000 0x0 0x10000>;
 		reg-names = "base", "fpci", "bar2", "padctl", "ao";
-		interrupts = <0 163 0x4>, <0 164 0x4>, <0 167 0x4>;
+		interrupts-extended = <&intc 0 163 0x4>,
+				      <&intc 0 164 0x4>,
+				      <&intc 0 167 0x4>,
+				      <&tegra_pmc 76 0x4>,
+				      <&tegra_pmc 77 0x4>,
+				      <&tegra_pmc 78 0x4>,
+				      <&tegra_pmc 79 0x4>,
+				      <&tegra_pmc 80 0x4>,
+				      <&tegra_pmc 81 0x4>,
+				      <&tegra_pmc 82 0x4>;
+		/*
+                   wake0, wake1, wake2 are for USB3.0 ports
+                   wake3, wake4, wake5, wake6 are for USB2.0 ports
+		*/
+		interrupt-names = "xhci", "mbox", "padctl",
+				  "wake0", "wake1", "wake2", "wake3",
+				  "wake4", "wake5", "wake6";
 
 		clocks = <&bpmp_clks TEGRA234_CLK_XUSB_CORE_MUX>,
 			<&bpmp_clks TEGRA234_CLK_XUSB_CORE_HOST>,
