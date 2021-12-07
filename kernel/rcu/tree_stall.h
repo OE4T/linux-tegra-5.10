@@ -535,6 +535,10 @@ static void print_other_cpu_stall(unsigned long gp_seq, unsigned long gps)
 	rcu_check_gp_kthread_starvation();
 
 	panic_on_rcu_stall();
+	pr_crit("====For debug only: Start Printing Blocked Tasks====<%s>\n", __func__);
+	console_loglevel = CONSOLE_LOGLEVEL_DEBUG;
+	show_state_filter(TASK_UNINTERRUPTIBLE);
+	pr_crit("====For debug only: End Printing Blocked Tasks====<%s>\n", __func__);
 
 	rcu_force_quiescent_state();  /* Kick them all. */
 }
@@ -580,6 +584,10 @@ static void print_cpu_stall(unsigned long gps)
 			   jiffies + 3 * rcu_jiffies_till_stall_check() + 3);
 	raw_spin_unlock_irqrestore_rcu_node(rnp, flags);
 
+	pr_crit("====For debug only: Start Printing Blocked Tasks====<%s>\n", __func__);
+	console_loglevel = CONSOLE_LOGLEVEL_DEBUG;
+	show_state_filter(TASK_UNINTERRUPTIBLE);
+	pr_crit("====For debug only: End Printing Blocked Tasks====<%s>\n", __func__);
 	panic_on_rcu_stall();
 
 	/*

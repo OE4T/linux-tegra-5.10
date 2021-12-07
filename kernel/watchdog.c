@@ -416,9 +416,16 @@ static enum hrtimer_restart watchdog_timer_fn(struct hrtimer *hrtimer)
 			dump_stack();
 
 		if (softlockup_all_cpu_backtrace) {
+			pr_crit("===For debug only: in softlockup_all_cpu_backtrace===<%s>\n", __func__);
+			console_loglevel = CONSOLE_LOGLEVEL_DEBUG;
 			trigger_allbutself_cpu_backtrace();
 			clear_bit_unlock(0, &soft_lockup_nmi_warn);
 		}
+
+		pr_crit("====For debug only: Start Printing Blocked Tasks====<%s>\n", __func__);
+		console_loglevel = CONSOLE_LOGLEVEL_DEBUG;
+		show_state_filter(TASK_UNINTERRUPTIBLE);
+		pr_crit("====For debug only: End Printing Blocked Tasks====<%s>\n", __func__);
 
 		add_taint(TAINT_SOFTLOCKUP, LOCKDEP_STILL_OK);
 		if (softlockup_panic)
