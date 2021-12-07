@@ -5950,6 +5950,13 @@ static const struct tegra_wake_event tegra234_wake_events[] = {
 	TEGRA_WAKE_GPIO("power", 29, 1, TEGRA234_AON_GPIO(EE, 4)),
 	TEGRA_WAKE_IRQ("sw_wake", 83, 179),
 	TEGRA_WAKE_GPIO("sd_wake", 8, 0, TEGRA234_MAIN_GPIO(G, 7)),
+	TEGRA_WAKE_IRQ("usb3_port_0", 76, 167),
+	TEGRA_WAKE_IRQ("usb3_port_1", 77, 167),
+	TEGRA_WAKE_IRQ("usb3_port_2_3", 78, 167),
+	TEGRA_WAKE_IRQ("usb2_port_0", 79, 167),
+	TEGRA_WAKE_IRQ("usb2_port_1", 80, 167),
+	TEGRA_WAKE_IRQ("usb2_port_2", 81, 167),
+	TEGRA_WAKE_IRQ("usb2_port_3", 82, 167),
 };
 
 static const struct tegra_pmc_soc tegra234_pmc_soc = {
