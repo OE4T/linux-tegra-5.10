@@ -42,6 +42,7 @@
 #include <linux/stat.h>
 #include <linux/gpio.h>
 #include <linux/of_gpio.h>
+#include <linux/iommu.h>
 
 #include <linux/uaccess.h>
 #include <linux/fs.h>
@@ -137,6 +138,8 @@
 #define SDHCI_TEGRA_AUTO_CAL_STATUS			0x1ec
 #define SDHCI_TEGRA_AUTO_CAL_ACTIVE			BIT(31)
 
+#define SDHCI_TEGRA_CIF2AXI_CTRL_0			0x1fc
+
 #define NVQUIRK_FORCE_SDHCI_SPEC_200			BIT(0)
 #define NVQUIRK_ENABLE_BLOCK_GAP_DET			BIT(1)
 #define NVQUIRK_ENABLE_SDHCI_SPEC_300			BIT(2)
@@ -167,6 +170,8 @@
 #define NVQUIRK_HAS_TMCLK				BIT(14)
 #define NVQUIRK_ENABLE_PERIODIC_CALIB			BIT(15)
 #define NVQUIRK_ENABLE_TUNING_DQ_OFFSET			BIT(16)
+#define NVQUIRK_PROGRAM_MC_STREAMID			BIT(17)
+
 #define SDHCI_TEGRA_FALLBACK_CLK_HZ			400000
 
 #define MAX_TAP_VALUE		256
@@ -2685,6 +2690,7 @@ static const struct sdhci_tegra_soc_data soc_data_tegra234 = {
 		    NVQUIRK_CONTROL_TRIMMER_SUPPLY |
 		    NVQUIRK_ENABLE_SDR50 |
 		    NVQUIRK_SDMMC_CLK_OVERRIDE |
+		    NVQUIRK_PROGRAM_MC_STREAMID |
 		    NVQUIRK_ENABLE_SDR104 |
 		    NVQUIRK_HAS_TMCLK,
 	.min_tap_delay = 95,
@@ -2812,7 +2818,9 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 	struct sdhci_pltfm_host *pltfm_host;
 	struct sdhci_tegra *tegra_host;
 	struct clk *clk;
+	struct iommu_fwspec *fwspec;
 	int rc;
+	u32 streamid;
 
 	match = of_match_device(sdhci_tegra_dt_match, &pdev->dev);
 	if (!match)
@@ -3053,6 +3061,22 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 			gpio_set_value_cansleep(tegra_host->mux_sel_gpio, 0);
 			dev_info(mmc_dev(host->mmc),
 				 "SD mode initially set by mux selection GPIO\n");
+		}
+	}
+
+	/* Program MC streamID for DMA transfers */
+	if (soc_data->nvquirks & NVQUIRK_PROGRAM_MC_STREAMID) {
+		fwspec = dev_iommu_fwspec_get(&pdev->dev);
+		if (fwspec == NULL) {
+			rc = -ENODEV;
+			dev_err(mmc_dev(host->mmc),
+				"failed to get MC streamid: %d\n",
+				rc);
+			goto err_rst_get;
+		} else {
+			streamid = fwspec->ids[0] & 0xffff;
+			tegra_sdhci_writel(host, streamid | (streamid << 8),
+						SDHCI_TEGRA_CIF2AXI_CTRL_0);
 		}
 	}
 
