@@ -15,6 +15,7 @@
 
 #include <linux/dma-buf.h>
 #include <linux/dma-iommu.h>
+#include <linux/dma-map-ops.h>
 #include <linux/errno.h>
 #include <linux/kernel.h>
 #include <linux/pci.h>
@@ -154,7 +155,15 @@ pci_client_init(struct pci_client_params *params, void **pci_client_h)
 	 */
 	ctx->domain = iommu_get_domain_for_dev(ctx->dev);
 	if (WARN_ON(!ctx->domain)) {
+		ret = -ENODEV;
 		pr_err("iommu not available for the pci device\n");
+		goto err;
+	}
+
+	/* assumption : PCIe to be fully IO Coherent. Validate the assumption.*/
+	if (WARN_ON(!dev_is_dma_coherent(ctx->dev))) {
+		ret = -ENODEV;
+		pr_err("io-coherency not enabled for the pci device\n");
 		goto err;
 	}
 

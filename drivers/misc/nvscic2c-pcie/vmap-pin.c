@@ -203,7 +203,8 @@ memobj_clientmngd_pin(struct vmap_ctx_t *vmap_ctx,
 		pin->nents[sg_index].len = sg->length;
 		ret = pci_client_map_addr(vmap_ctx->pci_client_h,
 					  pin->nents[sg_index].iova, paddr,
-					  pin->nents[sg_index].len, prot);
+					  pin->nents[sg_index].len,
+					  (IOMMU_CACHE | prot));
 		if (ret < 0) {
 			pr_err("Failed: to iommu_map sg_nent: (%u), size: (%u)\n",
 			       sg_index, sg->length);
