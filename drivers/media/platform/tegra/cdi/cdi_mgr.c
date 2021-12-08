@@ -1000,10 +1000,11 @@ static int cdi_mgr_open(struct inode *inode, struct file *file)
 	struct cdi_mgr_priv *cdi_mgr = container_of(inode->i_cdev,
 					struct cdi_mgr_priv, cdev);
 
-	cdi_mgr->err_irq_reported = false;
 	/* only one application can open one cdi_mgr device */
 	if (atomic_xchg(&cdi_mgr->in_use, 1))
 		return -EBUSY;
+
+	cdi_mgr->err_irq_reported = false;
 
 	dev_dbg(cdi_mgr->pdev, "%s\n", __func__);
 	file->private_data = cdi_mgr;
