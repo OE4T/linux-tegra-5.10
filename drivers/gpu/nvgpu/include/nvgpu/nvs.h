@@ -88,14 +88,14 @@ int nvgpu_nvs_suspend(struct gk20a *g);
 void nvgpu_nvs_get_log(struct gk20a *g, s64 *timestamp, const char **msg);
 u32 nvgpu_nvs_domain_count(struct gk20a *g);
 int nvgpu_nvs_del_domain(struct gk20a *g, u64 dom_id);
-int nvgpu_nvs_add_domain(struct gk20a *g, const char *name, u32 timeslice,
-			 u32 preempt_grace, struct nvgpu_nvs_domain **pdomain);
-struct nvgpu_nvs_domain *
-nvgpu_nvs_get_dom_by_id(struct gk20a *g, struct nvs_sched *sched, u64 dom_id);
+int nvgpu_nvs_add_domain(struct gk20a *g, const char *name, u64 timeslice,
+			 u64 preempt_grace, struct nvgpu_nvs_domain **pdomain);
 void nvgpu_nvs_print_domain(struct gk20a *g, struct nvgpu_nvs_domain *domain);
 
 struct nvgpu_nvs_domain *
-nvgpu_nvs_domain_get(struct gk20a *g, const char *name);
+nvgpu_nvs_domain_by_id(struct gk20a *g, u64 domain_id);
+struct nvgpu_nvs_domain *
+nvgpu_nvs_domain_by_name(struct gk20a *g, const char *name);
 void nvgpu_nvs_domain_put(struct gk20a *g, struct nvgpu_nvs_domain *dom);
 /*
  * Debug wrapper for NVS code.
@@ -119,7 +119,7 @@ static inline int nvgpu_nvs_suspend(struct gk20a *g)
 }
 
 static inline struct nvgpu_nvs_domain *
-nvgpu_nvs_domain_get(struct gk20a *g, const char *name)
+nvgpu_nvs_domain_by_name(struct gk20a *g, const char *name)
 {
 	return NULL;
 }

@@ -572,6 +572,8 @@ static void runlist_select_locked(struct gk20a *g, struct nvgpu_runlist *runlist
 
 	gk20a_busy_noresume(g);
 	if (nvgpu_is_powered_off(g)) {
+		rl_dbg(g, "Runlist[%u]: power is off, skip submit",
+				runlist->id);
 		gk20a_idle_nosuspend(g);
 		return;
 	}
@@ -580,7 +582,7 @@ static void runlist_select_locked(struct gk20a *g, struct nvgpu_runlist *runlist
 	gk20a_idle_nosuspend(g);
 
 	if (err != 0) {
-		nvgpu_err(g, "failed to hold power for runlist switch");
+		nvgpu_err(g, "failed to hold power for runlist submit");
 		/*
 		 * probably shutting down though, so don't bother propagating
 		 * the error. Power is already on when the domain scheduler is

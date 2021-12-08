@@ -181,7 +181,23 @@ static int nvgpu_tsg_bind_scheduling_domain(struct nvgpu_tsg *tsg,
 		struct nvgpu_tsg_bind_scheduling_domain_args *args)
 {
 
-	return nvgpu_tsg_bind_domain(tsg, args->domain_name);
+	if (args->reserved[0] != 0) {
+		return -EINVAL;
+	}
+
+	if (args->reserved[1] != 0) {
+		return -EINVAL;
+	}
+
+	if (args->reserved[2] != 0) {
+		return -EINVAL;
+	}
+
+	if (tsg->g->scheduler == NULL) {
+		return -ENOSYS;
+	}
+
+	return nvgpu_tsg_bind_domain(tsg, args->domain_id);
 }
 #endif
 

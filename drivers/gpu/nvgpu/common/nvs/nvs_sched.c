@@ -88,12 +88,12 @@ static void nvgpu_nvs_worker_wakeup_process_item(
 	/* placeholder; never called yet */
 }
 
-static u32 nvgpu_nvs_tick(struct gk20a *g)
+static u64 nvgpu_nvs_tick(struct gk20a *g)
 {
 	struct nvgpu_nvs_scheduler *sched = g->scheduler;
 	struct nvgpu_nvs_domain *domain;
 	struct nvs_domain *nvs_domain;
-	u32 timeslice;
+	u64 timeslice;
 
 	nvs_dbg(g, "nvs tick");
 
@@ -104,14 +104,14 @@ static u32 nvgpu_nvs_tick(struct gk20a *g)
 	if (domain == NULL) {
 		/* nothing to schedule, TODO wait for an event instead */
 		nvgpu_mutex_release(&g->sched_mutex);
-		return 100000;
+		return 100 * NSEC_PER_MSEC;
 	}
 
 	nvs_domain = domain->parent->next;
 	if (nvs_domain == NULL) {
 		nvs_domain = g->scheduler->sched->domain_list->domains;
 	}
-	timeslice = nvs_domain->timeslice_us;
+	timeslice = nvs_domain->timeslice_ns;
 
 	nvgpu_runlist_tick(g);
 	sched->active_domain = nvs_domain->priv;
@@ -128,10 +128,11 @@ static void nvgpu_nvs_worker_wakeup_post_process(struct nvgpu_worker *worker)
 		nvgpu_nvs_worker_from_worker(worker);
 
 	if (nvgpu_timeout_peek_expired(&nvs_worker->timeout)) {
-		u32 next_timeout_us = nvgpu_nvs_tick(g);
+		u32 next_timeout_ns = nvgpu_nvs_tick(g);
 
-		if (next_timeout_us != 0U) {
-			nvs_worker->current_timeout = (next_timeout_us + 999U) / 1000U;
+		if (next_timeout_ns != 0U) {
+			nvs_worker->current_timeout =
+				(next_timeout_ns + NSEC_PER_MSEC - 1) / NSEC_PER_MSEC;
 		}
 
 		nvgpu_timeout_init_cpu_timer(g, &nvs_worker->timeout,
@@ -175,7 +176,10 @@ int nvgpu_nvs_init(struct gk20a *g)
 	}
 
 	if (nvgpu_rl_domain_get(g, 0, "(default)") == NULL) {
-		int err = nvgpu_nvs_add_domain(g, "(default)", 1000*1000, 10*1000, &domain);
+		int err = nvgpu_nvs_add_domain(g, "(default)",
+				100U * NSEC_PER_MSEC,
+				0U,
+				&domain);
 		if (err != 0) {
 			return err;
 		}
@@ -284,8 +288,8 @@ static u64 nvgpu_nvs_new_id(struct gk20a *g)
 	return nvgpu_atomic64_inc_return(&g->scheduler->id_counter);
 }
 
-int nvgpu_nvs_add_domain(struct gk20a *g, const char *name, u32 timeslice,
-			 u32 preempt_grace, struct nvgpu_nvs_domain **pdomain)
+int nvgpu_nvs_add_domain(struct gk20a *g, const char *name, u64 timeslice,
+			 u64 preempt_grace, struct nvgpu_nvs_domain **pdomain)
 {
 	int err = 0;
 	struct nvs_domain *nvs_dom;
@@ -313,6 +317,7 @@ int nvgpu_nvs_add_domain(struct gk20a *g, const char *name, u32 timeslice,
 				    timeslice, preempt_grace, nvgpu_dom);
 
 	if (nvs_dom == NULL) {
+		nvs_dbg(g, "failed to create nvs domain for %s", name);
 		nvgpu_kfree(g, nvgpu_dom);
 		err = -ENOMEM;
 		goto unlock;
@@ -320,9 +325,10 @@ int nvgpu_nvs_add_domain(struct gk20a *g, const char *name, u32 timeslice,
 
 	err = nvgpu_rl_domain_alloc(g, name);
 	if (err != 0) {
+		nvs_dbg(g, "failed to alloc rl domain for %s", name);
 		nvs_domain_destroy(g->scheduler->sched, nvs_dom);
 		nvgpu_kfree(g, nvgpu_dom);
-		return err;
+		goto unlock;
 	}
 
 
@@ -339,14 +345,15 @@ unlock:
 }
 
 struct nvgpu_nvs_domain *
-nvgpu_nvs_get_dom_by_id(struct gk20a *g, struct nvs_sched *sched, u64 dom_id)
+nvgpu_nvs_domain_by_id_locked(struct gk20a *g, u64 domain_id)
 {
+	struct nvgpu_nvs_scheduler *sched = g->scheduler;
 	struct nvs_domain *nvs_dom;
 
-	nvs_domain_for_each(sched, nvs_dom) {
+	nvs_domain_for_each(sched->sched, nvs_dom) {
 		struct nvgpu_nvs_domain *nvgpu_dom = nvs_dom->priv;
 
-		if (nvgpu_dom->id == dom_id) {
+		if (nvgpu_dom->id == domain_id) {
 			return nvgpu_dom;
 		}
 	}
@@ -355,7 +362,26 @@ nvgpu_nvs_get_dom_by_id(struct gk20a *g, struct nvs_sched *sched, u64 dom_id)
 }
 
 struct nvgpu_nvs_domain *
-nvgpu_nvs_domain_get(struct gk20a *g, const char *name)
+nvgpu_nvs_domain_by_id(struct gk20a *g, u64 domain_id)
+{
+	struct nvgpu_nvs_domain *dom = NULL;
+
+	nvgpu_mutex_acquire(&g->sched_mutex);
+
+	dom = nvgpu_nvs_domain_by_id_locked(g, domain_id);
+	if (dom == NULL) {
+		goto unlock;
+	}
+
+	dom->ref++;
+
+unlock:
+	nvgpu_mutex_release(&g->sched_mutex);
+	return dom;
+}
+
+struct nvgpu_nvs_domain *
+nvgpu_nvs_domain_by_name(struct gk20a *g, const char *name)
 {
 	struct nvs_domain *nvs_dom;
 	struct nvgpu_nvs_domain *dom = NULL;
@@ -395,7 +421,7 @@ int nvgpu_nvs_del_domain(struct gk20a *g, u64 dom_id)
 
 	nvs_dbg(g, "Attempting to remove domain: %llu", dom_id);
 
-	nvgpu_dom = nvgpu_nvs_get_dom_by_id(g, s->sched, dom_id);
+	nvgpu_dom = nvgpu_nvs_domain_by_id_locked(g, dom_id);
 	if (nvgpu_dom == NULL) {
 		nvs_dbg(g, "domain %llu does not exist!", dom_id);
 		err = -ENOENT;
@@ -473,7 +499,7 @@ void nvgpu_nvs_print_domain(struct gk20a *g, struct nvgpu_nvs_domain *domain)
 	struct nvs_domain *nvs_dom = domain->parent;
 
 	nvs_dbg(g, "Domain %s", nvs_dom->name);
-	nvs_dbg(g, "  timeslice:     %u us", nvs_dom->timeslice_us);
-	nvs_dbg(g, "  preempt grace: %u us", nvs_dom->preempt_grace_us);
+	nvs_dbg(g, "  timeslice:     %llu ns", nvs_dom->timeslice_ns);
+	nvs_dbg(g, "  preempt grace: %llu ns", nvs_dom->preempt_grace_ns);
 	nvs_dbg(g, "  domain ID:     %llu", domain->id);
 }

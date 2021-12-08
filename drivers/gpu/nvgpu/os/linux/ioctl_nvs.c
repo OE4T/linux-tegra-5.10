@@ -55,10 +55,30 @@ static int nvgpu_nvs_ioctl_create_domain(
 	struct nvgpu_nvs_domain *domain = NULL;
 	int err;
 
+	if (dom_args->reserved1 != 0) {
+		return -EINVAL;
+	}
+
+	if (dom_args->domain_params.reserved1 != 0) {
+		return -EINVAL;
+	}
+
+	if (dom_args->domain_params.reserved2 != 0) {
+		return -EINVAL;
+	}
+
+	if (dom_args->domain_params.dom_id != 0) {
+		return -EINVAL;
+	}
+
+	if (g->scheduler == NULL) {
+		return -ENOSYS;
+	}
+
 	err = nvgpu_nvs_add_domain(g,
 				      dom_args->domain_params.name,
-				      dom_args->domain_params.timeslice_us,
-				      dom_args->domain_params.preempt_grace_us,
+				      dom_args->domain_params.timeslice_ns,
+				      dom_args->domain_params.preempt_grace_ns,
 				      &domain);
 	if (err != 0) {
 		return err;
@@ -71,9 +91,18 @@ static int nvgpu_nvs_ioctl_create_domain(
 	return 0;
 }
 
-static int nvgpu_nvs_ioctl_remove_domain(struct gk20a *g, u32 dom_id)
+static int nvgpu_nvs_ioctl_remove_domain(struct gk20a *g,
+	struct nvgpu_nvs_ioctl_remove_domain *args)
 {
-	return nvgpu_nvs_del_domain(g, dom_id);
+	if (args->reserved1 != 0) {
+		return -EINVAL;
+	}
+
+	if (g->scheduler == NULL) {
+		return -ENOSYS;
+	}
+
+	return nvgpu_nvs_del_domain(g, args->dom_id);
 }
 
 static int nvgpu_nvs_ioctl_query_domains(
@@ -84,45 +113,61 @@ static int nvgpu_nvs_ioctl_query_domains(
 	struct nvgpu_nvs_domain *nvgpu_dom;
 	struct nvs_domain *nvs_dom;
 	u32 index;
-	struct nvgpu_nvs_ioctl_domain *args_domains = (void __user *)(uintptr_t)args->domains;
+	u32 user_capacity = args->nr;
+	struct nvgpu_nvs_ioctl_domain *args_domains =
+		(void __user *)(uintptr_t)args->domains;
 
-	/* First call variant: return number of domains. */
-	if (args_domains == NULL) {
-		args->nr = nvgpu_nvs_domain_count(g);
-		if (copy_to_user(user_arg, args, sizeof(*args))) {
-			return -EFAULT;
-		}
-		nvs_dbg(g, "Nr domains: %u", args->nr);
-		return 0;
+	if (args->reserved0 != 0) {
+		return -EINVAL;
 	}
 
-	/*
-	 * Second call variant: populate the passed array with domain info.
-	 */
-	index = 0;
-	nvs_domain_for_each(g->scheduler->sched, nvs_dom) {
-		struct nvgpu_nvs_ioctl_domain dom;
+	if (args->reserved1 != 0) {
+		return -EINVAL;
+	}
 
-		nvgpu_dom = nvs_dom->priv;
+	if (g->scheduler == NULL) {
+		return -ENOSYS;
+	}
 
-		nvs_dbg(g, "Copying dom #%u [%s] (%llu)",
-			index, nvs_dom->name, nvgpu_dom->id);
+	/* First call variant: return number of domains. */
+	args->nr = nvgpu_nvs_domain_count(g);
+	if (copy_to_user(user_arg, args, sizeof(*args))) {
+		return -EFAULT;
+	}
+	nvs_dbg(g, "Nr domains: %u", args->nr);
 
-		(void)memset(&dom, 0, sizeof(dom));
+	if (args_domains != NULL) {
+		/*
+		 * Second call variant: populate the passed array with domain info.
+		 */
+		index = 0;
+		nvs_domain_for_each(g->scheduler->sched, nvs_dom) {
+			struct nvgpu_nvs_ioctl_domain dom;
+			if (index == user_capacity) {
+				break;
+			}
 
-		strncpy(dom.name, nvs_dom->name, sizeof(dom.name) - 1);
-		dom.timeslice_us     = nvs_dom->timeslice_us;
-		dom.preempt_grace_us = nvs_dom->preempt_grace_us;
-		dom.subscheduler     = nvgpu_dom->subscheduler;
-		dom.dom_id           = nvgpu_dom->id;
+			nvgpu_dom = nvs_dom->priv;
 
-		if (copy_to_user(&args_domains[index],
-				 &dom, sizeof(dom))) {
-			nvs_dbg(g, "Fault during copy of domain to userspace.");
-			return -EFAULT;
+			nvs_dbg(g, "Copying dom #%u [%s] (%llu)",
+				index, nvs_dom->name, nvgpu_dom->id);
+
+			(void)memset(&dom, 0, sizeof(dom));
+
+			strncpy(dom.name, nvs_dom->name, sizeof(dom.name) - 1);
+			dom.timeslice_ns     = nvs_dom->timeslice_ns;
+			dom.preempt_grace_ns = nvs_dom->preempt_grace_ns;
+			dom.subscheduler     = nvgpu_dom->subscheduler;
+			dom.dom_id           = nvgpu_dom->id;
+
+			if (copy_to_user(&args_domains[index],
+					 &dom, sizeof(dom))) {
+				nvs_dbg(g, "Fault during copy of domain to userspace.");
+				return -EFAULT;
+			}
+
+			index += 1;
 		}
-
-		index += 1;
 	}
 
 	return 0;
@@ -130,9 +175,10 @@ static int nvgpu_nvs_ioctl_query_domains(
 
 long nvgpu_nvs_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
+	u8 buf[NVGPU_NVS_IOCTL_MAX_ARG_SIZE] = { 0 };
+	bool writable = filp->f_mode & FMODE_WRITE;
 	struct gk20a *g = filp->private_data;
 	int err = 0;
-	u8 buf[NVGPU_NVS_IOCTL_MAX_ARG_SIZE] = { 0 };
 
 	nvs_dbg(g, "IOC_TYPE: %c", _IOC_TYPE(cmd));
 	nvs_dbg(g, "IOC_NR:   %u", _IOC_NR(cmd));
@@ -159,17 +205,21 @@ long nvgpu_nvs_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		struct nvgpu_nvs_ioctl_create_domain *args =
 			(struct nvgpu_nvs_ioctl_create_domain *)buf;
 
+		if (!writable) {
+			err = -EPERM;
+			goto done;
+		}
+
 		err = nvgpu_nvs_ioctl_create_domain(g, args);
 		if (err)
 			goto done;
 
 		/*
-		 * Issue a remove domain IOCTL in case of fault when copying back to
-		 * userspace.
+		 * Remove the domain in case of fault when copying back to
+		 * userspace to keep this ioctl atomic.
 		 */
 		if (copy_to_user((void __user *)arg, buf, _IOC_SIZE(cmd))) {
-			nvgpu_nvs_ioctl_remove_domain(g,
-						args->domain_params.dom_id);
+			nvgpu_nvs_del_domain(g, args->domain_params.dom_id);
 			err = -EFAULT;
 			goto done;
 		}
@@ -177,19 +227,26 @@ long nvgpu_nvs_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		break;
 	}
 	case NVGPU_NVS_IOCTL_QUERY_DOMAINS:
+	{
+		struct nvgpu_nvs_ioctl_query_domains *args =
+			(struct nvgpu_nvs_ioctl_query_domains *)buf;
+
 		err = nvgpu_nvs_ioctl_query_domains(g,
 						    (void __user *)arg,
-						    (void *)buf);
-		if (err)
-			goto done;
-
+						    args);
 		break;
+	}
 	case NVGPU_NVS_IOCTL_REMOVE_DOMAIN:
 	{
 		struct nvgpu_nvs_ioctl_remove_domain *args =
 			(struct nvgpu_nvs_ioctl_remove_domain *)buf;
 
-		err = nvgpu_nvs_ioctl_remove_domain(g, args->dom_id);
+		if (!writable) {
+			err = -EPERM;
+			goto done;
+		}
+
+		err = nvgpu_nvs_ioctl_remove_domain(g, args);
 		break;
 	}
 	default:

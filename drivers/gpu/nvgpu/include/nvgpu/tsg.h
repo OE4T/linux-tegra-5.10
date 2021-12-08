@@ -381,7 +381,20 @@ int nvgpu_tsg_bind_channel(struct nvgpu_tsg *tsg,
 			struct nvgpu_channel *ch);
 
 #ifdef CONFIG_NVS_PRESENT
-int nvgpu_tsg_bind_domain(struct nvgpu_tsg *tsg, const char *domain_name);
+/**
+ * @brief Bind a TSG to a domain.
+ *
+ * @param tsg [in]		Pointer to TSG struct.
+ * @param domain_id [in]	Domain identifier.
+ *
+ * Make this TSG participate in the given domain, such that it can only be
+ * seen by runlist HW when the domain has been scheduled in.
+ *
+ * The TSG must have no channels at this point.
+ *
+ * @return 0 for successful bind, < 0 for failure.
+ */
+int nvgpu_tsg_bind_domain(struct nvgpu_tsg *tsg, u64 domain_id);
 #endif
 
 /**

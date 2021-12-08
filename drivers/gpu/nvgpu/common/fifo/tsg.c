@@ -155,7 +155,7 @@ int nvgpu_tsg_bind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 }
 
 #ifdef CONFIG_NVS_PRESENT
-int nvgpu_tsg_bind_domain(struct nvgpu_tsg *tsg, const char *domain_name)
+int nvgpu_tsg_bind_domain(struct nvgpu_tsg *tsg, u64 domain_id)
 {
 	struct nvgpu_runlist_domain *rl_domain;
 	struct nvgpu_nvs_domain *nvs_domain;
@@ -166,8 +166,9 @@ int nvgpu_tsg_bind_domain(struct nvgpu_tsg *tsg, const char *domain_name)
 		return -EINVAL;
 	}
 
-	nvs_domain = nvgpu_nvs_domain_get(g, domain_name);
+	nvs_domain = nvgpu_nvs_domain_by_id(g, domain_id);
 	if (nvs_domain == NULL) {
+		nvgpu_err(g, "nvs domain not found (%llu)", domain_id);
 		return -ENOENT;
 	}
 
@@ -175,8 +176,9 @@ int nvgpu_tsg_bind_domain(struct nvgpu_tsg *tsg, const char *domain_name)
 	 * The domain ptr will get updated with the right id once the runlist
 	 * gets specified based on the first channel.
 	 */
-	rl_domain = nvgpu_rl_domain_get(g, 0, domain_name);
+	rl_domain = nvgpu_rl_domain_get(g, 0, nvs_domain->parent->name);
 	if (rl_domain == NULL) {
+		nvgpu_err(g, "rl domain not found (%s)", nvs_domain->parent->name);
 		/*
 		 * This shouldn't happen because the nvs domain guarantees RL domains.
 		 *
@@ -858,7 +860,7 @@ int nvgpu_tsg_open_common(struct gk20a *g, struct nvgpu_tsg *tsg, pid_t pid)
 	 * gets specified based on the first channel.
 	 */
 	tsg->rl_domain = nvgpu_rl_domain_get(g, 0, "(default)");
-	tsg->nvs_domain = nvgpu_nvs_domain_get(g, "(default)");
+	tsg->nvs_domain = nvgpu_nvs_domain_by_name(g, "(default)");
 #ifdef CONFIG_NVGPU_DEBUGGER
 	tsg->sm_exception_mask_type = NVGPU_SM_EXCEPTION_TYPE_MASK_NONE;
 #endif

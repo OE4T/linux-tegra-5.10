@@ -41,9 +41,10 @@ struct nvgpu_tsg_bind_channel_ex_args {
 };
 
 struct nvgpu_tsg_bind_scheduling_domain_args {
-	/* in: name of the domain this tsg will be bound to */
-	__u8 domain_name[16];
-	__u8 reserved[16];
+	/* in: id of the domain this tsg will be bound to */
+	__u64 domain_id;
+	/* Must be set to 0 */
+	__u64 reserved[3];
 };
 
 /*
