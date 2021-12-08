@@ -192,7 +192,7 @@ static inline struct uncore_unit *get_unit(
 		case PMSELR_UNIT_SCF_SCF:
 			return &uncore_pmu->scf;
 		default:
-			dev_err(&pdev->dev, "Error invalid unit id: %u\n", unit_id);
+			dev_dbg(&pdev->dev, "Error invalid unit id: %u\n", unit_id);
 			return NULL;
 	}
 }
@@ -525,7 +525,7 @@ static int scf_uncore_event_init(struct perf_event *event)
 	 * support sampling mode or attach to a task (per-process mode).
 	 */
 	if (is_sampling_event(event) || event->attach_state & PERF_ATTACH_TASK) {
-		dev_err(&pdev->dev, "Can't support sampling events\n");
+		dev_dbg(&pdev->dev, "Can't support sampling events\n");
 		return -EOPNOTSUPP;
 	}
 
@@ -541,7 +541,7 @@ static int scf_uncore_event_init(struct perf_event *event)
 	event_id = CONFIG_EVENT(event->attr.config);
 
 	if (!get_unit(uncore_pmu, unit_id)) {
-		dev_err(&pdev->dev, "Unsupported unit id: %u\n", unit_id);
+		dev_dbg(&pdev->dev, "Unsupported unit id: %u\n", unit_id);
 		return -EINVAL;
 	}
 
