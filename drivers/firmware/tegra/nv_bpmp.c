@@ -228,8 +228,7 @@ static int bpmp_setup_allocator(struct device *dev)
 
 	virt_base = ioremap_cache(ivm->ipa, ivm->size);
 
-	flags = DMA_MEMORY_EXCLUSIVE;
-	flags |= DMA_MEMORY_NOMAP;
+	flags = DMA_MEMORY_NOMAP;
 	ret = dma_declare_coherent_memory(dev, ivm->ipa, 0, ivm->size,
 			flags);
 

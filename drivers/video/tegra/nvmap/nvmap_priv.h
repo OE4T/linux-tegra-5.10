@@ -120,7 +120,6 @@ do {                                                    \
  */
 #define DMA_ATTR_WRITE_ONLY	(DMA_ATTR_PRIVILEGED << 13)
 
-#define DMA_MEMORY_EXCLUSIVE		0x01
 #define DMA_MEMORY_NOMAP		0x02
 #endif /* NVMAP_LOADABLE_MODULE */
 
