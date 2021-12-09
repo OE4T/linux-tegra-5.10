@@ -29,6 +29,9 @@
 #define MAX_GMSL_DP_SER_INTR8_MASK		(1 << 0)
 #define MAX_GMSL_DP_SER_INTR8_VAL		0x1
 
+#define MAX_GMSL_DP_SER_INTR9			0x21
+#define MAX_GMSL_DP_SER_LOSS_OF_LOCK_FLAG	(1 << 0)
+
 #define MAX_GMSL_DP_SER_LINK_CTRL_PHY_A		0x29
 #define MAX_GMSL_DP_SER_LINK_CTRL_A_MASK	(1 << 0)
 
@@ -197,6 +200,16 @@ static int max_gmsl_read_lock(struct max_gmsl_dp_ser_priv *priv,
 
 static irqreturn_t max_gsml_dp_ser_irq_handler(int irq, void *dev_id)
 {
+	struct max_gmsl_dp_ser_priv *priv = dev_id;
+	int ret = 0;
+	struct device *dev = &priv->client->dev;
+
+	ret = max_gmsl_dp_ser_read(priv, MAX_GMSL_DP_SER_INTR9);
+	if (ret & MAX_GMSL_DP_SER_LOSS_OF_LOCK_FLAG)
+		dev_dbg(dev, "%s: Fault due to GMSL Link Loss\n", __func__);
+
+	dev_dbg(dev, "%s: Sticky bit LOSS_OF_LOCK_FLAG cleared\n", __func__);
+
 	return IRQ_HANDLED;
 }
 
@@ -320,10 +333,14 @@ static int max_gmsl_dp_ser_init(struct device *dev)
 	 * Write RESET_LINK = 0 (for both Phy A, 0x29, and Phy B, 0x33)
 	 * to initiate the GMSL link lock process.
 	 */
-	max_gmsl_dp_ser_update(priv, MAX_GMSL_DP_SER_LINK_CTRL_PHY_A,
-			       MAX_GMSL_DP_SER_LINK_CTRL_A_MASK, 0x0);
-	max_gmsl_dp_ser_update(priv, MAX_GMSL_DP_SER_LINK_CTRL_PHY_B,
-			       MAX_GMSL_DP_SER_LINK_CTRL_B_MASK, 0x0);
+	if (priv->gmsl_link_select == MAX_GMSL_DP_SER_ENABLE_LINK_A)
+		max_gmsl_dp_ser_update(priv,
+				       MAX_GMSL_DP_SER_LINK_CTRL_PHY_A,
+				       MAX_GMSL_DP_SER_LINK_CTRL_A_MASK, 0x0);
+	else
+		max_gmsl_dp_ser_update(priv,
+				       MAX_GMSL_DP_SER_LINK_CTRL_PHY_B,
+				       MAX_GMSL_DP_SER_LINK_CTRL_B_MASK, 0x0);
 
 	/*
 	 * Set LINK_ENABLE = 1 (0x7000) to enable SOC DP link training,
@@ -445,19 +462,38 @@ static int max_gmsl_dp_ser_probe(struct i2c_client *client)
 		return -EFAULT;
 	}
 
+	ret = max_gmsl_dp_ser_read(priv, MAX_GMSL_DP_SER_INTR9);
+	if (ret < 0) {
+		dev_err(dev, "%s: INTR9 register read failed\n", __func__);
+		return -EFAULT;
+	}
 	/* enable INTR8.LOSS_OF_LOCK_OEN */
 	max_gmsl_dp_ser_update(priv, MAX_GMSL_DP_SER_INTR8,
 			       MAX_GMSL_DP_SER_INTR8_MASK,
 			       MAX_GMSL_DP_SER_INTR8_VAL);
 
 	priv->ser_errb = of_get_named_gpio(ser, "ser-errb", 0);
+
+	ret = devm_gpio_request_one(&client->dev, priv->ser_errb,
+				    GPIOF_DIR_IN, "GPIO_MAXIM_SER");
+	if (ret < 0) {
+		dev_err(dev, "%s: GPIO request failed\n ret: %d",
+			__func__, ret);
+		return ret;
+	}
+
 	if (gpio_is_valid(priv->ser_errb)) {
 		priv->ser_irq = gpio_to_irq(priv->ser_errb);
-		ret = request_threaded_irq(priv->ser_irq,
+		ret = request_threaded_irq(priv->ser_irq, NULL,
 					   max_gsml_dp_ser_irq_handler,
-					   NULL, IRQF_TRIGGER_RISING
-					   | IRQF_TRIGGER_FALLING
+					   IRQF_TRIGGER_FALLING
 					   | IRQF_ONESHOT, "SER", priv);
+		if (ret < 0) {
+			dev_err(dev, "%s: Unable to register IRQ handler ret: %d\n",
+				__func__, ret);
+			return ret;
+		}
+
 	}
 	return ret;
 }
