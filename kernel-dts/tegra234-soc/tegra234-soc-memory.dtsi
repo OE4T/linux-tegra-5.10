@@ -469,6 +469,7 @@
 			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>;
 		stream-match-mask = <0x7F80>;
 		#iommu-cells = <1>;
+		tlb-inv-throttle;
 		status = "disabled";
 	};
 
