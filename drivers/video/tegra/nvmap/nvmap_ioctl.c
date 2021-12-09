@@ -151,8 +151,10 @@ int nvmap_ioctl_alloc(struct file *filp, void __user *arg)
 	if (!handle)
 		return -EINVAL;
 
-	if (!is_nvmap_memory_available(handle->size, op.heap_mask))
+	if (!is_nvmap_memory_available(handle->size, op.heap_mask)) {
+		nvmap_handle_put(handle);
 		return -ENOMEM;
+	}
 
 	/* user-space handles are aligned to page boundaries, to prevent
 	 * data leakage. */
