@@ -43,6 +43,9 @@
 #include <nvgpu/pmu/pmu_perfmon.h>
 #endif
 #include <nvgpu/profiler.h>
+#ifdef CONFIG_NVGPU_POWER_PG
+#include <nvgpu/pmu/pmu_pg.h>
+#endif
 
 #include "hal/mm/mm_gp10b.h"
 #include "hal/mm/mm_gv11b.h"
@@ -1115,6 +1118,9 @@ static const struct gops_pmu gv11b_ops_pmu = {
 		 */
 	/* Basic init ops */
 	.pmu_early_init = nvgpu_pmu_early_init,
+#ifdef CONFIG_NVGPU_POWER_PG
+	.pmu_restore_golden_img_state = nvgpu_pmu_restore_golden_img_state,
+#endif
 	.is_pmu_supported = gv11b_is_pmu_supported,
 	.falcon_base_addr = gv11b_pmu_falcon_base_addr,
 	.pmu_reset = nvgpu_pmu_reset,

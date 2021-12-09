@@ -34,6 +34,7 @@
 #include <nvgpu/pmu/fw.h>
 #include <nvgpu/pmu/debug.h>
 #include <nvgpu/pmu/pmu_pg.h>
+#include <nvgpu/atomic.h>
 
 #include "pg_sw_gm20b.h"
 #include "pg_sw_gv11b.h"
@@ -273,7 +274,8 @@ int nvgpu_pmu_enable_elpg(struct gk20a *g)
 	/* do NOT enable elpg until golden ctx is created,
 	 * which is related with the ctx that ELPG save and restore.
 	*/
-	if (unlikely(!pmu->pg->golden_image_initialized)) {
+	if (unlikely((nvgpu_atomic_read(&pmu->pg->golden_image_initialized)) !=
+					GOLDEN_IMG_READY)) {
 		goto exit_unlock;
 	}
 
@@ -612,7 +614,8 @@ int nvgpu_pmu_enable_elpg_ms(struct gk20a *g)
 	}
 
 	/* do NOT enable elpg_ms until golden ctx is created */
-	if (unlikely(!pmu->pg->golden_image_initialized)) {
+	if (unlikely((nvgpu_atomic_read(&pmu->pg->golden_image_initialized)) !=
+					GOLDEN_IMG_READY)) {
 		goto exit_unlock;
 	}
 
@@ -962,13 +965,25 @@ int nvgpu_pmu_pg_sw_setup(struct gk20a *g, struct nvgpu_pmu *pmu,
 	pg->elpg_refcnt = 0;
 	pg->elpg_ms_refcnt = 0;
 
-	/* skip seq_buf alloc during unrailgate path */
+	/* During un-railgate path, skip seq_buf alloc
+	 * and do not update golden_image_initialized flag
+	 * in un-railgate path.
+	 */
 	if (!nvgpu_mem_is_valid(&pg->seq_buf)) {
 		err = pmu_pg_init_seq_buf(g, pmu, pg);
 		if (err != 0) {
 			nvgpu_err(g, "failed to allocate memory");
 			return err;
 		}
+
+		/*
+		 * During first boot set golden_image_intialized
+		 * to not_ready.
+		 * This will set to ready state after golden
+		 * ctx is created.
+		 */
+		nvgpu_atomic_set(&pg->golden_image_initialized,
+					GOLDEN_IMG_NOT_READY);
 	}
 
 	if (nvgpu_thread_is_running(&pg->pg_init.state_task)) {
@@ -1001,6 +1016,17 @@ void nvgpu_pmu_pg_destroy(struct gk20a *g, struct nvgpu_pmu *pmu,
 	g->pg_ingating_time_us += (u64)pg_stat_data.ingating_time;
 	g->pg_ungating_time_us += (u64)pg_stat_data.ungating_time;
 	g->pg_gating_cnt += pg_stat_data.gating_cnt;
+	/*
+	 * if golden image is ready then set the
+	 * golden_image_initialized to suspended state as
+	 * part of railgate sequence. This will be set to
+	 * ready in un-railgate sequence.
+	 */
+	if (nvgpu_atomic_read(&pg->golden_image_initialized) ==
+					GOLDEN_IMG_READY) {
+		nvgpu_atomic_set(&pg->golden_image_initialized,
+					GOLDEN_IMG_SUSPEND);
+	}
 
 	pg->zbc_ready = false;
 }
@@ -1097,7 +1123,7 @@ void nvgpu_pmu_pg_deinit(struct gk20a *g, struct nvgpu_pmu *pmu,
 	nvgpu_kfree(g, pg);
 }
 
-void nvgpu_pmu_set_golden_image_initialized(struct gk20a *g, bool initialized)
+void nvgpu_pmu_set_golden_image_initialized(struct gk20a *g, u8 state)
 {
 	struct nvgpu_pmu *pmu = g->pmu;
 
@@ -1105,7 +1131,7 @@ void nvgpu_pmu_set_golden_image_initialized(struct gk20a *g, bool initialized)
 		return;
 	}
 
-	pmu->pg->golden_image_initialized = initialized;
+	nvgpu_atomic_set(&pmu->pg->golden_image_initialized, state);
 }
 
 int nvgpu_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
@@ -1167,4 +1193,32 @@ void *nvgpu_pmu_pg_buf_get_cpu_va(struct gk20a *g, struct nvgpu_pmu *pmu)
 	}
 
 	return pmu->pg->pg_buf.cpu_va;
+}
+
+int nvgpu_pmu_restore_golden_img_state(struct gk20a *g)
+{
+	struct nvgpu_pmu *pmu = g->pmu;
+	int err = 0;
+
+	if (!is_pg_supported(g, pmu->pg)) {
+		goto out;
+	}
+
+	if (nvgpu_atomic_read(&pmu->pg->golden_image_initialized) ==
+						GOLDEN_IMG_SUSPEND) {
+	       /*
+		*  this becomes part of un-railgate sequence.
+		*  set the golden_image_initialized to ready state
+		*  and re-enable elpg.
+		*/
+		nvgpu_atomic_set(&pmu->pg->golden_image_initialized,
+						GOLDEN_IMG_READY);
+		err = nvgpu_pmu_reenable_elpg(g);
+		if (err != 0) {
+			nvgpu_err(g, "fail to re-enable elpg");
+			goto out;
+		}
+	}
+out:
+	return err;
 }

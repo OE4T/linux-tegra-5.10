@@ -58,6 +58,10 @@
 #include <nvgpu/pmu/pmu_pstate.h>
 #endif
 
+#ifdef CONFIG_NVGPU_POWER_PG
+#include <nvgpu/pmu/pmu_pg.h>
+#endif
+
 bool is_nvgpu_gpu_state_valid(struct gk20a *g)
 {
 	u32 boot_0 = g->ops.mc.get_chip_details(g, NULL, NULL, NULL);
@@ -916,6 +920,10 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_syncpt_mem, NO_FLAG),
 #ifdef CONFIG_NVGPU_PROFILER
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_pm_reservation_init, NO_FLAG),
+#endif
+#ifdef CONFIG_NVGPU_POWER_PG
+		NVGPU_INIT_TABLE_ENTRY(g->ops.pmu.pmu_restore_golden_img_state,
+				       NO_FLAG),
 #endif
 		NVGPU_INIT_TABLE_ENTRY(g->ops.channel.resume_all_serviceable_ch,
 				       NO_FLAG),

@@ -63,6 +63,13 @@ struct rpc_handler_payload;
 #define APCTRL_POWER_BREAKEVEN_DEFAULT_US                       (2000U)
 #define APCTRL_CYCLES_PER_SAMPLE_MAX_DEFAULT                    (200U)
 
+/* State of golden image */
+enum {
+	GOLDEN_IMG_NOT_READY = 0,
+	GOLDEN_IMG_SUSPEND,
+	GOLDEN_IMG_READY,
+};
+
 struct nvgpu_pg_init {
 	bool state_change;
 	bool state_destroy;
@@ -90,7 +97,7 @@ struct nvgpu_pmu_pg {
 	bool initialized;
 	u32 stat_dmem_offset[PMU_PG_ELPG_ENGINE_ID_INVALID_ENGINE];
 	struct nvgpu_mem seq_buf;
-	bool golden_image_initialized;
+	nvgpu_atomic_t golden_image_initialized;
 	u32 mscg_stat;
 	u32 mscg_transition_state;
 	int (*elpg_statistics)(struct gk20a *g, u32 pg_engine_id,
@@ -142,6 +149,7 @@ int nvgpu_pmu_pg_sw_setup(struct gk20a *g, struct nvgpu_pmu *pmu,
 	struct nvgpu_pmu_pg *pg);
 void nvgpu_pmu_pg_destroy(struct gk20a *g, struct nvgpu_pmu *pmu,
 	struct nvgpu_pmu_pg *pg);
+int nvgpu_pmu_restore_golden_img_state(struct gk20a *g);
 
 /* PG enable/disable */
 int nvgpu_pmu_reenable_elpg(struct gk20a *g);
@@ -161,7 +169,7 @@ int nvgpu_aelpg_init_and_enable(struct gk20a *g, u8 ctrl_id);
 int nvgpu_pmu_ap_send_command(struct gk20a *g,
 		union pmu_ap_cmd *p_ap_cmd, bool b_block);
 
-void nvgpu_pmu_set_golden_image_initialized(struct gk20a *g, bool initialized);
+void nvgpu_pmu_set_golden_image_initialized(struct gk20a *g, u8 state);
 
 /* PG ops*/
 int nvgpu_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,

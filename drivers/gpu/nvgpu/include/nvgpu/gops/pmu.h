@@ -104,6 +104,9 @@ struct gops_pmu {
 	 */
 	int (*pmu_early_init)(struct gk20a *g);
 
+#ifdef CONFIG_NVGPU_POWER_PG
+	int (*pmu_restore_golden_img_state)(struct gk20a *g);
+#endif
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 
 #ifdef CONFIG_NVGPU_LS_PMU

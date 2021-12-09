@@ -750,7 +750,7 @@ int nvgpu_gr_obj_ctx_alloc_golden_ctx_image(struct gk20a *g,
 
 	golden_image->ready = true;
 #ifdef CONFIG_NVGPU_POWER_PG
-	nvgpu_pmu_set_golden_image_initialized(g, true);
+	nvgpu_pmu_set_golden_image_initialized(g, GOLDEN_IMG_READY);
 #endif
 	g->ops.gr.falcon.set_current_ctx_invalid(g);
 
@@ -984,7 +984,7 @@ void nvgpu_gr_obj_ctx_deinit(struct gk20a *g,
 		golden_image->local_golden_image = NULL;
 	}
 #ifdef CONFIG_NVGPU_POWER_PG
-	nvgpu_pmu_set_golden_image_initialized(g, false);
+	nvgpu_pmu_set_golden_image_initialized(g, GOLDEN_IMG_NOT_READY);
 #endif
 	golden_image->ready = false;
 	nvgpu_kfree(g, golden_image);

@@ -56,6 +56,9 @@
 #include <nvgpu/therm.h>
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/grmgr.h>
+#ifdef CONFIG_NVGPU_POWER_PG
+#include <nvgpu/pmu/pmu_pg.h>
+#endif
 
 #include "hal/mm/mm_gk20a.h"
 #include "hal/mm/mm_gm20b.h"
@@ -816,6 +819,9 @@ static const struct gops_pmu gm20b_ops_pmu = {
 	.pmu_pstate_pmu_setup = nvgpu_pmu_pstate_pmu_setup,
 	.pmu_destroy = nvgpu_pmu_destroy,
 	.pmu_early_init = nvgpu_pmu_early_init,
+#ifdef CONFIG_NVGPU_POWER_PG
+	.pmu_restore_golden_img_state = nvgpu_pmu_restore_golden_img_state,
+#endif
 	.pmu_rtos_init = nvgpu_pmu_rtos_init,
 	.is_pmu_supported = gm20b_is_pmu_supported,
 	.falcon_base_addr = gk20a_pmu_falcon_base_addr,

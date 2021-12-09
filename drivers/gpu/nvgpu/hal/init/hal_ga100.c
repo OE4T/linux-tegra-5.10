@@ -69,7 +69,9 @@
 #include <nvgpu/nvhost.h>
 #include <nvgpu/clk_mon.h>
 #include <nvgpu/profiler.h>
-
+#ifdef CONFIG_NVGPU_POWER_PG
+#include <nvgpu/pmu/pmu_pg.h>
+#endif
 #include "hal/mm/mm_gm20b.h"
 #include "hal/mm/mm_gp10b.h"
 #include "hal/mm/mm_gv11b.h"
@@ -1278,6 +1280,9 @@ static const struct gops_pmu ga100_ops_pmu = {
 	.ecc_free = gv11b_pmu_ecc_free,
 	/* Init */
 	.pmu_early_init = nvgpu_pmu_early_init,
+#ifdef CONFIG_NVGPU_POWER_PG
+	.pmu_restore_golden_img_state = nvgpu_pmu_restore_golden_img_state,
+#endif
 	.pmu_rtos_init = nvgpu_pmu_rtos_init,
 	.pmu_pstate_sw_setup = nvgpu_pmu_pstate_sw_setup,
 	.pmu_pstate_pmu_setup = nvgpu_pmu_pstate_pmu_setup,
