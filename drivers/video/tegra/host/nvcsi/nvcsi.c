@@ -1,7 +1,7 @@
 /*
  * NVCSI driver for T186
  *
- * Copyright (c) 2014-2020, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2014-2022, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -344,12 +344,12 @@ static int nvcsi_deskew_debugfs_init(struct nvcsi *nvcsi)
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	val = debugfs_create_x64("input_status", S_IRUGO | S_IWUSR,
 				nvcsi->dir, &input_stats);
+	if (!val)
+		goto err_debugfs;
 #else
 	debugfs_create_x64("input_status", S_IRUGO | S_IWUSR,
 				nvcsi->dir, &input_stats);
 #endif
-	if (!val)
-		goto err_debugfs;
 	val = debugfs_create_file("calc_bound", S_IRUGO | S_IWUSR,
 				nvcsi->dir, mc_csi, &dbg_calc_ops);
 	if (!val)
