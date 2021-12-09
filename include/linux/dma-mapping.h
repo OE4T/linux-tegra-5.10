@@ -558,7 +558,6 @@ static inline int dma_get_cache_alignment(void)
 }
 
 /* flags for the coherent memory api */
-#define DMA_MEMORY_EXCLUSIVE		0x01
 #define DMA_MEMORY_NOMAP		0x02
 
 #ifdef CONFIG_DMA_DECLARE_COHERENT
