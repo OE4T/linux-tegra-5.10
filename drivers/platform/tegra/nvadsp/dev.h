@@ -155,6 +155,8 @@ struct nvadsp_chipdata {
 	int			wdt_irq;
 	int			start_irq;
 	int			end_irq;
+
+	bool			amc_err_war;
 };
 
 struct nvadsp_drv_data {

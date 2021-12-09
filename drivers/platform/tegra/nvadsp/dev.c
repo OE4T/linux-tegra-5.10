@@ -536,6 +536,8 @@ static struct nvadsp_chipdata tegra210_adsp_chipdata = {
 	.wdt_irq = INT_T210_ADSP_WDT,
 	.start_irq = INT_T210_AGIC_START,
 	.end_irq = INT_T210_AGIC_END,
+
+	.amc_err_war = true,
 };
 
 static struct nvadsp_chipdata tegrat18x_adsp_chipdata = {
@@ -562,6 +564,8 @@ static struct nvadsp_chipdata tegrat18x_adsp_chipdata = {
 	.wdt_irq = INT_T18x_ATKE_WDT_IRQ,
 	.start_irq = INT_T18x_AGIC_START,
 	.end_irq = INT_T18x_AGIC_END,
+
+	.amc_err_war = true,
 };
 
 static const struct of_device_id nvadsp_of_match[] = {

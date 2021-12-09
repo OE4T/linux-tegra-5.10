@@ -3,7 +3,7 @@
  *
  * AMC and ARAM handling
  *
- * Copyright (C) 2014-2020, NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2014-2021, NVIDIA Corporation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -148,7 +148,8 @@ static irqreturn_t nvadsp_amc_error_int_handler(int irq, void *devid)
 		 * Ignore addresses lesser than AMC_ERROR_ADDR_IGNORE (4k)
 		 * as those are spurious ones due a hardware issue.
 		 */
-		if (addr > AMC_ERROR_ADDR_IGNORE)
+		if (!(nvadsp_drv_data->chip_data->amc_err_war) ||
+				(addr > AMC_ERROR_ADDR_IGNORE))
 			pr_info("nvadsp: invalid ARAM access. address: 0x%x\n",
 				addr);
 
