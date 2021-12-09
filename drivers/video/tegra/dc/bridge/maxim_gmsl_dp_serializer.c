@@ -50,6 +50,7 @@
 
 #define MAX_GMSL_DP_SER_VID_TX_MASK		(1 << 0)
 #define MAX_GMSL_DP_SER_VID_TX_LINK_MASK	(3 << 1)
+#define MAX_GMSL_DP_SER_LINK_SEL_SHIFT_VAL	0x1
 
 #define MAX_GMSL_DP_SER_PHY_EDP_0_CTRL0_B0	0x6064
 #define MAX_GMSL_DP_SER_PHY_EDP_0_CTRL0_B1	0x6065
@@ -138,6 +139,8 @@ static inline void max_gmsl_dp_ser_update(struct max_gmsl_dp_ser_priv *priv,
 
 static void max_gmsl_dp_ser_sst_setup(struct max_gmsl_dp_ser_priv *priv)
 {
+	u8 gmsl_link_select_value = 0;
+
 	max_gmsl_dp_ser_write(priv, MAX_GMSL_DP_SER_PHY_EDP_0_CTRL0_B0, 0x0f);
 	max_gmsl_dp_ser_write(priv, MAX_GMSL_DP_SER_PHY_EDP_0_CTRL0_B1, 0x0f);
 	max_gmsl_dp_ser_write(priv, MAX_GMSL_DP_SER_PHY_EDP_1_CTRL0_B0, 0x0f);
@@ -158,18 +161,21 @@ static void max_gmsl_dp_ser_sst_setup(struct max_gmsl_dp_ser_priv *priv)
 	max_gmsl_dp_ser_write(priv, MAX_GMSL_DP_SER_MAX_LINK_COUNT,
 			      priv->dprx_lane_count);
 
+	gmsl_link_select_value = (priv->gmsl_link_select <<
+				  MAX_GMSL_DP_SER_LINK_SEL_SHIFT_VAL);
+
 	max_gmsl_dp_ser_update(priv, MAX_GMSL_DP_SER_VID_TX_X,
 			       MAX_GMSL_DP_SER_VID_TX_LINK_MASK,
-			       priv->gmsl_link_select);
+			       gmsl_link_select_value);
 	max_gmsl_dp_ser_update(priv, MAX_GMSL_DP_SER_VID_TX_Y,
 			       MAX_GMSL_DP_SER_VID_TX_LINK_MASK,
-			       priv->gmsl_link_select);
+			       gmsl_link_select_value);
 	max_gmsl_dp_ser_update(priv, MAX_GMSL_DP_SER_VID_TX_Z,
 			       MAX_GMSL_DP_SER_VID_TX_LINK_MASK,
-			       priv->gmsl_link_select);
+			       gmsl_link_select_value);
 	max_gmsl_dp_ser_update(priv, MAX_GMSL_DP_SER_VID_TX_U,
 			       MAX_GMSL_DP_SER_VID_TX_LINK_MASK,
-			       priv->gmsl_link_select);
+			       gmsl_link_select_value);
 
 	max_gmsl_dp_ser_update(priv, MAX_GMSL_DP_SER_I2C_SPEED_CAPABILITY,
 			       MAX_GMSL_DP_SER_I2C_SPEED_CAPABILITY_MASK,
