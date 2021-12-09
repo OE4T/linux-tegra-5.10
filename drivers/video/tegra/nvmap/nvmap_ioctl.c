@@ -1013,8 +1013,7 @@ int nvmap_ioctl_get_sci_ipc_id(struct file *filp, void __user *arg)
 		ret = -EINVAL;
 	}
 exit:
-	if (ret)
-		nvmap_handle_put(handle);
+	nvmap_handle_put(handle);
 	return ret;
 }
 

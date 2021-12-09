@@ -250,7 +250,7 @@ int nvmap_get_handle_from_sci_ipc_id(struct nvmap_client *client, u32 flags,
 		}
 	}
 
-	ref = nvmap_duplicate_handle(client, h, true, is_ro);
+	ref = nvmap_duplicate_handle(client, h, false, is_ro);
 	if (!ref) {
 		ret = -EINVAL;
 		goto unlock;
