@@ -325,12 +325,10 @@
 	smmu_suspend {
 		status = "okay";
 	};
-
+#endif
 	iommu@10000000 {
 		status = "okay";
 	};
-
-#endif
 
 	iommu@12000000 {
 		status = "okay";

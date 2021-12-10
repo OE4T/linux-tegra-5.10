@@ -178,7 +178,6 @@
 		reg = <0x0 0x02c00000 0x0 0x00010000>; /* MC_SID_BASE */
 	};
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 	smmu_suspend {
 		compatible = "nvidia,smmu_suspend";
 		reg = <0 0x12000000 0 0x800000>,
@@ -337,26 +336,7 @@
 		#iommu-cells = <1>;
 		status = "disabled";
 
-#else
-	smmu: iommu@12000000{
-		compatible = "t19x,arm,mmu-500";
-		reg = <0x0 0x12000000 0x0 0x01000000>, /* SMMU0 16MB */
-		      <0x0 0x11000000 0x0 0x01000000>, /* SMMU1 16MB */
-		      <0x0 0x10000000 0x0 0x01000000>; /* SMMU2 16MB */
-
-		#global-interrupts = <6>;
-		interrupts = <0 170 4>,
-			     <0 171 4>,
-			     <0 232 4>,
-			     <0 233 4>,
-			     <0 240 4>,
-			     <0 241 4>;
-		iso-smmu-id = <2>;
-		status = "disabled";
-		#iommu-cells = <1>;
-#endif
 		suspend-save-reg = <0x0c3902ac>; /* SCRATCH_SECURE_RSV73_SCRATCH_0 */
-
 		/* Note: Keep domain and address space in alphabetical order */
 		domains {
 			aon_domain {
@@ -433,10 +413,6 @@
 				address-space = <&pixel_as>;
 				sid-list = <TEGRA_SID_ISP>;
 			};
-			nvdisplay_domain {
-				address-space = <&nvdisplay_as>;
-				sid-list = <TEGRA_SID(NVDISPLAY)>;
-			};
 			pcie0_domain {
 				address-space = <&pcie0_as>;
 				sid-list = <TEGRA_SID_PCIE0>;
@@ -508,10 +484,6 @@
 				address-space = <&common_as>;
 				sid-list = <TEGRA_SID_UFSHC>;
 			};
-			vi_domain {
-				address-space = <&pixel_as>;
-				sid-list = <TEGRA_SID_VI>;
-			};
 			xusb_dev_domain {
 				address-space = <&common_as>;
 				sid-list = <TEGRA_SID_XUSB_DEV>;
@@ -567,10 +539,6 @@
 				iova-start = <0x0 0x1000>;
 				iova-size = <0x1F 0xFFFFF000>;
 			};
-			nvdisplay_as: nvdisplay {
-				iova-start = <0x0 0x1000>;
-				iova-size = <0x0 0xFFFFEFFF>;
-			};
 			pcie0_as: pcie0 {
 				iova-start = <0x0 0x80000000>;
 				iova-size = <0x4 0x7FFFFFFF>;
@@ -609,6 +577,7 @@
 				iova-size = <0x0 0xFFFFEFFF>;
 			};
 		};
+
 	};
 
 	smmu_test: smmu_test {
@@ -630,12 +599,7 @@
 
 	mods_iso_smmu: mods_iso_smmu {
 		compatible = "nvidia,mods_smmu";
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_iso TEGRA_SID_SMMU_TEST>;
-#else
-		iommus = <&smmu TEGRA_SID_SMMU_TEST>;
-		iso-smmu;
-#endif
 		non-coherent;
 		dev-names = "mods_iso_smmu";
 		status = "disabled";

@@ -655,12 +655,7 @@
 				compatible = "nvidia,tegra194-dc";
 				reg = <0x0 0x15200000 0x0 0x10000>;
 				interrupts = <0 153 4>;
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 				iommus = <&smmu_iso TEGRA_SID_NVDISPLAY>;
-#else
-				iommus = <&smmu TEGRA_SID_NVDISPLAY>;
-				iso-smmu;
-#endif
 
 				non-coherent;
 
@@ -735,12 +730,7 @@
 				reg = <0x0 0x15210000 0x0 0x10000>;
 				interrupts = <0 154 4>;
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 				iommus = <&smmu_iso TEGRA_SID_NVDISPLAY>;
-#else
-				iommus = <&smmu TEGRA_SID_NVDISPLAY>;
-				iso-smmu;
-#endif
 
 				non-coherent;
 
@@ -814,12 +804,7 @@
 				compatible = "nvidia,tegra194-dc";
 				reg = <0x0 0x15220000 0x0 0x10000>;
 				interrupts = <0 155 4>;
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 				iommus = <&smmu_iso TEGRA_SID_NVDISPLAY>;
-#else
-				iommus = <&smmu TEGRA_SID_NVDISPLAY>;
-				iso-smmu;
-#endif
 
 				non-coherent;
 
@@ -893,12 +878,7 @@
 				compatible = "nvidia,tegra194-dc";
 				reg = <0x0 0x15230000 0x0 0x10000>;
 				interrupts = <0 242 4>;
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 				iommus = <&smmu_iso TEGRA_SID_NVDISPLAY>;
-#else
-				iommus = <&smmu TEGRA_SID_NVDISPLAY>;
-				iso-smmu;
-#endif
 
 				non-coherent;
 
@@ -1206,12 +1186,7 @@
 
 			nvidia,vi-falcon-device = <&vi_thi>;
 
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 			iommus = <&smmu_iso TEGRA_SID_VI>;
-#else
-			iommus = <&smmu TEGRA_SID_VI>;
-			iso-smmu;
-#endif
 			non-coherent;
 		};
 
