@@ -192,7 +192,7 @@
 	};
 
 	hsp_top2: tegra-hsp@1600000 {
-		compatible = "nvidia,tegra186-hsp";
+		compatible = "nvidia,tegra234-hsp";
 		reg = <0x0 0x01600000 0x0 0x00090000>;
 		interrupts = <0 265 0x4>, <0 266 0x4>, <0 267 0x4>,
         <0 268 0x4>, <0 269 0x4>, <0 270 0x4>, <0 271 0x4>, <0 272 0x4>;
