@@ -214,7 +214,7 @@
 		spiflash@0 {
 			#address-cells = <1>;
 			#size-cells = <1>;
-			compatible = "MX25U51279";
+			compatible = "MX25U51279G";
 			reg = <0>;
 			spi-max-frequency = <136000000>;
 			partition@0 {
