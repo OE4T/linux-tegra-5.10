@@ -55,7 +55,7 @@
 static nve32_t mgbe_ptp_tsc_capture(struct osi_core_priv_data *const osi_core,
 				    struct osi_core_ptp_tsc_data *data)
 {
-	nveu32_t retry = 1000U;
+	nveu32_t retry = 20U;
 	nveu32_t count = 0U, val = 0U;
 	nve32_t cond = COND_NOT_MET;
 	nve32_t ret = -1;
@@ -77,8 +77,8 @@ static nve32_t mgbe_ptp_tsc_capture(struct osi_core_priv_data *const osi_core,
 		if ((val & OSI_ENABLE) == OSI_NONE) {
 			cond = COND_MET;
 		} else {
-			/* sleep if SWR is set */
-			osi_core->osd_ops.msleep(1U);
+			/* delay if SWR is set */
+			osi_core->osd_ops.udelay(1U);
 		}
 	}
 
