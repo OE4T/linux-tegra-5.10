@@ -71,7 +71,7 @@
 
 	ufshci@2500000 {
 		nvidia,enable-ufs-provisioning;
-		status = "okay";
+		status = "disabled";
 	};
 
 	sdhci@3400000 {
