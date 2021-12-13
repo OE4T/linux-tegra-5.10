@@ -1343,6 +1343,11 @@ int nvmap_ioctl_dup_handle(struct file *filp, void __user *arg)
 	if (!client)
 		return -ENODEV;
 
+	/* Don't allow duplicating RW handle from RO handle */
+	if (is_nvmap_dmabuf_fd_ro(op.handle) &&
+	    op.access_flags != NVMAP_HANDLE_RO)
+		return -EPERM;
+
 	if (op.access_flags != NVMAP_HANDLE_RO)
 		ref = nvmap_create_handle_from_id(client, op.handle);
 	else
