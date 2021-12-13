@@ -44,6 +44,22 @@
 			tegra_tmp451: temp-sensor@4c {
 				vdd-supply = <&p3737_vdd_1v8_sys>;
 			};
+
+			vrs11_1@20 {
+				compatible = "nvidia,vrs11";
+				reg = <0x20>;
+				rail-name-loopA = "GPU";
+				rail-name-loopB = "CPU";
+				status = "okay";
+			};
+
+			vrs11_2@22 {
+				compatible = "nvidia,vrs11";
+				reg = <0x22>;
+				rail-name-loopA = "SOC";
+				rail-name-loopB = "CV";
+				status = "okay";
+			};
 		};
 	};
 
