@@ -1114,13 +1114,10 @@ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *attach,
 		 * attachment are not allowed.
 		 */
 		if (attach->dir != direction &&
-		    attach->dir != DMA_BIDIRECTIONAL) {
-			dma_resv_unlock(attach->dmabuf->resv);
-			return ERR_PTR(-EBUSY);
-		}
+		    attach->dir != DMA_BIDIRECTIONAL)
+			sg_table = ERR_PTR(-EBUSY);
 
-		dma_resv_unlock(attach->dmabuf->resv);
-		return attach->sgt;
+		goto finish;
 	}
 
 	if (dma_buf_is_dynamic(attach->dmabuf)) {
@@ -1128,8 +1125,8 @@ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *attach,
 		if (!IS_ENABLED(CONFIG_DMABUF_MOVE_NOTIFY)) {
 			r = dma_buf_pin(attach);
 			if (r) {
-				dma_resv_unlock(attach->dmabuf->resv);
-				return ERR_PTR(r);
+				sg_table =  ERR_PTR(r);
+				goto finish;
 			}
 		}
 	}
@@ -1197,7 +1194,7 @@ void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
 		dma_resv_assert_held(attach->dmabuf->resv);
 
 	if (attach->sgt == sg_table)
-		return;
+		goto finish;
 
 	if (dma_buf_is_dynamic(attach->dmabuf))
 		dma_resv_assert_held(attach->dmabuf->resv);
