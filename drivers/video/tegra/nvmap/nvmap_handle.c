@@ -451,8 +451,6 @@ struct nvmap_handle_ref *nvmap_dup_handle_ro(struct nvmap_client *client,
 			return ERR_CAST(h);
 	}
 
-	BUG_ON(!h->owner);
-
 	if (h->dmabuf_ro == NULL) {
 		h->dmabuf_ro = __nvmap_make_dmabuf(client, h, true);
 		if (IS_ERR(h->dmabuf_ro)) {
