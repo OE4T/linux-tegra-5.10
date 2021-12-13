@@ -2922,6 +2922,9 @@ static int ether_close(struct net_device *ndev)
 	/* Reset stats since interface is going down */
 	ether_reset_stats(pdata);
 
+	/* Reset MAC loopback variable */
+	pdata->mac_loopback_mode = OSI_DISABLE;
+
 	return 0;
 }
 
