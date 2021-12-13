@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -394,6 +394,12 @@ int nvgpu_pmu_rtos_init(struct gk20a *g)
 			}
 		}
 #endif
+
+		if (nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
+			/* Load register configuration for SLCG and BLCG for PMU */
+			nvgpu_cg_slcg_pmu_load_enable(g);
+			nvgpu_cg_blcg_pmu_load_enable(g);
+		}
 
 		if (!nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
 			/*
