@@ -395,6 +395,12 @@ int nvgpu_pmu_rtos_init(struct gk20a *g)
 		}
 #endif
 
+		if (nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
+			/* Load register configuration for SLCG and BLCG for PMU */
+			nvgpu_cg_slcg_pmu_load_enable(g);
+			nvgpu_cg_blcg_pmu_load_enable(g);
+		}
+
 		if (!nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
 			/*
 			 * clear halt interrupt to avoid PMU-RTOS ucode
