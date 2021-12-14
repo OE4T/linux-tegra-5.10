@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -5523,7 +5523,9 @@ static int mgbe_adjust_mactime(struct osi_core_priv_data *osi_core,
 static void mgbe_config_tscr(struct osi_core_priv_data *osi_core,
 			     unsigned int ptp_filter)
 {
+	struct core_local *l_core = (struct core_local *)osi_core;
 	unsigned int mac_tcr = 0;
+	nveu32_t value = 0x0U;
 	void *addr = osi_core->base;
 
 	if (ptp_filter != OSI_DISABLE) {
@@ -5585,6 +5587,13 @@ static void mgbe_config_tscr(struct osi_core_priv_data *osi_core,
 	}
 
 	osi_writela(osi_core, mac_tcr, (unsigned char *)addr + MGBE_MAC_TCR);
+
+	value = osi_readla(osi_core, (nveu8_t *)addr + MGBE_MAC_PPS_CTL);
+	value &= ~MGBE_MAC_PPS_CTL_PPSCTRL0;
+	if (l_core->pps_freq == OSI_ENABLE) {
+		value |= OSI_ENABLE;
+	}
+	osi_writela(osi_core, value, (nveu8_t *)addr + MGBE_MAC_PPS_CTL);
 }
 
 /**

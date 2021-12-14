@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -1309,6 +1309,9 @@ struct osi_core_priv_data {
 	 * 1 - Primary interface, 2 - secondary interface, 0 - inactive interface
 	 */
 	nveu32_t m2m_role;
+	/** control pps output signal
+	 */
+	nveu32_t pps_frq;
 };
 
 /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -124,6 +124,7 @@ struct osi_core_priv_data *osi_get_core(void)
 
 	g_core[i].tx_ts_head.prev = &g_core[i].tx_ts_head;
 	g_core[i].tx_ts_head.next = &g_core[i].tx_ts_head;
+	g_core[i].pps_freq = OSI_DISABLE;
 
 	return &g_core[i].osi_core;
 }
@@ -200,6 +201,14 @@ nve32_t osi_init_core_ops(struct osi_core_priv_data *const osi_core)
 		l_core->m2m_tsync = OSI_ENABLE;
 	} else {
 		l_core->m2m_tsync = OSI_DISABLE;
+	}
+
+	if (osi_core->pps_frq <= OSI_ENABLE) {
+		l_core->pps_freq = osi_core->pps_frq;
+	} else {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "invalid pps_frq\n", (nveu64_t)osi_core->pps_frq);
+		ret = -1;
 	}
 
 	return ret;
