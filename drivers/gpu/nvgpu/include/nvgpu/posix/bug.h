@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -60,9 +60,8 @@ void dump_stack(void);
  *
  * Function to be invoked upon identifying an unexpected state or result in the
  * code. This function invokes the quiesce callback if it is already registered.
- * If the callback is not yet registered, a SIGSEGV is raised using library
- * function #raise to terminate the process. Function does not perform any
- * validation of the parameters.
+ * A SIGSEGV is raised using library function #raise to terminate the process.
+ * Function does not perform any validation of the parameters.
  *
  * @param msg [in]	Message to be printed in log.
  * @param line_no [in]	Line number.
