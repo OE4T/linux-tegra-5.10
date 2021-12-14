@@ -111,6 +111,10 @@ NVMAP_CONFIG_VPR_RESIZE := n
 # Disable this when perf regression is observed.
 NVMAP_CONFIG_DEBUG_MAPS := n
 
+# This is fallback option to support handle as FD
+# To support handle as ID, set this to n
+# This config is useful to debug issue if its due to handle as ID or FD
+NVMAP_CONFIG_HANDLE_AS_FD := y
 ################################################################################
 # Section 3
 # Enable/Disable configs based upon the kernel version
@@ -121,14 +125,18 @@ ifneq ($(findstring stable,$(NV_BUILD_KERNEL_OPTIONS)),)
 NVMAP_CONFIG_COLOR_PAGES := n
 NVMAP_CONFIG_LOADABLE_MODULE := y
 NVMAP_CONFIG_PROCRANK := n
+ifneq ($(NVMAP_CONFIG_HANDLE_AS_FD),y)
 NVMAP_CONFIG_HANDLE_AS_ID := y
 NVMAP_CONFIG_FD_START := 0x0
+endif
 endif
 
 ifneq ($(findstring 5.10,$(NV_BUILD_KERNEL_OPTIONS)),)
 # For 5.10
+ifneq ($(NVMAP_CONFIG_HANDLE_AS_FD),y)
 NVMAP_CONFIG_HANDLE_AS_ID := y
 NVMAP_CONFIG_FD_START := 0x0
+endif
 NVMAP_CONFIG_SCIIPC := y
 endif
 
