@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -15,6 +15,7 @@
 
 #include <linux/fs.h>
 #include <linux/uaccess.h>
+#include <linux/errno.h>
 
 #include <linux/slab.h>
 #include <linux/kthread.h>
@@ -653,7 +654,7 @@ int adspff_init(struct platform_device *pdev)
 
 	handle = nvadsp_app_load("adspff", "adspff.elf");
 	if (!handle)
-		return -1;
+		return -ENOENT;
 
 	app_info = nvadsp_app_init(handle, NULL);
 	if (!app_info) {

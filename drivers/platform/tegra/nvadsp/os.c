@@ -5,7 +5,7 @@
  * Copyright (C) 2011 Texas Instruments, Inc.
  * Copyright (C) 2011 Google, Inc.
  *
- * Copyright (C) 2014-2021, NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2014-2022, NVIDIA Corporation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -20,6 +20,7 @@
 
 #include <linux/init.h>
 #include <linux/module.h>
+#include <linux/errno.h>
 #include <linux/platform_device.h>
 #include <linux/io.h>
 #include <linux/iommu.h>
@@ -1815,19 +1816,23 @@ int nvadsp_os_start(void)
 	priv.os_running = drv_data->adsp_os_running = true;
 	priv.num_start++;
 #if defined(CONFIG_TEGRA_ADSP_FILEIO)
-	if (!drv_data->adspff_init) {
-		ret = adspff_init(priv.pdev);
-		if (ret) {
-			priv.os_running = drv_data->adsp_os_running = false;
-			dev_err(dev,
-				"adsp boot failed at adspff init with ret = %d",
-				ret);
-			dump_adsp_sys();
-			free_interrupts(&priv);
+	if ((drv_data->adsp_os_secload) && (!drv_data->adspff_init)) {
+		int adspff_status = adspff_init(priv.pdev);
+
+		if (adspff_status) {
+			if (adspff_status != -ENOENT) {
+				priv.os_running = drv_data->adsp_os_running = false;
+				dev_err(dev,
+					"adsp boot failed at adspff init with ret = %d",
+					adspff_status);
+				dump_adsp_sys();
+				free_interrupts(&priv);
 #ifdef CONFIG_PM
-			pm_runtime_put_sync(&priv.pdev->dev);
+				pm_runtime_put_sync(&priv.pdev->dev);
 #endif
-			goto unlock;
+				ret = adspff_status;
+				goto unlock;
+			}
 		} else
 			drv_data->adspff_init = true;
 	}
