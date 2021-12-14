@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -44,7 +44,8 @@
 #define NV_PMU_RPC_ID_PG_ALLOW			0x04U
 #define NV_PMU_RPC_ID_PG_DISALLOW		0x05U
 #define NV_PMU_RPC_ID_PG_THRESHOLD_UPDATE	0x06U
-#define NV_PMU_RPC_ID_PG_SFM_UPDATE		0x08U
+#define NV_PMU_RPC_ID_PG_PG_CTRL_STATS_GET	0x07U
+#define NV_PMU_RPC_ID_PG_SFM_UPDATE		0x09U
 
 /* PG unit RPC functions sent by PMU */
 #define PMU_NV_RPC_ID_LPWR_PG_ASYNC_CMD_RESP	0x00U

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -342,6 +342,9 @@ static void ga10b_pg_rpc_handler(struct gk20a *g, struct nvgpu_pmu *pmu,
 			nvgpu_err(g, "Invalid pg_engine_id");
 		}
 		break;
+	case NV_PMU_RPC_ID_PG_PG_CTRL_STATS_GET:
+		nvgpu_pmu_dbg(g, "Reply to PG_STATS_GET");
+		break;
 	default:
 		nvgpu_err(g,
 			"unsupported PG rpc function : 0x%x", rpc->function);
@@ -352,25 +355,27 @@ static void ga10b_pg_rpc_handler(struct gk20a *g, struct nvgpu_pmu *pmu,
 static int ga10b_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
 		struct pmu_pg_stats_data *pg_stat_data)
 {
-	struct nvgpu_pmu *pmu = g->pmu;
-	struct pmu_pg_stats_v3 stats;
-	int err;
+	struct pmu_rpc_struct_lpwr_pg_ctrl_stats_get rpc;
+	int status = 0;
 
-	err = nvgpu_falcon_copy_from_dmem(pmu->flcn,
-		pmu->pg->stat_dmem_offset[pg_engine_id],
-			(u8 *)&stats, (u32)sizeof(struct pmu_pg_stats_v3), 0);
-	if (err != 0) {
-		nvgpu_err(g, "PMU falcon DMEM copy failed");
-		return err;
+	(void) memset(&rpc, 0,
+			sizeof(struct pmu_rpc_struct_lpwr_pg_ctrl_stats_get));
+
+	rpc.ctrl_id = (u32)pg_engine_id;
+	PMU_RPC_EXECUTE_CPB(status, g->pmu, PG, PG_CTRL_STATS_GET, &rpc, 0);
+
+	if (status != 0) {
+		nvgpu_err(g, "Failed to execute RPC status=0x%x", status);
+		return status;
 	}
 
-	pg_stat_data->ingating_time = stats.total_sleep_time_us;
-	pg_stat_data->ungating_time = stats.total_non_sleep_time_us;
-	pg_stat_data->gating_cnt = stats.entry_count;
-	pg_stat_data->avg_entry_latency_us = stats.entry_latency_avg_us;
-	pg_stat_data->avg_exit_latency_us = stats.exit_latency_avg_us;
+	pg_stat_data->ingating_time = rpc.stats.total_sleep_time_us;
+	pg_stat_data->ungating_time = rpc.stats.total_non_sleep_time_us;
+	pg_stat_data->gating_cnt = rpc.stats.entry_count;
+	pg_stat_data->avg_entry_latency_us = rpc.stats.entry_latency_avg_us;
+	pg_stat_data->avg_exit_latency_us = rpc.stats.exit_latency_avg_us;
 
-	return err;
+	return status;
 }
 
 static int ga10b_pmu_pg_handle_async_cmd_resp(struct gk20a *g, u32 ctrl_id,

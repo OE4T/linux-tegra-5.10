@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -323,6 +323,31 @@ struct pmu_pg_stats_v3
 	u32 sw_disallow_reason_mask;
 	u32 hw_disallow_reason_mask;
 };
+
+/*
+ * Defines the structure that holds data used to execute PG_CTRL_STATS_GET RPC.
+ */
+struct pmu_rpc_struct_lpwr_pg_ctrl_stats_get {
+	/*!
+	 * Must be first field in RPC structure.
+	 */
+	struct nv_pmu_rpc_header hdr;
+	/*!
+	 * PgCtrl statistics
+	 */
+	struct pmu_pg_stats_v3 stats;
+	/*!
+	 * Control ID
+	 */
+	u8 ctrl_id;
+	/*!
+	 * Must be last field in RPC structure.
+	 * Used as variable size scrach space on
+	 * RM managed DMEM heap for this RPC.
+	 */
+	u32 scratch[1];
+};
+
 
 void nvgpu_ga10b_pg_sw_init(struct gk20a *g, struct nvgpu_pmu_pg *pg);
 u32 ga10b_pmu_pg_engines_list(struct gk20a *g);
