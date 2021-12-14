@@ -4186,7 +4186,9 @@ static void eqos_config_tscr(struct osi_core_priv_data *const osi_core,
 			     const nveu32_t ptp_filter)
 {
 	void *addr = osi_core->base;
+	struct core_local *l_core = (struct core_local *)osi_core;
 	nveu32_t mac_tcr = 0U, i = 0U, temp = 0U;
+	nveu32_t value = 0x0U;
 
 	if (ptp_filter != OSI_DISABLE) {
 		mac_tcr = (OSI_MAC_TCR_TSENA	|
@@ -4244,6 +4246,12 @@ static void eqos_config_tscr(struct osi_core_priv_data *const osi_core,
 	eqos_core_safety_writel(osi_core, mac_tcr,
 				(nveu8_t *)addr + EQOS_MAC_TCR,
 				EQOS_MAC_TCR_IDX);
+	value = osi_readla(osi_core, (nveu8_t *)addr + EQOS_MAC_PPS_CTL);
+	value &= ~EQOS_MAC_PPS_CTL_PPSCTRL0;
+	if (l_core->pps_freq == OSI_ENABLE) {
+		value |= OSI_ENABLE;
+	}
+	osi_writela(osi_core, value, (nveu8_t *)addr + EQOS_MAC_PPS_CTL);
 }
 
 /**

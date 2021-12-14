@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -112,6 +112,7 @@
 #define MGBE_MAC_TSNSSEC		0x0D30
 #define MGBE_MAC_TSSEC			0x0D34
 #define MGBE_MAC_TSPKID			0x0D38
+#define MGBE_MAC_PPS_CTL		0x0D70
 #define MGBE_MAC_PTO_CR			0x0DC0
 #define MGBE_MAC_PIDR0			0x0DC4
 #define MGBE_MAC_PIDR1			0x0DC8
@@ -252,6 +253,8 @@
 #define MGBE_MAC_L4_ADDR_SP_MASK	0x0000FFFFU
 #define MGBE_MAC_L4_ADDR_DP_MASK	0xFFFF0000U
 #define MGBE_MAC_L4_ADDR_DP_SHIFT	16
+#define MGBE_MAC_PPS_CTL_PPSCTRL0	(OSI_BIT(3) | OSI_BIT(2) |\
+					 OSI_BIT(1) | OSI_BIT(0))
 /** @} */
 
 /**

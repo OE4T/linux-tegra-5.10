@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -129,6 +129,7 @@
 #define EQOS_MAC_PIDR0			0x0BC4
 #define EQOS_MAC_PIDR1			0x0BC8
 #define EQOS_MAC_PIDR2			0x0BCC
+#define EQOS_MAC_PPS_CTL		0x0B70
 #define EQOS_DMA_BMR			0x1000
 #define EQOS_DMA_SBUS			0x1004
 #define EQOS_DMA_ISR			0x1008
@@ -277,6 +278,8 @@
 						 OSI_BIT(4))
 #define EQOS_MAC_RQC1R_OMCBCQ			OSI_BIT(28)
 #define EQOS_MAC_RQC1R_PTPQ_SHIFT		4U
+#define EQOS_MAC_PPS_CTL_PPSCTRL0		(OSI_BIT(3) | OSI_BIT(2) |\
+						 OSI_BIT(1) | OSI_BIT(0))
 #define EQOS_MTL_QTOMR_FTQ_LPOS			OSI_BIT(0)
 #define EQOS_DMA_ISR_MTLIS			OSI_BIT(16)
 #define EQOS_DMA_ISR_MACIS			OSI_BIT(17)

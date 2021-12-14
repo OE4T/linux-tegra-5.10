@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -355,6 +355,8 @@ struct core_local {
 	nveu32_t hw_init_successful;
 	/** Dynamic MAC to MAC time sync control for secondary interface */
 	nveu32_t m2m_tsync;
+	/** control pps output signal */
+	nveu32_t pps_freq;
 };
 
 /**
