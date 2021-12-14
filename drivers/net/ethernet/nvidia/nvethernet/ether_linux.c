@@ -5921,6 +5921,16 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 	if (ret_val < 0 || osi_core->m2m_role > OSI_PTP_M2M_SECONDARY) {
 		osi_core->m2m_role = OSI_PTP_M2M_INACTIVE;
 	}
+
+	/* Set PPS output control, 0 - default.
+	 * 1 - Binary rollover is 2 Hz, and the digital rollover is 1 Hz.
+	 */
+	ret_val = of_property_read_u32(np, "nvidia,pps_op_ctrl",
+			&osi_core->pps_frq);
+	if (ret_val < 0 || osi_core->pps_frq > OSI_ENABLE) {
+		osi_core->pps_frq = OSI_DISABLE;
+	}
+
 exit:
 	return ret;
 }
