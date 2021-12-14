@@ -1006,6 +1006,9 @@ static ssize_t tpc_pg_mask_store(struct device *dev,
 	struct gk20a_platform *platform = dev_get_drvdata(dev);
 	unsigned long val = 0;
 	int err = 0;
+	u32 i;
+	/* hold the combined tpc pg mask */
+	u32 combined_tpc_pg_mask = 0x0U;
 
 	nvgpu_mutex_acquire(&g->static_pg_lock);
 
@@ -1013,6 +1016,16 @@ static ssize_t tpc_pg_mask_store(struct device *dev,
 		nvgpu_err(g, "invalid value");
 		nvgpu_mutex_release(&g->static_pg_lock);
 		return -EINVAL;
+	}
+
+	for (i = 0U; i < MAX_PG_GPC; i++) {
+		combined_tpc_pg_mask = combined_tpc_pg_mask |
+					(g->tpc_pg_mask[i] << 4*i);
+	}
+
+	if (val == combined_tpc_pg_mask) {
+		nvgpu_info(g, "no value change, same mask already set");
+		goto exit;
 	}
 
 	if (nvgpu_is_powered_on(g)) {
@@ -1029,6 +1042,8 @@ static ssize_t tpc_pg_mask_store(struct device *dev,
 			return -EINVAL;
 		}
 	}
+
+exit:
 	nvgpu_mutex_release(&g->static_pg_lock);
 	return count;
 }
