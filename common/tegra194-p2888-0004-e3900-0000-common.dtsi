@@ -362,6 +362,11 @@
 				<&bpmp_clks TEGRA194_CLK_CAN2>;
 		};
 	};
+
+	tegra_udrm: tegra_udrm {
+		compatible = "nvidia,tegra-udrm";
+		status = "okay";
+	};
 };
 
 #if LINUX_VERSION >= 414
