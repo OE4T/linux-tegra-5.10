@@ -1455,9 +1455,7 @@ static const struct gops_mc ga10b_ops_mc = {
 	.fb_reset = NULL,
 	.ltc_isr = mc_tu104_ltc_isr,
 	.is_mmu_fault_pending = ga10b_intr_is_mmu_fault_pending,
-#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	.intr_get_unit_info = ga10b_mc_intr_get_unit_info,
-#endif
 };
 
 static const struct gops_debug ga10b_ops_debug = {
