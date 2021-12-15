@@ -495,10 +495,16 @@ static ssize_t clk_cap_store(struct device *dev,
 	if (ret)
 		return -EINVAL;
 
+	/* Remove previous freq cap to get correct rounted rate for new cap */
+	ret = clk_set_max_rate(cvnas->clk, UINT_MAX);
+	if (ret < 0)
+		return ret;
+
 	max_rate = clk_round_rate(cvnas->clk, max_rate);
 	if (max_rate < 0)
 		return -EINVAL;
 
+	/* Apply new freq cap */
 	ret = clk_set_max_rate(cvnas->clk, max_rate);
 	if (ret < 0)
 		return ret;
