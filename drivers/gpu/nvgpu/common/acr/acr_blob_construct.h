@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -88,16 +88,16 @@ struct flcn_ucode_img {
 	struct lsf_ucode_desc *lsf_desc;
 	bool is_next_core_img;
 	struct lsf_ucode_desc_wrapper *lsf_desc_wrapper;
+#ifdef CONFIG_NVGPU_LS_PMU
 	struct falcon_next_core_ucode_desc *ndesc;
+#endif
 };
 
 struct lsfm_managed_ucode_img {
 	struct lsfm_managed_ucode_img *next;
 	struct lsf_wpr_header wpr_header;
 	struct lsf_lsb_header lsb_header;
-#if defined(CONFIG_NVGPU_NON_FUSA)
 	struct lsf_lsb_header_v2 lsb_header_v2;
-#endif
 	struct flcn_bl_dmem_desc bl_gen_desc;
 	u32 bl_gen_desc_size;
 	u32 full_ucode_size;
