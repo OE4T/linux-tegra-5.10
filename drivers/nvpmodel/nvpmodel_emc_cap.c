@@ -107,10 +107,16 @@ static ssize_t clk_cap_store(struct kobject *kobj,
 	if (sscanf(buf, "%lu", &rate) != 1)
 		return -EINVAL;
 
+	/* Remove previous freq cap to get correct rounted rate for new cap */
+	ret = clk_set_max_rate(clk->clk, UINT_MAX);
+	if (ret)
+		return ret;
+
 	rate = clk_round_rate(clk->clk, rate);
 	if (rate < 0)
 		return -EINVAL;
 
+	/* Apply new freq cap */
 	ret = clk_set_max_rate(clk->clk, rate);
 	if (ret) {
 		pr_err("setting cap failed: %d\n", ret);
