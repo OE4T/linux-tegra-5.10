@@ -774,11 +774,14 @@ static ssize_t clk_cap_store(struct kobject *kobj,
 	ret = kstrtoul(buf, 0, &freq_cap);
 	if (ret)
 		return -EINVAL;
-
+	/* Remove previous freq cap to get correct rounted rate for new cap */
+	ret = clk_set_max_rate(clk, UINT_MAX);
+	if (ret < 0)
+		return ret;
 	freq_cap = clk_round_rate(clk, freq_cap);
 	if (freq_cap < 0)
 		return -EINVAL;
-
+	/* Apply new freq cap */
 	ret = clk_set_max_rate(clk, freq_cap);
 	if (ret < 0)
 		return ret;
