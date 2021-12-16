@@ -565,12 +565,6 @@ static int nvgpu_init_mm_setup_sw(struct gk20a *g)
 		}
 	}
 
-#if defined(CONFIG_NVGPU_NON_FUSA)
-	if (nvgpu_fb_vab_init_hal(g) != 0) {
-		nvgpu_err(g, "failed to init VAB");
-	}
-#endif
-
 	mm->remove_support = nvgpu_remove_mm_support;
 #ifdef CONFIG_NVGPU_DGPU
 	mm->remove_ce_support = nvgpu_remove_mm_ce_support;
@@ -670,6 +664,12 @@ int nvgpu_init_mm_support(struct gk20a *g)
 	if (err != 0) {
 		return err;
 	}
+
+#if defined(CONFIG_NVGPU_NON_FUSA)
+	if (nvgpu_fb_vab_init_hal(g) != 0) {
+		nvgpu_err(g, "failed to init VAB");
+	}
+#endif
 
 	if (g->ops.mm.setup_hw != NULL) {
 		err = g->ops.mm.setup_hw(g);
