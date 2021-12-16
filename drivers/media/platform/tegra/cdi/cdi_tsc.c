@@ -1,7 +1,7 @@
 /*
  * cdi_tsc.c - CDI TSC Signal Generation Driver.
  *
- * Copyright (c) 2021 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022 NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -208,6 +208,11 @@ static int cdi_tsc_find_and_add_generators(struct tsc_signal_controller *control
 		if (err != 0) {
 			dev_err(controller->dev, "Failed to read generator frequency: %d\n", err);
 			return err;
+		}
+
+		if (generator->config.freq_hz == 0) {
+			dev_err(controller->dev, "Frequency must be non-zero\n");
+			return -EINVAL;
 		}
 
 		err = of_property_read_u32(np, "duty_cycle", &generator->config.duty_cycle);
