@@ -789,17 +789,26 @@ static int nvgpu_prof_ioctl_vab_reserve(struct nvgpu_profiler_object *prof,
 		return -EINVAL;
 	}
 
+	err = gk20a_busy(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to poweron");
+		return -EINVAL;
+	}
+
 	ckr = nvgpu_kzalloc(g, sizeof(struct nvgpu_vab_range_checker) *
 		arg->num_range_checkers);
 	if (copy_from_user(ckr, user_ckr,
 		sizeof(struct nvgpu_vab_range_checker) *
 		arg->num_range_checkers)) {
+		gk20a_idle(g);
 		return -EFAULT;
 	}
 
 	err = g->ops.fb.vab.reserve(g, vab_mode, arg->num_range_checkers, ckr);
 
 	nvgpu_kfree(g, ckr);
+
+	gk20a_idle(g);
 
 	return err;
 }
@@ -810,6 +819,12 @@ static int nvgpu_prof_ioctl_vab_flush(struct nvgpu_profiler_object *prof,
 	int err;
 	struct gk20a *g = prof->g;
 	u64 *user_data = nvgpu_kzalloc(g, arg->buffer_size);
+
+	err = gk20a_busy(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to poweron");
+		return -EINVAL;
+	}
 
 	err = g->ops.fb.vab.dump_and_clear(g, user_data, arg->buffer_size);
 	if (err < 0) {
@@ -824,6 +839,7 @@ static int nvgpu_prof_ioctl_vab_flush(struct nvgpu_profiler_object *prof,
 
 fail:
 	nvgpu_kfree(g, user_data);
+	gk20a_idle(g);
 	return err;
 }
 #endif
