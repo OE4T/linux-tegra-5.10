@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -81,7 +81,8 @@ u32 hwpm_readl(struct tegra_soc_hwpm *hwpm, u32 dt_aperture, u32 reg_offset)
 
 	tegra_soc_hwpm_dbg(
 		"dt_aperture(%d): dt_aperture addr(0x%llx) reg_offset(0x%x)",
-		dt_aperture, hwpm->dt_apertures[dt_aperture], reg_offset);
+		dt_aperture, (unsigned long long *)hwpm->dt_apertures[dt_aperture],
+		reg_offset);
 
 	if (hwpm->fake_registers_enabled) {
 		u64 base_pa = tegra_soc_hwpm_get_perfmon_base(dt_aperture);
@@ -104,7 +105,8 @@ void hwpm_writel(struct tegra_soc_hwpm *hwpm, u32 dt_aperture,
 	tegra_soc_hwpm_dbg(
 		"dt_aperture(%d): dt_aperture addr(0x%llx) "
 		"reg_offset(0x%x), val(0x%x)",
-		dt_aperture, hwpm->dt_apertures[dt_aperture], reg_offset, val);
+		dt_aperture, (unsigned long long *)hwpm->dt_apertures[dt_aperture],
+		reg_offset, val);
 
 	if (hwpm->fake_registers_enabled) {
 		u64 base_pa = tegra_soc_hwpm_get_perfmon_base(dt_aperture);
