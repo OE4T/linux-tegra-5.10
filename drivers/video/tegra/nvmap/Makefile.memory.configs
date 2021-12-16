@@ -114,7 +114,7 @@ NVMAP_CONFIG_DEBUG_MAPS := n
 # This is fallback option to support handle as FD
 # To support handle as ID, set this to n
 # This config is useful to debug issue if its due to handle as ID or FD
-NVMAP_CONFIG_HANDLE_AS_FD := y
+NVMAP_CONFIG_HANDLE_AS_FD := n
 ################################################################################
 # Section 3
 # Enable/Disable configs based upon the kernel version
