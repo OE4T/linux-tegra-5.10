@@ -582,9 +582,9 @@ err_nomem:
 int __nvmap_dmabuf_fd(struct nvmap_client *client,
 		      struct dma_buf *dmabuf, int flags)
 {
-#ifndef NVMAP_LOADABLE_MODULE
+#if !defined(NVMAP_CONFIG_HANDLE_AS_ID) && !defined(NVMAP_LOADABLE_MODULE)
 	int start_fd = NVMAP_CONFIG_FD_START;
-#endif /* !NVMAP_LOADABLE_MODULE */
+#endif
 
 #ifdef NVMAP_CONFIG_DEFER_FD_RECYCLE
 	if (client->next_fd < NVMAP_CONFIG_FD_START)
@@ -599,11 +599,11 @@ int __nvmap_dmabuf_fd(struct nvmap_client *client,
 	 * __FD_SETSIZE limitation issue for select(),
 	 * pselect() syscalls.
 	 */
-#ifndef NVMAP_LOADABLE_MODULE
-	return __alloc_fd(current->files, start_fd, sysctl_nr_open, flags);
-#else
+#if defined(NVMAP_LOADABLE_MODULE) || defined(NVMAP_CONFIG_HANDLE_AS_ID)
 	return get_unused_fd_flags(flags);
-#endif /* !NVMAP_LOADABLE_MODULE */
+#else
+	return __alloc_fd(current->files, start_fd, sysctl_nr_open, flags);
+#endif
 }
 
 static struct dma_buf *__nvmap_dmabuf_export(struct nvmap_client *client,
