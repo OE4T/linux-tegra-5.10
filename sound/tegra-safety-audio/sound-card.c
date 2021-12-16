@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2021 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2021-2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  */
 
 #define pr_fmt(msg) "Safety I2S: " msg
@@ -291,6 +291,8 @@ static int i2s_parse_dt(struct device *dev, int id)
 	i2s_config = &i2s[id].config;
 	memcpy(i2s_config, &i2s_defaults, sizeof(i2s_config[0]));
 
+	i2s_config->clock_polarity = 1;
+
 	i2s_node = of_get_child_by_name(dev->of_node, name);
 	if (i2s_node == NULL) {
 		pr_alert("Invalid device tree node\n");
@@ -300,11 +302,18 @@ static int i2s_parse_dt(struct device *dev, int id)
 	if (of_find_property(i2s_node, "frame-slave", NULL))
 		i2s_config->clock_mode = 1;
 
+	prop = of_get_property(i2s_node, "format", NULL);
+	if (prop != NULL) {
+		i2s_get_mode(prop, &i2s_config->mode, &i2s_config->offset);
+		if (strcmp("i2s", prop) == 0)
+			i2s_config->clock_polarity = 0;
+	}
+
 	if (of_find_property(i2s_node, "bitclock-inversion", NULL))
 		i2s_config->edge_ctrl = 1;
 
 	if (of_find_property(i2s_node, "frame-inversion", NULL))
-		i2s_config->clock_polarity = 1;
+		i2s_config->clock_polarity = !i2s_config->clock_polarity;
 
 	prop = of_get_property(i2s_node, "tx-mask", NULL);
 	if (prop != NULL)
@@ -318,13 +327,21 @@ static int i2s_parse_dt(struct device *dev, int id)
 	if (prop != NULL)
 		i2s_config->clock_trim = be32_to_cpup(prop);
 
-	prop = of_get_property(i2s_node, "format", NULL);
-	if (prop != NULL)
-		i2s_get_mode(prop, &i2s_config->mode, &i2s_config->offset);
-
 	prop = of_get_property(i2s_node, "fsync-width", NULL);
 	if (prop != NULL)
 		i2s_config->fsync_width = be32_to_cpup(prop);
+
+	prop = of_get_property(i2s_node, "srate", NULL);
+	if (prop != NULL)
+		i2s_config->srate = be32_to_cpup(prop);
+
+	prop = of_get_property(i2s_node, "num-channel", NULL);
+	if (prop != NULL)
+		i2s_config->channels = be32_to_cpup(prop);
+
+	prop = of_get_property(i2s_node, "bit-format", NULL);
+	if (prop != NULL)
+		i2s_config->bit_size = be32_to_cpup(prop);
 
 #ifdef SAFETY_I2S_DEBUG
 	dump_config(i2s_config);
@@ -419,7 +436,9 @@ static int gpcdma_hw_params(struct snd_pcm_substream *substream,
 	}
 
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
-		slave_config.dst_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
+		slave_config.dst_addr_width = (dma_data->width == 16) ?
+						DMA_SLAVE_BUSWIDTH_2_BYTES :
+						DMA_SLAVE_BUSWIDTH_4_BYTES;
 		slave_config.dst_addr = dma_data->addr;
 		/* MC burst should be multiple of this for proper
 		 * stopping of GPCDMA during CYCLIC transfer.
@@ -428,7 +447,9 @@ static int gpcdma_hw_params(struct snd_pcm_substream *substream,
 		 */
 		slave_config.dst_maxburst = 2;
 	} else {
-		slave_config.src_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
+		slave_config.src_addr_width = (dma_data->width == 16) ?
+						DMA_SLAVE_BUSWIDTH_2_BYTES :
+						DMA_SLAVE_BUSWIDTH_4_BYTES;
 		slave_config.src_addr = dma_data->addr;
 		slave_config.src_maxburst = 2;
 	}
@@ -624,10 +645,12 @@ static int t234_safety_audio_probe(struct platform_device *pdev)
 			return -EINVAL;
 		}
 
+		safety_i2s_probe(&pdev->dev, i);
+
 		i2s[i].capture_data.addr = r->start + 0x20;
 		//TODO: Read from DT later on
 		i2s[i].capture_data.size = buffer_size;
-		i2s[i].capture_data.width = 32;
+		i2s[i].capture_data.width = i2s[i].config.bit_size;
 		i2s[i].capture_data.req_sel = i + 1;
 		i2s[i].capture_data.dma_chan_name =
 					(i ? "i2s8-rx" : "i2s7-rx");
@@ -635,11 +658,10 @@ static int t234_safety_audio_probe(struct platform_device *pdev)
 		i2s[i].playback_data.addr = r->start + 0xa0;
 		//TODO: Read from DT later on
 		i2s[i].playback_data.size = buffer_size;
-		i2s[i].playback_data.width = 32;
+		i2s[i].playback_data.width = i2s[i].config.bit_size;
 		i2s[i].playback_data.req_sel = i + 1;
 		i2s[i].playback_data.dma_chan_name =
 					(i ? "i2s8-tx" : "i2s7-tx");
-		safety_i2s_probe(&pdev->dev, i);
 
 		pcm->private_data = &i2s[i];
 
