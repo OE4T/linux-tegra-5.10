@@ -800,15 +800,15 @@
 			resets = <&bpmp_resets TEGRA234_RESET_I2S7>;
 			/* frame-slave => codec is slave, Tegra is clock master */
 			frame-slave;
-			bitclock-noninversion;
+			bitclock-inversion;
 			/* frame-inversion => LRCK_POLARITY = HIGH, meaning rising edge?? */
 			/* A2B Master has inversion bit set, A2B_I2SGCFG.INV = b'1, REG(0x41) = 0xc2 */
-			frame-inversion;
+			frame-noninversion;
 			tx-mask = <0xff>;
 			rx-mask = <0xff>;
 			clk-trim = <0x0>;
-			format = "dsp_a";
-			fsync-width = <0x1f>;
+			format = "dsp_b";
+			fsync-width = <0x0>;
 		};
 
 		i2s8 {
