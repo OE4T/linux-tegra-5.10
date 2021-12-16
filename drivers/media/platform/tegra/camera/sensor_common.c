@@ -1,7 +1,7 @@
 /*
  * sensor_common.c - utilities for tegra sensor drivers
  *
- * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -89,17 +89,18 @@ static int sensor_common_parse_signal_props(
 	else
 		signal->readout_orientation = value;
 
-	err = read_property_u32(node, "num_lanes", &value);
-	if (err)
-		signal->num_lanes = 0;
-	else
-		signal->num_lanes = value;
-
 	err = read_property_u32(node, "mclk_khz", &value);
 	if (err)
 		signal->mclk_freq = 0;
 	else
 		signal->mclk_freq = value;
+
+	err = read_property_u32(node, "num_lanes", &value);
+	if (err) {
+		dev_err(dev, "%s:num_lanes property missing\n", __func__);
+		return err;
+	}
+	signal->num_lanes = value;
 
 	err = read_property_u64(node, "pix_clk_hz", &val64);
 	if (err) {
