@@ -269,7 +269,7 @@ struct pmu_rpc_struct_lpwr_loading_pg_ctrl_buf_load
 /*!
  * Defines the structure that holds data used to execute PG_ASYNC_CMD_RESP RPC.
  */
-struct pmu_rm_rpc_struct_lpwr_pg_async_cmd_resp {
+struct pmu_nv_rpc_struct_lpwr_pg_async_cmd_resp {
 	/*!
 	 *  Must be first field in RPC structure.
 	 */
@@ -282,6 +282,36 @@ struct pmu_rm_rpc_struct_lpwr_pg_async_cmd_resp {
 	 *  Message ID of the Async PG Command.
 	 */
 	u8 msg_id;
+};
+
+/*!
+ * Defines the structure that holds data used to execute PG_IDLE_SNAP RPC.
+ */
+struct pmu_nv_rpc_struct_lpwr_pg_idle_snap {
+	/*!
+	 *  Must be first field in RPC structure.
+	 */
+	struct nv_pmu_rpc_header hdr;
+	/*!
+	 *  PgCtrl ID.
+	 */
+	u8 ctrl_id;
+	/*!
+	 *  Idle Snap reason.
+	 */
+	u8 reason;
+	/*!
+	 *  Primary status from Idle Snap.
+	 */
+	u32 idle_status;
+	/*!
+	 *  Additional status from Idle Snap.
+	 */
+	u32 idle_status1;
+	/*!
+	 *  Additional status from Idle Snap.
+	 */
+	u32 idle_status2;
 };
 
 /*

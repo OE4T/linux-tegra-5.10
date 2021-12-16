@@ -402,21 +402,60 @@ static int ga10b_pmu_pg_handle_async_cmd_resp(struct gk20a *g, u32 ctrl_id,
 	return err;
 }
 
+static int ga10b_pmu_pg_handle_idle_snap_rpc(struct gk20a *g,
+		struct pmu_nv_rpc_struct_lpwr_pg_idle_snap *idle_snap_rpc)
+{
+	int err = 0;
+
+	nvgpu_err(g, "IDLE SNAP RPC received");
+	nvgpu_err(g, "IDLE SNAP ctrl_id:%d", idle_snap_rpc->ctrl_id);
+	nvgpu_err(g, "IDLE SNAP reason:0x%x", idle_snap_rpc->reason);
+
+	switch (idle_snap_rpc->reason) {
+	case PG_IDLE_SNAP_REASON_ERR_IDLE_FLIP_POWERING_DOWN:
+		nvgpu_err(g, "IDLE_SNAP reason:ERR_IDLE_FLIP_POWERING_DOWN");
+		break;
+	case PG_IDLE_SNAP_REASON_ERR_IDLE_FLIP_PWR_OFF:
+		nvgpu_err(g, "IDLE_SNAP reason:ERR_IDLE_PWR_OFF");
+		break;
+	default:
+		nvgpu_err(g, "IDLE_SNAP reason unknown");
+		err = -EINVAL;
+		break;
+	}
+
+	nvgpu_err(g, "IDLE SNAP idle_status: 0x%x",
+				idle_snap_rpc->idle_status);
+	nvgpu_err(g, "IDLE SNAP idle_status1: 0x%x",
+				idle_snap_rpc->idle_status1);
+	nvgpu_err(g, "IDLE SNAP idle_status2: 0x%x",
+				idle_snap_rpc->idle_status2);
+	return err;
+}
+
 static int ga10b_pmu_pg_process_rpc_event(struct gk20a *g, void *pmumsg)
 {
 	int err = 0;
-	struct pmu_rm_rpc_struct_lpwr_pg_async_cmd_resp *async_cmd;
+	struct pmu_nv_rpc_struct_lpwr_pg_async_cmd_resp *async_cmd;
+	struct pmu_nv_rpc_struct_lpwr_pg_idle_snap *idle_snap_rpc;
 	struct pmu_nvgpu_rpc_pg_event *msg =
 		(struct pmu_nvgpu_rpc_pg_event *)pmumsg;
 
 	switch (msg->rpc_hdr.function) {
 	case PMU_NV_RPC_ID_LPWR_PG_ASYNC_CMD_RESP:
 		async_cmd =
-		(struct pmu_rm_rpc_struct_lpwr_pg_async_cmd_resp *)
+		(struct pmu_nv_rpc_struct_lpwr_pg_async_cmd_resp *)
 			(void *)(&msg->rpc_hdr);
 		err = ga10b_pmu_pg_handle_async_cmd_resp(g, async_cmd->ctrl_id,
 					async_cmd->msg_id);
 		break;
+	case PMU_NV_RPC_ID_LPWR_PG_IDLE_SNAP:
+		idle_snap_rpc =
+		(struct pmu_nv_rpc_struct_lpwr_pg_idle_snap *)
+			(void *)(&msg->rpc_hdr);
+		err = ga10b_pmu_pg_handle_idle_snap_rpc(g, idle_snap_rpc);
+		break;
+
 	default:
 		nvgpu_err(g, "Invalid PMU RPC: 0x%x", msg->rpc_hdr.function);
 		err = -EINVAL;

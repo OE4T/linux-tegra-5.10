@@ -52,6 +52,26 @@
 #define PMU_NV_RPC_ID_LPWR_PG_LOG_FLUSHED	0x01U
 #define PMU_NV_RPC_ID_LPWR_PG_IDLE_SNAP		0x02U
 
+/*!
+ * @brief Idle snap reason
+ *
+ * Idle snap representing errors:
+ * PMU ucode converts idle snap interrupt to DISALLOW event and disables
+ * PgCtrl forever.
+ *
+ * ERR_IDLE_FLIP_POWERING_DOWN  : Idle signal reported busy in POWERING_DOWN
+ *                                state. This means idle-flip was asserted
+ *                                after point of no-return.
+ * ERR_IDLE_FLIP_PWR_OFF        : Idle signal reported busy in PWR_OFF state.
+ *                                It was not expected to change the state of
+ *                                signal in PWR_OFF state.
+ * ERR_UNKNOWN                  : PMU ucode is not able to find the valid
+ *                                reason for idle snap.
+ */
+#define PG_IDLE_SNAP_REASON_ERR_IDLE_FLIP_POWERING_DOWN     BIT(0)
+#define PG_IDLE_SNAP_REASON_ERR_IDLE_FLIP_PWR_OFF           BIT(1)
+#define PG_IDLE_SNAP_REASON_ERR_UNKNOWN                     BIT(2)
+
 /* Async PG message IDs */
 enum {
 	PMU_PG_MSG_ASYNC_CMD_DISALLOW,
