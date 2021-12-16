@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -422,10 +422,11 @@ static inline int del_vlan_id(struct osi_core_priv_data *osi_core,
 	vid_idx = get_vlan_filter_idx(osi_core, vlan_id);
 	if (vid_idx == VLAN_HW_FILTER_FULL_IDX) {
 		ret = is_vlan_id_enqueued(osi_core, vlan_id, &idx);
-		if (ret == 0) {
-			/* VID found to be deleted in SW queue */
-			return dequeue_vlan_id(osi_core, idx);
+		if (ret != 0) {
+			/* VID not found in HW/SW filter list */
+			return -1;
 		}
+		return dequeue_vlan_id(osi_core, idx);
 	}
 
 	osi_core->vf_bitmap &= ~OSI_BIT(vid_idx);
