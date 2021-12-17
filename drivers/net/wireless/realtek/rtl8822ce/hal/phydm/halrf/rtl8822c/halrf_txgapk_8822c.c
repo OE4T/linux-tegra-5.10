@@ -578,7 +578,7 @@ void _halrf_txgapk_write_tx_gain_8822c(
 	struct _halrf_txgapk_info *txgapk = &rf->halrf_txgapk_info;
 
 	u32 i, j, tmp = 0x20, tmp1 = 0x60, tmp_3f;
-	s8 offset_tmp[10] = {0};
+	s8 offset_tmp[11] = {0};
 	u8 channel = *dm->channel, path_idx, band_idx = 1;
 
 	RF_DBG(dm, DBG_RF_TXGAPK, "[TXGAPK] ======>%s\n", __func__);
