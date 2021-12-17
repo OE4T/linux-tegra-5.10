@@ -190,7 +190,7 @@ int camera_common_g_ctrl(struct camera_common_data *s_data,
 			return 0;
 		}
 	}
-	speculation_barrier();
+	spec_bar();
 
 	return -EFAULT;
 }
@@ -594,7 +594,7 @@ static void select_mode(struct camera_common_data *s_data,
 			break;
 		}
 	}
-	speculation_barrier();
+	spec_bar();
 }
 
 int camera_common_try_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
@@ -656,7 +656,7 @@ int camera_common_try_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
 				break;
 			}
 		}
-		speculation_barrier();
+		spec_bar();
 
 		if (i == s_data->numfmts) {
 			mf->width = s_data->fmt_width;
@@ -760,7 +760,7 @@ static int camera_common_evaluate_color_format(struct v4l2_subdev *sd,
 		if (cur_props->pixel_format == pixelformat)
 			return 0;
 	}
-	speculation_barrier();
+	spec_bar();
 
 	if (i == sensor_num_modes) {
 		dev_dbg(s_data->dev,
@@ -895,7 +895,7 @@ void camera_common_dpd_disable(struct camera_common_data *s_data)
 		dev_dbg(s_data->dev,
 			 "%s: csi %d\n", __func__, io_idx);
 	}
-	speculation_barrier();
+	spec_bar();
 }
 
 void camera_common_dpd_enable(struct camera_common_data *s_data)
@@ -919,7 +919,7 @@ void camera_common_dpd_enable(struct camera_common_data *s_data)
 		dev_dbg(s_data->dev,
 			 "%s: csi %d\n", __func__, io_idx);
 	}
-	speculation_barrier();
+	spec_bar();
 }
 
 int camera_common_s_power(struct v4l2_subdev *sd, int on)

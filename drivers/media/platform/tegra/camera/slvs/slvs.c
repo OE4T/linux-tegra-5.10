@@ -682,7 +682,7 @@ static void tegra_slvs_init_debugfs(struct tegra_mc_slvs *slvs)
 		slvs->streams[i].debugfs = dir;
 		tegra_slvs_debugfs_init_stream(&slvs->streams[i]);
 	}
-	speculation_barrier();
+	spec_bar();
 }
 
 /*

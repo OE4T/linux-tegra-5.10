@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2022 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -571,7 +571,7 @@ static long vi_channel_ioctl(
 		}
 
 		/* Don't let to speculate with invalid buffer_index value */
-		speculation_barrier();
+		spec_bar();
 
 		if (capture->unpins_list == NULL) {
 			dev_err(chan->dev, "Channel setup incomplete\n");
