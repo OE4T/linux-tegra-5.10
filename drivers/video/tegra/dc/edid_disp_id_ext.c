@@ -2,7 +2,7 @@
  * edid_display_id_ext.c: Functions to parse E-EDID extension blocks encoded
  *                        in display ID format
  *
- * Copyright (c) 2017-2019, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -126,7 +126,7 @@ static void disp_id_timing1_fill_fb_mode(const struct disp_id_timing1_desc *t,
 	 * t is coming from edid->dc->vedid_data.
 	 * edid->dc->vedid_data is being populated through debugfs(edid_fops).
 	 */
-	speculation_barrier();
+	spec_bar();
 }
 
 static int disp_id_timing1_parse(const u8 *data, struct fb_monspecs *specs)

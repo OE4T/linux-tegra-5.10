@@ -4,7 +4,7 @@
  * Copyright (C) 2010 Google, Inc.
  * Author: Erik Gilling <konkers@android.com>
  *
- * Copyright (c) 2010-2021, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2010-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -1974,7 +1974,7 @@ static int tegra_dc_topology_parse(char *buf, int nargs,
 			break;
 	}
 	/* topology's disp_id, protocol and conn_list are coming from user. */
-	speculation_barrier();
+	spec_bar();
 
 	kfree(orig_b);
 
@@ -2082,7 +2082,7 @@ static ssize_t dbg_nvdisp_topology_write(struct file *file,
 		return -EINVAL;
 	}
 	/* topology is coming from user. */
-	speculation_barrier();
+	spec_bar();
 
 	if (is_topology_reset(topology)) {
 		/* Reset topology */
@@ -7227,7 +7227,7 @@ static int __init parse_disp_params(char *options, struct tegra_dc_mode *mode)
 		}
 	}
 	/* mode configuration is coming via command line argument to kernel */
-	speculation_barrier();
+	spec_bar();
 	if (ret < 0)
 		return ret;
 
