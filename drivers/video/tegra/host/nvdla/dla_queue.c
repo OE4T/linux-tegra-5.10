@@ -219,7 +219,7 @@ struct nvdla_queue_pool *nvdla_queue_init(struct platform_device *pdev,
 		queue->task_pool = (void *)&task_pool[i];
 		nvdla_queue_get_task_size(queue);
 	}
-	speculation_barrier(); /* break_spec_p#5_1 */
+	spec_bar(); /* break_spec_p#5_1 */
 
 	return pool;
 
@@ -340,7 +340,7 @@ struct nvdla_queue *nvdla_queue_alloc(struct nvdla_queue_pool *pool,
 		err = -ENOMEM;
 		goto err_alloc_queue;
 	}
-	speculation_barrier(); /* break_spec_p#1 */
+	spec_bar(); /* break_spec_p#1 */
 
 	/* reserve the queue */
 	queue = &queues[index];
@@ -516,7 +516,7 @@ int nvdla_queue_submit_to_host1x(struct nvdla_queue *queue,
 		job->waitchk[i].thresh = wait_syncpt_thresholds[i];
 		job->waitchk[i].mem = 0;
 	}
-	speculation_barrier(); /* break_spec_p#5_1 */
+	spec_bar(); /* break_spec_p#5_1 */
 
 	/* Initialize syncpoint increments */
 	job->sp->id = queue->syncpt_id;

@@ -23,8 +23,6 @@
 #include <linux/dma-mapping.h>
 #include <linux/uaccess.h>
 
-#include "host1x/host1x.h"
-
 #include "nvdla/nvdla.h"
 #include "nvdla/dla_queue.h"
 #include "nvdla/nvdla_buffer.h"
@@ -197,7 +195,7 @@ static int nvdla_pin(struct nvdla_private *priv, void *arg)
 		goto nvdla_buffer_cpy_err;
 	}
 
-	speculation_barrier(); /* break_spec_p#5_1 */
+	spec_bar(); /* break_spec_p#5_1 */
 
 	err = nvdla_buffer_pin(priv->buffers, handles, count);
 
@@ -245,7 +243,7 @@ static int nvdla_unpin(struct nvdla_private *priv, void *arg)
 		goto nvdla_buffer_cpy_err;
 	}
 
-	speculation_barrier(); /* break_spec_p#5_1 */
+	spec_bar(); /* break_spec_p#5_1 */
 
 	nvdla_buffer_unpin(priv->buffers, handles, count);
 
@@ -447,7 +445,7 @@ static int nvdla_send_emu_signal_fences(struct nvdla_emu_task *task,
 			}
 		}
 	}
-	speculation_barrier(); /* break_spec_p#5_1 */
+	spec_bar(); /* break_spec_p#5_1 */
 
 	nvdla_dbg_fn(dla_pdev, "copy prefences to user");
 	/* send pre fences */
@@ -489,7 +487,7 @@ static int nvdla_send_emu_signal_fences(struct nvdla_emu_task *task,
 			}
 		}
 	}
-	speculation_barrier(); /* break_spec_p#5_1 */
+	spec_bar(); /* break_spec_p#5_1 */
 
 	nvdla_dbg_fn(dla_pdev, "copy postfences to user");
 	/* send post fences */
@@ -551,7 +549,7 @@ static int nvdla_update_signal_fences(struct nvdla_task *task,
 			}
 		}
 	}
-	speculation_barrier(); /* break_spec_p#5_1 */
+	spec_bar(); /* break_spec_p#5_1 */
 
 	nvdla_dbg_fn(dla_pdev, "copy prefences to user");
 	/* copy pre fences */
@@ -593,7 +591,7 @@ static int nvdla_update_signal_fences(struct nvdla_task *task,
 			}
 		}
 	}
-	speculation_barrier(); /* break_spec_p#5_1 */
+	spec_bar(); /* break_spec_p#5_1 */
 
 	nvdla_dbg_fn(dla_pdev, "copy postfences to user");
 	/* copy post fences */
@@ -826,7 +824,7 @@ static void nvdla_dump_task(struct nvdla_task *task)
 				i, task->memory_handles[i].handle,
 				task->memory_handles[i].offset);
 	}
-	speculation_barrier(); /* break_spec_p#5_1 */
+	spec_bar(); /* break_spec_p#5_1 */
 }
 
 static int nvdla_emu_task_submit(struct nvdla_private *priv, void *arg)
@@ -912,7 +910,7 @@ static int nvdla_emu_task_submit(struct nvdla_private *priv, void *arg)
 		}
 		nvdla_dbg_info(pdev, "signal fences of task[%d] sent", i + 1);
 	}
-	speculation_barrier(); /* break_spec_p#5_1 */
+	spec_bar(); /* break_spec_p#5_1 */
 	nvdla_dbg_fn(pdev, "Emulator task submitted, done!");
 
 exit:
