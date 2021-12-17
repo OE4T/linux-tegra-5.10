@@ -501,11 +501,44 @@ int nvhost_intr_register_notifier(struct platform_device *pdev,
 /* public host1x sync-point management APIs */
 #ifdef CONFIG_TEGRA_HOST1X
 
+static inline u32 nvhost_opcode_incr(unsigned offset, unsigned count)
+{
+	return (1 << 28) | (offset << 16) | count;
+}
+
 static inline struct flcn *get_flcn(struct platform_device *pdev)
 {
 	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
 
 	return pdata ? pdata->falcon_data : NULL;
+}
+
+static inline int nvhost_module_set_rate(struct platform_device *dev, void *priv,
+			   unsigned long constraint, int index,
+			   unsigned long attr)
+{
+	return 0;
+}
+
+static inline int nvhost_module_add_client(struct platform_device *dev, void *priv)
+{
+	return 0;
+}
+
+static inline void nvhost_module_remove_client(struct platform_device *dev, void *priv) { }
+
+static inline int nvhost_syncpt_get_cv_dev_address_table(struct platform_device *engine_pdev,
+							 int *count, dma_addr_t **table)
+{
+	return -ENODEV;
+}
+
+static inline int nvhost_syncpt_get_gos(struct platform_device *engine_pdev,
+			      u32 syncpt_id,
+			      u32 *gos_id,
+			      u32 *gos_offset)
+{
+	return -ENODEV;
 }
 
 static inline const struct firmware *
@@ -517,6 +550,77 @@ nvhost_client_request_firmware(struct platform_device *dev,
 
 static inline void nvhost_debug_dump_device(struct platform_device *pdev)
 {
+}
+
+static inline int nvhost_fence_create_fd(
+		struct platform_device *pdev,
+		struct nvhost_ctrl_sync_fence_info *pts,
+		u32 num_pts,
+		const char *name,
+		s32 *fence_fd)
+{
+	return -EOPNOTSUPP;
+}
+
+static inline int nvhost_fence_foreach_pt(
+	struct nvhost_fence *fence,
+	int (*iter)(struct nvhost_ctrl_sync_fence_info, void *),
+	void *data)
+{
+	return -EOPNOTSUPP;
+}
+
+static inline struct nvhost_job *nvhost_job_alloc(struct nvhost_channel *ch,
+		int num_cmdbufs, int num_relocs, int num_waitchks,
+		int num_syncpts)
+{
+	return NULL;
+}
+
+static inline void nvhost_job_put(struct nvhost_job *job) {}
+
+static inline int nvhost_job_add_client_gather_address(struct nvhost_job *job,
+		u32 num_words, u32 class_id, dma_addr_t gather_address)
+{
+	return -EOPNOTSUPP;
+}
+
+static inline int nvhost_channel_map(struct nvhost_device_data *pdata,
+			struct nvhost_channel **ch,
+			void *identifier)
+{
+	return -EOPNOTSUPP;
+}
+
+static inline int nvhost_channel_submit(struct nvhost_job *job)
+{
+	return -EOPNOTSUPP;
+}
+
+static inline void nvhost_putchannel(struct nvhost_channel *ch, int cnt) {}
+
+static inline struct nvhost_fence *nvhost_fence_get(int fd)
+{
+	return NULL;
+}
+
+static inline void nvhost_fence_put(struct nvhost_fence *fence) {}
+
+static inline int nvhost_fence_num_pts(struct nvhost_fence *fence)
+{
+	return 0;
+}
+
+static inline dma_addr_t nvhost_t194_get_reloc_phys_addr(dma_addr_t phys_addr,
+							 u32 reloc_type)
+{
+	return 0;
+}
+
+static inline dma_addr_t nvhost_t23x_get_reloc_phys_addr(dma_addr_t phys_addr,
+							 u32 reloc_type)
+{
+	return 0;
 }
 
 static inline void nvhost_eventlib_log_task(struct platform_device *pdev,
@@ -723,7 +827,7 @@ static inline int nvhost_fence_foreach_pt(
 	int (*iter)(struct nvhost_ctrl_sync_fence_info, void *d),
 	void *d)
 {
-	return -ENOTSUPP;
+	return -EOPNOTSUPP;
 }
 
 static inline struct nvhost_fence *nvhost_create_fence(

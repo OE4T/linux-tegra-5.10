@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <linux/arm64-barrier.h>
 #include <linux/fs.h>
 #include <linux/platform_device.h>
 #include <linux/slab.h>
@@ -24,13 +25,16 @@
 #include <linux/uaccess.h>
 #include <linux/delay.h>
 
-#include "host1x/host1x.h"
+#include <uapi/linux/nvhost_ioctl.h>
+
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST)
+#include "t194/hardware_t194.h"
+#endif
 
 #include "nvdla/nvdla.h"
 #include "nvdla/dla_queue.h"
 #include "nvdla/nvdla_debug.h"
 #include "dla_os_interface.h"
-#include "t194/hardware_t194.h"
 
 #define NVDLA_QUEUE_ABORT_TIMEOUT	10000	/* 10 sec */
 #define NVDLA_QUEUE_ABORT_RETRY_PERIOD	500	/* 500 ms */

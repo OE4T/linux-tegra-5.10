@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <linux/arm64-barrier.h>
 #include <linux/module.h>
 #include <linux/fs.h>
 #include <linux/of.h>
@@ -28,10 +29,6 @@
 #include <linux/version.h>
 #include <linux/nvmem-consumer.h>
 #include <soc/tegra/fuse-helper.h>
-
-#include "dev.h"
-
-#include "flcn/flcn.h"
 
 #include "nvdla/nvdla.h"
 #include "nvdla/nvdla_hw_flcn.h"
@@ -682,6 +679,7 @@ static struct of_device_id tegra_nvdla_of_match[] = {
 		.data = (struct nvhost_device_data *)&t23x_nvdla1_info },
 	{ },
 };
+MODULE_DEVICE_TABLE(of, tegra_nvdla_of_match);
 
 static int nvdla_probe(struct platform_device *pdev)
 {
@@ -984,6 +982,39 @@ static struct platform_driver nvdla_driver = {
 	},
 };
 
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST)
 module_platform_driver(nvdla_driver);
+#else
+static struct host1x_driver host1x_nvdla_driver = {
+	.driver = {
+		.name = "host1x-nvdla",
+	},
+	.subdevs = tegra_nvdla_of_match,
+};
+
+static int __init nvdla_init(void)
+{
+	int err;
+
+	err = host1x_driver_register(&host1x_nvdla_driver);
+	if (err < 0)
+		return err;
+
+	err = platform_driver_register(&nvdla_driver);
+	if (err < 0)
+		host1x_driver_unregister(&host1x_nvdla_driver);
+
+	return err;
+}
+module_init(nvdla_init);
+
+static void __exit nvdla_exit(void)
+{
+	platform_driver_unregister(&nvdla_driver);
+	host1x_driver_unregister(&host1x_nvdla_driver);
+}
+module_exit(nvdla_exit);
+#endif
 
 MODULE_AUTHOR("Shridhar Rasal <srasal@nvidia.com>");
+MODULE_LICENSE("GPL v2");

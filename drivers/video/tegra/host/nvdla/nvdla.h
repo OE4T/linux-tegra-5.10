@@ -54,6 +54,17 @@ enum {
 };
 
 /**
+ * DLA firmware file names
+ */
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST)
+#define NV_DLA_TEGRA194_FW	"nvhost_nvdla010.fw"
+#define NV_DLA_TEGRA234_FW	"nvhost_nvdla020.fw"
+#else
+#define NV_DLA_TEGRA194_FW	"nvidia/tegra194/nvdla.bin"
+#define NV_DLA_TEGRA234_FW	"nvidia/tegra234/nvdla.bin"
+#endif
+
+/**
  * Method ID and Method data THI registers
  */
 #define NV_DLA_THI_METHOD_ID	0x00000040      /* RW-4R */

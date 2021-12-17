@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <linux/arm64-barrier.h>
 #include <linux/fs.h>
 #include <linux/platform_device.h>
 #include <linux/slab.h>
