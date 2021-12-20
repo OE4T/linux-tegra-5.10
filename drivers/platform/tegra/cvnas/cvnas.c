@@ -1,7 +1,7 @@
 /*
  * drivers/platform/tegra/cvnas.c
  *
- * Copyright (C) 2017-2021, NVIDIA Corporation.  All rights reserved.
+ * Copyright (C) 2017-2022, NVIDIA Corporation.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -530,6 +530,7 @@ static const struct of_device_id nvcvnas_of_ids[] = {
 	{ .compatible = "nvidia,tegra-cvnas-hv", .data = (void *)true, },
 	{ }
 };
+MODULE_DEVICE_TABLE(of, nvcvnas_of_ids);
 
 static int nvcvnas_probe(struct platform_device *pdev)
 {
@@ -838,3 +839,5 @@ static void __exit nvcvnas_exit(void)
 {
 }
 module_exit(nvcvnas_exit);
+
+MODULE_LICENSE("GPL v2");

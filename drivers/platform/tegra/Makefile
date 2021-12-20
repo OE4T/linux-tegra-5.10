@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2021, NVIDIA CORPORATION. All rights reserved.
+# Copyright (c) 2014-2022, NVIDIA CORPORATION. All rights reserved.
 
 KBUILD_CFLAGS += -I$(srctree)/arch/arm/mach-tegra \
 		 -I$(srctree)/arch/arm/mach-tegra/include/ \
@@ -74,12 +74,12 @@ obj-$(CONFIG_ARCH_TEGRA_21x_SOC) += cpu_emc.o
 endif
 
 ifdef CONFIG_ARCH_TEGRA_194_SOC
-obj-y += cvnas.o
+obj-y += cvnas/
 endif
 
 obj-$(CONFIG_TEGRA_CACHE) += cache/
 ifdef CONFIG_ARCH_TEGRA_19x_SOC
-obj-y += cvnas.o
+obj-y += cvnas/
 obj-$(CONFIG_TEGRA_19X_RAS) += carmel_ras.o
 ifeq ($(CONFIG_HW_PERF_EVENTS), y)
 obj-$(CONFIG_ARCH_TEGRA_19x_SOC) += tegra19_perf_uncore.o
