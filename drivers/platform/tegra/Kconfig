@@ -321,5 +321,11 @@ config TEGRA_USS_IO_PROXY
          Each of the sensor groups has 8 GPIO inputs: 6 for demux states, 1 for
          power control and 1 for diagnostic function select.
 
+config TEGRA_CVNAS
+	tristate "Tegra CVNAS support"
+	default y
+	help
+	 Tegra CVNAS driver for managing CVSRAM memory region.
+
 source "drivers/platform/tegra/nvadsp/Kconfig"
 source "drivers/platform/tegra/nvaudio_ivc/Kconfig"
