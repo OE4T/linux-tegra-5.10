@@ -21,6 +21,8 @@
 #include <linux/workqueue.h>
 #include <linux/of_device.h>
 
+#define MAX_GMSL_DP_SER_REG_13			0xD
+
 #define MAX_GMSL_DP_SER_CTRL3			0x13
 #define MAX_GMSL_DP_SER_CTRL3_LOCK_MASK		(1 << 3)
 #define MAX_GMSL_DP_SER_CTRL3_LOCK_VAL		(1 << 3)
@@ -446,6 +448,14 @@ static int max_gmsl_dp_ser_probe(struct i2c_client *client)
 	priv->regmap = devm_regmap_init_i2c(client, &max_gmsl_dp_ser_i2c_regmap);
 	if (IS_ERR(priv->regmap))
 		return PTR_ERR(priv->regmap);
+
+	ret = max_gmsl_dp_ser_read(priv, MAX_GMSL_DP_SER_REG_13);
+	if (ret != 0) {
+		dev_info(dev, "%s: MAXIM Serializer detected\n", __func__);
+	} else {
+		dev_err(dev, "%s: MAXIM Serializer Not detected\n", __func__);
+		return -ENODEV;
+	}
 
 	ret = max_gmsl_dp_ser_parse_dt(client, priv);
 	if (ret < 0) {
