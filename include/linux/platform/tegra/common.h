@@ -40,7 +40,9 @@ extern int tegra_with_secure_firmware;
 
 extern struct device tegra_generic_dev;
 extern struct device tegra_vpr_dev;
+#ifdef NVMAP_CONFIG_VPR_RESIZE
 extern struct dma_resize_notifier_ops vpr_dev_ops;
+#endif
 
 u32 tegra_get_bct_strapping(void);
 u32 tegra_get_fuse_opt_subrevision(void);

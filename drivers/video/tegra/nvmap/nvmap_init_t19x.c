@@ -319,7 +319,6 @@ static int __init nvmap_gosmem_device_init(struct reserved_mem *rmem,
 {
 	struct of_phandle_args outargs;
 	int ret = 0, i, idx, bytes;
-	DEFINE_DMA_ATTRS(attrs);
 	struct device_node *np;
 	struct sg_table *sgt;
 	int cvdev_count;
@@ -327,8 +326,6 @@ static int __init nvmap_gosmem_device_init(struct reserved_mem *rmem,
 
 	if (!dev)
 		return -ENODEV;
-
-	dma_set_attr(DMA_ATTR_ALLOC_EXACT_SIZE, __DMA_ATTR(attrs));
 
 	np = of_find_node_by_phandle(rmem->phandle);
 	if (!np) {

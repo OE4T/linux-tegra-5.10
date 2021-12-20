@@ -123,7 +123,7 @@ do {                                                    \
 #define DMA_MEMORY_NOMAP		0x02
 #endif /* NVMAP_LOADABLE_MODULE */
 
-#define DMA_ALLOC_FREE_ATTR	(DMA_ATTR_ALLOC_EXACT_SIZE | DMA_ATTR_ALLOC_SINGLE_PAGES)
+#define DMA_ALLOC_FREE_ATTR	DMA_ATTR_ALLOC_SINGLE_PAGES
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 #define ACCESS_OK(type, addr, size)	access_ok(type, addr, size)
 #define SYS_CLOSE(arg)	sys_close(arg)

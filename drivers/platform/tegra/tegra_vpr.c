@@ -51,6 +51,7 @@ static struct vpr_user_module_info {
 } vpr_user_module[NUM_MODULES_IDLE_VPR_RESIZE];
 static int _tegra_set_vpr_params(void *vpr_base, size_t vpr_size);
 
+#ifdef NVMAP_CONFIG_VPR_RESIZE
 static int tegra_update_resize_cfg(phys_addr_t base , size_t size)
 {
 	int i = 0, err = 0;
@@ -102,11 +103,14 @@ retry:
 	mutex_unlock(&vpr_lock);
 	return err;
 }
+#endif
 
+#ifdef NVMAP_CONFIG_VPR_RESIZE
 struct dma_resize_notifier_ops vpr_dev_ops = {
 	.resize = tegra_update_resize_cfg
 };
 EXPORT_SYMBOL(vpr_dev_ops);
+#endif
 
 bool tegra_is_vpr_resize_enabled(void)
 {

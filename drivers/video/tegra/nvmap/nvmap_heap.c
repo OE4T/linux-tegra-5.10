@@ -145,8 +145,7 @@ static phys_addr_t nvmap_alloc_mem(struct nvmap_heap *h, size_t len,
 			return DMA_ERROR_CODE;
 		}
 #else
-		if(!(dma_alloc_from_dev_coherent_attr(dev, len, &pa, &ret,
-						DMA_ATTR_ALLOC_EXACT_SIZE))) {
+		if(!(dma_alloc_from_dev_coherent(dev, len, &pa, &ret))) {
 			dev_err(dev, "Failed to reserve len(%zu)\n", len);
 			return DMA_ERROR_CODE;
 		}
@@ -162,8 +161,13 @@ static phys_addr_t nvmap_alloc_mem(struct nvmap_heap *h, size_t len,
 		(void)nvmap_dma_alloc_attrs(dev, len, &pa,
 				GFP_KERNEL, DMA_ATTR_ALLOC_EXACT_SIZE);
 #else
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
 		(void)dma_alloc_attrs(dev, len, &pa,
 				GFP_KERNEL, DMA_ATTR_ALLOC_EXACT_SIZE);
+#else
+		(void)dma_alloc_attrs(dev, len, &pa,
+				GFP_KERNEL, 0);
+#endif
 #endif /* !NVMAP_LOADABLE_MODULE */
 		if (!dma_mapping_error(dev, pa)) {
 #ifdef NVMAP_CONFIG_VPR_RESIZE
@@ -202,8 +206,7 @@ static void nvmap_free_mem(struct nvmap_heap *h, phys_addr_t base,
 		dma_mark_declared_memory_unoccupied(dev, base, len,
 						    DMA_ATTR_ALLOC_EXACT_SIZE);
 #else
-		dma_release_from_dev_coherent_attr(dev, len, (void *)(uintptr_t)base,
-						   DMA_ATTR_ALLOC_EXACT_SIZE);
+		dma_release_from_dev_coherent(dev, len, (void *)(uintptr_t)base);
 #endif
 	} else
 #endif
@@ -214,9 +217,15 @@ static void nvmap_free_mem(struct nvmap_heap *h, phys_addr_t base,
 				     (dma_addr_t)base,
 				     DMA_ATTR_ALLOC_EXACT_SIZE);
 #else
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
 		dma_free_attrs(dev, len,
 			        (void *)(uintptr_t)base,
 			        (dma_addr_t)base, DMA_ATTR_ALLOC_EXACT_SIZE);
+#else
+		dma_free_attrs(dev, len,
+			        (void *)(uintptr_t)base,
+			        (dma_addr_t)base, 0);
+#endif
 #endif
 	}
 }
