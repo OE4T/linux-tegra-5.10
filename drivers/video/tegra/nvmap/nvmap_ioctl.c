@@ -112,8 +112,13 @@ static int nvmap_install_fd(struct nvmap_client *client,
 	void *op, size_t op_size, bool free, struct dma_buf *dmabuf)
 {
 	int err = 0;
-	struct nvmap_handle_info *info = dmabuf->priv;
+	struct nvmap_handle_info *info;
 
+	if (!dmabuf) {
+		err = -EFAULT;
+		goto dmabuf_fail;
+	}
+	info = dmabuf->priv;
 	if (IS_ERR_VALUE((uintptr_t)fd)) {
 		err = fd;
 		goto fd_fail;
@@ -134,6 +139,7 @@ fd_fail:
 		dma_buf_put(dmabuf);
 	if (free && handle)
 		nvmap_free_handle(client, handle, info->is_ro);
+dmabuf_fail:
 	return err;
 }
 
