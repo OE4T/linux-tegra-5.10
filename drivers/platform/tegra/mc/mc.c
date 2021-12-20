@@ -462,8 +462,11 @@ static int tegra_mc_resume_early(struct device *dev)
 {
 	int i;
 
-	for (i = 0; i < mssnvlink_hubs; i++)
-		__raw_writel(nvlink_reg_val[i], mssnvlink_regs[i] + MSSNVLINK_CYA_DESIGN_MODES);
+	if (mssnvlink_hubs != UINT_MAX) {
+		for (i = 0; i < mssnvlink_hubs; i++)
+			__raw_writel(nvlink_reg_val[i],
+					mssnvlink_regs[i] + MSSNVLINK_CYA_DESIGN_MODES);
+	}
 	tegra_mcerr_resume();
 	return 0;
 }
