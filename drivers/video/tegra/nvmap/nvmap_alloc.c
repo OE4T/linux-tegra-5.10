@@ -616,7 +616,11 @@ static int nvmap_heap_pgalloc(struct nvmap_client *client,
 	size_t size = h->size;
 	struct page **pages;
 	struct device *dma_dev;
-	dma_addr_t pa;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
+	dma_addr_t pa = DMA_ERROR_CODE;
+#else
+	dma_addr_t pa = DMA_MAPPING_ERROR;
+#endif
 
 	dma_dev = nvmap_heap_pgalloc_dev(type);
 	if (IS_ERR(dma_dev))
