@@ -483,6 +483,13 @@ static int __init nvadsp_probe(struct platform_device *pdev)
 		dev_err(dev, "Failed to init aram\n");
 
 	nvadsp_bw_register(drv_data);
+
+	if (!drv_data->adsp_os_secload) {
+		ret = nvadsp_acast_init(pdev);
+		if (ret)
+			goto err;
+	}
+
 err:
 #ifdef CONFIG_PM
 	ret = pm_runtime_put_sync(dev);
@@ -556,6 +563,7 @@ static struct nvadsp_chipdata tegrat18x_adsp_chipdata = {
 	.adsp_thread_hwmbox = 0x20000,	/* HWMBOX4 */
 	.adsp_state_hwmbox = 0x30000,	/* HWMBOX6 */
 	.adsp_irq_hwmbox = 0x38000,	/* HWMBOX7 */
+	.acast_init = nvadsp_acast_t18x_init,
 	.reset_init = nvadsp_reset_t18x_init,
 	.os_init = nvadsp_os_t18x_init,
 #ifdef CONFIG_PM

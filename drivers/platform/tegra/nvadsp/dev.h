@@ -135,6 +135,7 @@ struct nvadsp_hwmb {
 };
 
 
+typedef int (*acast_init) (struct platform_device *pdev);
 typedef int (*reset_init) (struct platform_device *pdev);
 typedef int (*os_init) (struct platform_device *pdev);
 #ifdef CONFIG_PM
@@ -147,6 +148,7 @@ struct nvadsp_chipdata {
 	u32			adsp_thread_hwmbox;
 	u32			adsp_irq_hwmbox;
 	u32			adsp_shared_mem_hwmbox;
+	acast_init		acast_init;
 	reset_init		reset_init;
 	os_init			os_init;
 #ifdef CONFIG_PM
@@ -303,6 +305,16 @@ static inline int __init nvadsp_reset_init(struct platform_device *pdev)
 		return drv_data->chip_data->reset_init(pdev);
 
 	return -EINVAL;
+}
+
+static inline int __init nvadsp_acast_init(struct platform_device *pdev)
+{
+	struct nvadsp_drv_data *drv_data = platform_get_drvdata(pdev);
+
+	if (drv_data->chip_data->acast_init)
+		return drv_data->chip_data->acast_init(pdev);
+
+	return 0;
 }
 
 #ifdef CONFIG_TEGRA_ADSP_LPTHREAD
