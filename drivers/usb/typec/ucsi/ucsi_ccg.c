@@ -2,7 +2,7 @@
 /*
  * UCSI driver for Cypress CCGx Type-C controller
  *
- * Copyright (C) 2017-2021 NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2017-2022 NVIDIA Corporation. All rights reserved.
  * Author: Ajay Gupta <ajayg@nvidia.com>
  *
  * Some code borrowed from drivers/usb/typec/ucsi/ucsi_acpi.c
@@ -193,6 +193,12 @@ struct ucsi_ccg_altmode {
 	bool checked;
 } __packed;
 
+#define CCGX_MESSAGE_IN_MAX 4
+struct op_region {
+	u32 cci;
+	u32 message_in[CCGX_MESSAGE_IN_MAX];
+};
+
 struct ucsi_ccg {
 	struct device *dev;
 	struct ucsi *ucsi;
@@ -226,6 +232,9 @@ struct ucsi_ccg {
 	struct ucsi_ccg_altmode updated[UCSI_MAX_ALTMODES];
 
 	struct usb_role_switch **role_sw;
+
+	spinlock_t op_lock;
+	struct op_region op_data;
 };
 
 static int ccg_read(struct ucsi_ccg *uc, u16 rab, u8 *data, u32 len)
@@ -309,11 +318,56 @@ static int ccg_write(struct ucsi_ccg *uc, u16 rab, const u8 *data, u32 len)
 	return 0;
 }
 
+static void ccg_op_region_read(struct ucsi_ccg *uc, unsigned int offset,
+		void *val, size_t val_len)
+{
+	struct op_region *data = &uc->op_data;
+
+	spin_lock(&uc->op_lock);
+	if (offset == UCSI_CCI)
+		memcpy(val, &data->cci, val_len);
+	else if (offset == UCSI_MESSAGE_IN)
+		memcpy(val, &data->message_in, val_len);
+	spin_unlock(&uc->op_lock);
+}
+
+static void ccg_op_region_update(struct ucsi_ccg *uc, u32 cci)
+{
+	u16 reg = CCGX_RAB_UCSI_DATA_BLOCK(UCSI_MESSAGE_IN);
+	struct op_region *data = &uc->op_data;
+	u32 message_in[CCGX_MESSAGE_IN_MAX];
+
+	if (UCSI_CCI_LENGTH(cci))
+		if (ccg_read(uc, reg, (void *)&message_in,
+					sizeof(message_in))) {
+			dev_err(uc->dev, "failed to read MESSAGE_IN\n");
+			return;
+		}
+
+	spin_lock(&uc->op_lock);
+	memcpy(&data->cci, &cci, sizeof(cci));
+	if (UCSI_CCI_LENGTH(cci))
+		memcpy(&data->message_in, &message_in, sizeof(message_in));
+	spin_unlock(&uc->op_lock);
+}
+
+static void ccg_op_region_clean(struct ucsi_ccg *uc)
+{
+	struct op_region *data = &uc->op_data;
+
+	spin_lock(&uc->op_lock);
+	memset(&data->cci, 0, sizeof(data->cci));
+	memset(&data->message_in, 0, sizeof(data->message_in));
+	spin_unlock(&uc->op_lock);
+}
+
 static int ucsi_ccg_init(struct ucsi_ccg *uc)
 {
 	unsigned int count = 10;
 	u8 data;
 	int status;
+
+	spin_lock_init(&uc->op_lock);
 
 	data = CCGX_RAB_UCSI_CONTROL_STOP;
 	status = ccg_write(uc, CCGX_RAB_UCSI_CONTROL, &data, sizeof(data));
@@ -524,9 +578,13 @@ static int ucsi_ccg_read(struct ucsi *ucsi, unsigned int offset,
 	u16 reg = CCGX_RAB_UCSI_DATA_BLOCK(offset);
 	struct ucsi_capability *cap;
 	struct ucsi_altmode *alt;
-	int ret;
+	int ret = 0;
 
-	ret = ccg_read(uc, reg, val, val_len);
+	if ((offset == UCSI_CCI) || (offset == UCSI_MESSAGE_IN))
+		ccg_op_region_read(uc, offset, val, val_len);
+	else
+		ret = ccg_read(uc, reg, val, val_len);
+
 	if (ret)
 		return ret;
 
@@ -563,9 +621,13 @@ static int ucsi_ccg_read(struct ucsi *ucsi, unsigned int offset,
 static int ucsi_ccg_async_write(struct ucsi *ucsi, unsigned int offset,
 				const void *val, size_t val_len)
 {
+	struct ucsi_ccg *uc = ucsi_get_drvdata(ucsi);
 	u16 reg = CCGX_RAB_UCSI_DATA_BLOCK(offset);
 
-	return ccg_write(ucsi_get_drvdata(ucsi), reg, val, val_len);
+	if (offset == UCSI_CONTROL)
+		ccg_op_region_clean(uc);
+
+	return ccg_write(uc, reg, val, val_len);
 }
 
 static int ucsi_ccg_sync_write(struct ucsi *ucsi, unsigned int offset,
@@ -696,12 +758,17 @@ static irqreturn_t ccg_irq_handler(int irq, void *data)
 	u16 reg = CCGX_RAB_UCSI_DATA_BLOCK(UCSI_CCI);
 	struct ucsi_ccg *uc = data;
 	u8 intr_reg;
-	u32 cci;
+	u32 cci = 0;
 	int ret;
 
 	ret = ccg_read(uc, CCGX_RAB_INTR_REG, &intr_reg, sizeof(intr_reg));
 	if (ret)
 		return ret;
+
+	if (!intr_reg)
+		return IRQ_HANDLED;
+	else if (!(intr_reg & UCSI_READ_INT))
+		goto err_clear_irq;
 
 	ret = ccg_read(uc, reg, (void *)&cci, sizeof(cci));
 	if (ret)
@@ -710,12 +777,17 @@ static irqreturn_t ccg_irq_handler(int irq, void *data)
 	if (UCSI_CCI_CONNECTOR(cci))
 		ucsi_connector_change(uc->ucsi, UCSI_CCI_CONNECTOR(cci));
 
-	if (test_bit(DEV_CMD_PENDING, &uc->flags) &&
-	    cci & (UCSI_CCI_ACK_COMPLETE | UCSI_CCI_COMMAND_COMPLETE))
-		complete(&uc->complete);
+	/* As per CCGx UCSI interface guide, copy CCI and MESSAGE_IN
+	 * to the OpRegion before clear the UCSI interrupt
+	 */
+	ccg_op_region_update(uc, cci);
 
 err_clear_irq:
 	ccg_write(uc, CCGX_RAB_INTR_REG, &intr_reg, sizeof(intr_reg));
+
+	if (test_bit(DEV_CMD_PENDING, &uc->flags) &&
+	    cci & (UCSI_CCI_ACK_COMPLETE | UCSI_CCI_COMMAND_COMPLETE))
+		complete(&uc->complete);
 
 	return IRQ_HANDLED;
 }
