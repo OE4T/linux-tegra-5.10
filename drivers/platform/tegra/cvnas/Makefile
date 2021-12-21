@@ -8,4 +8,8 @@
 ccflags-y += -I$(srctree.nvidia)/include
 ccflags-y += -Werror
 
+ifeq ($(CONFIG_TEGRA_FUSE_UPSTREAM),y)
+ccflags-y += -DCONFIG_TEGRA_FUSE_UPSTREAM
+endif
+
 obj-$(CONFIG_TEGRA_CVNAS) += cvnas.o

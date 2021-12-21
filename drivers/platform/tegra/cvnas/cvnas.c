@@ -39,7 +39,7 @@
 #if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
 #endif
-#include <soc/tegra/fuse.h>
+#include <soc/tegra/fuse-helper.h>
 #include <linux/clk-provider.h>
 
 static int cvnas_debug;
@@ -540,12 +540,8 @@ static int nvcvnas_probe(struct platform_device *pdev)
 	u32 cvsram_reg_data[4];
 	const struct of_device_id *match;
 
-#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
-	if (tegra_get_chipid() == TEGRA_CHIPID_TEGRA19 &&
-#else
-	if (tegra_get_chip_id() == TEGRA194 &&
-#endif
-		tegra_get_sku_id() == 0x9E) {
+	if (of_machine_is_compatible("nvidia,tegra194") &&
+	    tegra_get_sku_id() == 0x9E) {
 		dev_err(&pdev->dev, "CVNAS IP is disabled in SKU.\n");
 		return -ENODEV;
 	}
