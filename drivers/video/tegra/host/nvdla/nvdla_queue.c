@@ -182,8 +182,7 @@ static int nvdla_unmap_task_memory(struct nvdla_task *task)
 		}
 		if (task->memory_handles[ii].handle) {
 			nvdla_buffer_submit_unpin(task->buffers,
-				&task->memory_dmabuf[ii], 1);
-			dma_buf_put(task->memory_dmabuf[ii]);
+				&task->memory_handles[ii].handle, 1);
 		}
 	}
 	nvdla_dbg_fn(pdev, "all mem handles unmaped");
@@ -194,8 +193,7 @@ static int nvdla_unmap_task_memory(struct nvdla_task *task)
 		   task->prefences[ii].type == NVDEV_FENCE_TYPE_SEMAPHORE_TS) &&
 		   task->prefences[ii].semaphore_handle) {
 			nvdla_buffer_submit_unpin(task->buffers,
-				&task->prefences_sem_dmabuf[ii], 1);
-			dma_buf_put(task->prefences_sem_dmabuf[ii]);
+				&task->prefences[ii].semaphore_handle, 1);
 		}
 	}
 	nvdla_dbg_fn(pdev, "all prefences unmaped");
@@ -204,8 +202,7 @@ static int nvdla_unmap_task_memory(struct nvdla_task *task)
 	for (ii = 0; ii < task->num_in_task_status; ii++) {
 		if (task->in_task_status[ii].handle) {
 			nvdla_buffer_submit_unpin(task->buffers,
-				&task->in_task_status_dmabuf[ii], 1);
-			dma_buf_put(task->in_task_status_dmabuf[ii]);
+				&task->in_task_status[ii].handle, 1);
 		}
 	}
 	nvdla_dbg_fn(pdev, "all in task status unmaped");
@@ -216,8 +213,7 @@ static int nvdla_unmap_task_memory(struct nvdla_task *task)
 		  task->postfences[ii].type == NVDEV_FENCE_TYPE_SEMAPHORE_TS) &&
 		  task->postfences[ii].semaphore_handle) {
 			nvdla_buffer_submit_unpin(task->buffers,
-				&task->postfences_sem_dmabuf[ii], 1);
-			dma_buf_put(task->postfences_sem_dmabuf[ii]);
+				&task->postfences[ii].semaphore_handle, 1);
 		}
 	}
 	nvdla_dbg_fn(pdev, "all postfences unmaped");
@@ -226,16 +222,14 @@ static int nvdla_unmap_task_memory(struct nvdla_task *task)
 	for (ii = 0; ii < task->num_sof_task_status; ii++) {
 		if (task->sof_task_status[ii].handle) {
 			nvdla_buffer_submit_unpin(task->buffers,
-				&task->sof_task_status_dmabuf[ii], 1);
-			dma_buf_put(task->sof_task_status_dmabuf[ii]);
+				&task->sof_task_status[ii].handle, 1);
 		}
 	}
 
 	for (ii = 0; ii < task->num_eof_task_status; ii++) {
 		if (task->eof_task_status[ii].handle) {
 			nvdla_buffer_submit_unpin(task->buffers,
-				&task->eof_task_status_dmabuf[ii], 1);
-			dma_buf_put(task->eof_task_status_dmabuf[ii]);
+				&task->eof_task_status[ii].handle, 1);
 		}
 	}
 	nvdla_dbg_fn(pdev, "all out task status unmaped");
@@ -244,16 +238,14 @@ static int nvdla_unmap_task_memory(struct nvdla_task *task)
 	for (ii = 0; ii < task->num_sof_timestamps; ii++) {
 		if (task->sof_timestamps[ii].handle) {
 			nvdla_buffer_submit_unpin(task->buffers,
-				&task->sof_timestamps_dmabuf[ii], 1);
-			dma_buf_put(task->sof_timestamps_dmabuf[ii]);
+				&task->sof_timestamps[ii].handle, 1);
 		}
 	}
 
 	for (ii = 0; ii < task->num_eof_timestamps; ii++) {
 		if (task->eof_timestamps[ii].handle) {
 			nvdla_buffer_submit_unpin(task->buffers,
-				&task->eof_timestamps_dmabuf[ii], 1);
-			dma_buf_put(task->eof_timestamps_dmabuf[ii]);
+				&task->eof_timestamps[ii].handle, 1);
 		}
 	}
 	nvdla_dbg_fn(pdev, "all out timestamps unmaped");
@@ -607,17 +599,8 @@ static int nvdla_map_task_memory(struct nvdla_task *task)
 			goto fail_to_pin_mem;
 		}
 
-		task->memory_dmabuf[jj] =
-			dma_buf_get(task->memory_handles[jj].handle);
-		if (IS_ERR_OR_NULL(task->memory_dmabuf[jj])) {
-			task->memory_dmabuf[jj] = NULL;
-			err = -EFAULT;
-			nvdla_dbg_err(pdev, "fail to get buf");
-			goto fail_to_pin_mem;
-		}
-
 		err = nvdla_buffer_submit_pin(buffers,
-				&task->memory_dmabuf[jj],
+				&task->memory_handles[jj].handle,
 				1, &dma_addr, &dma_size, NULL);
 		if (err) {
 			nvdla_dbg_err(pdev, "fail to pin address list");
@@ -745,15 +728,8 @@ static int nvdla_fill_wait_fence_action(struct nvdla_task *task,
 				fence->semaphore_offset,
 				fence->semaphore_value);
 
-		*dma_buf = dma_buf_get(fence->semaphore_handle);
-		if (IS_ERR_OR_NULL(*dma_buf)) {
-			*dma_buf = NULL;
-			nvdla_dbg_err(pdev, "fail to get wait buf");
-			break;
-		}
-
 		if (nvdla_buffer_submit_pin(buffers,
-				dma_buf, 1, &dma_addr, &dma_size, NULL)) {
+				&fence->semaphore_handle, 1, &dma_addr, &dma_size, NULL)) {
 			nvdla_dbg_err(pdev, "fail to pin WAIT SEM");
 			break;
 		}
@@ -831,15 +807,8 @@ static int nvdla_fill_signal_fence_action(struct nvdla_task *task,
 				fence->semaphore_offset,
 				fence->semaphore_value);
 
-		*dma_buf = dma_buf_get(fence->semaphore_handle);
-		if (IS_ERR_OR_NULL(*dma_buf)) {
-			*dma_buf = NULL;
-			nvdla_dbg_err(pdev, "fail to get buf");
-			break;
-		}
-
 		if (nvdla_buffer_submit_pin(buffers,
-				dma_buf, 1, &dma_addr, &dma_size, NULL)) {
+				&fence->semaphore_handle, 1, &dma_addr, &dma_size, NULL)) {
 			nvdla_dbg_err(pdev, "fail to pin SIGNAL SEM");
 			break;
 		}
@@ -864,15 +833,8 @@ static int nvdla_fill_signal_fence_action(struct nvdla_task *task,
 				fence->semaphore_offset,
 				fence->semaphore_value);
 
-		*dma_buf = dma_buf_get(fence->semaphore_handle);
-		if (IS_ERR_OR_NULL(*dma_buf)) {
-			*dma_buf = NULL;
-			nvdla_dbg_err(pdev, "fail to get buf");
-			break;
-		}
-
 		if (nvdla_buffer_submit_pin(buffers,
-				dma_buf, 1, &dma_addr, &dma_size, NULL)) {
+				&fence->semaphore_handle, 1, &dma_addr, &dma_size, NULL)) {
 			nvdla_dbg_err(pdev, "fail to pin SIGNAL SEM");
 			break;
 		}
@@ -916,16 +878,8 @@ static int nvdla_fill_taskstatus_read_action(struct nvdla_task *task,
 			task_status->offset,
 			task_status->status);
 
-	*dma_buf = dma_buf_get(task_status->handle);
-	if (IS_ERR_OR_NULL(*dma_buf)) {
-		*dma_buf = NULL;
-		nvdla_dbg_err(pdev, "fail to get buf");
-		err = -EINVAL;
-		goto fail;
-	}
-
 	if (nvdla_buffer_submit_pin(buffers,
-			dma_buf, 1, &dma_addr, &dma_size, NULL)) {
+			&task_status->handle, 1, &dma_addr, &dma_size, NULL)) {
 		nvdla_dbg_err(pdev, "fail to pin in status");
 		err = -EINVAL;
 		goto fail;
@@ -961,16 +915,8 @@ static int nvdla_fill_taskstatus_write_action(struct nvdla_task *task,
 			task_status->offset,
 			task_status->status);
 
-	*dma_buf = dma_buf_get(task_status->handle);
-	if (IS_ERR_OR_NULL(*dma_buf)) {
-		*dma_buf = NULL;
-		nvdla_dbg_err(pdev, "fail to get buf");
-		err = -EINVAL;
-		goto fail;
-	}
-
 	if (nvdla_buffer_submit_pin(buffers,
-			dma_buf, 1, &dma_addr, &dma_size, NULL)) {
+			&task_status->handle, 1, &dma_addr, &dma_size, NULL)) {
 		nvdla_dbg_err(pdev, "fail to pin status");
 		err = -EINVAL;
 		goto fail;
@@ -1005,16 +951,8 @@ static int nvdla_fill_timestamp_write_action(struct nvdla_task *task,
 			timestamp->handle,
 			timestamp->offset);
 
-	*dma_buf = dma_buf_get(timestamp->handle);
-	if (IS_ERR_OR_NULL(*dma_buf)) {
-		*dma_buf = NULL;
-		nvdla_dbg_err(pdev, "fail to get buf");
-		err = -EINVAL;
-		goto fail;
-	}
-
 	if (nvdla_buffer_submit_pin(buffers,
-			dma_buf, 1, &dma_addr, &dma_size, NULL)) {
+			&timestamp->handle, 1, &dma_addr, &dma_size, NULL)) {
 		nvdla_dbg_err(pdev, "fail to pin timestamp");
 		err = -EINVAL;
 		goto fail;
