@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -530,7 +530,7 @@ end:
 static int tegra_soc_hwpm_open(struct inode *inode, struct file *filp)
 {
 	int ret = 0;
-	unsigned int minor = iminor(inode);
+	unsigned int minor;
 	struct tegra_soc_hwpm *hwpm = NULL;
 	u32 i;
 
@@ -542,6 +542,8 @@ static int tegra_soc_hwpm_open(struct inode *inode, struct file *filp)
 		tegra_soc_hwpm_err("Invalid file");
 		return -EINVAL;
 	}
+
+	minor = iminor(inode);
 	if (minor > 0) {
 		tegra_soc_hwpm_err("Incorrect minor number");
 		return -EBADFD;
