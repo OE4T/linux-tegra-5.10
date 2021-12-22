@@ -281,7 +281,7 @@ int nvmap_ioctl_create(struct file *filp, unsigned int cmd, void __user *arg)
 			ref->handle->orig_size = op.size64;
 	} else if (cmd == NVMAP_IOC_FROM_FD) {
 		is_ro = is_nvmap_dmabuf_fd_ro(op.fd);
-		ref = nvmap_create_handle_from_id(client, op.fd);
+		ref = nvmap_create_handle_from_fd(client, op.fd);
 		/* if we get an error, the fd might be non-nvmap dmabuf fd */
 		if (IS_ERR_OR_NULL(ref)) {
 			dmabuf = dma_buf_get(op.fd);
@@ -456,7 +456,7 @@ int nvmap_ioctl_rw_handle(struct file *filp, int is_read, void __user *arg,
 		return -EINVAL;
 
 	/* Don't allow write on RO handle */
-	if (!is_read && is_nvmap_dmabuf_fd_ro(handle)) {
+	if (!is_read && is_nvmap_id_ro(client, handle)) {
 		nvmap_handle_put(h);
 		return -EPERM;
 	}
@@ -1118,7 +1118,7 @@ int nvmap_ioctl_get_sci_ipc_id(struct file *filp, void __user *arg)
 	if (IS_ERR_OR_NULL(handle))
 		return -ENODEV;
 
-	is_ro = is_nvmap_dmabuf_fd_ro(op.handle);
+	is_ro = is_nvmap_id_ro(client, op.handle);
 
 	/* Cannot create RW handle from RO handle */
 	if (is_ro && (op.flags != PROT_READ)) {
@@ -1344,7 +1344,7 @@ int nvmap_ioctl_dup_handle(struct file *filp, void __user *arg)
 		return -ENODEV;
 
 	/* Don't allow duplicating RW handle from RO handle */
-	if (is_nvmap_dmabuf_fd_ro(op.handle) &&
+	if (is_nvmap_id_ro(client, op.handle) &&
 	    op.access_flags != NVMAP_HANDLE_RO)
 		return -EPERM;
 
