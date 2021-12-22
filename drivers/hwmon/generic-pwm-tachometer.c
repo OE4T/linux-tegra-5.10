@@ -93,7 +93,7 @@ static const struct of_device_id pwm_tach_of_match[] = {
 	{ .compatible = "generic-pwm-tachometer" },
 	{}
 };
-MODULE_DEVICE_TABLE(of, tach_of_match);
+MODULE_DEVICE_TABLE(of, pwm_tach_of_match);
 
 static struct platform_driver pwm_tach_driver = {
 	.driver = {
