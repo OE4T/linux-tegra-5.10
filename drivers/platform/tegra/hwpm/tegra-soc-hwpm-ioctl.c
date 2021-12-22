@@ -448,19 +448,20 @@ static long tegra_soc_hwpm_ioctl(struct file *file,
 	struct tegra_soc_hwpm *hwpm = NULL;
 	void *arg_copy = NULL;
 
+	if ((_IOC_TYPE(cmd) != TEGRA_SOC_HWPM_IOC_MAGIC) ||
+	    (ioctl_num < 0) ||
+	    (ioctl_num >= TERGA_SOC_HWPM_NUM_IOCTLS)) {
+		tegra_soc_hwpm_err("Unsupported IOCTL call");
+		ret = -EINVAL;
+		goto end;
+	}
+
 	if (!file) {
 		tegra_soc_hwpm_err("Invalid file");
 		ret = -ENODEV;
 		goto fail;
 	}
 
-	if ((_IOC_TYPE(cmd) != TEGRA_SOC_HWPM_IOC_MAGIC) ||
-	    (ioctl_num < 0) ||
-	    (ioctl_num >= TERGA_SOC_HWPM_NUM_IOCTLS)) {
-		tegra_soc_hwpm_err("Unsupported IOCTL call");
-		ret = -EINVAL;
-		goto fail;
-	}
 	if (arg_size != ioctls[ioctl_num].struct_size) {
 		tegra_soc_hwpm_err("Invalid userspace struct");
 		ret = -EINVAL;
@@ -522,7 +523,7 @@ fail:
 cleanup:
 	if (arg_copy)
 		kfree(arg_copy);
-
+end:
 	return ret;
 }
 
