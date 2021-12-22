@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -81,7 +81,7 @@ void nvgpu_cg_elcg_disable_no_wait(struct gk20a *g)
 	nvgpu_mutex_release(&g->cg_pg_lock);
 }
 
-void nvgpu_cg_blcg_fb_ltc_load_enable(struct gk20a *g)
+void nvgpu_cg_blcg_fb_load_enable(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");
 
@@ -91,6 +91,18 @@ void nvgpu_cg_blcg_fb_ltc_load_enable(struct gk20a *g)
 	}
 	if (g->ops.cg.blcg_fb_load_gating_prod != NULL) {
 		g->ops.cg.blcg_fb_load_gating_prod(g, true);
+	}
+done:
+	nvgpu_mutex_release(&g->cg_pg_lock);
+}
+
+void nvgpu_cg_blcg_ltc_load_enable(struct gk20a *g)
+{
+	nvgpu_log_fn(g, " ");
+
+	nvgpu_mutex_acquire(&g->cg_pg_lock);
+	if (!g->blcg_enabled) {
+		goto done;
 	}
 	if (g->ops.cg.blcg_ltc_load_gating_prod != NULL) {
 		g->ops.cg.blcg_ltc_load_gating_prod(g, true);
@@ -162,7 +174,7 @@ done:
 	nvgpu_mutex_release(&g->cg_pg_lock);
 }
 
-void nvgpu_cg_slcg_fb_ltc_load_enable(struct gk20a *g)
+void nvgpu_cg_slcg_fb_load_enable(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");
 
@@ -172,6 +184,18 @@ void nvgpu_cg_slcg_fb_ltc_load_enable(struct gk20a *g)
 	}
 	if (g->ops.cg.slcg_fb_load_gating_prod != NULL) {
 		g->ops.cg.slcg_fb_load_gating_prod(g, true);
+	}
+done:
+	nvgpu_mutex_release(&g->cg_pg_lock);
+}
+
+void nvgpu_cg_slcg_ltc_load_enable(struct gk20a *g)
+{
+	nvgpu_log_fn(g, " ");
+
+	nvgpu_mutex_acquire(&g->cg_pg_lock);
+	if (!g->slcg_enabled) {
+		goto done;
 	}
 	if (g->ops.cg.slcg_ltc_load_gating_prod != NULL) {
 		g->ops.cg.slcg_ltc_load_gating_prod(g, true);

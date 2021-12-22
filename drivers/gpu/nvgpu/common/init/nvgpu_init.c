@@ -41,6 +41,7 @@
 #include <nvgpu/fb.h>
 #include <nvgpu/device.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/power_features/cg.h>
 #ifdef CONFIG_NVGPU_GSP_SCHEDULER
 #include <nvgpu/gsp.h>
 #endif
@@ -642,6 +643,14 @@ static int nvgpu_init_slcg_acb_load_gating_prod(struct gk20a *g)
 	return 0;
 }
 
+static int nvgpu_init_cg_ltc_load_gating_prod(struct gk20a *g)
+{
+	nvgpu_cg_slcg_ltc_load_enable(g);
+	nvgpu_cg_blcg_ltc_load_enable(g);
+
+	return 0;
+}
+
 static int nvgpu_ipa_pa_rwsem_init(struct gk20a *g)
 {
 	nvgpu_rwsem_init(&(g->ipa_pa_cache.ipa_pa_rw_lock));
@@ -879,6 +888,15 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		 * in the init sequence and called after acr boot.
 		 */
 		NVGPU_INIT_TABLE_ENTRY(g->ops.fb.set_atomic_mode, NO_FLAG),
+
+		/**
+		 * During acr boot, PLM for ltc clock gating registers
+		 * will be lowered for nvgpu(PL0) write access. So,
+		 * ltc clock gating programming is done after acr boot.
+		 * Bug 3469873
+		 */
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_cg_ltc_load_gating_prod,
+								NO_FLAG),
 #ifdef CONFIG_NVGPU_DGPU
 		NVGPU_INIT_TABLE_ENTRY(g->ops.sec2.init_sec2_support,
 				       NVGPU_SUPPORT_SEC2_RTOS),
