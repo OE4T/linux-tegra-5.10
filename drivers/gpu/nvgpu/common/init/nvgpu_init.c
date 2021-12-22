@@ -637,13 +637,12 @@ static int nvgpu_init_slcg_acb_load_gating_prod(struct gk20a *g)
 	return 0;
 }
 
-#ifdef CONFIG_TEGRA_HV_MANAGER
 static int nvgpu_ipa_pa_rwsem_init(struct gk20a *g)
 {
 	nvgpu_rwsem_init(&(g->ipa_pa_cache.ipa_pa_rw_lock));
 	return 0;
 }
-#endif
+
 static int nvgpu_init_interrupt_setup(struct gk20a *g)
 {
 	/**
@@ -697,9 +696,7 @@ static int nvgpu_early_init(struct gk20a *g)
 		 * prior to enabling interrupts for corresponding units.
 		 */
 		NVGPU_INIT_TABLE_ENTRY(g->ops.ecc.ecc_init_support, NO_FLAG),
-#ifdef CONFIG_TEGRA_HV_MANAGER
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_ipa_pa_rwsem_init, NO_FLAG),
-#endif
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_device_init, NO_FLAG),
 #ifdef CONFIG_NVGPU_DGPU
 		NVGPU_INIT_TABLE_ENTRY(g->ops.bios.bios_sw_init, NO_FLAG),

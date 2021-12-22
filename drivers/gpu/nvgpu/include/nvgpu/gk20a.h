@@ -146,9 +146,7 @@ enum nvgpu_profiler_pm_reservation_scope;
 #include <nvgpu/semaphore.h>
 #include <nvgpu/fifo.h>
 #include <nvgpu/sched.h>
-#ifdef CONFIG_TEGRA_HV_MANAGER
 #include <nvgpu/ipa_pa_cache.h>
-#endif
 #include <nvgpu/mig.h>
 
 #include <nvgpu/gpu_ops.h>
@@ -847,10 +845,9 @@ struct gk20a {
 
 	/** Pointer to struct storing CIC-RM's data */
 	struct nvgpu_cic_rm *cic_rm;
-#ifdef CONFIG_TEGRA_HV_MANAGER
+
 	/** Cache to store IPA to PA translations. */
 	struct nvgpu_ipa_pa_cache ipa_pa_cache;
-#endif
 
 	/** To enable emulate mode */
 	u32 emulate_mode;

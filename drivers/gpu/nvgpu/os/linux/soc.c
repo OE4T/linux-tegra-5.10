@@ -71,6 +71,7 @@ static u64 nvgpu_tegra_hv_ipa_pa(struct gk20a *g, u64 ipa, u64 *pa_len)
 	struct device *dev = dev_from_gk20a(g);
 	struct gk20a_platform *platform = gk20a_get_platform(dev);
 	struct hyp_ipa_pa_info info;
+	struct nvgpu_hyp_ipa_pa_info nvgpu_ipapainfo;
 	int err;
 	u64 pa = 0ULL;
 
@@ -100,7 +101,11 @@ static u64 nvgpu_tegra_hv_ipa_pa(struct gk20a *g, u64 ipa, u64 *pa_len)
 	}
 
 	if (pa != 0U) {
-		nvgpu_ipa_to_pa_add_to_cache(g, ipa, pa, &info);
+		nvgpu_ipapainfo.base = info.base;
+		nvgpu_ipapainfo.offset = info.offset;
+		nvgpu_ipapainfo.size = info.size;
+		nvgpu_ipa_to_pa_add_to_cache(g, ipa, pa,
+				&nvgpu_ipapainfo);
 	}
 
 	return pa;
