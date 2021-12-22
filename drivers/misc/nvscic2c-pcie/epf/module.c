@@ -82,8 +82,10 @@ edma_module_init(struct driver_ctx_t *drv_ctx)
 	memset(&info, 0x0, sizeof(info));
 	info.np = drv_ctx->drv_param.edma_np;
 	info.edma_remote = NULL;
-	for (i = 0; i < DMA_WR_CHNL_NUM; i++)
+	for (i = 0; i < DMA_WR_CHNL_NUM; i++) {
 		info.tx[i].ch_type = EDMA_CHAN_XFER_ASYNC;
+		info.tx[i].num_descriptors = NUM_EDMA_DESC;
+	}
 
 	/*No use-case for RD channels.*/
 
