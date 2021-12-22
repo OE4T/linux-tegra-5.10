@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -25,7 +25,7 @@
  * booting of dce.
  */
 static const struct dce_platform_data t234_dce_platform_data = {
-	.dce_stream_id = 0x08,
+	.stream_id = 0x08,
 	.phys_stream_id = 0x7f,
 	.fw_carveout_id = 9,
 	.fw_vmindex = 0,
@@ -35,7 +35,7 @@ static const struct dce_platform_data t234_dce_platform_data = {
 	.use_physical_id = false,
 };
 
-static const struct of_device_id tegra_dce_of_match[] = {
+__weak const struct of_device_id tegra_dce_of_match[] = {
 	{
 		.compatible = "nvidia,tegra234-dce",
 		.data = (struct dce_platform_data *)&t234_dce_platform_data

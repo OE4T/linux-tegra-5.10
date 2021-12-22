@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -97,10 +97,10 @@ struct dce_platform_data {
 	 */
 	u32 phys_stream_id;
 	/**
-	 * dce_stream_id : DCE stream ID to program the ASTs in debug mode
+	 * stream_id : Stream ID to program the ASTs in debug mode
 	 * only.
 	 */
-	u32 dce_stream_id;
+	u8 stream_id;
 	/**
 	 * fw_vmindex : VMIndex to program the AST region to read FW in debug
 	 * mode only.

@@ -242,7 +242,7 @@ u8 dce_get_phys_stream_id(struct tegra_dce *d)
  */
 u8 dce_get_dce_stream_id(struct tegra_dce *d)
 {
-	return pdata_from_dce(d)->dce_stream_id;
+	return pdata_from_dce(d)->stream_id;
 }
 
 /**
