@@ -161,6 +161,8 @@ static void nvgpu_nvs_worker_deinit(struct gk20a *g)
 	struct nvgpu_worker *worker = &g->scheduler->worker.worker;
 
 	nvgpu_worker_deinit(worker);
+
+	nvs_dbg(g, "NVS worker suspended");
 }
 
 int nvgpu_nvs_init(struct gk20a *g)
@@ -198,6 +200,8 @@ void nvgpu_nvs_remove_support(struct gk20a *g)
 		return;
 	}
 
+	nvgpu_nvs_worker_deinit(g);
+
 	nvs_domain_for_each(sched->sched, nvs_dom) {
 		struct nvgpu_nvs_domain *nvgpu_dom = nvs_dom->priv;
 		if (nvgpu_dom->ref != 1U) {
@@ -217,14 +221,6 @@ void nvgpu_nvs_remove_support(struct gk20a *g)
 	nvgpu_mutex_destroy(&g->sched_mutex);
 }
 
-int nvgpu_nvs_suspend(struct gk20a *g)
-{
-	nvgpu_nvs_worker_deinit(g);
-	nvs_dbg(g, "NVS worker suspended");
-
-	return 0;
-}
-
 int nvgpu_nvs_open(struct gk20a *g)
 {
 	int err = 0;
@@ -235,8 +231,6 @@ int nvgpu_nvs_open(struct gk20a *g)
 
 	if (g->scheduler != NULL) {
 		/* resuming from railgate */
-		err = nvgpu_nvs_worker_init(g);
-		nvs_dbg(g, "NVS worker resume, err=%d", err);
 		goto unlock;
 	}
 

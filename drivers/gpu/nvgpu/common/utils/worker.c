@@ -199,6 +199,11 @@ static int nvgpu_worker_start(struct nvgpu_worker *worker)
 
 	err = nvgpu_thread_create(&worker->poll_task, worker,
 			nvgpu_worker_poll_work, worker->thread_name);
+	if (err != 0) {
+		nvgpu_err(worker->g,
+			  "failed to create worker poller thread %s err %d",
+			  worker->thread_name, err);
+	}
 
 	nvgpu_mutex_release(&worker->start_lock);
 	return err;

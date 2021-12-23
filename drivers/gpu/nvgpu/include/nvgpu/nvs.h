@@ -84,7 +84,6 @@ struct nvgpu_nvs_scheduler {
 int nvgpu_nvs_init(struct gk20a *g);
 int nvgpu_nvs_open(struct gk20a *g);
 void nvgpu_nvs_remove_support(struct gk20a *g);
-int nvgpu_nvs_suspend(struct gk20a *g);
 void nvgpu_nvs_get_log(struct gk20a *g, s64 *timestamp, const char **msg);
 u32 nvgpu_nvs_domain_count(struct gk20a *g);
 int nvgpu_nvs_del_domain(struct gk20a *g, u64 dom_id);
@@ -111,11 +110,6 @@ static inline int nvgpu_nvs_init(struct gk20a *g)
 
 static inline void nvgpu_nvs_remove_support(struct gk20a *g)
 {
-}
-
-static inline int nvgpu_nvs_suspend(struct gk20a *g)
-{
-	return 0;
 }
 
 static inline struct nvgpu_nvs_domain *
