@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2022 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -571,6 +571,7 @@ int vi_capture_setup(
 	struct vi_capture_setup *setup)
 {
 	struct vi_capture *capture = chan->capture_data;
+	struct tegra_capture_vi_data *info;
 	uint32_t transaction;
 	struct CAPTURE_CONTROL_MSG control_desc;
 	struct CAPTURE_CONTROL_MSG *resp_msg = &capture->control_resp_msg;
@@ -589,11 +590,14 @@ int vi_capture_setup(
 		return -EINVAL;
 	}
 
-	if (chan->vi_capture_pdev != NULL) {
-		struct tegra_capture_vi_data *info =
-			platform_get_drvdata(chan->vi_capture_pdev);
-		vi_inst = info->vi_instance_table[setup->csi_stream_id];
+	if (chan->vi_capture_pdev == NULL) {
+		dev_err(chan->dev,
+			"%s: channel capture device is NULL", __func__);
+		return -EINVAL;
 	}
+
+	info = platform_get_drvdata(chan->vi_capture_pdev);
+	vi_inst = info->vi_instance_table[setup->csi_stream_id];
 
 	/* V4L2 directly calls this function. So need to make sure the
 	 * correct VI5 instance is associated with the VI capture channel.
@@ -1201,6 +1205,11 @@ int vi_capture_control_message_from_user(
 	struct CAPTURE_CONTROL_MSG *resp_msg;
 	int err = 0;
 
+	if (chan == NULL) {
+		dev_err(NULL, "%s: NULL VI channel received\n", __func__);
+		return -ENODEV;
+	}
+
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	nv_camera_log(chan->ndev,
 		arch_counter_get_cntvct(),
@@ -1210,11 +1219,6 @@ int vi_capture_control_message_from_user(
 		__arch_counter_get_cntvct(),
 		NVHOST_CAMERA_VI_CAPTURE_SET_CONFIG);
 #endif
-
-	if (chan == NULL) {
-		dev_err(NULL,"%s: NULL VI channel received\n", __func__);
-		return -ENODEV;
-	}
 
 	capture = chan->capture_data;
 
