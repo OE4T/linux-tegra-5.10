@@ -1,7 +1,7 @@
 /*
  * camera_common.c - utilities for tegra camera driver
  *
- * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -235,8 +235,12 @@ int camera_common_parse_clocks(struct device *dev,
 	err = of_property_read_string(np, "mclk", &pdata->mclk_name);
 	if (!err) {
 		dev_dbg(dev, "mclk in DT %s\n", pdata->mclk_name);
-		of_property_read_string(np, "parent-clk",
-					      &pdata->parentclk_name);
+		err = of_property_read_string(np, "parent-clk",
+						  &pdata->parentclk_name);
+		if (err) {
+			dev_err(dev, "Failed to find parent-clk\n");
+			return -ENODATA;
+		}
 		return 0;
 	}
 

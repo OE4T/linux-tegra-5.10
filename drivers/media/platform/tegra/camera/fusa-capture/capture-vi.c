@@ -1655,7 +1655,7 @@ static int csi_vi_get_mapping_table(struct platform_device *pdev)
 		uint32_t stream_index = NVCSI_STREAM_INVALID_ID;
 		uint32_t vi_unit_id = INVALID_VI_UNIT_ID;
 
-		of_property_read_u32_index(np,
+		(void)of_property_read_u32_index(np,
 			"nvidia,vi-mapping",
 			2 * index,
 			&stream_index);
@@ -1668,7 +1668,7 @@ static int csi_vi_get_mapping_table(struct platform_device *pdev)
 			return -EINVAL;
 		}
 
-		of_property_read_u32_index(np,
+		(void)of_property_read_u32_index(np,
 			"nvidia,vi-mapping",
 			2 * index + 1,
 			&vi_unit_id);

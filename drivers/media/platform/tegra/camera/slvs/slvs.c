@@ -1,7 +1,7 @@
 /*
  * NVIDIA Tegra SLVS(-EC) Subdevice for V4L2
  *
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Author: Pekka Pessi <ppessi@nvidia.com>
  *
@@ -1064,7 +1064,7 @@ static int tegra_slvs_parse_stream_dt(struct tegra_slvs_stream *stream,
 	boolparam = of_property_read_bool(np, "nvidia,disable-payload-crc");
 	params->enable_payload_crc = !boolparam;
 
-	of_property_read_u32(np, "watchdog-period", &params->watchdog_period);
+	(void)of_property_read_u32(np, "watchdog-period", &params->watchdog_period);
 
 	err = of_property_read_u32(np, "nvidia,symbols", &params->symbols);
 	if (err != 0)
@@ -1108,18 +1108,18 @@ static int tegra_slvs_parse_stream_dt(struct tegra_slvs_stream *stream,
 	if (err == 0)
 		params->uphy.aux_idle_mode = numparam & 0x03;
 
-	of_property_read_u32(np, "nvidia,syncgen", &params->syncgen.number);
+	(void)of_property_read_u32(np, "nvidia,syncgen", &params->syncgen.number);
 	if (params->syncgen.number > VI_NUM_SYNCGEN)
 		return -EINVAL;
 
 	/* VGP pads used for syncgen */
-	of_property_read_u32(np, "nvidia,syncgen-xhs-vgp", &params->syncgen.xhs_vgp);
+	(void)of_property_read_u32(np, "nvidia,syncgen-xhs-vgp", &params->syncgen.xhs_vgp);
 	if (!tegra_platform_is_silicon())
 		params->syncgen.xhs_vgp = 2;
 	if (params->syncgen.xhs_vgp > VI_NUM_VGP)
 		return -EINVAL;
 
-	of_property_read_u32(np, "nvidia,syncgen-xvs-vgp", &params->syncgen.xvs_vgp);
+	(void)of_property_read_u32(np, "nvidia,syncgen-xvs-vgp", &params->syncgen.xvs_vgp);
 	if (!tegra_platform_is_silicon())
 		params->syncgen.xvs_vgp = 3;
 	if (params->syncgen.xvs_vgp > VI_NUM_VGP)
