@@ -557,7 +557,7 @@ struct device *vi_csi_stream_to_nvhost_device(
 	struct tegra_capture_vi_data *info = platform_get_drvdata(pdev);
 	uint32_t vi_inst_id = 0;
 
-	if (csi_stream_id > MAX_NVCSI_STREAM_IDS) {
+	if (csi_stream_id >= MAX_NVCSI_STREAM_IDS) {
 		dev_err(&pdev->dev, "Invalid NVCSI stream Id\n");
 		return NULL;
 	}
