@@ -61,6 +61,7 @@ struct copy_req_params {
 	u64 num_remote_post_fences;
 	s32 *remote_post_fences;
 	u64 num_flush_ranges;
+	u64 *remote_post_fence_values;
 	struct nvscic2c_pcie_flush_range *flush_ranges;
 };
 
@@ -106,12 +107,32 @@ struct copy_request {
 	 * Shall include (num_local_post_fences).
 	 */
 	u64 num_local_post_fences;
+	u64 num_remote_post_fences;
+	u64 num_remote_buf_objs;
 	/*
 	 * space for num_local_post_fences considering worst-case allocation:
 	 * max_post_fences, assuming submit-copy could have all post-fences for
 	 * local signalling.
 	 */
 	struct stream_ext_obj **local_post_fences;
+	/*
+	 * space for num_remote_post_fences considering worst-case allocation:
+	 * max_post_fences, assuming submit-copy could have all post-fences for
+	 * remote signalling.
+	 */
+	struct stream_ext_obj **remote_post_fences;
+	/*
+	 * space for num_remote_buf_objs considering worst-case allocation:
+	 * max_flush_ranges, assuming submit-copy could have all flush ranges for
+	 * transfers.
+	 */
+	struct stream_ext_obj **remote_buf_objs;
+
+	/* X86 uses semaphores for fences and it needs to be written with NvSciStream
+	 * provided value
+	 */
+	u64 *remote_post_fence_values;
+	enum peer_cpu_t peer_cpu;
 };
 
 struct stream_ext_obj {
@@ -142,6 +163,9 @@ struct stream_ext_obj {
 	 */
 	u32 import_type;
 	phys_addr_t aper;
+
+	/* Mapping for ImportObj for CPU Read/Write.*/
+	u64 *import_obj_map;
 };
 
 /* stream extensions context per NvSciC2cPcie endpoint.*/
@@ -194,12 +218,15 @@ cache_copy_request_handles(struct copy_req_params *params,
 static int
 release_copy_request_handles(struct copy_request *cr);
 
-static int
+static void
 signal_local_post_fences(struct copy_request *cr);
+
+static void
+signal_remote_post_fences(struct copy_request *cr);
 
 static int
 prepare_edma_desc(enum drv_mode_t drv_mode, struct copy_req_params *params,
-		  struct tegra_pcie_edma_desc *desc, u64 *num_desc);
+		  struct tegra_pcie_edma_desc *desc, u64 *num_desc, enum peer_cpu_t);
 
 static edma_xfer_status_t
 schedule_edma_xfer(void *edma_h, void *priv, u64 num_desc,
@@ -267,8 +294,8 @@ fops_mmap(struct file *filep, struct vm_area_struct *vma)
 	vma->vm_flags |= (VM_DONTCOPY);
 	vma->vm_page_prot = pgprot_device(vma->vm_page_prot);
 	ret = remap_pfn_range(vma, vma->vm_start,
-			      PFN_DOWN(memaddr),
-			      memsize, vma->vm_page_prot);
+					PFN_DOWN(memaddr),
+					memsize, vma->vm_page_prot);
 	if (ret)
 		pr_err("mmap() failed for Imported sync object\n");
 
@@ -285,8 +312,10 @@ streamobj_free(struct kref *kref)
 
 	stream_obj = container_of(kref, struct stream_ext_obj, refcount);
 	if (stream_obj) {
+		if (stream_obj->import_obj_map)
+			iounmap(stream_obj->import_obj_map);
 		vmap_obj_unmap(stream_obj->vmap_h, stream_obj->vmap.type,
-			       stream_obj->vmap.id);
+					stream_obj->vmap.id);
 		kfree(stream_obj);
 	}
 }
@@ -375,7 +404,7 @@ ioctl_export_obj(struct stream_ext_ctx_t *ctx,
 	 * corresponding import stream obj.
 	 */
 	ret = vmap_obj_getref(stream_obj->vmap_h, stream_obj->vmap.type,
-			      stream_obj->vmap.id);
+				stream_obj->vmap.id);
 	if (ret) {
 		pr_err("(%s): Failed ref counting an object\n", ctx->ep_name);
 		fput(filep);
@@ -385,7 +414,7 @@ ioctl_export_obj(struct stream_ext_ctx_t *ctx,
 	/* generate export desc.*/
 	peer = &ctx->peer_node;
 	exp_desc = gen_desc(peer->board_id, peer->soc_id, peer->cntrlr_id,
-			    ctx->ep_id, export_type, stream_obj->vmap.id);
+				ctx->ep_id, export_type, stream_obj->vmap.id);
 
 	/*share it with peer for peer for corresponding import.*/
 	pr_debug("Exporting descriptor = (%llu)\n", exp_desc);
@@ -415,16 +444,17 @@ ioctl_import_obj(struct stream_ext_ctx_t *ctx,
 	struct file *filep = NULL;
 	struct stream_ext_obj *stream_obj = NULL;
 	struct node_info_t *local = &ctx->local_node;
+	enum peer_cpu_t peer_cpu;
 
 	if (args->obj_type != NVSCIC2C_PCIE_OBJ_TYPE_IMPORT)
 		return -EINVAL;
 
 	/* validate the incoming descriptor.*/
 	ret = validate_desc(args->in.desc, local->board_id, local->soc_id,
-			    local->cntrlr_id, ctx->ep_id);
+				local->cntrlr_id, ctx->ep_id);
 	if (ret) {
 		pr_err("(%s): Invalid descriptor: (%llu) received\n",
-		       ctx->ep_name, args->in.desc);
+				ctx->ep_name, args->in.desc);
 		return ret;
 	}
 
@@ -443,12 +473,16 @@ ioctl_import_obj(struct stream_ext_ctx_t *ctx,
 	stream_obj = filep->private_data;
 	stream_obj->import_type = get_handle_type_from_desc(args->in.desc);
 	ret = pci_client_get_peer_aper(ctx->pci_client_h, stream_obj->vmap.offsetof,
-				 stream_obj->vmap.size, &stream_obj->aper);
+				stream_obj->vmap.size, &stream_obj->aper);
 	if (ret) {
 		pr_err("(%s): PCI Client Get Peer Aper Failed\n", ctx->ep_name);
 		fput(filep);
 		return ret;
 	}
+
+	peer_cpu = pci_client_get_peer_cpu(ctx->pci_client_h);
+	if (peer_cpu == NVCPU_X86_64)
+		stream_obj->import_obj_map = ioremap(stream_obj->aper, PAGE_SIZE);
 	fput(filep);
 
 	args->out.handle = handle;
@@ -459,7 +493,7 @@ ioctl_import_obj(struct stream_ext_ctx_t *ctx,
 /* implement NVSCIC2C_PCIE_IOCTL_MAP ioctl call. */
 static int
 ioctl_map_obj(struct stream_ext_ctx_t *ctx,
-	      struct nvscic2c_pcie_map_obj_args *args)
+				struct nvscic2c_pcie_map_obj_args *args)
 {
 	int ret = 0;
 	s32 handle = -1;
@@ -480,12 +514,12 @@ ioctl_map_obj(struct stream_ext_ctx_t *ctx,
 /* implement NVSCIC2C_PCIE_IOCTL_SUBMIT_COPY_REQUEST ioctl call. */
 static int
 ioctl_submit_copy_request(struct stream_ext_ctx_t *ctx,
-			  struct nvscic2c_pcie_submit_copy_args *args)
+				struct nvscic2c_pcie_submit_copy_args *args)
 {
 	int ret = 0;
 	struct copy_request *cr = NULL;
-	edma_xfer_status_t edma_status = EDMA_XFER_FAIL_INVAL_INPUTS;
 
+	edma_xfer_status_t edma_status = EDMA_XFER_FAIL_INVAL_INPUTS;
 	/* copy user-supplied submit-copy args.*/
 	ret = copy_args_from_user(ctx, args, &ctx->cr_params);
 	if (ret)
@@ -522,9 +556,10 @@ ioctl_submit_copy_request(struct stream_ext_ctx_t *ctx,
 	if (ret)
 		goto reclaim_cr;
 
+	cr->peer_cpu = pci_client_get_peer_cpu(ctx->pci_client_h);
 	/* generate eDMA descriptors from flush_ranges, remote_post_fences.*/
 	ret = prepare_edma_desc(ctx->drv_mode, &ctx->cr_params, cr->edma_desc,
-				&cr->num_edma_desc);
+				&cr->num_edma_desc, cr->peer_cpu);
 	if (ret) {
 		release_copy_request_handles(cr);
 		goto reclaim_cr;
@@ -533,7 +568,7 @@ ioctl_submit_copy_request(struct stream_ext_ctx_t *ctx,
 	/* schedule asynchronous eDMA.*/
 	atomic_inc(&ctx->transfer_count);
 	edma_status = schedule_edma_xfer(ctx->edma_h, (void *)cr,
-					 cr->num_edma_desc, cr->edma_desc);
+					cr->num_edma_desc, cr->edma_desc);
 	if (edma_status != EDMA_XFER_SUCCESS) {
 		ret = -EIO;
 		atomic_dec(&ctx->transfer_count);
@@ -561,14 +596,14 @@ ioctl_set_max_copy_requests(struct stream_ext_ctx_t *ctx,
 	struct list_head *curr = NULL, *next = NULL;
 
 	if (WARN_ON(!args->max_copy_requests ||
-		    !args->max_flush_ranges ||
-		    !args->max_post_fences))
+			!args->max_flush_ranges ||
+			!args->max_post_fences))
 		return -EINVAL;
 
 	/* limits already set.*/
 	if (WARN_ON(ctx->cr_limits.max_copy_requests ||
-		    ctx->cr_limits.max_flush_ranges ||
-		    ctx->cr_limits.max_post_fences))
+			ctx->cr_limits.max_flush_ranges ||
+			ctx->cr_limits.max_post_fences))
 		return -EINVAL;
 
 	ctx->cr_limits.max_copy_requests = args->max_copy_requests;
@@ -655,7 +690,7 @@ stream_extension_ioctl(void *stream_ext_h, unsigned int cmd, void *args)
 		break;
 	default:
 		pr_err("(%s): unrecognised nvscic2c-pcie ioclt cmd: 0x%x\n",
-		       ctx->ep_name, cmd);
+		    ctx->ep_name, cmd);
 		ret = -ENOTTY;
 		break;
 	}
@@ -803,7 +838,7 @@ allocate_handle(struct stream_ext_ctx_t *ctx, enum nvscic2c_pcie_obj_type type,
 	 * O_RDWR is required only for ImportedSyncObjs mmap() from user-space.
 	 */
 	handle = anon_inode_getfd("nvscic2c-pcie-stream-ext", &fops_default,
-				  stream_obj, (O_RDWR | O_CLOEXEC));
+				stream_obj, (O_RDWR | O_CLOEXEC));
 	if (handle < 0) {
 		pr_err("(%s): Failed to get stream obj handle\n", ctx->ep_name);
 		vmap_obj_unmap(ctx->vmap_h, vmap_attrib.type, vmap_attrib.id);
@@ -844,13 +879,19 @@ schedule_edma_xfer(void *edma_h, void *priv, u64 num_desc,
 /* Callback with each async eDMA submit xfer.*/
 static void
 callback_edma_xfer(void *priv, edma_xfer_status_t status,
-		   struct tegra_pcie_edma_desc *desc)
+			struct tegra_pcie_edma_desc *desc)
 {
 	struct copy_request *cr = (struct copy_request *)priv;
 
 	/* increment num_local_fences.*/
-	if (status == EDMA_XFER_SUCCESS)
+	if (status == EDMA_XFER_SUCCESS) {
+		/* X86 remote end fences are signaled through CPU */
+		if (cr->peer_cpu == NVCPU_X86_64) {
+			signal_remote_post_fences(cr);
+		}
+		/* Signal local fences for Tegra*/
 		signal_local_post_fences(cr);
+	}
 
 	/* releases the references of the cubmit-copy handles.*/
 	release_copy_request_handles(cr);
@@ -866,7 +907,7 @@ callback_edma_xfer(void *priv, edma_xfer_status_t status,
 
 static int
 prepare_edma_desc(enum drv_mode_t drv_mode, struct copy_req_params *params,
-		  struct tegra_pcie_edma_desc *desc, u64 *num_desc)
+		struct tegra_pcie_edma_desc *desc, u64 *num_desc, enum peer_cpu_t peer_cpu)
 {
 	u32 i = 0;
 	int ret = 0;
@@ -899,41 +940,64 @@ prepare_edma_desc(enum drv_mode_t drv_mode, struct copy_req_params *params,
 		desc[iter].sz = flush_range->size;
 		iter++;
 	}
-	for (i = 0; i < params->num_remote_post_fences; i++) {
-		handle = params->remote_post_fences[i];
+	/* With Orin as remote end, the remote fence signaling is done using DMA
+	 * With X86 as remote end, the remote fence signaling is done using CPU
+	 */
+	if (peer_cpu == NVCPU_ORIN) {
+		for (i = 0; i < params->num_remote_post_fences; i++) {
+			handle = params->remote_post_fences[i];
+			desc[iter].src = dummy_addr;
 
-		desc[iter].src = dummy_addr;
+			filep = fget(handle);
+			stream_obj = filep->private_data;
+			if (drv_mode == DRV_MODE_EPC)
+				desc[iter].dst = stream_obj->aper;
+			else
+				desc[iter].dst = stream_obj->vmap.iova;
 
-		filep = fget(handle);
-		stream_obj = filep->private_data;
-		if (drv_mode == DRV_MODE_EPC)
-			desc[iter].dst = stream_obj->aper;
-		else
-			desc[iter].dst = stream_obj->vmap.iova;
-		fput(filep);
+			fput(filep);
 
-		desc[iter].sz = 4;
-		iter++;
+			desc[iter].sz = 4;
+			iter++;
+		}
 	}
 	*num_desc += iter;
 	return ret;
 }
 
 /* this is post eDMA path, must be done with references still taken.*/
-static int
+static void
 signal_local_post_fences(struct copy_request *cr)
 {
 	u32 i = 0;
-	int ret = 0;
 	struct stream_ext_obj *stream_obj = NULL;
-
 	for (i = 0; i < cr->num_local_post_fences; i++) {
 		stream_obj = cr->local_post_fences[i];
 		nvhost_syncpt_cpu_incr_ext(cr->ctx->host1x_pdev,
-					   stream_obj->vmap.syncpt_id);
+					stream_obj->vmap.syncpt_id);
 	}
+}
 
-	return ret;
+static void
+signal_remote_post_fences(struct copy_request *cr)
+{
+	u32 i = 0;
+	struct stream_ext_obj *stream_obj = NULL;
+	uint32_t val;
+	/* Dummy read operation is done on the imported buffer object to ensure
+	 * coherence of data on Vidmem of GA100 dGPU, which is connected as an EP to X86.
+	 * This is needed as Ampere architecture doesn't support coherence of Write after
+	 * Write operation and the dummy read of 4 bytes ensures the data is reconciled in
+	 * vid-memory when the consumer waiting on a sysmem semaphore is unblocked.
+	 */
+	for (i = 0; i < cr->num_remote_buf_objs; i++) {
+		stream_obj = cr->remote_buf_objs[i];
+		val = readl((const volatile void __iomem *)stream_obj->import_obj_map);
+	}
+	for (i = 0; i < cr->num_remote_post_fences; i++) {
+		stream_obj = cr->remote_post_fences[i];
+		writeq(cr->remote_post_fence_values[i], (volatile void __iomem *)stream_obj->import_obj_map);
+	}
 }
 
 static int
@@ -961,6 +1025,8 @@ cache_copy_request_handles(struct copy_req_params *params,
 
 	cr->num_handles = 0;
 	cr->num_local_post_fences = 0;
+	cr->num_remote_post_fences = 0;
+	cr->num_remote_buf_objs = 0;
 	for (i = 0; i < params->num_local_post_fences; i++) {
 		handle = params->local_post_fences[i];
 		filep = fget(handle);
@@ -980,6 +1046,9 @@ cache_copy_request_handles(struct copy_req_params *params,
 		kref_get(&stream_obj->refcount);
 		cr->handles[cr->num_handles] = stream_obj;
 		cr->num_handles++;
+		cr->remote_post_fence_values[i] =  params->remote_post_fence_values[i];
+		cr->remote_post_fences[cr->num_remote_post_fences] = stream_obj;
+		cr->num_remote_post_fences++;
 		fput(filep);
 	}
 	for (i = 0; i < params->num_flush_ranges; i++) {
@@ -997,6 +1066,9 @@ cache_copy_request_handles(struct copy_req_params *params,
 		kref_get(&stream_obj->refcount);
 		cr->handles[cr->num_handles] = stream_obj;
 		cr->num_handles++;
+
+		cr->remote_buf_objs[cr->num_remote_buf_objs] = stream_obj;
+		cr->num_remote_buf_objs++;
 		fput(filep);
 	}
 
@@ -1025,8 +1097,8 @@ validate_handle(struct stream_ext_ctx_t *ctx, s32 handle,
 		goto err;
 
 	if (stream_obj->soc_id != ctx->local_node.soc_id ||
-	    stream_obj->cntrlr_id != ctx->local_node.cntrlr_id ||
-	    stream_obj->ep_id != ctx->ep_id)
+		stream_obj->cntrlr_id != ctx->local_node.cntrlr_id ||
+		stream_obj->ep_id != ctx->ep_id)
 		goto err;
 
 	if (stream_obj->type != type)
@@ -1042,7 +1114,7 @@ exit:
 
 static int
 validate_import_handle(struct stream_ext_ctx_t *ctx, s32 handle,
-		       u32 import_type)
+			u32 import_type)
 {
 	int ret = 0;
 	struct stream_ext_obj *stream_obj = NULL;
@@ -1081,12 +1153,12 @@ validate_flush_range(struct stream_ext_ctx_t *ctx,
 		return -EINVAL;
 
 	ret = validate_handle(ctx, flush_range->src_handle,
-			      NVSCIC2C_PCIE_OBJ_TYPE_SOURCE_MEM);
+					NVSCIC2C_PCIE_OBJ_TYPE_SOURCE_MEM);
 	if (ret)
 		return ret;
 
 	ret = validate_import_handle(ctx, flush_range->dst_handle,
-				     STREAM_OBJ_TYPE_MEM);
+					STREAM_OBJ_TYPE_MEM);
 	if (ret)
 		return ret;
 
@@ -1111,7 +1183,7 @@ validate_flush_range(struct stream_ext_ctx_t *ctx,
 
 static int
 validate_copy_req_params(struct stream_ext_ctx_t *ctx,
-			 struct copy_req_params *params)
+				struct copy_req_params *params)
 {
 	u32 i = 0;
 	int ret = 0;
@@ -1122,11 +1194,10 @@ validate_copy_req_params(struct stream_ext_ctx_t *ctx,
 
 		handle = params->local_post_fences[i];
 		ret = validate_handle(ctx, handle,
-				      NVSCIC2C_PCIE_OBJ_TYPE_LOCAL_SYNC);
+					NVSCIC2C_PCIE_OBJ_TYPE_LOCAL_SYNC);
 		if (ret)
 			return ret;
 	}
-
 	/* for each remote post-fence.*/
 	for (i = 0; i < params->num_remote_post_fences; i++) {
 		s32 handle = 0;
@@ -1184,6 +1255,12 @@ copy_args_from_user(struct stream_ext_ctx_t *ctx,
 	if (ret < 0)
 		return -EFAULT;
 
+	ret = copy_from_user(params->remote_post_fence_values,
+			     (void __user *)args->remote_post_fence_values,
+			     (params->num_remote_post_fences * sizeof(u64)));
+	if (ret < 0)
+		return -EFAULT;
+
 	ret = copy_from_user(params->flush_ranges,
 			     (void __user *)args->flush_ranges,
 			     (params->num_flush_ranges *
@@ -1203,6 +1280,9 @@ free_copy_request(struct copy_request **copy_request)
 		return;
 
 	kfree(cr->local_post_fences);
+	kfree(cr->remote_post_fences);
+	kfree(cr->remote_buf_objs);
+	kfree(cr->remote_post_fence_values);
 	kfree(cr->edma_desc);
 	kfree(cr->handles);
 	kfree(cr);
@@ -1228,9 +1308,9 @@ allocate_copy_request(struct stream_ext_ctx_t *ctx,
 
 	/* flush range has two handles: src, dst + all possible post_fences.*/
 	cr->handles = kzalloc((sizeof(*cr->handles) *
-			       ((2 * ctx->cr_limits.max_flush_ranges) +
+				((2 * ctx->cr_limits.max_flush_ranges) +
 				(ctx->cr_limits.max_post_fences))),
-			      GFP_KERNEL);
+				GFP_KERNEL);
 	if (WARN_ON(!cr->handles)) {
 		ret = -ENOMEM;
 		goto err;
@@ -1241,8 +1321,8 @@ allocate_copy_request(struct stream_ext_ctx_t *ctx,
 	 * (all max_post_fences could be remote_post_fence which need be eDMAd).
 	 */
 	cr->edma_desc = kzalloc((sizeof(*cr->edma_desc) *
-				 (ctx->cr_limits.max_flush_ranges +
-				  ctx->cr_limits.max_post_fences)),
+				(ctx->cr_limits.max_flush_ranges +
+				ctx->cr_limits.max_post_fences)),
 				GFP_KERNEL);
 	if (WARN_ON(!cr->edma_desc)) {
 		ret = -ENOMEM;
@@ -1251,9 +1331,33 @@ allocate_copy_request(struct stream_ext_ctx_t *ctx,
 
 	/* OR all max_post_fences could be local_post_fence. */
 	cr->local_post_fences = kzalloc((sizeof(*cr->local_post_fences) *
-					 ctx->cr_limits.max_post_fences),
+					ctx->cr_limits.max_post_fences),
 					GFP_KERNEL);
 	if (WARN_ON(!cr->local_post_fences)) {
+		ret = -ENOMEM;
+		goto err;
+	}
+	cr->remote_post_fences = kzalloc((sizeof(*cr->remote_post_fences) *
+					ctx->cr_limits.max_post_fences),
+					GFP_KERNEL);
+	if (WARN_ON(!cr->remote_post_fences)) {
+		ret = -ENOMEM;
+		goto err;
+	}
+
+	cr->remote_buf_objs = kzalloc((sizeof(*cr->remote_buf_objs) *
+					ctx->cr_limits.max_flush_ranges),
+					GFP_KERNEL);
+	if (WARN_ON(!cr->remote_buf_objs)) {
+		ret = -ENOMEM;
+		goto err;
+	}
+
+	cr->remote_post_fence_values =
+				kzalloc((sizeof(*cr->remote_post_fence_values) *
+				ctx->cr_limits.max_post_fences),
+				GFP_KERNEL);
+	if (WARN_ON(!cr->remote_post_fence_values)) {
 		ret = -ENOMEM;
 		goto err;
 	}
@@ -1277,6 +1381,8 @@ free_copy_req_params(struct copy_req_params *params)
 	params->local_post_fences = NULL;
 	kfree(params->remote_post_fences);
 	params->remote_post_fences = NULL;
+	kfree(params->remote_post_fence_values);
+	params->remote_post_fence_values = NULL;
 }
 
 static int
@@ -1307,6 +1413,14 @@ allocate_copy_req_params(struct stream_ext_ctx_t *ctx,
 					 ctx->cr_limits.max_post_fences),
 					GFP_KERNEL);
 	if (WARN_ON(!params->remote_post_fences)) {
+		ret = -ENOMEM;
+		goto err;
+	}
+	params->remote_post_fence_values =
+				kzalloc((sizeof(*params->remote_post_fence_values) *
+					 ctx->cr_limits.max_post_fences),
+					GFP_KERNEL);
+	if (WARN_ON(!params->remote_post_fence_values)) {
 		ret = -ENOMEM;
 		goto err;
 	}

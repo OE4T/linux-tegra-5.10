@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -85,11 +85,6 @@ struct nvscic2c_pcie_endpoint_info {
  */
 struct nvscic2c_pcie_map_in_arg {
 	/*
-	 * for x86_64, under #ifdef add later:
-	 * Mem and Sync obj - user-space virtual address of the NvRmHandle.
-	 */
-	/*
-	 * #else for tegra,
 	 * Mem obj - NvRmMemHandle FD. Sync obj - NvRmHost1xSyncpointHandle FD.
 	 */
 	__s32 fd;
@@ -181,6 +176,7 @@ struct nvscic2c_pcie_submit_copy_args {
 	__u64 remote_post_fences;
 	__u64 num_flush_ranges;
 	__u64 flush_ranges;
+	__u64 remote_post_fence_values;
 };
 
 /**

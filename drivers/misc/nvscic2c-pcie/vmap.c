@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -617,7 +617,6 @@ vmap_importobj_register(void *data, void *ctx)
 	WARN_ON(!vmap_ctx);
 	WARN_ON(!msg);
 	WARN_ON(msg->type != COMM_MSG_TYPE_REGISTER);
-
 	mutex_lock(&vmap_ctx->import_idr_lock);
 
 	/* check if we have export descriptor from remote already ? */
@@ -642,7 +641,7 @@ vmap_importobj_register(void *data, void *ctx)
 		map->reg.nr_export++;
 		kref_get(&map->refcount);
 		pr_debug("Registered descriptor again: (%llu)\n",
-			 map->reg.export_desc);
+				map->reg.export_desc);
 	} else {
 		/* map for the first time.*/
 		map = kzalloc(sizeof(*map), GFP_KERNEL);
