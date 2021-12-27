@@ -334,5 +334,5 @@ else
 tegra-dtstree = $(srctree)/nvidia
 endif
 
-tegra-root-dtstree = $(subst ^$(realpath $(tegra-dtstree)/../..)/,,^$(realpath $(srctree)/arch/arm64/boot/dts))
+tegra-root-dtstree = $(subst ^$(realpath $(tegra-dtstree)/..)/,,^$(realpath $(srctree)/arch/arm64/boot/dts))
 tegra-rel-dtstree = $(subst $(space),/,$(patsubst %,..,$(subst /, ,$(tegra-root-dtstree))))
