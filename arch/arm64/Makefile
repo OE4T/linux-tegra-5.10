@@ -52,6 +52,13 @@ KBUILD_AFLAGS	+= $(compat_vdso)
 KBUILD_CFLAGS	+= $(call cc-option,-mabi=lp64)
 KBUILD_AFLAGS	+= $(call cc-option,-mabi=lp64)
 
+# XXX---
+# NVIDIA uses GCC builtins instead of proper kernel atomics
+# in their semi-out-of-tree drivers, and those builtins get
+# outlined automatically with GCC 10 and later
+KBUILD_CFLAGS += $(call cc-option,-mno-outline-atomics)
+# ---XXX
+
 # Avoid generating .eh_frame* sections.
 KBUILD_CFLAGS	+= -fno-asynchronous-unwind-tables -fno-unwind-tables
 KBUILD_AFLAGS	+= -fno-asynchronous-unwind-tables -fno-unwind-tables
