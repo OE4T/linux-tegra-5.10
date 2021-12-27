@@ -292,10 +292,11 @@ static int csi2_start_streaming(struct tegra_csi_channel *chan, int port_idx)
 			&str);
 		if (!err) {
 			err = kstrtou32(str, 10, &cil_settletime);
-			if (err)
+			if (err) {
 				dev_dbg(csi->dev,
 					"no cil_settletime in of_node");
 				cil_settletime = 0;
+			}
 		}
 	}
 
