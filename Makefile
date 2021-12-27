@@ -7,8 +7,8 @@ NAME = Dare mighty things
 
 ifeq ($(KERNEL_OVERLAYS),)
 KERNEL_OVERLAYS :=
-KERNEL_OVERLAYS += $(CURDIR)/nvidia
-KERNEL_OVERLAYS += $(CURDIR)/nvidia/nvgpu
+KERNEL_OVERLAYS += $(dir $(lastword $(MAKEFILE_LIST)))/nvidia
+KERNEL_OVERLAYS += $(dir $(lastword $(MAKEFILE_LIST)))/nvidia/nvgpu
 else
 override KERNEL_OVERLAYS := $(subst :, ,$(KERNEL_OVERLAYS))
 endif
