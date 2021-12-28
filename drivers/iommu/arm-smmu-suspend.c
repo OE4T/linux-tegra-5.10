@@ -44,6 +44,9 @@
 #define MAX_SMMUS 5
 #endif
 
+static uint32_t cb_group_max;
+static uint32_t smrg_group_max;
+
 struct arm_smmu_reg {
 	u32 reg;
 	u32 val;
@@ -164,9 +167,6 @@ static void context_save_cb_group(int group_num)
 			arm_smmu_ctx.smmu_size, arm_smmu_ctx.smmu_pgshift));
 }
 
-#define CB_GROUP_MAX			64
-#define SMRG_GROUP_MAX			128
-#define CBAR_GROUP_MAX			64
 static int arm_smmu_syscore_suspend(void)
 {
 	int i;
@@ -175,13 +175,13 @@ static int arm_smmu_syscore_suspend(void)
 
 	context_save_gnsr0_group();
 
-	for (i = 0; i < SMRG_GROUP_MAX; i++)
+	for (i = 0; i < smrg_group_max; i++)
 		context_save_smrg_group(i);
 
-	for (i = 0; i < CBAR_GROUP_MAX; i++)
+	for (i = 0; i < cb_group_max; i++)
 		context_save_cbar_group(i);
 
-	for (i = 0; i < CB_GROUP_MAX; i++)
+	for (i = 0; i < cb_group_max; i++)
 		context_save_cb_group(i);
 
 	context_save_end();
@@ -202,9 +202,9 @@ int arm_smmu_suspend_init(void __iomem **smmu_base, u32 *smmu_base_pa,
 	arm_smmu_ctx.reg_list_table_size =
 		(SMMU_REG_TABLE_START_SIZE + SMMU_REG_TABLE_END_SIZE
 			+ (GNSR_GROUP_REG_SIZE
-				+ (CB_GROUP_REG_SIZE * CB_GROUP_MAX)
-				+ (SMRG_GROUP_REG_SIZE * SMRG_GROUP_MAX)
-				+ (CBAR_GROUP_REG_SIZE * CBAR_GROUP_MAX)
+				+ (CB_GROUP_REG_SIZE * cb_group_max)
+				+ (SMRG_GROUP_REG_SIZE * smrg_group_max)
+				+ (CBAR_GROUP_REG_SIZE * cb_group_max)
 			  ) * num_smmus);
 
 	arm_smmu_ctx.reg_list_mem_size =
@@ -315,6 +315,10 @@ static int arm_smmu_suspend_probe(struct platform_device *pdev)
 
 	id = readl_relaxed(bases[0] + ARM_SMMU_GR0_ID1);
 	pgshift = (id & ARM_SMMU_ID1_PAGESIZE) ? 16 : 12;
+	cb_group_max = FIELD_GET(ARM_SMMU_ID1_NUMCB, id);
+
+	id = readl_relaxed(bases[0] + ARM_SMMU_GR0_ID0);
+	smrg_group_max = FIELD_GET(ARM_SMMU_ID0_NUMSMRG, id);
 
 	if (!of_property_read_u32(dev->of_node, "suspend-save-reg",
 			&suspend_save_reg)) {
