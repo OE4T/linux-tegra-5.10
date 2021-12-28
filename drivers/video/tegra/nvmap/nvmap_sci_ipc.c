@@ -220,7 +220,7 @@ int nvmap_get_handle_from_sci_ipc_id(struct nvmap_client *client, u32 flags,
 	struct nvmap_handle_ref *ref = NULL;
 	struct nvmap_sci_ipc_entry *entry;
 	struct nvmap_handle *h;
-	bool is_ro = (flags == PROT_READ) ? true : false;
+	bool is_ro = (flags == PROT_READ) ? true : false, dmabuf_created = false;
 	int ret = 0;
 	int fd;
 
@@ -248,6 +248,7 @@ int nvmap_get_handle_from_sci_ipc_id(struct nvmap_client *client, u32 flags,
 			ret = PTR_ERR(h->dmabuf_ro);
 			goto unlock;
 		}
+		dmabuf_created = true;
 	}
 
 	ref = nvmap_duplicate_handle(client, h, false, is_ro);
@@ -256,6 +257,13 @@ int nvmap_get_handle_from_sci_ipc_id(struct nvmap_client *client, u32 flags,
 		goto unlock;
 	}
 	nvmap_handle_put(h);
+	/*
+	 * When new dmabuf created (only RO dmabuf is getting created in this function)
+	 * it's counter is incremented one extra time in nvmap_duplicate_handle. Hence
+	 * decrement it by one.
+	 */
+	if (dmabuf_created)
+		dma_buf_put(h->dmabuf_ro);
 
 	fd = nvmap_get_dmabuf_fd(client, h, is_ro);
 	*handle = fd;
