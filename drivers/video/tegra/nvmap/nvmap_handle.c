@@ -461,6 +461,7 @@ struct nvmap_handle_ref *nvmap_dup_handle_ro(struct nvmap_client *client,
 {
 	struct nvmap_handle *h;
 	struct nvmap_handle_ref *ref = NULL;
+	bool dmabuf_created = false;
 
 	if (!client)
 		return ERR_PTR(-EINVAL);
@@ -481,6 +482,7 @@ struct nvmap_handle_ref *nvmap_dup_handle_ro(struct nvmap_client *client,
 			nvmap_handle_put(h);
 			return ERR_CAST(h->dmabuf_ro);
 		}
+		dmabuf_created = true;
 	}
 
 	ref = nvmap_duplicate_handle(client, h, false, true);
@@ -488,6 +490,13 @@ struct nvmap_handle_ref *nvmap_dup_handle_ro(struct nvmap_client *client,
 		nvmap_handle_put(h);
 		return ref;
 	}
+	/*
+	 * When new dmabuf created (only RO dmabuf is getting created in this function)
+	 * it's counter is incremented one extra time in nvmap_duplicate_handle. Hence
+	 * decrement it by one.
+	 */
+	if (dmabuf_created)
+		dma_buf_put(h->dmabuf_ro);
 
 	nvmap_handle_put(h);
 
