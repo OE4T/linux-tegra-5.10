@@ -123,10 +123,7 @@ ifeq ($(CONFIG_TEGRA_GR_VIRTUALIZATION),y)
 CONFIG_NVGPU_GR_VIRTUALIZATION := y
 endif
 
-# Support for NVGPU VPR
-ifeq ($(CONFIG_TEGRA_VPR),y)
 CONFIG_NVGPU_VPR := y
-endif
 
 # Support Tegra fuse
 ifeq ($(CONFIG_TEGRA_KFUSE),y)
