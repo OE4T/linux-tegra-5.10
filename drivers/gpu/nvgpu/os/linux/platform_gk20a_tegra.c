@@ -1,7 +1,7 @@
 /*
  * GK20A Tegra Platform Interface
  *
- * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -21,10 +21,12 @@
 #include <uapi/linux/nvgpu.h>
 #include <linux/dma-buf.h>
 #include <linux/reset.h>
+#include <nvgpu/vpr.h>
+
 #if defined(CONFIG_TEGRA_DVFS)
 #include <linux/tegra_soctherm.h>
 #endif
-#if defined(CONFIG_NVGPU_TEGRA_FUSE) || defined(CONFIG_NVGPU_VPR)
+#if defined(CONFIG_NVGPU_TEGRA_FUSE) || NVGPU_VPR_RESIZE_SUPPORTED
 #include <linux/platform/tegra/common.h>
 #endif
 
@@ -683,7 +685,9 @@ int gk20a_tegra_init_secure_alloc(struct gk20a_platform *platform)
 		 * On simulation platform, VPR is only supported with
 		 * vdk frontdoor boot and gpu frontdoor mode.
 		 */
+#if NVGPU_VPR_RESIZE_SUPPORTED
 		tegra_unregister_idle_unidle(gk20a_do_idle);
+#endif
 		nvgpu_log_info(g,
 			"VPR is not supported on simulation platform");
 		return 0;
@@ -700,7 +704,9 @@ int gk20a_tegra_init_secure_alloc(struct gk20a_platform *platform)
 	/* Some platforms disable VPR. In that case VPR allocations always
 	 * fail. Just disable VPR usage in nvgpu in that case. */
 	if (dma_mapping_error(&tegra_vpr_dev, iova)) {
+#if NVGPU_VPR_RESIZE_SUPPORTED
 		tegra_unregister_idle_unidle(gk20a_do_idle);
+#endif
 		return 0;
 	}
 

@@ -1,7 +1,7 @@
 /*
  * GK20A Graphics
  *
- * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -26,7 +26,10 @@
 #include <linux/reset.h>
 #include <linux/reboot.h>
 #include <linux/notifier.h>
-#ifdef CONFIG_NVGPU_VPR
+
+#include <nvgpu/vpr.h>
+
+#if NVGPU_VPR_RESIZE_SUPPORTED
 #include <linux/platform/tegra/common.h>
 #endif
 #include <linux/pci.h>
@@ -1005,7 +1008,7 @@ void gk20a_remove_support(struct gk20a *g)
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	struct sim_nvgpu_linux *sim_linux;
 
-#ifdef CONFIG_NVGPU_VPR
+#if NVGPU_VPR_RESIZE_SUPPORTED
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_VPR)) {
 		tegra_unregister_idle_unidle(gk20a_do_idle);
 	}
@@ -1082,7 +1085,7 @@ static int gk20a_init_support(struct platform_device *pdev)
 	void __iomem *addr;
 	int err = -ENOMEM;
 
-#ifdef CONFIG_NVGPU_VPR
+#if NVGPU_VPR_RESIZE_SUPPORTED
 	tegra_register_idle_unidle(gk20a_do_idle, gk20a_do_unidle, g);
 #endif
 
