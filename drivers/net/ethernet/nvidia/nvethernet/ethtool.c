@@ -110,10 +110,6 @@ static const struct ether_stats ether_cstrings_stats[] = {
 	ETHER_PKT_ERR_STAT(rx_frame_error),
 	ETHER_PKT_ERR_STAT(clear_tx_err),
 	ETHER_PKT_ERR_STAT(clear_rx_err),
-	ETHER_CORE_PKT_ERR_STAT(mgbe_ip_header_err),
-	ETHER_CORE_PKT_ERR_STAT(mgbe_jabber_timeout_err),
-	ETHER_CORE_PKT_ERR_STAT(mgbe_payload_cs_err),
-	ETHER_CORE_PKT_ERR_STAT(mgbe_tx_underflow_err),
 };
 
 /**
@@ -290,6 +286,12 @@ static const struct ether_stats ether_gstrings_stats[] = {
 	ETHER_EXTRA_STAT(link_connect_count),
 	ETHER_EXTRA_STAT(ts_lock_add_fail),
 	ETHER_EXTRA_STAT(ts_lock_del_fail),
+
+	/* Packet error stats */
+	ETHER_CORE_PKT_ERR_STAT(mgbe_ip_header_err),
+	ETHER_CORE_PKT_ERR_STAT(mgbe_jabber_timeout_err),
+	ETHER_CORE_PKT_ERR_STAT(mgbe_payload_cs_err),
+	ETHER_CORE_PKT_ERR_STAT(mgbe_tx_underflow_err),
 };
 
 /**
