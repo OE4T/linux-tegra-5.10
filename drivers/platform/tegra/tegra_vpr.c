@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019 NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2016-2021 NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,12 +17,16 @@
 #include <linux/dma-mapping.h>
 #include <linux/ote_protocol.h>
 #include <linux/delay.h>
+#include <linux/version.h>
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0)
 extern phys_addr_t tegra_vpr_start;
 extern phys_addr_t tegra_vpr_size;
+#endif /* KERNEL_VERSION < 5 */
 extern bool tegra_vpr_resize;
 static DEFINE_MUTEX(vpr_lock);
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0)
 static int tegra_vpr_arg(char *options)
 {
 	char *p = options;
@@ -35,6 +39,7 @@ static int tegra_vpr_arg(char *options)
 	return 0;
 }
 early_param("vpr", tegra_vpr_arg);
+#endif /* KERNEL_VERSION < 5 */
 
 static int tegra_vpr_resize_arg(char *options)
 {
