@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -349,6 +349,10 @@ static void nvgpu_bitmap_alloc_destroy(struct nvgpu_allocator *na)
 	struct nvgpu_bitmap_alloc *alloc;
 	struct nvgpu_rbtree_node *node = NULL;
 
+	alloc_lock(na);
+
+	nvgpu_fini_alloc_debug(na);
+
 	/*
 	 * Kill any outstanding allocations.
 	 */
@@ -365,6 +369,8 @@ static void nvgpu_bitmap_alloc_destroy(struct nvgpu_allocator *na)
 	nvgpu_kmem_cache_destroy(a->meta_data_cache);
 	nvgpu_kfree(nvgpu_alloc_to_gpu(na), a->bitmap);
 	nvgpu_kfree(nvgpu_alloc_to_gpu(na), a);
+
+	alloc_unlock(na);
 }
 
 #ifdef __KERNEL__
@@ -493,9 +499,7 @@ int nvgpu_bitmap_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 	nvgpu_smp_wmb();
 	a->inited = true;
 
-#ifdef CONFIG_DEBUG_FS
 	nvgpu_init_alloc_debug(g, na);
-#endif
 	alloc_dbg(na, "New allocator: type      bitmap");
 	alloc_dbg(na, "               base      0x%llx", a->base);
 	alloc_dbg(na, "               bit_offs  0x%llx", a->bit_offs);

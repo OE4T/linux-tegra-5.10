@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 NVIDIA Corporation.  All rights reserved.
+ * Copyright (C) 2017-2022 NVIDIA Corporation.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -55,6 +55,12 @@ void nvgpu_init_alloc_debug(struct gk20a *g, struct nvgpu_allocator *a)
 
 void nvgpu_fini_alloc_debug(struct nvgpu_allocator *a)
 {
+	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(a->g);
+
+	if (!l->debugfs_allocators)
+		return;
+
+	debugfs_remove(a->debugfs_entry);
 }
 
 void nvgpu_alloc_debugfs_init(struct gk20a *g)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -302,9 +302,7 @@ static void nvgpu_buddy_allocator_destroy(struct nvgpu_allocator *na)
 
 	alloc_lock(na);
 
-#ifdef CONFIG_DEBUG_FS
 	nvgpu_fini_alloc_debug(na);
-#endif
 
 	/*
 	 * Free the fixed allocs first.
@@ -1543,9 +1541,7 @@ int nvgpu_buddy_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 	nvgpu_smp_wmb();
 	a->initialized = true;
 
-#ifdef CONFIG_DEBUG_FS
 	nvgpu_init_alloc_debug(g, na);
-#endif
 	alloc_dbg(na, "New allocator: type      buddy");
 	alloc_dbg(na, "               base      0x%llx", a->base);
 	alloc_dbg(na, "               size      0x%llx", a->length);

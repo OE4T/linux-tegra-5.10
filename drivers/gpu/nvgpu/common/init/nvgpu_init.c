@@ -1,7 +1,7 @@
 /*
  * GK20A Graphics
  *
- * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,6 +22,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <nvgpu/debug.h>
 #include <nvgpu/nvgpu_common.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/allocator.h>
@@ -1137,6 +1138,8 @@ static void gk20a_free_cb(struct nvgpu_ref *refcount)
 #endif
 
 	nvgpu_sw_quiesce_remove_support(g);
+
+	gk20a_debug_deinit(g);
 
 	if (g->gfree != NULL) {
 		g->gfree(g);

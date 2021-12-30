@@ -1932,8 +1932,6 @@ int nvgpu_remove(struct device *dev)
 
 	gk20a_power_node_deinit(dev_from_gk20a(g));
 
-	gk20a_debug_deinit(g);
-
 	nvgpu_remove_sysfs(dev);
 
 	if (platform->secure_buffer.destroy)

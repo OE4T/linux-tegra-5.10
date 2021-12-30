@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -918,6 +918,7 @@ static void nvgpu_page_allocator_destroy(struct nvgpu_allocator *na)
 	struct nvgpu_page_allocator *a = page_allocator(na);
 
 	alloc_lock(na);
+	nvgpu_fini_alloc_debug(na);
 	nvgpu_kfree(nvgpu_alloc_to_gpu(na), a);
 	na->priv = NULL;
 	alloc_unlock(na);
@@ -1114,9 +1115,7 @@ int nvgpu_page_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 		goto fail;
 	}
 
-#ifdef CONFIG_DEBUG_FS
 	nvgpu_init_alloc_debug(g, na);
-#endif
 	palloc_dbg(a, "New allocator: type      page");
 	palloc_dbg(a, "               base      0x%llx", a->base);
 	palloc_dbg(a, "               size      0x%llx", a->length);
