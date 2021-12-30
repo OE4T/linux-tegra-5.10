@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-21, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -71,6 +71,7 @@ DEFINE_TNODE(vi2fal, TEGRA_ICC_VI2FAL, TEGRA_ICC_ISO_VIFAL);
 DEFINE_TNODE(vi2, TEGRA_ICC_VI2, TEGRA_ICC_ISO_VI);
 DEFINE_TNODE(rce, TEGRA_ICC_RCE, TEGRA_ICC_NISO);
 DEFINE_TNODE(pva, TEGRA_ICC_PVA, TEGRA_ICC_NISO);
+DEFINE_TNODE(nvpmodel, TEGRA_ICC_NVPMODEL, TEGRA_ICC_NONE);
 
 static struct tegra_icc_node *tegra_icc_nodes[] = {
 	[TEGRA_ICC_PRIMARY] = &icc_primary,
@@ -119,6 +120,7 @@ static struct tegra_icc_node *tegra_icc_nodes[] = {
 	[TEGRA_ICC_VI2] = &vi2,
 	[TEGRA_ICC_RCE] = &rce,
 	[TEGRA_ICC_PVA] = &pva,
+	[TEGRA_ICC_NVPMODEL] = &nvpmodel,
 };
 
 static int tegra_icc_probe(struct platform_device *pdev)
@@ -184,6 +186,7 @@ static int tegra_icc_probe(struct platform_device *pdev)
 			ret = tp->max_rate;
 			goto err_bpmp;
 		}
+		tp->cap_rate = tp->max_rate;
 
 		tp->min_rate = clk_round_rate(tp->dram_clk, 0);
 		if (tp->min_rate < 0) {

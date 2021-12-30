@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-21, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -32,6 +32,7 @@ struct tegra_icc_provider {
 	long rate;
 	long max_rate;
 	long min_rate;
+	long cap_rate;
 #if LINUX_VERSION_CODE > KERNEL_VERSION(4, 15, 0)
 	struct tegra_bpmp *bpmp_dev;
 	struct tegra_bpmp_message msg;

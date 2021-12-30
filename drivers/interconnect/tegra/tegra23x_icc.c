@@ -164,6 +164,7 @@ static long determine_rate(struct mrq_bwmgr_response *br,
 	max_floor_khz = min((long)max_floor_khz, tp->max_rate / HZ_TO_KHZ_MULT);
 	clk_rate = max(clk_rate, (long)max_floor_khz);
 	clk_rate = min(clk_rate, tp->max_rate / HZ_TO_KHZ_MULT);
+	clk_rate = min(clk_rate, tp->cap_rate / HZ_TO_KHZ_MULT);
 	clk_rate *= HZ_TO_KHZ_MULT; /* kHz to Hz*/
 
 	return clk_rate;
@@ -184,11 +185,43 @@ static int tegra23x_icc_set(struct icc_node *src, struct icc_node *dst)
 	struct tegra_icc_node *tn = src->data;
 	uint32_t iso_bw_disp = 0;
 	uint32_t sum_bw = 0;
+	uint32_t cap_req = 0;
+	uint32_t cap_khz = tp->cap_rate / HZ_TO_KHZ_MULT;
 
 	if (!tegra_platform_is_silicon())
 		return 0;
 
 	classify_bw_reqs(provider, &bwmgr_req, &max_floor_kbps, &init_bw_floor);
+
+	/* nvpmodel emc cap request */
+	if (src->id == TEGRA_ICC_NVPMODEL) {
+		if (src->peak_bw) {
+			ret = clk_set_max_rate(tp->dram_clk, UINT_MAX);
+			if (ret) {
+				pr_err("clk_set_max_rate failed %d\n", ret);
+				return ret;
+			}
+
+			cap_req = src->peak_bw;
+			cap_req = emc_bw_to_freq(cap_req);
+			clk_rate = clk_round_rate(tp->dram_clk, cap_req * 1000);
+
+			ret = clk_set_max_rate(tp->dram_clk, clk_rate);
+			if (ret) {
+				pr_err("clk_set_max_rate fail %d\n", ret);
+				return ret;
+			}
+			tp->cap_rate = clk_rate;
+		} else {
+			ret = clk_set_max_rate(tp->dram_clk, UINT_MAX);
+			if (ret) {
+				pr_err("clk_set_max_rate failed %d\n", ret);
+				return ret;
+			}
+			tp->cap_rate = tp->max_rate;
+		}
+		return 0;
+	}
 
 	/* calculate_la MRQ for disp client */
 	if (tn->type == TEGRA_ICC_ISO_DISPLAY) {
@@ -227,6 +260,16 @@ static int tegra23x_icc_set(struct icc_node *src, struct icc_node *dst)
 			pr_err("bwmgr req failed for %d\n", src->id);
 			return -EINVAL;
 		}
+	}
+
+	/* check determined rate is < emc_cap for iso */
+	if ((tn->type != TEGRA_ICC_NISO) &&
+		((bwmgr_resp.bwmgr_rate_resp.iso_rate_min > cap_khz) ||
+		(iso_client_resp.calculate_la_resp.la_rate_floor > cap_khz) ||
+		(iso_client_resp.calculate_la_resp.iso_client_only_rate >
+		cap_khz))) {
+		pr_err("iso req failed due to emc_cap %d\n", cap_khz);
+		return -EINVAL;
 	}
 
 	clk_rate = determine_rate(&bwmgr_resp, &iso_client_resp,
