@@ -193,6 +193,9 @@ nve32_t osi_init_core_ops(struct osi_core_priv_data *const osi_core)
 	l_core->serv.drift = 0;
 	l_core->serv.last_ppb = 0;
 	osi_lock_init(&l_core->serv.m2m_lock);
+#ifdef MACSEC_SUPPORT
+	osi_lock_init(&osi_core->macsec_fpe_lock);
+#endif /* MACSEC_SUPPORT */
 	l_core->hw_init_successful = OSI_DISABLE;
 	l_core->m2m_tsync = OSI_DISABLE;
 	l_core->if_init_done = OSI_ENABLE;

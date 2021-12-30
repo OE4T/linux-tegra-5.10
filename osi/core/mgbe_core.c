@@ -4838,6 +4838,7 @@ static int mgbe_hw_config_fpe(struct osi_core_priv_data *osi_core,
 	unsigned int val = 0U;
 	unsigned int temp = 0U, temp1 = 0U;
 	unsigned int temp_shift = 0U;
+	int ret = 0;
 
 	if ((osi_core->hw_feature != OSI_NULL) &&
 	    (osi_core->hw_feature->fpe_sel == OSI_DISABLE)) {
@@ -4845,6 +4846,17 @@ static int mgbe_hw_config_fpe(struct osi_core_priv_data *osi_core,
 			"FPE not supported in HW\n", 0ULL);
 		return -1;
 	}
+
+#ifdef MACSEC_SUPPORT
+	osi_lock_irq_enabled(&osi_core->macsec_fpe_lock);
+	/* MACSEC and FPE cannot coexist on MGBE refer bug 3484034 */
+	if (osi_core->is_macsec_enabled == OSI_ENABLE) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"FPE and MACSEC cannot co-exist\n", 0ULL);
+		ret = -1;
+		goto exit;
+	}
+#endif /*  MACSEC_SUPPORT */
 
 	osi_core->fpe_ready = OSI_DISABLE;
 
@@ -4862,7 +4874,11 @@ static int mgbe_hw_config_fpe(struct osi_core_priv_data *osi_core,
 		osi_writela(osi_core, val, (nveu8_t *)osi_core->base +
 			    MGBE_MAC_FPE_CTS);
 
-		return 0;
+#ifdef MACSEC_SUPPORT
+		osi_core->is_fpe_enabled = OSI_DISABLE;
+#endif /*  MACSEC_SUPPORT */
+		ret = 0;
+		goto exit;
 	}
 
 	val = osi_readla(osi_core, (nveu8_t *)osi_core->base +
@@ -4891,7 +4907,8 @@ static int mgbe_hw_config_fpe(struct osi_core_priv_data *osi_core,
 	if (fpe->rq == 0x0U || fpe->rq >= OSI_MGBE_MAX_NUM_CHANS) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"FPE init failed due to wrong RQ\n", fpe->rq);
-		return -1;
+		ret = -1;
+		goto exit;
 	}
 
 	val = osi_readla(osi_core, (unsigned char *)
@@ -4928,7 +4945,16 @@ static int mgbe_hw_config_fpe(struct osi_core_priv_data *osi_core,
 	osi_writela(osi_core, val, (unsigned char *)
 		    osi_core->base + MGBE_MTL_FPE_ADV);
 
-	return 0;
+#ifdef MACSEC_SUPPORT
+	osi_core->is_fpe_enabled = OSI_ENABLE;
+#endif /*  MACSEC_SUPPORT */
+
+exit:
+
+#ifdef MACSEC_SUPPORT
+	osi_unlock_irq_enabled(&osi_core->macsec_fpe_lock);
+#endif /*  MACSEC_SUPPORT */
+	return ret;
 }
 
 /**

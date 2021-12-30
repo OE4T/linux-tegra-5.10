@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,6 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#ifdef MACSEC_SUPPORT
 #ifdef MACSEC_KEY_PROGRAM
 #include <linux/crypto.h>
 #endif
@@ -520,6 +521,19 @@ nve32_t macsec_enable(struct osi_core_priv_data *osi_core, nveu32_t enable)
 {
 	nveu32_t val;
 	nveu8_t *base = (nveu8_t *)osi_core->macsec_base;
+	nve32_t ret = 0;
+
+	osi_lock_irq_enabled(&osi_core->macsec_fpe_lock);
+
+	/* MACSEC and FPE cannot coexist on MGBE refer bug 3484034 */
+	if ((osi_core->mac == OSI_MAC_HW_MGBE) &&
+	    ((enable & OSI_MACSEC_TX_EN) || (enable & OSI_MACSEC_RX_EN)) &&
+	    (osi_core->is_fpe_enabled == OSI_ENABLE)) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+			     "MACSE and FPE cannot coexist on MGBE\n", 0ULL);
+		ret = -1;
+		goto exit;
+	}
 
 	val = osi_readla(osi_core, base + MACSEC_CONTROL0);
 	OSI_CORE_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
@@ -545,11 +559,18 @@ nve32_t macsec_enable(struct osi_core_priv_data *osi_core, nveu32_t enable)
 		val &= ~(MACSEC_RX_EN);
 	}
 
+	if ((enable & OSI_MACSEC_TX_EN) || (enable & OSI_MACSEC_RX_EN))
+		osi_core->is_macsec_enabled = OSI_ENABLE;
+	else
+		osi_core->is_macsec_enabled = OSI_DISABLE;
+
 	OSI_CORE_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
 		      "Write MACSEC_CONTROL0:\n", val);
 	osi_writela(osi_core, val, base + MACSEC_CONTROL0);
 
-	return 0;
+exit:
+	osi_unlock_irq_enabled(&osi_core->macsec_fpe_lock);
+	return ret;
 }
 
 #ifdef MACSEC_KEY_PROGRAM
@@ -3280,3 +3301,4 @@ nve32_t osi_macsec_dbg_events_config(
 
 	return -1;
 }
+#endif /* MACSEC_SUPPORT */

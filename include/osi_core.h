@@ -1207,6 +1207,15 @@ struct osi_core_priv_data {
 	struct osi_macsec_lut_status *macsec_lut_status;
 	/** macsec mmc counters */
 	struct osi_macsec_mmc_counters macsec_mmc;
+	/** MACSEC enabled state */
+	nveu32_t is_macsec_enabled;
+	/** macsec_fpe_lock used to exclusively configure either macsec
+	 * or fpe config due to bug 3484034 */
+	nveu32_t macsec_fpe_lock;
+	/** FPE HW configuration initited to enable/disable
+	 * 1- FPE HW configuration initiated to enable
+	 * 0- FPE HW configuration initiated to disable */
+	unsigned int is_fpe_enabled;
 #endif /* MACSEC_SUPPORT */
 	/** Pointer to OSD private data structure */
 	void *osd;
