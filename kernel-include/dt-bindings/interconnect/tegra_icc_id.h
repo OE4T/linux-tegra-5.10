@@ -64,5 +64,6 @@
 #define TEGRA_ICC_VI2				43
 #define TEGRA_ICC_RCE				44
 #define TEGRA_ICC_PVA				45
+#define TEGRA_ICC_NVPMODEL			46
 
 #endif /* _DT_BINDINGS_TEGRA_ICC_ID_H */
