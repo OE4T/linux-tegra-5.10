@@ -42,6 +42,13 @@ ifeq ($(CONFIG_TEGRA_GK20A_NVHOST_HOST1X),y)
 ccflags-y += -I$(srctree.host1x)/include
 endif
 
+# When using the upstream nvmap driver, the Makefile must define the
+# srctree.nvmap path in order to find the necessary header files for
+# the upstream nvmap driver.
+ifeq ($(CONFIG_NVGPU_NVMAP_NEXT),y)
+ccflags-y += -I$(srctree.nvmap)/include
+endif
+
 ifeq ($(CONFIG_NVGPU_DEBUGGER),y)
 ccflags-y += -DCONFIG_NVGPU_DEBUGGER
 ccflags-y += -DCONFIG_NVGPU_ENGINE_RESET
