@@ -921,13 +921,6 @@ void nvmap_add_device_name(char *device_name, u64 dma_mask, u32 heap_type);
 void nvmap_remove_device_name(char *device_name, u32 heap_type);
 #endif /* NVMAP_CONFIG_DEBUG_MAPS */
 
-#ifdef NVMAP_LOADABLE_MODULE
-void *nvmap_dma_alloc_attrs(struct device *dev, size_t size,
-			    dma_addr_t *dma_handle, gfp_t flag,
-			    unsigned long attrs);
-void nvmap_dma_free_attrs(struct device *dev, size_t size, void *cpu_addr,
-			  dma_addr_t dma_handle, unsigned long attrs);
-#endif /* NVMAP_LOADABLE_MODULE */
 bool dmabuf_is_nvmap(struct dma_buf *dmabuf);
 struct nvmap_handle *nvmap_handle_get_from_id(struct nvmap_client *client,
 		int id);

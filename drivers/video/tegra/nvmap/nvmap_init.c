@@ -26,6 +26,7 @@
 
 #if defined(NVMAP_LOADABLE_MODULE)
 #include <linux/nvmap_t19x.h>
+#include "include/linux/nvmap_exports.h"
 #endif
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
@@ -431,6 +432,7 @@ void *nvmap_dma_alloc_attrs(struct device *dev, size_t size,
 	return __nvmap_dma_alloc_from_coherent(dev, mem, size, dma_handle,
 						   attrs, 0);
 }
+EXPORT_SYMBOL(nvmap_dma_alloc_attrs);
 
 void nvmap_dma_free_attrs(struct device *dev, size_t size, void *cpu_addr,
 			  dma_addr_t dma_handle, unsigned long attrs)
@@ -483,7 +485,7 @@ void nvmap_dma_free_attrs(struct device *dev, size_t size, void *cpu_addr,
 		spin_unlock_irqrestore(&mem->spinlock, flags);
 	}
 }
-
+EXPORT_SYMBOL(nvmap_dma_free_attrs);
 #endif /* NVMAP_LOADABLE_MODULE */
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
