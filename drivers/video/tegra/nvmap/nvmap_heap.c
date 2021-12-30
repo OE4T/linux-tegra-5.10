@@ -45,7 +45,9 @@
 
 #include "nvmap_priv.h"
 #include "nvmap_heap.h"
-
+#if defined(NVMAP_LOADABLE_MODULE)
+#include "include/linux/nvmap_exports.h"
+#endif /* NVMAP_LOADABLE_MODULE */
 /*
  * "carveouts" are platform-defined regions of physically contiguous memory
  * which are not managed by the OS. A platform may specify multiple carveouts,
