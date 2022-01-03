@@ -145,6 +145,10 @@ static int tegra_hsp_mb_init(struct device *dev)
 	if (!fsi_hsp_v)
 		return -ENOMEM;
 
+	if (dma_set_mask_and_coherent(dev, DMA_BIT_MASK(32))) {
+		dev_err(dev, "FsiCom: setting DMA MASK failed!\n");
+	}
+
 	fsi_hsp_v->tx.client.dev = dev;
 	fsi_hsp_v->rx.client.dev = dev;
 	fsi_hsp_v->tx.client.tx_block = true;
