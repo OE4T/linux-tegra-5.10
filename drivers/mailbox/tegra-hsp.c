@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/delay.h>
@@ -56,6 +56,8 @@
 #define HSP_DB_BPMP		3
 #define HSP_DB_MAX		7
 
+#define HSP_MBOX_TYPE_MASK	0xff
+
 struct tegra_hsp_channel;
 struct tegra_hsp;
 
@@ -73,10 +75,15 @@ struct tegra_hsp_doorbell {
 	unsigned int index;
 };
 
+struct tegra_hsp_sm_ops {
+	void (*send)(struct tegra_hsp_channel *channel, void *data);
+	void (*receive)(struct tegra_hsp_channel *channel);
+};
+
 struct tegra_hsp_mailbox {
 	struct tegra_hsp_channel channel;
+	const struct tegra_hsp_sm_ops *ops;
 	unsigned int index;
-	unsigned int type;
 	bool producer;
 };
 
@@ -216,8 +223,7 @@ static irqreturn_t tegra_hsp_shared_irq(int irq, void *data)
 {
 	struct tegra_hsp *hsp = data;
 	unsigned long bit, mask;
-	u32 status, value[4];
-	void *msg;
+	u32 status;
 
 	status = tegra_hsp_readl(hsp, HSP_INT_IR) & hsp->mask;
 
@@ -253,53 +259,8 @@ static irqreturn_t tegra_hsp_shared_irq(int irq, void *data)
 	for_each_set_bit(bit, &mask, hsp->num_sm) {
 		struct tegra_hsp_mailbox *mb = &hsp->mailboxes[bit];
 
-		if (!mb->producer) {
-			if (mb->type == TEGRA_HSP_MBOX_TYPE_SM_128BIT) {
-				value[0] = tegra_hsp_channel_readl(&mb->channel,
-						HSP_SHRD_MBOX_TYPE1_DATA0);
-				value[1] = tegra_hsp_channel_readl(&mb->channel,
-						HSP_SHRD_MBOX_TYPE1_DATA1);
-				value[2] = tegra_hsp_channel_readl(&mb->channel,
-						HSP_SHRD_MBOX_TYPE1_DATA2);
-				value[3] = tegra_hsp_channel_readl(&mb->channel,
-						HSP_SHRD_MBOX_TYPE1_DATA3);
-
-				msg = (void *)(unsigned long)value;
-				mbox_chan_received_data(mb->channel.chan, msg);
-
-				/*
-				 * Clear data registers and tag.
-				 */
-				tegra_hsp_channel_writel(&mb->channel, 0x0,
-						HSP_SHRD_MBOX_TYPE1_DATA0);
-				tegra_hsp_channel_writel(&mb->channel, 0x0,
-						HSP_SHRD_MBOX_TYPE1_DATA1);
-				tegra_hsp_channel_writel(&mb->channel, 0x0,
-						HSP_SHRD_MBOX_TYPE1_DATA2);
-				tegra_hsp_channel_writel(&mb->channel, 0x0,
-						HSP_SHRD_MBOX_TYPE1_DATA3);
-				tegra_hsp_channel_writel(&mb->channel, 0x0,
-						HSP_SHRD_MBOX_TYPE1_TAG);
-			} else {
-				value[0] = tegra_hsp_channel_readl(&mb->channel,
-							HSP_SM_SHRD_MBOX);
-				value[0] &= ~HSP_SM_SHRD_MBOX_FULL;
-				msg = (void *)(unsigned long)value[0];
-				mbox_chan_received_data(mb->channel.chan, msg);
-
-				/*
-				 * Need to clear all bits here since some
-				 * producers, such as TCU, depend on fields in
-				 * the register getting cleared by the consumer.
-				 *
-				 * The mailbox API doesn't give the consumers a
-				 * way of doing that explicitly, so we have to
-				 * make sure we cover all possible cases.
-				 */
-				tegra_hsp_channel_writel(&mb->channel, 0x0,
-							 HSP_SM_SHRD_MBOX);
-			}
-		}
+		if (!mb->producer)
+			mb->ops->receive(&mb->channel);
 	}
 
 	return IRQ_HANDLED;
@@ -408,8 +369,8 @@ static const struct mbox_chan_ops tegra_hsp_db_ops = {
 	.shutdown = tegra_hsp_doorbell_shutdown,
 };
 
-static void tegra_hsp_mailbox_send_32bit_data(struct tegra_hsp_mailbox *mb,
-					     struct tegra_hsp *hsp, void *data)
+static void tegra_hsp_mailbox_send_32bit_data(struct tegra_hsp_channel *channel,
+					      void *data)
 {
 	u32 value;
 
@@ -417,30 +378,83 @@ static void tegra_hsp_mailbox_send_32bit_data(struct tegra_hsp_mailbox *mb,
 	value = (u32)(unsigned long)data;
 	value |= HSP_SM_SHRD_MBOX_FULL;
 
-	tegra_hsp_channel_writel(&mb->channel, value, HSP_SM_SHRD_MBOX);
+	tegra_hsp_channel_writel(channel, value, HSP_SM_SHRD_MBOX);
 }
 
-static void tegra_hsp_mailbox_send_128bit_data(struct tegra_hsp_mailbox *mb,
-					      struct tegra_hsp *hsp, void *data)
+static void tegra_hsp_mailbox_receive_32bit_data(
+		struct tegra_hsp_channel *channel)
+{
+	u32 value;
+	void *msg;
+
+	value = tegra_hsp_channel_readl(channel, HSP_SM_SHRD_MBOX);
+	value &= ~HSP_SM_SHRD_MBOX_FULL;
+	msg = (void *)(unsigned long)value;
+	mbox_chan_received_data(channel->chan, msg);
+
+	/*
+	 * Need to clear all bits here since some
+	 * producers, such as TCU, depend on fields in
+	 * the register getting cleared by the consumer.
+	 *
+	 * The mailbox API doesn't give the consumers a
+	 * way of doing that explicitly, so we have to
+	 * make sure we cover all possible cases.
+	 */
+	tegra_hsp_channel_writel(channel, 0x0, HSP_SM_SHRD_MBOX);
+}
+
+static const struct tegra_hsp_sm_ops tegra_hsp_sm_32bit_ops = {
+	.send = tegra_hsp_mailbox_send_32bit_data,
+	.receive = tegra_hsp_mailbox_receive_32bit_data,
+};
+
+static void tegra_hsp_mailbox_send_128bit_data(
+		struct tegra_hsp_channel *channel, void *data)
 {
 	u32 value[4] = { 0 };
 
 	memcpy(value, data, sizeof(value));
 
 	/* Copy data */
-	tegra_hsp_channel_writel(&mb->channel, value[0],
-				 HSP_SHRD_MBOX_TYPE1_DATA0);
-	tegra_hsp_channel_writel(&mb->channel, value[1],
-				 HSP_SHRD_MBOX_TYPE1_DATA1);
-	tegra_hsp_channel_writel(&mb->channel, value[2],
-				 HSP_SHRD_MBOX_TYPE1_DATA2);
-	tegra_hsp_channel_writel(&mb->channel, value[3],
-				 HSP_SHRD_MBOX_TYPE1_DATA3);
+	tegra_hsp_channel_writel(channel, value[0], HSP_SHRD_MBOX_TYPE1_DATA0);
+	tegra_hsp_channel_writel(channel, value[1], HSP_SHRD_MBOX_TYPE1_DATA1);
+	tegra_hsp_channel_writel(channel, value[2], HSP_SHRD_MBOX_TYPE1_DATA2);
+	tegra_hsp_channel_writel(channel, value[3], HSP_SHRD_MBOX_TYPE1_DATA3);
 
 	/* Update tag to mark mailbox full */
-	tegra_hsp_channel_writel(&mb->channel, HSP_SM_SHRD_MBOX_FULL,
+	tegra_hsp_channel_writel(channel, HSP_SM_SHRD_MBOX_FULL,
 				 HSP_SHRD_MBOX_TYPE1_TAG);
 }
+
+static void tegra_hsp_mailbox_receive_128bit_data(
+		struct tegra_hsp_channel *channel)
+{
+	u32 value[4];
+	void *msg;
+
+	value[0] = tegra_hsp_channel_readl(channel, HSP_SHRD_MBOX_TYPE1_DATA0);
+	value[1] = tegra_hsp_channel_readl(channel, HSP_SHRD_MBOX_TYPE1_DATA1);
+	value[2] = tegra_hsp_channel_readl(channel, HSP_SHRD_MBOX_TYPE1_DATA2);
+	value[3] = tegra_hsp_channel_readl(channel, HSP_SHRD_MBOX_TYPE1_DATA3);
+
+	msg = (void *)(unsigned long)value;
+	mbox_chan_received_data(channel->chan, msg);
+
+	/*
+	 * Clear data registers and tag.
+	 */
+	tegra_hsp_channel_writel(channel, 0x0, HSP_SHRD_MBOX_TYPE1_DATA0);
+	tegra_hsp_channel_writel(channel, 0x0, HSP_SHRD_MBOX_TYPE1_DATA1);
+	tegra_hsp_channel_writel(channel, 0x0, HSP_SHRD_MBOX_TYPE1_DATA2);
+	tegra_hsp_channel_writel(channel, 0x0, HSP_SHRD_MBOX_TYPE1_DATA3);
+	tegra_hsp_channel_writel(channel, 0x0, HSP_SHRD_MBOX_TYPE1_TAG);
+}
+
+static const struct tegra_hsp_sm_ops tegra_hsp_sm_128bit_ops = {
+	.send = tegra_hsp_mailbox_send_128bit_data,
+	.receive = tegra_hsp_mailbox_receive_128bit_data,
+};
 
 static int tegra_hsp_mailbox_send_data(struct mbox_chan *chan, void *data)
 {
@@ -451,10 +465,7 @@ static int tegra_hsp_mailbox_send_data(struct mbox_chan *chan, void *data)
 	if (WARN_ON(!mb->producer))
 		return -EPERM;
 
-	if (mb->type == TEGRA_HSP_MBOX_TYPE_SM_128BIT)
-		tegra_hsp_mailbox_send_128bit_data(mb, hsp, data);
-	else
-		tegra_hsp_mailbox_send_32bit_data(mb, hsp, data);
+	mb->ops->send(&mb->channel, data);
 
 	/* enable EMPTY interrupt for the shared mailbox */
 	spin_lock_irqsave(&hsp->lock, flags);
@@ -615,18 +626,20 @@ static struct mbox_chan *tegra_hsp_sm_xlate(struct mbox_controller *mbox,
 
 	index = args->args[1] & TEGRA_HSP_SM_MASK;
 
-	if ((type != TEGRA_HSP_MBOX_TYPE_SM &&
-	     type != TEGRA_HSP_MBOX_TYPE_SM_128BIT) ||
-	    !hsp->shared_irqs ||
-	    index >= hsp->num_sm)
-		return ERR_PTR(-ENODEV);
-
-	if ((type == TEGRA_HSP_MBOX_TYPE_SM_128BIT) &&
-	    !hsp->soc->has_128_bit_mb)
+	if ((type & HSP_MBOX_TYPE_MASK) != TEGRA_HSP_MBOX_TYPE_SM ||
+	    !hsp->shared_irqs || index >= hsp->num_sm)
 		return ERR_PTR(-ENODEV);
 
 	mb = &hsp->mailboxes[index];
-	mb->type = type;
+
+	if (type & TEGRA_HSP_MBOX_TYPE_SM_128BIT) {
+		if (!hsp->soc->has_128_bit_mb)
+			return ERR_PTR(-ENODEV);
+
+		mb->ops = &tegra_hsp_sm_128bit_ops;
+	} else {
+		mb->ops = &tegra_hsp_sm_32bit_ops;
+	}
 
 	if ((args->args[1] & TEGRA_HSP_SM_FLAG_TX) == 0)
 		mb->producer = false;
