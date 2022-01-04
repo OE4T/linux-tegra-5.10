@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -73,6 +73,13 @@
 #include <net/udp.h>
 #endif /* ETHER_NVGRO */
 
+/**
+ * @brief Constant for CBS value calculate
+ */
+#define ETH_1K				1000
+#define MULTIPLIER_32			32
+#define MULTIPLIER_8			8
+#define MULTIPLIER_4			4
 /**
  * @brief Max number of Ethernet IRQs supported in HW
  */
@@ -758,6 +765,24 @@ void ether_set_rx_mode(struct net_device *dev);
  */
 int ether_tc_setup_taprio(struct ether_priv_data *pdata,
 			  struct tc_taprio_qopt_offload *qopt);
+
+/**
+ * @brief Function to configure credit base shapper
+ *
+ * Algorithm: This function is used to handle the hardware CBS
+ * settings.
+ *
+ * @param[in] pdata: Pointer to private data structure.
+ * @param[in] qopt:  Pointer to qdisc taprio offload data.
+ *
+ * @note MAC interface should be up.
+ *
+ * @retval 0 on success
+ * @retval "negative value" on Failure
+ */
+int ether_tc_setup_cbs(struct ether_priv_data *pdata,
+		       struct tc_cbs_qopt_offload *qopt);
+
 #endif
 #ifdef ETHER_NVGRO
 void ether_nvgro_purge_timer(struct timer_list *t);
