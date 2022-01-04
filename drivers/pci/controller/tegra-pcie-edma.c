@@ -2,7 +2,7 @@
 /*
  * PCIe EDMA Library Framework
  *
- * Copyright (C) 2021 NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2021-2022 NVIDIA Corporation. All rights reserved.
  */
 
 #include <linux/delay.h>
@@ -47,7 +47,7 @@ struct edma_chan {
 	bool busy;
 	bool pcs;
 	bool db_pos;
-	/** This filed is updated to abort of de-init to stop further xfer submits */
+	/** This field is updated to abort or de-init to stop further xfer submits */
 	edma_xfer_status_t st;
 };
 
@@ -263,12 +263,13 @@ static inline void process_r_idx(struct edma_chan *ch, edma_xfer_status_t st, u3
 		dma_ll_virt = &db->desc[ch->r_idx % 2];
 		INCR_DESC(ch->r_idx, 1);
 		ch->rcount++;
+		/* clear lie and rie if any set */
+		dma_ll_virt->ctrl_reg.ctrl_e.lie = 0;
+		dma_ll_virt->ctrl_reg.ctrl_e.rie = 0;
 		if (ch->type == EDMA_CHAN_XFER_ASYNC && ring->complete) {
 			ring->complete(ring->priv, st, NULL);
-			/* Clear ring callback and lie,rie */
+			/* Clear ring callback */
 			ring->complete = NULL;
-			dma_ll_virt->ctrl_reg.ctrl_e.lie = 0;
-			dma_ll_virt->ctrl_reg.ctrl_e.rie = 0;
 		}
 	}
 }
@@ -284,7 +285,9 @@ static inline void process_ch_irq(struct edma_prv *prv, u32 chan, struct edma_ch
 		if (ch->busy) {
 			ch->busy = false;
 			wake_up(&ch->wq);
-		}
+		} else
+			dev_info(prv->dev, "SYNC mode with chan %d busy not set r_idx %d->idx %d, w_idx is %d\n",
+				 chan, ch->r_idx, idx, ch->w_idx);
 	}
 
 	if (ch->st == EDMA_XFER_ABORT) {
@@ -585,7 +588,7 @@ edma_xfer_status_t tegra_pcie_edma_submit_xfer(void *cookie,
 
 	avail = (ch->r_idx - ch->w_idx - 1U) & (ch->desc_sz - 1U);
 	if (tx_info->nents > avail) {
-		dev_err(prv->dev, "Descriptors full. w_idx %d. r_idx %d, avail %d, req %d\n",
+		dev_dbg(prv->dev, "Descriptors full. w_idx %d. r_idx %d, avail %d, req %d\n",
 			ch->w_idx, ch->r_idx, avail, tx_info->nents);
 		st = EDMA_XFER_FAIL_NOMEM;
 		goto unlock;
