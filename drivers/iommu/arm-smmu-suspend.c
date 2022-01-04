@@ -69,7 +69,7 @@ struct arm_smmu_context {
 
 static phys_addr_t arm_smmu_alloc_reg_list(void)
 {
-	unsigned int order = arm_smmu_ctx.reg_list_mem_size >> PAGE_SHIFT;
+	unsigned int order = get_order(arm_smmu_ctx.reg_list_mem_size);
 	struct page *pages = alloc_pages(GFP_KERNEL, order);
 
 	if (!pages)
@@ -80,7 +80,7 @@ static phys_addr_t arm_smmu_alloc_reg_list(void)
 
 static void arm_smmu_free_reg_list(void)
 {
-	unsigned int order = arm_smmu_ctx.reg_list_mem_size >> PAGE_SHIFT;
+	unsigned int order = get_order(arm_smmu_ctx.reg_list_mem_size);
 	struct page *pages = phys_to_page(arm_smmu_ctx.reg_list_pa);
 
 	__free_pages(pages, order);
