@@ -4109,6 +4109,8 @@ static int ether_setup_tc(struct net_device *ndev, enum tc_setup_type type,
 	switch (type) {
 	case TC_SETUP_QDISC_TAPRIO:
 		return ether_tc_setup_taprio(pdata, type_data);
+	case TC_SETUP_QDISC_CBS:
+		return ether_tc_setup_cbs(pdata, type_data);
 	default:
 		return -EOPNOTSUPP;
 	}
