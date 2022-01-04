@@ -25,6 +25,8 @@
 #include <nvgpu/lock.h>
 #include <nvgpu/nvgpu_mem.h>
 struct gk20a;
+struct nvgpu_gsp;
+struct nvgpu_runlist;
 
 struct gsp_fw {
 	/* gsp ucode name */
@@ -65,4 +67,5 @@ void nvgpu_gsp_isr(struct gk20a *g);
 void nvgpu_gsp_isr_support(struct gk20a *g, struct nvgpu_gsp *gsp, bool enable);
 int nvgpu_gsp_wait_for_priv_lockdown_release(struct nvgpu_gsp *gsp,
 		signed int timeoutms);
+int nvgpu_gsp_runlist_submit(struct gk20a *g, struct nvgpu_runlist *runlist);
 #endif /* NVGPU_GSP */

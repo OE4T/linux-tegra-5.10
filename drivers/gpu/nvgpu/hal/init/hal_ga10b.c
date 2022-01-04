@@ -1140,6 +1140,7 @@ static const struct gops_runlist ga10b_ops_runlist = {
 	.wait_pending = ga10b_runlist_wait_pending,
 	.write_state = ga10b_runlist_write_state,
 	.get_runlist_id = ga10b_runlist_get_runlist_id,
+	.get_runlist_aperture = ga10b_get_runlist_aperture,
 	.get_engine_id_from_rleng_id = ga10b_runlist_get_engine_id_from_rleng_id,
 	.get_chram_bar0_offset = ga10b_runlist_get_chram_bar0_offset,
 	.get_pbdma_info = ga10b_runlist_get_pbdma_info,

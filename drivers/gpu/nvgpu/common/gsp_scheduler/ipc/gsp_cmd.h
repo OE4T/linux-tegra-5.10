@@ -24,6 +24,7 @@
 #define NVGPU_GSP_CMD_IF_H
 
 #include <nvgpu/types.h>
+#include "../gsp_runlist.h"
 #include "gsp_seq.h"
 
 struct gk20a;
@@ -35,6 +36,8 @@ struct gk20a;
 #define  NV_GSP_UNIT_REWIND		NV_FLCN_UNIT_ID_REWIND
 #define  NV_GSP_UNIT_NULL		0x01U
 #define  NV_GSP_UNIT_INIT		0x02U
+#define  NV_GSP_UNIT_DEVICES_INFO	0x03U
+#define  NV_GSP_UNIT_SUBMIT_RUNLIST	0x04U
 #define  NV_GSP_UNIT_END		0x0AU
 
 #define GSP_MSG_HDR_SIZE	U32(sizeof(struct gsp_hdr))
@@ -49,6 +52,10 @@ struct gsp_hdr {
 
 struct nv_flcn_cmd_gsp {
 	struct gsp_hdr hdr;
+	union {
+		struct nvgpu_gsp_device_info device;
+		struct nvgpu_gsp_runlist_info runlist;
+	} cmd;
 };
 
 u8 gsp_unit_id_is_valid(u8 id);

@@ -31,6 +31,7 @@
 #include "gsp_scheduler.h"
 #include "ipc/gsp_seq.h"
 #include "ipc/gsp_queue.h"
+#include "gsp_runlist.h"
 
 static void gsp_sched_get_file_names(struct gk20a *g, struct gsp_fw *gsp_ucode)
 {
@@ -203,6 +204,11 @@ int nvgpu_gsp_sched_bootstrap_ns(struct gk20a *g)
 	if (status != 0) {
 		nvgpu_err(g, "gsp wait for basic init failed ");
 		goto de_init;
+	}
+
+	status = nvgpu_gsp_send_devices_info(g);
+	if (status != 0) {
+		nvgpu_err(g, "gsp send device info failed");
 	}
 
 	return status;

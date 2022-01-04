@@ -101,6 +101,14 @@ int ga10b_runlist_wait_pending(struct gk20a *g, struct nvgpu_runlist *runlist)
 	return ret;
 }
 
+u32 ga10b_get_runlist_aperture(struct gk20a *g, struct nvgpu_runlist *runlist)
+{
+	return nvgpu_aperture_mask(g, &runlist->domain->mem_hw->mem,
+			runlist_submit_base_lo_target_sys_mem_noncoherent_f(),
+			runlist_submit_base_lo_target_sys_mem_coherent_f(),
+			runlist_submit_base_lo_target_vid_mem_f());
+}
+
 void ga10b_runlist_write_state(struct gk20a *g, u32 runlists_mask,
 						u32 runlist_state)
 {
