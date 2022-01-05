@@ -12,12 +12,6 @@
 #include <linux/dma-direct.h>
 #include <linux/dma-map-ops.h>
 
-#ifdef CONFIG_ARM_DMA_IOMMU_ALIGNMENT
-#define DMA_BUF_ALIGNMENT CONFIG_ARM_DMA_IOMMU_ALIGNMENT
-#else
-#define DMA_BUF_ALIGNMENT 8
-#endif
-
 struct dma_coherent_mem {
 	void		*virt_base;
 	dma_addr_t	device_base;
