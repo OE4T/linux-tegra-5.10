@@ -1970,7 +1970,6 @@ static int mttcan_resume(struct platform_device *pdev)
 	if (ndev->flags & IFF_UP)
 		mttcan_start(ndev);
 
-	priv->can.state = CAN_STATE_ERROR_ACTIVE;
 	if (netif_running(ndev)) {
 		netif_device_attach(ndev);
 		netif_start_queue(ndev);
