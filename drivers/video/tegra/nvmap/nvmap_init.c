@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2014-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -26,7 +26,6 @@
 
 #if defined(NVMAP_LOADABLE_MODULE)
 #include <linux/nvmap_t19x.h>
-#include "include/linux/nvmap_exports.h"
 #endif
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
@@ -41,6 +40,10 @@
 #include <asm/dma-contiguous.h>
 #endif
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+#include "include/linux/nvmap_exports.h"
+#endif
+
 #include "nvmap_priv.h"
 
 #ifdef CONFIG_TEGRA_VIRTUALIZATION
@@ -48,13 +51,13 @@
 #include <soc/tegra/virt/syscalls.h>
 #endif
 
-#ifdef NVMAP_LOADABLE_MODULE
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
 #ifdef CONFIG_ARM_DMA_IOMMU_ALIGNMENT
 #define DMA_BUF_ALIGNMENT CONFIG_ARM_DMA_IOMMU_ALIGNMENT
 #else
 #define DMA_BUF_ALIGNMENT 8
 #endif
-#endif /* NVMAP_LOADABLE_MODULE */
+#endif /* LINUX_VERSION_CODE */
 
 phys_addr_t __weak tegra_carveout_start;
 phys_addr_t __weak tegra_carveout_size;
@@ -313,7 +316,7 @@ static int __nvmap_init_dt(struct platform_device *pdev)
 	return 0;
 }
 
-#ifdef NVMAP_LOADABLE_MODULE
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
 static inline struct page **nvmap_kvzalloc_pages(u32 count)
 {
 	if (count * sizeof(struct page *) <= PAGE_SIZE)
@@ -486,9 +489,10 @@ void nvmap_dma_free_attrs(struct device *dev, size_t size, void *cpu_addr,
 	}
 }
 EXPORT_SYMBOL(nvmap_dma_free_attrs);
-#endif /* NVMAP_LOADABLE_MODULE */
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+#endif /* LINUX_VERSION_CODE */
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
 static void nvmap_dma_release_coherent_memory(struct dma_coherent_mem_replica *mem)
 {
 	if (!mem)

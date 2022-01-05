@@ -3,7 +3,7 @@
  *
  * GPU heap allocator.
  *
- * Copyright (c) 2011-2021, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2011-2022, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -45,9 +45,11 @@
 
 #include "nvmap_priv.h"
 #include "nvmap_heap.h"
-#if defined(NVMAP_LOADABLE_MODULE)
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
 #include "include/linux/nvmap_exports.h"
-#endif /* NVMAP_LOADABLE_MODULE */
+#endif
+
 /*
  * "carveouts" are platform-defined regions of physically contiguous memory
  * which are not managed by the OS. A platform may specify multiple carveouts,
@@ -159,18 +161,13 @@ static phys_addr_t nvmap_alloc_mem(struct nvmap_heap *h, size_t len,
 	} else
 #endif
 	{
-#ifdef NVMAP_LOADABLE_MODULE
-		(void)nvmap_dma_alloc_attrs(dev, len, &pa,
-				GFP_KERNEL, DMA_ATTR_ALLOC_EXACT_SIZE);
-#else
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
 		(void)dma_alloc_attrs(dev, len, &pa,
 				GFP_KERNEL, DMA_ATTR_ALLOC_EXACT_SIZE);
 #else
-		(void)dma_alloc_attrs(dev, len, &pa,
-				GFP_KERNEL, 0);
+		(void)nvmap_dma_alloc_attrs(dev, len, &pa,
+				GFP_KERNEL, DMA_ATTR_ALLOC_EXACT_SIZE);
 #endif
-#endif /* !NVMAP_LOADABLE_MODULE */
 		if (!dma_mapping_error(dev, pa)) {
 #ifdef NVMAP_CONFIG_VPR_RESIZE
 			int ret;
@@ -213,21 +210,15 @@ static void nvmap_free_mem(struct nvmap_heap *h, phys_addr_t base,
 	} else
 #endif
 	{
-#ifdef NVMAP_LOADABLE_MODULE
-		nvmap_dma_free_attrs(dev, len,
-				     (void *)(uintptr_t)base,
-				     (dma_addr_t)base,
-				     DMA_ATTR_ALLOC_EXACT_SIZE);
-#else
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
 		dma_free_attrs(dev, len,
 			        (void *)(uintptr_t)base,
 			        (dma_addr_t)base, DMA_ATTR_ALLOC_EXACT_SIZE);
 #else
-		dma_free_attrs(dev, len,
-			        (void *)(uintptr_t)base,
-			        (dma_addr_t)base, 0);
-#endif
+		nvmap_dma_free_attrs(dev, len,
+				     (void *)(uintptr_t)base,
+				     (dma_addr_t)base,
+				     DMA_ATTR_ALLOC_EXACT_SIZE);
 #endif
 	}
 }

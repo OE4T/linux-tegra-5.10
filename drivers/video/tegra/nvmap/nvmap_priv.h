@@ -3,7 +3,7 @@
  *
  * GPU memory management driver for Tegra
  *
- * Copyright (c) 2009-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2009-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -99,13 +99,19 @@ do {                                                    \
 
 #define GFP_NVMAP       (GFP_KERNEL | __GFP_HIGHMEM | __GFP_NOWARN)
 
-#ifdef NVMAP_LOADABLE_MODULE
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
 
 /*
  * DMA_ATTR_ALLOC_EXACT_SIZE: This tells the DMA-mapping
  * subsystem to allocate the exact number of pages
  */
 #define DMA_ATTR_ALLOC_EXACT_SIZE	(DMA_ATTR_PRIVILEGED << 2)
+
+#define DMA_MEMORY_NOMAP		0x02
+
+#endif /* LINUX_VERSION_CODE */
+
+#ifdef NVMAP_LOADABLE_MODULE
 
 /*
  * DMA_ATTR_READ_ONLY: for DMA memory allocations, attempt to map
@@ -120,7 +126,6 @@ do {                                                    \
  */
 #define DMA_ATTR_WRITE_ONLY	(DMA_ATTR_PRIVILEGED << 13)
 
-#define DMA_MEMORY_NOMAP		0x02
 #endif /* NVMAP_LOADABLE_MODULE */
 
 #define DMA_ALLOC_FREE_ATTR	DMA_ATTR_ALLOC_SINGLE_PAGES
