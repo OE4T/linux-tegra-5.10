@@ -63,4 +63,6 @@ int nvgpu_gsp_wait_for_mailbox_update(struct nvgpu_gsp *gsp,
 int nvgpu_gsp_bootstrap_ns(struct gk20a *g, struct nvgpu_gsp *gsp);
 void nvgpu_gsp_isr(struct gk20a *g);
 void nvgpu_gsp_isr_support(struct gk20a *g, struct nvgpu_gsp *gsp, bool enable);
+int nvgpu_gsp_wait_for_priv_lockdown_release(struct nvgpu_gsp *gsp,
+		signed int timeoutms);
 #endif /* NVGPU_GSP */

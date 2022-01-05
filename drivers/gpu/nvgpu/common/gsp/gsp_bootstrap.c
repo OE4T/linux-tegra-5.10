@@ -214,6 +214,30 @@ int nvgpu_gsp_wait_for_mailbox_update(struct nvgpu_gsp *gsp,
 	return 0;
 }
 
+int nvgpu_gsp_wait_for_priv_lockdown_release(struct nvgpu_gsp *gsp,
+		signed int timeoutms)
+{
+	struct nvgpu_falcon *flcn = gsp->gsp_flcn;
+
+	nvgpu_log_fn(gsp->g, " ");
+
+	do {
+		if (!gsp->g->ops.falcon.is_priv_lockdown(flcn)) {
+			break;
+		}
+
+		if (timeoutms <= 0) {
+			nvgpu_err(gsp->g, "gsp priv lockdown release timedout");
+			return -1;
+		}
+
+		nvgpu_msleep(10);
+		timeoutms -= 10;
+	} while (true);
+
+	return 0;
+}
+
 int nvgpu_gsp_bootstrap_ns(struct gk20a *g, struct nvgpu_gsp *gsp)
 {
 	int err = 0;

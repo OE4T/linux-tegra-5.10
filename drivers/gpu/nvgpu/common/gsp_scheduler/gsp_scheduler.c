@@ -170,6 +170,13 @@ int nvgpu_gsp_sched_bootstrap_ns(struct gk20a *g)
 		goto de_init;
 	}
 
+	status = nvgpu_gsp_wait_for_priv_lockdown_release(gsp_sched->gsp,
+				GSP_WAIT_TIME_MS);
+	if (status != 0) {
+		nvgpu_err(g, "gsp PRIV lockdown release wait failed ");
+		goto de_init;
+	}
+
 	return status;
 de_init:
 	nvgpu_gsp_sched_sw_deinit(g);
