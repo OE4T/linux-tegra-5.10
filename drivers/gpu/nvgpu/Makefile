@@ -46,6 +46,9 @@ endif
 # srctree.nvmap path in order to find the necessary header files for
 # the upstream nvmap driver.
 ifeq ($(CONFIG_NVGPU_NVMAP_NEXT),y)
+ifeq ($(origin srctree.nvmap), undefined)
+srctree.nvmap := $(abspath $(shell dirname $(lastword $(MAKEFILE_LIST)))/../../../../nvidia/drivers/video/tegra/nvmap)
+endif
 ccflags-y += -I$(srctree.nvmap)/include
 endif
 
