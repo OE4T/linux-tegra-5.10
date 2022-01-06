@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -734,14 +734,23 @@ static int nvgpu_prof_ioctl_pma_stream_update_get_put(struct nvgpu_profiler_obje
 		return -EINVAL;
 	}
 
+	err = gk20a_busy(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to poweron");
+		return -EINVAL;
+	}
+
 	err = nvgpu_perfbuf_update_get_put(prof->g, args->bytes_consumed,
 			update_bytes_available ? &args->bytes_available : NULL,
 			prof->pma_bytes_available_buffer_cpuva, wait,
 			update_put_ptr ? &args->put_ptr : NULL,
 			&overflowed);
 	if (err != 0) {
+		gk20a_idle(g);
 		return err;
 	}
+
+	gk20a_idle(g);
 
 	if (overflowed) {
 		args->flags |=
