@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -359,10 +359,13 @@ static inline uint64_t pva_fifo_submit_batch(const uint8_t queue_id,
 					     const uint8_t batch_size,
 					     const uint64_t flags)
 {
+	/*For future use*/
+	(void) (flags);
+
 	return PVA_INSERT64_RANGE(CMD_SUBMIT, PVA_CCQ_CMD) |
 	       PVA_INSERT64_RANGE(addr, PVA_CCQ_ADDR) |
 	       PVA_INSERT64_RANGE(queue_id, PVA_CCQ_QUEUE_ID) |
-	       PVA_INSERT64_RANGE(batch_size, PVA_CCQ_BATCH_SIZE) | flags;
+	       PVA_INSERT64_RANGE(batch_size, PVA_CCQ_BATCH_SIZE);
 }
 
 /*
