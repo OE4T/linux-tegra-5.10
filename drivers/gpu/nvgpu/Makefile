@@ -474,6 +474,8 @@ nvgpu-y += \
 	os/linux/dmabuf_priv.o \
 	os/linux/power_ops.o
 
+nvgpu-$(CONFIG_NVGPU_IVM_BUILD) += os/linux/nvgpu_ivm.o
+
 nvgpu-$(CONFIG_NVGPU_VPR) += os/linux/vpr.o
 
 nvgpu-$(CONFIG_DEBUG_FS) += \
@@ -560,7 +562,6 @@ nvgpu-$(CONFIG_NVGPU_GR_VIRTUALIZATION) += \
 	os/linux/vgpu/platform_vgpu_tegra.o \
 	os/linux/vgpu/sysfs_vgpu.o \
 	os/linux/vgpu/vgpu_ivc.o \
-	os/linux/vgpu/vgpu_ivm.o \
 	os/linux/vgpu/vgpu_linux.o \
 	os/linux/vgpu/gv11b/platform_gv11b_vgpu_tegra.o
 

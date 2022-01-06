@@ -24,7 +24,7 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/vgpu/vgpu.h>
 #include <nvgpu/vgpu/vgpu_ivc.h>
-#include <nvgpu/vgpu/vgpu_ivm.h>
+#include <nvgpu/nvgpu_ivm.h>
 #include <nvgpu/vgpu/os_init_hal_vgpu.h>
 
 struct vgpu_priv_data *vgpu_get_priv_data(struct gk20a *g)
@@ -123,42 +123,42 @@ void vgpu_ivc_oob_put_ptr(void *handle)
 }
 
 
-struct tegra_hv_ivm_cookie *vgpu_ivm_mempool_reserve(unsigned int id)
+struct tegra_hv_ivm_cookie *nvgpu_ivm_mempool_reserve(unsigned int id)
 {
 	(void)id;
 	BUG();
 	return NULL;
 }
 
-int vgpu_ivm_mempool_unreserve(struct tegra_hv_ivm_cookie *cookie)
+int nvgpu_ivm_mempool_unreserve(struct tegra_hv_ivm_cookie *cookie)
 {
 	(void)cookie;
 	BUG();
 	return 0;
 }
 
-u64 vgpu_ivm_get_ipa(struct tegra_hv_ivm_cookie *cookie)
+u64 nvgpu_ivm_get_ipa(struct tegra_hv_ivm_cookie *cookie)
 {
 	(void)cookie;
 	BUG();
 	return 0ULL;
 }
 
-u64 vgpu_ivm_get_size(struct tegra_hv_ivm_cookie *cookie)
+u64 nvgpu_ivm_get_size(struct tegra_hv_ivm_cookie *cookie)
 {
 	(void)cookie;
 	BUG();
 	return 0ULL;
 }
 
-void *vgpu_ivm_mempool_map(struct tegra_hv_ivm_cookie *cookie)
+void *nvgpu_ivm_mempool_map(struct tegra_hv_ivm_cookie *cookie)
 {
 	(void)cookie;
 	BUG();
 	return NULL;
 }
 
-void vgpu_ivm_mempool_unmap(struct tegra_hv_ivm_cookie *cookie,
+void nvgpu_ivm_mempool_unmap(struct tegra_hv_ivm_cookie *cookie,
 		void *addr)
 {
 	(void)cookie;

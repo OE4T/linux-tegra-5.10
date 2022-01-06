@@ -102,6 +102,10 @@ ifneq ($(findstring 5.10,$(NV_BUILD_KERNEL_OPTIONS)),)
 CONFIG_NVGPU_NVMAP_NEXT := y
 endif
 
+ifeq ($(findstring stable,$(NV_BUILD_KERNEL_OPTIONS)),)
+CONFIG_NVGPU_IVM_BUILD := y
+endif
+
 # Enable support for GPUs on PCIe bus.
 ifeq ($(CONFIG_PCI),y)
 # Support for NVGPU DGPU

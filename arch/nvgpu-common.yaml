@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2021, NVIDIA CORPORATION.  All Rights Reserved.
+# Copyright (c) 2019-2022, NVIDIA CORPORATION.  All Rights Reserved.
 #
 # Common elements and units in nvgpu.
 #
@@ -126,7 +126,8 @@ cbc:
   owner: Seshendra G
   sources: [ common/cbc/cbc.c,
              include/nvgpu/cbc.h,
-             include/nvgpu/gops/cbc.h ]
+             include/nvgpu/gops/cbc.h,
+             include/nvgpu/nvgpu_ivm.h ]
 
 regops:
   safe: no
