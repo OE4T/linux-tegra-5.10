@@ -3,7 +3,7 @@
  *
  * A device driver for ADSP and APE
  *
- * Copyright (C) 2014-2021, NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2014-2022, NVIDIA Corporation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -293,11 +293,13 @@ static int __init nvadsp_parse_dt(struct platform_device *pdev)
 	drv_data->adsp_os_secload = of_property_read_bool(dev->of_node,
 				"nvidia,adsp_os_secload");
 
-	of_property_read_u32(dev->of_node, "nvidia,tegra_platform",
-				&drv_data->tegra_platform);
+	if (of_property_read_u32(dev->of_node, "nvidia,tegra_platform",
+				&drv_data->tegra_platform))
+		dev_dbg(dev, "tegra_platform dt not found\n");
 
-	of_property_read_u32(dev->of_node, "nvidia,adsp_load_timeout",
-				&drv_data->adsp_load_timeout);
+	if (of_property_read_u32(dev->of_node, "nvidia,adsp_load_timeout",
+				&drv_data->adsp_load_timeout))
+		dev_dbg(dev, "adsp_load_timeout dt not found\n");
 
 	if (drv_data->adsp_unit_fpga) {
 		for (iter = 0; iter < ADSP_UNIT_FPGA_RESET_END; iter++) {
