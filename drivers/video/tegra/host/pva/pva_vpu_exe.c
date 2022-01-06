@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -524,6 +524,12 @@ populate_symtab(void *elf, struct nvpva_elf_context *d,
 		symID->size = sym->size;
 		symID->addr = sym->value;
 		sym_scn = elf_section_header(elf, sym->shndx);
+		if (sym_scn == NULL) {
+			ret = -EINVAL;
+			kfree(symID->symbol_name);
+			goto fail;
+		}
+
 		ret = update_exports_symbol(elf, sym_scn, symID);
 		if (ret != 0) {
 			kfree(symID->symbol_name);

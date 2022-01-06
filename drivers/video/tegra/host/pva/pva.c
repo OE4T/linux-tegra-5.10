@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2021, NVIDIA CORPORATION & AFFILIATES.
+ * Copyright (c) 2016-2022, NVIDIA CORPORATION & AFFILIATES.
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -310,8 +310,11 @@ static int pva_init_fw(struct platform_device *pdev)
 	nvhost_dbg_fn("PVA boot returned: %d", err);
 
 	/* Check the ucode is with testmode enabled */
-	if ((host1x_readl(pdev, hsp_ss0_state_r()) & PVA_TEST_MODE))
+	if ((host1x_readl(pdev, hsp_ss0_state_r()) & PVA_TEST_MODE)) {
 		err = pva_run_ucode_selftest(pdev);
+		if (err)
+			nvhost_dbg_info("uCode SELFTEST Failed");
+	}
 
 	pva_reset_task_status_buffer(pva);
 	err = nvpva_set_task_status_buffer(pva);
@@ -494,13 +497,11 @@ static int pva_read_ucode(struct platform_device *pdev, const char *fw_name,
 
 	/* set the crashdump offsets and addresses */
 	for (w = 0; w < fw_info->hdr->nsegments; w++) {
-		struct pva_seg_info *seg_info = NULL;
 		struct pva_ucode_seg_s *useg =
 			(struct pva_ucode_seg_s *)((void *)ucode_ptr +
 						   PVA_UCODE_SEG_HDR_LENGTH +
 						   (PVA_UCODE_SEG_HDR_LENGTH *
 						    w));
-		int offset = useg->addr - fw_info->priv2_reg_offset;
 
 		switch (useg->type) {
 		case PVA_UCODE_SEG_R5_OVERLAY:
@@ -510,14 +511,6 @@ static int pva_read_ucode(struct platform_device *pdev, const char *fw_name,
 			break;
 		default:
 			break;
-		}
-
-		if (seg_info) {
-			seg_info->offset = offset;
-			seg_info->size = useg->size;
-			seg_info->addr =
-				(void *)((u8 *)fw_info->priv2_buffer.va +
-					 offset);
 		}
 	}
 clean_up:

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2021, NVIDIA CORPORATION & AFFILIATES.
+ * Copyright (c) 2016-2022, NVIDIA CORPORATION & AFFILIATES.
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -343,7 +343,10 @@ static int pva_submit(struct pva_private *priv, void *arg)
 		task->client = priv->client;
 
 		/* setup ownership */
-		nvhost_module_busy(task->pva->pdev);
+		err = nvhost_module_busy(task->pva->pdev);
+		if (err)
+			goto free_tasks;
+
 		nvpva_client_context_get(task->client);
 
 		err = pva_copy_task(ioctl_tasks + i, task);
@@ -703,7 +706,13 @@ static void pva_queue_flush(struct pva *pva, struct nvpva_queue *queue)
 	u32 nregs;
 
 	nregs = pva_cmd_abort_task(&cmd, queue->id, flags);
-	nvhost_module_busy(pva->pdev);
+	err = nvhost_module_busy(pva->pdev);
+	if (err < 0) {
+		dev_err(&pva->pdev->dev, "error in powering up pva %d",
+			err);
+		goto err_out;
+	}
+
 	err = pva->version_config->submit_cmd_sync(pva, &cmd, nregs, queue->id,
 						   &status);
 	nvhost_module_idle(pva->pdev);
