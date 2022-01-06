@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -115,14 +115,16 @@ struct nvgpu_gpu_instance {
 	/**
 	 * Mask of FBPs. A set bit indicates FBP is available, otherwise
 	 * it is not available.
-	 * For Legacy, it is represent physical FBP mask.
-	 * For MIG, it is represent logical FBP mask.
+	 * For Legacy and MIG, it currently represents physical FBP mask.
+	 * [TODO]: When SMC memory partition will be enabled, a mapping should
+	 * be created for local to {logical, physical}.
 	 */
 	u32 fbp_en_mask;
 	/**
 	 * Array to hold physical masks of LTCs per FBP.
-	 * For Legacy, array is indexed by FBP physical index.
-	 * For MIG, array is indexed by FBP logical index.
+	 * For Legacy and MIG, array is currently indexed by FBP physical index.
+	 * [TODO]: When SMC memory partition will be enabled, a mapping should
+	 * be created for local to {logical, physical}.
 	 */
 	u32 *fbp_l2_en_mask;
 	/** Memory area to store h/w CE engine ids. */

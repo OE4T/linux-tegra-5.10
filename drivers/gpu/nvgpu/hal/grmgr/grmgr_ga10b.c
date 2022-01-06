@@ -295,8 +295,6 @@ static int ga10b_grmgr_get_gpu_instance(struct gk20a *g,
 	u32 allowed_swizzid_size = g->ops.grmgr.get_allowed_swizzid_size(g);
 	u32 max_subctx_count = g->ops.gr.init.get_max_subctx_count();
 	u32 max_fbps_count = g->mig.max_fbps_count;
-	u32 physical_fbp_en_mask = g->mig.gpu_instance[0].fbp_en_mask;
-	u32 *physical_fbp_l2_en_mask = g->mig.gpu_instance[0].fbp_l2_en_mask;
 
 	if ((mig_gpu_instance_config == NULL) || (num_gpc > NVGPU_MIG_MAX_GPCS)) {
 		nvgpu_err(g,"mig_gpu_instance_config NULL "
@@ -576,28 +574,11 @@ static int ga10b_grmgr_get_gpu_instance(struct gk20a *g,
 		}
 
 		if (gpu_instance[index].is_memory_partition_supported == false) {
-			u32 physical_fb_id, logical_fb_id;
-			u32 *logical_fbp_l2_en_mask =
-				gpu_instance[index].fbp_l2_en_mask;
-
 			gpu_instance[index].num_fbp = g->mig.gpu_instance[0].num_fbp;
-			gpu_instance[index].fbp_en_mask =
-				nvgpu_safe_sub_u32(BIT32(gpu_instance[index].num_fbp), 1U);
-
-			/* Convert physical to logical FBP mask order */
-			for (logical_fb_id = 0U, physical_fb_id = 0U;
-					((logical_fb_id < gpu_instance[index].num_fbp) &&
-						(physical_fb_id < max_fbps_count));
-					++physical_fb_id) {
-				if (physical_fbp_en_mask & BIT32(physical_fb_id)) {
-					logical_fbp_l2_en_mask[logical_fb_id] =
-						physical_fbp_l2_en_mask[physical_fb_id];
-					++logical_fb_id;
-				}
-			}
-
-			nvgpu_assert(logical_fb_id == gpu_instance[index].num_fbp);
-
+			gpu_instance[index].fbp_en_mask = g->mig.gpu_instance[0].fbp_en_mask;
+			nvgpu_memcpy((u8 *)gpu_instance[index].fbp_l2_en_mask,
+				(u8 *)g->mig.gpu_instance[0].fbp_l2_en_mask,
+					nvgpu_safe_mult_u64(max_fbps_count, sizeof(u32)));
 		} else {
 			/* SMC Memory partition is not yet supported */
 			nvgpu_assert(

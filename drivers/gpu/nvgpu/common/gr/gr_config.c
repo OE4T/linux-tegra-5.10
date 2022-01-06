@@ -331,7 +331,6 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 	u32 cur_gr_instance = nvgpu_gr_get_cur_instance_id(g);
 	u32 gpc_index;
 	u32 gpc_phys_id;
-	u32 gpc_id;
 	int err;
 
 	config = nvgpu_kzalloc(g, sizeof(*config));
@@ -391,19 +390,9 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 		gpc_phys_id = nvgpu_grmgr_get_gr_gpc_phys_id(g,
 				cur_gr_instance, gpc_index);
 
-		/*
-		 * The gpc_tpc_mask_physical masks are ordered by gpc_id.
-		 * Where gpc_id = gpc_logical_id when MIG=true, else
-		 *                gpc_physical_id.
-		 */
-		gpc_id = gpc_phys_id;
-		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
-			gpc_id = nvgpu_grmgr_get_gr_gpc_logical_id(g,
-					cur_gr_instance, gpc_index);
-		}
 		config->gpc_tpc_mask[gpc_index] =
 		     g->ops.gr.config.get_gpc_tpc_mask(g, config, gpc_phys_id);
-		config->gpc_tpc_mask_physical[gpc_id] =
+		config->gpc_tpc_mask_physical[gpc_phys_id] =
 		     g->ops.gr.config.get_gpc_tpc_mask(g, config, gpc_phys_id);
 	}
 

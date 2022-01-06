@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2021, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2011-2022, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -364,6 +364,8 @@ static long gk20a_ctrl_ioctl_gpu_characteristics(
 	long err = 0;
 	struct nvgpu_gpu_instance *gpu_instance;
 
+	u32 gr_instance_id = nvgpu_grmgr_get_gr_instance_id(g, gpu_instance_id);
+
 	if (gk20a_busy(g)) {
 		nvgpu_err(g, "failed to power on gpu");
 		return -EINVAL;
@@ -377,7 +379,13 @@ static long gk20a_ctrl_ioctl_gpu_characteristics(
 
 	gpu.num_gpc = nvgpu_gr_config_get_gpc_count(gr_config);
 	gpu.max_gpc_count = nvgpu_gr_config_get_max_gpc_count(gr_config);
-	gpu.gpc_mask = nvgpu_gr_config_get_gpc_mask(gr_config);
+	/* Convert logical to physical masks */
+	gpu.gpc_mask = nvgpu_grmgr_get_gr_physical_gpc_mask(g, gr_instance_id);
+
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,
+		"GR Instance ID = %u, physical gpc_mask = 0x%08X, logical gpc_mask = 0x%08X",
+		gr_instance_id, gpu.gpc_mask, nvgpu_grmgr_get_gr_logical_gpc_mask(g,
+			gr_instance_id));
 
 	gpu.num_tpc_per_gpc = nvgpu_gr_config_get_max_tpc_per_gpc_count(gr_config);
 
