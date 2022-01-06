@@ -2018,6 +2018,89 @@ static DEVICE_ATTR(macsec_irq_stats, (S_IRUGO | S_IWUSR),
 #endif /* MACSEC_SUPPORT */
 
 /**
+ * @brief Shows the current driver setting for PHY iface mode
+ *
+ * Algorithm: Display the current PHY iface mode setting.
+ *
+ * @param[in] dev: Device data.
+ * @param[in] attr: Device attribute
+ * @param[in] buf: Buffer to store the current PHY iface mode
+ *
+ * @note MAC and PHY need to be initialized.
+ */
+static ssize_t ether_phy_iface_mode_show(struct device *dev,
+					 struct device_attribute *attr,
+					 char *buf)
+{
+	struct net_device *ndev = (struct net_device *)dev_get_drvdata(dev);
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+
+	switch (osi_core->phy_iface_mode) {
+	case OSI_XFI_MODE_10G:
+		return scnprintf(buf, PAGE_SIZE, "XFI-10G\n");
+	case OSI_XFI_MODE_5G:
+		return scnprintf(buf, PAGE_SIZE, "XFI-5G\n");
+	case OSI_USXGMII_MODE_10G:
+		return scnprintf(buf, PAGE_SIZE, "USX-10G\n");
+	case OSI_USXGMII_MODE_5G:
+		return scnprintf(buf, PAGE_SIZE, "USX-5G\n");
+	default:
+		return scnprintf(buf, PAGE_SIZE, "XFI-10G\n");
+	}
+}
+
+/**
+ * @brief Set the user setting of PHY iface mode.
+ *
+ * Algorithm: This is used to set the user mode settings of PHY iface mode
+ * @param[in] dev: Device data.
+ * @param[in] attr: Device attribute
+ * @param[in] buf: Buffer which contains the user settings of PHY iface mode
+ * @param[in] size: size of buffer
+ *
+ * @note MAC and PHY need to be initialized.
+ *
+ * @return size of buffer.
+ */
+static ssize_t ether_phy_iface_mode_store(struct device *dev,
+					  struct device_attribute *attr,
+					  const char *buf, size_t size)
+{
+	struct net_device *ndev = (struct net_device *)dev_get_drvdata(dev);
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+
+	if (netif_running(ndev)) {
+		dev_err(pdata->dev, "Not Allowed. Ether interface is up\n");
+		return size;
+	}
+
+	if (strncmp(buf, "XFI-10G", 7) == 0U) {
+		osi_core->phy_iface_mode = OSI_XFI_MODE_10G;
+	} else if (strncmp(buf, "XFI-5G", 6) == 0U) {
+		osi_core->phy_iface_mode = OSI_XFI_MODE_5G;
+	} else if (strncmp(buf, "USX-10G", 7) == 0U) {
+		osi_core->phy_iface_mode = OSI_USXGMII_MODE_10G;
+	} else if (strncmp(buf, "USX-5G", 6) == 0U) {
+		osi_core->phy_iface_mode = OSI_USXGMII_MODE_5G;
+	} else {
+		dev_err(pdata->dev,
+			"Invalid value passed. Valid values are XFI-10G/XFI-5G/USX-10G/USX-5G\n");
+	}
+
+	return size;
+}
+
+/**
+ * @brief Sysfs attribute for PHY iface Mode
+ *
+ */
+static DEVICE_ATTR(phy_iface_mode, (S_IRUGO | S_IWUSR),
+		   ether_phy_iface_mode_show,
+		   ether_phy_iface_mode_store);
+
+/**
  * @brief Shows the current driver setting for UPHY GBE mocd
  *
  * Algorithm: Display the current PTP mode setting.
@@ -2489,6 +2572,7 @@ static struct attribute *ether_sysfs_attrs[] = {
 	&dev_attr_macsec_dbg_events.attr,
 #endif /* MACSEC_SUPPORT */
 	&dev_attr_uphy_gbe_mode.attr,
+	&dev_attr_phy_iface_mode.attr,
 #ifdef ETHER_NVGRO
 	&dev_attr_nvgro_pkt_age_msec.attr,
 	&dev_attr_nvgro_timer_interval.attr,
