@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -85,12 +85,18 @@ struct gops_perf {
 	bool (*get_membuf_overflow_status)(struct gk20a *g);
 	u32 (*get_pmmsys_per_chiplet_offset)(void);
 	u32 (*get_pmmgpc_per_chiplet_offset)(void);
+	u32 (*get_pmmgpcrouter_per_chiplet_offset)(void);
+	u32 (*get_pmmfbprouter_per_chiplet_offset)(void);
 	u32 (*get_pmmfbp_per_chiplet_offset)(void);
 	int (*update_get_put)(struct gk20a *g, u64 bytes_consumed,
 		bool update_available_bytes, u64 *put_ptr, bool *overflowed);
 	const u32 *(*get_hwpm_sys_perfmon_regs)(u32 *count);
 	const u32 *(*get_hwpm_fbp_perfmon_regs)(u32 *count);
 	const u32 *(*get_hwpm_gpc_perfmon_regs)(u32 *count);
+	u32 (*get_hwpm_fbp_perfmon_regs_base)(struct gk20a *g);
+	u32 (*get_hwpm_gpc_perfmon_regs_base)(struct gk20a *g);
+	u32 (*get_hwpm_fbprouter_perfmon_regs_base)(struct gk20a *g);
+	u32 (*get_hwpm_gpcrouter_perfmon_regs_base)(struct gk20a *g);
 	void (*init_hwpm_pmm_register)(struct gk20a *g);
 	void (*get_num_hwpm_perfmon)(struct gk20a *g, u32 *num_sys_perfmon,
 				     u32 *num_fbp_perfmon,

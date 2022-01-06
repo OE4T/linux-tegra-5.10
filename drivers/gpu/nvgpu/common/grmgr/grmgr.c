@@ -459,6 +459,17 @@ u32 nvgpu_grmgr_get_gr_num_gpcs(struct gk20a *g, u32 gr_instance_id)
 	return gr_syspipe->num_gpc;
 }
 
+u32 nvgpu_grmgr_get_gr_num_fbps(struct gk20a *g, u32 gr_instance_id)
+{
+	struct nvgpu_gpu_instance *gpu_instance;
+	u32 gpu_instance_id = nvgpu_grmgr_get_gpu_instance_id(
+		g, gr_instance_id);
+
+	gpu_instance = &g->mig.gpu_instance[gpu_instance_id];
+
+	return gpu_instance->num_fbp;
+}
+
 u32 nvgpu_grmgr_get_gr_gpc_phys_id(struct gk20a *g, u32 gr_instance_id,
 		u32 gpc_local_id)
 {

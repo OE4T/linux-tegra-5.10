@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -471,6 +471,18 @@ u32 ga10b_perf_get_pmmgpc_per_chiplet_offset(void)
 	return (perf_pmmgpc_extent_v() - perf_pmmgpc_base_v() + reg_offset);
 }
 
+u32 ga10b_perf_get_pmmgpcrouter_per_chiplet_offset(void)
+{
+	/*
+	 * No register to find the offset of pmmgpc register.
+	 * Difference of pmmgpc register address ranges plus 1 will provide
+	 * the offset
+	 */
+	u32 reg_offset = 1U;
+
+	return (perf_pmmgpcrouter_extent_v() - perf_pmmgpcrouter_base_v() + reg_offset);
+}
+
 u32 ga10b_perf_get_pmmfbp_per_chiplet_offset(void)
 {
 	/*
@@ -481,6 +493,37 @@ u32 ga10b_perf_get_pmmfbp_per_chiplet_offset(void)
 	u32 reg_offset = 1U;
 
 	return (perf_pmmfbp_extent_v() - perf_pmmfbp_base_v() + reg_offset);
+}
+
+u32 ga10b_perf_get_pmmfbprouter_per_chiplet_offset(void)
+{
+	/*
+	 * No register to find the offset of pmmgpc register.
+	 * Difference of pmmgpc register address ranges plus 1 will provide
+	 * the offset
+	 */
+	u32 reg_offset = 1U;
+
+	return (perf_pmmfbprouter_extent_v() - perf_pmmfbprouter_base_v() + reg_offset);
+}
+
+u32 ga10b_get_hwpm_fbp_perfmon_regs_base(struct gk20a *g)
+{
+	return perf_pmmfbp_base_v();
+}
+u32 ga10b_get_hwpm_gpc_perfmon_regs_base(struct gk20a *g)
+{
+	return perf_pmmgpc_base_v();
+}
+
+u32 ga10b_get_hwpm_fbprouter_perfmon_regs_base(struct gk20a *g)
+{
+	return perf_pmmfbprouter_base_v();
+}
+
+u32 ga10b_get_hwpm_gpcrouter_perfmon_regs_base(struct gk20a *g)
+{
+	return perf_pmmgpcrouter_base_v();
 }
 
 void ga10b_perf_get_num_hwpm_perfmon(struct gk20a *g, u32 *num_sys_perfmon,
