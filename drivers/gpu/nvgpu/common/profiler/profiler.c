@@ -1040,10 +1040,10 @@ static void nvgpu_profiler_destroy_regops_allowlist(struct nvgpu_profiler_object
 	nvgpu_kfree(prof->g, prof->map);
 }
 
-static bool allowlist_range_search(struct gk20a *g,
+bool nvgpu_profiler_allowlist_range_search(struct gk20a *g,
 		struct nvgpu_pm_resource_register_range_map *map,
 		u32 map_count, u32 offset,
-		enum nvgpu_pm_resource_hwpm_register_type *type)
+		struct nvgpu_pm_resource_register_range_map *entry)
 {
 	s32 start = 0;
 	s32 mid = 0;
@@ -1064,7 +1064,7 @@ static bool allowlist_range_search(struct gk20a *g,
 	}
 
 	if (found) {
-		*type = map[mid].type;
+		*entry = map[mid];
 		nvgpu_log(g, gpu_dbg_prof, "Offset 0x%x found in range 0x%x-0x%x, type: %u",
 			offset, map[mid].start, map[mid].end, map[mid].type);
 	} else {
@@ -1108,30 +1108,19 @@ static bool allowlist_offset_search(struct gk20a *g,
 }
 
 bool nvgpu_profiler_validate_regops_allowlist(struct nvgpu_profiler_object *prof,
-		u32 offset, enum nvgpu_pm_resource_hwpm_register_type *type)
+		u32 offset, enum nvgpu_pm_resource_hwpm_register_type type)
 {
-	enum nvgpu_pm_resource_hwpm_register_type reg_type;
 	struct gk20a *g = prof->g;
 	const u32 *offset_allowlist;
 	u32 count;
 	u32 stride;
-	bool found;
 
-	found = allowlist_range_search(g, prof->map, prof->map_count, offset, &reg_type);
-	if (!found) {
-		return found;
+	if ((type == NVGPU_HWPM_REGISTER_TYPE_HWPM_PERFMUX) ||
+	    (type == NVGPU_HWPM_REGISTER_TYPE_TEST)) {
+		return true;
 	}
 
-	if (type != NULL) {
-		*type = reg_type;
-	}
-
-	if ((reg_type == NVGPU_HWPM_REGISTER_TYPE_HWPM_PERFMUX) ||
-	    (reg_type == NVGPU_HWPM_REGISTER_TYPE_TEST)) {
-		return found;
-	}
-
-	switch ((u32)reg_type) {
+	switch ((u32)type) {
 	case NVGPU_HWPM_REGISTER_TYPE_HWPM_PERFMON:
 		offset_allowlist = g->ops.regops.get_hwpm_perfmon_register_offset_allowlist(&count);
 		stride = g->ops.regops.get_hwpm_perfmon_register_stride();
