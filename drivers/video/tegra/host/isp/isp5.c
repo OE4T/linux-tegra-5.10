@@ -1,7 +1,7 @@
 /*
  * ISP5 driver
  *
- * Copyright (c) 2017-2021, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -40,7 +40,7 @@
 #if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
 #endif
-#include <soc/tegra/fuse.h>
+#include <soc/tegra/fuse-helper.h>
 
 #include "isp5.h"
 #include "capture/capture-support.h"

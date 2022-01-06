@@ -5,9 +5,17 @@
 
 #include <soc/tegra/fuse.h>
 
-#ifdef CONFIG_TEGRA_FUSE_UPSTREAM
-
 #define FUSE_SKU_INFO     0x10
+
+static inline u32 tegra_get_sku_id(void)
+{
+	if (!tegra_sku_info.sku_id)
+		tegra_fuse_readl(FUSE_SKU_INFO, &tegra_sku_info.sku_id);
+
+	return tegra_sku_info.sku_id;
+}
+
+#ifdef CONFIG_TEGRA_FUSE_UPSTREAM
 
 /*
  * For upstream the following functions to determine if the
@@ -22,14 +30,6 @@ static inline bool tegra_platform_is_silicon(void)
 static inline bool tegra_platform_is_sim(void)
 {
 	return false;
-}
-
-static inline u32 tegra_get_sku_id(void)
-{
-	if (!tegra_sku_info.sku_id)
-		tegra_fuse_readl(FUSE_SKU_INFO, &tegra_sku_info.sku_id);
-
-	return tegra_sku_info.sku_id;
 }
 
 #endif /* CONFIG_TEGRA_FUSE_UPSTREAM */

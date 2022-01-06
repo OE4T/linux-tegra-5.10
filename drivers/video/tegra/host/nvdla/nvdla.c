@@ -27,7 +27,7 @@
 #include <linux/uaccess.h>
 #include <linux/version.h>
 #include <linux/nvmem-consumer.h>
-#include <soc/tegra/fuse.h>
+#include <soc/tegra/fuse-helper.h>
 
 #include "dev.h"
 
