@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -309,12 +309,19 @@ enum tegra_soc_hwpm_ip_reg_op {
  */
 struct tegra_soc_hwpm_ip_ops {
 	/*
-	 * IP driver identfiier for SOC HWPM usage. Example: Unique
-	 * device/platform name created using IP device tree entry.
-	 * SOC HWPM should be able to map this identifier to one
-	 * of supported IP aperture.
+	 * IP instance identfier for SOC HWPM usage. This is base
+	 * address of IP instance included in device tree entry.
+	 * SOC HWPM should be able to map this to one instance in
+	 * supported IP aperture.
 	 */
 	__u64 ip_base_address;
+
+	/*
+	 * IP driver identifier for SOC HWPM usage. The index is with
+	 * respect to enum tegra_soc_hwpm_ip. SOC HWPM should be able
+	 * to map this identifier to one of supported IP aperture.
+	 */
+	__u32 ip_index;
 
 	/*
 	 * Opaque ip device handle used for callback from

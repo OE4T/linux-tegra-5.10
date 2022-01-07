@@ -1,7 +1,7 @@
 /*
 * Tegra flcn common driver
 *
-* Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
+* Copyright (c) 2011-2022, NVIDIA CORPORATION.  All rights reserved.
 *
 * This program is free software; you can redistribute it and/or modify it
 * under the terms and conditions of the GNU General Public License,
@@ -807,6 +807,17 @@ static ssize_t reload_fw_write(struct device *device,
 static DEVICE_ATTR(reload_fw, 0200, NULL, reload_fw_write);
 
 #ifdef CONFIG_TEGRA_SOC_HWPM
+static u32 flcn_hwpm_get_ip_index(const char *name)
+{
+	if (strstr(name, "vic")) {
+		return (u32)TEGRA_SOC_HWPM_IP_VIC;
+	} else if (strstr(name, "nvenc")) {
+		return (u32)TEGRA_SOC_HWPM_IP_NVENC;
+	} else if (strstr(name, "ofa")) {
+		return (u32)TEGRA_SOC_HWPM_IP_OFA;
+	}
+	return (u32)TERGA_SOC_HWPM_NUM_IPS;
+}
 int flcn_hwpm_ip_pm(void *ip_dev, bool disable)
 {
 	int err = 0;
@@ -850,6 +861,7 @@ static int flcn_probe(struct platform_device *dev)
 	struct nvhost_device_data *pdata = NULL;
 #ifdef CONFIG_TEGRA_SOC_HWPM
 	struct tegra_soc_hwpm_ip_ops hwpm_ip_ops;
+	u32 hwpm_ip_index;
 #endif
 
 	if (dev->dev.of_node) {
@@ -904,11 +916,16 @@ static int flcn_probe(struct platform_device *dev)
 	if (pdata->flcn_isr)
 		flcn_intr_init(dev);
 #ifdef CONFIG_TEGRA_SOC_HWPM
-	hwpm_ip_ops.ip_dev = (void *)dev;
-	hwpm_ip_ops.ip_base_address = dev->resource[0].start;
-	hwpm_ip_ops.hwpm_ip_pm = &flcn_hwpm_ip_pm;
-	hwpm_ip_ops.hwpm_ip_reg_op = &flcn_hwpm_ip_reg_op;
-	tegra_soc_hwpm_ip_register(&hwpm_ip_ops);
+	hwpm_ip_index = flcn_hwpm_get_ip_index(dev->name);
+	nvhost_dbg_fn("ip %s register", dev->name);
+	if (hwpm_ip_index != TERGA_SOC_HWPM_NUM_IPS) {
+		hwpm_ip_ops.ip_dev = (void *)dev;
+		hwpm_ip_ops.ip_base_address = dev->resource[0].start;
+		hwpm_ip_ops.ip_index = hwpm_ip_index;
+		hwpm_ip_ops.hwpm_ip_pm = &flcn_hwpm_ip_pm;
+		hwpm_ip_ops.hwpm_ip_reg_op = &flcn_hwpm_ip_reg_op;
+		tegra_soc_hwpm_ip_register(&hwpm_ip_ops);
+	}
 #endif
 
 	return 0;
