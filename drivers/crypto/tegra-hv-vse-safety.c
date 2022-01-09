@@ -4,7 +4,7 @@
  *
  * Support for Tegra Virtual Security Engine hardware crypto algorithms.
  *
- * Copyright (c) 2019-2021, NVIDIA Corporation. All Rights Reserved.
+ * Copyright (c) 2019-2022, NVIDIA Corporation. All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -3043,7 +3043,7 @@ static int tegra_vse_aes_gcm_enc_dec(struct aead_request *req, bool encrypt)
 
 		/* check GCM tag*/
 		if (crypto_memneq(tag_buf, gcm_tag, aes_ctx->authsize)) {
-			err = -EBADMSG;
+			err = -EINVAL;
 			goto free_exit;
 		}
 	}
