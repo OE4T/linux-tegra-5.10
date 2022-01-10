@@ -1,7 +1,7 @@
 /*
  * Engine side synchronization support
  *
- * Copyright (c) 2016-2017, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -35,9 +35,5 @@ struct nvhost_syncpt_unit_interface {
 	dma_addr_t cv_dev_address_table[NVMAP_MAX_GOS_PAGES];
 #endif
 };
-
-dma_addr_t nvhost_syncpt_address(struct platform_device *engine_pdev, u32 id);
-
-int nvhost_syncpt_unit_interface_init(struct platform_device *engine_pdev);
 
 #endif
