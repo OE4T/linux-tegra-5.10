@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2022, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,6 +28,7 @@
 #include "core_local.h"
 #include "vlan_filter.h"
 
+#ifdef UPDATED_PAD_CAL
 /*
  * Forward declarations of local functions.
  */
@@ -35,6 +36,7 @@ static nve32_t eqos_post_pad_calibrate(
 		struct osi_core_priv_data *const osi_core);
 static nve32_t eqos_pre_pad_calibrate(
 		struct osi_core_priv_data *const osi_core);
+#endif /* UPDATED_PAD_CAL */
 
 /**
  * @brief eqos_core_safety_config - EQOS MAC core safety configuration
@@ -813,6 +815,7 @@ static nveu32_t eqos_calculate_per_queue_fifo(nveu32_t mac_ver,
 	return p_fifo;
 }
 
+#ifdef UPDATED_PAD_CAL
 /**
  * @brief eqos_pad_calibrate - PAD calibration
  *
@@ -850,11 +853,10 @@ static nve32_t eqos_pad_calibrate(struct osi_core_priv_data *const osi_core)
 	void *ioaddr = osi_core->base;
 	nveu32_t retry = RETRY_COUNT;
 	nveu32_t count;
-	nve32_t cond = COND_NOT_MET, ret = 0, ret1 = 0;
+	nve32_t cond = COND_NOT_MET, ret = 0;
 	nveu32_t value;
 
-	/* mask return as initial value returned always */
-	(void)__sync_val_compare_and_swap(&osi_core->padctrl.is_pad_cal_in_progress,
+	__sync_val_compare_and_swap(&osi_core->padctrl.is_pad_cal_in_progress,
 				    OSI_DISABLE, OSI_ENABLE);
 	ret = eqos_pre_pad_calibrate(osi_core);
 	if (ret < 0) {
@@ -891,8 +893,6 @@ static nve32_t eqos_pad_calibrate(struct osi_core_priv_data *const osi_core)
 	while (cond == COND_NOT_MET) {
 		if (count > retry) {
 			ret = -1;
-			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
-			             "Error:pad calibration timeout!\n", 0ULL);
 			goto calibration_failed;
 		}
 		count++;
@@ -912,19 +912,99 @@ calibration_failed:
 	value = osi_readla(osi_core, (nveu8_t *)ioaddr + EQOS_PAD_CRTL);
 	value &=  ~EQOS_PAD_CRTL_E_INPUT_OR_E_PWRD;
 	osi_writela(osi_core, value, (nveu8_t *)ioaddr + EQOS_PAD_CRTL);
-	/* overwrite calibration timeout error ret value
-	 * if eqos_post_pad_calibrate() fails */
-	ret1 = eqos_post_pad_calibrate(osi_core);
-	if (ret1 < 0) {
-		ret = ret1;
-	}
+	ret = eqos_post_pad_calibrate(osi_core);
 error:
-	/* mask return as initial value returned always */
-	(void)__sync_val_compare_and_swap(&osi_core->padctrl.is_pad_cal_in_progress,
+	__sync_val_compare_and_swap(&osi_core->padctrl.is_pad_cal_in_progress,
 				    OSI_ENABLE, OSI_DISABLE);
 
 	return ret;
 }
+
+#else
+/**
+ * @brief eqos_pad_calibrate - PAD calibration
+ *
+ * @note
+ * Algorithm:
+ *  - Set field PAD_E_INPUT_OR_E_PWRD in reg ETHER_QOS_SDMEMCOMPPADCTRL_0
+ *  - Delay for 1 usec.
+ *  - Set AUTO_CAL_ENABLE and AUTO_CAL_START in reg
+ *    ETHER_QOS_AUTO_CAL_CONFIG_0
+ *  - Wait on AUTO_CAL_ACTIVE until it is 0
+ *  - Re-program the value PAD_E_INPUT_OR_E_PWRD in
+ *    ETHER_QOS_SDMEMCOMPPADCTRL_0 to save power
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @note
+ *  - MAC should out of reset and clocks enabled.
+ *  - RGMII and MDIO interface needs to be IDLE before performing PAD
+ *    calibration.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static nve32_t eqos_pad_calibrate(struct osi_core_priv_data *const osi_core)
+{
+	void *ioaddr = osi_core->base;
+	nveu32_t retry = RETRY_COUNT;
+	nveu32_t count;
+	nve32_t cond = COND_NOT_MET, ret = 0;
+	nveu32_t value;
+
+	/* 1. Set field PAD_E_INPUT_OR_E_PWRD in
+	 * reg ETHER_QOS_SDMEMCOMPPADCTRL_0
+	 */
+	value = osi_readla(osi_core, (nveu8_t *)ioaddr + EQOS_PAD_CRTL);
+	value |= EQOS_PAD_CRTL_E_INPUT_OR_E_PWRD;
+	osi_writela(osi_core, value, (nveu8_t *)ioaddr + EQOS_PAD_CRTL);
+	/* 2. delay for 1 usec */
+	osi_core->osd_ops.usleep_range(1, 3);
+	/* 3. Set AUTO_CAL_ENABLE and AUTO_CAL_START in
+	 * reg ETHER_QOS_AUTO_CAL_CONFIG_0.
+	 */
+	value = osi_readla(osi_core,
+			   (nveu8_t *)ioaddr + EQOS_PAD_AUTO_CAL_CFG);
+	value |= EQOS_PAD_AUTO_CAL_CFG_START |
+		 EQOS_PAD_AUTO_CAL_CFG_ENABLE;
+	eqos_core_safety_writel(osi_core, value, (nveu8_t *)ioaddr +
+				EQOS_PAD_AUTO_CAL_CFG,
+				EQOS_PAD_AUTO_CAL_CFG_IDX);
+	/* 4. Wait on 1 to 3 us before start checking for calibration done.
+	 *    This delay is consumed in delay inside while loop.
+	 */
+	/* 5. Wait on AUTO_CAL_ACTIVE until it is 0. 10ms is the timeout */
+	count = 0;
+	while (cond == COND_NOT_MET) {
+		if (count > retry) {
+			ret = -1;
+			goto calibration_failed;
+		}
+		count++;
+		osi_core->osd_ops.usleep_range(10, 12);
+		value = osi_readla(osi_core, (nveu8_t *)ioaddr +
+				   EQOS_PAD_AUTO_CAL_STAT);
+		/* calibration done when CAL_STAT_ACTIVE is zero */
+		if ((value & EQOS_PAD_AUTO_CAL_STAT_ACTIVE) == 0U) {
+			cond = COND_MET;
+		}
+	}
+calibration_failed:
+	/* 6. Re-program the value PAD_E_INPUT_OR_E_PWRD in
+	 * ETHER_QOS_SDMEMCOMPPADCTRL_0 to save power
+	 */
+	value = osi_readla(osi_core, (nveu8_t *)ioaddr + EQOS_PAD_CRTL);
+	value &=  ~EQOS_PAD_CRTL_E_INPUT_OR_E_PWRD;
+	osi_writela(osi_core, value, (nveu8_t *)ioaddr + EQOS_PAD_CRTL);
+	return ret;
+}
+#endif /* UPDATED_PAD_CAL */
 
 /**
  * @brief eqos_flush_mtl_tx_queue - Flush MTL Tx queue
@@ -2051,6 +2131,16 @@ static nve32_t eqos_core_init(struct osi_core_priv_data *const osi_core,
 
 	eqos_core_safety_init(osi_core);
 	eqos_core_backup_init(osi_core);
+
+#ifndef UPDATED_PAD_CAL
+	/* PAD calibration */
+	ret = eqos_pad_calibrate(osi_core);
+	if (ret < 0) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+			     "eqos pad calibration failed\n", 0ULL);
+		return ret;
+	}
+#endif /* !UPDATED_PAD_CAL */
 
 	/* reset mmc counters */
 	osi_writela(osi_core, EQOS_MMC_CNTRL_CNTRST,
@@ -6041,6 +6131,7 @@ static nve32_t eqos_get_hw_features(struct osi_core_priv_data *const osi_core,
 	return 0;
 }
 
+#ifdef UPDATED_PAD_CAL
 /**
  * @brief eqos_padctl_rx_pins Enable/Disable RGMII Rx pins
  *
@@ -6053,18 +6144,14 @@ static nve32_t eqos_get_hw_features(struct osi_core_priv_data *const osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static nve32_t eqos_padctl_rx_pins(struct osi_core_priv_data *const osi_core,
-				   unsigned int enable)
+static int eqos_padctl_rx_pins(struct osi_core_priv_data *const osi_core,
+				       unsigned int enable)
 {
 	nveu32_t value;
-	nve32_t ret = 0;
 	void *pad_addr = osi_core->padctrl.padctrl_base;
 
 	if (pad_addr == OSI_NULL) {
-		ret = -1;
-		OSI_CORE_ERR(osi_core->osd,
-			OSI_LOG_ARG_HW_FAIL, "Error: pad_addr is null\n", 0ULL);
-		goto fail;
+		return -1;
 	}
 	if (enable == OSI_ENABLE) {
 		value = osi_readla(osi_core, (nveu8_t *)pad_addr +
@@ -6119,8 +6206,7 @@ static nve32_t eqos_padctl_rx_pins(struct osi_core_priv_data *const osi_core,
 		osi_writela(osi_core, value, (nveu8_t *)pad_addr +
 			   osi_core->padctrl.offset_rd3);
 	}
-fail:
-	return ret;
+	return 0;
 }
 
 /**
@@ -6136,7 +6222,7 @@ fail:
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static inline nve32_t poll_for_mac_tx_rx_idle(struct osi_core_priv_data *osi_core)
+static inline int poll_for_mac_tx_rx_idle(struct osi_core_priv_data *osi_core)
 {
 	nveu32_t retry = 0;
 	nveu32_t mac_debug;
@@ -6183,7 +6269,7 @@ static inline nve32_t poll_for_mac_tx_rx_idle(struct osi_core_priv_data *osi_cor
  * @retval negative value on failure.
  */
 
-static nve32_t eqos_pre_pad_calibrate(struct osi_core_priv_data *const osi_core)
+static int eqos_pre_pad_calibrate(struct osi_core_priv_data *const osi_core)
 {
 	nve32_t ret = 0;
 	nveu32_t value;
@@ -6206,43 +6292,33 @@ static nve32_t eqos_pre_pad_calibrate(struct osi_core_priv_data *const osi_core)
 	}
 
 	if (osi_core->osd_ops.padctrl_mii_rx_pins != OSI_NULL) {
-		/* call linux specific function to disable pads */
 		ret = osi_core->osd_ops.padctrl_mii_rx_pins(osi_core->osd,
 							   OSI_DISABLE);
 	} else {
-		/* called for qnx, this function can be made void and validate
-		 * input parameter at begining in osi_pad_calibrate() for qnx */
 		ret = eqos_padctl_rx_pins(osi_core, OSI_DISABLE);
 	}
 	if (ret < 0) {
-		goto pad_fail;
+		goto error;
 	}
 
-	goto pass;
-
-pad_fail:
-	/* Roll back on fail */
-	/* Try to enable pads on error if even if pad disable fails
-	 * on safe side */
+	return ret;
+error:
+	/* roll back on fail */
+	eqos_start_mac(osi_core);
 	if (osi_core->osd_ops.padctrl_mii_rx_pins != OSI_NULL) {
-		/* This is called for linux. Mask return as
-		 * eqos_pre_pad_calibrate() error returned to caller */
 		(void)osi_core->osd_ops.padctrl_mii_rx_pins(osi_core->osd,
 							   OSI_ENABLE);
 	} else {
-		/* This is called for qnx. Mask return as
-		 * eqos_pre_pad_calibrate() error returned to caller */
 		(void)eqos_padctl_rx_pins(osi_core, OSI_ENABLE);
 	}
-error:
-	eqos_start_mac(osi_core);
+
 	/* Enable MAC RGSMIIIE - RGMII/SMII interrupts */
 	/* Read MAC IMR Register */
-	value = osi_readla(osi_core, (nveu8_t *)osi_core->base + EQOS_MAC_IMR);
+	value = osi_readl((unsigned char *)osi_core->base + EQOS_MAC_IMR);
 	value |= EQOS_IMR_RGSMIIIE;
 	eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
 				EQOS_MAC_IMR, EQOS_MAC_IMR_IDX);
-pass:
+
 	return ret;
 }
 
@@ -6273,12 +6349,9 @@ static nve32_t eqos_post_pad_calibrate(
 	nveu32_t mac_isr = 0;
 
 	if (osi_core->osd_ops.padctrl_mii_rx_pins != OSI_NULL) {
-		/* called for linux */
 		ret = osi_core->osd_ops.padctrl_mii_rx_pins(osi_core->osd,
 							   OSI_ENABLE);
 	} else {
-		/* called for qnx, add proper return value for qnx
-		 * if this function is not changed to void */
 		ret = eqos_padctl_rx_pins(osi_core, OSI_ENABLE);
 	}
 	/* handle only those MAC interrupts which are enabled */
@@ -6287,12 +6360,12 @@ static nve32_t eqos_post_pad_calibrate(
 	mac_isr = osi_readla(osi_core, (nveu8_t *)osi_core->base +
 			     EQOS_MAC_ISR);
 	/* RGMII/SMII interrupt disabled in eqos_pre_pad_calibrate */
-	if (((mac_isr & EQOS_MAC_ISR_RGSMIIS) == EQOS_MAC_ISR_RGSMIIS) &&
-	    ((mac_imr & EQOS_MAC_ISR_RGSMIIS) == OSI_DISABLE)) {
+	if ((mac_isr & EQOS_MAC_ISR_RGSMIIS) == EQOS_MAC_ISR_RGSMIIS &&
+	    (mac_imr & EQOS_MAC_ISR_RGSMIIS) == OSI_DISABLE) {
 		/* clear RGSMIIIE pending interrupt status due to pad enable */
 		mac_pcs = osi_readla(osi_core, (nveu8_t *)osi_core->base +
 				    EQOS_MAC_PCS);
-		if (mac_pcs != 0U) {
+		if (mac_pcs) {
 			/* do nothing */
 		}
 	}
@@ -6303,6 +6376,7 @@ static nve32_t eqos_post_pad_calibrate(
 				EQOS_MAC_IMR, EQOS_MAC_IMR_IDX);
 	return ret;
 }
+#endif /* UPDATED_PAD_CAL */
 
 /**
  * @brief eqos_config_rss - Configure RSS
