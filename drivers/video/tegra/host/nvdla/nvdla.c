@@ -33,21 +33,15 @@
 
 #include "flcn/flcn.h"
 
-#include "t194/t194.h"
-#include "t23x/t23x.h"
-
 #include "nvdla/nvdla.h"
 #include "nvdla/nvdla_hw_flcn.h"
+#include "nvdla/nvdla_t194.h"
+#include "nvdla/nvdla_t234.h"
 #include "nvdla/dla_queue.h"
 #include "nvdla/nvdla_buffer.h"
 #include "nvdla/nvdla_debug.h"
 #include <uapi/linux/nvhost_nvdla_ioctl.h>
 #include "dla_os_interface.h"
-
-#include "class_ids_t194.h"
-
-#include "nvdla/dla_t19x_fw_version.h"
-#include "nvdla/dla_t23x_fw_version.h"
 
 /*
  * Work to handle engine reset for error recovery

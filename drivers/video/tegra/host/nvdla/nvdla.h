@@ -46,6 +46,14 @@
 #define MAX_GRID_SIZE			SZ_256
 
 /**
+ * DLA Host1x class IDs
+ */
+enum {
+	NV_DLA0_CLASS_ID	= 0xF3,
+	NV_DLA1_CLASS_ID	= 0xF4,
+};
+
+/**
  * Method ID and Method data THI registers
  */
 #define NV_DLA_THI_METHOD_ID	0x00000040      /* RW-4R */

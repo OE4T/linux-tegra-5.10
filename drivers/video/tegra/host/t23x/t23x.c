@@ -1,7 +1,7 @@
 /*
  * Tegra Graphics Init for T23X Architecture Chips
  *
- * Copyright (c) 2016-2021, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -61,10 +61,6 @@
 #include "pva/pva_nvhost.h"
 #endif
 #include "hardware_t23x.h"
-#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVDLA)
-#include "nvdla/nvdla.h"
-#include "nvdla/dla_t23x_fw_version.h"
-#endif
 #if IS_ENABLED(CONFIG_VIDEO_TEGRA_VI)
 #include "vi/vi5.h"
 #endif
@@ -86,8 +82,7 @@
 
 #define NVHOST_HAS_SUBMIT_HOST1XSTREAMID
 
-static dma_addr_t nvhost_t23x_get_reloc_phys_addr(dma_addr_t phys_addr,
-						  u32 reloc_type)
+dma_addr_t nvhost_t23x_get_reloc_phys_addr(dma_addr_t phys_addr, u32 reloc_type)
 {
 	if (reloc_type == NVHOST_RELOC_TYPE_BLOCK_LINEAR)
 		phys_addr += BIT(39);
@@ -518,70 +513,6 @@ struct nvhost_device_data t23x_pva0_info = {
 	.serialize		= true,
 	.get_reloc_phys_addr	= nvhost_t23x_get_reloc_phys_addr,
 	.can_powergate		= true,
-};
-#endif
-
-#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVDLA)
-struct nvhost_device_data t23x_nvdla0_info = {
-	.devfs_name_family	= "nvdla",
-	.class			= NV_DLA0_CLASS_ID,
-	.clocks			= {
-		{"nvdla0", UINT_MAX},
-		{"nvdla0_flcn", UINT_MAX}
-	},
-	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
-	.finalize_poweron	= nvhost_nvdla_finalize_poweron,
-	.prepare_poweroff	= nvhost_nvdla_prepare_poweroff,
-	.flcn_isr               = nvhost_nvdla_flcn_isr,
-	.self_config_flcn_isr	= true,
-	.vm_regs		= {{0x30, true}, {0x34, false} },
-	.firmware_name		= "nvhost_nvdla020.fw",
-	.version		= FIRMWARE_ENCODE_VERSION(T23X),
-	.autosuspend_delay      = 500,
-	.keepalive		= true,
-	.poweron_reset		= true,
-	.serialize		= true,
-	.ctrl_ops		= &tegra_nvdla_ctrl_ops,
-	.get_reloc_phys_addr	= nvhost_t23x_get_reloc_phys_addr,
-	.module_irq		= 1,
-	.engine_cg_regs		= t23x_nvdla_gating_registers,
-	.engine_can_cg		= true,
-	.can_powergate		= true,
-	.icc_id			= TEGRA_ICC_DLA_0,
-	.transcfg_addr		= 0x1444,
-	.transcfg_val		= 0x20,
-	.firmware_not_in_subdir = true,
-};
-
-struct nvhost_device_data t23x_nvdla1_info = {
-	.devfs_name_family	= "nvdla",
-	.class			= NV_DLA1_CLASS_ID,
-	.clocks			= {
-		{"nvdla1", UINT_MAX},
-		{"nvdla1_flcn", UINT_MAX}
-	},
-	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
-	.finalize_poweron	= nvhost_nvdla_finalize_poweron,
-	.prepare_poweroff	= nvhost_nvdla_prepare_poweroff,
-	.flcn_isr               = nvhost_nvdla_flcn_isr,
-	.self_config_flcn_isr	= true,
-	.vm_regs		= {{0x30, true}, {0x34, false} },
-	.firmware_name		= "nvhost_nvdla020.fw",
-	.version		= FIRMWARE_ENCODE_VERSION(T23X),
-	.autosuspend_delay      = 500,
-	.keepalive		= true,
-	.poweron_reset		= true,
-	.serialize		= true,
-	.ctrl_ops		= &tegra_nvdla_ctrl_ops,
-	.get_reloc_phys_addr	= nvhost_t23x_get_reloc_phys_addr,
-	.module_irq		= 1,
-	.engine_cg_regs		= t23x_nvdla_gating_registers,
-	.engine_can_cg		= true,
-	.can_powergate		= true,
-	.icc_id			= TEGRA_ICC_DLA_1,
-	.transcfg_addr		= 0x1444,
-	.transcfg_val		= 0x20,
-	.firmware_not_in_subdir = true,
 };
 #endif
 

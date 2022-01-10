@@ -654,6 +654,11 @@ void nvhost_eventlib_log_fences(struct platform_device *pdev,
 				enum nvdev_fence_kind kind,
 				u64 timestamp);
 
+dma_addr_t nvhost_t194_get_reloc_phys_addr(dma_addr_t phys_addr,
+					   u32 reloc_type);
+dma_addr_t nvhost_t23x_get_reloc_phys_addr(dma_addr_t phys_addr,
+					   u32 reloc_type);
+
 /* public host1x interrupt management APIs */
 int nvhost_intr_register_fast_notifier(struct platform_device *pdev,
 				  u32 id, u32 thresh,
