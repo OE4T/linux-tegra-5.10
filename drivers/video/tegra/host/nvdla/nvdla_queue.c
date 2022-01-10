@@ -23,14 +23,9 @@
 #include <linux/dma-mapping.h>
 #include <linux/uaccess.h>
 #include <linux/delay.h>
-#include <trace/events/nvhost.h>
 
-#include "dev.h"
-#include "bus_client.h"
-#include "chip_support.h"
-#include "nvhost_acm.h"
+#include "host1x/host1x.h"
 
-#include "nvhost_syncpt_unit_interface.h"
 #include "nvhost_gos.h"
 
 #include "nvdla/nvdla.h"

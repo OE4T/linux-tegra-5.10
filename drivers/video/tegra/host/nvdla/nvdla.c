@@ -1,7 +1,7 @@
 /*
  * NVDLA driver for T194
  *
- * Copyright (c) 2016-2021, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -30,12 +30,9 @@
 #include <soc/tegra/fuse.h>
 
 #include "dev.h"
-#include "bus_client.h"
-#include "nvhost_acm.h"
 
 #include "flcn/flcn.h"
 #include "flcn/hw_flcn.h"
-#include "nvhost_syncpt_unit_interface.h"
 #include "nvhost_gos.h"
 
 #include "t194/t194.h"

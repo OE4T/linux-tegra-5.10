@@ -1,7 +1,7 @@
 /*
  * NVDLA debug utils
  *
- * Copyright (c) 2016 - 2021, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -23,13 +23,9 @@
 #include <linux/delay.h>
 #include <linux/version.h>
 
-#include "host1x/host1x.h"
-#include "flcn/flcn.h"
-#include "flcn/hw_flcn.h"
 #include "dla_os_interface.h"
 #include "nvdla/nvdla.h"
 #include "nvdla_debug.h"
-#include "nvhost_acm.h"
 
 /*
  * Header in ring buffer consist (start, end) two uint32_t values.

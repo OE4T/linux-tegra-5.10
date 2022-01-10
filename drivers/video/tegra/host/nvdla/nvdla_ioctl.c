@@ -1,7 +1,7 @@
 /*
  * NVDLA IOCTL for T194
  *
- * Copyright (c) 2016-2021, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -22,15 +22,7 @@
 #include <linux/dma-mapping.h>
 #include <linux/uaccess.h>
 
-#include "dev.h"
-#include "bus_client.h"
-#include "nvhost_acm.h"
-
-#include "flcn/flcn.h"
-#include "flcn/hw_flcn.h"
-
-#include "t194/t194.h"
-
+#include "host1x/host1x.h"
 
 #include "nvdla/nvdla.h"
 #include "nvdla/dla_queue.h"
@@ -38,6 +30,7 @@
 #include "nvdla/nvdla_debug.h"
 
 #include <uapi/linux/nvdev_fence.h>
+#include <uapi/linux/nvhost_ioctl.h>
 #include <uapi/linux/nvhost_nvdla_ioctl.h>
 #include "dla_os_interface.h"
 
