@@ -223,8 +223,9 @@ static int calculate_new_offsets_for_perf_fbp_chiplets(struct gk20a *g,
 	struct nvgpu_dbg_reg_op *op, u32 reg_chiplet_base, u32 chiplet_offset)
 {
 	int ret = 0;
-	u32 fbp_local_index;
+	u32 fbp_local_index, fbp_logical_index;
 	u32 gr_instance_id;
+	u32 new_offset;
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, " ");
 
@@ -242,11 +243,28 @@ static int calculate_new_offsets_for_perf_fbp_chiplets(struct gk20a *g,
 	 * Obtain new offset.
 	 */
 
-	/* At present, FBP indexes doesn't need conversion */
 	if (fbp_local_index >= nvgpu_grmgr_get_gr_num_fbps(g, gr_instance_id)) {
 		ret = -EINVAL;
 		nvgpu_err(g, "Invalid FBP Index");
 		return ret;
+	}
+
+	/* At present, FBP indexes doesn't need conversion */
+	if (nvgpu_grmgr_get_memory_partition_support_status(g, gr_instance_id)) {
+		fbp_logical_index = nvgpu_grmgr_get_fbp_logical_id(g,
+			gr_instance_id, fbp_local_index);
+
+		new_offset = nvgpu_safe_sub_u32(op->offset,
+			nvgpu_safe_mult_u32(fbp_local_index, chiplet_offset));
+
+		new_offset = nvgpu_safe_add_u32(new_offset,
+			nvgpu_safe_mult_u32(fbp_logical_index, chiplet_offset));
+
+		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,
+			"old offset: 0x%08x, new offset = 0x%08x, Local index = %u, logical index = %u",
+			op->offset, new_offset, fbp_local_index, fbp_logical_index);
+
+		op->offset = new_offset;
 	}
 
 	return 0;

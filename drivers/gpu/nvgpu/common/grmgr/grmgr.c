@@ -758,6 +758,65 @@ u32 nvgpu_grmgr_get_fbp_en_mask(struct gk20a *g, u32 gpu_instance_id)
 	return U32_MAX;
 }
 
+u32 nvgpu_grmgr_get_fbp_logical_id(struct gk20a *g, u32 gr_instance_id,
+	u32 fbp_local_id)
+{
+	struct nvgpu_gpu_instance *gpu_instance;
+	u32 gpu_instance_id = nvgpu_grmgr_get_gpu_instance_id(
+		g, gr_instance_id);
+
+	if (gpu_instance_id >= g->mig.num_gpu_instances) {
+		nvgpu_err(g,
+			"gpu_instance_id[%u] >= g->mig.num_gpu_instances[%u]",
+			fbp_local_id, g->mig.num_gpu_instances);
+
+		nvgpu_assert(gpu_instance_id >= g->mig.num_gpu_instances);
+
+		return U32_MAX;
+	}
+
+	gpu_instance = &g->mig.gpu_instance[gpu_instance_id];
+
+	if (fbp_local_id < gpu_instance->num_fbp) {
+		nvgpu_log(g, gpu_dbg_mig,
+			"gpu_instance_id[%u], fbp_local_id[%u], fbp_physical_id[%u]",
+			gpu_instance->gpu_instance_id, fbp_local_id,
+			gpu_instance->fbp_mappings[fbp_local_id]);
+
+		return gpu_instance->fbp_mappings[fbp_local_id];
+	} else {
+		nvgpu_err(g,
+			"fbp_local_id[%u] >= gpu_instance->num_fbp[%u]",
+			fbp_local_id, gpu_instance->num_fbp);
+
+		nvgpu_assert(fbp_local_id >= gpu_instance->num_fbp);
+
+		return U32_MAX;
+	}
+}
+
+bool nvgpu_grmgr_get_memory_partition_support_status(struct gk20a *g,
+	u32 gr_instance_id)
+{
+	struct nvgpu_gpu_instance *gpu_instance;
+	u32 gpu_instance_id = nvgpu_grmgr_get_gpu_instance_id(
+		g, gr_instance_id);
+
+	if (gpu_instance_id >= g->mig.num_gpu_instances) {
+		nvgpu_err(g,
+			"gpu_instance_id[%u] >= g->mig.num_gpu_instances[%u]",
+			gpu_instance_id, g->mig.num_gpu_instances);
+
+		nvgpu_assert(gpu_instance_id >= g->mig.num_gpu_instances);
+
+		return false;
+	}
+
+	gpu_instance = &g->mig.gpu_instance[gpu_instance_id];
+
+	return gpu_instance->is_memory_partition_supported;
+}
+
 u32 *nvgpu_grmgr_get_fbp_l2_en_mask(struct gk20a *g, u32 gpu_instance_id)
 {
 	struct nvgpu_gpu_instance *gpu_instance;

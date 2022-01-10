@@ -574,11 +574,18 @@ static int ga10b_grmgr_get_gpu_instance(struct gk20a *g,
 		}
 
 		if (gpu_instance[index].is_memory_partition_supported == false) {
+			u32 tmp_fbp_index = 0;
+
 			gpu_instance[index].num_fbp = g->mig.gpu_instance[0].num_fbp;
 			gpu_instance[index].fbp_en_mask = g->mig.gpu_instance[0].fbp_en_mask;
 			nvgpu_memcpy((u8 *)gpu_instance[index].fbp_l2_en_mask,
 				(u8 *)g->mig.gpu_instance[0].fbp_l2_en_mask,
 					nvgpu_safe_mult_u64(max_fbps_count, sizeof(u32)));
+
+			while (tmp_fbp_index < gpu_instance[index].num_fbp) {
+				gpu_instance[index].fbp_mappings[tmp_fbp_index] = tmp_fbp_index;
+				tmp_fbp_index = nvgpu_safe_add_u32(tmp_fbp_index, 1U);
+			}
 		} else {
 			/* SMC Memory partition is not yet supported */
 			nvgpu_assert(
