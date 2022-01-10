@@ -187,6 +187,15 @@ struct core_ops {
 	nveu32_t (*write_reg)(struct osi_core_priv_data *const osi_core,
 			      const nveu32_t val,
 			      const nve32_t reg);
+#ifdef MACSEC_SUPPORT
+	/** Called to read macsec reg */
+	nveu32_t (*read_macsec_reg)(struct osi_core_priv_data *const osi_core,
+				    const nve32_t reg);
+	/** Called to write macsec reg */
+	nveu32_t (*write_macsec_reg)(struct osi_core_priv_data *const osi_core,
+				     const nveu32_t val,
+				     const nve32_t reg);
+#endif /*  MACSEC_SUPPORT */
 #ifndef OSI_STRIPPED_LIB
 	/** Called periodically to read and validate safety critical
 	 * registers against last written value */

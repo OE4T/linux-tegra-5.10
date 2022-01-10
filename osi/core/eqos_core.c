@@ -5142,6 +5142,48 @@ static nveu32_t eqos_write_reg(struct osi_core_priv_data *const osi_core,
 	return 0;
 }
 
+#ifdef MACSEC_SUPPORT
+/**
+ * @brief eqos_read_macsec_reg - Read a MACSEC reg
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] reg: Register address.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: Yes
+ * @retval data from register on success
+ */
+static nveu32_t eqos_read_macsec_reg(struct osi_core_priv_data *const osi_core,
+				     const nve32_t reg)
+{
+	return osi_readla(osi_core, (nveu8_t *)osi_core->macsec_base + reg);
+}
+
+/**
+ * @brief eqos_write_macsec_reg - Write a MACSEC reg
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] val:  Value to be written.
+ * @param[in] reg: Register address.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: Yes
+ * @retval 0
+ */
+static nveu32_t eqos_write_macsec_reg(struct osi_core_priv_data *const osi_core,
+				      const nveu32_t val, const nve32_t reg)
+{
+	osi_writela(osi_core, val, (nveu8_t *)osi_core->macsec_base + reg);
+	return 0;
+}
+#endif /*  MACSEC_SUPPORT */
+
 #ifndef OSI_STRIPPED_LIB
 /**
  * @brief eqos_disable_tx_lpi - Helper function to disable Tx LPI.
@@ -6542,6 +6584,10 @@ void eqos_init_core_ops(struct core_ops *ops)
 	ops->read_phy_reg = eqos_read_phy_reg;
 	ops->read_reg = eqos_read_reg;
 	ops->write_reg = eqos_write_reg;
+#ifdef MACSEC_SUPPORT
+	ops->read_macsec_reg = eqos_read_macsec_reg;
+	ops->write_macsec_reg = eqos_write_macsec_reg;
+#endif /*  MACSEC_SUPPORT */
 	ops->get_hw_features = eqos_get_hw_features;
 #ifndef OSI_STRIPPED_LIB
 	ops->config_tx_status = eqos_config_tx_status;

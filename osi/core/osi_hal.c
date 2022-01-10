@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -2009,7 +2009,16 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		ret = ops_p->write_reg(osi_core, (nve32_t) data->arg1_u32,
 				       (nve32_t) data->arg2_u32);
 		break;
+#ifdef MACSEC_SUPPORT
+	case OSI_CMD_READ_MACSEC_REG:
+		ret = ops_p->read_macsec_reg(osi_core, (nve32_t) data->arg1_u32);
+		break;
 
+	case OSI_CMD_WRITE_MACSEC_REG:
+		ret = ops_p->write_macsec_reg(osi_core, (nve32_t) data->arg1_u32,
+				       (nve32_t) data->arg2_u32);
+		break;
+#endif /*  MACSEC_SUPPORT */
 	case OSI_CMD_GET_TX_TS:
 		ret = get_tx_ts(osi_core, &data->tx_ts);
 		break;

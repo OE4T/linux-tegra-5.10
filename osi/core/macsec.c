@@ -21,14 +21,6 @@
  */
 
 #ifdef MACSEC_SUPPORT
-#if defined(MACSEC_KEY_PROGRAM) && defined(QNX_OS)
-#include <qcrypto/qcrypto.h>
-#include <qcrypto/qcrypto_error.h>
-#include <qcrypto/qcrypto_keys.h>
-#elif defined(MACSEC_KEY_PROGRAM) && defined(LINUX_OS)
-#include <linux/crypto.h>
-#endif
-
 #include <osi_macsec.h>
 #include "macsec.h"
 #include "../osi/common/common.h"
@@ -795,7 +787,7 @@ static inline nve32_t poll_for_lut_update(struct osi_core_priv_data *osi_core)
 			cond = 0;
 		} else {
 			/* wait on UPDATE bit to reset */
-			osi_core->osd_ops.udelay(10U);
+			osi_core->osd_ops.udelay(1U);
 		}
 	}
 
@@ -2798,126 +2790,33 @@ static nve32_t add_upd_sc(struct osi_core_priv_data *const osi_core,
 	nve32_t ret, i;
 #ifdef MACSEC_KEY_PROGRAM
 	struct osi_macsec_kt_config kt_config = {0};
-	nveu8_t hkey[OSI_KEY_LEN_128] = {0};
-	nveu8_t zeros[OSI_KEY_LEN_128] = {0};
 #endif /* MACSEC_KEY_PROGRAM */
-
-#if defined(MACSEC_KEY_PROGRAM) && defined(QNX_OS)
-	qcrypto_ctx_t *qctx = NULL;
-	qcrypto_ctx_t *qkeyctx = NULL;
-	qcrypto_key_t *qkey = NULL;
-	unsigned long int out_len = 0;
-	/* Initialize cipher arguments */
-	qcrypto_cipher_args_t cargs = {
-		.action = QCRYPTO_CIPHER_ENCRYPT,
-		.iv = NULL,
-		.ivsize = 0,
-	};
-
-	LOG("%s: In Function :", __func__);
-	/* Initialize the Qcrypto Library */
-	ret = qcrypto_init(QCRYPTO_INIT_LAZY, NULL);
-	if (ret != QCRYPTO_R_EOK) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
-			     "qcryto_init() failed\n", ret);
-		goto qcrypto_cleanup;
-	}
-
-	/* Request symmetric keygen */
-	ret = qcrypto_keygen_request("symmetric", NULL, 0, &qkeyctx);
-	if (ret != QCRYPTO_R_EOK) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
-			     "qcrypto_keygen_request() failed \n", ret);
-		goto qcrypto_cleanup;
-	}
-
-	/* Request aes-128-ecb */
-	ret = qcrypto_cipher_request("aes-128-ecb", NULL, 0, &qctx);
-	if (ret != QCRYPTO_R_EOK) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
-			     "qcrypto_cipher_request() failed \n", ret);
-		goto qcrypto_cleanup;
-	}
-
-	/* Load key */
-	ret = qcrypto_key_from_mem(qkeyctx, &qkey, sc->sak, OSI_KEY_LEN_128);
-	if (ret != QCRYPTO_R_EOK) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
-			     "qcrypto_key_from_mem() failed \n", ret);
-		goto qcrypto_cleanup;
-	}
-
-	/* Initialize cipher encryption */
-	ret = qcrypto_cipher_init(qctx, qkey, &cargs);
-	if (ret != QCRYPTO_R_EOK) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
-			     "qcrypto_cipher_init() failed \n", ret);
-		goto qcrypto_cleanup;
-	}
-
-	/* Cipher encryption */
-	ret = qcrypto_cipher_encrypt(qctx, zeros, OSI_KEY_LEN_128, hkey, &out_len);
-	if (ret != QCRYPTO_R_EOK) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
-			     "qcrypto_cipher_encrypt() failed \n", ret);
-		goto qcrypto_cleanup;
-	}
-	LOG(" %s: Generated H key: "HKEYSTR, __func__, HKEY2STR(hkey));
-	/* Finalize cipher encryption */
-	ret = qcrypto_cipher_final(qctx, hkey, &out_len);
-	if (ret != QCRYPTO_R_EOK) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
-			     "qcrypto_cipher_final() failed \n", ret);
-		goto qcrypto_cleanup;
-	}
-
-qcrypto_cleanup:
-	/* Release all context handles */
-	qcrypto_release_ctx(qctx);
-	qcrypto_release_ctx(qkeyctx);
-	/* Release the key handle */
-	qcrypto_release_key(qkey);
-	/* Uninitialize the Qcrypto Library */
-	qcrypto_uninit();
-
-#elif defined(MACSEC_KEY_PROGRAM) && defined(LINUX_OS)
-	/* HKEY GENERATION */
-	struct crypto_cipher *tfm;
-
-	tfm = crypto_alloc_cipher("aes", 0, CRYPTO_ALG_ASYNC);
-	if (crypto_cipher_setkey(tfm, sc->sak, OSI_KEY_LEN_128)) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
-			     "Failed to set key for H generation\n", 0ULL);
-		return -1;
-	}
-	crypto_cipher_encrypt_one(tfm, hkey, zeros);
-	LOG(" %s: Generated H key: "HKEYSTR, __func__, HKEY2STR(hkey));
-	crypto_free_cipher(tfm);
-#endif /* MACSEC_KEY_PROGRAM && QNX_OS*/
 
 	/* Store key table index returned to osd */
 	*kt_idx = (sc->sc_idx_start * OSI_MAX_NUM_SA) + sc->curr_an;
 
 #ifdef MACSEC_KEY_PROGRAM
 	/* 1. Key LUT */
-	table_config = &kt_config.table_config;
-	table_config->ctlr_sel = ctlr;
-	table_config->rw = OSI_LUT_WRITE;
-	/* Each SC has OSI_MAX_NUM_SA's supported in HW */
-	table_config->index = *kt_idx;
-	kt_config.flags |= OSI_LUT_FLAGS_ENTRY_VALID;
+	if (sc->flags == OSI_CREATE_SA) {
+		table_config = &kt_config.table_config;
+		table_config->ctlr_sel = ctlr;
+		table_config->rw = OSI_LUT_WRITE;
+		/* Each SC has OSI_MAX_NUM_SA's supported in HW */
+		table_config->index = *kt_idx;
+		kt_config.flags |= OSI_LUT_FLAGS_ENTRY_VALID;
 
 	/* Program in reverse order as per HW design */
-	for (i = 0; i < OSI_KEY_LEN_128; i++) {
-		kt_config.entry.sak[i] = sc->sak[OSI_KEY_LEN_128 - 1 - i];
-		kt_config.entry.h[i] = hkey[OSI_KEY_LEN_128 - 1 - i];
-	}
+		for (i = 0; i < OSI_KEY_LEN_128; i++) {
+			kt_config.entry.sak[i] = sc->sak[OSI_KEY_LEN_128 - 1 - i];
+			kt_config.entry.h[i] = sc->hkey[OSI_KEY_LEN_128 - 1 - i];
+		}
 
-	ret = macsec_kt_config(osi_core, &kt_config);
-	if (ret < 0) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
-			     "Failed to set SAK\n", ret);
-		return -1;
+		ret = macsec_kt_config(osi_core, &kt_config);
+		if (ret < 0) {
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+				     "Failed to set SAK\n", ret);
+			return -1;
+		}
 	}
 #endif /* MACSEC_KEY_PROGRAM */
 
@@ -3078,6 +2977,9 @@ static nve32_t macsec_config(struct osi_core_priv_data *const osi_core,
 			new_sc = &lut_status->sc_info[lut_status->next_sc_idx];
 			osi_memcpy(new_sc->sci, sc->sci, OSI_SCI_LEN);
 			osi_memcpy(new_sc->sak, sc->sak, OSI_KEY_LEN_128);
+#ifdef MACSEC_KEY_PROGRAM
+			osi_memcpy(new_sc->hkey, sc->hkey, OSI_KEY_LEN_128);
+#endif /* MACSEC_KEY_PROGRAM */
 			new_sc->curr_an = sc->curr_an;
 			new_sc->next_pn = sc->next_pn;
 			new_sc->pn_window = sc->pn_window;
@@ -3085,20 +2987,6 @@ static nve32_t macsec_config(struct osi_core_priv_data *const osi_core,
 
 			new_sc->sc_idx_start = lut_status->next_sc_idx;
 			new_sc->an_valid |= OSI_BIT(sc->curr_an);
-
-			LOG("%s: Adding new SC\n"
-			       "\tsci: %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n"
-			       "\tan: %u\n"
-			       "\tpn: %u"
-			       "\tsc_idx_start: %u"
-			       "\tan_valid: %#x \tpn_window: %#x\n", __func__,
-				new_sc->sci[0], new_sc->sci[1], new_sc->sci[2],
-				new_sc->sci[3], new_sc->sci[4], new_sc->sci[5],
-				new_sc->sci[6], new_sc->sci[7],
-				new_sc->curr_an, new_sc->next_pn,
-				new_sc->sc_idx_start,
-				new_sc->an_valid, new_sc->pn_window);
-			LOG("key: "KEYSTR, KEY2STR(new_sc->sak));
 
 			if (add_upd_sc(osi_core, new_sc, ctlr, kt_idx) !=
 				       OSI_NONE) {
@@ -3140,6 +3028,9 @@ static nve32_t macsec_config(struct osi_core_priv_data *const osi_core,
 			 */
 			*tmp_sc_p = *existing_sc;
 			osi_memcpy(tmp_sc_p->sak, sc->sak, OSI_KEY_LEN_128);
+#ifdef MACSEC_KEY_PROGRAM
+			osi_memcpy(tmp_sc_p->hkey, sc->hkey, OSI_KEY_LEN_128);
+#endif /* MACSEC_KEY_PROGRAM */
 			tmp_sc_p->curr_an = sc->curr_an;
 			tmp_sc_p->next_pn = sc->next_pn;
 			tmp_sc_p->pn_window = sc->pn_window;
