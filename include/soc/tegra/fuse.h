@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
- * Copyright (c) 2012-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012-2022, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #ifndef __SOC_TEGRA_FUSE_H__
@@ -177,7 +177,6 @@ extern struct tegra_sku_info tegra_sku_info;
 extern enum tegra_revision tegra_revision;
 
 extern u32 tegra_read_emu_revid(void);
-extern u32 tegra_get_sku_id(void);
 extern enum tegra_revision tegra_chip_get_revision(void);
 extern bool is_t210b01_sku(void);
 

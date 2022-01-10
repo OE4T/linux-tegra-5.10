@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2022, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/kernel.h>
@@ -281,15 +281,6 @@ u32 tegra_read_emu_revid(void)
 	return readl_relaxed(apbmisc_base + apbmisc_data->emu_revid_offset);
 }
 EXPORT_SYMBOL(tegra_read_emu_revid);
-
-u32 tegra_get_sku_id(void)
-{
-	if (!tegra_sku_info.sku_id)
-		tegra_fuse_readl(FUSE_SKU_INFO, &tegra_sku_info.sku_id);
-
-	return tegra_sku_info.sku_id;
-}
-EXPORT_SYMBOL(tegra_get_sku_id);
 
 enum tegra_revision tegra_chip_get_revision(void)
 {
