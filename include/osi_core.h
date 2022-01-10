@@ -232,6 +232,10 @@ typedef my_lint_64		nvel64_t;
 #define OSI_CMD_CAP_TSC_PTP		46U
 #define OSI_CMD_MAC_MTU			47U
 #define OSI_CMD_CONF_M2M_TS		48U
+#ifdef MACSEC_SUPPORT
+#define OSI_CMD_READ_MACSEC_REG		49U
+#define OSI_CMD_WRITE_MACSEC_REG	50U
+#endif /* MACSEC_SUPPORT */
 /** @} */
 
 /**

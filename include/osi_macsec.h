@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -281,6 +281,10 @@ struct osi_macsec_sc_info {
 	nveu8_t sci[OSI_SCI_LEN];
 	/** Secure association key */
 	nveu8_t sak[OSI_KEY_LEN_128];
+#ifdef MACSEC_KEY_PROGRAM
+	/** Secure association key */
+	nveu8_t hkey[OSI_KEY_LEN_128];
+#endif /* MACSEC_KEY_PROGRAM */
 	/** current AN */
 	nveu8_t curr_an;
 	/** Next PN to use for the current AN */

@@ -5725,6 +5725,48 @@ static nveu32_t mgbe_write_reg(struct osi_core_priv_data *const osi_core,
 	return 0;
 }
 
+#ifdef MACSEC_SUPPORT
+/**
+ * @brief mgbe_read_macsec_reg - Read a MACSEC register
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] reg: Register address.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: Yes
+ * @retval 0
+ */
+static nveu32_t mgbe_read_macsec_reg(struct osi_core_priv_data *const osi_core,
+				     const nve32_t reg)
+{
+	return osi_readla(osi_core, (nveu8_t *)osi_core->macsec_base + reg);
+}
+
+/**
+ * @brief mgbe_write_macsec_reg - Write to a MACSEC reg
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] val:  Value to be written.
+ * @param[in] reg: Register address.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: Yes
+ * @retval 0
+ */
+static nveu32_t mgbe_write_macsec_reg(struct osi_core_priv_data *const osi_core,
+				      const nveu32_t val, const nve32_t reg)
+{
+	osi_writela(osi_core, val, (nveu8_t *)osi_core->macsec_base + reg);
+	return 0;
+}
+#endif /*  MACSEC_SUPPORT */
+
 /**
  * @brief mgbe_validate_core_regs - Validates MGBE core registers.
  *
@@ -5961,6 +6003,8 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->write_reg = mgbe_write_reg;
 	ops->read_reg = mgbe_read_reg;
 #ifdef MACSEC_SUPPORT
+	ops->write_macsec_reg = mgbe_write_macsec_reg;
+	ops->read_macsec_reg = mgbe_read_macsec_reg;
 	ops->macsec_config_mac = mgbe_config_for_macsec;
 #endif /*  MACSEC_SUPPORT */
 };

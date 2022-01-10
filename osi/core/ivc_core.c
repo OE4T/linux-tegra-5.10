@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -287,6 +287,45 @@ static void ivc_macsec_read_mmc(struct osi_core_priv_data *const osi_core)
 	msg.status = osi_memcpy((void *)&osi_core->macsec_mmc,
 				(void *) &msg.data.macsec_mmc,
 				sizeof(struct osi_macsec_mmc_counters));
+	osi_memcpy((void *)&osi_core->macsec_irq_stats,
+		   (void *) &msg.data.macsec_irq_stats,
+		   sizeof(struct osi_macsec_irq_stats));
+}
+
+/**
+ * @brief ivc_get_sc_lut_key_index - Macsec get Key_index
+ *
+ * @param[in] osi_core: OSI Core private data structure.
+ * @param[in] sc: Secure Channel info.
+ * @param[in] enable: enable or disable.
+ * @param[in] ctlr: Controller instance.
+ * @param[[out] kt_idx: Key table index to program SAK.
+ *
+ * @retval 0 on Success
+ * @retval -1 on Failure
+ */
+static int ivc_get_sc_lut_key_index(struct osi_core_priv_data *const osi_core,
+			     nveu8_t *sci, nve32_t *key_index,
+			     nveu16_t ctlr)
+{
+	ivc_msg_common_t msg;
+	nve32_t ret = 0;
+
+	osi_memset(&msg, 0, sizeof(msg));
+
+	msg.cmd = macsec_get_sc_lut_key_index;
+	msg.status = osi_memcpy((void *) &msg.data.macsec_cfg.sci,
+				(void *)sci,
+				OSI_SCI_LEN);
+	msg.data.macsec_cfg.ctlr = ctlr;
+
+	ret = osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
+	if (ret != 0) {
+		return ret;
+	}
+
+	*key_index = msg.data.macsec_cfg.key_index;
+	return ret;
 }
 
 /**
@@ -387,9 +426,10 @@ static int ivc_macsec_loopback_config(struct osi_core_priv_data *const osi_core,
  * @retval -1 on Failure
  */
 static int ivc_macsec_kt_config(struct osi_core_priv_data *const osi_core,
-				struct osi_macsec_kt_config *const kt_config)
+				struct osi_macsec_kt_config *kt_config)
 {
 	ivc_msg_common_t msg;
+	int ret = 0;
 
 	osi_memset(&msg, 0, sizeof(msg));
 
@@ -398,7 +438,14 @@ static int ivc_macsec_kt_config(struct osi_core_priv_data *const osi_core,
 				(void *)kt_config,
 				sizeof(struct osi_macsec_kt_config));
 
-	return osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
+	ret = osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
+	if (ret != 0)
+		return ret;
+
+	msg.status = osi_memcpy((void *)kt_config,
+				(void *)&msg.data.kt_config,
+				 sizeof(struct osi_macsec_kt_config));
+	return ret;
 }
 #endif /* MACSEC_KEY_PROGRAM */
 
@@ -435,9 +482,10 @@ static int ivc_macsec_cipher_config(struct osi_core_priv_data *const osi_core,
  * @retval -1 on Failure
  */
 static int ivc_macsec_lut_config(struct osi_core_priv_data *const osi_core,
-				 struct osi_macsec_lut_config *const lut_config)
+				 struct osi_macsec_lut_config *lut_config)
 {
 	ivc_msg_common_t msg;
+	int ret = 0;
 
 	osi_memset(&msg, 0, sizeof(msg));
 
@@ -446,7 +494,14 @@ static int ivc_macsec_lut_config(struct osi_core_priv_data *const osi_core,
 				(void *)lut_config,
 				sizeof(struct osi_macsec_lut_config));
 
-	return osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
+	ret = osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
+	if (ret != 0)
+		return ret;
+
+	msg.status = osi_memcpy((void *)lut_config,
+				(void *)&msg.data.lut_config,
+				sizeof(struct osi_macsec_lut_config));
+	return ret;
 }
 
 /**
@@ -539,6 +594,7 @@ void ivc_init_macsec_ops(void *macsecops)
 	ops->read_mmc = ivc_macsec_read_mmc;
 	ops->dbg_buf_config = ivc_macsec_dbg_buf_config;
 	ops->dbg_events_config = ivc_macsec_dbg_events_config;
+	ops->get_sc_lut_key_index = ivc_get_sc_lut_key_index;
 }
 #endif
 
