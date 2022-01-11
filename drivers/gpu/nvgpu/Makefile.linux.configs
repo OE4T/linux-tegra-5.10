@@ -94,10 +94,6 @@ CONFIG_TEGRA_GK20A_NVHOST := y
 CONFIG_TEGRA_GK20A_NVHOST_HOST1X := y
 endif
 
-ifdef CONFIG_TEGRA_NVMAP_NEXT
-CONFIG_NVGPU_NVMAP_NEXT := y
-endif
-
 # Enable support for GPUs on PCIe bus.
 ifeq ($(CONFIG_PCI),y)
 # Support for NVGPU DGPU
@@ -222,9 +218,6 @@ ccflags-y += -DCONFIG_TEGRA_GK20A_NVHOST
 endif
 ifeq ($(CONFIG_TEGRA_GK20A_NVHOST_HOST1X),y)
 ccflags-y += -DCONFIG_TEGRA_GK20A_NVHOST_HOST1X
-endif
-ifeq ($(CONFIG_NVGPU_NVMAP_NEXT),y)
-ccflags-y += -DCONFIG_NVGPU_NVMAP_NEXT
 endif
 ifeq ($(CONFIG_NVGPU_DGPU),y)
 ccflags-y += -DCONFIG_NVGPU_DGPU
