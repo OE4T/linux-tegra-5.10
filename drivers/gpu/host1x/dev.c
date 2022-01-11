@@ -193,6 +193,18 @@ static const struct host1x_sid_entry tegra194_sid_table[] = {
 		.limit = 0x34
 	},
 	{
+		/* NVDLA */
+		.base = 0x1ba8,
+		.offset = 0x30,
+		.limit = 0x34
+	},
+	{
+		/* NVDLA1 */
+		.base = 0x1bb0,
+		.offset = 0x30,
+		.limit = 0x34
+	},
+	{
 		/* NVENC1 */
 		.base = 0x1bb8,
 		.offset = 0x30,
