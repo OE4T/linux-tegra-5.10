@@ -23,3 +23,5 @@ obj-$(CONFIG_I2C_IOEXPANDER_DESER_MAX9296) += max9296.o
 obj-$(CONFIG_NV_VIDEO_IMX390) += nv_imx390.o
 obj-$(CONFIG_NV_VIDEO_AR0234) += nv_ar0234.o
 obj-$(CONFIG_NV_DESER_MAX96712) += max96712.o
+obj-$(CONFIG_VIDEO_ECAM) += ar1335.o
+ar1335-objs :=  ar1335_common.o

@@ -22,6 +22,15 @@ config NV_VIDEO_IMX477
 	  To compile this driver as a module, choose M here: the module
 	  will be called imx477.
 
+config VIDEO_ECAM
+        tristate "ECAM camera sensor support"
+        depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+        help
+          This driver supports ECAM camera sensor from ECON
+
+          To compile this driver as a module, choose M here: the module
+          will be called ar1335.
+
 config NV_VIDEO_IMX219
         tristate "IMX219 camera sensor support"
 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
