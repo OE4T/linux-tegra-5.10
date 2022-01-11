@@ -688,7 +688,6 @@ static int nvdla_fill_task(struct nvdla_queue *queue,
 	 /* initialize task parameters */
 	task->queue = queue;
 	task->buffers = buffers;
-	task->sp = &nvhost_get_host(pdev)->syncpt;
 
 	err = nvdla_val_task_submit_input(local_task);
 	if (err) {
@@ -852,7 +851,6 @@ static int nvdla_emu_task_submit(struct nvdla_private *priv, void *arg)
 	nvdla_dbg_fn(pdev, "inside emulator task submit");
 
 	task.queue = queue;
-	task.sp = &nvhost_get_host(pdev)->syncpt;
 
 	user_tasks = (struct nvdla_ioctl_emu_submit_task __user *)
 			(uintptr_t)args->tasks;

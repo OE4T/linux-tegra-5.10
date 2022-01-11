@@ -338,7 +338,7 @@ static void nvdla_queue_update(void *priv, int nr_completed)
 	/* check which task(s) finished */
 	list_for_each_entry_safe(task, safe, &queue->tasklist, list) {
 
-		task_complete = nvhost_syncpt_is_expired(task->sp,
+		task_complete = nvhost_syncpt_is_expired_ext(pdev,
 					queue->syncpt_id, task->fence);
 
 		/* clean task and remove from list */
@@ -475,14 +475,12 @@ static int nvdla_add_fence_action_cb(struct nvhost_ctrl_sync_fence_info info, vo
 	struct nvdla_queue *queue = args->queue;
 	u8 **next = args->mem;
 	struct platform_device *pdev = queue->pool->pdev;
-	struct nvhost_master *host = nvhost_get_host(pdev);
-	struct nvhost_syncpt *sp = &host->syncpt;
 	dma_addr_t syncpt_addr;
 
 	id = info.id;
 	thresh = info.thresh;
 
-	if (!id || !nvhost_syncpt_is_valid_hw_pt(sp, id)) {
+	if (!id || !nvhost_syncpt_is_valid_pt_ext(pdev, id)) {
 		nvdla_dbg_err(pdev, "Invalid sync_fd");
 		return -EINVAL;
 	}
@@ -1247,7 +1245,7 @@ int nvdla_emulator_submit(struct nvdla_queue *queue, struct nvdla_emu_task *task
 	}
 
 	/* get fence from nvhost */
-	task->fence = nvhost_syncpt_incr_max(task->sp, queue->syncpt_id,
+	task->fence = nvhost_syncpt_incr_max_ext(pdev, queue->syncpt_id,
 						task->fence_counter);
 
 	nvdla_dbg_fn(pdev, "syncpt[%d] fence[%d] task[%p] fence_counter[%u]",
@@ -1379,7 +1377,7 @@ static int nvdla_queue_submit_op(struct nvdla_queue *queue, void *in_task)
 
 	/* get fence from nvhost for MMIO mode*/
 	if (nvdla_dev->submit_mode == NVDLA_SUBMIT_MODE_MMIO) {
-		task->fence = nvhost_syncpt_incr_max(task->sp,
+		task->fence = nvhost_syncpt_incr_max_ext(pdev,
 						queue->syncpt_id,
 						task->fence_counter);
 	}
@@ -1524,7 +1522,6 @@ static int nvdla_queue_abort_op(struct nvdla_queue *queue)
 	struct nvdla_task *t;
 	struct nvdla_cmd_data cmd_data;
 	struct platform_device *pdev = queue->pool->pdev;
-	struct platform_device *host1x = to_platform_device(pdev->dev.parent);
 	int retry = NVDLA_QUEUE_ABORT_TIMEOUT / NVDLA_QUEUE_ABORT_RETRY_PERIOD;
 
 	nvdla_dbg_fn(pdev, "");
@@ -1568,7 +1565,7 @@ static int nvdla_queue_abort_op(struct nvdla_queue *queue)
 		t = list_last_entry(&queue->tasklist, struct nvdla_task, list);
 
 		/* reset syncpoint to release all tasks */
-		fence = nvhost_syncpt_read_maxval(host1x, queue->syncpt_id);
+		fence = nvhost_syncpt_read_maxval(pdev, queue->syncpt_id);
 		nvhost_syncpt_set_min_update(pdev, queue->syncpt_id, fence);
 
 		/* dump details */

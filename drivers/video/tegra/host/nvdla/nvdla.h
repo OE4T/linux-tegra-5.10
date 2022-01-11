@@ -231,7 +231,6 @@ struct nvdla_device {
  * struct nvdla_emu_task:	structure for emulator task info
  *
  * @queue		Queue in which task submitted
- * @sp			pointer to syncpt
  * @prefences		pointer to pre fences
  * @postfences		pointer to post fences
  * @num_prefences	Number of prefences in task
@@ -242,7 +241,6 @@ struct nvdla_device {
  */
 struct nvdla_emu_task {
 	struct nvdla_queue *queue;
-	struct nvhost_syncpt *sp;
 	struct nvdev_fence prefences[MAX_NVDLA_EMU_PREFENCES_PER_TASK];
 	struct nvdev_fence postfences[MAX_NVDLA_EMU_POSTFENCES_PER_TASK];
 	u32 num_prefences;
@@ -256,7 +254,6 @@ struct nvdla_emu_task {
  *
  * @queue		Queue in which task submitted
  * @buffers		nvhost buffers for priv/task
- * @sp			pointer to syncpt
  * @prefences		pointer to prefences
  * @postfences		pointer to post fences
  * @fence		fence tracking for current task
@@ -272,7 +269,6 @@ struct nvdla_emu_task {
 struct nvdla_task {
 	struct nvdla_queue *queue;
 	struct nvdla_buffers *buffers;
-	struct nvhost_syncpt *sp;
 	struct nvdev_fence prefences[MAX_NVDLA_PREFENCES_PER_TASK];
 	struct nvdev_fence postfences[MAX_NVDLA_POSTFENCES_PER_TASK];
 	struct nvdla_status_notify in_task_status[MAX_NVDLA_IN_STATUS_PER_TASK];
