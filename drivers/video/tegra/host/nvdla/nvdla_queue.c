@@ -1,7 +1,7 @@
 /*
  * NVDLA queue and task management for T194
  *
- * Copyright (c) 2016-2021, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -285,14 +285,6 @@ static void nvdla_task_free_locked(struct nvdla_task *task)
 
 	/* give taks refs */
 	nvdla_task_put(task);
-}
-
-static void nvdla_task_syncpt_reset(struct nvhost_syncpt *syncpt,
-			u32 id, u32 fence)
-{
-	atomic_set(&syncpt->min_val[id], fence);
-	syncpt_op().reset(syncpt, id);
-	nvhost_syncpt_update_min(syncpt, id);
 }
 
 static inline int nvdla_get_max_preaction_size(void)
@@ -1646,9 +1638,8 @@ static int nvdla_queue_submit_op(struct nvdla_queue *queue, void *in_task)
 		if (err) {
 			nvdla_dbg_err(pdev, "task[%p] submit failed", task);
 			/* deletes invalid task from queue, puts refs */
-			nvdla_task_syncpt_reset(task->sp,
-				queue->syncpt_id,
-				task->fence);
+			nvhost_syncpt_set_min_update(pdev, queue->syncpt_id,
+						     task->fence);
 		}
 	}
 
@@ -1770,7 +1761,7 @@ static int nvdla_queue_abort_op(struct nvdla_queue *queue)
 
 		/* reset syncpoint to release all tasks */
 		fence = nvhost_syncpt_read_maxval(host1x, queue->syncpt_id);
-		nvdla_task_syncpt_reset(t->sp, queue->syncpt_id, fence);
+		nvhost_syncpt_set_min_update(pdev, queue->syncpt_id, fence);
 
 		/* dump details */
 		nvdla_dbg_info(pdev, "Q id %d reset syncpt[%d] done",
