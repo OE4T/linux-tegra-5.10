@@ -73,13 +73,15 @@ int ga10b_cbc_alloc_comptags(struct gk20a *g, struct nvgpu_cbc *cbc)
 			nvgpu_readl(g, ltc_ltcs_ltss_cbc_param_r()));
 
 	u64 base_divisor = 0ULL;
-
 	/* check if vidmem is present */
-	bool alloc_vidmem = g->ops.fb.get_vidmem_size != NULL ? true : false;
+	bool alloc_vidmem = false;
 	int err;
 
 	nvgpu_log_fn(g, " ");
 
+#ifdef CONFIG_NVGPU_DGPU
+	alloc_vidmem = g->ops.fb.get_vidmem_size != NULL ? true : false;
+#endif
 	if (max_comptag_lines == 0U) {
 		return 0;
 	}
@@ -171,5 +173,6 @@ int ga10b_cbc_alloc_comptags(struct gk20a *g, struct nvgpu_cbc *cbc)
 
 bool ga10b_cbc_use_contig_pool(struct gk20a *g)
 {
+	(void)g;
 	return true;
 }

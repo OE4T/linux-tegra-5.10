@@ -1,6 +1,8 @@
 /*
- * Copyright (c) 2018-2022, NVIDIA CORPORATION.  All rights reserved.
+ * GP10B FB
  *
+ * Copyright (c) 2022, NVIDIA CORPORATION.  All rights reserved.
+*
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
  * to deal in the Software without restriction, including without limitation
@@ -20,47 +22,21 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/bug.h>
-#include <nvgpu/comptags.h>
+#include <nvgpu/sizes.h>
+#include <nvgpu/gk20a.h>
 
-#include <nvgpu/posix/vm.h>
+#include "fb_gp10b.h"
 
-void gk20a_get_comptags(struct nvgpu_os_buffer *buf,
-			struct gk20a_comptags *comptags)
-{
-	(void)buf;
-	(void)comptags;
-}
-
-int gk20a_alloc_comptags(struct gk20a *g, struct nvgpu_os_buffer *buf,
-			 struct gk20a_comptag_allocator *allocator)
+#ifdef CONFIG_NVGPU_COMPRESSION
+u64 gp10b_fb_compression_page_size(struct gk20a *g)
 {
 	(void)g;
-	(void)buf;
-	(void)allocator;
-	return -ENODEV;
+	return SZ_64K;
 }
 
-void gk20a_alloc_or_get_comptags(struct gk20a *g,
-				 struct nvgpu_os_buffer *buf,
-				 struct gk20a_comptag_allocator *allocator,
-				 struct gk20a_comptags *comptags)
+unsigned int gp10b_fb_compressible_page_size(struct gk20a *g)
 {
 	(void)g;
-	(void)buf;
-	(void)allocator;
-	(void)comptags;
+	return (unsigned int)SZ_4K;
 }
-
-bool gk20a_comptags_start_clear(struct nvgpu_os_buffer *buf)
-{
-	(void)buf;
-	return false;
-}
-
-void gk20a_comptags_finish_clear(struct nvgpu_os_buffer *buf,
-				 bool clear_successful)
-{
-	(void)buf;
-	(void)clear_successful;
-}
+#endif

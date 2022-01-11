@@ -802,7 +802,9 @@ static const struct gops_fb tu104_ops_fb = {
 	.fbpa_ecc_free = tu104_fbpa_ecc_free,
 	.init_hw = gv11b_fb_init_hw,
 	.init_fs_state = gp106_fb_init_fs_state,
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	.set_atomic_mode = tu104_fb_set_atomic_mode,
+#endif
 	.set_mmu_page_size = NULL,
 	.mmu_ctrl = gm20b_fb_mmu_ctrl,
 	.mmu_debug_ctrl = gm20b_fb_mmu_debug_ctrl,
@@ -825,14 +827,18 @@ static const struct gops_fb tu104_ops_fb = {
 	.set_debug_mode = gm20b_fb_set_debug_mode,
 	.set_mmu_debug_mode = gv100_fb_set_mmu_debug_mode,
 #endif
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	.tlb_invalidate = fb_tu104_tlb_invalidate,
+#endif
 #ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 	.handle_replayable_fault = gv11b_fb_handle_replayable_mmu_fault,
 	.mmu_invalidate_replay = tu104_fb_mmu_invalidate_replay,
 #endif
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	.mem_unlock = gv100_fb_memory_unlock,
 	.init_nvlink = gv100_fb_init_nvlink,
 	.enable_nvlink = gv100_fb_enable_nvlink,
+#endif
 	.init_fbpa = tu104_fbpa_init,
 	.handle_fbpa_intr = tu104_fbpa_handle_intr,
 	.write_mmu_fault_buffer_lo_hi = tu104_fb_write_mmu_fault_buffer_lo_hi,
@@ -849,10 +855,12 @@ static const struct gops_fb tu104_ops_fb = {
 	.is_fault_buf_enabled = gv11b_fb_is_fault_buf_enabled,
 	.fault_buf_set_state_hw = gv11b_fb_fault_buf_set_state_hw,
 	.fault_buf_configure_hw = gv11b_fb_fault_buf_configure_hw,
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 #ifdef CONFIG_NVGPU_DGPU
 	.get_vidmem_size = tu104_fb_get_vidmem_size,
 #endif
 	.apply_pdb_cache_errata = tu104_fb_apply_pdb_cache_errata,
+#endif
 };
 
 static const struct gops_nvdec tu104_ops_nvdec = {

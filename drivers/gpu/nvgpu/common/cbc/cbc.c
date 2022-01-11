@@ -117,9 +117,7 @@ static int nvgpu_init_cbc_mem(struct gk20a *g, u64 pa, u64 size)
 	return err;
 }
 
-static int nvgpu_get_mem_from_contigpool(struct gk20a *g,
-			size_t size,
-			struct nvgpu_mem *mem)
+static int nvgpu_get_mem_from_contigpool(struct gk20a *g, size_t size)
 {
 	struct nvgpu_contig_cbcmempool *contig_pool;
 	u64 pa;
@@ -181,8 +179,7 @@ int nvgpu_cbc_alloc(struct gk20a *g, size_t compbit_backing_size,
 		}
 
 		return nvgpu_get_mem_from_contigpool(g,
-				compbit_backing_size,
-				&cbc->compbit_store.mem);
+				compbit_backing_size);
 	} else
 #endif
 	{

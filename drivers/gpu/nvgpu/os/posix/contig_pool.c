@@ -1,8 +1,6 @@
 /*
- * GP10B FB
+ * Copyright (c) 2022, NVIDIA CORPORATION.  All rights reserved.
  *
- * Copyright (c) 2014-2022, NVIDIA CORPORATION.  All rights reserved.
-*
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
  * to deal in the Software without restriction, including without limitation
@@ -21,22 +19,17 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-
-#include <nvgpu/sizes.h>
+#include <nvgpu/nvgpu_ivm.h>
 #include <nvgpu/gk20a.h>
 
-#include "fb_gp10b.h"
-
-#ifdef CONFIG_NVGPU_COMPRESSION
-u64 gp10b_fb_compression_page_size(struct gk20a *g)
+int nvgpu_cbc_contig_init(struct gk20a *g)
 {
 	(void)g;
-	return SZ_64K;
+	return 0;
 }
 
-unsigned int gp10b_fb_compressible_page_size(struct gk20a *g)
+void nvgpu_cbc_contig_deinit(struct gk20a *g)
 {
 	(void)g;
-	return (unsigned int)SZ_4K;
+
 }
-#endif

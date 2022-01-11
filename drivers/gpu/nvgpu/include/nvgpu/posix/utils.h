@@ -216,7 +216,6 @@
  */
 #define round_mask(x, y)	((__typeof__(x))((y) - 1U))
 
-#ifdef CONFIG_NVGPU_NON_FUSA
 /**
  * @brief Round up the value of its argument \a x.
  *
@@ -230,7 +229,6 @@
  * @return Rounded up value of \a x.
  */
 #define round_up(x, y)		((((x) - 1U) | round_mask(x, y)) + 1U)
-#endif
 
 /**
  * @brief Round down the value of its argument \a x.

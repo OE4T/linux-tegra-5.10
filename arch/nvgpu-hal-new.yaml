@@ -471,10 +471,6 @@ mm:
                  hal/mm/cache/flush_gk20a.h,
                  hal/mm/cache/flush_gv11b_fusa.c,
                  hal/mm/cache/flush_gv11b.h ]
-    cache:
-      safe: no
-      sources: [ hal/mm/cache/flush_gk20a.c ]
-
     mmu_fault:
       safe: yes
       sources: [ hal/mm/mmu_fault/mmu_fault_gv11b_fusa.c,
@@ -804,6 +800,8 @@ fb_fusa:
              hal/fb/fb_gm20b.h,
              hal/fb/fb_gv11b_fusa.c,
              hal/fb/fb_gv11b.h,
+             hal/fb/fb_gp10b_fusa.c, hal/fb/fb_gp10b.h,
+             hal/fb/fb_tu104_fusa.c, hal/fb/fb_tu104.h,
              hal/fb/ecc/fb_ecc_gv11b.h, hal/fb/ecc/fb_ecc_gv11b_fusa.c,
              hal/fb/intr/fb_intr_gv11b.h, hal/fb/intr/fb_intr_gv11b_fusa.c,
              hal/fb/fb_mmu_fault_gv11b.h, hal/fb/fb_mmu_fault_gv11b_fusa.c,
@@ -824,10 +822,8 @@ fb:
   owner: Seshendra G
   sources: [ hal/fb/fb_gm20b.c,
              hal/fb/fb_gp106.c, hal/fb/fb_gp106.h,
-             hal/fb/fb_gp10b.c, hal/fb/fb_gp10b.h,
              hal/fb/fb_gv100.c, hal/fb/fb_gv100.h,
-             hal/fb/fb_gv11b.c,
-             hal/fb/fb_tu104.c, hal/fb/fb_tu104.h,
+             hal/fb/fb_tu104.c,
              hal/fb/intr/fb_intr_gv100.h, hal/fb/intr/fb_intr_gv100.c,
              hal/fb/fb_mmu_fault_tu104.h, hal/fb/fb_mmu_fault_tu104.c,
              hal/fb/intr/fb_intr_tu104.c, hal/fb/intr/fb_intr_tu104.h,

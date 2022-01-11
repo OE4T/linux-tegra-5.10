@@ -382,9 +382,7 @@ nvgpu-y += \
 	hal/ltc/intr/ltc_intr_gm20b.o \
 	hal/ltc/intr/ltc_intr_gp10b.o \
 	hal/fb/fb_gm20b.o \
-	hal/fb/fb_gp10b.o \
 	hal/fb/fb_gp106.o \
-	hal/fb/fb_gv11b.o \
 	hal/fb/intr/fb_intr_ecc_gv11b.o \
 	hal/fuse/fuse_gm20b.o \
 	hal/fifo/fifo_gk20a.o \
@@ -736,6 +734,8 @@ nvgpu-y += \
 	hal/falcon/falcon_gk20a_fusa.o \
 	hal/fb/fb_gm20b_fusa.o \
 	hal/fb/fb_gv11b_fusa.o \
+	hal/fb/fb_gp10b_fusa.o \
+	hal/fb/fb_tu104_fusa.o \
 	hal/fb/fb_mmu_fault_gv11b_fusa.o \
 	hal/fb/ecc/fb_ecc_gv11b_fusa.o \
 	hal/fb/intr/fb_intr_ecc_gv11b_fusa.o \
@@ -827,7 +827,6 @@ nvgpu-$(CONFIG_NVGPU_HAL_NON_FUSA) += \
 	hal/ltc/ltc_gm20b.o \
 	hal/ltc/ltc_gm20b_dbg.o \
 	hal/mc/mc_gm20b.o \
-	hal/mm/cache/flush_gk20a.o \
 	hal/mm/mm_gm20b.o \
 	hal/mm/mm_gk20a.o \
 	hal/mm/gmmu/gmmu_gk20a.o \

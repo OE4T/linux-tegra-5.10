@@ -915,7 +915,9 @@ static const struct gops_fb ga100_ops_fb = {
 	.set_debug_mode = gm20b_fb_set_debug_mode,
 	.set_mmu_debug_mode = gv100_fb_set_mmu_debug_mode,
 #endif
+#ifdef CONFIG_NVGPU_NON_FUSA
 	.tlb_invalidate = fb_tu104_tlb_invalidate,
+#endif
 #ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 	.handle_replayable_fault = gv11b_fb_handle_replayable_mmu_fault,
 	.mmu_invalidate_replay = tu104_fb_mmu_invalidate_replay,
@@ -938,8 +940,10 @@ static const struct gops_fb ga100_ops_fb = {
 	.fault_buf_set_state_hw = gv11b_fb_fault_buf_set_state_hw,
 	.fault_buf_configure_hw = gv11b_fb_fault_buf_configure_hw,
 	.get_num_active_ltcs = ga10b_fb_get_num_active_ltcs,
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 #ifdef CONFIG_NVGPU_DGPU
 	.get_vidmem_size = tu104_fb_get_vidmem_size,
+#endif
 #endif
 #ifdef CONFIG_NVGPU_MIG
 	.config_veid_smc_map = ga10b_fb_config_veid_smc_map,
