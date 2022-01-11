@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (C) 2010 Google, Inc.
- * Copyright (c) 2012-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -258,6 +258,8 @@ struct sdhci_tegra {
 	struct pinctrl_state *pinctrl_state_1v8;
 	struct pinctrl_state *pinctrl_state_3v3_drv;
 	struct pinctrl_state *pinctrl_state_1v8_drv;
+	struct pinctrl_state *pinctrl_state_sdexp_disable;
+	struct pinctrl_state *pinctrl_state_sdexp_enable;
 	bool slcg_status;
 	unsigned int tuning_status;
 	#define TUNING_STATUS_DONE	1
@@ -1761,6 +1763,27 @@ static bool tegra_sdhci_skip_retuning(struct sdhci_host *host)
 	return false;
 }
 
+static void tegra_sdhci_init_sdexp_pinctrl_info(struct sdhci_tegra *tegra_host)
+{
+	if (IS_ERR_OR_NULL(tegra_host->pinctrl_sdmmc)) {
+		pr_debug("No pinctrl info for SD express selection\n");
+			return;
+	}
+
+	tegra_host->pinctrl_state_sdexp_disable = pinctrl_lookup_state(
+				tegra_host->pinctrl_sdmmc, "sdmmc-sdexp-disable");
+	if (IS_ERR(tegra_host->pinctrl_state_sdexp_disable)) {
+		if (PTR_ERR(tegra_host->pinctrl_state_sdexp_disable) == -ENODEV)
+			tegra_host->pinctrl_state_sdexp_disable = NULL;
+	}
+
+	tegra_host->pinctrl_state_sdexp_enable = pinctrl_lookup_state(
+				tegra_host->pinctrl_sdmmc, "sdmmc-sdexp-enable");
+	if (IS_ERR(tegra_host->pinctrl_state_sdexp_enable)) {
+		if (PTR_ERR(tegra_host->pinctrl_state_sdexp_enable) == -ENODEV)
+			tegra_host->pinctrl_state_sdexp_enable = NULL;
+	}
+}
 static int tegra_sdhci_init_pinctrl_info(struct device *dev,
 					 struct sdhci_tegra *tegra_host)
 {
@@ -2134,6 +2157,27 @@ static void sdhci_tegra_sd_express_mode_select(struct sdhci_host *host, bool req
 {
 	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
 	struct sdhci_tegra *tegra_host = sdhci_pltfm_priv(pltfm_host);
+	int ret;
+
+	if (req) {
+		if (!IS_ERR_OR_NULL(tegra_host->pinctrl_state_sdexp_enable)) {
+			ret = pinctrl_select_state(tegra_host->pinctrl_sdmmc,
+						tegra_host->pinctrl_state_sdexp_enable);
+			if (ret < 0) {
+				pr_err("%s: Dynamic switch to SD express mode failed\n",
+						mmc_hostname(host->mmc));
+			}
+		}
+	} else {
+		if (!IS_ERR_OR_NULL(tegra_host->pinctrl_state_sdexp_disable)) {
+			ret = pinctrl_select_state(tegra_host->pinctrl_sdmmc,
+						tegra_host->pinctrl_state_sdexp_disable);
+			if (ret < 0) {
+				pr_err("%s: Dynamic switch to SD mode operation failed\n",
+						mmc_hostname(host->mmc));
+			}
+		}
+	}
 
 	if (gpio_is_valid(tegra_host->mux_sel_gpio)) {
 		if (req == false) {
@@ -2913,6 +2957,7 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 	if (host->mmc->caps2 & MMC_CAP2_SD_EXPRESS_SUPPORT) {
 		BLOCKING_INIT_NOTIFIER_HEAD(&tegra_host->notifier_from_sd);
 		BLOCKING_INIT_NOTIFIER_HEAD(&tegra_host->notifier_to_sd);
+		tegra_sdhci_init_sdexp_pinctrl_info(tegra_host);
 		sdhci_tegra_sd_express_mode_select(host, false);
 		tegra_host->sd_exp_support = true;
 	}
