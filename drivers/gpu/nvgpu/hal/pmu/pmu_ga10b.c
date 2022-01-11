@@ -38,7 +38,18 @@ bool ga10b_is_pmu_supported(struct gk20a *g)
 {
 	(void)g;
 #ifdef CONFIG_NVGPU_LS_PMU
-	return nvgpu_platform_is_simulation(g) ? false : true;
+	if (nvgpu_platform_is_silicon(g)) {
+		return true;
+	} else {
+		/* Pre-Si platforms */
+		if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
+			/* Security is enabled - PMU is supported. */
+			return true;
+		} else {
+			/* NS PMU is not supported */
+			return false;
+		}
+	}
 #else
 	/* set to false to disable LS PMU ucode support */
 	return false;
