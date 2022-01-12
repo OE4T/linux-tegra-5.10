@@ -1,7 +1,7 @@
 /*
  * dma_buf exporter for nvmap
  *
- * Copyright (c) 2012-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -585,6 +585,7 @@ int __nvmap_dmabuf_fd(struct nvmap_client *client,
 #if !defined(NVMAP_CONFIG_HANDLE_AS_ID) && !defined(NVMAP_LOADABLE_MODULE)
 	int start_fd = NVMAP_CONFIG_FD_START;
 #endif
+	int ret;
 
 #ifdef NVMAP_CONFIG_DEFER_FD_RECYCLE
 	if (client->next_fd < NVMAP_CONFIG_FD_START)
@@ -600,10 +601,13 @@ int __nvmap_dmabuf_fd(struct nvmap_client *client,
 	 * pselect() syscalls.
 	 */
 #if defined(NVMAP_LOADABLE_MODULE) || defined(NVMAP_CONFIG_HANDLE_AS_ID)
-	return get_unused_fd_flags(flags);
+	ret = get_unused_fd_flags(flags);
 #else
-	return __alloc_fd(current->files, start_fd, sysctl_nr_open, flags);
+	ret =  __alloc_fd(current->files, start_fd, sysctl_nr_open, flags);
 #endif
+	if (ret == -EMFILE)
+		pr_err("NvMap: FD limit is crossed\n");
+	return ret;
 }
 
 static struct dma_buf *__nvmap_dmabuf_export(struct nvmap_client *client,
