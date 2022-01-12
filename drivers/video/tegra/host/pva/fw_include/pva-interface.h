@@ -305,8 +305,8 @@ static inline uint32_t pva_cmd_pva_uptime(struct pva_cmd_s *const cmd,
 					  const pva_vpu_id_t vpu,
 					  const uint32_t flags)
 {
-	cmd->mbox[0] = pva_cmd_get_status(PVA_UPTIME, flags) |
-		       PVA_INSERT(vpu, 23U, 16U);
+	(void) vpu; /*For Future use*/
+	cmd->mbox[0] = pva_cmd_get_status(PVA_UPTIME, flags);
 	return 1U;
 }
 
