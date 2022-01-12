@@ -387,6 +387,7 @@ void adspff_fwrite(void)
 				(msgq_message_t *)&message);
 	if (ret < 0) {
 		pr_err("fwrite Dequeue failed %d.", ret);
+		kfree(msg_recv);
 		return;
 	}
 
