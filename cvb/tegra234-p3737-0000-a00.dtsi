@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,6 +67,23 @@
 				label = "super-module";
 			};
 		};
+
+		bus@2 {
+			i2c-bus = <&cam_i2c>;
+			eeprom@0 {
+				slave-address = <0x54>;
+				label = "sensor0";
+			};
+			eeprom@1 {
+				slave-address = <0x57>;
+				label = "sensor1";
+			};
+			eeprom@2 {
+				slave-address = <0x52>;
+				label = "sensor2";
+			};
+		};
+
 	};
 
 	ufshci@2500000 {
