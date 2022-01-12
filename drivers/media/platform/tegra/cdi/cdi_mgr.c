@@ -1743,6 +1743,9 @@ static int cdi_mgr_probe(struct platform_device *pdev)
 					__func__, cdi_mgr->max20087.bus);
 				goto err_probe;
 			}
+			/* Mask UV interrupt */
+			if (max20087_raw_wr(cdi_mgr, 0x00, 0x01) != 0)
+				goto err_probe;
 		}
 		/* get the I/O expander information */
 		child_tca9539 = of_get_child_by_name(child, "tca9539");
@@ -1805,21 +1808,21 @@ static int cdi_mgr_probe(struct platform_device *pdev)
 				dev_err(&pdev->dev,
 						"%s: ERR %d: TCA9539: Failed to select PWDN signal source\n",
 						__func__, err);
-				return -EFAULT;
+				goto err_probe;
 			}
 			/* Output mode for AGGA/B/C/D_PWRDN */
 			if (tca9539_raw_wr(cdi_mgr, 0x6, 0x0F) != 0) {
 				dev_err(&pdev->dev,
 						"%s: ERR %d: TCA9539: Failed to set the output mode\n",
 						__func__, err);
-				return -EFAULT;
+				goto err_probe;
 			}
 			/* Output low for AGGA/B/C/D_PWRDN */
 			if (tca9539_raw_wr(cdi_mgr, 0x2, 0x0F) != 0) {
 				dev_err(&pdev->dev,
 						"%s: ERR %d: TCA9539: Failed to set the output level\n",
 						__func__, err);
-				return -EFAULT;
+				goto err_probe;
 			}
 		}
 	}
