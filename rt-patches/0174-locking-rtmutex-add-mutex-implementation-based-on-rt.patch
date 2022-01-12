@@ -1,7 +1,7 @@
-From 0febf090f7193df1a6cbf4c51a58c644beeb578b Mon Sep 17 00:00:00 2001
+From 49451c0903781cac2f9e3e2248d21c6d39d6aa4d Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Thu, 12 Oct 2017 17:17:03 +0200
-Subject: [PATCH 174/304] locking/rtmutex: add mutex implementation based on
+Subject: [PATCH 174/315] locking/rtmutex: add mutex implementation based on
  rtmutex
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>

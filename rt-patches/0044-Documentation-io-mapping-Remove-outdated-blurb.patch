@@ -1,7 +1,7 @@
-From f7ab99b38129e6fda6bc74a28b837401ef37cd3a Mon Sep 17 00:00:00 2001
+From 3921ff246db1f5edab04e85e963898435b6b48b5 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:33 +0100
-Subject: [PATCH 044/304] Documentation/io-mapping: Remove outdated blurb
+Subject: [PATCH 044/315] Documentation/io-mapping: Remove outdated blurb
 
 The implementation details in the documentation are outdated and not really
 helpful. Remove them.

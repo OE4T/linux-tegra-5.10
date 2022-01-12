@@ -1,7 +1,7 @@
-From 2b9e3cc092d6c4623674164983c437553549307c Mon Sep 17 00:00:00 2001
+From e3099a94dcef9658b2d6c6822761f0568809f821 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:34 +0100
-Subject: [PATCH 045/304] highmem: High implementation details and document API
+Subject: [PATCH 045/315] highmem: High implementation details and document API
 
 Move the gory details of kmap & al into a private header and only document
 the interfaces which are usable by drivers.

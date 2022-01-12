@@ -1,7 +1,7 @@
-From 1d120bb338868b2c12d6f86bd4ce1b8178bbd919 Mon Sep 17 00:00:00 2001
+From 555cc6539cccf121d81fedac45d893a119eae54b Mon Sep 17 00:00:00 2001
 From: Frederic Weisbecker <frederic@kernel.org>
 Date: Wed, 2 Dec 2020 12:57:28 +0100
-Subject: [PATCH 127/304] sched/cputime: Remove symbol exports from IRQ time
+Subject: [PATCH 127/315] sched/cputime: Remove symbol exports from IRQ time
  accounting
 
 account_irq_enter_time() and account_irq_exit_time() are not called

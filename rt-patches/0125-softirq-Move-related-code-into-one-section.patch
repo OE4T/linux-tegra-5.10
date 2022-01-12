@@ -1,7 +1,7 @@
-From 00671b23a59ec2dbfd9dedb4f56d9ddaadebdbef Mon Sep 17 00:00:00 2001
+From 4c09907cd74132e3be0c0a0f3d9c6e656622c9d3 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Fri, 13 Nov 2020 15:02:18 +0100
-Subject: [PATCH 125/304] softirq: Move related code into one section
+Subject: [PATCH 125/315] softirq: Move related code into one section
 
 To prepare for adding a RT aware variant of softirq serialization and
 processing move related code into one section so the necessary #ifdeffery

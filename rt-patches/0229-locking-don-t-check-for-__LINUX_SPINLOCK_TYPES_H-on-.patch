@@ -1,7 +1,7 @@
-From 890b1cdbf63699a807e7fcb98f99b78725112d15 Mon Sep 17 00:00:00 2001
+From 138472e7c4d41e289b96e5c70c50db5d3dffb843 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Fri, 4 Aug 2017 17:40:42 +0200
-Subject: [PATCH 229/304] locking: don't check for __LINUX_SPINLOCK_TYPES_H on
+Subject: [PATCH 229/315] locking: don't check for __LINUX_SPINLOCK_TYPES_H on
  -RT archs
 
 Upstream uses arch_spinlock_t within spinlock_t and requests that

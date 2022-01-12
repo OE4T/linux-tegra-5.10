@@ -1,7 +1,7 @@
-From 81ea9e35da81fd301fb7876f9097cd56e48c8e6b Mon Sep 17 00:00:00 2001
+From 525988fc263263b08391e79ee1ad738aab4cab42 Mon Sep 17 00:00:00 2001
 From: Scott Wood <swood@redhat.com>
 Date: Tue, 15 Dec 2020 15:16:46 +0100
-Subject: [PATCH 072/304] rcu: Unconditionally use rcuc threads on PREEMPT_RT
+Subject: [PATCH 072/315] rcu: Unconditionally use rcuc threads on PREEMPT_RT
 
 PREEMPT_RT systems have long used the rcutree.use_softirq kernel
 boot parameter to avoid use of RCU_SOFTIRQ handlers, which can disrupt
@@ -30,7 +30,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  2 files changed, 7 insertions(+), 1 deletion(-)
 
 diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-index f103667..181cebf 100644
+index 516499f..46641ef 100644
 --- a/Documentation/admin-guide/kernel-parameters.txt
 +++ b/Documentation/admin-guide/kernel-parameters.txt
 @@ -4091,6 +4091,10 @@

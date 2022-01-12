@@ -1,7 +1,7 @@
-From e9b2eeaed91a6e199b4ec3d0a15253d76c2d7091 Mon Sep 17 00:00:00 2001
+From 576baa48f06b0567e169e620df11359165435303 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 3 Feb 2021 11:05:25 -0500
-Subject: [PATCH 078/304] tracing: Use in_serving_softirq() to deduct softirq
+Subject: [PATCH 078/315] tracing: Use in_serving_softirq() to deduct softirq
  status.
 
 PREEMPT_RT does not report "serving softirq" because the tracing core

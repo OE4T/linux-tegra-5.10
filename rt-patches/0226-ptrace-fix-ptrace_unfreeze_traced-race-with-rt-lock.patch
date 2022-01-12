@@ -1,7 +1,7 @@
-From 2ea5536610951236a74a5920c68ed8744c85f21b Mon Sep 17 00:00:00 2001
+From df4105985132b8c5b77883a1b5950108d20f0ea9 Mon Sep 17 00:00:00 2001
 From: Oleg Nesterov <oleg@redhat.com>
 Date: Tue, 3 Nov 2020 12:39:01 +0100
-Subject: [PATCH 226/304] ptrace: fix ptrace_unfreeze_traced() race with
+Subject: [PATCH 226/315] ptrace: fix ptrace_unfreeze_traced() race with
  rt-lock
 
 The patch "ptrace: fix ptrace vs tasklist_lock race" changed

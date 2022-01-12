@@ -1,7 +1,7 @@
-From 681135bbe8cd3961a72e598f6ccd9741e088f10a Mon Sep 17 00:00:00 2001
+From d1fda5139c88662ac7f2342ef84e132a85622b42 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:30 +0100
-Subject: [PATCH 041/304] highmem: Get rid of kmap_types.h
+Subject: [PATCH 041/315] highmem: Get rid of kmap_types.h
 
 The header is not longer used and on alpha, ia64, openrisc, parisc and um
 it was completely unused anyway as these architectures have no highmem

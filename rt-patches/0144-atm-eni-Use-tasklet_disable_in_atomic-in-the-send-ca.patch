@@ -1,7 +1,7 @@
-From 86c67f0476a141a4a4ae1eceb9e8ec22dab508a3 Mon Sep 17 00:00:00 2001
+From 4107642c21ef82f0ef43c8af1e281a7f0c93a716 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 9 Mar 2021 09:42:14 +0100
-Subject: [PATCH 144/304] atm: eni: Use tasklet_disable_in_atomic() in the
+Subject: [PATCH 144/315] atm: eni: Use tasklet_disable_in_atomic() in the
  send() callback
 
 The atmdev_ops::send callback which calls tasklet_disable() is invoked with

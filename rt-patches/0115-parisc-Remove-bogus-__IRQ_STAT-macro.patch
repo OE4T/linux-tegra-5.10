@@ -1,7 +1,7 @@
-From d984d47af5cc77ee119da85fea3a2f10646864d5 Mon Sep 17 00:00:00 2001
+From 0d35f0e8b5972c8979fc0ac96415d752588ee336 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Fri, 13 Nov 2020 15:02:08 +0100
-Subject: [PATCH 115/304] parisc: Remove bogus __IRQ_STAT macro
+Subject: [PATCH 115/315] parisc: Remove bogus __IRQ_STAT macro
 
 This is a leftover from a historical array based implementation and unused.
 

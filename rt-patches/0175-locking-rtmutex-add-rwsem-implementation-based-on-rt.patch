@@ -1,7 +1,7 @@
-From 8128b99208cdbc10ec6b220a562c9206297f4472 Mon Sep 17 00:00:00 2001
+From 0137136defdefd17a858844a23f606a2dd47b9be Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Thu, 12 Oct 2017 17:28:34 +0200
-Subject: [PATCH 175/304] locking/rtmutex: add rwsem implementation based on
+Subject: [PATCH 175/315] locking/rtmutex: add rwsem implementation based on
  rtmutex
 
 The RT specific R/W semaphore implementation restricts the number of readers

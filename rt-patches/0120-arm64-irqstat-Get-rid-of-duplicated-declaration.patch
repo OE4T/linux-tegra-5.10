@@ -1,7 +1,7 @@
-From f1da1682f9b313c4071e7786be439c6e00510a54 Mon Sep 17 00:00:00 2001
+From 7148e1be83ab21db336dc6b2ce9c3e08980deae5 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Fri, 13 Nov 2020 15:02:13 +0100
-Subject: [PATCH 120/304] arm64: irqstat: Get rid of duplicated declaration
+Subject: [PATCH 120/315] arm64: irqstat: Get rid of duplicated declaration
 
 irq_cpustat_t is exactly the same as the asm-generic one. Define
 ack_bad_irq so the generic header does not emit the generic version of it.

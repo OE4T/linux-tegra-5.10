@@ -1,7 +1,7 @@
-From 8f0d0df9b9005a72e90928e9324225f2678ff122 Mon Sep 17 00:00:00 2001
+From 8a8d587aefad95ae8a4aaf1184d8897e4eddc04f Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 29 Sep 2020 16:32:49 +0200
-Subject: [PATCH 160/304] locking/rtmutex: Move rt_mutex_init() outside of
+Subject: [PATCH 160/315] locking/rtmutex: Move rt_mutex_init() outside of
  CONFIG_DEBUG_RT_MUTEXES
 
 rt_mutex_init() only initializes lockdep if CONFIG_DEBUG_RT_MUTEXES is

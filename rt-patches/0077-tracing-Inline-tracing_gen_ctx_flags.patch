@@ -1,7 +1,7 @@
-From 555e2a9fd8120d56224b27e67bfad54d2c36db5e Mon Sep 17 00:00:00 2001
+From 26d7a8fe9461782519305999195b63e13b4f8726 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 3 Feb 2021 11:05:24 -0500
-Subject: [PATCH 077/304] tracing: Inline tracing_gen_ctx_flags()
+Subject: [PATCH 077/315] tracing: Inline tracing_gen_ctx_flags()
 
 Inline tracing_gen_ctx_flags(). This allows to have one ifdef
 CONFIG_TRACE_IRQFLAGS_SUPPORT.
@@ -23,7 +23,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  3 files changed, 53 insertions(+), 58 deletions(-)
 
 diff --git a/include/linux/trace_events.h b/include/linux/trace_events.h
-index 091250b0..67ae708 100644
+index 409385b..1225ff2 100644
 --- a/include/linux/trace_events.h
 +++ b/include/linux/trace_events.h
 @@ -160,9 +160,57 @@ static inline void tracing_generic_entry_update(struct trace_entry *entry,
@@ -149,7 +149,7 @@ index ae0c7eb2..7fe1947 100644
  trace_buffer_lock_reserve(struct trace_buffer *buffer,
  			  int type,
 diff --git a/kernel/trace/trace.h b/kernel/trace/trace.h
-index b37601b..2ad9fae 100644
+index 3e6f5f9..bfb9fe2 100644
 --- a/kernel/trace/trace.h
 +++ b/kernel/trace/trace.h
 @@ -136,25 +136,6 @@ struct kretprobe_trace_entry_head {

@@ -1,7 +1,7 @@
-From e40053d706ec4beaa54701e6fc00176440804151 Mon Sep 17 00:00:00 2001
+From 2119f4e66844b86351874f4d878a82bb4945e757 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 9 Mar 2021 09:42:13 +0100
-Subject: [PATCH 143/304] ath9k: Use tasklet_disable_in_atomic()
+Subject: [PATCH 143/315] ath9k: Use tasklet_disable_in_atomic()
 
 All callers of ath9k_beacon_ensure_primary_slot() are preemptible /
 acquire a mutex except for this callchain:

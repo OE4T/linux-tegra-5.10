@@ -1,7 +1,7 @@
-From bb09212b8ed42ae4e286c402fcc1da5e2e6bdaba Mon Sep 17 00:00:00 2001
+From 04d16b04941941bf80e404d7601835257bd33df7 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 2 Feb 2021 18:01:04 +0100
-Subject: [PATCH 155/304] chelsio: cxgb: Disable the card on error in threaded
+Subject: [PATCH 155/315] chelsio: cxgb: Disable the card on error in threaded
  interrupt
 
 t1_fatal_err() is invoked from the interrupt handler. The bad part is
@@ -37,7 +37,7 @@ index e999a9b..0321be7 100644
  void t1_link_negotiated(adapter_t *adapter, int port_id, int link_stat,
  			    int speed, int duplex, int pause);
 diff --git a/drivers/net/ethernet/chelsio/cxgb/cxgb2.c b/drivers/net/ethernet/chelsio/cxgb/cxgb2.c
-index bd6f3c5..512da98 100644
+index 737c241..2a28a38 100644
 --- a/drivers/net/ethernet/chelsio/cxgb/cxgb2.c
 +++ b/drivers/net/ethernet/chelsio/cxgb/cxgb2.c
 @@ -917,16 +917,6 @@ static void mac_stats_task(struct work_struct *work)

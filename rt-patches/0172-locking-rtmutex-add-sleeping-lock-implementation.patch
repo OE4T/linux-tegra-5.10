@@ -1,7 +1,7 @@
-From 45faebf1d1d64b535f8574cbfb17821821904f0c Mon Sep 17 00:00:00 2001
+From 4ba70500747c3db1a0620b1fba6cdd5bd04fa60e Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Thu, 12 Oct 2017 17:11:19 +0200
-Subject: [PATCH 172/304] locking/rtmutex: add sleeping lock implementation
+Subject: [PATCH 172/315] locking/rtmutex: add sleeping lock implementation
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
@@ -108,7 +108,7 @@ index b828b93..b02009f 100644
  #define DEFINE_RT_MUTEX(mutexname) \
  	struct rt_mutex mutexname = __RT_MUTEX_INITIALIZER(mutexname)
 diff --git a/include/linux/sched.h b/include/linux/sched.h
-index f8d30d5..091e439 100644
+index b8328f2..9228d80 100644
 --- a/include/linux/sched.h
 +++ b/include/linux/sched.h
 @@ -141,6 +141,9 @@ struct io_uring_task;
@@ -368,7 +368,7 @@ index 00000000..446da78
 +
 +#endif
 diff --git a/kernel/fork.c b/kernel/fork.c
-index 32dfa3c..9efcb11 100644
+index 7760e7c..73a2454 100644
 --- a/kernel/fork.c
 +++ b/kernel/fork.c
 @@ -927,6 +927,7 @@ static struct task_struct *dup_task_struct(struct task_struct *orig, int node)
@@ -1139,7 +1139,7 @@ index 9d1e974..c1a2801 100644
  #ifdef CONFIG_DEBUG_RT_MUTEXES
  # include "rtmutex-debug.h"
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 53200f8..7232d05 100644
+index b4906c4..1c1fa2c 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -510,9 +510,15 @@ static bool set_nr_if_polling(struct task_struct *p)

@@ -1,7 +1,7 @@
-From 12710ee84b7a2bda1ca2d77878a0cd789f1c3de6 Mon Sep 17 00:00:00 2001
+From abaddc8ff2a8df61574f72c84774bba88ace225c Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 9 Mar 2021 09:42:07 +0100
-Subject: [PATCH 137/304] tasklets: Use spin wait in tasklet_disable()
+Subject: [PATCH 137/315] tasklets: Use spin wait in tasklet_disable()
  temporarily
 
 To ease the transition use spin waiting in tasklet_disable() until all

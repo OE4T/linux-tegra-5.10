@@ -1,7 +1,7 @@
-From 16bc1954f046256ce8ff28aaf0384bc8a41b1149 Mon Sep 17 00:00:00 2001
+From ffa3f1e13b3aa76570c4a1a5706c6e9384614287 Mon Sep 17 00:00:00 2001
 From: Valentin Schneider <valentin.schneider@arm.com>
 Date: Fri, 23 Oct 2020 12:12:17 +0200
-Subject: [PATCH 020/304] sched: Comment affine_move_task()
+Subject: [PATCH 020/315] sched: Comment affine_move_task()
 
 Signed-off-by: Valentin Schneider <valentin.schneider@arm.com>
 Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
@@ -12,7 +12,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 79 insertions(+), 2 deletions(-)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 7da0405..1ca1e55 100644
+index 0cf0c72..93b58e2 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -2089,7 +2089,75 @@ void do_set_cpus_allowed(struct task_struct *p, const struct cpumask *new_mask)

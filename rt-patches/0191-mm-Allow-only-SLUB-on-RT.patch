@@ -1,7 +1,7 @@
-From f0554fadf5a7303ff854b5c67f97ecd42c507abc Mon Sep 17 00:00:00 2001
+From 2fce1d3785aafe60fe9c3e1629c52a0e844a39be Mon Sep 17 00:00:00 2001
 From: Ingo Molnar <mingo@elte.hu>
 Date: Fri, 3 Jul 2009 08:44:03 -0500
-Subject: [PATCH 191/304] mm: Allow only SLUB on RT
+Subject: [PATCH 191/315] mm: Allow only SLUB on RT
 
 Memory allocation disables interrupts as part of the allocation and freeing
 process. For -RT it is important that this section remain short and don't

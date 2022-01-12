@@ -1,7 +1,7 @@
-From ae7686aaf29dc8e94c95ce5437a85a26a3a60711 Mon Sep 17 00:00:00 2001
+From 9d310d9b8609da2afdf9cc6f59500a7428a3ada5 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:23 +0100
-Subject: [PATCH 034/304] csky/mm/highmem: Switch to generic kmap atomic
+Subject: [PATCH 034/315] csky/mm/highmem: Switch to generic kmap atomic
 
 No reason having the same code in every architecture.
 

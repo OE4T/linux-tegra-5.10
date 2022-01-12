@@ -1,7 +1,7 @@
-From 43f13c34f18d62d434ba91a42363aacedee503e2 Mon Sep 17 00:00:00 2001
+From 4bde1777d992602709ef125d1da6754d76686fca Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:35 +0100
-Subject: [PATCH 046/304] sched: Make migrate_disable/enable() independent of
+Subject: [PATCH 046/315] sched: Make migrate_disable/enable() independent of
  RT
 
 Now that the scheduler can deal with migrate disable properly, there is no
@@ -149,7 +149,7 @@ index 8b43922..6df63cbe 100644
  
  #endif /* __LINUX_PREEMPT_H */
 diff --git a/include/linux/sched.h b/include/linux/sched.h
-index a7020a5..1cf7938 100644
+index 6b8eac7..283336a 100644
 --- a/include/linux/sched.h
 +++ b/include/linux/sched.h
 @@ -731,7 +731,7 @@ struct task_struct {
@@ -162,7 +162,7 @@ index a7020a5..1cf7938 100644
  #endif
  	unsigned short			migration_flags;
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 772d49f..2947853 100644
+index 90805fc..77cef49 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -1705,8 +1705,6 @@ void check_preempt_curr(struct rq *rq, struct task_struct *p, int flags)
@@ -212,7 +212,7 @@ index 772d49f..2947853 100644
  
  static void
  ttwu_stat(struct task_struct *p, int cpu, int wake_flags)
-@@ -7893,6 +7885,39 @@ void __cant_sleep(const char *file, int line, int preempt_offset)
+@@ -7894,6 +7886,39 @@ void __cant_sleep(const char *file, int line, int preempt_offset)
  	add_taint(TAINT_WARN, LOCKDEP_STILL_OK);
  }
  EXPORT_SYMBOL_GPL(__cant_sleep);

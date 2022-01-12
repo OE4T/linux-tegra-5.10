@@ -1,7 +1,7 @@
-From a4776078f2f167c5fb4dfe4e8caa5a37d60126d9 Mon Sep 17 00:00:00 2001
+From fbbe209952d0327e0f68af8137ede8f163c23c79 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 9 Mar 2021 09:42:11 +0100
-Subject: [PATCH 141/304] net: jme: Replace link-change tasklet with work
+Subject: [PATCH 141/315] net: jme: Replace link-change tasklet with work
 
 The link change tasklet disables the tasklets for tx/rx processing while
 upating hw parameters and then enables the tasklets again.

@@ -1,7 +1,7 @@
-From af79c856171b8167d743612bcf03a4c4597c7dcc Mon Sep 17 00:00:00 2001
+From 792e77ff8f5e2f51488be9890976b24c760b4ac4 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Fri, 10 Jun 2011 11:04:15 +0200
-Subject: [PATCH 162/304] locking/rtmutex: Handle the various new futex race
+Subject: [PATCH 162/315] locking/rtmutex: Handle the various new futex race
  conditions
 
 RT opens a few new interesting race conditions in the rtmutex/futex

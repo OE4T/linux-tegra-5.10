@@ -1,7 +1,7 @@
-From 26ad88bc3e02be525a93f73c34dc26a549450177 Mon Sep 17 00:00:00 2001
+From 906f7fa1126b52b20121746a7476ab144838b5d4 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Mon, 9 Nov 2020 15:54:03 +0100
-Subject: [PATCH 021/304] sched: Unlock the rq in affine_move_task() error path
+Subject: [PATCH 021/315] sched: Unlock the rq in affine_move_task() error path
 
 Unlock the rq if returned early in the error path.
 
@@ -13,7 +13,7 @@ Link: https://lkml.kernel.org/r/20201106203921.GA48461@zipoli.concurrent-rt.com
  1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 1ca1e55..ee756e3 100644
+index 93b58e2..009b7ce 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -2223,8 +2223,10 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag

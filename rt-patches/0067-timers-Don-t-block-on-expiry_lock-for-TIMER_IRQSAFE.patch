@@ -1,7 +1,7 @@
-From 6d4eeea606cc8e34303b281afe780f555048d02d Mon Sep 17 00:00:00 2001
+From a63380a7328ec766838a5741919ff1025c089e4a Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Mon, 2 Nov 2020 14:14:24 +0100
-Subject: [PATCH 067/304] timers: Don't block on ->expiry_lock for
+Subject: [PATCH 067/315] timers: Don't block on ->expiry_lock for
  TIMER_IRQSAFE
 
 PREEMPT_RT does not spin and wait until a running timer completes its

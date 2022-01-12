@@ -1,7 +1,7 @@
-From af93deea37e9a283920722eb6da3fd38a9e2230e Mon Sep 17 00:00:00 2001
+From 9b2d825f2799abf0b52d7affe9a7acfa1ef1843c Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Thu, 12 Oct 2017 17:34:38 +0200
-Subject: [PATCH 178/304] locking/rtmutex: add ww_mutex addon for mutex-rt
+Subject: [PATCH 178/315] locking/rtmutex: add ww_mutex addon for mutex-rt
 
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---

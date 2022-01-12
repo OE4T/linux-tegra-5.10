@@ -1,7 +1,7 @@
-From 2393b295022600fe2e87fb51f5b91f18bfdfe178 Mon Sep 17 00:00:00 2001
+From 263eb5d91112e9134d685e66b20ca418fda9f7fb Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 14 Sep 2016 14:35:49 +0200
-Subject: [PATCH 186/304] fs/dcache: use swait_queue instead of waitqueue
+Subject: [PATCH 186/315] fs/dcache: use swait_queue instead of waitqueue
 
 __d_lookup_done() invokes wake_up_all() while holding a hlist_bl_lock()
 which disables preemption. As a workaround convert it to swait.
@@ -133,7 +133,7 @@ index 4c9d0c36..5a6e15a 100644
  	if (unlikely(IS_DEADDIR(dir_inode)))
  		return ERR_PTR(-ENOENT);
 diff --git a/fs/nfs/dir.c b/fs/nfs/dir.c
-index c837675..a615b39 100644
+index 8b963c72..d3981c1 100644
 --- a/fs/nfs/dir.c
 +++ b/fs/nfs/dir.c
 @@ -484,7 +484,7 @@ void nfs_prime_dcache(struct dentry *parent, struct nfs_entry *entry,
@@ -145,7 +145,7 @@ index c837675..a615b39 100644
  	struct dentry *dentry;
  	struct dentry *alias;
  	struct inode *inode;
-@@ -1671,7 +1671,7 @@ int nfs_atomic_open(struct inode *dir, struct dentry *dentry,
+@@ -1670,7 +1670,7 @@ int nfs_atomic_open(struct inode *dir, struct dentry *dentry,
  		    struct file *file, unsigned open_flags,
  		    umode_t mode)
  {

@@ -1,7 +1,7 @@
-From 366dca901facf3ef6e197bae9597cc559e2182b0 Mon Sep 17 00:00:00 2001
+From 1123b0365d93819f964c1890414ebd3d9606bdf1 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:24 +0100
-Subject: [PATCH 035/304] microblaze/mm/highmem: Switch to generic kmap atomic
+Subject: [PATCH 035/315] microblaze/mm/highmem: Switch to generic kmap atomic
 
 No reason having the same code in every architecture.
 

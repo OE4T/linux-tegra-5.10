@@ -1,7 +1,7 @@
-From c31acb1c87ffed3b03731acbfc0b0627524322db Mon Sep 17 00:00:00 2001
+From 1c7665c24fff277f165f7b9169db5fc8aa14ee44 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Sun, 17 Jul 2011 21:56:42 +0200
-Subject: [PATCH 228/304] trace: Add migrate-disabled counter to tracing output
+Subject: [PATCH 228/315] trace: Add migrate-disabled counter to tracing output
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 ---
@@ -12,7 +12,7 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
  4 files changed, 27 insertions(+), 7 deletions(-)
 
 diff --git a/include/linux/trace_events.h b/include/linux/trace_events.h
-index 5d1eeac..29c24ec 100644
+index 5d9397a..dd1257c 100644
 --- a/include/linux/trace_events.h
 +++ b/include/linux/trace_events.h
 @@ -67,6 +67,7 @@ struct trace_entry {
@@ -90,7 +90,7 @@ index db61301..2daa9b2 100644
  
  void
 diff --git a/kernel/trace/trace_events.c b/kernel/trace/trace_events.c
-index 546a535..76e8981 100644
+index ce2c3503..c29ceb8 100644
 --- a/kernel/trace/trace_events.c
 +++ b/kernel/trace/trace_events.c
 @@ -183,6 +183,7 @@ static int trace_define_common_fields(void)

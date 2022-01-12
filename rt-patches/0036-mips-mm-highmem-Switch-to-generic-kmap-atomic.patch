@@ -1,7 +1,7 @@
-From a5880be177a7c903703c8e1ea3d819587285509c Mon Sep 17 00:00:00 2001
+From 849c30e7f0b39ce6149a421a9182b2c21d747916 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:25 +0100
-Subject: [PATCH 036/304] mips/mm/highmem: Switch to generic kmap atomic
+Subject: [PATCH 036/315] mips/mm/highmem: Switch to generic kmap atomic
 
 No reason having the same code in every architecture
 
@@ -20,10 +20,10 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  delete mode 100644 arch/mips/include/asm/kmap_types.h
 
 diff --git a/arch/mips/Kconfig b/arch/mips/Kconfig
-index 1a63f59..336ebd5 100644
+index 23d756f..4ea224e 100644
 --- a/arch/mips/Kconfig
 +++ b/arch/mips/Kconfig
-@@ -2722,6 +2722,7 @@ config WAR_MIPS34K_MISSED_ITLB
+@@ -2726,6 +2726,7 @@ config WAR_MIPS34K_MISSED_ITLB
  config HIGHMEM
  	bool "High Memory Support"
  	depends on 32BIT && CPU_SUPPORTS_HIGHMEM && SYS_SUPPORTS_HIGHMEM && !CPU_MIPS32_3_5_EVA

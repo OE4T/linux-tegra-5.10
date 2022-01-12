@@ -1,7 +1,7 @@
-From b33efb4dd4e2e129cfad124987eb0cd477b6416d Mon Sep 17 00:00:00 2001
+From 714e54b432c40b46cde2b49dfd03e5d0a169e599 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:48 +0100
-Subject: [PATCH 059/304] drm/i915: Replace io_mapping_map_atomic_wc()
+Subject: [PATCH 059/315] drm/i915: Replace io_mapping_map_atomic_wc()
 
 None of these mapping requires the side effect of disabling pagefaults and
 preemption.
@@ -140,10 +140,10 @@ index 412e216..4324931 100644
  
  	ggtt->vm.clear_range(&ggtt->vm, slot, PAGE_SIZE);
 diff --git a/drivers/gpu/drm/i915/selftests/i915_gem_gtt.c b/drivers/gpu/drm/i915/selftests/i915_gem_gtt.c
-index 713770f..a68bed4 100644
+index 65e28c4..ca48328 100644
 --- a/drivers/gpu/drm/i915/selftests/i915_gem_gtt.c
 +++ b/drivers/gpu/drm/i915/selftests/i915_gem_gtt.c
-@@ -1200,9 +1200,9 @@ static int igt_ggtt_page(void *arg)
+@@ -1201,9 +1201,9 @@ static int igt_ggtt_page(void *arg)
  		u64 offset = tmp.start + order[n] * PAGE_SIZE;
  		u32 __iomem *vaddr;
  
@@ -155,7 +155,7 @@ index 713770f..a68bed4 100644
  	}
  	intel_gt_flush_ggtt_writes(ggtt->vm.gt);
  
-@@ -1212,9 +1212,9 @@ static int igt_ggtt_page(void *arg)
+@@ -1213,9 +1213,9 @@ static int igt_ggtt_page(void *arg)
  		u32 __iomem *vaddr;
  		u32 val;
  

@@ -1,7 +1,7 @@
-From f59c12a2202ebe81510fe07c117c70c499758d2e Mon Sep 17 00:00:00 2001
+From 7c7ccc7c7082f3ea136ee1a4f57bdda6625a22a7 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:41 +0100
-Subject: [PATCH 052/304] ARM: mm: Replace kmap_atomic_pfn()
+Subject: [PATCH 052/315] ARM: mm: Replace kmap_atomic_pfn()
 
 There is no requirement to disable pagefaults and preemption for these
 cache management mappings.

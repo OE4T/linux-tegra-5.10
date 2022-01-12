@@ -1,7 +1,7 @@
-From 1a129a523fdaa341ab390033c78fe36aee78a3e1 Mon Sep 17 00:00:00 2001
+From 607e392229f21e01c1e1aba03939a48a02fa566a Mon Sep 17 00:00:00 2001
 From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
 Date: Wed, 10 Jun 2020 12:53:22 +0200
-Subject: [PATCH 184/304] xfrm: Use sequence counter with associated spinlock
+Subject: [PATCH 184/315] xfrm: Use sequence counter with associated spinlock
 
 A sequence counter write side critical section must be protected by some
 form of locking to serialize writers. A plain seqcount_t does not

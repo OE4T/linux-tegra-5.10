@@ -1,7 +1,7 @@
-From 216b2e3c00379a387c3290b68d9bc4abd628fdd2 Mon Sep 17 00:00:00 2001
+From bc2c001442575a1d2c62c1c13d9c898f37236e62 Mon Sep 17 00:00:00 2001
 From: Geert Uytterhoeven <geert+renesas@glider.be>
 Date: Tue, 24 Nov 2020 14:06:56 +0100
-Subject: [PATCH 126/304] sh/irq: Add missing closing parentheses in
+Subject: [PATCH 126/315] sh/irq: Add missing closing parentheses in
  arch_show_interrupts()
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8

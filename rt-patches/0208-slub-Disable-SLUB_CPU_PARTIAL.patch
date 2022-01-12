@@ -1,7 +1,7 @@
-From 251c84d3858c4e35288c7b89b1d64660b7914512 Mon Sep 17 00:00:00 2001
+From 0b5d592ee1405a18e327cd0dcfcef0365e684833 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 15 Apr 2015 19:00:47 +0200
-Subject: [PATCH 208/304] slub: Disable SLUB_CPU_PARTIAL
+Subject: [PATCH 208/315] slub: Disable SLUB_CPU_PARTIAL
 
 |BUG: sleeping function called from invalid context at kernel/locking/rtmutex.c:915
 |in_atomic(): 1, irqs_disabled(): 0, pid: 87, name: rcuop/7

@@ -1,7 +1,7 @@
-From d8b582a5b331f236b059c098e81974aad5363fc9 Mon Sep 17 00:00:00 2001
+From f36a1b3ee719bd5debb74e6b74910a359dc8d96a Mon Sep 17 00:00:00 2001
 From: Frederic Weisbecker <frederic@kernel.org>
 Date: Wed, 2 Dec 2020 12:57:29 +0100
-Subject: [PATCH 128/304] s390/vtime: Use the generic IRQ entry accounting
+Subject: [PATCH 128/315] s390/vtime: Use the generic IRQ entry accounting
 
 s390 has its own version of IRQ entry accounting because it doesn't
 account the idle time the same way the other architectures do. Only
@@ -27,7 +27,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  5 files changed, 9 insertions(+), 17 deletions(-)
 
 diff --git a/arch/Kconfig b/arch/Kconfig
-index 69fe713..3a03601 100644
+index 632d60e..ec39d2a 100644
 --- a/arch/Kconfig
 +++ b/arch/Kconfig
 @@ -643,6 +643,12 @@ config HAVE_TIF_NOHZ

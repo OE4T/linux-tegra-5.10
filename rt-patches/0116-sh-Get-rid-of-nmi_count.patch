@@ -1,7 +1,7 @@
-From 19daa1df8de200621271a0ef7819b205541e69fe Mon Sep 17 00:00:00 2001
+From e83078bdfe00e8a040ecbca783584c5621069187 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Fri, 13 Nov 2020 15:02:09 +0100
-Subject: [PATCH 116/304] sh: Get rid of nmi_count()
+Subject: [PATCH 116/315] sh: Get rid of nmi_count()
 
 nmi_count() is a historical leftover and SH is the only user. Replace it
 with regular per cpu accessors.

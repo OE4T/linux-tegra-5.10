@@ -1,7 +1,7 @@
-From 6a49575cb467f8c62e8888cc799f99893bd8b70d Mon Sep 17 00:00:00 2001
+From 15f5c36c4eeae494b62fe66601c790167444b006 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Mon, 30 Nov 2020 01:42:10 +0106
-Subject: [PATCH 108/304] printk: add pr_flush()
+Subject: [PATCH 108/315] printk: add pr_flush()
 
 Provide a function to allow waiting for console printers to catch
 up to the latest logged message.
@@ -100,10 +100,10 @@ index 1f0df42..0efdac3 100644
  
  /*
 diff --git a/kernel/printk/printk.c b/kernel/printk/printk.c
-index 18e3aab..f56fd2e 100644
+index d3b115c..69af426 100644
 --- a/kernel/printk/printk.c
 +++ b/kernel/printk/printk.c
-@@ -3224,6 +3224,12 @@ void kmsg_dump(enum kmsg_dump_reason reason)
+@@ -3231,6 +3231,12 @@ void kmsg_dump(enum kmsg_dump_reason reason)
  			sync_mode = true;
  			pr_info("enabled sync mode\n");
  		}
@@ -116,7 +116,7 @@ index 18e3aab..f56fd2e 100644
  	}
  
  	rcu_read_lock();
-@@ -3503,3 +3509,76 @@ void console_atomic_unlock(unsigned int flags)
+@@ -3510,3 +3516,76 @@ void console_atomic_unlock(unsigned int flags)
  	prb_unlock(&printk_cpulock, flags);
  }
  EXPORT_SYMBOL(console_atomic_unlock);

@@ -1,7 +1,7 @@
-From 77941dbdb05f5e2ce3bc135bef8da4b7165f2095 Mon Sep 17 00:00:00 2001
+From f659aa698e6643aa8baaf400d846f6b26769dc82 Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:06 +0200
-Subject: [PATCH 009/304] sched: Massage set_cpus_allowed()
+Subject: [PATCH 009/315] sched: Massage set_cpus_allowed()
 
 Thread a u32 flags word through the *set_cpus_allowed*() callchain.
 This will allow adding behavioural tweaks for future users.
@@ -15,7 +15,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  3 files changed, 26 insertions(+), 14 deletions(-)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 93b60da..3ba9f4b 100644
+index 725c6de..a8cf945 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -1833,13 +1833,14 @@ static int migration_cpu_stop(void *data)
@@ -103,7 +103,7 @@ index 93b60da..3ba9f4b 100644
  {
  	return set_cpus_allowed_ptr(p, new_mask);
  }
-@@ -6004,7 +6012,7 @@ long sched_setaffinity(pid_t pid, const struct cpumask *in_mask)
+@@ -6008,7 +6016,7 @@ long sched_setaffinity(pid_t pid, const struct cpumask *in_mask)
  	}
  #endif
  again:
@@ -112,7 +112,7 @@ index 93b60da..3ba9f4b 100644
  
  	if (!retval) {
  		cpuset_cpus_allowed(p, cpus_allowed);
-@@ -6583,7 +6591,7 @@ void __init init_idle(struct task_struct *idle, int cpu)
+@@ -6584,7 +6592,7 @@ void __init init_idle(struct task_struct *idle, int cpu)
  	 *
  	 * And since this is boot we can forgo the serialization.
  	 */

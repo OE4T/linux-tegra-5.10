@@ -1,7 +1,7 @@
-From c7fb5ece51acc991806af4452ac4232632a4337b Mon Sep 17 00:00:00 2001
+From 3311d196f408eff4abb2ec9e1778cb1a2fb9a9a2 Mon Sep 17 00:00:00 2001
 From: Julia Cartwright <julia@ni.com>
 Date: Tue, 15 Dec 2020 15:16:47 +0100
-Subject: [PATCH 073/304] rcu: Enable rcu_normal_after_boot unconditionally for
+Subject: [PATCH 073/315] rcu: Enable rcu_normal_after_boot unconditionally for
  RT
 
 Expedited RCU grace periods send IPIs to all non-idle CPUs, and thus can
@@ -33,7 +33,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  2 files changed, 10 insertions(+), 1 deletion(-)
 
 diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-index 181cebf..9dd83d9 100644
+index 46641ef..79f8292 100644
 --- a/Documentation/admin-guide/kernel-parameters.txt
 +++ b/Documentation/admin-guide/kernel-parameters.txt
 @@ -4473,6 +4473,13 @@

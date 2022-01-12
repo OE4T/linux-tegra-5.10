@@ -1,7 +1,7 @@
-From c149c94629faab8d5667717ca6a84961d9c2441e Mon Sep 17 00:00:00 2001
+From 73eda2b9ad374ff54523c8c4f2d2e137d9fc7303 Mon Sep 17 00:00:00 2001
 From: Valentin Schneider <valentin.schneider@arm.com>
 Date: Fri, 13 Nov 2020 11:24:14 +0000
-Subject: [PATCH 023/304] sched/core: Add missing completion for
+Subject: [PATCH 023/315] sched/core: Add missing completion for
  affine_move_task() waiters
 
 Qian reported that some fuzzer issuing sched_setaffinity() ends up stuck on
@@ -43,7 +43,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 12 insertions(+), 1 deletion(-)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 4276eb7..772d49f 100644
+index 82b9887..90805fc 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -1936,7 +1936,7 @@ static int migration_cpu_stop(void *data)

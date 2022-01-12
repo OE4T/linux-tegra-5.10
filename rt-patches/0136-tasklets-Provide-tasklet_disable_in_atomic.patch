@@ -1,7 +1,7 @@
-From 165875dea8fa933f2fb6894fc6fdbb34d9701ead Mon Sep 17 00:00:00 2001
+From 5cec28c1a821b9dd7a654106be6ed7ce774cf904 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 9 Mar 2021 09:42:06 +0100
-Subject: [PATCH 136/304] tasklets: Provide tasklet_disable_in_atomic()
+Subject: [PATCH 136/315] tasklets: Provide tasklet_disable_in_atomic()
 
 Replacing the spin wait loops in tasklet_unlock_wait() with
 wait_var_event() is not possible as a handful of tasklet_disable()
