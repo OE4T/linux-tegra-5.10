@@ -670,6 +670,8 @@ static ssize_t tegra_fuse_calc_h2_code(struct device *dev,
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 #define TEGRA210_INT_CID 5
 #define TEGRA186_INT_CID 6
+#define TEGRA194_INT_CID 7
+#define TEGRA234_INT_CID 8
 
 #define FUSE_OPT_VENDOR_CODE		0x100
 #define FUSE_OPT_VENDOR_CODE_MASK	0xf
@@ -732,6 +734,12 @@ unsigned long long tegra_chip_uid(void)
 		break;
 	case TEGRA186:
 		cid = TEGRA186_INT_CID;
+		break;
+	case TEGRA194:
+		cid = TEGRA194_INT_CID;
+		break;
+	case TEGRA234:
+		cid = TEGRA234_INT_CID;
 		break;
 	default:
 		cid = 0;
