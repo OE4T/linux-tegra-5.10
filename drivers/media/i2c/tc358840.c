@@ -2,7 +2,7 @@
  * tc358840.c - Toshiba UH2C/D HDMI-CSI bridge driver
  *
  * Copyright (c) 2015, Armin Weiss <weii@zhaw.ch>
- * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is based on the tc358840 - Toshiba HDMI to CSI-2 bridge driver
  * from Cisco Systems, Inc.
@@ -2430,7 +2430,11 @@ static int tc358840_probe(struct i2c_client *client, const struct i2c_device_id 
 #endif
 	i2c_wr16(sd, INTMASK, ~(MASK_HDMI_INT) & 0xFFFF);
 
-	v4l2_ctrl_handler_setup(sd->ctrl_handler);
+	err = v4l2_ctrl_handler_setup(sd->ctrl_handler);
+	if (err) {
+		v4l2_err(sd, "Error %d setting default controls\n", err);
+		goto err_hdl;
+	}
 
 	v4l2_info(sd, "%s found @ 7h%02X (%s)\n", client->name,
 		  client->addr, client->adapter->name);
