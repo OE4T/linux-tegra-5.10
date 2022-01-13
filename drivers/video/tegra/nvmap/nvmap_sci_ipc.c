@@ -26,6 +26,7 @@
 #include <linux/nvscierror.h>
 #include <linux/nvsciipc_interface.h>
 
+#include <trace/events/nvmap.h>
 #include "nvmap_priv.h"
 
 struct nvmap_sci_ipc {
@@ -220,6 +221,7 @@ int nvmap_get_handle_from_sci_ipc_id(struct nvmap_client *client, u32 flags,
 	struct nvmap_handle_ref *ref = NULL;
 	struct nvmap_sci_ipc_entry *entry;
 	struct nvmap_handle *h;
+	struct dma_buf *dmabuf = NULL;
 	bool is_ro = (flags == PROT_READ) ? true : false, dmabuf_created = false;
 	int ret = 0;
 	int fd;
@@ -233,7 +235,7 @@ int nvmap_get_handle_from_sci_ipc_id(struct nvmap_client *client, u32 flags,
 	if ((entry == NULL) || (entry->handle == NULL) ||
 		(entry->peer_vuid != localu_vuid) || (entry->flags != flags)) {
 
-		pr_err("%d: No matching Sci_Ipc_Id %d found\n",
+		pr_debug("%d: No matching Sci_Ipc_Id %d found\n",
 		__LINE__, sci_ipc_id);
 
 		ret = -EINVAL;
@@ -267,7 +269,8 @@ int nvmap_get_handle_from_sci_ipc_id(struct nvmap_client *client, u32 flags,
 
 	fd = nvmap_get_dmabuf_fd(client, h, is_ro);
 	*handle = fd;
-	fd_install(fd, is_ro ? h->dmabuf_ro->file : h->dmabuf->file);
+	dmabuf = is_ro ? h->dmabuf_ro : h->dmabuf;
+	fd_install(fd, dmabuf->file);
 
 	entry->refcount--;
 	if (entry->refcount == 0U) {
@@ -286,6 +289,12 @@ int nvmap_get_handle_from_sci_ipc_id(struct nvmap_client *client, u32 flags,
 	}
 unlock:
 	mutex_unlock(&nvmapsciipc->mlock);
+
+	if (!ret)
+		trace_refcount_create_handle_from_sci_ipc_id(h, dmabuf,
+				atomic_read(&h->ref),
+				atomic_long_read(&dmabuf->file->f_count),
+				is_ro ? "RO" : "RW");
 	return ret;
 }
 

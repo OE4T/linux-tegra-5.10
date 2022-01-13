@@ -3,7 +3,7 @@
  *
  * Handle allocation and freeing routines for nvmap
  *
- * Copyright (c) 2011-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2011-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -1106,6 +1106,9 @@ void nvmap_free_handle_from_fd(struct nvmap_client *client,
 {
 	bool is_ro = is_nvmap_id_ro(client, id);
 	struct nvmap_handle *handle;
+	struct dma_buf *dmabuf = NULL;
+	int handle_ref = 0;
+	long dmabuf_ref = 0;
 
 	handle = nvmap_handle_get_from_id(client, id);
 	if (IS_ERR_OR_NULL(handle))
@@ -1116,4 +1119,13 @@ void nvmap_free_handle_from_fd(struct nvmap_client *client,
 
 	nvmap_free_handle(client, handle, is_ro);
 	nvmap_handle_put(handle);
+
+	if (handle) {
+		dmabuf = is_ro ? handle->dmabuf_ro : handle->dmabuf;
+		handle_ref = atomic_read(&handle->ref);
+		dmabuf_ref = dmabuf ? atomic_long_read(&dmabuf->file->f_count) : 0;
+	}
+
+	trace_refcount_free_handle(handle, dmabuf, handle_ref, dmabuf_ref,
+				   is_ro ? "RO" : "RW");
 }
