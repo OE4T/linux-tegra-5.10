@@ -70,6 +70,9 @@
 
 extern u32 tegra_read_chipid(void);
 extern u8 tegra_get_chip_id(void);
+u8 tegra_get_major_rev(void);
+u8 tegra_get_minor_rev(void);
+int tegra_miscreg_set_erd(u64 err_config);
 u8 tegra_get_platform(void);
 bool tegra_is_silicon(void);
 
