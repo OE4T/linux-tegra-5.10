@@ -95,6 +95,10 @@ struct tegra_fuse_burn_dev {
 
 static DEFINE_MUTEX(fuse_lock);
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+static u64 chip_uid;
+#endif
+
 static void fuse_state_wait_for_idle(void)
 {
 	u32 reg;
@@ -1136,3 +1140,16 @@ static struct platform_driver tegra_fuse_burn_driver = {
 	.probe = tegra_fuse_burn_probe,
 };
 module_platform_driver(tegra_fuse_burn_driver);
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+static int get_chip_uid(char *val, const struct kernel_param *kp)
+{
+	chip_uid = tegra_chip_uid();
+	return param_get_ulong(val, kp);
+}
+
+static struct kernel_param_ops tegra_chip_uid_ops = {
+	.get = get_chip_uid,
+};
+module_param_cb(tegra_chip_uid, &tegra_chip_uid_ops, &chip_uid, 0444);
+#endif
