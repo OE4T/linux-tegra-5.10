@@ -112,6 +112,32 @@ u8 tegra_get_minor_rev(void)
 }
 EXPORT_SYMBOL(tegra_get_minor_rev);
 
+u8 tegra_get_platform(void)
+{
+	return (tegra_read_chipid() >> 20) & 0xf;
+}
+EXPORT_SYMBOL(tegra_get_platform);
+
+bool tegra_is_silicon(void)
+{
+	switch (tegra_get_chip_id()) {
+	case TEGRA194:
+	case TEGRA234:
+		if (tegra_get_platform() == 0)
+			return true;
+
+		return false;
+	}
+
+	/*
+	 * Chips prior to Tegra194 have a different way of determining whether
+	 * they are silicon or not. Since we never supported simulation on the
+	 * older Tegra chips, don't bother extracting the information and just
+	 * report that we're running on silicon.
+	 */
+	return true;
+}
+
 u32 tegra_read_straps(void)
 {
 	WARN(!chipid, "Tegra ABP MISC not yet available\n");
@@ -300,65 +326,6 @@ EXPORT_SYMBOL(is_t210b01_sku);
 /*
  * platform query functions begin
  */
-static enum tegra_platform __tegra_get_platform(void)
-{
-	u32 major, pre_si_plat;
-
-	major = tegra_get_major_rev();
-	pre_si_plat = tegra_get_pre_si_plat();
-
-	if (pre_si_plat == PRE_SI_VSP)
-		return TEGRA_PLATFORM_VSP;
-
-	if (!major) {
-		u32 minor;
-
-		minor = tegra_get_minor_rev();
-		switch (minor) {
-		case MINOR_QT:
-			return TEGRA_PLATFORM_QT;
-		case MINOR_FPGA:
-			return TEGRA_PLATFORM_FPGA;
-		case MINOR_ASIM_QT:
-			return TEGRA_PLATFORM_QT;
-		case MINOR_ASIM_LINSIM:
-			return TEGRA_PLATFORM_LINSIM;
-		case MINOR_VDK:
-			return TEGRA_PLATFORM_VDK;
-		}
-	} else if (pre_si_plat) {
-		switch (pre_si_plat) {
-		case PRE_SI_QT:
-			return TEGRA_PLATFORM_QT;
-		case PRE_SI_FPGA:
-			return TEGRA_PLATFORM_FPGA;
-		case PRE_SI_UNIT_FPGA:
-			return TEGRA_PLATFORM_UNIT_FPGA;
-		case PRE_SI_ASIM_QT:
-			return TEGRA_PLATFORM_QT;
-		case PRE_SI_ASIM_LINSIM:
-			return TEGRA_PLATFORM_LINSIM;
-		case PRE_SI_VDK:
-			return TEGRA_PLATFORM_VDK;
-		case PRE_SI_VSP:
-			return TEGRA_PLATFORM_VSP;
-		}
-	}
-
-	return TEGRA_PLATFORM_SILICON;
-}
-
-static enum tegra_platform tegra_platform_id = TEGRA_PLATFORM_MAX;
-
-enum tegra_platform tegra_get_platform(void)
-{
-	if (unlikely(tegra_platform_id == TEGRA_PLATFORM_MAX))
-		tegra_platform_id = __tegra_get_platform();
-
-	return tegra_platform_id;
-}
-EXPORT_SYMBOL(tegra_get_platform);
-
 bool tegra_cpu_is_asim(void)
 {
 	u32 major, pre_si_plat;

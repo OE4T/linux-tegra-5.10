@@ -68,11 +68,10 @@
 
 #include <linux/of.h>
 
-u32 tegra_read_chipid(void);
-u8 tegra_get_chip_id(void);
-u8 tegra_get_major_rev(void);
-u8 tegra_get_minor_rev(void);
-int tegra_miscreg_set_erd(u64);
+extern u32 tegra_read_chipid(void);
+extern u8 tegra_get_chip_id(void);
+u8 tegra_get_platform(void);
+bool tegra_is_silicon(void);
 
 enum tegra_revision {
 	TEGRA_REVISION_UNKNOWN = 0,
@@ -187,16 +186,11 @@ bool is_tegra_hypervisor_mode(void);
 bool is_tegra_safety_build(void);
 
 /* tegra-platform.c declarations */
-extern enum tegra_platform tegra_get_platform(void);
 extern bool tegra_cpu_is_asim(void);
 
 static inline bool tegra_platform_is_silicon(void)
 {
 	return tegra_get_platform() == TEGRA_PLATFORM_SILICON;
-}
-static inline bool tegra_is_silicon(void)
-{
-	return tegra_platform_is_silicon();
 }
 static inline bool tegra_platform_is_qt(void)
 {
