@@ -1389,7 +1389,9 @@ static int camrtc_falcon_coverage_enable(struct camrtc_falcon_coverage *cov)
 	}
 
 	/* Keep rtcpu alive when falcon coverage is in use. */
-	tegra_ivc_channel_runtime_get(ch);
+	ret = tegra_ivc_channel_runtime_get(ch);
+	if (ret < 0)
+		goto clean_mem;
 
 	cov->enabled = true;
 
