@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -230,7 +230,10 @@ static void nvpps_get_ts(struct nvpps_device_data *pdev_data, bool in_isr)
 		/* get the TSC time before the function call */
 		tsc1 = __arch_counter_get_cntvct();
 		/* get the phc(using ptp notifier) from eqos driver */
-		get_ptp_hwtime(&phc);
+		if (get_ptp_hwtime(&phc)) {
+			dev_err(pdev_data->dev,
+				"pdev_data->dev, HW PTP not running\n");
+		}
 		/* get the TSC time after the function call */
 		tsc2 = __arch_counter_get_cntvct();
 		/* we do not know the latency of the get_ptp_hwtime() function
