@@ -794,6 +794,27 @@ static void ufs_tegra_mphy_deassert_reset(struct ufs_tegra_host *ufs_tegra)
 	}
 }
 
+static void ufs_tegra_pwr_change_clk_boost(struct ufs_tegra_host *ufs_tegra)
+{
+	u32 reg_vendor_0;
+
+	if (ufs_tegra->chip_id == TEGRA234)
+		reg_vendor_0 = MPHY_RX_APB_VENDOR2_0_T234;
+	else
+		reg_vendor_0 = MPHY_RX_APB_VENDOR2_0;
+
+	mphy_writel(ufs_tegra->mphy_l0_base, MPHY_PWR_CHANGE_CLK_BOOST,
+			MPHY_RX_APB_VENDOR49_0_T234);
+	mphy_update(ufs_tegra->mphy_l0_base, MPHY_GO_BIT, reg_vendor_0);
+
+	if (ufs_tegra->x2config) {
+		mphy_writel(ufs_tegra->mphy_l1_base, MPHY_PWR_CHANGE_CLK_BOOST,
+				MPHY_RX_APB_VENDOR49_0_T234);
+		mphy_update(ufs_tegra->mphy_l1_base, MPHY_GO_BIT, reg_vendor_0);
+	}
+	udelay(20);
+}
+
 void ufs_tegra_disable_mphy_slcg(struct ufs_tegra_host *ufs_tegra)
 {
 	u32 val = 0, reg_cg_over, reg_vendor_0;
@@ -1125,12 +1146,18 @@ static int ufs_tegra_suspend(struct ufs_hba *hba, enum ufs_pm_op pm_op)
 		if (is_ufs_lp_pwr_gated) {
 			/*
 			 * Save all armphy_rx_apb and armphy_tx_apb registers
+			 * T234 does not require context save
 			 */
 			ufs_tegra_context_save(ufs_tegra);
 			reset_control_assert(ufs_tegra->ufshc_lp_rst);
 		}
-	} else
+	} else {
+		/*
+		 * For T234, during sc7 entry, the link is set to off state
+		 * so that during sc7 exit link startup happens (According to IAS)
+		 */
 		ufshcd_set_link_off(hba);
+	}
 
 	/* Enable wake irq at end of suspend */
 	if (device_may_wakeup(dev)) {
@@ -1200,6 +1227,9 @@ static int ufs_tegra_resume(struct ufs_hba *hba, enum ufs_pm_op pm_op)
 				goto out_disable_mphylane_clks;
 			}
 		}
+		/*
+		 * T234 does not require context restore
+		 */
 		ufs_tegra_context_restore(ufs_tegra);
 	}
 
@@ -1376,13 +1406,13 @@ static int ufs_tegra_pwr_change_notify(struct ufs_hba *hba,
 			}
 			if (ufs_tegra->enable_scramble)
 				ufs_tegra_scramble_enable(hba);
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
-			if (dev_req_params->gear_rx == 4) {
-				ufshcd_dme_configure_adapt(hba,
-						UFS_HS_G4,
-						PA_INITIAL_ADAPT);
-			}
-#endif
+
+			/*
+			 * Clock boost during power change
+			 * is required as per T234 IAS document
+			 */
+			if (ufs_tegra->chip_id == TEGRA234)
+				ufs_tegra_pwr_change_clk_boost(ufs_tegra);
 		} else {
 			if (ufs_tegra->max_pwm_gear) {
 				ufshcd_dme_get(hba,
