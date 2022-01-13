@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -350,8 +350,13 @@ static int nvsciipc_ioctl_set_db(struct nvsciipc *ctx, unsigned int cmd,
 	}
 
 #ifdef CONFIG_TEGRA_VIRTUALIZATION
-	if (is_tegra_hypervisor_mode())
-		hyp_read_gid(&vmid);
+	if (is_tegra_hypervisor_mode()) {
+		ret = hyp_read_gid(&vmid);
+		if (ret != 0) {
+			ERR("Failed to read guest id\n");
+			goto ptr_error;
+		}
+	}
 #endif
 
 	for (i = 0; i < ctx->num_eps; i++) {
