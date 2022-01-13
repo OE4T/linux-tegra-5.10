@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -1323,14 +1323,22 @@ struct tegra_rtcpu_trace *tegra_rtcpu_trace_create(struct device *dev,
 
 	/* Worker */
 	param = WORK_INTERVAL_DEFAULT;
-	of_property_read_u32(tracer->of_node, NV(interval-ms), &param);
+	if (of_property_read_u32(tracer->of_node, NV(interval-ms), &param)) {
+		dev_err(dev, "interval-ms property not present\n");
+		kfree(tracer);
+		return NULL;
+	}
 
 	tracer->enable_printk = of_property_read_bool(tracer->of_node,
 						NV(enable-printk));
 
 	tracer->log_prefix = "[RTCPU]";
-	of_property_read_string(tracer->of_node, NV(log-prefix),
-				&tracer->log_prefix);
+	if (of_property_read_string(tracer->of_node, NV(log-prefix),
+				&tracer->log_prefix)) {
+		dev_err(dev, "RTCPU property not present\n");
+		kfree(tracer);
+		return NULL;
+	}
 
 	INIT_DELAYED_WORK(&tracer->work, rtcpu_trace_worker);
 	tracer->work_interval_jiffies = msecs_to_jiffies(param);
