@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA Corporation. All Rights Reserved.
+ * Copyright (c) 2021-2022, NVIDIA Corporation. All Rights Reserved.
  *
  * Tegra NVVSE crypto device for crypto operation to NVVSE linux library.
  *
@@ -616,7 +616,7 @@ static int tnvvse_crypto_aes_enc_dec(struct tnvvse_crypto_ctx *ctx,
 		klen = strlen(key_as_keyslot);
 		if(klen != 16) {
 			pr_err("%s(): key length is invalid, length %d, key %s\n", __func__, klen, key_as_keyslot);
-			return -EINVAL;
+			ret = -EINVAL;
 			goto free_req;
 		}
 		/* Null key is only allowed in SE driver */
@@ -801,7 +801,7 @@ static int tnvvse_crypto_aes_enc_dec_gcm(struct tnvvse_crypto_ctx *ctx,
 		if (klen != 16) { // TODO: is this check needed ?
 			pr_err("%s(): key length is invalid, length %d, key %s\n",
 					__func__, klen, key_as_keyslot);
-			return -EINVAL;
+			ret = -EINVAL;
 			goto free_req;
 		}
 
