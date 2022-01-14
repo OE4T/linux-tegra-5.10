@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -154,6 +154,7 @@
 #define ltc_ltcs_ltss_intr_evicted_cb_reset_f()                          (0x10U)
 #define ltc_ltcs_ltss_intr_en_evicted_cb_m()                  (U32(0x1U) << 20U)
 #define ltc_ltcs_ltss_intr_en_evicted_cb_enabled_f()                 (0x100000U)
+#define ltc_ltcs_ltss_intr_en_evicted_cb_disabled_f()                     (0x0U)
 #define ltc_ltcs_ltss_intr_illegal_compstat_m()                (U32(0x1U) << 5U)
 #define ltc_ltcs_ltss_intr_illegal_compstat_reset_f()                    (0x20U)
 #define ltc_ltcs_ltss_intr_en_illegal_compstat_m()            (U32(0x1U) << 21U)

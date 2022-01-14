@@ -64,9 +64,12 @@ static void ga10b_ltc_intr1_configure(struct gk20a *g)
 	 * EVICTED_CB - indicates that a CB was demoted.
 	 * Normally this should not happen because the CBs should be flushed
 	 * during context switch and/or invalidated when no longer used.
+	 *
+	 * Note: this occurs more frequently than expected, so is being left
+	 * disabled as on previous chips and consistent with HW POR value.
 	 */
 	reg = set_field(reg, ltc_ltcs_ltss_intr_en_evicted_cb_m(),
-		ltc_ltcs_ltss_intr_en_evicted_cb_enabled_f());
+		ltc_ltcs_ltss_intr_en_evicted_cb_disabled_f());
 
 	/*
 	 * ILLEGAL_ATOMIC - unsupported atomic op and/or size received.
