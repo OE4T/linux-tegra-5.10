@@ -3,7 +3,7 @@
  * tegra210_adsp_virt_alt.c - Tegra ADSP audio driver
  *
  * Author: Sumit Bhattacharya <sumitb@nvidia.com>
- * Copyright (c) 2014-2021 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2022 NVIDIA CORPORATION.  All rights reserved.
  *
  */
 
@@ -1343,6 +1343,9 @@ static int tegra210_adsp_pcm_msg_handler(struct tegra210_adsp_app *app,
 		break;
 	case nvfx_apm_method_ack:
 		complete(app->msg_complete);
+		break;
+	case nvfx_apm_method_raw_ack:
+		complete(app->raw_msg_write_complete);
 		break;
 	case nvfx_apm_method_fx_error_event:
 		tegra210_adsp_nl_send_msg(app->adsp,
