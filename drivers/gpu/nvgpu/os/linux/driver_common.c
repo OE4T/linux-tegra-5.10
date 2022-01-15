@@ -215,6 +215,9 @@ static void nvgpu_init_pm_vars(struct gk20a *g)
 	if (nvgpu_is_hypervisor_mode(g)) {
 		nvgpu_set_enabled(g, NVGPU_CAN_RAILGATE, false);
 		platform->can_railgate_init = false;
+		/* Disable frequency scaling for hypervisor platforms */
+		platform->devfreq_governor = NULL;
+		platform->qos_notify = NULL;
 	} else {
 		nvgpu_set_enabled(g, NVGPU_CAN_RAILGATE,
 			nvgpu_platform_is_simulation(g) ? true : platform->can_railgate_init);
