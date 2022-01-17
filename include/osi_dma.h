@@ -778,44 +778,6 @@ nve32_t osi_enable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
 nveu32_t osi_get_global_dma_status(struct osi_dma_priv_data *osi_dma);
 
 /**
- * @brief osi_clear_vm_tx_intr - Handles VM Tx interrupt source.
- *
- * Algorithm: Clear Tx interrupt source at wrapper level and DMA level.
- *
- * @param[in] osi_dma: DMA private data.
- * @param[in] chan: DMA tx channel number.
- *
- * @note
- *	1) MAC needs to be out of reset and proper clocks need to be configured.
- *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-nve32_t osi_clear_vm_tx_intr(struct osi_dma_priv_data *osi_dma,
-			     nveu32_t chan);
-
-/**
- * @brief osi_clear_vm_rx_intr - Handles VM Rx interrupt source.
- *
- * Algorithm: Clear Rx interrupt source at wrapper level and DMA level.
- *
- * @param[in] osi_dma: DMA private data.
- * @param[in] chan: DMA rx channel number.
- *
- * @note
- *	1) MAC needs to be out of reset and proper clocks need to be configured.
- *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
- *	3) Mapping of physical IRQ line to DMA channel need to be maintained at
- *	OS Dependent layer and pass corresponding channel number.
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-nve32_t osi_clear_vm_rx_intr(struct osi_dma_priv_data *osi_dma,
-			     nveu32_t chan);
-
-/**
  * @brief Start DMA
  *
  * @note

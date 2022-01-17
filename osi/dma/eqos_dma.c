@@ -146,159 +146,6 @@ static void eqos_dma_safety_init(struct osi_dma_priv_data *osi_dma)
 }
 
 /**
- * @brief eqos_disable_chan_tx_intr - Disables DMA Tx channel interrupts.
- *
- * @param[in] addr: Base address indicating the start of
- *                  memory mapped IO region of the MAC.
- * @param[in] chan: DMA Tx channel number.
- *
- * @pre
- *  - MAC needs to be out of reset and proper clocks need to be configured
- *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
- *  - Mapping of physical IRQ line to DMA channel need to be maintained at
- *    OSDependent layer and pass corresponding channel number.
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: Yes
- * - De-initialization: Yes
- */
-static void eqos_disable_chan_tx_intr(void *addr, nveu32_t chan)
-{
-	nveu32_t cntrl, status;
-
-#if 0
-	CHECK_CHAN_BOUND(chan);
-#endif
-	/* Clear irq before disabling */
-	status = osi_readl((nveu8_t *)addr +
-			   EQOS_VIRT_INTR_CHX_STATUS(chan));
-	if ((status & EQOS_VIRT_INTR_CHX_STATUS_TX) ==
-	    EQOS_VIRT_INTR_CHX_STATUS_TX) {
-		osi_writel(EQOS_DMA_CHX_STATUS_CLEAR_TX,
-			   (nveu8_t *)addr + EQOS_DMA_CHX_STATUS(chan));
-		osi_writel(EQOS_VIRT_INTR_CHX_STATUS_TX,
-			   (nveu8_t *)addr +
-			   EQOS_VIRT_INTR_CHX_STATUS(chan));
-	}
-
-	/* Disable the irq */
-	cntrl = osi_readl((nveu8_t *)addr +
-			  EQOS_VIRT_INTR_CHX_CNTRL(chan));
-	cntrl &= ~EQOS_VIRT_INTR_CHX_CNTRL_TX;
-	osi_writel(cntrl, (nveu8_t *)addr +
-		   EQOS_VIRT_INTR_CHX_CNTRL(chan));
-}
-
-/**
- * @brief eqos_enable_chan_tx_intr - Enable Tx channel interrupts.
- *
- * @param[in] addr: Base address indicating the start of
- * 	      memory mapped IO region of the MAC.
- * @param[in] chan: DMA Tx channel number.
- *
- * @pre
- *  - MAC needs to be out of reset and proper clocks need to be configured
- *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
- *  - Mapping of physical IRQ line to DMA channel need to be maintained at
- *    OSDependent layer and pass corresponding channel number.
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: Yes
- * - De-initialization: No
- */
-static void eqos_enable_chan_tx_intr(void *addr, nveu32_t chan)
-{
-	nveu32_t cntrl;
-#if 0
-	CHECK_CHAN_BOUND(chan);
-#endif
-	cntrl = osi_readl((nveu8_t *)addr +
-			  EQOS_VIRT_INTR_CHX_CNTRL(chan));
-	cntrl |= EQOS_VIRT_INTR_CHX_CNTRL_TX;
-	osi_writel(cntrl, (nveu8_t *)addr +
-		   EQOS_VIRT_INTR_CHX_CNTRL(chan));
-}
-
-/**
- * @brief eqos_disable_chan_rx_intr - Disable Rx channel interrupts.
- *
- * @param[in] addr: Base address indicating the start of
- * 	      memory mapped IO region of the MAC.
- * @param[in] chan: DMA Rx channel number.
- *
- * @pre
- *  - MAC needs to be out of reset and proper clocks need to be configured
- *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
- *  - Mapping of physical IRQ line to DMA channel need to be maintained at
- *    OSDependent layer and pass corresponding channel number.
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: Yes
- * - De-initialization: Yes
- */
-static void eqos_disable_chan_rx_intr(void *addr, nveu32_t chan)
-{
-	nveu32_t cntrl, status;
-#if 0
-	CHECK_CHAN_BOUND(chan);
-#endif
-	/* Clear irq before disabling */
-	status = osi_readl((nveu8_t *)addr +
-			   EQOS_VIRT_INTR_CHX_STATUS(chan));
-	if ((status & EQOS_VIRT_INTR_CHX_STATUS_RX) ==
-	     EQOS_VIRT_INTR_CHX_STATUS_RX) {
-		osi_writel(EQOS_DMA_CHX_STATUS_CLEAR_RX,
-			   (nveu8_t *)addr + EQOS_DMA_CHX_STATUS(chan));
-		osi_writel(EQOS_VIRT_INTR_CHX_STATUS_RX,
-			   (nveu8_t *)addr +
-			   EQOS_VIRT_INTR_CHX_STATUS(chan));
-	}
-
-	/* Disable irq */
-	cntrl = osi_readl((nveu8_t *)addr +
-			  EQOS_VIRT_INTR_CHX_CNTRL(chan));
-	cntrl &= ~EQOS_VIRT_INTR_CHX_CNTRL_RX;
-	osi_writel(cntrl, (nveu8_t *)addr +
-		   EQOS_VIRT_INTR_CHX_CNTRL(chan));
-}
-
-/**
- * @brief eqos_enable_chan_rx_intr - Enable Rx channel interrupts.
- *
- * @param[in] addr: Base address indicating the start of
- * 	      memory mapped IO region of the MAC.
- * @param[in] chan: DMA Rx channel number.
- *
- * @pre
- *  - MAC needs to be out of reset and proper clocks need to be configured
- *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: Yes
- * - De-initialization: No
- */
-static void eqos_enable_chan_rx_intr(void *addr, nveu32_t chan)
-{
-	nveu32_t cntrl;
-#if 0
-	CHECK_CHAN_BOUND(chan);
-#endif
-	cntrl = osi_readl((nveu8_t *)addr +
-			  EQOS_VIRT_INTR_CHX_CNTRL(chan));
-	cntrl |= EQOS_VIRT_INTR_CHX_CNTRL_RX;
-	osi_writel(cntrl, (nveu8_t *)addr +
-		   EQOS_VIRT_INTR_CHX_CNTRL(chan));
-}
-
-/**
  * @brief eqos_set_tx_ring_len - Set DMA Tx ring length.
  *
  * @note
@@ -898,59 +745,6 @@ static void eqos_config_slot(struct osi_dma_priv_data *osi_dma,
 #endif /* !OSI_STRIPPED_LIB */
 
 /**
- * @brief eqos_clear_vm_tx_intr - Handle VM Tx interrupt
- *
- * @param[in] addr: MAC base address.
- * @param[in] chan: DMA Tx channel number.
- *
- * Algorithm: Clear Tx interrupt source at DMA and wrapper level.
- *
- * @note
- *	Dependencies: None.
- *	Protection: None.
- * @retval None.
- */
-static void eqos_clear_vm_tx_intr(void *addr, nveu32_t chan)
-{
-#if 0
-	CHECK_CHAN_BOUND(chan);
-#endif
-	osi_writel(EQOS_DMA_CHX_STATUS_CLEAR_TX,
-		   (nveu8_t *)addr + EQOS_DMA_CHX_STATUS(chan));
-	osi_writel(EQOS_VIRT_INTR_CHX_STATUS_TX,
-		   (nveu8_t *)addr + EQOS_VIRT_INTR_CHX_STATUS(chan));
-
-	eqos_disable_chan_tx_intr(addr, chan);
-}
-
-/**
- * @brief eqos_clear_vm_rx_intr - Handle VM Rx interrupt
- *
- * @param[in] addr: MAC base address.
- * @param[in] chan: DMA Rx channel number.
- *
- * Algorithm: Clear Rx interrupt source at DMA and wrapper level.
- *
- * @note
- *	Dependencies: None.
- *	Protection: None.
- *
- * @retval None.
- */
-static void eqos_clear_vm_rx_intr(void *addr, nveu32_t chan)
-{
-#if 0
-	CHECK_CHAN_BOUND(chan);
-#endif
-	osi_writel(EQOS_DMA_CHX_STATUS_CLEAR_RX,
-		   (nveu8_t *)addr + EQOS_DMA_CHX_STATUS(chan));
-	osi_writel(EQOS_VIRT_INTR_CHX_STATUS_RX,
-		   (nveu8_t *)addr + EQOS_VIRT_INTR_CHX_STATUS(chan));
-
-	eqos_disable_chan_rx_intr(addr, chan);
-}
-
-/**
  * @brief eqos_get_dma_safety_config - EQOS get DMA safety configuration
  */
 void *eqos_get_dma_safety_config(void)
@@ -971,10 +765,6 @@ void eqos_init_dma_chan_ops(struct dma_chan_ops *ops)
 	ops->set_rx_ring_start_addr = eqos_set_rx_ring_start_addr;
 	ops->update_tx_tailptr = eqos_update_tx_tailptr;
 	ops->update_rx_tailptr = eqos_update_rx_tailptr;
-	ops->disable_chan_tx_intr = eqos_disable_chan_tx_intr;
-	ops->enable_chan_tx_intr = eqos_enable_chan_tx_intr;
-	ops->disable_chan_rx_intr = eqos_disable_chan_rx_intr;
-	ops->enable_chan_rx_intr = eqos_enable_chan_rx_intr;
 	ops->start_dma = eqos_start_dma;
 	ops->stop_dma = eqos_stop_dma;
 	ops->init_dma_channel = eqos_init_dma_channel;
@@ -983,6 +773,4 @@ void eqos_init_dma_chan_ops(struct dma_chan_ops *ops)
 	ops->validate_regs = eqos_validate_dma_regs;
 	ops->config_slot = eqos_config_slot;
 #endif /* !OSI_STRIPPED_LIB */
-	ops->clear_vm_tx_intr = eqos_clear_vm_tx_intr;
-	ops->clear_vm_rx_intr = eqos_clear_vm_rx_intr;
 }

@@ -66,14 +66,6 @@ struct dma_chan_ops {
 	/** Called to update Rx ring tail pointer */
 	void (*update_rx_tailptr)(void *addr, nveu32_t chan,
 				  nveu64_t tailptr);
-	/** Called to disable DMA Tx channel interrupts at wrapper level */
-	void (*disable_chan_tx_intr)(void *addr, nveu32_t chan);
-	/** Called to enable DMA Tx channel interrupts at wrapper level */
-	void (*enable_chan_tx_intr)(void *addr, nveu32_t chan);
-	/** Called to disable DMA Rx channel interrupts at wrapper level */
-	void (*disable_chan_rx_intr)(void *addr, nveu32_t chan);
-	/** Called to enable DMA Rx channel interrupts at wrapper level */
-	void (*enable_chan_rx_intr)(void *addr, nveu32_t chan);
 	/** Called to start the Tx/Rx DMA */
 	void (*start_dma)(struct osi_dma_priv_data *osi_dma, nveu32_t chan);
 	/** Called to stop the Tx/Rx DMA */
@@ -92,10 +84,6 @@ struct dma_chan_ops {
 			    nveu32_t set,
 			    nveu32_t interval);
 #endif /* !OSI_STRIPPED_LIB */
-	/** Called to clear VM Tx interrupt */
-	void (*clear_vm_tx_intr)(void *addr, nveu32_t chan);
-	/** Called to clear VM Rx interrupt */
-	void (*clear_vm_rx_intr)(void *addr, nveu32_t chan);
 };
 
 /**
@@ -139,8 +127,6 @@ struct dma_local {
 	nveu32_t init_done;
 	/** Holds the MAC version of MAC controller */
 	nveu32_t mac_ver;
-	/** Represents whether DMA interrupts are VM or Non-VM */
-	nveu32_t vm_intr;
 	/** Magic number to validate osi_dma pointer */
 	nveu64_t magic_num;
 	/** Maximum number of DMA channels */

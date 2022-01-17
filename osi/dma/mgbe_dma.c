@@ -26,104 +26,6 @@
 #include "dma_local.h"
 
 /**
- * @brief mgbe_disable_chan_tx_intr - Disables DMA Tx channel interrupts.
- *
- * @param[in] addr: Base address indicating the start of
- *	      memory mapped IO region of the MAC.
- * @param[in] chan: DMA Tx channel number.
- *
- * @note 1) MAC needs to be out of reset and proper clocks need to be configured
- *	 2) DMA HW init need to be completed successfully, see osi_hw_dma_init
- *	 3) Mapping of physical IRQ line to DMA channel need to be maintained at
- *	 OSDependent layer and pass corresponding channel number.
- */
-static void mgbe_disable_chan_tx_intr(void *addr, nveu32_t chan)
-{
-	nveu32_t cntrl;
-#if 0
-	MGBE_CHECK_CHAN_BOUND(chan);
-#endif
-	cntrl = osi_readl((nveu8_t *)addr +
-			  MGBE_VIRT_INTR_CHX_CNTRL(chan));
-	cntrl &= ~MGBE_VIRT_INTR_CHX_CNTRL_TX;
-	osi_writel(cntrl, (nveu8_t *)addr +
-		   MGBE_VIRT_INTR_CHX_CNTRL(chan));
-}
-
-/**
- * @brief mgbe_enable_chan_tx_intr - Enable Tx channel interrupts.
- *
- * @param[in] addr: Base address indicating the start of
- *	      memory mapped IO region of the MAC.
- * @param[in] chan: DMA Tx channel number.
- *
- * @note 1) MAC needs to be out of reset and proper clocks need to be configured
- *	 2) DMA HW init need to be completed successfully, see osi_hw_dma_init
- *	 3) Mapping of physical IRQ line to DMA channel need to be maintained at
- *	 OSDependent layer and pass corresponding channel number.
- */
-static void mgbe_enable_chan_tx_intr(void *addr, nveu32_t chan)
-{
-	nveu32_t cntrl;
-#if 0
-	MGBE_CHECK_CHAN_BOUND(chan);
-#endif
-	cntrl = osi_readl((nveu8_t *)addr +
-			  MGBE_VIRT_INTR_CHX_CNTRL(chan));
-	cntrl |= MGBE_VIRT_INTR_CHX_CNTRL_TX;
-	osi_writel(cntrl, (nveu8_t *)addr +
-		   MGBE_VIRT_INTR_CHX_CNTRL(chan));
-}
-
-/**
- * @brief mgbe_disable_chan_rx_intr - Disable Rx channel interrupts.
- *
- * @param[in] addr: Base address indicating the start of
- *	      memory mapped IO region of the MAC.
- * @param[in] chan: DMA Rx channel number.
- *
- * @note 1) MAC needs to be out of reset and proper clocks need to be configured
- *	 2) DMA HW init need to be completed successfully, see osi_hw_dma_init
- *	 3) Mapping of physical IRQ line to DMA channel need to be maintained at
- *	 OSDependent layer and pass corresponding channel number.
- */
-static void mgbe_disable_chan_rx_intr(void *addr, nveu32_t chan)
-{
-	nveu32_t cntrl;
-#if 0
-	MGBE_CHECK_CHAN_BOUND(chan);
-#endif
-	cntrl = osi_readl((nveu8_t *)addr +
-			  MGBE_VIRT_INTR_CHX_CNTRL(chan));
-	cntrl &= ~MGBE_VIRT_INTR_CHX_CNTRL_RX;
-	osi_writel(cntrl, (nveu8_t *)addr +
-		   MGBE_VIRT_INTR_CHX_CNTRL(chan));
-}
-
-/**
- * @brief mgbe_enable_chan_rx_intr - Enable Rx channel interrupts.
- *
- * @param[in] addr: Base address indicating the start of
- *	      memory mapped IO region of the MAC.
- * @param[in] chan: DMA Rx channel number.
- *
- * @note 1) MAC needs to be out of reset and proper clocks need to be configured
- *	 2) DMA HW init need to be completed successfully, see osi_hw_dma_init
- */
-static void mgbe_enable_chan_rx_intr(void *addr, nveu32_t chan)
-{
-	nveu32_t cntrl;
-#if 0
-	MGBE_CHECK_CHAN_BOUND(chan);
-#endif
-	cntrl = osi_readl((nveu8_t *)addr +
-			  MGBE_VIRT_INTR_CHX_CNTRL(chan));
-	cntrl |= MGBE_VIRT_INTR_CHX_CNTRL_RX;
-	osi_writel(cntrl, (nveu8_t *)addr +
-		   MGBE_VIRT_INTR_CHX_CNTRL(chan));
-}
-
-/**
  * @brief mgbe_set_tx_ring_len - Set DMA Tx ring length.
  *
  * Algorithm: Set DMA Tx channel ring length for specific channel.
@@ -637,48 +539,6 @@ static nve32_t mgbe_validate_dma_regs(OSI_UNUSED
 }
 
 /**
- * @brief mgbe_clear_vm_tx_intr - Clear VM Tx interrupt
- *
- * Algorithm: Clear Tx interrupt source at DMA and wrapper level.
- *
- * @param[in] addr: MAC base address.
- * @param[in] chan: DMA Tx channel number.
- */
-static void mgbe_clear_vm_tx_intr(void *addr, nveu32_t chan)
-{
-#if 0
-	MGBE_CHECK_CHAN_BOUND(chan);
-#endif
-	osi_writel(MGBE_DMA_CHX_STATUS_CLEAR_TX,
-		   (nveu8_t *)addr + MGBE_DMA_CHX_STATUS(chan));
-	osi_writel(MGBE_VIRT_INTR_CHX_STATUS_TX,
-		   (nveu8_t *)addr + MGBE_VIRT_INTR_CHX_STATUS(chan));
-
-	mgbe_disable_chan_tx_intr(addr, chan);
-}
-
-/**
- * @brief mgbe_clear_vm_rx_intr - Clear VM Rx interrupt
- *
- * @param[in] addr: MAC base address.
- * @param[in] chan: DMA Tx channel number.
- *
- * Algorithm: Clear Rx interrupt source at DMA and wrapper level.
- */
-static void mgbe_clear_vm_rx_intr(void *addr, nveu32_t chan)
-{
-#if 0
-	MGBE_CHECK_CHAN_BOUND(chan);
-#endif
-	osi_writel(MGBE_DMA_CHX_STATUS_CLEAR_RX,
-		   (nveu8_t *)addr + MGBE_DMA_CHX_STATUS(chan));
-	osi_writel(MGBE_VIRT_INTR_CHX_STATUS_RX,
-		   (nveu8_t *)addr + MGBE_VIRT_INTR_CHX_STATUS(chan));
-
-	mgbe_disable_chan_rx_intr(addr, chan);
-}
-
-/**
  * @brief mgbe_config_slot - Configure slot Checking for DMA channel
  *
  * Algorithm: Set/Reset the slot function of DMA channel based on given inputs
@@ -728,16 +588,10 @@ void mgbe_init_dma_chan_ops(struct dma_chan_ops *ops)
 	ops->set_rx_ring_start_addr = mgbe_set_rx_ring_start_addr;
 	ops->update_tx_tailptr = mgbe_update_tx_tailptr;
 	ops->update_rx_tailptr = mgbe_update_rx_tailptr;
-	ops->disable_chan_tx_intr = mgbe_disable_chan_tx_intr;
-	ops->enable_chan_tx_intr = mgbe_enable_chan_tx_intr;
-	ops->disable_chan_rx_intr = mgbe_disable_chan_rx_intr;
-	ops->enable_chan_rx_intr = mgbe_enable_chan_rx_intr;
 	ops->start_dma = mgbe_start_dma;
 	ops->stop_dma = mgbe_stop_dma;
 	ops->init_dma_channel = mgbe_init_dma_channel;
 	ops->set_rx_buf_len = mgbe_set_rx_buf_len;
 	ops->validate_regs = mgbe_validate_dma_regs;
-	ops->clear_vm_tx_intr = mgbe_clear_vm_tx_intr;
-	ops->clear_vm_rx_intr = mgbe_clear_vm_rx_intr;
 	ops->config_slot = mgbe_config_slot;
 };
