@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -157,10 +157,22 @@ void nvgpu_vm_remap_os_buf_put(struct vm_gk20a *vm,
 static int nvgpu_vm_remap_validate_map_op(struct nvgpu_as_remap_op *op)
 {
 	int err = 0;
-	u32 valid_flags = (NVGPU_AS_REMAP_OP_FLAGS_CACHEABLE |
+	const u32 pagesize_flags = (NVGPU_AS_REMAP_OP_FLAGS_PAGESIZE_4K |
+			NVGPU_AS_REMAP_OP_FLAGS_PAGESIZE_64K |
+			NVGPU_AS_REMAP_OP_FLAGS_PAGESIZE_128K);
+	const u32 valid_flags = (pagesize_flags |
+			NVGPU_AS_REMAP_OP_FLAGS_CACHEABLE |
 			NVGPU_AS_REMAP_OP_FLAGS_ACCESS_NO_WRITE);
+	const u32 pagesize = op->flags & pagesize_flags;
 
 	if ((op->flags & ~valid_flags) != 0) {
+		err = -EINVAL;
+	}
+
+	/* must be set and to a single pagesize */
+	if ((pagesize != NVGPU_AS_REMAP_OP_FLAGS_PAGESIZE_4K) &&
+		(pagesize != NVGPU_AS_REMAP_OP_FLAGS_PAGESIZE_64K) &&
+		(pagesize != NVGPU_AS_REMAP_OP_FLAGS_PAGESIZE_128K)) {
 		err = -EINVAL;
 	}
 
@@ -170,10 +182,25 @@ static int nvgpu_vm_remap_validate_map_op(struct nvgpu_as_remap_op *op)
 static int nvgpu_vm_remap_validate_unmap_op(struct nvgpu_as_remap_op *op)
 {
 	int err = 0;
+	const u32 pagesize_flags = (NVGPU_AS_REMAP_OP_FLAGS_PAGESIZE_4K |
+			NVGPU_AS_REMAP_OP_FLAGS_PAGESIZE_64K |
+			NVGPU_AS_REMAP_OP_FLAGS_PAGESIZE_128K);
+	const u32 valid_flags = pagesize_flags;
+	const u32 pagesize = op->flags & pagesize_flags;
+
+	if ((op->flags & ~valid_flags) != 0) {
+		err = -EINVAL;
+	}
+
+	/* must be set and to a single pagesize */
+	if ((pagesize != NVGPU_AS_REMAP_OP_FLAGS_PAGESIZE_4K) &&
+		(pagesize != NVGPU_AS_REMAP_OP_FLAGS_PAGESIZE_64K) &&
+		(pagesize != NVGPU_AS_REMAP_OP_FLAGS_PAGESIZE_128K)) {
+		err = -EINVAL;
+	}
 
 	if ((op->compr_kind != NVGPU_KIND_INVALID) ||
 		(op->incompr_kind != NVGPU_KIND_INVALID) ||
-		(op->flags != 0) ||
 		(op->mem_offset_in_pages != 0)) {
 		err = -EINVAL;
 	}
@@ -191,7 +218,15 @@ static u32 nvgpu_vm_remap_translate_as_flags(u32 flags)
 	if ((flags & NVGPU_AS_REMAP_OP_FLAGS_ACCESS_NO_WRITE) != 0) {
 		core_flags |= NVGPU_VM_REMAP_OP_FLAGS_ACCESS_NO_WRITE;
 	}
-
+	if ((flags & NVGPU_AS_REMAP_OP_FLAGS_PAGESIZE_4K) != 0) {
+		core_flags |= NVGPU_VM_REMAP_OP_FLAGS_PAGESIZE_4K;
+	}
+	if ((flags & NVGPU_AS_REMAP_OP_FLAGS_PAGESIZE_64K) != 0) {
+		core_flags |= NVGPU_VM_REMAP_OP_FLAGS_PAGESIZE_64K;
+	}
+	if ((flags & NVGPU_AS_REMAP_OP_FLAGS_PAGESIZE_128K) != 0) {
+		core_flags |= NVGPU_VM_REMAP_OP_FLAGS_PAGESIZE_128K;
+	}
 	return core_flags;
 }
 
@@ -201,7 +236,6 @@ int nvgpu_vm_remap_translate_as_op(struct vm_gk20a *vm,
 {
 	int err = 0;
 	u64 page_size;
-	u64 max_num_pages;
 
 	if (as_op->mem_handle == 0) {
 		err = nvgpu_vm_remap_validate_unmap_op(as_op);
@@ -212,18 +246,17 @@ int nvgpu_vm_remap_translate_as_op(struct vm_gk20a *vm,
 	if (err != 0)
 		goto clean_up;
 
-	page_size = vm->gmmu_page_sizes[GMMU_PAGE_SIZE_BIG];
-	max_num_pages = (ULONG_MAX / page_size);
+	vm_op->flags = nvgpu_vm_remap_translate_as_flags(as_op->flags);
+	page_size = nvgpu_vm_remap_page_size(vm_op);
 
-	if ((as_op->num_pages == 0) ||
-		(as_op->num_pages > max_num_pages) ||
-		(as_op->mem_offset_in_pages > max_num_pages) ||
-		(as_op->virt_offset_in_pages > max_num_pages)) {
+	if ((as_op->num_pages == 0) || (page_size == 0) ||
+		(as_op->num_pages > (vm->va_limit / page_size)) ||
+		(as_op->mem_offset_in_pages > (vm->va_limit / page_size)) ||
+		(as_op->virt_offset_in_pages > (vm->va_limit / page_size))) {
 		err = -EINVAL;
 		goto clean_up;
 	}
 
-	vm_op->flags = nvgpu_vm_remap_translate_as_flags(as_op->flags);
 	vm_op->compr_kind = as_op->compr_kind;
 	vm_op->incompr_kind = as_op->incompr_kind;
 	vm_op->mem_handle = as_op->mem_handle;
