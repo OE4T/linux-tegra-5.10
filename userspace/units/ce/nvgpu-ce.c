@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -129,7 +129,6 @@ int test_ce_setup_env(struct unit_module *m,
 	nvgpu_spinlock_init(&g->mc.intr_lock);
 
 	g->ops.cic_mon.init = gv11b_cic_mon_init;
-	g->ops.cic_mon.report_err = nvgpu_cic_mon_report_err_safety_services;
 
 	if (nvgpu_cic_mon_setup(g) != 0) {
 		unit_err(m, "%s: failed to initialize CIC\n",
