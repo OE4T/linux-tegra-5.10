@@ -127,10 +127,6 @@
 		status = "okay";
 	};
 
-        nvpmodel {
-                status = "disabled";
-        };
-
 	stm@24080000 {
 		status = "disabled";
 	};
