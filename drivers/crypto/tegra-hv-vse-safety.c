@@ -77,6 +77,13 @@
 #define TEGRA_VIRTUAL_SE_CMD_AES_GCM_CMD_ENCRYPT		0x27
 #define TEGRA_VIRTUAL_SE_CMD_AES_GCM_CMD_DECRYPT		0x28
 
+#define TEGRA_VIRTUAL_SE_CMD_AES_GMAC_CMD_INIT			(0x29U)
+#define TEGRA_VIRTUAL_SE_CMD_AES_GMAC_CMD_SIGN			(0x30U)
+#define TEGRA_VIRTUAL_SE_CMD_AES_GMAC_CMD_VERIFY		(0x31U)
+
+#define TEGRA_VIRTUAL_SE_AES_GMAC_SV_CFG_FIRST_REQ_SHIFT	(0x00U)
+#define TEGRA_VIRTUAL_SE_AES_GMAC_SV_CFG_LAST_REQ_SHIFT		(0x01U)
+
 #define TEGRA_VIRTUAL_SE_CMD_SHA_HASH				16
 #define TEGRA_VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_512BIT		(512 / 8)
 #define TEGRA_VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_576BIT		(576 / 8)
@@ -99,6 +106,7 @@
 #define TEGRA_VIRTUAL_SE_AES_KEYTBL_TYPE_OIV			2
 #define TEGRA_VIRTUAL_SE_AES_KEYTBL_TYPE_UIV			4
 
+#define TEGRA_VIRTUAL_SE_AES_KEYSLOT_LABEL_SIZE		16
 #define TEGRA_VIRTUAL_SE_AES_KEYSLOT_LABEL			"NVSEAES"
 
 #define TEGRA_VIRTUAL_SE_AES_LCTR_SIZE				16
@@ -115,6 +123,7 @@
 					TEGRA_VIRTUAL_SE_RNG_KEY_SIZE + \
 					TEGRA_VIRTUAL_SE_RNG_DT_SIZE)
 
+#define TEGRA_VIRTUAL_SE_MAX_SUPPORTED_BUFLEN		((1U << 24) - 1U)
 
 static struct task_struct *tegra_vse_task;
 static bool vse_thread_start;
@@ -142,6 +151,21 @@ enum tegra_virtual_se_command {
 struct tegra_vse_cmac_data {
 	u8 status;
 	u8 data[TEGRA_VIRTUAL_SE_AES_BLOCK_SIZE];
+};
+
+enum gmac_request_type {
+	GMAC_INIT = 0U,
+	GMAC_SIGN,
+	GMAC_VERIFY
+};
+
+/* GMAC request data */
+struct tegra_vse_gmac_req_data {
+	enum gmac_request_type request_type;
+	/* Return IV after GMAC_INIT and pass IV during GMAC_VERIFY*/
+	unsigned char *iv;
+	/* For GMAC_VERIFY tag comparison result */
+	uint8_t result;
 };
 
 struct tegra_vse_soc_info {
@@ -246,6 +270,8 @@ union tegra_virtual_se_aes_args {
 		 * Supported key length is 16 bytes
 		 */
 		uint32_t key_length;
+		/* Config for AES-GMAC request */
+		uint32_t config;
 	} op_gcm;
 	struct aes_cmac_s {
 		u32 keyslot;
@@ -426,6 +452,22 @@ struct tegra_virtual_se_aes_cmac_context {
 	dma_addr_t hash_result_addr;	/* Intermediate hash result dma addr */
 	bool is_first;			/* Represents first block */
 	bool req_context_initialized;	/* Mark initialization status */
+	u32 aes_keyslot;
+	/* key length in bits */
+	u32 keylen;
+	bool is_key_slot_allocated;
+	/* Whether key is a keyslot label */
+	bool is_keyslot_label;
+};
+
+/* Security Engine AES GMAC context */
+struct tegra_virtual_se_aes_gmac_context {
+	/* size of GCM tag*/
+	u32 authsize;
+	/* Represents first part request */
+	bool is_first;
+	/* Mark initialization status */
+	bool req_context_initialized;
 	u32 aes_keyslot;
 	/* key length in bits */
 	u32 keylen;
@@ -1496,13 +1538,17 @@ void tegra_hv_vse_safety_prpare_cmd(struct tegra_virtual_se_dev *se_dev,
 static int status_to_errno(u32 err)
 {
 	switch (err) {
-	case 1:	/* VSE_MSG_ERR_INVALID_CMD */
-	case 4:	/* VSE_MSG_ERR_INVALID_KEY */
-		return -EPERM;
-	case 2: /* VSE_MSG_ERR_OPERATION */
-		return -EREMOTEIO;
-	case 3:	/* VSE_MSG_ERR_INVALID_ARGS */
+	case 1:		/* VSE_MSG_ERR_INVALID_CMD */
+	case 3:		/* VSE_MSG_ERR_INVALID_ARGS */
 		return -EINVAL;
+	case 4:		/* VSE_MSG_ERR_INVALID_KEY */
+	case 5:		/* VSE_MSG_ERR_CTR_OVERFLOW */
+	case 6:		/* VSE_MSG_ERR_INVALID_SUBKEY */
+	case 7:		/* VSE_MSG_ERR_CTR_NONCE_INVALID */
+	case 8:		/* VSE_MSG_ERR_GCM_IV_INVALID */
+	case 9:		/* VSE_MSG_ERR_GCM_NONCE_INVALID */
+	case 10:	/* VSE_MSG_ERR_GMAC_INVALID_PARAMS */
+		return -EPERM;
 	}
 	return err;
 }
@@ -2263,10 +2309,6 @@ static int tegra_hv_vse_safety_cmac_init(struct ahash_request *req)
 		dev_err(se_dev->dev, "AES-CMAC request not valid\n");
 		return -EINVAL;
 	}
-
-	/* Return error if engine is in suspended state */
-	if (atomic_read(&se_dev->se_suspended))
-		return -ENODEV;
 
 	cmac_ctx = ahash_request_ctx(req);
 	if (!cmac_ctx) {
@@ -3083,6 +3125,485 @@ static int tegra_vse_aes_gcm_decrypt(struct aead_request *req)
 	return tegra_vse_aes_gcm_enc_dec(req, false);
 }
 
+static int tegra_hv_vse_safety_gmac_cra_init(struct crypto_tfm *tfm)
+{
+	struct tegra_virtual_se_dev *se_dev = g_virtual_se_dev[VIRTUAL_SE_AES0];
+
+	/* Return error if engine is in suspended state */
+	if (atomic_read(&se_dev->se_suspended))
+		return -ENODEV;
+
+	crypto_ahash_set_reqsize(__crypto_ahash_cast(tfm),
+			 sizeof(struct tegra_virtual_se_aes_gmac_context));
+
+	return 0;
+}
+
+static void tegra_hv_vse_safety_gmac_cra_exit(struct crypto_tfm *tfm)
+{
+	/* nothing to do as user releases the keyslot through tzvault TA */
+}
+
+static int tegra_hv_vse_aes_gmac_setkey(struct crypto_ahash *tfm, const u8 *key,
+		unsigned int keylen)
+{
+	struct tegra_virtual_se_aes_gmac_context *ctx = crypto_ahash_ctx(tfm);
+	struct tegra_virtual_se_dev *se_dev = g_virtual_se_dev[VIRTUAL_SE_AES0];
+	s8 label[TEGRA_VIRTUAL_SE_AES_KEYSLOT_LABEL_SIZE];
+	u32 slot;
+	int err = 0;
+
+	if (!ctx) {
+		dev_err(se_dev->dev, "%s: gmac ctx invalid", __func__);
+		err = -EINVAL;
+		goto exit;
+	}
+
+	if ((keylen != 16) && (keylen != 32)) {
+		dev_err(se_dev->dev, "%s: Unsupported key length: %d", __func__, keylen);
+		err = -EINVAL;
+		goto exit;
+	}
+
+	/* format: 'NVSEAES 1234567\0' */
+	if (!se_dev->disable_keyslot_label) {
+		bool is_keyslot_label =
+			(strnlen(key, TEGRA_VIRTUAL_SE_AES_KEYSLOT_LABEL_SIZE)
+				<= TEGRA_VIRTUAL_SE_AES_KEYSLOT_LABEL_SIZE) &&
+			(sscanf(key, "%s %x", label, &slot) == 2) &&
+			(!strcmp(label, TEGRA_VIRTUAL_SE_AES_KEYSLOT_LABEL));
+
+		if (is_keyslot_label) {
+			ctx->keylen = keylen;
+			ctx->aes_keyslot = (u32)slot;
+			ctx->is_key_slot_allocated = true;
+			ctx->is_keyslot_label = is_keyslot_label;
+		} else {
+			dev_err(se_dev->dev,
+				"\n %s: Invalid keyslot label: %s\n", __func__, key);
+			err = -EINVAL;
+		}
+	}
+
+exit:
+	return err;
+}
+
+static int tegra_hv_vse_aes_gmac_sv_init(struct ahash_request *req)
+{
+	struct tegra_virtual_se_dev *se_dev = g_virtual_se_dev[VIRTUAL_SE_AES0];
+	struct crypto_ahash *tfm = NULL;
+	struct tegra_virtual_se_aes_gmac_context *gmac_ctx = NULL;
+	struct tegra_vse_gmac_req_data *gmac_req_data = NULL;
+	struct tegra_virtual_se_ivc_msg_t *ivc_req_msg = NULL;
+	struct tegra_virtual_se_ivc_hdr_t *ivc_hdr = NULL;
+	struct tegra_virtual_se_ivc_tx_msg_t *ivc_tx = NULL;
+	struct tegra_hv_ivc_cookie *pivck = g_ivck;
+	struct tegra_vse_tag *priv_data_ptr = NULL;
+	struct tegra_vse_priv_data *priv = NULL;
+	int err = 0;
+	u64 time_left;
+
+	/* Return error if engine is in suspended state */
+	if (atomic_read(&se_dev->se_suspended)) {
+		dev_err(se_dev->dev, "%s: engine is in suspended state", __func__);
+		err = -ENODEV;
+		goto exit;
+	}
+
+	if (!req) {
+		dev_err(se_dev->dev, "%s: request invalid\n", __func__);
+		err = -EINVAL;
+		goto exit;
+	}
+
+	tfm = crypto_ahash_reqtfm(req);
+	if (!tfm) {
+		dev_err(se_dev->dev, "%s: transform not valid\n", __func__);
+		err = -EINVAL;
+		goto exit;
+	}
+
+	gmac_ctx = crypto_ahash_ctx(crypto_ahash_reqtfm(req));
+	if (!gmac_ctx) {
+		dev_err(se_dev->dev, "%s: req ctx invalid\n", __func__);
+		err = -EINVAL;
+		goto exit;
+	}
+
+	if (gmac_ctx->is_key_slot_allocated == false) {
+		dev_err(se_dev->dev, "%s: keyslot is not allocated\n", __func__);
+		err = -EPERM;
+		goto exit;
+	}
+
+	gmac_req_data = (struct tegra_vse_gmac_req_data *) req->priv;
+
+	if ((gmac_req_data->request_type == GMAC_VERIFY)
+			|| (gmac_req_data->request_type == GMAC_SIGN)) {
+		/* Initialize GMAC ctx */
+		gmac_ctx->authsize = crypto_ahash_digestsize(tfm);
+		gmac_ctx->req_context_initialized = true;
+		gmac_ctx->is_first = true;
+		/* Exit as GMAC_INIT request need not be sent to SE Server for SIGN/VERIFY */
+		err = 0;
+		goto exit;
+	}
+
+	priv = devm_kzalloc(se_dev->dev, sizeof(*priv), GFP_KERNEL);
+	if (!priv) {
+		err = -ENOMEM;
+		goto exit;
+	}
+
+	ivc_req_msg = devm_kzalloc(se_dev->dev, sizeof(*ivc_req_msg),
+						GFP_KERNEL);
+	if (!ivc_req_msg) {
+		err = -ENOMEM;
+		goto free_exit;
+	}
+
+	ivc_tx = &ivc_req_msg->tx[0];
+	ivc_hdr = &ivc_req_msg->ivc_hdr;
+	ivc_hdr->num_reqs = 1;
+	ivc_hdr->header_magic[0] = 'N';
+	ivc_hdr->header_magic[1] = 'V';
+	ivc_hdr->header_magic[2] = 'D';
+	ivc_hdr->header_magic[3] = 'A';
+	ivc_hdr->engine = VIRTUAL_SE_AES0;
+	priv_data_ptr = (struct tegra_vse_tag *)ivc_hdr->tag;
+	priv_data_ptr->priv_data = (unsigned int *)priv;
+	priv->cmd = VIRTUAL_SE_AES_GCM_ENC_PROCESS;
+	priv->se_dev = se_dev;
+
+	ivc_tx->cmd = TEGRA_VIRTUAL_SE_CMD_AES_GMAC_CMD_INIT;
+	ivc_tx->aes.op_gcm.keyslot = gmac_ctx->aes_keyslot;
+	ivc_tx->aes.op_gcm.key_length = gmac_ctx->keylen;
+
+	vse_thread_start = true;
+	init_completion(&priv->alg_complete);
+	mutex_lock(&se_dev->server_lock);
+	/* Return error if engine is in suspended state */
+	if (atomic_read(&se_dev->se_suspended)) {
+		mutex_unlock(&se_dev->server_lock);
+		dev_err(se_dev->dev, "%s: engine is in suspended state", __func__);
+		err = -ENODEV;
+		goto free_exit;
+	}
+	err = tegra_hv_vse_safety_send_ivc(se_dev, pivck, ivc_req_msg,
+			sizeof(struct tegra_virtual_se_ivc_msg_t));
+	if (err) {
+		dev_err(se_dev->dev, "%s: send_ivc failed %d\n", __func__, err);
+		mutex_unlock(&se_dev->server_lock);
+		goto free_exit;
+	}
+
+	time_left = wait_for_completion_timeout(&priv->alg_complete,
+			TEGRA_HV_VSE_TIMEOUT);
+	mutex_unlock(&se_dev->server_lock);
+	if (time_left == 0UL) {
+		dev_err(se_dev->dev, "%s: completion timeout\n", __func__);
+		err = -ETIMEDOUT;
+		goto free_exit;
+	}
+
+	if (priv->rx_status[0] != 0) {
+		dev_err(se_dev->dev, "%s: SE server returned error %u\n", __func__,
+									priv->rx_status[0]);
+		err = status_to_errno(priv->rx_status[0]);
+		goto free_exit;
+	}
+
+	memcpy(gmac_req_data->iv, priv->iv, TEGRA_VIRTUAL_SE_AES_GCM_IV_SIZE);
+
+free_exit:
+	if (ivc_req_msg)
+		devm_kfree(se_dev->dev, ivc_req_msg);
+
+	if (priv)
+		devm_kfree(se_dev->dev, priv);
+
+exit:
+	return err;
+}
+
+static void tegra_hv_vse_aes_gmac_deinit(struct ahash_request *req)
+{
+	struct tegra_virtual_se_aes_cmac_context *gmac_ctx = ahash_request_ctx(req);
+
+	gmac_ctx->req_context_initialized = false;
+}
+
+int tegra_vse_aes_gmac_sv_check_params(struct ahash_request *req)
+{
+	struct tegra_virtual_se_dev *se_dev = g_virtual_se_dev[VIRTUAL_SE_AES0];
+	int err = 0;
+
+	/* Validate aad buf len */
+	if (req->nbytes > TEGRA_VIRTUAL_SE_MAX_SUPPORTED_BUFLEN) {
+		dev_err(se_dev->dev, "%s: aad buf length exceeds max supported size\n", __func__);
+		err = -EINVAL;
+	}
+
+	return err;
+}
+
+static int tegra_hv_vse_aes_gmac_sv_op(struct ahash_request *req, bool is_last)
+{
+	struct tegra_virtual_se_aes_gmac_context *gmac_ctx = NULL;
+	struct tegra_vse_gmac_req_data *gmac_req_data;
+	struct tegra_virtual_se_dev *se_dev = g_virtual_se_dev[VIRTUAL_SE_AES0];
+	struct tegra_virtual_se_ivc_msg_t *ivc_req_msg = NULL;
+	struct tegra_virtual_se_ivc_hdr_t *ivc_hdr;
+	struct tegra_virtual_se_ivc_tx_msg_t *ivc_tx;
+	struct tegra_hv_ivc_cookie *pivck = g_ivck;
+	struct tegra_vse_priv_data *priv = NULL;
+	struct tegra_vse_tag *priv_data_ptr;
+	void *aad_buf = NULL;
+	void *tag_buf = NULL;
+	dma_addr_t aad_buf_addr;
+	dma_addr_t tag_buf_addr;
+	int err = 0;
+	u64 time_left;
+
+	gmac_ctx = crypto_ahash_ctx(crypto_ahash_reqtfm(req));
+	if (!gmac_ctx) {
+		dev_err(se_dev->dev, "%s: transform not valid\n", __func__);
+		err = -EINVAL;
+		goto exit;
+	}
+
+	gmac_req_data = (struct tegra_vse_gmac_req_data *) req->priv;
+
+	err = tegra_vse_aes_gmac_sv_check_params(req);
+	if (err != 0)
+		goto exit;
+
+	aad_buf = dma_alloc_coherent(se_dev->dev, req->nbytes,
+				&aad_buf_addr, GFP_KERNEL);
+	if (!aad_buf) {
+		err = -ENOMEM;
+		goto exit;
+	}
+	/* copy aad from sgs to buffer*/
+	sg_pcopy_to_buffer(req->src, sg_nents(req->src),
+			aad_buf, req->nbytes, 0);
+
+	tag_buf = dma_alloc_coherent(se_dev->dev, gmac_ctx->authsize,
+				&tag_buf_addr, GFP_KERNEL);
+	if (!tag_buf) {
+		err = -ENOMEM;
+		goto free_exit;
+	}
+
+	priv = devm_kzalloc(se_dev->dev, sizeof(*priv), GFP_KERNEL);
+	if (!priv) {
+		err = -ENOMEM;
+		goto free_exit;
+	}
+
+	ivc_req_msg = devm_kzalloc(se_dev->dev, sizeof(*ivc_req_msg),
+						GFP_KERNEL);
+	if (!ivc_req_msg) {
+		err = -ENOMEM;
+		goto free_exit;
+	}
+
+	ivc_tx = &ivc_req_msg->tx[0];
+	ivc_hdr = &ivc_req_msg->ivc_hdr;
+	ivc_hdr->num_reqs = 1;
+	ivc_hdr->header_magic[0] = 'N';
+	ivc_hdr->header_magic[1] = 'V';
+	ivc_hdr->header_magic[2] = 'D';
+	ivc_hdr->header_magic[3] = 'A';
+	ivc_hdr->engine = VIRTUAL_SE_AES0;
+
+	priv_data_ptr = (struct tegra_vse_tag *)ivc_hdr->tag;
+	priv_data_ptr->priv_data = (unsigned int *)priv;
+	priv->cmd = VIRTUAL_SE_AES_GCM_ENC_PROCESS;
+	priv->se_dev = se_dev;
+
+	if (gmac_req_data->request_type == GMAC_SIGN)
+		ivc_tx->cmd = TEGRA_VIRTUAL_SE_CMD_AES_GMAC_CMD_SIGN;
+	else
+		ivc_tx->cmd = TEGRA_VIRTUAL_SE_CMD_AES_GMAC_CMD_VERIFY;
+
+	ivc_tx->aes.op_gcm.keyslot = gmac_ctx->aes_keyslot;
+	ivc_tx->aes.op_gcm.key_length = gmac_ctx->keylen;
+	ivc_tx->aes.op_gcm.aad_addr_hi = req->nbytes;
+	ivc_tx->aes.op_gcm.aad_addr_lo = (u32)(aad_buf_addr & U32_MAX);
+	ivc_tx->aes.op_gcm.tag_addr_hi = gmac_ctx->authsize;
+	ivc_tx->aes.op_gcm.tag_addr_lo = (u32)(tag_buf_addr & U32_MAX);
+
+	if (gmac_ctx->is_first == true) {
+		ivc_tx->aes.op_gcm.config |=
+					(1 << TEGRA_VIRTUAL_SE_AES_GMAC_SV_CFG_FIRST_REQ_SHIFT);
+		gmac_ctx->is_first = false;
+	}
+
+	if (is_last == true) {
+		ivc_tx->aes.op_gcm.config |= (1 << TEGRA_VIRTUAL_SE_AES_GMAC_SV_CFG_LAST_REQ_SHIFT);
+
+		if (gmac_req_data->request_type == GMAC_VERIFY)
+			memcpy(ivc_tx->aes.op_gcm.iv, gmac_req_data->iv,
+								TEGRA_VIRTUAL_SE_AES_GCM_IV_SIZE);
+	}
+
+	vse_thread_start = true;
+	init_completion(&priv->alg_complete);
+	mutex_lock(&se_dev->server_lock);
+	/* Return error if engine is in suspended state */
+	if (atomic_read(&se_dev->se_suspended)) {
+		mutex_unlock(&se_dev->server_lock);
+		dev_err(se_dev->dev, "%s: engine is in suspended state\n", __func__);
+		err = -ENODEV;
+		goto free_exit;
+	}
+
+	err = tegra_hv_vse_safety_send_ivc(se_dev, pivck, ivc_req_msg,
+			sizeof(struct tegra_virtual_se_ivc_msg_t));
+	if (err) {
+		mutex_unlock(&se_dev->server_lock);
+		dev_err(se_dev->dev, "%s: send_ivc failed %d\n", __func__, err);
+		goto free_exit;
+	}
+
+	time_left = wait_for_completion_timeout(&priv->alg_complete,
+			TEGRA_HV_VSE_TIMEOUT);
+	mutex_unlock(&se_dev->server_lock);
+	if (time_left == 0UL) {
+		dev_err(se_dev->dev, "%s: completion timeout\n", __func__);
+		err = -ETIMEDOUT;
+		goto free_exit;
+	}
+
+	if (priv->rx_status[0] != 0) {
+		dev_err(se_dev->dev, "%s: SE server returned error %u\n", __func__,
+									priv->rx_status[0]);
+		err = status_to_errno(priv->rx_status[0]);
+		goto free_exit;
+	}
+
+	if (is_last) {
+		if (gmac_req_data->request_type == GMAC_SIGN) {
+			/* copy tag to req for last GMAC_SIGN requests */
+			memcpy(req->result, tag_buf, gmac_ctx->authsize);
+		} else {
+			/* check GCM tag for GMAC_VERIFY */
+			if (crypto_memneq(tag_buf, req->result, gmac_ctx->authsize)) {
+				dev_err(se_dev->dev, "%s: gmac verify tag mismatch\n", __func__);
+				gmac_req_data->result = 1;
+			} else {
+				gmac_req_data->result = 0;
+			}
+		}
+	}
+
+free_exit:
+	if (ivc_req_msg)
+		devm_kfree(se_dev->dev, ivc_req_msg);
+
+	if (priv)
+		devm_kfree(se_dev->dev, priv);
+
+	if (tag_buf)
+		dma_free_coherent(se_dev->dev, gmac_ctx->authsize, tag_buf, tag_buf_addr);
+
+	if (aad_buf)
+		dma_free_coherent(se_dev->dev, req->nbytes, aad_buf, aad_buf_addr);
+
+exit:
+	return err;
+}
+
+static int tegra_hv_vse_aes_gmac_sv_update(struct ahash_request *req)
+{
+	struct tegra_virtual_se_aes_gmac_context *gmac_ctx = NULL;
+	struct tegra_virtual_se_dev *se_dev = g_virtual_se_dev[VIRTUAL_SE_AES0];
+	int ret = 0;
+
+	/* Return error if engine is in suspended state */
+	if (atomic_read(&se_dev->se_suspended)) {
+		dev_err(se_dev->dev, "%s: engine is in suspended state\n", __func__);
+		ret = -ENODEV;
+		goto exit;
+	}
+
+	if (!req) {
+		dev_err(se_dev->dev, "%s: request not valid\n", __func__);
+		ret = -EINVAL;
+		goto exit;
+	}
+
+	gmac_ctx = crypto_ahash_ctx(crypto_ahash_reqtfm(req));
+	if (!gmac_ctx->req_context_initialized) {
+		dev_err(se_dev->dev,
+			"%s Request ctx not initialized\n", __func__);
+		ret = -EPERM;
+		goto exit;
+	}
+
+	mutex_lock(&se_dev->mtx);
+
+	ret = tegra_hv_vse_aes_gmac_sv_op(req, false);
+	if (ret)
+		dev_err(se_dev->dev, "%s failed %d\n", __func__, ret);
+
+	mutex_unlock(&se_dev->mtx);
+
+exit:
+	return ret;
+}
+
+static int tegra_hv_vse_aes_gmac_sv_finup(struct ahash_request *req)
+{
+	struct tegra_virtual_se_aes_gmac_context *gmac_ctx = NULL;
+	struct tegra_virtual_se_dev *se_dev = g_virtual_se_dev[VIRTUAL_SE_AES0];
+	int ret = 0;
+
+	/* Return error if engine is in suspended state */
+	if (atomic_read(&se_dev->se_suspended)) {
+		dev_err(se_dev->dev, "%s: engine is in suspended state\n", __func__);
+		ret = -ENODEV;
+		goto exit;
+	}
+
+	if (!req) {
+		dev_err(se_dev->dev, "%s: request not valid\n", __func__);
+		ret = -EINVAL;
+		goto exit;
+	}
+
+	gmac_ctx = crypto_ahash_ctx(crypto_ahash_reqtfm(req));
+	if (!gmac_ctx->req_context_initialized) {
+		dev_err(se_dev->dev,
+			"%s: Request ctx not initialized\n", __func__);
+		ret = -EPERM;
+		goto exit;
+	}
+
+	mutex_lock(&se_dev->mtx);
+
+	ret = tegra_hv_vse_aes_gmac_sv_op(req, true);
+	if (ret)
+		dev_err(se_dev->dev, "%s failed %d\n", __func__, ret);
+
+	mutex_unlock(&se_dev->mtx);
+
+	tegra_hv_vse_aes_gmac_deinit(req);
+
+exit:
+	return ret;
+}
+
+static int tegra_hv_vse_aes_gmac_sv_final(struct ahash_request *req)
+{
+	struct tegra_virtual_se_dev *se_dev = g_virtual_se_dev[VIRTUAL_SE_AES0];
+
+	dev_err(se_dev->dev, "%s: final not supported", __func__);
+	return -EPERM;
+}
+
 #define HV_SAFETY_AES_CTX_SIZE sizeof(struct tegra_virtual_se_aes_context)
 
 static struct rng_alg rng_alg = {
@@ -3203,6 +3724,28 @@ static struct ahash_alg cmac_alg = {
 		.cra_module = THIS_MODULE,
 		.cra_init = tegra_hv_vse_safety_cmac_cra_init,
 		.cra_exit = tegra_hv_vse_safety_cmac_cra_exit,
+	}
+};
+
+static struct ahash_alg gmac_alg = {
+	.init = tegra_hv_vse_aes_gmac_sv_init,
+	.update = tegra_hv_vse_aes_gmac_sv_update,
+	.finup = tegra_hv_vse_aes_gmac_sv_finup,
+	.final = tegra_hv_vse_aes_gmac_sv_final,
+	.setkey = tegra_hv_vse_aes_gmac_setkey,
+	.halg.digestsize = TEGRA_VIRTUAL_SE_AES_GCM_TAG_SIZE,
+	.halg.statesize = TEGRA_VIRTUAL_SE_AES_GCM_TAG_SIZE,
+	.halg.base = {
+		.cra_name = "gmac-vse(aes)",
+		.cra_driver_name = "tegra-hv-vse-gmac(aes)",
+		.cra_priority = 400,
+		.cra_flags = CRYPTO_ALG_TYPE_AHASH,
+		.cra_blocksize = TEGRA_VIRTUAL_SE_AES_BLOCK_SIZE,
+		.cra_ctxsize = sizeof(struct tegra_virtual_se_aes_gmac_context),
+		.cra_alignmask = 0,
+		.cra_module = THIS_MODULE,
+		.cra_init = tegra_hv_vse_safety_gmac_cra_init,
+		.cra_exit = tegra_hv_vse_safety_gmac_cra_exit,
 	}
 };
 
@@ -3667,6 +4210,13 @@ static int tegra_hv_vse_safety_probe(struct platform_device *pdev)
 		if (err) {
 			dev_err(&pdev->dev,
 				"cmac alg register failed. Err %d\n", err);
+			goto exit;
+		}
+
+		err = crypto_register_ahash(&gmac_alg);
+		if (err) {
+			dev_err(&pdev->dev,
+				"gmac alg register failed. Err %d\n", err);
 			goto exit;
 		}
 
