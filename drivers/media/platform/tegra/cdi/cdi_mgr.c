@@ -1523,9 +1523,6 @@ static int cdi_mgr_configure_gpios(struct device *dev, struct cdi_mgr_priv *cdi_
 				i++;
 				cdi_mgr->gpio_count++;
 			}
-		} else {
-			dev_err(dev, "%s \"gpios\" dt node not found\n", __func__);
-			return -EINVAL;
 		}
 	} else {
 		dev_err(dev, "%s \"tegra\" dt node not found\n", __func__);
