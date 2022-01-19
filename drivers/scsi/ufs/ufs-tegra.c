@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Authors:
  *      VenkataJagadish.p	<vjagadish@nvidia.com>
@@ -1105,31 +1105,32 @@ static int ufs_tegra_suspend(struct ufs_hba *hba, enum ufs_pm_op pm_op)
 				dev_err(dev, "pinctrl power down fail %d\n",
 						ret);
 		}
-	}
 
-	do {
-		udelay(100);
-		val = ufs_aux_readl(ufs_tegra->ufs_aux_base,
-				UFSHC_AUX_UFSHC_STATUS_0);
-		if (val & UFSHC_HIBERNATE_STATUS) {
-			is_ufs_lp_pwr_gated = true;
-			break;
+		do {
+			udelay(100);
+			val = ufs_aux_readl(ufs_tegra->ufs_aux_base,
+					UFSHC_AUX_UFSHC_STATUS_0);
+			if (val & UFSHC_HIBERNATE_STATUS) {
+				is_ufs_lp_pwr_gated = true;
+				break;
+			}
+			timeout--;
+		} while (timeout > 0);
+
+		if (timeout <= 0) {
+			dev_err(dev, "UFSHC_AUX_UFSHC_STATUS_0 = %x\n", val);
+			return -ETIMEDOUT;
 		}
-		timeout--;
-	} while (timeout > 0);
 
-	if (timeout <= 0) {
-		dev_err(dev, "UFSHC_AUX_UFSHC_STATUS_0 = %x\n", val);
-		return -ETIMEDOUT;
-	}
-
-	if (is_ufs_lp_pwr_gated) {
-		/*
-		 * Save all armphy_rx_apb and armphy_tx_apb registers
-		 */
-		ufs_tegra_context_save(ufs_tegra);
-		reset_control_assert(ufs_tegra->ufshc_lp_rst);
-	}
+		if (is_ufs_lp_pwr_gated) {
+			/*
+			 * Save all armphy_rx_apb and armphy_tx_apb registers
+			 */
+			ufs_tegra_context_save(ufs_tegra);
+			reset_control_assert(ufs_tegra->ufshc_lp_rst);
+		}
+	} else
+		ufshcd_set_link_off(hba);
 
 	/* Enable wake irq at end of suspend */
 	if (device_may_wakeup(dev)) {
@@ -1199,9 +1200,9 @@ static int ufs_tegra_resume(struct ufs_hba *hba, enum ufs_pm_op pm_op)
 				goto out_disable_mphylane_clks;
 			}
 		}
+		ufs_tegra_context_restore(ufs_tegra);
 	}
 
-	ufs_tegra_context_restore(ufs_tegra);
 	ufs_tegra_cfg_vendor_registers(hba);
 	ret = ufs_tegra_mphy_receiver_calibration(ufs_tegra);
 	if (ret < 0)
