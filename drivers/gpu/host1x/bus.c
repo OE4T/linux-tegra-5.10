@@ -938,9 +938,6 @@ struct host1x_bo_mapping *host1x_bo_pin(struct device *dev, struct host1x_bo *bo
 		mapping->cache = cache;
 
 		list_add_tail(&mapping->entry, &cache->mappings);
-
-		/* bump reference count to track the copy in the cache */
-		kref_get(&mapping->ref);
 	}
 
 unlock:
