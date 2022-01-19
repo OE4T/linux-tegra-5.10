@@ -39,7 +39,6 @@
 #include "class_ids_t23x.h"
 
 #include "nvhost_syncpt_unit_interface.h"
-#include "nvhost_gos.h"
 #include "t23x.h"
 #include "host1x/host1x.h"
 #if IS_ENABLED(CONFIG_TEGRA_GRHOST_ISP)
@@ -717,9 +716,6 @@ int nvhost_init_t23x_support(struct nvhost_master *host,
 #endif
 	op->nvhost_dev.load_gating_regs = t23x_init_gating_regs;
 	op->nvhost_dev.load_map_regs = t23x_init_map_regs;
-
-	op->syncpt.alloc = nvhost_syncpt_alloc_gos_backing;
-	op->syncpt.release = nvhost_syncpt_release_gos_backing;
 
 	op->syncpt.reset = t186_syncpt_reset;
 	op->syncpt.mark_used = t186_syncpt_mark_used;

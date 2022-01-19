@@ -55,7 +55,6 @@ else
 nvhost-$(CONFIG_TEGRA_GRHOST_SYNC) += nvhost_sync_v2.o nvhost_sync_compat.o
 endif
 
-nvhost-$(CONFIG_TEGRA_GRHOST_GOS) += nvhost_gos.o
 nvhost-$(CONFIG_TEGRA_GRHOST_SCALE) += scale_emc.o nvhost_scale.o
 nvhost-$(CONFIG_TEGRA_GRHOST_VHOST) += vhost/vhost.o vhost/vhost_client.o
 
