@@ -893,16 +893,9 @@ static int __init nvmap_init_driver(void)
 	}
 
 #ifdef NVMAP_LOADABLE_MODULE
-	e = nvmap_t19x_init();
-	if (e) {
-		platform_driver_unregister(&nvmap_driver);
-		nvmap_heap_deinit();
-		goto fail;
-	}
 	if (!nvmap_is_carveout_node_present()) {
 		pdev = platform_device_register_simple("tegra-carveouts", -1, NULL, 0);
 		if (IS_ERR(pdev)) {
-			nvmap_t19x_deinit();
 			platform_driver_unregister(&nvmap_driver);
 			nvmap_heap_deinit();
 			return PTR_ERR(pdev);
@@ -925,7 +918,6 @@ static void __exit nvmap_exit_driver(void)
 #ifdef NVMAP_LOADABLE_MODULE
 	if (!nvmap_is_carveout_node_present())
 		platform_device_unregister(pdev);
-	nvmap_t19x_deinit();
 #endif /* NVMAP_LOADABLE_MODULE */
 	platform_driver_unregister(&nvmap_driver);
 	nvmap_heap_deinit();
