@@ -971,6 +971,7 @@ static long cdi_mgr_ioctl(
 		break;
 	case CDI_MGR_IOCTL_ABORT_WAIT_ERR:
 		cdi_mgr->err_irq_recvd_status_mask = CDI_MGR_STOP_GPIO_INTR_EVENT_WAIT;
+		cdi_mgr->err_irq_reported = true;
 		cdi_mgr->stop_err_irq_wait = true;
 		wake_up_interruptible(&cdi_mgr->err_queue);
 		break;
