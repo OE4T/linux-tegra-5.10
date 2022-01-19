@@ -256,15 +256,6 @@
 #define CAP_SPCIE_CAP_OFF_USP_TX_PRESET0_MASK	GENMASK(11, 8)
 #define CAP_SPCIE_CAP_OFF_USP_TX_PRESET0_SHIFT	8
 
-#define GEN4_LANE_MARGINING_1			0xb80
-#define GEN4_LANE_MARGINING_1_NUM_TIMING_STEPS_MASK	GENMASK(5, 0)
-#define GEN4_LANE_MARGINING_1_NUM_TIMING_STEPS_VAL	0x14
-
-#define GEN4_LANE_MARGINING_2			0xb84
-#define GEN4_LANE_MARGINING_2_VOLTAGE_SUPPORTED		BIT(24)
-#define GEN4_LANE_MARGINING_2_UP_DOWN_VOLTAGE		BIT(25)
-#define GEN4_LANE_MARGINING_2_LEFT_RIGHT_TIMING		BIT(26)
-
 #define PME_ACK_DELAY	100	/* 100 us */
 #define PME_ACK_TIMEOUT	10000	/* 10 ms */
 
@@ -1986,18 +1977,6 @@ static void tegra_pcie_prepare_host(struct pcie_port *pp)
 
 	dw_pcie_setup_rc(pp);
 
-	/* Configure lane margining */
-	val = dw_pcie_readl_dbi(pci, GEN4_LANE_MARGINING_1);
-	val &= ~GEN4_LANE_MARGINING_1_NUM_TIMING_STEPS_MASK;
-	val |= GEN4_LANE_MARGINING_1_NUM_TIMING_STEPS_VAL;
-	dw_pcie_writel_dbi(pci, GEN4_LANE_MARGINING_1, val);
-
-	val = dw_pcie_readl_dbi(pci, GEN4_LANE_MARGINING_2);
-	val |= GEN4_LANE_MARGINING_2_VOLTAGE_SUPPORTED;
-	val |= GEN4_LANE_MARGINING_2_LEFT_RIGHT_TIMING;
-	val |= GEN4_LANE_MARGINING_2_UP_DOWN_VOLTAGE;
-	dw_pcie_writel_dbi(pci, GEN4_LANE_MARGINING_2, val);
-
 	/*
 	 * In safety platform link retrain can bump up or down link speed, so
 	 * set core clk to Gen4 freq and enable monitor clk.
@@ -3191,18 +3170,6 @@ static void pex_ep_event_pex_rst_deassert(struct tegra_pcie_dw *pcie)
 		val |= 0x6;
 		dw_pcie_writel_dbi(pci, AUX_CLK_FREQ, val);
 	}
-
-	/* Configure lane margining */
-	val = dw_pcie_readl_dbi(pci, GEN4_LANE_MARGINING_1);
-	val &= ~GEN4_LANE_MARGINING_1_NUM_TIMING_STEPS_MASK;
-	val |= GEN4_LANE_MARGINING_1_NUM_TIMING_STEPS_VAL;
-	dw_pcie_writel_dbi(pci, GEN4_LANE_MARGINING_1, val);
-
-	val = dw_pcie_readl_dbi(pci, GEN4_LANE_MARGINING_2);
-	val |= GEN4_LANE_MARGINING_2_VOLTAGE_SUPPORTED;
-	val |= GEN4_LANE_MARGINING_2_LEFT_RIGHT_TIMING;
-	val |= GEN4_LANE_MARGINING_2_UP_DOWN_VOLTAGE;
-	dw_pcie_writel_dbi(pci, GEN4_LANE_MARGINING_2, val);
 
 	val = dw_pcie_readl_dbi(pci, PCIE_LINK_WIDTH_SPEED_CONTROL);
 	val &= ~PORT_LOGIC_SPEED_CHANGE;
