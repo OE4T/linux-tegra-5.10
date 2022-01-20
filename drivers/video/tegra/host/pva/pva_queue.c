@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2021, NVIDIA CORPORATION & AFFILIATES.
+ * Copyright (c) 2016-2022, NVIDIA CORPORATION & AFFILIATES.
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -46,7 +46,6 @@
 #endif
 
 #include "nvhost_syncpt_unit_interface.h"
-#include "nvhost_gos.h"
 #include <linux/seq_file.h>
 #include "pva.h"
 #include "nvhost_buffer.h"
@@ -185,10 +184,7 @@ static int pva_task_pin_fence(struct pva_submit_task *task,
 		break;
 	}
 	case NVPVA_FENCE_OBJ_SYNCPT: {
-		dma_addr_t syncpt_addr = nvhost_syncpt_gos_address(
-			task->pva->pdev, fence->obj.syncpt.id);
-		if (!syncpt_addr)
-			syncpt_addr = nvhost_syncpt_address(
+		dma_addr_t syncpt_addr = nvhost_syncpt_address(
 				task->queue->vm_pdev, fence->obj.syncpt.id);
 		if (syncpt_addr)
 			*addr = syncpt_addr;
@@ -307,7 +303,6 @@ static int pva_task_process_fence_actions(struct pva_submit_task *task,
 		for (i = 0; i < task->num_pva_fence_actions[fence_type]; i++) {
 			struct nvpva_fence_action *fence_action =
 			    &task->pva_fence_actions[fence_type][i];
-			dma_addr_t gos_addr = 0;
 			dma_addr_t fence_addr;
 			u32 fence_value;
 			dma_addr_t timestamp_addr;
@@ -318,8 +313,6 @@ static int pva_task_process_fence_actions(struct pva_submit_task *task,
 				fence_action->fence.obj.syncpt.id = id;
 				fence_addr = nvhost_syncpt_address(
 				    task->queue->vm_pdev, id);
-				gos_addr = nvhost_syncpt_gos_address(
-				    task->pva->pdev, id);
 				if (fence_addr == 0) {
 					err = -EFAULT;
 					goto out;
@@ -373,16 +366,6 @@ static int pva_task_process_fence_actions(struct pva_submit_task *task,
 						       fence_value,
 						       timestamp_addr);
 			*action_counter = *action_counter + 1;
-			if (gos_addr) {
-				current_fw_actions =
-					&fw_actions[*action_counter];
-				pva_task_write_fence_action_op(
-				    current_fw_actions, action_code,
-				    gos_addr,
-				    fence_action->fence.obj.syncpt.value,
-				    timestamp_addr);
-				*action_counter = *action_counter + 1;
-			}
 		}
 	}
 out:
