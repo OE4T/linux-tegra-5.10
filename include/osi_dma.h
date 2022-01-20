@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -616,9 +616,10 @@ struct osi_dma_priv_data {
  *
  * @note
  * Classification:
- * - Interrupt: Yes
+ * - Interrupt handler: Yes
  * - Signal handler: Yes
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -655,9 +656,10 @@ nve32_t osi_disable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
  *
  * @note
  * Classification:
- * - Interrupt: Yes
+ * - Interrupt handler: Yes
  * - Signal handler: Yes
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -694,9 +696,10 @@ nve32_t osi_enable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
  *
  * @note
  * Classification:
- * - Interrupt: Yes
+ * - Interrupt handler: Yes
  * - Signal handler: Yes
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -733,9 +736,10 @@ nve32_t osi_disable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
  *
  * @note
  * Classification:
- * - Interrupt: Yes
+ * - Interrupt handler: Yes
  * - Signal handler: Yes
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -823,9 +827,10 @@ nve32_t osi_clear_vm_rx_intr(struct osi_dma_priv_data *osi_dma,
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -859,9 +864,10 @@ nve32_t osi_start_dma(struct osi_dma_priv_data *osi_dma, nveu32_t chan);
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -891,9 +897,10 @@ nve32_t osi_stop_dma(struct osi_dma_priv_data *osi_dma, nveu32_t chan);
  *
  * @note
  * Classification:
- * - Interrupt: Yes
+ * - Interrupt handler: Yes
  * - Signal handler: Yes
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -928,9 +935,10 @@ nveu32_t osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring);
  *
  * @note
  * Classification:
- * - Interrupt: Yes
+ * - Interrupt handler: Yes
  * - Signal handler: Yes
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -961,9 +969,10 @@ nve32_t osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -1011,9 +1020,10 @@ nve32_t osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma);
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -1054,9 +1064,10 @@ nve32_t osi_hw_transmit(struct osi_dma_priv_data *osi_dma, nveu32_t chan);
  *
  * @note
  * Classification:
- * - Interrupt: Yes
+ * - Interrupt handler: Yes
  * - Signal handler: Yes
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -1102,9 +1113,10 @@ nve32_t osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
  *
  * @note
  * Classification:
- * - Interrupt: Yes
+ * - Interrupt handler: Yes
  * - Signal handler: Yes
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -1158,9 +1170,10 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -1193,9 +1206,10 @@ nve32_t osi_hw_dma_init(struct osi_dma_priv_data *osi_dma);
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -1220,9 +1234,10 @@ nve32_t osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma);
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -1256,9 +1271,10 @@ nve32_t osi_init_dma_ops(struct osi_dma_priv_data *osi_dma);
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -1290,9 +1306,10 @@ nve32_t osi_dma_get_systime_from_mac(struct osi_dma_priv_data *const osi_dma,
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -1333,9 +1350,10 @@ nveu32_t osi_is_mac_enabled(struct osi_dma_priv_data *const osi_dma);
  *
  * @note
  * Classification:
- * - Interrupt: Yes
+ * - Interrupt handler: Yes
  * - Signal handler: Yes
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -1391,9 +1409,10 @@ nve32_t osi_dma_ioctl(struct osi_dma_priv_data *osi_dma);
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -1426,9 +1445,10 @@ nve32_t osi_validate_dma_regs(struct osi_dma_priv_data *osi_dma);
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -1459,9 +1479,10 @@ nve32_t osi_clear_tx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -1543,9 +1564,10 @@ nve32_t osi_txring_empty(struct osi_dma_priv_data *osi_dma, nveu32_t chan);
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note

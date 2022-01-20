@@ -1345,9 +1345,10 @@ struct osi_core_priv_data {
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -1387,9 +1388,10 @@ nve32_t osi_poll_for_mac_reset_complete(
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -1421,9 +1423,10 @@ nve32_t osi_hw_core_init(struct osi_core_priv_data *const osi_core,
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -1455,9 +1458,10 @@ nve32_t osi_hw_core_deinit(struct osi_core_priv_data *const osi_core);
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -1488,9 +1492,10 @@ nve32_t osi_start_mac(struct osi_core_priv_data *const osi_core);
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -1522,9 +1527,10 @@ nve32_t osi_stop_mac(struct osi_core_priv_data *const osi_core);
  *
  * @note
  * Classification:
- * - Interrupt: Yes
+ * - Interrupt handler: Yes
  * - Signal handler: Yes
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -1556,9 +1562,10 @@ nve32_t osi_common_isr(struct osi_core_priv_data *const osi_core);
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -1592,9 +1599,10 @@ nve32_t osi_set_mode(struct osi_core_priv_data *const osi_core,
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -1628,9 +1636,10 @@ nve32_t osi_set_speed(struct osi_core_priv_data *const osi_core,
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -1664,9 +1673,10 @@ nve32_t osi_pad_calibrate(struct osi_core_priv_data *const osi_core);
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -1699,9 +1709,10 @@ nve32_t osi_config_fw_err_pkts(struct osi_core_priv_data *const osi_core,
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -1737,9 +1748,10 @@ nve32_t osi_config_rxcsum_offload(struct osi_core_priv_data *const osi_core,
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -1781,9 +1793,10 @@ nve32_t osi_l2_filter(struct osi_core_priv_data *const osi_core,
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -1820,9 +1833,10 @@ nve32_t osi_write_phy_reg(struct osi_core_priv_data *const osi_core,
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -1862,9 +1876,10 @@ nve32_t osi_read_mmc(struct osi_core_priv_data *const osi_core);
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -1894,9 +1909,10 @@ nve32_t osi_read_phy_reg(struct osi_core_priv_data *const osi_core,
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -1927,9 +1943,10 @@ nve32_t osi_init_core_ops(struct osi_core_priv_data *const osi_core);
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -1964,9 +1981,10 @@ nve32_t osi_set_systime_to_mac(struct osi_core_priv_data *const osi_core,
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -2001,9 +2019,10 @@ nve32_t osi_adjust_freq(struct osi_core_priv_data *const osi_core, nve32_t ppb);
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -2047,9 +2066,10 @@ nve32_t osi_adjust_time(struct osi_core_priv_data *const osi_core,
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -2105,9 +2125,10 @@ void *eqos_get_core_safety_config(void);
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -2144,9 +2165,10 @@ nve32_t osi_l3l4_filter(struct osi_core_priv_data *const osi_core,
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -2175,9 +2197,10 @@ nve32_t osi_get_mac_version(struct osi_core_priv_data *const osi_core,
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -2344,9 +2367,10 @@ nve32_t osi_get_hw_features(struct osi_core_priv_data *const osi_core,
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -2376,9 +2400,10 @@ nve32_t osi_handle_ioctl(struct osi_core_priv_data *osi_core,
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -2544,9 +2569,10 @@ struct osi_core_priv_data *osi_get_core(void);
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -2585,9 +2611,10 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -2619,9 +2646,10 @@ nve32_t osi_hal_hw_core_init(struct osi_core_priv_data *const osi_core,
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -2663,9 +2691,10 @@ nve32_t osi_hal_hw_core_deinit(struct osi_core_priv_data *const osi_core);
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
@@ -2708,9 +2737,10 @@ nve32_t osi_hal_write_phy_reg(struct osi_core_priv_data *const osi_core,
  *
  * @note
  * Classification:
- * - Interrupt: No
+ * - Interrupt handler: No
  * - Signal handler: No
  * - Thread safe: No
+ * - Async/Sync: Sync
  * - Required Privileges: None
  *
  * @note
