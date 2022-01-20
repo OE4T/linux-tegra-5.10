@@ -836,52 +836,6 @@
 				<340000  204000>;
 	};
 
-	cbb-noc@2300000 {
-		compatible = "nvidia,tegra194-CBB-NOC";
-		reg = <0x0 0x02300000 0x0 0x1000>;
-		interrupts = <0 230 4>, <0 231 4>;
-		status = "disabled";
-	};
-
-	aon-noc@C600000 {
-		compatible = "nvidia,tegra194-AON-NOC";
-		reg = <0x0 0xC600000 0x0 0x1000>;
-		interrupts = <0 260 4>, <0 172 4>;
-		status = "disabled";
-	};
-
-	bpmp-noc@D600000 {
-		compatible = "nvidia,tegra194-BPMP-NOC";
-		reg = <0x0 0xD600000 0x0 0x1000>;
-		interrupts = <0 262 4>, <0 174 4>;
-		status = "disabled";
-	};
-
-	rce-noc@BE00000 {
-		compatible = "nvidia,tegra194-RCE-NOC";
-		reg = <0x0 0xBE00000 0x0 0x1000>;
-		interrupts = <0 259 4>, <0 175 4>;
-		status = "disabled";
-	};
-
-	sce-noc@B600000 {
-		compatible = "nvidia,tegra194-SCE-NOC";
-		reg = <0x0 0xB600000 0x0 0x1000>;
-		interrupts = <0 261 4>, <0 173 4>;
-		status = "disabled";
-	};
-
-	axi2apb@2390000 {
-		compatible = "nvidia,tegra194-AXI2APB-bridge";
-		reg = <0x0 0x02390000 0x0 0x1000>,
-		    <0x0 0x023A0000 0x0 0x1000>,
-		    <0x0 0x023B0000 0x0 0x1000>,
-		    <0x0 0x023C0000 0x0 0x1000>,
-		    <0x0 0x023D0000 0x0 0x1000>,
-		    <0x0 0x023E0000 0x0 0x1000>;
-		status = "disabled";
-	};
-
 	mipical@3990000{
 		compatible = "nvidia, tegra194-mipical";
 		reg = <0x0 0x03990000 0x0 0x10000>;
