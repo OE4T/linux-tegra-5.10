@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -777,7 +777,10 @@ allocate_handle(struct stream_ext_ctx_t *ctx, enum nvscic2c_pcie_obj_type type,
 	}
 	ret = vmap_obj_map(ctx->vmap_h, &vmap_params, &vmap_attrib);
 	if (ret) {
-		pr_err("Failed to map obj of type: (%d)\n", type);
+		if (ret == -EAGAIN)
+			pr_info("Failed to map obj of type: (%d)\n", type);
+		else
+			pr_err("Failed to map obj of type: (%d)\n", type);
 		return ret;
 	}
 
