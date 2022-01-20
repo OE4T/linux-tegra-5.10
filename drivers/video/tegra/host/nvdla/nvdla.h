@@ -3,7 +3,7 @@
  *
  * Tegra Graphics Host NVDLA
  *
- * Copyright (c) 2016-2021 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2022 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -183,7 +183,6 @@ enum nvdla_submit_mode {
  * @cmd_mem		structure to hold command memory pool
  * @trace_enable	to enable/disable the DLA firmware trace
  * @events_mask		mask to set/reset the different DLA firmware trace event
- * @is_gos_enabled	flag to check if GoS enabled
  * @debug_dump_pa	physical address of print buffer
  * @debug_dump_va	virtual address of print buffer
  * @trace_dump_pa	physical address of trace buffer
@@ -206,8 +205,6 @@ struct nvdla_device {
 	struct nvdla_cmd_mem cmd_mem;
 	u32 trace_enable;
 	u32 events_mask;
-	bool is_gos_enabled;
-	bool is_gos_fetched;
 	dma_addr_t debug_dump_pa;
 	u32 *debug_dump_va;
 	dma_addr_t trace_dump_pa;
@@ -421,6 +418,5 @@ int nvdla_emulator_submit(struct nvdla_queue *queue,
 				struct nvdla_emu_task *task);
 void task_free(struct kref *ref);
 int nvdla_get_signal_fences(struct nvdla_queue *queue, void *in_task);
-int nvdla_send_gos_region(struct platform_device *pdev);
 
 #endif /* End of __NVHOST_NVDLA_H__ */

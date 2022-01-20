@@ -26,8 +26,6 @@
 
 #include "host1x/host1x.h"
 
-#include "nvhost_gos.h"
-
 #include "nvdla/nvdla.h"
 #include "nvdla/dla_queue.h"
 #include "nvdla/nvdla_debug.h"
@@ -470,53 +468,16 @@ static u8 *add_timestamp_action(u8 *mem, uint8_t op, uint64_t addr)
 	return mem + sizeof(struct dla_action_timestamp);
 }
 
-static u8 *add_gos_action(u8 *mem, uint8_t op, uint8_t index, uint16_t offset,
-				uint32_t value)
-{
-	struct dla_action_gos *action;
-
-	mem = add_opcode(mem, op);
-
-	action = (struct dla_action_gos *)mem;
-	action->index = index;
-	action->offset = offset;
-	action->value = value;
-
-	return mem + sizeof(struct dla_action_gos);
-}
-
-static int nvdla_get_gos(struct platform_device *pdev, u32 syncpt_id,
-			u32 *gos_id, u32 *gos_offset)
-{
-	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
-	struct nvdla_device *nvdla_dev = pdata->private_data;
-	int err = 0;
-
-	if (!nvdla_dev->is_gos_enabled) {
-		nvdla_dbg_info(pdev, "GoS is not enabled\n");
-		err = -EINVAL;
-		goto gos_disabled;
-	}
-
-	err = nvhost_syncpt_get_gos(pdev, syncpt_id, gos_id, gos_offset);
-	if (err) {
-		nvdla_dbg_err(pdev,
-		  "Get GoS failed for syncpt[%d], err[%d]\n", syncpt_id, err);
-	}
-
-gos_disabled:
-	return err;
-}
-
 static int nvdla_add_fence_action_cb(struct nvhost_ctrl_sync_fence_info info, void *data)
 {
-	u32 gos_id, gos_offset, id, thresh;
+	u32 id, thresh;
 	struct nvdla_add_fence_action_cb_args *args = data;
 	struct nvdla_queue *queue = args->queue;
 	u8 **next = args->mem;
 	struct platform_device *pdev = queue->pool->pdev;
 	struct nvhost_master *host = nvhost_get_host(pdev);
 	struct nvhost_syncpt *sp = &host->syncpt;
+	dma_addr_t syncpt_addr;
 
 	id = info.id;
 	thresh = info.thresh;
@@ -526,26 +487,13 @@ static int nvdla_add_fence_action_cb(struct nvhost_ctrl_sync_fence_info info, vo
 		return -EINVAL;
 	}
 
-	/* check if GoS backing available */
-	if (!nvdla_get_gos(pdev, id, &gos_id, &gos_offset)) {
-		nvdla_dbg_info(pdev, "syncfd_pt:[%u] "
-			"gos_id[%u] gos_offset[%u] val[%u]",
-			id, gos_id, gos_offset, thresh);
-		*next = add_gos_action(*next, ACTION_GOS_GE,
-				gos_id, gos_offset, thresh);
-	} else {
-		dma_addr_t syncpt_addr;
-
-		nvdla_dbg_info(pdev,
-			"GoS missing for syncfd [%d]", id);
-		syncpt_addr = nvhost_syncpt_address(
-				queue->vm_pdev, id);
-		nvdla_dbg_info(pdev, "syncfd_pt:[%u]"
-			"mss_dma_addr[%pad]",
-			id, &syncpt_addr);
-		*next = add_fence_action(*next, ACTION_SEM_GE,
-				syncpt_addr, thresh);
-	}
+	syncpt_addr = nvhost_syncpt_address(
+			queue->vm_pdev, id);
+	nvdla_dbg_info(pdev, "syncfd_pt:[%u]"
+		"mss_dma_addr[%pad]",
+		id, &syncpt_addr);
+	*next = add_fence_action(*next, ACTION_SEM_GE,
+			syncpt_addr, thresh);
 
 	return 0;
 }
@@ -615,45 +563,6 @@ fail_to_pin_mem:
 	return err;
 }
 
-static int nvdla_update_gos(struct platform_device *pdev)
-{
-	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
-	struct nvdla_device *nvdla_dev = pdata->private_data;
-	int err = 0;
-
-	/* confirm if gos fetched, if not fetch through poweron */
-	if (!nvdla_dev->is_gos_fetched) {
-		nvdla_dbg_info(pdev, "fetch GoS regions and send to ucode\n");
-		err = nvhost_module_busy(pdev);
-		if (err) {
-			nvdla_dbg_info(pdev, "failed to poweron[%d]\n",
-					nvdla_dev->is_gos_fetched);
-			goto fail_to_poweron;
-		}
-
-		/*
-		 * confirm if gos fetched through previous poweron
-		 * if not explicitly attempt to refetch
-		 */
-		if (!nvdla_dev->is_gos_fetched) {
-			err = nvdla_send_gos_region(pdev);
-			if (err) {
-				nvdla_dbg_err(pdev, "set gos region fail\n");
-				nvdla_dev->is_gos_enabled = false;
-				nvhost_module_idle(pdev);
-				goto fail_to_send_gos;
-			} else {
-				nvdla_dev->is_gos_enabled = true;
-			}
-		}
-		nvhost_module_idle(pdev);
-	}
-
-fail_to_send_gos:
-fail_to_poweron:
-	return err;
-}
-
 static int nvdla_fill_wait_fence_action(struct nvdla_task *task,
 	struct nvdev_fence *fence,
 	struct dma_buf **dma_buf,
@@ -688,33 +597,19 @@ static int nvdla_fill_wait_fence_action(struct nvdla_task *task,
 		break;
 	}
 	case NVDEV_FENCE_TYPE_SYNCPT: {
-		u32 gos_id, gos_offset;
 
+		dma_addr_t syncpt_addr;
 		nvdla_dbg_info(pdev, "id[%d] val[%d]",
 				fence->syncpoint_index,
 				fence->syncpoint_value);
 
-		if (!nvdla_get_gos(pdev, fence->syncpoint_index, &gos_id,
-					&gos_offset)) {
-			nvdla_dbg_info(pdev, "syncpt:[%u] gos_id[%u] "
-				"gos_offset[%u] val[%u]",
-				fence->syncpoint_index, gos_id, gos_offset,
-				fence->syncpoint_value);
-			next = add_gos_action(next, ACTION_GOS_GE,
-					gos_id, gos_offset,
-					fence->syncpoint_value);
-		} else {
-			dma_addr_t syncpt_addr;
-			nvdla_dbg_info(pdev, "GoS missing");
+		syncpt_addr = nvhost_syncpt_address(
+			queue->vm_pdev, fence->syncpoint_index);
+		nvdla_dbg_info(pdev, "syncpt:[%u] dma_addr[%pad]",
+			fence->syncpoint_index, &syncpt_addr);
 
-			syncpt_addr = nvhost_syncpt_address(
-				queue->vm_pdev, fence->syncpoint_index);
-			nvdla_dbg_info(pdev, "syncpt:[%u] dma_addr[%pad]",
-				fence->syncpoint_index, &syncpt_addr);
-
-			next = add_fence_action(next, ACTION_SEM_GE,
-					syncpt_addr, fence->syncpoint_value);
-		}
+		next = add_fence_action(next, ACTION_SEM_GE,
+				syncpt_addr, fence->syncpoint_value);
 
 		break;
 	}
@@ -767,24 +662,6 @@ static int nvdla_fill_signal_fence_action(struct nvdla_task *task,
 	case NVDEV_FENCE_TYPE_SYNC_FD:
 	case NVDEV_FENCE_TYPE_SYNCPT: {
 		dma_addr_t syncpt_addr;
-		u32 gos_id, gos_offset;
-
-		/* update GoS backing if available  */
-		if (!nvdla_get_gos(pdev, queue->syncpt_id,
-				&gos_id, &gos_offset)) {
-			u32 max;
-
-			/* send incremented max */
-			max = nvhost_syncpt_read_maxval(pdev,
-				queue->syncpt_id);
-			nvdla_dbg_info(pdev, "syncpt:[%u] gos_id[%u] "
-				"gos_offset[%u] val[%u]",
-				queue->syncpt_id, gos_id, gos_offset,
-				max + task->fence_counter + 1);
-			next = add_gos_action(next, ACTION_WRITE_GOS,
-				gos_id, gos_offset,
-				max + task->fence_counter + 1);
-		}
 
 		/* For postaction also update MSS addr */
 		syncpt_addr = nvhost_syncpt_address(queue->vm_pdev,
@@ -1080,7 +957,7 @@ static int nvdla_fill_preactions(struct nvdla_task *task)
 		}
 	}
 
-	/* fill input status after filling sem/syncpt/gos */
+	/* fill input status after filling sem/syncpt */
 	for (i = 0; i < task->num_in_task_status; i++) {
 		err = nvdla_fill_taskstatus_read_action(task,
 				&task->in_task_status[i],
@@ -1206,8 +1083,6 @@ int nvdla_fill_task_desc(struct nvdla_task *task, bool bypass_exec)
 	task_desc->preactions = sizeof(struct dla_task_descriptor);
 	task_desc->postactions = task_desc->preactions +
 					sizeof(struct dla_action_list);
-
-	nvdla_update_gos(pdev);
 
 	/* reset fence counter */
 	task->fence_counter = 0;

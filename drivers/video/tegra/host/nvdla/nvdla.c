@@ -33,7 +33,6 @@
 
 #include "flcn/flcn.h"
 #include "flcn/hw_flcn.h"
-#include "nvhost_gos.h"
 
 #include "t194/t194.h"
 #include "t23x/t23x.h"
@@ -523,87 +522,6 @@ fail_to_alloc_debug_dump:
 	return err;
 }
 
-int nvdla_send_gos_region(struct platform_device *pdev)
-{
-	int i;
-	int err;
-	int num_grids;
-	struct flcn *m;
-	dma_addr_t *dla_grid;
-	struct nvdla_cmd_data cmd_data;
-	struct dla_region_gos *gos_region = NULL;
-	struct nvdla_cmd_mem_info gos_cmd_mem_info;
-	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
-	struct nvdla_device *nvdla_dev = pdata->private_data;
-
-	nvdla_dbg_fn(pdev, "");
-
-	m = get_flcn(pdev);
-	if (!m) {
-		nvdla_dbg_err(pdev, "falcon is not booted!");
-		err = -ENXIO;
-		goto falcon_not_booted;
-	}
-
-	err = nvhost_syncpt_get_cv_dev_address_table(pdev, &num_grids,
-				&dla_grid);
-	if (err) {
-		nvdla_dbg_err(pdev, "failed to get grid[%d]", err);
-		nvdla_dev->is_gos_fetched = false;
-		goto fail_to_get_grid;
-	}
-
-	if (num_grids > MAX_NUM_GRIDS) {
-		nvdla_dbg_err(pdev, "num_grid[%d] > than [%d]", num_grids,
-				MAX_NUM_GRIDS);
-		nvdla_dev->is_gos_fetched = false;
-		err = -EINVAL;
-		goto fail_to_get_grid;
-	}
-	nvdla_dev->is_gos_fetched = true;
-
-	/* assign memory for GoS set command */
-	err = nvdla_get_cmd_memory(pdev, &gos_cmd_mem_info);
-	if (err) {
-		nvdla_dbg_err(pdev,
-				"dma allocation failed for gos set command.");
-		goto alloc_gos_cmd_failed;
-	}
-
-	/* set GoS region info */
-	gos_region = (struct dla_region_gos *)(gos_cmd_mem_info.va);
-	gos_region->region = DLA_REGION_GOS;
-	gos_region->num_grids = num_grids;
-	gos_region->grid_size = MAX_GRID_SIZE;
-	for (i = 0; i < num_grids; i++)
-		gos_region->address[i] = dla_grid[i];
-	speculation_barrier(); /* break_spec_p#5_1 */
-
-	/* set cmd info */
-	cmd_data.method_id = DLA_CMD_SET_REGIONS;
-	cmd_data.method_data = ALIGNED_DMA(gos_cmd_mem_info.pa);
-	cmd_data.wait = true;
-
-	/* send cmd to set gos region */
-	err = nvdla_send_cmd(pdev, &cmd_data);
-
-	/* release memory allocated for set GoS command */
-	nvdla_put_cmd_memory(pdev, gos_cmd_mem_info.index);
-
-	if (err != 0) {
-		nvdla_dbg_err(pdev, "failed to send set gos region command");
-		goto gos_set_cmd_failed;
-	}
-
-	nvdla_dbg_fn(pdev, "send set gos region done.");
-
-gos_set_cmd_failed:
-alloc_gos_cmd_failed:
-fail_to_get_grid:
-falcon_not_booted:
-	return err;
-}
-
 /* power management API */
 int nvhost_nvdla_finalize_poweron(struct platform_device *pdev)
 {
@@ -653,10 +571,6 @@ int nvhost_nvdla_finalize_poweron(struct platform_device *pdev)
 		nvdla_dbg_err(pdev, "fail alloc trace region\n");
 		goto fail_to_alloc_trace;
 	}
-
-	/* Disable GOS until it is fixed in Kernel 4.14 */
-	nvdla_dev->is_gos_enabled = false;
-	nvdla_dev->is_gos_fetched = true;
 
 	return 0;
 
