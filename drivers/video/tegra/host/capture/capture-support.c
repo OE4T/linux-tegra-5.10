@@ -1,7 +1,7 @@
 /*
  * Capture support for syncpoint and GoS management
  *
- * Copyright (c) 2017-2021, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -48,7 +48,7 @@
 
 static inline bool t194_gos_is_enabled(struct platform_device *pdev)
 {
-	return nvmap_fetch_cv_dev_info(&pdev->dev) != NULL;
+	return false;
 }
 
 int capture_alloc_syncpt(struct platform_device *pdev,

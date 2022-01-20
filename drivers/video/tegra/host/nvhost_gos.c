@@ -1,7 +1,7 @@
 /*
  * GoS support
  *
- * Copyright (c) 2016-2020, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -22,7 +22,6 @@
 #include <linux/errno.h>
 #include <linux/iommu.h>
 #include <linux/io.h>
-#include <linux/nvmap_t19x.h>
 #include <linux/nvhost_t194.h>
 #include <linux/slab.h>
 
@@ -56,37 +55,7 @@ int nvhost_syncpt_get_cv_dev_address_table(struct platform_device *engine_pdev,
 				   int *count,
 				   dma_addr_t **table)
 {
-	struct nvhost_device_data *pdata = platform_get_drvdata(engine_pdev);
-	struct nvhost_syncpt_unit_interface *syncpt_unit_interface =
-			pdata->syncpt_unit_interface;
-	struct cv_dev_info *cv_dev_info;
-	struct sg_table *sgt;
-	int i;
-
-	/* table is already prepared ? */
-	if (syncpt_unit_interface->cv_dev_count)
-		goto finish;
-
-	/* fetch and store the address table */
-	cv_dev_info = nvmap_fetch_cv_dev_info(&engine_pdev->dev);
-	if (!cv_dev_info) {
-		nvhost_err(&engine_pdev->dev, "failed to fetch_cv_dev_info");
-		return -EFAULT;
-	}
-
-	for (i = 0; i < cv_dev_info->count; ++i) {
-		sgt = cv_dev_info->sgt + i;
-		syncpt_unit_interface->cv_dev_address_table[i] =
-			sg_dma_address(sgt->sgl);
-	}
-
-	syncpt_unit_interface->cv_dev_count = cv_dev_info->count;
-
-finish:
-	*table = syncpt_unit_interface->cv_dev_address_table;
-	*count = syncpt_unit_interface->cv_dev_count;
-
-	return 0;
+	return -EOPNOTSUPP;
 }
 
 /**
@@ -180,60 +149,7 @@ int nvhost_syncpt_get_gos(struct platform_device *engine_pdev,
 dma_addr_t nvhost_syncpt_gos_address(struct platform_device *engine_pdev,
 				     u32 syncpt_id)
 {
-	struct nvhost_device_data *pdata = platform_get_drvdata(engine_pdev);
-	u32 gos_id, gos_offset;
-	struct cv_dev_info *cv_dev_info;
-	struct sg_table *sgt;
-	int err;
-
-	err = nvhost_syncpt_get_gos(engine_pdev, syncpt_id,
-				    &gos_id, &gos_offset);
-	if (err)
-		return 0;
-
-	/* if context isolation is enabled, GoS is not supported */
-	if (pdata->isolate_contexts)
-		return 0;
-
-	cv_dev_info = nvmap_fetch_cv_dev_info(&engine_pdev->dev);
-	if (!cv_dev_info)
-		return 0;
-
-	sgt = cv_dev_info->sgt + gos_id;
-	return sg_dma_address(sgt->sgl) + gos_offset * sizeof(u32);
-}
-
-/**
- * nvhost_syncpt_insert_syncpt_backing() - insert syncpt_backing into rb_tree
- *
- * @root:			ROOT node of rb-tree
- * @syncpt_gos_backing:		syncpt_backing of new node
- *
- * This function will add new syncpt_gos_backing node into rb_tree
- */
-static void nvhost_syncpt_insert_syncpt_backing(struct rb_root *root,
-	struct syncpt_gos_backing *syncpt_gos_backing)
-{
-	struct rb_node **new_node = &(root->rb_node), *parent = NULL;
-
-	while (*new_node) {
-		struct syncpt_gos_backing *cmp_with =
-			container_of(*new_node, struct syncpt_gos_backing,
-			syncpt_gos_backing_entry);
-
-		parent = *new_node;
-
-		if (cmp_with->syncpt_id > syncpt_gos_backing->syncpt_id)
-			new_node = &((*new_node)->rb_left);
-		else if (cmp_with->syncpt_id != syncpt_gos_backing->syncpt_id)
-			new_node = &((*new_node)->rb_right);
-		else
-			return;
-	}
-
-	rb_link_node(&syncpt_gos_backing->syncpt_gos_backing_entry,
-		     parent, new_node);
-	rb_insert_color(&syncpt_gos_backing->syncpt_gos_backing_entry, root);
+	return 0;
 }
 
 /**
@@ -253,55 +169,7 @@ static void nvhost_syncpt_insert_syncpt_backing(struct rb_root *root,
 int nvhost_syncpt_alloc_gos_backing(struct platform_device *engine_pdev,
 				     u32 syncpt_id)
 {
-	struct nvhost_device_data *pdata = platform_get_drvdata(engine_pdev);
-	struct nvhost_master *host = nvhost_get_host(engine_pdev);
-	struct syncpt_gos_backing *syncpt_gos_backing;
-	struct cv_dev_info *cv_dev_info;
-	u32 idx, offset;
-	u32 *semaphore;
-
-	/* check if engine supports GoS */
-	cv_dev_info = nvmap_fetch_cv_dev_info(&engine_pdev->dev);
-	if (!cv_dev_info)
-		return 0;
-
-	/* if context isolation is enabled, GoS is not supported */
-	if (pdata->isolate_contexts) {
-		nvhost_err(&engine_pdev->dev,
-			   "gos unsupported for engines with context isolation");
-		return -EINVAL;
-	}
-
-	/* check if backing already exists */
-	syncpt_gos_backing = nvhost_syncpt_find_gos_backing(host, syncpt_id);
-	if (syncpt_gos_backing)
-		return 0;
-
-	/* Allocate and initialize backing */
-	syncpt_gos_backing = kzalloc(sizeof(*syncpt_gos_backing), GFP_KERNEL);
-	if (!syncpt_gos_backing) {
-		nvhost_err(&engine_pdev->dev, "failed to allocate gos backing");
-		return -ENOMEM;
-	}
-
-	if (nvmap_alloc_gos_slot(&engine_pdev->dev,
-				&idx, &offset, &semaphore) < 0) {
-		nvhost_err(&engine_pdev->dev, "all gos slots are busy");
-		kfree(syncpt_gos_backing);
-		return -ENOMEM;
-	}
-
-	syncpt_gos_backing->syncpt_id = syncpt_id;
-	syncpt_gos_backing->gos_id = idx;
-	syncpt_gos_backing->gos_offset = offset;
-
-	/* Initialize semaphore in Grid to syncpoint value */
-	*semaphore = nvhost_syncpt_read_min(&host->syncpt, syncpt_id);
-
-	nvhost_syncpt_insert_syncpt_backing(&host->syncpt_backing_head,
-			      syncpt_gos_backing);
-
-	return 0;
+	return -EOPNOTSUPP;
 }
 
 /**
@@ -318,17 +186,5 @@ int nvhost_syncpt_alloc_gos_backing(struct platform_device *engine_pdev,
 int nvhost_syncpt_release_gos_backing(struct nvhost_syncpt *sp,
 				      u32 syncpt_id)
 {
-	struct nvhost_master *host = syncpt_to_dev(sp);
-	struct syncpt_gos_backing *syncpt_gos_backing;
-	syncpt_gos_backing = nvhost_syncpt_find_gos_backing(host, syncpt_id);
-	if (!syncpt_gos_backing)
-		return -EINVAL;
-
-	nvmap_free_gos_slot(syncpt_gos_backing->gos_id,
-			syncpt_gos_backing->gos_offset);
-	rb_erase(&syncpt_gos_backing->syncpt_gos_backing_entry,
-		 &host->syncpt_backing_head);
-	kfree(syncpt_gos_backing);
-
-	return 0;
+	return -EOPNOTSUPP;
 }

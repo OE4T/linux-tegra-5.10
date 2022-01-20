@@ -19,21 +19,12 @@
 #ifndef NVHOST_SYNCPT_UNIT_INTERFACE_H
 #define NVHOST_SYNCPT_UNIT_INTERFACE_H
 
-#if IS_ENABLED(CONFIG_TEGRA_GRHOST_GOS)
-#include <linux/nvmap_t19x.h>
-#endif
-
 struct platform_device;
 struct nvhost_syncpt;
 
 struct nvhost_syncpt_unit_interface {
 	dma_addr_t start;
 	uint32_t syncpt_page_size;
-
-#if IS_ENABLED(CONFIG_TEGRA_GRHOST_GOS)
-	int cv_dev_count;
-	dma_addr_t cv_dev_address_table[NVMAP_MAX_GOS_PAGES];
-#endif
 };
 
 #endif
