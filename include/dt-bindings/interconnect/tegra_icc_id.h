@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-21, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -64,6 +64,7 @@
 #define TEGRA_ICC_VI2				43
 #define TEGRA_ICC_RCE				44
 #define TEGRA_ICC_PVA				45
+#define TEGRA_ICC_NVPMODEL			46
 
 /* remove later */
 #define NV_NVDISPLAYR2MC_SR_ID			TEGRA_ICC_DISPLAY
