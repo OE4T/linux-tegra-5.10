@@ -1180,7 +1180,7 @@ int nvgpu_tsg_set_mmu_debug_mode(struct nvgpu_channel *ch, bool enable)
 	u32 fb_refcnt;
 	struct nvgpu_tsg *tsg = nvgpu_tsg_from_ch(ch);
 
-	if ((ch == NULL) || (tsg == NULL)) {
+	if (tsg == NULL) {
 		return -EINVAL;
 	}
 	g = ch->g;

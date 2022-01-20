@@ -1,7 +1,7 @@
 /*
  * general p state infrastructure
  *
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -192,6 +192,9 @@ int nvgpu_pmu_pstate_pmu_setup(struct gk20a *g)
 
 	if (g->ops.clk.support_pmgr_domain) {
 		err = pmgr_domain_pmu_setup(g);
+		if (err != 0) {
+			return err;
+		}
 	}
 
 	err = g->ops.clk.perf_pmu_vfe_load(g);

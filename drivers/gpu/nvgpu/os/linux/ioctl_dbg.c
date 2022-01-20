@@ -1,7 +1,7 @@
 /*
  * Tegra GK20A GPU Debugger/Profiler Driver
  *
- * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -2446,13 +2446,13 @@ static int nvgpu_gpu_access_sysmem_gpu_va(struct gk20a *g, u8 cmd, u32 size,
 
 	ret = dma_buf_vmap(dmabuf, &map);
 	cpu_va = ret ? NULL : map.vaddr;
-#else
-	cpu_va = (u8 *)dma_buf_vmap(dmabuf) + offset;
-#endif
 
 	if (!cpu_va) {
 		return -ENOMEM;
 	}
+#else
+	cpu_va = (u8 *)dma_buf_vmap(dmabuf) + offset;
+#endif
 
 	switch (cmd) {
 	case NVGPU_DBG_GPU_IOCTL_ACCESS_GPUVA_CMD_READ:

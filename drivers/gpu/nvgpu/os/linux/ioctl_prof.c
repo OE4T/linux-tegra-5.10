@@ -810,6 +810,7 @@ static int nvgpu_prof_ioctl_vab_reserve(struct nvgpu_profiler_object *prof,
 		sizeof(struct nvgpu_vab_range_checker) *
 		arg->num_range_checkers)) {
 		gk20a_idle(g);
+		nvgpu_kfree(g, ckr);
 		return -EFAULT;
 	}
 

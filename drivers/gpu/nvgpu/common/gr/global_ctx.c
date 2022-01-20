@@ -260,9 +260,7 @@ static int nvgpu_gr_global_ctx_buffer_sys_alloc(struct gk20a *g,
 
 	err = nvgpu_gr_global_ctx_buffer_alloc_sys(g, desc,
 		NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP);
-	if (err != 0) {
-		goto fail;
-	}
+
 fail:
 	return err;
 }

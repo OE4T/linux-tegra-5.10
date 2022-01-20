@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+* Copyright (c) 2016-2022, NVIDIA CORPORATION.  All rights reserved.
 *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -66,13 +66,15 @@ static int
 obj_insert_final(struct boardobjgrp *pboardobjgrp,
 	struct pmu_board_obj *obj, u8 index)
 {
-	struct gk20a *g = pboardobjgrp->g;
-
-	nvgpu_log_info(g, " ");
+	struct gk20a *g;
 
 	if (pboardobjgrp == NULL) {
 		return -EINVAL;
 	}
+
+	g = pboardobjgrp->g;
+
+	nvgpu_log_info(g, " ");
 
 	if (obj == NULL) {
 		return -EINVAL;
@@ -448,7 +450,7 @@ static int pmu_set_impl(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	if ((pcmd->buf == NULL) &&
+	if ((pcmd->buf == NULL) ||
 		(pboardobjgrp->pmu.rpc_func_id ==
 		BOARDOBJGRP_GRP_RPC_FUNC_ID_INVALID)) {
 		return -EINVAL;
@@ -511,7 +513,7 @@ pmu_get_status_impl(struct gk20a *g, struct boardobjgrp *pboardobjgrp,
 		return -EINVAL;
 	}
 
-	if ((pcmd->buf == NULL) &&
+	if ((pcmd->buf == NULL) ||
 		(pboardobjgrp->pmu.rpc_func_id ==
 		BOARDOBJGRP_GRP_RPC_FUNC_ID_INVALID)) {
 		return -EINVAL;

@@ -347,8 +347,9 @@ int nvgpu_prepare_poweroff(struct gk20a *g)
 	}
 
 #ifdef CONFIG_NVGPU_GSP_STRESS_TEST
-	ret = nvgpu_gsp_stress_test_halt(g, true);
-	if (ret != 0) {
+	tmp_ret = nvgpu_gsp_stress_test_halt(g, true);
+	if (tmp_ret != 0) {
+		ret = tmp_ret;
 		nvgpu_err(g, "Failed to halt GSP stress test");
 	}
 #endif

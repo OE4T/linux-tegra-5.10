@@ -694,8 +694,7 @@ static int pmu_pg_init_powergating(struct gk20a *g, struct nvgpu_pmu *pmu,
 			pg_engine_id++) {
 
 		if ((BIT32(pg_engine_id) & pg_engine_id_list) != 0U) {
-			if (pmu != NULL &&
-				nvgpu_pmu_get_fw_state(g, pmu) ==
+			if (nvgpu_pmu_get_fw_state(g, pmu) ==
 					PMU_FW_STATE_INIT_RECEIVED) {
 				nvgpu_pmu_fw_state_change(g, pmu,
 					PMU_FW_STATE_ELPG_BOOTING, false);

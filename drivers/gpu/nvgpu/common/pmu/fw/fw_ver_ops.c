@@ -1423,11 +1423,7 @@ int nvgpu_pmu_init_fw_ver_ops(struct gk20a *g,
 				pmu_get_init_msg_sw_mngd_area_off_v5;
 			fw_ops->get_init_msg_sw_mngd_area_size =
 				pmu_get_init_msg_sw_mngd_area_size_v5;
-			if (app_version == APP_VERSION_GV10X) {
-				fw_ops->clk.clk_set_boot_clk = NULL;
-			} else {
-				fw_ops->clk.clk_set_boot_clk = NULL;
-			}
+			fw_ops->clk.clk_set_boot_clk = NULL;
 		} else {
 			fw_ops->get_init_msg_queue_params =
 				pmu_get_init_msg_queue_params_v4;
