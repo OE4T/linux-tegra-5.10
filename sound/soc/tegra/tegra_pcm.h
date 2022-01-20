@@ -3,7 +3,7 @@
  * tegra_pcm.h - Definitions for Tegra PCM driver
  *
  * Author: Stephen Warren <swarren@nvidia.com>
- * Copyright (c) 2010-2021 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2010-2020 NVIDIA CORPORATION.  All rights reserved.
  *
  * Based on code copyright/by:
  *
@@ -19,8 +19,6 @@
 
 #include <sound/dmaengine_pcm.h>
 #include <sound/asound.h>
-
-#define CHAN_NAME_WIDTH		8
 
 int tegra_pcm_construct(struct snd_soc_component *component,
 			struct snd_soc_pcm_runtime *rtd);

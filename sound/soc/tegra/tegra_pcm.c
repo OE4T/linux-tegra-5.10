@@ -68,18 +68,10 @@ int tegra_pcm_platform_register_with_chan_names(struct device *dev,
 				struct snd_dmaengine_pcm_config *config,
 				char *txdmachan, char *rxdmachan)
 {
-	if (!dev)
-		return -ENOMEM;
-
 	*config = tegra_dmaengine_pcm_config;
 	config->dma_dev = dev->parent;
-
-	if ((strlen(txdmachan) < CHAN_NAME_WIDTH) &&
-		(strlen(rxdmachan) < CHAN_NAME_WIDTH)) {
-		config->chan_names[0] = txdmachan;
-		config->chan_names[1] = rxdmachan;
-	} else
-		return -ENOMEM;
+	config->chan_names[0] = txdmachan;
+	config->chan_names[1] = rxdmachan;
 
 	return snd_dmaengine_pcm_register(dev, config, 0);
 }
