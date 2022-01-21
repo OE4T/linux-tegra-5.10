@@ -3,7 +3,7 @@
  *
  * mapping between nvmap_hnadle and sci_ipc entery
  *
- * Copyright (c) 2019-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -304,7 +304,7 @@ int nvmap_sci_ipc_init(void)
 void nvmap_sci_ipc_exit(void)
 {
 	struct nvmap_sci_ipc_entry *e;
-	struct free_sid_node *fnode;
+	struct free_sid_node *fnode, *temp;
 	struct rb_node *n;
 
 	mutex_lock(&nvmapsciipc->mlock);
@@ -314,7 +314,7 @@ void nvmap_sci_ipc_exit(void)
 		kfree(e);
 	}
 
-	list_for_each_entry(fnode, &nvmapsciipc->free_sid_list, list) {
+	list_for_each_entry_safe(fnode, temp, &nvmapsciipc->free_sid_list, list) {
 		list_del(&fnode->list);
 		kfree(fnode);
 	}
