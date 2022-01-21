@@ -631,7 +631,7 @@ int nvhost_module_init(struct platform_device *pdev)
 	pdata->num_clks = err;
 
 	for (i = 0; i < pdata->num_clks; i++) {
-		err = clk_set_rate(pdata->clks[0].clk, ULONG_MAX);
+		err = clk_set_rate(pdata->clks[i].clk, ULONG_MAX);
 		if (err < 0) {
 			dev_err(&pdev->dev, "failed to set clock rate!\n");
 			return err;
