@@ -3,7 +3,7 @@
  *
  * Memory manager for Tegra GPU
  *
- * Copyright (c) 2009-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2009-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -168,6 +168,7 @@ void *__nvmap_mmap(struct nvmap_handle *h)
 
 		vaddr = vmap(pages, h->size >> PAGE_SHIFT, VM_MAP, prot);
 		nvmap_altfree(pages, (h->size >> PAGE_SHIFT) * sizeof(*pages));
+		pages = NULL;
 		if (!vaddr && !h->vaddr)
 			goto out;
 
