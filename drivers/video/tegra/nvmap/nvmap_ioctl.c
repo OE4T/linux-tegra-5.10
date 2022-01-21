@@ -3,7 +3,7 @@
  *
  * User-space interface to nvmap
  *
- * Copyright (c) 2011-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2011-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -1247,7 +1247,7 @@ int system_heap_free_mem(unsigned long *mem_val)
 		return err;
 
 	cma_free = cma_free << 10;
-	if ((available_mem << PAGE_SHIFT) - cma_free < 0) {
+	if ((available_mem << PAGE_SHIFT) < cma_free) {
 		*mem_val = 0;
 		return 0;
 	}
