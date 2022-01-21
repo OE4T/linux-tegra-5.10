@@ -526,8 +526,8 @@ static ssize_t clk_cap_show(struct device *dev,
 }
 
 static const struct of_device_id nvcvnas_of_ids[] = {
-	{ .compatible = "nvidia,tegra-cvnas", .data = (void *)false, },
-	{ .compatible = "nvidia,tegra-cvnas-hv", .data = (void *)true, },
+	{ .compatible = "nvidia,tegra194-cvnas", },
+	{ .compatible = "nvidia,tegra-cvnas-hv", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, nvcvnas_of_ids);
@@ -538,10 +538,8 @@ static int nvcvnas_probe(struct platform_device *pdev)
 	int ret;
 	u32 cvsram_slice_data[2];
 	u32 cvsram_reg_data[4];
-	const struct of_device_id *match;
 
-	if (of_machine_is_compatible("nvidia,tegra194") &&
-	    tegra_get_sku_id() == 0x9E) {
+	if (tegra_get_sku_id() == 0x9E) {
 		dev_err(&pdev->dev, "CVNAS IP is disabled in SKU.\n");
 		return -ENODEV;
 	}
@@ -572,9 +570,8 @@ static int nvcvnas_probe(struct platform_device *pdev)
 		goto err_device_create_file;
 	}
 
-	match = of_match_device(nvcvnas_of_ids, &pdev->dev);
-	if (match)
-		cvnas_dev->virt = (bool)match->data;
+	if (of_device_is_compatible(pdev->dev.of_node, "nvidia,tegra-cvnas-hv"))
+		cvnas_dev->virt = true;
 
 	cvnas_dev->cvreg_iobase = of_iomap(pdev->dev.of_node, 0);
 	if (!cvnas_dev->cvreg_iobase) {
