@@ -606,7 +606,8 @@ int __nvmap_dmabuf_fd(struct nvmap_client *client,
 	ret =  __alloc_fd(current->files, start_fd, sysctl_nr_open, flags);
 #endif
 	if (ret == -EMFILE)
-		pr_err("NvMap: FD limit is crossed\n");
+		pr_err_ratelimited("NvMap: FD limit is crossed for uid %d\n",
+				   from_kuid(current_user_ns(), current_uid()));
 	return ret;
 }
 
