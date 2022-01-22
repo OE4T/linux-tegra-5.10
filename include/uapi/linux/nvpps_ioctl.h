@@ -84,5 +84,7 @@ struct nvpps_timestamp_struct {
 #define NVPPS_SETPARAMS		_IOW('p', 0x3, struct nvpps_params *)
 #define NVPPS_GETEVENT		_IOR('p', 0x4, struct nvpps_timeevent *)
 #define NVPPS_GETTIMESTAMP	_IOWR('p', 0x5, struct nvpps_timestamp_struct *)
+#define NVPPS_SETPTPINTERFACE	_IOW('p', 0x6, char *)
+#define NVPPS_GETPTPINTERFACE	_IOR('p', 0x7, char *)
 
 #endif /* __UAPI_NVPPS_IOCTL_H__ */
