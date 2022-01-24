@@ -3,7 +3,7 @@
  *
  * Implementation of primary ALSA driver code base for NVIDIA Tegra HDA.
  *
- * Copyright (c) 2019-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION. All rights reserved.
  */
 
 #include <linux/clk.h>
@@ -31,6 +31,7 @@
 
 #include <sound/hda_codec.h>
 #include "hda_controller.h"
+#include "hda_jack.h"
 
 #if IS_ENABLED(CONFIG_TEGRA_DC)
 #include <video/tegra_hdmi_audio.h>
@@ -91,6 +92,7 @@ struct hda_pcm_devices {
  * is used to update the GCAP register to workaround the issue.
  */
 #define TEGRA194_NUM_SDO_LINES	  4
+#define JACKPOLL_INTERVAL	msecs_to_jiffies(5000)
 
 struct hda_tegra {
 	struct azx chip;
@@ -100,6 +102,7 @@ struct hda_tegra {
 	void __iomem *regs;
 	void __iomem *regs_fpci;
 	struct work_struct probe_work;
+	struct delayed_work jack_work;
 #if IS_ENABLED(CONFIG_TEGRA_DC)
 	int num_codecs;
 	struct kobject *kobj;
@@ -158,8 +161,11 @@ static void hda_tegra_init(struct hda_tegra *hda)
 static int __maybe_unused hda_tegra_suspend(struct device *dev)
 {
 	struct snd_card *card = dev_get_drvdata(dev);
+	struct azx *chip = card->private_data;
+	struct hda_tegra *hda = container_of(chip, struct hda_tegra, chip);
 	int rc;
 
+	cancel_delayed_work_sync(&hda->jack_work);
 	rc = pm_runtime_force_suspend(dev);
 	if (rc < 0)
 		return rc;
@@ -171,12 +177,16 @@ static int __maybe_unused hda_tegra_suspend(struct device *dev)
 static int __maybe_unused hda_tegra_resume(struct device *dev)
 {
 	struct snd_card *card = dev_get_drvdata(dev);
+	struct azx *chip = card->private_data;
+	struct hda_tegra *hda = container_of(chip, struct hda_tegra, chip);
 	int rc;
 
 	rc = pm_runtime_force_resume(dev);
 	if (rc < 0)
 		return rc;
 	snd_power_change_state(card, SNDRV_CTL_POWER_D0);
+
+	schedule_delayed_work(&hda->jack_work, JACKPOLL_INTERVAL);
 
 	return 0;
 }
@@ -228,6 +238,29 @@ static const struct dev_pm_ops hda_tegra_pm = {
 			   NULL)
 };
 
+static void  hda_tegra_jack_work(struct work_struct *work)
+{
+	struct hda_tegra *hda =
+			container_of(work, struct hda_tegra, jack_work.work);
+	struct azx *chip = &hda->chip;
+	struct hda_codec *codec;
+
+	if (!chip->running)
+		return;
+
+	list_for_each_codec(codec, &chip->bus) {
+		if (snd_hdac_is_power_on(&codec->core))
+			continue;
+
+		snd_hda_power_up_pm(codec);
+		snd_hda_jack_set_dirty_all(codec);
+		snd_hda_jack_poll_all(codec);
+		snd_hda_power_down_pm(codec);
+	}
+
+	schedule_delayed_work(&hda->jack_work, JACKPOLL_INTERVAL);
+}
+
 static int hda_tegra_dev_disconnect(struct snd_device *device)
 {
 	struct azx *chip = device->device_data;
@@ -245,6 +278,7 @@ static int hda_tegra_dev_free(struct snd_device *device)
 	struct hda_tegra *hda = container_of(chip, struct hda_tegra, chip);
 
 	cancel_work_sync(&hda->probe_work);
+	cancel_delayed_work_sync(&hda->jack_work);
 	if (azx_bus(chip)->chip_init) {
 		azx_stop_all_streams(chip);
 		azx_stop_chip(chip);
@@ -459,6 +493,7 @@ static int hda_tegra_create(struct snd_card *card,
 	chip->snoop = true;
 
 	INIT_WORK(&hda->probe_work, hda_tegra_probe_work);
+	INIT_DELAYED_WORK(&hda->jack_work, hda_tegra_jack_work);
 
 	err = azx_bus_init(chip, NULL);
 	if (err < 0)
@@ -707,11 +742,15 @@ static void hda_tegra_probe_work(struct work_struct *work)
 #endif
 out_free:
 	pm_runtime_put(hda->dev);
+	schedule_delayed_work(&hda->jack_work, JACKPOLL_INTERVAL);
 	return; /* no error return from async probe */
 }
 
 static int hda_tegra_remove(struct platform_device *pdev)
 {
+	struct snd_card *card = dev_get_drvdata(&pdev->dev);
+	struct azx *chip = card->private_data;
+	struct hda_tegra *hda = container_of(chip, struct hda_tegra, chip);
 	int ret;
 
 #if IS_ENABLED(CONFIG_TEGRA_DC)
@@ -719,6 +758,7 @@ static int hda_tegra_remove(struct platform_device *pdev)
 	hda_tegra_remove_sysfs(&pdev->dev);
 #endif
 
+	cancel_delayed_work_sync(&hda->jack_work);
 	ret = snd_card_free(dev_get_drvdata(&pdev->dev));
 	pm_runtime_disable(&pdev->dev);
 
@@ -729,10 +769,13 @@ static void hda_tegra_shutdown(struct platform_device *pdev)
 {
 	struct snd_card *card = dev_get_drvdata(&pdev->dev);
 	struct azx *chip;
+	struct hda_tegra *hda;
 
 	if (!card)
 		return;
 	chip = card->private_data;
+	hda = container_of(chip, struct hda_tegra, chip);
+	cancel_delayed_work_sync(&hda->jack_work);
 	if (chip && chip->running)
 		azx_stop_chip(chip);
 }
