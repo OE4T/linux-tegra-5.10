@@ -1,7 +1,7 @@
 /*
  * NVIDIA tegra i2c slave driver
  *
- * Copyright (C) 2017-2019 NVIDIA CORPORATION. All rights reserved.
+ * Copyright (C) 2017-2022 NVIDIA CORPORATION. All rights reserved.
  *
  * Author: Shardar Shariff Md <smohammed@nvidia.com>
  *
@@ -742,13 +742,8 @@ static int tegra_i2cslv_remove(struct platform_device *pdev)
 static int tegra_i2cslv_suspend(struct device *dev)
 {
 	struct tegra_i2cslv_dev *i2cslv_dev = dev_get_drvdata(dev);
-	unsigned long flags;
-
-	raw_spin_lock_irqsave(&i2cslv_dev->xfer_lock, flags);
 
 	tegra_i2cslv_deinit(i2cslv_dev);
-
-	raw_spin_unlock_irqrestore(&i2cslv_dev->xfer_lock, flags);
 
 	return 0;
 }
@@ -756,10 +751,7 @@ static int tegra_i2cslv_suspend(struct device *dev)
 static int tegra_i2cslv_resume(struct device *dev)
 {
 	struct tegra_i2cslv_dev *i2cslv_dev = dev_get_drvdata(dev);
-	unsigned long flags;
 	int ret;
-
-	raw_spin_lock_irqsave(&i2cslv_dev->xfer_lock, flags);
 
 	ret = clk_enable(i2cslv_dev->div_clk);
 	if (ret < 0) {
@@ -771,13 +763,12 @@ static int tegra_i2cslv_resume(struct device *dev)
 		goto exit;
 
 exit:
-	raw_spin_unlock_irqrestore(&i2cslv_dev->xfer_lock, flags);
 	return ret;
 }
 #endif
 
 static const struct dev_pm_ops tegra_i2cslv_pm_ops = {
-	SET_SYSTEM_SLEEP_PM_OPS(tegra_i2cslv_suspend, tegra_i2cslv_resume)
+	SET_NOIRQ_SYSTEM_SLEEP_PM_OPS(tegra_i2cslv_suspend, tegra_i2cslv_resume)
 };
 
 static const struct of_device_id tegra_i2cslv_of_match[] = {
