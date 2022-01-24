@@ -1,7 +1,7 @@
 /*
  * imx274.c - imx274 sensor driver
  *
- * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -948,8 +948,10 @@ struct camera_common_pdata *imx274_parse_dt(struct tegracam_device *tc_dev)
 	board_priv_pdata->has_eeprom =
 		of_property_read_bool(node, "has-eeprom");
 
-	of_property_read_u32(node, "fuse_id_start_addr",
+	err = of_property_read_u32(node, "fuse_id_start_addr",
 		&board_priv_pdata->fuse_id_addr);
+	if (!err)
+		board_priv_pdata->fuse_id_addr = 0;
 
 	return board_priv_pdata;
 }
