@@ -1054,7 +1054,7 @@ nve32_t osi_hw_transmit(struct osi_dma_priv_data *osi_dma, nveu32_t chan);
  *  - Run time: Yes
  *  - De-initialization: No
  *
- * @returns Number of descriptors (buffers) processed.
+ * @returns Number of descriptors (buffers) processed on success else -1.
  */
 nve32_t osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
 				   nveu32_t chan, nve32_t budget);
@@ -1101,7 +1101,7 @@ nve32_t osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
  *  - Run time: Yes
  *  - De-initialization: No
  *
- * @returns Number of descriptors (buffers) processed.
+ * @returns Number of descriptors (buffers) processed on success else -1.
  */
 nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 				   nveu32_t chan, nve32_t budget,
