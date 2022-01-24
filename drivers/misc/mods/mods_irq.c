@@ -2,7 +2,7 @@
 /*
  * mods_irq.c - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2008-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2008-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -534,10 +534,10 @@ static int add_irq_map(struct mods_client         *client,
 		 (irq_type == MODS_IRQ_TYPE_MSIX)) {
 		cl_debug(DEBUG_ISR,
 			 "dev %04x:%02x:%02x.%x registered %s IRQ 0x%x\n",
-			 pci_domain_nr(dev->bus),
-			 dev->bus->number,
-			 PCI_SLOT(dev->devfn),
-			 PCI_FUNC(dev->devfn),
+			 dev ? pci_domain_nr(dev->bus) : 0U,
+			 dev ? dev->bus->number : 0U,
+			 dev ? PCI_SLOT(dev->devfn) : 0U,
+			 dev ? PCI_FUNC(dev->devfn) : 0U,
 			 mods_irq_type_name(irq_type),
 			 irq);
 	}

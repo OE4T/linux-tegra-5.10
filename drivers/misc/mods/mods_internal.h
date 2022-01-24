@@ -2,7 +2,7 @@
 /*
  * mods_internal.h - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2008-2022, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2008-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -38,8 +38,7 @@
 #include <linux/set_memory.h>
 #endif
 
-#if KERNEL_VERSION(5, 1, 0) <= LINUX_VERSION_CODE
-#define MODS_ENABLE_BPMP_MRQ_API
+#ifdef MODS_ENABLE_BPMP_MRQ_API
 #include <soc/tegra/bpmp.h>
 #endif
 
@@ -515,6 +514,8 @@ int esc_mods_acpi_get_ddc(struct mods_client       *client,
 			  struct MODS_ACPI_GET_DDC *p);
 int esc_mods_acpi_get_ddc_2(struct mods_client         *client,
 			    struct MODS_ACPI_GET_DDC_2 *p);
+int esc_mods_get_acpi_dev_children(struct mods_client    *client,
+				   struct MODS_GET_ACPI_DEV_CHILDREN *p);
 #endif
 /* pci */
 #ifdef CONFIG_PCI

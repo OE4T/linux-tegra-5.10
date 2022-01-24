@@ -100,6 +100,14 @@ static const struct pci_device_id mods_pci_table[] = {
 		.class		= (PCI_CLASS_DISPLAY_3D << 8),
 		.class_mask	= ~0
 	},
+	{
+		.vendor		= PCI_VENDOR_ID_NVIDIA,
+		.device		= PCI_ANY_ID,
+		.subvendor	= PCI_ANY_ID,
+		.subdevice	= PCI_ANY_ID,
+		.class		= (PCI_CLASS_BRIDGE_OTHER << 8),
+		.class_mask	= ~0
+	},
 	{ 0 }
 };
 
@@ -1697,6 +1705,7 @@ static int esc_mods_write_sysfs_node(struct mods_client     *client,
 	memcpy(pdata->path, "/sys/", 5);
 	pdata->path[sizeof(pdata->path) - 1] = 0;
 
+	memset(&task, 0, sizeof(task));
 	task.path      = pdata->path;
 	task.data      = pdata->contents;
 	task.data_size = pdata->size;
@@ -2244,6 +2253,10 @@ static long mods_krnl_ioctl(struct file  *fp,
 			   esc_mods_acpi_get_ddc_2, MODS_ACPI_GET_DDC_2);
 		break;
 
+	case MODS_ESC_GET_ACPI_DEV_CHILDREN:
+		MODS_IOCTL(MODS_ESC_GET_ACPI_DEV_CHILDREN,
+			   esc_mods_get_acpi_dev_children, MODS_GET_ACPI_DEV_CHILDREN);
+		break;
 #else
 	case MODS_ESC_EVAL_ACPI_METHOD:
 		/* fallthrough */
@@ -2256,6 +2269,8 @@ static long mods_krnl_ioctl(struct file  *fp,
 	case MODS_ESC_ACPI_GET_DDC:
 		/* fallthrough */
 	case MODS_ESC_ACPI_GET_DDC_2:
+		/* fallthrough */
+	case MODS_ESC_GET_ACPI_DEV_CHILDREN:
 		/* Silent failure to avoid clogging kernel log */
 		err = -EINVAL;
 		break;

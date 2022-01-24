@@ -2,7 +2,7 @@
 /*
  * mods_mem.c - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2008-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2008-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -27,7 +27,7 @@
 #include <linux/of.h>
 #endif
 
-#ifdef CONFIG_ARCH64
+#ifdef CONFIG_ARM64
 #include <linux/cache.h>
 #endif
 
@@ -343,7 +343,7 @@ static int mods_create_default_dma_map(struct mods_client   *client,
 
 	return err;
 }
-#endif
+#endif /* CONFIG_PCI */
 
 /* Find the dma mapping chunk for the specified memory. */
 static struct MODS_DMA_MAP *find_dma_map(struct MODS_MEM_INFO  *p_mem_info,
@@ -2051,7 +2051,7 @@ int esc_mods_dma_unmap_memory(struct mods_client         *client,
 	LOG_EXT();
 	return err;
 }
-#endif
+#endif /* CONFIG_PCI */
 
 #ifdef MODS_HAS_TEGRA
 /* map dma buffer by iommu */
@@ -2141,15 +2141,15 @@ int esc_mods_iommu_dma_map_memory(struct mods_client               *client,
 	/* Check if IOVAs are contiguous */
 	iova_offset = 0;
 	for_each_sg(sgt->sgl, sg, sgt->nents, i) {
-		if (sg_dma_address(sg) != (~(dma_addr_t)0) &&
-		    sg_dma_address(sg) != (iova + iova_offset)) {
+		iova_offset = iova_offset + sg->offset;
+		if (sg_dma_address(sg) != (iova + iova_offset)
+		    || sg_dma_len(sg) != sg->length) {
 			cl_error("sg not contiguous:dma 0x%llx, iova 0x%llx\n",
 				 sg_dma_address(sg),
 				 (u64)(iova + iova_offset));
 			err = -EINVAL;
 			break;
 		}
-		iova_offset += sg->length;
 	}
 	if (err) {
 		dma_unmap_sg_attrs(smmu_pdev->dev, sgt->sgl, sgt->nents,
@@ -2236,7 +2236,7 @@ failed:
 	LOG_EXT();
 	return err;
 }
-#endif
+#endif /* MODS_HAS_TEGRA */
 
 #ifdef CONFIG_ARM64
 static void clear_contiguous_cache(struct mods_client *client,
@@ -2422,7 +2422,7 @@ int esc_mods_flush_cpu_cache_range(struct mods_client                *client,
 	LOG_EXT();
 	return OK;
 }
-#endif
+#endif /* CONFIG_ARM64 */
 
 static int mods_post_alloc(struct mods_client     *client,
 			   struct MODS_PHYS_CHUNK *chunk,
