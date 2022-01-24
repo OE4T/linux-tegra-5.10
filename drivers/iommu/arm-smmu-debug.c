@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2021 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (C) 2020-2022 NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -285,7 +285,7 @@ static int debug_smmu_id_debugfs_set(void *data, u64 val)
 {
 	struct smmu_debugfs_info *smmu_dfs = (struct smmu_debugfs_info *)data;
 
-	if (val < 0 || val >= smmu_dfs->num_smmus)
+	if (val >= smmu_dfs->num_smmus)
 		return -EINVAL;
 
 	smmu_dfs->debug_smmu_id = (u8)val;
