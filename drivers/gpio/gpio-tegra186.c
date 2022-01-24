@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2016-2021 NVIDIA Corporation
+ * Copyright (c) 2016-2022 NVIDIA Corporation
  *
  * Author: Thierry Reding <treding@nvidia.com>
  */
@@ -18,6 +18,7 @@
 #include <dt-bindings/gpio/tegra186-gpio.h>
 #include <dt-bindings/gpio/tegra194-gpio.h>
 #include <dt-bindings/gpio/tegra234-gpio.h>
+#include <dt-bindings/gpio/tegra239-gpio.h>
 
 /* security registers */
 #define TEGRA186_GPIO_CTL_SCR 0x0c
@@ -1543,6 +1544,77 @@ static const struct tegra_gpio_soc tegra234_aon_soc = {
 	.do_vm_check = false,
 };
 
+#define TEGRA239_MAIN_GPIO_PORT(_name, _bank, _port, _pins)	\
+	[TEGRA239_MAIN_GPIO_PORT_##_name] = {			\
+		.name = #_name,					\
+		.bank = _bank,					\
+		.port = _port,					\
+		.pins = _pins,					\
+	}
+
+static const struct tegra_gpio_port tegra239_main_ports[] = {
+	TEGRA239_MAIN_GPIO_PORT(A, 0, 0, 8),
+	TEGRA239_MAIN_GPIO_PORT(B, 0, 1, 5),
+	TEGRA239_MAIN_GPIO_PORT(C, 0, 2, 8),
+	TEGRA239_MAIN_GPIO_PORT(D, 0, 3, 8),
+	TEGRA239_MAIN_GPIO_PORT(E, 0, 4, 4),
+	TEGRA239_MAIN_GPIO_PORT(F, 0, 5, 8),
+	TEGRA239_MAIN_GPIO_PORT(G, 0, 6, 8),
+	TEGRA239_MAIN_GPIO_PORT(H, 0, 7, 6),
+	TEGRA239_MAIN_GPIO_PORT(J, 1, 0, 8),
+	TEGRA239_MAIN_GPIO_PORT(K, 1, 1, 4),
+	TEGRA239_MAIN_GPIO_PORT(L, 1, 2, 8),
+	TEGRA239_MAIN_GPIO_PORT(M, 1, 3, 8),
+	TEGRA239_MAIN_GPIO_PORT(N, 1, 4, 3),
+	TEGRA239_MAIN_GPIO_PORT(P, 1, 5, 8),
+	TEGRA239_MAIN_GPIO_PORT(Q, 1, 6, 3),
+	TEGRA239_MAIN_GPIO_PORT(R, 2, 0, 8),
+	TEGRA239_MAIN_GPIO_PORT(S, 2, 1, 8),
+	TEGRA239_MAIN_GPIO_PORT(T, 2, 2, 8),
+	TEGRA239_MAIN_GPIO_PORT(U, 2, 3, 6),
+	TEGRA239_MAIN_GPIO_PORT(V, 2, 4, 2),
+	TEGRA239_MAIN_GPIO_PORT(W, 3, 0, 8),
+	TEGRA239_MAIN_GPIO_PORT(X, 3, 1, 2)
+};
+
+static const struct tegra_gpio_soc tegra239_main_soc = {
+	.num_ports = ARRAY_SIZE(tegra239_main_ports),
+	.ports = tegra239_main_ports,
+	.name = "tegra239-gpio",
+	.instance = 0,
+	.multi_ints = true,
+	.do_vm_check = true,
+};
+
+#define TEGRA239_AON_GPIO_PORT(_name, _bank, _port, _pins)	\
+	[TEGRA239_AON_GPIO_PORT_##_name] = {			\
+		.name = #_name,					\
+		.bank = _bank,					\
+		.port = _port,					\
+		.pins = _pins,					\
+	}
+
+static const struct tegra_gpio_port tegra239_aon_ports[] = {
+	TEGRA239_AON_GPIO_PORT(AA, 0, 0, 8),
+	TEGRA239_AON_GPIO_PORT(BB, 0, 1, 1),
+	TEGRA239_AON_GPIO_PORT(CC, 0, 2, 8),
+	TEGRA239_AON_GPIO_PORT(DD, 0, 3, 8),
+	TEGRA239_AON_GPIO_PORT(EE, 0, 4, 6),
+	TEGRA239_AON_GPIO_PORT(FF, 0, 5, 8),
+	TEGRA239_AON_GPIO_PORT(GG, 0, 6, 8),
+	TEGRA239_AON_GPIO_PORT(HH, 0, 7, 4)
+};
+
+static const struct tegra_gpio_soc tegra239_aon_soc = {
+	.num_ports = ARRAY_SIZE(tegra239_aon_ports),
+	.ports = tegra239_aon_ports,
+	.name = "tegra239-gpio-aon",
+	.instance = 1,
+	.multi_ints = true,
+	.is_hw_ts_sup = true,
+	.do_vm_check = false,
+};
+
 static const struct of_device_id tegra186_gpio_of_match[] = {
 	{
 		.compatible = "nvidia,tegra186-gpio",
@@ -1562,6 +1634,12 @@ static const struct of_device_id tegra186_gpio_of_match[] = {
 	}, {
 		.compatible = "nvidia,tegra234-gpio-aon",
 		.data = &tegra234_aon_soc
+	}, {
+		.compatible = "nvidia,tegra239-gpio",
+		.data = &tegra239_main_soc
+	}, {
+		.compatible = "nvidia,tegra239-gpio-aon",
+		.data = &tegra239_aon_soc
 	}, {
 		/* sentinel */
 	}
