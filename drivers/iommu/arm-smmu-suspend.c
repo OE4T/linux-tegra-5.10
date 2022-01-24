@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2018-2022 NVIDIA Corporation.  All rights reserved.
  *
  * NVIDIA Corporation and its licensors retain all intellectual property
  * and proprietary rights in and to this software and related documentation
@@ -302,9 +302,8 @@ static int arm_smmu_suspend_probe(struct platform_device *pdev)
 			break;
 
 		bases[i] = ioremap(res->start, resource_size(res));
-		if (IS_ERR(bases[i])) {
+		if (IS_ERR(bases[i]))
 			break;
-		}
 
 		base_pa[i] = res->start;
 		if (i == 0) {
@@ -312,6 +311,11 @@ static int arm_smmu_suspend_probe(struct platform_device *pdev)
 		}
 	}
 	num_smmus = i;
+
+	if (num_smmus == 0) {
+		dev_err(dev, "No SMMU device found\n");
+		return -ENODEV;
+	}
 
 	id = readl_relaxed(bases[0] + ARM_SMMU_GR0_ID1);
 	pgshift = (id & ARM_SMMU_ID1_PAGESIZE) ? 16 : 12;
