@@ -42,7 +42,7 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 	int err = 0;
 	const struct nvgpu_device *gr_dev = NULL;
 
-#ifdef CONFIG_NVGPU_NON_FUSA
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_MIG)
 	if (g->ops.grmgr.load_timestamp_prod != NULL) {
 		g->ops.grmgr.load_timestamp_prod(g);
 	}

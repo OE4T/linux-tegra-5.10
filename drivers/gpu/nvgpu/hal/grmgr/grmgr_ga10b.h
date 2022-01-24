@@ -1,7 +1,7 @@
 /*
  * GA10B GR MANAGER
  *
- * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -42,7 +42,9 @@ int ga10b_grmgr_get_mig_gpu_instance_config(struct gk20a *g,
 void ga10b_grmgr_get_gpcgrp_count(struct gk20a *g);
 #endif
 
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_MIG)
 void ga10b_grmgr_load_smc_arb_timestamp_prod(struct gk20a *g);
+#endif
 int ga10b_grmgr_discover_gpc_ids(struct gk20a *g,
 		u32 num_gpc, struct nvgpu_gpc *gpcs);
 
