@@ -466,23 +466,23 @@ static int tnvvse_crypto_aes_cmac(struct tnvvse_crypto_ctx *ctx,
 	if (!result)
 		return -ENOMEM;
 
-	tfm = crypto_alloc_ahash("cmac(aes)", 0, 0);
+	tfm = crypto_alloc_ahash("cmac-vse(aes)", 0, 0);
 	if (IS_ERR(tfm)) {
 		ret = PTR_ERR(tfm);
-		pr_err("%s(): Failed to allocate ahash for cmac(aes): %d\n", __func__, ret);
+		pr_err("%s(): Failed to allocate ahash for cmac-vse(aes): %d\n", __func__, ret);
 		goto free_result;
 	}
 
 	driver_name = crypto_tfm_alg_driver_name(crypto_ahash_tfm(tfm));;
 	if (driver_name == NULL) {
-		pr_err("%s(): Failed to get_driver_name for cmac(aes) returned NULL", __func__);
+		pr_err("%s(): Failed to get_driver_name for cmac-vse(aes) returned NULL", __func__);
 		goto free_tfm;
 	}
-	pr_debug("%s(): Algo name cmac(aes), driver name %s\n", __func__, driver_name);
+	pr_debug("%s(): Algo name cmac-vse(aes), driver name %s\n", __func__, driver_name);
 
 	req = ahash_request_alloc(tfm, GFP_KERNEL);
 	if (!req) {
-		pr_err("%s(): Failed to allocate request for cmac(aes)\n", __func__);
+		pr_err("%s(): Failed to allocate request for cmac-vse(aes)\n", __func__);
 		goto free_tfm;
 	}
 
@@ -504,7 +504,7 @@ static int tnvvse_crypto_aes_cmac(struct tnvvse_crypto_ctx *ctx,
 	klen = strlen(key_as_keyslot);
 	ret = crypto_ahash_setkey(tfm, key_as_keyslot, klen);
 	if (ret) {
-		pr_err("%s(): Failed to set keys for cmac(aes): %d\n", __func__, ret);
+		pr_err("%s(): Failed to set keys for cmac-vse(aes): %d\n", __func__, ret);
 		goto free_xbuf;
 	}
 
@@ -862,17 +862,17 @@ static int tnvvse_crypto_aes_set_key(struct tnvvse_crypto_ctx *ctx,
 	int klen;
 	int ret;
 
-	/* Only support for  CMAC(AES) */
+	/* Only support for  CMAC-VSE(AES) */
 	if (aes_set_key_ctl->is_cmac != 1) {
 		pr_err("%s(): AESSetkey only supported for CMAC\n", __func__);
 		ret = -EINVAL;
 		goto out;
 	}
 
-	tfm = crypto_alloc_ahash("cmac(aes)", 0, 0);
+	tfm = crypto_alloc_ahash("cmac-vse(aes)", 0, 0);
 	if (IS_ERR(tfm)) {
 		ret = PTR_ERR(tfm);
-		pr_err("%s(): Failed to allocate ahash for cmac(aes): %d\n", __func__, ret);
+		pr_err("%s(): Failed to allocate ahash for cmac-vse(aes): %d\n", __func__, ret);
 		goto out;
 	}
 
@@ -882,7 +882,7 @@ static int tnvvse_crypto_aes_set_key(struct tnvvse_crypto_ctx *ctx,
 	klen = strlen(key_as_keyslot);
 	ret = crypto_ahash_setkey(tfm, key_as_keyslot, klen);
 	if (ret) {
-		pr_err("%s(): Failed to set keys for cmac(aes): %d\n", __func__, ret);
+		pr_err("%s(): Failed to set keys for cmac-vse(aes): %d\n", __func__, ret);
 	}
 
 	crypto_free_ahash(tfm);
@@ -902,7 +902,7 @@ static int tnvvse_crypto_aes_enc_dec(struct tnvvse_crypto_ctx *ctx,
 	int ret = 0, size = 0;
 	unsigned long total = 0;
 	struct tnvvse_crypto_completion tcrypt_complete;
-	char aes_algo[5][10] = {"cbc(aes)", "ecb(aes)", "ctr(aes)"};
+	char aes_algo[5][15] = {"cbc-vse(aes)", "ecb-vse(aes)", "ctr-vse(aes)"};
 	const char *driver_name;
 	char key_as_keyslot[AES_KEYSLOT_NAME_SIZE] = {0,};
 	int klen;
@@ -1172,9 +1172,9 @@ static int tnvvse_crypto_aes_enc_dec_gcm(struct tnvvse_crypto_ctx *ctx,
 		goto out;
 	}
 
-	tfm = crypto_alloc_aead("gcm(aes)", CRYPTO_ALG_TYPE_AEAD | CRYPTO_ALG_ASYNC, 0);
+	tfm = crypto_alloc_aead("gcm-vse(aes)", CRYPTO_ALG_TYPE_AEAD | CRYPTO_ALG_ASYNC, 0);
 	if (IS_ERR(tfm)) {
-		pr_err("%s(): Failed to load transform for gcm(aes): %ld\n",
+		pr_err("%s(): Failed to load transform for gcm-vse(aes): %ld\n",
 					__func__, PTR_ERR(tfm));
 		ret = PTR_ERR(tfm);
 		goto out;

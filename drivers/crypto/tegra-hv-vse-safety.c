@@ -3665,7 +3665,7 @@ static struct aead_alg aead_algs[] = {
 		.maxauthsize	= TEGRA_VIRTUAL_SE_AES_GCM_TAG_SIZE,
 		.chunksize	= TEGRA_VIRTUAL_SE_AES_BLOCK_SIZE,
 		.base = {
-			.cra_name	= "gcm(aes)",
+			.cra_name	= "gcm-vse(aes)",
 			.cra_driver_name = "gcm-aes-tegra-safety",
 			.cra_priority	= 1000,
 			.cra_blocksize	= TEGRA_VIRTUAL_SE_AES_BLOCK_SIZE,
@@ -3677,7 +3677,7 @@ static struct aead_alg aead_algs[] = {
 
 static struct skcipher_alg aes_algs[] = {
 	{
-		.base.cra_name		= "cbc(aes)",
+		.base.cra_name		= "cbc-vse(aes)",
 		.base.cra_driver_name	= "cbc-aes-tegra",
 		.base.cra_priority	= 400,
 		.base.cra_flags		= CRYPTO_ALG_TYPE_SKCIPHER |
@@ -3696,7 +3696,7 @@ static struct skcipher_alg aes_algs[] = {
 		.ivsize			= TEGRA_VIRTUAL_SE_AES_IV_SIZE,
 	},
 	{
-		.base.cra_name		= "ecb(aes)",
+		.base.cra_name		= "ecb-vse(aes)",
 		.base.cra_driver_name	= "ecb-aes-tegra",
 		.base.cra_priority	= 400,
 		.base.cra_flags		= CRYPTO_ALG_TYPE_SKCIPHER |
@@ -3715,7 +3715,7 @@ static struct skcipher_alg aes_algs[] = {
 		.ivsize			= TEGRA_VIRTUAL_SE_AES_IV_SIZE,
 	},
 	{
-		.base.cra_name		= "ctr(aes)",
+		.base.cra_name		= "ctr-vse(aes)",
 		.base.cra_driver_name	= "ctr-aes-tegra-safety",
 		.base.cra_priority	= 400,
 		.base.cra_flags		= CRYPTO_ALG_TYPE_SKCIPHER |
@@ -3745,7 +3745,7 @@ static struct ahash_alg cmac_alg = {
 	.halg.digestsize = TEGRA_VIRTUAL_SE_AES_CMAC_DIGEST_SIZE,
 	.halg.statesize = TEGRA_VIRTUAL_SE_AES_CMAC_STATE_SIZE,
 	.halg.base = {
-		.cra_name = "cmac(aes)",
+		.cra_name = "cmac-vse(aes)",
 		.cra_driver_name = "tegra-hv-vse-safety-cmac(aes)",
 		.cra_priority = 400,
 		.cra_flags = CRYPTO_ALG_TYPE_AHASH,
