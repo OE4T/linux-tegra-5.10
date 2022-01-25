@@ -1,7 +1,7 @@
 /*
  * drivers/misc/tegra-profiler/eh_unwind.c
  *
- * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -858,13 +858,13 @@ clean_mmap(struct quadd_mmap_area *mmap)
 {
 	struct ex_entry_node *entry, *next;
 
+	if (!mmap || mmap->type != QUADD_MMAP_TYPE_EXTABS)
+		return;
+
 	if (atomic_read(&mmap->ref_count)) {
 		pr_warn_once("%s: ref_count != 0\n", __func__);
 		return;
 	}
-
-	if (!mmap || mmap->type != QUADD_MMAP_TYPE_EXTABS)
-		return;
 
 	list_for_each_entry_safe(entry, next, &mmap->ex_entries, list) {
 		mm_ex_list_del(entry->vm_start, entry->pid);
