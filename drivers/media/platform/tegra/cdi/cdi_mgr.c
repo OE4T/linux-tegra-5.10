@@ -1054,11 +1054,19 @@ static int cdi_mgr_open(struct inode *inode, struct file *file)
 			dev_err(cdi_mgr->dev,
 				"%s: failed to wait for the semaphore\n",
 				__func__);
-		if (tca9539_raw_rd(cdi_mgr, 0x02, &val) != 0)
-			return -EFAULT;
-		val |= (0x10 << cdi_mgr->tca9539.power_port);
-		if (tca9539_raw_wr(cdi_mgr, 0x02, val) != 0)
-			return -EFAULT;
+		if (cdi_mgr->cim_ver == 1U) { /* P3714 A01 */
+			if (tca9539_raw_rd(cdi_mgr, 0x02, &val) != 0)
+				return -EFAULT;
+			val |= (0x10 << cdi_mgr->tca9539.power_port);
+			if (tca9539_raw_wr(cdi_mgr, 0x02, val) != 0)
+				return -EFAULT;
+		} else if (cdi_mgr->cim_ver == 2U) { /* P3714 A02 */
+			if (tca9539_raw_rd(cdi_mgr, 0x03, &val) != 0)
+				return -EFAULT;
+			val |= (0x1 << cdi_mgr->tca9539.power_port);
+			if (tca9539_raw_wr(cdi_mgr, 0x03, val) != 0)
+				return -EFAULT;
+		}
 		up(&tca9539_sem);
 	}
 
@@ -1078,11 +1086,19 @@ static int cdi_mgr_release(struct inode *inode, struct file *file)
 			dev_err(cdi_mgr->dev,
 				"%s: failed to wait for the semaphore\n",
 				__func__);
-		if (tca9539_raw_rd(cdi_mgr, 0x02, &val) != 0)
-			return -EFAULT;
-		val &= ~(0x10 << cdi_mgr->tca9539.power_port);
-		if (tca9539_raw_wr(cdi_mgr, 0x02, val) != 0)
-			return -EFAULT;
+		if (cdi_mgr->cim_ver == 1U) { /* P3714 A01 */
+			if (tca9539_raw_rd(cdi_mgr, 0x02, &val) != 0)
+				return -EFAULT;
+			val &= ~(0x10 << cdi_mgr->tca9539.power_port);
+			if (tca9539_raw_wr(cdi_mgr, 0x02, val) != 0)
+				return -EFAULT;
+		} else if (cdi_mgr->cim_ver == 2U) { /* P3714 A02 */
+			if (tca9539_raw_rd(cdi_mgr, 0x03, &val) != 0)
+				return -EFAULT;
+			val &= ~(0x1 << cdi_mgr->tca9539.power_port);
+			if (tca9539_raw_wr(cdi_mgr, 0x03, val) != 0)
+				return -EFAULT;
+		}
 		up(&tca9539_sem);
 	}
 
@@ -1533,6 +1549,46 @@ static int cdi_mgr_configure_gpios(struct device *dev, struct cdi_mgr_priv *cdi_
 	return 0;
 }
 
+static void cdi_mgr_get_cim_ver(struct device *dev, struct cdi_mgr_priv *cdi_mgr)
+{
+	int err = 0;
+	struct device_node *child = NULL;
+	struct device_node *cim = NULL;
+	const char *cim_ver;
+
+	child = of_get_parent(dev->of_node);
+	if (child != NULL) {
+		cim = of_get_compatible_child(child,
+					"nvidia,cim_ver");
+		if (cim != NULL) {
+			err = of_property_read_string(cim,
+					"cim_ver",
+					&cim_ver);
+			if (!err) {
+				if (!strncmp(cim_ver,
+					"cim_ver_a01",
+					sizeof("cim_ver_a01"))) {
+					dev_info(dev,
+						"CIM A01\n");
+					cdi_mgr->cim_ver = 1U;
+				} else {
+					dev_info(dev,
+						"CIM A02\n");
+					cdi_mgr->cim_ver = 2U;
+					if (of_property_read_u32_array(cim,
+						"cim_frsync_src",
+						cdi_mgr->cim_frsync,
+						sizeof(cdi_mgr->cim_frsync)/sizeof(u32))) {
+						memset((void *)cdi_mgr->cim_frsync,
+							0U,
+							sizeof(cdi_mgr->cim_frsync));
+					}
+				}
+			}
+		}
+	}
+}
+
 static int cdi_mgr_probe(struct platform_device *pdev)
 {
 	int err = 0;
@@ -1680,6 +1736,9 @@ static int cdi_mgr_probe(struct platform_device *pdev)
 		goto err_probe;
 	}
 
+	/* Find CIM version */
+	cdi_mgr_get_cim_ver(&pdev->dev, cdi_mgr);
+
 	child = of_get_child_by_name(pdev->dev.of_node, "pwr_ctrl");
 	if (child != NULL) {
 		if (of_property_read_bool(child,
@@ -1805,25 +1864,56 @@ static int cdi_mgr_probe(struct platform_device *pdev)
 			/* TODO : read the array to initialize */
 			/* the registers in TCA9539 */
 			/* Use the IO expander to control PWDN signals */
-			if (tca9539_raw_wr(cdi_mgr, 0x6, 0x0E) != 0) {
-				dev_err(&pdev->dev,
-						"%s: ERR %d: TCA9539: Failed to select PWDN signal source\n",
-						__func__, err);
-				goto err_probe;
-			}
-			/* Output mode for AGGA/B/C/D_PWRDN */
-			if (tca9539_raw_wr(cdi_mgr, 0x6, 0x0F) != 0) {
-				dev_err(&pdev->dev,
-						"%s: ERR %d: TCA9539: Failed to set the output mode\n",
-						__func__, err);
-				goto err_probe;
-			}
-			/* Output low for AGGA/B/C/D_PWRDN */
-			if (tca9539_raw_wr(cdi_mgr, 0x2, 0x0F) != 0) {
-				dev_err(&pdev->dev,
-						"%s: ERR %d: TCA9539: Failed to set the output level\n",
-						__func__, err);
-				goto err_probe;
+			if (cdi_mgr->cim_ver == 1U) { /* P3714 A01 */
+				if (tca9539_raw_wr(cdi_mgr, 0x6, 0x0E) != 0) {
+					dev_err(&pdev->dev,
+							"%s: ERR %d: TCA9539: Failed to select PWDN signal source\n",
+							__func__, err);
+					goto err_probe;
+				}
+				/* Output low for AGGA/B/C/D_PWRDN */
+				if (tca9539_raw_wr(cdi_mgr, 0x2, 0x0E) != 0) {
+					dev_err(&pdev->dev,
+							"%s: ERR %d: TCA9539: Failed to set the output level\n",
+							__func__, err);
+					goto err_probe;
+				}
+			} else if (cdi_mgr->cim_ver == 2U) { /* P3714 A02 */
+				if (tca9539_raw_wr(cdi_mgr, 0x6, 0xC0) != 0) {
+					dev_err(&pdev->dev,
+							"%s: ERR %d: TCA9539: Failed to select FS selection signal source\n",
+							__func__, err);
+					goto err_probe;
+				}
+				if (tca9539_raw_wr(cdi_mgr, 0x7, 0x70) != 0) {
+					dev_err(&pdev->dev,
+							"%s: ERR %d: TCA9539: Failed to select PWDN signal source\n",
+							__func__, err);
+					goto err_probe;
+				}
+
+				/* Configure FRSYNC logic */
+				dev_info(&pdev->dev,
+						"FRSYNC source: %d %d %d\n",
+						cdi_mgr->cim_frsync[0],
+						cdi_mgr->cim_frsync[1],
+						cdi_mgr->cim_frsync[2]);
+				if (tca9539_raw_wr(cdi_mgr, 0x2,
+					(cdi_mgr->cim_frsync[2] << 4) |
+					(cdi_mgr->cim_frsync[1] << 2) |
+					(cdi_mgr->cim_frsync[0])) < 0) {
+					dev_err(&pdev->dev,
+							"%s: ERR %d: TCA9539: Failed to set FRSYNC control logic\n",
+							__func__, err);
+					goto err_probe;
+				}
+				/* Output low for AGGA/B/C/D_PWRDN */
+				if (tca9539_raw_wr(cdi_mgr, 0x3, 0x00) != 0) {
+					dev_err(&pdev->dev,
+							"%s: ERR %d: TCA9539: Failed to set the output level\n",
+							__func__, err);
+					goto err_probe;
+				}
 			}
 		}
 	}

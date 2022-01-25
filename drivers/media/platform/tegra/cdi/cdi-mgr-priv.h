@@ -89,6 +89,8 @@ struct cdi_mgr_priv {
 	uint32_t gpio_count;
 	uint32_t err_irq_recvd_status_mask;
 	bool stop_err_irq_wait;
+	u8 cim_ver; /* 1 - P3714 A01, 2 - P3714 A02 */
+	u32 cim_frsync[3]; /* FRSYNC source selection for each muxer */
 };
 
 int cdi_mgr_power_up(struct cdi_mgr_priv *cdi_mgr, unsigned long arg);
