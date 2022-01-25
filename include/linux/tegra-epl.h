@@ -16,21 +16,49 @@
  * @file tegra-epl.h
  * @brief <b> epl driver header file</b>
  *
- * This file will expose the data types and macros for making ioctl call
- * from user space EPL library.
+ * This file will expose API prototype for epl kernel
+ * space APIs.
  */
 
 
-#ifndef EPL_CLIENT_IOCTL_H
-#define EPL_CLIENT_IOCTL_H
+#ifndef TEGRA_EPL_H
+#define TEGRA_EPL_H
 
 /* ==================[Includes]============================================= */
 
-#include <linux/ioctl.h>
-
 /* ==================[MACROS]=============================================== */
 
-/*ioctl call macros*/
-#define EPL_REPORT_ERROR_CMD   _IOWR('q', 1, uint8_t *)
+/**
+ * @brief API to check if SW error can be reported via Misc EC
+ *        by reading and checking Misc EC error status register value.
+ *
+ * @param[in]   dev                     pointer to the device structure for the kernel driver
+ *                                      from where API is called.
+ * @param[in]   err_number              Generic SW error number for which status needs to
+ *                                      enquired - [0 to 4].
+ * @param[out]  status                  out param updated by API as follows:
+ *                                      true - SW error can be reported
+ *                                      false - SW error can not be reported because previous error
+ *                                              is still active. Client needs to retry later.
+ *
+ * @returns     0 (success), -1 (failure)
+ */
+int epl_get_misc_ec_err_status(struct device *dev, uint8_t err_number, bool *status);
 
-#endif /* EPL_CLIENT_IOCTL_H */
+
+/**
+ * @brief API to report SW error to FSI using Misc Generic SW error lines connected to
+ *        the Misc error collator.
+ *
+ * @param[in]   dev                     pointer to the device structure for the kernel driver
+ *                                      from where API is called.
+ * @param[in]   err_number              Generic SW error number through which error
+ *                                      needs to be reported.
+ * @param[in]   sw_error_code           Client Defined Error Code, which will be
+ *                                      forwarded to the application on FSI.
+ *
+ * @returns     0 (success), -1 (failure)
+ */
+int epl_report_misc_ec_error(struct device *dev, uint8_t err_number, uint32_t sw_error_code);
+
+#endif /* TEGRA_EPL_H */

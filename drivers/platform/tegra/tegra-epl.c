@@ -34,14 +34,43 @@
 #include <linux/mailbox_client.h>
 #include <linux/sched/signal.h>
 #include "linux/tegra-epl.h"
-
+#include "uapi/linux/tegra-epl.h"
 
 /*Timeout in millisec*/
 #define TIMEOUT		1000
 
-
 /*32bit data Length*/
 #define MAX_LEN	4
+
+/* Macro indicating misc register width */
+#define MISC_REG_WIDTH    4U
+
+/* Macro indiciating total number of Misc Sw generic errors in Misc EC */
+#define NUM_SW_GENERIC_ERR 5U
+
+/* Macro for Misc register access, because of guardword check could not
+ * include the hw headers here.
+ */
+
+/* Macro for Misc EC mission error status register address */
+#define MISC_EC_ERRSLICE0_MISSIONERR_STATUS_0   0x024e0038U
+
+/* Macro for Misc registers */
+
+#define MISCREG_MISC_EC_ERR0_SW_ERR_CODE_0      0x00110000U
+#define MISCREG_MISC_EC_ERR0_SW_ERR_ASSERT_0    0x00110004U
+
+#define MISCREG_MISC_EC_ERR1_SW_ERR_CODE_0      0x00120000U
+#define MISCREG_MISC_EC_ERR1_SW_ERR_ASSERT_0    0x00120004U
+
+#define MISCREG_MISC_EC_ERR2_SW_ERR_CODE_0      0x00130000U
+#define MISCREG_MISC_EC_ERR2_SW_ERR_ASSERT_0    0x00130004U
+
+#define MISCREG_MISC_EC_ERR3_SW_ERR_CODE_0      0x00140000U
+#define MISCREG_MISC_EC_ERR3_SW_ERR_ASSERT_0    0x00140004U
+
+#define MISCREG_MISC_EC_ERR4_SW_ERR_CODE_0      0x00150000U
+#define MISCREG_MISC_EC_ERR4_SW_ERR_ASSERT_0    0x00150004U
 
 /* =================[Data types]======================================== */
 
@@ -57,6 +86,16 @@ struct epl_hsp {
 	struct device dev;
 };
 
+/* Data type to store Misc Sw Generic error configuration */
+struct epl_misc_sw_err_cfg {
+	uint32_t err_code_phyaddr;
+	uint32_t err_assert_phy_addr;
+	void __iomem *err_code_va;
+	void __iomem *err_assert_va;
+	const char *dev_configured;
+	uint8_t ec_err_idx;
+};
+
 /* =================[GLOBAL variables]================================== */
 static ssize_t device_file_ioctl(
 		struct file *, unsigned int cmd, unsigned long arg);
@@ -67,6 +106,38 @@ static const char device_name[] = "epdaemon";
 static struct platform_device *pdev_local;
 
 static struct epl_hsp *epl_hsp_v;
+
+static void __iomem *mission_err_status_va;
+
+static bool isAddrMappOk = true;
+
+static struct epl_misc_sw_err_cfg miscerr_cfg[NUM_SW_GENERIC_ERR] = {
+	{
+		.err_code_phyaddr = MISCREG_MISC_EC_ERR0_SW_ERR_CODE_0,
+		.err_assert_phy_addr = MISCREG_MISC_EC_ERR0_SW_ERR_ASSERT_0,
+		.ec_err_idx = 24U,
+	},
+	{
+		.err_code_phyaddr = MISCREG_MISC_EC_ERR1_SW_ERR_CODE_0,
+		.err_assert_phy_addr = MISCREG_MISC_EC_ERR1_SW_ERR_ASSERT_0,
+		.ec_err_idx = 25U,
+	},
+	{
+		.err_code_phyaddr = MISCREG_MISC_EC_ERR2_SW_ERR_CODE_0,
+		.err_assert_phy_addr = MISCREG_MISC_EC_ERR2_SW_ERR_ASSERT_0,
+		.ec_err_idx = 26U,
+	},
+	{
+		.err_code_phyaddr = MISCREG_MISC_EC_ERR3_SW_ERR_CODE_0,
+		.err_assert_phy_addr = MISCREG_MISC_EC_ERR3_SW_ERR_ASSERT_0,
+		.ec_err_idx = 27U,
+	},
+	{
+		.err_code_phyaddr = MISCREG_MISC_EC_ERR4_SW_ERR_CODE_0,
+		.err_assert_phy_addr = MISCREG_MISC_EC_ERR4_SW_ERR_ASSERT_0,
+		.ec_err_idx = 28U,
+	}
+};
 
 /*File operations*/
 const static struct file_operations epl_driver_fops = {
@@ -167,6 +238,51 @@ static ssize_t device_file_ioctl(
 	return ret;
 }
 
+int epl_get_misc_ec_err_status(struct device *dev, uint8_t err_number, bool *status)
+{
+	uint32_t mission_err_status = 0U;
+	uint32_t mask = 0U;
+	int ret = -1;
+	const char *dev_str;
+
+	dev_str = dev_driver_string(dev);
+	if ((err_number < NUM_SW_GENERIC_ERR) &&
+			(strcmp(dev_str, miscerr_cfg[err_number].dev_configured) == 0)) {
+		if ((status != NULL) && (isAddrMappOk == true)) {
+			mask = (1U << (miscerr_cfg[err_number].ec_err_idx % 32U));
+			mission_err_status = readl(mission_err_status_va);
+			if ((mission_err_status & mask) != 0U)
+				*status = false;
+			else
+				*status = true;
+
+			ret = 0;
+		}
+	}
+	return ret;
+}
+EXPORT_SYMBOL(epl_get_misc_ec_err_status);
+
+int epl_report_misc_ec_error(struct device *dev, uint8_t err_number,
+	uint32_t sw_error_code)
+{
+	int ret = -1;
+	bool status = false;
+
+	ret = epl_get_misc_ec_err_status(dev, err_number, &status);
+	if (ret == 0) {
+		if (status == true) {
+			/* Updating error code */
+			writel(sw_error_code, miscerr_cfg[err_number].err_code_va);
+			/* triggering SW generic error */
+			writel(0x1U, miscerr_cfg[err_number].err_assert_va);
+			ret = 0;
+		}
+	}
+	return ret;
+}
+EXPORT_SYMBOL(epl_report_misc_ec_error);
+
 static const struct of_device_id epl_client_dt_match[] = {
 	{ .compatible = "nvidia,tegra234-epl-client"},
 	{}
@@ -177,18 +293,61 @@ MODULE_DEVICE_TABLE(of, epl_client_dt_match);
 static int epl_client_probe(struct platform_device *pdev)
 {
 	int ret = 0;
+	struct device *dev = &pdev->dev;
+	const struct device_node *np = dev->of_node;
+	int iterator = 0;
+	char name[32] = "client-misc-sw-generic-err";
 
 	epl_register_device();
-	ret = tegra_hsp_mb_init(&pdev->dev);
+	ret = tegra_hsp_mb_init(dev);
 	pdev_local = pdev;
+
+	for (iterator = 0; iterator < NUM_SW_GENERIC_ERR; iterator++) {
+		name[26] = (char)(iterator+48U);
+		name[27] = '\0';
+		if (of_property_read_string(np, name, &miscerr_cfg[iterator].dev_configured) == 0) {
+			pr_info("Misc Sw Generic Err #%d configured to client %s\n",
+					iterator, miscerr_cfg[iterator].dev_configured);
+
+			/* Mapping registers to process address space */
+			miscerr_cfg[iterator].err_code_va =
+				ioremap(miscerr_cfg[iterator].err_code_phyaddr, MISC_REG_WIDTH);
+			miscerr_cfg[iterator].err_assert_va =
+				ioremap(miscerr_cfg[iterator].err_assert_phy_addr, MISC_REG_WIDTH);
+
+			if ((miscerr_cfg[iterator].err_code_va == NULL) ||
+					(miscerr_cfg[iterator].err_assert_va == NULL)) {
+				isAddrMappOk = false;
+				ret = -1;
+				pr_info("epl: error in mapping misc err register for err #%d\n",
+						iterator);
+			}
+		} else {
+			pr_info("Misc Sw Generic Err %d not configured for any client\n", iterator);
+		}
+	}
+
+	mission_err_status_va = ioremap(MISC_EC_ERRSLICE0_MISSIONERR_STATUS_0, MISC_REG_WIDTH);
+	if (mission_err_status_va == NULL) {
+		ret = -1;
+		isAddrMappOk = false;
+		pr_info("epl: error in mapping mission error status register\n");
+	}
 
 	return ret;
 }
 
 static int epl_client_remove(struct platform_device *pdev)
 {
+	int iterator = 0;
+
 	epl_unregister_device();
 	devm_kfree(&pdev->dev, epl_hsp_v);
+	iounmap(mission_err_status_va);
+	for (iterator = 0; iterator < NUM_SW_GENERIC_ERR; iterator++) {
+		iounmap(miscerr_cfg[iterator].err_code_va);
+		iounmap(miscerr_cfg[iterator].err_assert_va);
+	}
 	return 0;
 }
 
