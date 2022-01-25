@@ -380,8 +380,7 @@ int nvmap_ioctl_create_from_va(struct file *filp, void __user *arg)
 		if (err < 0) {
 			if (dmabuf)
 				dma_buf_put(dmabuf);
-			if (ref->handle)
-				nvmap_free_handle(client, ref->handle,
+			nvmap_free_handle(client, ref->handle,
 					op.flags & NVMAP_HANDLE_RO);
 			return -ENOMEM;
 		}
@@ -389,8 +388,7 @@ int nvmap_ioctl_create_from_va(struct file *filp, void __user *arg)
 		if (copy_to_user(arg, &op, sizeof(op))) {
 			if (dmabuf)
 				dma_buf_put(dmabuf);
-			if (ref->handle)
-				nvmap_free_handle(client, ref->handle,
+			nvmap_free_handle(client, ref->handle,
 					op.flags & NVMAP_HANDLE_RO);
 			nvmap_id_array_id_release(client->ida, id);
 			return -EFAULT;
