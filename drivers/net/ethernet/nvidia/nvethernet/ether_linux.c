@@ -374,12 +374,8 @@ static void ether_disable_mgbe_clks(struct ether_priv_data *pdata)
 		clk_disable_unprepare(pdata->rx_pcs_input_clk);
 	}
 
-	if (!IS_ERR_OR_NULL(pdata->rx_pcs_m_clk)) {
-		clk_disable_unprepare(pdata->rx_pcs_m_clk);
-	}
-
-	if (!IS_ERR_OR_NULL(pdata->rx_m_clk)) {
-		clk_disable_unprepare(pdata->rx_m_clk);
+	if (!IS_ERR_OR_NULL(pdata->rx_input_clk)) {
+		clk_disable_unprepare(pdata->rx_input_clk);
 	}
 
 	pdata->clks_enable = false;
@@ -417,10 +413,6 @@ static void ether_disable_eqos_clks(struct ether_priv_data *pdata)
 
 	if (!IS_ERR_OR_NULL(pdata->pllrefe_clk)) {
 		clk_disable_unprepare(pdata->pllrefe_clk);
-	}
-
-	if (!IS_ERR_OR_NULL(pdata->rx_m_clk)) {
-		clk_disable_unprepare(pdata->rx_m_clk);
 	}
 
 	pdata->clks_enable = false;
@@ -461,24 +453,17 @@ static int ether_enable_mgbe_clks(struct ether_priv_data *pdata)
 	unsigned long rate = 0;
 	int ret;
 
-	if (!IS_ERR_OR_NULL(pdata->rx_m_clk)) {
-		ret = clk_prepare_enable(pdata->rx_m_clk);
+	if (!IS_ERR_OR_NULL(pdata->rx_input_clk)) {
+		ret = clk_prepare_enable(pdata->rx_input_clk);
 		if (ret < 0) {
 			return ret;
-		}
-	}
-
-	if (!IS_ERR_OR_NULL(pdata->rx_pcs_m_clk)) {
-		ret = clk_prepare_enable(pdata->rx_pcs_m_clk);
-		if (ret < 0) {
-			goto err_rx_pcs_m;
 		}
 	}
 
 	if (!IS_ERR_OR_NULL(pdata->rx_pcs_input_clk)) {
 		ret = clk_prepare_enable(pdata->rx_pcs_input_clk);
 		if (ret < 0) {
-			goto err_rx_pcs_input;
+			return ret;
 		}
 	}
 
@@ -597,14 +582,6 @@ err_rx_pcs:
 	if (!IS_ERR_OR_NULL(pdata->rx_pcs_input_clk)) {
 		clk_disable_unprepare(pdata->rx_pcs_input_clk);
 	}
-err_rx_pcs_input:
-	if (!IS_ERR_OR_NULL(pdata->rx_pcs_m_clk)) {
-		clk_disable_unprepare(pdata->rx_pcs_m_clk);
-	}
-err_rx_pcs_m:
-	if (!IS_ERR_OR_NULL(pdata->rx_m_clk)) {
-		clk_disable_unprepare(pdata->rx_m_clk);
-	}
 
 	return ret;
 }
@@ -665,21 +642,10 @@ static int ether_enable_eqos_clks(struct ether_priv_data *pdata)
 		}
 	}
 
-	if (!IS_ERR_OR_NULL(pdata->rx_m_clk)) {
-		ret = clk_prepare_enable(pdata->rx_m_clk);
-		if (ret < 0) {
-			goto err_rx_m;
-		}
-	}
-
 	pdata->clks_enable = true;
 
 	return 0;
 
-err_rx_m:
-	if (!IS_ERR_OR_NULL(pdata->tx_clk)) {
-		clk_disable_unprepare(pdata->tx_clk);
-	}
 err_tx:
 	if (!IS_ERR_OR_NULL(pdata->ptp_ref_clk)) {
 		clk_disable_unprepare(pdata->ptp_ref_clk);
@@ -912,6 +878,34 @@ static inline void set_speed_work_func(struct work_struct *work)
 	netif_carrier_on(dev);
 }
 
+static void ether_en_dis_monitor_clks(struct ether_priv_data *pdata,
+				      unsigned int en_dis)
+{
+	if (en_dis == OSI_ENABLE) {
+		/* Enable Monitoring clocks */
+		if (!IS_ERR_OR_NULL(pdata->rx_m_clk)) {
+			if (clk_prepare_enable(pdata->rx_m_clk) < 0)
+				dev_err(pdata->dev,
+					"failed to enable rx_m_clk");
+		}
+
+		if (!IS_ERR_OR_NULL(pdata->rx_pcs_m_clk)) {
+			if (clk_prepare_enable(pdata->rx_pcs_m_clk) < 0)
+				dev_err(pdata->dev,
+					"failed to enable rx_pcs_m_clk");
+		}
+	} else {
+		/* Disable Monitoring clocks */
+		if (!IS_ERR_OR_NULL(pdata->rx_pcs_m_clk)) {
+			clk_disable_unprepare(pdata->rx_pcs_m_clk);
+		}
+
+		if (!IS_ERR_OR_NULL(pdata->rx_m_clk)) {
+			clk_disable_unprepare(pdata->rx_m_clk);
+		}
+	}
+}
+
 /**
  * @brief Adjust link call back
  *
@@ -1024,6 +1018,7 @@ static void ether_adjust_link(struct net_device *dev)
 				return;
 			}
 
+			ether_en_dis_monitor_clks(pdata, OSI_ENABLE);
 			pdata->speed = speed;
 		}
 
@@ -1042,6 +1037,7 @@ static void ether_adjust_link(struct net_device *dev)
 		val = pdata->osi_core->xstats.link_disconnect_count;
 		pdata->osi_core->xstats.link_disconnect_count =
 			osi_update_stats_counter(val, 1UL);
+		ether_en_dis_monitor_clks(pdata, OSI_DISABLE);
 	} else {
 		/* Nothing here */
 	}
