@@ -35,7 +35,11 @@ static int disp_id_add_modes(struct fb_videomode *new_modes,
 	unsigned int num_modes_current, num_modes_total;
 	struct fb_videomode *new_modedb;
 
-	num_modes_current = specs->modedb_len;
+	if (specs->modedb == NULL)
+		num_modes_current = 0;
+	else
+		num_modes_current = specs->modedb_len;
+
 	num_modes_total = num_modes_current + num_modes_new;
 
 	new_modedb = kcalloc(num_modes_total, sizeof(*new_modes), GFP_KERNEL);

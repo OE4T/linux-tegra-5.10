@@ -1112,7 +1112,7 @@ int tegra_edid_get_monspecs(struct tegra_edid *edid, struct fb_monspecs *specs)
 				data[i * EDID_BYTES_PER_BLOCK + 2],
 				new_data);
 
-			if (new_data->quirks | TEGRA_EDID_QUIRK_LG_SBAR)
+			if ((new_data->quirks & TEGRA_EDID_QUIRK_LG_SBAR) != 0)
 				tegra_edid_quirk_lg_sbar(new_data, specs);
 
 			if (new_data->support_stereo) {
