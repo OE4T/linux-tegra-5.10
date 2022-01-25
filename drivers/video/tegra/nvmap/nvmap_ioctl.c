@@ -762,16 +762,14 @@ int nvmap_ioctl_create_from_ivc(struct file *filp, void __user *arg)
 			ref->handle->dmabuf) < 0) {
 			if (ref->handle->dmabuf)
 				dma_buf_put(ref->handle->dmabuf);
-			if (ref->handle)
-				nvmap_free_handle(client, ref->handle, false);
+			nvmap_free_handle(client, ref->handle, false);
 			return -ENOMEM;
 		}
 		op.ivm_handle = id;
 		if (copy_to_user(arg, &op, sizeof(op))) {
 			if (ref->handle->dmabuf)
 				dma_buf_put(ref->handle->dmabuf);
-			if (ref->handle)
-				nvmap_free_handle(client, ref->handle, false);
+			nvmap_free_handle(client, ref->handle, false);
 			nvmap_id_array_id_release(client->ida, id);
 			return -EFAULT;
 		}
