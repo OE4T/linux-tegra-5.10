@@ -126,7 +126,7 @@ static int nvdla_buffer_map(struct platform_device *pdev,
 	dma_addr_t phys_addr;
 	int err = 0;
 
-	dmabuf = dma_buf_get(desc->import_id);
+	dmabuf = dma_buf_get((__s32)desc->import_id);
 	if (IS_ERR_OR_NULL(dmabuf)) {
 		err = -EFAULT;
 		goto fail_to_get_dma_buf;
