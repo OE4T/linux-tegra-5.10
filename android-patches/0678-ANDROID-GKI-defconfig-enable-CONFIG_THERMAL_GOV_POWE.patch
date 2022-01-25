@@ -1,0 +1,31 @@
+From 160b2f793b3ab922612af0fb2d5e6286567be749 Mon Sep 17 00:00:00 2001
+From: Todd Kjos <tkjos@google.com>
+Date: Tue, 31 Mar 2020 13:10:15 -0700
+Subject: [PATCH 678/830] ANDROID: GKI: defconfig: enable
+ CONFIG_THERMAL_GOV_POWER_ALLOCATOR
+X-NVConfidentiality: public
+
+Enable "power_allocator" thermal governor.
+
+Bug: 152588496
+Signed-off-by: Todd Kjos <tkjos@google.com>
+Change-Id: I463528236bdfd640cdaefbac7dee932dc28d7005
+---
+ arch/arm64/configs/gki_defconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
+index 153a4f1..6f7052e 100644
+--- a/arch/arm64/configs/gki_defconfig
++++ b/arch/arm64/configs/gki_defconfig
+@@ -298,6 +298,7 @@ CONFIG_POWER_RESET_HISI=y
+ # CONFIG_HWMON is not set
+ CONFIG_THERMAL=y
+ CONFIG_THERMAL_GOV_USER_SPACE=y
++CONFIG_THERMAL_GOV_POWER_ALLOCATOR=y
+ CONFIG_CPU_THERMAL=y
+ CONFIG_DEVFREQ_THERMAL=y
+ CONFIG_WATCHDOG=y
+-- 
+2.7.4
+

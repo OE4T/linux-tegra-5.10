@@ -1,0 +1,32 @@
+From 5723eefe9bd66d57d1f1cf0e0be4cda4f8d71cdb Mon Sep 17 00:00:00 2001
+From: David Hongseock Kim <hongpooh.kim@samsung.com>
+Date: Sat, 8 Aug 2020 13:58:25 +0900
+Subject: [PATCH 315/830] ANDROID: pcie/dwc: driver: export dw_handle_msi_irq
+X-NVConfidentiality: public
+
+Needed for vendors' pcie stack.
+
+Bug: 165922442
+Signed-off-by: David Hongseock Kim <hongpooh.kim@samsung.com>
+Change-Id: I900b5a55b174819573c2f8eedcefae73aee7b6a7
+Signed-off-by: Mark Salyzyn <salyzyn@google.com>
+Signed-off-by: Will McVicker <willmcvicker@google.com>
+---
+ drivers/pci/controller/dwc/pcie-designware-host.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/pci/controller/dwc/pcie-designware-host.c b/drivers/pci/controller/dwc/pcie-designware-host.c
+index 08b4fdc..e2727be 100644
+--- a/drivers/pci/controller/dwc/pcie-designware-host.c
++++ b/drivers/pci/controller/dwc/pcie-designware-host.c
+@@ -85,6 +85,7 @@ irqreturn_t dw_handle_msi_irq(struct pcie_port *pp)
+ 
+ 	return ret;
+ }
++EXPORT_SYMBOL_GPL(dw_handle_msi_irq);
+ 
+ /* Chained MSI interrupt service routine */
+ static void dw_chained_msi_isr(struct irq_desc *desc)
+-- 
+2.7.4
+

@@ -1,0 +1,41 @@
+From ac9e69faa20f1f3d2d837388d1f358a0b27c8496 Mon Sep 17 00:00:00 2001
+From: Satya Durga Srinivasu Prabhala <satyap@codeaurora.org>
+Date: Wed, 25 Nov 2020 04:25:03 -0800
+Subject: [PATCH 180/830] ANDROID: sched/core: Export symbols needed by modules
+X-NVConfidentiality: public
+
+Below symbols would be used by vendor modules to make better placement
+decisions when respective hooks are registered.
+	1. uclamp_eff_value
+	2. idle_cpu
+
+Bug: 174219212
+Change-Id: I2b41ce9a7c3fb67a8170c5c253985c722f06e85a
+Signed-off-by: Satya Durga Srinivasu Prabhala <satyap@codeaurora.org>
+---
+ kernel/sched/core.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+index b2f92d8..c007950 100644
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -1125,6 +1125,7 @@ unsigned long uclamp_eff_value(struct task_struct *p, enum uclamp_id clamp_id)
+ 
+ 	return (unsigned long)uc_eff.value;
+ }
++EXPORT_SYMBOL_GPL(uclamp_eff_value);
+ 
+ /*
+  * When a task is enqueued on a rq, the clamp bucket currently defined by the
+@@ -5152,6 +5153,7 @@ int idle_cpu(int cpu)
+ 
+ 	return 1;
+ }
++EXPORT_SYMBOL_GPL(idle_cpu);
+ 
+ /**
+  * available_idle_cpu - is a given CPU idle for enqueuing work.
+-- 
+2.7.4
+

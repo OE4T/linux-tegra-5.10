@@ -1,0 +1,43 @@
+From 7ba78303d9e4e6cf541d07a3387f9550a44aa8f9 Mon Sep 17 00:00:00 2001
+From: Wei Wang <wvw@google.com>
+Date: Tue, 6 Oct 2020 23:58:37 -0700
+Subject: [PATCH 783/830] ANDROID: GKI: enable THERMAL_EMERGENCY_POWEROFF
+ feature
+X-NVConfidentiality: public
+
+Bug: 169727445
+Bug: 170435769
+Signed-off-by: Wei Wang <wvw@google.com>
+Change-Id: Ifa7b70671fed5fef8c287a765e947130c6dd6c66
+---
+ arch/arm64/configs/gki_defconfig | 1 +
+ arch/x86/configs/gki_defconfig   | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
+index ba4bcc7..c099d51 100644
+--- a/arch/arm64/configs/gki_defconfig
++++ b/arch/arm64/configs/gki_defconfig
+@@ -336,6 +336,7 @@ CONFIG_POWER_RESET_HISI=y
+ # CONFIG_HWMON is not set
+ CONFIG_THERMAL=y
+ CONFIG_THERMAL_STATISTICS=y
++CONFIG_THERMAL_EMERGENCY_POWEROFF_DELAY_MS=100
+ CONFIG_THERMAL_WRITABLE_TRIPS=y
+ CONFIG_THERMAL_GOV_USER_SPACE=y
+ CONFIG_THERMAL_GOV_POWER_ALLOCATOR=y
+diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
+index 23ad3de..5ce4104 100644
+--- a/arch/x86/configs/gki_defconfig
++++ b/arch/x86/configs/gki_defconfig
+@@ -294,6 +294,7 @@ CONFIG_SPI=y
+ CONFIG_GPIOLIB=y
+ # CONFIG_HWMON is not set
+ CONFIG_THERMAL_STATISTICS=y
++CONFIG_THERMAL_EMERGENCY_POWEROFF_DELAY_MS=100
+ CONFIG_THERMAL_WRITABLE_TRIPS=y
+ CONFIG_THERMAL_GOV_USER_SPACE=y
+ CONFIG_CPU_THERMAL=y
+-- 
+2.7.4
+

@@ -1,0 +1,21 @@
+From d2681618d6cece23523e4c92feae5a64a999aae1 Mon Sep 17 00:00:00 2001
+From: Eric Biggers <ebiggers@google.com>
+Date: Wed, 12 Aug 2020 13:55:48 -0700
+Subject: [PATCH 068/830] _____ANNOTATION: Android vendor hooks_____
+X-NVConfidentiality: public
+
+Signed-off-by: Eric Biggers <ebiggers@google.com>
+---
+ ANNOTATIONS | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/ANNOTATIONS b/ANNOTATIONS
+index e6b15578..83b34bd 100644
+--- a/ANNOTATIONS
++++ b/ANNOTATIONS
+@@ -1 +1,2 @@
+ pending upstream
++Android vendor hooks
+-- 
+2.7.4
+

@@ -1,0 +1,44 @@
+From c395e717d39c800624cfe0e98bf13ab8bc84f16a Mon Sep 17 00:00:00 2001
+From: Orson Zhai <orson.zhai@unisoc.com>
+Date: Thu, 23 Apr 2020 01:05:11 +0800
+Subject: [PATCH 762/830] ANDROID: GKI: enable CONFIG_DYNAMIC_DEBUG_CORE
+X-NVConfidentiality: public
+
+Enable support of dynamic debug for kernel modules only.
+
+Bug: 145162121
+Bug: 167262542
+Change-Id: I4a171d2b434e3fd88fe072f8436e7629a876214b
+Signed-off-by: Orson Zhai <orson.zhai@unisoc.com>
+---
+ arch/arm64/configs/gki_defconfig | 1 +
+ arch/x86/configs/gki_defconfig   | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
+index 391043d..69f877c 100644
+--- a/arch/arm64/configs/gki_defconfig
++++ b/arch/arm64/configs/gki_defconfig
+@@ -528,6 +528,7 @@ CONFIG_CRC8=y
+ CONFIG_XZ_DEC=y
+ CONFIG_DMA_CMA=y
+ CONFIG_PRINTK_TIME=y
++CONFIG_DYNAMIC_DEBUG_CORE=y
+ CONFIG_DEBUG_INFO=y
+ # CONFIG_ENABLE_MUST_CHECK is not set
+ CONFIG_HEADERS_INSTALL=y
+diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
+index cf21ed7..54532ed 100644
+--- a/arch/x86/configs/gki_defconfig
++++ b/arch/x86/configs/gki_defconfig
+@@ -466,6 +466,7 @@ CONFIG_CRC8=y
+ CONFIG_XZ_DEC=y
+ CONFIG_DMA_CMA=y
+ CONFIG_PRINTK_TIME=y
++CONFIG_DYNAMIC_DEBUG_CORE=y
+ CONFIG_DEBUG_INFO=y
+ # CONFIG_ENABLE_MUST_CHECK is not set
+ CONFIG_HEADERS_INSTALL=y
+-- 
+2.7.4
+

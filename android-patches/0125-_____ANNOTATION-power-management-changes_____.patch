@@ -1,0 +1,23 @@
+From e8b4ce68a3ca360927caa11b849888a1be9bdd38 Mon Sep 17 00:00:00 2001
+From: Eric Biggers <ebiggers@google.com>
+Date: Wed, 12 Aug 2020 15:32:27 -0700
+Subject: [PATCH 125/830] _____ANNOTATION: power management changes_____
+X-NVConfidentiality: public
+
+Signed-off-by: Eric Biggers <ebiggers@google.com>
+---
+ ANNOTATIONS | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/ANNOTATIONS b/ANNOTATIONS
+index 3e96506..c884b1e 100644
+--- a/ANNOTATIONS
++++ b/ANNOTATIONS
+@@ -5,3 +5,4 @@ x86 changes
+ arm and arm64 changes
+ iommu changes
+ core kernel changes
++power management changes
+-- 
+2.7.4
+

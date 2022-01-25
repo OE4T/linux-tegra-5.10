@@ -1,0 +1,23 @@
+From 10407ed26ffcccd7c480cc8a6f927076f211f6d3 Mon Sep 17 00:00:00 2001
+From: Eric Biggers <ebiggers@google.com>
+Date: Wed, 12 Aug 2020 14:00:03 -0700
+Subject: [PATCH 238/830] _____ANNOTATION: ion changes_____
+X-NVConfidentiality: public
+
+Signed-off-by: Eric Biggers <ebiggers@google.com>
+---
+ ANNOTATIONS | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/ANNOTATIONS b/ANNOTATIONS
+index 1c003b0..b3372ce 100644
+--- a/ANNOTATIONS
++++ b/ANNOTATIONS
+@@ -12,3 +12,4 @@ cpufreq changes
+ mm (memory management) changes
+ security changes
+ binder changes
++ion changes
+-- 
+2.7.4
+
