@@ -1,7 +1,7 @@
 /*
  * NVDLA queue management
  *
- * Copyright (c) 2019-2021, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -240,6 +240,36 @@ void nvdla_queue_deinit(struct nvdla_queue_pool *pool)
 	kfree(pool);
 	pool = NULL;
 }
+
+#ifdef CONFIG_PM
+int nvdla_queue_pool_prepare_suspend(struct nvdla_queue_pool *qpool)
+{
+	int err = 0;
+	unsigned int queue_id;
+
+	mutex_lock(&qpool->queue_lock);
+
+	/* For each active queues, ensure there are no outstanding tasks. */
+	for_each_set_bit(queue_id, &qpool->alloc_table, qpool->max_queue_cnt) {
+		struct nvdla_queue *queue = &qpool->queues[queue_id];
+		struct nvdla_queue_task_pool *tpool = queue->task_pool;
+		bool nvdla_queue_is_idle;
+
+		mutex_lock(&tpool->lock);
+		nvdla_queue_is_idle = (tpool->alloc_table == 0ULL);
+		mutex_unlock(&tpool->lock);
+
+		if (!nvdla_queue_is_idle) {
+			err = -EBUSY;
+			goto fail_busy;
+		}
+	}
+
+fail_busy:
+	mutex_unlock(&qpool->queue_lock);
+	return err;
+}
+#endif /* CONFIG_PM */
 
 void nvdla_queue_abort_all(struct nvdla_queue_pool *pool)
 {

@@ -190,6 +190,7 @@ enum nvdla_submit_mode {
  * @en_fw_gcov		flag to enable firmware gcov
  * @gcov_dump_pa	physical address of fw gcov buffer
  * @gcov_dump_va	virtual address of fw gcovbuffer
+ * @is_suspended	flag to check if module is in suspend state.
  */
 struct nvdla_device {
 	struct platform_device *pdev;
@@ -213,6 +214,9 @@ struct nvdla_device {
 	dma_addr_t gcov_dump_pa;
 	u32 *gcov_dump_va;
 	struct work_struct reset_work;
+#ifdef CONFIG_PM
+	bool is_suspended;
+#endif
 };
 
 /**
@@ -418,5 +422,10 @@ int nvdla_emulator_submit(struct nvdla_queue *queue,
 				struct nvdla_emu_task *task);
 void task_free(struct kref *ref);
 int nvdla_get_signal_fences(struct nvdla_queue *queue, void *in_task);
+
+#ifdef CONFIG_PM
+/** NvDla PM operations */
+extern const struct dev_pm_ops nvdla_module_pm_ops;
+#endif
 
 #endif /* End of __NVHOST_NVDLA_H__ */

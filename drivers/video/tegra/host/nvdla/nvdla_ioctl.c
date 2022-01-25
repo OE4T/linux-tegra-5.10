@@ -1128,6 +1128,17 @@ static long nvdla_ioctl(struct file *file, unsigned int cmd,
 	u8 buf[NVDLA_IOCTL_MAX_ARG_SIZE] __aligned(sizeof(u64));
 	int err = 0;
 
+#ifdef CONFIG_PM
+	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
+	struct nvdla_device *nvdla_dev = pdata->private_data;
+
+	/* If suspended, mark the resource as unavailable. */
+	if (nvdla_dev->is_suspended) {
+		nvdla_dbg_err(pdev, "Module in suspended state\n");
+		return -EAGAIN;
+	}
+#endif
+
 	/* check for valid IOCTL cmd */
 	if ((_IOC_TYPE(cmd) != NVHOST_NVDLA_IOCTL_MAGIC) ||
 	    (_IOC_NR(cmd) == _IOC_NR(0)) ||

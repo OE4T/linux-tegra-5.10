@@ -1,5 +1,5 @@
 /*
- * NVDLA driver for T194
+ * NVDLA driver for T194/T23x
  *
  * Copyright (c) 2016-2022, NVIDIA Corporation.  All rights reserved.
  *
@@ -856,6 +856,125 @@ static int __exit nvdla_remove(struct platform_device *pdev)
 	return 0;
 }
 
+#ifdef CONFIG_PM
+static int nvdla_module_runtime_suspend(struct device *dev)
+{
+	return nvhost_module_pm_ops.runtime_suspend(dev);
+}
+
+static int nvdla_module_runtime_resume(struct device *dev)
+{
+	return nvhost_module_pm_ops.runtime_resume(dev);
+}
+
+static int nvdla_module_suspend(struct device *dev)
+{
+	int err = 0;
+	struct nvhost_device_data *pdata = dev_get_drvdata(dev);
+	struct nvdla_device *nvdla_dev = pdata->private_data;
+
+	err = nvhost_module_pm_ops.suspend(dev);
+	if (err != 0) {
+		dev_err(dev, "(FAIL) NvHost suspend\n");
+		goto fail_nvhost_module_suspend;
+	}
+
+	/* Mark module to be in suspend state. */
+	nvdla_dev->is_suspended = true;
+
+fail_nvhost_module_suspend:
+	return err;
+}
+
+static int nvdla_module_resume(struct device *dev)
+{
+	int err = 0;
+	struct nvhost_device_data *pdata = dev_get_drvdata(dev);
+	struct nvdla_device *nvdla_dev = pdata->private_data;
+
+	/* Confirm if module is in suspend state. */
+	if (!nvdla_dev->is_suspended) {
+		dev_warn(dev, "NvDla is not in suspend state.\n");
+		goto fail_not_in_suspend;
+	}
+
+	err = nvhost_module_pm_ops.resume(dev);
+	if (err != 0) {
+		dev_err(dev, "(FAIL) NvHost resume\n");
+		goto fail_nvhost_module_resume;
+	}
+
+	return 0;
+
+fail_nvhost_module_resume:
+fail_not_in_suspend:
+	return err;
+}
+
+static int nvdla_module_prepare_suspend(struct device *dev)
+{
+	int err = 0;
+	struct nvhost_device_data *pdata = dev_get_drvdata(dev);
+	struct nvdla_device *nvdla_dev = pdata->private_data;
+
+	/* Confirm if module is not in suspend state. */
+	if (nvdla_dev->is_suspended) {
+		dev_warn(dev, "NvDla is already in suspend state.\n");
+		goto fail_already_in_suspend;
+	}
+
+	/* Prepare for queue pool suspension. */
+	err = nvdla_queue_pool_prepare_suspend(nvdla_dev->pool);
+	if (err != 0) {
+		dev_err(dev, "(FAIL) Queue suspend\n");
+		goto fail_nvdla_queue_pool_prepare_suspend;
+	}
+
+	/* NvHost prepare suspend - callback */
+	err = nvhost_module_pm_ops.prepare(dev);
+	if (err != 0) {
+		dev_err(dev, "(FAIL) NvHost prepare suspend\n");
+		goto fail_nvhost_module_prepare_suspend;
+	}
+
+	return 0;
+
+fail_nvhost_module_prepare_suspend:
+fail_nvdla_queue_pool_prepare_suspend:
+fail_already_in_suspend:
+	return err;
+}
+
+static void nvdla_module_complete_resume(struct device *dev)
+{
+	struct nvhost_device_data *pdata = dev_get_drvdata(dev);
+	struct nvdla_device *nvdla_dev = pdata->private_data;
+
+	nvhost_module_pm_ops.complete(dev);
+
+	/* Module is no longer in suspend and has resumed successfully */
+	nvdla_dev->is_suspended = false;
+}
+
+/**
+ * SC7 suspend sequence
+ * - prepare_suspend
+ * - suspend
+ *
+ * SC7 resume sequence
+ * - resume
+ * - complete_resume
+ **/
+const struct dev_pm_ops nvdla_module_pm_ops = {
+	SET_RUNTIME_PM_OPS(nvdla_module_runtime_suspend,
+		nvdla_module_runtime_resume, NULL)
+	SET_SYSTEM_SLEEP_PM_OPS(nvdla_module_suspend,
+		nvdla_module_resume)
+	.prepare = nvdla_module_prepare_suspend,
+	.complete = nvdla_module_complete_resume,
+};
+#endif /* CONFIG_PM */
+
 static struct platform_driver nvdla_driver = {
 	.probe = nvdla_probe,
 	.remove = __exit_p(nvdla_remove),
@@ -866,7 +985,7 @@ static struct platform_driver nvdla_driver = {
 		.of_match_table = tegra_nvdla_of_match,
 #endif
 #ifdef CONFIG_PM
-		.pm = &nvhost_module_pm_ops,
+		.pm = &nvdla_module_pm_ops,
 #endif
 	},
 };
