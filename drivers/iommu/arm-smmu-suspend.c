@@ -301,7 +301,7 @@ static int arm_smmu_suspend_probe(struct platform_device *pdev)
 		if (!res)
 			break;
 
-		bases[i] = ioremap(res->start, resource_size(res));
+		bases[i] = devm_ioremap(dev, res->start, resource_size(res));
 		if (IS_ERR(bases[i]))
 			break;
 
