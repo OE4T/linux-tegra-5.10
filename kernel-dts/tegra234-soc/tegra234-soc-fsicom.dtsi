@@ -43,6 +43,12 @@
 			<&hsp_top2 TEGRA_HSP_MBOX_TYPE_SM_128BIT TEGRA_HSP_SM_TX(1)>;
 #endif
 		mbox-names = "epl-tx";
+
+		client-misc-sw-generic-err0 = "fsicom_client";
+		client-misc-sw-generic-err1 = "gk20b";
+		client-misc-sw-generic-err3 = "gk20d";
+		client-misc-sw-generic-err4 = "gk20e";
+
 		status = "disabled";
 	};
 
