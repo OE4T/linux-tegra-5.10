@@ -53,8 +53,9 @@
 
 #define GCM_MAX_CHUNKS			33
 #define GCM_CHUNK_SIZE			(1024*1024) /* 1MB */
-#define GCM_PT_MAX_LEN			(16*1024*1024) /* 16MB */
-#define GCM_AAD_MAX_LEN			(16*1024*1024) /* 16MB */
+#define GCM_PT_MAX_LEN			(16*1024*1024 - 1) /* 16MB */
+#define GCM_AAD_MAX_LEN			(16*1024*1024 - 1) /* 16MB */
+#define GMAC_MAX_LEN			(16*1024*1024 - 1) /* 16MB */
 
 /** Defines the Maximum Random Number length supported */
 #define NVVSE_MAX_RANDOM_NUMBER_LEN_SUPPORTED		512U
@@ -102,6 +103,21 @@ struct tnvvse_crypto_ctx {
 	char				*rng_buff;
 	uint32_t			max_rng_buff;
 	char				*sha_result;
+};
+
+enum tnvvse_gmac_request_type {
+	GMAC_INIT = 0u,
+	GMAC_SIGN,
+	GMAC_VERIFY
+};
+
+/* GMAC request data */
+struct tnvvse_gmac_req_data {
+	enum tnvvse_gmac_request_type request_type;
+	/* Return IV after GMAC_INIT and Pass IV during GMAC_VERIFY */
+	char *iv;
+	/* For GMAC_VERIFY tag comparison result */
+	uint8_t result;
 };
 
 static void tnvvse_crypto_complete(struct crypto_async_request *req, int err)
@@ -513,6 +529,328 @@ free_tfm:
 free_result:
 	kfree(result);
 
+	return ret;
+}
+
+static int tnvvse_crypto_aes_gmac_init(struct tnvvse_crypto_ctx *ctx,
+		struct tegra_nvvse_aes_gmac_init_ctl *gmac_init_ctl)
+{
+	struct crypto_sha_state *sha_state = &ctx->sha_state;
+	char key_as_keyslot[AES_KEYSLOT_NAME_SIZE] = {0,};
+	struct crypto_ahash *tfm;
+	struct ahash_request *req;
+	const char *driver_name;
+	uint8_t iv[TEGRA_NVVSE_AES_GCM_IV_LEN];
+	struct tnvvse_gmac_req_data priv_data;
+	int ret = -ENOMEM, klen;
+
+	tfm = crypto_alloc_ahash("gmac-vse(aes)", 0, 0);
+	if (IS_ERR(tfm)) {
+		pr_err("%s(): Failed to allocate transform for gmac-vse(aes):%ld\n", __func__,
+						PTR_ERR(tfm));
+		ret = PTR_ERR(tfm);
+		goto out;
+	}
+
+	driver_name = crypto_tfm_alg_driver_name(crypto_ahash_tfm(tfm));
+	if (driver_name == NULL) {
+		pr_err("%s(): Failed to get driver name\n", __func__);
+		goto free_tfm;
+	}
+	pr_debug("%s(): Algo name gmac-vse(aes), driver name %s\n", __func__, driver_name);
+
+	req = ahash_request_alloc(tfm, GFP_KERNEL);
+	if (!req) {
+		pr_err("%s(): Failed to allocate request for gmac-vse(aes)\n", __func__);
+		goto free_tfm;
+	}
+
+	ahash_request_set_callback(req, CRYPTO_TFM_REQ_MAY_BACKLOG,
+				   tnvvse_crypto_complete, &sha_state->sha_complete);
+
+	init_completion(&sha_state->sha_complete.restart);
+	sha_state->sha_complete.req_err = 0;
+
+	ret = snprintf(key_as_keyslot, AES_KEYSLOT_NAME_SIZE, "NVSEAES %x", gmac_init_ctl->key_slot);
+	if (ret >= AES_KEYSLOT_NAME_SIZE) {
+		pr_err("%s(): Buffer overflow while setting key for gmac-vse(aes): %d\n",
+					__func__, ret);
+		ret = -EINVAL;
+		goto free_req;
+	}
+
+	klen = gmac_init_ctl->key_length;
+	ret = crypto_ahash_setkey(tfm, key_as_keyslot, klen);
+	if (ret) {
+		pr_err("%s(): Failed to set keys for gmac-vse(aes): %d\n", __func__, ret);
+		goto free_req;
+	}
+
+	memset(iv, 0, TEGRA_NVVSE_AES_GCM_IV_LEN);
+	priv_data.request_type = GMAC_INIT;
+	priv_data.iv = iv;
+	req->priv = &priv_data;
+
+	ret = wait_async_op(&sha_state->sha_complete, crypto_ahash_init(req));
+	if (ret) {
+		pr_err("%s(): Failed to ahash_init for gmac-vse(aes): ret=%d\n",
+					__func__, ret);
+	}
+
+	memcpy(gmac_init_ctl->IV, priv_data.iv, TEGRA_NVVSE_AES_GCM_IV_LEN);
+
+free_req:
+	ahash_request_free(req);
+free_tfm:
+	crypto_free_ahash(tfm);
+out:
+	return ret;
+}
+
+static int tnvvse_crypto_aes_gmac_sign_verify_init(struct tnvvse_crypto_ctx *ctx,
+		struct tegra_nvvse_aes_gmac_sign_verify_ctl *gmac_sign_verify_ctl)
+{
+	struct crypto_sha_state *sha_state = &ctx->sha_state;
+	char key_as_keyslot[AES_KEYSLOT_NAME_SIZE] = {0,};
+	struct crypto_ahash *tfm;
+	struct ahash_request *req;
+	struct tnvvse_gmac_req_data priv_data;
+	const char *driver_name;
+	int ret = -EINVAL, klen;
+
+	if (sha_state->req != NULL || sha_state->tfm != NULL) {
+		pr_err("%s(): Failed init as already initialized for gmac-vse(aes): %d\n",
+				       __func__, ret);
+		goto out;
+	}
+
+	tfm = crypto_alloc_ahash("gmac-vse(aes)", 0, 0);
+	if (IS_ERR(tfm)) {
+		pr_err("%s(): Failed to load transform for gmac-vse(aes):%ld\n", __func__,
+							PTR_ERR(tfm));
+		ret = PTR_ERR(tfm);
+		goto out;
+	}
+
+	driver_name = crypto_tfm_alg_driver_name(crypto_ahash_tfm(tfm));
+	if (driver_name == NULL) {
+		pr_err("%s(): Failed to get driver name\n", __func__);
+		goto free_tfm;
+	}
+	pr_debug("%s(): Algo name gmac-vse(aes), driver name %s\n", __func__, driver_name);
+
+	req = ahash_request_alloc(tfm, GFP_KERNEL);
+	if (!req) {
+		pr_err("%s(): Failed to allocate request for gmac-vse(aes)\n", __func__);
+		goto free_tfm;
+	}
+
+	ahash_request_set_callback(req, CRYPTO_TFM_REQ_MAY_BACKLOG,
+				   tnvvse_crypto_complete, &sha_state->sha_complete);
+
+	ret = alloc_bufs(sha_state->xbuf);
+	if (ret < 0) {
+		pr_err("%s(): Failed to allocate Xbuffer\n", __func__);
+		goto free_req;
+	}
+
+	init_completion(&sha_state->sha_complete.restart);
+	sha_state->sha_complete.req_err = 0;
+
+	ret = snprintf(key_as_keyslot, AES_KEYSLOT_NAME_SIZE, "NVSEAES %x",
+					gmac_sign_verify_ctl->key_slot);
+	if (ret >= AES_KEYSLOT_NAME_SIZE) {
+		pr_err("%s(): Buffer overflow while setting key for gmac-vse(aes): %d\n",
+					__func__, ret);
+		ret = -EINVAL;
+		goto free_xbuf;
+	}
+
+	klen = gmac_sign_verify_ctl->key_length;
+	ret = crypto_ahash_setkey(tfm, key_as_keyslot, klen);
+	if (ret) {
+		pr_err("%s(): Failed to set keys for gmac-vse(aes): %d\n", __func__, ret);
+		goto free_xbuf;
+	}
+
+	if (gmac_sign_verify_ctl->gmac_type == TEGRA_NVVSE_AES_GMAC_SIGN)
+		priv_data.request_type = GMAC_SIGN;
+	else
+		priv_data.request_type = GMAC_VERIFY;
+	req->priv = &priv_data;
+
+	ret = wait_async_op(&sha_state->sha_complete, crypto_ahash_init(req));
+	if (ret) {
+		pr_err("%s(): Failed to ahash_init for gmac-vse(aes): ret=%d\n",
+					__func__, ret);
+		goto free_xbuf;
+	}
+
+	sha_state->req = req;
+	sha_state->tfm = tfm;
+	sha_state->result_buff = ctx->sha_result;
+	sha_state->digest_size = gmac_sign_verify_ctl->tag_length;
+
+	memset(sha_state->result_buff, 0, TEGRA_NVVSE_AES_GCM_TAG_SIZE);
+
+	ret = 0;
+	goto out;
+
+free_xbuf:
+	free_bufs(ctx->sha_state.xbuf);
+free_req:
+	ahash_request_free(req);
+free_tfm:
+	crypto_free_ahash(tfm);
+out:
+	return ret;
+}
+
+static int tnvvse_crypto_aes_gmac_sign_verify(struct tnvvse_crypto_ctx *ctx,
+		struct tegra_nvvse_aes_gmac_sign_verify_ctl *gmac_sign_verify_ctl)
+{
+	struct crypto_sha_state *sha_state = &ctx->sha_state;
+	void *hash_buff;
+	char *result_buff;
+	unsigned long size = 0, total = 0;
+	uint8_t iv[TEGRA_NVVSE_AES_GCM_IV_LEN];
+	struct ahash_request *req;
+	struct scatterlist sg[1];
+	char *input_buffer = gmac_sign_verify_ctl->src_buffer;
+	struct tnvvse_gmac_req_data priv_data;
+	char key_as_keyslot[AES_KEYSLOT_NAME_SIZE] = {0,};
+	int ret = -EINVAL, klen;
+
+	if (gmac_sign_verify_ctl->data_length > GMAC_MAX_LEN ||
+			gmac_sign_verify_ctl->data_length == 0) {
+		pr_err("%s(): Failed due to invalid input size: %d\n", __func__, ret);
+		goto done;
+	}
+
+	if (gmac_sign_verify_ctl->is_last &&
+			gmac_sign_verify_ctl->tag_length != TEGRA_NVVSE_AES_GCM_TAG_SIZE) {
+		pr_err("%s(): Failed due to invalid tag length (%d) invalid", __func__,
+					gmac_sign_verify_ctl->tag_length);
+		goto done;
+	}
+
+	if (gmac_sign_verify_ctl->is_first) {
+		ret = tnvvse_crypto_aes_gmac_sign_verify_init(ctx, gmac_sign_verify_ctl);
+		if (ret) {
+			pr_err("%s(): Failed to init: %d\n", __func__, ret);
+			goto done;
+		}
+	}
+
+	hash_buff = sha_state->xbuf[0];
+	result_buff = sha_state->result_buff;
+	req = sha_state->req;
+	total = gmac_sign_verify_ctl->data_length;
+
+	if (gmac_sign_verify_ctl->gmac_type == TEGRA_NVVSE_AES_GMAC_SIGN)
+		priv_data.request_type = GMAC_SIGN;
+	else
+		priv_data.request_type = GMAC_VERIFY;
+	priv_data.iv = NULL;
+	req->priv = &priv_data;
+
+	ret = snprintf(key_as_keyslot, AES_KEYSLOT_NAME_SIZE, "NVSEAES %x",
+					gmac_sign_verify_ctl->key_slot);
+	if (ret >= AES_KEYSLOT_NAME_SIZE) {
+		pr_err("%s(): Buffer overflow while setting key for gmac-vse(aes): %d\n",
+					__func__, ret);
+		ret = -EINVAL;
+		goto stop_sha;
+	}
+
+	klen = gmac_sign_verify_ctl->key_length;
+	ret = crypto_ahash_setkey(sha_state->tfm, key_as_keyslot, klen);
+	if (ret) {
+		pr_err("%s(): Failed to set keys for gmac-vse(aes): %d\n", __func__, ret);
+		goto stop_sha;
+	}
+
+	while (total > 0) {
+		size = (total < PAGE_SIZE) ? total : PAGE_SIZE;
+		ret = copy_from_user((void *)hash_buff, (void __user *)input_buffer, size);
+		if (ret) {
+			pr_err("%s(): Failed to copy_from_user: %d\n", __func__, ret);
+			goto stop_sha;
+		}
+
+		sg_init_one(&sg[0], hash_buff, size);
+		ahash_request_set_crypt(req, &sg[0], result_buff, size);
+		if (size < total) {
+			ret = wait_async_op(&sha_state->sha_complete, crypto_ahash_update(req));
+			if (ret) {
+				pr_err("%s(): Failed to ahash_update for gmac-vse(aes): %d\n",
+							__func__, ret);
+				goto stop_sha;
+			}
+		} else {
+			if (gmac_sign_verify_ctl->is_last == 0) {
+				ret = wait_async_op(&sha_state->sha_complete,
+								crypto_ahash_update(req));
+				if (ret) {
+					pr_err("%s(): Failed to ahash_update for gmac-vse(aes): %d\n",
+								__func__, ret);
+					goto stop_sha;
+				}
+			} else {
+				if (gmac_sign_verify_ctl->gmac_type ==
+							TEGRA_NVVSE_AES_GMAC_VERIFY) {
+					/* Copy tag/digest */
+					ret = copy_from_user((void *)result_buff,
+						(void __user *)gmac_sign_verify_ctl->tag_buffer,
+						TEGRA_NVVSE_AES_GCM_TAG_SIZE);
+					if (ret) {
+						pr_err("%s(): Failed to copy_from_user: %d\n",
+										__func__, ret);
+						goto stop_sha;
+					}
+
+					memcpy(iv, gmac_sign_verify_ctl->initial_vector,
+								TEGRA_NVVSE_AES_GCM_IV_LEN);
+					priv_data.iv = iv;
+				}
+				ret = wait_async_op(&sha_state->sha_complete,
+							crypto_ahash_finup(req));
+				if (ret) {
+					pr_err("%s(): Failed to ahash_finup for gmac-vse(aes): %d\n",
+								__func__, ret);
+					goto stop_sha;
+				}
+			}
+		}
+
+		total -= size;
+		input_buffer += size;
+	}
+
+	if (!gmac_sign_verify_ctl->is_last)
+		goto done;
+
+	if (gmac_sign_verify_ctl->gmac_type == TEGRA_NVVSE_AES_GMAC_SIGN) {
+		ret = copy_to_user((void __user *)gmac_sign_verify_ctl->tag_buffer,
+				(const void *)result_buff,
+				gmac_sign_verify_ctl->tag_length);
+		if (ret)
+			pr_err("%s(): Failed to copy_to_user:%d\n", __func__, ret);
+	} else {
+		gmac_sign_verify_ctl->result = priv_data.result;
+	}
+
+stop_sha:
+	free_bufs(sha_state->xbuf);
+	ahash_request_free(sha_state->req);
+	crypto_free_ahash(sha_state->tfm);
+
+	sha_state->req = NULL;
+	sha_state->tfm = NULL;
+	sha_state->result_buff = NULL;
+	sha_state->digest_size = 0;
+
+done:
 	return ret;
 }
 
@@ -1243,6 +1581,8 @@ static long tnvvse_crypto_dev_ioctl(struct file *filp,
 {
 	struct tnvvse_crypto_ctx *ctx = filp->private_data;
 	struct tegra_nvvse_aes_enc_dec_ctl *arg_aes_enc_dec_ctl = (void __user *)arg;
+	struct tegra_nvvse_aes_gmac_init_ctl *arg_aes_gmac_init_ctl = (void __user *)arg;
+	struct tegra_nvvse_aes_gmac_sign_verify_ctl *arg_aes_gmac_sign_verify_ctl;
 	struct tegra_nvvse_sha_init_ctl sha_init_ctl;
 	struct tegra_nvvse_sha_update_ctl sha_update_ctl;
 	struct tegra_nvvse_sha_final_ctl sha_final_ctl;
@@ -1250,6 +1590,8 @@ static long tnvvse_crypto_dev_ioctl(struct file *filp,
 	struct tegra_nvvse_aes_enc_dec_ctl aes_enc_dec_ctl;
 	struct tegra_nvvse_aes_cmac_ctl aes_cmac;
 	struct tegra_nvvse_aes_drng_ctl aes_drng_ctl;
+	struct tegra_nvvse_aes_gmac_init_ctl aes_gmac_init_ctl;
+	struct tegra_nvvse_aes_gmac_sign_verify_ctl aes_gmac_sign_verify_ctl;
 	int ret = 0;
 
 	/*
@@ -1336,6 +1678,51 @@ static long tnvvse_crypto_dev_ioctl(struct file *filp,
 				pr_err("%s(): Failed to copy_to_user:%d\n", __func__, ret);
 				goto out;
 			}
+		}
+		break;
+
+	case NVVSE_IOCTL_CMDID_AES_GMAC_INIT:
+		ret = copy_from_user(&aes_gmac_init_ctl, (void __user *)arg,
+						sizeof(aes_gmac_init_ctl));
+		if (ret) {
+			pr_err("%s(): Failed to copy_from_user aes_gmac_init_ctl:%d\n",
+								__func__, ret);
+			goto out;
+		}
+
+		ret = tnvvse_crypto_aes_gmac_init(ctx, &aes_gmac_init_ctl);
+		if (ret)
+			goto out;
+
+		/* Copy IV returned by VSE */
+		ret = copy_to_user(arg_aes_gmac_init_ctl->IV, aes_gmac_init_ctl.IV,
+							sizeof(aes_gmac_init_ctl.IV));
+		if (ret) {
+			pr_err("%s(): Failed to copy_to_user:%d\n", __func__, ret);
+			goto out;
+		}
+		break;
+
+	case NVVSE_IOCTL_CMDID_AES_GMAC_SIGN_VERIFY:
+		arg_aes_gmac_sign_verify_ctl = (void __user *)arg;
+		ret = copy_from_user(&aes_gmac_sign_verify_ctl, (void __user *)arg,
+						sizeof(aes_gmac_sign_verify_ctl));
+		if (ret) {
+			pr_err("%s(): Failed to copy_from_user aes_gmac_sign_verify_ctl:%d\n",
+								 __func__, ret);
+			goto out;
+		}
+
+		ret = tnvvse_crypto_aes_gmac_sign_verify(ctx, &aes_gmac_sign_verify_ctl);
+		if (ret)
+			goto out;
+
+		if (aes_gmac_sign_verify_ctl.gmac_type == TEGRA_NVVSE_AES_GMAC_VERIFY) {
+			ret = copy_to_user(&arg_aes_gmac_sign_verify_ctl->result,
+						&aes_gmac_sign_verify_ctl.result,
+								sizeof(uint8_t));
+			if (ret)
+				pr_err("%s(): Failed to copy_to_user:%d\n", __func__, ret);
 		}
 		break;
 
