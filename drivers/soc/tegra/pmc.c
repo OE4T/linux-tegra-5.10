@@ -3,7 +3,7 @@
  * drivers/soc/tegra/pmc.c
  *
  * Copyright (c) 2010 Google, Inc
- * Copyright (c) 2018-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * Author:
  *	Colin Cross <ccross@google.com>
@@ -182,6 +182,9 @@
 #define WAKE_AOWAKE_TIER0_ROUTING(x) (0x4b4 + ((x) << 2))
 #define WAKE_AOWAKE_TIER1_ROUTING(x) (0x4c0 + ((x) << 2))
 #define WAKE_AOWAKE_TIER2_ROUTING(x) (0x4cc + ((x) << 2))
+#define WAKE_AOWAKE_SW_STATUS_W_0	0x49c
+#define WAKE_AOWAKE_SW_STATUS(x)	(0x4a0 + ((x) << 2))
+#define WAKE_LATCH_SW			0x498
 
 #define WAKE_AOWAKE_CTRL 0x4f4
 #define  WAKE_AOWAKE_CTRL_INTR_POLARITY BIT(0)
@@ -370,6 +373,9 @@
 
 #define WAKE_NR_EVENTS	96
 #define WAKE_NR_VECTORS	(WAKE_NR_EVENTS / 32)
+
+static u32 wke_wake_level[WAKE_NR_VECTORS];
+static u32 wke_wake_level_any[WAKE_NR_VECTORS];
 
 struct pmc_clk {
 	struct clk_hw	hw;
@@ -819,6 +825,27 @@ static void tegra_pmc_misc_register_update(int offset,
 	pmc_reg = tegra_pmc_misc_readl(pmc, offset);
 	pmc_reg = (pmc_reg & ~mask) | (val & mask);
 	tegra_pmc_misc_writel(pmc, pmc_reg, offset);
+}
+
+static inline void wk_set_bit(int nr, u32 *addr)
+{
+	u32 mask = BIT(nr % 32);
+
+	addr[nr / 32] |= mask;
+}
+
+static inline void wk_clr_bit(int nr, u32 *addr)
+{
+	u32 mask = BIT(nr % 32);
+
+	addr[nr / 32] &= ~mask;
+}
+
+static inline int wk_test_bit(int nr, u32 *addr)
+{
+	u32 mask = BIT(nr % 32);
+
+	return !!(addr[nr / 32] & mask);
 }
 
 /*
@@ -3962,29 +3989,37 @@ static int tegra186_pmc_irq_set_type(struct irq_data *data, unsigned int type)
 {
 	struct tegra_pmc *pmc = irq_data_get_irq_chip_data(data);
 	u32 value;
+	unsigned long wake_id;
 
-	value = readl(pmc->wake + WAKE_AOWAKE_CNTRL(data->hwirq));
+	wake_id = data->hwirq;
+	value = readl(pmc->wake + WAKE_AOWAKE_CNTRL(wake_id));
 
 	switch (type) {
 	case IRQ_TYPE_EDGE_RISING:
 	case IRQ_TYPE_LEVEL_HIGH:
 		value |= WAKE_AOWAKE_CNTRL_LEVEL;
+		wk_set_bit(wake_id, wke_wake_level);
+		wk_set_bit(wake_id, wke_wake_level_any);
 		break;
 
 	case IRQ_TYPE_EDGE_FALLING:
 	case IRQ_TYPE_LEVEL_LOW:
 		value &= ~WAKE_AOWAKE_CNTRL_LEVEL;
+		wk_clr_bit(wake_id, wke_wake_level);
+		wk_clr_bit(wake_id, wke_wake_level_any);
 		break;
 
 	case IRQ_TYPE_EDGE_RISING | IRQ_TYPE_EDGE_FALLING:
 		value ^= WAKE_AOWAKE_CNTRL_LEVEL;
+		wk_set_bit(wake_id, wke_wake_level_any);
+		wk_clr_bit(wake_id, wke_wake_level);
 		break;
 
 	default:
 		return -EINVAL;
 	}
 
-	writel(value, pmc->wake + WAKE_AOWAKE_CNTRL(data->hwirq));
+	writel(value, pmc->wake + WAKE_AOWAKE_CNTRL(wake_id));
 
 	return 0;
 }
@@ -4600,8 +4635,93 @@ cleanup_sysfs:
 }
 
 #if defined(CONFIG_PM_SLEEP) && (defined(CONFIG_ARM) || defined(CONFIG_ARM64))
+/*
+ * Ensures that sufficient time is passed for a register write to
+ * serialize into the 32KHz domain
+ */
+static void wke_32kwritel(u32 val, u32 reg)
+{
+	writel(val, pmc->wake + reg);
+	udelay(130);
+}
+
+static void wke_write_wake_level(int wake, int level)
+{
+	u32 val;
+	u32 reg = WAKE_AOWAKE_CNTRL(wake);
+
+	val = readl(pmc->wake + reg);
+	if (level)
+		val |= (1 << 3);
+	else
+		val &= ~(1 << 3);
+	writel(val, pmc->wake + reg);
+}
+
+static void wke_write_wake_levels(u32 *lvl)
+{
+	int i;
+
+	for (i = 0; i < WAKE_NR_EVENTS; i++)
+		wke_write_wake_level(i, wk_test_bit(i, lvl));
+}
+
+static void wke_clear_sw_wake_status(void)
+{
+	wke_32kwritel(1, WAKE_AOWAKE_SW_STATUS_W_0);
+}
+
+static void wke_read_sw_wake_status(u32 *status)
+{
+	int i;
+
+	for (i = 0; i < WAKE_NR_EVENTS; i++)
+		wke_write_wake_level(i, 0);
+
+	wke_clear_sw_wake_status();
+	wke_32kwritel(1, WAKE_LATCH_SW);
+
+	/*
+	 * WAKE_AOWAKE_SW_STATUS is edge triggered, so in order to
+	 * obtain the current status of the wake signals, change the polarity
+	 * of the wake level from 0->1 while latching to force a positive edge
+	 * if the sampled signal is '1'.
+	 */
+	for (i = 0; i < WAKE_NR_EVENTS; i++)
+		wke_write_wake_level(i, 1);
+
+	/*
+	 * Wait for the update to be synced into the 32kHz domain,
+	 * and let enough time lapse, so that the wake signals have time to
+	 * be sampled.
+	 */
+	udelay(300);
+
+	wke_32kwritel(0, WAKE_LATCH_SW);
+
+	for (i = 0; i < WAKE_NR_VECTORS; i++)
+		status[i] = readl(pmc->wake + WAKE_AOWAKE_SW_STATUS(i));
+}
+
 static int tegra_pmc_suspend(struct device *dev)
 {
+	u32 status[WAKE_NR_VECTORS];
+	u32 lvl[WAKE_NR_VECTORS];
+	u32 wake_level[WAKE_NR_VECTORS];
+	int i;
+
+	wke_read_sw_wake_status(status);
+
+	/* flip the wakeup trigger for any-edge triggered pads
+	 * which are currently asserting as wakeups
+	 */
+	for (i = 0; i < WAKE_NR_VECTORS; i++) {
+		lvl[i] = ~status[i] & wke_wake_level_any[i];
+		wake_level[i] = lvl[i] | wke_wake_level[i];
+	}
+
+	wke_write_wake_levels(wake_level);
+
 	if (pmc->soc->soc_is_tegra210_n_before) {
 		struct tegra_pmc *pmc = dev_get_drvdata(dev);
 
