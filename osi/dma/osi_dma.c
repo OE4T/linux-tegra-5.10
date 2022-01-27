@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,7 @@
 #ifdef OSI_DEBUG
 #include "debug.h"
 #endif /* OSI_DEBUG */
+#include "hw_common.h"
 
 /**
  * @brief g_dma - DMA local data array.
@@ -468,7 +469,7 @@ nveu32_t osi_get_global_dma_status(struct osi_dma_priv_data *osi_dma)
 		return 0;
 	}
 
-	return l_dma->ops_p->get_global_dma_status(osi_dma->base);
+	return osi_readl((nveu8_t *)osi_dma->base + HW_GLOBAL_DMA_STATUS);
 }
 
 nve32_t osi_handle_dma_intr(struct osi_dma_priv_data *osi_dma,
