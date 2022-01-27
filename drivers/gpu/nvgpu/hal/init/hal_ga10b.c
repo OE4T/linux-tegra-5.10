@@ -376,7 +376,7 @@ static const struct gops_ltc ga10b_ops_ltc = {
 static const struct gops_cbc ga10b_ops_cbc = {
 	.cbc_init_support = nvgpu_cbc_init_support,
 	.cbc_remove_support = nvgpu_cbc_remove_support,
-	.init = ga10b_cbc_init,
+	.init = gv11b_cbc_init,
 	.alloc_comptags = ga10b_cbc_alloc_comptags,
 	.ctrl = tu104_cbc_ctrl,
 };

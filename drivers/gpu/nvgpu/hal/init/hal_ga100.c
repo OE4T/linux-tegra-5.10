@@ -108,7 +108,7 @@
 #include "hal/priv_ring/priv_ring_ga10b.h"
 #include "hal/priv_ring/priv_ring_ga100.h"
 #include "hal/power_features/cg/ga100_gating_reglist.h"
-#include "hal/cbc/cbc_gm20b.h"
+#include "hal/cbc/cbc_gv11b.h"
 #include "hal/cbc/cbc_tu104.h"
 #include "hal/cbc/cbc_ga100.h"
 #include "hal/therm/therm_gm20b.h"
@@ -407,7 +407,7 @@ static const struct gops_ltc ga100_ops_ltc = {
 static const struct gops_cbc ga100_ops_cbc = {
 	.cbc_init_support = nvgpu_cbc_init_support,
 	.cbc_remove_support = nvgpu_cbc_remove_support,
-	.init = tu104_cbc_init,
+	.init = gv11b_cbc_init,
 	.alloc_comptags = ga100_cbc_alloc_comptags,
 	.ctrl = tu104_cbc_ctrl,
 	.fix_config = NULL,

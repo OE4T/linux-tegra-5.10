@@ -1,7 +1,7 @@
 /*
  * TU104 Tegra HAL interface
  *
- * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -51,7 +51,7 @@
 #include "hal/priv_ring/priv_ring_gp10b.h"
 #include "hal/priv_ring/priv_ring_gv11b.h"
 #include "hal/power_features/cg/tu104_gating_reglist.h"
-#include "hal/cbc/cbc_gm20b.h"
+#include "hal/cbc/cbc_gv11b.h"
 #include "hal/cbc/cbc_tu104.h"
 #include "hal/therm/therm_gm20b.h"
 #include "hal/therm/therm_tu104.h"
@@ -343,7 +343,7 @@ static const struct gops_ltc tu104_ops_ltc = {
 static const struct gops_cbc tu104_ops_cbc = {
 	.cbc_init_support = nvgpu_cbc_init_support,
 	.cbc_remove_support = nvgpu_cbc_remove_support,
-	.init = tu104_cbc_init,
+	.init = gv11b_cbc_init,
 	.alloc_comptags = tu104_cbc_alloc_comptags,
 	.ctrl = tu104_cbc_ctrl,
 	.fix_config = NULL,

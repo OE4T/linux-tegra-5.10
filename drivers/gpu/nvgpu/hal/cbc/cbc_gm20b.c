@@ -230,15 +230,14 @@ u32 gm20b_cbc_fix_config(struct gk20a *g, int base)
 }
 
 
-void gm20b_cbc_init(struct gk20a *g, struct nvgpu_cbc *cbc)
+void gm20b_cbc_init(struct gk20a *g, struct nvgpu_cbc *cbc, bool is_resume)
 {
-	u32 max_size = g->max_comptag_mem;
-	u32 max_comptag_lines = max_size << 3U;
-
 	u32 compbit_base_post_divide;
 	u64 compbit_base_post_multiply64;
 	u64 compbit_store_iova;
 	u64 compbit_base_post_divide64;
+	enum nvgpu_cbc_op cbc_op = is_resume ? nvgpu_cbc_op_invalidate
+					     : nvgpu_cbc_op_clear;
 
 #ifdef CONFIG_NVGPU_SIM
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
@@ -282,7 +281,6 @@ void gm20b_cbc_init(struct gk20a *g, struct nvgpu_cbc *cbc)
 
 	cbc->compbit_store.base_hw = compbit_base_post_divide;
 
-	g->ops.cbc.ctrl(g, nvgpu_cbc_op_invalidate,
-			    0, max_comptag_lines - 1U);
+	g->ops.cbc.ctrl(g, cbc_op, 0, cbc->max_comptag_lines - 1U);
 
 }

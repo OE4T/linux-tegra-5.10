@@ -62,9 +62,15 @@ int nvgpu_cbc_init_support(struct gk20a *g)
 {
 	int err = 0;
 	struct nvgpu_cbc *cbc = g->cbc;
+	bool is_resume = true;
 
 	nvgpu_log_fn(g, " ");
 
+	/*
+	 * If cbc == NULL, the device is being powered-on for the first
+	 * time and hence nvgpu_cbc_init_support is not called as part of
+	 * suspend/resume cycle, so set is_resume to false.
+	 */
 	if (cbc == NULL) {
 		cbc = nvgpu_kzalloc(g, sizeof(*cbc));
 		if (cbc == NULL) {
@@ -81,10 +87,11 @@ int nvgpu_cbc_init_support(struct gk20a *g)
 				return err;
 			}
 		}
+		is_resume = false;
 	}
 
 	if (g->ops.cbc.init != NULL) {
-		g->ops.cbc.init(g, g->cbc);
+		g->ops.cbc.init(g, g->cbc, is_resume);
 	}
 
 	return err;
