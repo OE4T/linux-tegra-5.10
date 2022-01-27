@@ -1,7 +1,7 @@
 /*
  * imx274.c - imx274 sensor driver
  *
- * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2022, NVIDIA CORPORATION & AFFILIATES.All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -66,6 +66,7 @@
 #define IMX274_FUSE_ID_START_ADDR	91
 #define IMX274_FUSE_ID_SIZE		8
 #define IMX274_FUSE_ID_STR_SIZE		(IMX274_FUSE_ID_SIZE * 2)
+#define IMX274_PROBE_READ_REG           0x3004
 
 static const struct of_device_id imx274_of_match[] = {
 	{ .compatible = "sony,imx274", },
@@ -1126,6 +1127,7 @@ static int imx274_board_setup(struct imx274 *priv)
 	struct camera_common_data *s_data = priv->s_data;
 	struct device *dev = s_data->dev;
 	int err = 0;
+	u8 data = 0;
 
 	if (!s_data->pdata->has_eeprom)
 		return 0;
@@ -1150,6 +1152,16 @@ static int imx274_board_setup(struct imx274 *priv)
 		dev_err(dev,
 			"Error %d during power on sensor\n", err);
 		return err;
+	}
+
+	/* Try to read Imx274 random reg & to make sure sensor is alive
+	 * after power_on.
+	 */
+	err = imx274_read_reg(priv->s_data, IMX274_PROBE_READ_REG, &data);
+	if (err) {
+		dev_err(dev,
+			"Error %d probe failed\n", err);
+		goto error;
 	}
 
 	err = imx274_read_fuse_id(priv);
