@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -1365,10 +1365,9 @@ struct gops_gr {
 	struct gops_gr_zcull		zcull;
 #endif /* CONFIG_NVGPU_GRAPHICS */
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA)
-	void (*vab_init)(struct gk20a *g, u32 vab_reg, u32 num_range_checkers,
+	void (*vab_reserve)(struct gk20a *g, u32 vab_reg, u32 num_range_checkers,
 	struct nvgpu_vab_range_checker *vab_range_checker);
-	void (*vab_recover)(struct gk20a *g, u32 vab_reg);
-	void (*vab_release)(struct gk20a *g, u32 vab_reg);
+	void (*vab_configure)(struct gk20a *g, u32 vab_reg);
 #endif
 	/** @endcond */
 };

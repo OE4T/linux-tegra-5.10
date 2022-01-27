@@ -778,9 +778,8 @@ static const struct gops_gr ga10b_ops_gr = {
 	.gr_init_support = nvgpu_gr_init_support,
 	.gr_suspend = nvgpu_gr_suspend,
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
-	.vab_init = ga10b_gr_vab_init,
-	.vab_recover = ga10b_gr_vab_recover,
-	.vab_release = ga10b_gr_vab_release,
+	.vab_reserve = ga10b_gr_vab_reserve,
+	.vab_configure = ga10b_gr_vab_configure,
 #endif
 #ifdef CONFIG_NVGPU_DEBUGGER
 	.get_gr_status = gr_gm20b_get_gr_status,
@@ -878,6 +877,7 @@ static const struct gops_fb_intr ga10b_ops_fb_intr = {
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
 static const struct gops_fb_vab ga10b_ops_fb_vab = {
 	.init = ga10b_fb_vab_init,
+	.set_vab_buffer_address = ga10b_fb_vab_set_vab_buffer_address,
 	.reserve = ga10b_fb_vab_reserve,
 	.dump_and_clear = ga10b_fb_vab_dump_and_clear,
 	.release = ga10b_fb_vab_release,

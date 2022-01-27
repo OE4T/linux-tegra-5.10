@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -57,6 +57,8 @@ struct nvgpu_vab_range_checker {
 
 struct nvgpu_vab {
 	u32 user_num_range_checkers;
+	u32 num_entries;
+	unsigned long entry_size;
 	struct nvgpu_mem buffer;
 };
 

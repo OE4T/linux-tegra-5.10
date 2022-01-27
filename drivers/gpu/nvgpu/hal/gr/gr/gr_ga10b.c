@@ -1,7 +1,7 @@
 /*
  * GA10b GPU GR
  *
- * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -1064,7 +1064,7 @@ const u32 *ga10b_gr_get_hwpm_cau_init_data(u32 *count)
 #endif /* CONFIG_NVGPU_DEBUGGER */
 
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
-void ga10b_gr_vab_init(struct gk20a *g, u32 vab_reg, u32 num_range_checkers,
+void ga10b_gr_vab_reserve(struct gk20a *g, u32 vab_reg, u32 num_range_checkers,
 	struct nvgpu_vab_range_checker *vab_range_checker)
 {
 	/*
@@ -1092,17 +1092,13 @@ void ga10b_gr_vab_init(struct gk20a *g, u32 vab_reg, u32 num_range_checkers,
 				granularity_shift_bits));
 	}
 
+	/* Setup VAB */
 	nvgpu_writel(g, gr_gpcs_mmu_vidmem_access_bit_r(), vab_reg);
 }
 
-void ga10b_gr_vab_release(struct gk20a *g, u32 vab_reg)
+void ga10b_gr_vab_configure(struct gk20a *g, u32 vab_reg)
 {
 	nvgpu_writel(g, gr_gpcs_mmu_vidmem_access_bit_r(), vab_reg);
 }
 
-void ga10b_gr_vab_recover(struct gk20a *g, u32 vab_reg)
-{
-	nvgpu_writel(g, gr_gpcs_mmu_vidmem_access_bit_r(), 0);
-	nvgpu_writel(g, gr_gpcs_mmu_vidmem_access_bit_r(), vab_reg);
-}
 #endif /* CONFIG_NVGPU_HAL_NON_FUSA */

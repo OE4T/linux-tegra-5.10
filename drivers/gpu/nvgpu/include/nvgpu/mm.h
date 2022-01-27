@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -457,11 +457,6 @@ struct mm_gk20a {
 	struct nvgpu_mem mmu_wr_mem;
 	/** GMMU debug read buffer. */
 	struct nvgpu_mem mmu_rd_mem;
-
-#if defined(CONFIG_NVGPU_NON_FUSA)
-	/** VAB struct */
-	struct nvgpu_vab vab;
-#endif
 };
 
 /**
