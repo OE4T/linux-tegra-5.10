@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -84,8 +84,6 @@ struct dma_chan_ops {
 			    nveu32_t set,
 			    nveu32_t interval);
 #endif /* !OSI_STRIPPED_LIB */
-	/** Called to get Global DMA status */
-	nveu32_t (*get_global_dma_status)(void *addr);
 	/** Called to clear VM Tx interrupt */
 	void (*clear_vm_tx_intr)(void *addr, nveu32_t chan);
 	/** Called to clear VM Rx interrupt */
