@@ -90,7 +90,7 @@ int nvadsp_os_t18x_init(struct platform_device *pdev)
 		val = val | (adma_ch_page << ADSP_CONFIG_DMA_PAGE_SHIFT);
 
 		/* Write to HWMBOX5 */
-		hwmbox_writel(val, drv_data->chip_data->hwmb.hwmbox5_reg);
+		hwmbox_writel(val, drv_data->chip_data->adsp_os_config_hwmbox);
 
 		/* Clear HWMBOX0 for ADSP Guest reset handling */
 		hwmbox_writel(0, drv_data->chip_data->hwmb.hwmbox0_reg);

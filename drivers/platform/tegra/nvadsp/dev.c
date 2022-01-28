@@ -549,6 +549,7 @@ static struct nvadsp_chipdata tegra210_adsp_chipdata = {
 	.adsp_thread_hwmbox = 0,
 	.adsp_irq_hwmbox = 0,
 	.adsp_shared_mem_hwmbox = 0,
+	.adsp_os_config_hwmbox = 0,
 	.reset_init = nvadsp_reset_t21x_init,
 	.os_init = nvadsp_os_t21x_init,
 #ifdef CONFIG_PM
@@ -576,6 +577,7 @@ static struct nvadsp_chipdata tegrat18x_adsp_chipdata = {
 	},
 	.adsp_shared_mem_hwmbox = 0x18000, /* HWMBOX3 */
 	.adsp_thread_hwmbox = 0x20000,	/* HWMBOX4 */
+	.adsp_os_config_hwmbox = 0X28000, /*HWMBOX5 */
 	.adsp_state_hwmbox = 0x30000,	/* HWMBOX6 */
 	.adsp_irq_hwmbox = 0x38000,	/* HWMBOX7 */
 	.acast_init = nvadsp_acast_t18x_init,

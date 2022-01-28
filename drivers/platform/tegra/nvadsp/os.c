@@ -1789,10 +1789,24 @@ int nvadsp_os_start(void)
 	if (ret < 0)
 		goto unlock;
 
-	if (cold_start && drv_data->chip_data->adsp_shared_mem_hwmbox != 0) {
-		hwmbox_writel((uint32_t)drv_data->shared_adsp_os_data_iova,
+	if (cold_start) {
+		if (drv_data->chip_data->adsp_shared_mem_hwmbox != 0)
+			hwmbox_writel(
+				(uint32_t)drv_data->shared_adsp_os_data_iova,
 				drv_data->chip_data->adsp_shared_mem_hwmbox);
-		/* Write ACSR base address only once */
+
+		if (!is_tegra_hypervisor_mode() &&
+			drv_data->chip_data->adsp_os_config_hwmbox != 0) {
+			/* Set ADSP to do decompression */
+			uint32_t val = (ADSP_CONFIG_DECOMPRESS_EN <<
+						ADSP_CONFIG_DECOMPRESS_SHIFT);
+
+			/* Write to HWMBOX5 */
+			hwmbox_writel(val,
+				drv_data->chip_data->adsp_os_config_hwmbox);
+		}
+
+		/* Write ACSR base address and decompr enable flag only once */
 		cold_start = 0;
 	}
 

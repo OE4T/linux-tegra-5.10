@@ -152,6 +152,7 @@ struct nvadsp_chipdata {
 	u32			adsp_thread_hwmbox;
 	u32			adsp_irq_hwmbox;
 	u32			adsp_shared_mem_hwmbox;
+	u32			adsp_os_config_hwmbox;
 	acast_init		acast_init;
 	reset_init		reset_init;
 	os_init			os_init;
