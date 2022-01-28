@@ -29,7 +29,7 @@
  * @brief AXI Clock defines
  * @{
  */
-#define MGBE_AXI_CLK_FREQ	408000000U
+#define MGBE_AXI_CLK_FREQ	480000000U
 /** @} */
 
 /**
