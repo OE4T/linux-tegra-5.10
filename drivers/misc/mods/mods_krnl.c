@@ -1733,6 +1733,7 @@ static int esc_mods_sysctl_write_int(struct mods_client     *client,
 	data_size = snprintf(data, sizeof(data),
 			     "%lld", (long long)pdata->value);
 
+	memset(&task, 0, sizeof(task));
 	task.path      = pdata->path;
 	task.data      = data;
 	task.data_size = data_size;
