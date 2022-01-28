@@ -418,7 +418,6 @@
 			supported-algos = "drbg";
 			nvidia,io-coherent;
 			opcode_addr = <0x1004>;
-			resets = <&bpmp_resets TEGRA234_RESET_SE>;
 			clocks = <&bpmp_clks TEGRA234_CLK_SE>;
 			clock-names = "se";
 
@@ -434,7 +433,6 @@
 			supported-algos = "aes", "cmac", "xts", "aead";
 			nvidia,io-coherent;
 			opcode_addr = <0x2004>;
-			resets = <&bpmp_resets TEGRA234_RESET_SE>;
 			clocks = <&bpmp_clks TEGRA234_CLK_SE>;
 			clock-names = "se";
 
@@ -450,7 +448,6 @@
 			supported-algos = "sha", "sha3", "hmac";
 			nvidia,io-coherent;
 			opcode_addr = <0x4004>;
-			resets = <&bpmp_resets TEGRA234_RESET_SE>;
 			clocks = <&bpmp_clks TEGRA234_CLK_SE>;
 			clock-names = "se";
 
