@@ -166,6 +166,7 @@
 		};
 
 		__overlay__ {
+			link-name ="dummy";
 			codec {
 				sound-dai = <&tegra_i2s1 I2S_DUMMY>;
 			};
