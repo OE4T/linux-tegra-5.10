@@ -2,7 +2,7 @@
 /*
  * MAXIM DP Serializer driver for MAXIM GMSL Serializers
  *
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/device.h>
@@ -448,6 +448,8 @@ static int max_gmsl_dp_ser_probe(struct i2c_client *client)
 	priv->regmap = devm_regmap_init_i2c(client, &max_gmsl_dp_ser_i2c_regmap);
 	if (IS_ERR(priv->regmap))
 		return PTR_ERR(priv->regmap);
+
+	dev = &priv->client->dev;
 
 	ret = max_gmsl_dp_ser_read(priv, MAX_GMSL_DP_SER_REG_13);
 	if (ret != 0) {
