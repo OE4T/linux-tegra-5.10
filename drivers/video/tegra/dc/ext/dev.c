@@ -908,7 +908,7 @@ static void tegra_dc_flip_trace(struct tegra_dc_ext_flip_data *data,
 			continue;
 
 		(*trace_fn)(dc->ctrl_num, win_num,
-			win->syncpt_max, attr->buff_id, timestamp);
+			win->syncpt_max, (unsigned int)attr->buff_id, timestamp);
 	}
 }
 
@@ -1414,7 +1414,7 @@ static int sanitize_flip_args(struct tegra_dc_ext_user *user,
 		input_h.full = win->h;
 		w = dfixed_trunc(input_w);
 		h = dfixed_trunc(input_h);
-		if (win->buff_id != 0 &&
+		if (win->buff_id >= 0 &&
 			(w == 0 || h == 0 ||
 			win->out_w == 0 || win->out_h == 0)) {
 			dev_err(&dc->ndev->dev,
@@ -1497,7 +1497,7 @@ static int tegra_dc_ext_pin_windows(struct tegra_dc_ext_user *user,
 		if (ret)
 			return ret;
 
-		if (flip_win->attr.buff_id_u) {
+		if (flip_win->attr.buff_id_u >= 0) {
 			ret = tegra_dc_ext_pin_window(user,
 					      flip_win->attr.buff_id_u,
 					      &flip_win->handle[TEGRA_DC_U],
@@ -1509,7 +1509,7 @@ static int tegra_dc_ext_pin_windows(struct tegra_dc_ext_user *user,
 			flip_win->phys_addr_u = 0;
 		}
 
-		if (flip_win->attr.buff_id_v) {
+		if (flip_win->attr.buff_id_v >= 0) {
 			ret = tegra_dc_ext_pin_window(user,
 					      flip_win->attr.buff_id_v,
 					      &flip_win->handle[TEGRA_DC_V],
@@ -1522,9 +1522,9 @@ static int tegra_dc_ext_pin_windows(struct tegra_dc_ext_user *user,
 		}
 
 		if (flip_win->attr.flags & TEGRA_DC_EXT_FLIP_FLAG_COMPRESSED) {
-			/* use buff_id of the main surface when cde is 0 */
-			__u32 cde_buff_id = flip_win->attr.cde.buff_id;
-			if (!cde_buff_id)
+			/* use buff_id of the main surface when the cde one is invalid */
+			__s32 cde_buff_id = flip_win->attr.cde.buff_id;
+			if (cde_buff_id < 0)
 				cde_buff_id = flip_win->attr.buff_id;
 			ret = tegra_dc_ext_pin_window(user,
 					      cde_buff_id,
@@ -2505,7 +2505,7 @@ static int tegra_dc_ext_negotiate_bw(struct tegra_dc_ext_user *user,
 
 		idx = wins[i].index;
 
-		if (wins[i].buff_id > 0) {
+		if (wins[i].buff_id >= 0) {
 			tegra_dc_ext_set_windowattr_basic(&dc->tmp_wins[idx],
 							  &wins[i]);
 		} else {
