@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -180,9 +180,6 @@ endpoint_fops_open(struct inode *inode, struct file *filp)
 	int ret = 0;
 	struct endpoint_t *endpoint =
 		container_of(inode->i_cdev, struct endpoint_t, cdev);
-
-	if (WARN_ON(!endpoint))
-		return -EFAULT;
 
 	mutex_lock(&endpoint->fops_lock);
 	if (atomic_read(&endpoint->in_use)) {

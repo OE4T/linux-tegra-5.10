@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -407,7 +407,9 @@ stop_msg_handling(struct comm_channel_ctx_t *comm_ctx)
 		 */
 		r_task->shutdown = true;
 		wake_up_interruptible(&r_task->waitq);
-		wait_for_completion_interruptible(&r_task->shutdown_compl);
+		ret = wait_for_completion_interruptible(&r_task->shutdown_compl);
+		if (ret)
+			pr_err("Failed to wait for completion\n");
 
 		r_task->created = false;
 	}

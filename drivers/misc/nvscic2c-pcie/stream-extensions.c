@@ -440,8 +440,13 @@ ioctl_import_obj(struct stream_ext_ctx_t *ctx,
 	filep = fget(handle);
 	stream_obj = filep->private_data;
 	stream_obj->import_type = get_handle_type_from_desc(args->in.desc);
-	pci_client_get_peer_aper(ctx->pci_client_h, stream_obj->vmap.offsetof,
+	ret = pci_client_get_peer_aper(ctx->pci_client_h, stream_obj->vmap.offsetof,
 				 stream_obj->vmap.size, &stream_obj->aper);
+	if (ret) {
+		pr_err("(%s): PCI Client Get Peer Aper Failed\n", ctx->ep_name);
+		fput(filep);
+		return ret;
+	}
 	fput(filep);
 
 	args->out.handle = handle;
@@ -674,7 +679,7 @@ stream_extension_init(struct stream_ext_params *params, void **stream_ext_h)
 	ctx->vmap_h = params->vmap_h;
 	ctx->pci_client_h = params->pci_client_h;
 	ctx->comm_channel_h = params->comm_channel_h;
-	strcpy(ctx->ep_name, params->ep_name);
+	strlcpy(ctx->ep_name, params->ep_name, NAME_MAX);
 	memcpy(&ctx->local_node, params->local_node, sizeof(ctx->local_node));
 	memcpy(&ctx->peer_node, params->peer_node, sizeof(ctx->peer_node));
 

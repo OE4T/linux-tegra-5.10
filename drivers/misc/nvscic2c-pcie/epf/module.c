@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -471,10 +471,12 @@ static int
 nvscic2c_pcie_epf_remove(struct pci_epf *epf)
 {
 	struct driver_ctx_t *drv_ctx = epf_get_drvdata(epf);
-	struct epf_context_t *epf_ctx = drv_ctx->epf_ctx;
+	struct epf_context_t *epf_ctx = NULL;
 
 	if (!drv_ctx)
 		return 0;
+
+	epf_ctx = drv_ctx->epf_ctx;
 
 	cancel_work_sync(&epf_ctx->initialization_work);
 	epf->header = NULL;
