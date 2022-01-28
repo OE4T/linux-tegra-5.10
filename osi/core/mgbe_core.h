@@ -49,9 +49,9 @@
 #define MGBE_LPI_ENTRY_TIMER_MASK	0xFFFF8U
 /* 1US TIC counter - This counter should be programmed with the number of clock
  * cycles of CSR clock that constitutes a period of 1us.
- * it should be APB clock in MHZ i.e 408-1 for silicon and 13MHZ-1 for uFPGA
+ * it should be APB clock in MHZ i.e 480-1 for silicon and 13MHZ-1 for uFPGA
  */
-#define MGBE_1US_TIC_COUNTER		0x197
+#define MGBE_1US_TIC_COUNTER		0x1DF
 
 /** @} */
 
