@@ -77,6 +77,7 @@ struct nvpps_device_data {
 	u32			tsc_mode;
 
 	struct timer_list	timer;
+	struct timer_list	tsc_timer;
 
 	volatile bool		timer_inited;
 
@@ -89,6 +90,9 @@ struct nvpps_device_data {
 	u64			mac_base_addr;
 	u32			sts_offset;
 	u32			stns_offset;
+	void __iomem 		*tsc_reg_map_base;
+	bool		platform_is_orin;
+	u32			tsc_ptp_src;
 };
 
 
@@ -111,6 +115,33 @@ struct nvpps_file_data {
 #define MGBE_STSR_OFFSET		0xd08
 #define MGBE_STNSR_OFFSET		0xd0c
 
+#define TSC_CAPTURE_CONFIGURATION_PTX_0	0xc6a015c
+#define TSC_LOCKING_CONTROL_0	0xc6a01ec
+#define TSC_LOCKING_STATUS_0	0xc6a01f0
+
+#define TSC_MAPPED_RANGE	0x100
+
+/* Below are the tsc control and status register offset from
+ * ioremapped virtual base region stored in tsc_reg_map_base.
+ */
+#define TSC_LOCK_CTRL_REG_OFF 0x90
+#define TSC_LOCK_STAT_REG_OFF 0x94
+
+#define SRC_SELECT_BIT_OFFSET	8
+#define SRC_SELECT_BITS	0xff
+
+#define	TSC_PTP_SRC_EQOS	0
+#define	TSC_PTP_SRC_MGBE0	1
+#define TSC_PTP_SRC_MGBE1	2
+#define TSC_PTP_SRC_MGBE2	3
+#define TSC_PTP_SRC_MGBE3	4
+
+#define TSC_LOCKED_STATUS_BIT_OFFSET 1
+#define TSC_ALIGNED_STATUS_BIT_OFFSET 0
+
+#define TSC_LOCK_CTRL_ALIGN_BIT_OFFSET 0
+
+#define TSC_POLL_TIMER	1000
 #define BASE_ADDRESS pdev_data->mac_base_addr
 #define MAC_STNSR_TSSS_LPOS 0
 #define MAC_STNSR_TSSS_HPOS 30
@@ -297,6 +328,40 @@ static irqreturn_t nvpps_gpio_isr(int irq, void *data)
 	return IRQ_HANDLED;
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
+static void tsc_timer_callback(unsigned long data)
+{
+	struct nvpps_device_data        *pdev_data = (struct nvpps_device_data *)data;
+#else /* LINUX_VERSION_CODE >= KERNEL_VERSION(4,15,0) */
+static void tsc_timer_callback(struct timer_list *t)
+{
+	struct nvpps_device_data *pdev_data = (struct nvpps_device_data *)from_timer(pdev_data, t, tsc_timer);
+#endif /* LINUX_VERSION_CODE < KERNEL_VERSION(4,15,0) */
+	uint32_t tsc_lock_status;
+	tsc_lock_status = readl(pdev_data->tsc_reg_map_base + TSC_LOCK_STAT_REG_OFF);
+	/* Incase TSC is not locked clear ALIGNED bit(RW1C) so that
+	 * TSC starts to lock to the PTP again based on the PTP
+	 * source selected in TSC registers.
+	 */
+	if (!(tsc_lock_status & BIT(TSC_LOCKED_STATUS_BIT_OFFSET))) {
+		uint32_t lock_control;
+		dev_info(pdev_data->dev, "tsc_lock_stat:%x\n", tsc_lock_status);
+		/* Write 1 to TSC_LOCKING_STATUS_0.ALIGNED to clear it */
+		writel(tsc_lock_status | BIT(TSC_ALIGNED_STATUS_BIT_OFFSET),
+			pdev_data->tsc_reg_map_base + TSC_LOCK_STAT_REG_OFF);
+
+		lock_control = readl(pdev_data->tsc_reg_map_base +
+			TSC_LOCK_CTRL_REG_OFF);
+		/* Write 1 to TSC_LOCKING_CONTROL_0.ALIGN */
+		writel(lock_control | BIT(TSC_LOCK_CTRL_ALIGN_BIT_OFFSET),
+			pdev_data->tsc_reg_map_base + TSC_LOCK_CTRL_REG_OFF);
+	}
+
+	/* set the next expire time */
+	mod_timer(&pdev_data->tsc_timer, jiffies + msecs_to_jiffies(TSC_POLL_TIMER));
+}
+
+
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4,15,0)
 static void nvpps_timer_callback(unsigned long data)
 {
@@ -319,9 +384,11 @@ static void nvpps_fill_mac_phc_info(struct platform_device *pdev,
 								    struct nvpps_device_data *pdev_data)
 {
 	bool use_eqos_mac = false;
+	pdev_data->platform_is_orin = false;
 
 	/* For orin */
 	if (of_machine_is_compatible("nvidia,tegra234")) {
+		pdev_data->platform_is_orin = true;
 		if (pdev_data->memmap_phc_regs) {
 			dev_info(&pdev->dev, "using mem mapped MAC PHC reg method\n");
 			if (pdev_data->iface_nm == NULL) {
@@ -405,6 +472,24 @@ static void nvpps_fill_mac_phc_info(struct platform_device *pdev,
 			dev_info(&pdev->dev, "using ptp notifier method with default interface(%s)\n", pdev_data->iface_nm);
 		}
 	}
+}
+
+/* spawn timer to monitor TSC to PTP lock and re-activate
+ locking process if its not locked in the handler */
+static int set_mode_tsc(struct nvpps_device_data *pdev_data)
+{
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
+	setup_timer(&pdev_data->tsc_timer,
+			tsc_timer_callback,
+			(unsigned long)pdev_data);
+#else /* LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0) */
+	timer_setup(&pdev_data->tsc_timer,
+			tsc_timer_callback,
+			0);
+#endif /* LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0) */
+	mod_timer(&pdev_data->tsc_timer, jiffies + msecs_to_jiffies(1000));
+
+	return 0;
 }
 
 static int set_mode(struct nvpps_device_data *pdev_data, u32 mode)
@@ -748,6 +833,7 @@ static int nvpps_probe(struct platform_device *pdev)
 	dev_t				devt;
 	int				err;
 	struct device_node              *np_gte;
+	uint32_t tsc_config_ptx_0;
 
 	dev_info(&pdev->dev, "%s\n", __FUNCTION__);
 
@@ -892,6 +978,41 @@ static int nvpps_probe(struct platform_device *pdev)
 	}
 	pdev_data->evt_mode = NVPPS_DEF_MODE;
 
+	if (pdev_data->platform_is_orin) {
+		pdev_data->tsc_reg_map_base = ioremap(TSC_CAPTURE_CONFIGURATION_PTX_0, 0x100);
+		if (!pdev_data->tsc_reg_map_base) {
+		    dev_err(&pdev->dev, "TSC register ioremap failed\n");
+			    device_destroy(s_nvpps_class, pdev_data->dev->devt);
+		    err = -ENOMEM;
+		    goto error_ret;
+		}
+
+		if (!strncmp(pdev_data->iface_nm, "mgbe0_0", sizeof("mgbe0_0"))) {
+			pdev_data->tsc_ptp_src = (TSC_PTP_SRC_MGBE0 << SRC_SELECT_BIT_OFFSET);
+		} else if (!strncmp(pdev_data->iface_nm, "mgbe1_0", sizeof("mgbe1_0"))) {
+			pdev_data->tsc_ptp_src = (TSC_PTP_SRC_MGBE1 << SRC_SELECT_BIT_OFFSET);
+		} else if (!strncmp(pdev_data->iface_nm, "mgbe2_0", sizeof("mgbe2_0"))) {
+			pdev_data->tsc_ptp_src = (TSC_PTP_SRC_MGBE2 << SRC_SELECT_BIT_OFFSET);
+		} else if (!strncmp(pdev_data->iface_nm, "mgbe3_0", sizeof("mgbe3_0"))) {
+			pdev_data->tsc_ptp_src = (TSC_PTP_SRC_MGBE3 << SRC_SELECT_BIT_OFFSET);
+		} else {
+			pdev_data->tsc_ptp_src = (TSC_PTP_SRC_EQOS << SRC_SELECT_BIT_OFFSET);
+		}
+
+		tsc_config_ptx_0 = readl(pdev_data->tsc_reg_map_base);
+		/* clear and set the ptp src based on ethernet interface passed
+		 * from dt for tsc to lock onto.
+		 */
+		tsc_config_ptx_0 = tsc_config_ptx_0 &
+			~(SRC_SELECT_BITS << SRC_SELECT_BIT_OFFSET);
+		tsc_config_ptx_0 = tsc_config_ptx_0 | pdev_data->tsc_ptp_src;
+		writel(tsc_config_ptx_0, pdev_data->tsc_reg_map_base);
+		tsc_config_ptx_0 = readl(pdev_data->tsc_reg_map_base);
+		dev_info(&pdev->dev, "TSC config ptx 0x%x\n", tsc_config_ptx_0);
+
+		set_mode_tsc(pdev_data);
+	}
+
 	return 0;
 
 error_ret:
@@ -924,6 +1045,10 @@ static int nvpps_remove(struct platform_device *pdev)
 			devm_iounmap(&pdev->dev, (void *)pdev_data->mac_base_addr);
 			dev_info(&pdev->dev, "unmap MAC reg space %p for nvpps\n",
 				(void *)pdev_data->mac_base_addr);
+		}
+		if (pdev_data->platform_is_orin) {
+			del_timer_sync(&pdev_data->tsc_timer);
+			iounmap(pdev_data->tsc_reg_map_base);
 		}
 		device_destroy(s_nvpps_class, pdev_data->dev->devt);
 	}
