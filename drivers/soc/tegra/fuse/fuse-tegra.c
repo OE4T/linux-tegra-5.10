@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2013-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2022, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/clk.h>
@@ -405,7 +405,7 @@ static ssize_t production_show(struct device *dev, struct device_attribute *attr
 	u32 reg = 0;
 	int ret;
 
-	if (tegra_get_platform() == TEGRA_PLATFORM_SILICON) {
+	if (tegra_is_silicon()) {
 		ret = tegra_fuse_readl(TEGRA_FUSE_PRODUCTION_MODE, &reg);
 		if (ret)
 			reg = 0;
@@ -452,7 +452,7 @@ static ssize_t name ## _show(struct device *dev,		\
 	u32 reg = 0;						\
 	int ret;						\
 								\
-	if (tegra_get_platform() == TEGRA_PLATFORM_SILICON) {	\
+	if (tegra_is_silicon()) {	\
 		ret = tegra_fuse_readl(offset, &reg);		\
 		if (ret)					\
 			reg = 0;				\

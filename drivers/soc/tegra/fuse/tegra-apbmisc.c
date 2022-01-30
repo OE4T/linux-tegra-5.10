@@ -138,6 +138,37 @@ bool tegra_is_silicon(void)
 	return true;
 }
 
+bool tegra_platform_is_silicon(void)
+{
+	return tegra_is_silicon();
+}
+EXPORT_SYMBOL(tegra_platform_is_silicon);
+bool tegra_platform_is_qt(void)
+{
+	return tegra_get_platform() == PRE_SI_QT;
+}
+EXPORT_SYMBOL(tegra_platform_is_qt);
+bool tegra_platform_is_fpga(void)
+{
+	return tegra_get_platform() == PRE_SI_FPGA;
+}
+EXPORT_SYMBOL(tegra_platform_is_fpga);
+bool tegra_platform_is_vdk(void)
+{
+	return tegra_get_platform() == PRE_SI_VDK;
+}
+EXPORT_SYMBOL(tegra_platform_is_vdk);
+bool tegra_platform_is_sim(void)
+{
+	return tegra_platform_is_vdk();
+}
+EXPORT_SYMBOL(tegra_platform_is_sim);
+bool tegra_platform_is_vsp(void)
+{
+	return tegra_get_platform() == PRE_SI_VSP;
+}
+EXPORT_SYMBOL(tegra_platform_is_vsp);
+
 u32 tegra_read_straps(void)
 {
 	WARN(!chipid, "Tegra ABP MISC not yet available\n");

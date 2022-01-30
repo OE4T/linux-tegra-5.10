@@ -161,17 +161,6 @@ struct device *tegra_soc_device_register(void);
 
 #define TEGRA_FUSE_HAS_PLATFORM_APIS
 
-enum tegra_platform {
-	TEGRA_PLATFORM_SILICON = 0,
-	TEGRA_PLATFORM_QT,
-	TEGRA_PLATFORM_LINSIM,
-	TEGRA_PLATFORM_FPGA,
-	TEGRA_PLATFORM_UNIT_FPGA,
-	TEGRA_PLATFORM_VDK,
-	TEGRA_PLATFORM_VSP,
-	TEGRA_PLATFORM_MAX,
-};
-
 extern int tegra_set_erd(u64 err_config);
 
 extern struct tegra_sku_info tegra_sku_info;
@@ -191,32 +180,12 @@ bool is_tegra_safety_build(void);
 /* tegra-platform.c declarations */
 extern bool tegra_cpu_is_asim(void);
 
-static inline bool tegra_platform_is_silicon(void)
-{
-	return tegra_get_platform() == TEGRA_PLATFORM_SILICON;
-}
-static inline bool tegra_platform_is_qt(void)
-{
-	return tegra_get_platform() == TEGRA_PLATFORM_QT;
-}
-static inline bool tegra_platform_is_fpga(void)
-{
-	return tegra_get_platform() == TEGRA_PLATFORM_FPGA;
-}
-static inline bool tegra_platform_is_vdk(void)
-{
-	int plat = tegra_get_platform();
-	return plat == TEGRA_PLATFORM_VDK;
-}
-static inline bool tegra_platform_is_sim(void)
-{
-	return tegra_platform_is_vdk();
-}
-static inline bool tegra_platform_is_vsp(void)
-{
-	int plat = tegra_get_platform();
-	return plat == TEGRA_PLATFORM_VSP;
-}
+extern bool tegra_platform_is_silicon(void);
+extern bool tegra_platform_is_qt(void);
+extern bool tegra_platform_is_fpga(void);
+extern bool tegra_platform_is_vdk(void);
+extern bool tegra_platform_is_sim(void);
+extern bool tegra_platform_is_vsp(void);
 /*
  * end block - downstream declarations
  */
