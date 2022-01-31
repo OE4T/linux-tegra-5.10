@@ -5,7 +5,7 @@
  * Copyright (C) 2010 Google, Inc.
  * Author: Colin Cross <ccross@android.com>
  *
- * Copyright (C) 2020-2021 NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2020-2022 NVIDIA Corporation. All rights reserved.
  */
 
 #include <linux/bitfield.h>
@@ -342,6 +342,7 @@ struct tegra_i2c_dev {
 	bool msg_read;
 	bool is_dvc;
 	bool is_vi;
+	bool reinit_ctrl_before_xfer;
 };
 
 static int __maybe_unused tegra_i2c_runtime_resume(struct device *dev);
@@ -1671,6 +1672,12 @@ static int tegra_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[],
 		}
 	}
 
+	if (i2c_dev->reinit_ctrl_before_xfer) {
+		ret = tegra_i2c_init(i2c_dev);
+		if (ret)
+			return ret;
+	}
+
 	if (adap->bus_clk_rate != i2c_dev->bus_clk_rate) {
 		i2c_dev->bus_clk_rate = adap->bus_clk_rate;
 		 tegra_i2c_change_clock_rate(i2c_dev);
@@ -2068,6 +2075,8 @@ static void tegra_i2c_parse_dt(struct tegra_i2c_dev *i2c_dev)
 	i2c_dev->disable_dma_mode = !of_property_read_bool(np, "dmas");
 	i2c_dev->is_clkon_always = of_property_read_bool(np,
 			"nvidia,clock-always-on");
+	i2c_dev->reinit_ctrl_before_xfer = of_property_read_bool(np,
+			"nvidia,reinit-ctrl-before-xfer");
 }
 
 static int tegra_i2c_init_clocks(struct tegra_i2c_dev *i2c_dev)
