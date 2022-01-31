@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -29,7 +29,7 @@
 int dce_admin_ipc_wait(struct tegra_dce *d, u32 w_type)
 {
 	int ret = 0;
-	enum dce_worker_event_id_type event;
+	enum dce_worker_event_id_type event = EVENT_ID_DCE_INVALID_EVENT;
 	struct admin_rpc_post_boot_info *admin_rpc = &d->admin_rpc;
 
 	switch (w_type) {
@@ -50,13 +50,19 @@ int dce_admin_ipc_wait(struct tegra_dce *d, u32 w_type)
 			0);
 		atomic_set(&admin_rpc->complete, 0);
 	} else {
-		dce_worker_thread_wait(d, event);
+		if (event != EVENT_ID_DCE_INVALID_EVENT)
+			dce_worker_thread_wait(d, event);
+		else {
+			dce_err(d, "Invalid event type [%d]", event);
+			ret = -1;
+			goto end;
+		}
 	}
 
 	if (dce_worker_get_state(d)
 			== STATE_DCE_WORKER_ABORTED)
 		ret = -1;
-
+end:
 	return ret;
 }
 

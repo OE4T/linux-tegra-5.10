@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -25,6 +25,7 @@ struct tegra_dce;
  * events thoughout the life cycle of dce worker thread.
  */
 enum dce_worker_event_id_type {
+	EVENT_ID_DCE_INVALID_EVENT = -1,
 	EVENT_ID_DCE_BOOT_COMPLETE_IRQ_REQ_SET = 0,
 	EVENT_ID_DCE_BOOT_COMPLETE_IRQ_RECEIVED = 1,
 	EVENT_ID_DCE_IPC_SYNC_TRIGGERED = 2,

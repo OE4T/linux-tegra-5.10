@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -159,7 +159,10 @@ struct dce_firmware *dce_request_firmware(struct tegra_dce *d,
 	if (!fw)
 		return NULL;
 
-	request_firmware(&l_fw, fw_name, dev);
+	if (request_firmware(&l_fw, fw_name, dev) < 0) {
+		dce_err(d, "FW Request Failed");
+		goto err;
+	}
 
 	if (!l_fw)
 		goto err;

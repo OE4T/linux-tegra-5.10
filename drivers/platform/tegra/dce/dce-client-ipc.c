@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -140,16 +140,22 @@ int tegra_dce_register_ipc_client(u32 type,
 	struct tegra_dce_client_ipc *cl;
 	u32 handle = DCE_CLIENT_IPC_HANDLE_INVALID;
 
+	if (handlep == NULL) {
+		dce_err(d, "Invalid handle pointer");
+		ret = -EINVAL;
+		goto end;
+	}
+
+	if (type >= DCE_CLIENT_IPC_TYPE_MAX) {
+		dce_err(d, "Failed to retrieve client info for type: [%u]", type);
+		ret = -EINVAL;
+		goto end;
+	}
+
 	int_type = dce_interface_type_map[type];
 
 	d = dce_ipc_get_dce_from_ch(int_type);
 	if (d == NULL) {
-		ret = -EINVAL;
-		goto out;
-	}
-
-	if (handlep == NULL) {
-		dce_err(d, "Invalid handle pointer");
 		ret = -EINVAL;
 		goto out;
 	}
@@ -184,7 +190,7 @@ out:
 	}
 
 	*handlep = handle;
-
+end:
 	return ret;
 }
 EXPORT_SYMBOL(tegra_dce_register_ipc_client);
@@ -309,8 +315,12 @@ static void dce_client_process_event_ipc(struct tegra_dce *d,
 	u32 msg_length;
 	int ret = 0;
 
-	if ((cl == NULL) || (cl->callback_fn == NULL) ||
-	    (cl->type != DCE_CLIENT_IPC_TYPE_RM_EVENT)) {
+	if ((cl == NULL) || (cl->callback_fn == NULL)) {
+		dce_err(d, "Invalid arg tegra_dce_client_ipc");
+		return;
+	}
+
+	if (cl->type != DCE_CLIENT_IPC_TYPE_RM_EVENT) {
 		dce_err(d, "Invalid arg for DCE_CLIENT_IPC_TYPE_RM_EVENT type:[%u]", cl->type);
 		return;
 	}
