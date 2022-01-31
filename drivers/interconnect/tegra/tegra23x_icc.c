@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2020-21, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -63,10 +63,6 @@ static void classify_bw_reqs(struct icc_provider *provider,
 		}
 	}
 	req->bwmgr_rate_req.num_iso_clients = NUM_ISO_CLIENT_TYPES;
-
-	/* VI cannot tolerate DVFS, request max dram floor when VI is active */
-	if (req->bwmgr_rate_req.isobw_reqs[1].iso_bw)
-		*max_floor_kbps = UINT_MAX;
 }
 
 static uint32_t get_bw(struct mrq_bwmgr_request *req,
