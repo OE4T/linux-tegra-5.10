@@ -51,6 +51,11 @@
 #define TEGRA_CRYPTO_KEY_128_SIZE	16
 #define AES_KEYSLOT_NAME_SIZE		32
 
+#define GCM_MAX_CHUNKS			33
+#define GCM_CHUNK_SIZE			(1024*1024) /* 1MB */
+#define GCM_PT_MAX_LEN			(16*1024*1024) /* 16MB */
+#define GCM_AAD_MAX_LEN			(16*1024*1024) /* 16MB */
+
 /** Defines the Maximum Random Number length supported */
 #define NVVSE_MAX_RANDOM_NUMBER_LEN_SUPPORTED		512U
 
@@ -739,15 +744,69 @@ out:
 	return ret;
 }
 
+static int tnvvse_crypt_aes_gcm_alloc_buf(struct scatterlist **sg, uint8_t *buf[], uint32_t size)
+{
+	uint32_t nents, i;
+	int32_t ret = 0;
+
+	nents = (size/GCM_CHUNK_SIZE + 1);
+
+	*sg = kmalloc_array(nents, sizeof(**sg), GFP_KERNEL);
+	if (!sg) {
+		ret = -ENOMEM;
+		goto out;
+	}
+
+	sg_init_table(*sg, nents);
+
+	for (i = 0; i < nents; i++) {
+		buf[i] = kcalloc(GCM_CHUNK_SIZE, sizeof(uint8_t), GFP_KERNEL);
+		if (buf[i] == NULL) {
+			ret = -ENOMEM;
+			goto free_sg;
+		}
+	}
+
+	for (i = 0 ; i < nents-1; i++)
+		sg_set_buf(*sg+i, buf[i], GCM_CHUNK_SIZE);
+
+	sg_set_buf(*sg+i, buf[i], size % GCM_CHUNK_SIZE);
+
+	return ret;
+
+free_sg:
+	i--;
+	while (i >= 0) {
+		kfree(buf[i]);
+		i--;
+	}
+
+	kfree(*sg);
+out:
+	return ret;
+}
+
+static void tnvvse_crypt_aes_gcm_free_buf(struct scatterlist **sg, uint8_t *buf[], uint32_t size)
+{
+	uint32_t nents, i;
+
+	nents = (size/GCM_CHUNK_SIZE + 1);
+	kfree(*sg);
+
+	for (i = 0 ; i < nents; i++)
+		kfree(buf[i]);
+}
+
 static int tnvvse_crypto_aes_enc_dec_gcm(struct tnvvse_crypto_ctx *ctx,
 				struct tegra_nvvse_aes_enc_dec_ctl *aes_enc_dec_ctl)
 {
 	struct crypto_aead *tfm;
 	struct aead_request *req = NULL;
-	struct scatterlist in_sg, out_sg;
-	uint8_t *in_buf, *out_buf;
-	int32_t ret = 0;
-	uint32_t in_sz, out_sz, aad_length, data_length, tag_length, klen;
+	struct scatterlist *in_sg, *out_sg;
+	uint8_t *in_buf[GCM_MAX_CHUNKS], *out_buf[GCM_MAX_CHUNKS];
+	int32_t ret = 0, nents;
+	uint32_t in_sz, out_sz, aad_length, data_length, tag_length;
+	uint32_t i, idx, offset, data_length_copied, data_length_remaining, tag_length_copied;
 	struct tnvvse_crypto_completion tcrypt_complete;
 	const char *driver_name;
 	char key_as_keyslot[AES_KEYSLOT_NAME_SIZE] = {0,};
@@ -757,6 +816,15 @@ static int tnvvse_crypto_aes_enc_dec_gcm(struct tnvvse_crypto_ctx *ctx,
 	if (aes_enc_dec_ctl->aes_mode != TEGRA_NVVSE_AES_MODE_GCM) {
 		pr_err("%s(): The requested AES ENC/DEC (%d) is not supported\n",
 					__func__, aes_enc_dec_ctl->aes_mode);
+		ret = -EINVAL;
+		goto out;
+	}
+
+	if (aes_enc_dec_ctl->data_length > GCM_PT_MAX_LEN
+				|| aes_enc_dec_ctl->aad_length > GCM_AAD_MAX_LEN) {
+		pr_err("%s(): Input size is (data = %d, aad = %d) is not supported\n",
+					__func__, aes_enc_dec_ctl->data_length,
+					aes_enc_dec_ctl->aad_length);
 		ret = -EINVAL;
 		goto out;
 	}
@@ -792,18 +860,17 @@ static int tnvvse_crypto_aes_enc_dec_gcm(struct tnvvse_crypto_ctx *ctx,
 		goto free_req;
 	}
 
+	if (aes_enc_dec_ctl->tag_length != TEGRA_NVVSE_AES_GCM_TAG_SIZE) {
+		ret = -EINVAL;
+		pr_err("%s(): crypt_req taglen(%d) invalid", __func__, aes_enc_dec_ctl->tag_length);
+		goto free_req;
+	}
+
 	crypto_aead_clear_flags(tfm, ~0);
 
 	if (!aes_enc_dec_ctl->skip_key) {
 		snprintf(key_as_keyslot, AES_KEYSLOT_NAME_SIZE, "NVSEAES %x",
 				aes_enc_dec_ctl->key_slot);
-		klen = strlen(key_as_keyslot);
-		if (klen != 16) { // TODO: is this check needed ?
-			pr_err("%s(): key length is invalid, length %d, key %s\n",
-					__func__, klen, key_as_keyslot);
-			ret = -EINVAL;
-			goto free_req;
-		}
 
 		ret = crypto_aead_setkey(tfm, key_as_keyslot, aes_enc_dec_ctl->key_length);
 		if (ret < 0) {
@@ -830,57 +897,138 @@ static int tnvvse_crypto_aes_enc_dec_gcm(struct tnvvse_crypto_ctx *ctx,
 					tnvvse_crypto_complete, &tcrypt_complete);
 	aead_request_set_ad(req, aad_length);
 
-	memcpy(iv, aes_enc_dec_ctl->initial_vector, TEGRA_NVVSE_AES_GCM_IV_LEN);
+	if (!enc)
+		memcpy(iv, aes_enc_dec_ctl->initial_vector, TEGRA_NVVSE_AES_GCM_IV_LEN);
 
 	/* Prepare buffers
 	 * - AEAD encryption input:  assoc data || plaintext
-	 * - AEAD encryption output: assoc data || cipherntext || auth tag
+	 * - AEAD encryption output: assoc data || ciphertext || auth tag
 	 * - AEAD decryption input:  assoc data || ciphertext || auth tag
 	 * - AEAD decryption output: assoc data || plaintext
 	 */
 	in_sz = enc ? aad_length + data_length :
 			aad_length + data_length + tag_length;
-	in_buf = kmalloc(in_sz, GFP_KERNEL);
-	if (in_buf == NULL) {
-		ret = -ENOMEM;
+	ret = tnvvse_crypt_aes_gcm_alloc_buf(&in_sg, in_buf, in_sz);
+	if (ret < 0)
 		goto free_req;
-	}
 
 	out_sz = enc ? aad_length + data_length + tag_length :
 			aad_length + data_length;
-	out_buf = kmalloc(out_sz, GFP_KERNEL);
-	if (out_buf == NULL) {
-		ret = -ENOMEM;
+	ret = tnvvse_crypt_aes_gcm_alloc_buf(&out_sg, out_buf, out_sz);
+	if (ret < 0)
 		goto free_in_buf;
+
+	/* copy AAD buffer */
+	nents = (in_sz / GCM_CHUNK_SIZE + 1);
+	idx = 0;
+	offset = 0;
+
+	/* copy AAD of size GCM_CHUNK_SIZE */
+	for (i = 0; i < (aad_length/GCM_CHUNK_SIZE); i++) {
+		ret = copy_from_user((void *)in_buf[idx],
+			(void __user *)(aes_enc_dec_ctl->aad_buffer + i*GCM_CHUNK_SIZE),
+			GCM_CHUNK_SIZE);
+		if (ret) {
+			pr_err("%s(): Failed to copy_from_user assoc data: %d\n", __func__, ret);
+			goto free_buf;
+		}
+		idx++;
 	}
 
-	sg_init_one(&in_sg, in_buf, in_sz);
-	sg_init_one(&out_sg, out_buf, out_sz);
-
-	ret = copy_from_user((void *)in_buf,
-		(void __user *)aes_enc_dec_ctl->aad_buffer, aad_length);
-	if (ret) {
-		pr_err("%s(): Failed to copy_from_user assoc data: %d\n", __func__, ret);
-		goto free_buf;
+	/* copy residual AAD */
+	if (aad_length % GCM_CHUNK_SIZE) {
+		ret = copy_from_user((void *)in_buf[idx],
+			(void __user *)(aes_enc_dec_ctl->aad_buffer + i*GCM_CHUNK_SIZE),
+			aad_length % GCM_CHUNK_SIZE);
+		if (ret) {
+			pr_err("%s(): Failed copy_from_user residual aad data:%d\n", __func__, ret);
+			goto free_buf;
+		}
+		offset = aad_length % GCM_CHUNK_SIZE;
 	}
 
-	ret = copy_from_user((void *)(in_buf + aad_length),
-			(void __user *)aes_enc_dec_ctl->src_buffer, data_length);
-	if (ret) {
-		pr_err("%s(): Failed to copy_from_user src data: %d\n", __func__, ret);
-		goto free_buf;
-	}
-
-	if (!enc) {
-		ret = copy_from_user((void *)(in_buf + aad_length + data_length),
-				(void __user *)aes_enc_dec_ctl->tag_buffer, tag_length);
+	data_length_copied = 0;
+	data_length_remaining = data_length;
+	/* copy data buffer */
+	/* if in_buf chunk filled with partial aad */
+	if (offset && data_length) {
+		data_length_copied = min(GCM_CHUNK_SIZE - offset, data_length);
+		ret = copy_from_user((void *)(in_buf[idx]+offset),
+			(void __user *)(aes_enc_dec_ctl->src_buffer),
+			data_length_copied);
 		if (ret) {
 			pr_err("%s(): Failed to copy_from_user src data: %d\n", __func__, ret);
 			goto free_buf;
 		}
+		/* Check if src data is completely copied */
+		if (data_length_copied == data_length) {
+			offset = offset + data_length_copied;
+		} else {
+			offset = 0;
+			idx++;
+		}
+		data_length_remaining = data_length - data_length_copied;
 	}
 
-	aead_request_set_crypt(req, &in_sg, &out_sg,
+	/* copy data of size GCM_CHUNK_SIZE */
+	for (i = 0; data_length_remaining &&
+			(i < (data_length_remaining/GCM_CHUNK_SIZE)); i++) {
+		ret = copy_from_user((void *)in_buf[idx],
+			(void __user *)(aes_enc_dec_ctl->src_buffer
+			 + data_length_copied + i*GCM_CHUNK_SIZE),
+			GCM_CHUNK_SIZE);
+		if (ret) {
+			pr_err("%s(): Failed to copy_from_user src data: %d\n", __func__, ret);
+			goto free_buf;
+		}
+		idx++;
+	}
+
+	/* copy residual of data */
+	if (data_length_remaining % GCM_CHUNK_SIZE) {
+		ret = copy_from_user((void *)in_buf[idx],
+			(void __user *)(aes_enc_dec_ctl->src_buffer
+			 + data_length_copied + i*GCM_CHUNK_SIZE),
+			data_length_remaining % GCM_CHUNK_SIZE);
+		if (ret) {
+			pr_err("%s(): Failed copy_from_user residual src data:%d\n", __func__, ret);
+			goto free_buf;
+		}
+		offset = (data_length_remaining % GCM_CHUNK_SIZE);
+	}
+
+	/* copy TAG buffer in case of decryption */
+	if (!enc) {
+		/* Check if tag fits in last buffer */
+		if (GCM_CHUNK_SIZE - offset > TEGRA_NVVSE_AES_GCM_TAG_SIZE) {
+			ret = copy_from_user((void *)(in_buf[idx] + offset),
+					(void __user *)aes_enc_dec_ctl->tag_buffer, tag_length);
+			if (ret) {
+				pr_err("%s(): Failed copy_from_user tag data: %d\n", __func__, ret);
+				goto free_buf;
+			}
+		} else {
+			ret = copy_from_user((void *)(in_buf[idx] + offset),
+					(void __user *)aes_enc_dec_ctl->tag_buffer,
+					GCM_CHUNK_SIZE - offset);
+			if (ret) {
+				pr_err("%s(): Failed copy_from_user tag data: %d\n", __func__, ret);
+				goto free_buf;
+			}
+			tag_length_copied = GCM_CHUNK_SIZE - offset;
+
+			ret = copy_from_user((void *)(in_buf[idx+1]),
+					(void __user *)(aes_enc_dec_ctl->tag_buffer
+					+ tag_length_copied),
+					TEGRA_NVVSE_AES_GCM_TAG_SIZE - tag_length_copied);
+			if (ret) {
+				pr_err("%s(): Failed copy_from_user tag data: %d\n", __func__, ret);
+				goto free_buf;
+			}
+		}
+	}
+
+	aead_request_set_crypt(req, in_sg, out_sg,
 				enc ? data_length : data_length + tag_length,
 				iv);
 
@@ -902,30 +1050,99 @@ static int tnvvse_crypto_aes_enc_dec_gcm(struct tnvvse_crypto_ctx *ctx,
 		goto free_buf;
 	}
 
-	ret = copy_to_user((void __user *)aes_enc_dec_ctl->dest_buffer,
-					(const void *)(out_buf + aad_length), data_length);
-	if (ret) {
-		ret = -EFAULT;
-		pr_err("%s(): Failed to copy_to_user dst data: %d\n", __func__, ret);
-		goto free_buf;
+	/* copy to output data buffer */
+	/* skip aad part from out_buf */
+	idx = aad_length / GCM_CHUNK_SIZE;
+	offset = aad_length % GCM_CHUNK_SIZE;
+
+	/* if out_buf chunk filled with partial aad */
+	data_length_copied = 0;
+	data_length_remaining = data_length;
+	if (offset && data_length) {
+		data_length_copied = min(GCM_CHUNK_SIZE - offset, data_length);
+		ret = copy_to_user((void __user *)aes_enc_dec_ctl->dest_buffer,
+					(const void *)(out_buf[idx] + offset),
+					data_length_copied);
+		if (ret) {
+			ret = -EFAULT;
+			pr_err("%s(): Failed to copy_to_user dst data: %d\n", __func__, ret);
+			goto free_buf;
+		}
+
+		if (data_length_copied == data_length) {
+			offset = offset + data_length_copied;
+		} else {
+			offset = 0;
+			idx++;
+		}
+		data_length_remaining = data_length - data_length_copied;
+	}
+
+	/* copy data of size GCM_CHUNK_SIZE */
+	for (i = 0; data_length_remaining &&
+			(i < (data_length_remaining/GCM_CHUNK_SIZE)); i++) {
+		ret = copy_to_user((void __user *)aes_enc_dec_ctl->dest_buffer
+					+ data_length_copied + i*GCM_CHUNK_SIZE,
+					(const void *)(out_buf[idx]),
+					GCM_CHUNK_SIZE);
+		if (ret) {
+			pr_err("%s(): Failed to copy_to_user dst data: %d\n", __func__, ret);
+			goto free_buf;
+		}
+		idx++;
+	}
+
+	/* copy residual of data */
+	if (data_length_remaining % GCM_CHUNK_SIZE) {
+		ret = copy_to_user((void __user *)aes_enc_dec_ctl->dest_buffer
+					+ data_length_copied + i*GCM_CHUNK_SIZE,
+					(const void *)(out_buf[idx]),
+					data_length_remaining % GCM_CHUNK_SIZE);
+		if (ret) {
+			pr_err("%s(): Failed copy_from_user residual dst data:%d\n", __func__, ret);
+			goto free_buf;
+		}
+		offset = (data_length_remaining % GCM_CHUNK_SIZE);
 	}
 
 	if (enc) {
-		ret = copy_to_user((void __user *)aes_enc_dec_ctl->tag_buffer,
-			(const void *)(out_buf + aad_length + data_length), tag_length);
-		if (ret) {
-			ret = -EFAULT;
-			pr_err("%s(): Failed to copy_to_user tag: %d\n", __func__, ret);
-			goto free_buf;
+		/* Check if tag fits in last buffer */
+		if (GCM_CHUNK_SIZE - offset > TEGRA_NVVSE_AES_GCM_TAG_SIZE) {
+			ret = copy_to_user(
+					(void __user *)aes_enc_dec_ctl->tag_buffer,
+					(const void *)(out_buf[idx] + offset), tag_length);
+			if (ret) {
+				pr_err("%s(): Failed copy_to_user tag data: %d\n", __func__, ret);
+				goto free_buf;
+			}
+		} else {
+			ret = copy_to_user(
+					(void __user *)aes_enc_dec_ctl->tag_buffer,
+					(const void *)(out_buf[idx] + offset),
+					GCM_CHUNK_SIZE - offset);
+			if (ret) {
+				pr_err("%s(): Failed copy_to_user tag data: %d\n", __func__, ret);
+				goto free_buf;
+			}
+			tag_length_copied = GCM_CHUNK_SIZE - offset;
+
+			ret = copy_to_user((void __user *)aes_enc_dec_ctl->tag_buffer
+					+ tag_length_copied,
+					(const void *)(out_buf[idx+1]),
+					TEGRA_NVVSE_AES_GCM_TAG_SIZE - tag_length_copied);
+			if (ret) {
+				pr_err("%s(): Failed copy_to_user tag data: %d\n", __func__, ret);
+				goto free_buf;
+			}
 		}
 
 		memcpy(aes_enc_dec_ctl->initial_vector, req->iv, TEGRA_NVVSE_AES_GCM_IV_LEN);
 	}
 
 free_buf:
-	kfree(out_buf);
+	tnvvse_crypt_aes_gcm_free_buf(&out_sg, out_buf, out_sz);
 free_in_buf:
-	kfree(in_buf);
+	tnvvse_crypt_aes_gcm_free_buf(&in_sg, in_buf, in_sz);
 free_req:
 	aead_request_free(req);
 free_tfm:
