@@ -90,6 +90,8 @@ struct gk20a;
 		"Use physical scatter tables instead of IOMMU"),	\
 	DEFINE_FLAG(NVGPU_MM_BYPASSES_IOMMU,				\
 		"Some chips (using nvlink) bypass the IOMMU on tegra"),	\
+	DEFINE_FLAG(NVGPU_DISABLE_L3_SUPPORT,				\
+		"Disable L3 alloc Bit of the physical address"),	\
 	/* Host Flags */						\
 	DEFINE_FLAG(NVGPU_HAS_SYNCPOINTS, "GPU has syncpoints"),	\
 	DEFINE_FLAG(NVGPU_SUPPORT_SYNC_FENCE_FDS,			\
