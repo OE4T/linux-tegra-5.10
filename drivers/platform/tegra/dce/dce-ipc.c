@@ -155,13 +155,15 @@ int dce_ipc_allocate_region(struct tegra_dce *d)
 	dev = dev_from_dce(d);
 	region = &d->d_ipc.region;
 
-	tot_q_sz = ((DCE_ADMIN_CMD_MAX_NFRAMES
-			* tegra_ivc_align(DCE_ADMIN_CMD_MAX_FSIZE)
-			* 2) + (DCE_DISPRM_CMD_MAX_NFRAMES
-			* tegra_ivc_align(DCE_DISPRM_CMD_MAX_FSIZE)
-			* 2) + (DCE_ADMIN_CMD_MAX_NFRAMES
-			* tegra_ivc_align(DCE_ADMIN_CMD_CHAN_FSIZE)
-			* 2));
+	tot_q_sz = ((DCE_ADMIN_CMD_MAX_NFRAMES *
+		     tegra_ivc_align(DCE_ADMIN_CMD_MAX_FSIZE) * 2) +
+		    (DCE_DISPRM_CMD_MAX_NFRAMES	*
+		     tegra_ivc_align(DCE_DISPRM_CMD_MAX_FSIZE) * 2) +
+		    (DCE_ADMIN_CMD_MAX_NFRAMES *
+		     tegra_ivc_align(DCE_ADMIN_CMD_CHAN_FSIZE) * 2) +
+		    (DCE_DISPRM_EVENT_NOTIFY_CMD_MAX_NFRAMES *
+		     tegra_ivc_align(DCE_DISPRM_EVENT_NOTIFY_CMD_MAX_FSIZE) * 2)
+		   );
 
 	tot_ivc_q_sz = tegra_ivc_total_queue_size(tot_q_sz);
 	region->size = dce_get_nxt_pow_of_2(&tot_ivc_q_sz, 32);
