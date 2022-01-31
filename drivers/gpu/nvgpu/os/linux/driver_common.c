@@ -20,6 +20,7 @@
 #include <linux/mm.h>
 #include <linux/slab.h>
 #include <linux/pm_runtime.h>
+#include <linux/of_platform.h>
 #include <uapi/linux/nvgpu.h>
 
 #include <nvgpu/defaults.h>
@@ -319,6 +320,8 @@ int nvgpu_probe(struct gk20a *g,
 	struct gk20a_platform *platform = dev_get_drvdata(dev);
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	int err = 0;
+	struct device_node *np = dev->of_node;
+	bool disable_l3_alloc = false;
 
 	err = nvgpu_cic_rm_setup(g);
 	if (err != 0) {
@@ -354,6 +357,12 @@ int nvgpu_probe(struct gk20a *g,
 		else
 			nvgpu_err(g, "platform probe failed");
 		return err;
+	}
+
+	disable_l3_alloc = of_property_read_bool(np, "disable_l3_alloc");
+	if (disable_l3_alloc) {
+		nvgpu_log_info(g, "L3 alloc is disabled");
+		nvgpu_set_enabled(g, NVGPU_DISABLE_L3_SUPPORT, true);
 	}
 
 	nvgpu_init_mm_vars(g);
