@@ -132,6 +132,16 @@ void nvgpu_timeout_init_cpu_timer(struct gk20a *g, struct nvgpu_timeout *timeout
 	nvgpu_assert(err == 0);
 }
 
+void nvgpu_timeout_init_cpu_timer_sw(struct gk20a *g, struct nvgpu_timeout *timeout,
+		       u32 duration_ms)
+{
+	int err = nvgpu_timeout_init_flags(g, timeout, duration_ms,
+					   NVGPU_TIMER_CPU_TIMER |
+					   NVGPU_TIMER_NO_PRE_SI);
+
+	nvgpu_assert(err == 0);
+}
+
 void nvgpu_timeout_init_retry(struct gk20a *g, struct nvgpu_timeout *timeout,
 		       u32 duration_count)
 {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -41,6 +41,16 @@ void nvgpu_timeout_init_cpu_timer(struct gk20a *g, struct nvgpu_timeout *timeout
 {
 	int err = nvgpu_timeout_init_flags(g, timeout, duration_ms,
 					   NVGPU_TIMER_CPU_TIMER);
+
+	nvgpu_assert(err == 0);
+}
+
+void nvgpu_timeout_init_cpu_timer_sw(struct gk20a *g, struct nvgpu_timeout *timeout,
+		       u32 duration_ms)
+{
+	int err = nvgpu_timeout_init_flags(g, timeout, duration_ms,
+					   NVGPU_TIMER_CPU_TIMER |
+					   NVGPU_TIMER_NO_PRE_SI);
 
 	nvgpu_assert(err == 0);
 }

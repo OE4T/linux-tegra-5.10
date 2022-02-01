@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -67,7 +67,7 @@ static void nvgpu_nvs_worker_poll_init(struct nvgpu_worker *worker)
 
 	/* 100 ms is a nice arbitrary timeout for default status */
 	nvs_worker->current_timeout = 100;
-	nvgpu_timeout_init_cpu_timer(worker->g, &nvs_worker->timeout,
+	nvgpu_timeout_init_cpu_timer_sw(worker->g, &nvs_worker->timeout,
 			nvs_worker->current_timeout);
 }
 
@@ -135,7 +135,7 @@ static void nvgpu_nvs_worker_wakeup_post_process(struct nvgpu_worker *worker)
 				(next_timeout_ns + NSEC_PER_MSEC - 1) / NSEC_PER_MSEC;
 		}
 
-		nvgpu_timeout_init_cpu_timer(g, &nvs_worker->timeout,
+		nvgpu_timeout_init_cpu_timer_sw(g, &nvs_worker->timeout,
 				nvs_worker->current_timeout);
 	}
 }

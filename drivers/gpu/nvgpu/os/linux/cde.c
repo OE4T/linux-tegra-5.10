@@ -1,7 +1,7 @@
 /*
  * Color decompression engine support
  *
- * Copyright (c) 2014-2021, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2014-2022, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -936,7 +936,7 @@ __acquires(&cde_app->mutex)
 	struct gk20a_cde_ctx *cde_ctx = NULL;
 	struct nvgpu_timeout timeout;
 
-	nvgpu_timeout_init_cpu_timer(g, &timeout, MAX_CTX_RETRY_TIME);
+	nvgpu_timeout_init_cpu_timer_sw(g, &timeout, MAX_CTX_RETRY_TIME);
 
 	do {
 		cde_ctx = gk20a_cde_do_get_context(l);
