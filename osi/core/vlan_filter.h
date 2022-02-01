@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -53,9 +53,9 @@
  */
 #define VLAN_HW_MAX_NRVF	32U
 #define VLAN_HW_FILTER_FULL_IDX	VLAN_HW_MAX_NRVF
-#define VLAN_VID_MASK		0xFFFF
-#define VLAN_ID_INVALID		0xFFFF
-#define VLAN_HASH_ALLOW_ALL	0xFFFF
+#define VLAN_VID_MASK		0xFFFFU
+#define VLAN_ID_INVALID		0xFFFFU
+#define VLAN_HASH_ALLOW_ALL	0xFFFFU
 #define VLAN_ACTION_MASK	OSI_BIT(31)
 /** @} */
 

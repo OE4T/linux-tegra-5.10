@@ -44,6 +44,21 @@
 #define MAX_TX_TS_CNT		(PKT_ID_CNT * OSI_MGBE_MAX_NUM_CHANS)
 
 /**
+ * @brief Dynamic configuration helper macros.
+ */
+#define DYNAMIC_CFG_L3_L4		OSI_BIT(0)
+#define DYNAMIC_CFG_FC		OSI_BIT(1)
+#define DYNAMIC_CFG_AVB		OSI_BIT(2)
+#define DYNAMIC_CFG_L2		OSI_BIT(3)
+#define DYNAMIC_CFG_RXCSUM	OSI_BIT(4)
+#define DYNAMIC_CFG_VLAN	OSI_BIT(5)
+#define DYNAMIC_CFG_EEE		OSI_BIT(6)
+#define DYNAMIC_CFG_PTP		OSI_BIT(7)
+#define DYNAMIC_CFG_EST		OSI_BIT(8)
+#define DYNAMIC_CFG_FPE		OSI_BIT(9)
+#define OSI_SUSPENDED		OSI_BIT(0)
+
+/**
  * interface core ops
  */
 struct if_core_ops {
@@ -331,6 +346,82 @@ struct core_ptp_servo {
 };
 
 /**
+ * @brief L3/L4 dynamic config storage structure.
+ */
+struct l3_l4_filters {
+	/** Represent whether index used or not */
+	nveu32_t used;
+	/** Type of filter */
+	nveu32_t type;
+	/** Represents whether DMA routing enabled or not */
+	nveu32_t dma_routing_enable;
+	/** DMA channel number of routing enabled */
+	nveu32_t dma_chan;
+	/** Tells whether its L4 or L3 filter */
+	nveu32_t is_l4_filter;
+	/** Filter information */
+	struct osi_l3_l4_filter l3l4_filter;
+};
+
+/**
+ * @brief AVB dynamic config storage structure
+ */
+struct core_avb {
+	/** Represend whether AVB config done or not */
+	nveu32_t used;
+	/** AVB data structure */
+	struct osi_core_avb_algorithm avb_info;
+};
+
+/**
+ * @brief VLAN dynamic config storage structure
+ */
+struct core_vlan {
+	/** VID to be stored */
+	nveu32_t vid;
+	/** Represens whether VLAN config done or not */
+	nveu32_t used;
+};
+
+/**
+ * @brief L2 filter dynamic config storage structure
+ */
+struct core_l2 {
+	nveu32_t used;
+	struct osi_filter filter;
+};
+
+/**
+ * @brief Dynamic config storage structure
+ */
+struct dynamic_cfg {
+	nveu32_t flags;
+	/** L3_L4 filters */
+	struct l3_l4_filters l3_l4[OSI_MGBE_MAX_L3_L4_FILTER];
+	/** flow control */
+	nveu32_t flow_ctrl;
+	/** AVB */
+	struct core_avb avb[OSI_MGBE_MAX_NUM_QUEUES];
+	/** RXCSUM */
+	nveu32_t rxcsum;
+	/** VLAN arguments storage */
+	struct core_vlan vlan[VLAN_NUM_VID];
+	/** LPI parameters storage */
+	nveu32_t tx_lpi_enabled;
+	nveu32_t tx_lpi_timer;
+	/** PTP information storage */
+	nveu32_t ptp;
+	/** EST information storage */
+	struct osi_est_config est;
+	/** FPE information storage */
+	struct osi_fpe_config fpe;
+	/** L2 filter storage */
+	struct osi_filter l2_filter;
+	/** L2 filter configuration */
+	struct core_l2 l2[EQOS_MAX_MAC_ADDRESS_FILTER];
+};
+
+/**
  * @brief Core local data structure.
  */
 struct core_local {
@@ -370,7 +461,38 @@ struct core_local {
 	nveu32_t pps_freq;
 	/** Time interval mask for GCL entry */
 	nveu32_t ti_mask;
+	/** HW Tx fifo size */
+	nveu32_t tx_fifo_size;
+	/** HW RX fifo size */
+	nveu32_t rx_fifo_size;
+	/** Hardware dynamic configuration context */
+	struct dynamic_cfg cfg;
+	/** Hardware dynamic configuration state */
+	nveu32_t state;
 };
+
+/**
+ * @brief update_counter_u - Increment unsigned int counter
+ *
+ * @param[out] value: Pointer to value to be incremented.
+ * @param[in] incr: increment value
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ */
+static inline void update_counter_u(nveu32_t *value, nveu32_t incr)
+{
+	nveu32_t temp = *value + incr;
+
+	if (temp < *value) {
+		/* Overflow, so reset it to zero */
+		*value = 0U;
+	}
+	*value = temp;
+}
 
 /**
  * @brief eqos_init_core_ops - Initialize EQOS core operations.

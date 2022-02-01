@@ -252,6 +252,8 @@ typedef my_lint_64		nvel64_t;
 #ifdef OSI_DEBUG
 #define OSI_CMD_DEBUG_INTR_CONFIG	52U
 #endif
+#define OSI_CMD_SUSPEND			53U
+#define OSI_CMD_RESUME			54U
 /** @} */
 
 /**
@@ -2270,7 +2272,7 @@ void *eqos_get_core_safety_config(void);
  * @retval -1 on failure.
  */
 nve32_t osi_l3l4_filter(struct osi_core_priv_data *const osi_core,
-			const struct osi_l3_l4_filter l_filter,
+			struct osi_l3_l4_filter *const l_filter,
 			const nveu32_t type,
 			const nveu32_t dma_routing_enable,
 			const nveu32_t dma_chan,
