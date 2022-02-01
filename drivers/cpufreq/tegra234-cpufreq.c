@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -178,6 +178,7 @@ static unsigned int tegra234_get_speed_common(u32 cpu, u32 delay)
 	 * observation window. Using workqueue to call udelay() with
 	 * interrupts enabled.
 	 */
+	memset(&read_counters_work, 0, sizeof(struct read_counters_work));
 	read_counters_work.c.cpu = cpu;
 	read_counters_work.c.delay = delay;
 	INIT_WORK_ONSTACK(&read_counters_work.work, tegra_read_counters);
