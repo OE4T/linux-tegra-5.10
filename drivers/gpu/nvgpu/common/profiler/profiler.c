@@ -178,16 +178,9 @@ int nvgpu_profiler_pm_resource_reserve(struct nvgpu_profiler_object *prof,
 	}
 
 	if (prof->bound) {
-		nvgpu_log(g, gpu_dbg_prof,
-			"PM resources alredy bound with profiler handle %u,"
-			" unbinding for new reservation",
-			prof->prof_handle);
-		err = nvgpu_profiler_unbind_pm_resources(prof);
-		if (err != 0) {
-			nvgpu_err(g, "Profiler handle %u failed to unbound, err %d",
-				prof->prof_handle, err);
-			return err;
-		}
+		nvgpu_err(g, "PM resources already bound with profiler handle"
+			" %u, rejecting reserve request", prof->prof_handle);
+		return -EEXIST;
 	}
 
 	err = g->ops.pm_reservation.acquire(g, reservation_id, pm_resource,
