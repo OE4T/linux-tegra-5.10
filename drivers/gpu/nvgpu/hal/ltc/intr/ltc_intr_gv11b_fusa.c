@@ -126,12 +126,9 @@ void gv11b_ltc_intr_handle_tstg_ecc_interrupts(struct gk20a *g,
 				g->ecc.ltc.tstg_ecc_parity_count[ltc][slice].counter,
 					uncorrected_delta);
 
-		nvgpu_report_ecc_err(g,
-		NVGPU_ERR_MODULE_LTC,
-		(ltc << 8U) | slice,
-		GPU_LTC_CACHE_TSTG_ECC_UNCORRECTED, ecc_addr,
-		g->ecc.ltc.tstg_ecc_parity_count[ltc][slice].counter);
-		nvgpu_log(g, gpu_dbg_intr, "tstg ecc error uncorrected");
+		nvgpu_report_err_to_sdl(g, GPU_LTC_CACHE_TSTG_ECC_UNCORRECTED);
+		nvgpu_err(g, "tstg ecc error uncorrected. "
+				"ecc_addr(0x%x)", ecc_addr);
 	}
 }
 
@@ -148,12 +145,9 @@ void gv11b_ltc_intr_handle_dstg_ecc_interrupts(struct gk20a *g,
 				g->ecc.ltc.dstg_be_ecc_parity_count[ltc][slice].counter,
 					uncorrected_delta);
 
-		nvgpu_report_ecc_err(g,
-			NVGPU_ERR_MODULE_LTC,
-			(ltc << 8U) | slice,
-			GPU_LTC_CACHE_DSTG_BE_ECC_UNCORRECTED, ecc_addr,
-			g->ecc.ltc.dstg_be_ecc_parity_count[ltc][slice].counter);
-		nvgpu_log(g, gpu_dbg_intr, "dstg be ecc error uncorrected");
+		nvgpu_report_err_to_sdl(g, GPU_LTC_CACHE_DSTG_BE_ECC_UNCORRECTED);
+		nvgpu_err(g, "dstg be ecc error uncorrected. "
+				"ecc_addr(0x%x)", ecc_addr);
 	}
 }
 
@@ -287,11 +281,9 @@ static void gv11b_ltc_intr_handle_ecc_sec_ded_interrupts(struct gk20a *g, u32 lt
 				ltc_ltc0_lts0_dstg_ecc_report_r(), offset),
 			ecc_stats_reg_val);
 
-		nvgpu_report_ecc_err(g,
-			NVGPU_ERR_MODULE_LTC,
-			(ltc << 8U) | slice,
-			GPU_LTC_CACHE_DSTG_ECC_CORRECTED, dstg_ecc_addr,
-			g->ecc.ltc.ecc_sec_count[ltc][slice].counter);
+		nvgpu_report_err_to_sdl(g, GPU_LTC_CACHE_DSTG_ECC_CORRECTED);
+		nvgpu_err(g, "dstg ecc error corrected. "
+				"ecc_addr(0x%x)", dstg_ecc_addr);
 
 		/*
 		 * Using a SEC code will allow correction of an SBE (Single Bit
@@ -335,11 +327,9 @@ static void gv11b_ltc_intr_handle_ecc_sec_ded_interrupts(struct gk20a *g, u32 lt
 				ltc_ltc0_lts0_dstg_ecc_report_r(), offset),
 			ecc_stats_reg_val);
 
-		nvgpu_report_ecc_err(g,
-			NVGPU_ERR_MODULE_LTC,
-			(ltc << 8U) | slice,
-			GPU_LTC_CACHE_DSTG_ECC_UNCORRECTED, dstg_ecc_addr,
-			g->ecc.ltc.ecc_ded_count[ltc][slice].counter);
+		nvgpu_report_err_to_sdl(g, GPU_LTC_CACHE_DSTG_ECC_UNCORRECTED);
+		nvgpu_err(g, "dstg ecc error uncorrected. "
+				"ecc_addr(0x%x)", dstg_ecc_addr);
 	}
 
 	nvgpu_writel(g, nvgpu_safe_add_u32(ltc_ltc0_lts0_intr_r(), offset),

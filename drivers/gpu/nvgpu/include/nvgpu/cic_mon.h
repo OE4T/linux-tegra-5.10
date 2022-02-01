@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -375,25 +375,14 @@ int nvgpu_cic_mon_get_err_desc(struct gk20a *g, u32 hw_unit_id,
  *        used by sub-units in nvgpu-rm and SDL unit.
  *
  * @param g [in]		- The GPU driver struct.
- * @param err_info [in]		- Error message.
- * @param err_size [in]		- Size of the error message.
- * @param is_critical [in]	- Criticality of the error being reported.
+ * @param err_id [in]		- Error ID.
  *
- * On QNX:
- *  - Checks whether SDL is initialized.
- *  - Enqueues \a err_info into error message queue.
- *  - Signals the workqueue condition variable.
- *  - If the reported error is critical, invokes #nvgpu_sw_quiesce() api.
- *
- * on Linux:
- *  - NOP currently as safety services are absent in Linux
+ *  - Reports the errors to Safety_Services.
  *
  * @return 0 in case of success, <0 in case of failure.
- * @retval -EAGAIN if SDL not initialized.
- * @retval -ENOMEM if sufficient memory is not available.
  */
 int nvgpu_cic_mon_report_err_safety_services(struct gk20a *g,
-		void *err_info, size_t err_size, bool is_critical);
+		u32 err_id);
 
 /**
  * @brief Get the number of HW modules supported by CIC.

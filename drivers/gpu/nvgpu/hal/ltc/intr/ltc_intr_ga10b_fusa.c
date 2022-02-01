@@ -411,11 +411,7 @@ static void ga10b_ltc_intr_handle_rstg_ecc_interrupts(struct gk20a *g,
 				nvgpu_wrapping_add_u32(
 				g->ecc.ltc.rstg_ecc_parity_count[ltc][slice].counter,
 					uncorrected_delta);
-		nvgpu_report_ecc_err(g,
-			NVGPU_ERR_MODULE_LTC,
-			(ltc << 8U) | slice,
-			GPU_LTC_CACHE_RSTG_ECC_UNCORRECTED, ecc_addr,
-			g->ecc.ltc.rstg_ecc_parity_count[ltc][slice].counter);
+		nvgpu_report_err_to_sdl(g, GPU_LTC_CACHE_RSTG_ECC_UNCORRECTED);
 	}
 
 	if ((ecc_status & ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_rstg_m()) != 0U) {
@@ -446,11 +442,7 @@ static void ga10b_ltc_intr_handle_tstg_ecc_interrupts(struct gk20a *g,
 				nvgpu_wrapping_add_u32(
 				g->ecc.ltc.tstg_ecc_parity_count[ltc][slice].counter,
 					uncorrected_delta);
-		nvgpu_report_ecc_err(g,
-			NVGPU_ERR_MODULE_LTC,
-			(ltc << 8U) | slice,
-			GPU_LTC_CACHE_TSTG_ECC_UNCORRECTED, ecc_addr,
-			g->ecc.ltc.tstg_ecc_parity_count[ltc][slice].counter);
+		nvgpu_report_err_to_sdl(g, GPU_LTC_CACHE_TSTG_ECC_UNCORRECTED);
 	}
 
 	if ((ecc_status & ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_tstg_m()) != 0U) {
@@ -516,11 +508,7 @@ static void ga10b_ltc_intr_handle_dstg_ecc_interrupts(struct gk20a *g,
 				g->ecc.ltc.ecc_sec_count[ltc][slice].counter,
 				corrected_delta);
 
-		nvgpu_report_ecc_err(g,
-			NVGPU_ERR_MODULE_LTC,
-			(ltc << 8U) | slice,
-			GPU_LTC_CACHE_DSTG_ECC_CORRECTED, ecc_addr,
-			g->ecc.ltc.ecc_sec_count[ltc][slice].counter);
+		nvgpu_report_err_to_sdl(g, GPU_LTC_CACHE_DSTG_ECC_CORRECTED);
 
 		/*
 		 * Using a SEC code will allow correction of an SBE (Single Bit
@@ -551,11 +539,7 @@ static void ga10b_ltc_intr_handle_dstg_ecc_interrupts(struct gk20a *g,
 					g->ecc.ltc.ecc_ded_count[ltc][slice].counter,
 					uncorrected_delta);
 
-			nvgpu_report_ecc_err(g,
-				NVGPU_ERR_MODULE_LTC,
-				(ltc << 8U) | slice,
-				GPU_LTC_CACHE_DSTG_ECC_UNCORRECTED, ecc_addr,
-				g->ecc.ltc.ecc_ded_count[ltc][slice].counter);
+			nvgpu_report_err_to_sdl(g, GPU_LTC_CACHE_DSTG_ECC_UNCORRECTED);
 		} else if (ga10b_ltc_intr_is_dstg_be_ram(ecc_addr)) {
 			nvgpu_log(g, gpu_dbg_intr, "dstg be ecc error uncorrected");
 
@@ -564,11 +548,7 @@ static void ga10b_ltc_intr_handle_dstg_ecc_interrupts(struct gk20a *g,
 					g->ecc.ltc.dstg_be_ecc_parity_count[ltc][slice].counter,
 					uncorrected_delta);
 
-			nvgpu_report_ecc_err(g,
-				NVGPU_ERR_MODULE_LTC,
-				(ltc << 8U) | slice,
-				GPU_LTC_CACHE_DSTG_BE_ECC_UNCORRECTED, ecc_addr,
-				g->ecc.ltc.dstg_be_ecc_parity_count[ltc][slice].counter);
+			nvgpu_report_err_to_sdl(g, GPU_LTC_CACHE_DSTG_BE_ECC_UNCORRECTED);
 		} else {
 			nvgpu_err(g, "unsupported uncorrected dstg ecc error");
 			BUG();

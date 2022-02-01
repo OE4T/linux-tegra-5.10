@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -89,7 +89,6 @@ void gk20a_bus_isr(struct gk20a *g)
 		 */
 		err_type = GPU_HOST_PBUS_TIMEOUT_ERROR;
 	}
-	nvgpu_report_host_err(g, NVGPU_ERR_MODULE_HOST,
-			0, err_type, val);
+	nvgpu_report_err_to_sdl(g, err_type);
 	nvgpu_writel(g, bus_intr_0_r(), val);
 }

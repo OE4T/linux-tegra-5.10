@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -125,15 +125,11 @@ struct gops_ltc_intr {
 	 *               -# Increment g->ecc.ltc.rstg_ecc_parity_count[\a ltc][\a slice].counter
 	 *                  with uncorrected counter delta with
 	 *                  \ref nvgpu_wrapping_add_u32 "nvgpu_wrapping_add_u32".
-	 *               -# Report to |qnx.sdl| unit by calling \ref nvgpu_report_ecc_err
-	 *                  "nvgpu_report_ecc_err" with following parameters:
+	 *               -# Report to |qnx.sdl| unit by calling \ref nvgpu_report_err_to_sdl
+	 *                  "nvgpu_report_err_to_sdl" with following parameters:
 	 *                  -# \a g
-	 *                  -# \ref NVGPU_ERR_MODULE_LTC "NVGPU_ERR_MODULE_LTC"
-	 *                  -# (\a ltc << 8U) | \a slice
 	 *                  -# \ref GPU_LTC_CACHE_RSTG_ECC_UNCORRECTED
 	 *                     "GPU_LTC_CACHE_RSTG_ECC_UNCORRECTED"
-	 *                  -# ecc address read above
-	 *                  -# g->ecc.ltc.rstg_ecc_parity_count[\a ltc][\a slice].counter
 	 *            -# If ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_rstg_m() is
 	 *               set in ecc status, then it is considered as fatal error as it is not
 	 *               expected and call \ref BUG "BUG()".
@@ -143,15 +139,11 @@ struct gops_ltc_intr {
 	 *               -# Increment g->ecc.ltc.tstg_ecc_parity_count[\a ltc][\a slice].counter
 	 *                  with uncorrected counter delta with
 	 *                  \ref nvgpu_wrapping_add_u32 "nvgpu_wrapping_add_u32".
-	 *               -# Report to |qnx.sdl| unit by calling \ref nvgpu_report_ecc_err
-	 *                  "nvgpu_report_ecc_err" with following parameters:
+	 *               -# Report to |qnx.sdl| unit by calling \ref nvgpu_report_err_to_sdl
+	 *                  "nvgpu_report_err_to_sdl" with following parameters:
 	 *                  -# \a g
-	 *                  -# \ref NVGPU_ERR_MODULE_LTC "NVGPU_ERR_MODULE_LTC"
-	 *                  -# (\a ltc << 8U) | \a slice
 	 *                  -# \ref GPU_LTC_CACHE_TSTG_ECC_UNCORRECTED
 	 *                     "GPU_LTC_CACHE_TSTG_ECC_UNCORRECTED"
-	 *                  -# ecc address read above
-	 *                  -# g->ecc.ltc.tstg_ecc_parity_count[\a ltc][\a slice].counter
 	 *            -# If ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_tstg_m() is
 	 *               set in ecc status, then it is considered as fatal error as it is not
 	 *               expected and call \ref BUG "BUG()".
@@ -162,15 +154,11 @@ struct gops_ltc_intr {
 	 *               -# Increment g->ecc.ltc.ecc_sec_count[\a ltc][\a slice].counter
 	 *                  with corrected counter delta with
 	 *                  \ref nvgpu_wrapping_add_u32 "nvgpu_wrapping_add_u32".
-	 *               -# Report to |qnx.sdl| unit by calling \ref nvgpu_report_ecc_err
-	 *                  "nvgpu_report_ecc_err" with following parameters:
+	 *               -# Report to |qnx.sdl| unit by calling \ref nvgpu_report_err_to_sdl
+	 *                  "nvgpu_report_err_to_sdl" with following parameters:
 	 *                  -# \a g
-	 *                  -# \ref NVGPU_ERR_MODULE_LTC "NVGPU_ERR_MODULE_LTC"
-	 *                  -# (\a ltc << 8U) | \a slice
 	 *                  -# \ref GPU_LTC_CACHE_DSTG_ECC_CORRECTED
 	 *                     "GPU_LTC_CACHE_DSTG_ECC_CORRECTED"
-	 *                  -# ecc address read above.
-	 *                  -# g->ecc.ltc.ecc_sec_count[\a ltc][\a slice].counter
 	 *               -# Flush the L2 cache by calling
 	 *                  \ref gops_mm_cache.l2_flush "gops_mm_cache.l2_flush".
 	 *               -# If it fails then call \ref BUG "BUG()".
@@ -182,28 +170,20 @@ struct gops_ltc_intr {
 	 *                  -# Increment g->ecc.ltc.ecc_ded_count[\a ltc][\a slice].counter
 	 *                     with uncorrected counter delta with
 	 *                     \ref nvgpu_wrapping_add_u32 "nvgpu_wrapping_add_u32".
-	 *                  -# Report to |qnx.sdl| unit by calling \ref nvgpu_report_ecc_err
-	 *                     "nvgpu_report_ecc_err" with following parameters:
+	 *                  -# Report to |qnx.sdl| unit by calling \ref nvgpu_report_err_to_sdl
+	 *                     "nvgpu_report_err_to_sdl" with following parameters:
 	 *                     -# \a g
-	 *                     -# \ref NVGPU_ERR_MODULE_LTC "NVGPU_ERR_MODULE_LTC"
-	 *                     -# (\a ltc << 8U) | \a slice
 	 *                     -# \ref GPU_LTC_CACHE_DSTG_ECC_UNCORRECTED
 	 *                        "GPU_LTC_CACHE_DSTG_ECC_UNCORRECTED"
-	 *                     -# ecc address read above.
-	 *                     -# g->ecc.ltc.ecc_ded_count[\a ltc][\a slice].counter
 	 *               -# Else if the ECC address correspongs to DSTG BE RAM:
 	 *                  -# Increment g->ecc.ltc.dstg_be_ecc_parity_count[\a ltc][\a slice].counter
 	 *                     with uncorrected counter delta with
 	 *                     \ref nvgpu_wrapping_add_u32 "nvgpu_wrapping_add_u32".
-	 *                  -# Report to |qnx.sdl| unit by calling \ref nvgpu_report_ecc_err
-	 *                     "nvgpu_report_ecc_err" with following parameters:
+	 *                  -# Report to |qnx.sdl| unit by calling \ref nvgpu_report_err_to_sdl
+	 *                     "nvgpu_report_err_to_sdl" with following parameters:
 	 *                     -# \a g
-	 *                     -# \ref NVGPU_ERR_MODULE_LTC "NVGPU_ERR_MODULE_LTC"
-	 *                     -# (\a ltc << 8U) | \a slice
 	 *                     -# \ref GPU_LTC_CACHE_DSTG_BE_ECC_UNCORRECTED
 	 *                        "GPU_LTC_CACHE_DSTG_BE_ECC_UNCORRECTED"
-	 *                     -# ecc address read above
-	 *                     -# g->ecc.ltc.dstg_be_ecc_parity_count[\a ltc][\a slice].counter
 	 *               -# Else call \ref BUG "BUG()" as this type of ECC error is not supported.
 	 *      -# Clear the register ltc_ltc0_lts0_intr3_r() by writing the read value.
 	 * - return 0

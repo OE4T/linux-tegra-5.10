@@ -43,15 +43,13 @@ void gp10b_ce_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 
 	/* clear blocking interrupts: they exibit broken behavior */
 	if ((ce_intr & ce_intr_status_blockpipe_pending_f()) != 0U) {
-		nvgpu_report_ce_err(g, NVGPU_ERR_MODULE_CE, inst_id,
-				GPU_CE_BLOCK_PIPE, ce_intr);
+		nvgpu_report_err_to_sdl(g, GPU_CE_BLOCK_PIPE);
 		nvgpu_err(g, "ce blocking pipe interrupt");
 		clear_intr |= ce_intr_status_blockpipe_pending_f();
 	}
 
 	if ((ce_intr & ce_intr_status_launcherr_pending_f()) != 0U) {
-		nvgpu_report_ce_err(g, NVGPU_ERR_MODULE_CE, inst_id,
-				GPU_CE_LAUNCH_ERROR, ce_intr);
+		nvgpu_report_err_to_sdl(g, GPU_CE_LAUNCH_ERROR);
 		nvgpu_err(g, "ce launch error interrupt");
 		clear_intr |= ce_intr_status_launcherr_pending_f();
 	}

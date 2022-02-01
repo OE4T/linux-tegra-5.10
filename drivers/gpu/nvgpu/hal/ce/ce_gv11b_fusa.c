@@ -1,7 +1,7 @@
 /*
  * Volta GPU series Copy Engine.
  *
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -61,8 +61,7 @@ void gv11b_ce_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 	 * reset to get back to a working state.
 	 */
 	if ((ce_intr & ce_intr_status_invalid_config_pending_f()) != 0U) {
-		nvgpu_report_ce_err(g, NVGPU_ERR_MODULE_CE, inst_id,
-				GPU_CE_INVALID_CONFIG, ce_intr);
+		nvgpu_report_err_to_sdl(g, GPU_CE_INVALID_CONFIG);
 		nvgpu_err(g, "ce: inst %d: invalid config", inst_id);
 		clear_intr |= ce_intr_status_invalid_config_reset_f();
 	}
@@ -74,8 +73,7 @@ void gv11b_ce_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 	 * reset before operations can start again, if not the entire GPU.
 	 */
 	if ((ce_intr & ce_intr_status_mthd_buffer_fault_pending_f()) != 0U) {
-		nvgpu_report_ce_err(g, NVGPU_ERR_MODULE_CE, inst_id,
-				GPU_CE_METHOD_BUFFER_FAULT, ce_intr);
+		nvgpu_report_err_to_sdl(g, GPU_CE_METHOD_BUFFER_FAULT);
 		nvgpu_err(g, "ce: inst %d: mthd buffer fault", inst_id);
 		clear_intr |= ce_intr_status_mthd_buffer_fault_reset_f();
 	}

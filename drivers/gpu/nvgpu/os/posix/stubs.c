@@ -50,11 +50,9 @@ void nvgpu_ecc_sysfs_remove(struct gk20a *g)
 #endif
 
 int nvgpu_cic_mon_report_err_safety_services(struct gk20a *g,
-		void *err_info, size_t err_size, bool is_critical)
+		u32 err_id)
 {
 	(void)g;
-	(void)err_info;
-	(void)err_size;
-	(void)is_critical;
+	(void)err_id;
 	return 0;
 }

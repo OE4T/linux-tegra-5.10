@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -20,7 +20,11 @@
 struct gk20a;
 
 int nvgpu_cic_mon_report_err_safety_services(struct gk20a *g,
-		void *err_info, size_t err_size, bool is_critical)
+		u32 metadata)
 {
+	/**
+	 * ToDo: Add MISC_EC API to report error.
+	 * Decide on triggering SW quiesce for UE.
+	 */
 	return 0;
 }

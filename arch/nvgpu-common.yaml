@@ -1135,6 +1135,7 @@ cic:
              common/cic/mon/mon_pri.c,
              common/cic/mon/mon_pmu.c,
              common/cic/mon/mon_mmu.c,
+             common/cic/mon/mon_report_err.c,
              common/cic/mon/cic_mon_priv.h,
              include/nvgpu/gops/cic_mon.h,
              include/nvgpu/cic_mon.h,

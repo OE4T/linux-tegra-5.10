@@ -132,8 +132,7 @@ bool gv11b_fifo_handle_sched_error(struct gk20a *g)
 		nvgpu_err(g, "fifo sched error code not supported");
 	}
 
-	nvgpu_report_host_err(g, NVGPU_ERR_MODULE_HOST,
-			0, GPU_HOST_PFIFO_SCHED_ERROR, sched_error);
+	nvgpu_report_err_to_sdl(g, GPU_HOST_PFIFO_SCHED_ERROR);
 
 	if (sched_error == SCHED_ERROR_CODE_BAD_TSG) {
 		/* id is unknown, preempt all runlists and do recovery */
@@ -151,8 +150,7 @@ static u32 gv11b_fifo_intr_handle_errors(struct gk20a *g, u32 fifo_intr)
 
 	if ((fifo_intr & fifo_intr_0_bind_error_pending_f()) != 0U) {
 		u32 bind_error = nvgpu_readl(g, fifo_intr_bind_error_r());
-		nvgpu_report_host_err(g, NVGPU_ERR_MODULE_HOST, 0,
-				GPU_HOST_PFIFO_BIND_ERROR, bind_error);
+		nvgpu_report_err_to_sdl(g, GPU_HOST_PFIFO_BIND_ERROR);
 		nvgpu_err(g, "fifo bind error: 0x%08x", bind_error);
 		handled |= fifo_intr_0_bind_error_pending_f();
 	}
@@ -163,17 +161,13 @@ static u32 gv11b_fifo_intr_handle_errors(struct gk20a *g, u32 fifo_intr)
 	}
 
 	if ((fifo_intr & fifo_intr_0_memop_timeout_pending_f()) != 0U) {
-		nvgpu_report_host_err(g, NVGPU_ERR_MODULE_HOST, 0,
-				GPU_HOST_PFIFO_MEMOP_TIMEOUT_ERROR, 0);
+		nvgpu_report_err_to_sdl(g, GPU_HOST_PFIFO_MEMOP_TIMEOUT_ERROR);
 		nvgpu_err(g, "fifo memop timeout error");
 		handled |= fifo_intr_0_memop_timeout_pending_f();
 	}
 
 	if ((fifo_intr & fifo_intr_0_lb_error_pending_f()) != 0U) {
-		u32 lb_error = nvgpu_readl(g, fifo_intr_lb_error_r());
-
-		nvgpu_report_host_err(g, NVGPU_ERR_MODULE_HOST, 0,
-				GPU_HOST_PFIFO_LB_ERROR, lb_error);
+		nvgpu_report_err_to_sdl(g, GPU_HOST_PFIFO_LB_ERROR);
 		nvgpu_err(g, "fifo lb error");
 		handled |= fifo_intr_0_lb_error_pending_f();
 	}

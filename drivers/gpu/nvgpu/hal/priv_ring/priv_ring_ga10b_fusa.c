@@ -1,7 +1,7 @@
 /*
  * GA10B priv ring
  *
- * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -378,8 +378,7 @@ void ga10b_priv_ring_decode_error_code(struct gk20a *g, u32 error_code)
 	size_t lookup_table_size = 1;
 	size_t index = 0;
 
-	nvgpu_report_pri_err(g, NVGPU_ERR_MODULE_PRI, 0,
-		GPU_PRI_ACCESS_VIOLATION, 0, error_code);
+	nvgpu_report_err_to_sdl(g, GPU_PRI_ACCESS_VIOLATION);
 
 	err_code = pri_sys_pri_error_code_v(error_code);
 	error_extra = pri_sys_pri_error_extra_v(error_code);

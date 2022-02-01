@@ -237,7 +237,7 @@ vm:
              os/linux/nvgpu_ivm.c ]
 
 cic:
-  sources: [ os/linux/cic/cic_stub.c ]
+  sources: [ os/linux/cic/cic_report_err.c ]
 
 # Group all the Linux headers for now.
 headers:

@@ -42,21 +42,6 @@
 
 #include "gr_intr_priv.h"
 
-void gr_intr_report_ctxsw_error(struct gk20a *g, u32 err_type, u32 chid,
-		u32 mailbox_value)
-{
-	struct ctxsw_err_info err_info;
-
-	err_info.curr_ctx = g->ops.gr.falcon.get_current_ctx(g);
-	err_info.ctxsw_status0 = g->ops.gr.falcon.read_fecs_ctxsw_status0(g);
-	err_info.ctxsw_status1 = g->ops.gr.falcon.read_fecs_ctxsw_status1(g);
-	err_info.mailbox_value = mailbox_value;
-	err_info.chid = chid;
-
-	nvgpu_report_ctxsw_err(g, NVGPU_ERR_MODULE_FECS,
-		err_type, (void *)&err_info);
-}
-
 static int gr_intr_handle_pending_tpc_sm_exception(struct gk20a *g, u32 gpc, u32 tpc,
 				bool *post_event, struct nvgpu_channel *fault_ch,
 				u32 *hww_global_esr)
@@ -201,41 +186,6 @@ static void gr_intr_handle_class_error(struct gk20a *g,
 			 NVGPU_ERR_NOTIFIER_GR_ERROR_SW_NOTIFY);
 }
 
-static void gr_intr_report_sm_exception(struct gk20a *g, u32 gpc, u32 tpc,
-		u32 sm, u32 hww_warp_esr_status, u64 hww_warp_esr_pc)
-{
-	struct gr_sm_mcerr_info err_info;
-	struct nvgpu_channel *ch;
-	struct gr_err_info info;
-	u32 tsgid, chid, curr_ctx, inst = 0;
-
-	tsgid = NVGPU_INVALID_TSG_ID;
-	curr_ctx = g->ops.gr.falcon.get_current_ctx(g);
-	if (curr_ctx == 0U) {
-		return;
-	}
-
-	ch = nvgpu_gr_intr_get_channel_from_ctx(g, curr_ctx, &tsgid);
-	chid = (ch != NULL) ? ch->chid : NVGPU_INVALID_CHANNEL_ID;
-	if (ch != NULL) {
-		nvgpu_channel_put(ch);
-	}
-
-	(void) memset(&err_info, 0, sizeof(err_info));
-	(void) memset(&info, 0, sizeof(info));
-	err_info.curr_ctx = curr_ctx;
-	err_info.chid = chid;
-	err_info.tsgid = tsgid;
-	err_info.hww_warp_esr_pc = hww_warp_esr_pc;
-	err_info.hww_warp_esr_status = hww_warp_esr_status;
-	err_info.gpc = gpc;
-	err_info.tpc = tpc;
-	err_info.sm = sm;
-	info.sm_mcerr_info = &err_info;
-	nvgpu_report_gr_err(g, NVGPU_ERR_MODULE_SM, inst,
-			GPU_SM_MACHINE_CHECK_ERROR, &info, 0U);
-}
-
 /* Used by sw interrupt thread to translate current ctx to chid.
  * Also used by regops to translate current ctx to chid and tsgid.
  * For performance, we don't want to go through 128 channels every time.
@@ -318,35 +268,6 @@ unlock:
 	return ret_ch;
 }
 
-void nvgpu_gr_intr_report_exception(struct gk20a *g, u32 inst,
-		u32 err_type, u32 status, u32 sub_err_type)
-{
-	struct nvgpu_channel *ch = NULL;
-	struct gr_exception_info err_info;
-	struct gr_err_info info;
-	u32 tsgid, chid, curr_ctx;
-
-	tsgid = NVGPU_INVALID_TSG_ID;
-	curr_ctx = g->ops.gr.falcon.get_current_ctx(g);
-	if (curr_ctx != 0U) {
-		ch = nvgpu_gr_intr_get_channel_from_ctx(g, curr_ctx, &tsgid);
-	}
-	chid = (ch != NULL) ? ch->chid : NVGPU_INVALID_CHANNEL_ID;
-	if (ch != NULL) {
-		nvgpu_channel_put(ch);
-	}
-
-	(void) memset(&err_info, 0, sizeof(err_info));
-	(void) memset(&info, 0, sizeof(info));
-	err_info.curr_ctx = curr_ctx;
-	err_info.chid = chid;
-	err_info.tsgid = tsgid;
-	err_info.status = status;
-	info.exception_info = &err_info;
-	nvgpu_report_gr_err(g, NVGPU_ERR_MODULE_PGRAPH,
-			inst, err_type, &info, sub_err_type);
-}
-
 void nvgpu_gr_intr_set_error_notifier(struct gk20a *g,
 		  struct nvgpu_gr_isr_data *isr_data, u32 error_notifier)
 {
@@ -370,22 +291,6 @@ void nvgpu_gr_intr_set_error_notifier(struct gk20a *g,
 static bool is_global_esr_error(u32 global_esr, u32 global_mask)
 {
 	return ((global_esr & ~global_mask) != 0U) ? true: false;
-}
-
-static void gr_intr_report_warp_error(struct gk20a *g, u32 gpc, u32 tpc,
-			u32 sm,	u32 global_esr, u32 warp_esr,
-			u32 global_mask, u32 offset)
-{
-	u64 hww_warp_esr_pc = 0;
-
-	if (is_global_esr_error(global_esr, global_mask)) {
-		if (g->ops.gr.intr.get_sm_hww_warp_esr_pc != NULL) {
-			hww_warp_esr_pc = g->ops.gr.intr.get_sm_hww_warp_esr_pc(g,
-					offset);
-		}
-		gr_intr_report_sm_exception(g, gpc, tpc, sm, warp_esr,
-				hww_warp_esr_pc);
-	}
 }
 
 #ifdef CONFIG_NVGPU_DEBUGGER
@@ -454,8 +359,11 @@ int nvgpu_gr_intr_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 	/*
 	 * Check and report any fatal warp errors.
 	 */
-	gr_intr_report_warp_error(g, gpc, tpc, sm, global_esr, warp_esr,
-				global_mask, offset);
+	if (is_global_esr_error(global_esr, global_mask)) {
+		nvgpu_report_err_to_sdl(g, GPU_SM_MACHINE_CHECK_ERROR);
+		nvgpu_err(g, "sm machine check err. gpc_id(%d), tpc_id(%d), "
+				"offset(%d)", gpc, tpc, offset);
+	}
 
 	(void)nvgpu_pg_elpg_protected_call(g,
 		nvgpu_safe_cast_u32_to_s32(
@@ -570,9 +478,7 @@ int nvgpu_gr_intr_handle_fecs_error(struct gk20a *g, struct nvgpu_channel *ch,
 			&& (mailbox_value ==
 			g->ops.gr.intr.get_ctxsw_checksum_mismatch_mailbox_val())) {
 
-			gr_intr_report_ctxsw_error(g,
-					GPU_FECS_CTXSW_CRC_MISMATCH,
-					chid, mailbox_value);
+			nvgpu_report_err_to_sdl(g, GPU_FECS_CTXSW_CRC_MISMATCH);
 			nvgpu_err(g, "ctxsw intr0 set by ucode, "
 					"ctxsw checksum mismatch");
 			ret = -1;
@@ -582,9 +488,7 @@ int nvgpu_gr_intr_handle_fecs_error(struct gk20a *g, struct nvgpu_channel *ch,
 			 * recovery is initiated and error is reported to
 			 * 3LSS.
 			 */
-			gr_intr_report_ctxsw_error(g,
-					GPU_FECS_FAULT_DURING_CTXSW,
-					chid, mailbox_value);
+			nvgpu_report_err_to_sdl(g, GPU_FECS_FAULT_DURING_CTXSW);
 			nvgpu_err(g,
 				 "ctxsw intr0 set by ucode, error_code: 0x%08x",
 				 mailbox_value);
@@ -593,17 +497,13 @@ int nvgpu_gr_intr_handle_fecs_error(struct gk20a *g, struct nvgpu_channel *ch,
 	}
 
 	if (fecs_host_intr->fault_during_ctxsw_active) {
-		gr_intr_report_ctxsw_error(g,
-				GPU_FECS_FAULT_DURING_CTXSW,
-				chid, 0);
+		nvgpu_report_err_to_sdl(g, GPU_FECS_FAULT_DURING_CTXSW);
 		nvgpu_err(g, "fecs fault during ctxsw for channel %u", chid);
 		ret = -1;
 	}
 
 	if (fecs_host_intr->watchdog_active) {
-		gr_intr_report_ctxsw_error(g,
-				GPU_FECS_CTXSW_WATCHDOG_TIMEOUT,
-				chid, 0);
+		nvgpu_report_err_to_sdl(g, GPU_FECS_CTXSW_WATCHDOG_TIMEOUT);
 		/* currently, recovery is not initiated */
 		nvgpu_err(g, "fecs watchdog triggered for channel %u, "
 				"cannot ctxsw anymore !!", chid);
@@ -861,7 +761,7 @@ static u32 gr_intr_handle_exception_interrupts(struct gk20a *g,
 }
 
 static u32 gr_intr_handle_illegal_interrupts(struct gk20a *g,
-		u32 gr_intr, u32 *clear_intr,
+		u32 *clear_intr,
 		struct nvgpu_gr_intr_info *intr_info,
 		struct nvgpu_gr_isr_data *isr_data)
 {
@@ -870,9 +770,7 @@ static u32 gr_intr_handle_illegal_interrupts(struct gk20a *g,
 	if (intr_info->illegal_notify != 0U) {
 		nvgpu_err(g, "illegal notify pending");
 
-		nvgpu_gr_intr_report_exception(g, 0U,
-				GPU_PGRAPH_ILLEGAL_ERROR, gr_intr,
-				GPU_PGRAPH_ILLEGAL_NOTIFY);
+		nvgpu_report_err_to_sdl(g, GPU_PGRAPH_ILLEGAL_ERROR);
 		nvgpu_gr_intr_set_error_notifier(g, isr_data,
 				NVGPU_ERR_NOTIFIER_GR_ILLEGAL_NOTIFY);
 		do_reset = 1U;
@@ -881,9 +779,7 @@ static u32 gr_intr_handle_illegal_interrupts(struct gk20a *g,
 
 	if (intr_info->illegal_method != 0U) {
 		if (gr_intr_handle_illegal_method(g, isr_data) != 0) {
-			nvgpu_gr_intr_report_exception(g, 0U,
-				GPU_PGRAPH_ILLEGAL_ERROR, gr_intr,
-				GPU_PGRAPH_ILLEGAL_METHOD);
+			nvgpu_report_err_to_sdl(g, GPU_PGRAPH_ILLEGAL_ERROR);
 
 			do_reset = 1U;
 		}
@@ -891,9 +787,7 @@ static u32 gr_intr_handle_illegal_interrupts(struct gk20a *g,
 	}
 
 	if (intr_info->illegal_class != 0U) {
-		nvgpu_gr_intr_report_exception(g, 0U,
-				GPU_PGRAPH_ILLEGAL_ERROR, gr_intr,
-				GPU_PGRAPH_ILLEGAL_CLASS);
+		nvgpu_report_err_to_sdl(g, GPU_PGRAPH_ILLEGAL_ERROR);
 		nvgpu_err(g, "invalid class 0x%08x, offset 0x%08x",
 			  isr_data->class_num, isr_data->offset);
 
@@ -906,7 +800,7 @@ static u32 gr_intr_handle_illegal_interrupts(struct gk20a *g,
 }
 
 static u32 gr_intr_handle_error_interrupts(struct gk20a *g,
-		u32 gr_intr, u32 *clear_intr,
+		u32 *clear_intr,
 		struct nvgpu_gr_intr_info *intr_info,
 		struct nvgpu_gr_isr_data *isr_data)
 {
@@ -923,9 +817,7 @@ static u32 gr_intr_handle_error_interrupts(struct gk20a *g,
 	}
 
 	if (intr_info->class_error != 0U) {
-		nvgpu_gr_intr_report_exception(g, 0U,
-				GPU_PGRAPH_ILLEGAL_ERROR, gr_intr,
-				GPU_PGRAPH_CLASS_ERROR);
+		nvgpu_report_err_to_sdl(g, GPU_PGRAPH_ILLEGAL_ERROR);
 		gr_intr_handle_class_error(g, isr_data);
 		do_reset = 1U;
 		*clear_intr &= ~intr_info->class_error;
@@ -1073,10 +965,10 @@ int nvgpu_gr_intr_stall_isr(struct gk20a *g)
 	gr_intr_handle_pending_interrupts(g, &clear_intr,
 					&intr_info, &isr_data);
 
-	need_reset |= gr_intr_handle_illegal_interrupts(g, gr_intr,
+	need_reset |= gr_intr_handle_illegal_interrupts(g,
 				&clear_intr, &intr_info, &isr_data);
 
-	need_reset |= gr_intr_handle_error_interrupts(g, gr_intr,
+	need_reset |= gr_intr_handle_error_interrupts(g,
 				&clear_intr, &intr_info, &isr_data);
 
 	need_reset |= gr_intr_handle_exception_interrupts(g, &clear_intr,

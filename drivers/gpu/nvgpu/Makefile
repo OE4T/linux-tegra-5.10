@@ -342,6 +342,7 @@ nvgpu-y += \
 	common/cic/mon/mon_pri.o \
 	common/cic/mon/mon_pmu.o \
 	common/cic/mon/mon_mmu.o \
+	common/cic/mon/mon_report_err.o \
 	common/cic/rm/rm_init.o \
 	common/cic/rm/rm_intr.o \
 	hal/bus/bus_gk20a.o \
@@ -472,7 +473,7 @@ nvgpu-y += \
 	os/linux/dt.o \
 	os/linux/ecc_sysfs.o \
 	os/linux/bsearch.o \
-	os/linux/cic/cic_stub.o \
+	os/linux/cic/cic_report_err.o \
 	os/linux/dmabuf_priv.o \
 	os/linux/power_ops.o
 

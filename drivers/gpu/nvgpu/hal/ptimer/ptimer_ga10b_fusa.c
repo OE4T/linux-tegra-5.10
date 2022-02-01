@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,6 @@
 void ga10b_ptimer_isr(struct gk20a *g)
 {
 	u32 save0, save1, fecs_errcode = 0;
-	u32 inst = 0U;
 	u32 error_addr;
 
 	save0 = nvgpu_readl(g, timer_pri_timeout_save_0_r());
@@ -62,13 +61,7 @@ void ga10b_ptimer_isr(struct gk20a *g)
 			g->ops.priv_ring.decode_error_code(g,
 						fecs_errcode);
 		}
-		/* FECS was the target of PRI access */
-		inst = 1U;
-		/* SAVE_0_ADDR cannot be used in this case */
-		error_addr = 0U;
 	}
 
-	nvgpu_report_pri_err(g, NVGPU_ERR_MODULE_PRI,
-		inst, GPU_PRI_TIMEOUT_ERROR,
-		error_addr, fecs_errcode);
+	nvgpu_report_err_to_sdl(g, GPU_PRI_TIMEOUT_ERROR);
 }

@@ -817,7 +817,7 @@ static int gr_init_ctxsw_falcon_support(struct gk20a *g, struct nvgpu_gr *gr)
 
 	err = nvgpu_gr_falcon_init_ctxsw(g, gr->falcon);
 	if (err != 0) {
-		gr_intr_report_ctxsw_error(g, GPU_FECS_CTXSW_INIT_ERROR, 0, 0);
+		nvgpu_report_err_to_sdl(g, GPU_FECS_CTXSW_INIT_ERROR);
 		return err;
 	}
 

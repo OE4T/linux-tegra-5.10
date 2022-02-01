@@ -72,15 +72,6 @@ void nvgpu_report_ctxsw_err(struct gk20a *g, u32 hw_unit, u32 err_id,
 	err_pkt.err_size = nvgpu_safe_cast_u64_to_u8(
 			sizeof(err_pkt.err_info.ctxsw_info));
 
-	if (g->ops.cic_mon.report_err != NULL) {
-		err = g->ops.cic_mon.report_err(g, (void *)&err_pkt,
-			sizeof(err_pkt), err_desc->is_critical);
-		if (err != 0) {
-			nvgpu_err(g, "Failed to report CTXSW error: "
-					"err_id=%u, mailbox_val=%u",
-					err_id, err_info->mailbox_value);
-		}
-	}
 handle_report_failure:
 	if (err != 0) {
 		nvgpu_sw_quiesce(g);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,45 +19,24 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_GOPS_CIC_MON_H
-#define NVGPU_GOPS_CIC_MON_H
 
-#include <nvgpu/types.h>
+#include <nvgpu/gk20a.h>
+#include <nvgpu/nvgpu_init.h>
+#include <nvgpu/nvgpu_err.h>
+#include <nvgpu/nvgpu_err_info.h>
+#include <nvgpu/cic_mon.h>
 
-/**
- * @file
- *
- * Central Interrupt Controller unit HAL interface
- *
- */
-struct gk20a;
-struct nvgpu_cic_mon;
+#include "cic_mon_priv.h"
 
-/**
- * CIC-MON unit HAL operations
- *
- * @see gpu_ops
- */
-struct gops_cic_mon {
-	/**
-	 * @brief Chip specific CIC unit initialization.
-	 *
-	 * @param g [in]		Pointer to GPU driver struct.
-	 * @param cic [in] 		Pointer to CIC private struct.
-	 *
-	 * @return 0 in case of success, < 0 in case of failure.
-	 */
-	int (*init)(struct gk20a *g, struct nvgpu_cic_mon *cic_mon);
+void nvgpu_report_err_to_sdl(struct gk20a *g, u32 err_id)
+{
+	if (g->ops.cic_mon.report_err == NULL) {
+		return;
+	}
 
-	/**
-	 * @brief Report error to safety services.
-	 *
-	 * @param g [in]		Pointer to GPU driver struct.
-	 * @param err_id [in]		Error ID.
-	 *
-	 * @return 0 in case of success, < 0 in case of failure.
-	 */
-	int (*report_err)(struct gk20a *g, u32 err_id);
-};
-
-#endif/*NVGPU_GOPS_CIC_MON_H*/
+	if (g->ops.cic_mon.report_err(g, err_id) != 0) {
+		nvgpu_err(g, "Failed to report an error: err_id=%x",
+				err_id);
+		nvgpu_sw_quiesce(g);
+	}
+}

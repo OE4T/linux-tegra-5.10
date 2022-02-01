@@ -105,15 +105,6 @@ void nvgpu_report_mmu_err(struct gk20a *g, u32 hw_unit, u32 err_id,
 	err_pkt.err_size = nvgpu_safe_cast_u64_to_u8(
 			sizeof(err_pkt.err_info.mmu_info));
 
-	if (g->ops.cic_mon.report_err != NULL) {
-		err = g->ops.cic_mon.report_err(g, (void *)&err_pkt,
-			sizeof(err_pkt), err_desc->is_critical);
-		if (err != 0) {
-			nvgpu_err(g, "Failed to report MMU fault: hw_unit=%u, "
-				"err_id=%u, sub_err_type=%u, status=%u",
-				hw_unit, err_id, sub_err_type, status);
-		}
-	}
 handle_report_failure:
 	if (err != 0) {
 		nvgpu_sw_quiesce(g);

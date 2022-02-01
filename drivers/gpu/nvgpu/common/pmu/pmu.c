@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,8 +34,9 @@
 void nvgpu_pmu_report_bar0_pri_err_status(struct gk20a *g, u32 bar0_status,
 	u32 error_type)
 {
-	nvgpu_report_pmu_err(g, NVGPU_ERR_MODULE_PMU,
-		GPU_PMU_BAR0_ERROR_TIMEOUT, error_type, bar0_status);
+	nvgpu_report_err_to_sdl(g, GPU_PMU_BAR0_ERROR_TIMEOUT);
+	nvgpu_err(g, "Falcon mem scrubbing timeout. status(0x%x), "
+			"error_type(0x%x)", bar0_status, error_type);
 }
 
 /* PMU engine reset functions */

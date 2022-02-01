@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -1194,5 +1194,17 @@ void nvgpu_report_mmu_err(struct gk20a *g, u32 hw_unit,
  */
 void gr_intr_report_ctxsw_error(struct gk20a *g, u32 err_type, u32 chid,
 		u32 mailbox_value);
+
+/**
+ * @brief This is a wrapper function to report ECC errors from HUBMMU to SDL.
+ *
+ * @param g [in]		- The GPU driver struct.
+ * @param err_id [in]		- Error ID.
+ *
+ * Calls nvgpu_report_err_to_ss to report errors to Safety_Services.
+ *
+ * @return	None
+ */
+void nvgpu_report_err_to_sdl(struct gk20a *g, u32 err_id);
 
 #endif /* NVGPU_NVGPU_ERR_H */

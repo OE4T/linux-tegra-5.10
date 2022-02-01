@@ -168,6 +168,7 @@ srcs +=	common/device.c \
 	common/cic/mon/mon_pri.c \
 	common/cic/mon/mon_pmu.c \
 	common/cic/mon/mon_mmu.c \
+	common/cic/mon/mon_report_err.c \
 	common/cic/rm/rm_init.c \
 	common/cic/rm/rm_intr.c \
 	hal/init/hal_gv11b.c \
