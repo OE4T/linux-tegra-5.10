@@ -167,10 +167,9 @@ void *__nvmap_mmap(struct nvmap_handle *h)
 			goto out;
 
 		vaddr = vmap(pages, h->size >> PAGE_SHIFT, VM_MAP, prot);
-		nvmap_altfree(pages, (h->size >> PAGE_SHIFT) * sizeof(*pages));
-		pages = NULL;
 		if (!vaddr && !h->vaddr)
 			goto out;
+		nvmap_altfree(pages, (h->size >> PAGE_SHIFT) * sizeof(*pages));
 
 		if (vaddr && atomic_long_cmpxchg((atomic_long_t *)&h->vaddr, 0, (long)vaddr)) {
 			nvmap_kmaps_dec(h);
