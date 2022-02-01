@@ -1119,14 +1119,14 @@ static void mttcan_start(struct net_device *dev)
 		/* Error Warning */
 		priv->can.state = CAN_STATE_ERROR_WARNING;
 	} else {
-		mttcan_controller_config(dev);
-
-		ttcan_clear_intr(ttcan);
-		ttcan_clear_tt_intr(ttcan);
-
 		/* Error Active */
 		priv->can.state = CAN_STATE_ERROR_ACTIVE;
 	}
+
+	mttcan_controller_config(dev);
+
+	ttcan_clear_intr(ttcan);
+	ttcan_clear_tt_intr(ttcan);
 
 	/* start Tx/Rx and enable protected mode */
 	if (!priv->tt_param[0]) {
