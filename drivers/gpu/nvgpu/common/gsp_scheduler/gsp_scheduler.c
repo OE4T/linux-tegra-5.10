@@ -91,6 +91,28 @@ void nvgpu_gsp_sched_sw_deinit(struct gk20a *g)
 	}
 }
 
+static int gsp_sched_wait_for_init(struct gk20a *g,
+	struct nvgpu_gsp_sched *gsp_sched, signed int timeoutms)
+{
+	nvgpu_log_fn(g, " ");
+
+	do {
+		if (gsp_sched->gsp_ready) {
+			break;
+		}
+
+		if (timeoutms <= 0) {
+			nvgpu_err(g, "gsp wait for init timedout");
+			return -1;
+		}
+
+		nvgpu_msleep(10);
+		timeoutms -= 10;
+	} while (true);
+
+	return 0;
+}
+
 int nvgpu_gsp_sched_sw_init(struct gk20a *g)
 {
 	int err = 0;
@@ -174,6 +196,12 @@ int nvgpu_gsp_sched_bootstrap_ns(struct gk20a *g)
 				GSP_WAIT_TIME_MS);
 	if (status != 0) {
 		nvgpu_err(g, "gsp PRIV lockdown release wait failed ");
+		goto de_init;
+	}
+
+	status = gsp_sched_wait_for_init(g, gsp_sched, GSP_WAIT_TIME_MS);
+	if (status != 0) {
+		nvgpu_err(g, "gsp wait for basic init failed ");
 		goto de_init;
 	}
 
