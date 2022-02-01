@@ -521,6 +521,7 @@ static int nvgpu_prof_ioctl_free_pma_stream(struct nvgpu_profiler_object_priv *p
 {
 	struct nvgpu_profiler_object *prof = priv->prof;
 	struct gk20a *g = prof->g;
+	int err;
 
 	nvgpu_log(g, gpu_dbg_prof, "Request to free PMA stream for handle %u",
 		prof->prof_handle);
@@ -531,8 +532,15 @@ static int nvgpu_prof_ioctl_free_pma_stream(struct nvgpu_profiler_object_priv *p
 	}
 
 	if (prof->bound) {
-		nvgpu_err(g, "PM resources are bound, cannot free PMA");
-		return -EINVAL;
+		nvgpu_log(g, gpu_dbg_prof, "PM resources already bound with"
+				" profiler handle %u, implicity unbinding for"
+				" freeing PMA stream", prof->prof_handle);
+		err = nvgpu_profiler_unbind_pm_resources(prof);
+		if (err != 0) {
+			nvgpu_err(g, "Profiler handle %u failed to unbind,"
+					" err %d", prof->prof_handle, err);
+			return err;
+		}
 	}
 
 	nvgpu_prof_free_pma_stream_priv_data(priv);
