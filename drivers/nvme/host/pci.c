@@ -30,6 +30,10 @@
 #include "trace.h"
 #include "nvme.h"
 
+#ifdef CONFIG_NVFS
+#include "nvfs.h"
+#endif
+
 #define SQ_SIZE(q)	((q)->q_depth << (q)->sqes)
 #define CQ_SIZE(q)	((q)->q_depth * sizeof(struct nvme_completion))
 
@@ -588,9 +592,17 @@ static void nvme_unmap_sg(struct nvme_dev *dev, struct request *req)
 		dma_unmap_sg(dev->dev, iod->sg, iod->nents, rq_dma_dir(req));
 }
 
+#ifdef CONFIG_NVFS
+#include "nvfs-dma.h"
+#endif
+
 static void nvme_unmap_data(struct nvme_dev *dev, struct request *req)
 {
 	struct nvme_iod *iod = blk_mq_rq_to_pdu(req);
+#ifdef CONFIG_NVFS
+	if (iod && iod->nents && nvme_nvfs_unmap_data(dev, req))
+		return;
+#endif
 
 	if (iod->dma_len) {
 		dma_unmap_page(dev->dev, iod->first_dma, iod->dma_len,
@@ -844,6 +856,13 @@ static blk_status_t nvme_map_data(struct nvme_dev *dev, struct request *req,
 	blk_status_t ret = BLK_STS_RESOURCE;
 	int nr_mapped;
 
+#ifdef CONFIG_NVFS
+	bool is_nvfs_io = false;
+
+	ret = nvme_nvfs_map_data(dev, req, cmnd, &is_nvfs_io);
+	if (is_nvfs_io)
+		return ret;
+#endif
 	if (blk_rq_nr_phys_segments(req) == 1) {
 		struct bio_vec bv = req_bvec(req);
 
