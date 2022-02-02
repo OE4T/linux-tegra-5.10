@@ -95,7 +95,7 @@ NVMAP_CONFIG_DEFER_FD_RECYCLE_MAX_FD := 0x8000
 # Supports nvmap ioctls to get Unique SciIpcId and attach
 # it with nvmap_handle.
 # Suppports getting nvmap_handle from SciIpcId passed via ioctl.
-NVMAP_CONFIG_SCIIPC := n
+NVMAP_CONFIG_SCIIPC := y
 
 # Config for enabling NvMap as OOT module
 NVMAP_CONFIG_LOADABLE_MODULE := n
@@ -137,13 +137,13 @@ ifneq ($(NVMAP_CONFIG_HANDLE_AS_FD),y)
 NVMAP_CONFIG_HANDLE_AS_ID := y
 NVMAP_CONFIG_FD_START := 0x0
 endif
-NVMAP_CONFIG_SCIIPC := y
 NVMAP_CONFIG_PROCRANK := n
 endif
 
 ifneq ($(findstring 4.9,$(NV_BUILD_KERNEL_OPTIONS)),)
 # For 4.9
 NVMAP_CONFIG_VPR_RESIZE := y
+NVMAP_CONFIG_SCIIPC := n
 endif
 
 ################################################################################
@@ -190,13 +190,9 @@ endif #NVMAP_CONFIG_DEFER_FD_RECYCLE_MAX_FD
 endif #NVMAP_CONFIG_DEFER_FD_RECYCLE
 
 
-ifeq ($(CONFIG_NVSCIIPC),y)
-ifeq (y, $(filter y, $(CONFIG_ARCH_TEGRA_19x_SOC) $(CONFIG_ARCH_TEGRA_194_SOC)))
 ifeq ($(NVMAP_CONFIG_SCIIPC),y)
 ccflags-y += -DNVMAP_CONFIG_SCIIPC
 endif #NVMAP_CONFIG_SCIIPC
-endif #CONFIG_ARCH_TEGRA_19x_SOC || CONFIG_ARCH_TEGRA_194_SOC
-endif #CONFIG_NVSCIIPC
 
 ifeq ($(NVMAP_CONFIG_VPR_RESIZE),y)
 ccflags-y += -DNVMAP_CONFIG_VPR_RESIZE

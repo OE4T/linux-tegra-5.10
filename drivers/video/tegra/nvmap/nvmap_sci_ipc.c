@@ -54,6 +54,7 @@ struct nvmap_sci_ipc_entry {
 
 static struct nvmap_sci_ipc *nvmapsciipc;
 
+#ifdef CONFIG_NVSCIIPC
 int nvmap_validate_sci_ipc_params(struct nvmap_client *client,
 			NvSciIpcEndpointAuthToken auth_token,
 			NvSciIpcEndpointVuid *pr_vuid,
@@ -103,6 +104,20 @@ ret_id:
 	WARN_ON(id == 0);
 	return id;
 }
+#else
+int nvmap_validate_sci_ipc_params(struct nvmap_client *client,
+			NvSciIpcEndpointAuthToken auth_token,
+			NvSciIpcEndpointVuid *pr_vuid,
+			NvSciIpcEndpointVuid *lu_vuid)
+{
+	return -EOPNOTSUPP;
+}
+
+static u32 nvmap_unique_sci_ipc_id(void)
+{
+	return -EOPNOTSUPP;
+}
+#endif
 
 static struct nvmap_sci_ipc_entry *nvmap_search_sci_ipc_entry(
 	struct rb_root *root,
