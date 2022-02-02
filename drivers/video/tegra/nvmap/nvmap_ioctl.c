@@ -54,8 +54,6 @@
 #endif /* !NVMAP_LOADABLE_MODULE */
 #endif
 
-#define MEMINFO_PATH "/proc/meminfo"
-#define MEMINFO_SIZE 1536
 extern struct device tegra_vpr_dev;
 
 static ssize_t rw_handle(struct nvmap_client *client, struct nvmap_handle *h,
@@ -1186,44 +1184,6 @@ int nvmap_ioctl_handle_from_sci_ipc_id(struct file *filp, void __user *arg)
 #endif
 
 /*
- * This function read /proc/meminfo file, and retrieve CMA free value out of it.
- */
-static int find_free_cma_mem(unsigned long *cma_free)
-{
-	struct file *file;
-	loff_t pos = 0;
-	u8 buf[MEMINFO_SIZE];
-	int rc;
-	char *buffer, *ptr;
-	bool free_cma_found = false;
-
-	file = filp_open(MEMINFO_PATH, O_RDONLY, 0);
-	if (IS_ERR(file))
-		return -EPERM;
-	memset(buf, 0, sizeof(buf));
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
-	rc = kernel_read(file, buf, MEMINFO_SIZE - 1, &pos);
-#else
-	rc = kernel_read(file, pos, buf, MEMINFO_SIZE - 1);
-#endif
-	buf[rc] = '\n';
-	filp_close(file, NULL);
-	buffer = buf;
-	ptr = buf;
-	while ((ptr = strsep(&buffer, "\n")) != NULL) {
-		if (!ptr[0])
-			continue;
-		if (sscanf(ptr, "CmaFree: %lu kB\n", cma_free) == 1) {
-			free_cma_found = true;
-			break;
-		}
-	}
-	if (!free_cma_found)
-		return -EINVAL;
-	return 0;
-}
-
-/*
  * This function calculates allocatable free memory using following formula:
  * free_mem = avail mem - cma free - (avail mem - cma free) / 16
  * The CMA memory is not allocatable by NvMap for regular allocations and it
@@ -1235,18 +1195,18 @@ int system_heap_free_mem(unsigned long *mem_val)
 	long available_mem = 0;
 	unsigned long free_mem = 0;
 	unsigned long cma_free = 0;
-	int err = 0;
 
 	available_mem = si_mem_available();
 	if (available_mem <= 0) {
 		*mem_val = 0;
 		return 0;
 	}
-	err = find_free_cma_mem(&cma_free);
-	if (err)
-		return err;
 
-	cma_free = cma_free << 10;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+	cma_free = global_zone_page_state(NR_FREE_CMA_PAGES) << PAGE_SHIFT;
+#else
+	cma_free = global_page_state(NR_FREE_CMA_PAGES) << PAGE_SHIFT;
+#endif
 	if ((available_mem << PAGE_SHIFT) < cma_free) {
 		*mem_val = 0;
 		return 0;
