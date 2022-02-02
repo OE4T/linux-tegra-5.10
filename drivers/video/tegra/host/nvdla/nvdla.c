@@ -32,12 +32,12 @@
 #include "dev.h"
 
 #include "flcn/flcn.h"
-#include "flcn/hw_flcn.h"
 
 #include "t194/t194.h"
 #include "t23x/t23x.h"
 
 #include "nvdla/nvdla.h"
+#include "nvdla/nvdla_hw_flcn.h"
 #include "nvdla/dla_queue.h"
 #include "nvdla/nvdla_buffer.h"
 #include "nvdla/nvdla_debug.h"
