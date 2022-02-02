@@ -58,9 +58,6 @@
 #include "hwmailbox.h"
 #include "log_state.h"
 
-#define NVADSP_ELF "adsp.elf"
-#define NVADSP_FIRMWARE NVADSP_ELF
-
 #define MAILBOX_REGION		".mbox_shared_data"
 #define DEBUG_RAM_REGION	".debug_mem_logs"
 
@@ -845,10 +842,10 @@ static int nvadsp_firmware_load(struct platform_device *pdev)
 	const struct firmware *fw;
 	int ret = 0;
 
-	ret = request_firmware(&fw, NVADSP_FIRMWARE, dev);
+	ret = request_firmware(&fw, drv_data->adsp_elf, dev);
 	if (ret < 0) {
 		dev_err(dev, "reqest firmware for %s failed with %d\n",
-				NVADSP_FIRMWARE, ret);
+				drv_data->adsp_elf, ret);
 		goto end;
 	}
 #ifdef CONFIG_ANDROID
@@ -864,11 +861,11 @@ static int nvadsp_firmware_load(struct platform_device *pdev)
 		goto release_firmware;
 	}
 
-	dev_info(dev, "Loading ADSP OS firmware %s\n", NVADSP_FIRMWARE);
+	dev_info(dev, "Loading ADSP OS firmware %s\n", drv_data->adsp_elf);
 
 	ret = nvadsp_os_elf_load(fw);
 	if (ret) {
-		dev_err(dev, "failed to load %s\n", NVADSP_FIRMWARE);
+		dev_err(dev, "failed to load %s\n", drv_data->adsp_elf);
 		goto deallocate_os_memory;
 	}
 
@@ -1981,7 +1978,8 @@ static void __nvadsp_os_stop(bool reload)
 		logger->ram_iter = 0;
 		/* load a fresh copy of adsp.elf */
 		if (nvadsp_os_elf_load(fw))
-			dev_err(dev, "failed to reload %s\n", NVADSP_FIRMWARE);
+			dev_err(dev, "failed to reload %s\n",
+				drv_data->adsp_elf);
 	}
 
  end:

@@ -3,7 +3,7 @@
  *
  * A header file for Host driver for ADSP and APE
  *
- * Copyright (C) 2014-2021, NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2014-2022, NVIDIA Corporation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -103,6 +103,9 @@ enum adsp_unit_fpga_reset {
 #define FREQ2ICC(x) 0UL
 #endif
 #endif
+
+#define NVADSP_ELF     "adsp.elf"
+#define MAX_FW_STR     30
 
 enum nvadsp_virqs {
 	MBOX_SEND_VIRQ,
@@ -248,6 +251,9 @@ struct nvadsp_drv_data {
 
 	/* "nvidia,adsp_load_timeout" (in ms) */
 	u32 adsp_load_timeout;
+
+	/* "nvidia,adsp_elf" (FW for backdoor boot) */
+	char adsp_elf[MAX_FW_STR];
 };
 
 #define ADSP_CONFIG	0x04

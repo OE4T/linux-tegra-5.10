@@ -263,6 +263,7 @@ static int __init nvadsp_parse_dt(struct platform_device *pdev)
 {
 	struct nvadsp_drv_data *drv_data = platform_get_drvdata(pdev);
 	struct device *dev = &pdev->dev;
+	const char *adsp_elf;
 	u32 *adsp_reset;
 	u32 *adsp_mem;
 	int iter;
@@ -286,6 +287,12 @@ static int __init nvadsp_parse_dt(struct platform_device *pdev)
 			return -EINVAL;
 		}
 	}
+
+	if (!of_property_read_string(dev->of_node,
+				"nvidia,adsp_elf", &adsp_elf))
+		strcpy(drv_data->adsp_elf, adsp_elf);
+	else
+		strcpy(drv_data->adsp_elf, NVADSP_ELF);
 
 	drv_data->adsp_unit_fpga = of_property_read_bool(dev->of_node,
 				"nvidia,adsp_unit_fpga");
