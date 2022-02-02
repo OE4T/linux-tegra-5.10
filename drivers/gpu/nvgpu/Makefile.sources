@@ -1,6 +1,6 @@
 # -*- mode: makefile -*-
 #
-# Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2018-2022, NVIDIA CORPORATION.  All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -501,6 +501,7 @@ endif
 
 ifeq ($(CONFIG_NVGPU_LS_PMU),1)
 # Add LS PMU files which are required for normal build
+ifeq ($(CONFIG_NVGPU_DGPU),1)
 srcs += \
 	common/pmu/boardobj/boardobj.c \
 	common/pmu/boardobj/boardobjgrp.c \
@@ -514,6 +515,24 @@ srcs += \
 	common/pmu/clk/clk_prog.c \
 	common/pmu/clk/clk_vf_point.c \
 	common/pmu/clk/clk_vin.c \
+	common/pmu/perf/vfe_equ.c \
+	common/pmu/perf/vfe_var.c \
+	common/pmu/perf/perf.c \
+	common/pmu/perf/pstate.c \
+	common/pmu/perf/change_seq.c \
+	common/pmu/pmgr/pmgr.c \
+	common/pmu/pmgr/pmgrpmu.c \
+	common/pmu/pmgr/pwrdev.c \
+	common/pmu/pmgr/pwrmonitor.c \
+	common/pmu/pmgr/pwrpolicy.c \
+	common/pmu/therm/thrm.c \
+	common/pmu/therm/therm_channel.c \
+	common/pmu/therm/therm_dev.c \
+	common/pmu/volt/volt_dev.c \
+	common/pmu/volt/volt_policy.c \
+	common/pmu/volt/volt_rail.c
+endif
+srcs += \
 	common/pmu/fw/fw.c \
 	common/pmu/fw/fw_ver_ops.c \
 	common/pmu/fw/fw_ns_bootstrap.c \
@@ -527,27 +546,11 @@ srcs += \
 	common/pmu/lsfm/lsfm_sw_gp10b.c \
 	common/pmu/lsfm/lsfm_sw_gv100.c \
 	common/pmu/lsfm/lsfm_sw_tu104.c \
-	common/pmu/perf/vfe_equ.c \
-	common/pmu/perf/vfe_var.c \
-	common/pmu/perf/perf.c \
-	common/pmu/perf/pstate.c \
-	common/pmu/perf/change_seq.c \
 	common/pmu/perfmon/pmu_perfmon.c \
 	common/pmu/perfmon/pmu_perfmon_sw_gm20b.c \
 	common/pmu/perfmon/pmu_perfmon_sw_gv11b.c \
 	common/pmu/perfmon/pmu_perfmon_sw_ga10b.c \
-	common/pmu/pmgr/pmgr.c \
-	common/pmu/pmgr/pmgrpmu.c \
-	common/pmu/pmgr/pwrdev.c \
-	common/pmu/pmgr/pwrmonitor.c \
-	common/pmu/pmgr/pwrpolicy.c \
 	common/pmu/super_surface/super_surface.c \
-	common/pmu/therm/thrm.c \
-	common/pmu/therm/therm_channel.c \
-	common/pmu/therm/therm_dev.c \
-	common/pmu/volt/volt_dev.c \
-	common/pmu/volt/volt_policy.c \
-	common/pmu/volt/volt_rail.c \
 	common/pmu/allocator.c \
 	common/pmu/pmu_debug.c \
 	common/pmu/pmu_mutex.c \

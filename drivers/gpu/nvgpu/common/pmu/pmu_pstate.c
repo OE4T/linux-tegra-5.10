@@ -39,6 +39,7 @@
 
 void nvgpu_pmu_pstate_deinit(struct gk20a *g)
 {
+#ifdef CONFIG_NVGPU_DGPU
 	pmgr_pmu_free_pmupstate(g);
 	nvgpu_pmu_therm_deinit(g, g->pmu);
 
@@ -51,12 +52,14 @@ void nvgpu_pmu_pstate_deinit(struct gk20a *g)
 	}
 
 	nvgpu_pmu_clk_deinit(g);
+#endif
 
 	if (g->ops.clk.mclk_deinit != NULL) {
 		g->ops.clk.mclk_deinit(g);
 	}
 }
 
+#ifdef CONFIG_NVGPU_DGPU
 static int pmu_pstate_init(struct gk20a *g)
 {
 	int err;
@@ -92,6 +95,7 @@ static int pmu_pstate_init(struct gk20a *g)
 
 	return 0;
 }
+#endif
 
 /*sw setup for pstate components*/
 int nvgpu_pmu_pstate_sw_setup(struct gk20a *g)
@@ -104,7 +108,7 @@ int nvgpu_pmu_pstate_sw_setup(struct gk20a *g)
 		nvgpu_err(g, "PMU not ready to process pstate requests");
 		return err;
 	}
-
+#ifdef CONFIG_NVGPU_DGPU
 	err = pmu_pstate_init(g);
 	if (err != 0) {
 		nvgpu_err(g, "Pstate init failed");
@@ -140,16 +144,18 @@ int nvgpu_pmu_pstate_sw_setup(struct gk20a *g)
 			goto err_pmgr_pmu_init_pmupstate;
 		}
 	}
+#endif
 
 	return 0;
 
+#ifdef CONFIG_NVGPU_DGPU
 err_pmgr_pmu_init_pmupstate:
 	pmgr_pmu_free_pmupstate(g);
 err_therm_pmu_init_pmupstate:
 	nvgpu_pmu_therm_deinit(g, g->pmu);
 err_perf_pmu_init_pmupstate:
 	nvgpu_pmu_perf_deinit(g);
-
+#endif
 	return err;
 }
 
@@ -167,6 +173,7 @@ int nvgpu_pmu_pstate_pmu_setup(struct gk20a *g)
 		}
 	}
 
+#ifdef CONFIG_NVGPU_DGPU
 	err = nvgpu_pmu_volt_pmu_setup(g);
 	if (err != 0) {
 		nvgpu_err(g, "Failed to send VOLT pmu setup");
@@ -196,6 +203,7 @@ int nvgpu_pmu_pstate_pmu_setup(struct gk20a *g)
 			return err;
 		}
 	}
+#endif
 
 	err = g->ops.clk.perf_pmu_vfe_load(g);
 	if (err != 0) {
