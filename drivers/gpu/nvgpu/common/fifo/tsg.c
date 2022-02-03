@@ -188,6 +188,11 @@ int nvgpu_tsg_bind_domain(struct nvgpu_tsg *tsg, u64 domain_id)
 		return -ENOENT;
 	}
 
+	/* Release the default domain ref that was implicitly taken at open */
+	if (tsg->nvs_domain != NULL) {
+		nvgpu_nvs_domain_put(g, tsg->nvs_domain);
+	}
+
 	tsg->rl_domain = rl_domain;
 	tsg->nvs_domain = nvs_domain;
 
