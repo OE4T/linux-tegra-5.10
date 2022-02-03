@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -16,11 +16,7 @@
 
 /*
  * This file contains list of SMMU Stream IDs used in Tegra234.
- * There is duplicate copy of this file present in
- * kernel/nvidia-t23x/include/dt-bindings/memory/tegra234-smmu-streamid.h
- * make sure to update both to keep it in sync.
  */
-
 
 #ifndef _DT_BINDINGS_MEMORY_TEGRA234_SMMU_STREAMID_H
 #define _DT_BINDINGS_MEMORY_TEGRA234_SMMU_STREAMID_H
@@ -157,6 +153,22 @@
 /* Additional APE stream-ids */
 #define TEGRA_SID_NISO0_APE_2		0x5EU
 #define TEGRA_SID_NISO0_APE_3		0x5FU
+
+/* UFS virtual SIDs for storage clients (extra SIDs) */
+#define TEGRA_SID_NISO0_UFS_7		0x60
+#define TEGRA_SID_NISO0_UFS_8		0x61
+#define TEGRA_SID_NISO0_UFS_9		0x62
+#define TEGRA_SID_NISO0_UFS_10		0x63
+#define TEGRA_SID_NISO0_UFS_11		0x64
+#define TEGRA_SID_NISO0_UFS_12		0x65
+#define TEGRA_SID_NISO0_UFS_13		0x66
+#define TEGRA_SID_NISO0_UFS_14		0x67
+#define TEGRA_SID_NISO0_UFS_15		0x68
+#define TEGRA_SID_NISO0_UFS_16		0x69
+#define TEGRA_SID_NISO0_UFS_17		0x6A
+#define TEGRA_SID_NISO0_UFS_18		0x6B
+#define TEGRA_SID_NISO0_UFS_19		0x6C
+#define TEGRA_SID_NISO0_UFS_20		0x6D
 
 /*
  ********* NISO1 SMMU STREAM IDs **********
