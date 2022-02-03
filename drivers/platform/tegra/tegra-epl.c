@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -109,7 +109,7 @@ class_fail:
 static void tegra_hsp_tx_empty_notify(struct mbox_client *cl,
 					 void *data, int empty_value)
 {
-	pr_err("EPL: TX empty callback came\n");
+	pr_debug("EPL: TX empty callback came\n");
 }
 
 static int tegra_hsp_mb_init(struct device *dev)
@@ -148,7 +148,6 @@ static ssize_t device_file_ioctl(
 {
 	uint32_t lData[MAX_LEN];
 	int ret;
-	u64 cval;
 
 	if (copy_from_user(lData, (uint8_t *)arg,
 				 MAX_LEN * sizeof(uint32_t)))
@@ -157,8 +156,6 @@ static ssize_t device_file_ioctl(
 	switch (cmd) {
 
 	case EPL_REPORT_ERROR_CMD:
-		asm volatile("mrs %0, cntvct_el0" : "=r" (cval));
-		memcpy(&lData[2], &cval, sizeof(uint64_t));
 		ret = mbox_send_message(epl_hsp_v->tx.chan,
 						(void *) lData);
 		break;
