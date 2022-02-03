@@ -31,9 +31,9 @@
 #include "t194/hardware_t194.h"
 #endif
 
-#include "nvdla/nvdla.h"
-#include "nvdla/dla_queue.h"
-#include "nvdla/nvdla_debug.h"
+#include "nvdla.h"
+#include "dla_queue.h"
+#include "nvdla_debug.h"
 #include "dla_os_interface.h"
 
 #define NVDLA_QUEUE_ABORT_TIMEOUT	10000	/* 10 sec */

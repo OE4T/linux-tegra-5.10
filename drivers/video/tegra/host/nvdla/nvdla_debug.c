@@ -24,7 +24,7 @@
 #include <linux/version.h>
 
 #include "dla_os_interface.h"
-#include "nvdla/nvdla.h"
+#include "nvdla.h"
 #include "nvdla_debug.h"
 
 /*

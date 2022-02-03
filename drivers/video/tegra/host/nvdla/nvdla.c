@@ -29,15 +29,15 @@
 #include <linux/version.h>
 #include <linux/nvmem-consumer.h>
 #include <soc/tegra/fuse-helper.h>
-
-#include "nvdla/nvdla.h"
-#include "nvdla/nvdla_hw_flcn.h"
-#include "nvdla/nvdla_t194.h"
-#include "nvdla/nvdla_t234.h"
-#include "nvdla/dla_queue.h"
-#include "nvdla/nvdla_buffer.h"
-#include "nvdla/nvdla_debug.h"
 #include <uapi/linux/nvhost_nvdla_ioctl.h>
+
+#include "nvdla.h"
+#include "nvdla_hw_flcn.h"
+#include "nvdla_t194.h"
+#include "nvdla_t234.h"
+#include "dla_queue.h"
+#include "nvdla_buffer.h"
+#include "nvdla_debug.h"
 #include "dla_os_interface.h"
 
 /*

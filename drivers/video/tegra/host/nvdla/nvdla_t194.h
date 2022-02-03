@@ -9,9 +9,9 @@
 #include <linux/nvhost.h>
 #include <linux/platform/tegra/emc_bwmgr.h>
 
-#include "nvdla/nvdla.h"
-#include "nvdla/nvdla_cg_regs.h"
-#include "nvdla/dla_t19x_fw_version.h"
+#include "nvdla.h"
+#include "nvdla_cg_regs.h"
+#include "dla_t19x_fw_version.h"
 
 struct nvhost_device_data t19_nvdla0_info = {
 	.devfs_name_family	= "nvdla",

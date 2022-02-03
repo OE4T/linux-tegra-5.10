@@ -9,9 +9,9 @@
 #include <linux/nvhost.h>
 #include <dt-bindings/interconnect/tegra_icc_id.h>
 
-#include "nvdla/nvdla.h"
-#include "nvdla/nvdla_cg_regs.h"
-#include "nvdla/dla_t23x_fw_version.h"
+#include "nvdla.h"
+#include "nvdla_cg_regs.h"
+#include "dla_t23x_fw_version.h"
 
 struct nvhost_device_data t23x_nvdla0_info = {
 	.devfs_name_family	= "nvdla",

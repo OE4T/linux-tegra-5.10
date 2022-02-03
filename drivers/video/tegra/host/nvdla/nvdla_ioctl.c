@@ -23,10 +23,10 @@
 #include <linux/dma-mapping.h>
 #include <linux/uaccess.h>
 
-#include "nvdla/nvdla.h"
-#include "nvdla/dla_queue.h"
-#include "nvdla/nvdla_buffer.h"
-#include "nvdla/nvdla_debug.h"
+#include "nvdla.h"
+#include "dla_queue.h"
+#include "nvdla_buffer.h"
+#include "nvdla_debug.h"
 
 #include <uapi/linux/nvdev_fence.h>
 #include <uapi/linux/nvhost_ioctl.h>
