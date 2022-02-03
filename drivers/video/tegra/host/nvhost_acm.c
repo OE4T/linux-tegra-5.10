@@ -766,6 +766,7 @@ static ssize_t clk_cap_store(struct kobject *kobj,
 {
 	struct nvhost_device_data *pdata =
 		container_of(kobj, struct nvhost_device_data, clk_cap_kobj);
+	struct platform_device *pdev = pdata->pdev;
 	/* i is indeed 'index' here after type conversion */
 	int ret, i = attr - pdata->clk_cap_attrs;
 	struct clk *clk = pdata->clk[i];
@@ -786,6 +787,10 @@ static ssize_t clk_cap_store(struct kobject *kobj,
 		freq_cap = (unsigned long)freq_cap_signed;
 	/* Apply new freq cap */
 	ret = clk_set_max_rate(clk, freq_cap);
+	if (ret < 0)
+		return ret;
+
+	ret = nvhost_module_update_rate(pdev, i);
 	if (ret < 0)
 		return ret;
 
