@@ -423,15 +423,16 @@ ifeq ($(CONFIG_NVGPU_GSP_SCHEDULER),y)
 nvgpu-$(CONFIG_NVGPU_GSP_SCHEDULER) += \
 	common/gsp/gsp_init.o \
 	common/gsp/gsp_bootstrap.o \
-	common/gsp/ipc/gsp_seq.o \
-	common/gsp/ipc/gsp_queue.o \
-	common/gsp/ipc/gsp_cmd.o \
-	common/gsp/ipc/gsp_msg.o
+	common/gsp_scheduler/ipc/gsp_seq.o \
+	common/gsp_scheduler/ipc/gsp_queue.o \
+	common/gsp_scheduler/ipc/gsp_cmd.o \
+	common/gsp_scheduler/ipc/gsp_msg.o \
+	common/gsp_scheduler/gsp_scheduler.o
 endif
 
 ifeq ($(CONFIG_NVGPU_GSP_STRESS_TEST),y)
 nvgpu-$(CONFIG_NVGPU_GSP_STRESS_TEST) += \
-	common/gsp/gsp_test.o
+	common/gsp_test/gsp_test.o
 endif
 
 # Linux specific parts of nvgpu.

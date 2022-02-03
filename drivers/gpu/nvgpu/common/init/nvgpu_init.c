@@ -44,6 +44,10 @@
 #include <nvgpu/power_features/cg.h>
 #ifdef CONFIG_NVGPU_GSP_SCHEDULER
 #include <nvgpu/gsp.h>
+#include <nvgpu/gsp_sched.h>
+#endif
+#ifdef CONFIG_NVGPU_GSP_STRESS_TEST
+#include <nvgpu/gsp/gsp_test.h>
 #endif
 #include <nvgpu/pm_reservation.h>
 #include <nvgpu/netlist.h>
@@ -346,6 +350,7 @@ int nvgpu_prepare_poweroff(struct gk20a *g)
 		ret = tmp_ret;
 	}
 
+#ifndef CONFIG_NVGPU_DGPU
 #ifdef CONFIG_NVGPU_GSP_STRESS_TEST
 	tmp_ret = nvgpu_gsp_stress_test_halt(g, true);
 	if (tmp_ret != 0) {
@@ -353,8 +358,9 @@ int nvgpu_prepare_poweroff(struct gk20a *g)
 		nvgpu_err(g, "Failed to halt GSP stress test");
 	}
 #endif
-#if defined(CONFIG_NVGPU_GSP_SCHEDULER)
-	nvgpu_gsp_suspend(g);
+#ifdef CONFIG_NVGPU_GSP_SCHEDULER
+	nvgpu_gsp_sched_suspend(g, g->gsp_sched);
+#endif
 #endif
 
 	nvgpu_falcons_sw_free(g);
@@ -948,9 +954,14 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 #endif
 		NVGPU_INIT_TABLE_ENTRY(g->ops.channel.resume_all_serviceable_ch,
 				       NO_FLAG),
-#if defined(CONFIG_NVGPU_GSP_SCHEDULER) || defined(CONFIG_NVGPU_GSP_STRESS_TEST)
+#ifndef CONFIG_NVGPU_DGPU
+#ifdef CONFIG_NVGPU_GSP_SCHEDULER
 		/* Init gsp ops */
-		NVGPU_INIT_TABLE_ENTRY(&nvgpu_gsp_sw_init, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_gsp_sched_sw_init, NO_FLAG),
+#endif
+#ifdef CONFIG_NVGPU_GSP_STRESS_TEST
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_gsp_stress_test_sw_init, NO_FLAG),
+#endif
 #endif
 	};
 	size_t i;

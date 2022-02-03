@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,12 +20,40 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_GSP_BOOTSTRAP
-#define NVGPU_GSP_BOOTSTRAP
-struct nvgpu_gsp;
+#ifndef NVGPU_GSP_CMD_IF_H
+#define NVGPU_GSP_CMD_IF_H
 
-#define GSP_UCODE_SIZE_MAX	(256U * 1024U)
+#include <nvgpu/types.h>
+#include "gsp_seq.h"
 
-int gsp_bootstrap_ns(struct gk20a *g, struct nvgpu_gsp *gsp);
+struct gk20a;
 
-#endif /* NVGPU_GSP_BOOTSTRAP */
+#define GSP_NV_CMDQ_LOG_ID		0U
+#define GSP_NV_CMDQ_LOG_ID__LAST	0U
+#define GSP_NV_MSGQ_LOG_ID		1U
+
+#define  NV_GSP_UNIT_REWIND		NV_FLCN_UNIT_ID_REWIND
+#define  NV_GSP_UNIT_NULL		0x01U
+#define  NV_GSP_UNIT_INIT		0x02U
+#define  NV_GSP_UNIT_END		0x0AU
+
+#define GSP_MSG_HDR_SIZE	U32(sizeof(struct gsp_hdr))
+#define GSP_CMD_HDR_SIZE	U32(sizeof(struct gsp_hdr))
+
+struct gsp_hdr {
+	u8 unit_id;
+	u8 size;
+	u8 ctrl_flags;
+	u8 seq_id;
+};
+
+struct nv_flcn_cmd_gsp {
+	struct gsp_hdr hdr;
+};
+
+u8 gsp_unit_id_is_valid(u8 id);
+/* command handling methods*/
+int nvgpu_gsp_cmd_post(struct gk20a *g, struct nv_flcn_cmd_gsp *cmd,
+	u32 queue_id, gsp_callback callback, void *cb_param, u32 timeout);
+
+#endif /* NVGPU_GSP_CMD_IF_H */

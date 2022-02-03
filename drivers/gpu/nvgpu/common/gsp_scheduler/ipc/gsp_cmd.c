@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,7 +25,7 @@
 #include <nvgpu/log.h>
 #include <nvgpu/gsp.h>
 
-#include "../gsp_priv.h"
+#include "../gsp_scheduler.h"
 #include "gsp_seq.h"
 #include "gsp_queue.h"
 #include "gsp_cmd.h"
@@ -35,10 +35,10 @@ u8 gsp_unit_id_is_valid(u8 id)
 	return (id < NV_GSP_UNIT_END);
 }
 
-static bool gsp_validate_cmd(struct nvgpu_gsp *gsp,
+static bool gsp_validate_cmd(struct nvgpu_gsp_sched *gsp_sched,
 	struct nv_flcn_cmd_gsp *cmd, u32 queue_id)
 {
-	struct gk20a *g = gsp->g;
+	struct gk20a *g = gsp_sched->gsp->g;
 	u32 queue_size;
 
 	if (queue_id != GSP_NV_CMDQ_LOG_ID) {
@@ -49,7 +49,7 @@ static bool gsp_validate_cmd(struct nvgpu_gsp *gsp,
 		goto invalid_cmd;
 	}
 
-	queue_size = nvgpu_gsp_queue_get_size(gsp->queues, queue_id);
+	queue_size = nvgpu_gsp_queue_get_size(gsp_sched->queues, queue_id);
 
 	if (cmd->hdr.size > (queue_size >> 1)) {
 		goto invalid_cmd;
@@ -69,12 +69,13 @@ invalid_cmd:
 	return false;
 }
 
-static int gsp_write_cmd(struct nvgpu_gsp *gsp,
+static int gsp_write_cmd(struct nvgpu_gsp_sched *gsp_sched,
 	struct nv_flcn_cmd_gsp *cmd, u32 queue_id,
 	u32 timeout_ms)
 {
 	struct nvgpu_timeout timeout;
-	struct gk20a *g = gsp->g;
+	struct gk20a *g = gsp_sched->gsp->g;
+	struct nvgpu_gsp *gsp = gsp_sched->gsp;
 	int err;
 
 	nvgpu_log_fn(g, " ");
@@ -82,7 +83,7 @@ static int gsp_write_cmd(struct nvgpu_gsp *gsp,
 	nvgpu_timeout_init_cpu_timer(g, &timeout, timeout_ms);
 
 	do {
-		err = nvgpu_gsp_queue_push(gsp->queues, queue_id, gsp->gsp_flcn,
+		err = nvgpu_gsp_queue_push(gsp_sched->queues, queue_id, gsp->gsp_flcn,
 					    cmd, cmd->hdr.size);
 		if ((err == -EAGAIN) &&
 		    (nvgpu_timeout_expired(&timeout) == 0)) {
@@ -103,7 +104,7 @@ int nvgpu_gsp_cmd_post(struct gk20a *g, struct nv_flcn_cmd_gsp *cmd,
 	u32 queue_id, gsp_callback callback,
 	void *cb_param, u32 timeout)
 {
-	struct nvgpu_gsp *gsp = g->gsp;
+	struct nvgpu_gsp_sched *gsp_sched = g->gsp_sched;
 	struct gsp_sequence *seq = NULL;
 	int err = 0;
 
@@ -114,13 +115,13 @@ int nvgpu_gsp_cmd_post(struct gk20a *g, struct nv_flcn_cmd_gsp *cmd,
 	}
 
 	/* Sanity check the command input. */
-	if (!gsp_validate_cmd(gsp, cmd, queue_id)) {
+	if (!gsp_validate_cmd(gsp_sched, cmd, queue_id)) {
 		err = -EINVAL;
 		goto exit;
 	}
 
 	/* Attempt to reserve a sequence for this command. */
-	err = nvgpu_gsp_seq_acquire(g, gsp->sequences, &seq,
+	err = nvgpu_gsp_seq_acquire(g, gsp_sched->sequences, &seq,
 			callback, cb_param);
 	if (err != 0) {
 		goto exit;
@@ -134,9 +135,9 @@ int nvgpu_gsp_cmd_post(struct gk20a *g, struct nv_flcn_cmd_gsp *cmd,
 
 	nvgpu_gsp_seq_set_state(seq, GSP_SEQ_STATE_USED);
 
-	err = gsp_write_cmd(gsp, cmd, queue_id, timeout);
+	err = gsp_write_cmd(gsp_sched, cmd, queue_id, timeout);
 	if (err != 0) {
-		gsp_seq_release(gsp->sequences, seq);
+		gsp_seq_release(gsp_sched->sequences, seq);
 	}
 
 exit:

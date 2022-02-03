@@ -30,6 +30,9 @@
 #include <nvgpu/cic_mon.h>
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/gr/gr_instances.h>
+#ifdef CONFIG_NVGPU_GSP_SCHEDULER
+#include <nvgpu/gsp.h>
+#endif
 
 #include "mc_intr_ga10b.h"
 
@@ -703,7 +706,7 @@ static void ga10b_intr_isr_stall_host2soc_2(struct gk20a *g)
 				&unit_subtree_mask) == true) {
 		handled_subtree_mask |= unit_subtree_mask;
 		ga10b_intr_subtree_clear(g, subtree, unit_subtree_mask);
-		g->ops.gsp.gsp_isr(g);
+		nvgpu_gsp_isr(g);
 	}
 #endif /* CONFIG_NVGPU_GSP_SCHEDULER */
 

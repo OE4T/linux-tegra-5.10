@@ -93,6 +93,10 @@
 
 #ifdef CONFIG_NVGPU_GSP_SCHEDULER
 #include "nvgpu/gsp.h"
+#include "nvgpu/gsp_sched.h"
+#endif
+#ifdef CONFIG_NVGPU_GSP_STRESS_TEST
+#include "nvgpu/gsp/gsp_test.h"
 #endif
 
 #ifdef CONFIG_NVGPU_SUPPORT_CDE
@@ -1063,8 +1067,13 @@ void gk20a_remove_support(struct gk20a *g)
 	nvgpu_free_cyclestats_snapshot_data(g);
 #endif
 
+#ifndef CONFIG_NVGPU_DGPU
 #ifdef CONFIG_NVGPU_GSP_SCHEDULER
-	nvgpu_gsp_sw_deinit(g);
+	nvgpu_gsp_sched_sw_deinit(g);
+#endif
+#ifdef CONFIG_NVGPU_GSP_STRESS_TEST
+	nvgpu_gsp_test_sw_deinit(g);
+#endif
 #endif
 
 	nvgpu_fbp_remove_support(g);

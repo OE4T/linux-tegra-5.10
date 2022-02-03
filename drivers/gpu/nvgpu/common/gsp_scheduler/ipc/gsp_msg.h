@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,55 +20,56 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_GSP_PRIV
-#define NVGPU_GSP_PRIV
+#ifndef NVGPU_GSP_MSG_H
+#define NVGPU_GSP_MSG_H
 
-#include <nvgpu/lock.h>
-#include <nvgpu/nvgpu_mem.h>
+#include <nvgpu/types.h>
+#include <nvgpu/gsp.h>
 
-#define GSP_DEBUG_BUFFER_QUEUE	3U
-#define GSP_DMESG_BUFFER_SIZE	0xC00U
+#include "gsp_cmd.h"
+#include "../gsp_scheduler.h"
 
-#define GSP_QUEUE_NUM	2U
+struct nvgpu_gsp;
 
-struct gsp_fw {
-	/* gsp ucode */
-	struct nvgpu_firmware *code;
-	struct nvgpu_firmware *data;
-	struct nvgpu_firmware *manifest;
+#define GSP_CMD_FLAGS_MASK		U8(0xF0U)
+#define GSP_CMD_FLAGS_STATUS		BIT8(0U)
+#define GSP_CMD_FLAGS_INTR		BIT8(1U)
+#define GSP_CMD_FLAGS_EVENT		BIT8(2U)
+#define GSP_CMD_FLAGS_RPC_EVENT		BIT8(3U)
+
+#define GSP_DMEM_ALLOC_ALIGNMENT	32U
+#define GSP_DMEM_ALIGNMENT		4U
+
+enum {
+	NV_GSP_INIT_MSG_ID_GSP_INIT = 0U,
 };
 
-#ifdef CONFIG_NVGPU_GSP_STRESS_TEST
-struct gsp_stress_test {
-	bool load_stress_test;
-	bool enable_stress_test;
-	bool stress_test_fail_status;
-	u32 test_iterations;
-	u32 test_name;
-	struct nvgpu_mem gsp_test_sysmem_block;
+struct gsp_init_msg_gsp_init {
+	u8 msg_type;
+	u8 num_queues;
+
+	struct {
+		u32 queue_offset;
+		u16 queue_size;
+		u8  queue_phy_id;
+		u8  queue_log_id;
+	} q_info[GSP_QUEUE_NUM];
 };
-#endif
-/* GSP descriptor's */
-struct nvgpu_gsp {
-	struct gk20a *g;
 
-	struct gsp_fw gsp_ucode;
-	struct nvgpu_falcon *gsp_flcn;
-
-	bool isr_enabled;
-	struct nvgpu_mutex isr_mutex;
-
-	struct gsp_sequences *sequences;
-
-	struct nvgpu_engine_mem_queue *queues[GSP_QUEUE_NUM];
-
-	u32 command_ack;
-
-	/* set to true once init received */
-	bool gsp_ready;
-
-#ifdef CONFIG_NVGPU_GSP_STRESS_TEST
-	struct gsp_stress_test gsp_test;
-#endif
+union nv_flcn_msg_gsp_init {
+	u8 msg_type;
+	struct gsp_init_msg_gsp_init gsp_init;
 };
-#endif /* NVGPU_GSP_PRIV */
+
+
+struct nv_flcn_msg_gsp {
+	struct gsp_hdr hdr;
+	union {
+		union nv_flcn_msg_gsp_init init;
+	} msg;
+};
+
+int nvgpu_gsp_wait_message_cond(struct gk20a *g, u32 timeout_ms,
+	void *var, u8 val);
+
+#endif /* NVGPU_GSP_MSG_H */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,40 +20,30 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_GSP_CMD_IF_H
-#define NVGPU_GSP_CMD_IF_H
+#ifndef GSP_SCHEDULER_H
+#define GSP_SCHEDULER_H
 
-#include <nvgpu/types.h>
-#include "gsp_seq.h"
+#define GSP_SCHED_DEBUG_BUFFER_QUEUE	3U
+#define GSP_SCHED_DMESG_BUFFER_SIZE		0x1000U
 
-struct gk20a;
+#define GSP_QUEUE_NUM	2U
 
-#define GSP_NV_CMDQ_LOG_ID		0U
-#define GSP_NV_CMDQ_LOG_ID__LAST	0U
-#define GSP_NV_MSGQ_LOG_ID		1U
+#define GSP_DBG_RISCV_FW_MANIFEST  "sample-gsp.manifest.encrypt.bin.out.bin"
+#define GSP_DBG_RISCV_FW_CODE      "sample-gsp.text.encrypt.bin"
+#define GSP_DBG_RISCV_FW_DATA      "sample-gsp.data.encrypt.bin"
 
-#define  NV_GSP_UNIT_REWIND		NV_FLCN_UNIT_ID_REWIND
-#define  NV_GSP_UNIT_NULL		0x01U
-#define  NV_GSP_UNIT_INIT		0x02U
-#define  NV_GSP_UNIT_END		0x0AU
+/* GSP descriptor's */
+struct nvgpu_gsp_sched {
+	struct nvgpu_gsp *gsp;
 
-#define GSP_MSG_HDR_SIZE	U32(sizeof(struct gsp_hdr))
-#define GSP_CMD_HDR_SIZE	U32(sizeof(struct gsp_hdr))
+	struct gsp_sequences *sequences;
 
-struct gsp_hdr {
-	u8 unit_id;
-	u8 size;
-	u8 ctrl_flags;
-	u8 seq_id;
+	struct nvgpu_engine_mem_queue *queues[GSP_QUEUE_NUM];
+
+	u32 command_ack;
+
+	/* set to true once init received */
+	bool gsp_ready;
 };
 
-struct nv_flcn_cmd_gsp {
-	struct gsp_hdr hdr;
-};
-
-u8 gsp_unit_id_is_valid(u8 id);
-/* command handling methods*/
-int nvgpu_gsp_cmd_post(struct gk20a *g, struct nv_flcn_cmd_gsp *cmd,
-	u32 queue_id, gsp_callback callback, void *cb_param, u32 timeout);
-
-#endif /* NVGPU_GSP_CMD_IF_H */
+#endif /* GSP_SCHEDULER_H */

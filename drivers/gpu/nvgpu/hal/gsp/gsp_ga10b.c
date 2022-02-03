@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -177,7 +177,7 @@ void ga10b_gsp_handle_interrupts(struct gk20a *g, u32 intr)
 	}
 }
 
-void ga10b_gsp_isr(struct gk20a *g)
+void ga10b_gsp_isr(struct gk20a *g, struct nvgpu_gsp *gsp)
 {
 	u32 intr = 0U;
 	u32 mask = 0U;
@@ -189,8 +189,8 @@ void ga10b_gsp_isr(struct gk20a *g)
 		return;
 	}
 
-	nvgpu_gsp_isr_mutex_aquire(g);
-	if (!nvgpu_gsp_is_isr_enable(g)) {
+	nvgpu_gsp_isr_mutex_acquire(g, gsp);
+	if (!nvgpu_gsp_is_isr_enable(g, gsp)) {
 		goto exit;
 	}
 
@@ -212,69 +212,21 @@ void ga10b_gsp_isr(struct gk20a *g)
 	ga10b_gsp_handle_interrupts(g, intr);
 
 exit:
-	nvgpu_gsp_isr_mutex_release(g);
-}
-
-static void ga10b_riscv_set_irq(struct gk20a *g, bool set_irq,
-		u32 intr_mask, u32 intr_dest)
-{
-	if (set_irq) {
-		gk20a_writel(g, pgsp_riscv_irqmset_r(), intr_mask);
-		gk20a_writel(g, pgsp_riscv_irqdest_r(), intr_dest);
-	} else {
-		gk20a_writel(g, pgsp_riscv_irqmclr_r(), 0xffffffffU);
-	}
+	nvgpu_gsp_isr_mutex_release(g, gsp);
 }
 
 void ga10b_gsp_enable_irq(struct gk20a *g, bool enable)
 {
-	u32 intr_mask;
-	u32 intr_dest;
-	bool skip_priv = false;
-
 	nvgpu_log_fn(g, " ");
-
-#ifdef CONFIG_NVGPU_GSP_STRESS_TEST
-	if (nvgpu_gsp_is_stress_test(g))
-		skip_priv = true;
-#endif
-
-	/* clear before setting required irq */
-	if ((!skip_priv) || (!enable))
-		ga10b_riscv_set_irq(g, false, 0x0, 0x0);
 
 	nvgpu_cic_mon_intr_stall_unit_config(g,
 			NVGPU_CIC_INTR_UNIT_GSP, NVGPU_CIC_INTR_DISABLE);
 
 	if (enable) {
-		if (!skip_priv) {
-			/* dest 0=falcon, 1=host; level 0=irq0, 1=irq1 */
-			intr_dest = pgsp_riscv_irqdest_gptmr_f(0)    |
-				pgsp_riscv_irqdest_wdtmr_f(1)    |
-				pgsp_riscv_irqdest_mthd_f(0)     |
-				pgsp_riscv_irqdest_ctxsw_f(0)    |
-				pgsp_riscv_irqdest_halt_f(1)     |
-				pgsp_riscv_irqdest_exterr_f(0)   |
-				pgsp_riscv_irqdest_swgen0_f(1)   |
-				pgsp_riscv_irqdest_swgen1_f(1)   |
-				pgsp_riscv_irqdest_ext_f(0xff);
-
-			/* 0=disable, 1=enable */
-			intr_mask = pgsp_riscv_irqmset_gptmr_f(1)  |
-				pgsp_riscv_irqmset_wdtmr_f(1)  |
-				pgsp_riscv_irqmset_mthd_f(0)   |
-				pgsp_riscv_irqmset_ctxsw_f(0)  |
-				pgsp_riscv_irqmset_halt_f(1)   |
-				pgsp_riscv_irqmset_exterr_f(1) |
-				pgsp_riscv_irqmset_swgen0_f(1) |
-				pgsp_riscv_irqmset_swgen1_f(1);
-
-			/* set required irq */
-			ga10b_riscv_set_irq(g, true, intr_mask, intr_dest);
-		}
-
 		nvgpu_cic_mon_intr_stall_unit_config(g,
 				NVGPU_CIC_INTR_UNIT_GSP, NVGPU_CIC_INTR_ENABLE);
+
+		/* Configuring RISCV interrupts is expected to be done inside firmware */
 	}
 }
 

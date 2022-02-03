@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -56,7 +56,7 @@ struct gsp_sequences {
 	struct nvgpu_mutex gsp_seq_lock;
 };
 
-int nvgpu_gsp_sequences_init(struct gk20a *g, struct nvgpu_gsp *gsp);
+int nvgpu_gsp_sequences_init(struct gk20a *g, struct nvgpu_gsp_sched *gsp_sched);
 void nvgpu_gsp_sequences_free(struct gk20a *g,
 			struct gsp_sequences *sequences);
 int nvgpu_gsp_seq_acquire(struct gk20a *g,

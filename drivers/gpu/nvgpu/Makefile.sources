@@ -181,10 +181,15 @@ srcs +=	common/device.c \
 ifeq ($(CONFIG_NVGPU_GSP_SCHEDULER),1)
 srcs += common/gsp/gsp_init.c \
 	common/gsp/gsp_bootstrap.c \
-	common/gsp/ipc/gsp_seq.c \
-	common/gsp/ipc/gsp_queue.c \
-	common/gsp/ipc/gsp_cmd.c \
-	common/gsp/ipc/gsp_msg.c
+	common/gsp_scheduler/ipc/gsp_seq.c \
+	common/gsp_scheduler/ipc/gsp_queue.c \
+	common/gsp_scheduler/ipc/gsp_cmd.c \
+	common/gsp_scheduler/ipc/gsp_msg.c \
+	common/gsp_scheduler/gsp_scheduler.c
+endif
+
+ifeq ($(CONFIG_NVGPU_GSP_STRESS_TEST),1)
+srcs += common/gsp_test/gsp_test.c
 endif
 
 # Source files below are functionaly safe (FuSa) and must always be included.

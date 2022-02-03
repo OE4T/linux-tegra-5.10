@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,7 +26,7 @@
 #include <nvgpu/log.h>
 #include <nvgpu/gsp.h>
 
-#include "../gsp_priv.h"
+#include "../gsp_scheduler.h"
 #include "gsp_queue.h"
 #include "gsp_msg.h"
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,7 +26,7 @@
 #include <nvgpu/errno.h>
 #include <nvgpu/gsp.h>
 
-#include "../gsp_priv.h"
+#include "../gsp_scheduler.h"
 #include "gsp_seq.h"
 
 static void gsp_sequences_init(struct gk20a *g,
@@ -47,7 +47,7 @@ static void gsp_sequences_init(struct gk20a *g,
 	}
 }
 
-int nvgpu_gsp_sequences_init(struct gk20a *g, struct nvgpu_gsp *gsp)
+int nvgpu_gsp_sequences_init(struct gk20a *g, struct nvgpu_gsp_sched *gsp_sched)
 {
 	int err = 0;
 	struct gsp_sequences *seqs;
@@ -68,8 +68,8 @@ int nvgpu_gsp_sequences_init(struct gk20a *g, struct nvgpu_gsp *gsp)
 		return -ENOMEM;
 	}
 
-	gsp->sequences = seqs;
-	gsp->sequences->seq = seqs->seq;
+	gsp_sched->sequences = seqs;
+	gsp_sched->sequences->seq = seqs->seq;
 
 	nvgpu_mutex_init(&seqs->gsp_seq_lock);
 

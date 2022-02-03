@@ -110,7 +110,10 @@ struct clk_domains_mon_status_params;
 struct nvgpu_cic_mon;
 struct nvgpu_cic_rm;
 #ifdef CONFIG_NVGPU_GSP_SCHEDULER
-struct nvgpu_gsp;
+struct nvgpu_gsp_sched;
+#endif
+#ifdef CONFIG_NVGPU_GSP_STRESS_TEST
+struct nvgpu_gsp_test;
 #endif
 
 enum nvgpu_flush_op;
@@ -496,7 +499,10 @@ struct gk20a {
 	struct nvgpu_acr *acr;
 #ifdef CONFIG_NVGPU_GSP_SCHEDULER
 	/** Pointer to struct maintaining GSP unit's software state. */
-	struct nvgpu_gsp *gsp;
+	struct nvgpu_gsp_sched *gsp_sched;
+#endif
+#ifdef CONFIG_NVGPU_GSP_STRESS_TEST
+	struct nvgpu_gsp_test *gsp_stest;
 #endif
 	/** Top level struct maintaining ECC unit's software state. */
 	struct nvgpu_ecc ecc;
