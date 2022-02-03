@@ -5755,8 +5755,8 @@ static int tegra210_adsp_audio_probe(struct platform_device *pdev)
 	}
 
 	/* enable/disable compr-ops from DT */
-	of_property_read_u32(pdev->dev.of_node, "compr-ops", &compr_ops);
-	if (!compr_ops)
+	if (of_property_read_u32(pdev->dev.of_node, "compr-ops", &compr_ops) ||
+		(compr_ops == 0u))
 		tegra210_adsp_cmpnt.compress_ops = NULL;
 
 	if (of_property_read_u32_index(pdev->dev.of_node, "nvidia,adma_ch_page",

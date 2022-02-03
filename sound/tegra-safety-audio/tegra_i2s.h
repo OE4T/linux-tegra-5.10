@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2021 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2021-2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  */
 
 #ifndef _TEGRA_I2S_H_
@@ -9,7 +9,7 @@
 #define PCM_STREAM_PLAYBACK     0
 #define PCM_STREAM_CAPTURE      1
 
-#define NUM_SAFETY_I2S_INST 1
+#define NUM_SAFETY_I2S_INST 2
 #define I2S_DT_NODE "i2s%d"
 #define I2S_NODE_START_INDEX 7
 

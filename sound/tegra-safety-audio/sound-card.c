@@ -43,8 +43,9 @@ static const char * const reset_names[] = {
 };
 
 //TODO: Either encapsulate it or allocate dynamically
-struct i2s_dev i2s[NUM_SAFETY_I2S_INST];
-struct safety_audio_priv *priv;
+static struct i2s_dev i2s[NUM_SAFETY_I2S_INST];
+static unsigned int enabled_i2s_mask[NUM_SAFETY_I2S_INST];
+static struct safety_audio_priv *priv;
 
 static const struct snd_pcm_hardware t234_pcm_hardware = {
 	.rates =	    SNDRV_PCM_RATE_48000,
@@ -608,12 +609,32 @@ static const struct of_device_id match_table[] = {
 	{}
 };
 
+static unsigned int parse_enabled_i2s_mask(struct device *dev)
+{
+	unsigned int num_enabled = 0;
+	int i;
+
+	i = of_property_read_variable_u32_array(dev->of_node,
+				"enabled-i2s-mask", enabled_i2s_mask,
+						NUM_SAFETY_I2S_INST, 0);
+	WARN_ON(i != NUM_SAFETY_I2S_INST);
+	for (i = 0; i < NUM_SAFETY_I2S_INST; i++)
+		num_enabled += !!(enabled_i2s_mask[i]);
+
+	return num_enabled;
+}
+
 static int t234_safety_audio_probe(struct platform_device *pdev)
 {
 	struct snd_card *card;
-	int ret, i;
+	int ret, i, pcm_instance = 0;
 	struct snd_pcm *pcm;
 	char name[5] = {0};
+
+	if (parse_enabled_i2s_mask(&pdev->dev) == 0) {
+		pr_err("No safety-i2s interfaces are available on this board\n");
+		return -ENODEV;
+	}
 
 	ret = snd_card_new(&pdev->dev, -1, "Safety I2S sound card",
 					THIS_MODULE, sizeof(*priv), &card);
@@ -627,8 +648,11 @@ static int t234_safety_audio_probe(struct platform_device *pdev)
 		struct resource *r;
 		size_t buffer_size = t234_pcm_hardware.buffer_bytes_max;
 
+		if (!enabled_i2s_mask[i])
+			continue;
+
 		sprintf(name, I2S_DT_NODE, I2S_NODE_START_INDEX + i);
-		ret = snd_pcm_new(card, name, i, 1, 1, &pcm);
+		ret = snd_pcm_new(card, name, pcm_instance++, 1, 1, &pcm);
 		if (ret < 0) {
 			pr_alert("Could not register i2s pcm, ret: %d\n", ret);
 			return ret;
@@ -640,7 +664,7 @@ static int t234_safety_audio_probe(struct platform_device *pdev)
 		i2s[i].base =
 			devm_platform_get_and_ioremap_resource(pdev, i, &r);
 
-		if (i2s[i].base == NULL) {
+		if (IS_ERR(i2s[i].base)) {
 			pr_alert("could not remap base\n");
 			return -EINVAL;
 		}
