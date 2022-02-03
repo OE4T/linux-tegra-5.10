@@ -66,7 +66,9 @@ struct nvdla_queue {
 	u32 id;
 
 	/* Host1x resources */
+#if IS_ENABLED(CONFIG_TEGRA_NVDLA_CHANNEL)
 	struct nvhost_channel *channel;
+#endif
 	struct platform_device *vm_pdev;
 	bool use_channel;
 	u32 syncpt_id;

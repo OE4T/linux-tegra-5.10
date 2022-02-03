@@ -501,11 +501,6 @@ int nvhost_intr_register_notifier(struct platform_device *pdev,
 /* public host1x sync-point management APIs */
 #ifdef CONFIG_TEGRA_HOST1X
 
-static inline u32 nvhost_opcode_incr(unsigned offset, unsigned count)
-{
-	return (1 << 28) | (offset << 16) | count;
-}
-
 static inline struct flcn *get_flcn(struct platform_device *pdev)
 {
 	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);

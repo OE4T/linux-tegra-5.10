@@ -1,5 +1,9 @@
 GCOV_PROFILE := y
+ifdef CONFIG_TEGRA_GRHOST
 ccflags-y += -I$(srctree.nvidia)/drivers/video/tegra/host
+ccflags-y += -DCONFIG_TEGRA_NVDLA_CHANNEL
+endif
+
 ccflags-y += -I$(srctree.nvidia)/include
 ccflags-y += -I$(srctree.nvidia)/include/uapi/linux
 ccflags-y += -I$(srctree.nvidia)/drivers/video/tegra/host/nvdla
@@ -24,5 +28,9 @@ nvhost-nvdla-objs  = \
 		dla_queue.o \
 		nvdla_queue.o \
 		nvdla_debug.o
+
+ifdef CONFIG_TEGRA_GRHOST
+nvhost-nvdla-objs += dla_channel.o
+endif
 
 obj-$(CONFIG_TEGRA_GRHOST_NVDLA) += nvhost-nvdla.o

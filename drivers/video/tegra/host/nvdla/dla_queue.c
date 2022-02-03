@@ -26,9 +26,11 @@
 
 #include <linux/nvhost.h>
 
-#include "nvhost_vm.h"
-#include "nvhost_channel.h"
+#if IS_ENABLED(CONFIG_TEGRA_NVDLA_CHANNEL)
 #include "nvhost_job.h"
+#endif
+
+#include "dla_channel.h"
 #include "dla_queue.h"
 #include "nvdla_debug.h"
 
@@ -291,7 +293,7 @@ static void nvdla_queue_release(struct kref *ref)
 	nvdla_dbg_fn(pool->pdev, "%s\n", __func__);
 
 	if (queue->use_channel)
-		nvhost_putchannel(queue->channel, 1);
+		nvdla_putchannel(queue);
 
 	/* release allocated resources */
 	nvhost_syncpt_put_ref_ext(pool->pdev, queue->syncpt_id);
@@ -323,7 +325,6 @@ struct nvdla_queue *nvdla_queue_alloc(struct nvdla_queue_pool *pool,
 					bool use_channel)
 {
 	struct platform_device *pdev = pool->pdev;
-	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
 	struct nvdla_queue *queues = pool->queues;
 	struct nvdla_queue *queue;
 	int index = 0;
@@ -371,11 +372,9 @@ struct nvdla_queue *nvdla_queue_alloc(struct nvdla_queue_pool *pool,
 
 	/* Check if the queue should allocate a channel */
 	if (use_channel) {
-		err = nvhost_channel_map(pdata, &queue->channel, queue);
-		if (err < 0)
+		queue->vm_pdev = nvdla_channel_map(pdev, queue);
+		if (!queue->vm_pdev)
 			goto err_alloc_channel;
-
-		queue->vm_pdev = queue->channel->vm->pdev;
 	} else {
 		queue->vm_pdev = pdev;
 	}
@@ -392,7 +391,7 @@ struct nvdla_queue *nvdla_queue_alloc(struct nvdla_queue_pool *pool,
 
 err_alloc_task_pool:
 	if (use_channel)
-		nvhost_putchannel(queue->channel, 1);
+		nvdla_putchannel(queue);
 err_alloc_channel:
 	mutex_lock(&pool->queue_lock);
 	nvhost_syncpt_put_ref_ext(pdev, queue->syncpt_id);
@@ -442,6 +441,7 @@ struct nvdla_queue_task {
 	u32 *cpu_addr;
 };
 
+#if IS_ENABLED(CONFIG_TEGRA_NVDLA_CHANNEL)
 static void queue_task_update(void *priv, int nr_completed)
 {
 	struct nvdla_queue_task *task = priv;
@@ -566,6 +566,7 @@ err_alloc_cmdbuf:
 err_alloc_task:
 	return err;
 }
+#endif
 
 int nvdla_queue_get_task_size(struct nvdla_queue *queue)
 {
