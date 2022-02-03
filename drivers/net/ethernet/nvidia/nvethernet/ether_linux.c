@@ -6694,105 +6694,6 @@ static void ether_shutdown(struct platform_device *pdev)
 
 #ifdef CONFIG_PM
 /**
- * @brief Ethernet platform driver suspend noirq callback.
- *
- * Alogorithm: Stops all data queues and PHY if the device
- *	does not wake capable. Disable TX and NAPI.
- *	Deinit OSI core, DMA and TX/RX interrupts.
- *
- * @param[in] dev: Platform device associated with platform driver.
- *
- * @retval 0 on success
- * @retval "negative value" on failure.
- */
-static int ether_suspend_noirq(struct device *dev)
-{
-	struct net_device *ndev = dev_get_drvdata(dev);
-	struct ether_priv_data *pdata = netdev_priv(ndev);
-	struct osi_core_priv_data *osi_core = pdata->osi_core;
-	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
-	struct osi_ioctl ioctl_data = {};
-	unsigned int i = 0, chan = 0;
-	int ret;
-
-	if (!netif_running(ndev))
-		return 0;
-
-	/* Keep MACSEC to suspend if MACSEC is supported on this platform */
-#ifdef MACSEC_SUPPORT
-	if ((osi_core->mac == OSI_MAC_HW_EQOS && osi_core->mac_ver == OSI_EQOS_MAC_5_30) ||
-	    (osi_core->mac == OSI_MAC_HW_MGBE && osi_core->mac_ver == OSI_MGBE_MAC_3_10)) {
-		pdata->macsec_pdata->enabled_before_suspend =
-			pdata->macsec_pdata->enabled;
-		if (pdata->macsec_pdata->enabled != OSI_DISABLE) {
-			ret = macsec_suspend(pdata->macsec_pdata);
-			if (ret < 0)
-				dev_err(pdata->dev, "Failed to suspend macsec");
-		}
-	}
-#endif /* MACSEC_SUPPORT */
-
-	/* Since MAC is placed in reset during suspend, take a backup of
-	 * current configuration so that SW view of HW is maintained across
-	 * suspend/resume.
-	 */
-	ioctl_data.cmd =  OSI_CMD_SAVE_REGISTER;
-	if (osi_handle_ioctl(osi_core, &ioctl_data)) {
-		dev_err(dev, "Failed to backup MAC core registers\n");
-		return -EBUSY;
-	}
-
-	/* stop workqueue */
-	cancel_delayed_work_sync(&pdata->tx_ts_work);
-
-	/* Stop workqueue while DUT is going to suspend state */
-	ether_stats_work_queue_stop(pdata);
-#ifdef HSI_SUPPORT
-	cancel_delayed_work_sync(&pdata->ether_hsi_work);
-#endif
-	if (pdata->phydev && !(device_may_wakeup(&ndev->dev))) {
-		phy_stop(pdata->phydev);
-		if (gpio_is_valid(pdata->phy_reset))
-			gpio_set_value(pdata->phy_reset, 0);
-	}
-
-	netif_tx_disable(ndev);
-	ether_napi_disable(pdata);
-
-	ret = ether_update_mac_addr_filter(pdata, &ioctl_data, OSI_DISABLE,
-					   ETHER_ADDRESS_MAC);
-	if (ret < 0) {
-		dev_err(pdata->dev, "issue in deleting MAC address\n");
-	}
-
-	ret = ether_update_mac_addr_filter(pdata, &ioctl_data, OSI_DISABLE,
-					   ETHER_ADDRESS_BC);
-	if (ret < 0) {
-		dev_err(pdata->dev, "issue in deleting BC address\n");
-	}
-
-	osi_hw_dma_deinit(osi_dma);
-	osi_hw_core_deinit(osi_core);
-
-	for (i = 0; i < osi_dma->num_dma_chans; i++) {
-		chan = osi_dma->dma_chans[i];
-		osi_handle_dma_intr(osi_dma, chan,
-				    OSI_DMA_CH_TX_INTR,
-				    OSI_DMA_INTR_DISABLE);
-		osi_handle_dma_intr(osi_dma, chan,
-				    OSI_DMA_CH_RX_INTR,
-				    OSI_DMA_INTR_DISABLE);
-	}
-
-	free_dma_resources(pdata);
-
-	if (osi_core->mac == OSI_MAC_HW_MGBE)
-		pm_runtime_put_sync(pdata->dev);
-
-	return 0;
-}
-
-/**
  * @brief Ethernet platform driver resume call.
  *
  * Alogorithm: Init OSI core, DMA and TX/RX interrupts.
@@ -6852,29 +6753,10 @@ static int ether_resume(struct ether_priv_data *pdata)
 		return ret;
 	}
 
-	/* initialize mac/mtl/dma common registers */
-	ret = osi_hw_core_init(osi_core,
-			       pdata->hw_feat.tx_fifo_size,
-			       pdata->hw_feat.rx_fifo_size);
-	if (ret < 0) {
-		dev_err(dev,
-			"%s: failed to initialize mac hw core with reason %d\n",
-			__func__, ret);
-		goto err_core;
-	}
-
-	ret = ether_update_mac_addr_filter(pdata, &ioctl_data, OSI_ENABLE,
-					   ETHER_ADDRESS_MAC);
-	if (ret < 0) {
-		dev_err(pdata->dev, "failed to set MAC address\n");
-		goto err_dma;
-	}
-
-	ret = ether_update_mac_addr_filter(pdata, &ioctl_data, OSI_ENABLE,
-					   ETHER_ADDRESS_BC);
-	if (ret < 0) {
-		dev_err(pdata->dev, "failed to set BC address\n");
-		goto err_dma;
+	ioctl_data.cmd =  OSI_CMD_RESUME;
+	if (osi_handle_ioctl(osi_core, &ioctl_data)) {
+		dev_err(dev, "Failed to perform OSI resume\n");
+		goto err_resume;
 	}
 
 	/* dma init */
@@ -6928,11 +6810,97 @@ err_start_mac:
 	ether_napi_disable(pdata);
 err_dma:
 	osi_hw_core_deinit(osi_core);
-err_core:
+err_resume:
 	free_dma_resources(pdata);
 
 	return ret;
 }
+
+/**
+ * @brief Ethernet platform driver suspend noirq callback.
+ *
+ * Alogorithm: Stops all data queues and PHY if the device
+ *	does not wake capable. Disable TX and NAPI.
+ *	Deinit OSI core, DMA and TX/RX interrupts.
+ *
+ * @param[in] dev: Platform device associated with platform driver.
+ *
+ * @retval 0 on success
+ * @retval "negative value" on failure.
+ */
+static int ether_suspend_noirq(struct device *dev)
+{
+	struct net_device *ndev = dev_get_drvdata(dev);
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	struct osi_ioctl ioctl_data = {};
+	unsigned int i = 0, chan = 0;
+	int ret;
+
+	if (!netif_running(ndev))
+		return 0;
+
+	/* Keep MACSEC to suspend if MACSEC is supported on this platform */
+#ifdef MACSEC_SUPPORT
+	if ((osi_core->mac == OSI_MAC_HW_EQOS && osi_core->mac_ver == OSI_EQOS_MAC_5_30) ||
+	    (osi_core->mac == OSI_MAC_HW_MGBE && osi_core->mac_ver == OSI_MGBE_MAC_3_10)) {
+		pdata->macsec_pdata->enabled_before_suspend =
+			pdata->macsec_pdata->enabled;
+		if (pdata->macsec_pdata->enabled != OSI_DISABLE) {
+			ret = macsec_suspend(pdata->macsec_pdata);
+			if (ret < 0)
+				dev_err(pdata->dev, "Failed to suspend macsec");
+		}
+	}
+#endif /* MACSEC_SUPPORT */
+
+	/* stop workqueue */
+	cancel_delayed_work_sync(&pdata->tx_ts_work);
+
+	/* Stop workqueue while DUT is going to suspend state */
+	ether_stats_work_queue_stop(pdata);
+#ifdef HSI_SUPPORT
+	cancel_delayed_work_sync(&pdata->ether_hsi_work);
+#endif
+	if (pdata->phydev && !(device_may_wakeup(&ndev->dev))) {
+		phy_stop(pdata->phydev);
+		if (gpio_is_valid(pdata->phy_reset))
+			gpio_set_value(pdata->phy_reset, 0);
+	}
+
+	netif_tx_disable(ndev);
+	ether_napi_disable(pdata);
+
+	osi_hw_dma_deinit(osi_dma);
+
+	ioctl_data.cmd =  OSI_CMD_SUSPEND;
+	if (osi_handle_ioctl(osi_core, &ioctl_data)) {
+		dev_err(dev, "Failed to perform OSI core suspend\n");
+		if (ether_resume(pdata) < 0) {
+			dev_err(dev, "Failed to perform resume on suspend fail\n");
+		}
+		return -EBUSY;
+	}
+
+	for (i = 0; i < osi_dma->num_dma_chans; i++) {
+		chan = osi_dma->dma_chans[i];
+		osi_handle_dma_intr(osi_dma, chan,
+				    OSI_DMA_CH_TX_INTR,
+				    OSI_DMA_INTR_DISABLE);
+		osi_handle_dma_intr(osi_dma, chan,
+				    OSI_DMA_CH_RX_INTR,
+				    OSI_DMA_INTR_DISABLE);
+	}
+
+	free_dma_resources(pdata);
+
+	if (osi_core->mac == OSI_MAC_HW_MGBE)
+		pm_runtime_put_sync(pdata->dev);
+
+	return 0;
+}
+
 
 /**
  * @brief Ethernet platform driver resume noirq callback.
@@ -6949,8 +6917,6 @@ static int ether_resume_noirq(struct device *dev)
 {
 	struct net_device *ndev = dev_get_drvdata(dev);
 	struct ether_priv_data *pdata = netdev_priv(ndev);
-	struct osi_core_priv_data *osi_core = pdata->osi_core;
-	struct osi_ioctl ioctl_data = {};
 	int ret = 0;
 
 	if (!netif_running(ndev))
@@ -6967,18 +6933,6 @@ static int ether_resume_noirq(struct device *dev)
 	if (ret < 0) {
 		dev_err(dev, "failed to resume the MAC\n");
 		return ret;
-	}
-
-	/* Since MAC is brought of reset, all the SW configuration done before
-	 * suspend/resume will be overwritten by power-on-default values.
-	 * Restore the backup of the MAC configuration to maintain consistency
-	 * between SW/HW state.
-	 */
-	ioctl_data.cmd = OSI_CMD_RESTORE_REGISTER;
-	if (osi_handle_ioctl(osi_core, &ioctl_data)) {
-		//TODO: Ideally, undo MAC init/resume & return.
-		dev_err(dev, "Failed to restore MAC core registers\n");
-		return -EIO;
 	}
 
 	return 0;
