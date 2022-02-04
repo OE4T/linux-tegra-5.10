@@ -153,6 +153,18 @@ void ga10b_fb_vab_recover(struct gk20a *g)
 	 */
 	struct nvgpu_mem *vab_buf = &g->vab.buffer;
 
+	/*
+	 * Share with polling thread that a VAB_ERROR MMU fault has happened.
+	 * When this flag is set, either the other thread is still polling or
+	 * polling has already timed out. This should be safe because when a
+	 * new VAB dump request would be triggered, the flag would be reset.
+	 * The chance of the problematic sequence (enter trigger (vab mmu fault
+	 * raised) -> timeout -> enter new trigger -> just then set flag) is
+	 * incredibly slim due to timing. Each trigger is a new ioctl with polling
+	 * having a large timeout.
+	 */
+	nvgpu_atomic_set(&g->vab.mmu_vab_error_flag, 1U);
+
 	ga10b_fb_vab_enable(g, false);
 
 	if (nvgpu_mem_is_valid(vab_buf)) {
@@ -283,6 +295,16 @@ static int ga10b_fb_vab_request_dump(struct gk20a *g)
 	u32 vab_dump_reg;
 	u32 trigger_set;
 	u32 trigger_reset;
+	struct nvgpu_vab *vab = &g->vab;
+
+	/*
+	 * Reset VAB_ERROR MMU flag to 0 before attempting to request dump.
+	 * Later, if a VAB_ERROR MMU fault is triggered, the handler will set the flag.
+	 * This enables the dumping code to exit early from polling.
+	 * Doing this is safe, because a VAB_ERROR MMU fault can only be raised after
+	 * requesting a dump.
+	 */
+	nvgpu_atomic_set(&vab->mmu_vab_error_flag, 0U);
 
 	/* Set trigger to start vab dump */
 	trigger_set = fb_mmu_vidmem_access_bit_dump_trigger_f(
@@ -302,7 +324,8 @@ static int ga10b_fb_vab_request_dump(struct gk20a *g)
 		}
 		nvgpu_usleep_range(delay, delay * 2U);
 		delay = min_t(u32, delay << 1, POLL_DELAY_MAX_US);
-	} while (nvgpu_timeout_expired(&timeout) == 0);
+	} while (nvgpu_timeout_expired(&timeout) == 0
+				&& nvgpu_atomic_read(&vab->mmu_vab_error_flag) == 0);
 	return -ETIMEDOUT;
 }
 
@@ -322,7 +345,8 @@ static int ga10b_fb_vab_query_valid_bit(struct gk20a *g,
 		}
 		nvgpu_usleep_range(delay, delay * 2U);
 		delay = min_t(u32, delay << 1, POLL_DELAY_MAX_US);
-	} while (nvgpu_timeout_expired(&timeout) == 0);
+	} while (nvgpu_timeout_expired(&timeout) == 0
+				&& nvgpu_atomic_read(&g->vab.mmu_vab_error_flag) == 0);
 	nvgpu_err(g, "VAB write bit not valid");
 	return -ETIMEDOUT;
 }

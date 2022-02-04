@@ -60,6 +60,12 @@ struct nvgpu_vab {
 	u32 num_entries;
 	unsigned long entry_size;
 	struct nvgpu_mem buffer;
+
+	/*
+	 * Evaluates to true if a VAB_ERROR mmu fault has happened since
+	 * dump has started
+	 */
+	nvgpu_atomic_t mmu_vab_error_flag;
 };
 
 int nvgpu_fb_vab_init_hal(struct gk20a *g);
