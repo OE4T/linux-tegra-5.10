@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -1229,7 +1229,8 @@ int isp_capture_setup(
 	return 0;
 
 cb_fail:
-	isp_capture_release(chan, CAPTURE_CHANNEL_RESET_FLAG_IMMEDIATE);
+	if (isp_capture_release(chan, CAPTURE_CHANNEL_RESET_FLAG_IMMEDIATE))
+		destroy_buffer_table(buffer_ctx);
 	return err;
 submit_fail:
 	tegra_capture_ivc_unregister_control_cb(transaction);
