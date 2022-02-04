@@ -691,7 +691,6 @@ srcs += common/sec2/sec2.c \
 	hal/init/hal_tu104.c \
 	hal/init/hal_tu104_litter.c \
 	hal/power_features/cg/tu104_gating_reglist.c \
-	hal/ltc/ltc_tu104.c \
 	hal/fb/fb_gv100.c \
 	hal/fb/fb_tu104.c \
 	hal/fb/fb_mmu_fault_tu104.c \
@@ -723,10 +722,10 @@ srcs += common/sec2/sec2.c \
 	hal/top/top_gv100.c \
 	hal/xve/xve_gp106.c \
 	hal/xve/xve_tu104.c
+endif
 
 ifeq ($(CONFIG_NVGPU_COMPRESSION),1)
 srcs +=	hal/cbc/cbc_tu104.c
-endif
 endif
 
 srcs += hal/gr/init/gr_init_tu104.c \
@@ -734,6 +733,7 @@ srcs += hal/gr/init/gr_init_tu104.c \
 	hal/mc/mc_tu104.c  \
 	hal/fifo/usermode_tu104.c \
 	hal/gr/falcon/gr_falcon_tu104.c \
+	hal/ltc/ltc_tu104.c \
 
 ifeq ($(CONFIG_NVGPU_SIM),1)
 srcs += common/sim/sim.c \
