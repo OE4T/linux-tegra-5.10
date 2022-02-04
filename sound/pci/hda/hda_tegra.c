@@ -3,7 +3,7 @@
  *
  * Implementation of primary ALSA driver code base for NVIDIA Tegra HDA.
  *
- * Copyright (c) 2019-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION. All rights reserved.
  */
 
 #include <linux/clk.h>
@@ -145,6 +145,7 @@ static void hda_tegra_init(struct hda_tegra *hda)
 	/* program HDA_GSC_ID to get access to APR */
 	switch (tegra_get_chip_id()) {
 	case TEGRA194:
+	case TEGRA234:
 		writel(HDA_GSC_ID, hda->regs + HDA_GSC_REG);
 		break;
 	default:
