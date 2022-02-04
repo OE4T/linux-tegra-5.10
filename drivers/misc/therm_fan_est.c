@@ -106,7 +106,8 @@ static void therm_fan_est_work_func(struct work_struct *work)
 			read_unlock(&est->state_lock);
 
 			if (est->current_trip_level < trip_index
-				&& est->current_trip_level != (trip_index - 1))
+				&& est->current_trip_level != (trip_index - 1)
+				&& trip_index != MAX_ACTIVE_STATES)
 				update_flag = true;
 		} else if (est->cur_temp < est->pre_temp) {
 			/* temperature is cooling */
