@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -46,6 +46,7 @@
 
 #define DONOT_CLR_TIMEDOUT_SLAVE_BIT
 #define MAX_TMO_CLR_RETRY 2
+#define FABRIC_NAME_LEN 10
 
 static LIST_HEAD(cbb_errmon_list);
 static DEFINE_SPINLOCK(cbb_errmon_lock);
@@ -291,7 +292,7 @@ static void print_errlog_err(struct seq_file *file,
 	u8 beat_size = 0, access_type = 0, access_id = 0;
 	u8 mstr_id = 0, grpsec = 0, vqc = 0, falconsec = 0;
 	u8 slave_id = 0, fab_id = 0, burst_type = 0;
-	char fabric_name[10];
+	char fabric_name[FABRIC_NAME_LEN];
 
 	cache_type = get_em_el_subfield(errmon->attr0, 27, 24);
 	prot_type = get_em_el_subfield(errmon->attr0, 22, 20);
@@ -329,7 +330,7 @@ static void print_errlog_err(struct seq_file *file,
 	else if (fab_id == FSI_FAB_ID)
 		strcpy(fabric_name, "FSI");
 	else
-		strcpy(fabric_name, fabric_sn_map[fab_id].fab_name);
+		strncpy(fabric_name, fabric_sn_map[fab_id].fab_name, FABRIC_NAME_LEN - 1);
 
 	print_cbb_err(file, "\t  Fabric\t\t: %s\n", fabric_name);
 	print_cbb_err(file, "\t  Slave_Id\t\t: 0x%x\n", slave_id);
