@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -286,7 +286,7 @@ int dce_ipc_channel_init(struct tegra_dce *d, u32 ch_type)
 	struct dce_ipc_channel *ch;
 	struct dce_ipc_queue_info *q_info;
 
-	if (ch_type > DCE_IPC_CH_KMD_TYPE_MAX) {
+	if (ch_type >= DCE_IPC_CH_KMD_TYPE_MAX) {
 		dce_err(d, "Invalid ivc channel ch_type : [%d]", ch_type);
 		ret = -EINVAL;
 		goto out;
