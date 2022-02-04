@@ -365,7 +365,11 @@ static int pwm_tegra_tach_probe(struct platform_device *pdev)
 		goto clk_unprep;
 	}
 
-	reset_control_reset(ptt->rst);
+	ret = reset_control_reset(ptt->rst);
+	if (ret < 0) {
+		dev_err(&pdev->dev, "Failed to reset: %d\n", ret);
+		goto clk_unprep;
+	}
 
 	if (ptt->soc_data->has_interrupt_support) {
 		ptt->irq = platform_get_irq(pdev, 0);
@@ -425,6 +429,7 @@ static int pwm_tegra_tach_probe(struct platform_device *pdev)
 				TACH_FAN_ENABLE_INTERRUPT_SHIFT);
 
 	}
+
 	return 0;
 
 pwm_remove:
@@ -482,7 +487,7 @@ static struct pwm_tegra_tach_soc_data tegra194_tach_soc_data = {
 };
 
 static struct pwm_tegra_tach_soc_data tegra234_tach_soc_data = {
-		.has_interrupt_support = true,
+		.has_interrupt_support = false,
 };
 
 static const struct of_device_id pwm_tegra_tach_of_match[] = {
