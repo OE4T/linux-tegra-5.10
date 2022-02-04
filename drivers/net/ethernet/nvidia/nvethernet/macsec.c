@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -14,7 +14,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef MACSEC_SUPPORT
 #include "ether_linux.h"
+#ifdef MACSEC_KEY_PROGRAM
+#include <linux/crypto.h>
+#endif /* MACSEC_KEY_PROGRAM */
 
 /**
  * @brief is_nv_macsec_fam_registered - Is nv macsec nl registered
@@ -728,6 +732,41 @@ exit:
 	return ret;
 }
 
+#ifdef MACSEC_KEY_PROGRAM
+/**
+ * @brief hkey_generation - Generate HKey for a given SAK
+ *
+ * @note
+ * Algorithm:
+ *  - Calls Crypto APIs to generate HKey
+ *
+ * @param[in] sak:  Pointer to SA Key.
+ * @param[out] hkey:  Pointer to HKey generated.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ */
+static int hkey_generation(nveu8_t *sak, nveu8_t *hkey)
+{
+	struct crypto_cipher *tfm;
+	nveu8_t zeros[OSI_KEY_LEN_128] = {0};
+
+	tfm = crypto_alloc_cipher("aes", 0, CRYPTO_ALG_ASYNC);
+	if (!tfm)
+		return -ENOMEM;
+
+	if (crypto_cipher_setkey(tfm, sak, OSI_KEY_LEN_128))
+		return -EINVAL;
+
+	crypto_cipher_encrypt_one(tfm, hkey, zeros);
+	crypto_free_cipher(tfm);
+	return 0;
+}
+#endif /* MACSEC_KEY_PROGRAM */
+
 static int macsec_create_rx_sa(struct sk_buff *skb, struct genl_info *info)
 {
 	struct nlattr **attrs = info->attrs;
@@ -735,10 +774,11 @@ static int macsec_create_rx_sa(struct sk_buff *skb, struct genl_info *info)
 	struct ether_priv_data *pdata;
 	struct osi_macsec_sc_info rx_sa;
 	struct nlattr *tb_sa[NUM_NV_MACSEC_SA_ATTR];
-	int ret = 0, i = 0;
+	int ret = 0;
 	unsigned short kt_idx;
 	struct device *dev = NULL;
 #ifndef MACSEC_KEY_PROGRAM
+	int i = 0;
 	struct osi_macsec_kt_config kt_config = {0};
 	struct osi_macsec_table_config *table_config;
 #endif /* !MACSEC_KEY_PROGRAM */
@@ -779,6 +819,14 @@ static int macsec_create_rx_sa(struct sk_buff *skb, struct genl_info *info)
 		rx_sa.curr_an, rx_sa.next_pn, rx_sa.lowest_pn, rx_sa.pn_window);
 	dev_info(dev, "\tkey: " KEYSTR, KEY2STR(rx_sa.sak));
 
+#ifdef MACSEC_KEY_PROGRAM
+	ret = hkey_generation(rx_sa.sak, rx_sa.hkey);
+	if (ret != 0) {
+		dev_err(dev, "%s: failed to Generate HKey", __func__);
+		ret = -EINVAL;
+		goto exit;
+	}
+#endif /* MACSEC_KEY_PROGRAM */
 	rx_sa.flags = OSI_CREATE_SA;
 
 	mutex_lock(&macsec_pdata->lock);
@@ -957,10 +1005,11 @@ static int macsec_create_tx_sa(struct sk_buff *skb, struct genl_info *info)
 	struct ether_priv_data *pdata;
 	struct osi_macsec_sc_info tx_sa;
 	struct nlattr *tb_sa[NUM_NV_MACSEC_SA_ATTR];
-	int ret = 0, i = 0;
+	int ret = 0;
 	unsigned short kt_idx;
 	struct device *dev = NULL;
 #ifndef MACSEC_KEY_PROGRAM
+	int i = 0;
 	struct osi_macsec_kt_config kt_config = {0};
 	struct osi_macsec_table_config *table_config;
 #endif /* !MACSEC_KEY_PROGRAM */
@@ -999,6 +1048,14 @@ static int macsec_create_tx_sa(struct sk_buff *skb, struct genl_info *info)
 		tx_sa.curr_an, tx_sa.next_pn);
 	dev_info(dev, "\tkey: " KEYSTR, KEY2STR(tx_sa.sak));
 	tx_sa.flags = OSI_CREATE_SA;
+#ifdef MACSEC_KEY_PROGRAM
+	ret = hkey_generation(tx_sa.sak, tx_sa.hkey);
+	if (ret != 0) {
+		dev_err(dev, "%s: failed to Generate HKey", __func__);
+		ret = -EINVAL;
+		goto exit;
+	}
+#endif /* MACSEC_KEY_PROGRAM */
 
 	mutex_lock(&macsec_pdata->lock);
 	ret = osi_macsec_config(pdata->osi_core, &tx_sa, OSI_ENABLE,
@@ -1712,3 +1769,4 @@ exit:
 	PRINT_EXIT();
 	return ret;
 }
+#endif /* MACSEC_SUPPORT */
