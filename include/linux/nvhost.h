@@ -533,14 +533,6 @@ static inline int nvhost_syncpt_get_cv_dev_address_table(struct platform_device 
 	return -ENODEV;
 }
 
-static inline int nvhost_syncpt_get_gos(struct platform_device *engine_pdev,
-			      u32 syncpt_id,
-			      u32 *gos_id,
-			      u32 *gos_offset)
-{
-	return -ENODEV;
-}
-
 static inline const struct firmware *
 nvhost_client_request_firmware(struct platform_device *dev,
 	const char *fw_name, bool warn)
