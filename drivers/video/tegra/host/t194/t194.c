@@ -547,6 +547,8 @@ struct nvhost_device_data t19_pva1_info = {
 struct nvhost_device_data t19_pva0_info = {
 	.num_channels		= 1,
 	.clocks			= {
+		{"nafll_pva_vps", UINT_MAX,},
+		{"nafll_pva_core", UINT_MAX,},
 		{"axi", UINT_MAX,},
 		{"vps0", UINT_MAX,},
 		{"vps1", UINT_MAX,},

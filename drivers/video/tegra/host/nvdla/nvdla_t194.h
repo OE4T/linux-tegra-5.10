@@ -17,6 +17,8 @@ struct nvhost_device_data t19_nvdla0_info = {
 	.devfs_name_family	= "nvdla",
 	.class			= NV_DLA0_CLASS_ID,
 	.clocks			= {
+		{"nafll_dla", UINT_MAX},
+		{"nafll_dla_falcon", UINT_MAX},
 		{"nvdla0", UINT_MAX},
 		{"nvdla0_flcn", UINT_MAX},
 		{"emc", 0,
