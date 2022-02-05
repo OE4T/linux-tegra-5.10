@@ -616,9 +616,11 @@
 			interrupts = <0 236 0x04>;
 
 			resets = <&bpmp_resets TEGRA194_RESET_DLA0>;
-			clocks = <&bpmp_clks TEGRA194_CLK_DLA0_CORE>,
+			clocks = <&bpmp_clks TEGRA194_CLK_NAFLL_DLA>,
+				 <&bpmp_clks TEGRA194_CLK_NAFLL_DLA_FALCON>,
+				 <&bpmp_clks TEGRA194_CLK_DLA0_CORE>,
 				 <&bpmp_clks TEGRA194_CLK_DLA0_FALCON>;
-			clock-names = "nvdla0", "nvdla0_flcn";
+			clock-names = "nafll_dla", "nafll_dla_falcon", "nvdla0", "nvdla0_flcn";
 
 			iommus = <&smmu TEGRA_SID_NVDLA0>;
 			dma-coherent;
@@ -1246,10 +1248,12 @@
 			interrupts = <0 234 0x04>;
 
 			resets = <&bpmp_resets TEGRA194_RESET_PVA0_ALL>;
-			clocks = <&bpmp_clks TEGRA194_CLK_PVA0_AXI>,
+			clocks = <&bpmp_clks TEGRA194_CLK_NAFLL_PVA_VPS>,
+				 <&bpmp_clks TEGRA194_CLK_NAFLL_PVA_CORE>,
+				 <&bpmp_clks TEGRA194_CLK_PVA0_AXI>,
 				 <&bpmp_clks TEGRA194_CLK_PVA0_VPS0>,
 				 <&bpmp_clks TEGRA194_CLK_PVA0_VPS1>;
-			clock-names = "axi", "vps0", "vps1";
+			clock-names = "nafll_pva_vps", "nafll_pva_core", "axi", "vps0", "vps1";
 
 			iommus = <&smmu TEGRA_SID_PVA0>;
 			dma-coherent;
