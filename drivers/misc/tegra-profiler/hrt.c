@@ -1,7 +1,7 @@
 /*
  * drivers/misc/tegra-profiler/hrt.c
  *
- * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -619,8 +619,15 @@ static void start_hrtimer(struct quadd_cpu_context *cpu_ctx)
 {
 	u32 period = prandom_u32_max(hrt.sample_period);
 
+#if ((defined(CONFIG_PREEMPT_RT) || defined(CONFIG_PREEMPT_RT_FULL)) && \
+		(LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)))
+	hrtimer_start(&cpu_ctx->hrtimer, ns_to_ktime(period),
+		      HRTIMER_MODE_REL_PINNED_HARD);
+#else
 	hrtimer_start(&cpu_ctx->hrtimer, ns_to_ktime(period),
 		      HRTIMER_MODE_REL_PINNED);
+#endif
+
 	qm_debug_timer_start(NULL, period);
 }
 
@@ -632,7 +639,7 @@ static void cancel_hrtimer(struct quadd_cpu_context *cpu_ctx)
 
 static void init_hrtimer(struct quadd_cpu_context *cpu_ctx)
 {
-#if (defined(CONFIG_PREEMPT_RT_FULL) && \
+#if ((defined(CONFIG_PREEMPT_RT) || defined(CONFIG_PREEMPT_RT_FULL)) && \
 		(LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)))
 	hrtimer_init(&cpu_ctx->hrtimer, CLOCK_MONOTONIC, HRTIMER_MODE_REL_HARD);
 #else
