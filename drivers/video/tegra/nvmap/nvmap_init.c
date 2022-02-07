@@ -219,7 +219,8 @@ static int __init nvmap_populate_ivm_carveout(struct device *dev)
 
 	if (!of_phandle_iterator_init(&it, dev->of_node, "memory-region", NULL, 0)) {
 		while (!of_phandle_iterator_next(&it) && it.node) {
-			if (of_device_is_compatible(it.node, "nvidia,ivm_carveout") > 0) {
+			if (of_device_is_available(it.node) &&
+			    of_device_is_compatible(it.node, "nvidia,ivm_carveout") > 0) {
 				co = nvmap_get_carveout_pdata("nvidia,ivm_carveout");
 				if (!co) {
 					ret = -ENOMEM;
@@ -843,15 +844,20 @@ int __init nvmap_init(struct platform_device *pdev)
 	struct reserved_mem *rmem2;
 	struct device_node *np = pdev->dev.of_node;
 	struct of_phandle_iterator it;
+	const char *compp;
 
 	if (!of_phandle_iterator_init(&it, np, "memory-region", NULL, 0)) {
 		while (!of_phandle_iterator_next(&it) && it.node) {
-			rmem2 = of_reserved_mem_lookup(it.node);
-			if (!rmem2) {
-				pr_err("unable to acquire memory-region\n");
-				return -EINVAL;
+			if (of_device_is_available(it.node) &&
+			    !of_device_is_compatible(it.node, "nvidia,ivm_carveout")) {
+				rmem2 = of_reserved_mem_lookup(it.node);
+				if (!rmem2) {
+					of_property_read_string(it.node, "compatible", &compp);
+					pr_err("unable to acquire memory-region: %s\n", compp);
+					return -EINVAL;
+				}
+				nvmap_co_setup(rmem2);
 			}
-			nvmap_co_setup(rmem2);
 		}
 	}
 #endif /* NVMAP_LOADABLE_MODULE */
@@ -928,7 +934,11 @@ static int __init nvmap_init_driver(void)
 		goto fail;
 
 #ifdef NVMAP_LOADABLE_MODULE
-	if (!(of_machine_is_compatible("nvidia,tegra186") || of_machine_is_compatible("nvidia,tegra194"))) {
+	if (!(of_machine_is_compatible("nvidia,tegra186") ||
+	    of_machine_is_compatible("nvidia,tegra194") ||
+	    of_machine_is_compatible("nvidia,tegra234") ||
+	    of_machine_is_compatible("nvidia,tegra239") ||
+	    of_machine_is_compatible("nvidia,tegra232"))) {
 		nvmap_heap_deinit();
 		return -ENODEV;
 	}

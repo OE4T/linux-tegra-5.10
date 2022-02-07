@@ -545,10 +545,11 @@ static struct dma_buf *__dma_buf_export(struct nvmap_handle_info *info,
 		exp_info.flags = O_RDWR;
 	}
 
-#ifndef NVMAP_LOADABLE_MODULE
+#ifndef NVMAP_KSTABLE_KERNEL
+	/* Disable defer unmap feature only for kstable */
 	exp_info.exp_flags = DMABUF_CAN_DEFER_UNMAP |
 				DMABUF_SKIP_CACHE_SYNC;
-#endif /* !NVMAP_LOADABLE_MODULE */
+#endif /* !NVMAP_KSTABLE_KERNEL */
 	exp_info.exp_name = dmabuf_name;
 
 	return dma_buf_export(&exp_info);
