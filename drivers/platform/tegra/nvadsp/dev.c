@@ -289,9 +289,14 @@ static int __init nvadsp_parse_dt(struct platform_device *pdev)
 	}
 
 	if (!of_property_read_string(dev->of_node,
-				"nvidia,adsp_elf", &adsp_elf))
-		strcpy(drv_data->adsp_elf, adsp_elf);
-	else
+				"nvidia,adsp_elf", &adsp_elf)) {
+		if (strlen(adsp_elf) < MAX_FW_STR)
+			strcpy(drv_data->adsp_elf, adsp_elf);
+		else {
+			dev_err(dev, "invalid string in nvidia,adsp_elf\n");
+			return -EINVAL;
+		}
+	} else
 		strcpy(drv_data->adsp_elf, NVADSP_ELF);
 
 	drv_data->adsp_unit_fpga = of_property_read_bool(dev->of_node,
