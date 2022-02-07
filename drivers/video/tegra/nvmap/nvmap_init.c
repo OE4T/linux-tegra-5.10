@@ -65,8 +65,8 @@ phys_addr_t __weak tegra_carveout_size;
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0)
 phys_addr_t __weak tegra_vpr_start;
 phys_addr_t __weak tegra_vpr_size;
-#endif /* KERNEL_VERSION < 5 */
 bool __weak tegra_vpr_resize;
+#endif /* KERNEL_VERSION < 5 */
 
 struct device __weak tegra_generic_dev;
 

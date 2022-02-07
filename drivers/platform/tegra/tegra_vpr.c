@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2021 NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2016-2022 NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,8 +22,8 @@
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0)
 extern phys_addr_t tegra_vpr_start;
 extern phys_addr_t tegra_vpr_size;
-#endif /* KERNEL_VERSION < 5 */
 extern bool tegra_vpr_resize;
+#endif /* KERNEL_VERSION < 5 */
 static DEFINE_MUTEX(vpr_lock);
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0)
@@ -39,7 +39,6 @@ static int tegra_vpr_arg(char *options)
 	return 0;
 }
 early_param("vpr", tegra_vpr_arg);
-#endif /* KERNEL_VERSION < 5 */
 
 static int tegra_vpr_resize_arg(char *options)
 {
@@ -47,6 +46,7 @@ static int tegra_vpr_resize_arg(char *options)
 	return 0;
 }
 early_param("vpr_resize", tegra_vpr_resize_arg);
+#endif /* KERNEL_VERSION < 5 */
 
 #define NUM_MODULES_IDLE_VPR_RESIZE 3
 static struct vpr_user_module_info {
@@ -117,11 +117,13 @@ struct dma_resize_notifier_ops vpr_dev_ops = {
 EXPORT_SYMBOL(vpr_dev_ops);
 #endif
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0)
 bool tegra_is_vpr_resize_enabled(void)
 {
 	return tegra_vpr_resize;
 }
 EXPORT_SYMBOL(tegra_is_vpr_resize_enabled);
+#endif /* KERNEL_VERSION < 5 */
 
 /* SMC Definitions*/
 #define TE_SMC_PROGRAM_VPR 0x82000003
