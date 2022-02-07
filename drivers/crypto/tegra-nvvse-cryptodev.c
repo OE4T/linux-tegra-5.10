@@ -1084,8 +1084,13 @@ out:
 
 static int tnvvse_crypt_aes_gcm_alloc_buf(struct scatterlist **sg, uint8_t *buf[], uint32_t size)
 {
-	uint32_t nents, i;
-	int32_t ret = 0;
+	uint32_t nents;
+	int32_t ret = 0, i;
+
+	if (sg == NULL) {
+		ret = -EINVAL;
+		goto out;
+	}
 
 	nents = (size/GCM_CHUNK_SIZE + 1);
 
