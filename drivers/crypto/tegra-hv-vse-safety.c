@@ -2351,8 +2351,7 @@ static void tegra_hv_vse_safety_cmac_req_deinit(struct ahash_request *req)
 static int tegra_hv_vse_safety_cmac_update(struct ahash_request *req)
 {
 
-	struct tegra_virtual_se_aes_cmac_context *cmac_ctx =
-			crypto_ahash_ctx(crypto_ahash_reqtfm(req));
+	struct tegra_virtual_se_aes_cmac_context *cmac_ctx = NULL;
 	struct tegra_virtual_se_dev *se_dev = g_virtual_se_dev[VIRTUAL_SE_AES0];
 	int ret = 0;
 
@@ -2400,8 +2399,7 @@ static int tegra_hv_vse_safety_cmac_final(struct ahash_request *req)
 
 static int tegra_hv_vse_safety_cmac_finup(struct ahash_request *req)
 {
-	struct tegra_virtual_se_aes_cmac_context *cmac_ctx =
-			crypto_ahash_ctx(crypto_ahash_reqtfm(req));
+	struct tegra_virtual_se_aes_cmac_context *cmac_ctx = NULL;
 	struct tegra_virtual_se_dev *se_dev = g_virtual_se_dev[VIRTUAL_SE_AES0];
 	int ret = 0;
 
@@ -2480,8 +2478,7 @@ static int tegra_hv_vse_safety_cmac_setkey(struct crypto_ahash *tfm, const u8 *k
 			ctx->is_key_slot_allocated = true;
 			ctx->is_keyslot_label = is_keyslot_label;
 		} else {
-			dev_err(se_dev->dev,
-				"\n Invalid keyslot: %u\n", slot);
+			dev_err(se_dev->dev, "%s: Invalid keyslot label %s\n", __func__, key);
 			return -EINVAL;
 		}
 	}
@@ -2669,8 +2666,7 @@ static int tegra_hv_vse_safety_aes_setkey(struct crypto_skcipher *tfm,
 			ctx->is_keyslot_label = is_keyslot_label;
 			return 0;
 		} else {
-			dev_err(se_dev->dev,
-				"\n Invalid keyslot: %u\n", slot);
+			dev_err(se_dev->dev, "%s: Invalid keyslot label %s", __func__, key);
 			return -EINVAL;
 		}
 	}
@@ -2842,8 +2838,7 @@ static int tegra_vse_aes_gcm_setkey(struct crypto_aead *tfm, const u8 *key,
 			ctx->is_key_slot_allocated = true;
 			ctx->is_keyslot_label = is_keyslot_label;
 		} else {
-			dev_err(se_dev->dev,
-			"\n Invalid keyslot: %u\n", slot);
+			dev_err(se_dev->dev, "%s: Invalid keyslot label %s\n", __func__, key);
 			err = -EINVAL;
 		}
 	}
@@ -2887,25 +2882,35 @@ static int tegra_vse_aes_gcm_check_params(struct aead_request *req,
 
 	if (aes_ctx->authsize != TEGRA_VIRTUAL_SE_AES_GCM_TAG_SIZE) {
 		dev_err(se_dev->dev,
-			"Wrong GCM authsize, expected: 0x%x recevived: 0x%x\n",
+			"Wrong GCM authsize, expected: 0x%x received: 0x%x\n",
 				TEGRA_VIRTUAL_SE_AES_GCM_TAG_SIZE,
 				aes_ctx->authsize);
 		return -EINVAL;
 	}
 
-	if (encrypt)
-		cryptlen = req->cryptlen;
-	else
+
+	if (!encrypt) {
+		if (req->cryptlen < aes_ctx->authsize) {
+			dev_err(se_dev->dev, "%s: gcm_dec cryptlen is invalid\n", __func__);
+			return -EINVAL;
+		}
 		cryptlen = req->cryptlen - aes_ctx->authsize;
+	} else {
+		cryptlen = req->cryptlen;
+	}
 
-	if (cryptlen > 0x1000000)
+	if (cryptlen > TEGRA_VIRTUAL_SE_MAX_SUPPORTED_BUFLEN) {
+		dev_err(se_dev->dev, "%s: cryptlen is invalid\n", __func__);
 		return -EINVAL;
+	}
 
-	if (req->assoclen > 0x1000000)
+	if (req->assoclen > TEGRA_VIRTUAL_SE_MAX_SUPPORTED_BUFLEN) {
+		dev_err(se_dev->dev, "%s: assoclen is invalid\n", __func__);
 		return -EINVAL;
+	}
 
 	if (unlikely(!aes_ctx->is_key_slot_allocated)) {
-		dev_err(se_dev->dev, "AES Key slot not allocated\n");
+		dev_err(se_dev->dev, "%s: AES Key slot not allocated\n", __func__);
 		return -EINVAL;
 	}
 
@@ -2937,10 +2942,8 @@ static int tegra_vse_aes_gcm_enc_dec(struct aead_request *req, bool encrypt)
 	dma_addr_t tag_buf_addr;
 
 	err = tegra_vse_aes_gcm_check_params(req, encrypt);
-	if (err != 0) {
-		dev_err(se_dev->dev, "Input parameters invalid\n");
+	if (err != 0)
 		goto free_exit;
-	}
 
 	if (encrypt)
 		cryptlen = req->cryptlen;
@@ -3018,7 +3021,7 @@ static int tegra_vse_aes_gcm_enc_dec(struct aead_request *req, bool encrypt)
 		ivc_tx->cmd = TEGRA_VIRTUAL_SE_CMD_AES_GCM_CMD_DECRYPT;
 
 	if (!encrypt) {
-		/* copt iv for decryption*/
+		/* copy iv for decryption*/
 		memcpy(ivc_tx->aes.op_gcm.iv, req->iv, crypto_aead_ivsize(tfm));
 	}
 
@@ -3034,7 +3037,8 @@ static int tegra_vse_aes_gcm_enc_dec(struct aead_request *req, bool encrypt)
 	ivc_tx->aes.op_gcm.dst_addr_lo = src_buf_addr;
 
 	ivc_tx->aes.op_gcm.aad_addr_hi = req->assoclen;
-	ivc_tx->aes.op_gcm.aad_addr_lo = aad_buf_addr;
+	if (req->assoclen > 0)
+		ivc_tx->aes.op_gcm.aad_addr_lo = aad_buf_addr;
 
 	ivc_tx->aes.op_gcm.tag_addr_hi = aes_ctx->authsize;
 	ivc_tx->aes.op_gcm.tag_addr_lo = tag_buf_addr;
@@ -3059,12 +3063,14 @@ static int tegra_vse_aes_gcm_enc_dec(struct aead_request *req, bool encrypt)
 			TEGRA_HV_VSE_TIMEOUT);
 	mutex_unlock(&se_dev->server_lock);
 	if (time_left == 0) {
-		dev_err(se_dev->dev, "gcm timeout\n");
+		dev_err(se_dev->dev, "%s: completion timeout\n", __func__);
 		err = -ETIMEDOUT;
 		goto free_exit;
 	}
 
 	if (priv->rx_status[0] != 0) {
+		dev_err(se_dev->dev, "%s: SE Server returned error %u\n", __func__,
+									priv->rx_status[0]);
 		err = status_to_errno(priv->rx_status[0]);
 		goto free_exit;
 	}
@@ -3085,6 +3091,7 @@ static int tegra_vse_aes_gcm_enc_dec(struct aead_request *req, bool encrypt)
 
 		/* check GCM tag*/
 		if (crypto_memneq(tag_buf, gcm_tag, aes_ctx->authsize)) {
+			dev_err(se_dev->dev, "%s: tag mismatch\n", __func__);
 			err = -EINVAL;
 			goto free_exit;
 		}
@@ -3094,21 +3101,21 @@ static int tegra_vse_aes_gcm_enc_dec(struct aead_request *req, bool encrypt)
 		src_buf, cryptlen, req->assoclen);
 
 free_exit:
-	if (!ivc_req_msg)
+	if (ivc_req_msg)
 		devm_kfree(se_dev->dev, ivc_req_msg);
 
-	if (!priv)
+	if (priv)
 		devm_kfree(se_dev->dev, priv);
 
-	if (!tag_buf)
+	if (tag_buf)
 		dma_free_coherent(se_dev->dev, aes_ctx->authsize, tag_buf,
 				tag_buf_addr);
 
-	if (!src_buf)
+	if (src_buf)
 		dma_free_coherent(se_dev->dev, cryptlen, src_buf,
 				src_buf_addr);
 
-	if (!aad_buf)
+	if (aad_buf)
 		dma_free_coherent(se_dev->dev, req->assoclen, aad_buf,
 				aad_buf_addr);
 
@@ -3117,12 +3124,36 @@ free_exit:
 
 static int tegra_vse_aes_gcm_encrypt(struct aead_request *req)
 {
-	return tegra_vse_aes_gcm_enc_dec(req, true);
+	struct tegra_virtual_se_dev *se_dev = g_virtual_se_dev[VIRTUAL_SE_AES1];
+	int err = 0;
+
+	if (!req) {
+		dev_err(se_dev->dev, "%s: req is invalid\n", __func__);
+		return -EINVAL;
+	}
+
+	err = tegra_vse_aes_gcm_enc_dec(req, true);
+	if (err)
+		dev_err(se_dev->dev, "%s failed %d\n", __func__, err);
+
+	return err;
 }
 
 static int tegra_vse_aes_gcm_decrypt(struct aead_request *req)
 {
-	return tegra_vse_aes_gcm_enc_dec(req, false);
+	struct tegra_virtual_se_dev *se_dev = g_virtual_se_dev[VIRTUAL_SE_AES1];
+	int err = 0;
+
+	if (!req) {
+		dev_err(se_dev->dev, "%s: req is invalid\n", __func__);
+		return -EINVAL;
+	}
+
+	err = tegra_vse_aes_gcm_enc_dec(req, false);
+	if (err)
+		dev_err(se_dev->dev, "%s failed %d\n", __func__, err);
+
+	return err;
 }
 
 static int tegra_hv_vse_safety_gmac_cra_init(struct crypto_tfm *tfm)
