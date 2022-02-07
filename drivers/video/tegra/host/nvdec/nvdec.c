@@ -125,7 +125,7 @@ static int nvhost_nvdec_bl_init(struct platform_device *dev)
 {
 	u32 fb_data_offset = 0;
 	struct flcn **m = get_nvdec(dev);
-	struct nvdec_bl_shared_data shared_data;
+	struct nvdec_bl_shared_data shared_data = {0};
 	u32 debug = host1x_readl(dev,
 				nvdec_scp_ctl_stat_r()) &
 				nvdec_scp_ctl_stat_debug_mode_m();
