@@ -4441,12 +4441,6 @@ static int mgbe_write_phy_reg(struct osi_core_priv_data *osi_core,
 	int ret = 0;
 	unsigned int reg;
 
-	if (osi_core == OSI_NULL) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID, "osi_core is NULL\n",
-			0ULL);
-		return -1;
-	}
-
 	/* Wait for any previous MII read/write operation to complete */
 	ret = mgbe_mdio_busy_wait(osi_core);
 	if (ret < 0) {
