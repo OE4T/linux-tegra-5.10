@@ -24,6 +24,7 @@
 #include <linux/jiffies.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
+#include <linux/nospec.h>
 #include <linux/of.h>
 #include <linux/of_address.h>
 #include <linux/of_reserved_mem.h>
@@ -315,6 +316,8 @@ static inline void rtcpu_trace_exceptions(struct tegra_rtcpu_trace *tracer)
 			new_next, tracer->exception_entries - 1);
 		return;
 	}
+
+	new_next = array_index_nospec(new_next, tracer->exception_entries);
 
 	rtcpu_trace_invalidate_entries(tracer,
 				tracer->dma_handle_exceptions,
@@ -1085,9 +1088,6 @@ static inline void rtcpu_trace_events(struct tegra_rtcpu_trace *tracer)
 	u32 new_next = header->event_next_idx;
 	struct camrtc_event_struct *event, *last_event;
 
-	while (old_next == new_next)
-		return;
-
 	if (new_next >= tracer->event_entries) {
 		WARN_ON_ONCE(new_next >= tracer->event_entries);
 		dev_warn_ratelimited(tracer->dev,
@@ -1095,6 +1095,11 @@ static inline void rtcpu_trace_events(struct tegra_rtcpu_trace *tracer)
 			new_next, tracer->event_entries - 1);
 		return;
 	}
+
+	new_next = array_index_nospec(new_next, tracer->event_entries);
+
+	if (old_next == new_next)
+		return;
 
 	rtcpu_trace_invalidate_entries(tracer,
 				tracer->dma_handle_events,
