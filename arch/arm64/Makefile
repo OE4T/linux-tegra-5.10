@@ -171,6 +171,13 @@ Image.%: Image
 zinstall install:
 	$(Q)$(MAKE) $(build)=$(boot) $@
 
+%.dtbo: include/config/kernel.release scripts_dtc
+	$(Q)$(MAKE) $(build)=$(boot)/dts $(boot)/dts/$@
+
+PHONY += dtb-overlays
+dtb-overlays: include/config/kernel.release scripts_dtc
+	$(Q)$(MAKE) $(build)=$(boot)/dts dtb-overlays
+
 PHONY += vdso_install
 vdso_install:
 	$(Q)$(MAKE) $(build)=arch/arm64/kernel/vdso $@
