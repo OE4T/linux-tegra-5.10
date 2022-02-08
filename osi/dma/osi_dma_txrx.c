@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -228,7 +228,7 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 				 */
 				rx_pkt_cx->flags &= ~OSI_PKT_CX_VALID;
 				d_ops[ip_type].update_rx_err_stats(rx_desc,
-						osi_dma->pkt_err_stats);
+						&osi_dma->pkt_err_stats);
 			}
 
 			/* Check if COE Rx checksum is valid */
