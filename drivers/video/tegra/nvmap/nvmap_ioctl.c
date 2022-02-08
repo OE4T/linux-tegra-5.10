@@ -577,15 +577,23 @@ int nvmap_ioctl_cache_maint(struct file *filp, void __user *arg, int op_size)
 int nvmap_ioctl_free(struct file *filp, unsigned long arg)
 {
 	struct nvmap_client *client = filp->private_data;
+	struct dma_buf *dmabuf = NULL;
 
-	if (!arg)
+	if (!arg || IS_ERR_OR_NULL(client))
 		return 0;
 
 	nvmap_free_handle_from_fd(client, arg);
 
-	if (client->ida)
+	if (client->ida) {
+		dmabuf = dma_buf_get(arg);
+		/* id is dmabuf fd created from foreign dmabuf */
+		if (!IS_ERR_OR_NULL(dmabuf)) {
+			dma_buf_put(dmabuf);
+			goto close_fd;
+		}
 		return 0;
-
+	}
+close_fd:
 	return SYS_CLOSE(arg);
 }
 
