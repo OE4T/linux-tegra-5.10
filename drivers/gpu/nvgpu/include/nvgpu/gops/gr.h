@@ -1050,6 +1050,7 @@ struct gops_gr_ctxsw_prog {
 	u32 (*get_gfx_ppcreglist_offset)(u32 *gpccs_hdr);
 	u32 (*get_compute_etpcreglist_offset)(u32 *gpccs_hdr);
 	u32 (*get_gfx_etpcreglist_offset)(u32 *gpccs_hdr);
+	u32 (*get_tpc_segment_pri_layout)(struct gk20a *g, u32 *main_hdr);
 #endif
 #endif
 };

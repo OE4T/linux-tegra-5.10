@@ -485,6 +485,7 @@ static const struct gops_gr_ctxsw_prog ga10b_ops_gr_ctxsw_prog = {
 	.get_gfx_ppcreglist_offset = ga10b_ctxsw_prog_get_gfx_ppcreglist_offset,
 	.get_compute_etpcreglist_offset = ga10b_ctxsw_prog_get_compute_etpcreglist_offset,
 	.get_gfx_etpcreglist_offset = ga10b_ctxsw_prog_get_gfx_etpcreglist_offset,
+	.get_tpc_segment_pri_layout = ga10b_ctxsw_prog_get_tpc_segment_pri_layout,
 #endif /* CONFIG_NVGPU_DEBUGGER */
 #ifdef CONFIG_DEBUG_FS
 	.dump_ctxsw_stats = ga10b_ctxsw_prog_dump_ctxsw_stats,
