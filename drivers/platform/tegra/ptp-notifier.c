@@ -109,7 +109,7 @@ int tegra_get_hwtime(const char *intf_name, void *ts, int ts_type)
 	dev = dev_get_by_name(&init_net, intf_name);
 
 	if (!dev || !(dev->flags & IFF_UP)) {
-		pr_err("dev is NULL or intf is not up for %s\n", intf_name);
+		pr_debug("dev is NULL or intf is not up for %s\n", intf_name);
 		raw_spin_unlock_irqrestore(&ptp_notifier_lock, flags);
 		return -EINVAL;
 	}
@@ -118,7 +118,7 @@ int tegra_get_hwtime(const char *intf_name, void *ts, int ts_type)
 			break;
 	}
 	if (index == MAX_MAC_INSTANCES) {
-		pr_info("Interface: %s is not registered to get HW time", intf_name);
+		pr_debug("Interface: %s is not registered to get HW time", intf_name);
 		raw_spin_unlock_irqrestore(&ptp_notifier_lock, flags);
 		return -EINVAL;
 	}
