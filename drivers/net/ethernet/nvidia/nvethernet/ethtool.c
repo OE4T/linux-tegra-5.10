@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -1396,9 +1396,6 @@ static void ether_get_wol(struct net_device *ndev, struct ethtool_wolinfo *wol)
 {
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 
-	wol->supported = 0;
-	wol->wolopts = 0;
-
 	if (!wol)
 		return;
 
@@ -1408,6 +1405,9 @@ static void ether_get_wol(struct net_device *ndev, struct ethtool_wolinfo *wol)
 			   __func__);
 		return;
 	}
+
+	wol->supported = 0;
+	wol->wolopts = 0;
 
 	if (!phy_interrupt_is_valid(pdata->phydev))
 		return;
