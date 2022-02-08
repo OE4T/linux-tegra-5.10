@@ -420,7 +420,7 @@ static int set_mode(struct nvpps_device_data *pdev_data, u32 mode)
 				if (!pdev_data->irq_registered) {
 					/* register IRQ handler */
 					err = devm_request_irq(pdev_data->dev, pdev_data->irq, nvpps_gpio_isr,
-							IRQF_TRIGGER_RISING | IRQF_NO_THREAD, "nvpps_isr", pdev_data);
+							IRQF_TRIGGER_RISING, "nvpps_isr", pdev_data);
 					if (err) {
 						dev_err(pdev_data->dev, "failed to acquire IRQ %d\n", pdev_data->irq);
 					} else {
