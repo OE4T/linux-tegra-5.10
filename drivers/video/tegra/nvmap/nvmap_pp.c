@@ -3,7 +3,7 @@
  *
  * Manage page pools to speed up page allocation.
  *
- * Copyright (c) 2009-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2009-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -400,8 +400,8 @@ static int __nvmap_page_pool_fill_lots_locked(struct nvmap_page_pool *pool,
 	if (!enable_pp)
 		return 0;
 
+	BUG_ON(pool->count > pool->max);
 	real_nr = min_t(u32, pool->max - pool->count, nr);
-	BUG_ON(real_nr < 0);
 	if (real_nr == 0)
 		return 0;
 
