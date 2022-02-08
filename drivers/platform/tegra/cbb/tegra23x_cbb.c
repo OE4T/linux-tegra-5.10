@@ -40,6 +40,7 @@
 #endif
 #include <linux/platform/tegra/tegra_cbb.h>
 #include <linux/platform/tegra/tegra23x_cbb.h>
+#include <linux/platform/tegra/tegra239_cbb.h>
 #include <linux/platform/tegra/tegra23x_cbb_reg.h>
 
 #define get_mstr_id(userbits) get_em_el_subfield(errmon->user_bits, 29, 24)
@@ -621,6 +622,11 @@ static struct tegra_cbb_noc_data tegra239_cbb_en_data = {
 	.tegra_cbb_noc_set_erd = tegra234_cbb_mn_mask_erd
 };
 
+static struct tegra_cbb_noc_data tegra239_ape_en_data = {
+	.name   = "APE-EN",
+	.is_clk_rst = false,
+	.erd_mask_inband_err = false
+};
 static struct tegra_cbb_noc_data tegra234_aon_en_data = {
 	.name   = "AON-EN",
 	.is_clk_rst = false,
@@ -674,6 +680,8 @@ static const struct of_device_id tegra234_cbb_match[] = {
 		.data = &tegra234_sce_en_data},
 	{.compatible    = "nvidia,tegra239-CBB-EN",
 		.data = &tegra239_cbb_en_data},
+	{.compatible    = "nvidia,tegra239-APE-EN",
+		.data = &tegra239_ape_en_data},
 	{},
 };
 MODULE_DEVICE_TABLE(of, tegra234_cbb_match);
@@ -686,7 +694,10 @@ static int tegra234_cbb_errmon_set_data(struct tegra_cbb_errmon_record *errmon)
 	if (!strcmp(errmon->name, "CBB-EN")) {
 		fabric_sn_map[CBB_FAB_ID].fab_name = "CBB";
 		fabric_sn_map[CBB_FAB_ID].fab_base_vaddr = errmon->vaddr;
-		fabric_sn_map[CBB_FAB_ID].sn_lookup = tegra23x_cbb_sn_lookup;
+		if (of_machine_is_compatible("nvidia,tegra239"))
+			fabric_sn_map[CBB_FAB_ID].sn_lookup = tegra239_cbb_sn_lookup;
+		else
+			fabric_sn_map[CBB_FAB_ID].sn_lookup = tegra23x_cbb_sn_lookup;
 	} else if (!strcmp(errmon->name, "SCE-EN")) {
 		fabric_sn_map[SCE_FAB_ID].fab_name = "SCE";
 		fabric_sn_map[SCE_FAB_ID].fab_base_vaddr = errmon->vaddr;
@@ -707,6 +718,10 @@ static int tegra234_cbb_errmon_set_data(struct tegra_cbb_errmon_record *errmon)
 		fabric_sn_map[BPMP_FAB_ID].fab_name = "BPMP";
 		fabric_sn_map[BPMP_FAB_ID].fab_base_vaddr = errmon->vaddr;
 		fabric_sn_map[BPMP_FAB_ID].sn_lookup = tegra23x_bpmp_sn_lookup;
+	} else if (!strcmp(errmon->name, "APE-EN")) {
+		fabric_sn_map[APE_FAB_ID].fab_name = "APE";
+		fabric_sn_map[APE_FAB_ID].fab_base_vaddr = errmon->vaddr;
+		fabric_sn_map[APE_FAB_ID].sn_lookup = tegra239_ape_sn_lookup;
 	} else
 		return -EINVAL;
 
