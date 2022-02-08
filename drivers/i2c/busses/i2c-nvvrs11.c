@@ -279,6 +279,12 @@ exit:
 	return ret;
 }
 
+static int nvvrs11_remove(struct i2c_client *client)
+{
+	nvvrs11_delete_sys_files(&client->dev);
+	return 0;
+}
+
 #ifdef CONFIG_PM_SLEEP
 static int nvvrs11_i2c_suspend(struct device *dev)
 {
@@ -307,6 +313,7 @@ static struct i2c_driver nvvrs11_driver = {
 		.of_match_table = of_match_ptr(nvvrs_dt_match),
 	},
 	.probe = nvvrs11_probe,
+	.remove = nvvrs11_remove,
 };
 
 static int __init nvvrs11_init(void)
