@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -684,10 +684,9 @@ static int parse_inputs(const char *buf,
 			case 2:
 				flags |= OSI_LUT_FLAGS_BYTE2_PATTERN_VALID;
 				break;
+			default:
 			case 3:
 				flags |= OSI_LUT_FLAGS_BYTE3_PATTERN_VALID;
-				break;
-			default:
 				break;
 			}
 			lut_in->byte_pattern[i] = byte[i];

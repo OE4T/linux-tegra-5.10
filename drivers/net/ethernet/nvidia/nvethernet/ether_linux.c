@@ -4996,15 +4996,15 @@ static int ether_get_eqos_clks(struct ether_priv_data *pdata)
 		goto err_tx;
 	}
 
+	/* This is optional clk */
 	pdata->rx_m_clk = devm_clk_get(dev, "eqos_rx_m");
 	if (IS_ERR(pdata->rx_m_clk)) {
-		ret =  PTR_ERR(pdata->rx_m_clk);
 		dev_info(dev, "failed to get eqos_rx_m clk\n");
 	}
 
+	/* This is optional clk */
 	pdata->rx_input_clk = devm_clk_get(dev, "eqos_rx_input");
 	if (IS_ERR(pdata->rx_input_clk)) {
-		ret = PTR_ERR(pdata->rx_input_clk);
 		dev_info(dev, "failed to get eqos_rx_input clk\n");
 	}
 

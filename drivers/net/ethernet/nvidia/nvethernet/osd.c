@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -922,7 +922,12 @@ int osd_ivc_send_cmd(void *priv, ivc_msg_common_t *ivc_buf, unsigned int len)
 
 	dcnt = IVC_READ_TIMEOUT_CNT;
 	while ((!tegra_hv_ivc_can_read(ictxt->ivck))) {
-		wait_for_completion_timeout(&ictxt->msg_complete, IVC_WAIT_TIMEOUT);
+		if (!wait_for_completion_timeout(&ictxt->msg_complete,
+						 IVC_WAIT_TIMEOUT)) {
+			ret = -ETIMEDOUT;
+			goto fail;
+		}
+
 		dcnt--;
 		if (!dcnt) {
 			dev_err(pdata->dev, "IVC read timeout\n");

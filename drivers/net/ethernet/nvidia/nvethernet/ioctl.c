@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -139,6 +139,11 @@ static int ether_set_avb_algo(struct net_device *ndev,
 		dev_err(pdata->dev,
 			"Failed to fetch AVB Struct info from user\n");
 		return ret;
+	}
+
+	if (ioctl_data.avb.qindex >= OSI_MGBE_MAX_NUM_QUEUES) {
+		dev_err(pdata->dev, "Invalid queue index from user\n");
+		return -EINVAL;
 	}
 
 	/* Check AVB mode disable on slot function enable */
