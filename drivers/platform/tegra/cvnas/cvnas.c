@@ -490,6 +490,7 @@ static ssize_t clk_cap_store(struct device *dev,
 {
 	struct cvnas_device *cvnas = dev_get_drvdata(dev);
 	unsigned long max_rate;
+	long rounded_max_rate;
 	int ret;
 
 	ret = kstrtoul(buf, 0, &max_rate);
@@ -501,12 +502,18 @@ static ssize_t clk_cap_store(struct device *dev,
 	if (ret < 0)
 		return ret;
 
-	max_rate = clk_round_rate(cvnas->clk, max_rate);
-	if (max_rate < 0)
+	rounded_max_rate = clk_round_rate(cvnas->clk, max_rate);
+	if (rounded_max_rate < 0)
 		return -EINVAL;
 
 	/* Apply new freq cap */
-	ret = clk_set_max_rate(cvnas->clk, max_rate);
+	ret = clk_set_max_rate(cvnas->clk, (unsigned long) rounded_max_rate);
+	if (ret < 0)
+		return ret;
+
+	/* No dynamic frequency scaling support for CVNAS clock.
+	 * Set current rate to max */
+	ret = clk_set_rate(cvnas->clk, (unsigned long) rounded_max_rate);
 	if (ret < 0)
 		return ret;
 
