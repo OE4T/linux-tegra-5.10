@@ -1,7 +1,7 @@
 /*
  * PVA Command Queue Interface handling
  *
- * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -73,10 +73,6 @@ static int pva_ccq_send_cmd(struct pva *pva, u32 queue_id,
 		      cmd->mbox[1]);
 	host1x_writel(pva->pdev, cfg_ccq_r(pva->version, queue_id),
 		      cmd->mbox[0]);
-	host1x_writel(pva->pdev, cfg_ccq_r(pva->version, queue_id),
-		      cmd->mbox[3]);
-	host1x_writel(pva->pdev, cfg_ccq_r(pva->version, queue_id),
-		      cmd->mbox[2]);
 	return err;
 
 err_wait_ccq:
