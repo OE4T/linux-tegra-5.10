@@ -62,11 +62,9 @@
 phys_addr_t __weak tegra_carveout_start;
 phys_addr_t __weak tegra_carveout_size;
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0)
 phys_addr_t __weak tegra_vpr_start;
 phys_addr_t __weak tegra_vpr_size;
 bool __weak tegra_vpr_resize;
-#endif /* KERNEL_VERSION < 5 */
 
 struct device __weak tegra_generic_dev;
 
@@ -296,9 +294,7 @@ int __init nvmap_populate_ivm_carveout(struct reserved_mem *rmem)
 }
 #endif
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0)
 static int __nvmap_init_legacy(struct device *dev);
-#endif /* KERNEL_VERSION < 5 */
 static int __nvmap_init_dt(struct platform_device *pdev)
 {
 	if (!of_match_device(nvmap_of_ids, &pdev->dev)) {
@@ -306,10 +302,8 @@ static int __nvmap_init_dt(struct platform_device *pdev)
 		return -EINVAL;
 	}
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0)
 	/* For VM_2 we need carveout. So, enabling it here */
 	__nvmap_init_legacy(&pdev->dev);
-#endif /* KERNEL_VERSION < 5 */
 
 	pdev->dev.platform_data = &nvmap_data;
 
@@ -767,7 +761,6 @@ RESERVEDMEM_OF_DECLARE(nvmap_fsi_co, "nvidia,fsi-carveout", nvmap_co_setup);
 /*
  * This requires proper kernel arguments to have been passed.
  */
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0)
 static int __nvmap_init_legacy(struct device *dev)
 {
 	/* Carveout. */
@@ -788,7 +781,6 @@ static int __nvmap_init_legacy(struct device *dev)
 
 	return 0;
 }
-#endif /* KERNEL_VERSION < 5 */
 
 /*
  * Fills in the platform data either from the device tree or with the
