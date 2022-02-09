@@ -891,7 +891,8 @@ int nvgpu_gr_obj_ctx_alloc(struct gk20a *g,
 		subctx);
 
 #ifndef CONFIG_NVGPU_NON_FUSA
-	if (g->ops.gr.init.set_default_compute_regs != NULL) {
+	if (g->ops.gpu_class.is_valid_compute(class_num) &&
+	    g->ops.gr.init.set_default_compute_regs != NULL) {
 		g->ops.gr.init.set_default_compute_regs(g, gr_ctx);
 	}
 #endif
