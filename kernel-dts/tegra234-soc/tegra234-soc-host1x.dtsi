@@ -207,7 +207,7 @@
 
 		nvjpg@15380000 {
 			compatible = "nvidia,tegra234-nvjpg";
-			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_NVJPG>;
+			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_NVJPGA>;
 			reg = <0x0 0x15380000 0x0 0x00040000>;
 			resets = <&bpmp_resets TEGRA234_RESET_NVJPG>;
 			clocks = <&bpmp_clks TEGRA234_CLK_NVJPG>;
@@ -248,7 +248,7 @@
 
 		nvdec@15480000 {
 			compatible = "nvidia,tegra234-nvdec";
-			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_NVDECA>;
+			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_NVDEC>;
 			reg = <0x0 0x15480000 0x0 0x00040000>;
 			resets = <&bpmp_resets TEGRA234_RESET_NVDEC>;
 			clocks = <&bpmp_clks TEGRA234_CLK_NVDEC>,
@@ -264,7 +264,7 @@
 
 		nvenc@154c0000 {
 			compatible = "nvidia,tegra234-nvenc";
-			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_NVENCA>;
+			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_NVENC>;
 			reg = <0x0 0x154c0000 0x0 0x00040000>;
 			resets = <&bpmp_resets TEGRA234_RESET_NVENC>;
 			clocks = <&bpmp_clks TEGRA234_CLK_NVENC>;
@@ -350,7 +350,7 @@
 
 		pva0: pva0 {
 			compatible = "nvidia,tegra234-pva";
-			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PVAA>;
+			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PVA>;
 			reg = <0x0 0x16000000 0x0 0x800000>;
 			interrupts = <0 234 0x04>,
 				     <0 432 0x04>,
