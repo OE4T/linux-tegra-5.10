@@ -16,6 +16,7 @@
 #include <linux/pm_runtime.h>
 #include <linux/reset.h>
 #include <linux/scatterlist.h>
+#include <linux/slab.h>
 
 #include "falcon.h"
 
