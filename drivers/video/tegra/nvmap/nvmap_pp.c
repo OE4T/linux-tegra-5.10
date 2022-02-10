@@ -395,6 +395,7 @@ static int __nvmap_page_pool_fill_lots_locked(struct nvmap_page_pool *pool,
 				       struct page **pages, u32 nr)
 {
 	int real_nr;
+	int pages_to_fill;
 	int ind = 0;
 
 	if (!enable_pp)
@@ -402,6 +403,7 @@ static int __nvmap_page_pool_fill_lots_locked(struct nvmap_page_pool *pool,
 
 	BUG_ON(pool->count > pool->max);
 	real_nr = min_t(u32, pool->max - pool->count, nr);
+	pages_to_fill = real_nr;
 	if (real_nr == 0)
 		return 0;
 
@@ -412,7 +414,7 @@ static int __nvmap_page_pool_fill_lots_locked(struct nvmap_page_pool *pool,
 		}
 
 #ifdef CONFIG_ARM64_4K_PAGES
-		if (nvmap_is_big_page(pool, pages, ind, nr)) {
+		if (nvmap_is_big_page(pool, pages, ind, pages_to_fill)) {
 			list_add_tail(&pages[ind]->lru, &pool->page_list_bp);
 			ind += pool->pages_per_big_pg;
 			real_nr -= pool->pages_per_big_pg;
