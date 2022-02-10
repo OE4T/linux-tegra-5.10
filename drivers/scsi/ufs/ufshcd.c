@@ -3,7 +3,7 @@
  * Universal Flash Storage Host controller driver Core
  * Copyright (C) 2011-2013 Samsung India Software Operations
  * Copyright (c) 2013-2016, The Linux Foundation. All rights reserved.
- * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Authors:
  *	Santosh Yaraganavi <santosh.sy@samsung.com>
@@ -3711,14 +3711,14 @@ int ufshcd_dme_configure_adapt(struct ufs_hba *hba,
 			       int agreed_gear,
 			       int adapt_val)
 {
-	int ret;
+	int ret = 0;
 
-	if (agreed_gear != UFS_HS_G4)
-		adapt_val = PA_NO_ADAPT;
+	if (agreed_gear == UFS_HS_G4) {
+		ret = ufshcd_dme_set(hba,
+			UIC_ARG_MIB(PA_TXHSADAPTTYPE),
+			adapt_val);
+	}
 
-	ret = ufshcd_dme_set(hba,
-		     UIC_ARG_MIB(PA_TXHSADAPTTYPE),
-		     adapt_val);
 	return ret;
 }
 EXPORT_SYMBOL_GPL(ufshcd_dme_configure_adapt);
@@ -4251,9 +4251,22 @@ static int ufshcd_change_power_mode(struct ufs_hba *hba,
 	 * - PA_TXGEAR, PA_ACTIVETXDATALANES, PA_TXTERMINATION,
 	 * - PA_HSSERIES
 	 */
-	ufshcd_dme_set(hba, UIC_ARG_MIB(PA_RXGEAR), pwr_mode->gear_rx);
 	ufshcd_dme_set(hba, UIC_ARG_MIB(PA_ACTIVERXDATALANES),
 			pwr_mode->lane_rx);
+	ufshcd_dme_set(hba, UIC_ARG_MIB(PA_ACTIVETXDATALANES),
+			pwr_mode->lane_tx);
+
+	/* Lane change is triggered */
+	ret = ufshcd_uic_change_pwr_mode(hba, SLOWAUTO_MODE << 4
+			| SLOWAUTO_MODE);
+	if (ret) {
+		dev_err(hba->dev,
+			"%s: lane change failed %d\n", __func__, ret);
+		goto out;
+	}
+
+	ufshcd_dme_configure_adapt(hba, pwr_mode->gear_rx, PA_INITIAL_ADAPT);
+	ufshcd_dme_set(hba, UIC_ARG_MIB(PA_RXGEAR), pwr_mode->gear_rx);
 	if (pwr_mode->pwr_rx == FASTAUTO_MODE ||
 			pwr_mode->pwr_rx == FAST_MODE)
 		ufshcd_dme_set(hba, UIC_ARG_MIB(PA_RXTERMINATION), TRUE);
@@ -4261,8 +4274,6 @@ static int ufshcd_change_power_mode(struct ufs_hba *hba,
 		ufshcd_dme_set(hba, UIC_ARG_MIB(PA_RXTERMINATION), FALSE);
 
 	ufshcd_dme_set(hba, UIC_ARG_MIB(PA_TXGEAR), pwr_mode->gear_tx);
-	ufshcd_dme_set(hba, UIC_ARG_MIB(PA_ACTIVETXDATALANES),
-			pwr_mode->lane_tx);
 	if (pwr_mode->pwr_tx == FASTAUTO_MODE ||
 			pwr_mode->pwr_tx == FAST_MODE)
 		ufshcd_dme_set(hba, UIC_ARG_MIB(PA_TXTERMINATION), TRUE);
@@ -4298,6 +4309,7 @@ static int ufshcd_change_power_mode(struct ufs_hba *hba,
 				DL_AFC0ReqTimeOutVal_Default);
 	}
 
+	/* Gear and power change are triggered */
 	ret = ufshcd_uic_change_pwr_mode(hba, pwr_mode->pwr_rx << 4
 			| pwr_mode->pwr_tx);
 	if (ret)
