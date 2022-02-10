@@ -485,7 +485,7 @@
 		clock-names = "tach";
 		resets = <&bpmp_resets TEGRA234_RESET_TACH0>;
 		reset-names = "tach";
-		interrupts = <0 192 0x4>;
+		interrupts = <0 TEGRA234_IRQ_TACH0 0x4>;
 		pulse-per-rev = <2>;
 		capture-window-length = <2>;
 		disable-clk-gate;
@@ -500,6 +500,7 @@
 		clock-names = "tach";
 		resets = <&bpmp_resets TEGRA234_RESET_TACH1>;
 		reset-names = "tach";
+		interrupts = <0 TEGRA234_IRQ_TACH1 0x4>;
 		pulse-per-rev = <2>;
 		capture-window-length = <2>;
 		disable-clk-gate;
