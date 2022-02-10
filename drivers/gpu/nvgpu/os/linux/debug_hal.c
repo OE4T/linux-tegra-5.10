@@ -23,7 +23,7 @@
 /* Format and print a single function pointer to the specified seq_file. */
 static void __hal_print_op(struct seq_file *s, void *op_ptr)
 {
-	seq_printf(s, "%pF\n", op_ptr);
+	seq_printf(s, "%pS\n", op_ptr);
 }
 
 /*

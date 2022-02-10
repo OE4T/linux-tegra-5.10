@@ -119,7 +119,7 @@ static int nvgpu_timeout_expired_msg_cpu(struct nvgpu_timeout *timeout,
 
 			(void) vsnprintf(buf, sizeof(buf), fmt, args);
 
-			nvgpu_err(g, "Timeout detected @ %pF %s", caller, buf);
+			nvgpu_err(g, "Timeout detected @ %pS %s", caller, buf);
 		}
 
 		return -ETIMEDOUT;
@@ -143,7 +143,7 @@ static int nvgpu_timeout_expired_msg_retry(struct nvgpu_timeout *timeout,
 
 			(void) vsnprintf(buf, sizeof(buf), fmt, args);
 
-			nvgpu_err(g, "No more retries @ %pF %s", caller, buf);
+			nvgpu_err(g, "No more retries @ %pS %s", caller, buf);
 		}
 
 		return -ETIMEDOUT;
