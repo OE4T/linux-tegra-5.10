@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -72,7 +72,7 @@ static int i2c_util_standard_release(struct inode *inode,
 	struct file *file);
 static ssize_t i2c_util_standard_read(struct file *filp, char __user *buf,
 	size_t len, loff_t *off);
-static ssize_t i2c_util_standard_write(struct file *filp, const char *buf,
+static ssize_t i2c_util_standard_write(struct file *filp, const char __user *buf,
 	size_t len, loff_t *off);
 static long i2c_util_ioctl(struct file *file, unsigned int cmd,
 	unsigned long arg);
