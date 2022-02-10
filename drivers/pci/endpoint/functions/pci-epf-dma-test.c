@@ -188,6 +188,11 @@ void pcie_async_dma_handler(struct pcie_epf_dma *epfnv)
 	}
 }
 
+static irqreturn_t pcie_dma_epf_irq(int irq, void *arg)
+{
+	return IRQ_WAKE_THREAD;
+}
+
 static irqreturn_t pcie_dma_epf_irq_handler(int irq, void *arg)
 {
 	struct pcie_epf_dma *epfnv = (struct pcie_epf_dma *)arg;
@@ -1606,9 +1611,9 @@ static int pcie_dma_epf_bind(struct pci_epf *epf)
 		goto fail_atu_dma;
 	}
 
-	ret = devm_request_threaded_irq(fdev, epfnv->irq, NULL,
+	ret = devm_request_threaded_irq(fdev, epfnv->irq, pcie_dma_epf_irq,
 					pcie_dma_epf_irq_handler,
-					IRQF_SHARED | IRQF_ONESHOT,
+					IRQF_SHARED,
 					name, epfnv);
 	if (ret < 0) {
 		dev_err(fdev, "failed to request \"intr\" irq\n");

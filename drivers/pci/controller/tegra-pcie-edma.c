@@ -304,6 +304,14 @@ process_abort:
 		process_r_idx(ch, EDMA_XFER_ABORT, ch->w_idx);
 }
 
+static irqreturn_t edma_irq(int irq, void *cookie)
+{
+	/* Disable irq before wake thread handler */
+	disable_irq_nosync(irq);
+
+	return IRQ_WAKE_THREAD;
+}
+
 static irqreturn_t edma_irq_handler(int irq, void *cookie)
 {
 	struct edma_prv *prv = (struct edma_prv *)cookie;
@@ -366,6 +374,8 @@ static irqreturn_t edma_irq_handler(int irq, void *cookie)
 		}
 	}
 
+	/* Must enable before exit */
+	enable_irq(irq);
 	return IRQ_HANDLED;
 }
 
@@ -492,8 +502,8 @@ void *tegra_pcie_edma_initialize(struct tegra_pcie_edma_init_info *info)
 	if (!prv->irq_name)
 		goto free_ring;
 
-	ret = request_threaded_irq(prv->irq, NULL, edma_irq_handler,
-				   IRQF_SHARED | IRQF_ONESHOT,
+	ret = request_threaded_irq(prv->irq, edma_irq, edma_irq_handler,
+				   IRQF_SHARED,
 				   prv->irq_name, prv);
 	if (ret < 0) {
 		dev_err(prv->dev, "failed to request \"intr\" irq\n");
