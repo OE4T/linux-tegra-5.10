@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Authors:
  *      VenkataJagadish.p	<vjagadish@nvidia.com>
@@ -78,6 +78,7 @@
 #define MPHY_TX_APB_TX_ATTRIBUTE_34_37_0	0x34
 #define TX_ADVANCED_GRANULARITY		(0x8 << 16)
 #define TX_ADVANCED_GRANULARITY_SETTINGS	(0x1 << 8)
+#define MPHY_PWR_CHANGE_CLK_BOOST		0x0017
 #define MPHY_GO_BIT	1
 
 #define MPHY_RX_APB_CAPABILITY_88_8B_0		0x88
