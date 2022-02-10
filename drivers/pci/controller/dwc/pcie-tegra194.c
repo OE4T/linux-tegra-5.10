@@ -2,7 +2,7 @@
 /*
  * PCIe host controller driver for Tegra194 SoC
  *
- * Copyright (c) 2019-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * Author: Vidya Sagar <vidyas@nvidia.com>
  */
@@ -3811,7 +3811,7 @@ static int tegra_pcie_dw_probe(struct platform_device *pdev)
 		ret = devm_request_threaded_irq(dev, pp->irq,
 						tegra_pcie_ep_hard_irq,
 						tegra_pcie_ep_irq_thread,
-						IRQF_SHARED | IRQF_ONESHOT,
+						IRQF_SHARED,
 						"tegra-pcie-ep-intr", pcie);
 		if (ret) {
 			dev_err(dev, "Failed to request IRQ %d: %d\n", pp->irq,
