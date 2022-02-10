@@ -493,7 +493,7 @@
 	};
 
 	tegra_tachometer1: tachometer@39b0000 {
-		compatible = "nvidia,pwm-tegra194-tachometer";
+		compatible = "nvidia,pwm-tegra234-tachometer";
 		reg = <0x0 0x039b0000 0x0 0x10>;
 		#pwm-cells = <2>;
 		clocks = <&bpmp_clks TEGRA234_CLK_TACH1>;
