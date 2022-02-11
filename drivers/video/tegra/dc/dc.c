@@ -1422,12 +1422,17 @@ static ssize_t dbg_dc_out_type_set(struct file *file,
 			/* DSI and fake DSI use same data
 			 * create new if not created yet
 			 */
+			ret = tegra_dc_init_fakedsi_panel(dc, out_type);
+			if (ret < 0) {
+				dev_err(&dc->ndev->dev,
+				"failed to initialize fake dsi panel\n");
+				return -EINVAL;
+			}
+
 			if (!dc->pdata->default_out->depth)
 				dc->pdata->default_out->depth = 18;
 
 			allocate = true;
-			tegra_dc_init_fakedsi_panel(dc, out_type);
-
 		} else if (out_type == TEGRA_DC_OUT_NULL) {
 			if (!dc->dbg_dc_out_info[TEGRA_DC_OUT_NULL].out_data) {
 				allocate = true;
