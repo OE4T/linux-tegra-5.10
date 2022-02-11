@@ -740,7 +740,7 @@ static ssize_t debug_dla_pm_suspend_write(struct file *file,
 		goto fail;
 
 	pdev = nvdla_dev->pdev;
-	if (nvdla_dev == NULL)
+	if (pdev == NULL)
 		goto fail;
 
 	if ((write_value > 0) && (!nvdla_dev->is_suspended)) {

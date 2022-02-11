@@ -1108,8 +1108,7 @@ fail_to_get_fences:
 fail_to_fill_task_desc:
 fail_to_fill_task:
 	/* Remove ref corresponding task submit preparation */
-	if (task != NULL)
-		kref_put(&task->ref, task_free);
+	kref_put(&task->ref, task_free);
 
 	/*TODO: traverse list in reverse and delete jobs */
 fail_to_get_task_mem:
@@ -1122,7 +1121,7 @@ static long nvdla_ioctl(struct file *file, unsigned int cmd,
 {
 	struct nvdla_private *priv = file->private_data;
 	struct platform_device *pdev = priv->pdev;
-	u8 buf[NVDLA_IOCTL_MAX_ARG_SIZE] __aligned(sizeof(u64));
+	u8 buf[NVDLA_IOCTL_MAX_ARG_SIZE] __aligned(sizeof(u64)) = { 0U };
 	int err = 0;
 
 #ifdef CONFIG_PM
