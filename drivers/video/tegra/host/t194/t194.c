@@ -526,6 +526,8 @@ struct nvhost_device_data t19_vic_info = {
 struct nvhost_device_data t19_pva1_info = {
 	.num_channels		= 1,
 	.clocks			= {
+		{"nafll_pva_vps", UINT_MAX,},
+		{"nafll_pva_core", UINT_MAX,},
 		{"axi", UINT_MAX,},
 		{"vps0", UINT_MAX,},
 		{"vps1", UINT_MAX,},
@@ -552,6 +554,8 @@ struct nvhost_device_data t19_pva1_info = {
 struct nvhost_device_data t19_pva0_info = {
 	.num_channels		= 1,
 	.clocks			= {
+		{"nafll_pva_vps", UINT_MAX,},
+		{"nafll_pva_core", UINT_MAX,},
 		{"axi", UINT_MAX,},
 		{"vps0", UINT_MAX,},
 		{"vps1", UINT_MAX,},
@@ -580,6 +584,8 @@ struct nvhost_device_data t19_nvdla0_info = {
 	.devfs_name_family	= "nvdla",
 	.class			= NV_DLA0_CLASS_ID,
 	.clocks			= {
+		{"nafll_dla", UINT_MAX},
+		{"nafll_dla_falcon", UINT_MAX},
 		{"nvdla0", UINT_MAX},
 		{"nvdla0_flcn", UINT_MAX},
 		{"emc", 0,
@@ -614,6 +620,8 @@ struct nvhost_device_data t19_nvdla1_info = {
 	.devfs_name_family	= "nvdla",
 	.class			= NV_DLA1_CLASS_ID,
 	.clocks			= {
+		{"nafll_dla", UINT_MAX},
+		{"nafll_dla_falcon", UINT_MAX},
 		{"nvdla1", UINT_MAX},
 		{"nvdla1_flcn", UINT_MAX},
 		{"emc", 0,
