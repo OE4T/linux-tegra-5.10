@@ -328,7 +328,7 @@ static void report_pbdma_error(struct gk20a *g, u32 pbdma_id,
 	if (err_type != GPU_HOST_INVALID_ERROR) {
 		nvgpu_err(g, "pbdma_intr_0(%d)= 0x%08x ",
 				pbdma_id, pbdma_intr_0);
-		nvgpu_report_err_to_sdl(g, err_type);
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_HOST, err_type);
 	}
 	return;
 }
@@ -537,7 +537,8 @@ bool ga10b_pbdma_handle_intr_1(struct gk20a *g, u32 pbdma_id, u32 pbdma_intr_1,
 
 	recover = true;
 
-	nvgpu_report_err_to_sdl(g, GPU_HOST_PBDMA_HCE_ERROR);
+	nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_HOST,
+			GPU_HOST_PBDMA_HCE_ERROR);
 
 	if ((pbdma_intr_1 & pbdma_intr_1_ctxnotvalid_pending_f()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr, "ctxnotvalid intr on pbdma id %d",

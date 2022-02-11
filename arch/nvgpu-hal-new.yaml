@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2021, NVIDIA CORPORATION.  All Rights Reserved.
+# Copyright (c) 2019-2022, NVIDIA CORPORATION.  All Rights Reserved.
 #
 # HAL units. These are the units that have access to HW.
 #
@@ -1024,9 +1024,9 @@ tpc:
 cic:
   safe: yes
   owner: Tejal K
-  sources: [ hal/cic/mon/init_gv11b_fusa.c,
-             hal/cic/mon/lut_gv11b_fusa.c,
-             hal/cic/mon/cic_gv11b.h ]
+  sources: [ hal/cic/mon/init_ga10b_fusa.c,
+             hal/cic/mon/lut_ga10b_fusa.c,
+             hal/cic/mon/cic_ga10b.h ]
 
 grmgr:
   safe: no

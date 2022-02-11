@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,17 +20,19 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef CIC_GV11B_H
-#define CIC_GV11B_H
+#include <nvgpu/log.h>
 
-#include <nvgpu/nvgpu_err_info.h>
+#include "common/cic/mon/cic_mon_priv.h"
+#include "cic_ga10b.h"
 
-struct gk20a;
-struct nvgpu_cic_mon;
+int ga10b_cic_mon_init(struct gk20a *g, struct nvgpu_cic_mon *cic_mon)
+{
+	if (cic_mon == NULL) {
+		nvgpu_err(g, "Invalid CIC reference pointer.");
+		return -EINVAL;
+	}
 
-extern struct nvgpu_err_hw_module gv11b_err_lut[];
-extern u32 size_of_gv11b_lut;
-
-int gv11b_cic_mon_init(struct gk20a *g, struct nvgpu_cic_mon *cic_mon);
-
-#endif /* CIC_GV11B_H */
+	cic_mon->err_lut = ga10b_err_lut;
+	cic_mon->num_hw_modules = size_of_ga10b_lut;
+	return 0;
+}

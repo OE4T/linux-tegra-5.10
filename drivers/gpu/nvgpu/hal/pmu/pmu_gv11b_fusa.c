@@ -141,13 +141,15 @@ static int gv11b_pmu_correct_ecc(struct gk20a *g, u32 ecc_status, u32 ecc_addr)
 
 	if ((ecc_status &
 		pwr_pmu_falcon_ecc_status_corrected_err_imem_m()) != 0U) {
-		nvgpu_report_err_to_sdl(g, GPU_PMU_FALCON_IMEM_ECC_CORRECTED);
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PMU,
+				GPU_PMU_FALCON_IMEM_ECC_CORRECTED);
 		nvgpu_err(g, "falcon imem ecc error corrected. "
 				"ecc_addr(0x%x)", ecc_addr);
 	}
 	if ((ecc_status &
 		pwr_pmu_falcon_ecc_status_uncorrected_err_imem_m()) != 0U) {
-		nvgpu_report_err_to_sdl(g, GPU_PMU_FALCON_IMEM_ECC_UNCORRECTED);
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PMU,
+				GPU_PMU_FALCON_IMEM_ECC_UNCORRECTED);
 		nvgpu_err(g, "falcon imem ecc error uncorrected. "
 				"ecc_addr(0x%x)", ecc_addr);
 		ret = -EFAULT;
@@ -163,7 +165,8 @@ static int gv11b_pmu_correct_ecc(struct gk20a *g, u32 ecc_status, u32 ecc_addr)
 	}
 	if ((ecc_status &
 		pwr_pmu_falcon_ecc_status_uncorrected_err_dmem_m()) != 0U) {
-		nvgpu_report_err_to_sdl(g, GPU_PMU_FALCON_DMEM_ECC_UNCORRECTED);
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PMU,
+				GPU_PMU_FALCON_DMEM_ECC_UNCORRECTED);
 		nvgpu_err(g, "falcon dmem ecc error uncorrected. "
 				"ecc_addr(0x%x)", ecc_addr);
 		ret = -EFAULT;

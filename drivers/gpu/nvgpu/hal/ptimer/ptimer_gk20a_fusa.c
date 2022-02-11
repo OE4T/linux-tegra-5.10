@@ -65,7 +65,8 @@ void gk20a_ptimer_isr(struct gk20a *g)
 	gk20a_writel(g, timer_pri_timeout_save_0_r(), 0);
 	gk20a_writel(g, timer_pri_timeout_save_1_r(), 0);
 
-	nvgpu_report_err_to_sdl(g, GPU_PRI_TIMEOUT_ERROR);
+	nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PRI,
+			GPU_PRI_TIMEOUT_ERROR);
 }
 
 #ifdef CONFIG_NVGPU_IOCTL_NON_FUSA

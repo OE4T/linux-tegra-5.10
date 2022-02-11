@@ -285,7 +285,7 @@
 #include <nvgpu/grmgr.h>
 #endif
 
-#include "hal/cic/mon/cic_gv11b.h"
+#include "hal/cic/mon/cic_ga10b.h"
 #include <nvgpu/cic_mon.h>
 
 static int ga10b_init_gpu_characteristics(struct gk20a *g)
@@ -1720,7 +1720,7 @@ static const struct gops_mssnvlink ga10b_ops_mssnvlink = {
 #endif
 
 static const struct gops_cic_mon ga10b_ops_cic_mon = {
-	.init = gv11b_cic_mon_init,
+	.init = ga10b_cic_mon_init,
 	.report_err = nvgpu_cic_mon_report_err_safety_services
 };
 

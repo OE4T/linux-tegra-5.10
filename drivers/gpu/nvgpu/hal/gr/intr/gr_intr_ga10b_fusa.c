@@ -195,7 +195,8 @@ static u32 ga10b_gr_intr_check_gr_mme_fe1_exception(struct gk20a *g,
 	info_mthd = nvgpu_readl(g, gr_mme_fe1_hww_esr_info_mthd_r());
 	info_mthd2 = nvgpu_readl(g, gr_mme_fe1_hww_esr_info_mthd2_r());
 
-	nvgpu_report_err_to_sdl(g, GPU_PGRAPH_MME_FE1_EXCEPTION);
+	nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,
+			GPU_PGRAPH_MME_FE1_EXCEPTION);
 	nvgpu_err(g, "mme_fe1 exception: esr 0x%08x, info 0x%08x,"
 		     "info_mthd 0x%08x, info_mthd2 0x%08x",
 		      mme_fe1_hww_esr, info, info_mthd, info_mthd2);
@@ -374,7 +375,8 @@ static void ga10b_gr_intr_report_gpcmmu_ecc_err(struct gk20a *g,
 	}
 	if ((ecc_status &
 	     gr_gpc0_mmu0_l1tlb_ecc_status_uncorrected_err_l1tlb_sa_data_m()) != 0U) {
-		nvgpu_report_err_to_sdl(g, GPU_MMU_L1TLB_SA_DATA_ECC_UNCORRECTED);
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_MMU,
+				GPU_MMU_L1TLB_SA_DATA_ECC_UNCORRECTED);
 		nvgpu_err(g, "uncorrected ecc sa data error"
 				"gpc_id(%d)", gpc);
 	}
@@ -385,7 +387,8 @@ static void ga10b_gr_intr_report_gpcmmu_ecc_err(struct gk20a *g,
 	}
 	if ((ecc_status &
 	     gr_gpc0_mmu0_l1tlb_ecc_status_uncorrected_err_l1tlb_fa_data_m()) != 0U) {
-		nvgpu_report_err_to_sdl(g, GPU_MMU_L1TLB_FA_DATA_ECC_UNCORRECTED);
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_MMU,
+				GPU_MMU_L1TLB_FA_DATA_ECC_UNCORRECTED);
 		nvgpu_err(g, "uncorrected ecc fa data error"
 				"gpc_id(%d)", gpc);
 	}
@@ -742,11 +745,13 @@ static void ga10b_gr_intr_report_tpc_sm_rams_ecc_err(struct gk20a *g,
 
 	for (i = 0U; i < ecc_status->err_count; i++) {
 		if (ecc_status->err_id[i] == GPU_SM_RAMS_ECC_CORRECTED) {
-			nvgpu_report_err_to_sdl(g, GPU_SM_L1_TAG_ECC_CORRECTED);
+			nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_SM,
+					GPU_SM_L1_TAG_ECC_CORRECTED);
 			nvgpu_err(g, "sm_l1_tag_ecc_corrected. "
 					"gpc_id(%d), tpc_id(%d)", gpc, tpc);
 		} else {
-			nvgpu_report_err_to_sdl(g, GPU_SM_L1_TAG_ECC_UNCORRECTED);
+			nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_SM,
+					GPU_SM_L1_TAG_ECC_UNCORRECTED);
 			nvgpu_err(g, "sm_l1_tag_ecc_uncorrected. "
 					"gpc_id(%d), tpc_id(%d)", gpc, tpc);
 		}

@@ -30,7 +30,7 @@
 #include <nvgpu/cic_mon.h>
 #include <hal/ce/ce_gp10b.h>
 #include <hal/ce/ce_gv11b.h>
-#include <hal/cic/mon/cic_gv11b.h>
+#include <hal/cic/mon/cic_ga10b.h>
 #include <nvgpu/hw/gv11b/hw_ce_gv11b.h>
 
 #include "nvgpu-ce.h"
@@ -128,7 +128,7 @@ int test_ce_setup_env(struct unit_module *m,
 	g->blcg_enabled = false;
 	nvgpu_spinlock_init(&g->mc.intr_lock);
 
-	g->ops.cic_mon.init = gv11b_cic_mon_init;
+	g->ops.cic_mon.init = ga10b_cic_mon_init;
 
 	if (nvgpu_cic_mon_setup(g) != 0) {
 		unit_err(m, "%s: failed to initialize CIC\n",

@@ -360,7 +360,8 @@ int nvgpu_gr_intr_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 	 * Check and report any fatal warp errors.
 	 */
 	if (is_global_esr_error(global_esr, global_mask)) {
-		nvgpu_report_err_to_sdl(g, GPU_SM_MACHINE_CHECK_ERROR);
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_SM,
+				GPU_SM_MACHINE_CHECK_ERROR);
 		nvgpu_err(g, "sm machine check err. gpc_id(%d), tpc_id(%d), "
 				"offset(%d)", gpc, tpc, offset);
 	}
@@ -478,7 +479,8 @@ int nvgpu_gr_intr_handle_fecs_error(struct gk20a *g, struct nvgpu_channel *ch,
 			&& (mailbox_value ==
 			g->ops.gr.intr.get_ctxsw_checksum_mismatch_mailbox_val())) {
 
-			nvgpu_report_err_to_sdl(g, GPU_FECS_CTXSW_CRC_MISMATCH);
+			nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_FECS,
+					GPU_FECS_CTXSW_CRC_MISMATCH);
 			nvgpu_err(g, "ctxsw intr0 set by ucode, "
 					"ctxsw checksum mismatch");
 			ret = -1;
@@ -488,7 +490,8 @@ int nvgpu_gr_intr_handle_fecs_error(struct gk20a *g, struct nvgpu_channel *ch,
 			 * recovery is initiated and error is reported to
 			 * 3LSS.
 			 */
-			nvgpu_report_err_to_sdl(g, GPU_FECS_FAULT_DURING_CTXSW);
+			nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_FECS,
+					GPU_FECS_FAULT_DURING_CTXSW);
 			nvgpu_err(g,
 				 "ctxsw intr0 set by ucode, error_code: 0x%08x",
 				 mailbox_value);
@@ -497,13 +500,15 @@ int nvgpu_gr_intr_handle_fecs_error(struct gk20a *g, struct nvgpu_channel *ch,
 	}
 
 	if (fecs_host_intr->fault_during_ctxsw_active) {
-		nvgpu_report_err_to_sdl(g, GPU_FECS_FAULT_DURING_CTXSW);
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_FECS,
+				GPU_FECS_FAULT_DURING_CTXSW);
 		nvgpu_err(g, "fecs fault during ctxsw for channel %u", chid);
 		ret = -1;
 	}
 
 	if (fecs_host_intr->watchdog_active) {
-		nvgpu_report_err_to_sdl(g, GPU_FECS_CTXSW_WATCHDOG_TIMEOUT);
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_FECS,
+				GPU_FECS_CTXSW_WATCHDOG_TIMEOUT);
 		/* currently, recovery is not initiated */
 		nvgpu_err(g, "fecs watchdog triggered for channel %u, "
 				"cannot ctxsw anymore !!", chid);
@@ -770,7 +775,8 @@ static u32 gr_intr_handle_illegal_interrupts(struct gk20a *g,
 	if (intr_info->illegal_notify != 0U) {
 		nvgpu_err(g, "illegal notify pending");
 
-		nvgpu_report_err_to_sdl(g, GPU_PGRAPH_ILLEGAL_ERROR);
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,
+				GPU_PGRAPH_ILLEGAL_ERROR);
 		nvgpu_gr_intr_set_error_notifier(g, isr_data,
 				NVGPU_ERR_NOTIFIER_GR_ILLEGAL_NOTIFY);
 		do_reset = 1U;
@@ -779,7 +785,8 @@ static u32 gr_intr_handle_illegal_interrupts(struct gk20a *g,
 
 	if (intr_info->illegal_method != 0U) {
 		if (gr_intr_handle_illegal_method(g, isr_data) != 0) {
-			nvgpu_report_err_to_sdl(g, GPU_PGRAPH_ILLEGAL_ERROR);
+			nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,
+					GPU_PGRAPH_ILLEGAL_ERROR);
 
 			do_reset = 1U;
 		}
@@ -787,7 +794,8 @@ static u32 gr_intr_handle_illegal_interrupts(struct gk20a *g,
 	}
 
 	if (intr_info->illegal_class != 0U) {
-		nvgpu_report_err_to_sdl(g, GPU_PGRAPH_ILLEGAL_ERROR);
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,
+				GPU_PGRAPH_ILLEGAL_ERROR);
 		nvgpu_err(g, "invalid class 0x%08x, offset 0x%08x",
 			  isr_data->class_num, isr_data->offset);
 
@@ -817,7 +825,8 @@ static u32 gr_intr_handle_error_interrupts(struct gk20a *g,
 	}
 
 	if (intr_info->class_error != 0U) {
-		nvgpu_report_err_to_sdl(g, GPU_PGRAPH_ILLEGAL_ERROR);
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,
+				GPU_PGRAPH_ILLEGAL_ERROR);
 		gr_intr_handle_class_error(g, isr_data);
 		do_reset = 1U;
 		*clear_intr &= ~intr_info->class_error;

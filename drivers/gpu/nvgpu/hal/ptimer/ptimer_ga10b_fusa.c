@@ -63,5 +63,6 @@ void ga10b_ptimer_isr(struct gk20a *g)
 		}
 	}
 
-	nvgpu_report_err_to_sdl(g, GPU_PRI_TIMEOUT_ERROR);
+	nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PRI,
+			GPU_PRI_TIMEOUT_ERROR);
 }

@@ -333,15 +333,6 @@ nvgpu-y += \
 	common/cic/mon/mon_init.o \
 	common/cic/mon/mon_lut.o \
 	common/cic/mon/mon_intr.o \
-	common/cic/mon/mon_ce.o \
-	common/cic/mon/mon_ctxsw.o \
-	common/cic/mon/mon_msg.o \
-	common/cic/mon/mon_ecc.o \
-	common/cic/mon/mon_host.o \
-	common/cic/mon/mon_gr.o \
-	common/cic/mon/mon_pri.o \
-	common/cic/mon/mon_pmu.o \
-	common/cic/mon/mon_mmu.o \
 	common/cic/mon/mon_report_err.o \
 	common/cic/rm/rm_init.o \
 	common/cic/rm/rm_intr.o \
@@ -417,8 +408,21 @@ nvgpu-y += \
 	hal/top/top_gp10b.o \
 	hal/tpc/tpc_gv11b.o \
 	hal/priv_ring/priv_ring_gv11b.o \
-	hal/cic/mon/init_gv11b_fusa.o \
-	hal/cic/mon/lut_gv11b_fusa.o
+	hal/cic/mon/init_ga10b_fusa.o \
+	hal/cic/mon/lut_ga10b_fusa.o
+
+ifeq ($(CONFIG_NVGPU_INTR_DEBUG),y)
+nvgpu-$(CONFIG_NVGPU_INTR_DEBUG) += \
+	common/cic/mon/mon_ce.o \
+	common/cic/mon/mon_ctxsw.o \
+	common/cic/mon/mon_msg.o \
+	common/cic/mon/mon_ecc.o \
+	common/cic/mon/mon_host.o \
+	common/cic/mon/mon_gr.o \
+	common/cic/mon/mon_pri.o \
+	common/cic/mon/mon_pmu.o \
+	common/cic/mon/mon_mmu.o
+endif
 
 ifeq ($(CONFIG_NVGPU_GSP_SCHEDULER),y)
 nvgpu-$(CONFIG_NVGPU_GSP_SCHEDULER) += \

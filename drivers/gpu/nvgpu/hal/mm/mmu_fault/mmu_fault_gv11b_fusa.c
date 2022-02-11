@@ -521,7 +521,8 @@ static void gv11b_mm_mmu_fault_handle_buf_valid_entry(struct gk20a *g,
 		}
 #endif
 
-		nvgpu_report_err_to_sdl(g, GPU_HUBMMU_PAGE_FAULT_ERROR);
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_HUBMMU,
+				GPU_HUBMMU_PAGE_FAULT_ERROR);
 		nvgpu_err(g, "sub_er_type = 0x%x, "
 				"fault_status = 0x%x",
 				sub_err_type, fault_status);

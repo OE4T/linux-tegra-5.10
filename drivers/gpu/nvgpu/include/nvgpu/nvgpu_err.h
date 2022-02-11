@@ -108,28 +108,6 @@ struct mmu_fault_info;
  * @}
  */
 
-/**
- * This structure is used to store SM machine check related information.
- */
-struct gr_sm_mcerr_info {
-	/** PC which triggered the machine check error. */
-	u64 hww_warp_esr_pc;
-
-	/** Error status register. */
-	u32 hww_warp_esr_status;
-
-	/** GR engine context of the faulted channel. */
-	u32 curr_ctx;
-
-	/** Channel to which the context belongs. */
-	u32 chid;
-
-	/** TSG to which the channel is bound. */
-	u32 tsgid;
-
-	/** IDs of TPC, GPC, and SM. */
-	u32 tpc, gpc, sm;
-};
 
 /**
  * @defgroup LIST_OF_ERRORS_REPORTED_FROM_FECS
@@ -146,32 +124,6 @@ struct gr_sm_mcerr_info {
 /**
  * @}
  */
-
-/**
- * This structure is used to store CTXSW error related information.
- */
-struct ctxsw_err_info {
-
-	/** GR engine context of the faulted channel. */
-	u32 curr_ctx;
-
-	/** Context-switch status register-0. */
-	u32 ctxsw_status0;
-
-	/** Context-switch status register-1. */
-	u32 ctxsw_status1;
-
-	/** Channel to which the context belongs. */
-	u32 chid;
-
-	/**
-	 * In case of any fault during context-switch transaction,
-	 * context-switch error interrupt is set and the FECS firmware
-	 * writes error code into FECS mailbox 6. This exception
-	 * is handled at GR unit.
-	 */
-	u32 mailbox_value;
-};
 
 /**
  * @defgroup LIST_OF_ERRORS_REPORTED_FROM_GPCCS
@@ -269,23 +221,6 @@ struct ctxsw_err_info {
 #define GPU_PGRAPH_CLASS_ERROR			(3U)
 
 /**
- * This structure is used to store GR exception related information.
- */
-struct gr_exception_info {
-	/** GR engine context of the faulted channel. */
-	u32 curr_ctx;
-
-	/** Channel bound to the context. */
-	u32 chid;
-
-	/** TSG to which the channel is bound. */
-	u32 tsgid;
-
-	/** GR interrupt status. */
-	u32 status;
-};
-
-/**
  * @defgroup LIST_OF_ERRORS_REPORTED_FROM_LTC
  * Macros used to assign unique index to errors reported from the LTC unit.
  * @{
@@ -348,17 +283,6 @@ struct gr_exception_info {
  */
 
 /**
- * This structure is used to store GR error related information.
- */
-struct gr_err_info {
-	/** SM machine check error information. */
-	struct gr_sm_mcerr_info *sm_mcerr_info;
-
-	/** GR exception related information. */
-	struct gr_exception_info *exception_info;
-};
-
-/**
  * This macro is used to initialize the members of nvgpu_hw_err_inject_info
  * struct.
  */
@@ -390,6 +314,85 @@ struct nvgpu_hw_err_inject_info {
 struct nvgpu_hw_err_inject_info_desc {
 	struct nvgpu_hw_err_inject_info *info_ptr;
 	u32 info_size;
+};
+
+#ifdef CONFIG_NVGPU_INTR_DEBUG
+
+/**
+ * This structure is used to store SM machine check related information.
+ */
+struct gr_sm_mcerr_info {
+	/** PC which triggered the machine check error. */
+	u64 hww_warp_esr_pc;
+
+	/** Error status register. */
+	u32 hww_warp_esr_status;
+
+	/** GR engine context of the faulted channel. */
+	u32 curr_ctx;
+
+	/** Channel to which the context belongs. */
+	u32 chid;
+
+	/** TSG to which the channel is bound. */
+	u32 tsgid;
+
+	/** IDs of TPC, GPC, and SM. */
+	u32 tpc, gpc, sm;
+};
+
+/**
+ * This structure is used to store CTXSW error related information.
+ */
+struct ctxsw_err_info {
+
+	/** GR engine context of the faulted channel. */
+	u32 curr_ctx;
+
+	/** Context-switch status register-0. */
+	u32 ctxsw_status0;
+
+	/** Context-switch status register-1. */
+	u32 ctxsw_status1;
+
+	/** Channel to which the context belongs. */
+	u32 chid;
+
+	/**
+	 * In case of any fault during context-switch transaction,
+	 * context-switch error interrupt is set and the FECS firmware
+	 * writes error code into FECS mailbox 6. This exception
+	 * is handled at GR unit.
+	 */
+	u32 mailbox_value;
+};
+
+/**
+ * This structure is used to store GR exception related information.
+ */
+struct gr_exception_info {
+	/** GR engine context of the faulted channel. */
+	u32 curr_ctx;
+
+	/** Channel bound to the context. */
+	u32 chid;
+
+	/** TSG to which the channel is bound. */
+	u32 tsgid;
+
+	/** GR interrupt status. */
+	u32 status;
+};
+
+/**
+ * This structure is used to store GR error related information.
+ */
+struct gr_err_info {
+	/** SM machine check error information. */
+	struct gr_sm_mcerr_info *sm_mcerr_info;
+
+	/** GR exception related information. */
+	struct gr_exception_info *exception_info;
 };
 
 /**
@@ -1194,17 +1197,19 @@ void nvgpu_report_mmu_err(struct gk20a *g, u32 hw_unit,
  */
 void gr_intr_report_ctxsw_error(struct gk20a *g, u32 err_type, u32 chid,
 		u32 mailbox_value);
+#endif /* CONFIG_NVGPU_INTR_DEBUG */
 
 /**
  * @brief This is a wrapper function to report ECC errors from HUBMMU to SDL.
  *
  * @param g [in]		- The GPU driver struct.
+ * @param hw_unit_id [in]	- HW Unit ID.
  * @param err_id [in]		- Error ID.
  *
  * Calls nvgpu_report_err_to_ss to report errors to Safety_Services.
  *
  * @return	None
  */
-void nvgpu_report_err_to_sdl(struct gk20a *g, u32 err_id);
+void nvgpu_report_err_to_sdl(struct gk20a *g, u32 hw_unit_id, u32 err_id);
 
 #endif /* NVGPU_NVGPU_ERR_H */

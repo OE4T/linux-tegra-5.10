@@ -61,7 +61,7 @@
 #include "hal/mm/gmmu/gmmu_gv11b.h"
 #include "hal/mm/mm_gp10b.h"
 #include "hal/mm/mm_gv11b.h"
-#include "hal/cic/mon/cic_gv11b.h"
+#include "hal/cic/mon/cic_ga10b.h"
 
 #include "hal/mm/mmu_fault/mmu_fault_gv11b.h"
 #include "mmu-fault-gv11b-fusa.h"
@@ -222,7 +222,7 @@ int test_env_init_mm_mmu_fault_gv11b_fusa(struct unit_module *m,
 		unit_return_fail(m, "nvgpu_init_mm_support failed\n");
 	}
 
-	g->ops.cic_mon.init = gv11b_cic_mon_init;
+	g->ops.cic_mon.init = ga10b_cic_mon_init;
 
 	if (nvgpu_cic_mon_setup(g) != 0) {
 		unit_return_fail(m, "Failed to initialize CIC\n");

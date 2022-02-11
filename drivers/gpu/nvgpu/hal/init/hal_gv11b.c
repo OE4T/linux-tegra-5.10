@@ -191,8 +191,6 @@
 #include "hal/fifo/channel_gm20b.h"
 #include "hal/fifo/channel_gv11b.h"
 
-#include "hal/cic/mon/cic_gv11b.h"
-
 #ifdef CONFIG_NVGPU_STATIC_POWERGATE
 #include "hal/tpc/tpc_gv11b.h"
 #endif
@@ -214,7 +212,6 @@
 #include <nvgpu/gr/gr_intr.h>
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/grmgr.h>
-#include <nvgpu/cic_mon.h>
 
 #include <nvgpu/hw/gv11b/hw_pwr_gv11b.h>
 
@@ -1473,10 +1470,6 @@ static const struct gops_grmgr gv11b_ops_grmgr = {
 	.init_gr_manager = nvgpu_init_gr_manager,
 };
 
-static const struct gops_cic_mon gv11b_ops_cic_mon = {
-	.init = gv11b_cic_mon_init,
-};
-
 int gv11b_init_hal(struct gk20a *g)
 {
 	struct gpu_ops *gops = &g->ops;
@@ -1574,7 +1567,6 @@ int gv11b_init_hal(struct gk20a *g)
 	gops->gpc_pg = gv11b_ops_gpc_pg;
 #endif
 	gops->grmgr = gv11b_ops_grmgr;
-	gops->cic_mon = gv11b_ops_cic_mon;
 	gops->chip_init_gpu_characteristics = gv11b_init_gpu_characteristics;
 	gops->get_litter_value = gv11b_get_litter_value;
 	gops->semaphore_wakeup = nvgpu_channel_semaphore_wakeup;

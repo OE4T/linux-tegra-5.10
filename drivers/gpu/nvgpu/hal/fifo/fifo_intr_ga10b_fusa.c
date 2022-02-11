@@ -294,7 +294,8 @@ static void ga10b_fifo_handle_bad_tsg(struct gk20a *g,
 		nvgpu_err(g, "runlist bad tsg error code not supported");
 	}
 
-	nvgpu_report_err_to_sdl(g, GPU_HOST_PFIFO_SCHED_ERROR);
+	nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_HOST,
+			GPU_HOST_PFIFO_SCHED_ERROR);
 
 	/* id is unknown, preempt all runlists and do recovery */
 	/* TBD: nvgpu_rc_sched_error_bad_tsg(g); */

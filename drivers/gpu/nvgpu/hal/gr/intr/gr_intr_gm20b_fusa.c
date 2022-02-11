@@ -106,7 +106,8 @@ u32 gm20b_gr_intr_check_gr_ssync_exception(struct gk20a *g, u32 exception)
 			g->ops.gr.intr.handle_ssync_hww(g, &ssync_esr);
 			reset_gpc = 1U;
 		}
-		nvgpu_report_err_to_sdl(g, GPU_PGRAPH_SSYNC_EXCEPTION);
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,
+				GPU_PGRAPH_SSYNC_EXCEPTION);
 	}
 	return reset_gpc;
 }
@@ -117,7 +118,8 @@ u32 gm20b_gr_intr_check_gr_mme_exception(struct gk20a *g, u32 exception)
 		u32 mme = nvgpu_readl(g, gr_mme_hww_esr_r());
 		u32 info = nvgpu_readl(g, gr_mme_hww_esr_info_r());
 
-		nvgpu_report_err_to_sdl(g, GPU_PGRAPH_MME_EXCEPTION);
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,
+				GPU_PGRAPH_MME_EXCEPTION);
 		nvgpu_err(g, "mme exception: esr 0x%08x info:0x%08x",
 				mme, info);
 #ifdef CONFIG_NVGPU_DGPU
@@ -137,7 +139,8 @@ u32 gm20b_gr_intr_check_gr_sked_exception(struct gk20a *g, u32 exception)
 	if ((exception & gr_exception_sked_m()) != 0U) {
 		u32 sked = nvgpu_readl(g, gr_sked_hww_esr_r());
 
-		nvgpu_report_err_to_sdl(g, GPU_PGRAPH_SKED_EXCEPTION);
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,
+				GPU_PGRAPH_SKED_EXCEPTION);
 		nvgpu_err(g, "sked exception: esr 0x%08x", sked);
 		nvgpu_writel(g, gr_sked_hww_esr_r(),
 			gr_sked_hww_esr_reset_active_f());
@@ -152,7 +155,8 @@ static u32 gr_gm20b_intr_check_gr_be_crop_exception(struct gk20a *g,
 	if ((exception & gr_pri_be0_becs_be_exception_crop_m()) != 0U) {
 		u32 crop = nvgpu_readl(g, gr_crop_hww_esr_r());
 
-		nvgpu_report_err_to_sdl(g, GPU_PGRAPH_BE_EXCEPTION);
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,
+				GPU_PGRAPH_BE_EXCEPTION);
 		nvgpu_err(g, "BE exception: crop exception: esr 0x%08x", crop);
 		nvgpu_writel(g, gr_crop_hww_esr_r(),
 			gr_crop_hww_esr_reset_active_f());
@@ -167,7 +171,8 @@ static u32 gr_gm20b_intr_check_gr_be_zrop_exception(struct gk20a *g,
 	if ((exception & gr_pri_be0_becs_be_exception_zrop_m()) != 0U) {
 		u32 zrop = nvgpu_readl(g, gr_zrop_hww_esr_r());
 
-		nvgpu_report_err_to_sdl(g, GPU_PGRAPH_BE_EXCEPTION);
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,
+				GPU_PGRAPH_BE_EXCEPTION);
 		nvgpu_err(g, "BE exception: zrop exception: esr 0x%08x", zrop);
 		nvgpu_writel(g, gr_zrop_hww_esr_r(),
 			gr_zrop_hww_esr_reset_active_f());
@@ -182,7 +187,8 @@ u32 gm20b_gr_intr_check_gr_fe_exception(struct gk20a *g, u32 exception)
 		u32 fe = nvgpu_readl(g, gr_fe_hww_esr_r());
 		u32 info = nvgpu_readl(g, gr_fe_hww_esr_info_r());
 
-		nvgpu_report_err_to_sdl(g, GPU_PGRAPH_FE_EXCEPTION);
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,
+				GPU_PGRAPH_FE_EXCEPTION);
 		nvgpu_err(g, "fe exception: esr 0x%08x, info 0x%08x",
 				fe, info);
 		nvgpu_writel(g, gr_fe_hww_esr_r(),
@@ -197,7 +203,8 @@ u32 gm20b_gr_intr_check_gr_memfmt_exception(struct gk20a *g, u32 exception)
 	if ((exception & gr_exception_memfmt_m()) != 0U) {
 		u32 memfmt = nvgpu_readl(g, gr_memfmt_hww_esr_r());
 
-		nvgpu_report_err_to_sdl(g, GPU_PGRAPH_MEMFMT_EXCEPTION);
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,
+				GPU_PGRAPH_MEMFMT_EXCEPTION);
 		nvgpu_err(g, "memfmt exception: esr %08x", memfmt);
 		nvgpu_writel(g, gr_memfmt_hww_esr_r(),
 				gr_memfmt_hww_esr_reset_active_f());
@@ -211,7 +218,8 @@ u32 gm20b_gr_intr_check_gr_pd_exception(struct gk20a *g, u32 exception)
 	if ((exception & gr_exception_pd_m()) != 0U) {
 		u32 pd = nvgpu_readl(g, gr_pd_hww_esr_r());
 
-		nvgpu_report_err_to_sdl(g, GPU_PGRAPH_PD_EXCEPTION);
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,
+				GPU_PGRAPH_PD_EXCEPTION);
 		nvgpu_err(g, "pd exception: esr 0x%08x", pd);
 		nvgpu_writel(g, gr_pd_hww_esr_r(),
 				gr_pd_hww_esr_reset_active_f());
@@ -225,7 +233,8 @@ u32 gm20b_gr_intr_check_gr_scc_exception(struct gk20a *g, u32 exception)
 	if ((exception & gr_exception_scc_m()) != 0U) {
 		u32 scc = nvgpu_readl(g, gr_scc_hww_esr_r());
 
-		nvgpu_report_err_to_sdl(g, GPU_PGRAPH_SCC_EXCEPTION);
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,
+				GPU_PGRAPH_SCC_EXCEPTION);
 		nvgpu_err(g, "scc exception: esr 0x%08x", scc);
 		nvgpu_writel(g, gr_scc_hww_esr_r(),
 				gr_scc_hww_esr_reset_active_f());
@@ -239,7 +248,8 @@ u32 gm20b_gr_intr_check_gr_ds_exception(struct gk20a *g, u32 exception)
 	if ((exception & gr_exception_ds_m()) != 0U) {
 		u32 ds = nvgpu_readl(g, gr_ds_hww_esr_r());
 
-		nvgpu_report_err_to_sdl(g, GPU_PGRAPH_DS_EXCEPTION);
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,
+				GPU_PGRAPH_DS_EXCEPTION);
 		nvgpu_err(g, "ds exception: esr: 0x%08x", ds);
 		nvgpu_writel(g, gr_ds_hww_esr_r(),
 				 gr_ds_hww_esr_reset_task_f());

@@ -20,11 +20,10 @@
 struct gk20a;
 
 int nvgpu_cic_mon_report_err_safety_services(struct gk20a *g,
-		u32 metadata)
+		u32 err_id)
 {
 	/**
 	 * ToDo: Add MISC_EC API to report error.
-	 * Decide on triggering SW quiesce for UE.
 	 */
 	return 0;
 }

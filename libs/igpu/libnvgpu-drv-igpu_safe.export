@@ -247,7 +247,7 @@ gv11b_blcg_hshub_get_gating_prod
 gv11b_netlist_is_firmware_defined
 gv11b_top_get_num_lce
 gv11b_bus_configure_debug_bus
-gv11b_cic_mon_init
+ga10b_cic_mon_init
 mc_gp10b_intr_stall_unit_config
 mc_gp10b_intr_nonstall_unit_config
 nvgpu_acr_bootstrap_hs_acr

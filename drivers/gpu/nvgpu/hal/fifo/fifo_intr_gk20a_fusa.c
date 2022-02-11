@@ -70,7 +70,8 @@ void gk20a_fifo_intr_handle_chsw_error(struct gk20a *g)
 	u32 intr;
 
 	intr = nvgpu_readl(g, fifo_intr_chsw_error_r());
-	nvgpu_report_err_to_sdl(g, GPU_HOST_PFIFO_CHSW_ERROR);
+	nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_HOST,
+			GPU_HOST_PFIFO_CHSW_ERROR);
 	nvgpu_err(g, "chsw: %08x", intr);
 	g->ops.gr.falcon.dump_stats(g);
 	nvgpu_writel(g, fifo_intr_chsw_error_r(), intr);

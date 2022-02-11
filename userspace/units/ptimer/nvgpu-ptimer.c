@@ -28,7 +28,7 @@
 #include <nvgpu/ptimer.h>
 #include <nvgpu/cic_mon.h>
 #include <hal/ptimer/ptimer_gk20a.h>
-#include <hal/cic/mon/cic_gv11b.h>
+#include <hal/cic/mon/cic_ga10b.h>
 #include <nvgpu/hw/gk20a/hw_timer_gk20a.h>
 
 #include "nvgpu-ptimer.h"
@@ -89,7 +89,7 @@ int test_setup_env(struct unit_module *m,
 	/* Setup HAL */
 	g->ops.ptimer.isr = gk20a_ptimer_isr;
 
-	g->ops.cic_mon.init = gv11b_cic_mon_init;
+	g->ops.cic_mon.init = ga10b_cic_mon_init;
 
 	/* Create ptimer register space */
 	if (nvgpu_posix_io_add_reg_space(g, PTIMER_REG_SPACE_START,

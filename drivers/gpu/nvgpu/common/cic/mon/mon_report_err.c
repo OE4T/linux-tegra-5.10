@@ -28,15 +28,49 @@
 
 #include "cic_mon_priv.h"
 
-void nvgpu_report_err_to_sdl(struct gk20a *g, u32 err_id)
+void nvgpu_report_err_to_sdl(struct gk20a *g, u32 hw_unit_id, u32 err_id)
 {
+	int32_t err = 0;
+
 	if (g->ops.cic_mon.report_err == NULL) {
 		return;
 	}
 
+	err = nvgpu_cic_mon_bound_check_err_id(g, hw_unit_id, err_id);
+	if (err != 0) {
+		nvgpu_err(g, "Invalid hw_unit_id/err_id"
+				"hw_unit_id = 0x%x, err_id=0x%x",
+				hw_unit_id, err_id);
+		goto handle_report_failure;
+	}
+
 	if (g->ops.cic_mon.report_err(g, err_id) != 0) {
-		nvgpu_err(g, "Failed to report an error: err_id=%x",
-				err_id);
+		nvgpu_err(g, "Failed to report an error: "
+				"hw_unit_id = 0x%x, err_id=0x%x",
+				hw_unit_id, err_id);
+		goto handle_report_failure;
+	}
+
+#ifndef CONFIG_NVGPU_RECOVERY
+	/*
+	 * Trigger SW quiesce, in case of an uncorrected error is reported
+	 * to Safety_Services, in safety build.
+	 */
+	if (g->cic_mon->err_lut[hw_unit_id].errs[err_id].is_critical) {
 		nvgpu_sw_quiesce(g);
 	}
+#endif
+
+	return;
+
+handle_report_failure:
+#ifdef CONFIG_NVGPU_BUILD_CONFIGURATION_IS_SAFETY
+	/*
+	 * Trigger SW quiesce, in case of a SW error is encountered during
+	 * error reporting to Safety_Services, in safety build.
+	 */
+	nvgpu_sw_quiesce(g);
+#endif
+	return;
 }
+

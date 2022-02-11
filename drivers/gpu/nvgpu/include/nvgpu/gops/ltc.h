@@ -128,6 +128,7 @@ struct gops_ltc_intr {
 	 *               -# Report to |qnx.sdl| unit by calling \ref nvgpu_report_err_to_sdl
 	 *                  "nvgpu_report_err_to_sdl" with following parameters:
 	 *                  -# \a g
+	 *                  -# \ref NVGPU_ERR_MODULE_LTC
 	 *                  -# \ref GPU_LTC_CACHE_RSTG_ECC_UNCORRECTED
 	 *                     "GPU_LTC_CACHE_RSTG_ECC_UNCORRECTED"
 	 *            -# If ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_rstg_m() is
@@ -142,6 +143,7 @@ struct gops_ltc_intr {
 	 *               -# Report to |qnx.sdl| unit by calling \ref nvgpu_report_err_to_sdl
 	 *                  "nvgpu_report_err_to_sdl" with following parameters:
 	 *                  -# \a g
+	 *                  -# \ref NVGPU_ERR_MODULE_LTC
 	 *                  -# \ref GPU_LTC_CACHE_TSTG_ECC_UNCORRECTED
 	 *                     "GPU_LTC_CACHE_TSTG_ECC_UNCORRECTED"
 	 *            -# If ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_tstg_m() is
@@ -157,6 +159,7 @@ struct gops_ltc_intr {
 	 *               -# Report to |qnx.sdl| unit by calling \ref nvgpu_report_err_to_sdl
 	 *                  "nvgpu_report_err_to_sdl" with following parameters:
 	 *                  -# \a g
+	 *                  -# \ref NVGPU_ERR_MODULE_LTC
 	 *                  -# \ref GPU_LTC_CACHE_DSTG_ECC_CORRECTED
 	 *                     "GPU_LTC_CACHE_DSTG_ECC_CORRECTED"
 	 *               -# Flush the L2 cache by calling
@@ -173,6 +176,7 @@ struct gops_ltc_intr {
 	 *                  -# Report to |qnx.sdl| unit by calling \ref nvgpu_report_err_to_sdl
 	 *                     "nvgpu_report_err_to_sdl" with following parameters:
 	 *                     -# \a g
+	 *                  -# \ref NVGPU_ERR_MODULE_LTC
 	 *                     -# \ref GPU_LTC_CACHE_DSTG_ECC_UNCORRECTED
 	 *                        "GPU_LTC_CACHE_DSTG_ECC_UNCORRECTED"
 	 *               -# Else if the ECC address correspongs to DSTG BE RAM:
@@ -182,6 +186,7 @@ struct gops_ltc_intr {
 	 *                  -# Report to |qnx.sdl| unit by calling \ref nvgpu_report_err_to_sdl
 	 *                     "nvgpu_report_err_to_sdl" with following parameters:
 	 *                     -# \a g
+	 *                     -# \ref NVGPU_ERR_MODULE_LTC
 	 *                     -# \ref GPU_LTC_CACHE_DSTG_BE_ECC_UNCORRECTED
 	 *                        "GPU_LTC_CACHE_DSTG_BE_ECC_UNCORRECTED"
 	 *               -# Else call \ref BUG "BUG()" as this type of ECC error is not supported.

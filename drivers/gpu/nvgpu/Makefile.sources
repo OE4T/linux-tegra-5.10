@@ -159,15 +159,6 @@ srcs +=	common/device.c \
 	common/cic/mon/mon_init.c \
 	common/cic/mon/mon_lut.c \
 	common/cic/mon/mon_intr.c \
-	common/cic/mon/mon_ce.c \
-	common/cic/mon/mon_ctxsw.c \
-	common/cic/mon/mon_msg.c \
-	common/cic/mon/mon_ecc.c \
-	common/cic/mon/mon_host.c \
-	common/cic/mon/mon_gr.c \
-	common/cic/mon/mon_pri.c \
-	common/cic/mon/mon_pmu.c \
-	common/cic/mon/mon_mmu.c \
 	common/cic/mon/mon_report_err.c \
 	common/cic/rm/rm_init.c \
 	common/cic/rm/rm_intr.c \
@@ -178,6 +169,18 @@ srcs +=	common/device.c \
 	hal/fifo/runlist_fifo_gv11b.c \
 	hal/fifo/userd_gk20a.c \
 	hal/sync/syncpt_cmdbuf_gv11b.c
+
+ifeq ($(CONFIG_NVGPU_INTR_DEBUG),1)
+srcs += common/cic/mon/mon_ce.c \
+	common/cic/mon/mon_ctxsw.c \
+	common/cic/mon/mon_msg.c \
+	common/cic/mon/mon_ecc.c \
+	common/cic/mon/mon_host.c \
+	common/cic/mon/mon_gr.c \
+	common/cic/mon/mon_pri.c \
+	common/cic/mon/mon_pmu.c \
+	common/cic/mon/mon_mmu.c
+endif
 
 ifeq ($(CONFIG_NVGPU_GSP_SCHEDULER),1)
 srcs += common/gsp/gsp_init.c \
@@ -281,8 +284,8 @@ srcs += hal/mm/mm_gv11b_fusa.c \
 	hal/therm/therm_gv11b_fusa.c \
 	hal/top/top_gm20b_fusa.c \
 	hal/top/top_gv11b_fusa.c \
-	hal/cic/mon/init_gv11b_fusa.c \
-	hal/cic/mon/lut_gv11b_fusa.c
+	hal/cic/mon/init_ga10b_fusa.c \
+	hal/cic/mon/lut_ga10b_fusa.c
 
 # Source files below are not guaranteed to be functionaly safe (FuSa) and are
 # only included in the normal build.

@@ -156,6 +156,6 @@ void ga10b_bus_isr(struct gk20a *g)
 				bus_intr_0 & ~bus_intr_0_handled);
 	}
 
-	nvgpu_report_err_to_sdl(g, err_type);
+	nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_HOST, err_type);
 	nvgpu_writel(g, bus_intr_0_r(), bus_intr_0);
 }

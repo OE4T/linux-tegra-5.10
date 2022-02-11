@@ -378,7 +378,8 @@ void ga10b_priv_ring_decode_error_code(struct gk20a *g, u32 error_code)
 	size_t lookup_table_size = 1;
 	size_t index = 0;
 
-	nvgpu_report_err_to_sdl(g, GPU_PRI_ACCESS_VIOLATION);
+	nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PRI,
+			GPU_PRI_ACCESS_VIOLATION);
 
 	err_code = pri_sys_pri_error_code_v(error_code);
 	error_extra = pri_sys_pri_error_extra_v(error_code);

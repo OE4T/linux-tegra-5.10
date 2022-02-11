@@ -39,7 +39,7 @@
 #include "common/gr/gr_falcon_priv.h"
 
 #include "hal/init/hal_gv11b.h"
-#include "hal/cic/mon/cic_gv11b.h"
+#include "hal/cic/mon/cic_ga10b.h"
 
 #include "nvgpu-gr.h"
 #include "nvgpu-gr-gv11b.h"
@@ -168,7 +168,7 @@ int test_gr_init_setup_ready(struct unit_module *m,
 	nvgpu_device_init(g);
 	nvgpu_fifo_setup_sw(g);
 
-	g->ops.cic_mon.init = gv11b_cic_mon_init;
+	g->ops.cic_mon.init = ga10b_cic_mon_init;
 
 	err = nvgpu_cic_mon_setup(g);
 	if (err != 0) {

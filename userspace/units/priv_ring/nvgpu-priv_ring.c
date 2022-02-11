@@ -31,7 +31,7 @@
 #include <hal/priv_ring/priv_ring_gp10b.h>
 #include <hal/init/hal_gv11b_litter.h>
 #include <hal/mc/mc_gp10b.h>
-#include "hal/cic/mon/cic_gv11b.h"
+#include "hal/cic/mon/cic_ga10b.h"
 
 #include <nvgpu/hw/gv11b/hw_pri_ringstation_sys_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_pri_ringstation_gpc_gv11b.h>
@@ -126,7 +126,7 @@ int test_priv_ring_setup(struct unit_module *m, struct gk20a *g, void *args)
 	g->ops.get_litter_value = gv11b_get_litter_value;
 	g->ops.mc.intr_stall_unit_config =
 					mc_gp10b_intr_stall_unit_config;
-	g->ops.cic_mon.init = gv11b_cic_mon_init;
+	g->ops.cic_mon.init = ga10b_cic_mon_init;
 
 	/* Map register space NV_PRIV_MASTER */
 	if (nvgpu_posix_io_add_reg_space(g, NV_PRIV_MASTER_START,

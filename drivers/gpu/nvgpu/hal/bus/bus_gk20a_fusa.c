@@ -89,6 +89,6 @@ void gk20a_bus_isr(struct gk20a *g)
 		 */
 		err_type = GPU_HOST_PBUS_TIMEOUT_ERROR;
 	}
-	nvgpu_report_err_to_sdl(g, err_type);
+	nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_HOST, err_type);
 	nvgpu_writel(g, bus_intr_0_r(), val);
 }

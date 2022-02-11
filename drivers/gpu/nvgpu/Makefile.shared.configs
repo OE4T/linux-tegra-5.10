@@ -304,6 +304,13 @@ NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_MIG
 CONFIG_NVGPU_GSP_SCHEDULER	:= 1
 NVGPU_COMMON_CFLAGS		+= -DCONFIG_NVGPU_GSP_SCHEDULER
 
+# Code to encapsulate the error information into a uniform interface via
+# nvgpu_err_msg is currently used, but might be needed in future by nvgpu_rm
+# process. Retain this code under CONFIG_NVGPU_INTR_DEBUG which is enabled
+# only in standard build for now.
+CONFIG_NVGPU_INTR_DEBUG	:= 1
+NVGPU_COMMON_CFLAGS	+= -DCONFIG_NVGPU_INTR_DEBUG
+
 # Enable GSP stress test
 ifeq ($(CONFIG_NVGPU_GSP_SCHEDULER),1)
 CONFIG_NVGPU_GSP_STRESS_TEST    := 1
