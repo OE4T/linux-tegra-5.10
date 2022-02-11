@@ -41,6 +41,10 @@
 		i2c {
 			tegra_tmp451: temp-sensor@4c {
 				vdd-supply = <&p3737_vdd_1v8_sys>;
+
+				ext {
+					shutdown-limit = <107>;
+				};
 			};
 		};
 	};
