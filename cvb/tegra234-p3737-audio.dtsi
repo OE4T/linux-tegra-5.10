@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * T234 p3737 audio DTSI file.
+ * P3737 audio DTSI file.
  *
  * Copyright (c) 2021-2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  *
@@ -38,14 +38,14 @@
 	};
 
 	hda@3510000 {
-		nvidia,model = "NVIDIA Jetson Concord HDA";
+		nvidia,model = "NVIDIA Jetson AGX Orin HDA";
 		status = "okay";
 	};
 
 	tegra_sound: sound {
 		status = "okay";
 		compatible = "nvidia,tegra186-ape";
-		nvidia-audio-card,name = "NVIDIA Jetson Concord APE";
+		nvidia-audio-card,name = "NVIDIA Jetson AGX Orin APE";
 		clocks = <&bpmp_clks TEGRA234_CLK_PLLA>,
 			 <&bpmp_clks TEGRA234_CLK_PLLA_OUT0>,
 			 <&bpmp_clks TEGRA234_CLK_AUD_MCLK>;
