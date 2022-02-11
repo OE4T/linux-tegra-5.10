@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -191,7 +191,7 @@ static ssize_t device_file_ioctl(
 	dma_addr_t dma_addr;
 	dma_addr_t phys_addr;
 	struct rw_data *user_input;
-	int ret;
+	int ret = 0;
 	uint32_t pdata[4] = {0};
 
 	user_input = (struct rw_data *)arg;
@@ -223,7 +223,6 @@ static ssize_t device_file_ioctl(
 		if (copy_to_user((void __user *)&user_input->iova,
 				(void *)&dma_addr, sizeof(uint64_t)))
 			return -EACCES;
-		ret = 0;
 	break;
 
 	case NVMAP_SMMU_UNMAP:
@@ -233,14 +232,13 @@ static ssize_t device_file_ioctl(
 	break;
 
 	case TEGRA_HSP_WRITE:
-		 pdata[0] = input.handle;
+		pdata[0] = input.handle;
 		ret = mbox_send_message(fsi_hsp_v->tx.chan,
 			(void *)pdata);
 	break;
 
 	case TEGRA_SIGNAL_REG:
 		task = get_current();
-		ret = 0;
 	break;
 
 	default:
