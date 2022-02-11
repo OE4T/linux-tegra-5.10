@@ -59,10 +59,10 @@ void nvgpu_read_support_gpu_tools(struct gk20a *g)
 	np = nvgpu_get_node(g);
 	ret = of_property_read_u32(np, "support-gpu-tools", &val);
 	if (ret != 0) {
-		nvgpu_info(g, "Missing support-gpu-tools property, ret =%d", ret);
 		/* The debugger/profiler support should be enabled by default.
 		 * So, set support_gpu_tools to 1 even if the property is missing. */
 		g->support_gpu_tools = 1;
+		nvgpu_log_info(g, "GPU tools support enabled by default");
 	} else {
 		if (val != 0U) {
 			g->support_gpu_tools = 1;
