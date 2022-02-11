@@ -1432,6 +1432,16 @@ static int gk20a_pm_suspend(struct device *dev)
 		goto fail_idle;
 	}
 
+	/* For cases where we don't have railgate enabled,
+	 * we acquire an extra refcount in PM framework.
+	 *
+	 * Release it here to unblock device suspend.
+	 * The below method releases the extra refcount taken
+	 * above and disables auto suspend.
+	 */
+	if (!nvgpu_is_enabled(g, NVGPU_CAN_RAILGATE))
+		pm_runtime_dont_use_autosuspend(dev);
+
 	ret = gk20a_pm_runtime_suspend(dev);
 	if (ret)
 		goto fail_idle;
@@ -1478,6 +1488,15 @@ static int gk20a_pm_resume(struct device *dev)
 	ret = gk20a_pm_runtime_resume(dev);
 	if (ret)
 		return ret;
+
+	/* For cases where we don't have railgate enabled,
+	 * acquire extra reference in PM framework to prevent
+	 * runtime suspend/resume.
+	 */
+	if (!nvgpu_is_enabled(g, NVGPU_CAN_RAILGATE)) {
+		pm_runtime_set_autosuspend_delay(dev, -1);
+		pm_runtime_use_autosuspend(dev);
+	}
 
 	g->suspended = false;
 
