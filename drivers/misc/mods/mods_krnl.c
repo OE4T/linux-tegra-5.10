@@ -1798,7 +1798,7 @@ static long mods_krnl_ioctl(struct file  *fp,
 {
 	int                 err      = 0;
 	void               *arg_copy = NULL;
-	void               *arg      = (void *)i_arg;
+	void        __user *arg      = (void __user *)i_arg;
 	struct mods_client *client   = fp->private_data;
 	int                 arg_size;
 	char                buf[64];
