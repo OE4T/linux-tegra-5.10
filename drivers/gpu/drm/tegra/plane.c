@@ -715,6 +715,7 @@ static const char * const tegra_plane_icc_names[TEGRA_DC_LEGACY_PLANES_NUM] = {
 
 int tegra_plane_interconnect_init(struct tegra_plane *plane)
 {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
 	const char *icc_name = tegra_plane_icc_names[plane->index];
 	struct device *dev = plane->dc->dev;
 	struct tegra_dc *dc = plane->dc;
@@ -742,6 +743,7 @@ int tegra_plane_interconnect_init(struct tegra_plane *plane)
 			return err;
 		}
 	}
+#endif
 
 	return 0;
 }

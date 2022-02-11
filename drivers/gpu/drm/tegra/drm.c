@@ -63,12 +63,14 @@ static const struct drm_mode_config_funcs tegra_drm_mode_config_funcs = {
 static void tegra_atomic_post_commit(struct drm_device *drm,
 				     struct drm_atomic_state *old_state)
 {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
 	struct drm_crtc_state *old_crtc_state __maybe_unused;
 	struct drm_crtc *crtc;
 	unsigned int i;
 
 	for_each_old_crtc_in_state(old_state, crtc, old_crtc_state, i)
 		tegra_crtc_atomic_post_commit(crtc, old_state);
+#endif
 }
 
 static void tegra_atomic_commit_tail(struct drm_atomic_state *old_state)

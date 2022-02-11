@@ -1982,6 +1982,7 @@ static int tegra_dc_wait_idle(struct tegra_dc *dc, unsigned long timeout)
 	return -ETIMEDOUT;
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
 static void
 tegra_crtc_update_memory_bandwidth(struct drm_crtc *crtc,
 				   struct drm_atomic_state *state,
@@ -2081,6 +2082,7 @@ tegra_crtc_update_memory_bandwidth(struct drm_crtc *crtc,
 			icc_set_bw(tegra->icc_mem_vfilter, 0, 0);
 	}
 }
+#endif
 
 static void tegra_crtc_atomic_disable(struct drm_crtc *crtc,
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
@@ -2275,7 +2277,9 @@ static void tegra_crtc_atomic_begin(struct drm_crtc *crtc,
 {
 	unsigned long flags;
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
 	tegra_crtc_update_memory_bandwidth(crtc, state, true);
+#endif
 
 	if (crtc->state->event) {
 		spin_lock_irqsave(&crtc->dev->event_lock, flags);
@@ -2383,6 +2387,7 @@ tegra_plane_overlap_mask(struct drm_crtc_state *state,
 	return overlap_mask;
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
 static int tegra_crtc_calculate_memory_bandwidth(struct drm_crtc *crtc,
 						 struct drm_atomic_state *state)
 {
@@ -2519,9 +2524,12 @@ void tegra_crtc_atomic_post_commit(struct drm_crtc *crtc,
 	 */
 	tegra_crtc_update_memory_bandwidth(crtc, state, false);
 }
+#endif
 
 static const struct drm_crtc_helper_funcs tegra_crtc_helper_funcs = {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
 	.atomic_check = tegra_crtc_atomic_check,
+#endif
 	.atomic_begin = tegra_crtc_atomic_begin,
 	.atomic_flush = tegra_crtc_atomic_flush,
 	.atomic_enable = tegra_crtc_atomic_enable,

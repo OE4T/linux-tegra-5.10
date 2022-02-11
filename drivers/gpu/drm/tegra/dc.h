@@ -8,6 +8,7 @@
 #define TEGRA_DC_H 1
 
 #include <linux/host1x-next.h>
+#include <linux/version.h>
 
 #include <drm/drm_crtc.h>
 
@@ -164,8 +165,10 @@ int tegra_dc_state_setup_clock(struct tegra_dc *dc,
 			       struct drm_crtc_state *crtc_state,
 			       struct clk *clk, unsigned long pclk,
 			       unsigned int div);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
 void tegra_crtc_atomic_post_commit(struct drm_crtc *crtc,
 				   struct drm_atomic_state *state);
+#endif
 
 /* from rgb.c */
 int tegra_dc_rgb_probe(struct tegra_dc *dc);
