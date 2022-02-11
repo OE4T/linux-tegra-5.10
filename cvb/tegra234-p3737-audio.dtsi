@@ -1,16 +1,9 @@
+// SPDX-License-Identifier: GPL-2.0-only
 /*
- * T234 p3737 audio DTSI file.
+ * P3737 audio DTSI file.
  *
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; version 2 of the License.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
  */
 
 #include <audio/tegra-platforms-audio-dai-links.dtsi>
@@ -44,14 +37,14 @@
 	};
 
 	hda@3510000 {
-		nvidia,model = "NVIDIA Jetson Concord HDA";
+		nvidia,model = "NVIDIA Jetson AGX Orin HDA";
 		status = "okay";
 	};
 
 	tegra_sound: sound {
 		status = "okay";
 		compatible = "nvidia,tegra186-ape";
-		nvidia-audio-card,name = "NVIDIA Jetson Concord APE";
+		nvidia-audio-card,name = "NVIDIA Jetson AGX Orin APE";
 		clocks = <&bpmp_clks TEGRA234_CLK_PLLA>,
 			 <&bpmp_clks TEGRA234_CLK_PLLA_OUT0>,
 			 <&bpmp_clks TEGRA234_CLK_AUD_MCLK>;
