@@ -61,6 +61,11 @@
                 status = "disabled";
                 channelid_list = <0>;
         };
+        FsiComAppChConfCcplexApp{
+                compatible = "nvidia,tegra-fsicom-CcplexApp";
+                status = "disabled";
+                channelid_list = <1>;
+        };
 	FsiComAppChConfApp1{
 		compatible = "nvidia,tegra-fsicom-sampleApp1";
 		status = "disabled";
@@ -69,22 +74,27 @@
 	FsiComQnxAppChConfAppGR{
 		compatible = "nvidia,tegra-fsicom-sampleAppGR";
 		status = "disabled";
-		channelid_list = <3>;
+		channelid_list = <4>;
 	};
 	FsiComAppChConfApp2{
 		compatible = "nvidia,tegra-fsicom-sampleApp2";
 		status = "disabled";
-		channelid_list = <4>;
+		channelid_list = <3>;
 	};
 
 	FsiComIvc {
 		compatible = "nvidia,tegra-fsicom-channels";
 		status = "disabled";
-		nChannel=<4>;
+		nChannel=<5>;
                 channel_0{
                         frame-count = <4>;
                         frame-size = <1024>;
                         NvSciCh = "nvfsicom_EPD";
+                };
+                channel_1{
+                        frame-count = <4>;
+                        frame-size = <64>;
+                        NvSciCh = "nvfsicom_CcplexApp";
                 };
 		channel_2{
 			frame-count = <4>;
