@@ -207,7 +207,7 @@ int nvmap_register_vidmem_carveout(struct device *dma_dev,
 EXPORT_SYMBOL(nvmap_register_vidmem_carveout);
 
 #ifdef CONFIG_TEGRA_VIRTUALIZATION
-int __init nvmap_populate_ivm_carveout(struct reserved_mem *rmem)
+static int __init nvmap_populate_ivm_carveout(struct reserved_mem *rmem)
 {
 	u32 id;
 	struct tegra_hv_ivm_cookie *ivm;
@@ -288,7 +288,7 @@ fail:
 	return ret;
 }
 #else
-int __init nvmap_populate_ivm_carveout(struct reserved_mem *rmem)
+static int __init nvmap_populate_ivm_carveout(struct reserved_mem *rmem)
 {
 	return -EINVAL;
 }
