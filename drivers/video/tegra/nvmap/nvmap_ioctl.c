@@ -651,15 +651,15 @@ static ssize_t rw_handle(struct nvmap_client *client, struct nvmap_handle *h,
 				h_offs + elem_size, NVMAP_CACHE_OP_INV, false);
 
 		if (is_read)
-			ret = copy_to_user((void *)sys_addr, addr, elem_size);
+			ret = copy_to_user((void __user *)sys_addr, addr, elem_size);
 		else {
 			if (h->heap_type == NVMAP_HEAP_CARVEOUT_VPR) {
-				ret = copy_from_user(tmp, (void *)sys_addr,
+				ret = copy_from_user(tmp, (void __user *)sys_addr,
 						     elem_size);
 				if (!ret)
 					kasan_memcpy_toio(addr, tmp, elem_size);
 			} else
-				ret = copy_from_user(addr, (void *)sys_addr, elem_size);
+				ret = copy_from_user(addr, (void __user *)sys_addr, elem_size);
 		}
 
 		if (ret)
@@ -840,7 +840,7 @@ int nvmap_ioctl_cache_maint_list(struct file *filp, void __user *arg)
 		return -EINVAL;
 
 	bytes = op.nr * sizeof(*refs);
-	if (!ACCESS_OK(VERIFY_READ, (void *)op.handles, op.nr * sizeof(u32)))
+	if (!ACCESS_OK(VERIFY_READ, (const void __user *)op.handles, op.nr * sizeof(u32)))
 		return -EFAULT;
 
 	elem_size  = (op.op & NVMAP_ELEM_SIZE_U64) ?
@@ -874,21 +874,21 @@ int nvmap_ioctl_cache_maint_list(struct file *filp, void __user *arg)
 		goto free_mem;
 	}
 
-	if (copy_from_user(handle_ptr, (void *)op.handles,
+	if (copy_from_user(handle_ptr, (void __user *)op.handles,
 		op.nr * sizeof(u32))) {
 		pr_err("Can't copy from user pointer op.handles\n");
 		err = -EFAULT;
 		goto free_mem;
 	}
 
-	if (copy_from_user(offset_ptr, (void *)op.offsets,
+	if (copy_from_user(offset_ptr, (void __user *)op.offsets,
 		op.nr * elem_size)) {
 		pr_err("Can't copy from user pointer op.offsets\n");
 		err = -EFAULT;
 		goto free_mem;
 	}
 
-	if (copy_from_user(size_ptr, (void *)op.sizes,
+	if (copy_from_user(size_ptr, (void __user *)op.sizes,
 		op.nr * elem_size)) {
 		pr_err("Can't copy from user pointer op.sizes\n");
 		err = -EFAULT;
