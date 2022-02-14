@@ -232,6 +232,7 @@ nvgpu-y += \
 	common/utils/rbtree.o \
 	common/utils/string.o \
 	common/utils/worker.o \
+	common/timers_common.o \
 	common/swdebug/profile.o \
 	common/ptimer/ptimer.o \
 	common/perf/perfbuf.o \

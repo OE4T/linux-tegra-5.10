@@ -24,6 +24,7 @@
 #define NVGPU_TIMERS_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/bitops.h>
 #include <nvgpu/utils.h>
 
 #ifndef __KERNEL__

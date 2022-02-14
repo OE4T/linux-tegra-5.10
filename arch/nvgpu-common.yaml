@@ -247,6 +247,9 @@ sim:
              include/nvgpu/hw_sim_pci.h,
              include/nvgpu/sim.h ]
 
+timers:
+  sources: [ common/timers_common.c ]
+
 utils:
   safe: yes
   owner: Alex W
