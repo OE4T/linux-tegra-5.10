@@ -3132,6 +3132,8 @@ static int sdhci_tegra_runtime_resume(struct device *dev)
 				ret);
 	}
 
+	tegra_host->tuning_status = TUNING_STATUS_RETUNE;
+
 	return ret;
 
 disable_car_clk:
@@ -3231,8 +3233,7 @@ static int __maybe_unused sdhci_tegra_resume(struct device *dev)
 		host->mmc->rem_card_present = true;
 	}
 
-	if (host->mmc->rem_card_present == false)
-		tegra_host->tuning_status = TUNING_STATUS_RETUNE;
+	tegra_host->tuning_status = TUNING_STATUS_RETUNE;
 
 	ret = tegra_sdhci_set_host_clock(host, true);
 	if (ret)
