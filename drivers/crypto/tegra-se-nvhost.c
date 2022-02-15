@@ -4,7 +4,7 @@
  *
  * Support for Tegra Security Engine hardware crypto algorithms.
  *
- * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -3280,8 +3280,10 @@ static int tegra_se_sha_op(struct ahash_request *req, bool is_last,
 			 * zero length SHA operation.
 			 */
 				mode = sha_ctx->op_mode - SE_AES_OP_MODE_SHA1;
-				memcpy(req->result, zero_vec[mode].digest,
+				if (mode < ARRAY_SIZE(zero_vec))
+					memcpy(req->result, zero_vec[mode].digest,
 						zero_vec[mode].size);
+
 				req->base.complete(&req->base, 0);
 				return 0;
 			} else {
@@ -3664,15 +3666,9 @@ static int tegra_se_aes_cmac_op(struct ahash_request *req, bool process_cur_req)
 	if ((cmac_ctx->nbytes % TEGRA_SE_AES_BLOCK_SIZE)
 				|| !blocks_to_process) {
 		padding_needed = true;
-		last_block_bytes = cmac_ctx->nbytes % TEGRA_SE_AES_BLOCK_SIZE;
 	} else {
 		/* decrement num of blocks */
 		blocks_to_process--;
-		if (blocks_to_process)
-			last_block_bytes = cmac_ctx->nbytes -
-				(blocks_to_process * TEGRA_SE_AES_BLOCK_SIZE);
-		else
-			last_block_bytes = cmac_ctx->nbytes;
 	}
 
 	/* first process all blocks except last block */
@@ -5139,7 +5135,7 @@ static int tegra_se_ccm_compute_auth(struct aead_request *req, bool encrypt)
 	buf = ctx->buf[0];
 	ret = ccm_encode_b0(buf, req, cryptlen);
 	if (ret)
-		goto out;
+		return -EINVAL;
 
 	/* 1.1 - Map B0 block */
 	se_dev->src_ll = (struct tegra_se_ll *)(se_dev->src_ll_buf);
@@ -5291,7 +5287,9 @@ static int tegra_se_ccm_compute_auth(struct aead_request *req, bool encrypt)
 	/* 5 - Clean up */
 	tegra_unmap_sg(se_dev->dev, sg_start, DMA_TO_DEVICE, mapped_len);
 out:
-	dma_free_coherent(se_dev->dev, assoclen, adata, adata_addr);
+	if (assoclen)
+		dma_free_coherent(se_dev->dev, assoclen, adata, adata_addr);
+
 	return ret;
 }
 
