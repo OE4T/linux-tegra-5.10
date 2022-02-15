@@ -59,9 +59,6 @@
 #endif
 #endif /* LINUX_VERSION_CODE */
 
-phys_addr_t __weak tegra_carveout_start;
-phys_addr_t __weak tegra_carveout_size;
-
 phys_addr_t __weak tegra_vpr_start;
 phys_addr_t __weak tegra_vpr_size;
 bool __weak tegra_vpr_resize;
@@ -763,14 +760,6 @@ RESERVEDMEM_OF_DECLARE(nvmap_fsi_co, "nvidia,fsi-carveout", nvmap_co_setup);
  */
 static int __nvmap_init_legacy(struct device *dev)
 {
-	/* Carveout. */
-	if (!nvmap_carveouts[0].base) {
-		nvmap_carveouts[0].base = tegra_carveout_start;
-		nvmap_carveouts[0].size = tegra_carveout_size;
-		if (!tegra_vpr_resize)
-			nvmap_carveouts[0].cma_dev = NULL;
-	}
-
 	/* VPR */
 	if (!nvmap_carveouts[1].base) {
 		nvmap_carveouts[1].base = tegra_vpr_start;
