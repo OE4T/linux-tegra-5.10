@@ -318,27 +318,50 @@ static void tegra_i2cslv_empty_rxfifo(struct tegra_i2cslv_dev *i2cslv_dev)
 	struct i2c_slave_data data;
 	u32 rx_fifo_avail;
 	u32 reg, cnt;
+	u32 byte_cnt, buf_remaining, words_to_transfer, curr_n_bytes;
 	u32 *buf32 = (u32 *)i2cslv_dev->rx_buffer;
+	u8 *buf = i2cslv_dev->rx_buffer;
 
 	if (i2cslv_dev->rx_in_progress) {
+		reg = tegra_i2cslv_readl(i2cslv_dev, I2C_SLV_PACKET_STATUS);
+		byte_cnt = (reg & I2C_SLV_PACKET_TRANSFER_BYTENUM_MASK) >>
+			I2C_SLV_PACKET_TRANSFER_BYTENUM_SHIFT;
+
 		reg = tegra_i2cslv_readl(i2cslv_dev, I2C_SLV_FIFO_STATUS);
 		rx_fifo_avail = (reg & I2C_SLV_RX_FIFO_FULL_CNT_MASK)
 			>> I2C_SLV_FIFO_STATUS_RX_SHIFT;
 
 		if (rx_fifo_avail) {
+			buf_remaining = byte_cnt - i2cslv_dev->rx_count;
+			curr_n_bytes = buf_remaining;
+			words_to_transfer = (buf_remaining / BYTES_PER_FIFO_WORD);
 			if (rx_fifo_avail > I2C_RX_FIFO_THRESHOLD)
 				rx_fifo_avail = I2C_RX_FIFO_THRESHOLD;
+			if (words_to_transfer > rx_fifo_avail)
+				words_to_transfer = rx_fifo_avail;
 
-			for (cnt = 0; cnt < rx_fifo_avail; cnt++) {
+			for (cnt = 0; cnt < words_to_transfer; cnt++) {
 				buf32[cnt] = tegra_i2cslv_readl(i2cslv_dev,
 						I2C_SLV_RX_FIFO);
 			}
+			buf += words_to_transfer * BYTES_PER_FIFO_WORD;
+			buf_remaining -= (words_to_transfer * BYTES_PER_FIFO_WORD);
+			rx_fifo_avail -= words_to_transfer;
 
+			if (rx_fifo_avail > 0 && buf_remaining > 0) {
+				WARN_ON(buf_remaining > 3);
+				reg = tegra_i2cslv_readl(i2cslv_dev, I2C_SLV_RX_FIFO);
+				reg = cpu_to_le32(reg);
+				memcpy(buf, &reg, buf_remaining);
+				buf_remaining = 0;
+				rx_fifo_avail--;
+			}
 			data.buf = i2cslv_dev->rx_buffer;
-			data.size = rx_fifo_avail * BYTES_PER_FIFO_WORD;
-			i2c_slave_event(i2cslv_dev->slave,
-					I2C_SLAVE_WRITE_BUFFER_RECEIVED,
-					&data);
+			data.size = curr_n_bytes - buf_remaining;
+			if (data.size)
+				i2c_slave_event(i2cslv_dev->slave,
+						I2C_SLAVE_WRITE_BUFFER_RECEIVED,
+						&data);
 			i2cslv_dev->rx_count += data.size;
 		}
 	}
