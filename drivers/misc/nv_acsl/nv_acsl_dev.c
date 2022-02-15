@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2021 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -50,7 +50,7 @@ status_t acsl_unmap_iova_addr(struct acsl_drv *drv)
 	struct device *dev = drv->dev;
 	struct acsl_nvmap_entry *entry;
 	struct dma_buf *dmabuf = NULL;
-	status_t ret;
+	status_t ret = 0;
 
 	if (!map_args) {
 		dev_err(dev, "iova address NULL\n");
@@ -330,6 +330,11 @@ static long acsl_dev_ioctl(struct file *filp,
 		ret = copy_from_user(&buf_args, uarg,
 				sizeof(buf_args));
 		if (ret) {
+			ret = -EACCES;
+			break;
+		}
+
+		if (buf_args.comp_id >= MAX_COMP) {
 			ret = -EACCES;
 			break;
 		}
