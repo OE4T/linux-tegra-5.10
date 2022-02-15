@@ -19,6 +19,8 @@
 #include <linux/delay.h>
 #include <linux/version.h>
 
+#include <linux/platform/tegra/common.h>
+
 extern phys_addr_t tegra_vpr_start;
 extern phys_addr_t tegra_vpr_size;
 extern bool tegra_vpr_resize;
