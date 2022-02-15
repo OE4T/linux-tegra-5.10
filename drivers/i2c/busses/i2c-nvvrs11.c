@@ -196,7 +196,7 @@ void nvvrs11_delete_sys_files(struct device *dev)
 static int nvvrs11_vendor_info(struct nvvrs11_chip *chip)
 {
 	struct i2c_client *client = chip->client;
-	unsigned int vendor_id, model_rev;
+	int vendor_id, model_rev;
 
 	vendor_id = i2c_smbus_read_byte_data(client, NVVRS11_REG_VENDOR_ID);
 	if (vendor_id < 0) {
