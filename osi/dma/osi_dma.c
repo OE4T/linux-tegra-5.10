@@ -213,14 +213,16 @@ nve32_t osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 		return -1;
 	}
 
-	if ((osi_dma->osd_ops.transmit_complete == OSI_NULL) ||
-	    (osi_dma->osd_ops.receive_packet == OSI_NULL) ||
-	    (osi_dma->osd_ops.ops_log == OSI_NULL) ||
+	if (osi_dma->is_ethernet_server != OSI_ENABLE) {
+		if ((osi_dma->osd_ops.transmit_complete == OSI_NULL) ||
+		    (osi_dma->osd_ops.receive_packet == OSI_NULL) ||
+		    (osi_dma->osd_ops.ops_log == OSI_NULL) ||
 #ifdef OSI_DEBUG
-	    (osi_dma->osd_ops.printf == OSI_NULL) ||
+		    (osi_dma->osd_ops.printf == OSI_NULL) ||
 #endif /* OSI_DEBUG */
-	    (osi_dma->osd_ops.udelay == OSI_NULL)) {
-		return -1;
+		    (osi_dma->osd_ops.udelay == OSI_NULL)) {
+			return -1;
+		}
 	}
 
 	if (osi_dma->mac > OSI_MAC_HW_MGBE) {

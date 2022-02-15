@@ -2109,7 +2109,9 @@ static inline void handle_tx_irq(struct osi_core_priv_data *const osi_core)
 {
 	nveu32_t tx_isr, clear = 0;
 	nveu8_t *addr = (nveu8_t *)osi_core->macsec_base;
+#ifdef HSI_SUPPORT
 	nveu64_t tx_crc_err = 0;
+#endif
 
 	tx_isr = osi_readla(osi_core, addr + MACSEC_TX_ISR);
 	LOG("%s(): tx_isr 0x%x\n", __func__, tx_isr);
@@ -2176,8 +2178,10 @@ static inline void handle_rx_irq(struct osi_core_priv_data *const osi_core)
 {
 	nveu32_t rx_isr, clear = 0;
 	nveu8_t *addr = (nveu8_t *)osi_core->macsec_base;
+#ifdef HSI_SUPPORT
 	nveu64_t rx_crc_err = 0;
 	nveu64_t rx_icv_err = 0;
+#endif
 
 	rx_isr = osi_readla(osi_core, addr + MACSEC_RX_ISR);
 	LOG("%s(): rx_isr 0x%x\n", __func__, rx_isr);

@@ -191,11 +191,6 @@ static inline void osi_writel(nveu32_t val, void *addr)
 	*(volatile nveu32_t *)addr = val;
 }
 
-#ifdef ETHERNET_SERVER
-nveu32_t osi_readla(void *priv, void *addr);
-
-void osi_writela(void *priv, nveu32_t val, void *addr);
-#else
 /**
  * @brief osi_readla - Read a memory mapped register.
  *
@@ -211,7 +206,7 @@ void osi_writela(void *priv, nveu32_t val, void *addr);
  *
  * @return Data from memory mapped register - success.
  */
-static inline nveu32_t osi_readla(void *priv, void *addr)
+static inline nveu32_t osi_readla(OSI_UNUSED void *priv, void *addr)
 {
 	return *(volatile nveu32_t *)addr;
 }
@@ -230,11 +225,10 @@ static inline nveu32_t osi_readla(void *priv, void *addr)
  *
  * @note Physical address has to be memmory mapped.
  */
-static inline void osi_writela(void *priv, nveu32_t val, void *addr)
+static inline void osi_writela(OSI_UNUSED void *priv, nveu32_t val, void *addr)
 {
 	*(volatile nveu32_t *)addr = val;
 }
-#endif
 
 /**
  * @brief validate_mac_ver_update_chans - Validates mac version and update chan

@@ -597,6 +597,8 @@ struct osi_dma_priv_data {
 	/** Flag to enable/disable descriptor dump */
 	nveu32_t enable_desc_dump;
 #endif /* OSI_DEBUG */
+	/** Flag which checks is ethernet server enabled(1) or disabled(0) */
+	nveu32_t is_ethernet_server;
 };
 
 /**

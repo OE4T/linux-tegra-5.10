@@ -165,8 +165,8 @@ static void eqos_get_rx_csum(struct osi_rx_desc *rx_desc,
  * @param[in] rx_desc: Rx Descriptor.
  * @param[in] rx_pkt_cx: Per-Rx packet context structure
  */
-static void eqos_get_rx_hash(struct osi_rx_desc *rx_desc,
-			     struct osi_rx_pkt_cx *rx_pkt_cx)
+static void eqos_get_rx_hash(OSI_UNUSED struct osi_rx_desc *rx_desc,
+			     OSI_UNUSED struct osi_rx_pkt_cx *rx_pkt_cx)
 {
 }
 

@@ -90,8 +90,8 @@ static nve32_t ivc_handle_ioctl(struct osi_core_priv_data *osi_core,
  * @retval -1 on failure.
  */
 static nve32_t ivc_core_init(struct osi_core_priv_data *const osi_core,
-			     nveu32_t tx_fifo_size,
-			     nveu32_t rx_fifo_size)
+			     OSI_UNUSED nveu32_t tx_fifo_size,
+			     OSI_UNUSED nveu32_t rx_fifo_size)
 {
 	ivc_msg_common_t msg;
 
@@ -540,7 +540,8 @@ static nve32_t ivc_macsec_lut_config(struct osi_core_priv_data *const osi_core,
  * @param[in] osi_core: OSI Core private data structure.
  *
  */
-static void ivc_macsec_handle_s_irq(struct osi_core_priv_data *const osi_core)
+static void ivc_macsec_handle_s_irq(OSI_UNUSED
+				    struct osi_core_priv_data *const osi_core)
 {
 	OSI_CORE_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
 		      "Nothing to handle \n", 0ULL);
@@ -553,7 +554,8 @@ static void ivc_macsec_handle_s_irq(struct osi_core_priv_data *const osi_core)
  *
  */
 
-static void ivc_macsec_handle_ns_irq(struct osi_core_priv_data *const osi_core)
+static void ivc_macsec_handle_ns_irq(OSI_UNUSED
+				     struct osi_core_priv_data *const osi_core)
 {
 	OSI_CORE_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
 		      "Nothing to handle \n", 0ULL);
@@ -667,7 +669,8 @@ static nve32_t vir_ivc_core_deinit(struct osi_core_priv_data *const osi_core)
  *
  * @retval Return 0
  */
-static nve32_t vir_ivc_init_core_ops(struct osi_core_priv_data *const osi_core)
+static nve32_t vir_ivc_init_core_ops(OSI_UNUSED
+				     struct osi_core_priv_data *const osi_core)
 {
 	/* This API should not do anything as ethernet_server maintain ops
 	 * locally

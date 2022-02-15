@@ -230,9 +230,6 @@ struct core_ops {
 				     const nveu32_t filter_enb_dis,
 				     const nveu32_t perfect_hash_filtering,
 				     const nveu32_t perfect_inverse_match);
-	/** called to update VLAN id */
-	nve32_t (*update_vlan_id)(struct osi_core_priv_data *const osi_core,
-				  const nveu32_t vid);
 	/** Called to reset MMC HW counter structure */
 	void (*reset_mmc)(struct osi_core_priv_data *const osi_core);
 	/** Called to configure EEE Tx LPI */

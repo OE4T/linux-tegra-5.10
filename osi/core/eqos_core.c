@@ -3266,7 +3266,7 @@ static inline nve32_t eqos_update_mac_addr_helper(
 				const nveu32_t idx,
 				const nveu32_t dma_chan,
 				const nveu32_t addr_mask,
-				const nveu32_t src_dest)
+				OSI_UNUSED const nveu32_t src_dest)
 {
 	nveu32_t temp;
 
@@ -6082,27 +6082,6 @@ static nve32_t eqos_config_vlan_filtering(
 }
 
 /**
- * @brief eqos_update_vlan_id - update VLAN ID in Tag register
- *
- * @param[in] osi_core: OSI core priv data structure
- * @param[in] vid: VLAN ID to be programmed.
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval 0 always
- */
-static inline nve32_t eqos_update_vlan_id(
-				struct osi_core_priv_data *const osi_core,
-				nveu32_t const vid)
-{
-	return 0;
-}
-
-/**
  * @brief eqos_configure_eee - Configure the EEE LPI mode
  *
  * @note
@@ -6926,7 +6905,6 @@ void eqos_init_core_ops(struct core_ops *ops)
 	ops->set_avb_algorithm = eqos_set_avb_algorithm;
 	ops->get_avb_algorithm = eqos_get_avb_algorithm;
 	ops->config_vlan_filtering = eqos_config_vlan_filtering;
-	ops->update_vlan_id = eqos_update_vlan_id;
 	ops->reset_mmc = eqos_reset_mmc;
 	ops->configure_eee = eqos_configure_eee;
 	ops->save_registers = eqos_save_registers;
