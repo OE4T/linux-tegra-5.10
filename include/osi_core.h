@@ -176,10 +176,10 @@ typedef my_lint_64		nvel64_t;
 /**
  * @brief Ethernet PHY Interface Modes
  */
-#define OSI_XFI_MODE_10G	0
-#define OSI_XFI_MODE_5G		1
-#define OSI_USXGMII_MODE_10G	2
-#define OSI_USXGMII_MODE_5G	3
+#define OSI_XFI_MODE_10G	0U
+#define OSI_XFI_MODE_5G		1U
+#define OSI_USXGMII_MODE_10G	2U
+#define OSI_USXGMII_MODE_5G	3U
 
 /**
  * @addtogroup PTP-offload PTP offload defines

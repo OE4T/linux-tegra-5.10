@@ -288,6 +288,11 @@
 #endif /* OSI_STRIPPED_LIB */
 
 /**
+ * @brief unused function attribute
+ */
+#define OSI_UNUSED  __attribute__((__unused__))
+
+/**
  * @brief osi_update_stats_counter - update value by increment passed
  *	as parameter
  * @note

@@ -1600,21 +1600,6 @@ static int mgbe_config_vlan_filtering(struct osi_core_priv_data *osi_core,
 }
 
 /**
- * @brief mgbe_update_vlan_id - update VLAN ID in Tag register
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] vid: VLAN ID to be programmed.
- *
- * @retval 0 on success
- * @retval -1 on failure
- */
-static inline int mgbe_update_vlan_id(struct osi_core_priv_data *const osi_core,
-				      unsigned int vid)
-{
-	return 0;
-}
-
-/**
  * @brief mgbe_config_ptp_rxq - Config PTP RX packets queue route
  *
  * Algorithm: This function is used to program the PTP RX packets queue.
@@ -4375,7 +4360,8 @@ static void mgbe_handle_common_intr(struct osi_core_priv_data *osi_core)
  *
  * @retval zero always
  */
-static nve32_t mgbe_pad_calibrate(struct osi_core_priv_data *const osi_core)
+static nve32_t mgbe_pad_calibrate(OSI_UNUSED
+				  struct osi_core_priv_data *const osi_core)
 {
 	return 0;
 }
@@ -5942,8 +5928,9 @@ static void mgbe_config_ssir(struct osi_core_priv_data *const osi_core,
  * - De-initialization: Yes
  * @retval 0
  */
-static nve32_t mgbe_set_mode(struct osi_core_priv_data *const osi_core,
-			     const nve32_t mode)
+static nve32_t mgbe_set_mode(OSI_UNUSED
+			     struct osi_core_priv_data *const osi_core,
+			     OSI_UNUSED const nve32_t mode)
 {
 	return 0;
 }
@@ -6044,6 +6031,7 @@ static nveu32_t mgbe_write_macsec_reg(struct osi_core_priv_data *const osi_core,
  * @retval 0
  */
 static nve32_t mgbe_validate_core_regs(
+				OSI_UNUSED
 				struct osi_core_priv_data *const osi_core)
 {
 	return 0;
@@ -6063,8 +6051,9 @@ static nve32_t mgbe_validate_core_regs(
  * - De-initialization: Yes
  * @retval 0
  */
-static nve32_t mgbe_config_tx_status(struct osi_core_priv_data *const osi_core,
-				     const nveu32_t tx_status)
+static nve32_t mgbe_config_tx_status(OSI_UNUSED
+				     struct osi_core_priv_data *const osi_core,
+				     OSI_UNUSED const nveu32_t tx_status)
 {
 	return 0;
 }
@@ -6083,8 +6072,9 @@ static nve32_t mgbe_config_tx_status(struct osi_core_priv_data *const osi_core,
  * - De-initialization: Yes
  * @retval 0
  */
-static nve32_t mgbe_config_rx_crc_check(struct osi_core_priv_data *const osi_core,
-					const nveu32_t crc_chk)
+static nve32_t mgbe_config_rx_crc_check(OSI_UNUSED
+					struct osi_core_priv_data *const osi_core,
+					OSI_UNUSED const nveu32_t crc_chk)
 {
 	return 0;
 }
@@ -6103,7 +6093,9 @@ static nve32_t mgbe_config_rx_crc_check(struct osi_core_priv_data *const osi_cor
  * - De-initialization: Yes
  * @retval 0
  */
-static void mgbe_set_mdc_clk_rate(struct osi_core_priv_data *const osi_core,
+static void mgbe_set_mdc_clk_rate(OSI_UNUSED
+				  struct osi_core_priv_data *const osi_core,
+				  OSI_UNUSED
 				  const nveu64_t csr_clk_rate)
 {
 }
@@ -6133,7 +6125,7 @@ static void mgbe_set_mdc_clk_rate(struct osi_core_priv_data *const osi_core,
  * - De-initialization: No
  */
 static void mgbe_config_for_macsec(struct osi_core_priv_data *const osi_core,
-			    const nveu32_t enable)
+				   const nveu32_t enable)
 {
 	nveu32_t value = 0U, temp = 0U;
 
@@ -6243,7 +6235,6 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->config_l4_filters = mgbe_config_l4_filters;
 	ops->update_l4_port_no = mgbe_update_l4_port_no;
 	ops->config_vlan_filtering = mgbe_config_vlan_filtering;
-	ops->update_vlan_id = mgbe_update_vlan_id;
 	ops->set_systime_to_mac = mgbe_set_systime_to_mac;
 	ops->config_addend = mgbe_config_addend;
 	ops->adjust_mactime = mgbe_adjust_mactime;

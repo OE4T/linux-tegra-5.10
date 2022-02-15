@@ -1563,7 +1563,7 @@ static inline nve32_t freq_offset_calculate(struct osi_core_priv_data *sec_osi_c
 	 */
 	if (offset >= 1000000000 || offset <= -1000000000) {
 		s->count = SERVO_STATS_0; /* JUMP */
-		return s->last_ppb;
+		return (nve32_t) s->last_ppb;
 	}
 
 	switch (s->count) {
@@ -2002,20 +2002,20 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		break;
 
 	case OSI_CMD_READ_REG:
-		ret = ops_p->read_reg(osi_core, (nve32_t) data->arg1_u32);
+		ret = (nve32_t) ops_p->read_reg(osi_core, (nve32_t) data->arg1_u32);
 		break;
 
 	case OSI_CMD_WRITE_REG:
-		ret = ops_p->write_reg(osi_core, (nve32_t) data->arg1_u32,
+		ret = (nve32_t) ops_p->write_reg(osi_core, (nveu32_t) data->arg1_u32,
 				       (nve32_t) data->arg2_u32);
 		break;
 #ifdef MACSEC_SUPPORT
 	case OSI_CMD_READ_MACSEC_REG:
-		ret = ops_p->read_macsec_reg(osi_core, (nve32_t) data->arg1_u32);
+		ret = (nve32_t) ops_p->read_macsec_reg(osi_core, (nve32_t) data->arg1_u32);
 		break;
 
 	case OSI_CMD_WRITE_MACSEC_REG:
-		ret = ops_p->write_macsec_reg(osi_core, (nve32_t) data->arg1_u32,
+		ret = (nve32_t) ops_p->write_macsec_reg(osi_core, (nveu32_t) data->arg1_u32,
 				       (nve32_t) data->arg2_u32);
 		break;
 #endif /*  MACSEC_SUPPORT */

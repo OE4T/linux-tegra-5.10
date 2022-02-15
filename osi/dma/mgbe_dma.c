@@ -629,7 +629,8 @@ static void mgbe_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static nve32_t mgbe_validate_dma_regs(struct osi_dma_priv_data *osi_dma)
+static nve32_t mgbe_validate_dma_regs(OSI_UNUSED
+				      struct osi_dma_priv_data *osi_dma)
 {
 	/* TODO: for mgbe */
 	return 0;
@@ -694,7 +695,7 @@ static void mgbe_clear_vm_rx_intr(void *addr, nveu32_t chan)
 static void mgbe_config_slot(struct osi_dma_priv_data *osi_dma,
 			     unsigned int chan,
 			     unsigned int set,
-			     unsigned int interval)
+			     OSI_UNUSED unsigned int interval)
 {
 	unsigned int value;
 #if 0
