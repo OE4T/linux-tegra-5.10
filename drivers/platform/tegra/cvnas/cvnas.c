@@ -21,6 +21,7 @@
 #define pr_fmt(fmt) "cvnas: %s,%d" fmt, __func__, __LINE__
 
 #include <linux/compiler.h>
+#include <linux/cvnas.h>
 #include <linux/reset.h>
 #include <linux/clk.h>
 #include <linux/slab.h>
@@ -790,7 +791,7 @@ EXPORT_SYMBOL(nvcvnas_busy_no_rpm);
 /*
  * Function to suspend CV without using runtime pm.
  */
-int nvcvnas_idle_no_rpm(struct device *dev)
+int nvcvnas_idle_no_rpm(void)
 {
 #ifdef CONFIG_PM_SLEEP
 	if (cvnas_plat_dev && dev_get_drvdata(&cvnas_plat_dev->dev))
