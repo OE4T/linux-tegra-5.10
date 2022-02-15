@@ -282,7 +282,7 @@ static int tnvvse_crypto_sha_update(struct tnvvse_crypto_ctx *ctx,
 	req = sha_state->req;
 	total = update_ctl->input_buffer_size;
 
-	while (total >= 0) {
+	while (true) {
 		size = (total < PAGE_SIZE) ? total : PAGE_SIZE;
 		ret = copy_from_user((void *)hash_buff, (void __user *)input_buffer, size);
 		if (ret) {
@@ -409,7 +409,7 @@ static int tnvvse_crypto_aes_cmac_single_buffer(struct tnvvse_crypto_ctx *ctx,
 
 	hash_buff = xbuf[0];
 	total = data_length;
-	while (total >= 0) {
+	while (true) {
 		size = (total < PAGE_SIZE) ? total : PAGE_SIZE;
 		ret = copy_from_user((void *)hash_buff, (void __user *)src_buffer, size);
 		if (ret) {
