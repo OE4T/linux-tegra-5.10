@@ -4106,11 +4106,9 @@ static int tegra_se_ecdsa_sign(struct akcipher_request *req)
 	struct crypto_akcipher *tfm = crypto_akcipher_reqtfm(req);
 	struct tegra_se_ecdsa_ctx *ctx = tegra_se_ecdsa_get_ctx(tfm);
 	struct tegra_se_ecc_point *x1y1 = NULL;
-	const struct tegra_se_ecc_curve *curve =
-		tegra_se_ecc_get_curve(ctx->curve_id);
-	int nbytes = curve->nbytes;
-	int nwords = nbytes / WORD_SIZE_BYTES;
-	unsigned int ndigits = nwords / 2;
+	const struct tegra_se_ecc_curve *curve;
+	int nbytes, nwords;
+	unsigned int ndigits;
 	u64 z[ECC_MAX_DIGITS], d[ECC_MAX_DIGITS];
 	u64 k[ECC_MAX_DIGITS], k_inv[ECC_MAX_DIGITS];
 	u64 r[ECC_MAX_DIGITS], s[ECC_MAX_DIGITS];
@@ -4119,13 +4117,18 @@ static int tegra_se_ecdsa_sign(struct akcipher_request *req)
 	int ret = -ENOMEM;
 	int mod_op_mode;
 
+	curve = tegra_se_ecc_get_curve(ctx->curve_id);
+	if (!curve)
+		return -EINVAL;
+
+	nbytes = curve->nbytes;
+	nwords = nbytes / WORD_SIZE_BYTES;
+	ndigits = nwords / 2;
+
 	if (req->dst_len < 2 * nbytes) {
 		req->dst_len = 2 * nbytes;
 		return -EINVAL;
 	}
-
-	if (!curve)
-		return -EINVAL;
 
 	mod_op_mode = tegra_se_mod_op_mode(nbytes);
 	if (mod_op_mode < 0)
@@ -4203,11 +4206,8 @@ static int tegra_se_ecdsa_verify(struct akcipher_request *req)
 	struct crypto_akcipher *tfm = crypto_akcipher_reqtfm(req);
 	struct tegra_se_ecdsa_ctx *ctx = tegra_se_ecdsa_get_ctx(tfm);
 	struct tegra_se_ecc_point *x1y1 = NULL, *x2y2 = NULL, *Q = NULL;
-	const struct tegra_se_ecc_curve *curve =
-		tegra_se_ecc_get_curve(ctx->curve_id);
-	unsigned int nbytes = curve->nbytes;
-	unsigned int nwords = nbytes / WORD_SIZE_BYTES;
-	unsigned int ndigits = nwords / 2;
+	const struct tegra_se_ecc_curve *curve;
+	unsigned int nbytes, nwords, ndigits;
 	u64 *ctx_qx, *ctx_qy;
 	u64 r[ECC_MAX_DIGITS], s[ECC_MAX_DIGITS], v[ECC_MAX_DIGITS];
 	u64 z[ECC_MAX_DIGITS], w[ECC_MAX_DIGITS];
@@ -4215,8 +4215,13 @@ static int tegra_se_ecdsa_verify(struct akcipher_request *req)
 	int mod_op_mode;
 	int ret = -ENOMEM;
 
+	curve = tegra_se_ecc_get_curve(ctx->curve_id);
 	if (!curve)
 		return -EINVAL;
+
+	nbytes = curve->nbytes;
+	nwords = nbytes / WORD_SIZE_BYTES;
+	ndigits = nwords / 2;
 
 	mod_op_mode = tegra_se_mod_op_mode(nbytes);
 	if (mod_op_mode < 0)
