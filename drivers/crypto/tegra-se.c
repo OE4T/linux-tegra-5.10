@@ -4,7 +4,7 @@
  *
  * Support for Tegra Security Engine hardware crypto algorithms.
  *
- * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -3510,7 +3510,7 @@ static int tegra_se_probe(struct platform_device *pdev)
 
 		err = of_property_read_string(node, "pka0-rsa-name", &rsa_name);
 		if (!err)
-			strcpy(rsa_alg.base.cra_name, rsa_name);
+			strlcpy(rsa_alg.base.cra_name, rsa_name, CRYPTO_MAX_ALG_NAME);
 
 		if (is_algo_supported_in_hw(se_dev, rsa_alg.base.cra_name)) {
 			err = crypto_register_akcipher(&rsa_alg);
