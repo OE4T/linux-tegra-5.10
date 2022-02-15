@@ -202,15 +202,6 @@ u32 nvhost_get_syncpt_host_managed(struct platform_device *pdev,
 }
 EXPORT_SYMBOL(nvhost_get_syncpt_host_managed);
 
-struct host1x_syncpt *nvhost_syncpt_get_by_id(struct platform_device *pdev,
-					      u32 id)
-{
-	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
-
-	return host1x_syncpt_get_by_id(pdata->host1x, id);
-}
-EXPORT_SYMBOL(nvhost_syncpt_get_by_id);
-
 void nvhost_syncpt_put_ref_ext(struct platform_device *pdev, u32 id)
 {
 	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
@@ -765,7 +756,7 @@ inline void nvhost_module_idle(struct platform_device *pdev)
 }
 EXPORT_SYMBOL(nvhost_module_idle);
 
-int nvhost_module_runtime_resume(struct device *dev)
+static int nvhost_module_runtime_resume(struct device *dev)
 {
 	struct platform_device *pdev = to_platform_device(dev);
 	struct nvhost_device_data *pdata = dev_get_drvdata(dev);
@@ -791,9 +782,8 @@ int nvhost_module_runtime_resume(struct device *dev)
 
 	return err;
 }
-EXPORT_SYMBOL(nvhost_module_runtime_resume);
 
-int nvhost_module_runtime_suspend(struct device *dev)
+static int nvhost_module_runtime_suspend(struct device *dev)
 {
 	struct platform_device *pdev = to_platform_device(dev);
 	struct nvhost_device_data *pdata = dev_get_drvdata(dev);
@@ -809,7 +799,6 @@ int nvhost_module_runtime_suspend(struct device *dev)
 
 	return 0;
 }
-EXPORT_SYMBOL(nvhost_module_runtime_suspend);
 
 const struct dev_pm_ops nvhost_module_pm_ops = {
 	SET_RUNTIME_PM_OPS(nvhost_module_runtime_suspend,
