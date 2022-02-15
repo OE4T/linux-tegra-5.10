@@ -195,7 +195,7 @@ static ssize_t device_file_ioctl(
 	uint32_t pdata[4] = {0};
 
 	user_input = (struct rw_data *)arg;
-	if (copy_from_user(&input, (struct rw_data *)arg,
+	if (copy_from_user(&input, (void __user *)arg,
 				 sizeof(struct rw_data)))
 		return -EACCES;
 
