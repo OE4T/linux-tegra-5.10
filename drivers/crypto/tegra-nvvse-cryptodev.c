@@ -1095,7 +1095,7 @@ static int tnvvse_crypt_aes_gcm_alloc_buf(struct scatterlist **sg, uint8_t *buf[
 	nents = (size/GCM_CHUNK_SIZE + 1);
 
 	*sg = kmalloc_array(nents, sizeof(**sg), GFP_KERNEL);
-	if (!sg) {
+	if (!*sg) {
 		ret = -ENOMEM;
 		goto out;
 	}
