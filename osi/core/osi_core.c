@@ -25,6 +25,25 @@
 #include "core_local.h"
 #include "../osi/common/common.h"
 
+#ifdef HSI_SUPPORT
+/**
+ * @brief hsi_err_code - Arry of error code and reporter ID to be use by
+ * each Ethernet controller instance
+ * a condition is met or a timeout occurs
+ * Below is the data:
+ * uncorrectable_error_code, correctable_error_code, reporter ID
+ * hsi_err_code[0] to hsi_err_code[3] for MGBE instance
+ * hsi_err_code[4] is for EQOS
+ */
+nveu32_t hsi_err_code[][3] = {
+	{0x2A00, 0x2E08, 0x8019},
+	{0x2A01, 0x2E09, 0x801A},
+	{0x2A02, 0x2E0A, 0x801B},
+	{0x2A03, 0x2E0B, 0x801C},
+	{0x28AD, 0x2DE6, 0x8009},
+};
+#endif
+
 /**
  * @brief g_core - Static core local data array
  */

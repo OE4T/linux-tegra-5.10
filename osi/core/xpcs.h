@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -107,6 +107,22 @@
 #define XPCS_WRAP_UPHY_RX_CONTROL_0_0_RX_PCS_PHY_RDY	OSI_BIT(10)
 #define XPCS_WRAP_UPHY_RX_CONTROL_0_0_RX_SW_OVRD	OSI_BIT(31)
 #define XPCS_WRAP_UPHY_STATUS_TX_P_UP_STATUS		OSI_BIT(0)
+
+#ifdef HSI_SUPPORT
+#define XPCS_WRAP_INTERRUPT_CONTROL			0x8048
+#define XPCS_WRAP_INTERRUPT_STATUS			0x8050
+#define XPCS_CORE_CORRECTABLE_ERR			OSI_BIT(10)
+#define XPCS_CORE_UNCORRECTABLE_ERR			OSI_BIT(9)
+#define XPCS_REGISTER_PARITY_ERR			OSI_BIT(8)
+#define XPCS_BASE_PMA_MMD_SR_PMA_KR_FEC_CTRL		0x402AC
+#define EN_ERR_IND					OSI_BIT(1)
+#define FEC_EN						OSI_BIT(0)
+#define XPCS_VR_XS_PCS_SFTY_UE_INTR0			0xE03C0
+#define XPCS_VR_XS_PCS_SFTY_CE_INTR			0xE03C8
+#define XPCS_VR_XS_PCS_SFTY_TMR_CTRL			0xE03D4
+#define XPCS_SFTY_1US_MULT_MASK				0xFF
+#define XPCS_SFTY_1US_MULT_SHIFT			0U
+#endif
 /** @} */
 
 int xpcs_init(struct osi_core_priv_data *osi_core);
