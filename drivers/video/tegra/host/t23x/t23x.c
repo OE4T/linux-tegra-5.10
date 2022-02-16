@@ -392,6 +392,7 @@ struct nvhost_device_data t23x_ofa_info = {
 	.engine_can_cg		= false,
 	.can_powergate		= true,
 	.isolate_contexts	= true,
+	.enable_timestamps	= flcn_enable_timestamps,
 };
 #endif
 
