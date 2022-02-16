@@ -101,6 +101,9 @@ firmware:
 fuse:
   sources: [ os/linux/fuse.c ]
 
+nvmem:
+  sources: [ os/linux/nvmem.c ]
+
 intr:
   sources: [ os/linux/intr.c ]
 
@@ -252,6 +255,7 @@ headers:
              include/nvgpu/linux/os_fence_android.h,
              include/nvgpu/linux/os_fence_dma.h,
              include/nvgpu/linux/rwsem.h,
+             include/nvgpu/linux/nvmem.h,
              include/nvgpu/linux/sim.h,
              include/nvgpu/linux/sim_pci.h,
              include/nvgpu/linux/soc_fuse.h,

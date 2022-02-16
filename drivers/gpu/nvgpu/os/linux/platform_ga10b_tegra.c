@@ -33,7 +33,6 @@
 #include <nvgpu/nvhost.h>
 #include <nvgpu/soc.h>
 #include <nvgpu/fuse.h>
-#include <nvgpu/linux/soc_fuse.h>
 
 #ifdef CONFIG_NV_TEGRA_BPMP
 #include <soc/tegra/tegra-bpmp-dvfs.h>

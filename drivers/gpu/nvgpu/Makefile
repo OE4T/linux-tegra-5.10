@@ -536,6 +536,7 @@ nvgpu-$(CONFIG_TEGRA_GK20A) += \
 
 ifeq ($(CONFIG_TEGRA_GK20A),y)
 nvgpu-$(CONFIG_NVGPU_TEGRA_FUSE) += os/linux/soc.o
+nvgpu-$(CONFIG_NVGPU_NVMEM_FUSE) += os/linux/nvmem.o
 endif
 
 nvgpu-$(CONFIG_NVGPU_SYNCFD_ANDROID) += \

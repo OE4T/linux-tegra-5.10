@@ -103,8 +103,15 @@ ifdef CONFIG_TEGRA_EPL
 CONFIG_NVGPU_ENABLE_MISC_EC := y
 endif
 
+CONFIG_NVGPU_NVMEM_FUSE := n
+
 ifneq ($(findstring 5.10,$(NV_BUILD_KERNEL_OPTIONS)),)
 CONFIG_NVGPU_NVMAP_NEXT := y
+CONFIG_NVGPU_NVMEM_FUSE := y
+endif
+
+ifneq ($(findstring stable,$(NV_BUILD_KERNEL_OPTIONS)),)
+CONFIG_NVGPU_NVMEM_FUSE := y
 endif
 
 ifeq ($(findstring stable,$(NV_BUILD_KERNEL_OPTIONS)),)
@@ -232,6 +239,9 @@ ccflags-y += -DCONFIG_TEGRA_GK20A_NVHOST
 endif
 ifeq ($(CONFIG_TEGRA_GK20A_NVHOST_HOST1X),y)
 ccflags-y += -DCONFIG_TEGRA_GK20A_NVHOST_HOST1X
+endif
+ifeq ($(CONFIG_NVGPU_NVMEM_FUSE),y)
+ccflags-y += -DCONFIG_NVGPU_NVMEM_FUSE
 endif
 ifeq ($(CONFIG_NVGPU_NVMAP_NEXT),y)
 ccflags-y += -DCONFIG_NVGPU_NVMAP_NEXT
