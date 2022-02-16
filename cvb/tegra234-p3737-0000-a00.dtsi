@@ -227,7 +227,6 @@
 		phy-names = "usb2-0", "usb2-1", "usb2-2", "usb2-3",
 			"usb3-0", "usb3-1", "usb3-2";
 		nvidia,xusb-padctl = <&xusb_padctl>;
-		nvidia,boost_emc_freq = <500>;
 	};
 
 	spi@3210000{ /* SPI1 in 40 pin conn */
