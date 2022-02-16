@@ -214,6 +214,9 @@ int nvgpu_gr_suspend(struct gk20a *g)
 
 	g->ops.gr.intr.flush_channel_tlb(g);
 
+	/* Clear GR Falcon state */
+	nvgpu_gr_falcon_suspend(g, nvgpu_gr_get_falcon_ptr(g));
+
 	g->gr->initialized = false;
 
 	nvgpu_log_fn(g, "done");
