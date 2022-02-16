@@ -1728,9 +1728,7 @@ static const struct gops_grmgr ga100_ops_grmgr = {
 #else
 	.init_gr_manager = nvgpu_init_gr_manager,
 #endif
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_MIG)
 	.load_timestamp_prod = ga10b_grmgr_load_smc_arb_timestamp_prod,
-#endif
 	.discover_gpc_ids = ga10b_grmgr_discover_gpc_ids,
 };
 #endif
