@@ -1,7 +1,7 @@
 /*
  * Lontium LT6911UXC HDMI-CSI bridge driver
  *
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -174,7 +174,7 @@ static int lt6911uxc_power_get(struct tegracam_device *tc_dev)
 	/* vdd 1.8v */
 	if (pdata->regulators.iovdd)
 		err |= camera_common_regulator_get(dev,
-				&pw->avdd, pdata->regulators.avdd);
+				&pw->avdd, pdata->regulators.iovdd);
 	if (err) {
 		dev_err(dev, "%s: unable to get regulator(s)\n", __func__);
 		goto done;

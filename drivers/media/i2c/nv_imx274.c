@@ -752,7 +752,7 @@ static int imx274_power_on(struct camera_common_data *s_data)
 
 	usleep_range(1, 2);
 	/* Added latency due to AVDD setup time on McCoy */
-	if (pdata->avdd_latency)
+	if (pdata && pdata->avdd_latency)
 		usleep_range(pdata->avdd_latency, pdata->avdd_latency + 10);
 
 	if (pw->reset_gpio)
@@ -943,23 +943,28 @@ struct camera_common_pdata *imx274_parse_dt(struct tegracam_device *tc_dev)
 	board_priv_pdata->reset_gpio = of_get_named_gpio(node,
 			"reset-gpios", 0);
 
-	of_property_read_string(node, "avdd-reg",
+	err = of_property_read_string(node, "avdd-reg",
 			&board_priv_pdata->regulators.avdd);
-	of_property_read_string(node, "dvdd-reg",
+	err |= of_property_read_string(node, "dvdd-reg",
 			&board_priv_pdata->regulators.dvdd);
-	of_property_read_string(node, "iovdd-reg",
+	err |= of_property_read_string(node, "iovdd-reg",
 			&board_priv_pdata->regulators.iovdd);
+	if (err)
+		dev_dbg(dev, "avdd, iovdd or dvdd reglrs. not present, ignoring.");
+
 
 	board_priv_pdata->has_eeprom =
 		of_property_read_bool(node, "has-eeprom");
 
 	err = of_property_read_u32(node, "fuse_id_start_addr",
 		&board_priv_pdata->fuse_id_addr);
-	if (!err)
+	if (err)
 		board_priv_pdata->fuse_id_addr = 0;
 
-	of_property_read_u32(node, "avdd-setup-delay",
+	err = of_property_read_u32(node, "avdd-setup-delay",
 		&board_priv_pdata->avdd_latency);
+	if (err)
+		board_priv_pdata->avdd_latency = 0;
 
 	return board_priv_pdata;
 }
