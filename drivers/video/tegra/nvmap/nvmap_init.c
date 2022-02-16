@@ -512,7 +512,7 @@ static int nvmap_dma_init_coherent_memory(
 	struct dma_coherent_mem_replica **mem)
 {
 	struct dma_coherent_mem_replica *dma_mem = NULL;
-	void __iomem *mem_base = NULL;
+	void *mem_base = NULL;
 	int pages = size >> PAGE_SHIFT;
 	int bitmap_size = BITS_TO_LONGS(pages) * sizeof(long);
 	int ret;

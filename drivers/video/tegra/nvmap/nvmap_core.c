@@ -121,7 +121,7 @@ void __nvmap_kunmap(struct nvmap_handle *h, unsigned int pagenum,
 		__dma_flush_area(addr, PAGE_SIZE);
 		outer_flush_range(paddr, paddr + PAGE_SIZE); /* FIXME */
 	}
-	iounmap(addr);
+	iounmap((void __iomem *)addr);
 out:
 	nvmap_kmaps_dec(h);
 	nvmap_handle_put(h);
@@ -214,7 +214,7 @@ void *__nvmap_mmap(struct nvmap_handle *h)
 		 * iounmap calls vunmap for vmalloced address, hence
 		 * takes care of vmap/__ioremap freeing part.
 		 */
-		iounmap(vaddr);
+		iounmap((void __iomem *)vaddr);
 		nvmap_kmaps_dec(h);
 	}
 

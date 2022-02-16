@@ -657,7 +657,7 @@ static ssize_t rw_handle(struct nvmap_client *client, struct nvmap_handle *h,
 				ret = copy_from_user(tmp, (void __user *)sys_addr,
 						     elem_size);
 				if (!ret)
-					kasan_memcpy_toio(addr, tmp, elem_size);
+					kasan_memcpy_toio((void __iomem *)addr, tmp, elem_size);
 			} else
 				ret = copy_from_user(addr, (void __user *)sys_addr, elem_size);
 		}

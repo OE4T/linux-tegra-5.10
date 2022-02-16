@@ -980,7 +980,7 @@ void _nvmap_handle_free(struct nvmap_handle *h)
 			void *addr = h->vaddr;
 
 			addr -= (h->carveout->base & ~PAGE_MASK);
-			iounmap(addr);
+			iounmap((void __iomem *)addr);
 		}
 
 		nvmap_heap_free(h->carveout);
