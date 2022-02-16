@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  *
  * NVIDIA CORPORATION and its licensors retain all intellectual property
  * and proprietary rights in and to this software, related documentation
@@ -2748,6 +2748,31 @@ struct isp_overfetch {
 };
 
 /**
+ * @brief Identifier for ISP5
+ */
+#define ISP_TYPE_ID_ISP5 MK_U16(3)
+
+/**
+ * @brief Identifier for ISP6
+ */
+#define ISP_TYPE_ID_ISP6 MK_U16(4)
+
+/**
+ * @brief Magic bytes to detect ISP program struct with version information
+ */
+
+#define ISP5_PROGRAM_STRUCT_ID MK_U32(0x50505349)
+
+/**
+ * @brief Version of ISP program struct layout
+ *
+ * Value of this constant must be increased every time when the memory layout of
+ * isp5_program struct changes.
+ */
+#define ISP5_PROGRAM_STRUCT_VERSION MK_U16(3)
+
+
+/**
  * @brief ISP program buffer
  *
  * Settings needed by RCE ISP driver to generate config buffer.
@@ -2755,6 +2780,21 @@ struct isp_overfetch {
  * See ISP_Microcode.docx for detailed description.
  */
 struct isp5_program {
+	/**
+	 * @brief "Magic bytes" to identify memory area as an ISP program
+	 */
+	uint32_t isp_program_struct_id;
+
+	/**
+	 * @brief Version of the ISP program structure
+	 */
+	uint16_t isp_program_struct_version;
+
+	/**
+	 * @brief Target ISP for the ISP program.
+	 */
+	uint16_t isp_type;
+
 	/**
 	 * Sources for LS, AP and PRU blocks.
 	 * Format is same as in ISP's XB_SRC_0 register
@@ -2820,7 +2860,7 @@ struct isp5_program {
 	} outputs_mw[ISP_MAX_OUTPUTS];
 
 	/** Reserved */
-	uint32_t pad1__[13];
+	uint32_t pad1__[11];
 
 	/**
 	 * Push buffer containing ISP settings related to this program.
