@@ -2088,6 +2088,7 @@ static inline void handle_tx_irq(struct osi_core_priv_data *const osi_core)
 {
 	nveu32_t tx_isr, clear = 0;
 	nveu8_t *addr = (nveu8_t *)osi_core->macsec_base;
+	nveu64_t tx_crc_err = 0;
 
 	tx_isr = osi_readla(osi_core, addr + MACSEC_TX_ISR);
 	LOG("%s(): tx_isr 0x%x\n", __func__, tx_isr);
@@ -2117,6 +2118,21 @@ static inline void handle_tx_irq(struct osi_core_priv_data *const osi_core)
 	if ((tx_isr & MACSEC_TX_MAC_CRC_ERROR) == MACSEC_TX_MAC_CRC_ERROR) {
 		osi_core->macsec_irq_stats.tx_mac_crc_error++;
 		clear |= MACSEC_TX_MAC_CRC_ERROR;
+#ifdef HSI_SUPPORT
+		if (osi_core->hsi.enabled == OSI_ENABLE) {
+			tx_crc_err = osi_core->macsec_irq_stats.tx_mac_crc_error /
+				osi_core->hsi.err_count_threshold;
+			if (osi_core->hsi.macsec_tx_crc_err_count < tx_crc_err) {
+				osi_core->hsi.macsec_tx_crc_err_count = tx_crc_err;
+				osi_core->hsi.macsec_report_count_err[MACSEC_TX_CRC_ERR_IDX] =
+					OSI_ENABLE;
+			}
+
+			osi_core->hsi.macsec_err_code[MACSEC_TX_CRC_ERR_IDX] =
+				OSI_MACSEC_TX_CRC_ERR;
+			osi_core->hsi.macsec_report_err = OSI_ENABLE;
+		}
+#endif
 	}
 
 	if ((tx_isr & MACSEC_TX_PN_THRSHLD_RCHD) == MACSEC_TX_PN_THRSHLD_RCHD) {
@@ -2139,6 +2155,8 @@ static inline void handle_rx_irq(struct osi_core_priv_data *const osi_core)
 {
 	nveu32_t rx_isr, clear = 0;
 	nveu8_t *addr = (nveu8_t *)osi_core->macsec_base;
+	nveu64_t rx_crc_err = 0;
+	nveu64_t rx_icv_err = 0;
 
 	rx_isr = osi_readla(osi_core, addr + MACSEC_RX_ISR);
 	LOG("%s(): rx_isr 0x%x\n", __func__, rx_isr);
@@ -2153,6 +2171,20 @@ static inline void handle_rx_irq(struct osi_core_priv_data *const osi_core)
 	if ((rx_isr & MACSEC_RX_ICV_ERROR) == MACSEC_RX_ICV_ERROR) {
 		osi_core->macsec_irq_stats.rx_icv_err_threshold++;
 		clear |= MACSEC_RX_ICV_ERROR;
+#ifdef HSI_SUPPORT
+		if (osi_core->hsi.enabled == OSI_ENABLE) {
+			rx_icv_err = osi_core->macsec_irq_stats.rx_icv_err_threshold /
+				osi_core->hsi.err_count_threshold;
+			if (osi_core->hsi.macsec_rx_icv_err_count < rx_icv_err) {
+				osi_core->hsi.macsec_rx_icv_err_count = rx_icv_err;
+				osi_core->hsi.macsec_report_count_err[MACSEC_RX_ICV_ERR_IDX] =
+					OSI_ENABLE;
+			}
+			osi_core->hsi.macsec_err_code[MACSEC_RX_ICV_ERR_IDX] =
+					OSI_MACSEC_RX_ICV_ERR;
+			osi_core->hsi.macsec_report_err = OSI_ENABLE;
+		}
+#endif
 	}
 
 	if ((rx_isr & MACSEC_RX_REPLAY_ERROR) == MACSEC_RX_REPLAY_ERROR) {
@@ -2174,6 +2206,20 @@ static inline void handle_rx_irq(struct osi_core_priv_data *const osi_core)
 	if ((rx_isr & MACSEC_RX_MAC_CRC_ERROR) == MACSEC_RX_MAC_CRC_ERROR) {
 		osi_core->macsec_irq_stats.rx_mac_crc_error++;
 		clear |= MACSEC_RX_MAC_CRC_ERROR;
+#ifdef HSI_SUPPORT
+		if (osi_core->hsi.enabled == OSI_ENABLE) {
+			rx_crc_err = osi_core->macsec_irq_stats.rx_mac_crc_error /
+				osi_core->hsi.err_count_threshold;
+			if (osi_core->hsi.macsec_rx_crc_err_count < rx_crc_err) {
+				osi_core->hsi.macsec_rx_crc_err_count = rx_crc_err;
+				osi_core->hsi.macsec_report_count_err[MACSEC_RX_CRC_ERR_IDX] =
+					OSI_ENABLE;
+			}
+			osi_core->hsi.macsec_err_code[MACSEC_RX_CRC_ERR_IDX] =
+					OSI_MACSEC_RX_CRC_ERR;
+			osi_core->hsi.macsec_report_err = OSI_ENABLE;
+		}
+#endif
 	}
 
 	if ((rx_isr & MACSEC_RX_PN_EXHAUSTED) == MACSEC_RX_PN_EXHAUSTED) {

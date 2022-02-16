@@ -236,6 +236,9 @@ typedef my_lint_64		nvel64_t;
 #define OSI_CMD_READ_MACSEC_REG		49U
 #define OSI_CMD_WRITE_MACSEC_REG	50U
 #endif /* MACSEC_SUPPORT */
+#ifdef HSI_SUPPORT
+#define OSI_CMD_HSI_CONFIGURE		51U
+#endif
 /** @} */
 
 /**
@@ -328,6 +331,72 @@ typedef my_lint_64		nvel64_t;
 #define OSI_FRP_MATCH_VLAN		9U
 #define OSI_FRP_MATCH_MAX		10U
 /** @} */
+
+#ifdef HSI_SUPPORT
+/**
+ * @addtogroup hsi_err_code_idx
+ *
+ * @brief data index for hsi_err_code array
+ * @{
+ */
+#define REPORTER_IDX		2U
+
+#define UE_IDX			0U
+#define CE_IDX			1U
+#define RX_CRC_ERR_IDX		2U
+#define TX_FRAME_ERR_IDX	3U
+#define RX_CSUM_ERR_IDX		4U
+#define AUTONEG_ERR_IDX		5U
+
+#define MACSEC_RX_CRC_ERR_IDX	0U
+#define MACSEC_TX_CRC_ERR_IDX	1U
+#define MACSEC_RX_ICV_ERR_IDX	2U
+/** @} */
+
+extern nveu32_t hsi_err_code[][3];
+
+/**
+ * @addtogroup HSI_TIME_THRESHOLD
+ *
+ * @brief HSI time threshold to report error in ms
+ * @{
+ */
+#define OSI_HSI_ERR_TIME_THRESHOLD_DEFAULT	3000U
+#define OSI_HSI_ERR_TIME_THRESHOLD_MIN		1000U
+#define OSI_HSI_ERR_TIME_THRESHOLD_MAX		60000U
+/** @} */
+
+/**
+ * @brief HSI error count threshold to report error
+ */
+#define OSI_HSI_ERR_COUNT_THRESHOLD		1000U
+
+/**
+ * @brief Maximum number of different mac error code
+ */
+#define HSI_MAX_MAC_ERROR_CODE		6U
+
+/**
+ * @brief Maximum number of different macsec error code
+ */
+#define HSI_MAX_MACSEC_ERROR_CODE	3U
+
+/**
+ * @addtogroup HSI_SW_ERR_CODE
+ *
+ * @brief software defined error code
+ * @{
+ */
+#define OSI_INBOUND_BUS_CRC_ERR		0x1001U
+#define OSI_TX_FRAME_ERR		0x1002U
+#define OSI_RECEIVE_CHECKSUM_ERR	0x1003U
+#define OSI_PCS_AUTONEG_ERR		0x1004U
+#define OSI_MACSEC_RX_CRC_ERR		0x1005U
+#define OSI_MACSEC_TX_CRC_ERR		0x1006U
+#define OSI_MACSEC_RX_ICV_ERR		0x1007U
+
+/** @} */
+#endif
 
 struct osi_core_priv_data;
 
@@ -1186,6 +1255,52 @@ struct osi_core_pkt_err_stats {
 	nveu64_t mgbe_tx_underflow_err;
 };
 
+#ifdef HSI_SUPPORT
+/**
+ * @brief The OSI Core HSI private data structure.
+ */
+struct osi_hsi_data {
+	/** Indicates if HSI feature is enabled */
+	nveu32_t enabled;
+	/** time threshold to report error */
+	nveu32_t err_time_threshold;
+	/** error count threshold to report error  */
+	nveu32_t err_count_threshold;
+	/** HSI reporter ID */
+	nveu32_t reporter_id;
+	/** HSI error codes */
+	nveu32_t err_code[HSI_MAX_MAC_ERROR_CODE];
+	/** HSI MAC report count threshold based error */
+	nveu32_t report_count_err[HSI_MAX_MAC_ERROR_CODE];
+	/** Indicates if error reporting to FSI is pending */
+	nveu32_t report_err;
+	/** HSI MACSEC error codes */
+	nveu32_t macsec_err_code[HSI_MAX_MACSEC_ERROR_CODE];
+	/** HSI MACSEC report error based on count threshold */
+	nveu32_t macsec_report_count_err[HSI_MAX_MACSEC_ERROR_CODE];
+	/** Indicates if error report to FSI is pending for MACSEC*/
+	nveu32_t macsec_report_err;
+	/** RX CRC error report count */
+	nveu64_t rx_crc_err_count;
+	/** RX Checksum error report count */
+	nveu64_t rx_checksum_err_count;
+	/** MACSEC RX CRC error report count */
+	nveu64_t macsec_rx_crc_err_count;
+	/** MACSEC TX CRC error report count */
+	nveu64_t macsec_tx_crc_err_count;
+	/** MACSEC RX ICV error report count */
+	nveu64_t macsec_rx_icv_err_count;
+	/** HW correctable error count */
+	nveu64_t ce_count;
+	/** HW correctable error count hit threshold limit */
+	nveu64_t ce_count_threshold;
+	/** tx frame error count */
+	nveu64_t tx_frame_err_count;
+	/** tx frame error count threshold hit */
+	nveu64_t tx_frame_err_threshold;
+};
+#endif
+
 /**
  * @brief The OSI Core (MAC & MTL) private data structure.
  */
@@ -1325,6 +1440,9 @@ struct osi_core_priv_data {
 	/** control pps output signal
 	 */
 	nveu32_t pps_frq;
+#ifdef HSI_SUPPORT
+	struct osi_hsi_data hsi;
+#endif
 };
 
 /**

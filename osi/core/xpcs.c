@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -50,6 +50,14 @@ static inline int xpcs_poll_for_an_complete(struct osi_core_priv_data *osi_core,
 		if (count > retry) {
 			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
 				     "XPCS AN completion timed out\n", 0ULL);
+#ifdef HSI_SUPPORT
+			if (osi_core->hsi.enabled == OSI_ENABLE) {
+				osi_core->hsi.err_code[AUTONEG_ERR_IDX] =
+						OSI_PCS_AUTONEG_ERR;
+				osi_core->hsi.report_err = OSI_ENABLE;
+				osi_core->hsi.report_count_err[AUTONEG_ERR_IDX] = OSI_ENABLE;
+			}
+#endif
 			return -1;
 		}
 
@@ -522,6 +530,7 @@ int xpcs_init(struct osi_core_priv_data *osi_core)
 		ctrl |= XPCS_VR_XS_PCS_DIG_CTRL1_CL37_BP;
 		xpcs_write(xpcs_base, XPCS_VR_XS_PCS_DIG_CTRL1, ctrl);
 	}
+
 	/* TODO: 9. MII_AN_INTR_EN to 1, to enable auto-negotiation
 	 * complete interrupt */
 

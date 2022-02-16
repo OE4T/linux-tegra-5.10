@@ -281,6 +281,11 @@ struct core_ops {
 #endif /* MACSEC_SUPPORT */
 	int (*ptp_tsc_capture)(struct osi_core_priv_data *const osi_core,
 			       struct osi_core_ptp_tsc_data *data);
+#ifdef HSI_SUPPORT
+	/** Interface function called to initialize HSI */
+	void (*core_hsi_configure)(struct osi_core_priv_data *const osi_core,
+				   const nveu32_t enable);
+#endif
 };
 
 /**

@@ -2574,6 +2574,178 @@ static int mgbe_config_flow_control(struct osi_core_priv_data *const osi_core,
 	return 0;
 }
 
+#ifdef HSI_SUPPORT
+/**
+ * @brief mgbe_hsi_configure - Configure HSI
+ *
+ * Algorithm: enable LIC interrupt and HSI features
+ *
+ * @param[in, out] osi_core: OSI core private data structure.
+ * @param[in] enable: OSI_ENABLE for Enabling HSI feature, else disable
+ *
+ */
+static void mgbe_hsi_configure(struct osi_core_priv_data *const osi_core,
+			       const nveu32_t enable)
+{
+	nveu32_t value = 0U;
+	void *xpcs_base = osi_core->xpcs_base;
+
+	if (enable == OSI_ENABLE) {
+		osi_core->hsi.enabled = OSI_ENABLE;
+		osi_core->hsi.reporter_id = hsi_err_code[osi_core->instance_id][REPORTER_IDX];
+
+		/* T23X-MGBE_HSIv2-10 Enable PCS ECC */
+		value = (EN_ERR_IND | FEC_EN);
+		xpcs_write(xpcs_base, XPCS_BASE_PMA_MMD_SR_PMA_KR_FEC_CTRL, value);
+
+		/* T23X-MGBE_HSIv2-12:Initialization of Transaction Timeout in PCS */
+		/* T23X-MGBE_HSIv2-11:Initialization of Watchdog Timer */
+		value = (0xCCU << XPCS_SFTY_1US_MULT_SHIFT) & XPCS_SFTY_1US_MULT_MASK;
+		xpcs_write(xpcs_base, XPCS_VR_XS_PCS_SFTY_TMR_CTRL, value);
+
+		/* T23X-MGBE_HSIv2-1 Configure ECC */
+		value = osi_readla(osi_core,
+				   (nveu8_t *)osi_core->base + MGBE_MTL_ECC_CONTROL);
+		value &= ~MGBE_MTL_ECC_MTXED;
+		value &= ~MGBE_MTL_ECC_MRXED;
+		value &= ~MGBE_MTL_ECC_MGCLED;
+		value &= ~MGBE_MTL_ECC_MRXPED;
+		value &= ~MGBE_MTL_ECC_TSOED;
+		value &= ~MGBE_MTL_ECC_DESCED;
+		osi_writela(osi_core, value,
+			    (nveu8_t *)osi_core->base + MGBE_MTL_ECC_CONTROL);
+
+		/* T23X-MGBE_HSIv2-5: Enabling and Initialization of Transaction Timeout  */
+		value = (0x198U << MGBE_TMR_SHIFT) & MGBE_TMR_MASK;
+		value |= (0x0U << MGBE_CTMR_SHIFT) & MGBE_CTMR_MASK;
+		value |= (0x2U << MGBE_LTMRMD_SHIFT) & MGBE_LTMRMD_MASK;
+		value |= (0x1U << MGBE_NTMRMD_SHIFT) & MGBE_NTMRMD_MASK;
+		osi_writela(osi_core, value,
+			    (nveu8_t *)osi_core->base + MGBE_DWCXG_CORE_MAC_FSM_ACT_TIMER);
+
+		/* T23X-MGBE_HSIv2-3: Enabling and Initialization of Watchdog Timer */
+		/* T23X-MGBE_HSIv2-4: Enabling of Consistency Monitor for XGMAC FSM State */
+		// TODO: enable MGBE_TMOUTEN.
+		value = MGBE_PRTYEN;
+		osi_writela(osi_core, value,
+			    (nveu8_t *)osi_core->base + MGBE_MAC_FSM_CONTROL);
+
+		/* T23X-MGBE_HSIv2-2: Enabling of Bus Parity */
+		value = osi_readla(osi_core,
+				   (nveu8_t *)osi_core->base + MGBE_MTL_DPP_CONTROL);
+		value &= ~MGBE_DDPP;
+		osi_writela(osi_core, value,
+			    (nveu8_t *)osi_core->base + MGBE_MTL_DPP_CONTROL);
+
+		/* T23X-MGBE_HSIv2-38: Initialization of Register Parity for control registers */
+		value = osi_readla(osi_core,
+				   (nveu8_t *)osi_core->base + MGBE_MAC_SCSR_CONTROL);
+		value |= MGBE_CPEN;
+		osi_writela(osi_core, value,
+			    (nveu8_t *)osi_core->base + MGBE_MAC_SCSR_CONTROL);
+
+		/* Enable Interrupt */
+		/*  T23X-MGBE_HSIv2-1: Enabling of Memory ECC */
+		value = osi_readla(osi_core,
+				   (nveu8_t *)osi_core->base + MGBE_MTL_ECC_INTERRUPT_ENABLE);
+		value |= MGBE_MTL_TXCEIE;
+		value |= MGBE_MTL_RXCEIE;
+		value |= MGBE_MTL_GCEIE;
+		value |= MGBE_MTL_RPCEIE;
+		osi_writela(osi_core, value,
+			    (nveu8_t *)osi_core->base + MGBE_MTL_ECC_INTERRUPT_ENABLE);
+
+		value = osi_readla(osi_core,
+				   (nveu8_t *)osi_core->base + MGBE_DMA_ECC_INTERRUPT_ENABLE);
+		value |= MGBE_DMA_TCEIE;
+		value |= MGBE_DMA_DCEIE;
+		osi_writela(osi_core, value,
+			    (nveu8_t *)osi_core->base + MGBE_DMA_ECC_INTERRUPT_ENABLE);
+
+		value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				   MGBE_WRAP_COMMON_INTR_ENABLE);
+		value |= MGBE_REGISTER_PARITY_ERR;
+		value |= MGBE_CORE_CORRECTABLE_ERR;
+		value |= MGBE_CORE_UNCORRECTABLE_ERR;
+		osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
+			    MGBE_WRAP_COMMON_INTR_ENABLE);
+
+		value = osi_readla(osi_core, (nveu8_t *)osi_core->xpcs_base +
+				   XPCS_WRAP_INTERRUPT_CONTROL);
+		value |= XPCS_CORE_CORRECTABLE_ERR;
+		value |= XPCS_CORE_UNCORRECTABLE_ERR;
+		value |= XPCS_REGISTER_PARITY_ERR;
+		osi_writela(osi_core, value, (nveu8_t *)osi_core->xpcs_base +
+			    XPCS_WRAP_INTERRUPT_CONTROL);
+	} else {
+		osi_core->hsi.enabled = OSI_DISABLE;
+
+		/* T23X-MGBE_HSIv2-10 Disable PCS ECC */
+		xpcs_write(xpcs_base, XPCS_BASE_PMA_MMD_SR_PMA_KR_FEC_CTRL, 0);
+
+		/* T23X-MGBE_HSIv2-11:Deinitialization of Watchdog Timer */
+		xpcs_write(xpcs_base, XPCS_VR_XS_PCS_SFTY_TMR_CTRL, 0);
+
+		/* T23X-MGBE_HSIv2-1 Disable ECC */
+		value = osi_readla(osi_core,
+				   (nveu8_t *)osi_core->base + MGBE_MTL_ECC_CONTROL);
+		value |= MGBE_MTL_ECC_MTXED;
+		value |= MGBE_MTL_ECC_MRXED;
+		value |= MGBE_MTL_ECC_MGCLED;
+		value |= MGBE_MTL_ECC_MRXPED;
+		value |= MGBE_MTL_ECC_TSOED;
+		value |= MGBE_MTL_ECC_DESCED;
+		osi_writela(osi_core, value,
+			    (nveu8_t *)osi_core->base + MGBE_MTL_ECC_CONTROL);
+
+		/* T23X-MGBE_HSIv2-5: Enabling and Initialization of Transaction Timeout  */
+		osi_writela(osi_core, 0,
+			    (nveu8_t *)osi_core->base + MGBE_DWCXG_CORE_MAC_FSM_ACT_TIMER);
+
+		/* T23X-MGBE_HSIv2-4: Enabling of Consistency Monitor for XGMAC FSM State */
+		osi_writela(osi_core, 0,
+			    (nveu8_t *)osi_core->base + MGBE_MAC_FSM_CONTROL);
+
+		/* T23X-MGBE_HSIv2-2: Disable of Bus Parity */
+		value = osi_readla(osi_core,
+				   (nveu8_t *)osi_core->base + MGBE_MTL_DPP_CONTROL);
+		value |=  MGBE_DDPP;
+		osi_writela(osi_core, value,
+			    (nveu8_t *)osi_core->base + MGBE_MTL_DPP_CONTROL);
+
+		/* T23X-MGBE_HSIv2-38: Disable Register Parity for control registers */
+		value = osi_readla(osi_core,
+				   (nveu8_t *)osi_core->base + MGBE_MAC_SCSR_CONTROL);
+		value &= ~MGBE_CPEN;
+		osi_writela(osi_core, value,
+			    (nveu8_t *)osi_core->base + MGBE_MAC_SCSR_CONTROL);
+
+		/* Disable Interrupts */
+		osi_writela(osi_core, 0,
+			    (nveu8_t *)osi_core->base + MGBE_MTL_ECC_INTERRUPT_ENABLE);
+
+		osi_writela(osi_core, 0,
+			    (nveu8_t *)osi_core->base + MGBE_DMA_ECC_INTERRUPT_ENABLE);
+
+		value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				   MGBE_WRAP_COMMON_INTR_ENABLE);
+		value &= ~MGBE_REGISTER_PARITY_ERR;
+		value &= ~MGBE_CORE_CORRECTABLE_ERR;
+		value &= ~MGBE_CORE_UNCORRECTABLE_ERR;
+		osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
+			    MGBE_WRAP_COMMON_INTR_ENABLE);
+
+		value = osi_readla(osi_core, (nveu8_t *)osi_core->xpcs_base +
+				   XPCS_WRAP_INTERRUPT_CONTROL);
+		value &= ~XPCS_CORE_CORRECTABLE_ERR;
+		value &= ~XPCS_CORE_UNCORRECTABLE_ERR;
+		value &= ~XPCS_REGISTER_PARITY_ERR;
+		osi_writela(osi_core, value, (nveu8_t *)osi_core->xpcs_base +
+			    XPCS_WRAP_INTERRUPT_CONTROL);
+	}
+}
+#endif
+
 /**
  * @brief mgbe_configure_mac - Configure MAC
  *
@@ -3093,6 +3265,8 @@ static nve32_t mgbe_dma_chan_to_vmirq_map(struct osi_core_priv_data *osi_core)
 				   (nveu8_t *)osi_core->base +
 				   MGBE_VIRT_INTR_APB_CHX_CNTRL(chan));
 		}
+		osi_writel(OSI_BIT(irq_data->vm_num),
+			   (nveu8_t *)osi_core->base + MGBE_VIRTUAL_APB_ERR_CTRL);
 	}
 
 	if ((osi_core->use_virtualization == OSI_DISABLE) &&
@@ -3980,6 +4154,123 @@ static int mgbe_config_ptp_offload(struct osi_core_priv_data *const osi_core,
 	return ret;
 }
 
+#ifdef HSI_SUPPORT
+/**
+ * @brief mgbe_handle_hsi_intr - Handles hsi interrupt.
+ *
+ * Algorithm:
+ * - Read safety interrupt status register and clear it.
+ * - Update error code in osi_hsi_data structure
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ */
+static void mgbe_handle_hsi_intr(struct osi_core_priv_data *osi_core)
+{
+	nveu32_t val = 0;
+	nveu32_t val2 = 0;
+	void *xpcs_base = osi_core->xpcs_base;
+	nveu64_t ce_count_threshold;
+
+	val = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+			MGBE_WRAP_COMMON_INTR_STATUS);
+	if (((val & MGBE_REGISTER_PARITY_ERR) == MGBE_REGISTER_PARITY_ERR) ||
+	    ((val & MGBE_CORE_UNCORRECTABLE_ERR) == MGBE_CORE_UNCORRECTABLE_ERR)) {
+		osi_core->hsi.err_code[UE_IDX] =
+				hsi_err_code[osi_core->instance_id][UE_IDX];
+		osi_core->hsi.report_err = OSI_ENABLE;
+		osi_core->hsi.report_count_err[UE_IDX] = OSI_ENABLE;
+		/* Disable the interrupt */
+		val2 = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				  MGBE_WRAP_COMMON_INTR_ENABLE);
+		val2 &= ~MGBE_REGISTER_PARITY_ERR;
+		val2 &= ~MGBE_CORE_UNCORRECTABLE_ERR;
+		osi_writela(osi_core, val2, (nveu8_t *)osi_core->base +
+			    MGBE_WRAP_COMMON_INTR_ENABLE);
+	}
+	if ((val & MGBE_CORE_CORRECTABLE_ERR) == MGBE_CORE_CORRECTABLE_ERR) {
+		osi_core->hsi.err_code[CE_IDX] =
+			hsi_err_code[osi_core->instance_id][CE_IDX];
+		osi_core->hsi.report_err = OSI_ENABLE;
+		osi_core->hsi.ce_count =
+			osi_update_stats_counter(osi_core->hsi.ce_count, 1UL);
+		ce_count_threshold = osi_core->hsi.ce_count / osi_core->hsi.err_count_threshold;
+		if (osi_core->hsi.ce_count_threshold < ce_count_threshold) {
+			osi_core->hsi.ce_count_threshold = ce_count_threshold;
+			osi_core->hsi.report_count_err[CE_IDX] = OSI_ENABLE;
+		}
+	}
+	val &= ~MGBE_MAC_SBD_INTR;
+	osi_writela(osi_core, val, (nveu8_t *)osi_core->base +
+			MGBE_WRAP_COMMON_INTR_STATUS);
+
+	if (((val & MGBE_CORE_CORRECTABLE_ERR) == MGBE_CORE_CORRECTABLE_ERR) ||
+	    ((val & MGBE_CORE_UNCORRECTABLE_ERR) == MGBE_CORE_UNCORRECTABLE_ERR)) {
+		/* Clear status register for FSM errors. Clear on read*/
+		(void)osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				MGBE_MAC_DPP_FSM_INTERRUPT_STATUS);
+
+		/* Clear status register for ECC error */
+		val = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				MGBE_MTL_ECC_INTERRUPT_STATUS);
+		if (val != 0U) {
+			osi_writela(osi_core, val, (nveu8_t *)osi_core->base +
+					MGBE_MTL_ECC_INTERRUPT_STATUS);
+		}
+		val = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				MGBE_DMA_ECC_INTERRUPT_STATUS);
+		if (val != 0U) {
+			osi_writela(osi_core, val, (nveu8_t *)osi_core->base +
+					MGBE_DMA_ECC_INTERRUPT_STATUS);
+		}
+	}
+
+	val = osi_readla(osi_core, (nveu8_t *)osi_core->xpcs_base +
+			XPCS_WRAP_INTERRUPT_STATUS);
+	if (((val & XPCS_CORE_UNCORRECTABLE_ERR) == XPCS_CORE_UNCORRECTABLE_ERR) ||
+	    ((val & XPCS_REGISTER_PARITY_ERR) == XPCS_REGISTER_PARITY_ERR)) {
+		osi_core->hsi.err_code[UE_IDX] = hsi_err_code[osi_core->instance_id][UE_IDX];
+		osi_core->hsi.report_err = OSI_ENABLE;
+		osi_core->hsi.report_count_err[UE_IDX] = OSI_ENABLE;
+		/* Disable uncorrectable interrupts */
+		val2 = osi_readla(osi_core, (nveu8_t *)osi_core->xpcs_base +
+				   XPCS_WRAP_INTERRUPT_CONTROL);
+		val2 &= ~XPCS_CORE_UNCORRECTABLE_ERR;
+		val2 &= ~XPCS_REGISTER_PARITY_ERR;
+		osi_writela(osi_core, val2, (nveu8_t *)osi_core->xpcs_base +
+				XPCS_WRAP_INTERRUPT_CONTROL);
+	}
+	if ((val & XPCS_CORE_CORRECTABLE_ERR) == XPCS_CORE_CORRECTABLE_ERR) {
+		osi_core->hsi.err_code[CE_IDX] = hsi_err_code[osi_core->instance_id][CE_IDX];
+		osi_core->hsi.report_err = OSI_ENABLE;
+		osi_core->hsi.ce_count =
+			osi_update_stats_counter(osi_core->hsi.ce_count, 1UL);
+		ce_count_threshold = osi_core->hsi.ce_count / osi_core->hsi.err_count_threshold;
+		if (osi_core->hsi.ce_count_threshold < ce_count_threshold) {
+			osi_core->hsi.ce_count_threshold = ce_count_threshold;
+			osi_core->hsi.report_count_err[CE_IDX] = OSI_ENABLE;
+		}
+	}
+
+	osi_writela(osi_core, val, (nveu8_t *)osi_core->xpcs_base +
+		    XPCS_WRAP_INTERRUPT_STATUS);
+
+	if (((val & XPCS_CORE_CORRECTABLE_ERR) == XPCS_CORE_CORRECTABLE_ERR) ||
+	    ((val & XPCS_CORE_UNCORRECTABLE_ERR) == XPCS_CORE_UNCORRECTABLE_ERR)) {
+		/* Clear status register for PCS error */
+		val = xpcs_read(xpcs_base, XPCS_VR_XS_PCS_SFTY_UE_INTR0);
+		if (val != 0U) {
+			xpcs_write(xpcs_base, XPCS_VR_XS_PCS_SFTY_UE_INTR0, 0);
+		}
+		val = xpcs_read(xpcs_base, XPCS_VR_XS_PCS_SFTY_CE_INTR);
+		if (val != 0U) {
+			xpcs_write(xpcs_base, XPCS_VR_XS_PCS_SFTY_CE_INTR, 0);
+		}
+	}
+}
+#endif
+
 /**
  * @brief mgbe_handle_common_intr - Handles common interrupt.
  *
@@ -4000,15 +4291,11 @@ static void mgbe_handle_common_intr(struct osi_core_priv_data *osi_core)
 	unsigned int mtl_isr = 0;
 	unsigned int val = 0;
 
-	/* FIXME: Disabling common interrupt. Needs to be fixed once
-	 * RTL issue http://nvbugs/200517360 resolved.
-	 */
-	val = osi_readla(osi_core, (unsigned char *)osi_core->base +
-			MGBE_WRAP_COMMON_INTR_ENABLE);
-	val &= ~MGBE_MAC_SBD_INTR;
-	osi_writela(osi_core, val, (unsigned char *)osi_core->base +
-		   MGBE_WRAP_COMMON_INTR_ENABLE);
-
+#ifdef HSI_SUPPORT
+	if (osi_core->hsi.enabled == OSI_ENABLE) {
+		mgbe_handle_hsi_intr(osi_core);
+	}
+#endif
 	dma_isr = osi_readla(osi_core, (nveu8_t *)base + MGBE_DMA_ISR);
 	if (dma_isr == OSI_NONE) {
 		return;
@@ -5984,4 +6271,7 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->read_macsec_reg = mgbe_read_macsec_reg;
 	ops->macsec_config_mac = mgbe_config_for_macsec;
 #endif /*  MACSEC_SUPPORT */
+#ifdef HSI_SUPPORT
+	ops->core_hsi_configure = mgbe_hsi_configure;
+#endif
 };

@@ -1703,6 +1703,146 @@ static void eqos_configure_rxq_priority(
 	}
 }
 
+#ifdef HSI_SUPPORT
+/**
+ * @brief eqos_hsi_configure - Configure HSI features
+ *
+ * @note
+ * Algorithm:
+ *  - Enables LIC interrupt and configure HSI features
+ *
+ * @param[in, out] osi_core: OSI core private data structure.
+ * @param[in] enable: OSI_ENABLE for enabling HSI feature, else disable
+ *
+ */
+static void eqos_hsi_configure(struct osi_core_priv_data *const osi_core,
+			       const nveu32_t enable)
+{
+	nveu32_t value;
+
+	if (enable == OSI_ENABLE) {
+		osi_core->hsi.enabled = OSI_ENABLE;
+		osi_core->hsi.reporter_id = hsi_err_code[osi_core->instance_id][REPORTER_IDX];
+
+		/* T23X-EQOS_HSIv2-19: Enabling of Consistency Monitor for TX Frame Errors */
+		value = osi_readla(osi_core,
+				   (nveu8_t *)osi_core->base + EQOS_MAC_IMR);
+		value |= EQOS_IMR_TXESIE;
+		eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
+					EQOS_MAC_IMR, EQOS_MAC_IMR_IDX);
+
+		/*  T23X-EQOS_HSIv2-1: Enabling of Memory ECC */
+		value = osi_readla(osi_core,
+				   (nveu8_t *)osi_core->base + EQOS_MTL_ECC_CONTROL);
+		value |= EQOS_MTL_ECC_MTXEE;
+		value |= EQOS_MTL_ECC_MRXEE;
+		value |= EQOS_MTL_ECC_MESTEE;
+		value |= EQOS_MTL_ECC_MRXPEE;
+		value |= EQOS_MTL_ECC_TSOEE;
+		value |= EQOS_MTL_ECC_DSCEE;
+		osi_writela(osi_core, value,
+			    (nveu8_t *)osi_core->base + EQOS_MTL_ECC_CONTROL);
+
+		/* T23X-EQOS_HSIv2-5: Enabling and Initialization of Transaction Timeout */
+		value = (0x198U << EQOS_TMR_SHIFT) & EQOS_TMR_MASK;
+		value |= (0x2U << EQOS_LTMRMD_SHIFT) & EQOS_LTMRMD_MASK;
+		value |= (0x1U << EQOS_NTMRMD_SHIFT) & EQOS_NTMRMD_MASK;
+		osi_writela(osi_core, value,
+			    (nveu8_t *)osi_core->base + EQOS_MAC_FSM_ACT_TIMER);
+
+		/* T23X-EQOS_HSIv2-3: Enabling and Initialization of Watchdog */
+		/* T23X-EQOS_HSIv2-4: Enabling of Consistency Monitor for FSM States */
+		// TODO: enable EQOS_TMOUTEN
+		value = EQOS_PRTYEN;
+		osi_writela(osi_core, value,
+			    (nveu8_t *)osi_core->base + EQOS_MAC_FSM_CONTROL);
+
+		/* T23X-EQOS_HSIv2-2: Enabling of Bus Parity */
+		value = osi_readla(osi_core,
+				   (nveu8_t *)osi_core->base + EQOS_MTL_DPP_CONTROL);
+		value |= EQOS_EDPP;
+		osi_writela(osi_core, value,
+			    (nveu8_t *)osi_core->base + EQOS_MTL_DPP_CONTROL);
+
+		/* Enable Interrupts */
+		/*  T23X-EQOS_HSIv2-1: Enabling of Memory ECC */
+		value = osi_readla(osi_core,
+				   (nveu8_t *)osi_core->base + EQOS_MTL_ECC_INTERRUPT_ENABLE);
+		value |= EQOS_MTL_TXCEIE;
+		value |= EQOS_MTL_RXCEIE;
+		value |= EQOS_MTL_ECEIE;
+		value |= EQOS_MTL_RPCEIE;
+		osi_writela(osi_core, value,
+			    (nveu8_t *)osi_core->base + EQOS_MTL_ECC_INTERRUPT_ENABLE);
+
+		value = osi_readla(osi_core,
+				   (nveu8_t *)osi_core->base + EQOS_DMA_ECC_INTERRUPT_ENABLE);
+		value |= EQOS_DMA_TCEIE;
+		value |= EQOS_DMA_DCEIE;
+		osi_writela(osi_core, value,
+			    (nveu8_t *)osi_core->base + EQOS_DMA_ECC_INTERRUPT_ENABLE);
+
+		value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				   EQOS_WRAP_COMMON_INTR_ENABLE);
+		value |= EQOS_REGISTER_PARITY_ERR;
+		value |= EQOS_CORE_CORRECTABLE_ERR;
+		value |= EQOS_CORE_UNCORRECTABLE_ERR;
+		osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
+			    EQOS_WRAP_COMMON_INTR_ENABLE);
+	} else {
+		osi_core->hsi.enabled = OSI_DISABLE;
+
+		/* T23X-EQOS_HSIv2-19: Disable of Consistency Monitor for TX Frame Errors */
+		value = osi_readla(osi_core,
+				   (nveu8_t *)osi_core->base + EQOS_MAC_IMR);
+		value &= ~EQOS_IMR_TXESIE;
+		eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
+					EQOS_MAC_IMR, EQOS_MAC_IMR_IDX);
+
+		/*  T23X-EQOS_HSIv2-1: Disable of Memory ECC */
+		value = osi_readla(osi_core,
+				   (nveu8_t *)osi_core->base + EQOS_MTL_ECC_CONTROL);
+		value &= ~EQOS_MTL_ECC_MTXEE;
+		value &= ~EQOS_MTL_ECC_MRXEE;
+		value &= ~EQOS_MTL_ECC_MESTEE;
+		value &= ~EQOS_MTL_ECC_MRXPEE;
+		value &= ~EQOS_MTL_ECC_TSOEE;
+		value &= ~EQOS_MTL_ECC_DSCEE;
+		osi_writela(osi_core, value,
+			    (nveu8_t *)osi_core->base + EQOS_MTL_ECC_CONTROL);
+
+		/* T23X-EQOS_HSIv2-5: Denitialization of Transaction Timeout */
+		osi_writela(osi_core, 0,
+			    (nveu8_t *)osi_core->base + EQOS_MAC_FSM_ACT_TIMER);
+
+		/* T23X-EQOS_HSIv2-4: Disable of Consistency Monitor for FSM States */
+		osi_writela(osi_core, 0,
+			    (nveu8_t *)osi_core->base + EQOS_MAC_FSM_CONTROL);
+
+		/* T23X-EQOS_HSIv2-2: Disable of Bus Parity */
+		value = osi_readla(osi_core,
+				   (nveu8_t *)osi_core->base + EQOS_MTL_DPP_CONTROL);
+		value &= ~EQOS_EDPP;
+		osi_writela(osi_core, value,
+			    (nveu8_t *)osi_core->base + EQOS_MTL_DPP_CONTROL);
+
+		/* Disable Interrupts */
+		osi_writela(osi_core, 0,
+			    (nveu8_t *)osi_core->base + EQOS_MTL_ECC_INTERRUPT_ENABLE);
+
+		osi_writela(osi_core, 0,
+			    (nveu8_t *)osi_core->base + EQOS_DMA_ECC_INTERRUPT_ENABLE);
+
+		value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				   EQOS_WRAP_COMMON_INTR_ENABLE);
+		value &= ~EQOS_REGISTER_PARITY_ERR;
+		value &= ~EQOS_CORE_CORRECTABLE_ERR;
+		value &= ~EQOS_CORE_UNCORRECTABLE_ERR;
+		osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
+			    EQOS_WRAP_COMMON_INTR_ENABLE);
+	}
+}
+#endif
 /**
  * @brief eqos_configure_mac - Configure MAC
  *
@@ -1823,7 +1963,6 @@ static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 	/* RGSMIIIE - RGMII/SMII interrupt Enable.
 	 * LPIIE is not enabled. MMC LPI counters is maintained in HW */
 	value |= EQOS_IMR_RGSMIIIE;
-
 	eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
 				EQOS_MAC_IMR, EQOS_MAC_IMR_IDX);
 
@@ -1868,7 +2007,6 @@ static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 		eqos_configure_rxq_priority(osi_core);
 	}
 }
-
 /**
  * @brief eqos_configure_dma - Configure DMA
  *
@@ -2134,6 +2272,8 @@ static void eqos_dma_chan_to_vmirq_map(struct osi_core_priv_data *osi_core)
 				   (nveu8_t *)osi_core->base +
 				   EQOS_VIRT_INTR_APB_CHX_CNTRL(chan));
 		}
+		osi_writel(OSI_BIT(irq_data->vm_num),
+			   (nveu8_t *)osi_core->base + VIRTUAL_APB_ERR_CTRL);
 	}
 }
 
@@ -2379,10 +2519,31 @@ static void eqos_handle_mac_intrs(struct osi_core_priv_data *const osi_core,
 	nveu32_t mac_pcs = 0;
 	nveu32_t mac_isr = 0;
 	nve32_t ret = 0;
-
+#ifdef HSI_SUPPORT
+	nveu64_t tx_frame_err = 0;
+#endif
 	mac_isr = osi_readla(osi_core,
 			     (nveu8_t *)osi_core->base + EQOS_MAC_ISR);
 
+#ifdef HSI_SUPPORT
+	if (osi_core->mac_ver >= OSI_EQOS_MAC_5_30) {
+		/* T23X-EQOS_HSIv2-19: Consistency Monitor for TX Frame */
+		if ((dma_isr & EQOS_DMA_ISR_TXSTSIS) == EQOS_DMA_ISR_TXSTSIS) {
+			osi_core->hsi.tx_frame_err_count =
+				osi_update_stats_counter(osi_core->hsi.tx_frame_err_count,
+							 1UL);
+			tx_frame_err = osi_core->hsi.tx_frame_err_count /
+				osi_core->hsi.err_count_threshold;
+			if (osi_core->hsi.tx_frame_err_threshold < tx_frame_err) {
+				osi_core->hsi.tx_frame_err_threshold = tx_frame_err;
+				osi_core->hsi.report_count_err[TX_FRAME_ERR_IDX] = OSI_ENABLE;
+			}
+			osi_core->hsi.err_code[TX_FRAME_ERR_IDX] =
+				OSI_TX_FRAME_ERR;
+			osi_core->hsi.report_err = OSI_ENABLE;
+		}
+	}
+#endif
 	/* Handle MAC interrupts */
 	if ((dma_isr & EQOS_DMA_ISR_MACIS) != EQOS_DMA_ISR_MACIS) {
 		return;
@@ -2646,6 +2807,86 @@ static void eqos_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 		    (nveu8_t *)osi_core->base + EQOS_MTL_EST_STATUS);
 }
 
+#ifdef HSI_SUPPORT
+/**
+ * @brief eqos_handle_hsi_intr - Handles HSI interrupt.
+ *
+ * @note
+ * Algorithm:
+ *  - Clear HSI interrupt source.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @pre MAC should be initialized and started. see osi_start_mac()
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ */
+static void eqos_handle_hsi_intr(struct osi_core_priv_data *const osi_core)
+{
+	nveu32_t val = 0U;
+	nveu32_t val2 = 0U;
+	nveu64_t ce_count_threshold;
+
+	val = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+			EQOS_WRAP_COMMON_INTR_STATUS);
+	if (((val & EQOS_REGISTER_PARITY_ERR) == EQOS_REGISTER_PARITY_ERR) ||
+	    ((val & EQOS_CORE_UNCORRECTABLE_ERR) == EQOS_CORE_UNCORRECTABLE_ERR)) {
+		osi_core->hsi.err_code[UE_IDX] =
+			hsi_err_code[osi_core->instance_id][UE_IDX];
+		osi_core->hsi.report_err = OSI_ENABLE;
+		osi_core->hsi.report_count_err[UE_IDX] = OSI_ENABLE;
+		/* Disable the interrupt */
+		val2 = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				  EQOS_WRAP_COMMON_INTR_ENABLE);
+		val2 &= ~EQOS_REGISTER_PARITY_ERR;
+		val2 &= ~EQOS_CORE_UNCORRECTABLE_ERR;
+		osi_writela(osi_core, val2, (nveu8_t *)osi_core->base +
+			    EQOS_WRAP_COMMON_INTR_ENABLE);
+	}
+	if ((val & EQOS_CORE_CORRECTABLE_ERR) == EQOS_CORE_CORRECTABLE_ERR) {
+		osi_core->hsi.err_code[CE_IDX] =
+			hsi_err_code[osi_core->instance_id][CE_IDX];
+		osi_core->hsi.report_err = OSI_ENABLE;
+		osi_core->hsi.ce_count =
+			osi_update_stats_counter(osi_core->hsi.ce_count, 1UL);
+		ce_count_threshold = osi_core->hsi.ce_count / osi_core->hsi.err_count_threshold;
+		if (osi_core->hsi.ce_count_threshold < ce_count_threshold) {
+			osi_core->hsi.ce_count_threshold = ce_count_threshold;
+			osi_core->hsi.report_count_err[CE_IDX] = OSI_ENABLE;
+		}
+	}
+	val &= ~EQOS_MAC_SBD_INTR;
+	osi_writela(osi_core, val, (nveu8_t *)osi_core->base +
+		    EQOS_WRAP_COMMON_INTR_STATUS);
+
+	if (((val & EQOS_CORE_CORRECTABLE_ERR) == EQOS_CORE_CORRECTABLE_ERR) ||
+	    ((val & EQOS_CORE_UNCORRECTABLE_ERR) == EQOS_CORE_UNCORRECTABLE_ERR)) {
+
+		/* Clear FSM error status. Clear on read */
+		(void)osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				 EQOS_MAC_DPP_FSM_INTERRUPT_STATUS);
+
+		/* Clear ECC error status register */
+		val = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				 EQOS_MTL_ECC_INTERRUPT_STATUS);
+		if (val != 0U) {
+			osi_writela(osi_core, val, (nveu8_t *)osi_core->base +
+				    EQOS_MTL_ECC_INTERRUPT_STATUS);
+		}
+		val = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				 EQOS_DMA_ECC_INTERRUPT_STATUS);
+		if (val != 0U) {
+			osi_writela(osi_core, val, (nveu8_t *)osi_core->base +
+				    EQOS_DMA_ECC_INTERRUPT_STATUS);
+		}
+	}
+}
+#endif
+
 /**
  * @brief eqos_handle_common_intr - Handles common interrupt.
  *
@@ -2679,14 +2920,15 @@ static void eqos_handle_common_intr(struct osi_core_priv_data *const osi_core)
 	nveu32_t dma_ier = 0;
 	nveu32_t mtl_isr = 0;
 	nveu32_t frp_isr = 0U;
-	nveu32_t val = 0U;
 
 	if (osi_core->mac_ver >= OSI_EQOS_MAC_5_30) {
-		val = osi_readla(osi_core, (nveu8_t *)osi_core->base +
-				 EQOS_WRAP_COMMON_INTR_STATUS);
-		val |= EQOS_MAC_SBD_INTR;
-		osi_writela(osi_core, val, (nveu8_t *)osi_core->base +
+		osi_writela(osi_core, EQOS_MAC_SBD_INTR, (nveu8_t *)osi_core->base +
 			    EQOS_WRAP_COMMON_INTR_STATUS);
+#ifdef HSI_SUPPORT
+		if (osi_core->hsi.enabled == OSI_ENABLE) {
+			eqos_handle_hsi_intr(osi_core);
+		}
+#endif
 	}
 
 	dma_isr = osi_readla(osi_core, (nveu8_t *)base + EQOS_DMA_ISR);
@@ -6701,4 +6943,7 @@ void eqos_init_core_ops(struct core_ops *ops)
 	ops->macsec_config_mac = eqos_config_for_macsec;
 #endif /*  MACSEC_SUPPORT */
 	ops->ptp_tsc_capture = eqos_ptp_tsc_capture;
+#ifdef HSI_SUPPORT
+	ops->core_hsi_configure = eqos_hsi_configure;
+#endif
 }
