@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2022, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/kernel.h>
@@ -1170,7 +1170,7 @@ static int set_cpu_lp_dvfs_data(unsigned long max_freq, struct cpu_dvfs *d,
 	return 0;
 }
 
-int of_tegra_dvfs_init(const struct of_device_id *matches)
+static int of_tegra_dvfs_init(const struct of_device_id *matches)
 {
 	int ret;
 	struct device_node *np;
