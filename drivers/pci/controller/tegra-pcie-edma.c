@@ -186,8 +186,8 @@ static inline int edma_ch_init(struct edma_prv *prv, struct edma_chan *ch)
 	}
 	ch->wcount = 0;
 	ch->rcount = 0;
-	ch->w_idx  = 0;
-	ch->r_idx  = 0;
+	ch->w_idx = 0;
+	ch->r_idx = 0;
 	ch->pcs = 1;
 	ch->st = EDMA_XFER_SUCCESS;
 
@@ -286,7 +286,7 @@ static inline void process_ch_irq(struct edma_prv *prv, u32 chan, struct edma_ch
 			ch->busy = false;
 			wake_up(&ch->wq);
 		} else
-			dev_info(prv->dev, "SYNC mode with chan %d busy not set r_idx %d->idx %d, w_idx is %d\n",
+			dev_info(prv->dev, "SYNC mode with chan %d busy not set r_idx %d, cur_idx %d, w_idx is %d\n",
 				 chan, ch->r_idx, idx, ch->w_idx);
 	}
 
@@ -591,6 +591,9 @@ edma_xfer_status_t tegra_pcie_edma_submit_xfer(void *cookie,
 	/* Get hold of the hardware - locking */
 	mutex_lock(&ch->lock);
 
+	/* Channel busy flag should be updated before channel status check */
+	ch->busy = true;
+
 	if (ch->st != EDMA_XFER_SUCCESS) {
 		st = ch->st;
 		goto unlock;
@@ -603,8 +606,6 @@ edma_xfer_status_t tegra_pcie_edma_submit_xfer(void *cookie,
 		st = EDMA_XFER_FAIL_NOMEM;
 		goto unlock;
 	}
-
-	ch->busy = true;
 
 	dev_dbg(prv->dev, "xmit for %d nents at %d widx and %d ridx\n",
 		tx_info->nents, ch->w_idx, ch->r_idx);
@@ -687,9 +688,8 @@ void tegra_pcie_edma_deinit(void *cookie)
 {
 	struct edma_prv *prv = (struct edma_prv *)cookie;
 	struct edma_chan *chan[2], *ch;
-	u32 int_status_off[2] = {DMA_WRITE_INT_STATUS_OFF, DMA_READ_INT_STATUS_OFF};
-	int i, j, ret;
-	u32 val, mode_cnt[2] = {DMA_WR_CHNL_NUM, DMA_RD_CHNL_NUM};
+	int i, j;
+	u32 mode_cnt[2] = {DMA_WR_CHNL_NUM, DMA_RD_CHNL_NUM};
 
 	if (cookie == NULL)
 		return;
@@ -697,33 +697,35 @@ void tegra_pcie_edma_deinit(void *cookie)
 	chan[0] = &prv->tx[0];
 	chan[1] = &prv->rx[0];
 
-	for (i = 0; i < DMA_WR_CHNL_NUM; i++)
-		prv->tx[i].st = EDMA_XFER_DEINIT;
-	for (i = 0; i < DMA_RD_CHNL_NUM; i++)
-		prv->rx[i].st = EDMA_XFER_DEINIT;
-
-	/** Poll for 10 seconds to clear WR & RD interrupts */
-	for (i = 0; i < 2; i++) {
-		if (prv->ch_init & OSI_BIT(i)) {
-			ret = readl_poll_timeout(prv->edma_base + int_status_off[i], val,
-						 (val == 0), 20000, 10000000);
-			if (ret) {
-				dev_info(prv->dev, "DMA %s interrupt pending: 0x%x\n",
-					 i == 0 ? "write" : "read", val);
-				dma_common_wr(prv->edma_base, val, int_status_off[i]);
+	/* wake up xfer function waiting on dma completion in sync mode */
+	for (j = 0; j < 2; j++) {
+		for (i = 0; i < mode_cnt[j]; i++) {
+			ch = chan[j] + i;
+			ch->st = EDMA_XFER_DEINIT;
+			if ((ch->type == EDMA_CHAN_XFER_SYNC) && ch->busy) {
+				ch->busy = false;
+				wake_up(&ch->wq);
 			}
+			/** wait until exisitng xfer submit completed */
+			mutex_lock(&ch->lock);
+			mutex_unlock(&ch->lock);
 		}
 	}
 
 	edma_hw_deinit(cookie, false);
 	edma_hw_deinit(cookie, true);
 
+	synchronize_irq(prv->irq);
 	free_irq(prv->irq, prv);
 	kfree(prv->irq_name);
 
 	for (j = 0; j < 2; j++) {
 		for (i = 0; i < mode_cnt[j]; i++) {
 			ch = chan[j] + i;
+
+			if (prv->ch_init & OSI_BIT(i))
+				process_r_idx(ch, EDMA_XFER_DEINIT, ch->w_idx);
+
 			if (prv->is_remote_dma && ch->desc)
 				devm_iounmap(prv->dev, ch->desc);
 			else if (ch->desc)
