@@ -1534,14 +1534,40 @@ static int pcie_dma_epf_notifier(struct notifier_block *nb,
 	return NOTIFY_OK;
 }
 
+static int pcie_dma_epf_block_notifier(struct notifier_block *nb,
+				       unsigned long val, void *data)
+{
+	struct pci_epf *epf = container_of(nb, struct pci_epf, block_nb);
+	struct pcie_epf_dma *epfnv = epf_get_drvdata(epf);
+	void *cookie = epfnv->edma.cookie;
+	struct pcie_epf_bar0 *epf_bar0 = (struct pcie_epf_bar0 *) epfnv->bar0_virt;
+
+	switch (val) {
+	case CORE_DEINIT:
+		epfnv->edma.cookie = NULL;
+		epf_bar0->rp_phy_addr = 0;
+		tegra_pcie_edma_deinit(cookie);
+		break;
+
+	default:
+		dev_err(&epf->dev, "Invalid blocking notifier event\n");
+		return NOTIFY_BAD;
+	}
+
+	return NOTIFY_OK;
+}
+
 static void pcie_dma_epf_unbind(struct pci_epf *epf)
 {
 	struct pcie_epf_dma *epfnv = epf_get_drvdata(epf);
 	struct pci_epc *epc = epf->epc;
 	struct pci_epf_bar *epf_bar = &epf->bar[BAR_0];
+	void *cookie = epfnv->edma.cookie;
+	struct pcie_epf_bar0 *epf_bar0 = (struct pcie_epf_bar0 *) epfnv->bar0_virt;
 
-	tegra_pcie_edma_deinit(epfnv->cookie);
-	epfnv->cookie = NULL;
+	epfnv->edma.cookie = NULL;
+	epf_bar0->rp_phy_addr = 0;
+	tegra_pcie_edma_deinit(cookie);
 
 	pcie_dma_epf_msi_deinit(epf);
 	pci_epc_stop(epc);
@@ -1582,6 +1608,9 @@ static int pcie_dma_epf_bind(struct pci_epf *epf)
 
 	epf->nb.notifier_call = pcie_dma_epf_notifier;
 	pci_epc_register_notifier(epc, &epf->nb);
+
+	epf->block_nb.notifier_call = pcie_dma_epf_block_notifier;
+	pci_epc_register_block_notifier(epc, &epf->block_nb);
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "atu_dma");
 	if (!res) {

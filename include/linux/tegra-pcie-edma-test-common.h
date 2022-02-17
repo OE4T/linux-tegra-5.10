@@ -281,8 +281,10 @@ static int edmalib_common_test(struct edmalib_common *edma)
 
 	return 0;
 fail:
-	tegra_pcie_edma_deinit(edma->cookie);
-	edma->cookie = NULL;
+	if (ret != EDMA_XFER_DEINIT) {
+		tegra_pcie_edma_deinit(edma->cookie);
+		edma->cookie = NULL;
+	}
 	return -1;
 }
 
