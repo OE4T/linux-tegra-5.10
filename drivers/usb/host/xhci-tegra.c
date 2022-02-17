@@ -2815,11 +2815,17 @@ static int tegra_xusb_probe(struct platform_device *pdev)
 
 		for (i = 0; i < tegra->soc->num_wakes; i++) {
 			char irq_name[] = "wakeX";
+			struct irq_desc *desc;
 
 			snprintf(irq_name, sizeof(irq_name), "wake%d", i);
 			tegra->wake_irqs[i] = platform_get_irq_byname(pdev, irq_name);
 			if (tegra->wake_irqs[i] < 0)
 				return tegra->wake_irqs[i];
+			desc = irq_to_desc(tegra->wake_irqs[i]);
+			if (!desc)
+				return -EINVAL;
+			irq_set_irq_type(tegra->wake_irqs[i],
+					irqd_get_trigger_type(&desc->irq_data));
 		}
 	}
 
