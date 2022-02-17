@@ -79,7 +79,7 @@ static irqreturn_t tegra_mcerr_thread(int irq, void *data)
 		schedule_delayed_work(&unthrottle_prints_work, HZ/2);
 		if (count == MAX_PRINTS)
 			mcerr_pr("Too many MC errors; throttling prints\n");
-		mcerr_ops->clear_interrupt(irq);
+		mcerr_ops->set_intstatus(irq);
 		goto exit;
 	}
 
@@ -106,6 +106,9 @@ static irqreturn_t tegra_mcerr_hard_irq(int irq, void *data)
 	  * access issues in SW and allow debugging further.
 	  */
 	mcerr_ops->disable_interrupt(irq);
+	mcerr_ops->save_intstatus(irq);
+	mcerr_ops->clear_intstatus(irq);
+
 	return IRQ_WAKE_THREAD;
 }
 
@@ -205,7 +208,7 @@ int tegra_mcerr_init(struct dentry *mc_parent, struct platform_device *pdev)
 		return -EINVAL;
 	}
 
-	if (!mcerr_ops || !mcerr_ops->clear_interrupt ||
+	if (!mcerr_ops || !mcerr_ops->clear_intstatus ||
 		!mcerr_ops->log_mcerr_fault) {
 		pr_err("invalid mcerr ops. disabling mcerr.\n");
 		goto fail;
@@ -228,7 +231,8 @@ int tegra_mcerr_init(struct dentry *mc_parent, struct platform_device *pdev)
 	}
 
 	/* clear any mc-err's that occured before. */
-	mcerr_ops->clear_interrupt(0);
+	mcerr_ops->set_intstatus(0);
+	mcerr_ops->clear_intstatus(0);
 
 	mc_int_mask = be32_to_cpup(prop);
 	mc_writel(mc_int_mask, MC_INTMASK);

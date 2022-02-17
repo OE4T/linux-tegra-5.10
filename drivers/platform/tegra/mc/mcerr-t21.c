@@ -391,9 +391,18 @@ static void arb_intr(void)
 	spin_unlock_irqrestore(&arb_intr_info.lock, flags);
 }
 
-static void clear_interrupt(unsigned int irq)
+static void set_intstatus(unsigned int irq)
 {
+	/* Clear int status to clear MSS to LIC interrupts */
 	mc_writel(0x00033F40, MC_INTSTATUS);
+}
+
+static void clear_intstatus(unsigned int irq)
+{
+}
+
+static void save_intstatus(unsigned int irq)
+{
 }
 
 static void mcerr_info_update(struct mc_client *c, u32 stat)
@@ -471,7 +480,9 @@ end:
 }
 
 static struct mcerr_ops mcerr_ops = {
-	.clear_interrupt = clear_interrupt,
+	.set_intstatus = set_intstatus,
+	.clear_intstatus = clear_intstatus,
+	.save_intstatus = save_intstatus,
 	.log_mcerr_fault = log_mcerr_fault,
 	.nr_clients = ARRAY_SIZE(mc_clients),
 	.intr_descriptions = t210_intr_info,
