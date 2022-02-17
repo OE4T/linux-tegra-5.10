@@ -112,11 +112,9 @@ priv_ring:
 
 ptimer_fusa:
   safe: yes
-  owner: Terje B
+  owner: Sagar Kamble
   sources: [ hal/ptimer/ptimer_gk20a_fusa.c,
-             hal/ptimer/ptimer_gk20a.h,
-             hal/ptimer/ptimer_ga10b_fusa.c,
-             hal/ptimer/ptimer_ga10b.h ]
+             hal/ptimer/ptimer_gk20a.h ]
 
 ptimer:
   safe: no

@@ -920,7 +920,6 @@ nvgpu-y += \
 	hal/fb/intr/fb_intr_ecc_ga10b_fusa.o \
 	hal/fb/vab/vab_ga10b.o \
 	hal/priv_ring/priv_ring_ga10b_fusa.o \
-	hal/ptimer/ptimer_ga10b_fusa.o \
 	hal/perf/perf_ga10b.o \
 	hal/regops/regops_ga10b.o \
 	hal/regops/allowlist_ga10b.o \

@@ -118,7 +118,6 @@
 #include "hal/ptimer/ptimer_gk20a.h"
 #include "hal/ptimer/ptimer_gp10b.h"
 #include "hal/ptimer/ptimer_gv11b.h"
-#include "hal/ptimer/ptimer_ga10b.h"
 #ifdef CONFIG_NVGPU_DEBUGGER
 #include "hal/regops/regops_ga10b.h"
 #include "hal/regops/allowlist_ga10b.h"
@@ -1556,7 +1555,7 @@ static const struct gops_bus ga10b_ops_bus = {
 };
 
 static const struct gops_ptimer ga10b_ops_ptimer = {
-	.isr = ga10b_ptimer_isr,
+	.isr = gk20a_ptimer_isr,
 #ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 	.read_ptimer = gk20a_read_ptimer,
 	.get_timestamps_zipper = nvgpu_get_timestamps_zipper,

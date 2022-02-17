@@ -63,7 +63,6 @@
 #include "hal/netlist/netlist_gv11b.h"
 #include "hal/netlist/netlist_ga10b.h"
 #include "hal/ptimer/ptimer_gv11b.h"
-#include "hal/ptimer/ptimer_ga10b.h"
 #ifdef CONFIG_NVGPU_DEBUGGER
 #include "hal/regops/regops_ga10b.h"
 #include "hal/regops/allowlist_ga10b.h"

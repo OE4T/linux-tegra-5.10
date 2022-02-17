@@ -148,7 +148,6 @@
 #include "hal/ptimer/ptimer_gk20a.h"
 #include "hal/ptimer/ptimer_gp10b.h"
 #include "hal/ptimer/ptimer_gv11b.h"
-#include "hal/ptimer/ptimer_ga10b.h"
 #ifdef CONFIG_NVGPU_DEBUGGER
 #include "hal/regops/regops_ga100.h"
 #include "hal/regops/allowlist_ga100.h"
