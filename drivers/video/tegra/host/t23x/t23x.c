@@ -1,7 +1,7 @@
 /*
  * Tegra Graphics Init for T23X Architecture Chips
  *
- * Copyright (c) 2016-2021, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -262,6 +262,15 @@ struct nvhost_device_data t23x_msenc_info = {
 	.can_powergate		= true,
 	.isolate_contexts	= true,
 	.enable_timestamps	= flcn_enable_timestamps,
+	.scaling_init		= nvhost_scale_emc_init,
+	.scaling_deinit		= nvhost_scale_emc_deinit,
+	.scaling_post_cb	= &nvhost_scale_emc_callback,
+	.actmon_regs		= HOST1X_THOST_ACTMON_NVENC,
+	.actmon_enabled         = true,
+	.actmon_irq		= 2,
+	.actmon_weight_count	= 216,
+	.actmon_setting_regs	= t23x_nvenc_actmon_registers,
+	.devfreq_governor	= "userspace",
 };
 #endif
 
@@ -301,6 +310,15 @@ struct nvhost_device_data t23x_nvdec_info = {
 	.isolate_contexts	= true,
 	.enable_riscv_boot	= true,
 	.riscv_desc_bin		= "nvhost_nvdec050_desc_dev.bin",
+	.scaling_init		= nvhost_scale_emc_init,
+	.scaling_deinit		= nvhost_scale_emc_deinit,
+	.scaling_post_cb	= &nvhost_scale_emc_callback,
+	.actmon_regs		= HOST1X_THOST_ACTMON_NVDEC,
+	.actmon_enabled         = true,
+	.actmon_irq		= 4,
+	.actmon_weight_count	= 216,
+	.actmon_setting_regs	= t23x_nvdec_actmon_registers,
+	.devfreq_governor	= "userspace",
 };
 #endif
 

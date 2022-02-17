@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,3 +20,18 @@ static struct nvhost_actmon_register __attribute__((__unused__))
 	{ .addr = 0x00002054, .val = 0x000000d8 },
 	{}
 };
+
+static struct nvhost_actmon_register __attribute__((__unused__))
+	t23x_nvdec_actmon_registers[] = {
+	/* NV_PNVDEC_TFBIF_ACTMON_ACTIVE_WEIGHT */
+	{ .addr = 0x00004e54, .val = 0x000000d8 },
+	{}
+};
+
+static struct nvhost_actmon_register __attribute__((__unused__))
+	t23x_nvenc_actmon_registers[] = {
+	/* NV_PNVENC_TFBIF_ACTMON_ACTIVE_WEIGHT */
+	{ .addr = 0x00001854, .val = 0x000000d8 },
+	{}
+};
+

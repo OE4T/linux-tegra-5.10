@@ -1,7 +1,7 @@
 /*
  * Tegra Graphics Host Unit clock scaling
  *
- * Copyright (c) 2010-2021, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2010-2022, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -294,19 +294,13 @@ static int register_opp(struct platform_device *pdev)
 	struct nvhost_device_profile *profile = pdata->power_profile;
 	unsigned long *freq_table = profile->devfreq_profile.freq_table;
 	int max_states = profile->devfreq_profile.max_state;
-	int i;
 	int err = 0;
 
-	for (i = 0; i < max_states; ++i) {
-		err = dev_pm_opp_add(&pdev->dev, freq_table[i], 0);
-		if (err) {
-			nvhost_err(&pdev->dev,
-				"Failed to add OPP %lu: %d\n",
-				freq_table[i],
-				err);
-			unregister_opp(pdev);
-			break;
-		}
+	err |= dev_pm_opp_add(&pdev->dev, freq_table[0], 0);
+	err |= dev_pm_opp_add(&pdev->dev, freq_table[max_states-1], 0);
+	if (err) {
+		nvhost_err(&pdev->dev, "Failed to regsiter opp\n");
+		unregister_opp(pdev);
 	}
 
 	return err;
