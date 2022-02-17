@@ -37,6 +37,8 @@
 #include "gr_init_gm20b.h"
 #include "gr_init_gv11b.h"
 
+#include "common/gr/obj_ctx_priv.h"
+
 #include <nvgpu/hw/gv11b/hw_gr_gv11b.h>
 
 #ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
@@ -937,6 +939,61 @@ void gv11b_gr_init_detect_sm_arch(struct gk20a *g)
 		gr_gpc0_tpc0_sm_arch_sm_version_v(v);
 	g->params.sm_arch_warp_count =
 		gr_gpc0_tpc0_sm_arch_warp_count_v(v);
+}
+
+void gv11b_gr_init_capture_gfx_regs(struct gk20a *g, struct nvgpu_gr_obj_ctx_gfx_regs *gfx_regs)
+{
+	gfx_regs->reg_sm_disp_ctrl =
+			nvgpu_readl(g, gr_gpcs_tpcs_sm_disp_ctrl_r());
+	gfx_regs->reg_gpcs_setup_debug =
+			nvgpu_readl(g, gr_pri_gpcs_setup_debug_r());
+	gfx_regs->reg_tex_lod_dbg =
+			nvgpu_readl(g, gr_pri_gpcs_tpcs_tex_lod_dbg_r());
+	gfx_regs->reg_hww_warp_esr_report_mask =
+			nvgpu_readl(g, gr_gpcs_tpcs_sms_hww_warp_esr_report_mask_r());
+}
+
+void gv11b_gr_init_set_default_gfx_regs(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
+		struct nvgpu_gr_obj_ctx_gfx_regs *gfx_regs)
+{
+	u32 reg_val;
+
+	nvgpu_gr_ctx_patch_write_begin(g, gr_ctx, true);
+
+	reg_val = set_field(gfx_regs->reg_sm_disp_ctrl,
+			gr_gpcs_tpcs_sm_disp_ctrl_killed_ld_is_nop_m(),
+			gr_gpcs_tpcs_sm_disp_ctrl_killed_ld_is_nop_disable_f());
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_sm_disp_ctrl_r(),
+		reg_val, true);
+
+	reg_val = set_field(gfx_regs->reg_gpcs_setup_debug,
+			gr_pri_gpcs_setup_debug_poly_offset_nan_is_zero_m(),
+			gr_pri_gpcs_setup_debug_poly_offset_nan_is_zero_enable_f());
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_pri_gpcs_setup_debug_r(),
+		reg_val, true);
+
+	reg_val = set_field(gfx_regs->reg_tex_lod_dbg,
+			gr_pri_gpcs_tpcs_tex_lod_dbg_cubeseam_aniso_m(),
+			gr_pri_gpcs_tpcs_tex_lod_dbg_cubeseam_aniso_enable_f());
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_pri_gpcs_tpcs_tex_lod_dbg_r(),
+		reg_val, true);
+
+	reg_val = set_field(gfx_regs->reg_hww_warp_esr_report_mask,
+			gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_oor_addr_m(),
+			gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_oor_addr_no_report_f());
+	reg_val = set_field(reg_val,
+			gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_misaligned_addr_m(),
+			gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_misaligned_addr_no_report_f());
+	reg_val = set_field(reg_val,
+			gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_invalid_const_addr_ldc_m(),
+			gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_invalid_const_addr_ldc_no_report_f());
+	reg_val = set_field(reg_val,
+			gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_tex_format_m(),
+			gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_tex_format_no_report_f());
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_sms_hww_warp_esr_report_mask_r(),
+		reg_val, true);
+
+	nvgpu_gr_ctx_patch_write_end(g, gr_ctx, true);
 }
 
 #ifndef CONFIG_NVGPU_NON_FUSA

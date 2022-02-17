@@ -755,6 +755,16 @@ int nvgpu_gr_obj_ctx_alloc_golden_ctx_image(struct gk20a *g,
 		goto clean_up;
 	}
 
+	/*
+	 * Read and save register init values that need to be configured
+	 * differently for graphics contexts.
+	 * Updated values are written to the context in
+	 * gops.gr.init.set_default_gfx_regs().
+	 */
+	if (g->ops.gr.init.capture_gfx_regs != NULL) {
+		g->ops.gr.init.capture_gfx_regs(g, &golden_image->gfx_regs);
+	}
+
 	golden_image->ready = true;
 #ifdef CONFIG_NVGPU_POWER_PG
 	nvgpu_pmu_set_golden_image_initialized(g, GOLDEN_IMG_READY);
@@ -896,6 +906,16 @@ int nvgpu_gr_obj_ctx_alloc(struct gk20a *g,
 		g->ops.gr.init.set_default_compute_regs(g, gr_ctx);
 	}
 #endif
+
+	/*
+	 * Register init values are saved in
+	 * gops.gr.init.capture_gfx_regs(). Update and set the values as
+	 * required for graphics contexts.
+	 */
+	if (g->ops.gpu_class.is_valid_gfx(class_num) &&
+	    g->ops.gr.init.set_default_gfx_regs != NULL) {
+		g->ops.gr.init.set_default_gfx_regs(g, gr_ctx, &golden_image->gfx_regs);
+	}
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "done");
 	return 0;

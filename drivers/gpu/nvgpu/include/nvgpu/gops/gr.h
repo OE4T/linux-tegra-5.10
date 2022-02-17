@@ -47,6 +47,7 @@ struct netlist_av_list;
 struct nvgpu_hw_err_inject_info_desc;
 struct nvgpu_gr_sm_ecc_status;
 struct nvgpu_gr_zbc_table_indices;
+struct nvgpu_gr_obj_ctx_gfx_regs;
 
 enum nvgpu_gr_sm_ecc_error_types;
 
@@ -691,6 +692,31 @@ struct gops_gr_init {
 	 */
 	void (*set_default_compute_regs)(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx);
 #endif
+
+	/**
+	 * @brief Capture graphics specific register values.
+	 *
+	 * @param g [in]	Pointer to GPU driver struct.
+	 * @param gfx_regs [in] Pointer to struct holding gfx specific register init values.
+	 *
+	 * This function captures values of some registers that need to be
+	 * configured differently only for graphics context.
+	 */
+	void (*capture_gfx_regs)(struct gk20a *g, struct nvgpu_gr_obj_ctx_gfx_regs *gfx_regs);
+
+	/**
+	 * @brief Set graphics specific register values.
+	 *
+	 * @param g [in]	Pointer to GPU driver struct.
+	 * @param gr_ctx [in]	Pointer to GR engine context image.
+	 * @param gfx_regs [in] Pointer to struct holding gfx specific register init values.
+	 *
+	 * This function sets graphics specific register values in the
+	 * patch context so that register values are set only for graphics
+	 * contexts.
+	 */
+	void (*set_default_gfx_regs)(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
+			struct nvgpu_gr_obj_ctx_gfx_regs *gfx_regs);
 
 	/**
 	 * @brief Get supported preemption mode flags.

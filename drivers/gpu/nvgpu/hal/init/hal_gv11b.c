@@ -536,6 +536,8 @@ static const struct gops_gr_init gv11b_ops_gr_init = {
 	.get_max_subctx_count = gv11b_gr_init_get_max_subctx_count,
 	.get_patch_slots = gv11b_gr_init_get_patch_slots,
 	.detect_sm_arch = gv11b_gr_init_detect_sm_arch,
+	.capture_gfx_regs = gv11b_gr_init_capture_gfx_regs,
+	.set_default_gfx_regs = gv11b_gr_init_set_default_gfx_regs,
 #ifndef CONFIG_NVGPU_NON_FUSA
 	.set_default_compute_regs = gv11b_gr_init_set_default_compute_regs,
 #endif
