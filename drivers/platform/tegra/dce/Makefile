@@ -18,6 +18,7 @@ tegra-dce-y += \
 	dce-hsp-smb.o \
 	dce-hsp-ss.o \
 	dce-worker.o \
+	dce-fsm.o \
 	dce-init-deinit.o \
 	dce-mailbox.o \
 	dce-bootstrap.o \
