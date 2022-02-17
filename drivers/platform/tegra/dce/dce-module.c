@@ -231,6 +231,12 @@ static int tegra_dce_probe(struct platform_device *pdev)
 #ifdef CONFIG_DEBUG_FS
 	dce_init_debug(d);
 #endif
+
+	/**
+	 * TODO: Move dce_fsm_start to driver_init
+	 */
+	dce_fsm_start(d);
+
 	return 0;
 
 req_intr_err:

@@ -24,8 +24,10 @@
 #include <dce-regs.h>
 #include <dce-thread.h>
 #include <dce-worker.h>
+#include <dce-fsm.h>
 #include <dce-mailbox.h>
 #include <dce-client-ipc-internal.h>
+#include <dce-workqueue.h>
 
 #define DCE_MAX_CPU_IRQS 4
 
@@ -44,6 +46,7 @@
 /**
  * DCE Boot Status: FW Boot States
  */
+#define DCE_FW_EARLY_BOOT_START         DCE_BIT(16)
 #define DCE_FW_EARLY_BOOT_FAILED	DCE_BIT(15)
 #define DCE_FW_EARLY_BOOT_DONE		DCE_BIT(14)
 #define DCE_FW_BOOTSTRAP_START		DCE_BIT(13)
@@ -134,11 +137,6 @@ struct dce_firmware {
 	u64 dma_handle;
 };
 
-struct admin_rpc_post_boot_info {
-	atomic_t complete;
-	struct dce_cond recv_wait;
-};
-
 /**
  * struct tegra_dce - Primary OS independent tegra dce structure to hold dce
  * cluster's and it's element's runtime info.
@@ -149,13 +147,17 @@ struct tegra_dce {
 	 */
 	u32 irq[DCE_MAX_CPU_IRQS];
 	/**
-	 * @rpc_info - Data Structure to manage Admin RPC calls post boot.
+	 * @fsm_info - Data Structure to manage dce FSM states.
 	 */
-	struct admin_rpc_post_boot_info admin_rpc;
+	struct dce_fsm_info fsm_info;
 	/**
-	 * @wrk_info - Data Structure to manage dce worker thread states.
+	 * dce_fsm_bootstrap_work : dce work to be executed to start FSM flow
 	 */
-	struct dce_worker_info wrk_info;
+	struct dce_work_struct dce_fsm_bootstrap_work;
+	/**
+	 * dce_wait_info - Data structure to manage wait for different event types
+	 */
+	struct dce_wait_cond ipc_waits[DCE_MAX_WAIT];
 	/**
 	 * @d_mb - Stores the current status of dce mailbox interfaces.
 	 */
@@ -349,10 +351,13 @@ const char *dce_get_fw_name(struct tegra_dce *d);
 int dce_driver_init(struct tegra_dce *d);
 void dce_driver_deinit(struct tegra_dce *d);
 
-int dce_wait_boot_complete(struct tegra_dce *d);
 int dce_start_bootstrap_flow(struct tegra_dce *d);
 int dce_boot_interface_init(struct tegra_dce *d);
 void dce_boot_interface_deinit(struct tegra_dce *d);
+int dce_handle_mbox_ipc_requested_event(struct tegra_dce *d, void *params);
+int dce_handle_mbox_ipc_received_event(struct tegra_dce *d, void *params);
+int dce_handle_boot_complete_requested_event(struct tegra_dce *d, void *params);
+int dce_handle_boot_complete_received_event(struct tegra_dce *d, void *params);
 
 int dce_admin_init(struct tegra_dce *d);
 void dce_admin_deinit(struct tegra_dce *d);
@@ -368,8 +373,13 @@ int dce_admin_get_ipc_channel_info(struct tegra_dce *d,
 					struct dce_ipc_queue_info *q_info);
 int dce_admin_send_cmd_echo(struct tegra_dce *d,
 			    struct dce_ipc_message *msg);
+int dce_admin_handle_ipc_requested_event(struct tegra_dce *d, void *params);
+int dce_admin_handle_ipc_received_event(struct tegra_dce *d, void *params);
 int dce_admin_ipc_wait(struct tegra_dce *d, u32 w_type);
 void dce_admin_ipc_handle_signal(struct tegra_dce *d, u32 ch_type);
+
+bool dce_fw_boot_complete(struct tegra_dce *d);
+void dce_request_fw_boot_complete(struct tegra_dce *d);
 
 /**
  * Functions to be used in debug mode only.

@@ -576,6 +576,14 @@ void dce_thread_join(struct dce_thread *thread)
 		usleep_range(10000, 20000);
 };
 
+/**
+ * dce_get_nxt_pow_of_2 : get next power of 2 number for a given number
+ *
+ * @addr : Address of given number
+ * @nbits : bits in given number
+ *
+ * Return : unsigned long next power of 2 value
+ */
 unsigned long dce_get_nxt_pow_of_2(unsigned long *addr, u8 nbits)
 {
 	u8 l_bit = 0;
@@ -599,4 +607,54 @@ unsigned long dce_get_nxt_pow_of_2(unsigned long *addr, u8 nbits)
 	}
 
 	return val;
+}
+
+/*
+ * dce_schedule_work : schedule work in global workqueue
+ *
+ * @work : dce work to be scheduled
+ *
+ * Return : void
+ */
+void dce_schedule_work(struct dce_work_struct *work)
+{
+	schedule_work(&work->work);
+}
+
+/*
+ * dce_work_handle_fn : handler function for scheduled dce-work
+ *
+ * @work : Pointer to the scheduled work
+ *
+ * Return : void
+ */
+void dce_work_handle_fn(struct work_struct *work)
+{
+	struct dce_work_struct *dce_work = container_of(work,
+							struct dce_work_struct,
+							work);
+
+	if (dce_work->dce_work_fn != NULL)
+		dce_work->dce_work_fn(dce_work->d);
+}
+
+/*
+ * dce_init_work : Init dce work structure
+ *
+ * @d : Pointer to tegra_dce struct.
+ * @work : Pointer to dce work structure
+ * @work_fn : worker function to be called
+ *
+ * Return : 0 if successful
+ */
+int dce_init_work(struct tegra_dce *d,
+		   struct dce_work_struct *work,
+		   void (*work_fn)(struct tegra_dce *d))
+{
+	work->d = d;
+	work->dce_work_fn = work_fn;
+
+	INIT_WORK(&work->work, dce_work_handle_fn);
+
+	return 0;
 }
