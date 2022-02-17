@@ -2961,6 +2961,8 @@ static void pex_ep_event_pex_rst_assert(struct tegra_pcie_dw *pcie)
 	if (pcie->ep_state == EP_STATE_DISABLED)
 		return;
 
+	dw_pcie_ep_deinit_notify(ep);
+
 	if (pcie->is_safety_platform)
 		clk_disable_unprepare(pcie->core_clk_m);
 
