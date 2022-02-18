@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -850,6 +850,7 @@ static ssize_t gpc_pg_mask_store(struct device *dev,
 {
 	struct gk20a *g = get_gk20a(dev);
 	struct gk20a_platform *platform = dev_get_drvdata(dev);
+	struct nvgpu_gr_obj_ctx_golden_image *gr_golden_image = NULL;
 	unsigned long val = 0;
 	int err = 0;
 
@@ -861,8 +862,14 @@ static ssize_t gpc_pg_mask_store(struct device *dev,
 		return -EINVAL;
 	}
 
-	if (nvgpu_is_powered_on(g)) {
-		nvgpu_err(g, "gpu already powered on");
+	if (g->gr != NULL) {
+		gr_golden_image = nvgpu_gr_get_golden_image_ptr(g);
+	}
+
+	if (gr_golden_image &&
+			nvgpu_gr_obj_ctx_get_golden_image_size(gr_golden_image)
+			!= 0) {
+		nvgpu_err(g, "golden image size already initialized");
 		nvgpu_mutex_release(&g->static_pg_lock);
 		return -ENODEV;
 	}
@@ -923,6 +930,7 @@ static ssize_t fbp_pg_mask_store(struct device *dev,
 {
 	struct gk20a *g = get_gk20a(dev);
 	struct gk20a_platform *platform = dev_get_drvdata(dev);
+	struct nvgpu_gr_obj_ctx_golden_image *gr_golden_image = NULL;
 	unsigned long val = 0;
 	int err = 0;
 
@@ -934,8 +942,14 @@ static ssize_t fbp_pg_mask_store(struct device *dev,
 		return -EINVAL;
 	}
 
-	if (nvgpu_is_powered_on(g)) {
-		nvgpu_err(g, "gpu is already powered on");
+	if (g->gr != NULL) {
+		gr_golden_image = nvgpu_gr_get_golden_image_ptr(g);
+	}
+
+	if (gr_golden_image &&
+			nvgpu_gr_obj_ctx_get_golden_image_size(gr_golden_image)
+			!= 0) {
+		nvgpu_err(g, "golden image size already initialized");
 		nvgpu_mutex_release(&g->static_pg_lock);
 		return -ENODEV;
 	}
@@ -1004,6 +1018,7 @@ static ssize_t tpc_pg_mask_store(struct device *dev,
 {
 	struct gk20a *g = get_gk20a(dev);
 	struct gk20a_platform *platform = dev_get_drvdata(dev);
+	struct nvgpu_gr_obj_ctx_golden_image *gr_golden_image = NULL;
 	unsigned long val = 0;
 	int err = 0;
 	u32 i;
@@ -1028,8 +1043,14 @@ static ssize_t tpc_pg_mask_store(struct device *dev,
 		goto exit;
 	}
 
-	if (nvgpu_is_powered_on(g)) {
-		nvgpu_err(g, "gpu is already powered on");
+	if (g->gr != NULL) {
+		gr_golden_image = nvgpu_gr_get_golden_image_ptr(g);
+	}
+
+	if (gr_golden_image &&
+			nvgpu_gr_obj_ctx_get_golden_image_size(gr_golden_image)
+			!= 0) {
+		nvgpu_err(g, "golden image size already initialized");
 		nvgpu_mutex_release(&g->static_pg_lock);
 		return -ENODEV;
 	}
