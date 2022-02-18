@@ -446,6 +446,7 @@ static inline void __maybe_unused dump_global_symbol_table(void)
 				"STT_FUNC" : "STT_OBJECT");
 }
 
+#ifdef CONFIG_ANDROID
 static int
 __maybe_unused create_global_symbol_table(const struct firmware *fw)
 {
@@ -459,6 +460,11 @@ __maybe_unused create_global_symbol_table(const struct firmware *fw)
 	int num_ent = 1;
 	struct elf32_sym *sym;
 	struct elf32_sym *last_sym;
+
+	if (!sym_shdr || !str_shdr) {
+		dev_dbg(dev, "section symtab/strtab not found!\n");
+		return -EINVAL;
+	}
 
 	sym = (struct elf32_sym *)(elf_data + sym_shdr->sh_offset);
 	name_table = elf_data + str_shdr->sh_offset;
@@ -487,6 +493,7 @@ __maybe_unused create_global_symbol_table(const struct firmware *fw)
 	priv.adsp_glo_sym_tbl[0].addr = i;
 	return 0;
 }
+#endif /* CONFIG_ANDROID */
 
 struct global_sym_info * __maybe_unused find_global_symbol(const char *sym_name)
 {
@@ -623,9 +630,6 @@ static void *nvadsp_dma_alloc_and_map_at(struct platform_device *pdev,
 {
 	struct iommu_domain *domain = iommu_get_domain_for_dev(&pdev->dev);
 	unsigned long align_mask = ~0UL << fls_long(size - 1);
-	unsigned long shift = __ffs(domain->pgsize_bitmap);
-	unsigned long pg_size = 1UL << shift;
-	unsigned long mp_size = pg_size;
 	struct device *dev = &pdev->dev;
 	dma_addr_t aligned_iova = iova & align_mask;
 	dma_addr_t end = iova + size;
@@ -633,6 +637,16 @@ static void *nvadsp_dma_alloc_and_map_at(struct platform_device *pdev,
 	phys_addr_t pa, pa_new;
 	void *cpu_va;
 	int ret;
+	unsigned long shift = 0, pg_size = 0, mp_size = 0;
+
+	if (!domain) {
+		dev_err(dev, "Unable to get iommu_domain\n");
+		return NULL;
+	}
+
+	shift = __ffs(domain->pgsize_bitmap);
+	pg_size = 1UL << shift;
+	mp_size = pg_size;
 
 	/*
 	 * Reserve iova range using aligned size: adsp memory might not start
@@ -880,6 +894,10 @@ static int nvadsp_firmware_load(struct platform_device *pdev)
 			drv_data->shared_adsp_os_data_iova = priv.adsp_os_addr;
 			shared_mem = nvadsp_da_to_va_mappings(
 					priv.adsp_os_addr, priv.adsp_os_size);
+			if (!shared_mem) {
+				dev_err(dev, "Failed to get VA for ADSP OS\n");
+				goto deallocate_os_memory;
+			}
 		} else {
 			dev_err(dev, "failed to locate shared memory\n");
 			goto deallocate_os_memory;
@@ -1456,7 +1474,7 @@ static void get_adsp_state(void)
 	struct nvadsp_drv_data *drv_data;
 	struct device *dev;
 	uint32_t val;
-	char *msg;
+	const char *msg;
 
 	if (!priv.pdev) {
 		pr_err("ADSP Driver is not initialized\n");
@@ -1651,8 +1669,8 @@ EXPORT_SYMBOL(dump_adsp_sys);
 static void nvadsp_free_os_interrupts(struct nvadsp_os_data *priv)
 {
 	struct nvadsp_drv_data *drv_data = platform_get_drvdata(priv->pdev);
-	int wdt_virq = drv_data->agic_irqs[WDT_VIRQ];
-	int wfi_virq = drv_data->agic_irqs[WFI_VIRQ];
+	unsigned int wdt_virq = drv_data->agic_irqs[WDT_VIRQ];
+	unsigned int wfi_virq = drv_data->agic_irqs[WFI_VIRQ];
 	struct device *dev = &priv->pdev->dev;
 
 	devm_free_irq(dev, wdt_virq, priv);
@@ -1662,8 +1680,8 @@ static void nvadsp_free_os_interrupts(struct nvadsp_os_data *priv)
 static int nvadsp_setup_os_interrupts(struct nvadsp_os_data *priv)
 {
 	struct nvadsp_drv_data *drv_data = platform_get_drvdata(priv->pdev);
-	int wdt_virq = drv_data->agic_irqs[WDT_VIRQ];
-	int wfi_virq = drv_data->agic_irqs[WFI_VIRQ];
+	unsigned int wdt_virq = drv_data->agic_irqs[WDT_VIRQ];
+	unsigned int wfi_virq = drv_data->agic_irqs[WFI_VIRQ];
 	struct device *dev = &priv->pdev->dev;
 	int ret;
 
@@ -2064,7 +2082,7 @@ static void nvadsp_os_restart(struct work_struct *work)
 	struct nvadsp_os_data *data =
 		container_of(work, struct nvadsp_os_data, restart_os_work);
 	struct nvadsp_drv_data *drv_data = platform_get_drvdata(data->pdev);
-	int wdt_virq = drv_data->agic_irqs[WDT_VIRQ];
+	unsigned int wdt_virq = drv_data->agic_irqs[WDT_VIRQ];
 	int wdt_irq = drv_data->chip_data->wdt_irq;
 	struct device *dev = &data->pdev->dev;
 

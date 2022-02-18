@@ -234,7 +234,7 @@ struct nvadsp_drv_data {
 	u32 adsp_mem[ADSP_MEM_END];
 	bool adsp_unit_fpga;
 	u32 unit_fpga_reset[ADSP_UNIT_FPGA_RESET_END];
-	int agic_irqs[NVADSP_VIRQ_MAX];
+	u32 agic_irqs[NVADSP_VIRQ_MAX];
 
 	struct tegra_bwmgr_client *bwmgr;
 #if KERNEL_VERSION(5, 9, 0) <= LINUX_VERSION_CODE
