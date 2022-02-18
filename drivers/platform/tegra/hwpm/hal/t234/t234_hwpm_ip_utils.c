@@ -635,6 +635,8 @@ int t234_hwpm_get_fs_info(struct tegra_soc_hwpm *hwpm,
 	u32 ip_index, u64 *fs_mask, u8 *ip_status)
 {
 	u32 ip_idx = 0U;
+	u32 i = 0U;
+	u32 mcc_fs_mask = 0U;
 	struct tegra_soc_hwpm_chip *active_chip = NULL;
 	struct hwpm_ip *chip_ip = NULL;
 
@@ -657,7 +659,17 @@ int t234_hwpm_get_fs_info(struct tegra_soc_hwpm *hwpm,
 	} else {
 		active_chip = hwpm->active_chip;
 		chip_ip = active_chip->chip_ips[ip_idx];
-		*fs_mask = chip_ip->fs_mask;
+		/* TODO: Update after fS IOCTL discussion */
+		if (ip_idx == T234_HWPM_IP_MSS_CHANNEL) {
+			for (i = 0U; i < 4U; i++) {
+				if (((0x1U << i) & chip_ip->fs_mask) != 0U) {
+					mcc_fs_mask |= (0xFU << i);
+				}
+			}
+			*fs_mask = mcc_fs_mask;
+		} else {
+			*fs_mask = chip_ip->fs_mask;
+		}
 		*ip_status = TEGRA_SOC_HWPM_IP_STATUS_VALID;
 	}
 
