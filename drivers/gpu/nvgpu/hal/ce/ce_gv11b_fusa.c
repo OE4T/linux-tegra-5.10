@@ -54,6 +54,7 @@ void gv11b_ce_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 
 	nvgpu_log(g, gpu_dbg_intr, "ce isr 0x%08x 0x%08x", ce_intr, inst_id);
 
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	/*
 	 * An INVALID_CONFIG interrupt will be generated if a floorswept
 	 * PCE is assigned to a valid LCE in the NV_CE_PCE2LCE_CONFIG
@@ -66,6 +67,7 @@ void gv11b_ce_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 		nvgpu_err(g, "ce: inst %d: invalid config", inst_id);
 		clear_intr |= ce_intr_status_invalid_config_reset_f();
 	}
+#endif
 
 	/*
 	 * A MTHD_BUFFER_FAULT interrupt will be triggered if any access

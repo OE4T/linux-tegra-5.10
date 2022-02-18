@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -244,7 +244,9 @@ static const struct gops_ce vgpu_gv11b_ops_ce = {
 	.ce_app_destroy = NULL,
 #endif
 	.isr_stall = NULL,
+#ifdef CONFIG_NVGPU_NONSTALL_INTR
 	.isr_nonstall = NULL,
+#endif
 	.get_num_pce = vgpu_ce_get_num_pce,
 };
 

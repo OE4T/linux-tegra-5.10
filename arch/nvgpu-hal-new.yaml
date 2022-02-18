@@ -569,6 +569,7 @@ ce:
   owner: Thomas F
   sources: [ hal/ce/ce2_gk20a.c,
              hal/ce/ce2_gk20a.h,
+             hal/ce/ce_gp10b.c,
              hal/ce/ce_tu104.c,
              hal/ce/ce_tu104.h ]
 

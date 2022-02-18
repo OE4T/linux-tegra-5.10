@@ -315,6 +315,7 @@ srcs += hal/init/hal_gm20b.c \
 	hal/priv_ring/priv_ring_gm20b.c \
 	hal/power_features/cg/gm20b_gating_reglist.c \
 	hal/ce/ce2_gk20a.c \
+	hal/ce/ce_gp10b.c \
 	hal/therm/therm_gm20b.c \
 	hal/therm/therm_gp10b.c \
 	hal/ltc/ltc_gm20b.c \

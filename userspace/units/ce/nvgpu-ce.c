@@ -207,7 +207,8 @@ int test_ce_stall_isr(struct unit_module *m, struct gk20a *g, void *args)
 	g->ops.ce.isr_stall = gv11b_ce_stall_isr;
 	for (inst_id = 0; inst_id < NUM_INST; inst_id++) {
 		intr_status_written[inst_id] = 0;
-		intr_val = 0x1f; /* all intr sources */
+		/* all intr sources except (non)blockpipe as they are not supported on safety */
+		intr_val = 0x14;
 		nvgpu_posix_io_writel_reg_space(g, ce_intr_status_r(inst_id),
 						intr_val);
 		g->ops.ce.isr_stall(g, inst_id, 0);
@@ -224,56 +225,6 @@ int test_ce_stall_isr(struct unit_module *m, struct gk20a *g, void *args)
 		nvgpu_posix_io_writel_reg_space(g, ce_intr_status_r(inst_id),
 						intr_val);
 		g->ops.ce.isr_stall(g, inst_id, 0);
-		if (intr_status_written[inst_id] != intr_val) {
-			ret = UNIT_FAIL;
-			unit_err(m, "intr_status not cleared, only 0x%08x\n",
-				 intr_status_written[inst_id]);
-			goto done;
-		}
-	}
-
-done:
-	return ret;
-}
-
-int test_ce_nonstall_isr(struct unit_module *m, struct gk20a *g, void *args)
-{
-	int ret = UNIT_SUCCESS;
-	int inst_id;
-	u32 intr_val;
-	u32 val;
-
-	g->ops.ce.isr_nonstall = gp10b_ce_nonstall_isr;
-	for (inst_id = 0; inst_id < NUM_INST; inst_id++) {
-		intr_status_written[inst_id] = 0;
-		intr_val = 0x1f; /* all intr sources */
-		nvgpu_posix_io_writel_reg_space(g, ce_intr_status_r(inst_id),
-						intr_val);
-		val = g->ops.ce.isr_nonstall(g, inst_id, 0);
-		if (val != (NVGPU_CIC_NONSTALL_OPS_WAKEUP_SEMAPHORE |
-			    NVGPU_CIC_NONSTALL_OPS_POST_EVENTS)) {
-			ret = UNIT_FAIL;
-			unit_err(m, "incorrect ops returned 0x%08x\n", val);
-			goto done;
-		}
-		if (intr_status_written[inst_id] !=
-				ce_intr_status_nonblockpipe_pending_f()) {
-			ret = UNIT_FAIL;
-			unit_err(m, "intr_status not cleared properly, only 0x%08x\n",
-				 intr_status_written[inst_id]);
-			goto done;
-		}
-
-		intr_status_written[inst_id] = 0;
-		intr_val = 0x0;
-		nvgpu_posix_io_writel_reg_space(g, ce_intr_status_r(inst_id),
-						intr_val);
-		val = g->ops.ce.isr_nonstall(g, inst_id, 0);
-		if (val != 0U) {
-			ret = UNIT_FAIL;
-			unit_err(m, "incorrect ops returned 0x%08x\n", val);
-			goto done;
-		}
 		if (intr_status_written[inst_id] != intr_val) {
 			ret = UNIT_FAIL;
 			unit_err(m, "intr_status not cleared, only 0x%08x\n",
@@ -383,7 +334,6 @@ struct unit_module_test ce_tests[] = {
 	UNIT_TEST(ce_setup_env,				test_ce_setup_env,		NULL, 0),
 	UNIT_TEST(ce_init_support,			test_ce_init_support,	NULL, 0),
 	UNIT_TEST(ce_stall_isr,				test_ce_stall_isr,	NULL, 0),
-	UNIT_TEST(ce_nonstall_isr,			test_ce_nonstall_isr,	NULL, 0),
 	UNIT_TEST(mthd_buffer_fault_in_bar2_fault,	test_mthd_buffer_fault_in_bar2_fault,	NULL, 0),
 	UNIT_TEST(ce_get_num_pce,			test_get_num_pce,	NULL, 0),
 	UNIT_TEST(ce_init_prod_values,			test_init_prod_values,	NULL, 0),

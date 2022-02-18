@@ -805,6 +805,7 @@ nvgpu-y += \
 
 nvgpu-$(CONFIG_NVGPU_HAL_NON_FUSA) += \
 	hal/ce/ce_tu104.o \
+	hal/ce/ce_gp10b.o \
 	hal/clk/clk_gm20b.o \
 	hal/init/hal_gm20b.o \
 	hal/init/hal_gm20b_litter.o \

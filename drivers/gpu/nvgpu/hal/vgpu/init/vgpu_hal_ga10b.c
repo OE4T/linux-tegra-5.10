@@ -271,7 +271,9 @@ static const struct gops_ce vgpu_ga10b_ops_ce = {
 	.ce_app_destroy = NULL,
 #endif
 	.isr_stall = NULL,
+#ifdef CONFIG_NVGPU_NONSTALL_INTR
 	.isr_nonstall = NULL,
+#endif
 	.get_num_pce = vgpu_ce_get_num_pce,
 };
 

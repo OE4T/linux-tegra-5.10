@@ -176,11 +176,13 @@ static void mock_ce_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 	u.ce_isr = true;
 }
 
+#ifdef CONFIG_NVGPU_NONSTALL_INTR
 static u32 mock_ce_nonstall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 {
 	u.ce_isr = true;
 	return u.ce_isr_return;
 }
+#endif
 
 static void mock_fb_isr(struct gk20a *g, u32 intr_unit_bitmask)
 {
@@ -254,7 +256,9 @@ int test_mc_setup_env(struct unit_module *m,
 	/* override HALs */
 	g->ops.bus.isr = mock_bus_isr;
 	g->ops.ce.isr_stall = mock_ce_stall_isr;
+#ifdef CONFIG_NVGPU_NONSTALL_INTR
 	g->ops.ce.isr_nonstall = mock_ce_nonstall_isr;
+#endif
 	g->ops.fb.intr.isr = mock_fb_isr;
 	g->ops.fifo.intr_0_isr = mock_fifo_stall_isr;
 	g->ops.fifo.intr_1_isr = mock_fifo_nonstall_isr;
@@ -671,15 +675,18 @@ int test_isr_nonstall(struct unit_module *m, struct gk20a *g, void *args)
 	}
 
 	/* for branch coverage set this HAL to NULL */
+#ifdef CONFIG_NVGPU_NONSTALL_INTR
 	g->ops.ce.isr_nonstall = NULL;
+#endif
 	for (i = 0; i < NUM_MC_UNITS; i++) {
 		intrs_pending |= mc_units[i].bit;
 	}
 	nvgpu_posix_io_writel_reg_space(g, NONSTALL_PENDING_REG, intrs_pending);
 	reset_ctx();
 	g->ops.mc.isr_nonstall(g);
+#ifdef CONFIG_NVGPU_NONSTALL_INTR
 	g->ops.ce.isr_nonstall = mock_ce_nonstall_isr;
-
+#endif
 	return UNIT_SUCCESS;
 }
 

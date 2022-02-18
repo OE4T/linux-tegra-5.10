@@ -280,6 +280,7 @@ u32 ga10b_intr_isr_host2soc_0(struct gk20a *g)
 		handled_subtree_mask |= unit_subtree_mask;
 	}
 
+#ifdef CONFIG_NVGPU_NONSTALL_INTR
 	if (ga10b_intr_is_unit_pending(g, NVGPU_CIC_INTR_UNIT_CE,
 			intr_leaf0, intr_leaf1, &unit_subtree_mask) == true) {
 		ga10b_intr_subtree_clear(g, subtree, unit_subtree_mask);
@@ -287,7 +288,7 @@ u32 ga10b_intr_isr_host2soc_0(struct gk20a *g)
 				NVGPU_CIC_NONSTALL_OPS_POST_EVENTS);
 		handled_subtree_mask |= unit_subtree_mask;
 	}
-
+#endif
 	ga10b_intr_subtree_clear_unhandled(g, subtree, intr_leaf0, intr_leaf1,
 				handled_subtree_mask);
 	return ops;
@@ -397,10 +398,12 @@ bool ga10b_mc_intr_get_unit_info(struct gk20a *g, u32 unit)
 		intr_unit_info->valid = true;
 		return true;
 	/* CE NONSTALL interrupts */
+#ifdef CONFIG_NVGPU_NONSTALL_INTR
 	case NVGPU_CIC_INTR_UNIT_CE:
 		/* vectorids are setup in ce.init_hw */
 		nvgpu_log(g, gpu_dbg_intr, "CE NONSTALL interrupt");
 		break;
+#endif
 	case NVGPU_CIC_INTR_UNIT_GR_STALL:
 		reg_val = nvgpu_readl(g,
 			    ctrl_legacy_engine_stall_intr_base_vectorid_r());

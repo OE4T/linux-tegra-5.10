@@ -65,9 +65,11 @@ int nvgpu_ce_init_support(struct gk20a *g)
 		g->ops.ce.init_prod_values(g);
 	}
 
+#ifdef CONFIG_NVGPU_NONSTALL_INTR
 	if (g->ops.ce.init_hw != NULL) {
 		g->ops.ce.init_hw(g);
 	}
+#endif
 
 	if (g->ops.ce.intr_enable != NULL) {
 		g->ops.ce.intr_enable(g, true);

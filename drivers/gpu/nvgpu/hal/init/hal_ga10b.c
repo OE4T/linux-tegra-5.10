@@ -393,11 +393,13 @@ static const struct gops_ce ga10b_ops_ce = {
 	.ce_app_suspend = nvgpu_ce_app_suspend,
 	.ce_app_destroy = nvgpu_ce_app_destroy,
 #endif
-	.init_hw = ga10b_ce_init_hw,
 	.intr_enable = ga10b_ce_intr_enable,
 	.isr_stall = ga10b_ce_stall_isr,
 	.intr_retrigger = ga10b_ce_intr_retrigger,
+#ifdef CONFIG_NVGPU_NONSTALL_INTR
 	.isr_nonstall = NULL,
+	.init_hw = ga10b_ce_init_hw,
+#endif
 	.get_num_pce = gv11b_ce_get_num_pce,
 	.mthd_buffer_fault_in_bar2_fault = gv11b_ce_mthd_buffer_fault_in_bar2_fault,
 	.init_prod_values = gv11b_ce_init_prod_values,

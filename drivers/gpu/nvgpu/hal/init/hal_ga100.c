@@ -422,7 +422,10 @@ static const struct gops_ce ga100_ops_ce = {
 #endif
 	.set_pce2lce_mapping = NULL,
 	.isr_stall = gv11b_ce_stall_isr,
+#ifdef CONFIG_NVGPU_NONSTALL_INTR
 	.isr_nonstall = NULL,
+	.init_hw = NULL,
+#endif
 	.get_num_pce = gv11b_ce_get_num_pce,
 	.mthd_buffer_fault_in_bar2_fault = gv11b_ce_mthd_buffer_fault_in_bar2_fault,
 	.init_prod_values = gv11b_ce_init_prod_values,

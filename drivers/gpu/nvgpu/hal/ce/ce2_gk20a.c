@@ -53,7 +53,6 @@ void gk20a_ce2_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 		nvgpu_log(g, gpu_dbg_intr, "ce2 blocking pipe interrupt");
 		clear_intr |= ce2_intr_status_blockpipe_pending_f();
 	}
-
 	if ((ce2_intr & ce2_intr_status_launcherr_pending_f()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr, "ce2 launch error interrupt");
 		clear_intr |= ce2_intr_status_launcherr_pending_f();

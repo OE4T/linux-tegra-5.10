@@ -1,7 +1,7 @@
 /*
  * Pascal GPU series Copy Engine.
  *
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,8 @@
 struct gk20a;
 
 void gp10b_ce_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base);
+#ifdef CONFIG_NVGPU_NONSTALL_INTR
 u32 gp10b_ce_nonstall_isr(struct gk20a *g, u32 inst_id, u32 pri_base);
+#endif /* NVGPU_HAL_NON_FUSA */
 
 #endif /* NVGPU_CE_GP10B_H */

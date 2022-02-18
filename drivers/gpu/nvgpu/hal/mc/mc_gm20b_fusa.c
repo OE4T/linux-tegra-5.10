@@ -84,6 +84,7 @@ u32 gm20b_mc_isr_nonstall(struct gk20a *g)
 			nonstall_ops |= g->ops.gr.intr.nonstall_isr(g);
 		}
 
+#ifdef CONFIG_NVGPU_NONSTALL_INTR
 		/* CE Engine */
 		if (nvgpu_device_is_ce(g, dev) &&
 		    (g->ops.ce.isr_nonstall != NULL)) {
@@ -91,6 +92,7 @@ u32 gm20b_mc_isr_nonstall(struct gk20a *g)
 						      dev->inst_id,
 						      dev->pri_base);
 		}
+#endif
 	}
 
 	return nonstall_ops;
