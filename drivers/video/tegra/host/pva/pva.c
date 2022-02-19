@@ -38,6 +38,9 @@
 #include <soc/tegra/chip-id.h>
 #endif
 #include <soc/tegra/fuse-helper.h>
+#ifdef CONFIG_TEGRA_SOC_HWPM
+#include <uapi/linux/tegra-soc-hwpm-uapi.h>
+#endif
 
 #include "nvhost_syncpt_unit_interface.h"
 #include "dev.h"
@@ -668,6 +671,48 @@ int pva_prepare_poweroff(struct platform_device *pdev)
 	return 0;
 }
 
+#ifdef CONFIG_TEGRA_SOC_HWPM
+int pva_hwpm_ip_pm(void *ip_dev, bool disable)
+{
+	int err = 0;
+	struct platform_device *dev = (struct platform_device *)ip_dev;
+
+	nvhost_dbg_info("ip power management %s",
+			disable ? "disable" : "enable");
+
+	if (disable) {
+		err = nvhost_module_busy(ip_dev);
+		if (err < 0)
+			dev_err(&dev->dev, "nvhost_module_busy failed");
+	} else {
+		nvhost_module_idle(ip_dev);
+	}
+
+	return err;
+}
+
+int pva_hwpm_ip_reg_op(void *ip_dev, enum tegra_soc_hwpm_ip_reg_op reg_op,
+	u64 reg_offset, u32 *reg_data)
+{
+	struct platform_device *dev = (struct platform_device *)ip_dev;
+
+	if (reg_offset > UINT_MAX)
+		return -EINVAL;
+
+	nvhost_dbg_info("reg_op %d reg_offset %llu", reg_op, reg_offset);
+
+	if (reg_op == TEGRA_SOC_HWPM_IP_REG_OP_READ)
+		*reg_data = host1x_readl(dev,
+			(hwpm_get_offset() + (unsigned int)reg_offset));
+	else if (reg_op == TEGRA_SOC_HWPM_IP_REG_OP_WRITE)
+		host1x_writel(dev,
+			(hwpm_get_offset() + (unsigned int)reg_offset),
+			*reg_data);
+
+	return 0;
+}
+#endif
+
 static int pva_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
@@ -676,6 +721,11 @@ static int pva_probe(struct platform_device *pdev)
 	struct pva *pva;
 	int err = 0;
 	size_t i;
+#ifdef CONFIG_TEGRA_SOC_HWPM
+	u32 offset;
+	struct tegra_soc_hwpm_ip_ops hwpm_ip_ops;
+#endif
+
 	nvhost_dbg_fn("%s", __func__);
 
 	match = of_match_device(tegra_pva_of_match, dev);
@@ -828,6 +878,23 @@ static int pva_probe(struct platform_device *pdev)
 
 #ifdef CONFIG_DEBUG_FS
 	pva_debugfs_init(pdev);
+#endif
+
+#ifdef CONFIG_TEGRA_SOC_HWPM
+	offset = hwpm_get_offset();
+
+	if ((UINT_MAX - offset) < pdev->resource[0].start) {
+		err = -ENODEV;
+		goto err_mss_init;
+	}
+
+	nvhost_dbg_info("hwpm ip %s register", pdev->name);
+	hwpm_ip_ops.ip_dev = (void *)pdev;
+	hwpm_ip_ops.ip_base_address = (pdev->resource[0].start + offset);
+	hwpm_ip_ops.ip_index = TEGRA_SOC_HWPM_IP_PVA;
+	hwpm_ip_ops.hwpm_ip_pm = &pva_hwpm_ip_pm;
+	hwpm_ip_ops.hwpm_ip_reg_op = &pva_hwpm_ip_reg_op;
+	tegra_soc_hwpm_ip_register(&hwpm_ip_ops);
 #endif
 	return 0;
 
