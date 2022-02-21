@@ -1733,6 +1733,11 @@ static int esc_mods_sysctl_write_int(struct mods_client     *client,
 	data_size = snprintf(data, sizeof(data),
 			     "%lld", (long long)pdata->value);
 
+	if (unlikely(data_size < 0)) {
+		err = data_size;
+		goto error;
+	}
+
 	memset(&task, 0, sizeof(task));
 	task.path      = pdata->path;
 	task.data      = data;
@@ -1740,6 +1745,7 @@ static int esc_mods_sysctl_write_int(struct mods_client     *client,
 
 	err = run_write_task(client, &task);
 
+error:
 	LOG_EXT();
 	return err;
 }

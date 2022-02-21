@@ -1526,21 +1526,29 @@ int esc_mods_map_irq(struct mods_client  *client,
 	}
 
 	hwirq = oirq.args[1];
+
 	/* Get the platform device handle */
 	pdev = of_find_device_by_node(np);
 
 	if (of_node_cmp(p->dt_name, "watchdog") == 0) {
 		/* Enable and unmask interrupt for watchdog */
-		struct resource *res_src = platform_get_resource(pdev,
-		IORESOURCE_MEM, 0);
-		struct resource *res_tke = platform_get_resource(pdev,
-		IORESOURCE_MEM, 2);
-		void __iomem *wdt_tke = devm_ioremap(&pdev->dev,
-		res_tke->start, resource_size(res_tke));
-		int wdt_index = ((res_src->start >> 16) & 0xF) - 0xc;
+		struct resource *res_src =
+			platform_get_resource(pdev, IORESOURCE_MEM, 0);
+		struct resource *res_tke =
+			platform_get_resource(pdev, IORESOURCE_MEM, 2);
+		void __iomem    *wdt_tke = NULL;
+		int              wdt_index;
 
-		writel(TOP_TKE_TKEIE_WDT_MASK(wdt_index), wdt_tke +
-		TOP_TKE_TKEIE(hwirq));
+                if (res_tke && res_src) {
+			wdt_tke = devm_ioremap(&pdev->dev, res_tke->start,
+					       resource_size(res_tke));
+			wdt_index = ((res_src->start >> 16) & 0xF) - 0xc;
+		}
+
+		if (wdt_tke) {
+			writel(TOP_TKE_TKEIE_WDT_MASK(wdt_index),
+			       wdt_tke + TOP_TKE_TKEIE(hwirq));
+		}
 	}
 
 error:
