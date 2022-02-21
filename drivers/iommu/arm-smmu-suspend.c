@@ -18,12 +18,8 @@
 #include <linux/version.h>
 #include <linux/types.h>
 #include <linux/slab.h>
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,0,0)
 #include "arm/arm-smmu/arm-smmu.h"
 #include "arm-smmu-suspend-regs.h"
-#else
-#include "arm-smmu-regs-t19x.h"
-#endif
 
 #define SMMU_GNSR1_CBAR_CFG(n, smmu_pgshift) \
 		((1U << smmu_pgshift) + ARM_SMMU_GR1_CBAR(n))
@@ -40,9 +36,7 @@
 #define SMMU_REG_TABLE_END_REG		0xFFFFFFFFU
 #define SMMU_REG_TABLE_END_VALUE	0xFFFFFFFFU
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,0,0)
 #define MAX_SMMUS 5
-#endif
 
 static uint32_t cb_group_max;
 static uint32_t smrg_group_max;
@@ -279,8 +273,6 @@ void arm_smmu_suspend_exit(void)
 	kfree(arm_smmu_ctx.smmu_base_pa);
 }
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,0,0)
-
 static const struct of_device_id arm_smmu_of_match[] = {
 	{ .compatible = "nvidia,smmu_suspend"},
 	{ },
@@ -369,4 +361,3 @@ static void __exit arm_smmu_suspend_driver_exit(void)
 
 module_init(arm_smmu_suspend_driver_init);
 module_exit(arm_smmu_suspend_driver_exit);
-#endif /* LINUX_VERSION_CODE */
