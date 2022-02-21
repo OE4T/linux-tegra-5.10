@@ -599,6 +599,16 @@ static int tnvvse_crypto_aes_gmac_init(struct tnvvse_crypto_ctx *ctx,
 
 	memcpy(gmac_init_ctl->IV, priv_data.iv, TEGRA_NVVSE_AES_GCM_IV_LEN);
 
+	if (sha_state->req)
+		ahash_request_free(sha_state->req);
+	if (sha_state->tfm)
+		crypto_free_ahash(sha_state->tfm);
+
+	sha_state->req = NULL;
+	sha_state->tfm = NULL;
+	sha_state->result_buff = NULL;
+	sha_state->digest_size = 0;
+
 free_req:
 	ahash_request_free(req);
 free_tfm:
@@ -724,21 +734,21 @@ static int tnvvse_crypto_aes_gmac_sign_verify(struct tnvvse_crypto_ctx *ctx,
 	if (gmac_sign_verify_ctl->data_length > GMAC_MAX_LEN ||
 			gmac_sign_verify_ctl->data_length == 0) {
 		pr_err("%s(): Failed due to invalid input size: %d\n", __func__, ret);
-		goto done;
+		goto stop_sha;
 	}
 
 	if (gmac_sign_verify_ctl->is_last &&
 			gmac_sign_verify_ctl->tag_length != TEGRA_NVVSE_AES_GCM_TAG_SIZE) {
 		pr_err("%s(): Failed due to invalid tag length (%d) invalid", __func__,
 					gmac_sign_verify_ctl->tag_length);
-		goto done;
+		goto stop_sha;
 	}
 
 	if (gmac_sign_verify_ctl->is_first) {
 		ret = tnvvse_crypto_aes_gmac_sign_verify_init(ctx, gmac_sign_verify_ctl);
 		if (ret) {
 			pr_err("%s(): Failed to init: %d\n", __func__, ret);
-			goto done;
+			goto stop_sha;
 		}
 	}
 
@@ -841,9 +851,12 @@ static int tnvvse_crypto_aes_gmac_sign_verify(struct tnvvse_crypto_ctx *ctx,
 	}
 
 stop_sha:
-	free_bufs(sha_state->xbuf);
-	ahash_request_free(sha_state->req);
-	crypto_free_ahash(sha_state->tfm);
+	if (sha_state->xbuf)
+		free_bufs(sha_state->xbuf);
+	if (sha_state->req)
+		ahash_request_free(sha_state->req);
+	if (sha_state->tfm)
+		crypto_free_ahash(sha_state->tfm);
 
 	sha_state->req = NULL;
 	sha_state->tfm = NULL;
