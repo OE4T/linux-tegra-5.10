@@ -530,11 +530,6 @@ int nvgpu_pmu_process_message(struct nvgpu_pmu *pmu)
 			}
 		}
 
-		err = nvgpu_pmu_lsfm_int_wpr_region(g, pmu, pmu->lsfm);
-		if (err != 0) {
-			return err;
-		}
-
 		return 0;
 	}
 

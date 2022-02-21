@@ -42,9 +42,6 @@ static int gp10b_pmu_lsfm_bootstrap_falcon(struct gk20a *g,
 	lsfm->loaded_falcon_id = 0U;
 
 	nvgpu_pmu_dbg(g, "wprinit status = %x", lsfm->is_wpr_init_done);
-	if (!lsfm->is_wpr_init_done) {
-		return -EINVAL;
-	}
 
 	/* send message to load FECS falcon */
 	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
@@ -89,18 +86,6 @@ static int gp10b_pmu_lsfm_bootstrap_ls_falcon(struct gk20a *g,
 	}
 
 	lsfm->loaded_falcon_id = 0U;
-	/* check whether pmu is ready to bootstrap lsf if not wait for it */
-	if (!lsfm->is_wpr_init_done) {
-		pmu_wait_message_cond(g->pmu,
-				nvgpu_get_poll_timeout(g),
-				&lsfm->is_wpr_init_done, 1U);
-		/* check again if it still not ready indicate an error */
-		if (!lsfm->is_wpr_init_done) {
-			nvgpu_err(g, "PMU not ready to load LSF");
-			err = -ETIMEDOUT;
-			goto done;
-		}
-	}
 
 	/* bootstrap falcon(s) */
 	err = gp10b_pmu_lsfm_bootstrap_falcon(g, pmu, lsfm,
