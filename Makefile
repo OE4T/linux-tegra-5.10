@@ -12,6 +12,11 @@ endif
 dtb-$(BUILD_ENABLE) += tegra234-p3701-0000-p3737-0000.dtb
 dtb-$(BUILD_ENABLE) += tegra234-p3701-0000-as-p3770-p3737-0000.dtb
 dtb-$(BUILD_ENABLE) += tegra234-p3701-0000-as-p3769-p3737-0000.dtb
+dtb-$(BUILD_ENABLE) += tegra234-p3701-0000-as-p3769-p3737-0000-dsi-innolux-a1-cphy.dtb
+dtb-$(BUILD_ENABLE) += tegra234-p3701-0000-as-p3769-p3737-0000-dsi-innolux-c1-dphy.dtb
+dtb-$(BUILD_ENABLE) += tegra234-p3701-0000-as-p3769-p3737-0000-dsi-innolux-c1-dsc-dphy.dtb
+dtb-$(BUILD_ENABLE) += tegra234-p3701-0000-as-p3769-p3737-0000-dsi-tianma-a-dphy.dtb
+dtb-$(BUILD_ENABLE) += tegra234-p3701-0000-as-p3769-p3737-0000-dsi-tianma-b-dphy.dtb
 dtb-$(BUILD_ENABLE) += tegra234-p3701-0000-as-p3767-p3737-0000.dtb
 dtb-$(BUILD_ENABLE) += tegra234-p3701-0000-as-pxxxx-p3737-0000.dtb
 dtbo-$(BUILD_ENABLE) += tegra234-p3737-overlay-pcie.dtbo
