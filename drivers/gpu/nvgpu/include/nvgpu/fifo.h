@@ -216,10 +216,21 @@
  */
 #define INVAL_ID			(~U32(0U))
 /**
- * Timeout after which ctxsw timeout interrupt (if enabled by s/w) will be
- * triggered by h/w if context fails to context switch.
+ * Timeout after which ctxsw timeout interrupt (if enabled by s/w)
+ * will be triggered by h/w if context fails to context switch.
+ * Typical ctxsw times should be in order of tens or hundreds of
+ * microseconds at least in Auto usecase with no vGPU etc. This is
+ * an assumption as we do not value data from HW on typical CTXSW times.
+ * For safety, we have FTTI budget of 100 ms. FTTI should include the
+ * diagnostic interrupt latency, and SW “fix” (timeout action may
+ * include recovery). The WCET for recovery is around 55ms.
+ * So, CTXSW timeout value should be somewhere in between hundreds of
+ * microseconds to 45 ms.
+ * Chooe CTXSW_TIMEOUT value to be 10ms -
+ * 1. It seems well within FTTI (with some budget for recovery if needed)
+ * 2. It can be easily updated if needed later.
  */
-#define CTXSW_TIMEOUT_PERIOD_MS		100U
+#define CTXSW_TIMEOUT_PERIOD_MS		10U
 
 /** Subctx id 0 */
 #define CHANNEL_INFO_VEID0		0U
