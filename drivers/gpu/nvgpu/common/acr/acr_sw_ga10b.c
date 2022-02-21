@@ -26,6 +26,7 @@
 #include <nvgpu/dma.h>
 #include <nvgpu/pmu.h>
 #include <nvgpu/grmgr.h>
+#include <nvgpu/soc.h>
 #ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/fw.h>
 #endif
@@ -166,6 +167,12 @@ static int ga10b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 			acr_sysmem_desc->gpu_mode |= MIG_MODE;
 		} else {
 			acr_sysmem_desc->gpu_mode &= (u32)(~MIG_MODE);
+		}
+
+		if (nvgpu_platform_is_simulation(g)) {
+			acr_sysmem_desc->gpu_mode |= ACR_SIMULATION_MODE;
+		} else {
+			acr_sysmem_desc->gpu_mode &= (u32)(~ACR_SIMULATION_MODE);
 		}
 	}
 
