@@ -931,6 +931,8 @@
 
 	nvpmodel {
 		compatible = "nvidia,nvpmodel";
+		clocks = <&bpmp_clks TEGRA234_CLK_EMC>;
+		clock-names = "emc";
 		status = "okay";
 	};
 
