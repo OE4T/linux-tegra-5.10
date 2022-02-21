@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2021, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2010-2022, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ static void unthrottle_prints(struct work_struct *work);
 static DECLARE_DELAYED_WORK(unthrottle_prints_work, unthrottle_prints);
 static struct dentry *mcerr_debugfs_dir;
 u32 mc_int_mask;
-u32 mc_hub_int_mask;
+static u32 mc_hub_int_mask;
 static struct mcerr_ops *mcerr_ops;
 
 static void unthrottle_prints(struct work_struct *work)

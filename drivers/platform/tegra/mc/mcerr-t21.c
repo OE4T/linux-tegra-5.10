@@ -1,7 +1,7 @@
 /*
  * Tegra 12x SoC-specific mcerr code.
  *
- * Copyright (c) 2014-2017, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2014-2022, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -345,10 +345,6 @@ static const struct mc_error *mcerr_default_info(u32 intr)
 	return NULL;
 }
 
-void __weak smmu_dump_pagetable(int swgid, dma_addr_t addr)
-{
-}
-
 /*
  * This will print at least 8 hex digits for address. If the address is bigger
  * then more digits will be printed but the full 16 hex digits for a 64 bit
@@ -359,9 +355,6 @@ static void mcerr_default_print(const struct mc_error *err,
 				u32 status, phys_addr_t addr,
 				int secure, int rw, const char *smmu_info)
 {
-	if (smmu_info)
-		smmu_dump_pagetable(client->swgid, addr);
-
 	if (err->flags & E_VPR)
 		mcerr_pr("vpr base=%x:%x, size=%x, ctrl=%x, override:(%x, %x, %x, %x)\n",
 			 mc_readl(MC_VIDEO_PROTECT_BOM_ADR_HI),
