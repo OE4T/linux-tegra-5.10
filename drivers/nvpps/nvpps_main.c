@@ -380,100 +380,6 @@ static void nvpps_timer_callback(struct timer_list *t)
 	}
 }
 
-static void nvpps_fill_mac_phc_info(struct platform_device *pdev,
-								    struct nvpps_device_data *pdev_data)
-{
-	bool use_eqos_mac = false;
-	pdev_data->platform_is_orin = false;
-
-	/* For orin */
-	if (of_machine_is_compatible("nvidia,tegra234")) {
-		pdev_data->platform_is_orin = true;
-		if (pdev_data->memmap_phc_regs) {
-			dev_info(&pdev->dev, "using mem mapped MAC PHC reg method\n");
-			if (pdev_data->iface_nm == NULL) {
-				pdev_data->iface_nm = devm_kstrdup(&pdev->dev, "eqos_0", GFP_KERNEL);
-				dev_warn(&pdev->dev, "interface property not provided. Using default interface(%s)\n", pdev_data->iface_nm);
-				use_eqos_mac = true;
-			} else {
-				if (!strncmp(pdev_data->iface_nm, "eqos_0", sizeof("eqos_0"))) {
-					use_eqos_mac = true;
-				} else if (!strncmp(pdev_data->iface_nm, "mgbe0_0", sizeof("mgbe0_0"))) {
-					/* remap base address for mgbe0_0 */
-					pdev_data->mac_base_addr = (u64)devm_ioremap(&pdev->dev, T234_MGBE0_BASE_ADDR, SZ_4K);
-					dev_info(&pdev->dev, "map MGBE0_0 to (%p)\n", (void *)pdev_data->mac_base_addr);
-					pdev_data->sts_offset = MGBE_STSR_OFFSET;
-					pdev_data->stns_offset = MGBE_STNSR_OFFSET;
-				} else if (!strncmp(pdev_data->iface_nm, "mgbe1_0", sizeof("mgbe1_0"))) {
-					/* remap base address for mgbe1_0 */
-					pdev_data->mac_base_addr = (u64)devm_ioremap(&pdev->dev, T234_MGBE1_BASE_ADDR, SZ_4K);
-					dev_info(&pdev->dev, "map MGBE1_0 to (%p)\n", (void *)pdev_data->mac_base_addr);
-					pdev_data->sts_offset = MGBE_STSR_OFFSET;
-					pdev_data->stns_offset = MGBE_STNSR_OFFSET;
-				} else if (!strncmp(pdev_data->iface_nm, "mgbe2_0", sizeof("mgbe2_0"))) {
-					/* remap base address for mgbe2_0 */
-					pdev_data->mac_base_addr = (u64)devm_ioremap(&pdev->dev, T234_MGBE2_BASE_ADDR, SZ_4K);
-					dev_info(&pdev->dev, "map MGBE2_0 to (%p)\n", (void *)pdev_data->mac_base_addr);
-					pdev_data->sts_offset = MGBE_STSR_OFFSET;
-					pdev_data->stns_offset = MGBE_STNSR_OFFSET;
-				} else if (!strncmp(pdev_data->iface_nm, "mgbe3_0", sizeof("mgbe3_0"))) {
-					/* remap base address for mgbe3_0 */
-					pdev_data->mac_base_addr = (u64)devm_ioremap(&pdev->dev, T234_MGBE3_BASE_ADDR, SZ_4K);
-					dev_info(&pdev->dev, "map MGBE3_0 to (%p)\n", (void *)pdev_data->mac_base_addr);
-					pdev_data->sts_offset = MGBE_STSR_OFFSET;
-					pdev_data->stns_offset = MGBE_STNSR_OFFSET;
-				} else {
-					dev_warn(&pdev->dev, "Invalid interface(%s). Using default interface(eqos_0)\n", pdev_data->iface_nm);
-					pdev_data->iface_nm = devm_kstrdup(&pdev->dev, "eqos_0", GFP_KERNEL);
-					use_eqos_mac = true;
-				}
-			}
-
-			if (use_eqos_mac) {
-				/* remap base address for eqos */
-				pdev_data->mac_base_addr = (u64)devm_ioremap(&pdev->dev, T234_EQOS_BASE_ADDR, SZ_4K);
-				dev_info(&pdev->dev, "map EQOS to (%p)\n", (void *)pdev_data->mac_base_addr);
-				pdev_data->sts_offset = EQOS_STSR_OFFSET;
-				pdev_data->stns_offset = EQOS_STNSR_OFFSET;
-			}
-		} else {
-			/* Using ptp-notifier method */
-			if (pdev_data->iface_nm) {
-				if ((!strncmp(pdev_data->iface_nm, "eqos_0", sizeof("eqos_0"))) ||
-					(!strncmp(pdev_data->iface_nm, "mgbe0_0", sizeof("mgbe0_0"))) ||
-					(!strncmp(pdev_data->iface_nm, "mgbe1_0", sizeof("mgbe1_0"))) ||
-					(!strncmp(pdev_data->iface_nm, "mgbe2_0", sizeof("mgbe2_0"))) ||
-					(!strncmp(pdev_data->iface_nm, "mgbe3_0", sizeof("mgbe3_0")))) {
-					dev_info(&pdev->dev, "using ptp notifier method with interface(%s)\n", pdev_data->iface_nm);
-				} else {
-					dev_warn(&pdev->dev, "Invalid interface(%s). Using default interface(eqos_0)\n", pdev_data->iface_nm);
-					pdev_data->iface_nm = devm_kstrdup(&pdev->dev, "eqos_0", GFP_KERNEL);
-				}
-			} else {
-				pdev_data->iface_nm = devm_kstrdup(&pdev->dev, "eqos_0", GFP_KERNEL);
-				dev_info(&pdev->dev, "using ptp notifier method with interface(%s)\n", pdev_data->iface_nm);
-			}
-		}
-	} else {
-		if (pdev_data->memmap_phc_regs) {
-			if (!(pdev_data->iface_nm && (strncmp(pdev_data->iface_nm, "eqos_0", sizeof("eqos_0")) == 0))) {
-				dev_warn(&pdev->dev, "Invalid interface(%s). Using default interface(eqos_0)\n", pdev_data->iface_nm);
-				pdev_data->iface_nm = devm_kstrdup(&pdev->dev, "eqos_0", GFP_KERNEL);
-			}
-
-			dev_info(&pdev->dev, "using mem mapped MAC PHC reg method with %s MAC\n", pdev_data->iface_nm);
-			/* remap base address for eqos */
-			pdev_data->mac_base_addr = (u64)devm_ioremap(&pdev->dev, T194_EQOS_BASE_ADDR, SZ_4K);
-			dev_info(&pdev->dev, "map EQOS to (%p)\n", (void *)pdev_data->mac_base_addr);
-			pdev_data->sts_offset = EQOS_STSR_OFFSET;
-			pdev_data->stns_offset = EQOS_STNSR_OFFSET;
-		} else {
-			pdev_data->iface_nm = devm_kstrdup(&pdev->dev, "eqos_0", GFP_KERNEL);
-			dev_info(&pdev->dev, "using ptp notifier method with default interface(%s)\n", pdev_data->iface_nm);
-		}
-	}
-}
-
 /* spawn timer to monitor TSC to PTP lock and re-activate
  locking process if its not locked in the handler */
 static int set_mode_tsc(struct nvpps_device_data *pdev_data)
@@ -719,32 +625,6 @@ static long nvpps_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 			break;
 		}
 
-		case NVPPS_SETPTPINTERFACE: {
-			char iface_name[10];
-
-			dev_dbg(pdev_data->dev, "NVPPS_SETPTPINTERFACE\n");
-			err = copy_from_user(iface_name, uarg, sizeof(iface_name));
-			if (err)
-				return -EFAULT;
-
-			pdev_data->iface_nm = devm_kstrdup(&pdev_data->pdev->dev, iface_name, GFP_KERNEL);
-			pdev_data->memmap_phc_regs = false;
-
-			nvpps_fill_mac_phc_info(pdev_data->pdev, pdev_data);
-
-			break;
-		}
-
-		case NVPPS_GETPTPINTERFACE: {
-			dev_dbg(pdev_data->dev, "NVPPS_GETPTPINTERFACE\n");
-
-			err = copy_to_user(uarg, pdev_data->iface_nm, sizeof(pdev_data->iface_nm));
-			if (err)
-				return -EFAULT;
-
-			break;
-		}
-
 		default:
 			return -ENOTTY;
 	}
@@ -816,13 +696,101 @@ static void nvpps_dev_release(struct device *dev)
 static void nvpps_fill_default_mac_phc_info(struct platform_device *pdev,
 											struct nvpps_device_data *pdev_data)
 {
+	bool use_eqos_mac = false;
 	struct device_node *np = pdev->dev.of_node;
+
+	pdev_data->platform_is_orin = false;
 
 	/* Get default params from dt */
 	pdev_data->iface_nm = (char *)of_get_property(np, "interface", NULL);
 	pdev_data->memmap_phc_regs = of_property_read_bool(np, "memmap_phc_regs");
 
-	nvpps_fill_mac_phc_info(pdev, pdev_data);
+	/* For orin */
+	if (of_machine_is_compatible("nvidia,tegra234")) {
+		pdev_data->platform_is_orin = true;
+		if (pdev_data->memmap_phc_regs) {
+			dev_info(&pdev->dev, "using mem mapped MAC PHC reg method\n");
+			if (pdev_data->iface_nm == NULL) {
+				pdev_data->iface_nm = devm_kstrdup(&pdev->dev, "eqos_0", GFP_KERNEL);
+				dev_warn(&pdev->dev, "interface property not provided. Using default interface(%s)\n", pdev_data->iface_nm);
+				use_eqos_mac = true;
+			} else {
+				if (!strncmp(pdev_data->iface_nm, "eqos_0", sizeof("eqos_0"))) {
+					use_eqos_mac = true;
+				} else if (!strncmp(pdev_data->iface_nm, "mgbe0_0", sizeof("mgbe0_0"))) {
+					/* remap base address for mgbe0_0 */
+					pdev_data->mac_base_addr = (u64)devm_ioremap(&pdev->dev, T234_MGBE0_BASE_ADDR, SZ_4K);
+					dev_info(&pdev->dev, "map MGBE0_0 to (%p)\n", (void *)pdev_data->mac_base_addr);
+					pdev_data->sts_offset = MGBE_STSR_OFFSET;
+					pdev_data->stns_offset = MGBE_STNSR_OFFSET;
+				} else if (!strncmp(pdev_data->iface_nm, "mgbe1_0", sizeof("mgbe1_0"))) {
+					/* remap base address for mgbe1_0 */
+					pdev_data->mac_base_addr = (u64)devm_ioremap(&pdev->dev, T234_MGBE1_BASE_ADDR, SZ_4K);
+					dev_info(&pdev->dev, "map MGBE1_0 to (%p)\n", (void *)pdev_data->mac_base_addr);
+					pdev_data->sts_offset = MGBE_STSR_OFFSET;
+					pdev_data->stns_offset = MGBE_STNSR_OFFSET;
+				} else if (!strncmp(pdev_data->iface_nm, "mgbe2_0", sizeof("mgbe2_0"))) {
+					/* remap base address for mgbe2_0 */
+					pdev_data->mac_base_addr = (u64)devm_ioremap(&pdev->dev, T234_MGBE2_BASE_ADDR, SZ_4K);
+					dev_info(&pdev->dev, "map MGBE2_0 to (%p)\n", (void *)pdev_data->mac_base_addr);
+					pdev_data->sts_offset = MGBE_STSR_OFFSET;
+					pdev_data->stns_offset = MGBE_STNSR_OFFSET;
+				} else if (!strncmp(pdev_data->iface_nm, "mgbe3_0", sizeof("mgbe3_0"))) {
+					/* remap base address for mgbe3_0 */
+					pdev_data->mac_base_addr = (u64)devm_ioremap(&pdev->dev, T234_MGBE3_BASE_ADDR, SZ_4K);
+					dev_info(&pdev->dev, "map MGBE3_0 to (%p)\n", (void *)pdev_data->mac_base_addr);
+					pdev_data->sts_offset = MGBE_STSR_OFFSET;
+					pdev_data->stns_offset = MGBE_STNSR_OFFSET;
+				} else {
+					dev_warn(&pdev->dev, "Invalid interface(%s). Using default interface(eqos_0)\n", pdev_data->iface_nm);
+					pdev_data->iface_nm = devm_kstrdup(&pdev->dev, "eqos_0", GFP_KERNEL);
+					use_eqos_mac = true;
+				}
+			}
+
+			if (use_eqos_mac) {
+				/* remap base address for eqos */
+				pdev_data->mac_base_addr = (u64)devm_ioremap(&pdev->dev, T234_EQOS_BASE_ADDR, SZ_4K);
+				dev_info(&pdev->dev, "map EQOS to (%p)\n", (void *)pdev_data->mac_base_addr);
+				pdev_data->sts_offset = EQOS_STSR_OFFSET;
+				pdev_data->stns_offset = EQOS_STNSR_OFFSET;
+			}
+		} else {
+			/* Using ptp-notifier method */
+			if (pdev_data->iface_nm) {
+				if ((!strncmp(pdev_data->iface_nm, "eqos_0", sizeof("eqos_0"))) ||
+					(!strncmp(pdev_data->iface_nm, "mgbe0_0", sizeof("mgbe0_0"))) ||
+					(!strncmp(pdev_data->iface_nm, "mgbe1_0", sizeof("mgbe1_0"))) ||
+					(!strncmp(pdev_data->iface_nm, "mgbe2_0", sizeof("mgbe2_0"))) ||
+					(!strncmp(pdev_data->iface_nm, "mgbe3_0", sizeof("mgbe3_0")))) {
+					dev_info(&pdev->dev, "using ptp notifier method with interface(%s)\n", pdev_data->iface_nm);
+				} else {
+					dev_warn(&pdev->dev, "Invalid interface(%s). Using default interface(eqos_0)\n", pdev_data->iface_nm);
+					pdev_data->iface_nm = devm_kstrdup(&pdev->dev, "eqos_0", GFP_KERNEL);
+				}
+			} else {
+				pdev_data->iface_nm = devm_kstrdup(&pdev->dev, "eqos_0", GFP_KERNEL);
+				dev_info(&pdev->dev, "using ptp notifier method with interface(%s)\n", pdev_data->iface_nm);
+			}
+		}
+	} else {
+		if (pdev_data->memmap_phc_regs) {
+			if (!(pdev_data->iface_nm && (strncmp(pdev_data->iface_nm, "eqos_0", sizeof("eqos_0")) == 0))) {
+				dev_warn(&pdev->dev, "Invalid interface(%s). Using default interface(eqos_0)\n", pdev_data->iface_nm);
+				pdev_data->iface_nm = devm_kstrdup(&pdev->dev, "eqos_0", GFP_KERNEL);
+			}
+
+			dev_info(&pdev->dev, "using mem mapped MAC PHC reg method with %s MAC\n", pdev_data->iface_nm);
+			/* remap base address for eqos */
+			pdev_data->mac_base_addr = (u64)devm_ioremap(&pdev->dev, T194_EQOS_BASE_ADDR, SZ_4K);
+			dev_info(&pdev->dev, "map EQOS to (%p)\n", (void *)pdev_data->mac_base_addr);
+			pdev_data->sts_offset = EQOS_STSR_OFFSET;
+			pdev_data->stns_offset = EQOS_STNSR_OFFSET;
+		} else {
+			pdev_data->iface_nm = devm_kstrdup(&pdev->dev, "eqos_0", GFP_KERNEL);
+			dev_info(&pdev->dev, "using ptp notifier method with default interface(%s)\n", pdev_data->iface_nm);
+		}
+	}
 }
 
 
