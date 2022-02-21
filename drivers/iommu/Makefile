@@ -4,7 +4,6 @@ ccflags-y += -Werror
 ccflags-y += -I$(srctree)/drivers/iommu
 
 obj-$(CONFIG_ARM_SMMU) += of_tegra-smmu.o
-obj-y += dma-override.o
 
 endif
 
