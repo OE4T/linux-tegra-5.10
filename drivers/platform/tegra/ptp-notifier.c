@@ -104,6 +104,7 @@ int tegra_get_hwtime(const char *intf_name, void *ts, int ts_type)
 	raw_spin_lock_irqsave(&ptp_notifier_lock, flags);
 	if (!intf_name || !ts) {
 		pr_err("passed Interface_name or time-stamp ptr is NULL");
+		raw_spin_unlock_irqrestore(&ptp_notifier_lock, flags);
 		return -1;
 	}
 	dev = dev_get_by_name(&init_net, intf_name);
