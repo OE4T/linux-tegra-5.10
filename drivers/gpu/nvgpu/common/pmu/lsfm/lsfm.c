@@ -55,16 +55,37 @@ static bool is_lsfm_supported(struct gk20a *g,
 	return false;
 }
 
-int nvgpu_pmu_lsfm_int_wpr_region(struct gk20a *g,
+static int lsfm_int_wpr_region(struct gk20a *g,
 	struct nvgpu_pmu *pmu, struct nvgpu_pmu_lsfm *lsfm)
 {
-	if (is_lsfm_supported(g, pmu, lsfm)) {
-		if (lsfm->init_wpr_region != NULL) {
-			return lsfm->init_wpr_region(g, pmu);
+	int status = 0;
+
+	status = nvgpu_pmu_wait_fw_ready(g, g->pmu);
+	if (status != 0) {
+		nvgpu_err(g, "PMU not ready to process requests");
+		goto done;
+	}
+
+	if (lsfm->init_wpr_region != NULL) {
+		status = lsfm->init_wpr_region(g, pmu);
+	} else {
+		status = -EINVAL;
+		goto done;
+	}
+
+	if (status == 0) {
+		pmu_wait_message_cond(g->pmu,
+				nvgpu_get_poll_timeout(g),
+				&lsfm->is_wpr_init_done, 1U);
+		/* check again if it still not ready indicate an error */
+		if (!lsfm->is_wpr_init_done) {
+			nvgpu_err(g, "PMU not ready to load LSF");
+			status = -ETIMEDOUT;
 		}
 	}
 
-	return 0;
+done:
+	return status;
 }
 
 int nvgpu_pmu_lsfm_bootstrap_ls_falcon(struct gk20a *g,
@@ -72,20 +93,39 @@ int nvgpu_pmu_lsfm_bootstrap_ls_falcon(struct gk20a *g,
 {
 	int status = 0;
 
-	if (is_lsfm_supported(g, pmu, lsfm)) {
-		if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
-			if (lsfm->bootstrap_ls_falcon != NULL) {
-				status = lsfm->bootstrap_ls_falcon(g, pmu, lsfm,
-					falcon_id_mask);
-			}
-		} else {
-			status = lsfm->bootstrap_ls_falcon(g, pmu, lsfm, FALCON_ID_FECS);
-			if (status != 0) {
-				return status;
-			}
+	if (!is_lsfm_supported(g, pmu, lsfm)) {
+		return 0;
+	}
 
-			status = lsfm->bootstrap_ls_falcon(g, pmu, lsfm, FALCON_ID_GPCCS);
+	/*
+	 * check whether pmu is ready to bootstrap lsf, if not send
+	 * the init WPR region command and wait for completion.
+	 */
+	if (!lsfm->is_wpr_init_done) {
+		status = lsfm_int_wpr_region(g, pmu, lsfm);
+		if (status != 0) {
+			nvgpu_err(g, "LSF init WPR region failed");
+			goto done;
 		}
+	}
+
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		if (lsfm->bootstrap_ls_falcon != NULL) {
+			status = lsfm->bootstrap_ls_falcon(g, pmu, lsfm,
+				falcon_id_mask);
+		}
+	} else {
+		status = lsfm->bootstrap_ls_falcon(g, pmu, lsfm, FALCON_ID_FECS);
+		if (status != 0) {
+			goto done;
+		}
+
+		status = lsfm->bootstrap_ls_falcon(g, pmu, lsfm, FALCON_ID_GPCCS);
+	}
+
+done:
+	if (status != 0) {
+			nvgpu_err(g, "LSF Load failed");
 	}
 
 	return status;

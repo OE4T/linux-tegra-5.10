@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -36,8 +36,6 @@ struct nvgpu_pmu_lsfm {
 	int (*ls_pmu_cmdline_args_copy)(struct gk20a *g, struct nvgpu_pmu *pmu);
 };
 
-int nvgpu_pmu_lsfm_int_wpr_region(struct gk20a *g,
-	struct nvgpu_pmu *pmu, struct nvgpu_pmu_lsfm *lsfm);
 int nvgpu_pmu_lsfm_bootstrap_ls_falcon(struct gk20a *g,
 	struct nvgpu_pmu *pmu, struct nvgpu_pmu_lsfm *lsfm, u32 falcon_id_mask);
 int nvgpu_pmu_lsfm_ls_pmu_cmdline_args_copy(struct gk20a *g,

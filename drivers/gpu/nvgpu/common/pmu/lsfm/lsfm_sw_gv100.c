@@ -54,6 +54,15 @@ static int gv100_pmu_lsfm_init_acr_wpr_region(struct gk20a *g,
 			status);
 	}
 
+	/*
+	 * Add delay of 2ms after init region command sent to LSPMU(LSPMU
+	 * takes ~350usec to complete the command process) and before polling
+	 * the irqstat register in nvgpu to engage priv lockdown in LSPMU.
+	 * This additional delay will help to skip reading the irqstat
+	 * incorrectly at corner case during the priv lockdown process.
+	 */
+	nvgpu_msleep(2);
+
 	return status;
 }
 
@@ -75,18 +84,6 @@ static int gv100_pmu_lsfm_bootstrap_ls_falcon(struct gk20a *g,
 	}
 
 	lsfm->loaded_falcon_id = 0U;
-	/* check whether pmu is ready to bootstrap lsf if not wait for it */
-	if (!lsfm->is_wpr_init_done) {
-		pmu_wait_message_cond(g->pmu,
-			nvgpu_get_poll_timeout(g),
-			&lsfm->is_wpr_init_done, 1U);
-		/* check again if it still not ready indicate an error */
-		if (!lsfm->is_wpr_init_done) {
-			nvgpu_err(g, "PMU not ready to load LSF");
-			status = -ETIMEDOUT;
-			goto exit;
-		}
-	}
 
 	(void) memset(&rpc, 0,
 		sizeof(struct nv_pmu_rpc_struct_acr_bootstrap_gr_falcons));
@@ -98,6 +95,15 @@ static int gv100_pmu_lsfm_bootstrap_ls_falcon(struct gk20a *g,
 		nvgpu_err(g, "Failed to execute RPC, status=0x%x", status);
 		goto exit;
 	}
+
+	/*
+	 * Add delay of 5ms after bootstrap command sent to LSPMU(LSPMU takes
+	 * ~3.5msec to complete the command process) and before polling
+	 * the irqstat register in nvgpu to engage priv lockdown in LSPMU.
+	 * This additional delay will help to skip reading the irqstat
+	 * incorrectly at corner case during the priv lockdown process.
+	 */
+	nvgpu_msleep(5);
 
 	pmu_wait_message_cond(g->pmu, nvgpu_get_poll_timeout(g),
 		&lsfm->loaded_falcon_id, 1U);
@@ -139,19 +145,6 @@ static int gv100_pmu_lsfm_bootstrap_ls_falcon_eng(struct gk20a *g,
 
 	lsfm->loaded_falcon_id = 0U;
 
-	/* check whether pmu is ready to bootstrap lsf if not wait for it */
-	if (!lsfm->is_wpr_init_done) {
-		pmu_wait_message_cond(g->pmu,
-			nvgpu_get_poll_timeout(g),
-			&lsfm->is_wpr_init_done, 1U);
-		/* check again if it still not ready indicate an error */
-		if (!lsfm->is_wpr_init_done) {
-			nvgpu_err(g, "PMU not ready to load LSF");
-			status = -ETIMEDOUT;
-			goto exit;
-		}
-	}
-
 	(void) memset(&rpc, 0,
 		sizeof(struct nv_pmu_rpc_struct_acr_bootstrap_falcon));
 
@@ -172,6 +165,15 @@ static int gv100_pmu_lsfm_bootstrap_ls_falcon_eng(struct gk20a *g,
 		nvgpu_err(g, "Failed to execute RPC, status=0x%x", status);
 		goto exit;
 	}
+
+	/*
+	 * Add delay of 5ms after bootstrap command sent to LSPMU(LSPMU takes
+	 * ~3.5msec to complete the command process) and before polling
+	 * the irqstat register in nvgpu to engage priv lockdown in LSPMU.
+	 * This additional delay will help to skip reading the irqstat
+	 * incorrectly at corner case during the priv lockdown process.
+	 */
+	nvgpu_msleep(5);
 
 	pmu_wait_message_cond(g->pmu, nvgpu_get_poll_timeout(g),
 		&lsfm->loaded_falcon_id, 1U);

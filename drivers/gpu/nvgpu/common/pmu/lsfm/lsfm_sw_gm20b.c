@@ -102,10 +102,6 @@ static int gm20b_pmu_lsfm_bootstrap_falcon(struct gk20a *g,
 
 	lsfm->loaded_falcon_id = 0U;
 
-	if (!lsfm->is_wpr_init_done) {
-		return -EINVAL;
-	}
-
 	/* send message to load FECS falcon */
 	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 	cmd.hdr.unit_id = PMU_UNIT_ACR;
@@ -135,18 +131,6 @@ static int gm20b_pmu_lsfm_bootstrap_ls_falcon(struct gk20a *g,
 	/* GM20B PMU supports loading FECS only */
 	if (!(falcon_id_mask == BIT32(FALCON_ID_FECS))) {
 		return -EINVAL;
-	}
-
-	/* check whether pmu is ready to bootstrap lsf if not wait for it */
-	if (!lsfm->is_wpr_init_done) {
-		pmu_wait_message_cond(g->pmu,
-				nvgpu_get_poll_timeout(g),
-				&lsfm->is_wpr_init_done, 1U);
-		/* check again if it still not ready indicate an error */
-		if (!lsfm->is_wpr_init_done) {
-			nvgpu_err(g, "PMU not ready to load LSF");
-			return -ETIMEDOUT;
-		}
 	}
 
 	/* load FECS */
