@@ -1147,7 +1147,8 @@ static int tegra_crypt_pka1_rsa(struct tegra_crypto_ctx *ctx,
 	if (rsa_req->op_mode == RSA_INIT) {
 		if (ctx->pka1_rsa_tfm)
 			return 0;
-		tfm = crypto_alloc_akcipher("rsa", CRYPTO_ALG_TYPE_AKCIPHER, 0);
+		tfm = crypto_alloc_akcipher("rsa-tegra",
+				CRYPTO_ALG_TYPE_AKCIPHER, 0);
 		if (IS_ERR(tfm)) {
 			pr_err("Failed to load transform for rsa: %ld\n",
 				PTR_ERR(tfm));

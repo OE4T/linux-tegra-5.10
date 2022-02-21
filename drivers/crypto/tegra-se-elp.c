@@ -3796,7 +3796,7 @@ static struct akcipher_alg pka1_rsa_algs[] = {
 		.init = tegra_se_pka1_rsa_init,
 		.exit = tegra_se_pka1_rsa_exit,
 		.base = {
-			.cra_name = "rsa",
+			.cra_name = "rsa-tegra",
 			.cra_driver_name = "tegra-se-pka1-rsa",
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 			.cra_blocksize = MAX_PKA1_SIZE,
