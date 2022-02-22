@@ -1644,6 +1644,7 @@ static u32 tegra_se_get_crypto_config(struct tegra_se_dev *se_dev,
 {
 	u32 val = 0;
 	unsigned long freq = 0;
+	int err = 0;
 
 	switch (mode) {
 	case SE_AES_OP_MODE_XTS:
@@ -1755,7 +1756,21 @@ static u32 tegra_se_get_crypto_config(struct tegra_se_dev *se_dev,
 
 	if (mode == SE_AES_OP_MODE_RNG_DRBG) {
 		/* Make sure engine is powered ON*/
-		nvhost_module_busy(se_dev->pdev);
+		err = nvhost_module_busy(se_dev->pdev);
+		if (err < 0) {
+			dev_err(se_dev->dev,
+			"nvhost_module_busy failed for se with err: %d\n",
+			err);
+
+			/*
+			 * Do not program force reseed if nvhost_module_busy
+			 * failed. This can result in a crash as clocks might
+			 * be disabled.
+			 *
+			 * Return val if unable to power on SE
+			 */
+			return val;
+		}
 
 		if (force_reseed_count <= 0) {
 			se_writel(se_dev,
@@ -1925,14 +1940,21 @@ index_out:
 	return err;
 }
 
-static void tegra_se_read_cmac_result(struct tegra_se_dev *se_dev, u8 *pdata,
+static int tegra_se_read_cmac_result(struct tegra_se_dev *se_dev, u8 *pdata,
 				      u32 nbytes, bool swap32)
 {
 	u32 *result = (u32 *)pdata;
 	u32 i;
+	int err = 0;
 
 	/* Make SE engine is powered ON */
-	nvhost_module_busy(se_dev->pdev);
+	err = nvhost_module_busy(se_dev->pdev);
+	if (err < 0) {
+		dev_err(se_dev->dev,
+			"nvhost_module_busy failed for se with err: %d\n",
+			err);
+		return err;
+	}
 
 	for (i = 0; i < nbytes / 4; i++) {
 		if (se_dev->chipdata->kac_type == SE_KAC_T23X) {
@@ -1949,13 +1971,22 @@ static void tegra_se_read_cmac_result(struct tegra_se_dev *se_dev, u8 *pdata,
 	}
 
 	nvhost_module_idle(se_dev->pdev);
+
+	return 0;
 }
 
-static void tegra_se_clear_cmac_result(struct tegra_se_dev *se_dev, u32 nbytes)
+static int tegra_se_clear_cmac_result(struct tegra_se_dev *se_dev, u32 nbytes)
 {
 	u32 i;
+	int err = 0;
 
-	nvhost_module_busy(se_dev->pdev);
+	err = nvhost_module_busy(se_dev->pdev);
+	if (err < 0) {
+		dev_err(se_dev->dev,
+			"nvhost_module_busy failed for se with err: %d\n",
+			err);
+		return err;
+	}
 
 	for (i = 0; i < nbytes / 4; i++) {
 		if (se_dev->chipdata->kac_type == SE_KAC_T23X) {
@@ -1970,6 +2001,8 @@ static void tegra_se_clear_cmac_result(struct tegra_se_dev *se_dev, u32 nbytes)
 	}
 
 	nvhost_module_idle(se_dev->pdev);
+
+	return 0;
 }
 
 static void tegra_se_send_data(struct tegra_se_dev *se_dev,
@@ -3606,12 +3639,19 @@ static int tegra_t23x_se_aes_cmac_op(struct ahash_request *req,
 	if (ret)
 		goto out;
 
-	tegra_se_read_cmac_result(se_dev, req->result,
+	ret = tegra_se_read_cmac_result(se_dev, req->result,
 				  TEGRA_SE_AES_CMAC_DIGEST_SIZE, false);
+	if (ret) {
+		dev_err(se_dev->dev, "failed to read cmac result\n");
+		goto out;
+	}
 
-	tegra_se_clear_cmac_result(se_dev,
+	ret = tegra_se_clear_cmac_result(se_dev,
 				   TEGRA_SE_AES_CMAC_DIGEST_SIZE);
-
+	if (ret) {
+		dev_err(se_dev->dev, "failed to clear cmac result\n");
+		goto out;
+	}
 
 out:
 	mutex_unlock(&se_dev->mtx);
@@ -3708,8 +3748,13 @@ static int tegra_se_aes_cmac_op(struct ahash_request *req, bool process_cur_req)
 		if (ret)
 			goto out;
 
-		tegra_se_read_cmac_result(se_dev, piv,
+		ret = tegra_se_read_cmac_result(se_dev, piv,
 					  TEGRA_SE_AES_CMAC_DIGEST_SIZE, false);
+		if (ret) {
+			dev_err(se_dev->dev, "failed to read cmac result\n");
+			goto out;
+		}
+
 		use_orig_iv = false;
 	}
 
@@ -3769,8 +3814,14 @@ static int tegra_se_aes_cmac_op(struct ahash_request *req, bool process_cur_req)
 			se_dev->aes_cmdbuf_iova, 0, se_dev->cmdbuf_cnt, NONE);
 	if (ret)
 		goto out;
-	tegra_se_read_cmac_result(se_dev, req->result,
+
+	ret = tegra_se_read_cmac_result(se_dev, req->result,
 				  TEGRA_SE_AES_CMAC_DIGEST_SIZE, false);
+	if (ret) {
+		dev_err(se_dev->dev, "failed to read cmac result\n");
+		goto out;
+	}
+
 	cmac_ctx->nbytes = 0;
 out:
 	mutex_unlock(&se_dev->mtx);
@@ -3887,8 +3938,12 @@ static int tegra_se_aes_cmac_setkey(struct crypto_ahash *tfm, const u8 *key,
 	}
 
 	if (se_dev->chipdata->kac_type == SE_KAC_T23X) {
-		tegra_se_clear_cmac_result(se_dev,
+		ret = tegra_se_clear_cmac_result(se_dev,
 					   TEGRA_SE_AES_CMAC_DIGEST_SIZE);
+		if (ret) {
+			dev_err(se_dev->dev, "failed to clear cmac result\n");
+			goto out;
+		}
 	} else {
 		/* config crypto algo */
 		req_ctx->config = tegra_se_get_config(se_dev,
@@ -5280,10 +5335,20 @@ static int tegra_se_ccm_compute_auth(struct aead_request *req, bool encrypt)
 			0, se_dev->cmdbuf_cnt, NONE);
 
 	/* 4.1 - Read result */
-	tegra_se_read_cmac_result(se_dev, ctx->mac,
+	ret = tegra_se_read_cmac_result(se_dev, ctx->mac,
 				TEGRA_SE_AES_CBC_MAC_DIGEST_SIZE, false);
+	if (ret) {
+		dev_err(se_dev->dev, "failed to read cmac result\n");
+		goto out;
+	}
 
-	tegra_se_clear_cmac_result(se_dev, TEGRA_SE_AES_CBC_MAC_DIGEST_SIZE);
+	ret = tegra_se_clear_cmac_result(se_dev,
+			TEGRA_SE_AES_CBC_MAC_DIGEST_SIZE);
+	if (ret) {
+		dev_err(se_dev->dev, "failed to clear cmac result\n");
+		goto out;
+	}
+
 	/* 5 - Clean up */
 	tegra_unmap_sg(se_dev->dev, sg_start, DMA_TO_DEVICE, mapped_len);
 out:
