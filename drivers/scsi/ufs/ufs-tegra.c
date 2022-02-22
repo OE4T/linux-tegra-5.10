@@ -1696,6 +1696,19 @@ static void ufs_tegra_program_platfrom_specifics(struct ufs_tegra_host *ufs_tegr
 	ufs_tegra_program_mphy_attr_fpga(ufs_tegra->mphy_l1_base);
 }
 
+static void ufs_tegra_eq_timeout(struct ufs_tegra_host *ufs_tegra)
+{
+	mphy_writel(ufs_tegra->mphy_l0_base, MPHY_EQ_TIMEOUT,
+			MPHY_RX_APB_VENDOR3B_0_T234);
+	mphy_update(ufs_tegra->mphy_l0_base, MPHY_GO_BIT, MPHY_RX_APB_VENDOR2_0_T234);
+
+	if (ufs_tegra->x2config) {
+		mphy_writel(ufs_tegra->mphy_l1_base, MPHY_EQ_TIMEOUT,
+				MPHY_RX_APB_VENDOR3B_0_T234);
+		mphy_update(ufs_tegra->mphy_l1_base, MPHY_GO_BIT, MPHY_RX_APB_VENDOR2_0_T234);
+	}
+}
+
 /**
  * ufs_tegra_init - bind phy with controller
  * @hba: host controller instance
@@ -1868,6 +1881,8 @@ static int ufs_tegra_init(struct ufs_hba *hba)
 	ufs_tegra_aux_reset_enable(ufs_tegra);
 	ufs_tegra_ufs_aux_prog(ufs_tegra);
 	ufs_tegra_cfg_vendor_registers(hba);
+	if (ufs_tegra->chip_id == TEGRA234)
+		ufs_tegra_eq_timeout(ufs_tegra);
 
 	/* FPGA specific initialization */
 	if (tegra_platform_is_fpga())
