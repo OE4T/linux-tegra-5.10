@@ -91,6 +91,12 @@ static const struct tpg_frmfmt tegra19x_csi_tpg_frmfmt[] = {
 	{{1280, 720}, V4L2_PIX_FMT_RGB32, 30, 0, 0},
 	{{1920, 1080}, V4L2_PIX_FMT_RGB32, 30, 0, 0},
 	{{3840, 2160}, V4L2_PIX_FMT_RGB32, 30, 0, 0},
+	{{1280, 720}, V4L2_PIX_FMT_NV16, 30, 0, 0},
+	{{1920, 1080}, V4L2_PIX_FMT_NV16, 30, 0, 0},
+	{{3840, 2160}, V4L2_PIX_FMT_NV16, 30, 0, 0},
+	{{1280, 720}, V4L2_PIX_FMT_UYVY, 30, 0, 0},
+	{{1920, 1080}, V4L2_PIX_FMT_UYVY, 30, 0, 0},
+	{{3840, 2160}, V4L2_PIX_FMT_UYVY, 30, 0, 0},
 };
 
 #define TPG_PORT_IDX	0
