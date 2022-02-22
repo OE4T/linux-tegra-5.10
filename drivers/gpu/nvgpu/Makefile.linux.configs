@@ -270,3 +270,6 @@ endif
 ifeq ($(CONFIG_NVS_PRESENT),y)
 ccflags-y += -DCONFIG_NVS_PRESENT
 endif
+ifeq ($(CONFIG_NVGPU_IVM_BUILD),y)
+ccflags-y += -DCONFIG_NVGPU_IVM_BUILD
+endif

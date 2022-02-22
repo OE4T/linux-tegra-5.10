@@ -397,11 +397,13 @@ static long gk20a_ctrl_ioctl_gpu_characteristics(
 	gpu.bus_type = NVGPU_GPU_BUS_TYPE_AXI; /* always AXI for now */
 
 #ifdef CONFIG_NVGPU_COMPRESSION
-	gpu.compression_page_size = g->ops.fb.compression_page_size(g);
-	gpu.gr_compbit_store_base_hw = g->cbc->compbit_store.base_hw;
-	gpu.gr_gobs_per_comptagline_per_slice =
-		g->cbc->gobs_per_comptagline_per_slice;
-	gpu.cbc_comptags_per_line = g->cbc->comptags_per_cacheline;
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_COMPRESSION)) {
+		gpu.compression_page_size = g->ops.fb.compression_page_size(g);
+		gpu.gr_compbit_store_base_hw = g->cbc->compbit_store.base_hw;
+		gpu.gr_gobs_per_comptagline_per_slice =
+			g->cbc->gobs_per_comptagline_per_slice;
+		gpu.cbc_comptags_per_line = g->cbc->comptags_per_cacheline;
+	}
 #endif
 
 	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG) ||

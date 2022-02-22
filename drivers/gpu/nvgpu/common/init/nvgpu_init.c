@@ -938,7 +938,8 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_boot_clk_or_clk_arb, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.therm.init_therm_support, NO_FLAG),
 #ifdef CONFIG_NVGPU_COMPRESSION
-		NVGPU_INIT_TABLE_ENTRY(g->ops.cbc.cbc_init_support, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(g->ops.cbc.cbc_init_support,
+				NVGPU_SUPPORT_COMPRESSION),
 #endif
 		NVGPU_INIT_TABLE_ENTRY(g->ops.chip_init_gpu_characteristics,
 				       NO_FLAG),

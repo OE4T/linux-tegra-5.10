@@ -63,3 +63,9 @@ int nvgpu_init_soc_vars(struct gk20a *g)
 	(void)g;
 	return 0;
 }
+
+u64 nvgpu_get_pa_from_ipa(struct gk20a *g, u64 ipa)
+{
+	(void)g;
+	return ipa;
+}

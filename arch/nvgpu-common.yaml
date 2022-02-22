@@ -127,7 +127,8 @@ cbc:
   sources: [ common/cbc/cbc.c,
              include/nvgpu/cbc.h,
              include/nvgpu/gops/cbc.h,
-             include/nvgpu/nvgpu_ivm.h ]
+             include/nvgpu/nvgpu_ivm.h,
+             common/cbc/contig_pool.c ]
 
 regops:
   safe: no

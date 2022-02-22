@@ -382,6 +382,7 @@ static const struct gops_cbc ga10b_ops_cbc = {
 	.init = gv11b_cbc_init,
 	.alloc_comptags = ga10b_cbc_alloc_comptags,
 	.ctrl = tu104_cbc_ctrl,
+	.use_contig_pool = ga10b_cbc_use_contig_pool,
 };
 #endif
 
@@ -1944,10 +1945,10 @@ int ga10b_init_hal(struct gk20a *g)
 #endif
 
 #ifdef CONFIG_NVGPU_COMPRESSION
-	if (nvgpu_is_hypervisor_mode(g)) {
-		nvgpu_set_enabled(g, NVGPU_SUPPORT_COMPRESSION, false);
-	} else {
+	if (nvgpu_platform_is_silicon(g)) {
 		nvgpu_set_enabled(g, NVGPU_SUPPORT_COMPRESSION, true);
+	} else {
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_COMPRESSION, false);
 	}
 
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_COMPRESSION)) {

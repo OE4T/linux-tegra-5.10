@@ -32,6 +32,7 @@ struct gops_cbc {
 	int (*ctrl)(struct gk20a *g, enum nvgpu_cbc_op op,
 			u32 min, u32 max);
 	u32 (*fix_config)(struct gk20a *g, int base);
+	bool (*use_contig_pool)(struct gk20a *g);
 };
 #endif
 

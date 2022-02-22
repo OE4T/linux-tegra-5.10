@@ -420,3 +420,12 @@ int nvgpu_mem_create_from_phys(struct gk20a *g, struct nvgpu_mem *dest,
 
 	return ret;
 }
+
+u64 nvgpu_mem_phys_get_addr(struct gk20a *g, struct nvgpu_mem *mem)
+{
+	struct nvgpu_mem_sgl *sgl_impl;
+
+	(void)g;
+	sgl_impl = (struct nvgpu_mem_sgl *)(mem->phys_sgt->sgl);
+	return sgl_impl->phys;
+}

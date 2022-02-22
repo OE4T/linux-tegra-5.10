@@ -168,3 +168,8 @@ int ga10b_cbc_alloc_comptags(struct gk20a *g, struct nvgpu_cbc *cbc)
 
 	return 0;
 }
+
+bool ga10b_cbc_use_contig_pool(struct gk20a *g)
+{
+	return true;
+}

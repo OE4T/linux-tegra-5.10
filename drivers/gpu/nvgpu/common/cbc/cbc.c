@@ -30,6 +30,7 @@
 #include <nvgpu/string.h>
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/comptags.h>
+#include <nvgpu/soc.h>
 
 void nvgpu_cbc_remove_support(struct gk20a *g)
 {
@@ -40,7 +41,9 @@ void nvgpu_cbc_remove_support(struct gk20a *g)
 	if (cbc == NULL) {
 		return;
 	}
-
+#ifdef CONFIG_NVGPU_IVM_BUILD
+	nvgpu_cbc_contig_deinit(g);
+#endif
 	if (nvgpu_mem_is_valid(&cbc->compbit_store.mem)) {
 		nvgpu_dma_free(g, &cbc->compbit_store.mem);
 		(void) memset(&cbc->compbit_store, 0,
@@ -65,6 +68,10 @@ int nvgpu_cbc_init_support(struct gk20a *g)
 	bool is_resume = true;
 
 	nvgpu_log_fn(g, " ");
+
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_COMPRESSION)) {
+		return 0;
+	}
 
 	/*
 	 * If cbc == NULL, the device is being powered-on for the first
@@ -97,11 +104,50 @@ int nvgpu_cbc_init_support(struct gk20a *g)
 	return err;
 }
 
+#ifdef CONFIG_NVGPU_IVM_BUILD
+static int nvgpu_init_cbc_mem(struct gk20a *g, u64 pa, u64 size)
+{
+	u64 nr_pages;
+	int err = 0;
+	struct nvgpu_cbc *cbc = g->cbc;
+
+	nr_pages = size / NVGPU_CPU_PAGE_SIZE;
+	err = nvgpu_mem_create_from_phys(g, &cbc->compbit_store.mem,
+		pa, nr_pages);
+	return err;
+}
+
+static int nvgpu_get_mem_from_contigpool(struct gk20a *g,
+			size_t size,
+			struct nvgpu_mem *mem)
+{
+	struct nvgpu_contig_cbcmempool *contig_pool;
+	u64 pa;
+	int err = 0;
+
+	contig_pool = g->cbc->cbc_contig_mempool;
+	if (contig_pool->size < size) {
+		return -ENOMEM;
+	}
+
+	pa = contig_pool->base_addr;
+	err = nvgpu_init_cbc_mem(g, pa, size);
+	if (err != 0) {
+		return err;
+	}
+
+	return 0;
+
+}
+#endif
+
 int nvgpu_cbc_alloc(struct gk20a *g, size_t compbit_backing_size,
 			bool vidmem_alloc)
 {
 	struct nvgpu_cbc *cbc = g->cbc;
-
+#ifdef CONFIG_NVGPU_IVM_BUILD
+	int err = 0;
+#endif
 	(void)vidmem_alloc;
 
 	if (nvgpu_mem_is_valid(&cbc->compbit_store.mem) != 0) {
@@ -121,12 +167,28 @@ int nvgpu_cbc_alloc(struct gk20a *g, size_t compbit_backing_size,
 		return nvgpu_dma_alloc_vid(g,
 					 compbit_backing_size,
 					 &cbc->compbit_store.mem);
+	}
+#endif
+#ifdef CONFIG_NVGPU_IVM_BUILD
+	if (nvgpu_is_hypervisor_mode(g) && !g->is_virtual &&
+			(g->ops.cbc.use_contig_pool != NULL)) {
+		if (cbc->cbc_contig_mempool == NULL) {
+			err = nvgpu_cbc_contig_init(g);
+			if (err != 0) {
+				nvgpu_err(g, "Contig pool initialization failed");
+				return -ENOMEM;
+			}
+		}
+
+		return nvgpu_get_mem_from_contigpool(g,
+				compbit_backing_size,
+				&cbc->compbit_store.mem);
 	} else
 #endif
 	{
 		return nvgpu_dma_alloc_flags_sys(g,
-					 NVGPU_DMA_PHYSICALLY_ADDRESSED,
-					 compbit_backing_size,
-					 &cbc->compbit_store.mem);
+				NVGPU_DMA_PHYSICALLY_ADDRESSED,
+				compbit_backing_size,
+				&cbc->compbit_store.mem);
 	}
 }

@@ -57,6 +57,10 @@ ccflags-y += -DCONFIG_NVGPU_DEBUGGER
 ccflags-y += -DCONFIG_NVGPU_ENGINE_RESET
 endif
 
+ifeq ($(CONFIG_NVGPU_IVM_BUILD),y)
+ccflags-y += -DCONFIG_NVGPU_IVM_BUILD
+endif
+
 ccflags-y += -DCONFIG_NVGPU_DETERMINISTIC_CHANNELS
 ccflags-y += -DCONFIG_NVGPU_STATIC_POWERGATE
 ccflags-y += -DCONFIG_NVGPU_ACR_LEGACY
@@ -482,7 +486,9 @@ nvgpu-y += \
 	os/linux/dmabuf_priv.o \
 	os/linux/power_ops.o
 
-nvgpu-$(CONFIG_NVGPU_IVM_BUILD) += os/linux/nvgpu_ivm.o
+nvgpu-$(CONFIG_NVGPU_IVM_BUILD) += \
+	os/linux/nvgpu_ivm.o \
+	common/cbc/contig_pool.o
 
 nvgpu-$(CONFIG_NVGPU_VPR) += os/linux/vpr.o
 

@@ -639,6 +639,9 @@ srcs += common/mm/comptags.c \
 	hal/cbc/cbc_gm20b.c \
 	hal/cbc/cbc_gp10b.c \
 	hal/cbc/cbc_gv11b.c
+ifeq ($(CONFIG_NVGPU_IVM_BUILD),1)
+srcs += common/cbc/contig_pool.c
+endif
 endif
 
 ifeq ($(CONFIG_NVGPU_REMAP),1)

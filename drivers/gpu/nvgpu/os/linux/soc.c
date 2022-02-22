@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -129,4 +129,16 @@ int nvgpu_init_soc_vars(struct gk20a *g)
 	}
 #endif
 	return 0;
+}
+
+u64 nvgpu_get_pa_from_ipa(struct gk20a *g, u64 ipa)
+{
+	struct device *dev = dev_from_gk20a(g);
+	struct gk20a_platform *platform = gk20a_get_platform(dev);
+	u64 pa_len = 0U;
+
+	if (platform->phys_addr) {
+		return platform->phys_addr(g, ipa, &pa_len);
+	}
+	return ipa;
 }
