@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -729,7 +729,7 @@ static void vblk_release(struct gendisk *disk, fmode_t mode)
 	spin_unlock(&vblkdev->lock);
 }
 
-int vblk_getgeo(struct block_device *device, struct hd_geometry *geo)
+static int vblk_getgeo(struct block_device *device, struct hd_geometry *geo)
 {
 	geo->heads = VS_LOG_HEADS;
 	geo->sectors = VS_LOG_SECTS;
@@ -740,7 +740,7 @@ int vblk_getgeo(struct block_device *device, struct hd_geometry *geo)
 }
 
 /* The device operations structure. */
-const struct block_device_operations vblk_ops = {
+static const struct block_device_operations vblk_ops = {
 	.owner           = THIS_MODULE,
 	.open            = vblk_open,
 	.release         = vblk_release,
