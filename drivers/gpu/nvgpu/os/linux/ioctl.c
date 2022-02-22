@@ -1,7 +1,7 @@
 /*
  * NVGPU IOCTLs
  *
- * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -282,7 +282,7 @@ static int gk20a_create_device(
 			class->priv_data ? class->priv_data : NULL,
 			device_name ? device_name : cdev_name);
 	if (IS_ERR(subdev)) {
-		err = PTR_ERR(dev);
+		err = PTR_ERR(subdev);
 		cdev_del(cdev);
 		dev_err(dev, "failed to create %s device for %s\n",
 			cdev_name, dev_name(dev));
