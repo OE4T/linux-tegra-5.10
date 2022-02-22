@@ -3,7 +3,7 @@
  *
  * Instantiates virtualization-related resources.
  *
- * Copyright (C) 2014-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (C) 2014-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * This file is licensed under the terms of the GNU General Public License
  * version 2.  This program is licensed "as is" without any warranty of any
@@ -335,7 +335,7 @@ static int tegra_hv_add_ivc(struct tegra_hv_data *hvd,
 	return 0;
 }
 
-struct hv_ivc *ivc_device_by_id(const struct tegra_hv_data *hvd, uint32_t id)
+static struct hv_ivc *ivc_device_by_id(const struct tegra_hv_data *hvd, uint32_t id)
 {
 	if (id > hvd->max_qid)
 		return NULL;

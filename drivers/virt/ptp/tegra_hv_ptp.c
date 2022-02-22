@@ -1,7 +1,7 @@
 /*
  * drivers/virt/ptp/tegra_hv_ptp.c
  *
- * Copyright (c) 2019-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@ struct tegra_hv_ptp {
 /* A pointer to the 'current' hv instance. */
 /* It is expected that there will only be one instance, */
 static struct tegra_hv_ptp *s_hv;
-struct mutex s_hv_lock;
+static struct mutex s_hv_lock;
 static struct class *s_hv_ptp_class;
 static dev_t s_hv_ptp_devt;
 static DEFINE_MUTEX(s_hv_ptp_lock);

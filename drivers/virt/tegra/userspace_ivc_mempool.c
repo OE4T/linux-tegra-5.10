@@ -10,7 +10,7 @@
  * with a userspace daemon linked against ivc library code, i.e. it  is not
  * a stand-alone driver.
  *
- * Copyright (C) 2016-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (C) 2016-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * This file is licensed under the terms of the GNU General Public License
  * version 2.  This program is licensed "as is" without any warranty of any
@@ -103,7 +103,7 @@ static ssize_t peer_show(struct device *dev,
 static DEVICE_ATTR_RO(id);
 static DEVICE_ATTR_RO(size);
 static DEVICE_ATTR_RO(peer);
-struct attribute *ivc_mempool_attrs[] = {
+static struct attribute *ivc_mempool_attrs[] = {
 	&dev_attr_id.attr,
 	&dev_attr_size.attr,
 	&dev_attr_peer.attr,
