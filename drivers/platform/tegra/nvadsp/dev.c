@@ -572,6 +572,7 @@ static struct nvadsp_chipdata tegrat18x_adsp_chipdata = {
 		.hwmbox5_reg = 0X28000,
 		.hwmbox6_reg = 0X30000,
 		.hwmbox7_reg = 0X38000,
+		.empty_int_ie = 0x8,
 	},
 	.adsp_shared_mem_hwmbox = 0x18000, /* HWMBOX3 */
 	.adsp_thread_hwmbox = 0x20000,	/* HWMBOX4 */

@@ -135,6 +135,7 @@ struct nvadsp_hwmb {
 	u32 hwmbox5_reg;
 	u32 hwmbox6_reg;
 	u32 hwmbox7_reg;
+	u32 empty_int_ie;
 };
 
 
