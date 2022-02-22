@@ -209,6 +209,10 @@
 			prod {
 				prod = <0x04 0x000000ff 0x10>;
 			};
+			/delete-node/ prod_c_nonsecure;
+			/delete-node/ prod_c_nopwrsave;
+			/delete-node/ prod_c_secure;
+			/delete-node/ prod_c_pwrsave;
 		};
 		/* QSPI NOR */
 		spiflash@0 {
