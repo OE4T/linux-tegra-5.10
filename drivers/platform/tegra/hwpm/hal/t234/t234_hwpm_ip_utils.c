@@ -469,157 +469,167 @@ int t234_hwpm_init_fs_info(struct tegra_soc_hwpm *hwpm)
 	tegra_hwpm_fn(hwpm, " ");
 
 	if (tegra_platform_is_vsp()) {
-		/* Static IP instances as per VSP netlist */
-		/* MSS CHANNEL: vsp has single instance available */
-		ret = t234_hwpm_set_fs_info(hwpm, addr_map_mc0_base_r(),
-			T234_HWPM_IP_MSS_CHANNEL, true);
-		if (ret != 0) {
-			goto fail;
-		}
+		/* Modules enabled only in L4T and not hypervisor config*/
+		/* As HWPM support on hypervisor is pushed to mainline*/
+		/* The below IPs are disabled on hypervisor currently */
+		if (!is_tegra_hypervisor_mode()) {
+			/* Static IP instances as per VSP netlist */
+			/* MSS CHANNEL: vsp has single instance available */
+			ret = t234_hwpm_set_fs_info(hwpm, addr_map_mc0_base_r(),
+				T234_HWPM_IP_MSS_CHANNEL, true);
+			if (ret != 0) {
+				goto fail;
+			}
 
-		/* MSS GPU HUB */
-		ret = t234_hwpm_set_fs_info(hwpm,
-			addr_map_mss_nvlink_1_base_r(),
-			T234_HWPM_IP_MSS_GPU_HUB, true);
-		if (ret != 0) {
-			goto fail;
+			/* MSS GPU HUB */
+			ret = t234_hwpm_set_fs_info(hwpm,
+				addr_map_mss_nvlink_1_base_r(),
+				T234_HWPM_IP_MSS_GPU_HUB, true);
+			if (ret != 0) {
+				goto fail;
+			}
 		}
 	}
 	if (tegra_platform_is_silicon()) {
-		/* Static IP instances corresponding to silicon */
-		/* VI */
-		/*ret = t234_hwpm_set_fs_info(hwpm, addr_map_vi_thi_base_r(),
-			T234_HWPM_IP_VI, true);
-		if (ret != 0) {
-			goto fail;
-		}
-		ret = t234_hwpm_set_fs_info(hwpm, addr_map_vi2_thi_base_r(),
-			T234_HWPM_IP_VI, true);
-		if (ret != 0) {
-			goto fail;
-		}*/
+		/* Modules enabled only in L4T and not hypervisor config*/
+		/* As HWPM support on hypervisor is pushed to mainline*/
+		/* The below IPs are disabled on hypervisor currently */
+		if (!is_tegra_hypervisor_mode()) {
+			/* Static IP instances corresponding to silicon */
+			/* VI */
+			/*ret = t234_hwpm_set_fs_info(hwpm, addr_map_vi_thi_base_r(),
+				T234_HWPM_IP_VI, true);
+			if (ret != 0) {
+				goto fail;
+			}
+			ret = t234_hwpm_set_fs_info(hwpm, addr_map_vi2_thi_base_r(),
+				T234_HWPM_IP_VI, true);
+			if (ret != 0) {
+				goto fail;
+			}*/
 
-		/* ISP */
-		ret = t234_hwpm_set_fs_info(hwpm, addr_map_isp_thi_base_r(),
-			T234_HWPM_IP_ISP, true);
-		if (ret != 0) {
-			goto fail;
-		}
+			/* ISP */
+			ret = t234_hwpm_set_fs_info(hwpm, addr_map_isp_thi_base_r(),
+				T234_HWPM_IP_ISP, true);
+			if (ret != 0) {
+				goto fail;
+			}
 
-		/* PVA */
-		ret = t234_hwpm_set_fs_info(hwpm, addr_map_pva0_pm_base_r(),
-			T234_HWPM_IP_PVA, true);
-		if (ret != 0) {
-			goto fail;
-		}
+			/* PVA */
+			ret = t234_hwpm_set_fs_info(hwpm, addr_map_pva0_pm_base_r(),
+				T234_HWPM_IP_PVA, true);
+			if (ret != 0) {
+				goto fail;
+			}
 
-		/* NVDLA */
-		ret = t234_hwpm_set_fs_info(hwpm,
-			addr_map_nvdla0_base_r(),
-			T234_HWPM_IP_NVDLA, true);
-		if (ret != 0) {
-			goto fail;
-		}
-		ret = t234_hwpm_set_fs_info(hwpm,
-			addr_map_nvdla1_base_r(),
-			T234_HWPM_IP_NVDLA, true);
-		if (ret != 0) {
-			goto fail;
-		}
+			/* NVDLA */
+			ret = t234_hwpm_set_fs_info(hwpm,
+				addr_map_nvdla0_base_r(),
+				T234_HWPM_IP_NVDLA, true);
+			if (ret != 0) {
+				goto fail;
+			}
+			ret = t234_hwpm_set_fs_info(hwpm,
+				addr_map_nvdla1_base_r(),
+				T234_HWPM_IP_NVDLA, true);
+			if (ret != 0) {
+				goto fail;
+			}
 
-		/* MGBE */
-		/*ret = t234_hwpm_set_fs_info(hwpm,
-			addr_map_mgbe0_mac_rm_base_r(),
-			T234_HWPM_IP_MGBE, true);
-		if (ret != 0) {
-			goto fail;
-		}*/
+			/* MGBE */
+			/*ret = t234_hwpm_set_fs_info(hwpm,
+				addr_map_mgbe0_mac_rm_base_r(),
+				T234_HWPM_IP_MGBE, true);
+			if (ret != 0) {
+				goto fail;
+			}*/
 
-		/* SCF */
-		ret = t234_hwpm_update_floorsweep_mask_using_perfmon(hwpm,
-			T234_HWPM_IP_SCF, 0U, true);
-		if (ret != 0) {
-			tegra_hwpm_err(hwpm,
-				"T234_HWPM_IP_SCF: FS mask update failed");
-			goto fail;
-		}
+			/* SCF */
+			ret = t234_hwpm_update_floorsweep_mask_using_perfmon(hwpm,
+				T234_HWPM_IP_SCF, 0U, true);
+			if (ret != 0) {
+				tegra_hwpm_err(hwpm,
+					"T234_HWPM_IP_SCF: FS mask update failed");
+				goto fail;
+			}
 
-		/* NVDEC */
-		ret = t234_hwpm_set_fs_info(hwpm, addr_map_nvdec_base_r(),
-			T234_HWPM_IP_NVDEC, true);
-		if (ret != 0) {
-			goto fail;
-		}
+			/* NVDEC */
+			ret = t234_hwpm_set_fs_info(hwpm, addr_map_nvdec_base_r(),
+				T234_HWPM_IP_NVDEC, true);
+			if (ret != 0) {
+				goto fail;
+			}
 
-		/* PCIE */
-		/*ret = t234_hwpm_set_fs_info(hwpm,
-			addr_map_pcie_c1_ctl_base_r(),
-			T234_HWPM_IP_PCIE, true);
-		if (ret != 0) {
-			goto fail;
-		}
-		ret = t234_hwpm_set_fs_info(hwpm,
-			addr_map_pcie_c4_ctl_base_r(),
-			T234_HWPM_IP_PCIE, true);
-		if (ret != 0) {
-			goto fail;
-		}
-		ret = t234_hwpm_set_fs_info(hwpm,
-			addr_map_pcie_c5_ctl_base_r(),
-			T234_HWPM_IP_PCIE, true);
-		if (ret != 0) {
-			goto fail;
-		}*/
+			/* PCIE */
+			/*ret = t234_hwpm_set_fs_info(hwpm,
+				addr_map_pcie_c1_ctl_base_r(),
+				T234_HWPM_IP_PCIE, true);
+			if (ret != 0) {
+				goto fail;
+			}
+			ret = t234_hwpm_set_fs_info(hwpm,
+				addr_map_pcie_c4_ctl_base_r(),
+				T234_HWPM_IP_PCIE, true);
+			if (ret != 0) {
+				goto fail;
+			}
+			ret = t234_hwpm_set_fs_info(hwpm,
+				addr_map_pcie_c5_ctl_base_r(),
+				T234_HWPM_IP_PCIE, true);
+			if (ret != 0) {
+				goto fail;
+			}*/
 
-		/* DISPLAY */
-		/*ret = t234_hwpm_set_fs_info(hwpm, addr_map_disp_base_r(),
-			T234_HWPM_IP_DISPLAY, true);
-		if (ret != 0) {
-			goto fail;
-		}*/
+			/* DISPLAY */
+			/*ret = t234_hwpm_set_fs_info(hwpm, addr_map_disp_base_r(),
+				T234_HWPM_IP_DISPLAY, true);
+			if (ret != 0) {
+				goto fail;
+			}*/
 
-		/* MSS CHANNEL */
-		ret = t234_hwpm_set_fs_info(hwpm, addr_map_mc0_base_r(),
-			T234_HWPM_IP_MSS_CHANNEL, true);
-		if (ret != 0) {
-			goto fail;
-		}
-		ret = t234_hwpm_set_fs_info(hwpm, addr_map_mc4_base_r(),
-			T234_HWPM_IP_MSS_CHANNEL, true);
-		if (ret != 0) {
-			goto fail;
-		}
-		ret = t234_hwpm_set_fs_info(hwpm, addr_map_mc8_base_r(),
-			T234_HWPM_IP_MSS_CHANNEL, true);
-		if (ret != 0) {
-			goto fail;
-		}
-		ret = t234_hwpm_set_fs_info(hwpm, addr_map_mc12_base_r(),
-			T234_HWPM_IP_MSS_CHANNEL, true);
-		if (ret != 0) {
-			goto fail;
-		}
+			/* MSS CHANNEL */
+			ret = t234_hwpm_set_fs_info(hwpm, addr_map_mc0_base_r(),
+				T234_HWPM_IP_MSS_CHANNEL, true);
+			if (ret != 0) {
+				goto fail;
+			}
+			ret = t234_hwpm_set_fs_info(hwpm, addr_map_mc4_base_r(),
+				T234_HWPM_IP_MSS_CHANNEL, true);
+			if (ret != 0) {
+				goto fail;
+			}
+			ret = t234_hwpm_set_fs_info(hwpm, addr_map_mc8_base_r(),
+				T234_HWPM_IP_MSS_CHANNEL, true);
+			if (ret != 0) {
+				goto fail;
+			}
+			ret = t234_hwpm_set_fs_info(hwpm, addr_map_mc12_base_r(),
+				T234_HWPM_IP_MSS_CHANNEL, true);
+			if (ret != 0) {
+				goto fail;
+			}
 
-		/* MSS ISO NISO HUBS */
-		ret = t234_hwpm_set_fs_info(hwpm, addr_map_mc0_base_r(),
-			T234_HWPM_IP_MSS_ISO_NISO_HUBS, true);
-		if (ret != 0) {
-			goto fail;
-		}
+			/* MSS ISO NISO HUBS */
+			ret = t234_hwpm_set_fs_info(hwpm, addr_map_mc0_base_r(),
+				T234_HWPM_IP_MSS_ISO_NISO_HUBS, true);
+			if (ret != 0) {
+				goto fail;
+			}
 
-		/* MSS MCF */
-		ret = t234_hwpm_set_fs_info(hwpm, addr_map_mc0_base_r(),
-			T234_HWPM_IP_MSS_MCF, true);
-		if (ret != 0) {
-			goto fail;
-		}
+			/* MSS MCF */
+			ret = t234_hwpm_set_fs_info(hwpm, addr_map_mc0_base_r(),
+				T234_HWPM_IP_MSS_MCF, true);
+			if (ret != 0) {
+				goto fail;
+			}
 
-		/* MSS GPU HUB */
-		ret = t234_hwpm_set_fs_info(hwpm,
-			addr_map_mss_nvlink_1_base_r(),
-			T234_HWPM_IP_MSS_GPU_HUB, true);
-		if (ret != 0) {
-			goto fail;
+			/* MSS GPU HUB */
+			ret = t234_hwpm_set_fs_info(hwpm,
+				addr_map_mss_nvlink_1_base_r(),
+				T234_HWPM_IP_MSS_GPU_HUB, true);
+			if (ret != 0) {
+				goto fail;
+			}
 		}
 	}
 

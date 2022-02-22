@@ -83,6 +83,12 @@ static u32 ip_readl(struct tegra_soc_hwpm *hwpm,
 			u64 reg_addr = tegra_hwpm_safe_add_u64(
 				aperture->start_abs_pa, offset);
 
+			if (is_tegra_hypervisor_mode()) {
+				tegra_hwpm_err(hwpm,
+					"Fallback method not implemented on hypervisor config");
+				return 0U;
+			}
+
 			ptr = ioremap(reg_addr, 0x4);
 			if (!ptr) {
 				tegra_hwpm_err(hwpm,
@@ -130,6 +136,12 @@ static void ip_writel(struct tegra_soc_hwpm *hwpm,
 			void __iomem *ptr = NULL;
 			u64 reg_addr = tegra_hwpm_safe_add_u64(
 				aperture->start_abs_pa, offset);
+
+			if (is_tegra_hypervisor_mode()) {
+				tegra_hwpm_err(hwpm,
+					"Fallback method not implemented on hypervisor config");
+				return;
+			}
 
 			ptr = ioremap(reg_addr, 0x4);
 			if (!ptr) {

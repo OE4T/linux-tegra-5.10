@@ -18,6 +18,7 @@
 #include <linux/device.h>
 #include <linux/cdev.h>
 #include <linux/delay.h>
+#include <soc/tegra/fuse.h>
 
 #include <uapi/linux/tegra-soc-hwpm-uapi.h>
 
