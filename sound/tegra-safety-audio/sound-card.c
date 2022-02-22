@@ -647,6 +647,7 @@ static int t234_safety_audio_probe(struct platform_device *pdev)
 	for (i = 0; i < NUM_SAFETY_I2S_INST; i++) {
 		struct resource *r;
 		size_t buffer_size = t234_pcm_hardware.buffer_bytes_max;
+		void __iomem *base;
 
 		if (!enabled_i2s_mask[i])
 			continue;
@@ -661,13 +662,13 @@ static int t234_safety_audio_probe(struct platform_device *pdev)
 		snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_PLAYBACK, &playback_ops);
 		snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_CAPTURE, &playback_ops);
 
-		i2s[i].base =
-			devm_platform_get_and_ioremap_resource(pdev, i, &r);
-
-		if (IS_ERR(i2s[i].base)) {
+		base = devm_platform_get_and_ioremap_resource(pdev, i, &r);
+		if (IS_ERR(base)) {
 			pr_alert("could not remap base\n");
 			return -EINVAL;
 		}
+
+		i2s[i].base = base;
 
 		safety_i2s_probe(&pdev->dev, i);
 

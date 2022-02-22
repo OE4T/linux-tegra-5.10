@@ -66,6 +66,10 @@ struct adsp_event_nlmsg {
 /* ADSP controls plugin index */
 #define PLUGIN_SET_PARAMS_IDX	1
 #define PLUGIN_SEND_BYTES_IDX	21
+
+#define DEFAULT_NUM_CHANNELS (2)
+#define DEFAULT_RATE (48000)
+
 static const unsigned int tegra210_adsp_rates[] = {
 	8000, 11025, 12000, 16000, 22050,
 	24000, 32000, 44100, 48000
@@ -81,7 +85,7 @@ static struct tegra210_adsp_app_desc {
 	const char *name;
 	const char *fw_name;
 	const char *wt_name;
-	uint32_t param_type;
+	snd_ctl_elem_type_t param_type;
 	uint32_t reg_start;
 	uint32_t reg_end;
 	nvadsp_app_handle_t handle;
@@ -183,7 +187,7 @@ struct tegra210_adsp {
 		uint32_t fe_reg;
 		uint32_t be_reg;
 		uint32_t channels;
-		uint32_t format;
+		snd_pcm_format_t format;
 		uint32_t rate;
 	} pcm_path[ADSP_FE_COUNT+1][2];
 	struct nvaudio_ivc_ctxt *hivc_client;
@@ -2557,8 +2561,9 @@ static int tegra_adsp_admaif_ivc_set_cif(struct tegra210_adsp *adsp,
 	struct tegra210_adsp_pcm_rtd *prtd = NULL;
 	struct snd_pcm_runtime *runtime = NULL;
 	struct nvaudio_ivc_msg  msg;
-	uint32_t value, channels = 2, format = SNDRV_PCM_FORMAT_S16_LE;
-	uint32_t rate = 48000, apm_in_reg, source;
+	uint32_t value, channels = DEFAULT_NUM_CHANNELS;
+	snd_pcm_format_t format = SNDRV_PCM_FORMAT_S16_LE;
+	uint32_t rate = DEFAULT_RATE, apm_in_reg, source;
 	uint32_t max_bytes = adsp_pcm_hardware.buffer_bytes_max;
 
 	adsp->hivc_client =
@@ -2787,7 +2792,9 @@ static int tegra210_adsp_null_sink_hw_params(struct snd_soc_dapm_widget *w,
 	nvfx_adma_init_params_t adma_params;
 	struct tegra210_adsp_pcm_rtd *prtd = NULL;
 	struct snd_pcm_runtime *runtime = NULL;
-	uint32_t channels = 2, format = SNDRV_PCM_FORMAT_S16_LE, rate = 48000;
+	uint32_t channels = DEFAULT_NUM_CHANNELS;
+	snd_pcm_format_t format = SNDRV_PCM_FORMAT_S16_LE;
+	uint32_t rate = DEFAULT_RATE;
 	int32_t source, be_reg = w->reg, apm_in_reg, ahub_chan = 0;
 	int  ret, num_params;
 	apm_msg_t apm_msg;
@@ -3465,6 +3472,7 @@ static int tegra210_adsp_fe_widget_event(struct snd_soc_dapm_widget *w,
 					SNDRV_PCM_TRIGGER_START);  /* PCM START */
 		if (ret < 0) {
 			pr_err("%s: error during hv_pcm_trigger\n", __func__);
+			spin_unlock_irqrestore(&apm->lock, flags);
 			goto err_put;
 		}
 
@@ -3472,6 +3480,7 @@ static int tegra210_adsp_fe_widget_event(struct snd_soc_dapm_widget *w,
 						TEGRA210_ADSP_MSG_FLAG_SEND);
 		if (ret < 0) {
 			dev_err(adsp->dev, "Failed to set state active");
+			spin_unlock_irqrestore(&apm->lock, flags);
 			goto err_put;
 		}
 		spin_unlock_irqrestore(&apm->lock, flags);
@@ -5834,8 +5843,9 @@ static int tegra210_adsp_audio_probe(struct platform_device *pdev)
 		apm_stack_size[i] = 0;
 		memset((void *)apm_info, '\0', 20);
 		sprintf(apm_info, "apm%d-stack-size", i+1);
-		of_property_read_u32(pdev->dev.of_node, apm_info,
-				&apm_stack_size[i]);
+		if (of_property_read_u32(pdev->dev.of_node, apm_info,
+				&apm_stack_size[i]))
+			continue;
 	}
 
 	adsp->nl_sk =

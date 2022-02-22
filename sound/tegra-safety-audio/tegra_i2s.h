@@ -73,7 +73,7 @@ struct dma_data {
 };
 
 struct i2s_dev {
-	__iomem void *base;
+	volatile void __iomem *base;
 	struct dma_data capture_data;
 	struct dma_data playback_data;
 	struct clk *clk_i2s;
@@ -113,14 +113,14 @@ unsigned int i2s_enable_rx(unsigned int id);
 unsigned int i2s_disable_rx(unsigned int id);
 
 static inline void
-updatel(void *addr, unsigned int mask, unsigned int val)
+updatel(volatile void __iomem *addr, unsigned int mask, unsigned int val)
 {
 	unsigned int prev_val, new_val;
 
-	prev_val = *((int *)(addr));
+	prev_val = readl(addr);
 	new_val = (prev_val & (~mask)) | (val & mask);
 
-	*((int *)(addr)) = new_val;
+	writel(new_val, addr);
 }
 
 /* Enable/Disable digital loopback with I2S controller */
