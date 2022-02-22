@@ -1069,6 +1069,11 @@
 			iommus = <&smmu_niso0 TEGRA_SID_NISO0_NVDISPLAY>;
 			dma-coherent;
 		};
+		dsi {
+			compatible = "nvidia,tegra234-dsi";
+			nvidia,active-panel = "NULL";
+			status = "disabled";
+		};
 	};
 
 	tegra_icc: icc {
