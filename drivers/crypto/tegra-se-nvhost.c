@@ -4138,12 +4138,13 @@ static int tegra_se_sha_hmac_setkey(struct crypto_ahash *tfm, const u8 *key,
 
 	ctx->keylen = keylen;
 
-	index = tegra_se_get_free_cmdbuf(se_dev);
-	if (index < 0) {
-		ret = index;
+	ret = tegra_se_get_free_cmdbuf(se_dev);
+	if (ret < 0) {
 		dev_err(se_dev->dev, "Couldn't get free cmdbuf\n");
 		goto free_keyslot;
 	}
+
+	index = ret;
 
 	cpuvaddr = se_dev->cmdbuf_addr_list[index].cmdbuf_addr;
 	iova = se_dev->cmdbuf_addr_list[index].iova;
