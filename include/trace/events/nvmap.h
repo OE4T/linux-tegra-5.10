@@ -792,6 +792,33 @@ TRACE_EVENT(nvmap_pp_fill_zero_lots,
 		__entry->nr - __entry->ret)
 );
 
+TRACE_EVENT(refcount_get_handle_from_sci_ipc_id,
+	TP_PROTO(struct nvmap_handle *handle,
+		 struct dma_buf *dmabuf,
+		 int handle_ref, const char *perm
+	),
+
+	TP_ARGS(handle, dmabuf, handle_ref, perm),
+
+	TP_STRUCT__entry(
+		__field(struct nvmap_handle *, handle)
+		__field(struct dma_buf *, dmabuf)
+		__field(int, handle_ref)
+		__string(acc_perm, perm)
+	),
+
+	TP_fast_assign(
+		__entry->handle = handle;
+		__entry->dmabuf = dmabuf;
+		__entry->handle_ref = handle_ref;
+		__assign_str(acc_perm, perm);
+	),
+
+	TP_printk("handle=0x%p, dmabuf=0x%p, handle_ref=%d, perm=%s",
+		   __entry->handle, __entry->dmabuf, __entry->handle_ref,
+		   __get_str(acc_perm))
+);
+
 DECLARE_EVENT_CLASS(nvmap_refcount,
 	TP_PROTO(struct nvmap_handle *handle, struct dma_buf *dmabuf, \
 		 int handle_ref,  long dmabuf_ref, const char *perm),
@@ -814,7 +841,7 @@ DECLARE_EVENT_CLASS(nvmap_refcount,
 		__assign_str(acc_perm, perm);
 	),
 
-	TP_printk("handle=0x%px, dmabuf=0x%px, handle_ref=%d, dmabuf_ref=%ld, perm=%s",
+	TP_printk("handle=0x%p, dmabuf=0x%p, handle_ref=%d, dmabuf_ref=%ld, perm=%s",
 		   __entry->handle, __entry->dmabuf, __entry->handle_ref,
 		   __entry->dmabuf_ref, __get_str(acc_perm))
 );

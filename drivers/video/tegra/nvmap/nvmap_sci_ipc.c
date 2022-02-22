@@ -219,11 +219,11 @@ found:
 int nvmap_get_handle_from_sci_ipc_id(struct nvmap_client *client, u32 flags,
 		u32 sci_ipc_id, NvSciIpcEndpointVuid localu_vuid, u32 *handle)
 {
+	bool is_ro = (flags == PROT_READ) ? true : false, dmabuf_created = false;
 	struct nvmap_handle_ref *ref = NULL;
 	struct nvmap_sci_ipc_entry *entry;
-	struct nvmap_handle *h;
 	struct dma_buf *dmabuf = NULL;
-	bool is_ro = (flags == PROT_READ) ? true : false, dmabuf_created = false;
+	struct nvmap_handle *h;
 	int ret = 0;
 	int fd;
 
@@ -267,12 +267,28 @@ int nvmap_get_handle_from_sci_ipc_id(struct nvmap_client *client, u32 flags,
 	 */
 	if (dmabuf_created)
 		dma_buf_put(h->dmabuf_ro);
+	if (!IS_ERR(ref)) {
+		int id = -1;
 
-	fd = nvmap_get_dmabuf_fd(client, h, is_ro);
-	*handle = fd;
-	dmabuf = is_ro ? h->dmabuf_ro : h->dmabuf;
-	fd_install(fd, dmabuf->file);
-
+		dmabuf = is_ro ? h->dmabuf_ro : h->dmabuf;
+		if (client->ida) {
+			if (nvmap_id_array_id_alloc(client->ida, &id, dmabuf) < 0) {
+				if (dmabuf)
+					dma_buf_put(dmabuf);
+				nvmap_free_handle(client, h, is_ro);
+				ret = -ENOMEM;
+				goto unlock;
+			}
+			if (id < 0)
+				*handle = 0;
+			else
+				*handle = id;
+		} else {
+			fd = nvmap_get_dmabuf_fd(client, h, is_ro);
+			*handle = fd;
+			fd_install(fd, dmabuf->file);
+		}
+	}
 	entry->refcount--;
 	if (entry->refcount == 0U) {
 		struct free_sid_node *free_node;
@@ -291,11 +307,18 @@ int nvmap_get_handle_from_sci_ipc_id(struct nvmap_client *client, u32 flags,
 unlock:
 	mutex_unlock(&nvmapsciipc->mlock);
 
-	if (!ret)
-		trace_refcount_create_handle_from_sci_ipc_id(h, dmabuf,
+	if (!ret) {
+		if (!client->ida)
+			trace_refcount_create_handle_from_sci_ipc_id(h, dmabuf,
 				atomic_read(&h->ref),
 				atomic_long_read(&dmabuf->file->f_count),
 				is_ro ? "RO" : "RW");
+		else
+			trace_refcount_get_handle_from_sci_ipc_id(h, dmabuf,
+				atomic_read(&h->ref),
+				is_ro ? "RO" : "RW");
+	}
+
 	return ret;
 }
 
