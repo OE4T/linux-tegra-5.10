@@ -639,6 +639,33 @@ void nvgpu_falcon_dump_stats(struct nvgpu_falcon *flcn)
 }
 #endif
 
+#if defined(CONFIG_NVGPU_FALCON_DEBUG) || defined(CONFIG_NVGPU_FALCON_NON_FUSA)
+int nvgpu_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,
+	u32 src, u8 *dst, u32 size, u8 port)
+{
+	int status = -EINVAL;
+	struct gk20a *g;
+
+	if (!is_falcon_valid(flcn)) {
+		return -EINVAL;
+	}
+
+	g = flcn->g;
+
+	if (falcon_memcpy_params_check(flcn, src, size, MEM_DMEM, port) != 0) {
+		nvgpu_err(g, "incorrect parameters");
+		goto exit;
+	}
+
+	nvgpu_mutex_acquire(&flcn->dmem_lock);
+	status = g->ops.falcon.copy_from_dmem(flcn, src, dst, size, port);
+	nvgpu_mutex_release(&flcn->dmem_lock);
+
+exit:
+	return status;
+}
+#endif
+
 #ifdef CONFIG_NVGPU_FALCON_NON_FUSA
 int nvgpu_falcon_bootstrap(struct nvgpu_falcon *flcn, u32 boot_vector)
 {
@@ -678,31 +705,6 @@ int nvgpu_falcon_clear_halt_intr_status(struct nvgpu_falcon *flcn,
 		status = -ETIMEDOUT;
 	}
 
-	return status;
-}
-
-int nvgpu_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,
-	u32 src, u8 *dst, u32 size, u8 port)
-{
-	int status = -EINVAL;
-	struct gk20a *g;
-
-	if (!is_falcon_valid(flcn)) {
-		return -EINVAL;
-	}
-
-	g = flcn->g;
-
-	if (falcon_memcpy_params_check(flcn, src, size, MEM_DMEM, port) != 0) {
-		nvgpu_err(g, "incorrect parameters");
-		goto exit;
-	}
-
-	nvgpu_mutex_acquire(&flcn->dmem_lock);
-	status = g->ops.falcon.copy_from_dmem(flcn, src, dst, size, port);
-	nvgpu_mutex_release(&flcn->dmem_lock);
-
-exit:
 	return status;
 }
 

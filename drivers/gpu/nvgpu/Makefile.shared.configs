@@ -149,12 +149,13 @@ ifneq ($(profile),safety_release)
 CONFIG_NVGPU_TRACE              := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_TRACE
 
+CONFIG_NVGPU_FALCON_DEBUG       := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_FALCON_DEBUG
+
 #
 # Flags enabled only for regular build profile.
 #
 ifneq ($(profile),safety_debug)
-
-NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_FALCON_DEBUG
 
 CONFIG_NVGPU_SYSFS              := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_SYSFS

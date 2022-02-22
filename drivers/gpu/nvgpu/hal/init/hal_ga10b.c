@@ -1611,9 +1611,11 @@ static const struct gops_falcon ga10b_ops_falcon = {
 #ifdef CONFIG_NVGPU_FALCON_DEBUG
 	.dump_falcon_stats = ga10b_falcon_dump_stats,
 #endif
+#if defined(CONFIG_NVGPU_FALCON_DEBUG) || defined(CONFIG_NVGPU_FALCON_NON_FUSA)
+	.copy_from_dmem = gk20a_falcon_copy_from_dmem,
+#endif
 #ifdef CONFIG_NVGPU_FALCON_NON_FUSA
 	.clear_halt_interrupt_status = gk20a_falcon_clear_halt_interrupt_status,
-	.copy_from_dmem = gk20a_falcon_copy_from_dmem,
 	.copy_from_imem = gk20a_falcon_copy_from_imem,
 	.get_falcon_ctls = gk20a_falcon_get_ctls,
 #endif
