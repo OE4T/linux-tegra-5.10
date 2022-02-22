@@ -30,4 +30,12 @@
 			status = "okay";
 		};
 	};
+
+	i2c@c240000 {
+		ina32211_1_40: ina3221@40 {
+			channel@2 {
+				summation-bypass;
+			};
+		};
+	};
 };
