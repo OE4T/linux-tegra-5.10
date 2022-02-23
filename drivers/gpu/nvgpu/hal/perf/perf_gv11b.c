@@ -27,6 +27,7 @@
 #include <nvgpu/gr/config.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/utils.h>
 
 #include "perf_gv11b.h"
 
@@ -97,6 +98,12 @@ void gv11b_perf_bind_mem_bytes_buffer_addr(struct gk20a *g, u64 buf_addr)
 {
 	u32 addr_lo;
 
+	/*
+	 * For mem bytes addr, the upper 8 bits of the 40bit VA is taken
+	 * from perf_pmasys_channel_outbaseupper_r(), so only consider
+	 * the lower 32bits in the buf_addr and discard the rest.
+	 */
+	buf_addr = u64_lo32(buf_addr);
 	buf_addr = buf_addr >> perf_pmasys_mem_bytes_addr_ptr_b();
 	addr_lo = nvgpu_safe_cast_u64_to_u32(buf_addr);
 

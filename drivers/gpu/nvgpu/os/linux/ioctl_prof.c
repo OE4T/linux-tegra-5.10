@@ -363,6 +363,7 @@ static int nvgpu_prof_ioctl_alloc_pma_stream(struct nvgpu_profiler_object_priv *
 	struct gk20a *g = prof->g;
 	struct mm_gk20a *mm = &g->mm;
 	u64 pma_bytes_available_buffer_offset;
+	u64 pma_buffer_offset;
 	struct dma_buf *pma_dmabuf;
 	struct dma_buf *pma_bytes_available_dmabuf;
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
@@ -386,27 +387,20 @@ static int nvgpu_prof_ioctl_alloc_pma_stream(struct nvgpu_profiler_object_priv *
 		return err;
 	}
 
-	/*
-	 * PMA available byte buffer GPU_VA needs to fit in 32 bit
-	 * register, hence use a fixed GPU_VA to map it.
-	 */
 	pma_bytes_available_buffer_offset = mm->perfbuf.pma_bytes_available_buffer_gpu_va;
 
-	err = nvgpu_vm_map_buffer(mm->perfbuf.vm, args->pma_bytes_available_buffer_fd,
+	err = nvgpu_vm_map_buffer(mm->perfbuf.vm,
+			args->pma_bytes_available_buffer_fd,
 			&pma_bytes_available_buffer_offset,
 			NVGPU_AS_MAP_BUFFER_FLAGS_FIXED_OFFSET, SZ_4K, 0, 0,
-			0, 0, NULL);
+			0, PMA_BYTES_AVAILABLE_BUFFER_SIZE, NULL);
 	if (err != 0) {
 		nvgpu_err(g, "failed to map available bytes buffer");
 		goto err_put_vm;
 	}
 
-	/*
-	 * Size register is 32-bit in HW, ensure requested size does
-	 * not violate that.
-	 */
-	if (args->pma_buffer_map_size >= (1ULL << 32U)) {
-		nvgpu_err(g, "pma_buffer_map_size does not fit in 32 bits");
+	if (args->pma_buffer_map_size > PERFBUF_PMA_BUF_MAX_SIZE) {
+		nvgpu_err(g, "pma_buffer_map_size exceeds max size");
 		goto err_unmap_bytes_available;
 	}
 	pma_buffer_size = nvgpu_safe_cast_u64_to_u32(args->pma_buffer_map_size);
@@ -426,9 +420,12 @@ static int nvgpu_prof_ioctl_alloc_pma_stream(struct nvgpu_profiler_object_priv *
 		goto err_dma_buf_put_pma;
 	}
 
+	pma_buffer_offset = mm->perfbuf.pma_buffer_gpu_va;
 	err = nvgpu_vm_map_buffer(mm->perfbuf.vm, args->pma_buffer_fd,
-			&args->pma_buffer_offset, 0, SZ_4K, 0, 0,
-			0, 0, NULL);
+			&pma_buffer_offset,
+			NVGPU_AS_MAP_BUFFER_FLAGS_FIXED_OFFSET, SZ_4K, 0, 0,
+			args->pma_buffer_offset,
+			args->pma_buffer_map_size, NULL);
 	if (err != 0) {
 		nvgpu_err(g, "failed to map PMA buffer");
 		goto err_dma_buf_put_pma;
@@ -453,7 +450,7 @@ static int nvgpu_prof_ioctl_alloc_pma_stream(struct nvgpu_profiler_object_priv *
 		goto err_dma_buf_put_pma_bytes_available;
 	}
 
-	prof->pma_buffer_va = args->pma_buffer_offset;
+	prof->pma_buffer_va = pma_buffer_offset;
 	prof->pma_buffer_size = pma_buffer_size;
 	prof->pma_bytes_available_buffer_va = pma_bytes_available_buffer_offset;
 	prof->pma_bytes_available_buffer_cpuva = cpuva;
@@ -463,7 +460,7 @@ static int nvgpu_prof_ioctl_alloc_pma_stream(struct nvgpu_profiler_object_priv *
 		prof->prof_handle, prof->pma_buffer_va, prof->pma_buffer_size,
 		prof->pma_bytes_available_buffer_va);
 
-	args->pma_buffer_va = args->pma_buffer_offset;
+	args->pma_buffer_va = pma_buffer_offset;
 
 	/* Decrement pma_dmabuf ref count as we already mapped it. */
 	dma_buf_put(pma_dmabuf);

@@ -1583,10 +1583,11 @@ static int gk20a_perfbuf_map(struct dbg_session_gk20a *dbg_s,
 		goto err_release_pma;
 	}
 
+	args->offset = mm->perfbuf.pma_buffer_gpu_va;
 	err = nvgpu_vm_map_buffer(mm->perfbuf.vm,
 			args->dmabuf_fd,
 			&args->offset,
-			0,
+			NVGPU_AS_MAP_BUFFER_FLAGS_FIXED_OFFSET,
 			SZ_4K,
 			0,
 			0,
