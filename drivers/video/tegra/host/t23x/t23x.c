@@ -243,6 +243,7 @@ struct nvhost_device_data t23x_msenc_info = {
 	.moduleid		= NVHOST_MODULE_MSENC,
 	.num_channels		= 1,
 	.firmware_name		= "nvhost_nvenc080.fw",
+	.firmware_not_in_subdir = true,
 	.serialize		= true,
 	.push_work_done		= true,
 	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
