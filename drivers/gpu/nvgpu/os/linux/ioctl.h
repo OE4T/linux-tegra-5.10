@@ -75,4 +75,10 @@ unsigned int nvgpu_allocate_cdev_minor(struct gk20a *g);
 struct gk20a *nvgpu_get_gk20a_from_cdev(struct nvgpu_cdev *cdev);
 u32 nvgpu_get_gpu_instance_id_from_cdev(struct gk20a *g, struct nvgpu_cdev *cdev);
 
+int nvgpu_create_device(
+	struct device *dev, int devno,
+	const char *cdev_name,
+	struct cdev *cdev, struct device **out,
+	struct nvgpu_class *class);
+
 #endif

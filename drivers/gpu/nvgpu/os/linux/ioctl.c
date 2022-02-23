@@ -251,11 +251,10 @@ static char *nvgpu_mig_fgpu_devnode(struct device *dev, umode_t *mode)
 				priv_data->minor_instance_id, dev_name(dev));
 }
 
-static int gk20a_create_device(
+int nvgpu_create_device(
 	struct device *dev, int devno,
 	const char *cdev_name,
 	struct cdev *cdev, struct device **out,
-	const struct file_operations *ops,
 	struct nvgpu_class *class)
 {
 	struct device *subdev;
@@ -264,9 +263,6 @@ static int gk20a_create_device(
 	const char *device_name = NULL;
 
 	nvgpu_log_fn(g, " ");
-
-	cdev_init(cdev, ops);
-	cdev->owner = THIS_MODULE;
 
 	err = cdev_add(cdev, devno, 1);
 	if (err) {
@@ -295,6 +291,45 @@ static int gk20a_create_device(
 
 	*out = subdev;
 	return 0;
+}
+
+static int nvgpu_alloc_and_create_device(
+	struct device *dev, int devno,
+	const char *cdev_name,
+	const struct file_operations *ops,
+	struct nvgpu_class *class)
+{
+	struct gk20a *g = gk20a_from_dev(dev);
+	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
+	struct nvgpu_cdev *cdev;
+	int err;
+
+	cdev = nvgpu_kzalloc(g, sizeof(*cdev));
+	if (cdev == NULL) {
+		dev_err(dev, "failed to allocate cdev\n");
+		err = -ENOMEM;
+		goto out;
+	}
+
+	cdev_init(&cdev->cdev, ops);
+	cdev->cdev.owner = THIS_MODULE;
+
+	err = nvgpu_create_device(dev, devno, cdev_name,
+			&cdev->cdev, &cdev->node, class);
+	if (err) {
+		goto free_cdev;
+	}
+
+	cdev->class = class;
+	nvgpu_init_list_node(&cdev->list_entry);
+	nvgpu_list_add(&cdev->list_entry, &l->cdev_list_head);
+
+	return 0;
+
+free_cdev:
+	nvgpu_kfree(g, cdev);
+out:
+	return err;
 }
 
 void gk20a_remove_devices_and_classes(struct gk20a *g, bool power_node)
@@ -568,7 +603,6 @@ int gk20a_power_node_init(struct device *dev)
 	struct nvgpu_class *class;
 	u32 total_cdevs;
 	u32 num_classes;
-	struct nvgpu_cdev *cdev;
 
 	if (!l->cdev_list_init_done) {
 		nvgpu_init_list_node(&l->cdev_list_head);
@@ -591,28 +625,17 @@ int gk20a_power_node_init(struct device *dev)
 
 	l->power_cdev_region = devno;
 	nvgpu_list_for_each_entry(class, &l->class_list_head, nvgpu_class, list_entry) {
-		cdev = nvgpu_kzalloc(g, sizeof(*cdev));
-		if (cdev == NULL) {
-			dev_err(dev, "failed to allocate cdev\n");
-			goto fail;
-		}
-
 		/*
 		 * dev_node_list[0] is the power node to issue
 		 * power-on to the GPU.
 		 */
-		err = gk20a_create_device(dev, devno++,
+		err = nvgpu_alloc_and_create_device(dev, devno++,
 			dev_node_list[0].name,
-			&cdev->cdev, &cdev->node,
 			dev_node_list[0].fops,
 			class);
 		if (err) {
 			goto fail;
 		}
-
-		cdev->class = class;
-		nvgpu_init_list_node(&cdev->list_entry);
-		nvgpu_list_add(&cdev->list_entry, &l->cdev_list_head);
 	}
 
 	l->power_cdevs = total_cdevs;
@@ -632,7 +655,6 @@ int gk20a_user_nodes_init(struct device *dev)
 	struct nvgpu_class *class;
 	u32 num_cdevs, total_cdevs;
 	u32 num_classes;
-	struct nvgpu_cdev *cdev;
 	u32 cdev_index;
 
 	if (!l->cdev_list_init_done) {
@@ -683,24 +705,13 @@ int gk20a_user_nodes_init(struct device *dev)
 				continue;
 			}
 
-			cdev = nvgpu_kzalloc(g, sizeof(*cdev));
-			if (cdev == NULL) {
-				dev_err(dev, "failed to allocate cdev\n");
-				goto fail;
-			}
-
-			err = gk20a_create_device(dev, devno++,
+			err = nvgpu_alloc_and_create_device(dev, devno++,
 					dev_node_list[cdev_index].name,
-					&cdev->cdev, &cdev->node,
 					dev_node_list[cdev_index].fops,
 					class);
 			if (err) {
 				goto fail;
 			}
-
-			cdev->class = class;
-			nvgpu_init_list_node(&cdev->list_entry);
-			nvgpu_list_add(&cdev->list_entry, &l->cdev_list_head);
 		}
 	}
 
