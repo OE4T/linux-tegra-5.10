@@ -66,6 +66,7 @@
 #include <nvgpu/job.h>
 #include <nvgpu/priv_cmdbuf.h>
 #include <nvgpu/string.h>
+#include <nvgpu/nvs.h>
 
 #include "channel_wdt.h"
 #include "channel_worker.h"
@@ -2135,13 +2136,14 @@ static void nvgpu_channel_info_debug_dump(struct gk20a *g,
 	 */
 	u32 ver = nvgpu_safe_add_u32(g->params.gpu_arch, g->params.gpu_impl);
 
-	gk20a_debug_output(o, "%d-%s, TSG: %u, pid %d, refs: %d%s: ",
+	gk20a_debug_output(o, "%d-%s, TSG: %u, pid %d, refs: %d, deterministic: %s, domain name: %s",
 			info->chid,
 			g->name,
 			info->tsgid,
 			info->pid,
 			info->refs,
-			info->deterministic ? ", deterministic" : "");
+			info->deterministic ? "yes" : "no",
+			info->nvs_domain_name);
 	gk20a_debug_output(o, "channel status: %s in use %s %s",
 			info->hw_state.enabled ? "" : "not",
 			info->hw_state.status_string,
@@ -2214,6 +2216,8 @@ void nvgpu_channel_debug_dump_all(struct gk20a *g,
 	for (chid = 0U; chid < f->num_channels; chid++) {
 		struct nvgpu_channel *ch = &f->channel[chid];
 		struct nvgpu_channel_dump_info *info = infos[chid];
+		struct nvgpu_tsg *tsg;
+		const char *domain_name;
 #ifdef CONFIG_NVGPU_SW_SEMAPHORE
 		struct nvgpu_channel_sync_semaphore *sync_sema;
 		struct nvgpu_hw_semaphore *hw_sema = NULL;
@@ -2232,11 +2236,23 @@ void nvgpu_channel_debug_dump_all(struct gk20a *g,
 			continue;
 		}
 
+		tsg = nvgpu_tsg_from_ch(ch);
 		info->chid = ch->chid;
 		info->tsgid = ch->tsgid;
 		info->pid = ch->pid;
 		info->refs = nvgpu_atomic_read(&ch->ref_count);
 		info->deterministic = nvgpu_channel_is_deterministic(ch);
+		if (tsg) {
+			if (tsg->nvs_domain) {
+				domain_name = nvgpu_nvs_domain_get_name(tsg->nvs_domain);
+			} else {
+				domain_name = "(no domain)";
+			}
+		} else {
+			domain_name = "(no tsg)";
+		}
+		(void)strncpy(info->nvs_domain_name, domain_name,
+				sizeof(info->nvs_domain_name) - 1U);
 
 #ifdef CONFIG_NVGPU_SW_SEMAPHORE
 		if (hw_sema != NULL) {

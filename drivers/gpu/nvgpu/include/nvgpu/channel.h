@@ -218,6 +218,7 @@ struct nvgpu_channel_dump_info {
 		u32 next;
 		u64 addr;
 	} sema;
+	char nvs_domain_name[32];
 };
 
 /**
