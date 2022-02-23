@@ -204,6 +204,8 @@ static ssize_t device_file_ioctl(
 	case NVMAP_SMMU_MAP:
 		dmabuf = dma_buf_get(input.handle);
 
+		if (IS_ERR_OR_NULL(dmabuf))
+			return -EINVAL;
 		attach = dma_buf_attach(dmabuf, &pdev_local->dev);
 
 		if (IS_ERR_OR_NULL(attach)) {
