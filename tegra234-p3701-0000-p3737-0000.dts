@@ -23,6 +23,7 @@
 
 #include <t234-common-cvm/tegra234-thermal.dtsi>
 #include <t234-common-cvm/tegra234-thermal-cooling.dtsi>
+#include <t234-common-cvm/tegra234-thermal-userspace-alert.dtsi>
 #include <tegra234-soc/tegra234-cpuidle.dtsi>
 #include <tegra234-soc/tegra234-soc-hwpm.dtsi>
 
@@ -129,6 +130,42 @@
 	};
 
 	aon@c000000 {
+		status = "okay";
+	};
+
+	cpu_alert: cpu-throttle-alert {
+		status = "okay";
+	};
+
+	gpu_alert: gpu-throttle-alert {
+		status = "okay";
+	};
+
+	cv0_alert: cv0-throttle-alert {
+		status = "okay";
+	};
+
+	cv1_alert: cv1-throttle-alert {
+		status = "okay";
+	};
+
+	cv2_alert: cv2-throttle-alert {
+		status = "okay";
+	};
+
+	soc0_alert: soc0-throttle-alert {
+		status = "okay";
+	};
+
+	soc1_alert: soc1-throttle-alert {
+		status = "okay";
+	};
+
+	soc2_alert: soc2-throttle-alert {
+		status = "okay";
+	};
+
+	hot_surface_alert: hot-surface-alert {
 		status = "okay";
 	};
 
