@@ -80,5 +80,6 @@ int nvgpu_create_device(
 	const char *cdev_name,
 	struct cdev *cdev, struct device **out,
 	struct nvgpu_class *class);
+struct nvgpu_class *nvgpu_get_v2_user_class(struct gk20a *g);
 
 #endif

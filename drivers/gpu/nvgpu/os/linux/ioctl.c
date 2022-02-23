@@ -511,6 +511,8 @@ static int nvgpu_prepare_default_dev_node_class_list(struct gk20a *g,
 	 * V2 device node names hierarchy.
 	 * This hierarchy will replace above hierarchy in second phase.
 	 * Both legacy and V2 device node hierarchies will co-exist until then.
+	 *
+	 * Note: nvgpu_get_v2_user_class() assumes this order in the class list.
 	 */
 	if (g->pci_class != 0U) {
 		if (power_node) {
@@ -544,6 +546,23 @@ static int nvgpu_prepare_default_dev_node_class_list(struct gk20a *g,
 
 	*num_classes = count;
 	return 0;
+}
+
+struct nvgpu_class *nvgpu_get_v2_user_class(struct gk20a *g)
+{
+	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
+	struct nvgpu_class *class;
+
+	if (nvgpu_grmgr_is_multi_gr_enabled(g)) {
+		/* Ambiguous with multiple fractional GPUs */
+		return NULL;
+	}
+
+	nvgpu_assert(!nvgpu_list_empty(&l->class_list_head));
+	/* this must match nvgpu_prepare_default_dev_node_class_list() */
+	class = nvgpu_list_last_entry(&l->class_list_head, nvgpu_class, list_entry);
+	nvgpu_assert(!class->power_node);
+	return class;
 }
 
 static int nvgpu_prepare_dev_node_class_list(struct gk20a *g, u32 *num_classes,
