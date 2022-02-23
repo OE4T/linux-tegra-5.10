@@ -1844,7 +1844,7 @@ int ga10b_init_hal(struct gk20a *g)
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)){
 		nvgpu_set_errata(g, NVGPU_ERRATA_2969956, true);
 	}
-	nvgpu_set_errata(g, NVGPU_ERRATA_200601972, false);
+	nvgpu_set_errata(g, NVGPU_ERRATA_200601972, true);
 	nvgpu_set_errata(g, NVGPU_ERRATA_200391931, true);
 	nvgpu_set_errata(g, NVGPU_ERRATA_200677649, true);
 	nvgpu_set_errata(g, NVGPU_ERRATA_3154076, true);
