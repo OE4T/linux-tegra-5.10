@@ -490,6 +490,13 @@ u32 nvgpu_nvs_domain_count(struct gk20a *g)
 	return count;
 }
 
+const char *nvgpu_nvs_domain_get_name(struct nvgpu_nvs_domain *dom)
+{
+	struct nvs_domain *nvs_dom = dom->parent;
+
+	return nvs_dom->name;
+}
+
 void nvgpu_nvs_get_log(struct gk20a *g, s64 *timestamp, const char **msg)
 {
 	struct nvs_log_event ev;

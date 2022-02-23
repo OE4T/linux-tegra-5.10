@@ -167,23 +167,23 @@ int nvgpu_tsg_bind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 int nvgpu_tsg_bind_domain(struct nvgpu_tsg *tsg, struct nvgpu_nvs_domain *nnvs_domain)
 {
 	struct nvgpu_runlist_domain *rl_domain;
-	struct nvs_domain *nvs_domain;
 	struct gk20a *g = tsg->g;
+	const char *name;
 
 	/* Hopping channels from one domain to another is not allowed */
 	if (tsg->num_active_channels != 0U) {
 		return -EINVAL;
 	}
 
-	nvs_domain = nnvs_domain->parent;
+	name = nvgpu_nvs_domain_get_name(nnvs_domain);
 
 	/*
 	 * The domain ptr will get updated with the right id once the runlist
 	 * gets specified based on the first channel.
 	 */
-	rl_domain = nvgpu_rl_domain_get(g, 0, nvs_domain->name);
+	rl_domain = nvgpu_rl_domain_get(g, 0, name);
 	if (rl_domain == NULL) {
-		nvgpu_err(g, "rl domain not found (%s)", nvs_domain->name);
+		nvgpu_err(g, "rl domain not found (%s)", name);
 		/*
 		 * This shouldn't happen because the nvs domain guarantees RL domains.
 		 *

@@ -103,6 +103,7 @@ struct nvgpu_nvs_domain *
 nvgpu_nvs_domain_by_name(struct gk20a *g, const char *name);
 void nvgpu_nvs_domain_get(struct gk20a *g, struct nvgpu_nvs_domain *dom);
 void nvgpu_nvs_domain_put(struct gk20a *g, struct nvgpu_nvs_domain *dom);
+const char *nvgpu_nvs_domain_get_name(struct nvgpu_nvs_domain *dom);
 /*
  * Debug wrapper for NVS code.
  */
@@ -133,6 +134,12 @@ static inline void nvgpu_nvs_domain_put(struct gk20a *g, struct nvgpu_nvs_domain
 {
 	(void)g;
 	(void)dom;
+}
+
+static inline const char *nvgpu_nvs_domain_get_name(struct nvgpu_nvs_domain *dom)
+{
+	(void)dom;
+	return NULL;
 }
 #endif
 
