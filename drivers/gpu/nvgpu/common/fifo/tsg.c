@@ -89,6 +89,15 @@ int nvgpu_tsg_bind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 		return -EINVAL;
 	}
 
+	/*
+	 * This runlist domain is set either by default or in an explicit
+	 * bind. If the default domain has been deleted, explicit bind is
+	 * mandatory.
+	 */
+	if (tsg->rl_domain == NULL) {
+		return -EINVAL;
+	}
+
 	/* cannot bind more channels than MAX channels supported per TSG */
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 	max_ch_per_tsg = g->ops.runlist.get_max_channels_per_tsg();
@@ -155,10 +164,10 @@ int nvgpu_tsg_bind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 }
 
 #ifdef CONFIG_NVS_PRESENT
-int nvgpu_tsg_bind_domain(struct nvgpu_tsg *tsg, u64 domain_id)
+int nvgpu_tsg_bind_domain(struct nvgpu_tsg *tsg, struct nvgpu_nvs_domain *nnvs_domain)
 {
 	struct nvgpu_runlist_domain *rl_domain;
-	struct nvgpu_nvs_domain *nvs_domain;
+	struct nvs_domain *nvs_domain;
 	struct gk20a *g = tsg->g;
 
 	/* Hopping channels from one domain to another is not allowed */
@@ -166,25 +175,20 @@ int nvgpu_tsg_bind_domain(struct nvgpu_tsg *tsg, u64 domain_id)
 		return -EINVAL;
 	}
 
-	nvs_domain = nvgpu_nvs_domain_by_id(g, domain_id);
-	if (nvs_domain == NULL) {
-		nvgpu_err(g, "nvs domain not found (%llu)", domain_id);
-		return -ENOENT;
-	}
+	nvs_domain = nnvs_domain->parent;
 
 	/*
 	 * The domain ptr will get updated with the right id once the runlist
 	 * gets specified based on the first channel.
 	 */
-	rl_domain = nvgpu_rl_domain_get(g, 0, nvs_domain->parent->name);
+	rl_domain = nvgpu_rl_domain_get(g, 0, nvs_domain->name);
 	if (rl_domain == NULL) {
-		nvgpu_err(g, "rl domain not found (%s)", nvs_domain->parent->name);
+		nvgpu_err(g, "rl domain not found (%s)", nvs_domain->name);
 		/*
 		 * This shouldn't happen because the nvs domain guarantees RL domains.
 		 *
 		 * TODO: query this via the nvs domain.
 		 */
-		nvgpu_nvs_domain_put(g, nvs_domain);
 		return -ENOENT;
 	}
 
@@ -193,8 +197,9 @@ int nvgpu_tsg_bind_domain(struct nvgpu_tsg *tsg, u64 domain_id)
 		nvgpu_nvs_domain_put(g, tsg->nvs_domain);
 	}
 
+	nvgpu_nvs_domain_get(g, nnvs_domain);
 	tsg->rl_domain = rl_domain;
-	tsg->nvs_domain = nvs_domain;
+	tsg->nvs_domain = nnvs_domain;
 
 	return 0;
 }

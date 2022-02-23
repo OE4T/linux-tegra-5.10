@@ -1,7 +1,7 @@
 /*
  * NVGPU Public Interface Header
  *
- * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -42,7 +42,9 @@ struct nvgpu_tsg_bind_channel_ex_args {
 
 struct nvgpu_tsg_bind_scheduling_domain_args {
 	/* in: id of the domain this tsg will be bound to */
-	__u64 domain_id;
+	__s32 domain_fd;
+	/* Must be set to 0 */
+	__s32 reserved0;
 	/* Must be set to 0 */
 	__u64 reserved[3];
 };

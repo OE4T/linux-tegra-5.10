@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -385,7 +385,7 @@ int nvgpu_tsg_bind_channel(struct nvgpu_tsg *tsg,
  * @brief Bind a TSG to a domain.
  *
  * @param tsg [in]		Pointer to TSG struct.
- * @param domain_id [in]	Domain identifier.
+ * @param nnvs_domain [in]	Pointer to nvgpu nvs domain.
  *
  * Make this TSG participate in the given domain, such that it can only be
  * seen by runlist HW when the domain has been scheduled in.
@@ -394,7 +394,7 @@ int nvgpu_tsg_bind_channel(struct nvgpu_tsg *tsg,
  *
  * @return 0 for successful bind, < 0 for failure.
  */
-int nvgpu_tsg_bind_domain(struct nvgpu_tsg *tsg, u64 domain_id);
+int nvgpu_tsg_bind_domain(struct nvgpu_tsg *tsg, struct nvgpu_nvs_domain *nnvs_domain);
 #endif
 
 /**
