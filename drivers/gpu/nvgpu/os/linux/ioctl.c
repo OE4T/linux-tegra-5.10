@@ -667,6 +667,7 @@ int gk20a_user_nodes_init(struct device *dev)
 		goto fail;
 	}
 	l->cdev_region = devno;
+	atomic_set(&l->next_cdev_minor, MINOR(devno) + total_cdevs);
 
 	nvgpu_list_for_each_entry(class, &l->class_list_head, nvgpu_class, list_entry) {
 		if (!check_valid_class(g, class)) {
@@ -709,6 +710,15 @@ int gk20a_user_nodes_init(struct device *dev)
 fail:
 	gk20a_user_nodes_deinit(dev);
 	return err;
+}
+
+unsigned int nvgpu_allocate_cdev_minor(struct gk20a *g)
+{
+	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
+	unsigned int next = (unsigned int)atomic_add_return(1, &l->next_cdev_minor);
+
+	WARN_ON(next >= MINOR(UINT_MAX));
+	return next;
 }
 
 struct gk20a *nvgpu_get_gk20a_from_cdev(struct nvgpu_cdev *cdev)

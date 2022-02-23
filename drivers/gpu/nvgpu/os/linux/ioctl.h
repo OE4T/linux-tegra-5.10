@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -71,6 +71,7 @@ int gk20a_power_node_init(struct device *dev);
 void gk20a_user_nodes_deinit(struct device *dev);
 void gk20a_power_node_deinit(struct device *dev);
 
+unsigned int nvgpu_allocate_cdev_minor(struct gk20a *g);
 struct gk20a *nvgpu_get_gk20a_from_cdev(struct nvgpu_cdev *cdev);
 u32 nvgpu_get_gpu_instance_id_from_cdev(struct gk20a *g, struct nvgpu_cdev *cdev);
 

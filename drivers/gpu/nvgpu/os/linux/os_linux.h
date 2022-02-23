@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -87,6 +87,7 @@ struct nvgpu_os_linux {
 
 	dev_t power_cdev_region;
 	dev_t cdev_region;
+	atomic_t next_cdev_minor;
 
 	/* see gk20a_ctrl_priv */
 	struct nvgpu_list_node ctrl_privs;
