@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -87,6 +87,14 @@ struct nvgpu_nvs_ioctl_create_domain {
 	__u64 reserved1;
 };
 
+/**
+ * NVGPU_NVS_IOCTL_REMOVE_DOMAIN
+ *
+ * Remove a domain that has been previously created.
+ *
+ * The domain must be empty; it must have no TSGs bound to it. The domain's
+ * device node must not be open by anyone.
+ */
 struct nvgpu_nvs_ioctl_remove_domain {
 	/*
 	 * In: a domain_id to remove.

@@ -38,6 +38,7 @@
 #define NVS_LOG_BUF_SIZE	128
 
 struct gk20a;
+struct nvgpu_nvs_domain_ioctl;
 
 /*
  * NvGPU KMD domain implementation details for nvsched.
@@ -65,6 +66,11 @@ struct nvgpu_nvs_domain {
 	 * ioctl layer and a TSG putting a ref does not result in domain deletion.
 	 */
 	u32 ref;
+
+	/*
+	 * Userspace API on the device nodes.
+	 */
+	struct nvgpu_nvs_domain_ioctl *ioctl;
 };
 
 struct nvgpu_nvs_worker {
@@ -95,6 +101,7 @@ struct nvgpu_nvs_domain *
 nvgpu_nvs_domain_by_id(struct gk20a *g, u64 domain_id);
 struct nvgpu_nvs_domain *
 nvgpu_nvs_domain_by_name(struct gk20a *g, const char *name);
+void nvgpu_nvs_domain_get(struct gk20a *g, struct nvgpu_nvs_domain *dom);
 void nvgpu_nvs_domain_put(struct gk20a *g, struct nvgpu_nvs_domain *dom);
 /*
  * Debug wrapper for NVS code.
