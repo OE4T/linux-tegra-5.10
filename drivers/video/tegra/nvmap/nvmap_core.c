@@ -245,6 +245,33 @@ void __nvmap_munmap(struct nvmap_handle *h, void *addr)
 	nvmap_handle_put(h);
 }
 
+/*
+ * NOTE: this does not ensure the continued existence of the underlying
+ * dma_buf. If you want ensure the existence of the dma_buf you must get an
+ * nvmap_handle_ref as that is what tracks the dma_buf refs.
+ */
+struct nvmap_handle *nvmap_handle_get(struct nvmap_handle *h)
+{
+	int cnt;
+
+	if (WARN_ON(!virt_addr_valid(h))) {
+		pr_err("%s: invalid handle\n", current->group_leader->comm);
+		return NULL;
+	}
+
+	cnt = atomic_inc_return(&h->ref);
+	NVMAP_TAG_TRACE(trace_nvmap_handle_get, h, cnt);
+
+	if (unlikely(cnt <= 1)) {
+		pr_err("%s: %s attempt to get a freed handle\n",
+			__func__, current->group_leader->comm);
+		atomic_dec(&h->ref);
+		return NULL;
+	}
+
+	return h;
+}
+
 void nvmap_handle_put(struct nvmap_handle *h)
 {
 	int cnt;
@@ -252,6 +279,7 @@ void nvmap_handle_put(struct nvmap_handle *h)
 	if (WARN_ON(!virt_addr_valid(h)))
 		return;
 	cnt = atomic_dec_return(&h->ref);
+	NVMAP_TAG_TRACE(trace_nvmap_handle_put, h, cnt);
 
 	if (WARN_ON(cnt < 0)) {
 		pr_err("%s: %s put to negative references\n",

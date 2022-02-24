@@ -411,27 +411,6 @@ static inline void nvmap_ref_unlock(struct nvmap_client *priv)
 	mutex_unlock(&priv->ref_lock);
 }
 
-/*
- * NOTE: this does not ensure the continued existence of the underlying
- * dma_buf. If you want ensure the existence of the dma_buf you must get an
- * nvmap_handle_ref as that is what tracks the dma_buf refs.
- */
-static inline struct nvmap_handle *nvmap_handle_get(struct nvmap_handle *h)
-{
-	if (WARN_ON(!virt_addr_valid(h))) {
-		pr_err("%s: invalid handle\n", current->group_leader->comm);
-		return NULL;
-	}
-
-	if (unlikely(atomic_inc_return(&h->ref) <= 1)) {
-		pr_err("%s: %s attempt to get a freed handle\n",
-			__func__, current->group_leader->comm);
-		atomic_dec(&h->ref);
-		return NULL;
-	}
-	return h;
-}
-
 static inline void nvmap_acquire_mmap_read_lock(struct mm_struct *mm)
 {
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
@@ -508,6 +487,7 @@ struct nvmap_heap_block *nvmap_carveout_alloc(struct nvmap_client *dev,
 
 struct nvmap_carveout_node;
 
+struct nvmap_handle *nvmap_handle_get(struct nvmap_handle *h);
 void nvmap_handle_put(struct nvmap_handle *h);
 
 struct nvmap_handle_ref *__nvmap_validate_locked(struct nvmap_client *priv,
