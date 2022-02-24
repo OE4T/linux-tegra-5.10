@@ -446,6 +446,93 @@ static DEVICE_ATTR(macsec_loopback, (S_IRUGO | S_IWUSR),
 		   macsec_loopback_show,
 		   macsec_loopback_store);
 
+#ifdef HSI_SUPPORT
+/**
+ * @brief Shows HSI feature enabled status
+ *
+ * Algorithm: Shows HSI feature enabled status
+ *
+ * @param[in] dev: Device data.
+ * @param[in] attr: Device attribute
+ * @param[in] buf: Buffer to store the current status
+ */
+static ssize_t hsi_enable_show(struct device *dev,
+			       struct device_attribute *attr, char *buf)
+{
+	struct net_device *ndev = (struct net_device *)dev_get_drvdata(dev);
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+
+	return scnprintf(buf, PAGE_SIZE, "%s\n",
+			 (osi_core->hsi.enabled == OSI_ENABLE) ?
+			 "enabled" : "disabled");
+}
+
+/**
+ * @brief Set HSI enabled status
+ *
+ * Algorithm: This is used to set HSI feature enable status
+ *
+ * @param[in] dev: Device data.
+ * @param[in] attr: Device attribute
+ * @param[in] buf: Buffer which contains the user input
+ * @param[in] size: size of buffer
+ *
+ * @return size of buffer.
+ */
+static ssize_t hsi_enable_store(struct device *dev,
+				struct device_attribute *attr,
+				const char *buf, size_t size)
+{
+	struct net_device *ndev = (struct net_device *)dev_get_drvdata(dev);
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_ioctl ioctl_data = {};
+	int ret = 0;
+
+	if (!netif_running(ndev)) {
+		dev_err(pdata->dev, "Not Allowed. Ether interface is not up\n");
+		return size;
+	}
+
+	ioctl_data.cmd = OSI_CMD_HSI_CONFIGURE;
+	if (strncmp(buf, "enable", 6) == OSI_NONE) {
+		ioctl_data.arg1_u32 = OSI_ENABLE;
+		ret = osi_handle_ioctl(pdata->osi_core, &ioctl_data);
+		if (ret < 0) {
+			dev_err(pdata->dev,
+				"Failed to enable HSI\n");
+		} else {
+			osi_core->hsi.enabled = OSI_ENABLE;
+			dev_info(pdata->dev, "HSI Enabled\n");
+		}
+	} else if (strncmp(buf, "disable", 7) == OSI_NONE) {
+		ioctl_data.arg1_u32 = OSI_DISABLE;
+		ret = osi_handle_ioctl(pdata->osi_core, &ioctl_data);
+		if (ret < 0) {
+			dev_err(pdata->dev,
+				"Failed to disable HSI\n");
+		} else {
+			osi_core->hsi.enabled = OSI_DISABLE;
+			dev_info(pdata->dev, "HSI Disabled\n");
+		}
+	} else {
+		dev_err(pdata->dev,
+			"Invalid entry. Valid Entries are enable/disable\n");
+	}
+
+	return size;
+}
+
+/**
+ * @brief Sysfs attribute for HSI enable
+ *
+ */
+static DEVICE_ATTR(hsi_enable, 0644,
+		   hsi_enable_show,
+		   hsi_enable_store);
+#endif
+
 #define MAC_ADDR_FMT	"%02x:%02x:%02x:%02x:%02x:%02x"
 #define ETHTYPE_FMT	"%02x%02x"
 #define SCI_FMT		"%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x"
@@ -2576,6 +2663,9 @@ static struct attribute *ether_sysfs_attrs[] = {
 	&dev_attr_nvgro_timer_interval.attr,
 	&dev_attr_nvgro_stats.attr,
 	&dev_attr_nvgro_dump.attr,
+#endif
+#ifdef HSI_SUPPORT
+	&dev_attr_hsi_enable.attr,
 #endif
 	NULL
 };

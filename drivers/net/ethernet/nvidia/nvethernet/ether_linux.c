@@ -16,6 +16,9 @@
 
 #include <linux/version.h>
 #include <linux/iommu.h>
+#ifdef HSI_SUPPORT
+#include <linux/tegra-epl.h>
+#endif
 #include "ether_linux.h"
 
 /**
@@ -233,6 +236,100 @@ static inline int ether_remove_invalid_mac_addr(struct ether_priv_data *pdata,
 	return ret;
 }
 
+#ifdef HSI_SUPPORT
+static inline u64 rdtsc(void)
+{
+	u64 val;
+
+	asm volatile("mrs %0, cntvct_el0" : "=r" (val));
+
+	return val;
+}
+
+static irqreturn_t ether_common_isr_thread(int irq, void *data)
+{
+	struct ether_priv_data *pdata = (struct ether_priv_data *)data;
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	int ret = 0;
+	int i;
+	struct epl_error_report_frame error_report;
+
+	error_report.reporter_id = osi_core->hsi.reporter_id;
+	error_report.timestamp = lower_32_bits(rdtsc());
+
+	mutex_lock(&pdata->hsi_lock);
+
+	/* Called from ether_hsi_work */
+	if (osi_core->hsi.report_err && irq == 0) {
+		osi_core->hsi.report_err = OSI_DISABLE;
+		for (i = 0; i < HSI_MAX_MAC_ERROR_CODE; i++) {
+			if (osi_core->hsi.err_code[i] > 0) {
+				error_report.error_code =
+					osi_core->hsi.err_code[i];
+				ret = epl_report_error(error_report);
+				if (ret < 0) {
+					dev_err(pdata->dev, "Failed to report error: reporter ID: 0x%x, Error code: 0x%x, return: %d\n",
+						osi_core->hsi.reporter_id,
+						osi_core->hsi.err_code[i], ret);
+				} else {
+					dev_info(pdata->dev, "EPL report error: reporter ID: 0x%x, Error code: 0x%x\n",
+						 osi_core->hsi.reporter_id,
+						 osi_core->hsi.err_code[i]);
+				}
+				osi_core->hsi.err_code[i] = 0;
+			}
+		}
+	}
+
+	/* Called from ether_hsi_work */
+	if (osi_core->hsi.macsec_report_err && irq == 0) {
+		osi_core->hsi.macsec_report_err = OSI_DISABLE;
+		for (i = 0; i < HSI_MAX_MACSEC_ERROR_CODE; i++) {
+			if (osi_core->hsi.macsec_err_code[i] > 0) {
+				error_report.error_code =
+					osi_core->hsi.macsec_err_code[i];
+				ret = epl_report_error(error_report);
+				if (ret < 0) {
+					dev_err(pdata->dev, "Failed to report error: reporter ID: 0x%x, Error code: 0x%x, return: %d\n",
+						osi_core->hsi.reporter_id,
+						osi_core->hsi.err_code[i], ret);
+				} else {
+					dev_info(pdata->dev, "EPL report error: reporter ID: 0x%x, Error code: 0x%x\n",
+						 osi_core->hsi.reporter_id,
+						 osi_core->hsi.err_code[i]);
+				}
+				osi_core->hsi.macsec_err_code[i] = 0;
+			}
+		}
+	}
+
+	/* Called from interrupt handler */
+	if (osi_core->hsi.report_err && irq != 0) {
+		for (i = 0; i < HSI_MAX_MAC_ERROR_CODE; i++) {
+			if (osi_core->hsi.err_code[i] > 0 &&
+			    osi_core->hsi.report_count_err[i] == OSI_ENABLE) {
+				error_report.error_code =
+					osi_core->hsi.err_code[i];
+				ret = epl_report_error(error_report);
+				if (ret < 0) {
+					dev_err(pdata->dev, "Failed to report error: reporter ID: 0x%x, Error code: 0x%x, return: %d\n",
+						osi_core->hsi.reporter_id,
+						osi_core->hsi.err_code[i], ret);
+				} else {
+					dev_info(pdata->dev, "EPL report error: reporter ID: 0x%x, Error code: 0x%x\n",
+						 osi_core->hsi.reporter_id,
+						 osi_core->hsi.err_code[i]);
+				}
+				osi_core->hsi.err_code[i] = 0;
+				osi_core->hsi.report_count_err[i] = OSI_DISABLE;
+			}
+		}
+	}
+	mutex_unlock(&pdata->hsi_lock);
+	return IRQ_HANDLED;
+}
+#endif
+
 /**
  * @brief Work Queue function to call osi_read_mmc() periodically.
  *
@@ -259,8 +356,69 @@ static inline void ether_stats_work_func(struct work_struct *work)
 			__func__);
 	}
 	schedule_delayed_work(&pdata->ether_stats_work,
-			      msecs_to_jiffies(ETHER_STATS_TIMER * 1000));
+			      msecs_to_jiffies(pdata->stats_timer));
 }
+
+#ifdef HSI_SUPPORT
+/**
+ * @brief Work Queue function to report error periodically.
+ *
+ * Algorithm:
+ * - periodically check if any HSI error need to be reported
+ * - call ether_common_isr_thread to report error through EPL
+ *
+ * @param[in] work: work structure
+ *
+ */
+static inline void ether_hsi_work_func(struct work_struct *work)
+{
+	struct delayed_work *dwork = to_delayed_work(work);
+	struct ether_priv_data *pdata = container_of(dwork,
+			struct ether_priv_data, ether_hsi_work);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	u64 rx_udp_err;
+	u64 rx_tcp_err;
+	u64 rx_ipv4_hderr;
+	u64 rx_ipv6_hderr;
+	u64 rx_crc_error;
+	u64 rx_checksum_error;
+
+	rx_crc_error =
+		osi_core->mmc.mmc_rx_crc_error /
+			osi_core->hsi.err_count_threshold;
+	if (osi_core->hsi.rx_crc_err_count < rx_crc_error) {
+		osi_core->hsi.rx_crc_err_count = rx_crc_error;
+		mutex_lock(&pdata->hsi_lock);
+		osi_core->hsi.err_code[RX_CRC_ERR_IDX] =
+			OSI_INBOUND_BUS_CRC_ERR;
+		osi_core->hsi.report_err = OSI_ENABLE;
+		mutex_unlock(&pdata->hsi_lock);
+	}
+
+	rx_udp_err = osi_core->mmc.mmc_rx_udp_err;
+	rx_tcp_err = osi_core->mmc.mmc_rx_tcp_err;
+	rx_ipv4_hderr = osi_core->mmc.mmc_rx_ipv4_hderr;
+	rx_ipv6_hderr = osi_core->mmc.mmc_rx_ipv6_hderr;
+	rx_checksum_error = (rx_udp_err + rx_tcp_err +
+		rx_ipv4_hderr + rx_ipv6_hderr) /
+			osi_core->hsi.err_count_threshold;
+	if (osi_core->hsi.rx_checksum_err_count < rx_checksum_error) {
+		osi_core->hsi.rx_checksum_err_count = rx_checksum_error;
+		mutex_lock(&pdata->hsi_lock);
+		osi_core->hsi.err_code[RX_CSUM_ERR_IDX] =
+				OSI_RECEIVE_CHECKSUM_ERR;
+		osi_core->hsi.report_err = OSI_ENABLE;
+		mutex_unlock(&pdata->hsi_lock);
+	}
+
+	if (osi_core->hsi.report_err == OSI_ENABLE ||
+	    osi_core->hsi.macsec_report_err == OSI_ENABLE)
+		ether_common_isr_thread(0, (void *)pdata);
+
+	schedule_delayed_work(&pdata->ether_hsi_work,
+			      msecs_to_jiffies(osi_core->hsi.err_time_threshold));
+}
+#endif
 
 /**
  * @brief Start delayed workqueue.
@@ -280,8 +438,7 @@ static inline void ether_stats_work_queue_start(struct ether_priv_data *pdata)
 	if (pdata->hw_feat.mmc_sel == OSI_ENABLE &&
 	    osi_core->use_virtualization == OSI_DISABLE) {
 		schedule_delayed_work(&pdata->ether_stats_work,
-				      msecs_to_jiffies(ETHER_STATS_TIMER *
-						       1000));
+				      msecs_to_jiffies(pdata->stats_timer));
 	}
 }
 
@@ -1316,6 +1473,7 @@ static irqreturn_t ether_common_isr(int irq, void *data)
 	struct ether_priv_data *pdata =	(struct ether_priv_data *)data;
 	struct osi_ioctl ioctl_data = {};
 	int ret;
+	int irq_ret = IRQ_HANDLED;
 
 	ioctl_data.cmd = OSI_CMD_COMMON_ISR;
 	ret = osi_handle_ioctl(pdata->osi_core, &ioctl_data);
@@ -1323,7 +1481,12 @@ static irqreturn_t ether_common_isr(int irq, void *data)
 		dev_err(pdata->dev,
 			"%s() failure in handling ISR\n", __func__);
 	}
-	return IRQ_HANDLED;
+#ifdef HSI_SUPPORT
+	if (pdata->osi_core->hsi.enabled == OSI_ENABLE &&
+	    pdata->osi_core->hsi.report_err == OSI_ENABLE)
+		irq_ret = IRQ_WAKE_THREAD;
+#endif
+	return irq_ret;
 }
 
 /**
@@ -1534,9 +1697,19 @@ static int ether_request_irqs(struct ether_priv_data *pdata)
 
 	snprintf(pdata->irq_names[0], ETHER_IRQ_NAME_SZ, "%s.common_irq",
 		 netdev_name(pdata->ndev));
+
+#ifdef HSI_SUPPORT
+	ret = devm_request_threaded_irq(pdata->dev,
+					(unsigned int)pdata->common_irq,
+					ether_common_isr,
+					ether_common_isr_thread,
+					IRQF_SHARED | IRQF_ONESHOT,
+					pdata->irq_names[0], pdata);
+#else
 	ret = devm_request_irq(pdata->dev, (unsigned int)pdata->common_irq,
 			       ether_common_isr, IRQF_SHARED,
 			       pdata->irq_names[0], pdata);
+#endif
 	if (unlikely(ret < 0)) {
 		dev_err(pdata->dev, "failed to register common interrupt: %d\n",
 			pdata->common_irq);
@@ -2629,8 +2802,20 @@ static int ether_open(struct net_device *dev)
 	/* start network queues */
 	netif_tx_start_all_queues(pdata->ndev);
 
-	/* call function to schedule workqueue */
+	pdata->stats_timer = ETHER_STATS_TIMER;
+#ifdef HSI_SUPPORT
+	/* Override stats_timer to getting MCC error stats as per
+	 * hsi.err_time_threshold configuration
+	 */
+	if (osi_core->hsi.err_time_threshold < ETHER_STATS_TIMER)
+		pdata->stats_timer = osi_core->hsi.err_time_threshold;
+#endif
 	ether_stats_work_queue_start(pdata);
+
+#ifdef HSI_SUPPORT
+	schedule_delayed_work(&pdata->ether_hsi_work,
+			      msecs_to_jiffies(osi_core->hsi.err_time_threshold));
+#endif
 
 #ifdef ETHER_NVGRO
 	/* start NVGRO timer for purging */
@@ -2832,6 +3017,9 @@ static int ether_close(struct net_device *ndev)
 	/* Stop workqueue to get further scheduled */
 	ether_stats_work_queue_stop(pdata);
 
+#ifdef HSI_SUPPORT
+	cancel_delayed_work_sync(&pdata->ether_hsi_work);
+#endif
 	/* Stop and disconnect the PHY */
 	if (pdata->phydev != NULL) {
 		/* Check and clear WoL status */
@@ -5941,6 +6129,20 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 		osi_core->pps_frq = OSI_DISABLE;
 	}
 
+#ifdef HSI_SUPPORT
+	ret_val = of_property_read_u32(np, "nvidia,hsi_err_time_threshold",
+				       &osi_core->hsi.err_time_threshold);
+	if (ret_val < 0 ||
+	    osi_core->hsi.err_time_threshold < OSI_HSI_ERR_TIME_THRESHOLD_MIN ||
+	    osi_core->hsi.err_time_threshold > OSI_HSI_ERR_TIME_THRESHOLD_MAX)
+		osi_core->hsi.err_time_threshold = OSI_HSI_ERR_TIME_THRESHOLD_DEFAULT;
+
+	ret_val = of_property_read_u32(np, "nvidia,hsi_err_count_threshold",
+				       &osi_core->hsi.err_count_threshold);
+	if (ret_val < 0 || osi_core->hsi.err_count_threshold <= 0)
+		osi_core->hsi.err_count_threshold = OSI_HSI_ERR_COUNT_THRESHOLD;
+#endif
+
 exit:
 	return ret;
 }
@@ -6450,7 +6652,10 @@ static int ether_probe(struct platform_device *pdev)
 	}
 	/* Initialization of delayed workqueue */
 	INIT_DELAYED_WORK(&pdata->ether_stats_work, ether_stats_work_func);
-
+#ifdef HSI_SUPPORT
+	/* Initialization of delayed workqueue for HSI error reporting */
+	INIT_DELAYED_WORK(&pdata->ether_hsi_work, ether_hsi_work_func);
+#endif
 	mutex_init(&pdata->rx_mode_lock);
 	/* Initialization of delayed workqueue */
 	INIT_WORK(&pdata->set_rx_mode_work, set_rx_mode_work_func);
@@ -6469,6 +6674,10 @@ static int ether_probe(struct platform_device *pdev)
 	pdata->nvgro_timer_intrvl = NVGRO_PURGE_TIMER_THRESHOLD;
 	pdata->nvgro_dropped = 0;
 	timer_setup(&pdata->nvgro_timer, ether_nvgro_purge_timer, 0);
+#endif
+
+#ifdef HSI_SUPPORT
+	mutex_init(&pdata->hsi_lock);
 #endif
 
 	return 0;
@@ -6614,7 +6823,9 @@ static int ether_suspend_noirq(struct device *dev)
 
 	/* Stop workqueue while DUT is going to suspend state */
 	ether_stats_work_queue_stop(pdata);
-
+#ifdef HSI_SUPPORT
+	cancel_delayed_work_sync(&pdata->ether_hsi_work);
+#endif
 	if (pdata->phydev && !(device_may_wakeup(&ndev->dev))) {
 		phy_stop(pdata->phydev);
 		if (gpio_is_valid(pdata->phy_reset))
@@ -6772,7 +6983,10 @@ static int ether_resume(struct ether_priv_data *pdata)
 	netif_tx_start_all_queues(ndev);
 	/* re-start workqueue */
 	ether_stats_work_queue_start(pdata);
-
+#ifdef HSI_SUPPORT
+	schedule_delayed_work(&pdata->ether_hsi_work,
+			      msecs_to_jiffies(osi_core->hsi.err_time_threshold));
+#endif
 	/* Keep MACSEC also to Resume if MACSEC is supported on this platform */
 #ifdef MACSEC_SUPPORT
 	if ((osi_core->mac == OSI_MAC_HW_EQOS && osi_core->mac_ver == OSI_EQOS_MAC_5_30) ||

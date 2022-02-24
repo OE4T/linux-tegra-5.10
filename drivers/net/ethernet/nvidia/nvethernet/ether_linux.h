@@ -300,7 +300,7 @@ static inline int ether_avail_txdesc_cnt(struct osi_tx_ring *tx_ring)
  * and store locally. If data is at line rate, 2^32 entry get will filled in
  * 36 second for 1 G interface and 3.6 sec for 10 G interface.
  */
-#define ETHER_STATS_TIMER		3U
+#define ETHER_STATS_TIMER		3000U
 
 /**
  * @brief Timer to trigger Work queue periodically which read TX timestamp
@@ -614,6 +614,14 @@ struct ether_priv_data {
 	bool rx_m_enabled;
 	/** Flag to represent rx_pcs_m clk enabled or not */
 	bool rx_pcs_m_enabled;
+	/* Timer value in msec for ether_stats_work thread */
+	unsigned int stats_timer;
+#ifdef HSI_SUPPORT
+	/** Delayed work queue for error reporting */
+	struct delayed_work ether_hsi_work;
+	/** HSI lock */
+	struct mutex hsi_lock;
+#endif
 };
 
 /**
