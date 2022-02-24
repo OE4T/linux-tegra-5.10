@@ -309,8 +309,8 @@ struct osi_macsec_lut_status {
 	struct osi_macsec_sc_info sc_info[OSI_MAX_NUM_SC];
 	/** next available BYP LUT index */
 	nveu32_t next_byp_idx;
-	/** next available SC LUT index */
-	nveu32_t next_sc_idx;
+	/** number of active SCs */
+	nveu32_t num_of_sc_used;
 };
 
 /**

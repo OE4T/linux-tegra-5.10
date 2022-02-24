@@ -2649,7 +2649,7 @@ static struct osi_macsec_sc_info *find_existing_sc(
 					&osi_core->macsec_lut_status[ctlr];
 	nveu32_t i;
 
-	for (i = 0; i < lut_status->next_sc_idx; i++) {
+	for (i = 0; i < OSI_MAX_NUM_SC; i++) {
 		if (osi_memcmp(lut_status->sc_info[i].sci, sc->sci,
 			       OSI_SCI_LEN) == OSI_NONE) {
 			return &lut_status->sc_info[i];
@@ -2657,6 +2657,21 @@ static struct osi_macsec_sc_info *find_existing_sc(
 	}
 
 	return OSI_NULL;
+}
+
+static nveu32_t get_avail_sc_idx(struct osi_core_priv_data *const osi_core,
+				   nveu16_t ctlr)
+{
+	struct osi_macsec_lut_status *lut_status =
+					&osi_core->macsec_lut_status[ctlr];
+	nveu32_t i;
+
+	for (i = 0; i < OSI_MAX_NUM_SC; i++) {
+		if (lut_status->sc_info[i].an_valid == OSI_NONE) {
+			return i;
+		}
+	}
+	return i;
 }
 
 nve32_t macsec_get_sc_lut_key_index(struct osi_core_priv_data *const osi_core,
@@ -2949,6 +2964,7 @@ static nve32_t macsec_config(struct osi_core_priv_data *const osi_core,
 	struct osi_macsec_sc_info tmp_sc;
 	struct osi_macsec_sc_info *tmp_sc_p = &tmp_sc;
 	struct osi_macsec_lut_status *lut_status;
+	nve32_t avail_sc_idx = 0;
 
 	/* Validate inputs */
 	if ((enable != OSI_ENABLE && enable != OSI_DISABLE) ||
@@ -2968,13 +2984,19 @@ static nve32_t macsec_config(struct osi_core_priv_data *const osi_core,
 			return -1;
 		} else {
 			LOG("%s: Adding new SC/SA: ctlr: %hu", __func__, ctlr);
-			if (lut_status->next_sc_idx >= OSI_MAX_NUM_SC) {
+			if (lut_status->num_of_sc_used >= OSI_MAX_NUM_SC) {
 				OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 				  "Err: Reached max SC LUT entries!\n", 0ULL);
 				return -1;
 			}
 
-			new_sc = &lut_status->sc_info[lut_status->next_sc_idx];
+			avail_sc_idx = get_avail_sc_idx(osi_core, ctlr);
+			if (avail_sc_idx == OSI_MAX_NUM_SC) {
+				OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+				  "Err: NO free SC Index\n", 0ULL);
+				return -1;
+			}
+			new_sc = &lut_status->sc_info[avail_sc_idx];
 			osi_memcpy(new_sc->sci, sc->sci, OSI_SCI_LEN);
 			osi_memcpy(new_sc->sak, sc->sak, OSI_KEY_LEN_128);
 #ifdef MACSEC_KEY_PROGRAM
@@ -2985,7 +3007,7 @@ static nve32_t macsec_config(struct osi_core_priv_data *const osi_core,
 			new_sc->pn_window = sc->pn_window;
 			new_sc->flags = sc->flags;
 
-			new_sc->sc_idx_start = lut_status->next_sc_idx;
+			new_sc->sc_idx_start = avail_sc_idx;
 			new_sc->an_valid |= OSI_BIT(sc->curr_an);
 
 			if (add_upd_sc(osi_core, new_sc, ctlr, kt_idx) !=
@@ -2995,11 +3017,11 @@ static nve32_t macsec_config(struct osi_core_priv_data *const osi_core,
 				return -1;
 			} else {
 				/* Update lut status */
-				lut_status->next_sc_idx++;
+				lut_status->num_of_sc_used++;
 				LOG("%s: Added new SC ctlr: %u "
-				       "nxt_sc_idx: %u",
+				       "Total active SCs: %u",
 				       __func__, ctlr,
-				       lut_status->next_sc_idx);
+				       lut_status->num_of_sc_used);
 				return 0;
 			}
 		}
@@ -3014,7 +3036,7 @@ static nve32_t macsec_config(struct osi_core_priv_data *const osi_core,
 				return -1;
 			} else {
 				if (existing_sc->an_valid == OSI_NONE) {
-					lut_status->next_sc_idx--;
+					lut_status->num_of_sc_used--;
 					osi_memset(existing_sc, OSI_NONE,
 						   sizeof(*existing_sc));
 				}
@@ -3045,9 +3067,9 @@ static nve32_t macsec_config(struct osi_core_priv_data *const osi_core,
 				return -1;
 			} else {
 				LOG("%s: Updated new SC ctlr: %u "
-				       "nxt_sc_idx: %u",
+				       "Total active SCs: %u",
 				       __func__, ctlr,
-				       lut_status->next_sc_idx);
+				       lut_status->num_of_sc_used);
 				/* Now commit the changes */
 				*existing_sc = *tmp_sc_p;
 				return 0;
