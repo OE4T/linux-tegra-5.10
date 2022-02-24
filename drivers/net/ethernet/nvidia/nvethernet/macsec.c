@@ -19,7 +19,9 @@
 #ifdef MACSEC_KEY_PROGRAM
 #include <linux/crypto.h>
 #endif /* MACSEC_KEY_PROGRAM */
-
+#ifdef HSI_SUPPORT
+#include <linux/tegra-epl.h>
+#endif
 /**
  * @brief is_nv_macsec_fam_registered - Is nv macsec nl registered
  */
@@ -43,14 +45,71 @@ static irqreturn_t macsec_s_isr(int irq, void *data)
 	return IRQ_HANDLED;
 }
 
+#ifdef HSI_SUPPORT
+static inline u64 rdtsc(void)
+{
+	u64 val;
+
+	asm volatile("mrs %0, cntvct_el0" : "=r" (val));
+
+	return val;
+}
+
+static irqreturn_t macsec_ns_isr_thread(int irq, void *data)
+{
+	struct macsec_priv_data *macsec_pdata = (struct macsec_priv_data *)data;
+	struct ether_priv_data *pdata = macsec_pdata->ether_pdata;
+	struct device *dev = pdata->dev;
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	int ret = 0;
+	int i = 0;
+	struct epl_error_report_frame error_report;
+
+	mutex_lock(&pdata->hsi_lock);
+	if (osi_core->hsi.macsec_report_err) {
+		error_report.reporter_id = osi_core->hsi.reporter_id;
+		error_report.timestamp = lower_32_bits(rdtsc());
+
+		for (i = 0; i < HSI_MAX_MACSEC_ERROR_CODE; i++) {
+			if (osi_core->hsi.macsec_err_code[i] > 0 &&
+			    osi_core->hsi.macsec_report_count_err[i] == OSI_ENABLE) {
+				error_report.error_code =
+					osi_core->hsi.macsec_err_code[i];
+				ret = epl_report_error(error_report);
+				if (ret < 0) {
+					dev_err(dev, "Failed to report error: reporter ID: 0x%x, Error code: 0x%x, return: %d\n",
+						osi_core->hsi.reporter_id,
+						osi_core->hsi.macsec_err_code[i], ret);
+				} else {
+					dev_info(dev, "EPL report error: reporter ID: 0x%x, Error code: 0x%x",
+						 osi_core->hsi.reporter_id,
+						 osi_core->hsi.macsec_err_code[i]);
+				}
+				osi_core->hsi.macsec_err_code[i] = 0;
+				osi_core->hsi.macsec_report_count_err[i] = OSI_DISABLE;
+			}
+		}
+	}
+	mutex_unlock(&pdata->hsi_lock);
+
+	return IRQ_HANDLED;
+}
+#endif
+
 static irqreturn_t macsec_ns_isr(int irq, void *data)
 {
 	struct macsec_priv_data *macsec_pdata = (struct macsec_priv_data *)data;
 	struct ether_priv_data *pdata = macsec_pdata->ether_pdata;
+	int irq_ret = IRQ_HANDLED;
 
 	osi_macsec_ns_isr(pdata->osi_core);
 
-	return IRQ_HANDLED;
+#ifdef HSI_SUPPORT
+	if (pdata->osi_core->hsi.enabled == OSI_ENABLE &&
+	    pdata->osi_core->hsi.macsec_report_err == OSI_ENABLE)
+		irq_ret = IRQ_WAKE_THREAD;
+#endif
+	return irq_ret;
 }
 
 static int macsec_disable_car(struct macsec_priv_data *macsec_pdata)
@@ -198,9 +257,18 @@ int macsec_open(struct macsec_priv_data *macsec_pdata,
 
 	snprintf(macsec_pdata->irq_name[1], MACSEC_IRQ_NAME_SZ, "%s.macsec_ns",
 		 netdev_name(pdata->ndev));
+
+#ifdef HSI_SUPPORT
+	ret = devm_request_threaded_irq(dev, macsec_pdata->ns_irq, macsec_ns_isr,
+					macsec_ns_isr_thread,
+					IRQF_TRIGGER_NONE | IRQF_ONESHOT,
+					macsec_pdata->irq_name[1],
+					macsec_pdata);
+#else
 	ret = devm_request_irq(dev, macsec_pdata->ns_irq, macsec_ns_isr,
 			       IRQF_TRIGGER_NONE, macsec_pdata->irq_name[1],
 			       macsec_pdata);
+#endif
 	if (ret < 0) {
 		dev_err(dev, "failed to request irq %d\n", __LINE__);
 		goto err_ns_irq;
