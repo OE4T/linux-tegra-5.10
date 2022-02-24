@@ -353,7 +353,7 @@ static int vi_channel_release(
  * Pin/map buffers and save iova boundaries into corresponding
  * memoryinfo struct.
  */
-int pin_vi_capture_request_buffers_locked(struct tegra_vi_channel *chan,
+static int pin_vi_capture_request_buffers_locked(struct tegra_vi_channel *chan,
 		struct vi_capture_req *req,
 		struct capture_common_unpins *request_unpins)
 {

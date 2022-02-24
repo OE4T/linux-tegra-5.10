@@ -16,7 +16,6 @@
 
 #include <linux/cdev.h>
 #include <linux/version.h>
-#include <linux/semaphore.h>
 #include <media/cdi-mgr.h>
 
 #define CDI_MGR_STOP_GPIO_INTR_EVENT_WAIT	(~(0u))
@@ -98,7 +97,5 @@ int cdi_mgr_power_down(struct cdi_mgr_priv *cdi_mgr, unsigned long arg);
 
 int cdi_mgr_debugfs_init(struct cdi_mgr_priv *cdi_mgr);
 int cdi_mgr_debugfs_remove(struct cdi_mgr_priv *cdi_mgr);
-
-struct semaphore tca9539_sem;
 
 #endif  /* __CDI_MGR_PRIV_H__ */

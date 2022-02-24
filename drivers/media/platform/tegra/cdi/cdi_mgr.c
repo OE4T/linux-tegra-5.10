@@ -45,6 +45,7 @@
 #include <media/cdi-dev.h>
 #include <media/cdi-mgr.h>
 #include <linux/gpio/consumer.h>
+#include <linux/semaphore.h>
 
 #include <asm/barrier.h>
 
@@ -234,7 +235,7 @@ static int max20087_raw_wr(
 	return ret;
 }
 
-int max20087_raw_rd(
+static int max20087_raw_rd(
 	struct cdi_mgr_priv *info, unsigned int offset, u8 *val)
 {
 	int ret = -ENODEV;
@@ -340,7 +341,7 @@ static int tca9539_raw_wr(
 	return ret;
 }
 
-int tca9539_raw_rd(
+static int tca9539_raw_rd(
 	struct cdi_mgr_priv *info, unsigned int offset, u8 *val)
 {
 	int ret = -ENODEV;
@@ -870,7 +871,7 @@ static int cdi_mgr_wait_err(
 		cdi_mgr->stop_err_irq_wait = false;
 	}
 
-	if (get_user(gpio_irq_monitor_mask, (uint32_t *)arg)) {
+	if (get_user(gpio_irq_monitor_mask, (uint32_t __user *)arg)) {
 		dev_err(cdi_mgr->pdev,
 			"%s: failed to get_user\n", __func__);
 		return -EFAULT;
@@ -1026,6 +1027,8 @@ static long cdi_mgr_ioctl(
 
 	return err;
 }
+
+static struct semaphore tca9539_sem;
 
 static int cdi_mgr_open(struct inode *inode, struct file *file)
 {

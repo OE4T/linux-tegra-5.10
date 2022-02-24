@@ -2094,7 +2094,7 @@ static bool tc358840_parse_dt(struct tc358840_platform_data *pdata,
 		struct i2c_client *client)
 {
 	struct device_node *node = client->dev.of_node;
-	const u32 *property;
+	const void *property;
 
 	v4l_dbg(1, debug, client, "Device Tree Parameters:\n");
 

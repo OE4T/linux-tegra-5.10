@@ -223,7 +223,7 @@ static void tegra_channel_fmt_align(struct tegra_channel *chan,
 
 /* Check if sensor mode is interlaced and the type of interlaced mode */
 
-void tegra_channel_set_interlace_mode(struct tegra_channel *chan)
+static void tegra_channel_set_interlace_mode(struct tegra_channel *chan)
 {
 	struct v4l2_subdev *sd = NULL;
 	struct camera_common_data *s_data = NULL;

@@ -1,7 +1,7 @@
 /*
  * max9296.c - max9296 GMSL Deserializer driver
  *
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -780,7 +780,7 @@ ret:
 }
 EXPORT_SYMBOL(max9296_setup_streaming);
 
-const struct of_device_id max9296_of_match[] = {
+static const struct of_device_id max9296_of_match[] = {
 	{ .compatible = "maxim,max9296", },
 	{ },
 };

@@ -1,7 +1,7 @@
 /**
  * camera_common.h - utilities for tegra camera driver
  *
- * Copyright (c) 2015-2021, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2015-2022, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -312,7 +312,8 @@ int camera_common_parse_ports(struct device *dev,
 			      struct camera_common_data *s_data);
 int camera_common_mclk_enable(struct camera_common_data *s_data);
 void camera_common_mclk_disable(struct camera_common_data *s_data);
-
+int camera_common_parse_general_properties(struct device *dev,
+			      struct camera_common_data *s_data);
 
 int camera_common_debugfs_show(struct seq_file *s, void *unused);
 ssize_t camera_common_debugfs_write(

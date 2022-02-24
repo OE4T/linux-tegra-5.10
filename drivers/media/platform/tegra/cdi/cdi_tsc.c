@@ -455,7 +455,7 @@ static const struct of_device_id cdi_tsc_of_match[] = {
 };
 MODULE_DEVICE_TABLE(of, cdi_tsc_of_match);
 
-SIMPLE_DEV_PM_OPS(cdi_tsc_pm, cdi_tsc_suspend, cdi_tsc_resume);
+static SIMPLE_DEV_PM_OPS(cdi_tsc_pm, cdi_tsc_suspend, cdi_tsc_resume);
 
 static struct platform_driver cdi_tsc_driver = {
 	.driver = {
