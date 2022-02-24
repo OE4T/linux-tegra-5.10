@@ -291,18 +291,16 @@ fail_heap_block_alloc:
 	return NULL;
 }
 
-static struct list_block *do_heap_free(struct nvmap_heap_block *block)
+static void do_heap_free(struct nvmap_heap_block *block)
 {
 	struct list_block *b = container_of(block, struct list_block, block);
 	struct nvmap_heap *heap = b->heap;
 
 	list_del(&b->all_list);
 
+	heap->free_size += b->size;
 	nvmap_free_mem(heap, block->base, b->size);
 	kmem_cache_free(heap_block_cache, b);
-	heap->free_size += b->size;
-
-	return b;
 }
 
 /* nvmap_heap_alloc: allocates a block of memory of len bytes, aligned to
