@@ -988,6 +988,7 @@ void _nvmap_handle_free(struct nvmap_handle *h)
 
 		nvmap_heap_free(h->carveout);
 		nvmap_kmaps_dec(h);
+		h->carveout = NULL;
 		h->vaddr = NULL;
 		goto out;
 	} else {
