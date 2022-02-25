@@ -167,6 +167,8 @@ bool gm20b_pbdma_handle_intr_0(struct gk20a *g, u32 pbdma_id,
 			recover = true;
 			nvgpu_err(g, "semaphore acquire timeout!");
 
+			gk20a_debug_dump(g);
+
 			/*
 			 * Note: the error_notifier can be overwritten if
 			 * semaphore_timeout is triggered with pbcrc_pending

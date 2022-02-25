@@ -23,6 +23,7 @@
 #include <nvgpu/log.h>
 #include <nvgpu/log2.h>
 #include <nvgpu/utils.h>
+#include <nvgpu/debug.h>
 #include <nvgpu/io.h>
 #include <nvgpu/bitops.h>
 #include <nvgpu/error_notifier.h>
@@ -434,6 +435,8 @@ static bool ga10b_pbdma_handle_intr_0_legacy(struct gk20a *g, u32 pbdma_id,
 		if (nvgpu_is_timeouts_enabled(g)) {
 			recover = true;
 			nvgpu_err(g, "semaphore acquire timeout!");
+
+			gk20a_debug_dump(g);
 
 			/*
 			 * Note: the error_notifier can be overwritten if
