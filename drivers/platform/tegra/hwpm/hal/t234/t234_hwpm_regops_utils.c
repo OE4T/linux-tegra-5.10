@@ -238,6 +238,7 @@ int t234_hwpm_exec_reg_ops(struct tegra_soc_hwpm *hwpm,
 
 	tegra_hwpm_dbg(hwpm, hwpm_verbose,
 		"Found phys addr (0x%llx): aperture (0x%llx-0x%llx)",
+		reg_op->phys_addr,
 		aperture->start_abs_pa, aperture->end_abs_pa);
 
 	switch (reg_op->cmd) {

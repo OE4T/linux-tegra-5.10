@@ -138,7 +138,7 @@ static int tegra_hwpm_reset_stream_buf(struct tegra_soc_hwpm *hwpm)
 int tegra_hwpm_map_stream_buffer(struct tegra_soc_hwpm *hwpm,
 	struct tegra_soc_hwpm_alloc_pma_stream *alloc_pma_stream)
 {
-	int ret = 0;
+	int ret = 0, err = 0;
 
 	tegra_hwpm_fn(hwpm, " ");
 
@@ -185,8 +185,8 @@ fail:
 		tegra_hwpm_err(hwpm, "invalidate_mem_config HAL uninitialized");
 		return -ENODEV;
 	}
-	ret = hwpm->active_chip->invalidate_mem_config(hwpm);
-	if (ret != 0) {
+	err = hwpm->active_chip->invalidate_mem_config(hwpm);
+	if (err != 0) {
 		tegra_hwpm_err(hwpm, "Failed to invalidate memory config");
 	}
 
@@ -195,16 +195,16 @@ fail:
 		tegra_hwpm_err(hwpm, "disable_mem_mgmt HAL uninitialized");
 		return -ENODEV;
 	}
-	ret = hwpm->active_chip->disable_mem_mgmt(hwpm);
-	if (ret != 0) {
+	err = hwpm->active_chip->disable_mem_mgmt(hwpm);
+	if (err != 0) {
 		tegra_hwpm_err(hwpm, "Failed to disable memory management");
 	}
 
 	alloc_pma_stream->stream_buf_pma_va = 0;
 
 	/* Reset stream buffer */
-	ret = tegra_hwpm_reset_stream_buf(hwpm);
-	if (ret != 0) {
+	err = tegra_hwpm_reset_stream_buf(hwpm);
+	if (err != 0) {
 		tegra_hwpm_err(hwpm, "Failed to reset stream buffer");
 	}
 
@@ -230,12 +230,14 @@ int tegra_hwpm_clear_mem_pipeline(struct tegra_soc_hwpm *hwpm)
 		if (ret != 0) {
 			tegra_hwpm_err(hwpm,
 				"Failed to trigger mem_bytes streaming");
+			goto fail;
 		}
 		timeout = HWPM_TIMEOUT(*mem_bytes_kernel_u32 !=
 			       TEGRA_SOC_HWPM_MEM_BYTES_INVALID,
 			     "MEM_BYTES streaming");
-		if (timeout && ret == 0) {
+		if (timeout) {
 			ret = -EIO;
+			goto fail;
 		}
 	}
 
@@ -246,6 +248,7 @@ int tegra_hwpm_clear_mem_pipeline(struct tegra_soc_hwpm *hwpm)
 	ret = hwpm->active_chip->disable_pma_streaming(hwpm);
 	if (ret != 0) {
 		tegra_hwpm_err(hwpm, "Failed to disable pma streaming");
+		goto fail;
 	}
 
 	/* Disable memory management */
@@ -256,14 +259,16 @@ int tegra_hwpm_clear_mem_pipeline(struct tegra_soc_hwpm *hwpm)
 	ret = hwpm->active_chip->disable_mem_mgmt(hwpm);
 	if (ret != 0) {
 		tegra_hwpm_err(hwpm, "Failed to disable memory management");
+		goto fail;
 	}
 
 	/* Reset stream buffer */
 	ret = tegra_hwpm_reset_stream_buf(hwpm);
 	if (ret != 0) {
 		tegra_hwpm_err(hwpm, "Failed to reset stream buffer");
+		goto fail;
 	}
-
+fail:
 	return ret;
 }
 

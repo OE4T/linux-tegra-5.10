@@ -66,7 +66,7 @@ int tegra_soc_hwpm_update_allowlist(struct tegra_soc_hwpm *hwpm,
 
 	tegra_hwpm_fn(hwpm, " ");
 
-	if (hwpm->full_alist_size < 0) {
+	if (hwpm->full_alist_size < 0ULL) {
 		tegra_hwpm_err(hwpm, "Invalid allowlist size");
 		return -EINVAL;
 	}

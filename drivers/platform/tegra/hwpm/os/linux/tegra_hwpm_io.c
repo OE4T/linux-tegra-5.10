@@ -55,7 +55,7 @@ static u32 ip_readl(struct tegra_soc_hwpm *hwpm,
 	struct hwpm_ip_aperture *aperture, u64 offset)
 {
 	tegra_hwpm_dbg(hwpm, hwpm_register,
-		"Aperture (0x%llx-0x%llx) offset(0x%x)",
+		"Aperture (0x%llx-0x%llx) offset(0x%llx)",
 		aperture->start_abs_pa, aperture->end_abs_pa, offset);
 
 	if (hwpm->fake_registers_enabled) {
@@ -147,9 +147,8 @@ static u32 hwpm_readl(struct tegra_soc_hwpm *hwpm,
 	struct hwpm_ip_aperture *aperture, u32 offset)
 {
 	tegra_hwpm_dbg(hwpm, hwpm_register,
-		"Aperture (0x%llx-0x%llx) base 0x%llx offset(0x%x)",
-		aperture->start_abs_pa, aperture->end_abs_pa,
-		(u64 *)aperture->dt_mmio, offset);
+		"Aperture (0x%llx-0x%llx) offset(0x%x)",
+		aperture->start_abs_pa, aperture->end_abs_pa, offset);
 
 	if (aperture->dt_mmio == NULL) {
 		tegra_hwpm_err(hwpm, "aperture is not iomapped as expected");
@@ -171,9 +170,8 @@ static void hwpm_writel(struct tegra_soc_hwpm *hwpm,
 	struct hwpm_ip_aperture *aperture, u32 offset, u32 val)
 {
 	tegra_hwpm_dbg(hwpm, hwpm_register,
-		"Aperture (0x%llx-0x%llx) base 0x%llx offset(0x%x) val(0x%x)",
-		aperture->start_abs_pa, aperture->end_abs_pa,
-		(u64 *)aperture->dt_mmio, offset, val);
+		"Aperture (0x%llx-0x%llx) offset(0x%x) val(0x%x)",
+		aperture->start_abs_pa, aperture->end_abs_pa, offset, val);
 
 	if (aperture->dt_mmio == NULL) {
 		tegra_hwpm_err(hwpm, "aperture is not iomapped as expected");

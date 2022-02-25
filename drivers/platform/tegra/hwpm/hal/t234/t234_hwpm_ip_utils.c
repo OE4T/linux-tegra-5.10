@@ -314,7 +314,7 @@ int t234_hwpm_extract_ip_ops(struct tegra_soc_hwpm *hwpm,
 		if (ret != 0) {
 			tegra_hwpm_err(hwpm,
 				"Failed to %s fs/ops for IP %d perfmux %d",
-				available ? "set" : "reset",
+				available == true ? "set" : "reset",
 				ip_idx, perfmux_idx);
 			goto fail;
 		}
@@ -336,8 +336,8 @@ int t234_hwpm_extract_ip_ops(struct tegra_soc_hwpm *hwpm,
 			if (ret != 0) {
 				tegra_hwpm_err(hwpm,
 					"IP %d perfmux %d: fs/ops %s failed",
-					available ? "set" : "reset",
-					ip_idx, perfmux_idx);
+					ip_idx, perfmux_idx,
+					available == true ? "set" : "reset");
 				goto fail;
 			}
 		}
@@ -363,7 +363,7 @@ int t234_hwpm_extract_ip_ops(struct tegra_soc_hwpm *hwpm,
 				tegra_hwpm_err(hwpm,
 					"IP %d perfmux %d: fs/ops %s failed",
 					ip_idx, perfmux_idx,
-					available ? "set" : "reset");
+					available == true ? "set" : "reset");
 				goto fail;
 			}
 		}
@@ -389,7 +389,7 @@ int t234_hwpm_extract_ip_ops(struct tegra_soc_hwpm *hwpm,
 				tegra_hwpm_err(hwpm,
 					"IP %d perfmux %d: fs/ops %s failed",
 					ip_idx, perfmux_idx,
-					available ? "set" : "reset");
+					available == true ? "set" : "reset");
 				goto fail;
 			}
 		}
