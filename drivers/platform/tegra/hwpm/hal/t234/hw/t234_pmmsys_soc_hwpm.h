@@ -47,8 +47,8 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef TEGRA_T234_PMMSYS_SOC_HWPM_H
-#define TEGRA_T234_PMMSYS_SOC_HWPM_H
+#ifndef T234_PMMSYS_SOC_HWPM_H
+#define T234_PMMSYS_SOC_HWPM_H
 
 #define pmmsys_perdomain_offset_v()                                (0x00001000U)
 #define pmmsys_control_r(i)\

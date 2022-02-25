@@ -18,7 +18,7 @@
 
 #define LOG_BUF_SIZE	160
 
-static void tegra_soc_hwpm_print(const char *func, int line,
+static void tegra_hwpm_print(const char *func, int line,
 	int type, const char *log)
 {
 	switch (type) {
@@ -33,7 +33,7 @@ static void tegra_soc_hwpm_print(const char *func, int line,
 	}
 }
 
-void tegra_soc_err_impl(struct tegra_soc_hwpm *hwpm,
+void tegra_hwpm_err_impl(struct tegra_soc_hwpm *hwpm,
 	const char *func, int line, const char *fmt, ...)
 {
 	char log[LOG_BUF_SIZE];
@@ -43,7 +43,7 @@ void tegra_soc_err_impl(struct tegra_soc_hwpm *hwpm,
 	(void) vsnprintf(log, LOG_BUF_SIZE, fmt, args);
 	va_end(args);
 
-	tegra_soc_hwpm_print(func, line, TEGRA_HWPM_ERROR, log);
+	tegra_hwpm_print(func, line, TEGRA_HWPM_ERROR, log);
 }
 
 void tegra_hwpm_dbg_impl(struct tegra_soc_hwpm *hwpm,
@@ -60,5 +60,5 @@ void tegra_hwpm_dbg_impl(struct tegra_soc_hwpm *hwpm,
 	(void) vsnprintf(log, LOG_BUF_SIZE, fmt, args);
 	va_end(args);
 
-	tegra_soc_hwpm_print(func, line, TEGRA_HWPM_DEBUG, log);
+	tegra_hwpm_print(func, line, TEGRA_HWPM_DEBUG, log);
 }

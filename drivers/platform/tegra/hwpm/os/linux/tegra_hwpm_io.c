@@ -243,7 +243,7 @@ void tegra_hwpm_writel(struct tegra_soc_hwpm *hwpm,
  * Read a register from the EXEC_REG_OPS IOCTL. It is assumed that the allowlist
  * check has been done before calling this function.
  */
-u32 regops_readl(struct tegra_soc_hwpm *hwpm,
+u32 tegra_hwpm_regops_readl(struct tegra_soc_hwpm *hwpm,
 	struct hwpm_ip_aperture *aperture, u64 addr)
 {
 	u32 reg_val = 0;
@@ -269,7 +269,7 @@ u32 regops_readl(struct tegra_soc_hwpm *hwpm,
  * Write a register from the EXEC_REG_OPS IOCTL. It is assumed that the
  * allowlist check has been done before calling this function.
  */
-void regops_writel(struct tegra_soc_hwpm *hwpm,
+void tegra_hwpm_regops_writel(struct tegra_soc_hwpm *hwpm,
 	struct hwpm_ip_aperture *aperture, u64 addr, u32 val)
 {
 	u64 reg_offset = 0ULL;

@@ -47,8 +47,8 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef TEGRA_T234_PMASYS_SOC_HWPM_H
-#define TEGRA_T234_PMASYS_SOC_HWPM_H
+#ifndef T234_PMASYS_SOC_HWPM_H
+#define T234_PMASYS_SOC_HWPM_H
 
 #define pmasys_cg2_r()                                             (0x0f14a044U)
 #define pmasys_cg2_slcg_f(v)                                (((v) & 0x1U) << 0U)

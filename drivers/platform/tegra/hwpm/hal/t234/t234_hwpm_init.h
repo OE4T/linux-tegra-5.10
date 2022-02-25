@@ -11,11 +11,11 @@
  * more details.
  */
 
-#ifndef T234_SOC_HWPM_INIT_H
-#define T234_SOC_HWPM_INIT_H
+#ifndef T234_HWPM_INIT_H
+#define T234_HWPM_INIT_H
 
 struct tegra_soc_hwpm;
 
 int t234_hwpm_init_chip_info(struct tegra_soc_hwpm *hwpm);
 
-#endif /* T234_SOC_HWPM_INIT_H */
+#endif /* T234_HWPM_INIT_H */

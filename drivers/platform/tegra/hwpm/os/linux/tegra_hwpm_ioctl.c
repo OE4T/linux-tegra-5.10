@@ -139,7 +139,7 @@ static int floorsweep_info_ioctl(struct tegra_soc_hwpm *hwpm,
 		return -EINVAL;
 	}
 
-	return tegra_soc_hwpm_get_floorsweep_info(hwpm, fs_info);
+	return tegra_hwpm_get_floorsweep_info(hwpm, fs_info);
 }
 
 static int timer_relation_ioctl(struct tegra_soc_hwpm *hwpm,
@@ -177,7 +177,7 @@ static int reserve_resource_ioctl(struct tegra_soc_hwpm *hwpm,
 		return -EINVAL;
 	}
 
-	ret = tegra_soc_hwpm_reserve_resource(hwpm, resource);
+	ret = tegra_hwpm_reserve_resource(hwpm, resource);
 	if (ret < 0) {
 		tegra_hwpm_err(hwpm, "Failed to reserve resource %d", resource);
 	}
@@ -224,7 +224,7 @@ static int bind_ioctl(struct tegra_soc_hwpm *hwpm,
 {
 	int ret = 0;
 
-	ret = tegra_soc_hwpm_bind_resources(hwpm);
+	ret = tegra_hwpm_bind_resources(hwpm);
 	if (ret != 0) {
 		tegra_hwpm_err(hwpm, "Failed to bind resources");
 	} else {
@@ -252,7 +252,7 @@ static int query_allowlist_ioctl(struct tegra_soc_hwpm *hwpm,
 		/* Userspace is querying allowlist size only */
 		if (hwpm->full_alist_size == 0) {
 			/*Full alist size is not computed yet */
-			ret = tegra_soc_hwpm_get_allowlist_size(hwpm);
+			ret = tegra_hwpm_get_allowlist_size(hwpm);
 			if (ret != 0) {
 				tegra_hwpm_err(hwpm,
 					"failed to get alist_size");
@@ -262,7 +262,7 @@ static int query_allowlist_ioctl(struct tegra_soc_hwpm *hwpm,
 		query_allowlist->allowlist_size = hwpm->full_alist_size;
 	} else {
 		/* Concatenate allowlists and return */
-		ret = tegra_soc_hwpm_update_allowlist(hwpm, query_allowlist);
+		ret = tegra_hwpm_update_allowlist(hwpm, query_allowlist);
 		if (ret != 0) {
 			tegra_hwpm_err(hwpm, "Failed to update full alist");
 			return ret;
@@ -280,7 +280,7 @@ static int exec_reg_ops_ioctl(struct tegra_soc_hwpm *hwpm,
 		return -EPERM;
 	}
 
-	return tegra_soc_hwpm_exec_regops(hwpm,
+	return tegra_hwpm_exec_regops(hwpm,
 		(struct tegra_soc_hwpm_exec_reg_ops *)ioctl_struct);
 }
 
@@ -305,7 +305,7 @@ static int update_get_put_ioctl(struct tegra_soc_hwpm *hwpm,
 	return tegra_hwpm_update_mem_bytes(hwpm, update_get_put);
 }
 
-static long tegra_soc_hwpm_ioctl(struct file *file,
+static long tegra_hwpm_ioctl(struct file *file,
 				 unsigned int cmd,
 				 unsigned long arg)
 {
@@ -397,7 +397,7 @@ end:
 	return ret;
 }
 
-static int tegra_soc_hwpm_open(struct inode *inode, struct file *filp)
+static int tegra_hwpm_open(struct inode *inode, struct file *filp)
 {
 	int ret = 0;
 	unsigned int minor;
@@ -474,13 +474,13 @@ static int tegra_soc_hwpm_open(struct inode *inode, struct file *filp)
 		}
 	}
 
-	ret = tegra_soc_hwpm_setup_hw(hwpm);
+	ret = tegra_hwpm_setup_hw(hwpm);
 	if (ret < 0) {
 		tegra_hwpm_err(hwpm, "Failed to setup hw");
 		goto fail;
 	}
 
-	ret = tegra_soc_hwpm_setup_sw(hwpm);
+	ret = tegra_hwpm_setup_sw(hwpm);
 	if (ret < 0) {
 		tegra_hwpm_err(hwpm, "Failed to setup sw");
 		goto fail;
@@ -488,7 +488,7 @@ static int tegra_soc_hwpm_open(struct inode *inode, struct file *filp)
 
 	return 0;
 fail:
-	ret = tegra_soc_hwpm_release_hw(hwpm);
+	ret = tegra_hwpm_release_hw(hwpm);
 	if (ret < 0) {
 		tegra_hwpm_err(hwpm, "Failed to release hw");
 	}
@@ -497,7 +497,7 @@ fail:
 	return ret;
 }
 
-static ssize_t tegra_soc_hwpm_read(struct file *file,
+static ssize_t tegra_hwpm_read(struct file *file,
 				   char __user *ubuf,
 				   size_t count,
 				   loff_t *offp)
@@ -506,7 +506,7 @@ static ssize_t tegra_soc_hwpm_read(struct file *file,
 }
 
 /* FIXME: Fix double release bug */
-static int tegra_soc_hwpm_release(struct inode *inode, struct file *filp)
+static int tegra_hwpm_release(struct inode *inode, struct file *filp)
 {
 	int ret = 0;
 	struct tegra_soc_hwpm *hwpm = NULL;
@@ -538,7 +538,7 @@ static int tegra_soc_hwpm_release(struct inode *inode, struct file *filp)
 	}
 
 	/* Disable and release reserved IPs */
-	ret = tegra_soc_hwpm_release_resources(hwpm);
+	ret = tegra_hwpm_release_resources(hwpm);
 	if (ret < 0) {
 		tegra_hwpm_err(hwpm, "Failed to release IP apertures");
 		goto fail;
@@ -551,7 +551,7 @@ static int tegra_soc_hwpm_release(struct inode *inode, struct file *filp)
 		goto fail;
 	}
 
-	ret = tegra_soc_hwpm_release_hw(hwpm);
+	ret = tegra_hwpm_release_hw(hwpm);
 	if (ret < 0) {
 		tegra_hwpm_err(hwpm, "Failed to release hw");
 		goto fail;
@@ -577,11 +577,11 @@ fail:
 /* File ops for device node */
 const struct file_operations tegra_soc_hwpm_ops = {
 	.owner = THIS_MODULE,
-	.open = tegra_soc_hwpm_open,
-	.read = tegra_soc_hwpm_read,
-	.release = tegra_soc_hwpm_release,
-	.unlocked_ioctl = tegra_soc_hwpm_ioctl,
+	.open = tegra_hwpm_open,
+	.read = tegra_hwpm_read,
+	.release = tegra_hwpm_release,
+	.unlocked_ioctl = tegra_hwpm_ioctl,
 #ifdef CONFIG_COMPAT
-	.compat_ioctl = tegra_soc_hwpm_ioctl,
+	.compat_ioctl = tegra_hwpm_ioctl,
 #endif
 };

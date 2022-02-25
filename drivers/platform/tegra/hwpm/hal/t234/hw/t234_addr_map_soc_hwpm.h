@@ -47,8 +47,8 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef TEGRA_T234_ADDR_MAP_SOC_HWPM_H
-#define TEGRA_T234_ADDR_MAP_SOC_HWPM_H
+#ifndef T234_ADDR_MAP_SOC_HWPM_H
+#define T234_ADDR_MAP_SOC_HWPM_H
 
 #define addr_map_rpg_pm_base_r()                                   (0x0f100000U)
 #define addr_map_rpg_pm_limit_r()                                  (0x0f149fffU)

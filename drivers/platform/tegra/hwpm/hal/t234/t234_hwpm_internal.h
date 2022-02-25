@@ -11,8 +11,8 @@
  * more details.
  */
 
-#ifndef T234_SOC_HWPM_INTERNAL_H
-#define T234_SOC_HWPM_INTERNAL_H
+#ifndef T234_HWPM_INTERNAL_H
+#define T234_HWPM_INTERNAL_H
 
 #include <hal/t234/ip/vi/t234_hwpm_ip_vi.h>
 #include <hal/t234/ip/isp/t234_hwpm_ip_isp.h>
@@ -119,4 +119,4 @@ int t234_hwpm_exec_reg_ops(struct tegra_soc_hwpm *hwpm,
 void t234_hwpm_release_sw_setup(struct tegra_soc_hwpm *hwpm);
 
 
-#endif /* T234_SOC_HWPM_INTERNAL_H */
+#endif /* T234_HWPM_INTERNAL_H */

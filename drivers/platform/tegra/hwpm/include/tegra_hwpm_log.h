@@ -30,7 +30,7 @@ enum tegra_soc_hwpm_log_type {
 #define hwpm_verbose			BIT(3)
 
 #define tegra_hwpm_err(hwpm, fmt, arg...)				\
-	tegra_soc_err_impl(hwpm, __func__, __LINE__, fmt, ##arg)
+	tegra_hwpm_err_impl(hwpm, __func__, __LINE__, fmt, ##arg)
 #define tegra_hwpm_dbg(hwpm, dbg_mask, fmt, arg...)			\
 	tegra_hwpm_dbg_impl(hwpm, dbg_mask, __func__, __LINE__, fmt, ##arg)
 #define tegra_hwpm_fn(hwpm, fmt, arg...)				\
@@ -38,7 +38,7 @@ enum tegra_soc_hwpm_log_type {
 
 struct tegra_soc_hwpm;
 
-void tegra_soc_err_impl(struct tegra_soc_hwpm *hwpm,
+void tegra_hwpm_err_impl(struct tegra_soc_hwpm *hwpm,
 	const char *func, int line, const char *fmt, ...);
 void tegra_hwpm_dbg_impl(struct tegra_soc_hwpm *hwpm,
 	u32 dbg_mask, const char *func, int line, const char *fmt, ...);

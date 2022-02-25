@@ -31,7 +31,7 @@
 #include <tegra_hwpm_common.h>
 #include <hal/t234/t234_hwpm_init.h>
 
-int tegra_soc_hwpm_init_chip_info(struct tegra_soc_hwpm *hwpm)
+int tegra_hwpm_init_chip_info(struct tegra_soc_hwpm *hwpm)
 {
 	int err = -EINVAL;
 
@@ -70,7 +70,7 @@ int tegra_soc_hwpm_init_chip_info(struct tegra_soc_hwpm *hwpm)
 	return err;
 }
 
-int tegra_soc_hwpm_setup_sw(struct tegra_soc_hwpm *hwpm)
+int tegra_hwpm_setup_sw(struct tegra_soc_hwpm *hwpm)
 {
 	int ret = 0;
 
@@ -97,7 +97,7 @@ fail:
 	return ret;
 }
 
-int tegra_soc_hwpm_setup_hw(struct tegra_soc_hwpm *hwpm)
+int tegra_hwpm_setup_hw(struct tegra_soc_hwpm *hwpm)
 {
 	int ret = 0;
 
@@ -169,7 +169,7 @@ int tegra_hwpm_disable_triggers(struct tegra_soc_hwpm *hwpm)
 	return hwpm->active_chip->disable_triggers(hwpm);
 }
 
-int tegra_soc_hwpm_release_hw(struct tegra_soc_hwpm *hwpm)
+int tegra_hwpm_release_hw(struct tegra_soc_hwpm *hwpm)
 {
 	int ret = 0;
 
@@ -219,7 +219,7 @@ fail:
 	return ret;
 }
 
-void tegra_soc_hwpm_release_sw_components(struct tegra_soc_hwpm *hwpm)
+void tegra_hwpm_release_sw_components(struct tegra_soc_hwpm *hwpm)
 {
 	tegra_hwpm_fn(hwpm, " ");
 

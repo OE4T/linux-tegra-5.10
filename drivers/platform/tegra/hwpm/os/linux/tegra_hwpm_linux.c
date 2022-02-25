@@ -36,7 +36,7 @@ static const struct of_device_id tegra_soc_hwpm_of_match[] = {
 };
 MODULE_DEVICE_TABLE(of, tegra_soc_hwpm_of_match);
 
-static int tegra_soc_hwpm_probe(struct platform_device *pdev)
+static int tegra_hwpm_probe(struct platform_device *pdev)
 {
 	int ret = 0;
 	struct device *dev = NULL;
@@ -125,8 +125,8 @@ static int tegra_soc_hwpm_probe(struct platform_device *pdev)
 		}
 	}
 
-	tegra_soc_hwpm_debugfs_init(hwpm);
-	tegra_soc_hwpm_init_chip_info(hwpm);
+	tegra_hwpm_debugfs_init(hwpm);
+	tegra_hwpm_init_chip_info(hwpm);
 
 	/*
 	 * Currently VDK doesn't have a fmodel for SOC HWPM. Therefore, we
@@ -169,7 +169,7 @@ success:
 	return ret;
 }
 
-static int tegra_soc_hwpm_remove(struct platform_device *pdev)
+static int tegra_hwpm_remove(struct platform_device *pdev)
 {
 	struct tegra_soc_hwpm *hwpm = NULL;
 
@@ -200,22 +200,22 @@ static int tegra_soc_hwpm_remove(struct platform_device *pdev)
 	unregister_chrdev_region(hwpm->dev_t, 1);
 	class_unregister(&hwpm->class);
 
-	tegra_soc_hwpm_debugfs_deinit(hwpm);
-	tegra_soc_hwpm_release_sw_components(hwpm);
+	tegra_hwpm_debugfs_deinit(hwpm);
+	tegra_hwpm_release_sw_components(hwpm);
 
 	return 0;
 }
 
 static struct platform_driver tegra_soc_hwpm_pdrv = {
-	.probe		= tegra_soc_hwpm_probe,
-	.remove		= tegra_soc_hwpm_remove,
+	.probe		= tegra_hwpm_probe,
+	.remove		= tegra_hwpm_remove,
 	.driver		= {
 		.name	= TEGRA_SOC_HWPM_MODULE_NAME,
 		.of_match_table = of_match_ptr(tegra_soc_hwpm_of_match),
 	},
 };
 
-static int __init tegra_soc_hwpm_init(void)
+static int __init tegra_hwpm_init(void)
 {
 	int ret = 0;
 
@@ -226,13 +226,13 @@ static int __init tegra_soc_hwpm_init(void)
 	return ret;
 }
 
-static void __exit tegra_soc_hwpm_exit(void)
+static void __exit tegra_hwpm_exit(void)
 {
 	platform_driver_unregister(&tegra_soc_hwpm_pdrv);
 }
 
-postcore_initcall(tegra_soc_hwpm_init);
-module_exit(tegra_soc_hwpm_exit);
+postcore_initcall(tegra_hwpm_init);
+module_exit(tegra_hwpm_exit);
 
 MODULE_ALIAS(TEGRA_SOC_HWPM_MODULE_NAME);
 MODULE_DESCRIPTION("Tegra SOC HWPM Driver");

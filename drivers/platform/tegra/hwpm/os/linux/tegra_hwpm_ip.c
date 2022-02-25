@@ -85,7 +85,7 @@ void tegra_soc_hwpm_ip_unregister(struct tegra_soc_hwpm_ip_ops *hwpm_ip_ops)
 	}
 }
 
-int tegra_soc_hwpm_get_floorsweep_info(struct tegra_soc_hwpm *hwpm,
+int tegra_hwpm_get_floorsweep_info(struct tegra_soc_hwpm *hwpm,
 	struct tegra_soc_hwpm_ip_floorsweep_info *fs_info)
 {
 	int ret = 0;

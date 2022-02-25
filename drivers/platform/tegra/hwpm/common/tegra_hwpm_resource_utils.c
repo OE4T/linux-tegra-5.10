@@ -19,7 +19,7 @@
 #include <tegra_hwpm_common.h>
 #include <tegra_hwpm_static_analysis.h>
 
-int tegra_soc_hwpm_reserve_resource(struct tegra_soc_hwpm *hwpm, u32 resource)
+int tegra_hwpm_reserve_resource(struct tegra_soc_hwpm *hwpm, u32 resource)
 {
 	struct tegra_soc_hwpm_chip *active_chip = hwpm->active_chip;
 	struct hwpm_ip *chip_ip = NULL;
@@ -75,7 +75,7 @@ int tegra_soc_hwpm_reserve_resource(struct tegra_soc_hwpm *hwpm, u32 resource)
 	return 0;
 }
 
-int tegra_soc_hwpm_release_resources(struct tegra_soc_hwpm *hwpm)
+int tegra_hwpm_release_resources(struct tegra_soc_hwpm *hwpm)
 {
 	int ret = 0;
 
@@ -94,7 +94,7 @@ int tegra_soc_hwpm_release_resources(struct tegra_soc_hwpm *hwpm)
 	return 0;
 }
 
-int tegra_soc_hwpm_bind_resources(struct tegra_soc_hwpm *hwpm)
+int tegra_hwpm_bind_resources(struct tegra_soc_hwpm *hwpm)
 {
 	int ret = 0;
 

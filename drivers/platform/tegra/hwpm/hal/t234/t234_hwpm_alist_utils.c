@@ -35,7 +35,7 @@ int t234_hwpm_zero_alist_regs(struct tegra_soc_hwpm *hwpm,
 
 	for (alist_idx = 0; alist_idx < aperture->alist_size; alist_idx++) {
 		if (aperture->alist[alist_idx].zero_at_init) {
-			regops_writel(hwpm, aperture,
+			tegra_hwpm_regops_writel(hwpm, aperture,
 				tegra_hwpm_safe_add_u64(aperture->start_abs_pa,
 					aperture->alist[alist_idx].reg_offset),
 				0U);

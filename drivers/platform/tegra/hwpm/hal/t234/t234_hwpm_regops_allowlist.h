@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -48,4 +48,5 @@ extern struct allowlist t234_mc8_res_mss_iso_niso_hub_alist[1];
 extern struct allowlist t234_mcb_mss_mcf_alist[4];
 extern struct allowlist t234_mc0to1_mss_mcf_alist[3];
 extern struct allowlist t234_mc2to7_mss_mcf_alist[1];
+
 #endif /* T234_HWPM_REGOPS_ALLOWLIST_H */

@@ -19,7 +19,7 @@
 #include <tegra_hwpm.h>
 #include <tegra_hwpm_common.h>
 
-int tegra_soc_hwpm_exec_regops(struct tegra_soc_hwpm *hwpm,
+int tegra_hwpm_exec_regops(struct tegra_soc_hwpm *hwpm,
 	struct tegra_soc_hwpm_exec_reg_ops *exec_reg_ops)
 {
 	struct tegra_soc_hwpm_chip *active_chip = hwpm->active_chip;

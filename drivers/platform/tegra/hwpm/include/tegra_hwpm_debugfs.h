@@ -17,11 +17,11 @@
 struct tegra_soc_hwpm;
 
 #ifdef CONFIG_DEBUG_FS
-void tegra_soc_hwpm_debugfs_init(struct tegra_soc_hwpm *hwpm);
-void tegra_soc_hwpm_debugfs_deinit(struct tegra_soc_hwpm *hwpm);
+void tegra_hwpm_debugfs_init(struct tegra_soc_hwpm *hwpm);
+void tegra_hwpm_debugfs_deinit(struct tegra_soc_hwpm *hwpm);
 #else
-static inline void tegra_soc_hwpm_debugfs_init(struct tegra_soc_hwpm *hwpm) {}
-static inline void tegra_soc_hwpm_debugfs_deinit(struct tegra_soc_hwpm *hwpm) {}
+static inline void tegra_hwpm_debugfs_init(struct tegra_soc_hwpm *hwpm) {}
+static inline void tegra_hwpm_debugfs_deinit(struct tegra_soc_hwpm *hwpm) {}
 #endif  /* CONFIG_DEBUG_FS  */
 
 #endif /* TEGRA_HWPM_DEBUGFS_H */

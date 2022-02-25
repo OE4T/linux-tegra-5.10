@@ -249,29 +249,28 @@ int t234_hwpm_exec_reg_ops(struct tegra_soc_hwpm *hwpm,
 
 	switch (reg_op->cmd) {
 	case TEGRA_SOC_HWPM_REG_OP_CMD_RD32:
-		reg_op->reg_val_lo = regops_readl(hwpm,
-						aperture,
-						reg_op->phys_addr);
+		reg_op->reg_val_lo = tegra_hwpm_regops_readl(hwpm,
+					aperture, reg_op->phys_addr);
 		reg_op->status = TEGRA_SOC_HWPM_REG_OP_STATUS_SUCCESS;
 		break;
 
 	case TEGRA_SOC_HWPM_REG_OP_CMD_RD64:
 		addr_hi = tegra_hwpm_safe_add_u64(reg_op->phys_addr, 4ULL);
-		reg_op->reg_val_lo = regops_readl(hwpm,
-						 aperture,
-						 reg_op->phys_addr);
-		reg_op->reg_val_hi = regops_readl(hwpm,
-						 aperture,
-						 addr_hi);
+		reg_op->reg_val_lo = tegra_hwpm_regops_readl(hwpm,
+					aperture, reg_op->phys_addr);
+		reg_op->reg_val_hi = tegra_hwpm_regops_readl(hwpm,
+					aperture, addr_hi);
 		reg_op->status = TEGRA_SOC_HWPM_REG_OP_STATUS_SUCCESS;
 		break;
 
 	/* Read Modify Write operation */
 	case TEGRA_SOC_HWPM_REG_OP_CMD_WR32:
-		reg_val = regops_readl(hwpm, aperture, reg_op->phys_addr);
+		reg_val = tegra_hwpm_regops_readl(hwpm,
+				aperture, reg_op->phys_addr);
 		reg_val = set_field(reg_val, reg_op->mask_lo,
-			reg_op->reg_val_lo);
-		regops_writel(hwpm, aperture, reg_op->phys_addr, reg_val);
+				reg_op->reg_val_lo);
+		tegra_hwpm_regops_writel(hwpm,
+			aperture, reg_op->phys_addr, reg_val);
 		reg_op->status = TEGRA_SOC_HWPM_REG_OP_STATUS_SUCCESS;
 		break;
 
@@ -280,16 +279,19 @@ int t234_hwpm_exec_reg_ops(struct tegra_soc_hwpm *hwpm,
 		addr_hi = tegra_hwpm_safe_add_u64(reg_op->phys_addr, 4ULL);
 
 		/* Lower 32 bits */
-		reg_val = regops_readl(hwpm, aperture, reg_op->phys_addr);
+		reg_val = tegra_hwpm_regops_readl(hwpm,
+				aperture, reg_op->phys_addr);
 		reg_val = set_field(reg_val, reg_op->mask_lo,
-			reg_op->reg_val_lo);
-		regops_writel(hwpm, aperture, reg_op->phys_addr, reg_val);
+				reg_op->reg_val_lo);
+		tegra_hwpm_regops_writel(hwpm,
+			aperture, reg_op->phys_addr, reg_val);
 
 		/* Upper 32 bits */
-		reg_val = regops_readl(hwpm, aperture, addr_hi);
+		reg_val = tegra_hwpm_regops_readl(hwpm, aperture, addr_hi);
 		reg_val = set_field(reg_val, reg_op->mask_hi,
-			reg_op->reg_val_hi);
-		regops_writel(hwpm, aperture, reg_op->phys_addr, reg_val);
+				reg_op->reg_val_hi);
+		tegra_hwpm_regops_writel(hwpm,
+			aperture, reg_op->phys_addr, reg_val);
 		reg_op->status = TEGRA_SOC_HWPM_REG_OP_STATUS_SUCCESS;
 		break;
 

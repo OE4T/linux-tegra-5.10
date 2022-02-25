@@ -19,7 +19,7 @@
 #include <tegra_hwpm.h>
 
 /* FIXME: This is a placeholder for now. We can add debugfs nodes as needed. */
-void tegra_soc_hwpm_debugfs_init(struct tegra_soc_hwpm *hwpm)
+void tegra_hwpm_debugfs_init(struct tegra_soc_hwpm *hwpm)
 {
 	if (!hwpm) {
 		tegra_hwpm_err(hwpm, "Invalid hwpm struct");
@@ -44,7 +44,7 @@ fail:
 	hwpm->debugfs_root = NULL;
 }
 
-void tegra_soc_hwpm_debugfs_deinit(struct tegra_soc_hwpm *hwpm)
+void tegra_hwpm_debugfs_deinit(struct tegra_soc_hwpm *hwpm)
 {
 	if (!hwpm) {
 		tegra_hwpm_err(hwpm, "Invalid hwpm struct");

@@ -28,7 +28,7 @@
 #include <tegra_hwpm_common.h>
 #include <tegra_hwpm_static_analysis.h>
 
-int tegra_soc_hwpm_get_allowlist_size(struct tegra_soc_hwpm *hwpm)
+int tegra_hwpm_get_allowlist_size(struct tegra_soc_hwpm *hwpm)
 {
 	int ret = 0;
 
@@ -49,7 +49,7 @@ int tegra_soc_hwpm_get_allowlist_size(struct tegra_soc_hwpm *hwpm)
 	return 0;
 }
 
-int tegra_soc_hwpm_update_allowlist(struct tegra_soc_hwpm *hwpm,
+int tegra_hwpm_update_allowlist(struct tegra_soc_hwpm *hwpm,
 	void *ioctl_struct)
 {
 	int err = 0;
@@ -67,7 +67,7 @@ int tegra_soc_hwpm_update_allowlist(struct tegra_soc_hwpm *hwpm,
 
 	tegra_hwpm_fn(hwpm, " ");
 
-	if (hwpm->full_alist_size < 0ULL) {
+	if (hwpm->full_alist_size == 0ULL) {
 		tegra_hwpm_err(hwpm, "Invalid allowlist size");
 		return -EINVAL;
 	}
