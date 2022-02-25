@@ -250,10 +250,14 @@ static int t234_hwpm_find_ip_perfmux_index(struct tegra_soc_hwpm *hwpm,
 	perfmux = chip_ip->ip_perfmux[perfmux_idx];
 
 	if (perfmux == NULL) {
-		tegra_hwpm_err(hwpm,
-			"IP %d perfmux_idx %d not populated as expected",
-			ip_index, perfmux_idx);
-		return -EINVAL;
+		/*
+		 * This a valid case as not all MSS base addresses are shared
+		 * between MSS IPs.
+		 */
+		tegra_hwpm_dbg(hwpm, hwpm_info,
+			"For addr 0x%llx IP %d perfmux_idx %d not populated",
+			base_addr, ip_index, perfmux_idx);
+		return -ENODEV;
 	}
 
 	if (base_addr != perfmux->start_abs_pa) {
@@ -327,9 +331,17 @@ int t234_hwpm_extract_ip_ops(struct tegra_soc_hwpm *hwpm,
 		ret = t234_hwpm_find_ip_perfmux_index(hwpm,
 			hwpm_ip_ops->ip_base_address, ip_idx, &perfmux_idx);
 		if (ret != 0) {
-			tegra_hwpm_err(hwpm,
-				"IP %d base 0x%llx no perfmux match",
-				ip_idx, hwpm_ip_ops->ip_base_address);
+			/*
+			 * Return value of ENODEV will indicate that the base
+			 * address doesn't belong to this IP.
+			 * This case is valid, as not all base addresses are
+			 * shared between MSS IPs.
+			 * Hence, reset return value to 0.
+			 */
+			if (ret != -ENODEV) {
+				goto fail;
+			}
+			ret = 0;
 		} else {
 			ret = t234_hwpm_fs_and_ip_ops(hwpm, hwpm_ip_ops,
 				ip_idx, perfmux_idx, available);
@@ -352,10 +364,12 @@ int t234_hwpm_extract_ip_ops(struct tegra_soc_hwpm *hwpm,
 			 * address doesn't belong to this IP.
 			 * This case is valid, as not all base addresses are
 			 * shared between MSS IPs.
+			 * Hence, reset return value to 0.
 			 */
 			if (ret != -ENODEV) {
 				goto fail;
 			}
+			ret = 0;
 		} else {
 			ret = t234_hwpm_fs_and_ip_ops(hwpm, hwpm_ip_ops,
 				ip_idx, perfmux_idx, available);
@@ -368,8 +382,8 @@ int t234_hwpm_extract_ip_ops(struct tegra_soc_hwpm *hwpm,
 			}
 		}
 
-		/* Check base address in T234_HWPM_IP_MSS_CHANNEL */
-		ip_idx = T234_HWPM_IP_MSS_CHANNEL;
+		/* Check base address in T234_HWPM_IP_MSS_MCF */
+		ip_idx = T234_HWPM_IP_MSS_MCF;
 		ret = t234_hwpm_find_ip_perfmux_index(hwpm,
 			hwpm_ip_ops->ip_base_address, ip_idx, &perfmux_idx);
 		if (ret != 0) {
@@ -378,10 +392,12 @@ int t234_hwpm_extract_ip_ops(struct tegra_soc_hwpm *hwpm,
 			 * address doesn't belong to this IP.
 			 * This case is valid, as not all base addresses are
 			 * shared between MSS IPs.
+			 * Hence, reset return value to 0.
 			 */
 			if (ret != -ENODEV) {
 				goto fail;
 			}
+			ret = 0;
 		} else {
 			ret = t234_hwpm_fs_and_ip_ops(hwpm, hwpm_ip_ops,
 				ip_idx, perfmux_idx, available);
