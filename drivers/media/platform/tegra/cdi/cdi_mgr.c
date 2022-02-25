@@ -682,7 +682,7 @@ static int cdi_mgr_get_pwr_mode(struct cdi_mgr_priv *cdi_mgr,
 				void __user *arg)
 {
 	struct cdi_mgr_pwr_mode pmode;
-	int err;
+	int err = 0;
 
 	if (copy_from_user(&pmode, arg, sizeof(pmode))) {
 		dev_err(cdi_mgr->pdev,
