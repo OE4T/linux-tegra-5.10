@@ -8,6 +8,7 @@
 
 #include <audio/tegra-platforms-audio-dai-links.dtsi>
 #include <audio/tegra186-audio-dai-links.dtsi>
+#include <dt-bindings/sound/rt5640.h>
 
 / {
 	aconnect@2a41000 {
@@ -32,8 +33,13 @@
 			clocks = <&bpmp TEGRA234_CLK_AUD_MCLK>;
 			clock-names = "mclk";
 
-			realtek,dmic1-data-pin = <0>; /* RT5659_DMIC1_NULL */
-			realtek,dmic2-data-pin = <0>; /* RT5659_DMIC2_NULL */
+			realtek,dmic1-data-pin = <RT5640_DMIC1_DATA_PIN_NONE>;
+			realtek,dmic2-data-pin = <RT5640_DMIC2_DATA_PIN_NONE>;
+
+			/* Codec IRQ output */
+			realtek,jack-detect-source = <RT5640_JD_SRC_JD2_IN4N>;
+			interrupt-parent = <&tegra_main_gpio>;
+			interrupts = <TEGRA234_MAIN_GPIO(J, 2) GPIO_ACTIVE_HIGH>;
 
 			#sound-dai-cells = <1>;
 			sound-name-prefix = "CVB-RT";
