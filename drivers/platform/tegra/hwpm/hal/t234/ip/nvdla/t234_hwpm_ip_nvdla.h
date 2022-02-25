@@ -15,8 +15,7 @@
 #define T234_HWPM_IP_NVDLA_H
 
 #if defined(CONFIG_SOC_HWPM_IP_NVDLA)
-#define T234_HWPM_ACTIVE_IP_NVDLA		\
-	DEFINE_SOC_HWPM_ACTIVE_IP(T234_HWPM_IP_NVDLA),
+#define T234_HWPM_ACTIVE_IP_NVDLA	T234_HWPM_IP_NVDLA
 
 /* This data should ideally be available in HW headers */
 #define T234_HWPM_IP_NVDLA_NUM_INSTANCES	2U

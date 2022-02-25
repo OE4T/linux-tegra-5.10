@@ -15,8 +15,7 @@
 #define T234_HWPM_IP_PCIE_H
 
 #if defined(CONFIG_SOC_HWPM_IP_PCIE)
-#define T234_HWPM_ACTIVE_IP_PCIE		\
-	DEFINE_SOC_HWPM_ACTIVE_IP(T234_HWPM_IP_PCIE),
+#define T234_HWPM_ACTIVE_IP_PCIE		T234_HWPM_IP_PCIE
 
 /* This data should ideally be available in HW headers */
 #define T234_HWPM_IP_PCIE_NUM_INSTANCES		11U

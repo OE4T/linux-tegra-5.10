@@ -15,8 +15,7 @@
 #define T234_HWPM_IP_VIC_H
 
 #if defined(CONFIG_SOC_HWPM_IP_VIC)
-#define T234_HWPM_ACTIVE_IP_VIC		\
-	DEFINE_SOC_HWPM_ACTIVE_IP(T234_HWPM_IP_VIC),
+#define T234_HWPM_ACTIVE_IP_VIC		T234_HWPM_IP_VIC
 
 /* This data should ideally be available in HW headers */
 #define T234_HWPM_IP_VIC_NUM_INSTANCES		1U

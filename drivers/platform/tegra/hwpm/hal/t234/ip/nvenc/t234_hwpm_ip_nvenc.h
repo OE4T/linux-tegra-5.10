@@ -15,8 +15,7 @@
 #define T234_HWPM_IP_NVENC_H
 
 #if defined(CONFIG_SOC_HWPM_IP_NVENC)
-#define T234_HWPM_ACTIVE_IP_NVENC		\
-	DEFINE_SOC_HWPM_ACTIVE_IP(T234_HWPM_IP_NVENC),
+#define T234_HWPM_ACTIVE_IP_NVENC	T234_HWPM_IP_NVENC
 
 /* This data should ideally be available in HW headers */
 #define T234_HWPM_IP_NVENC_NUM_INSTANCES	1U
