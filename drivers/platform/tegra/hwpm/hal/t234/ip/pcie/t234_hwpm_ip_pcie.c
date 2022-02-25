@@ -26,8 +26,6 @@ hwpm_ip_perfmon t234_pcie_perfmon_static_array[
 		.dt_mmio = NULL,
 		.name = "perfmon_pcie0",
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -47,8 +45,6 @@ hwpm_ip_perfmon t234_pcie_perfmon_static_array[
 		.dt_mmio = NULL,
 		.name = "perfmon_pcie1",
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -68,8 +64,6 @@ hwpm_ip_perfmon t234_pcie_perfmon_static_array[
 		.dt_mmio = NULL,
 		.name = "perfmon_pcie2",
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -89,8 +83,6 @@ hwpm_ip_perfmon t234_pcie_perfmon_static_array[
 		.dt_mmio = NULL,
 		.name = "perfmon_pcie3",
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -110,8 +102,6 @@ hwpm_ip_perfmon t234_pcie_perfmon_static_array[
 		.dt_mmio = NULL,
 		.name = "perfmon_pcie4",
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -131,8 +121,6 @@ hwpm_ip_perfmon t234_pcie_perfmon_static_array[
 		.dt_mmio = NULL,
 		.name = "perfmon_pcie5",
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -152,8 +140,6 @@ hwpm_ip_perfmon t234_pcie_perfmon_static_array[
 		.dt_mmio = NULL,
 		.name = "perfmon_pcie6",
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -173,8 +159,6 @@ hwpm_ip_perfmon t234_pcie_perfmon_static_array[
 		.dt_mmio = NULL,
 		.name = "perfmon_pcie7",
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -194,8 +178,6 @@ hwpm_ip_perfmon t234_pcie_perfmon_static_array[
 		.dt_mmio = NULL,
 		.name = "perfmon_pcie8",
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -215,8 +197,6 @@ hwpm_ip_perfmon t234_pcie_perfmon_static_array[
 		.dt_mmio = NULL,
 		.name = "perfmon_pcie9",
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -236,8 +216,6 @@ hwpm_ip_perfmon t234_pcie_perfmon_static_array[
 		.dt_mmio = NULL,
 		.name = "perfmon_pcie10",
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -262,8 +240,6 @@ hwpm_ip_perfmux t234_pcie_perfmux_static_array[
 		.dt_mmio = NULL,
 		.name = {'\0'},
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -283,8 +259,6 @@ hwpm_ip_perfmux t234_pcie_perfmux_static_array[
 		.dt_mmio = NULL,
 		.name = {'\0'},
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -304,8 +278,6 @@ hwpm_ip_perfmux t234_pcie_perfmux_static_array[
 		.dt_mmio = NULL,
 		.name = {'\0'},
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -325,8 +297,6 @@ hwpm_ip_perfmux t234_pcie_perfmux_static_array[
 		.dt_mmio = NULL,
 		.name = {'\0'},
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -346,8 +316,6 @@ hwpm_ip_perfmux t234_pcie_perfmux_static_array[
 		.dt_mmio = NULL,
 		.name = {'\0'},
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -367,8 +335,6 @@ hwpm_ip_perfmux t234_pcie_perfmux_static_array[
 		.dt_mmio = NULL,
 		.name = {'\0'},
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -388,8 +354,6 @@ hwpm_ip_perfmux t234_pcie_perfmux_static_array[
 		.dt_mmio = NULL,
 		.name = {'\0'},
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -409,8 +373,6 @@ hwpm_ip_perfmux t234_pcie_perfmux_static_array[
 		.dt_mmio = NULL,
 		.name = {'\0'},
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -430,8 +392,6 @@ hwpm_ip_perfmux t234_pcie_perfmux_static_array[
 		.dt_mmio = NULL,
 		.name = {'\0'},
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -451,8 +411,6 @@ hwpm_ip_perfmux t234_pcie_perfmux_static_array[
 		.dt_mmio = NULL,
 		.name = {'\0'},
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -472,8 +430,6 @@ hwpm_ip_perfmux t234_pcie_perfmux_static_array[
 		.dt_mmio = NULL,
 		.name = {'\0'},
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,

@@ -63,7 +63,7 @@ static u32 ip_readl(struct tegra_soc_hwpm *hwpm,
 		return fake_readl(hwpm, aperture, offset);
 	} else {
 		u32 reg_val = 0U;
-		struct tegra_soc_hwpm_ip_ops *ip_ops_ptr = &aperture->ip_ops;
+		struct tegra_hwpm_ip_ops *ip_ops_ptr = &aperture->ip_ops;
 		if (ip_ops_ptr->hwpm_ip_reg_op != NULL) {
 			int err = 0;
 
@@ -117,7 +117,7 @@ static void ip_writel(struct tegra_soc_hwpm *hwpm,
 	if (hwpm->fake_registers_enabled) {
 		fake_writel(hwpm, aperture, offset, val);
 	} else {
-		struct tegra_soc_hwpm_ip_ops *ip_ops_ptr = &aperture->ip_ops;
+		struct tegra_hwpm_ip_ops *ip_ops_ptr = &aperture->ip_ops;
 		if (ip_ops_ptr->hwpm_ip_reg_op != NULL) {
 			int err = 0;
 

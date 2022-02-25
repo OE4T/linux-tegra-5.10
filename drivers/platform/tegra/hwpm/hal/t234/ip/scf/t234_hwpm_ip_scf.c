@@ -26,8 +26,6 @@ hwpm_ip_perfmon t234_scf_perfmon_static_array[
 		.dt_mmio = NULL,
 		.name = "perfmon_scf",
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,

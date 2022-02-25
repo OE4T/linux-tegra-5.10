@@ -48,6 +48,56 @@
 	timeout_expired;						\
 })
 
+struct hwpm_ip_register_list {
+	struct tegra_soc_hwpm_ip_ops ip_ops;
+	struct hwpm_ip_register_list *next;
+};
+extern struct hwpm_ip_register_list *ip_register_list_head;
+
+/*
+ * This structure is copy of struct tegra_soc_hwpm_ip_ops uapi structure.
+ * This is not a hard requirement as tegra_hwpm_validate_ip_ops conversion
+ * function.
+ */
+struct tegra_hwpm_ip_ops {
+	/*
+	 * Opaque ip device handle used for callback from
+	 * SOC HWPM driver to IP drivers. This handle can be used
+	 * to access IP driver functionality with the callbacks.
+	 */
+	void *ip_dev;
+	/*
+	 * hwpm_ip_pm is callback function to disable/enable
+	 * IP driver power management. Before SOC HWPM doing
+	 * perf measuremnts, this callback is called with
+	 * "disable = true ", so that IP driver will disable IP specific
+	 * power management to keep IP driver responsive. Once SOC HWPM is
+	 * done with perf measurement, this callaback is called
+	 * with "disable = false", so that IP driver can restore back
+	 * it's orignal power management.
+	 */
+	int (*hwpm_ip_pm)(void *dev, bool disable);
+	/*
+	 * hwpm_ip_reg_op is callback function to do IP
+	 * register 32 bit read or write.
+	 * For read:
+	 *      input : dev - IP device handle
+	 *      input : reg_op - TEGRA_SOC_HWPM_IP_REG_OP_READ
+	 *      input : reg_offset - register offset
+	 *      output: reg_data - u32 read value
+	 * For write:
+	 *      input : dev - IP device handle
+	 *      input : reg_op - TEGRA_SOC_HWPM_IP_REG_OP_WRITE
+	 *      input : reg_offset - register offset
+	 *      output: reg_data -  u32 write value
+	 * Return:
+	 *      reg_op success / failure
+	 */
+	int (*hwpm_ip_reg_op)(void *dev,
+				enum tegra_soc_hwpm_ip_reg_op reg_op,
+				__u64 reg_offset, __u32 *reg_data);
+};
+
 struct hwpm_ip_aperture {
 	/*
 	 * Indicates which domain (HWPM or IP) aperture belongs to,
@@ -65,7 +115,7 @@ struct hwpm_ip_aperture {
 	char name[64];
 
 	/* IP ops - only populated for perfmux */
-	struct tegra_soc_hwpm_ip_ops ip_ops;
+	struct tegra_hwpm_ip_ops ip_ops;
 
 	/* Allowlist */
 	struct allowlist *alist;
@@ -165,7 +215,7 @@ struct tegra_soc_hwpm_chip {
 
 	int (*extract_ip_ops)(struct tegra_soc_hwpm *hwpm,
 	struct tegra_soc_hwpm_ip_ops *hwpm_ip_ops, bool available);
-	int (*init_fs_info)(struct tegra_soc_hwpm *hwpm);
+	int (*finalize_chip_info)(struct tegra_soc_hwpm *hwpm);
 	int (*get_fs_info)(struct tegra_soc_hwpm *hwpm,
 	u32 ip_index, u64 *fs_mask, u8 *ip_status);
 

@@ -97,7 +97,7 @@ static int t234_hwpm_update_ip_ops_info(struct tegra_soc_hwpm *hwpm,
 	u32 perfmux_idx, max_num_perfmux = 0U;
 	struct tegra_soc_hwpm_chip *active_chip = hwpm->active_chip;
 	struct hwpm_ip *chip_ip = active_chip->chip_ips[ip_idx];
-	struct tegra_soc_hwpm_ip_ops *ip_ops;
+	struct tegra_hwpm_ip_ops *ip_ops;
 	hwpm_ip_perfmux *given_perfmux = chip_ip->ip_perfmux[ip_perfmux_idx];
 	hwpm_ip_perfmux *perfmux = NULL;
 
@@ -128,15 +128,10 @@ static int t234_hwpm_update_ip_ops_info(struct tegra_soc_hwpm *hwpm,
 		ip_ops = &perfmux->ip_ops;
 
 		if (available) {
-			ip_ops->ip_base_address = hwpm_ip_ops->ip_base_address;
-			ip_ops->ip_index = hwpm_ip_ops->ip_index;
 			ip_ops->ip_dev = hwpm_ip_ops->ip_dev;
 			ip_ops->hwpm_ip_pm = hwpm_ip_ops->hwpm_ip_pm;
 			ip_ops->hwpm_ip_reg_op = hwpm_ip_ops->hwpm_ip_reg_op;
 		} else {
-			/* Do I need a check to see if the ip_ops are set ? */
-			ip_ops->ip_base_address = 0ULL;
-			ip_ops->ip_index = TEGRA_SOC_HWPM_IP_INACTIVE;
 			ip_ops->ip_dev = NULL;
 			ip_ops->hwpm_ip_pm = NULL;
 			ip_ops->hwpm_ip_reg_op = NULL;
@@ -443,6 +438,8 @@ int t234_hwpm_set_fs_info(struct tegra_soc_hwpm *hwpm, u64 base_address,
 		goto fail;
 	}
 
+	/* TODO: Check if force enable is required */
+
 	ret = t234_hwpm_update_floorsweep_mask(
 		hwpm, ip_idx, perfmux_idx, available);
 	if (ret != 0) {
@@ -455,13 +452,9 @@ fail:
 	return ret;
 }
 
-/*
- * Some IPs don't register with HWPM driver at the moment. Force set available
- * instances of such IPs.
- */
-int t234_hwpm_init_fs_info(struct tegra_soc_hwpm *hwpm)
+static int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 {
-	u32 i;
+	u32 i = 0U;
 	int ret = 0;
 	struct tegra_soc_hwpm_chip *active_chip = hwpm->active_chip;
 	struct hwpm_ip *chip_ip = NULL;
@@ -641,6 +634,51 @@ int t234_hwpm_init_fs_info(struct tegra_soc_hwpm *hwpm)
 	}
 
 fail:
+	return ret;
+}
+
+static int t234_hwpm_complete_ip_register(struct tegra_soc_hwpm *hwpm)
+{
+	int ret = 0;
+	struct hwpm_ip_register_list *node = ip_register_list_head;
+
+	tegra_hwpm_fn(hwpm, " ");
+
+	while (node != NULL) {
+		tegra_hwpm_dbg(hwpm, hwpm_info, "IP ext idx %d info",
+			node->ip_ops.ip_index);
+		ret = t234_hwpm_extract_ip_ops(hwpm, &node->ip_ops, true);
+		if (ret != 0) {
+			tegra_hwpm_err(hwpm, "Failed to extract IP ops");
+			return ret;
+		}
+		node = node->next;
+	}
+	return ret;
+}
+
+/*
+ * Some IPs don't register with HWPM driver at the moment. Force set available
+ * instances of such IPs.
+ */
+int t234_hwpm_finalize_chip_info(struct tegra_soc_hwpm *hwpm)
+{
+	int ret = 0;
+
+	tegra_hwpm_fn(hwpm, " ");
+
+	ret = t234_hwpm_complete_ip_register(hwpm);
+	if (ret != 0) {
+		tegra_hwpm_err(hwpm, "Failed register IPs");
+		return ret;
+	}
+
+	ret = t234_hwpm_force_enable_ips(hwpm);
+	if (ret != 0) {
+		tegra_hwpm_err(hwpm, "Failed to force enable IPs");
+		return ret;
+	}
+
 	return ret;
 }
 

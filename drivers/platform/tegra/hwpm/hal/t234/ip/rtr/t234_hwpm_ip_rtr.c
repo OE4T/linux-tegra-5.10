@@ -32,8 +32,6 @@ hwpm_ip_perfmux t234_rtr_perfmux_static_array[
 		.dt_mmio = NULL,
 		.name = "rtr",
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -54,8 +52,6 @@ hwpm_ip_perfmux t234_rtr_perfmux_static_array[
 		.dt_mmio = NULL,
 		.name = "pma",
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,

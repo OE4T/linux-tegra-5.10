@@ -28,7 +28,7 @@ struct tegra_soc_hwpm_chip t234_chip_info = {
 	.is_resource_active = t234_hwpm_is_resource_active,
 
 	.extract_ip_ops = t234_hwpm_extract_ip_ops,
-	.init_fs_info = t234_hwpm_init_fs_info,
+	.finalize_chip_info = t234_hwpm_finalize_chip_info,
 	.get_fs_info = t234_hwpm_get_fs_info,
 
 	.init_prod_values = t234_hwpm_init_prod_values,

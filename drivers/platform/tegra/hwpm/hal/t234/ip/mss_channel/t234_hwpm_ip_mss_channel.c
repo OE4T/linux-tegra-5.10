@@ -26,8 +26,6 @@ hwpm_ip_perfmon t234_mss_channel_perfmon_static_array[
 		.dt_mmio = NULL,
 		.name = "perfmon_msschannel_parta0",
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -47,8 +45,6 @@ hwpm_ip_perfmon t234_mss_channel_perfmon_static_array[
 		.dt_mmio = NULL,
 		.name = "perfmon_msschannel_parta1",
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -68,8 +64,6 @@ hwpm_ip_perfmon t234_mss_channel_perfmon_static_array[
 		.dt_mmio = NULL,
 		.name = "perfmon_msschannel_parta2",
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -89,8 +83,6 @@ hwpm_ip_perfmon t234_mss_channel_perfmon_static_array[
 		.dt_mmio = NULL,
 		.name = "perfmon_msschannel_parta3",
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -110,8 +102,6 @@ hwpm_ip_perfmon t234_mss_channel_perfmon_static_array[
 		.dt_mmio = NULL,
 		.name = "perfmon_msschannel_partb0",
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -131,8 +121,6 @@ hwpm_ip_perfmon t234_mss_channel_perfmon_static_array[
 		.dt_mmio = NULL,
 		.name = "perfmon_msschannel_partb1",
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -152,8 +140,6 @@ hwpm_ip_perfmon t234_mss_channel_perfmon_static_array[
 		.dt_mmio = NULL,
 		.name = "perfmon_msschannel_partb2",
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -173,8 +159,6 @@ hwpm_ip_perfmon t234_mss_channel_perfmon_static_array[
 		.dt_mmio = NULL,
 		.name = "perfmon_msschannel_partb3",
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -194,8 +178,6 @@ hwpm_ip_perfmon t234_mss_channel_perfmon_static_array[
 		.dt_mmio = NULL,
 		.name = "perfmon_msschannel_partc0",
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -215,8 +197,6 @@ hwpm_ip_perfmon t234_mss_channel_perfmon_static_array[
 		.dt_mmio = NULL,
 		.name = "perfmon_msschannel_partc1",
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -236,8 +216,6 @@ hwpm_ip_perfmon t234_mss_channel_perfmon_static_array[
 		.dt_mmio = NULL,
 		.name = "perfmon_msschannel_partc2",
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -257,8 +235,6 @@ hwpm_ip_perfmon t234_mss_channel_perfmon_static_array[
 		.dt_mmio = NULL,
 		.name = "perfmon_msschannel_partc3",
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -278,8 +254,6 @@ hwpm_ip_perfmon t234_mss_channel_perfmon_static_array[
 		.dt_mmio = NULL,
 		.name = "perfmon_msschannel_partd0",
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -299,8 +273,6 @@ hwpm_ip_perfmon t234_mss_channel_perfmon_static_array[
 		.dt_mmio = NULL,
 		.name = "perfmon_msschannel_partd1",
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -320,8 +292,6 @@ hwpm_ip_perfmon t234_mss_channel_perfmon_static_array[
 		.dt_mmio = NULL,
 		.name = "perfmon_msschannel_partd2",
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -341,8 +311,6 @@ hwpm_ip_perfmon t234_mss_channel_perfmon_static_array[
 		.dt_mmio = NULL,
 		.name = "perfmon_msschannel_partd3",
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -367,8 +335,6 @@ hwpm_ip_perfmux t234_mss_channel_perfmux_static_array[
 		.dt_mmio = NULL,
 		.name = {'\0'},
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -388,8 +354,6 @@ hwpm_ip_perfmux t234_mss_channel_perfmux_static_array[
 		.dt_mmio = NULL,
 		.name = {'\0'},
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -408,8 +372,6 @@ hwpm_ip_perfmux t234_mss_channel_perfmux_static_array[
 		.dt_mmio = NULL,
 		.name = {'\0'},
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -429,8 +391,6 @@ hwpm_ip_perfmux t234_mss_channel_perfmux_static_array[
 		.dt_mmio = NULL,
 		.name = {'\0'},
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -450,8 +410,6 @@ hwpm_ip_perfmux t234_mss_channel_perfmux_static_array[
 		.dt_mmio = NULL,
 		.name = {'\0'},
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -471,8 +429,6 @@ hwpm_ip_perfmux t234_mss_channel_perfmux_static_array[
 		.dt_mmio = NULL,
 		.name = {'\0'},
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -492,8 +448,6 @@ hwpm_ip_perfmux t234_mss_channel_perfmux_static_array[
 		.dt_mmio = NULL,
 		.name = {'\0'},
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -513,8 +467,6 @@ hwpm_ip_perfmux t234_mss_channel_perfmux_static_array[
 		.dt_mmio = NULL,
 		.name = {'\0'},
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -534,8 +486,6 @@ hwpm_ip_perfmux t234_mss_channel_perfmux_static_array[
 		.dt_mmio = NULL,
 		.name = {'\0'},
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -555,8 +505,6 @@ hwpm_ip_perfmux t234_mss_channel_perfmux_static_array[
 		.dt_mmio = NULL,
 		.name = {'\0'},
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -576,8 +524,6 @@ hwpm_ip_perfmux t234_mss_channel_perfmux_static_array[
 		.dt_mmio = NULL,
 		.name = {'\0'},
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -597,8 +543,6 @@ hwpm_ip_perfmux t234_mss_channel_perfmux_static_array[
 		.dt_mmio = NULL,
 		.name = {'\0'},
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -618,8 +562,6 @@ hwpm_ip_perfmux t234_mss_channel_perfmux_static_array[
 		.dt_mmio = NULL,
 		.name = {'\0'},
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -639,8 +581,6 @@ hwpm_ip_perfmux t234_mss_channel_perfmux_static_array[
 		.dt_mmio = NULL,
 		.name = {'\0'},
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -660,8 +600,6 @@ hwpm_ip_perfmux t234_mss_channel_perfmux_static_array[
 		.dt_mmio = NULL,
 		.name = {'\0'},
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -681,8 +619,6 @@ hwpm_ip_perfmux t234_mss_channel_perfmux_static_array[
 		.dt_mmio = NULL,
 		.name = {'\0'},
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,

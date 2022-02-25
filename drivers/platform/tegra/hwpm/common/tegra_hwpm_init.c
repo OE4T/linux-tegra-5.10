@@ -76,11 +76,11 @@ int tegra_hwpm_setup_sw(struct tegra_soc_hwpm *hwpm)
 
 	tegra_hwpm_fn(hwpm, " ");
 
-	if (hwpm->active_chip->init_fs_info == NULL) {
-		tegra_hwpm_err(hwpm, "init_fs_info uninitialized");
+	if (hwpm->active_chip->finalize_chip_info == NULL) {
+		tegra_hwpm_err(hwpm, "finalize_chip_info uninitialized");
 		goto enodev;
 	}
-	ret = hwpm->active_chip->init_fs_info(hwpm);
+	ret = hwpm->active_chip->finalize_chip_info(hwpm);
 	if (ret < 0) {
 		tegra_hwpm_err(hwpm, "Unable to initialize chip fs_info");
 		goto fail;
@@ -221,12 +221,21 @@ fail:
 
 void tegra_hwpm_release_sw_components(struct tegra_soc_hwpm *hwpm)
 {
+	struct hwpm_ip_register_list *node = ip_register_list_head;
+	struct hwpm_ip_register_list *tmp_node = NULL;
+
 	tegra_hwpm_fn(hwpm, " ");
 
 	if (hwpm->active_chip->release_sw_setup == NULL) {
 		tegra_hwpm_err(hwpm, "release_sw_setup uninitialized");
 	} else {
 		hwpm->active_chip->release_sw_setup(hwpm);
+	}
+
+	while (node != NULL) {
+		tmp_node = node;
+		node = tmp_node->next;
+		kfree(tmp_node);
 	}
 
 	kfree(hwpm->active_chip->chip_ips);

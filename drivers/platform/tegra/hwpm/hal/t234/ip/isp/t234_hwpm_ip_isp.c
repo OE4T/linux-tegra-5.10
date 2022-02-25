@@ -26,8 +26,6 @@ hwpm_ip_perfmon t234_isp_perfmon_static_array[
 		.dt_mmio = NULL,
 		.name = "perfmon_isp0",
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
@@ -52,8 +50,6 @@ hwpm_ip_perfmux t234_isp_perfmux_static_array[
 		.dt_mmio = NULL,
 		.name = {'\0'},
 		.ip_ops = {
-			.ip_base_address = 0ULL,
-			.ip_index = 0U,
 			.ip_dev = NULL,
 			.hwpm_ip_pm = NULL,
 			.hwpm_ip_reg_op = NULL,
