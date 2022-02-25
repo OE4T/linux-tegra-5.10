@@ -719,18 +719,10 @@ static void rtcpu_trace_vinotify_event(struct camrtc_event_struct *event)
 	}
 }
 
-
-static void rtcpu_trace_vi_event(struct tegra_rtcpu_trace *tracer,
+static void rtcpu_trace_vi_eventlib_event(struct tegra_rtcpu_trace *tracer,
 				struct camrtc_event_struct *event)
 {
-#if !defined(CONFIG_EVENTLIB) || \
-	!defined(camrtc_trace_vi_frame_begin) || \
-	!defined(camrtc_trace_vi_frame_end)
-	trace_rtcpu_unknown(event->header.tstamp,
-		event->header.id,
-		event->header.len - CAMRTC_TRACE_EVENT_HEADER_SIZE,
-		event->data.data8);
-#else
+#ifdef CONFIG_EVENTLIB
 	struct nvhost_device_data *pdata;
 	struct nvhost_task_begin task_begin;
 	struct nvhost_task_end task_end;
@@ -787,6 +779,23 @@ static void rtcpu_trace_vi_event(struct tegra_rtcpu_trace *tracer,
 #endif
 }
 
+static void rtcpu_trace_vi_event(struct tegra_rtcpu_trace *tracer,
+				struct camrtc_event_struct *event)
+{
+	switch (event->header.id) {
+	case camrtc_trace_vi_frame_begin:
+	case camrtc_trace_vi_frame_end:
+		rtcpu_trace_vi_eventlib_event(tracer, event);
+		break;
+	default:
+		trace_rtcpu_unknown(event->header.tstamp,
+		    event->header.id,
+		    event->header.len - CAMRTC_TRACE_EVENT_HEADER_SIZE,
+		    event->data.data8);
+		break;
+	}
+}
+
 const char * const g_trace_isp_falcon_task_strs[] = {
 	"UNUSED",
 	"SCHED_ERROR",
@@ -805,6 +814,58 @@ const unsigned int g_trace_isp_falcon_task_str_count =
 #define TRACE_ISP_FALCON_EVENT_TE         14U
 #define TRACE_ISP_FALCON_PROFILE_START    16U
 #define TRACE_ISP_FALCON_PROFILE_END      17U
+
+static void rtcpu_trace_isp_eventlib_event(struct tegra_rtcpu_trace *tracer,
+	struct camrtc_event_struct *event)
+{
+#ifdef CONFIG_EVENTLIB
+	struct nvhost_device_data *pdata = NULL;
+	struct nvhost_task_begin task_begin;
+	struct nvhost_task_end task_end;
+
+	if (tracer->isp_platform_device == NULL)
+		return;
+
+	pdata = platform_get_drvdata(tracer->isp_platform_device);
+	if (pdata == NULL)
+		return;
+
+	if (!pdata->eventlib_id) {
+		pr_warn("%s kernel eventlib id %d cannot be found\n",
+			__func__, pdata->eventlib_id);
+		return;
+	}
+
+	switch (event->header.id) {
+	case camrtc_trace_isp_task_begin:
+		/* Write task start event */
+		task_begin.syncpt_id = event->data.data32[0];
+		task_begin.syncpt_thresh = event->data.data32[1];
+		task_begin.class_id = pdata->class;
+		task_begin.channel_id = event->data.data32[2];
+
+		keventlib_write(pdata->eventlib_id,
+			&task_begin,
+			sizeof(task_begin),
+			NVHOST_TASK_BEGIN,
+			event->header.tstamp);
+		break;
+	case camrtc_trace_isp_task_end:
+		/* Write task end event */
+		task_end.syncpt_id = event->data.data32[0];
+		task_end.syncpt_thresh = event->data.data32[1];
+		task_end.class_id = pdata->class;
+		task_end.channel_id = event->data.data32[2];
+
+		keventlib_write(pdata->eventlib_id,
+			&task_end,
+			sizeof(task_end),
+			NVHOST_TASK_END,
+			event->header.tstamp);
+		break;
+	}
+#endif
+}
 
 static void rtcpu_trace_isp_falcon_event(struct camrtc_event_struct *event)
 {
@@ -851,67 +912,21 @@ static void rtcpu_trace_isp_falcon_event(struct camrtc_event_struct *event)
 static void rtcpu_trace_isp_event(struct tegra_rtcpu_trace *tracer,
 	struct camrtc_event_struct *event)
 {
-#ifndef CONFIG_EVENTLIB
-	if (event->header.id == camrtc_trace_isp_falcon_traces_event) {
-		rtcpu_trace_isp_falcon_event(event);
-	} else {
-		trace_rtcpu_unknown(event->header.tstamp,
-			event->header.id,
-			event->header.len - CAMRTC_TRACE_EVENT_HEADER_SIZE,
-			event->data.data8);
-	}
-#else
-	struct nvhost_device_data *pdata = NULL;
-	struct nvhost_task_begin task_begin;
-	struct nvhost_task_end task_end;
-
-	if (tracer->isp_platform_device == NULL)
-		return;
-
-	pdata = platform_get_drvdata(tracer->isp_platform_device);
-
-	if (!pdata->eventlib_id) {
-		pr_warn("%s kernel eventlib id %d cannot be found\n",
-			__func__, pdata->eventlib_id);
-		return;
-	}
-
 	switch (event->header.id) {
 	case camrtc_trace_isp_task_begin:
-		/* Write task start event */
-		task_begin.syncpt_id = event->data.data32[0];
-		task_begin.syncpt_thresh = event->data.data32[1];
-		task_begin.class_id = pdata->class;
-		task_begin.channel_id = event->data.data32[2];
-
-		keventlib_write(pdata->eventlib_id,
-			&task_begin,
-			sizeof(task_begin),
-			NVHOST_TASK_BEGIN,
-			event->header.tstamp);
-		break;
 	case camrtc_trace_isp_task_end:
-		/* Write task end event */
-		task_end.syncpt_id = event->data.data32[0];
-		task_end.syncpt_thresh = event->data.data32[1];
-		task_end.class_id = pdata->class;
-		task_end.channel_id = event->data.data32[2];
-
-		keventlib_write(pdata->eventlib_id,
-			&task_end,
-			sizeof(task_end),
-			NVHOST_TASK_END,
-			event->header.tstamp);
+		rtcpu_trace_isp_eventlib_event(tracer, event);
 		break;
 	case camrtc_trace_isp_falcon_traces_event:
 		rtcpu_trace_isp_falcon_event(event);
 		break;
 	default:
-		pr_warn("%s event id %d cannot be found\n",
-			__func__, pdata->eventlib_id);
+		trace_rtcpu_unknown(event->header.tstamp,
+		    event->header.id,
+		    event->header.len - CAMRTC_TRACE_EVENT_HEADER_SIZE,
+		    event->data.data8);
 		break;
 	}
-#endif
 }
 
 const char * const g_trace_nvcsi_intr_class_strs[] = {
