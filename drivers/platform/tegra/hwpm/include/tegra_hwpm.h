@@ -244,6 +244,7 @@ struct tegra_soc_hwpm {
 
 	/* SW State */
 	bool bind_completed;
+	bool device_opened;
 	u64 full_alist_size;
 
 	atomic_t hwpm_in_use;

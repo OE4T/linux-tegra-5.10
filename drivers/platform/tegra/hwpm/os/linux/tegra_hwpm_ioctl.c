@@ -343,6 +343,12 @@ static long tegra_hwpm_ioctl(struct file *file,
 		goto fail;
 	}
 
+	if (!hwpm->device_opened) {
+		tegra_hwpm_err(hwpm, "Device open failed, can't process IOCTL");
+		ret = -ENODEV;
+		goto fail;
+	}
+
 	/* Only allocate a buffer if the IOCTL needs a buffer */
 	if (!(ioc_dir & _IOC_NONE)) {
 		arg_copy = kzalloc(arg_size, GFP_KERNEL);
@@ -486,6 +492,8 @@ static int tegra_hwpm_open(struct inode *inode, struct file *filp)
 		goto fail;
 	}
 
+	hwpm->device_opened = true;
+
 	return 0;
 fail:
 	ret = tegra_hwpm_release_hw(hwpm);
@@ -531,6 +539,11 @@ static int tegra_hwpm_release(struct inode *inode, struct file *filp)
 		return 0;
 	}
 
+	if (hwpm->device_opened == false) {
+		/* Device was not opened, do nothing */
+		return 0;
+	}
+
 	ret = tegra_hwpm_disable_triggers(hwpm);
 	if (ret < 0) {
 		tegra_hwpm_err(hwpm, "Failed to disable PMA triggers");
@@ -570,6 +583,8 @@ static int tegra_hwpm_release(struct inode *inode, struct file *filp)
 		}
 		clk_disable_unprepare(hwpm->la_clk);
 	}
+
+	hwpm->device_opened = false;
 fail:
 	return ret;
 }
