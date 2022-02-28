@@ -21,10 +21,14 @@
 
 #include <linux/platform/tegra/common.h>
 
-extern phys_addr_t tegra_vpr_start;
-extern phys_addr_t tegra_vpr_size;
-extern bool tegra_vpr_resize;
+phys_addr_t __weak tegra_vpr_start;
+phys_addr_t __weak tegra_vpr_size;
+bool __weak tegra_vpr_resize;
 static DEFINE_MUTEX(vpr_lock);
+
+EXPORT_SYMBOL(tegra_vpr_start);
+EXPORT_SYMBOL(tegra_vpr_size);
+EXPORT_SYMBOL(tegra_vpr_resize);
 
 static int tegra_vpr_arg(char *options)
 {
