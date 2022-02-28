@@ -577,6 +577,9 @@ static int smmu_master_show(struct seq_file *s, void *unused)
 	struct smmu_debugfs_master *master = s->private;
 	struct iommu_fwspec *fwspec = dev_iommu_fwspec_get(master->dev);
 
+	if (!fwspec)
+		return -ENODEV;
+
 	for (i = 0; i < fwspec->num_ids; i++) {
 		seq_printf(s, "streamids: % 3d ",
 				fwspec->ids[i] & master->streamid_mask);
