@@ -64,6 +64,7 @@
 
 #include "tegra234-soc-coresight.dtsi"
 #include "tegra234-soc-fsicom.dtsi"
+#include "tegra234-safetyservice.dtsi"
 
 / {
 	aliases {
