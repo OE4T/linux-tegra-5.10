@@ -248,6 +248,11 @@
 /** @} */
 
 /**
+ * @brief Maximum buffer length per DMA descriptor (16KB - 1).
+ */
+#define OSI_TX_MAX_BUFF_SIZE		0x3FFFU
+
+/**
  * @brief OSI packet error stats
  */
 struct osi_pkt_err_stats {
