@@ -181,8 +181,13 @@ static void debugfs_create_smmu_cb(struct smmu_debugfs_info *smmu_dfs, u8 cbndx)
 	struct dentry *dent;
 	char name[] = "cb000";
 	struct debugfs_regset32 *cb;
+	int err;
 
-	sprintf(name, "cb%03d", cbndx);
+	err = sprintf(name, "cb%03d", cbndx);
+	if (err < 0) {
+		pr_err("%s: %d: sprintf failed to write\n", __func__, __LINE__);
+		return;
+	}
 	dent = debugfs_create_dir(name, smmu_dfs->debugfs_root);
 	if (!dent)
 		return;
@@ -605,6 +610,7 @@ void arm_smmu_debugfs_add_master(struct device *dev,
 	struct dentry *dent = NULL;
 	char name[] = "cb000";
 	char target[] = "../../cb000";
+	int err;
 
 	if (smmu_dfs == NULL) {
 		pr_warn("Debugfs setup not complete\n");
@@ -634,8 +640,20 @@ void arm_smmu_debugfs_add_master(struct device *dev,
 	debugfs_create_file("streamids", 0444, dent, master,
 							&smmu_master_fops);
 	debugfs_create_u8("cbndx", 0444, dent, cbndx);
-	sprintf(name, "cb%03d", *cbndx);
-	sprintf(target, "../../cb%03d", *cbndx);
+	err = sprintf(name, "cb%03d", *cbndx);
+	if (err < 0) {
+		pr_err("%s: %d: sprintf failed to write\n", __func__, __LINE__);
+		debugfs_remove_recursive(master->dent);
+		kfree(master);
+		return;
+	}
+	err = sprintf(target, "../../cb%03d", *cbndx);
+	if (err < 0) {
+		pr_err("%s: %d: sprintf failed to write\n", __func__, __LINE__);
+		debugfs_remove_recursive(master->dent);
+		kfree(master);
+		return;
+	}
 	debugfs_create_symlink(name, dent, target);
 
 	list_add_tail(&master->node, &smmu_dfs->masters_list);
