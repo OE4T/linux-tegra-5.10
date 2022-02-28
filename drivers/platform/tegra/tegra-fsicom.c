@@ -135,7 +135,7 @@ static void tegra_hsp_rx_notify(struct mbox_client *cl, void *msg)
 static void tegra_hsp_tx_empty_notify(struct mbox_client *cl,
 					 void *data, int empty_value)
 {
-	pr_err("TX empty callback came\n");
+	pr_debug("TX empty callback came\n");
 }
 static int tegra_hsp_mb_init(struct device *dev)
 {
