@@ -131,6 +131,13 @@
 				};
 			};
 		};
+
+		ncp_12v_pcie_supply: ncp81599@74 {
+			compatible = "nvidia,ncp81599";
+			reg = <0x74>;
+			regulator-name = "ncp81599";
+			status = "disabled";
+		};
 	};
 
 	xusb_padctl: xusb_padctl@3520000 {
