@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016-2021 NVIDIA CORPORATION. All rights reserved.
+ * Copyright (C) 2016-2022 NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -29,7 +29,7 @@
 #define AST_RGN_MASK_BASE_HI				0x10c
 #define AST_RGN_MASTER_BASE_LO				0x110
 #define AST_RGN_MASTER_BASE_HI				0x114
-#define AST_RGN_CONTOL					0x118
+#define AST_RGN_CONTROL					0x118
 
 #define AST_PAGE_MASK					(~0xFFF)
 #define AST_LO_SHIFT					32
@@ -90,11 +90,18 @@ static inline u32 acast_rgn_reg(u32 rgn, u32 reg)
 	return rgn * AST_RGN_OFFSET + reg;
 }
 
-static void tegra18x_acast_map(void __iomem *acast, u32 rgn, u32 rgn_ctrl,
+static void tegra18x_acast_map(struct device *dev,
+			       void __iomem *acast, u32 rgn, u32 rgn_ctrl,
 			       u32 strmid_reg, u32 strmid_ctrl,
 			       u64 slave, u64 size, u64 master)
 {
 	u32 val;
+
+	val = acast_read(acast, acast_rgn_reg(rgn, AST_RGN_SLAVE_BASE_LO));
+	if (val & AST_RGN_ENABLE) {
+		dev_warn(dev, "ACAST rgn %u already mapped...skipping\n", rgn);
+		return;
+	}
 
 	val = master & AST_LO_MASK;
 	acast_write(acast,
@@ -110,10 +117,10 @@ static void tegra18x_acast_map(void __iomem *acast, u32 rgn, u32 rgn_ctrl,
 	acast_write(acast,
 		    acast_rgn_reg(rgn, AST_RGN_MASK_BASE_HI), val);
 
-	val = acast_read(acast, acast_rgn_reg(rgn, AST_RGN_CONTOL));
+	val = acast_read(acast, acast_rgn_reg(rgn, AST_RGN_CONTROL));
 	val |= rgn_ctrl;
 	acast_write(acast,
-		    acast_rgn_reg(rgn, AST_RGN_CONTOL), val);
+		    acast_rgn_reg(rgn, AST_RGN_CONTROL), val);
 
 	if (strmid_reg)
 		acast_write(acast, strmid_reg, strmid_ctrl);
@@ -126,11 +133,10 @@ static void tegra18x_acast_map(void __iomem *acast, u32 rgn, u32 rgn_ctrl,
 		    acast_rgn_reg(rgn, AST_RGN_SLAVE_BASE_LO), val);
 }
 
-static int tegra18x_acast_init(struct platform_device *pdev,
+static int tegra18x_acast_init(struct device *dev,
 		uint32_t acast_addr, uint32_t acast_size,
 		struct acast_region *acast_regions, uint32_t num_regions)
 {
-	struct device *dev = &pdev->dev;
 	void __iomem *acast_base;
 	int i;
 
@@ -141,7 +147,7 @@ static int tegra18x_acast_init(struct platform_device *pdev,
 	}
 
 	for (i = 0; i < num_regions; i++) {
-		tegra18x_acast_map(acast_base,
+		tegra18x_acast_map(dev, acast_base,
 				   acast_regions[i].rgn,
 				   acast_regions[i].rgn_ctrl,
 				   acast_regions[i].strmid_reg,
@@ -218,7 +224,7 @@ int nvadsp_acast_t18x_init(struct platform_device *pdev)
 			"nvidia,acast_config", (iter + 1), &acast_size))
 			continue;
 
-		ret = tegra18x_acast_init(pdev, acast_addr, acast_size,
+		ret = tegra18x_acast_init(dev, acast_addr, acast_size,
 					&acast_config, 1);
 		if (ret)
 			goto exit;
