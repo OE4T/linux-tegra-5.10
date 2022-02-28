@@ -33,7 +33,7 @@
 uint32_t ivc_chan_count;
 struct tegra_safety_ivc_chan *tegra_safety_get_ivc_chan_from_str(
 		struct tegra_safety_ivc *safety_ivc,
-		char *ch_name)
+		const char *ch_name)
 {
 	uint32_t i;
 
@@ -312,12 +312,19 @@ static int tegra_safety_ivc_parse_hsp(struct device *dev)
 	struct tegra_safety_ivc *safety_ivc = dev_get_drvdata(dev);
 	struct mbox_client *rx_client;
 	struct mbox_client *tx_client;
-	int ret;
+	int ret = 0;
 
-	rx_client = kzalloc(sizeof(*rx_client), GFP_KERNEL);
-	tx_client = kzalloc(sizeof(*tx_client), GFP_KERNEL);
-	if (!rx_client || !tx_client)
-		return -ENOMEM;
+	rx_client = devm_kzalloc(dev, sizeof(*rx_client), GFP_KERNEL);
+	if (rx_client == NULL) {
+		ret = -ENOMEM;
+		goto out;
+	}
+
+	tx_client = devm_kzalloc(dev, sizeof(*tx_client), GFP_KERNEL);
+	if (tx_client == NULL) {
+		ret = -ENOMEM;
+		goto out;
+	}
 
 	rx_client->rx_callback = tegra_safety_ivc_full_notify;
 	rx_client->dev = tx_client->dev = dev;
@@ -327,17 +334,19 @@ static int tegra_safety_ivc_parse_hsp(struct device *dev)
 	if (IS_ERR(safety_ivc->rx_chan)) {
 		ret = PTR_ERR(safety_ivc->rx_chan);
 		dev_err(dev, "failed to obtain rx channel: %d\n", ret);
-		return ret;
+		goto out;
 	}
 
 	safety_ivc->tx_chan = mbox_request_channel_byname(tx_client, "tx");
 	if (IS_ERR(safety_ivc->tx_chan)) {
+		mbox_free_channel(safety_ivc->rx_chan);
 		ret = PTR_ERR(safety_ivc->tx_chan);
 		dev_err(dev, "failed to obtain tx channel: %d\n", ret);
-		return ret;
+		goto out;
 	}
 
-	return 0;
+out:
+	return ret;
 }
 
 static const struct of_device_id tegra_safety_ivc_of_match[] = {

@@ -70,7 +70,7 @@ void tegra_safety_dev_exit(struct device *dev, uint32_t index);
 void tegra_safety_dev_notify(void);
 struct tegra_safety_ivc_chan *tegra_safety_get_ivc_chan_from_str(
 		struct tegra_safety_ivc *safety_ivc,
-		char *ch_name);
+		const char *ch_name);
 
 #define CMDRESP_PAYLOAD_SIZE     56U
 #define CMDRESP_PAYLOAD_EX_SIZE  248U
