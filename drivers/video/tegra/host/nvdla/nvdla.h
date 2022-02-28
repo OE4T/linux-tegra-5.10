@@ -92,6 +92,39 @@ enum {
 #define FUSE_OPT_DLA_1_DISABLED		2
 
 /**
+ * Bit at mask of the Soft Sku register
+ * when DLA0 is disabled
+ */
+#define FUSE_OPT_DLA_0_DISABLED_SOFT	0x8000000
+
+/**
+ * Bit at mask of the Soft Sku register set
+ * when DLA1 is disabled
+ */
+#define FUSE_OPT_DLA_1_DISABLED_SOFT	0x10000000
+
+/* Bit at mask is set when Soft SKU is enabled
+ */
+#define SOFT_SKU_OVERRIDE_ENABLE_MASK	0x80000000
+
+/*
+ * Physical base address of scratch area
+ */
+#define SCRATCH_REG_BASE_ADDRESS	0xc390000
+
+/*
+ * Number of bytes to be mapped from the
+ * scratch area
+ */
+#define SCRATCH_REG_MMAP_SIZE	0x200
+
+/*
+ * Offset to the Sw SKU register in
+ * the scratch area
+ */
+#define SCRATCH_REG_SW_SKU_OFFSET	0x180
+
+/**
  * Maximum number of queue's per engine
  */
 #define MAX_NVDLA_QUEUE_COUNT	16

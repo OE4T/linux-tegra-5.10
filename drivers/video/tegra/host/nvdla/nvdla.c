@@ -589,6 +589,24 @@ out:
 	return ret;
 }
 
+static uint32_t nvdla_read_soft_sku_scratch_register(void)
+{
+	uint32_t dla_soft_sku_opt_disable = 0U;
+	void __iomem *scratch_base;
+
+	/*
+	 * Map the scratch physical address base, read the register
+	 * from the correct offset and then unmap
+	 */
+	scratch_base = ioremap(SCRATCH_REG_BASE_ADDRESS, SCRATCH_REG_MMAP_SIZE);
+	if (scratch_base) {
+		dla_soft_sku_opt_disable = __raw_readl(scratch_base + SCRATCH_REG_SW_SKU_OFFSET);
+		iounmap(scratch_base);
+	}
+
+	return dla_soft_sku_opt_disable;
+}
+
 static int nvhost_nvdla_read_chip_option_register(struct platform_device *pdev)
 {
 	/* Read floor sweeping info using nvmem api
@@ -688,6 +706,7 @@ static int nvdla_probe(struct platform_device *pdev)
 	struct nvdla_device *nvdla_dev = NULL;
 	struct device *dev = &pdev->dev;
 	int fuse_ret = 0;
+	uint32_t soft_fuse_ret = 0U;
 
 	if (pdev->dev.of_node) {
 		const struct of_device_id *match;
@@ -722,20 +741,41 @@ static int nvdla_probe(struct platform_device *pdev)
 	}
 
 	if (pdata->version == FIRMWARE_ENCODE_VERSION(T23X)) {
-		fuse_ret = nvhost_nvdla_read_chip_option_register(pdev);
 
-		if ((fuse_ret & FUSE_OPT_DLA_0_DISABLED) &&
-			(pdata->class == NV_DLA0_CLASS_ID)) {
+		soft_fuse_ret = nvdla_read_soft_sku_scratch_register();
+		if (soft_fuse_ret & SOFT_SKU_OVERRIDE_ENABLE_MASK) {
+
+			if ((soft_fuse_ret & FUSE_OPT_DLA_0_DISABLED_SOFT)
+					&& (pdata->class == NV_DLA0_CLASS_ID)) {
+				dev_err(dev, "NVDLA0 IP is disabled in Soft Fuse\n");
+				err = -ENODEV;
+				goto err_no_ip;
+			}
+
+			if ((soft_fuse_ret & FUSE_OPT_DLA_1_DISABLED_SOFT)
+					&& (pdata->class == NV_DLA1_CLASS_ID)) {
+				dev_err(dev, "NVDLA1 IP is disabled in Soft Fuse\n");
+				err = -ENODEV;
+				goto err_no_ip;
+			}
+
+		} else {
+
+			fuse_ret = nvhost_nvdla_read_chip_option_register(pdev);
+
+			if ((fuse_ret & FUSE_OPT_DLA_0_DISABLED)
+					&& (pdata->class == NV_DLA0_CLASS_ID)) {
 				dev_err(dev, "NVDLA0 IP is disabled in Fuse\n");
 				err = -ENODEV;
 				goto err_no_ip;
-		}
+			}
 
-		if ((fuse_ret & FUSE_OPT_DLA_1_DISABLED) &&
-			(pdata->class == NV_DLA1_CLASS_ID)) {
+			if ((fuse_ret & FUSE_OPT_DLA_1_DISABLED)
+					&& (pdata->class == NV_DLA1_CLASS_ID)) {
 				dev_err(dev, "NVDLA1 IP is disabled in Fuse\n");
 				err = -ENODEV;
 				goto err_no_ip;
+			}
 		}
 	}
 
