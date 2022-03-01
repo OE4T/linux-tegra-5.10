@@ -397,6 +397,13 @@ int nvgpu_vm_map_buffer(struct vm_gk20a *vm,
 		return -EINVAL;
 	}
 
+	if (((flags & NVGPU_AS_MAP_BUFFER_FLAGS_TEGRA_RAW) != 0U) &&
+		!nvgpu_is_enabled(g, NVGPU_SUPPORT_TEGRA_RAW)) {
+			nvgpu_err(g, "TEGRA_RAW requested when not supported.");
+			dma_buf_put(dmabuf);
+			return -EINVAL;
+	}
+
 	err = nvgpu_vm_map_linux(vm, dmabuf, *map_addr, map_access,
 				 nvgpu_vm_translate_linux_flags(g, flags),
 				 page_size,
