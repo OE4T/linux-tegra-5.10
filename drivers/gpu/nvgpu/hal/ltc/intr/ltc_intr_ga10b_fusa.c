@@ -710,22 +710,10 @@ void ga10b_ltc_intr_handle_lts_intr3_extra(struct gk20a *g, u32 ltc, u32 slice, 
 	}
 }
 
-static void ga10b_ltc_intr_handle_lts_intr3(struct gk20a *g, u32 ltc, u32 slice)
+void ga10b_ltc_intr3_interrupts(struct gk20a *g, u32 ltc, u32 slice,
+				u32 ltc_intr3)
 {
-	u32 ltc_stride = nvgpu_get_litter_value(g, GPU_LIT_LTC_STRIDE);
-	u32 lts_stride = nvgpu_get_litter_value(g, GPU_LIT_LTS_STRIDE);
-
-	u32 offset = nvgpu_safe_add_u32(nvgpu_safe_mult_u32(ltc_stride, ltc),
-					nvgpu_safe_mult_u32(lts_stride, slice));
-	u32 ltc_intr3 = nvgpu_readl(g, nvgpu_safe_add_u32(
-					ltc_ltc0_lts0_intr3_r(), offset));
 	u32 reg_value = ltc_intr3;
-
-	if (ltc_intr3 == 0U) {
-		return;
-	}
-
-	ga10b_ltc_intr3_ecc_interrupts(g, ltc, slice, offset, ltc_intr3);
 
 	if (ltc_intr3 &
 		ltc_ltcs_ltss_intr3_checkedout_rwc_upg_unexpected_nvport_m()) {
@@ -812,13 +800,32 @@ static void ga10b_ltc_intr_handle_lts_intr3(struct gk20a *g, u32 ltc, u32 slice)
 	if (g->ops.ltc.intr.isr_extra != NULL) {
 		g->ops.ltc.intr.isr_extra(g, ltc, slice, &reg_value);
 	}
+}
+
+void ga10b_ltc_intr_handle_lts_intr3(struct gk20a *g, u32 ltc, u32 slice)
+{
+	u32 ltc_stride = nvgpu_get_litter_value(g, GPU_LIT_LTC_STRIDE);
+	u32 lts_stride = nvgpu_get_litter_value(g, GPU_LIT_LTS_STRIDE);
+
+	u32 offset = nvgpu_safe_add_u32(nvgpu_safe_mult_u32(ltc_stride, ltc),
+					nvgpu_safe_mult_u32(lts_stride, slice));
+	u32 ltc_intr3 = nvgpu_readl(g, nvgpu_safe_add_u32(
+					ltc_ltc0_lts0_intr3_r(), offset));
+	u32 reg_value = ltc_intr3;
+
+	if (ltc_intr3 == 0U) {
+		return;
+	}
+
+	ga10b_ltc_intr3_ecc_interrupts(g, ltc, slice, offset, ltc_intr3);
+	ga10b_ltc_intr3_interrupts(g, ltc, slice, ltc_intr3);
 
 	/* Reset interrupts */
 	nvgpu_writel(g, nvgpu_safe_add_u32( ltc_ltc0_lts0_intr3_r(), offset),
 			reg_value);
 }
 
-static void ga10b_ltc_intr_handle_lts_intr2(struct gk20a *g, u32 ltc, u32 slice)
+void ga10b_ltc_intr_handle_lts_intr2(struct gk20a *g, u32 ltc, u32 slice)
 {
 	u32 ltc_stride = nvgpu_get_litter_value(g, GPU_LIT_LTC_STRIDE);
 	u32 lts_stride = nvgpu_get_litter_value(g, GPU_LIT_LTS_STRIDE);
@@ -982,7 +989,7 @@ static void ga10b_ltc_intr_handle_lts_intr2(struct gk20a *g, u32 ltc, u32 slice)
 			reg_value);
 }
 
-static void ga10b_ltc_intr_handle_lts_intr(struct gk20a *g, u32 ltc, u32 slice)
+void ga10b_ltc_intr_handle_lts_intr(struct gk20a *g, u32 ltc, u32 slice)
 {
 	u32 ltc_stride = nvgpu_get_litter_value(g, GPU_LIT_LTC_STRIDE);
 	u32 lts_stride = nvgpu_get_litter_value(g, GPU_LIT_LTS_STRIDE);
