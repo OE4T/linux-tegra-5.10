@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2020, NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2015-2022, NVIDIA Corporation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -48,10 +48,9 @@ static int tegra_adma_query_dma_page(void)
 		"nvidia,tegra210-adma-hv",
 		"nvidia,tegra186-adma",
 		"nvidia,tegra194-adma-hv",
-		NULL,
 	};
 
-	for (i = 0; compatible[i] != NULL; i++) {
+	for (i = 0; i < ARRAY_SIZE(compatible); i++) {
 		np = of_find_compatible_node(NULL, NULL, compatible[i]);
 		if (np == NULL)
 			continue;
