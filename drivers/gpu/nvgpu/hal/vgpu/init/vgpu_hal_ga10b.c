@@ -130,6 +130,7 @@
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/grmgr.h>
 #include <nvgpu/perfbuf.h>
+#include <nvgpu/soc.h>
 
 #include "common/vgpu/init/init_vgpu.h"
 #include "common/vgpu/fb/fb_vgpu.h"
@@ -1213,8 +1214,19 @@ int vgpu_ga10b_init_hal(struct gk20a *g)
 		priv->constants.max_sm_diversity_config_count;
 
 #ifdef CONFIG_NVGPU_COMPRESSION
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_COMPRESSION, false);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_POST_L2_COMPRESSION, false);
+	if (nvgpu_platform_is_silicon(g)) {
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_COMPRESSION, true);
+	} else {
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_COMPRESSION, false);
+	}
+
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_COMPRESSION)) {
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_POST_L2_COMPRESSION, true);
+	} else {
+		gops->cbc.init = NULL;
+		gops->cbc.ctrl = NULL;
+		gops->cbc.alloc_comptags = NULL;
+	}
 #endif
 
 #ifdef CONFIG_NVGPU_RECOVERY
