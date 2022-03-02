@@ -174,7 +174,7 @@ static long acsl_dev_ioctl(struct file *filp,
 			return -EACCES;
 		ret = copy_from_user(&csm_args, uarg,
 				sizeof(csm_args));
-		if (ret) {
+		if (ret || (csm_args.size > sizeof(csm_args))) {
 			ret = -EACCES;
 			break;
 		}
@@ -200,7 +200,7 @@ static long acsl_dev_ioctl(struct file *filp,
 			return -EACCES;
 		ret = copy_from_user(&csm_args, uarg,
 				sizeof(csm_args));
-		if (ret) {
+		if (ret || (csm_args.size > sizeof(csm_args))) {
 			ret = -EACCES;
 			break;
 		}
@@ -215,7 +215,7 @@ static long acsl_dev_ioctl(struct file *filp,
 			return -EACCES;
 		ret = copy_from_user(&csm_args, uarg,
 				sizeof(csm_args));
-		if (ret) {
+		if (ret || (csm_args.size > sizeof(csm_args))) {
 			ret = -EACCES;
 			break;
 		}
@@ -266,7 +266,7 @@ static long acsl_dev_ioctl(struct file *filp,
 			return -EACCES;
 		ret = copy_from_user(&csm_args, uarg,
 				sizeof(csm_args));
-		if (ret) {
+		if (ret || (csm_args.size > sizeof(csm_args))) {
 			ret = -EACCES;
 			break;
 		}
@@ -280,7 +280,7 @@ static long acsl_dev_ioctl(struct file *filp,
 			return -EACCES;
 		ret = copy_from_user(&csm_args, uarg,
 				sizeof(csm_args));
-		if (ret) {
+		if (ret || (csm_args.size > sizeof(csm_args))) {
 			ret = -EACCES;
 			break;
 		}
@@ -294,7 +294,7 @@ static long acsl_dev_ioctl(struct file *filp,
 			return -EACCES;
 		ret = copy_from_user(&buf_args, uarg,
 				sizeof(buf_args));
-		if (ret) {
+		if (ret || (buf_args.comp_id >= MAX_COMP)) {
 			ret = -EACCES;
 			break;
 		}
@@ -312,7 +312,7 @@ static long acsl_dev_ioctl(struct file *filp,
 			return -EACCES;
 		ret = copy_from_user(&buf_args, uarg,
 				sizeof(buf_args));
-		if (ret) {
+		if (ret || (buf_args.comp_id >= MAX_COMP)) {
 			ret = -EACCES;
 			break;
 		}
@@ -329,12 +329,7 @@ static long acsl_dev_ioctl(struct file *filp,
 			return -EACCES;
 		ret = copy_from_user(&buf_args, uarg,
 				sizeof(buf_args));
-		if (ret) {
-			ret = -EACCES;
-			break;
-		}
-
-		if (buf_args.comp_id >= MAX_COMP) {
+		if (ret || (buf_args.comp_id >= MAX_COMP)) {
 			ret = -EACCES;
 			break;
 		}
@@ -353,7 +348,7 @@ static long acsl_dev_ioctl(struct file *filp,
 			return -EACCES;
 		ret = copy_from_user(&buf_args, uarg,
 				sizeof(buf_args));
-		if (ret) {
+		if (ret || (buf_args.comp_id >= MAX_COMP)) {
 			ret = -EACCES;
 			break;
 		}
