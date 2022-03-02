@@ -267,14 +267,13 @@
 #endif
 
 #if TEGRA_BPMP_FW_DT_VERSION >= DT_VERSION_2
-	/* TODO: current version of pre-silicon platforms use still sysram for messaging
-	* between BPMP and kernel. In future, this will need to move. */
 	sysram@40000000 {
 		compatible = "nvidia,tegra194-sysram", "mmio-sram";
 		reg = <0x0 0x40000000 0x0 0x72000>;
 		#address-cells = <1>;
 		#size-cells = <1>;
 		ranges = <0x0 0x0 0x40000000 0x72000>;
+		no-memory-wc;
 
 		cpu_bpmp_tx: shmem@70000 {
 			compatible = "nvidia,tegra194-bpmp-shmem";
