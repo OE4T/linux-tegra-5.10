@@ -41,40 +41,65 @@
 
 #define dev_from_vm(vm) dev_from_gk20a(vm->mm->g)
 
-static u32 nvgpu_vm_translate_linux_flags(struct gk20a *g, u32 flags)
+static int nvgpu_vm_translate_linux_flags(struct gk20a *g, u32 flags, u32 *out_core_flags)
 {
 	u32 core_flags = 0;
+	u32 consumed_flags = 0;
 	u32 map_access_bitmask =
 		(BIT32(NVGPU_AS_MAP_BUFFER_FLAGS_ACCESS_BITMASK_SIZE) - 1U) <<
 			NVGPU_AS_MAP_BUFFER_FLAGS_ACCESS_BITMASK_OFFSET;
 
-	if (flags & NVGPU_AS_MAP_BUFFER_FLAGS_FIXED_OFFSET)
+	if ((flags & NVGPU_AS_MAP_BUFFER_FLAGS_FIXED_OFFSET) != 0U) {
 		core_flags |= NVGPU_VM_MAP_FIXED_OFFSET;
-	if (flags & NVGPU_AS_MAP_BUFFER_FLAGS_CACHEABLE)
-		core_flags |= NVGPU_VM_MAP_CACHEABLE;
-	if (flags & NVGPU_AS_MAP_BUFFER_FLAGS_IO_COHERENT)
-		core_flags |= NVGPU_VM_MAP_IO_COHERENT;
-	if (flags & NVGPU_AS_MAP_BUFFER_FLAGS_UNMAPPED_PTE)
-		core_flags |= NVGPU_VM_MAP_UNMAPPED_PTE;
-	if (!nvgpu_is_enabled(g, NVGPU_DISABLE_L3_SUPPORT)) {
-		if (flags & NVGPU_AS_MAP_BUFFER_FLAGS_L3_ALLOC)
-			core_flags |= NVGPU_VM_MAP_L3_ALLOC;
+		consumed_flags |= NVGPU_AS_MAP_BUFFER_FLAGS_FIXED_OFFSET;
 	}
-	if (flags & NVGPU_AS_MAP_BUFFER_FLAGS_DIRECT_KIND_CTRL)
+	if ((flags & NVGPU_AS_MAP_BUFFER_FLAGS_CACHEABLE) != 0U) {
+		core_flags |= NVGPU_VM_MAP_CACHEABLE;
+		consumed_flags |= NVGPU_AS_MAP_BUFFER_FLAGS_CACHEABLE;
+	}
+	if ((flags & NVGPU_AS_MAP_BUFFER_FLAGS_IO_COHERENT) != 0U) {
+		core_flags |= NVGPU_VM_MAP_IO_COHERENT;
+		consumed_flags |= NVGPU_AS_MAP_BUFFER_FLAGS_IO_COHERENT;
+	}
+	if ((flags & NVGPU_AS_MAP_BUFFER_FLAGS_UNMAPPED_PTE) != 0U) {
+		core_flags |= NVGPU_VM_MAP_UNMAPPED_PTE;
+		consumed_flags |= NVGPU_AS_MAP_BUFFER_FLAGS_UNMAPPED_PTE;
+	}
+	if ((flags & NVGPU_AS_MAP_BUFFER_FLAGS_L3_ALLOC) != 0U &&
+			!nvgpu_is_enabled(g, NVGPU_DISABLE_L3_SUPPORT)) {
+		core_flags |= NVGPU_VM_MAP_L3_ALLOC;
+		consumed_flags |= NVGPU_AS_MAP_BUFFER_FLAGS_L3_ALLOC;
+	}
+	if ((flags & NVGPU_AS_MAP_BUFFER_FLAGS_DIRECT_KIND_CTRL) != 0U) {
 		core_flags |= NVGPU_VM_MAP_DIRECT_KIND_CTRL;
-	if (flags & NVGPU_AS_MAP_BUFFER_FLAGS_PLATFORM_ATOMIC)
+		consumed_flags |= NVGPU_AS_MAP_BUFFER_FLAGS_DIRECT_KIND_CTRL;
+	}
+	if ((flags & NVGPU_AS_MAP_BUFFER_FLAGS_PLATFORM_ATOMIC) != 0U) {
 		core_flags |= NVGPU_VM_MAP_PLATFORM_ATOMIC;
-	if (flags & NVGPU_AS_MAP_BUFFER_FLAGS_TEGRA_RAW)
+		consumed_flags |= NVGPU_AS_MAP_BUFFER_FLAGS_PLATFORM_ATOMIC;
+	}
+	if ((flags & NVGPU_AS_MAP_BUFFER_FLAGS_TEGRA_RAW) != 0U) {
 		core_flags |= NVGPU_VM_MAP_TEGRA_RAW;
+		consumed_flags |= NVGPU_AS_MAP_BUFFER_FLAGS_TEGRA_RAW;
+	}
+	if ((flags & NVGPU_AS_MAP_BUFFER_FLAGS_MAPPABLE_COMPBITS) != 0U) {
+		nvgpu_warn(g, "Ignoring deprecated flag: "
+			   "NVGPU_AS_MAP_BUFFER_FLAGS_MAPPABLE_COMPBITS");
+		consumed_flags |= NVGPU_AS_MAP_BUFFER_FLAGS_MAPPABLE_COMPBITS;
+	}
 
 	/* copy the map access bitfield from flags */
 	core_flags |= (flags & map_access_bitmask);
+	consumed_flags |= (flags & map_access_bitmask);
 
-	if (flags & NVGPU_AS_MAP_BUFFER_FLAGS_MAPPABLE_COMPBITS)
-		nvgpu_warn(g, "Ignoring deprecated flag: "
-			   "NVGPU_AS_MAP_BUFFER_FLAGS_MAPPABLE_COMPBITS");
+	if (consumed_flags != flags) {
+		nvgpu_err(g, "Extra flags: 0x%x", consumed_flags ^ flags);
+		return -EINVAL;
+	}
 
-	return core_flags;
+	*out_core_flags = core_flags;
+
+	return 0;
 }
 
 static int nvgpu_vm_translate_map_access(struct gk20a *g, u32 flags,
@@ -341,6 +366,7 @@ int nvgpu_vm_map_buffer(struct vm_gk20a *vm,
 	struct gk20a *g = gk20a_from_vm(vm);
 	struct dma_buf *dmabuf;
 	u32 map_access;
+	u32 core_flags;
 	u64 ret_va;
 	int err = 0;
 
@@ -404,8 +430,14 @@ int nvgpu_vm_map_buffer(struct vm_gk20a *vm,
 			return -EINVAL;
 	}
 
+	err = nvgpu_vm_translate_linux_flags(g, flags, &core_flags);
+	if (err < 0) {
+		dma_buf_put(dmabuf);
+		return err;
+	}
+
 	err = nvgpu_vm_map_linux(vm, dmabuf, *map_addr, map_access,
-				 nvgpu_vm_translate_linux_flags(g, flags),
+				 core_flags,
 				 page_size,
 				 compr_kind, incompr_kind,
 				 buffer_offset,
