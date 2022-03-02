@@ -821,6 +821,7 @@ srcs += hal/init/hal_ga10b.c \
 	hal/fb/intr/fb_intr_ga10b_fusa.c \
 	hal/fb/intr/fb_intr_ecc_ga10b_fusa.c \
 	hal/priv_ring/priv_ring_ga10b_fusa.c \
+	hal/ptimer/ptimer_ga10b_fusa.c \
 	hal/power_features/cg/ga10b_gating_reglist.c \
 	hal/therm/therm_ga10b_fusa.c \
 	hal/ce/ce_ga10b_fusa.c \
