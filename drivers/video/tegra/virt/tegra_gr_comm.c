@@ -601,7 +601,7 @@ void *tegra_gr_comm_oob_get_ptr(u32 peer, u32 index,
 
 	mutex_lock(&queue->mempool_lock);
 	*size = mempool_ctx->cookie->size;
-	*ptr = mempool_ctx->ptr;
+	*ptr = (__force void *)mempool_ctx->ptr;
 	return queue;
 }
 EXPORT_SYMBOL(tegra_gr_comm_oob_get_ptr);

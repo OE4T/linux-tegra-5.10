@@ -151,7 +151,7 @@ static int __init hvc_sysfs_register(void)
 	if (hyp_read_hyp_info(&ipa) != 0)
 		return -EINVAL;
 
-	info = (struct hyp_info_page *)ioremap(ipa, sizeof(*info));
+	info = (__force struct hyp_info_page *)ioremap(ipa, sizeof(*info));
 	if (info == NULL)
 		return -EFAULT;
 
@@ -186,7 +186,7 @@ static int __init hvc_sysfs_register(void)
 	else
 		TEGRA_HV_INFO("pct is unavailable\n");
 
-	iounmap(info);
+	iounmap((void __iomem *)info);
 
 	return 0;
 }

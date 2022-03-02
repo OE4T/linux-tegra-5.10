@@ -375,7 +375,7 @@ static void __init tegra_hv_cleanup(struct tegra_hv_data *hvd)
 		BUG_ON(!hvd->info);
 		for (i = 0; i < hvd->info->nr_areas; i++) {
 			if (hvd->guest_ivc_info[i].shmem) {
-				iounmap((void *)hvd->guest_ivc_info[i].shmem);
+				iounmap((void __iomem *)hvd->guest_ivc_info[i].shmem);
 				hvd->guest_ivc_info[i].shmem = 0;
 			}
 		}
@@ -383,7 +383,7 @@ static void __init tegra_hv_cleanup(struct tegra_hv_data *hvd)
 		kfree(hvd->guest_ivc_info);
 		hvd->guest_ivc_info = NULL;
 
-		iounmap((void *)hvd->info);
+		iounmap((void __iomem *)hvd->info);
 		hvd->info = NULL;
 	}
 
@@ -441,7 +441,7 @@ static int __init tegra_hv_setup(struct tegra_hv_data *hvd)
 		return ret;
 	}
 
-	hvd->info = (struct ivc_info_page *)ioremap_cache(info_page,
+	hvd->info = (__force struct ivc_info_page *)ioremap_cache(info_page,
 			IVC_INFO_PAGE_SIZE);
 	if (hvd->info == NULL) {
 		ERR("failed to map IVC info page (%llx)\n", info_page);
@@ -540,11 +540,11 @@ static int __init tegra_hv_setup(struct tegra_hv_data *hvd)
 		if (qd->id > hvd->max_qid)
 			hvd->max_qid = qd->id;
 		/* 0 => SPI */
-		interrupts_arr[(i * intr_property_size)] = cpu_to_be32(0);
+		interrupts_arr[(i * intr_property_size)] = (__force uint32_t)cpu_to_be32(0);
 		interrupts_arr[(i * intr_property_size) + 1] =
-			cpu_to_be32(qd->irq - 32); /* Id in SPI namespace */
+			(__force uint32_t)cpu_to_be32(qd->irq - 32); /* Id in SPI namespace */
 		/* 0x1 == low-to-high edge */
-		interrupts_arr[(i * intr_property_size) + 2] = cpu_to_be32(0x1);
+		interrupts_arr[(i * intr_property_size) + 2] = (__force uint32_t)cpu_to_be32(0x1);
 	}
 
 	interrupts_prop.length =
