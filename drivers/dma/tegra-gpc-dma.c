@@ -162,21 +162,19 @@
 #define TEGRA_GPCDMA_BURST_COMPLETION_TIMEOUT	100
 
 /* Channel base address offset from GPCDMA base address */
-#define TEGRA_GPCDMA_CHANNEL_BASE_ADD_OFFSET	0x20000
+#define TEGRA_GPCDMA_CHANNEL_BASE_ADD_OFFSET	0x10000
 
 struct tegra_dma;
 struct tegra_dma_channel;
 
 /*
  * tegra_dma_chip_data Tegra chip specific DMA data
- * @nr_channels: Number of channels available in the controller.
  * @channel_reg_size: Channel register size.
  * @max_dma_count: Maximum DMA transfer count supported by DMA controller.
  * @hw_support_pause: DMA HW engine support pause of the channel.
  */
 struct tegra_dma_chip_data {
 	bool hw_support_pause;
-	unsigned int nr_channels;
 	unsigned int channel_reg_size;
 	unsigned int max_dma_count;
 	int (*terminate)(struct tegra_dma_channel *tdc);
@@ -247,6 +245,7 @@ struct tegra_dma {
 	const struct tegra_dma_chip_data *chip_data;
 	unsigned long sid_m2d_reserved;
 	unsigned long sid_d2m_reserved;
+	unsigned int nr_channels;
 	void __iomem *base_addr;
 	struct device *dev;
 	struct dma_device dma_dev;
@@ -1282,7 +1281,6 @@ static struct dma_chan *tegra_dma_of_xlate(struct of_phandle_args *dma_spec,
 }
 
 static const struct tegra_dma_chip_data tegra186_dma_chip_data = {
-	.nr_channels = 31,
 	.channel_reg_size = SZ_64K,
 	.max_dma_count = SZ_1G,
 	.hw_support_pause = false,
@@ -1290,7 +1288,6 @@ static const struct tegra_dma_chip_data tegra186_dma_chip_data = {
 };
 
 static const struct tegra_dma_chip_data tegra194_dma_chip_data = {
-	.nr_channels = 31,
 	.channel_reg_size = SZ_64K,
 	.max_dma_count = SZ_1G,
 	.hw_support_pause = true,
@@ -1330,21 +1327,27 @@ static int tegra_dma_probe(struct platform_device *pdev)
 {
 	const struct tegra_dma_chip_data *cdata = NULL;
 	struct iommu_fwspec *iommu_spec;
-	unsigned int stream_id, i;
+	unsigned int stream_id, i, rsvd_chan_count, nr_chans;
 	struct tegra_dma *tdma;
 	struct resource	*res;
 	int ret;
 
 	cdata = of_device_get_match_data(&pdev->dev);
+	ret = of_property_read_u32(pdev->dev.of_node, "dma-channels",
+							&nr_chans);
+	if (ret)
+		nr_chans = 31;
 
 	tdma = devm_kzalloc(&pdev->dev,
-			   struct_size(tdma, channels, cdata->nr_channels),
+			   struct_size(tdma, channels, nr_chans),
 			   GFP_KERNEL);
 	if (!tdma)
 		return -ENOMEM;
 
 	tdma->dev = &pdev->dev;
 	tdma->chip_data = cdata;
+	tdma->nr_channels = nr_chans;
+
 	platform_set_drvdata(pdev, tdma);
 
 	tdma->base_addr = devm_platform_ioremap_resource(pdev, 0);
@@ -1367,13 +1370,19 @@ static int tegra_dma_probe(struct platform_device *pdev)
 	}
 	stream_id = iommu_spec->ids[0] & 0xffff;
 
+	ret = of_property_read_u32(pdev->dev.of_node,
+				"nvidia,start-dma-channel-index",
+						&rsvd_chan_count);
+	if (ret)
+		rsvd_chan_count = 1;
+
 	INIT_LIST_HEAD(&tdma->dma_dev.channels);
-	for (i = 0; i < cdata->nr_channels; i++) {
+	for (i = 0; i < tdma->nr_channels; i++) {
 		struct tegra_dma_channel *tdc = &tdma->channels[i];
 
 		tdc->chan_base_offset = TEGRA_GPCDMA_CHANNEL_BASE_ADD_OFFSET +
-					i * cdata->channel_reg_size;
-		res = platform_get_resource(pdev, IORESOURCE_IRQ, i);
+					(i + rsvd_chan_count) * cdata->channel_reg_size;
+		res = platform_get_resource(pdev, IORESOURCE_IRQ, i + rsvd_chan_count);
 		if (!res) {
 			dev_err(&pdev->dev, "No irq resource for chan %d\n", i);
 			return -EINVAL;
@@ -1440,7 +1449,7 @@ static int tegra_dma_probe(struct platform_device *pdev)
 	}
 
 	dev_info(&pdev->dev, "GPC DMA driver register %d channels\n",
-		 cdata->nr_channels);
+		 tdma->nr_channels);
 
 	return 0;
 }
@@ -1460,7 +1469,7 @@ static int __maybe_unused tegra_dma_pm_suspend(struct device *dev)
 	struct tegra_dma *tdma = dev_get_drvdata(dev);
 	unsigned int i;
 
-	for (i = 0; i < tdma->chip_data->nr_channels; i++) {
+	for (i = 0; i < tdma->nr_channels; i++) {
 		struct tegra_dma_channel *tdc = &tdma->channels[i];
 
 		if (tdc->dma_desc) {
@@ -1479,7 +1488,7 @@ static int __maybe_unused tegra_dma_pm_resume(struct device *dev)
 
 	reset_control_reset(tdma->rst);
 
-	for (i = 0; i < tdma->chip_data->nr_channels; i++) {
+	for (i = 0; i < tdma->nr_channels; i++) {
 		struct tegra_dma_channel *tdc = &tdma->channels[i];
 
 		tegra_dma_program_sid(tdc, tdc->stream_id);
