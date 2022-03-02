@@ -459,42 +459,6 @@ static inline uint64_t ClockCycles(void)
 	return result;
 }
 
-int get_ptp_virt_time(u64 *ns)
-{
-	int ret = 0;
-	struct tegra_hv_ptp_payload local;
-
-	/* As this is called from a driver, there is no hv pointer passed in */
-	/* Use the s_hv static version, so lock it to prevent unloading */
-	mutex_lock(&s_hv_lock);
-
-	if (s_hv) {
-		/* Take a copy of the saved time, process using that */
-		mutex_lock(&s_hv->lock);
-		local = s_hv->saved_time;
-		mutex_unlock(&s_hv->lock);
-
-		/* If the GT value is 0, then PTP wasn't running */
-		if (local.gt == 0) {
-			*ns = 0;
-			ret = -EINVAL;
-		} else {
-			/* Have a valid pair of PHC and GT */
-			/* GT ticks at 32x PHC, so adjust for current time */
-			*ns = local.phc_ns + (1000000000UL * local.phc_sec);
-			*ns += (ClockCycles() - local.gt)*(32UL);
-		}
-
-	} else {
-		*ns = 0;
-		ret = -EINVAL;
-	}
-
-	mutex_unlock(&s_hv_lock);
-	return ret;
-}
-EXPORT_SYMBOL(get_ptp_virt_time);
-
 static const struct of_device_id tegra_hv_ptp_match[] = {
 	{ .compatible = "nvidia,tegra-hv-ptp", },
 	{}
