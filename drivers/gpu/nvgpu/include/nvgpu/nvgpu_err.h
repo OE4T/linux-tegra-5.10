@@ -140,8 +140,8 @@ struct mmu_fault_info;
  * Macros used to assign unique index to errors reported from the MMU unit.
  * @{
  */
-#define GPU_MMU_L1TLB_SA_DATA_ECC_UNCORRECTED	(1U)
-#define GPU_MMU_L1TLB_FA_DATA_ECC_UNCORRECTED	(3U)
+#define GPU_MMU_L1TLB_SA_DATA_ECC_UNCORRECTED	(0U)
+#define GPU_MMU_L1TLB_FA_DATA_ECC_UNCORRECTED	(1U)
 /**
  * @}
  */
@@ -225,9 +225,8 @@ struct mmu_fault_info;
  */
 #define GPU_LTC_CACHE_DSTG_ECC_CORRECTED	(0U)
 #define GPU_LTC_CACHE_DSTG_ECC_UNCORRECTED	(1U)
-#define GPU_LTC_CACHE_TSTG_ECC_UNCORRECTED	(3U)
-#define GPU_LTC_CACHE_RSTG_ECC_UNCORRECTED	(5U)
-#define GPU_LTC_CACHE_DSTG_BE_ECC_UNCORRECTED	(7U)
+#define GPU_LTC_CACHE_TSTG_ECC_UNCORRECTED	(2U)
+#define GPU_LTC_CACHE_RSTG_CBC_ECC_UNCORRECTED	(3U)
 /**
  * @}
  */
@@ -237,11 +236,11 @@ struct mmu_fault_info;
  * Macros used to assign unique index to errors reported from the HUBMMU unit.
  * @{
  */
-#define GPU_HUBMMU_L2TLB_SA_DATA_ECC_UNCORRECTED	(1U)
-#define GPU_HUBMMU_TLB_SA_DATA_ECC_UNCORRECTED		(3U)
-#define GPU_HUBMMU_PTE_DATA_ECC_UNCORRECTED		(5U)
-#define GPU_HUBMMU_PDE0_DATA_ECC_UNCORRECTED		(7U)
-#define GPU_HUBMMU_PAGE_FAULT_ERROR			(8U)
+#define GPU_HUBMMU_L2TLB_SA_DATA_ECC_UNCORRECTED	(0U)
+#define GPU_HUBMMU_TLB_SA_DATA_ECC_UNCORRECTED		(1U)
+#define GPU_HUBMMU_PTE_DATA_ECC_UNCORRECTED		(2U)
+#define GPU_HUBMMU_PDE0_DATA_ECC_UNCORRECTED		(3U)
+#define GPU_HUBMMU_PAGE_FAULT_ERROR			(4U)
 /**
  * @}
  */

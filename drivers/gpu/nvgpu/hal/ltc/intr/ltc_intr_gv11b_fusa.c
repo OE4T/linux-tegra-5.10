@@ -146,8 +146,6 @@ void gv11b_ltc_intr_handle_dstg_ecc_interrupts(struct gk20a *g,
 				g->ecc.ltc.dstg_be_ecc_parity_count[ltc][slice].counter,
 					uncorrected_delta);
 
-		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_LTC,
-				GPU_LTC_CACHE_DSTG_BE_ECC_UNCORRECTED);
 		nvgpu_err(g, "dstg be ecc error uncorrected. "
 				"ecc_addr(0x%x)", ecc_addr);
 	}
