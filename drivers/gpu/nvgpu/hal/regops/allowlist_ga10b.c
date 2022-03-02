@@ -26,7 +26,7 @@
 #include <nvgpu/regops_allowlist.h>
 #include "allowlist_ga10b.h"
 
-u32 ga10b_hwpm_perfmon_register_offset_allowlist[] = {
+static const u32 ga10b_hwpm_perfmon_register_offset_allowlist[] = {
 	0x00000000,
 	0x00000004,
 	0x00000008,
@@ -91,7 +91,7 @@ u32 ga10b_hwpm_perfmon_register_offset_allowlist[] = {
 	0x00000130,
 };
 
-u32 ga10b_hwpm_router_register_offset_allowlist[] = {
+static const u32 ga10b_hwpm_router_register_offset_allowlist[] = {
 	0x00000000,
 	0x00000008,
 	0x00000010,
@@ -99,7 +99,7 @@ u32 ga10b_hwpm_router_register_offset_allowlist[] = {
 	0x00000150,
 };
 
-u32 ga10b_hwpm_pma_channel_register_offset_allowlist[] = {
+static const u32 ga10b_hwpm_pma_channel_register_offset_allowlist[] = {
 	0x0000000c,
 	0x00000610,
 	0x00000618,
@@ -111,7 +111,7 @@ u32 ga10b_hwpm_pma_channel_register_offset_allowlist[] = {
 	0x0000075c,
 };
 
-u32 ga10b_hwpm_pma_trigger_register_offset_allowlist[] = {
+static const u32 ga10b_hwpm_pma_trigger_register_offset_allowlist[] = {
 	0x00000008,
 	0x00000600,
 	0x00000604,
@@ -174,7 +174,7 @@ u32 ga10b_hwpm_pma_trigger_register_offset_allowlist[] = {
 	0x0000075c,
 };
 
-u32 ga10b_smpc_register_offset_allowlist[] = {
+static const u32 ga10b_smpc_register_offset_allowlist[] = {
 	0x00000200,
 	0x00000204,
 	0x00000208,
@@ -346,7 +346,7 @@ u32 ga10b_smpc_register_offset_allowlist[] = {
 	0x000007c4,
 };
 
-u32 ga10b_cau_register_offset_allowlist[] = {
+static const u32 ga10b_cau_register_offset_allowlist[] = {
 	0x00000000,
 	0x00000004,
 	0x00000008,
@@ -358,7 +358,7 @@ u32 ga10b_cau_register_offset_allowlist[] = {
 	0x00000024,
 };
 
-const struct nvgpu_pm_resource_register_range ga10b_hwpm_perfmon_register_ranges[] = {
+static const struct nvgpu_pm_resource_register_range ga10b_hwpm_perfmon_register_ranges[] = {
 	{0x00180000, 0x00187ffc},
 	{0x00250040, 0x00250124},
 	{0x00250240, 0x00250324},
@@ -367,7 +367,7 @@ const struct nvgpu_pm_resource_register_range ga10b_hwpm_perfmon_register_ranges
 	{0x00260000, 0x00263ffc},
 };
 
-const struct nvgpu_pm_resource_register_range ga10b_hwpm_router_register_ranges[] = {
+static const struct nvgpu_pm_resource_register_range ga10b_hwpm_router_register_ranges[] = {
 	{0x00244000, 0x002443fc},
 	{0x00246000, 0x002463fc},
 	{0x00248000, 0x002481fc},
@@ -377,7 +377,7 @@ const struct nvgpu_pm_resource_register_range ga10b_hwpm_router_register_ranges[
 	{0x00251b50, 0x00251b50},
 };
 
-const struct nvgpu_pm_resource_register_range ga10b_hwpm_pma_channel_register_ranges[] = {
+static const struct nvgpu_pm_resource_register_range ga10b_hwpm_pma_channel_register_ranges[] = {
 	{0x0024a00c, 0x0024a00c},
 	{0x0024a610, 0x0024a628},
 	{0x0024a634, 0x0024a658},
@@ -385,19 +385,19 @@ const struct nvgpu_pm_resource_register_range ga10b_hwpm_pma_channel_register_ra
 	{0x0024a75c, 0x0024a75c},
 };
 
-const struct nvgpu_pm_resource_register_range ga10b_hwpm_pma_trigger_register_ranges[] = {
+static const struct nvgpu_pm_resource_register_range ga10b_hwpm_pma_trigger_register_ranges[] = {
 	{0x0024a000, 0x0024a008},
 	{0x0024a6d0, 0x0024a60c},
 	{0x0024a62c, 0x0024a62c},
 	{0x0024a65c, 0x0024a72c},
 };
 
-const struct nvgpu_pm_resource_register_range ga10b_smpc_register_ranges[] = {
+static const struct nvgpu_pm_resource_register_range ga10b_smpc_register_ranges[] = {
 	{0x00580000, 0x0058fffc},
 	{0x00480000, 0x0048fffc},
 };
 
-const struct nvgpu_pm_resource_register_range ga10b_hwpm_perfmux_register_ranges[] = {
+static const struct nvgpu_pm_resource_register_range ga10b_hwpm_perfmux_register_ranges[] = {
 	{0x00140028, 0x00140028},
 	{0x00142028, 0x00142028},
 	{0x0017e028, 0x0017e028},
@@ -652,7 +652,7 @@ const struct nvgpu_pm_resource_register_range ga10b_hwpm_perfmux_register_ranges
 	{0x0013cb94, 0x0013cb94},
 };
 
-const struct nvgpu_pm_resource_register_range ga10b_cau_register_ranges[] = {
+static const struct nvgpu_pm_resource_register_range ga10b_cau_register_ranges[] = {
 	{0x00504180, 0x005041ac},
 	{0x005041b4, 0x005041e8},
 	{0x005041f4, 0x005041fc},
