@@ -1974,8 +1974,9 @@
 		status = "disabled";
 	};
 
-	gv11b {
+	tegra_gv11b: gv11b {
 		compatible = "nvidia,gv11b";
+		#cooling-cells = <2>;
 		reg = <0x0 0x17000000 0x0 0x1000000
 		       0x0 0x18000000 0x0 0x1000000
 		       0x0 0x03b41000 0x0 0x00001000>;
