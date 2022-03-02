@@ -675,6 +675,10 @@ static blk_status_t vblk_request(struct blk_mq_hw_ctx *hctx,
 
 	/* malloc for req list entry */
 	entry = kmalloc(sizeof(struct req_entry), GFP_ATOMIC);
+	if (entry == NULL) {
+		dev_err(vblkdev->device, "Failed to allocate memory\n");
+		return BLK_STS_IOERR;
+	}
 
 	/* Initialise the entry */
 	entry->req = req;
@@ -1025,12 +1029,20 @@ static void setup_device(struct vblk_dev *vblkdev)
 		set_disk_ro(vblkdev->gd, 1);
 	}
 
-	if (vblkdev->config.storage_type == VSC_STORAGE_RPMB)
-		snprintf(vblkdev->gd->disk_name, 32, "vblkrpmb%d",
-				vblkdev->devnum);
-	else
-		snprintf(vblkdev->gd->disk_name, 32, "vblkdev%d",
-				vblkdev->devnum);
+	if (vblkdev->config.storage_type == VSC_STORAGE_RPMB) {
+		if (snprintf(vblkdev->gd->disk_name, 32, "vblkrpmb%d",
+				vblkdev->devnum) < 0) {
+			dev_err(vblkdev->device, "Error while updating disk_name!\n");
+			return;
+		}
+	} else {
+		if (snprintf(vblkdev->gd->disk_name, 32, "vblkdev%d",
+				vblkdev->devnum) < 0) {
+			dev_err(vblkdev->device, "Error while updating disk_name!\n");
+			return;
+		}
+	}
+
 	set_capacity(vblkdev->gd, (vblkdev->size / SECTOR_SIZE));
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5,9,0)
 	device_add_disk(vblkdev->device, vblkdev->gd, NULL);
