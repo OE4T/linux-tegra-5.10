@@ -2,7 +2,7 @@
 /*
  * mods_debugfs.c - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -367,6 +367,8 @@ static ssize_t mods_dc_oc_write(struct file *file, const char __user *user_buf,
 	int buf_size;
 
 	buf_size = min(size, (sizeof(buf) - 1));
+	if (unlikely(buf_size < 0))
+		return -EFAULT;
 	if (strncpy_from_user(buf, user_buf, buf_size) < 0)
 		return -EFAULT;
 	buf[buf_size] = 0;
@@ -632,12 +634,15 @@ int mods_create_debugfs(struct miscdevice *modsdev)
 			struct dentry *dc_debugfs_dir;
 			char devname[16];
 			struct tegra_dc *dc = tegra_dc_get_dc(dc_idx);
+			int devname_size;
 
 			if (!dc)
 				continue;
 
-			snprintf(devname, sizeof(devname), "tegradc.%d",
-				 dc->ctrl_num);
+			devname_size = snprintf(devname, sizeof(devname), "tegradc.%d",
+					dc->ctrl_num);
+			if (unlikely(devname_size < 0))
+				continue;
 			dc_debugfs_dir = debugfs_create_dir(devname,
 					mods_debugfs_dir);
 

@@ -2,7 +2,7 @@
 /*
  * mods_clock.c - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -92,6 +92,10 @@ void mods_init_clock_api(void)
 
 	size_value = strlen(okay_value) + 1;
 	pp->value = kmalloc(size_value, GFP_KERNEL);
+	if (unlikely(!pp->value)) {
+		pp->length = 0;
+		goto err;
+	}
 	strncpy(pp->value, okay_value, size_value);
 	pp->length = size_value;
 
