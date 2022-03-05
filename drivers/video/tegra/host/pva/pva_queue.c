@@ -48,7 +48,7 @@
 #include "nvhost_syncpt_unit_interface.h"
 #include <linux/seq_file.h>
 #include "pva.h"
-#include "nvhost_buffer.h"
+#include "nvpva_buffer.h"
 #include "nvpva_queue.h"
 #include "pva_mailbox.h"
 #include "pva_queue.h"
@@ -117,7 +117,7 @@ static void pva_task_unpin_mem(struct pva_submit_task *task)
 	for (i = 0; i < task->num_pinned; i++) {
 		struct pva_pinned_memory *mem = &task->pinned_memory[i];
 
-		nvhost_buffer_submit_unpin(task->client->buffers, &mem->dmabuf,
+		nvpva_buffer_submit_unpin(task->client->buffers, &mem->dmabuf,
 					   1);
 		dma_buf_put(mem->dmabuf);
 	}
@@ -137,7 +137,7 @@ struct pva_pinned_memory *pva_task_pin_mem(struct pva_submit_task *task,
 	}
 
 	if (!dmafd) {
-		task_err(task, "pin_id is 0");
+		task_err(task, "dmafd is 0");
 		err = -EFAULT;
 		goto err_out;
 	}
@@ -146,12 +146,12 @@ struct pva_pinned_memory *pva_task_pin_mem(struct pva_submit_task *task,
 	mem->fd = dmafd;
 	mem->dmabuf = dma_buf_get(dmafd);
 	if (IS_ERR_OR_NULL(mem->dmabuf)) {
-		task_err(task, "can't get dmabuf from pin_id: %ld",
+		task_err(task, "can't get dmabuf from dmafd: %ld",
 			 PTR_ERR(mem->dmabuf));
 		err = -EFAULT;
 		goto err_out;
 	}
-	err = nvhost_buffer_submit_pin(task->client->buffers, &mem->dmabuf, 1,
+	err = nvpva_buffer_submit_pin(task->client->buffers, &mem->dmabuf, 1,
 				       &mem->dma_addr, &mem->size, &mem->heap);
 	if (err) {
 		task_err(task, "submit pin failed; Is the handled pinned?");

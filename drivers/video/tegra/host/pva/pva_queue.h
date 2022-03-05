@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2021, NVIDIA CORPORATION & AFFILIATES.
+ * Copyright (c) 2016-2022, NVIDIA CORPORATION & AFFILIATES.
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -20,7 +20,7 @@
 
 #include <uapi/linux/nvpva_ioctl.h>
 #include "nvpva_queue.h"
-#include "nvhost_buffer.h"
+#include "nvpva_buffer.h"
 #include "pva-sys-params.h"
 #include "pva-interface.h"
 #include "pva-task.h"
@@ -34,7 +34,7 @@ struct pva_pinned_memory {
 	dma_addr_t dma_addr;
 	size_t size;
 	struct dma_buf *dmabuf;
-	enum nvhost_buffers_heap heap;
+	enum nvpva_buffers_heap heap;
 };
 
 /**
@@ -44,7 +44,7 @@ struct pva_pinned_memory {
  * pointers refer to kernel memory.
  *
  * pva				Pointer to struct pva
- * buffers			Pointer to struct nvhost_buffers
+ * buffers			Pointer to struct nvpva_buffers
  * queue			Pointer to struct nvpva_queue
  * node				Used to build queue task list
  * kref				Used to manage allocation and freeing

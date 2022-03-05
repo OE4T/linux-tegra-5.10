@@ -1,7 +1,7 @@
 /*
  * Tegra PVA Driver ioctls
  *
- * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -66,8 +66,8 @@ union nvpva_vpu_exe_unregister_args {
  */
 
 struct nvpva_symbol {
-	uint16_t id;
 	uint32_t size;
+	uint16_t id;
 	/* 1 = true; 0 = false */
 	uint8_t isPointer;
 };
@@ -108,12 +108,12 @@ enum nvpva_pin_access {
 };
 
 struct nvpva_pin_handle {
-	uint32_t import_id;
 	uint64_t offset;
 	uint64_t size;
-	enum nvpva_pin_access access;
-	enum nvpva_pin_segment segment;
-	enum nvpva_pin_buf type;
+	uint32_t handle;
+	uint32_t access;
+	uint32_t segment;
+	uint32_t type;
 };
 
 struct nvpva_pin_in_arg {
@@ -217,12 +217,14 @@ union nvpva_fence_obj {
 };
 
 struct nvpva_submit_fence {
-	enum nvpva_fence_obj_type type;
+	uint32_t type;
+	uint32_t reserved;
 	union nvpva_fence_obj obj;
 };
 
 struct nvpva_fence_action {
-	enum nvpva_fence_action_type type;
+	uint32_t type;
+	uint32_t reserved;
 	/* For syncpt, ID is the per-queue ID allocated by KMD */
 	struct nvpva_submit_fence fence;
 	/* Buffer to capture event timestamp */
@@ -248,9 +250,9 @@ struct nvpva_pointer_symbol {
  * For NVPVA_SYMBOL_POINTER, data is of type nvpva_pointer_symbol.
  */
 struct nvpva_symbol_param {
-	enum nvpva_symbol_config config; /* Type of symbol configuration */
-	struct nvpva_symbol symbol;	 /* Symbol to be configured */
-	uint32_t offset;		 /* Offset of symbol data in payload */
+	uint32_t config;		/* Type of symbol configuration */
+	uint32_t offset;		/* Offset of symbol data in payload */
+	struct nvpva_symbol symbol;	/* Symbol to be configured */
 };
 
 /* NOTE: Redefining the user side structure here
@@ -384,8 +386,9 @@ struct nvpva_dma_misr {
  * For NVPVA_HWSEQTM_DMATRIG, DMA trigger mode will be used.
  */
 struct nvpva_hwseq_config {
+	uint32_t hwseqTrigMode;
+	uint32_t reserved;
 	struct nvpva_mem hwseqBuf;
-	enum nvpva_hwseq_trigger_mode hwseqTrigMode;
 };
 
 struct nvpva_ioctl_task {

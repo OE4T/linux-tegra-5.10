@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -15,7 +15,7 @@
  */
 
 #include <linux/mutex.h>
-#include "nvhost_buffer.h"
+#include "nvpva_buffer.h"
 #include "pva.h"
 #include "nvpva_client.h"
 #include <linux/slab.h>
@@ -46,7 +46,7 @@ client_context_search_locked(struct pva *dev, pid_t pid)
 				c_free->pva = dev;
 				c_free->curr_sema_value = 0;
 				mutex_init(&c_free->sema_val_lock);
-				c_free->buffers = nvhost_buffer_init(dev->pdev);
+				c_free->buffers = nvpva_buffer_init(dev->pdev);
 				if (IS_ERR(c_free->buffers)) {
 					dev_err(&dev->pdev->dev,
 						"failed to init nvhost buffer for client:%lu",
@@ -93,7 +93,7 @@ void nvpva_client_context_get(struct nvpva_client_context *client)
 static void
 nvpva_client_context_free_locked(struct nvpva_client_context *client)
 {
-	nvhost_buffer_release(client->buffers);
+	nvpva_buffer_release(client->buffers);
 	mutex_destroy(&client->sema_val_lock);
 	client->buffers = NULL;
 	client->pva = NULL;

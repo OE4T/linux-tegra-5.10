@@ -35,7 +35,7 @@
 #include "pva.h"
 #include "pva_queue.h"
 #include "dev.h"
-#include "nvhost_buffer.h"
+#include "nvpva_buffer.h"
 #include "nvhost_acm.h"
 #include "pva_vpu_exe.h"
 #include "nvpva_client.h"
@@ -44,7 +44,7 @@
  *
  * pdev		Pointer the pva device
  * queue	Pointer the struct nvpva_queue
- * buffer	Pointer to the struct nvhost_buffer
+ * buffer	Pointer to the struct nvpva_buffer
  */
 struct pva_private {
 	struct pva *pva;
@@ -419,16 +419,16 @@ static int pva_pin(struct pva_private *priv, void *arg)
 	struct nvpva_pin_in_arg *in_arg = (struct nvpva_pin_in_arg *)arg;
 	struct nvpva_pin_out_arg *out_arg = (struct nvpva_pin_out_arg *)arg;
 
-	dmabuf[0] = dma_buf_get(in_arg->pin.import_id);
+	dmabuf[0] = dma_buf_get(in_arg->pin.handle);
 	if (IS_ERR_OR_NULL(dmabuf[0])) {
 		dev_err(&priv->pva->pdev->dev, "invalid handle to pin: %u",
-			in_arg->pin.import_id);
+			in_arg->pin.handle);
 		err = -EFAULT;
 		goto out;
 	}
 
-	err = nvhost_buffer_pin(priv->client->buffers, &dmabuf[0], 1);
-	out_arg->pin_id = in_arg->pin.import_id;
+	err = nvpva_buffer_pin(priv->client->buffers, &dmabuf[0], 1);
+	out_arg->pin_id = in_arg->pin.handle;
 
 	dma_buf_put(dmabuf[0]);
 out:
@@ -449,7 +449,7 @@ static int pva_unpin(struct pva_private *priv, void *arg)
 		goto out;
 	}
 
-	nvhost_buffer_unpin(priv->client->buffers, &dmabuf[0], 1);
+	nvpva_buffer_unpin(priv->client->buffers, &dmabuf[0], 1);
 
 	dma_buf_put(dmabuf[0]);
 out:

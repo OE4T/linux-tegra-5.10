@@ -34,7 +34,8 @@ nvhost-pva-objs  = \
 		pva_vpu_exe.o \
 		nvpva_client.o \
 		nvpva_queue.o \
-		pva_dma.o
+		pva_dma.o \
+		nvpva_buffer.o
 
 obj-$(V2) += nvhost-pva.o
 

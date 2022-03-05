@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -34,7 +34,7 @@ struct nvpva_client_context {
 	u32 ref_count;
 
 	/* Data structure to track pinned buffers for this client */
-	struct nvhost_buffers *buffers;
+	struct nvpva_buffers *buffers;
 
 	u32 curr_sema_value;
 	struct mutex sema_val_lock;
