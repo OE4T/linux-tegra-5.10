@@ -13,6 +13,7 @@
 
 #include <uapi/linux/tegra-soc-hwpm-uapi.h>
 
+#include <tegra_hwpm_static_analysis.h>
 #include <tegra_hwpm_log.h>
 #include <tegra_hwpm_io.h>
 #include <tegra_hwpm.h>
@@ -36,8 +37,10 @@ static bool t234_hwpm_is_addr_in_ip_perfmon(struct tegra_soc_hwpm *hwpm,
 	}
 
 	/* Find perfmon idx corresponding phys addr */
-	address_offset = phys_addr - chip_ip->perfmon_range_start;
-	perfmon_idx = (u32)(address_offset / chip_ip->inst_perfmon_stride);
+	address_offset = tegra_hwpm_safe_sub_u64(
+		phys_addr, chip_ip->perfmon_range_start);
+	perfmon_idx = tegra_hwpm_safe_cast_u64_to_u32(
+		address_offset / chip_ip->inst_perfmon_stride);
 
 	perfmon = chip_ip->ip_perfmon[perfmon_idx];
 
@@ -108,8 +111,10 @@ static bool t234_hwpm_is_addr_in_ip_perfmux(struct tegra_soc_hwpm *hwpm,
 	}
 
 	/* Find perfmux idx corresponding phys addr */
-	address_offset = phys_addr - chip_ip->perfmux_range_start;
-	perfmux_idx = (u32)(address_offset / chip_ip->inst_perfmux_stride);
+	address_offset = tegra_hwpm_safe_sub_u64(
+		phys_addr, chip_ip->perfmux_range_start);
+	perfmux_idx = tegra_hwpm_safe_cast_u64_to_u32(
+		address_offset / chip_ip->inst_perfmux_stride);
 
 	perfmux = chip_ip->ip_perfmux[perfmux_idx];
 
@@ -214,6 +219,7 @@ int t234_hwpm_exec_reg_ops(struct tegra_soc_hwpm *hwpm,
 	int ret = 0;
 	u32 reg_val = 0U;
 	u32 ip_idx = TEGRA_SOC_HWPM_IP_INACTIVE; /* ip_idx is unknown */
+	u64 addr_hi = 0ULL;
 	struct hwpm_ip_aperture *aperture = NULL;
 
 	tegra_hwpm_fn(hwpm, " ");
@@ -250,12 +256,13 @@ int t234_hwpm_exec_reg_ops(struct tegra_soc_hwpm *hwpm,
 		break;
 
 	case TEGRA_SOC_HWPM_REG_OP_CMD_RD64:
+		addr_hi = tegra_hwpm_safe_add_u64(reg_op->phys_addr, 4ULL);
 		reg_op->reg_val_lo = regops_readl(hwpm,
 						 aperture,
 						 reg_op->phys_addr);
 		reg_op->reg_val_hi = regops_readl(hwpm,
 						 aperture,
-						 reg_op->phys_addr + 4ULL);
+						 addr_hi);
 		reg_op->status = TEGRA_SOC_HWPM_REG_OP_STATUS_SUCCESS;
 		break;
 
@@ -270,6 +277,8 @@ int t234_hwpm_exec_reg_ops(struct tegra_soc_hwpm *hwpm,
 
 	/* Read Modify Write operation */
 	case TEGRA_SOC_HWPM_REG_OP_CMD_WR64:
+		addr_hi = tegra_hwpm_safe_add_u64(reg_op->phys_addr, 4ULL);
+
 		/* Lower 32 bits */
 		reg_val = regops_readl(hwpm, aperture, reg_op->phys_addr);
 		reg_val = set_field(reg_val, reg_op->mask_lo,
@@ -277,8 +286,7 @@ int t234_hwpm_exec_reg_ops(struct tegra_soc_hwpm *hwpm,
 		regops_writel(hwpm, aperture, reg_op->phys_addr, reg_val);
 
 		/* Upper 32 bits */
-		reg_val = regops_readl(hwpm, aperture,
-			reg_op->phys_addr + 4ULL);
+		reg_val = regops_readl(hwpm, aperture, addr_hi);
 		reg_val = set_field(reg_val, reg_op->mask_hi,
 			reg_op->reg_val_hi);
 		regops_writel(hwpm, aperture, reg_op->phys_addr, reg_val);

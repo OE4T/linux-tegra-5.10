@@ -17,6 +17,7 @@
 #include <tegra_hwpm_log.h>
 #include <tegra_hwpm_io.h>
 #include <tegra_hwpm.h>
+#include <tegra_hwpm_static_analysis.h>
 #include <hal/t234/t234_hwpm_internal.h>
 #include <hal/t234/t234_hwpm_regops_allowlist.h>
 
@@ -35,8 +36,9 @@ int t234_hwpm_zero_alist_regs(struct tegra_soc_hwpm *hwpm,
 	for (alist_idx = 0; alist_idx < aperture->alist_size; alist_idx++) {
 		if (aperture->alist[alist_idx].zero_at_init) {
 			regops_writel(hwpm, aperture,
-				aperture->start_abs_pa +
-				aperture->alist[alist_idx].reg_offset, 0U);
+				tegra_hwpm_safe_add_u64(aperture->start_abs_pa,
+					aperture->alist[alist_idx].reg_offset),
+				0U);
 		}
 	}
 	return 0;
@@ -86,8 +88,10 @@ int t234_hwpm_get_alist_size(struct tegra_soc_hwpm *hwpm)
 				}
 
 				if (perfmux->alist) {
-					hwpm->full_alist_size +=
-						perfmux->alist_size;
+					hwpm->full_alist_size =
+						tegra_hwpm_safe_add_u64(
+							hwpm->full_alist_size,
+							perfmux->alist_size);
 				} else {
 					tegra_hwpm_err(hwpm, "IP %d"
 						" perfmux %d NULL alist",
@@ -110,8 +114,10 @@ int t234_hwpm_get_alist_size(struct tegra_soc_hwpm *hwpm)
 				}
 
 				if (perfmon->alist) {
-					hwpm->full_alist_size +=
-						perfmon->alist_size;
+					hwpm->full_alist_size =
+						tegra_hwpm_safe_add_u64(
+							hwpm->full_alist_size,
+							perfmon->alist_size);
 				} else {
 					tegra_hwpm_err(hwpm, "IP %d"
 						" perfmon %d NULL alist",
@@ -144,7 +150,8 @@ static int t234_hwpm_copy_alist(struct tegra_soc_hwpm *hwpm,
 			return -ENOMEM;
 		}
 
-		full_alist[f_alist_idx++] = (aperture->start_abs_pa +
+		full_alist[f_alist_idx++] = tegra_hwpm_safe_add_u64(
+			aperture->start_abs_pa,
 			aperture->alist[alist_idx].reg_offset);
 	}
 
@@ -264,7 +271,7 @@ bool t234_hwpm_check_alist(struct tegra_soc_hwpm *hwpm,
 		return false;
 	}
 
-	reg_offset = phys_addr - aperture->start_abs_pa;
+	reg_offset = tegra_hwpm_safe_sub_u64(phys_addr, aperture->start_abs_pa);
 
 	for (alist_idx = 0; alist_idx < aperture->alist_size; alist_idx++) {
 		if (reg_offset == aperture->alist[alist_idx].reg_offset) {

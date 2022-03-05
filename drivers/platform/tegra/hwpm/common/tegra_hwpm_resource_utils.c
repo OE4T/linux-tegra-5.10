@@ -17,6 +17,7 @@
 #include <tegra_hwpm_log.h>
 #include <tegra_hwpm.h>
 #include <tegra_hwpm_common.h>
+#include <tegra_hwpm_static_analysis.h>
 
 int tegra_soc_hwpm_reserve_resource(struct tegra_soc_hwpm *hwpm, u32 resource)
 {

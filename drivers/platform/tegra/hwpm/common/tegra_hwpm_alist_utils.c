@@ -26,6 +26,7 @@
 #include <tegra_hwpm_log.h>
 #include <tegra_hwpm.h>
 #include <tegra_hwpm_common.h>
+#include <tegra_hwpm_static_analysis.h>
 
 int tegra_soc_hwpm_get_allowlist_size(struct tegra_soc_hwpm *hwpm)
 {
@@ -52,8 +53,8 @@ int tegra_soc_hwpm_update_allowlist(struct tegra_soc_hwpm *hwpm,
 	void *ioctl_struct)
 {
 	int err = 0;
-	long pinned_pages = 0;
-	long page_idx = 0;
+	u64 pinned_pages = 0;
+	u64 page_idx = 0;
 	u64 alist_buf_size = 0;
 	u64 num_pages = 0;
 	u64 *full_alist_u64 = NULL;
@@ -74,11 +75,17 @@ int tegra_soc_hwpm_update_allowlist(struct tegra_soc_hwpm *hwpm,
 		tegra_hwpm_err(hwpm, "alist_buf_size uninitialized");
 		return -ENODEV;
 	}
-	alist_buf_size = hwpm->full_alist_size *
-		hwpm->active_chip->get_alist_buf_size(hwpm);
+	alist_buf_size = tegra_hwpm_safe_mult_u64(hwpm->full_alist_size,
+		hwpm->active_chip->get_alist_buf_size(hwpm));
 
 	/* Memory map user buffer into kernel address space */
-	num_pages = DIV_ROUND_UP(offset + alist_buf_size, PAGE_SIZE);
+	alist_buf_size = tegra_hwpm_safe_add_u64(offset, alist_buf_size);
+
+	/* Round-up and Divide */
+	alist_buf_size = tegra_hwpm_safe_sub_u64(
+		tegra_hwpm_safe_add_u64(alist_buf_size, PAGE_SIZE), 1ULL);
+	num_pages = alist_buf_size / PAGE_SIZE;
+
 	pages = (struct page **)kzalloc(sizeof(*pages) * num_pages, GFP_KERNEL);
 	if (!pages) {
 		tegra_hwpm_err(hwpm,
@@ -121,7 +128,7 @@ alist_unmap:
 	if (full_alist)
 		vunmap(full_alist);
 	if (pinned_pages > 0) {
-		for (page_idx = 0; page_idx < pinned_pages; page_idx++) {
+		for (page_idx = 0ULL; page_idx < pinned_pages; page_idx++) {
 			set_page_dirty(pages[page_idx]);
 			put_page(pages[page_idx]);
 		}

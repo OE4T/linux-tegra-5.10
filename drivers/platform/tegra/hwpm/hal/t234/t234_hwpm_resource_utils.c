@@ -16,6 +16,7 @@
 #include <linux/of_address.h>
 #include <uapi/linux/tegra-soc-hwpm-uapi.h>
 
+#include <tegra_hwpm_static_analysis.h>
 #include <tegra_hwpm_log.h>
 #include <tegra_hwpm_io.h>
 #include <tegra_hwpm.h>
@@ -76,11 +77,12 @@ static int t234_hwpm_perfmux_reserve(struct tegra_soc_hwpm *hwpm,
 
 	/* Allocate fake registers */
 	if (hwpm->fake_registers_enabled) {
-		u64 num_regs = 0;
+		u64 address_range = tegra_hwpm_safe_add_u64(
+			tegra_hwpm_safe_sub_u64(
+				perfmux->end_pa, perfmux->start_pa), 1ULL);
+		u64 num_regs = address_range / sizeof(u32);
 		u32 **fake_regs = &perfmux->fake_registers;
 
-		num_regs = (perfmux->end_pa + 1 - perfmux->start_pa) /
-			sizeof(u32);
 		*fake_regs = (u32 *)kzalloc(sizeof(u32) * num_regs, GFP_KERNEL);
 		if (!(*fake_regs)) {
 			tegra_hwpm_err(hwpm, "Aperture(0x%llx - 0x%llx):"
@@ -165,7 +167,9 @@ int t234_hwpm_perfmon_reserve(struct tegra_soc_hwpm *hwpm,
 	perfmon->end_pa = res->end;
 
 	if (hwpm->fake_registers_enabled) {
-		u64 num_regs = (res->end + 1 - res->start) / sizeof(u32);
+		u64 address_range = tegra_hwpm_safe_add_u64(
+			tegra_hwpm_safe_sub_u64(res->end, res->start), 1ULL);
+		u64 num_regs = address_range / sizeof(u32);
 		perfmon->fake_registers = (u32 *)kzalloc(sizeof(u32) * num_regs,
 						GFP_KERNEL);
 		if (perfmon->fake_registers == NULL) {

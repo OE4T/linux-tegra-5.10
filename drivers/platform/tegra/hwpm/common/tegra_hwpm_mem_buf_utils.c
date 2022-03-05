@@ -25,13 +25,15 @@
 #include <tegra_hwpm_log.h>
 #include <tegra_hwpm.h>
 #include <tegra_hwpm_common.h>
+#include <tegra_hwpm_static_analysis.h>
 
 static int tegra_hwpm_dma_map_stream_buffer(struct tegra_soc_hwpm *hwpm,
 	struct tegra_soc_hwpm_alloc_pma_stream *alloc_pma_stream)
 {
 	tegra_hwpm_fn(hwpm, " ");
 
-	hwpm->stream_dma_buf = dma_buf_get(alloc_pma_stream->stream_buf_fd);
+	hwpm->stream_dma_buf = dma_buf_get(tegra_hwpm_safe_cast_u64_to_s32(
+		alloc_pma_stream->stream_buf_fd));
 	if (IS_ERR(hwpm->stream_dma_buf)) {
 		tegra_hwpm_err(hwpm, "Unable to get stream dma_buf");
 		return PTR_ERR(hwpm->stream_dma_buf);
@@ -56,8 +58,8 @@ static int tegra_hwpm_dma_map_mem_bytes_buffer(struct tegra_soc_hwpm *hwpm,
 {
 	tegra_hwpm_fn(hwpm, " ");
 
-	hwpm->mem_bytes_dma_buf =
-				dma_buf_get(alloc_pma_stream->mem_bytes_buf_fd);
+	hwpm->mem_bytes_dma_buf = dma_buf_get(tegra_hwpm_safe_cast_u64_to_s32(
+		alloc_pma_stream->mem_bytes_buf_fd));
 	if (IS_ERR(hwpm->mem_bytes_dma_buf)) {
 		tegra_hwpm_err(hwpm, "Unable to get mem bytes dma_buf");
 		return PTR_ERR(hwpm->mem_bytes_dma_buf);
@@ -325,7 +327,7 @@ int tegra_hwpm_update_mem_bytes(struct tegra_soc_hwpm *hwpm,
 			return -ENODEV;
 		}
 		update_get_put->b_overflowed =
-			hwpm->active_chip->membuf_overflow_status(hwpm);
+			(u8) hwpm->active_chip->membuf_overflow_status(hwpm);
 		tegra_hwpm_dbg(hwpm, hwpm_verbose, "OVERFLOWED = %u",
 			update_get_put->b_overflowed);
 	}

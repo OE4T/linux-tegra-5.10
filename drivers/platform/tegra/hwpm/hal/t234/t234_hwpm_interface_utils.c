@@ -16,6 +16,7 @@
 
 #include <tegra_hwpm_log.h>
 #include <tegra_hwpm.h>
+#include <tegra_hwpm_static_analysis.h>
 #include <hal/t234/t234_hwpm_init.h>
 #include <hal/t234/t234_hwpm_internal.h>
 
@@ -65,7 +66,7 @@ struct tegra_soc_hwpm_chip t234_chip_info = {
 };
 
 bool t234_hwpm_is_ip_active(struct tegra_soc_hwpm *hwpm,
-	enum tegra_soc_hwpm_ip ip_index, u32 *config_ip_index)
+	u32 ip_index, u32 *config_ip_index)
 {
 	u32 config_ip = TEGRA_SOC_HWPM_IP_INACTIVE;
 
@@ -161,7 +162,7 @@ bool t234_hwpm_is_ip_active(struct tegra_soc_hwpm *hwpm,
 }
 
 bool t234_hwpm_is_resource_active(struct tegra_soc_hwpm *hwpm,
-	enum tegra_soc_hwpm_resource res_index, u32 *config_ip_index)
+	u32 res_index, u32 *config_ip_index)
 {
 	u32 config_ip = TEGRA_SOC_HWPM_IP_INACTIVE;
 
@@ -275,10 +276,11 @@ static int t234_hwpm_init_ip_perfmux_apertures(struct tegra_soc_hwpm *hwpm,
 		return 0;
 	}
 
-	perfmux_address_range = chip_ip->perfmux_range_end -
-		chip_ip->perfmux_range_start + 1ULL;
-	chip_ip->num_perfmux_slots =
-		(u32) (perfmux_address_range / chip_ip->inst_perfmux_stride);
+	perfmux_address_range = tegra_hwpm_safe_add_u64(
+		tegra_hwpm_safe_sub_u64(chip_ip->perfmux_range_end,
+		chip_ip->perfmux_range_start), 1ULL);
+	chip_ip->num_perfmux_slots = tegra_hwpm_safe_cast_u64_to_u32(
+		perfmux_address_range / chip_ip->inst_perfmux_stride);
 
 	chip_ip->ip_perfmux = kzalloc(
 		sizeof(hwpm_ip_perfmux *) * chip_ip->num_perfmux_slots,
@@ -299,11 +301,12 @@ static int t234_hwpm_init_ip_perfmux_apertures(struct tegra_soc_hwpm *hwpm,
 		perfmux = &chip_ip->perfmux_static_array[perfmux_idx];
 
 		/* Compute perfmux offset from perfmux range start */
-		perfmux_offset =
-			perfmux->start_abs_pa - chip_ip->perfmux_range_start;
+		perfmux_offset = tegra_hwpm_safe_sub_u64(
+			perfmux->start_abs_pa, chip_ip->perfmux_range_start);
 
 		/* Compute perfmux slot index */
-		idx = (u32)(perfmux_offset / chip_ip->inst_perfmux_stride);
+		idx = tegra_hwpm_safe_cast_u64_to_u32(
+			perfmux_offset / chip_ip->inst_perfmux_stride);
 
 		/* Set perfmux slot pointer */
 		chip_ip->ip_perfmux[idx] = perfmux;
@@ -325,10 +328,11 @@ static int t234_hwpm_init_ip_perfmon_apertures(struct tegra_soc_hwpm *hwpm,
 		return 0;
 	}
 
-	perfmon_address_range = chip_ip->perfmon_range_end -
-		chip_ip->perfmon_range_start + 1ULL;
-	chip_ip->num_perfmon_slots =
-		(u32) (perfmon_address_range / chip_ip->inst_perfmon_stride);
+	perfmon_address_range = tegra_hwpm_safe_add_u64(
+		tegra_hwpm_safe_sub_u64(chip_ip->perfmon_range_end,
+			chip_ip->perfmon_range_start), 1ULL);
+	chip_ip->num_perfmon_slots = tegra_hwpm_safe_cast_u64_to_u32(
+		perfmon_address_range / chip_ip->inst_perfmon_stride);
 
 	chip_ip->ip_perfmon = kzalloc(
 		sizeof(hwpm_ip_perfmon *) * chip_ip->num_perfmon_slots,
@@ -349,11 +353,12 @@ static int t234_hwpm_init_ip_perfmon_apertures(struct tegra_soc_hwpm *hwpm,
 		perfmon = &chip_ip->perfmon_static_array[perfmon_idx];
 
 		/* Compute perfmon offset from perfmon range start */
-		perfmon_offset =
-			perfmon->start_abs_pa - chip_ip->perfmon_range_start;
+		perfmon_offset = tegra_hwpm_safe_sub_u64(
+			perfmon->start_abs_pa, chip_ip->perfmon_range_start);
 
 		/* Compute perfmon slot index */
-		idx = (u32)(perfmon_offset / chip_ip->inst_perfmon_stride);
+		idx = tegra_hwpm_safe_cast_u64_to_u32(
+			perfmon_offset / chip_ip->inst_perfmon_stride);
 
 		/* Set perfmon slot pointer */
 		chip_ip->ip_perfmon[idx] = perfmon;

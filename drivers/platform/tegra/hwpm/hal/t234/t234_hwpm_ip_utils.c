@@ -16,6 +16,7 @@
 
 #include <tegra_hwpm_log.h>
 #include <tegra_hwpm.h>
+#include <tegra_hwpm_static_analysis.h>
 #include <hal/t234/t234_hwpm_internal.h>
 #include <hal/t234/hw/t234_addr_map_soc_hwpm.h>
 
@@ -115,8 +116,8 @@ static int t234_hwpm_update_ip_ops_info(struct tegra_soc_hwpm *hwpm,
 	}
 
 	/* Update IP ops info for all perfmux in the instance */
-	max_num_perfmux =
-		chip_ip->num_instances * chip_ip->num_perfmux_per_inst;
+	max_num_perfmux = tegra_hwpm_safe_mult_u32(
+		chip_ip->num_instances, chip_ip->num_perfmux_per_inst);
 	for (perfmux_idx = 0U; perfmux_idx < max_num_perfmux; perfmux_idx++) {
 		perfmux = &chip_ip->perfmux_static_array[perfmux_idx];
 
@@ -235,8 +236,10 @@ static int t234_hwpm_find_ip_perfmux_index(struct tegra_soc_hwpm *hwpm,
 	 * Since all IP instances are configured to be in consecutive memory,
 	 * instance index can be found using instance physical address stride.
 	 */
-	addr_offset = base_addr - chip_ip->perfmux_range_start;
-	perfmux_idx = (u32)(addr_offset / chip_ip->inst_perfmux_stride);
+	addr_offset = tegra_hwpm_safe_sub_u64(
+		base_addr, chip_ip->perfmux_range_start);
+	perfmux_idx = tegra_hwpm_safe_cast_u64_to_u32(
+		addr_offset / chip_ip->inst_perfmux_stride);
 
 	/* Make sure instance index is valid */
 	if (perfmux_idx >= chip_ip->num_perfmux_slots) {

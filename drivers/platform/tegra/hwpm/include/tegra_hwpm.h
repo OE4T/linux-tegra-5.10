@@ -158,9 +158,9 @@ struct tegra_soc_hwpm_chip {
 
 	/* Chip HALs */
 	bool (*is_ip_active)(struct tegra_soc_hwpm *hwpm,
-	enum tegra_soc_hwpm_ip ip_index, u32 *config_ip_index);
+	u32 ip_index, u32 *config_ip_index);
 	bool (*is_resource_active)(struct tegra_soc_hwpm *hwpm,
-	enum tegra_soc_hwpm_resource res_index, u32 *config_ip_index);
+	u32 res_index, u32 *config_ip_index);
 
 	int (*extract_ip_ops)(struct tegra_soc_hwpm *hwpm,
 	struct tegra_soc_hwpm_ip_ops *hwpm_ip_ops, bool available);

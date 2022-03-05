@@ -20,6 +20,7 @@
 
 #include <tegra_hwpm_log.h>
 #include <tegra_hwpm_io.h>
+#include <tegra_hwpm_static_analysis.h>
 #include <tegra_hwpm.h>
 
 static u32 fake_readl(struct tegra_soc_hwpm *hwpm,
@@ -79,12 +80,14 @@ static u32 ip_readl(struct tegra_soc_hwpm *hwpm,
 		} else {
 			/* Fall back to un-registered IP method */
 			void __iomem *ptr = NULL;
+			u64 reg_addr = tegra_hwpm_safe_add_u64(
+				aperture->start_abs_pa, offset);
 
-			ptr = ioremap(aperture->start_abs_pa + offset, 0x4);
+			ptr = ioremap(reg_addr, 0x4);
 			if (!ptr) {
 				tegra_hwpm_err(hwpm,
 					"Failed to map register(0x%llx)",
-					aperture->start_abs_pa + offset);
+					reg_addr);
 				return 0U;
 			}
 			reg_val = __raw_readl(ptr);
@@ -125,12 +128,14 @@ static void ip_writel(struct tegra_soc_hwpm *hwpm,
 		} else {
 			/* Fall back to un-registered IP method */
 			void __iomem *ptr = NULL;
+			u64 reg_addr = tegra_hwpm_safe_add_u64(
+				aperture->start_abs_pa, offset);
 
-			ptr = ioremap(aperture->start_abs_pa + offset, 0x4);
+			ptr = ioremap(reg_addr, 0x4);
 			if (!ptr) {
 				tegra_hwpm_err(hwpm,
 					"Failed to map register(0x%llx)",
-					aperture->start_abs_pa + offset);
+					reg_addr);
 				return;
 			}
 			__raw_writel(val, ptr);
@@ -144,10 +149,10 @@ static void ip_writel(struct tegra_soc_hwpm *hwpm,
  * PERFMONs, PMA and RTR registers fall in this category
  */
 static u32 hwpm_readl(struct tegra_soc_hwpm *hwpm,
-	struct hwpm_ip_aperture *aperture, u32 offset)
+	struct hwpm_ip_aperture *aperture, u64 offset)
 {
 	tegra_hwpm_dbg(hwpm, hwpm_register,
-		"Aperture (0x%llx-0x%llx) offset(0x%x)",
+		"Aperture (0x%llx-0x%llx) offset(0x%llx)",
 		aperture->start_abs_pa, aperture->end_abs_pa, offset);
 
 	if (aperture->dt_mmio == NULL) {
@@ -167,10 +172,10 @@ static u32 hwpm_readl(struct tegra_soc_hwpm *hwpm,
  * PERFMONs, PMA and RTR registers fall in this category
  */
 static void hwpm_writel(struct tegra_soc_hwpm *hwpm,
-	struct hwpm_ip_aperture *aperture, u32 offset, u32 val)
+	struct hwpm_ip_aperture *aperture, u64 offset, u32 val)
 {
 	tegra_hwpm_dbg(hwpm, hwpm_register,
-		"Aperture (0x%llx-0x%llx) offset(0x%x) val(0x%x)",
+		"Aperture (0x%llx-0x%llx) offset(0x%llx) val(0x%x)",
 		aperture->start_abs_pa, aperture->end_abs_pa, offset, val);
 
 	if (aperture->dt_mmio == NULL) {
@@ -196,15 +201,17 @@ u32 tegra_hwpm_readl(struct tegra_soc_hwpm *hwpm,
 
 	if (!aperture) {
 		tegra_hwpm_err(hwpm, "aperture is NULL");
-		return -EINVAL;
+		return 0;
 	}
 
 	if (aperture->is_hwpm_element) {
+		u64 reg_offset = tegra_hwpm_safe_sub_u64(
+					addr, aperture->base_pa);
 		/* HWPM domain registers */
-		reg_val = hwpm_readl(hwpm, aperture, addr - aperture->base_pa);
+		reg_val = hwpm_readl(hwpm, aperture, reg_offset);
 	} else {
 		tegra_hwpm_err(hwpm, "IP aperture read is not expected");
-		return -EINVAL;
+		return 0;
 	}
 	return reg_val;
 }
@@ -222,8 +229,10 @@ void tegra_hwpm_writel(struct tegra_soc_hwpm *hwpm,
 	}
 
 	if (aperture->is_hwpm_element) {
+		u64 reg_offset = tegra_hwpm_safe_sub_u64(
+					addr, aperture->base_pa);
 		/* HWPM domain internal registers */
-		hwpm_writel(hwpm, aperture, addr - aperture->base_pa, val);
+		hwpm_writel(hwpm, aperture, reg_offset, val);
 	} else {
 		tegra_hwpm_err(hwpm, "IP aperture write is not expected");
 		return;
@@ -238,19 +247,20 @@ u32 regops_readl(struct tegra_soc_hwpm *hwpm,
 	struct hwpm_ip_aperture *aperture, u64 addr)
 {
 	u32 reg_val = 0;
+	u64 reg_offset = 0ULL;
 
 	if (!aperture) {
 		tegra_hwpm_err(hwpm, "aperture is NULL");
 		return 0;
 	}
 
+	reg_offset = tegra_hwpm_safe_sub_u64(addr, aperture->start_abs_pa);
+
 	if (aperture->is_hwpm_element) {
 		/* HWPM unit internal registers */
-		reg_val = hwpm_readl(hwpm, aperture,
-			addr - aperture->start_abs_pa);
+		reg_val = hwpm_readl(hwpm, aperture, reg_offset);
 	} else {
-		reg_val = ip_readl(hwpm, aperture,
-			addr - aperture->start_abs_pa);
+		reg_val = ip_readl(hwpm, aperture, reg_offset);
 	}
 	return reg_val;
 }
@@ -262,15 +272,19 @@ u32 regops_readl(struct tegra_soc_hwpm *hwpm,
 void regops_writel(struct tegra_soc_hwpm *hwpm,
 	struct hwpm_ip_aperture *aperture, u64 addr, u32 val)
 {
+	u64 reg_offset = 0ULL;
+
 	if (!aperture) {
 		tegra_hwpm_err(hwpm, "aperture is NULL");
 		return;
 	}
 
+	reg_offset = tegra_hwpm_safe_sub_u64(addr, aperture->start_abs_pa);
+
 	if (aperture->is_hwpm_element) {
 		/* HWPM unit internal registers */
-		hwpm_writel(hwpm, aperture, addr - aperture->start_abs_pa, val);
+		hwpm_writel(hwpm, aperture, reg_offset, val);
 	} else {
-		ip_writel(hwpm, aperture, addr - aperture->start_abs_pa, val);
+		ip_writel(hwpm, aperture, reg_offset, val);
 	}
 }

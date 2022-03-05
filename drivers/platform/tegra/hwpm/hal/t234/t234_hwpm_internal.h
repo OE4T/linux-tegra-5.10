@@ -66,9 +66,9 @@ struct tegra_soc_hwpm;
 struct hwpm_ip_aperture;
 
 bool t234_hwpm_is_ip_active(struct tegra_soc_hwpm *hwpm,
-	enum tegra_soc_hwpm_ip ip_index, u32 *config_ip_index);
+	u32 ip_index, u32 *config_ip_index);
 bool t234_hwpm_is_resource_active(struct tegra_soc_hwpm *hwpm,
-	enum tegra_soc_hwpm_resource res_index, u32 *config_ip_index);
+	u32 res_index, u32 *config_ip_index);
 
 int t234_hwpm_extract_ip_ops(struct tegra_soc_hwpm *hwpm,
 	struct tegra_soc_hwpm_ip_ops *hwpm_ip_ops, bool available);
