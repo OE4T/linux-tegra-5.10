@@ -110,7 +110,7 @@ enum nvpva_pin_access {
 struct nvpva_pin_handle {
 	uint64_t offset;
 	uint64_t size;
-	uint32_t handle;
+	int32_t handle;
 	uint32_t access;
 	uint32_t segment;
 	uint32_t type;

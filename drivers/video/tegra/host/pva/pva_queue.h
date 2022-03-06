@@ -30,7 +30,7 @@ struct dma_buf;
 extern struct nvpva_queue_ops pva_queue_ops;
 
 struct pva_pinned_memory {
-	int fd;
+	int id;
 	dma_addr_t dma_addr;
 	size_t size;
 	struct dma_buf *dmabuf;
@@ -243,7 +243,7 @@ void pva_task_free(struct kref *ref);
 void pva_task_update(struct work_struct *work);
 
 struct pva_pinned_memory *pva_task_pin_mem(struct pva_submit_task *task,
-					   u32 dmafd);
+					   u32 id);
 
 #define task_err(task, fmt, ...)                                               \
 	dev_err(&task->pva->pdev->dev, fmt, ##__VA_ARGS__)

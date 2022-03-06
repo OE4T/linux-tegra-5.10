@@ -20,6 +20,7 @@
 #define __NVPVA_NVPVA_BUFFER_H__
 
 #include <linux/dma-buf.h>
+#include "pva_bit_helpers.h"
 
 enum nvpva_buffers_heap {
 	NVPVA_BUFFERS_HEAP_DRAM = 0,
@@ -34,16 +35,22 @@ enum nvpva_buffers_heap {
  * list			List for traversing through all the buffers
  * mutex		Mutex for the buffer tree and the buffer list
  * kref			Reference count for the bufferlist
- *
+ * ids			unique ID assigned to a pinned buffer
  */
+#define NVPVA_ID_SEGMENT_SIZE		32
+#define NVPVA_MAX_NUM_UNIQUE_IDS	(NVPVA_ID_SEGMENT_SIZE * 1024)
+#define NVPVA_NUM_ID_SEGMENTS						\
+			(NVPVA_MAX_NUM_UNIQUE_IDS/NVPVA_ID_SEGMENT_SIZE)
 struct nvpva_buffers {
 	struct platform_device *pdev;
 
 	struct list_head list_head;
 	struct rb_root rb_root;
+	struct rb_root rb_root_id;
 	struct mutex mutex;
-
 	struct kref kref;
+	uint32_t ids[NVPVA_NUM_ID_SEGMENTS];
+	uint32_t num_assigned_ids;
 };
 
 /**
@@ -52,7 +59,7 @@ struct nvpva_buffers {
  * This function allocates	nvpva_buffers struct and init the bufferlist
  * and mutex.
  *
- * @param nvpva_buffers	Pointer to nvpva_buffers struct
+ * @param nvpva_buffers		Pointer to nvpva_buffers struct
  * @return			nvpva_buffers pointer on success
  *				or negative on error
  *
@@ -73,7 +80,8 @@ struct nvpva_buffers *nvpva_buffer_init(struct platform_device *pdev);
  */
 int nvpva_buffer_pin(struct nvpva_buffers *nvpva_buffers,
 			struct dma_buf **dmabufs,
-			u32 count);
+			u32 count,
+			u32 *id);
 
 /**
  * @brief			UnPins the mapped address space.
@@ -81,11 +89,25 @@ int nvpva_buffer_pin(struct nvpva_buffers *nvpva_buffers,
  * @param nvpva_buffers		Pointer to nvpva_buffer struct
  * @param dmabufs		Pointer to dmabuffer list
  * @param count			Number of memhandles in the list
+ * @param id			pointer to variable where assigned
+ *				ID is returned
  * @return			None
  *
  */
 void nvpva_buffer_unpin(struct nvpva_buffers *nvpva_buffers,
 				struct dma_buf **dmabufs,
+				u32 count);
+/**
+ * @brief			UnPins the mapped address space.
+ *
+ * @param nvpva_buffers		Pointer to nvpva_buffer struct
+ * @param ids			Pointer to id list
+ * @param count			Number of memhandles in the list
+ * @return			None
+ *
+ */
+void nvpva_buffer_unpin_id(struct nvpva_buffers *nvpva_buffers,
+				u32 *ids,
 				u32 count);
 
 /**
@@ -109,6 +131,27 @@ int nvpva_buffer_submit_pin(struct nvpva_buffers *nvpva_buffers,
 			     struct dma_buf **dmabufs, u32 count,
 			     dma_addr_t *paddr, size_t *psize,
 			     enum nvpva_buffers_heap *heap);
+/**
+ * @brief			Pin the mapped buffer for a task submit
+ *
+ * This function increased the reference count for a mapped buffer during
+ * task submission.
+ *
+ * @param nvpva_buffers		Pointer to nvpva_buffer struct
+ * @param ids			Pointer to id list
+ * @param count			Number of memhandles in the list
+ * @param paddr			Pointer to IOVA list
+ * @param psize			Pointer to size of buffer to return
+ * @param heap			Pointer to a list of heaps. This is
+ *				filled by the routine.
+ *
+ * @return			0 on success or negative on error
+ *
+ */
+int nvpva_buffer_submit_pin_id(struct nvpva_buffers *nvpva_buffers,
+			       u32 *ids, u32 count, struct dma_buf **dmabuf,
+			       dma_addr_t *paddr, size_t *psize,
+			       enum nvpva_buffers_heap *heap);
 
 /**
  * @brief		UnPins the mapped address space on task completion.
@@ -124,6 +167,21 @@ int nvpva_buffer_submit_pin(struct nvpva_buffers *nvpva_buffers,
  */
 void nvpva_buffer_submit_unpin(struct nvpva_buffers *nvpva_buffers,
 					struct dma_buf **dmabufs, u32 count);
+
+/**
+ * @brief		UnPins the mapped address space on task completion.
+ *
+ * This function decrease the reference count for a mapped buffer when the
+ * task get completed or aborted.
+ *
+ * @param nvpva_buffers		Pointer to nvpva_buffer struct
+ * @param ids			Pointer to dmabuffer list
+ * @param count			Number of memhandles in the list
+ * @return			None
+ *
+ */
+void nvpva_buffer_submit_unpin_id(struct nvpva_buffers *nvpva_buffers,
+					u32 *ids, u32 count);
 
 /**
  * @brief			Drop a user reference to buffer structure

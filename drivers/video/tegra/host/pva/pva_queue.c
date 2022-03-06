@@ -117,15 +117,15 @@ static void pva_task_unpin_mem(struct pva_submit_task *task)
 	for (i = 0; i < task->num_pinned; i++) {
 		struct pva_pinned_memory *mem = &task->pinned_memory[i];
 
-		nvpva_buffer_submit_unpin(task->client->buffers, &mem->dmabuf,
-					   1);
-		dma_buf_put(mem->dmabuf);
+		nvpva_buffer_submit_unpin_id(task->client->buffers,
+					    &mem->id, 1);
 	}
+
 	task->num_pinned = 0;
 }
 
 struct pva_pinned_memory *pva_task_pin_mem(struct pva_submit_task *task,
-					   u32 dmafd)
+					   u32 id)
 {
 	int err;
 	struct pva_pinned_memory *mem;
@@ -136,23 +136,17 @@ struct pva_pinned_memory *pva_task_pin_mem(struct pva_submit_task *task,
 		goto err_out;
 	}
 
-	if (!dmafd) {
-		task_err(task, "dmafd is 0");
+	if (id == 0) {
+		task_err(task, "pin id  is 0");
 		err = -EFAULT;
 		goto err_out;
 	}
 
 	mem = &task->pinned_memory[task->num_pinned];
-	mem->fd = dmafd;
-	mem->dmabuf = dma_buf_get(dmafd);
-	if (IS_ERR_OR_NULL(mem->dmabuf)) {
-		task_err(task, "can't get dmabuf from dmafd: %ld",
-			 PTR_ERR(mem->dmabuf));
-		err = -EFAULT;
-		goto err_out;
-	}
-	err = nvpva_buffer_submit_pin(task->client->buffers, &mem->dmabuf, 1,
-				       &mem->dma_addr, &mem->size, &mem->heap);
+	mem->id = id;
+	err = nvpva_buffer_submit_pin_id(task->client->buffers, &mem->id, 1,
+				       &mem->dmabuf, &mem->dma_addr,
+				       &mem->size, &mem->heap);
 	if (err) {
 		task_err(task, "submit pin failed; Is the handled pinned?");
 		goto err_out;
@@ -404,15 +398,17 @@ out:
 static int pva_task_process_input_status(struct pva_submit_task *task,
 					 struct pva_hw_task *hw_task)
 {
-	u32 i;
+	u8 i;
 	int err = 0;
 	struct pva_task_action_s *fw_preactions = NULL;
 
 	for (i = 0; i < task->num_input_task_status; i++) {
-		struct nvpva_mem *status = &task->input_task_status[i];
-		struct pva_pinned_memory *mem =
-		    pva_task_pin_mem(task, status->pin_id);
+		struct nvpva_mem *status;
+		struct pva_pinned_memory *mem;
 		dma_addr_t status_addr;
+
+		status = &task->input_task_status[i];
+		mem = pva_task_pin_mem(task, status->pin_id);
 		if (IS_ERR(mem)) {
 			err = PTR_ERR(mem);
 			goto out;
@@ -1004,12 +1000,12 @@ unlock:
 }
 
 static struct pva_pinned_memory *find_pinned_mem(struct pva_submit_task *task,
-						 int fd)
+						 int id)
 {
 	u32 i;
 
 	for (i = 0; i < task->num_pinned; i++)
-		if (task->pinned_memory[i].fd == fd)
+		if (task->pinned_memory[i].id == id)
 			return &task->pinned_memory[i];
 	return NULL;
 }

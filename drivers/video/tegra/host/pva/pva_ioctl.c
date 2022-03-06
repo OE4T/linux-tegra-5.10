@@ -427,8 +427,8 @@ static int pva_pin(struct pva_private *priv, void *arg)
 		goto out;
 	}
 
-	err = nvpva_buffer_pin(priv->client->buffers, &dmabuf[0], 1);
-	out_arg->pin_id = in_arg->pin.handle;
+	err = nvpva_buffer_pin(priv->client->buffers, &dmabuf[0], 1,
+				&out_arg->pin_id);
 
 	dma_buf_put(dmabuf[0]);
 out:
@@ -438,21 +438,10 @@ out:
 static int pva_unpin(struct pva_private *priv, void *arg)
 {
 	int err = 0;
-	struct dma_buf *dmabuf[1];
 	struct nvpva_unpin_in_arg *in_arg = (struct nvpva_unpin_in_arg *)arg;
 
-	dmabuf[0] = dma_buf_get(in_arg->pin_id);
-	if (IS_ERR_OR_NULL(dmabuf[0])) {
-		dev_err(&priv->pva->pdev->dev, "invalid handle to unpin: %u",
-			in_arg->pin_id);
-		err = -EFAULT;
-		goto out;
-	}
+	nvpva_buffer_unpin_id(priv->client->buffers, &in_arg->pin_id, 1);
 
-	nvpva_buffer_unpin(priv->client->buffers, &dmabuf[0], 1);
-
-	dma_buf_put(dmabuf[0]);
-out:
 	return err;
 }
 
