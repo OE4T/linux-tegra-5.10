@@ -187,7 +187,8 @@ static int t234_hwpm_find_aperture(struct tegra_soc_hwpm *hwpm,
 	active_chip = hwpm->active_chip;
 
 	/* Find IP index */
-	for (ip_idx = 0U; ip_idx < T234_HWPM_IP_MAX; ip_idx++) {
+	for (ip_idx = 0U; ip_idx < active_chip->get_ip_max_idx(hwpm);
+		ip_idx++) {
 		chip_ip = active_chip->chip_ips[ip_idx];
 		if (chip_ip == NULL) {
 			tegra_hwpm_err(hwpm, "IP %d not populated as expected",

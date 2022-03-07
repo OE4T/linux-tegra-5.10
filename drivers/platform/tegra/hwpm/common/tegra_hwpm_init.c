@@ -29,9 +29,10 @@
 #include <tegra_hwpm_io.h>
 #include <tegra_hwpm.h>
 #include <tegra_hwpm_common.h>
+
 #include <hal/t234/t234_hwpm_init.h>
 
-int tegra_hwpm_init_chip_info(struct tegra_soc_hwpm *hwpm)
+static int tegra_hwpm_init_chip_info(struct tegra_soc_hwpm *hwpm)
 {
 	int err = -EINVAL;
 
@@ -52,8 +53,8 @@ int tegra_hwpm_init_chip_info(struct tegra_soc_hwpm *hwpm)
 			break;
 		default:
 			tegra_hwpm_err(hwpm, "Chip 0x%x rev 0x%x not supported",
-			hwpm->device_info.chip,
-			hwpm->device_info.chip_revision);
+				hwpm->device_info.chip,
+				hwpm->device_info.chip_revision);
 			break;
 		}
 		break;
@@ -70,17 +71,60 @@ int tegra_hwpm_init_chip_info(struct tegra_soc_hwpm *hwpm)
 	return err;
 }
 
+int tegra_hwpm_init_sw_components(struct tegra_soc_hwpm *hwpm)
+{
+	int err = 0;
+
+	err = tegra_hwpm_init_chip_info(hwpm);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "Failed to initialize current chip info.");
+		return err;
+	}
+
+	if (hwpm->active_chip->init_chip_ip_structures == NULL) {
+		tegra_hwpm_err(hwpm, "init_chip_ip_structures uninitialized");
+	}
+
+	err = hwpm->active_chip->init_chip_ip_structures(hwpm);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "IP structure init failed");
+		return err;
+	}
+
+	return 0;
+}
+
+void tegra_hwpm_release_sw_components(struct tegra_soc_hwpm *hwpm)
+{
+	struct hwpm_ip_register_list *node = ip_register_list_head;
+	struct hwpm_ip_register_list *tmp_node = NULL;
+
+	tegra_hwpm_fn(hwpm, " ");
+
+	if (hwpm->active_chip->release_sw_setup == NULL) {
+		tegra_hwpm_err(hwpm, "release_sw_setup uninitialized");
+	} else {
+		hwpm->active_chip->release_sw_setup(hwpm);
+	}
+
+	while (node != NULL) {
+		tmp_node = node;
+		node = tmp_node->next;
+		kfree(tmp_node);
+	}
+
+	kfree(hwpm->active_chip->chip_ips);
+	kfree(hwpm);
+	tegra_soc_hwpm_pdev = NULL;
+}
+
 int tegra_hwpm_setup_sw(struct tegra_soc_hwpm *hwpm)
 {
 	int ret = 0;
 
 	tegra_hwpm_fn(hwpm, " ");
 
-	if (hwpm->active_chip->finalize_chip_info == NULL) {
-		tegra_hwpm_err(hwpm, "finalize_chip_info uninitialized");
-		goto enodev;
-	}
-	ret = hwpm->active_chip->finalize_chip_info(hwpm);
+	ret = tegra_hwpm_finalize_chip_info(hwpm);
 	if (ret < 0) {
 		tegra_hwpm_err(hwpm, "Unable to initialize chip fs_info");
 		goto fail;
@@ -91,8 +135,7 @@ int tegra_hwpm_setup_sw(struct tegra_soc_hwpm *hwpm)
 	hwpm->full_alist_size = 0;
 
 	return 0;
-enodev:
-	ret = -ENODEV;
+
 fail:
 	return ret;
 }
@@ -219,26 +262,25 @@ fail:
 	return ret;
 }
 
-void tegra_hwpm_release_sw_components(struct tegra_soc_hwpm *hwpm)
+void tegra_hwpm_release_sw_setup(struct tegra_soc_hwpm *hwpm)
 {
-	struct hwpm_ip_register_list *node = ip_register_list_head;
-	struct hwpm_ip_register_list *tmp_node = NULL;
+	struct tegra_soc_hwpm_chip *active_chip = hwpm->active_chip;
+	struct hwpm_ip *chip_ip = NULL;
+	u32 ip_idx;
 
-	tegra_hwpm_fn(hwpm, " ");
+	for (ip_idx = 0U; ip_idx < active_chip->get_ip_max_idx(hwpm);
+		ip_idx++) {
+		chip_ip = active_chip->chip_ips[ip_idx];
 
-	if (hwpm->active_chip->release_sw_setup == NULL) {
-		tegra_hwpm_err(hwpm, "release_sw_setup uninitialized");
-	} else {
-		hwpm->active_chip->release_sw_setup(hwpm);
+		/* Release perfmux array */
+		if (chip_ip->num_perfmux_per_inst != 0U) {
+			kfree(chip_ip->ip_perfmux);
+		}
+
+		/* Release perfmon array */
+		if (chip_ip->num_perfmon_per_inst != 0U) {
+			kfree(chip_ip->ip_perfmon);
+		}
 	}
-
-	while (node != NULL) {
-		tmp_node = node;
-		node = tmp_node->next;
-		kfree(tmp_node);
-	}
-
-	kfree(hwpm->active_chip->chip_ips);
-	kfree(hwpm);
-	tegra_soc_hwpm_pdev = NULL;
+	return;
 }

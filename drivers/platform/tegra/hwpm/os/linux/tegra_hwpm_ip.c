@@ -84,11 +84,17 @@ void tegra_soc_hwpm_ip_register(struct tegra_soc_hwpm_ip_ops *hwpm_ip_ops)
 	struct tegra_soc_hwpm *hwpm = NULL;
 	int ret = 0;
 
+	if (hwpm_ip_ops == NULL) {
+		tegra_hwpm_err(NULL, "IP details missing");
+		return;
+	}
+
 	if (tegra_soc_hwpm_pdev == NULL) {
 		ret = tegra_hwpm_note_ip_register(hwpm_ip_ops);
 		if (ret != 0) {
 			tegra_hwpm_err(NULL,
 				"Couldn't save IP register details");
+			return;
 		}
 	} else {
 		if (hwpm_ip_ops->ip_dev == NULL) {
@@ -117,6 +123,11 @@ void tegra_soc_hwpm_ip_unregister(struct tegra_soc_hwpm_ip_ops *hwpm_ip_ops)
 {
 	struct tegra_soc_hwpm *hwpm = NULL;
 	int ret = 0;
+
+	if (hwpm_ip_ops == NULL) {
+		tegra_hwpm_err(NULL, "IP details missing");
+		return;
+	}
 
 	if (tegra_soc_hwpm_pdev == NULL) {
 		tegra_hwpm_dbg(hwpm, hwpm_info, "HWPM device not available");

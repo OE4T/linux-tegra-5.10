@@ -37,6 +37,8 @@ obj-y += os/linux/tegra_hwpm_ioctl.o
 obj-y += os/linux/tegra_hwpm_log.o
 
 obj-y += common/tegra_hwpm_alist_utils.o
+obj-y += common/tegra_hwpm_aperture_utils.o
+obj-y += common/tegra_hwpm_ip_utils.o
 obj-y += common/tegra_hwpm_mem_buf_utils.o
 obj-y += common/tegra_hwpm_regops_utils.o
 obj-y += common/tegra_hwpm_resource_utils.o

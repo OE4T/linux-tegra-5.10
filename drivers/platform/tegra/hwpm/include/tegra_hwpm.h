@@ -213,9 +213,15 @@ struct tegra_soc_hwpm_chip {
 	bool (*is_resource_active)(struct tegra_soc_hwpm *hwpm,
 	u32 res_index, u32 *config_ip_index);
 
+	u32 (*get_pma_int_idx)(struct tegra_soc_hwpm *hwpm);
+	u32 (*get_rtr_int_idx)(struct tegra_soc_hwpm *hwpm);
+	u32 (*get_ip_max_idx)(struct tegra_soc_hwpm *hwpm);
+
+	int (*init_chip_ip_structures)(struct tegra_soc_hwpm *hwpm);
+
 	int (*extract_ip_ops)(struct tegra_soc_hwpm *hwpm,
 	struct tegra_soc_hwpm_ip_ops *hwpm_ip_ops, bool available);
-	int (*finalize_chip_info)(struct tegra_soc_hwpm *hwpm);
+	int (*force_enable_ips)(struct tegra_soc_hwpm *hwpm);
 	int (*get_fs_info)(struct tegra_soc_hwpm *hwpm,
 	u32 ip_index, u64 *fs_mask, u8 *ip_status);
 
@@ -228,10 +234,13 @@ struct tegra_soc_hwpm_chip {
 	int (*release_pma)(struct tegra_soc_hwpm *hwpm);
 	int (*release_rtr)(struct tegra_soc_hwpm *hwpm);
 
-	int (*reserve_given_resource)(struct tegra_soc_hwpm *hwpm, u32 ip_idx);
-	int (*bind_reserved_resources)(struct tegra_soc_hwpm *hwpm);
 	int (*disable_triggers)(struct tegra_soc_hwpm *hwpm);
-	int (*release_all_resources)(struct tegra_soc_hwpm *hwpm);
+	int (*perfmon_enable)(struct tegra_soc_hwpm *hwpm,
+	hwpm_ip_perfmon *perfmon);
+	int (*perfmon_disable)(struct tegra_soc_hwpm *hwpm,
+		hwpm_ip_perfmon *perfmon);
+	int (*perfmux_disable)(struct tegra_soc_hwpm *hwpm,
+		hwpm_ip_perfmux *perfmux);
 
 	int (*disable_mem_mgmt)(struct tegra_soc_hwpm *hwpm);
 	int (*enable_mem_mgmt)(struct tegra_soc_hwpm *hwpm,
@@ -247,8 +256,10 @@ struct tegra_soc_hwpm_chip {
 	size_t (*get_alist_buf_size)(struct tegra_soc_hwpm *hwpm);
 	int (*zero_alist_regs)(struct tegra_soc_hwpm *hwpm,
 		struct hwpm_ip_aperture *aperture);
-	int (*get_alist_size)(struct tegra_soc_hwpm *hwpm);
-	int (*combine_alist)(struct tegra_soc_hwpm *hwpm, u64 *alist);
+	int (*copy_alist)(struct tegra_soc_hwpm *hwpm,
+		struct hwpm_ip_aperture *aperture,
+		u64 *full_alist,
+		u64 *full_alist_idx);
 	bool (*check_alist)(struct tegra_soc_hwpm *hwpm,
 		struct hwpm_ip_aperture *aperture, u64 phys_addr);
 

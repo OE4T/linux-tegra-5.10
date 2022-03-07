@@ -15,6 +15,7 @@
 #include <uapi/linux/tegra-soc-hwpm-uapi.h>
 
 #include <tegra_hwpm_log.h>
+#include <tegra_hwpm_common.h>
 #include <tegra_hwpm.h>
 #include <tegra_hwpm_static_analysis.h>
 #include <hal/t234/t234_hwpm_init.h>
@@ -27,22 +28,28 @@ struct tegra_soc_hwpm_chip t234_chip_info = {
 	.is_ip_active = t234_hwpm_is_ip_active,
 	.is_resource_active = t234_hwpm_is_resource_active,
 
+	.get_pma_int_idx = t234_get_pma_int_idx,
+	.get_rtr_int_idx = t234_get_rtr_int_idx,
+	.get_ip_max_idx = t234_get_ip_max_idx,
+
+	.init_chip_ip_structures = tegra_hwpm_init_chip_ip_structures,
+
 	.extract_ip_ops = t234_hwpm_extract_ip_ops,
-	.finalize_chip_info = t234_hwpm_finalize_chip_info,
+	.force_enable_ips = t234_hwpm_force_enable_ips,
 	.get_fs_info = t234_hwpm_get_fs_info,
 
 	.init_prod_values = t234_hwpm_init_prod_values,
 	.disable_slcg = t234_hwpm_disable_slcg,
 	.enable_slcg = t234_hwpm_enable_slcg,
 
-	.reserve_pma = t234_hwpm_reserve_pma,
-	.reserve_rtr = t234_hwpm_reserve_rtr,
-	.release_pma = t234_hwpm_release_pma,
-	.release_rtr = t234_hwpm_release_rtr,
+	.reserve_pma = tegra_hwpm_reserve_pma,
+	.reserve_rtr = tegra_hwpm_reserve_rtr,
+	.release_pma = tegra_hwpm_release_pma,
+	.release_rtr = tegra_hwpm_release_rtr,
 
-	.reserve_given_resource = t234_hwpm_reserve_given_resource,
-	.bind_reserved_resources = t234_hwpm_bind_reserved_resources,
-	.release_all_resources = t234_hwpm_release_all_resources,
+	.perfmon_enable = t234_hwpm_perfmon_enable,
+	.perfmon_disable = t234_hwpm_perfmon_disable,
+	.perfmux_disable = t234_hwpm_perfmux_disable,
 	.disable_triggers = t234_hwpm_disable_triggers,
 
 	.disable_mem_mgmt = t234_hwpm_disable_mem_mgmt,
@@ -56,13 +63,12 @@ struct tegra_soc_hwpm_chip t234_chip_info = {
 
 	.get_alist_buf_size = t234_hwpm_get_alist_buf_size,
 	.zero_alist_regs = t234_hwpm_zero_alist_regs,
-	.get_alist_size = t234_hwpm_get_alist_size,
-	.combine_alist = t234_hwpm_combine_alist,
+	.copy_alist = t234_hwpm_copy_alist,
 	.check_alist = t234_hwpm_check_alist,
 
 	.exec_reg_ops = t234_hwpm_exec_reg_ops,
 
-	.release_sw_setup = t234_hwpm_release_sw_setup,
+	.release_sw_setup = tegra_hwpm_release_sw_setup,
 };
 
 bool t234_hwpm_is_ip_active(struct tegra_soc_hwpm *hwpm,
@@ -263,142 +269,24 @@ bool t234_hwpm_is_resource_active(struct tegra_soc_hwpm *hwpm,
 	return (config_ip != TEGRA_SOC_HWPM_IP_INACTIVE);
 }
 
-static int t234_hwpm_init_ip_perfmux_apertures(struct tegra_soc_hwpm *hwpm,
-	struct hwpm_ip *chip_ip)
+u32 t234_get_pma_int_idx(struct tegra_soc_hwpm *hwpm)
 {
-	u32 idx = 0U, perfmux_idx = 0U, max_perfmux = 0U;
-	u64 perfmux_address_range = 0ULL, perfmux_offset = 0ULL;
-	hwpm_ip_perfmux *perfmux = NULL;
-
-	/* Initialize perfmux array */
-	if (chip_ip->num_perfmux_per_inst == 0U) {
-		/* no perfmux in this IP */
-		return 0;
-	}
-
-	perfmux_address_range = tegra_hwpm_safe_add_u64(
-		tegra_hwpm_safe_sub_u64(chip_ip->perfmux_range_end,
-		chip_ip->perfmux_range_start), 1ULL);
-	chip_ip->num_perfmux_slots = tegra_hwpm_safe_cast_u64_to_u32(
-		perfmux_address_range / chip_ip->inst_perfmux_stride);
-
-	chip_ip->ip_perfmux = kzalloc(
-		sizeof(hwpm_ip_perfmux *) * chip_ip->num_perfmux_slots,
-		GFP_KERNEL);
-	if (chip_ip->ip_perfmux == NULL) {
-		tegra_hwpm_err(hwpm, "Perfmux pointer array allocation failed");
-		return -ENOMEM;
-	}
-
-	/* Set all perfmux slot pointers to NULL */
-	for (idx = 0U; idx < chip_ip->num_perfmux_slots; idx++) {
-		chip_ip->ip_perfmux[idx] = NULL;
-	}
-
-	/* Assign valid perfmuxes to corresponding slot pointers */
-	max_perfmux = chip_ip->num_instances * chip_ip->num_perfmux_per_inst;
-	for (perfmux_idx = 0U; perfmux_idx < max_perfmux; perfmux_idx++) {
-		perfmux = &chip_ip->perfmux_static_array[perfmux_idx];
-
-		/* Compute perfmux offset from perfmux range start */
-		perfmux_offset = tegra_hwpm_safe_sub_u64(
-			perfmux->start_abs_pa, chip_ip->perfmux_range_start);
-
-		/* Compute perfmux slot index */
-		idx = tegra_hwpm_safe_cast_u64_to_u32(
-			perfmux_offset / chip_ip->inst_perfmux_stride);
-
-		/* Set perfmux slot pointer */
-		chip_ip->ip_perfmux[idx] = perfmux;
-	}
-
-	return 0;
+	return T234_HWPM_IP_PMA;
 }
 
-static int t234_hwpm_init_ip_perfmon_apertures(struct tegra_soc_hwpm *hwpm,
-	struct hwpm_ip *chip_ip)
+u32 t234_get_rtr_int_idx(struct tegra_soc_hwpm *hwpm)
 {
-	u32 idx = 0U, perfmon_idx = 0U, max_perfmon = 0U;
-	u64 perfmon_address_range = 0ULL, perfmon_offset = 0ULL;
-	hwpm_ip_perfmon *perfmon = NULL;
-
-	/* Initialize perfmon array */
-	if (chip_ip->num_perfmon_per_inst == 0U) {
-		/* no perfmons in this IP */
-		return 0;
-	}
-
-	perfmon_address_range = tegra_hwpm_safe_add_u64(
-		tegra_hwpm_safe_sub_u64(chip_ip->perfmon_range_end,
-			chip_ip->perfmon_range_start), 1ULL);
-	chip_ip->num_perfmon_slots = tegra_hwpm_safe_cast_u64_to_u32(
-		perfmon_address_range / chip_ip->inst_perfmon_stride);
-
-	chip_ip->ip_perfmon = kzalloc(
-		sizeof(hwpm_ip_perfmon *) * chip_ip->num_perfmon_slots,
-		GFP_KERNEL);
-	if (chip_ip->ip_perfmon == NULL) {
-		tegra_hwpm_err(hwpm, "Perfmon pointer array allocation failed");
-		return -ENOMEM;
-	}
-
-	/* Set all perfmon slot pointers to NULL */
-	for (idx = 0U; idx < chip_ip->num_perfmon_slots; idx++) {
-		chip_ip->ip_perfmon[idx] = NULL;
-	}
-
-	/* Assign valid perfmuxes to corresponding slot pointers */
-	max_perfmon = chip_ip->num_instances * chip_ip->num_perfmon_per_inst;
-	for (perfmon_idx = 0U; perfmon_idx < max_perfmon; perfmon_idx++) {
-		perfmon = &chip_ip->perfmon_static_array[perfmon_idx];
-
-		/* Compute perfmon offset from perfmon range start */
-		perfmon_offset = tegra_hwpm_safe_sub_u64(
-			perfmon->start_abs_pa, chip_ip->perfmon_range_start);
-
-		/* Compute perfmon slot index */
-		idx = tegra_hwpm_safe_cast_u64_to_u32(
-			perfmon_offset / chip_ip->inst_perfmon_stride);
-
-		/* Set perfmon slot pointer */
-		chip_ip->ip_perfmon[idx] = perfmon;
-	}
-
-	return 0;
+	return T234_HWPM_IP_RTR;
 }
 
-static int t234_hwpm_init_chip_ip_structures(struct tegra_soc_hwpm *hwpm)
+u32 t234_get_ip_max_idx(struct tegra_soc_hwpm *hwpm)
 {
-	struct tegra_soc_hwpm_chip *active_chip = hwpm->active_chip;
-	struct hwpm_ip *chip_ip = NULL;
-	u32 ip_idx;
-	int ret = 0;
-
-	for (ip_idx = 0U; ip_idx < T234_HWPM_IP_MAX; ip_idx++) {
-		chip_ip = active_chip->chip_ips[ip_idx];
-
-		ret = t234_hwpm_init_ip_perfmon_apertures(hwpm, chip_ip);
-		if (ret != 0) {
-			tegra_hwpm_err(hwpm, "IP %d perfmon alloc failed",
-				ip_idx);
-			return ret;
-		}
-
-		ret = t234_hwpm_init_ip_perfmux_apertures(hwpm, chip_ip);
-		if (ret != 0) {
-			tegra_hwpm_err(hwpm, "IP %d perfmux alloc failed",
-				ip_idx);
-			return ret;
-		}
-	}
-
-	return 0;
+	return T234_HWPM_IP_MAX;
 }
 
 int t234_hwpm_init_chip_info(struct tegra_soc_hwpm *hwpm)
 {
 	struct hwpm_ip **t234_active_ip_info;
-	int ret = 0;
 
 	/* Allocate array of pointers to hold active IP structures */
 	t234_chip_info.chip_ips =
@@ -465,33 +353,6 @@ int t234_hwpm_init_chip_info(struct tegra_soc_hwpm *hwpm)
 #if defined(CONFIG_SOC_HWPM_IP_VIC)
 	t234_active_ip_info[T234_HWPM_IP_VIC] = &t234_hwpm_ip_vic;
 #endif
-	ret = t234_hwpm_init_chip_ip_structures(hwpm);
-	if (ret != 0) {
-		tegra_hwpm_err(hwpm, "IP structure init failed");
-		return ret;
-	}
 
 	return 0;
-}
-
-void t234_hwpm_release_sw_setup(struct tegra_soc_hwpm *hwpm)
-{
-	struct tegra_soc_hwpm_chip *active_chip = hwpm->active_chip;
-	struct hwpm_ip *chip_ip = NULL;
-	u32 ip_idx;
-
-	for (ip_idx = 0U; ip_idx < T234_HWPM_IP_MAX; ip_idx++) {
-		chip_ip = active_chip->chip_ips[ip_idx];
-
-		/* Release perfmux array */
-		if (chip_ip->num_perfmux_per_inst != 0U) {
-			kfree(chip_ip->ip_perfmux);
-		}
-
-		/* Release perfmon array */
-		if (chip_ip->num_perfmon_per_inst != 0U) {
-			kfree(chip_ip->ip_perfmon);
-		}
-	}
-	return;
 }

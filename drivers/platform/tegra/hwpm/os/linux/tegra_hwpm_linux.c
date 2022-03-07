@@ -126,7 +126,11 @@ static int tegra_hwpm_probe(struct platform_device *pdev)
 	}
 
 	tegra_hwpm_debugfs_init(hwpm);
-	tegra_hwpm_init_chip_info(hwpm);
+	ret = tegra_hwpm_init_sw_components(hwpm);
+	if (ret != 0) {
+		tegra_hwpm_err(hwpm, "Failed to init sw components");
+		goto init_sw_components_fail;
+	}
 
 	/*
 	 * Currently VDK doesn't have a fmodel for SOC HWPM. Therefore, we
@@ -143,7 +147,7 @@ static int tegra_hwpm_probe(struct platform_device *pdev)
 	tegra_hwpm_dbg(hwpm, hwpm_info, "Probe successful!");
 	goto success;
 
-
+init_sw_components_fail:
 clock_reset_fail:
 	if (tegra_platform_is_silicon()) {
 		if (hwpm->la_clk)

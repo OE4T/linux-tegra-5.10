@@ -27,8 +27,8 @@ int t234_hwpm_disable_mem_mgmt(struct tegra_soc_hwpm *hwpm)
 {
 	struct tegra_soc_hwpm_chip *active_chip = hwpm->active_chip;
 	/* Currently, PMA has only one perfmux */
-	hwpm_ip_perfmux *pma_perfmux =
-		active_chip->chip_ips[T234_HWPM_IP_PMA]->ip_perfmux[0U];
+	hwpm_ip_perfmux *pma_perfmux = &active_chip->chip_ips[
+		active_chip->get_pma_int_idx(hwpm)]->perfmux_static_array[0U];
 
 	tegra_hwpm_fn(hwpm, " ");
 
@@ -51,8 +51,8 @@ int t234_hwpm_enable_mem_mgmt(struct tegra_soc_hwpm *hwpm,
 	u32 mem_bytes_addr = 0;
 	struct tegra_soc_hwpm_chip *active_chip = hwpm->active_chip;
 	/* Currently, PMA has only one perfmux */
-	hwpm_ip_perfmux *pma_perfmux =
-		active_chip->chip_ips[T234_HWPM_IP_PMA]->ip_perfmux[0U];
+	hwpm_ip_perfmux *pma_perfmux = &active_chip->chip_ips[
+		active_chip->get_pma_int_idx(hwpm)]->perfmux_static_array[0U];
 
 	tegra_hwpm_fn(hwpm, " ");
 
@@ -92,8 +92,8 @@ int t234_hwpm_invalidate_mem_config(struct tegra_soc_hwpm *hwpm)
 {
 	struct tegra_soc_hwpm_chip *active_chip = hwpm->active_chip;
 	/* Currently, PMA has only one perfmux */
-	hwpm_ip_perfmux *pma_perfmux =
-		active_chip->chip_ips[T234_HWPM_IP_PMA]->ip_perfmux[0U];
+	hwpm_ip_perfmux *pma_perfmux = &active_chip->chip_ips[
+		active_chip->get_pma_int_idx(hwpm)]->perfmux_static_array[0U];
 
 	tegra_hwpm_fn(hwpm, " ");
 
@@ -110,8 +110,8 @@ int t234_hwpm_stream_mem_bytes(struct tegra_soc_hwpm *hwpm)
 	u32 *mem_bytes_kernel_u32 = (u32 *)(hwpm->mem_bytes_kernel);
 	struct tegra_soc_hwpm_chip *active_chip = hwpm->active_chip;
 	/* Currently, PMA has only one perfmux */
-	hwpm_ip_perfmux *pma_perfmux =
-		active_chip->chip_ips[T234_HWPM_IP_PMA]->ip_perfmux[0U];
+	hwpm_ip_perfmux *pma_perfmux = &active_chip->chip_ips[
+		active_chip->get_pma_int_idx(hwpm)]->perfmux_static_array[0U];
 
 	tegra_hwpm_fn(hwpm, " ");
 
@@ -133,8 +133,8 @@ int t234_hwpm_disable_pma_streaming(struct tegra_soc_hwpm *hwpm)
 	u32 reg_val = 0U;
 	struct tegra_soc_hwpm_chip *active_chip = hwpm->active_chip;
 	/* Currently, PMA has only one perfmux */
-	hwpm_ip_perfmux *pma_perfmux =
-		active_chip->chip_ips[T234_HWPM_IP_PMA]->ip_perfmux[0U];
+	hwpm_ip_perfmux *pma_perfmux = &active_chip->chip_ips[
+		active_chip->get_pma_int_idx(hwpm)]->perfmux_static_array[0U];
 
 	tegra_hwpm_fn(hwpm, " ");
 
@@ -163,8 +163,8 @@ int t234_hwpm_update_mem_bytes_get_ptr(struct tegra_soc_hwpm *hwpm,
 {
 	struct tegra_soc_hwpm_chip *active_chip = hwpm->active_chip;
 	/* Currently, PMA has only one perfmux */
-	hwpm_ip_perfmux *pma_perfmux =
-		active_chip->chip_ips[T234_HWPM_IP_PMA]->ip_perfmux[0U];
+	hwpm_ip_perfmux *pma_perfmux = &active_chip->chip_ips[
+		active_chip->get_pma_int_idx(hwpm)]->perfmux_static_array[0U];
 
 	tegra_hwpm_fn(hwpm, " ");
 
@@ -183,8 +183,8 @@ u64 t234_hwpm_get_mem_bytes_put_ptr(struct tegra_soc_hwpm *hwpm)
 {
 	struct tegra_soc_hwpm_chip *active_chip = hwpm->active_chip;
 	/* Currently, PMA has only one perfmux */
-	hwpm_ip_perfmux *pma_perfmux =
-		active_chip->chip_ips[T234_HWPM_IP_PMA]->ip_perfmux[0U];
+	hwpm_ip_perfmux *pma_perfmux = &active_chip->chip_ips[
+		active_chip->get_pma_int_idx(hwpm)]->perfmux_static_array[0U];
 
 	tegra_hwpm_fn(hwpm, " ");
 
@@ -197,8 +197,8 @@ bool t234_hwpm_membuf_overflow_status(struct tegra_soc_hwpm *hwpm)
 	u32 reg_val, field_val;
 	struct tegra_soc_hwpm_chip *active_chip = hwpm->active_chip;
 	/* Currently, PMA has only one perfmux */
-	hwpm_ip_perfmux *pma_perfmux =
-		active_chip->chip_ips[T234_HWPM_IP_PMA]->ip_perfmux[0U];
+	hwpm_ip_perfmux *pma_perfmux = &active_chip->chip_ips[
+		active_chip->get_pma_int_idx(hwpm)]->perfmux_static_array[0U];
 
 	tegra_hwpm_fn(hwpm, " ");
 
