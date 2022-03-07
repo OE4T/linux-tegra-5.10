@@ -257,7 +257,7 @@ DEFINE_SIMPLE_ATTRIBUTE(smmu_perf_regset_debugfs_fops,
 			smmu_perf_regset_debugfs_get,
 			smmu_perf_regset_debugfs_set, "%08llx\n");
 
-void arm_smmu_regs_debugfs_delete(struct smmu_debugfs_info *smmu_dfs)
+static void arm_smmu_regs_debugfs_delete(struct smmu_debugfs_info *smmu_dfs)
 {
 	int i;
 
