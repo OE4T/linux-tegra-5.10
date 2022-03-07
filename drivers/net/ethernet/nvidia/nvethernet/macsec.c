@@ -1398,7 +1398,7 @@ static const struct genl_ops nv_macsec_genl_ops[] = {
 	},
 };
 
-static struct genl_family nv_macsec_fam __ro_after_init = {
+static struct genl_family nv_macsec_fam = {
 	.name = NV_MACSEC_GENL_NAME,
 	.hdrsize = 0,
 	.version = NV_MACSEC_GENL_VERSION,
