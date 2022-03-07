@@ -59,7 +59,9 @@ struct arm_smmu_context {
 	size_t num_smmus;
 
 	void __iomem *scratch_va;
-} arm_smmu_ctx;
+};
+
+static struct arm_smmu_context arm_smmu_ctx;
 
 static phys_addr_t arm_smmu_alloc_reg_list(void)
 {
@@ -187,7 +189,7 @@ static struct syscore_ops arm_smmu_syscore_ops = {
 	.suspend = arm_smmu_syscore_suspend,
 };
 
-int arm_smmu_suspend_init(void __iomem **smmu_base, u32 *smmu_base_pa,
+static int arm_smmu_suspend_init(void __iomem **smmu_base, u32 *smmu_base_pa,
 				int num_smmus, unsigned long smmu_size,
 				unsigned long smmu_pgshift, u32 scratch_reg_pa)
 {
@@ -261,7 +263,7 @@ free_reg_list:
 	return ret;
 }
 
-void arm_smmu_suspend_exit(void)
+static void arm_smmu_suspend_exit(void)
 {
 	if (arm_smmu_ctx.reg_list)
 		memunmap(arm_smmu_ctx.reg_list);
