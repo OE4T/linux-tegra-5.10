@@ -7,10 +7,6 @@ obj-$(CONFIG_ARM_SMMU) += of_tegra-smmu.o
 
 endif
 
-ifdef CONFIG_ARCH_TEGRA_19x_SOC
-obj-$(CONFIG_ARM_SMMU) += arm-smmu-regs.o
-endif
-
 obj-$(CONFIG_ARM_SMMU_DEBUG) += arm-smmu-debug.o
 
 obj-$(CONFIG_ARM_SMMU_SUSPEND) += arm-smmu-suspend.o
