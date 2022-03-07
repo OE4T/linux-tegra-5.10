@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (c) 2020-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION. All rights reserved.
  */
 
 #include <linux/cpu.h>
@@ -303,7 +303,7 @@ static int tegra194_cpufreq_set_target(struct cpufreq_policy *policy,
 static struct cpufreq_driver tegra194_cpufreq_driver = {
 	.name = "tegra194",
 	.flags = CPUFREQ_STICKY | CPUFREQ_CONST_LOOPS |
-		CPUFREQ_NEED_INITIAL_FREQ_CHECK,
+		CPUFREQ_NEED_INITIAL_FREQ_CHECK | CPUFREQ_IS_COOLING_DEV,
 	.verify = cpufreq_generic_frequency_table_verify,
 	.target_index = tegra194_cpufreq_set_target,
 	.get = tegra194_get_speed,
