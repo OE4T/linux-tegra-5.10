@@ -29,6 +29,7 @@ Texas Instruments INA3221 Device Tree Bindings
   Optional properties:
   - label: Name of the input source
   - shunt-resistor-micro-ohms: Shunt resistor value in micro-Ohm
+  - summation-bypass: exclude from channel summation.
 
 Example:
 
@@ -41,6 +42,7 @@ ina3221@40 {
 	input@0 {
 		reg = <0x0>;
 		status = "disabled";
+		summation-bypass;
 	};
 	input@1 {
 		reg = <0x1>;
