@@ -201,7 +201,7 @@ void *__nvmap_mmap(struct nvmap_handle *h)
 
 		vaddr = vmap(pages, nr_pages, VM_MAP, prot);
 	} else {
-		vaddr = (void *)__ioremap(h->carveout->base, adj_size,
+		vaddr = (__force void *)__ioremap(h->carveout->base, adj_size,
 			 prot);
 	}
 	if (vaddr == NULL)
