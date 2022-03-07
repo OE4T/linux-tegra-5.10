@@ -78,6 +78,15 @@ NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_SYNCFD_NONE
 CONFIG_NVGPU_GRAPHICS                := 1
 NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_GRAPHICS
 
+# Error reporting needs to be supported in qnx-safety, qnx-standard, linux.
+# In qnx-standard, nvgpu makefile is used for RM SERVER. Since iGPU is in
+# pass through mode in all three platforms, EPL libraries should not be
+# included in RM server. Use this flag to include/exclude MISC_EC libraries.
+ifneq ($(NV_BUILD_CONFIGURATION_IS_VM_SERVER), 1)
+CONFIG_NVGPU_ENABLE_MISC_EC          := 1
+NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_ENABLE_MISC_EC
+endif
+
 ifeq ($(profile),$(filter $(profile),safety_debug safety_release))
 
 # Enable golden context verification only for safety debug/release build

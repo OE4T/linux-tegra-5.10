@@ -27,6 +27,8 @@
 #include <nvgpu/static_analysis.h>
 #include <nvgpu/log.h>
 
+#define MISC_EC_SW_ERR_CODE_0	0U
+
 #define U32_BITS		32U
 #define DIV_BY_U32_BITS(x)	((x) / U32_BITS)
 #define MOD_BY_U32_BITS(x)	((x) % U32_BITS)

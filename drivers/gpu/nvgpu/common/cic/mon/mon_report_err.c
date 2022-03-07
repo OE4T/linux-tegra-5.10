@@ -31,6 +31,7 @@
 void nvgpu_report_err_to_sdl(struct gk20a *g, u32 hw_unit_id, u32 err_id)
 {
 	int32_t err = 0;
+	u32 ss_err_id = 0U;
 
 	if (g->ops.cic_mon.report_err == NULL) {
 		return;
@@ -44,10 +45,28 @@ void nvgpu_report_err_to_sdl(struct gk20a *g, u32 hw_unit_id, u32 err_id)
 		goto handle_report_failure;
 	}
 
-	if (g->ops.cic_mon.report_err(g, err_id) != 0) {
+
+	/**
+	 * Prepare error ID that will be reported to Safety_Services.
+	 * Format of the error ID:
+	 * - HW_unit_id (4-bits: bit-0 to 3),
+	 * - Error_id (5-bits: bit-4 to 8),
+	 * - Corrected/Uncorrected error (1-bit: bit-9),
+	 * - Remaining 22-bits are unused.
+	 */
+	hw_unit_id = hw_unit_id & HW_UNIT_ID_MASK;
+	err_id = err_id & ERR_ID_MASK;
+	ss_err_id =  ((err_id) << (ERR_ID_FIELD_SHIFT)) | hw_unit_id;
+	if (g->cic_mon->err_lut[hw_unit_id].errs[err_id].is_critical) {
+		ss_err_id =  ss_err_id |
+			(U32(1) << U32(CORRECTED_BIT_FIELD_SHIFT));
+	}
+
+	if (g->ops.cic_mon.report_err(g, ss_err_id) != 0) {
 		nvgpu_err(g, "Failed to report an error: "
-				"hw_unit_id = 0x%x, err_id=0x%x",
-				hw_unit_id, err_id);
+				"hw_unit_id = 0x%x, err_id=0x%x, "
+				"ss_err_id = 0x%x",
+				hw_unit_id, err_id, ss_err_id);
 		goto handle_report_failure;
 	}
 
