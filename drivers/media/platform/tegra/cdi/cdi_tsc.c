@@ -21,6 +21,7 @@
 #include <linux/bits.h>
 #include <linux/delay.h>
 #include <linux/device.h>
+#include <linux/debugfs.h>
 #include <linux/err.h>
 #include <linux/io.h>
 #include <linux/lcm.h>
@@ -105,6 +106,8 @@ struct tsc_signal_controller_features {
  *   @freq_hz: Frequency (hz) of the generator.
  *   @duty_cycle: Duty cycle (%) of the generator.
  *   @offset_ms: Offset (ms) to shift the signal by.
+ * @debugfs:
+ *   @regset_ro: Debug FS read-only register set.
  * @list: List node
  */
 struct tsc_signal_generator {
@@ -115,6 +118,9 @@ struct tsc_signal_generator {
 		u32 duty_cycle;
 		u32 offset_ms;
 	} config;
+	struct {
+		struct debugfs_regset32 regset_ro;
+	} debugfs;
 	struct list_head list;
 };
 
@@ -122,12 +128,17 @@ struct tsc_signal_generator {
  * struct tsc_signal_controller : Controller context
  * @dev: device.
  * @base: ioremapped register base.
+ * @debugfs:
+ *   @d: dentry to debugfs directory.
  * @features: Feature support for the controller.
  * @generators: Linked list of child generators.
  */
 struct tsc_signal_controller {
 	struct device *dev;
 	void __iomem *base;
+	struct {
+		struct dentry *d;
+	} debugfs;
 	const struct tsc_signal_controller_features *features;
 	struct list_head generators;
 };
@@ -141,6 +152,14 @@ static const struct tsc_signal_controller_features tegra234_tsc_features = {
 		.enabled = true,
 	},
 };
+
+static const struct debugfs_reg32 tsc_signal_generator_debugfs_regset[] = {
+	{
+		.name = "status",
+		.offset = TSC_GENX_STATUS,
+	},
+};
+#define TSC_SIG_GEN_DEBUGFS_REGSET_SIZE ARRAY_SIZE(tsc_signal_generator_debugfs_regset)
 
 static inline void cdi_tsc_generator_writel(struct tsc_signal_generator *generator, u32 reg, u32 val)
 {
@@ -366,17 +385,6 @@ static int cdi_tsc_start_generators(struct tsc_signal_controller *controller)
 			TSC_GENX_CTRL_INITIAL_VAL | TSC_GENX_CTRL_ENABLE);
 	}
 
-	/* Delay 2x the start offset and ensure generators are running */
-	mdelay(2 * TSC_GENX_START_OFFSET_MS);
-
-	list_for_each_entry(generator, &controller->generators, list) {
-		if (!cdi_tsc_generator_is_running(generator)) {
-			dev_err(controller->dev, "Generator %s: failed to start\n",
-				generator->of->full_name);
-			return -EIO;
-		}
-	}
-
 	return 0;
 }
 
@@ -397,6 +405,38 @@ static int cdi_tsc_stop_generators(struct tsc_signal_controller *controller)
 
 	return 0;
 }
+
+#ifdef CONFIG_DEBUG_FS
+static int cdi_tsc_debugfs_init(struct tsc_signal_controller *controller)
+{
+	struct tsc_signal_generator *generator;
+
+	controller->debugfs.d =
+		debugfs_create_dir(controller->dev->of_node->full_name, NULL);
+	if (IS_ERR(controller->debugfs.d))
+		return PTR_ERR(controller->debugfs.d);
+
+	list_for_each_entry(generator, &controller->generators, list) {
+		generator->debugfs.regset_ro.regs = tsc_signal_generator_debugfs_regset;
+		generator->debugfs.regset_ro.nregs = TSC_SIG_GEN_DEBUGFS_REGSET_SIZE;
+		generator->debugfs.regset_ro.base = generator->base;
+
+		debugfs_create_regset32(
+				generator->of->full_name,
+				0400,
+				controller->debugfs.d,
+				&generator->debugfs.regset_ro);
+	}
+
+	return 0;
+}
+
+static void cdi_tsc_debugfs_remove(struct tsc_signal_controller *controller)
+{
+	debugfs_remove_recursive(controller->debugfs.d);
+	controller->debugfs.d = NULL;
+}
+#endif
 
 static int cdi_tsc_probe(struct platform_device *pdev)
 {
@@ -430,6 +470,12 @@ static int cdi_tsc_probe(struct platform_device *pdev)
 	if (err != 0)
 		return err;
 
+#ifdef CONFIG_DEBUG_FS
+	err = cdi_tsc_debugfs_init(controller);
+	if (err != 0)
+		return err;
+#endif
+
 	return cdi_tsc_start_generators(controller);
 }
 
@@ -437,6 +483,9 @@ static int cdi_tsc_remove(struct platform_device *pdev)
 {
 	struct tsc_signal_controller *controller = platform_get_drvdata(pdev);
 
+#ifdef CONFIG_DEBUG_FS
+	cdi_tsc_debugfs_remove(controller);
+#endif
 	return cdi_tsc_stop_generators(controller);
 }
 
