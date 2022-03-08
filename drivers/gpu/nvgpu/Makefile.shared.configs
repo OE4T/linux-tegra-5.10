@@ -82,6 +82,7 @@ ifeq ($(profile),$(filter $(profile),safety_debug safety_release))
 
 # Enable golden context verification only for safety debug/release build
 NVGPU_COMMON_CFLAGS             +=      \
+	-DCONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION     \
 	-DCONFIG_NVGPU_BUILD_CONFIGURATION_IS_SAFETY
 
 ## For tesing of CTXSW FW error codes manually, enable below configs in safety build.

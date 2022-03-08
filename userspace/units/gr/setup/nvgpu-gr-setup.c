@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -725,13 +725,12 @@ int test_gr_setup_alloc_obj_ctx(struct unit_module *m,
 	if (err != 0) {
 		unit_return_fail(m, "local golden image alloc failed\n");
 	}
-#if 0
 	err = nvgpu_gr_global_ctx_alloc_local_golden_image(g,
 			&g->gr->golden_image->local_golden_image_copy, 0x800);
 	if (err != 0) {
 		unit_return_fail(m, "local golden image copy alloc failed\n");
 	}
-#endif
+
 	/* Test with channel and tsg */
 	err = gr_test_setup_allocate_ch_tsg(m, g);
 	if (err != 0) {
