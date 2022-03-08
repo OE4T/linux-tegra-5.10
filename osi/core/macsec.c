@@ -2921,7 +2921,11 @@ err_sc_state:
 	table_config->rw = OSI_LUT_WRITE;
 	lut_config.lut_sel = OSI_LUT_SEL_SCI;
 	table_config->index = sc->sc_idx_start;
-	macsec_lut_config(osi_core, &lut_config);
+	ret = macsec_lut_config(osi_core, &lut_config);
+	if (ret < 0) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+			     "Failed to set SCI LUT\n", ret);
+	}
 
 err_sci:
 	/* cleanup SC param */
@@ -2930,7 +2934,11 @@ err_sci:
 	table_config->ctlr_sel = ctlr;
 	lut_config.lut_sel = OSI_LUT_SEL_SC_PARAM;
 	table_config->index = sc->sc_idx_start;
-	macsec_lut_config(osi_core, &lut_config);
+	ret = macsec_lut_config(osi_core, &lut_config);
+	if (ret < 0) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+			     "Failed to set SC param LUT\n", ret);
+	}
 
 err_sc_param:
 	/* Cleanup SA state LUT */
@@ -2940,7 +2948,11 @@ err_sc_param:
 	table_config->rw = OSI_LUT_WRITE;
 	lut_config.lut_sel = OSI_LUT_SEL_SA_STATE;
 	table_config->index = (sc->sc_idx_start * OSI_MAX_NUM_SA) + sc->curr_an;
-	macsec_lut_config(osi_core, &lut_config);
+	ret = macsec_lut_config(osi_core, &lut_config);
+	if (ret < 0) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+			     "Failed to set SA state LUT\n", ret);
+	}
 
 err_sa_state:
 #ifdef MACSEC_KEY_PROGRAM
@@ -2949,7 +2961,11 @@ err_sa_state:
 	table_config->ctlr_sel = ctlr;
 	table_config->rw = OSI_LUT_WRITE;
 	table_config->index = *kt_idx;
-	macsec_kt_config(osi_core, &kt_config);
+	ret = macsec_kt_config(osi_core, &kt_config);
+	if (ret < 0) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+			     "Failed to set SAK\n", ret);
+	}
 #endif /* MACSEC_KEY_PROGRAM */
 
 	return -1;
