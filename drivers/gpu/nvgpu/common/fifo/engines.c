@@ -527,6 +527,9 @@ void nvgpu_engine_reset(struct gk20a *g, u32 engine_id)
 	 * Simple case first: reset a copy engine.
 	 */
 	if (nvgpu_device_is_ce(g, dev)) {
+		if (g->ops.ce.halt_engine != NULL) {
+			g->ops.ce.halt_engine(g, dev);
+		}
 		err = nvgpu_mc_reset_dev(g, dev);
 		if (g->ops.ce.request_idle != NULL) {
 			/*

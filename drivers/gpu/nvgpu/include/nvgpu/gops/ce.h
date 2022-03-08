@@ -30,7 +30,7 @@
  * CE HAL interface.
  */
 struct gk20a;
-
+struct nvgpu_device;
 /**
  * CE HAL operations.
  *
@@ -132,6 +132,7 @@ struct gops_ce {
 	int (*ce_init_support)(struct gk20a *g);
 	void (*set_pce2lce_mapping)(struct gk20a *g);
 	void (*init_prod_values)(struct gk20a *g);
+	void (*halt_engine)(struct gk20a *g, const struct nvgpu_device *dev);
 	void (*request_idle)(struct gk20a *g);
 
 	/*

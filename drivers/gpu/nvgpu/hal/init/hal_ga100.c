@@ -429,6 +429,7 @@ static const struct gops_ce ga100_ops_ce = {
 	.get_num_pce = gv11b_ce_get_num_pce,
 	.mthd_buffer_fault_in_bar2_fault = gv11b_ce_mthd_buffer_fault_in_bar2_fault,
 	.init_prod_values = gv11b_ce_init_prod_values,
+	.halt_engine = gv11b_ce_halt_engine,
 	.request_idle = NULL,
 };
 

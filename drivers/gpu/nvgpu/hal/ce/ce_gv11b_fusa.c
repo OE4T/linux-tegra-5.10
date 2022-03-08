@@ -25,6 +25,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/log.h>
 #include <nvgpu/bitops.h>
+#include <nvgpu/device.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/nvgpu_err.h>
 
@@ -116,5 +117,20 @@ void gv11b_ce_init_prod_values(struct gk20a *g)
 		reg_val = nvgpu_readl(g, ce_lce_opt_r(lce));
 		reg_val |= ce_lce_opt_force_barriers_npl__prod_f();
 		nvgpu_writel(g, ce_lce_opt_r(lce), reg_val);
+	}
+}
+
+void gv11b_ce_halt_engine(struct gk20a *g, const struct nvgpu_device *dev)
+{
+	u32 reg_val;
+
+	reg_val = nvgpu_readl(g, ce_lce_engctl_r(dev->inst_id));
+	reg_val |= ce_lce_engctl_stallreq_true_f();
+	nvgpu_writel(g, ce_lce_engctl_r(dev->inst_id), reg_val);
+
+	reg_val = nvgpu_readl(g, ce_lce_engctl_r(dev->inst_id));
+	if ((reg_val & ce_lce_engctl_stallack_true_f()) == 0U) {
+		nvgpu_err(g, "The CE engine %u is not idle"
+					"while reset", dev->inst_id);
 	}
 }
