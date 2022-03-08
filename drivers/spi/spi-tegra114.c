@@ -2,7 +2,7 @@
 /*
  * SPI driver for NVIDIA's Tegra114 SPI Controller.
  *
- * Copyright (c) 2013-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2022, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/clk.h>
@@ -1195,15 +1195,6 @@ static struct tegra_spi_client_data
 		return NULL;
 	}
 
-	cdata = kzalloc(sizeof(*cdata), GFP_KERNEL);
-	if (!cdata)
-		return NULL;
-
-	of_property_read_u32(slave_np, "nvidia,tx-clk-tap-delay",
-			     &cdata->tx_clk_tap_delay);
-	of_property_read_u32(slave_np, "nvidia,rx-clk-tap-delay",
-			     &cdata->rx_clk_tap_delay);
-
 	data_np = of_get_child_by_name(slave_np, "controller-data");
 	if (!data_np) {
 		dev_dbg(&spi->dev, "child node 'controller-data' not found\n");
@@ -1215,6 +1206,11 @@ static struct tegra_spi_client_data
 		of_node_put(data_np);
 		return NULL;
 	}
+
+	of_property_read_u32(slave_np, "nvidia,tx-clk-tap-delay",
+			     &cdata->tx_clk_tap_delay);
+	of_property_read_u32(slave_np, "nvidia,rx-clk-tap-delay",
+			     &cdata->rx_clk_tap_delay);
 
 	ret = of_property_read_bool(data_np, "nvidia,enable-hw-based-cs");
 	if (ret)
