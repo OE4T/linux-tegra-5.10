@@ -1572,13 +1572,6 @@ static void gv11b_gr_intr_report_icache_uncorrected_err(struct gk20a *g,
 			nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_SM,
 					GPU_SM_ICACHE_L1_DATA_ECC_UNCORRECTED);
 		}
-
-		if (ecc_status->err_id[i] == GPU_SM_ICACHE_L1_PREDECODE_ECC_UNCORRECTED) {
-			nvgpu_err(g, "sm_icache_l1_predecode_ecc_uncorrected. "
-					"gpc_id(%d), tpc_id(%d)", gpc, tpc);
-			nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_SM,
-					GPU_SM_ICACHE_L1_PREDECODE_ECC_UNCORRECTED);
-		}
 	}
 }
 
@@ -1606,13 +1599,6 @@ static void gv11b_set_icache_ecc_status_uncorrected_errors(struct gk20a *g,
 	     gr_pri_gpc0_tpc0_sm_icache_ecc_status_uncorrected_err_l1_data_m()) != 0U) {
 		ecc_status->err_id[ecc_status->err_count] =
 				GPU_SM_ICACHE_L1_DATA_ECC_UNCORRECTED;
-		ecc_status->err_count = nvgpu_safe_add_u32(ecc_status->err_count, 1U);
-	}
-
-	if ((icache_ecc_status &
-	     gr_pri_gpc0_tpc0_sm_icache_ecc_status_uncorrected_err_l1_predecode_m()) != 0U) {
-		ecc_status->err_id[ecc_status->err_count] =
-				GPU_SM_ICACHE_L1_PREDECODE_ECC_UNCORRECTED;
 		ecc_status->err_count = nvgpu_safe_add_u32(ecc_status->err_count, 1U);
 	}
 }
