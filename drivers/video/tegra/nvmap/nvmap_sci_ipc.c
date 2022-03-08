@@ -285,6 +285,13 @@ int nvmap_get_handle_from_sci_ipc_id(struct nvmap_client *client, u32 flags,
 				*handle = id;
 		} else {
 			fd = nvmap_get_dmabuf_fd(client, h, is_ro);
+			if (IS_ERR_VALUE((uintptr_t)fd)) {
+				if (dmabuf)
+					dma_buf_put(dmabuf);
+				nvmap_free_handle(client, h, is_ro);
+				ret = -EINVAL;
+				goto unlock;
+			}
 			*handle = fd;
 			fd_install(fd, dmabuf->file);
 		}

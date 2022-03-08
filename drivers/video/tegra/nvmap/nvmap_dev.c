@@ -3,7 +3,7 @@
  *
  * User-space interface to nvmap
  *
- * Copyright (c) 2011-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2011-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -1500,8 +1500,8 @@ int __init nvmap_probe(struct platform_device *pdev)
 				     nvmap_dev->debug_root, &nvmap_init_time);
 #endif
 	}
-	nvmap_dev->dynamic_dma_map_mask = ~0;
-	nvmap_dev->cpu_access_mask = ~0;
+	nvmap_dev->dynamic_dma_map_mask = ~0U;
+	nvmap_dev->cpu_access_mask = ~0U;
 	if (plat)
 		for (i = 0; i < plat->nr_carveouts; i++)
 			nvmap_create_carveout(&plat->carveouts[i]);
