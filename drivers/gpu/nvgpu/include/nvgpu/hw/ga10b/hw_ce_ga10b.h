@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -108,4 +108,8 @@
 #define ce_lce_intr_ctrl_cpu_m()                              (U32(0x1U) << 31U)
 #define ce_lce_intr_ctrl_cpu_enable_f()                            (0x80000000U)
 #define ce_lce_intr_ctrl_cpu_disable_f()                                  (0x0U)
+#define ce_lce_engctl_r(i)\
+		(nvgpu_safe_add_u32(0x0010441cU, nvgpu_safe_mult_u32((i), 128U)))
+#define ce_lce_engctl_stallreq_true_f()                                 (0x100U)
+#define ce_lce_engctl_stallack_true_f()                                 (0x200U)
 #endif

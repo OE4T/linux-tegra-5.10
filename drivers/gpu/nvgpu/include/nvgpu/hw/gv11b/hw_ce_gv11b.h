@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -75,4 +75,8 @@
 #define ce_lce_opt_r(i)\
 		(nvgpu_safe_add_u32(0x00104414U, nvgpu_safe_mult_u32((i), 128U)))
 #define ce_lce_opt_force_barriers_npl__prod_f()                           (0x8U)
+#define ce_lce_engctl_r(i)\
+		(nvgpu_safe_add_u32(0x0010441cU, nvgpu_safe_mult_u32((i), 128U)))
+#define ce_lce_engctl_stallreq_true_f()                                 (0x100U)
+#define ce_lce_engctl_stallack_true_f()                                 (0x200U)
 #endif
