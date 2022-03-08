@@ -227,7 +227,7 @@
 		/* target = <&imx185_cam0>; */
 		target-path = "/i2c@3180000/tca9546@70/i2c@0/imx185_a@1a";
 		board_config {
-			ids = "LPRD-001";
+			ids = "LPRD-002001", "LPRD-002", "LPRD-001";
 			sw-modules = "kernel";
 		};
 		__overlay__ {
@@ -238,7 +238,7 @@
 		//// target = <&cam_module0>;
 		target-path = "/tegra-camera-platform/modules/module0";
 		board_config {
-			ids = "LPRD-001";
+			ids = "LPRD-002001", "LPRD-002", "LPRD-001";
 			sw-modules = "kernel";
 		};
 		__overlay__ {
@@ -252,7 +252,7 @@
 		//// target = <&cam_module0_drivernode0>;
 		target-path = "/tegra-camera-platform/modules/module0/drivernode0";
 		board_config {
-			ids = "LPRD-001";
+			ids = "LPRD-002001", "LPRD-002", "LPRD-001";
 			sw-modules = "kernel";
 		};
 		__overlay__ {
@@ -266,7 +266,7 @@
 		//// target = <&cam_module0_drivernode1>;
 		target-path = "/tegra-camera-platform/modules/module0/drivernode1";
 		board_config {
-			ids = "LPRD-001";
+			ids = "LPRD-002001", "LPRD-002", "LPRD-001";
 			sw-modules = "kernel";
 		};
 		__overlay__ {
@@ -279,7 +279,7 @@
 		//// target = <&capture_vi_base>;
 		target-path = "/tegra-capture-vi";
 		board_config {
-			ids = "LPRD-001";
+			ids = "LPRD-002001", "LPRD-002", "LPRD-001";
 			sw-modules = "kernel";
 		};
 		__overlay__ {
@@ -290,7 +290,7 @@
 		//// target = <&vi_port0>;
 		target-path = "/tegra-capture-vi/ports/port@0";
 		board_config {
-			ids = "LPRD-001";
+			ids = "LPRD-002001", "LPRD-002", "LPRD-001";
 			sw-modules = "kernel";
 		};
 		__overlay__ {
@@ -301,7 +301,7 @@
 		//// target = <&liimx185_vi_in0>;
 		target-path = "/tegra-capture-vi/ports/port@0/endpoint";
 		board_config {
-			ids = "LPRD-001";
+			ids = "LPRD-002001", "LPRD-002", "LPRD-001";
 			sw-modules = "kernel";
 		};
 		__overlay__ {
@@ -317,7 +317,7 @@
 		//// target = <&csi_base>;
 		target-path = "/host1x@13e00000/nvcsi@15a00000";
 		board_config {
-			ids = "LPRD-001";
+			ids = "LPRD-002001", "LPRD-002", "LPRD-001";
 			sw-modules = "kernel";
 		};
 		__overlay__ {
@@ -328,7 +328,7 @@
 		//// target = <&csi_chan0>;
 		target-path = "/host1x@13e00000/nvcsi@15a00000/channel@0";
 		board_config {
-			ids = "LPRD-001";
+			ids = "LPRD-002001", "LPRD-002", "LPRD-001";
 			sw-modules = "kernel";
 		};
 		__overlay__ {
@@ -339,7 +339,7 @@
 		//// target = <&csi_chan0_port0>;
 		target-path = "/host1x@13e00000/nvcsi@15a00000/channel@0/ports/port@0";
 		board_config {
-			ids = "LPRD-001";
+			ids = "LPRD-002001", "LPRD-002", "LPRD-001";
 			sw-modules = "kernel";
 		};
 		__overlay__ {
@@ -350,7 +350,7 @@
 		//// target = <&liimx185_csi_in0>;
 		target-path = "/host1x@13e00000/nvcsi@15a00000/channel@0/ports/port@0/endpoint@0";
 		board_config {
-			ids = "LPRD-001";
+			ids = "LPRD-002001", "LPRD-002", "LPRD-001";
 			sw-modules = "kernel";
 		};
 		__overlay__ {
@@ -365,7 +365,7 @@
 		//// target = <&csi_chan0_port1>;
 		target-path = "/host1x@13e00000/nvcsi@15a00000/channel@0/ports/port@1";
 		board_config {
-			ids = "LPRD-001";
+			ids = "LPRD-002001", "LPRD-002", "LPRD-001";
 			sw-modules = "kernel";
 		};
 		__overlay__ {
@@ -376,7 +376,7 @@
 		//// target = <&liimx185_csi_out0>;
 		target-path = "/host1x@13e00000/nvcsi@15a00000/channel@0/ports/port@1/endpoint@1";
 		board_config {
-			ids = "LPRD-001";
+			ids = "LPRD-002001", "LPRD-002", "LPRD-001";
 			sw-modules = "kernel";
 		};
 		__overlay__ {
@@ -390,7 +390,7 @@
 		//// target = <&tcp>;
 		target-path = "/tegra-camera-platform";
 		board_config {
-			ids = "LPRD-001";
+			ids = "LPRD-002001", "LPRD-002", "LPRD-001";
 			sw-modules = "kernel";
 		};
 		__overlay__ {
@@ -408,7 +408,7 @@
 		//// target = <&tca9546_70>;
 		target-path = "/i2c@3180000/tca9546@70";
 		board_config {
-			ids = "LPRD-001";
+			ids = "LPRD-002001", "LPRD-002", "LPRD-001";
 			sw-modules = "kernel";
 		};
 		__overlay__ {
@@ -421,7 +421,7 @@
 		//// target = <&pca9570_a_24>;
 		target-path = "/i2c@3180000/tca9546@70/i2c@0/pca9570_a@24";
 		board_config {
-			ids = "LPRD-001";
+			ids = "LPRD-002001", "LPRD-002", "LPRD-001";
 			sw-modules = "kernel";
 		};
 		__overlay__ {
