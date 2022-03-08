@@ -156,7 +156,7 @@ static u32 gr_gm20b_intr_check_gr_be_crop_exception(struct gk20a *g,
 		u32 crop = nvgpu_readl(g, gr_crop_hww_esr_r());
 
 		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,
-				GPU_PGRAPH_BE_EXCEPTION);
+				GPU_PGRAPH_BE_CROP_EXCEPTION);
 		nvgpu_err(g, "BE exception: crop exception: esr 0x%08x", crop);
 		nvgpu_writel(g, gr_crop_hww_esr_r(),
 			gr_crop_hww_esr_reset_active_f());
@@ -172,7 +172,7 @@ static u32 gr_gm20b_intr_check_gr_be_zrop_exception(struct gk20a *g,
 		u32 zrop = nvgpu_readl(g, gr_zrop_hww_esr_r());
 
 		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,
-				GPU_PGRAPH_BE_EXCEPTION);
+				GPU_PGRAPH_BE_ZROP_EXCEPTION);
 		nvgpu_err(g, "BE exception: zrop exception: esr 0x%08x", zrop);
 		nvgpu_writel(g, gr_zrop_hww_esr_r(),
 			gr_zrop_hww_esr_reset_active_f());

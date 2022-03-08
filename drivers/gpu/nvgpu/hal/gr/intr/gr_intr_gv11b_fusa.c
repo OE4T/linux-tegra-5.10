@@ -525,7 +525,7 @@ void gv11b_gr_intr_handle_gpc_prop_exception(struct gk20a *g, u32 gpc,
 			nvgpu_safe_add_u32(gr_gpc0_prop_hww_esr_r(), offset));
 
 	nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,
-			GPU_PGRAPH_GPC_GFX_EXCEPTION);
+			GPU_PGRAPH_GPC_GFX_PROP_EXCEPTION);
 
 	/*
 	 * print additional diagnostic information.
@@ -570,7 +570,7 @@ void gv11b_gr_intr_handle_gpc_zcull_exception(struct gk20a *g, u32 gpc,
 			nvgpu_safe_add_u32(gr_gpc0_zcull_hww_esr_r(), offset));
 
 	nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,
-			GPU_PGRAPH_GPC_GFX_EXCEPTION);
+			GPU_PGRAPH_GPC_GFX_ZCULL_EXCEPTION);
 
 	/* clear the interrupt */
 	nvgpu_writel(g, nvgpu_safe_add_u32(
@@ -595,7 +595,7 @@ void gv11b_gr_intr_handle_gpc_setup_exception(struct gk20a *g, u32 gpc,
 			nvgpu_safe_add_u32(gr_gpc0_setup_hww_esr_r(), offset));
 
 	nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,
-			GPU_PGRAPH_GPC_GFX_EXCEPTION);
+			GPU_PGRAPH_GPC_GFX_SETUP_EXCEPTION);
 
 	/* clear the interrupt */
 	nvgpu_writel(g, nvgpu_safe_add_u32(
@@ -622,7 +622,7 @@ void gv11b_gr_intr_handle_gpc_pes_exception(struct gk20a *g, u32 gpc,
 			nvgpu_safe_add_u32(gr_gpc0_ppc0_pes_hww_esr_r(), offset));
 
 	nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,
-			GPU_PGRAPH_GPC_GFX_EXCEPTION);
+			GPU_PGRAPH_GPC_GFX_PES_EXCEPTION);
 
 	/* clear the interrupt */
 	nvgpu_writel(g, nvgpu_safe_add_u32(
@@ -754,7 +754,7 @@ void gv11b_gr_intr_handle_tpc_pe_exception(struct gk20a *g, u32 gpc, u32 tpc)
 	esr = nvgpu_readl(g, nvgpu_safe_add_u32(gr_gpc0_tpc0_pe_hww_esr_r(),
 						offset));
 	nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,
-			GPU_PGRAPH_GPC_GFX_EXCEPTION);
+			GPU_PGRAPH_GPC_GFX_TPC_PE_EXCEPTION);
 
 	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg, "pe hww esr 0x%08x", esr);
 

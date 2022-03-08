@@ -776,7 +776,7 @@ static u32 gr_intr_handle_illegal_interrupts(struct gk20a *g,
 		nvgpu_err(g, "illegal notify pending");
 
 		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,
-				GPU_PGRAPH_ILLEGAL_ERROR);
+				GPU_PGRAPH_ILLEGAL_NOTIFY_ERROR);
 		nvgpu_gr_intr_set_error_notifier(g, isr_data,
 				NVGPU_ERR_NOTIFIER_GR_ILLEGAL_NOTIFY);
 		do_reset = 1U;
@@ -786,7 +786,7 @@ static u32 gr_intr_handle_illegal_interrupts(struct gk20a *g,
 	if (intr_info->illegal_method != 0U) {
 		if (gr_intr_handle_illegal_method(g, isr_data) != 0) {
 			nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,
-					GPU_PGRAPH_ILLEGAL_ERROR);
+					GPU_PGRAPH_ILLEGAL_METHOD_ERROR);
 
 			do_reset = 1U;
 		}
@@ -795,7 +795,7 @@ static u32 gr_intr_handle_illegal_interrupts(struct gk20a *g,
 
 	if (intr_info->illegal_class != 0U) {
 		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,
-				GPU_PGRAPH_ILLEGAL_ERROR);
+				GPU_PGRAPH_ILLEGAL_CLASS_ERROR);
 		nvgpu_err(g, "invalid class 0x%08x, offset 0x%08x",
 			  isr_data->class_num, isr_data->offset);
 
@@ -826,7 +826,8 @@ static u32 gr_intr_handle_error_interrupts(struct gk20a *g,
 
 	if (intr_info->class_error != 0U) {
 		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,
-				GPU_PGRAPH_ILLEGAL_ERROR);
+				GPU_PGRAPH_CLASS_ERROR);
+		nvgpu_err(g, "class error");
 		gr_intr_handle_class_error(g, isr_data);
 		do_reset = 1U;
 		*clear_intr &= ~intr_info->class_error;
