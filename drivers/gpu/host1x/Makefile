@@ -20,7 +20,8 @@ host1x-next-y = \
 	hw/host1x04.o \
 	hw/host1x05.o \
 	hw/host1x06.o \
-	hw/host1x07.o
+	hw/host1x07.o \
+	hw/host1x08.o
 
 host1x-next-$(CONFIG_IOMMU_API) += \
 	context.o
