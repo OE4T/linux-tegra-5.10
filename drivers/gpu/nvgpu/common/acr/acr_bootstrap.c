@@ -33,9 +33,61 @@
 #include <nvgpu/soc.h>
 #include <nvgpu/riscv.h>
 #include <nvgpu/io.h>
+#include <nvgpu/nvgpu_err.h>
 
 #include "acr_bootstrap.h"
 #include "acr_priv.h"
+
+static void acr_report_error_to_sdl(struct gk20a *g, u32 error, u32 error_type)
+{
+	switch (error) {
+	case ACR_ERROR_WDT:
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_GSP_ACR,
+				GPU_GSP_ACR_WDT_UNCORRECTED);
+		nvgpu_err(g, "ACR GSP watchdog timeout");
+		break;
+
+	case ACR_ERROR_REG_ACCESS_FAILURE:
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_GSP_ACR,
+				GPU_GSP_ACR_REG_ACCESS_TIMEOUT_UNCORRECTED);
+		nvgpu_err(g, "ACR register access failure");
+		break;
+
+	case ACR_ERROR_RISCV_EXCEPTION:
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_GSP_ACR,
+				GPU_GSP_ACR_ILLEGAL_ACCESS_UNCORRECTED);
+		nvgpu_err(g, "ACR riscv exception");
+		break;
+
+	case ACR_ERROR_LS_SIG_VERIF_FAIL:
+		switch (error_type) {
+		case FALCON_ID_PMU_NEXT_CORE:
+			nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_GSP_ACR,
+					GPU_GSP_ACR_LSPMU_PKC_LSSIG_FAILURE);
+			nvgpu_err(g, "LSPMU pkc signature verification failed");
+			break;
+
+		case FALCON_ID_FECS:
+			nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_GSP_ACR,
+					GPU_GSP_ACR_FECS_PKC_LSSIG_FAILURE);
+			nvgpu_err(g, "FECS pkc signature verification failed");
+			break;
+
+		case FALCON_ID_GPCCS:
+			nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_GSP_ACR,
+					GPU_GSP_ACR_GPCCS_PKC_LSSIG_FAILURE);
+			nvgpu_err(g, "GPCCS pkc signature verification failed");
+			break;
+
+		default:
+			break;
+		}
+		break;
+
+	default:
+		break;
+	}
+}
 
 int nvgpu_acr_wait_for_completion(struct gk20a *g, struct hs_acr *acr_desc,
 	u32 timeout)
@@ -70,8 +122,24 @@ int nvgpu_acr_wait_for_completion(struct gk20a *g, struct hs_acr *acr_desc,
 		}
 	}
 
+	/*
+	 * When engine-falcon is used for ACR bootstrap, validate the integrity
+	 * of falcon IMEM and DMEM.
+	 */
+	if (acr_desc->acr_validate_mem_integrity != NULL) {
+		if (!acr_desc->acr_validate_mem_integrity(g)) {
+			nvgpu_err(g, "flcn-%d: memcheck failed", flcn_id);
+			completion = -EAGAIN;
+			error_type = ACR_BOOT_FAILED;
+		}
+	}
+
 	data = nvgpu_falcon_mailbox_read(acr_desc->acr_flcn, FALCON_MAILBOX_0);
 	if (data != 0U) {
+		error_type = nvgpu_falcon_mailbox_read(acr_desc->acr_flcn, FALCON_MAILBOX_1);
+		if (nvgpu_is_enabled(g, NVGPU_ACR_NEXT_CORE_ENABLED)) {
+			acr_report_error_to_sdl(g, data, error_type);
+		}
 		nvgpu_err(g, "flcn-%d: HS ucode boot failed, err %x", flcn_id,
 				data);
 		nvgpu_err(g, "flcn-%d: Mailbox-1 : 0x%x", flcn_id,
@@ -86,18 +154,6 @@ int nvgpu_acr_wait_for_completion(struct gk20a *g, struct hs_acr *acr_desc,
 	nvgpu_acr_dbg(g, "flcn-%d: Mailbox-1 : 0x%x", flcn_id,
 				nvgpu_falcon_mailbox_read(acr_desc->acr_flcn,
 				FALCON_MAILBOX_1));
-
-	/*
-	 * When engine-falcon is used for ACR bootstrap, validate the integrity
-	 * of falcon IMEM and DMEM.
-	 */
-	if (acr_desc->acr_validate_mem_integrity != NULL) {
-		if (!acr_desc->acr_validate_mem_integrity(g)) {
-			nvgpu_err(g, "flcn-%d: memcheck failed", flcn_id);
-			completion = -EAGAIN;
-			error_type = ACR_BOOT_FAILED;
-		}
-	}
 
 exit:
 
@@ -392,6 +448,8 @@ int nvgpu_acr_bootstrap_hs_ucode_riscv(struct gk20a *g, struct nvgpu_acr *acr)
 		nvgpu_acr_dbg(g, "RISCV BROM passed");
 		nvgpu_riscv_dump_brom_stats(flcn);
 	} else {
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_GSP_ACR,
+					GPU_GSP_ACR_NVRISCV_BROM_FAILURE);
 		if (err == -ENOTRECOVERABLE) {
 			nvgpu_err(g, "RISCV BROM Failed");
 		} else {

@@ -26,6 +26,7 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/bug.h>
+#include <nvgpu/nvgpu_err.h>
 #ifdef CONFIG_NVGPU_GSP_SCHEDULER
 #include <nvgpu/gsp.h>
 #include <nvgpu/string.h>
@@ -57,6 +58,63 @@ int ga10b_gsp_engine_reset(struct gk20a *g)
 		pgsp_falcon_engine_reset_false_f());
 
 	return 0;
+}
+
+static int ga10b_gsp_handle_ecc(struct gk20a *g, u32 ecc_status)
+{
+	int ret = 0;
+
+	if ((ecc_status &
+		pgsp_falcon_ecc_status_uncorrected_err_imem_m()) != 0U) {
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_GSP_ACR,
+					GPU_GSP_ACR_IMEM_ECC_UNCORRECTED);
+		nvgpu_err(g, "imem ecc error uncorrected");
+		ret = -EFAULT;
+	}
+
+	if ((ecc_status &
+		pgsp_falcon_ecc_status_uncorrected_err_dmem_m()) != 0U) {
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_GSP_ACR,
+					GPU_GSP_ACR_DMEM_ECC_UNCORRECTED);
+		nvgpu_err(g, "dmem ecc error uncorrected");
+		ret = -EFAULT;
+	}
+
+	if ((ecc_status &
+		pgsp_falcon_ecc_status_uncorrected_err_dcls_m()) != 0U) {
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_GSP_ACR,
+					GPU_GSP_ACR_DCLS_UNCORRECTED);
+		nvgpu_err(g, "dcls ecc error uncorrected");
+		ret = -EFAULT;
+	}
+
+	if ((ecc_status &
+		pgsp_falcon_ecc_status_uncorrected_err_reg_m()) != 0U) {
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_GSP_ACR,
+					GPU_GSP_ACR_REG_ECC_UNCORRECTED);
+		nvgpu_err(g, "reg ecc error uncorrected");
+		ret = -EFAULT;
+	}
+
+	if ((ecc_status &
+		pgsp_falcon_ecc_status_uncorrected_err_emem_m()) != 0U) {
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_GSP_ACR,
+					GPU_GSP_ACR_EMEM_ECC_UNCORRECTED);
+		nvgpu_err(g, "emem ecc error uncorrected");
+		ret = -EFAULT;
+	}
+
+	return ret;
+}
+
+bool ga10b_gsp_validate_mem_integrity(struct gk20a *g)
+{
+	u32 ecc_status;
+
+	ecc_status = nvgpu_readl(g, pgsp_falcon_ecc_status_r());
+
+	return ((ga10b_gsp_handle_ecc(g, ecc_status) == 0) ? true :
+			false);
 }
 
 #ifdef CONFIG_NVGPU_GSP_SCHEDULER

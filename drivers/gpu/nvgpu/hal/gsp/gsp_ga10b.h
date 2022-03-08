@@ -26,6 +26,7 @@
 u32 ga10b_gsp_falcon_base_addr(void);
 u32 ga10b_gsp_falcon2_base_addr(void);
 int ga10b_gsp_engine_reset(struct gk20a *g);
+bool ga10b_gsp_validate_mem_integrity(struct gk20a *g);
 #ifdef CONFIG_NVGPU_GSP_SCHEDULER
 void ga10b_gsp_flcn_setup_boot_config(struct gk20a *g);
 
