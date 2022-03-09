@@ -80,31 +80,10 @@ static bool cvnas_rail;
 #define HSM_CVSRAM_ECC_DED_MASK_0	0x80000000
 #define HSM_CVSRAM_ECC_DED_MASK_1	0x00000007
 
-struct cvnas_device {
-	struct dentry *debugfs_root;
-
-	void __iomem *cvsram_iobase;
-	void __iomem *cvreg_iobase;
-	void __iomem *hsm_iobase;
-
-	struct device dma_dev;
-
-	int nslices;
-	int slice_size;
-	phys_addr_t cvsram_base;
-	size_t cvsram_size;
-
-	struct clk *clk;
-	struct device_attribute *attr;
-
-	struct reset_control *rst;
-	struct reset_control *rst_fcm;
-
-	bool virt;
-
-	int (*pmops_busy)(void);
-	int (*pmops_idle)(void);
-};
+struct cvnas_device *cvnas_dev;
+#ifndef CVNAS_MODULE
+EXPORT_SYMBOL(cvnas_dev);
+#endif /* !CVNAS_MODULE */
 
 static struct platform_device *cvnas_plat_dev;
 
@@ -542,7 +521,6 @@ MODULE_DEVICE_TABLE(of, nvcvnas_of_ids);
 
 static int nvcvnas_probe(struct platform_device *pdev)
 {
-	struct cvnas_device *cvnas_dev;
 	int ret;
 	u32 cvsram_slice_data[2];
 	u32 cvsram_reg_data[4];
@@ -654,6 +632,7 @@ static int nvcvnas_probe(struct platform_device *pdev)
 	cvnas_dev->pmops_busy = nvcvnas_busy;
 	cvnas_dev->pmops_idle = nvcvnas_idle;
 
+#ifdef CVNAS_MODULE
 	ret = nvmap_register_cvsram_carveout(&cvnas_dev->dma_dev,
 			cvnas_dev->cvsram_base, cvnas_dev->cvsram_size,
 			cvnas_dev->pmops_busy, cvnas_dev->pmops_idle);
@@ -662,14 +641,16 @@ static int nvcvnas_probe(struct platform_device *pdev)
 			"nvmap cvsram register failed. ret=%d\n", ret);
 		goto err_cvsram_nvmap_heap_register;
 	}
-
+#endif /* CVNAS_MODULE */
 	dev_set_drvdata(&pdev->dev, cvnas_dev);
 
 	/* TODO: Add interrupt handler */
 
 	return 0;
+#ifdef CVNAS_MODULE
 err_cvsram_nvmap_heap_register:
 	debugfs_remove(cvnas_dev->debugfs_root);
+#endif /* CVNAS_MODULE */
 err_cvnas_debugfs_init:
 err_get_reset_fcm:
 err_get_reset:

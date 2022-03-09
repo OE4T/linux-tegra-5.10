@@ -42,6 +42,17 @@
 #include <linux/iommu.h>
 #include <linux/version.h>
 
+#ifdef CVNAS_BUILTIN
+#include <linux/cvnas.h>
+#include <linux/nvmap_t19x.h>
+#endif /* CVNAS_BUILTIN */
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
+#include <soc/tegra/chip-id.h>
+#else
+#include <soc/tegra/fuse.h>
+#endif
+
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)
 #include <linux/sched/clock.h>
 #endif
@@ -69,6 +80,10 @@
 struct nvmap_device *nvmap_dev;
 EXPORT_SYMBOL(nvmap_dev);
 ulong nvmap_init_time;
+
+#ifdef CVNAS_BUILTIN
+extern struct cvnas_device *cvnas_dev;
+#endif /* CVNAS_BUILTIN */
 
 static struct device_dma_parameters nvmap_dma_parameters = {
 	.max_segment_size = UINT_MAX,
@@ -1510,7 +1525,23 @@ int __init nvmap_probe(struct platform_device *pdev)
 	if (e)
 		goto fail_heaps;
 
+#ifdef CVNAS_BUILTIN
+	if (tegra_get_chip_id() == TEGRA194) {
+		e = nvmap_register_cvsram_carveout(&cvnas_dev->dma_dev,
+			cvnas_dev->cvsram_base, cvnas_dev->cvsram_size,
+			cvnas_dev->pmops_busy, cvnas_dev->pmops_idle);
+		if (e) {
+			dev_err(&pdev->dev, "failed to register cvsram carveout\n");
+			goto fail_sci_ipc;
+		}
+	}
+#endif /* CVNAS_BUILTIN */
+
 	goto finish;
+#ifdef CVNAS_BUILTIN
+fail_sci_ipc:
+	nvmap_sci_ipc_exit();
+#endif /* CVNAS_BUILTIN */
 fail_heaps:
 	debugfs_remove_recursive(nvmap_dev->debug_root);
 	for (i = 0; i < dev->nr_carveouts; i++) {

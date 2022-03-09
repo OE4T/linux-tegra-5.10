@@ -13,3 +13,6 @@ ccflags-y += -DCONFIG_TEGRA_FUSE_UPSTREAM
 endif
 
 obj-$(CONFIG_TEGRA_CVNAS) += cvnas.o
+ifeq ($(CONFIG_TEGRA_CVNAS),m)
+ccflags-y += -DCVNAS_MODULE
+endif
