@@ -30,12 +30,12 @@
 
 #define NV(p) "nvidia," #p
 
-int ivc_chan_count;
+uint32_t ivc_chan_count;
 struct tegra_safety_ivc_chan *tegra_safety_get_ivc_chan_from_str(
 		struct tegra_safety_ivc *safety_ivc,
 		char *ch_name)
 {
-	int i;
+	uint32_t i;
 
 	for (i = 0; i < ivc_chan_count; i++) {
 		if (strcmp(safety_ivc->ivc_chan[i]->name, ch_name) == 0)
@@ -351,7 +351,7 @@ static int tegra_safety_ivc_remove(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
 	struct tegra_safety_ivc *safety_ivc = dev_get_drvdata(dev);
-	int i;
+	uint32_t i;
 
 	if (!safety_ivc)
 		return 0;
@@ -376,7 +376,8 @@ static int tegra_safety_ivc_probe(struct platform_device *pdev)
 {
 	struct tegra_safety_ivc *safety_ivc;
 	struct device *dev = &pdev->dev;
-	int ret, i;
+	int ret;
+	uint32_t i;
 	nv_guard_request_t req;
 
 	dev_info(dev, "Probing sce safety driver\n");

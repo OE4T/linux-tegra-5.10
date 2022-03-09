@@ -65,8 +65,8 @@ struct tegra_safety_ivc_chan {
 	struct tegra_safety_ivc *safety_ivc;
 };
 
-int tegra_safety_dev_init(struct device *dev, int index);
-void tegra_safety_dev_exit(struct device *dev, int index);
+int tegra_safety_dev_init(struct device *dev, uint32_t index);
+void tegra_safety_dev_exit(struct device *dev, uint32_t index);
 void tegra_safety_dev_notify(void);
 struct tegra_safety_ivc_chan *tegra_safety_get_ivc_chan_from_str(
 		struct tegra_safety_ivc *safety_ivc,
