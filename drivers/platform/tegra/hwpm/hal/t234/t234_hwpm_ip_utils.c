@@ -602,14 +602,14 @@ int t234_hwpm_init_fs_info(struct tegra_soc_hwpm *hwpm)
 
 		/* MSS ISO NISO HUBS */
 		ret = t234_hwpm_set_fs_info(hwpm, addr_map_mc0_base_r(),
-			TEGRA_SOC_HWPM_IP_MSS_ISO_NISO_HUBS, true);
+			T234_HWPM_IP_MSS_ISO_NISO_HUBS, true);
 		if (ret != 0) {
 			goto fail;
 		}
 
 		/* MSS MCF */
 		ret = t234_hwpm_set_fs_info(hwpm, addr_map_mc0_base_r(),
-			TEGRA_SOC_HWPM_IP_MSS_MCF, true);
+			T234_HWPM_IP_MSS_MCF, true);
 		if (ret != 0) {
 			goto fail;
 		}
@@ -666,7 +666,7 @@ int t234_hwpm_get_fs_info(struct tegra_soc_hwpm *hwpm,
 		if (ip_idx == T234_HWPM_IP_MSS_CHANNEL) {
 			for (i = 0U; i < 4U; i++) {
 				if (((0x1U << i) & chip_ip->fs_mask) != 0U) {
-					mcc_fs_mask |= (0xFU << i);
+					mcc_fs_mask |= (0xFU << (i*4U));
 				}
 			}
 			*fs_mask = mcc_fs_mask;
