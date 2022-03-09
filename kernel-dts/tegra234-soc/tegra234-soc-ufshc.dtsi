@@ -37,8 +37,12 @@
 
 	tegra_ufs: ufshci@2500000 {
 		compatible = "tegra,ufs_variant";
-		reg = <0x0 0x02500000 0x0 0x4000    /* UFSHC Registers (16K) */
-			0x0 0x02510000 0x0 0x1000>; /* UFSHC_AUX Registers (4K) */
+		reg = <0x0 0x02500000 0x0 0x4000        /* UFSHC_MMIO Registers (16K) */
+			0x0 0x02510000 0x0 0x1000       /* UFSHC_AUX Registers (4K) */
+			 0x0 0x02518000 0x0 0x1000      /* UFSHC_FPGA Registers (4K) */
+			  0x0 0x02520000 0x0 0x1000     /* UFSHC_VIRT Registers (4K) */
+			   0x0 0x02470000 0x0 0x4000    /* MPHY_L0 Registers (16K) */
+			    0x0 0x02480000 0x0 0x4000>; /* MPHY_L1 Registers (16K) */
 		interrupts = < 0 44 0x04 >;
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		interconnects = <&mc TEGRA234_MEMORY_CLIENT_UFSHCR>,
