@@ -33,12 +33,23 @@
 		#cooling-cells = <2>;
 	};
 
+	hot_surface_alert: hot-surface-alert {
+		compatible = "userspace-therm-alert";
+		cdev-type = "hot-surface-alert";
+		status = "disabled";
+		#cooling-cells = <2>;
+	};
+
 	thermal-zones {
 		CPU-therm {
 			cooling-maps {
 				user-alert-map0 {
 					trip = <&cpu_sw_throttle>;
 					cooling-device = <&cpu_alert 1 1>;
+				};
+				hot-surface-alert-map0 {
+					trip = <&cpu_hot_surface>;
+					cooling-device = <&hot_surface_alert 1 1>;
 				};
 			};
 		};
@@ -48,6 +59,10 @@
 					trip = <&aux_sw_throttle>;
 					cooling-device = <&aux_alert 1 1>;
 				};
+				hot-surface-alert-map0 {
+					trip = <&aux_hot_surface>;
+					cooling-device = <&hot_surface_alert 1 1>;
+				};
 			};
 		};
 		GPU-therm {
@@ -55,6 +70,10 @@
 				user-alert-map0 {
 					trip = <&gpu_sw_throttle>;
 					cooling-device = <&gpu_alert 1 1>;
+				};
+				hot-surface-alert-map0 {
+					trip = <&gpu_hot_surface>;
+					cooling-device = <&hot_surface_alert 1 1>;
 				};
 			};
 		};

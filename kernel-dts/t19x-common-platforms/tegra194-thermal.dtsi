@@ -127,6 +127,12 @@
 					hysteresis = <0>;
 					writable;
 				};
+
+				cpu_hot_surface: cpu-hot-surface {
+					temperature = <70000>;
+					hysteresis = <8000>;
+					type = "active";
+				};
 			};
 
 			cooling-maps {
@@ -161,6 +167,12 @@
 					type = "passive";
 					hysteresis = <0>;
 					writable;
+				};
+
+				aux_hot_surface: aux-hot-surface {
+					temperature = <70000>;
+					hysteresis = <8000>;
+					type = "active";
 				};
 			};
 
@@ -197,6 +209,12 @@
 					type = "passive";
 					hysteresis = <0>;
 					writable;
+				};
+
+				gpu_hot_surface: gpu-hot-surface {
+					temperature = <70000>;
+					hysteresis = <8000>;
+					type = "active";
 				};
 			};
 
