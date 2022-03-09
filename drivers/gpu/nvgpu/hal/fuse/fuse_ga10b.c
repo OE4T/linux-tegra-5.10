@@ -1,7 +1,7 @@
 /*
  * GA10B FUSE
  *
- * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -73,7 +73,11 @@ bool ga10b_fuse_is_opt_ecc_enable(struct gk20a *g)
 	bool ecc_enable = nvgpu_readl(g, fuse_opt_ecc_en_r()) != 0U;
 
 	if (nvgpu_platform_is_silicon(g) && !ecc_enable) {
+#ifdef CONFIG_NVGPU_NON_FUSA
+		nvgpu_log_info(g, "OPT_ECC_EN fuse not set");
+#else
 		nvgpu_err(g, "OPT_ECC_EN fuse not set");
+#endif
 	}
 
 	return ecc_enable;
