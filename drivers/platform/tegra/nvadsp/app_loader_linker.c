@@ -893,7 +893,7 @@ struct adsp_module *load_adsp_dynamic_module(const char *appname,
 
 	/* Figure out module layout, and allocate all the memory. */
 	mod = layout_and_allocate(&info);
-	if (IS_ERR(mod))
+	if (IS_ERR_OR_NULL(mod))
 		goto error_free_memory;
 
 	/* update adsp specific sections */

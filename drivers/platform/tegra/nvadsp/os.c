@@ -332,7 +332,7 @@ bool is_adsp_dram_addr(u64 addr)
 
 int nvadsp_add_load_mappings(phys_addr_t pa, void *mapping, int len)
 {
-	if (map_idx >= NM_LOAD_MAPPINGS)
+	if (map_idx < 0 || map_idx >= NM_LOAD_MAPPINGS)
 		return -EINVAL;
 
 	adsp_map[map_idx].da = pa;
@@ -884,7 +884,7 @@ static int nvadsp_firmware_load(struct platform_device *pdev)
 	}
 
 	shared_mem = get_mailbox_shared_region(fw);
-	if (IS_ERR(shared_mem)) {
+	if (IS_ERR_OR_NULL(shared_mem)) {
 		if (drv_data->chip_data->adsp_shared_mem_hwmbox != 0) {
 			/*
 			 * If FW is not explicitly defining a shared memory
