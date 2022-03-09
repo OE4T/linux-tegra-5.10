@@ -480,7 +480,12 @@ static int nvsciipc_probe(struct platform_device *pdev)
 		goto error;
 	}
 
-	snprintf(ctx->device_name, (MAX_NAME_SIZE - 1), "%s", MODULE_NAME);
+	if (snprintf(ctx->device_name, (MAX_NAME_SIZE - 1), "%s", MODULE_NAME) < 0) {
+		pr_err("snprintf() failed\n");
+		ret = -ENOMEM;
+		goto error;
+	}
+
 	ctx->device = device_create(ctx->nvsciipc_class, NULL,
 			ctx->dev_t, ctx,
 			ctx->device_name);

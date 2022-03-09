@@ -278,8 +278,14 @@ static int __init add_ivc_mempool_dev(struct ivc_mempool_dev *mempooldev,
 		pr_err("user_ivc_mempool: ### device add failed\n");
 		return ret;
 	}
-	snprintf(mempooldev->name, sizeof(mempooldev->name) - 1,
+
+	ret = snprintf(mempooldev->name, sizeof(mempooldev->name) - 1,
 			"uivcmpool%d", mempooldev->mempoolcfg->id);
+	if (ret < 0) {
+		pr_err("user_ivc_mempool: ### snprintf failed\n");
+		return -ENOMEM;
+	}
+
 	mempooldev->device = device_create(ivc_mempool_class, NULL,
 			mempooldev->dev, mempooldev, mempooldev->name);
 	if (IS_ERR(mempooldev->device)) {
