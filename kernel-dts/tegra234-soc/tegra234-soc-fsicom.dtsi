@@ -44,9 +44,13 @@
 #endif
 		mbox-names = "epl-tx";
 
+		/* Device driver's name for reporting errors via MISCREG_MISC_EC_ERR0_SW_ERR_CODE_0 */
 		client-misc-sw-generic-err0 = "fsicom_client";
+		/* Device driver's name for reporting errors via MISCREG_MISC_EC_ERR1_SW_ERR_CODE_0 */
 		client-misc-sw-generic-err1 = "gk20b";
+		/* Device driver's name for reporting errors via MISCREG_MISC_EC_ERR3_SW_ERR_CODE_0 */
 		client-misc-sw-generic-err3 = "gk20d";
+		/* Device driver's name for reporting errors via MISCREG_MISC_EC_ERR4_SW_ERR_CODE_0 */
 		client-misc-sw-generic-err4 = "gk20e";
 
 		status = "disabled";
