@@ -4703,6 +4703,23 @@ static void wke_read_sw_wake_status(u32 *status)
 		status[i] = readl(pmc->wake + WAKE_AOWAKE_SW_STATUS(i));
 }
 
+static void wke_clear_wake_status(void)
+{
+	u32 status;
+	int i, wake;
+	unsigned long ulong_status;
+
+	for (i = 0; i < WAKE_NR_VECTORS; i++) {
+		status = readl(pmc->wake + WAKE_AOWAKE_STATUS_R(i));
+		status = status & readl(pmc->wake +
+				WAKE_AOWAKE_TIER2_ROUTING(i));
+		ulong_status = (unsigned long)status;
+		for_each_set_bit(wake, &ulong_status, 32)
+			wke_32kwritel(0x1,
+				WAKE_AOWAKE_STATUS_W((i * 32) + wake));
+	}
+}
+
 static int tegra_pmc_suspend(struct device *dev)
 {
 	u32 status[WAKE_NR_VECTORS];
@@ -4719,6 +4736,9 @@ static int tegra_pmc_suspend(struct device *dev)
 		lvl[i] = ~status[i] & wke_wake_level_any[i];
 		wake_level[i] = lvl[i] | wke_wake_level[i];
 	}
+
+	/* Clear PMC Wake Status registers while going to suspend */
+	wke_clear_wake_status();
 
 	wke_write_wake_levels(wake_level);
 
