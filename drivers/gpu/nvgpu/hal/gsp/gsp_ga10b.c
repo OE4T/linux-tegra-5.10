@@ -27,6 +27,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/nvgpu_err.h>
+#include <nvgpu/power_features/cg.h>
 #ifdef CONFIG_NVGPU_GSP_SCHEDULER
 #include <nvgpu/gsp.h>
 #include <nvgpu/string.h>
@@ -56,6 +57,9 @@ int ga10b_gsp_engine_reset(struct gk20a *g)
 	nvgpu_udelay(10);
 	gk20a_writel(g, pgsp_falcon_engine_r(),
 		pgsp_falcon_engine_reset_false_f());
+
+	/* Load SLCG prod values for GSP */
+	nvgpu_cg_slcg_gsp_load_enable(g, true);
 
 	return 0;
 }

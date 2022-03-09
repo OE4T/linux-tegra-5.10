@@ -515,6 +515,43 @@ void nvgpu_cg_slcg_ce2_load_enable(struct gk20a *g);
  */
 void nvgpu_cg_elcg_ce_load_enable(struct gk20a *g);
 
+/**
+ * @brief During nvgpu power-on, as part of GSP initialization,
+ *        this function is called to load register configuration
+ *        for SLCG for GSP.
+ *
+ * @param g [in] The GPU driver struct.
+ *
+ * Checks the platform software capability slcg_enabled and programs registers
+ * for configuring production gating values for SLCG for GSP. This is called
+ * in #nvgpu_gsp_sched_bootstrap_ns.
+ *
+ * Steps:
+ * - Acquire the mutex #cg_pg_lock.
+ * - Check if #slcg_enabled is set, else skip SLCG programming.
+ * - Load SLCG prod settings for GSP.
+ * - Release the mutex #cg_pg_lock.
+ */
+void nvgpu_cg_slcg_gsp_load_enable(struct gk20a *g, bool enable);
+
+/**
+ * @brief During nvgpu power-on, as part of GSP initialization,
+ *        this function is called to load register configuration
+ *        for SLCG for CTRL unit.
+ *
+ * @param g [in] The GPU driver struct.
+ *
+ * Checks the platform software capability slcg_enabled and programs registers
+ * for configuring production gating values for SLCG for CTRL.
+ *
+ * Steps:
+ * - Acquire the mutex #cg_pg_lock.
+ * - Check if #slcg_enabled is set, else skip SLCG programming.
+ * - Load SLCG prod settings for CTRL.
+ * - Release the mutex #cg_pg_lock.
+ */
+void nvgpu_cg_slcg_ctrl_load_enable(struct gk20a *g, bool enable);
+
 #ifdef CONFIG_NVGPU_NON_FUSA
 
 void nvgpu_cg_elcg_enable(struct gk20a *g);

@@ -660,6 +660,13 @@ static int nvgpu_init_cg_ltc_load_gating_prod(struct gk20a *g)
 	return 0;
 }
 
+static int nvgpu_init_cg_ctrl_load_gating_prod(struct gk20a *g)
+{
+	nvgpu_cg_slcg_ctrl_load_enable(g, true);
+
+	return 0;
+}
+
 static int nvgpu_ipa_pa_rwsem_init(struct gk20a *g)
 {
 	nvgpu_rwsem_init(&(g->ipa_pa_cache.ipa_pa_rw_lock));
@@ -909,6 +916,9 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		 * Bug 3469873
 		 */
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_cg_ltc_load_gating_prod,
+								NO_FLAG),
+		/* Load SLCG for CTRL unit */
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_cg_ctrl_load_gating_prod,
 								NO_FLAG),
 #ifdef CONFIG_NVGPU_DGPU
 		NVGPU_INIT_TABLE_ENTRY(g->ops.sec2.init_sec2_support,
