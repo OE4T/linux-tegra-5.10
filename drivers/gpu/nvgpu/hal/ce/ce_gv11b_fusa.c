@@ -67,7 +67,6 @@ void gv11b_ce_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 		nvgpu_err(g, "ce: inst %d: invalid config", inst_id);
 		clear_intr |= ce_intr_status_invalid_config_reset_f();
 	}
-#endif
 
 	/*
 	 * A MTHD_BUFFER_FAULT interrupt will be triggered if any access
@@ -81,6 +80,7 @@ void gv11b_ce_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 		nvgpu_err(g, "ce: inst %d: mthd buffer fault", inst_id);
 		clear_intr |= ce_intr_status_mthd_buffer_fault_reset_f();
 	}
+#endif
 
 	nvgpu_writel(g, ce_intr_status_r(inst_id), clear_intr);
 

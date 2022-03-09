@@ -38,19 +38,19 @@
 static u32 ce_lce_intr_mask(void)
 {
 	/* Note: Poison error(fault containment) is not supported on GA10b. */
-	u32 mask = ce_lce_intr_en_launcherr_m() |
+	u32 mask =
+#ifdef CONFIG_NVGPU_NONSTALL_INTR
+		ce_lce_intr_en_nonblockpipe_m() |
+#endif
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
 		ce_lce_intr_en_stalling_debug_m() |
 		ce_lce_intr_en_blockpipe_m() |
 		ce_lce_intr_en_invalid_config_m() |
-#endif
-#ifdef CONFIG_NVGPU_NONSTALL_INTR
-		ce_lce_intr_en_nonblockpipe_m() |
-#endif
 		ce_lce_intr_en_mthd_buffer_fault_m() |
 		ce_lce_intr_en_fbuf_crc_fail_m() |
-		ce_lce_intr_en_fbuf_magic_chk_fail_m();
-
+		ce_lce_intr_en_fbuf_magic_chk_fail_m() |
+#endif
+		ce_lce_intr_en_launcherr_m();
 	return mask;
 }
 
@@ -192,6 +192,7 @@ void ga10b_ce_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 	nvgpu_log(g, gpu_dbg_intr, "ce(%u) isr 0x%08x 0x%08x", inst_id,
 			ce_intr, inst_id);
 
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	/*
 	 * Mismatch between the CRC entry in fault buffer and the
 	 * CRC computed from the methods in the buffer.
@@ -212,7 +213,6 @@ void ga10b_ce_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 		clear_intr |= ce_intr_status_fbuf_magic_chk_fail_reset_f();
 	}
 
-#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	/*
 	 * The stalling_debug error interrupt is triggered when SW writes TRUE
 	 * to NV_CE_LCE_OPT_EXT_DEBUG_TRIGGER_STALLING.

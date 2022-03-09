@@ -300,10 +300,10 @@ struct mmu_fault_info;
  * @{
  */
 #define GPU_CE_LAUNCH_ERROR			(0x0)
+#ifdef CONFIG_NVGPU_NON_FUSA
 #define GPU_CE_METHOD_BUFFER_FAULT		(0x1)
 #define GPU_CE_FBUF_CRC_FAIL			(0x2)
 #define GPU_CE_FBUF_MAGIC_CHK_FAIL		(0x3)
-#ifdef CONFIG_NVGPU_NON_FUSA
 #define GPU_CE_INVALID_CONFIG			(0x4)
 #endif
 /**

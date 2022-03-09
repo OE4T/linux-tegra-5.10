@@ -207,8 +207,8 @@ int test_ce_stall_isr(struct unit_module *m, struct gk20a *g, void *args)
 	g->ops.ce.isr_stall = gv11b_ce_stall_isr;
 	for (inst_id = 0; inst_id < NUM_INST; inst_id++) {
 		intr_status_written[inst_id] = 0;
-		/* all intr sources except (non)blockpipe as they are not supported on safety */
-		intr_val = 0x14;
+		/* all intr sources except launcherr as they are not supported on safety */
+		intr_val = 0x4;
 		nvgpu_posix_io_writel_reg_space(g, ce_intr_status_r(inst_id),
 						intr_val);
 		g->ops.ce.isr_stall(g, inst_id, 0);

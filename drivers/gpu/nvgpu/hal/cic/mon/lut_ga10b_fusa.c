@@ -627,6 +627,7 @@ struct nvgpu_err_hw_module ga10b_err_lut[] = {
 					INJECT_SW,
 					NULL, NULL,
 					NULL, NULL, 0, 0),
+#ifdef CONFIG_NVGPU_NON_FUSA
 			GPU_CRITERR("ce_method_buffer_fault",
 					GPU_CE_METHOD_BUFFER_FAULT,
 					INJECT_SW,
@@ -642,7 +643,6 @@ struct nvgpu_err_hw_module ga10b_err_lut[] = {
 					INJECT_NONE,
 					NULL, NULL,
 					NULL, NULL, 0, 0),
-#ifdef CONFIG_NVGPU_NON_FUSA
 			GPU_CRITERR("ce_invalid_config",
 					GPU_CE_INVALID_CONFIG,
 					INJECT_SW,
