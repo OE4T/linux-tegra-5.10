@@ -224,6 +224,42 @@ void nvgpu_rc_gr_fault(struct gk20a *g, struct nvgpu_tsg *tsg,
 	nvgpu_log(g, gpu_dbg_gr, "done");
 }
 
+void nvgpu_rc_ce_fault(struct gk20a *g, u32 inst_id)
+{
+	struct nvgpu_channel *ch = NULL;
+	struct nvgpu_tsg *tsg = NULL;
+	u32 chid = NVGPU_INVALID_CHANNEL_ID;
+	u64 inst_ptr = 0U;
+
+	if (g->ops.ce.get_inst_ptr_from_lce != NULL) {
+		inst_ptr = g->ops.ce.get_inst_ptr_from_lce(g,
+						inst_id);
+	}
+	/* refch will be put back before recovery */
+	ch = nvgpu_channel_refch_from_inst_ptr(g, inst_ptr);
+	if (ch == NULL) {
+		return;
+	} else {
+		chid = ch->chid;
+		nvgpu_channel_put(ch);
+		tsg = nvgpu_tsg_from_ch(ch);
+		if (tsg == NULL) {
+			nvgpu_err(g, "channel_id: %d not bound to tsg",
+						chid);
+			/* ToDo: Trigger Quiesce? */
+			return;
+		}
+		nvgpu_tsg_set_error_notifier(g, tsg, NVGPU_ERR_NOTIFIER_CE_ERROR);
+	}
+#ifdef CONFIG_NVGPU_RECOVERY
+	nvgpu_rc_tsg_and_related_engines(g, tsg, true,
+			RC_TYPE_CE_FAULT);
+#else
+	WARN_ON(!g->sw_quiesce_pending);
+	(void)tsg;
+#endif
+}
+
 void nvgpu_rc_sched_error_bad_tsg(struct gk20a *g)
 {
 #ifdef CONFIG_NVGPU_RECOVERY

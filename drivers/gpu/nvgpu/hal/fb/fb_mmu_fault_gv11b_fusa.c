@@ -469,8 +469,9 @@ void gv11b_fb_handle_bar2_fault(struct gk20a *g,
 		}
 	}
 #endif
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	g->ops.ce.mthd_buffer_fault_in_bar2_fault(g);
-
+#endif
 	err = g->ops.bus.bar2_bind(g, &g->mm.bar2.inst_block);
 	if (err != 0) {
 		nvgpu_err(g, "bar2_bind failed!");

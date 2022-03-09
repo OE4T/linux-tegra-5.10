@@ -116,33 +116,6 @@ int test_ce_init_support(struct unit_module *m, struct gk20a *g, void *args);
 int test_ce_stall_isr(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
- * Test specification for: test_mthd_buffer_fault_in_bar2_fault
- *
- * Description: Validate method buffer interrupt functionality.
- *
- * Test Type: Feature
- *
- * Targets: gops_ce.mthd_buffer_fault_in_bar2_fault,
- *          gv11b_ce_mthd_buffer_fault_in_bar2_fault
- *
- * Input: test_ce_setup_env must have been run.
- *
- * Steps:
- * - Set all CE interrupt sources pending in the interrupt status reg for each
- *   instance.
- * - Call gops_ce.mthd_buffer_fault_in_bar2_fault.
- * - Verify only the correct interrupt is cleared.
- * - Set no CE interrupt sources pending in the interrupt status reg for each
- *   instance.
- * - Call gops_ce.mthd_buffer_fault_in_bar2_fault.
- * - Verify no interrupts are cleared.
- *
- * Output: Returns PASS if expected result is met, FAIL otherwise.
- */
-int test_mthd_buffer_fault_in_bar2_fault(struct unit_module *m, struct gk20a *g,
-					void *args);
-
-/**
  * Test specification for: test_get_num_pce
  *
  * Description: Validate function to get number of PCEs.

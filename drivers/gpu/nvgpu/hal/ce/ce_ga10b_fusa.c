@@ -184,7 +184,8 @@ void ga10b_ce_intr_enable(struct gk20a *g, bool enable)
 	}
 }
 
-void ga10b_ce_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
+void ga10b_ce_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base,
+				bool *needs_rc, bool *needs_quiesce)
 {
 	u32 ce_intr = nvgpu_readl(g, ce_intr_status_r(inst_id));
 	u32 clear_intr = 0U;
@@ -199,6 +200,7 @@ void ga10b_ce_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 	 */
 	if ((ce_intr & ce_intr_status_fbuf_crc_fail_pending_f()) != 0U) {
 		nvgpu_err(g, "ce: inst %d, fault buffer crc mismatch", inst_id);
+		*needs_quiesce |= true;
 		clear_intr |= ce_intr_status_fbuf_crc_fail_reset_f();
 	}
 
@@ -210,6 +212,7 @@ void ga10b_ce_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 	if ((ce_intr & ce_intr_status_fbuf_magic_chk_fail_pending_f()) != 0U) {
 		nvgpu_err(g, "ce: inst %d, fault buffer magic check fail",
 				inst_id);
+		*needs_quiesce |= true;
 		clear_intr |= ce_intr_status_fbuf_magic_chk_fail_reset_f();
 	}
 
@@ -229,7 +232,7 @@ void ga10b_ce_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 	 * The remaining legacy interrupts are handled by legacy interrupt
 	 * handler.
 	 */
-	gv11b_ce_stall_isr(g, inst_id, pri_base);
+	gv11b_ce_stall_isr(g, inst_id, pri_base, needs_rc, needs_quiesce);
 }
 
 void ga10b_ce_intr_retrigger(struct gk20a *g, u32 inst_id)

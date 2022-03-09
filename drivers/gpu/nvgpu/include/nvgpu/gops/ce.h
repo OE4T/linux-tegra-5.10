@@ -40,9 +40,13 @@ struct gops_ce {
 	/**
 	 * @brief Handler for CE stalling interrupts.
 	 *
-	 * @param g [in]	The GPU driver struct.
-	 * @param inst_id [in]	Copy engine instance id.
-	 * @param pri_base [in]	Start of h/w register address space.
+	 * @param g [in]	       The GPU driver struct.
+	 * @param inst_id [in]	       Copy engine instance id.
+	 * @param pri_base [in]	       Start of h/w register address space.
+	 * @param needs_rc [out]       Flag indicating if recovery should be
+	 *                             triggered as part of CE error handling.
+	 * @param needs_quiesce [out]  Flag indicating if SW quiesce should be
+	 *                             triggered as part of CE error handling.
 	 *
 	 * This function is invoked by MC stalling isr handler to handle
 	 * the CE stalling interrupt.
@@ -56,9 +60,11 @@ struct gops_ce {
 	 *   - Method buffer fault interrupt.
 	 *   - Blocking pipe interrupt.
 	 *   - Launch error interrupt.
+	 * - Sets needs_rc / needs_quiesce based on error handling policy.
 	 * - Clear the handled interrupts by writing to ce_intr_status_r.
 	 */
-	void (*isr_stall)(struct gk20a *g, u32 inst_id, u32 pri_base);
+	void (*isr_stall)(struct gk20a *g, u32 inst_id, u32 pri_base,
+				bool *needs_rc, bool *needs_quiesce);
 
 #ifdef CONFIG_NVGPU_NONSTALL_INTR
 	/**
@@ -113,6 +119,7 @@ struct gops_ce {
 	 */
 	u32 (*get_num_pce)(struct gk20a *g);
 
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	/**
 	 * @brief Handler for method buffer fault in BAR2.
 	 *
@@ -126,6 +133,7 @@ struct gops_ce {
 	 *   clear if pending.
 	 */
 	void (*mthd_buffer_fault_in_bar2_fault)(struct gk20a *g);
+#endif
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 
@@ -147,6 +155,7 @@ struct gops_ce {
 
 	void (*intr_retrigger)(struct gk20a *g, u32 inst_id);
 
+	u64 (*get_inst_ptr_from_lce)(struct gk20a *g, u32 inst_id);
 #ifdef CONFIG_NVGPU_DGPU
 	int (*ce_app_init_support)(struct gk20a *g);
 	void (*ce_app_suspend)(struct gk20a *g);

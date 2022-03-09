@@ -101,6 +101,16 @@
 #define ce_lce_intr_notify_ctrl_cpu_m()                       (U32(0x1U) << 31U)
 #define ce_lce_intr_notify_ctrl_cpu_enable_f()                     (0x80000000U)
 #define ce_lce_intr_notify_ctrl_cpu_disable_f()                           (0x0U)
+#define ce_lce_bind_status_r(i)\
+		(nvgpu_safe_add_u32(0x00104404U, nvgpu_safe_mult_u32((i), 128U)))
+#define ce_lce_bind_status_bound_v(r)                       (((r) >> 0U) & 0x1U)
+#define ce_lce_bind_status_bound_false_v()                         (0x00000000U)
+#define ce_lce_bind_status_ctx_ptr_v(r)               (((r) >> 1U) & 0xfffffffU)
+#define ce_lce_launcherr_r(i)\
+		(nvgpu_safe_add_u32(0x00104418U, nvgpu_safe_mult_u32((i), 128U)))
+#define ce_lce_launcherr_report_v(r)                        (((r) >> 0U) & 0xfU)
+#define ce_lce_launcherr_report_invalid_config_v()                 (0x0000000dU)
+#define ce_lce_launcherr_report_method_buffer_access_fault_v()     (0x0000000eU)
 #define ce_lce_intr_ctrl_r(i)\
 		(nvgpu_safe_add_u32(0x0010442cU, nvgpu_safe_mult_u32((i), 128U)))
 #define ce_lce_intr_ctrl_gsp_m()                              (U32(0x1U) << 30U)

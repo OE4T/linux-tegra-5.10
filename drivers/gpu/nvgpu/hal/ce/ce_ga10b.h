@@ -29,7 +29,8 @@ struct gk20a;
 void ga10b_ce_init_hw(struct  gk20a *g);
 #endif
 void ga10b_ce_intr_enable(struct gk20a *g, bool enable);
-void ga10b_ce_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base);
+void ga10b_ce_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base,
+				bool *needs_rc, bool *needs_quiesce);
 void ga10b_ce_intr_retrigger(struct gk20a *g, u32 inst_id);
 void ga10b_ce_request_idle(struct gk20a *g);
 

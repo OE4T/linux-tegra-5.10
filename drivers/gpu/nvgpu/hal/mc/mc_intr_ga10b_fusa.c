@@ -30,6 +30,7 @@
 #include <nvgpu/cic_mon.h>
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/gr/gr_instances.h>
+#include <nvgpu/ce.h>
 #ifdef CONFIG_NVGPU_GSP_SCHEDULER
 #include <nvgpu/gsp.h>
 #endif
@@ -869,13 +870,8 @@ static void ga10b_intr_isr_stall_host2soc_3(struct gk20a *g)
 			if ((unit_subtree_mask & engine_intr_mask) == 0ULL) {
 				continue;
 			}
-			if (g->ops.ce.isr_stall != NULL) {
-				g->ops.ce.isr_stall(g,
-						    dev->inst_id,
-						    dev->pri_base);
-			} else {
-				nvgpu_err(g, "unhandled intr_unit_ce_stall");
-			}
+
+			nvgpu_ce_stall_isr(g, dev->inst_id, dev->pri_base);
 			g->ops.ce.intr_retrigger(g, dev->inst_id);
 
 		}

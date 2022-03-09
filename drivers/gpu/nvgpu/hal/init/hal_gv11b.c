@@ -314,10 +314,13 @@ static const struct gops_ce gv11b_ops_ce = {
 	.isr_nonstall = gp10b_ce_nonstall_isr,
 #endif
 	.get_num_pce = gv11b_ce_get_num_pce,
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	.mthd_buffer_fault_in_bar2_fault = gv11b_ce_mthd_buffer_fault_in_bar2_fault,
+#endif
 	.init_prod_values = gv11b_ce_init_prod_values,
 	.halt_engine = gv11b_ce_halt_engine,
 	.request_idle = NULL,
+	.get_inst_ptr_from_lce = gv11b_ce_get_inst_ptr_from_lce,
 };
 
 static const struct gops_gr_ecc gv11b_ops_gr_ecc = {

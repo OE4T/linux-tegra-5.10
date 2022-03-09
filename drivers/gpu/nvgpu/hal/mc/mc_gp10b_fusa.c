@@ -29,6 +29,7 @@
 #include <nvgpu/engines.h>
 #include <nvgpu/device.h>
 #include <nvgpu/power_features/pg.h>
+#include <nvgpu/ce.h>
 
 #include "mc_gp10b.h"
 
@@ -135,9 +136,8 @@ void mc_gp10b_isr_stall_engine(struct gk20a *g,
 	}
 
 	/* CE Engine */
-	if (nvgpu_device_is_ce(g, dev) &&
-	    (g->ops.ce.isr_stall != NULL)) {
-		g->ops.ce.isr_stall(g, dev->inst_id, dev->pri_base);
+	if (nvgpu_device_is_ce(g, dev)) {
+		nvgpu_ce_stall_isr(g, dev->inst_id, dev->pri_base);
 	}
 }
 

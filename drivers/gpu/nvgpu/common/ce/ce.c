@@ -28,6 +28,8 @@
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/cic_mon.h>
 #include <nvgpu/mc.h>
+#include <nvgpu/rc.h>
+#include <nvgpu/nvgpu_init.h>
 
 int nvgpu_ce_init_support(struct gk20a *g)
 {
@@ -82,4 +84,25 @@ int nvgpu_ce_init_support(struct gk20a *g)
 #endif
 
 	return 0;
+}
+
+void nvgpu_ce_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
+{
+	bool needs_rc = false;
+	bool needs_quiesce = false;
+
+	if (g->ops.ce.isr_stall != NULL) {
+		g->ops.ce.isr_stall(g, inst_id, pri_base, &needs_rc,
+					&needs_quiesce);
+	}
+
+	if (needs_quiesce) {
+		nvgpu_sw_quiesce(g);
+	}
+
+	if (needs_rc) {
+		nvgpu_log(g, gpu_dbg_intr,
+			"Recovery needed to handle CE interrupt.");
+		nvgpu_rc_ce_fault(g, inst_id);
+	}
 }

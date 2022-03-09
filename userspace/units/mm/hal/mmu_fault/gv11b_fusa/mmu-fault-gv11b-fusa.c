@@ -398,10 +398,6 @@ static const char *f_mmu_fault_notify[] = {
 	"mmu_fault_notify_eng_id_physical",
 };
 
-static void stub_ce_mthd_buffer_fault_in_bar2_fault(struct gk20a *g)
-{
-}
-
 static int stub_bus_bar2_bind(struct gk20a *g, struct nvgpu_mem *bar2_inst)
 {
 	return 0;
@@ -427,8 +423,6 @@ int test_gv11b_mm_mmu_fault_handle_other_fault_notify(struct unit_module *m,
 					gv11b_fb_read_mmu_fault_addr_lo_hi;
 	g->ops.fb.read_mmu_fault_info = gv11b_fb_read_mmu_fault_info;
 	g->ops.fb.write_mmu_fault_status = gv11b_fb_write_mmu_fault_status;
-	g->ops.ce.mthd_buffer_fault_in_bar2_fault =
-					stub_ce_mthd_buffer_fault_in_bar2_fault;
 	g->ops.bus.bar2_bind = stub_bus_bar2_bind;
 	g->ops.fifo.mmu_fault_id_to_pbdma_id =
 					stub_fifo_mmu_fault_id_to_pbdma_id;

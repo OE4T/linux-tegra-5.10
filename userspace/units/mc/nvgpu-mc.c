@@ -171,7 +171,8 @@ static void mock_bus_isr(struct gk20a *g)
 	u.bus_isr = true;
 }
 
-static void mock_ce_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
+static void mock_ce_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base,
+				bool *needs_rc, bool *needs_quiesce)
 {
 	u.ce_isr = true;
 }
