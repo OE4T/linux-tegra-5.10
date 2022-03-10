@@ -6642,9 +6642,6 @@ static int ether_suspend_noirq(struct device *dev)
 
 	free_dma_resources(pdata);
 
-	/* disable MAC clocks */
-	ether_disable_clks(pdata);
-
 	if (osi_core->mac == OSI_MAC_HW_MGBE)
 		pm_runtime_put_sync(pdata->dev);
 
@@ -6811,8 +6808,6 @@ static int ether_resume_noirq(struct device *dev)
 
 	if (!netif_running(ndev))
 		return 0;
-
-	ether_enable_clks(pdata);
 
 	if (!device_may_wakeup(&ndev->dev) &&
 	    gpio_is_valid(pdata->phy_reset) &&
