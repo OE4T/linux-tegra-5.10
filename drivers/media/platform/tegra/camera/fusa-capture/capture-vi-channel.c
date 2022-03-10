@@ -37,24 +37,6 @@
 #include <media/fusa-capture/capture-vi-channel.h>
 
 /**
- * @brief VI channel character device driver context.
- */
-struct vi_channel_drv {
-	struct platform_device *vi_capture_pdev;
-		/**< Capture VI driver platform device */
-	bool use_legacy_path;
-		/**< Flag to maintain backward-compatibility for T186 */
-	struct device *dev; /**< VI kernel @em device */
-	struct platform_device *ndev; /**< VI kernel @em platform_device */
-	struct mutex lock; /**< VI channel driver context lock */
-	u8 num_channels; /**< No. of VI channel character devices */
-	const struct vi_channel_drv_ops *ops;
-		/**< VI fops for Host1x syncpt/gos allocations */
-	struct tegra_vi_channel __rcu *channels[];
-		/**< Allocated VI channel contexts */
-};
-
-/**
  * @defgroup VI_CHANNEL_IOCTLS
  *
  * @brief VI channel character device IOCTL API
@@ -250,9 +232,9 @@ struct tegra_vi_channel *vi_channel_open_ex(
 	if (chan_drv->use_legacy_path) {
 		chan->dev = chan_drv->dev;
 		chan->ndev = chan_drv->ndev;
-	} else {
+	} else
 		chan->vi_capture_pdev = chan_drv->vi_capture_pdev;
-	}
+
 	chan->ops = chan_drv->ops;
 
 	err = vi_capture_init(chan, is_mem_pinned);

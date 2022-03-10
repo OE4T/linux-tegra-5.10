@@ -1903,9 +1903,10 @@ static int tc358840_log_status(struct v4l2_subdev *sd)
 	v4l2_info(sd, "-----%s status-----\n", is_hdmi(sd) ? "HDMI" : "DVI-D");
 	v4l2_info(sd, "HDCP encrypted content: %s\n",
 			hdmi_sys_status & MASK_S_HDCP ? "yes" : "no");
-	v4l2_info(sd, "Input color space: %s %s range\n",
-			input_color_space[(vi_status3 & MASK_S_V_COLOR) >> 1],
-			(vi_status3 & MASK_LIMITED) ? "limited" : "full");
+	if (((vi_status3 & MASK_S_V_COLOR) >> 1) >= 0)
+		v4l2_info(sd, "Input color space: %s %s range\n",
+				input_color_space[(vi_status3 & MASK_S_V_COLOR) >> 1],
+				(vi_status3 & MASK_LIMITED) ? "limited" : "full");
 	if (!is_hdmi(sd))
 		return 0;
 	v4l2_info(sd, "AV Mute: %s\n", hdmi_sys_status & MASK_S_AVMUTE ? "on" :

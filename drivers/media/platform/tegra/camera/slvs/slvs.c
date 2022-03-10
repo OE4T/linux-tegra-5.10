@@ -669,7 +669,7 @@ static void tegra_slvs_debugfs_init_stream(struct tegra_slvs_stream *stream)
 static void tegra_slvs_init_debugfs(struct tegra_mc_slvs *slvs)
 {
 	struct nvhost_device_data *info = platform_get_drvdata(slvs->pdev);
-	int i;
+	int i, ret;
 	char name[32];
 	struct dentry *dir;
 
@@ -677,7 +677,11 @@ static void tegra_slvs_init_debugfs(struct tegra_mc_slvs *slvs)
 			&slvs->syncgen_clock);
 
 	for (i = 0; i < slvs->num_streams; i++) {
-		snprintf(name, sizeof(name), "mc@%d", i);
+		ret = snprintf(name, sizeof(name), "mc@%d", i);
+		if (ret < 0) {
+			spec_bar();
+			return;
+		}
 		dir = debugfs_create_dir(name, info->debugfs);
 		slvs->streams[i].debugfs = dir;
 		tegra_slvs_debugfs_init_stream(&slvs->streams[i]);
@@ -939,8 +943,10 @@ static int tegra_slvs_init_stream(struct tegra_mc_slvs *slvs,
 	v4l2_set_subdevdata(sd, slvs);
 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
 	sd->entity.ops = &tegra_slvs_media_ops;
-	snprintf(sd->name, sizeof(sd->name), "%s-stream-%u",
+	err = snprintf(sd->name, sizeof(sd->name), "%s-stream-%u",
 		dev_name(slvs->dev), stream->id);
+	if (err < 0)
+		return -EINVAL;
 
 	/* Initialize media entity */
 	/* XXX - use media_entity_pads_init() directly? */

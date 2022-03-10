@@ -484,6 +484,9 @@ static int imx390_set_mode(struct tegracam_device *tc_dev)
 		return -EINVAL;
 	}
 
+	if (s_data->mode_prop_idx < 0)
+		return -EINVAL;
+
 	err = imx390_write_table(priv, mode_table[s_data->mode_prop_idx]);
 	if (err)
 		return err;

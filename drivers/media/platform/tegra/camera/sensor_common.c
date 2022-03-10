@@ -278,7 +278,7 @@ static int sensor_common_parse_image_props(
 	struct sensor_image_properties *image)
 {
 	const char *temp_str;
-	int err = 0;
+	int err = 0, ret = 0;
 	const char *phase_str, *mode_str;
 	int depth;
 	char pix_format[24];
@@ -347,7 +347,9 @@ static int sensor_common_parse_image_props(
 				__func__);
 			goto fail;
 		}
-		sprintf(pix_format, "%s_%s%d", mode_str, phase_str, depth);
+		ret = sprintf(pix_format, "%s_%s%d", mode_str, phase_str, depth);
+		if (ret < 0)
+			return -EINVAL;
 		temp_str = pix_format;
 	}
 
@@ -578,7 +580,7 @@ int sensor_common_parse_num_modes(const struct device *dev)
 	struct device_node *node = NULL;
 	char temp_str[OF_MAX_STR_LEN];
 	int num_modes = 0;
-	int i;
+	int i, ret;
 
 	if (!dev || !dev->of_node)
 		return 0;
@@ -586,8 +588,10 @@ int sensor_common_parse_num_modes(const struct device *dev)
 	np = dev->of_node;
 
 	for (i = 0; num_modes < MAX_NUM_SENSOR_MODES; i++) {
-		snprintf(temp_str, sizeof(temp_str), "%s%d",
+		ret = snprintf(temp_str, sizeof(temp_str), "%s%d",
 			OF_SENSORMODE_PREFIX, i);
+		if (ret < 0)
+			return 0;
 		node = of_get_child_by_name(np, temp_str);
 		of_node_put(node);
 		if (node == NULL)
@@ -786,8 +790,11 @@ int sensor_common_init_sensor_properties(
 
 	/* get number of modes */
 	for (i = 0; num_modes < MAX_NUM_SENSOR_MODES; i++) {
-		snprintf(temp_str, sizeof(temp_str), "%s%d",
+		err = snprintf(temp_str, sizeof(temp_str), "%s%d",
 			OF_SENSORMODE_PREFIX, i);
+		if (err < 0)
+			return -EINVAL;
+
 		node = of_get_child_by_name(np, temp_str);
 		of_node_put(node);
 		if (node == NULL)
@@ -806,8 +813,11 @@ int sensor_common_init_sensor_properties(
 	}
 
 	for (i = 0; i < num_modes; i++) {
-		snprintf(temp_str, sizeof(temp_str), "%s%d",
+		err = snprintf(temp_str, sizeof(temp_str), "%s%d",
 			OF_SENSORMODE_PREFIX, i);
+		if (err < 0)
+			return -EINVAL;
+
 		node = of_get_child_by_name(np, temp_str);
 		if (node == NULL) {
 			dev_err(dev, "Failed to find %s\n", temp_str);

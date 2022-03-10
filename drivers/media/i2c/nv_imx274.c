@@ -1,8 +1,7 @@
 /*
  * imx274.c - imx274 sensor driver
  *
- * Copyright (c) 2015-2022, NVIDIA CORPORATION & AFFILIATES.
- * All rights reserved.
+ * Copyright (c) 2015-2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -680,13 +679,16 @@ static int imx274_fill_string_ctrl(struct tegracam_device *tc_dev,
 				struct v4l2_ctrl *ctrl)
 {
 	struct imx274 *priv = (struct imx274 *)tc_dev->priv;
-	int i;
+	int i, ret;
 
 	switch (ctrl->id) {
 	case TEGRA_CAMERA_CID_FUSE_ID:
-		for (i = 0; i < IMX274_FUSE_ID_SIZE; i++)
-			sprintf(&ctrl->p_new.p_char[i*2], "%02x",
+		for (i = 0; i < IMX274_FUSE_ID_SIZE; i++) {
+			ret = sprintf(&ctrl->p_new.p_char[i*2], "%02x",
 				priv->fuse_id[i]);
+			if (ret < 0)
+				return -EINVAL;
+		}
 		break;
 	default:
 		return -EINVAL;
@@ -976,6 +978,9 @@ static int imx274_set_mode(struct tegracam_device *tc_dev)
 	struct camera_common_data *s_data = tc_dev->s_data;
 	struct device *dev = s_data->dev;
 	int err;
+
+	if (s_data->mode < 0)
+		return -EINVAL;
 
 	err = imx274_write_table(priv, mode_table[s_data->mode]);
 	if (err)

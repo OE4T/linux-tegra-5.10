@@ -396,6 +396,8 @@ static int imx185_s_stream(struct v4l2_subdev *sd, int enable)
 			priv->frame_length * 10 + 1000);
 		return 0;
 	}
+	if (s_data->mode < 0)
+		return -EINVAL;
 	err = imx185_write_table(priv, mode_table[s_data->mode]);
 	if (err)
 		goto exit;
@@ -806,9 +808,12 @@ static int imx185_fuse_id_setup(struct imx185 *priv)
 		return -EINVAL;
 	}
 
-	for (i = 0; i < IMX185_FUSE_ID_SIZE; i++)
-		sprintf(&ctrl->p_new.p_char[i*2], "%02x",
+	for (i = 0; i < IMX185_FUSE_ID_SIZE; i++) {
+		err = sprintf(&ctrl->p_new.p_char[i*2], "%02x",
 			fuse_id[i]);
+		if (err < 0)
+			return -EINVAL;
+	}
 	ctrl->p_cur.p_char = ctrl->p_new.p_char;
 	dev_info(dev, "%s, fuse id: %s\n", __func__, ctrl->p_cur.p_char);
 

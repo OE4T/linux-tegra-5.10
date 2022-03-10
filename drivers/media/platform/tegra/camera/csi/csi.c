@@ -1,7 +1,7 @@
 /*
  * NVIDIA Tegra CSI Device
  *
- * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Author: Bryan Wu <pengw@nvidia.com>
  *
@@ -806,7 +806,7 @@ static int tegra_csi_get_port_info(struct tegra_csi_channel *chan,
 			 * bricks to add as many ports necessary.
 			 */
 			value -= 4;
-			for (i = 1; value > 0; i++, value -= 4) {
+			for (i = 1; value > 0 && i < 4; i++, value -= 4) {
 				int next_port = chan->port[i-1] + 2;
 
 				next_port = (next_port % (NVCSI_PORT_H + 1));
@@ -907,11 +907,14 @@ static int tegra_csi_channel_init_one(struct tegra_csi_channel *chan)
 		chan->pads[0].flags = MEDIA_PAD_FL_SINK;
 		chan->pads[1].flags = MEDIA_PAD_FL_SOURCE;
 	}
-	snprintf(sd->name, sizeof(sd->name), "%s-%d",
+	ret = snprintf(sd->name, sizeof(sd->name), "%s-%d",
 			 chan->pg_mode ? "tpg" :
 			 (strlen(csi->devname) == 0 ?
 			  dev_name(csi->dev) : csi->devname),
 			  (chan->id - csi->num_channels));
+	if (ret < 0)
+		return -EINVAL;
+
 	/* Initialize media entity */
 	ret = tegra_media_entity_init(&sd->entity, chan->pg_mode ? 1 : 2,
 				chan->pads, true, false);

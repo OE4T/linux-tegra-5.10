@@ -456,22 +456,28 @@ int vi_capture_init(
 	struct vi_capture *capture;
 	struct device_node *dn;
 	struct platform_device *rtc_pdev;
+	struct device *dev;
 
-	dev_dbg(chan->dev, "%s++\n", __func__);
+	if (chan->drv->use_legacy_path)
+		dev = chan->dev;
+	else
+		dev = &chan->vi_capture_pdev->dev;
+
+	dev_dbg(dev, "%s++\n", __func__);
 	dn = of_find_node_by_path("tegra-camera-rtcpu");
 	if (of_device_is_available(dn) == 0) {
-		dev_err(chan->dev, "failed to find rtcpu device node\n");
+		dev_err(dev, "failed to find rtcpu device node\n");
 		return -ENODEV;
 	}
 	rtc_pdev = of_find_device_by_node(dn);
 	if (rtc_pdev == NULL) {
-		dev_err(chan->dev, "failed to find rtcpu platform\n");
+		dev_err(dev, "failed to find rtcpu platform\n");
 		return -ENODEV;
 	}
 
 	capture = kzalloc(sizeof(*capture), GFP_KERNEL);
 	if (unlikely(capture == NULL)) {
-		dev_err(chan->dev, "failed to allocate capture channel\n");
+		dev_err(dev, "failed to allocate capture channel\n");
 		return -ENOMEM;
 	}
 
@@ -583,15 +589,21 @@ int vi_capture_setup(
 #endif
 
 	uint32_t vi_inst = 0;
+	struct device *dev;
+
+	if (chan->drv->use_legacy_path)
+		dev = chan->dev;
+	else
+		dev = &chan->vi_capture_pdev->dev;
 
 	if (setup->csi_stream_id >= MAX_NVCSI_STREAM_IDS ||
 		setup->virtual_channel_id >= MAX_VIRTUAL_CHANNEL_PER_STREAM) {
-		dev_err(chan->dev, "Invalid stream id or virtual channel id\n");
+		dev_err(dev, "Invalid stream id or virtual channel id\n");
 		return -EINVAL;
 	}
 
 	if (chan->vi_capture_pdev == NULL) {
-		dev_err(chan->dev,
+		dev_err(dev,
 			"%s: channel capture device is NULL", __func__);
 		return -EINVAL;
 	}

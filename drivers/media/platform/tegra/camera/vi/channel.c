@@ -354,6 +354,9 @@ static void tegra_channel_fmts_bitmap_init(struct tegra_channel *chan)
 	/* Initiate the channel format to the first matched format */
 	chan->fmtinfo =
 		tegra_core_get_format_by_code(chan, fmt.format.code, 0);
+	if (!chan->fmtinfo)
+		return;
+
 	v4l2_fill_pix_format(&chan->format, &fmt.format);
 	tegra_channel_update_format(chan, chan->format.width,
 				chan->format.height,
@@ -1030,6 +1033,7 @@ static int
 tegra_channel_querycap(struct file *file, void *fh, struct v4l2_capability *cap)
 {
 	struct tegra_channel *chan = video_drvdata(file);
+	int ret = 0;
 
 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
 	cap->device_caps |= V4L2_CAP_EXT_PIX_FORMAT;
@@ -1037,8 +1041,10 @@ tegra_channel_querycap(struct file *file, void *fh, struct v4l2_capability *cap)
 
 	strlcpy(cap->driver, "tegra-video", sizeof(cap->driver));
 	strlcpy(cap->card, chan->video->name, sizeof(cap->card));
-	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s:%u",
+	ret = snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s:%u",
 		 dev_name(chan->vi->dev), chan->port[0]);
+	if (ret < 0)
+		return -EINVAL;
 
 	return 0;
 }
@@ -1620,13 +1626,13 @@ static int tegra_channel_setup_controls(struct tegra_channel *chan)
 		}
 		ctrl = v4l2_ctrl_new_custom(&chan->ctrl_handler,
 			&common_custom_ctrls[i], NULL);
-
-		if (chan->ctrl_handler.error) {
+		if (!ctrl) {
 			dev_err(chan->vi->dev,
 				"Failed to add %s ctrl\n",
 				common_custom_ctrls[i].name);
 			return chan->ctrl_handler.error;
 		}
+
 		/* Initialize the sensor arrays to have zero elements
 		 * This should keep accesses to only the modes
 		 * later defined in the DT
@@ -1765,6 +1771,9 @@ static u64 tegra_channel_get_max_pixelclock(struct tegra_channel *chan)
 		to_camera_common_data(sd->dev);
 	struct sensor_mode_properties *sensor_mode;
 
+	if (!s_data)
+		return 0;
+
 	for (i = 0; i < s_data->sensor_props.num_modes; i++) {
 		sensor_mode = &s_data->sensor_props.sensor_modes[i];
 		if (sensor_mode->signal_properties.serdes_pixel_clock.val != 0ULL)
@@ -1789,6 +1798,9 @@ static u32 tegra_channel_get_num_lanes(struct tegra_channel *chan)
 		to_camera_common_data(sd->dev);
 	struct sensor_mode_properties *sensor_mode;
 
+	if (!s_data)
+		return 0;
+
 	sensor_mode = &s_data->sensor_props.sensor_modes[0];
 	num_lanes = sensor_mode->signal_properties.num_lanes;
 
@@ -1802,6 +1814,9 @@ static u32 tegra_channel_get_sensor_type(struct tegra_channel *chan)
 	struct camera_common_data *s_data =
 		to_camera_common_data(sd->dev);
 	struct sensor_mode_properties *sensor_mode;
+
+	if (!s_data)
+		return 0;
 
 	/* Select phy mode based on the first mode */
 	sensor_mode = &s_data->sensor_props.sensor_modes[0];
@@ -1874,10 +1889,11 @@ int tegra_channel_init_subdevices(struct tegra_channel *chan)
 	struct media_pad *pad;
 	struct v4l2_subdev *sd;
 	int index = 0;
-	int num_sd = 0;
+	u8 num_sd = 0;
 	struct tegra_camera_dev_info camdev_info;
 	int grp_id = chan->pg_mode ? (TPG_CSI_GROUP_ID + chan->port[0] + 1)
 		: chan->port[0] + 1;
+	int len = 0;
 
 	/* set_stream of CSI */
 	pad = media_entity_remote_pad(&chan->pad);
@@ -1893,8 +1909,11 @@ int tegra_channel_init_subdevices(struct tegra_channel *chan)
 	chan->is_slvsec = (strstr(sd->name, "slvs") != NULL) ? 1 : 0;
 
 	/* Add subdev name to this video dev name with vi-output tag*/
-	snprintf(chan->video->name, sizeof(chan->video->name), "%s, %s",
+	len = snprintf(chan->video->name, sizeof(chan->video->name), "%s, %s",
 		"vi-output", sd->name);
+	if (len < 0)
+		return -EINVAL;
+
 	sd->grp_id = grp_id;
 	chan->grp_id = grp_id;
 	index = pad->index - 1;
@@ -1916,8 +1935,10 @@ int tegra_channel_init_subdevices(struct tegra_channel *chan)
 		sd->grp_id = grp_id;
 		chan->subdev[num_sd++] = sd;
 		/* Add subdev name to this video dev name with vi-output tag*/
-		snprintf(chan->video->name, sizeof(chan->video->name), "%s, %s",
+		len = snprintf(chan->video->name, sizeof(chan->video->name), "%s, %s",
 			"vi-output", sd->name);
+		if (len < 0)
+			return -EINVAL;
 
 		index = pad->index - 1;
 	}
@@ -2021,6 +2042,8 @@ __tegra_channel_try_format(struct tegra_channel *chan,
 	if (!vfmt) {
 		pix->pixelformat = chan->format.pixelformat;
 		vfmt = tegra_core_get_format_by_fourcc(chan, pix->pixelformat);
+		if (!vfmt)
+			return -EINVAL;
 	}
 
 	fmt.which = V4L2_SUBDEV_FORMAT_TRY;
@@ -2063,6 +2086,8 @@ __tegra_channel_set_format(struct tegra_channel *chan,
 	int ret = 0;
 
 	vfmt = tegra_core_get_format_by_fourcc(chan, pix->pixelformat);
+	if (!vfmt)
+		return -EINVAL;
 
 	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
 	fmt.pad = 0;
@@ -2126,7 +2151,7 @@ tegra_channel_enum_input(struct file *file, void *fh, struct v4l2_input *inp)
 {
 	struct tegra_channel *chan = video_drvdata(file);
 	struct v4l2_subdev *sd_on_csi = chan->subdev_on_csi;
-	int ret;
+	int ret, len;
 
 	if (inp->index)
 		return -EINVAL;
@@ -2140,13 +2165,18 @@ tegra_channel_enum_input(struct file *file, void *fh, struct v4l2_input *inp)
 	inp->type = V4L2_INPUT_TYPE_CAMERA;
 	if (v4l2_subdev_has_op(sd_on_csi, video, s_dv_timings)) {
 		inp->capabilities = V4L2_IN_CAP_DV_TIMINGS;
-		snprintf(inp->name,
+		len = snprintf(inp->name,
 			sizeof(inp->name), "HDMI %u",
 			chan->port[0]);
-	} else
-		snprintf(inp->name,
+		if (len < 0)
+			return -EINVAL;
+	} else {
+		len = snprintf(inp->name,
 			sizeof(inp->name), "Camera %u",
 			chan->port[0]);
+		if (len < 0)
+			return -EINVAL;
+	}
 
 	return ret;
 }
@@ -2367,7 +2397,7 @@ static int tegra_channel_csi_init(struct tegra_channel *chan)
 		}
 	}
 
-	for (idx = 0; csi_port_is_valid(chan->port[idx]); idx++) {
+	for (idx = 0; idx <= TEGRA_CSI_BLOCKS && csi_port_is_valid(chan->port[idx]); idx++) {
 		chan->total_ports++;
 		/* maximum of 4 lanes are present per CSI block */
 		chan->csibase[idx] = vi->iomem +
@@ -2381,7 +2411,7 @@ static int tegra_channel_csi_init(struct tegra_channel *chan)
 int tegra_channel_init_video(struct tegra_channel *chan)
 {
 	struct tegra_mc_vi *vi = chan->vi;
-	int ret = 0;
+	int ret = 0, len = 0;
 
 	if (chan->video) {
 		dev_err(&chan->video->dev, "video device already allocated\n");
@@ -2411,9 +2441,13 @@ int tegra_channel_init_video(struct tegra_channel *chan)
 	chan->video->fops = &tegra_channel_fops;
 	chan->video->v4l2_dev = &vi->v4l2_dev;
 	chan->video->queue = &chan->queue;
-	snprintf(chan->video->name, sizeof(chan->video->name), "%s-%s-%u",
+	len = snprintf(chan->video->name, sizeof(chan->video->name), "%s-%s-%u",
 		dev_name(vi->dev), chan->pg_mode ? "tpg" : "output",
 		chan->pg_mode ? (chan->id - vi->num_channels) : chan->port[0]);
+	if (len < 0) {
+		ret = -EINVAL;
+		goto ctrl_init_error;
+	}
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	chan->video->vfl_type = VFL_TYPE_GRABBER;

@@ -1,7 +1,7 @@
 /*
  * Tegra CSI2 device common APIs
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Author: Bryan Wu <pengw@nvidia.com>
  *
@@ -452,6 +452,8 @@ static int csi2_hw_init(struct tegra_csi_device *csi)
 			port = &it->ports[i];
 			csi_port = !it->pg_mode ?
 				it->ports[i].csi_port : it->ports[i].stream_id;
+			if ((csi_port >> 1) < 0)
+				return -EINVAL;
 			port->pixel_parser = csi->iomem[csi_port >> 1] +
 				(csi_port % 2) * TEGRA_CSI_PORT_OFFSET;
 			port->cil = port->pixel_parser + TEGRA_CSI_CIL_OFFSET;
