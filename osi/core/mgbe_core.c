@@ -3390,9 +3390,21 @@ static void mgbe_handle_mac_intrs(struct osi_core_priv_data *osi_core,
 			nveu32_t i = get_free_ts_idx(l_core);
 
 			if (i == MAX_TX_TS_CNT) {
-				OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
-					     "TS queue is full\n", i);
-				break;
+				struct osi_core_tx_ts *temp = l_core->tx_ts_head.next;
+				/* Remove oldest stale TS from list to make space for new TS */
+				OSI_CORE_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
+					"Removing TS from queue pkt_id\n", temp->pkt_id);
+
+				temp->in_use = OSI_DISABLE;
+				/* remove temp node from the link */
+				temp->next->prev = temp->prev;
+				temp->prev->next =  temp->next;
+				i = get_free_ts_idx(l_core);
+				if (i == MAX_TX_TS_CNT) {
+					OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+						"TS queue is full\n", i);
+					break;
+				}
 			}
 
 			l_core->ts[i].nsec = osi_readla(osi_core,
