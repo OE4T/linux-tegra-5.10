@@ -1,4 +1,4 @@
-# Copyright (c) 2021, NVIDIA CORPORATION. All rights reserved.
+# Copyright (c) 2021-2022, NVIDIA CORPORATION. All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms and conditions of the GNU General Public License,
@@ -138,6 +138,7 @@ NVMAP_CONFIG_HANDLE_AS_ID := y
 NVMAP_CONFIG_FD_START := 0x0
 endif
 NVMAP_CONFIG_SCIIPC := y
+NVMAP_CONFIG_PROCRANK := n
 endif
 
 ifneq ($(findstring 4.9,$(NV_BUILD_KERNEL_OPTIONS)),)
