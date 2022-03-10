@@ -437,42 +437,10 @@ static long nvmap_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		err = nvmap_ioctl_gup_test(filp, uarg);
 		break;
 
-	/* Depreacted IOCTL's */
-	case NVMAP_IOC_ALLOC_KIND:
-		pr_warn("NVMAP_IOC_ALLOC_KIND is deprecated. Use NVMAP_IOC_ALLOC.\n");
-		break;
-
-#ifdef CONFIG_COMPAT
-	case NVMAP_IOC_MMAP_32:
-#endif
-	case NVMAP_IOC_MMAP:
-		pr_warn("NVMAP_IOC_MMAP is deprecated. Use mmap().\n");
-		break;
-
-#ifdef CONFIG_COMPAT
-	case NVMAP_IOC_UNPIN_MULT_32:
-	case NVMAP_IOC_PIN_MULT_32:
-		pr_warn("NVMAP_IOC_[UN]PIN_MULT is deprecated. "
-			"User space must never pin NvMap handles to "
-			"allow multiple IOVA spaces.\n");
-		break;
-#endif
-
-	case NVMAP_IOC_UNPIN_MULT:
-	case NVMAP_IOC_PIN_MULT:
-		pr_warn("NVMAP_IOC_[UN]PIN_MULT/ is deprecated. "
-			"User space must never pin NvMap handles to "
-			"allow multiple IOVA spaces.\n");
-		break;
-
 	case NVMAP_IOC_FROM_ID:
 	case NVMAP_IOC_GET_ID:
 		pr_warn("NVMAP_IOC_GET_ID/FROM_ID pair is deprecated. "
 			"Use the pair NVMAP_IOC_GET_FD/FROM_FD.\n");
-		break;
-
-	case NVMAP_IOC_SHARE:
-		pr_warn("NVMAP_IOC_SHARE is deprecated. Use NVMAP_IOC_GET_FD.\n");
 		break;
 
 	case NVMAP_IOC_SET_TAG_LABEL:
