@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,19 +20,26 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_TOP_GA10B_H
-#define NVGPU_TOP_GA10B_H
+#include <nvgpu/gk20a.h>
+#include <nvgpu/io.h>
+#include <nvgpu/static_analysis.h>
+#include <nvgpu/gr/config.h>
 
-#include <nvgpu/types.h>
+#include "gr_config_gv11b.h"
 
-struct gk20a;
+#include <nvgpu/hw/gv11b/hw_gr_gv11b.h>
 
-u32 ga10b_get_num_engine_type_entries(struct gk20a *g, u32 engine_type);
-bool ga10b_is_engine_gr(struct gk20a *g, u32 engine_type);
-bool ga10b_is_engine_ce(struct gk20a *g, u32 engine_type);
+u32 gv11b_gr_config_get_gpc_pes_mask(struct gk20a *g,
+	struct nvgpu_gr_config *config, u32 gpc_index)
+{
+	u32 val;
+	u32 pes_cnt = nvgpu_gr_config_get_max_pes_per_gpc_count(config);
 
-struct nvgpu_device *ga10b_top_parse_next_dev(struct gk20a *g, u32 *i);
+	/*
+	 * Toggle the bits of NV_FUSE_STATUS_OPT_PES_GPC to get the non-FSed
+	 * PES mask.
+	 */
+	val = g->ops.fuse.fuse_status_opt_pes_gpc(g, gpc_index);
 
-u32 ga10b_top_get_max_rop_per_gpc(struct gk20a *g);
-
-#endif /* NVGPU_TOP_GA10B_H */
+	return (~val) & nvgpu_safe_sub_u32(BIT32(pes_cnt), 1U);
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -165,6 +165,32 @@ struct gops_fuse {
 	 * @return fuse value read from NV_FUSE_OPT_PRIV_SEC_EN.
 	 */
 	u32 (*fuse_opt_priv_sec_en)(struct gk20a *g);
+
+	/**
+	 * @brief Read NV_FUSE_STATUS_OPT_PES_GPC fuse.
+	 *
+	 * @param g [in]	The GPU driver struct.
+	 * @param gpc [in]	GPC index.
+	 *
+	 * The HAL reads NV_FUSE_STATUS_OPT_PES_GPC fuse value which provides
+	 * PES floorsweeping status.
+	 *
+	 * @return fuse value read from NV_FUSE_STATUS_OPT_PES_GPC.
+	 */
+	u32 (*fuse_status_opt_pes_gpc)(struct gk20a *g, u32 gpc);
+
+	/**
+	 * @brief Read NV_FUSE_STATUS_OPT_ROP_GPC fuse.
+	 *
+	 * @param g [in]	The GPU driver struct.
+	 * @param gpc [in]	GPC index.
+	 *
+	 * The HAL reads NV_FUSE_STATUS_OPT_ROP_GPC fuse value which provides
+	 * ROP floorsweeping status.
+	 *
+	 * @return fuse value read from NV_FUSE_STATUS_OPT_ROP_GPC.
+	 */
+	u32 (*fuse_status_opt_rop_gpc)(struct gk20a *g, u32 gpc);
 
 	/**
 	 * @brief Read FUSE_GCPLEX_CONFIG_FUSE_0 fuse.

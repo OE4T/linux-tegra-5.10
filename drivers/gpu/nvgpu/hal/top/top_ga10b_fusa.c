@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -179,4 +179,12 @@ struct nvgpu_device *ga10b_top_parse_next_dev(struct gk20a *g, u32 *token)
 	}
 
 	return ga10b_top_parse_device(g, rows, MAX_ROWS);
+}
+
+u32 ga10b_top_get_max_rop_per_gpc(struct gk20a *g)
+{
+	u32 tmp;
+
+	tmp = nvgpu_readl(g, top_num_rop_per_gpc_r());
+	return top_num_rop_per_gpc_value_v(tmp);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,19 +20,14 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_TOP_GA10B_H
-#define NVGPU_TOP_GA10B_H
+#ifndef NVGPU_GR_CONFIG_GV11B_H
+#define NVGPU_GR_CONFIG_GV11B_H
 
 #include <nvgpu/types.h>
 
 struct gk20a;
+struct nvgpu_gr_config;
 
-u32 ga10b_get_num_engine_type_entries(struct gk20a *g, u32 engine_type);
-bool ga10b_is_engine_gr(struct gk20a *g, u32 engine_type);
-bool ga10b_is_engine_ce(struct gk20a *g, u32 engine_type);
-
-struct nvgpu_device *ga10b_top_parse_next_dev(struct gk20a *g, u32 *i);
-
-u32 ga10b_top_get_max_rop_per_gpc(struct gk20a *g);
-
-#endif /* NVGPU_TOP_GA10B_H */
+u32 gv11b_gr_config_get_gpc_pes_mask(struct gk20a *g,
+		struct nvgpu_gr_config *config, u32 gpc_index);
+#endif /* NVGPU_GR_CONFIG_GV11B_H */

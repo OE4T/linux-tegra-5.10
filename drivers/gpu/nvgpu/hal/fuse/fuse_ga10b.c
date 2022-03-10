@@ -119,6 +119,16 @@ void ga10b_fuse_ctrl_opt_tpc_gpc(struct gk20a *g, u32 gpc, u32 val)
 	nvgpu_writel(g, fuse_ctrl_opt_tpc_gpc_r(gpc), val);
 }
 
+u32 ga10b_fuse_status_opt_pes_gpc(struct gk20a *g, u32 gpc)
+{
+	return nvgpu_readl(g, fuse_status_opt_pes_gpc_r(gpc));
+}
+
+u32 ga10b_fuse_status_opt_rop_gpc(struct gk20a *g, u32 gpc)
+{
+	return nvgpu_readl(g, fuse_status_opt_rop_gpc_r(gpc));
+}
+
 u32 ga10b_fuse_opt_priv_sec_en(struct gk20a *g)
 {
 	return nvgpu_readl(g, fuse_opt_priv_sec_en_r());

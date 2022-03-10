@@ -223,6 +223,8 @@ struct gk20a;
 			"TEGRA_RAW format support"), \
 	DEFINE_FLAG(NVGPU_SUPPORT_EMULATE_MODE, \
 			"Emulate mode support"), \
+	DEFINE_FLAG(NVGPU_SUPPORT_PES_FS, \
+			"PES Floorsweeping"), \
 	DEFINE_FLAG(NVGPU_MAX_ENABLED_BITS, "Marks max number of flags"),
 
 /**

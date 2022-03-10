@@ -422,7 +422,9 @@ fuse_fusa:
   sources: [ hal/fuse/fuse_gm20b_fusa.c,
              hal/fuse/fuse_gm20b.h,
              hal/fuse/fuse_gp10b_fusa.c,
-             hal/fuse/fuse_gp10b.h ]
+             hal/fuse/fuse_gp10b.h,
+             hal/fuse/fuse_gv11b_fusa.c,
+             hal/fuse/fuse_gv11b.h ]
 
 fuse:
   safe: no
@@ -616,7 +618,11 @@ gr:
       sources: [ hal/gr/config/gr_config_gm20b_fusa.c,
                  hal/gr/config/gr_config_gm20b.h,
                  hal/gr/config/gr_config_gv100_fusa.c,
-                 hal/gr/config/gr_config_gv100.h ]
+                 hal/gr/config/gr_config_gv100.h,
+                 hal/gr/config/gr_config_gv11b_fusa.c,
+                 hal/gr/config/gr_config_gv11b.h,
+                 hal/gr/config/gr_config_ga10b_fusa.c,
+                 hal/gr/config/gr_config_ga10b.h ]
 
     config:
       safe: no

@@ -91,6 +91,7 @@
 #include "hal/fb/intr/fb_intr_ecc_gv11b.h"
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fuse/fuse_gp10b.h"
+#include "hal/fuse/fuse_gv11b.h"
 #include "hal/ptimer/ptimer_gk20a.h"
 #include "hal/ptimer/ptimer_gp10b.h"
 #include "hal/ptimer/ptimer_gv11b.h"
@@ -137,6 +138,7 @@
 #include "hal/gr/falcon/gr_falcon_gp10b.h"
 #include "hal/gr/falcon/gr_falcon_gv11b.h"
 #include "hal/gr/config/gr_config_gm20b.h"
+#include "hal/gr/config/gr_config_gv11b.h"
 #ifdef CONFIG_NVGPU_GRAPHICS
 #include "hal/gr/zbc/zbc_gm20b.h"
 #include "hal/gr/zbc/zbc_gp10b.h"
@@ -412,6 +414,7 @@ static const struct gops_gr_config gv11b_ops_gr_config = {
 	.get_gpc_tpc_mask = gm20b_gr_config_get_gpc_tpc_mask,
 	.get_tpc_count_in_gpc = gm20b_gr_config_get_tpc_count_in_gpc,
 	.get_pes_tpc_mask = gm20b_gr_config_get_pes_tpc_mask,
+	.get_gpc_pes_mask = gv11b_gr_config_get_gpc_pes_mask,
 	.get_pd_dist_skip_table_size = gm20b_gr_config_get_pd_dist_skip_table_size,
 	.init_sm_id_table = gv100_gr_config_init_sm_id_table,
 #ifdef CONFIG_NVGPU_GRAPHICS
@@ -1434,6 +1437,7 @@ static const struct gops_fuse gv11b_ops_fuse = {
 	.fuse_status_opt_fbio = gm20b_fuse_status_opt_fbio,
 	.fuse_status_opt_fbp = gm20b_fuse_status_opt_fbp,
 	.fuse_status_opt_l2_fbp = gm20b_fuse_status_opt_l2_fbp,
+	.fuse_status_opt_pes_gpc = gv11b_fuse_status_opt_pes_gpc,
 	.fuse_status_opt_gpc = NULL,
 	.fuse_status_opt_tpc_gpc = gm20b_fuse_status_opt_tpc_gpc,
 	.fuse_ctrl_opt_tpc_gpc = gm20b_fuse_ctrl_opt_tpc_gpc,
@@ -1459,6 +1463,7 @@ static const struct gops_top gv11b_ops_top = {
 	.get_max_lts_per_ltc = gm20b_top_get_max_lts_per_ltc,
 	.get_num_ltcs = gm20b_top_get_num_ltcs,
 	.get_num_lce = gv11b_top_get_num_lce,
+	.get_max_pes_per_gpc = gv11b_top_get_max_pes_per_gpc,
 };
 
 #ifdef CONFIG_NVGPU_STATIC_POWERGATE
@@ -1683,6 +1688,7 @@ int gv11b_init_hal(struct gk20a *g)
 #ifdef CONFIG_NVGPU_CLK_ARB
 		nvgpu_set_enabled(g, NVGPU_CLK_ARB_ENABLED, true);
 #endif
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_PES_FS, true);
 	g->name = "gv11b";
 
 	return 0;

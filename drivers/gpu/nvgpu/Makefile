@@ -772,8 +772,11 @@ nvgpu-y += \
 	hal/fifo/usermode_gv11b_fusa.o \
 	hal/fuse/fuse_gm20b_fusa.o \
 	hal/fuse/fuse_gp10b_fusa.o \
+	hal/fuse/fuse_gv11b_fusa.o \
 	hal/gr/config/gr_config_gm20b_fusa.o \
 	hal/gr/config/gr_config_gv100_fusa.o \
+	hal/gr/config/gr_config_gv11b_fusa.o \
+	hal/gr/config/gr_config_ga10b_fusa.o \
 	hal/gr/ctxsw_prog/ctxsw_prog_gm20b_fusa.o \
 	hal/gr/ctxsw_prog/ctxsw_prog_gp10b_fusa.o \
 	hal/gr/ctxsw_prog/ctxsw_prog_gv11b_fusa.o \

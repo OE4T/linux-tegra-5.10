@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -97,6 +97,30 @@ u32 nvgpu_gr_config_get_max_gpc_count(struct nvgpu_gr_config *config);
  * @return max TPC per GPC count.
  */
 u32 nvgpu_gr_config_get_max_tpc_per_gpc_count(struct nvgpu_gr_config *config);
+
+/**
+ * @brief Get max PES per GPC count.
+ *
+ * @param config [in]		Pointer to GR configuration struct.
+ *
+ * This function returns maximum number of PESs available per GPC in a
+ * GPU chip family.
+ *
+ * @return max PES per GPC count.
+ */
+u32 nvgpu_gr_config_get_max_pes_per_gpc_count(struct nvgpu_gr_config *config);
+
+/**
+ * @brief Get max ROP per GPC count.
+ *
+ * @param config [in]		Pointer to GR configuration struct.
+ *
+ * This function returns maximum number of ROPs available per GPC in a
+ * GPU chip family.
+ *
+ * @return max ROP per GPC count.
+ */
+u32 nvgpu_gr_config_get_max_rop_per_gpc_count(struct nvgpu_gr_config *config);
 
 /**
  * @brief Get max TPC count.
@@ -515,6 +539,30 @@ u32 nvgpu_gr_config_get_sm_info_sm_index(struct nvgpu_sm_info *sm_info);
  */
 void nvgpu_gr_config_set_sm_info_sm_index(struct nvgpu_sm_info *sm_info,
 	u32 sm_index);
+
+/**
+ * @brief Get the physical to logical id map for all the ROPs in the specified
+ *        gpc.
+ *
+ * @param config [in]		Pointer to GR configuration struct.
+ * @param gpc [in]		GPC logical id.
+ *
+ * @return pointer to u32 array.
+ */
+const u32 *gr_config_get_gpc_rop_logical_id_map(struct nvgpu_gr_config *config,
+		u32 gpc);
+
+/**
+ * @brief Get the physical to logical id map for all the PESs in the specified
+ *        gpc.
+ *
+ * @param config [in]		Pointer to GR configuration struct.
+ * @param gpc [in]		GPC logical id.
+ *
+ * @return pointer to u32 array.
+ */
+const u32 *gr_config_get_gpc_pes_logical_id_map(struct nvgpu_gr_config *config,
+		u32 gpc);
 
 #ifdef CONFIG_NVGPU_GRAPHICS
 int nvgpu_gr_config_init_map_tiles(struct gk20a *g,

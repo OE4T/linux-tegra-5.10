@@ -114,6 +114,7 @@
 #include "hal/func/func_ga10b.h"
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fuse/fuse_gp10b.h"
+#include "hal/fuse/fuse_gv11b.h"
 #include "hal/fuse/fuse_ga10b.h"
 #include "hal/ptimer/ptimer_gk20a.h"
 #include "hal/ptimer/ptimer_gp10b.h"
@@ -180,6 +181,8 @@
 #include "hal/gr/falcon/gr_falcon_ga100.h"
 #include "hal/gr/falcon/gr_falcon_ga10b.h"
 #include "hal/gr/config/gr_config_gm20b.h"
+#include "hal/gr/config/gr_config_gv11b.h"
+#include "hal/gr/config/gr_config_ga10b.h"
 #ifdef CONFIG_NVGPU_GRAPHICS
 #include "hal/gr/zbc/zbc_gp10b.h"
 #include "hal/gr/zbc/zbc_gv11b.h"
@@ -512,6 +515,8 @@ static const struct gops_gr_ctxsw_prog ga10b_ops_gr_ctxsw_prog = {
 static const struct gops_gr_config ga10b_ops_gr_config = {
 	.get_gpc_mask = gm20b_gr_config_get_gpc_mask,
 	.get_gpc_tpc_mask = gm20b_gr_config_get_gpc_tpc_mask,
+	.get_gpc_pes_mask = gv11b_gr_config_get_gpc_pes_mask,
+	.get_gpc_rop_mask = ga10b_gr_config_get_gpc_rop_mask,
 	.get_tpc_count_in_gpc = gm20b_gr_config_get_tpc_count_in_gpc,
 	.get_pes_tpc_mask = gm20b_gr_config_get_pes_tpc_mask,
 	.get_pd_dist_skip_table_size = gm20b_gr_config_get_pd_dist_skip_table_size,
@@ -1660,6 +1665,8 @@ static const struct gops_fuse ga10b_ops_fuse = {
 	.fuse_status_opt_fbp = ga10b_fuse_status_opt_fbp,
 	.fuse_status_opt_l2_fbp = ga10b_fuse_status_opt_l2_fbp,
 	.fuse_status_opt_tpc_gpc = ga10b_fuse_status_opt_tpc_gpc,
+	.fuse_status_opt_pes_gpc = ga10b_fuse_status_opt_pes_gpc,
+	.fuse_status_opt_rop_gpc = ga10b_fuse_status_opt_rop_gpc,
 	.fuse_ctrl_opt_tpc_gpc = ga10b_fuse_ctrl_opt_tpc_gpc,
 	.fuse_opt_sec_debug_en = ga10b_fuse_opt_sec_debug_en,
 	.fuse_opt_priv_sec_en = ga10b_fuse_opt_priv_sec_en,
@@ -1691,6 +1698,8 @@ static const struct gops_top ga10b_ops_top = {
 	.get_max_lts_per_ltc = gm20b_top_get_max_lts_per_ltc,
 	.get_num_ltcs = gm20b_top_get_num_ltcs,
 	.get_num_lce = gv11b_top_get_num_lce,
+	.get_max_rop_per_gpc = ga10b_top_get_max_rop_per_gpc,
+	.get_max_pes_per_gpc = gv11b_top_get_max_pes_per_gpc,
 };
 
 #ifdef CONFIG_NVGPU_STATIC_POWERGATE
@@ -1998,6 +2007,7 @@ int ga10b_init_hal(struct gk20a *g)
 	gops->mssnvlink = ga10b_ops_mssnvlink;
 #endif
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_EMULATE_MODE, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_PES_FS, true);
 	g->name = "ga10b";
 
 	return 0;
