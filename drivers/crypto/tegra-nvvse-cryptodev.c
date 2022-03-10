@@ -116,6 +116,7 @@ struct tnvvse_gmac_req_data {
 	enum tnvvse_gmac_request_type request_type;
 	/* Return IV after GMAC_INIT and Pass IV during GMAC_VERIFY */
 	char *iv;
+	uint8_t is_first;
 	/* For GMAC_VERIFY tag comparison result */
 	uint8_t result;
 };
@@ -762,16 +763,6 @@ static int tnvvse_crypto_aes_gmac_init(struct tnvvse_crypto_ctx *ctx,
 
 	memcpy(gmac_init_ctl->IV, priv_data.iv, TEGRA_NVVSE_AES_GCM_IV_LEN);
 
-	if (sha_state->req)
-		ahash_request_free(sha_state->req);
-	if (sha_state->tfm)
-		crypto_free_ahash(sha_state->tfm);
-
-	sha_state->req = NULL;
-	sha_state->tfm = NULL;
-	sha_state->result_buff = NULL;
-	sha_state->digest_size = 0;
-
 free_req:
 	ahash_request_free(req);
 free_tfm:
@@ -790,12 +781,6 @@ static int tnvvse_crypto_aes_gmac_sign_verify_init(struct tnvvse_crypto_ctx *ctx
 	struct tnvvse_gmac_req_data priv_data;
 	const char *driver_name;
 	int ret = -EINVAL, klen;
-
-	if (sha_state->req != NULL || sha_state->tfm != NULL) {
-		pr_err("%s(): Failed init as already initialized for gmac-vse(aes): %d\n",
-				       __func__, ret);
-		goto out;
-	}
 
 	tfm = crypto_alloc_ahash("gmac-vse(aes)", 0, 0);
 	if (IS_ERR(tfm)) {
@@ -862,7 +847,6 @@ static int tnvvse_crypto_aes_gmac_sign_verify_init(struct tnvvse_crypto_ctx *ctx
 	sha_state->req = req;
 	sha_state->tfm = tfm;
 	sha_state->result_buff = ctx->sha_result;
-	sha_state->digest_size = gmac_sign_verify_ctl->tag_length;
 
 	memset(sha_state->result_buff, 0, TEGRA_NVVSE_AES_GCM_TAG_SIZE);
 
@@ -891,28 +875,25 @@ static int tnvvse_crypto_aes_gmac_sign_verify(struct tnvvse_crypto_ctx *ctx,
 	struct scatterlist sg[1];
 	char *input_buffer = gmac_sign_verify_ctl->src_buffer;
 	struct tnvvse_gmac_req_data priv_data;
-	char key_as_keyslot[AES_KEYSLOT_NAME_SIZE] = {0,};
-	int ret = -EINVAL, klen;
+	int ret = -EINVAL;
 
 	if (gmac_sign_verify_ctl->data_length > GMAC_MAX_LEN ||
 			gmac_sign_verify_ctl->data_length == 0) {
 		pr_err("%s(): Failed due to invalid input size: %d\n", __func__, ret);
-		goto stop_sha;
+		goto done;
 	}
 
 	if (gmac_sign_verify_ctl->is_last &&
 			gmac_sign_verify_ctl->tag_length != TEGRA_NVVSE_AES_GCM_TAG_SIZE) {
 		pr_err("%s(): Failed due to invalid tag length (%d) invalid", __func__,
 					gmac_sign_verify_ctl->tag_length);
-		goto stop_sha;
+		goto done;
 	}
 
-	if (gmac_sign_verify_ctl->is_first) {
-		ret = tnvvse_crypto_aes_gmac_sign_verify_init(ctx, gmac_sign_verify_ctl);
-		if (ret) {
-			pr_err("%s(): Failed to init: %d\n", __func__, ret);
-			goto stop_sha;
-		}
+	ret = tnvvse_crypto_aes_gmac_sign_verify_init(ctx, gmac_sign_verify_ctl);
+	if (ret) {
+		pr_err("%s(): Failed to init: %d\n", __func__, ret);
+		goto done;
 	}
 
 	hash_buff = sha_state->xbuf[0];
@@ -925,23 +906,8 @@ static int tnvvse_crypto_aes_gmac_sign_verify(struct tnvvse_crypto_ctx *ctx,
 	else
 		priv_data.request_type = GMAC_VERIFY;
 	priv_data.iv = NULL;
+	priv_data.is_first = gmac_sign_verify_ctl->is_first;
 	req->priv = &priv_data;
-
-	ret = snprintf(key_as_keyslot, AES_KEYSLOT_NAME_SIZE, "NVSEAES %x",
-					gmac_sign_verify_ctl->key_slot);
-	if (ret >= AES_KEYSLOT_NAME_SIZE) {
-		pr_err("%s(): Buffer overflow while setting key for gmac-vse(aes): %d\n",
-					__func__, ret);
-		ret = -EINVAL;
-		goto stop_sha;
-	}
-
-	klen = gmac_sign_verify_ctl->key_length;
-	ret = crypto_ahash_setkey(sha_state->tfm, key_as_keyslot, klen);
-	if (ret) {
-		pr_err("%s(): Failed to set keys for gmac-vse(aes): %d\n", __func__, ret);
-		goto stop_sha;
-	}
 
 	while (total > 0) {
 		size = (total < PAGE_SIZE) ? total : PAGE_SIZE;
@@ -998,19 +964,19 @@ static int tnvvse_crypto_aes_gmac_sign_verify(struct tnvvse_crypto_ctx *ctx,
 
 		total -= size;
 		input_buffer += size;
+		priv_data.is_first = 0;
 	}
 
-	if (!gmac_sign_verify_ctl->is_last)
-		goto done;
-
-	if (gmac_sign_verify_ctl->gmac_type == TEGRA_NVVSE_AES_GMAC_SIGN) {
-		ret = copy_to_user((void __user *)gmac_sign_verify_ctl->tag_buffer,
+	if (gmac_sign_verify_ctl->is_last) {
+		if (gmac_sign_verify_ctl->gmac_type == TEGRA_NVVSE_AES_GMAC_SIGN) {
+			ret = copy_to_user((void __user *)gmac_sign_verify_ctl->tag_buffer,
 				(const void *)result_buff,
 				gmac_sign_verify_ctl->tag_length);
-		if (ret)
-			pr_err("%s(): Failed to copy_to_user:%d\n", __func__, ret);
-	} else {
-		gmac_sign_verify_ctl->result = priv_data.result;
+			if (ret)
+				pr_err("%s(): Failed to copy_to_user:%d\n", __func__, ret);
+		} else {
+			gmac_sign_verify_ctl->result = priv_data.result;
+		}
 	}
 
 stop_sha:
@@ -1024,7 +990,6 @@ stop_sha:
 	sha_state->req = NULL;
 	sha_state->tfm = NULL;
 	sha_state->result_buff = NULL;
-	sha_state->digest_size = 0;
 
 done:
 	return ret;
