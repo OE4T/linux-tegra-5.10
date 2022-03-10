@@ -6,7 +6,7 @@
  * Author: Johnson Leung <r58129@freescale.com>
  *
  * Copyright (c) 2004 Freescale Semiconductor, Inc.
- * Copyright (c) 2020-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION. All rights reserved.
  */
 #include <linux/bitops.h>
 #include <linux/phy.h>
@@ -201,7 +201,7 @@ static int rtl8211f_config_init(struct phy_device *phydev)
 	phy_modify_paged_changed(phydev, 0xa43, RTL8211F_PHYCR1, val, val);
 
 	val = phy_read_paged(phydev, 0xa43, RTL8211F_PHYCR2);
-	phy_modify_paged_changed(phydev, 0xa43, RTL8211F_PHYCR2, 0, (val & ~BIT(0)));
+	phy_modify_paged_changed(phydev, 0xa43, RTL8211F_PHYCR2, BIT(0), (val & ~BIT(0)));
 
 	switch (phydev->interface) {
 	case PHY_INTERFACE_MODE_RGMII:
