@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -44,7 +44,7 @@
 					hysteresis = <0>;
 					writable;
 				};
-				trip_bthrot {
+				cpu_sw_throttle: cpu-sw-throttle {
 					temperature = <96000>;
 					type = "passive";
 					hysteresis = <0>;
@@ -61,7 +61,7 @@
 					hysteresis = <0>;
 					writable;
 				};
-				trip_bthrot {
+				aux_sw_throttle: aux-sw-throttle {
 					temperature = <92500>;
 					type = "passive";
 					hysteresis = <0>;
@@ -78,7 +78,7 @@
 					hysteresis = <0>;
 					writable;
 				};
-				trip_bthrot {
+				gpu_sw_throttle: gpu-sw-throttle {
 					temperature = <98000>;
 					type = "passive";
 					hysteresis = <0>;
