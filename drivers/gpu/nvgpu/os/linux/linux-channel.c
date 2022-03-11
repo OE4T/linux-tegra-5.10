@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -17,6 +17,7 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/debug.h>
 #include <nvgpu/error_notifier.h>
+#include <nvgpu/barrier.h>
 #include <nvgpu/os_sched.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
@@ -137,6 +138,7 @@ void nvgpu_set_err_notifier_locked(struct nvgpu_channel *ch, u32 error)
 		notification->time_stamp.nanoseconds[1] =
 				(u32)(nsec >> 32);
 		notification->info32 = error;
+		nvgpu_wmb();
 		notification->status = 0xffff;
 
 		if (error == NVGPU_CHANNEL_RESETCHANNEL_VERIF_ERROR) {
