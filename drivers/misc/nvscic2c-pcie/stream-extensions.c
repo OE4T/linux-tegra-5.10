@@ -518,8 +518,13 @@ ioctl_submit_copy_request(struct stream_ext_ctx_t *ctx,
 {
 	int ret = 0;
 	struct copy_request *cr = NULL;
-
 	edma_xfer_status_t edma_status = EDMA_XFER_FAIL_INVAL_INPUTS;
+	enum nvscic2c_pcie_link link = NVSCIC2C_PCIE_LINK_DOWN;
+
+	link = pci_client_query_link_status(ctx->pci_client_h);
+	if (link != NVSCIC2C_PCIE_LINK_UP)
+		return -ENOLINK;
+
 	/* copy user-supplied submit-copy args.*/
 	ret = copy_args_from_user(ctx, args, &ctx->cr_params);
 	if (ret)
@@ -751,7 +756,7 @@ stream_extension_deinit(void **stream_ext_h)
 	if (ret <= 0)
 		pr_err("eDMA transfers are still in progress\n");
 
-	mutex_unlock(&ctx->free_lock);
+	mutex_lock(&ctx->free_lock);
 	list_for_each_safe(curr, next, &ctx->free_list) {
 		cr = list_entry(curr, struct copy_request, node);
 		list_del(curr);
@@ -765,6 +770,20 @@ stream_extension_deinit(void **stream_ext_h)
 
 	kfree(ctx);
 	*stream_ext_h = NULL;
+}
+
+/*
+ * Clear edma handle associated with stream extension.
+ */
+void
+stream_extension_edma_deinit(void *stream_ext_h)
+{
+	struct stream_ext_ctx_t *ctx = (struct stream_ext_ctx_t *)stream_ext_h;
+
+	if (!ctx)
+		return;
+
+	ctx->edma_h = NULL;
 }
 
 static int

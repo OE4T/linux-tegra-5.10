@@ -33,4 +33,10 @@ endpoints_setup(struct driver_ctx_t *drv_ctx, void **endpoints_h);
 int
 endpoints_release(void **endpoints_h);
 
-#endif //__ENDPOINT_H__
+/*
+ * Wait for ack from user space process for PCIe link status change.
+ * Deinit edma handle with stream-extension.
+ */
+int
+endpoints_core_deinit(void *endpoints_h);
+#endif /*__ENDPOINT_H__ */

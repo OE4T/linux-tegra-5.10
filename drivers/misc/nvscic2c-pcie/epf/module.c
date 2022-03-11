@@ -348,6 +348,50 @@ nvscic2c_pcie_epf_notifier(struct notifier_block *nb,
 	return NOTIFY_OK;
 }
 
+static void
+nvscic2c_pcie_core_deinit(struct pci_epf *epf)
+{
+	struct driver_ctx_t *drv_ctx = NULL;
+
+	if (!epf)
+		return;
+
+	drv_ctx = epf_get_drvdata(epf);
+	if (!drv_ctx)
+		return;
+
+	pci_client_change_link_status(drv_ctx->pci_client_h,
+				      NVSCIC2C_PCIE_LINK_DOWN);
+	endpoints_core_deinit(drv_ctx->endpoints_h);
+	edma_module_deinit(drv_ctx);
+}
+
+/*
+ * PCIe subsystem sends CORE_DEINIT when RP controller goes down.
+ */
+static int
+nvscic2c_pcie_epf_block_notifier(struct notifier_block *nb,
+				 unsigned long val, void *data)
+{
+	struct pci_epf *epf = NULL;
+
+	if (WARN_ON(!nb))
+		return -EINVAL;
+	epf = container_of(nb, struct pci_epf, block_nb);
+
+	switch (val) {
+	case CORE_DEINIT:
+		nvscic2c_pcie_core_deinit(epf);
+		break;
+
+	default:
+		return NOTIFY_BAD;
+	}
+
+	return NOTIFY_OK;
+
+}
+
 /*
  * ASSUMPTION: applications on and @DRV_MODE_EPC(PCIe RP) must have stopped
  * communicating with application and @DRV_MODE_EPF (this) before this point.
@@ -366,10 +410,10 @@ nvscic2c_pcie_epf_unbind(struct pci_epf *epf)
 
 	pci_client_change_link_status(drv_ctx->pci_client_h,
 				      NVSCIC2C_PCIE_LINK_DOWN);
+	endpoints_release(&drv_ctx->endpoints_h);
+	edma_module_deinit(drv_ctx);
 	clear_inbound_translation(epf);
 	clear_outbound_translation(epf, &drv_ctx->peer_mem);
-	endpoints_release(&drv_ctx->endpoints_h);
-	edma_module_deinit(drv_ctx->edma_h);
 	vmap_deinit(&drv_ctx->vmap_h);
 	comm_channel_deinit(&drv_ctx->comm_channel_h);
 	pci_client_deinit(&drv_ctx->pci_client_h);
@@ -457,6 +501,8 @@ nvscic2c_pcie_epf_bind(struct pci_epf *epf)
 	if (!epf_ctx->notifier_registered) {
 		epf->nb.notifier_call = nvscic2c_pcie_epf_notifier;
 		pci_epc_register_notifier(epf->epc, &epf->nb);
+		epf->block_nb.notifier_call = nvscic2c_pcie_epf_block_notifier;
+		pci_epc_register_block_notifier(epf->epc, &epf->block_nb);
 		epf_ctx->notifier_registered = true;
 	}
 

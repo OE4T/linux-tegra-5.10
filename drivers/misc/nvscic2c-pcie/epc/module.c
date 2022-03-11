@@ -171,8 +171,9 @@ nvscic2c_pcie_epc_remove(struct pci_dev *pdev)
 
 	pci_client_change_link_status(drv_ctx->pci_client_h,
 				      NVSCIC2C_PCIE_LINK_DOWN);
-	endpoints_release(&drv_ctx->endpoints_h);
+	endpoints_core_deinit(drv_ctx->endpoints_h);
 	edma_module_deinit(drv_ctx);
+	endpoints_release(&drv_ctx->endpoints_h);
 	vmap_deinit(&drv_ctx->vmap_h);
 	comm_channel_deinit(&drv_ctx->comm_channel_h);
 	pci_client_deinit(&drv_ctx->pci_client_h);
