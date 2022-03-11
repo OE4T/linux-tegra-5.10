@@ -26,12 +26,17 @@
 #include <nvgpu/static_analysis.h>
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/string.h>
+#include <nvgpu/errata.h>
 
 #include <nvgpu/gr/config.h>
+#include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/gr/gr_instances.h>
 #include <nvgpu/gr/gr_intr.h>
 #include <nvgpu/gr/gr_falcon.h>
 
+
+#include "common/gr/gr_priv.h"
 #include "gr_intr_gp10b.h"
 #include "gr_intr_gv11b.h"
 
@@ -615,6 +620,9 @@ void gv11b_gr_intr_handle_gpc_pes_exception(struct gk20a *g, u32 gpc,
 	u32 num_pes_pending_masks =
 		sizeof(pes_pending_masks)/sizeof(*pes_pending_masks);
 	u32 i = 0U;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
+	struct nvgpu_gr_config *config = gr->config;
+	u32 pes_id;
 
 	if (((gpc_exception & gr_gpc0_gpccs_gpc_exception_pes0_m()) == 0U) &&
 			((gpc_exception & gr_gpc0_gpccs_gpc_exception_pes1_m())
@@ -623,13 +631,19 @@ void gv11b_gr_intr_handle_gpc_pes_exception(struct gk20a *g, u32 gpc,
 	}
 
 	for (i = 0U; i < num_pes_pending_masks; i++) {
+		pes_id = i;
 		if ((gpc_exception & pes_pending_masks[i]) == 0U) {
 			continue;
+		}
+		if (nvgpu_is_errata_present(g, NVGPU_ERRATA_3524791)) {
+			pes_id = gr_config_get_gpc_pes_logical_id_map(
+					config, gpc)[i];
+			nvgpu_assert(pes_id != UINT_MAX);
 		}
 		reg_offset = nvgpu_safe_add_u32(gr_gpc0_ppc0_pes_hww_esr_r(),
 				gpc_offset);
 		reg_offset = nvgpu_safe_add_u32(reg_offset, nvgpu_safe_mult_u32(
-					ppc_in_gpc_stride, i));
+					ppc_in_gpc_stride, pes_id));
 		hww_esr = nvgpu_readl(g, reg_offset);
 
 		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,

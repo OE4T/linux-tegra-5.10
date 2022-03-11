@@ -25,11 +25,14 @@
 #include <nvgpu/class.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/nvgpu_err.h>
+#include <nvgpu/errata.h>
 
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/gr/gr_instances.h>
 #include <nvgpu/gr/gr_intr.h>
 
+#include "common/gr/gr_priv.h"
 #include "common/gr/gr_intr_priv.h"
 #include "hal/gr/intr/gr_intr_gm20b.h"
 #include "hal/gr/intr/gr_intr_gp10b.h"
@@ -925,6 +928,9 @@ void ga10b_gr_intr_handle_gpc_crop_hww(struct gk20a *g, u32 gpc,
 	u32 num_crop_pending_masks =
 		sizeof(crop_pending_masks)/sizeof(*crop_pending_masks);
 	u32 i = 0U;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
+	struct nvgpu_gr_config *config = gr->config;
+	u32 rop_id;
 
 	if ((gpc_exception & (gr_gpc0_gpccs_gpc_exception_crop0_pending_f() |
 			gr_gpc0_gpccs_gpc_exception_crop1_pending_f())) == 0U) {
@@ -933,18 +939,25 @@ void ga10b_gr_intr_handle_gpc_crop_hww(struct gk20a *g, u32 gpc,
 
 	gpc_offset = nvgpu_gr_gpc_offset(g, gpc);
 	for (i = 0U; i < num_crop_pending_masks; i++) {
+		rop_id = i;
 		if ((gpc_exception & crop_pending_masks[i]) == 0U) {
 			continue;
 		}
+		if (nvgpu_is_errata_present(g, NVGPU_ERRATA_3524791)) {
+			rop_id = gr_config_get_gpc_rop_logical_id_map(
+					config, gpc)[i];
+			nvgpu_assert(rop_id != UINT_MAX);
+		}
 		reg_offset = nvgpu_safe_add_u32(gpc_offset,
-				nvgpu_gr_rop_offset(g, i));
+				nvgpu_gr_rop_offset(g, rop_id));
 		reg_offset = nvgpu_safe_add_u32(
 				gr_gpc0_rop0_crop_hww_esr_r(),
 				reg_offset);
 		hww_esr = nvgpu_readl(g, reg_offset);
 
-		nvgpu_err(g, "gpc(%u) rop(%u) crop_hww_esr(0x%08x)", gpc, i,
-				hww_esr);
+		nvgpu_err(g,
+			"gpc(%u) rop(%u) crop_hww_esr(0x%08x)", gpc, rop_id,
+			hww_esr);
 		nvgpu_writel(g, reg_offset,
 			gr_gpc0_rop0_crop_hww_esr_reset_active_f() |
 			gr_gpc0_rop0_crop_hww_esr_en_enable_f());
@@ -964,6 +977,9 @@ void ga10b_gr_intr_handle_gpc_zrop_hww(struct gk20a *g, u32 gpc,
 	u32 num_zrop_pending_masks =
 		sizeof(zrop_pending_masks)/sizeof(*zrop_pending_masks);
 	u32 i = 0U;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
+	struct nvgpu_gr_config *config = gr->config;
+	u32 rop_id;
 
 	if ((gpc_exception & (gr_gpc0_gpccs_gpc_exception_zrop0_pending_f() |
 			gr_gpc0_gpccs_gpc_exception_zrop1_pending_f())) == 0U) {
@@ -972,18 +988,24 @@ void ga10b_gr_intr_handle_gpc_zrop_hww(struct gk20a *g, u32 gpc,
 
 	gpc_offset = nvgpu_gr_gpc_offset(g, gpc);
 	for (i = 0U; i < num_zrop_pending_masks; i++) {
+		rop_id = i;
 		if ((gpc_exception & zrop_pending_masks[i]) == 0U) {
 			continue;
 		}
+		if (nvgpu_is_errata_present(g, NVGPU_ERRATA_3524791)) {
+			rop_id = gr_config_get_gpc_rop_logical_id_map(
+					config, gpc)[i];
+			nvgpu_assert(rop_id != UINT_MAX);
+		}
 		reg_offset = nvgpu_safe_add_u32(gpc_offset,
-				nvgpu_gr_rop_offset(g, i));
+				nvgpu_gr_rop_offset(g, rop_id));
 		reg_offset = nvgpu_safe_add_u32(
 				gr_gpc0_rop0_zrop_hww_esr_r(),
 				reg_offset);
 		hww_esr = nvgpu_readl(g, reg_offset);
 
 		nvgpu_err(g,
-			"gpc(%u) rop(%u) zrop_hww_esr(0x%08x)", gpc, i,
+			"gpc(%u) rop(%u) zrop_hww_esr(0x%08x)", gpc, rop_id,
 			hww_esr);
 
 		nvgpu_writel(g, reg_offset,
@@ -1006,27 +1028,35 @@ void ga10b_gr_intr_handle_gpc_rrh_hww(struct gk20a *g, u32 gpc,
 	u32 num_rrh_pending_masks =
 		sizeof(rrh_pending_masks)/sizeof(*rrh_pending_masks);
 	u32 i = 0U;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
+	struct nvgpu_gr_config *config = gr->config;
+	u32 rop_id;
 
 	if ((gpc_exception & (gr_gpc0_gpccs_gpc_exception_rrh0_pending_f() |
 			gr_gpc0_gpccs_gpc_exception_rrh1_pending_f())) == 0U) {
 		return;
 	}
 
-
 	gpc_offset = nvgpu_gr_gpc_offset(g, gpc);
 	for (i = 0U; i < num_rrh_pending_masks; i++) {
+		rop_id = i;
 		if ((gpc_exception & rrh_pending_masks[i]) == 0U) {
 			continue;
 		}
+		if (nvgpu_is_errata_present(g, NVGPU_ERRATA_3524791)) {
+			rop_id = gr_config_get_gpc_rop_logical_id_map(
+					config, gpc)[i];
+			nvgpu_assert(rop_id != UINT_MAX);
+		}
 		reg_offset = nvgpu_safe_add_u32(gpc_offset,
-				nvgpu_gr_rop_offset(g, i));
+				nvgpu_gr_rop_offset(g, rop_id));
 		reg_offset = nvgpu_safe_add_u32(
 				gr_gpc0_rop0_rrh_status_r(),
 				reg_offset);
 		status = nvgpu_readl(g, reg_offset);
 
 		nvgpu_err(g, "gpc(%u) rop(%u) rrh exception status(0x%08x)",
-				gpc, i, status);
+				gpc, rop_id, status);
 	}
 }
 
