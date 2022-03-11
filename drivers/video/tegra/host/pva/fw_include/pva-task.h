@@ -282,7 +282,6 @@ struct PVA_PACKED pva_td_s {
 
 /** Version of the binary info */
 #define PVA_BIN_INFO_VERSION_ID (0x01U)
-#define PVA_MAX_VPU_DATA_SECTION (8U)
 #define PVA_MAX_VPU_METADATA (4U)
 
 #define PVA_CODE_SEC_BASE_ADDR_ALIGN (128ULL)
@@ -322,9 +321,15 @@ struct PVA_PACKED pva_bin_info_s {
 	/** Base address of the code. Should be aligned at 128.  */
 	pva_iova code_base;
 
-	/** Data sections */
-	struct pva_vpu_data_section_s data[PVA_MAX_VPU_DATA_SECTION];
 	/** Base address of the data. Should be aligned at 64. */
+	/** @brief Holds address of data section info of type
+	 * @ref pva_vpu_data_section_t
+	 */
+	pva_iova data_sec_base;
+
+	/** @brief Number of data section info stored @ref data_sec_base */
+	uint32_t data_sec_count;
+
 	pva_iova data_base;
 };
 

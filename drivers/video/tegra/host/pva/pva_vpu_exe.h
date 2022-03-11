@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -112,7 +112,8 @@ struct pva_elf_image {
 	struct pva_elf_buffer vpu_bin_buffer;
 	/**< Buffers containing information about vpu segments */
 	struct pva_elf_buffer vpu_segments_buffer[PVA_SEG_VPU_MAX_TYPE];
-	/**<ID of the VPU app */
+	/** Buffers containing data segment info */
+	struct pva_elf_buffer vpu_data_segment_info;
 	uint16_t elf_id;
 	/**<True if user has successfully registered a VPU ELF */
 	bool user_registered;
