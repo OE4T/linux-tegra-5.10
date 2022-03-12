@@ -25,7 +25,7 @@
 #include <linux/mutex.h>
 #include "pva-bit.h"
 
-#define ELF_MAXIMUM_SYMBOL_LENGTH 64
+#define ELF_MAX_SYMBOL_LENGTH 64
 #define MAX_NUM_VPU_EXE		65535U
 #define ALOC_SEGMENT_SIZE	32U
 #define NUM_ALLOC_SEGMENTS	((MAX_NUM_VPU_EXE + 1)/ALOC_SEGMENT_SIZE)

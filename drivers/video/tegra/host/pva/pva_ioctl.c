@@ -551,7 +551,7 @@ static int pva_get_symbol_id(struct pva_private *priv, void *arg)
 	int err = 0;
 	struct pva_elf_symbol symbol = {0};
 
-	if (symbol_in->name.size > ELF_MAXIMUM_SYMBOL_LENGTH) {
+	if (symbol_in->name.size > ELF_MAX_SYMBOL_LENGTH) {
 		nvhost_err(&priv->pva->pdev->dev, "symbol size too large:%llu",
 			   symbol_in->name.size);
 	}

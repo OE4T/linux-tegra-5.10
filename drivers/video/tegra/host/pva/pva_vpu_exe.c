@@ -482,10 +482,12 @@ populate_symtab(void *elf, struct nvpva_elf_context *d,
 	const struct elf_symbol *sym;
 	uint32_t i, count;
 	struct pva_elf_symbol *symID;
-	uint32_t numSym = 0;
+	uint32_t num_symbols = 0;
 	uint32_t totalSymsize = 0;
 	const char *symname = NULL;
+	const char *section_name;
 	uint32_t stringsize = 0;
+	int32_t sec_type;
 	struct pva_elf_image *image;
 
 	section_header =
@@ -496,6 +498,11 @@ populate_symtab(void *elf, struct nvpva_elf_context *d,
 
 	count = section_header->size / section_header->entsize;
 	for (i = 0; i < count; i++) {
+		if (num_symbols >= NVPVA_TASK_MAX_SYMBOLS) {
+			ret = -EINVAL;
+			goto fail;
+		}
+
 		sym = elf_symbol(elf, i);
 		if ((sym == NULL)
 		   || (ELF_ST_BIND(sym) != STB_GLOBAL)
@@ -503,34 +510,46 @@ populate_symtab(void *elf, struct nvpva_elf_context *d,
 		   || sym->size <= 0)
 			continue;
 
-		symname =
-			elf_symbol_name(elf, section_header, i);
-		stringsize = strnlen(
-			symname,
-			(ELF_MAXIMUM_SYMBOL_LENGTH - 1));
-		symID = &get_elf_image(d, exe_id)->sym[numSym];
+		sym_scn = elf_section_header(elf, sym->shndx);
+		if (sym_scn == NULL) {
+			ret = -EINVAL;
+			goto fail;
+		}
+
+		section_name = elf_section_name(elf, sym_scn);
+		if (section_name == NULL) {
+			ret = -EINVAL;
+			goto fail;
+		}
+
+		sec_type = find_pva_ucode_segment_type(section_name,
+						       section_header->addr);
+		if (sec_type != PVA_SEG_VPU_IN_PARAMS)
+			continue;
+
+		symname = elf_symbol_name(elf, section_header, i);
+		stringsize = strnlen(symname, (ELF_MAX_SYMBOL_LENGTH - 1));
+		symID = &get_elf_image(d, exe_id)->sym[num_symbols];
 		symID->symbol_name =
-			kcalloc(ELF_MAXIMUM_SYMBOL_LENGTH,
+			kcalloc(ELF_MAX_SYMBOL_LENGTH,
 				sizeof(char), GFP_KERNEL);
 		if (symID->symbol_name == NULL) {
 			ret = -ENOMEM;
 			goto fail;
 		}
 
-		(void)strncpy(symID->symbol_name, symname,
-				stringsize);
+		(void)strncpy(symID->symbol_name, symname, stringsize);
 		symID->symbol_name[stringsize] = '\0';
-		symID->symbolID = numSym;
+		symID->symbolID = num_symbols;
 		symID->size = sym->size;
 		symID->addr = sym->value;
-		sym_scn = elf_section_header(elf, sym->shndx);
 		ret = update_exports_symbol(elf, sym_scn, symID);
 		if (ret != 0) {
 			kfree(symID->symbol_name);
 			goto fail;
 		}
 
-		numSym++;
+		num_symbols++;
 		totalSymsize += symID->size;
 		ret = nvpva_validate_vmem_offset(symID->addr,
 						 symID->size,
@@ -540,7 +559,7 @@ populate_symtab(void *elf, struct nvpva_elf_context *d,
 	}
 
 update_elf_info:
-	get_elf_image(d, exe_id)->num_symbols = numSym;
+	get_elf_image(d, exe_id)->num_symbols = num_symbols;
 	get_elf_image(d, exe_id)->symbol_size_total = totalSymsize;
 
 	return ret;
@@ -700,7 +719,7 @@ int32_t pva_get_sym_info(struct nvpva_elf_context *d, uint16_t vpu_exe_id,
 	struct pva_elf_image *elf;
 	uint32_t i;
 	int32_t err = 0;
-	size_t strSize = strnlen(sym_name, ELF_MAXIMUM_SYMBOL_LENGTH);
+	size_t strSize = strnlen(sym_name, ELF_MAX_SYMBOL_LENGTH);
 
 	elf = get_elf_image(d, vpu_exe_id);
 	for (i = 0; i < elf->num_symbols; i++) {
