@@ -496,8 +496,8 @@ static int pva_task_write_vpu_parameter(struct pva_submit_task *task,
 		}
 		if (task->symbols[i].config == NVPVA_SYMBOL_POINTER) {
 			struct pva_pinned_memory *mem;
-			ptrSym = (struct nvpva_pointer_symbol
-				      *)(hw_task->sym_payload +
+			ptrSym = (struct nvpva_pointer_symbol *)
+					 (hw_task->sym_payload +
 					 task->symbols[i].offset);
 			mem = pva_task_pin_mem(task, ptrSym->base);
 			if (IS_ERR(mem)) {
@@ -506,7 +506,7 @@ static int pva_task_write_vpu_parameter(struct pva_submit_task *task,
 				return -EINVAL;
 			}
 			ptrSym->base = mem->dma_addr;
-			ptrSym->size = elf->sym[symbolId].size;
+			ptrSym->size = mem->size;
 			size = sizeof(struct nvpva_pointer_symbol);
 		}
 		hw_task->param_list[i].addr = elf->sym[symbolId].addr;
