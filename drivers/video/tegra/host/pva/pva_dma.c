@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -116,11 +116,10 @@ static int32_t check_address_range(struct nvpva_dma_descriptor const *desc,
 static int32_t
 patch_dma_desc_address(struct pva_submit_task *task,
 		      struct nvpva_dma_descriptor *umd_dma_desc,
-		      struct pva_dtd_s *dma_desc, int *is_cfg, bool is_misr)
+		      struct pva_dtd_s *dma_desc, bool is_misr)
 {
 	int32_t err = 0;
 	uint64_t addr_base = 0;
-	int hw_gen = task->pva->version;
 
 	switch (umd_dma_desc->srcTransferMode) {
 	case DMA_DESC_SRC_XFER_L2RAM:
@@ -172,13 +171,6 @@ patch_dma_desc_address(struct pva_submit_task *task,
 		}
 
 		err = check_address_range(umd_dma_desc, size, false);
-		if (err == 0) {
-			err = nvpva_validate_vmem_offset(
-				(addr + umd_dma_desc->src_offset),
-				size,
-				hw_gen);
-		}
-
 		if (err) {
 			err = -EINVAL;
 			task_err(
@@ -209,11 +201,6 @@ patch_dma_desc_address(struct pva_submit_task *task,
 			err = -EINVAL;
 			goto out;
 		}
-
-		err = nvpva_validate_vmem_offset(
-		    (addr + umd_dma_desc->src_offset),
-		    size, hw_gen);
-		*is_cfg = 1;
 
 		if (err) {
 			task_err(task, "ERROR: Invalid offset or address");
@@ -340,13 +327,6 @@ patch_dma_desc_address(struct pva_submit_task *task,
 		}
 
 		err = check_address_range(umd_dma_desc, size, true);
-		if (err == 0) {
-			err = nvpva_validate_vmem_offset(
-				(addr + umd_dma_desc->dst_offset),
-				size,
-				hw_gen);
-		}
-
 		if (err) {
 			err = -EINVAL;
 			task_err(
@@ -524,7 +504,6 @@ static int32_t nvpva_task_dma_desc_mapping(struct pva_submit_task *task,
 	unsigned int numDesc;
 	uint32_t addr = 0U;
 	uint32_t size = 0;
-	int is_cfg = 0;
 	bool is_misr;
 
 	task->special_access = 0;
@@ -532,7 +511,6 @@ static int32_t nvpva_task_dma_desc_mapping(struct pva_submit_task *task,
 	for (numDesc = 0U; numDesc < task->num_dma_descriptors; numDesc++) {
 		umd_dma_desc = &task->dma_descriptors[numDesc];
 		dma_desc = &hw_task->dma_desc[numDesc];
-		is_cfg = 0;
 		is_misr = !((task->dma_misr_config.descriptor_mask
 			    & PVA_BIT64(numDesc)) == 0U);
 		is_misr = is_misr && (task->dma_misr_config.enable != 0U);
@@ -546,7 +524,7 @@ static int32_t nvpva_task_dma_desc_mapping(struct pva_submit_task *task,
 		}
 
 		err = patch_dma_desc_address(task, umd_dma_desc, dma_desc,
-					     &is_cfg, is_misr);
+					     is_misr);
 		if (err)
 			goto out;
 
