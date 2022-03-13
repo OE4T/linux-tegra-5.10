@@ -27,7 +27,6 @@
 		dsi {
 			status = "okay";
 			nvidia,active-panel = <&panel_t_a_lcd_6_5>;
-			nvidia,panel-timings = <&panel_t_a_lcd_6_5_timings>;
 			panel_t_a_lcd_6_5: panel-t-a-lcd-6-5 {
 				status = "okay";
 				compatible = "tianma,a-lcd-6-5";
@@ -65,6 +64,7 @@
 				nvidia,panel-rst-gpio = <&tegra_aon_gpio TEGRA234_AON_GPIO(CC, 3) GPIO_ACTIVE_HIGH>; //CAM_INT4
 				nvidia,avdd-avee-en-gpio = <&tegra_main_gpio TEGRA234_MAIN_GPIO(AC, 0) GPIO_ACTIVE_HIGH>; //CAM1_PWDN
 				nvidia,vdd-1v8-lcd-en-gpio = <&tegra_main_gpio TEGRA234_MAIN_GPIO(H, 1) GPIO_ACTIVE_HIGH>; //CAM_ERROR2
+			        nvidia,panel-timings = <&panel_t_a_lcd_6_5_timings>;
 				display-timings {
 					panel_t_a_lcd_6_5_timings: 1080-2340-60Hz {
 						clock-frequency = <190310400>;
@@ -107,6 +107,7 @@
 
 			pwm-names = "lp8556";
 			pwms = <&tegra_pwm8 0 59424>;
+			skip-i2c-configuration;
 
 			bl-measured = < 0 1 2 3 4 5 5 6
 					7 8 9 10 11 11 12 13

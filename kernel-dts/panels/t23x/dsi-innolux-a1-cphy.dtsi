@@ -26,7 +26,6 @@
 		dsi {
 			status = "okay";
 			nvidia,active-panel = <&panel_i_a1_cphy_lcd_7_9>;
-			nvidia,panel-timings = <&panel_i_a1_cphy_lcd_7_9_timings>;
 			panel_i_a1_cphy_lcd_7_9: panel-i-a1-cphy-lcd-7-9 {
 				status = "okay";
 				compatible = "innolux,a1_cphy_lcd-7-9";
@@ -67,10 +66,11 @@
 				nvidia,panel-rst-gpio = <&tegra_aon_gpio TEGRA234_AON_GPIO(CC, 3) GPIO_ACTIVE_HIGH>; //CAM_INT4
 				nvidia,avdd-avee-en-gpio = <&tegra_main_gpio TEGRA234_MAIN_GPIO(AC, 0) GPIO_ACTIVE_HIGH>; //CAM1_PWDN
 				nvidia,vdd-1v8-lcd-en-gpio = <&tegra_main_gpio TEGRA234_MAIN_GPIO(H, 1) GPIO_ACTIVE_HIGH>; //CAM_ERROR2
+				nvidia,panel-timings = <&panel_i_a1_cphy_lcd_7_9_timings>;
 				display-timings {
 					//Panel-A1 timings
 					panel_i_a1_cphy_lcd_7_9_timings: 1080-1920-60Hz_panel_a1 {
-						clock-frequency = <130403520>;
+						clock-frequency = <130400000>;
 						hactive = <1080>;
 						vactive = <1920>;
 						hfront-porch = <16>;
@@ -79,18 +79,6 @@
 						vfront-porch = <14>;
 						vback-porch = <6>;
 						vsync-len = <4>;
-					};
-					// Panel-B timings, but pixel clk rate is of Panel A1.
-					panel_t_b_lcd_7_0_timings: 1080-1920-60Hz_panel_b {
-						clock-frequency = <130400000>;
-						hactive = <1080>;
-						vactive = <1920>;
-						hfront-porch = <76>;
-						hback-porch = <56>;
-						hsync-len = <12>;
-						vfront-porch = <54>;
-						vback-porch = <10>;
-						vsync-len = <10>;
 					};
 				};
 			};
@@ -112,6 +100,7 @@
 
 			pwm-names = "lp8556";
 			pwms = <&tegra_pwm8 0 59424>; /* tegra_pwm8 = CAM_BACKLIGHT_PWM */
+			skip-i2c-configuration;
 
 			bl-measured = < 0 1 2 3 4 5 5 6
 					7 8 9 10 11 11 12 13
