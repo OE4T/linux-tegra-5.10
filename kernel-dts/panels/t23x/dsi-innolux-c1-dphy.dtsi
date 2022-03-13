@@ -26,7 +26,6 @@
 		dsi {
 			status = "okay";
 			nvidia,active-panel = <&panel_i_c1_lcd>;
-			nvidia,panel-timings = <&panel_i_c1_lcd_timings>;
 			panel_i_c1_lcd: panel-i-c1-lcd {
 				status = "okay";
 				compatible = "innolux,c1-lcd";
@@ -91,6 +90,7 @@
 				nvidia,panel-rst-gpio = <&tegra_aon_gpio TEGRA234_AON_GPIO(CC, 3) GPIO_ACTIVE_HIGH>; //CAM_INT4
 				nvidia,avdd-avee-en-gpio = <&tegra_main_gpio TEGRA234_MAIN_GPIO(AC, 0) GPIO_ACTIVE_HIGH>; //CAM_PWDN
 				nvidia,vdd-1v8-lcd-en-gpio = <&tegra_main_gpio TEGRA234_MAIN_GPIO(H, 1) GPIO_ACTIVE_HIGH>; //CAM_ERROR2
+				nvidia,panel-timings = <&panel_i_c1_lcd_timings>;
 				display-timings {
 					panel_i_c1_lcd_timings: 1080-1920-60Hz {
 						clock-frequency = <146400000>;
@@ -134,6 +134,7 @@
 
 			pwm-names = "lp8556";
 			pwms = <&tegra_pwm8 0 59424>; /* tegra_pwm8 = CAM_BACKLIGHT_PWM */
+			skip-i2c-configuration;
 
 			bl-measured = < 0 1 2 3 4 5 5 6
 					7 8 9 10 11 11 12 13
