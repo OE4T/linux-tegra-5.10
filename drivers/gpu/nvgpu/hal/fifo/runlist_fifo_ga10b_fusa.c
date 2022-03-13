@@ -122,7 +122,7 @@ void ga10b_runlist_write_state(struct gk20a *g, u32 runlists_mask,
 		reg_val = runlist_sched_disable_runlist_enabled_v();
 	}
 
-	while (runlists_mask != 0U) {
+	while (runlists_mask != 0U && (runlist_id < g->fifo.max_runlists)) {
 		if ((runlists_mask & BIT32(runlist_id)) != 0U) {
 			runlist = g->fifo.runlists[runlist_id];
 			nvgpu_runlist_writel(g, runlist,

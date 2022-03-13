@@ -96,7 +96,7 @@ void gk20a_runlist_write_state(struct gk20a *g, u32 runlists_mask,
 	u32 reg_mask = 0U;
 	u32 i = 0U;
 
-	while (runlists_mask != 0U) {
+	while (runlists_mask != 0U && (i < g->fifo.max_runlists)) {
 		if ((runlists_mask & BIT32(i)) != 0U) {
 			reg_mask |= fifo_sched_disable_runlist_m(i);
 		}
