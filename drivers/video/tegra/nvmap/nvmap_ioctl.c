@@ -72,11 +72,22 @@ struct nvmap_handle *nvmap_handle_get_from_id(struct nvmap_client *client,
 	if (WARN_ON(!client))
 		return ERR_PTR(-EINVAL);
 
-	if (client->ida)
-		dmabuf = nvmap_id_array_get_dmabuf_from_id(client->ida, id);
-	else
+	if (client->ida) {
 		dmabuf = dma_buf_get((int)id);
+		/*
+		 * id is dmabuf fd created from foreign dmabuf
+		 * but handle as ID is enabled, hence it doesn't belong
+		 * to nvmap_handle, bail out early.
+		 */
+		if (!IS_ERR_OR_NULL(dmabuf)) {
+			dma_buf_put(dmabuf);
+			return NULL;
+		}
 
+		dmabuf = nvmap_id_array_get_dmabuf_from_id(client->ida, id);
+	} else {
+		dmabuf = dma_buf_get((int)id);
+	}
 	if (IS_ERR_OR_NULL(dmabuf))
 		return ERR_CAST(dmabuf);
 
