@@ -50,6 +50,14 @@
 #define GSPPROD_RISCV_ACR_FW_CODE     "acr-gsp.text.encrypt.bin.prod"
 #define GSPPROD_RISCV_ACR_FW_DATA     "acr-gsp.data.encrypt.bin.prod"
 
+#define GSPDBG_RISCV_ACR_FW_SAFETY_MANIFEST  "acr-gsp-safety.manifest.encrypt.bin.out.bin"
+#define GSPDBG_RISCV_ACR_FW_SAFETY_CODE      "acr-gsp-safety.text.encrypt.bin"
+#define GSPDBG_RISCV_ACR_FW_SAFETY_DATA      "acr-gsp-safety.data.encrypt.bin"
+
+#define GSPPROD_RISCV_ACR_FW_SAFETY_MANIFEST "acr-gsp-safety.manifest.encrypt.bin.out.bin.prod"
+#define GSPPROD_RISCV_ACR_FW_SAFETY_CODE     "acr-gsp-safety.text.encrypt.bin.prod"
+#define GSPPROD_RISCV_ACR_FW_SAFETY_DATA     "acr-gsp-safety.data.encrypt.bin.prod"
+
 static int ga10b_bootstrap_hs_acr(struct gk20a *g, struct nvgpu_acr *acr)
 {
 	int err = 0;
@@ -299,12 +307,25 @@ static u32 ga10b_acr_lsf_config(struct gk20a *g,
 	return lsf_enable_mask;
 }
 
-static void ga10b_acr_default_sw_init(struct gk20a *g, struct hs_acr *riscv_hs)
+#ifndef CONFIG_NVGPU_NON_FUSA
+static void ga10b_acr_safety_ucode_select(struct gk20a *g,
+		struct hs_acr *riscv_hs)
 {
-	nvgpu_log_fn(g, " ");
+	if (g->ops.pmu.is_debug_mode_enabled(g)) {
+		riscv_hs->acr_code_name = GSPDBG_RISCV_ACR_FW_SAFETY_CODE;
+		riscv_hs->acr_data_name = GSPDBG_RISCV_ACR_FW_SAFETY_DATA;
+		riscv_hs->acr_manifest_name = GSPDBG_RISCV_ACR_FW_SAFETY_MANIFEST;
+	} else {
+		riscv_hs->acr_code_name = GSPPROD_RISCV_ACR_FW_SAFETY_CODE;
+		riscv_hs->acr_data_name = GSPPROD_RISCV_ACR_FW_SAFETY_DATA;
+		riscv_hs->acr_manifest_name = GSPPROD_RISCV_ACR_FW_SAFETY_MANIFEST;
+	}
+}
+#else
 
-	riscv_hs->acr_type = ACR_DEFAULT;
-
+static void ga10b_acr_non_safety_ucode_select(struct gk20a *g,
+		struct hs_acr *riscv_hs)
+{
 	if (g->ops.pmu.is_debug_mode_enabled(g)) {
 		riscv_hs->acr_code_name = GSPDBG_RISCV_ACR_FW_CODE;
 		riscv_hs->acr_data_name = GSPDBG_RISCV_ACR_FW_DATA;
@@ -314,6 +335,20 @@ static void ga10b_acr_default_sw_init(struct gk20a *g, struct hs_acr *riscv_hs)
 		riscv_hs->acr_data_name = GSPPROD_RISCV_ACR_FW_DATA;
 		riscv_hs->acr_manifest_name = GSPPROD_RISCV_ACR_FW_MANIFEST;
 	}
+}
+#endif
+
+static void ga10b_acr_default_sw_init(struct gk20a *g, struct hs_acr *riscv_hs)
+{
+	nvgpu_log_fn(g, " ");
+
+	riscv_hs->acr_type = ACR_DEFAULT;
+
+#ifndef CONFIG_NVGPU_NON_FUSA
+	ga10b_acr_safety_ucode_select(g, riscv_hs);
+#else
+	ga10b_acr_non_safety_ucode_select(g, riscv_hs);
+#endif
 
 	riscv_hs->acr_flcn = &g->gsp_flcn;
 	riscv_hs->report_acr_engine_bus_err_status =
