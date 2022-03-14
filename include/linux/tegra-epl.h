@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION, All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -41,7 +41,12 @@
  *                                      false - SW error can not be reported because previous error
  *                                              is still active. Client needs to retry later.
  *
- * @returns     0 (success), -1 (failure)
+ * @returns
+ *	0			(success)
+ *	-EINVAL		(On invalid arguments)
+ *	-ENODEV		(On device driver not loaded or Misc EC not configured)
+ *	-EACCESS	(On client not allowed to report error via given Misc EC)
+ *	-EAGAIN		(On Misc EC busy, client should retry)
  */
 int epl_get_misc_ec_err_status(struct device *dev, uint8_t err_number, bool *status);
 
@@ -57,7 +62,12 @@ int epl_get_misc_ec_err_status(struct device *dev, uint8_t err_number, bool *sta
  * @param[in]   sw_error_code           Client Defined Error Code, which will be
  *                                      forwarded to the application on FSI.
  *
- * @returns     0 (success), -1 (failure)
+ * @returns
+ *	0			(success)
+ *	-EINVAL		(On invalid arguments)
+ *	-ENODEV		(On device driver not loaded or Misc EC not configured)
+ *	-EACCESS	(On client not allowed to report error via given Misc EC)
+ *	-EAGAIN		(On Misc EC busy, client should retry)
  */
 int epl_report_misc_ec_error(struct device *dev, uint8_t err_number, uint32_t sw_error_code);
 

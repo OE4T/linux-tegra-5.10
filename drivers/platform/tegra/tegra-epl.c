@@ -240,25 +240,32 @@ static ssize_t device_file_ioctl(
 
 int epl_get_misc_ec_err_status(struct device *dev, uint8_t err_number, bool *status)
 {
-	uint32_t mission_err_status = 0U;
-	uint32_t mask = 0U;
-	int ret = -1;
-	const char *dev_str;
+	int ret = -EINVAL;
 
-	dev_str = dev_driver_string(dev);
-	if ((err_number < NUM_SW_GENERIC_ERR) &&
-			(strcmp(dev_str, miscerr_cfg[err_number].dev_configured) == 0)) {
-		if ((status != NULL) && (isAddrMappOk == true)) {
-			mask = (1U << (miscerr_cfg[err_number].ec_err_idx % 32U));
-			mission_err_status = readl(mission_err_status_va);
-			if ((mission_err_status & mask) != 0U)
-				*status = false;
-			else
-				*status = true;
+	if (dev && status && (err_number < NUM_SW_GENERIC_ERR)) {
+		uint32_t mission_err_status = 0U;
+		uint32_t mask = 0U;
+		const char *dev_str;
 
-			ret = 0;
-		}
+		if (miscerr_cfg[err_number].dev_configured == NULL || isAddrMappOk == false)
+			return -ENODEV;
+
+		dev_str = dev_driver_string(dev);
+
+		if (strcmp(dev_str, miscerr_cfg[err_number].dev_configured) != 0)
+			return -EACCES;
+
+		mask = (1U << (miscerr_cfg[err_number].ec_err_idx % 32U));
+		mission_err_status = readl(mission_err_status_va);
+
+		if ((mission_err_status & mask) != 0U)
+			*status = false;
+		else
+			*status = true;
+
+		ret = 0;
 	}
+
 	return ret;
 }
 EXPORT_SYMBOL(epl_get_misc_ec_err_status);
@@ -266,20 +273,24 @@ EXPORT_SYMBOL(epl_get_misc_ec_err_status);
 int epl_report_misc_ec_error(struct device *dev, uint8_t err_number,
 	uint32_t sw_error_code)
 {
-	int ret = -1;
+	int ret = -EINVAL;
 	bool status = false;
 
 	ret = epl_get_misc_ec_err_status(dev, err_number, &status);
-	if (ret == 0) {
-		if (status == true) {
-			/* Updating error code */
-			writel(sw_error_code, miscerr_cfg[err_number].err_code_va);
-			/* triggering SW generic error */
-			writel(0x1U, miscerr_cfg[err_number].err_assert_va);
-			ret = 0;
-		}
-	}
-	return ret;
+
+	if (ret != 0)
+		return ret;
+
+	if (status == false)
+		return -EAGAIN;
+
+	/* Updating error code */
+	writel(sw_error_code, miscerr_cfg[err_number].err_code_va);
+
+	/* triggering SW generic error */
+	writel(0x1U, miscerr_cfg[err_number].err_assert_va);
+
+	return 0;
 }
 EXPORT_SYMBOL(epl_report_misc_ec_error);
 
