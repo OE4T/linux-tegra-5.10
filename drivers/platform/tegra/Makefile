@@ -60,8 +60,6 @@ obj-$(CONFIG_TEGRA_HV_XHCI_DEBUG) += tegra-hv-xhci-debug.o
 obj-$(CONFIG_TEGRA_SAFETY) += tegra-safety-ivc.o tegra-safety-dev.o
 obj-$(CONFIG_TEGRA_SAFETY) += tegra_l1ss_kernel_interface.o tegra_l1ss_cmd_resp_l2_interface.o tegra_l1ss.o
 
-obj-$(CONFIG_PSTORE_RAM) += tegra_ramoops.o
-
 obj-$(CONFIG_TEGRA_NVADSP) += nvadsp/
 
 obj-$(CONFIG_TEGRA_VIRT_AUDIO_IVC) += nvaudio_ivc/
