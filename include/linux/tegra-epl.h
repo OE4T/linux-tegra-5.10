@@ -28,6 +28,7 @@
 
 /* ==================[MACROS]=============================================== */
 
+#ifdef CONFIG_TEGRA_EPL
 /**
  * @brief API to check if SW error can be reported via Misc EC
  *        by reading and checking Misc EC error status register value.
@@ -70,5 +71,19 @@ int epl_get_misc_ec_err_status(struct device *dev, uint8_t err_number, bool *sta
  *	-EAGAIN		(On Misc EC busy, client should retry)
  */
 int epl_report_misc_ec_error(struct device *dev, uint8_t err_number, uint32_t sw_error_code);
+
+#else
+static inline
+int epl_get_misc_ec_err_status(struct device *dev, uint8_t err_number, bool *status)
+{
+	return -ENODEV;
+}
+
+static inline
+int epl_report_misc_ec_error(struct device *dev, uint8_t err_number, uint32_t sw_error_code)
+{
+	return -ENODEV;
+}
+#endif	/* CONFIG_TEGRA_EPL */
 
 #endif /* TEGRA_EPL_H */
