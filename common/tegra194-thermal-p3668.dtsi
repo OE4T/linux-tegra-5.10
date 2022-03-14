@@ -44,17 +44,28 @@
 					trip = <&cpu_sw_throttle>;
 					cooling-device = <&cl0_0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,
 					<&cl1_0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,
-					<&cl2_0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
+					<&cl2_0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,
+					<&tegra_gv11b THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
 				};
 			};
 		};
 		GPU-therm {
+			/delete-node/ cooling-maps;
 			trips {
 				trip_critical {
 					temperature = <97000>;
 				};
 				gpu_sw_throttle: gpu-sw-throttle {
 					temperature = <91500>;
+				};
+			};
+			cooling-maps {
+				map0 {
+					trip = <&gpu_sw_throttle>;
+					cooling-device = <&cl0_0 THERMAL_NO_LIMIT 10>,
+					<&cl1_0 THERMAL_NO_LIMIT 10>,
+					<&cl2_0 THERMAL_NO_LIMIT 10>,
+					<&tegra_gv11b THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
 				};
 			};
 		};
@@ -71,9 +82,9 @@
 			cooling-maps {
 				map0 {
 					trip = <&aux_sw_throttle>;
-					cooling-device = <&cl0_0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,
-					<&cl1_0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,
-					<&cl2_0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,
+					cooling-device = <&cl0_0 THERMAL_NO_LIMIT 10>,
+					<&cl1_0 THERMAL_NO_LIMIT 10>,
+					<&cl2_0 THERMAL_NO_LIMIT 10>,
 					<&tegra_gv11b THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
 				};
 			};
