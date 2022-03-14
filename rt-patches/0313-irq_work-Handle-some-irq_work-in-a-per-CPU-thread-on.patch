@@ -1,7 +1,7 @@
-From 90fb403599e97054f73e72d8fc7c438d97add2ff Mon Sep 17 00:00:00 2001
+From f5eaf64ab7be56072a3aa81d1667b5dc43f4937f Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 24 Nov 2021 17:12:20 +0100
-Subject: [PATCH 313/315] irq_work: Handle some irq_work in a per-CPU thread on
+Subject: [PATCH 313/318] irq_work: Handle some irq_work in a per-CPU thread on
  PREEMPT_RT
 
 The irq_work callback is invoked in hard IRQ context. By default all
@@ -51,13 +51,13 @@ Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Link: https://lkml.kernel.org/r/20211007092646.uhshe3ut2wkrcfzv@linutronix.de
 Signed-off-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
 ---
- include/linux/irq_work.h |  16 +++---
- kernel/irq_work.c        | 131 ++++++++++++++++++++++++++++++++++-------------
+ include/linux/irq_work.h |  16 +++--
+ kernel/irq_work.c        | 131 ++++++++++++++++++++++++++++-----------
  kernel/time/timer.c      |   2 -
  3 files changed, 106 insertions(+), 43 deletions(-)
 
 diff --git a/include/linux/irq_work.h b/include/linux/irq_work.h
-index 3c6d3a9..f551ba9 100644
+index 3c6d3a96bca0..f551ba9c99d4 100644
 --- a/include/linux/irq_work.h
 +++ b/include/linux/irq_work.h
 @@ -40,6 +40,16 @@ void init_irq_work(struct irq_work *work, void (*func)(struct irq_work *))
@@ -89,7 +89,7 @@ index 3c6d3a9..f551ba9 100644
 -
  #endif /* _LINUX_IRQ_WORK_H */
 diff --git a/kernel/irq_work.c b/kernel/irq_work.c
-index 8969aff..03d09d7 100644
+index 8969aff790e2..03d09d779ee1 100644
 --- a/kernel/irq_work.c
 +++ b/kernel/irq_work.c
 @@ -18,12 +18,37 @@
@@ -289,7 +289,7 @@ index 8969aff..03d09d7 100644
 +}
 +early_initcall(irq_work_init_threads);
 diff --git a/kernel/time/timer.c b/kernel/time/timer.c
-index af3daf0..cd67ee6 100644
+index af3daf03c917..cd67ee6d2634 100644
 --- a/kernel/time/timer.c
 +++ b/kernel/time/timer.c
 @@ -1767,8 +1767,6 @@ static __latent_entropy void run_timer_softirq(struct softirq_action *h)
@@ -302,5 +302,5 @@ index af3daf0..cd67ee6 100644
  	if (IS_ENABLED(CONFIG_NO_HZ_COMMON))
  		__run_timers(this_cpu_ptr(&timer_bases[BASE_DEF]));
 -- 
-2.7.4
+2.17.1
 

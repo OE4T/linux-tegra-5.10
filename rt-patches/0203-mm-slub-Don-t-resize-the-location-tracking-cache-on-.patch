@@ -1,7 +1,7 @@
-From 6eae80c24f2f32f128f1c728930e890a7a7ab4ed Mon Sep 17 00:00:00 2001
+From 21a8337742803d2469403e039e4de3804f308875 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Fri, 26 Feb 2021 17:26:04 +0100
-Subject: [PATCH 203/315] mm: slub: Don't resize the location tracking cache on
+Subject: [PATCH 203/318] mm: slub: Don't resize the location tracking cache on
  PREEMPT_RT
 
 The location tracking cache has a size of a page and is resized if its
@@ -18,7 +18,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 3 insertions(+)
 
 diff --git a/mm/slub.c b/mm/slub.c
-index 50ebee3..c6f42a6 100644
+index 50ebee37c046..c6f42a6c3709 100644
 --- a/mm/slub.c
 +++ b/mm/slub.c
 @@ -4682,6 +4682,9 @@ static int alloc_loc_track(struct loc_track *t, unsigned long max, gfp_t flags)
@@ -32,5 +32,5 @@ index 50ebee3..c6f42a6 100644
  
  	l = (void *)__get_free_pages(flags, order);
 -- 
-2.7.4
+2.17.1
 

@@ -1,7 +1,7 @@
-From d293593b32f953df016d91f76411f0c9beb37b3f Mon Sep 17 00:00:00 2001
+From 58649070836ee58fc881f1685714f7be152a085a Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Fri, 11 Oct 2019 13:14:29 +0200
-Subject: [PATCH 278/315] ARM: Allow to enable RT
+Subject: [PATCH 278/318] ARM: Allow to enable RT
 
 Allow to select RT.
 
@@ -11,7 +11,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 2 insertions(+)
 
 diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index 24fc768..6bcbefa 100644
+index 24fc768d0ecb..6bcbefad0091 100644
 --- a/arch/arm/Kconfig
 +++ b/arch/arm/Kconfig
 @@ -31,6 +31,7 @@ config ARM
@@ -31,5 +31,5 @@ index 24fc768..6bcbefa 100644
  	select SET_FS
  	select SYS_SUPPORTS_APM_EMULATION
 -- 
-2.7.4
+2.17.1
 

@@ -1,7 +1,7 @@
-From 1beb6b70c92b94312d55d75ed6ed5026451d9dd0 Mon Sep 17 00:00:00 2001
+From 773ecff0814f38ec1910eef554185891ccbd5b22 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 22 Sep 2021 19:34:40 +0200
-Subject: [PATCH 306/315] preempt: Move preempt_enable_no_resched() to the RT
+Subject: [PATCH 306/318] preempt: Move preempt_enable_no_resched() to the RT
  block
 
 preempt_enable_no_resched() should point to preempt_enable() on
@@ -20,7 +20,7 @@ Signed-off-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/include/linux/preempt.h b/include/linux/preempt.h
-index af39859..7b5b2ed 100644
+index af39859f02ee..7b5b2ed55531 100644
 --- a/include/linux/preempt.h
 +++ b/include/linux/preempt.h
 @@ -208,12 +208,12 @@ do { \
@@ -40,5 +40,5 @@ index af39859..7b5b2ed 100644
  
  #define preemptible()	(preempt_count() == 0 && !irqs_disabled())
 -- 
-2.7.4
+2.17.1
 

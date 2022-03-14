@@ -1,7 +1,7 @@
-From 577433537cc10f02b3b91d137c90b66f17723b7e Mon Sep 17 00:00:00 2001
+From 2c21ca07d8cd565dbe22117775b0305efb64585d Mon Sep 17 00:00:00 2001
 From: Chao Qin <chao.qin@intel.com>
 Date: Mon, 19 Jul 2021 10:26:50 +0800
-Subject: [PATCH 301/315] printk: Enhance the condition check of msleep in
+Subject: [PATCH 301/318] printk: Enhance the condition check of msleep in
  pr_flush()
 
 [ Upstream commit 83e9288d9c4295d1195e9d780fcbc42c72ba4a83 ]
@@ -28,7 +28,7 @@ Signed-off-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
  1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/kernel/printk/printk.c b/kernel/printk/printk.c
-index 69af426..dea500d 100644
+index 69af426a2703..dea500da571f 100644
 --- a/kernel/printk/printk.c
 +++ b/kernel/printk/printk.c
 @@ -3552,7 +3552,9 @@ bool pr_flush(int timeout_ms, bool reset_on_progress)
@@ -43,5 +43,5 @@ index 69af426..dea500d 100644
  	seq = prb_next_seq(prb);
  
 -- 
-2.7.4
+2.17.1
 

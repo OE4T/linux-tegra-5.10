@@ -1,7 +1,7 @@
-From 4a9f78ddae65689b0fcb20916be4d4994a68e311 Mon Sep 17 00:00:00 2001
+From 1420f51ab88fa86752e04c7d212336f859b41dd1 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Mon, 30 Nov 2020 01:42:07 +0106
-Subject: [PATCH 105/315] printk: move console printing to kthreads
+Subject: [PATCH 105/318] printk: move console printing to kthreads
 
 Create a kthread for each console to perform console printing. Now
 all console printing is fully asynchronous except for the boot
@@ -16,11 +16,11 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Luis Claudio R. Goncalves <lgoncalv@redhat.com>
 ---
  include/linux/console.h |   2 +
- kernel/printk/printk.c  | 625 ++++++++++++++----------------------------------
+ kernel/printk/printk.c  | 625 ++++++++++++----------------------------
  2 files changed, 186 insertions(+), 441 deletions(-)
 
 diff --git a/include/linux/console.h b/include/linux/console.h
-index fcc9835..3e99359 100644
+index fcc98354f733..3e99359e0660 100644
 --- a/include/linux/console.h
 +++ b/include/linux/console.h
 @@ -155,6 +155,8 @@ struct console {
@@ -33,7 +33,7 @@ index fcc9835..3e99359 100644
  	uint	ospeed;
  	void	*data;
 diff --git a/kernel/printk/printk.c b/kernel/printk/printk.c
-index 5a39b92..4cb5bcd 100644
+index 5a39b9267395..4cb5bcd5542b 100644
 --- a/kernel/printk/printk.c
 +++ b/kernel/printk/printk.c
 @@ -44,6 +44,7 @@
@@ -44,18 +44,18 @@ index 5a39b92..4cb5bcd 100644
  #include <linux/clocksource.h>
  #include <linux/sched/clock.h>
  #include <linux/sched/debug.h>
-@@ -268,11 +269,6 @@ static void __up_console_sem(unsigned long ip)
+@@ -267,11 +268,6 @@ static void __up_console_sem(unsigned long ip)
+  */
  static int console_locked, console_suspended;
  
- /*
+-/*
 - * If exclusive_console is non-NULL then only this console is to be printed to.
 - */
 -static struct console *exclusive_console;
 -
--/*
+ /*
   *	Array of consoles built from command line options (console=)
   */
- 
 @@ -356,10 +352,10 @@ enum log_flags {
  	LOG_CONT	= 8,	/* text is a fragment of a continuation line */
  };
@@ -843,5 +843,5 @@ index 5a39b92..4cb5bcd 100644
  
  int vprintk_deferred(const char *fmt, va_list args)
 -- 
-2.7.4
+2.17.1
 

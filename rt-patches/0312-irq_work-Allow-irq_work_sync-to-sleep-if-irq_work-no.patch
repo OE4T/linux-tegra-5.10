@@ -1,7 +1,7 @@
-From 17e49a9b40bef78da5a4cc5f42cc1a1ab84be082 Mon Sep 17 00:00:00 2001
+From 7bc60b507f9ee9b957a4765f1c0e80e490563c7b Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 24 Nov 2021 17:12:19 +0100
-Subject: [PATCH 312/315] irq_work: Allow irq_work_sync() to sleep if
+Subject: [PATCH 312/318] irq_work: Allow irq_work_sync() to sleep if
  irq_work() no IRQ support.
 
 irq_work() triggers instantly an interrupt if supported by the
@@ -26,7 +26,7 @@ Signed-off-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
  2 files changed, 19 insertions(+), 1 deletion(-)
 
 diff --git a/include/linux/irq_work.h b/include/linux/irq_work.h
-index f941f2d..3c6d3a9 100644
+index f941f2d7d71c..3c6d3a96bca0 100644
 --- a/include/linux/irq_work.h
 +++ b/include/linux/irq_work.h
 @@ -3,6 +3,7 @@
@@ -67,7 +67,7 @@ index f941f2d..3c6d3a9 100644
  bool irq_work_queue(struct irq_work *work);
  bool irq_work_queue_on(struct irq_work *work, int cpu);
 diff --git a/kernel/irq_work.c b/kernel/irq_work.c
-index 8183d30..8969aff 100644
+index 8183d30e1bb1..8969aff790e2 100644
 --- a/kernel/irq_work.c
 +++ b/kernel/irq_work.c
 @@ -165,6 +165,9 @@ void irq_work_single(void *arg)
@@ -95,5 +95,5 @@ index 8183d30..8969aff 100644
  	while (atomic_read(&work->flags) & IRQ_WORK_BUSY)
  		cpu_relax();
 -- 
-2.7.4
+2.17.1
 

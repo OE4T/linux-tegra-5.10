@@ -1,7 +1,7 @@
-From f5c8a047cba4a9a5723b9bf7da762ad573896175 Mon Sep 17 00:00:00 2001
+From cea9efedf77623da869da9d8bd596918f5646566 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Wed, 9 Jan 2013 12:08:15 +0100
-Subject: [PATCH 207/315] slub: Enable irqs for __GFP_WAIT
+Subject: [PATCH 207/318] slub: Enable irqs for __GFP_WAIT
 
 SYSTEM_RUNNING might be too late for enabling interrupts. Allocations
 with GFP_WAIT can happen before that. So use this as an indicator.
@@ -17,7 +17,7 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
  1 file changed, 17 insertions(+), 1 deletion(-)
 
 diff --git a/mm/slub.c b/mm/slub.c
-index 0718562..d90d8f9f 100644
+index 0718562d909b..d90d8f9fc0d8 100644
 --- a/mm/slub.c
 +++ b/mm/slub.c
 @@ -1750,10 +1750,18 @@ static struct page *allocate_slab(struct kmem_cache *s, gfp_t flags, int node)
@@ -71,5 +71,5 @@ index 0718562..d90d8f9f 100644
  	s = slab_pre_alloc_hook(s, &objcg, size, flags);
  	if (unlikely(!s))
 -- 
-2.7.4
+2.17.1
 

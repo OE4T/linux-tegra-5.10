@@ -1,7 +1,7 @@
-From 28b96150a1397977e4cd9688a406a8585385803e Mon Sep 17 00:00:00 2001
+From dda5628d9778d67f8709ddf854b0b9e83c1b02d6 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Thu, 26 Aug 2021 15:37:38 +0200
-Subject: [PATCH 304/315] sched: Fix get_push_task() vs migrate_disable()
+Subject: [PATCH 304/318] sched: Fix get_push_task() vs migrate_disable()
 
 push_rt_task() attempts to move the currently running task away if the
 next runnable task has migration disabled and therefore is pinned on the
@@ -27,7 +27,7 @@ Signed-off-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
  1 file changed, 3 insertions(+)
 
 diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index d7c1eca..5c01829 100644
+index d7c1eca60a11..5c018296b9b7 100644
 --- a/kernel/sched/sched.h
 +++ b/kernel/sched/sched.h
 @@ -1950,6 +1950,9 @@ static inline struct task_struct *get_push_task(struct rq *rq)
@@ -41,5 +41,5 @@ index d7c1eca..5c01829 100644
  	return get_task_struct(p);
  }
 -- 
-2.7.4
+2.17.1
 

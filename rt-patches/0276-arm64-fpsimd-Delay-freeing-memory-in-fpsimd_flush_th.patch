@@ -1,7 +1,7 @@
-From 9c996ed2bfe5b9a3f7d739783de23703f7e5b8ea Mon Sep 17 00:00:00 2001
+From 60d9ff05d6f4063130b37e2772abd7ed9ddae747 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 25 Jul 2018 14:02:38 +0200
-Subject: [PATCH 276/315] arm64: fpsimd: Delay freeing memory in
+Subject: [PATCH 276/318] arm64: fpsimd: Delay freeing memory in
  fpsimd_flush_thread()
 
 fpsimd_flush_thread() invokes kfree() via sve_free() within a preempt disabled
@@ -15,7 +15,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 13 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm64/kernel/fpsimd.c b/arch/arm64/kernel/fpsimd.c
-index a9bbfb8..aa63177 100644
+index a9bbfb800ec2..aa631771e0dc 100644
 --- a/arch/arm64/kernel/fpsimd.c
 +++ b/arch/arm64/kernel/fpsimd.c
 @@ -226,6 +226,16 @@ static void sve_free(struct task_struct *task)
@@ -61,5 +61,5 @@ index a9bbfb8..aa63177 100644
  
  /*
 -- 
-2.7.4
+2.17.1
 

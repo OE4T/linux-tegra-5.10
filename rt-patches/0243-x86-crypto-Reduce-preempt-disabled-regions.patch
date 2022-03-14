@@ -1,7 +1,7 @@
-From a26d45a9a4debee7393ced0268c4d7d8b5554cd8 Mon Sep 17 00:00:00 2001
+From 41d551f209a7e97ed1ded3b2e69b332c892935de Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Mon, 14 Nov 2011 18:19:27 +0100
-Subject: [PATCH 243/315] x86: crypto: Reduce preempt disabled regions
+Subject: [PATCH 243/318] x86: crypto: Reduce preempt disabled regions
 
 Restrict the preempt disabled regions to the actual floating point
 operations and enable preemption for the administrative actions.
@@ -18,7 +18,7 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
  1 file changed, 12 insertions(+), 10 deletions(-)
 
 diff --git a/arch/x86/crypto/aesni-intel_glue.c b/arch/x86/crypto/aesni-intel_glue.c
-index be891fd..29c716e 100644
+index be891fdf8d17..29c716ed103f 100644
 --- a/arch/x86/crypto/aesni-intel_glue.c
 +++ b/arch/x86/crypto/aesni-intel_glue.c
 @@ -379,14 +379,14 @@ static int ecb_encrypt(struct skcipher_request *req)
@@ -113,5 +113,5 @@ index be891fd..29c716e 100644
  	return err;
  }
 -- 
-2.7.4
+2.17.1
 

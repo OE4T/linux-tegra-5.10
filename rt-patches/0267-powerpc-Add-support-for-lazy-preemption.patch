@@ -1,7 +1,7 @@
-From 4b44c49356bcc86903fdea7c2be06ca8b404e771 Mon Sep 17 00:00:00 2001
+From 551b49a034705deb1b8c249d1d66dc8b99240d75 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Thu, 1 Nov 2012 10:14:11 +0100
-Subject: [PATCH 267/315] powerpc: Add support for lazy preemption
+Subject: [PATCH 267/318] powerpc: Add support for lazy preemption
 
 Implement the powerpc pieces for lazy preempt.
 
@@ -16,7 +16,7 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
  6 files changed, 50 insertions(+), 18 deletions(-)
 
 diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-index 7da69f3..6d291ac 100644
+index 7da69f334fa4..6d291ac9d524 100644
 --- a/arch/powerpc/Kconfig
 +++ b/arch/powerpc/Kconfig
 @@ -230,6 +230,7 @@ config PPC
@@ -28,7 +28,7 @@ index 7da69f3..6d291ac 100644
  	select MMU_GATHER_PAGE_SIZE
  	select HAVE_REGS_AND_STACK_ACCESS_API
 diff --git a/arch/powerpc/include/asm/thread_info.h b/arch/powerpc/include/asm/thread_info.h
-index 46a210b..0e316b4 100644
+index 46a210b03d2b..0e316b44b2d7 100644
 --- a/arch/powerpc/include/asm/thread_info.h
 +++ b/arch/powerpc/include/asm/thread_info.h
 @@ -48,6 +48,8 @@
@@ -87,7 +87,7 @@ index 46a210b..0e316b4 100644
  /* Bits in local_flags */
  /* Don't move TLF_NAPPING without adjusting the code in entry_32.S */
 diff --git a/arch/powerpc/kernel/asm-offsets.c b/arch/powerpc/kernel/asm-offsets.c
-index 5c12525..5973791 100644
+index 5c125255571c..597379121407 100644
 --- a/arch/powerpc/kernel/asm-offsets.c
 +++ b/arch/powerpc/kernel/asm-offsets.c
 @@ -189,6 +189,7 @@ int main(void)
@@ -99,7 +99,7 @@ index 5c12525..5973791 100644
  #ifdef CONFIG_PPC64
  	OFFSET(DCACHEL1BLOCKSIZE, ppc64_caches, l1d.block_size);
 diff --git a/arch/powerpc/kernel/entry_32.S b/arch/powerpc/kernel/entry_32.S
-index 459f5d0..fc9517a 100644
+index 459f5d00b990..fc9517a97640 100644
 --- a/arch/powerpc/kernel/entry_32.S
 +++ b/arch/powerpc/kernel/entry_32.S
 @@ -414,7 +414,9 @@ ret_from_syscall:
@@ -178,7 +178,7 @@ index 459f5d0..fc9517a 100644
  	andi.	r0,r9,_TIF_USER_WORK_MASK
  	beq	restore_user
 diff --git a/arch/powerpc/kernel/exceptions-64e.S b/arch/powerpc/kernel/exceptions-64e.S
-index f579ce4..715ff29 100644
+index f579ce46eef2..715ff292a8f8 100644
 --- a/arch/powerpc/kernel/exceptions-64e.S
 +++ b/arch/powerpc/kernel/exceptions-64e.S
 @@ -1080,7 +1080,7 @@ _GLOBAL(ret_from_except_lite)
@@ -223,7 +223,7 @@ index f579ce4..715ff29 100644
  restore:
  	/*
 diff --git a/arch/powerpc/kernel/syscall_64.c b/arch/powerpc/kernel/syscall_64.c
-index 310bcd7..ae3212d 100644
+index 310bcd768cd5..ae3212dcf562 100644
 --- a/arch/powerpc/kernel/syscall_64.c
 +++ b/arch/powerpc/kernel/syscall_64.c
 @@ -193,7 +193,7 @@ notrace unsigned long syscall_exit_prepare(unsigned long r3,
@@ -262,5 +262,5 @@ index 310bcd7..ae3212d 100644
  		}
  
 -- 
-2.7.4
+2.17.1
 

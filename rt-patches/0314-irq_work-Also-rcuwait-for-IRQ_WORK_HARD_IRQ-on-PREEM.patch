@@ -1,7 +1,7 @@
-From 955f0f40bb0a27076521d26f7a9d635f4af509f1 Mon Sep 17 00:00:00 2001
+From 772bcd4fe7dae4a4e48b9e7c32c8aa4ef6965279 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 24 Nov 2021 17:12:21 +0100
-Subject: [PATCH 314/315] irq_work: Also rcuwait for !IRQ_WORK_HARD_IRQ on
+Subject: [PATCH 314/318] irq_work: Also rcuwait for !IRQ_WORK_HARD_IRQ on
  PREEMPT_RT
 
 On PREEMPT_RT most items are processed as LAZY via softirq context.
@@ -20,7 +20,7 @@ Signed-off-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
  2 files changed, 9 insertions(+), 2 deletions(-)
 
 diff --git a/include/linux/irq_work.h b/include/linux/irq_work.h
-index f551ba9..2c00593 100644
+index f551ba9c99d4..2c0059340871 100644
 --- a/include/linux/irq_work.h
 +++ b/include/linux/irq_work.h
 @@ -55,6 +55,11 @@ static inline bool irq_work_is_busy(struct irq_work *work)
@@ -36,7 +36,7 @@ index f551ba9..2c00593 100644
  bool irq_work_queue_on(struct irq_work *work, int cpu);
  
 diff --git a/kernel/irq_work.c b/kernel/irq_work.c
-index 03d09d7..cbec10c 100644
+index 03d09d779ee1..cbec10c32ead 100644
 --- a/kernel/irq_work.c
 +++ b/kernel/irq_work.c
 @@ -211,7 +211,8 @@ void irq_work_single(void *arg)
@@ -60,5 +60,5 @@ index 03d09d7..cbec10c 100644
  				   TASK_UNINTERRUPTIBLE);
  		return;
 -- 
-2.7.4
+2.17.1
 

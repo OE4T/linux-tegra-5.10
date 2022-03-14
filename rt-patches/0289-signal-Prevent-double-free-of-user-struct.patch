@@ -1,7 +1,7 @@
-From dca49836257d925a461b6736e46af19e9b379aa6 Mon Sep 17 00:00:00 2001
+From 1ff97206f6c960485ddb47817e832d00406e79e7 Mon Sep 17 00:00:00 2001
 From: Matt Fleming <matt@codeblueprint.co.uk>
 Date: Tue, 7 Apr 2020 10:54:13 +0100
-Subject: [PATCH 289/315] signal: Prevent double-free of user struct
+Subject: [PATCH 289/318] signal: Prevent double-free of user struct
 
 The way user struct reference counting works changed significantly with,
 
@@ -32,7 +32,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/kernel/signal.c b/kernel/signal.c
-index b584e5a..16f9014 100644
+index b584e5ac9317..16f9014ffcdd 100644
 --- a/kernel/signal.c
 +++ b/kernel/signal.c
 @@ -495,8 +495,8 @@ static void sigqueue_free_current(struct sigqueue *q)
@@ -47,5 +47,5 @@ index b584e5a..16f9014 100644
  		  __sigqueue_free(q);
  }
 -- 
-2.7.4
+2.17.1
 

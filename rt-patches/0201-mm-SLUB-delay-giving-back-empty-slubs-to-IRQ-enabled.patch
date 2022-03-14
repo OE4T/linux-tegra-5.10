@@ -1,7 +1,7 @@
-From 5b7936de2aed45414ca0d97479de9a6e62bc25db Mon Sep 17 00:00:00 2001
+From 65e46a2204118a4376f61663ae0f6f3ecf734e78 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Thu, 21 Jun 2018 17:29:19 +0200
-Subject: [PATCH 201/315] mm/SLUB: delay giving back empty slubs to IRQ enabled
+Subject: [PATCH 201/318] mm/SLUB: delay giving back empty slubs to IRQ enabled
  regions
 
 __free_slab() is invoked with disabled interrupts which increases the
@@ -13,11 +13,11 @@ so it can be processed later.
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- mm/slub.c | 74 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-----
+ mm/slub.c | 74 +++++++++++++++++++++++++++++++++++++++++++++++++++----
  1 file changed, 69 insertions(+), 5 deletions(-)
 
 diff --git a/mm/slub.c b/mm/slub.c
-index 2b2e623..b3b7604 100644
+index 2b2e623007ca..b3b760450e39 100644
 --- a/mm/slub.c
 +++ b/mm/slub.c
 @@ -1494,6 +1494,12 @@ static bool freelist_corrupted(struct kmem_cache *s, struct page *page,
@@ -218,5 +218,5 @@ index 2b2e623..b3b7604 100644
  	if (debug_guardpage_minorder())
  		slub_max_order = 0;
 -- 
-2.7.4
+2.17.1
 

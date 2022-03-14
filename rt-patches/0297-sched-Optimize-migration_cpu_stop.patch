@@ -1,7 +1,7 @@
-From 62e3aa7829722b8d7da185a2ec938c1abd497e9f Mon Sep 17 00:00:00 2001
+From affe6c3d58620b92da55ef43591ef41351a5da78 Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Tue, 8 Jun 2021 00:37:33 -0400
-Subject: [PATCH 297/315] sched: Optimize migration_cpu_stop()
+Subject: [PATCH 297/318] sched: Optimize migration_cpu_stop()
 
 commit 3f1bc119cd7fc987c8ed25ffb717f99403bb308c upstream.
 
@@ -22,7 +22,7 @@ Signed-off-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
  1 file changed, 12 insertions(+), 1 deletion(-)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 8126088..80c7d66 100644
+index 812608801d6e..80c7d662b955 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -1983,14 +1983,25 @@ static int migration_cpu_stop(void *data)
@@ -53,5 +53,5 @@ index 8126088..80c7d66 100644
  		/*
  		 * This happens when we get migrated between migrate_enable()'s
 -- 
-2.7.4
+2.17.1
 

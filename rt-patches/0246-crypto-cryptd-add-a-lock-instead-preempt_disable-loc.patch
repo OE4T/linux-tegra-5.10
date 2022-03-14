@@ -1,7 +1,7 @@
-From a7e4c624e6149b97d1e2c065c43b36d78d16b1db Mon Sep 17 00:00:00 2001
+From b668719c979b00d176e552f84a761ea86dbcc705 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Thu, 26 Jul 2018 18:52:00 +0200
-Subject: [PATCH 246/315] crypto: cryptd - add a lock instead
+Subject: [PATCH 246/318] crypto: cryptd - add a lock instead
  preempt_disable/local_bh_disable
 
 cryptd has a per-CPU lock which protected with local_bh_disable() and
@@ -19,7 +19,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 9 insertions(+), 10 deletions(-)
 
 diff --git a/crypto/cryptd.c b/crypto/cryptd.c
-index a1bea0f..5f8ca8c 100644
+index a1bea0f4baa8..5f8ca8c1f59c 100644
 --- a/crypto/cryptd.c
 +++ b/crypto/cryptd.c
 @@ -36,6 +36,7 @@ static struct workqueue_struct *cryptd_wq;
@@ -80,5 +80,5 @@ index a1bea0f..5f8ca8c 100644
  	if (!req)
  		return;
 -- 
-2.7.4
+2.17.1
 

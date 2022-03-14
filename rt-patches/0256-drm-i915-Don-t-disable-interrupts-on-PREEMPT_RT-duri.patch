@@ -1,7 +1,7 @@
-From 024230d2f1252fd5bc62adbe350affd197565423 Mon Sep 17 00:00:00 2001
+From d68ffabed1e1c7266f02be4cb8e3dfeda370c35e Mon Sep 17 00:00:00 2001
 From: Mike Galbraith <umgwanakikbuti@gmail.com>
 Date: Sat, 27 Feb 2016 09:01:42 +0100
-Subject: [PATCH 256/315] drm/i915: Don't disable interrupts on PREEMPT_RT
+Subject: [PATCH 256/318] drm/i915: Don't disable interrupts on PREEMPT_RT
  during atomic updates
 
 Commit
@@ -25,7 +25,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 10 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/gpu/drm/i915/display/intel_sprite.c b/drivers/gpu/drm/i915/display/intel_sprite.c
-index 12f7128b..a65061e 100644
+index 12f7128b777f..a65061e3e1d3 100644
 --- a/drivers/gpu/drm/i915/display/intel_sprite.c
 +++ b/drivers/gpu/drm/i915/display/intel_sprite.c
 @@ -118,7 +118,8 @@ void intel_pipe_update_start(const struct intel_crtc_state *new_crtc_state)
@@ -75,5 +75,5 @@ index 12f7128b..a65061e 100644
  	if (intel_vgpu_active(dev_priv))
  		return;
 -- 
-2.7.4
+2.17.1
 

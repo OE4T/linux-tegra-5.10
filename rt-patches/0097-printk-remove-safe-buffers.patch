@@ -1,7 +1,7 @@
-From 55f5305e9b0c3928f4cdf348f85f2f4381bd8a85 Mon Sep 17 00:00:00 2001
+From db5453973609ea1312b90163181dc2745cf861e6 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Mon, 30 Nov 2020 01:42:00 +0106
-Subject: [PATCH 097/315] printk: remove safe buffers
+Subject: [PATCH 097/318] printk: remove safe buffers
 
 With @logbuf_lock removed, the high level printk functions for
 storing messages are lockless. Messages can be stored from any
@@ -16,17 +16,17 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
  arch/powerpc/kernel/traps.c    |   1 -
  arch/powerpc/kernel/watchdog.c |   5 -
- include/linux/printk.h         |  10 --
+ include/linux/printk.h         |  10 -
  kernel/kexec_core.c            |   1 -
  kernel/panic.c                 |   3 -
  kernel/printk/internal.h       |   2 -
- kernel/printk/printk.c         |  85 ++---------
- kernel/printk/printk_safe.c    | 329 +----------------------------------------
+ kernel/printk/printk.c         |  85 ++-------
+ kernel/printk/printk_safe.c    | 329 +--------------------------------
  lib/nmi_backtrace.c            |   6 -
  9 files changed, 17 insertions(+), 425 deletions(-)
 
 diff --git a/arch/powerpc/kernel/traps.c b/arch/powerpc/kernel/traps.c
-index 77dffea..fc82a76 100644
+index 069d451240fa..c053c5acd674 100644
 --- a/arch/powerpc/kernel/traps.c
 +++ b/arch/powerpc/kernel/traps.c
 @@ -170,7 +170,6 @@ extern void panic_flush_kmsg_start(void)
@@ -38,10 +38,10 @@ index 77dffea..fc82a76 100644
  	bust_spinlocks(0);
  	debug_locks_off();
 diff --git a/arch/powerpc/kernel/watchdog.c b/arch/powerpc/kernel/watchdog.c
-index af3c15a..8ae46c5 100644
+index 75b2a6c4db5a..db40e20d0c54 100644
 --- a/arch/powerpc/kernel/watchdog.c
 +++ b/arch/powerpc/kernel/watchdog.c
-@@ -181,11 +181,6 @@ static void watchdog_smp_panic(int cpu, u64 tb)
+@@ -185,11 +185,6 @@ static void watchdog_smp_panic(int cpu, u64 tb)
  
  	wd_smp_unlock(&flags);
  
@@ -54,7 +54,7 @@ index af3c15a..8ae46c5 100644
  		trigger_allbutself_cpu_backtrace();
  
 diff --git a/include/linux/printk.h b/include/linux/printk.h
-index fe7eb23..2476796 100644
+index fe7eb2351610..2476796c1150 100644
 --- a/include/linux/printk.h
 +++ b/include/linux/printk.h
 @@ -207,8 +207,6 @@ __printf(1, 2) void dump_stack_set_arch_desc(const char *fmt, ...);
@@ -82,7 +82,7 @@ index fe7eb23..2476796 100644
  
  extern int kptr_restrict;
 diff --git a/kernel/kexec_core.c b/kernel/kexec_core.c
-index c589c7a..fb0ca1a 100644
+index c589c7a9562c..fb0ca1a805b5 100644
 --- a/kernel/kexec_core.c
 +++ b/kernel/kexec_core.c
 @@ -978,7 +978,6 @@ void crash_kexec(struct pt_regs *regs)
@@ -94,7 +94,7 @@ index c589c7a..fb0ca1a 100644
  
  		/*
 diff --git a/kernel/panic.c b/kernel/panic.c
-index 332736a..1f0df42 100644
+index 332736a72a58..1f0df42f8d0c 100644
 --- a/kernel/panic.c
 +++ b/kernel/panic.c
 @@ -247,7 +247,6 @@ void panic(const char *fmt, ...)
@@ -115,7 +115,7 @@ index 332736a..1f0df42 100644
  
  	/*
 diff --git a/kernel/printk/internal.h b/kernel/printk/internal.h
-index e7acc28..e108b2e 100644
+index e7acc2888c8e..e108b2ece8c7 100644
 --- a/kernel/printk/internal.h
 +++ b/kernel/printk/internal.h
 @@ -23,7 +23,6 @@ __printf(1, 0) int vprintk_func(const char *fmt, va_list args);
@@ -134,7 +134,7 @@ index e7acc28..e108b2e 100644
  static inline bool printk_percpu_data_ready(void) { return false; }
  #endif /* CONFIG_PRINTK */
 diff --git a/kernel/printk/printk.c b/kernel/printk/printk.c
-index 8f357ab..b63573a 100644
+index 8f357abf0b49..b63573a33e93 100644
 --- a/kernel/printk/printk.c
 +++ b/kernel/printk/printk.c
 @@ -733,27 +733,22 @@ static ssize_t devkmsg_read(struct file *file, char __user *buf,
@@ -482,7 +482,7 @@ index 8f357ab..b63573a 100644
  EXPORT_SYMBOL_GPL(kmsg_dump_rewind);
  
 diff --git a/kernel/printk/printk_safe.c b/kernel/printk/printk_safe.c
-index 7df8a88..c23b127 100644
+index 7df8a88d4115..c23b127a6545 100644
 --- a/kernel/printk/printk_safe.c
 +++ b/kernel/printk/printk_safe.c
 @@ -15,282 +15,9 @@
@@ -855,7 +855,7 @@ index 7df8a88..c23b127 100644
 -	printk_safe_flush();
 -}
 diff --git a/lib/nmi_backtrace.c b/lib/nmi_backtrace.c
-index 8abe187..b09a490 100644
+index 8abe1870dba4..b09a490f5f70 100644
 --- a/lib/nmi_backtrace.c
 +++ b/lib/nmi_backtrace.c
 @@ -75,12 +75,6 @@ void nmi_trigger_cpumask_backtrace(const cpumask_t *mask,
@@ -872,5 +872,5 @@ index 8abe187..b09a490 100644
  	put_cpu();
  }
 -- 
-2.7.4
+2.17.1
 

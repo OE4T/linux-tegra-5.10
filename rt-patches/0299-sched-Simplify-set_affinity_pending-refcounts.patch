@@ -1,7 +1,7 @@
-From e4c136cf620c2e9c2b2143b85f9264c6de77f1cd Mon Sep 17 00:00:00 2001
+From d9cfae15d8fabae479eefde9ad4e64453540891d Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Tue, 8 Jun 2021 00:37:35 -0400
-Subject: [PATCH 299/315] sched: Simplify set_affinity_pending refcounts
+Subject: [PATCH 299/318] sched: Simplify set_affinity_pending refcounts
 
 commit 50caf9c14b1498c90cf808dbba2ca29bd32ccba4 upstream.
 
@@ -23,7 +23,7 @@ Signed-off-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
  1 file changed, 20 insertions(+), 12 deletions(-)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 4d15df1..790f311 100644
+index 4d15df1ba5a6..790f3113450a 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -1909,6 +1909,10 @@ struct migration_arg {
@@ -124,5 +124,5 @@ index 4d15df1..790f311 100644
  }
  
 -- 
-2.7.4
+2.17.1
 

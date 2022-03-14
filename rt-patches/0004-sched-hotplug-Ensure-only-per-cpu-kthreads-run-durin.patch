@@ -1,7 +1,7 @@
-From 944a4960da7dbffc8150c6ad88e07f79b696ee86 Mon Sep 17 00:00:00 2001
+From 8779a74fef35dac085d7682f01bd7f7a4c082436 Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:01 +0200
-Subject: [PATCH 004/315] sched/hotplug: Ensure only per-cpu kthreads run
+Subject: [PATCH 004/318] sched/hotplug: Ensure only per-cpu kthreads run
  during hotplug
 
 In preparation for migrate_disable(), make sure only per-cpu kthreads
@@ -22,12 +22,12 @@ not affected.
 Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- kernel/sched/core.c  | 114 ++++++++++++++++++++++++++++++++++++++++++++++++++-
- kernel/sched/sched.h |   7 +++-
+ kernel/sched/core.c  | 114 ++++++++++++++++++++++++++++++++++++++++++-
+ kernel/sched/sched.h |   7 ++-
  2 files changed, 118 insertions(+), 3 deletions(-)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 9a6ac70..7a0b5d8 100644
+index 9a6ac7057974..7a0b5d84c736 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -3526,8 +3526,10 @@ static inline struct callback_head *splice_balance_callbacks(struct rq *rq)
@@ -202,7 +202,7 @@ index 9a6ac70..7a0b5d8 100644
  		return ret;
  	}
 diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index c15e4be..b73bdab 100644
+index c15e4bec750b..b73bdab808ab 100644
 --- a/kernel/sched/sched.h
 +++ b/kernel/sched/sched.h
 @@ -977,6 +977,7 @@ struct rq {
@@ -239,5 +239,5 @@ index c15e4be..b73bdab 100644
  
  #define rcu_dereference_check_sched_domain(p) \
 -- 
-2.7.4
+2.17.1
 

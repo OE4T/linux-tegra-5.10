@@ -1,7 +1,7 @@
-From e18b0900f849dde4792df4118fd110569e512482 Mon Sep 17 00:00:00 2001
+From 70f17f584e8ca2414dec944389d03d3146cdb967 Mon Sep 17 00:00:00 2001
 From: Valentin Schneider <valentin.schneider@arm.com>
 Date: Tue, 8 Jun 2021 00:37:36 -0400
-Subject: [PATCH 300/315] sched: Don't defer CPU pick to migration_cpu_stop()
+Subject: [PATCH 300/318] sched: Don't defer CPU pick to migration_cpu_stop()
 
 commit 475ea6c60279e9f2ddf7e4cf2648cd8ae0608361 upstream.
 
@@ -36,7 +36,7 @@ Signed-off-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
  1 file changed, 12 insertions(+), 8 deletions(-)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 790f311..aa0f6c6 100644
+index 790f3113450a..aa0f6c6e93cf 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -1953,7 +1953,6 @@ static int migration_cpu_stop(void *data)
@@ -95,5 +95,5 @@ index 790f311..aa0f6c6 100644
  	}
  	pending = p->migration_pending;
 -- 
-2.7.4
+2.17.1
 

@@ -1,7 +1,7 @@
-From dc28a5d4228456382e89574a036fcb2e8925c083 Mon Sep 17 00:00:00 2001
+From 357b720c53e50e97e018320095df1ae766173497 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Tue, 26 Jan 2021 17:43:19 +0106
-Subject: [PATCH 092/315] printk: remove logbuf_lock
+Subject: [PATCH 092/318] printk: remove logbuf_lock
 
 Since the ringbuffer is lockless, there is no need for it to be
 protected by @logbuf_lock. Remove @logbuf_lock.
@@ -16,12 +16,12 @@ Signed-off-by: John Ogness <john.ogness@linutronix.de>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
  kernel/printk/internal.h    |   4 +-
- kernel/printk/printk.c      | 118 +++++++++++++++-----------------------------
- kernel/printk/printk_safe.c |  29 +++--------
+ kernel/printk/printk.c      | 118 ++++++++++++------------------------
+ kernel/printk/printk_safe.c |  29 +++------
  3 files changed, 48 insertions(+), 103 deletions(-)
 
 diff --git a/kernel/printk/internal.h b/kernel/printk/internal.h
-index 3a8fd49..e7acc28 100644
+index 3a8fd491758c..e7acc2888c8e 100644
 --- a/kernel/printk/internal.h
 +++ b/kernel/printk/internal.h
 @@ -12,8 +12,6 @@
@@ -43,7 +43,7 @@ index 3a8fd49..e7acc28 100644
   * printk-safe must preserve the existing local IRQ guarantees.
   */
 diff --git a/kernel/printk/printk.c b/kernel/printk/printk.c
-index c3edac8..0b67929 100644
+index c3edac824428..0b679290f693 100644
 --- a/kernel/printk/printk.c
 +++ b/kernel/printk/printk.c
 @@ -355,41 +355,6 @@ enum log_flags {
@@ -411,7 +411,7 @@ index c3edac8..0b67929 100644
  EXPORT_SYMBOL_GPL(kmsg_dump_rewind);
  
 diff --git a/kernel/printk/printk_safe.c b/kernel/printk/printk_safe.c
-index 2e9e3ed..7df8a88 100644
+index 2e9e3ed7d63e..7df8a88d4115 100644
 --- a/kernel/printk/printk_safe.c
 +++ b/kernel/printk/printk_safe.c
 @@ -16,7 +16,7 @@
@@ -481,5 +481,5 @@ index 2e9e3ed..7df8a88 100644
  		return vprintk_nmi(fmt, args);
  
 -- 
-2.7.4
+2.17.1
 

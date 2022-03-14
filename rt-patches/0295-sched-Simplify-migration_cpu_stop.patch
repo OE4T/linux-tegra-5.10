@@ -1,7 +1,7 @@
-From ac5c9f1ca0654a936468a3ea2d083b3013b66116 Mon Sep 17 00:00:00 2001
+From aeec7682f38f97a4b7613055dbe5d46aa6e74b77 Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Tue, 8 Jun 2021 00:37:31 -0400
-Subject: [PATCH 295/315] sched: Simplify migration_cpu_stop()
+Subject: [PATCH 295/318] sched: Simplify migration_cpu_stop()
 
 commit c20cf065d4a619d394d23290093b1002e27dff86 upstream.
 
@@ -23,11 +23,11 @@ Link: https://lkml.kernel.org/r/20210224131355.430014682@infradead.org
 Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
 Signed-off-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
 ---
- kernel/sched/core.c | 56 ++++++++---------------------------------------------
+ kernel/sched/core.c | 56 +++++++--------------------------------------
  1 file changed, 8 insertions(+), 48 deletions(-)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 0ea3625..7eae604 100644
+index 0ea3625055a9..7eae6049c57c 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -1945,8 +1945,8 @@ static struct rq *__migrate_task(struct rq *rq, struct rq_flags *rf,
@@ -102,7 +102,7 @@ index 0ea3625..7eae604 100644
  		/*
  		 * This happens when we get migrated between migrate_enable()'s
  		 * preempt_enable() and scheduling the stopper task. At that
-@@ -2036,23 +2006,14 @@ static int migration_cpu_stop(void *data)
+@@ -2036,22 +2006,13 @@ static int migration_cpu_stop(void *data)
  		 * ->pi_lock, so the allowed mask is stable - if it got
  		 * somewhere allowed, we're done.
  		 */
@@ -115,7 +115,7 @@ index 0ea3625..7eae604 100644
  			goto out;
  		}
  
- 		/*
+-		/*
 -		 * When this was migrate_enable() but we no longer have an
 -		 * @pending, a concurrent SCA 'fixed' things and we should be
 -		 * valid again. Nothing to do.
@@ -125,10 +125,9 @@ index 0ea3625..7eae604 100644
 -			goto out;
 -		}
 -
--		/*
+ 		/*
  		 * When migrate_enable() hits a rq mis-match we can't reliably
  		 * determine is_migration_disabled() and so have to chase after
- 		 * it.
 @@ -2069,7 +2030,6 @@ static int migration_cpu_stop(void *data)
  		complete_all(&pending->done);
  
@@ -138,5 +137,5 @@ index 0ea3625..7eae604 100644
  		wake_up_var(&pending->refs);
  
 -- 
-2.7.4
+2.17.1
 

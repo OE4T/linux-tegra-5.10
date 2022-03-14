@@ -1,7 +1,7 @@
-From e7d9530a6ef5eeee0f4f7eef06c301552abbf567 Mon Sep 17 00:00:00 2001
+From c59b556b8ca7876a7db23682477b96dc51882f14 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Fri, 29 Oct 2021 10:07:11 +0200
-Subject: [PATCH 307/315] mm: Disable NUMA_BALANCING_DEFAULT_ENABLED and
+Subject: [PATCH 307/318] mm: Disable NUMA_BALANCING_DEFAULT_ENABLED and
  TRANSPARENT_HUGEPAGE on PREEMPT_RT
 
 TRANSPARENT_HUGEPAGE:
@@ -33,7 +33,7 @@ Signed-off-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/init/Kconfig b/init/Kconfig
-index 7ba2b60..9bfc60e 100644
+index e906a967e61f..ceda84b02ff8 100644
 --- a/init/Kconfig
 +++ b/init/Kconfig
 @@ -861,7 +861,7 @@ config NUMA_BALANCING
@@ -46,5 +46,5 @@ index 7ba2b60..9bfc60e 100644
  	  This option adds support for automatic NUMA aware memory/task placement.
  	  The mechanism is quite primitive and is based on migrating memory when
 -- 
-2.7.4
+2.17.1
 

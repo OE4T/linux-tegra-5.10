@@ -1,7 +1,7 @@
-From 4293edde47e9f78779ddca012c047ffe0f1860a7 Mon Sep 17 00:00:00 2001
+From 3a166b11f94e65ed0692b38e8842f526736f941d Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 23 Jun 2015 15:32:51 +0200
-Subject: [PATCH 242/315] irqwork: push most work into softirq context
+Subject: [PATCH 242/318] irqwork: push most work into softirq context
 
 Initially we defered all irqwork into softirq because we didn't want the
 latency spikes if perf or another user was busy and delayed the RT task.
@@ -23,13 +23,13 @@ Mike Galbraith,
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
  include/linux/irq_work.h |  6 +++++
- kernel/irq_work.c        | 58 ++++++++++++++++++++++++++++++++++++++----------
+ kernel/irq_work.c        | 58 +++++++++++++++++++++++++++++++---------
  kernel/sched/topology.c  |  1 +
  kernel/time/timer.c      |  2 ++
  4 files changed, 55 insertions(+), 12 deletions(-)
 
 diff --git a/include/linux/irq_work.h b/include/linux/irq_work.h
-index 3082378..f941f2d 100644
+index 30823780c192..f941f2d7d71c 100644
 --- a/include/linux/irq_work.h
 +++ b/include/linux/irq_work.h
 @@ -55,4 +55,10 @@ static inline void irq_work_run(void) { }
@@ -44,7 +44,7 @@ index 3082378..f941f2d 100644
 +
  #endif /* _LINUX_IRQ_WORK_H */
 diff --git a/kernel/irq_work.c b/kernel/irq_work.c
-index eca8396..8183d30 100644
+index eca83965b631..8183d30e1bb1 100644
 --- a/kernel/irq_work.c
 +++ b/kernel/irq_work.c
 @@ -18,6 +18,7 @@
@@ -159,7 +159,7 @@ index eca8396..8183d30 100644
  /*
   * Synchronize against the irq_work @entry, ensures the entry is not
 diff --git a/kernel/sched/topology.c b/kernel/sched/topology.c
-index dd77702..c2d1d1e 100644
+index ff2c6d3ba6c7..2f1bea4f7dba 100644
 --- a/kernel/sched/topology.c
 +++ b/kernel/sched/topology.c
 @@ -514,6 +514,7 @@ static int init_rootdomain(struct root_domain *rd)
@@ -171,7 +171,7 @@ index dd77702..c2d1d1e 100644
  
  	init_dl_bw(&rd->dl_bw);
 diff --git a/kernel/time/timer.c b/kernel/time/timer.c
-index cd67ee6..af3daf0 100644
+index cd67ee6d2634..af3daf03c917 100644
 --- a/kernel/time/timer.c
 +++ b/kernel/time/timer.c
 @@ -1767,6 +1767,8 @@ static __latent_entropy void run_timer_softirq(struct softirq_action *h)
@@ -184,5 +184,5 @@ index cd67ee6..af3daf0 100644
  	if (IS_ENABLED(CONFIG_NO_HZ_COMMON))
  		__run_timers(this_cpu_ptr(&timer_bases[BASE_DEF]));
 -- 
-2.7.4
+2.17.1
 

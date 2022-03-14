@@ -1,7 +1,7 @@
-From bdf9f2043b9f6a4b28d7a2442a5cc221fad483e1 Mon Sep 17 00:00:00 2001
+From 838c827db55709b60071a08f4e86eb9ca972ef6a Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Mon, 12 Oct 2020 17:33:54 +0200
-Subject: [PATCH 114/315] tcp: Remove superfluous BH-disable around
+Subject: [PATCH 114/318] tcp: Remove superfluous BH-disable around
  listening_hash
 
 Commit
@@ -25,7 +25,7 @@ Link: https://lkml.kernel.org/r/X9CheYjuXWc75Spa@hirez.programming.kicks-ass.net
  2 files changed, 13 insertions(+), 11 deletions(-)
 
 diff --git a/net/ipv4/inet_hashtables.c b/net/ipv4/inet_hashtables.c
-index e093847..b8369af 100644
+index e093847c334d..b8369afec849 100644
 --- a/net/ipv4/inet_hashtables.c
 +++ b/net/ipv4/inet_hashtables.c
 @@ -637,7 +637,9 @@ int __inet_hash(struct sock *sk, struct sock *osk)
@@ -87,7 +87,7 @@ index e093847..b8369af 100644
  EXPORT_SYMBOL_GPL(inet_unhash);
  
 diff --git a/net/ipv6/inet6_hashtables.c b/net/ipv6/inet6_hashtables.c
-index 67c9114..0a2e7f22 100644
+index 67c9114835c8..0a2e7f228391 100644
 --- a/net/ipv6/inet6_hashtables.c
 +++ b/net/ipv6/inet6_hashtables.c
 @@ -333,11 +333,8 @@ int inet6_hash(struct sock *sk)
@@ -104,5 +104,5 @@ index 67c9114..0a2e7f22 100644
  	return err;
  }
 -- 
-2.7.4
+2.17.1
 

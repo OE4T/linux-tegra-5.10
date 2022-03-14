@@ -1,7 +1,7 @@
-From 9724f2a4371c1d8ca4bfb844864e9a8a77078de8 Mon Sep 17 00:00:00 2001
+From 689292551b930427748cf330d2a334dcbb135647 Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Tue, 8 Jun 2021 00:37:34 -0400
-Subject: [PATCH 298/315] sched: Fix affine_move_task() self-concurrency
+Subject: [PATCH 298/318] sched: Fix affine_move_task() self-concurrency
 
 commit 9e81889c7648d48dd5fe13f41cbc99f3c362484a upstream.
 
@@ -32,7 +32,7 @@ Signed-off-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
  1 file changed, 12 insertions(+), 3 deletions(-)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 80c7d66..4d15df1 100644
+index 80c7d662b955..4d15df1ba5a6 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -1911,6 +1911,7 @@ struct migration_arg {
@@ -91,5 +91,5 @@ index 80c7d66..4d15df1 100644
  		if (flags & SCA_MIGRATE_ENABLE)
  			return 0;
 -- 
-2.7.4
+2.17.1
 

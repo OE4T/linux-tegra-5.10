@@ -1,7 +1,7 @@
-From 5e3ff5b7cfdb8a9314b879c3d25d31d7dd21f388 Mon Sep 17 00:00:00 2001
+From 53785447f3488875b7e9aa259416c1a479fc011c Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Mon, 28 May 2018 15:24:22 +0200
-Subject: [PATCH 200/315] mm/SLxB: change list_lock to raw_spinlock_t
+Subject: [PATCH 200/318] mm/SLxB: change list_lock to raw_spinlock_t
 
 The list_lock is used with used with IRQs off on RT. Make it a raw_spinlock_t
 otherwise the interrupts won't be disabled on -RT.  The locking rules remain
@@ -12,13 +12,13 @@ file for struct kmem_cache_node defintion.
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- mm/slab.c | 90 +++++++++++++++++++++++++++++++--------------------------------
+ mm/slab.c | 90 +++++++++++++++++++++++++++----------------------------
  mm/slab.h |  2 +-
- mm/slub.c | 50 +++++++++++++++++------------------
+ mm/slub.c | 50 +++++++++++++++----------------
  3 files changed, 71 insertions(+), 71 deletions(-)
 
 diff --git a/mm/slab.c b/mm/slab.c
-index b2cc2cf..677c065 100644
+index b2cc2cf7d8a3..677c0651ef66 100644
 --- a/mm/slab.c
 +++ b/mm/slab.c
 @@ -233,7 +233,7 @@ static void kmem_cache_node_init(struct kmem_cache_node *parent)
@@ -369,7 +369,7 @@ index b2cc2cf..677c065 100644
  	num_objs = total_slabs * cachep->num;
  	active_slabs = total_slabs - free_slabs;
 diff --git a/mm/slab.h b/mm/slab.h
-index 6952e10..ed5dd6e 100644
+index 6952e10cf33b..ed5dd6e9e0cc 100644
 --- a/mm/slab.h
 +++ b/mm/slab.h
 @@ -543,7 +543,7 @@ static inline void slab_post_alloc_hook(struct kmem_cache *s,
@@ -382,7 +382,7 @@ index 6952e10..ed5dd6e 100644
  #ifdef CONFIG_SLAB
  	struct list_head slabs_partial;	/* partial list first, better asm code */
 diff --git a/mm/slub.c b/mm/slub.c
-index 1384dc9..2b2e623 100644
+index 1384dc906833..2b2e623007ca 100644
 --- a/mm/slub.c
 +++ b/mm/slub.c
 @@ -1214,7 +1214,7 @@ static noinline int free_debug_processing(
@@ -598,5 +598,5 @@ index 1384dc9..2b2e623 100644
  
  	for (i = 0; i < t.count; i++) {
 -- 
-2.7.4
+2.17.1
 
