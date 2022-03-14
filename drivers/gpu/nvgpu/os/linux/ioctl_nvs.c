@@ -243,7 +243,7 @@ static int create_domain_dev(struct gk20a *g,
 		return err;
 	}
 
-	sprintf(name, "nvsched-%s", nvs_domain->name);
+	(void) snprintf(name, sizeof(name), "nvsched-%s", nvs_domain->name);
 
 	ioctl->g = g;
 	ioctl->domain = domain;
