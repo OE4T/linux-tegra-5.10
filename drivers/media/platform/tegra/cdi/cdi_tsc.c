@@ -412,6 +412,11 @@ static int cdi_tsc_probe(struct platform_device *pdev)
 
 	controller->dev = &pdev->dev;
 	controller->features = of_device_get_match_data(&pdev->dev);
+	if (controller->features == NULL) {
+		dev_err(controller->dev, "No controller feature table found\n");
+		return -ENODEV;
+	}
+
 	INIT_LIST_HEAD(&controller->generators);
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
