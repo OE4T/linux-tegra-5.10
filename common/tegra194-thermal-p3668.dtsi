@@ -51,6 +51,21 @@
 					temperature = <91500>;
 				};
 			};
+			cooling-maps {
+				/delete-node/ map3;
+				map0 {
+					trip = <&gpu_sw_throttle>;
+					cooling-device = <&cl0_0 THERMAL_NO_LIMIT 10>;
+				};
+				map1 {
+					trip = <&gpu_sw_throttle>;
+					cooling-device = <&cl1_0 THERMAL_NO_LIMIT 10>;
+				};
+				map2 {
+					trip = <&gpu_sw_throttle>;
+					cooling-device = <&cl2_0 THERMAL_NO_LIMIT 10>;
+				};
+			};
 		};
 		AUX-therm {
 			trips {
@@ -63,6 +78,18 @@
 			};
 			cooling-maps {
 				/delete-node/ map3;
+				map0 {
+					trip = <&aux_sw_throttle>;
+					cooling-device = <&cl0_0 THERMAL_NO_LIMIT 10>;
+				};
+				map1 {
+					trip = <&aux_sw_throttle>;
+					cooling-device = <&cl1_0 THERMAL_NO_LIMIT 10>;
+				};
+				map2 {
+					trip = <&aux_sw_throttle>;
+					cooling-device = <&cl2_0 THERMAL_NO_LIMIT 10>;
+				};
 			};
 		};
 		AO-therm {
