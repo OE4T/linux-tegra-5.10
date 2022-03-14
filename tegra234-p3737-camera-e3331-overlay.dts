@@ -10,6 +10,13 @@
 /dts-v1/;
 /plugin/;
 
+#include <dt-bindings/gpio/tegra234-gpio.h>
+
+#define CAM0_RST_L      TEGRA234_MAIN_GPIO(H, 3)
+#define CAM0_PWDN       TEGRA234_MAIN_GPIO(H, 6)
+#define CAM1_RST_L      TEGRA234_MAIN_GPIO(AC, 1)
+#define CAM1_PWDN       TEGRA234_MAIN_GPIO(AC, 0)
+
 / {
 	overlay-name = "Jetson Camera E3331 module";
 	jetson-header-name = "Jetson AGX Orin CSI Connector";
@@ -61,7 +68,7 @@
 		};
 	};
 	/* TCA9546 */
-	fragment@4 {
+	fragment@3 {
 		/// target = <&tca9546_70>;
 		target-path = "/i2c@3180000/tca9546@70";
 		board_config {
@@ -70,11 +77,12 @@
 		};
 		__overlay__ {
 			status = "okay";
+			/// vcc-pullup-supply = <&battery_reg>;
 			vcc-pullup-supply = "/fixed-regulators/regulator@0";
 		};
 	};
 	/* Camera 0: Module */
-	fragment@5 {
+	fragment@4 {
 		/// target = <&e3331_cam0>;
 		target-path = "/i2c@3180000/tca9546@70/i2c@0/imx318_a@10";
 		board_config {
@@ -85,7 +93,7 @@
 			status = "okay";
 		};
 	};
-	fragment@6 {
+	fragment@5 {
 		/// target = <&cam_module0>;
 		target-path = "/tegra-camera-platform/modules/module0";
 		board_config {
@@ -99,7 +107,7 @@
 			orientation = "1";
 		};
 	};
-	fragment@7 {
+	fragment@6 {
 		/// target = <&cam_module0_drivernode0>;
 		target-path = "/tegra-camera-platform/modules/module0/drivernode0";
 		board_config {
@@ -114,7 +122,7 @@
 		};
 	};
 	/* Camera 0: VI */
-	fragment@9 {
+	fragment@7 {
 		/// target = <&vi_port0>;
 		target-path = "/tegra-capture-vi/ports/port@0";
 		board_config {
@@ -125,9 +133,9 @@
 			status = "okay";
 		};
 	};
-	fragment@10 {
+	fragment@8 {
 		/// target = <&e3331_vi_in0>;
-		target =  "/tegra-capture-vi/ports/port@0/endpoint";
+		target-path = "/tegra-capture-vi/ports/port@0/endpoint";
 		board_config {
 			ids = "3331-*";
 			sw-modules = "kernel";
@@ -136,12 +144,12 @@
 			status = "okay";
 			port-index = <0>;
 			bus-width = <3>;
-			/// remote-endpoint = <&e3331_csi_out0>;
-			remote-endpoint =  "/host1x@13e00000/nvcsi@15a00000/channel@0/ports/port@1/endpoint@1";
+			remote-endpoint = <&e3331_csi_out0>;
+			/// remote-endpoint = "/host1x@13e00000/nvcsi@15a00000/channel@0/ports/port@1/endpoint@1";
 		};
 	};
 	/* Camera 0: CSI */
-	fragment@11 {
+	fragment@9 {
 		/// target = <&csi_chan0>;
 		target-path = "/host1x@13e00000/nvcsi@15a00000/channel@0";
 		board_config {
@@ -152,7 +160,7 @@
 			status = "okay";
 		};
 	};
-	fragment@12 {
+	fragment@10 {
 		/// target = <&csi_chan0_port0>;
 		target-path = "/host1x@13e00000/nvcsi@15a00000/channel@0/ports/port@0";
 		board_config {
@@ -163,7 +171,7 @@
 			status = "okay";
 		};
 	};
-	fragment@13 {
+	fragment@11 {
 		/// target = <&e3331_csi_in0>;
 		target-path = "/host1x@13e00000/nvcsi@15a00000/channel@0/ports/port@0/endpoint@0";
 		board_config {
@@ -174,11 +182,11 @@
 			status = "okay";
 			port-index = <0>;
 			bus-width = <3>;
-			/// remote-endpoint = <&e3331_imx318_out0>;
-			remote-endpoint = "/i2c@3180000/tca9546@70/i2c@0/imx318_a@10/ports/port@0/endpoint";
+			remote-endpoint = <&e3331_imx318_out0>;
+			/// remote-endpoint = "/i2c@3180000/tca9546@70/i2c@0/imx318_a@10/ports/port@0/endpoint";
 		};
 	};
-	fragment@14 {
+	fragment@12 {
 		/// target = <&csi_chan0_port1>;
 		target-path = "/host1x@13e00000/nvcsi@15a00000/channel@0/ports/port@1";
 		board_config {
@@ -189,21 +197,21 @@
 			status = "okay";
 		};
 	};
-	fragment@15 {
+	fragment@13 {
 		/// target = <&e3331_csi_out0>;
-		target =  "/host1x@13e00000/nvcsi@15a00000/channel@0/ports/port@1/endpoint@1";
+		target-path = "/host1x@13e00000/nvcsi@15a00000/channel@0/ports/port@1/endpoint@1";
 		board_config {
 			ids = "3331-*";
 			sw-modules = "kernel";
 		};
 		__overlay__ {
 			status = "okay";
-			/// remote-endpoint = <&e3331_vi_in0>;
-			remote-endpoint = "/tegra-capture-vi/ports/port@0/endpoint";
+			remote-endpoint = <&e3331_vi_in0>;
+			/// remote-endpoint = "/tegra-capture-vi/ports/port@0/endpoint";
 		};
 	};
 	/* GPIO */
-	fragment@71 {
+	fragment@14 {
 		/// target = <&{/gpio@2200000}>;
 		target-path = "/gpio@2200000";
 		board_config {
@@ -216,7 +224,7 @@
 			};
 			camera-control-output-low {
 				gpio-hog;
-				/* gpios = <CAM0_RST_L 0>; */
+				gpios = <CAM0_RST_L 0>;
 				/*<CAM1_RST_L 0> <CAM2_RST_L 0>*/
 				label = "cam0-rst";
 				/*"cam1-rst", "cam2-rst";*/
