@@ -398,6 +398,7 @@ struct nvhost_device_data t23x_ofa_info = {
 	.moduleid		= NVHOST_MODULE_OFA,
 	.num_channels		= 1,
 	.firmware_name		= "nvhost_ofa012.fw",
+	.firmware_not_in_subdir = true,
 	.serialize		= true,
 	.push_work_done		= true,
 	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
