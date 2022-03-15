@@ -668,7 +668,8 @@ static void alloc_handle(struct nvmap_client *client,
 	unsigned int iovmm_mask = NVMAP_HEAP_IOVMM;
 	int ret;
 
-	BUG_ON(type & (type - 1));
+	/* type should only be non-zero and in power of 2. */
+	BUG_ON((!type) || (type & (type - 1)));
 
 	if (nvmap_convert_carveout_to_iovmm) {
 		carveout_mask &= ~NVMAP_HEAP_CARVEOUT_GENERIC;
