@@ -1,4 +1,4 @@
-From 0b16a00c622ba145315b2b24a99f6c89a86fd817 Mon Sep 17 00:00:00 2001
+From 18fd4b830d1815d6be79f389915286e53b3e62b5 Mon Sep 17 00:00:00 2001
 From: "Isaac J. Manjarres" <isaacm@codeaurora.org>
 Date: Wed, 20 May 2020 16:22:44 -0700
 Subject: [PATCH 287/830] ANDROID: staging: ion: Fix potential memory
@@ -38,7 +38,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@google.com>
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/staging/android/ion/ion_dma_buf.c b/drivers/staging/android/ion/ion_dma_buf.c
-index 29f05b8c..3cd40f9 100644
+index 29f05b8cd5ef..3cd40f9ac48b 100644
 --- a/drivers/staging/android/ion/ion_dma_buf.c
 +++ b/drivers/staging/android/ion/ion_dma_buf.c
 @@ -134,12 +134,12 @@ static void ion_unmap_dma_buf(struct dma_buf_attachment *attachment,
@@ -57,5 +57,5 @@ index 29f05b8c..3cd40f9 100644
  		attrs |= DMA_ATTR_SKIP_CPU_SYNC;
  
 -- 
-2.7.4
+2.17.1
 

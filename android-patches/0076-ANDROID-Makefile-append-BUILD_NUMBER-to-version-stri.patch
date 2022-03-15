@@ -1,4 +1,4 @@
-From bff4b29671e3b762b99ada353e176482b77e20da Mon Sep 17 00:00:00 2001
+From 4df7b33c08bf93c61952c77c3c4a41a35d58315e Mon Sep 17 00:00:00 2001
 From: Alex Hong <rurumihong@google.com>
 Date: Fri, 19 Jul 2019 16:37:33 +0800
 Subject: [PATCH 076/830] ANDROID: Makefile: append BUILD_NUMBER to version
@@ -26,10 +26,10 @@ Signed-off-by: Will McVicker <willmcvicker@google.com>
  1 file changed, 10 insertions(+), 5 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index 270f2f5..94525bcc 100644
+index 881d83f7e698..0208ffca8665 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -1320,12 +1320,17 @@ endif
+@@ -1322,12 +1322,17 @@ endif
  # needs to be updated, so this check is forced on all builds
  
  uts_len := 64
@@ -53,5 +53,5 @@ index 270f2f5..94525bcc 100644
  
  define filechk_version.h
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 6f269a874049d0a00549d53416f1fd19cbb9d919 Mon Sep 17 00:00:00 2001
+From 32f9f4f640d873a8f1a168536d8f85205b182482 Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Thu, 4 Jun 2020 15:35:02 -0700
 Subject: [PATCH 457/830] ANDROID: Incremental fs: Fix four error-path bugs
@@ -15,7 +15,7 @@ Change-Id: Ib53e867fb2681489f720f6255354c1bce1d33997
  2 files changed, 9 insertions(+), 4 deletions(-)
 
 diff --git a/fs/incfs/data_mgmt.c b/fs/incfs/data_mgmt.c
-index 5a18d11..074a733 100644
+index 5a18d1165836..074a733c7001 100644
 --- a/fs/incfs/data_mgmt.c
 +++ b/fs/incfs/data_mgmt.c
 @@ -180,7 +180,8 @@ struct data_file *incfs_open_data_file(struct mount_info *mi, struct file *bf)
@@ -54,7 +54,7 @@ index 5a18d11..074a733 100644
  	    !df->df_backing_file_context->bc_file) {
  		error = -ENOENT;
 diff --git a/fs/incfs/data_mgmt.h b/fs/incfs/data_mgmt.h
-index d9bee5a..2726867 100644
+index d9bee5ab730e..2726867835a8 100644
 --- a/fs/incfs/data_mgmt.h
 +++ b/fs/incfs/data_mgmt.h
 @@ -315,7 +315,7 @@ static inline struct inode_info *get_incfs_node(struct inode *inode)
@@ -67,5 +67,5 @@ index d9bee5a..2726867 100644
  		pr_warn_once("incfs: %s on an alien inode.", __func__);
  		return NULL;
 -- 
-2.7.4
+2.17.1
 

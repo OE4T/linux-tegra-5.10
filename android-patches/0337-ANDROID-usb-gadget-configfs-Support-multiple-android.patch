@@ -1,4 +1,4 @@
-From 793dd5599433f478093fe53db8bbaec8394148e8 Mon Sep 17 00:00:00 2001
+From 55c00991e11b83555486798f40a9c6691fb067c0 Mon Sep 17 00:00:00 2001
 From: Ajay Agarwal <ajaya@codeaurora.org>
 Date: Tue, 30 May 2017 10:27:23 +0530
 Subject: [PATCH 337/830] ANDROID: usb: gadget: configfs: Support multiple
@@ -27,11 +27,11 @@ Signed-off-by: Ajay Agarwal <ajaya@codeaurora.org>
 [jackp@codeaurora.org: reworded commit text]
 Signed-off-by: Jack Pham <jackp@codeaurora.org>
 ---
- drivers/usb/gadget/configfs.c | 41 ++++++++++++++++++++++-------------------
+ drivers/usb/gadget/configfs.c | 41 +++++++++++++++++++----------------
  1 file changed, 22 insertions(+), 19 deletions(-)
 
 diff --git a/drivers/usb/gadget/configfs.c b/drivers/usb/gadget/configfs.c
-index 547af48b..f5ef7c3 100644
+index 547af48bf78f..f5ef7c3d0c34 100644
 --- a/drivers/usb/gadget/configfs.c
 +++ b/drivers/usb/gadget/configfs.c
 @@ -23,6 +23,7 @@ void acc_disconnect(void);
@@ -142,5 +142,5 @@ index 547af48b..f5ef7c3 100644
  
  static struct configfs_group_operations gadgets_ops = {
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 6cdb9030b5d9ad85903088628efb960bba266d21 Mon Sep 17 00:00:00 2001
+From 60ac0142f624f046160ba4aa2ece666bf060988a Mon Sep 17 00:00:00 2001
 From: "A. Cody Schuffelen" <schuffelen@google.com>
 Date: Tue, 6 Oct 2020 16:26:27 -0700
 Subject: [PATCH 322/830] ANDROID: Add more hvc devices for virtio-console.
@@ -15,7 +15,7 @@ Signed-off-by: A. Cody Schuffelen <schuffelen@google.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/tty/hvc/hvc_console.h b/drivers/tty/hvc/hvc_console.h
-index 18d0058..97200fb 100644
+index 18d005814e4b..97200fbeeae8 100644
 --- a/drivers/tty/hvc/hvc_console.h
 +++ b/drivers/tty/hvc/hvc_console.h
 @@ -30,7 +30,7 @@
@@ -28,5 +28,5 @@ index 18d0058..97200fb 100644
  struct hvc_struct {
  	struct tty_port port;
 -- 
-2.7.4
+2.17.1
 

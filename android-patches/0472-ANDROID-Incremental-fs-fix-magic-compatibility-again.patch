@@ -1,4 +1,4 @@
-From 370889ea02dd933481ed14e248e0231a4de6a428 Mon Sep 17 00:00:00 2001
+From 1728fb9e3a68a73ace55f0243f0e30c5e97845d8 Mon Sep 17 00:00:00 2001
 From: mtk81325 <peng.zhou@mediatek.com>
 Date: Wed, 5 Aug 2020 19:12:54 +0800
 Subject: [PATCH 472/830] ANDROID: Incremental fs: fix magic compatibility
@@ -26,7 +26,7 @@ Change-Id: I71f279c1bb55ea296ab33a47644f30df4a9f60a6
  2 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index d83ee08e..f82d3af9 100644
+index d83ee08e25f3..f82d3af90f39 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -2222,7 +2222,7 @@ struct dentry *incfs_mount_fs(struct file_system_type *type, int flags,
@@ -39,7 +39,7 @@ index d83ee08e..f82d3af9 100644
  	sb->s_blocksize = INCFS_DATA_FILE_BLOCK_SIZE;
  	sb->s_blocksize_bits = blksize_bits(sb->s_blocksize);
 diff --git a/include/uapi/linux/incrementalfs.h b/include/uapi/linux/incrementalfs.h
-index 13c3d51..71efcf3d 100644
+index 13c3d5173e14..71efcf3d1a51 100644
 --- a/include/uapi/linux/incrementalfs.h
 +++ b/include/uapi/linux/incrementalfs.h
 @@ -18,7 +18,7 @@
@@ -52,5 +52,5 @@ index 13c3d51..71efcf3d 100644
  #define INCFS_HEADER_VER 1
  
 -- 
-2.7.4
+2.17.1
 

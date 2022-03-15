@@ -1,4 +1,4 @@
-From 7ca75ed20e21697a1fef1cd3f67d5a8b045eb2f2 Mon Sep 17 00:00:00 2001
+From 365c1cd4fcbf0408dd51a9d2e341ce8362598698 Mon Sep 17 00:00:00 2001
 From: John Stultz <john.stultz@linaro.org>
 Date: Fri, 25 Sep 2020 23:47:47 +0000
 Subject: [PATCH 294/830] BACKPORT: dma-buf: heaps: Skip sync if not mapped
@@ -80,7 +80,7 @@ Signed-off-by: Hridya Valsaraju <hridya@google.com>
  2 files changed, 20 insertions(+)
 
 diff --git a/drivers/dma-buf/heaps/cma_heap.c b/drivers/dma-buf/heaps/cma_heap.c
-index 0d3165a..4772c87 100644
+index 0d3165a3e6d4..4772c8729e77 100644
 --- a/drivers/dma-buf/heaps/cma_heap.c
 +++ b/drivers/dma-buf/heaps/cma_heap.c
 @@ -43,6 +43,7 @@ struct dma_heap_attachment {
@@ -136,7 +136,7 @@ index 0d3165a..4772c87 100644
  	}
  	mutex_unlock(&buffer->lock);
 diff --git a/drivers/dma-buf/heaps/system_heap.c b/drivers/dma-buf/heaps/system_heap.c
-index 0a9214d..bcf2754 100644
+index 0a9214d9f8a9..bcf2754fd983 100644
 --- a/drivers/dma-buf/heaps/system_heap.c
 +++ b/drivers/dma-buf/heaps/system_heap.c
 @@ -37,6 +37,7 @@ struct dma_heap_attachment {
@@ -192,5 +192,5 @@ index 0a9214d..bcf2754 100644
  	}
  	mutex_unlock(&buffer->lock);
 -- 
-2.7.4
+2.17.1
 

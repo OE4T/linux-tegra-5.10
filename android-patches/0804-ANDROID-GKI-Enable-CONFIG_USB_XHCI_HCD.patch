@@ -1,4 +1,4 @@
-From 5e5fdc3d68f006e1c07c1af563faa8184c3cde24 Mon Sep 17 00:00:00 2001
+From f872186e7b70088702c85aa3d15dd038eca9af15 Mon Sep 17 00:00:00 2001
 From: Greg Kroah-Hartman <gregkh@google.com>
 Date: Thu, 19 Nov 2020 16:26:58 +0100
 Subject: [PATCH 804/830] ANDROID: GKI: Enable CONFIG_USB_XHCI_HCD
@@ -19,7 +19,7 @@ Change-Id: I6e8b5d1fbcde86415f43d942aad0f828ab346928
  2 files changed, 4 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 87f4113..70d57ad 100644
+index 87f4113110ab..70d57ad32a51 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -402,6 +402,8 @@ CONFIG_HID_STEAM=y
@@ -32,7 +32,7 @@ index 87f4113..70d57ad 100644
  CONFIG_USB_EHCI_HCD_PLATFORM=y
  CONFIG_USB_ACM=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index c5508ee..cc702b1 100644
+index c5508eeae9b4..cc702b1fd9d5 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -357,6 +357,8 @@ CONFIG_SONY_FF=y
@@ -45,5 +45,5 @@ index c5508ee..cc702b1 100644
  CONFIG_USB_EHCI_HCD_PLATFORM=y
  CONFIG_USB_ACM=y
 -- 
-2.7.4
+2.17.1
 

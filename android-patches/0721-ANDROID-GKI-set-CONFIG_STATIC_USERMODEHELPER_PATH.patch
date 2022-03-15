@@ -1,4 +1,4 @@
-From 7a6cc2f917a86a7361a10418565fc804dc4a6604 Mon Sep 17 00:00:00 2001
+From b938046b25803919b94b784242730fb309e89df5 Mon Sep 17 00:00:00 2001
 From: Todd Kjos <tkjos@google.com>
 Date: Mon, 13 Jul 2020 17:41:01 +0000
 Subject: [PATCH 721/830] ANDROID: GKI: set CONFIG_STATIC_USERMODEHELPER_PATH
@@ -18,7 +18,7 @@ Change-Id: I1d9f003c15a6b1d9a7f47804e50661a44a0725d5
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index f4476e3..043cc30 100644
+index f4476e347d13..043cc30b3bdb 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -475,6 +475,7 @@ CONFIG_HARDENED_USERCOPY=y
@@ -30,7 +30,7 @@ index f4476e3..043cc30 100644
  CONFIG_INIT_STACK_ALL=y
  CONFIG_INIT_ON_ALLOC_DEFAULT_ON=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 6546b7b..1c7d944 100644
+index 6546b7b264a6..1c7d94422f9e 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -422,6 +422,7 @@ CONFIG_HARDENED_USERCOPY=y
@@ -42,5 +42,5 @@ index 6546b7b..1c7d944 100644
  CONFIG_INIT_STACK_ALL=y
  CONFIG_INIT_ON_ALLOC_DEFAULT_ON=y
 -- 
-2.7.4
+2.17.1
 

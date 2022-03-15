@@ -1,4 +1,4 @@
-From 1af75d1d85cb380b735156b48c8e543aa360cd49 Mon Sep 17 00:00:00 2001
+From cf3a9d476d9ad4a0a5c0b4326b489405f9b3f9f2 Mon Sep 17 00:00:00 2001
 From: Alistair Delva <adelva@google.com>
 Date: Mon, 5 Oct 2020 08:41:19 -0700
 Subject: [PATCH 779/830] ANDROID: GKI: Build INCREMENTAL_FS into GKI
@@ -17,7 +17,7 @@ Change-Id: Ie8f6cdbd7eeff8e97b25312ba893cc49483dc346
  3 files changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm64/configs/db845c_gki.fragment b/arch/arm64/configs/db845c_gki.fragment
-index 64975d7..800160b 100644
+index 64975d71b9e6..800160b4b00f 100644
 --- a/arch/arm64/configs/db845c_gki.fragment
 +++ b/arch/arm64/configs/db845c_gki.fragment
 @@ -57,7 +57,6 @@ CONFIG_QCOM_QFPROM=m
@@ -29,7 +29,7 @@ index 64975d7..800160b 100644
  CONFIG_QCOM_RPMHPD=m
  CONFIG_WLAN_VENDOR_ATH=y
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index cb9b5c1..a969125 100644
+index cb9b5c198213..a9691258baf3 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -475,6 +475,7 @@ CONFIG_QUOTA=y
@@ -41,7 +41,7 @@ index cb9b5c1..a969125 100644
  CONFIG_VFAT_FS=y
  CONFIG_TMPFS=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index e1de3af..a4e0d1b 100644
+index e1de3af68184..a4e0d1be1ac5 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -413,6 +413,7 @@ CONFIG_QUOTA=y
@@ -53,5 +53,5 @@ index e1de3af..a4e0d1b 100644
  CONFIG_VFAT_FS=y
  CONFIG_TMPFS=y
 -- 
-2.7.4
+2.17.1
 

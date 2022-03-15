@@ -1,4 +1,4 @@
-From 90d2f6014e53cbe1f9997c4a7c8ebb902ab1ae72 Mon Sep 17 00:00:00 2001
+From 5db3b8e8c7edab86e09206b8c78b162ef6b6b31e Mon Sep 17 00:00:00 2001
 From: Mark Salyzyn <salyzyn@google.com>
 Date: Fri, 30 Aug 2019 08:23:25 -0700
 Subject: [PATCH 555/830] ANDROID: net: enable wireless core features with
@@ -26,7 +26,7 @@ Change-Id: Ie40e656d87ce21ae82f04ffe8dae2f0efab88a2e
  1 file changed, 20 insertions(+)
 
 diff --git a/init/Kconfig.gki b/init/Kconfig.gki
-index 5df8c67..b2f3ece 100644
+index 5df8c67123ef..b2f3ecefd782 100644
 --- a/init/Kconfig.gki
 +++ b/init/Kconfig.gki
 @@ -34,6 +34,25 @@ config GKI_HIDDEN_GPIO_CONFIGS
@@ -64,5 +64,5 @@ index 5df8c67..b2f3ece 100644
  	  Dummy config option used to enable core functionality used by
  	  modules that may not be selectable in this config.
 -- 
-2.7.4
+2.17.1
 

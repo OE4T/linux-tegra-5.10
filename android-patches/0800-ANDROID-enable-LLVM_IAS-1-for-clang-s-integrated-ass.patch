@@ -1,4 +1,4 @@
-From a43ec86e079996f4243f55e9776b73ded87e4760 Mon Sep 17 00:00:00 2001
+From 27ff4846a18a747be664bcf1c67734bfca55cbc4 Mon Sep 17 00:00:00 2001
 From: Nick Desaulniers <ndesaulniers@google.com>
 Date: Wed, 11 Nov 2020 15:56:00 -0800
 Subject: [PATCH 800/830] ANDROID: enable LLVM_IAS=1 for clang's integrated
@@ -16,7 +16,7 @@ Change-Id: I9d1621f6484c0402a7518ffb12a3f8f3815f43a9
  1 file changed, 1 insertion(+)
 
 diff --git a/build.config.x86_64 b/build.config.x86_64
-index d5a358c..aa0c49e 100644
+index d5a358cbddcb..aa0c49e92916 100644
 --- a/build.config.x86_64
 +++ b/build.config.x86_64
 @@ -1,5 +1,6 @@
@@ -27,5 +27,5 @@ index d5a358c..aa0c49e 100644
  LINUX_GCC_CROSS_COMPILE_PREBUILTS_BIN=prebuilts/gas/linux-x86
  
 -- 
-2.7.4
+2.17.1
 

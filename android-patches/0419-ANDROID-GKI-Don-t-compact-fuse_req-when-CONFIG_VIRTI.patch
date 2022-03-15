@@ -1,4 +1,4 @@
-From 0dcc678086fcdc407f3daccd5a288b8c7172db5f Mon Sep 17 00:00:00 2001
+From e4478e9024c9567d0d06c6e55b392fbb4f626e03 Mon Sep 17 00:00:00 2001
 From: Alistair Delva <adelva@google.com>
 Date: Fri, 24 Jul 2020 13:51:48 -0700
 Subject: [PATCH 419/830] ANDROID: GKI: Don't compact fuse_req when
@@ -15,7 +15,7 @@ Signed-off-by: Alistair Delva <adelva@google.com>
  1 file changed, 2 deletions(-)
 
 diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
-index 0bf739f..abff5ac 100644
+index 0bf739f0625c..abff5ac7d6cd 100644
 --- a/fs/fuse/fuse_i.h
 +++ b/fs/fuse/fuse_i.h
 @@ -387,10 +387,8 @@ struct fuse_req {
@@ -30,5 +30,5 @@ index 0bf739f..abff5ac 100644
  	/** fuse_mount this request belongs to */
  	struct fuse_mount *fm;
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 9e42a0107afc5169f73006f629a7ef2141b8978a Mon Sep 17 00:00:00 2001
+From d8105fc7acc297c1fcdaa9e966f7fb3f6e247fa1 Mon Sep 17 00:00:00 2001
 From: Fenglin Wu <fenglinw@codeaurora.org>
 Date: Mon, 4 Dec 2017 09:56:51 +0800
 Subject: [PATCH 299/830] BACKPORT: FROMLIST: pwm: Add support for different
@@ -23,12 +23,12 @@ param to read-only, reworded commit message]
 Signed-off-by: Guru Das Srinagesh <gurus@codeaurora.org>
 ---
  drivers/pwm/core.c  |  1 +
- drivers/pwm/sysfs.c | 25 +++++++++++++++++++++++++
- include/linux/pwm.h | 48 ++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/pwm/sysfs.c | 25 +++++++++++++++++++++++
+ include/linux/pwm.h | 48 +++++++++++++++++++++++++++++++++++++++++++++
  3 files changed, 74 insertions(+)
 
 diff --git a/drivers/pwm/core.c b/drivers/pwm/core.c
-index 023a69c..d65dba0 100644
+index 023a69c72698..d65dba0cd5f7 100644
 --- a/drivers/pwm/core.c
 +++ b/drivers/pwm/core.c
 @@ -304,6 +304,7 @@ int pwmchip_add_with_polarity(struct pwm_chip *chip,
@@ -40,7 +40,7 @@ index 023a69c..d65dba0 100644
  		radix_tree_insert(&pwm_tree, pwm->pwm, pwm);
  	}
 diff --git a/drivers/pwm/sysfs.c b/drivers/pwm/sysfs.c
-index c974bd6c..5c27e9d 100644
+index c974bd6c3881..5c27e9dd8038 100644
 --- a/drivers/pwm/sysfs.c
 +++ b/drivers/pwm/sysfs.c
 @@ -329,6 +329,29 @@ static ssize_t rpm_show(struct device *child,
@@ -90,7 +90,7 @@ index c974bd6c..5c27e9d 100644
  };
  ATTRIBUTE_GROUPS(pwm);
 diff --git a/include/linux/pwm.h b/include/linux/pwm.h
-index f55c10b..123bc48 100644
+index f55c10b57f4c..123bc4880b6e 100644
 --- a/include/linux/pwm.h
 +++ b/include/linux/pwm.h
 @@ -48,6 +48,17 @@ enum {
@@ -153,10 +153,11 @@ index f55c10b..123bc48 100644
  	struct module *owner;
  
  	/* Only used by legacy drivers */
-@@ -395,6 +420,24 @@ int pwm_apply_state(struct pwm_device *pwm, const struct pwm_state *state);
+@@ -394,6 +419,24 @@ void pwm_free(struct pwm_device *pwm);
+ int pwm_apply_state(struct pwm_device *pwm, const struct pwm_state *state);
  int pwm_adjust_config(struct pwm_device *pwm);
  
- /**
++/**
 + * pwm_get_output_type_supported() - obtain output type of a PWM device.
 + * @pwm: PWM device
 + *
@@ -174,10 +175,9 @@ index f55c10b..123bc48 100644
 +	return PWM_OUTPUT_FIXED;
 +}
 +
-+/**
+ /**
   * pwm_config() - change a PWM device configuration
   * @pwm: PWM device
-  * @duty_ns: "on" time (in nanoseconds)
 @@ -512,6 +555,11 @@ static inline int pwm_adjust_config(struct pwm_device *pwm)
  	return -ENOTSUPP;
  }
@@ -191,5 +191,5 @@ index f55c10b..123bc48 100644
  			     int period_ns)
  {
 -- 
-2.7.4
+2.17.1
 

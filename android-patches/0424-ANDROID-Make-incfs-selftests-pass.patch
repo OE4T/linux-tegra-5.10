@@ -1,4 +1,4 @@
-From caea99e8deebe1153521c3312dec77b252de18db Mon Sep 17 00:00:00 2001
+From 2a914b9c36460abebb044736961f9291db4de166 Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Mon, 27 Jan 2020 14:48:38 -0800
 Subject: [PATCH 424/830] ANDROID: Make incfs selftests pass
@@ -22,7 +22,7 @@ Signed-off-by: Paul Lawrence <paullawrence@google.com>
  create mode 100644 tools/testing/selftests/filesystems/incfs/.gitignore
 
 diff --git a/fs/incfs/Kconfig b/fs/incfs/Kconfig
-index d860c07..a655d59 100644
+index d860c07664c3..a655d599ea46 100644
 --- a/fs/incfs/Kconfig
 +++ b/fs/incfs/Kconfig
 @@ -4,6 +4,7 @@ config INCREMENTAL_FS
@@ -35,14 +35,14 @@ index d860c07..a655d59 100644
  	select ASYMMETRIC_KEY_TYPE
 diff --git a/tools/testing/selftests/filesystems/incfs/.gitignore b/tools/testing/selftests/filesystems/incfs/.gitignore
 new file mode 100644
-index 00000000..4cba9c21
+index 000000000000..4cba9c219a92
 --- /dev/null
 +++ b/tools/testing/selftests/filesystems/incfs/.gitignore
 @@ -0,0 +1 @@
 +incfs_test
 \ No newline at end of file
 diff --git a/tools/testing/selftests/filesystems/incfs/Makefile b/tools/testing/selftests/filesystems/incfs/Makefile
-index 7cff78c..1f13573 100644
+index 7cff78cf5131..1f13573d3617 100644
 --- a/tools/testing/selftests/filesystems/incfs/Makefile
 +++ b/tools/testing/selftests/filesystems/incfs/Makefile
 @@ -5,6 +5,8 @@ CFLAGS += -I../../../../include/uapi/
@@ -55,5 +55,5 @@ index 7cff78c..1f13573 100644
  
  include ../../lib.mk
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 4715f330c5add5931ce348a8f3702f043077aae6 Mon Sep 17 00:00:00 2001
+From 007c428eac60823000327645426e6a6deffd1656 Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Wed, 9 Sep 2020 08:16:37 -0700
 Subject: [PATCH 486/830] ANDROID: Incremental fs: Add .incomplete folder
@@ -9,15 +9,15 @@ Test: incfs_test passes
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
 Change-Id: Ib6952391aea76bf0318cbad8da7a1276f8f9e8ba
 ---
- fs/incfs/data_mgmt.c                               |   1 +
- fs/incfs/data_mgmt.h                               |   2 +
- fs/incfs/pseudo_files.c                            |  71 ++++++++--
- fs/incfs/vfs.c                                     | 151 +++++++++++++++++----
- .../selftests/filesystems/incfs/incfs_test.c       |  29 ++++
+ fs/incfs/data_mgmt.c                          |   1 +
+ fs/incfs/data_mgmt.h                          |   2 +
+ fs/incfs/pseudo_files.c                       |  71 ++++++--
+ fs/incfs/vfs.c                                | 151 +++++++++++++++---
+ .../selftests/filesystems/incfs/incfs_test.c  |  29 ++++
  5 files changed, 217 insertions(+), 37 deletions(-)
 
 diff --git a/fs/incfs/data_mgmt.c b/fs/incfs/data_mgmt.c
-index a4dd223..4100e900 100644
+index a4dd223ee693..4100e900b09b 100644
 --- a/fs/incfs/data_mgmt.c
 +++ b/fs/incfs/data_mgmt.c
 @@ -110,6 +110,7 @@ void incfs_free_mount_info(struct mount_info *mi)
@@ -29,7 +29,7 @@ index a4dd223..4100e900 100644
  	mutex_destroy(&mi->mi_dir_struct_mutex);
  	put_cred(mi->mi_owner);
 diff --git a/fs/incfs/data_mgmt.h b/fs/incfs/data_mgmt.h
-index a57ae4c..42922b2 100644
+index a57ae4c9a31c..42922b2f9db1 100644
 --- a/fs/incfs/data_mgmt.h
 +++ b/fs/incfs/data_mgmt.h
 @@ -114,6 +114,8 @@ struct mount_info {
@@ -42,7 +42,7 @@ index a57ae4c..42922b2 100644
  
  	struct mount_options mi_options;
 diff --git a/fs/incfs/pseudo_files.c b/fs/incfs/pseudo_files.c
-index 0993829..07a4eb3 100644
+index 0993829cbe2d..07a4eb3d16f1 100644
 --- a/fs/incfs/pseudo_files.c
 +++ b/fs/incfs/pseudo_files.c
 @@ -519,6 +519,7 @@ static long ioctl_create_file(struct mount_info *mi,
@@ -212,7 +212,7 @@ index 0993829..07a4eb3 100644
  	if (locked)
  		mutex_unlock(&mi->mi_dir_struct_mutex);
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index 7f9b5f7..eddc050 100644
+index 7f9b5f7a838c..eddc0501270e 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -16,6 +16,7 @@
@@ -499,7 +499,7 @@ index 7f9b5f7..eddc050 100644
  	root_inode = fetch_regular_inode(sb, backing_dir_path.dentry);
  	if (IS_ERR(root_inode)) {
 diff --git a/tools/testing/selftests/filesystems/incfs/incfs_test.c b/tools/testing/selftests/filesystems/incfs/incfs_test.c
-index 46f56556..38acad3 100644
+index 46f56556e8bf..38acad30c10c 100644
 --- a/tools/testing/selftests/filesystems/incfs/incfs_test.c
 +++ b/tools/testing/selftests/filesystems/incfs/incfs_test.c
 @@ -214,6 +214,17 @@ static char *get_index_filename(const char *mnt_dir, incfs_uuid_t id)
@@ -568,5 +568,5 @@ index 46f56556..38acad3 100644
  	return test_result;
  }
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 3a43c5956b88ef4ff142f724b12b53b7b5844047 Mon Sep 17 00:00:00 2001
+From 9028ec52024cde44af544ead1f9a9c8b0915e839 Mon Sep 17 00:00:00 2001
 From: Sandeep Patil <sspatil@google.com>
 Date: Thu, 8 Aug 2019 07:52:27 -0700
 Subject: [PATCH 246/830] ANDROID: staging: ion: refactor ion's heap
@@ -20,13 +20,13 @@ Signed-off-by: Sandeep Patil <sspatil@google.com>
 ---
  drivers/staging/android/ion/ion.h             |  12 +-
  drivers/staging/android/ion/ion_buffer.c      |  17 ++
- drivers/staging/android/ion/ion_heap.c        | 271 ++++++++++++++------------
+ drivers/staging/android/ion/ion_heap.c        | 271 ++++++++++--------
  drivers/staging/android/ion/ion_private.h     |   1 -
  drivers/staging/android/ion/ion_system_heap.c |   2 +-
  5 files changed, 177 insertions(+), 126 deletions(-)
 
 diff --git a/drivers/staging/android/ion/ion.h b/drivers/staging/android/ion/ion.h
-index 7102c7b..b5b5412 100644
+index 7102c7bf81d9..b5b5412507fd 100644
 --- a/drivers/staging/android/ion/ion.h
 +++ b/drivers/staging/android/ion/ion.h
 @@ -153,6 +153,14 @@ struct ion_heap {
@@ -56,7 +56,7 @@ index 7102c7b..b5b5412 100644
  /**
   * ion_heap_init_shrinker
 diff --git a/drivers/staging/android/ion/ion_buffer.c b/drivers/staging/android/ion/ion_buffer.c
-index c10ea66..50c2dbc 100644
+index c10ea6672f1a..50c2dbc3ebec 100644
 --- a/drivers/staging/android/ion/ion_buffer.c
 +++ b/drivers/staging/android/ion/ion_buffer.c
 @@ -133,6 +133,23 @@ struct ion_buffer *ion_buffer_alloc(struct ion_device *dev, size_t len,
@@ -84,7 +84,7 @@ index c10ea66..50c2dbc 100644
  {
  	if (buffer->kmap_cnt > 0) {
 diff --git a/drivers/staging/android/ion/ion_heap.c b/drivers/staging/android/ion/ion_heap.c
-index d87b511..e1d30ef 100644
+index d87b511e3ef3..e1d30ef0d86c 100644
 --- a/drivers/staging/android/ion/ion_heap.c
 +++ b/drivers/staging/android/ion/ion_heap.c
 @@ -17,10 +17,125 @@
@@ -433,7 +433,7 @@ index d87b511..e1d30ef 100644
  {
  	heap->shrinker.count_objects = ion_heap_shrink_count;
 diff --git a/drivers/staging/android/ion/ion_private.h b/drivers/staging/android/ion/ion_private.h
-index b3c8b557..9c8f482 100644
+index b3c8b55788db..9c8f482cd9d2 100644
 --- a/drivers/staging/android/ion/ion_private.h
 +++ b/drivers/staging/android/ion/ion_private.h
 @@ -52,5 +52,4 @@ extern struct dma_buf *ion_dmabuf_alloc(struct ion_device *dev, size_t len,
@@ -443,7 +443,7 @@ index b3c8b557..9c8f482 100644
 -
  #endif /* _ION_PRIVATE_H */
 diff --git a/drivers/staging/android/ion/ion_system_heap.c b/drivers/staging/android/ion/ion_system_heap.c
-index 9d33193..41525220 100644
+index 9d3319328a04..41525220ac7f 100644
 --- a/drivers/staging/android/ion/ion_system_heap.c
 +++ b/drivers/staging/android/ion/ion_system_heap.c
 @@ -161,7 +161,7 @@ static void ion_system_heap_free(struct ion_buffer *buffer)
@@ -456,5 +456,5 @@ index 9d33193..41525220 100644
  	for_each_sgtable_sg(table, sg, i)
  		free_buffer_page(sys_heap, buffer, sg_page(sg));
 -- 
-2.7.4
+2.17.1
 

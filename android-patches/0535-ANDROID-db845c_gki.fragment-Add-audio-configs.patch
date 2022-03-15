@@ -1,4 +1,4 @@
-From b7ed159ffa00dec7471f903ec4f523f75f0fedc7 Mon Sep 17 00:00:00 2001
+From c29d773b342033dd658e4260b9532949e7a7784c Mon Sep 17 00:00:00 2001
 From: John Stultz <john.stultz@linaro.org>
 Date: Thu, 27 Feb 2020 21:57:46 +0000
 Subject: [PATCH 535/830] ANDROID: db845c_gki.fragment: Add audio configs
@@ -11,11 +11,11 @@ Bug: 146449535
 Change-Id: I2747fd70261c39e4b8a1e3c761cca443aed7697c
 Signed-off-by: John Stultz <john.stultz@linaro.org>
 ---
- arch/arm64/configs/db845c_gki.fragment | 47 ++++++++++++++++++++++++++++++++++
+ arch/arm64/configs/db845c_gki.fragment | 47 ++++++++++++++++++++++++++
  1 file changed, 47 insertions(+)
 
 diff --git a/arch/arm64/configs/db845c_gki.fragment b/arch/arm64/configs/db845c_gki.fragment
-index d6b6f70..66925c9 100644
+index d6b6f70add21..66925c93096e 100644
 --- a/arch/arm64/configs/db845c_gki.fragment
 +++ b/arch/arm64/configs/db845c_gki.fragment
 @@ -90,3 +90,50 @@ CONFIG_QCOM_GLINK_SSR=m
@@ -70,5 +70,5 @@ index d6b6f70..66925c9 100644
 +CONFIG_SLIMBUS=m
 +CONFIG_SLIM_QCOM_NGD_CTRL=m
 -- 
-2.7.4
+2.17.1
 

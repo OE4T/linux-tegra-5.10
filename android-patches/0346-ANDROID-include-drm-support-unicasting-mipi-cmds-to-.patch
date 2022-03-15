@@ -1,4 +1,4 @@
-From b8930f02bb4ce7a6a2cee8046716eaeeee2fc2ac Mon Sep 17 00:00:00 2001
+From 32363d3a976becd66d640d4066cd030ded5a18a9 Mon Sep 17 00:00:00 2001
 From: Shashank Babu Chinta Venkata <sbchin@codeaurora.org>
 Date: Mon, 9 Sep 2019 17:48:16 -0700
 Subject: [PATCH 346/830] ANDROID: include: drm: support unicasting mipi cmds
@@ -22,7 +22,7 @@ Change-Id: I3a99437441410a2514f9486d08ae3ba68670769e
  1 file changed, 6 insertions(+)
 
 diff --git a/include/drm/drm_mipi_dsi.h b/include/drm/drm_mipi_dsi.h
-index 360e637..41c8367 100644
+index 360e6377e84b..41c8367ecd28 100644
 --- a/include/drm/drm_mipi_dsi.h
 +++ b/include/drm/drm_mipi_dsi.h
 @@ -19,12 +19,16 @@ struct drm_dsc_picture_parameter_set;
@@ -52,5 +52,5 @@ index 360e637..41c8367 100644
  	size_t tx_len;
  	const void *tx_buf;
 -- 
-2.7.4
+2.17.1
 

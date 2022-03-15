@@ -1,4 +1,4 @@
-From 26e383f06562a0b26efb84ece06348be03e7f8d9 Mon Sep 17 00:00:00 2001
+From a42f3ea242b0b9138174f473a4e74809c80536c7 Mon Sep 17 00:00:00 2001
 From: Meng Wang <mwang@codeaurora.org>
 Date: Wed, 6 Sep 2017 10:21:14 +0800
 Subject: [PATCH 354/830] ANDROID: SoC: core: Introduce macro
@@ -19,7 +19,7 @@ Signed-off-by: Meng Wang <mwang@codeaurora.org>
  2 files changed, 48 insertions(+)
 
 diff --git a/include/sound/soc.h b/include/sound/soc.h
-index 9b69d70..8889442 100644
+index 9b69d7015ae8..888944284232 100644
 --- a/include/sound/soc.h
 +++ b/include/sound/soc.h
 @@ -239,6 +239,14 @@
@@ -59,7 +59,7 @@ index 9b69d70..8889442 100644
  struct soc_enum {
  	int reg;
 diff --git a/sound/soc/soc-core.c b/sound/soc/soc-core.c
-index 748f939..3c42e58 100644
+index 748f9398bd4f..3c42e586bc87 100644
 --- a/sound/soc/soc-core.c
 +++ b/sound/soc/soc-core.c
 @@ -3010,6 +3010,39 @@ int snd_soc_get_dai_id(struct device_node *ep)
@@ -103,5 +103,5 @@ index 748f939..3c42e58 100644
  				const char **dai_name)
  {
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From d3d001942b6d196ec34df3f11568bec839504b17 Mon Sep 17 00:00:00 2001
+From baa12d25efd886fa3adbf0c52587baf5aec02662 Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Wed, 19 Feb 2020 10:07:25 -0800
 Subject: [PATCH 434/830] ANDROID: Incremental fs: Pad hash blocks
@@ -9,12 +9,12 @@ Bug: 133435829
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
 Change-Id: I4e6fbd0938f00e7e6883ce1a26cbfd38fdcaa9a5
 ---
- fs/incfs/integrity.c                                   | 14 ++++++++++++++
- tools/testing/selftests/filesystems/incfs/incfs_test.c |  9 ++++++---
+ fs/incfs/integrity.c                               | 14 ++++++++++++++
+ .../selftests/filesystems/incfs/incfs_test.c       |  9 ++++++---
  2 files changed, 20 insertions(+), 3 deletions(-)
 
 diff --git a/fs/incfs/integrity.c b/fs/incfs/integrity.c
-index feb212c..1d00dda 100644
+index feb212c38945..1d00dda109e3 100644
 --- a/fs/incfs/integrity.c
 +++ b/fs/incfs/integrity.c
 @@ -198,6 +198,20 @@ int incfs_calc_digest(struct incfs_hash_alg *alg, struct mem_range data,
@@ -39,7 +39,7 @@ index feb212c..1d00dda 100644
  }
  
 diff --git a/tools/testing/selftests/filesystems/incfs/incfs_test.c b/tools/testing/selftests/filesystems/incfs/incfs_test.c
-index 5663465..c276b4c 100644
+index 56634651060e..c276b4cde2d5 100644
 --- a/tools/testing/selftests/filesystems/incfs/incfs_test.c
 +++ b/tools/testing/selftests/filesystems/incfs/incfs_test.c
 @@ -750,8 +750,9 @@ static int build_mtree(struct test_file *file)
@@ -70,5 +70,5 @@ index 5663465..c276b4c 100644
  
  	/* Build higher levels of hash tree. */
 -- 
-2.7.4
+2.17.1
 

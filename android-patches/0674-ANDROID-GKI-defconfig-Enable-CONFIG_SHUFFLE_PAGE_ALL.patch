@@ -1,4 +1,4 @@
-From 0dc05d0a9ae5387308a99f8652f997cb40405476 Mon Sep 17 00:00:00 2001
+From 0e836ff455c4e5a844cd19bc95fe2901f74814b4 Mon Sep 17 00:00:00 2001
 From: Sandeep Patil <sspatil@google.com>
 Date: Fri, 27 Mar 2020 12:46:50 -0700
 Subject: [PATCH 674/830] ANDROID: GKI: defconfig: Enable
@@ -19,7 +19,7 @@ Change-Id: I1d28368f2df6aad47d9e90cc991b7f5dc21d2cfa
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index df2ab96..ff19b08 100644
+index df2ab96990d2..ff19b083e68a 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -40,6 +40,7 @@ CONFIG_EMBEDDED=y
@@ -31,7 +31,7 @@ index df2ab96..ff19b08 100644
  CONFIG_ARCH_HISI=y
  CONFIG_ARCH_QCOM=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index ef128a8..a269d42 100644
+index ef128a817f86..a269d42eb980 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -41,6 +41,7 @@ CONFIG_EMBEDDED=y
@@ -43,5 +43,5 @@ index ef128a8..a269d42 100644
  CONFIG_SMP=y
  CONFIG_HYPERVISOR_GUEST=y
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 49d9ea888ab8bdb6b4a0e23b1edb6f2b2ebedb88 Mon Sep 17 00:00:00 2001
+From 0b77b5399f96a601d1a93f4c30b1c4e95519a400 Mon Sep 17 00:00:00 2001
 From: Ram Muthiah <rammuthiah@google.com>
 Date: Mon, 28 Oct 2019 18:00:45 -0700
 Subject: [PATCH 581/830] ANDROID: gki_defconfig: enable CONFIG_CPUSETS
@@ -12,7 +12,7 @@ Signed-off-by: Ram Muthiah <rammuthiah@google.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index e3aa956..a03e039 100644
+index e3aa956e5817..a03e0394f900 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -14,6 +14,7 @@ CONFIG_MEMCG=y
@@ -24,5 +24,5 @@ index e3aa956..a03e039 100644
  CONFIG_CGROUP_BPF=y
  CONFIG_SCHED_AUTOGROUP=y
 -- 
-2.7.4
+2.17.1
 

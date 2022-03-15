@@ -1,4 +1,4 @@
-From f844df33f3b0da8dfafb902599b17ebc293d19ab Mon Sep 17 00:00:00 2001
+From 21f2403f2df1bed9d0ce917f1fe7dbc5d5ab0f12 Mon Sep 17 00:00:00 2001
 From: Catalin Marinas <catalin.marinas@arm.com>
 Date: Thu, 20 Jun 2019 17:59:25 +0100
 Subject: [PATCH 824/830] ANDROID: arm64: Add support for asymmetric AArch32
@@ -38,21 +38,21 @@ Signed-off-by: Qais Yousef <qais.yousef@arm.com>
 docs/naming to match the change]
 Change-Id: I1a9860a883f001ddebb4df9dee7504edf970d593
 ---
- arch/arm64/Kconfig                   | 14 +++++++
+ arch/arm64/Kconfig                   | 14 ++++++
  arch/arm64/include/asm/cpu.h         |  2 +
  arch/arm64/include/asm/cpufeature.h  |  3 ++
  arch/arm64/include/asm/thread_info.h |  6 ++-
- arch/arm64/kernel/cpufeature.c       | 74 +++++++++++++++++++++++-------------
- arch/arm64/kernel/cpuinfo.c          | 71 +++++++++++++++++++++-------------
- arch/arm64/kernel/process.c          | 17 +++++++++
- arch/arm64/kernel/signal.c           | 19 +++++++++
- 8 files changed, 152 insertions(+), 54 deletions(-)
+ arch/arm64/kernel/cpufeature.c       | 74 ++++++++++++++++++----------
+ arch/arm64/kernel/cpuinfo.c          | 71 ++++++++++++++++----------
+ arch/arm64/kernel/process.c          |  7 +++
+ arch/arm64/kernel/signal.c           | 19 +++++++
+ 8 files changed, 142 insertions(+), 54 deletions(-)
 
 diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index 8c66bcf..6e89490 100644
+index ac2eafa04bfe..2f1fe0342d3b 100644
 --- a/arch/arm64/Kconfig
 +++ b/arch/arm64/Kconfig
-@@ -1927,6 +1927,20 @@ config DMI
+@@ -1928,6 +1928,20 @@ config DMI
  
  endmenu
  
@@ -74,7 +74,7 @@ index 8c66bcf..6e89490 100644
  	def_bool y
  	depends on COMPAT && SYSVIPC
 diff --git a/arch/arm64/include/asm/cpu.h b/arch/arm64/include/asm/cpu.h
-index 44c155f..241115a 100644
+index 44c155feee4a..241115a4eca9 100644
 --- a/arch/arm64/include/asm/cpu.h
 +++ b/arch/arm64/include/asm/cpu.h
 @@ -15,6 +15,7 @@
@@ -94,7 +94,7 @@ index 44c155f..241115a 100644
  				 struct cpuinfo_arm64 *boot);
  
 diff --git a/arch/arm64/include/asm/cpufeature.h b/arch/arm64/include/asm/cpufeature.h
-index da250e4..930b3cc 100644
+index da250e4741bd..930b3cc887d4 100644
 --- a/arch/arm64/include/asm/cpufeature.h
 +++ b/arch/arm64/include/asm/cpufeature.h
 @@ -17,6 +17,7 @@
@@ -115,7 +115,7 @@ index da250e4..930b3cc 100644
  extern struct static_key_false cpu_hwcap_keys[ARM64_NCAPS];
  extern struct static_key_false arm64_const_caps_ready;
 diff --git a/arch/arm64/include/asm/thread_info.h b/arch/arm64/include/asm/thread_info.h
-index 2d0c490..3ceb229 100644
+index 2d0c4903fd3a..3ceb2293b227 100644
 --- a/arch/arm64/include/asm/thread_info.h
 +++ b/arch/arm64/include/asm/thread_info.h
 @@ -68,6 +68,7 @@ void arch_release_task_struct(struct task_struct *tsk);
@@ -144,7 +144,7 @@ index 2d0c490..3ceb229 100644
  #define _TIF_SYSCALL_WORK	(_TIF_SYSCALL_TRACE | _TIF_SYSCALL_AUDIT | \
  				 _TIF_SYSCALL_TRACEPOINT | _TIF_SECCOMP | \
 diff --git a/arch/arm64/kernel/cpufeature.c b/arch/arm64/kernel/cpufeature.c
-index ef5c579..3d9aca0 100644
+index ef5c5794f982..3d9aca09968e 100644
 --- a/arch/arm64/kernel/cpufeature.c
 +++ b/arch/arm64/kernel/cpufeature.c
 @@ -63,7 +63,6 @@
@@ -280,7 +280,7 @@ index ef5c579..3d9aca0 100644
  
  	if (system_supports_sve())
 diff --git a/arch/arm64/kernel/cpuinfo.c b/arch/arm64/kernel/cpuinfo.c
-index a55844b..3c87675 100644
+index a55844b95f12..3c87675c8768 100644
 --- a/arch/arm64/kernel/cpuinfo.c
 +++ b/arch/arm64/kernel/cpuinfo.c
 @@ -374,32 +374,6 @@ static void __cpuinfo_store_cpu(struct cpuinfo_arm64 *info)
@@ -381,34 +381,10 @@ index a55844b..3c87675 100644
 +		init_cpu_32bit_features(&boot_cpu_data);
  }
 diff --git a/arch/arm64/kernel/process.c b/arch/arm64/kernel/process.c
-index 988657c..12c8e93 100644
+index f79712c5c346..a49a74bf02df 100644
 --- a/arch/arm64/kernel/process.c
 +++ b/arch/arm64/kernel/process.c
-@@ -513,6 +513,15 @@ static void entry_task_switch(struct task_struct *next)
- 	__this_cpu_write(__entry_task, next);
- }
- 
-+static void aarch32_thread_switch(struct task_struct *next)
-+{
-+	struct thread_info *ti = task_thread_info(next);
-+
-+	if (IS_ENABLED(CONFIG_ASYMMETRIC_AARCH32) && is_compat_thread(ti) &&
-+	    !cpumask_test_cpu(smp_processor_id(), &aarch32_el0_mask))
-+		set_ti_thread_flag(ti, TIF_CHECK_32BIT_AFFINITY);
-+}
-+
- /*
-  * ARM erratum 1418040 handling, affecting the 32bit view of CNTVCT.
-  * Assuming the virtual counter is enabled at the beginning of times:
-@@ -561,6 +570,7 @@ __notrace_funcgraph struct task_struct *__switch_to(struct task_struct *prev,
- 	uao_thread_switch(next);
- 	ssbs_thread_switch(next);
- 	erratum_1418040_thread_switch(prev, next);
-+	aarch32_thread_switch(next);
- 	/*
- 	 *  vendor hook is needed before the dsb(),
- 	 *  because MPAM is related to cache maintenance.
-@@ -638,6 +648,13 @@ void arch_setup_new_exec(void)
+@@ -626,6 +626,13 @@ void arch_setup_new_exec(void)
  		arch_prctl_spec_ctrl_set(current, PR_SPEC_STORE_BYPASS,
  					 PR_SPEC_ENABLE);
  	}
@@ -423,7 +399,7 @@ index 988657c..12c8e93 100644
  
  #ifdef CONFIG_ARM64_TAGGED_ADDR_ABI
 diff --git a/arch/arm64/kernel/signal.c b/arch/arm64/kernel/signal.c
-index e620053..a6f8d31 100644
+index e62005317ce2..a6f8d31c9b84 100644
 --- a/arch/arm64/kernel/signal.c
 +++ b/arch/arm64/kernel/signal.c
 @@ -8,6 +8,7 @@
@@ -467,5 +443,5 @@ index e620053..a6f8d31 100644
  				uprobe_notify_resume(regs);
  
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From eb4d3bcf2ca8c844dbe7ac3a422153f1ac81b4db Mon Sep 17 00:00:00 2001
+From 232efabec3d724da2199d24f48b6de51bd510b44 Mon Sep 17 00:00:00 2001
 From: Eric Biggers <ebiggers@google.com>
 Date: Thu, 9 Jul 2020 19:47:50 +0000
 Subject: [PATCH 411/830] FROMLIST: ext4: support direct I/O with fscrypt using
@@ -20,7 +20,7 @@ Change-Id: Ibc95c7d2b347b435bd9fdb1a9f7ae7baf4a4ed02
  1 file changed, 6 insertions(+), 4 deletions(-)
 
 diff --git a/fs/ext4/file.c b/fs/ext4/file.c
-index 7b28d44..003b633 100644
+index 7b28d44b0ddd..003b633f1033 100644
 --- a/fs/ext4/file.c
 +++ b/fs/ext4/file.c
 @@ -36,9 +36,11 @@
@@ -56,5 +56,5 @@ index 7b28d44..003b633 100644
  			inode_unlock_shared(inode);
  		else
 -- 
-2.7.4
+2.17.1
 

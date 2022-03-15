@@ -1,4 +1,4 @@
-From cf59f2c9830fa0236c932ef45eb4ef7a9152d1f5 Mon Sep 17 00:00:00 2001
+From 53b8151ee83f9b34676103f710aa0f1757337307 Mon Sep 17 00:00:00 2001
 From: Alistair Delva <adelva@google.com>
 Date: Wed, 11 Mar 2020 09:13:49 -0700
 Subject: [PATCH 658/830] ANDROID: gki_defconfig: Enable CONFIG_CLEANCACHE
@@ -13,7 +13,7 @@ Signed-off-by: Alistair Delva <adelva@google.com>
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index d9aaf2e..dfb70b2 100644
+index d9aaf2e929a6..dfb70b212b4b 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -84,6 +84,7 @@ CONFIG_GKI_HACKS_TO_FIX=y
@@ -25,7 +25,7 @@ index d9aaf2e..dfb70b2 100644
  CONFIG_CMA_AREAS=16
  CONFIG_ZSMALLOC=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 8b33c2e..2da5083 100644
+index 8b33c2e7387e..2da508397729 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -62,6 +62,7 @@ CONFIG_MODVERSIONS=y
@@ -37,5 +37,5 @@ index 8b33c2e..2da5083 100644
  CONFIG_CMA_AREAS=16
  CONFIG_ZSMALLOC=y
 -- 
-2.7.4
+2.17.1
 

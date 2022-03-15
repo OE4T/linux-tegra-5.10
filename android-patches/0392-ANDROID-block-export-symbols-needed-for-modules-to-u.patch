@@ -1,4 +1,4 @@
-From bc7ef856d04ef293ce671c9cdc470618afccc467 Mon Sep 17 00:00:00 2001
+From 12ff4a6fd652718d4bb4e14c815b83093b5ccf85 Mon Sep 17 00:00:00 2001
 From: Eric Biggers <ebiggers@google.com>
 Date: Wed, 22 Jan 2020 12:32:33 -0800
 Subject: [PATCH 392/830] ANDROID: block: export symbols needed for modules to
@@ -22,7 +22,7 @@ Signed-off-by: Eric Biggers <ebiggers@google.com>
  1 file changed, 4 insertions(+)
 
 diff --git a/block/blk-crypto.c b/block/blk-crypto.c
-index 5ffa9aa..43cbd1f 100644
+index 5ffa9aab49de..43cbd1ff9917 100644
 --- a/block/blk-crypto.c
 +++ b/block/blk-crypto.c
 @@ -96,6 +96,7 @@ void bio_crypt_set_ctx(struct bio *bio, const struct blk_crypto_key *key,
@@ -55,5 +55,5 @@ index 5ffa9aa..43cbd1f 100644
  }
 +EXPORT_SYMBOL_GPL(blk_crypto_evict_key);
 -- 
-2.7.4
+2.17.1
 

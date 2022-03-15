@@ -1,4 +1,4 @@
-From f059e34372cfa47b08818ec219596e378256ddc4 Mon Sep 17 00:00:00 2001
+From 240229e1d4727b742595b401e2aa4152f0d62416 Mon Sep 17 00:00:00 2001
 From: Benoit Goby <benoit@android.com>
 Date: Mon, 19 Dec 2011 14:39:37 -0800
 Subject: [PATCH 331/830] ANDROID: usb: gadget: f_accessory: Add Android
@@ -49,7 +49,7 @@ Signed-off-by: Eric Biggers <ebiggers@google.com>
  2 files changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/usb/gadget/Kconfig b/drivers/usb/gadget/Kconfig
-index 52602af..921603f 100644
+index 52602afe0401..921603f12380 100644
 --- a/drivers/usb/gadget/Kconfig
 +++ b/drivers/usb/gadget/Kconfig
 @@ -385,6 +385,7 @@ config USB_CONFIGFS_F_FS
@@ -61,7 +61,7 @@ index 52602af..921603f 100644
  	help
  	  USB gadget Accessory support
 diff --git a/drivers/usb/gadget/function/f_accessory.c b/drivers/usb/gadget/function/f_accessory.c
-index c355d4a..03a7a02 100644
+index c355d4a32776..03a7a02858b3 100644
 --- a/drivers/usb/gadget/function/f_accessory.c
 +++ b/drivers/usb/gadget/function/f_accessory.c
 @@ -2,8 +2,8 @@
@@ -75,5 +75,5 @@ index c355d4a..03a7a02 100644
   * This software is licensed under the terms of the GNU General Public
   * License version 2, as published by the Free Software Foundation, and
 -- 
-2.7.4
+2.17.1
 

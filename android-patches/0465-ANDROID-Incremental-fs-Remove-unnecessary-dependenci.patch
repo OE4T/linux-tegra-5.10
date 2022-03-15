@@ -1,4 +1,4 @@
-From 6d35ca4caf2810ff6321931bdce396dc9509a447 Mon Sep 17 00:00:00 2001
+From 306ca9bd6b5552eae883e552d76255bc1329dd0a Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Wed, 10 Jun 2020 08:20:33 -0700
 Subject: [PATCH 465/830] ANDROID: Incremental fs: Remove unnecessary
@@ -14,7 +14,7 @@ Change-Id: I743fa7a989f5a464f755a22b6a03299fb462e74c
  1 file changed, 6 deletions(-)
 
 diff --git a/fs/incfs/Kconfig b/fs/incfs/Kconfig
-index 1ffe31a..8c0e8ae 100644
+index 1ffe31a9c0ff..8c0e8ae2030f 100644
 --- a/fs/incfs/Kconfig
 +++ b/fs/incfs/Kconfig
 @@ -2,13 +2,7 @@ config INCREMENTAL_FS
@@ -32,5 +32,5 @@ index 1ffe31a..8c0e8ae 100644
  	  Incremental FS is a read-only virtual file system that facilitates execution
  	  of programs while their binaries are still being lazily downloaded over the
 -- 
-2.7.4
+2.17.1
 

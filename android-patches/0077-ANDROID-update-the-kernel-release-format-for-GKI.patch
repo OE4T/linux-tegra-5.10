@@ -1,4 +1,4 @@
-From b2b1a2c5bba0c16c5d345e7e0bb6d187d3905a2a Mon Sep 17 00:00:00 2001
+From aa472ce18c8b58a5fb27ed2d2ce7515a786c4356 Mon Sep 17 00:00:00 2001
 From: Will McVicker <willmcvicker@google.com>
 Date: Thu, 9 Jul 2020 15:33:45 -0700
 Subject: [PATCH 077/830] ANDROID: update the kernel release format for GKI
@@ -31,10 +31,10 @@ Signed-off-by: Eric Biggers <ebiggers@google.com>
  2 files changed, 29 insertions(+), 3 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index 94525bcc..28cf4f5 100644
+index 0208ffca8665..e29107c43ac2 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -1254,7 +1254,8 @@ targets := vmlinux
+@@ -1256,7 +1256,8 @@ targets := vmlinux
  $(sort $(vmlinux-deps) $(subdir-modorder)): descend ;
  
  filechk_kernel.release = \
@@ -44,7 +44,7 @@ index 94525bcc..28cf4f5 100644
  
  # Store (new) KERNELRELEASE string in include/config/kernel.release
  include/config/kernel.release: FORCE
-@@ -2001,7 +2002,8 @@ checkstack:
+@@ -2003,7 +2004,8 @@ checkstack:
  	$(PERL) $(srctree)/scripts/checkstack.pl $(CHECKSTACK_ARCH)
  
  kernelrelease:
@@ -55,7 +55,7 @@ index 94525bcc..28cf4f5 100644
  kernelversion:
  	@echo $(KERNELVERSION)
 diff --git a/scripts/setlocalversion b/scripts/setlocalversion
-index bb709ed..627c6e2 100755
+index bb709eda96cd..627c6e289597 100755
 --- a/scripts/setlocalversion
 +++ b/scripts/setlocalversion
 @@ -11,12 +11,14 @@
@@ -111,5 +111,5 @@ index bb709ed..627c6e2 100755
  		# it, because this version is defined in the top level Makefile.
  		if [ -z "$(git describe --exact-match 2>/dev/null)" ]; then
 -- 
-2.7.4
+2.17.1
 

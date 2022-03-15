@@ -1,4 +1,4 @@
-From ba6cd7c7d66eb18b3b5709ccecb87528c234da2e Mon Sep 17 00:00:00 2001
+From 32904614965bc5920d7ffe825d607b2b477b7d65 Mon Sep 17 00:00:00 2001
 From: Jaegeuk Kim <jaegeuk@kernel.org>
 Date: Mon, 26 Oct 2020 12:30:39 -0700
 Subject: [PATCH 373/830] FROMLIST: scsi: ufs: avoid to call REQ_CLKS_OFF to
@@ -16,7 +16,7 @@ Change-Id: Ia5cad145189c266b1bfba34ad3875f8ccf8ec322
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/scsi/ufs/ufshcd.c b/drivers/scsi/ufs/ufshcd.c
-index bb52ad8..cd17eb9 100644
+index abc1ad5963af..04a6e27ed6f1 100644
 --- a/drivers/scsi/ufs/ufshcd.c
 +++ b/drivers/scsi/ufs/ufshcd.c
 @@ -1765,7 +1765,7 @@ static void __ufshcd_release(struct ufs_hba *hba)
@@ -29,5 +29,5 @@ index bb52ad8..cd17eb9 100644
  	    hba->clk_gating.state == CLKS_OFF)
  		return;
 -- 
-2.7.4
+2.17.1
 

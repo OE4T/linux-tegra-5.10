@@ -1,4 +1,4 @@
-From bde1ff1377a15a1bfb0dd80cac6ee54853a09c6f Mon Sep 17 00:00:00 2001
+From 4eda75216c740bb0979d624b4f3db8e4f39cb9bb Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Thu, 8 Oct 2020 13:08:21 -0700
 Subject: [PATCH 491/830] ANDROID: Incremental fs: Small improvements
@@ -22,7 +22,7 @@ Change-Id: Id70e5a5d08e5de79f391e19ea97e356f39a3ed51
  6 files changed, 14 insertions(+), 90 deletions(-)
 
 diff --git a/fs/incfs/data_mgmt.c b/fs/incfs/data_mgmt.c
-index 14cba02..b6a8b47 100644
+index 14cba02b8189..b6a8b47b4f6d 100644
 --- a/fs/incfs/data_mgmt.c
 +++ b/fs/incfs/data_mgmt.c
 @@ -19,6 +19,8 @@
@@ -133,7 +133,7 @@ index 14cba02..b6a8b47 100644
 -	return memcmp(lhs.data, rhs.data, lhs.len) == 0;
 -}
 diff --git a/fs/incfs/data_mgmt.h b/fs/incfs/data_mgmt.h
-index 13b663a..7bbaf6d 100644
+index 13b663a1d53e..7bbaf6ddbba4 100644
 --- a/fs/incfs/data_mgmt.h
 +++ b/fs/incfs/data_mgmt.h
 @@ -41,7 +41,7 @@ struct same_file_record {
@@ -171,7 +171,7 @@ index 13b663a..7bbaf6d 100644
 -
  #endif /* _INCFS_DATA_MGMT_H */
 diff --git a/fs/incfs/format.c b/fs/incfs/format.c
-index 06ddaad..52079b5 100644
+index 06ddaade8523..52079b5a45e6 100644
 --- a/fs/incfs/format.c
 +++ b/fs/incfs/format.c
 @@ -40,7 +40,7 @@ void incfs_free_bfc(struct backing_file_context *bfc)
@@ -231,7 +231,7 @@ index 06ddaad..52079b5 100644
  		return -EPERM;
  
 diff --git a/fs/incfs/format.h b/fs/incfs/format.h
-index ba54bad..7b991c3 100644
+index ba54bad0eea7..7b991c35dd19 100644
 --- a/fs/incfs/format.h
 +++ b/fs/incfs/format.h
 @@ -292,8 +292,6 @@ struct metadata_handler {
@@ -254,7 +254,7 @@ index ba54bad..7b991c3 100644
  int incfs_read_file_header(struct backing_file_context *bfc,
  			   loff_t *first_md_off, incfs_uuid_t *uuid,
 diff --git a/fs/incfs/pseudo_files.c b/fs/incfs/pseudo_files.c
-index d407209..768abd4 100644
+index d407209c0d99..768abd4269cf 100644
 --- a/fs/incfs/pseudo_files.c
 +++ b/fs/incfs/pseudo_files.c
 @@ -336,6 +336,13 @@ static int chmod(struct dentry *dentry, umode_t mode)
@@ -272,7 +272,7 @@ index d407209..768abd4 100644
  {
  	if (incfs_equal_ranges(pending_reads_file_name_range, name))
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index e794b73..0fee22f 100644
+index e794b73a1553..0fee22f0caa9 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -153,8 +153,6 @@ struct inode_search {
@@ -322,5 +322,5 @@ index e794b73..0fee22f 100644
  		seq_puts(m, ",report_uid");
  	return 0;
 -- 
-2.7.4
+2.17.1
 

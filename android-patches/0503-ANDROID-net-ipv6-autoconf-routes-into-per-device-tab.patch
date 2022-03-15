@@ -1,4 +1,4 @@
-From 15ecb7adcd557a73fa09f9034fac922402b3d805 Mon Sep 17 00:00:00 2001
+From 08ff3e8759ef2b7ad6df86074023959b479c3fac Mon Sep 17 00:00:00 2001
 From: Lorenzo Colitti <lorenzo@google.com>
 Date: Wed, 26 Mar 2014 19:35:41 +0900
 Subject: [PATCH 503/830] ANDROID: net: ipv6: autoconf routes into per-device
@@ -49,13 +49,13 @@ Change-Id: I82d16e3737d9cdfa6489e649e247894d0d60cbb1
 Signed-off-by: Amit Pundir <amit.pundir@linaro.org>
 ---
  include/linux/ipv6.h   |  1 +
- include/net/addrconf.h | 12 ++++++++++++
- net/ipv6/addrconf.c    | 33 ++++++++++++++++++++++++++++++--
- net/ipv6/route.c       | 51 ++++++++++++++------------------------------------
+ include/net/addrconf.h | 12 ++++++++++
+ net/ipv6/addrconf.c    | 33 +++++++++++++++++++++++++--
+ net/ipv6/route.c       | 51 ++++++++++++------------------------------
  4 files changed, 58 insertions(+), 39 deletions(-)
 
 diff --git a/include/linux/ipv6.h b/include/linux/ipv6.h
-index f514a7d..c4f241f 100644
+index f514a7dd8c9c..c4f241f1f59b 100644
 --- a/include/linux/ipv6.h
 +++ b/include/linux/ipv6.h
 @@ -42,6 +42,7 @@ struct ipv6_devconf {
@@ -67,10 +67,10 @@ index f514a7d..c4f241f 100644
  	__s32		accept_source_route;
  	__s32		accept_ra_from_local;
 diff --git a/include/net/addrconf.h b/include/net/addrconf.h
-index 78ea3e3..d8873a9 100644
+index e7ce719838b5..dd2e03d39f38 100644
 --- a/include/net/addrconf.h
 +++ b/include/net/addrconf.h
-@@ -269,6 +269,18 @@ static inline bool ipv6_is_mld(struct sk_buff *skb, int nexthdr, int offset)
+@@ -271,6 +271,18 @@ static inline bool ipv6_is_mld(struct sk_buff *skb, int nexthdr, int offset)
  void addrconf_prefix_rcv(struct net_device *dev,
  			 u8 *opt, int len, bool sllao);
  
@@ -90,7 +90,7 @@ index 78ea3e3..d8873a9 100644
   *	anycast prototypes (anycast.c)
   */
 diff --git a/net/ipv6/addrconf.c b/net/ipv6/addrconf.c
-index 2952693..6e38981 100644
+index 072c34823753..d8252e060868 100644
 --- a/net/ipv6/addrconf.c
 +++ b/net/ipv6/addrconf.c
 @@ -216,6 +216,7 @@ static struct ipv6_devconf ipv6_devconf __read_mostly = {
@@ -154,22 +154,22 @@ index 2952693..6e38981 100644
  
  	table = fib6_get_table(dev_net(dev), tb_id);
  	if (!table)
-@@ -6717,6 +6739,13 @@ static const struct ctl_table addrconf_sysctl[] = {
+@@ -6733,6 +6755,13 @@ static const struct ctl_table addrconf_sysctl[] = {
+ 	},
  #endif
  #endif
- 	{
++	{
 +		.procname	= "accept_ra_rt_table",
 +		.data		= &ipv6_devconf.accept_ra_rt_table,
 +		.maxlen		= sizeof(int),
 +		.mode		= 0644,
 +		.proc_handler	= proc_dointvec,
 +	},
-+	{
+ 	{
  		.procname	= "proxy_ndp",
  		.data		= &ipv6_devconf.proxy_ndp,
- 		.maxlen		= sizeof(int),
 diff --git a/net/ipv6/route.c b/net/ipv6/route.c
-index 6fef0d7..ae3d8c5 100644
+index 352e645c546e..1a81088c80d2 100644
 --- a/net/ipv6/route.c
 +++ b/net/ipv6/route.c
 @@ -4165,7 +4165,7 @@ static struct fib6_info *rt6_get_route_info(struct net *net,
@@ -267,5 +267,5 @@ index 6fef0d7..ae3d8c5 100644
  
  static void rtmsg_to_fib6_config(struct net *net,
 -- 
-2.7.4
+2.17.1
 

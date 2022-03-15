@@ -1,4 +1,4 @@
-From 93ce6553926983597a65055b6151b709cc78c8a0 Mon Sep 17 00:00:00 2001
+From 187515251f9501d26359c6cfa5f0c61f291cda55 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <maze@google.com>
 Date: Tue, 8 Oct 2019 08:51:00 -0700
 Subject: [PATCH 561/830] ANDROID: gki_defconfig: Enable BPF_JIT and
@@ -32,7 +32,7 @@ Change-Id: I84e917b75ca2cbe4d4b61c0d042f9fbcf5bdf519
  2 files changed, 4 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 2989fef..cd20660 100644
+index 2989fef8dc7e..cd20660dada3 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -28,6 +28,7 @@ CONFIG_BLK_DEV_INITRD=y
@@ -52,7 +52,7 @@ index 2989fef..cd20660 100644
  CONFIG_CFG80211=y
  # CONFIG_CFG80211_DEFAULT_PS is not set
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index eabb5f1..eb8a3fa 100644
+index eabb5f11f55a..eb8a3fa5b743 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -27,6 +27,7 @@ CONFIG_BLK_DEV_INITRD=y
@@ -72,5 +72,5 @@ index eabb5f1..eb8a3fa 100644
  # CONFIG_CAN_BCM is not set
  # CONFIG_CAN_GW is not set
 -- 
-2.7.4
+2.17.1
 

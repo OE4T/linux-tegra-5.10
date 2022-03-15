@@ -1,4 +1,4 @@
-From 6717fa67047f92a48e37420fcd6383ec7d286874 Mon Sep 17 00:00:00 2001
+From 6d0c94efc6cb99590063216a4055c657c3fdcd33 Mon Sep 17 00:00:00 2001
 From: Sandeep Patil <sspatil@google.com>
 Date: Sun, 1 Sep 2019 23:02:37 -0700
 Subject: [PATCH 255/830] ANDROID: staging: ion: Remove unnecessary ion heap
@@ -15,16 +15,16 @@ Test: ion-unit-tests
 Change-Id: I8f87c22896e128f48ed222421cabc23ab238ff69
 Signed-off-by: Sandeep Patil <sspatil@google.com>
 ---
- drivers/staging/android/ion/heaps/ion_cma_heap.c   |  3 ---
- .../android/ion/heaps/ion_system_contig_heap.c     |  3 ---
- .../staging/android/ion/heaps/ion_system_heap.c    |  3 ---
- drivers/staging/android/ion/ion_buffer.c           |  6 +++---
- drivers/staging/android/ion/ion_dma_buf.c          | 25 ++++++++--------------
- include/linux/ion.h                                |  9 +-------
+ .../staging/android/ion/heaps/ion_cma_heap.c  |  3 ---
+ .../ion/heaps/ion_system_contig_heap.c        |  3 ---
+ .../android/ion/heaps/ion_system_heap.c       |  3 ---
+ drivers/staging/android/ion/ion_buffer.c      |  6 ++---
+ drivers/staging/android/ion/ion_dma_buf.c     | 25 +++++++------------
+ include/linux/ion.h                           |  9 +------
  6 files changed, 13 insertions(+), 36 deletions(-)
 
 diff --git a/drivers/staging/android/ion/heaps/ion_cma_heap.c b/drivers/staging/android/ion/heaps/ion_cma_heap.c
-index 83f7dce..236b6c5 100644
+index 83f7dce74f18..236b6c576cdb 100644
 --- a/drivers/staging/android/ion/heaps/ion_cma_heap.c
 +++ b/drivers/staging/android/ion/heaps/ion_cma_heap.c
 @@ -95,9 +95,6 @@ static void ion_cma_free(struct ion_buffer *buffer)
@@ -38,7 +38,7 @@ index 83f7dce..236b6c5 100644
  
  static struct ion_heap *__ion_cma_heap_create(struct cma *cma)
 diff --git a/drivers/staging/android/ion/heaps/ion_system_contig_heap.c b/drivers/staging/android/ion/heaps/ion_system_contig_heap.c
-index 9cb18e3..36e8769 100644
+index 9cb18e38dc96..36e8769f3ef7 100644
 --- a/drivers/staging/android/ion/heaps/ion_system_contig_heap.c
 +++ b/drivers/staging/android/ion/heaps/ion_system_contig_heap.c
 @@ -77,9 +77,6 @@ static void ion_system_contig_heap_free(struct ion_buffer *buffer)
@@ -52,7 +52,7 @@ index 9cb18e3..36e8769 100644
  
  static struct ion_heap contig_heap = {
 diff --git a/drivers/staging/android/ion/heaps/ion_system_heap.c b/drivers/staging/android/ion/heaps/ion_system_heap.c
-index 6c58fff..5eb8ea6 100644
+index 6c58fffa6412..5eb8ea6c9646 100644
 --- a/drivers/staging/android/ion/heaps/ion_system_heap.c
 +++ b/drivers/staging/android/ion/heaps/ion_system_heap.c
 @@ -241,9 +241,6 @@ static int ion_system_heap_create_pools(struct ion_page_pool **pools)
@@ -66,7 +66,7 @@ index 6c58fff..5eb8ea6 100644
  };
  
 diff --git a/drivers/staging/android/ion/ion_buffer.c b/drivers/staging/android/ion/ion_buffer.c
-index 737f0bf..fb5619d 100644
+index 737f0bf8c275..fb5619d86084 100644
 --- a/drivers/staging/android/ion/ion_buffer.c
 +++ b/drivers/staging/android/ion/ion_buffer.c
 @@ -201,7 +201,7 @@ void ion_buffer_release(struct ion_buffer *buffer)
@@ -97,7 +97,7 @@ index 737f0bf..fb5619d 100644
  	}
  }
 diff --git a/drivers/staging/android/ion/ion_dma_buf.c b/drivers/staging/android/ion/ion_dma_buf.c
-index e52db6a..7ded926 100644
+index e52db6a182ae..7ded926f52d4 100644
 --- a/drivers/staging/android/ion/ion_dma_buf.c
 +++ b/drivers/staging/android/ion/ion_dma_buf.c
 @@ -154,19 +154,16 @@ static int ion_dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
@@ -152,7 +152,7 @@ index e52db6a..7ded926 100644
  
  static int ion_dma_buf_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
 diff --git a/include/linux/ion.h b/include/linux/ion.h
-index 1e4846d..87aa2bc 100644
+index 1e4846db0c6d..87aa2bcec7d3 100644
 --- a/include/linux/ion.h
 +++ b/include/linux/ion.h
 @@ -57,11 +57,8 @@ struct ion_buffer {
@@ -180,5 +180,5 @@ index 1e4846d..87aa2bc 100644
  };
  
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From db0856d107c5ed6d31cf9536d53a28640cf729ac Mon Sep 17 00:00:00 2001
+From ad15011f2be765877e69767b9cd0dda36ab70998 Mon Sep 17 00:00:00 2001
 From: Daniel Rosenberg <drosen@google.com>
 Date: Thu, 19 Nov 2020 06:09:04 +0000
 Subject: [PATCH 048/830] FROMGIT: f2fs: Handle casefolding with Encryption
@@ -29,16 +29,16 @@ Signed-off-by: Jaegeuk Kim <jaegeuk@kernel.org>
 Bug: 161184936
 Change-Id: I18387784e55f31bec6b59e3e8666fa54bc4f6c86
 ---
- fs/f2fs/dir.c      | 98 ++++++++++++++++++++++++++++++++++++++++++------------
- fs/f2fs/f2fs.h     |  8 +++--
+ fs/f2fs/dir.c      | 98 +++++++++++++++++++++++++++++++++++-----------
+ fs/f2fs/f2fs.h     |  8 ++--
  fs/f2fs/hash.c     | 11 +++++-
- fs/f2fs/inline.c   |  4 +++
- fs/f2fs/recovery.c | 12 ++++++-
- fs/f2fs/super.c    |  6 ----
+ fs/f2fs/inline.c   |  4 ++
+ fs/f2fs/recovery.c | 12 +++++-
+ fs/f2fs/super.c    |  6 ---
  6 files changed, 106 insertions(+), 33 deletions(-)
 
 diff --git a/fs/f2fs/dir.c b/fs/f2fs/dir.c
-index 6416032c..bef0829 100644
+index 6416032cdcbb..bef0829e998a 100644
 --- a/fs/f2fs/dir.c
 +++ b/fs/f2fs/dir.c
 @@ -5,6 +5,7 @@
@@ -212,7 +212,7 @@ index 6416032c..bef0829 100644
  	/*
  	 * This file should be checkpointed during fsync.
 diff --git a/fs/f2fs/f2fs.h b/fs/f2fs/f2fs.h
-index 0b67f8b..ec3a916 100644
+index 30eb56d44eff..1050f9869ffe 100644
 --- a/fs/f2fs/f2fs.h
 +++ b/fs/f2fs/f2fs.h
 @@ -454,9 +454,11 @@ struct f2fs_filename {
@@ -231,7 +231,7 @@ index 0b67f8b..ec3a916 100644
  	struct fscrypt_str cf_name;
  #endif
 diff --git a/fs/f2fs/hash.c b/fs/f2fs/hash.c
-index de841aa..e3beac5 100644
+index de841aaf3c43..e3beac546c63 100644
 --- a/fs/f2fs/hash.c
 +++ b/fs/f2fs/hash.c
 @@ -111,7 +111,9 @@ void f2fs_hash_filename(const struct inode *dir, struct f2fs_filename *fname)
@@ -260,7 +260,7 @@ index de841aa..e3beac5 100644
  #endif
  	fname->hash = cpu_to_le32(TEA_hash_name(name, len));
 diff --git a/fs/f2fs/inline.c b/fs/f2fs/inline.c
-index 1d7dafd..3a348a8 100644
+index 1d7dafdaffe3..3a348a8ed164 100644
 --- a/fs/f2fs/inline.c
 +++ b/fs/f2fs/inline.c
 @@ -337,6 +337,10 @@ struct f2fs_dir_entry *f2fs_find_in_inline_dir(struct inode *dir,
@@ -275,7 +275,7 @@ index 1d7dafd..3a348a8 100644
  		*res_page = ipage;
  	else
 diff --git a/fs/f2fs/recovery.c b/fs/f2fs/recovery.c
-index 72ce131..404fc94 100644
+index 72ce13111679..404fc94a5489 100644
 --- a/fs/f2fs/recovery.c
 +++ b/fs/f2fs/recovery.c
 @@ -5,6 +5,7 @@
@@ -305,10 +305,10 @@ index 72ce131..404fc94 100644
  		if (err)
  			return err;
 diff --git a/fs/f2fs/super.c b/fs/f2fs/super.c
-index e4f35a2..de0a284 100644
+index c615f862df2f..0564dd4ffb20 100644
 --- a/fs/f2fs/super.c
 +++ b/fs/f2fs/super.c
-@@ -3436,12 +3436,6 @@ static int f2fs_setup_casefold(struct f2fs_sb_info *sbi)
+@@ -3476,12 +3476,6 @@ static int f2fs_setup_casefold(struct f2fs_sb_info *sbi)
  		struct unicode_map *encoding;
  		__u16 encoding_flags;
  
@@ -322,5 +322,5 @@ index e4f35a2..de0a284 100644
  					  &encoding_flags)) {
  			f2fs_err(sbi,
 -- 
-2.7.4
+2.17.1
 

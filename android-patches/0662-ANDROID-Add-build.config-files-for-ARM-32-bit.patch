@@ -1,4 +1,4 @@
-From d3114cf9c0db6563ae9a042497897c97f58a2303 Mon Sep 17 00:00:00 2001
+From 5defb5fc6cb06c5ea6d7cacd8bfe944737ec9574 Mon Sep 17 00:00:00 2001
 From: Alistair Delva <adelva@google.com>
 Date: Fri, 13 Mar 2020 13:07:55 -0700
 Subject: [PATCH 662/830] ANDROID: Add build.config files for ARM 32-bit
@@ -19,7 +19,7 @@ Signed-off-by: Alistair Delva <adelva@google.com>
 
 diff --git a/build.config.allmodconfig.arm b/build.config.allmodconfig.arm
 new file mode 100644
-index 00000000..5dd9481
+index 000000000000..5dd94819c871
 --- /dev/null
 +++ b/build.config.allmodconfig.arm
 @@ -0,0 +1,4 @@
@@ -29,7 +29,7 @@ index 00000000..5dd9481
 +
 diff --git a/build.config.arm b/build.config.arm
 new file mode 100644
-index 00000000..8eb547e
+index 000000000000..8eb547e21593
 --- /dev/null
 +++ b/build.config.arm
 @@ -0,0 +1,12 @@
@@ -46,5 +46,5 @@ index 00000000..8eb547e
 +System.map
 +"
 -- 
-2.7.4
+2.17.1
 

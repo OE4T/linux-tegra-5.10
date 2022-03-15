@@ -1,4 +1,4 @@
-From f1ca1ef756ed8ec53139bdf20f4fd4193b98caec Mon Sep 17 00:00:00 2001
+From e71554d00379a16a864dc55726d8c7df48551181 Mon Sep 17 00:00:00 2001
 From: Sami Tolvanen <samitolvanen@google.com>
 Date: Tue, 1 Sep 2020 12:33:55 -0700
 Subject: [PATCH 761/830] ANDROID: GKI: Enable SCS
@@ -14,7 +14,7 @@ Signed-off-by: Sami Tolvanen <samitolvanen@google.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index c3e1019..391043d 100644
+index c3e101986b83..391043d1d287 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -82,6 +82,7 @@ CONFIG_KVM=y
@@ -26,5 +26,5 @@ index c3e1019..391043d 100644
  CONFIG_MODULE_UNLOAD=y
  CONFIG_MODVERSIONS=y
 -- 
-2.7.4
+2.17.1
 

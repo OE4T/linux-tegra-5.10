@@ -1,4 +1,4 @@
-From 8bb5f0268f152738f9001c52c122b21e0bca51c2 Mon Sep 17 00:00:00 2001
+From 471f77d1b394a477f2662d0d7d9817357808356c Mon Sep 17 00:00:00 2001
 From: Badhri Jagan Sridharan <Badhri@google.com>
 Date: Mon, 15 Dec 2014 10:44:47 -0800
 Subject: [PATCH 327/830] ANDROID: usb: gadget: configfs: Add Uevent to notify
@@ -31,11 +31,11 @@ Signed-off-by: Alistair Delva <adelva@google.com>
 Signed-off-by: Matthias Maennich <maennich@google.com>
 ---
  drivers/usb/gadget/Kconfig    |   8 ++
- drivers/usb/gadget/configfs.c | 168 +++++++++++++++++++++++++++++++++++++++++-
+ drivers/usb/gadget/configfs.c | 168 +++++++++++++++++++++++++++++++++-
  2 files changed, 174 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/usb/gadget/Kconfig b/drivers/usb/gadget/Kconfig
-index 30fd4f7..52602af 100644
+index 30fd4f7aac88..52602afe0401 100644
 --- a/drivers/usb/gadget/Kconfig
 +++ b/drivers/usb/gadget/Kconfig
 @@ -233,6 +233,14 @@ config USB_CONFIGFS
@@ -54,7 +54,7 @@ index 30fd4f7..52602af 100644
  	bool "Generic serial bulk in/out"
  	depends on USB_CONFIGFS
 diff --git a/drivers/usb/gadget/configfs.c b/drivers/usb/gadget/configfs.c
-index 40c933b..be0e98e 100644
+index 40c933bee5ae..be0e98e9bbfd 100644
 --- a/drivers/usb/gadget/configfs.c
 +++ b/drivers/usb/gadget/configfs.c
 @@ -10,6 +10,19 @@
@@ -292,5 +292,5 @@ index 40c933b..be0e98e 100644
  }
  module_init(gadget_cfs_init);
 -- 
-2.7.4
+2.17.1
 

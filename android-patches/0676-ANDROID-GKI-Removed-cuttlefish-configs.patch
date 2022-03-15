@@ -1,4 +1,4 @@
-From 5318600b95e0df794c771b59666a4e3156d93027 Mon Sep 17 00:00:00 2001
+From 1bcc7529aa7e52781e125ff3f8afb38199050afd Mon Sep 17 00:00:00 2001
 From: Ram Muthiah <rammuthiah@google.com>
 Date: Mon, 30 Mar 2020 22:03:34 -0700
 Subject: [PATCH 676/830] ANDROID: GKI: Removed cuttlefish configs
@@ -21,7 +21,7 @@ Change-Id: I217422c401c6ea183ce974c1d156abd4d9e209a6
 
 diff --git a/build.config.cuttlefish.aarch64 b/build.config.cuttlefish.aarch64
 deleted file mode 100644
-index 9a68509..00000000
+index 9a685095e934..000000000000
 --- a/build.config.cuttlefish.aarch64
 +++ /dev/null
 @@ -1,11 +0,0 @@
@@ -38,7 +38,7 @@ index 9a68509..00000000
 -FILES=""
 diff --git a/build.config.cuttlefish.x86_64 b/build.config.cuttlefish.x86_64
 deleted file mode 100644
-index d6ce5c3..00000000
+index d6ce5c3a7306..000000000000
 --- a/build.config.cuttlefish.x86_64
 +++ /dev/null
 @@ -1,11 +0,0 @@
@@ -55,7 +55,7 @@ index d6ce5c3..00000000
 -FILES=""
 diff --git a/cuttlefish.fragment b/cuttlefish.fragment
 deleted file mode 100644
-index c931d77..00000000
+index c931d7791ab6..000000000000
 --- a/cuttlefish.fragment
 +++ /dev/null
 @@ -1,22 +0,0 @@
@@ -82,5 +82,5 @@ index c931d77..00000000
 -CONFIG_TCG_TPM=m
 -CONFIG_TCG_VTPM_PROXY=m
 -- 
-2.7.4
+2.17.1
 

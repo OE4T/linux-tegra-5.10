@@ -1,4 +1,4 @@
-From f1fdda3cb368d5f786ba12e72fa75298338e0769 Mon Sep 17 00:00:00 2001
+From 2aef5faa25647ee58e120ddac6fb05c5056f51ab Mon Sep 17 00:00:00 2001
 From: Guenter Roeck <linux@roeck-us.net>
 Date: Tue, 15 Oct 2019 16:51:47 +0200
 Subject: [PATCH 092/830] ANDROID: ARM: Remove arm_pm_restart()
@@ -22,7 +22,7 @@ Signed-off-by: Elliot Berman <eberman@codeaurora.org>
  2 files changed, 1 insertion(+), 6 deletions(-)
 
 diff --git a/arch/arm/include/asm/system_misc.h b/arch/arm/include/asm/system_misc.h
-index 66f6a3a..98b3734 100644
+index 66f6a3ae68d2..98b37340376b 100644
 --- a/arch/arm/include/asm/system_misc.h
 +++ b/arch/arm/include/asm/system_misc.h
 @@ -13,7 +13,6 @@
@@ -34,7 +34,7 @@ index 66f6a3a..98b3734 100644
  
  #ifdef CONFIG_HARDEN_BRANCH_PREDICTOR
 diff --git a/arch/arm/kernel/reboot.c b/arch/arm/kernel/reboot.c
-index 0ce388f..3044fcb 100644
+index 0ce388f15422..3044fcb8d073 100644
 --- a/arch/arm/kernel/reboot.c
 +++ b/arch/arm/kernel/reboot.c
 @@ -18,7 +18,6 @@ typedef void (*phys_reset_t)(unsigned long, bool);
@@ -58,5 +58,5 @@ index 0ce388f..3044fcb 100644
  	/* Give a grace period for failure to restart of 1s */
  	mdelay(1000);
 -- 
-2.7.4
+2.17.1
 

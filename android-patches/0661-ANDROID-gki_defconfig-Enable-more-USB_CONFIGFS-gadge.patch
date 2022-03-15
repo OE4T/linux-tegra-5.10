@@ -1,4 +1,4 @@
-From ed5ef14e1238ad7259da7ad2b37ccee0e3812960 Mon Sep 17 00:00:00 2001
+From ee536962a4f21d1ccca4ba54be838909e3a3e2a9 Mon Sep 17 00:00:00 2001
 From: Orson Zhai <orson.zhai@unisoc.com>
 Date: Fri, 13 Mar 2020 22:51:10 +0800
 Subject: [PATCH 661/830] ANDROID: gki_defconfig: Enable more USB_CONFIGFS
@@ -21,7 +21,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@google.com>
  2 files changed, 6 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index cb0347b..7e87da0 100644
+index cb0347b36867..7e87da00513c 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -334,6 +334,9 @@ CONFIG_USB_OTG=y
@@ -35,7 +35,7 @@ index cb0347b..7e87da0 100644
  CONFIG_USB_CONFIGFS_F_ACC=y
  CONFIG_USB_CONFIGFS_F_AUDIO_SRC=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 14b5c7a..98d5b71 100644
+index 14b5c7a5454b..98d5b7196f6a 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -293,6 +293,9 @@ CONFIG_USB=y
@@ -49,5 +49,5 @@ index 14b5c7a..98d5b71 100644
  CONFIG_USB_CONFIGFS_F_ACC=y
  CONFIG_USB_CONFIGFS_F_AUDIO_SRC=y
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 57b623a894a303ff2cec9415ae3db0faf9091771 Mon Sep 17 00:00:00 2001
+From 7e490e2baca032d5af5c65366fd7681b037ea9f7 Mon Sep 17 00:00:00 2001
 From: Prasad Sodagudi <psodagud@codeaurora.org>
 Date: Thu, 22 Oct 2020 04:26:09 -0700
 Subject: [PATCH 124/830] ANDROID: printk: add vendor hook for console flush
@@ -17,7 +17,7 @@ Signed-off-by: Prasad Sodagudi <psodagud@codeaurora.org>
  create mode 100644 include/trace/hooks/printk.h
 
 diff --git a/drivers/android/vendor_hooks.c b/drivers/android/vendor_hooks.c
-index 7bd8c6d..169da7a 100644
+index 7bd8c6d92cd9..169da7a0fe12 100644
 --- a/drivers/android/vendor_hooks.c
 +++ b/drivers/android/vendor_hooks.c
 @@ -14,6 +14,7 @@
@@ -35,7 +35,7 @@ index 7bd8c6d..169da7a 100644
 +EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_printk_hotplug);
 diff --git a/include/trace/hooks/printk.h b/include/trace/hooks/printk.h
 new file mode 100644
-index 00000000..83f8ad5
+index 000000000000..83f8ad5e710d
 --- /dev/null
 +++ b/include/trace/hooks/printk.h
 @@ -0,0 +1,27 @@
@@ -67,7 +67,7 @@ index 00000000..83f8ad5
 +/* This part must be outside protection */
 +#include <trace/define_trace.h>
 diff --git a/kernel/printk/printk.c b/kernel/printk/printk.c
-index eb5d274..9f84754 100644
+index eb5d2742bca2..9f84754196dc 100644
 --- a/kernel/printk/printk.c
 +++ b/kernel/printk/printk.c
 @@ -54,6 +54,8 @@
@@ -93,5 +93,5 @@ index eb5d274..9f84754 100644
  		/* If trylock fails, someone else is doing the printing */
  		if (console_trylock())
 -- 
-2.7.4
+2.17.1
 

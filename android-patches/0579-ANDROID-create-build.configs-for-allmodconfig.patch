@@ -1,4 +1,4 @@
-From 729d4b2812c65c77384149d49318f1bce8ad4d4b Mon Sep 17 00:00:00 2001
+From 6534ffa29c6d8478e3a3f221ee9c58de57f9ec0b Mon Sep 17 00:00:00 2001
 From: Matthias Maennich <maennich@google.com>
 Date: Thu, 29 Aug 2019 12:41:43 +0100
 Subject: [PATCH 579/830] ANDROID: create build.configs for allmodconfig
@@ -22,7 +22,7 @@ Signed-off-by: Matthias Maennich <maennich@google.com>
 
 diff --git a/build.config.allmodconfig b/build.config.allmodconfig
 new file mode 100644
-index 00000000..b39bc1b
+index 000000000000..b39bc1b877c7
 --- /dev/null
 +++ b/build.config.allmodconfig
 @@ -0,0 +1,17 @@
@@ -45,7 +45,7 @@ index 00000000..b39bc1b
 +}
 diff --git a/build.config.allmodconfig.aarch64 b/build.config.allmodconfig.aarch64
 new file mode 100644
-index 00000000..863ab1c
+index 000000000000..863ab1caddab
 --- /dev/null
 +++ b/build.config.allmodconfig.aarch64
 @@ -0,0 +1,4 @@
@@ -55,7 +55,7 @@ index 00000000..863ab1c
 +
 diff --git a/build.config.allmodconfig.x86_64 b/build.config.allmodconfig.x86_64
 new file mode 100644
-index 00000000..bedb386
+index 000000000000..bedb3869d99b
 --- /dev/null
 +++ b/build.config.allmodconfig.x86_64
 @@ -0,0 +1,4 @@
@@ -64,5 +64,5 @@ index 00000000..bedb386
 +. ${ROOT_DIR}/common/build.config.allmodconfig
 +
 -- 
-2.7.4
+2.17.1
 

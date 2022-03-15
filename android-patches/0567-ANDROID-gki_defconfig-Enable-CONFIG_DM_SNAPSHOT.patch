@@ -1,4 +1,4 @@
-From 2279dc5b65141ea10868c213188b586328a1bdbf Mon Sep 17 00:00:00 2001
+From 295a490ddb5a77140551d179b1cdae505e4caa98 Mon Sep 17 00:00:00 2001
 From: Alessio Balsini <balsini@google.com>
 Date: Fri, 11 Oct 2019 13:50:20 +0100
 Subject: [PATCH 567/830] ANDROID: gki_defconfig: Enable CONFIG_DM_SNAPSHOT
@@ -19,7 +19,7 @@ Change-Id: I69bc614509eaff259a2aa9195e7e1d406b36bbb2
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 1f0dcde..b4baf6a 100644
+index 1f0dcdee1dc7..b4baf6a87b7a 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -216,6 +216,7 @@ CONFIG_SCSI_UFSHCD_PLATFORM=y
@@ -31,7 +31,7 @@ index 1f0dcde..b4baf6a 100644
  CONFIG_DM_VERITY=y
  CONFIG_DM_VERITY_AVB=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 19ea05f..d9c130e 100644
+index 19ea05fccd13..d9c130e80fb1 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -189,6 +189,7 @@ CONFIG_BLK_DEV_SD=y
@@ -43,5 +43,5 @@ index 19ea05f..d9c130e 100644
  CONFIG_DM_VERITY=y
  CONFIG_DM_VERITY_AVB=y
 -- 
-2.7.4
+2.17.1
 

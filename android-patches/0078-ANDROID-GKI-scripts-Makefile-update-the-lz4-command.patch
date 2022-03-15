@@ -1,4 +1,4 @@
-From ff276f4da8762dc4b4246c984f690ee5bfda56e3 Mon Sep 17 00:00:00 2001
+From 071b8387b981243096b020d579b1984092736195 Mon Sep 17 00:00:00 2001
 From: Alistair Delva <adelva@google.com>
 Date: Wed, 17 Jun 2020 21:55:14 -0700
 Subject: [PATCH 078/830] ANDROID: GKI: scripts: Makefile: update the lz4
@@ -23,7 +23,7 @@ Signed-off-by: Eric Biggers <ebiggers@google.com>
  2 files changed, 3 insertions(+), 2 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index 28cf4f5..816d1cb 100644
+index e29107c43ac2..666cad659b57 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -490,7 +490,7 @@ KGZIP		= gzip
@@ -36,7 +36,7 @@ index 28cf4f5..816d1cb 100644
  ZSTD		= zstd
  
 diff --git a/scripts/Makefile.lib b/scripts/Makefile.lib
-index 1a44775..3d9fda7 100644
+index 1a4477515b48..3d9fda7e4ffe 100644
 --- a/scripts/Makefile.lib
 +++ b/scripts/Makefile.lib
 @@ -414,7 +414,8 @@ quiet_cmd_lzo = LZO     $@
@@ -50,5 +50,5 @@ index 1a44775..3d9fda7 100644
  
  # U-Boot mkimage
 -- 
-2.7.4
+2.17.1
 

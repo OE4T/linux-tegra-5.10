@@ -1,4 +1,4 @@
-From c8e9623da211d8c268e1f034a9c1db2a58dcfbbe Mon Sep 17 00:00:00 2001
+From 06e28b9b7ba6611fe30cc5c582f8b0f22da2dc1f Mon Sep 17 00:00:00 2001
 From: Greg Kroah-Hartman <gregkh@google.com>
 Date: Wed, 8 Apr 2020 19:14:42 +0200
 Subject: [PATCH 683/830] ANDROID: GKI: fix up gki_defconfig for x86
@@ -14,7 +14,7 @@ Change-Id: If08ceea2ca890094bb7c977b84db7ea390499319
  1 file changed, 1 deletion(-)
 
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 446484e..4cefcbb 100644
+index 446484e8ac1c..4cefcbb6211b 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -53,7 +53,6 @@ CONFIG_PM_WAKELOCKS=y
@@ -26,5 +26,5 @@ index 446484e..4cefcbb 100644
  CONFIG_CPU_FREQ_GOV_CONSERVATIVE=y
  CONFIG_IA32_EMULATION=y
 -- 
-2.7.4
+2.17.1
 

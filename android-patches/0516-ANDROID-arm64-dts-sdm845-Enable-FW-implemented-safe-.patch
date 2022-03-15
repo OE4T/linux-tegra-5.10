@@ -1,4 +1,4 @@
-From ac9ef7e6b6d1b4fae716ce5b4c27b23611a5278b Mon Sep 17 00:00:00 2001
+From ef985b39b40b349d491c41a76b46c7d27d755f21 Mon Sep 17 00:00:00 2001
 From: Vivek Gautam <vivek.gautam@codeaurora.org>
 Date: Wed, 12 Jun 2019 12:45:54 +0530
 Subject: [PATCH 516/830] ANDROID: arm64: dts/sdm845: Enable FW implemented
@@ -20,7 +20,7 @@ Change-Id: I27a575e54ffbb0b0bfb78115edef45fc8ff585a4
  1 file changed, 1 insertion(+)
 
 diff --git a/arch/arm64/boot/dts/qcom/sdm845.dtsi b/arch/arm64/boot/dts/qcom/sdm845.dtsi
-index ea6e3a1..6930d8b 100644
+index ea6e3a11e641..6930d8b65fd1 100644
 --- a/arch/arm64/boot/dts/qcom/sdm845.dtsi
 +++ b/arch/arm64/boot/dts/qcom/sdm845.dtsi
 @@ -4291,6 +4291,7 @@
@@ -32,5 +32,5 @@ index ea6e3a1..6930d8b 100644
  			interrupts = <GIC_SPI 65 IRQ_TYPE_LEVEL_HIGH>,
  				     <GIC_SPI 96 IRQ_TYPE_LEVEL_HIGH>,
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 9eb758680a07d38754beac8a2b9dfa83f3479964 Mon Sep 17 00:00:00 2001
+From e73814ecda828414b62f596b20dd242aed5d1b10 Mon Sep 17 00:00:00 2001
 From: Haitao Shan <hshan@google.com>
 Date: Wed, 9 Sep 2020 16:21:38 -0700
 Subject: [PATCH 081/830] ANDROID: Setting up GS before calling
@@ -23,7 +23,7 @@ Signed-off-by: Haitao Shan <hshan@google.com>
  1 file changed, 13 insertions(+)
 
 diff --git a/arch/x86/power/cpu.c b/arch/x86/power/cpu.c
-index db1378c..7e4bafa 100644
+index db1378c6ff26..7e4bafaedd7f 100644
 --- a/arch/x86/power/cpu.c
 +++ b/arch/x86/power/cpu.c
 @@ -274,6 +274,19 @@ static void notrace __restore_processor_state(struct saved_context *ctxt)
@@ -47,5 +47,5 @@ index db1378c..7e4bafa 100644
  }
  #ifdef CONFIG_X86_32
 -- 
-2.7.4
+2.17.1
 

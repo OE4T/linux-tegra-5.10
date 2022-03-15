@@ -1,4 +1,4 @@
-From 5839d43b8b825471b5dbde15819a25df289ea66b Mon Sep 17 00:00:00 2001
+From a78e3c73726f0e31f1d9f795288bd204e99910da Mon Sep 17 00:00:00 2001
 From: Roman Kiryanov <rkir@google.com>
 Date: Fri, 7 Feb 2020 17:06:13 -0800
 Subject: [PATCH 363/830] ANDROID: virtio: virtio_input: pass _DIRECT only if
@@ -18,7 +18,7 @@ Change-Id: Ic06ae2b9d0ab7c77cb8829e5392fd048139500a2
  1 file changed, 7 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/virtio/virtio_input.c b/drivers/virtio/virtio_input.c
-index ba2998f..427d58c 100644
+index ba2998f02d47..427d58c771cb 100644
 --- a/drivers/virtio/virtio_input.c
 +++ b/drivers/virtio/virtio_input.c
 @@ -166,12 +166,15 @@ static void virtinput_cfg_abs(struct virtio_input *vi, int abs)
@@ -42,5 +42,5 @@ index ba2998f..427d58c 100644
  
  static int virtinput_init_vqs(struct virtio_input *vi)
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From c34b831d78f7d57f0e8976e33112556292679c88 Mon Sep 17 00:00:00 2001
+From 1fbe4c2bca2a1cd9160e359f5f2a9e00142fecc2 Mon Sep 17 00:00:00 2001
 From: Shashank Babu Chinta Venkata <sbchin@codeaurora.org>
 Date: Mon, 9 Sep 2019 17:48:16 -0700
 Subject: [PATCH 345/830] ANDROID: include: drm: increase DRM max property
@@ -17,7 +17,7 @@ Change-Id: I3e42c1fc684d7d7cea828fc35b96673bdef598f4
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/include/drm/drm_mode_object.h b/include/drm/drm_mode_object.h
-index c34a3e8..6292fa6 100644
+index c34a3e8030e1..6292fa663844 100644
 --- a/include/drm/drm_mode_object.h
 +++ b/include/drm/drm_mode_object.h
 @@ -60,7 +60,7 @@ struct drm_mode_object {
@@ -30,5 +30,5 @@ index c34a3e8..6292fa6 100644
   * struct drm_object_properties - property tracking for &drm_mode_object
   */
 -- 
-2.7.4
+2.17.1
 

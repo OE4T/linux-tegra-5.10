@@ -1,4 +1,4 @@
-From 923ccc57b9822099a11ae973b11d35a9152a9c82 Mon Sep 17 00:00:00 2001
+From c9e853b34a74eef22f95f8b270b5b0565d744734 Mon Sep 17 00:00:00 2001
 From: Palmer Dabbelt <palmerdabbelt@google.com>
 Date: Tue, 29 Sep 2020 21:15:52 -0700
 Subject: [PATCH 399/830] ANDROID: uapi: Add dm-user structure definition
@@ -14,13 +14,13 @@ Bug: 161496058
 Signed-off-by: Palmer Dabbelt <palmerdabbelt@google.com>
 Change-Id: I97ca538fbd7e73e467416590190d85894db42e7d
 ---
- include/uapi/linux/dm-user.h | 68 ++++++++++++++++++++++++++++++++++++++++++++
+ include/uapi/linux/dm-user.h | 68 ++++++++++++++++++++++++++++++++++++
  1 file changed, 68 insertions(+)
  create mode 100644 include/uapi/linux/dm-user.h
 
 diff --git a/include/uapi/linux/dm-user.h b/include/uapi/linux/dm-user.h
 new file mode 100644
-index 00000000..6d8f535b
+index 000000000000..6d8f535b3542
 --- /dev/null
 +++ b/include/uapi/linux/dm-user.h
 @@ -0,0 +1,68 @@
@@ -93,5 +93,5 @@ index 00000000..6d8f535b
 +
 +#endif
 -- 
-2.7.4
+2.17.1
 

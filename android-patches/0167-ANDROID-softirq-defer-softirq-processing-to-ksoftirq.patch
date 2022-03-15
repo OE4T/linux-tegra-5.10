@@ -1,4 +1,4 @@
-From 9def96a0aeb597df31ebb11a9cf904e1a1348e36 Mon Sep 17 00:00:00 2001
+From 7038566f6f9c0305a1a8b6c5f50315e530cf0406 Mon Sep 17 00:00:00 2001
 From: Pavankumar Kondeti <pkondeti@codeaurora.org>
 Date: Wed, 28 Jun 2017 12:00:31 +0530
 Subject: [PATCH 167/830] ANDROID: softirq: defer softirq processing to
@@ -27,10 +27,10 @@ Signed-off-by: J. Avila <elavila@google.com>
  3 files changed, 42 insertions(+), 4 deletions(-)
 
 diff --git a/include/linux/sched.h b/include/linux/sched.h
-index 58df139..17e0dbc 100644
+index 04c7cf39d3a3..d5173721ea53 100644
 --- a/include/linux/sched.h
 +++ b/include/linux/sched.h
-@@ -1661,6 +1661,16 @@ current_restore_flags(unsigned long orig_flags, unsigned long flags)
+@@ -1660,6 +1660,16 @@ current_restore_flags(unsigned long orig_flags, unsigned long flags)
  
  extern int cpuset_cpumask_can_shrink(const struct cpumask *cur, const struct cpumask *trial);
  extern int task_can_attach(struct task_struct *p, const struct cpumask *cs_cpus_allowed);
@@ -48,7 +48,7 @@ index 58df139..17e0dbc 100644
  extern void do_set_cpus_allowed(struct task_struct *p, const struct cpumask *new_mask);
  extern int set_cpus_allowed_ptr(struct task_struct *p, const struct cpumask *new_mask);
 diff --git a/kernel/sched/cpupri.c b/kernel/sched/cpupri.c
-index daa771f..051df5b 100644
+index daa771f74620..051df5be7d44 100644
 --- a/kernel/sched/cpupri.c
 +++ b/kernel/sched/cpupri.c
 @@ -331,3 +331,16 @@ void cpupri_cleanup(struct cpupri *cp)
@@ -69,7 +69,7 @@ index daa771f..051df5b 100644
 +}
 +#endif
 diff --git a/kernel/softirq.c b/kernel/softirq.c
-index 0a7cd1f..7d210a5 100644
+index 0a7cd1f1b4e0..7d210a5f2bfb 100644
 --- a/kernel/softirq.c
 +++ b/kernel/softirq.c
 @@ -259,6 +259,16 @@ static inline bool lockdep_softirq_start(void) { return false; }
@@ -136,5 +136,5 @@ index 0a7cd1f..7d210a5 100644
  	account_irq_exit_time(current);
  	__local_bh_enable(SOFTIRQ_OFFSET);
 -- 
-2.7.4
+2.17.1
 

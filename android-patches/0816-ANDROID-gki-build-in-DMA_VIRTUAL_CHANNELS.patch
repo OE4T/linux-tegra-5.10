@@ -1,4 +1,4 @@
-From 44575e1383bf1c279e516edcdaf28e37e2b94d67 Mon Sep 17 00:00:00 2001
+From 1c9b61fa8910a4e37451bf49d6a8f78bb0a2c89c Mon Sep 17 00:00:00 2001
 From: zhang sanshan <pete.zhang@nxp.com>
 Date: Mon, 6 Jul 2020 18:57:52 +0800
 Subject: [PATCH 816/830] ANDROID: gki: build-in DMA_VIRTUAL_CHANNELS
@@ -18,7 +18,7 @@ Change-Id: I5427cb6ef3725163f396836bfd3ebe23037c06f2
  1 file changed, 1 insertion(+)
 
 diff --git a/init/Kconfig.gki b/init/Kconfig.gki
-index e0511c0..fad37010 100644
+index e0511c09eb78..fad370106dd7 100644
 --- a/init/Kconfig.gki
 +++ b/init/Kconfig.gki
 @@ -48,6 +48,7 @@ config GKI_HIDDEN_SND_SOC_CONFIGS
@@ -30,5 +30,5 @@ index e0511c0..fad37010 100644
  	  Dummy config option used to enable hidden SND_SOC configs.
  	  These are normally selected implicitly when a module
 -- 
-2.7.4
+2.17.1
 

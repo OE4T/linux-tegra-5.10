@@ -1,4 +1,4 @@
-From ff6b71b539b7911e4a8c9d31963bba545e361150 Mon Sep 17 00:00:00 2001
+From bd17e654c2e38a46ea34b6096f108e0385031133 Mon Sep 17 00:00:00 2001
 From: Todd Kjos <tkjos@google.com>
 Date: Fri, 1 May 2020 13:43:26 -0700
 Subject: [PATCH 694/830] ANDROID: README: Add requirement for "Bug:" tag for
@@ -17,7 +17,7 @@ Change-Id: I33bfc9b1edcead7a9b300ba57a2d371a9ea2f74e
  1 file changed, 2 insertions(+)
 
 diff --git a/README.md b/README.md
-index 5612ab8..468ac20 100644
+index 5612ab828a10..468ac2084b21 100644
 --- a/README.md
 +++ b/README.md
 @@ -111,6 +111,8 @@ must be a stable maintainer branch (not rebased, so don't use `linux-next` for e
@@ -30,5 +30,5 @@ index 5612ab8..468ac20 100644
      - Example:
  ```
 -- 
-2.7.4
+2.17.1
 

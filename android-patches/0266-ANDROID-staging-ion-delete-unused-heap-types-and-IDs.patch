@@ -1,4 +1,4 @@
-From 0d4b035e9e6a3bba39ef0c1496876a1eaea097a4 Mon Sep 17 00:00:00 2001
+From 872ac34adaaf993f518fb6aae81f1b69bc19c02a Mon Sep 17 00:00:00 2001
 From: Hridya Valsaraju <hridya@google.com>
 Date: Wed, 12 Feb 2020 23:40:08 -0800
 Subject: [PATCH 266/830] ANDROID: staging: ion: delete unused heap types and
@@ -12,16 +12,16 @@ Bug: 138149732
 Change-Id: I45d97138ab2a6986955c8934ab13b70372d9e62d
 Signed-off-by: Hridya Valsaraju <hridya@google.com>
 ---
- drivers/staging/android/ion/heaps/Kconfig          |   8 --
- drivers/staging/android/ion/heaps/Makefile         |   1 -
- .../android/ion/heaps/ion_system_contig_heap.c     | 102 ---------------------
- drivers/staging/android/ion/ion.c                  |  10 --
- include/uapi/linux/ion.h                           |  27 +-----
+ drivers/staging/android/ion/heaps/Kconfig     |   8 --
+ drivers/staging/android/ion/heaps/Makefile    |   1 -
+ .../ion/heaps/ion_system_contig_heap.c        | 102 ------------------
+ drivers/staging/android/ion/ion.c             |  10 --
+ include/uapi/linux/ion.h                      |  27 +----
  5 files changed, 4 insertions(+), 144 deletions(-)
  delete mode 100644 drivers/staging/android/ion/heaps/ion_system_contig_heap.c
 
 diff --git a/drivers/staging/android/ion/heaps/Kconfig b/drivers/staging/android/ion/heaps/Kconfig
-index 617d6e7..5034c45 100644
+index 617d6e7ea583..5034c45a397d 100644
 --- a/drivers/staging/android/ion/heaps/Kconfig
 +++ b/drivers/staging/android/ion/heaps/Kconfig
 @@ -6,14 +6,6 @@ config ION_SYSTEM_HEAP
@@ -40,7 +40,7 @@ index 617d6e7..5034c45 100644
  	tristate "Ion CMA heap support"
  	depends on ION && DMA_CMA
 diff --git a/drivers/staging/android/ion/heaps/Makefile b/drivers/staging/android/ion/heaps/Makefile
-index 4498790..82e36e8 100644
+index 449879035877..82e36e89e978 100644
 --- a/drivers/staging/android/ion/heaps/Makefile
 +++ b/drivers/staging/android/ion/heaps/Makefile
 @@ -2,5 +2,4 @@
@@ -51,7 +51,7 @@ index 4498790..82e36e8 100644
  obj-$(CONFIG_ION_CMA_HEAP) += ion_cma_heap.o
 diff --git a/drivers/staging/android/ion/heaps/ion_system_contig_heap.c b/drivers/staging/android/ion/heaps/ion_system_contig_heap.c
 deleted file mode 100644
-index ce85456..00000000
+index ce854565b563..000000000000
 --- a/drivers/staging/android/ion/heaps/ion_system_contig_heap.c
 +++ /dev/null
 @@ -1,102 +0,0 @@
@@ -158,7 +158,7 @@ index ce85456..00000000
 -module_exit(ion_system_contig_heap_exit);
 -MODULE_LICENSE("GPL v2");
 diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
-index d6dab39..19f687e 100644
+index d6dab39d9609..19f687ecade0 100644
 --- a/drivers/staging/android/ion/ion.c
 +++ b/drivers/staging/android/ion/ion.c
 @@ -236,16 +236,6 @@ static int ion_assign_heap_id(struct ion_heap *heap, struct ion_device *dev)
@@ -179,7 +179,7 @@ index d6dab39..19f687e 100644
  		start_bit = __ffs(ION_HEAP_DMA_START);
  		end_bit = __ffs(ION_HEAP_DMA_END);
 diff --git a/include/uapi/linux/ion.h b/include/uapi/linux/ion.h
-index fdb2eba..371e446 100644
+index fdb2eba7f500..371e44662755 100644
 --- a/include/uapi/linux/ion.h
 +++ b/include/uapi/linux/ion.h
 @@ -17,23 +17,14 @@
@@ -239,5 +239,5 @@ index fdb2eba..371e446 100644
  
  #define ION_NUM_MAX_HEAPS	(32)
 -- 
-2.7.4
+2.17.1
 

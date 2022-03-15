@@ -1,4 +1,4 @@
-From ec57a4f4a5bf9634a87e5d3fc67ac6f96429b9a9 Mon Sep 17 00:00:00 2001
+From 0528835eb308c2aaccf2e798d959acbe64fa21d4 Mon Sep 17 00:00:00 2001
 From: Chris Redpath <chris.redpath@arm.com>
 Date: Thu, 17 Oct 2019 11:18:08 +0100
 Subject: [PATCH 144/830] ANDROID: sched: Honor sync flag for energy-aware
@@ -38,10 +38,10 @@ Signed-off-by: Dietmar Eggemann <dietmar.eggemann@arm.com>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/kernel/sched/fair.c b/kernel/sched/fair.c
-index 0ac0eee..6368d65 100644
+index 0ec0ba826376..cee2edd3e4cb 100644
 --- a/kernel/sched/fair.c
 +++ b/kernel/sched/fair.c
-@@ -6634,7 +6634,8 @@ static int find_energy_efficient_cpu(struct task_struct *p, int prev_cpu, int sy
+@@ -6646,7 +6646,8 @@ static int find_energy_efficient_cpu(struct task_struct *p, int prev_cpu, int sy
  		goto fail;
  
  	cpu = smp_processor_id();
@@ -52,5 +52,5 @@ index 0ac0eee..6368d65 100644
  		return cpu;
  	}
 -- 
-2.7.4
+2.17.1
 

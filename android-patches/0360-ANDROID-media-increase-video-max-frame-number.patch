@@ -1,4 +1,4 @@
-From 7b31716ac400b90ea0b8659fc8c5189f21637608 Mon Sep 17 00:00:00 2001
+From 8d40acde0389fcb7cb98eb762c0c3d275b1f274f Mon Sep 17 00:00:00 2001
 From: Maheshwar Ajja <majja@codeaurora.org>
 Date: Fri, 25 Oct 2019 15:12:53 -0700
 Subject: [PATCH 360/830] ANDROID: media: increase video max frame number
@@ -16,7 +16,7 @@ Signed-off-by: Maheshwar Ajja <majja@codeaurora.org>
  2 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index bbb3f26..3f4f171 100644
+index bbb3f26fbde9..3f4f171a790b 100644
 --- a/include/media/videobuf2-core.h
 +++ b/include/media/videobuf2-core.h
 @@ -19,7 +19,7 @@
@@ -29,7 +29,7 @@ index bbb3f26..3f4f171 100644
  
  /**
 diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 162f045..3a73490 100644
+index 162f0454ef3f..3a7349013f7a 100644
 --- a/include/uapi/linux/videodev2.h
 +++ b/include/uapi/linux/videodev2.h
 @@ -70,7 +70,7 @@
@@ -42,5 +42,5 @@ index 162f045..3a73490 100644
  
  /*
 -- 
-2.7.4
+2.17.1
 

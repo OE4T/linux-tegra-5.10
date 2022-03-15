@@ -1,4 +1,4 @@
-From 5b2369f32bab052a0324a60270ed3495aac13527 Mon Sep 17 00:00:00 2001
+From ed09d16258b3585208bce5b815341e6a69ee6aa8 Mon Sep 17 00:00:00 2001
 From: Pavankumar Kondeti <pkondeti@codeaurora.org>
 Date: Thu, 19 Nov 2020 08:26:14 +0530
 Subject: [PATCH 177/830] ANDROID: sched: Add restrict vendor hooks for load
@@ -34,7 +34,7 @@ Signed-off-by: Pavankumar Kondeti <pkondeti@codeaurora.org>
  4 files changed, 72 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/android/vendor_hooks.c b/drivers/android/vendor_hooks.c
-index 2f8f00f..cc0bc35 100644
+index 2f8f00f64606..cc0bc35495be 100644
 --- a/drivers/android/vendor_hooks.c
 +++ b/drivers/android/vendor_hooks.c
 @@ -62,3 +62,7 @@ EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_printk_hotplug);
@@ -46,7 +46,7 @@ index 2f8f00f..cc0bc35 100644
 +EXPORT_TRACEPOINT_SYMBOL_GPL(android_rvh_find_busiest_queue);
 +EXPORT_TRACEPOINT_SYMBOL_GPL(android_rvh_migrate_queued_task);
 diff --git a/include/trace/hooks/sched.h b/include/trace/hooks/sched.h
-index 51f5236..06c4ebf 100644
+index 51f5236274d2..06c4ebf83bf7 100644
 --- a/include/trace/hooks/sched.h
 +++ b/include/trace/hooks/sched.h
 @@ -79,6 +79,27 @@ DECLARE_HOOK(android_vh_dump_throttled_rt_tasks,
@@ -89,7 +89,7 @@ index 51f5236..06c4ebf 100644
  #endif /* _TRACE_HOOK_SCHED_H */
  /* This part must be outside protection */
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 4898d8c..b2f92d8 100644
+index 4898d8cb6b11..b2f92d84edfc 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -1754,12 +1754,24 @@ static inline bool is_cpu_allowed(struct task_struct *p, int cpu)
@@ -119,10 +119,10 @@ index 4898d8c..b2f92d8 100644
  
  	rq_lock(rq, rf);
 diff --git a/kernel/sched/fair.c b/kernel/sched/fair.c
-index 66a2707..7c29253 100644
+index f1b8fbc33167..740dd8d78082 100644
 --- a/kernel/sched/fair.c
 +++ b/kernel/sched/fair.c
-@@ -7502,6 +7502,7 @@ struct lb_env {
+@@ -7514,6 +7514,7 @@ struct lb_env {
  	enum fbq_type		fbq_type;
  	enum migration_type	migration_type;
  	struct list_head	tasks;
@@ -130,7 +130,7 @@ index 66a2707..7c29253 100644
  };
  
  /*
-@@ -7696,8 +7697,20 @@ int can_migrate_task(struct task_struct *p, struct lb_env *env)
+@@ -7708,8 +7709,20 @@ int can_migrate_task(struct task_struct *p, struct lb_env *env)
   */
  static void detach_task(struct task_struct *p, struct lb_env *env)
  {
@@ -151,7 +151,7 @@ index 66a2707..7c29253 100644
  	deactivate_task(env->src_rq, p, DEQUEUE_NOCLOCK);
  	set_task_cpu(p, env->dst_cpu);
  }
-@@ -9419,7 +9432,11 @@ static struct rq *find_busiest_queue(struct lb_env *env,
+@@ -9431,7 +9444,11 @@ static struct rq *find_busiest_queue(struct lb_env *env,
  	struct rq *busiest = NULL, *rq;
  	unsigned long busiest_util = 0, busiest_load = 0, busiest_capacity = 1;
  	unsigned int busiest_nr = 0;
@@ -164,7 +164,7 @@ index 66a2707..7c29253 100644
  
  	for_each_cpu_and(i, sched_group_span(group), env->cpus) {
  		unsigned long capacity, load, util;
-@@ -9697,6 +9714,7 @@ static int load_balance(int this_cpu, struct rq *this_rq,
+@@ -9709,6 +9726,7 @@ static int load_balance(int this_cpu, struct rq *this_rq,
  
  more_balance:
  		rq_lock_irqsave(busiest, &rf);
@@ -172,7 +172,7 @@ index 66a2707..7c29253 100644
  		update_rq_clock(busiest);
  
  		/*
-@@ -10006,6 +10024,7 @@ static int active_load_balance_cpu_stop(void *data)
+@@ -10018,6 +10036,7 @@ static int active_load_balance_cpu_stop(void *data)
  			 * about DST_PINNED.
  			 */
  			.flags		= LBF_DST_PINNED,
@@ -180,7 +180,7 @@ index 66a2707..7c29253 100644
  		};
  
  		schedstat_inc(sd->alb_count);
-@@ -10225,6 +10244,7 @@ static void nohz_balancer_kick(struct rq *rq)
+@@ -10237,6 +10256,7 @@ static void nohz_balancer_kick(struct rq *rq)
  	struct sched_domain *sd;
  	int nr_busy, i, cpu = rq->cpu;
  	unsigned int flags = 0;
@@ -188,7 +188,7 @@ index 66a2707..7c29253 100644
  
  	if (unlikely(rq->idle_balance))
  		return;
-@@ -10249,6 +10269,10 @@ static void nohz_balancer_kick(struct rq *rq)
+@@ -10261,6 +10281,10 @@ static void nohz_balancer_kick(struct rq *rq)
  	if (time_before(now, nohz.next_balance))
  		goto out;
  
@@ -199,7 +199,7 @@ index 66a2707..7c29253 100644
  	if (rq->nr_running >= 2) {
  		flags = NOHZ_KICK_MASK;
  		goto out;
-@@ -10623,6 +10647,11 @@ static int newidle_balance(struct rq *this_rq, struct rq_flags *rf)
+@@ -10635,6 +10659,11 @@ static int newidle_balance(struct rq *this_rq, struct rq_flags *rf)
  	struct sched_domain *sd;
  	int pulled_task = 0;
  	u64 curr_cost = 0;
@@ -212,5 +212,5 @@ index 66a2707..7c29253 100644
  	update_misfit_status(NULL, this_rq);
  	/*
 -- 
-2.7.4
+2.17.1
 

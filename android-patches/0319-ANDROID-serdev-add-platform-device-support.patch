@@ -1,4 +1,4 @@
-From 7b6b437c7d5af38bd79e557bd891ca7880a44b90 Mon Sep 17 00:00:00 2001
+From 73c03d751a500b395dc6833846b8b6f8705ccda5 Mon Sep 17 00:00:00 2001
 From: Alistair Delva <adelva@google.com>
 Date: Fri, 13 Dec 2019 13:56:42 -0800
 Subject: [PATCH 319/830] ANDROID: serdev: add platform device support
@@ -32,11 +32,11 @@ Signed-off-by: Alistair Delva <adelva@google.com>
            9b460a068c2b ("ANDROID: serdev: Fix platform device support")]
 Signed-off-by: Eric Biggers <ebiggers@google.com>
 ---
- drivers/tty/serdev/core.c | 72 ++++++++++++++++++++++++++++++++++++++++-------
+ drivers/tty/serdev/core.c | 72 +++++++++++++++++++++++++++++++++------
  1 file changed, 62 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/tty/serdev/core.c b/drivers/tty/serdev/core.c
-index c5f0d93..501631c 100644
+index c5f0d936b003..501631c188d7 100644
 --- a/drivers/tty/serdev/core.c
 +++ b/drivers/tty/serdev/core.c
 @@ -32,7 +32,18 @@ static ssize_t modalias_show(struct device *dev,
@@ -161,5 +161,5 @@ index c5f0d93..501631c 100644
  		goto err_rpm_disable;
  	}
 -- 
-2.7.4
+2.17.1
 

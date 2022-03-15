@@ -1,4 +1,4 @@
-From 9ccff6d6fd76d6eccd774aad4c94282fb82f6e23 Mon Sep 17 00:00:00 2001
+From 4cb553fc76b1a68ca3f2978dfe92ae39d0d80621 Mon Sep 17 00:00:00 2001
 From: John Stultz <john.stultz@linaro.org>
 Date: Fri, 14 Aug 2020 22:42:09 +0000
 Subject: [PATCH 279/830] ANDROID: dma-heap: Rework allocation calls to return
@@ -15,17 +15,17 @@ Signed-off-by: John Stultz <john.stultz@linaro.org>
 Change-Id: Id6fd7e8471b9555a08bcdf8ca210feb589fa51c1
 Bug: 154341375
 ---
- drivers/dma-buf/dma-heap.c          | 44 +++++++++++++++++++++++++++++--------
- drivers/dma-buf/heaps/cma_heap.c    | 21 ++++++------------
- drivers/dma-buf/heaps/system_heap.c | 21 ++++++------------
- include/linux/dma-heap.h            |  6 ++---
+ drivers/dma-buf/dma-heap.c          | 44 +++++++++++++++++++++++------
+ drivers/dma-buf/heaps/cma_heap.c    | 21 +++++---------
+ drivers/dma-buf/heaps/system_heap.c | 21 +++++---------
+ include/linux/dma-heap.h            |  6 ++--
  4 files changed, 52 insertions(+), 40 deletions(-)
 
 diff --git a/drivers/dma-buf/dma-heap.c b/drivers/dma-buf/dma-heap.c
-index a64a802..bfc8a7b 100644
+index 580119750bc5..a8a90722b08d 100644
 --- a/drivers/dma-buf/dma-heap.c
 +++ b/drivers/dma-buf/dma-heap.c
-@@ -66,26 +66,52 @@ static struct dma_heap *dma_heap_find(const char *name)
+@@ -67,26 +67,52 @@ static struct dma_heap *dma_heap_find(const char *name)
  	return NULL;
  }
  
@@ -84,7 +84,7 @@ index a64a802..bfc8a7b 100644
  static int dma_heap_open(struct inode *inode, struct file *file)
  {
  	struct dma_heap *heap;
-@@ -112,9 +138,9 @@ static long dma_heap_ioctl_allocate(struct file *file, void *data)
+@@ -113,9 +139,9 @@ static long dma_heap_ioctl_allocate(struct file *file, void *data)
  	if (heap_allocation->fd)
  		return -EINVAL;
  
@@ -98,7 +98,7 @@ index a64a802..bfc8a7b 100644
  		return fd;
  
 diff --git a/drivers/dma-buf/heaps/cma_heap.c b/drivers/dma-buf/heaps/cma_heap.c
-index e55384d..a58e987 100644
+index e55384dc115b..a58e987fcf3f 100644
 --- a/drivers/dma-buf/heaps/cma_heap.c
 +++ b/drivers/dma-buf/heaps/cma_heap.c
 @@ -40,10 +40,10 @@ static void cma_heap_free(struct heap_helper_buffer *buffer)
@@ -151,7 +151,7 @@ index e55384d..a58e987 100644
  
  static const struct dma_heap_ops cma_heap_ops = {
 diff --git a/drivers/dma-buf/heaps/system_heap.c b/drivers/dma-buf/heaps/system_heap.c
-index 0bf688e..f8f0ab0 100644
+index 0bf688e3c023..f8f0ab05f70e 100644
 --- a/drivers/dma-buf/heaps/system_heap.c
 +++ b/drivers/dma-buf/heaps/system_heap.c
 @@ -32,10 +32,10 @@ static void system_heap_free(struct heap_helper_buffer *buffer)
@@ -204,7 +204,7 @@ index 0bf688e..f8f0ab0 100644
  
  static const struct dma_heap_ops system_heap_ops = {
 diff --git a/include/linux/dma-heap.h b/include/linux/dma-heap.h
-index c1572f2..838e377 100644
+index c1572f29cfac..838e37736ae7 100644
 --- a/include/linux/dma-heap.h
 +++ b/include/linux/dma-heap.h
 @@ -16,12 +16,12 @@ struct dma_heap;
@@ -224,5 +224,5 @@ index c1572f2..838e377 100644
  			unsigned long fd_flags,
  			unsigned long heap_flags);
 -- 
-2.7.4
+2.17.1
 

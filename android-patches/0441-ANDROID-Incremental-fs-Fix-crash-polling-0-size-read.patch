@@ -1,4 +1,4 @@
-From 9c0ece38b806f21aeb28fc810c6d9d132e2d607a Mon Sep 17 00:00:00 2001
+From f0d84f32d8a51353ec1d36db1078066095505948 Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Tue, 31 Mar 2020 15:05:33 -0700
 Subject: [PATCH 441/830] ANDROID: Incremental fs: Fix crash polling 0 size
@@ -14,12 +14,12 @@ Signed-off-by: Paul Lawrence <paullawrence@google.com>
 Bug: 152909243
 Change-Id: Ic3250523bb7ddb1839f8e95852c17103e5ffb782
 ---
- fs/incfs/data_mgmt.c                               |  2 +-
- .../selftests/filesystems/incfs/incfs_test.c       | 55 +++++++++++++++++++---
+ fs/incfs/data_mgmt.c                          |  2 +-
+ .../selftests/filesystems/incfs/incfs_test.c  | 55 ++++++++++++++++---
  2 files changed, 49 insertions(+), 8 deletions(-)
 
 diff --git a/fs/incfs/data_mgmt.c b/fs/incfs/data_mgmt.c
-index 15462b4..bf509e2 100644
+index 15462b452d59..bf509e2b0314 100644
 --- a/fs/incfs/data_mgmt.c
 +++ b/fs/incfs/data_mgmt.c
 @@ -34,13 +34,13 @@ struct mount_info *incfs_alloc_mount_info(struct super_block *sb,
@@ -38,7 +38,7 @@ index 15462b4..bf509e2 100644
  		mi->mi_log.rl_size = buf_size / sizeof(*mi->mi_log.rl_ring_buf);
  		mi->mi_log.rl_ring_buf = kzalloc(buf_size, GFP_NOFS);
 diff --git a/tools/testing/selftests/filesystems/incfs/incfs_test.c b/tools/testing/selftests/filesystems/incfs/incfs_test.c
-index 723f9cb..3137dad 100644
+index 723f9cbd15bc..3137dad14615 100644
 --- a/tools/testing/selftests/filesystems/incfs/incfs_test.c
 +++ b/tools/testing/selftests/filesystems/incfs/incfs_test.c
 @@ -1930,7 +1930,8 @@ static int hash_tree_test(char *mount_dir)
@@ -150,5 +150,5 @@ index 723f9cb..3137dad 100644
  	if (umount(mount_dir) != 0) {
  		print_error("Can't unmout FS");
 -- 
-2.7.4
+2.17.1
 

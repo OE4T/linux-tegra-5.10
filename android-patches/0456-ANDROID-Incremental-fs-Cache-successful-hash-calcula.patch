@@ -1,4 +1,4 @@
-From 90a5169e800ebdbbe28c451ff0efa26190cc8c97 Mon Sep 17 00:00:00 2001
+From 5123434ad79df7081f3f3a5b73a269a84b59eb11 Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Thu, 28 May 2020 08:25:02 -0700
 Subject: [PATCH 456/830] ANDROID: Incremental fs: Cache successful hash
@@ -9,13 +9,13 @@ Bug: 155996534
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
 Change-Id: Ic508e6fa07c90decb29e07647dd3b0fc4d243ce8
 ---
- fs/incfs/data_mgmt.c | 135 +++++++++++++++++++++++++++++++++------------------
+ fs/incfs/data_mgmt.c | 135 ++++++++++++++++++++++++++++---------------
  fs/incfs/data_mgmt.h |   2 +-
  fs/incfs/vfs.c       |   2 +-
  3 files changed, 89 insertions(+), 50 deletions(-)
 
 diff --git a/fs/incfs/data_mgmt.c b/fs/incfs/data_mgmt.c
-index 6b74a9d..5a18d11 100644
+index 6b74a9d0325f..5a18d1165836 100644
 --- a/fs/incfs/data_mgmt.c
 +++ b/fs/incfs/data_mgmt.c
 @@ -2,15 +2,16 @@
@@ -227,7 +227,7 @@ index 6b74a9d..5a18d11 100644
  		if (err < 0)
  			result = err;
 diff --git a/fs/incfs/data_mgmt.h b/fs/incfs/data_mgmt.h
-index d9d9966..d9bee5a 100644
+index d9d9966b838a..d9bee5ab730e 100644
 --- a/fs/incfs/data_mgmt.h
 +++ b/fs/incfs/data_mgmt.h
 @@ -276,7 +276,7 @@ int incfs_scan_metadata_chain(struct data_file *df);
@@ -240,7 +240,7 @@ index d9d9966..d9bee5a 100644
  				   struct mem_range tmp);
  
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index e69da5c..410b7239 100644
+index e69da5ccaf94..410b7239c17b 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -816,7 +816,7 @@ static int read_single_page(struct file *f, struct page *page)
@@ -253,5 +253,5 @@ index e69da5c..410b7239 100644
  
  		free_pages((unsigned long)tmp.data, get_order(tmp.len));
 -- 
-2.7.4
+2.17.1
 

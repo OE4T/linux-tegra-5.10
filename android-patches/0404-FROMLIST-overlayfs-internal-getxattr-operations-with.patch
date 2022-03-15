@@ -1,4 +1,4 @@
-From 979c3ea31f8acf639a1449ae9a81c05e2d87b48d Mon Sep 17 00:00:00 2001
+From a383685ddc48a2e020b00ffc123b9f78c032a859 Mon Sep 17 00:00:00 2001
 From: Mark Salyzyn <salyzyn@android.com>
 Date: Tue, 23 Jul 2019 13:53:48 -0700
 Subject: [PATCH 404/830] FROMLIST: overlayfs: internal getxattr operations
@@ -59,7 +59,7 @@ Signed-off-by: Matthias Maennich <maennich@google.com>
  3 files changed, 11 insertions(+), 8 deletions(-)
 
 diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 092812c..c823d51 100644
+index 092812c2f118..c823d5111aa3 100644
 --- a/fs/overlayfs/namei.c
 +++ b/fs/overlayfs/namei.c
 @@ -108,7 +108,8 @@ int ovl_check_fb_len(struct ovl_fb *fb, int fb_len)
@@ -86,7 +86,7 @@ index 092812c..c823d51 100644
  }
  
 diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index f38ff5e..b9ee1ff 100644
+index 6ce7c269242d..ad02a459ced4 100644
 --- a/fs/overlayfs/overlayfs.h
 +++ b/fs/overlayfs/overlayfs.h
 @@ -184,7 +184,9 @@ static inline ssize_t ovl_do_getxattr(struct ovl_fs *ofs, struct dentry *dentry,
@@ -101,7 +101,7 @@ index f38ff5e..b9ee1ff 100644
  
  static inline int ovl_do_setxattr(struct ovl_fs *ofs, struct dentry *dentry,
 diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index e8b14d2..b98ce88 100644
+index e8b14d2c180c..b98ce88c5b93 100644
 --- a/fs/overlayfs/util.c
 +++ b/fs/overlayfs/util.c
 @@ -548,7 +548,7 @@ void ovl_copy_up_end(struct dentry *dentry)
@@ -141,5 +141,5 @@ index e8b14d2..b98ce88 100644
  }
  
 -- 
-2.7.4
+2.17.1
 

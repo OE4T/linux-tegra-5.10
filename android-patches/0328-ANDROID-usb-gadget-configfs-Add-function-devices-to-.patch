@@ -1,4 +1,4 @@
-From 8326d05572140dd6be9f6f9687703e1c2c13ca54 Mon Sep 17 00:00:00 2001
+From 40dfcf114b44b424660c545f60ae81126b9c9364 Mon Sep 17 00:00:00 2001
 From: Badhri Jagan Sridharan <Badhri@google.com>
 Date: Fri, 27 Mar 2015 14:15:19 -0700
 Subject: [PATCH 328/830] ANDROID: usb: gadget: configfs: Add function devices
@@ -25,7 +25,7 @@ Signed-off-by: Badhri Jagan Sridharan <badhri@google.com>
  1 file changed, 29 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/usb/gadget/configfs.c b/drivers/usb/gadget/configfs.c
-index be0e98e..01f8b0a 100644
+index be0e98e9bbfd..01f8b0aeefa6 100644
 --- a/drivers/usb/gadget/configfs.c
 +++ b/drivers/usb/gadget/configfs.c
 @@ -21,6 +21,18 @@ extern int acc_ctrlrequest(struct usb_composite_dev *cdev,
@@ -107,5 +107,5 @@ index be0e98e..01f8b0a 100644
  }
  module_exit(gadget_cfs_exit);
 -- 
-2.7.4
+2.17.1
 

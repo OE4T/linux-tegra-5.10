@@ -1,4 +1,4 @@
-From b78d2a8eead3e6afad9d0e2a72fd7bbef137f627 Mon Sep 17 00:00:00 2001
+From 15b2f2c1fa9134c3c9aeb00944563ac9afb10e89 Mon Sep 17 00:00:00 2001
 From: Ram Muthiah <rammuthiah@google.com>
 Date: Thu, 6 Feb 2020 20:54:47 -0800
 Subject: [PATCH 630/830] ANDROID: gki: x86: Enable PCI_MSI, WATCHDOG, HPET
@@ -13,7 +13,7 @@ Signed-off-by: Ram Muthiah <rammuthiah@google.com>
  1 file changed, 3 insertions(+)
 
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index bee96ab..0003573 100644
+index bee96ab66ebd..0003573f1442 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -175,6 +175,7 @@ CONFIG_MAC80211=y
@@ -41,5 +41,5 @@ index bee96ab..0003573 100644
  CONFIG_REGULATOR_FIXED_VOLTAGE=y
  CONFIG_MEDIA_CAMERA_SUPPORT=y
 -- 
-2.7.4
+2.17.1
 

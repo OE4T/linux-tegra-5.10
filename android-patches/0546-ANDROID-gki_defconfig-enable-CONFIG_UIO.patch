@@ -1,4 +1,4 @@
-From 2bb21ab3f34986334c60b16ff036655bde6b5bca Mon Sep 17 00:00:00 2001
+From ea5bc786ce96dbad351b0b2cd6c77dd91c270b30 Mon Sep 17 00:00:00 2001
 From: Tri Vo <trong@google.com>
 Date: Wed, 18 Sep 2019 14:07:28 -0700
 Subject: [PATCH 546/830] ANDROID: gki_defconfig: enable CONFIG_UIO
@@ -13,7 +13,7 @@ Signed-off-by: Tri Vo <trong@google.com>
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index e85c3a6..cb17636 100644
+index e85c3a67f768..cb1763653b86 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -336,6 +336,7 @@ CONFIG_RTC_CLASS=y
@@ -25,7 +25,7 @@ index e85c3a6..cb17636 100644
  # CONFIG_VIRTIO_PCI_LEGACY is not set
  CONFIG_VIRTIO_INPUT=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 059e1dd..032adc2 100644
+index 059e1dda256b..032adc240536 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -287,6 +287,7 @@ CONFIG_LEDS_TRIGGERS=y
@@ -37,5 +37,5 @@ index 059e1dd..032adc2 100644
  CONFIG_VIRTIO_INPUT=m
  CONFIG_VIRTIO_MMIO=m
 -- 
-2.7.4
+2.17.1
 

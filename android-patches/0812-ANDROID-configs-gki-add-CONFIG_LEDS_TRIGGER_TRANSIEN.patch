@@ -1,4 +1,4 @@
-From 3e7b226f13314341f3507769066ff48c6e7afe86 Mon Sep 17 00:00:00 2001
+From 513dbe784671bd2be593198b78191166d9951305 Mon Sep 17 00:00:00 2001
 From: Harpreet Eli Sangha <eliptus@google.com>
 Date: Thu, 8 Oct 2020 11:33:26 +0900
 Subject: [PATCH 812/830] ANDROID: configs: gki: add
@@ -17,7 +17,7 @@ Signed-off-by: Will McVicker <willmcvicker@google.com>
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index cd98777..6af0779 100644
+index cd98777fd6e7..6af07796a89e 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -444,6 +444,7 @@ CONFIG_MMC_SDHCI=y
@@ -29,7 +29,7 @@ index cd98777..6af0779 100644
  CONFIG_RTC_CLASS=y
  CONFIG_RTC_DRV_PL030=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 8af3e7a..ec0e232 100644
+index 8af3e7a91bad..ec0e232ca7eb 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -398,6 +398,7 @@ CONFIG_MMC_SDHCI=y
@@ -41,5 +41,5 @@ index 8af3e7a..ec0e232 100644
  CONFIG_RTC_CLASS=y
  CONFIG_DMABUF_HEAPS=y
 -- 
-2.7.4
+2.17.1
 

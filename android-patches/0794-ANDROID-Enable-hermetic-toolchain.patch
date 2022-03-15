@@ -1,4 +1,4 @@
-From 176583bef9b137b860a8e039cabcb2a82ada780e Mon Sep 17 00:00:00 2001
+From 359dc8d7bc32669096d02658e1f81946e007f165 Mon Sep 17 00:00:00 2001
 From: Matthias Maennich <maennich@google.com>
 Date: Fri, 30 Oct 2020 15:51:19 +0000
 Subject: [PATCH 794/830] ANDROID: Enable hermetic toolchain
@@ -17,7 +17,7 @@ Signed-off-by: Matthias Maennich <maennich@google.com>
  2 files changed, 4 insertions(+)
 
 diff --git a/build.config.allmodconfig b/build.config.allmodconfig
-index 56e4d2d..a76807f 100644
+index 56e4d2d29dc0..a76807f830a3 100644
 --- a/build.config.allmodconfig
 +++ b/build.config.allmodconfig
 @@ -10,3 +10,5 @@ function update_config() {
@@ -27,7 +27,7 @@ index 56e4d2d..a76807f 100644
 +
 +ADDITIONAL_HOST_TOOLS="${ADDITIONAL_HOST_TOOLS} openssl"
 diff --git a/build.config.common b/build.config.common
-index 25de474..8605f2c 100644
+index 25de474489bd..8605f2c00aca 100644
 --- a/build.config.common
 +++ b/build.config.common
 @@ -11,3 +11,5 @@ EXTRA_CMDS=''
@@ -37,5 +37,5 @@ index 25de474..8605f2c 100644
 +
 +HERMETIC_TOOLCHAIN=1
 -- 
-2.7.4
+2.17.1
 

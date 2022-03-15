@@ -1,4 +1,4 @@
-From 2d586688bec5a6e7954dcd093bdb7eb1adb8865b Mon Sep 17 00:00:00 2001
+From 63faffb57a27d74f6f6eb4338fd0d13e59f370ac Mon Sep 17 00:00:00 2001
 From: Sangmoon Kim <sangmoon.kim@samsung.com>
 Date: Wed, 5 Aug 2020 22:13:43 +0900
 Subject: [PATCH 150/830] ANDROID: vendor_hooks: add waiting information for
@@ -18,17 +18,17 @@ Signed-off-by: Sangmoon Kim <sangmoon.kim@samsung.com>
 Change-Id: Ib436fbd8d0ad509c3b5a73ea8f5170e0761a13fd
 (cherry picked from commit b519ac423787d38f467ca479d2126b7204d6f498)
 ---
- drivers/android/vendor_hooks.c |  8 +++++++
+ drivers/android/vendor_hooks.c |  8 +++++
  include/linux/sched.h          |  2 ++
- include/trace/hooks/dtask.h    | 53 ++++++++++++++++++++++++++++++++++++++++++
+ include/trace/hooks/dtask.h    | 53 ++++++++++++++++++++++++++++++++++
  kernel/locking/mutex.c         |  5 ++++
- kernel/locking/rwsem.c         |  7 ++++++
+ kernel/locking/rwsem.c         |  7 +++++
  kernel/sched/core.c            |  2 ++
  6 files changed, 77 insertions(+)
  create mode 100644 include/trace/hooks/dtask.h
 
 diff --git a/drivers/android/vendor_hooks.c b/drivers/android/vendor_hooks.c
-index 6d303bf..31d843f 100644
+index 6d303bf48ccc..31d843f43cc2 100644
 --- a/drivers/android/vendor_hooks.c
 +++ b/drivers/android/vendor_hooks.c
 @@ -12,6 +12,7 @@
@@ -54,7 +54,7 @@ index 6d303bf..31d843f 100644
  EXPORT_TRACEPOINT_SYMBOL_GPL(android_rvh_find_busiest_group);
  EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_wq_lockup_pool);
 diff --git a/include/linux/sched.h b/include/linux/sched.h
-index b85b26d..e61772a 100644
+index f996d1f343bb..47b7276199a7 100644
 --- a/include/linux/sched.h
 +++ b/include/linux/sched.h
 @@ -34,6 +34,7 @@
@@ -75,7 +75,7 @@ index b85b26d..e61772a 100644
  	 * New fields for task_struct should be added above here, so that
 diff --git a/include/trace/hooks/dtask.h b/include/trace/hooks/dtask.h
 new file mode 100644
-index 00000000..f4fafbf
+index 000000000000..f4fafbfedc23
 --- /dev/null
 +++ b/include/trace/hooks/dtask.h
 @@ -0,0 +1,53 @@
@@ -133,7 +133,7 @@ index 00000000..f4fafbf
 +/* This part must be outside protection */
 +#include <trace/define_trace.h>
 diff --git a/kernel/locking/mutex.c b/kernel/locking/mutex.c
-index 8606190..525a0b8 100644
+index 86061901636c..525a0b876320 100644
 --- a/kernel/locking/mutex.c
 +++ b/kernel/locking/mutex.c
 @@ -36,6 +36,8 @@
@@ -170,7 +170,7 @@ index 8606190..525a0b8 100644
  err_early_kill:
  	spin_unlock(&lock->wait_lock);
 diff --git a/kernel/locking/rwsem.c b/kernel/locking/rwsem.c
-index 7471b23..738ae63 100644
+index 4ff7ec6c6ab9..783648a6593e 100644
 --- a/kernel/locking/rwsem.c
 +++ b/kernel/locking/rwsem.c
 @@ -30,6 +30,7 @@
@@ -230,7 +230,7 @@ index 7471b23..738ae63 100644
  	list_del(&waiter.list);
  
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 260a9e9..f0525af8 100644
+index 260a9e90a434..f0525af80b1c 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -28,6 +28,7 @@
@@ -250,5 +250,5 @@ index 260a9e9..f0525af8 100644
  	put_task_stack(p);
  }
 -- 
-2.7.4
+2.17.1
 

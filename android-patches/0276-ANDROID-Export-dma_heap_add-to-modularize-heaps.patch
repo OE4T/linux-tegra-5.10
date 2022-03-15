@@ -1,4 +1,4 @@
-From 408ef84147a894df7ce2b8911a0bdc921ba20490 Mon Sep 17 00:00:00 2001
+From 28c75cb8574cd441b1f3df46c674b905323a323b Mon Sep 17 00:00:00 2001
 From: Chris Goldsworthy <cgoldswo@codeaurora.org>
 Date: Sat, 16 May 2020 10:22:16 -0700
 Subject: [PATCH 276/830] ANDROID: Export dma_heap_add to modularize heaps
@@ -14,10 +14,10 @@ Change-Id: I7e63c8e757d8cbbfaa1ef34eba8f589d70ba0b91
  1 file changed, 1 insertion(+)
 
 diff --git a/drivers/dma-buf/dma-heap.c b/drivers/dma-buf/dma-heap.c
-index afd22c9..f225589 100644
+index 798f86fcd50f..eab510bc4af9 100644
 --- a/drivers/dma-buf/dma-heap.c
 +++ b/drivers/dma-buf/dma-heap.c
-@@ -272,6 +272,7 @@ struct dma_heap *dma_heap_add(const struct dma_heap_export_info *exp_info)
+@@ -274,6 +274,7 @@ struct dma_heap *dma_heap_add(const struct dma_heap_export_info *exp_info)
  	kfree(heap);
  	return err_ret;
  }
@@ -26,5 +26,5 @@ index afd22c9..f225589 100644
  static char *dma_heap_devnode(struct device *dev, umode_t *mode)
  {
 -- 
-2.7.4
+2.17.1
 

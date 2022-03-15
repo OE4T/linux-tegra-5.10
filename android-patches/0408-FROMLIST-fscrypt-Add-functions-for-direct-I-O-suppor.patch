@@ -1,4 +1,4 @@
-From 15d623425ec8dc7d79410a57e9eeee608ba09c8e Mon Sep 17 00:00:00 2001
+From 9ded04147031e0157599253213144cae88c5866e Mon Sep 17 00:00:00 2001
 From: Eric Biggers <ebiggers@google.com>
 Date: Thu, 9 Jul 2020 19:47:47 +0000
 Subject: [PATCH 408/830] FROMLIST: fscrypt: Add functions for direct I/O
@@ -32,13 +32,13 @@ Bug: 162255927
 Link: https://lore.kernel.org/r/20200709194751.2579207-2-satyat@google.com
 Change-Id: Ib9e77373e3967a6509802b594b4dc5731154ecbc
 ---
- fs/crypto/crypto.c       |  8 ++++++
- fs/crypto/inline_crypt.c | 72 ++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/fscrypt.h  | 19 +++++++++++++
+ fs/crypto/crypto.c       |  8 +++++
+ fs/crypto/inline_crypt.c | 72 ++++++++++++++++++++++++++++++++++++++++
+ include/linux/fscrypt.h  | 19 +++++++++++
  3 files changed, 99 insertions(+)
 
 diff --git a/fs/crypto/crypto.c b/fs/crypto/crypto.c
-index 4ef3f71..171500f 100644
+index 4ef3f714046a..171500f51a49 100644
 --- a/fs/crypto/crypto.c
 +++ b/fs/crypto/crypto.c
 @@ -69,6 +69,14 @@ void fscrypt_free_bounce_page(struct page *bounce_page)
@@ -57,7 +57,7 @@ index 4ef3f71..171500f 100644
  			 const struct fscrypt_info *ci)
  {
 diff --git a/fs/crypto/inline_crypt.c b/fs/crypto/inline_crypt.c
-index 5935808..aa61b3c5 100644
+index 59358084cba6..aa61b3c5933a 100644
 --- a/fs/crypto/inline_crypt.c
 +++ b/fs/crypto/inline_crypt.c
 @@ -17,6 +17,7 @@
@@ -144,7 +144,7 @@ index 5935808..aa61b3c5 100644
 +	return min_t(u64, nr_pages, (u64)U32_MAX + 1 - dun);
 +}
 diff --git a/include/linux/fscrypt.h b/include/linux/fscrypt.h
-index aed4a470..8cf9c12 100644
+index aed4a4709af5..8cf9c129c6f1 100644
 --- a/include/linux/fscrypt.h
 +++ b/include/linux/fscrypt.h
 @@ -608,6 +608,11 @@ bool fscrypt_mergeable_bio(struct bio *bio, const struct inode *inode,
@@ -181,5 +181,5 @@ index aed4a470..8cf9c12 100644
  
  #if IS_ENABLED(CONFIG_FS_ENCRYPTION) && IS_ENABLED(CONFIG_DM_DEFAULT_KEY)
 -- 
-2.7.4
+2.17.1
 

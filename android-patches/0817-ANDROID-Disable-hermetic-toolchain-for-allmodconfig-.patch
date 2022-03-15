@@ -1,4 +1,4 @@
-From 0d6f51e5a7f2ed513d00163746c3e949589885d0 Mon Sep 17 00:00:00 2001
+From e742fe2a6458dd7eb76df420118d2217312e2931 Mon Sep 17 00:00:00 2001
 From: Matthias Maennich <maennich@google.com>
 Date: Tue, 8 Dec 2020 10:04:34 +0000
 Subject: [PATCH 817/830] ANDROID: Disable hermetic toolchain for allmodconfig
@@ -16,7 +16,7 @@ Change-Id: Idcd0233893059d4a10951edf51cba0b3b7a9a0f1
  1 file changed, 2 insertions(+)
 
 diff --git a/build.config.allmodconfig b/build.config.allmodconfig
-index 89b6c5c..f35ffe6 100644
+index 89b6c5c1b84b..f35ffe60274b 100644
 --- a/build.config.allmodconfig
 +++ b/build.config.allmodconfig
 @@ -1,5 +1,7 @@
@@ -28,5 +28,5 @@ index 89b6c5c..f35ffe6 100644
  function update_config() {
      ${KERNEL_DIR}/scripts/config --file ${OUT_DIR}/.config \
 -- 
-2.7.4
+2.17.1
 

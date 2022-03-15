@@ -1,4 +1,4 @@
-From a1aecdfecd993202827d319e3a6989c687bbeea2 Mon Sep 17 00:00:00 2001
+From 9430d1b0a219d98237101a6567aeac4ca2c9af31 Mon Sep 17 00:00:00 2001
 From: Kalesh Singh <kaleshsingh@google.com>
 Date: Thu, 23 Jul 2020 14:26:13 +0000
 Subject: [PATCH 224/830] ANDROID: GKI: Don't compact data structures when
@@ -18,7 +18,7 @@ Signed-off-by: Kalesh Singh <kaleshsingh@google.com>
  2 files changed, 4 deletions(-)
 
 diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
-index 63b5504..c4e794d 100644
+index c142a152d6a4..e6da7f01e16c 100644
 --- a/include/linux/mmzone.h
 +++ b/include/linux/mmzone.h
 @@ -155,9 +155,7 @@ enum zone_stat_item {
@@ -32,7 +32,7 @@ index 63b5504..c4e794d 100644
  	NR_VM_ZONE_STAT_ITEMS };
  
 diff --git a/mm/vmstat.c b/mm/vmstat.c
-index 698bc0b..cf8df27 100644
+index 698bc0bc18d1..cf8df279a7c6 100644
 --- a/mm/vmstat.c
 +++ b/mm/vmstat.c
 @@ -1159,9 +1159,7 @@ const char * const vmstat_text[] = {
@@ -46,5 +46,5 @@ index 698bc0b..cf8df27 100644
  
  	/* enum numa_stat_item counters */
 -- 
-2.7.4
+2.17.1
 

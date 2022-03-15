@@ -1,4 +1,4 @@
-From 10f935cdf12c4d308791bbcd9d66e038f64d8852 Mon Sep 17 00:00:00 2001
+From d396ace04402d15b2e3352d6d605f5800d5a7f17 Mon Sep 17 00:00:00 2001
 From: Badhri Jagan Sridharan <badhri@google.com>
 Date: Wed, 28 Oct 2020 23:31:34 -0700
 Subject: [PATCH 012/830] FROMGIT: usb: typec: tcpci_maxim: Fix vbus stuck on
@@ -25,7 +25,7 @@ Change-Id: Ib9189de393cb29129419babbfaf333a34e1d4035
  1 file changed, 14 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/usb/typec/tcpm/tcpci_maxim.c b/drivers/usb/typec/tcpm/tcpci_maxim.c
-index 723d7dd..43dcad9 100644
+index 723d7dd38f75..43dcad95e897 100644
 --- a/drivers/usb/typec/tcpm/tcpci_maxim.c
 +++ b/drivers/usb/typec/tcpm/tcpci_maxim.c
 @@ -238,23 +238,22 @@ static void process_power_status(struct max_tcpci_chip *chip)
@@ -74,5 +74,5 @@ index 723d7dd..43dcad9 100644
  	max_tcpci_init_regs(chip);
  	chip->tcpci = tcpci_register_port(chip->dev, &chip->data);
 -- 
-2.7.4
+2.17.1
 

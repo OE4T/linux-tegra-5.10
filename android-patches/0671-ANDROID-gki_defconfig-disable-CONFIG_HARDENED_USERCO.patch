@@ -1,4 +1,4 @@
-From d4e9309057a499cb4ccf6c0d51ea4ed20d676bc7 Mon Sep 17 00:00:00 2001
+From 0f2efbbc2e73004ddf6c9137fd94418aea04b826 Mon Sep 17 00:00:00 2001
 From: Greg Kroah-Hartman <gregkh@google.com>
 Date: Fri, 27 Mar 2020 13:57:37 +0100
 Subject: [PATCH 671/830] ANDROID: gki_defconfig: disable
@@ -18,7 +18,7 @@ Change-Id: I11069fa6d66cf23d38d33ccc52492aaa0915b776
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index b0d33d4..67f916e 100644
+index b0d33d41d0a7..67f916e4af55 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -455,6 +455,7 @@ CONFIG_SECURITY=y
@@ -30,7 +30,7 @@ index b0d33d4..67f916e 100644
  CONFIG_SECURITY_SELINUX=y
  CONFIG_INIT_STACK_ALL=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 7fa2a1b..fe78fac 100644
+index 7fa2a1b99379..fe78fac35983 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -399,6 +399,7 @@ CONFIG_SECURITY=y
@@ -42,5 +42,5 @@ index 7fa2a1b..fe78fac 100644
  CONFIG_SECURITY_SELINUX=y
  CONFIG_INIT_STACK_ALL=y
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From d10562cdbc7356d51474298915215f088af800d3 Mon Sep 17 00:00:00 2001
+From a32fd003057b9b03a18c5fa399e96fab7a37d9e4 Mon Sep 17 00:00:00 2001
 From: Jack Pham <jackp@codeaurora.org>
 Date: Fri, 20 Nov 2020 09:53:21 -0800
 Subject: [PATCH 341/830] ANDROID: usb: f_accessory: avoid requeuing write req
@@ -29,7 +29,7 @@ Signed-off-by: Jack Pham <jackp@codeaurora.org>
  1 file changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/usb/gadget/function/f_accessory.c b/drivers/usb/gadget/function/f_accessory.c
-index 9260b89..1a51766 100644
+index 9260b89fe768..1a517662bada 100644
 --- a/drivers/usb/gadget/function/f_accessory.c
 +++ b/drivers/usb/gadget/function/f_accessory.c
 @@ -739,16 +739,16 @@ static ssize_t acc_write(struct file *fp, const char __user *buf,
@@ -55,5 +55,5 @@ index 9260b89..1a51766 100644
  			r = ret;
  			break;
 -- 
-2.7.4
+2.17.1
 

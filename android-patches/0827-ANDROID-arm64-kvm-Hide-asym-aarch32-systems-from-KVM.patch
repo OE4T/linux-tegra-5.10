@@ -1,4 +1,4 @@
-From 70d38cba214b3f273745edbd7fd912952c47d6a5 Mon Sep 17 00:00:00 2001
+From e2cbf1eaf4602525ff5bbbcc3466c1a97dbb5896 Mon Sep 17 00:00:00 2001
 From: Qais Yousef <qais.yousef@arm.com>
 Date: Tue, 22 Sep 2020 14:36:36 +0100
 Subject: [PATCH 827/830] ANDROID: arm64: kvm: Hide asym aarch32 systems from
@@ -31,7 +31,7 @@ Change-Id: I2fc639815632567d0a4697b184ded03392dd572d
  3 files changed, 21 insertions(+), 3 deletions(-)
 
 diff --git a/arch/arm64/include/asm/cpufeature.h b/arch/arm64/include/asm/cpufeature.h
-index 930b3cc..6af7973 100644
+index 930b3cc887d4..6af7973bb5c6 100644
 --- a/arch/arm64/include/asm/cpufeature.h
 +++ b/arch/arm64/include/asm/cpufeature.h
 @@ -614,6 +614,15 @@ static inline bool system_supports_32bit_el0(void)
@@ -51,7 +51,7 @@ index 930b3cc..6af7973 100644
  {
  	u64 mmfr0;
 diff --git a/arch/arm64/kvm/guest.c b/arch/arm64/kvm/guest.c
-index dfb5218..cfccb06 100644
+index dfb5218137ca..cfccb06bc83b 100644
 --- a/arch/arm64/kvm/guest.c
 +++ b/arch/arm64/kvm/guest.c
 @@ -226,7 +226,7 @@ static int set_core_reg(struct kvm_vcpu *vcpu, const struct kvm_one_reg *reg)
@@ -64,7 +64,7 @@ index dfb5218..cfccb06 100644
  			break;
  		case PSR_AA32_MODE_FIQ:
 diff --git a/arch/arm64/kvm/sys_regs.c b/arch/arm64/kvm/sys_regs.c
-index 568f11e..9e4850a 100644
+index 568f11e23830..9e4850aecbc0 100644
 --- a/arch/arm64/kvm/sys_regs.c
 +++ b/arch/arm64/kvm/sys_regs.c
 @@ -674,7 +674,7 @@ static void reset_pmcr(struct kvm_vcpu *vcpu, const struct sys_reg_desc *r)
@@ -102,5 +102,5 @@ index 568f11e..9e4850a 100644
  		val &= ~(0xfUL << ID_AA64PFR1_MTE_SHIFT);
  	} else if (id == SYS_ID_AA64ISAR1_EL1 && !vcpu_has_ptrauth(vcpu)) {
 -- 
-2.7.4
+2.17.1
 

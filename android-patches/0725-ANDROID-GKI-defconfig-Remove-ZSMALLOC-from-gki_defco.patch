@@ -1,4 +1,4 @@
-From 2a44e287f9fb4bad24b56956d41a58e39d8aa4dc Mon Sep 17 00:00:00 2001
+From b0d1a3829fce104604c8f97d035aad91bf931c15 Mon Sep 17 00:00:00 2001
 From: Kalesh Singh <kaleshsingh@google.com>
 Date: Wed, 22 Jul 2020 16:07:32 +0000
 Subject: [PATCH 725/830] ANDROID: GKI defconfig: Remove ZSMALLOC from
@@ -18,7 +18,7 @@ Signed-off-by: Kalesh Singh <kaleshsingh@google.com>
  2 files changed, 2 deletions(-)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 7be2e5d..fc5c3c2 100644
+index 7be2e5d82e1e..fc5c3c2709d3 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -90,7 +90,6 @@ CONFIG_MEMORY_HOTPLUG=y
@@ -30,7 +30,7 @@ index 7be2e5d..fc5c3c2 100644
  CONFIG_PACKET=y
  CONFIG_UNIX=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 0b83062..bc5cac9 100644
+index 0b830627cb65..bc5cac9f674d 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -68,7 +68,6 @@ CONFIG_BINFMT_MISC=y
@@ -42,5 +42,5 @@ index 0b83062..bc5cac9 100644
  CONFIG_PACKET=y
  CONFIG_UNIX=y
 -- 
-2.7.4
+2.17.1
 

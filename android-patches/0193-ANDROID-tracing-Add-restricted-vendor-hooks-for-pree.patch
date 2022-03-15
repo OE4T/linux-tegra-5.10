@@ -1,4 +1,4 @@
-From 96e4e07fdacc94c669a98d2cf7e58752d663b979 Mon Sep 17 00:00:00 2001
+From a3b942a5fdbb898ea651bdf49430256b54ec3cfd Mon Sep 17 00:00:00 2001
 From: Pavankumar Kondeti <pkondeti@codeaurora.org>
 Date: Tue, 1 Dec 2020 14:10:07 +0530
 Subject: [PATCH 193/830] ANDROID: tracing: Add restricted vendor hooks for
@@ -19,14 +19,14 @@ Bug: 174541725
 Change-Id: Ic8d3cdd1c1aa6a9267d0b755694fedffa2ea8e36
 Signed-off-by: Pavankumar Kondeti <pkondeti@codeaurora.org>
 ---
- drivers/android/vendor_hooks.c   |  5 +++++
- include/trace/hooks/preemptirq.h | 43 ++++++++++++++++++++++++++++++++++++++++
- kernel/trace/trace_preemptirq.c  | 40 +++++++++++++++++++++++++++++--------
+ drivers/android/vendor_hooks.c   |  5 ++++
+ include/trace/hooks/preemptirq.h | 43 ++++++++++++++++++++++++++++++++
+ kernel/trace/trace_preemptirq.c  | 40 +++++++++++++++++++++++------
  3 files changed, 80 insertions(+), 8 deletions(-)
  create mode 100644 include/trace/hooks/preemptirq.h
 
 diff --git a/drivers/android/vendor_hooks.c b/drivers/android/vendor_hooks.c
-index 8c385bc..09b8747 100644
+index 8c385bced001..09b87478bbd7 100644
 --- a/drivers/android/vendor_hooks.c
 +++ b/drivers/android/vendor_hooks.c
 @@ -20,6 +20,7 @@
@@ -47,7 +47,7 @@ index 8c385bc..09b8747 100644
 +EXPORT_TRACEPOINT_SYMBOL_GPL(android_rvh_irqs_enable);
 diff --git a/include/trace/hooks/preemptirq.h b/include/trace/hooks/preemptirq.h
 new file mode 100644
-index 00000000..be96261
+index 000000000000..be96261280a6
 --- /dev/null
 +++ b/include/trace/hooks/preemptirq.h
 @@ -0,0 +1,43 @@
@@ -95,7 +95,7 @@ index 00000000..be96261
 +/* This part must be outside protection */
 +#include <trace/define_trace.h>
 diff --git a/kernel/trace/trace_preemptirq.c b/kernel/trace/trace_preemptirq.c
-index f493804..c881e5a 100644
+index f4938040c228..c881e5a5efb8 100644
 --- a/kernel/trace/trace_preemptirq.c
 +++ b/kernel/trace/trace_preemptirq.c
 @@ -14,6 +14,8 @@
@@ -208,5 +208,5 @@ index f493804..c881e5a 100644
  }
  #endif
 -- 
-2.7.4
+2.17.1
 

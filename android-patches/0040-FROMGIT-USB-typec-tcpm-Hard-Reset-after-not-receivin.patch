@@ -1,4 +1,4 @@
-From b4f82991b71f2f7a98c5f86154443a97fc96b68d Mon Sep 17 00:00:00 2001
+From adb5fda7c0e5c6ca89c2a71c2f15b372e039ae8a Mon Sep 17 00:00:00 2001
 From: pumahsu <pumahsu@google.com>
 Date: Thu, 10 Dec 2020 17:05:18 +0100
 Subject: [PATCH 040/830] FROMGIT: USB: typec: tcpm: Hard Reset after not
@@ -34,7 +34,7 @@ Change-Id: I533237250e4ff0e272b230c1b055b9362b8fd4ad
  1 file changed, 11 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/usb/typec/tcpm/tcpm.c b/drivers/usb/typec/tcpm/tcpm.c
-index 6d3856d..04fc0ca 100644
+index 3a8a7b2567e4..f1f913902a18 100644
 --- a/drivers/usb/typec/tcpm/tcpm.c
 +++ b/drivers/usb/typec/tcpm/tcpm.c
 @@ -2251,6 +2251,7 @@ static int tcpm_pd_send_control(struct tcpm_port *port,
@@ -64,5 +64,5 @@ index 6d3856d..04fc0ca 100644
  		default:
  			break;
 -- 
-2.7.4
+2.17.1
 

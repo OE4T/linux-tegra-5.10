@@ -1,4 +1,4 @@
-From 513ef199fd0d9c250e2405cf9f47a0f06aceea81 Mon Sep 17 00:00:00 2001
+From e0c2842c0537e617f22b73dfc1a0881ec97045e2 Mon Sep 17 00:00:00 2001
 From: Wooyeon Kim <wooy88.kim@samsung.com>
 Date: Thu, 9 Jul 2020 14:43:13 +0900
 Subject: [PATCH 086/830] ANDROID: vendor_hooks: FPSIMD save/restore by using
@@ -25,7 +25,7 @@ Change-Id: I853e1b6a9a51e24f770423bbc39fdd84265d78fc
  create mode 100644 include/trace/hooks/fpsimd.h
 
 diff --git a/arch/arm64/include/asm/processor.h b/arch/arm64/include/asm/processor.h
-index fce8cbec..9c5efcc 100644
+index fce8cbecd6bc..9c5efcc6e7f1 100644
 --- a/arch/arm64/include/asm/processor.h
 +++ b/arch/arm64/include/asm/processor.h
 @@ -27,6 +27,7 @@
@@ -46,7 +46,7 @@ index fce8cbec..9c5efcc 100644
  	void			*sve_state;	/* SVE registers, if any */
  	unsigned int		sve_vl;		/* SVE vector length */
 diff --git a/arch/arm64/kernel/process.c b/arch/arm64/kernel/process.c
-index 93e16b0..af4d397 100644
+index 0ec325705763..aa44f00bfe21 100644
 --- a/arch/arm64/kernel/process.c
 +++ b/arch/arm64/kernel/process.c
 @@ -45,6 +45,7 @@
@@ -57,7 +57,7 @@ index 93e16b0..af4d397 100644
  
  #include <asm/alternative.h>
  #include <asm/arch_gicv3.h>
-@@ -580,6 +581,8 @@ __notrace_funcgraph struct task_struct *__switch_to(struct task_struct *prev,
+@@ -572,6 +573,8 @@ __notrace_funcgraph struct task_struct *__switch_to(struct task_struct *prev,
  	 */
  	mte_thread_switch(next);
  
@@ -67,7 +67,7 @@ index 93e16b0..af4d397 100644
  	last = cpu_switch_to(prev, next);
  
 diff --git a/drivers/android/vendor_hooks.c b/drivers/android/vendor_hooks.c
-index cf75759..dc24cdb 100644
+index cf75759e4c3f..dc24cdb3ce00 100644
 --- a/drivers/android/vendor_hooks.c
 +++ b/drivers/android/vendor_hooks.c
 @@ -8,9 +8,10 @@
@@ -84,7 +84,7 @@ index cf75759..dc24cdb 100644
 +EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_is_fpsimd_save);
 diff --git a/include/trace/hooks/fpsimd.h b/include/trace/hooks/fpsimd.h
 new file mode 100644
-index 00000000..73ad2c0
+index 000000000000..73ad2c0009c3
 --- /dev/null
 +++ b/include/trace/hooks/fpsimd.h
 @@ -0,0 +1,26 @@
@@ -115,5 +115,5 @@ index 00000000..73ad2c0
 +/* This part must be outside protection */
 +#include <trace/define_trace.h>
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From acd1ecc06b4e02c8af398ef1f48940c7125a830e Mon Sep 17 00:00:00 2001
+From a71a3487e20e99650824e6a21a0475ca3ad047a3 Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Thu, 27 Aug 2020 14:01:52 -0700
 Subject: [PATCH 478/830] ANDROID: Incremental fs: Remove back links and crcs
@@ -14,7 +14,7 @@ Change-Id: Ia6061f8985db85a66fce0f2f09e1305a21753dd6
  2 files changed, 43 deletions(-)
 
 diff --git a/fs/incfs/format.c b/fs/incfs/format.c
-index 05c23bc..f663a76 100644
+index 05c23bc87ee5..f663a7605727 100644
 --- a/fs/incfs/format.c
 +++ b/fs/incfs/format.c
 @@ -148,26 +148,6 @@ static int append_zeros(struct backing_file_context *bfc, size_t len)
@@ -88,7 +88,7 @@ index 05c23bc..f663a76 100644
  	case INCFS_MD_NONE:
  		break;
 diff --git a/fs/incfs/format.h b/fs/incfs/format.h
-index dea2488..c29556d 100644
+index dea24888c0b6..c29556de594e 100644
 --- a/fs/incfs/format.h
 +++ b/fs/incfs/format.h
 @@ -135,18 +135,9 @@ struct incfs_md_header {
@@ -111,5 +111,5 @@ index dea2488..c29556d 100644
  
  /* Backing file header */
 -- 
-2.7.4
+2.17.1
 

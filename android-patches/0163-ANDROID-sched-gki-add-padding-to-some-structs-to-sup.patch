@@ -1,4 +1,4 @@
-From 93bb6fbf8dea14f60a25a85ed1467ab568bfa9bf Mon Sep 17 00:00:00 2001
+From 1910d159a325f576735d4ea7bfdfb2b4ee1713ee Mon Sep 17 00:00:00 2001
 From: Satya Durga Srinivasu Prabhala <satyap@codeaurora.org>
 Date: Wed, 28 Oct 2020 00:02:04 -0700
 Subject: [PATCH 163/830] ANDROID: sched: gki: add padding to some structs to
@@ -27,7 +27,7 @@ Signed-off-by: Satya Durga Srinivasu Prabhala <satyap@codeaurora.org>
  4 files changed, 14 insertions(+), 1 deletion(-)
 
 diff --git a/include/linux/arch_topology.h b/include/linux/arch_topology.h
-index 0f6cd6b..3f33dfe 100644
+index 0f6cd6b73a61..3f33dfe7f808 100644
 --- a/include/linux/arch_topology.h
 +++ b/include/linux/arch_topology.h
 @@ -7,6 +7,7 @@
@@ -48,7 +48,7 @@ index 0f6cd6b..3f33dfe 100644
  
  #ifdef CONFIG_GENERIC_ARCH_TOPOLOGY
 diff --git a/include/linux/sched.h b/include/linux/sched.h
-index e61772a..58df139 100644
+index 47b7276199a7..04c7cf39d3a3 100644
 --- a/include/linux/sched.h
 +++ b/include/linux/sched.h
 @@ -1357,7 +1357,7 @@ struct task_struct {
@@ -61,7 +61,7 @@ index e61772a..58df139 100644
  	/*
  	 * New fields for task_struct should be added above here, so that
 diff --git a/include/linux/sched/topology.h b/include/linux/sched/topology.h
-index 9ef7bf6..4521582 100644
+index 9ef7bf686a9f..452158253764 100644
 --- a/include/linux/sched/topology.h
 +++ b/include/linux/sched/topology.h
 @@ -3,6 +3,7 @@
@@ -82,7 +82,7 @@ index 9ef7bf6..4521582 100644
  
  struct sched_domain {
 diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index b315684..a62a5ad 100644
+index b31568487062..a62a5adb3a0b 100644
 --- a/kernel/sched/sched.h
 +++ b/kernel/sched/sched.h
 @@ -66,6 +66,7 @@
@@ -121,5 +121,5 @@ index b315684..a62a5ad 100644
  
  #ifdef CONFIG_FAIR_GROUP_SCHED
 -- 
-2.7.4
+2.17.1
 

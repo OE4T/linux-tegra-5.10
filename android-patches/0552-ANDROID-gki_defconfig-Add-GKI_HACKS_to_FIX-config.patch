@@ -1,4 +1,4 @@
-From 4cbb456c14b75f683ed0f2180097cc2dcbff1e3d Mon Sep 17 00:00:00 2001
+From ee3c7da570d7b9e1712bd77640ffa8dfcdb29128 Mon Sep 17 00:00:00 2001
 From: Todd Kjos <tkjos@google.com>
 Date: Tue, 17 Sep 2019 16:22:18 -0700
 Subject: [PATCH 552/830] ANDROID: gki_defconfig: Add GKI_HACKS_to_FIX config
@@ -17,7 +17,7 @@ Signed-off-by: Todd Kjos <tkjos@google.com>
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index cb17636..fc14e84 100644
+index cb1763653b86..fc14e842876b 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -72,6 +72,7 @@ CONFIG_KPROBES=y
@@ -29,7 +29,7 @@ index cb17636..fc14e84 100644
  CONFIG_MEMORY_HOTPLUG=y
  CONFIG_TRANSPARENT_HUGEPAGE=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 032adc2..3b56a7f 100644
+index 032adc240536..3b56a7fe77e7 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -47,6 +47,7 @@ CONFIG_KPROBES=y
@@ -41,5 +41,5 @@ index 032adc2..3b56a7f 100644
  CONFIG_TRANSPARENT_HUGEPAGE=y
  CONFIG_CMA=y
 -- 
-2.7.4
+2.17.1
 

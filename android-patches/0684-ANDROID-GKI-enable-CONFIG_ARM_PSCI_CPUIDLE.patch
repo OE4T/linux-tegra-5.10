@@ -1,4 +1,4 @@
-From da3380828fa6c230eaaaf507540ff012077bf4a5 Mon Sep 17 00:00:00 2001
+From 60d367bfd01d6135e8644587d1a733c1404739dd Mon Sep 17 00:00:00 2001
 From: Steve Muckle <smuckle@google.com>
 Date: Thu, 9 Apr 2020 14:06:59 -0700
 Subject: [PATCH 684/830] ANDROID: GKI: enable CONFIG_ARM_PSCI_CPUIDLE
@@ -14,7 +14,7 @@ Change-Id: I78fb8a206f115eb409a893ded669df7d93460c68
  1 file changed, 1 insertion(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 637c284..e737a11 100644
+index 637c28415681..e737a11bb1c7 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -63,6 +63,7 @@ CONFIG_PM_WAKELOCKS_LIMIT=0
@@ -26,5 +26,5 @@ index 637c284..e737a11 100644
  CONFIG_CPU_FREQ_TIMES=y
  CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDUTIL=y
 -- 
-2.7.4
+2.17.1
 

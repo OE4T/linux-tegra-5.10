@@ -1,4 +1,4 @@
-From 30920d1041703730c2df85279f83bfac89963952 Mon Sep 17 00:00:00 2001
+From 9d67a33efa0b4c02385721b94052e713b8a2fc21 Mon Sep 17 00:00:00 2001
 From: John Stultz <john.stultz@linaro.org>
 Date: Tue, 27 Oct 2020 18:09:33 +0000
 Subject: [PATCH 520/830] ANDROID: dts: Align sdm845 dts files with upstream
@@ -13,12 +13,12 @@ Fixes: f2ddade04bf3 ("ANDROID: lt9611: Sync w/ Vinod's most recent lt9611 patche
 Signed-off-by: John Stultz <john.stultz@linaro.org>
 Change-Id: I93f76c6bbdf465bdfe40067445e47a8e3b3c23cd
 ---
- arch/arm64/boot/dts/qcom/sdm845-db845c.dts | 136 ++---------------------------
+ arch/arm64/boot/dts/qcom/sdm845-db845c.dts | 136 +--------------------
  arch/arm64/boot/dts/qcom/sdm845.dtsi       |   1 -
  2 files changed, 5 insertions(+), 132 deletions(-)
 
 diff --git a/arch/arm64/boot/dts/qcom/sdm845-db845c.dts b/arch/arm64/boot/dts/qcom/sdm845-db845c.dts
-index 8c00050..96d36b3 100644
+index 8c0005086188..96d36b38f269 100644
 --- a/arch/arm64/boot/dts/qcom/sdm845-db845c.dts
 +++ b/arch/arm64/boot/dts/qcom/sdm845-db845c.dts
 @@ -420,37 +420,11 @@
@@ -198,7 +198,7 @@ index 8c00050..96d36b3 100644
  
  &uart3 {
 diff --git a/arch/arm64/boot/dts/qcom/sdm845.dtsi b/arch/arm64/boot/dts/qcom/sdm845.dtsi
-index 6930d8b..ea6e3a1 100644
+index 6930d8b65fd1..ea6e3a11e641 100644
 --- a/arch/arm64/boot/dts/qcom/sdm845.dtsi
 +++ b/arch/arm64/boot/dts/qcom/sdm845.dtsi
 @@ -4291,7 +4291,6 @@
@@ -210,5 +210,5 @@ index 6930d8b..ea6e3a1 100644
  			interrupts = <GIC_SPI 65 IRQ_TYPE_LEVEL_HIGH>,
  				     <GIC_SPI 96 IRQ_TYPE_LEVEL_HIGH>,
 -- 
-2.7.4
+2.17.1
 

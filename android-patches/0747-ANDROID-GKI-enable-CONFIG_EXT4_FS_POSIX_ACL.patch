@@ -1,4 +1,4 @@
-From 2166d8639e7d08e333cc0f393ddc4b0d37948dbf Mon Sep 17 00:00:00 2001
+From 172fc29bc35b42f2c7361d6a82a15c860457d562 Mon Sep 17 00:00:00 2001
 From: Martijn Coenen <maco@google.com>
 Date: Mon, 15 Jun 2020 22:06:36 +0200
 Subject: [PATCH 747/830] ANDROID: GKI: enable CONFIG_EXT4_FS_POSIX_ACL.
@@ -18,7 +18,7 @@ Signed-off-by: Connor O'Brien <connoro@google.com>
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index b4f60ca..0e35466 100644
+index b4f60cac5132..0e3546677e0a 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -412,6 +412,7 @@ CONFIG_LIBNVDIMM=y
@@ -30,7 +30,7 @@ index b4f60ca..0e35466 100644
  CONFIG_F2FS_FS=y
  CONFIG_F2FS_FS_SECURITY=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index d25fc74..bfc29e3 100644
+index d25fc74db047..bfc29e3ab581 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -359,6 +359,7 @@ CONFIG_LIBNVDIMM=y
@@ -42,5 +42,5 @@ index d25fc74..bfc29e3 100644
  CONFIG_F2FS_FS=y
  CONFIG_F2FS_FS_SECURITY=y
 -- 
-2.7.4
+2.17.1
 

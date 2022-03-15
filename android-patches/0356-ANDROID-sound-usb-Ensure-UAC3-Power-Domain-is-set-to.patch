@@ -1,4 +1,4 @@
-From 1f75146e159e04e64b74d613e9e910e7bee9f40f Mon Sep 17 00:00:00 2001
+From 8e2d454a573cc0ca75fa0eca704af12707f0774b Mon Sep 17 00:00:00 2001
 From: Jack Pham <jackp@codeaurora.org>
 Date: Wed, 15 Jan 2020 16:09:44 -0800
 Subject: [PATCH 356/830] ANDROID: sound: usb: Ensure UAC3 Power Domain is set
@@ -21,7 +21,7 @@ Signed-off-by: Jack Pham <jackp@codeaurora.org>
  1 file changed, 7 insertions(+)
 
 diff --git a/sound/usb/pcm.c b/sound/usb/pcm.c
-index f775d9a..14c214a 100644
+index f775d9a738eb..14c214ab04d5 100644
 --- a/sound/usb/pcm.c
 +++ b/sound/usb/pcm.c
 @@ -675,6 +675,8 @@ static int set_format(struct snd_usb_substream *subs, struct audioformat *fmt)
@@ -46,5 +46,5 @@ index f775d9a..14c214a 100644
  		fmt = find_format_and_si(subs, datainterval);
  	else
 -- 
-2.7.4
+2.17.1
 

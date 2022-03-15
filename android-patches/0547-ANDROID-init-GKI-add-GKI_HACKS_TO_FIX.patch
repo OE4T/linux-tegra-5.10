@@ -1,4 +1,4 @@
-From f80380b9ceccc96aede4d6f93949366f2f9a7143 Mon Sep 17 00:00:00 2001
+From 21aae7982d736bf4aea9bbf56a12866dda206bb4 Mon Sep 17 00:00:00 2001
 From: Todd Kjos <tkjos@google.com>
 Date: Wed, 28 Aug 2019 15:52:02 -0700
 Subject: [PATCH 547/830] ANDROID: init: GKI: add GKI_HACKS_TO_FIX
@@ -22,10 +22,10 @@ Signed-off-by: Todd Kjos <tkjos@google.com>
  create mode 100644 init/Kconfig.gki
 
 diff --git a/init/Kconfig b/init/Kconfig
-index e58a6be..c19c27b 100644
+index c0800bbd031f..642a80938fe1 100644
 --- a/init/Kconfig
 +++ b/init/Kconfig
-@@ -2377,3 +2377,5 @@ config ARCH_HAS_SYNC_CORE_BEFORE_USERMODE
+@@ -2387,3 +2387,5 @@ config ARCH_HAS_SYNC_CORE_BEFORE_USERMODE
  # <asm/syscall_wrapper.h>.
  config ARCH_HAS_SYSCALL_WRAPPER
  	def_bool n
@@ -33,7 +33,7 @@ index e58a6be..c19c27b 100644
 +source "init/Kconfig.gki"
 diff --git a/init/Kconfig.gki b/init/Kconfig.gki
 new file mode 100644
-index 00000000..fafcd61
+index 000000000000..fafcd618037d
 --- /dev/null
 +++ b/init/Kconfig.gki
 @@ -0,0 +1,15 @@
@@ -53,5 +53,5 @@ index 00000000..fafcd61
 +	  Unless you are building a GKI kernel to be used with modules
 +	  built from a different config, say N here.
 -- 
-2.7.4
+2.17.1
 

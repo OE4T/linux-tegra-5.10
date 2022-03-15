@@ -1,4 +1,4 @@
-From 853bea8103a3a466dcca8264b0f50b893a290c3f Mon Sep 17 00:00:00 2001
+From 8fbf47bbae03e1df3a80c61b412c89aa58b29e25 Mon Sep 17 00:00:00 2001
 From: Quentin Perret <quentin.perret@arm.com>
 Date: Tue, 30 Jul 2019 13:58:29 +0100
 Subject: [PATCH 142/830] ANDROID: sched: Introduce uclamp latency and boost
@@ -20,7 +20,7 @@ Signed-off-by: Quentin Perret <quentin.perret@arm.com>
  1 file changed, 29 insertions(+)
 
 diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index 0607105..b315684 100644
+index 06071057a5f6..b31568487062 100644
 --- a/kernel/sched/sched.h
 +++ b/kernel/sched/sched.h
 @@ -2459,6 +2459,11 @@ unsigned long uclamp_rq_util_with(struct rq *rq, unsigned long util,
@@ -73,5 +73,5 @@ index 0607105..b315684 100644
  # ifndef arch_scale_freq_invariant
  #  define arch_scale_freq_invariant()	true
 -- 
-2.7.4
+2.17.1
 

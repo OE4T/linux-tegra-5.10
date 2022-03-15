@@ -1,4 +1,4 @@
-From 9b8e20f60f1fd02df54da8529c3fde3bf8547124 Mon Sep 17 00:00:00 2001
+From 3ee83f2a419736591592a096282e55d3864018f7 Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Wed, 23 Sep 2020 12:10:56 -0700
 Subject: [PATCH 488/830] ANDROID: Incremental fs: Fix misuse of cpu_to_leXX
@@ -32,7 +32,7 @@ Change-Id: I48596e9521069fc77bf38c345a568529d61c77dc
  2 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/fs/incfs/format.c b/fs/incfs/format.c
-index 691d7e4..06ddaad 100644
+index 691d7e474328..06ddaade8523 100644
 --- a/fs/incfs/format.c
 +++ b/fs/incfs/format.c
 @@ -413,7 +413,7 @@ int incfs_write_mapping_fh_to_backing_file(struct backing_file_context *bfc,
@@ -45,7 +45,7 @@ index 691d7e4..06ddaad 100644
  	LOCK_REQUIRED(bfc->bc_mutex);
  
 diff --git a/fs/incfs/pseudo_files.c b/fs/incfs/pseudo_files.c
-index 7c20d45..d407209 100644
+index 7c20d452c031..d407209c0d99 100644
 --- a/fs/incfs/pseudo_files.c
 +++ b/fs/incfs/pseudo_files.c
 @@ -922,7 +922,7 @@ static long ioctl_create_mapped_file(struct mount_info *mi, void __user *arg)
@@ -67,5 +67,5 @@ index 7c20d45..d407209 100644
  	poll_wait(f, &mi->mi_blocks_written_notif_wq, wait);
  	blocks_written = atomic_read(&mi->mi_blocks_written);
 -- 
-2.7.4
+2.17.1
 

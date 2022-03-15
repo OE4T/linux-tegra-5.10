@@ -1,4 +1,4 @@
-From a0f916f1c022118ed57843f19bafa95169bbf4c8 Mon Sep 17 00:00:00 2001
+From 229c94f76b6f43889e62caa0361ef688af42611e Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Wed, 2 Sep 2020 15:56:09 -0700
 Subject: [PATCH 481/830] ANDROID: Incremental fs: Add
@@ -10,17 +10,17 @@ Test: incfs_test passes
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
 Change-Id: Ia7a8cab87688fc401f0719df84fe79ea75887692
 ---
- fs/incfs/data_mgmt.c                               | 38 ++++++++-
- fs/incfs/data_mgmt.h                               |  9 ++-
- fs/incfs/format.c                                  | 52 ++++++++++++
- fs/incfs/format.h                                  | 18 ++++-
- fs/incfs/vfs.c                                     | 23 +++++-
- include/uapi/linux/incrementalfs.h                 | 12 +++
- .../selftests/filesystems/incfs/incfs_test.c       | 94 ++++++++++++++++++++++
+ fs/incfs/data_mgmt.c                          | 38 +++++++-
+ fs/incfs/data_mgmt.h                          |  9 +-
+ fs/incfs/format.c                             | 52 ++++++++++
+ fs/incfs/format.h                             | 18 +++-
+ fs/incfs/vfs.c                                | 23 ++++-
+ include/uapi/linux/incrementalfs.h            | 12 +++
+ .../selftests/filesystems/incfs/incfs_test.c  | 94 +++++++++++++++++++
  7 files changed, 241 insertions(+), 5 deletions(-)
 
 diff --git a/fs/incfs/data_mgmt.c b/fs/incfs/data_mgmt.c
-index fc868f7..9bde35b 100644
+index fc868f786e6c..9bde35bf4f0f 100644
 --- a/fs/incfs/data_mgmt.c
 +++ b/fs/incfs/data_mgmt.c
 @@ -274,9 +274,29 @@ struct data_file *incfs_open_data_file(struct mount_info *mi, struct file *bf)
@@ -94,7 +94,7 @@ index fc868f7..9bde35b 100644
  	while (handler->md_record_offset > 0) {
  		error = incfs_read_next_metadata_record(bfc, handler);
 diff --git a/fs/incfs/data_mgmt.h b/fs/incfs/data_mgmt.h
-index 26e9b4b..1acb027 100644
+index 26e9b4bf4d33..1acb027b4c39 100644
 --- a/fs/incfs/data_mgmt.h
 +++ b/fs/incfs/data_mgmt.h
 @@ -249,7 +249,14 @@ struct data_file {
@@ -114,7 +114,7 @@ index 26e9b4b..1acb027 100644
  	struct mtree *df_hash_tree;
  
 diff --git a/fs/incfs/format.c b/fs/incfs/format.c
-index 743aebf..e1a036a 100644
+index 743aebfc80b9..e1a036a6ba44 100644
 --- a/fs/incfs/format.c
 +++ b/fs/incfs/format.c
 @@ -316,6 +316,53 @@ int incfs_write_signature_to_backing_file(struct backing_file_context *bfc,
@@ -184,7 +184,7 @@ index 743aebf..e1a036a 100644
  		res = -ENOTSUPP;
  		break;
 diff --git a/fs/incfs/format.h b/fs/incfs/format.h
-index 3b0266c..240731a 100644
+index 3b0266c9de90..240731a1dcb6 100644
 --- a/fs/incfs/format.h
 +++ b/fs/incfs/format.h
 @@ -118,7 +118,8 @@ enum incfs_metadata_type {
@@ -240,7 +240,7 @@ index 3b0266c..240731a 100644
  
  int incfs_make_empty_backing_file(struct backing_file_context *bfc,
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index 0e1b371..f7a5016 100644
+index 0e1b3713f802..f7a501657378 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -85,8 +85,6 @@ static const struct file_operations incfs_dir_fops = {
@@ -288,7 +288,7 @@ index 0e1b371..f7a5016 100644
  		return -EINVAL;
  	}
 diff --git a/include/uapi/linux/incrementalfs.h b/include/uapi/linux/incrementalfs.h
-index 932e7fd..b8b786e 100644
+index 932e7fd2718e..b8b786e1cde6 100644
 --- a/include/uapi/linux/incrementalfs.h
 +++ b/include/uapi/linux/incrementalfs.h
 @@ -97,6 +97,10 @@
@@ -316,7 +316,7 @@ index 932e7fd..b8b786e 100644
 +
  #endif /* _UAPI_LINUX_INCREMENTALFS_H */
 diff --git a/tools/testing/selftests/filesystems/incfs/incfs_test.c b/tools/testing/selftests/filesystems/incfs/incfs_test.c
-index 0829a98..ad9df46 100644
+index 0829a988807d..ad9df461f897 100644
 --- a/tools/testing/selftests/filesystems/incfs/incfs_test.c
 +++ b/tools/testing/selftests/filesystems/incfs/incfs_test.c
 @@ -3052,6 +3052,99 @@ static int compatibility_test(const char *mount_dir)
@@ -428,5 +428,5 @@ index 0829a98..ad9df46 100644
  #undef MAKE_TEST
  
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From fd52fa08355c6e25a2101506421201dfe8bb28cd Mon Sep 17 00:00:00 2001
+From 4ea8593a558fde608b5892aa515c9335348a4b6d Mon Sep 17 00:00:00 2001
 From: Eric Biggers <ebiggers@google.com>
 Date: Tue, 21 Jan 2020 09:27:43 -0800
 Subject: [PATCH 396/830] ANDROID: dm: add support for passing through inline
@@ -31,16 +31,16 @@ Bug: 162257830
 Change-Id: If28b574f2e28268db5eb9f325d4cf8f96cb63e3f
 Signed-off-by: Eric Biggers <ebiggers@google.com>
 ---
- block/keyslot-manager.c         | 34 +++++++++++++++
+ block/keyslot-manager.c         | 34 ++++++++++++
  drivers/md/dm-core.h            |  4 ++
- drivers/md/dm-table.c           | 52 +++++++++++++++++++++++
- drivers/md/dm.c                 | 92 ++++++++++++++++++++++++++++++++++++++++-
+ drivers/md/dm-table.c           | 52 +++++++++++++++++++
+ drivers/md/dm.c                 | 92 ++++++++++++++++++++++++++++++++-
  include/linux/device-mapper.h   |  6 +++
- include/linux/keyslot-manager.h |  7 ++++
+ include/linux/keyslot-manager.h |  7 +++
  6 files changed, 194 insertions(+), 1 deletion(-)
 
 diff --git a/block/keyslot-manager.c b/block/keyslot-manager.c
-index ec5e10f..80556ba 100644
+index ec5e10fff242..80556bae1458 100644
 --- a/block/keyslot-manager.c
 +++ b/block/keyslot-manager.c
 @@ -423,6 +423,40 @@ void blk_ksm_unregister(struct request_queue *q)
@@ -85,7 +85,7 @@ index ec5e10f..80556ba 100644
  /**
   * blk_ksm_init_passthrough() - Init a passthrough keyslot manager
 diff --git a/drivers/md/dm-core.h b/drivers/md/dm-core.h
-index 3db92d9..d449e902 100644
+index 3db92d9a030b..d449e9026635 100644
 --- a/drivers/md/dm-core.h
 +++ b/drivers/md/dm-core.h
 @@ -13,6 +13,7 @@
@@ -107,7 +107,7 @@ index 3db92d9..d449e902 100644
  	atomic_t holders;
  	atomic_t open_count;
 diff --git a/drivers/md/dm-table.c b/drivers/md/dm-table.c
-index 5c59089..1661316 100644
+index 5c590895c14c..1661316fc487 100644
 --- a/drivers/md/dm-table.c
 +++ b/drivers/md/dm-table.c
 @@ -21,6 +21,8 @@
@@ -184,7 +184,7 @@ index 5c59089..1661316 100644
  	 * Some devices don't use blk_integrity but still want stable pages
  	 * because they do their own checksumming.
 diff --git a/drivers/md/dm.c b/drivers/md/dm.c
-index 19a70f4..6defd54 100644
+index 6030cba5b038..fa95475fd770 100644
 --- a/drivers/md/dm.c
 +++ b/drivers/md/dm.c
 @@ -28,6 +28,7 @@
@@ -216,7 +216,7 @@ index 19a70f4..6defd54 100644
  
  	cleanup_srcu_struct(&md->io_barrier);
  
-@@ -2154,6 +2159,88 @@ struct queue_limits *dm_get_queue_limits(struct mapped_device *md)
+@@ -2156,6 +2161,88 @@ struct queue_limits *dm_get_queue_limits(struct mapped_device *md)
  }
  EXPORT_SYMBOL_GPL(dm_get_queue_limits);
  
@@ -305,7 +305,7 @@ index 19a70f4..6defd54 100644
  /*
   * Setup the DM device's queue based on md's type
   */
-@@ -2185,6 +2272,9 @@ int dm_setup_md_queue(struct mapped_device *md, struct dm_table *t)
+@@ -2187,6 +2274,9 @@ int dm_setup_md_queue(struct mapped_device *md, struct dm_table *t)
  		DMERR("Cannot calculate initial queue limits");
  		return r;
  	}
@@ -316,7 +316,7 @@ index 19a70f4..6defd54 100644
  	blk_register_queue(md->disk);
  
 diff --git a/include/linux/device-mapper.h b/include/linux/device-mapper.h
-index 50cc070..96048aa 100644
+index 50cc070cb1f7..96048aa55eb7 100644
 --- a/include/linux/device-mapper.h
 +++ b/include/linux/device-mapper.h
 @@ -343,6 +343,12 @@ struct dm_target {
@@ -333,7 +333,7 @@ index 50cc070..96048aa 100644
  
  void *dm_per_bio_data(struct bio *bio, size_t data_size);
 diff --git a/include/linux/keyslot-manager.h b/include/linux/keyslot-manager.h
-index 323e15d..bfe7f35 100644
+index 323e15dd6fa7..bfe7f35da4a8 100644
 --- a/include/linux/keyslot-manager.h
 +++ b/include/linux/keyslot-manager.h
 @@ -9,6 +9,8 @@
@@ -358,5 +358,5 @@ index 323e15d..bfe7f35 100644
 +
  #endif /* __LINUX_KEYSLOT_MANAGER_H */
 -- 
-2.7.4
+2.17.1
 

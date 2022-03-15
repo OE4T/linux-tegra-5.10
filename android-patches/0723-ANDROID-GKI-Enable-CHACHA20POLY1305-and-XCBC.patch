@@ -1,4 +1,4 @@
-From 744aec559fccb38c2349bd6c03e8076277d1e0ad Mon Sep 17 00:00:00 2001
+From fc57dc97b150e3a637280079bca0532ba957a650 Mon Sep 17 00:00:00 2001
 From: evitayan <evitayan@google.com>
 Date: Mon, 20 Jul 2020 10:40:39 -0700
 Subject: [PATCH 723/830] ANDROID: GKI: Enable CHACHA20POLY1305 and XCBC
@@ -15,7 +15,7 @@ Change-Id: Ifeeb3d1f3458d46491ba6cd363656bf4737b5cd3
  2 files changed, 4 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 64b19c4..349206f 100644
+index 64b19c4e7a57..349206f231cb 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -479,7 +479,9 @@ CONFIG_STATIC_USERMODEHELPER_PATH=""
@@ -29,7 +29,7 @@ index 64b19c4..349206f 100644
  CONFIG_CRYPTO_ZSTD=y
  CONFIG_CRYPTO_ANSI_CPRNG=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 542726b..f95e842 100644
+index 542726bc5b40..f95e8428ea81 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -426,7 +426,9 @@ CONFIG_STATIC_USERMODEHELPER_PATH=""
@@ -43,5 +43,5 @@ index 542726b..f95e842 100644
  CONFIG_CRYPTO_AES_NI_INTEL=y
  CONFIG_CRYPTO_LZ4=y
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 7a6695e90521b7a4393eb66de2ddb39b375f16a3 Mon Sep 17 00:00:00 2001
+From cb5f81f6f41acd0411401adb359e082be41854b9 Mon Sep 17 00:00:00 2001
 From: Quentin Perret <qperret@google.com>
 Date: Fri, 5 Jun 2020 09:06:50 +0100
 Subject: [PATCH 145/830] ANDROID: sched: Allow EAS without schedutil
@@ -19,13 +19,13 @@ Change-Id: Ied1c5aba6b692e26776b3e2c050780a67cc5bae1
 ---
  Documentation/scheduler/sched-energy.rst |  2 +-
  drivers/cpufreq/cpufreq.c                |  1 -
- include/linux/cpufreq.h                  |  8 --------
- kernel/sched/cpufreq_schedutil.c         | 33 --------------------------------
- kernel/sched/topology.c                  | 17 ----------------
+ include/linux/cpufreq.h                  |  8 ------
+ kernel/sched/cpufreq_schedutil.c         | 33 ------------------------
+ kernel/sched/topology.c                  | 17 ------------
  5 files changed, 1 insertion(+), 60 deletions(-)
 
 diff --git a/Documentation/scheduler/sched-energy.rst b/Documentation/scheduler/sched-energy.rst
-index 001e09c..1f5792c 100644
+index 001e09c95e1d..1f5792ce82a2 100644
 --- a/Documentation/scheduler/sched-energy.rst
 +++ b/Documentation/scheduler/sched-energy.rst
 @@ -397,7 +397,7 @@ Consequently, the only sane governor to use together with EAS is schedutil,
@@ -38,7 +38,7 @@ index 001e09c..1f5792c 100644
  
  6.5 Scale-invariant utilization signals
 diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
-index 8e159fb..3d063c4f 100644
+index 30dafe8fc505..9ee05c04e4de 100644
 --- a/drivers/cpufreq/cpufreq.c
 +++ b/drivers/cpufreq/cpufreq.c
 @@ -2517,7 +2517,6 @@ static int cpufreq_set_policy(struct cpufreq_policy *policy,
@@ -50,7 +50,7 @@ index 8e159fb..3d063c4f 100644
  		}
  		cpufreq_exit_governor(policy);
 diff --git a/include/linux/cpufreq.h b/include/linux/cpufreq.h
-index acbad3b..54ee250 100644
+index acbad3b36322..54ee25053219 100644
 --- a/include/linux/cpufreq.h
 +++ b/include/linux/cpufreq.h
 @@ -1023,14 +1023,6 @@ static inline bool policy_has_boost_freq(struct cpufreq_policy *policy)
@@ -69,7 +69,7 @@ index acbad3b..54ee250 100644
  extern unsigned int arch_freq_get_on_cpu(int cpu);
  
 diff --git a/kernel/sched/cpufreq_schedutil.c b/kernel/sched/cpufreq_schedutil.c
-index 4d3b188..41590c4 100644
+index 4d3b188eef30..41590c48841d 100644
 --- a/kernel/sched/cpufreq_schedutil.c
 +++ b/kernel/sched/cpufreq_schedutil.c
 @@ -990,36 +990,3 @@ struct cpufreq_governor *cpufreq_default_governor(void)
@@ -110,7 +110,7 @@ index 4d3b188..41590c4 100644
 -}
 -#endif
 diff --git a/kernel/sched/topology.c b/kernel/sched/topology.c
-index dd77702..87f9d29 100644
+index ff2c6d3ba6c7..83af406b3971 100644
 --- a/kernel/sched/topology.c
 +++ b/kernel/sched/topology.c
 @@ -323,7 +323,6 @@ static void sched_energy_set(bool has_eas)
@@ -158,5 +158,5 @@ index dd77702..87f9d29 100644
  		tmp = pd_init(i);
  		if (!tmp)
 -- 
-2.7.4
+2.17.1
 

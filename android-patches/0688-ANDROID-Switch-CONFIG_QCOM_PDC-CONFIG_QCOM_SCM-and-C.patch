@@ -1,4 +1,4 @@
-From 0b2cb993d6cc79c5cbd8e8f48a21b088ce4c47bf Mon Sep 17 00:00:00 2001
+From 79281111ac0e19a705ff1be565143195272658a7 Mon Sep 17 00:00:00 2001
 From: John Stultz <john.stultz@linaro.org>
 Date: Fri, 3 Apr 2020 22:12:09 +0000
 Subject: [PATCH 688/830] ANDROID: Switch CONFIG_QCOM_PDC CONFIG_QCOM_SCM and
@@ -19,7 +19,7 @@ Change-Id: I0509628322b20dea5f7e16e973d93d369c0c2bff
  3 files changed, 5 insertions(+), 4 deletions(-)
 
 diff --git a/arch/arm64/configs/db845c_gki.fragment b/arch/arm64/configs/db845c_gki.fragment
-index 648e0fc..675af79 100644
+index 648e0fc61b6c..675af79b35eb 100644
 --- a/arch/arm64/configs/db845c_gki.fragment
 +++ b/arch/arm64/configs/db845c_gki.fragment
 @@ -95,6 +95,9 @@ CONFIG_QCOM_GLINK_SSR=m
@@ -33,7 +33,7 @@ index 648e0fc..675af79 100644
  # XXX Audio bits start here
  CONFIG_I2C_CHARDEV=m
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index e737a11..5f207fc 100644
+index e737a11bb1c7..5f207fccf80e 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -370,7 +370,6 @@ CONFIG_ION_SYSTEM_HEAP=y
@@ -53,7 +53,7 @@ index e737a11..5f207fc 100644
  CONFIG_ANDROID=y
  CONFIG_ANDROID_BINDER_IPC=y
 diff --git a/init/Kconfig.gki b/init/Kconfig.gki
-index a5e8f88..b342a94 100644
+index a5e8f88c618e..b342a9434b7f 100644
 --- a/init/Kconfig.gki
 +++ b/init/Kconfig.gki
 @@ -72,9 +72,9 @@ config GKI_HIDDEN_GPIO_CONFIGS
@@ -69,5 +69,5 @@ index a5e8f88..b342a94 100644
  	  Dummy config option used to enable hidden QCOM configs.
  	  These are normally selected implicitly when a module
 -- 
-2.7.4
+2.17.1
 

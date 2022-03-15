@@ -1,4 +1,4 @@
-From aaf1b40d42716bc90980faf73024f33aba732d7a Mon Sep 17 00:00:00 2001
+From f62803738800aa2bd22f7c1ddeeec99784824994 Mon Sep 17 00:00:00 2001
 From: Greg Kroah-Hartman <gregkh@google.com>
 Date: Mon, 16 Mar 2020 10:54:02 +0100
 Subject: [PATCH 772/830] ANDROID: GKI: enable CONFIG_JUMP_LABEL
@@ -17,7 +17,7 @@ Signed-off-by: Connor O'Brien <connoro@google.com>
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 73e5b95..abeda53 100644
+index 73e5b95a3d85..abeda5317398 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -82,6 +82,7 @@ CONFIG_KVM=y
@@ -29,7 +29,7 @@ index 73e5b95..abeda53 100644
  CONFIG_MODULES=y
  CONFIG_MODULE_UNLOAD=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index d2bc32d..cc17cd2 100644
+index d2bc32d76fd9..cc17cd2c2d35 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -62,6 +62,7 @@ CONFIG_KVM=y
@@ -41,5 +41,5 @@ index d2bc32d..cc17cd2 100644
  CONFIG_MODULE_UNLOAD=y
  CONFIG_MODVERSIONS=y
 -- 
-2.7.4
+2.17.1
 

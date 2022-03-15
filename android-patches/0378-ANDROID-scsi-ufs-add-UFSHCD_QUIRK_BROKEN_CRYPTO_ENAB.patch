@@ -1,4 +1,4 @@
-From 0a292c47a7aa8ca90be87a5e8bfc3315a2efe0c5 Mon Sep 17 00:00:00 2001
+From b6553e9451803c82fa55cfa06bbf3c0ac7779d03 Mon Sep 17 00:00:00 2001
 From: Eric Biggers <ebiggers@google.com>
 Date: Thu, 8 Oct 2020 17:14:09 -0700
 Subject: [PATCH 378/830] ANDROID: scsi: ufs: add
@@ -22,7 +22,7 @@ Signed-off-by: Eric Biggers <ebiggers@google.com>
  2 files changed, 11 insertions(+)
 
 diff --git a/drivers/scsi/ufs/ufshcd-crypto.c b/drivers/scsi/ufs/ufshcd-crypto.c
-index 8bedb4b..955d1ef 100644
+index 8bedb4b13d8a..955d1ef08873 100644
 --- a/drivers/scsi/ufs/ufshcd-crypto.c
 +++ b/drivers/scsi/ufs/ufshcd-crypto.c
 @@ -122,6 +122,10 @@ bool ufshcd_crypto_enable(struct ufs_hba *hba)
@@ -37,7 +37,7 @@ index 8bedb4b..955d1ef 100644
  }
  
 diff --git a/drivers/scsi/ufs/ufshcd.h b/drivers/scsi/ufs/ufshcd.h
-index 5f49e5e..3fb5419 100644
+index 5f49e5e35755..3fb5419ce413 100644
 --- a/drivers/scsi/ufs/ufshcd.h
 +++ b/drivers/scsi/ufs/ufshcd.h
 @@ -596,6 +596,13 @@ enum ufshcd_quirks {
@@ -55,5 +55,5 @@ index 5f49e5e..3fb5419 100644
  
  enum ufshcd_caps {
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From c022b81080b9cc9845c0f304ee1d9d6ebd5c810b Mon Sep 17 00:00:00 2001
+From 1a69ae320feb4378ad324757bf687400dca6d83b Mon Sep 17 00:00:00 2001
 From: Amit Pundir <amit.pundir@linaro.org>
 Date: Tue, 1 Oct 2019 12:39:08 +0530
 Subject: [PATCH 522/830] ANDROID: db845c: Add build config
@@ -29,7 +29,7 @@ Change-Id: Ib32bb07590adcb10e9e208f33773900054202e68
 
 diff --git a/build.config.db845c b/build.config.db845c
 new file mode 100644
-index 00000000..65b768f
+index 000000000000..65b768fb1fb3
 --- /dev/null
 +++ b/build.config.db845c
 @@ -0,0 +1,11 @@
@@ -45,5 +45,5 @@ index 00000000..65b768f
 +arch/arm64/boot/dts/qcom/sdm845-db845c.dtb
 +"
 -- 
-2.7.4
+2.17.1
 

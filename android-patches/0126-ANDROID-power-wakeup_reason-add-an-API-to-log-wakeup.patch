@@ -1,4 +1,4 @@
-From 7a0fa3db0176dc2d587467dc3f9a07549bf38796 Mon Sep 17 00:00:00 2001
+From f31f532d23e9f718499c7e7768ebe124c06f3147 Mon Sep 17 00:00:00 2001
 From: Ruchi Kandoi <kandoiruchi@google.com>
 Date: Wed, 19 Feb 2014 15:30:47 -0800
 Subject: [PATCH 126/830] ANDROID: power: wakeup_reason: add an API to log
@@ -27,16 +27,16 @@ Signed-off-by: Amit Pundir <amit.pundir@linaro.org>
 Change-Id: I81addaf420f1338255c5d0638b0d244a99d777d1
 Signed-off-by: Alistair Delva <adelva@google.com>
 ---
- .../ABI/testing/sysfs-kernel-wakeup_reasons        |  16 ++
- drivers/base/power/main.c                          |   5 +
- drivers/base/power/wakeup.c                        |  32 +++
- drivers/base/syscore.c                             |   5 +-
- include/linux/suspend.h                            |   1 +
- include/linux/wakeup_reason.h                      |  30 +++
- kernel/power/Makefile                              |   1 +
- kernel/power/process.c                             |  22 ++-
- kernel/power/suspend.c                             |  20 +-
- kernel/power/wakeup_reason.c                       | 215 +++++++++++++++++++++
+ .../ABI/testing/sysfs-kernel-wakeup_reasons   |  16 ++
+ drivers/base/power/main.c                     |   5 +
+ drivers/base/power/wakeup.c                   |  32 +++
+ drivers/base/syscore.c                        |   5 +-
+ include/linux/suspend.h                       |   1 +
+ include/linux/wakeup_reason.h                 |  30 +++
+ kernel/power/Makefile                         |   1 +
+ kernel/power/process.c                        |  22 +-
+ kernel/power/suspend.c                        |  20 +-
+ kernel/power/wakeup_reason.c                  | 215 ++++++++++++++++++
  10 files changed, 339 insertions(+), 8 deletions(-)
  create mode 100644 Documentation/ABI/testing/sysfs-kernel-wakeup_reasons
  create mode 100644 include/linux/wakeup_reason.h
@@ -44,7 +44,7 @@ Signed-off-by: Alistair Delva <adelva@google.com>
 
 diff --git a/Documentation/ABI/testing/sysfs-kernel-wakeup_reasons b/Documentation/ABI/testing/sysfs-kernel-wakeup_reasons
 new file mode 100644
-index 00000000..acb19b9
+index 000000000000..acb19b91c192
 --- /dev/null
 +++ b/Documentation/ABI/testing/sysfs-kernel-wakeup_reasons
 @@ -0,0 +1,16 @@
@@ -66,7 +66,7 @@ index 00000000..acb19b9
 +		is the time spent in sleep state.
 \ No newline at end of file
 diff --git a/drivers/base/power/main.c b/drivers/base/power/main.c
-index 4167e2a..ec80388 100644
+index 4167e2aef397..ec8038818b57 100644
 --- a/drivers/base/power/main.c
 +++ b/drivers/base/power/main.c
 @@ -34,6 +34,7 @@
@@ -96,7 +96,7 @@ index 4167e2a..ec80388 100644
  		goto Complete;
  	}
 diff --git a/drivers/base/power/wakeup.c b/drivers/base/power/wakeup.c
-index 0265288..2905c01 100644
+index 6776459a2d23..af269dc029a3 100644
 --- a/drivers/base/power/wakeup.c
 +++ b/drivers/base/power/wakeup.c
 @@ -15,6 +15,7 @@
@@ -107,7 +107,7 @@ index 0265288..2905c01 100644
  #include <trace/events/power.h>
  
  #include "power.h"
-@@ -872,6 +873,37 @@ void pm_wakeup_dev_event(struct device *dev, unsigned int msec, bool hard)
+@@ -873,6 +874,37 @@ void pm_wakeup_dev_event(struct device *dev, unsigned int msec, bool hard)
  }
  EXPORT_SYMBOL_GPL(pm_wakeup_dev_event);
  
@@ -146,7 +146,7 @@ index 0265288..2905c01 100644
  {
  	struct wakeup_source *ws;
 diff --git a/drivers/base/syscore.c b/drivers/base/syscore.c
-index b8b0ed0..a9e22c8 100644
+index b8b0ed064701..a9e22c89ab33 100644
 --- a/drivers/base/syscore.c
 +++ b/drivers/base/syscore.c
 @@ -10,6 +10,7 @@
@@ -169,10 +169,10 @@ index b8b0ed0..a9e22c8 100644
  	list_for_each_entry_continue(ops, &syscore_ops_list, node)
  		if (ops->resume)
 diff --git a/include/linux/suspend.h b/include/linux/suspend.h
-index c96f446..6e71a86 100644
+index f4027750d267..1f603dcb68b5 100644
 --- a/include/linux/suspend.h
 +++ b/include/linux/suspend.h
-@@ -518,6 +518,7 @@ extern bool pm_get_wakeup_count(unsigned int *count, bool block);
+@@ -509,6 +509,7 @@ extern bool pm_get_wakeup_count(unsigned int *count, bool block);
  extern bool pm_save_wakeup_count(unsigned int count);
  extern void pm_wakep_autosleep_enabled(bool set);
  extern void pm_print_active_wakeup_sources(void);
@@ -182,7 +182,7 @@ index c96f446..6e71a86 100644
  extern void unlock_system_sleep(void);
 diff --git a/include/linux/wakeup_reason.h b/include/linux/wakeup_reason.h
 new file mode 100644
-index 00000000..9fbe209
+index 000000000000..9fbe209c7177
 --- /dev/null
 +++ b/include/linux/wakeup_reason.h
 @@ -0,0 +1,30 @@
@@ -217,7 +217,7 @@ index 00000000..9fbe209
 +
 +#endif /* _LINUX_WAKEUP_REASON_H */
 diff --git a/kernel/power/Makefile b/kernel/power/Makefile
-index 5899260..9770575 100644
+index 5899260a8bef..97705757f9c6 100644
 --- a/kernel/power/Makefile
 +++ b/kernel/power/Makefile
 @@ -17,4 +17,5 @@ obj-$(CONFIG_PM_WAKELOCKS)	+= wakelock.o
@@ -227,7 +227,7 @@ index 5899260..9770575 100644
 +obj-$(CONFIG_SUSPEND)		+= wakeup_reason.o
  obj-$(CONFIG_ENERGY_MODEL)	+= energy_model.o
 diff --git a/kernel/power/process.c b/kernel/power/process.c
-index 45b054b..c42e402 100644
+index b9faa363c46a..9b68cf537c02 100644
 --- a/kernel/power/process.c
 +++ b/kernel/power/process.c
 @@ -22,6 +22,7 @@
@@ -288,7 +288,7 @@ index 45b054b..c42e402 100644
  			for_each_process_thread(g, p) {
  				if (p != current && !freezer_should_skip(p)
 diff --git a/kernel/power/suspend.c b/kernel/power/suspend.c
-index 32391ac..bdd9e08 100644
+index 4aa4d5d3947f..310ac9b66c12 100644
 --- a/kernel/power/suspend.c
 +++ b/kernel/power/suspend.c
 @@ -30,6 +30,7 @@
@@ -299,7 +299,7 @@ index 32391ac..bdd9e08 100644
  
  #include "power.h"
  
-@@ -388,7 +389,8 @@ void __weak arch_suspend_enable_irqs(void)
+@@ -386,7 +387,8 @@ void __weak arch_suspend_enable_irqs(void)
   */
  static int suspend_enter(suspend_state_t state, bool *wakeup)
  {
@@ -309,7 +309,7 @@ index 32391ac..bdd9e08 100644
  
  	error = platform_suspend_prepare(state);
  	if (error)
-@@ -396,7 +398,11 @@ static int suspend_enter(suspend_state_t state, bool *wakeup)
+@@ -394,7 +396,11 @@ static int suspend_enter(suspend_state_t state, bool *wakeup)
  
  	error = dpm_suspend_late(PMSG_SUSPEND);
  	if (error) {
@@ -321,7 +321,7 @@ index 32391ac..bdd9e08 100644
  		goto Platform_finish;
  	}
  	error = platform_suspend_prepare_late(state);
-@@ -405,7 +411,11 @@ static int suspend_enter(suspend_state_t state, bool *wakeup)
+@@ -403,7 +409,11 @@ static int suspend_enter(suspend_state_t state, bool *wakeup)
  
  	error = dpm_suspend_noirq(PMSG_SUSPEND);
  	if (error) {
@@ -333,7 +333,7 @@ index 32391ac..bdd9e08 100644
  		goto Platform_early_resume;
  	}
  	error = platform_suspend_prepare_noirq(state);
-@@ -421,8 +431,10 @@ static int suspend_enter(suspend_state_t state, bool *wakeup)
+@@ -419,8 +429,10 @@ static int suspend_enter(suspend_state_t state, bool *wakeup)
  	}
  
  	error = suspend_disable_secondary_cpus();
@@ -345,7 +345,7 @@ index 32391ac..bdd9e08 100644
  
  	arch_suspend_disable_irqs();
  	BUG_ON(!irqs_disabled());
-@@ -439,6 +451,9 @@ static int suspend_enter(suspend_state_t state, bool *wakeup)
+@@ -437,6 +449,9 @@ static int suspend_enter(suspend_state_t state, bool *wakeup)
  			trace_suspend_resume(TPS("machine_suspend"),
  				state, false);
  		} else if (*wakeup) {
@@ -355,7 +355,7 @@ index 32391ac..bdd9e08 100644
  			error = -EBUSY;
  		}
  		syscore_resume();
-@@ -493,6 +508,7 @@ int suspend_devices_and_enter(suspend_state_t state)
+@@ -491,6 +506,7 @@ int suspend_devices_and_enter(suspend_state_t state)
  	error = dpm_suspend_start(PMSG_SUSPEND);
  	if (error) {
  		pr_err("Some devices failed to suspend, or early wake event detected\n");
@@ -365,7 +365,7 @@ index 32391ac..bdd9e08 100644
  	suspend_test_finish("suspend devices");
 diff --git a/kernel/power/wakeup_reason.c b/kernel/power/wakeup_reason.c
 new file mode 100644
-index 00000000..3ce5c90
+index 000000000000..3ce5c902e3d3
 --- /dev/null
 +++ b/kernel/power/wakeup_reason.c
 @@ -0,0 +1,215 @@
@@ -585,5 +585,5 @@ index 00000000..3ce5c90
 +
 +late_initcall(wakeup_reason_init);
 -- 
-2.7.4
+2.17.1
 

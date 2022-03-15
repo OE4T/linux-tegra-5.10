@@ -1,4 +1,4 @@
-From 82af4291af9a25a5283add0b959b3ff7539f0c1a Mon Sep 17 00:00:00 2001
+From 320057f38a1410b30b72c3bc12e4701519257c61 Mon Sep 17 00:00:00 2001
 From: Can Guo <cang@codeaurora.org>
 Date: Wed, 2 Dec 2020 04:04:03 -0800
 Subject: [PATCH 008/830] FROMGIT: scsi: ufs: Print host regs in IRQ handler
@@ -26,10 +26,10 @@ Signed-off-by: Can Guo <cang@codeaurora.org>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/scsi/ufs/ufshcd.c b/drivers/scsi/ufs/ufshcd.c
-index 93eb5ce..813a8a8 100644
+index 95edcfaa4472..49f5cc932bff 100644
 --- a/drivers/scsi/ufs/ufshcd.c
 +++ b/drivers/scsi/ufs/ufshcd.c
-@@ -6252,7 +6252,8 @@ static irqreturn_t ufshcd_check_errors(struct ufs_hba *hba)
+@@ -6266,7 +6266,8 @@ static irqreturn_t ufshcd_check_errors(struct ufs_hba *hba)
  		hba->saved_uic_err |= hba->uic_error;
  
  		/* dump controller state before resetting */
@@ -40,5 +40,5 @@ index 93eb5ce..813a8a8 100644
  		     (hba->saved_uic_err != UFSHCD_UIC_PA_GENERIC_ERROR))) {
  			dev_err(hba->dev, "%s: saved_err 0x%x saved_uic_err 0x%x\n",
 -- 
-2.7.4
+2.17.1
 

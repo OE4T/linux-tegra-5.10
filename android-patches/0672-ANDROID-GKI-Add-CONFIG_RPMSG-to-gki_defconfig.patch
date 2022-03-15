@@ -1,4 +1,4 @@
-From 9de75267c46a17a377171fcba5cee2166c9439da Mon Sep 17 00:00:00 2001
+From 85a8f3d25f8365fcd0a1f5979fd0fb995f14fb5a Mon Sep 17 00:00:00 2001
 From: Alistair Delva <adelva@google.com>
 Date: Fri, 27 Mar 2020 10:18:41 -0700
 Subject: [PATCH 672/830] ANDROID: GKI: Add CONFIG_RPMSG to gki_defconfig
@@ -17,7 +17,7 @@ Signed-off-by: Alistair Delva <adelva@google.com>
  3 files changed, 14 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 67f916e..4bb2165 100644
+index 67f916e4af55..4bb2165763db 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -366,6 +366,7 @@ CONFIG_COMMON_CLK_SCPI=y
@@ -29,7 +29,7 @@ index 67f916e..4bb2165 100644
  CONFIG_DEVFREQ_GOV_PERFORMANCE=y
  CONFIG_DEVFREQ_GOV_POWERSAVE=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index fe78fac..9d50af11 100644
+index fe78fac35983..9d50af11fedb 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -316,6 +316,7 @@ CONFIG_STAGING=y
@@ -41,7 +41,7 @@ index fe78fac..9d50af11 100644
  CONFIG_IIO=y
  CONFIG_IIO_BUFFER=y
 diff --git a/init/Kconfig.gki b/init/Kconfig.gki
-index 1a43c5d..3fc2d9a 100644
+index 1a43c5da3309..3fc2d9a0f79f 100644
 --- a/init/Kconfig.gki
 +++ b/init/Kconfig.gki
 @@ -137,6 +137,17 @@ config GKI_HIDDEN_SOC_BUS_CONFIGS
@@ -71,5 +71,5 @@ index 1a43c5d..3fc2d9a 100644
  	  Dummy config option used to enable core functionality used by
  	  modules that may not be selectable in this config.
 -- 
-2.7.4
+2.17.1
 

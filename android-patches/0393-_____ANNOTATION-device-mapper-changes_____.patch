@@ -1,4 +1,4 @@
-From 9a6ab1c2d04e77dad623caf1f4ff3ef9e39ebeb3 Mon Sep 17 00:00:00 2001
+From 4921a3521a7cc9220090ef12197bf3f65bd14125 Mon Sep 17 00:00:00 2001
 From: Eric Biggers <ebiggers@google.com>
 Date: Wed, 12 Aug 2020 13:58:13 -0700
 Subject: [PATCH 393/830] _____ANNOTATION: device-mapper changes_____
@@ -10,7 +10,7 @@ Signed-off-by: Eric Biggers <ebiggers@google.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/ANNOTATIONS b/ANNOTATIONS
-index d493ebe..acc2a3d 100644
+index d493ebe092b2..acc2a3d8d952 100644
 --- a/ANNOTATIONS
 +++ b/ANNOTATIONS
 @@ -23,3 +23,4 @@ input and HID changes
@@ -19,5 +19,5 @@ index d493ebe..acc2a3d 100644
  block changes
 +device-mapper changes
 -- 
-2.7.4
+2.17.1
 

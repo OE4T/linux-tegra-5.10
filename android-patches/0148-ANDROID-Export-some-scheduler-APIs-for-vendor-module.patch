@@ -1,4 +1,4 @@
-From 747f0d93a2451e5d5ae5e0babe0383a4be6136d5 Mon Sep 17 00:00:00 2001
+From 4950c9e3f03c574c9e48c7505113d650248c65e8 Mon Sep 17 00:00:00 2001
 From: Choonghoon Park <choong.park@samsung.com>
 Date: Mon, 27 Jul 2020 13:34:32 +0900
 Subject: [PATCH 148/830] ANDROID: Export some scheduler APIs for vendor
@@ -36,7 +36,7 @@ Change-Id: Ied940640525101efbbcef6eca0c39f15eb580007
  2 files changed, 5 insertions(+)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index a8e5726..be5ad09 100644
+index a8e5726290d3..be5ad09a6e0a 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -1609,6 +1609,7 @@ void activate_task(struct rq *rq, struct task_struct *p, int flags)
@@ -72,7 +72,7 @@ index a8e5726..be5ad09 100644
  #ifdef CONFIG_NUMA_BALANCING
  static void __migrate_swap_task(struct task_struct *p, int cpu)
 diff --git a/kernel/stop_machine.c b/kernel/stop_machine.c
-index 890b79cf..f3c54c9 100644
+index 890b79cf0e7c..f3c54c96a7b4 100644
 --- a/kernel/stop_machine.c
 +++ b/kernel/stop_machine.c
 @@ -370,6 +370,7 @@ bool stop_one_cpu_nowait(unsigned int cpu, cpu_stop_fn_t fn, void *arg,
@@ -84,5 +84,5 @@ index 890b79cf..f3c54c9 100644
  static bool queue_stop_cpus_work(const struct cpumask *cpumask,
  				 cpu_stop_fn_t fn, void *arg,
 -- 
-2.7.4
+2.17.1
 

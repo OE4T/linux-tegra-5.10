@@ -1,4 +1,4 @@
-From 348a24a98fe3ac862aaebf7fc4d65ed7e9c07eec Mon Sep 17 00:00:00 2001
+From 77f09e40774d2f51b7d69234a8094b9666b1afe4 Mon Sep 17 00:00:00 2001
 From: JianMin Liu <jian-min.liu@mediatek.com>
 Date: Tue, 21 Jul 2020 12:13:35 +0800
 Subject: [PATCH 236/830] ANDROID: binder: Add vendor hook to the binder
@@ -21,7 +21,7 @@ Change-Id: If60870623ce2669200238172737dd8455ac34b02
  create mode 100644 include/trace/hooks/binder.h
 
 diff --git a/drivers/android/binder.c b/drivers/android/binder.c
-index e0915ec..4b1daef 100644
+index 02bea1ef92e5..1aa01163a57f 100644
 --- a/drivers/android/binder.c
 +++ b/drivers/android/binder.c
 @@ -66,6 +66,7 @@
@@ -89,7 +89,7 @@ index e0915ec..4b1daef 100644
  	}
  
 diff --git a/drivers/android/vendor_hooks.c b/drivers/android/vendor_hooks.c
-index 37b7139..46f109c 100644
+index 37b7139d16c3..46f109c5a7dc 100644
 --- a/drivers/android/vendor_hooks.c
 +++ b/drivers/android/vendor_hooks.c
 @@ -10,6 +10,7 @@
@@ -112,7 +112,7 @@ index 37b7139..46f109c 100644
  EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_rwsem_write_finished);
 diff --git a/include/trace/hooks/binder.h b/include/trace/hooks/binder.h
 new file mode 100644
-index 00000000..48ef1eb
+index 000000000000..48ef1ebb65ba
 --- /dev/null
 +++ b/include/trace/hooks/binder.h
 @@ -0,0 +1,33 @@
@@ -150,5 +150,5 @@ index 00000000..48ef1eb
 +/* This part must be outside protection */
 +#include <trace/define_trace.h>
 -- 
-2.7.4
+2.17.1
 

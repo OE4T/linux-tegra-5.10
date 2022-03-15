@@ -1,4 +1,4 @@
-From 30f9ca9d54c8ca9f300fc69f3008818a9b815ff3 Mon Sep 17 00:00:00 2001
+From 10ba41e7e0906b34e54832846d08b148e9bf6e06 Mon Sep 17 00:00:00 2001
 From: Abhilasha Rao <abhilasha.hv@samsung.corp-partner.google.com>
 Date: Wed, 29 Jul 2020 15:38:58 +0530
 Subject: [PATCH 155/830] ANDROID: GKI: core: Export for runqueues
@@ -18,7 +18,7 @@ Change-Id: I3e80a46bef2e7c92714b68cc5b6b617ac50bc478
  1 file changed, 1 insertion(+)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index b45ff1c..3f58704 100644
+index b45ff1c4fe68..3f58704da1db 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -46,6 +46,7 @@ EXPORT_TRACEPOINT_SYMBOL_GPL(sched_util_est_se_tp);
@@ -30,5 +30,5 @@ index b45ff1c..3f58704 100644
  #ifdef CONFIG_SCHED_DEBUG
  /*
 -- 
-2.7.4
+2.17.1
 

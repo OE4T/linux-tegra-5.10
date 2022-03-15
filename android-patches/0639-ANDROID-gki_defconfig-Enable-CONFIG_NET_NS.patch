@@ -1,4 +1,4 @@
-From 74c272678fb73c15eca8aa5276d15a523d6552f6 Mon Sep 17 00:00:00 2001
+From 23f41380e4cb8ad74a439502f99ed113e1f3456f Mon Sep 17 00:00:00 2001
 From: Alistair Delva <adelva@google.com>
 Date: Tue, 18 Feb 2020 22:55:21 -0800
 Subject: [PATCH 639/830] ANDROID: gki_defconfig: Enable CONFIG_NET_NS
@@ -14,7 +14,7 @@ Signed-off-by: Alistair Delva <adelva@google.com>
  2 files changed, 7 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 658e7ee..014feeb 100644
+index 658e7ee86645..014feeb69fb0 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -20,6 +20,9 @@ CONFIG_CGROUP_FREEZER=y
@@ -28,7 +28,7 @@ index 658e7ee..014feeb 100644
  CONFIG_BLK_DEV_INITRD=y
  # CONFIG_RD_BZIP2 is not set
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 735e1b9d..be2a2a9 100644
+index 735e1b9d43dc..be2a2a998c3d 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -20,6 +20,10 @@ CONFIG_CGROUP_FREEZER=y
@@ -43,5 +43,5 @@ index 735e1b9d..be2a2a9 100644
  CONFIG_BLK_DEV_INITRD=y
  # CONFIG_RD_BZIP2 is not set
 -- 
-2.7.4
+2.17.1
 

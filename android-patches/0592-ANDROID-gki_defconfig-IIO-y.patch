@@ -1,4 +1,4 @@
-From 022e3b57a40942513e4b7b4e0d490396ebe4be97 Mon Sep 17 00:00:00 2001
+From d837c1b223db977719e0111e6903333281e924cf Mon Sep 17 00:00:00 2001
 From: Mark Salyzyn <salyzyn@google.com>
 Date: Mon, 2 Dec 2019 17:02:48 -0800
 Subject: [PATCH 592/830] ANDROID: gki_defconfig: IIO=y
@@ -16,7 +16,7 @@ Change-Id: If4d6b09cc4fc4807404311d793713557ee88f66b
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 12359c34..8689511 100644
+index 12359c34dfa1..868951152439 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -378,6 +378,7 @@ CONFIG_DEVFREQ_GOV_POWERSAVE=y
@@ -28,7 +28,7 @@ index 12359c34..8689511 100644
  CONFIG_QCOM_PDC=y
  CONFIG_GENERIC_PHY=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 861dac9..53edd7b 100644
+index 861dac98bb64..53edd7b99449 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -318,6 +318,7 @@ CONFIG_ION=y
@@ -40,5 +40,5 @@ index 861dac9..53edd7b 100644
  CONFIG_ANDROID_BINDER_IPC=y
  CONFIG_EXT4_FS=y
 -- 
-2.7.4
+2.17.1
 

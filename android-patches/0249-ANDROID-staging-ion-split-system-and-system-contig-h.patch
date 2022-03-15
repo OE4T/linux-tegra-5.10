@@ -1,4 +1,4 @@
-From 70fb379d6242624412221f05237ffab30a6c55d4 Mon Sep 17 00:00:00 2001
+From b5c9d18c41de89ee198237cf707855a8b7e97b22 Mon Sep 17 00:00:00 2001
 From: Sandeep Patil <sspatil@google.com>
 Date: Thu, 8 Aug 2019 08:50:56 -0700
 Subject: [PATCH 249/830] ANDROID: staging: ion: split system and system-contig
@@ -16,15 +16,15 @@ Signed-off-by: Sandeep Patil <sspatil@google.com>
 [ebiggers: split the gki_defconfig changes into a separate patch]
 Signed-off-by: Eric Biggers <ebiggers@google.com>
 ---
- drivers/staging/android/ion/heaps/Kconfig          |   8 ++
- drivers/staging/android/ion/heaps/Makefile         |   1 +
- .../android/ion/heaps/ion_system_contig_heap.c     | 111 +++++++++++++++++++++
- .../staging/android/ion/heaps/ion_system_heap.c    |  95 ------------------
+ drivers/staging/android/ion/heaps/Kconfig     |   8 ++
+ drivers/staging/android/ion/heaps/Makefile    |   1 +
+ .../ion/heaps/ion_system_contig_heap.c        | 111 ++++++++++++++++++
+ .../android/ion/heaps/ion_system_heap.c       |  95 ---------------
  4 files changed, 120 insertions(+), 95 deletions(-)
  create mode 100644 drivers/staging/android/ion/heaps/ion_system_contig_heap.c
 
 diff --git a/drivers/staging/android/ion/heaps/Kconfig b/drivers/staging/android/ion/heaps/Kconfig
-index 7affa91..f1c7a6b 100644
+index 7affa91ecabb..f1c7a6b79c01 100644
 --- a/drivers/staging/android/ion/heaps/Kconfig
 +++ b/drivers/staging/android/ion/heaps/Kconfig
 @@ -6,6 +6,14 @@ config ION_SYSTEM_HEAP
@@ -43,7 +43,7 @@ index 7affa91..f1c7a6b 100644
  	bool "Ion CMA heap support"
  	depends on ION && DMA_CMA
 diff --git a/drivers/staging/android/ion/heaps/Makefile b/drivers/staging/android/ion/heaps/Makefile
-index 1279126..e2ee931 100644
+index 127912629f0b..e2ee931100d0 100644
 --- a/drivers/staging/android/ion/heaps/Makefile
 +++ b/drivers/staging/android/ion/heaps/Makefile
 @@ -1,3 +1,4 @@
@@ -53,7 +53,7 @@ index 1279126..e2ee931 100644
  obj-$(CONFIG_ION_CMA_HEAP) += ion_cma_heap.o
 diff --git a/drivers/staging/android/ion/heaps/ion_system_contig_heap.c b/drivers/staging/android/ion/heaps/ion_system_contig_heap.c
 new file mode 100644
-index 00000000..3a07ef9
+index 000000000000..3a07ef931c2e
 --- /dev/null
 +++ b/drivers/staging/android/ion/heaps/ion_system_contig_heap.c
 @@ -0,0 +1,111 @@
@@ -169,7 +169,7 @@ index 00000000..3a07ef9
 +device_initcall(ion_system_contig_heap_create);
 +
 diff --git a/drivers/staging/android/ion/heaps/ion_system_heap.c b/drivers/staging/android/ion/heaps/ion_system_heap.c
-index c037b9f..1fe03f3 100644
+index c037b9f7c75b..1fe03f3339fa 100644
 --- a/drivers/staging/android/ion/heaps/ion_system_heap.c
 +++ b/drivers/staging/android/ion/heaps/ion_system_heap.c
 @@ -281,98 +281,3 @@ static int ion_system_heap_create(void)
@@ -272,5 +272,5 @@ index c037b9f..1fe03f3 100644
 -}
 -device_initcall(ion_system_contig_heap_create);
 -- 
-2.7.4
+2.17.1
 

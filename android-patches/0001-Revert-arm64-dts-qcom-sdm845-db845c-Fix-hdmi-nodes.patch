@@ -1,4 +1,4 @@
-From 37eb7674456ad35f052c6f218776caa24d575ff1 Mon Sep 17 00:00:00 2001
+From 1c2f5fee54279a7dd8431974e56cac1f5febb371 Mon Sep 17 00:00:00 2001
 From: Greg Kroah-Hartman <gregkh@google.com>
 Date: Tue, 27 Oct 2020 13:13:20 +0100
 Subject: [PATCH 001/830] Revert "arm64: dts: qcom: sdm845-db845c: Fix hdmi
@@ -16,7 +16,7 @@ Change-Id: I4c73e66f0a89cf3ed96fd67b49c9103f35db0e8a
  1 file changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/arch/arm64/boot/dts/qcom/sdm845-db845c.dts b/arch/arm64/boot/dts/qcom/sdm845-db845c.dts
-index 96d36b3..f926b55 100644
+index 96d36b38f269..f926b5517dba 100644
 --- a/arch/arm64/boot/dts/qcom/sdm845-db845c.dts
 +++ b/arch/arm64/boot/dts/qcom/sdm845-db845c.dts
 @@ -453,16 +453,16 @@
@@ -43,5 +43,5 @@ index 96d36b3..f926b55 100644
  			};
  		};
 -- 
-2.7.4
+2.17.1
 

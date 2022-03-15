@@ -1,4 +1,4 @@
-From 40fd7be01e38f57d5ac7a6c92428ca6b8022602c Mon Sep 17 00:00:00 2001
+From 19fc795b2e48262366f8c3c5b89c6991b9e3b536 Mon Sep 17 00:00:00 2001
 From: Vincent Donnefort <vincent.donnefort@arm.com>
 Date: Wed, 19 Aug 2020 15:33:15 +0100
 Subject: [PATCH 198/830] ANDROID: cgroup/cpuset: rely on active_mask for
@@ -17,7 +17,7 @@ Signed-off-by: Vincent Donnefort <vincent.donnefort@arm.com>
  1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/kernel/cgroup/cpuset.c b/kernel/cgroup/cpuset.c
-index 4263800..0943d67 100644
+index a7e55e16d595..b28691cef8a3 100644
 --- a/kernel/cgroup/cpuset.c
 +++ b/kernel/cgroup/cpuset.c
 @@ -369,13 +369,13 @@ static inline bool is_in_v2_mode(void)
@@ -51,5 +51,5 @@ index 4263800..0943d67 100644
  
  /*
 -- 
-2.7.4
+2.17.1
 

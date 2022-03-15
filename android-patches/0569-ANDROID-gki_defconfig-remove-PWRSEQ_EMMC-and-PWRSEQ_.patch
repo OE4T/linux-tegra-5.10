@@ -1,4 +1,4 @@
-From 8e9d5fe4102b54d2f552de47af25dbfb62f20bac Mon Sep 17 00:00:00 2001
+From bf1a7ed43e2b511a29028d26f2e0937ba2e69fd3 Mon Sep 17 00:00:00 2001
 From: Ram Muthiah <rammuthiah@google.com>
 Date: Thu, 17 Oct 2019 18:28:10 -0700
 Subject: [PATCH 569/830] ANDROID: gki_defconfig: remove PWRSEQ_EMMC and
@@ -15,7 +15,7 @@ Change-Id: I9a82010eb326b0a336725037e0356a63a0c9f053
  1 file changed, 2 insertions(+)
 
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 469a74e..5add23f 100644
+index 469a74e524c4..5add23fc3d0b 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -289,6 +289,8 @@ CONFIG_USB_CONFIGFS_F_ACC=y
@@ -28,5 +28,5 @@ index 469a74e..5add23f 100644
  CONFIG_LEDS_CLASS=y
  CONFIG_LEDS_TRIGGERS=y
 -- 
-2.7.4
+2.17.1
 

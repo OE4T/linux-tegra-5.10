@@ -1,4 +1,4 @@
-From 7a65780c4152872597eb180880c85322ef9f0e22 Mon Sep 17 00:00:00 2001
+From c2e6684d5997bafee1e34e56b368b6bb7f89ec56 Mon Sep 17 00:00:00 2001
 From: Prasad Sodagudi <psodagud@codeaurora.org>
 Date: Thu, 22 Oct 2020 04:32:05 -0700
 Subject: [PATCH 123/830] ANDROID: Reduce log level for couple of prints in
@@ -18,7 +18,7 @@ Signed-off-by: Prasad Sodagudi <psodagud@codeaurora.org>
  2 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
-index fe9f257..6028fb0 100644
+index fe9f25739540..6028fb021459 100644
 --- a/arch/arm64/kernel/smp.c
 +++ b/arch/arm64/kernel/smp.c
 @@ -363,7 +363,7 @@ void __cpu_die(unsigned int cpu)
@@ -31,7 +31,7 @@ index fe9f257..6028fb0 100644
  	/*
  	 * Now that the dying CPU is beyond the point of no return w.r.t.
 diff --git a/kernel/irq/cpuhotplug.c b/kernel/irq/cpuhotplug.c
-index 02236b1..cf8d4f7 100644
+index 02236b13b359..cf8d4f75632e 100644
 --- a/kernel/irq/cpuhotplug.c
 +++ b/kernel/irq/cpuhotplug.c
 @@ -42,7 +42,7 @@ static inline bool irq_needs_fixup(struct irq_data *d)
@@ -53,5 +53,5 @@ index 02236b1..cf8d4f7 100644
  		}
  	}
 -- 
-2.7.4
+2.17.1
 

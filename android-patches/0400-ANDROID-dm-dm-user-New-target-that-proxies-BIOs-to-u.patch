@@ -1,4 +1,4 @@
-From 2f74d09a07283b0d682be71a1110c1b44dec1a7b Mon Sep 17 00:00:00 2001
+From fe14bea3527209f874006596b3f924fc4278af0e Mon Sep 17 00:00:00 2001
 From: Palmer Dabbelt <palmerdabbelt@google.com>
 Date: Tue, 29 Sep 2020 21:18:22 -0700
 Subject: [PATCH 400/830] ANDROID: dm: dm-user: New target that proxies BIOs to
@@ -21,12 +21,12 @@ Change-Id: If5bcd8a43c3db5b556563ba303f474dd0d2902e8
 ---
  drivers/md/Kconfig   |   14 +
  drivers/md/Makefile  |    1 +
- drivers/md/dm-user.c | 1141 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/md/dm-user.c | 1141 ++++++++++++++++++++++++++++++++++++++++++
  3 files changed, 1156 insertions(+)
  create mode 100644 drivers/md/dm-user.c
 
 diff --git a/drivers/md/Kconfig b/drivers/md/Kconfig
-index ea4c1ce..0305291 100644
+index ea4c1ce4b1a4..030529150aaa 100644
 --- a/drivers/md/Kconfig
 +++ b/drivers/md/Kconfig
 @@ -663,4 +663,18 @@ config DM_BOW
@@ -49,7 +49,7 @@ index ea4c1ce..0305291 100644
 +
  endif # MD
 diff --git a/drivers/md/Makefile b/drivers/md/Makefile
-index 29401cc..df210b4 100644
+index 29401ccb8819..df210b4abb35 100644
 --- a/drivers/md/Makefile
 +++ b/drivers/md/Makefile
 @@ -79,6 +79,7 @@ obj-$(CONFIG_DM_INTEGRITY)	+= dm-integrity.o
@@ -62,7 +62,7 @@ index 29401cc..df210b4 100644
  dm-mod-objs			+= dm-init.o
 diff --git a/drivers/md/dm-user.c b/drivers/md/dm-user.c
 new file mode 100644
-index 00000000..a28c3b0
+index 000000000000..a28c3b0fd02a
 --- /dev/null
 +++ b/drivers/md/dm-user.c
 @@ -0,0 +1,1141 @@
@@ -1208,5 +1208,5 @@ index 00000000..a28c3b0
 +MODULE_DESCRIPTION(DM_NAME " target returning blocks from userspace");
 +MODULE_LICENSE("GPL");
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 62e3cce1e80a42b4f42140f927c008baa9c6a6d1 Mon Sep 17 00:00:00 2001
+From 85cfd28ccf21bc3c28ef94a06c5bcd079707e081 Mon Sep 17 00:00:00 2001
 From: Kyle Tso <kyletso@google.com>
 Date: Thu, 10 Dec 2020 17:05:19 +0100
 Subject: [PATCH 041/830] FROMGIT: USB: typec: tcpm: Fix PR_SWAP error handling
@@ -30,7 +30,7 @@ Change-Id: I6ac90c401e80475180020418253d479c4e6389cc
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/usb/typec/tcpm/tcpm.c b/drivers/usb/typec/tcpm/tcpm.c
-index 04fc0ca..0d526d7 100644
+index f1f913902a18..da1ef7d57842 100644
 --- a/drivers/usb/typec/tcpm/tcpm.c
 +++ b/drivers/usb/typec/tcpm/tcpm.c
 @@ -3759,7 +3759,7 @@ static void run_state_machine(struct tcpm_port *port)
@@ -43,5 +43,5 @@ index 04fc0ca..0d526d7 100644
  	case PR_SWAP_SRC_SNK_SINK_ON:
  		/* Set the vbus disconnect threshold for implicit contract */
 -- 
-2.7.4
+2.17.1
 

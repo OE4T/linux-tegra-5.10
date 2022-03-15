@@ -1,4 +1,4 @@
-From e1d06821e0541a5476aca8cfebc22df6afdd32bf Mon Sep 17 00:00:00 2001
+From 3a0b83bee0914d8d987088b0a8048d358e0504b2 Mon Sep 17 00:00:00 2001
 From: Greg Kroah-Hartman <gregkh@google.com>
 Date: Mon, 29 Jun 2020 13:58:31 +0200
 Subject: [PATCH 806/830] ANDROID: GKI: enable CONFIG_SCSI_UFS_DWC_TC_PLATFORM
@@ -15,7 +15,7 @@ Change-Id: I5a1a6b1231c51148810389c26bc53d734f5c1ca2
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 11c9769..aaa33f7 100644
+index 11c9769ef041..aaa33f71a277 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -247,6 +247,7 @@ CONFIG_BLK_DEV_SD=y
@@ -27,7 +27,7 @@ index 11c9769..aaa33f7 100644
  CONFIG_SCSI_UFS_CRYPTO=y
  CONFIG_MD=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 01e8e2f..fe8ad76 100644
+index 01e8e2fc6368..fe8ad763b618 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -223,6 +223,7 @@ CONFIG_BLK_DEV_SD=y
@@ -39,5 +39,5 @@ index 01e8e2f..fe8ad76 100644
  CONFIG_MD=y
  CONFIG_BLK_DEV_DM=y
 -- 
-2.7.4
+2.17.1
 

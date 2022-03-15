@@ -1,4 +1,4 @@
-From d2b94026c2c519479870f3cede13d1b94fe86c50 Mon Sep 17 00:00:00 2001
+From 3d57b9ce1af75547975d60d78f5deee340866838 Mon Sep 17 00:00:00 2001
 From: Ulf Hansson <ulf.hansson@linaro.org>
 Date: Tue, 3 Nov 2020 16:06:27 +0100
 Subject: [PATCH 052/830] FROMGIT: cpuidle: psci: Enable suspend-to-idle for
@@ -36,11 +36,11 @@ Change-Id: Ie70c496e0c14b18fa1e8b67231d0a56ff047414f
 Signed-off-by: Lina Iyer <ilina@codeaurora.org>
 ---
  drivers/cpuidle/cpuidle-psci-domain.c |  2 ++
- drivers/cpuidle/cpuidle-psci.c        | 34 ++++++++++++++++++++++++++++++----
+ drivers/cpuidle/cpuidle-psci.c        | 34 +++++++++++++++++++++++----
  2 files changed, 32 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/cpuidle/cpuidle-psci-domain.c b/drivers/cpuidle/cpuidle-psci-domain.c
-index 4a031c6..ff2c3f8 100644
+index 4a031c62f92a..ff2c3f8e4668 100644
 --- a/drivers/cpuidle/cpuidle-psci-domain.c
 +++ b/drivers/cpuidle/cpuidle-psci-domain.c
 @@ -327,6 +327,8 @@ struct device *psci_dt_attach_cpu(int cpu)
@@ -53,7 +53,7 @@ index 4a031c6..ff2c3f8 100644
  }
  
 diff --git a/drivers/cpuidle/cpuidle-psci.c b/drivers/cpuidle/cpuidle-psci.c
-index d928b37..b51b5df 100644
+index d928b37718bd..b51b5df08450 100644
 --- a/drivers/cpuidle/cpuidle-psci.c
 +++ b/drivers/cpuidle/cpuidle-psci.c
 @@ -19,6 +19,7 @@
@@ -133,5 +133,5 @@ index d928b37..b51b5df 100644
  
  	return 0;
 -- 
-2.7.4
+2.17.1
 

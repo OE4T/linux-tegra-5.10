@@ -1,4 +1,4 @@
-From b1d927cb22ec3c4ed45f4f5c8bc39709769211fd Mon Sep 17 00:00:00 2001
+From eb2381d638d5b583f3608b89e6e83c97e7861cfa Mon Sep 17 00:00:00 2001
 From: Yongqin Liu <yongqin.liu@linaro.org>
 Date: Thu, 10 Oct 2019 11:35:16 +0800
 Subject: [PATCH 566/830] ANDROID: gki_defconfig: enabled CONFIG_TMPFS
@@ -35,7 +35,7 @@ Signed-off-by: Yongqin Liu <yongqin.liu@linaro.org>
  1 file changed, 1 insertion(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 71d7184..1f0dcde 100644
+index 71d7184770a3..1f0dcdee1dc7 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -386,6 +386,7 @@ CONFIG_FUSE_FS=y
@@ -47,5 +47,5 @@ index 71d7184..1f0dcde 100644
  CONFIG_PSTORE=y
  CONFIG_PSTORE_CONSOLE=y
 -- 
-2.7.4
+2.17.1
 

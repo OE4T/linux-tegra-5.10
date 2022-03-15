@@ -1,4 +1,4 @@
-From 06b603f30578f50ad910afec233be763d076f379 Mon Sep 17 00:00:00 2001
+From 298432085b9089cb6a2f4ed615b3f962a85bd9af Mon Sep 17 00:00:00 2001
 From: Vincent Donnefort <vincent.donnefort@arm.com>
 Date: Fri, 6 Nov 2020 17:52:09 +0000
 Subject: [PATCH 201/830] ANDROID: cpu/hotplug: add migration to paused_cpus
@@ -22,15 +22,15 @@ Signed-off-by: Vincent Donnefort <vincent.donnefort@arm.com>
 sched_cpu_drain CONFIG_HOTPLUG_CPU dependence") into this patch]
 Signed-off-by: Matthias Maennich <maennich@google.com>
 ---
- include/linux/sched.h         |  4 +++
- include/linux/sched/hotplug.h |  2 ++
- kernel/cpu.c                  | 73 +++++++++++++++++++++++++++++++++++++++++++
- kernel/sched/core.c           | 70 ++++++++++++++++++++++++++++++++++++++---
+ include/linux/sched.h         |  4 ++
+ include/linux/sched/hotplug.h |  2 +
+ kernel/cpu.c                  | 73 +++++++++++++++++++++++++++++++++++
+ kernel/sched/core.c           | 70 +++++++++++++++++++++++++++++++--
  kernel/sched/sched.h          |  5 +++
  5 files changed, 150 insertions(+), 4 deletions(-)
 
 diff --git a/include/linux/sched.h b/include/linux/sched.h
-index 7052163..917b1a0 100644
+index 38715eda25d8..30ca6c12a498 100644
 --- a/include/linux/sched.h
 +++ b/include/linux/sched.h
 @@ -718,6 +718,10 @@ struct task_struct {
@@ -45,7 +45,7 @@ index 7052163..917b1a0 100644
  	/* List of struct preempt_notifier: */
  	struct hlist_head		preempt_notifiers;
 diff --git a/include/linux/sched/hotplug.h b/include/linux/sched/hotplug.h
-index 2aa088d2..89fb9b0 100644
+index 2aa088d220e0..89fb9b0278b0 100644
 --- a/include/linux/sched/hotplug.h
 +++ b/include/linux/sched/hotplug.h
 @@ -11,6 +11,8 @@ extern int sched_cpu_activate(unsigned int cpu);
@@ -58,7 +58,7 @@ index 2aa088d2..89fb9b0 100644
  #ifdef CONFIG_HOTPLUG_CPU
  extern int sched_cpu_dying(unsigned int cpu);
 diff --git a/kernel/cpu.c b/kernel/cpu.c
-index c51d75c..7fd788a 100644
+index c51d75c6d294..7fd788aac347 100644
 --- a/kernel/cpu.c
 +++ b/kernel/cpu.c
 @@ -1154,6 +1154,34 @@ EXPORT_SYMBOL_GPL(remove_cpu);
@@ -158,7 +158,7 @@ index c51d75c..7fd788a 100644
  	 * Even if living on the side of the regular HP path, pause is using
  	 * one of the HP step (CPUHP_AP_ACTIVE). This should be reflected on the
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index c0118db..683ec57 100644
+index c0118dbcab6a..683ec572677c 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -6770,11 +6770,14 @@ static struct task_struct *__pick_migrate_task(struct rq *rq)
@@ -178,10 +178,11 @@ index c0118db..683ec57 100644
  	struct rq_flags orf = *rf;
  	int dest_cpu;
  
-@@ -6807,6 +6810,18 @@ static void migrate_tasks(struct rq *dead_rq, struct rq_flags *rf)
+@@ -6806,6 +6809,18 @@ static void migrate_tasks(struct rq *dead_rq, struct rq_flags *rf)
+ 
  		next = __pick_migrate_task(rq);
  
- 		/*
++		/*
 +		 * Argh ... no iterator for tasks, we need to remove the
 +		 * kthread from the run-queue to continue.
 +		 */
@@ -193,10 +194,9 @@ index c0118db..683ec57 100644
 +			continue;
 +		}
 +
-+		/*
+ 		/*
  		 * Rules for changing task_struct::cpus_mask are holding
  		 * both pi_lock and rq->lock, such that holding either
- 		 * stabilizes the mask.
 @@ -6824,7 +6839,14 @@ static void migrate_tasks(struct rq *dead_rq, struct rq_flags *rf)
  		 * changed the task, WARN if weird stuff happened, because in
  		 * that case the above rq->lock drop is a fail too.
@@ -272,7 +272,7 @@ index c0118db..683ec57 100644
  	rq_unlock_irqrestore(rq, &rf);
  
 diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index 23df51c..a6a72a7 100644
+index 23df51cb962b..a6a72a78608d 100644
 --- a/kernel/sched/sched.h
 +++ b/kernel/sched/sched.h
 @@ -1056,6 +1056,11 @@ struct rq {
@@ -288,5 +288,5 @@ index 23df51c..a6a72a7 100644
  	/* Must be inspected within a rcu lock section */
  	struct cpuidle_state	*idle_state;
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 78784dea3811e5dbbaf8c3fc4cae245e1f4be3ac Mon Sep 17 00:00:00 2001
+From 56425e18ab3cbb484d14c2f3c69cee924942e5e5 Mon Sep 17 00:00:00 2001
 From: Matthias Maennich <maennich@google.com>
 Date: Thu, 7 Nov 2019 22:55:05 +0000
 Subject: [PATCH 541/830] ANDROID: Expose gki_defconfig to build.config
@@ -27,7 +27,7 @@ Signed-off-by: Matthias Maennich <maennich@google.com>
 
 diff --git a/build.config.aarch64 b/build.config.aarch64
 new file mode 100644
-index 00000000..523bbc0
+index 000000000000..523bbc0449f7
 --- /dev/null
 +++ b/build.config.aarch64
 @@ -0,0 +1,11 @@
@@ -44,7 +44,7 @@ index 00000000..523bbc0
 +"
 diff --git a/build.config.common b/build.config.common
 new file mode 100644
-index 00000000..decd1a3
+index 000000000000..decd1a3a73fe
 --- /dev/null
 +++ b/build.config.common
 @@ -0,0 +1,10 @@
@@ -60,7 +60,7 @@ index 00000000..decd1a3
 +STOP_SHIP_TRACEPRINTK=1
 diff --git a/build.config.gki b/build.config.gki
 new file mode 100644
-index 00000000..66f6eb8
+index 000000000000..66f6eb8baadb
 --- /dev/null
 +++ b/build.config.gki
 @@ -0,0 +1,4 @@
@@ -70,7 +70,7 @@ index 00000000..66f6eb8
 +
 diff --git a/build.config.gki.aarch64 b/build.config.gki.aarch64
 new file mode 100644
-index 00000000..653e82b
+index 000000000000..653e82bf1965
 --- /dev/null
 +++ b/build.config.gki.aarch64
 @@ -0,0 +1,19 @@
@@ -95,7 +95,7 @@ index 00000000..653e82b
 +BUILD_INITRAMFS=1
 diff --git a/build.config.gki.x86_64 b/build.config.gki.x86_64
 new file mode 100644
-index 00000000..627d1e1
+index 000000000000..627d1e1c27ab
 --- /dev/null
 +++ b/build.config.gki.x86_64
 @@ -0,0 +1,4 @@
@@ -105,7 +105,7 @@ index 00000000..627d1e1
 +
 diff --git a/build.config.x86_64 b/build.config.x86_64
 new file mode 100644
-index 00000000..df73a47
+index 000000000000..df73a47e7220
 --- /dev/null
 +++ b/build.config.x86_64
 @@ -0,0 +1,11 @@
@@ -121,5 +121,5 @@ index 00000000..df73a47
 +System.map
 +"
 -- 
-2.7.4
+2.17.1
 

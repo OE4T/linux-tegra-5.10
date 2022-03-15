@@ -1,4 +1,4 @@
-From 297bf00510eb0b0a180a0c1393d1f1be3c609435 Mon Sep 17 00:00:00 2001
+From 270eed1b0009cbb6064cba78d79c665c065d6ff6 Mon Sep 17 00:00:00 2001
 From: Chris Goldsworthy <cgoldswo@codeaurora.org>
 Date: Mon, 16 Nov 2020 18:38:13 -0800
 Subject: [PATCH 228/830] ANDROID: mm: add cma pcp list
@@ -13,11 +13,11 @@ Signed-off-by: Chris Goldsworthy <cgoldswo@codeaurora.org>
 Change-Id: I601f686097de733dedeb1c47b00693bcc25829ed
 ---
  include/linux/mmzone.h |  4 +--
- mm/page_alloc.c        | 72 +++++++++++++++++++++++++++++++++-----------------
+ mm/page_alloc.c        | 72 ++++++++++++++++++++++++++++--------------
  2 files changed, 50 insertions(+), 26 deletions(-)
 
 diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
-index 367a795..5d2fea3 100644
+index e348b296f2f1..6a380bacbb99 100644
 --- a/include/linux/mmzone.h
 +++ b/include/linux/mmzone.h
 @@ -42,8 +42,6 @@ enum migratetype {
@@ -39,7 +39,7 @@ index 367a795..5d2fea3 100644
  	MIGRATE_ISOLATE,	/* can't allocate from here */
  #endif
 diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 4b7c74e..ef1cf54 100644
+index bedd938c9c19..2cfee58f6e2f 100644
 --- a/mm/page_alloc.c
 +++ b/mm/page_alloc.c
 @@ -324,10 +324,10 @@ const char * const migratetype_names[MIGRATE_TYPES] = {
@@ -174,5 +174,5 @@ index 4b7c74e..ef1cf54 100644
  				return true;
  		}
 -- 
-2.7.4
+2.17.1
 

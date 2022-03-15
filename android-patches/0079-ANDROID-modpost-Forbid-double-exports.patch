@@ -1,4 +1,4 @@
-From f1ec57ddaef147a76a0a4c0a48c217a4028a89c2 Mon Sep 17 00:00:00 2001
+From 6e1d7e5ee4ae8e800c44fa4c69864c9bbedd659b Mon Sep 17 00:00:00 2001
 From: Quentin Perret <qperret@google.com>
 Date: Tue, 24 Nov 2020 14:40:13 +0000
 Subject: [PATCH 079/830] ANDROID: modpost: Forbid double exports
@@ -20,7 +20,7 @@ Change-Id: I674c9c9c327849503e94d79654e6288411a830af
  1 file changed, 3 insertions(+), 4 deletions(-)
 
 diff --git a/scripts/mod/modpost.c b/scripts/mod/modpost.c
-index 6988f18..d20d432c 100644
+index 6988f18283c6..d20d432c94ad 100644
 --- a/scripts/mod/modpost.c
 +++ b/scripts/mod/modpost.c
 @@ -426,10 +426,9 @@ static struct symbol *sym_add_exported(const char *name, struct module *mod,
@@ -38,5 +38,5 @@ index 6988f18..d20d432c 100644
  
  	s->module = mod;
 -- 
-2.7.4
+2.17.1
 

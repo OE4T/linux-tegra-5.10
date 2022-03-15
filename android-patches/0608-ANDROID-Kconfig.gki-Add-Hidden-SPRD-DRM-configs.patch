@@ -1,4 +1,4 @@
-From 5b8b9480a67c2d2bba67c53a2c83a72578c77388 Mon Sep 17 00:00:00 2001
+From 15a511b859b32005f1f63f10791fee37a6f77763 Mon Sep 17 00:00:00 2001
 From: Orson Zhai <orson.zhai@unisoc.com>
 Date: Tue, 24 Dec 2019 17:27:54 +0800
 Subject: [PATCH 608/830] ANDROID: Kconfig.gki: Add Hidden SPRD DRM configs
@@ -15,7 +15,7 @@ Signed-off-by: Alistair Delva <adelva@google.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/init/Kconfig.gki b/init/Kconfig.gki
-index 2c6f92b..282c1c3 100644
+index 2c6f92b15ea3..282c1c35b963 100644
 --- a/init/Kconfig.gki
 +++ b/init/Kconfig.gki
 @@ -5,6 +5,7 @@ config GKI_HIDDEN_DRM_CONFIGS
@@ -27,5 +27,5 @@ index 2c6f92b..282c1c3 100644
  	help
  	  Dummy config option used to enable hidden DRM configs.
 -- 
-2.7.4
+2.17.1
 

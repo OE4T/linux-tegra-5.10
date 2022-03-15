@@ -1,4 +1,4 @@
-From e9b138e7684f389f324a8f269f0757e09e607a47 Mon Sep 17 00:00:00 2001
+From c521a4db4dcd8bb89f84d3939f1d2a86fbf73308 Mon Sep 17 00:00:00 2001
 From: Sandeep Patil <sspatil@google.com>
 Date: Thu, 8 Aug 2019 08:35:46 -0700
 Subject: [PATCH 248/830] ANDROID: staging: ion: refactor ion's heap API into
@@ -23,23 +23,23 @@ Signed-off-by: Sandeep Patil <sspatil@google.com>
            into this patch]
 Signed-off-by: Matthias Maennich <maennich@google.com>
 ---
- drivers/staging/android/ion/heaps/ion_cma_heap.c   |   3 +-
- .../staging/android/ion/heaps/ion_system_heap.c    |   2 +-
- drivers/staging/android/ion/ion.c                  |   1 -
- drivers/staging/android/ion/ion.h                  | 246 ----------------
- drivers/staging/android/ion/ion_buffer.c           |  38 ++-
- drivers/staging/android/ion/ion_heap.c             |  29 +-
- drivers/staging/android/ion/ion_private.h          |   3 +-
- drivers/staging/android/uapi/ion.h                 | 127 ---------
- include/linux/ion.h                                | 312 ++++++++++++++++++++-
- include/uapi/ion.h                                 | 126 +++++++++
+ .../staging/android/ion/heaps/ion_cma_heap.c  |   3 +-
+ .../android/ion/heaps/ion_system_heap.c       |   2 +-
+ drivers/staging/android/ion/ion.c             |   1 -
+ drivers/staging/android/ion/ion.h             | 246 --------------
+ drivers/staging/android/ion/ion_buffer.c      |  38 ++-
+ drivers/staging/android/ion/ion_heap.c        |  29 +-
+ drivers/staging/android/ion/ion_private.h     |   3 +-
+ drivers/staging/android/uapi/ion.h            | 127 -------
+ include/linux/ion.h                           | 312 +++++++++++++++++-
+ include/uapi/ion.h                            | 126 +++++++
  10 files changed, 492 insertions(+), 395 deletions(-)
  delete mode 100644 drivers/staging/android/ion/ion.h
  delete mode 100644 drivers/staging/android/uapi/ion.h
  create mode 100644 include/uapi/ion.h
 
 diff --git a/drivers/staging/android/ion/heaps/ion_cma_heap.c b/drivers/staging/android/ion/heaps/ion_cma_heap.c
-index 0872e5d..83f7dce 100644
+index 0872e5d630f8..83f7dce74f18 100644
 --- a/drivers/staging/android/ion/heaps/ion_cma_heap.c
 +++ b/drivers/staging/android/ion/heaps/ion_cma_heap.c
 @@ -7,6 +7,7 @@
@@ -60,7 +60,7 @@ index 0872e5d..83f7dce 100644
  	struct ion_heap heap;
  	struct cma *cma;
 diff --git a/drivers/staging/android/ion/heaps/ion_system_heap.c b/drivers/staging/android/ion/heaps/ion_system_heap.c
-index dca5ea0..c037b9f 100644
+index dca5ea0c0979..c037b9f7c75b 100644
 --- a/drivers/staging/android/ion/heaps/ion_system_heap.c
 +++ b/drivers/staging/android/ion/heaps/ion_system_heap.c
 @@ -9,12 +9,12 @@
@@ -78,7 +78,7 @@ index dca5ea0..c037b9f 100644
  
  #define NUM_ORDERS ARRAY_SIZE(orders)
 diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
-index 51d13c1..93f2e1e 100644
+index 51d13c1f6650..93f2e1e7ca43 100644
 --- a/drivers/staging/android/ion/ion.c
 +++ b/drivers/staging/android/ion/ion.c
 @@ -244,7 +244,6 @@ void ion_device_add_heap(struct ion_heap *heap)
@@ -91,7 +91,7 @@ index 51d13c1..93f2e1e 100644
  	heap->alloc_bytes_wm = 0;
 diff --git a/drivers/staging/android/ion/ion.h b/drivers/staging/android/ion/ion.h
 deleted file mode 100644
-index b5b5412..00000000
+index b5b5412507fd..000000000000
 --- a/drivers/staging/android/ion/ion.h
 +++ /dev/null
 @@ -1,246 +0,0 @@
@@ -342,7 +342,7 @@ index b5b5412..00000000
 -
 -#endif /* _ION_H */
 diff --git a/drivers/staging/android/ion/ion_buffer.c b/drivers/staging/android/ion/ion_buffer.c
-index 50c2dbc..fddd5b6 100644
+index 50c2dbc3ebec..fddd5b601180 100644
 --- a/drivers/staging/android/ion/ion_buffer.c
 +++ b/drivers/staging/android/ion/ion_buffer.c
 @@ -7,6 +7,7 @@
@@ -405,7 +405,7 @@ index 50c2dbc..fddd5b6 100644
  
  void ion_buffer_release(struct ion_buffer *buffer)
 diff --git a/drivers/staging/android/ion/ion_heap.c b/drivers/staging/android/ion/ion_heap.c
-index e1d30ef..9578058 100644
+index e1d30ef0d86c..95780589543f 100644
 --- a/drivers/staging/android/ion/ion_heap.c
 +++ b/drivers/staging/android/ion/ion_heap.c
 @@ -61,18 +61,6 @@ static unsigned long ion_heap_shrink_scan(struct shrinker *shrinker,
@@ -463,7 +463,7 @@ index e1d30ef..9578058 100644
  {
  	struct scatterlist sg;
 diff --git a/drivers/staging/android/ion/ion_private.h b/drivers/staging/android/ion/ion_private.h
-index 9c8f482..ed7ed39 100644
+index 9c8f482cd9d2..ed7ed39d0df1 100644
 --- a/drivers/staging/android/ion/ion_private.h
 +++ b/drivers/staging/android/ion/ion_private.h
 @@ -10,6 +10,7 @@
@@ -485,7 +485,7 @@ index 9c8f482..ed7ed39 100644
   * @dev:		the actual misc device
 diff --git a/drivers/staging/android/uapi/ion.h b/drivers/staging/android/uapi/ion.h
 deleted file mode 100644
-index 46c93fc..00000000
+index 46c93fcb46d6..000000000000
 --- a/drivers/staging/android/uapi/ion.h
 +++ /dev/null
 @@ -1,127 +0,0 @@
@@ -617,7 +617,7 @@ index 46c93fc..00000000
 -
 -#endif /* _UAPI_LINUX_ION_H */
 diff --git a/include/linux/ion.h b/include/linux/ion.h
-index 66a694b..775e948 100644
+index 66a694b875ca..775e948a362c 100644
 --- a/include/linux/ion.h
 +++ b/include/linux/ion.h
 @@ -8,9 +8,264 @@
@@ -956,7 +956,7 @@ index 66a694b..775e948 100644
  #endif /* _ION_KERNEL_H */
 diff --git a/include/uapi/ion.h b/include/uapi/ion.h
 new file mode 100644
-index 00000000..bfcbc0e
+index 000000000000..bfcbc0e70921
 --- /dev/null
 +++ b/include/uapi/ion.h
 @@ -0,0 +1,126 @@
@@ -1087,5 +1087,5 @@ index 00000000..bfcbc0e
 +
 +#endif /* _UAPI_LINUX_ION_H */
 -- 
-2.7.4
+2.17.1
 

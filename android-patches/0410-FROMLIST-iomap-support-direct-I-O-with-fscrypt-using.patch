@@ -1,4 +1,4 @@
-From 9c0b78f6c1cda37f332d578aeb1b079e362718d9 Mon Sep 17 00:00:00 2001
+From 4931a50f9109435ec8486f6571cb66d0e943b466 Mon Sep 17 00:00:00 2001
 From: Eric Biggers <ebiggers@google.com>
 Date: Thu, 9 Jul 2020 19:47:49 +0000
 Subject: [PATCH 410/830] FROMLIST: iomap: support direct I/O with fscrypt
@@ -21,7 +21,7 @@ Change-Id: I6e4f427e6c9956be66c179d7353882aae61e9470
  1 file changed, 8 insertions(+)
 
 diff --git a/fs/iomap/direct-io.c b/fs/iomap/direct-io.c
-index 933f234..7048890 100644
+index 933f234d5bec..70488904a778 100644
 --- a/fs/iomap/direct-io.c
 +++ b/fs/iomap/direct-io.c
 @@ -6,6 +6,7 @@
@@ -73,5 +73,5 @@ index 933f234..7048890 100644
  		pos += n;
  	} while (nr_pages);
 -- 
-2.7.4
+2.17.1
 

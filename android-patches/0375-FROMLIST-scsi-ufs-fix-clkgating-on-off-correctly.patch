@@ -1,4 +1,4 @@
-From 5c9ef06def320520b9a71e2e87757a408e51bff9 Mon Sep 17 00:00:00 2001
+From ad7286e54c2bcb19ccec536fa44698e14f07d150 Mon Sep 17 00:00:00 2001
 From: Jaegeuk Kim <jaegeuk@kernel.org>
 Date: Thu, 15 Oct 2020 22:57:41 -0700
 Subject: [PATCH 375/830] FROMLIST: scsi: ufs: fix clkgating on/off correctly
@@ -31,7 +31,7 @@ Change-Id: I9b56725b26e1be8b1da55ae1db7322ab00fc5298
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/scsi/ufs/ufshcd.c b/drivers/scsi/ufs/ufshcd.c
-index 7c06770..d515b31 100644
+index 4ac8e01862d9..1d9fecb6d438 100644
 --- a/drivers/scsi/ufs/ufshcd.c
 +++ b/drivers/scsi/ufs/ufshcd.c
 @@ -1765,7 +1765,7 @@ static void __ufshcd_release(struct ufs_hba *hba)
@@ -44,5 +44,5 @@ index 7c06770..d515b31 100644
  	    hba->clk_gating.state == CLKS_OFF)
  		return;
 -- 
-2.7.4
+2.17.1
 

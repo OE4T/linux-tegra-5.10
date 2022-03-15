@@ -1,4 +1,4 @@
-From 268327081f3099b7f6a3ff13e64085a351ab3ec4 Mon Sep 17 00:00:00 2001
+From c8c00b96ce44e15a5836c7bbf5489f238052cf59 Mon Sep 17 00:00:00 2001
 From: Ram Muthiah <rammuthiah@google.com>
 Date: Fri, 31 Jan 2020 18:59:11 -0800
 Subject: [PATCH 626/830] ANDROID: gki: Enable DRM_GEM_SHMEM_HELPER for GKI
@@ -13,7 +13,7 @@ Signed-off-by: Ram Muthiah <rammuthiah@google.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/init/Kconfig.gki b/init/Kconfig.gki
-index bd5e645..fb41559 100644
+index bd5e645c8944..fb415595c05a 100644
 --- a/init/Kconfig.gki
 +++ b/init/Kconfig.gki
 @@ -1,6 +1,7 @@
@@ -25,5 +25,5 @@ index bd5e645..fb41559 100644
  	select DRM_KMS_CMA_HELPER
  	select DRM_MIPI_DSI
 -- 
-2.7.4
+2.17.1
 

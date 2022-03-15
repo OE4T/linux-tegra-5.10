@@ -1,4 +1,4 @@
-From 211b562d1631f8786547ea07322f6d4aaaf8e058 Mon Sep 17 00:00:00 2001
+From f2217e1434f6458819064cea30fb65ed37815109 Mon Sep 17 00:00:00 2001
 From: Rick Yiu <rickyiu@google.com>
 Date: Thu, 15 Oct 2020 20:41:52 +0800
 Subject: [PATCH 182/830] ANDROID: sched: Add vendor hooks for
@@ -19,7 +19,7 @@ Signed-off-by: Will McVicker <willmcvicker@google.com>
  3 files changed, 11 insertions(+)
 
 diff --git a/drivers/android/vendor_hooks.c b/drivers/android/vendor_hooks.c
-index cc0bc35..deca855 100644
+index cc0bc35495be..deca855d39a9 100644
 --- a/drivers/android/vendor_hooks.c
 +++ b/drivers/android/vendor_hooks.c
 @@ -66,3 +66,4 @@ EXPORT_TRACEPOINT_SYMBOL_GPL(android_rvh_sched_newidle_balance);
@@ -28,7 +28,7 @@ index cc0bc35..deca855 100644
  EXPORT_TRACEPOINT_SYMBOL_GPL(android_rvh_migrate_queued_task);
 +EXPORT_TRACEPOINT_SYMBOL_GPL(android_rvh_find_energy_efficient_cpu);
 diff --git a/include/trace/hooks/sched.h b/include/trace/hooks/sched.h
-index 458fd50..b914f53 100644
+index 458fd5006414..b914f53f216f 100644
 --- a/include/trace/hooks/sched.h
 +++ b/include/trace/hooks/sched.h
 @@ -101,6 +101,10 @@ DECLARE_RESTRICTED_HOOK(android_rvh_migrate_queued_task,
@@ -51,10 +51,10 @@ index 458fd50..b914f53 100644
  #endif /* _TRACE_HOOK_SCHED_H */
  /* This part must be outside protection */
 diff --git a/kernel/sched/fair.c b/kernel/sched/fair.c
-index 517a014..cdcb419 100644
+index 327ef3ea004a..aa4ef53d0db5 100644
 --- a/kernel/sched/fair.c
 +++ b/kernel/sched/fair.c
-@@ -6630,6 +6630,11 @@ static int find_energy_efficient_cpu(struct task_struct *p, int prev_cpu, int sy
+@@ -6642,6 +6642,11 @@ static int find_energy_efficient_cpu(struct task_struct *p, int prev_cpu, int sy
  	struct cpuidle_state *idle;
  	struct sched_domain *sd;
  	struct perf_domain *pd;
@@ -67,5 +67,5 @@ index 517a014..cdcb419 100644
  	rcu_read_lock();
  	pd = rcu_dereference(rd->pd);
 -- 
-2.7.4
+2.17.1
 

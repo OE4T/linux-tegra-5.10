@@ -1,4 +1,4 @@
-From c50b10dda37009771eae825f2d0e0b307c2cc3dc Mon Sep 17 00:00:00 2001
+From 394769f3a2256db2de856dc5ef865d79080b5fff Mon Sep 17 00:00:00 2001
 From: Satya Tangirala <satyat@google.com>
 Date: Tue, 21 Jan 2020 09:27:43 -0800
 Subject: [PATCH 391/830] ANDROID: block: Introduce passthrough keyslot manager
@@ -35,12 +35,12 @@ Change-Id: I6d91e83e86a73b0d6066873c8a9117cf2c089234
 Signed-off-by: Satya Tangirala <satyat@google.com>
 Signed-off-by: Eric Biggers <ebiggers@google.com>
 ---
- block/keyslot-manager.c         | 41 +++++++++++++++++++++++++++++++++++++++++
+ block/keyslot-manager.c         | 41 +++++++++++++++++++++++++++++++++
  include/linux/keyslot-manager.h |  2 ++
  2 files changed, 43 insertions(+)
 
 diff --git a/block/keyslot-manager.c b/block/keyslot-manager.c
-index 86f8195..ec5e10f 100644
+index 86f8195d8039..ec5e10fff242 100644
 --- a/block/keyslot-manager.c
 +++ b/block/keyslot-manager.c
 @@ -62,6 +62,11 @@ static inline void blk_ksm_hw_exit(struct blk_keyslot_manager *ksm)
@@ -117,7 +117,7 @@ index 86f8195..ec5e10f 100644
 +}
 +EXPORT_SYMBOL_GPL(blk_ksm_init_passthrough);
 diff --git a/include/linux/keyslot-manager.h b/include/linux/keyslot-manager.h
-index 18f3f53..323e15d 100644
+index 18f3f5346843..323e15dd6fa7 100644
 --- a/include/linux/keyslot-manager.h
 +++ b/include/linux/keyslot-manager.h
 @@ -103,4 +103,6 @@ void blk_ksm_reprogram_all_keys(struct blk_keyslot_manager *ksm);
@@ -128,5 +128,5 @@ index 18f3f53..323e15d 100644
 +
  #endif /* __LINUX_KEYSLOT_MANAGER_H */
 -- 
-2.7.4
+2.17.1
 

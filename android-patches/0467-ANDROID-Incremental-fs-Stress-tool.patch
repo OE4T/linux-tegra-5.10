@@ -1,4 +1,4 @@
-From 3227ae5e5cbc147aa616a534fc135f408c6cafef Mon Sep 17 00:00:00 2001
+From 5864131cacfea0776526452375bab6f60f020029 Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Mon, 27 Apr 2020 16:07:16 -0700
 Subject: [PATCH 467/830] ANDROID: Incremental fs: Stress tool
@@ -9,15 +9,15 @@ Test: Tool runs, passes
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
 Change-Id: I745708b7d4ae1fcacbc359ed2f3fda462d95ea6a
 ---
- MAINTAINERS                                        |   7 +
- .../testing/selftests/filesystems/incfs/.gitignore |   3 +-
- tools/testing/selftests/filesystems/incfs/Makefile |  16 +-
- .../selftests/filesystems/incfs/incfs_stress.c     | 349 +++++++++++++++++++++
+ MAINTAINERS                                   |   7 +
+ .../selftests/filesystems/incfs/.gitignore    |   3 +-
+ .../selftests/filesystems/incfs/Makefile      |  16 +-
+ .../filesystems/incfs/incfs_stress.c          | 349 ++++++++++++++++++
  4 files changed, 366 insertions(+), 9 deletions(-)
  create mode 100644 tools/testing/selftests/filesystems/incfs/incfs_stress.c
 
 diff --git a/MAINTAINERS b/MAINTAINERS
-index 2ec45bd..ad53113 100644
+index 2ec45bdfe86e..ad531134801a 100644
 --- a/MAINTAINERS
 +++ b/MAINTAINERS
 @@ -8665,6 +8665,13 @@ F:	Documentation/hwmon/ina2xx.rst
@@ -35,7 +35,7 @@ index 2ec45bd..ad53113 100644
  M:	Samuel Iglesias Gonsalvez <siglesias@igalia.com>
  M:	Jens Taprogge <jens.taprogge@taprogge.org>
 diff --git a/tools/testing/selftests/filesystems/incfs/.gitignore b/tools/testing/selftests/filesystems/incfs/.gitignore
-index 4cba9c21..6b90110 100644
+index 4cba9c219a92..6b90110d6556 100644
 --- a/tools/testing/selftests/filesystems/incfs/.gitignore
 +++ b/tools/testing/selftests/filesystems/incfs/.gitignore
 @@ -1 +1,2 @@
@@ -44,7 +44,7 @@ index 4cba9c21..6b90110 100644
 +incfs_test
 +incfs_stress
 diff --git a/tools/testing/selftests/filesystems/incfs/Makefile b/tools/testing/selftests/filesystems/incfs/Makefile
-index 5b2e627..1484dbe 100644
+index 5b2e627ce883..1484dbe8f7e1 100644
 --- a/tools/testing/selftests/filesystems/incfs/Makefile
 +++ b/tools/testing/selftests/filesystems/incfs/Makefile
 @@ -1,11 +1,11 @@
@@ -69,7 +69,7 @@ index 5b2e627..1484dbe 100644
 +$(TEST_GEN_PROGS) : $(EXTRA_SOURCES)
 diff --git a/tools/testing/selftests/filesystems/incfs/incfs_stress.c b/tools/testing/selftests/filesystems/incfs/incfs_stress.c
 new file mode 100644
-index 00000000..4238803
+index 000000000000..4238803cccd0
 --- /dev/null
 +++ b/tools/testing/selftests/filesystems/incfs/incfs_stress.c
 @@ -0,0 +1,349 @@
@@ -423,5 +423,5 @@ index 00000000..4238803
 +	return err;
 +}
 -- 
-2.7.4
+2.17.1
 

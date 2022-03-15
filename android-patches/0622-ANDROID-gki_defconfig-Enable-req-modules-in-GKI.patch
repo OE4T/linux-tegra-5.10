@@ -1,4 +1,4 @@
-From 749bc4ff15c4b677d868bcc306cc7ec835294b91 Mon Sep 17 00:00:00 2001
+From c9bba12579a383b092a9922d1831b7ee0617ebc2 Mon Sep 17 00:00:00 2001
 From: Ram Muthiah <rammuthiah@google.com>
 Date: Tue, 28 Jan 2020 16:11:56 -0800
 Subject: [PATCH 622/830] ANDROID: gki_defconfig: Enable req modules in GKI
@@ -20,7 +20,7 @@ Signed-off-by: Ram Muthiah <rammuthiah@google.com>
  1 file changed, 18 insertions(+)
 
 diff --git a/init/Kconfig.gki b/init/Kconfig.gki
-index 763ce54..153360c 100644
+index 763ce5479359..153360cc4a03 100644
 --- a/init/Kconfig.gki
 +++ b/init/Kconfig.gki
 @@ -21,6 +21,22 @@ config GKI_HIDDEN_REGMAP_CONFIGS
@@ -58,5 +58,5 @@ index 763ce54..153360c 100644
  	select GKI_HIDDEN_MMC_CONFIGS
  	select GKI_HIDDEN_GPIO_CONFIGS
 -- 
-2.7.4
+2.17.1
 

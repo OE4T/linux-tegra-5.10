@@ -1,4 +1,4 @@
-From 400aef93da6926e04aedbda18bc8ab9bb6ae3694 Mon Sep 17 00:00:00 2001
+From 0ce95f5a8acd82be0c28bcd5949dc8974f8560bf Mon Sep 17 00:00:00 2001
 From: Todd Kjos <tkjos@google.com>
 Date: Tue, 17 Sep 2019 16:25:46 -0700
 Subject: [PATCH 553/830] ANDROID: gki_defconfig: Enable SERIAL_DEV_BUS
@@ -15,7 +15,7 @@ Signed-off-by: Todd Kjos <tkjos@google.com>
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index fc14e84..5c45171 100644
+index fc14e842876b..5c45171c308d 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -268,6 +268,7 @@ CONFIG_SERIAL_8250_CONSOLE=y
@@ -27,7 +27,7 @@ index fc14e84..5c45171 100644
  CONFIG_HW_RANDOM=y
  CONFIG_HW_RANDOM_VIRTIO=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 3b56a7f..c013032 100644
+index 3b56a7fe77e7..c013032e47d4 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -239,6 +239,7 @@ CONFIG_SERIAL_8250=y
@@ -39,5 +39,5 @@ index 3b56a7f..c013032 100644
  CONFIG_HW_RANDOM_VIRTIO=m
  # CONFIG_I2C_COMPAT is not set
 -- 
-2.7.4
+2.17.1
 

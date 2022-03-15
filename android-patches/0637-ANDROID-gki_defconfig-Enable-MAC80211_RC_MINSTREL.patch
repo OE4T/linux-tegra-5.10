@@ -1,4 +1,4 @@
-From 2006b29d6acfe919ac6ef49b9cc2970a53e9ea7e Mon Sep 17 00:00:00 2001
+From 0b48c5b0c0e1ea84867f0571e4e32d85f66e9bca Mon Sep 17 00:00:00 2001
 From: Alistair Delva <adelva@google.com>
 Date: Fri, 14 Feb 2020 14:40:57 -0800
 Subject: [PATCH 637/830] ANDROID: gki_defconfig: Enable MAC80211_RC_MINSTREL
@@ -17,7 +17,7 @@ Signed-off-by: Alistair Delva <adelva@google.com>
  2 files changed, 2 deletions(-)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 461d9be..117a7376 100644
+index 461d9bef7a76..117a7376313b 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -197,7 +197,6 @@ CONFIG_CFG80211=y
@@ -29,7 +29,7 @@ index 461d9be..117a7376 100644
  CONFIG_PCI=y
  CONFIG_PCIEPORTBUS=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index fccc478..3d3a814 100644
+index fccc478530b5..3d3a8147f250 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -171,7 +171,6 @@ CONFIG_CFG80211=y
@@ -41,5 +41,5 @@ index fccc478..3d3a814 100644
  CONFIG_PCI=y
  CONFIG_PCIEPORTBUS=y
 -- 
-2.7.4
+2.17.1
 

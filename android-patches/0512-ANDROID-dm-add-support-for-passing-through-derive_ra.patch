@@ -1,4 +1,4 @@
-From 0cae455ac8aa2e5cb0390105039693cbc20ad85f Mon Sep 17 00:00:00 2001
+From 6b6c905b89ef76ecac1ae6ff75c00defe5bbd904 Mon Sep 17 00:00:00 2001
 From: Barani Muthukumaran <bmuthuku@codeaurora.org>
 Date: Thu, 6 Feb 2020 18:01:29 -0800
 Subject: [PATCH 512/830] ANDROID: dm: add support for passing through
@@ -22,14 +22,14 @@ Test: Validated FBE with wrappedkey_v0 when /data is mounted on a
 Change-Id: Ia49ed61613607f8b82f2be0615e5b6d2f7533859
 Signed-off-by: Barani Muthukumaran <bmuthuku@codeaurora.org>
 ---
- drivers/md/dm.c | 71 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/md/dm.c | 71 +++++++++++++++++++++++++++++++++++++++++++++++++
  1 file changed, 71 insertions(+)
 
 diff --git a/drivers/md/dm.c b/drivers/md/dm.c
-index 2248a9d..be5e8d2 100644
+index 99db3ebfdda3..4b77d8c6a5fd 100644
 --- a/drivers/md/dm.c
 +++ b/drivers/md/dm.c
-@@ -2205,8 +2205,79 @@ static int dm_keyslot_evict(struct blk_keyslot_manager *ksm,
+@@ -2207,8 +2207,79 @@ static int dm_keyslot_evict(struct blk_keyslot_manager *ksm,
  	return args.err;
  }
  
@@ -110,5 +110,5 @@ index 2248a9d..be5e8d2 100644
  
  static void dm_init_inline_encryption(struct mapped_device *md)
 -- 
-2.7.4
+2.17.1
 

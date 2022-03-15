@@ -1,4 +1,4 @@
-From 437ab1b90f43193ae4d4f4f4a81a6a7fb04ede31 Mon Sep 17 00:00:00 2001
+From e606be4bd46a741f9d8e3f31d089d66ea4a4bf40 Mon Sep 17 00:00:00 2001
 From: Greg Kroah-Hartman <gregkh@google.com>
 Date: Wed, 15 Jul 2020 09:38:58 +0200
 Subject: [PATCH 769/830] ANDROID: GKI: add CONFIG_BT to x86 gki_defconfig
@@ -17,7 +17,7 @@ Signed-off-by: Connor O'Brien <connoro@google.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 12fd835..bd21f40 100644
+index 12fd835113b8..bd21f40fd889 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -184,6 +184,7 @@ CONFIG_NET_EMATCH_U32=y
@@ -29,5 +29,5 @@ index 12fd835..bd21f40 100644
  # CONFIG_CFG80211_DEFAULT_PS is not set
  # CONFIG_CFG80211_CRDA_SUPPORT is not set
 -- 
-2.7.4
+2.17.1
 

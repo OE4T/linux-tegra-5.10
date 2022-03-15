@@ -1,4 +1,4 @@
-From 5fa296893af4833b70d0b1a5f591b0de4d6003cb Mon Sep 17 00:00:00 2001
+From 3bfe3e4df1fb1f89ce709d7df8dc11de78d2022b Mon Sep 17 00:00:00 2001
 From: Yurii Zubrytskyi <zyy@google.com>
 Date: Mon, 6 Apr 2020 12:49:41 -0700
 Subject: [PATCH 447/830] ANDROID: Incremental fs: make remount log buffer
@@ -30,13 +30,13 @@ Signed-off-by: Yurii Zubrytskyi <zyy@google.com>
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
 Change-Id: I7271b4cb89f1ae2cbee6e5b073758f344c4ba66a
 ---
- fs/incfs/data_mgmt.c | 145 ++++++++++++++++++++++++++++++++++++---------------
- fs/incfs/data_mgmt.h |  23 ++++++--
- fs/incfs/vfs.c       |  17 +++---
+ fs/incfs/data_mgmt.c | 145 ++++++++++++++++++++++++++++++-------------
+ fs/incfs/data_mgmt.h |  23 +++++--
+ fs/incfs/vfs.c       |  17 +++--
  3 files changed, 131 insertions(+), 54 deletions(-)
 
 diff --git a/fs/incfs/data_mgmt.c b/fs/incfs/data_mgmt.c
-index 193323ec..0b789e6 100644
+index 193323ec6cd0..0b789e62ac4b 100644
 --- a/fs/incfs/data_mgmt.c
 +++ b/fs/incfs/data_mgmt.c
 @@ -34,7 +34,8 @@ struct mount_info *incfs_alloc_mount_info(struct super_block *sb,
@@ -271,7 +271,7 @@ index 193323ec..0b789e6 100644
  
  bool incfs_equal_ranges(struct mem_range lhs, struct mem_range rhs)
 diff --git a/fs/incfs/data_mgmt.h b/fs/incfs/data_mgmt.h
-index e8f2154..b860997 100644
+index e8f2154c80d9..b860997d0bb6 100644
 --- a/fs/incfs/data_mgmt.h
 +++ b/fs/incfs/data_mgmt.h
 @@ -31,10 +31,13 @@ struct read_log_record {
@@ -316,7 +316,7 @@ index e8f2154..b860997 100644
  	/*
  	 * A queue of waiters who want to be notified about reads.
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index 87799eb6..b105440 100644
+index 87799eb61aa8..b105440de8cb 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -582,22 +582,27 @@ static ssize_t log_read(struct file *f, char __user *buf, size_t len,
@@ -354,5 +354,5 @@ index 87799eb6..b105440 100644
  			result = total_reads_collected ?
  					 total_reads_collected *
 -- 
-2.7.4
+2.17.1
 

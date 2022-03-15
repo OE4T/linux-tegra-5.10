@@ -1,4 +1,4 @@
-From e59caa456b95de530f71f453bed5d11a3f3e1582 Mon Sep 17 00:00:00 2001
+From 7729840f3673f6ca31e219de580d32a4efcc09ca Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Wed, 22 Apr 2020 12:39:09 -0700
 Subject: [PATCH 451/830] ANDROID: Incremental fs: Use simple compression in
@@ -10,14 +10,14 @@ Test: incfs_test passes
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
 Change-Id: Ibcc641dd92596018c9f10b5bc7bd0db2642a80c7
 ---
- fs/incfs/data_mgmt.c                               | 310 +++++++++++----------
- fs/incfs/data_mgmt.h                               |  76 +++--
- fs/incfs/vfs.c                                     |   2 +-
- .../selftests/filesystems/incfs/incfs_test.c       |  89 ++++--
+ fs/incfs/data_mgmt.c                          | 310 ++++++++++--------
+ fs/incfs/data_mgmt.h                          |  76 +++--
+ fs/incfs/vfs.c                                |   2 +-
+ .../selftests/filesystems/incfs/incfs_test.c  |  89 +++--
  4 files changed, 291 insertions(+), 186 deletions(-)
 
 diff --git a/fs/incfs/data_mgmt.c b/fs/incfs/data_mgmt.c
-index 4ec08eb5..d9c43d5 100644
+index 4ec08eb52461..d9c43d5cca19 100644
 --- a/fs/incfs/data_mgmt.c
 +++ b/fs/incfs/data_mgmt.c
 @@ -34,8 +34,7 @@ struct mount_info *incfs_alloc_mount_info(struct super_block *sb,
@@ -421,7 +421,7 @@ index 4ec08eb5..d9c43d5 100644
  
  bool incfs_equal_ranges(struct mem_range lhs, struct mem_range rhs)
 diff --git a/fs/incfs/data_mgmt.h b/fs/incfs/data_mgmt.h
-index b860997..b7aecdd 100644
+index b860997d0bb6..b7aecdd5bf4a 100644
 --- a/fs/incfs/data_mgmt.h
 +++ b/fs/incfs/data_mgmt.h
 @@ -20,50 +20,74 @@
@@ -534,7 +534,7 @@ index b860997..b7aecdd 100644
  static inline struct inode_info *get_incfs_node(struct inode *inode)
  {
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index 38ed58c..759691a 100644
+index 38ed58c584bf..759691ab8324 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -641,7 +641,7 @@ static __poll_t log_poll(struct file *file, poll_table *wait)
@@ -547,7 +547,7 @@ index 38ed58c..759691a 100644
  		ret = EPOLLIN | EPOLLRDNORM;
  
 diff --git a/tools/testing/selftests/filesystems/incfs/incfs_test.c b/tools/testing/selftests/filesystems/incfs/incfs_test.c
-index a6bae9f..248db59 100644
+index a6bae9fbf0d3..248db59e1a49 100644
 --- a/tools/testing/selftests/filesystems/incfs/incfs_test.c
 +++ b/tools/testing/selftests/filesystems/incfs/incfs_test.c
 @@ -1932,16 +1932,19 @@ static int hash_tree_test(char *mount_dir)
@@ -736,5 +736,5 @@ index a6bae9f..248db59 100644
  		ksft_exit_pass();
  	return 0;
 -- 
-2.7.4
+2.17.1
 

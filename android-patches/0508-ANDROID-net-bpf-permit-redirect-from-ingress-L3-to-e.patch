@@ -1,4 +1,4 @@
-From 76674c551d8744c20663aa780861bc7243111bd6 Mon Sep 17 00:00:00 2001
+From 33fb4fd0f4055a6427ae71e3f8e19b5e8e0cc5f1 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <maze@google.com>
 Date: Wed, 6 May 2020 16:25:38 -0700
 Subject: [PATCH 508/830] ANDROID: net: bpf: permit redirect from ingress L3 to
@@ -46,10 +46,10 @@ Change-Id: If55a144d7822e23bce85f65897bca7de4e0f9b24
  1 file changed, 7 insertions(+)
 
 diff --git a/net/core/filter.c b/net/core/filter.c
-index abd58dc..b199077 100644
+index 659a32802471..ee75b19dbf88 100644
 --- a/net/core/filter.c
 +++ b/net/core/filter.c
-@@ -3550,6 +3550,13 @@ static int bpf_skb_net_shrink(struct sk_buff *skb, u32 off, u32 len_diff,
+@@ -3553,6 +3553,13 @@ static int bpf_skb_net_shrink(struct sk_buff *skb, u32 off, u32 len_diff,
  
  #define BPF_SKB_MAX_LEN SKB_MAX_ALLOC
  
@@ -64,5 +64,5 @@ index abd58dc..b199077 100644
  	   u32, mode, u64, flags)
  {
 -- 
-2.7.4
+2.17.1
 

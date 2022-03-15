@@ -1,4 +1,4 @@
-From b599416be8d6519612d6a9d36398429e7751a28e Mon Sep 17 00:00:00 2001
+From 92af12c18920ff412df40abfcd873a4fbf8bb74d Mon Sep 17 00:00:00 2001
 From: Alessio Balsini <balsini@google.com>
 Date: Tue, 27 Oct 2020 13:24:03 +0000
 Subject: [PATCH 420/830] ANDROID: vfs: d_canonical_path for stacked FS
@@ -32,7 +32,7 @@ Signed-off-by: Matthias Maennich <maennich@google.com>
  2 files changed, 15 insertions(+), 2 deletions(-)
 
 diff --git a/fs/notify/inotify/inotify_user.c b/fs/notify/inotify/inotify_user.c
-index 5f6c6bf..ca7b818 100644
+index 5f6c6bf65909..ca7b8185e260 100644
 --- a/fs/notify/inotify/inotify_user.c
 +++ b/fs/notify/inotify/inotify_user.c
 @@ -699,6 +699,8 @@ SYSCALL_DEFINE3(inotify_add_watch, int, fd, const char __user *, pathname,
@@ -71,7 +71,7 @@ index 5f6c6bf..ca7b818 100644
  	fdput(f);
  	return ret;
 diff --git a/include/linux/dcache.h b/include/linux/dcache.h
-index 6f95c33..49d0b6f 100644
+index 6f95c3300cbb..49d0b6f732f2 100644
 --- a/include/linux/dcache.h
 +++ b/include/linux/dcache.h
 @@ -147,6 +147,7 @@ struct dentry_operations {
@@ -83,5 +83,5 @@ index 6f95c33..49d0b6f 100644
  
  /*
 -- 
-2.7.4
+2.17.1
 

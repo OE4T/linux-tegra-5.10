@@ -1,4 +1,4 @@
-From 50eda8389a1e30d93ff1342005929f07fdc96a06 Mon Sep 17 00:00:00 2001
+From d47905b513a4e7f2b369d90c2b54b2d755e942a9 Mon Sep 17 00:00:00 2001
 From: Eric Biggers <ebiggers@google.com>
 Date: Wed, 12 Aug 2020 13:59:24 -0700
 Subject: [PATCH 539/830] _____ANNOTATION: Android kconfigs and build
@@ -15,7 +15,7 @@ Signed-off-by: Eric Biggers <ebiggers@google.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/ANNOTATIONS b/ANNOTATIONS
-index c62e1d7..c01635f 100644
+index c62e1d7fa95d..c01635f7d69e 100644
 --- a/ANNOTATIONS
 +++ b/ANNOTATIONS
 @@ -29,3 +29,4 @@ Incremental filesystem
@@ -24,5 +24,5 @@ index c62e1d7..c01635f 100644
  db845c (DragonBoard 845c) support
 +Android kconfigs and build scripts
 -- 
-2.7.4
+2.17.1
 

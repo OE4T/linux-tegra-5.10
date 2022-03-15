@@ -1,4 +1,4 @@
-From cb5db8772df3730bab6ab62af6b084301736c64d Mon Sep 17 00:00:00 2001
+From 1674dc0dc98b292e903a9997082788b3f56d3d44 Mon Sep 17 00:00:00 2001
 From: Akilesh Kailash <akailash@google.com>
 Date: Fri, 17 Jul 2020 00:33:09 +0000
 Subject: [PATCH 461/830] ANDROID: Incremental fs: RCU locks instead of mutex
@@ -30,12 +30,12 @@ Test: kernel selftest incfs_test and incfs_perf
 Signed-off-by: Akilesh Kailash <akailash@google.com>
 Change-Id: Iad7439657016764dce25d64c8b3df69b930452bc
 ---
- fs/incfs/data_mgmt.c | 71 ++++++++++++++++++++++++++++++++++------------------
- fs/incfs/data_mgmt.h |  7 ++++--
+ fs/incfs/data_mgmt.c | 71 ++++++++++++++++++++++++++++----------------
+ fs/incfs/data_mgmt.h |  7 +++--
  2 files changed, 51 insertions(+), 27 deletions(-)
 
 diff --git a/fs/incfs/data_mgmt.c b/fs/incfs/data_mgmt.c
-index 074a733..0ee9a2d 100644
+index 074a733c7001..0ee9a2d56688 100644
 --- a/fs/incfs/data_mgmt.c
 +++ b/fs/incfs/data_mgmt.c
 @@ -40,11 +40,11 @@ struct mount_info *incfs_alloc_mount_info(struct super_block *sb,
@@ -203,7 +203,7 @@ index 074a733..0ee9a2d 100644
  	return reported_reads;
  }
 diff --git a/fs/incfs/data_mgmt.h b/fs/incfs/data_mgmt.h
-index 2726867..00e93f1 100644
+index 2726867835a8..00e93f1b7712 100644
 --- a/fs/incfs/data_mgmt.h
 +++ b/fs/incfs/data_mgmt.h
 @@ -10,6 +10,7 @@
@@ -240,5 +240,5 @@ index 2726867..00e93f1 100644
  
  struct data_file_segment {
 -- 
-2.7.4
+2.17.1
 

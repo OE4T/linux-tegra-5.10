@@ -1,4 +1,4 @@
-From 17af96d60dbe1d0ced840d5add3bcc8f7e7ee376 Mon Sep 17 00:00:00 2001
+From b014ad1e4af2510758b70537e7b55e06f251ae08 Mon Sep 17 00:00:00 2001
 From: Lecopzer Chen <lecopzer.chen@mediatek.com>
 Date: Fri, 12 Jul 2019 16:47:17 +0800
 Subject: [PATCH 263/830] ANDROID: ion: Remove unused rbtree for ion_buffer
@@ -31,13 +31,13 @@ Link: https://lore.kernel.org/r/20190712084717.12441-1-lecopzer.chen@mediatek.co
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  drivers/staging/android/ion/ion.c         |  1 -
- drivers/staging/android/ion/ion_buffer.c  | 32 -------------------------------
- drivers/staging/android/ion/ion_private.h |  4 ----
- include/linux/ion.h                       |  6 +-----
+ drivers/staging/android/ion/ion_buffer.c  | 32 -----------------------
+ drivers/staging/android/ion/ion_private.h |  4 ---
+ include/linux/ion.h                       |  6 +----
  4 files changed, 1 insertion(+), 42 deletions(-)
 
 diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
-index 7d54a19..d6dab39 100644
+index 7d54a1975b87..d6dab39d9609 100644
 --- a/drivers/staging/android/ion/ion.c
 +++ b/drivers/staging/android/ion/ion.c
 @@ -422,7 +422,6 @@ static int ion_device_create(void)
@@ -49,13 +49,14 @@ index 7d54a19..d6dab39 100644
  	internal_dev = idev;
  	return 0;
 diff --git a/drivers/staging/android/ion/ion_buffer.c b/drivers/staging/android/ion/ion_buffer.c
-index fb5619d..a49f206 100644
+index fb5619d86084..a49f2067365a 100644
 --- a/drivers/staging/android/ion/ion_buffer.c
 +++ b/drivers/staging/android/ion/ion_buffer.c
-@@ -13,32 +13,6 @@
+@@ -12,32 +12,6 @@
+ 
  #include "ion_private.h"
  
- /* this function should only be called while dev->lock is held */
+-/* this function should only be called while dev->lock is held */
 -static void ion_buffer_add(struct ion_device *dev,
 -			   struct ion_buffer *buffer)
 -{
@@ -81,10 +82,9 @@ index fb5619d..a49f206 100644
 -	rb_insert_color(&buffer->node, &dev->buffers);
 -}
 -
--/* this function should only be called while dev->lock is held */
+ /* this function should only be called while dev->lock is held */
  static struct ion_buffer *ion_buffer_create(struct ion_heap *heap,
  					    struct ion_device *dev,
- 					    unsigned long len,
 @@ -90,9 +64,6 @@ static struct ion_buffer *ion_buffer_create(struct ion_heap *heap,
  
  	INIT_LIST_HEAD(&buffer->attachments);
@@ -106,7 +106,7 @@ index fb5619d..a49f206 100644
  	if (heap->flags & ION_HEAP_FLAG_DEFER_FREE)
  		ion_heap_freelist_add(heap, buffer);
 diff --git a/drivers/staging/android/ion/ion_private.h b/drivers/staging/android/ion/ion_private.h
-index 2f5376e..ca4ca23 100644
+index 2f5376e131c3..ca4ca2389397 100644
 --- a/drivers/staging/android/ion/ion_private.h
 +++ b/drivers/staging/android/ion/ion_private.h
 @@ -21,16 +21,12 @@
@@ -127,7 +127,7 @@ index 2f5376e..ca4ca23 100644
  	DECLARE_BITMAP(heap_ids, ION_NUM_MAX_HEAPS);
  	struct plist_head heaps;
 diff --git a/include/linux/ion.h b/include/linux/ion.h
-index 88622fb..025071c 100644
+index 88622fb8f9ea..025071c19240 100644
 --- a/include/linux/ion.h
 +++ b/include/linux/ion.h
 @@ -22,7 +22,6 @@
@@ -151,5 +151,5 @@ index 88622fb..025071c 100644
  	unsigned long flags;
  	unsigned long private_flags;
 -- 
-2.7.4
+2.17.1
 

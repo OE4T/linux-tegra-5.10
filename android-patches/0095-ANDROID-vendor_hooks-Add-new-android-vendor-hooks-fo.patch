@@ -1,4 +1,4 @@
-From 7ec176e2b83b50f97f2e93e288ad8bb0d49738c3 Mon Sep 17 00:00:00 2001
+From aa62be06b1164ebe6283d191b6b3b0e6099ba5be Mon Sep 17 00:00:00 2001
 From: Changki Kim <changki.kim@samsung.com>
 Date: Sun, 23 Aug 2020 14:36:48 +0900
 Subject: [PATCH 095/830] ANDROID: vendor_hooks: Add new android vendor hooks
@@ -24,7 +24,7 @@ Signed-off-by: Jonglin Lee <jonglin@google.com>
  create mode 100644 include/trace/hooks/debug.h
 
 diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
-index d3624c4..f0ef91d 100644
+index d3624c48fb47..f0ef91d1e035 100644
 --- a/arch/arm64/kernel/smp.c
 +++ b/arch/arm64/kernel/smp.c
 @@ -53,6 +53,8 @@
@@ -45,7 +45,7 @@ index d3624c4..f0ef91d 100644
  		break;
  
 diff --git a/drivers/android/vendor_hooks.c b/drivers/android/vendor_hooks.c
-index 5c08930..6c32b57 100644
+index 5c089306d2ba..6c32b5722a5a 100644
 --- a/drivers/android/vendor_hooks.c
 +++ b/drivers/android/vendor_hooks.c
 @@ -10,6 +10,7 @@
@@ -63,7 +63,7 @@ index 5c08930..6c32b57 100644
 +EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_ipi_stop);
 diff --git a/include/trace/hooks/debug.h b/include/trace/hooks/debug.h
 new file mode 100644
-index 00000000..ac006d7
+index 000000000000..ac006d7fdd0a
 --- /dev/null
 +++ b/include/trace/hooks/debug.h
 @@ -0,0 +1,26 @@
@@ -94,5 +94,5 @@ index 00000000..ac006d7
 +/* This part must be outside protection */
 +#include <trace/define_trace.h>
 -- 
-2.7.4
+2.17.1
 

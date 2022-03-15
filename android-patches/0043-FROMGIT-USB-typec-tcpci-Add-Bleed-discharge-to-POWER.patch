@@ -1,4 +1,4 @@
-From 88a7cfa0738b7b84e91b71c8143bb83a2998386c Mon Sep 17 00:00:00 2001
+From 49e940d25b8247d547f7a4c4f76c4c200d5342d4 Mon Sep 17 00:00:00 2001
 From: Badhri Jagan Sridharan <badhri@google.com>
 Date: Thu, 10 Dec 2020 17:05:21 +0100
 Subject: [PATCH 043/830] FROMGIT: USB: typec: tcpci: Add Bleed discharge to
@@ -28,7 +28,7 @@ Change-Id: I2e31c74325f6c6934c09bd35883ca2b1a03355a4
  1 file changed, 1 insertion(+)
 
 diff --git a/drivers/usb/typec/tcpm/tcpci.h b/drivers/usb/typec/tcpm/tcpci.h
-index 116a69c..c3c7d07 100644
+index 116a69c85e38..c3c7d07d9b4e 100644
 --- a/drivers/usb/typec/tcpm/tcpci.h
 +++ b/drivers/usb/typec/tcpm/tcpci.h
 @@ -72,6 +72,7 @@
@@ -40,5 +40,5 @@ index 116a69c..c3c7d07 100644
  #define TCPC_FAST_ROLE_SWAP_EN		BIT(7)
  
 -- 
-2.7.4
+2.17.1
 

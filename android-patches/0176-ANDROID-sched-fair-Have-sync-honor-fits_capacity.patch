@@ -1,4 +1,4 @@
-From 89715623116ede4bf6dfe7ba89dd8ae593ccb9e4 Mon Sep 17 00:00:00 2001
+From bb4e1f5351650cac44bb0408cf40fb19bce63405 Mon Sep 17 00:00:00 2001
 From: "J. Avila" <elavila@google.com>
 Date: Fri, 20 Nov 2020 04:25:12 +0000
 Subject: [PATCH 176/830] ANDROID: sched/fair: Have sync honor fits_capacity
@@ -16,10 +16,10 @@ Change-Id: I5f7ef330f952c95f9391eb733ad241345477c943
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/kernel/sched/fair.c b/kernel/sched/fair.c
-index 45b6c4a..66a2707 100644
+index 62e0711d70af..f1b8fbc33167 100644
 --- a/kernel/sched/fair.c
 +++ b/kernel/sched/fair.c
-@@ -6638,7 +6638,8 @@ static int find_energy_efficient_cpu(struct task_struct *p, int prev_cpu, int sy
+@@ -6650,7 +6650,8 @@ static int find_energy_efficient_cpu(struct task_struct *p, int prev_cpu, int sy
  
  	cpu = smp_processor_id();
  	if (sync && cpu_rq(cpu)->nr_running == 1 &&
@@ -30,5 +30,5 @@ index 45b6c4a..66a2707 100644
  		return cpu;
  	}
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From c03209d8c9be4176607d112fc71f0fb15c38cc91 Mon Sep 17 00:00:00 2001
+From cc08d053877754f456e49fdf1109c6ed15c1b4a3 Mon Sep 17 00:00:00 2001
 From: Prashant Malani <pmalani@chromium.org>
 Date: Wed, 25 Nov 2020 00:49:11 -0800
 Subject: [PATCH 029/830] FROMGIT: usb: typec: Expose Product Type VDOs via
@@ -23,12 +23,12 @@ Cc: Will McVicker <willmcvicker@google.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@google.com>
 Change-Id: I40f39f5774227b73635b87ce3b6f4c69f33b0aa7
 ---
- Documentation/ABI/testing/sysfs-class-typec | 24 +++++++++++++++++++++
- drivers/usb/typec/class.c                   | 33 +++++++++++++++++++++++++++++
+ Documentation/ABI/testing/sysfs-class-typec | 24 +++++++++++++++
+ drivers/usb/typec/class.c                   | 33 +++++++++++++++++++++
  2 files changed, 57 insertions(+)
 
 diff --git a/Documentation/ABI/testing/sysfs-class-typec b/Documentation/ABI/testing/sysfs-class-typec
-index 88ffc14..619c4c6 100644
+index 88ffc14d4cd2..619c4c67432b 100644
 --- a/Documentation/ABI/testing/sysfs-class-typec
 +++ b/Documentation/ABI/testing/sysfs-class-typec
 @@ -228,6 +228,30 @@ Description:
@@ -63,7 +63,7 @@ index 88ffc14..619c4c6 100644
  USB Type-C port alternate mode devices.
  
 diff --git a/drivers/usb/typec/class.c b/drivers/usb/typec/class.c
-index 0b90d95..71c2227 100644
+index 0b90d95d1f40..71c2227f1874 100644
 --- a/drivers/usb/typec/class.c
 +++ b/drivers/usb/typec/class.c
 @@ -124,10 +124,40 @@ static ssize_t product_show(struct device *dev, struct device_attribute *attr,
@@ -118,5 +118,5 @@ index 0b90d95..71c2227 100644
  
  /* ------------------------------------------------------------------------- */
 -- 
-2.7.4
+2.17.1
 

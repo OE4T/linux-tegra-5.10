@@ -1,4 +1,4 @@
-From c769490014179ba4cc0e7ecf9e43d24c2e871f96 Mon Sep 17 00:00:00 2001
+From c30f48b8d1f9baec1ca2f395c152fec18444a4ec Mon Sep 17 00:00:00 2001
 From: Hridya Valsaraju <hridya@google.com>
 Date: Wed, 2 Oct 2019 14:32:19 -0700
 Subject: [PATCH 261/830] ANDROID: Add an IOCTL to check ION ABI version
@@ -20,7 +20,7 @@ Change-Id: Ie9d9e23c2d8323620832906d33745d599cbce6be
  2 files changed, 13 insertions(+)
 
 diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
-index 60ae4dd..d6dab39 100644
+index 60ae4dd948f6..d6dab39d9609 100644
 --- a/drivers/staging/android/ion/ion.c
 +++ b/drivers/staging/android/ion/ion.c
 @@ -27,6 +27,8 @@
@@ -51,7 +51,7 @@ index 60ae4dd..d6dab39 100644
  		return -ENOTTY;
  	}
 diff --git a/include/uapi/linux/ion.h b/include/uapi/linux/ion.h
-index ad773e5..fdb2eba 100644
+index ad773e5fa4d2..fdb2eba7f500 100644
 --- a/include/uapi/linux/ion.h
 +++ b/include/uapi/linux/ion.h
 @@ -159,4 +159,11 @@ struct ion_heap_query {
@@ -67,5 +67,5 @@ index ad773e5..fdb2eba 100644
 +					__u32)
  #endif /* _UAPI_LINUX_ION_H */
 -- 
-2.7.4
+2.17.1
 

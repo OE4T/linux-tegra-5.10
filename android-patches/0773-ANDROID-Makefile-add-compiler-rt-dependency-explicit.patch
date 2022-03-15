@@ -1,4 +1,4 @@
-From 95cf6c9d4b74a3a58e0f53d9cace836720866b09 Mon Sep 17 00:00:00 2001
+From c9361e974e0992fd975f0bd219cf124dd3978ed6 Mon Sep 17 00:00:00 2001
 From: Nick Desaulniers <ndesaulniers@google.com>
 Date: Thu, 20 Aug 2020 15:54:43 -0700
 Subject: [PATCH 773/830] ANDROID: Makefile: add compiler-rt dependency
@@ -35,7 +35,7 @@ Change-Id: Ied7bd6fadd30fe56b85c2bfa59b5ea0a87d476d8
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index 2ffddd9..16516b4 100644
+index 9ca40f145b83..2a36be6da889 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -464,7 +464,7 @@ OBJCOPY		= llvm-objcopy
@@ -48,5 +48,5 @@ index 2ffddd9..16516b4 100644
  CC		= $(CROSS_COMPILE)gcc
  LD		= $(CROSS_COMPILE)ld
 -- 
-2.7.4
+2.17.1
 

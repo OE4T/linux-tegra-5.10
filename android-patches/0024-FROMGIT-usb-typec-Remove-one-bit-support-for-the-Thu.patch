@@ -1,4 +1,4 @@
-From d52d3ff39daa2450fd00589d69f2ea67db7de619 Mon Sep 17 00:00:00 2001
+From 15a309efe761f56fb937b0b7f4a11de3e2c5fe61 Mon Sep 17 00:00:00 2001
 From: Utkarsh Patel <utkarsh.h.patel@intel.com>
 Date: Fri, 13 Nov 2020 12:24:59 -0800
 Subject: [PATCH 024/830] FROMGIT: usb: typec: Remove one bit support for the
@@ -29,7 +29,7 @@ Change-Id: I234173609f3fd9a7880f712d6e5c2d14721a7534
  1 file changed, 1 deletion(-)
 
 diff --git a/include/linux/usb/typec_tbt.h b/include/linux/usb/typec_tbt.h
-index aad648d..63dd44b 100644
+index aad648d14bb3..63dd44b72e0c 100644
 --- a/include/linux/usb/typec_tbt.h
 +++ b/include/linux/usb/typec_tbt.h
 @@ -39,7 +39,6 @@ struct typec_thunderbolt_data {
@@ -41,5 +41,5 @@ index aad648d..63dd44b 100644
  					(((_vdo_) & GENMASK(20, 19)) >> 19)
  #define   TBT_GEN3_NON_ROUNDED                 0
 -- 
-2.7.4
+2.17.1
 

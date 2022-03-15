@@ -1,4 +1,4 @@
-From 879af072edff58c364637bba9c9d028ca2e72cc7 Mon Sep 17 00:00:00 2001
+From 4eeaeccf7669b1a2531ff8855e789d8f380c5770 Mon Sep 17 00:00:00 2001
 From: Jaegeuk Kim <jaegeuk@google.com>
 Date: Mon, 5 Oct 2020 15:02:31 -0700
 Subject: [PATCH 372/830] FROMLIST: scsi: ufs: clear uac for rpmb lun
@@ -15,10 +15,10 @@ Change-Id: Ia088deb649a7f9dbabbdc1622041ea30f1e2f375
  1 file changed, 1 insertion(+), 2 deletions(-)
 
 diff --git a/drivers/scsi/ufs/ufshcd.c b/drivers/scsi/ufs/ufshcd.c
-index 3c1988c..bb52ad8 100644
+index 06cda719bf42..abc1ad5963af 100644
 --- a/drivers/scsi/ufs/ufshcd.c
 +++ b/drivers/scsi/ufs/ufshcd.c
-@@ -7828,7 +7828,7 @@ static int ufshcd_clear_ua_wlun(struct ufs_hba *hba, u8 wlun)
+@@ -7842,7 +7842,7 @@ static int ufshcd_clear_ua_wlun(struct ufs_hba *hba, u8 wlun)
  	else if (wlun == UFS_UPIU_RPMB_WLUN)
  		sdp = hba->sdev_rpmb;
  	else
@@ -27,7 +27,7 @@ index 3c1988c..bb52ad8 100644
  	if (sdp) {
  		ret = scsi_device_get(sdp);
  		if (!ret && !scsi_device_online(sdp)) {
-@@ -8972,7 +8972,6 @@ static int ufshcd_set_dev_pwr_mode(struct ufs_hba *hba,
+@@ -8986,7 +8986,6 @@ static int ufshcd_set_dev_pwr_mode(struct ufs_hba *hba,
  
  	if (!ret)
  		hba->curr_dev_pwr_mode = pwr_mode;
@@ -36,5 +36,5 @@ index 3c1988c..bb52ad8 100644
  	hba->host->eh_noresume = 0;
  	return ret;
 -- 
-2.7.4
+2.17.1
 

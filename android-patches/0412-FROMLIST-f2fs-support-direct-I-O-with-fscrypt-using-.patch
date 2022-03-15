@@ -1,4 +1,4 @@
-From e9cd527325f58709367794ec4506f99d5850425b Mon Sep 17 00:00:00 2001
+From 1a4a2bc043ba92d491faaf45a5293c5af35aac21 Mon Sep 17 00:00:00 2001
 From: Eric Biggers <ebiggers@google.com>
 Date: Thu, 9 Jul 2020 19:47:51 +0000
 Subject: [PATCH 412/830] FROMLIST: f2fs: support direct I/O with fscrypt using
@@ -20,10 +20,10 @@ Change-Id: Ice27ed87c732c4a83a71297f38364f312fb9b3d8
  1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/fs/f2fs/f2fs.h b/fs/f2fs/f2fs.h
-index ec3a916..cfe703d 100644
+index 1050f9869ffe..a01d4cfdb00e 100644
 --- a/fs/f2fs/f2fs.h
 +++ b/fs/f2fs/f2fs.h
-@@ -4051,7 +4051,9 @@ static inline bool f2fs_force_buffered_io(struct inode *inode,
+@@ -4062,7 +4062,9 @@ static inline bool f2fs_force_buffered_io(struct inode *inode,
  	struct f2fs_sb_info *sbi = F2FS_I_SB(inode);
  	int rw = iov_iter_rw(iter);
  
@@ -35,5 +35,5 @@ index ec3a916..cfe703d 100644
  	if (f2fs_is_multi_device(sbi))
  		return true;
 -- 
-2.7.4
+2.17.1
 

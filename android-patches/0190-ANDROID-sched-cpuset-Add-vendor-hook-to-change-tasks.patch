@@ -1,4 +1,4 @@
-From 0a42500ff03f84d20a922c50cedfa35c4d9f49eb Mon Sep 17 00:00:00 2001
+From aae904d3e64459c658f4be4ab99b39be2d6209d3 Mon Sep 17 00:00:00 2001
 From: Satya Durga Srinivasu Prabhala <satyap@codeaurora.org>
 Date: Tue, 24 Nov 2020 03:38:47 -0800
 Subject: [PATCH 190/830] ANDROID: sched/cpuset: Add vendor hook to change
@@ -19,7 +19,7 @@ Signed-off-by: Satya Durga Srinivasu Prabhala <satyap@codeaurora.org>
  3 files changed, 23 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/android/vendor_hooks.c b/drivers/android/vendor_hooks.c
-index 9a8070c..8c385bc 100644
+index 9a8070c1e25a..8c385bced001 100644
 --- a/drivers/android/vendor_hooks.c
 +++ b/drivers/android/vendor_hooks.c
 @@ -71,3 +71,4 @@ EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_set_sugov_sched_attr);
@@ -28,7 +28,7 @@ index 9a8070c..8c385bc 100644
  EXPORT_TRACEPOINT_SYMBOL_GPL(android_rvh_sched_setaffinity);
 +EXPORT_TRACEPOINT_SYMBOL_GPL(android_rvh_update_cpus_allowed);
 diff --git a/include/trace/hooks/sched.h b/include/trace/hooks/sched.h
-index 82bda91..a2570fc 100644
+index 82bda911c91e..a2570fccdda0 100644
 --- a/include/trace/hooks/sched.h
 +++ b/include/trace/hooks/sched.h
 @@ -119,6 +119,11 @@ DECLARE_RESTRICTED_HOOK(android_rvh_set_sugov_update,
@@ -52,7 +52,7 @@ index 82bda91..a2570fc 100644
  #endif /* _TRACE_HOOK_SCHED_H */
  /* This part must be outside protection */
 diff --git a/kernel/cgroup/cpuset.c b/kernel/cgroup/cpuset.c
-index d55b3ad..4263800 100644
+index 53b68c9fc04b..a7e55e16d595 100644
 --- a/kernel/cgroup/cpuset.c
 +++ b/kernel/cgroup/cpuset.c
 @@ -66,6 +66,8 @@
@@ -92,7 +92,7 @@ index d55b3ad..4263800 100644
  	css_task_iter_end(&it);
  }
  
-@@ -2216,7 +2230,7 @@ static void cpuset_attach(struct cgroup_taskset *tset)
+@@ -2226,7 +2240,7 @@ static void cpuset_attach(struct cgroup_taskset *tset)
  		 * can_attach beforehand should guarantee that this doesn't
  		 * fail.  TODO: have a better way to handle failure here
  		 */
@@ -102,5 +102,5 @@ index d55b3ad..4263800 100644
  		cpuset_change_task_nodemask(task, &cpuset_attach_nodemask_to);
  		cpuset_update_task_spread_flag(cs, task);
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From cdf89e62c877c594c565b318107a524cf7c7a977 Mon Sep 17 00:00:00 2001
+From a986ce570a796f312031eebd57fa37c683f7b5a5 Mon Sep 17 00:00:00 2001
 From: Prasad Sodagudi <psodagud@codeaurora.org>
 Date: Wed, 23 Sep 2020 06:03:14 -0700
 Subject: [PATCH 120/830] ANDROID: Export perf_event_read_local function
@@ -15,10 +15,10 @@ Signed-off-by: Prasad Sodagudi <psodagud@codeaurora.org>
  1 file changed, 1 insertion(+)
 
 diff --git a/kernel/events/core.c b/kernel/events/core.c
-index 639b99a..e76ece7 100644
+index c8b3f94f0dbb..f58a026dd2d3 100644
 --- a/kernel/events/core.c
 +++ b/kernel/events/core.c
-@@ -4398,6 +4398,7 @@ int perf_event_read_local(struct perf_event *event, u64 *value,
+@@ -4457,6 +4457,7 @@ int perf_event_read_local(struct perf_event *event, u64 *value,
  
  	return ret;
  }
@@ -27,5 +27,5 @@ index 639b99a..e76ece7 100644
  static int perf_event_read(struct perf_event *event, bool group)
  {
 -- 
-2.7.4
+2.17.1
 

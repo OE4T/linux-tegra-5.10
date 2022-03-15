@@ -1,4 +1,4 @@
-From 695dd5a39a44968819410f9a9ca8d4eb846e38ab Mon Sep 17 00:00:00 2001
+From 92a7d89fe4da46641c69a2657ea2420e6eee8fe4 Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Mon, 20 Jul 2020 13:20:02 -0700
 Subject: [PATCH 470/830] ANDROID: Incremental fs: Fix incfs to work on
@@ -17,7 +17,7 @@ Change-Id: I6986fb3e9b403181cf81024046f394960caf4620
  2 files changed, 38 insertions(+), 15 deletions(-)
 
 diff --git a/fs/incfs/format.c b/fs/incfs/format.c
-index c56e559..3261d5d 100644
+index c56e559b6893..3261d5d4b8f6 100644
 --- a/fs/incfs/format.c
 +++ b/fs/incfs/format.c
 @@ -89,11 +89,42 @@ static int truncate_backing_file(struct backing_file_context *bfc,
@@ -88,7 +88,7 @@ index c56e559..3261d5d 100644
  
  static u32 calc_md_crc(struct incfs_md_header *record)
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index 58acbbd5..0b8051d 100644
+index 58acbbd5dcdb..0b8051d88c74 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -1931,17 +1931,17 @@ static int file_open(struct inode *inode, struct file *file)
@@ -113,5 +113,5 @@ index 58acbbd5..0b8051d 100644
  
  	if (IS_ERR(backing_file)) {
 -- 
-2.7.4
+2.17.1
 

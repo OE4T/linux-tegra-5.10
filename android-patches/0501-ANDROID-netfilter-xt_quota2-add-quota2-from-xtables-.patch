@@ -1,4 +1,4 @@
-From bebb708b70a161cf21fc639682bece5dc31a202c Mon Sep 17 00:00:00 2001
+From fcb61f7e6ac30bcd36d8f0eea5bdc968d55510b1 Mon Sep 17 00:00:00 2001
 From: JP Abgrall <jpa@google.com>
 Date: Tue, 21 Jun 2011 11:14:49 -0700
 Subject: [PATCH 501/830] ANDROID: netfilter: xt_quota2: add quota2 from
@@ -31,17 +31,17 @@ Signed-off-by: Matthias Maennich <maennich@google.com>
            Also updated the commit message.]
 Signed-off-by: Eric Biggers <ebiggers@google.com>
 ---
- include/linux/netfilter/xt_quota2.h |  26 +++
- net/netfilter/Kconfig               |  23 +++
+ include/linux/netfilter/xt_quota2.h |  26 ++
+ net/netfilter/Kconfig               |  23 ++
  net/netfilter/Makefile              |   1 +
- net/netfilter/xt_quota2.c           | 400 ++++++++++++++++++++++++++++++++++++
+ net/netfilter/xt_quota2.c           | 400 ++++++++++++++++++++++++++++
  4 files changed, 450 insertions(+)
  create mode 100644 include/linux/netfilter/xt_quota2.h
  create mode 100644 net/netfilter/xt_quota2.c
 
 diff --git a/include/linux/netfilter/xt_quota2.h b/include/linux/netfilter/xt_quota2.h
 new file mode 100644
-index 00000000..a391871
+index 000000000000..a3918718cbf8
 --- /dev/null
 +++ b/include/linux/netfilter/xt_quota2.h
 @@ -0,0 +1,26 @@
@@ -72,7 +72,7 @@ index 00000000..a391871
 +
 +#endif /* _XT_QUOTA_H */
 diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 6bafd38..56c5331 100644
+index 6bafd3876aff..56c53318a107 100644
 --- a/net/netfilter/Kconfig
 +++ b/net/netfilter/Kconfig
 @@ -1477,6 +1477,29 @@ config NETFILTER_XT_MATCH_QUOTA
@@ -106,7 +106,7 @@ index 6bafd38..56c5331 100644
  	tristate '"rateest" match support'
  	depends on NETFILTER_ADVANCED
 diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 0e0ded8..9100085 100644
+index 0e0ded87e27b..9100085c64f3 100644
 --- a/net/netfilter/Makefile
 +++ b/net/netfilter/Makefile
 @@ -197,6 +197,7 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_PHYSDEV) += xt_physdev.o
@@ -119,7 +119,7 @@ index 0e0ded8..9100085 100644
  obj-$(CONFIG_NETFILTER_XT_MATCH_RECENT) += xt_recent.o
 diff --git a/net/netfilter/xt_quota2.c b/net/netfilter/xt_quota2.c
 new file mode 100644
-index 00000000..2d87ad1
+index 000000000000..2d87ad19b4bb
 --- /dev/null
 +++ b/net/netfilter/xt_quota2.c
 @@ -0,0 +1,400 @@
@@ -524,5 +524,5 @@ index 00000000..2d87ad1
 +MODULE_ALIAS("ipt_quota2");
 +MODULE_ALIAS("ip6t_quota2");
 -- 
-2.7.4
+2.17.1
 

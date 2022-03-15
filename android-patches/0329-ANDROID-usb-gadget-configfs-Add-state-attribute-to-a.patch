@@ -1,4 +1,4 @@
-From 71903847b37c139772e6520a5e8940d8a18549f5 Mon Sep 17 00:00:00 2001
+From 020f871b93e9f859c9f3f02cfd8e02c128ca97db Mon Sep 17 00:00:00 2001
 From: Badhri Jagan Sridharan <Badhri@google.com>
 Date: Tue, 14 Jul 2015 15:46:11 -0700
 Subject: [PATCH 329/830] ANDROID: usb: gadget: configfs: Add "state" attribute
@@ -14,11 +14,11 @@ Change-Id: I17f8903120df96bf2f4bf441940b53a87b818230
 [badhri: Migrate to using udc uevents from upstream sysfs.]
 Signed-off-by: Badhri Jagan Sridharan <badhri@google.com>
 ---
- drivers/usb/gadget/configfs.c | 66 ++++++++++++++++++++++++++++++++++++++++++-
+ drivers/usb/gadget/configfs.c | 66 ++++++++++++++++++++++++++++++++++-
  1 file changed, 65 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/usb/gadget/configfs.c b/drivers/usb/gadget/configfs.c
-index 01f8b0a..16dce61 100644
+index 01f8b0aeefa6..16dce61e377a 100644
 --- a/drivers/usb/gadget/configfs.c
 +++ b/drivers/usb/gadget/configfs.c
 @@ -1731,11 +1731,49 @@ static const struct usb_gadget_driver configfs_driver_template = {
@@ -121,5 +121,5 @@ index 01f8b0a..16dce61 100644
  #endif
  }
 -- 
-2.7.4
+2.17.1
 

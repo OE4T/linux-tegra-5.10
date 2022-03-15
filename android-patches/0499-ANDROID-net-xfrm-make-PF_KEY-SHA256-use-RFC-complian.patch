@@ -1,4 +1,4 @@
-From e237c33ee5889af5a17f20e87deeef6924ffd6bc Mon Sep 17 00:00:00 2001
+From 2c562e227bbf234a663a57acd236d5d0f3e370dd Mon Sep 17 00:00:00 2001
 From: Lorenzo Colitti <lorenzo@google.com>
 Date: Wed, 10 May 2017 23:54:04 +0900
 Subject: [PATCH 499/830] ANDROID: net: xfrm: make PF_KEY SHA256 use
@@ -29,7 +29,7 @@ Change-Id: I8ee2ac9bb577b5078e8565a5b1f5fd84c2b3f74f
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/net/xfrm/xfrm_algo.c b/net/xfrm/xfrm_algo.c
-index 4dae3ab..2e80e38 100644
+index 4dae3ab8d030..2e80e38bcfd8 100644
 --- a/net/xfrm/xfrm_algo.c
 +++ b/net/xfrm/xfrm_algo.c
 @@ -237,7 +237,7 @@ static struct xfrm_algo_desc aalg_list[] = {
@@ -42,5 +42,5 @@ index 4dae3ab..2e80e38 100644
  		}
  	},
 -- 
-2.7.4
+2.17.1
 

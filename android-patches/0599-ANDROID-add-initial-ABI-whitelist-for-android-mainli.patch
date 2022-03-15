@@ -1,4 +1,4 @@
-From cef55ffb6aa9666a52837c1b76f19702cc0a68c2 Mon Sep 17 00:00:00 2001
+From 38a9eaf285b05feaa0daf419bf4918021a1907f7 Mon Sep 17 00:00:00 2001
 From: Matthias Maennich <maennich@google.com>
 Date: Wed, 18 Dec 2019 12:57:43 +0000
 Subject: [PATCH 599/830] ANDROID: add initial ABI whitelist for
@@ -13,7 +13,7 @@ Signed-off-by: Matthias Maennich <maennich@google.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/build.config.gki.aarch64 b/build.config.gki.aarch64
-index 352a638..dade440 100644
+index 352a6382b06c..dade4408295e 100644
 --- a/build.config.gki.aarch64
 +++ b/build.config.gki.aarch64
 @@ -3,3 +3,4 @@
@@ -22,5 +22,5 @@ index 352a638..dade440 100644
  ABI_DEFINITION=abi_gki_aarch64.xml
 +KMI_WHITELIST=abi_gki_aarch64_whitelist
 -- 
-2.7.4
+2.17.1
 

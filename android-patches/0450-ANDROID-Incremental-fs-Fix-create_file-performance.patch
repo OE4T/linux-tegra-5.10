@@ -1,4 +1,4 @@
-From c17dbc9ec20e94325e96b4d054af54dcb89ad830 Mon Sep 17 00:00:00 2001
+From e6ca9933b6ececf552682cc8f73e2ceda117004b Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Tue, 7 Apr 2020 14:46:13 -0700
 Subject: [PATCH 450/830] ANDROID: Incremental fs: Fix create_file performance
@@ -18,7 +18,7 @@ Signed-off-by: Paul Lawrence <paullawrence@google.com>
  1 file changed, 15 insertions(+), 30 deletions(-)
 
 diff --git a/fs/incfs/format.c b/fs/incfs/format.c
-index 8f3a3b3..c56e559 100644
+index 8f3a3b3f8f7b..c56e559b6893 100644
 --- a/fs/incfs/format.c
 +++ b/fs/incfs/format.c
 @@ -94,7 +94,6 @@ static int append_zeros(struct backing_file_context *bfc, size_t len)
@@ -169,5 +169,5 @@ index 8f3a3b3..c56e559 100644
  
  /* Initialize a new image in a given backing file. */
 -- 
-2.7.4
+2.17.1
 

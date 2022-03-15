@@ -1,4 +1,4 @@
-From 07dcd59a4d4657d81fb3597b3bf9207acc2ffac2 Mon Sep 17 00:00:00 2001
+From 1ed8b19ea8d78c5a2a9181014169daa8f264e24d Mon Sep 17 00:00:00 2001
 From: Ulf Hansson <ulf.hansson@linaro.org>
 Date: Tue, 3 Nov 2020 16:06:26 +0100
 Subject: [PATCH 051/830] FROMGIT: PM: domains: Enable
@@ -28,7 +28,7 @@ Signed-off-by: Lina Iyer <ilina@codeaurora.org>
  1 file changed, 16 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/base/power/domain.c b/drivers/base/power/domain.c
-index 9b4881b..4a55f3c 100644
+index 9b4881b67683..4a55f3c949ae 100644
 --- a/drivers/base/power/domain.c
 +++ b/drivers/base/power/domain.c
 @@ -1366,18 +1366,27 @@ static void genpd_complete(struct device *dev)
@@ -83,5 +83,5 @@ index 9b4881b..4a55f3c 100644
  void dev_pm_genpd_resume(struct device *dev)
  {
 -- 
-2.7.4
+2.17.1
 

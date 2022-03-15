@@ -1,4 +1,4 @@
-From 6b3372f008faf99cce9eb149f70e29738f4d9724 Mon Sep 17 00:00:00 2001
+From c4a652ecb6f5045d0dfe357be97b8565f0d32d90 Mon Sep 17 00:00:00 2001
 From: Alistair Delva <adelva@google.com>
 Date: Mon, 27 Apr 2020 08:54:47 -0700
 Subject: [PATCH 691/830] ANDROID: GKI: Enable GENERIC_IRQ_CHIP
@@ -16,7 +16,7 @@ Signed-off-by: Alistair Delva <adelva@google.com>
  1 file changed, 9 insertions(+)
 
 diff --git a/init/Kconfig.gki b/init/Kconfig.gki
-index 399e6c7..728171c 100644
+index 399e6c7a3ba5..728171c02dce 100644
 --- a/init/Kconfig.gki
 +++ b/init/Kconfig.gki
 @@ -157,6 +157,14 @@ config GKI_HIDDEN_GPU_CONFIGS
@@ -43,5 +43,5 @@ index 399e6c7..728171c 100644
  	  Dummy config option used to enable core functionality used by
  	  modules that may not be selectable in this config.
 -- 
-2.7.4
+2.17.1
 

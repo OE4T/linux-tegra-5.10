@@ -1,4 +1,4 @@
-From 67e9004d619541086f439eb2a3ea45507710ba70 Mon Sep 17 00:00:00 2001
+From be207f209586fbc7bf8816baf71d46e9c76f6a4c Mon Sep 17 00:00:00 2001
 From: Joel Fernandes <joelaf@google.com>
 Date: Thu, 14 Mar 2019 17:32:39 -0400
 Subject: [PATCH 416/830] ANDROID: Add a tracepoint for mapping inode to full
@@ -27,13 +27,13 @@ Bug: 137393447
 Change-Id: I657f374659673a9c8853530d73c0622dbdbab146
 Signed-off-by: Joel Fernandes <joelaf@google.com>
 ---
- fs/namei.c                   | 90 ++++++++++++++++++++++++++++++++++++++++++--
- include/trace/events/namei.h | 42 +++++++++++++++++++++
+ fs/namei.c                   | 90 ++++++++++++++++++++++++++++++++++--
+ include/trace/events/namei.h | 42 +++++++++++++++++
  2 files changed, 129 insertions(+), 3 deletions(-)
  create mode 100644 include/trace/events/namei.h
 
 diff --git a/fs/namei.c b/fs/namei.c
-index 4c9d0c36..6d86355 100644
+index 72f354b62dd5..1e6f5f6751a2 100644
 --- a/fs/namei.c
 +++ b/fs/namei.c
 @@ -43,6 +43,9 @@
@@ -155,7 +155,7 @@ index 4c9d0c36..6d86355 100644
  		status = -ESTALE;
 diff --git a/include/trace/events/namei.h b/include/trace/events/namei.h
 new file mode 100644
-index 00000000..e8c3e21
+index 000000000000..e8c3e216a0a7
 --- /dev/null
 +++ b/include/trace/events/namei.h
 @@ -0,0 +1,42 @@
@@ -202,5 +202,5 @@ index 00000000..e8c3e21
 +/* This part must be outside protection */
 +#include <trace/define_trace.h>
 -- 
-2.7.4
+2.17.1
 

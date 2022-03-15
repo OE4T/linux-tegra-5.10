@@ -1,4 +1,4 @@
-From 3497d5210c236a73a0dd84fa973cc5af9651a47c Mon Sep 17 00:00:00 2001
+From 41f03e4fb376dbe9fe3b479e51fb4e44f1318239 Mon Sep 17 00:00:00 2001
 From: Ram Muthiah <rammuthiah@google.com>
 Date: Wed, 4 Dec 2019 15:55:34 -0800
 Subject: [PATCH 595/830] ANDROID: gki_defconfig: Enable UCLAMP by default
@@ -14,7 +14,7 @@ Signed-off-by: Ram Muthiah <rammuthiah@google.com>
  2 files changed, 5 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 8689511..4b49469 100644
+index 868951152439..4b4946926180 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -10,10 +10,12 @@ CONFIG_PSI=y
@@ -31,7 +31,7 @@ index 8689511..4b49469 100644
  CONFIG_CPUSETS=y
  CONFIG_CGROUP_CPUACCT=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 53edd7b..b39377d 100644
+index 53edd7b99449..b39377d72961 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -11,9 +11,11 @@ CONFIG_PSI=y
@@ -55,5 +55,5 @@ index 53edd7b..b39377d 100644
  CONFIG_CPU_FREQ_GOV_CONSERVATIVE=y
  CONFIG_CPUFREQ_DUMMY=m
 -- 
-2.7.4
+2.17.1
 

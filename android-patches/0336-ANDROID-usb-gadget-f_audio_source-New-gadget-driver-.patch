@@ -1,4 +1,4 @@
-From 1b4c93989c82d548b4e099fd1301d3dfa848acf3 Mon Sep 17 00:00:00 2001
+From ed7ab65f0d0c45e6794c1438fb9becd8bd18cffc Mon Sep 17 00:00:00 2001
 From: Mike Lockwood <lockwood@google.com>
 Date: Fri, 11 May 2012 09:01:08 -0700
 Subject: [PATCH 336/830] ANDROID: usb: gadget: f_audio_source: New gadget
@@ -28,12 +28,12 @@ Signed-off-by: Alistair Delva <adelva@google.com>
 ---
  drivers/usb/gadget/Kconfig                   |   12 +
  drivers/usb/gadget/function/Makefile         |    2 +
- drivers/usb/gadget/function/f_audio_source.c | 1071 ++++++++++++++++++++++++++
+ drivers/usb/gadget/function/f_audio_source.c | 1071 ++++++++++++++++++
  3 files changed, 1085 insertions(+)
  create mode 100644 drivers/usb/gadget/function/f_audio_source.c
 
 diff --git a/drivers/usb/gadget/Kconfig b/drivers/usb/gadget/Kconfig
-index 921603f..c333d13 100644
+index 921603f12380..c333d13b38c1 100644
 --- a/drivers/usb/gadget/Kconfig
 +++ b/drivers/usb/gadget/Kconfig
 @@ -219,6 +219,9 @@ config USB_F_TCM
@@ -63,7 +63,7 @@ index 921603f..c333d13 100644
  	bool "Audio Class 1.0"
  	depends on USB_CONFIGFS
 diff --git a/drivers/usb/gadget/function/Makefile b/drivers/usb/gadget/function/Makefile
-index 2305360..dd33a12 100644
+index 2305360e5f22..dd33a1243342 100644
 --- a/drivers/usb/gadget/function/Makefile
 +++ b/drivers/usb/gadget/function/Makefile
 @@ -52,3 +52,5 @@ usb_f_tcm-y			:= f_tcm.o
@@ -74,7 +74,7 @@ index 2305360..dd33a12 100644
 +obj-$(CONFIG_USB_F_AUDIO_SRC)	+= usb_f_audio_source.o
 diff --git a/drivers/usb/gadget/function/f_audio_source.c b/drivers/usb/gadget/function/f_audio_source.c
 new file mode 100644
-index 00000000..c768a52
+index 000000000000..c768a526b315
 --- /dev/null
 +++ b/drivers/usb/gadget/function/f_audio_source.c
 @@ -0,0 +1,1071 @@
@@ -1150,5 +1150,5 @@ index 00000000..c768a52
 +			audio_source_alloc);
 +MODULE_LICENSE("GPL");
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 31a74c341076fc8cbd6564290ba965f967861085 Mon Sep 17 00:00:00 2001
+From 8cf75f602acebe9ce272ee63460c122b6e267be6 Mon Sep 17 00:00:00 2001
 From: Matthias Maennich <maennich@google.com>
 Date: Sat, 20 Jun 2020 13:38:10 +0200
 Subject: [PATCH 711/830] ANDROID: Use depmod from the hermetic toolchain
@@ -15,7 +15,7 @@ Change-Id: I73eefaa5508298bc61e9e586f981c5ddabed7656
  1 file changed, 1 insertion(+)
 
 diff --git a/build.config.common b/build.config.common
-index cf74eaa..2aa8307 100644
+index cf74eaaf3e5c..2aa83074ab1b 100644
 --- a/build.config.common
 +++ b/build.config.common
 @@ -5,6 +5,7 @@ CC=clang
@@ -27,5 +27,5 @@ index cf74eaa..2aa8307 100644
  BUILDTOOLS_PREBUILT_BIN=build/build-tools/path/linux-x86
  
 -- 
-2.7.4
+2.17.1
 

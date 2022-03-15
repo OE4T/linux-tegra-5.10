@@ -1,4 +1,4 @@
-From 8684bac1b363a4e0cedee114a08265096b961398 Mon Sep 17 00:00:00 2001
+From 32a3bcfe8b28a2049a574df6a0e66fa1b7ca8a1d Mon Sep 17 00:00:00 2001
 From: zhang sanshan <pete.zhang@nxp.com>
 Date: Tue, 30 Jun 2020 16:51:27 +0800
 Subject: [PATCH 744/830] ANDROID: GKI: enable CONFIG_V4L_PLATFORM_DRIVERS
@@ -22,7 +22,7 @@ Bug: 165592876
  2 files changed, 4 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index cc02b26..82881a9 100644
+index cc02b2669db0..82881a9b6325 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -322,6 +322,8 @@ CONFIG_REGULATOR=y
@@ -35,7 +35,7 @@ index cc02b26..82881a9 100644
  CONFIG_DRM=y
  # CONFIG_DRM_FBDEV_EMULATION is not set
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 59a19df..536cde9 100644
+index 59a19df132d4..536cde9f3d36 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -285,6 +285,8 @@ CONFIG_REGULATOR=y
@@ -48,5 +48,5 @@ index 59a19df..536cde9 100644
  # CONFIG_DRM_FBDEV_EMULATION is not set
  CONFIG_BACKLIGHT_CLASS_DEVICE=y
 -- 
-2.7.4
+2.17.1
 

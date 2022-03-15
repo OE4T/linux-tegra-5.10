@@ -1,4 +1,4 @@
-From d3f6ca35d1e6b27d8202d06400b5a431ab0c4080 Mon Sep 17 00:00:00 2001
+From 68f5d49df1141298d0413607acad3124e1f9251a Mon Sep 17 00:00:00 2001
 From: Sidath Senanayake <sidaths@google.com>
 Date: Tue, 1 Sep 2020 23:56:01 +0100
 Subject: [PATCH 135/830] ANDROID: perf: Export clock_set_rate tracepoint
@@ -18,7 +18,7 @@ Signed-off-by: Will McVicker <willmcvicker@google.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/kernel/trace/power-traces.c b/kernel/trace/power-traces.c
-index 38b8024..3ca551c 100644
+index 38b8024f993f..3ca551c11ae1 100644
 --- a/kernel/trace/power-traces.c
 +++ b/kernel/trace/power-traces.c
 @@ -20,3 +20,4 @@ EXPORT_TRACEPOINT_SYMBOL_GPL(cpu_frequency);
@@ -27,5 +27,5 @@ index 38b8024..3ca551c 100644
  EXPORT_TRACEPOINT_SYMBOL_GPL(device_pm_callback_end);
 +EXPORT_TRACEPOINT_SYMBOL_GPL(clock_set_rate);
 -- 
-2.7.4
+2.17.1
 

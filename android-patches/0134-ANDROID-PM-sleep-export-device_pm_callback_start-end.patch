@@ -1,4 +1,4 @@
-From 3329894d98e548d27249e72586862144561fdb6d Mon Sep 17 00:00:00 2001
+From d104ad29af0505393be89b16b95aa6eef86dc228 Mon Sep 17 00:00:00 2001
 From: Changki Kim <changki.kim@samsung.com>
 Date: Thu, 2 Jul 2020 10:20:49 +0900
 Subject: [PATCH 134/830] ANDROID: PM: sleep: export
@@ -19,7 +19,7 @@ Signed-off-by: Jonglin Lee <jonglin@google.com>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/kernel/trace/power-traces.c b/kernel/trace/power-traces.c
-index 21bb161..38b8024 100644
+index 21bb161c2316..38b8024f993f 100644
 --- a/kernel/trace/power-traces.c
 +++ b/kernel/trace/power-traces.c
 @@ -18,4 +18,5 @@ EXPORT_TRACEPOINT_SYMBOL_GPL(suspend_resume);
@@ -30,5 +30,5 @@ index 21bb161..38b8024 100644
 +EXPORT_TRACEPOINT_SYMBOL_GPL(device_pm_callback_start);
 +EXPORT_TRACEPOINT_SYMBOL_GPL(device_pm_callback_end);
 -- 
-2.7.4
+2.17.1
 

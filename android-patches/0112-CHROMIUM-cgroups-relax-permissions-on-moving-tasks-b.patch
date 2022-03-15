@@ -1,4 +1,4 @@
-From c861de6668d20dba09cb8c43e122fb6ebc8e85aa Mon Sep 17 00:00:00 2001
+From 725a7b7d515dac0bd3f342606dba7bc760fe81e6 Mon Sep 17 00:00:00 2001
 From: Dmitry Torokhov <dtor@chromium.org>
 Date: Thu, 6 Oct 2016 16:14:16 -0700
 Subject: [PATCH 112/830] CHROMIUM: cgroups: relax permissions on moving tasks
@@ -27,7 +27,7 @@ Signed-off-by: Amit Pundir <amit.pundir@linaro.org>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/kernel/cgroup/cgroup-v1.c b/kernel/cgroup/cgroup-v1.c
-index 7f71b54..aecb42b 100644
+index 69fba563c810..5f4bbd61cc22 100644
 --- a/kernel/cgroup/cgroup-v1.c
 +++ b/kernel/cgroup/cgroup-v1.c
 @@ -510,7 +510,8 @@ static ssize_t __cgroup1_procs_write(struct kernfs_open_file *of,
@@ -41,5 +41,5 @@ index 7f71b54..aecb42b 100644
  	put_cred(tcred);
  	if (ret)
 -- 
-2.7.4
+2.17.1
 

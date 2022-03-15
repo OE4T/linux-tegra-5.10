@@ -1,4 +1,4 @@
-From cc9a871a45703e71c9a3e4f3202ed21f5fda5888 Mon Sep 17 00:00:00 2001
+From 5d5e74cedcbc59aa8cdf7c1a4cd883b85ef505fb Mon Sep 17 00:00:00 2001
 From: Can Guo <cang@codeaurora.org>
 Date: Thu, 5 Dec 2019 18:16:12 -0800
 Subject: [PATCH 367/830] FROMLIST: scsi: ufs: Export query request interfaces
@@ -21,7 +21,7 @@ Signed-off-by: Asutosh Das <asutoshd@codeaurora.org>
  1 file changed, 3 insertions(+)
 
 diff --git a/drivers/scsi/ufs/ufshcd.c b/drivers/scsi/ufs/ufshcd.c
-index 5abc374..32c0395 100644
+index e15535be314c..9ae5ab33f6da 100644
 --- a/drivers/scsi/ufs/ufshcd.c
 +++ b/drivers/scsi/ufs/ufshcd.c
 @@ -2971,6 +2971,7 @@ int ufshcd_query_flag(struct ufs_hba *hba, enum query_opcode opcode,
@@ -49,5 +49,5 @@ index 5abc374..32c0395 100644
  /**
   * ufshcd_map_desc_id_to_length - map descriptor IDN to its length
 -- 
-2.7.4
+2.17.1
 

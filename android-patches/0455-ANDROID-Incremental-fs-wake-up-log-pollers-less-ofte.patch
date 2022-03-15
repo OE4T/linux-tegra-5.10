@@ -1,4 +1,4 @@
-From 7471a4577ec320a8995267e31c621f9afa2dda1e Mon Sep 17 00:00:00 2001
+From 06ba41ebeaf0d949778deecacdd8e0b1d83febfa Mon Sep 17 00:00:00 2001
 From: Yurii Zubrytskyi <zyy@google.com>
 Date: Wed, 13 May 2020 17:04:44 -0700
 Subject: [PATCH 455/830] ANDROID: Incremental fs: wake up log pollers less
@@ -23,7 +23,7 @@ Change-Id: I4a118dc226d7ca318cf099ba3e239f0120bb23c2
  2 files changed, 27 insertions(+), 3 deletions(-)
 
 diff --git a/fs/incfs/data_mgmt.c b/fs/incfs/data_mgmt.c
-index d9c43d5..6b74a9d 100644
+index d9c43d5cca19..6b74a9d0325f 100644
 --- a/fs/incfs/data_mgmt.c
 +++ b/fs/incfs/data_mgmt.c
 @@ -8,6 +8,7 @@
@@ -114,7 +114,7 @@ index d9c43d5..6b74a9d 100644
  
  static int validate_hash_tree(struct file *bf, struct data_file *df,
 diff --git a/fs/incfs/data_mgmt.h b/fs/incfs/data_mgmt.h
-index b7aecdd..d9d9966 100644
+index b7aecdd5bf4a..d9d9966b838a 100644
 --- a/fs/incfs/data_mgmt.h
 +++ b/fs/incfs/data_mgmt.h
 @@ -89,6 +89,9 @@ struct read_log {
@@ -128,5 +128,5 @@ index b7aecdd..d9d9966 100644
  
  struct mount_options {
 -- 
-2.7.4
+2.17.1
 

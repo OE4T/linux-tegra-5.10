@@ -1,4 +1,4 @@
-From 624a661583563901246fd1db0af2846b90cb3b8d Mon Sep 17 00:00:00 2001
+From 5d37617c0cd1fc7f4fd1f2a79a52d612b90d2890 Mon Sep 17 00:00:00 2001
 From: Greg Kroah-Hartman <gregkh@google.com>
 Date: Tue, 10 Mar 2020 13:58:46 +0100
 Subject: [PATCH 656/830] ANDROID: enable CONFIG_WATCHDOG_CORE=y
@@ -17,7 +17,7 @@ Change-Id: Iac14e304b15f774d52fb07aa65df86f3dd71797f
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index d3be29f..96718aa 100644
+index d3be29f9eada..96718aa53253 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -300,6 +300,7 @@ CONFIG_THERMAL_GOV_USER_SPACE=y
@@ -29,7 +29,7 @@ index d3be29f..96718aa 100644
  CONFIG_MFD_SYSCON=y
  CONFIG_REGULATOR=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index ab011c6..f2fd8d0 100644
+index ab011c6b1c8f..f2fd8d0d9038 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -263,6 +263,7 @@ CONFIG_GPIOLIB=y
@@ -41,5 +41,5 @@ index ab011c6..f2fd8d0 100644
  CONFIG_REGULATOR=y
  CONFIG_REGULATOR_FIXED_VOLTAGE=y
 -- 
-2.7.4
+2.17.1
 

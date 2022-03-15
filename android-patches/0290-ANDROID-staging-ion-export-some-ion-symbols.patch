@@ -1,4 +1,4 @@
-From 9776c50e2be5a9417694a31f32aa186e01ff03cc Mon Sep 17 00:00:00 2001
+From 2cf9f1b208fd4d90212ca228d6c9ac5bd2f7e9e6 Mon Sep 17 00:00:00 2001
 From: Chao Hao <chao.hao@mediatek.com>
 Date: Wed, 12 Aug 2020 17:28:44 +0800
 Subject: [PATCH 290/830] ANDROID: staging: ion: export some ion symbols
@@ -53,7 +53,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@google.com>
  1 file changed, 6 insertions(+)
 
 diff --git a/drivers/staging/android/ion/heaps/ion_page_pool.c b/drivers/staging/android/ion/heaps/ion_page_pool.c
-index d34c192..efd6ce4 100644
+index d34c192b1c27..efd6ce4cc0ad 100644
 --- a/drivers/staging/android/ion/heaps/ion_page_pool.c
 +++ b/drivers/staging/android/ion/heaps/ion_page_pool.c
 @@ -79,6 +79,7 @@ struct page *ion_page_pool_alloc(struct ion_page_pool *pool)
@@ -100,5 +100,5 @@ index d34c192..efd6ce4 100644
  }
 +EXPORT_SYMBOL_GPL(ion_page_pool_destroy);
 -- 
-2.7.4
+2.17.1
 

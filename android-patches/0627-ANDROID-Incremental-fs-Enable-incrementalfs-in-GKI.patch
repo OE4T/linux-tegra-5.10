@@ -1,4 +1,4 @@
-From 5fc3671971fa55d1ecf272dd5bace3f77643a023 Mon Sep 17 00:00:00 2001
+From 11f6ef89f2db6672a6b5b222a16a2cf13337fa7c Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Thu, 30 Jan 2020 10:19:38 -0800
 Subject: [PATCH 627/830] ANDROID: Incremental fs: Enable incrementalfs in GKI
@@ -14,7 +14,7 @@ Signed-off-by: Paul Lawrence <paullawrence@google.com>
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 4036858..8c7832d 100644
+index 4036858f3faa..8c7832d80d69 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -389,6 +389,7 @@ CONFIG_QUOTA=y
@@ -26,7 +26,7 @@ index 4036858..8c7832d 100644
  CONFIG_VFAT_FS=y
  CONFIG_TMPFS=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 881b44c..b0bca72 100644
+index 881b44ccc760..b0bca7278231 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -324,6 +324,7 @@ CONFIG_QUOTA=y
@@ -38,5 +38,5 @@ index 881b44c..b0bca72 100644
  CONFIG_VFAT_FS=y
  CONFIG_TMPFS=y
 -- 
-2.7.4
+2.17.1
 

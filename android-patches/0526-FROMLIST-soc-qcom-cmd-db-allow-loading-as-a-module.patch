@@ -1,4 +1,4 @@
-From e1092fde0c0f9634421f5aeb6768053d7803f97f Mon Sep 17 00:00:00 2001
+From ac6fd92b1045ba1ba76f2df724743da21254b8cf Mon Sep 17 00:00:00 2001
 From: Lina Iyer <ilina@codeaurora.org>
 Date: Wed, 23 Sep 2020 14:01:31 -0600
 Subject: [PATCH 526/830] FROMLIST: soc: qcom: cmd-db: allow loading as a
@@ -21,7 +21,7 @@ Change-Id: Ieef72d620ab0f5261c88098f4e90468c9fa55932
  2 files changed, 8 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/soc/qcom/Kconfig b/drivers/soc/qcom/Kconfig
-index d65e4bc..79b568f 100644
+index d65e4bcf9911..79b568f82a1c 100644
 --- a/drivers/soc/qcom/Kconfig
 +++ b/drivers/soc/qcom/Kconfig
 @@ -17,7 +17,7 @@ config QCOM_AOSS_QMP
@@ -34,7 +34,7 @@ index d65e4bc..79b568f 100644
  	depends on OF_RESERVED_MEM
  	help
 diff --git a/drivers/soc/qcom/cmd-db.c b/drivers/soc/qcom/cmd-db.c
-index fc56106..dd87201 100644
+index fc5610603b17..dd872017f345 100644
 --- a/drivers/soc/qcom/cmd-db.c
 +++ b/drivers/soc/qcom/cmd-db.c
 @@ -1,8 +1,9 @@
@@ -71,5 +71,5 @@ index fc56106..dd87201 100644
 +MODULE_DESCRIPTION("Qualcomm Technologies, Inc. Command DB Driver");
 +MODULE_LICENSE("GPL v2");
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 11de9adec573ce7264e6a765f4b7e25e0538d119 Mon Sep 17 00:00:00 2001
+From d82af3e5b36b128313e58b970b0000f165ff179f Mon Sep 17 00:00:00 2001
 From: Greg Kroah-Hartman <gregkh@google.com>
 Date: Wed, 24 Jun 2020 17:58:41 +0200
 Subject: [PATCH 714/830] ANDROID: GKI: fix up gki_defconfig due to pinctrl
@@ -15,7 +15,7 @@ Change-Id: I19a5f8b86f514d4f82c46468d5bcec25ab55157d
  1 file changed, 1 deletion(-)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index ba6efe8..c8c3a93 100644
+index ba6efe812db8..c8c3a9388a3b 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -305,7 +305,6 @@ CONFIG_HW_RANDOM=y
@@ -27,5 +27,5 @@ index ba6efe8..c8c3a93 100644
  # CONFIG_HWMON is not set
  CONFIG_THERMAL=y
 -- 
-2.7.4
+2.17.1
 

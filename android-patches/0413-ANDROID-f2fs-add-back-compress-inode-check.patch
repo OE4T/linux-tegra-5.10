@@ -1,4 +1,4 @@
-From 9bfc3de59fd06fc202257a2d4c2e84d9c470caa8 Mon Sep 17 00:00:00 2001
+From 814a348fc236ff919e9aec3d542bcaeea0d92be2 Mon Sep 17 00:00:00 2001
 From: Eric Biggers <ebiggers@google.com>
 Date: Thu, 9 Jul 2020 18:16:15 -0700
 Subject: [PATCH 413/830] ANDROID: f2fs: add back compress inode check
@@ -26,10 +26,10 @@ Signed-off-by: Eric Biggers <ebiggers@google.com>
  1 file changed, 2 insertions(+)
 
 diff --git a/fs/f2fs/f2fs.h b/fs/f2fs/f2fs.h
-index cfe703d..9069138 100644
+index a01d4cfdb00e..1ad5dd686cd2 100644
 --- a/fs/f2fs/f2fs.h
 +++ b/fs/f2fs/f2fs.h
-@@ -4055,6 +4055,8 @@ static inline bool f2fs_force_buffered_io(struct inode *inode,
+@@ -4066,6 +4066,8 @@ static inline bool f2fs_force_buffered_io(struct inode *inode,
  		return true;
  	if (fsverity_active(inode))
  		return true;
@@ -39,5 +39,5 @@ index cfe703d..9069138 100644
  		return true;
  	/*
 -- 
-2.7.4
+2.17.1
 

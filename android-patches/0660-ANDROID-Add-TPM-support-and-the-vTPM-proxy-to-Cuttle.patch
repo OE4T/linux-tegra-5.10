@@ -1,4 +1,4 @@
-From d53df07e5535307884fcf305a6c9c3a153cf23cc Mon Sep 17 00:00:00 2001
+From d97c74db8ace5c9f5fbe5586600c3b655228a023 Mon Sep 17 00:00:00 2001
 From: "A. Cody Schuffelen" <schuffelen@google.com>
 Date: Tue, 11 Feb 2020 18:01:10 -0800
 Subject: [PATCH 660/830] ANDROID: Add TPM support and the vTPM proxy to
@@ -28,7 +28,7 @@ Signed-off-by: A. Cody Schuffelen <schuffelen@google.com>
  3 files changed, 4 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index c16d432..cb0347b 100644
+index c16d4325acc9..cb0347b36867 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -450,6 +450,7 @@ CONFIG_NLS_MAC_ROMANIAN=y
@@ -40,7 +40,7 @@ index c16d432..cb0347b 100644
  CONFIG_HARDENED_USERCOPY=y
  CONFIG_FORTIFY_SOURCE=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index d36393c..14b5c7a 100644
+index d36393c96c72..14b5c7a5454b 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -392,6 +392,7 @@ CONFIG_NLS_MAC_ROMANIAN=y
@@ -52,7 +52,7 @@ index d36393c..14b5c7a 100644
  CONFIG_HARDENED_USERCOPY=y
  CONFIG_FORTIFY_SOURCE=y
 diff --git a/cuttlefish.fragment b/cuttlefish.fragment
-index 456573a..c931d77 100644
+index 456573aad434..c931d7791ab6 100644
 --- a/cuttlefish.fragment
 +++ b/cuttlefish.fragment
 @@ -18,3 +18,5 @@ CONFIG_VIRTIO_MMIO_CMDLINE_DEVICES=y
@@ -62,5 +62,5 @@ index 456573a..c931d77 100644
 +CONFIG_TCG_TPM=m
 +CONFIG_TCG_VTPM_PROXY=m
 -- 
-2.7.4
+2.17.1
 

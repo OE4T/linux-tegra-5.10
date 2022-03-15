@@ -1,4 +1,4 @@
-From afc862a6ea8cc94115d41d48c5c6bce906e8d8df Mon Sep 17 00:00:00 2001
+From 9f77b70e550c9e00d5b7279f8c7cba033cbce0bb Mon Sep 17 00:00:00 2001
 From: Will McVicker <willmcvicker@google.com>
 Date: Wed, 12 Aug 2020 15:42:57 -0700
 Subject: [PATCH 317/830] Revert "Revert "tty: serial: samsung_tty: build it
@@ -16,7 +16,7 @@ Signed-off-by: Will McVicker <willmcvicker@google.com>
  1 file changed, 1 deletion(-)
 
 diff --git a/drivers/tty/serial/Kconfig b/drivers/tty/serial/Kconfig
-index 28f22e5..296646a 100644
+index 28f22e58639c..296646a3732d 100644
 --- a/drivers/tty/serial/Kconfig
 +++ b/drivers/tty/serial/Kconfig
 @@ -236,7 +236,6 @@ config SERIAL_CLPS711X_CONSOLE
@@ -28,5 +28,5 @@ index 28f22e5..296646a 100644
  	help
  	  Support for the on-chip UARTs on the Samsung S3C24XX series CPUs,
 -- 
-2.7.4
+2.17.1
 

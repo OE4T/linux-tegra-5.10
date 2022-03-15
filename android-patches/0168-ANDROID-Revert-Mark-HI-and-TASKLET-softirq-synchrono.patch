@@ -1,4 +1,4 @@
-From ada661e2b9e40c39612eb1b872e900d39eb47450 Mon Sep 17 00:00:00 2001
+From 2db684452153b7741f0aa4e60d1f07062be83b63 Mon Sep 17 00:00:00 2001
 From: Satya Durga Srinivasu Prabhala <satyap@codeaurora.org>
 Date: Tue, 8 Jan 2019 15:38:32 -0800
 Subject: [PATCH 168/830] ANDROID: Revert "Mark HI and TASKLET softirq
@@ -29,7 +29,7 @@ Signed-off-by: J. Avila <elavila@google.com>
  1 file changed, 4 insertions(+), 8 deletions(-)
 
 diff --git a/kernel/softirq.c b/kernel/softirq.c
-index 7d210a5..df727d8 100644
+index 7d210a5f2bfb..df727d82600a 100644
 --- a/kernel/softirq.c
 +++ b/kernel/softirq.c
 @@ -85,16 +85,12 @@ static void wakeup_softirqd(void)
@@ -70,5 +70,5 @@ index 7d210a5..df727d8 100644
  
  	if (!force_irqthreads) {
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 5ae342e5a6d8c55a9fd119931ca02190dd369d69 Mon Sep 17 00:00:00 2001
+From 42a0fec193b441d34b165f37c8591faa2656483f Mon Sep 17 00:00:00 2001
 From: Vincent Donnefort <vincent.donnefort@arm.com>
 Date: Tue, 3 Nov 2020 14:26:59 +0000
 Subject: [PATCH 200/830] ANDROID: cpu/hotplug: add pause/resume_cpus interface
@@ -34,12 +34,12 @@ Signed-off-by: Todd Kjos <tkjos@google.com>
 ---
  include/linux/cpu.h           |   4 ++
  include/linux/sched/hotplug.h |   2 +
- kernel/cpu.c                  | 115 ++++++++++++++++++++++++++++++++++++++++++
- kernel/sched/core.c           |  63 +++++++++++++++++++----
+ kernel/cpu.c                  | 115 ++++++++++++++++++++++++++++++++++
+ kernel/sched/core.c           |  63 ++++++++++++++++---
  4 files changed, 175 insertions(+), 9 deletions(-)
 
 diff --git a/include/linux/cpu.h b/include/linux/cpu.h
-index d6428aa..22ae91f8 100644
+index d6428aaf67e7..22ae91f8165f 100644
 --- a/include/linux/cpu.h
 +++ b/include/linux/cpu.h
 @@ -122,6 +122,8 @@ extern void cpu_hotplug_disable(void);
@@ -61,7 +61,7 @@ index d6428aa..22ae91f8 100644
  #endif	/* !CONFIG_HOTPLUG_CPU */
  
 diff --git a/include/linux/sched/hotplug.h b/include/linux/sched/hotplug.h
-index 9a62ffd..2aa088d2 100644
+index 9a62ffdd296f..2aa088d220e0 100644
 --- a/include/linux/sched/hotplug.h
 +++ b/include/linux/sched/hotplug.h
 @@ -8,7 +8,9 @@
@@ -75,7 +75,7 @@ index 9a62ffd..2aa088d2 100644
  #ifdef CONFIG_HOTPLUG_CPU
  extern int sched_cpu_dying(unsigned int cpu);
 diff --git a/kernel/cpu.c b/kernel/cpu.c
-index 49ff117..c51d75c 100644
+index 49ff11757b66..c51d75c6d294 100644
 --- a/kernel/cpu.c
 +++ b/kernel/cpu.c
 @@ -1152,6 +1152,121 @@ int remove_cpu(unsigned int cpu)
@@ -201,7 +201,7 @@ index 49ff117..c51d75c 100644
  {
  	unsigned int cpu;
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 9d903b82..c0118db 100644
+index 9d903b82aab5..c0118dbcab6a 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -6963,19 +6963,27 @@ int sched_cpu_activate(unsigned int cpu)
@@ -286,5 +286,5 @@ index 9d903b82..c0118db 100644
  {
  	struct rq *rq = cpu_rq(cpu);
 -- 
-2.7.4
+2.17.1
 

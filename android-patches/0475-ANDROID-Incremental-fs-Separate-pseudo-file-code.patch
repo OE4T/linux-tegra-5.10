@@ -1,4 +1,4 @@
-From 1becd71f6065881303e612d4ac34f5659108e766 Mon Sep 17 00:00:00 2001
+From 7673991944ee55661dcb0d41bbabb99dcff63870 Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Thu, 20 Aug 2020 12:45:41 -0700
 Subject: [PATCH 475/830] ANDROID: Incremental fs: Separate pseudo-file code
@@ -17,18 +17,18 @@ Test: incfs_test passes
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
 Change-Id: I3f1e87d018836f51a97897880dd70181db4f7169
 ---
- fs/incfs/Makefile                                  |    1 +
- fs/incfs/pseudo_files.c                            | 1063 ++++++++++++++++++
- fs/incfs/pseudo_files.h                            |   15 +
- fs/incfs/vfs.c                                     | 1138 +-------------------
- fs/incfs/vfs.h                                     |   25 +
- .../selftests/filesystems/incfs/incfs_test.c       |    3 +-
+ fs/incfs/Makefile                             |    1 +
+ fs/incfs/pseudo_files.c                       | 1063 +++++++++++++++
+ fs/incfs/pseudo_files.h                       |   15 +
+ fs/incfs/vfs.c                                | 1138 +----------------
+ fs/incfs/vfs.h                                |   25 +
+ .../selftests/filesystems/incfs/incfs_test.c  |    3 +-
  6 files changed, 1151 insertions(+), 1094 deletions(-)
  create mode 100644 fs/incfs/pseudo_files.c
  create mode 100644 fs/incfs/pseudo_files.h
 
 diff --git a/fs/incfs/Makefile b/fs/incfs/Makefile
-index 8d734bf..0c3f6d3 100644
+index 8d734bf91ecd..0c3f6d348bec 100644
 --- a/fs/incfs/Makefile
 +++ b/fs/incfs/Makefile
 @@ -6,4 +6,5 @@ incrementalfs-y := \
@@ -39,7 +39,7 @@ index 8d734bf..0c3f6d3 100644
  	vfs.o
 diff --git a/fs/incfs/pseudo_files.c b/fs/incfs/pseudo_files.c
 new file mode 100644
-index 00000000..5d61d8e
+index 000000000000..5d61d8e866dc
 --- /dev/null
 +++ b/fs/incfs/pseudo_files.c
 @@ -0,0 +1,1063 @@
@@ -1108,7 +1108,7 @@ index 00000000..5d61d8e
 +}
 diff --git a/fs/incfs/pseudo_files.h b/fs/incfs/pseudo_files.h
 new file mode 100644
-index 00000000..14a8cc5
+index 000000000000..14a8cc513363
 --- /dev/null
 +++ b/fs/incfs/pseudo_files.h
 @@ -0,0 +1,15 @@
@@ -1128,7 +1128,7 @@ index 00000000..14a8cc5
 +
 +#endif
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index f54550a..0e1b371 100644
+index f54550a9adf9..0e1b3713f802 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -4,32 +4,20 @@
@@ -2430,7 +2430,7 @@ index f54550a..0e1b371 100644
  
  	dir_dentry = dget_parent(dentry);
 diff --git a/fs/incfs/vfs.h b/fs/incfs/vfs.h
-index eaa490e..d5dc5eb 100644
+index eaa490e19072..d5dc5ebe99de 100644
 --- a/fs/incfs/vfs.h
 +++ b/fs/incfs/vfs.h
 @@ -6,8 +6,33 @@
@@ -2468,7 +2468,7 @@ index eaa490e..d5dc5eb 100644
  
  #endif
 diff --git a/tools/testing/selftests/filesystems/incfs/incfs_test.c b/tools/testing/selftests/filesystems/incfs/incfs_test.c
-index 029757a..e666dd7 100644
+index 029757a1c77f..e666dd7cc982 100644
 --- a/tools/testing/selftests/filesystems/incfs/incfs_test.c
 +++ b/tools/testing/selftests/filesystems/incfs/incfs_test.c
 @@ -227,8 +227,7 @@ int open_file_by_id(const char *mnt_dir, incfs_uuid_t id, bool use_ioctl)
@@ -2482,5 +2482,5 @@ index 029757a..e666dd7 100644
  			"Successfully called PERMIT_FILL on non pending_read file");
  		return -errno;
 -- 
-2.7.4
+2.17.1
 

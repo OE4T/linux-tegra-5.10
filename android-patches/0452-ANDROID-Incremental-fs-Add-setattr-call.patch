@@ -1,4 +1,4 @@
-From 797bb79f3ca4295d4f0b73eb8bb5baf2676e1a5b Mon Sep 17 00:00:00 2001
+From 8fbdb3fed34e08c0cce8fdaa7840dc92ab279cc3 Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Wed, 29 Apr 2020 08:00:18 -0700
 Subject: [PATCH 452/830] ANDROID: Incremental fs: Add setattr call
@@ -19,7 +19,7 @@ Change-Id: I40517331f24329484387c6b880f1517f887b29f6
  1 file changed, 44 insertions(+), 2 deletions(-)
 
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index 759691a..5734699 100644
+index 759691ab8324..57346990acdf 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -68,6 +68,7 @@ static struct inode *alloc_inode(struct super_block *sb);
@@ -104,5 +104,5 @@ index 759691a..5734699 100644
  			void *value, size_t size)
  {
 -- 
-2.7.4
+2.17.1
 

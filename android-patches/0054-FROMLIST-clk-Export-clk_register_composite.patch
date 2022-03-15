@@ -1,4 +1,4 @@
-From b8478b8bb85f363276a6337eb31b6f6701e00e1d Mon Sep 17 00:00:00 2001
+From d972a9ac987d5f83fe8e6f11ff78ec8cc40173c4 Mon Sep 17 00:00:00 2001
 From: Chun-Hung Wu <chun-hung.wu@mediatek.com>
 Date: Tue, 25 Aug 2020 15:48:16 +0800
 Subject: [PATCH 054/830] FROMLIST: clk: Export clk_register_composite
@@ -18,7 +18,7 @@ Signed-off-by: Chun-Hung Wu <chun-hung.wu@mediatek.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/drivers/clk/clk-composite.c b/drivers/clk/clk-composite.c
-index 2ddb54f..2e7fedf 100644
+index 2ddb54f7d3ab..2e7fedff527b 100644
 --- a/drivers/clk/clk-composite.c
 +++ b/drivers/clk/clk-composite.c
 @@ -361,6 +361,7 @@ struct clk *clk_register_composite(struct device *dev, const char *name,
@@ -30,5 +30,5 @@ index 2ddb54f..2e7fedf 100644
  struct clk *clk_register_composite_pdata(struct device *dev, const char *name,
  			const struct clk_parent_data *parent_data,
 -- 
-2.7.4
+2.17.1
 

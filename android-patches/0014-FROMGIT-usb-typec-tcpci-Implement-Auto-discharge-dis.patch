@@ -1,4 +1,4 @@
-From f234eadb624a88dd23d4cd6b08e2146ea3af5907 Mon Sep 17 00:00:00 2001
+From c019e1720fb3d813aa3367dec39f448643bfe732 Mon Sep 17 00:00:00 2001
 From: Badhri Jagan Sridharan <badhri@google.com>
 Date: Wed, 28 Oct 2020 23:31:36 -0700
 Subject: [PATCH 014/830] FROMGIT: usb: typec: tcpci: Implement Auto discharge
@@ -32,12 +32,12 @@ Signed-off-by: Will McVicker <willmcvicker@google.com>
 Signed-off-by: Will McVicker <willmcvicker@google.com>
 Change-Id: I896d47412ec6eaa23b87c38be545618f811253c8
 ---
- drivers/usb/typec/tcpm/tcpci.c | 63 +++++++++++++++++++++++++++++++++++++++++-
- drivers/usb/typec/tcpm/tcpci.h | 14 ++++++++--
+ drivers/usb/typec/tcpm/tcpci.c | 63 +++++++++++++++++++++++++++++++++-
+ drivers/usb/typec/tcpm/tcpci.h | 14 ++++++--
  2 files changed, 74 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/usb/typec/tcpm/tcpci.c b/drivers/usb/typec/tcpm/tcpci.c
-index fd139c8..3b8bccd 100644
+index fd139c86e7a7..3b8bccd50b91 100644
 --- a/drivers/usb/typec/tcpm/tcpci.c
 +++ b/drivers/usb/typec/tcpm/tcpci.c
 @@ -18,7 +18,10 @@
@@ -125,7 +125,7 @@ index fd139c8..3b8bccd 100644
  	if (err < 0)
  		return ERR_PTR(err);
 diff --git a/drivers/usb/typec/tcpm/tcpci.h b/drivers/usb/typec/tcpm/tcpci.h
-index b418fe1..3fe3136 100644
+index b418fe11b527..3fe313655f0c 100644
 --- a/drivers/usb/typec/tcpm/tcpci.h
 +++ b/drivers/usb/typec/tcpm/tcpci.h
 @@ -8,6 +8,8 @@
@@ -180,5 +180,5 @@ index b418fe1..3fe3136 100644
  	int (*set_vconn)(struct tcpci *tcpci, struct tcpci_data *data,
  			 bool enable);
 -- 
-2.7.4
+2.17.1
 

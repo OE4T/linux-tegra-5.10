@@ -1,4 +1,4 @@
-From e7767a8bc50bc0576fce6c58a4575f47769f4d6f Mon Sep 17 00:00:00 2001
+From 30f973f7df67c7176c50c247108597d3a4a071a1 Mon Sep 17 00:00:00 2001
 From: Riley Andrews <riandrews@google.com>
 Date: Fri, 2 Oct 2015 00:39:53 -0700
 Subject: [PATCH 159/830] ANDROID: trace: sched: add sched blocked tracepoint
@@ -22,13 +22,14 @@ Signed-off-by: Todd Kjos <tkjos@google.com>
  2 files changed, 25 insertions(+)
 
 diff --git a/include/trace/events/sched.h b/include/trace/events/sched.h
-index c96a433..3f94218 100644
+index c96a4337afe6..3f94218f2520 100644
 --- a/include/trace/events/sched.h
 +++ b/include/trace/events/sched.h
-@@ -403,6 +403,30 @@ DEFINE_EVENT_SCHEDSTAT(sched_stat_template, sched_stat_blocked,
+@@ -402,6 +402,30 @@ DEFINE_EVENT_SCHEDSTAT(sched_stat_template, sched_stat_blocked,
+ 	     TP_PROTO(struct task_struct *tsk, u64 delay),
  	     TP_ARGS(tsk, delay));
  
- /*
++/*
 + * Tracepoint for recording the cause of uninterruptible sleep.
 + */
 +TRACE_EVENT(sched_blocked_reason,
@@ -52,12 +53,11 @@ index c96a433..3f94218 100644
 +	TP_printk("pid=%d iowait=%d caller=%pS", __entry->pid, __entry->io_wait, __entry->caller)
 +);
 +
-+/*
+ /*
   * Tracepoint for accounting runtime (time the task is executing
   * on a CPU).
-  */
 diff --git a/kernel/sched/fair.c b/kernel/sched/fair.c
-index b1afbd4..45b6c4a 100644
+index b078111e3bc1..62e0711d70af 100644
 --- a/kernel/sched/fair.c
 +++ b/kernel/sched/fair.c
 @@ -993,6 +993,7 @@ update_stats_enqueue_sleeper(struct cfs_rq *cfs_rq, struct sched_entity *se)
@@ -69,5 +69,5 @@ index b1afbd4..45b6c4a 100644
  			/*
  			 * Blocking time is in units of nanosecs, so shift by
 -- 
-2.7.4
+2.17.1
 

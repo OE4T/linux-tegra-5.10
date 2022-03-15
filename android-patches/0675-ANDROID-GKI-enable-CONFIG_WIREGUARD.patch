@@ -1,4 +1,4 @@
-From 77c762be59d35f9329369835949dcba0bedf951b Mon Sep 17 00:00:00 2001
+From 121993fd02e5c39847223525fef6790d7d294612 Mon Sep 17 00:00:00 2001
 From: Greg Kroah-Hartman <gregkh@google.com>
 Date: Mon, 30 Mar 2020 09:43:24 +0200
 Subject: [PATCH 675/830] ANDROID: GKI: enable CONFIG_WIREGUARD
@@ -19,7 +19,7 @@ Change-Id: I4cb674d299778c7c994f3220292ec1c43f80e6bf
  2 files changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index ff19b08..10f1b77 100644
+index ff19b083e68a..10f1b777c2d7 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -74,7 +74,6 @@ CONFIG_ARM_SCMI_PROTOCOL=y
@@ -39,7 +39,7 @@ index ff19b08..10f1b77 100644
  # CONFIG_ETHERNET is not set
  CONFIG_PHYLIB=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index a269d42..9d26434 100644
+index a269d42eb980..9d264344124a 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -206,6 +206,7 @@ CONFIG_DM_VERITY_FEC=y
@@ -51,5 +51,5 @@ index a269d42..9d26434 100644
  # CONFIG_ETHERNET is not set
  CONFIG_PHYLIB=y
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 446b71a1f4047248eeae587bd171e1a3fe34cd87 Mon Sep 17 00:00:00 2001
+From 48026e164da5704411c61db9df304f314c97a9fd Mon Sep 17 00:00:00 2001
 From: Sudarshan Rajagopalan <sudaraja@codeaurora.org>
 Date: Tue, 6 Oct 2020 11:31:04 -0700
 Subject: [PATCH 790/830] ANDROID: gki_defconfig: Enable
@@ -18,7 +18,7 @@ Signed-off-by: Sudarshan Rajagopalan <sudaraja@codeaurora.org>
  1 file changed, 1 insertion(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 445bd06..2051760 100644
+index 445bd0644695..2051760785d9 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -93,6 +93,7 @@ CONFIG_GKI_HACKS_TO_FIX=y
@@ -30,5 +30,5 @@ index 445bd06..2051760 100644
  CONFIG_CMA=y
  CONFIG_CMA_AREAS=16
 -- 
-2.7.4
+2.17.1
 

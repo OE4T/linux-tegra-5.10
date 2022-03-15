@@ -1,4 +1,4 @@
-From 75cfaa6547b1adaec6123806f0d2d0eea823dd25 Mon Sep 17 00:00:00 2001
+From 0083b6d79758069cb8f8fc8727c7cbe6aec3525b Mon Sep 17 00:00:00 2001
 From: JianMin Liu <jian-min.liu@mediatek.com>
 Date: Tue, 21 Jul 2020 13:36:22 +0800
 Subject: [PATCH 111/830] ANDROID: rwsem: Add vendor hook to the rw-semaphore
@@ -19,13 +19,13 @@ Change-Id: I007a5e26f3db2adaeaf4e5ccea414ce7abfa83b8
 ---
  drivers/android/vendor_hooks.c |  5 +++++
  include/linux/rwsem.h          |  2 ++
- include/trace/hooks/rwsem.h    | 38 ++++++++++++++++++++++++++++++++++++++
- kernel/locking/rwsem.c         | 20 ++++++++++++++++++--
+ include/trace/hooks/rwsem.h    | 38 ++++++++++++++++++++++++++++++++++
+ kernel/locking/rwsem.c         | 20 ++++++++++++++++--
  4 files changed, 63 insertions(+), 2 deletions(-)
  create mode 100644 include/trace/hooks/rwsem.h
 
 diff --git a/drivers/android/vendor_hooks.c b/drivers/android/vendor_hooks.c
-index 6c32b57..56ae8fedf 100644
+index 6c32b5722a5a..56ae8fedfeac 100644
 --- a/drivers/android/vendor_hooks.c
 +++ b/drivers/android/vendor_hooks.c
 @@ -9,6 +9,7 @@
@@ -47,7 +47,7 @@ index 6c32b57..56ae8fedf 100644
  EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_mpam_set);
  EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_ipi_stop);
 diff --git a/include/linux/rwsem.h b/include/linux/rwsem.h
-index 4c715be..1979bc2 100644
+index 4c715be48717..1979bc20d95d 100644
 --- a/include/linux/rwsem.h
 +++ b/include/linux/rwsem.h
 @@ -19,6 +19,7 @@
@@ -68,7 +68,7 @@ index 4c715be..1979bc2 100644
  /* In all implementations count != 0 means locked */
 diff --git a/include/trace/hooks/rwsem.h b/include/trace/hooks/rwsem.h
 new file mode 100644
-index 00000000..7c7a1f7
+index 000000000000..7c7a1f786369
 --- /dev/null
 +++ b/include/trace/hooks/rwsem.h
 @@ -0,0 +1,38 @@
@@ -111,7 +111,7 @@ index 00000000..7c7a1f7
 +/* This part must be outside protection */
 +#include <trace/define_trace.h>
 diff --git a/kernel/locking/rwsem.c b/kernel/locking/rwsem.c
-index a163542d..7471b23 100644
+index cc5cc889b5b7..4ff7ec6c6ab9 100644
 --- a/kernel/locking/rwsem.c
 +++ b/kernel/locking/rwsem.c
 @@ -29,6 +29,7 @@
@@ -205,5 +205,5 @@ index a163542d..7471b23 100644
  }
  EXPORT_SYMBOL(downgrade_write);
 -- 
-2.7.4
+2.17.1
 

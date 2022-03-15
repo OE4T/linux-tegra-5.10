@@ -1,4 +1,4 @@
-From 35091db3abdb8b66df48db167abfc0c82b088b7b Mon Sep 17 00:00:00 2001
+From 18bfeebd7733f7a02320f327ef669783f61f96c0 Mon Sep 17 00:00:00 2001
 From: Vincent Donnefort <vincent.donnefort@arm.com>
 Date: Thu, 4 Oct 2018 18:21:47 +0100
 Subject: [PATCH 264/830] ANDROID: ion: flush cache before exporting non-cached
@@ -24,15 +24,15 @@ line is actually cleaned before the memory is used as non-cached.
 Change-Id: I9179c2f644a29ae71820c4ae63c880195f55e45d
 Signed-off-by: Vincent Donnefort <vincent.donnefort@arm.com>
 ---
- drivers/staging/android/ion/heaps/ion_cma_heap.c      |  3 +++
- .../android/ion/heaps/ion_system_contig_heap.c        |  2 ++
- drivers/staging/android/ion/heaps/ion_system_heap.c   |  3 +++
- drivers/staging/android/ion/ion_buffer.c              | 19 +++++++++++++++++++
- include/linux/ion.h                                   | 15 +++++++++++++++
+ .../staging/android/ion/heaps/ion_cma_heap.c  |  3 +++
+ .../ion/heaps/ion_system_contig_heap.c        |  2 ++
+ .../android/ion/heaps/ion_system_heap.c       |  3 +++
+ drivers/staging/android/ion/ion_buffer.c      | 19 +++++++++++++++++++
+ include/linux/ion.h                           | 15 +++++++++++++++
  5 files changed, 42 insertions(+)
 
 diff --git a/drivers/staging/android/ion/heaps/ion_cma_heap.c b/drivers/staging/android/ion/heaps/ion_cma_heap.c
-index 9584972..6ba7fd8 100644
+index 9584972b5005..6ba7fd84c9ee 100644
 --- a/drivers/staging/android/ion/heaps/ion_cma_heap.c
 +++ b/drivers/staging/android/ion/heaps/ion_cma_heap.c
 @@ -70,6 +70,9 @@ static int ion_cma_allocate(struct ion_heap *heap, struct ion_buffer *buffer,
@@ -46,7 +46,7 @@ index 9584972..6ba7fd8 100644
  
  free_mem:
 diff --git a/drivers/staging/android/ion/heaps/ion_system_contig_heap.c b/drivers/staging/android/ion/heaps/ion_system_contig_heap.c
-index 36e8769..ce85456 100644
+index 36e8769f3ef7..ce854565b563 100644
 --- a/drivers/staging/android/ion/heaps/ion_system_contig_heap.c
 +++ b/drivers/staging/android/ion/heaps/ion_system_contig_heap.c
 @@ -50,6 +50,8 @@ static int ion_system_contig_heap_allocate(struct ion_heap *heap,
@@ -59,7 +59,7 @@ index 36e8769..ce85456 100644
  
  free_table:
 diff --git a/drivers/staging/android/ion/heaps/ion_system_heap.c b/drivers/staging/android/ion/heaps/ion_system_heap.c
-index 5eb8ea6..b249104 100644
+index 5eb8ea6c9646..b249104042c1 100644
 --- a/drivers/staging/android/ion/heaps/ion_system_heap.c
 +++ b/drivers/staging/android/ion/heaps/ion_system_heap.c
 @@ -141,6 +141,9 @@ static int ion_system_heap_allocate(struct ion_heap *heap,
@@ -73,7 +73,7 @@ index 5eb8ea6..b249104 100644
  
  free_table:
 diff --git a/drivers/staging/android/ion/ion_buffer.c b/drivers/staging/android/ion/ion_buffer.c
-index a49f206..446d5d5 100644
+index a49f2067365a..446d5d50c779 100644
 --- a/drivers/staging/android/ion/ion_buffer.c
 +++ b/drivers/staging/android/ion/ion_buffer.c
 @@ -9,6 +9,7 @@
@@ -110,13 +110,14 @@ index a49f206..446d5d5 100644
  {
  	if (buffer->kmap_cnt > 0) {
 diff --git a/include/linux/ion.h b/include/linux/ion.h
-index 025071c..dbcbe0c 100644
+index 025071c19240..dbcbe0cb7b08 100644
 --- a/include/linux/ion.h
 +++ b/include/linux/ion.h
-@@ -276,6 +276,19 @@ int ion_heap_map_user(struct ion_heap *heap, struct ion_buffer *buffer,
+@@ -275,6 +275,19 @@ int ion_heap_map_user(struct ion_heap *heap, struct ion_buffer *buffer,
+  */
  int ion_buffer_zero(struct ion_buffer *buffer);
  
- /**
++/**
 + * ion_buffer_prep_noncached - flush cache before non-cached mapping
 + *
 + * @buffer:		ion_buffer to flush
@@ -129,10 +130,9 @@ index 025071c..dbcbe0c 100644
 + */
 +void ion_buffer_prep_noncached(struct ion_buffer *buffer);
 +
-+/**
+ /**
   * ion_alloc - Allocates an ion buffer of given size from given heap
   *
-  * @len:               size of the buffer to be allocated.
 @@ -354,6 +367,8 @@ static inline int ion_buffer_zero(struct ion_buffer *buffer)
  	return -EINVAL;
  }
@@ -143,5 +143,5 @@ index 025071c..dbcbe0c 100644
  					unsigned int flags)
  {
 -- 
-2.7.4
+2.17.1
 

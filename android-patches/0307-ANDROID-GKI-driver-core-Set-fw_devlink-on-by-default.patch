@@ -1,4 +1,4 @@
-From 52ebc4053a10373f86751a284ba2eadb3febea0b Mon Sep 17 00:00:00 2001
+From d74bfbdb1797c15838286a7d105e406a43a2b3c4 Mon Sep 17 00:00:00 2001
 From: Saravana Kannan <saravanak@google.com>
 Date: Thu, 7 May 2020 11:59:43 -0700
 Subject: [PATCH 307/830] ANDROID: GKI: driver core: Set fw_devlink=on by
@@ -20,10 +20,10 @@ Change-Id: I5f63b0359082713bd7d3629abc14209f9667de3b
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/base/core.c b/drivers/base/core.c
-index d07e340..5a0411d 100644
+index 5d23cdb8885c..c5d981a1f551 100644
 --- a/drivers/base/core.c
 +++ b/drivers/base/core.c
-@@ -1439,7 +1439,7 @@ static void device_links_purge(struct device *dev)
+@@ -1438,7 +1438,7 @@ static void device_links_purge(struct device *dev)
  	device_links_write_unlock();
  }
  
@@ -33,5 +33,5 @@ index d07e340..5a0411d 100644
  {
  	if (!arg)
 -- 
-2.7.4
+2.17.1
 

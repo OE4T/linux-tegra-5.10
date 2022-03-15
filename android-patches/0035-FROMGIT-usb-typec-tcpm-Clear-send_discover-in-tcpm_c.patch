@@ -1,4 +1,4 @@
-From 83ccfcd92a7e4ebd5ca6fb12b7e4d9c4ae701768 Mon Sep 17 00:00:00 2001
+From db3c4e99f4c78bea7e38d893a9eb4e4193f505d9 Mon Sep 17 00:00:00 2001
 From: Badhri Jagan Sridharan <badhri@google.com>
 Date: Wed, 2 Dec 2020 19:19:08 -0800
 Subject: [PATCH 035/830] FROMGIT: usb: typec: tcpm: Clear send_discover in
@@ -29,7 +29,7 @@ Change-Id: I69d3137d373e303396cf37d885a9bb797331d13d
  1 file changed, 2 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/usb/typec/tcpm/tcpm.c b/drivers/usb/typec/tcpm/tcpm.c
-index 544819b..5b9e93f 100644
+index 2f43c6087ff3..b14cf1a43014 100644
 --- a/drivers/usb/typec/tcpm/tcpm.c
 +++ b/drivers/usb/typec/tcpm/tcpm.c
 @@ -3060,10 +3060,9 @@ static inline enum tcpm_state unattached_state(struct tcpm_port *port)
@@ -46,5 +46,5 @@ index 544819b..5b9e93f 100644
  
  static void tcpm_swap_complete(struct tcpm_port *port, int result)
 -- 
-2.7.4
+2.17.1
 

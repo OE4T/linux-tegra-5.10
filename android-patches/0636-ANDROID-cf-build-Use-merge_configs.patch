@@ -1,4 +1,4 @@
-From a9804856e94c7b703cbddd1dfccce204001e371f Mon Sep 17 00:00:00 2001
+From 976b592e8dd40a8d865af4647bfc422c32a3361f Mon Sep 17 00:00:00 2001
 From: Ram Muthiah <rammuthiah@google.com>
 Date: Wed, 22 Jan 2020 23:43:58 -0800
 Subject: [PATCH 636/830] ANDROID: cf build: Use merge_configs
@@ -19,7 +19,7 @@ Change-Id: I0a62e6c5395b6933955894c8d5ad0484f5c7102d
  2 files changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/build.config.cuttlefish.aarch64 b/build.config.cuttlefish.aarch64
-index e170d36..9a68509 100644
+index e170d360c490..9a685095e934 100644
 --- a/build.config.cuttlefish.aarch64
 +++ b/build.config.cuttlefish.aarch64
 @@ -4,8 +4,8 @@
@@ -34,7 +34,7 @@ index e170d36..9a68509 100644
  # Not saving any kernel images. This build step is meant purely to generate the .kos.
  FILES=""
 diff --git a/build.config.cuttlefish.x86_64 b/build.config.cuttlefish.x86_64
-index ccad66e..d6ce5c3 100644
+index ccad66ebef5a..d6ce5c3a7306 100644
 --- a/build.config.cuttlefish.x86_64
 +++ b/build.config.cuttlefish.x86_64
 @@ -4,8 +4,8 @@
@@ -49,5 +49,5 @@ index ccad66e..d6ce5c3 100644
  # Not saving any kernel images. This build step is meant purely to generate the .kos.
  FILES=""
 -- 
-2.7.4
+2.17.1
 

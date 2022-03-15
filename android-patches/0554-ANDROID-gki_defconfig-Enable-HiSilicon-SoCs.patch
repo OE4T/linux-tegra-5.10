@@ -1,4 +1,4 @@
-From 53e3c23928a8faf49378c5feed68af45cf44bda2 Mon Sep 17 00:00:00 2001
+From 6d4d332d669453c997d3445a9373d93ac2ae1c5c Mon Sep 17 00:00:00 2001
 From: Todd Kjos <tkjos@google.com>
 Date: Wed, 18 Sep 2019 10:49:45 -0700
 Subject: [PATCH 554/830] ANDROID: gki_defconfig: Enable HiSilicon SoCs
@@ -14,7 +14,7 @@ Signed-off-by: Todd Kjos <tkjos@google.com>
  1 file changed, 3 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 5c45171..c98c847 100644
+index 5c45171c308d..c98c847db9e2 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -36,6 +36,7 @@ CONFIG_EMBEDDED=y
@@ -42,5 +42,5 @@ index 5c45171..c98c847 100644
  CONFIG_THERMAL=y
  CONFIG_THERMAL_GOV_USER_SPACE=y
 -- 
-2.7.4
+2.17.1
 

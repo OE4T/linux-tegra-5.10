@@ -1,4 +1,4 @@
-From 8146058203ea802068faa175cba4a8224df273ea Mon Sep 17 00:00:00 2001
+From 0251e97903eed90b1a1e347ed05542121481c234 Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Thu, 3 Sep 2020 13:40:25 -0700
 Subject: [PATCH 483/830] ANDROID: Incremental fs: Fix filled block count from
@@ -10,18 +10,18 @@ Test: incfs_test passes
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
 Change-Id: I8845adcafcc3a3f01730e8b5534fb25ea3d551db
 ---
- fs/incfs/data_mgmt.c                               |  69 +++----
- fs/incfs/data_mgmt.h                               |  19 +-
- fs/incfs/format.c                                  |   9 -
- fs/incfs/format.h                                  |   5 +-
- fs/incfs/pseudo_files.c                            |   7 +-
- fs/incfs/vfs.c                                     |  45 +++-
- fs/incfs/vfs.h                                     |   5 -
- .../selftests/filesystems/incfs/incfs_test.c       | 230 +++++++++++++++++----
+ fs/incfs/data_mgmt.c                          |  69 +++---
+ fs/incfs/data_mgmt.h                          |  19 +-
+ fs/incfs/format.c                             |   9 -
+ fs/incfs/format.h                             |   5 +-
+ fs/incfs/pseudo_files.c                       |   7 +-
+ fs/incfs/vfs.c                                |  45 +++-
+ fs/incfs/vfs.h                                |   5 -
+ .../selftests/filesystems/incfs/incfs_test.c  | 230 +++++++++++++++---
  8 files changed, 281 insertions(+), 108 deletions(-)
 
 diff --git a/fs/incfs/data_mgmt.c b/fs/incfs/data_mgmt.c
-index 35362d4..d8c02a4 100644
+index 35362d450d15..d8c02a413e44 100644
 --- a/fs/incfs/data_mgmt.c
 +++ b/fs/incfs/data_mgmt.c
 @@ -686,36 +686,9 @@ static int copy_one_range(struct incfs_filled_range *range, void __user *buffer,
@@ -131,7 +131,7 @@ index 35362d4..d8c02a4 100644
  
  	kfree(bme);
 diff --git a/fs/incfs/data_mgmt.h b/fs/incfs/data_mgmt.h
-index 1d8a0ae..a57ae4c 100644
+index 1d8a0aec4330..a57ae4c9a31c 100644
 --- a/fs/incfs/data_mgmt.h
 +++ b/fs/incfs/data_mgmt.h
 @@ -161,7 +161,6 @@ struct mount_info {
@@ -175,7 +175,7 @@ index 1d8a0ae..a57ae4c 100644
  
  int incfs_read_file_signature(struct data_file *df, struct mem_range dst);
 diff --git a/fs/incfs/format.c b/fs/incfs/format.c
-index 37a41c8..691d7e4 100644
+index 37a41c8162de..691d7e474328 100644
 --- a/fs/incfs/format.c
 +++ b/fs/incfs/format.c
 @@ -205,15 +205,6 @@ static int append_md_to_backing_file(struct backing_file_context *bfc,
@@ -195,7 +195,7 @@ index 37a41c8..691d7e4 100644
   * Reserve 0-filled space for the blockmap body, and append
   * incfs_blockmap metadata record pointing to it.
 diff --git a/fs/incfs/format.h b/fs/incfs/format.h
-index fcff0f7..ba54bad 100644
+index fcff0f73e416..ba54bad0eea7 100644
 --- a/fs/incfs/format.h
 +++ b/fs/incfs/format.h
 @@ -123,7 +123,6 @@ enum incfs_metadata_type {
@@ -225,7 +225,7 @@ index fcff0f7..ba54bad 100644
  				  incfs_uuid_t *uuid, u64 file_size);
  
 diff --git a/fs/incfs/pseudo_files.c b/fs/incfs/pseudo_files.c
-index ca8d1b2..0993829 100644
+index ca8d1b206158..0993829cbe2d 100644
 --- a/fs/incfs/pseudo_files.c
 +++ b/fs/incfs/pseudo_files.c
 @@ -274,6 +274,7 @@ static long ioctl_permit_fill(struct file *f, void __user *arg)
@@ -251,7 +251,7 @@ index ca8d1b2..0993829 100644
  
  	case CAN_FILL:
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index 99212a4..89b9884 100644
+index 99212a447ab4..89b9884cf02a 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -526,6 +526,7 @@ static long ioctl_fill_blocks(struct file *f, void __user *arg)
@@ -359,7 +359,7 @@ index 99212a4..89b9884 100644
  		struct dir_file *dir = get_incfs_dir_file(file);
  
 diff --git a/fs/incfs/vfs.h b/fs/incfs/vfs.h
-index d5dc5eb..79fdf24 100644
+index d5dc5ebe99de..79fdf243733d 100644
 --- a/fs/incfs/vfs.h
 +++ b/fs/incfs/vfs.h
 @@ -6,11 +6,6 @@
@@ -375,7 +375,7 @@ index d5dc5eb..79fdf24 100644
  extern const struct inode_operations incfs_file_inode_ops;
  
 diff --git a/tools/testing/selftests/filesystems/incfs/incfs_test.c b/tools/testing/selftests/filesystems/incfs/incfs_test.c
-index ed2e1c0..46f56556 100644
+index ed2e1c05f2ab..46f56556e8bf 100644
 --- a/tools/testing/selftests/filesystems/incfs/incfs_test.c
 +++ b/tools/testing/selftests/filesystems/incfs/incfs_test.c
 @@ -33,6 +33,14 @@
@@ -728,5 +728,5 @@ index ed2e1c0..46f56556 100644
  	};
  #undef MAKE_TEST
 -- 
-2.7.4
+2.17.1
 

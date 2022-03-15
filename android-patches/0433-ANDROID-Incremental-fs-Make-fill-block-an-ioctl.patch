@@ -1,4 +1,4 @@
-From 01f1e349aca1ae2e313fa31813a50e87ecaa84d6 Mon Sep 17 00:00:00 2001
+From f0d9ac7206a2e92fdddb8763fe32101349c72400 Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Tue, 10 Mar 2020 13:03:38 -0700
 Subject: [PATCH 433/830] ANDROID: Incremental fs: Make fill block an ioctl
@@ -13,15 +13,15 @@ Bug: 138149732
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
 Change-Id: Ic369b84b92547b1cfefe422bd881c4e466090aed
 ---
- fs/incfs/data_mgmt.c                               |   4 +-
- fs/incfs/data_mgmt.h                               |   5 +-
- fs/incfs/vfs.c                                     | 138 ++++++++++-----------
- include/uapi/linux/incrementalfs.h                 |  28 ++++-
- .../selftests/filesystems/incfs/incfs_test.c       |  56 ++++-----
+ fs/incfs/data_mgmt.c                          |   4 +-
+ fs/incfs/data_mgmt.h                          |   5 +-
+ fs/incfs/vfs.c                                | 138 +++++++++---------
+ include/uapi/linux/incrementalfs.h            |  28 +++-
+ .../selftests/filesystems/incfs/incfs_test.c  |  56 +++----
  5 files changed, 118 insertions(+), 113 deletions(-)
 
 diff --git a/fs/incfs/data_mgmt.c b/fs/incfs/data_mgmt.c
-index 91a81a5..06a1f0c 100644
+index 91a81a571d51..06a1f0c70f43 100644
 --- a/fs/incfs/data_mgmt.c
 +++ b/fs/incfs/data_mgmt.c
 @@ -698,7 +698,7 @@ ssize_t incfs_read_data_file_block(struct mem_range dst, struct data_file *df,
@@ -43,7 +43,7 @@ index 91a81a5..06a1f0c 100644
  	struct backing_file_context *bfc = NULL;
  	struct mount_info *mi = NULL;
 diff --git a/fs/incfs/data_mgmt.h b/fs/incfs/data_mgmt.h
-index e86951c..aa08d18 100644
+index e86951c7845a..aa08d18a61c2 100644
 --- a/fs/incfs/data_mgmt.h
 +++ b/fs/incfs/data_mgmt.h
 @@ -236,11 +236,10 @@ ssize_t incfs_read_data_file_block(struct mem_range dst, struct data_file *df,
@@ -61,7 +61,7 @@ index e86951c..aa08d18 100644
  bool incfs_fresh_pending_reads_exist(struct mount_info *mi, int last_number);
  
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index 2be2d4c..4eabab4 100644
+index 2be2d4cd6a2b..4eabab4fcdd2 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -49,8 +49,6 @@ static int dir_rename(struct inode *old_dir, struct dentry *old_dentry,
@@ -245,7 +245,7 @@ index 2be2d4c..4eabab4 100644
  {
  	struct path backing_path = {};
 diff --git a/include/uapi/linux/incrementalfs.h b/include/uapi/linux/incrementalfs.h
-index b257b9f..82add05 100644
+index b257b9f0ec3f..82add05a32c9 100644
 --- a/include/uapi/linux/incrementalfs.h
 +++ b/include/uapi/linux/incrementalfs.h
 @@ -46,7 +46,15 @@
@@ -299,7 +299,7 @@ index b257b9f..82add05 100644
  	INCFS_HASH_TREE_NONE = 0,
  	INCFS_HASH_TREE_SHA256 = 1
 diff --git a/tools/testing/selftests/filesystems/incfs/incfs_test.c b/tools/testing/selftests/filesystems/incfs/incfs_test.c
-index 9bfb271..5663465 100644
+index 9bfb271628a8..56634651060e 100644
 --- a/tools/testing/selftests/filesystems/incfs/incfs_test.c
 +++ b/tools/testing/selftests/filesystems/incfs/incfs_test.c
 @@ -343,8 +343,12 @@ static int emit_test_blocks(char *mnt_dir, struct test_file *file,
@@ -430,5 +430,5 @@ index 9bfb271..5663465 100644
  	/* Unmount and mount again, to see that data is persistent. */
  	close(cmd_fd);
 -- 
-2.7.4
+2.17.1
 

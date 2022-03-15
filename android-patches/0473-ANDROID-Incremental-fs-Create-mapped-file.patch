@@ -1,4 +1,4 @@
-From 907641cbef76e5e77043b470cac1d36bc87f2d20 Mon Sep 17 00:00:00 2001
+From 0e5b53f7a77be697764b9ce38ad1267e4c5c5e9a Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Wed, 27 May 2020 13:57:34 -0700
 Subject: [PATCH 473/830] ANDROID: Incremental fs: Create mapped file
@@ -9,17 +9,17 @@ Test: incfs_test passes
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
 Change-Id: Ic2ac8dfccd60f6c9c72c38bf323997fce7546c1c
 ---
- fs/incfs/data_mgmt.c                               |  88 ++++++++
- fs/incfs/data_mgmt.h                               |   5 +
- fs/incfs/format.c                                  |  39 +++-
- fs/incfs/format.h                                  |  45 ++--
- fs/incfs/vfs.c                                     | 232 +++++++++++++++++----
- include/uapi/linux/incrementalfs.h                 |  50 +++++
- .../selftests/filesystems/incfs/incfs_test.c       | 167 ++++++++++++++-
+ fs/incfs/data_mgmt.c                          |  88 +++++++
+ fs/incfs/data_mgmt.h                          |   5 +
+ fs/incfs/format.c                             |  39 ++-
+ fs/incfs/format.h                             |  45 ++--
+ fs/incfs/vfs.c                                | 232 +++++++++++++++---
+ include/uapi/linux/incrementalfs.h            |  50 ++++
+ .../selftests/filesystems/incfs/incfs_test.c  | 167 ++++++++++++-
  7 files changed, 571 insertions(+), 55 deletions(-)
 
 diff --git a/fs/incfs/data_mgmt.c b/fs/incfs/data_mgmt.c
-index 819b437..ccb1b0d 100644
+index 819b437218d2..ccb1b0d1f3c7 100644
 --- a/fs/incfs/data_mgmt.c
 +++ b/fs/incfs/data_mgmt.c
 @@ -8,6 +8,7 @@
@@ -132,7 +132,7 @@ index 819b437..ccb1b0d 100644
  	if (md_records < 0)
  		error = md_records;
 diff --git a/fs/incfs/data_mgmt.h b/fs/incfs/data_mgmt.h
-index 88b0ec7..96b581a 100644
+index 88b0ec7cbd98..96b581a564bd 100644
 --- a/fs/incfs/data_mgmt.h
 +++ b/fs/incfs/data_mgmt.h
 @@ -235,6 +235,9 @@ struct data_file {
@@ -155,7 +155,7 @@ index 88b0ec7..96b581a 100644
  void incfs_free_data_file(struct data_file *df);
  
 diff --git a/fs/incfs/format.c b/fs/incfs/format.c
-index 3261d5d..a5239a5a 100644
+index 3261d5d4b8f6..a5239a5a17f5 100644
 --- a/fs/incfs/format.c
 +++ b/fs/incfs/format.c
 @@ -233,8 +233,7 @@ int incfs_write_file_header_flags(struct backing_file_context *bfc, u32 flags)
@@ -226,7 +226,7 @@ index 3261d5d..a5239a5a 100644
  }
  
 diff --git a/fs/incfs/format.h b/fs/incfs/format.h
-index d57a7b4..c13b84d 100644
+index d57a7b479721..c13b84d772cd 100644
 --- a/fs/incfs/format.h
 +++ b/fs/incfs/format.h
 @@ -72,7 +72,7 @@
@@ -304,7 +304,7 @@ index d57a7b4..c13b84d 100644
  					   struct mem_range block,
  					   int block_index, loff_t bm_base_off,
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index f82d3af9..a680338 100644
+index f82d3af90f39..a68033899661 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -736,26 +736,6 @@ static int incfs_init_dentry(struct dentry *dentry, struct path *path)
@@ -589,7 +589,7 @@ index f82d3af9..a680338 100644
  		return -EINVAL;
  	}
 diff --git a/include/uapi/linux/incrementalfs.h b/include/uapi/linux/incrementalfs.h
-index 71efcf3d..da3fdde 100644
+index 71efcf3d1a51..da3fdde4711c 100644
 --- a/include/uapi/linux/incrementalfs.h
 +++ b/include/uapi/linux/incrementalfs.h
 @@ -92,6 +92,10 @@
@@ -655,7 +655,7 @@ index 71efcf3d..da3fdde 100644
 +
  #endif /* _UAPI_LINUX_INCREMENTALFS_H */
 diff --git a/tools/testing/selftests/filesystems/incfs/incfs_test.c b/tools/testing/selftests/filesystems/incfs/incfs_test.c
-index 19496d1..4d57697 100644
+index 19496d191115..4d57697935eb 100644
 --- a/tools/testing/selftests/filesystems/incfs/incfs_test.c
 +++ b/tools/testing/selftests/filesystems/incfs/incfs_test.c
 @@ -2232,7 +2232,8 @@ static int read_log_test(const char *mount_dir)
@@ -854,5 +854,5 @@ index 19496d1..4d57697 100644
  #undef MAKE_TEST
  
 -- 
-2.7.4
+2.17.1
 

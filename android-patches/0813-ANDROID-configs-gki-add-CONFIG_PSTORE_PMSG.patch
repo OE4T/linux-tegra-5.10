@@ -1,4 +1,4 @@
-From ea28ba6fcc6a3212586221afd86fd7946241a18c Mon Sep 17 00:00:00 2001
+From 35a3f5219b03fe92e9a5e91bdbf0fef7621a832e Mon Sep 17 00:00:00 2001
 From: Jonglin Lee <jonglin@google.com>
 Date: Wed, 28 Oct 2020 00:05:37 -0700
 Subject: [PATCH 813/830] ANDROID: configs: gki: add CONFIG_PSTORE_PMSG
@@ -17,7 +17,7 @@ Signed-off-by: Will McVicker <willmcvicker@google.com>
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 6af0779..1a783ff 100644
+index 6af07796a89e..1a783ffcfcb3 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -509,6 +509,7 @@ CONFIG_TMPFS=y
@@ -29,7 +29,7 @@ index 6af0779..1a783ff 100644
  CONFIG_NLS_CODEPAGE_437=y
  CONFIG_NLS_CODEPAGE_737=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index ec0e232..c8e5019 100644
+index ec0e232ca7eb..c8e50195ef7c 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -447,6 +447,7 @@ CONFIG_TMPFS_POSIX_ACL=y
@@ -41,5 +41,5 @@ index ec0e232..c8e5019 100644
  CONFIG_NLS_CODEPAGE_437=y
  CONFIG_NLS_CODEPAGE_737=y
 -- 
-2.7.4
+2.17.1
 

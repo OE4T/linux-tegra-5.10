@@ -1,4 +1,4 @@
-From f39e4293eddd76504185d96a449fc7d92e05643d Mon Sep 17 00:00:00 2001
+From 001bcea9c8cd09c89b7cd261d383fc6edb5f2708 Mon Sep 17 00:00:00 2001
 From: Connor O'Brien <connoro@google.com>
 Date: Wed, 22 May 2019 14:32:49 -0700
 Subject: [PATCH 209/830] ANDROID: uid_sys_stats: report uid_cputime stats in
@@ -21,7 +21,7 @@ Change-Id: I203919d1d44b300dab91810b16626a6950b063f8
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/misc/uid_sys_stats.c b/drivers/misc/uid_sys_stats.c
-index 31d58ea..4733670 100644
+index 31d58eaad1b3..47336700f687 100644
 --- a/drivers/misc/uid_sys_stats.c
 +++ b/drivers/misc/uid_sys_stats.c
 @@ -372,7 +372,7 @@ static int uid_cputime_show(struct seq_file *m, void *v)
@@ -34,5 +34,5 @@ index 31d58ea..4733670 100644
  
  	rt_mutex_unlock(&uid_lock);
 -- 
-2.7.4
+2.17.1
 

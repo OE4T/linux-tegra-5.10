@@ -1,4 +1,4 @@
-From d5ec07bf00d3b261074636950e2c8314df5853aa Mon Sep 17 00:00:00 2001
+From c5f2b90fd2e6c22ef1d18b73541fc236cc8a40c1 Mon Sep 17 00:00:00 2001
 From: Badhri Jagan Sridharan <badhri@google.com>
 Date: Wed, 28 Oct 2020 23:31:31 -0700
 Subject: [PATCH 009/830] FROMGIT: usb: typec: tcpm: Refactor logic for
@@ -23,7 +23,7 @@ Change-Id: I0c8560a7e0d70d5cca6de1489b4003e987b0e02b
  1 file changed, 10 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/usb/typec/tcpm/tcpm.c b/drivers/usb/typec/tcpm/tcpm.c
-index 721d9c4..8a8b62b8 100644
+index 8333c80b5f7c..2bea74742651 100644
 --- a/drivers/usb/typec/tcpm/tcpm.c
 +++ b/drivers/usb/typec/tcpm/tcpm.c
 @@ -381,8 +381,8 @@ struct tcpm_port {
@@ -63,7 +63,7 @@ index 721d9c4..8a8b62b8 100644
  		if (frs_enable) {
  			ret  = port->tcpc->enable_frs(port->tcpc, true);
  			tcpm_log(port, "Enable FRS %s, ret:%d\n", ret ? "fail" : "success", ret);
-@@ -4830,9 +4831,10 @@ static int tcpm_fw_get_caps(struct tcpm_port *port,
+@@ -4831,9 +4832,10 @@ static int tcpm_fw_get_caps(struct tcpm_port *port,
  
  	/* FRS can only be supported byb DRP ports */
  	if (port->port_type == TYPEC_PORT_DRP) {
@@ -77,5 +77,5 @@ index 721d9c4..8a8b62b8 100644
  
  	return 0;
 -- 
-2.7.4
+2.17.1
 

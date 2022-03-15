@@ -1,4 +1,4 @@
-From e9deb2b7edc46d75935f35c32050414d68879cf0 Mon Sep 17 00:00:00 2001
+From d31d962f83bd4cc470d22114362942d394933fab Mon Sep 17 00:00:00 2001
 From: Asutosh Das <asutoshd@codeaurora.org>
 Date: Tue, 22 Oct 2019 18:20:21 -0700
 Subject: [PATCH 366/830] FROMLIST: scsi: ufs-qcom: enter and exit hibern8
@@ -18,7 +18,7 @@ Signed-off-by: Asutosh Das <asutoshd@codeaurora.org>
  1 file changed, 11 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/scsi/ufs/ufs-qcom.c b/drivers/scsi/ufs/ufs-qcom.c
-index 20182e3..7ad5524 100644
+index 20182e39cb28..7ad5524cb39e 100644
 --- a/drivers/scsi/ufs/ufs-qcom.c
 +++ b/drivers/scsi/ufs/ufs-qcom.c
 @@ -1216,24 +1216,34 @@ static int ufs_qcom_clk_scale_notify(struct ufs_hba *hba,
@@ -58,5 +58,5 @@ index 20182e3..7ad5524 100644
  
  out:
 -- 
-2.7.4
+2.17.1
 

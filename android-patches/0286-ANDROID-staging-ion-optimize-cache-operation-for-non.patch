@@ -1,4 +1,4 @@
-From a318209ca1b17e838afac9c34a6c1cb818cf77fc Mon Sep 17 00:00:00 2001
+From 619a7adffe3073a7b6424f7ce549f3985b84567e Mon Sep 17 00:00:00 2001
 From: Hyesoo Yu <hyesoo.yu@samsung.com>
 Date: Fri, 20 Mar 2020 18:54:00 +0900
 Subject: [PATCH 286/830] ANDROID: staging: ion: optimize cache operation for
@@ -31,7 +31,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@google.com>
  1 file changed, 18 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/staging/android/ion/ion_dma_buf.c b/drivers/staging/android/ion/ion_dma_buf.c
-index f2fd58d..29f05b8c 100644
+index f2fd58da1a89..29f05b8cd5ef 100644
 --- a/drivers/staging/android/ion/ion_dma_buf.c
 +++ b/drivers/staging/android/ion/ion_dma_buf.c
 @@ -105,6 +105,7 @@ static struct sg_table *ion_map_dma_buf(struct dma_buf_attachment *attachment,
@@ -105,5 +105,5 @@ index f2fd58d..29f05b8c 100644
  
  	return 0;
 -- 
-2.7.4
+2.17.1
 

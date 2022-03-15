@@ -1,4 +1,4 @@
-From 6ac6a6f2e426cc48949c5526c091c5c9c5237b55 Mon Sep 17 00:00:00 2001
+From 7531fb87c82e35b970b85d2a6b9583079bb81226 Mon Sep 17 00:00:00 2001
 From: Qais Yousef <qais.yousef@arm.com>
 Date: Mon, 21 Sep 2020 15:04:13 +0100
 Subject: [PATCH 828/830] ANDROID: arm64: Enable KVM for Asym AArch32
@@ -16,10 +16,10 @@ Change-Id: I62d8fd58ac950846f18cf2cb848a3b59922e9bd6
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index 7edfb26..66f5799 100644
+index 225e60c77dfe..3487784618d5 100644
 --- a/arch/arm64/Kconfig
 +++ b/arch/arm64/Kconfig
-@@ -1929,7 +1929,7 @@ endmenu
+@@ -1930,7 +1930,7 @@ endmenu
  
  config ASYMMETRIC_AARCH32
  	bool "Allow support for asymmetric AArch32 support"
@@ -29,5 +29,5 @@ index 7edfb26..66f5799 100644
  	  Enable this option to allow support for asymmetric AArch32 EL0
  	  CPU configurations. Once the AArch32 EL0 support is detected
 -- 
-2.7.4
+2.17.1
 

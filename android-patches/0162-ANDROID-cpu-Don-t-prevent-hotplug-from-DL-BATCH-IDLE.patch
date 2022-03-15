@@ -1,4 +1,4 @@
-From f140cee6afb7a33b1621bed31553867fc1bba6a9 Mon Sep 17 00:00:00 2001
+From 09fa243d1c674ab2bd78e718a7f43844d7adf009 Mon Sep 17 00:00:00 2001
 From: Quentin Perret <qperret@google.com>
 Date: Mon, 26 Oct 2020 17:00:34 +0000
 Subject: [PATCH 162/830] ANDROID: cpu: Don't prevent hotplug from
@@ -25,7 +25,7 @@ Change-Id: I4d9e88b15fee56e7d234826e2eaea306a69328bb
  1 file changed, 1 insertion(+), 5 deletions(-)
 
 diff --git a/kernel/cpu.c b/kernel/cpu.c
-index c07ca0f..20ee5aa 100644
+index c07ca0fd9119..20ee5aa6523a 100644
 --- a/kernel/cpu.c
 +++ b/kernel/cpu.c
 @@ -1254,10 +1254,8 @@ static int switch_to_rt_policy(void)
@@ -50,5 +50,5 @@ index c07ca0f..20ee5aa 100644
  	err = try_online_node(cpu_to_node(cpu));
  	if (err)
 -- 
-2.7.4
+2.17.1
 

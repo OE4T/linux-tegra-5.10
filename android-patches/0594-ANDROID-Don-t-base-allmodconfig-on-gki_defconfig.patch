@@ -1,4 +1,4 @@
-From 71184f1209839663e57add6e27cb64442d504551 Mon Sep 17 00:00:00 2001
+From e0469a22c368ed1901f5cc04cbe477706e334d10 Mon Sep 17 00:00:00 2001
 From: Quentin Perret <qperret@google.com>
 Date: Thu, 5 Dec 2019 04:48:47 +0000
 Subject: [PATCH 594/830] ANDROID: Don't base allmodconfig on gki_defconfig
@@ -23,7 +23,7 @@ Signed-off-by: Quentin Perret <qperret@google.com>
  1 file changed, 2 deletions(-)
 
 diff --git a/build.config.allmodconfig b/build.config.allmodconfig
-index 8261484..f4da6b2 100644
+index 8261484c3987..f4da6b278e80 100644
 --- a/build.config.allmodconfig
 +++ b/build.config.allmodconfig
 @@ -1,8 +1,6 @@
@@ -36,5 +36,5 @@ index 8261484..f4da6b2 100644
  function update_config() {
      ${KERNEL_DIR}/scripts/config --file ${OUT_DIR}/.config \
 -- 
-2.7.4
+2.17.1
 

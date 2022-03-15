@@ -1,4 +1,4 @@
-From c245693bd9bc527bde452d0639e842b754b62eb0 Mon Sep 17 00:00:00 2001
+From df6e77e6fa114d858fc89ccde35fc55e4eefcdff Mon Sep 17 00:00:00 2001
 From: Alistair Delva <adelva@google.com>
 Date: Tue, 3 Mar 2020 22:53:35 -0800
 Subject: [PATCH 653/830] ANDROID: gki_defconfig: Enable MFD_SYSCON on x86
@@ -14,7 +14,7 @@ Signed-off-by: Alistair Delva <adelva@google.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 27724a8..ab011c6 100644
+index 27724a8b6c89..ab011c6b1c8f 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -263,6 +263,7 @@ CONFIG_GPIOLIB=y
@@ -26,5 +26,5 @@ index 27724a8..ab011c6 100644
  CONFIG_REGULATOR_FIXED_VOLTAGE=y
  CONFIG_MEDIA_CAMERA_SUPPORT=y
 -- 
-2.7.4
+2.17.1
 

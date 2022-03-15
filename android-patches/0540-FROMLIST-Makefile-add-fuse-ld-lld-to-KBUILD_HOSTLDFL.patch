@@ -1,4 +1,4 @@
-From 11e13f82870bd3d4a2496121abe550af56805781 Mon Sep 17 00:00:00 2001
+From 4bb5ee34c28bdd2a219008e72a36be07e2f957b6 Mon Sep 17 00:00:00 2001
 From: Nick Desaulniers <ndesaulniers@google.com>
 Date: Thu, 20 Aug 2020 15:09:55 -0700
 Subject: [PATCH 540/830] FROMLIST: Makefile: add -fuse-ld=lld to
@@ -37,7 +37,7 @@ Change-Id: I54b79beceb669ec06a017d3f5c3627ccf3655986
  1 file changed, 1 insertion(+)
 
 diff --git a/Makefile b/Makefile
-index 816d1cb..2ffddd9 100644
+index 666cad659b57..9ca40f145b83 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -464,6 +464,7 @@ OBJCOPY		= llvm-objcopy
@@ -49,5 +49,5 @@ index 816d1cb..2ffddd9 100644
  CC		= $(CROSS_COMPILE)gcc
  LD		= $(CROSS_COMPILE)ld
 -- 
-2.7.4
+2.17.1
 

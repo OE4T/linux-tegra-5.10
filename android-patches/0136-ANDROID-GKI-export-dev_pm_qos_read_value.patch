@@ -1,4 +1,4 @@
-From 5707a93935c8f3c8ca78f953eb3c7fbbddc4144b Mon Sep 17 00:00:00 2001
+From 62fff85cf05efb2c560242602f106a5a1d82a24f Mon Sep 17 00:00:00 2001
 From: Mark Salyzyn <salyzyn@google.com>
 Date: Wed, 19 Aug 2020 05:29:01 -0700
 Subject: [PATCH 136/830] ANDROID: GKI: export dev_pm_qos_read_value
@@ -20,7 +20,7 @@ Signed-off-by: Will McVicker <willmcvicker@google.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/drivers/base/power/qos.c b/drivers/base/power/qos.c
-index 8e93167..0489db3 100644
+index 8e93167f1783..0489db3a1f60 100644
 --- a/drivers/base/power/qos.c
 +++ b/drivers/base/power/qos.c
 @@ -137,6 +137,7 @@ s32 dev_pm_qos_read_value(struct device *dev, enum dev_pm_qos_req_type type)
@@ -32,5 +32,5 @@ index 8e93167..0489db3 100644
  /**
   * apply_constraint - Add/modify/remove device PM QoS request.
 -- 
-2.7.4
+2.17.1
 

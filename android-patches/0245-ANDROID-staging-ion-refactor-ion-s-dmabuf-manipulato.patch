@@ -1,4 +1,4 @@
-From 8560d6647a31b877bbb4bc9f822e7e595d2bb4e0 Mon Sep 17 00:00:00 2001
+From f7ceab96cfaea23d474e1823df39cbca7b305e57 Mon Sep 17 00:00:00 2001
 From: Sandeep Patil <sspatil@google.com>
 Date: Wed, 7 Aug 2019 15:01:24 -0700
 Subject: [PATCH 245/830] ANDROID: staging: ion: refactor ion's dmabuf
@@ -19,16 +19,16 @@ Co-developed-by: Isaac J. Manjarres <isaacm@codeaurora.org>
 Signed-off-by: Sandeep Patil <sspatil@google.com>
 ---
  drivers/staging/android/ion/Makefile      |   2 +-
- drivers/staging/android/ion/ion.c         | 237 +---------------------------
+ drivers/staging/android/ion/ion.c         | 237 +-------------------
  drivers/staging/android/ion/ion_buffer.c  |   6 +-
- drivers/staging/android/ion/ion_dma_buf.c | 252 ++++++++++++++++++++++++++++++
+ drivers/staging/android/ion/ion_dma_buf.c | 252 ++++++++++++++++++++++
  drivers/staging/android/ion/ion_private.h |  11 +-
  include/linux/ion.h                       |  16 +-
  6 files changed, 289 insertions(+), 235 deletions(-)
  create mode 100644 drivers/staging/android/ion/ion_dma_buf.c
 
 diff --git a/drivers/staging/android/ion/Makefile b/drivers/staging/android/ion/Makefile
-index da386db..b6fab28 100644
+index da386dbf3ffd..b6fab2816781 100644
 --- a/drivers/staging/android/ion/Makefile
 +++ b/drivers/staging/android/ion/Makefile
 @@ -1,4 +1,4 @@
@@ -38,7 +38,7 @@ index da386db..b6fab28 100644
  obj-$(CONFIG_ION_SYSTEM_HEAP) += ion_system_heap.o ion_page_pool.o
  obj-$(CONFIG_ION_CMA_HEAP) += ion_cma_heap.o
 diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
-index 580e50e..51d13c1 100644
+index 580e50e37758..51d13c1f6650 100644
 --- a/drivers/staging/android/ion/ion.c
 +++ b/drivers/staging/android/ion/ion.c
 @@ -17,259 +17,38 @@
@@ -310,7 +310,7 @@ index 580e50e..51d13c1 100644
  		return PTR_ERR(dmabuf);
  
 diff --git a/drivers/staging/android/ion/ion_buffer.c b/drivers/staging/android/ion/ion_buffer.c
-index 8b8dd1e..c10ea66 100644
+index 8b8dd1e216d4..c10ea6672f1a 100644
 --- a/drivers/staging/android/ion/ion_buffer.c
 +++ b/drivers/staging/android/ion/ion_buffer.c
 @@ -149,13 +149,13 @@ void ion_buffer_release(struct ion_buffer *buffer)
@@ -340,7 +340,7 @@ index 8b8dd1e..c10ea66 100644
  void *ion_buffer_kmap_get(struct ion_buffer *buffer)
 diff --git a/drivers/staging/android/ion/ion_dma_buf.c b/drivers/staging/android/ion/ion_dma_buf.c
 new file mode 100644
-index 00000000..0de08e6
+index 000000000000..0de08e6f1af5
 --- /dev/null
 +++ b/drivers/staging/android/ion/ion_dma_buf.c
 @@ -0,0 +1,252 @@
@@ -597,7 +597,7 @@ index 00000000..0de08e6
 +	return dmabuf;
 +}
 diff --git a/drivers/staging/android/ion/ion_private.h b/drivers/staging/android/ion/ion_private.h
-index e80692c..b3c8b557 100644
+index e80692c885b4..b3c8b55788db 100644
 --- a/drivers/staging/android/ion/ion_private.h
 +++ b/drivers/staging/android/ion/ion_private.h
 @@ -9,6 +9,7 @@
@@ -627,7 +627,7 @@ index e80692c..b3c8b557 100644
 +
  #endif /* _ION_PRIVATE_H */
 diff --git a/include/linux/ion.h b/include/linux/ion.h
-index 7bec77d..66a694b 100644
+index 7bec77d98224..66a694b875ca 100644
 --- a/include/linux/ion.h
 +++ b/include/linux/ion.h
 @@ -10,8 +10,18 @@
@@ -660,5 +660,5 @@ index 7bec77d..66a694b 100644
  #endif /* CONFIG_ION */
  #endif /* _ION_KERNEL_H */
 -- 
-2.7.4
+2.17.1
 

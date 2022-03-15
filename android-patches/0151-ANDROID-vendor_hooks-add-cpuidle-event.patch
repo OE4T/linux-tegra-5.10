@@ -1,4 +1,4 @@
-From 38b7164efe993de2a0c3d188eb478149e2829a60 Mon Sep 17 00:00:00 2001
+From ba3e176ee628f3477e39609fe9b07360e4a8e141 Mon Sep 17 00:00:00 2001
 From: Park Bumgyu <bumgyu.park@samsung.com>
 Date: Thu, 20 Aug 2020 11:17:23 +0900
 Subject: [PATCH 151/830] ANDROID: vendor_hooks: add cpuidle event
@@ -21,7 +21,7 @@ Signed-off-by: Park Bumgyu <bumgyu.park@samsung.com>
  create mode 100644 include/trace/hooks/cpuidle.h
 
 diff --git a/drivers/android/vendor_hooks.c b/drivers/android/vendor_hooks.c
-index 31d843f..957eea1 100644
+index 31d843f43cc2..957eea13ab00 100644
 --- a/drivers/android/vendor_hooks.c
 +++ b/drivers/android/vendor_hooks.c
 @@ -13,6 +13,7 @@
@@ -41,7 +41,7 @@ index 31d843f..957eea1 100644
  EXPORT_TRACEPOINT_SYMBOL_GPL(android_rvh_find_busiest_group);
  EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_wq_lockup_pool);
 diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
-index 83af15f..fa0024b 100644
+index 83af15f77f66..fa0024b4549b 100644
 --- a/drivers/cpuidle/cpuidle.c
 +++ b/drivers/cpuidle/cpuidle.c
 @@ -24,6 +24,7 @@
@@ -70,7 +70,7 @@ index 83af15f..fa0024b 100644
  	sched_idle_set_state(NULL);
 diff --git a/include/trace/hooks/cpuidle.h b/include/trace/hooks/cpuidle.h
 new file mode 100644
-index 00000000..826e98e
+index 000000000000..826e98e37690
 --- /dev/null
 +++ b/include/trace/hooks/cpuidle.h
 @@ -0,0 +1,24 @@
@@ -99,5 +99,5 @@ index 00000000..826e98e
 +#include <trace/define_trace.h>
 +
 -- 
-2.7.4
+2.17.1
 

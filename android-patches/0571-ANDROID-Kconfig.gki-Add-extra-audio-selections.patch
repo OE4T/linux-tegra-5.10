@@ -1,4 +1,4 @@
-From 61f5e4e09373fec97dd547274a4fe484a7019d3a Mon Sep 17 00:00:00 2001
+From eb3452063cd4c321db3f912dbc9b9e5a0c4a60a7 Mon Sep 17 00:00:00 2001
 From: John Stultz <john.stultz@linaro.org>
 Date: Wed, 9 Oct 2019 23:12:21 +0000
 Subject: [PATCH 571/830] ANDROID: Kconfig.gki: Add extra audio selections
@@ -14,7 +14,7 @@ Signed-off-by: John Stultz <john.stultz@linaro.org>
  1 file changed, 1 insertion(+)
 
 diff --git a/init/Kconfig.gki b/init/Kconfig.gki
-index 1426500..8dc30bf 100644
+index 14265007d7e8..8dc30bfadcdf 100644
 --- a/init/Kconfig.gki
 +++ b/init/Kconfig.gki
 @@ -21,6 +21,7 @@ config GKI_HIDDEN_REGMAP_CONFIGS
@@ -26,5 +26,5 @@ index 1426500..8dc30bf 100644
  	  Dummy config option used to enable hidden SND_SOC configs.
  	  These are normally selected implicitely when a module
 -- 
-2.7.4
+2.17.1
 

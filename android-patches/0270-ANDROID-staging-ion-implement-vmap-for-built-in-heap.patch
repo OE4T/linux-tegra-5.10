@@ -1,4 +1,4 @@
-From ce3122d3b2afc90028a25c8f245491aa26053f84 Mon Sep 17 00:00:00 2001
+From 80acc9be329d5205a911e2f89707982916829bf4 Mon Sep 17 00:00:00 2001
 From: Hyesoo Yu <hyesoo.yu@samsung.com>
 Date: Tue, 3 Mar 2020 17:54:36 +0900
 Subject: [PATCH 270/830] ANDROID: staging: ion: implement vmap for built-in
@@ -24,7 +24,7 @@ Signed-off-by: Hridya Valsaraju <hridya@google.com>
  1 file changed, 14 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/staging/android/ion/ion_dma_buf.c b/drivers/staging/android/ion/ion_dma_buf.c
-index 284abb5..1e12361 100644
+index 284abb58a719..1e1236155dea 100644
 --- a/drivers/staging/android/ion/ion_dma_buf.c
 +++ b/drivers/staging/android/ion/ion_dma_buf.c
 @@ -265,11 +265,16 @@ static void *ion_dma_buf_vmap(struct dma_buf *dmabuf)
@@ -65,5 +65,5 @@ index 284abb5..1e12361 100644
  
  static int ion_dma_buf_get_flags(struct dma_buf *dmabuf, unsigned long *flags)
 -- 
-2.7.4
+2.17.1
 

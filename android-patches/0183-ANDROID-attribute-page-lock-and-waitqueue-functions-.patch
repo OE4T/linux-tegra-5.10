@@ -1,4 +1,4 @@
-From 8c7ba0b514d90853d4459b65a62ff9538f47c338 Mon Sep 17 00:00:00 2001
+From 1a9dbd25164712d6a16901dfe46bbba2a57bf61e Mon Sep 17 00:00:00 2001
 From: Jimmy Shiu <jimmyshiu@google.com>
 Date: Tue, 3 Nov 2020 00:16:37 +0800
 Subject: [PATCH 183/830] ANDROID: attribute page lock and waitqueue functions
@@ -52,7 +52,7 @@ Signed-off-by: Will McVicker <willmcvicker@google.com>
  3 files changed, 19 insertions(+), 16 deletions(-)
 
 diff --git a/include/linux/pagemap.h b/include/linux/pagemap.h
-index fcb3f04..d4f2c8d 100644
+index fcb3f040102a..d4f2c8d8322c 100644
 --- a/include/linux/pagemap.h
 +++ b/include/linux/pagemap.h
 @@ -15,6 +15,7 @@
@@ -116,7 +116,7 @@ index fcb3f04..d4f2c8d 100644
  	if (!PageLocked(page))
  		return 0;
 diff --git a/kernel/sched/wait.c b/kernel/sched/wait.c
-index a55642a..6911bbc 100644
+index a55642aa3f68..6911bbca018c 100644
 --- a/kernel/sched/wait.c
 +++ b/kernel/sched/wait.c
 @@ -396,7 +396,8 @@ void finish_wait(struct wait_queue_head *wq_head, struct wait_queue_entry *wq_en
@@ -149,7 +149,7 @@ index a55642a..6911bbc 100644
  	/* Pairs with the smp_store_mb() in wait_woken(). */
  	smp_mb(); /* C */
 diff --git a/mm/filemap.c b/mm/filemap.c
-index 125b69f..4decaa4 100644
+index 125b69f59caa..4decaa47144d 100644
 --- a/mm/filemap.c
 +++ b/mm/filemap.c
 @@ -1193,7 +1193,7 @@ static inline bool trylock_page_bit_common(struct page *page, int bit_nr,
@@ -215,5 +215,5 @@ index 125b69f..4decaa4 100644
  {
  	if (fault_flag_allow_retry_first(flags)) {
 -- 
-2.7.4
+2.17.1
 

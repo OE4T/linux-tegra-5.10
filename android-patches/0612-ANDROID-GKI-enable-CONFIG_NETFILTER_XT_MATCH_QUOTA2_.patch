@@ -1,4 +1,4 @@
-From e5350d4047fb0dea13fe3bf18cc916dbd7793d03 Mon Sep 17 00:00:00 2001
+From 42e3cf8beeed15e03e08992d8f06e861980ea2cb Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <maze@google.com>
 Date: Mon, 13 Jan 2020 23:52:14 -0800
 Subject: [PATCH 612/830] ANDROID: GKI: enable
@@ -19,7 +19,7 @@ Change-Id: I7219a3abd922b31249a3bccb94bc0dcff197788e
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index e6f14b5..084563e 100644
+index e6f14b50a761..084563e2f353 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -154,6 +154,7 @@ CONFIG_NETFILTER_XT_MATCH_POLICY=y
@@ -31,7 +31,7 @@ index e6f14b5..084563e 100644
  CONFIG_NETFILTER_XT_MATCH_STATE=y
  CONFIG_NETFILTER_XT_MATCH_STATISTIC=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index fc0fa32..e4b5f68 100644
+index fc0fa321cab9..e4b5f68f1dfd 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -130,6 +130,7 @@ CONFIG_NETFILTER_XT_MATCH_POLICY=y
@@ -43,5 +43,5 @@ index fc0fa32..e4b5f68 100644
  CONFIG_NETFILTER_XT_MATCH_STATE=y
  CONFIG_NETFILTER_XT_MATCH_STATISTIC=y
 -- 
-2.7.4
+2.17.1
 

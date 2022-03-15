@@ -1,4 +1,4 @@
-From 0ae6adb6ca9ace6e964f7a8d4f9082437f223abd Mon Sep 17 00:00:00 2001
+From be47b1940e99d4d84826c3ecbb4754594ce4ddb9 Mon Sep 17 00:00:00 2001
 From: Kalesh Singh <kaleshsingh@google.com>
 Date: Mon, 20 Jul 2020 14:39:49 +0000
 Subject: [PATCH 724/830] ANDROID: GKI defconfig: Remove ZRAM from gki
@@ -21,7 +21,7 @@ Change-Id: Ic346c6e4a1cdd975fa0c51bde9282ef0e32963f1
  2 files changed, 2 deletions(-)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 349206f..7be2e5d 100644
+index 349206f231cb..7be2e5d82e1e 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -217,7 +217,6 @@ CONFIG_FW_LOADER_USER_HELPER_FALLBACK=y
@@ -33,7 +33,7 @@ index 349206f..7be2e5d 100644
  CONFIG_BLK_DEV_LOOP_MIN_COUNT=16
  CONFIG_BLK_DEV_RAM=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index f95e842..0b83062 100644
+index f95e8428ea81..0b830627cb65 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -193,7 +193,6 @@ CONFIG_FW_LOADER_USER_HELPER_FALLBACK=y
@@ -45,5 +45,5 @@ index f95e842..0b83062 100644
  CONFIG_BLK_DEV_LOOP_MIN_COUNT=16
  CONFIG_BLK_DEV_RAM=y
 -- 
-2.7.4
+2.17.1
 

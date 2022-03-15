@@ -1,4 +1,4 @@
-From 47d1f71270fdcccf4b8d17e121c0fd055c13116e Mon Sep 17 00:00:00 2001
+From f1e9fed1bff46253dbdfca7696ae726f7c05b85d Mon Sep 17 00:00:00 2001
 From: Hridya Valsaraju <hridya@google.com>
 Date: Tue, 4 Feb 2020 14:10:24 -0800
 Subject: [PATCH 628/830] ANDROID: gki_defconfig: Set CONFIG_ANDROID_BINDERFS=y
@@ -16,7 +16,7 @@ Signed-off-by: Hridya Valsaraju <hridya@google.com>
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 8c7832d..b4c6b5f 100644
+index 8c7832d80d69..b4c6b5fb8b38 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -374,6 +374,7 @@ CONFIG_QCOM_PDC=y
@@ -28,7 +28,7 @@ index 8c7832d..b4c6b5f 100644
  # CONFIG_ND_BLK is not set
  CONFIG_INTERCONNECT=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index b0bca72..bee96ab 100644
+index b0bca7278231..bee96ab66ebd 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -309,6 +309,7 @@ CONFIG_PM_DEVFREQ=y
@@ -40,5 +40,5 @@ index b0bca72..bee96ab 100644
  # CONFIG_ND_BLK is not set
  CONFIG_INTERCONNECT=y
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 1299826f3a843eba8aff1c5bf941c87706e48c7d Mon Sep 17 00:00:00 2001
+From 007daf24d1f8ce3075244fd6e02b07209f08541a Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Thu, 30 Jul 2020 12:46:16 -0700
 Subject: [PATCH 474/830] ANDROID: Incremental fs: Add UID to pending_read
@@ -9,18 +9,18 @@ Bug: 160634477
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
 Change-Id: Iaf817cf1f7ccd0109b2114b425ea7f26718345ab
 ---
- fs/incfs/data_mgmt.c                               |  74 ++++++++++----
- fs/incfs/data_mgmt.h                               |   6 ++
- fs/incfs/main.c                                    |   9 ++
- fs/incfs/vfs.c                                     |  93 +++++++++++++-----
- include/uapi/linux/incrementalfs.h                 |  45 +++++++++
- .../selftests/filesystems/incfs/incfs_test.c       | 106 ++++++++++++++++-----
- tools/testing/selftests/filesystems/incfs/utils.c  |  28 ++++++
- tools/testing/selftests/filesystems/incfs/utils.h  |   3 +
+ fs/incfs/data_mgmt.c                          |  74 ++++++++----
+ fs/incfs/data_mgmt.h                          |   6 +
+ fs/incfs/main.c                               |   9 ++
+ fs/incfs/vfs.c                                |  93 ++++++++++-----
+ include/uapi/linux/incrementalfs.h            |  45 ++++++++
+ .../selftests/filesystems/incfs/incfs_test.c  | 106 +++++++++++++-----
+ .../selftests/filesystems/incfs/utils.c       |  28 +++++
+ .../selftests/filesystems/incfs/utils.h       |   3 +
  8 files changed, 291 insertions(+), 73 deletions(-)
 
 diff --git a/fs/incfs/data_mgmt.c b/fs/incfs/data_mgmt.c
-index ccb1b0d..8e58f6e 100644
+index ccb1b0d1f3c7..8e58f6edb555 100644
 --- a/fs/incfs/data_mgmt.c
 +++ b/fs/incfs/data_mgmt.c
 @@ -391,6 +391,7 @@ static void log_block_read(struct mount_info *mi, incfs_uuid_t *id,
@@ -168,7 +168,7 @@ index ccb1b0d..8e58f6e 100644
  
  	spin_unlock(&log->rl_lock);
 diff --git a/fs/incfs/data_mgmt.h b/fs/incfs/data_mgmt.h
-index 96b581a..77d0950 100644
+index 96b581a564bd..77d0950f9a22 100644
 --- a/fs/incfs/data_mgmt.h
 +++ b/fs/incfs/data_mgmt.h
 @@ -34,6 +34,7 @@ struct full_record {
@@ -211,7 +211,7 @@ index 96b581a..77d0950 100644
  struct read_log_state incfs_get_log_state(struct mount_info *mi);
  int incfs_get_uncollected_logs_count(struct mount_info *mi,
 diff --git a/fs/incfs/main.c b/fs/incfs/main.c
-index e65d0d8..2b8161f 100644
+index e65d0d895128..2b8161f6c83a 100644
 --- a/fs/incfs/main.c
 +++ b/fs/incfs/main.c
 @@ -30,8 +30,17 @@ static ssize_t corefs_show(struct kobject *kobj,
@@ -233,7 +233,7 @@ index e65d0d8..2b8161f 100644
  };
  
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index a680338..f54550a 100644
+index a68033899661..f54550a9adf9 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -218,6 +218,7 @@ enum parse_parameter {
@@ -441,7 +441,7 @@ index a680338..f54550a 100644
  	return 0;
  }
 diff --git a/include/uapi/linux/incrementalfs.h b/include/uapi/linux/incrementalfs.h
-index da3fdde..6b59004 100644
+index da3fdde4711c..6b5900445eae 100644
 --- a/include/uapi/linux/incrementalfs.h
 +++ b/include/uapi/linux/incrementalfs.h
 @@ -96,6 +96,23 @@
@@ -477,10 +477,11 @@ index da3fdde..6b59004 100644
   */
  struct incfs_pending_read_info {
  	/* Id of a file that is being read from. */
-@@ -129,6 +148,32 @@ struct incfs_pending_read_info {
+@@ -128,6 +147,32 @@ struct incfs_pending_read_info {
+ 	__u32 serial_number;
  };
  
- /*
++/*
 + * Description of a pending read. A pending read - a read call by
 + * a userspace program for which the filesystem currently doesn't have data.
 + *
@@ -506,12 +507,11 @@ index da3fdde..6b59004 100644
 +	__u32 reserved;
 +};
 +
-+/*
+ /*
   * Description of a data or hash block to add to a data file.
   */
- struct incfs_fill_block {
 diff --git a/tools/testing/selftests/filesystems/incfs/incfs_test.c b/tools/testing/selftests/filesystems/incfs/incfs_test.c
-index 4d57697..029757a 100644
+index 4d57697935eb..029757a1c77f 100644
 --- a/tools/testing/selftests/filesystems/incfs/incfs_test.c
 +++ b/tools/testing/selftests/filesystems/incfs/incfs_test.c
 @@ -656,6 +656,55 @@ static int data_producer(const char *mount_dir, struct test_files_set *test_set)
@@ -733,7 +733,7 @@ index 4d57697..029757a 100644
  	}
  
 diff --git a/tools/testing/selftests/filesystems/incfs/utils.c b/tools/testing/selftests/filesystems/incfs/utils.c
-index a801232..3bc1449 100644
+index a80123294d5a..3bc1449c16da 100644
 --- a/tools/testing/selftests/filesystems/incfs/utils.c
 +++ b/tools/testing/selftests/filesystems/incfs/utils.c
 @@ -272,6 +272,34 @@ int wait_for_pending_reads(int fd, int timeout_ms,
@@ -772,7 +772,7 @@ index a801232..3bc1449 100644
  {
  	char full_name[FILENAME_MAX] = "";
 diff --git a/tools/testing/selftests/filesystems/incfs/utils.h b/tools/testing/selftests/filesystems/incfs/utils.h
-index 5b59272..39eb603 100644
+index 5b59272dbb7f..39eb60333637 100644
 --- a/tools/testing/selftests/filesystems/incfs/utils.h
 +++ b/tools/testing/selftests/filesystems/incfs/utils.h
 @@ -55,6 +55,9 @@ int open_log_file(const char *mount_dir);
@@ -786,5 +786,5 @@ index 5b59272..39eb603 100644
  
  void sha256(const char *data, size_t dsize, char *hash);
 -- 
-2.7.4
+2.17.1
 

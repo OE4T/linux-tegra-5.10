@@ -1,4 +1,4 @@
-From e30df235d25f2c3457ea61cfaa2bdbb6576fe362 Mon Sep 17 00:00:00 2001
+From 21220891c11a8d59fb146957b02a1fda4b1dfd40 Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Tue, 28 Jan 2020 14:21:12 -0800
 Subject: [PATCH 425/830] ANDROID: Fixing incremental fs style issues
@@ -22,7 +22,7 @@ Change-Id: I8a9e9ead48a65fd09c2d01d22f65d9a352f118e2
 
 diff --git a/fs/incfs/compat.h b/fs/incfs/compat.h
 deleted file mode 100644
-index f6fd9b2..00000000
+index f6fd9b2b3cb2..000000000000
 --- a/fs/incfs/compat.h
 +++ /dev/null
 @@ -1,33 +0,0 @@
@@ -60,7 +60,7 @@ index f6fd9b2..00000000
 -
 -#endif /* _INCFS_COMPAT_H */
 diff --git a/fs/incfs/data_mgmt.c b/fs/incfs/data_mgmt.c
-index 25ea109..109329e 100644
+index 25ea1099946d..109329e0a180 100644
 --- a/fs/incfs/data_mgmt.c
 +++ b/fs/incfs/data_mgmt.c
 @@ -456,13 +456,9 @@ static struct pending_read *add_pending_read(struct data_file *df,
@@ -102,7 +102,7 @@ index 25ea109..109329e 100644
  	}
  
 diff --git a/fs/incfs/format.c b/fs/incfs/format.c
-index 27498b9..247e1b4 100644
+index 27498b9c3d34..247e1b4ec563 100644
 --- a/fs/incfs/format.c
 +++ b/fs/incfs/format.c
 @@ -12,7 +12,6 @@
@@ -133,7 +133,7 @@ index 27498b9..247e1b4 100644
 -#endif
  }
 diff --git a/fs/incfs/integrity.c b/fs/incfs/integrity.c
-index c6444e7..feb212c 100644
+index c6444e73e4d8..feb212c38945 100644
 --- a/fs/incfs/integrity.c
 +++ b/fs/incfs/integrity.c
 @@ -26,11 +26,7 @@ int incfs_validate_pkcs7_signature(struct mem_range pkcs7_blob,
@@ -149,7 +149,7 @@ index c6444e7..feb212c 100644
  		pr_debug("PKCS#7 message does not contain data\n");
  		err = -EBADMSG;
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index 46045dc..b79621d 100644
+index 46045dc72242..b79621d89375 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -18,7 +18,6 @@
@@ -239,5 +239,5 @@ index 46045dc..b79621d 100644
  	BUILD_BUG_ON(PAGE_SIZE != INCFS_DATA_FILE_BLOCK_SIZE);
  
 -- 
-2.7.4
+2.17.1
 

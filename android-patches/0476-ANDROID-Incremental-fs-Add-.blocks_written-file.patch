@@ -1,4 +1,4 @@
-From 7a8d45d1e0cd13e74768c5cc1a93c56289db0480 Mon Sep 17 00:00:00 2001
+From 5131f97119bb8c854f158079aa5d7bbc311ae11f Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Thu, 20 Aug 2020 15:03:54 -0700
 Subject: [PATCH 476/830] ANDROID: Incremental fs: Add .blocks_written file
@@ -9,18 +9,18 @@ Test: incfs_test passes
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
 Change-Id: I942582218cdc7741bcff2f264960b76cdfa1bb36
 ---
- fs/incfs/data_mgmt.c                               |   5 +
- fs/incfs/data_mgmt.h                               |   7 +
- fs/incfs/pseudo_files.c                            | 159 +++++++++++++++------
- fs/incfs/pseudo_files.h                            |   2 +-
- include/uapi/linux/incrementalfs.h                 |   1 +
- .../selftests/filesystems/incfs/incfs_test.c       |  51 +++++++
- tools/testing/selftests/filesystems/incfs/utils.c  |  26 +++-
- tools/testing/selftests/filesystems/incfs/utils.h  |   2 +
+ fs/incfs/data_mgmt.c                          |   5 +
+ fs/incfs/data_mgmt.h                          |   7 +
+ fs/incfs/pseudo_files.c                       | 159 +++++++++++++-----
+ fs/incfs/pseudo_files.h                       |   2 +-
+ include/uapi/linux/incrementalfs.h            |   1 +
+ .../selftests/filesystems/incfs/incfs_test.c  |  51 ++++++
+ .../selftests/filesystems/incfs/utils.c       |  26 ++-
+ .../selftests/filesystems/incfs/utils.h       |   2 +
  8 files changed, 205 insertions(+), 48 deletions(-)
 
 diff --git a/fs/incfs/data_mgmt.c b/fs/incfs/data_mgmt.c
-index 8e58f6e..7cc530b 100644
+index 8e58f6edb555..7cc530b8c1f4 100644
 --- a/fs/incfs/data_mgmt.c
 +++ b/fs/incfs/data_mgmt.c
 @@ -43,6 +43,8 @@ struct mount_info *incfs_alloc_mount_info(struct super_block *sb,
@@ -43,7 +43,7 @@ index 8e58f6e..7cc530b 100644
  
  static int wait_for_data_block(struct data_file *df, int block_index,
 diff --git a/fs/incfs/data_mgmt.h b/fs/incfs/data_mgmt.h
-index 77d0950..26e9b4b 100644
+index 77d0950f9a22..26e9b4bf4d33 100644
 --- a/fs/incfs/data_mgmt.h
 +++ b/fs/incfs/data_mgmt.h
 @@ -155,6 +155,13 @@ struct mount_info {
@@ -61,7 +61,7 @@ index 77d0950..26e9b4b 100644
  
  struct data_file_block {
 diff --git a/fs/incfs/pseudo_files.c b/fs/incfs/pseudo_files.c
-index 5d61d8e..2286320 100644
+index 5d61d8e866dc..22863204bb59 100644
 --- a/fs/incfs/pseudo_files.c
 +++ b/fs/incfs/pseudo_files.c
 @@ -20,13 +20,14 @@
@@ -89,10 +89,11 @@ index 5d61d8e..2286320 100644
  	.data = (u8 *)pending_reads_file_name,
  	.len = ARRAY_SIZE(pending_reads_file_name) - 1
  };
-@@ -928,6 +929,90 @@ static const struct file_operations incfs_pending_read_file_ops = {
+@@ -927,6 +928,90 @@ static const struct file_operations incfs_pending_read_file_ops = {
+ 	.compat_ioctl = pending_reads_dispatch_ioctl
  };
  
- /*******************************************************************************
++/*******************************************************************************
 + * .blocks_written pseudo file definition
 + ******************************************************************************/
 +static const char blocks_written_file_name[] = INCFS_BLOCKS_WRITTEN_FILENAME;
@@ -176,10 +177,9 @@ index 5d61d8e..2286320 100644
 +	.llseek = noop_llseek,
 +};
 +
-+/*******************************************************************************
+ /*******************************************************************************
   * Generic inode lookup functionality
   ******************************************************************************/
- static bool get_pseudo_inode(int ino, struct inode *inode)
 @@ -950,6 +1035,10 @@ static bool get_pseudo_inode(int ino, struct inode *inode)
  		inode->i_fop = &incfs_log_file_ops;
  		return true;
@@ -282,7 +282,7 @@ index 5d61d8e..2286320 100644
  	return 0;
  }
 diff --git a/fs/incfs/pseudo_files.h b/fs/incfs/pseudo_files.h
-index 14a8cc5..358bcab 100644
+index 14a8cc513363..358bcabfe49a 100644
 --- a/fs/incfs/pseudo_files.h
 +++ b/fs/incfs/pseudo_files.h
 @@ -6,7 +6,7 @@
@@ -295,7 +295,7 @@ index 14a8cc5..358bcab 100644
  
  int dir_lookup_pseudo_files(struct super_block *sb, struct dentry *dentry);
 diff --git a/include/uapi/linux/incrementalfs.h b/include/uapi/linux/incrementalfs.h
-index 6b59004..932e7fd 100644
+index 6b5900445eae..932e7fd2718e 100644
 --- a/include/uapi/linux/incrementalfs.h
 +++ b/include/uapi/linux/incrementalfs.h
 @@ -30,6 +30,7 @@
@@ -307,7 +307,7 @@ index 6b59004..932e7fd 100644
  #define INCFS_XATTR_SIZE_NAME (XATTR_USER_PREFIX "incfs.size")
  #define INCFS_XATTR_METADATA_NAME (XATTR_USER_PREFIX "incfs.metadata")
 diff --git a/tools/testing/selftests/filesystems/incfs/incfs_test.c b/tools/testing/selftests/filesystems/incfs/incfs_test.c
-index e666dd7..876efcb 100644
+index e666dd7cc982..876efcba1a3a 100644
 --- a/tools/testing/selftests/filesystems/incfs/incfs_test.c
 +++ b/tools/testing/selftests/filesystems/incfs/incfs_test.c
 @@ -7,6 +7,7 @@
@@ -397,7 +397,7 @@ index e666dd7..876efcb 100644
  }
  
 diff --git a/tools/testing/selftests/filesystems/incfs/utils.c b/tools/testing/selftests/filesystems/incfs/utils.c
-index 3bc1449..32ba6af 100644
+index 3bc1449c16da..32ba6af49bbd 100644
 --- a/tools/testing/selftests/filesystems/incfs/utils.c
 +++ b/tools/testing/selftests/filesystems/incfs/utils.c
 @@ -234,14 +234,28 @@ int open_commands_file(const char *mount_dir)
@@ -436,7 +436,7 @@ index 3bc1449..32ba6af 100644
  
  int wait_for_pending_reads(int fd, int timeout_ms,
 diff --git a/tools/testing/selftests/filesystems/incfs/utils.h b/tools/testing/selftests/filesystems/incfs/utils.h
-index 39eb603..470471c 100644
+index 39eb60333637..470471c7f418 100644
 --- a/tools/testing/selftests/filesystems/incfs/utils.h
 +++ b/tools/testing/selftests/filesystems/incfs/utils.h
 @@ -52,6 +52,8 @@ int open_commands_file(const char *mount_dir);
@@ -449,5 +449,5 @@ index 39eb603..470471c 100644
  	struct incfs_pending_read_info *prs, int prs_count);
  
 -- 
-2.7.4
+2.17.1
 

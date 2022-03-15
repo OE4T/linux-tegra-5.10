@@ -1,4 +1,4 @@
-From 9a0a443c12e87c06e913248712aeddf105ffc675 Mon Sep 17 00:00:00 2001
+From d20546859c22fb0606e37c660f30fecd4c52f998 Mon Sep 17 00:00:00 2001
 From: Badhri Jagan Sridharan <badhri@google.com>
 Date: Wed, 28 Oct 2020 23:31:38 -0700
 Subject: [PATCH 016/830] FROMGIT: usb: typec: tcpci_maxim: Fix uninitialized
@@ -27,7 +27,7 @@ Change-Id: I12ea2c7201c76bdf6237128873e25c3a55e17a9a
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/usb/typec/tcpm/tcpci_maxim.c b/drivers/usb/typec/tcpm/tcpci_maxim.c
-index 55dea33..3b3d36f 100644
+index 55dea33387ec..3b3d36f94709 100644
 --- a/drivers/usb/typec/tcpm/tcpci_maxim.c
 +++ b/drivers/usb/typec/tcpm/tcpci_maxim.c
 @@ -343,7 +343,7 @@ static irqreturn_t max_tcpci_irq(int irq, void *dev_id)
@@ -49,5 +49,5 @@ index 55dea33..3b3d36f 100644
  		ret = PTR_ERR(chip->tcpci);
  		return PTR_ERR(chip->tcpci);
 -- 
-2.7.4
+2.17.1
 

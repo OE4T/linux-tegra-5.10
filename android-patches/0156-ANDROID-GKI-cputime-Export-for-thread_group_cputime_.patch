@@ -1,4 +1,4 @@
-From 9f52f5d1fed6c2f8c59bd7b54d79bbf111b4e845 Mon Sep 17 00:00:00 2001
+From efd38bdb99b56667b09819f84a8bd6d91e7e316d Mon Sep 17 00:00:00 2001
 From: Abhilasha Rao <abhilasha.hv@samsung.corp-partner.google.com>
 Date: Wed, 29 Jul 2020 15:37:30 +0530
 Subject: [PATCH 156/830] ANDROID: GKI: cputime: Export for
@@ -20,7 +20,7 @@ Change-Id: I1843de08edf5bb2eee806845f4b5e0a305da5fe7
  1 file changed, 3 insertions(+)
 
 diff --git a/kernel/sched/cputime.c b/kernel/sched/cputime.c
-index 5a55d23..33f1e468 100644
+index ca0eef7d3852..d22d8dfe4245 100644
 --- a/kernel/sched/cputime.c
 +++ b/kernel/sched/cputime.c
 @@ -460,6 +460,7 @@ void thread_group_cputime_adjusted(struct task_struct *p, u64 *ut, u64 *st)
@@ -41,5 +41,5 @@ index 5a55d23..33f1e468 100644
  
  #ifdef CONFIG_VIRT_CPU_ACCOUNTING_GEN
 -- 
-2.7.4
+2.17.1
 

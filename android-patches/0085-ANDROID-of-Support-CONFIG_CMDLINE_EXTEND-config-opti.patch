@@ -1,4 +1,4 @@
-From 700f5b4149856e5ba1e8d1bd31949c90889bfa79 Mon Sep 17 00:00:00 2001
+From 753a9edaf8d73d373c3d138cda8535260f0af1d9 Mon Sep 17 00:00:00 2001
 From: Doug Anderson <dianders@chromium.org>
 Date: Thu, 2 Feb 2012 22:58:28 -0800
 Subject: [PATCH 085/830] ANDROID: of: Support CONFIG_CMDLINE_EXTEND config
@@ -46,12 +46,12 @@ Signed-off-by: Colin Cross <ccross@android.com>
         9a4a74055444 ("ANDROID: of: Fix build warnings")]
 Signed-off-by: Amit Pundir <amit.pundir@linaro.org>
 ---
- drivers/of/fdt.c       | 74 +++++++++++++++++++++++++++++++++-----------------
- include/linux/of_fdt.h | 21 ++++++++++++++
+ drivers/of/fdt.c       | 74 ++++++++++++++++++++++++++++--------------
+ include/linux/of_fdt.h | 21 ++++++++++++
  2 files changed, 70 insertions(+), 25 deletions(-)
 
 diff --git a/drivers/of/fdt.c b/drivers/of/fdt.c
-index ac30854..8a9ea3e 100644
+index ac30854151e9..8a9ea3e7c005 100644
 --- a/drivers/of/fdt.c
 +++ b/drivers/of/fdt.c
 @@ -1036,43 +1036,67 @@ int __init early_init_dt_scan_memory(unsigned long node, const char *uname,
@@ -148,7 +148,7 @@ index ac30854..8a9ea3e 100644
  	pr_debug("Command line is: %s\n", (char *)data);
  
 diff --git a/include/linux/of_fdt.h b/include/linux/of_fdt.h
-index acf820e..9bbd5c0 100644
+index acf820e88952..9bbd5c06cb39 100644
 --- a/include/linux/of_fdt.h
 +++ b/include/linux/of_fdt.h
 @@ -58,6 +58,27 @@ extern int of_flat_dt_is_compatible(unsigned long node, const char *name);
@@ -180,5 +180,5 @@ index acf820e..9bbd5c0 100644
  				     int depth, void *data);
  extern int early_init_dt_scan_memory(unsigned long node, const char *uname,
 -- 
-2.7.4
+2.17.1
 

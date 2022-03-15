@@ -1,4 +1,4 @@
-From 1b1aca5ea207e7b466c5f41590fda0d01fd43bc4 Mon Sep 17 00:00:00 2001
+From d2beb9cd6298b59b6d9401b3bbe967b633eb88c0 Mon Sep 17 00:00:00 2001
 From: Greg Kroah-Hartman <gregkh@google.com>
 Date: Tue, 14 Jul 2020 15:04:51 +0200
 Subject: [PATCH 750/830] ANDROID: GKI: enable usb storage drivers
@@ -22,7 +22,7 @@ Signed-off-by: Connor O'Brien <connoro@google.com>
  2 files changed, 4 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 85f8e2b..05d5ab2 100644
+index 85f8e2bd9ca7..05d5ab27955b 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -355,6 +355,8 @@ CONFIG_USB_OTG=y
@@ -35,7 +35,7 @@ index 85f8e2b..05d5ab2 100644
  CONFIG_USB_CONFIGFS=y
  CONFIG_USB_CONFIGFS_UEVENT=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 1d7d8ce..8bd0a83 100644
+index 1d7d8ce969c7..8bd0a8344cf5 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -316,6 +316,8 @@ CONFIG_USB_HIDDEV=y
@@ -48,5 +48,5 @@ index 1d7d8ce..8bd0a83 100644
  CONFIG_USB_CONFIGFS=y
  CONFIG_USB_CONFIGFS_UEVENT=y
 -- 
-2.7.4
+2.17.1
 

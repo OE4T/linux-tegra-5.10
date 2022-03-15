@@ -1,4 +1,4 @@
-From ed1b2dcd71055e501fe8729724c3b060683b521b Mon Sep 17 00:00:00 2001
+From a101256a08b1c1011a315da6cbf00d87751d2c2b Mon Sep 17 00:00:00 2001
 From: Alessio Balsini <balsini@android.com>
 Date: Thu, 10 Sep 2020 18:38:37 +0100
 Subject: [PATCH 062/830] FROMLIST: fuse: Handle asynchronous read and write in
@@ -22,11 +22,11 @@ Signed-off-by: Alessio Balsini <balsini@android.com>
 Signed-off-by: Alessio Balsini <balsini@google.com>
 Change-Id: I1e6b4602e0813c425a41f370c856d2e99e771277
 ---
- fs/fuse/passthrough.c | 85 +++++++++++++++++++++++++++++++++++++++++++++------
+ fs/fuse/passthrough.c | 85 ++++++++++++++++++++++++++++++++++++++-----
  1 file changed, 76 insertions(+), 9 deletions(-)
 
 diff --git a/fs/fuse/passthrough.c b/fs/fuse/passthrough.c
-index 5a78cb3..10b6872 100644
+index 5a78cb336db4..10b6872cdaa7 100644
 --- a/fs/fuse/passthrough.c
 +++ b/fs/fuse/passthrough.c
 @@ -6,6 +6,11 @@
@@ -149,5 +149,5 @@ index 5a78cb3..10b6872 100644
  
  	return ret;
 -- 
-2.7.4
+2.17.1
 

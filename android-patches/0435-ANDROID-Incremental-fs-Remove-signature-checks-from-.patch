@@ -1,4 +1,4 @@
-From 12f74dd56946e0137a369549baa6cf1c3a92863c Mon Sep 17 00:00:00 2001
+From 98bbd1753953ab47b99a17eb13a4c0f808879ab3 Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Fri, 13 Mar 2020 12:38:35 -0700
 Subject: [PATCH 435/830] ANDROID: Incremental fs: Remove signature checks from
@@ -10,21 +10,21 @@ Bug: 133435829
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
 Change-Id: Ia7e69b1b0176202da4b418ea815b370cbdacd5c2
 ---
- fs/incfs/data_mgmt.c                               | 154 ++++--------
- fs/incfs/data_mgmt.h                               |   5 +-
- fs/incfs/format.c                                  |  22 +-
- fs/incfs/format.h                                  |  45 +---
- fs/incfs/integrity.c                               | 169 +++++++------
- fs/incfs/integrity.h                               |  20 +-
- fs/incfs/vfs.c                                     | 155 +++---------
- include/uapi/linux/incrementalfs.h                 |  66 ++---
- .../selftests/filesystems/incfs/incfs_test.c       | 275 +--------------------
- tools/testing/selftests/filesystems/incfs/utils.c  | 229 ++++++-----------
- tools/testing/selftests/filesystems/incfs/utils.h  |  34 ++-
+ fs/incfs/data_mgmt.c                          | 154 +++-------
+ fs/incfs/data_mgmt.h                          |   5 +-
+ fs/incfs/format.c                             |  22 +-
+ fs/incfs/format.h                             |  45 +--
+ fs/incfs/integrity.c                          | 169 ++++++-----
+ fs/incfs/integrity.h                          |  20 +-
+ fs/incfs/vfs.c                                | 155 +++-------
+ include/uapi/linux/incrementalfs.h            |  66 ++---
+ .../selftests/filesystems/incfs/incfs_test.c  | 275 +-----------------
+ .../selftests/filesystems/incfs/utils.c       | 229 +++++----------
+ .../selftests/filesystems/incfs/utils.h       |  34 +--
  11 files changed, 305 insertions(+), 869 deletions(-)
 
 diff --git a/fs/incfs/data_mgmt.c b/fs/incfs/data_mgmt.c
-index 06a1f0c..4a3da85 100644
+index 06a1f0c70f43..4a3da8523e8e 100644
 --- a/fs/incfs/data_mgmt.c
 +++ b/fs/incfs/data_mgmt.c
 @@ -250,7 +250,7 @@ static int validate_hash_tree(struct file *bf, struct data_file *df,
@@ -265,7 +265,7 @@ index 06a1f0c..4a3da85 100644
  	return error;
  }
 diff --git a/fs/incfs/data_mgmt.h b/fs/incfs/data_mgmt.h
-index aa08d18..4e3eab5 100644
+index aa08d18a61c2..4e3eab5f7701 100644
 --- a/fs/incfs/data_mgmt.h
 +++ b/fs/incfs/data_mgmt.h
 @@ -189,10 +189,7 @@ struct data_file {
@@ -281,7 +281,7 @@ index aa08d18..4e3eab5 100644
  
  struct dir_file {
 diff --git a/fs/incfs/format.c b/fs/incfs/format.c
-index db71f52..8c8213e 100644
+index db71f527cf36..8c8213ee325d 100644
 --- a/fs/incfs/format.c
 +++ b/fs/incfs/format.c
 @@ -299,9 +299,7 @@ int incfs_write_file_attr_to_backing_file(struct backing_file_context *bfc,
@@ -343,7 +343,7 @@ index db71f52..8c8213e 100644
  	/* Write a hash tree metadata record pointing to the hash tree above. */
  	result = append_md_to_backing_file(bfc, &sg.sg_header);
 diff --git a/fs/incfs/format.h b/fs/incfs/format.h
-index 0978f8a..3e3f7fa7 100644
+index 0978f8a89b34..3e3f7fa7560a 100644
 --- a/fs/incfs/format.h
 +++ b/fs/incfs/format.h
 @@ -217,27 +217,27 @@ struct incfs_file_attr {
@@ -422,7 +422,7 @@ index 0978f8a..3e3f7fa7 100644
  int incfs_make_empty_backing_file(struct backing_file_context *bfc,
  				  incfs_uuid_t *uuid, u64 file_size);
 diff --git a/fs/incfs/integrity.c b/fs/incfs/integrity.c
-index 1d00dda..f8af9a8 100644
+index 1d00dda109e3..f8af9a83ea8a 100644
 --- a/fs/incfs/integrity.c
 +++ b/fs/incfs/integrity.c
 @@ -10,70 +10,6 @@
@@ -632,7 +632,7 @@ index 1d00dda..f8af9a8 100644
 -}
 -
 diff --git a/fs/incfs/integrity.h b/fs/incfs/integrity.h
-index da1c384..cf79b64 100644
+index da1c38486b2f..cf79b64da736 100644
 --- a/fs/incfs/integrity.h
 +++ b/fs/incfs/integrity.h
 @@ -38,21 +38,10 @@ struct mtree {
@@ -670,7 +670,7 @@ index da1c384..cf79b64 100644
 -
  #endif /* _INCFS_INTEGRITY_H */
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index 4eabab4..59b04dd 100644
+index 4eabab4fcdd2..59b04dd0c6e9 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -838,104 +838,39 @@ static char *file_id_to_str(incfs_uuid_t id)
@@ -887,7 +887,7 @@ index 4eabab4..59b04dd 100644
  		goto delete_index_file;
  
 diff --git a/include/uapi/linux/incrementalfs.h b/include/uapi/linux/incrementalfs.h
-index 82add05..d3bd532 100644
+index 82add05a32c9..d3bd532cc913 100644
 --- a/include/uapi/linux/incrementalfs.h
 +++ b/include/uapi/linux/incrementalfs.h
 @@ -35,6 +35,8 @@
@@ -980,7 +980,7 @@ index 82add05..d3bd532 100644
  	__aligned_u64 reserved6;
  };
 diff --git a/tools/testing/selftests/filesystems/incfs/incfs_test.c b/tools/testing/selftests/filesystems/incfs/incfs_test.c
-index c276b4c..9910b27 100644
+index c276b4cde2d5..9910b274bfc0 100644
 --- a/tools/testing/selftests/filesystems/incfs/incfs_test.c
 +++ b/tools/testing/selftests/filesystems/incfs/incfs_test.c
 @@ -25,8 +25,6 @@
@@ -1315,7 +1315,7 @@ index c276b4c..9910b27 100644
  		MAKE_TEST(read_log_test),
  	};
 diff --git a/tools/testing/selftests/filesystems/incfs/utils.c b/tools/testing/selftests/filesystems/incfs/utils.c
-index 08b8452..3a72fa5 100644
+index 08b8452ad0bc..3a72fa5d5e9a 100644
 --- a/tools/testing/selftests/filesystems/incfs/utils.c
 +++ b/tools/testing/selftests/filesystems/incfs/utils.c
 @@ -23,7 +23,8 @@
@@ -1628,7 +1628,7 @@ index 08b8452..3a72fa5 100644
  	MD5_CTX ctx;
  
 diff --git a/tools/testing/selftests/filesystems/incfs/utils.h b/tools/testing/selftests/filesystems/incfs/utils.h
-index 9c9ba3c..23c8a09 100644
+index 9c9ba3c5f70a..23c8a099662a 100644
 --- a/tools/testing/selftests/filesystems/incfs/utils.h
 +++ b/tools/testing/selftests/filesystems/incfs/utils.h
 @@ -9,6 +9,8 @@
@@ -1698,5 +1698,5 @@ index 9c9ba3c..23c8a09 100644
  
  int delete_dir_tree(const char *path);
 -- 
-2.7.4
+2.17.1
 

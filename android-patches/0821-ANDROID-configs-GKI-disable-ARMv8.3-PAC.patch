@@ -1,4 +1,4 @@
-From 43a30a02078d1e0cbd2f63d097005de141565d51 Mon Sep 17 00:00:00 2001
+From 63ff9adcc25bac9c1ba82050aca1e9b78709f3c7 Mon Sep 17 00:00:00 2001
 From: Nick Desaulniers <ndesaulniers@google.com>
 Date: Fri, 4 Dec 2020 11:06:39 -0800
 Subject: [PATCH 821/830] ANDROID: configs: GKI: disable ARMv8.3 PAC
@@ -24,7 +24,7 @@ Change-Id: I4c7d9f37da7e3901de27f20bbfad4722cdb8a423
  1 file changed, 1 insertion(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 00d751a..2d3da62 100644
+index 00d751aefa22..2d3da62748b4 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -58,6 +58,7 @@ CONFIG_SWP_EMULATION=y
@@ -36,5 +36,5 @@ index 00d751a..2d3da62 100644
  # CONFIG_RANDOMIZE_MODULE_REGION_FULL is not set
  # CONFIG_DMI is not set
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 9c91ceb7f747327921d46194ccf4eb23873140b0 Mon Sep 17 00:00:00 2001
+From 3e086e9083a2b98c355138a68d75e60fcded9d98 Mon Sep 17 00:00:00 2001
 From: "taehyun.cho" <taehyun.cho@samsung.com>
 Date: Thu, 15 Oct 2020 23:16:44 -0700
 Subject: [PATCH 065/830] FROMLIST: USB: gadget: f_fs: add SuperSpeed Plus
@@ -22,7 +22,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@google.com>
  1 file changed, 5 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/usb/gadget/function/f_fs.c b/drivers/usb/gadget/function/f_fs.c
-index 128b4a3..ee31eb5 100644
+index f47620b58100..9ab739b2292a 100644
 --- a/drivers/usb/gadget/function/f_fs.c
 +++ b/drivers/usb/gadget/function/f_fs.c
 @@ -1343,8 +1343,8 @@ static long ffs_epfile_ioctl(struct file *file, unsigned code,
@@ -35,7 +35,7 @@ index 128b4a3..ee31eb5 100644
  			desc_idx = 2;
  			break;
  		case USB_SPEED_HIGH:
-@@ -3245,6 +3245,10 @@ static int _ffs_func_bind(struct usb_configuration *c,
+@@ -3276,6 +3276,10 @@ static int _ffs_func_bind(struct usb_configuration *c,
  	func->function.os_desc_n =
  		c->cdev->use_os_string ? ffs->interfaces_count : 0;
  
@@ -47,5 +47,5 @@ index 128b4a3..ee31eb5 100644
  	ffs_event_add(ffs, FUNCTIONFS_BIND);
  	return 0;
 -- 
-2.7.4
+2.17.1
 

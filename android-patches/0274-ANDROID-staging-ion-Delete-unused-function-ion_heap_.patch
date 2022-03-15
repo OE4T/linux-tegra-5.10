@@ -1,4 +1,4 @@
-From fa50b23aa59d5a7c413d8088225b44e12787ca8e Mon Sep 17 00:00:00 2001
+From 1b272db54e2ea382963cb73418e7a25daf3047a6 Mon Sep 17 00:00:00 2001
 From: Hridya Valsaraju <hridya@google.com>
 Date: Wed, 29 Jul 2020 18:15:00 -0700
 Subject: [PATCH 274/830] ANDROID: staging: ion: Delete unused function
@@ -18,7 +18,7 @@ Signed-off-by: Hridya Valsaraju <hridya@google.com>
  1 file changed, 13 deletions(-)
 
 diff --git a/drivers/staging/android/ion/ion_heap.c b/drivers/staging/android/ion/ion_heap.c
-index 092b9b8..90e7b85 100644
+index 092b9b874bb5..90e7b857c98b 100644
 --- a/drivers/staging/android/ion/ion_heap.c
 +++ b/drivers/staging/android/ion/ion_heap.c
 @@ -239,19 +239,6 @@ static int ion_heap_sglist_zero(struct sg_table *sgt, pgprot_t pgprot)
@@ -42,5 +42,5 @@ index 092b9b8..90e7b85 100644
  {
  	struct scatterlist sg;
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 7b97aadaf12d741a758cd819ae1ddc9753c93c90 Mon Sep 17 00:00:00 2001
+From a64516fe9dc6880ffa84c91b99f7a8f05fb75f0e Mon Sep 17 00:00:00 2001
 From: Daniel Mentz <danielmentz@google.com>
 Date: Mon, 24 Aug 2020 13:35:35 -0700
 Subject: [PATCH 131/830] ANDROID: power: Export
@@ -17,7 +17,7 @@ Change-Id: I0b1e065b57d7e5ddd36c8dbc4f086661ae56041a
  1 file changed, 2 insertions(+)
 
 diff --git a/kernel/power/wakeup_reason.c b/kernel/power/wakeup_reason.c
-index 7a4ed59..8fefaa3 100644
+index 7a4ed59c0080..8fefaa3fdba2 100644
 --- a/kernel/power/wakeup_reason.c
 +++ b/kernel/power/wakeup_reason.c
 @@ -244,6 +244,7 @@ void log_suspend_abort_reason(const char *fmt, ...)
@@ -37,5 +37,5 @@ index 7a4ed59..8fefaa3 100644
  void clear_wakeup_reasons(void)
  {
 -- 
-2.7.4
+2.17.1
 

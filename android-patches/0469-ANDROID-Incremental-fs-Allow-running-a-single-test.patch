@@ -1,4 +1,4 @@
-From eddc409618b94b99223bc2ca91352c4e02525206 Mon Sep 17 00:00:00 2001
+From f6e5e1efe607767facb45736721b3e8d4cf5117b Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Thu, 21 May 2020 09:14:51 -0700
 Subject: [PATCH 469/830] ANDROID: Incremental fs: Allow running a single test
@@ -9,12 +9,12 @@ Test: Can run single test
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
 Change-Id: Ia75d15351245701d53040a537205b37d06a4263b
 ---
- tools/testing/selftests/filesystems/incfs/Makefile |   2 +-
- .../selftests/filesystems/incfs/incfs_test.c       | 122 ++++++++++++++-------
+ .../selftests/filesystems/incfs/Makefile      |   2 +-
+ .../selftests/filesystems/incfs/incfs_test.c  | 122 ++++++++++++------
  2 files changed, 83 insertions(+), 41 deletions(-)
 
 diff --git a/tools/testing/selftests/filesystems/incfs/Makefile b/tools/testing/selftests/filesystems/incfs/Makefile
-index 882b43d..83e2ecb 100644
+index 882b43decbcd..83e2ecb7bad9 100644
 --- a/tools/testing/selftests/filesystems/incfs/Makefile
 +++ b/tools/testing/selftests/filesystems/incfs/Makefile
 @@ -1,5 +1,5 @@
@@ -25,7 +25,7 @@ index 882b43d..83e2ecb 100644
  TEST_GEN_PROGS := incfs_test incfs_stress incfs_perf
  
 diff --git a/tools/testing/selftests/filesystems/incfs/incfs_test.c b/tools/testing/selftests/filesystems/incfs/incfs_test.c
-index 5545039..316d7187 100644
+index 55450396dfce..316d71877e2f 100644
 --- a/tools/testing/selftests/filesystems/incfs/incfs_test.c
 +++ b/tools/testing/selftests/filesystems/incfs/incfs_test.c
 @@ -247,7 +247,7 @@ int open_file_by_id(const char *mnt_dir, incfs_uuid_t id, bool use_ioctl)
@@ -361,5 +361,5 @@ index 5545039..316d7187 100644
  
  	umount2(mount_dir, MNT_FORCE);
 -- 
-2.7.4
+2.17.1
 

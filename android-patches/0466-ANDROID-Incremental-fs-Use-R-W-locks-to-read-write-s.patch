@@ -1,4 +1,4 @@
-From 8fd0a3eb1728a26e642a011b67c680482ad3647d Mon Sep 17 00:00:00 2001
+From 049a1bbafadbd637f879efb1052cd57e7e542650 Mon Sep 17 00:00:00 2001
 From: Akilesh Kailash <akailash@google.com>
 Date: Fri, 17 Jul 2020 00:47:05 +0000
 Subject: [PATCH 466/830] ANDROID: Incremental fs: Use R/W locks to read/write
@@ -21,13 +21,13 @@ Test: kernel selftest - incfs_test and incfs_perf
 Signed-off-by: Akilesh Kailash <akailash@google.com>
 Change-Id: Id00376b0e4cb8c0c0bc8264cdddd6f38c4aa85f0
 ---
- fs/incfs/data_mgmt.c | 69 ++++++++++++++++++++++++++--------------------------
- fs/incfs/data_mgmt.h |  6 ++---
- fs/incfs/vfs.c       |  7 +-----
+ fs/incfs/data_mgmt.c | 69 ++++++++++++++++++++++----------------------
+ fs/incfs/data_mgmt.h |  6 ++--
+ fs/incfs/vfs.c       |  7 +----
  3 files changed, 38 insertions(+), 44 deletions(-)
 
 diff --git a/fs/incfs/data_mgmt.c b/fs/incfs/data_mgmt.c
-index 960a1f7..819b437 100644
+index 960a1f72d34d..819b437218d2 100644
 --- a/fs/incfs/data_mgmt.c
 +++ b/fs/incfs/data_mgmt.c
 @@ -119,15 +119,10 @@ void incfs_free_mount_info(struct mount_info *mi)
@@ -198,7 +198,7 @@ index 960a1f7..819b437 100644
  		reported_reads++;
  		if (reported_reads >= reads_size)
 diff --git a/fs/incfs/data_mgmt.h b/fs/incfs/data_mgmt.h
-index 00e93f1..88b0ec7 100644
+index 00e93f1b7712..88b0ec7cbd98 100644
 --- a/fs/incfs/data_mgmt.h
 +++ b/fs/incfs/data_mgmt.h
 @@ -14,6 +14,7 @@
@@ -229,7 +229,7 @@ index 00e93f1..88b0ec7 100644
  int incfs_collect_logged_reads(struct mount_info *mi,
  			       struct read_log_state *start_state,
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index 038014c..58acbbd5 100644
+index 038014c511af..58acbbd5dcdb 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -469,7 +469,6 @@ static ssize_t pending_reads_read(struct file *f, char __user *buf, size_t len,
@@ -259,5 +259,5 @@ index 038014c..58acbbd5 100644
  	 * Just to make sure that we don't accidentally copy more data
  	 * to reads buffer than userspace can handle.
 -- 
-2.7.4
+2.17.1
 

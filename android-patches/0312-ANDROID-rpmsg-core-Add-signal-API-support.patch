@@ -1,4 +1,4 @@
-From 29dccdbda1ffa6ccd53e82456c7cd6d6f447b531 Mon Sep 17 00:00:00 2001
+From 39a37f1b5bc778f556ad1f18bbdda0dae450c875 Mon Sep 17 00:00:00 2001
 From: Chris Lew <clew@codeaurora.org>
 Date: Tue, 14 Jul 2020 17:18:30 -0700
 Subject: [PATCH 312/830] ANDROID: rpmsg: core: Add signal API support
@@ -20,13 +20,13 @@ Change-Id: I54539d8ddce1bfaec9016c2bec9b5a1372601995
 Signed-off-by: Chris Lew <clew@codeaurora.org>
 (cherry picked from commit 6839fc80fe1f6564eb6a0fc0fd081d459ec6c61b)
 ---
- drivers/rpmsg/rpmsg_core.c     | 40 ++++++++++++++++++++++++++++++++++++++++
+ drivers/rpmsg/rpmsg_core.c     | 40 ++++++++++++++++++++++++++++++++++
  drivers/rpmsg/rpmsg_internal.h |  5 +++++
- include/linux/rpmsg.h          | 27 +++++++++++++++++++++++++++
+ include/linux/rpmsg.h          | 27 +++++++++++++++++++++++
  3 files changed, 72 insertions(+)
 
 diff --git a/drivers/rpmsg/rpmsg_core.c b/drivers/rpmsg/rpmsg_core.c
-index 91de940..e6eb5a1 100644
+index 028ca5961bc2..2037a4692b84 100644
 --- a/drivers/rpmsg/rpmsg_core.c
 +++ b/drivers/rpmsg/rpmsg_core.c
 @@ -283,6 +283,42 @@ int rpmsg_trysend_offchannel(struct rpmsg_endpoint *ept, u32 src, u32 dst,
@@ -84,7 +84,7 @@ index 91de940..e6eb5a1 100644
  
  	err = rpdrv->probe(rpdev);
 diff --git a/drivers/rpmsg/rpmsg_internal.h b/drivers/rpmsg/rpmsg_internal.h
-index 3fc83cd..03356e8 100644
+index 3fc83cd50e98..03356e883b27 100644
 --- a/drivers/rpmsg/rpmsg_internal.h
 +++ b/drivers/rpmsg/rpmsg_internal.h
 @@ -2,6 +2,7 @@
@@ -114,7 +114,7 @@ index 3fc83cd..03356e8 100644
  
  int rpmsg_register_device(struct rpmsg_device *rpdev);
 diff --git a/include/linux/rpmsg.h b/include/linux/rpmsg.h
-index a68972b..7cbb0fb 100644
+index a68972b097b7..7cbb0fbf7d8f 100644
 --- a/include/linux/rpmsg.h
 +++ b/include/linux/rpmsg.h
 @@ -2,6 +2,7 @@
@@ -201,5 +201,5 @@ index a68972b..7cbb0fb 100644
  
  /* use a macro to avoid include chaining to get THIS_MODULE */
 -- 
-2.7.4
+2.17.1
 

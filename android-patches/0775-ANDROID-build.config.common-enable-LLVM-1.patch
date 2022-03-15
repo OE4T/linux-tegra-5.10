@@ -1,4 +1,4 @@
-From 5de2af932de12f3135b665d666ae51c22e0017e0 Mon Sep 17 00:00:00 2001
+From 7521fe0f8120ad777b14655a123142c4cdb99a32 Mon Sep 17 00:00:00 2001
 From: Nick Desaulniers <ndesaulniers@google.com>
 Date: Thu, 20 Aug 2020 13:49:01 -0700
 Subject: [PATCH 775/830] ANDROID: build.config.common: enable LLVM=1
@@ -19,7 +19,7 @@ Change-Id: I0975dcad48b6c5344124343606e1c7f85e76e4ee
  1 file changed, 1 insertion(+), 4 deletions(-)
 
 diff --git a/build.config.common b/build.config.common
-index faf89e2..25de474 100644
+index faf89e27399a..25de474489bd 100644
 --- a/build.config.common
 +++ b/build.config.common
 @@ -1,10 +1,7 @@
@@ -35,5 +35,5 @@ index faf89e2..25de474 100644
  DTC=dtc
  CLANG_PREBUILT_BIN=prebuilts-master/clang/host/linux-x86/clang-r399163b/bin
 -- 
-2.7.4
+2.17.1
 

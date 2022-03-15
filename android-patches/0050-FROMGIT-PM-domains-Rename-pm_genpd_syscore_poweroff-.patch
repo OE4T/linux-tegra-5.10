@@ -1,4 +1,4 @@
-From 2d6f7fc6e9f55af0457a7816498b2efc3f60396d Mon Sep 17 00:00:00 2001
+From da5678241133ac6ecdb5728520f46ec992a9745f Mon Sep 17 00:00:00 2001
 From: Ulf Hansson <ulf.hansson@linaro.org>
 Date: Tue, 3 Nov 2020 16:06:25 +0100
 Subject: [PATCH 050/830] FROMGIT: PM: domains: Rename
@@ -29,7 +29,7 @@ Signed-off-by: Lina Iyer <ilina@codeaurora.org>
  5 files changed, 35 insertions(+), 28 deletions(-)
 
 diff --git a/drivers/base/power/domain.c b/drivers/base/power/domain.c
-index 7432689..9b4881b 100644
+index 743268996336..9b4881b67683 100644
 --- a/drivers/base/power/domain.c
 +++ b/drivers/base/power/domain.c
 @@ -1363,14 +1363,7 @@ static void genpd_complete(struct device *dev)
@@ -87,7 +87,7 @@ index 7432689..9b4881b 100644
  #else /* !CONFIG_PM_SLEEP */
  
 diff --git a/drivers/clocksource/sh_cmt.c b/drivers/clocksource/sh_cmt.c
-index 2acfcc966b..09be548 100644
+index 2acfcc966bb5..09be5481facd 100644
 --- a/drivers/clocksource/sh_cmt.c
 +++ b/drivers/clocksource/sh_cmt.c
 @@ -664,7 +664,7 @@ static void sh_cmt_clocksource_suspend(struct clocksource *cs)
@@ -127,7 +127,7 @@ index 2acfcc966b..09be548 100644
  
  static int sh_cmt_register_clockevent(struct sh_cmt_channel *ch,
 diff --git a/drivers/clocksource/sh_mtu2.c b/drivers/clocksource/sh_mtu2.c
-index bfccb31..169a1fc 100644
+index bfccb31e94ad..169a1fccc497 100644
 --- a/drivers/clocksource/sh_mtu2.c
 +++ b/drivers/clocksource/sh_mtu2.c
 @@ -297,12 +297,12 @@ static int sh_mtu2_clock_event_set_periodic(struct clock_event_device *ced)
@@ -146,7 +146,7 @@ index bfccb31..169a1fc 100644
  
  static void sh_mtu2_register_clockevent(struct sh_mtu2_channel *ch,
 diff --git a/drivers/clocksource/sh_tmu.c b/drivers/clocksource/sh_tmu.c
-index d41df9b..b00dec0 100644
+index d41df9ba3725..b00dec0655cb 100644
 --- a/drivers/clocksource/sh_tmu.c
 +++ b/drivers/clocksource/sh_tmu.c
 @@ -292,7 +292,7 @@ static void sh_tmu_clocksource_suspend(struct clocksource *cs)
@@ -183,7 +183,7 @@ index d41df9b..b00dec0 100644
  
  static void sh_tmu_register_clockevent(struct sh_tmu_channel *ch,
 diff --git a/include/linux/pm_domain.h b/include/linux/pm_domain.h
-index 1ad0ec4..a8f9332 100644
+index 1ad0ec481416..a8f93328daec 100644
 --- a/include/linux/pm_domain.h
 +++ b/include/linux/pm_domain.h
 @@ -280,11 +280,11 @@ static inline int dev_pm_genpd_remove_notifier(struct device *dev)
@@ -203,5 +203,5 @@ index 1ad0ec4..a8f9332 100644
  
  /* OF PM domain providers */
 -- 
-2.7.4
+2.17.1
 

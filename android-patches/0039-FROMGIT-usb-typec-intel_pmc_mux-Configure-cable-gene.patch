@@ -1,4 +1,4 @@
-From a09a470e06f679deef546af14b062834e182a38b Mon Sep 17 00:00:00 2001
+From a266e8499d499f0c74ca0a03107ac323d46c1497 Mon Sep 17 00:00:00 2001
 From: Utkarsh Patel <utkarsh.h.patel@intel.com>
 Date: Tue, 8 Dec 2020 20:24:08 -0800
 Subject: [PATCH 039/830] FROMGIT: usb: typec: intel_pmc_mux: Configure cable
@@ -25,7 +25,7 @@ Change-Id: I33ac3344d8b9f08737362a9ffb0d449926c3ea9d
  1 file changed, 5 insertions(+)
 
 diff --git a/drivers/usb/typec/mux/intel_pmc_mux.c b/drivers/usb/typec/mux/intel_pmc_mux.c
-index 6d38e22..31b1b3b 100644
+index 6d38e22f3350..31b1b3b555c7 100644
 --- a/drivers/usb/typec/mux/intel_pmc_mux.c
 +++ b/drivers/usb/typec/mux/intel_pmc_mux.c
 @@ -338,6 +338,11 @@ pmc_usb_mux_usb4(struct pmc_usb_port *port, struct typec_mux_state *state)
@@ -41,5 +41,5 @@ index 6d38e22..31b1b3b 100644
  	}
  
 -- 
-2.7.4
+2.17.1
 

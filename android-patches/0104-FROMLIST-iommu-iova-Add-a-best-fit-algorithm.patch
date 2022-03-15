@@ -1,4 +1,4 @@
-From 015e8ef454550f38e25551a12fab6e433026c112 Mon Sep 17 00:00:00 2001
+From ec973f4ee68ee1a79fd8aef8071dcee5cb145d45 Mon Sep 17 00:00:00 2001
 From: Patrick Daly <pdaly@codeaurora.org>
 Date: Wed, 26 Feb 2020 14:16:19 -0800
 Subject: [PATCH 104/830] FROMLIST: iommu/iova: Add a best-fit algorithm
@@ -15,14 +15,14 @@ Signed-off-by: Patrick Daly <pdaly@codeaurora.org>
 Signed-off-by: Isaac J. Manjarres <isaacm@codeaurora.org>
 Signed-off-by: Chris Goldsworthy <cgoldswo@codeaurora.org>
 ---
- drivers/iommu/dma-iommu.c | 18 ++++++++++++
- drivers/iommu/iova.c      | 74 +++++++++++++++++++++++++++++++++++++++++++++--
- include/linux/dma-iommu.h |  7 +++++
+ drivers/iommu/dma-iommu.c | 18 ++++++++++
+ drivers/iommu/iova.c      | 74 +++++++++++++++++++++++++++++++++++++--
+ include/linux/dma-iommu.h |  7 ++++
  include/linux/iova.h      |  1 +
  4 files changed, 98 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/iommu/dma-iommu.c b/drivers/iommu/dma-iommu.c
-index 85a7943..2667e38 100644
+index 85a7943daf29..2667e385d5dd 100644
 --- a/drivers/iommu/dma-iommu.c
 +++ b/drivers/iommu/dma-iommu.c
 @@ -404,6 +404,24 @@ int iommu_dma_reserve_iova(struct device *dev, dma_addr_t base,
@@ -51,7 +51,7 @@ index 85a7943..2667e38 100644
   * dma_info_to_prot - Translate DMA API directions and attributes to IOMMU API
   *                    page flags.
 diff --git a/drivers/iommu/iova.c b/drivers/iommu/iova.c
-index 30d969a..58f349f 100644
+index 1164d1a42cbc..3acdaeb42381 100644
 --- a/drivers/iommu/iova.c
 +++ b/drivers/iommu/iova.c
 @@ -50,6 +50,7 @@ init_iova_domain(struct iova_domain *iovad, unsigned long granule,
@@ -62,7 +62,7 @@ index 30d969a..58f349f 100644
  	init_iova_rcaches(iovad);
  }
  EXPORT_SYMBOL_GPL(init_iova_domain);
-@@ -227,6 +228,70 @@ static int __alloc_and_insert_iova_range(struct iova_domain *iovad,
+@@ -226,6 +227,70 @@ static int __alloc_and_insert_iova_range(struct iova_domain *iovad,
  	return -ENOMEM;
  }
  
@@ -133,7 +133,7 @@ index 30d969a..58f349f 100644
  static struct kmem_cache *iova_cache;
  static unsigned int iova_cache_users;
  static DEFINE_MUTEX(iova_cache_mutex);
-@@ -302,8 +367,13 @@ alloc_iova(struct iova_domain *iovad, unsigned long size,
+@@ -301,8 +366,13 @@ alloc_iova(struct iova_domain *iovad, unsigned long size,
  	if (!new_iova)
  		return NULL;
  
@@ -150,7 +150,7 @@ index 30d969a..58f349f 100644
  	if (ret) {
  		free_iova_mem(new_iova);
 diff --git a/include/linux/dma-iommu.h b/include/linux/dma-iommu.h
-index 2e36760..eae21ef 100644
+index 2e36760d7531..eae21ef9c009 100644
 --- a/include/linux/dma-iommu.h
 +++ b/include/linux/dma-iommu.h
 @@ -47,6 +47,8 @@ void iommu_dma_get_resv_regions(struct device *dev, struct list_head *list);
@@ -174,7 +174,7 @@ index 2e36760..eae21ef 100644
  #endif	/* CONFIG_IOMMU_DMA */
  #endif	/* __DMA_IOMMU_H */
 diff --git a/include/linux/iova.h b/include/linux/iova.h
-index a0637ab..58713bb 100644
+index a0637abffee8..58713bb72a48 100644
 --- a/include/linux/iova.h
 +++ b/include/linux/iova.h
 @@ -95,6 +95,7 @@ struct iova_domain {
@@ -186,5 +186,5 @@ index a0637ab..58713bb 100644
  
  static inline unsigned long iova_size(struct iova *iova)
 -- 
-2.7.4
+2.17.1
 

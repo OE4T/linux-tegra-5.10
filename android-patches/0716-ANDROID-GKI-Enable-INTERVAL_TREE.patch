@@ -1,4 +1,4 @@
-From 52da134f291de400dc765c554cf1c70f98246f1f Mon Sep 17 00:00:00 2001
+From e952f7a8b8b372f6b05469ecd8f52645bfcb3a66 Mon Sep 17 00:00:00 2001
 From: Todd Kjos <tkjos@google.com>
 Date: Wed, 24 Jun 2020 15:27:38 -0700
 Subject: [PATCH 716/830] ANDROID: GKI: Enable INTERVAL_TREE
@@ -14,7 +14,7 @@ Change-Id: Ia156d1b0a74c82d9f15b144131aff2ddeead0672
  1 file changed, 1 insertion(+)
 
 diff --git a/init/Kconfig.gki b/init/Kconfig.gki
-index 69a9f20..5bd056e 100644
+index 69a9f2068f1b..5bd056e33337 100644
 --- a/init/Kconfig.gki
 +++ b/init/Kconfig.gki
 @@ -8,6 +8,7 @@ config GKI_HIDDEN_DRM_CONFIGS
@@ -26,5 +26,5 @@ index 69a9f20..5bd056e 100644
  	  Dummy config option used to enable hidden DRM configs.
  	  These are normally selected implicitly when including a
 -- 
-2.7.4
+2.17.1
 

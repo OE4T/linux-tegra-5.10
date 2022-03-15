@@ -1,4 +1,4 @@
-From 3112e03f3bf1ce22e759150ac43eb556ac7b8ab3 Mon Sep 17 00:00:00 2001
+From feb0057c5f8a3ce147203c413ad3087a60f8d3ad Mon Sep 17 00:00:00 2001
 From: Alistair Delva <adelva@google.com>
 Date: Thu, 5 Nov 2020 08:49:49 -0800
 Subject: [PATCH 509/830] ANDROID: Temporarily disable XFRM_USER_COMPAT
@@ -29,10 +29,10 @@ Change-Id: Ifbea109070650dfcb4f93a3cc692c18a8d11ab44
  2 files changed, 31 insertions(+), 25 deletions(-)
 
 diff --git a/net/xfrm/xfrm_state.c b/net/xfrm/xfrm_state.c
-index c158e70..6cbbe81 100644
+index f5b846a2edcd..47ebf77dde4e 100644
 --- a/net/xfrm/xfrm_state.c
 +++ b/net/xfrm/xfrm_state.c
-@@ -2378,19 +2378,22 @@ int xfrm_user_policy(struct sock *sk, int optname, sockptr_t optval, int optlen)
+@@ -2399,19 +2399,22 @@ int xfrm_user_policy(struct sock *sk, int optname, sockptr_t optval, int optlen)
  	if (IS_ERR(data))
  		return PTR_ERR(data);
  
@@ -68,10 +68,10 @@ index c158e70..6cbbe81 100644
  	}
  
 diff --git a/net/xfrm/xfrm_user.c b/net/xfrm/xfrm_user.c
-index 6f97665b..40ea3d55 100644
+index d0fdfbf4c5f7..0c2ef2eccace 100644
 --- a/net/xfrm/xfrm_user.c
 +++ b/net/xfrm/xfrm_user.c
-@@ -2705,19 +2705,22 @@ static int xfrm_user_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
+@@ -2733,19 +2733,22 @@ static int xfrm_user_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
  	if (!netlink_net_capable(skb, CAP_NET_ADMIN))
  		return -EPERM;
  
@@ -108,5 +108,5 @@ index 6f97665b..40ea3d55 100644
  
  	if ((type == (XFRM_MSG_GETSA - XFRM_MSG_BASE) ||
 -- 
-2.7.4
+2.17.1
 

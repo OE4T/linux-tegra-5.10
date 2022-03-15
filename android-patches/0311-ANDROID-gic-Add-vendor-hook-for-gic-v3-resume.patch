@@ -1,4 +1,4 @@
-From 92fbc1ace6ae4d39956536e832a6c6a678d24bc8 Mon Sep 17 00:00:00 2001
+From 18ae3151408e1e45f4ee8ad73297184d990901ed Mon Sep 17 00:00:00 2001
 From: Elliot Berman <eberman@codeaurora.org>
 Date: Mon, 14 Sep 2020 15:35:41 -0700
 Subject: [PATCH 311/830] ANDROID: gic: Add vendor hook for gic-v3 resume
@@ -17,7 +17,7 @@ Signed-off-by: Elliot Berman <eberman@codeaurora.org>
  create mode 100644 include/trace/hooks/gic.h
 
 diff --git a/drivers/android/vendor_hooks.c b/drivers/android/vendor_hooks.c
-index 0ec72df..1b8de3e1 100644
+index 0ec72dff275e..1b8de3e12235 100644
 --- a/drivers/android/vendor_hooks.c
 +++ b/drivers/android/vendor_hooks.c
 @@ -17,6 +17,7 @@
@@ -37,7 +37,7 @@ index 0ec72df..1b8de3e1 100644
  EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_ipi_stop);
  EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_dump_throttled_rt_tasks);
 diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
-index 57eecee..2a0df15 100644
+index ae546f37741f..e6002edc5f99 100644
 --- a/drivers/irqchip/irq-gic-v3.c
 +++ b/drivers/irqchip/irq-gic-v3.c
 @@ -18,6 +18,7 @@
@@ -57,7 +57,7 @@ index 57eecee..2a0df15 100644
  #include "irq-gic-common.h"
  
  #define GICD_INT_NMI_PRI	(GICD_INT_DEF_PRI & ~0x80)
-@@ -1312,6 +1315,26 @@ static void gic_cpu_pm_init(void)
+@@ -1328,6 +1331,26 @@ static void gic_cpu_pm_init(void)
  static inline void gic_cpu_pm_init(void) { }
  #endif /* CONFIG_CPU_PM */
  
@@ -84,7 +84,7 @@ index 57eecee..2a0df15 100644
  static struct irq_chip gic_chip = {
  	.name			= "GICv3",
  	.irq_mask		= gic_mask_irq,
-@@ -1768,6 +1791,7 @@ static int __init gic_init_bases(void __iomem *dist_base,
+@@ -1784,6 +1807,7 @@ static int __init gic_init_bases(void __iomem *dist_base,
  	gic_cpu_init();
  	gic_smp_init();
  	gic_cpu_pm_init();
@@ -94,7 +94,7 @@ index 57eecee..2a0df15 100644
  		its_init(handle, &gic_data.rdists, gic_data.domain);
 diff --git a/include/trace/hooks/gic.h b/include/trace/hooks/gic.h
 new file mode 100644
-index 00000000..bdc9235
+index 000000000000..bdc923552809
 --- /dev/null
 +++ b/include/trace/hooks/gic.h
 @@ -0,0 +1,29 @@
@@ -128,5 +128,5 @@ index 00000000..bdc9235
 +/* This part must be outside protection */
 +#include <trace/define_trace.h>
 -- 
-2.7.4
+2.17.1
 

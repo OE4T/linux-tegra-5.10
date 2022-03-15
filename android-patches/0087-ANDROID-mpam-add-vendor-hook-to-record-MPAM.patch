@@ -1,4 +1,4 @@
-From 1d039fdb16db6e55eec4c9fda78e3b71ebbd1850 Mon Sep 17 00:00:00 2001
+From 6e16b434d8dd1f25b26dbe5f0c09648c6eb3810b Mon Sep 17 00:00:00 2001
 From: "C-J.Chen" <C-J.Chen@mediatek.com>
 Date: Tue, 18 Aug 2020 08:38:07 +0800
 Subject: [PATCH 087/830] ANDROID: mpam: add vendor hook to record MPAM
@@ -12,14 +12,14 @@ Bug: 165333282
 Signed-off-by: C-J.Chen <C-J.Chen@mediatek.com>
 Change-Id: I30270c667c26e1a7039580b33011665bb3a8cce7
 ---
- arch/arm64/kernel/process.c    |  6 ++++++
+ arch/arm64/kernel/process.c    |  1 +
  drivers/android/vendor_hooks.c |  2 ++
  include/trace/hooks/mpam.h     | 24 ++++++++++++++++++++++++
- 3 files changed, 32 insertions(+)
+ 3 files changed, 27 insertions(+)
  create mode 100644 include/trace/hooks/mpam.h
 
 diff --git a/arch/arm64/kernel/process.c b/arch/arm64/kernel/process.c
-index af4d397..3c25310 100644
+index aa44f00bfe21..d8c661c2cb60 100644
 --- a/arch/arm64/kernel/process.c
 +++ b/arch/arm64/kernel/process.c
 @@ -46,6 +46,7 @@
@@ -30,20 +30,8 @@ index af4d397..3c25310 100644
  
  #include <asm/alternative.h>
  #include <asm/arch_gicv3.h>
-@@ -565,6 +566,11 @@ __notrace_funcgraph struct task_struct *__switch_to(struct task_struct *prev,
- 	uao_thread_switch(next);
- 	ssbs_thread_switch(next);
- 	erratum_1418040_thread_switch(prev, next);
-+	/*
-+	 *  vendor hook is needed before the dsb(),
-+	 *  because MPAM is related to cache maintenance.
-+	 */
-+	trace_android_vh_mpam_set(prev, next);
- 
- 	/*
- 	 * Complete any pending TLB or cache maintenance on this CPU in case
 diff --git a/drivers/android/vendor_hooks.c b/drivers/android/vendor_hooks.c
-index dc24cdb..5c08930 100644
+index dc24cdb3ce00..5c089306d2ba 100644
 --- a/drivers/android/vendor_hooks.c
 +++ b/drivers/android/vendor_hooks.c
 @@ -9,9 +9,11 @@
@@ -60,7 +48,7 @@ index dc24cdb..5c08930 100644
 +EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_mpam_set);
 diff --git a/include/trace/hooks/mpam.h b/include/trace/hooks/mpam.h
 new file mode 100644
-index 00000000..1a89dae
+index 000000000000..1a89dae9b1fb
 --- /dev/null
 +++ b/include/trace/hooks/mpam.h
 @@ -0,0 +1,24 @@
@@ -89,5 +77,5 @@ index 00000000..1a89dae
 +/* This part must be outside protection */
 +#include <trace/define_trace.h>
 -- 
-2.7.4
+2.17.1
 

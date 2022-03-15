@@ -1,4 +1,4 @@
-From dbdbec178a4a59d5171498c98126c395e6e0c5f2 Mon Sep 17 00:00:00 2001
+From b203495a9d7fccbbee502388471ff0ed7e71de47 Mon Sep 17 00:00:00 2001
 From: Elliot Berman <eberman@codeaurora.org>
 Date: Tue, 4 Aug 2020 10:51:56 -0700
 Subject: [PATCH 073/830] FROMLIST: kbuild: Add dtc flag test
@@ -16,7 +16,7 @@ Signed-off-by: Elliot Berman <eberman@codeaurora.org>
  1 file changed, 22 insertions(+), 12 deletions(-)
 
 diff --git a/scripts/Makefile.lib b/scripts/Makefile.lib
-index a1e0a58..1a44775 100644
+index a1e0a58fb185..1a4477515b48 100644
 --- a/scripts/Makefile.lib
 +++ b/scripts/Makefile.lib
 @@ -275,19 +275,29 @@ quiet_cmd_gzip = GZIP    $@
@@ -72,5 +72,5 @@ index a1e0a58..1a44775 100644
  
  DTC_FLAGS += $(DTC_FLAGS_$(basetarget))
 -- 
-2.7.4
+2.17.1
 

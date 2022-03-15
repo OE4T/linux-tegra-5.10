@@ -1,4 +1,4 @@
-From fd015829cad1a7f0c0d3dec5d22cc70e2df17715 Mon Sep 17 00:00:00 2001
+From 312334e465ed8b87e55b1f13c4fe6ccf1702cbef Mon Sep 17 00:00:00 2001
 From: Cheng Jui Wang <cheng-jui.wang@mediatek.com>
 Date: Tue, 27 Oct 2020 14:35:10 +0800
 Subject: [PATCH 096/830] ANDROID: arm64: smp: fix Lockdep warning: RCU used
@@ -18,7 +18,7 @@ Signed-off-by: Todd Kjos <tkjos@google.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
-index f0ef91d..3838e3e 100644
+index f0ef91d1e035..3838e3ef5541 100644
 --- a/arch/arm64/kernel/smp.c
 +++ b/arch/arm64/kernel/smp.c
 @@ -916,7 +916,7 @@ static void do_handle_IPI(int ipinr)
@@ -31,5 +31,5 @@ index f0ef91d..3838e3e 100644
  		break;
  
 -- 
-2.7.4
+2.17.1
 

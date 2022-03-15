@@ -1,4 +1,4 @@
-From dcb54270419a81faffeaa9c22e72d652808604e7 Mon Sep 17 00:00:00 2001
+From 14816e06e2392d0c87b6aa7bf409b9b638c4fbcc Mon Sep 17 00:00:00 2001
 From: zhang sanshan <pete.zhang@nxp.com>
 Date: Wed, 24 Jun 2020 13:56:14 +0800
 Subject: [PATCH 718/830] ANDROID: GKI: support CONFIG_INPUT_TOUCHSCREEN
@@ -16,7 +16,7 @@ Change-Id: I3b1d348791aa9e762374a4965893b3a4a490394b
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index ec85c04..135e9e8 100644
+index ec85c04d1b81..135e9e8bb18f 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -282,6 +282,7 @@ CONFIG_INPUT_EVDEV=y
@@ -28,7 +28,7 @@ index ec85c04..135e9e8 100644
  CONFIG_INPUT_UINPUT=y
  # CONFIG_VT is not set
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 4dd18cf..6e8ae77 100644
+index 4dd18cffd4a0..6e8ae77cf0d5 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -255,6 +255,7 @@ CONFIG_INPUT_EVDEV=y
@@ -40,5 +40,5 @@ index 4dd18cf..6e8ae77 100644
  CONFIG_INPUT_UINPUT=y
  # CONFIG_VT is not set
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 0abbd67b3ce5f4ef278de512b6e274ccca4001b6 Mon Sep 17 00:00:00 2001
+From fd29e629971165c1cc9b7dd394501394218c4103 Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Tue, 27 Oct 2020 07:43:06 -0700
 Subject: [PATCH 490/830] ANDROID: Incremental fs: Initialize mount options
@@ -16,7 +16,7 @@ Change-Id: Ib121136d6f570f99e9060bdde9aa43ff2995514e
  1 file changed, 7 insertions(+), 6 deletions(-)
 
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index c0a5181..e794b73 100644
+index c0a5181cd3ef..e794b73a1553 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -181,12 +181,13 @@ static int parse_options(struct mount_options *opts, char *str)
@@ -40,5 +40,5 @@ index c0a5181..e794b73 100644
  		return 0;
  
 -- 
-2.7.4
+2.17.1
 

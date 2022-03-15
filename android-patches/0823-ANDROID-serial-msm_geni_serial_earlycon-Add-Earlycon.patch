@@ -1,4 +1,4 @@
-From e232a92211bedde14c974e12cc83dc1ced50c01a Mon Sep 17 00:00:00 2001
+From f82834e42e57ebdc9c6ac70fa90985141f4b7ea5 Mon Sep 17 00:00:00 2001
 From: Mukesh Kumar Savaliya <msavaliy@codeaurora.org>
 Date: Mon, 22 Jun 2020 15:38:32 +0530
 Subject: [PATCH 823/830] ANDROID: serial: msm_geni_serial_earlycon: Add
@@ -21,12 +21,12 @@ Signed-off-by: Matthias Maennich <maennich@google.com>
 ---
  drivers/tty/serial/Kconfig                    |   8 +
  drivers/tty/serial/Makefile                   |   1 +
- drivers/tty/serial/msm_geni_serial_earlycon.c | 354 ++++++++++++++++++++++++++
+ drivers/tty/serial/msm_geni_serial_earlycon.c | 354 ++++++++++++++++++
  3 files changed, 363 insertions(+)
  create mode 100644 drivers/tty/serial/msm_geni_serial_earlycon.c
 
 diff --git a/drivers/tty/serial/Kconfig b/drivers/tty/serial/Kconfig
-index 296646a..f6ad40d 100644
+index 296646a3732d..f6ad40d7493d 100644
 --- a/drivers/tty/serial/Kconfig
 +++ b/drivers/tty/serial/Kconfig
 @@ -966,6 +966,14 @@ config SERIAL_MSM_CONSOLE
@@ -45,7 +45,7 @@ index 296646a..f6ad40d 100644
  	tristate "QCOM on-chip GENI based serial port support"
  	depends on ARCH_QCOM || COMPILE_TEST
 diff --git a/drivers/tty/serial/Makefile b/drivers/tty/serial/Makefile
-index caf167f..ac5566c 100644
+index caf167f0c10a..ac5566c44134 100644
 --- a/drivers/tty/serial/Makefile
 +++ b/drivers/tty/serial/Makefile
 @@ -56,6 +56,7 @@ obj-$(CONFIG_SERIAL_VR41XX) += vr41xx_siu.o
@@ -58,7 +58,7 @@ index caf167f..ac5566c 100644
  obj-$(CONFIG_SERIAL_ALTERA_UART) += altera_uart.o
 diff --git a/drivers/tty/serial/msm_geni_serial_earlycon.c b/drivers/tty/serial/msm_geni_serial_earlycon.c
 new file mode 100644
-index 00000000..3c214fa
+index 000000000000..3c214fa5738d
 --- /dev/null
 +++ b/drivers/tty/serial/msm_geni_serial_earlycon.c
 @@ -0,0 +1,354 @@
@@ -417,5 +417,5 @@ index 00000000..3c214fa
 +OF_EARLYCON_DECLARE(msm_geni_serial, "qcom,msm-geni-console",
 +			msm_geni_serial_earlycon_setup);
 -- 
-2.7.4
+2.17.1
 

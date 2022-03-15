@@ -1,4 +1,4 @@
-From 98d3b71601b1fb476b3246586be65442420dc39e Mon Sep 17 00:00:00 2001
+From 2818f3ef2e2a254be7510cbff2e6ed7fd858dc4f Mon Sep 17 00:00:00 2001
 From: John Stultz <john.stultz@linaro.org>
 Date: Fri, 15 Nov 2019 23:32:07 +0000
 Subject: [PATCH 262/830] ANDROID: ion: Fix buffer_lock mutex initialization
@@ -45,7 +45,7 @@ Change-Id: Id3381006b23c370f90a7e5efd6efe5448ebe87c5
  1 file changed, 1 insertion(+)
 
 diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
-index d6dab39..7d54a19 100644
+index d6dab39d9609..7d54a1975b87 100644
 --- a/drivers/staging/android/ion/ion.c
 +++ b/drivers/staging/android/ion/ion.c
 @@ -422,6 +422,7 @@ static int ion_device_create(void)
@@ -57,5 +57,5 @@ index d6dab39..7d54a19 100644
  	internal_dev = idev;
  	return 0;
 -- 
-2.7.4
+2.17.1
 

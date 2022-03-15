@@ -1,4 +1,4 @@
-From d406c2a607dd1aeddc064667a0f3c7a37d29800a Mon Sep 17 00:00:00 2001
+From f3f3d66711c6cccf2ac390e448acb533cff7576b Mon Sep 17 00:00:00 2001
 From: Donghoon Yu <hoony.yu@samsung.com>
 Date: Thu, 6 Feb 2020 07:54:42 +0900
 Subject: [PATCH 629/830] ANDROID: support GKI image that contains an
@@ -16,7 +16,7 @@ Signed-off-by: Donghoon Yu <hoony.yu@samsung.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/build.config.aarch64 b/build.config.aarch64
-index 523bbc0..acbba39 100644
+index 523bbc0449f7..acbba39fbec2 100644
 --- a/build.config.aarch64
 +++ b/build.config.aarch64
 @@ -6,6 +6,7 @@ LINUX_GCC_CROSS_COMPILE_PREBUILTS_BIN=prebuilts/gcc/linux-x86/aarch64/aarch64-li
@@ -28,5 +28,5 @@ index 523bbc0..acbba39 100644
  System.map
  "
 -- 
-2.7.4
+2.17.1
 

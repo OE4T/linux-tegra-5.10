@@ -1,4 +1,4 @@
-From f378e2b3887e4209d322cb12b201e1a155b41875 Mon Sep 17 00:00:00 2001
+From 43f3811384d38a37bf88d71ae4d4d866c16e7f0c Mon Sep 17 00:00:00 2001
 From: Badhri Jagan Sridharan <badhri@google.com>
 Date: Wed, 28 Oct 2020 23:31:35 -0700
 Subject: [PATCH 013/830] FROMGIT: usb: typec: tcpm: Implement enabling Auto
@@ -34,12 +34,12 @@ Signed-off-by: Will McVicker <willmcvicker@google.com>
 Signed-off-by: Will McVicker <willmcvicker@google.com>
 Change-Id: I3e25e9045c335b48cefaddb70329dd4df7e0fd94
 ---
- drivers/usb/typec/tcpm/tcpm.c | 60 ++++++++++++++++++++++++++++++++++++++++---
- include/linux/usb/tcpm.h      | 15 +++++++++++
+ drivers/usb/typec/tcpm/tcpm.c | 60 ++++++++++++++++++++++++++++++++---
+ include/linux/usb/tcpm.h      | 15 +++++++++
  2 files changed, 71 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/usb/typec/tcpm/tcpm.c b/drivers/usb/typec/tcpm/tcpm.c
-index 40be75d..a77b7a4 100644
+index e2642c65bdbb..08275a1428fe 100644
 --- a/drivers/usb/typec/tcpm/tcpm.c
 +++ b/drivers/usb/typec/tcpm/tcpm.c
 @@ -1725,6 +1725,24 @@ static void tcpm_handle_alert(struct tcpm_port *port, const __le32 *payload,
@@ -169,7 +169,7 @@ index 40be75d..a77b7a4 100644
  		tcpm_set_state(port, hard_reset_state(port),
  			       PD_T_PS_SOURCE_OFF);
 diff --git a/include/linux/usb/tcpm.h b/include/linux/usb/tcpm.h
-index 7303f51..e68aaa1 100644
+index 7303f518ba49..e68aaa12886f 100644
 --- a/include/linux/usb/tcpm.h
 +++ b/include/linux/usb/tcpm.h
 @@ -86,6 +86,18 @@ enum tcpm_transmit_type {
@@ -202,5 +202,5 @@ index 7303f51..e68aaa1 100644
  
  struct tcpm_port;
 -- 
-2.7.4
+2.17.1
 

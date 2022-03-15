@@ -1,4 +1,4 @@
-From bc2d68a8da00536dda6ca8de0a0479bab42b2f81 Mon Sep 17 00:00:00 2001
+From 9fdaf33a3f4f061962baed1143d0c8f3e6523ff6 Mon Sep 17 00:00:00 2001
 From: Ram Muthiah <rammuthiah@google.com>
 Date: Tue, 8 Oct 2019 15:12:37 -0700
 Subject: [PATCH 563/830] ANDROID: gki_defconfig: enable CONFIG_NLS_*
@@ -14,12 +14,12 @@ Bug: 138199351
 Change-Id: I897873c8454f8329f4dc53d9af71907ba71790b7
 Signed-off-by: Ram Muthiah <rammuthiah@google.com>
 ---
- arch/arm64/configs/gki_defconfig | 49 ++++++++++++++++++++++++++++++++++++++++
- arch/x86/configs/gki_defconfig   | 49 ++++++++++++++++++++++++++++++++++++++++
+ arch/arm64/configs/gki_defconfig | 49 ++++++++++++++++++++++++++++++++
+ arch/x86/configs/gki_defconfig   | 49 ++++++++++++++++++++++++++++++++
  2 files changed, 98 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 88eb4d1..aeb3359 100644
+index 88eb4d1ec0a1..aeb335949b3a 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -389,6 +389,55 @@ CONFIG_VFAT_FS=y
@@ -79,7 +79,7 @@ index 88eb4d1..aeb3359 100644
  CONFIG_SECURITY_NETWORK=y
  CONFIG_HARDENED_USERCOPY=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 7262484..002c50f 100644
+index 7262484904d1..002c50f30761 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -323,6 +323,55 @@ CONFIG_TMPFS_POSIX_ACL=y
@@ -139,5 +139,5 @@ index 7262484..002c50f 100644
  CONFIG_SECURITY_NETWORK=y
  CONFIG_HARDENED_USERCOPY=y
 -- 
-2.7.4
+2.17.1
 

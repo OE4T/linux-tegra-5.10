@@ -1,4 +1,4 @@
-From b7f7cd9e6fed451f5d33ee399af59f62fcf8ae68 Mon Sep 17 00:00:00 2001
+From 83fc7b3b215104d6aaf0394499cd85d13c14199a Mon Sep 17 00:00:00 2001
 From: Jaegeuk Kim <jaegeuk@google.com>
 Date: Fri, 11 Sep 2020 16:08:22 -0700
 Subject: [PATCH 768/830] ANDROID: gki_defconfig: enable f2fs compression by
@@ -18,7 +18,7 @@ Change-Id: I497df0d17047f9b7ddf3670b5574e2100cc9afba
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 550f539..917b4cc 100644
+index 550f539aed50..917b4cc4db11 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -453,6 +453,7 @@ CONFIG_EXT4_FS_POSIX_ACL=y
@@ -30,7 +30,7 @@ index 550f539..917b4cc 100644
  CONFIG_FS_ENCRYPTION_INLINE_CRYPT=y
  CONFIG_FS_VERITY=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index e4d4ce7..12fd835 100644
+index e4d4ce7399f3..12fd835113b8 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -388,6 +388,7 @@ CONFIG_EXT4_FS_POSIX_ACL=y
@@ -42,5 +42,5 @@ index e4d4ce7..12fd835 100644
  CONFIG_FS_ENCRYPTION_INLINE_CRYPT=y
  CONFIG_FS_VERITY=y
 -- 
-2.7.4
+2.17.1
 

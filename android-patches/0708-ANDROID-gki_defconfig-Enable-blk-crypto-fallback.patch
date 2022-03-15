@@ -1,4 +1,4 @@
-From ee751954da96803f488a29f61a412e298773270a Mon Sep 17 00:00:00 2001
+From 938b2da07d2e7c1db0ceeef4a63620370b6ed982 Mon Sep 17 00:00:00 2001
 From: Satya Tangirala <satyat@google.com>
 Date: Tue, 17 Dec 2019 17:32:46 -0800
 Subject: [PATCH 708/830] ANDROID: gki_defconfig: Enable blk-crypto fallback
@@ -19,7 +19,7 @@ Signed-off-by: Satya Tangirala <satyat@google.com>
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index cae061c..c687668 100644
+index cae061cde7be..c68766854468 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -84,6 +84,7 @@ CONFIG_MODULES=y
@@ -31,7 +31,7 @@ index cae061c..c687668 100644
  # CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS is not set
  CONFIG_BINFMT_MISC=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index bbb273c..07c1c81 100644
+index bbb273cb13ef..07c1c816da44 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -62,6 +62,7 @@ CONFIG_MODULES=y
@@ -43,5 +43,5 @@ index bbb273c..07c1c81 100644
  # CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS is not set
  CONFIG_BINFMT_MISC=y
 -- 
-2.7.4
+2.17.1
 

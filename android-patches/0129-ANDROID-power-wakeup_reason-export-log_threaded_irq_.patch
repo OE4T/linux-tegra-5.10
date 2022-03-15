@@ -1,4 +1,4 @@
-From 245cba0c9a69bbbabc351176743bdabc9af2ac42 Mon Sep 17 00:00:00 2001
+From 416211653e8db953673f0995b6f5d2a350fea12f Mon Sep 17 00:00:00 2001
 From: "claude.yen" <claude.yen@mediatek.com>
 Date: Thu, 9 Jul 2020 16:23:49 +0800
 Subject: [PATCH 129/830] ANDROID: power: wakeup_reason: export
@@ -16,7 +16,7 @@ Change-Id: I4416a58a5c8ac2970405b8760ac1fb4360a96c76
  1 file changed, 1 insertion(+)
 
 diff --git a/kernel/power/wakeup_reason.c b/kernel/power/wakeup_reason.c
-index 3c118c0..8791a6c 100644
+index 3c118c044633..8791a6ce5eb3 100644
 --- a/kernel/power/wakeup_reason.c
 +++ b/kernel/power/wakeup_reason.c
 @@ -195,6 +195,7 @@ void log_threaded_irq_wakeup_reason(int irq, int parent_irq)
@@ -28,5 +28,5 @@ index 3c118c0..8791a6c 100644
  static void __log_abort_or_abnormal_wake(bool abort, const char *fmt,
  					 va_list args)
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 6b866935d8bf95e3edfc60cec520c1f6b0df1b56 Mon Sep 17 00:00:00 2001
+From adb696a2f673d0dcfc1f5128e71ee2cf8ebcfeef Mon Sep 17 00:00:00 2001
 From: Steve Muckle <smuckle@google.com>
 Date: Wed, 27 Nov 2019 11:14:25 -0800
 Subject: [PATCH 591/830] ANDROID: gki_defconfig: enable
@@ -14,7 +14,7 @@ Signed-off-by: Steve Muckle <smuckle@google.com>
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index a7b49f0..12359c34 100644
+index a7b49f0ec9db..12359c34dfa1 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -304,6 +304,7 @@ CONFIG_WATCHDOG=y
@@ -26,7 +26,7 @@ index a7b49f0..12359c34 100644
  CONFIG_MEDIA_CONTROLLER=y
  # CONFIG_VGA_ARB is not set
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index e7b81b5..861dac9 100644
+index e7b81b524ace..861dac98bb64 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -264,6 +264,7 @@ CONFIG_GPIOLIB=y
@@ -38,5 +38,5 @@ index e7b81b5..861dac9 100644
  CONFIG_DRM=y
  # CONFIG_DRM_FBDEV_EMULATION is not set
 -- 
-2.7.4
+2.17.1
 

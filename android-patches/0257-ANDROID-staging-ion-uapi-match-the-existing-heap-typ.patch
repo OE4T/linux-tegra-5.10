@@ -1,4 +1,4 @@
-From 5da048c55dcead1519952a22c6e5ad91e104d96c Mon Sep 17 00:00:00 2001
+From c827e811489b924ccab8821db0ada7b06a222f9f Mon Sep 17 00:00:00 2001
 From: Sandeep Patil <sspatil@google.com>
 Date: Mon, 9 Sep 2019 08:34:43 -0700
 Subject: [PATCH 257/830] ANDROID: staging: ion: uapi: match the existing heap
@@ -18,7 +18,7 @@ Signed-off-by: Sandeep Patil <sspatil@google.com>
  1 file changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/include/uapi/linux/ion.h b/include/uapi/linux/ion.h
-index 09dbbfa..ad773e5 100644
+index 09dbbfaf3718..ad773e5fa4d2 100644
 --- a/include/uapi/linux/ion.h
 +++ b/include/uapi/linux/ion.h
 @@ -31,8 +31,8 @@
@@ -47,5 +47,5 @@ index 09dbbfa..ad773e5 100644
  	ION_HEAP_CUSTOM_START = (ION_HEAP_DMA_END << 1),
  	ION_HEAP_CUSTOM_END = (ION_HEAP_CUSTOM_START << 15),
 -- 
-2.7.4
+2.17.1
 

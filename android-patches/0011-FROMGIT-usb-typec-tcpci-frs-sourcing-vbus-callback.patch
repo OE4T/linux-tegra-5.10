@@ -1,4 +1,4 @@
-From 88403c78e2fd845365b24b4a3b89fbf81aa74067 Mon Sep 17 00:00:00 2001
+From 6805118782ce855d33ff3dda11500e597825cd42 Mon Sep 17 00:00:00 2001
 From: Badhri Jagan Sridharan <badhri@google.com>
 Date: Wed, 28 Oct 2020 23:31:33 -0700
 Subject: [PATCH 011/830] FROMGIT: usb: typec: tcpci: frs sourcing vbus
@@ -24,7 +24,7 @@ Change-Id: I2fcd468e6a84827cd1dda59228837d5d7051de4c
  2 files changed, 13 insertions(+)
 
 diff --git a/drivers/usb/typec/tcpm/tcpci.c b/drivers/usb/typec/tcpm/tcpci.c
-index a06da18..fd139c8 100644
+index a06da1854c10..fd139c86e7a7 100644
 --- a/drivers/usb/typec/tcpm/tcpci.c
 +++ b/drivers/usb/typec/tcpm/tcpci.c
 @@ -299,6 +299,14 @@ static int tcpci_enable_frs(struct tcpc_dev *dev, bool enable)
@@ -51,7 +51,7 @@ index a06da18..fd139c8 100644
  	err = tcpci_parse_config(tcpci);
  	if (err < 0)
 diff --git a/drivers/usb/typec/tcpm/tcpci.h b/drivers/usb/typec/tcpm/tcpci.h
-index 5ef07a5..b418fe1 100644
+index 5ef07a56d67a..b418fe11b527 100644
 --- a/drivers/usb/typec/tcpm/tcpci.h
 +++ b/drivers/usb/typec/tcpm/tcpci.h
 @@ -143,6 +143,9 @@
@@ -73,5 +73,5 @@ index 5ef07a5..b418fe1 100644
  
  struct tcpci *tcpci_register_port(struct device *dev, struct tcpci_data *data);
 -- 
-2.7.4
+2.17.1
 

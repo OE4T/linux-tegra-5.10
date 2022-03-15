@@ -1,4 +1,4 @@
-From b0ea7a2e6ab69f47e6ee1c5ae55c64ae1b827c49 Mon Sep 17 00:00:00 2001
+From e77291fc1e8c267148a61801bade8b93b95c15eb Mon Sep 17 00:00:00 2001
 From: John Stultz <john.stultz@linaro.org>
 Date: Thu, 16 Apr 2020 05:37:43 +0000
 Subject: [PATCH 524/830] ANDROID: pinctrl: qcom: Allow pinctrl-msm code to be
@@ -18,7 +18,7 @@ Change-Id: I11a6e20b66456cecfecc0610f3746047d33053e1
  2 files changed, 4 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/pinctrl/qcom/Kconfig b/drivers/pinctrl/qcom/Kconfig
-index 5fe7b8a..11073f9 100644
+index 5fe7b8aaf69d..11073f94b599 100644
 --- a/drivers/pinctrl/qcom/Kconfig
 +++ b/drivers/pinctrl/qcom/Kconfig
 @@ -2,7 +2,7 @@
@@ -31,7 +31,7 @@ index 5fe7b8a..11073f9 100644
  	select PINCONF
  	select GENERIC_PINCONF
 diff --git a/drivers/pinctrl/qcom/pinctrl-msm.c b/drivers/pinctrl/qcom/pinctrl-msm.c
-index 37526aa..a3cef80 100644
+index 37526aa1fb2c..a3cef80a789b 100644
 --- a/drivers/pinctrl/qcom/pinctrl-msm.c
 +++ b/drivers/pinctrl/qcom/pinctrl-msm.c
 @@ -1473,3 +1473,6 @@ int msm_pinctrl_remove(struct platform_device *pdev)
@@ -42,5 +42,5 @@ index 37526aa..a3cef80 100644
 +MODULE_LICENSE("GPL v2");
 +
 -- 
-2.7.4
+2.17.1
 

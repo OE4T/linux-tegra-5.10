@@ -1,4 +1,4 @@
-From 0704a0548db35822da7606e50c7dd15bcdf06186 Mon Sep 17 00:00:00 2001
+From e3f65fab0f08f92bb28da251c2366506b4bb323b Mon Sep 17 00:00:00 2001
 From: Sandeep Patil <sspatil@google.com>
 Date: Mon, 9 Sep 2019 08:21:20 -0700
 Subject: [PATCH 256/830] ANDROID: staging: ion: fix off-by-1 error in heap
@@ -18,7 +18,7 @@ Signed-off-by: Sandeep Patil <sspatil@google.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
-index fe1bca0..49a2b37 100644
+index fe1bca06d163..49a2b379cee6 100644
 --- a/drivers/staging/android/ion/ion.c
 +++ b/drivers/staging/android/ion/ion.c
 @@ -387,7 +387,7 @@ void ion_device_remove_heap(struct ion_heap *heap)
@@ -31,5 +31,5 @@ index fe1bca0..49a2b37 100644
  	up_write(&dev->lock);
  }
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 8128f2d559d7253bbf20a403f01ebe8008833849 Mon Sep 17 00:00:00 2001
+From 138c2aaeaa97b5b7e9e464beb423e70973afcaba Mon Sep 17 00:00:00 2001
 From: Todd Kjos <tkjos@google.com>
 Date: Fri, 16 Oct 2020 17:56:13 -0700
 Subject: [PATCH 071/830] ANDROID: use static_call() for restricted hooks
@@ -14,11 +14,11 @@ Change-Id: I336db7e90b733ac4098ce342001cc31fd215d137
 [maennich: folded 81a825319f1d ("ANDROID: vendor_hooks: fix __section macro")]
 Signed-off-by: Matthias Maennich <maennich@google.com>
 ---
- include/trace/hooks/vendor_hooks.h | 46 ++++++++++++++++++++++++++++++--------
+ include/trace/hooks/vendor_hooks.h | 46 ++++++++++++++++++++++++------
  1 file changed, 37 insertions(+), 9 deletions(-)
 
 diff --git a/include/trace/hooks/vendor_hooks.h b/include/trace/hooks/vendor_hooks.h
-index 8a3fdb9..e6cabd3 100644
+index 8a3fdb9222e5..e6cabd366eeb 100644
 --- a/include/trace/hooks/vendor_hooks.h
 +++ b/include/trace/hooks/vendor_hooks.h
 @@ -13,39 +13,67 @@
@@ -99,5 +99,5 @@ index 8a3fdb9..e6cabd3 100644
  				TP_ARGS(data_args),			\
  				TP_CONDITION(cond));			\
 -- 
-2.7.4
+2.17.1
 

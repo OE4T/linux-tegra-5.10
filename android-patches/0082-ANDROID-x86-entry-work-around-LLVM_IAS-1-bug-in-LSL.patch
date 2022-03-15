@@ -1,4 +1,4 @@
-From dcb53409a6e85560d629af3532f7e2564043a7db Mon Sep 17 00:00:00 2001
+From daacbd71da1d97809dce432addcc0d3fae8e3c60 Mon Sep 17 00:00:00 2001
 From: Nick Desaulniers <ndesaulniers@google.com>
 Date: Wed, 11 Nov 2020 15:49:49 -0800
 Subject: [PATCH 082/830] ANDROID: x86: entry: work around LLVM_IAS=1 bug in
@@ -42,7 +42,7 @@ Change-Id: I8c80f3e7883d4b0774dfd1642e31b0793c5f86ed
  1 file changed, 4 insertions(+)
 
 diff --git a/arch/x86/entry/calling.h b/arch/x86/entry/calling.h
-index 07a9331..4bec259 100644
+index 07a9331d55e7..4bec2597626b 100644
 --- a/arch/x86/entry/calling.h
 +++ b/arch/x86/entry/calling.h
 @@ -366,7 +366,11 @@ For 32-bit we have the following conventions - kernel is built with
@@ -58,5 +58,5 @@ index 07a9331..4bec259 100644
  
  /*
 -- 
-2.7.4
+2.17.1
 

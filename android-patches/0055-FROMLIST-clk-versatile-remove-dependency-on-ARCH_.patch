@@ -1,4 +1,4 @@
-From 7275d6d08071a7a75a9819f517dc2530955af17e Mon Sep 17 00:00:00 2001
+From b40579eeb4a82dd4f4496455411cbb36e672434b Mon Sep 17 00:00:00 2001
 From: Peter Collingbourne <pcc@google.com>
 Date: Thu, 15 Oct 2020 17:15:07 -0700
 Subject: [PATCH 055/830] FROMLIST: clk: versatile: remove dependency on ARCH_*
@@ -22,7 +22,7 @@ Signed-off-by: Alistair Delva <adelva@google.com>
  1 file changed, 2 deletions(-)
 
 diff --git a/drivers/clk/versatile/Kconfig b/drivers/clk/versatile/Kconfig
-index 91f0ff5..792315d 100644
+index 91f0ff54237d..792315d893db 100644
 --- a/drivers/clk/versatile/Kconfig
 +++ b/drivers/clk/versatile/Kconfig
 @@ -1,8 +1,6 @@
@@ -35,5 +35,5 @@ index 91f0ff5..792315d 100644
  config ICST
  	bool "Clock driver for ARM Reference designs ICST"
 -- 
-2.7.4
+2.17.1
 

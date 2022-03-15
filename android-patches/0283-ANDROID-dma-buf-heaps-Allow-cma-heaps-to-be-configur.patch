@@ -1,4 +1,4 @@
-From 36a9d173ae148cca12099971af3abe0a0f1f278c Mon Sep 17 00:00:00 2001
+From 0bbffe2b6c78d0cd7fe6278b8ccfadcb13db1634 Mon Sep 17 00:00:00 2001
 From: John Stultz <john.stultz@linaro.org>
 Date: Wed, 2 Oct 2019 03:12:09 +0000
 Subject: [PATCH 283/830] ANDROID: dma-buf: heaps: Allow cma heaps to be
@@ -43,10 +43,10 @@ Signed-off-by: Hridya Valsaraju <hridya@google.com>
  3 files changed, 4 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/dma-buf/dma-heap.c b/drivers/dma-buf/dma-heap.c
-index 7fdd325..ba25f09 100644
+index 6856ed3c9d96..8af87cc08dae 100644
 --- a/drivers/dma-buf/dma-heap.c
 +++ b/drivers/dma-buf/dma-heap.c
-@@ -236,6 +236,7 @@ void *dma_heap_get_drvdata(struct dma_heap *heap)
+@@ -238,6 +238,7 @@ void *dma_heap_get_drvdata(struct dma_heap *heap)
  {
  	return heap->priv;
  }
@@ -55,7 +55,7 @@ index 7fdd325..ba25f09 100644
  static void dma_heap_release(struct kref *ref)
  {
 diff --git a/drivers/dma-buf/heaps/Kconfig b/drivers/dma-buf/heaps/Kconfig
-index a5eef06..aed0b9b 100644
+index a5eef06c4226..aed0b9b4febf 100644
 --- a/drivers/dma-buf/heaps/Kconfig
 +++ b/drivers/dma-buf/heaps/Kconfig
 @@ -6,7 +6,7 @@ config DMABUF_HEAPS_SYSTEM
@@ -68,7 +68,7 @@ index a5eef06..aed0b9b 100644
  	help
  	  Choose this option to enable dma-buf CMA heap. This heap is backed
 diff --git a/drivers/dma-buf/heaps/heap-helpers.c b/drivers/dma-buf/heaps/heap-helpers.c
-index d0696cf..0a08203 100644
+index d0696cf937af..0a08203145e6 100644
 --- a/drivers/dma-buf/heaps/heap-helpers.c
 +++ b/drivers/dma-buf/heaps/heap-helpers.c
 @@ -24,6 +24,7 @@ void init_heap_helper_buffer(struct heap_helper_buffer *buffer,
@@ -88,5 +88,5 @@ index d0696cf..0a08203 100644
  static void *dma_heap_map_kernel(struct heap_helper_buffer *buffer)
  {
 -- 
-2.7.4
+2.17.1
 

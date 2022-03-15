@@ -1,4 +1,4 @@
-From 651c5776c361c8310f74b72f52c050d1dcf7eb1c Mon Sep 17 00:00:00 2001
+From ea7c0eb398a9bedf6ef3882b75908282088caf8c Mon Sep 17 00:00:00 2001
 From: Badhri Jagan Sridharan <badhri@google.com>
 Date: Tue, 1 Dec 2020 20:08:38 -0800
 Subject: [PATCH 036/830] FROMGIT: usb: typec: tcpm: Introduce vsafe0v for vbus
@@ -69,12 +69,12 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@google.com>
 Change-Id: I2386cd38d8355dc700f00919bbe7f1132f5041d6
 ---
- drivers/usb/typec/tcpm/tcpm.c | 63 +++++++++++++++++++++++++++++++++++--------
- include/linux/usb/tcpm.h      |  7 +++++
+ drivers/usb/typec/tcpm/tcpm.c | 63 +++++++++++++++++++++++++++++------
+ include/linux/usb/tcpm.h      |  7 ++++
  2 files changed, 59 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/usb/typec/tcpm/tcpm.c b/drivers/usb/typec/tcpm/tcpm.c
-index 5b9e93f..6d3856d 100644
+index b14cf1a43014..3a8a7b2567e4 100644
 --- a/drivers/usb/typec/tcpm/tcpm.c
 +++ b/drivers/usb/typec/tcpm/tcpm.c
 @@ -273,7 +273,19 @@ struct tcpm_port {
@@ -136,7 +136,7 @@ index 5b9e93f..6d3856d 100644
  	case SNK_TRY:
  		/* Do nothing, waiting for timeout */
  		break;
-@@ -4287,6 +4297,28 @@ static void _tcpm_pd_vbus_off(struct tcpm_port *port)
+@@ -4288,6 +4298,28 @@ static void _tcpm_pd_vbus_off(struct tcpm_port *port)
  	}
  }
  
@@ -165,7 +165,7 @@ index 5b9e93f..6d3856d 100644
  static void _tcpm_pd_hard_reset(struct tcpm_port *port)
  {
  	tcpm_log_force(port, "Received hard reset");
-@@ -4322,10 +4354,19 @@ static void tcpm_pd_event_handler(struct kthread_work *work)
+@@ -4323,10 +4355,19 @@ static void tcpm_pd_event_handler(struct kthread_work *work)
  			bool vbus;
  
  			vbus = port->tcpc->get_vbus(port->tcpc);
@@ -188,7 +188,7 @@ index 5b9e93f..6d3856d 100644
  		if (events & TCPM_CC_EVENT) {
  			enum typec_cc_status cc1, cc2;
 diff --git a/include/linux/usb/tcpm.h b/include/linux/usb/tcpm.h
-index efaedd7..f4a1842 100644
+index efaedd7e8a18..f4a18427f5c4 100644
 --- a/include/linux/usb/tcpm.h
 +++ b/include/linux/usb/tcpm.h
 @@ -98,6 +98,12 @@ enum tcpm_transmit_type {
@@ -213,5 +213,5 @@ index efaedd7..f4a1842 100644
  
  struct tcpm_port;
 -- 
-2.7.4
+2.17.1
 

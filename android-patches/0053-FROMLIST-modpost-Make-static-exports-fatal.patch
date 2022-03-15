@@ -1,4 +1,4 @@
-From fd3d82d206ede4d36d3d07b9a71e60873ff56213 Mon Sep 17 00:00:00 2001
+From e292e4b8564b396e6e91b6ee90d6e9f55d6d71de Mon Sep 17 00:00:00 2001
 From: Quentin Perret <qperret@google.com>
 Date: Tue, 24 Nov 2020 18:24:09 +0000
 Subject: [PATCH 053/830] FROMLIST: modpost: Make static exports fatal
@@ -19,7 +19,7 @@ Change-Id: Ic1382bfa24db556161cf1a184a4d44724d7849a1
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/scripts/mod/modpost.c b/scripts/mod/modpost.c
-index e08f75a..6988f18 100644
+index e08f75aed429..6988f18283c6 100644
 --- a/scripts/mod/modpost.c
 +++ b/scripts/mod/modpost.c
 @@ -2650,9 +2650,9 @@ int main(int argc, char **argv)
@@ -36,5 +36,5 @@ index e08f75a..6988f18 100644
  	}
  
 -- 
-2.7.4
+2.17.1
 

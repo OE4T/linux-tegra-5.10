@@ -1,4 +1,4 @@
-From f1c04d54cf9ca0dcaee00849137e4618262158ad Mon Sep 17 00:00:00 2001
+From 4cf032ca422a8127b05e92d4ebb07ab6d05a5555 Mon Sep 17 00:00:00 2001
 From: Mohan Srinivasan <srmohan@google.com>
 Date: Wed, 14 Dec 2016 16:39:51 -0800
 Subject: [PATCH 415/830] ANDROID: fs: FS tracepoints to track IO.
@@ -27,20 +27,20 @@ Signed-off-by: Matthias Maennich <maennich@google.com>
            include/trace/events/android_fs_template.h") into this patch]
 Signed-off-by: Eric Biggers <ebiggers@google.com>
 ---
- fs/ext4/inline.c                           | 14 +++++++
- fs/ext4/inode.c                            | 24 +++++++++++
- fs/ext4/readpage.c                         | 47 +++++++++++++++++++--
- fs/f2fs/data.c                             | 42 +++++++++++++++++++
- fs/f2fs/inline.c                           | 18 ++++++++
- fs/mpage.c                                 | 36 ++++++++++++++++
- include/trace/events/android_fs.h          | 66 ++++++++++++++++++++++++++++++
- include/trace/events/android_fs_template.h | 64 +++++++++++++++++++++++++++++
+ fs/ext4/inline.c                           | 14 +++++
+ fs/ext4/inode.c                            | 24 ++++++++
+ fs/ext4/readpage.c                         | 47 +++++++++++++--
+ fs/f2fs/data.c                             | 42 ++++++++++++++
+ fs/f2fs/inline.c                           | 18 ++++++
+ fs/mpage.c                                 | 36 ++++++++++++
+ include/trace/events/android_fs.h          | 66 ++++++++++++++++++++++
+ include/trace/events/android_fs_template.h | 64 +++++++++++++++++++++
  8 files changed, 307 insertions(+), 4 deletions(-)
  create mode 100644 include/trace/events/android_fs.h
  create mode 100644 include/trace/events/android_fs_template.h
 
 diff --git a/fs/ext4/inline.c b/fs/ext4/inline.c
-index a96b688..cae7402 100644
+index ae1f0c57f54d..d83a4152b2ce 100644
 --- a/fs/ext4/inline.c
 +++ b/fs/ext4/inline.c
 @@ -12,6 +12,7 @@
@@ -79,7 +79,7 @@ index a96b688..cae7402 100644
  
  	unlock_page(page);
 diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
-index 317aa1b..e0fc298 100644
+index d59474a54189..64b21be5e25e 100644
 --- a/fs/ext4/inode.c
 +++ b/fs/ext4/inode.c
 @@ -47,6 +47,7 @@
@@ -90,7 +90,7 @@ index 317aa1b..e0fc298 100644
  
  static __u32 ext4_inode_csum(struct inode *inode, struct ext4_inode *raw,
  			      struct ext4_inode_info *ei)
-@@ -1144,6 +1145,16 @@ static int ext4_write_begin(struct file *file, struct address_space *mapping,
+@@ -1145,6 +1146,16 @@ static int ext4_write_begin(struct file *file, struct address_space *mapping,
  	if (unlikely(ext4_forced_shutdown(EXT4_SB(inode->i_sb))))
  		return -EIO;
  
@@ -107,7 +107,7 @@ index 317aa1b..e0fc298 100644
  	trace_ext4_write_begin(inode, pos, len, flags);
  	/*
  	 * Reserve one block more for addition to orphan list in case
-@@ -1286,6 +1297,7 @@ static int ext4_write_end(struct file *file,
+@@ -1287,6 +1298,7 @@ static int ext4_write_end(struct file *file,
  	int inline_data = ext4_has_inline_data(inode);
  	bool verity = ext4_verity_in_progress(inode);
  
@@ -115,7 +115,7 @@ index 317aa1b..e0fc298 100644
  	trace_ext4_write_end(inode, pos, len, copied);
  	if (inline_data) {
  		ret = ext4_write_inline_data_end(inode, pos, len,
-@@ -1398,6 +1410,7 @@ static int ext4_journalled_write_end(struct file *file,
+@@ -1399,6 +1411,7 @@ static int ext4_journalled_write_end(struct file *file,
  	int inline_data = ext4_has_inline_data(inode);
  	bool verity = ext4_verity_in_progress(inode);
  
@@ -123,7 +123,7 @@ index 317aa1b..e0fc298 100644
  	trace_ext4_journalled_write_end(inode, pos, len, copied);
  	from = pos & (PAGE_SIZE - 1);
  	to = from + len;
-@@ -2970,6 +2983,16 @@ static int ext4_da_write_begin(struct file *file, struct address_space *mapping,
+@@ -2971,6 +2984,16 @@ static int ext4_da_write_begin(struct file *file, struct address_space *mapping,
  					len, flags, pagep, fsdata);
  	}
  	*fsdata = (void *)0;
@@ -140,7 +140,7 @@ index 317aa1b..e0fc298 100644
  	trace_ext4_da_write_begin(inode, pos, len, flags);
  
  	if (ext4_test_inode_state(inode, EXT4_STATE_MAY_INLINE_DATA)) {
-@@ -3088,6 +3111,7 @@ static int ext4_da_write_end(struct file *file,
+@@ -3089,6 +3112,7 @@ static int ext4_da_write_end(struct file *file,
  		return ext4_write_end(file, mapping, pos,
  				      len, copied, page, fsdata);
  
@@ -149,7 +149,7 @@ index 317aa1b..e0fc298 100644
  	start = pos & (PAGE_SIZE - 1);
  	end = start + copied - 1;
 diff --git a/fs/ext4/readpage.c b/fs/ext4/readpage.c
-index 09923a9..b10ae9b 100644
+index 09923a9813af..b10ae9b74f6f 100644
 --- a/fs/ext4/readpage.c
 +++ b/fs/ext4/readpage.c
 @@ -46,6 +46,7 @@
@@ -255,7 +255,7 @@ index 09923a9..b10ae9b 100644
  }
  
 diff --git a/fs/f2fs/data.c b/fs/f2fs/data.c
-index e8d3390..8b684b9 100644
+index e8d33907c0a6..8b684b9c5d5c 100644
 --- a/fs/f2fs/data.c
 +++ b/fs/f2fs/data.c
 @@ -27,6 +27,7 @@
@@ -336,7 +336,7 @@ index e8d3390..8b684b9 100644
  
  	return err;
 diff --git a/fs/f2fs/inline.c b/fs/f2fs/inline.c
-index 3a348a8..ca85422 100644
+index 3a348a8ed164..ca854227f4cf 100644
 --- a/fs/f2fs/inline.c
 +++ b/fs/f2fs/inline.c
 @@ -13,6 +13,7 @@
@@ -387,7 +387,7 @@ index 3a348a8..ca85422 100644
  	return 0;
  }
 diff --git a/fs/mpage.c b/fs/mpage.c
-index 830e6cc..6bdb8dc 100644
+index 830e6cc2a9e7..6bdb8dc021cc 100644
 --- a/fs/mpage.c
 +++ b/fs/mpage.c
 @@ -32,6 +32,14 @@
@@ -449,7 +449,7 @@ index 830e6cc..6bdb8dc 100644
  	guard_bio_eod(bio);
 diff --git a/include/trace/events/android_fs.h b/include/trace/events/android_fs.h
 new file mode 100644
-index 00000000..7edb6bc
+index 000000000000..7edb6bcfe482
 --- /dev/null
 +++ b/include/trace/events/android_fs.h
 @@ -0,0 +1,66 @@
@@ -521,7 +521,7 @@ index 00000000..7edb6bc
 +#endif
 diff --git a/include/trace/events/android_fs_template.h b/include/trace/events/android_fs_template.h
 new file mode 100644
-index 00000000..efc4878
+index 000000000000..efc487816e83
 --- /dev/null
 +++ b/include/trace/events/android_fs_template.h
 @@ -0,0 +1,64 @@
@@ -590,5 +590,5 @@ index 00000000..efc4878
 +
 +#endif /* _TRACE_ANDROID_FS_TEMPLATE_H */
 -- 
-2.7.4
+2.17.1
 

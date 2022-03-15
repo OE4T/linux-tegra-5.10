@@ -1,4 +1,4 @@
-From afd0b020e64ff495d86ed09f6da10f9102b6b03c Mon Sep 17 00:00:00 2001
+From 7143a9611c7e74612442a2bff592ce1b5a280585 Mon Sep 17 00:00:00 2001
 From: Dmitry Shmidt <dimitrysh@google.com>
 Date: Thu, 13 Aug 2020 14:57:15 -0700
 Subject: [PATCH 739/830] ANDROID: GKI: Enable CEC support
@@ -18,7 +18,7 @@ Signed-off-by: Alistair Delva <adelva@google.com>
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 0737ba3..b29f706 100644
+index 0737ba3db1e2..b29f7061e0aa 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -320,6 +320,7 @@ CONFIG_MFD_ACT8945A=y
@@ -30,7 +30,7 @@ index 0737ba3..b29f706 100644
  # CONFIG_VGA_ARB is not set
  CONFIG_DRM=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index de0d36b..25fffb1 100644
+index de0d36bda4d4..25fffb102100 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -283,6 +283,7 @@ CONFIG_WATCHDOG_CORE=y
@@ -42,5 +42,5 @@ index de0d36b..25fffb1 100644
  CONFIG_DRM=y
  # CONFIG_DRM_FBDEV_EMULATION is not set
 -- 
-2.7.4
+2.17.1
 

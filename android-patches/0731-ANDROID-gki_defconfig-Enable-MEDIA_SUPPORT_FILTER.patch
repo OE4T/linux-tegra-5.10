@@ -1,4 +1,4 @@
-From 16b7b0272d0b31c0a5a8fc8dbad849033a9ad0c9 Mon Sep 17 00:00:00 2001
+From 7aa7701ba8faa3bb6f4131ebbed2f8ccfbe35f52 Mon Sep 17 00:00:00 2001
 From: Quentin Perret <qperret@google.com>
 Date: Wed, 5 Aug 2020 14:34:10 +0100
 Subject: [PATCH 731/830] ANDROID: gki_defconfig: Enable MEDIA_SUPPORT_FILTER
@@ -23,7 +23,7 @@ Change-Id: I0f4ae305f43f88736d0a94bdf006f33aad7cf5c4
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 325008e..7acb12b 100644
+index 325008e65a51..7acb12bd49f2 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -319,6 +319,7 @@ CONFIG_MFD_ACT8945A=y
@@ -35,7 +35,7 @@ index 325008e..7acb12b 100644
  CONFIG_DRM=y
  # CONFIG_DRM_FBDEV_EMULATION is not set
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index b3a2e91..4bbfc6a 100644
+index b3a2e9198b93..4bbfc6abbd93 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -281,6 +281,7 @@ CONFIG_WATCHDOG_CORE=y
@@ -47,5 +47,5 @@ index b3a2e91..4bbfc6a 100644
  # CONFIG_DRM_FBDEV_EMULATION is not set
  CONFIG_BACKLIGHT_CLASS_DEVICE=y
 -- 
-2.7.4
+2.17.1
 

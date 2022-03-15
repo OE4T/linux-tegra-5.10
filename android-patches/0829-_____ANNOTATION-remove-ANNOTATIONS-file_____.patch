@@ -1,4 +1,4 @@
-From 84d3d9ee6b3a9b6ff5b1481d75a4c3155aabe4dd Mon Sep 17 00:00:00 2001
+From 4d798a2973c68cad5de00b75c76113e72911f356 Mon Sep 17 00:00:00 2001
 From: Eric Biggers <ebiggers@google.com>
 Date: Wed, 12 Aug 2020 17:15:48 -0700
 Subject: [PATCH 829/830] _____ANNOTATION: remove ANNOTATIONS file_____
@@ -15,7 +15,7 @@ Signed-off-by: Eric Biggers <ebiggers@google.com>
 
 diff --git a/ANNOTATIONS b/ANNOTATIONS
 deleted file mode 100644
-index d1353a3..00000000
+index d1353a38dcb9..000000000000
 --- a/ANNOTATIONS
 +++ /dev/null
 @@ -1,33 +0,0 @@
@@ -53,5 +53,5 @@ index d1353a3..00000000
 -Android kconfigs and build scripts
 -Bringup patches
 -- 
-2.7.4
+2.17.1
 

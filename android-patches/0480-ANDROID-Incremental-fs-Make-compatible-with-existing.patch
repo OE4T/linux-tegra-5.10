@@ -1,4 +1,4 @@
-From 1c716a20053283bf18aad57a91d97e9cf780de54 Mon Sep 17 00:00:00 2001
+From 9aa218ac6ed593f64035ceeeb1ff0d3acfe73a55 Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Fri, 11 Sep 2020 12:32:10 -0700
 Subject: [PATCH 480/830] ANDROID: Incremental fs: Make compatible with
@@ -10,15 +10,15 @@ Test: incfs_test passes
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
 Change-Id: I3b4f61bf881dccd50f05f42326370421945b68db
 ---
- fs/incfs/format.c                                  |   6 ++
- fs/incfs/format.h                                  |  10 ++
- .../selftests/filesystems/incfs/incfs_test.c       | 105 +++++++++++++++++++++
- tools/testing/selftests/filesystems/incfs/utils.c  |   2 +-
- tools/testing/selftests/filesystems/incfs/utils.h  |   2 +-
+ fs/incfs/format.c                             |   6 +
+ fs/incfs/format.h                             |  10 ++
+ .../selftests/filesystems/incfs/incfs_test.c  | 105 ++++++++++++++++++
+ .../selftests/filesystems/incfs/utils.c       |   2 +-
+ .../selftests/filesystems/incfs/utils.h       |   2 +-
  5 files changed, 123 insertions(+), 2 deletions(-)
 
 diff --git a/fs/incfs/format.c b/fs/incfs/format.c
-index 0b15317..743aebf 100644
+index 0b15317ca74d..743aebfc80b9 100644
 --- a/fs/incfs/format.c
 +++ b/fs/incfs/format.c
 @@ -626,6 +626,12 @@ int incfs_read_next_metadata_record(struct backing_file_context *bfc,
@@ -35,7 +35,7 @@ index 0b15317..743aebf 100644
  		if (handler->handle_signature)
  			res = handler->handle_signature(
 diff --git a/fs/incfs/format.h b/fs/incfs/format.h
-index b3d87d5..3b0266c 100644
+index b3d87d520236..3b0266c9de90 100644
 --- a/fs/incfs/format.h
 +++ b/fs/incfs/format.h
 @@ -117,6 +117,7 @@
@@ -66,7 +66,7 @@ index b3d87d5..3b0266c 100644
  
  /* Backing file header */
 diff --git a/tools/testing/selftests/filesystems/incfs/incfs_test.c b/tools/testing/selftests/filesystems/incfs/incfs_test.c
-index 876efcb..0829a98 100644
+index 876efcba1a3a..0829a988807d 100644
 --- a/tools/testing/selftests/filesystems/incfs/incfs_test.c
 +++ b/tools/testing/selftests/filesystems/incfs/incfs_test.c
 @@ -2948,6 +2948,110 @@ static int mapped_file_test(const char *mount_dir)
@@ -189,7 +189,7 @@ index 876efcb..0829a98 100644
  #undef MAKE_TEST
  
 diff --git a/tools/testing/selftests/filesystems/incfs/utils.c b/tools/testing/selftests/filesystems/incfs/utils.c
-index 32ba6af..e60b0d3 100644
+index 32ba6af49bbd..e60b0d36f49d 100644
 --- a/tools/testing/selftests/filesystems/incfs/utils.c
 +++ b/tools/testing/selftests/filesystems/incfs/utils.c
 @@ -314,7 +314,7 @@ int wait_for_pending_reads2(int fd, int timeout_ms,
@@ -202,7 +202,7 @@ index 32ba6af..e60b0d3 100644
  	char full_name[FILENAME_MAX] = "";
  
 diff --git a/tools/testing/selftests/filesystems/incfs/utils.h b/tools/testing/selftests/filesystems/incfs/utils.h
-index 470471c..f5ed8dc 100644
+index 470471c7f418..f5ed8dc5f0ff 100644
 --- a/tools/testing/selftests/filesystems/incfs/utils.h
 +++ b/tools/testing/selftests/filesystems/incfs/utils.h
 @@ -60,7 +60,7 @@ int wait_for_pending_reads(int fd, int timeout_ms,
@@ -215,5 +215,5 @@ index 470471c..f5ed8dc 100644
  void sha256(const char *data, size_t dsize, char *hash);
  
 -- 
-2.7.4
+2.17.1
 

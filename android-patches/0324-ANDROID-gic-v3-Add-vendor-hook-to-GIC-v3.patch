@@ -1,4 +1,4 @@
-From 4da9148b0ca6bafb4319bd300faa8b4b194941ff Mon Sep 17 00:00:00 2001
+From 6b40c3c3431c595028544913cc9af2b51784fc48 Mon Sep 17 00:00:00 2001
 From: Neeraj Upadhyay <neeraju@codeaurora.org>
 Date: Fri, 6 Nov 2020 16:32:22 +0530
 Subject: [PATCH 324/830] ANDROID: gic-v3: Add vendor hook to GIC v3
@@ -19,7 +19,7 @@ Signed-off-by: Prasad Sodagudi <psodagud@codeaurora.org>
  create mode 100644 include/trace/hooks/gic_v3.h
 
 diff --git a/drivers/android/vendor_hooks.c b/drivers/android/vendor_hooks.c
-index 85081a15..e5d54fb 100644
+index 85081a15febf..e5d54fb5613e 100644
 --- a/drivers/android/vendor_hooks.c
 +++ b/drivers/android/vendor_hooks.c
 @@ -22,6 +22,7 @@
@@ -40,7 +40,7 @@ index 85081a15..e5d54fb 100644
  EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_show_resume_epoch_val);
  EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_show_max_freq);
 diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
-index 2a0df15..e8f9057 100644
+index e6002edc5f99..c541fff489c4 100644
 --- a/drivers/irqchip/irq-gic-v3.c
 +++ b/drivers/irqchip/irq-gic-v3.c
 @@ -20,6 +20,7 @@
@@ -69,7 +69,7 @@ index 2a0df15..e8f9057 100644
  }
  
  static int gic_iterate_rdists(int (*fn)(struct redist_region *, void __iomem *))
-@@ -1261,6 +1266,7 @@ static int gic_set_affinity(struct irq_data *d, const struct cpumask *mask_val,
+@@ -1277,6 +1282,7 @@ static int gic_set_affinity(struct irq_data *d, const struct cpumask *mask_val,
  	reg = gic_dist_base(d) + offset + (index * 8);
  	val = gic_mpidr_to_affinity(cpu_logical_map(cpu));
  
@@ -79,7 +79,7 @@ index 2a0df15..e8f9057 100644
  	/*
 diff --git a/include/trace/hooks/gic_v3.h b/include/trace/hooks/gic_v3.h
 new file mode 100644
-index 00000000..8cf67e51
+index 000000000000..8cf67e51f79e
 --- /dev/null
 +++ b/include/trace/hooks/gic_v3.h
 @@ -0,0 +1,29 @@
@@ -113,5 +113,5 @@ index 00000000..8cf67e51
 +/* This part must be outside protection */
 +#include <trace/define_trace.h>
 -- 
-2.7.4
+2.17.1
 

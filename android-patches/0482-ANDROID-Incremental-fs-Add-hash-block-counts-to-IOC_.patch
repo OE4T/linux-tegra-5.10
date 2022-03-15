@@ -1,4 +1,4 @@
-From 3d990107f02f5c6397a3c8b8fc89673fbfe5dab4 Mon Sep 17 00:00:00 2001
+From daf08519b34fd41b9443b04cee4994919635e49b Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Tue, 15 Sep 2020 13:01:25 -0700
 Subject: [PATCH 482/830] ANDROID: Incremental fs: Add hash block counts to
@@ -10,17 +10,17 @@ Test: incfs_test passes
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
 Change-Id: I0061a855ec563de8df40ba0b35292e99be33c6c0
 ---
- fs/incfs/data_mgmt.c                               |  24 ++-
- fs/incfs/data_mgmt.h                               |   6 +
- fs/incfs/format.c                                  |  27 ++--
- fs/incfs/format.h                                  |   9 +-
- fs/incfs/vfs.c                                     |   7 +-
- include/uapi/linux/incrementalfs.h                 |  10 +-
- .../selftests/filesystems/incfs/incfs_test.c       | 174 ++++++++++++++-------
+ fs/incfs/data_mgmt.c                          |  24 ++-
+ fs/incfs/data_mgmt.h                          |   6 +
+ fs/incfs/format.c                             |  27 +--
+ fs/incfs/format.h                             |   9 +-
+ fs/incfs/vfs.c                                |   7 +-
+ include/uapi/linux/incrementalfs.h            |  10 +-
+ .../selftests/filesystems/incfs/incfs_test.c  | 174 ++++++++++++------
  7 files changed, 175 insertions(+), 82 deletions(-)
 
 diff --git a/fs/incfs/data_mgmt.c b/fs/incfs/data_mgmt.c
-index 9bde35b..35362d4 100644
+index 9bde35bf4f0f..35362d450d15 100644
 --- a/fs/incfs/data_mgmt.c
 +++ b/fs/incfs/data_mgmt.c
 @@ -274,13 +274,16 @@ struct data_file *incfs_open_data_file(struct mount_info *mi, struct file *bf)
@@ -82,7 +82,7 @@ index 9bde35b..35362d4 100644
  
  	return 0;
 diff --git a/fs/incfs/data_mgmt.h b/fs/incfs/data_mgmt.h
-index 1acb027..1d8a0ae 100644
+index 1acb027b4c39..1d8a0aec4330 100644
 --- a/fs/incfs/data_mgmt.h
 +++ b/fs/incfs/data_mgmt.h
 @@ -255,6 +255,12 @@ struct data_file {
@@ -99,7 +99,7 @@ index 1acb027..1d8a0ae 100644
  	loff_t df_status_offset;
  
 diff --git a/fs/incfs/format.c b/fs/incfs/format.c
-index e1a036a..37a41c8 100644
+index e1a036a6ba44..37a41c8162de 100644
 --- a/fs/incfs/format.c
 +++ b/fs/incfs/format.c
 @@ -317,23 +317,25 @@ int incfs_write_signature_to_backing_file(struct backing_file_context *bfc,
@@ -163,7 +163,7 @@ index e1a036a..37a41c8 100644
  	if (result != sizeof(is))
  		return -EIO;
 diff --git a/fs/incfs/format.h b/fs/incfs/format.h
-index 240731a..fcff0f7 100644
+index 240731a1dcb6..fcff0f73e416 100644
 --- a/fs/incfs/format.h
 +++ b/fs/incfs/format.h
 @@ -249,9 +249,11 @@ struct incfs_df_signature {
@@ -191,7 +191,7 @@ index 240731a..fcff0f7 100644
  int incfs_write_file_header_flags(struct backing_file_context *bfc, u32 flags);
  
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index f7a5016..99212a4 100644
+index f7a501657378..99212a447ab4 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -672,8 +672,11 @@ static long ioctl_get_block_count(struct file *f, void __user *arg)
@@ -209,7 +209,7 @@ index f7a5016..99212a4 100644
  	if (copy_to_user(args_usr_ptr, &args, sizeof(args)))
  		return -EFAULT;
 diff --git a/include/uapi/linux/incrementalfs.h b/include/uapi/linux/incrementalfs.h
-index b8b786e..374d6e4 100644
+index b8b786e1cde6..374d6e4f4650 100644
 --- a/include/uapi/linux/incrementalfs.h
 +++ b/include/uapi/linux/incrementalfs.h
 @@ -433,10 +433,16 @@ struct incfs_create_mapped_file_args {
@@ -232,7 +232,7 @@ index b8b786e..374d6e4 100644
  
  #endif /* _UAPI_LINUX_INCREMENTALFS_H */
 diff --git a/tools/testing/selftests/filesystems/incfs/incfs_test.c b/tools/testing/selftests/filesystems/incfs/incfs_test.c
-index ad9df46..ed2e1c0 100644
+index ad9df461f897..ed2e1c05f2ab 100644
 --- a/tools/testing/selftests/filesystems/incfs/incfs_test.c
 +++ b/tools/testing/selftests/filesystems/incfs/incfs_test.c
 @@ -2575,9 +2575,6 @@ static int emit_partial_test_file_hash(const char *mount_dir,
@@ -480,5 +480,5 @@ index ad9df46..ed2e1c0 100644
  #undef MAKE_TEST
  
 -- 
-2.7.4
+2.17.1
 

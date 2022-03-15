@@ -1,4 +1,4 @@
-From 539135ab73671694befdffb2d5339d9d4257dc38 Mon Sep 17 00:00:00 2001
+From 419007ea8934a7aecea08823e30c0cba6ef56080 Mon Sep 17 00:00:00 2001
 From: Alistair Delva <adelva@google.com>
 Date: Thu, 27 Feb 2020 12:52:46 -0800
 Subject: [PATCH 646/830] ANDROID: gki_defconfig: Enable CONFIG_RD_LZ4
@@ -18,7 +18,7 @@ Signed-off-by: Alistair Delva <adelva@google.com>
  2 files changed, 2 deletions(-)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index da1acb3..1e09038 100644
+index da1acb3a4e5d..1e09038576e3 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -28,7 +28,6 @@ CONFIG_BLK_DEV_INITRD=y
@@ -30,7 +30,7 @@ index da1acb3..1e09038 100644
  # CONFIG_FHANDLE is not set
  CONFIG_KALLSYMS_ALL=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 43e3b1b..79c8003 100644
+index 43e3b1bf52d0..79c80030bed7 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -29,7 +29,6 @@ CONFIG_BLK_DEV_INITRD=y
@@ -42,5 +42,5 @@ index 43e3b1b..79c8003 100644
  # CONFIG_FHANDLE is not set
  CONFIG_KALLSYMS_ALL=y
 -- 
-2.7.4
+2.17.1
 

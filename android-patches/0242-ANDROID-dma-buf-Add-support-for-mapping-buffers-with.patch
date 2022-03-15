@@ -1,4 +1,4 @@
-From 89a67b911c3f6a9b6a680009a4afa60933c5cd2b Mon Sep 17 00:00:00 2001
+From 4fb2f6d075d19e1dd2c96cb5dbc2882961e68a0f Mon Sep 17 00:00:00 2001
 From: "Isaac J. Manjarres" <isaacm@codeaurora.org>
 Date: Wed, 19 Jun 2019 15:37:13 -0700
 Subject: [PATCH 242/830] ANDROID: dma-buf: Add support for mapping buffers
@@ -22,7 +22,7 @@ Signed-off-by: Sandeep Patil <sspatil@google.com>
  1 file changed, 3 insertions(+)
 
 diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-index 9433abf..8c953e5 100644
+index 9433abff4fb0..8c953e541c65 100644
 --- a/include/linux/dma-buf.h
 +++ b/include/linux/dma-buf.h
 @@ -442,6 +442,8 @@ struct dma_buf_attach_ops {
@@ -43,5 +43,5 @@ index 9433abf..8c953e5 100644
  
  /**
 -- 
-2.7.4
+2.17.1
 

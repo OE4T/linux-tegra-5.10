@@ -1,4 +1,4 @@
-From 766a596a8ddfacc060870cbbbbe6cf75fdfa825d Mon Sep 17 00:00:00 2001
+From 3404f5ff09bb0621de243b5d2311e857738a6147 Mon Sep 17 00:00:00 2001
 From: Giuliano Procida <gprocida@google.com>
 Date: Fri, 2 Oct 2020 15:12:08 +0100
 Subject: [PATCH 002/830] Revert "thermal: Make
@@ -23,7 +23,7 @@ Signed-off-by: Will McVicker <willmcvicker@google.com>
  3 files changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/thermal/thermal_core.c b/drivers/thermal/thermal_core.c
-index 0bc911c..c8c8a22 100644
+index 0bc911c8c8c1..c8c8a22a5d3a 100644
 --- a/drivers/thermal/thermal_core.c
 +++ b/drivers/thermal/thermal_core.c
 @@ -546,6 +546,7 @@ int thermal_zone_device_is_enabled(struct thermal_zone_device *tz)
@@ -35,7 +35,7 @@ index 0bc911c..c8c8a22 100644
  void thermal_zone_device_update(struct thermal_zone_device *tz,
  				enum thermal_notify_event event)
 diff --git a/drivers/thermal/thermal_core.h b/drivers/thermal/thermal_core.h
-index fd42b87..821b556 100644
+index fd42b87e9365..821b55699a9b 100644
 --- a/drivers/thermal/thermal_core.h
 +++ b/drivers/thermal/thermal_core.h
 @@ -182,6 +182,4 @@ of_thermal_get_trip_points(struct thermal_zone_device *tz)
@@ -46,7 +46,7 @@ index fd42b87..821b556 100644
 -
  #endif /* __THERMAL_CORE_H__ */
 diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-index a5a5778..0be1158 100644
+index a5a57785ba07..0be11586da68 100644
 --- a/include/linux/thermal.h
 +++ b/include/linux/thermal.h
 @@ -404,6 +404,7 @@ void thermal_cdev_update(struct thermal_cooling_device *);
@@ -69,5 +69,5 @@ index a5a5778..0be1158 100644
  
  #endif /* __THERMAL_H__ */
 -- 
-2.7.4
+2.17.1
 

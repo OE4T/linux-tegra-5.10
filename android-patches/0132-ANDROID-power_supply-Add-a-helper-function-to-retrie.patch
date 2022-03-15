@@ -1,4 +1,4 @@
-From 82b2068924ef84357774c841f0962ece4d1c7038 Mon Sep 17 00:00:00 2001
+From 20242e59136add211c9479a43953b6e4b27b0f96 Mon Sep 17 00:00:00 2001
 From: Badhri Jagan Sridharan <badhri@google.com>
 Date: Tue, 1 Sep 2020 21:16:09 -0700
 Subject: [PATCH 132/830] ANDROID: power_supply: Add a helper function to
@@ -25,12 +25,12 @@ Bug: 167486462
 Signed-off-by: Badhri Jagan Sridharan <badhri@google.com>
 Change-Id: I6d9c52edb4472e73fc2d3c8eb32a41bec8bbde2a
 ---
- drivers/power/supply/power_supply_core.c | 78 ++++++++++++++++++++++++++++++++
- include/linux/power_supply.h             |  9 ++++
+ drivers/power/supply/power_supply_core.c | 78 ++++++++++++++++++++++++
+ include/linux/power_supply.h             |  9 +++
  2 files changed, 87 insertions(+)
 
 diff --git a/drivers/power/supply/power_supply_core.c b/drivers/power/supply/power_supply_core.c
-index 38e3aa64..668369b 100644
+index 280c54c23e37..2fe31ea5ae53 100644
 --- a/drivers/power/supply/power_supply_core.c
 +++ b/drivers/power/supply/power_supply_core.c
 @@ -32,6 +32,13 @@ EXPORT_SYMBOL_GPL(power_supply_notifier);
@@ -126,7 +126,7 @@ index 38e3aa64..668369b 100644
  {
  	struct power_supply **psy = res;
 diff --git a/include/linux/power_supply.h b/include/linux/power_supply.h
-index 81a55e9..e9c67d6 100644
+index 81a55e974feb..e9c67d61d82a 100644
 --- a/include/linux/power_supply.h
 +++ b/include/linux/power_supply.h
 @@ -386,12 +386,21 @@ extern void power_supply_put(struct power_supply *psy);
@@ -152,5 +152,5 @@ index 81a55e9..e9c67d6 100644
  devm_power_supply_get_by_phandle(struct device *dev, const char *property)
  { return NULL; }
 -- 
-2.7.4
+2.17.1
 

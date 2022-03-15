@@ -1,4 +1,4 @@
-From 71daf3e19b0e0943a8d3f1dc218e62e8e7972bff Mon Sep 17 00:00:00 2001
+From ade9c5de0d73fae4cd38812ea07be561935b448c Mon Sep 17 00:00:00 2001
 From: John Stultz <john.stultz@linaro.org>
 Date: Fri, 10 Jul 2020 23:18:24 +0000
 Subject: [PATCH 528/830] FROMLIST: irqchip/qcom-pdc: Allow QCOM_PDC to be
@@ -45,7 +45,7 @@ Signed-off-by: John Stultz <john.stultz@linaro.org>
  2 files changed, 28 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/irqchip/Kconfig b/drivers/irqchip/Kconfig
-index 3cf7fdc..298910f 100644
+index 3cf7fdccf916..298910ffd29d 100644
 --- a/drivers/irqchip/Kconfig
 +++ b/drivers/irqchip/Kconfig
 @@ -439,7 +439,7 @@ config GOLDFISH_PIC
@@ -58,7 +58,7 @@ index 3cf7fdc..298910f 100644
  	select IRQ_DOMAIN_HIERARCHY
  	help
 diff --git a/drivers/irqchip/qcom-pdc.c b/drivers/irqchip/qcom-pdc.c
-index 30e2a85..73ed66f 100644
+index 30e2a85a0517..73ed66f9e55e 100644
 --- a/drivers/irqchip/qcom-pdc.c
 +++ b/drivers/irqchip/qcom-pdc.c
 @@ -11,9 +11,11 @@
@@ -104,5 +104,5 @@ index 30e2a85..73ed66f 100644
 +MODULE_DESCRIPTION("Qualcomm Technologies, Inc. Power Domain Controller");
 +MODULE_LICENSE("GPL v2");
 -- 
-2.7.4
+2.17.1
 

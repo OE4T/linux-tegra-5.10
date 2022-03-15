@@ -1,4 +1,4 @@
-From 712c529d1fc6c328b7d5c83af37694ee87b3c930 Mon Sep 17 00:00:00 2001
+From c1ebc4480bc5215c1c1105962bdded3e322bc176 Mon Sep 17 00:00:00 2001
 From: "Isaac J. Manjarres" <isaacm@codeaurora.org>
 Date: Wed, 19 Jun 2019 15:37:11 -0700
 Subject: [PATCH 241/830] ANDROID: dma-buf: Add support for partial cache
@@ -18,12 +18,12 @@ Change-Id: Icce61fc21b1542f5248daea34f713184449a62c3
 Signed-off-by: Isaac J. Manjarres <isaacm@codeaurora.org>
 Signed-off-by: Sandeep Patil <sspatil@google.com>
 ---
- drivers/dma-buf/dma-buf.c | 39 +++++++++++++++++++++++++++++
- include/linux/dma-buf.h   | 63 +++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/dma-buf/dma-buf.c | 39 ++++++++++++++++++++++++
+ include/linux/dma-buf.h   | 63 +++++++++++++++++++++++++++++++++++++++
  2 files changed, 102 insertions(+)
 
 diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-index 7965c81..1ea2c64 100644
+index 7965c812671e..1ea2c64d8b2e 100644
 --- a/drivers/dma-buf/dma-buf.c
 +++ b/drivers/dma-buf/dma-buf.c
 @@ -1368,6 +1368,30 @@ int dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
@@ -80,13 +80,14 @@ index 7965c81..1ea2c64 100644
  /**
   * dma_buf_mmap - Setup up a userspace mmap with the given vma
 diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-index a8f5fe3..9433abf 100644
+index a8f5fe34d6aa..9433abff4fb0 100644
 --- a/include/linux/dma-buf.h
 +++ b/include/linux/dma-buf.h
-@@ -213,6 +213,41 @@ struct dma_buf_ops {
+@@ -212,6 +212,41 @@ struct dma_buf_ops {
+ 	 */
  	int (*begin_cpu_access)(struct dma_buf *, enum dma_data_direction);
  
- 	/**
++	/**
 +	 * @begin_cpu_access_partial:
 +	 *
 +	 * This is called from dma_buf_begin_cpu_access_partial() and allows the
@@ -121,14 +122,14 @@ index a8f5fe3..9433abf 100644
 +					enum dma_data_direction,
 +					unsigned int offset, unsigned int len);
 +
-+	/**
+ 	/**
  	 * @end_cpu_access:
  	 *
- 	 * This is called from dma_buf_end_cpu_access() when the importer is
-@@ -232,6 +267,28 @@ struct dma_buf_ops {
+@@ -231,6 +266,28 @@ struct dma_buf_ops {
+ 	 */
  	int (*end_cpu_access)(struct dma_buf *, enum dma_data_direction);
  
- 	/**
++	/**
 +	 * @end_cpu_access_partial:
 +	 *
 +	 * This is called from dma_buf_end_cpu_access_partial() when the
@@ -150,10 +151,9 @@ index a8f5fe3..9433abf 100644
 +				      enum dma_data_direction,
 +				      unsigned int offset, unsigned int len);
 +
-+	/**
+ 	/**
  	 * @mmap:
  	 *
- 	 * This callback is used by the dma_buf_mmap() function
 @@ -513,8 +570,14 @@ void dma_buf_unmap_attachment(struct dma_buf_attachment *, struct sg_table *,
  void dma_buf_move_notify(struct dma_buf *dma_buf);
  int dma_buf_begin_cpu_access(struct dma_buf *dma_buf,
@@ -170,5 +170,5 @@ index a8f5fe3..9433abf 100644
  int dma_buf_mmap(struct dma_buf *, struct vm_area_struct *,
  		 unsigned long);
 -- 
-2.7.4
+2.17.1
 

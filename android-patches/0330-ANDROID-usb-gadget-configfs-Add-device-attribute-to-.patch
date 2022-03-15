@@ -1,4 +1,4 @@
-From 7718bf6606f86d843cdefb8d1dea830f2476ecff Mon Sep 17 00:00:00 2001
+From 633ad6071420accbf6f9ecf423e7c13d702260ac Mon Sep 17 00:00:00 2001
 From: Badhri Jagan Sridharan <Badhri@google.com>
 Date: Sun, 9 Aug 2015 15:12:50 -0700
 Subject: [PATCH 330/830] ANDROID: usb: gadget: configfs: Add device attribute
@@ -18,11 +18,11 @@ Signed-off-by: Badhri Jagan Sridharan <badhri@google.com>
         Parts of e45c769fa7af ("ANDROID: usb: gadget: cleanup: fix unused variable and function warnings")
 Signed-off-by: Amit Pundir <amit.pundir@linaro.org>
 ---
- drivers/usb/gadget/configfs.c | 91 ++++++++++++++++++++++++-------------------
+ drivers/usb/gadget/configfs.c | 91 ++++++++++++++++++++---------------
  1 file changed, 52 insertions(+), 39 deletions(-)
 
 diff --git a/drivers/usb/gadget/configfs.c b/drivers/usb/gadget/configfs.c
-index 16dce61..547af48b 100644
+index 16dce61e377a..547af48bf78f 100644
 --- a/drivers/usb/gadget/configfs.c
 +++ b/drivers/usb/gadget/configfs.c
 @@ -1764,6 +1764,54 @@ static struct device_attribute *android_usb_attributes[] = {
@@ -151,5 +151,5 @@ index 16dce61..547af48b 100644
  
  static struct configfs_group_operations gadgets_ops = {
 -- 
-2.7.4
+2.17.1
 

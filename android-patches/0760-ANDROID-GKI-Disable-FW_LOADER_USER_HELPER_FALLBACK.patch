@@ -1,4 +1,4 @@
-From b84db2f5fe3bd6a247d4a831a00f53bf42e7ce69 Mon Sep 17 00:00:00 2001
+From d1cfec7530bafd80d1a765d64e8fa9f36c520edd Mon Sep 17 00:00:00 2001
 From: Alistair Delva <adelva@google.com>
 Date: Mon, 31 Aug 2020 08:11:40 -0700
 Subject: [PATCH 760/830] ANDROID: GKI: Disable FW_LOADER_USER_HELPER_FALLBACK
@@ -26,7 +26,7 @@ Signed-off-by: Alistair Delva <adelva@google.com>
  2 files changed, 2 deletions(-)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 47696de..c3e1019 100644
+index 47696de7f33f..c3e101986b83 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -217,7 +217,6 @@ CONFIG_PCI_HOST_GENERIC=y
@@ -38,7 +38,7 @@ index 47696de..c3e1019 100644
  # CONFIG_ALLOW_DEV_COREDUMP is not set
  # CONFIG_SUN50I_DE2_BUS is not set
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index c533819..cf21ed7 100644
+index c53381963ff0..cf21ed75bd0e 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -193,7 +193,6 @@ CONFIG_PCI=y
@@ -50,5 +50,5 @@ index c533819..cf21ed7 100644
  # CONFIG_ALLOW_DEV_COREDUMP is not set
  CONFIG_GNSS=y
 -- 
-2.7.4
+2.17.1
 

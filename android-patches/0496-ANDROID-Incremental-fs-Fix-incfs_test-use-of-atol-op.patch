@@ -1,4 +1,4 @@
-From 785daf8fb7a2503ce5185e565940800564efa8d4 Mon Sep 17 00:00:00 2001
+From 99a39d557f5c33a1db95fc84e8eacad38fb15e98 Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Mon, 30 Nov 2020 14:44:00 -0800
 Subject: [PATCH 496/830] ANDROID: Incremental fs: Fix incfs_test use of atol,
@@ -12,11 +12,11 @@ Test: incfs_test passes, cross compiles for Android
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
 Change-Id: I043657192415e01293fe983e059a13fa12ae1f60
 ---
- tools/testing/selftests/filesystems/incfs/incfs_test.c | 11 ++++++-----
+ .../testing/selftests/filesystems/incfs/incfs_test.c  | 11 ++++++-----
  1 file changed, 6 insertions(+), 5 deletions(-)
 
 diff --git a/tools/testing/selftests/filesystems/incfs/incfs_test.c b/tools/testing/selftests/filesystems/incfs/incfs_test.c
-index 70ac258..6db0935 100644
+index 70ac2589c77a..6db093562e6c 100644
 --- a/tools/testing/selftests/filesystems/incfs/incfs_test.c
 +++ b/tools/testing/selftests/filesystems/incfs/incfs_test.c
 @@ -2293,7 +2293,7 @@ static int emit_partial_test_file_data(const char *mount_dir,
@@ -66,5 +66,5 @@ index 70ac258..6db0935 100644
  	char *filename = NULL;
  	int fd = -1;
 -- 
-2.7.4
+2.17.1
 

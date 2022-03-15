@@ -1,4 +1,4 @@
-From 97e3cfb3d932f8dcedacc618d20857bfecd75664 Mon Sep 17 00:00:00 2001
+From e85f49c62690484f1e9a51d0fbb036f28046aebc Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Thu, 30 Jan 2020 13:53:08 -0800
 Subject: [PATCH 427/830] ANDROID: Incremental fs: Remove unneeded
@@ -14,7 +14,7 @@ Signed-off-by: Paul Lawrence <paullawrence@google.com>
  1 file changed, 3 deletions(-)
 
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index 3ef2b8f..248b315 100644
+index 3ef2b8fadd5c..248b31587128 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -31,9 +31,6 @@
@@ -28,5 +28,5 @@ index 3ef2b8f..248b315 100644
  
  static int dentry_revalidate(struct dentry *dentry, unsigned int flags);
 -- 
-2.7.4
+2.17.1
 

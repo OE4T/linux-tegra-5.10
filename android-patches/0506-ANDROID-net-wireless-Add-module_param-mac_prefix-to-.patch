@@ -1,4 +1,4 @@
-From 2fb9d9b8282ce9a337d09834f0338e98d60f2996 Mon Sep 17 00:00:00 2001
+From a8bce4001b5fa8cc030199edda26d72368ef994a Mon Sep 17 00:00:00 2001
 From: Roman Kiryanov <rkir@google.com>
 Date: Thu, 27 Feb 2020 11:15:07 -0800
 Subject: [PATCH 506/830] ANDROID: net: wireless: Add module_param(mac_prefix)
@@ -29,7 +29,7 @@ Change-Id: Ibab0de6cb720d55c7be0b96e40ec70e221e04d7f
  1 file changed, 6 insertions(+)
 
 diff --git a/drivers/net/wireless/mac80211_hwsim.c b/drivers/net/wireless/mac80211_hwsim.c
-index b793d61..e265f4c 100644
+index cc550ba0c9df..6911e588e578 100644
 --- a/drivers/net/wireless/mac80211_hwsim.c
 +++ b/drivers/net/wireless/mac80211_hwsim.c
 @@ -65,6 +65,10 @@ static bool support_p2p_device = true;
@@ -43,7 +43,7 @@ index b793d61..e265f4c 100644
  /**
   * enum hwsim_regtest - the type of regulatory tests we offer
   *
-@@ -3020,6 +3024,8 @@ static int mac80211_hwsim_new_radio(struct genl_info *info,
+@@ -3029,6 +3033,8 @@ static int mac80211_hwsim_new_radio(struct genl_info *info,
  	if (!param->perm_addr) {
  		eth_zero_addr(addr);
  		addr[0] = 0x02;
@@ -53,5 +53,5 @@ index b793d61..e265f4c 100644
  		addr[4] = idx;
  		memcpy(data->addresses[0].addr, addr, ETH_ALEN);
 -- 
-2.7.4
+2.17.1
 

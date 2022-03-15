@@ -1,4 +1,4 @@
-From 43bfbea8e3473a5adbc7ec9cbd8dbcb1542eac0a Mon Sep 17 00:00:00 2001
+From 7393eca2fc4a2f2853fee6005bb3278158163bf5 Mon Sep 17 00:00:00 2001
 From: Shaleen Agrawal <shalagra@codeaurora.org>
 Date: Mon, 26 Oct 2020 18:23:50 -0700
 Subject: [PATCH 192/830] ANDROID: Sched: Export scheduler symbols needed by
@@ -24,7 +24,7 @@ Signed-off-by: Pavankumar Kondeti <pkondeti@codeaurora.org>
  8 files changed, 10 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/base/arch_topology.c b/drivers/base/arch_topology.c
-index 78069d4..56f317f 100644
+index 78069d49faff..56f317fb7ee2 100644
 --- a/drivers/base/arch_topology.c
 +++ b/drivers/base/arch_topology.c
 @@ -33,6 +33,7 @@ __weak bool arch_freq_counters_available(const struct cpumask *cpus)
@@ -36,10 +36,10 @@ index 78069d4..56f317f 100644
  void topology_set_freq_scale(const struct cpumask *cpus, unsigned long cur_freq,
  			     unsigned long max_freq)
 diff --git a/kernel/cgroup/cgroup.c b/kernel/cgroup/cgroup.c
-index a86857e..9eb6f82 100644
+index 4927289a91a9..a47597dccdb0 100644
 --- a/kernel/cgroup/cgroup.c
 +++ b/kernel/cgroup/cgroup.c
-@@ -4193,6 +4193,7 @@ struct cgroup_subsys_state *css_next_child(struct cgroup_subsys_state *pos,
+@@ -4198,6 +4198,7 @@ struct cgroup_subsys_state *css_next_child(struct cgroup_subsys_state *pos,
  		return next;
  	return NULL;
  }
@@ -48,7 +48,7 @@ index a86857e..9eb6f82 100644
  /**
   * css_next_descendant_pre - find the next descendant for pre-order walk
 diff --git a/kernel/fork.c b/kernel/fork.c
-index d84d3d6..096a70b 100644
+index 6ca205964a74..818ee71c6987 100644
 --- a/kernel/fork.c
 +++ b/kernel/fork.c
 @@ -139,6 +139,7 @@ static const char * const resident_page_types[] = {
@@ -60,7 +60,7 @@ index d84d3d6..096a70b 100644
  #ifdef CONFIG_PROVE_RCU
  int lockdep_tasklist_lock_is_held(void)
 diff --git a/kernel/irq_work.c b/kernel/irq_work.c
-index eca8396..e0ed16d 100644
+index eca83965b631..e0ed16db660c 100644
 --- a/kernel/irq_work.c
 +++ b/kernel/irq_work.c
 @@ -111,7 +111,7 @@ bool irq_work_queue_on(struct irq_work *work, int cpu)
@@ -73,7 +73,7 @@ index eca8396..e0ed16d 100644
  bool irq_work_needs_cpu(void)
  {
 diff --git a/kernel/kthread.c b/kernel/kthread.c
-index 508fe52..6a039c3 100644
+index 508fe5278285..6a039c3850f0 100644
 --- a/kernel/kthread.c
 +++ b/kernel/kthread.c
 @@ -476,6 +476,7 @@ void kthread_bind_mask(struct task_struct *p, const struct cpumask *mask)
@@ -85,7 +85,7 @@ index 508fe52..6a039c3 100644
  /**
   * kthread_bind - bind a just-created kthread to a cpu.
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 1f53d01..aedb492 100644
+index 1f53d01e90f7..aedb492960c8 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -201,6 +201,7 @@ struct rq *__task_rq_lock(struct task_struct *p, struct rq_flags *rf)
@@ -107,7 +107,7 @@ index 1f53d01..aedb492 100644
  /* Cacheline aligned slab cache for task_group */
  static struct kmem_cache *task_group_cache __read_mostly;
 diff --git a/kernel/sched/cputime.c b/kernel/sched/cputime.c
-index 33f1e468..07170a4 100644
+index d22d8dfe4245..d73e5247ade9 100644
 --- a/kernel/sched/cputime.c
 +++ b/kernel/sched/cputime.c
 @@ -18,6 +18,7 @@
@@ -119,7 +119,7 @@ index 33f1e468..07170a4 100644
  static int sched_clock_irqtime;
  
 diff --git a/kernel/softirq.c b/kernel/softirq.c
-index 86e549d..169a780 100644
+index 86e549d5dc23..169a780a2719 100644
 --- a/kernel/softirq.c
 +++ b/kernel/softirq.c
 @@ -55,6 +55,7 @@ EXPORT_PER_CPU_SYMBOL(irq_stat);
@@ -131,5 +131,5 @@ index 86e549d..169a780 100644
  /*
   * active_softirqs -- per cpu, a mask of softirqs that are being handled,
 -- 
-2.7.4
+2.17.1
 

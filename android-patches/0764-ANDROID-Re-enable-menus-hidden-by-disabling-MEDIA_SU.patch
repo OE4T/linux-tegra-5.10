@@ -1,4 +1,4 @@
-From c5a5bc2a1f331ddf83b30477ad0c0618e12ffff0 Mon Sep 17 00:00:00 2001
+From 42f1a168a25026a60c5b585ab4d1667bb73a867a Mon Sep 17 00:00:00 2001
 From: Alistair Delva <adelva@google.com>
 Date: Sat, 29 Aug 2020 10:39:05 -0700
 Subject: [PATCH 764/830] ANDROID: Re-enable menus hidden by disabling
@@ -29,7 +29,7 @@ Signed-off-by: Alistair Delva <adelva@google.com>
  3 files changed, 25 insertions(+), 22 deletions(-)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index a0fb390..a3a2a51 100644
+index a0fb39032dfd..a3a2a51c05d8 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -333,10 +333,15 @@ CONFIG_MFD_ACT8945A=y
@@ -53,7 +53,7 @@ index a0fb390..a3a2a51 100644
  CONFIG_V4L_MEM2MEM_DRIVERS=y
  # CONFIG_VGA_ARB is not set
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 23af112..780d79e 100644
+index 23af11279f47..780d79ea74a6 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -289,10 +289,15 @@ CONFIG_WATCHDOG_CORE=y
@@ -77,7 +77,7 @@ index 23af112..780d79e 100644
  CONFIG_V4L_MEM2MEM_DRIVERS=y
  CONFIG_DRM=y
 diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
-index a6d073f..5d93e57 100644
+index d157af63be41..f40ba6e24c39 100644
 --- a/drivers/media/Kconfig
 +++ b/drivers/media/Kconfig
 @@ -66,8 +66,7 @@ menu "Media device types"
@@ -149,7 +149,7 @@ index a6d073f..5d93e57 100644
 +	bool "Test drivers"
  	default y if !MEDIA_SUPPORT_FILTER
  	help
- 	  Those drivers should not be used on production Kernels, but
+ 	  These drivers should not be used on production kernels, but
 -- 
-2.7.4
+2.17.1
 

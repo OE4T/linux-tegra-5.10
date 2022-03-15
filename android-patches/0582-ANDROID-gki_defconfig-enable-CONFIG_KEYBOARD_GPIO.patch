@@ -1,4 +1,4 @@
-From 9d7031f3a4bc8603518eaecf80e9fdb4ad1a58ae Mon Sep 17 00:00:00 2001
+From d75d46596b4796664a6c8d2f2f9ffe2cddf2bf2b Mon Sep 17 00:00:00 2001
 From: Steve Muckle <smuckle@google.com>
 Date: Thu, 31 Oct 2019 15:38:06 -0700
 Subject: [PATCH 582/830] ANDROID: gki_defconfig: enable CONFIG_KEYBOARD_GPIO
@@ -16,7 +16,7 @@ Signed-off-by: Steve Muckle <smuckle@google.com>
  2 files changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index a21a3ec..2d48aea 100644
+index a21a3ece3296..2d48aea50e83 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -261,6 +261,7 @@ CONFIG_USB_USBNET=y
@@ -28,7 +28,7 @@ index a21a3ec..2d48aea 100644
  CONFIG_INPUT_JOYSTICK=y
  CONFIG_INPUT_MISC=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index a03e039..a3a1138 100644
+index a03e0394f900..a3a1138f3278 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -236,7 +236,7 @@ CONFIG_USB_USBNET=y
@@ -41,5 +41,5 @@ index a03e039..a3a1138 100644
  CONFIG_INPUT_JOYSTICK=y
  CONFIG_INPUT_MISC=y
 -- 
-2.7.4
+2.17.1
 

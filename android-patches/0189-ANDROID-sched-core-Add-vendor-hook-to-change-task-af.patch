@@ -1,4 +1,4 @@
-From 0e5906f872d617448aee8f3b6ba9374382b47779 Mon Sep 17 00:00:00 2001
+From 1e83a5cbcacf76dc2556aaf38e9d11cbac787b35 Mon Sep 17 00:00:00 2001
 From: Satya Durga Srinivasu Prabhala <satyap@codeaurora.org>
 Date: Tue, 24 Nov 2020 05:54:07 -0800
 Subject: [PATCH 189/830] ANDROID: sched/core: Add vendor hook to change task
@@ -19,7 +19,7 @@ Signed-off-by: Satya Durga Srinivasu Prabhala <satyap@codeaurora.org>
  3 files changed, 9 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/android/vendor_hooks.c b/drivers/android/vendor_hooks.c
-index 1aff188..9a8070c 100644
+index 1aff188601cc..9a8070c1e25a 100644
 --- a/drivers/android/vendor_hooks.c
 +++ b/drivers/android/vendor_hooks.c
 @@ -69,4 +69,5 @@ EXPORT_TRACEPOINT_SYMBOL_GPL(android_rvh_migrate_queued_task);
@@ -31,7 +31,7 @@ index 1aff188..9a8070c 100644
 +EXPORT_TRACEPOINT_SYMBOL_GPL(android_rvh_set_sugov_update);
 +EXPORT_TRACEPOINT_SYMBOL_GPL(android_rvh_sched_setaffinity);
 diff --git a/include/trace/hooks/sched.h b/include/trace/hooks/sched.h
-index d91c4d1..82bda91 100644
+index d91c4d10a84e..82bda911c91e 100644
 --- a/include/trace/hooks/sched.h
 +++ b/include/trace/hooks/sched.h
 @@ -116,6 +116,9 @@ struct sugov_policy;
@@ -53,7 +53,7 @@ index d91c4d1..82bda91 100644
  #endif /* _TRACE_HOOK_SCHED_H */
  /* This part must be outside protection */
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index c007950..c0c2380 100644
+index c007950c7a13..c0c2380b1666 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -5996,6 +5996,9 @@ long sched_setaffinity(pid_t pid, const struct cpumask *in_mask)
@@ -67,5 +67,5 @@ index c007950..c0c2380 100644
  	free_cpumask_var(new_mask);
  out_free_cpus_allowed:
 -- 
-2.7.4
+2.17.1
 

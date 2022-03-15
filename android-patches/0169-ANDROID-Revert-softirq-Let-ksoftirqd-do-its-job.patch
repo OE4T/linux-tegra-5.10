@@ -1,4 +1,4 @@
-From 2f38f453763b476dcd53e09dbc8188066249c530 Mon Sep 17 00:00:00 2001
+From d97378292af2464e29890d109c5f981cf0de970a Mon Sep 17 00:00:00 2001
 From: Lingutla Chandrasekhar <clingutla@codeaurora.org>
 Date: Thu, 1 Mar 2018 18:36:36 +0530
 Subject: [PATCH 169/830] ANDROID: Revert "softirq: Let ksoftirqd do its job"
@@ -24,13 +24,14 @@ Signed-off-by: J. Avila <elavila@google.com>
  1 file changed, 1 insertion(+), 16 deletions(-)
 
 diff --git a/kernel/softirq.c b/kernel/softirq.c
-index df727d8..438c0e8 100644
+index df727d82600a..438c0e8f45e9 100644
 --- a/kernel/softirq.c
 +++ b/kernel/softirq.c
-@@ -84,18 +84,6 @@ static void wakeup_softirqd(void)
+@@ -83,18 +83,6 @@ static void wakeup_softirqd(void)
+ 		wake_up_process(tsk);
  }
  
- /*
+-/*
 - * If ksoftirqd is scheduled, we do not want to process pending softirqs
 - * right now. Let ksoftirqd handle this at its own rate, to get fairness.
 - */
@@ -42,10 +43,9 @@ index df727d8..438c0e8 100644
 -		!__kthread_should_park(tsk);
 -}
 -
--/*
+ /*
   * preempt_count and SOFTIRQ_OFFSET usage:
   * - preempt_count is changed by SOFTIRQ_OFFSET on entering or leaving
-  *   softirq processing.
 @@ -359,7 +347,7 @@ asmlinkage __visible void do_softirq(void)
  
  	pending = local_softirq_pending();
@@ -66,5 +66,5 @@ index df727d8..438c0e8 100644
  #ifdef CONFIG_HAVE_IRQ_EXIT_ON_IRQ_STACK
  		/*
 -- 
-2.7.4
+2.17.1
 

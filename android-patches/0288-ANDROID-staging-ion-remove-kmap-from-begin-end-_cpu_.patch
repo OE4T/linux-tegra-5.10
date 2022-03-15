@@ -1,4 +1,4 @@
-From aa9e736c2cda437cf41a29904755916e60218e7a Mon Sep 17 00:00:00 2001
+From abb67f1c6173eff3ddb7e58b0602ca129edd467d Mon Sep 17 00:00:00 2001
 From: Hyesoo Yu <hyesoo.yu@samsung.com>
 Date: Wed, 10 Jun 2020 17:51:05 +0900
 Subject: [PATCH 288/830] ANDROID: staging: ion: remove kmap from
@@ -29,7 +29,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@google.com>
  1 file changed, 1 insertion(+), 16 deletions(-)
 
 diff --git a/drivers/staging/android/ion/ion_dma_buf.c b/drivers/staging/android/ion/ion_dma_buf.c
-index 3cd40f9..8b67416 100644
+index 3cd40f9ac48b..8b6741696b08 100644
 --- a/drivers/staging/android/ion/ion_dma_buf.c
 +++ b/drivers/staging/android/ion/ion_dma_buf.c
 @@ -165,23 +165,11 @@ static int ion_dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
@@ -76,5 +76,5 @@ index 3cd40f9..8b67416 100644
  		goto unlock;
  
 -- 
-2.7.4
+2.17.1
 

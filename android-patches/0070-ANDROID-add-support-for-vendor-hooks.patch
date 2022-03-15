@@ -1,4 +1,4 @@
-From b11f31879366684cbca778142c3b027886736cf6 Mon Sep 17 00:00:00 2001
+From 4592cd56c4f039401d7291b30f657d588b362c6b Mon Sep 17 00:00:00 2001
 From: Todd Kjos <tkjos@google.com>
 Date: Fri, 24 Apr 2020 10:12:38 -0700
 Subject: [PATCH 070/830] ANDROID: add support for vendor hooks
@@ -87,16 +87,16 @@ Change-Id: I6a7d1c8919dae91c965e2a0450df50eac2d282db
            Also split the gki_defconfig changes into a separate patch.]
 Signed-off-by: Eric Biggers <ebiggers@google.com>
 ---
- drivers/android/Kconfig            |  9 +++++
+ drivers/android/Kconfig            |  9 ++++
  drivers/android/Makefile           |  1 +
- drivers/android/vendor_hooks.c     | 16 ++++++++
- include/trace/hooks/vendor_hooks.h | 76 ++++++++++++++++++++++++++++++++++++++
+ drivers/android/vendor_hooks.c     | 16 +++++++
+ include/trace/hooks/vendor_hooks.h | 76 ++++++++++++++++++++++++++++++
  4 files changed, 102 insertions(+)
  create mode 100644 drivers/android/vendor_hooks.c
  create mode 100644 include/trace/hooks/vendor_hooks.h
 
 diff --git a/drivers/android/Kconfig b/drivers/android/Kconfig
-index 53b22e2..32fb9e5 100644
+index 53b22e26266c..32fb9e5b6195 100644
 --- a/drivers/android/Kconfig
 +++ b/drivers/android/Kconfig
 @@ -54,6 +54,15 @@ config ANDROID_BINDER_IPC_SELFTEST
@@ -116,7 +116,7 @@ index 53b22e2..32fb9e5 100644
  
  endmenu
 diff --git a/drivers/android/Makefile b/drivers/android/Makefile
-index c9d3d0c9..d488047 100644
+index c9d3d0c99c25..d488047415a0 100644
 --- a/drivers/android/Makefile
 +++ b/drivers/android/Makefile
 @@ -4,3 +4,4 @@ ccflags-y += -I$(src)			# needed for trace events
@@ -126,7 +126,7 @@ index c9d3d0c9..d488047 100644
 +obj-$(CONFIG_ANDROID_VENDOR_HOOKS) += vendor_hooks.o
 diff --git a/drivers/android/vendor_hooks.c b/drivers/android/vendor_hooks.c
 new file mode 100644
-index 00000000..cf75759
+index 000000000000..cf75759e4c3f
 --- /dev/null
 +++ b/drivers/android/vendor_hooks.c
 @@ -0,0 +1,16 @@
@@ -148,7 +148,7 @@ index 00000000..cf75759
 +
 diff --git a/include/trace/hooks/vendor_hooks.h b/include/trace/hooks/vendor_hooks.h
 new file mode 100644
-index 00000000..8a3fdb9
+index 000000000000..8a3fdb9222e5
 --- /dev/null
 +++ b/include/trace/hooks/vendor_hooks.h
 @@ -0,0 +1,76 @@
@@ -229,5 +229,5 @@ index 00000000..8a3fdb9
 +
 +#endif /* TRACE_HEADER_MULTI_READ */
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From ac9e69faa20f1f3d2d837388d1f358a0b27c8496 Mon Sep 17 00:00:00 2001
+From 9aceac1e74e3d0a1dece5b8acff5f65972b78a48 Mon Sep 17 00:00:00 2001
 From: Satya Durga Srinivasu Prabhala <satyap@codeaurora.org>
 Date: Wed, 25 Nov 2020 04:25:03 -0800
 Subject: [PATCH 180/830] ANDROID: sched/core: Export symbols needed by modules
@@ -17,7 +17,7 @@ Signed-off-by: Satya Durga Srinivasu Prabhala <satyap@codeaurora.org>
  1 file changed, 2 insertions(+)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index b2f92d8..c007950 100644
+index b2f92d84edfc..c007950c7a13 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -1125,6 +1125,7 @@ unsigned long uclamp_eff_value(struct task_struct *p, enum uclamp_id clamp_id)
@@ -37,5 +37,5 @@ index b2f92d8..c007950 100644
  /**
   * available_idle_cpu - is a given CPU idle for enqueuing work.
 -- 
-2.7.4
+2.17.1
 

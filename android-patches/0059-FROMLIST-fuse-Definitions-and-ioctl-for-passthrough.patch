@@ -1,4 +1,4 @@
-From 86b4ac4d9fb77537494c5047c91e81ae9175ea1a Mon Sep 17 00:00:00 2001
+From dfb7c07e724acf35c3801e04576f2b9492709b72 Mon Sep 17 00:00:00 2001
 From: Alessio Balsini <balsini@android.com>
 Date: Thu, 10 Sep 2020 17:57:36 +0100
 Subject: [PATCH 059/830] FROMLIST: fuse: Definitions and ioctl() for
@@ -28,18 +28,18 @@ Signed-off-by: Alessio Balsini <balsini@google.com>
 Change-Id: I6dd150b93607e10ed53f7e7975b35b6090080fa2
 ---
  fs/fuse/Makefile          |  1 +
- fs/fuse/dev.c             | 40 +++++++++++++++++++++++++++++-----------
+ fs/fuse/dev.c             | 40 ++++++++++++++++++++++++++++-----------
  fs/fuse/dir.c             |  2 ++
  fs/fuse/file.c            |  4 +++-
- fs/fuse/fuse_i.h          | 26 ++++++++++++++++++++++++++
+ fs/fuse/fuse_i.h          | 26 +++++++++++++++++++++++++
  fs/fuse/inode.c           | 18 +++++++++++++++++-
- fs/fuse/passthrough.c     | 21 +++++++++++++++++++++
+ fs/fuse/passthrough.c     | 21 ++++++++++++++++++++
  include/uapi/linux/fuse.h | 13 +++++++++++--
  8 files changed, 110 insertions(+), 15 deletions(-)
  create mode 100644 fs/fuse/passthrough.c
 
 diff --git a/fs/fuse/Makefile b/fs/fuse/Makefile
-index 8c7021f..20ed23a 100644
+index 8c7021fb2cd4..20ed23aa16fa 100644
 --- a/fs/fuse/Makefile
 +++ b/fs/fuse/Makefile
 @@ -8,6 +8,7 @@ obj-$(CONFIG_CUSE) += cuse.o
@@ -51,7 +51,7 @@ index 8c7021f..20ed23a 100644
  
  virtiofs-y := virtio_fs.o
 diff --git a/fs/fuse/dev.c b/fs/fuse/dev.c
-index d100b5d..608adde 100644
+index d100b5dfedbd..608adde0617e 100644
 --- a/fs/fuse/dev.c
 +++ b/fs/fuse/dev.c
 @@ -2253,37 +2253,55 @@ static int fuse_device_clone(struct fuse_conn *fc, struct file *new)
@@ -122,7 +122,7 @@ index d100b5d..608adde 100644
  
  const struct file_operations fuse_dev_operations = {
 diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c
-index e766749..bec5ba4 100644
+index 8e95a75a4559..242760944eaf 100644
 --- a/fs/fuse/dir.c
 +++ b/fs/fuse/dir.c
 @@ -530,6 +530,7 @@ static int fuse_create_open(struct inode *dir, struct dentry *entry,
@@ -142,7 +142,7 @@ index e766749..bec5ba4 100644
  			  &outentry.attr, entry_attr_timeout(&outentry), 0);
  	if (!inode) {
 diff --git a/fs/fuse/file.c b/fs/fuse/file.c
-index a089cba..04a60eb 100644
+index 0ed4813b327e..feb614114fad 100644
 --- a/fs/fuse/file.c
 +++ b/fs/fuse/file.c
 @@ -152,7 +152,7 @@ int fuse_do_open(struct fuse_mount *fm, u64 nodeid, struct file *file,
@@ -164,7 +164,7 @@ index a089cba..04a60eb 100644
  
  	if (ff->flock) {
 diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
-index b159d8b..2da9053 100644
+index b159d8b5e893..2da90538ad85 100644
 --- a/fs/fuse/fuse_i.h
 +++ b/fs/fuse/fuse_i.h
 @@ -180,6 +180,14 @@ struct fuse_conn;
@@ -227,7 +227,7 @@ index b159d8b..2da9053 100644
 +
  #endif /* _FS_FUSE_I_H */
 diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
-index 5e48467..3d9afc9 100644
+index 5e484676343e..3d9afc9bed17 100644
 --- a/fs/fuse/inode.c
 +++ b/fs/fuse/inode.c
 @@ -683,6 +683,7 @@ void fuse_conn_init(struct fuse_conn *fc, struct fuse_mount *fm,
@@ -288,7 +288,7 @@ index 5e48467..3d9afc9 100644
  EXPORT_SYMBOL_GPL(fuse_free_conn);
 diff --git a/fs/fuse/passthrough.c b/fs/fuse/passthrough.c
 new file mode 100644
-index 00000000..594060c
+index 000000000000..594060c654f8
 --- /dev/null
 +++ b/fs/fuse/passthrough.c
 @@ -0,0 +1,21 @@
@@ -314,7 +314,7 @@ index 00000000..594060c
 +{
 +}
 diff --git a/include/uapi/linux/fuse.h b/include/uapi/linux/fuse.h
-index 7233502..d2879c1 100644
+index 7233502ea991..d2879c1ac9d5 100644
 --- a/include/uapi/linux/fuse.h
 +++ b/include/uapi/linux/fuse.h
 @@ -349,6 +349,7 @@ struct fuse_file_lock {
@@ -359,5 +359,5 @@ index 7233502..d2879c1 100644
  struct fuse_lseek_in {
  	uint64_t	fh;
 -- 
-2.7.4
+2.17.1
 

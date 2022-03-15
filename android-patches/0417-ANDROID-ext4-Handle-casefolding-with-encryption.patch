@@ -1,4 +1,4 @@
-From 4643facdbe9024a59430374cf991edc1df8fb24f Mon Sep 17 00:00:00 2001
+From e4b05164553b98aa7081b68f922027809ddbf296 Mon Sep 17 00:00:00 2001
 From: Daniel Rosenberg <drosen@google.com>
 Date: Mon, 7 Oct 2019 18:12:23 -0700
 Subject: [PATCH 417/830] ANDROID: ext4: Handle casefolding with encryption
@@ -23,18 +23,18 @@ Bug: 138322712
 Bug: 161184936
 Change-Id: I07354e3129aa07d309fbe36c002fee1af718f348
 ---
- Documentation/filesystems/ext4/directory.rst |  27 +++
- fs/ext4/dir.c                                |  46 +++-
- fs/ext4/ext4.h                               |  62 +++++-
- fs/ext4/hash.c                               |  25 ++-
+ Documentation/filesystems/ext4/directory.rst |  27 ++
+ fs/ext4/dir.c                                |  46 ++-
+ fs/ext4/ext4.h                               |  62 +++-
+ fs/ext4/hash.c                               |  25 +-
  fs/ext4/ialloc.c                             |   5 +-
- fs/ext4/inline.c                             |  41 ++--
- fs/ext4/namei.c                              | 314 ++++++++++++++++++---------
+ fs/ext4/inline.c                             |  41 +--
+ fs/ext4/namei.c                              | 314 +++++++++++++------
  fs/ext4/super.c                              |   6 -
  8 files changed, 377 insertions(+), 149 deletions(-)
 
 diff --git a/Documentation/filesystems/ext4/directory.rst b/Documentation/filesystems/ext4/directory.rst
-index 073940c..55f618b 100644
+index 073940cc64ed..55f618b37144 100644
 --- a/Documentation/filesystems/ext4/directory.rst
 +++ b/Documentation/filesystems/ext4/directory.rst
 @@ -121,6 +121,31 @@ The directory file type is one of the following values:
@@ -79,7 +79,7 @@ index 073940c..55f618b 100644
  Interior nodes of an htree are recorded as ``struct dx_node``, which is
  also the full length of a data block:
 diff --git a/fs/ext4/dir.c b/fs/ext4/dir.c
-index d6d2a30..4802d1d 100644
+index d6d2a30dc663..4802d1d9b283 100644
 --- a/fs/ext4/dir.c
 +++ b/fs/ext4/dir.c
 @@ -30,6 +30,8 @@
@@ -203,7 +203,7 @@ index d6d2a30..4802d1d 100644
  		rlen = ext4_rec_len_from_disk(de->rec_len, buf_size);
  		de = (struct ext4_dir_entry_2 *)((char *)de + rlen);
 diff --git a/fs/ext4/ext4.h b/fs/ext4/ext4.h
-index 2beb8a86..614a1a6 100644
+index 250b59c6fbf4..9e49109d6417 100644
 --- a/fs/ext4/ext4.h
 +++ b/fs/ext4/ext4.h
 @@ -2167,6 +2167,17 @@ struct ext4_dir_entry {
@@ -224,10 +224,11 @@ index 2beb8a86..614a1a6 100644
  /*
   * The new version of the directory entry.  Since EXT4 structures are
   * stored in intel byte order, and the name_len field could never be
-@@ -2182,6 +2193,22 @@ struct ext4_dir_entry_2 {
+@@ -2181,6 +2192,22 @@ struct ext4_dir_entry_2 {
+ 	char	name[EXT4_NAME_LEN];	/* File name */
  };
  
- /*
++/*
 + * Access the hashes at the end of ext4_dir_entry_2
 + */
 +#define EXT4_DIRENT_HASHES(entry) \
@@ -243,11 +244,10 @@ index 2beb8a86..614a1a6 100644
 +	return IS_CASEFOLDED(inode) && IS_ENCRYPTED(inode);
 +}
 +
-+/*
+ /*
   * This is a bogus directory entry at the end of each leaf block that
   * records checksums.
-  */
-@@ -2222,11 +2249,25 @@ struct ext4_dir_entry_tail {
+@@ -2222,10 +2249,24 @@ struct ext4_dir_entry_tail {
   */
  #define EXT4_DIR_PAD			4
  #define EXT4_DIR_ROUND			(EXT4_DIR_PAD - 1)
@@ -255,7 +255,7 @@ index 2beb8a86..614a1a6 100644
 -					 ~EXT4_DIR_ROUND)
  #define EXT4_MAX_REC_LEN		((1<<16)-1)
  
- /*
++/*
 + * The rec_len is dependent on the type of directory. Directories that are
 + * casefolded and encrypted need to store the hash as well, so we add room for
 + * ext4_extended_dir_entry_2. For all entries related to '.' or '..' you should
@@ -271,10 +271,9 @@ index 2beb8a86..614a1a6 100644
 +	return (rec_len & ~EXT4_DIR_ROUND);
 +}
 +
-+/*
+ /*
   * If we ever get support for fs block sizes > page_size, we'll need
   * to remove the #if statements in the next two functions...
-  */
 @@ -2282,6 +2323,7 @@ static inline __le16 ext4_rec_len_to_disk(unsigned len, unsigned blocksize)
  #define DX_HASH_LEGACY_UNSIGNED		3
  #define DX_HASH_HALF_MD4_UNSIGNED	4
@@ -318,7 +317,7 @@ index 2beb8a86..614a1a6 100644
  			struct ext4_dir_entry_2 *de,
  			int buf_size,
  			struct ext4_filename *fname);
-@@ -2915,10 +2959,11 @@ extern int ext4_search_dir(struct buffer_head *bh,
+@@ -2919,10 +2963,11 @@ extern int ext4_search_dir(struct buffer_head *bh,
  			   int buf_size,
  			   struct inode *dir,
  			   struct ext4_filename *fname,
@@ -331,7 +330,7 @@ index 2beb8a86..614a1a6 100644
  				     struct buffer_head *bh,
  				     void *entry_buf,
  				     int buf_size,
-@@ -3476,9 +3521,6 @@ extern void ext4_initialize_dirent_tail(struct buffer_head *bh,
+@@ -3480,9 +3525,6 @@ extern void ext4_initialize_dirent_tail(struct buffer_head *bh,
  					unsigned int blocksize);
  extern int ext4_handle_dirty_dirblock(handle_t *handle, struct inode *inode,
  				      struct buffer_head *bh);
@@ -342,7 +341,7 @@ index 2beb8a86..614a1a6 100644
  			 struct inode *inode);
  extern int __ext4_link(struct inode *dir, struct inode *inode,
 diff --git a/fs/ext4/hash.c b/fs/ext4/hash.c
-index a92eb79..aeec7a2 100644
+index a92eb79de0cc..aeec7a2162e8 100644
 --- a/fs/ext4/hash.c
 +++ b/fs/ext4/hash.c
 @@ -197,7 +197,7 @@ static void str2hashbuf_unsigned(const char *msg, int len, __u32 *buf, int num)
@@ -403,7 +402,7 @@ index a92eb79..aeec7a2 100644
 +	return __ext4fs_dirhash(dir, name, len, hinfo);
  }
 diff --git a/fs/ext4/ialloc.c b/fs/ext4/ialloc.c
-index 875af32..650091b 100644
+index 875af329c43e..650091bf4945 100644
 --- a/fs/ext4/ialloc.c
 +++ b/fs/ext4/ialloc.c
 @@ -458,7 +458,10 @@ static int find_group_orlov(struct super_block *sb, struct inode *parent,
@@ -419,7 +418,7 @@ index 875af32..650091b 100644
  			ext4fs_dirhash(parent, qstr->name, qstr->len, &hinfo);
  			grp = hinfo.hash;
 diff --git a/fs/ext4/inline.c b/fs/ext4/inline.c
-index cae7402..a2dff5d 100644
+index d83a4152b2ce..47c73fc2e6a2 100644
 --- a/fs/ext4/inline.c
 +++ b/fs/ext4/inline.c
 @@ -1011,7 +1011,7 @@ void ext4_show_inline_dir(struct inode *dir, struct buffer_head *bh,
@@ -458,7 +457,7 @@ index cae7402..a2dff5d 100644
  		return -ENOSPC;
  
  	ret = ext4_update_inline_data(handle, dir,
-@@ -1395,8 +1395,8 @@ int ext4_inlinedir_to_tree(struct file *dir_file,
+@@ -1403,8 +1403,8 @@ int ext4_inlinedir_to_tree(struct file *dir_file,
  			fake.name_len = 1;
  			strcpy(fake.name, ".");
  			fake.rec_len = ext4_rec_len_to_disk(
@@ -469,7 +468,7 @@ index cae7402..a2dff5d 100644
  			ext4_set_de_type(inode->i_sb, &fake, S_IFDIR);
  			de = &fake;
  			pos = EXT4_INLINE_DOTDOT_OFFSET;
-@@ -1405,8 +1405,8 @@ int ext4_inlinedir_to_tree(struct file *dir_file,
+@@ -1413,8 +1413,8 @@ int ext4_inlinedir_to_tree(struct file *dir_file,
  			fake.name_len = 2;
  			strcpy(fake.name, "..");
  			fake.rec_len = ext4_rec_len_to_disk(
@@ -480,7 +479,7 @@ index cae7402..a2dff5d 100644
  			ext4_set_de_type(inode->i_sb, &fake, S_IFDIR);
  			de = &fake;
  			pos = EXT4_INLINE_DOTDOT_SIZE;
-@@ -1415,13 +1415,18 @@ int ext4_inlinedir_to_tree(struct file *dir_file,
+@@ -1423,13 +1423,18 @@ int ext4_inlinedir_to_tree(struct file *dir_file,
  			pos += ext4_rec_len_from_disk(de->rec_len, inline_size);
  			if (ext4_check_dir_entry(inode, dir_file, de,
  					 iloc.bh, dir_buf,
@@ -501,7 +500,7 @@ index cae7402..a2dff5d 100644
  		if ((hinfo->hash < start_hash) ||
  		    ((hinfo->hash == start_hash) &&
  		     (hinfo->minor_hash < start_minor_hash)))
-@@ -1503,8 +1508,8 @@ int ext4_read_inline_dir(struct file *file,
+@@ -1511,8 +1516,8 @@ int ext4_read_inline_dir(struct file *file,
  	 * So we will use extra_offset and extra_size to indicate them
  	 * during the inline dir iteration.
  	 */
@@ -512,7 +511,7 @@ index cae7402..a2dff5d 100644
  	extra_offset = dotdot_size - EXT4_INLINE_DOTDOT_SIZE;
  	extra_size = extra_offset + inline_size;
  
-@@ -1539,7 +1544,7 @@ int ext4_read_inline_dir(struct file *file,
+@@ -1547,7 +1552,7 @@ int ext4_read_inline_dir(struct file *file,
  			 * failure will be detected in the
  			 * dirent test below. */
  			if (ext4_rec_len_from_disk(de->rec_len, extra_size)
@@ -521,7 +520,7 @@ index cae7402..a2dff5d 100644
  				break;
  			i += ext4_rec_len_from_disk(de->rec_len,
  						    extra_size);
-@@ -1567,7 +1572,7 @@ int ext4_read_inline_dir(struct file *file,
+@@ -1575,7 +1580,7 @@ int ext4_read_inline_dir(struct file *file,
  		de = (struct ext4_dir_entry_2 *)
  			(dir_buf + ctx->pos - extra_offset);
  		if (ext4_check_dir_entry(inode, file, de, iloc.bh, dir_buf,
@@ -530,7 +529,7 @@ index cae7402..a2dff5d 100644
  			goto out;
  		if (le32_to_cpu(de->inode)) {
  			if (!dir_emit(ctx, de->name, de->name_len,
-@@ -1659,7 +1664,7 @@ struct buffer_head *ext4_find_inline_entry(struct inode *dir,
+@@ -1667,7 +1672,7 @@ struct buffer_head *ext4_find_inline_entry(struct inode *dir,
  						EXT4_INLINE_DOTDOT_SIZE;
  	inline_size = EXT4_MIN_INLINE_DATA_SIZE - EXT4_INLINE_DOTDOT_SIZE;
  	ret = ext4_search_dir(iloc.bh, inline_start, inline_size,
@@ -539,7 +538,7 @@ index cae7402..a2dff5d 100644
  	if (ret == 1)
  		goto out_find;
  	if (ret < 0)
-@@ -1672,7 +1677,7 @@ struct buffer_head *ext4_find_inline_entry(struct inode *dir,
+@@ -1680,7 +1685,7 @@ struct buffer_head *ext4_find_inline_entry(struct inode *dir,
  	inline_size = ext4_get_inline_size(dir) - EXT4_MIN_INLINE_DATA_SIZE;
  
  	ret = ext4_search_dir(iloc.bh, inline_start, inline_size,
@@ -548,7 +547,7 @@ index cae7402..a2dff5d 100644
  	if (ret == 1)
  		goto out_find;
  
-@@ -1721,7 +1726,7 @@ int ext4_delete_inline_entry(handle_t *handle,
+@@ -1729,7 +1734,7 @@ int ext4_delete_inline_entry(handle_t *handle,
  	if (err)
  		goto out;
  
@@ -557,7 +556,7 @@ index cae7402..a2dff5d 100644
  					inline_start, inline_size, 0);
  	if (err)
  		goto out;
-@@ -1806,7 +1811,7 @@ bool empty_inline_dir(struct inode *dir, int *has_inline_data)
+@@ -1814,7 +1819,7 @@ bool empty_inline_dir(struct inode *dir, int *has_inline_data)
  					   &inline_pos, &inline_size);
  		if (ext4_check_dir_entry(dir, NULL, de,
  					 iloc.bh, inline_pos,
@@ -567,7 +566,7 @@ index cae7402..a2dff5d 100644
  				     "bad inline directory (dir #%lu) - "
  				     "inode %u, rec_len %u, name_len %d"
 diff --git a/fs/ext4/namei.c b/fs/ext4/namei.c
-index 4870ccd..c3298f1 100644
+index 4870ccd47626..c3298f161ea9 100644
 --- a/fs/ext4/namei.c
 +++ b/fs/ext4/namei.c
 @@ -284,9 +284,11 @@ static int dx_make_map(struct inode *dir, struct ext4_dir_entry_2 *de,
@@ -1491,7 +1490,7 @@ index 4870ccd..c3298f1 100644
  		retval = PTR_ERR(new.bh);
  		new.bh = NULL;
 diff --git a/fs/ext4/super.c b/fs/ext4/super.c
-index 74bc208..0d5be41 100644
+index 9346801a36e4..e4a905c45711 100644
 --- a/fs/ext4/super.c
 +++ b/fs/ext4/super.c
 @@ -4307,12 +4307,6 @@ static int ext4_fill_super(struct super_block *sb, void *data, int silent)
@@ -1508,5 +1507,5 @@ index 74bc208..0d5be41 100644
  					  &encoding_flags)) {
  			ext4_msg(sb, KERN_ERR,
 -- 
-2.7.4
+2.17.1
 

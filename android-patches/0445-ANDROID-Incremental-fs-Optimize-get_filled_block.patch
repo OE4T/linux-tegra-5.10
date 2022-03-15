@@ -1,4 +1,4 @@
-From fa29190a6a1f2dcc64e310d35e866213784e2a0a Mon Sep 17 00:00:00 2001
+From 948c7c578b4fbf0eabadd832280a0bcf865278ef Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Fri, 3 Apr 2020 10:36:30 -0700
 Subject: [PATCH 445/830] ANDROID: Incremental fs: Optimize get_filled_block
@@ -15,12 +15,12 @@ Test: incfs_test passes. Adding logging to incfs_get_filled_blocks
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
 Change-Id: Ifb2da77cfd8c9d653c7047ba1eb7f39d795fa1c2
 ---
- fs/incfs/data_mgmt.c | 57 ++++++++++++++++++++++++++++++++++++++++------------
- fs/incfs/format.c    | 19 +++++++++++++-----
+ fs/incfs/data_mgmt.c | 57 ++++++++++++++++++++++++++++++++++----------
+ fs/incfs/format.c    | 19 +++++++++++----
  2 files changed, 58 insertions(+), 18 deletions(-)
 
 diff --git a/fs/incfs/data_mgmt.c b/fs/incfs/data_mgmt.c
-index 91541b4..1c4c554 100644
+index 91541b46f771..1c4c5541c471 100644
 --- a/fs/incfs/data_mgmt.c
 +++ b/fs/incfs/data_mgmt.c
 @@ -347,13 +347,28 @@ static bool is_data_block_present(struct data_file_block *block)
@@ -134,7 +134,7 @@ index 91541b4..1c4c554 100644
  }
  
 diff --git a/fs/incfs/format.c b/fs/incfs/format.c
-index ff3a221..8f3a3b3 100644
+index ff3a2219fc24..8f3a3b3f8f7b 100644
 --- a/fs/incfs/format.c
 +++ b/fs/incfs/format.c
 @@ -514,8 +514,19 @@ int incfs_read_blockmap_entry(struct backing_file_context *bfc, int block_index,
@@ -171,5 +171,5 @@ index ff3a221..8f3a3b3 100644
  
  int incfs_read_file_header(struct backing_file_context *bfc,
 -- 
-2.7.4
+2.17.1
 

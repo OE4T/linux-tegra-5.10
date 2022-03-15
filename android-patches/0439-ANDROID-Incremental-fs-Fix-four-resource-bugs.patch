@@ -1,4 +1,4 @@
-From 5c83a28bfabe19dfa87ac0557dce926788c34853 Mon Sep 17 00:00:00 2001
+From 2f2db2fad620d7c018b7dfbc06b8490d2ea8de9d Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Thu, 26 Mar 2020 12:53:11 -0700
 Subject: [PATCH 439/830] ANDROID: Incremental fs: Fix four resource bugs
@@ -19,7 +19,7 @@ Change-Id: I88f11f5d4269c22d9073e5eb671d0c7cc4629f6c
  1 file changed, 8 insertions(+), 5 deletions(-)
 
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index 0164e93..f2a5b3d 100644
+index 0164e9306eba..f2a5b3df9d38 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -347,8 +347,8 @@ static int inode_test(struct inode *inode, void *opaque)
@@ -85,5 +85,5 @@ index 0164e93..f2a5b3d 100644
  	generic_shutdown_super(sb);
  }
 -- 
-2.7.4
+2.17.1
 

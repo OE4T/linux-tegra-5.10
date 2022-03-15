@@ -1,4 +1,4 @@
-From 0c466622639a5f3e4d980b1963578f2bb6e0c937 Mon Sep 17 00:00:00 2001
+From eed2a6e62fe429c528cfe80320003c4b10807372 Mon Sep 17 00:00:00 2001
 From: Dmitry Shmidt <dimitrysh@google.com>
 Date: Tue, 11 Aug 2020 13:39:37 -0700
 Subject: [PATCH 782/830] ANDROID: GKI: add built-in BCM Bluetooth driver
@@ -17,7 +17,7 @@ Signed-off-by: Cheney Ni <cheneyni@google.com>
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index a3cbd92..ba4bcc7 100644
+index a3cbd924bb83..ba4bcc71d546 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -215,6 +215,7 @@ CONFIG_BT_HIDP=y
@@ -29,7 +29,7 @@ index a3cbd92..ba4bcc7 100644
  CONFIG_CFG80211=y
  # CONFIG_CFG80211_DEFAULT_PS is not set
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index a703f42a..23ad3de 100644
+index a703f42aeb78..23ad3de1bbc3 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -193,6 +193,7 @@ CONFIG_BT_HIDP=y
@@ -41,5 +41,5 @@ index a703f42a..23ad3de 100644
  CONFIG_CFG80211=y
  # CONFIG_CFG80211_DEFAULT_PS is not set
 -- 
-2.7.4
+2.17.1
 

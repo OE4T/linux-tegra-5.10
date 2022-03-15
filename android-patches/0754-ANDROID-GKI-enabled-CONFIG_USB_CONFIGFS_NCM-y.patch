@@ -1,4 +1,4 @@
-From 246443d82ddd847f77d6843dd993b2ddc2449b2a Mon Sep 17 00:00:00 2001
+From 4b2fcf51cde87c87f5f1570d1136e06957babc1c Mon Sep 17 00:00:00 2001
 From: Greg Kroah-Hartman <gregkh@google.com>
 Date: Wed, 12 Aug 2020 12:16:29 +0200
 Subject: [PATCH 754/830] ANDROID: GKI: enabled CONFIG_USB_CONFIGFS_NCM=y
@@ -16,7 +16,7 @@ Change-Id: Ia9c77c07e7e4c590b2f82355a9db24e9bd8ab1b2
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 116ff902..3845b88 100644
+index 116ff90289f8..3845b887b531 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -366,6 +366,7 @@ CONFIG_USB_CONFIGFS=y
@@ -28,7 +28,7 @@ index 116ff902..3845b88 100644
  CONFIG_USB_CONFIGFS_MASS_STORAGE=y
  CONFIG_USB_CONFIGFS_F_FS=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index e459846..7b9e6f2 100644
+index e4598460521b..7b9e6f24b9d1 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -328,6 +328,7 @@ CONFIG_USB_CONFIGFS=y
@@ -40,5 +40,5 @@ index e459846..7b9e6f2 100644
  CONFIG_USB_CONFIGFS_MASS_STORAGE=y
  CONFIG_USB_CONFIGFS_F_FS=y
 -- 
-2.7.4
+2.17.1
 

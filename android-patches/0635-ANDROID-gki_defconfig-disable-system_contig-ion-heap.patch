@@ -1,4 +1,4 @@
-From be9370b2445819a2bfac63ffcb6cb69f1f48d871 Mon Sep 17 00:00:00 2001
+From e72f72ad89c1a0b4370d21a7f7d2d8b90103d316 Mon Sep 17 00:00:00 2001
 From: Hridya Valsaraju <hridya@google.com>
 Date: Wed, 12 Feb 2020 23:45:28 -0800
 Subject: [PATCH 635/830] ANDROID: gki_defconfig: disable system_contig ion
@@ -15,7 +15,7 @@ Signed-off-by: Hridya Valsaraju <hridya@google.com>
  2 files changed, 2 deletions(-)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index b06cd89..461d9be 100644
+index b06cd8997771..461d9bef7a76 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -356,7 +356,6 @@ CONFIG_ASHMEM=y
@@ -27,7 +27,7 @@ index b06cd89..461d9be 100644
  CONFIG_HWSPINLOCK=y
  CONFIG_MAILBOX=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index eb26f04..fccc478 100644
+index eb26f04eb04a..fccc478530b5 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -307,7 +307,6 @@ CONFIG_STAGING=y
@@ -39,5 +39,5 @@ index eb26f04..fccc478 100644
  CONFIG_IIO=y
  CONFIG_ANDROID=y
 -- 
-2.7.4
+2.17.1
 

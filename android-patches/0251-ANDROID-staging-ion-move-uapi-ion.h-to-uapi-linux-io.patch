@@ -1,4 +1,4 @@
-From 9efa0aa5ca432dc269a24cac2c68f2a5421df755 Mon Sep 17 00:00:00 2001
+From 0320269115bca59b7c0a8c350ff676039df60626 Mon Sep 17 00:00:00 2001
 From: Sandeep Patil <sspatil@google.com>
 Date: Mon, 26 Aug 2019 12:39:52 -0700
 Subject: [PATCH 251/830] ANDROID: staging: ion: move uapi/ion.h to
@@ -12,14 +12,14 @@ Change-Id: I599a78e1acd2eed909f40e5a5b6a62813610990c
 Signed-off-by: Sandeep Patil <sspatil@google.com>
 ---
  include/linux/ion.h      |   2 +-
- include/uapi/ion.h       | 126 -----------------------------------------------
- include/uapi/linux/ion.h | 126 +++++++++++++++++++++++++++++++++++++++++++++++
+ include/uapi/ion.h       | 126 ---------------------------------------
+ include/uapi/linux/ion.h | 126 +++++++++++++++++++++++++++++++++++++++
  3 files changed, 127 insertions(+), 127 deletions(-)
  delete mode 100644 include/uapi/ion.h
  create mode 100644 include/uapi/linux/ion.h
 
 diff --git a/include/linux/ion.h b/include/linux/ion.h
-index fe0d2cb..5d68674 100644
+index fe0d2cb1ef25..5d68674b015a 100644
 --- a/include/linux/ion.h
 +++ b/include/linux/ion.h
 @@ -18,7 +18,7 @@
@@ -33,7 +33,7 @@ index fe0d2cb..5d68674 100644
   * struct ion_buffer - metadata for a particular buffer
 diff --git a/include/uapi/ion.h b/include/uapi/ion.h
 deleted file mode 100644
-index bfcbc0e..00000000
+index bfcbc0e70921..000000000000
 --- a/include/uapi/ion.h
 +++ /dev/null
 @@ -1,126 +0,0 @@
@@ -165,7 +165,7 @@ index bfcbc0e..00000000
 -#endif /* _UAPI_LINUX_ION_H */
 diff --git a/include/uapi/linux/ion.h b/include/uapi/linux/ion.h
 new file mode 100644
-index 00000000..bfcbc0e
+index 000000000000..bfcbc0e70921
 --- /dev/null
 +++ b/include/uapi/linux/ion.h
 @@ -0,0 +1,126 @@
@@ -296,5 +296,5 @@ index 00000000..bfcbc0e
 +
 +#endif /* _UAPI_LINUX_ION_H */
 -- 
-2.7.4
+2.17.1
 

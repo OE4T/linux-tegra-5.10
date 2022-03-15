@@ -1,4 +1,4 @@
-From 4bb62d01608b31434d2661d7de869ad84cd9528f Mon Sep 17 00:00:00 2001
+From 500593ad84f133ad55215dc8f06e568e1f2fb38a Mon Sep 17 00:00:00 2001
 From: Wei Wang <wvw@google.com>
 Date: Thu, 29 Oct 2020 22:49:45 -0700
 Subject: [PATCH 185/830] ANDROID: sched: Add vendor hooks for skipping sugov
@@ -22,7 +22,7 @@ Signed-off-by: Will McVicker <willmcvicker@google.com>
  3 files changed, 12 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/android/vendor_hooks.c b/drivers/android/vendor_hooks.c
-index ab97124..1aff188 100644
+index ab97124ca9bc..1aff188601cc 100644
 --- a/drivers/android/vendor_hooks.c
 +++ b/drivers/android/vendor_hooks.c
 @@ -68,4 +68,5 @@ EXPORT_TRACEPOINT_SYMBOL_GPL(android_rvh_find_busiest_queue);
@@ -35,7 +35,7 @@ index ab97124..1aff188 100644
 +EXPORT_TRACEPOINT_SYMBOL_GPL(android_rvh_set_sugov_update);
 \ No newline at end of file
 diff --git a/include/trace/hooks/sched.h b/include/trace/hooks/sched.h
-index 232ad3a..d91c4d1 100644
+index 232ad3a6f87b..d91c4d10a84e 100644
 --- a/include/trace/hooks/sched.h
 +++ b/include/trace/hooks/sched.h
 @@ -112,6 +112,10 @@ DECLARE_HOOK(android_vh_set_sugov_sched_attr,
@@ -58,7 +58,7 @@ index 232ad3a..d91c4d1 100644
  #endif /* _TRACE_HOOK_SCHED_H */
  /* This part must be outside protection */
 diff --git a/kernel/sched/cpufreq_schedutil.c b/kernel/sched/cpufreq_schedutil.c
-index 9b36bcf..8038194 100644
+index 9b36bcf46654..8038194f3bf5 100644
 --- a/kernel/sched/cpufreq_schedutil.c
 +++ b/kernel/sched/cpufreq_schedutil.c
 @@ -113,6 +113,7 @@ static bool sugov_should_update_freq(struct sugov_policy *sg_policy, u64 time)
@@ -81,5 +81,5 @@ index 9b36bcf..8038194 100644
  	sg_policy->last_freq_update_time = time;
  
 -- 
-2.7.4
+2.17.1
 

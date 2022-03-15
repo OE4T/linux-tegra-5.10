@@ -1,4 +1,4 @@
-From 5501b03b7fad117cea35e91f1d2595efd17e8f3b Mon Sep 17 00:00:00 2001
+From d7d5529b85f5d32da1d16f156d1a12c3259b8378 Mon Sep 17 00:00:00 2001
 From: Greg Kroah-Hartman <gregkh@google.com>
 Date: Thu, 25 Jun 2020 14:46:07 +0200
 Subject: [PATCH 459/830] ANDROID: Incremental fs: fix up attempt to copy
@@ -20,7 +20,7 @@ Change-Id: I7ecd3d05bd94c936dd5e69c63028458786f37a78
  1 file changed, 6 insertions(+), 3 deletions(-)
 
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index 410b7239..ee581de 100644
+index 410b7239c17b..ee581dea17a1 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -605,8 +605,11 @@ static ssize_t log_read(struct file *f, char __user *buf, size_t len,
@@ -47,5 +47,5 @@ index 410b7239..ee581de 100644
  		buf += reads_collected * sizeof(*reads_buf);
  		reads_to_collect -= reads_collected;
 -- 
-2.7.4
+2.17.1
 

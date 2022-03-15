@@ -1,4 +1,4 @@
-From 2b33646fe36abc157afd679a5f9c21f70ebd5045 Mon Sep 17 00:00:00 2001
+From 3f87e4910b7abdc8553ab89c2b08ea73ce3b04a4 Mon Sep 17 00:00:00 2001
 From: Badhri Jagan Sridharan <badhri@google.com>
 Date: Tue, 1 Dec 2020 20:08:40 -0800
 Subject: [PATCH 038/830] FROMGIT: usb: typec: tcpci_maxim: Enable VSAFE0V
@@ -21,7 +21,7 @@ Change-Id: I15785660419e724f1d7e6950d1854d3642cc1e2f
  1 file changed, 15 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/usb/typec/tcpm/tcpci_maxim.c b/drivers/usb/typec/tcpm/tcpci_maxim.c
-index c179723..3192663 100644
+index c1797239bf08..319266329b42 100644
 --- a/drivers/usb/typec/tcpm/tcpci_maxim.c
 +++ b/drivers/usb/typec/tcpm/tcpci_maxim.c
 @@ -112,11 +112,18 @@ static void max_tcpci_init_regs(struct max_tcpci_chip *chip)
@@ -66,5 +66,5 @@ index c179723..3192663 100644
  	max_tcpci_init_regs(chip);
  	chip->tcpci = tcpci_register_port(chip->dev, &chip->data);
 -- 
-2.7.4
+2.17.1
 

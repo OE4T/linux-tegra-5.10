@@ -1,4 +1,4 @@
-From fdac8c290b7ca675c9f41e268971239cee64914e Mon Sep 17 00:00:00 2001
+From c9ac0a5de1d2468ed736663175b6600bff3cd1e4 Mon Sep 17 00:00:00 2001
 From: Can Guo <cang@codeaurora.org>
 Date: Wed, 2 Dec 2020 04:04:02 -0800
 Subject: [PATCH 007/830] BACKPORT: FROMGIT: scsi: ufs: Fix a race condition
@@ -38,12 +38,12 @@ Change-Id: I6db273481cd06f5ce0a64dcaa94c9c3d014d8421
  git://git.kernel.org/pub/scm/linux/kernel/git/mkp/scsi.git 5.11/scsi-staging)
 Signed-off-by: Can Guo <cang@codeaurora.org>
 ---
- drivers/scsi/ufs/ufshcd.c | 61 +++++++++++++++++++++++++++++++++++++----------
+ drivers/scsi/ufs/ufshcd.c | 61 ++++++++++++++++++++++++++++++---------
  drivers/scsi/ufs/ufshcd.h |  2 ++
  2 files changed, 50 insertions(+), 13 deletions(-)
 
 diff --git a/drivers/scsi/ufs/ufshcd.c b/drivers/scsi/ufs/ufshcd.c
-index 9d4b1a6..93eb5ce 100644
+index bab1e60add73..95edcfaa4472 100644
 --- a/drivers/scsi/ufs/ufshcd.c
 +++ b/drivers/scsi/ufs/ufshcd.c
 @@ -2571,6 +2571,14 @@ static int ufshcd_queuecommand(struct Scsi_Host *host, struct scsi_cmnd *cmd)
@@ -81,7 +81,7 @@ index 9d4b1a6..93eb5ce 100644
  	ufshcd_add_query_upiu_trace(hba, tag,
  			err ? "query_complete_err" : "query_complete");
  
-@@ -5103,9 +5117,11 @@ static void __ufshcd_transfer_req_compl(struct ufs_hba *hba,
+@@ -5117,9 +5131,11 @@ static void __ufshcd_transfer_req_compl(struct ufs_hba *hba,
  	struct scsi_cmnd *cmd;
  	int result;
  	int index;
@@ -93,7 +93,7 @@ index 9d4b1a6..93eb5ce 100644
  		lrbp->compl_time_stamp = ktime_get();
  		cmd = lrbp->cmd;
  		if (cmd) {
-@@ -5118,15 +5134,17 @@ static void __ufshcd_transfer_req_compl(struct ufs_hba *hba,
+@@ -5132,15 +5148,17 @@ static void __ufshcd_transfer_req_compl(struct ufs_hba *hba,
  			/* Do not touch lrbp after scsi done */
  			cmd->scsi_done(cmd);
  			__ufshcd_release(hba);
@@ -112,7 +112,7 @@ index 9d4b1a6..93eb5ce 100644
  			hba->clk_scaling.active_reqs--;
  	}
  
-@@ -6543,8 +6561,12 @@ static int ufshcd_issue_devman_upiu_cmd(struct ufs_hba *hba,
+@@ -6557,8 +6575,12 @@ static int ufshcd_issue_devman_upiu_cmd(struct ufs_hba *hba,
  
  	init_completion(&wait);
  	lrbp = &hba->lrb[tag];
@@ -126,7 +126,7 @@ index 9d4b1a6..93eb5ce 100644
  	lrbp->cmd = NULL;
  	lrbp->sense_bufflen = 0;
  	lrbp->sense_buffer = NULL;
-@@ -6616,6 +6638,7 @@ static int ufshcd_issue_devman_upiu_cmd(struct ufs_hba *hba,
+@@ -6630,6 +6652,7 @@ static int ufshcd_issue_devman_upiu_cmd(struct ufs_hba *hba,
  		}
  	}
  
@@ -134,7 +134,7 @@ index 9d4b1a6..93eb5ce 100644
  	blk_put_request(req);
  out_unlock:
  	up_read(&hba->clk_scaling_lock);
-@@ -6866,16 +6889,6 @@ static int ufshcd_abort(struct scsi_cmnd *cmd)
+@@ -6880,16 +6903,6 @@ static int ufshcd_abort(struct scsi_cmnd *cmd)
  		BUG();
  	}
  
@@ -151,7 +151,7 @@ index 9d4b1a6..93eb5ce 100644
  	ufshcd_hold(hba, false);
  	reg = ufshcd_readl(hba, REG_UTP_TRANSFER_REQ_DOOR_BELL);
  	/* If command is already aborted/completed, return SUCCESS */
-@@ -6896,7 +6909,7 @@ static int ufshcd_abort(struct scsi_cmnd *cmd)
+@@ -6910,7 +6923,7 @@ static int ufshcd_abort(struct scsi_cmnd *cmd)
  	 * to reduce repeated printouts. For other aborted requests only print
  	 * basic details.
  	 */
@@ -160,7 +160,7 @@ index 9d4b1a6..93eb5ce 100644
  	if (!hba->req_abort_count) {
  		ufshcd_update_reg_hist(&hba->ufs_stats.task_abort, 0);
  		ufshcd_print_host_regs(hba);
-@@ -6915,6 +6928,28 @@ static int ufshcd_abort(struct scsi_cmnd *cmd)
+@@ -6929,6 +6942,28 @@ static int ufshcd_abort(struct scsi_cmnd *cmd)
  		goto cleanup;
  	}
  
@@ -190,7 +190,7 @@ index 9d4b1a6..93eb5ce 100644
  	if (lrbp->req_abort_skip)
  		err = -EIO;
 diff --git a/drivers/scsi/ufs/ufshcd.h b/drivers/scsi/ufs/ufshcd.h
-index c79eede..d666051 100644
+index c79eede6410c..d6660511f2a3 100644
 --- a/drivers/scsi/ufs/ufshcd.h
 +++ b/drivers/scsi/ufs/ufshcd.h
 @@ -168,6 +168,7 @@ struct ufs_pm_lvl_states {
@@ -210,5 +210,5 @@ index c79eede..d666051 100644
  
  /**
 -- 
-2.7.4
+2.17.1
 

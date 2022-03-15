@@ -1,4 +1,4 @@
-From b2eac88ff4271fecd4ac6301d6cba84baab5f805 Mon Sep 17 00:00:00 2001
+From 0454cd84aa805c0216b6ad07bb99b26cb03a79a7 Mon Sep 17 00:00:00 2001
 From: Jaegeuk Kim <jaegeuk@google.com>
 Date: Tue, 31 Mar 2020 13:47:58 -0700
 Subject: [PATCH 371/830] FROMLIST: scsi: add more contexts in the ufs
@@ -18,7 +18,7 @@ Change-Id: I8d61b3cf1ec043d2d30490b356eaa03b424ac704
  2 files changed, 21 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/scsi/ufs/ufshcd.c b/drivers/scsi/ufs/ufshcd.c
-index f82d4b0..3c1988c 100644
+index 0bdfb2e9cd51..06cda719bf42 100644
 --- a/drivers/scsi/ufs/ufshcd.c
 +++ b/drivers/scsi/ufs/ufshcd.c
 @@ -361,7 +361,7 @@ static void ufshcd_add_command_trace(struct ufs_hba *hba,
@@ -48,7 +48,7 @@ index f82d4b0..3c1988c 100644
  
  static void ufshcd_print_clk_freqs(struct ufs_hba *hba)
 diff --git a/include/trace/events/ufs.h b/include/trace/events/ufs.h
-index 84841b3..50654f3 100644
+index 84841b3a7ffd..50654f352639 100644
 --- a/include/trace/events/ufs.h
 +++ b/include/trace/events/ufs.h
 @@ -11,6 +11,15 @@
@@ -107,5 +107,5 @@ index 84841b3..50654f3 100644
  );
  
 -- 
-2.7.4
+2.17.1
 

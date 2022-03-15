@@ -1,4 +1,4 @@
-From 2a877ed3fcae1738a2885f66d4e4a6a27a2dc3d4 Mon Sep 17 00:00:00 2001
+From deae627bb3adf840a0d7c9a1b1a8de81799eaa44 Mon Sep 17 00:00:00 2001
 From: John Stultz <john.stultz@linaro.org>
 Date: Thu, 13 Feb 2020 18:39:40 +0000
 Subject: [PATCH 533/830] ANDROID: db845c_gki.fragment: Enable config options
@@ -12,11 +12,11 @@ Bug: 146449535
 Change-Id: I4d9bf877176db57ba7990980566357b2313bc149
 Signed-off-by: John Stultz <john.stultz@linaro.org>
 ---
- arch/arm64/configs/db845c_gki.fragment | 29 +++++++++++++++++++++++++++++
+ arch/arm64/configs/db845c_gki.fragment | 29 ++++++++++++++++++++++++++
  1 file changed, 29 insertions(+)
 
 diff --git a/arch/arm64/configs/db845c_gki.fragment b/arch/arm64/configs/db845c_gki.fragment
-index c8b7fc3..1c00edc 100644
+index c8b7fc3c3cd1..1c00edca0cdf 100644
 --- a/arch/arm64/configs/db845c_gki.fragment
 +++ b/arch/arm64/configs/db845c_gki.fragment
 @@ -62,3 +62,32 @@ CONFIG_PHY_QCOM_USB_HS=m
@@ -53,5 +53,5 @@ index c8b7fc3..1c00edc 100644
 +CONFIG_QCOM_SMD_RPM=m
 +CONFIG_QCOM_RPMPD=m
 -- 
-2.7.4
+2.17.1
 

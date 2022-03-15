@@ -1,4 +1,4 @@
-From 96e1643aa241a6650141f00d94b81a51749db2e5 Mon Sep 17 00:00:00 2001
+From f1257ed330a49f39e2822d69164858e15a3bec7d Mon Sep 17 00:00:00 2001
 From: John Stultz <john.stultz@linaro.org>
 Date: Thu, 13 Feb 2020 22:52:08 +0000
 Subject: [PATCH 641/830] ANDROID: Kconfig.gki: Remove most of the built in
@@ -20,7 +20,7 @@ Signed-off-by: Saravana Kannan <saravanak@google.com>
  2 files changed, 4 insertions(+), 3 deletions(-)
 
 diff --git a/arch/arm64/configs/db845c_gki.fragment b/arch/arm64/configs/db845c_gki.fragment
-index 3b249f6..294c243 100644
+index 3b249f643910..294c2434dd2c 100644
 --- a/arch/arm64/configs/db845c_gki.fragment
 +++ b/arch/arm64/configs/db845c_gki.fragment
 @@ -40,7 +40,10 @@ CONFIG_USB_ROLE_SWITCH=m
@@ -35,7 +35,7 @@ index 3b249f6..294c243 100644
  CONFIG_SDM_DISPCC_845=m
  CONFIG_HWSPINLOCK_QCOM=m
 diff --git a/init/Kconfig.gki b/init/Kconfig.gki
-index fb41559..69e48c2 100644
+index fb415595c05a..69e48c2feceb 100644
 --- a/init/Kconfig.gki
 +++ b/init/Kconfig.gki
 @@ -69,6 +69,7 @@ config GKI_HIDDEN_QCOM_CONFIGS
@@ -57,5 +57,5 @@ index fb41559..69e48c2 100644
  	help
  	  This config option selects various QCOM clk drivers that
 -- 
-2.7.4
+2.17.1
 

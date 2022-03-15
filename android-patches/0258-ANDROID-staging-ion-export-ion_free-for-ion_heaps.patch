@@ -1,4 +1,4 @@
-From 8765060096ba29df9df6b7809536a86e26eae779 Mon Sep 17 00:00:00 2001
+From 0e36fe26cbe8d1c955d0ea7cae66f05b057bebee Mon Sep 17 00:00:00 2001
 From: Sandeep Patil <sspatil@google.com>
 Date: Tue, 10 Sep 2019 05:13:51 -0700
 Subject: [PATCH 258/830] ANDROID: staging: ion: export ion_free() for
@@ -20,7 +20,7 @@ Signed-off-by: Sandeep Patil <sspatil@google.com>
  2 files changed, 13 insertions(+)
 
 diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
-index 49a2b37..60ae4dd 100644
+index 49a2b379cee6..60ae4dd948f6 100644
 --- a/drivers/staging/android/ion/ion.c
 +++ b/drivers/staging/android/ion/ion.c
 @@ -41,6 +41,7 @@ int ion_free(struct ion_buffer *buffer)
@@ -32,7 +32,7 @@ index 49a2b37..60ae4dd 100644
  static int ion_alloc_fd(size_t len, unsigned int heap_id_mask,
  			unsigned int flags)
 diff --git a/include/linux/ion.h b/include/linux/ion.h
-index 87aa2bc..88622fb 100644
+index 87aa2bcec7d3..88622fb8f9ea 100644
 --- a/include/linux/ion.h
 +++ b/include/linux/ion.h
 @@ -293,6 +293,13 @@ int ion_buffer_zero(struct ion_buffer *buffer);
@@ -61,5 +61,5 @@ index 87aa2bc..88622fb 100644
  #endif /* CONFIG_ION */
  #endif /* _ION_KERNEL_H */
 -- 
-2.7.4
+2.17.1
 

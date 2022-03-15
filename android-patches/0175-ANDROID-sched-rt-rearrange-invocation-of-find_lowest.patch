@@ -1,4 +1,4 @@
-From 53b5aeb45da8c6420e747ff1867f721d2818b3b8 Mon Sep 17 00:00:00 2001
+From d919ecb4eee394c312ba497050665e3c903e7f94 Mon Sep 17 00:00:00 2001
 From: Satya Durga Srinivasu Prabhala <satyap@codeaurora.org>
 Date: Wed, 18 Nov 2020 07:34:49 -0800
 Subject: [PATCH 175/830] ANDROID: sched: rt: rearrange invocation of
@@ -19,7 +19,7 @@ Signed-off-by: Satya Durga Srinivasu Prabhala <satyap@codeaurora.org>
  2 files changed, 10 insertions(+), 9 deletions(-)
 
 diff --git a/include/trace/hooks/sched.h b/include/trace/hooks/sched.h
-index 8f6cc48a..51f5236 100644
+index 8f6cc48a50ce..51f5236274d2 100644
 --- a/include/trace/hooks/sched.h
 +++ b/include/trace/hooks/sched.h
 @@ -43,8 +43,8 @@ DECLARE_RESTRICTED_HOOK(android_rvh_can_migrate_task,
@@ -43,10 +43,10 @@ index 8f6cc48a..51f5236 100644
  #define trace_android_rvh_finish_prio_fork(p)
  #define trace_android_rvh_rtmutex_prepare_setprio(p, pi_task)
 diff --git a/kernel/sched/rt.c b/kernel/sched/rt.c
-index 2099b56..c093581 100644
+index 398fc6305875..8db364e48798 100644
 --- a/kernel/sched/rt.c
 +++ b/kernel/sched/rt.c
-@@ -1736,13 +1736,8 @@ static int find_lowest_rq(struct task_struct *task)
+@@ -1745,13 +1745,8 @@ static int find_lowest_rq(struct task_struct *task)
  	struct sched_domain *sd;
  	struct cpumask *lowest_mask = this_cpu_cpumask_var_ptr(local_cpu_mask);
  	int this_cpu = smp_processor_id();
@@ -61,7 +61,7 @@ index 2099b56..c093581 100644
  
  	/* Make sure the mask is initialized first */
  	if (unlikely(!lowest_mask))
-@@ -1766,9 +1761,15 @@ static int find_lowest_rq(struct task_struct *task)
+@@ -1775,9 +1770,15 @@ static int find_lowest_rq(struct task_struct *task)
  				  task, lowest_mask);
  	}
  
@@ -78,5 +78,5 @@ index 2099b56..c093581 100644
  	 * At this point we have built a mask of CPUs representing the
  	 * lowest priority tasks in the system.  Now we want to elect
 -- 
-2.7.4
+2.17.1
 

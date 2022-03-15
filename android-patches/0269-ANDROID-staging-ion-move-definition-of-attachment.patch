@@ -1,4 +1,4 @@
-From f6225f8a4dcd93aba8c118730eb880f2ff52b371 Mon Sep 17 00:00:00 2001
+From 3c4dccce966721113675c5258950362a788a4ed4 Mon Sep 17 00:00:00 2001
 From: Hyesoo Yu <hyesoo.yu@samsung.com>
 Date: Thu, 5 Mar 2020 15:33:07 +0900
 Subject: [PATCH 269/830] ANDROID: staging: ion: move definition of attachment
@@ -22,7 +22,7 @@ Signed-off-by: Hridya Valsaraju <hridya@google.com>
  2 files changed, 12 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/staging/android/ion/ion_dma_buf.c b/drivers/staging/android/ion/ion_dma_buf.c
-index 9cb38d5..284abb5 100644
+index 9cb38d519c10..284abb58a719 100644
 --- a/drivers/staging/android/ion/ion_dma_buf.c
 +++ b/drivers/staging/android/ion/ion_dma_buf.c
 @@ -45,12 +45,6 @@ static void free_duped_table(struct sg_table *table)
@@ -39,7 +39,7 @@ index 9cb38d5..284abb5 100644
  			      struct dma_buf_attachment *attachment)
  {
 diff --git a/include/linux/ion.h b/include/linux/ion.h
-index fa86bcc..0887051 100644
+index fa86bcce6e8f..088705119b16 100644
 --- a/include/linux/ion.h
 +++ b/include/linux/ion.h
 @@ -144,6 +144,18 @@ struct ion_heap {
@@ -62,5 +62,5 @@ index fa86bcc..0887051 100644
  
  /**
 -- 
-2.7.4
+2.17.1
 

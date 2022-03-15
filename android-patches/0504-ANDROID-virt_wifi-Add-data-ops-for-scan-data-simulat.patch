@@ -1,4 +1,4 @@
-From ab222fd81c02c0bd11476e14f538e716031dbd93 Mon Sep 17 00:00:00 2001
+From ab881e99651b0e51116ec183afae6a9027e7309d Mon Sep 17 00:00:00 2001
 From: lesl <lesl@google.com>
 Date: Tue, 1 Oct 2019 17:56:50 +0800
 Subject: [PATCH 504/830] ANDROID: virt_wifi: Add data ops for scan data
@@ -10,13 +10,13 @@ Signed-off-by: lesl <lesl@google.com>
 Change-Id: Ib686dffe23cc234937af7e383182834721f01d78
 Signed-off-by: Alistair Delva <adelva@google.com>
 ---
- drivers/net/wireless/virt_wifi.c | 48 ++++++++++++++++++++++++++++++++++++++--
- include/net/virt_wifi.h          | 25 +++++++++++++++++++++
+ drivers/net/wireless/virt_wifi.c | 48 ++++++++++++++++++++++++++++++--
+ include/net/virt_wifi.h          | 25 +++++++++++++++++
  2 files changed, 71 insertions(+), 2 deletions(-)
  create mode 100644 include/net/virt_wifi.h
 
 diff --git a/drivers/net/wireless/virt_wifi.c b/drivers/net/wireless/virt_wifi.c
-index 514f2c1..3cfd990 100644
+index 514f2c1124b6..3cfd99067b2e 100644
 --- a/drivers/net/wireless/virt_wifi.c
 +++ b/drivers/net/wireless/virt_wifi.c
 @@ -14,6 +14,7 @@
@@ -143,7 +143,7 @@ index 514f2c1..3cfd990 100644
  
 diff --git a/include/net/virt_wifi.h b/include/net/virt_wifi.h
 new file mode 100644
-index 00000000..343e739
+index 000000000000..343e73968d41
 --- /dev/null
 +++ b/include/net/virt_wifi.h
 @@ -0,0 +1,25 @@
@@ -173,5 +173,5 @@ index 00000000..343e739
 +#endif
 +
 -- 
-2.7.4
+2.17.1
 

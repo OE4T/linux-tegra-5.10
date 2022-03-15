@@ -1,4 +1,4 @@
-From 4a1ec734fea09ec8c431d5c4af02fba54bedb70d Mon Sep 17 00:00:00 2001
+From efae74b0643b60325b7193e5241e22eff5f99d19 Mon Sep 17 00:00:00 2001
 From: Sandeep Patil <sspatil@google.com>
 Date: Fri, 13 Sep 2019 14:50:38 -0700
 Subject: [PATCH 259/830] ANDROID: GKI: export cma symbols for cma heap as a
@@ -15,7 +15,7 @@ Signed-off-by: Sandeep Patil <sspatil@google.com>
  1 file changed, 6 insertions(+)
 
 diff --git a/mm/cma.c b/mm/cma.c
-index cf9a10a..033b821 100644
+index cf9a10a88988..033b82126329 100644
 --- a/mm/cma.c
 +++ b/mm/cma.c
 @@ -24,6 +24,7 @@
@@ -57,5 +57,5 @@ index cf9a10a..033b821 100644
 +EXPORT_SYMBOL_GPL(cma_for_each_area);
 +
 -- 
-2.7.4
+2.17.1
 

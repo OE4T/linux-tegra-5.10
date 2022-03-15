@@ -1,4 +1,4 @@
-From 9e95e995a0cb43d8546d79ec946122ec229dd3bf Mon Sep 17 00:00:00 2001
+From 7b7cb4b1b29b99b02011ab42015d322ac0bd83bd Mon Sep 17 00:00:00 2001
 From: Connor O'Brien <connoro@google.com>
 Date: Fri, 1 Mar 2019 15:40:30 -0800
 Subject: [PATCH 217/830] ANDROID: cpufreq: times: don't copy invalid freqs
@@ -21,7 +21,7 @@ Signed-off-by: Connor O'Brien <connoro@google.com>
  1 file changed, 17 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/cpufreq/cpufreq_times.c b/drivers/cpufreq/cpufreq_times.c
-index 0749d8d..4df55b3 100644
+index 0749d8d8afde..4df55b323fc1 100644
 --- a/drivers/cpufreq/cpufreq_times.c
 +++ b/drivers/cpufreq/cpufreq_times.c
 @@ -118,8 +118,6 @@ int proc_time_in_state_show(struct seq_file *m, struct pid_namespace *ns,
@@ -91,5 +91,5 @@ index 0749d8d..4df55b3 100644
  		WRITE_ONCE(freqs->last_index, index);
  }
 -- 
-2.7.4
+2.17.1
 

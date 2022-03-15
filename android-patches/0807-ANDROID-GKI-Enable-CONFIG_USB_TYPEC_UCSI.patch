@@ -1,4 +1,4 @@
-From d2488d9171961aad7362f691e35b8d2cbcb7af82 Mon Sep 17 00:00:00 2001
+From cc34f1fa6be5223ef14ef5dbc5717cfbe83239bb Mon Sep 17 00:00:00 2001
 From: Greg Kroah-Hartman <gregkh@google.com>
 Date: Fri, 20 Nov 2020 14:54:15 +0100
 Subject: [PATCH 807/830] ANDROID: GKI: Enable CONFIG_USB_TYPEC_UCSI
@@ -23,7 +23,7 @@ Change-Id: I353eec6ed4f73525408033f283081b8013ede874
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index aaa33f7..cf4ebc6 100644
+index aaa33f71a277..cf4ebc6adf99 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -434,6 +434,7 @@ CONFIG_USB_CONFIGFS_F_HID=y
@@ -35,7 +35,7 @@ index aaa33f7..cf4ebc6 100644
  # CONFIG_PWRSEQ_EMMC is not set
  # CONFIG_PWRSEQ_SIMPLE is not set
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index fe8ad76..c57654a 100644
+index fe8ad763b618..c57654a6ab63 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -389,6 +389,7 @@ CONFIG_USB_CONFIGFS_F_HID=y
@@ -47,5 +47,5 @@ index fe8ad76..c57654a 100644
  # CONFIG_PWRSEQ_EMMC is not set
  # CONFIG_PWRSEQ_SIMPLE is not set
 -- 
-2.7.4
+2.17.1
 

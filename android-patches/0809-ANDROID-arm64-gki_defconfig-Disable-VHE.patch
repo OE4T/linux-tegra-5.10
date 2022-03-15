@@ -1,4 +1,4 @@
-From 71aa7683ff014fc2dbbdc1f490b8528c15ef546c Mon Sep 17 00:00:00 2001
+From 9a73790d74a3359869ca76e99f2630ba678bb135 Mon Sep 17 00:00:00 2001
 From: Quentin Perret <qperret@google.com>
 Date: Fri, 20 Nov 2020 15:30:31 +0000
 Subject: [PATCH 809/830] ANDROID: arm64: gki_defconfig: Disable VHE
@@ -15,7 +15,7 @@ Change-Id: I4c11977971a91baecdbe620e23b6ce7edae0afe0
  1 file changed, 1 insertion(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index eb10473..94bfc37 100644
+index eb10473bf641..94bfc377a841 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -57,6 +57,7 @@ CONFIG_ARMV8_DEPRECATED=y
@@ -27,5 +27,5 @@ index eb10473..94bfc37 100644
  # CONFIG_RANDOMIZE_MODULE_REGION_FULL is not set
  # CONFIG_DMI is not set
 -- 
-2.7.4
+2.17.1
 

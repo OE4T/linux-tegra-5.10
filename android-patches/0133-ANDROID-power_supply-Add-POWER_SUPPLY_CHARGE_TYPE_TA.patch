@@ -1,4 +1,4 @@
-From 6684d2bd549300c59097ccb0da0770dc8324d587 Mon Sep 17 00:00:00 2001
+From cb7b44aae94bb2d334900d36159c83a7984a2f50 Mon Sep 17 00:00:00 2001
 From: AleX Pelosi <apelosi@google.com>
 Date: Thu, 27 Aug 2020 11:00:04 -0700
 Subject: [PATCH 133/830] ANDROID: power_supply: Add
@@ -17,7 +17,7 @@ Change-Id: I49d3033eec671156ffd113d8d0e3972d2cdad982
  2 files changed, 7 insertions(+)
 
 diff --git a/drivers/power/supply/power_supply_sysfs.c b/drivers/power/supply/power_supply_sysfs.c
-index a616b9d..a5e6563 100644
+index a616b9d8f43c..a5e65636057d 100644
 --- a/drivers/power/supply/power_supply_sysfs.c
 +++ b/drivers/power/supply/power_supply_sysfs.c
 @@ -89,6 +89,7 @@ static const char * const POWER_SUPPLY_CHARGE_TYPE_TEXT[] = {
@@ -29,7 +29,7 @@ index a616b9d..a5e6563 100644
  
  static const char * const POWER_SUPPLY_HEALTH_TEXT[] = {
 diff --git a/include/linux/power_supply.h b/include/linux/power_supply.h
-index e9c67d6..aa61744 100644
+index e9c67d61d82a..aa61744b2b77 100644
 --- a/include/linux/power_supply.h
 +++ b/include/linux/power_supply.h
 @@ -49,6 +49,12 @@ enum {
@@ -46,5 +46,5 @@ index e9c67d6..aa61744 100644
  
  enum {
 -- 
-2.7.4
+2.17.1
 

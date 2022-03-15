@@ -1,4 +1,4 @@
-From 915be32626161a6a2eed6d4ab660eb2c290bf69b Mon Sep 17 00:00:00 2001
+From 2a1afc00d0782b95990d7b451013963d7476f94f Mon Sep 17 00:00:00 2001
 From: Abhilasha Rao <abhilasha.hv@samsung.corp-partner.google.com>
 Date: Wed, 29 Jul 2020 15:43:52 +0530
 Subject: [PATCH 119/830] ANDROID: GKI: pid: Export for find_task_by_vpid
@@ -20,7 +20,7 @@ Change-Id: I0db9cc50c93eedff0f3e9dea0ac09a5d17d118f0
  1 file changed, 1 insertion(+)
 
 diff --git a/kernel/pid.c b/kernel/pid.c
-index 4856818..48babb1 100644
+index 4856818c9de1..48babb1dd3e1 100644
 --- a/kernel/pid.c
 +++ b/kernel/pid.c
 @@ -421,6 +421,7 @@ struct task_struct *find_task_by_vpid(pid_t vnr)
@@ -32,5 +32,5 @@ index 4856818..48babb1 100644
  struct task_struct *find_get_task_by_vpid(pid_t nr)
  {
 -- 
-2.7.4
+2.17.1
 

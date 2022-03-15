@@ -1,4 +1,4 @@
-From 77a2e41b07baea8f5327eb20b1ca6b80a782f0a2 Mon Sep 17 00:00:00 2001
+From 229faa20e3ba5fe643af581109a0280238ff876e Mon Sep 17 00:00:00 2001
 From: Badhri Jagan Sridharan <badhri@google.com>
 Date: Mon, 14 Sep 2020 15:18:33 -0700
 Subject: [PATCH 338/830] ANDROID: usb: typec: tcpm: Add chip level callback to
@@ -20,12 +20,12 @@ Bug: 168544734
 Signed-off-by: Badhri Jagan Sridharan <badhri@google.com>
 Change-Id: If28027bdacfdf8511be0ea54766970fb73bc3d96
 ---
- drivers/usb/typec/tcpm/tcpm.c | 53 +++++++++++++++++++++++++++++++++++++++++--
- include/linux/usb/tcpm.h      | 10 ++++++++
+ drivers/usb/typec/tcpm/tcpm.c | 53 +++++++++++++++++++++++++++++++++--
+ include/linux/usb/tcpm.h      | 10 +++++++
  2 files changed, 61 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/usb/typec/tcpm/tcpm.c b/drivers/usb/typec/tcpm/tcpm.c
-index 7706840..e693d18 100644
+index b4853f2df989..ea9f27825313 100644
 --- a/drivers/usb/typec/tcpm/tcpm.c
 +++ b/drivers/usb/typec/tcpm/tcpm.c
 @@ -399,6 +399,9 @@ struct tcpm_port {
@@ -163,16 +163,16 @@ index 7706840..e693d18 100644
  		break;
  	case SRC_TRY:
  		port->try_src_count++;
-@@ -4253,6 +4301,7 @@ static void _tcpm_pd_vbus_off(struct tcpm_port *port)
- 	case SNK_TRYWAIT_DEBOUNCE:
+@@ -4254,6 +4302,7 @@ static void _tcpm_pd_vbus_off(struct tcpm_port *port)
  		break;
  	case SNK_ATTACH_WAIT:
+ 	case SNK_DEBOUNCED:
 +		port->debouncing = false;
- 		tcpm_set_state(port, SNK_UNATTACHED, 0);
+ 		/* Do nothing, as TCPM is still waiting for vbus to reaach VSAFE5V to connect */
  		break;
  
 diff --git a/include/linux/usb/tcpm.h b/include/linux/usb/tcpm.h
-index f4a1842..58c8101 100644
+index f4a18427f5c4..58c8101bd70a 100644
 --- a/include/linux/usb/tcpm.h
 +++ b/include/linux/usb/tcpm.h
 @@ -104,6 +104,14 @@ enum tcpm_transmit_type {
@@ -206,5 +206,5 @@ index f4a1842..58c8101 100644
  
  #endif /* __LINUX_USB_TCPM_H */
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From b33a81ec443ad40410c71965a31ece7feb64735e Mon Sep 17 00:00:00 2001
+From 566b9c1ef96d07a3145826a29598cc46b1e79c7b Mon Sep 17 00:00:00 2001
 From: Connor O'Brien <connoro@google.com>
 Date: Tue, 19 Feb 2019 17:36:53 -0800
 Subject: [PATCH 577/830] ANDROID: gki_defconfig: enable dummy cpufreq driver
@@ -20,7 +20,7 @@ Signed-off-by: Eric Biggers <ebiggers@google.com>
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index e2b7f40..a21a3ec 100644
+index e2b7f40cb55a..a21a3ece3296 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -61,6 +61,7 @@ CONFIG_CPU_FREQ_TIMES=y
@@ -32,7 +32,7 @@ index e2b7f40..a21a3ec 100644
  CONFIG_ARM_SCMI_CPUFREQ=y
  CONFIG_ARM_SCMI_PROTOCOL=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 09dc0ad..b1535ba 100644
+index 09dc0adca00d..b1535ba3b397 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -46,6 +46,7 @@ CONFIG_PM_WAKELOCKS_LIMIT=0
@@ -44,5 +44,5 @@ index 09dc0ad..b1535ba 100644
  CONFIG_KPROBES=y
  CONFIG_MODULES=y
 -- 
-2.7.4
+2.17.1
 

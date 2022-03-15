@@ -1,4 +1,4 @@
-From f379712035eb5983d54674e675e03345b80dd5ae Mon Sep 17 00:00:00 2001
+From c1ce9b327a8aacdda20dd3e6cda47f6b4bb7adbf Mon Sep 17 00:00:00 2001
 From: Suren Baghdasaryan <surenb@google.com>
 Date: Tue, 5 May 2020 09:18:41 -0700
 Subject: [PATCH 698/830] ANDROID: GKI: Remove FAIR_GROUP_SCHED
@@ -15,7 +15,7 @@ Change-Id: Id33fbe3bb46ca21ee4e2a412a766be21ffe069e0
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 6fb476e..b344b0f 100644
+index 6fb476e9dd29..b344b0f729fd 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -17,6 +17,7 @@ CONFIG_MEMCG=y
@@ -27,7 +27,7 @@ index 6fb476e..b344b0f 100644
  CONFIG_CGROUP_FREEZER=y
  CONFIG_CPUSETS=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index b4cf3ce..6162df7 100644
+index b4cf3ce7ed64..6162df7ccefa 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -17,6 +17,7 @@ CONFIG_CGROUPS=y
@@ -39,5 +39,5 @@ index b4cf3ce..6162df7 100644
  CONFIG_CGROUP_FREEZER=y
  CONFIG_CPUSETS=y
 -- 
-2.7.4
+2.17.1
 

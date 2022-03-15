@@ -1,4 +1,4 @@
-From 7b5da65013afe88abef1a916d3a292c8751b38ea Mon Sep 17 00:00:00 2001
+From d8ebe10413d05c737e63a386d778649961c65e85 Mon Sep 17 00:00:00 2001
 From: Eric Biggers <ebiggers@google.com>
 Date: Wed, 12 Aug 2020 14:00:25 -0700
 Subject: [PATCH 219/830] _____ANNOTATION: mm (memory management) changes_____
@@ -10,7 +10,7 @@ Signed-off-by: Eric Biggers <ebiggers@google.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/ANNOTATIONS b/ANNOTATIONS
-index 79a13de..45434eb 100644
+index 79a13deeaef4..45434eb17fda 100644
 --- a/ANNOTATIONS
 +++ b/ANNOTATIONS
 @@ -9,3 +9,4 @@ power management changes
@@ -19,5 +19,5 @@ index 79a13de..45434eb 100644
  cpufreq changes
 +mm (memory management) changes
 -- 
-2.7.4
+2.17.1
 

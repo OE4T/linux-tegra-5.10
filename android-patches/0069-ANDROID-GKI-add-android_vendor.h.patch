@@ -1,4 +1,4 @@
-From ddff2c0c8fd9ef1acee6ff2908786cdd55a60a76 Mon Sep 17 00:00:00 2001
+From b86ce805ff32738ad6643aef37bbcd8baa59c0cc Mon Sep 17 00:00:00 2001
 From: Todd Kjos <tkjos@google.com>
 Date: Mon, 11 May 2020 13:27:22 -0700
 Subject: [PATCH 069/830] ANDROID: GKI: add android_vendor.h
@@ -24,7 +24,7 @@ Signed-off-by: Eric Biggers <ebiggers@google.com>
 
 diff --git a/include/linux/android_vendor.h b/include/linux/android_vendor.h
 new file mode 100644
-index 00000000..c0d3abb
+index 000000000000..c0d3abb54037
 --- /dev/null
 +++ b/include/linux/android_vendor.h
 @@ -0,0 +1,32 @@
@@ -61,5 +61,5 @@ index 00000000..c0d3abb
 +
 +#endif /* _ANDROID_VENDOR_H */
 -- 
-2.7.4
+2.17.1
 

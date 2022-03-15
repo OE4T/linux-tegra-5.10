@@ -1,4 +1,4 @@
-From c205cb86219cae274c406706fc26398c6a73862a Mon Sep 17 00:00:00 2001
+From b72e99f22ae1242654acb8192866fce5874a0e7d Mon Sep 17 00:00:00 2001
 From: Alessio Balsini <balsini@android.com>
 Date: Mon, 19 Oct 2020 15:08:40 +0100
 Subject: [PATCH 060/830] FROMLIST: fuse: Passthrough initialization and
@@ -42,12 +42,12 @@ Signed-off-by: Alessio Balsini <balsini@android.com>
 Signed-off-by: Alessio Balsini <balsini@google.com>
 Change-Id: Id6067dcb882d58daef5ffe44355c383cabeed547
 ---
- fs/fuse/inode.c       |  5 ++++
- fs/fuse/passthrough.c | 80 +++++++++++++++++++++++++++++++++++++++++++++++++--
+ fs/fuse/inode.c       |  5 +++
+ fs/fuse/passthrough.c | 80 +++++++++++++++++++++++++++++++++++++++++--
  2 files changed, 83 insertions(+), 2 deletions(-)
 
 diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
-index 3d9afc9..d44bd00 100644
+index 3d9afc9bed17..d44bd00d75c9 100644
 --- a/fs/fuse/inode.c
 +++ b/fs/fuse/inode.c
 @@ -1139,6 +1139,11 @@ EXPORT_SYMBOL_GPL(fuse_send_init);
@@ -63,7 +63,7 @@ index 3d9afc9..d44bd00 100644
  }
  
 diff --git a/fs/fuse/passthrough.c b/fs/fuse/passthrough.c
-index 594060c..a135c95 100644
+index 594060c654f8..a135c955cc33 100644
 --- a/fs/fuse/passthrough.c
 +++ b/fs/fuse/passthrough.c
 @@ -3,19 +3,95 @@
@@ -165,5 +165,5 @@ index 594060c..a135c95 100644
 +	}
  }
 -- 
-2.7.4
+2.17.1
 

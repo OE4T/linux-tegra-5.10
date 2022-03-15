@@ -1,4 +1,4 @@
-From 13bdee5c999ed42a56ccc909d797adc3720c5375 Mon Sep 17 00:00:00 2001
+From 2d83bf3de4abefce9804298edb5e056e56a418fd Mon Sep 17 00:00:00 2001
 From: rickyniu <rickyniu@google.com>
 Date: Wed, 16 Oct 2019 16:16:35 +0800
 Subject: [PATCH 340/830] ANDROID: usb: f_accessory: Send uevent when receive
@@ -31,11 +31,11 @@ Bug: 139264038
 Change-Id: Ie80302321b58d247a5faa83dc3cabba316743c87
 Signed-off-by: rickyniu <rickyniu@google.com>
 ---
- drivers/usb/gadget/function/f_accessory.c | 24 ++++++++++++++++++++++++
+ drivers/usb/gadget/function/f_accessory.c | 24 +++++++++++++++++++++++
  1 file changed, 24 insertions(+)
 
 diff --git a/drivers/usb/gadget/function/f_accessory.c b/drivers/usb/gadget/function/f_accessory.c
-index 40311b2..9260b89 100644
+index 40311b27aca0..9260b89fe768 100644
 --- a/drivers/usb/gadget/function/f_accessory.c
 +++ b/drivers/usb/gadget/function/f_accessory.c
 @@ -124,6 +124,12 @@ struct acc_dev {
@@ -98,5 +98,5 @@ index 40311b2..9260b89 100644
  	/* _acc_dev must be set before calling usb_gadget_register_driver */
  	_acc_dev = dev;
 -- 
-2.7.4
+2.17.1
 

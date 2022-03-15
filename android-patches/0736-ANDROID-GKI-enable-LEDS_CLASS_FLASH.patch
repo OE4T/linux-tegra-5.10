@@ -1,4 +1,4 @@
-From 8a1431ce30540e5ba3dcb14860c38f8118a126d6 Mon Sep 17 00:00:00 2001
+From a3571c3600b9a80b1603d67e51dac93017c54b19 Mon Sep 17 00:00:00 2001
 From: Todd Kjos <tkjos@google.com>
 Date: Tue, 11 Aug 2020 17:18:08 -0700
 Subject: [PATCH 736/830] ANDROID: GKI: enable LEDS_CLASS_FLASH
@@ -16,7 +16,7 @@ Change-Id: I19fa50c328ed0ddda7a11a0ab49f878544ac9b46
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 54423183..48608ca 100644
+index 5442318360cc..48608ca2c25a 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -367,6 +367,7 @@ CONFIG_MMC_SDHCI=y
@@ -28,7 +28,7 @@ index 54423183..48608ca 100644
  CONFIG_RTC_CLASS=y
  CONFIG_RTC_DRV_PL030=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index a6a6690..239d586 100644
+index a6a6690bd98e..239d5864412e 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -326,6 +326,7 @@ CONFIG_MMC_SDHCI=y
@@ -40,5 +40,5 @@ index a6a6690..239d586 100644
  CONFIG_RTC_CLASS=y
  CONFIG_DMABUF_HEAPS=y
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From f21b8ca72507c2dbc29d2c37ca41b190ffde3a2b Mon Sep 17 00:00:00 2001
+From 9c6d7e12b437702210b1d993eaa3040cb39f5514 Mon Sep 17 00:00:00 2001
 From: John Stultz <john.stultz@linaro.org>
 Date: Tue, 4 Aug 2020 00:48:52 +0000
 Subject: [PATCH 728/830] ANDROID: Kconfig.gki: Add IRQ_CHIP options needed for
@@ -21,7 +21,7 @@ Change-Id: Ia9ceb1e0dc56e8860caed5ecff334fcfdcd4b224
  1 file changed, 2 insertions(+)
 
 diff --git a/init/Kconfig.gki b/init/Kconfig.gki
-index 5bd056e..db2a9b94 100644
+index 5bd056e33337..db2a9b940f40 100644
 --- a/init/Kconfig.gki
 +++ b/init/Kconfig.gki
 @@ -161,6 +161,8 @@ config GKI_HIDDEN_GPU_CONFIGS
@@ -34,5 +34,5 @@ index 5bd056e..db2a9b94 100644
  	  Dummy config option used to enable GENERIC_IRQ_CHIP hidden
  	  config, required by various SoC platforms. This is usually
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 533c65f4f65e48b4c3602e28e982122ad9d31cab Mon Sep 17 00:00:00 2001
+From afe35b55d5bb3dfd03a3933aeefcbc76d21dc1c3 Mon Sep 17 00:00:00 2001
 From: Eric Biggers <ebiggers@google.com>
 Date: Wed, 12 Aug 2020 13:58:07 -0700
 Subject: [PATCH 515/830] _____ANNOTATION: db845c (DragonBoard 845c)
@@ -11,7 +11,7 @@ Signed-off-by: Eric Biggers <ebiggers@google.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/ANNOTATIONS b/ANNOTATIONS
-index 7b2aa10..c62e1d7 100644
+index 7b2aa1023b45..c62e1d7fa95d 100644
 --- a/ANNOTATIONS
 +++ b/ANNOTATIONS
 @@ -28,3 +28,4 @@ filesystem changes
@@ -20,5 +20,5 @@ index 7b2aa10..c62e1d7 100644
  hardware-wrapped key support
 +db845c (DragonBoard 845c) support
 -- 
-2.7.4
+2.17.1
 

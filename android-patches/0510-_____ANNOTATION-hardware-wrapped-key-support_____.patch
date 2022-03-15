@@ -1,4 +1,4 @@
-From 11bb7e41b02859e6c35a7a197762e95bab9e2d7b Mon Sep 17 00:00:00 2001
+From c745bba2215e8a716de5b5d09da18c9e90181313 Mon Sep 17 00:00:00 2001
 From: Eric Biggers <ebiggers@google.com>
 Date: Wed, 12 Aug 2020 14:01:18 -0700
 Subject: [PATCH 510/830] _____ANNOTATION: hardware-wrapped key support_____
@@ -10,7 +10,7 @@ Signed-off-by: Eric Biggers <ebiggers@google.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/ANNOTATIONS b/ANNOTATIONS
-index 6968cd2..7b2aa10 100644
+index 6968cd2891ad..7b2aa1023b45 100644
 --- a/ANNOTATIONS
 +++ b/ANNOTATIONS
 @@ -27,3 +27,4 @@ device-mapper changes
@@ -19,5 +19,5 @@ index 6968cd2..7b2aa10 100644
  networking changes
 +hardware-wrapped key support
 -- 
-2.7.4
+2.17.1
 

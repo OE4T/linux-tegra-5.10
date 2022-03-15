@@ -1,4 +1,4 @@
-From a62b3c160c163a56fcb04131e78cab82ded15bd1 Mon Sep 17 00:00:00 2001
+From bd3c91cdcbdcbbf62c82f459b57522668e4b8c17 Mon Sep 17 00:00:00 2001
 From: Joel Fernandes <joelaf@google.com>
 Date: Tue, 10 Dec 2019 10:45:34 -0500
 Subject: [PATCH 223/830] ANDROID: mm: Throttle rss_stat tracepoint
@@ -21,7 +21,7 @@ Signed-off-by: Joel Fernandes <joelaf@google.com>
  2 files changed, 19 insertions(+), 6 deletions(-)
 
 diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 576c7a7..5f12bfc 100644
+index 576c7a795e25..5f12bfcfb767 100644
 --- a/include/linux/mm.h
 +++ b/include/linux/mm.h
 @@ -1901,27 +1901,28 @@ static inline unsigned long get_mm_counter(struct mm_struct *mm, int member)
@@ -58,7 +58,7 @@ index 576c7a7..5f12bfc 100644
  
  /* Optimized variant when page is already known not to be PageAnon */
 diff --git a/mm/memory.c b/mm/memory.c
-index 318d094..1be0b9b 100644
+index 318d094b296e..1be0b9bd47e5 100644
 --- a/mm/memory.c
 +++ b/mm/memory.c
 @@ -156,9 +156,21 @@ static int __init init_zero_pfn(void)
@@ -86,5 +86,5 @@ index 318d094..1be0b9b 100644
  EXPORT_SYMBOL_GPL(mm_trace_rss_stat);
  
 -- 
-2.7.4
+2.17.1
 

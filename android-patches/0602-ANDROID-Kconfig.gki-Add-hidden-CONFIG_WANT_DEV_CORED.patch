@@ -1,4 +1,4 @@
-From 147fd99ff6d23dadb8991c75f1361b01ae5ca5d6 Mon Sep 17 00:00:00 2001
+From 39d6cb5c069257f321448c012ef332adc4190f32 Mon Sep 17 00:00:00 2001
 From: John Stultz <john.stultz@linaro.org>
 Date: Thu, 5 Dec 2019 01:42:25 +0000
 Subject: [PATCH 602/830] ANDROID: Kconfig.gki: Add hidden
@@ -16,7 +16,7 @@ Signed-off-by: John Stultz <john.stultz@linaro.org>
  1 file changed, 1 insertion(+)
 
 diff --git a/init/Kconfig.gki b/init/Kconfig.gki
-index ad9c434..5ba6076 100644
+index ad9c434bd6b5..5ba6076076d5 100644
 --- a/init/Kconfig.gki
 +++ b/init/Kconfig.gki
 @@ -5,6 +5,7 @@ config GKI_HIDDEN_DRM_CONFIGS
@@ -28,5 +28,5 @@ index ad9c434..5ba6076 100644
  	  Dummy config option used to enable hidden DRM configs.
  	  These are normally selected implicitely when including a
 -- 
-2.7.4
+2.17.1
 

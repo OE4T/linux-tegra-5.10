@@ -1,4 +1,4 @@
-From a06f2583f40b295d6b6809f149daf21e94a18370 Mon Sep 17 00:00:00 2001
+From 3359738487eaa41cfa51f4beaff9b355504e24e5 Mon Sep 17 00:00:00 2001
 From: John Stultz <john.stultz@linaro.org>
 Date: Fri, 25 Sep 2020 22:55:07 +0000
 Subject: [PATCH 291/830] BACKPORT: dma-buf: system_heap: Rework system heap to
@@ -48,11 +48,11 @@ Signed-off-by: John Stultz <john.stultz@linaro.org>
 interface]
 Signed-off-by: Hridya Valsaraju <hridya@google.com>
 ---
- drivers/dma-buf/heaps/system_heap.c | 344 +++++++++++++++++++++++++++++++-----
+ drivers/dma-buf/heaps/system_heap.c | 344 ++++++++++++++++++++++++----
  1 file changed, 298 insertions(+), 46 deletions(-)
 
 diff --git a/drivers/dma-buf/heaps/system_heap.c b/drivers/dma-buf/heaps/system_heap.c
-index f8f0ab0..0a9214d 100644
+index f8f0ab05f70e..0a9214d9f8a9 100644
 --- a/drivers/dma-buf/heaps/system_heap.c
 +++ b/drivers/dma-buf/heaps/system_heap.c
 @@ -3,7 +3,11 @@
@@ -461,5 +461,5 @@ index f8f0ab0..0a9214d 100644
  module_init(system_heap_create);
  MODULE_LICENSE("GPL v2");
 -- 
-2.7.4
+2.17.1
 

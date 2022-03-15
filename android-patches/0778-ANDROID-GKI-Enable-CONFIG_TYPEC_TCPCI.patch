@@ -1,4 +1,4 @@
-From ddbc2b7ab5de192f18176d7a95b1339302689993 Mon Sep 17 00:00:00 2001
+From 5093393b016708f42da12955664ddf78bedeaeab Mon Sep 17 00:00:00 2001
 From: Alistair Delva <adelva@google.com>
 Date: Thu, 1 Oct 2020 18:42:12 -0700
 Subject: [PATCH 778/830] ANDROID: GKI: Enable CONFIG_TYPEC_TCPCI
@@ -17,7 +17,7 @@ Signed-off-by: Alistair Delva <adelva@google.com>
  2 files changed, 4 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index bce3a82..cb9b5c1 100644
+index bce3a8280d0e..cb9b5c198213 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -407,6 +407,7 @@ CONFIG_USB_CONFIGFS_F_MIDI=y
@@ -29,7 +29,7 @@ index bce3a82..cb9b5c1 100644
  # CONFIG_PWRSEQ_EMMC is not set
  # CONFIG_PWRSEQ_SIMPLE is not set
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 7c30bfd..e1de3af 100644
+index 7c30bfdcf446..e1de3af68184 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -360,6 +360,9 @@ CONFIG_USB_CONFIGFS_F_ACC=y
@@ -43,5 +43,5 @@ index 7c30bfd..e1de3af 100644
  # CONFIG_PWRSEQ_EMMC is not set
  # CONFIG_PWRSEQ_SIMPLE is not set
 -- 
-2.7.4
+2.17.1
 

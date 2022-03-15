@@ -1,4 +1,4 @@
-From f748b689557ac05a3d5585f440d9c265b797228a Mon Sep 17 00:00:00 2001
+From e5667b5c753e812dc18496314525eebd861bb239 Mon Sep 17 00:00:00 2001
 From: Alistair Delva <adelva@google.com>
 Date: Mon, 23 Dec 2019 10:45:42 -0800
 Subject: [PATCH 607/830] ANDROID: gki_defconfig: Disable TRANSPARENT_HUGEPAGE
@@ -17,7 +17,7 @@ Signed-off-by: Alistair Delva <adelva@google.com>
  2 files changed, 2 deletions(-)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 1bd5593..ca3ace1f 100644
+index 1bd559397f02..ca3ace1f559a 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -84,7 +84,6 @@ CONFIG_GKI_HACKS_TO_FIX=y
@@ -29,7 +29,7 @@ index 1bd5593..ca3ace1f 100644
  CONFIG_CMA_AREAS=16
  CONFIG_ZSMALLOC=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index d3ce2fc..05ea182 100644
+index d3ce2fcc3cb3..05ea182a15b4 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -61,7 +61,6 @@ CONFIG_MODVERSIONS=y
@@ -41,5 +41,5 @@ index d3ce2fc..05ea182 100644
  CONFIG_CMA_AREAS=16
  CONFIG_ZSMALLOC=y
 -- 
-2.7.4
+2.17.1
 

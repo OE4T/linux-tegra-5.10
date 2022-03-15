@@ -1,4 +1,4 @@
-From a9d9881a202fcff983a4f81bc3ff157be41dbd1d Mon Sep 17 00:00:00 2001
+From 4aa4b2436aa16bf51037c224254450d330efa8ca Mon Sep 17 00:00:00 2001
 From: John Stultz <john.stultz@linaro.org>
 Date: Wed, 9 Oct 2019 23:13:39 +0000
 Subject: [PATCH 573/830] ANDROID: Kconfig.gki: Add Hidden QCOM configs
@@ -14,7 +14,7 @@ Signed-off-by: John Stultz <john.stultz@linaro.org>
  1 file changed, 10 insertions(+)
 
 diff --git a/init/Kconfig.gki b/init/Kconfig.gki
-index d8a2cf0..85036c0 100644
+index d8a2cf0adc61..85036c08fb7b 100644
 --- a/init/Kconfig.gki
 +++ b/init/Kconfig.gki
 @@ -37,6 +37,15 @@ config GKI_HIDDEN_GPIO_CONFIGS
@@ -42,5 +42,5 @@ index d8a2cf0..85036c0 100644
  	help
  	  Dummy config option used to enable core functionality used by
 -- 
-2.7.4
+2.17.1
 

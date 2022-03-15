@@ -1,4 +1,4 @@
-From 22b490149dbb32aa26c7a38efec67ef7452648f7 Mon Sep 17 00:00:00 2001
+From 17ae270907c30438edf36a316574c7a72aba3de2 Mon Sep 17 00:00:00 2001
 From: Greg Kroah-Hartman <gregkh@google.com>
 Date: Thu, 2 Jul 2020 12:15:25 +0200
 Subject: [PATCH 749/830] ANDROID: GKI: support CONFIG_USB_EHCI_HCD_PLATFORM
@@ -21,7 +21,7 @@ Signed-off-by: Connor O'Brien <connoro@google.com>
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 692ba6b..85f8e2b 100644
+index 692ba6be130d..85f8e2bd9ca7 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -353,6 +353,7 @@ CONFIG_HID_STEAM=y
@@ -33,7 +33,7 @@ index 692ba6b..85f8e2b 100644
  CONFIG_USB_GADGET=y
  CONFIG_USB_CONFIGFS=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index a348520..1d7d8ce 100644
+index a348520c38b7..1d7d8ce969c7 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -314,6 +314,7 @@ CONFIG_HID_SONY=y
@@ -45,5 +45,5 @@ index a348520..1d7d8ce 100644
  CONFIG_USB_GADGET=y
  CONFIG_USB_CONFIGFS=y
 -- 
-2.7.4
+2.17.1
 

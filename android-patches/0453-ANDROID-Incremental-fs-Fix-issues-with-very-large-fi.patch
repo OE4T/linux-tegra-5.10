@@ -1,4 +1,4 @@
-From 0444eb6d3ff3027f4f49963f16ba273529936610 Mon Sep 17 00:00:00 2001
+From ba18d0da95467851c34082a65d9de01c640b41d3 Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Mon, 4 May 2020 10:55:19 -0700
 Subject: [PATCH 453/830] ANDROID: Incremental fs: Fix issues with very large
@@ -10,12 +10,12 @@ Bug: 155590527
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
 Change-Id: Iaecfcd40e8c089d11b34c7aff2090fbfe0c36219
 ---
- fs/incfs/vfs.c                                     |  7 +--
- .../selftests/filesystems/incfs/incfs_test.c       | 60 ++++++++++++++++++++++
+ fs/incfs/vfs.c                                |  7 ++-
+ .../selftests/filesystems/incfs/incfs_test.c  | 60 +++++++++++++++++++
  2 files changed, 64 insertions(+), 3 deletions(-)
 
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index 5734699..b5b609b 100644
+index 57346990acdf..b5b609bb74c1 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -894,7 +894,8 @@ static int init_new_file(struct mount_info *mi, struct dentry *dentry,
@@ -40,7 +40,7 @@ index 5734699..b5b609b 100644
  
  	if (IS_ERR(backing_file)) {
 diff --git a/tools/testing/selftests/filesystems/incfs/incfs_test.c b/tools/testing/selftests/filesystems/incfs/incfs_test.c
-index 248db59..c9bccc7 100644
+index 248db59e1a49..c9bccc742bae 100644
 --- a/tools/testing/selftests/filesystems/incfs/incfs_test.c
 +++ b/tools/testing/selftests/filesystems/incfs/incfs_test.c
 @@ -2609,6 +2609,65 @@ static int get_hash_blocks_test(char *mount_dir)
@@ -118,5 +118,5 @@ index 248db59..c9bccc7 100644
  #undef MAKE_TEST
  
 -- 
-2.7.4
+2.17.1
 

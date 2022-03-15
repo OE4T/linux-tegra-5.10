@@ -1,4 +1,4 @@
-From ee533a6ba361021c6e9b39b1e58424a65febeecd Mon Sep 17 00:00:00 2001
+From e326b62812fca114a6f13d89b31e88ba54960d8d Mon Sep 17 00:00:00 2001
 From: Todd Kjos <tkjos@google.com>
 Date: Tue, 17 Sep 2019 15:38:05 -0700
 Subject: [PATCH 549/830] ANDROID: init: GKI: enable hidden configs for regmap
@@ -15,7 +15,7 @@ Signed-off-by: Todd Kjos <tkjos@google.com>
  1 file changed, 9 insertions(+)
 
 diff --git a/init/Kconfig.gki b/init/Kconfig.gki
-index 6c3f89b..45966f3 100644
+index 6c3f89bd8e25..45966f3325b9 100644
 --- a/init/Kconfig.gki
 +++ b/init/Kconfig.gki
 @@ -9,6 +9,14 @@ config GKI_HIDDEN_DRM_CONFIGS
@@ -42,5 +42,5 @@ index 6c3f89b..45966f3 100644
  	  Dummy config option used to enable core functionality used by
  	  modules that may not be selectable in this config.
 -- 
-2.7.4
+2.17.1
 

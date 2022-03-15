@@ -1,4 +1,4 @@
-From 98c0a446e56932d135cc1e3581a6dde4391d6727 Mon Sep 17 00:00:00 2001
+From 2dcc7b39462a866fcf7b0ab19c97c3910ea45eae Mon Sep 17 00:00:00 2001
 From: Todd Kjos <tkjos@google.com>
 Date: Fri, 25 Oct 2019 10:48:55 -0700
 Subject: [PATCH 575/830] ANDROID: gki_defconfig: add FORTIFY_SOURCE, remove
@@ -18,7 +18,7 @@ Signed-off-by: Todd Kjos <tkjos@google.com>
  2 files changed, 3 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 56c6240..33b7425 100644
+index 56c624067954..33b742543ec4 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -284,6 +284,7 @@ CONFIG_HW_RANDOM_VIRTIO=y
@@ -38,7 +38,7 @@ index 56c6240..33b7425 100644
  CONFIG_CRYPTO_ADIANTUM=y
  CONFIG_CRYPTO_MD4=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 5add23f..e19e334 100644
+index 5add23fc3d0b..e19e3343d322 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -382,6 +382,7 @@ CONFIG_NLS_UTF8=y
@@ -50,5 +50,5 @@ index 5add23f..e19e334 100644
  CONFIG_CRYPTO_ADIANTUM=y
  CONFIG_CRYPTO_SHA256_SSSE3=y
 -- 
-2.7.4
+2.17.1
 

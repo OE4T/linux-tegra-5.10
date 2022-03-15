@@ -1,4 +1,4 @@
-From f350e235e8facffea48b9716d126a40f525c98b4 Mon Sep 17 00:00:00 2001
+From d01682a480da57e7f5ace48ff1213db195f0255e Mon Sep 17 00:00:00 2001
 From: Alistair Delva <adelva@google.com>
 Date: Mon, 31 Aug 2020 08:05:45 -0700
 Subject: [PATCH 766/830] ANDROID: GKI: Enable CONFIG_REMOTEPROC_CDEV
@@ -15,7 +15,7 @@ Signed-off-by: Alistair Delva <adelva@google.com>
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index c8342b0..ef49759 100644
+index c8342b0ccb77..ef49759ca003 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -427,6 +427,7 @@ CONFIG_HWSPINLOCK=y
@@ -27,7 +27,7 @@ index c8342b0..ef49759 100644
  CONFIG_QCOM_COMMAND_DB=y
  CONFIG_DEVFREQ_GOV_PERFORMANCE=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index a597e8a..e4d4ce7 100644
+index a597e8a44276..e4d4ce7399f3 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -370,6 +370,7 @@ CONFIG_ASHMEM=y
@@ -39,5 +39,5 @@ index a597e8a..e4d4ce7 100644
  CONFIG_PM_DEVFREQ_EVENT=y
  CONFIG_IIO=y
 -- 
-2.7.4
+2.17.1
 

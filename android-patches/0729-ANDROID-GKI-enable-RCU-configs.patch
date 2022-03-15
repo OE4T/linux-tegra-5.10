@@ -1,4 +1,4 @@
-From 8621aa43ce1d3ea93b6888b20f64e4e2c2d37de3 Mon Sep 17 00:00:00 2001
+From e514f8e783f46ee56d96e444fab651d60ce526d2 Mon Sep 17 00:00:00 2001
 From: Todd Kjos <tkjos@google.com>
 Date: Mon, 3 Aug 2020 21:00:53 -0700
 Subject: [PATCH 729/830] ANDROID: GKI: enable RCU configs
@@ -19,7 +19,7 @@ Change-Id: Ie261e9dbd679c2f2481ebc1187c0ac4a01fd0767
  2 files changed, 6 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index fc5c3c2..6a35420 100644
+index fc5c3c2709d3..6a354201791e 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -8,6 +8,9 @@ CONFIG_TASKSTATS=y
@@ -33,7 +33,7 @@ index fc5c3c2..6a35420 100644
  CONFIG_IKCONFIG_PROC=y
  CONFIG_IKHEADERS=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index bc5cac9..ac097af 100644
+index bc5cac9f674d..ac097afb5695 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -10,6 +10,9 @@ CONFIG_TASKSTATS=y
@@ -47,5 +47,5 @@ index bc5cac9..ac097af 100644
  CONFIG_IKCONFIG_PROC=y
  CONFIG_IKHEADERS=y
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From f51d6d88d05293922f9b5c9ea4427c374fda3382 Mon Sep 17 00:00:00 2001
+From 8ac6bdafea22a59e141f174ea442e8b64f65d0ea Mon Sep 17 00:00:00 2001
 From: Guenter Roeck <linux@roeck-us.net>
 Date: Tue, 15 Oct 2019 16:51:45 +0200
 Subject: [PATCH 090/830] ANDROID: ARM: Register with kernel restart handler
@@ -25,7 +25,7 @@ Signed-off-by: Elliot Berman <eberman@codeaurora.org>
  1 file changed, 18 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/kernel/setup.c b/arch/arm/kernel/setup.c
-index b06602c..b0e2e31 100644
+index b06602cea99c..b0e2e31c9856 100644
 --- a/arch/arm/kernel/setup.c
 +++ b/arch/arm/kernel/setup.c
 @@ -1082,6 +1082,20 @@ void __init hyp_mode_check(void)
@@ -63,5 +63,5 @@ index b06602c..b0e2e31 100644
  	unflatten_device_tree();
  
 -- 
-2.7.4
+2.17.1
 

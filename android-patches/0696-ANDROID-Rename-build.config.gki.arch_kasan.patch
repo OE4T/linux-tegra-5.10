@@ -1,4 +1,4 @@
-From 07ebf93eec076e3879cecf9176bc63401b795a15 Mon Sep 17 00:00:00 2001
+From 458c5a557e6c3c580f796c499d7fde3d4f6a662a Mon Sep 17 00:00:00 2001
 From: Max Spector <mspector@google.com>
 Date: Tue, 5 May 2020 11:38:06 -0700
 Subject: [PATCH 696/830] ANDROID: Rename build.config.gki.arch_kasan
@@ -21,7 +21,7 @@ Signed-off-by: Max Spector <mspector@google.com>
 
 diff --git a/build.config.gki_kasan b/build.config.gki_kasan
 new file mode 100644
-index 00000000..e682b0d
+index 000000000000..e682b0d490bd
 --- /dev/null
 +++ b/build.config.gki_kasan
 @@ -0,0 +1,23 @@
@@ -50,7 +50,7 @@ index 00000000..e682b0d
 +
 diff --git a/build.config.gki_kasan.aarch64 b/build.config.gki_kasan.aarch64
 new file mode 100644
-index 00000000..9099658
+index 000000000000..9099658338a6
 --- /dev/null
 +++ b/build.config.gki_kasan.aarch64
 @@ -0,0 +1,11 @@
@@ -67,7 +67,7 @@ index 00000000..9099658
 +TRIM_NONLISTED_KMI=1
 diff --git a/build.config.gki_kasan.x86_64 b/build.config.gki_kasan.x86_64
 new file mode 100644
-index 00000000..6a379ec
+index 000000000000..6a379eceeb31
 --- /dev/null
 +++ b/build.config.gki_kasan.x86_64
 @@ -0,0 +1,4 @@
@@ -76,5 +76,5 @@ index 00000000..6a379ec
 +. ${ROOT_DIR}/common/build.config.gki_kasan
 +
 -- 
-2.7.4
+2.17.1
 

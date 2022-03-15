@@ -1,4 +1,4 @@
-From 5cb988a2d4f56ec58bd39e75c1069d79cafc72a0 Mon Sep 17 00:00:00 2001
+From 8b658d14e185f682e379d3efbd899b10bc5a76f9 Mon Sep 17 00:00:00 2001
 From: Prasad Sodagudi <psodagud@codeaurora.org>
 Date: Mon, 21 Sep 2020 09:53:55 -0700
 Subject: [PATCH 776/830] ANDROID: GKI: Add CONFIG_EDAC for gki_defconfig
@@ -16,7 +16,7 @@ Signed-off-by: Prasad Sodagudi <psodagud@codeaurora.org>
  2 files changed, 4 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index e83e597..bce3a82 100644
+index e83e5976ed15..bce3a8280d0e 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -417,6 +417,7 @@ CONFIG_LEDS_CLASS=y
@@ -36,7 +36,7 @@ index e83e597..bce3a82 100644
  CONFIG_ANDROID_BINDER_IPC=y
  CONFIG_ANDROID_BINDERFS=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index b633d45..7c30bfd 100644
+index b633d4527ef4..7c30bfdcf446 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -370,6 +370,7 @@ CONFIG_LEDS_CLASS=y
@@ -56,5 +56,5 @@ index b633d45..7c30bfd 100644
  CONFIG_ANDROID_BINDER_IPC=y
  CONFIG_ANDROID_BINDERFS=y
 -- 
-2.7.4
+2.17.1
 

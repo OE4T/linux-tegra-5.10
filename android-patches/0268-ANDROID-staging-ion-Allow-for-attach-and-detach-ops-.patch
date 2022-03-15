@@ -1,4 +1,4 @@
-From f3f1b21b83d80ecd16c3f55f73d026c231d281ec Mon Sep 17 00:00:00 2001
+From f23b539df96908c240dbe742aa53ad0b73702cd8 Mon Sep 17 00:00:00 2001
 From: "Isaac J. Manjarres" <isaacm@codeaurora.org>
 Date: Mon, 23 Mar 2020 14:57:51 -0700
 Subject: [PATCH 268/830] ANDROID: staging: ion: Allow for attach and detach
@@ -21,7 +21,7 @@ Signed-off-by: Isaac J. Manjarres <isaacm@codeaurora.org>
  1 file changed, 8 insertions(+)
 
 diff --git a/drivers/staging/android/ion/ion_dma_buf.c b/drivers/staging/android/ion/ion_dma_buf.c
-index 6b77a2f..9cb38d5 100644
+index 6b77a2fbb67a..9cb38d519c10 100644
 --- a/drivers/staging/android/ion/ion_dma_buf.c
 +++ b/drivers/staging/android/ion/ion_dma_buf.c
 @@ -57,6 +57,10 @@ static int ion_dma_buf_attach(struct dma_buf *dmabuf,
@@ -47,5 +47,5 @@ index 6b77a2f..9cb38d5 100644
  	mutex_lock(&buffer->lock);
  	list_del(&a->list);
 -- 
-2.7.4
+2.17.1
 

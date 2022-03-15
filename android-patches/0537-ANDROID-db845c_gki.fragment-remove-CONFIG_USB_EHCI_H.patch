@@ -1,4 +1,4 @@
-From 9e21e8902c5b8fd9e85257f038070b8874cc6196 Mon Sep 17 00:00:00 2001
+From 08d8367a15498c93ca5606b61e010a7b50aedd5e Mon Sep 17 00:00:00 2001
 From: Yongqin Liu <yongqin.liu@linaro.org>
 Date: Thu, 27 Aug 2020 11:35:24 +0800
 Subject: [PATCH 537/830] ANDROID: db845c_gki.fragment: remove
@@ -37,7 +37,7 @@ Change-Id: I202ec04aa431b9f6ff1966fb6bd50758472250e4
  1 file changed, 2 deletions(-)
 
 diff --git a/arch/arm64/configs/db845c_gki.fragment b/arch/arm64/configs/db845c_gki.fragment
-index 66925c9..b0c1990 100644
+index 66925c93096e..b0c19903b1b0 100644
 --- a/arch/arm64/configs/db845c_gki.fragment
 +++ b/arch/arm64/configs/db845c_gki.fragment
 @@ -29,8 +29,6 @@ CONFIG_DRM_MSM=m
@@ -50,5 +50,5 @@ index 66925c9..b0c1990 100644
  CONFIG_USB_OHCI_HCD_PLATFORM=m
  CONFIG_USB_DWC3=m
 -- 
-2.7.4
+2.17.1
 

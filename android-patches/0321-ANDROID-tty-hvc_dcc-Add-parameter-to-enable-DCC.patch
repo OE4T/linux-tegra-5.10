@@ -1,4 +1,4 @@
-From e78961688ab6f2f4378f1cbfb50a3b34eb777d1d Mon Sep 17 00:00:00 2001
+From c62da721e24bb727e43d8fb79bf39be18dbf9ccd Mon Sep 17 00:00:00 2001
 From: Elliot Berman <eberman@codeaurora.org>
 Date: Tue, 6 Oct 2020 17:38:05 -0700
 Subject: [PATCH 321/830] ANDROID: tty: hvc_dcc: Add parameter to enable DCC
@@ -17,7 +17,7 @@ Signed-off-by: Elliot Berman <eberman@codeaurora.org>
  2 files changed, 14 insertions(+), 2 deletions(-)
 
 diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-index 516499f..c423f32 100644
+index d00618967854..06e62a8b1c47 100644
 --- a/Documentation/admin-guide/kernel-parameters.txt
 +++ b/Documentation/admin-guide/kernel-parameters.txt
 @@ -1573,6 +1573,10 @@
@@ -32,7 +32,7 @@ index 516499f..c423f32 100644
  				      which allow the hypervisor to 'idle' the
  				      guest on lock contention.
 diff --git a/drivers/tty/hvc/hvc_dcc.c b/drivers/tty/hvc/hvc_dcc.c
-index e1ebcdd..e9aff1f 100644
+index e1ebcdd5fe8d..e9aff1f6b196 100644
 --- a/drivers/tty/hvc/hvc_dcc.c
 +++ b/drivers/tty/hvc/hvc_dcc.c
 @@ -4,6 +4,7 @@
@@ -76,5 +76,5 @@ index e1ebcdd..e9aff1f 100644
  
  	p = hvc_alloc(0, 0, &hvc_dcc_get_put_ops, 128);
 -- 
-2.7.4
+2.17.1
 

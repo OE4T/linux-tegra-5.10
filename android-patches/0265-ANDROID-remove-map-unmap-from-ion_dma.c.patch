@@ -1,4 +1,4 @@
-From 6b16386e29001af166e64b866da3f75df1db07a1 Mon Sep 17 00:00:00 2001
+From 23f36b12c5f10f25d28bcec9912346999137cd0d Mon Sep 17 00:00:00 2001
 From: Greg Kroah-Hartman <gregkh@google.com>
 Date: Thu, 6 Feb 2020 19:17:55 +0100
 Subject: [PATCH 265/830] ANDROID: remove map/unmap from ion_dma.c
@@ -17,11 +17,11 @@ Cc: Sandeep Patil <sspatil@google.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@google.com>
 Change-Id: I22dd274529cf5b527ab77eac2a4113baa20693c1
 ---
- drivers/staging/android/ion/ion_dma_buf.c | 24 ------------------------
+ drivers/staging/android/ion/ion_dma_buf.c | 24 -----------------------
  1 file changed, 24 deletions(-)
 
 diff --git a/drivers/staging/android/ion/ion_dma_buf.c b/drivers/staging/android/ion/ion_dma_buf.c
-index 7ded926..6b77a2f 100644
+index 7ded926f52d4..6b77a2fbb67a 100644
 --- a/drivers/staging/android/ion/ion_dma_buf.c
 +++ b/drivers/staging/android/ion/ion_dma_buf.c
 @@ -234,17 +234,6 @@ static int ion_dma_buf_end_cpu_access_partial(struct dma_buf *dmabuf,
@@ -70,5 +70,5 @@ index 7ded926..6b77a2f 100644
  	.vunmap = ion_dma_buf_vunmap,
  	.get_flags = ion_dma_buf_get_flags,
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 5369e7e39112809043c22a1e2a6f0dedeefeb5ac Mon Sep 17 00:00:00 2001
+From b91edb5f06a7f562da95dd452bbb085118de8b6f Mon Sep 17 00:00:00 2001
 From: Vincent Donnefort <vincent.donnefort@arm.com>
 Date: Tue, 3 Nov 2020 11:47:46 +0000
 Subject: [PATCH 195/830] ANDROID: stop_machine: stop_one_cpu_async
@@ -14,12 +14,12 @@ Bug: 161210528
 Change-Id: Ida51371e32897d008ece0639190fc21feabb0f28
 Signed-off-by: Vincent Donnefort <vincent.donnefort@arm.com>
 ---
- include/linux/stop_machine.h | 14 +++++++++++
- kernel/stop_machine.c        | 59 ++++++++++++++++++++++++++++++++++++--------
+ include/linux/stop_machine.h | 14 +++++++++
+ kernel/stop_machine.c        | 59 ++++++++++++++++++++++++++++++------
  2 files changed, 63 insertions(+), 10 deletions(-)
 
 diff --git a/include/linux/stop_machine.h b/include/linux/stop_machine.h
-index 63ea9af..ddafb3c 100644
+index 63ea9aff368f..ddafb3cf4f48 100644
 --- a/include/linux/stop_machine.h
 +++ b/include/linux/stop_machine.h
 @@ -28,6 +28,16 @@ struct cpu_stop_work {
@@ -51,7 +51,7 @@ index 63ea9af..ddafb3c 100644
  #else	/* CONFIG_SMP */
  
 diff --git a/kernel/stop_machine.c b/kernel/stop_machine.c
-index f3c54c9..c65cfb7 100644
+index f3c54c96a7b4..c65cfb7f7573 100644
 --- a/kernel/stop_machine.c
 +++ b/kernel/stop_machine.c
 @@ -22,16 +22,7 @@
@@ -128,5 +128,5 @@ index f3c54c9..c65cfb7 100644
  				 cpu_stop_fn_t fn, void *arg,
  				 struct cpu_stop_done *done)
 -- 
-2.7.4
+2.17.1
 

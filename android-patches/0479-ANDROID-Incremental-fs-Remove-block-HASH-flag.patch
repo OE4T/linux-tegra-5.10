@@ -1,4 +1,4 @@
-From f9c400d9f195fd26c0e3356e792c95e5a173b7ea Mon Sep 17 00:00:00 2001
+From e16b63897e6416f3db460bdf0d0c5f13079995b9 Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Thu, 27 Aug 2020 14:08:30 -0700
 Subject: [PATCH 479/830] ANDROID: Incremental fs: Remove block HASH flag
@@ -14,7 +14,7 @@ Change-Id: I98e1efb9913d7c920ecaa76d29c8cf36219ff930
  2 files changed, 2 deletions(-)
 
 diff --git a/fs/incfs/format.c b/fs/incfs/format.c
-index f663a76..0b15317 100644
+index f663a7605727..0b15317ca74d 100644
 --- a/fs/incfs/format.c
 +++ b/fs/incfs/format.c
 @@ -456,7 +456,6 @@ int incfs_write_hash_block_to_backing_file(struct backing_file_context *bfc,
@@ -26,7 +26,7 @@ index f663a76..0b15317 100644
  	return write_to_bf(bfc, &bm_entry, sizeof(bm_entry), bm_entry_off);
  }
 diff --git a/fs/incfs/format.h b/fs/incfs/format.h
-index c29556d..b3d87d5 100644
+index c29556de594e..b3d87d520236 100644
 --- a/fs/incfs/format.h
 +++ b/fs/incfs/format.h
 @@ -186,7 +186,6 @@ struct incfs_file_header {
@@ -38,5 +38,5 @@ index c29556d..b3d87d5 100644
  
  /* Block map entry pointing to an actual location of the data block. */
 -- 
-2.7.4
+2.17.1
 

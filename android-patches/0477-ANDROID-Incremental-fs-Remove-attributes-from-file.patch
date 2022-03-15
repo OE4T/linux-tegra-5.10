@@ -1,4 +1,4 @@
-From ffd5fa0637a15575b9ff07a474200c8b8d439252 Mon Sep 17 00:00:00 2001
+From ba97329e77f52cb3327c50b91fe3b82e265fb5ed Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Thu, 27 Aug 2020 13:52:14 -0700
 Subject: [PATCH 477/830] ANDROID: Incremental fs: Remove attributes from file
@@ -9,14 +9,14 @@ Test: incfs_test passes
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
 Change-Id: I0f753929f6b5b884f829cd3e6e8d4e6f94ab3a46
 ---
- fs/incfs/data_mgmt.c    | 20 --------------------
- fs/incfs/format.c       | 48 ------------------------------------------------
- fs/incfs/format.h       | 18 ------------------
- fs/incfs/pseudo_files.c |  7 -------
+ fs/incfs/data_mgmt.c    | 20 -----------------
+ fs/incfs/format.c       | 48 -----------------------------------------
+ fs/incfs/format.h       | 18 ----------------
+ fs/incfs/pseudo_files.c |  7 ------
  4 files changed, 93 deletions(-)
 
 diff --git a/fs/incfs/data_mgmt.c b/fs/incfs/data_mgmt.c
-index 7cc530b..fc868f7 100644
+index 7cc530b8c1f4..fc868f786e6c 100644
 --- a/fs/incfs/data_mgmt.c
 +++ b/fs/incfs/data_mgmt.c
 @@ -1228,25 +1228,6 @@ static int process_blockmap_md(struct incfs_blockmap *bm,
@@ -54,7 +54,7 @@ index 7cc530b..fc868f7 100644
  
  	while (handler->md_record_offset > 0) {
 diff --git a/fs/incfs/format.c b/fs/incfs/format.c
-index a5239a5a..05c23bc 100644
+index a5239a5a17f5..05c23bc87ee5 100644
 --- a/fs/incfs/format.c
 +++ b/fs/incfs/format.c
 @@ -274,49 +274,6 @@ int incfs_write_blockmap_to_backing_file(struct backing_file_context *bfc,
@@ -120,7 +120,7 @@ index a5239a5a..05c23bc 100644
  		if (handler->handle_signature)
  			res = handler->handle_signature(
 diff --git a/fs/incfs/format.h b/fs/incfs/format.h
-index c13b84d..dea2488 100644
+index c13b84d772cd..dea24888c0b6 100644
 --- a/fs/incfs/format.h
 +++ b/fs/incfs/format.h
 @@ -117,7 +117,6 @@
@@ -175,7 +175,7 @@ index c13b84d..dea2488 100644
  					  struct mem_range sig, u32 tree_size);
  
 diff --git a/fs/incfs/pseudo_files.c b/fs/incfs/pseudo_files.c
-index 2286320..ca8d1b2 100644
+index 22863204bb59..ca8d1b206158 100644
 --- a/fs/incfs/pseudo_files.c
 +++ b/fs/incfs/pseudo_files.c
 @@ -463,13 +463,6 @@ static int init_new_file(struct mount_info *mi, struct dentry *dentry,
@@ -193,5 +193,5 @@ index 2286320..ca8d1b2 100644
  
  	if (user_signature_info) {
 -- 
-2.7.4
+2.17.1
 

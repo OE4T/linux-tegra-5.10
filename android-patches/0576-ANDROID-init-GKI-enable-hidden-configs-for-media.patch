@@ -1,4 +1,4 @@
-From 3a079c51fce7fe5cacb24fa600f9d32b38a52d61 Mon Sep 17 00:00:00 2001
+From 7ee86be887cfedbfded33f6dcab481c950d9d620 Mon Sep 17 00:00:00 2001
 From: Todd Kjos <tkjos@google.com>
 Date: Fri, 25 Oct 2019 11:39:57 -0700
 Subject: [PATCH 576/830] ANDROID: init: GKI: enable hidden configs for media
@@ -21,7 +21,7 @@ Signed-off-by: Matthias Maennich <maennich@google.com>
  3 files changed, 9 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 33b7425..e2b7f40 100644
+index 33b742543ec4..e2b7f40cb55a 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -296,7 +296,6 @@ CONFIG_WATCHDOG=y
@@ -33,7 +33,7 @@ index 33b7425..e2b7f40 100644
  CONFIG_MEDIA_CONTROLLER=y
  # CONFIG_VGA_ARB is not set
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index e19e334..09dc0ad 100644
+index e19e3343d322..09dc0adca00d 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -256,7 +256,6 @@ CONFIG_GPIOLIB=y
@@ -45,7 +45,7 @@ index e19e334..09dc0ad 100644
  CONFIG_DRM=y
  # CONFIG_DRM_FBDEV_EMULATION is not set
 diff --git a/init/Kconfig.gki b/init/Kconfig.gki
-index 4db995c..c5a080e 100644
+index 4db995c2fe92..c5a080e7784b 100644
 --- a/init/Kconfig.gki
 +++ b/init/Kconfig.gki
 @@ -53,6 +53,14 @@ config GKI_HIDDEN_QCOM_CONFIGS
@@ -72,5 +72,5 @@ index 4db995c..c5a080e 100644
  	  Dummy config option used to enable core functionality used by
  	  modules that may not be selectable in this config.
 -- 
-2.7.4
+2.17.1
 

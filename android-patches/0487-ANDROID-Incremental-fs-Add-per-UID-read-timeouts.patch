@@ -1,4 +1,4 @@
-From 91aaf6f82bf95e9b5016362b047f3593613dcfb5 Mon Sep 17 00:00:00 2001
+From 734e99d2fadf7f8200ef550e189153fea2bf1564 Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Tue, 22 Sep 2020 14:59:41 -0700
 Subject: [PATCH 487/830] ANDROID: Incremental fs: Add per UID read timeouts
@@ -9,16 +9,16 @@ Test: incfs_test passes
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
 Change-Id: I8cad9ee4095123bafba33abb65bbb339ba6ff8b5
 ---
- fs/incfs/data_mgmt.c                               |  38 +++--
- fs/incfs/data_mgmt.h                               |  10 +-
- fs/incfs/pseudo_files.c                            |  94 +++++++++++++
- fs/incfs/vfs.c                                     |  42 +++++-
- include/uapi/linux/incrementalfs.h                 |  96 ++++++++++++-
- .../selftests/filesystems/incfs/incfs_test.c       | 156 +++++++++++++++++++++
+ fs/incfs/data_mgmt.c                          |  38 ++++-
+ fs/incfs/data_mgmt.h                          |  10 +-
+ fs/incfs/pseudo_files.c                       |  94 +++++++++++
+ fs/incfs/vfs.c                                |  42 ++++-
+ include/uapi/linux/incrementalfs.h            |  96 ++++++++++-
+ .../selftests/filesystems/incfs/incfs_test.c  | 156 ++++++++++++++++++
  6 files changed, 417 insertions(+), 19 deletions(-)
 
 diff --git a/fs/incfs/data_mgmt.c b/fs/incfs/data_mgmt.c
-index 4100e900..14cba02 100644
+index 4100e900b09b..14cba02b8189 100644
 --- a/fs/incfs/data_mgmt.c
 +++ b/fs/incfs/data_mgmt.c
 @@ -3,6 +3,7 @@
@@ -136,7 +136,7 @@ index 4100e900..14cba02 100644
  		goto out;
  
 diff --git a/fs/incfs/data_mgmt.h b/fs/incfs/data_mgmt.h
-index 42922b2..13b663a 100644
+index 42922b2f9db1..13b663a1d53e 100644
 --- a/fs/incfs/data_mgmt.h
 +++ b/fs/incfs/data_mgmt.h
 @@ -163,6 +163,11 @@ struct mount_info {
@@ -164,7 +164,7 @@ index 42922b2..13b663a 100644
  int incfs_get_filled_blocks(struct data_file *df,
  			    struct incfs_file_data *fd,
 diff --git a/fs/incfs/pseudo_files.c b/fs/incfs/pseudo_files.c
-index 07a4eb3..7c20d45 100644
+index 07a4eb3d16f1..7c20d452c031 100644
 --- a/fs/incfs/pseudo_files.c
 +++ b/fs/incfs/pseudo_files.c
 @@ -940,6 +940,96 @@ static long ioctl_create_mapped_file(struct mount_info *mi, void __user *arg)
@@ -276,7 +276,7 @@ index 07a4eb3..7c20d45 100644
  		return -EINVAL;
  	}
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index eddc050..c0a5181 100644
+index eddc0501270e..c0a5181cd3ef 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -416,6 +416,39 @@ static struct dentry *open_or_create_special_dir(struct dentry *backing_dir,
@@ -354,7 +354,7 @@ index eddc050..c0a5181 100644
  		free_pages((unsigned long)tmp.data, get_order(tmp.len));
  	} else {
 diff --git a/include/uapi/linux/incrementalfs.h b/include/uapi/linux/incrementalfs.h
-index 374d6e4..0cd6b34 100644
+index 374d6e4f4650..0cd6b3403222 100644
 --- a/include/uapi/linux/incrementalfs.h
 +++ b/include/uapi/linux/incrementalfs.h
 @@ -43,7 +43,10 @@
@@ -486,7 +486,7 @@ index 374d6e4..0cd6b34 100644
 +
  #endif /* _UAPI_LINUX_INCREMENTALFS_H */
 diff --git a/tools/testing/selftests/filesystems/incfs/incfs_test.c b/tools/testing/selftests/filesystems/incfs/incfs_test.c
-index 38acad3..8816238 100644
+index 38acad30c10c..881623871a8e 100644
 --- a/tools/testing/selftests/filesystems/incfs/incfs_test.c
 +++ b/tools/testing/selftests/filesystems/incfs/incfs_test.c
 @@ -13,6 +13,7 @@
@@ -667,5 +667,5 @@ index 38acad3..8816238 100644
  #undef MAKE_TEST
  
 -- 
-2.7.4
+2.17.1
 

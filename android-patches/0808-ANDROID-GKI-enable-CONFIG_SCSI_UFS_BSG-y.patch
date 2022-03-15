@@ -1,4 +1,4 @@
-From 74c03003d163ed80688a13e6e0d8c7f373194a11 Mon Sep 17 00:00:00 2001
+From 5619d61e8bf5498157edcc96dc197ef1c63829be Mon Sep 17 00:00:00 2001
 From: Greg Kroah-Hartman <gregkh@google.com>
 Date: Fri, 24 Jul 2020 20:30:39 +0200
 Subject: [PATCH 808/830] ANDROID: GKI: enable CONFIG_SCSI_UFS_BSG=y
@@ -16,7 +16,7 @@ Change-Id: I3c8d57dafbf985533e7d5b0977aaa8155cc34cf3
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index cf4ebc6..eb10473 100644
+index cf4ebc6adf99..eb10473bf641 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -249,6 +249,7 @@ CONFIG_SCSI_UFSHCD_PCI=y
@@ -28,7 +28,7 @@ index cf4ebc6..eb10473 100644
  CONFIG_MD=y
  CONFIG_BLK_DEV_DM=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index c57654a..8af3e7a 100644
+index c57654a6ab63..8af3e7a91bad 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -224,6 +224,7 @@ CONFIG_SCSI_UFSHCD=y
@@ -40,5 +40,5 @@ index c57654a..8af3e7a 100644
  CONFIG_MD=y
  CONFIG_BLK_DEV_DM=y
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 613a76004f9cb1e1ff16672ed825e464b0b25a3a Mon Sep 17 00:00:00 2001
+From 3dcb7648cb46b636b304d567c340714a4ef8bae3 Mon Sep 17 00:00:00 2001
 From: John Stultz <john.stultz@linaro.org>
 Date: Fri, 17 Apr 2020 22:43:21 +0000
 Subject: [PATCH 530/830] ANDROID: iommu: Kconfig: Make ARM_SMMU depend on
@@ -22,7 +22,7 @@ Change-Id: I580e65e3df85bfbda2af5c54a1a068f6de7d27ee
  1 file changed, 1 insertion(+)
 
 diff --git a/drivers/iommu/Kconfig b/drivers/iommu/Kconfig
-index 75c11e0..f505934 100644
+index 75c11e067e98..f5059343db44 100644
 --- a/drivers/iommu/Kconfig
 +++ b/drivers/iommu/Kconfig
 @@ -278,6 +278,7 @@ config SPAPR_TCE_IOMMU
@@ -34,5 +34,5 @@ index 75c11e0..f505934 100644
  	select IOMMU_IO_PGTABLE_LPAE
  	select ARM_DMA_USE_IOMMU if ARM
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 6661e364e746fc70a3b3fabf52a3e3cbdf4b9e62 Mon Sep 17 00:00:00 2001
+From 7119767bdbbb9c74478dc5e14b0467af54c109e3 Mon Sep 17 00:00:00 2001
 From: Vijayanand Jitta <vjitta@codeaurora.org>
 Date: Tue, 8 Sep 2020 17:26:39 -0700
 Subject: [PATCH 107/830] FROMLIST: iommu/iova: Free global iova rcache on iova
@@ -23,10 +23,10 @@ Change-Id: Ife06a2a078d32103a59367da705274222b18b91a
  2 files changed, 29 insertions(+)
 
 diff --git a/drivers/iommu/iova.c b/drivers/iommu/iova.c
-index 57450d9a..2adc788 100644
+index 7c704ee39073..7e3f4d6c5e4c 100644
 --- a/drivers/iommu/iova.c
 +++ b/drivers/iommu/iova.c
-@@ -530,6 +530,7 @@ alloc_iova_fast(struct iova_domain *iovad, unsigned long size,
+@@ -529,6 +529,7 @@ alloc_iova_fast(struct iova_domain *iovad, unsigned long size,
  		flush_rcache = false;
  		for_each_online_cpu(cpu)
  			free_cpu_cached_iovas(cpu, iovad);
@@ -34,7 +34,7 @@ index 57450d9a..2adc788 100644
  		goto retry;
  	}
  
-@@ -1145,5 +1146,27 @@ void free_cpu_cached_iovas(unsigned int cpu, struct iova_domain *iovad)
+@@ -1144,5 +1145,27 @@ void free_cpu_cached_iovas(unsigned int cpu, struct iova_domain *iovad)
  	}
  }
  
@@ -63,7 +63,7 @@ index 57450d9a..2adc788 100644
  MODULE_AUTHOR("Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>");
  MODULE_LICENSE("GPL");
 diff --git a/include/linux/iova.h b/include/linux/iova.h
-index 58713bb..5b4e75f 100644
+index 58713bb72a48..5b4e75fe626a 100644
 --- a/include/linux/iova.h
 +++ b/include/linux/iova.h
 @@ -164,6 +164,7 @@ void put_iova_domain(struct iova_domain *iovad);
@@ -87,5 +87,5 @@ index 58713bb..5b4e75f 100644
  
  #endif
 -- 
-2.7.4
+2.17.1
 

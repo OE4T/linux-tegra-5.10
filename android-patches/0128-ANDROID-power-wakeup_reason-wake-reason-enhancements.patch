@@ -1,4 +1,4 @@
-From 0c8d2fd04fd481c59ebb8e061a8b851b9736f068 Mon Sep 17 00:00:00 2001
+From 020f3f871ba752831a3b79ab0a2dfab3ce295f0c Mon Sep 17 00:00:00 2001
 From: Kelly Rossmoyer <krossmo@google.com>
 Date: Tue, 7 Apr 2020 12:25:33 -0700
 Subject: [PATCH 128/830] ANDROID: power: wakeup_reason: wake reason
@@ -24,17 +24,17 @@ Change-Id: I903b811a0fe11a605a25815c3a341668a23de700
 Signed-off-by: Eric Biggers <ebiggers@google.com>
 ---
  drivers/base/power/main.c     |  13 +-
- drivers/base/power/wakeup.c   |  21 ++-
+ drivers/base/power/wakeup.c   |  25 ++-
  drivers/irqchip/irq-gic-v3.c  |   3 +
  include/linux/wakeup_reason.h |   9 +-
  kernel/irq/chip.c             |  17 +-
  kernel/power/process.c        |   9 -
- kernel/power/suspend.c        |  20 +--
- kernel/power/wakeup_reason.c  | 400 +++++++++++++++++++++++++++++++-----------
- 8 files changed, 365 insertions(+), 127 deletions(-)
+ kernel/power/suspend.c        |  20 +-
+ kernel/power/wakeup_reason.c  | 400 +++++++++++++++++++++++++---------
+ 8 files changed, 368 insertions(+), 128 deletions(-)
 
 diff --git a/drivers/base/power/main.c b/drivers/base/power/main.c
-index 92c55a0..72dcd2a 100644
+index 92c55a0ad56e..72dcd2a2c2e4 100644
 --- a/drivers/base/power/main.c
 +++ b/drivers/base/power/main.c
 @@ -1235,6 +1235,8 @@ static int __device_suspend_noirq(struct device *dev, pm_message_t state, bool a
@@ -93,7 +93,7 @@ index 92c55a0..72dcd2a 100644
  			put_device(dev);
  			break;
 diff --git a/drivers/base/power/wakeup.c b/drivers/base/power/wakeup.c
-index 2905c01..aa472cd 100644
+index af269dc029a3..ceda19f61690 100644
 --- a/drivers/base/power/wakeup.c
 +++ b/drivers/base/power/wakeup.c
 @@ -15,7 +15,9 @@
@@ -107,7 +107,7 @@ index 2905c01..aa472cd 100644
  #include <trace/events/power.h>
  
  #include "power.h"
-@@ -942,6 +944,7 @@ bool pm_wakeup_pending(void)
+@@ -943,6 +945,7 @@ bool pm_wakeup_pending(void)
  {
  	unsigned long flags;
  	bool ret = false;
@@ -115,7 +115,7 @@ index 2905c01..aa472cd 100644
  
  	raw_spin_lock_irqsave(&events_lock, flags);
  	if (events_check_enabled) {
-@@ -956,6 +959,10 @@ bool pm_wakeup_pending(void)
+@@ -957,6 +960,10 @@ bool pm_wakeup_pending(void)
  	if (ret) {
  		pm_pr_dbg("Wakeup pending, aborting suspend\n");
  		pm_print_active_wakeup_sources();
@@ -126,10 +126,12 @@ index 2905c01..aa472cd 100644
  	}
  
  	return ret || atomic_read(&pm_abort_suspend) > 0;
-@@ -983,6 +990,18 @@ void pm_wakeup_clear(bool reset)
- void pm_system_irq_wakeup(unsigned int irq_number)
- {
- 	if (pm_wakeup_irq == 0) {
+@@ -1006,8 +1013,20 @@ void pm_system_irq_wakeup(unsigned int irq_number)
+ 
+ 	raw_spin_unlock_irqrestore(&wakeup_irq_lock, flags);
+ 
+-	if (irq_number)
++	if (irq_number) {
 +		struct irq_desc *desc;
 +		const char *name = "null";
 +
@@ -141,12 +143,13 @@ index 2905c01..aa472cd 100644
 +
 +		log_irq_wakeup_reason(irq_number);
 +		pr_warn("%s: %d triggered %s\n", __func__, irq_number, name);
-+
- 		pm_wakeup_irq = irq_number;
  		pm_system_wakeup();
- 	}
++	}
+ }
+ 
+ unsigned int pm_wakeup_irq(void)
 diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
-index 1bdb7ac..57eecee 100644
+index 04d1b3963b6b..ae546f37741f 100644
 --- a/drivers/irqchip/irq-gic-v3.c
 +++ b/drivers/irqchip/irq-gic-v3.c
 @@ -18,6 +18,8 @@
@@ -167,7 +170,7 @@ index 1bdb7ac..57eecee 100644
  	}
  }
 diff --git a/include/linux/wakeup_reason.h b/include/linux/wakeup_reason.h
-index 9fbe209..54f5caa 100644
+index 9fbe209c7177..54f5caaa5cde 100644
 --- a/include/linux/wakeup_reason.h
 +++ b/include/linux/wakeup_reason.h
 @@ -20,11 +20,18 @@
@@ -191,7 +194,7 @@ index 9fbe209..54f5caa 100644
  
  #endif /* _LINUX_WAKEUP_REASON_H */
 diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
-index dd1914a..e256bdc 100644
+index dd1914acf1c0..e256bdcff9f7 100644
 --- a/kernel/irq/chip.c
 +++ b/kernel/irq/chip.c
 @@ -14,6 +14,7 @@
@@ -227,7 +230,7 @@ index dd1914a..e256bdc 100644
  	/*
  	 * If the interrupt is an armed wakeup source, mark it pending
 diff --git a/kernel/power/process.c b/kernel/power/process.c
-index c42e402..cc06230 100644
+index 9b68cf537c02..41053c3b4ead 100644
 --- a/kernel/power/process.c
 +++ b/kernel/power/process.c
 @@ -22,7 +22,6 @@
@@ -261,18 +264,18 @@ index c42e402..cc06230 100644
  			break;
  		}
 diff --git a/kernel/power/suspend.c b/kernel/power/suspend.c
-index 23bb42c..5459583 100644
+index bf1e9c0184b1..0b20b2a456a3 100644
 --- a/kernel/power/suspend.c
 +++ b/kernel/power/suspend.c
-@@ -140,6 +140,7 @@ static void s2idle_loop(void)
+@@ -139,6 +139,7 @@ static void s2idle_loop(void)
+ 			break;
  		}
  
- 		pm_wakeup_clear(false);
 +		clear_wakeup_reasons();
- 
  		s2idle_enter();
  	}
-@@ -360,6 +361,7 @@ static int suspend_prepare(suspend_state_t state)
+ 
+@@ -358,6 +359,7 @@ static int suspend_prepare(suspend_state_t state)
  	if (!error)
  		return 0;
  
@@ -280,7 +283,7 @@ index 23bb42c..5459583 100644
  	suspend_stats.failed_freeze++;
  	dpm_save_failed_step(SUSPEND_FREEZE);
  	pm_notifier_call_chain(PM_POST_SUSPEND);
-@@ -389,7 +391,6 @@ void __weak arch_suspend_enable_irqs(void)
+@@ -387,7 +389,6 @@ void __weak arch_suspend_enable_irqs(void)
   */
  static int suspend_enter(suspend_state_t state, bool *wakeup)
  {
@@ -288,7 +291,7 @@ index 23bb42c..5459583 100644
  	int error, last_dev;
  
  	error = platform_suspend_prepare(state);
-@@ -401,8 +402,8 @@ static int suspend_enter(suspend_state_t state, bool *wakeup)
+@@ -399,8 +400,8 @@ static int suspend_enter(suspend_state_t state, bool *wakeup)
  		last_dev = suspend_stats.last_failed_dev + REC_FAILED_NUM - 1;
  		last_dev %= REC_FAILED_NUM;
  		pr_err("late suspend of devices failed\n");
@@ -299,7 +302,7 @@ index 23bb42c..5459583 100644
  		goto Platform_finish;
  	}
  	error = platform_suspend_prepare_late(state);
-@@ -415,7 +416,7 @@ static int suspend_enter(suspend_state_t state, bool *wakeup)
+@@ -413,7 +414,7 @@ static int suspend_enter(suspend_state_t state, bool *wakeup)
  		last_dev %= REC_FAILED_NUM;
  		pr_err("noirq suspend of devices failed\n");
  		log_suspend_abort_reason("noirq suspend of %s device failed",
@@ -308,7 +311,7 @@ index 23bb42c..5459583 100644
  		goto Platform_early_resume;
  	}
  	error = platform_suspend_prepare_noirq(state);
-@@ -451,9 +452,6 @@ static int suspend_enter(suspend_state_t state, bool *wakeup)
+@@ -449,9 +450,6 @@ static int suspend_enter(suspend_state_t state, bool *wakeup)
  			trace_suspend_resume(TPS("machine_suspend"),
  				state, false);
  		} else if (*wakeup) {
@@ -318,7 +321,7 @@ index 23bb42c..5459583 100644
  			error = -EBUSY;
  		}
  		syscore_resume();
-@@ -488,7 +486,7 @@ static int suspend_enter(suspend_state_t state, bool *wakeup)
+@@ -486,7 +484,7 @@ static int suspend_enter(suspend_state_t state, bool *wakeup)
   */
  int suspend_devices_and_enter(suspend_state_t state)
  {
@@ -327,7 +330,7 @@ index 23bb42c..5459583 100644
  	bool wakeup = false;
  
  	if (!sleep_state_supported(state))
-@@ -507,11 +505,9 @@ int suspend_devices_and_enter(suspend_state_t state)
+@@ -505,11 +503,9 @@ int suspend_devices_and_enter(suspend_state_t state)
  	suspend_test_start();
  	error = dpm_suspend_start(PMSG_SUSPEND);
  	if (error) {
@@ -342,7 +345,7 @@ index 23bb42c..5459583 100644
  	}
  	suspend_test_finish("suspend devices");
 diff --git a/kernel/power/wakeup_reason.c b/kernel/power/wakeup_reason.c
-index 3ce5c90..3c118c0 100644
+index 3ce5c902e3d3..3c118c044633 100644
 --- a/kernel/power/wakeup_reason.c
 +++ b/kernel/power/wakeup_reason.c
 @@ -4,7 +4,7 @@
@@ -814,5 +817,5 @@ index 3ce5c90..3c118c0 100644
  
  late_initcall(wakeup_reason_init);
 -- 
-2.7.4
+2.17.1
 

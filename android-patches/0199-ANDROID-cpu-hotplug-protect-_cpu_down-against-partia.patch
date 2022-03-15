@@ -1,4 +1,4 @@
-From caee95dda6937ad479823278be14e33d70b34395 Mon Sep 17 00:00:00 2001
+From 4813d3eef4ebe5e6b939022d467dd6c6324143e8 Mon Sep 17 00:00:00 2001
 From: Vincent Donnefort <vincent.donnefort@arm.com>
 Date: Thu, 13 Aug 2020 18:53:02 +0100
 Subject: [PATCH 199/830] ANDROID: cpu/hotplug: protect _cpu_down against
@@ -21,7 +21,7 @@ Signed-off-by: Vincent Donnefort <vincent.donnefort@arm.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/kernel/cpu.c b/kernel/cpu.c
-index 20ee5aa..49ff117 100644
+index 20ee5aa6523a..49ff11757b66 100644
 --- a/kernel/cpu.c
 +++ b/kernel/cpu.c
 @@ -1054,7 +1054,7 @@ static int __ref _cpu_down(unsigned int cpu, int tasks_frozen,
@@ -34,5 +34,5 @@ index 20ee5aa..49ff117 100644
  
  	if (!cpu_present(cpu))
 -- 
-2.7.4
+2.17.1
 

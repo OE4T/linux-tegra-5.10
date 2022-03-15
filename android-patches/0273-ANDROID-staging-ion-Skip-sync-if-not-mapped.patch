@@ -1,4 +1,4 @@
-From f5c4a8acf934d4562ed88b3f85936ccb679dc3fd Mon Sep 17 00:00:00 2001
+From 445371ea36e1d808dcdb10ce2a124499522ce8e3 Mon Sep 17 00:00:00 2001
 From: Orjan Eide <orjan.eide@arm.com>
 Date: Fri, 17 Apr 2020 15:55:47 +0200
 Subject: [PATCH 273/830] ANDROID: staging: ion: Skip sync if not mapped
@@ -51,7 +51,7 @@ Signed-off-by: Anders Pedersen <anders.pedersen@arm.corp-partner.google.com>
  2 files changed, 11 insertions(+)
 
 diff --git a/drivers/staging/android/ion/ion_dma_buf.c b/drivers/staging/android/ion/ion_dma_buf.c
-index 1e12361..ee0e81e 100644
+index 1e1236155dea..ee0e81eef0df 100644
 --- a/drivers/staging/android/ion/ion_dma_buf.c
 +++ b/drivers/staging/android/ion/ion_dma_buf.c
 @@ -69,6 +69,7 @@ static int ion_dma_buf_attach(struct dma_buf *dmabuf,
@@ -100,7 +100,7 @@ index 1e12361..ee0e81e 100644
  				       direction);
  	}
 diff --git a/include/linux/ion.h b/include/linux/ion.h
-index 4eadf39..80c6fde 100644
+index 4eadf397a6bc..80c6fdeb4822 100644
 --- a/include/linux/ion.h
 +++ b/include/linux/ion.h
 @@ -156,6 +156,7 @@ struct ion_dma_buf_attachment {
@@ -112,5 +112,5 @@ index 4eadf39..80c6fde 100644
  
  #ifdef CONFIG_ION
 -- 
-2.7.4
+2.17.1
 

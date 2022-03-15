@@ -1,4 +1,4 @@
-From 76107c65a560c66866702aeeb7cb684dd4b30edc Mon Sep 17 00:00:00 2001
+From 5ad53d060c2f22d95a272a14de8a1228c2bb6daa Mon Sep 17 00:00:00 2001
 From: Ard Biesheuvel <ardb@kernel.org>
 Date: Wed, 14 Oct 2020 10:18:57 +0200
 Subject: [PATCH 049/830] FROMGIT: arm64: mm: account for hotplug memory when
@@ -40,7 +40,7 @@ Change-Id: Ia7ef47090fe334b29aab711d608f424e23e7fb92
  1 file changed, 8 insertions(+), 5 deletions(-)
 
 diff --git a/arch/arm64/mm/init.c b/arch/arm64/mm/init.c
-index c0a7f0d..69c420e 100644
+index c0a7f0d90b39..69c420e35447 100644
 --- a/arch/arm64/mm/init.c
 +++ b/arch/arm64/mm/init.c
 @@ -377,15 +377,18 @@ void __init arm64_memblock_init(void)
@@ -68,5 +68,5 @@ index c0a7f0d..69c420e 100644
  			memstart_addr -= ARM64_MEMSTART_ALIGN *
  					 ((range * memstart_offset_seed) >> 16);
 -- 
-2.7.4
+2.17.1
 

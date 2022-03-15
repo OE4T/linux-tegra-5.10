@@ -1,4 +1,4 @@
-From 720c325f4db5e1e7b01215560c7e900a8c811831 Mon Sep 17 00:00:00 2001
+From 30f9de3bbd9143831acb33e05b6bdbcb30b0f4ef Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Tue, 12 May 2020 15:50:04 -0700
 Subject: [PATCH 454/830] ANDROID: Incremental fs: Fix scheduling while atomic
@@ -18,7 +18,7 @@ Change-Id: I8939c4afa514d39d251c044d7680cfc69272669e
  1 file changed, 5 insertions(+), 2 deletions(-)
 
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index b5b609b..e69da5c 100644
+index b5b609bb74c1..e69da5ccaf94 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -207,6 +207,8 @@ struct inode_search {
@@ -50,5 +50,5 @@ index b5b609b..e69da5c 100644
  	struct inode *inode = iget5_locked(sb, search.ino, inode_test,
  				inode_set, &search);
 -- 
-2.7.4
+2.17.1
 

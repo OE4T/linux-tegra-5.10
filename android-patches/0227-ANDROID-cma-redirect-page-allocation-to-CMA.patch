@@ -1,4 +1,4 @@
-From 2324b2c498e7d9ac4429094c488d069d293705f1 Mon Sep 17 00:00:00 2001
+From 731fb862f238f725491b0dcb0fdba0c4c7f766db Mon Sep 17 00:00:00 2001
 From: Heesub Shin <heesub.shin@samsung.com>
 Date: Sun, 6 Jan 2013 18:10:00 -0800
 Subject: [PATCH 227/830] ANDROID: cma: redirect page allocation to CMA
@@ -29,14 +29,14 @@ Signed-off-by: Vinayak Menon <vinmenon@codeaurora.org>
 Signed-off-by: Chris Goldsworthy <cgoldswo@codeaurora.org>
 Change-Id: Ibca5eedfc5eacd44542ad483851d741166715f84
 ---
- include/linux/gfp.h     | 15 +++++++++
- include/linux/highmem.h |  4 ++-
- include/linux/mmzone.h  |  2 ++
- mm/page_alloc.c         | 88 ++++++++++++++++++++++++++++++-------------------
+ include/linux/gfp.h     | 15 +++++++
+ include/linux/highmem.h |  4 +-
+ include/linux/mmzone.h  |  2 +
+ mm/page_alloc.c         | 88 +++++++++++++++++++++++++----------------
  4 files changed, 75 insertions(+), 34 deletions(-)
 
 diff --git a/include/linux/gfp.h b/include/linux/gfp.h
-index c603237..e80b7d2 100644
+index c603237e006c..e80b7d2f5b38 100644
 --- a/include/linux/gfp.h
 +++ b/include/linux/gfp.h
 @@ -39,11 +39,21 @@ struct vm_area_struct;
@@ -82,7 +82,7 @@ index c603237..e80b7d2 100644
  
  /**
 diff --git a/include/linux/highmem.h b/include/linux/highmem.h
-index 14e6202..35f052b 100644
+index 14e6202ce47f..35f052babdba 100644
 --- a/include/linux/highmem.h
 +++ b/include/linux/highmem.h
 @@ -274,7 +274,9 @@ static inline struct page *
@@ -97,7 +97,7 @@ index 14e6202..35f052b 100644
  
  static inline void clear_highpage(struct page *page)
 diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
-index c4e794d..367a795 100644
+index e6da7f01e16c..e348b296f2f1 100644
 --- a/include/linux/mmzone.h
 +++ b/include/linux/mmzone.h
 @@ -72,9 +72,11 @@ extern const char * const migratetype_names[MIGRATE_TYPES];
@@ -113,7 +113,7 @@ index c4e794d..367a795 100644
  
  static inline bool is_migrate_movable(int mt)
 diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 20750db..4b7c74e 100644
+index 98a61aa6ffbe..bedd938c9c19 100644
 --- a/mm/page_alloc.c
 +++ b/mm/page_alloc.c
 @@ -2858,36 +2858,35 @@ __rmqueue(struct zone *zone, unsigned int order, int migratetype,
@@ -267,5 +267,5 @@ index 20750db..4b7c74e 100644
  
  #endif
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From ffc71fdea0adeb9049cfed6573d4f7f7e80a5b55 Mon Sep 17 00:00:00 2001
+From c845fae0f953be876e22a69386ce1e501fa0f3c2 Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Fri, 5 Jun 2020 09:32:10 -0700
 Subject: [PATCH 464/830] ANDROID: Incremental fs: Remove annoying pr_debugs
@@ -13,7 +13,7 @@ Change-Id: Ib347d3d5dd8a3c5545a0760fc674147211aa8c9d
  1 file changed, 2 insertions(+), 7 deletions(-)
 
 diff --git a/fs/incfs/data_mgmt.c b/fs/incfs/data_mgmt.c
-index 9e6ef41..960a1f7 100644
+index 9e6ef41e4302..960a1f72d34d 100644
 --- a/fs/incfs/data_mgmt.c
 +++ b/fs/incfs/data_mgmt.c
 @@ -1257,8 +1257,6 @@ int incfs_scan_metadata_chain(struct data_file *df)
@@ -43,5 +43,5 @@ index 9e6ef41..960a1f7 100644
  
  	if (df->df_hash_tree) {
 -- 
-2.7.4
+2.17.1
 

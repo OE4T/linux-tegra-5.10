@@ -1,4 +1,4 @@
-From 160fdad2ae06e8fb5bb976b6da5fb0d6468604ac Mon Sep 17 00:00:00 2001
+From eb7234dcf100d95fa4cba50a28a33f34098b02b7 Mon Sep 17 00:00:00 2001
 From: Greg Kroah-Hartman <gregkh@google.com>
 Date: Tue, 20 Oct 2020 19:46:17 +0200
 Subject: [PATCH 093/830] ANDROID: arm64: traps: export dump_backtrace symbol
@@ -18,7 +18,7 @@ Change-Id: I8448584ed8af204deaa991c5a60b04a39b47ac2f
  1 file changed, 1 insertion(+)
 
 diff --git a/arch/arm64/kernel/stacktrace.c b/arch/arm64/kernel/stacktrace.c
-index c445828..a336782 100644
+index c445828ecc3a..a3367829b154 100644
 --- a/arch/arm64/kernel/stacktrace.c
 +++ b/arch/arm64/kernel/stacktrace.c
 @@ -190,6 +190,7 @@ void dump_backtrace(struct pt_regs *regs, struct task_struct *tsk,
@@ -30,5 +30,5 @@ index c445828..a336782 100644
  void show_stack(struct task_struct *tsk, unsigned long *sp, const char *loglvl)
  {
 -- 
-2.7.4
+2.17.1
 

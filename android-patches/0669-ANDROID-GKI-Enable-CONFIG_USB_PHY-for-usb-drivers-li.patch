@@ -1,4 +1,4 @@
-From 486e5a115a924c4caa80b1e9a7dc655701529256 Mon Sep 17 00:00:00 2001
+From 2a331637293bb0907eaaa6368d6bb11d4c76d668 Mon Sep 17 00:00:00 2001
 From: Sandeep Patil <sspatil@google.com>
 Date: Thu, 19 Mar 2020 18:18:41 -0700
 Subject: [PATCH 669/830] ANDROID: GKI: Enable CONFIG_USB_PHY for usb drivers
@@ -20,7 +20,7 @@ Change-Id: I0cc55d2f06fcb5a46daf0578629e1f0a653ac48b
  2 files changed, 12 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 5223927..b0d33d4 100644
+index 52239278f919..b0d33d41d0a7 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -371,7 +371,6 @@ CONFIG_DEVFREQ_GOV_PERFORMANCE=y
@@ -32,7 +32,7 @@ index 5223927..b0d33d4 100644
  CONFIG_IIO_BUFFER=y
  CONFIG_IIO_TRIGGER=y
 diff --git a/init/Kconfig.gki b/init/Kconfig.gki
-index b68a5a1..c752d62 100644
+index b68a5a14be0f..c752d6284773 100644
 --- a/init/Kconfig.gki
 +++ b/init/Kconfig.gki
 @@ -116,6 +116,17 @@ config GKI_LEGACY_WEXT_ALLCONFIG
@@ -62,5 +62,5 @@ index b68a5a1..c752d62 100644
  	  Dummy config option used to enable core functionality used by
  	  modules that may not be selectable in this config.
 -- 
-2.7.4
+2.17.1
 

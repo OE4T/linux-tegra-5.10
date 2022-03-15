@@ -1,4 +1,4 @@
-From 30e8235afe90401d75b6803b31cfa1cd753142e9 Mon Sep 17 00:00:00 2001
+From 483adfc0c31e425939ff2ae8569d34e89ff26a41 Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Tue, 23 Oct 2018 08:56:04 -0700
 Subject: [PATCH 395/830] ANDROID: dm-bow: Add dm-bow feature
@@ -77,17 +77,17 @@ Signed-off-by: Paul Lawrence <paullawrence@google.com>
 Signed-off-by: Matthias Maennich <maennich@google.com>
 Signed-off-by: Eric Biggers <ebiggers@google.com>
 ---
- Documentation/device-mapper/dm-bow.txt |   99 +++
+ Documentation/device-mapper/dm-bow.txt |   99 ++
  drivers/md/Kconfig                     |   12 +
  drivers/md/Makefile                    |    1 +
- drivers/md/dm-bow.c                    | 1296 ++++++++++++++++++++++++++++++++
+ drivers/md/dm-bow.c                    | 1296 ++++++++++++++++++++++++
  4 files changed, 1408 insertions(+)
  create mode 100644 Documentation/device-mapper/dm-bow.txt
  create mode 100644 drivers/md/dm-bow.c
 
 diff --git a/Documentation/device-mapper/dm-bow.txt b/Documentation/device-mapper/dm-bow.txt
 new file mode 100644
-index 00000000..e3fc4d2
+index 000000000000..e3fc4d22e0f4
 --- /dev/null
 +++ b/Documentation/device-mapper/dm-bow.txt
 @@ -0,0 +1,99 @@
@@ -191,7 +191,7 @@ index 00000000..e3fc4d2
 +log entry to be written.
 +
 diff --git a/drivers/md/Kconfig b/drivers/md/Kconfig
-index 1419a65..aea6589 100644
+index 1419a655ac0c..aea6589f0cb1 100644
 --- a/drivers/md/Kconfig
 +++ b/drivers/md/Kconfig
 @@ -630,4 +630,16 @@ config DM_ZONED
@@ -212,7 +212,7 @@ index 1419a65..aea6589 100644
 +
  endif # MD
 diff --git a/drivers/md/Makefile b/drivers/md/Makefile
-index 94e0f8f..39df167 100644
+index 94e0f8f70c6b..39df167c57ee 100644
 --- a/drivers/md/Makefile
 +++ b/drivers/md/Makefile
 @@ -77,6 +77,7 @@ obj-$(CONFIG_DM_LOG_WRITES)	+= dm-log-writes.o
@@ -225,7 +225,7 @@ index 94e0f8f..39df167 100644
  dm-mod-objs			+= dm-init.o
 diff --git a/drivers/md/dm-bow.c b/drivers/md/dm-bow.c
 new file mode 100644
-index 00000000..dccc5cc
+index 000000000000..dccc5cc5a4df
 --- /dev/null
 +++ b/drivers/md/dm-bow.c
 @@ -0,0 +1,1296 @@
@@ -1526,5 +1526,5 @@ index 00000000..dccc5cc
 +module_init(dm_bow_init);
 +module_exit(dm_bow_exit);
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From de3bd07f8bff3d44af50f9769c204b556c4b26d8 Mon Sep 17 00:00:00 2001
+From c93bb8df717d68c8d3f79a41dbb702fcb713a688 Mon Sep 17 00:00:00 2001
 From: Alessio Balsini <balsini@android.com>
 Date: Thu, 10 Sep 2020 18:36:29 +0100
 Subject: [PATCH 061/830] FROMLIST: fuse: Introduce synchronous read and write
@@ -35,13 +35,13 @@ Signed-off-by: Alessio Balsini <balsini@android.com>
 Signed-off-by: Alessio Balsini <balsini@google.com>
 Change-Id: If76bb8725e1ac567f9dbe3edb79ebb4d43d77dfb
 ---
- fs/fuse/file.c        |  8 ++++--
+ fs/fuse/file.c        |  8 +++--
  fs/fuse/fuse_i.h      |  2 ++
- fs/fuse/passthrough.c | 70 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ fs/fuse/passthrough.c | 70 +++++++++++++++++++++++++++++++++++++++++++
  3 files changed, 78 insertions(+), 2 deletions(-)
 
 diff --git a/fs/fuse/file.c b/fs/fuse/file.c
-index 04a60eb..9e0625f 100644
+index feb614114fad..d8fc98baa929 100644
 --- a/fs/fuse/file.c
 +++ b/fs/fuse/file.c
 @@ -1586,7 +1586,9 @@ static ssize_t fuse_file_read_iter(struct kiocb *iocb, struct iov_iter *to)
@@ -67,7 +67,7 @@ index 04a60eb..9e0625f 100644
  	else
  		return fuse_direct_write_iter(iocb, from);
 diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
-index 2da9053..3d9bb9c 100644
+index 2da90538ad85..3d9bb9c45127 100644
 --- a/fs/fuse/fuse_i.h
 +++ b/fs/fuse/fuse_i.h
 @@ -1257,5 +1257,7 @@ int fuse_passthrough_open(struct fuse_dev *fud,
@@ -79,7 +79,7 @@ index 2da9053..3d9bb9c 100644
  
  #endif /* _FS_FUSE_I_H */
 diff --git a/fs/fuse/passthrough.c b/fs/fuse/passthrough.c
-index a135c95..5a78cb3 100644
+index a135c955cc33..5a78cb336db4 100644
 --- a/fs/fuse/passthrough.c
 +++ b/fs/fuse/passthrough.c
 @@ -4,6 +4,76 @@
@@ -160,5 +160,5 @@ index a135c95..5a78cb3 100644
  int fuse_passthrough_open(struct fuse_dev *fud,
  			  struct fuse_passthrough_out *pto)
 -- 
-2.7.4
+2.17.1
 

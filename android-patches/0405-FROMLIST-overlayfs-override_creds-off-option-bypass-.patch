@@ -1,4 +1,4 @@
-From ddbf729b69517ce3027b3ad83069be9e436d8c73 Mon Sep 17 00:00:00 2001
+From 1d572c63d5e334d84141a64f636dd6718077d883 Mon Sep 17 00:00:00 2001
 From: Mark Salyzyn <salyzyn@android.com>
 Date: Thu, 14 Jun 2018 11:15:22 -0700
 Subject: [PATCH 405/830] FROMLIST: overlayfs: override_creds=off option bypass
@@ -73,7 +73,7 @@ Change-Id: I7980d18e2a5aa97dd2d9fb291fea6deb649f6a34
  11 files changed, 92 insertions(+), 34 deletions(-)
 
 diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/filesystems/overlayfs.rst
-index 137afeb..423b3c8 100644
+index 137afeb3f581..423b3c8ac495 100644
 --- a/Documentation/filesystems/overlayfs.rst
 +++ b/Documentation/filesystems/overlayfs.rst
 @@ -137,6 +137,29 @@ Only the lists of names from directories are merged.  Other content
@@ -107,7 +107,7 @@ index 137afeb..423b3c8 100644
  --------------------------------
  
 diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index e466c58..820addb 100644
+index e466c58f9ec4..820addb76bb4 100644
 --- a/fs/overlayfs/copy_up.c
 +++ b/fs/overlayfs/copy_up.c
 @@ -964,7 +964,7 @@ static int ovl_copy_up_flags(struct dentry *dentry, int flags)
@@ -120,10 +120,10 @@ index e466c58..820addb 100644
  	return err;
  }
 diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 16955a3..cba65fa 100644
+index d0e5cde27702..c3bc1c7a950c 100644
 --- a/fs/overlayfs/dir.c
 +++ b/fs/overlayfs/dir.c
-@@ -567,7 +567,7 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
+@@ -566,7 +566,7 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
  			      struct ovl_cattr *attr, bool origin)
  {
  	int err;
@@ -132,7 +132,7 @@ index 16955a3..cba65fa 100644
  	struct cred *override_cred;
  	struct dentry *parent = dentry->d_parent;
  
-@@ -594,14 +594,15 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
+@@ -593,14 +593,15 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
  		override_cred->fsgid = inode->i_gid;
  		if (!attr->hardlink) {
  			err = security_dentry_create_files_as(dentry,
@@ -150,7 +150,7 @@ index 16955a3..cba65fa 100644
  		put_cred(override_cred);
  
  		if (!ovl_dentry_is_whiteout(dentry))
-@@ -610,7 +611,9 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
+@@ -609,7 +610,9 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
  			err = ovl_create_over_whiteout(dentry, inode, attr);
  	}
  out_revert_creds:
@@ -161,7 +161,7 @@ index 16955a3..cba65fa 100644
  	return err;
  }
  
-@@ -686,7 +689,7 @@ static int ovl_set_link_redirect(struct dentry *dentry)
+@@ -685,7 +688,7 @@ static int ovl_set_link_redirect(struct dentry *dentry)
  
  	old_cred = ovl_override_creds(dentry->d_sb);
  	err = ovl_set_redirect(dentry, false);
@@ -170,7 +170,7 @@ index 16955a3..cba65fa 100644
  
  	return err;
  }
-@@ -905,7 +908,7 @@ static int ovl_do_remove(struct dentry *dentry, bool is_dir)
+@@ -904,7 +907,7 @@ static int ovl_do_remove(struct dentry *dentry, bool is_dir)
  		err = ovl_remove_upper(dentry, is_dir, &list);
  	else
  		err = ovl_remove_and_whiteout(dentry, &list);
@@ -179,7 +179,7 @@ index 16955a3..cba65fa 100644
  	if (!err) {
  		if (is_dir)
  			clear_nlink(dentry->d_inode);
-@@ -1279,7 +1282,7 @@ static int ovl_rename(struct inode *olddir, struct dentry *old,
+@@ -1278,7 +1281,7 @@ static int ovl_rename(struct inode *olddir, struct dentry *old,
  out_unlock:
  	unlock_rename(new_upperdir, old_upperdir);
  out_revert_creds:
@@ -189,7 +189,7 @@ index 16955a3..cba65fa 100644
  		ovl_nlink_end(new);
  out_drop_write:
 diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index b019f27..e0c300d 100644
+index b019f27c1360..e0c300dda0f6 100644
 --- a/fs/overlayfs/file.c
 +++ b/fs/overlayfs/file.c
 @@ -60,7 +60,7 @@ static struct file *ovl_open_realfile(const struct file *file,
@@ -283,7 +283,7 @@ index b019f27..e0c300d 100644
  	/* Update size */
  	ovl_copyattr(ovl_inode_real(inode_out), inode_out);
 diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index d08e822..df35954 100644
+index d08e822b4e14..df35954d73d2 100644
 --- a/fs/overlayfs/inode.c
 +++ b/fs/overlayfs/inode.c
 @@ -80,7 +80,7 @@ int ovl_setattr(struct dentry *dentry, struct iattr *attr)
@@ -368,7 +368,7 @@ index d08e822..df35954 100644
  	return err;
  }
 diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index c823d51..30e0ee7 100644
+index c823d5111aa3..30e0ee766ade 100644
 --- a/fs/overlayfs/namei.c
 +++ b/fs/overlayfs/namei.c
 @@ -1099,7 +1099,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
@@ -399,7 +399,7 @@ index c823d51..30e0ee7 100644
  	return positive;
  }
 diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index b9ee1ff..825377d 100644
+index ad02a459ced4..6cd8eb7bba94 100644
 --- a/fs/overlayfs/overlayfs.h
 +++ b/fs/overlayfs/overlayfs.h
 @@ -253,6 +253,7 @@ int ovl_want_write(struct dentry *dentry);
@@ -411,7 +411,7 @@ index b9ee1ff..825377d 100644
  struct dentry *ovl_indexdir(struct super_block *sb);
  bool ovl_index_all(struct super_block *sb);
 diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index b208eba..200efb3 100644
+index b208eba5d0b6..200efb348417 100644
 --- a/fs/overlayfs/ovl_entry.h
 +++ b/fs/overlayfs/ovl_entry.h
 @@ -18,6 +18,7 @@ struct ovl_config {
@@ -423,7 +423,7 @@ index b208eba..200efb3 100644
  
  struct ovl_sb {
 diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index cc1e802..b63f3dcc 100644
+index cc1e80257064..b63f3dccc819 100644
 --- a/fs/overlayfs/readdir.c
 +++ b/fs/overlayfs/readdir.c
 @@ -286,7 +286,7 @@ static int ovl_check_whiteouts(struct dentry *dir, struct ovl_readdir_data *rdd)
@@ -445,7 +445,7 @@ index cc1e802..b63f3dcc 100644
  		return err;
  
 diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 558c7e6..b66dc11 100644
+index d5f8df1fcba4..e7f7163fae10 100644
 --- a/fs/overlayfs/super.c
 +++ b/fs/overlayfs/super.c
 @@ -53,6 +53,11 @@ module_param_named(xino_auto, ovl_xino_auto_def, bool, 0644);
@@ -511,7 +511,7 @@ index 558c7e6..b66dc11 100644
  		default:
  			pr_err("unrecognized mount option \"%s\" or missing value\n",
  					p);
-@@ -2032,7 +2053,6 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+@@ -2036,7 +2057,6 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
  	kfree(splitlower);
  
  	sb->s_root = root_dentry;
@@ -520,7 +520,7 @@ index 558c7e6..b66dc11 100644
  
  out_free_oe:
 diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index b98ce88..5edb177 100644
+index b98ce88c5b93..5edb177b63dc 100644
 --- a/fs/overlayfs/util.c
 +++ b/fs/overlayfs/util.c
 @@ -37,9 +37,17 @@ const struct cred *ovl_override_creds(struct super_block *sb)
@@ -560,5 +560,5 @@ index b98ce88..5edb177 100644
  
  	ovl_inode_unlock(inode);
 -- 
-2.7.4
+2.17.1
 

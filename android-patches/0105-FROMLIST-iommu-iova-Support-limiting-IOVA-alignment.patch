@@ -1,4 +1,4 @@
-From 95d30610a9b41f9fcabcb05aeb39cda7f33f76bb Mon Sep 17 00:00:00 2001
+From 6e4fcf11f35ca7083339f3b9c839e8ce7823ad12 Mon Sep 17 00:00:00 2001
 From: Liam Mark <lmark@codeaurora.org>
 Date: Wed, 26 Feb 2020 14:23:41 -0800
 Subject: [PATCH 105/830] FROMLIST: iommu/iova: Support limiting IOVA alignment
@@ -32,7 +32,7 @@ Signed-off-by: Chris Goldsworthy <cgoldswo@codeaurora.org>
  2 files changed, 50 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/iommu/Kconfig b/drivers/iommu/Kconfig
-index cc804a2..3b0a2e9 100644
+index cc804a25e82a..3b0a2e94f410 100644
 --- a/drivers/iommu/Kconfig
 +++ b/drivers/iommu/Kconfig
 @@ -11,6 +11,36 @@ config IOASID
@@ -73,10 +73,10 @@ index cc804a2..3b0a2e9 100644
  	bool "IOMMU Hardware Support"
  	depends on MMU
 diff --git a/drivers/iommu/iova.c b/drivers/iommu/iova.c
-index 58f349f..cc454e8 100644
+index 3acdaeb42381..6de7783889ae 100644
 --- a/drivers/iommu/iova.c
 +++ b/drivers/iommu/iova.c
-@@ -178,6 +178,24 @@ iova_insert_rbtree(struct rb_root *root, struct iova *iova,
+@@ -177,6 +177,24 @@ iova_insert_rbtree(struct rb_root *root, struct iova *iova,
  	rb_insert_color(&iova->node, root);
  }
  
@@ -101,7 +101,7 @@ index 58f349f..cc454e8 100644
  static int __alloc_and_insert_iova_range(struct iova_domain *iovad,
  		unsigned long size, unsigned long limit_pfn,
  			struct iova *new, bool size_aligned)
-@@ -189,7 +207,7 @@ static int __alloc_and_insert_iova_range(struct iova_domain *iovad,
+@@ -188,7 +206,7 @@ static int __alloc_and_insert_iova_range(struct iova_domain *iovad,
  	unsigned long align_mask = ~0UL;
  
  	if (size_aligned)
@@ -110,7 +110,7 @@ index 58f349f..cc454e8 100644
  
  	/* Walk the tree backwards */
  	spin_lock_irqsave(&iovad->iova_rbtree_lock, flags);
-@@ -242,7 +260,7 @@ static int __alloc_and_insert_iova_best_fit(struct iova_domain *iovad,
+@@ -241,7 +259,7 @@ static int __alloc_and_insert_iova_best_fit(struct iova_domain *iovad,
  	unsigned long gap, candidate_gap = ~0UL;
  
  	if (size_aligned)
@@ -120,5 +120,5 @@ index 58f349f..cc454e8 100644
  	/* Walk the tree backwards */
  	spin_lock_irqsave(&iovad->iova_rbtree_lock, flags);
 -- 
-2.7.4
+2.17.1
 

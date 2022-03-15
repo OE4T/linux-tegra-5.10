@@ -1,4 +1,4 @@
-From 89ff21bc08044b5cf4b19fbecb6db99891276428 Mon Sep 17 00:00:00 2001
+From 035800249202cdf3bee0cfdbaf31e3d8ed30378e Mon Sep 17 00:00:00 2001
 From: Alistair Delva <adelva@google.com>
 Date: Wed, 4 Mar 2020 12:03:23 -0800
 Subject: [PATCH 320/830] ANDROID: serdev: restrict claim of platform devices
@@ -17,12 +17,12 @@ Signed-off-by: Alistair Delva <adelva@google.com>
 Signed-off-by: Eric Biggers <ebiggers@google.com>
 ---
  drivers/tty/serdev/core.c           | 15 +++++++++------
- drivers/tty/serdev/serdev-ttyport.c | 30 +++++++++++++++++++++++++++++-
+ drivers/tty/serdev/serdev-ttyport.c | 30 ++++++++++++++++++++++++++++-
  include/linux/serdev.h              | 14 +++++++++++++-
  3 files changed, 51 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/tty/serdev/core.c b/drivers/tty/serdev/core.c
-index 501631c..fe97d60 100644
+index 501631c188d7..fe97d6085f6d 100644
 --- a/drivers/tty/serdev/core.c
 +++ b/drivers/tty/serdev/core.c
 @@ -778,16 +778,18 @@ static int platform_serdev_register_devices(struct serdev_controller *ctrl)
@@ -68,7 +68,7 @@ index 501631c..fe97d60 100644
  /* Remove a device associated with a controller */
  static int serdev_remove_device(struct device *dev, void *data)
 diff --git a/drivers/tty/serdev/serdev-ttyport.c b/drivers/tty/serdev/serdev-ttyport.c
-index d367803e..6cdffde 100644
+index d367803e2044..6cdffde2d682 100644
 --- a/drivers/tty/serdev/serdev-ttyport.c
 +++ b/drivers/tty/serdev/serdev-ttyport.c
 @@ -7,9 +7,15 @@
@@ -126,7 +126,7 @@ index d367803e..6cdffde 100644
  		goto err_reset_data;
  
 diff --git a/include/linux/serdev.h b/include/linux/serdev.h
-index 9f14f9c..54df861 100644
+index 9f14f9c12ec4..54df861c673a 100644
 --- a/include/linux/serdev.h
 +++ b/include/linux/serdev.h
 @@ -165,9 +165,21 @@ int serdev_device_add(struct serdev_device *);
@@ -153,5 +153,5 @@ index 9f14f9c..54df861 100644
  {
  	struct serdev_device *serdev = ctrl->serdev;
 -- 
-2.7.4
+2.17.1
 

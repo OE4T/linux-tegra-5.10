@@ -1,4 +1,4 @@
-From d8bca51cd46bdc0704ce008a95f5ee3f002ada9b Mon Sep 17 00:00:00 2001
+From bee4fa384d5e486253d1314e376c3f9fae6bc95f Mon Sep 17 00:00:00 2001
 From: Thierry Strudel <tstrudel@google.com>
 Date: Tue, 14 Jun 2016 17:46:44 -0700
 Subject: [PATCH 110/830] ANDROID: cpu: send KOBJ_ONLINE event when enabling
@@ -17,7 +17,7 @@ Signed-off-by: Thierry Strudel <tstrudel@google.com>
  1 file changed, 7 insertions(+)
 
 diff --git a/kernel/cpu.c b/kernel/cpu.c
-index c06ced1..4a1c1f6 100644
+index c06ced18f78a..4a1c1f6a44d6 100644
 --- a/kernel/cpu.c
 +++ b/kernel/cpu.c
 @@ -1472,6 +1472,7 @@ void __weak arch_thaw_secondary_cpus_end(void)
@@ -42,5 +42,5 @@ index c06ced1..4a1c1f6 100644
  		}
  		pr_warn("Error taking CPU%d up: %d\n", cpu, error);
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From e13a9e79947095e785cfb7b236251b7b32ef0db9 Mon Sep 17 00:00:00 2001
+From bf81ab209a0523c18545bf6fe804e6329952dfd3 Mon Sep 17 00:00:00 2001
 From: John Stultz <john.stultz@linaro.org>
 Date: Thu, 26 Mar 2020 21:47:19 +0000
 Subject: [PATCH 525/830] FROMLIST: soc: qcom: rpmh: Allow RPMH driver to be
@@ -34,7 +34,7 @@ Change-Id: I865f3ad0baa3b84bc0ea321df88238a3a89101a8
  2 files changed, 7 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/soc/qcom/Kconfig b/drivers/soc/qcom/Kconfig
-index 340ff7e..d65e4bc 100644
+index 340ff7e98d1c..d65e4bcf9911 100644
 --- a/drivers/soc/qcom/Kconfig
 +++ b/drivers/soc/qcom/Kconfig
 @@ -108,7 +108,7 @@ config QCOM_RMTFS_MEM
@@ -47,7 +47,7 @@ index 340ff7e..d65e4bc 100644
  	depends on (QCOM_COMMAND_DB || !QCOM_COMMAND_DB)
  	help
 diff --git a/drivers/soc/qcom/rpmh-rsc.c b/drivers/soc/qcom/rpmh-rsc.c
-index f0c4d5e..44a32cb 100644
+index f0c4d5e3105a..44a32cb5f33d 100644
 --- a/drivers/soc/qcom/rpmh-rsc.c
 +++ b/drivers/soc/qcom/rpmh-rsc.c
 @@ -13,6 +13,7 @@
@@ -75,5 +75,5 @@ index f0c4d5e..44a32cb 100644
 +MODULE_DESCRIPTION("Qualcomm Technologies, Inc. RPMh Driver");
 +MODULE_LICENSE("GPL v2");
 -- 
-2.7.4
+2.17.1
 

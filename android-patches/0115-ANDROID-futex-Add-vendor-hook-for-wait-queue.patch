@@ -1,4 +1,4 @@
-From 3b0480023b8e0a93b30ea52758a97eb808b82cb1 Mon Sep 17 00:00:00 2001
+From 210da69d23bb808003f57ba0699d2de8fbbbf265 Mon Sep 17 00:00:00 2001
 From: JianMin Liu <jian-min.liu@mediatek.com>
 Date: Tue, 11 Aug 2020 15:24:06 +0800
 Subject: [PATCH 115/830] ANDROID: futex: Add vendor hook for wait queue
@@ -19,7 +19,7 @@ Change-Id: I68218b89c35b23aa5529099bb0bbbd031bdeafef
  create mode 100644 include/trace/hooks/futex.h
 
 diff --git a/drivers/android/vendor_hooks.c b/drivers/android/vendor_hooks.c
-index 56ae8fedf..9398063 100644
+index 56ae8fedfeac..9398063ed96a 100644
 --- a/drivers/android/vendor_hooks.c
 +++ b/drivers/android/vendor_hooks.c
 @@ -10,6 +10,7 @@
@@ -39,7 +39,7 @@ index 56ae8fedf..9398063 100644
  EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_ipi_stop);
 diff --git a/include/trace/hooks/futex.h b/include/trace/hooks/futex.h
 new file mode 100644
-index 00000000..cbf6abb
+index 000000000000..cbf6abb66a57
 --- /dev/null
 +++ b/include/trace/hooks/futex.h
 @@ -0,0 +1,26 @@
@@ -70,7 +70,7 @@ index 00000000..cbf6abb
 +/* This part must be outside protection */
 +#include <trace/define_trace.h>
 diff --git a/kernel/futex.c b/kernel/futex.c
-index 98a6e1b..20b27a9 100644
+index 98a6e1b80bfe..20b27a9551e7 100644
 --- a/kernel/futex.c
 +++ b/kernel/futex.c
 @@ -43,6 +43,7 @@
@@ -101,5 +101,5 @@ index 98a6e1b..20b27a9 100644
  }
  
 -- 
-2.7.4
+2.17.1
 

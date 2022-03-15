@@ -1,4 +1,4 @@
-From ab189fa85a9c392572c1fbdfeadaccdcf1ca9040 Mon Sep 17 00:00:00 2001
+From 30cabf20054b428ed2e820f12078f5c0336d59d8 Mon Sep 17 00:00:00 2001
 From: Nick Desaulniers <ndesaulniers@google.com>
 Date: Mon, 9 Nov 2020 10:48:31 -0800
 Subject: [PATCH 796/830] Revert "ANDROID: Kbuild, LLVMLinux: allow overriding
@@ -29,7 +29,7 @@ Change-Id: Iecaa3264a440f795f2f3a44bdf74fe28ad4ed1cc
  delete mode 100755 scripts/clang-android.sh
 
 diff --git a/Makefile b/Makefile
-index 16516b4..e111cbe 100644
+index 2a36be6da889..39e601ca613a 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -593,11 +593,7 @@ endif
@@ -46,7 +46,7 @@ index 16516b4..e111cbe 100644
  CLANG_FLAGS	+= --prefix=$(GCC_TOOLCHAIN_DIR)$(notdir $(CROSS_COMPILE))
  GCC_TOOLCHAIN	:= $(realpath $(GCC_TOOLCHAIN_DIR)/..)
 diff --git a/build.config.aarch64 b/build.config.aarch64
-index db6cb0a8..97758e6 100644
+index db6cb0a8e9b6..97758e66097e 100644
 --- a/build.config.aarch64
 +++ b/build.config.aarch64
 @@ -1,7 +1,6 @@
@@ -59,7 +59,7 @@ index db6cb0a8..97758e6 100644
  
  MAKE_GOALS="
 diff --git a/build.config.allmodconfig b/build.config.allmodconfig
-index a76807f..89b6c5c 100644
+index a76807f830a3..89b6c5c1b84b 100644
 --- a/build.config.allmodconfig
 +++ b/build.config.allmodconfig
 @@ -8,7 +8,7 @@ function update_config() {
@@ -72,7 +72,7 @@ index a76807f..89b6c5c 100644
  
  ADDITIONAL_HOST_TOOLS="${ADDITIONAL_HOST_TOOLS} openssl"
 diff --git a/build.config.arm b/build.config.arm
-index 306021e..55610ba 100644
+index 306021ed8782..55610bab09ed 100644
 --- a/build.config.arm
 +++ b/build.config.arm
 @@ -1,7 +1,6 @@
@@ -85,7 +85,7 @@ index 306021e..55610ba 100644
  
  MAKE_GOALS="
 diff --git a/build.config.x86_64 b/build.config.x86_64
-index d14feab..d5a358c 100644
+index d14feabde927..d5a358cbddcb 100644
 --- a/build.config.x86_64
 +++ b/build.config.x86_64
 @@ -1,7 +1,6 @@
@@ -99,7 +99,7 @@ index d14feab..d5a358c 100644
  MAKE_GOALS="
 diff --git a/scripts/clang-android.sh b/scripts/clang-android.sh
 deleted file mode 100755
-index 9186c4f..00000000
+index 9186c4f48576..000000000000
 --- a/scripts/clang-android.sh
 +++ /dev/null
 @@ -1,4 +0,0 @@
@@ -108,5 +108,5 @@ index 9186c4f..00000000
 -
 -$* -dM -E - </dev/null 2>&1 | grep -q __ANDROID__ && echo "y"
 -- 
-2.7.4
+2.17.1
 

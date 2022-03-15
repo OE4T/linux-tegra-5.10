@@ -1,4 +1,4 @@
-From 9db5584ac357f5d97124c4a2a807b7717a0b1b9f Mon Sep 17 00:00:00 2001
+From 4637eb7fbd41256c53e37b1abdbc2a9f512d0227 Mon Sep 17 00:00:00 2001
 From: Ram Muthiah <rammuthiah@google.com>
 Date: Wed, 29 Jan 2020 11:27:23 -0800
 Subject: [PATCH 624/830] ANDROID: gki: Fixed some typos in Kconfig.gki
@@ -13,7 +13,7 @@ Signed-off-by: Ram Muthiah <rammuthiah@google.com>
  1 file changed, 11 insertions(+), 11 deletions(-)
 
 diff --git a/init/Kconfig.gki b/init/Kconfig.gki
-index 153360c..bd5e645 100644
+index 153360cc4a03..bd5e645c8944 100644
 --- a/init/Kconfig.gki
 +++ b/init/Kconfig.gki
 @@ -9,7 +9,7 @@ config GKI_HIDDEN_DRM_CONFIGS
@@ -100,5 +100,5 @@ index 153360c..bd5e645 100644
  
  # LEGACY_WEXT_ALLCONFIG Discussed upstream, soundly rejected as a unique
 -- 
-2.7.4
+2.17.1
 

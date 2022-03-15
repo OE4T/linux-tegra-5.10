@@ -1,4 +1,4 @@
-From 6c80d3ac2e52be45ec714b08e1f1b2c5a6d5debb Mon Sep 17 00:00:00 2001
+From 0af2e68f0175cc67edc6181abbd726f9fec5863d Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Wed, 1 Apr 2020 10:15:12 -0700
 Subject: [PATCH 442/830] ANDROID: Incremental fs: Protect get_fill_block, and
@@ -16,14 +16,14 @@ Bug: 152983639
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
 Change-Id: I126a8cf711e56592479093e9aadbfd0e7f700752
 ---
- fs/incfs/data_mgmt.c                               |  1 +
- fs/incfs/vfs.c                                     |  3 ++
- include/uapi/linux/incrementalfs.h                 |  3 ++
- .../selftests/filesystems/incfs/incfs_test.c       | 52 ++++++++++++++++++++++
+ fs/incfs/data_mgmt.c                          |  1 +
+ fs/incfs/vfs.c                                |  3 ++
+ include/uapi/linux/incrementalfs.h            |  3 ++
+ .../selftests/filesystems/incfs/incfs_test.c  | 52 +++++++++++++++++++
  4 files changed, 59 insertions(+)
 
 diff --git a/fs/incfs/data_mgmt.c b/fs/incfs/data_mgmt.c
-index bf509e2..c0248de 100644
+index bf509e2b0314..c0248de8949b 100644
 --- a/fs/incfs/data_mgmt.c
 +++ b/fs/incfs/data_mgmt.c
 @@ -436,6 +436,7 @@ int incfs_get_filled_blocks(struct data_file *df,
@@ -35,7 +35,7 @@ index bf509e2..c0248de 100644
  	if (df->df_header_flags & INCFS_FILE_COMPLETE) {
  		pr_debug("File marked full, fast get_filled_blocks");
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index f2a5b3d..97b6901 100644
+index f2a5b3df9d38..97b690182c69 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -1445,6 +1445,9 @@ static long ioctl_get_filled_blocks(struct file *f, void __user *arg)
@@ -49,7 +49,7 @@ index f2a5b3d..97b6901 100644
  		return -EINVAL;
  
 diff --git a/include/uapi/linux/incrementalfs.h b/include/uapi/linux/incrementalfs.h
-index 2d535d3..13c3d51 100644
+index 2d535d365ce9..13c3d5173e14 100644
 --- a/include/uapi/linux/incrementalfs.h
 +++ b/include/uapi/linux/incrementalfs.h
 @@ -321,6 +321,9 @@ struct incfs_get_filled_blocks_args {
@@ -63,10 +63,10 @@ index 2d535d3..13c3d51 100644
  	__u32 range_buffer_size_out;
  
 diff --git a/tools/testing/selftests/filesystems/incfs/incfs_test.c b/tools/testing/selftests/filesystems/incfs/incfs_test.c
-index 3137dad..15a34a8 100644
+index 3137dad14615..15a34a8469ba 100644
 --- a/tools/testing/selftests/filesystems/incfs/incfs_test.c
 +++ b/tools/testing/selftests/filesystems/incfs/incfs_test.c
-@@ -2189,6 +2189,8 @@ static int validate_ranges(const char *mount_dir, struct test_file *file)
+@@ -2189,12 +2189,29 @@ static int validate_ranges(const char *mount_dir, struct test_file *file)
  	int error = TEST_SUCCESS;
  	int i;
  	int range_cnt;
@@ -75,10 +75,10 @@ index 3137dad..15a34a8 100644
  
  	fd = open(filename, O_RDONLY);
  	free(filename);
-@@ -2196,6 +2198,21 @@ static int validate_ranges(const char *mount_dir, struct test_file *file)
+ 	if (fd <= 0)
  		return TEST_FAILURE;
  
- 	error = ioctl(fd, INCFS_IOC_GET_FILLED_BLOCKS, &fba);
++	error = ioctl(fd, INCFS_IOC_GET_FILLED_BLOCKS, &fba);
 +	if (error != -1 || errno != EPERM) {
 +		ksft_print_msg("INCFS_IOC_GET_FILLED_BLOCKS not blocked\n");
 +		error = -EPERM;
@@ -93,10 +93,9 @@ index 3137dad..15a34a8 100644
 +		goto out;
 +	}
 +
-+	error = ioctl(fd, INCFS_IOC_GET_FILLED_BLOCKS, &fba);
+ 	error = ioctl(fd, INCFS_IOC_GET_FILLED_BLOCKS, &fba);
  	if (error && errno != ERANGE)
  		goto out;
- 
 @@ -2212,6 +2229,11 @@ static int validate_ranges(const char *mount_dir, struct test_file *file)
  		goto out;
  	}
@@ -134,10 +133,11 @@ index 3137dad..15a34a8 100644
  
  	if (file->size <= 4096 / 32 * 4096)
  		return 0;
-@@ -2412,9 +2438,34 @@ static int validate_hash_ranges(const char *mount_dir, struct test_file *file)
+@@ -2411,10 +2437,35 @@ static int validate_hash_ranges(const char *mount_dir, struct test_file *file)
+ 	if (fd <= 0)
  		return TEST_FAILURE;
  
- 	error = ioctl(fd, INCFS_IOC_GET_FILLED_BLOCKS, &fba);
++	error = ioctl(fd, INCFS_IOC_GET_FILLED_BLOCKS, &fba);
 +	if (error != -1 || errno != EPERM) {
 +		ksft_print_msg("INCFS_IOC_GET_FILLED_BLOCKS not blocked\n");
 +		error = -EPERM;
@@ -152,7 +152,7 @@ index 3137dad..15a34a8 100644
 +		goto out;
 +	}
 +
-+	error = ioctl(fd, INCFS_IOC_GET_FILLED_BLOCKS, &fba);
+ 	error = ioctl(fd, INCFS_IOC_GET_FILLED_BLOCKS, &fba);
  	if (error)
  		goto out;
  
@@ -178,5 +178,5 @@ index 3137dad..15a34a8 100644
  	return error;
  }
 -- 
-2.7.4
+2.17.1
 

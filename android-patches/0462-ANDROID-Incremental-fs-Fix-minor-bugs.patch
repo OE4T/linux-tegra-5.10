@@ -1,4 +1,4 @@
-From acd479f3fd157f9d49c626d1a25880762ff01a65 Mon Sep 17 00:00:00 2001
+From cc46c7410f1cf0848ae1a0a4cf9410b83c435023 Mon Sep 17 00:00:00 2001
 From: Akilesh Kailash <akailash@google.com>
 Date: Fri, 17 Jul 2020 00:18:50 +0000
 Subject: [PATCH 462/830] ANDROID: Incremental fs: Fix minor bugs
@@ -17,11 +17,11 @@ Signed-off-by: Akilesh Kailash <akailash@google.com>
 Change-Id: Ie4dfaaba4b09f4798d492f8a25dd9dcc8da89e51
 ---
  fs/incfs/data_mgmt.c |  2 +-
- fs/incfs/vfs.c       | 50 ++++++++++++++++++++++++++++++++++++++++++++------
+ fs/incfs/vfs.c       | 50 ++++++++++++++++++++++++++++++++++++++------
  2 files changed, 45 insertions(+), 7 deletions(-)
 
 diff --git a/fs/incfs/data_mgmt.c b/fs/incfs/data_mgmt.c
-index 0ee9a2d..9e6ef41 100644
+index 0ee9a2d56688..9e6ef41e4302 100644
 --- a/fs/incfs/data_mgmt.c
 +++ b/fs/incfs/data_mgmt.c
 @@ -933,7 +933,7 @@ ssize_t incfs_read_data_file_block(struct mem_range dst, struct file *f,
@@ -34,7 +34,7 @@ index 0ee9a2d..9e6ef41 100644
  
  	if (tmp.len < 2 * INCFS_DATA_FILE_BLOCK_SIZE)
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index 2a48af2..c0617b7 100644
+index 2a48af2431e7..c0617b7e3310 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -471,6 +471,9 @@ static ssize_t pending_reads_read(struct file *f, char __user *buf, size_t len,
@@ -207,5 +207,5 @@ index 2a48af2..c0617b7 100644
  	if (d_inode(backing_dentry) != binode) {
  		/*
 -- 
-2.7.4
+2.17.1
 

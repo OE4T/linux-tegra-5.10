@@ -1,4 +1,4 @@
-From 032d4cb909a6e0dc7d4f04a7dbabba3e86d70b44 Mon Sep 17 00:00:00 2001
+From 343ba05a555702c115d744cd0009bf610a6817b9 Mon Sep 17 00:00:00 2001
 From: Todd Kjos <tkjos@google.com>
 Date: Tue, 3 Mar 2020 14:25:47 -0800
 Subject: [PATCH 652/830] ANDROID: gki_defconfig: add CONFIG_IIO_BUFFER and
@@ -16,7 +16,7 @@ Change-Id: I04a873c249e1871fd8b2c03ee3737bc645888a8f
  2 files changed, 4 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 518d6926..52c5cc2 100644
+index 518d6926b627..52c5cc23f192 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -369,6 +369,8 @@ CONFIG_DEVFREQ_GOV_USERSPACE=y
@@ -29,7 +29,7 @@ index 518d6926..52c5cc2 100644
  CONFIG_QCOM_PDC=y
  CONFIG_GENERIC_PHY=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 59d46bf..27724a8 100644
+index 59d46bfea4fa..27724a8b6c89 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -313,6 +313,8 @@ CONFIG_ION=y
@@ -42,5 +42,5 @@ index 59d46bf..27724a8 100644
  CONFIG_ANDROID_BINDER_IPC=y
  CONFIG_ANDROID_BINDERFS=y
 -- 
-2.7.4
+2.17.1
 

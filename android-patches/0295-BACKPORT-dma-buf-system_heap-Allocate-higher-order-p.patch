@@ -1,4 +1,4 @@
-From 8a1145015a7739d0b75105ed98c137bd7bbd3b05 Mon Sep 17 00:00:00 2001
+From 87cccb4a85e987fe01f2cd5d4c35512ac2155c06 Mon Sep 17 00:00:00 2001
 From: John Stultz <john.stultz@linaro.org>
 Date: Sat, 26 Sep 2020 00:33:50 +0000
 Subject: [PATCH 295/830] BACKPORT: dma-buf: system_heap: Allocate higher order
@@ -42,11 +42,11 @@ Change-Id: Ic30327f6163d2ba727d08bd2dfdcfcff858064dc
 Signed-off-by: John Stultz <john.stultz@linaro.org>
 Signed-off-by: Hridya Valsaraju <hridya@google.com>
 ---
- drivers/dma-buf/heaps/system_heap.c | 88 ++++++++++++++++++++++++++++++-------
+ drivers/dma-buf/heaps/system_heap.c | 88 +++++++++++++++++++++++------
  1 file changed, 71 insertions(+), 17 deletions(-)
 
 diff --git a/drivers/dma-buf/heaps/system_heap.c b/drivers/dma-buf/heaps/system_heap.c
-index bcf2754..713b07a 100644
+index bcf2754fd983..713b07a8f05e 100644
 --- a/drivers/dma-buf/heaps/system_heap.c
 +++ b/drivers/dma-buf/heaps/system_heap.c
 @@ -40,6 +40,20 @@ struct dma_heap_attachment {
@@ -193,5 +193,5 @@ index bcf2754..713b07a 100644
  
  	return ERR_PTR(ret);
 -- 
-2.7.4
+2.17.1
 

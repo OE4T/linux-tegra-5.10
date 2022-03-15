@@ -1,4 +1,4 @@
-From 666390866b5dfeab18d6f5ab5f15889a8307bc66 Mon Sep 17 00:00:00 2001
+From 1d10eb661e002d699308c993def0dd869340a0de Mon Sep 17 00:00:00 2001
 From: Tri Vo <trong@google.com>
 Date: Mon, 13 May 2019 16:00:04 -0700
 Subject: [PATCH 542/830] ANDROID: gki_defconfig: initial config
@@ -17,15 +17,15 @@ Signed-off-by: John Stultz <john.stultz@linaro.org>
 Change-Id: I685ccea29efc7ba14f7b0a24f41983e37203f9a2
 Signed-off-by: Matthias Maennich <maennich@google.com>
 ---
- arch/arm64/configs/gki_defconfig | 412 +++++++++++++++++++++++++++++++++++++++
- arch/x86/configs/gki_defconfig   | 343 ++++++++++++++++++++++++++++++++
+ arch/arm64/configs/gki_defconfig | 412 +++++++++++++++++++++++++++++++
+ arch/x86/configs/gki_defconfig   | 343 +++++++++++++++++++++++++
  2 files changed, 755 insertions(+)
  create mode 100644 arch/arm64/configs/gki_defconfig
  create mode 100644 arch/x86/configs/gki_defconfig
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
 new file mode 100644
-index 00000000..e3bb99c
+index 000000000000..e3bb99c85dd3
 --- /dev/null
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -0,0 +1,412 @@
@@ -443,7 +443,7 @@ index 00000000..e3bb99c
 +CONFIG_CORESIGHT_STM=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
 new file mode 100644
-index 00000000..b419917
+index 000000000000..b41991706f0d
 --- /dev/null
 +++ b/arch/x86/configs/gki_defconfig
 @@ -0,0 +1,343 @@
@@ -791,5 +791,5 @@ index 00000000..b419917
 +# CONFIG_RUNTIME_TESTING_MENU is not set
 +CONFIG_UNWINDER_FRAME_POINTER=y
 -- 
-2.7.4
+2.17.1
 

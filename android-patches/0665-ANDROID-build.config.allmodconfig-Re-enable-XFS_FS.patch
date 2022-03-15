@@ -1,4 +1,4 @@
-From 6d70f36885554b888cf649ad804292ece64a5a00 Mon Sep 17 00:00:00 2001
+From 0604f5d11a70aaa54f08440f984cf50fca407487 Mon Sep 17 00:00:00 2001
 From: Quentin Perret <qperret@google.com>
 Date: Thu, 26 Mar 2020 13:37:15 +0000
 Subject: [PATCH 665/830] ANDROID: build.config.allmodconfig: Re-enable XFS_FS
@@ -22,7 +22,7 @@ Change-Id: Iffdaaedb67162515af3b60ec62efd8f947ce17f2
  1 file changed, 1 deletion(-)
 
 diff --git a/build.config.allmodconfig b/build.config.allmodconfig
-index f4da6b2..d318971 100644
+index f4da6b278e80..d318971fb9b3 100644
 --- a/build.config.allmodconfig
 +++ b/build.config.allmodconfig
 @@ -5,7 +5,6 @@ POST_DEFCONFIG_CMDS="update_config"
@@ -34,5 +34,5 @@ index f4da6b2..d318971 100644
           -d STM \
           -d TEST_MEMCAT_P \
 -- 
-2.7.4
+2.17.1
 

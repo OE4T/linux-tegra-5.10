@@ -1,4 +1,4 @@
-From fef14ab3e61e0fbe0a0c46026dabde19cd9bf542 Mon Sep 17 00:00:00 2001
+From 1d4a56024a3ac84f890ba0e044ac5b0d557f4426 Mon Sep 17 00:00:00 2001
 From: Peter Collingbourne <pcc@google.com>
 Date: Fri, 10 Apr 2020 17:10:03 -0700
 Subject: [PATCH 784/830] ANDROID: GKI: Add configs needed for ARM Fixed
@@ -14,7 +14,7 @@ Signed-off-by: Peter Collingbourne <pcc@google.com>
  2 files changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index c099d51..8c64daf 100644
+index c099d5130ef9..8c64dafe1e1c 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -295,7 +295,7 @@ CONFIG_USB_USBNET=y
@@ -35,7 +35,7 @@ index c099d51..8c64daf 100644
  # CONFIG_HWMON is not set
  CONFIG_THERMAL=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 5ce4104..52c34d2 100644
+index 5ce410458aba..52c34d2823b9 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -269,7 +269,7 @@ CONFIG_USB_USBNET=y
@@ -56,5 +56,5 @@ index 5ce4104..52c34d2 100644
  CONFIG_THERMAL_STATISTICS=y
  CONFIG_THERMAL_EMERGENCY_POWEROFF_DELAY_MS=100
 -- 
-2.7.4
+2.17.1
 

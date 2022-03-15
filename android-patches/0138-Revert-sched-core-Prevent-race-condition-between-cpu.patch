@@ -1,4 +1,4 @@
-From 221cc32215d613ced2fc5d1b5667e78d2eff2e48 Mon Sep 17 00:00:00 2001
+From c0e2e20ef6a8080847fb45853136b2f9b0e7390f Mon Sep 17 00:00:00 2001
 From: Todd Kjos <tkjos@google.com>
 Date: Fri, 27 Mar 2020 10:04:16 -0700
 Subject: [PATCH 138/830] Revert "sched/core: Prevent race condition between
@@ -31,7 +31,7 @@ Signed-off-by: Todd Kjos <tkjos@google.com>
  3 files changed, 3 insertions(+), 33 deletions(-)
 
 diff --git a/include/linux/cpuset.h b/include/linux/cpuset.h
-index 04c20de66..7f1478c 100644
+index 04c20de66afc..7f1478c26a33 100644
 --- a/include/linux/cpuset.h
 +++ b/include/linux/cpuset.h
 @@ -55,8 +55,6 @@ extern void cpuset_init_smp(void);
@@ -54,7 +54,7 @@ index 04c20de66..7f1478c 100644
  				       struct cpumask *mask)
  {
 diff --git a/kernel/cgroup/cpuset.c b/kernel/cgroup/cpuset.c
-index dd63560..83b457d 100644
+index 762204084682..a00c59ba4504 100644
 --- a/kernel/cgroup/cpuset.c
 +++ b/kernel/cgroup/cpuset.c
 @@ -334,17 +334,6 @@ static struct cpuset top_cpuset = {
@@ -76,7 +76,7 @@ index dd63560..83b457d 100644
  
  static struct workqueue_struct *cpuset_migrate_mm_wq;
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index f72cfc8..3d7bdd9 100644
+index f72cfc8be7ac..3d7bdd98eb3c 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -5312,9 +5312,6 @@ static int __sched_setscheduler(struct task_struct *p,
@@ -137,5 +137,5 @@ index f72cfc8..3d7bdd9 100644
  	return retval;
  }
 -- 
-2.7.4
+2.17.1
 

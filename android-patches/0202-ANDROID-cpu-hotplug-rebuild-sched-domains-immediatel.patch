@@ -1,4 +1,4 @@
-From b7f2baa91f2119e7c49691744a7f6d524f0d8e07 Mon Sep 17 00:00:00 2001
+From 629cad44c7daaaaa55b28a10852ad7cbf8520375 Mon Sep 17 00:00:00 2001
 From: Stephen Dickey <dickey@codeaurora.org>
 Date: Thu, 3 Dec 2020 13:49:13 -0800
 Subject: [PATCH 202/830] ANDROID: cpu/hotplug: rebuild sched domains
@@ -31,7 +31,7 @@ Signed-off-by: Todd Kjos <tkjos@google.com>
  3 files changed, 17 insertions(+), 3 deletions(-)
 
 diff --git a/include/linux/cpuset.h b/include/linux/cpuset.h
-index 7f1478c..a433f4a 100644
+index 7f1478c26a33..a433f4adf62d 100644
 --- a/include/linux/cpuset.h
 +++ b/include/linux/cpuset.h
 @@ -160,6 +160,8 @@ static inline void set_mems_allowed(nodemask_t nodemask)
@@ -53,7 +53,7 @@ index 7f1478c..a433f4a 100644
  
  #endif /* _LINUX_CPUSET_H */
 diff --git a/kernel/cgroup/cpuset.c b/kernel/cgroup/cpuset.c
-index 0943d67..fbff597 100644
+index b28691cef8a3..68d5f644a4a8 100644
 --- a/kernel/cgroup/cpuset.c
 +++ b/kernel/cgroup/cpuset.c
 @@ -342,9 +342,9 @@ static DEFINE_SPINLOCK(callback_lock);
@@ -68,7 +68,7 @@ index 0943d67..fbff597 100644
  static DECLARE_WORK(cpuset_hotplug_work, cpuset_hotplug_workfn);
  
  static DECLARE_WAIT_QUEUE_HEAD(cpuset_attach_wq);
-@@ -3166,7 +3166,7 @@ static void cpuset_hotplug_update_tasks(struct cpuset *cs, struct tmpmasks *tmp)
+@@ -3177,7 +3177,7 @@ static void cpuset_hotplug_update_tasks(struct cpuset *cs, struct tmpmasks *tmp)
   * Note that CPU offlining during suspend is ignored.  We don't modify
   * cpusets across suspend/resume cycles at all.
   */
@@ -78,7 +78,7 @@ index 0943d67..fbff597 100644
  	static cpumask_t new_cpus;
  	static nodemask_t new_mems;
 diff --git a/kernel/cpu.c b/kernel/cpu.c
-index 7fd788a..39d2e0d 100644
+index 7fd788aac347..39d2e0d7b754 100644
 --- a/kernel/cpu.c
 +++ b/kernel/cpu.c
 @@ -35,6 +35,7 @@
@@ -106,5 +106,5 @@ index 7fd788a..39d2e0d 100644
  
  	cpuhp_tasks_frozen = 0;
 -- 
-2.7.4
+2.17.1
 

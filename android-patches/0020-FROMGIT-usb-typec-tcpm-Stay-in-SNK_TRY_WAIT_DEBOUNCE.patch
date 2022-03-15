@@ -1,4 +1,4 @@
-From 773708a638d35bed845d7d8352d974db196d17b2 Mon Sep 17 00:00:00 2001
+From 130e3c1ddbccc88f3e7ec0741817d5634edc8175 Mon Sep 17 00:00:00 2001
 From: Badhri Jagan Sridharan <badhri@google.com>
 Date: Tue, 24 Nov 2020 17:48:04 -0800
 Subject: [PATCH 020/830] FROMGIT: usb: typec: tcpm: Stay in
@@ -39,7 +39,7 @@ Change-Id: Ieee7069dab909604291c331d7468e1408ada0a5e
  2 files changed, 14 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/usb/typec/tcpm/tcpm.c b/drivers/usb/typec/tcpm/tcpm.c
-index ffbdb77..cfa297e 100644
+index f5f4d2df035a..a1740ed882fe 100644
 --- a/drivers/usb/typec/tcpm/tcpm.c
 +++ b/drivers/usb/typec/tcpm/tcpm.c
 @@ -3149,15 +3149,13 @@ static void run_state_machine(struct tcpm_port *port)
@@ -86,7 +86,7 @@ index ffbdb77..cfa297e 100644
  	case SRC_TRY_DEBOUNCE:
  		/* Do nothing, waiting for sink detection */
 diff --git a/include/linux/usb/pd.h b/include/linux/usb/pd.h
-index 433040f..d4ace1a 100644
+index 433040ff840a..d4ace1aac18c 100644
 --- a/include/linux/usb/pd.h
 +++ b/include/linux/usb/pd.h
 @@ -484,6 +484,7 @@ static inline unsigned int rdo_max_power(u32 rdo)
@@ -98,5 +98,5 @@ index 433040f..d4ace1a 100644
  #define PD_N_CAPS_COUNT		(PD_T_NO_RESPONSE / PD_T_SEND_SOURCE_CAP)
  #define PD_N_HARD_RESET_COUNT	2
 -- 
-2.7.4
+2.17.1
 

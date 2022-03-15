@@ -1,4 +1,4 @@
-From 79f2fb14ff30eababf36a28e413f1106e079f91a Mon Sep 17 00:00:00 2001
+From 8edda53ddbbcea8853224bc909fcca9e3b87142b Mon Sep 17 00:00:00 2001
 From: Daniel Mentz <danielmentz@google.com>
 Date: Sun, 19 Jul 2020 10:08:28 -0700
 Subject: [PATCH 289/830] ANDROID: staging: ion: Remove unused local variable
@@ -30,7 +30,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@google.com>
  1 file changed, 1 deletion(-)
 
 diff --git a/drivers/staging/android/ion/ion_dma_buf.c b/drivers/staging/android/ion/ion_dma_buf.c
-index 8b67416..47ae54a 100644
+index 8b6741696b08..47ae54af5ccf 100644
 --- a/drivers/staging/android/ion/ion_dma_buf.c
 +++ b/drivers/staging/android/ion/ion_dma_buf.c
 @@ -163,7 +163,6 @@ static int ion_dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
@@ -42,5 +42,5 @@ index 8b67416..47ae54a 100644
  
  	if (heap->buf_ops.begin_cpu_access)
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From b7f23674b80e41becb8fe76a6e6ffdbc4cfd769b Mon Sep 17 00:00:00 2001
+From ace11ec1361c882ccf6cdaa9bd5cafe0eaa6b3a4 Mon Sep 17 00:00:00 2001
 From: Mike Tipton <mdtipton@codeaurora.org>
 Date: Mon, 2 Nov 2020 15:27:58 -0800
 Subject: [PATCH 313/830] ANDROID: clk: Enable writable debugfs files
@@ -17,7 +17,7 @@ Signed-off-by: Mike Tipton <mdtipton@codeaurora.org>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
-index db1440f..f117ded 100644
+index d7ec0022d1bf..9ba26b1788ec 100644
 --- a/drivers/clk/clk.c
 +++ b/drivers/clk/clk.c
 @@ -3489,7 +3489,7 @@ static int clk_dump_show(struct seq_file *s, void *data)
@@ -30,5 +30,5 @@ index db1440f..f117ded 100644
  /*
   * This can be dangerous, therefore don't provide any real compile time
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 6d0cf7a4cf623458fc18449219e2bee97f4bf271 Mon Sep 17 00:00:00 2001
+From 108544afa6575f1b338e2e9160fb83605a65ff4a Mon Sep 17 00:00:00 2001
 From: Alexander Potapenko <glider@google.com>
 Date: Fri, 14 Feb 2020 00:56:37 +0100
 Subject: [PATCH 634/830] ANDROID: gki_defconfig: enable
@@ -21,7 +21,7 @@ Signed-off-by: Alistair Delva <adelva@google.com>
  1 file changed, 1 deletion(-)
 
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 09c909b..eb26f04 100644
+index 09c909b293c0..eb26f04eb04a 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -413,4 +413,3 @@ CONFIG_SOFTLOCKUP_DETECTOR=y
@@ -30,5 +30,5 @@ index 09c909b..eb26f04 100644
  CONFIG_UNWINDER_FRAME_POINTER=y
 -# CONFIG_RUNTIME_TESTING_MENU is not set
 -- 
-2.7.4
+2.17.1
 

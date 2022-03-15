@@ -1,4 +1,4 @@
-From 889672c127f863094ba59f70c448a61bb18d4a35 Mon Sep 17 00:00:00 2001
+From fec7c904c5890d9f4ef6382d87bc81a20b767926 Mon Sep 17 00:00:00 2001
 From: Tristan Muntsinger <muntsinger@google.com>
 Date: Thu, 25 Jul 2019 13:48:04 -0700
 Subject: [PATCH 543/830] ANDROID: Add initial rockpi4_defconfig
@@ -15,13 +15,13 @@ Signed-off-by: Alistair Delva <adelva@google.com>
            7388b79c4a34 ("ANDROID: Catch rockpi4_defconfig up with gki_defconfig")]
 Signed-off-by: Matthias Maennich <maennich@google.com>
 ---
- arch/arm64/configs/rockpi4_defconfig | 542 +++++++++++++++++++++++++++++++++++
+ arch/arm64/configs/rockpi4_defconfig | 542 +++++++++++++++++++++++++++
  1 file changed, 542 insertions(+)
  create mode 100644 arch/arm64/configs/rockpi4_defconfig
 
 diff --git a/arch/arm64/configs/rockpi4_defconfig b/arch/arm64/configs/rockpi4_defconfig
 new file mode 100644
-index 00000000..d4845d0
+index 000000000000..d4845d044a9f
 --- /dev/null
 +++ b/arch/arm64/configs/rockpi4_defconfig
 @@ -0,0 +1,542 @@
@@ -568,5 +568,5 @@ index 00000000..d4845d0
 +CONFIG_CORESIGHT=y
 +CONFIG_CORESIGHT_STM=y
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From c29cb3409edbf90fb09029329eb688f8277b3187 Mon Sep 17 00:00:00 2001
+From 7c2b76c5d77bb45eccf8bf58610cfa7c8966a6f5 Mon Sep 17 00:00:00 2001
 From: Todd Kjos <tkjos@google.com>
 Date: Wed, 6 Nov 2019 10:47:49 -0800
 Subject: [PATCH 583/830] ANDROID: gki_defconfig: enable FW_LOADER configs
@@ -17,7 +17,7 @@ Signed-off-by: Todd Kjos <tkjos@google.com>
  2 files changed, 4 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 2d48aea..6e57801 100644
+index 2d48aea50e83..6e57801349f9 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -201,6 +201,8 @@ CONFIG_RFKILL=y
@@ -30,7 +30,7 @@ index 2d48aea..6e57801 100644
  CONFIG_DEBUG_DEVRES=y
  CONFIG_ZRAM=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index a3a1138..e9039a5 100644
+index a3a1138f3278..e9039a54c5c0 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -177,6 +177,8 @@ CONFIG_MAC80211=y
@@ -43,5 +43,5 @@ index a3a1138..e9039a5 100644
  CONFIG_DEBUG_DEVRES=y
  CONFIG_OF=y
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From ee284071abdd59a9daf3126e7f4004c81e8c1139 Mon Sep 17 00:00:00 2001
+From 51dd3c85e8b2f57f2d87b7b73c96e4a46a246ba4 Mon Sep 17 00:00:00 2001
 From: Ram Muthiah <rammuthiah@google.com>
 Date: Mon, 25 Nov 2019 23:00:43 -0800
 Subject: [PATCH 590/830] ANDROID: gki_defconfig: =m's applied for virtio
@@ -17,7 +17,7 @@ Signed-off-by: Ram Muthiah <rammuthiah@google.com>
  2 files changed, 17 insertions(+), 12 deletions(-)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 72276cc..a7b49f0 100644
+index 72276cc6e492..a7b49f0ec9db 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -189,9 +189,11 @@ CONFIG_NET_CLS_BPF=y
@@ -110,7 +110,7 @@ index 72276cc..a7b49f0 100644
  CONFIG_CRC8=y
  CONFIG_XZ_DEC=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index d7cf3139..e7b81b5 100644
+index d7cf31394e34..e7b81b524ace 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -253,6 +253,7 @@ CONFIG_SERIAL_8250=y
@@ -131,5 +131,5 @@ index d7cf3139..e7b81b5 100644
  CONFIG_LEDS_CLASS=y
  CONFIG_LEDS_TRIGGERS=y
 -- 
-2.7.4
+2.17.1
 

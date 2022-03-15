@@ -1,4 +1,4 @@
-From d5e75f04b5ea175a44fc190c221f188d1fe3ff38 Mon Sep 17 00:00:00 2001
+From f51d6cd0a0c922d561ebce7752b953a74ee2b764 Mon Sep 17 00:00:00 2001
 From: Siarhei Vishniakou <svv@google.com>
 Date: Wed, 8 Jan 2020 18:19:25 -0800
 Subject: [PATCH 745/830] ANDROID: Enable HID_STEAM and JOYSTICK_XPAD as y
@@ -18,7 +18,7 @@ Signed-off-by: Connor O'Brien <connoro@google.com>
  2 files changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 82881a9..34244fa 100644
+index 82881a9b6325..34244fa08f97 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -281,6 +281,7 @@ CONFIG_INPUT_EVDEV=y
@@ -40,7 +40,7 @@ index 82881a9..34244fa 100644
  CONFIG_USB_ACM=y
  CONFIG_USB_GADGET=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 536cde9..ec1d7bd 100644
+index 536cde9f3d36..ec1d7bd13c20 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -255,6 +255,7 @@ CONFIG_INPUT_EVDEV=y
@@ -62,5 +62,5 @@ index 536cde9..ec1d7bd 100644
  CONFIG_USB_GADGET=y
  CONFIG_USB_CONFIGFS=y
 -- 
-2.7.4
+2.17.1
 

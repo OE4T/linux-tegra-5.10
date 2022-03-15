@@ -1,4 +1,4 @@
-From 81d20d1a3fd41d96d8a5fc293339ab86f9f161a0 Mon Sep 17 00:00:00 2001
+From e215f63311b780578ce661293b2e5514944287b4 Mon Sep 17 00:00:00 2001
 From: Jason Macnak <natsu@google.com>
 Date: Fri, 25 Oct 2019 13:40:37 -0700
 Subject: [PATCH 344/830] ANDROID: Allow DRM_IOCTL_MODE_*_DUMB for render
@@ -19,7 +19,7 @@ Signed-off-by: Alistair Delva <adelva@google.com>
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/gpu/drm/drm_ioctl.c b/drivers/gpu/drm/drm_ioctl.c
-index 4606cc9..9aa3909f 100644
+index 4606cc938b36..9aa3909fb6cd 100644
 --- a/drivers/gpu/drm/drm_ioctl.c
 +++ b/drivers/gpu/drm/drm_ioctl.c
 @@ -678,9 +678,9 @@ static const struct drm_ioctl_desc drm_ioctls[] = {
@@ -36,5 +36,5 @@ index 4606cc9..9aa3909f 100644
  	DRM_IOCTL_DEF(DRM_IOCTL_MODE_OBJ_SETPROPERTY, drm_mode_obj_set_property_ioctl, DRM_MASTER),
  	DRM_IOCTL_DEF(DRM_IOCTL_MODE_CURSOR2, drm_mode_cursor2_ioctl, DRM_MASTER),
 -- 
-2.7.4
+2.17.1
 

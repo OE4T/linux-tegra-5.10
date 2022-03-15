@@ -1,4 +1,4 @@
-From 64b420b4e2ad3b8e75838c1581596fd725232c39 Mon Sep 17 00:00:00 2001
+From 19721ed8c14449b371b732bbca2834e095cc99a2 Mon Sep 17 00:00:00 2001
 From: David Zeuthen <zeuthen@google.com>
 Date: Tue, 24 Jan 2017 13:17:01 -0500
 Subject: [PATCH 394/830] ANDROID: AVB error handler to invalidate vbmeta
@@ -25,14 +25,14 @@ Signed-off-by: Alistair Delva <adelva@google.com>
 ---
  drivers/md/Kconfig            |  11 ++
  drivers/md/Makefile           |   4 +
- drivers/md/dm-verity-avb.c    | 229 ++++++++++++++++++++++++++++++++++++++++++
+ drivers/md/dm-verity-avb.c    | 229 ++++++++++++++++++++++++++++++++++
  drivers/md/dm-verity-target.c |   6 +-
  drivers/md/dm-verity.h        |   2 +
  5 files changed, 251 insertions(+), 1 deletion(-)
  create mode 100644 drivers/md/dm-verity-avb.c
 
 diff --git a/drivers/md/Kconfig b/drivers/md/Kconfig
-index 2cefb07..1419a65 100644
+index 2cefb075b2b8..1419a655ac0c 100644
 --- a/drivers/md/Kconfig
 +++ b/drivers/md/Kconfig
 @@ -537,6 +537,17 @@ config DM_VERITY_VERIFY_ROOTHASH_SIG
@@ -54,7 +54,7 @@ index 2cefb07..1419a65 100644
  	bool "Verity forward error correction support"
  	depends on DM_VERITY
 diff --git a/drivers/md/Makefile b/drivers/md/Makefile
-index 6d3e234..94e0f8f 100644
+index 6d3e234dc46a..94e0f8f70c6b 100644
 --- a/drivers/md/Makefile
 +++ b/drivers/md/Makefile
 @@ -86,6 +86,10 @@ ifeq ($(CONFIG_DM_UEVENT),y)
@@ -70,7 +70,7 @@ index 6d3e234..94e0f8f 100644
  endif
 diff --git a/drivers/md/dm-verity-avb.c b/drivers/md/dm-verity-avb.c
 new file mode 100644
-index 00000000..a9f102a
+index 000000000000..a9f102aa379e
 --- /dev/null
 +++ b/drivers/md/dm-verity-avb.c
 @@ -0,0 +1,229 @@
@@ -304,7 +304,7 @@ index 00000000..a9f102a
 +module_param_string(invalidate_on_error, avb_invalidate_on_error,
 +		    sizeof(avb_invalidate_on_error), 0);
 diff --git a/drivers/md/dm-verity-target.c b/drivers/md/dm-verity-target.c
-index 808a98e..3e86b8d 100644
+index 808a98ef624c..3e86b8d0577e 100644
 --- a/drivers/md/dm-verity-target.c
 +++ b/drivers/md/dm-verity-target.c
 @@ -252,8 +252,12 @@ static int verity_handle_err(struct dm_verity *v, enum verity_block_type type,
@@ -322,7 +322,7 @@ index 808a98e..3e86b8d 100644
  	if (v->mode == DM_VERITY_MODE_PANIC)
  		panic("dm-verity device corrupted");
 diff --git a/drivers/md/dm-verity.h b/drivers/md/dm-verity.h
-index 4e769d13..f64b840 100644
+index 4e769d13473a..f64b8406950e 100644
 --- a/drivers/md/dm-verity.h
 +++ b/drivers/md/dm-verity.h
 @@ -129,4 +129,6 @@ extern int verity_hash(struct dm_verity *v, struct ahash_request *req,
@@ -333,5 +333,5 @@ index 4e769d13..f64b840 100644
 +
  #endif /* DM_VERITY_H */
 -- 
-2.7.4
+2.17.1
 

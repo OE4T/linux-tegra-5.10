@@ -1,4 +1,4 @@
-From 18b2f41082fd7b66bf3e3892e7f0c02445749154 Mon Sep 17 00:00:00 2001
+From 9d653621ed14f4ad9d4c2753edccda7666500c15 Mon Sep 17 00:00:00 2001
 From: Badhri Jagan Sridharan <badhri@google.com>
 Date: Thu, 10 Dec 2020 23:11:45 -0800
 Subject: [PATCH 045/830] FROMGIT: usb: typec: tcpci: Enable bleed discharge
@@ -21,7 +21,7 @@ Change-Id: I816aecdc1191531c8d6f7e8a035cc66d40faf16b
  1 file changed, 2 insertions(+)
 
 diff --git a/drivers/usb/typec/tcpm/tcpci.c b/drivers/usb/typec/tcpm/tcpci.c
-index ea3451c..577cd8c 100644
+index ea3451c2f115..577cd8c6966c 100644
 --- a/drivers/usb/typec/tcpm/tcpci.c
 +++ b/drivers/usb/typec/tcpm/tcpci.c
 @@ -740,6 +740,8 @@ struct tcpci *tcpci_register_port(struct device *dev, struct tcpci_data *data)
@@ -34,5 +34,5 @@ index ea3451c..577cd8c 100644
  
  	if (tcpci->data->vbus_vsafe0v)
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From c136bb5a3abf0cf0da0298366e5e5c074230919a Mon Sep 17 00:00:00 2001
+From bc80068a372d4283b10604355c615411bc535bd7 Mon Sep 17 00:00:00 2001
 From: Elliot Berman <eberman@codeaurora.org>
 Date: Tue, 22 Sep 2020 16:43:14 -0700
 Subject: [PATCH 781/830] ANDROID: gki_defconfig: Enable serialized DCC driver
@@ -15,7 +15,7 @@ Signed-off-by: Elliot Berman <eberman@codeaurora.org>
  1 file changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 2a1cb8b..a3cbd92 100644
+index 2a1cb8bc5b0f..a3cbd924bb83 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -313,6 +313,8 @@ CONFIG_SERIAL_SAMSUNG=y
@@ -28,5 +28,5 @@ index 2a1cb8b..a3cbd92 100644
  CONFIG_HW_RANDOM=y
  # CONFIG_HW_RANDOM_CAVIUM is not set
 -- 
-2.7.4
+2.17.1
 

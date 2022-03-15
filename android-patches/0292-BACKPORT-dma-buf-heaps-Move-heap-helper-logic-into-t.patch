@@ -1,4 +1,4 @@
-From 3f19cd0f28a7df36acee4a16cf3e9f058a7d4100 Mon Sep 17 00:00:00 2001
+From 6d5c28fa4e60f326bab036fdcd66c30beabd0060 Mon Sep 17 00:00:00 2001
 From: John Stultz <john.stultz@linaro.org>
 Date: Fri, 25 Sep 2020 20:17:20 +0000
 Subject: [PATCH 292/830] BACKPORT: dma-buf: heaps: Move heap-helper logic into
@@ -44,11 +44,11 @@ Signed-off-by: John Stultz <john.stultz@linaro.org>
 interface]
 Signed-off-by: Hridya Valsaraju <hridya@google.com>
 ---
- drivers/dma-buf/heaps/cma_heap.c | 316 ++++++++++++++++++++++++++++++++-------
+ drivers/dma-buf/heaps/cma_heap.c | 316 ++++++++++++++++++++++++++-----
  1 file changed, 266 insertions(+), 50 deletions(-)
 
 diff --git a/drivers/dma-buf/heaps/cma_heap.c b/drivers/dma-buf/heaps/cma_heap.c
-index a58e987..0d3165a 100644
+index a58e987fcf3f..0d3165a3e6d4 100644
 --- a/drivers/dma-buf/heaps/cma_heap.c
 +++ b/drivers/dma-buf/heaps/cma_heap.c
 @@ -2,76 +2,290 @@
@@ -440,5 +440,5 @@ index a58e987..0d3165a 100644
  }
  
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 094fb96750329788a823dee33fb72f72e212c55e Mon Sep 17 00:00:00 2001
+From 9931da009c1fe360633173f50b75d5b4a4451b4c Mon Sep 17 00:00:00 2001
 From: John Stultz <john.stultz@linaro.org>
 Date: Sat, 25 Jul 2020 02:53:27 +0000
 Subject: [PATCH 277/830] ANDROID: dma-heap: Add proper kref handling on
@@ -32,10 +32,10 @@ Bug: 154341375
  2 files changed, 37 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/dma-buf/dma-heap.c b/drivers/dma-buf/dma-heap.c
-index f225589..6b6cefa 100644
+index eab510bc4af9..6cb8a70bd903 100644
 --- a/drivers/dma-buf/dma-heap.c
 +++ b/drivers/dma-buf/dma-heap.c
-@@ -40,6 +40,8 @@ struct dma_heap {
+@@ -41,6 +41,8 @@ struct dma_heap {
  	dev_t heap_devt;
  	struct list_head list;
  	struct cdev heap_cdev;
@@ -44,7 +44,7 @@ index f225589..6b6cefa 100644
  };
  
  static LIST_HEAD(heap_list);
-@@ -190,11 +192,35 @@ void *dma_heap_get_drvdata(struct dma_heap *heap)
+@@ -192,11 +194,35 @@ void *dma_heap_get_drvdata(struct dma_heap *heap)
  	return heap->priv;
  }
  
@@ -81,7 +81,7 @@ index f225589..6b6cefa 100644
  	int ret;
  
  	if (!exp_info->name || !strcmp(exp_info->name, "")) {
-@@ -223,12 +249,13 @@ struct dma_heap *dma_heap_add(const struct dma_heap_export_info *exp_info)
+@@ -225,12 +251,13 @@ struct dma_heap *dma_heap_add(const struct dma_heap_export_info *exp_info)
  	if (!heap)
  		return ERR_PTR(-ENOMEM);
  
@@ -96,7 +96,7 @@ index f225589..6b6cefa 100644
  		       XA_LIMIT(0, NUM_HEAP_MINORS - 1), GFP_KERNEL);
  	if (ret < 0) {
  		pr_err("dma_heap: Unable to get minor number for heap\n");
-@@ -237,7 +264,7 @@ struct dma_heap *dma_heap_add(const struct dma_heap_export_info *exp_info)
+@@ -239,7 +266,7 @@ struct dma_heap *dma_heap_add(const struct dma_heap_export_info *exp_info)
  	}
  
  	/* Create device */
@@ -105,7 +105,7 @@ index f225589..6b6cefa 100644
  
  	cdev_init(&heap->heap_cdev, &dma_heap_fops);
  	ret = cdev_add(&heap->heap_cdev, heap->heap_devt, 1);
-@@ -267,7 +294,7 @@ struct dma_heap *dma_heap_add(const struct dma_heap_export_info *exp_info)
+@@ -269,7 +296,7 @@ struct dma_heap *dma_heap_add(const struct dma_heap_export_info *exp_info)
  err2:
  	cdev_del(&heap->heap_cdev);
  err1:
@@ -115,7 +115,7 @@ index f225589..6b6cefa 100644
  	kfree(heap);
  	return err_ret;
 diff --git a/include/linux/dma-heap.h b/include/linux/dma-heap.h
-index 454e354..c1572f2 100644
+index 454e354d1ffb..c1572f29cfac 100644
 --- a/include/linux/dma-heap.h
 +++ b/include/linux/dma-heap.h
 @@ -56,4 +56,10 @@ void *dma_heap_get_drvdata(struct dma_heap *heap);
@@ -130,5 +130,5 @@ index 454e354..c1572f2 100644
 +
  #endif /* _DMA_HEAPS_H */
 -- 
-2.7.4
+2.17.1
 

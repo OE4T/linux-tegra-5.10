@@ -1,4 +1,4 @@
-From 543ada2b7c9ca8b42f2396c4f188985f72a90257 Mon Sep 17 00:00:00 2001
+From cbe1fe6692020d05a8e1f2876af2d199c51bcad1 Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Mon, 16 Mar 2020 13:47:17 -0700
 Subject: [PATCH 432/830] ANDROID: Incremental fs: Remove all access_ok checks
@@ -15,7 +15,7 @@ Change-Id: Icc6054a2d6a495c9a03cd1507dda1ab8ca0b0dc4
  1 file changed, 2 insertions(+), 30 deletions(-)
 
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index 8ae92d7..2be2d4c 100644
+index 8ae92d7db1c6..2be2d4cd6a2b 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -463,9 +463,6 @@ static ssize_t pending_reads_read(struct file *f, char __user *buf, size_t len,
@@ -103,5 +103,5 @@ index 8ae92d7..2be2d4c 100644
  				   block.data_len) > 0) {
  			error = -EFAULT;
 -- 
-2.7.4
+2.17.1
 

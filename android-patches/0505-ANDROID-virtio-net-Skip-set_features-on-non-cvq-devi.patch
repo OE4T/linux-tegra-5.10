@@ -1,4 +1,4 @@
-From 6745adf05b8f7ebcd4633607c30739a58b9e716b Mon Sep 17 00:00:00 2001
+From 1a9c577ad0b1337f88a21705e53ac4e5a96c6cff Mon Sep 17 00:00:00 2001
 From: Alistair Delva <adelva@google.com>
 Date: Fri, 20 Dec 2019 12:58:48 -0800
 Subject: [PATCH 505/830] ANDROID: virtio-net: Skip set_features on non-cvq
@@ -70,7 +70,7 @@ Signed-off-by: Alistair Delva <adelva@google.com>
  1 file changed, 3 insertions(+)
 
 diff --git a/drivers/net/virtio_net.c b/drivers/net/virtio_net.c
-index cbe47ee..1888876 100644
+index cbe47eed7cc3..1888876969f2 100644
 --- a/drivers/net/virtio_net.c
 +++ b/drivers/net/virtio_net.c
 @@ -2597,6 +2597,9 @@ static int virtnet_set_features(struct net_device *dev,
@@ -84,5 +84,5 @@ index cbe47ee..1888876 100644
  		if (vi->xdp_enabled)
  			return -EBUSY;
 -- 
-2.7.4
+2.17.1
 

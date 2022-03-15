@@ -1,4 +1,4 @@
-From f5649d2364355325dfaab309fa4cc3b535df5661 Mon Sep 17 00:00:00 2001
+From 76ce259fddcdb9c6ac470504372496c67d360517 Mon Sep 17 00:00:00 2001
 From: Guenter Roeck <linux@roeck-us.net>
 Date: Tue, 15 Oct 2019 16:51:46 +0200
 Subject: [PATCH 091/830] ANDROID: ARM64: Remove arm_pm_restart()
@@ -26,7 +26,7 @@ Signed-off-by: Elliot Berman <eberman@codeaurora.org>
  4 files changed, 3 insertions(+), 10 deletions(-)
 
 diff --git a/arch/arm64/include/asm/system_misc.h b/arch/arm64/include/asm/system_misc.h
-index 1ab63cf..d02c5e5 100644
+index 1ab63cfbbaf1..d02c5e5ea015 100644
 --- a/arch/arm64/include/asm/system_misc.h
 +++ b/arch/arm64/include/asm/system_misc.h
 @@ -32,8 +32,6 @@ void hook_debug_fault_code(int nr, int (*fn)(unsigned long, unsigned int,
@@ -39,7 +39,7 @@ index 1ab63cf..d02c5e5 100644
  
  #endif	/* __ASM_SYSTEM_MISC_H */
 diff --git a/arch/arm64/kernel/process.c b/arch/arm64/kernel/process.c
-index 3c25310..988657c 100644
+index d8c661c2cb60..f79712c5c346 100644
 --- a/arch/arm64/kernel/process.c
 +++ b/arch/arm64/kernel/process.c
 @@ -73,8 +73,6 @@ EXPORT_SYMBOL(__stack_chk_guard);
@@ -64,7 +64,7 @@ index 3c25310..988657c 100644
  	/*
  	 * Whoops - the architecture was unable to reboot.
 diff --git a/drivers/firmware/psci/psci.c b/drivers/firmware/psci/psci.c
-index c70b8d6..baf48af 100644
+index c70b8d6975c1..baf48af96886 100644
 --- a/drivers/firmware/psci/psci.c
 +++ b/drivers/firmware/psci/psci.c
 @@ -266,7 +266,7 @@ static int get_set_conduit_method(struct device_node *np)
@@ -77,10 +77,10 @@ index c70b8d6..baf48af 100644
  	if ((reboot_mode == REBOOT_WARM || reboot_mode == REBOOT_SOFT) &&
  	    psci_system_reset2_supported) {
 diff --git a/drivers/soc/tegra/pmc.c b/drivers/soc/tegra/pmc.c
-index a4cd391e..f5ade05 100644
+index a6cde22ec8a5..00de776a5003 100644
 --- a/drivers/soc/tegra/pmc.c
 +++ b/drivers/soc/tegra/pmc.c
-@@ -4575,7 +4575,7 @@ static int tegra_pmc_probe(struct platform_device *pdev)
+@@ -4610,7 +4610,7 @@ static int tegra_pmc_probe(struct platform_device *pdev)
  		tegra_pmc_init_boorom_cmds(&pdev->dev);
  
  	/* handle PMC reboot reason with PSCI */
@@ -90,5 +90,5 @@ index a4cd391e..f5ade05 100644
  
  	/* Some wakes require specific filter configuration */
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 7fe8caba7f5b478baf2edccc7a497e278573b5af Mon Sep 17 00:00:00 2001
+From 4084b2fc9c4351b66c6c7334a11ddfd4c5bd1d05 Mon Sep 17 00:00:00 2001
 From: Akilesh Kailash <akailash@google.com>
 Date: Sat, 18 Jul 2020 00:26:46 +0000
 Subject: [PATCH 471/830] ANDROID: Incremental fs: Don't allow renaming .index
@@ -15,12 +15,12 @@ mounted
 Signed-off-by: Akilesh Kailash <akailash@google.com>
 Change-Id: I7d2d71d480db4f02b7f3a347b5734c6643843594
 ---
- fs/incfs/vfs.c                                         | 14 ++++++++++++--
- tools/testing/selftests/filesystems/incfs/incfs_test.c | 12 ++++++++++++
+ fs/incfs/vfs.c                                     | 14 ++++++++++++--
+ .../selftests/filesystems/incfs/incfs_test.c       | 12 ++++++++++++
  2 files changed, 24 insertions(+), 2 deletions(-)
 
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index 0b8051d..d83ee08e 100644
+index 0b8051d88c74..d83ee08e25f3 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -781,7 +781,8 @@ static struct dentry *open_or_create_index_dir(struct dentry *backing_dir)
@@ -66,7 +66,7 @@ index 0b8051d..d83ee08e 100644
  	if (error)
  		pr_debug("incfs: %s err:%d\n", __func__, error);
 diff --git a/tools/testing/selftests/filesystems/incfs/incfs_test.c b/tools/testing/selftests/filesystems/incfs/incfs_test.c
-index 316d7187..19496d1 100644
+index 316d71877e2f..19496d191115 100644
 --- a/tools/testing/selftests/filesystems/incfs/incfs_test.c
 +++ b/tools/testing/selftests/filesystems/incfs/incfs_test.c
 @@ -837,6 +837,12 @@ static int cant_touch_index_test(const char *mount_dir)
@@ -96,5 +96,5 @@ index 316d7187..19496d1 100644
  	free(subdir);
  	free(index_path);
 -- 
-2.7.4
+2.17.1
 

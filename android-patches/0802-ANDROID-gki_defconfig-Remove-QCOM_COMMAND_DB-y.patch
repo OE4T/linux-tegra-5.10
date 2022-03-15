@@ -1,4 +1,4 @@
-From fc0545c1be317666977db89dede9a6db13781409 Mon Sep 17 00:00:00 2001
+From 45c898f0cf702600eec7d64e87c9b509680947bb Mon Sep 17 00:00:00 2001
 From: Elliot Berman <eberman@codeaurora.org>
 Date: Fri, 20 Nov 2020 11:34:55 -0800
 Subject: [PATCH 802/830] ANDROID: gki_defconfig: Remove QCOM_COMMAND_DB=y
@@ -14,7 +14,7 @@ Signed-off-by: Elliot Berman <eberman@codeaurora.org>
  1 file changed, 1 deletion(-)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 7fbcd48..67b3e87 100644
+index 7fbcd4807691..67b3e87e2ffb 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -456,7 +456,6 @@ CONFIG_IOMMU_LIMIT_IOVA_ALIGNMENT=y
@@ -26,5 +26,5 @@ index 7fbcd48..67b3e87 100644
  CONFIG_DEVFREQ_GOV_POWERSAVE=y
  CONFIG_DEVFREQ_GOV_USERSPACE=y
 -- 
-2.7.4
+2.17.1
 

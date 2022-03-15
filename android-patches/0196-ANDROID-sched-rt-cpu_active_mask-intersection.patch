@@ -1,4 +1,4 @@
-From b9e889b180ff7fc8a05d25d90005b424357897c2 Mon Sep 17 00:00:00 2001
+From ad4362d4abf7a0e192f8f17991163cb240e5c2a1 Mon Sep 17 00:00:00 2001
 From: Vincent Donnefort <vincent.donnefort@arm.com>
 Date: Tue, 3 Nov 2020 11:54:02 +0000
 Subject: [PATCH 196/830] ANDROID: sched/rt: cpu_active_mask intersection
@@ -19,7 +19,7 @@ Signed-off-by: Vincent Donnefort <vincent.donnefort@arm.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/kernel/sched/cpupri.c b/kernel/sched/cpupri.c
-index 69bc0de..46347aa 100644
+index 69bc0de4d2eb..46347aaf5c1b 100644
 --- a/kernel/sched/cpupri.c
 +++ b/kernel/sched/cpupri.c
 @@ -99,6 +99,7 @@ static inline int __cpupri_find(struct cpupri *cp, struct task_struct *p,
@@ -31,5 +31,5 @@ index 69bc0de..46347aa 100644
  #ifdef CONFIG_RT_SOFTINT_OPTIMIZATION
  		if (drop_nopreempts)
 -- 
-2.7.4
+2.17.1
 

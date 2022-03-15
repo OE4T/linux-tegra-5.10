@@ -1,4 +1,4 @@
-From c2198b8609bb75c5f53be4aeac378ade1773ea8b Mon Sep 17 00:00:00 2001
+From 2da2ce8ef6ab866f50a0666c8b1f41c0bc963fa6 Mon Sep 17 00:00:00 2001
 From: Amit Pundir <amit.pundir@linaro.org>
 Date: Fri, 10 Jul 2020 20:44:44 +0530
 Subject: [PATCH 727/830] ANDROID: db845c_gki.fragment: Trim down the modules
@@ -16,11 +16,11 @@ Bug: 146449535
 Signed-off-by: Amit Pundir <amit.pundir@linaro.org>
 Change-Id: I78fbab3a011785da53fb2f91ec09e19157dc7296
 ---
- arch/arm64/configs/db845c_gki.fragment | 173 ++++++++++++++++++++++++++++-----
+ arch/arm64/configs/db845c_gki.fragment | 173 +++++++++++++++++++++----
  1 file changed, 151 insertions(+), 22 deletions(-)
 
 diff --git a/arch/arm64/configs/db845c_gki.fragment b/arch/arm64/configs/db845c_gki.fragment
-index 675af79..df5906a 100644
+index 675af79b35eb..df5906afc51f 100644
 --- a/arch/arm64/configs/db845c_gki.fragment
 +++ b/arch/arm64/configs/db845c_gki.fragment
 @@ -9,7 +9,6 @@ CONFIG_SERIAL_QCOM_GENI=m
@@ -259,5 +259,5 @@ index 675af79..df5906a 100644
 +# CONFIG_DVB_CXD2099 is not set
 +# CONFIG_DVB_SP2 is not set
 -- 
-2.7.4
+2.17.1
 

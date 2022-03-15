@@ -1,4 +1,4 @@
-From 3c6f33f93d0ff5b40a7890549647e83f52b75931 Mon Sep 17 00:00:00 2001
+From c4cd8f140c0365f723b926336483b71ca0696a59 Mon Sep 17 00:00:00 2001
 From: Alistair Delva <adelva@google.com>
 Date: Wed, 19 Aug 2020 11:34:33 -0700
 Subject: [PATCH 758/830] ANDROID: GKI: Add CONFIG_KVM and CONFIG_VHOST_VSOCK
@@ -17,7 +17,7 @@ Signed-off-by: Alistair Delva <adelva@google.com>
  2 files changed, 9 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index faccb44..47696de 100644
+index faccb44d1868..47696de7f33f 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -4,7 +4,6 @@ CONFIG_NO_HZ=y
@@ -54,7 +54,7 @@ index faccb44..47696de 100644
  CONFIG_ASHMEM=y
  CONFIG_ION=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index e5a2986..c533819 100644
+index e5a2986e281f..c53381963ff0 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -6,7 +6,6 @@ CONFIG_NO_HZ=y
@@ -92,5 +92,5 @@ index e5a2986..c533819 100644
  CONFIG_ASHMEM=y
  CONFIG_ION=y
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From afb406f2d945f184def254278754fccfd89ad995 Mon Sep 17 00:00:00 2001
+From 937a2f10d1736e0bea608af5068d36631999f966 Mon Sep 17 00:00:00 2001
 From: Connor O'Brien <connoro@google.com>
 Date: Fri, 28 Feb 2020 12:23:14 -0800
 Subject: [PATCH 215/830] ANDROID: cpufreq: times: Remove
@@ -14,14 +14,14 @@ Bug: 127641090
 Signed-off-by: Connor O'Brien <connoro@google.com>
 Change-Id: I1e334dcc71201118aa62115fa5247263e545e8d6
 ---
- Documentation/ABI/testing/procfs-concurrent_time | 16 -------
- drivers/cpufreq/cpufreq_times.c                  | 57 +-----------------------
+ .../ABI/testing/procfs-concurrent_time        | 16 ------
+ drivers/cpufreq/cpufreq_times.c               | 57 +------------------
  2 files changed, 1 insertion(+), 72 deletions(-)
  delete mode 100644 Documentation/ABI/testing/procfs-concurrent_time
 
 diff --git a/Documentation/ABI/testing/procfs-concurrent_time b/Documentation/ABI/testing/procfs-concurrent_time
 deleted file mode 100644
-index 55b4142..00000000
+index 55b414289b40..000000000000
 --- a/Documentation/ABI/testing/procfs-concurrent_time
 +++ /dev/null
 @@ -1,16 +0,0 @@
@@ -42,7 +42,7 @@ index 55b4142..00000000
 -	of the core used by the uid's task and the number of cores associated
 -	with that policy that were active while the uid's task was running.
 diff --git a/drivers/cpufreq/cpufreq_times.c b/drivers/cpufreq/cpufreq_times.c
-index 7057860..3f4f68b 100644
+index 7057860c5dfd..3f4f68b15fd9 100644
 --- a/drivers/cpufreq/cpufreq_times.c
 +++ b/drivers/cpufreq/cpufreq_times.c
 @@ -32,17 +32,11 @@ static DECLARE_HASHTABLE(uid_hash_table, UID_HASH_BITS);
@@ -146,5 +146,5 @@ index 7057860..3f4f68b 100644
  		}
  	}
 -- 
-2.7.4
+2.17.1
 

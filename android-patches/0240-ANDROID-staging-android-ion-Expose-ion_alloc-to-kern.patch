@@ -1,4 +1,4 @@
-From 7d0de47aa134e1afd4d4d8fc926741b30570f404 Mon Sep 17 00:00:00 2001
+From 291b23fd461bf9b6e8b57a9a057dfea0319a4e36 Mon Sep 17 00:00:00 2001
 From: "Isaac J. Manjarres" <isaacm@codeaurora.org>
 Date: Wed, 19 Jun 2019 15:37:14 -0700
 Subject: [PATCH 240/830] ANDROID: staging: android: ion: Expose ion_alloc() to
@@ -15,13 +15,13 @@ Change-Id: I410044127ba92a759a79c65e422b0b75b74e2159
 Signed-off-by: Isaac J. Manjarres <isaacm@codeaurora.org>
 Signed-off-by: Sandeep Patil <sspatil@google.com>
 ---
- drivers/staging/android/ion/ion.c | 40 +++++++++++++++++++++++++++++----------
- include/linux/ion.h               | 26 +++++++++++++++++++++++++
+ drivers/staging/android/ion/ion.c | 40 +++++++++++++++++++++++--------
+ include/linux/ion.h               | 26 ++++++++++++++++++++
  2 files changed, 56 insertions(+), 10 deletions(-)
  create mode 100644 include/linux/ion.h
 
 diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
-index e1fe03c..cbff096 100644
+index e1fe03ceb7f1..cbff09675a4d 100644
 --- a/drivers/staging/android/ion/ion.c
 +++ b/drivers/staging/android/ion/ion.c
 @@ -3,6 +3,8 @@
@@ -117,7 +117,7 @@ index e1fe03c..cbff096 100644
  
 diff --git a/include/linux/ion.h b/include/linux/ion.h
 new file mode 100644
-index 00000000..7bec77d
+index 000000000000..7bec77d98224
 --- /dev/null
 +++ b/include/linux/ion.h
 @@ -0,0 +1,26 @@
@@ -148,5 +148,5 @@ index 00000000..7bec77d
 +#endif /* CONFIG_ION */
 +#endif /* _ION_KERNEL_H */
 -- 
-2.7.4
+2.17.1
 

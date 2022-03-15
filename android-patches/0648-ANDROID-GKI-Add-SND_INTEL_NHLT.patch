@@ -1,4 +1,4 @@
-From 1a1faa21225c3a973224b815a782842d930b26f3 Mon Sep 17 00:00:00 2001
+From 89faf442e02f59e55448e113504fa76d411420c7 Mon Sep 17 00:00:00 2001
 From: Ram Muthiah <rammuthiah@google.com>
 Date: Mon, 2 Mar 2020 16:51:40 -0800
 Subject: [PATCH 648/830] ANDROID: GKI: Add SND_INTEL_NHLT
@@ -13,7 +13,7 @@ Change-Id: I64806866c8a84d8fddb7d44ebe3c9bcf572d5118
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/init/Kconfig.gki b/init/Kconfig.gki
-index 69e48c2..ae1457d 100644
+index 69e48c2feceb..ae1457d07e78 100644
 --- a/init/Kconfig.gki
 +++ b/init/Kconfig.gki
 @@ -5,7 +5,6 @@ config GKI_HIDDEN_DRM_CONFIGS
@@ -34,5 +34,5 @@ index 69e48c2..ae1457d 100644
  	  Dummy config option used to enable hidden SND configs.
  	  These are normally selected implicitly when a module
 -- 
-2.7.4
+2.17.1
 

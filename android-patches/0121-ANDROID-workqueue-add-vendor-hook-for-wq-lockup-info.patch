@@ -1,4 +1,4 @@
-From 2eb5e50eea65835c3fd2253af74f4b9ea1049248 Mon Sep 17 00:00:00 2001
+From b92e3696d7b6646c565dc78097b844712dfe952f Mon Sep 17 00:00:00 2001
 From: Sangmoon Kim <sangmoon.kim@samsung.com>
 Date: Tue, 29 Sep 2020 10:15:35 +0900
 Subject: [PATCH 121/830] ANDROID: workqueue: add vendor hook for wq lockup
@@ -21,7 +21,7 @@ Change-Id: I203dbc6faa77687ea48769f76658d28b29ef46fd
  create mode 100644 include/trace/hooks/wqlockup.h
 
 diff --git a/drivers/android/vendor_hooks.c b/drivers/android/vendor_hooks.c
-index 9398063..7bd8c6d 100644
+index 9398063ed96a..7bd8c6d92cd9 100644
 --- a/drivers/android/vendor_hooks.c
 +++ b/drivers/android/vendor_hooks.c
 @@ -12,6 +12,7 @@
@@ -41,7 +41,7 @@ index 9398063..7bd8c6d 100644
  EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_ipi_stop);
 diff --git a/include/trace/hooks/wqlockup.h b/include/trace/hooks/wqlockup.h
 new file mode 100644
-index 00000000..de70eac
+index 000000000000..de70eacaa8c8
 --- /dev/null
 +++ b/include/trace/hooks/wqlockup.h
 @@ -0,0 +1,24 @@
@@ -70,7 +70,7 @@ index 00000000..de70eac
 +/* This part must be outside protection */
 +#include <trace/define_trace.h>
 diff --git a/kernel/workqueue.c b/kernel/workqueue.c
-index d02073b..06abfbe 100644
+index fdf5fa4bf444..6060a486cf8b 100644
 --- a/kernel/workqueue.c
 +++ b/kernel/workqueue.c
 @@ -54,6 +54,10 @@
@@ -84,7 +84,7 @@ index d02073b..06abfbe 100644
  enum {
  	/*
  	 * worker_pool flags
-@@ -5817,6 +5821,7 @@ static void wq_watchdog_timer_fn(struct timer_list *unused)
+@@ -5826,6 +5830,7 @@ static void wq_watchdog_timer_fn(struct timer_list *unused)
  			pr_cont_pool_info(pool);
  			pr_cont(" stuck for %us!\n",
  				jiffies_to_msecs(now - pool_ts) / 1000);
@@ -93,5 +93,5 @@ index d02073b..06abfbe 100644
  	}
  
 -- 
-2.7.4
+2.17.1
 

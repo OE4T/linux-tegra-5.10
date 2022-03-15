@@ -1,4 +1,4 @@
-From 170e5b78ea7db6410c4782f0be4b9db88a3ed3c5 Mon Sep 17 00:00:00 2001
+From c9cb1e763bb9809a17e00187dd013a3b2ab7718c Mon Sep 17 00:00:00 2001
 From: huangshuosheng <huangshuosheng@allwinnertech.com>
 Date: Wed, 22 Apr 2020 11:32:27 +0800
 Subject: [PATCH 746/830] ANDROID: gki_defconfig: enable
@@ -18,7 +18,7 @@ Signed-off-by: Connor O'Brien <connoro@google.com>
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 34244fa..b4f60ca 100644
+index 34244fa08f97..b4f60cac5132 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -398,6 +398,7 @@ CONFIG_DEVFREQ_GOV_PERFORMANCE=y
@@ -30,7 +30,7 @@ index 34244fa..b4f60ca 100644
  CONFIG_IIO_BUFFER=y
  CONFIG_IIO_TRIGGER=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index ec1d7bd..d25fc74 100644
+index ec1d7bd13c20..d25fc74db047 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -347,6 +347,7 @@ CONFIG_ION_SYSTEM_HEAP=y
@@ -42,5 +42,5 @@ index ec1d7bd..d25fc74 100644
  CONFIG_IIO_BUFFER=y
  CONFIG_IIO_TRIGGER=y
 -- 
-2.7.4
+2.17.1
 

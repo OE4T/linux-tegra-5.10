@@ -1,4 +1,4 @@
-From 292805282f68d290cdf780b6e0573d18f4b8b49b Mon Sep 17 00:00:00 2001
+From e4fff0f74da8aaa6b3078ef2a571fb22e6679a8f Mon Sep 17 00:00:00 2001
 From: Quentin Perret <quentin.perret@arm.com>
 Date: Tue, 30 Jul 2019 13:54:00 +0100
 Subject: [PATCH 141/830] ANDROID: sched/core: Add a latency-sensitive flag to
@@ -26,7 +26,7 @@ Signed-off-by: Quentin Perret <quentin.perret@arm.com>
  2 files changed, 35 insertions(+)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 7f9042f..a46a9f7 100644
+index 7f9042f28efe..a46a9f7a511d 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -7851,6 +7851,27 @@ static int cpu_uclamp_max_show(struct seq_file *sf, void *v)
@@ -84,7 +84,7 @@ index 7f9042f..a46a9f7 100644
  	{ }	/* terminate */
  };
 diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index c0266e6..0607105 100644
+index c0266e6a302e..06071057a5f6 100644
 --- a/kernel/sched/sched.h
 +++ b/kernel/sched/sched.h
 @@ -432,6 +432,8 @@ struct task_group {
@@ -97,5 +97,5 @@ index c0266e6..0607105 100644
  
  };
 -- 
-2.7.4
+2.17.1
 

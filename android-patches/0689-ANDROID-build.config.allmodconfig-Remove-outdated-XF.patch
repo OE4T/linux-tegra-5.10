@@ -1,4 +1,4 @@
-From 681341717bd3d354da3f45972097e0012e7396f4 Mon Sep 17 00:00:00 2001
+From c48e1e20ceb463aa1e2788e70e3208fb4f9d7531 Mon Sep 17 00:00:00 2001
 From: Nathan Chancellor <natechancellor@gmail.com>
 Date: Thu, 16 Apr 2020 16:15:58 -0700
 Subject: [PATCH 689/830] ANDROID: build.config.allmodconfig: Remove outdated
@@ -16,7 +16,7 @@ Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
  1 file changed, 1 deletion(-)
 
 diff --git a/build.config.allmodconfig b/build.config.allmodconfig
-index 941ea3b..56e4d2d 100644
+index 941ea3bdbfa2..56e4d2d29dc0 100644
 --- a/build.config.allmodconfig
 +++ b/build.config.allmodconfig
 @@ -1,6 +1,5 @@
@@ -27,5 +27,5 @@ index 941ea3b..56e4d2d 100644
  function update_config() {
      ${KERNEL_DIR}/scripts/config --file ${OUT_DIR}/.config \
 -- 
-2.7.4
+2.17.1
 

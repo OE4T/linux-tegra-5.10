@@ -1,4 +1,4 @@
-From e99af6b06acc28e237f2002a4425f10ef98b5c3c Mon Sep 17 00:00:00 2001
+From 7eb95bd97678d6eb5dfa873964931227e1f7c793 Mon Sep 17 00:00:00 2001
 From: Alistair Delva <adelva@google.com>
 Date: Thu, 26 Mar 2020 14:08:29 -0700
 Subject: [PATCH 666/830] ANDROID: Specify MAKE_GOALS and optimize targets
@@ -29,7 +29,7 @@ Signed-off-by: Alistair Delva <adelva@google.com>
  4 files changed, 21 insertions(+), 3 deletions(-)
 
 diff --git a/build.config.aarch64 b/build.config.aarch64
-index acbba39..15d2c0f 100644
+index acbba39fbec2..15d2c0f83aea 100644
 --- a/build.config.aarch64
 +++ b/build.config.aarch64
 @@ -4,8 +4,12 @@ CLANG_TRIPLE=aarch64-linux-gnu-
@@ -47,7 +47,7 @@ index acbba39..15d2c0f 100644
  vmlinux
  System.map
 diff --git a/build.config.arm b/build.config.arm
-index 8eb547e..7f71449 100644
+index 8eb547e21593..7f71449bf0b8 100644
 --- a/build.config.arm
 +++ b/build.config.arm
 @@ -4,8 +4,12 @@ CLANG_TRIPLE=arm-linux-gnueabi-
@@ -65,7 +65,7 @@ index 8eb547e..7f71449 100644
  vmlinux
  System.map
 diff --git a/build.config.db845c b/build.config.db845c
-index 98171a9..3146200 100644
+index 98171a93ef7a..3146200719f1 100644
 --- a/build.config.db845c
 +++ b/build.config.db845c
 @@ -6,7 +6,12 @@ DEFCONFIG=db845c_gki_defconfig
@@ -83,7 +83,7 @@ index 98171a9..3146200 100644
  arch/arm64/boot/dts/qcom/sdm845-db845c.dtb
  "
 diff --git a/build.config.x86_64 b/build.config.x86_64
-index df73a47..4525549 100644
+index df73a47e7220..452554915122 100644
 --- a/build.config.x86_64
 +++ b/build.config.x86_64
 @@ -4,6 +4,11 @@ CLANG_TRIPLE=x86_64-linux-gnu-
@@ -99,5 +99,5 @@ index df73a47..4525549 100644
  arch/x86/boot/bzImage
  vmlinux
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From b7b7bd582279907999beb28f31072da430b7946f Mon Sep 17 00:00:00 2001
+From a662241f1597e2e5f41b72b12079c4777a788ce5 Mon Sep 17 00:00:00 2001
 From: Pavankumar Kondeti <pkondeti@codeaurora.org>
 Date: Tue, 17 Nov 2020 11:37:48 +0530
 Subject: [PATCH 173/830] ANDROID: sched: Export few scheduler symbols for
@@ -24,7 +24,7 @@ Signed-off-by: Pavankumar Kondeti <pkondeti@codeaurora.org>
  3 files changed, 5 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/base/arch_topology.c b/drivers/base/arch_topology.c
-index 441f905..5512b72 100644
+index 441f90526525..5512b7224271 100644
 --- a/drivers/base/arch_topology.c
 +++ b/drivers/base/arch_topology.c
 @@ -60,6 +60,7 @@ void topology_set_freq_scale(const struct cpumask *cpus, unsigned long cur_freq,
@@ -36,7 +36,7 @@ index 441f905..5512b72 100644
  void topology_set_cpu_scale(unsigned int cpu, unsigned long capacity)
  {
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 47f50a0..4898d8c 100644
+index 47f50a0cb1ed..4898d8cb6b11 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -323,6 +323,7 @@ void update_rq_clock(struct rq *rq)
@@ -65,7 +65,7 @@ index 47f50a0..4898d8c 100644
  /*
   * wait_task_inactive - wait for a thread to unschedule.
 diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index 5704699..23df51c 100644
+index 5704699c9dde..23df51cb962b 100644
 --- a/kernel/sched/sched.h
 +++ b/kernel/sched/sched.h
 @@ -1384,8 +1384,6 @@ enum numa_faults_stats {
@@ -87,5 +87,5 @@ index 5704699..23df51c 100644
  queue_balance_callback(struct rq *rq,
  		       struct callback_head *head,
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From cd36544ef8e20e43668df2d50f698c3b604175bd Mon Sep 17 00:00:00 2001
+From e9ad829ae3d2e368aa5df9d98b79d430bc273900 Mon Sep 17 00:00:00 2001
 From: Pavankumar Kondeti <pkondeti@codeaurora.org>
 Date: Fri, 27 Nov 2020 18:22:13 +0530
 Subject: [PATCH 179/830] ANDROID: sched: Add env->cpus to
@@ -21,7 +21,7 @@ Signed-off-by: Pavankumar Kondeti <pkondeti@codeaurora.org>
  2 files changed, 6 insertions(+), 4 deletions(-)
 
 diff --git a/include/trace/hooks/sched.h b/include/trace/hooks/sched.h
-index 06c4ebf..458fd50 100644
+index 06c4ebf83bf7..458fd5006414 100644
 --- a/include/trace/hooks/sched.h
 +++ b/include/trace/hooks/sched.h
 @@ -92,8 +92,9 @@ DECLARE_RESTRICTED_HOOK(android_rvh_sched_nohz_balancer_kick,
@@ -46,10 +46,10 @@ index 06c4ebf..458fd50 100644
  #endif
  #endif /* _TRACE_HOOK_SCHED_H */
 diff --git a/kernel/sched/fair.c b/kernel/sched/fair.c
-index 7c29253..517a014 100644
+index 740dd8d78082..327ef3ea004a 100644
 --- a/kernel/sched/fair.c
 +++ b/kernel/sched/fair.c
-@@ -9434,7 +9434,8 @@ static struct rq *find_busiest_queue(struct lb_env *env,
+@@ -9446,7 +9446,8 @@ static struct rq *find_busiest_queue(struct lb_env *env,
  	unsigned int busiest_nr = 0;
  	int i, done = 0;
  
@@ -60,5 +60,5 @@ index 7c29253..517a014 100644
  		return busiest;
  
 -- 
-2.7.4
+2.17.1
 

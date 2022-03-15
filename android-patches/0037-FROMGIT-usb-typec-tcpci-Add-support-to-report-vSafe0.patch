@@ -1,4 +1,4 @@
-From 5614c3fe0643c8fcbdfb8088eab0983503356a50 Mon Sep 17 00:00:00 2001
+From 242517b17d5d53ccaf02bbb81b506efbc5967f85 Mon Sep 17 00:00:00 2001
 From: Badhri Jagan Sridharan <badhri@google.com>
 Date: Tue, 1 Dec 2020 20:08:39 -0800
 Subject: [PATCH 037/830] FROMGIT: usb: typec: tcpci: Add support to report
@@ -22,12 +22,12 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@google.com>
 Change-Id: I970d0be609b80cb2ae934d09cbbf6cc480e67294
 ---
- drivers/usb/typec/tcpm/tcpci.c | 39 ++++++++++++++++++++++++++++++++++-----
+ drivers/usb/typec/tcpm/tcpci.c | 39 +++++++++++++++++++++++++++++-----
  drivers/usb/typec/tcpm/tcpci.h |  6 ++++++
  2 files changed, 40 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/usb/typec/tcpm/tcpci.c b/drivers/usb/typec/tcpm/tcpci.c
-index e20f1f2..ea3451c 100644
+index e20f1f25a227..ea3451c2f115 100644
 --- a/drivers/usb/typec/tcpm/tcpci.c
 +++ b/drivers/usb/typec/tcpm/tcpci.c
 @@ -418,6 +418,19 @@ static int tcpci_get_vbus(struct tcpc_dev *tcpc)
@@ -115,7 +115,7 @@ index e20f1f2..ea3451c 100644
  	if (err < 0)
  		return ERR_PTR(err);
 diff --git a/drivers/usb/typec/tcpm/tcpci.h b/drivers/usb/typec/tcpm/tcpci.h
-index 3fe3136..116a69c 100644
+index 3fe313655f0c..116a69c85e38 100644
 --- a/drivers/usb/typec/tcpm/tcpci.h
 +++ b/drivers/usb/typec/tcpm/tcpci.h
 @@ -49,6 +49,9 @@
@@ -144,5 +144,5 @@ index 3fe3136..116a69c 100644
  	int (*init)(struct tcpci *tcpci, struct tcpci_data *data);
  	int (*set_vconn)(struct tcpci *tcpci, struct tcpci_data *data,
 -- 
-2.7.4
+2.17.1
 

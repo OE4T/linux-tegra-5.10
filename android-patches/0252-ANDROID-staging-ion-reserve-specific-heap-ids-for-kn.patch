@@ -1,4 +1,4 @@
-From 87d67c353f6bd7fd78cfb5b37fc95c8b9caf1fe1 Mon Sep 17 00:00:00 2001
+From dfcec2e0b808f18426e58bbac12f1e114b5f45f0 Mon Sep 17 00:00:00 2001
 From: Sandeep Patil <sspatil@google.com>
 Date: Mon, 26 Aug 2019 13:14:43 -0700
 Subject: [PATCH 252/830] ANDROID: staging: ion: reserve specific heap ids for
@@ -36,11 +36,11 @@ Test:ion-unit-tests
 Change-Id: I53af694113b62d29e0d2933fbcf7079d845099e9
 Signed-off-by: Sandeep Patil <sspatil@google.com>
 ---
- include/uapi/linux/ion.h | 74 +++++++++++++++++++++++++++++++++++-------------
+ include/uapi/linux/ion.h | 74 +++++++++++++++++++++++++++++-----------
  1 file changed, 55 insertions(+), 19 deletions(-)
 
 diff --git a/include/uapi/linux/ion.h b/include/uapi/linux/ion.h
-index bfcbc0e..09dbbfa 100644
+index bfcbc0e70921..09dbbfaf3718 100644
 --- a/include/uapi/linux/ion.h
 +++ b/include/uapi/linux/ion.h
 @@ -12,29 +12,65 @@
@@ -129,5 +129,5 @@ index bfcbc0e..09dbbfa 100644
  /**
   * allocation flags - the lower 16 bits are used by core ion, the upper 16
 -- 
-2.7.4
+2.17.1
 

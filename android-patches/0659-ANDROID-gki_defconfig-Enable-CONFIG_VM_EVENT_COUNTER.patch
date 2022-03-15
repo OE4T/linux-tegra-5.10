@@ -1,4 +1,4 @@
-From 90305baba7906124e4a71ee63f309da478eed082 Mon Sep 17 00:00:00 2001
+From f1408277b6d2ef5b753a1ed30b6375f866ac7897 Mon Sep 17 00:00:00 2001
 From: Alistair Delva <adelva@google.com>
 Date: Wed, 11 Mar 2020 09:21:38 -0700
 Subject: [PATCH 659/830] ANDROID: gki_defconfig: Enable
@@ -18,7 +18,7 @@ Signed-off-by: Alistair Delva <adelva@google.com>
  2 files changed, 2 deletions(-)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index dfb70b2..c16d432 100644
+index dfb70b212b4b..c16d4325acc9 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -35,7 +35,6 @@ CONFIG_BPF_SYSCALL=y
@@ -30,7 +30,7 @@ index dfb70b2..c16d432 100644
  # CONFIG_SLAB_MERGE_DEFAULT is not set
  CONFIG_SLAB_FREELIST_RANDOM=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 2da5083..d36393c 100644
+index 2da508397729..d36393c96c72 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -36,7 +36,6 @@ CONFIG_BPF_SYSCALL=y
@@ -42,5 +42,5 @@ index 2da5083..d36393c 100644
  # CONFIG_SLAB_MERGE_DEFAULT is not set
  CONFIG_SLAB_FREELIST_RANDOM=y
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 83bdec025b439c1b53f747f90f29e032e3f6c7a3 Mon Sep 17 00:00:00 2001
+From 779b4c358f581e5f5ee3556d28068881df631fb3 Mon Sep 17 00:00:00 2001
 From: Abdulla Kamar <abdulla@google.com>
 Date: Tue, 20 Oct 2020 21:36:20 +1100
 Subject: [PATCH 785/830] ANDROID: GKI: Enable CONFIG_X86_X2APIC
@@ -15,7 +15,7 @@ Signed-off-by: Abdulla Kamar <abdulla@google.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 52c34d2..886cbb2 100644
+index 52c34d2823b9..886cbb2be4f8 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -47,6 +47,7 @@ CONFIG_SLAB_FREELIST_HARDENED=y
@@ -27,5 +27,5 @@ index 52c34d2..886cbb2 100644
  CONFIG_PARAVIRT=y
  CONFIG_NR_CPUS=32
 -- 
-2.7.4
+2.17.1
 

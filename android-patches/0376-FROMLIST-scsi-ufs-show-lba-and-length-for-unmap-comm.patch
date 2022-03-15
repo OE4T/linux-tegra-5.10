@@ -1,4 +1,4 @@
-From 9450b775601d68eb6e5f8344dda47b46fee3cdea Mon Sep 17 00:00:00 2001
+From 6c82471751a4a244aacee77160c622beb4288725 Mon Sep 17 00:00:00 2001
 From: Leo Liou <leoliou@google.com>
 Date: Thu, 12 Nov 2020 21:32:22 +0800
 Subject: [PATCH 376/830] FROMLIST: scsi: ufs: show lba and length for unmap
@@ -17,7 +17,7 @@ Change-Id: I8426785f41fa9d7771aa0c095cf43eb0d7f40253
  1 file changed, 5 insertions(+)
 
 diff --git a/drivers/scsi/ufs/ufshcd.c b/drivers/scsi/ufs/ufshcd.c
-index d515b31..1921569 100644
+index 1d9fecb6d438..683d03dc6a09 100644
 --- a/drivers/scsi/ufs/ufshcd.c
 +++ b/drivers/scsi/ufs/ufshcd.c
 @@ -389,6 +389,11 @@ static void ufshcd_add_command_trace(struct ufs_hba *hba,
@@ -33,5 +33,5 @@ index d515b31..1921569 100644
  	}
  
 -- 
-2.7.4
+2.17.1
 

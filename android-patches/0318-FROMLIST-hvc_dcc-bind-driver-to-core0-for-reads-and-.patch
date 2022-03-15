@@ -1,4 +1,4 @@
-From 1dda1ffc9c4f7e8ac59e180f6251cc99b25a365a Mon Sep 17 00:00:00 2001
+From 227fdb8ed7798c0c2e4843861a17800bf4e6e4e3 Mon Sep 17 00:00:00 2001
 From: Timur Tabi <timur@codeaurora.org>
 Date: Fri, 26 Jun 2015 13:52:34 -0500
 Subject: [PATCH 318/830] FROMLIST: hvc_dcc: bind driver to core0 for reads and
@@ -31,12 +31,12 @@ Signed-off-by: Timur Tabi <timur@codeaurora.org>
 Signed-off-by: Elliot Berman <eberman@codeaurora.org>
 Change-Id: Ie5e3f25ad74a0f07edb862b8258ad875ea308d30
 ---
- drivers/tty/hvc/Kconfig   |  21 +++++++
- drivers/tty/hvc/hvc_dcc.c | 155 +++++++++++++++++++++++++++++++++++++++++++++-
+ drivers/tty/hvc/Kconfig   |  21 ++++++
+ drivers/tty/hvc/hvc_dcc.c | 155 +++++++++++++++++++++++++++++++++++++-
  2 files changed, 175 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/tty/hvc/Kconfig b/drivers/tty/hvc/Kconfig
-index 8d60e0f..ee2eba4 100644
+index 8d60e0ff67b4..ee2eba47f5e3 100644
 --- a/drivers/tty/hvc/Kconfig
 +++ b/drivers/tty/hvc/Kconfig
 @@ -87,6 +87,27 @@ config HVC_DCC
@@ -68,7 +68,7 @@ index 8d60e0f..ee2eba4 100644
  	bool "RISC-V SBI console support"
  	depends on RISCV_SBI_V01
 diff --git a/drivers/tty/hvc/hvc_dcc.c b/drivers/tty/hvc/hvc_dcc.c
-index 8e0edb7..e1ebcdd 100644
+index 8e0edb7d93fd..e1ebcdd5fe8d 100644
 --- a/drivers/tty/hvc/hvc_dcc.c
 +++ b/drivers/tty/hvc/hvc_dcc.c
 @@ -3,8 +3,10 @@
@@ -262,5 +262,5 @@ index 8e0edb7..e1ebcdd 100644
  {
  	int ret;
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 1d9cdb8874abc446a98ab5e5817769cea15023f4 Mon Sep 17 00:00:00 2001
+From ff8e55fbb468af03a6667d5469241c792e3a2ede Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Wed, 5 Feb 2020 08:50:12 -0800
 Subject: [PATCH 430/830] ANDROID: Incremental fs: Fix crash on failed lookup
@@ -15,7 +15,7 @@ Bug: 133435829
  1 file changed, 1 insertion(+)
 
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index fd43e0e..e8b72f7 100644
+index fd43e0e0ffbb..e8b72f760f94 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -1482,6 +1482,7 @@ static struct dentry *dir_lookup(struct inode *dir_inode, struct dentry *dentry,
@@ -27,5 +27,5 @@ index fd43e0e..e8b72f7 100644
  	} else {
  		struct inode *inode = NULL;
 -- 
-2.7.4
+2.17.1
 

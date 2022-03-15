@@ -1,4 +1,4 @@
-From fdf38b8f0c6b63f7f14d28ff010ee061f0539c5e Mon Sep 17 00:00:00 2001
+From 57be1057e76bba9c2077e0f9d46424f6b3d9c144 Mon Sep 17 00:00:00 2001
 From: Badhri Jagan Sridharan <badhri@google.com>
 Date: Tue, 29 Sep 2020 14:23:55 -0700
 Subject: [PATCH 339/830] ANDROID: usb: typec: tcpm: Bring back
@@ -14,15 +14,15 @@ Bug: 169695061
 Signed-off-by: Badhri Jagan Sridharan <badhri@google.com>
 Change-Id: Icb206c902187c90b38dd14924987725e9977e47c
 ---
- drivers/usb/typec/tcpm/tcpm.c | 43 +++++++++++++++++++++++++++++++++++++++++++
+ drivers/usb/typec/tcpm/tcpm.c | 43 +++++++++++++++++++++++++++++++++++
  include/linux/usb/tcpm.h      |  4 ++++
  2 files changed, 47 insertions(+)
 
 diff --git a/drivers/usb/typec/tcpm/tcpm.c b/drivers/usb/typec/tcpm/tcpm.c
-index e693d18..b822379 100644
+index ea9f27825313..2a6f5a89edd1 100644
 --- a/drivers/usb/typec/tcpm/tcpm.c
 +++ b/drivers/usb/typec/tcpm/tcpm.c
-@@ -5016,6 +5016,49 @@ static int tcpm_fw_get_caps(struct tcpm_port *port,
+@@ -5017,6 +5017,49 @@ static int tcpm_fw_get_caps(struct tcpm_port *port,
  	return 0;
  }
  
@@ -73,7 +73,7 @@ index e693d18..b822379 100644
  enum tcpm_psy_online_states {
  	TCPM_PSY_OFFLINE = 0,
 diff --git a/include/linux/usb/tcpm.h b/include/linux/usb/tcpm.h
-index 58c8101..a206db0 100644
+index 58c8101bd70a..a206db0f8ad1 100644
 --- a/include/linux/usb/tcpm.h
 +++ b/include/linux/usb/tcpm.h
 @@ -151,6 +151,10 @@ struct tcpm_port;
@@ -88,5 +88,5 @@ index 58c8101..a206db0 100644
  void tcpm_cc_change(struct tcpm_port *port);
  void tcpm_sink_frs(struct tcpm_port *port);
 -- 
-2.7.4
+2.17.1
 

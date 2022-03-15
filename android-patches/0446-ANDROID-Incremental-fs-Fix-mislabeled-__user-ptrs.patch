@@ -1,4 +1,4 @@
-From 1ca2dfc72195bdf60a27eeafe0682a936103c3e8 Mon Sep 17 00:00:00 2001
+From 13d1f09a180ec9bb9c0b2e61fd8757b3952baa17 Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Fri, 3 Apr 2020 11:17:53 -0700
 Subject: [PATCH 446/830] ANDROID: Incremental fs: Fix mislabeled __user ptrs
@@ -17,7 +17,7 @@ Change-Id: I9ff4f4f35975fe09936724488b96cd8bdeeb719e
  3 files changed, 6 insertions(+), 5 deletions(-)
 
 diff --git a/fs/incfs/data_mgmt.c b/fs/incfs/data_mgmt.c
-index 1c4c554..193323ec 100644
+index 1c4c5541c471..193323ec6cd0 100644
 --- a/fs/incfs/data_mgmt.c
 +++ b/fs/incfs/data_mgmt.c
 @@ -402,7 +402,8 @@ static int copy_one_range(struct incfs_filled_range *range, void __user *buffer,
@@ -40,7 +40,7 @@ index 1c4c554..193323ec 100644
  	u32 end_index =
  		arg->end_index ? arg->end_index : df->df_total_block_count;
 diff --git a/fs/incfs/integrity.c b/fs/incfs/integrity.c
-index 96e016a..d049988 100644
+index 96e016a91542..d049988ef037 100644
 --- a/fs/incfs/integrity.c
 +++ b/fs/incfs/integrity.c
 @@ -62,7 +62,7 @@ static bool read_u32(u8 **p, u8 *top, u32 *result)
@@ -53,7 +53,7 @@ index 96e016a..d049988 100644
  	return true;
  }
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index 51351df..87799eb6 100644
+index 51351df5a68e..87799eb61aa8 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -1275,7 +1275,7 @@ static long ioctl_fill_blocks(struct file *f, void __user *arg)
@@ -75,5 +75,5 @@ index 51351df..87799eb6 100644
  	if (f->f_op != &incfs_pending_read_file_ops)
  		return -EPERM;
 -- 
-2.7.4
+2.17.1
 

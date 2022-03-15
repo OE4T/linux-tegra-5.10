@@ -1,4 +1,4 @@
-From 84902b3e9e3dac861fddd5ee92d033f86f5a5a2e Mon Sep 17 00:00:00 2001
+From 6daa5fec4ff187c7759a7b826c34b456d042184d Mon Sep 17 00:00:00 2001
 From: Qais Yousef <qais.yousef@arm.com>
 Date: Tue, 15 Sep 2020 12:47:10 +0100
 Subject: [PATCH 826/830] ANDROID: arm64: Disallow offlining the last aarch32
@@ -23,15 +23,15 @@ Reason: Needed for bringup. Revert when upstream patch is available
 Signed-off-by: Qais Yousef <qais.yousef@arm.com>
 Change-Id: Ie8a2372d7b7db3c3580f19d724be183f988a5895
 ---
- arch/arm64/Kconfig      |  6 ++++--
- arch/arm64/kernel/smp.c | 54 ++++++++++++++++++++++++++++++++++++++++++++++++-
+ arch/arm64/Kconfig      |  6 +++--
+ arch/arm64/kernel/smp.c | 54 ++++++++++++++++++++++++++++++++++++++++-
  2 files changed, 57 insertions(+), 3 deletions(-)
 
 diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index ae6f7de..7edfb26 100644
+index 174a35d9d298..225e60c77dfe 100644
 --- a/arch/arm64/Kconfig
 +++ b/arch/arm64/Kconfig
-@@ -1935,8 +1935,10 @@ config ASYMMETRIC_AARCH32
+@@ -1936,8 +1936,10 @@ config ASYMMETRIC_AARCH32
  	  CPU configurations. Once the AArch32 EL0 support is detected
  	  on a CPU, the feature is made available to user space to allow
  	  the execution of 32-bit (compat) applications by migrating
@@ -45,7 +45,7 @@ index ae6f7de..7edfb26 100644
  	  If unsure say N.
  
 diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
-index 6028fb0..d4d03b6 100644
+index 6028fb021459..d4d03b63eba0 100644
 --- a/arch/arm64/kernel/smp.c
 +++ b/arch/arm64/kernel/smp.c
 @@ -98,6 +98,54 @@ static inline int op_cpu_kill(unsigned int cpu)
@@ -125,5 +125,5 @@ index 6028fb0..d4d03b6 100644
  	 * OK - migrate IRQs away from this CPU
  	 */
 -- 
-2.7.4
+2.17.1
 

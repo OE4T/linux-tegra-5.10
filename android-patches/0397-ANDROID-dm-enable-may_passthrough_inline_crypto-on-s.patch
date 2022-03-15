@@ -1,4 +1,4 @@
-From c4a98aff9588104088d7e9963ab861f9fc0a83f6 Mon Sep 17 00:00:00 2001
+From 58af75fcac0f97cc4d6cb8735cfebe4a2aefcd87 Mon Sep 17 00:00:00 2001
 From: Eric Biggers <ebiggers@google.com>
 Date: Tue, 21 Jan 2020 16:43:41 -0800
 Subject: [PATCH 397/830] ANDROID: dm: enable may_passthrough_inline_crypto on
@@ -20,7 +20,7 @@ Signed-off-by: Eric Biggers <ebiggers@google.com>
  2 files changed, 2 insertions(+)
 
 diff --git a/drivers/md/dm-bow.c b/drivers/md/dm-bow.c
-index dccc5cc..ea6a30f 100644
+index dccc5cc5a4df..ea6a30fa27d4 100644
 --- a/drivers/md/dm-bow.c
 +++ b/drivers/md/dm-bow.c
 @@ -788,6 +788,7 @@ static int dm_bow_ctr(struct dm_target *ti, unsigned int argc, char **argv)
@@ -32,7 +32,7 @@ index dccc5cc..ea6a30f 100644
  	return 0;
  
 diff --git a/drivers/md/dm-linear.c b/drivers/md/dm-linear.c
-index 00774b5..345e22b 100644
+index 00774b5d7668..345e22b9be5d 100644
 --- a/drivers/md/dm-linear.c
 +++ b/drivers/md/dm-linear.c
 @@ -62,6 +62,7 @@ static int linear_ctr(struct dm_target *ti, unsigned int argc, char **argv)
@@ -44,5 +44,5 @@ index 00774b5..345e22b 100644
  	return 0;
  
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From bc8e4c8b0d28d7f08a8f415b6a64f04eb7c5e47a Mon Sep 17 00:00:00 2001
+From 621163106d3c4ffb8646a4d0b1263499b79581e5 Mon Sep 17 00:00:00 2001
 From: Ram Muthiah <rammuthiah@google.com>
 Date: Tue, 28 Jan 2020 14:10:57 -0800
 Subject: [PATCH 623/830] ANDROID: gki_defconfig: Set IKHEADERS back to =y
@@ -18,7 +18,7 @@ Signed-off-by: Ram Muthiah <rammuthiah@google.com>
  2 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 7b1da6c..0601d0b 100644
+index 7b1da6c7b7c0..0601d0bd72aa 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -9,7 +9,7 @@ CONFIG_TASK_IO_ACCOUNTING=y
@@ -31,7 +31,7 @@ index 7b1da6c..0601d0b 100644
  CONFIG_MEMCG=y
  CONFIG_MEMCG_SWAP=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index fbe5425..8c20e38 100644
+index fbe5425bcc32..8c20e380d551 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -10,7 +10,7 @@ CONFIG_TASK_IO_ACCOUNTING=y
@@ -44,5 +44,5 @@ index fbe5425..8c20e38 100644
  CONFIG_MEMCG=y
  CONFIG_MEMCG_SWAP=y
 -- 
-2.7.4
+2.17.1
 

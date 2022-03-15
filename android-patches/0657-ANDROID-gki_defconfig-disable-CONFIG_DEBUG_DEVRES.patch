@@ -1,4 +1,4 @@
-From 8995a81c1e2047487679ef8d2b298c977d8b3455 Mon Sep 17 00:00:00 2001
+From 6484663273d4862545cd641ae0c922cce5d9ed0d Mon Sep 17 00:00:00 2001
 From: Suren Baghdasaryan <surenb@google.com>
 Date: Mon, 9 Mar 2020 16:03:42 -0700
 Subject: [PATCH 657/830] ANDROID: gki_defconfig: disable CONFIG_DEBUG_DEVRES
@@ -17,7 +17,7 @@ Change-Id: I27ba172843c80ffd1dfbcc6cc4d706c5b18eb5d3
  2 files changed, 2 deletions(-)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 96718aa..d9aaf2e 100644
+index 96718aa53253..d9aaf2e929a6 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -208,7 +208,6 @@ CONFIG_FW_LOADER_USER_HELPER=y
@@ -29,7 +29,7 @@ index 96718aa..d9aaf2e 100644
  CONFIG_ZRAM=y
  CONFIG_BLK_DEV_LOOP=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index f2fd8d0..8b33c2e 100644
+index f2fd8d0d9038..8b33c2e7387e 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -183,7 +183,6 @@ CONFIG_FW_LOADER_USER_HELPER=y
@@ -41,5 +41,5 @@ index f2fd8d0..8b33c2e 100644
  CONFIG_OF=y
  CONFIG_ZRAM=y
 -- 
-2.7.4
+2.17.1
 

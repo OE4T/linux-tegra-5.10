@@ -1,4 +1,4 @@
-From 6c470dcd7b82695dbca1fa04c10d3f90d44f654e Mon Sep 17 00:00:00 2001
+From a001094c1792df1f293cab389c142f52a81d5b49 Mon Sep 17 00:00:00 2001
 From: Quentin Perret <qperret@google.com>
 Date: Tue, 14 Apr 2020 14:37:59 +0100
 Subject: [PATCH 685/830] ANDROID: Re-enable CONFIG_STM for allmodconfig
@@ -21,7 +21,7 @@ Change-Id: Ic0dede721f67a0f2ff80ba27cb2a2aa9c7c03db3
  1 file changed, 2 deletions(-)
 
 diff --git a/build.config.allmodconfig b/build.config.allmodconfig
-index d318971..9e39960 100644
+index d318971fb9b3..9e39960c6a80 100644
 --- a/build.config.allmodconfig
 +++ b/build.config.allmodconfig
 @@ -6,8 +6,6 @@ function update_config() {
@@ -34,5 +34,5 @@ index d318971..9e39960 100644
  
      (cd ${OUT_DIR} && \
 -- 
-2.7.4
+2.17.1
 

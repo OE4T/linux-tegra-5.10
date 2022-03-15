@@ -1,4 +1,4 @@
-From 8150c338a58dc7e9b361e6175340c8bbb1ac89eb Mon Sep 17 00:00:00 2001
+From f3460edffdfd5636591a7bdbaaf0ce263e79f12f Mon Sep 17 00:00:00 2001
 From: Prashant Malani <pmalani@chromium.org>
 Date: Mon, 16 Nov 2020 12:11:40 -0800
 Subject: [PATCH 025/830] FROMGIT: usb: typec: Add number of altmodes partner
@@ -31,13 +31,13 @@ Cc: Will McVicker <willmcvicker@google.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@google.com>
 Change-Id: Id33c6eb2a4a293589ca7d085d3fccafd3c2708d5
 ---
- Documentation/ABI/testing/sysfs-class-typec |  8 ++++
- drivers/usb/typec/class.c                   | 66 ++++++++++++++++++++++++++++-
+ Documentation/ABI/testing/sysfs-class-typec |  8 +++
+ drivers/usb/typec/class.c                   | 66 ++++++++++++++++++++-
  include/linux/usb/typec.h                   |  1 +
  3 files changed, 74 insertions(+), 1 deletion(-)
 
 diff --git a/Documentation/ABI/testing/sysfs-class-typec b/Documentation/ABI/testing/sysfs-class-typec
-index b7794e0..a195247 100644
+index b7794e02ad20..a195247d83ee 100644
 --- a/Documentation/ABI/testing/sysfs-class-typec
 +++ b/Documentation/ABI/testing/sysfs-class-typec
 @@ -139,6 +139,14 @@ Description:
@@ -56,7 +56,7 @@ index b7794e0..a195247 100644
  Date:		April 2017
  Contact:	Heikki Krogerus <heikki.krogerus@linux.intel.com>
 diff --git a/drivers/usb/typec/class.c b/drivers/usb/typec/class.c
-index c7d44da..2fb20e7 100644
+index c7d44daa05c4..2fb20e7d492b 100644
 --- a/drivers/usb/typec/class.c
 +++ b/drivers/usb/typec/class.c
 @@ -33,6 +33,7 @@ struct typec_partner {
@@ -112,10 +112,11 @@ index c7d44da..2fb20e7 100644
  
  static void typec_partner_release(struct device *dev)
  {
-@@ -573,6 +605,37 @@ int typec_partner_set_identity(struct typec_partner *partner)
+@@ -572,6 +604,37 @@ int typec_partner_set_identity(struct typec_partner *partner)
+ }
  EXPORT_SYMBOL_GPL(typec_partner_set_identity);
  
- /**
++/**
 + * typec_partner_set_num_altmodes - Set the number of available partner altmodes
 + * @partner: The partner to be updated.
 + * @num_alt_modes: The number of altmodes we want to specify as available.
@@ -146,10 +147,9 @@ index c7d44da..2fb20e7 100644
 +}
 +EXPORT_SYMBOL_GPL(typec_partner_set_num_altmodes);
 +
-+/**
+ /**
   * typec_partner_register_altmode - Register USB Type-C Partner Alternate Mode
   * @partner: USB Type-C Partner that supports the alternate mode
-  * @desc: Description of the alternate mode
 @@ -614,6 +677,7 @@ struct typec_partner *typec_register_partner(struct typec_port *port,
  	ida_init(&partner->mode_ids);
  	partner->usb_pd = desc->usb_pd;
@@ -159,7 +159,7 @@ index c7d44da..2fb20e7 100644
  	if (desc->identity) {
  		/*
 diff --git a/include/linux/usb/typec.h b/include/linux/usb/typec.h
-index 6be5580..bc6b1a7 100644
+index 6be558045942..bc6b1a71cb8a 100644
 --- a/include/linux/usb/typec.h
 +++ b/include/linux/usb/typec.h
 @@ -126,6 +126,7 @@ struct typec_altmode_desc {
@@ -171,5 +171,5 @@ index 6be5580..bc6b1a7 100644
  *typec_partner_register_altmode(struct typec_partner *partner,
  				const struct typec_altmode_desc *desc);
 -- 
-2.7.4
+2.17.1
 

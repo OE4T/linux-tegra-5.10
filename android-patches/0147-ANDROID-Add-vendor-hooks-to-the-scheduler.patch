@@ -1,4 +1,4 @@
-From bf123aa5383cddee332948d73629285abdff667b Mon Sep 17 00:00:00 2001
+From 10fcc62e7e83ab8c460cb41ec7a3bef45a4623a2 Mon Sep 17 00:00:00 2001
 From: Park Bumgyu <bumgyu.park@samsung.com>
 Date: Mon, 22 Jun 2020 16:33:32 +0900
 Subject: [PATCH 147/830] ANDROID: Add vendor hooks to the scheduler
@@ -30,14 +30,14 @@ Change-Id: I926458b0a911d564e5932e200125b12406c2deee
 Signed-off-by: Park Bumgyu <bumgyu.park@samsung.com>
 ---
  drivers/android/vendor_hooks.c |  7 +++++++
- include/trace/hooks/sched.h    | 37 +++++++++++++++++++++++++++++++++++++
- kernel/sched/core.c            | 14 +++++++++++++-
+ include/trace/hooks/sched.h    | 37 ++++++++++++++++++++++++++++++++++
+ kernel/sched/core.c            | 14 ++++++++++++-
  kernel/sched/fair.c            |  5 +++++
- kernel/sched/rt.c              | 13 +++++++++++++
+ kernel/sched/rt.c              | 13 ++++++++++++
  5 files changed, 75 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/android/vendor_hooks.c b/drivers/android/vendor_hooks.c
-index 6bf12cd..6264c59 100644
+index 6bf12cd90dc6..6264c5977885 100644
 --- a/drivers/android/vendor_hooks.c
 +++ b/drivers/android/vendor_hooks.c
 @@ -22,6 +22,13 @@
@@ -55,7 +55,7 @@ index 6bf12cd..6264c59 100644
  EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_rwsem_init);
  EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_rwsem_wake);
 diff --git a/include/trace/hooks/sched.h b/include/trace/hooks/sched.h
-index e4ef566..514494e 100644
+index e4ef56686a76..514494ee3ad3 100644
 --- a/include/trace/hooks/sched.h
 +++ b/include/trace/hooks/sched.h
 @@ -15,8 +15,45 @@ struct task_struct;
@@ -105,7 +105,7 @@ index e4ef566..514494e 100644
  #endif /* _TRACE_HOOK_SCHED_H */
  /* This part must be outside protection */
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index a46a9f7..a8e5726 100644
+index a46a9f7a511d..a8e5726290d3 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -27,6 +27,8 @@
@@ -158,10 +158,10 @@ index a46a9f7..a8e5726 100644
  
  #ifdef CONFIG_NO_HZ_FULL
 diff --git a/kernel/sched/fair.c b/kernel/sched/fair.c
-index a2dc8bf..01b80b1 100644
+index c88d262d33f4..239275c935a7 100644
 --- a/kernel/sched/fair.c
 +++ b/kernel/sched/fair.c
-@@ -7606,9 +7606,14 @@ static
+@@ -7618,9 +7618,14 @@ static
  int can_migrate_task(struct task_struct *p, struct lb_env *env)
  {
  	int tsk_cache_hot;
@@ -177,7 +177,7 @@ index a2dc8bf..01b80b1 100644
  	 * We do not migrate tasks that are:
  	 * 1) throttled_lb_pair, or
 diff --git a/kernel/sched/rt.c b/kernel/sched/rt.c
-index b5cf418..83b9257 100644
+index 41b14d924203..715fccf0063e 100644
 --- a/kernel/sched/rt.c
 +++ b/kernel/sched/rt.c
 @@ -7,6 +7,8 @@
@@ -189,7 +189,7 @@ index b5cf418..83b9257 100644
  int sched_rr_timeslice = RR_TIMESLICE;
  int sysctl_sched_rr_timeslice = (MSEC_PER_SEC / HZ) * RR_TIMESLICE;
  /* More than 4 hours if BW_SHIFT equals 20. */
-@@ -1433,6 +1435,12 @@ select_task_rq_rt(struct task_struct *p, int cpu, int sd_flag, int flags)
+@@ -1442,6 +1444,12 @@ select_task_rq_rt(struct task_struct *p, int cpu, int sd_flag, int flags)
  	struct task_struct *curr;
  	struct rq *rq;
  	bool test;
@@ -202,7 +202,7 @@ index b5cf418..83b9257 100644
  
  	/* For anything but wake ups, just return the task_cpu */
  	if (sd_flag != SD_BALANCE_WAKE && sd_flag != SD_BALANCE_FORK)
-@@ -1693,6 +1701,11 @@ static int find_lowest_rq(struct task_struct *task)
+@@ -1702,6 +1710,11 @@ static int find_lowest_rq(struct task_struct *task)
  	int this_cpu = smp_processor_id();
  	int cpu      = task_cpu(task);
  	int ret;
@@ -215,5 +215,5 @@ index b5cf418..83b9257 100644
  	/* Make sure the mask is initialized first */
  	if (unlikely(!lowest_mask))
 -- 
-2.7.4
+2.17.1
 

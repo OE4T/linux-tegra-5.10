@@ -1,4 +1,4 @@
-From 51f2ed792667989756c1a6b218f88be5f93bd536 Mon Sep 17 00:00:00 2001
+From 9bcdfa8206707be64de1ecae32002b87d3532cd6 Mon Sep 17 00:00:00 2001
 From: Prashant Malani <pmalani@chromium.org>
 Date: Thu, 19 Nov 2020 22:35:22 -0800
 Subject: [PATCH 027/830] FROMGIT: usb: typec: Fix num_altmodes kernel-doc
@@ -32,7 +32,7 @@ Change-Id: I4f24ac20a3bb84d103737fb86de6f903ab265370
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/usb/typec/class.c b/drivers/usb/typec/class.c
-index 4decf49..0b90d95 100644
+index 4decf495b88f..0b90d95d1f40 100644
 --- a/drivers/usb/typec/class.c
 +++ b/drivers/usb/typec/class.c
 @@ -620,7 +620,7 @@ EXPORT_SYMBOL_GPL(typec_partner_set_identity);
@@ -45,5 +45,5 @@ index 4decf49..0b90d95 100644
   * This routine is used to report the number of alternate modes supported by the
   * partner. This value is *not* enforced in alternate mode registration routines.
 -- 
-2.7.4
+2.17.1
 

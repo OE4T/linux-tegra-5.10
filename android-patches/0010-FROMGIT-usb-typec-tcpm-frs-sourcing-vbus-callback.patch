@@ -1,4 +1,4 @@
-From a0937c1ffea5066f2a8aba2e9dfb03162f595666 Mon Sep 17 00:00:00 2001
+From 12f876e35f79bb051de04d2945c13a10787e1d00 Mon Sep 17 00:00:00 2001
 From: Badhri Jagan Sridharan <badhri@google.com>
 Date: Wed, 28 Oct 2020 23:31:32 -0700
 Subject: [PATCH 010/830] FROMGIT: usb: typec: tcpm: frs sourcing vbus callback
@@ -23,7 +23,7 @@ Change-Id: I1aa27bf1b486bdeb3f104e4b7871b1c0238abc04
  2 files changed, 13 insertions(+)
 
 diff --git a/drivers/usb/typec/tcpm/tcpm.c b/drivers/usb/typec/tcpm/tcpm.c
-index 8a8b62b8..40be75d 100644
+index 2bea74742651..e2642c65bdbb 100644
 --- a/drivers/usb/typec/tcpm/tcpm.c
 +++ b/drivers/usb/typec/tcpm/tcpm.c
 @@ -4113,7 +4113,16 @@ static void _tcpm_pd_vbus_on(struct tcpm_port *port)
@@ -44,7 +44,7 @@ index 8a8b62b8..40be75d 100644
  		break;
  
 diff --git a/include/linux/usb/tcpm.h b/include/linux/usb/tcpm.h
-index 09762d2..7303f51 100644
+index 09762d26fa0c..7303f518ba49 100644
 --- a/include/linux/usb/tcpm.h
 +++ b/include/linux/usb/tcpm.h
 @@ -83,6 +83,9 @@ enum tcpm_transmit_type {
@@ -66,5 +66,5 @@ index 09762d2..7303f51 100644
  
  struct tcpm_port;
 -- 
-2.7.4
+2.17.1
 

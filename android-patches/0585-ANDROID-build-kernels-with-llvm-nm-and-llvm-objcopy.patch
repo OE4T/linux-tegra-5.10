@@ -1,4 +1,4 @@
-From 9a1fe4779ce27002d2e3105f3d5628050b8ac8a2 Mon Sep 17 00:00:00 2001
+From e14ddc0191a38ed83fe015034998b525d93fdeef Mon Sep 17 00:00:00 2001
 From: Peter Collingbourne <pcc@google.com>
 Date: Sat, 9 Nov 2019 11:48:31 -0800
 Subject: [PATCH 585/830] ANDROID: build kernels with llvm-nm and llvm-objcopy
@@ -15,7 +15,7 @@ Signed-off-by: Peter Collingbourne <pcc@google.com>
  1 file changed, 2 insertions(+)
 
 diff --git a/build.config.common b/build.config.common
-index decd1a3..f3370bc 100644
+index decd1a3a73fe..f3370bcccb55 100644
 --- a/build.config.common
 +++ b/build.config.common
 @@ -3,6 +3,8 @@ KERNEL_DIR=common
@@ -28,5 +28,5 @@ index decd1a3..f3370bc 100644
  BUILDTOOLS_PREBUILT_BIN=build/build-tools/path/linux-x86
  
 -- 
-2.7.4
+2.17.1
 

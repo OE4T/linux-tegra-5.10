@@ -1,4 +1,4 @@
-From d9a802816936a333ae6c82de54110122284bf570 Mon Sep 17 00:00:00 2001
+From aa489e1e493fc0bee393e03bb7e452d8a7dd403b Mon Sep 17 00:00:00 2001
 From: Abhilasha Rao <abhilasha.hv@samsung.corp-partner.google.com>
 Date: Wed, 29 Jul 2020 15:45:19 +0530
 Subject: [PATCH 117/830] ANDROID: GKI: time: Export for nsec_to_clock_t
@@ -18,7 +18,7 @@ Change-Id: I45be5fd7873dc7c21aa583313499f48f8b10bb1b
  1 file changed, 1 insertion(+)
 
 diff --git a/kernel/time/time.c b/kernel/time/time.c
-index 3985b2b..5fe2cc0 100644
+index 3985b2b32d08..5fe2cc0f4f3b 100644
 --- a/kernel/time/time.c
 +++ b/kernel/time/time.c
 @@ -686,6 +686,7 @@ u64 nsec_to_clock_t(u64 x)
@@ -30,5 +30,5 @@ index 3985b2b..5fe2cc0 100644
  u64 jiffies64_to_nsecs(u64 j)
  {
 -- 
-2.7.4
+2.17.1
 

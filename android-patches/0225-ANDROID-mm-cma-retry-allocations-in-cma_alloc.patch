@@ -1,4 +1,4 @@
-From 5f88da2de99eac27c1f2d2046cba3fc9ff9abea0 Mon Sep 17 00:00:00 2001
+From 9b9ab06a5d2fe86490d05aedaa603e19c6ff6f4b Mon Sep 17 00:00:00 2001
 From: Chris Goldsworthy <cgoldswo@codeaurora.org>
 Date: Fri, 18 Sep 2020 09:19:53 -0700
 Subject: [PATCH 225/830] ANDROID: mm: cma: retry allocations in cma_alloc
@@ -47,7 +47,7 @@ Change-Id: I2f0c8388f9163e0decd631d9ae07bb6ad9ab79c8
  1 file changed, 29 insertions(+)
 
 diff --git a/mm/cma.c b/mm/cma.c
-index 7f415d7..cf9a10a 100644
+index 7f415d7cda9f..cf9a10a88988 100644
 --- a/mm/cma.c
 +++ b/mm/cma.c
 @@ -32,6 +32,8 @@
@@ -101,5 +101,5 @@ index 7f415d7..cf9a10a 100644
  		/*
  		 * It's safe to drop the lock here. We've marked this region for
 -- 
-2.7.4
+2.17.1
 

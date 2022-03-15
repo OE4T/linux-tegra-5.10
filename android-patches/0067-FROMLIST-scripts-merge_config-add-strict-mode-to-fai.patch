@@ -1,4 +1,4 @@
-From 83d12f24b5dac72015e383b9715bc6ca02a4a544 Mon Sep 17 00:00:00 2001
+From 9b2f68e4a5c4d613ae6bb065be9666ac978096bc Mon Sep 17 00:00:00 2001
 From: Matthias Maennich <maennich@google.com>
 Date: Wed, 2 Dec 2020 15:12:39 +0000
 Subject: [PATCH 067/830] FROMLIST: scripts: merge_config: add strict mode to
@@ -26,7 +26,7 @@ Change-Id: Ib982a87811956e48b718a15680f06474a39dc19d
  1 file changed, 15 insertions(+)
 
 diff --git a/scripts/kconfig/merge_config.sh b/scripts/kconfig/merge_config.sh
-index 63c8565..e5b4698 100755
+index 63c8565206a4..e5b46980c22a 100755
 --- a/scripts/kconfig/merge_config.sh
 +++ b/scripts/kconfig/merge_config.sh
 @@ -28,6 +28,7 @@ usage() {
@@ -80,5 +80,5 @@ index 63c8565..e5b4698 100755
  	cp -T -- "$TMP_FILE" "$KCONFIG_CONFIG"
  	echo "#"
 -- 
-2.7.4
+2.17.1
 

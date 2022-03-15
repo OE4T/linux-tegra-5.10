@@ -1,4 +1,4 @@
-From 149755cce275e95ab261283c245002f69e25a420 Mon Sep 17 00:00:00 2001
+From c0f8201c792eca891bcb26fa768221b2cf1fa385 Mon Sep 17 00:00:00 2001
 From: Jin Qian <jinqian@google.com>
 Date: Tue, 10 Jan 2017 16:10:35 -0800
 Subject: [PATCH 207/830] ANDROID: uid_cputime: add per-uid IO usage accounting
@@ -42,11 +42,11 @@ Signed-off-by: Alistair Delva <adelva@google.com>
 Signed-off-by: Eric Biggers <ebiggers@google.com>
 ---
  drivers/misc/Kconfig         |  11 +-
- drivers/misc/uid_sys_stats.c | 463 ++++++++++++++++++++++++++++++++++++++++++-
+ drivers/misc/uid_sys_stats.c | 463 ++++++++++++++++++++++++++++++++++-
  2 files changed, 471 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-index 5af2407..5a4e636 100644
+index 5af2407cb864..5a4e636dfc2b 100644
 --- a/drivers/misc/Kconfig
 +++ b/drivers/misc/Kconfig
 @@ -450,9 +450,18 @@ config MISC_RTSX
@@ -70,7 +70,7 @@ index 5af2407..5a4e636 100644
  config PVPANIC
  	tristate "pvpanic device support"
 diff --git a/drivers/misc/uid_sys_stats.c b/drivers/misc/uid_sys_stats.c
-index 6f47d12..ae8fc30 100644
+index 6f47d121fc4d..ae8fc3065eb8 100644
 --- a/drivers/misc/uid_sys_stats.c
 +++ b/drivers/misc/uid_sys_stats.c
 @@ -19,6 +19,7 @@
@@ -606,5 +606,5 @@ index 6f47d12..ae8fc30 100644
  
  early_initcall(proc_uid_sys_stats_init);
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 2928f653f383b53c38fab74b6497e8866715ba70 Mon Sep 17 00:00:00 2001
+From d0bf28fd92ad1dfe056c62b0cba646f82ae4226e Mon Sep 17 00:00:00 2001
 From: Chris Goldsworthy <cgoldswo@codeaurora.org>
 Date: Thu, 10 Sep 2020 08:39:38 -0700
 Subject: [PATCH 767/830] ANDROID: gki_defconfig: enable
@@ -17,7 +17,7 @@ Change-Id: I1e92fb14dd0518746e5e53fab80234915a7f0d68
  1 file changed, 1 insertion(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index ef49759..550f539 100644
+index ef49759ca003..550f539aed50 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -426,6 +426,7 @@ CONFIG_COMMON_CLK_SCPI=y
@@ -29,5 +29,5 @@ index ef49759..550f539 100644
  CONFIG_REMOTEPROC_CDEV=y
  CONFIG_RPMSG_CHAR=y
 -- 
-2.7.4
+2.17.1
 

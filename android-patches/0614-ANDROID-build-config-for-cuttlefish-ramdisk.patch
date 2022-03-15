@@ -1,4 +1,4 @@
-From 8b7d106face10176ed1b9b11f92793a70cf96d6b Mon Sep 17 00:00:00 2001
+From 1a29bf0250a48b03efe9a09357bdf113b4c80ee6 Mon Sep 17 00:00:00 2001
 From: Ram Muthiah <rammuthiah@google.com>
 Date: Fri, 17 Jan 2020 16:20:14 -0800
 Subject: [PATCH 614/830] ANDROID: build config for cuttlefish ramdisk
@@ -23,7 +23,7 @@ Change-Id: I82a410ea3cf9b9177a1c8f2186d88344b9a63488
 
 diff --git a/build.config.cuttlefish.aarch64 b/build.config.cuttlefish.aarch64
 new file mode 100644
-index 00000000..9450cea
+index 000000000000..9450cead4b8e
 --- /dev/null
 +++ b/build.config.cuttlefish.aarch64
 @@ -0,0 +1,10 @@
@@ -39,7 +39,7 @@ index 00000000..9450cea
 +FILES=""
 diff --git a/build.config.cuttlefish.x86_64 b/build.config.cuttlefish.x86_64
 new file mode 100644
-index 00000000..0778c57
+index 000000000000..0778c5762b16
 --- /dev/null
 +++ b/build.config.cuttlefish.x86_64
 @@ -0,0 +1,10 @@
@@ -55,7 +55,7 @@ index 00000000..0778c57
 +FILES=""
 diff --git a/cuttlefish.fragment b/cuttlefish.fragment
 new file mode 100644
-index 00000000..1e49da8
+index 000000000000..1e49da8de975
 --- /dev/null
 +++ b/cuttlefish.fragment
 @@ -0,0 +1,20 @@
@@ -80,5 +80,5 @@ index 00000000..1e49da8
 +CONFIG_VIRTIO_INPUT=m
 +CONFIG_VIRTIO_MMIO=m
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From acc12a18eeb71ceaafb8b90edfa28c324bec4f78 Mon Sep 17 00:00:00 2001
+From a3125c170410fe9e54c631373e9141b56fc60d4c Mon Sep 17 00:00:00 2001
 From: Eric Biggers <ebiggers@google.com>
 Date: Wed, 12 Aug 2020 14:00:54 -0700
 Subject: [PATCH 316/830] _____ANNOTATION: tty changes_____
@@ -10,7 +10,7 @@ Signed-off-by: Eric Biggers <ebiggers@google.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/ANNOTATIONS b/ANNOTATIONS
-index b09c23c..17c5329 100644
+index b09c23c9cfd9..17c5329ee39e 100644
 --- a/ANNOTATIONS
 +++ b/ANNOTATIONS
 @@ -14,3 +14,4 @@ security changes
@@ -19,5 +19,5 @@ index b09c23c..17c5329 100644
  driver framework and misc driver changes
 +tty changes
 -- 
-2.7.4
+2.17.1
 

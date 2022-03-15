@@ -1,4 +1,4 @@
-From b276f0a47276c13b6b532a79fe3e30ab95ce3f55 Mon Sep 17 00:00:00 2001
+From a38680e853875ce8f5c47eda4ddef4acd075f10d Mon Sep 17 00:00:00 2001
 From: Wei Wang <wvw@google.com>
 Date: Thu, 29 Oct 2020 00:13:26 -0700
 Subject: [PATCH 184/830] ANDROID: sched: Add vendor hooks for override sugov
@@ -25,7 +25,7 @@ Signed-off-by: Will McVicker <willmcvicker@google.com>
  4 files changed, 17 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/android/vendor_hooks.c b/drivers/android/vendor_hooks.c
-index deca855..ab97124 100644
+index deca855d39a9..ab97124ca9bc 100644
 --- a/drivers/android/vendor_hooks.c
 +++ b/drivers/android/vendor_hooks.c
 @@ -67,3 +67,5 @@ EXPORT_TRACEPOINT_SYMBOL_GPL(android_rvh_sched_nohz_balancer_kick);
@@ -36,7 +36,7 @@ index deca855..ab97124 100644
 +EXPORT_TRACEPOINT_SYMBOL_GPL(android_rvh_set_iowait);
 \ No newline at end of file
 diff --git a/include/trace/hooks/sched.h b/include/trace/hooks/sched.h
-index b914f53..232ad3a 100644
+index b914f53f216f..232ad3a6f87b 100644
 --- a/include/trace/hooks/sched.h
 +++ b/include/trace/hooks/sched.h
 @@ -105,6 +105,13 @@ DECLARE_RESTRICTED_HOOK(android_rvh_migrate_queued_task,
@@ -63,7 +63,7 @@ index b914f53..232ad3a 100644
  #endif /* _TRACE_HOOK_SCHED_H */
  /* This part must be outside protection */
 diff --git a/kernel/sched/cpufreq_schedutil.c b/kernel/sched/cpufreq_schedutil.c
-index 41590c4..9b36bcf 100644
+index 41590c48841d..9b36bcf46654 100644
 --- a/kernel/sched/cpufreq_schedutil.c
 +++ b/kernel/sched/cpufreq_schedutil.c
 @@ -12,6 +12,7 @@
@@ -83,10 +83,10 @@ index 41590c4..9b36bcf 100644
  	kthread_init_worker(&sg_policy->worker);
  	thread = kthread_create(kthread_worker_fn, &sg_policy->worker,
 diff --git a/kernel/sched/fair.c b/kernel/sched/fair.c
-index cdcb419..4a2327c 100644
+index aa4ef53d0db5..ebe54e5baa86 100644
 --- a/kernel/sched/fair.c
 +++ b/kernel/sched/fair.c
-@@ -5517,6 +5517,7 @@ enqueue_task_fair(struct rq *rq, struct task_struct *p, int flags)
+@@ -5527,6 +5527,7 @@ enqueue_task_fair(struct rq *rq, struct task_struct *p, int flags)
  	struct sched_entity *se = &p->se;
  	int idle_h_nr_running = task_has_idle_policy(p);
  	int task_new = !(flags & ENQUEUE_WAKEUP);
@@ -94,7 +94,7 @@ index cdcb419..4a2327c 100644
  
  	/*
  	 * The code below (indirectly) updates schedutil which looks at
-@@ -5531,7 +5532,9 @@ enqueue_task_fair(struct rq *rq, struct task_struct *p, int flags)
+@@ -5541,7 +5542,9 @@ enqueue_task_fair(struct rq *rq, struct task_struct *p, int flags)
  	 * utilization updates, so do it here explicitly with the IOWAIT flag
  	 * passed.
  	 */
@@ -106,5 +106,5 @@ index cdcb419..4a2327c 100644
  
  	for_each_sched_entity(se) {
 -- 
-2.7.4
+2.17.1
 

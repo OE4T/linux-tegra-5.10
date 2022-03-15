@@ -1,4 +1,4 @@
-From 7ca329daf79ab1a60b586d30990d2c9b988f3367 Mon Sep 17 00:00:00 2001
+From 03878d61c3c2d771bc132c3b6d9e68ac1c15b15d Mon Sep 17 00:00:00 2001
 From: John Stultz <john.stultz@linaro.org>
 Date: Thu, 5 Mar 2020 05:58:24 +0000
 Subject: [PATCH 667/830] ANDROID: Kconfig.gki: Drop GKI_QCOM_CLKS_CONFIGS
@@ -20,7 +20,7 @@ Signed-off-by: John Stultz <john.stultz@linaro.org>
  3 files changed, 2 insertions(+), 11 deletions(-)
 
 diff --git a/arch/arm64/configs/db845c_gki.fragment b/arch/arm64/configs/db845c_gki.fragment
-index 294c243..648e0fc 100644
+index 294c2434dd2c..648e0fc61b6c 100644
 --- a/arch/arm64/configs/db845c_gki.fragment
 +++ b/arch/arm64/configs/db845c_gki.fragment
 @@ -64,6 +64,8 @@ CONFIG_INTERCONNECT_QCOM=y
@@ -33,7 +33,7 @@ index 294c243..648e0fc 100644
  CONFIG_ATH10K_AHB=y
  CONFIG_ATH10K=m
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index c9516e7..2677435 100644
+index c9516e76d5c9..267743578e0d 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -367,7 +367,6 @@ CONFIG_HWSPINLOCK=y
@@ -45,7 +45,7 @@ index c9516e7..2677435 100644
  CONFIG_DEVFREQ_GOV_POWERSAVE=y
  CONFIG_DEVFREQ_GOV_USERSPACE=y
 diff --git a/init/Kconfig.gki b/init/Kconfig.gki
-index 5a0cfba..b68a5a1 100644
+index 5a0cfbacaff0..b68a5a14be0f 100644
 --- a/init/Kconfig.gki
 +++ b/init/Kconfig.gki
 @@ -79,15 +79,6 @@ config GKI_HIDDEN_QCOM_CONFIGS
@@ -73,5 +73,5 @@ index 5a0cfba..b68a5a1 100644
  	  Dummy config option used to enable core functionality used by
  	  modules that may not be selectable in this config.
 -- 
-2.7.4
+2.17.1
 

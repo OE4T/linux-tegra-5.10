@@ -1,4 +1,4 @@
-From 79cb2c1a6e3a2ca0496ccdd226b8e69b7ea5ef25 Mon Sep 17 00:00:00 2001
+From f0d495bef8ecbecbe0fbe063acd65d66f7139447 Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Wed, 8 Apr 2020 10:10:53 -0700
 Subject: [PATCH 448/830] ANDROID: Incremental fs: Clean up incfs_test build
@@ -10,16 +10,16 @@ Test: incfs_test passes
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
 Change-Id: I57eef43a5d003e3d89a4c872d21e36376bc580a1
 ---
- tools/testing/selftests/filesystems/incfs/Makefile | 17 +++-----
- tools/testing/selftests/filesystems/incfs/config   |  1 -
- .../selftests/filesystems/incfs/incfs_test.c       | 48 +++++++++++-----------
- tools/testing/selftests/filesystems/incfs/utils.c  | 28 +++++++------
- tools/testing/selftests/filesystems/incfs/utils.h  |  2 +-
+ .../selftests/filesystems/incfs/Makefile      | 17 ++-----
+ .../selftests/filesystems/incfs/config        |  1 -
+ .../selftests/filesystems/incfs/incfs_test.c  | 48 ++++++++++---------
+ .../selftests/filesystems/incfs/utils.c       | 28 ++++++-----
+ .../selftests/filesystems/incfs/utils.h       |  2 +-
  5 files changed, 46 insertions(+), 50 deletions(-)
  delete mode 100644 tools/testing/selftests/filesystems/incfs/config
 
 diff --git a/tools/testing/selftests/filesystems/incfs/Makefile b/tools/testing/selftests/filesystems/incfs/Makefile
-index 1f13573..5b2e627 100644
+index 1f13573d3617..5b2e627ce883 100644
 --- a/tools/testing/selftests/filesystems/incfs/Makefile
 +++ b/tools/testing/selftests/filesystems/incfs/Makefile
 @@ -1,18 +1,11 @@
@@ -48,14 +48,14 @@ index 1f13573..5b2e627 100644
 +include ../../lib.mk
 diff --git a/tools/testing/selftests/filesystems/incfs/config b/tools/testing/selftests/filesystems/incfs/config
 deleted file mode 100644
-index b674983..00000000
+index b6749837a318..000000000000
 --- a/tools/testing/selftests/filesystems/incfs/config
 +++ /dev/null
 @@ -1 +0,0 @@
 -CONFIG_INCREMENTAL_FS=y
 \ No newline at end of file
 diff --git a/tools/testing/selftests/filesystems/incfs/incfs_test.c b/tools/testing/selftests/filesystems/incfs/incfs_test.c
-index 3ba41bd..a6bae9f 100644
+index 3ba41bd75efe..a6bae9fbf0d3 100644
 --- a/tools/testing/selftests/filesystems/incfs/incfs_test.c
 +++ b/tools/testing/selftests/filesystems/incfs/incfs_test.c
 @@ -2,27 +2,29 @@
@@ -200,7 +200,7 @@ index 3ba41bd..a6bae9f 100644
  	for (int i = 0; i < 128; ++i)
  		ioctl(fd, RNDADDTOENTCNT, &count);
 diff --git a/tools/testing/selftests/filesystems/incfs/utils.c b/tools/testing/selftests/filesystems/incfs/utils.c
-index 5454976..e194f63 100644
+index 545497685d14..e194f63ba922 100644
 --- a/tools/testing/selftests/filesystems/incfs/utils.c
 +++ b/tools/testing/selftests/filesystems/incfs/utils.c
 @@ -2,27 +2,29 @@
@@ -263,7 +263,7 @@ index 5454976..e194f63 100644
  		perror("Can't open log file");
  	return cmd_fd;
 diff --git a/tools/testing/selftests/filesystems/incfs/utils.h b/tools/testing/selftests/filesystems/incfs/utils.h
-index 24b4328..9af63e4 100644
+index 24b43287fcdd..9af63e4e922c 100644
 --- a/tools/testing/selftests/filesystems/incfs/utils.h
 +++ b/tools/testing/selftests/filesystems/incfs/utils.h
 @@ -5,7 +5,7 @@
@@ -276,5 +276,5 @@ index 24b4328..9af63e4 100644
  #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
  
 -- 
-2.7.4
+2.17.1
 

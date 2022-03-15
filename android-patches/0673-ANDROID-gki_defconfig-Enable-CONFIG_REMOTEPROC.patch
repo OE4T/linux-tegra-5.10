@@ -1,4 +1,4 @@
-From 18f00c25dfe2a05a7f27d9e60a2ed379c01adb01 Mon Sep 17 00:00:00 2001
+From 447293ca24f2f13197f2b56b8bbbf32e4657a109 Mon Sep 17 00:00:00 2001
 From: John Stultz <john.stultz@linaro.org>
 Date: Thu, 5 Mar 2020 05:58:56 +0000
 Subject: [PATCH 673/830] ANDROID: gki_defconfig: Enable CONFIG_REMOTEPROC
@@ -16,7 +16,7 @@ Signed-off-by: John Stultz <john.stultz@linaro.org>
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 4bb2165..df2ab96 100644
+index 4bb2165763db..df2ab96990d2 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -366,6 +366,7 @@ CONFIG_COMMON_CLK_SCPI=y
@@ -28,7 +28,7 @@ index 4bb2165..df2ab96 100644
  CONFIG_QCOM_COMMAND_DB=y
  CONFIG_DEVFREQ_GOV_PERFORMANCE=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 9d50af11..ef128a8 100644
+index 9d50af11fedb..ef128a817f86 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -316,6 +316,7 @@ CONFIG_STAGING=y
@@ -40,5 +40,5 @@ index 9d50af11..ef128a8 100644
  CONFIG_PM_DEVFREQ=y
  CONFIG_IIO=y
 -- 
-2.7.4
+2.17.1
 

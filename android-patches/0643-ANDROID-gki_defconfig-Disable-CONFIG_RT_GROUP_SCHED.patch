@@ -1,4 +1,4 @@
-From e15329d2bb56a3bbae068fb216ac9c54f3e14bd5 Mon Sep 17 00:00:00 2001
+From e22e0e6e77f3b58492e0fe21ca2c675a3a6e970c Mon Sep 17 00:00:00 2001
 From: Suren Baghdasaryan <surenb@google.com>
 Date: Thu, 20 Feb 2020 17:50:12 -0800
 Subject: [PATCH 643/830] ANDROID: gki_defconfig: Disable CONFIG_RT_GROUP_SCHED
@@ -15,7 +15,7 @@ Signed-off-by: Suren Baghdasaryan <surenb@google.com>
  2 files changed, 2 deletions(-)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 0127227..9121d32 100644
+index 012722787ccd..9121d329f424 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -14,7 +14,6 @@ CONFIG_UCLAMP_TASK=y
@@ -27,7 +27,7 @@ index 0127227..9121d32 100644
  CONFIG_CGROUP_FREEZER=y
  CONFIG_CPUSETS=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index be2a2a9..57f3da3 100644
+index be2a2a998c3d..57f3da30b1d1 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -14,7 +14,6 @@ CONFIG_IKHEADERS=y
@@ -39,5 +39,5 @@ index be2a2a9..57f3da3 100644
  CONFIG_CGROUP_FREEZER=y
  CONFIG_CPUSETS=y
 -- 
-2.7.4
+2.17.1
 

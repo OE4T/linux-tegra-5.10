@@ -1,4 +1,4 @@
-From 47eea155d8a27001ad3cb428b4631fca2144539e Mon Sep 17 00:00:00 2001
+From f713a9159b811537959495354d3ea6b9cf2a6ebc Mon Sep 17 00:00:00 2001
 From: Connor O'Brien <connoro@google.com>
 Date: Fri, 8 Feb 2019 12:30:41 -0800
 Subject: [PATCH 214/830] ANDROID: cpufreq: times: record fast switch frequency
@@ -26,7 +26,7 @@ Signed-off-by: Connor O'Brien <connoro@google.com>
  3 files changed, 8 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
-index 913a9cf..680c124 100644
+index d0033e397f80..d4de4971831f 100644
 --- a/drivers/cpufreq/cpufreq.c
 +++ b/drivers/cpufreq/cpufreq.c
 @@ -388,7 +388,7 @@ static void cpufreq_notify_transition(struct cpufreq_policy *policy,
@@ -39,7 +39,7 @@ index 913a9cf..680c124 100644
  	}
  }
 diff --git a/drivers/cpufreq/cpufreq_times.c b/drivers/cpufreq/cpufreq_times.c
-index 092d154..7057860 100644
+index 092d15450238..7057860c5dfd 100644
 --- a/drivers/cpufreq/cpufreq_times.c
 +++ b/drivers/cpufreq/cpufreq_times.c
 @@ -289,22 +289,15 @@ void cpufreq_task_times_remove_uids(uid_t uid_start, uid_t uid_end)
@@ -70,7 +70,7 @@ index 092d154..7057860 100644
 -	cpufreq_cpu_put(policy);
  }
 diff --git a/include/linux/cpufreq_times.h b/include/linux/cpufreq_times.h
-index a03157f..881d502 100644
+index a03157f649a4..881d5026f0db 100644
 --- a/include/linux/cpufreq_times.h
 +++ b/include/linux/cpufreq_times.h
 @@ -27,7 +27,8 @@ int proc_time_in_state_show(struct seq_file *m, struct pid_namespace *ns,
@@ -93,5 +93,5 @@ index a03157f..881d502 100644
  						  uid_t uid_end) {}
  #endif /* CONFIG_CPU_FREQ_TIMES */
 -- 
-2.7.4
+2.17.1
 

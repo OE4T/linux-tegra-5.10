@@ -1,4 +1,4 @@
-From b59831561439d33532f7e1dbc326ee266af0444c Mon Sep 17 00:00:00 2001
+From 1de8a7048e95682153c0972db62f26658a48ce71 Mon Sep 17 00:00:00 2001
 From: Hridya Valsaraju <hridya@google.com>
 Date: Sun, 2 Aug 2020 22:55:53 -0700
 Subject: [PATCH 275/830] ANDROID: staging: ion: Delete unused functions in
@@ -14,11 +14,11 @@ Fixes: a64320f5b8e4 ("Merge 94709049fb84 ("Merge branch 'akpm' (patches from And
 Change-Id: I757bd09a26eda06317ce467dff9c3f275204723c
 Signed-off-by: Hridya Valsaraju <hridya@google.com>
 ---
- drivers/staging/android/ion/ion_heap.c | 43 ----------------------------------
+ drivers/staging/android/ion/ion_heap.c | 43 --------------------------
  1 file changed, 43 deletions(-)
 
 diff --git a/drivers/staging/android/ion/ion_heap.c b/drivers/staging/android/ion/ion_heap.c
-index 90e7b85..aa29a4e 100644
+index 90e7b857c98b..aa29a4ee48a3 100644
 --- a/drivers/staging/android/ion/ion_heap.c
 +++ b/drivers/staging/android/ion/ion_heap.c
 @@ -205,49 +205,6 @@ int ion_heap_map_user(struct ion_heap *heap, struct ion_buffer *buffer,
@@ -72,5 +72,5 @@ index 90e7b85..aa29a4e 100644
  {
  	spin_lock(&heap->free_lock);
 -- 
-2.7.4
+2.17.1
 

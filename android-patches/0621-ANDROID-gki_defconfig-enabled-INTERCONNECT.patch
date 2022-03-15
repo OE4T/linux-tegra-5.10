@@ -1,4 +1,4 @@
-From 92cb984b01e9e9e71040fd3e5aa71d39e4a9bed7 Mon Sep 17 00:00:00 2001
+From 08fb282576b9361fcef57982b451c72639492d33 Mon Sep 17 00:00:00 2001
 From: Ram Muthiah <rammuthiah@google.com>
 Date: Tue, 28 Jan 2020 15:25:25 -0800
 Subject: [PATCH 621/830] ANDROID: gki_defconfig: enabled INTERCONNECT
@@ -13,7 +13,7 @@ Signed-off-by: Ram Muthiah <rammuthiah@google.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index faa8a73..fbe5425 100644
+index faa8a73528e2..fbe5425bcc32 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -334,6 +334,7 @@ CONFIG_ANDROID=y
@@ -25,5 +25,5 @@ index faa8a73..fbe5425 100644
  CONFIG_EXT4_FS_SECURITY=y
  CONFIG_F2FS_FS=y
 -- 
-2.7.4
+2.17.1
 

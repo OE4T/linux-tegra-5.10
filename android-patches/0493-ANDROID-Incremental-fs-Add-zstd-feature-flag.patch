@@ -1,4 +1,4 @@
-From 0ba589e385fc4ae8df61ac72f6cf12cbba319ff4 Mon Sep 17 00:00:00 2001
+From bfdd04f7cb9d4332296d5645672d42fd15c6f7e7 Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Mon, 30 Nov 2020 09:03:36 -0800
 Subject: [PATCH 493/830] ANDROID: Incremental fs: Add zstd feature flag
@@ -14,7 +14,7 @@ Change-Id: Ib573b5420143bd177b50311a3e8cc3a7e8541b96
  2 files changed, 14 insertions(+)
 
 diff --git a/fs/incfs/main.c b/fs/incfs/main.c
-index 2b8161f..2332fa5 100644
+index 2b8161f6c83a..2332fa5b7f45 100644
 --- a/fs/incfs/main.c
 +++ b/fs/incfs/main.c
 @@ -38,9 +38,18 @@ static ssize_t report_uid_show(struct kobject *kobj,
@@ -37,7 +37,7 @@ index 2b8161f..2332fa5 100644
  };
  
 diff --git a/include/uapi/linux/incrementalfs.h b/include/uapi/linux/incrementalfs.h
-index 482cebd..0de1f6e 100644
+index 482cebd67c0d..0de1f6eeec84 100644
 --- a/include/uapi/linux/incrementalfs.h
 +++ b/include/uapi/linux/incrementalfs.h
 @@ -141,6 +141,11 @@
@@ -53,5 +53,5 @@ index 482cebd..0de1f6e 100644
  	COMPRESSION_NONE = 0,
  	COMPRESSION_LZ4 = 1,
 -- 
-2.7.4
+2.17.1
 

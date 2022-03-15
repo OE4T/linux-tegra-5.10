@@ -1,4 +1,4 @@
-From 6ffa1447c222a3c16e2549a2fdf6c96f47b5380e Mon Sep 17 00:00:00 2001
+From fa3aed57523e2278253abcacd93520c3aa6ba572 Mon Sep 17 00:00:00 2001
 From: Shaleen Agrawal <shalagra@codeaurora.org>
 Date: Thu, 19 Nov 2020 15:57:16 -0800
 Subject: [PATCH 194/830] ANDROID: Sched: Add restricted vendor hooks for
@@ -12,15 +12,15 @@ Change-Id: I4389f2a8121fe7ac49ad4610e25a77bfc38f4660
 Signed-off-by: Shaleen Agrawal <shalagra@codeaurora.org>
 Signed-off-by: Pavankumar Kondeti <pkondeti@codeaurora.org>
 ---
- drivers/android/vendor_hooks.c | 15 +++++++++
- include/trace/hooks/sched.h    | 76 ++++++++++++++++++++++++++++++++++++++++++
- kernel/sched/core.c            | 18 +++++++++-
+ drivers/android/vendor_hooks.c | 15 +++++++
+ include/trace/hooks/sched.h    | 76 ++++++++++++++++++++++++++++++++++
+ kernel/sched/core.c            | 18 +++++++-
  kernel/sched/cputime.c         |  3 ++
  kernel/sched/fair.c            |  7 +++-
  5 files changed, 117 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/android/vendor_hooks.c b/drivers/android/vendor_hooks.c
-index 09b8747..a3b81ce 100644
+index 09b87478bbd7..a3b81ced2d06 100644
 --- a/drivers/android/vendor_hooks.c
 +++ b/drivers/android/vendor_hooks.c
 @@ -77,3 +77,18 @@ EXPORT_TRACEPOINT_SYMBOL_GPL(android_rvh_preempt_disable);
@@ -43,7 +43,7 @@ index 09b8747..a3b81ce 100644
 +EXPORT_TRACEPOINT_SYMBOL_GPL(android_rvh_update_cpu_capacity);
 +EXPORT_TRACEPOINT_SYMBOL_GPL(android_rvh_update_misfit_status);
 diff --git a/include/trace/hooks/sched.h b/include/trace/hooks/sched.h
-index a2570fc..b720b3b 100644
+index a2570fccdda0..b720b3be15ae 100644
 --- a/include/trace/hooks/sched.h
 +++ b/include/trace/hooks/sched.h
 @@ -124,6 +124,67 @@ DECLARE_RESTRICTED_HOOK(android_rvh_update_cpus_allowed,
@@ -137,7 +137,7 @@ index a2570fc..b720b3b 100644
  #endif /* _TRACE_HOOK_SCHED_H */
  /* This part must be outside protection */
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index aedb492..670034f 100644
+index aedb492960c8..670034f69cad 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -2036,6 +2036,7 @@ void set_task_cpu(struct task_struct *p, unsigned int new_cpu)
@@ -237,7 +237,7 @@ index aedb492..670034f 100644
  	update_max_interval();
  	nohz_balance_exit_idle(rq);
 diff --git a/kernel/sched/cputime.c b/kernel/sched/cputime.c
-index 07170a4..018d495 100644
+index d73e5247ade9..6ea73b370175 100644
 --- a/kernel/sched/cputime.c
 +++ b/kernel/sched/cputime.c
 @@ -3,6 +3,7 @@
@@ -258,10 +258,10 @@ index 07170a4..018d495 100644
  EXPORT_SYMBOL_GPL(irqtime_account_irq);
  
 diff --git a/kernel/sched/fair.c b/kernel/sched/fair.c
-index 4a2327c..aecec84 100644
+index ebe54e5baa86..bf7975de1def 100644
 --- a/kernel/sched/fair.c
 +++ b/kernel/sched/fair.c
-@@ -4074,7 +4074,10 @@ static inline int task_fits_capacity(struct task_struct *p, long capacity)
+@@ -4084,7 +4084,10 @@ static inline int task_fits_capacity(struct task_struct *p, long capacity)
  
  static inline void update_misfit_status(struct task_struct *p, struct rq *rq)
  {
@@ -273,7 +273,7 @@ index 4a2327c..aecec84 100644
  		return;
  
  	if (!p || p->nr_cpus_allowed == 1) {
-@@ -4169,6 +4172,7 @@ place_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int initial)
+@@ -4179,6 +4182,7 @@ place_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int initial)
  			thresh >>= 1;
  
  		vruntime -= thresh;
@@ -281,7 +281,7 @@ index 4a2327c..aecec84 100644
  	}
  
  	/* ensure we never gain time by being placed backwards. */
-@@ -8247,6 +8251,7 @@ static void update_cpu_capacity(struct sched_domain *sd, int cpu)
+@@ -8259,6 +8263,7 @@ static void update_cpu_capacity(struct sched_domain *sd, int cpu)
  	if (!capacity)
  		capacity = 1;
  
@@ -290,5 +290,5 @@ index 4a2327c..aecec84 100644
  	trace_sched_cpu_capacity_tp(cpu_rq(cpu));
  
 -- 
-2.7.4
+2.17.1
 

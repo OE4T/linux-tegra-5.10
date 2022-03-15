@@ -1,4 +1,4 @@
-From d9aa7a8395215f79cad4bd63bc1b28c99eabbe7a Mon Sep 17 00:00:00 2001
+From 5371dc781c7f43da62b8d1c7e3a8bd4edec52e0d Mon Sep 17 00:00:00 2001
 From: Sandeep Patil <sspatil@google.com>
 Date: Wed, 7 Aug 2019 12:12:47 -0700
 Subject: [PATCH 244/830] ANDROID: staging: ion: refactor ion's buffer
@@ -19,17 +19,17 @@ Co-developed-by: Isaac J. Manjarres <isaacm@codeaurora.org>
 Signed-off-by: Sandeep Patil <sspatil@google.com>
 ---
  drivers/staging/android/ion/Makefile      |   2 +-
- drivers/staging/android/ion/ion.c         | 143 +--------------------
- drivers/staging/android/ion/ion.h         |  15 ---
- drivers/staging/android/ion/ion_buffer.c  | 198 ++++++++++++++++++++++++++++++
+ drivers/staging/android/ion/ion.c         | 143 +---------------
+ drivers/staging/android/ion/ion.h         |  15 --
+ drivers/staging/android/ion/ion_buffer.c  | 198 ++++++++++++++++++++++
  drivers/staging/android/ion/ion_heap.c    |   6 +-
- drivers/staging/android/ion/ion_private.h |  47 +++++++
+ drivers/staging/android/ion/ion_private.h |  47 +++++
  6 files changed, 254 insertions(+), 157 deletions(-)
  create mode 100644 drivers/staging/android/ion/ion_buffer.c
  create mode 100644 drivers/staging/android/ion/ion_private.h
 
 diff --git a/drivers/staging/android/ion/Makefile b/drivers/staging/android/ion/Makefile
-index 5f4487b..da386db 100644
+index 5f4487b1a224..da386dbf3ffd 100644
 --- a/drivers/staging/android/ion/Makefile
 +++ b/drivers/staging/android/ion/Makefile
 @@ -1,4 +1,4 @@
@@ -39,7 +39,7 @@ index 5f4487b..da386db 100644
  obj-$(CONFIG_ION_SYSTEM_HEAP) += ion_system_heap.o ion_page_pool.o
  obj-$(CONFIG_ION_CMA_HEAP) += ion_cma_heap.o
 diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
-index cbff096..580e50e 100644
+index cbff09675a4d..580e50e37758 100644
 --- a/drivers/staging/android/ion/ion.c
 +++ b/drivers/staging/android/ion/ion.c
 @@ -26,119 +26,11 @@
@@ -224,7 +224,7 @@ index cbff096..580e50e 100644
  	return dmabuf;
  }
 diff --git a/drivers/staging/android/ion/ion.h b/drivers/staging/android/ion/ion.h
-index dde31251..7102c7b 100644
+index dde312516239..7102c7bf81d9 100644
 --- a/drivers/staging/android/ion/ion.h
 +++ b/drivers/staging/android/ion/ion.h
 @@ -17,7 +17,6 @@
@@ -243,10 +243,11 @@ index dde31251..7102c7b 100644
  	struct ion_heap *heap;
  	unsigned long flags;
  	unsigned long private_flags;
-@@ -55,19 +53,6 @@ struct ion_buffer {
+@@ -54,19 +52,6 @@ struct ion_buffer {
+ 
  void ion_buffer_destroy(struct ion_buffer *buffer);
  
- /**
+-/**
 - * struct ion_device - the metadata of the ion device node
 - * @dev:		the actual misc device
 - * @lock:		rwsem protecting the tree of heaps and clients
@@ -259,13 +260,12 @@ index dde31251..7102c7b 100644
 -	int heap_cnt;
 -};
 -
--/**
+ /**
   * struct ion_heap_ops - ops to operate on a given heap
   * @allocate:		allocate memory
-  * @free:		free memory
 diff --git a/drivers/staging/android/ion/ion_buffer.c b/drivers/staging/android/ion/ion_buffer.c
 new file mode 100644
-index 00000000..8b8dd1e
+index 000000000000..8b8dd1e216d4
 --- /dev/null
 +++ b/drivers/staging/android/ion/ion_buffer.c
 @@ -0,0 +1,198 @@
@@ -468,7 +468,7 @@ index 00000000..8b8dd1e
 +	}
 +}
 diff --git a/drivers/staging/android/ion/ion_heap.c b/drivers/staging/android/ion/ion_heap.c
-index ea7e0a2..d87b511 100644
+index ea7e0a244ffc..d87b511e3ef3 100644
 --- a/drivers/staging/android/ion/ion_heap.c
 +++ b/drivers/staging/android/ion/ion_heap.c
 @@ -15,7 +15,7 @@
@@ -500,7 +500,7 @@ index ea7e0a2..d87b511 100644
  	return 0;
 diff --git a/drivers/staging/android/ion/ion_private.h b/drivers/staging/android/ion/ion_private.h
 new file mode 100644
-index 00000000..e80692c
+index 000000000000..e80692c885b4
 --- /dev/null
 +++ b/drivers/staging/android/ion/ion_private.h
 @@ -0,0 +1,47 @@
@@ -552,5 +552,5 @@ index 00000000..e80692c
 +
 +#endif /* _ION_PRIVATE_H */
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From c286f62eb2fdcfa9a93f6ca86b6ab8cf08131540 Mon Sep 17 00:00:00 2001
+From 806570b3de0f09056d10c2d0aa860e6ffc00269a Mon Sep 17 00:00:00 2001
 From: Alistair Delva <adelva@google.com>
 Date: Tue, 7 Apr 2020 11:26:39 -0700
 Subject: [PATCH 681/830] ANDROID: GKI: Remove SCHED_AUTOGROUP
@@ -15,7 +15,7 @@ Signed-off-by: Alistair Delva <adelva@google.com>
  2 files changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 41ce149..4be86df 100644
+index 41ce14958c5b..4be86dfef340 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -12,9 +12,11 @@ CONFIG_IKCONFIG=y
@@ -39,7 +39,7 @@ index 41ce149..4be86df 100644
  # CONFIG_RD_BZIP2 is not set
  # CONFIG_RD_LZMA is not set
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index e3167e5..c8ead73 100644
+index e3167e560212..c8ead7316aad 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -13,8 +13,10 @@ CONFIG_IKCONFIG=y
@@ -62,5 +62,5 @@ index e3167e5..c8ead73 100644
  # CONFIG_RD_BZIP2 is not set
  # CONFIG_RD_LZMA is not set
 -- 
-2.7.4
+2.17.1
 

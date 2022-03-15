@@ -1,4 +1,4 @@
-From 56cc61714943db6c4f84bc3d06addc51253da17f Mon Sep 17 00:00:00 2001
+From 46fe1273919233790c06f7a3ddea35959f3a35d4 Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Mon, 5 Oct 2020 14:07:34 -0700
 Subject: [PATCH 489/830] ANDROID: Incremental fs: Fix read_log_test which
@@ -26,11 +26,11 @@ Test: Run incfs_test 100 times with -t10 -f4, and then again 40 time
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
 Change-Id: Iefeca46c2aa02fdf85e7ce4872d9c352f9517f41
 ---
- .../selftests/filesystems/incfs/incfs_test.c       | 425 ++++++++-------------
+ .../selftests/filesystems/incfs/incfs_test.c  | 425 +++++++-----------
  1 file changed, 166 insertions(+), 259 deletions(-)
 
 diff --git a/tools/testing/selftests/filesystems/incfs/incfs_test.c b/tools/testing/selftests/filesystems/incfs/incfs_test.c
-index 8816238..9abfb97 100644
+index 881623871a8e..9abfb97425d7 100644
 --- a/tools/testing/selftests/filesystems/incfs/incfs_test.c
 +++ b/tools/testing/selftests/filesystems/incfs/incfs_test.c
 @@ -42,6 +42,35 @@
@@ -596,5 +596,5 @@ index 8816238..9abfb97 100644
 +	return !ksft_get_fail_cnt() ? ksft_exit_pass() : ksft_exit_fail();
  }
 -- 
-2.7.4
+2.17.1
 

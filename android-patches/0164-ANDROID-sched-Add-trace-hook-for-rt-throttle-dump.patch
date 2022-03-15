@@ -1,4 +1,4 @@
-From daf308aaef2e729350f7159eb45f66723e7ef754 Mon Sep 17 00:00:00 2001
+From a0afba7e7e02208c111600fb06bec3b564017e65 Mon Sep 17 00:00:00 2001
 From: Sai Harshini Nimmala <snimmala@codeaurora.org>
 Date: Mon, 2 Nov 2020 14:52:34 -0800
 Subject: [PATCH 164/830] ANDROID: sched: Add trace hook for rt throttle dump
@@ -17,7 +17,7 @@ Signed-off-by: Sai Harshini Nimmala <snimmala@codeaurora.org>
  3 files changed, 14 insertions(+)
 
 diff --git a/drivers/android/vendor_hooks.c b/drivers/android/vendor_hooks.c
-index 9849a5c..0b61fb3 100644
+index 9849a5c7e60d..0b61fb30f333 100644
 --- a/drivers/android/vendor_hooks.c
 +++ b/drivers/android/vendor_hooks.c
 @@ -56,4 +56,5 @@ EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_mpam_set);
@@ -27,7 +27,7 @@ index 9849a5c..0b61fb3 100644
 +EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_dump_throttled_rt_tasks);
  EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_printk_hotplug);
 diff --git a/include/trace/hooks/sched.h b/include/trace/hooks/sched.h
-index 4e2be4d..934f7df 100644
+index 4e2be4d70658..934f7df70d21 100644
 --- a/include/trace/hooks/sched.h
 +++ b/include/trace/hooks/sched.h
 @@ -70,6 +70,11 @@ struct sched_group;
@@ -51,10 +51,10 @@ index 4e2be4d..934f7df 100644
  #endif /* _TRACE_HOOK_SCHED_H */
  /* This part must be outside protection */
 diff --git a/kernel/sched/rt.c b/kernel/sched/rt.c
-index 83b9257..3409114 100644
+index 715fccf0063e..d4ed6c1bbaf4 100644
 --- a/kernel/sched/rt.c
 +++ b/kernel/sched/rt.c
-@@ -973,6 +973,13 @@ static int sched_rt_runtime_exceeded(struct rt_rq *rt_rq)
+@@ -978,6 +978,13 @@ static int sched_rt_runtime_exceeded(struct rt_rq *rt_rq)
  		if (likely(rt_b->rt_runtime)) {
  			rt_rq->rt_throttled = 1;
  			printk_deferred_once("sched: RT throttling activated\n");
@@ -69,5 +69,5 @@ index 83b9257..3409114 100644
  			/*
  			 * In case we did anyway, make it go away,
 -- 
-2.7.4
+2.17.1
 

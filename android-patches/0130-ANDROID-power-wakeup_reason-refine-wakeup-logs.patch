@@ -1,4 +1,4 @@
-From 588669f56dbb9c39eba4fb8fa8c831013f6ec6b5 Mon Sep 17 00:00:00 2001
+From d7b18b4f95ffc70524c0bacf0d21a3d0958985fd Mon Sep 17 00:00:00 2001
 From: "claude.yen" <claude.yen@mediatek.com>
 Date: Fri, 10 Jul 2020 16:57:50 +0800
 Subject: [PATCH 130/830] ANDROID: power: wakeup_reason: refine wakeup logs
@@ -14,11 +14,11 @@ Bug: 160945565
 Signed-off-by: claude.yen <claude.yen@mediatek.com>
 Change-Id: I13756e4aa083e1f86ffc9030ff9506a3092d8933
 ---
- kernel/power/wakeup_reason.c | 44 +++++++++++++++++++++++++++++++-------------
+ kernel/power/wakeup_reason.c | 44 +++++++++++++++++++++++++-----------
  1 file changed, 31 insertions(+), 13 deletions(-)
 
 diff --git a/kernel/power/wakeup_reason.c b/kernel/power/wakeup_reason.c
-index 8791a6c..7a4ed59 100644
+index 8791a6ce5eb3..7a4ed59c0080 100644
 --- a/kernel/power/wakeup_reason.c
 +++ b/kernel/power/wakeup_reason.c
 @@ -41,6 +41,13 @@ struct wakeup_irq_node {
@@ -151,5 +151,5 @@ index 8791a6c..7a4ed59 100644
  				       non_irq_wake_reason);
  
 -- 
-2.7.4
+2.17.1
 

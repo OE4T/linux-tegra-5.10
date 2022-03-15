@@ -1,4 +1,4 @@
-From fdf816bc5db79218f3bf556d40e331ac8d8adbd6 Mon Sep 17 00:00:00 2001
+From 7e2c81f32fd75a7d1fe334f45b67b4cd0baa0f94 Mon Sep 17 00:00:00 2001
 From: Martijn Coenen <maco@google.com>
 Date: Tue, 6 Jun 2017 17:04:42 -0700
 Subject: [PATCH 235/830] ANDROID: binder: add support for RT prio inheritance.
@@ -26,13 +26,13 @@ Signed-off-by: Amit Pundir <amit.pundir@linaro.org>
 Signed-off-by: Alistair Delva <adelva@google.com>
 Signed-off-by: Matthias Maennich <maennich@google.com>
 ---
- drivers/android/binder.c            | 243 +++++++++++++++++++++++++++++++-----
- drivers/android/binder_trace.h      |  24 ++++
- include/uapi/linux/android/binder.h |  50 +++++++-
+ drivers/android/binder.c            | 243 ++++++++++++++++++++++++----
+ drivers/android/binder_trace.h      |  24 +++
+ include/uapi/linux/android/binder.h |  50 +++++-
  3 files changed, 284 insertions(+), 33 deletions(-)
 
 diff --git a/drivers/android/binder.c b/drivers/android/binder.c
-index 5d1e263..e0915ec 100644
+index edda6c5cb99f..02bea1ef92e5 100644
 --- a/drivers/android/binder.c
 +++ b/drivers/android/binder.c
 @@ -67,6 +67,7 @@
@@ -66,10 +66,11 @@ index 5d1e263..e0915ec 100644
  		u8 accept_fds:1;
  		u8 txn_security_ctx:1;
  		u8 min_priority;
-@@ -403,6 +409,22 @@ enum binder_deferred_state {
+@@ -402,6 +408,22 @@ enum binder_deferred_state {
+ 	BINDER_DEFERRED_RELEASE      = 0x02,
  };
  
- /**
++/**
 + * struct binder_priority - scheduler policy and priority
 + * @sched_policy            scheduler policy
 + * @prio                    [100..139] for SCHED_NORMAL, [0..99] for FIFO/RT
@@ -85,10 +86,9 @@ index 5d1e263..e0915ec 100644
 +	int prio;
 +};
 +
-+/**
+ /**
   * struct binder_proc - binder process bookkeeping
   * @proc_node:            element for binder_procs list
-  * @threads:              rbtree of binder_threads in this proc
 @@ -480,7 +502,7 @@ struct binder_proc {
  	int requested_threads;
  	int requested_threads_started;
@@ -474,7 +474,7 @@ index 5d1e263..e0915ec 100644
  		   node->local_strong_refs, node->local_weak_refs,
  		   node->internal_strong_refs, count, node->tmp_refs);
 diff --git a/drivers/android/binder_trace.h b/drivers/android/binder_trace.h
-index 6731c3c..a70e237 100644
+index 6731c3cd8145..a70e23716ad0 100644
 --- a/drivers/android/binder_trace.h
 +++ b/drivers/android/binder_trace.h
 @@ -76,6 +76,30 @@ DEFINE_BINDER_FUNCTION_RETURN_EVENT(binder_ioctl_done);
@@ -509,10 +509,10 @@ index 6731c3c..a70e237 100644
  	TP_PROTO(bool proc_work, bool transaction_stack, bool thread_todo),
  	TP_ARGS(proc_work, transaction_stack, thread_todo),
 diff --git a/include/uapi/linux/android/binder.h b/include/uapi/linux/android/binder.h
-index ec84ad1..8e5b929 100644
+index ec84ad106568..8e5b9290ea37 100644
 --- a/include/uapi/linux/android/binder.h
 +++ b/include/uapi/linux/android/binder.h
-@@ -38,11 +38,59 @@ enum {
+@@ -38,10 +38,58 @@ enum {
  	BINDER_TYPE_PTR		= B_PACK_CHARS('p', 't', '*', B_TYPE_LARGE),
  };
  
@@ -547,7 +547,7 @@ index ec84ad1..8e5b929 100644
 +	 */
  	FLAT_BINDER_FLAG_ACCEPTS_FDS = 0x100,
  
- 	/**
++	/**
 +	 * @FLAT_BINDER_FLAG_SCHED_POLICY_MASK: bit-mask for scheduling policy
 +	 *
 +	 * These two bits can be used to set the min scheduling policy at which
@@ -569,10 +569,9 @@ index ec84ad1..8e5b929 100644
 +	 */
 +	FLAT_BINDER_FLAG_INHERIT_RT = 0x800,
 +
-+	/**
+ 	/**
  	 * @FLAT_BINDER_FLAG_TXN_SECURITY_CTX: request security contexts
  	 *
- 	 * Only when set, causes senders to include their security
 -- 
-2.7.4
+2.17.1
 

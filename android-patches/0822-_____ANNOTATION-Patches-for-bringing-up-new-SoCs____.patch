@@ -1,4 +1,4 @@
-From ca38486f76c87f83afa08febbe0e20f717ee40a1 Mon Sep 17 00:00:00 2001
+From 3c1c456fbb31b3430b5c17d2aadf003b528de634 Mon Sep 17 00:00:00 2001
 From: Matthias Maennich <maennich@google.com>
 Date: Thu, 8 Oct 2020 09:36:14 +0100
 Subject: [PATCH 822/830] _____ANNOTATION: Patches for bringing up new
@@ -15,7 +15,7 @@ Change-Id: I6f339136f41edea7a9d6bf16c9847f52d6977628
  1 file changed, 1 insertion(+)
 
 diff --git a/ANNOTATIONS b/ANNOTATIONS
-index c01635f..d1353a3 100644
+index c01635f7d69e..d1353a38dcb9 100644
 --- a/ANNOTATIONS
 +++ b/ANNOTATIONS
 @@ -30,3 +30,4 @@ networking changes
@@ -24,5 +24,5 @@ index c01635f..d1353a3 100644
  Android kconfigs and build scripts
 +Bringup patches
 -- 
-2.7.4
+2.17.1
 

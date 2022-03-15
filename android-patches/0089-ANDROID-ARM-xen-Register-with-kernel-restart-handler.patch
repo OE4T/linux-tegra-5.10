@@ -1,4 +1,4 @@
-From e5d9ee73dafb9b4af3d710858122e9ec46507a92 Mon Sep 17 00:00:00 2001
+From b197d44429c8428b7694863ab4d59a6dc1e25205 Mon Sep 17 00:00:00 2001
 From: Guenter Roeck <linux@roeck-us.net>
 Date: Tue, 15 Oct 2019 16:51:43 +0200
 Subject: [PATCH 089/830] ANDROID: ARM: xen: Register with kernel restart
@@ -26,7 +26,7 @@ Signed-off-by: Elliot Berman <eberman@codeaurora.org>
  1 file changed, 10 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/xen/enlighten.c b/arch/arm/xen/enlighten.c
-index 8ad576e..7f1c106b 100644
+index 8ad576ecd0f1..7f1c106b746f 100644
 --- a/arch/arm/xen/enlighten.c
 +++ b/arch/arm/xen/enlighten.c
 @@ -29,6 +29,7 @@
@@ -67,5 +67,5 @@ index 8ad576e..7f1c106b 100644
  		struct timespec64 ts;
  		xen_read_wallclock(&ts);
 -- 
-2.7.4
+2.17.1
 

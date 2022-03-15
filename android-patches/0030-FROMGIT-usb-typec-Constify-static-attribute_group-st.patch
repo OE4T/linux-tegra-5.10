@@ -1,4 +1,4 @@
-From 1469b15b01e089aa84343dd2bdd1c437842b298a Mon Sep 17 00:00:00 2001
+From 84b85a8390bdd08e5880330eed97c4fb8316d366 Mon Sep 17 00:00:00 2001
 From: Rikard Falkeborn <rikard.falkeborn@gmail.com>
 Date: Wed, 25 Nov 2020 17:24:59 +0100
 Subject: [PATCH 030/830] FROMGIT: usb: typec: Constify static attribute_group
@@ -23,7 +23,7 @@ Change-Id: I16847ce4feeda7009c244ee8face05e8396d8254
  1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/usb/typec/class.c b/drivers/usb/typec/class.c
-index 71c2227..a5e3dc6 100644
+index 71c2227f1874..a5e3dc6dce79 100644
 --- a/drivers/usb/typec/class.c
 +++ b/drivers/usb/typec/class.c
 @@ -417,7 +417,7 @@ static umode_t typec_altmode_attr_is_visible(struct kobject *kobj,
@@ -63,5 +63,5 @@ index 71c2227..a5e3dc6 100644
  	.attrs = typec_attrs,
  };
 -- 
-2.7.4
+2.17.1
 

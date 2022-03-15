@@ -1,4 +1,4 @@
-From 23dc3dccc8cb1a11f9afd6ac7c4320c624eab707 Mon Sep 17 00:00:00 2001
+From 14913a5620d1412fe1fba84586833894aa5ad8f9 Mon Sep 17 00:00:00 2001
 From: Saravana Kannan <saravanak@google.com>
 Date: Wed, 6 Nov 2019 12:21:35 -0800
 Subject: [PATCH 303/830] ANDROID: GKI: clk: Add support for clock providers
@@ -18,12 +18,12 @@ Bug: 144066914
 Signed-off-by: Saravana Kannan <saravanak@google.com>
 Change-Id: Id01bfc15347812faa19802463c088db162c7d117
 ---
- drivers/clk/clk.c            | 65 ++++++++++++++++++++++++++++++++++++++++++++
+ drivers/clk/clk.c            | 65 ++++++++++++++++++++++++++++++++++++
  include/linux/clk-provider.h |  2 ++
  2 files changed, 67 insertions(+)
 
 diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
-index c2c0f5e..ca3b3ef 100644
+index e4ff63c2487f..98eab4b4db23 100644
 --- a/drivers/clk/clk.c
 +++ b/drivers/clk/clk.c
 @@ -80,6 +80,8 @@ struct clk_core {
@@ -108,7 +108,7 @@ index c2c0f5e..ca3b3ef 100644
  /*
   * Update the orphan status of @core and all its children.
   */
-@@ -3828,6 +3889,7 @@ static void clk_core_reparent_orphans_nolock(void)
+@@ -3846,6 +3907,7 @@ static void clk_core_reparent_orphans_nolock(void)
  			__clk_set_parent_after(orphan, parent, NULL);
  			__clk_recalc_accuracies(orphan);
  			__clk_recalc_rates(orphan, 0);
@@ -116,7 +116,7 @@ index c2c0f5e..ca3b3ef 100644
  		}
  	}
  }
-@@ -3986,6 +4048,8 @@ static int __clk_core_init(struct clk_core *core)
+@@ -4012,6 +4074,8 @@ static int __clk_core_init(struct clk_core *core)
  		rate = 0;
  	core->rate = core->req_rate = rate;
  
@@ -125,7 +125,7 @@ index c2c0f5e..ca3b3ef 100644
  	/*
  	 * Enable CLK_IS_CRITICAL clocks so newly added critical clocks
  	 * don't get accidentally disabled when walking the orphan tree and
-@@ -4012,6 +4076,7 @@ static int __clk_core_init(struct clk_core *core)
+@@ -4038,6 +4102,7 @@ static int __clk_core_init(struct clk_core *core)
  		}
  	}
  
@@ -134,7 +134,7 @@ index c2c0f5e..ca3b3ef 100644
  
  
 diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
-index 37c7844..e011e64 100644
+index 37c78446394e..e011e6427450 100644
 --- a/include/linux/clk-provider.h
 +++ b/include/linux/clk-provider.h
 @@ -33,6 +33,7 @@
@@ -154,5 +154,5 @@ index 37c7844..e011e64 100644
  /* helper functions */
  const char *__clk_get_name(const struct clk *clk);
 -- 
-2.7.4
+2.17.1
 

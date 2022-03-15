@@ -1,4 +1,4 @@
-From 4cc1a9f276bd1d273d225e2c8916b569fe2efffb Mon Sep 17 00:00:00 2001
+From 3907769d1028f7c98c9d34626b30e6cb03824696 Mon Sep 17 00:00:00 2001
 From: Suren Baghdasaryan <surenb@google.com>
 Date: Wed, 13 Nov 2019 10:45:00 -0800
 Subject: [PATCH 271/830] ANDROID: staging: android: ion: Expose total heap and
@@ -17,20 +17,20 @@ Test: adb shell cat /sys/kernel/ion/*
 Change-Id: If92770dc3389af865c619525f04d3ba0e013b244
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 ---
- Documentation/ABI/testing/sysfs-kernel-ion         | 27 ++++++++
- drivers/staging/android/ion/heaps/ion_page_pool.c  | 11 ++++
- drivers/staging/android/ion/heaps/ion_page_pool.h  |  1 +
- .../staging/android/ion/heaps/ion_system_heap.c    | 14 +++++
- drivers/staging/android/ion/ion.c                  | 72 +++++++++++++++++++++-
- drivers/staging/android/ion/ion_buffer.c           |  9 +++
- drivers/staging/android/ion/ion_private.h          |  2 +
- include/linux/ion.h                                |  2 +
+ Documentation/ABI/testing/sysfs-kernel-ion    | 27 +++++++
+ .../staging/android/ion/heaps/ion_page_pool.c | 11 +++
+ .../staging/android/ion/heaps/ion_page_pool.h |  1 +
+ .../android/ion/heaps/ion_system_heap.c       | 14 ++++
+ drivers/staging/android/ion/ion.c             | 72 ++++++++++++++++++-
+ drivers/staging/android/ion/ion_buffer.c      |  9 +++
+ drivers/staging/android/ion/ion_private.h     |  2 +
+ include/linux/ion.h                           |  2 +
  8 files changed, 136 insertions(+), 2 deletions(-)
  create mode 100644 Documentation/ABI/testing/sysfs-kernel-ion
 
 diff --git a/Documentation/ABI/testing/sysfs-kernel-ion b/Documentation/ABI/testing/sysfs-kernel-ion
 new file mode 100644
-index 00000000..f57f970
+index 000000000000..f57f970574ae
 --- /dev/null
 +++ b/Documentation/ABI/testing/sysfs-kernel-ion
 @@ -0,0 +1,27 @@
@@ -62,7 +62,7 @@ index 00000000..f57f970
 +		The total_pools_kb file is read-only and specifies how much
 +		memory in Kb is allocated to ION pools.
 diff --git a/drivers/staging/android/ion/heaps/ion_page_pool.c b/drivers/staging/android/ion/heaps/ion_page_pool.c
-index 7e9a4de..d34c192 100644
+index 7e9a4de4810c..d34c192b1c27 100644
 --- a/drivers/staging/android/ion/heaps/ion_page_pool.c
 +++ b/drivers/staging/android/ion/heaps/ion_page_pool.c
 @@ -97,6 +97,17 @@ static int ion_page_pool_total(struct ion_page_pool *pool, bool high)
@@ -84,7 +84,7 @@ index 7e9a4de..d34c192 100644
  			 int nr_to_scan)
  {
 diff --git a/drivers/staging/android/ion/heaps/ion_page_pool.h b/drivers/staging/android/ion/heaps/ion_page_pool.h
-index e205d00..10c7909 100644
+index e205d0086833..10c79090c7a0 100644
 --- a/drivers/staging/android/ion/heaps/ion_page_pool.h
 +++ b/drivers/staging/android/ion/heaps/ion_page_pool.h
 @@ -53,6 +53,7 @@ struct ion_page_pool *ion_page_pool_create(gfp_t gfp_mask, unsigned int order);
@@ -96,7 +96,7 @@ index e205d00..10c7909 100644
  /** ion_page_pool_shrink - shrinks the size of the memory cached in the pool
   * @pool:		the pool
 diff --git a/drivers/staging/android/ion/heaps/ion_system_heap.c b/drivers/staging/android/ion/heaps/ion_system_heap.c
-index b249104..fc63049 100644
+index b249104042c1..fc630492996f 100644
 --- a/drivers/staging/android/ion/heaps/ion_system_heap.c
 +++ b/drivers/staging/android/ion/heaps/ion_system_heap.c
 @@ -208,6 +208,19 @@ static int ion_system_heap_shrink(struct ion_heap *heap, gfp_t gfp_mask,
@@ -128,7 +128,7 @@ index b249104..fc63049 100644
  
  static struct ion_system_heap system_heap = {
 diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
-index aa29917..10c33b1 100644
+index aa299172e61d..10c33b16fef2 100644
 --- a/drivers/staging/android/ion/ion.c
 +++ b/drivers/staging/android/ion/ion.c
 @@ -421,6 +421,63 @@ void ion_device_remove_heap(struct ion_heap *heap)
@@ -224,7 +224,7 @@ index aa29917..10c33b1 100644
  }
  subsys_initcall(ion_device_create);
 diff --git a/drivers/staging/android/ion/ion_buffer.c b/drivers/staging/android/ion/ion_buffer.c
-index 446d5d5..0c6db91 100644
+index 446d5d50c779..0c6db9119fc1 100644
 --- a/drivers/staging/android/ion/ion_buffer.c
 +++ b/drivers/staging/android/ion/ion_buffer.c
 @@ -13,6 +13,8 @@
@@ -262,7 +262,7 @@ index 446d5d5..0c6db91 100644
 +	return atomic_long_read(&total_heap_bytes);
 +}
 diff --git a/drivers/staging/android/ion/ion_private.h b/drivers/staging/android/ion/ion_private.h
-index ca4ca23..db4e906 100644
+index ca4ca2389397..db4e90683f4c 100644
 --- a/drivers/staging/android/ion/ion_private.h
 +++ b/drivers/staging/android/ion/ion_private.h
 @@ -53,4 +53,6 @@ extern int ion_free(struct ion_buffer *buffer);
@@ -273,7 +273,7 @@ index ca4ca23..db4e906 100644
 +
  #endif /* _ION_PRIVATE_H */
 diff --git a/include/linux/ion.h b/include/linux/ion.h
-index 0887051..4eadf39 100644
+index 088705119b16..4eadf397a6bc 100644
 --- a/include/linux/ion.h
 +++ b/include/linux/ion.h
 @@ -53,6 +53,7 @@ struct ion_buffer {
@@ -293,5 +293,5 @@ index 0887051..4eadf39 100644
  
  /**
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 276471daa04c7e789158fa3c0ebd339b75ae9312 Mon Sep 17 00:00:00 2001
+From a704a0836f881b407da873e869bf38247761b6b0 Mon Sep 17 00:00:00 2001
 From: Greg Kroah-Hartman <gregkh@google.com>
 Date: Mon, 10 Aug 2020 19:11:09 +0200
 Subject: [PATCH 734/830] ANDROID: enable CONFIG_INIT_STACK_ALL_ZERO=y
@@ -22,7 +22,7 @@ Change-Id: Ibb065f8311d4b5b1ff84bb2226cd9214e0912de9
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 3b3704d..54423183 100644
+index 3b3704d4ca49..5442318360cc 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -480,6 +480,7 @@ CONFIG_FORTIFY_SOURCE=y
@@ -34,7 +34,7 @@ index 3b3704d..54423183 100644
  CONFIG_CRYPTO_CHACHA20POLY1305=y
  CONFIG_CRYPTO_ADIANTUM=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 76fac392..a6a6690 100644
+index 76fac392758d..a6a6690bd98e 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -428,6 +428,7 @@ CONFIG_FORTIFY_SOURCE=y
@@ -46,5 +46,5 @@ index 76fac392..a6a6690 100644
  CONFIG_CRYPTO_CHACHA20POLY1305=y
  CONFIG_CRYPTO_ADIANTUM=y
 -- 
-2.7.4
+2.17.1
 

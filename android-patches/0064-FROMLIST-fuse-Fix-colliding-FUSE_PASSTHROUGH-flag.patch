@@ -1,4 +1,4 @@
-From 69beff7da36a6d78d616beaa8c16837f049f8714 Mon Sep 17 00:00:00 2001
+From d84c238679408a929afd4e1c1c66cde85ff72520 Mon Sep 17 00:00:00 2001
 From: Alessio Balsini <balsini@google.com>
 Date: Thu, 12 Nov 2020 10:32:12 +0000
 Subject: [PATCH 064/830] FROMLIST: fuse: Fix colliding FUSE_PASSTHROUGH flag
@@ -19,7 +19,7 @@ Change-Id: Ida0097fd2f9adee3bc85526dc6c78c7a87ac8f13
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/include/uapi/linux/fuse.h b/include/uapi/linux/fuse.h
-index d2879c1..5fb651a 100644
+index d2879c1ac9d5..5fb651afdefd 100644
 --- a/include/uapi/linux/fuse.h
 +++ b/include/uapi/linux/fuse.h
 @@ -349,7 +349,7 @@ struct fuse_file_lock {
@@ -32,5 +32,5 @@ index d2879c1..5fb651a 100644
  /**
   * CUSE INIT request/reply flags
 -- 
-2.7.4
+2.17.1
 

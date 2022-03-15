@@ -1,4 +1,4 @@
-From ad2c929eb5aa31f5fec45d3f1d03db23674c6496 Mon Sep 17 00:00:00 2001
+From 03d5a1074ad9a133220b563ad10727f19b71d217 Mon Sep 17 00:00:00 2001
 From: John Stultz <john.stultz@linaro.org>
 Date: Fri, 30 Oct 2020 06:49:41 +0000
 Subject: [PATCH 282/830] ANDROID: dma: Rework so dev_get_cma_area() can be
@@ -20,7 +20,7 @@ Signed-off-by: Hridya Valsaraju <hridya@google.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/kernel/dma/contiguous.c b/kernel/dma/contiguous.c
-index 16b95ff..b836768 100644
+index 16b95ff12e4d..b83676826038 100644
 --- a/kernel/dma/contiguous.c
 +++ b/kernel/dma/contiguous.c
 @@ -58,6 +58,7 @@
@@ -32,5 +32,5 @@ index 16b95ff..b836768 100644
  /*
   * Default global CMA area size can be defined in kernel's .config.
 -- 
-2.7.4
+2.17.1
 

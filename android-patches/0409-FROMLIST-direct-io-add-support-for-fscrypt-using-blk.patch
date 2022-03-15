@@ -1,4 +1,4 @@
-From b7005b1a476579fa0f73173eef16eb088b419a7f Mon Sep 17 00:00:00 2001
+From 040a4d037715744b7d8c0f82579cdda917017ee2 Mon Sep 17 00:00:00 2001
 From: Eric Biggers <ebiggers@google.com>
 Date: Thu, 9 Jul 2020 19:47:48 +0000
 Subject: [PATCH 409/830] FROMLIST: direct-io: add support for fscrypt using
@@ -24,7 +24,7 @@ Change-Id: I34b4432a6d820e8bf3e051b196e72c79a180e565
  1 file changed, 14 insertions(+), 1 deletion(-)
 
 diff --git a/fs/direct-io.c b/fs/direct-io.c
-index 764ea30..ec6b4e0 100644
+index 764ea304b669..ec6b4e04d97e 100644
 --- a/fs/direct-io.c
 +++ b/fs/direct-io.c
 @@ -25,6 +25,7 @@
@@ -73,5 +73,5 @@ index 764ea30..ec6b4e0 100644
  	}
  
 -- 
-2.7.4
+2.17.1
 

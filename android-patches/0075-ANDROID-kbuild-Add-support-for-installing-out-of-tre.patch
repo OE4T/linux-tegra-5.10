@@ -1,4 +1,4 @@
-From 133f1b1f45a3741c00c355691648a752238c9641 Mon Sep 17 00:00:00 2001
+From cf00be68cf49011374996e53872e591a867c2af2 Mon Sep 17 00:00:00 2001
 From: Elliot Berman <eberman@codeaurora.org>
 Date: Fri, 24 Jul 2020 18:12:48 -0700
 Subject: [PATCH 075/830] ANDROID: kbuild: Add support for installing
@@ -14,12 +14,12 @@ Bug: 162332589
 Change-Id: I2e2c7598612bea94267e6a9bc6d0793da53915ac
 Signed-off-by: Elliot Berman <eberman@codeaurora.org>
 ---
- Documentation/kbuild/modules.rst | 16 ++++++++++++++++
- Makefile                         | 37 +++++++++++++++++++++++++++++++++++++
+ Documentation/kbuild/modules.rst | 16 ++++++++++++++
+ Makefile                         | 37 ++++++++++++++++++++++++++++++++
  2 files changed, 53 insertions(+)
 
 diff --git a/Documentation/kbuild/modules.rst b/Documentation/kbuild/modules.rst
-index 85ccc87..d4b3e0c 100644
+index 85ccc878895e..d4b3e0c1d9fb 100644
 --- a/Documentation/kbuild/modules.rst
 +++ b/Documentation/kbuild/modules.rst
 @@ -21,6 +21,7 @@ This document describes how to build an out-of-tree kernel module.
@@ -60,10 +60,10 @@ index 85ccc87..d4b3e0c 100644
  5. Module Installation
  ======================
 diff --git a/Makefile b/Makefile
-index dda2723..270f2f5 100644
+index caa02d0723a7..881d83f7e698 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -1144,6 +1144,41 @@ PHONY += prepare0
+@@ -1146,6 +1146,41 @@ PHONY += prepare0
  export MODORDER := $(extmod-prefix)modules.order
  export MODULES_NSDEPS := $(extmod-prefix)modules.nsdeps
  
@@ -105,7 +105,7 @@ index dda2723..270f2f5 100644
  ifeq ($(KBUILD_EXTMOD),)
  core-y		+= kernel/ certs/ mm/ fs/ ipc/ security/ crypto/ block/
  
-@@ -1789,6 +1824,8 @@ help:
+@@ -1791,6 +1826,8 @@ help:
  	@echo  ''
  	@echo  '  modules         - default target, build the module(s)'
  	@echo  '  modules_install - install the module'
@@ -115,5 +115,5 @@ index dda2723..270f2f5 100644
  	@echo  ''
  
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 72cdffbaa8d240032bbd91c2ca77c3816899f6a3 Mon Sep 17 00:00:00 2001
+From f443a68075111bf30ff87944f1ee7ed80c87fb03 Mon Sep 17 00:00:00 2001
 From: Eric Biggers <ebiggers@google.com>
 Date: Thu, 8 Oct 2020 17:11:27 -0700
 Subject: [PATCH 377/830] ANDROID: scsi: ufs: allow overriding the
@@ -27,7 +27,7 @@ Signed-off-by: Eric Biggers <ebiggers@google.com>
  2 files changed, 17 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/scsi/ufs/ufshcd-crypto.c b/drivers/scsi/ufs/ufshcd-crypto.c
-index 07310b1..8bedb4b 100644
+index 07310b12a5dc..8bedb4b13d8a 100644
 --- a/drivers/scsi/ufs/ufshcd-crypto.c
 +++ b/drivers/scsi/ufs/ufshcd-crypto.c
 @@ -120,7 +120,8 @@ bool ufshcd_crypto_enable(struct ufs_hba *hba)
@@ -64,7 +64,7 @@ index 07310b1..8bedb4b 100644
  
  void ufshcd_crypto_setup_rq_keyslot_manager(struct ufs_hba *hba,
 diff --git a/drivers/scsi/ufs/ufshcd.h b/drivers/scsi/ufs/ufshcd.h
-index c021055..5f49e5e 100644
+index c02105599b63..5f49e5e35755 100644
 --- a/drivers/scsi/ufs/ufshcd.h
 +++ b/drivers/scsi/ufs/ufshcd.h
 @@ -587,6 +587,15 @@ enum ufshcd_quirks {
@@ -84,5 +84,5 @@ index c021055..5f49e5e 100644
  
  enum ufshcd_caps {
 -- 
-2.7.4
+2.17.1
 

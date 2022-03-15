@@ -1,4 +1,4 @@
-From 6685e7d1f3727588189cc7620126892adc13f1b9 Mon Sep 17 00:00:00 2001
+From 58a693cb699749f4cd8cc1fef55662cd06c92222 Mon Sep 17 00:00:00 2001
 From: Chris Goldsworthy <cgoldswo@codeaurora.org>
 Date: Mon, 9 Nov 2020 22:26:47 -0800
 Subject: [PATCH 229/830] ANDROID: mm: Create vendor hooks to control
@@ -17,17 +17,17 @@ Change-Id: I4a4f0b724267ee120a1e5661f6da5d43d7ef6fc6
 Signed-off-by: Chris Goldsworthy <cgoldswo@codeaurora.org>
 ---
  drivers/android/vendor_hooks.c |  4 ++++
- include/linux/gfp.h            | 11 +----------
+ include/linux/gfp.h            | 11 +---------
  include/linux/pagemap.h        |  5 +----
- include/trace/hooks/mm.h       | 38 ++++++++++++++++++++++++++++++++++++++
+ include/trace/hooks/mm.h       | 38 ++++++++++++++++++++++++++++++++++
  mm/memory.c                    |  7 +++++--
- mm/mmzone.c                    | 17 +++++++++++++++++
- mm/readahead.c                 | 10 ++++++++++
+ mm/mmzone.c                    | 17 +++++++++++++++
+ mm/readahead.c                 | 10 +++++++++
  7 files changed, 76 insertions(+), 16 deletions(-)
  create mode 100644 include/trace/hooks/mm.h
 
 diff --git a/drivers/android/vendor_hooks.c b/drivers/android/vendor_hooks.c
-index e82e42a..37b7139 100644
+index e82e42a41d8a..37b7139d16c3 100644
 --- a/drivers/android/vendor_hooks.c
 +++ b/drivers/android/vendor_hooks.c
 @@ -20,6 +20,7 @@
@@ -49,7 +49,7 @@ index e82e42a..37b7139 100644
  EXPORT_TRACEPOINT_SYMBOL_GPL(android_rvh_preempt_enable);
  EXPORT_TRACEPOINT_SYMBOL_GPL(android_rvh_irqs_disable);
 diff --git a/include/linux/gfp.h b/include/linux/gfp.h
-index e80b7d2..918647ffa 100644
+index e80b7d2f5b38..918647ffa7df 100644
 --- a/include/linux/gfp.h
 +++ b/include/linux/gfp.h
 @@ -462,16 +462,7 @@ static inline bool gfpflags_normal_context(const gfp_t gfp_flags)
@@ -71,7 +71,7 @@ index e80b7d2..918647ffa 100644
  /*
   * There is only one page-allocator function, and two main namespaces to
 diff --git a/include/linux/pagemap.h b/include/linux/pagemap.h
-index d4f2c8d..bbf372d 100644
+index d4f2c8d8322c..bbf372dabc9d 100644
 --- a/include/linux/pagemap.h
 +++ b/include/linux/pagemap.h
 @@ -296,10 +296,7 @@ static inline struct page *page_cache_alloc(struct address_space *x)
@@ -88,7 +88,7 @@ index d4f2c8d..bbf372d 100644
  
 diff --git a/include/trace/hooks/mm.h b/include/trace/hooks/mm.h
 new file mode 100644
-index 00000000..b7fb70f
+index 000000000000..b7fb70f6d8d7
 --- /dev/null
 +++ b/include/trace/hooks/mm.h
 @@ -0,0 +1,38 @@
@@ -131,7 +131,7 @@ index 00000000..b7fb70f
 +/* This part must be outside protection */
 +#include <trace/define_trace.h>
 diff --git a/mm/memory.c b/mm/memory.c
-index 1be0b9b..3cc4517 100644
+index 1be0b9bd47e5..3cc4517f237e 100644
 --- a/mm/memory.c
 +++ b/mm/memory.c
 @@ -73,6 +73,7 @@
@@ -156,7 +156,7 @@ index 1be0b9b..3cc4517 100644
  				int err;
  
 diff --git a/mm/mmzone.c b/mm/mmzone.c
-index 4686fdc..f04cbef 100644
+index 4686fdc23bb9..f04cbef1eb88 100644
 --- a/mm/mmzone.c
 +++ b/mm/mmzone.c
 @@ -9,6 +9,7 @@
@@ -188,7 +188,7 @@ index 4686fdc..f04cbef 100644
 +	return z;
 +}
 diff --git a/mm/readahead.c b/mm/readahead.c
-index c5b0457..a6bfa98 100644
+index c5b0457415be..a6bfa987a04a 100644
 --- a/mm/readahead.c
 +++ b/mm/readahead.c
 @@ -23,6 +23,7 @@
@@ -216,5 +216,5 @@ index c5b0457..a6bfa98 100644
  		bool skip_page)
  {
 -- 
-2.7.4
+2.17.1
 

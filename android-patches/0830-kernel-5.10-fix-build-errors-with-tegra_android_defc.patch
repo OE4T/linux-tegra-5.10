@@ -1,4 +1,4 @@
-From 83efe8eac5a113ada01627558eeb953f3d54213f Mon Sep 17 00:00:00 2001
+From c500b7890de62fadb5061028bc6b3584ffbfd8c1 Mon Sep 17 00:00:00 2001
 From: kartik <kkartik@nvidia.com>
 Date: Fri, 23 Apr 2021 14:37:20 +0530
 Subject: [PATCH 830/830] kernel-5.10: fix build errors with
@@ -14,13 +14,14 @@ Signed-off-by: kartik <kkartik@nvidia.com>
  fs/crypto/keysetup.c          |  2 +-
  fs/ext4/namei.c               |  2 +-
  include/trace/bpf_probe.h     |  2 +-
+ kernel/cgroup/cpuset.c        |  2 --
  net/core/filter.c             |  7 -------
  verity_dev_keys.x509          | 24 ++++++++++++++++++++++++
- 6 files changed, 30 insertions(+), 12 deletions(-)
+ 7 files changed, 30 insertions(+), 14 deletions(-)
  create mode 100644 verity_dev_keys.x509
 
 diff --git a/drivers/scsi/ufs/ufshcd-pci.c b/drivers/scsi/ufs/ufshcd-pci.c
-index 41cfdb9..799e903 100644
+index 2d0ec45e063c..ab8a840b07ea 100644
 --- a/drivers/scsi/ufs/ufshcd-pci.c
 +++ b/drivers/scsi/ufs/ufshcd-pci.c
 @@ -25,7 +25,7 @@ struct intel_host {
@@ -44,7 +45,7 @@ index 41cfdb9..799e903 100644
  		dev_err(&pdev->dev, "Allocation failed\n");
  		return err;
 diff --git a/fs/crypto/keysetup.c b/fs/crypto/keysetup.c
-index 1299d155..8cc2b1b 100644
+index 1299d155bc8b..8cc2b1be33e5 100644
 --- a/fs/crypto/keysetup.c
 +++ b/fs/crypto/keysetup.c
 @@ -205,7 +205,7 @@ static int setup_per_mode_enc_key(struct fscrypt_info *ci,
@@ -57,7 +58,7 @@ index 1299d155..8cc2b1b 100644
  				fscrypt_warn(ci->ci_inode,
  					     "Each hardware-wrapped key can only be used with one encryption mode");
 diff --git a/fs/ext4/namei.c b/fs/ext4/namei.c
-index 35fec16..3aaee65 100644
+index 35fec16e38a9..3aaee65905fa 100644
 --- a/fs/ext4/namei.c
 +++ b/fs/ext4/namei.c
 @@ -3732,7 +3732,7 @@ static void ext4_resetent(handle_t *handle, struct ext4_renament *ent,
@@ -70,7 +71,7 @@ index 35fec16..3aaee65 100644
  		retval = PTR_ERR(old.bh);
  	if (!old.bh)
 diff --git a/include/trace/bpf_probe.h b/include/trace/bpf_probe.h
-index cd74bff..2e8f60c 100644
+index cd74bffed5c6..2e8f60ca7426 100644
 --- a/include/trace/bpf_probe.h
 +++ b/include/trace/bpf_probe.h
 @@ -33,7 +33,7 @@
@@ -82,11 +83,24 @@ index cd74bff..2e8f60c 100644
  #define __CAST_TO_U64(x) ({ \
  	typeof(x) __src = (x); \
  	UINTTYPE(sizeof(x)) __dst; \
+diff --git a/kernel/cgroup/cpuset.c b/kernel/cgroup/cpuset.c
+index 68d5f644a4a8..0e2c96d6488a 100644
+--- a/kernel/cgroup/cpuset.c
++++ b/kernel/cgroup/cpuset.c
+@@ -1491,8 +1491,6 @@ static void update_sibling_cpumasks(struct cpuset *parent, struct cpuset *cs,
+ 	struct cpuset *sibling;
+ 	struct cgroup_subsys_state *pos_css;
+ 
+-	percpu_rwsem_assert_held(&cpuset_rwsem);
+-
+ 	/*
+ 	 * Check all its siblings and call update_cpumasks_hier()
+ 	 * if their use_parent_ecpus flag is set in order for them
 diff --git a/net/core/filter.c b/net/core/filter.c
-index b199077..abd58dc 100644
+index ee75b19dbf88..659a32802471 100644
 --- a/net/core/filter.c
 +++ b/net/core/filter.c
-@@ -3550,13 +3550,6 @@ static int bpf_skb_net_shrink(struct sk_buff *skb, u32 off, u32 len_diff,
+@@ -3553,13 +3553,6 @@ static int bpf_skb_net_shrink(struct sk_buff *skb, u32 off, u32 len_diff,
  
  #define BPF_SKB_MAX_LEN SKB_MAX_ALLOC
  
@@ -102,7 +116,7 @@ index b199077..abd58dc 100644
  {
 diff --git a/verity_dev_keys.x509 b/verity_dev_keys.x509
 new file mode 100644
-index 00000000..86399c3
+index 000000000000..86399c3c1dd7
 --- /dev/null
 +++ b/verity_dev_keys.x509
 @@ -0,0 +1,24 @@
@@ -131,5 +145,5 @@ index 00000000..86399c3
 +yttuAJAEAymk1mipd9+zp38=
 +-----END CERTIFICATE-----
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From b456d5dba2f79b866a0e50fa33001654a22fc789 Mon Sep 17 00:00:00 2001
+From 662c39cc1c889e6002efb3f052f39472b103c843 Mon Sep 17 00:00:00 2001
 From: Qais Yousef <qais.yousef@arm.com>
 Date: Tue, 15 Sep 2020 11:42:28 +0100
 Subject: [PATCH 825/830] ANDROID: arm64: Handle AArch32 tasks running on non
@@ -34,10 +34,10 @@ Change-Id: If520cbf5cd705fb0e0399f36b81d4a68e90beb3a
  2 files changed, 29 insertions(+), 10 deletions(-)
 
 diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index 6e89490..ae6f7de 100644
+index 2f1fe0342d3b..174a35d9d298 100644
 --- a/arch/arm64/Kconfig
 +++ b/arch/arm64/Kconfig
-@@ -1934,10 +1934,9 @@ config ASYMMETRIC_AARCH32
+@@ -1935,10 +1935,9 @@ config ASYMMETRIC_AARCH32
  	  Enable this option to allow support for asymmetric AArch32 EL0
  	  CPU configurations. Once the AArch32 EL0 support is detected
  	  on a CPU, the feature is made available to user space to allow
@@ -52,7 +52,7 @@ index 6e89490..ae6f7de 100644
  	  If unsure say N.
  
 diff --git a/arch/arm64/kernel/signal.c b/arch/arm64/kernel/signal.c
-index a6f8d31..4f4f720 100644
+index a6f8d31c9b84..4f4f7208ca2d 100644
 --- a/arch/arm64/kernel/signal.c
 +++ b/arch/arm64/kernel/signal.c
 @@ -913,14 +913,34 @@ static void do_signal(struct pt_regs *regs)
@@ -105,5 +105,5 @@ index a6f8d31..4f4f720 100644
  
  			if (thread_flags & _TIF_UPROBE)
 -- 
-2.7.4
+2.17.1
 

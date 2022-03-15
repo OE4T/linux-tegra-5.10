@@ -1,4 +1,4 @@
-From 7fbafbe7e3110598f4a363d5dee593a9868c13f3 Mon Sep 17 00:00:00 2001
+From b4f0dae8b0113287616cb4700b17e6aabee5ee68 Mon Sep 17 00:00:00 2001
 From: Maheshwar Ajja <majja@codeaurora.org>
 Date: Mon, 26 Oct 2020 10:56:35 -0700
 Subject: [PATCH 789/830] ANDROID: Kconfig.gki: Enable media controller configs
@@ -18,7 +18,7 @@ Signed-off-by: Maheshwar Ajja <majja@codeaurora.org>
  1 file changed, 3 insertions(+)
 
 diff --git a/init/Kconfig.gki b/init/Kconfig.gki
-index 97d826d..e0511c0 100644
+index 97d826d374cb..e0511c09eb78 100644
 --- a/init/Kconfig.gki
 +++ b/init/Kconfig.gki
 @@ -84,6 +84,9 @@ config GKI_HIDDEN_QCOM_CONFIGS
@@ -32,5 +32,5 @@ index 97d826d..e0511c0 100644
  	select FRAME_VECTOR
  	select CEC_CORE
 -- 
-2.7.4
+2.17.1
 

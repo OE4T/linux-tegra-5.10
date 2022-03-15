@@ -1,4 +1,4 @@
-From d45dd15f2f3662892c389222291e8f6c3ac69f7b Mon Sep 17 00:00:00 2001
+From 148a7c9534c8f3a32f604604bc1a9e4b982c2977 Mon Sep 17 00:00:00 2001
 From: Amir Vajid <avajid@codeaurora.org>
 Date: Tue, 20 Oct 2020 15:58:14 -0700
 Subject: [PATCH 171/830] ANDROID: vendor_hooks: Add hook for jiffies updates
@@ -18,7 +18,7 @@ Signed-off-by: Amir Vajid <avajid@codeaurora.org>
  4 files changed, 12 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/android/vendor_hooks.c b/drivers/android/vendor_hooks.c
-index 0b61fb3..ab07e7d 100644
+index 0b61fb30f333..ab07e7db3d5e 100644
 --- a/drivers/android/vendor_hooks.c
 +++ b/drivers/android/vendor_hooks.c
 @@ -58,3 +58,4 @@ EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_wq_lockup_pool);
@@ -27,7 +27,7 @@ index 0b61fb3..ab07e7d 100644
  EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_printk_hotplug);
 +EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_jiffies_update);
 diff --git a/include/trace/hooks/sched.h b/include/trace/hooks/sched.h
-index 934f7df..8f6cc48a 100644
+index 934f7df70d21..8f6cc48a50ce 100644
 --- a/include/trace/hooks/sched.h
 +++ b/include/trace/hooks/sched.h
 @@ -70,11 +70,15 @@ struct sched_group;
@@ -55,7 +55,7 @@ index 934f7df..8f6cc48a 100644
  #endif /* _TRACE_HOOK_SCHED_H */
  /* This part must be outside protection */
 diff --git a/kernel/time/tick-common.c b/kernel/time/tick-common.c
-index 6c9c342..5c507c6 100644
+index 6c9c342dd0e5..5c507c62850b 100644
 --- a/kernel/time/tick-common.c
 +++ b/kernel/time/tick-common.c
 @@ -17,6 +17,7 @@
@@ -75,7 +75,7 @@ index 6c9c342..5c507c6 100644
  
  	update_process_times(user_mode(get_irq_regs()));
 diff --git a/kernel/time/tick-sched.c b/kernel/time/tick-sched.c
-index 07d1e50..9542f0f 100644
+index 07d1e5052952..9542f0fbc300 100644
 --- a/kernel/time/tick-sched.c
 +++ b/kernel/time/tick-sched.c
 @@ -25,6 +25,7 @@
@@ -99,5 +99,5 @@ index 07d1e50..9542f0f 100644
  	if (ts->inidle)
  		ts->got_idle_tick = 1;
 -- 
-2.7.4
+2.17.1
 

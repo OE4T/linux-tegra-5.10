@@ -1,4 +1,4 @@
-From d15f06ddbadd5a1615e4a9d6941e7a152e77d8dd Mon Sep 17 00:00:00 2001
+From 0821d8e8c7d54fde34f4249dfd7f277ba74898b9 Mon Sep 17 00:00:00 2001
 From: Greg Kroah-Hartman <gregkh@google.com>
 Date: Mon, 22 Jun 2020 15:45:56 +0200
 Subject: [PATCH 712/830] ANDROID: GKI: update gki defconfigs
@@ -23,7 +23,7 @@ Change-Id: Ie1fac5c6c873bea04f199a2b7df33d56ee3f246f
  2 files changed, 5 deletions(-)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index a91b1dd..3b67b1b 100644
+index a91b1ddb1543..3b67b1b0231b 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -15,7 +15,6 @@ CONFIG_IKHEADERS=y
@@ -44,7 +44,7 @@ index a91b1dd..3b67b1b 100644
  CONFIG_DRM=y
  # CONFIG_DRM_FBDEV_EMULATION is not set
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index adc3858..faedb2d 100644
+index adc3858ba7e7..faedb2dd3b6a 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -16,7 +16,6 @@ CONFIG_IKHEADERS=y
@@ -64,5 +64,5 @@ index adc3858..faedb2d 100644
  # CONFIG_DRM_FBDEV_EMULATION is not set
  CONFIG_BACKLIGHT_CLASS_DEVICE=y
 -- 
-2.7.4
+2.17.1
 

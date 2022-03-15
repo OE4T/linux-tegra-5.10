@@ -1,4 +1,4 @@
-From e28130afa4b4b1d2a3c088c55ee7d42a4d619e54 Mon Sep 17 00:00:00 2001
+From de2648cb7436d3c32d59d22c4517eb0265285b1b Mon Sep 17 00:00:00 2001
 From: Alistair Delva <adelva@google.com>
 Date: Wed, 11 Dec 2019 16:44:45 -0800
 Subject: [PATCH 308/830] ANDROID: gnss: Add command line test driver
@@ -27,14 +27,14 @@ Bug: 146517987
 Change-Id: I421386ee4f2ba8f1f0832d9c56a067a600892d3c
 Signed-off-by: Alistair Delva <adelva@google.com>
 ---
- drivers/gnss/Kconfig   |  15 ++++++
- drivers/gnss/Makefile  |   3 ++
- drivers/gnss/cmdline.c | 139 +++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/gnss/Kconfig   |  15 +++++
+ drivers/gnss/Makefile  |   3 +
+ drivers/gnss/cmdline.c | 139 +++++++++++++++++++++++++++++++++++++++++
  3 files changed, 157 insertions(+)
  create mode 100644 drivers/gnss/cmdline.c
 
 diff --git a/drivers/gnss/Kconfig b/drivers/gnss/Kconfig
-index bd12e3d..b94e210 100644
+index bd12e3d57baa..b94e210c7795 100644
 --- a/drivers/gnss/Kconfig
 +++ b/drivers/gnss/Kconfig
 @@ -54,4 +54,19 @@ config GNSS_UBX_SERIAL
@@ -58,7 +58,7 @@ index bd12e3d..b94e210 100644
 +
  endif # GNSS
 diff --git a/drivers/gnss/Makefile b/drivers/gnss/Makefile
-index 451f114..1d27659 100644
+index 451f11401ecc..1d27659f5a7a 100644
 --- a/drivers/gnss/Makefile
 +++ b/drivers/gnss/Makefile
 @@ -17,3 +17,6 @@ gnss-sirf-y := sirf.o
@@ -70,7 +70,7 @@ index 451f114..1d27659 100644
 +gnss-cmdline-y := cmdline.o
 diff --git a/drivers/gnss/cmdline.c b/drivers/gnss/cmdline.c
 new file mode 100644
-index 00000000..3e1d2463
+index 000000000000..3e1d24636b8c
 --- /dev/null
 +++ b/drivers/gnss/cmdline.c
 @@ -0,0 +1,139 @@
@@ -214,5 +214,5 @@ index 00000000..3e1d2463
 +MODULE_DESCRIPTION("GNSS command line driver");
 +MODULE_LICENSE("GPL v2");
 -- 
-2.7.4
+2.17.1
 

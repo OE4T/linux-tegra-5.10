@@ -1,4 +1,4 @@
-From 673e68622ef02e4688d9c337db07537c00083dc7 Mon Sep 17 00:00:00 2001
+From 73805e09ef3f1476768fb00062a1e39109a80ed0 Mon Sep 17 00:00:00 2001
 From: Steve Muckle <smuckle@google.com>
 Date: Thu, 17 Oct 2019 12:14:13 -0700
 Subject: [PATCH 114/830] ANDROID: unconditionally compile sig_ok in struct
@@ -23,7 +23,7 @@ Signed-off-by: Steve Muckle <smuckle@google.com>
  1 file changed, 5 insertions(+), 3 deletions(-)
 
 diff --git a/include/linux/module.h b/include/linux/module.h
-index 6264617..c491c1b 100644
+index 6264617bab4d..c491c1bb0d76 100644
 --- a/include/linux/module.h
 +++ b/include/linux/module.h
 @@ -404,10 +404,12 @@ struct module {
@@ -43,5 +43,5 @@ index 6264617..c491c1b 100644
  	bool async_probe_requested;
  
 -- 
-2.7.4
+2.17.1
 

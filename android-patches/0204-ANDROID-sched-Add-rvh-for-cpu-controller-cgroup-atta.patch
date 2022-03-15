@@ -1,4 +1,4 @@
-From baf3f3410bf19c40dd4188458d9764019043cbbb Mon Sep 17 00:00:00 2001
+From 56f1f3a4e6e3fde745aee8edacb5241af85bc00d Mon Sep 17 00:00:00 2001
 From: Abhijeet Dharmapurikar <adharmap@codeaurora.org>
 Date: Mon, 7 Dec 2020 13:58:00 -0800
 Subject: [PATCH 204/830] ANDROID: sched: Add rvh for cpu controller cgroup
@@ -18,7 +18,7 @@ Signed-off-by: Abhijeet Dharmapurikar <adharmap@codeaurora.org>
  3 files changed, 9 insertions(+)
 
 diff --git a/drivers/android/vendor_hooks.c b/drivers/android/vendor_hooks.c
-index be760d9..e82e42a 100644
+index be760d916ca5..e82e42a41d8a 100644
 --- a/drivers/android/vendor_hooks.c
 +++ b/drivers/android/vendor_hooks.c
 @@ -93,3 +93,4 @@ EXPORT_TRACEPOINT_SYMBOL_GPL(android_rvh_account_irq);
@@ -27,7 +27,7 @@ index be760d9..e82e42a 100644
  EXPORT_TRACEPOINT_SYMBOL_GPL(android_rvh_update_misfit_status);
 +EXPORT_TRACEPOINT_SYMBOL_GPL(android_rvh_cpu_cgroup_attach);
 diff --git a/include/trace/hooks/sched.h b/include/trace/hooks/sched.h
-index c602a1a..f5c07af 100644
+index c602a1a24e93..f5c07afdbbcb 100644
 --- a/include/trace/hooks/sched.h
 +++ b/include/trace/hooks/sched.h
 @@ -189,6 +189,11 @@ DECLARE_RESTRICTED_HOOK(android_rvh_update_cpu_capacity,
@@ -51,7 +51,7 @@ index c602a1a..f5c07af 100644
  #endif /* _TRACE_HOOK_SCHED_H */
  /* This part must be outside protection */
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 683ec57..9e12e90 100644
+index 683ec572677c..9e12e90a335d 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -7847,6 +7847,8 @@ static void cpu_cgroup_attach(struct cgroup_taskset *tset)
@@ -64,5 +64,5 @@ index 683ec57..9e12e90 100644
  
  #ifdef CONFIG_UCLAMP_TASK_GROUP
 -- 
-2.7.4
+2.17.1
 

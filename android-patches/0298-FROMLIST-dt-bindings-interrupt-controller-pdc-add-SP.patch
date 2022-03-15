@@ -1,4 +1,4 @@
-From de691091026c90bae35f837cb523568856e6f981 Mon Sep 17 00:00:00 2001
+From 4de7a4d84563de93be48b78f8e970ad533a2ba35 Mon Sep 17 00:00:00 2001
 From: Lina Iyer <ilina@codeaurora.org>
 Date: Fri, 13 Sep 2019 15:59:14 -0600
 Subject: [PATCH 298/830] FROMLIST: dt-bindings/interrupt-controller: pdc: add
@@ -23,11 +23,11 @@ Change-Id: I0f6dfc11fc4df4b0744b7c9372eaf4c7be3a82d6
 Signed-off-by: Maulik Shah <mkshah@codeaurora.org>
 Link: https://patchwork.kernel.org/patch/11145355
 ---
- .../devicetree/bindings/interrupt-controller/qcom,pdc.txt   | 13 ++++++++++++-
+ .../bindings/interrupt-controller/qcom,pdc.txt      | 13 ++++++++++++-
  1 file changed, 12 insertions(+), 1 deletion(-)
 
 diff --git a/Documentation/devicetree/bindings/interrupt-controller/qcom,pdc.txt b/Documentation/devicetree/bindings/interrupt-controller/qcom,pdc.txt
-index 1df2939..004584e 100644
+index 1df293953327..004584ef71f7 100644
 --- a/Documentation/devicetree/bindings/interrupt-controller/qcom,pdc.txt
 +++ b/Documentation/devicetree/bindings/interrupt-controller/qcom,pdc.txt
 @@ -25,6 +25,9 @@ Properties:
@@ -66,5 +66,5 @@ index 1df2939..004584e 100644
  
  DT binding of a device that wants to use the GIC SPI 514 as a wakeup
 -- 
-2.7.4
+2.17.1
 

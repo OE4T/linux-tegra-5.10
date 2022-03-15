@@ -1,4 +1,4 @@
-From 2344d6ceb826aa250bc30b481d733cd970065f12 Mon Sep 17 00:00:00 2001
+From 560f6b9743a0d7913cba68dd0379f7209cd5b4a0 Mon Sep 17 00:00:00 2001
 From: Daniel Rosenberg <drosen@google.com>
 Date: Fri, 22 Apr 2016 00:00:48 -0700
 Subject: [PATCH 421/830] ANDROID: fuse: Add support for d_canonical_path
@@ -17,13 +17,13 @@ Signed-off-by: Daniel Rosenberg <drosen@google.com>
 Signed-off-by: Alessio Balsini <balsini@google.com>
 ---
  fs/fuse/dev.c             |  9 +++++++++
- fs/fuse/dir.c             | 40 ++++++++++++++++++++++++++++++++++++++++
+ fs/fuse/dir.c             | 40 +++++++++++++++++++++++++++++++++++++++
  fs/fuse/fuse_i.h          |  3 +++
  include/uapi/linux/fuse.h |  1 +
  4 files changed, 53 insertions(+)
 
 diff --git a/fs/fuse/dev.c b/fs/fuse/dev.c
-index 608adde..ab0831b 100644
+index 608adde0617e..ab0831b60bca 100644
 --- a/fs/fuse/dev.c
 +++ b/fs/fuse/dev.c
 @@ -14,6 +14,7 @@
@@ -50,7 +50,7 @@ index 608adde..ab0831b 100644
  	clear_bit(FR_LOCKED, &req->flags);
  	if (!fpq->connected)
 diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c
-index bec5ba4..0c08ef7 100644
+index 242760944eaf..b764e2acfb2b 100644
 --- a/fs/fuse/dir.c
 +++ b/fs/fuse/dir.c
 @@ -389,6 +389,45 @@ static struct vfsmount *fuse_dentry_automount(struct path *path)
@@ -108,7 +108,7 @@ index bec5ba4..0c08ef7 100644
  
  const struct dentry_operations fuse_root_dentry_operations = {
 diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
-index abff5ac..ac5ff1a 100644
+index abff5ac7d6cd..ac5ff1a091a6 100644
 --- a/fs/fuse/fuse_i.h
 +++ b/fs/fuse/fuse_i.h
 @@ -284,6 +284,9 @@ struct fuse_args {
@@ -122,7 +122,7 @@ index abff5ac..ac5ff1a 100644
  
  struct fuse_args_pages {
 diff --git a/include/uapi/linux/fuse.h b/include/uapi/linux/fuse.h
-index 5fb651a..0f5f709ce 100644
+index 5fb651afdefd..0f5f709ce94d 100644
 --- a/include/uapi/linux/fuse.h
 +++ b/include/uapi/linux/fuse.h
 @@ -480,6 +480,7 @@ enum fuse_opcode {
@@ -134,5 +134,5 @@ index 5fb651a..0f5f709ce 100644
  	/* CUSE specific operations */
  	CUSE_INIT		= 4096,
 -- 
-2.7.4
+2.17.1
 

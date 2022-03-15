@@ -1,4 +1,4 @@
-From 40d2a811c88bac3da0d0f5e0e8ae365afd047e36 Mon Sep 17 00:00:00 2001
+From 2bcd674eada410e34aa498682e8106a55be0749d Mon Sep 17 00:00:00 2001
 From: Todd Kjos <tkjos@google.com>
 Date: Thu, 24 Oct 2019 17:07:24 -0700
 Subject: [PATCH 578/830] ANDROID: add README.md
@@ -12,13 +12,13 @@ Signed-off-by: Todd Kjos <tkjos@google.com>
 Co-developed-by: Matthias Maennich <maennich@google.com>
 Signed-off-by: Matthias Maennich <maennich@google.com>
 ---
- README.md | 148 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ README.md | 148 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
  1 file changed, 148 insertions(+)
  create mode 100644 README.md
 
 diff --git a/README.md b/README.md
 new file mode 100644
-index 00000000..e10eee4
+index 000000000000..e10eee47488e
 --- /dev/null
 +++ b/README.md
 @@ -0,0 +1,148 @@
@@ -171,5 +171,5 @@ index 00000000..e10eee4
 +    - add a `Bug:` tag with the Android bug (required for android-specific features)
 +
 -- 
-2.7.4
+2.17.1
 

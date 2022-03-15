@@ -1,4 +1,4 @@
-From 2f5d015cbdecd6c6c2b01b8a2c66de1ab3edb544 Mon Sep 17 00:00:00 2001
+From c02e9de1b6a6cd04d6f79999df2b76258e789726 Mon Sep 17 00:00:00 2001
 From: Alistair Delva <adelva@google.com>
 Date: Sun, 10 May 2020 12:46:00 -0700
 Subject: [PATCH 699/830] ANDROID: GKI: x86: Drop CONFIG_DEVPORT
@@ -15,7 +15,7 @@ Signed-off-by: Alistair Delva <adelva@google.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 6162df7..05d2b97 100644
+index 6162df7ccefa..05d2b97a8459 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -261,6 +261,7 @@ CONFIG_SERIAL_OF_PLATFORM=y
@@ -27,5 +27,5 @@ index 6162df7..05d2b97 100644
  # CONFIG_I2C_COMPAT is not set
  # CONFIG_I2C_HELPER_AUTO is not set
 -- 
-2.7.4
+2.17.1
 

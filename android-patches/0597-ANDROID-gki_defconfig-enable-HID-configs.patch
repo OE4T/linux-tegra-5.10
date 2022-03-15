@@ -1,4 +1,4 @@
-From fd372516d81d517d2958ebdf2a193c89b92d0068 Mon Sep 17 00:00:00 2001
+From 90884e91ee49bd8757b528e674c3c7529e51ad9a Mon Sep 17 00:00:00 2001
 From: Todd Kjos <tkjos@google.com>
 Date: Wed, 11 Dec 2019 09:39:14 -0800
 Subject: [PATCH 597/830] ANDROID: gki_defconfig: enable HID configs
@@ -15,7 +15,7 @@ Signed-off-by: Todd Kjos <tkjos@google.com>
  2 files changed, 4 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index ef28047..0d2970a 100644
+index ef28047456ba..0d2970af7591 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -331,6 +331,8 @@ CONFIG_HID_ELECOM=y
@@ -28,7 +28,7 @@ index ef28047..0d2970a 100644
  CONFIG_USB=y
  CONFIG_USB_OTG=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index dff2f32..b5ed0ed 100644
+index dff2f3203603..b5ed0ed82e84 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -289,6 +289,8 @@ CONFIG_HID_ELECOM=y
@@ -41,5 +41,5 @@ index dff2f32..b5ed0ed 100644
  CONFIG_USB=y
  CONFIG_USB_GADGET=y
 -- 
-2.7.4
+2.17.1
 

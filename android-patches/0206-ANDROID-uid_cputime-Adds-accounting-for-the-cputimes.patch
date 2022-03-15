@@ -1,4 +1,4 @@
-From d0f66e11a729b25004e4af8a24e5e02c1c1df36d Mon Sep 17 00:00:00 2001
+From 8531581a809f466e8061a304c694b6b458941a3d Mon Sep 17 00:00:00 2001
 From: Jin Qian <jinqian@google.com>
 Date: Wed, 11 Mar 2015 10:44:50 -0700
 Subject: [PATCH 206/830] ANDROID: uid_cputime: Adds accounting for the
@@ -41,14 +41,14 @@ Signed-off-by: Alistair Delva <adelva@google.com>
            ecc74079f610 ("ANDROID: uid_cputime: add per-uid IO usage accounting")]
 Signed-off-by: Eric Biggers <ebiggers@google.com>
 ---
- drivers/misc/Kconfig         |   6 ++
+ drivers/misc/Kconfig         |   6 +
  drivers/misc/Makefile        |   1 +
- drivers/misc/uid_sys_stats.c | 245 +++++++++++++++++++++++++++++++++++++++++++
+ drivers/misc/uid_sys_stats.c | 245 +++++++++++++++++++++++++++++++++++
  3 files changed, 252 insertions(+)
  create mode 100644 drivers/misc/uid_sys_stats.c
 
 diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-index fafa8b0..5af2407 100644
+index fafa8b0d8099..5af2407cb864 100644
 --- a/drivers/misc/Kconfig
 +++ b/drivers/misc/Kconfig
 @@ -448,6 +448,12 @@ config MISC_RTSX
@@ -65,7 +65,7 @@ index fafa8b0..5af2407 100644
  	tristate "pvpanic device support"
  	depends on HAS_IOMEM && (ACPI || OF)
 diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
-index d23231e..aecaaed 100644
+index d23231e73330..aecaaed87a35 100644
 --- a/drivers/misc/Makefile
 +++ b/drivers/misc/Makefile
 @@ -57,3 +57,4 @@ obj-$(CONFIG_HABANA_AI)		+= habanalabs/
@@ -75,7 +75,7 @@ index d23231e..aecaaed 100644
 +obj-$(CONFIG_UID_SYS_STATS)	+= uid_sys_stats.o
 diff --git a/drivers/misc/uid_sys_stats.c b/drivers/misc/uid_sys_stats.c
 new file mode 100644
-index 00000000..6f47d12
+index 000000000000..6f47d121fc4d
 --- /dev/null
 +++ b/drivers/misc/uid_sys_stats.c
 @@ -0,0 +1,245 @@
@@ -325,5 +325,5 @@ index 00000000..6f47d12
 +
 +early_initcall(proc_uid_sys_stats_init);
 -- 
-2.7.4
+2.17.1
 

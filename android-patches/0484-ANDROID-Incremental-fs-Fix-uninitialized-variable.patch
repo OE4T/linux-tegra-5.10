@@ -1,4 +1,4 @@
-From 1e5510df1bfbd10bbc9e5be0e7fb0d97618009d6 Mon Sep 17 00:00:00 2001
+From 310645dbb4595d0a586d3604a08ef689ee5fee4f Mon Sep 17 00:00:00 2001
 From: Eric Biggers <ebiggers@google.com>
 Date: Thu, 17 Sep 2020 19:46:48 -0700
 Subject: [PATCH 484/830] ANDROID: Incremental fs: Fix uninitialized variable
@@ -14,7 +14,7 @@ Signed-off-by: Eric Biggers <ebiggers@google.com>
  1 file changed, 1 insertion(+), 2 deletions(-)
 
 diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index 89b9884..7f9b5f7 100644
+index 89b9884cf02a..7f9b5f7a838c 100644
 --- a/fs/incfs/vfs.c
 +++ b/fs/incfs/vfs.c
 @@ -669,7 +669,6 @@ static long ioctl_get_block_count(struct file *f, void __user *arg)
@@ -35,5 +35,5 @@ index 89b9884..7f9b5f7 100644
  
  static long dispatch_ioctl(struct file *f, unsigned int req, unsigned long arg)
 -- 
-2.7.4
+2.17.1
 

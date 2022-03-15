@@ -1,4 +1,4 @@
-From 82f27298e8628aecdb97c9f5085a046e8aff8f4f Mon Sep 17 00:00:00 2001
+From 161cef1e201285c60e2d50f52ad4b372ae0ce045 Mon Sep 17 00:00:00 2001
 From: Guenter Roeck <linux@roeck-us.net>
 Date: Tue, 15 Oct 2019 16:51:42 +0200
 Subject: [PATCH 088/830] ANDROID: ARM: prima2: Register with kernel restart
@@ -26,7 +26,7 @@ Signed-off-by: Elliot Berman <eberman@codeaurora.org>
  1 file changed, 9 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/mach-prima2/rstc.c b/arch/arm/mach-prima2/rstc.c
-index 9d56606..825dd5f 100644
+index 9d56606ac87f..825dd5fcc37b 100644
 --- a/arch/arm/mach-prima2/rstc.c
 +++ b/arch/arm/mach-prima2/rstc.c
 @@ -64,11 +64,18 @@ static struct reset_controller_dev sirfsoc_reset_controller = {
@@ -59,5 +59,5 @@ index 9d56606..825dd5f 100644
  	if (IS_ENABLED(CONFIG_RESET_CONTROLLER))
  		reset_controller_register(&sirfsoc_reset_controller);
 -- 
-2.7.4
+2.17.1
 

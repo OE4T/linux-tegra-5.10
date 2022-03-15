@@ -1,4 +1,4 @@
-From e8138240b13815061643f645e153cbdd182f7d72 Mon Sep 17 00:00:00 2001
+From 7bfec3200f2878ef6829c1bed7048bb5e86be7cb Mon Sep 17 00:00:00 2001
 From: Todd Kjos <tkjos@google.com>
 Date: Mon, 23 Nov 2020 11:08:48 -0800
 Subject: [PATCH 314/830] ANDROID: add vendor hooks to override
@@ -20,7 +20,7 @@ Change-Id: Ida11256f399f0730bc1228524b9687df3e7b8bf4
  create mode 100644 include/trace/hooks/cpufreq.h
 
 diff --git a/drivers/android/vendor_hooks.c b/drivers/android/vendor_hooks.c
-index 1b8de3e1..2040a81 100644
+index 1b8de3e12235..2040a8196134 100644
 --- a/drivers/android/vendor_hooks.c
 +++ b/drivers/android/vendor_hooks.c
 @@ -22,6 +22,7 @@
@@ -41,7 +41,7 @@ index 1b8de3e1..2040a81 100644
  EXPORT_TRACEPOINT_SYMBOL_GPL(android_rvh_sched_nohz_balancer_kick);
  EXPORT_TRACEPOINT_SYMBOL_GPL(android_rvh_find_busiest_queue);
 diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
-index 680c124..c3148a0 100644
+index d4de4971831f..29bb3704dff2 100644
 --- a/drivers/cpufreq/cpufreq.c
 +++ b/drivers/cpufreq/cpufreq.c
 @@ -30,6 +30,7 @@
@@ -70,7 +70,7 @@ index 680c124..c3148a0 100644
  show_one(scaling_min_freq, min);
  show_one(scaling_max_freq, max);
 diff --git a/drivers/cpufreq/freq_table.c b/drivers/cpufreq/freq_table.c
-index d3f756f..483b518 100644
+index d3f756f7b5a0..483b51854a61 100644
 --- a/drivers/cpufreq/freq_table.c
 +++ b/drivers/cpufreq/freq_table.c
 @@ -9,6 +9,7 @@
@@ -91,7 +91,7 @@ index d3f756f..483b518 100644
  	/*
 diff --git a/include/trace/hooks/cpufreq.h b/include/trace/hooks/cpufreq.h
 new file mode 100644
-index 00000000..79e6ddf
+index 000000000000..79e6ddf31cb8
 --- /dev/null
 +++ b/include/trace/hooks/cpufreq.h
 @@ -0,0 +1,32 @@
@@ -128,5 +128,5 @@ index 00000000..79e6ddf
 +/* This part must be outside protection */
 +#include <trace/define_trace.h>
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 55b00ef5e489f18183ab389de5d24ded4a6efae2 Mon Sep 17 00:00:00 2001
+From 864d2577fb2558c12cb9499567b3bb76d7058ec8 Mon Sep 17 00:00:00 2001
 From: Eric Biggers <ebiggers@google.com>
 Date: Wed, 12 Aug 2020 13:59:59 -0700
 Subject: [PATCH 100/830] _____ANNOTATION: iommu changes_____
@@ -10,7 +10,7 @@ Signed-off-by: Eric Biggers <ebiggers@google.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/ANNOTATIONS b/ANNOTATIONS
-index 63468c0..96ed870 100644
+index 63468c0f9120..96ed870f7c7e 100644
 --- a/ANNOTATIONS
 +++ b/ANNOTATIONS
 @@ -3,3 +3,4 @@ Android vendor hooks
@@ -19,5 +19,5 @@ index 63468c0..96ed870 100644
  arm and arm64 changes
 +iommu changes
 -- 
-2.7.4
+2.17.1
 

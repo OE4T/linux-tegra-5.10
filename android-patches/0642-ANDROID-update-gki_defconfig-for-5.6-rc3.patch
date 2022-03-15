@@ -1,4 +1,4 @@
-From c17ee956988afa7e2b44860c2210d56301800805 Mon Sep 17 00:00:00 2001
+From c51a1050ca01852c0fbb65e64889ea52d161d4e4 Mon Sep 17 00:00:00 2001
 From: Greg Kroah-Hartman <gregkh@google.com>
 Date: Mon, 24 Feb 2020 15:14:59 +0100
 Subject: [PATCH 642/830] ANDROID: update gki_defconfig for 5.6-rc3
@@ -11,7 +11,7 @@ Change-Id: Ib73b80782fadd1302d8e7ade231943a1cd65ee99
  1 file changed, 2 deletions(-)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 014feeb..0127227 100644
+index 014feeb69fb0..012722787ccd 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -114,7 +114,6 @@ CONFIG_IPV6_MIP6=y
@@ -31,5 +31,5 @@ index 014feeb..0127227 100644
  CONFIG_ION_SYSTEM_HEAP=y
  CONFIG_COMMON_CLK_SCPI=y
 -- 
-2.7.4
+2.17.1
 

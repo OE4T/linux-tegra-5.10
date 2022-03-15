@@ -1,4 +1,4 @@
-From 678c802984b6ce3ea3d314ee1c32788630e5ab83 Mon Sep 17 00:00:00 2001
+From 2f2b0c30c21fc1c8662995334ce99295cf67daec Mon Sep 17 00:00:00 2001
 From: davidchao <davidchao@google.com>
 Date: Fri, 30 Oct 2020 22:18:02 +0800
 Subject: [PATCH 815/830] ANDROID: GKI: enable CONFIG_THERMAL_NETLINK
@@ -17,7 +17,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@google.com>
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 1a783ff..701e331 100644
+index 1a783ffcfcb3..701e3312f565 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -344,6 +344,7 @@ CONFIG_GPIO_GENERIC_PLATFORM=y
@@ -29,7 +29,7 @@ index 1a783ff..701e331 100644
  CONFIG_THERMAL_EMERGENCY_POWEROFF_DELAY_MS=100
  CONFIG_THERMAL_WRITABLE_TRIPS=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index c8e5019..87996cb 100644
+index c8e50195ef7c..87996cbc1c55 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -301,6 +301,7 @@ CONFIG_SPI=y
@@ -41,5 +41,5 @@ index c8e5019..87996cb 100644
  CONFIG_THERMAL_EMERGENCY_POWEROFF_DELAY_MS=100
  CONFIG_THERMAL_WRITABLE_TRIPS=y
 -- 
-2.7.4
+2.17.1
 

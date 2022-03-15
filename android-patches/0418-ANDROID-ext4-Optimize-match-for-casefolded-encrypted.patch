@@ -1,4 +1,4 @@
-From c2da12073e3ad93c3f6cd9c7dee88bee644570b3 Mon Sep 17 00:00:00 2001
+From fc54edf987ef07fc639aef268f36374de825c8a7 Mon Sep 17 00:00:00 2001
 From: Daniel Rosenberg <drosen@google.com>
 Date: Wed, 6 Nov 2019 17:00:25 -0800
 Subject: [PATCH 418/830] ANDROID: ext4: Optimize match for casefolded
@@ -16,12 +16,12 @@ Bug: 138322712
 Bug: 161184936
 Change-Id: Id6024fc2a3bbde1e46a29070981fa64b3f667075
 ---
- fs/ext4/ext4.h  | 17 +++++++++--------
- fs/ext4/namei.c | 55 +++++++++++++++++++++++++++++--------------------------
+ fs/ext4/ext4.h  | 17 ++++++++-------
+ fs/ext4/namei.c | 55 ++++++++++++++++++++++++++-----------------------
  2 files changed, 38 insertions(+), 34 deletions(-)
 
 diff --git a/fs/ext4/ext4.h b/fs/ext4/ext4.h
-index 614a1a6..2d345e0 100644
+index 9e49109d6417..e03510622973 100644
 --- a/fs/ext4/ext4.h
 +++ b/fs/ext4/ext4.h
 @@ -2609,9 +2609,9 @@ extern unsigned ext4_free_clusters_after_init(struct super_block *sb,
@@ -80,7 +80,7 @@ index 614a1a6..2d345e0 100644
  
  static inline int ext4_fname_prepare_lookup(struct inode *dir,
 diff --git a/fs/ext4/namei.c b/fs/ext4/namei.c
-index c3298f1..35fec16 100644
+index c3298f161ea9..35fec16e38a9 100644
 --- a/fs/ext4/namei.c
 +++ b/fs/ext4/namei.c
 @@ -803,7 +803,9 @@ dx_probe(struct ext4_filename *fname, struct inode *dir,
@@ -197,5 +197,5 @@ index c3298f1..35fec16 100644
  				fname_len(fname), &fname->hinfo);
  
 -- 
-2.7.4
+2.17.1
 

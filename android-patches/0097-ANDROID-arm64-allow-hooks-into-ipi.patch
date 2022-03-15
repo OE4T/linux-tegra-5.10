@@ -1,4 +1,4 @@
-From 7e9f21be18cb5c7ed8f3a7677367db4716f0674e Mon Sep 17 00:00:00 2001
+From 7c37054e43ea62adb82c23a98a2edaf79e97d0ff Mon Sep 17 00:00:00 2001
 From: Lina Iyer <ilina@codeaurora.org>
 Date: Thu, 5 Nov 2020 13:37:19 -0700
 Subject: [PATCH 097/830] ANDROID: arm64: allow hooks into ipi
@@ -15,7 +15,7 @@ Change-Id: I33f6e5598abb0b53392030407900037d5cd516e0
  1 file changed, 3 insertions(+)
 
 diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
-index 3838e3e..fe9f257 100644
+index 3838e3ef5541..fe9f25739540 100644
 --- a/arch/arm64/kernel/smp.c
 +++ b/arch/arm64/kernel/smp.c
 @@ -58,6 +58,9 @@
@@ -29,5 +29,5 @@ index 3838e3e..fe9f257 100644
  /*
   * as from 2.5, kernels no longer have an init_tasks structure
 -- 
-2.7.4
+2.17.1
 

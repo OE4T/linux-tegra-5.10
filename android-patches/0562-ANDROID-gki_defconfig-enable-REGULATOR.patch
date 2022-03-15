@@ -1,4 +1,4 @@
-From b5d090fbc52a20141802c7e00038ae88b37b135f Mon Sep 17 00:00:00 2001
+From d8653e34b49d57a16588751282aa6617818fc7c3 Mon Sep 17 00:00:00 2001
 From: Tri Vo <trong@google.com>
 Date: Tue, 8 Oct 2019 12:38:34 -0700
 Subject: [PATCH 562/830] ANDROID: gki_defconfig: enable REGULATOR
@@ -13,7 +13,7 @@ Signed-off-by: Tri Vo <trong@google.com>
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index cd20660..88eb4d1 100644
+index cd20660dada3..88eb4d1ec0a1 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -292,6 +292,7 @@ CONFIG_DEVFREQ_THERMAL=y
@@ -25,7 +25,7 @@ index cd20660..88eb4d1 100644
  CONFIG_MEDIA_CAMERA_SUPPORT=y
  CONFIG_MEDIA_CONTROLLER=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index eb8a3fa..7262484 100644
+index eb8a3fa5b743..7262484904d1 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -252,6 +252,7 @@ CONFIG_GPIOLIB=y
@@ -37,5 +37,5 @@ index eb8a3fa..7262484 100644
  CONFIG_MEDIA_CAMERA_SUPPORT=y
  CONFIG_DRM=y
 -- 
-2.7.4
+2.17.1
 

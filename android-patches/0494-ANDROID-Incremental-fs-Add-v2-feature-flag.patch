@@ -1,4 +1,4 @@
-From 42d88ea48499d07f9581a47684c3fd1ee201c62c Mon Sep 17 00:00:00 2001
+From d184105b326da0e29c99090ccf93200f545dcb5c Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Mon, 30 Nov 2020 09:18:42 -0800
 Subject: [PATCH 494/830] ANDROID: Incremental fs: Add v2 feature flag
@@ -16,7 +16,7 @@ Change-Id: I41ee9715904560004e25cc83a5ccc1eb1bdd2b1f
  2 files changed, 22 insertions(+), 21 deletions(-)
 
 diff --git a/fs/incfs/main.c b/fs/incfs/main.c
-index 2332fa5..23cf3fe 100644
+index 2332fa5b7f45..23cf3fefac97 100644
 --- a/fs/incfs/main.c
 +++ b/fs/incfs/main.c
 @@ -22,34 +22,29 @@ static struct file_system_type incfs_fs_type = {
@@ -67,7 +67,7 @@ index 2332fa5..23cf3fe 100644
  };
  
 diff --git a/include/uapi/linux/incrementalfs.h b/include/uapi/linux/incrementalfs.h
-index 0de1f6e..b6c3f85 100644
+index 0de1f6eeec84..b6c3f852ae65 100644
 --- a/include/uapi/linux/incrementalfs.h
 +++ b/include/uapi/linux/incrementalfs.h
 @@ -137,14 +137,20 @@
@@ -96,5 +96,5 @@ index 0de1f6e..b6c3f85 100644
  enum incfs_compression_alg {
  	COMPRESSION_NONE = 0,
 -- 
-2.7.4
+2.17.1
 

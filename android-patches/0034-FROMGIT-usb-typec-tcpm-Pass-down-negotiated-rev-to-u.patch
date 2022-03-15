@@ -1,4 +1,4 @@
-From 815f318b3b543f2d1433d137c083f4d8d7a155e5 Mon Sep 17 00:00:00 2001
+From a41a97abc67bec2cdfabc4d57b9b504cfc833f1e Mon Sep 17 00:00:00 2001
 From: Badhri Jagan Sridharan <badhri@google.com>
 Date: Tue, 1 Dec 2020 19:17:33 -0800
 Subject: [PATCH 034/830] FROMGIT: usb: typec: tcpm: Pass down negotiated rev
@@ -43,7 +43,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@google.com>
  5 files changed, 22 insertions(+), 13 deletions(-)
 
 diff --git a/drivers/usb/typec/tcpm/fusb302.c b/drivers/usb/typec/tcpm/fusb302.c
-index 700e38e..0df7394 100644
+index 700e38e92152..0df739403150 100644
 --- a/drivers/usb/typec/tcpm/fusb302.c
 +++ b/drivers/usb/typec/tcpm/fusb302.c
 @@ -343,12 +343,11 @@ static int fusb302_sw_reset(struct fusb302_chip *chip)
@@ -94,7 +94,7 @@ index 700e38e..0df7394 100644
  		if (ret < 0)
  			fusb302_log(chip,
 diff --git a/drivers/usb/typec/tcpm/tcpci.c b/drivers/usb/typec/tcpm/tcpci.c
-index 3b8bccd..e20f1f2 100644
+index 3b8bccd50b91..e20f1f25a227 100644
 --- a/drivers/usb/typec/tcpm/tcpci.c
 +++ b/drivers/usb/typec/tcpm/tcpci.c
 @@ -18,7 +18,8 @@
@@ -131,7 +131,7 @@ index 3b8bccd..e20f1f2 100644
  	if (ret < 0)
  		return ret;
 diff --git a/drivers/usb/typec/tcpm/tcpm.c b/drivers/usb/typec/tcpm/tcpm.c
-index cfa297e..544819b 100644
+index a1740ed882fe..2f43c6087ff3 100644
 --- a/drivers/usb/typec/tcpm/tcpm.c
 +++ b/drivers/usb/typec/tcpm/tcpm.c
 @@ -685,7 +685,7 @@ static int tcpm_pd_transmit(struct tcpm_port *port,
@@ -144,7 +144,7 @@ index cfa297e..544819b 100644
  		return ret;
  
 diff --git a/drivers/usb/typec/tcpm/wcove.c b/drivers/usb/typec/tcpm/wcove.c
-index 7e9c279..5d12533 100644
+index 7e9c279bf49d..5d125339687a 100644
 --- a/drivers/usb/typec/tcpm/wcove.c
 +++ b/drivers/usb/typec/tcpm/wcove.c
 @@ -356,7 +356,8 @@ static int wcove_set_pd_rx(struct tcpc_dev *tcpc, bool on)
@@ -158,7 +158,7 @@ index 7e9c279..5d12533 100644
  	struct wcove_typec *wcove = tcpc_to_wcove(tcpc);
  	unsigned int info = 0;
 diff --git a/include/linux/usb/tcpm.h b/include/linux/usb/tcpm.h
-index e68aaa1..efaedd7 100644
+index e68aaa12886f..efaedd7e8a18 100644
 --- a/include/linux/usb/tcpm.h
 +++ b/include/linux/usb/tcpm.h
 @@ -121,7 +121,7 @@ struct tcpc_dev {
@@ -171,5 +171,5 @@ index e68aaa1..efaedd7 100644
  	int (*enable_frs)(struct tcpc_dev *dev, bool enable);
  	void (*frs_sourcing_vbus)(struct tcpc_dev *dev);
 -- 
-2.7.4
+2.17.1
 

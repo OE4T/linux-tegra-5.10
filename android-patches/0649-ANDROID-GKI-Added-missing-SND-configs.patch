@@ -1,4 +1,4 @@
-From 779a7559fde06c462ba5d2b9c2f56e01adcd1349 Mon Sep 17 00:00:00 2001
+From 748e953d145189063ad814de1d5abe2165faaf1e Mon Sep 17 00:00:00 2001
 From: Ram Muthiah <rammuthiah@google.com>
 Date: Mon, 2 Mar 2020 16:28:03 -0800
 Subject: [PATCH 649/830] ANDROID: GKI: Added missing SND configs
@@ -14,7 +14,7 @@ Change-Id: I809392ffe06327839be7574195b1f080db2d1f2e
  2 files changed, 4 insertions(+), 1 deletion(-)
 
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 79c8003..59d46bf 100644
+index 79c80030bed7..59d46bfea4fa 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -276,7 +276,8 @@ CONFIG_SND_DYNAMIC_MINORS=y
@@ -28,7 +28,7 @@ index 79c8003..59d46bf 100644
  CONFIG_UHID=y
  CONFIG_HID_APPLE=y
 diff --git a/init/Kconfig.gki b/init/Kconfig.gki
-index ae1457d..5724990 100644
+index ae1457d07e78..572499005bf6 100644
 --- a/init/Kconfig.gki
 +++ b/init/Kconfig.gki
 @@ -33,6 +33,8 @@ config GKI_HIDDEN_SND_CONFIGS
@@ -41,5 +41,5 @@ index ae1457d..5724990 100644
  	help
  	  Dummy config option used to enable hidden SND configs.
 -- 
-2.7.4
+2.17.1
 

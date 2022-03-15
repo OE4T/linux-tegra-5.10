@@ -1,4 +1,4 @@
-From 39427063be88877d277c0f531dbac2ced23ba832 Mon Sep 17 00:00:00 2001
+From ac1c08dc8f1258be2723ff889af3b7fef1c6f369 Mon Sep 17 00:00:00 2001
 From: Quentin Perret <qperret@google.com>
 Date: Fri, 15 May 2020 10:18:08 +0100
 Subject: [PATCH 113/830] ANDROID: export: Disable symbol trimming on modules
@@ -23,7 +23,7 @@ Change-Id: I2513d85c46eefc62c59883b724b6153dd27b3671
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/include/linux/export.h b/include/linux/export.h
-index fceb5e8..b962df3c 100644
+index fceb5e855717..b962df3c5dd3 100644
 --- a/include/linux/export.h
 +++ b/include/linux/export.h
 @@ -118,7 +118,7 @@ struct kernel_symbol {
@@ -36,5 +36,5 @@ index fceb5e8..b962df3c 100644
  #include <generated/autoksyms.h>
  
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From a5e9ddbef0c8413484a45e4c6edf887576f6122b Mon Sep 17 00:00:00 2001
+From e973daa1f1cc77f89aeb2b8a5d47bd393cf6f9f7 Mon Sep 17 00:00:00 2001
 From: Will McVicker <willmcvicker@google.com>
 Date: Tue, 4 Feb 2020 11:19:57 -0800
 Subject: [PATCH 655/830] ANDROID: arm64: gki_defconfig: disable
@@ -16,7 +16,7 @@ Change-Id: I70690c8be2c3ffcc77f7c8c1d472be0ffffd0587
  1 file changed, 1 insertion(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index c2b0e5c..d3be29f 100644
+index c2b0e5cefeb9..d3be29f9eada 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -475,6 +475,7 @@ CONFIG_PANIC_TIMEOUT=5
@@ -28,5 +28,5 @@ index c2b0e5c..d3be29f 100644
  CONFIG_CORESIGHT_STM=y
  # CONFIG_RUNTIME_TESTING_MENU is not set
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 0c32348af5b475f7b908c176509dc1fd4129e126 Mon Sep 17 00:00:00 2001
+From 85ad573e33575f9afb76838a2760f4e7f11bca19 Mon Sep 17 00:00:00 2001
 From: Todd Kjos <tkjos@google.com>
 Date: Wed, 12 Aug 2020 08:31:55 -0700
 Subject: [PATCH 139/830] Revert "sched: Remove sched_setscheduler*() EXPORTs"
@@ -17,7 +17,7 @@ Change-Id: I58cadfd975af8b2911c05b61e6a3fa184efb1a8e
  1 file changed, 3 insertions(+)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 3d7bdd9..7f9042f 100644
+index 3d7bdd98eb3c..7f9042f28efe 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -5499,11 +5499,13 @@ int sched_setscheduler(struct task_struct *p, int policy,
@@ -43,5 +43,5 @@ index 3d7bdd9..7f9042f 100644
  /*
   * SCHED_FIFO is a broken scheduler model; that is, it is fundamentally
 -- 
-2.7.4
+2.17.1
 

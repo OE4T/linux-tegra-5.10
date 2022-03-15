@@ -1,4 +1,4 @@
-From fbc088963d981b3bb0bd874ea367a86d89164617 Mon Sep 17 00:00:00 2001
+From 6d74d72c817a3c05b017ce2f263998ea02108dd9 Mon Sep 17 00:00:00 2001
 From: Greg Kroah-Hartman <gregkh@google.com>
 Date: Wed, 8 Apr 2020 11:18:32 +0200
 Subject: [PATCH 306/830] ANDROID: fix build problem in
@@ -14,7 +14,7 @@ Change-Id: I1d3b5670a83e0e5b5876f162d6ce83d66f52323a
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/soc/qcom/rpmh-rsc.c b/drivers/soc/qcom/rpmh-rsc.c
-index a297911..f0c4d5e 100644
+index a297911afe57..f0c4d5e3105a 100644
 --- a/drivers/soc/qcom/rpmh-rsc.c
 +++ b/drivers/soc/qcom/rpmh-rsc.c
 @@ -497,7 +497,7 @@ static void __tcs_buffer_write(struct rsc_drv *drv, int tcs_id, int cmd_id,
@@ -27,5 +27,5 @@ index a297911..f0c4d5e 100644
  
  	write_tcs_reg(drv, RSC_DRV_CMD_WAIT_FOR_CMPL, tcs_id, cmd_complete);
 -- 
-2.7.4
+2.17.1
 

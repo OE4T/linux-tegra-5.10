@@ -1,4 +1,4 @@
-From cb7fa6ca24b484c676b08df3053ae461fb9924df Mon Sep 17 00:00:00 2001
+From 6c01a3ff6d4d3196a4c91e9e3e52f2f06a591ebc Mon Sep 17 00:00:00 2001
 From: "Isaac J. Manjarres" <isaacm@codeaurora.org>
 Date: Wed, 19 Jun 2019 15:37:15 -0700
 Subject: [PATCH 239/830] ANDROID: staging: android: ion: Decouple ION page
@@ -16,15 +16,15 @@ Change-Id: I95909d250fc37a401d9e23264cd27c78a2a74637
 Signed-off-by: Isaac J. Manjarres <isaacm@codeaurora.org>
 Signed-off-by: Sandeep Patil <sspatil@google.com>
 ---
- drivers/staging/android/ion/ion.h             | 51 ---------------------
+ drivers/staging/android/ion/ion.h             | 51 --------------
  drivers/staging/android/ion/ion_page_pool.c   |  2 +-
- drivers/staging/android/ion/ion_page_pool.h   | 66 +++++++++++++++++++++++++++
+ drivers/staging/android/ion/ion_page_pool.h   | 66 +++++++++++++++++++
  drivers/staging/android/ion/ion_system_heap.c |  1 +
  4 files changed, 68 insertions(+), 52 deletions(-)
  create mode 100644 drivers/staging/android/ion/ion_page_pool.h
 
 diff --git a/drivers/staging/android/ion/ion.h b/drivers/staging/android/ion/ion.h
-index c199e88..dde31251 100644
+index c199e88afc6c..dde312516239 100644
 --- a/drivers/staging/android/ion/ion.h
 +++ b/drivers/staging/android/ion/ion.h
 @@ -248,55 +248,4 @@ size_t ion_heap_freelist_shrink(struct ion_heap *heap,
@@ -84,7 +84,7 @@ index c199e88..dde31251 100644
 -
  #endif /* _ION_H */
 diff --git a/drivers/staging/android/ion/ion_page_pool.c b/drivers/staging/android/ion/ion_page_pool.c
-index 0198b88..7e9a4de 100644
+index 0198b886d906..7e9a4de4810c 100644
 --- a/drivers/staging/android/ion/ion_page_pool.c
 +++ b/drivers/staging/android/ion/ion_page_pool.c
 @@ -10,7 +10,7 @@
@@ -98,7 +98,7 @@ index 0198b88..7e9a4de 100644
  {
 diff --git a/drivers/staging/android/ion/ion_page_pool.h b/drivers/staging/android/ion/ion_page_pool.h
 new file mode 100644
-index 00000000..e205d00
+index 000000000000..e205d0086833
 --- /dev/null
 +++ b/drivers/staging/android/ion/ion_page_pool.h
 @@ -0,0 +1,66 @@
@@ -169,7 +169,7 @@ index 00000000..e205d00
 +			 int nr_to_scan);
 +#endif /* _ION_PAGE_POOL_H */
 diff --git a/drivers/staging/android/ion/ion_system_heap.c b/drivers/staging/android/ion/ion_system_heap.c
-index eac0632..9d33193 100644
+index eac0632ab4e8..9d3319328a04 100644
 --- a/drivers/staging/android/ion/ion_system_heap.c
 +++ b/drivers/staging/android/ion/ion_system_heap.c
 @@ -15,6 +15,7 @@
@@ -181,5 +181,5 @@ index eac0632..9d33193 100644
  #define NUM_ORDERS ARRAY_SIZE(orders)
  
 -- 
-2.7.4
+2.17.1
 

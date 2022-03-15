@@ -1,4 +1,4 @@
-From c196fa66e8b41b4b174ac99aa223927537a82c63 Mon Sep 17 00:00:00 2001
+From 0f76ec7e519a13d9160393b33974ea4298057302 Mon Sep 17 00:00:00 2001
 From: Badhri Jagan Sridharan <Badhri@google.com>
 Date: Mon, 15 Dec 2014 16:42:27 -0800
 Subject: [PATCH 326/830] ANDROID: usb: gadget: configfs: Add usb_function ptr
@@ -24,7 +24,7 @@ Signed-off-by: Badhri Jagan Sridharan <badhri@google.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/include/linux/usb/composite.h b/include/linux/usb/composite.h
-index a2d229a..8b96c75 100644
+index a2d229ab63ba..8b96c75dfe6c 100644
 --- a/include/linux/usb/composite.h
 +++ b/include/linux/usb/composite.h
 @@ -590,6 +590,7 @@ struct usb_function_instance {
@@ -36,5 +36,5 @@ index a2d229a..8b96c75 100644
  			      const char *name);
  	void (*free_func_inst)(struct usb_function_instance *inst);
 -- 
-2.7.4
+2.17.1
 

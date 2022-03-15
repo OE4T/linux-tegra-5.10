@@ -1,4 +1,4 @@
-From 9c663d2a22d8551296055b47b5878b6fb4a20b54 Mon Sep 17 00:00:00 2001
+From 455a44740e4a7127ad9e40d950f63b741651b506 Mon Sep 17 00:00:00 2001
 From: John Dias <joaodias@google.com>
 Date: Wed, 5 Oct 2016 15:11:40 -0700
 Subject: [PATCH 166/830] ANDROID: sched: avoid migrating when softint on tgt
@@ -25,7 +25,7 @@ Signed-off-by: J. Avila <elavila@google.com>
  3 files changed, 25 insertions(+), 4 deletions(-)
 
 diff --git a/include/linux/interrupt.h b/include/linux/interrupt.h
-index ee8299e..386ddf4 100644
+index ee8299eb1f52..386ddf43e2f2 100644
 --- a/include/linux/interrupt.h
 +++ b/include/linux/interrupt.h
 @@ -542,6 +542,12 @@ enum
@@ -50,10 +50,10 @@ index ee8299e..386ddf4 100644
  static inline struct task_struct *this_cpu_ksoftirqd(void)
  {
 diff --git a/kernel/sched/rt.c b/kernel/sched/rt.c
-index eeaecbb..2099b56 100644
+index 4966e764980c..398fc6305875 100644
 --- a/kernel/sched/rt.c
 +++ b/kernel/sched/rt.c
-@@ -1439,15 +1439,20 @@ static int find_lowest_rq(struct task_struct *task);
+@@ -1448,15 +1448,20 @@ static int find_lowest_rq(struct task_struct *task);
  #ifdef CONFIG_RT_SOFTINT_OPTIMIZATION
  /*
   * Return whether the task on the given cpu is currently non-preemptible
@@ -79,7 +79,7 @@ index eeaecbb..2099b56 100644
  #endif /* CONFIG_RT_SOFTINT_OPTIMIZATION */
  
 diff --git a/kernel/softirq.c b/kernel/softirq.c
-index 09229ad..0a7cd1f 100644
+index 09229ad82209..0a7cd1f1b4e0 100644
 --- a/kernel/softirq.c
 +++ b/kernel/softirq.c
 @@ -56,6 +56,13 @@ static struct softirq_action softirq_vec[NR_SOFTIRQS] __cacheline_aligned_in_smp
@@ -113,5 +113,5 @@ index 09229ad..0a7cd1f 100644
  		rcu_softirq_qs();
  	local_irq_disable();
 -- 
-2.7.4
+2.17.1
 

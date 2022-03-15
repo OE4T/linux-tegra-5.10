@@ -1,4 +1,4 @@
-From 1dc1bf28942adc6ff55a82d93d3bed0e6dc72a53 Mon Sep 17 00:00:00 2001
+From f5b9c68ec84fd1b49782b823cfab26a569adda09 Mon Sep 17 00:00:00 2001
 From: JaeHun Jung <jh0801.jung@samsung.com>
 Date: Tue, 26 May 2020 16:53:38 +0900
 Subject: [PATCH 357/830] ANDROID: sound: usb: Add vendor's hooking interface
@@ -29,15 +29,15 @@ Signed-off-by: JaeHun Jung <jh0801.jung@samsung.com>
 [rework api to be a bit more self-contained and obvious - gregkh]
 Signed-off-by: Greg Kroah-Hartman <gregkh@google.com>
 ---
- sound/usb/card.c     | 121 +++++++++++++++++++++++++++++++++++++++++++++++++++
- sound/usb/card.h     |  17 ++++++++
- sound/usb/clock.c    |   5 +++
- sound/usb/pcm.c      |  37 ++++++++++++++++
- sound/usb/usbaudio.h |  46 ++++++++++++++++++++
+ sound/usb/card.c     | 121 +++++++++++++++++++++++++++++++++++++++++++
+ sound/usb/card.h     |  17 ++++++
+ sound/usb/clock.c    |   5 ++
+ sound/usb/pcm.c      |  37 +++++++++++++
+ sound/usb/usbaudio.h |  46 ++++++++++++++++
  5 files changed, 226 insertions(+)
 
 diff --git a/sound/usb/card.c b/sound/usb/card.c
-index 04b8e72..1b601c9 100644
+index 04b8e720a9da..1b601c92e0d4 100644
 --- a/sound/usb/card.c
 +++ b/sound/usb/card.c
 @@ -112,6 +112,119 @@ static DEFINE_MUTEX(register_mutex);
@@ -190,7 +190,7 @@ index 04b8e72..1b601c9 100644
  	if (atomic_inc_return(&chip->shutdown) == 1) {
  		struct snd_usb_stream *as;
 diff --git a/sound/usb/card.h b/sound/usb/card.h
-index dd0ff8b..0dbcf47 100644
+index dd0ff8bd0a4d..0dbcf47cc6f2 100644
 --- a/sound/usb/card.h
 +++ b/sound/usb/card.h
 @@ -187,4 +187,21 @@ struct snd_usb_substream *find_snd_usb_substream(unsigned int card_num,
@@ -216,7 +216,7 @@ index dd0ff8b..0dbcf47 100644
 +
  #endif /* __USBAUDIO_CARD_H */
 diff --git a/sound/usb/clock.c b/sound/usb/clock.c
-index 514d18a..13bebe9 100644
+index 514d18a3e07a..13bebe958ce3 100644
 --- a/sound/usb/clock.c
 +++ b/sound/usb/clock.c
 @@ -664,8 +664,13 @@ static int set_sample_rate_v2v3(struct snd_usb_audio *chip, int iface,
@@ -234,7 +234,7 @@ index 514d18a..13bebe9 100644
  	}
  
 diff --git a/sound/usb/pcm.c b/sound/usb/pcm.c
-index 14c214a..98b7efd 100644
+index 14c214ab04d5..98b7efd371cd 100644
 --- a/sound/usb/pcm.c
 +++ b/sound/usb/pcm.c
 @@ -134,6 +134,8 @@ static struct audioformat *find_format(struct snd_usb_substream *subs)
@@ -323,7 +323,7 @@ index 14c214a..98b7efd 100644
  		ret = snd_usb_pcm_change_state(subs, UAC3_PD_STATE_D1);
  		snd_usb_unlock_shutdown(subs->stream->chip);
 diff --git a/sound/usb/usbaudio.h b/sound/usb/usbaudio.h
-index a3a94e3..2383fff 100644
+index a3a94e35896f..2383fff60abd 100644
 --- a/sound/usb/usbaudio.h
 +++ b/sound/usb/usbaudio.h
 @@ -135,4 +135,50 @@ void snd_usb_unlock_shutdown(struct snd_usb_audio *chip);
@@ -378,5 +378,5 @@ index a3a94e3..2383fff 100644
 +
  #endif /* __USBAUDIO_H */
 -- 
-2.7.4
+2.17.1
 

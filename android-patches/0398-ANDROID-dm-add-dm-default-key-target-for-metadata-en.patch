@@ -1,4 +1,4 @@
-From 7388f0685bde8515b31339bc59942e5519cce6eb Mon Sep 17 00:00:00 2001
+From 505fff339747b7429d449ea2c63611f92909ef2d Mon Sep 17 00:00:00 2001
 From: Eric Biggers <ebiggers@google.com>
 Date: Tue, 21 Jan 2020 09:27:47 -0800
 Subject: [PATCH 398/830] ANDROID: dm: add dm-default-key target for metadata
@@ -44,9 +44,9 @@ Change-Id: I69c9cd1e968ccf990e4ad96e5115b662237f5095
 Signed-off-by: Eric Biggers <ebiggers@google.com>
 ---
  block/blk-crypto-fallback.c |   2 +
- drivers/md/Kconfig          |  21 +++
+ drivers/md/Kconfig          |  21 ++
  drivers/md/Makefile         |   1 +
- drivers/md/dm-default-key.c | 415 ++++++++++++++++++++++++++++++++++++++++++++
+ drivers/md/dm-default-key.c | 415 ++++++++++++++++++++++++++++++++++++
  fs/crypto/inline_crypt.c    |  14 +-
  fs/f2fs/data.c              |   6 +-
  include/linux/blk-crypto.h  |  36 ++++
@@ -56,7 +56,7 @@ Signed-off-by: Eric Biggers <ebiggers@google.com>
  create mode 100644 drivers/md/dm-default-key.c
 
 diff --git a/block/blk-crypto-fallback.c b/block/blk-crypto-fallback.c
-index c162b75..9023c9b 100644
+index c162b754efbd..9023c9b0aab5 100644
 --- a/block/blk-crypto-fallback.c
 +++ b/block/blk-crypto-fallback.c
 @@ -180,6 +180,8 @@ static struct bio *blk_crypto_clone_bio(struct bio *bio_src)
@@ -69,7 +69,7 @@ index c162b75..9023c9b 100644
  }
  
 diff --git a/drivers/md/Kconfig b/drivers/md/Kconfig
-index aea6589..ea4c1ce 100644
+index aea6589f0cb1..ea4c1ce4b1a4 100644
 --- a/drivers/md/Kconfig
 +++ b/drivers/md/Kconfig
 @@ -286,6 +286,27 @@ config DM_CRYPT
@@ -101,7 +101,7 @@ index aea6589..ea4c1ce 100644
         tristate "Snapshot target"
         depends on BLK_DEV_DM
 diff --git a/drivers/md/Makefile b/drivers/md/Makefile
-index 39df167..29401cc 100644
+index 39df167c57ee..29401ccb8819 100644
 --- a/drivers/md/Makefile
 +++ b/drivers/md/Makefile
 @@ -52,6 +52,7 @@ obj-$(CONFIG_DM_UNSTRIPED)	+= dm-unstripe.o
@@ -114,7 +114,7 @@ index 39df167..29401cc 100644
  obj-$(CONFIG_DM_FLAKEY)		+= dm-flakey.o
 diff --git a/drivers/md/dm-default-key.c b/drivers/md/dm-default-key.c
 new file mode 100644
-index 00000000..ce99da3
+index 000000000000..ce99da3a3b98
 --- /dev/null
 +++ b/drivers/md/dm-default-key.c
 @@ -0,0 +1,415 @@
@@ -534,7 +534,7 @@ index 00000000..ce99da3
 +MODULE_DESCRIPTION(DM_NAME " target for encrypting filesystem metadata");
 +MODULE_LICENSE("GPL");
 diff --git a/fs/crypto/inline_crypt.c b/fs/crypto/inline_crypt.c
-index c57bebf..5935808 100644
+index c57bebfa48fe..59358084cba6 100644
 --- a/fs/crypto/inline_crypt.c
 +++ b/fs/crypto/inline_crypt.c
 @@ -238,6 +238,8 @@ static void fscrypt_generate_dun(const struct fscrypt_info *ci, u64 lblk_num,
@@ -587,7 +587,7 @@ index c57bebf..5935808 100644
  	return fscrypt_mergeable_bio(bio, inode, next_lblk);
  }
 diff --git a/fs/f2fs/data.c b/fs/f2fs/data.c
-index 1b11a42..e8d3390 100644
+index 1b11a42847c4..e8d33907c0a6 100644
 --- a/fs/f2fs/data.c
 +++ b/fs/f2fs/data.c
 @@ -471,6 +471,8 @@ static void f2fs_set_bio_crypt_ctx(struct bio *bio, const struct inode *inode,
@@ -611,7 +611,7 @@ index 1b11a42..e8d3390 100644
  	return fscrypt_mergeable_bio(bio, inode, next_idx);
  }
 diff --git a/include/linux/blk-crypto.h b/include/linux/blk-crypto.h
-index 69b24fe..1a709496 100644
+index 69b24fe92cbf..1a709496fad5 100644
 --- a/include/linux/blk-crypto.h
 +++ b/include/linux/blk-crypto.h
 @@ -112,6 +112,9 @@ static inline bool bio_has_crypt_ctx(struct bio *bio)
@@ -668,7 +668,7 @@ index 69b24fe..1a709496 100644
 +
  #endif /* __LINUX_BLK_CRYPTO_H */
 diff --git a/include/linux/blk_types.h b/include/linux/blk_types.h
-index d9b69bb..8bac50d 100644
+index d9b69bbde5cc..8bac50d6e8c5 100644
 --- a/include/linux/blk_types.h
 +++ b/include/linux/blk_types.h
 @@ -235,6 +235,9 @@ struct bio {
@@ -682,7 +682,7 @@ index d9b69bb..8bac50d 100644
  
  	union {
 diff --git a/include/linux/fscrypt.h b/include/linux/fscrypt.h
-index 0d3d04b..aed4a470 100644
+index 0d3d04bd9ac9..aed4a4709af5 100644
 --- a/include/linux/fscrypt.h
 +++ b/include/linux/fscrypt.h
 @@ -638,6 +638,20 @@ static inline bool fscrypt_mergeable_bio_bh(struct bio *bio,
@@ -707,5 +707,5 @@ index 0d3d04b..aed4a470 100644
   * fscrypt_inode_uses_inline_crypto() - test whether an inode uses inline
   *					encryption
 -- 
-2.7.4
+2.17.1
 

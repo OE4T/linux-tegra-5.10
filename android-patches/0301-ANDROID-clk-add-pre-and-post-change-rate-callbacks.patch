@@ -1,4 +1,4 @@
-From c9fabe301c070763fd6b3e552927202da1f59253 Mon Sep 17 00:00:00 2001
+From e7d0de6b13c8857955202b03e51674b31a07d5bf Mon Sep 17 00:00:00 2001
 From: David Dai <daidavid1@codeaurora.org>
 Date: Mon, 19 Aug 2019 16:35:44 -0700
 Subject: [PATCH 301/830] ANDROID: clk: add pre and post change rate callbacks
@@ -28,7 +28,7 @@ Signed-off-by: David Dai <daidavid1@codeaurora.org>
  2 files changed, 23 insertions(+)
 
 diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
-index b3cee43..c2c0f5e 100644
+index 5f68ee28db15..e4ff63c2487f 100644
 --- a/drivers/clk/clk.c
 +++ b/drivers/clk/clk.c
 @@ -2278,6 +2278,13 @@ static struct clk_core *clk_propagate_rate_change(struct clk_core *core,
@@ -56,7 +56,7 @@ index b3cee43..c2c0f5e 100644
  	 * Allow children to be aware that next set rate operation is triggered
  	 * by downward rate propagation, rather than direct set rate on itself.
 diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
-index bfd76fb..37c7844 100644
+index bfd76fbf46cd..37c78446394e 100644
 --- a/include/linux/clk-provider.h
 +++ b/include/linux/clk-provider.h
 @@ -206,6 +206,13 @@ struct clk_duty {
@@ -87,5 +87,5 @@ index bfd76fb..37c7844 100644
  
  /**
 -- 
-2.7.4
+2.17.1
 

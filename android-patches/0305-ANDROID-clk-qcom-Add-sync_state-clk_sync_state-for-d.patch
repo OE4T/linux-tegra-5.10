@@ -1,4 +1,4 @@
-From ddfea3c3faaaaa21a0521d609c4f065989deaae6 Mon Sep 17 00:00:00 2001
+From 1324cb6a625bff8355fd00e7750ba143e32968ce Mon Sep 17 00:00:00 2001
 From: John Stultz <john.stultz@linaro.org>
 Date: Tue, 3 Dec 2019 23:45:10 +0000
 Subject: [PATCH 305/830] ANDROID: clk: qcom: Add sync_state = clk_sync_state
@@ -24,7 +24,7 @@ Change-Id: I722987fbaff045f80180aafb9176b75ed5f8cd03
  5 files changed, 6 insertions(+)
 
 diff --git a/drivers/clk/qcom/dispcc-sdm845.c b/drivers/clk/qcom/dispcc-sdm845.c
-index 5c932cd..11e03f7 100644
+index 5c932cd17b14..11e03f7fae09 100644
 --- a/drivers/clk/qcom/dispcc-sdm845.c
 +++ b/drivers/clk/qcom/dispcc-sdm845.c
 @@ -3,6 +3,7 @@
@@ -44,7 +44,7 @@ index 5c932cd..11e03f7 100644
  };
  
 diff --git a/drivers/clk/qcom/gcc-msm8998.c b/drivers/clk/qcom/gcc-msm8998.c
-index b8dcfe6..6839358 100644
+index b8dcfe62312b..6839358f0b9d 100644
 --- a/drivers/clk/qcom/gcc-msm8998.c
 +++ b/drivers/clk/qcom/gcc-msm8998.c
 @@ -3119,6 +3119,7 @@ static struct platform_driver gcc_msm8998_driver = {
@@ -56,7 +56,7 @@ index b8dcfe6..6839358 100644
  };
  
 diff --git a/drivers/clk/qcom/gcc-sdm845.c b/drivers/clk/qcom/gcc-sdm845.c
-index 90f7feb..50694f5 100644
+index 90f7febaf528..50694f5e872d 100644
 --- a/drivers/clk/qcom/gcc-sdm845.c
 +++ b/drivers/clk/qcom/gcc-sdm845.c
 @@ -3628,6 +3628,7 @@ static struct platform_driver gcc_sdm845_driver = {
@@ -68,7 +68,7 @@ index 90f7feb..50694f5 100644
  };
  
 diff --git a/drivers/clk/qcom/gpucc-sdm845.c b/drivers/clk/qcom/gpucc-sdm845.c
-index 5663698..46916a7 100644
+index 5663698b306b..46916a7e9322 100644
 --- a/drivers/clk/qcom/gpucc-sdm845.c
 +++ b/drivers/clk/qcom/gpucc-sdm845.c
 @@ -208,6 +208,7 @@ static struct platform_driver gpu_cc_sdm845_driver = {
@@ -80,7 +80,7 @@ index 5663698..46916a7 100644
  };
  
 diff --git a/drivers/clk/qcom/videocc-sdm845.c b/drivers/clk/qcom/videocc-sdm845.c
-index 5d6a772..5822252 100644
+index 5d6a7724a194..5822252ac1da 100644
 --- a/drivers/clk/qcom/videocc-sdm845.c
 +++ b/drivers/clk/qcom/videocc-sdm845.c
 @@ -338,6 +338,7 @@ static struct platform_driver video_cc_sdm845_driver = {
@@ -92,5 +92,5 @@ index 5d6a772..5822252 100644
  };
  
 -- 
-2.7.4
+2.17.1
 

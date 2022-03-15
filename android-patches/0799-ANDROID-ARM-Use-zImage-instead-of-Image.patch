@@ -1,4 +1,4 @@
-From 25877e1eeb745a31fe81b2bf8407e884c6a7526c Mon Sep 17 00:00:00 2001
+From b860a714878e115f665e8c6e33a1be8660f73ed4 Mon Sep 17 00:00:00 2001
 From: Alistair Delva <adelva@google.com>
 Date: Thu, 12 Nov 2020 20:43:25 -0800
 Subject: [PATCH 799/830] ANDROID: ARM: Use zImage instead of Image
@@ -19,7 +19,7 @@ Signed-off-by: Alistair Delva <adelva@google.com>
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/build.config.arm b/build.config.arm
-index 55610ba..77f8dc8 100644
+index 55610bab09ed..77f8dc815e16 100644
 --- a/build.config.arm
 +++ b/build.config.arm
 @@ -4,12 +4,12 @@ CROSS_COMPILE=arm-linux-gnueabi-
@@ -38,5 +38,5 @@ index 55610ba..77f8dc8 100644
  System.map
  "
 -- 
-2.7.4
+2.17.1
 

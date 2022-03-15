@@ -1,4 +1,4 @@
-From 2ae77d5e2becc5e920ed666f9b46598c9c344621 Mon Sep 17 00:00:00 2001
+From 8b6b1053fafad1a35ef5787dba6d361172418f81 Mon Sep 17 00:00:00 2001
 From: Quentin Perret <qperret@google.com>
 Date: Tue, 24 Nov 2020 15:33:49 +0000
 Subject: [PATCH 191/830] ANDROID: sched: Track wake_q length
@@ -28,7 +28,7 @@ Change-Id: I9a98167face92e70aba847d9f04d0c216065478c
  3 files changed, 6 insertions(+)
 
 diff --git a/include/linux/sched.h b/include/linux/sched.h
-index 17e0dbc..7052163 100644
+index d5173721ea53..38715eda25d8 100644
 --- a/include/linux/sched.h
 +++ b/include/linux/sched.h
 @@ -1008,6 +1008,7 @@ struct task_struct {
@@ -40,7 +40,7 @@ index 17e0dbc..7052163 100644
  #ifdef CONFIG_RT_MUTEXES
  	/* PI waiters blocked on a rt_mutex held by this task: */
 diff --git a/include/linux/sched/wake_q.h b/include/linux/sched/wake_q.h
-index 26a2013..1e05e56 100644
+index 26a2013ac39c..1e05e5669713 100644
 --- a/include/linux/sched/wake_q.h
 +++ b/include/linux/sched/wake_q.h
 @@ -38,6 +38,7 @@
@@ -60,7 +60,7 @@ index 26a2013..1e05e56 100644
  
  static inline bool wake_q_empty(struct wake_q_head *head)
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index c0c2380..1f53d01 100644
+index c0c2380b1666..1f53d01e90f7 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -536,6 +536,7 @@ static bool __wake_q_add(struct wake_q_head *head, struct task_struct *task)
@@ -87,5 +87,5 @@ index c0c2380..1f53d01 100644
  	}
  }
 -- 
-2.7.4
+2.17.1
 

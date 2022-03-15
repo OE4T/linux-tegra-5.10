@@ -1,4 +1,4 @@
-From 712bc755c183094bc25cca91d4868ef7f73c8dad Mon Sep 17 00:00:00 2001
+From 5c0af0883335b61191e7c963b0dd1d58b245fa16 Mon Sep 17 00:00:00 2001
 From: Matthias Maennich <maennich@google.com>
 Date: Thu, 26 Nov 2020 10:08:38 +0000
 Subject: [PATCH 814/830] ANDROID: extract-cert: omit PKCS#11 support if
@@ -17,7 +17,7 @@ Change-Id: I84af6633dd470083497087c7dd1a2734480e2b0e
  1 file changed, 7 insertions(+)
 
 diff --git a/scripts/extract-cert.c b/scripts/extract-cert.c
-index 3bc48c7..3034d99 100644
+index 3bc48c726c41..3034d991ba55 100644
 --- a/scripts/extract-cert.c
 +++ b/scripts/extract-cert.c
 @@ -49,6 +49,7 @@ static void display_openssl_errors(int l)
@@ -56,5 +56,5 @@ index 3bc48c7..3034d99 100644
  		BIO *b;
  		X509 *x509;
 -- 
-2.7.4
+2.17.1
 

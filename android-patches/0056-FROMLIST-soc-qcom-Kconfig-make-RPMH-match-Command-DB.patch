@@ -1,4 +1,4 @@
-From fac0ec5e3c0a0ff5b40dc785187412d7ea997b05 Mon Sep 17 00:00:00 2001
+From d121b912308c50c263ffb3cd5268f36d2e06fd3e Mon Sep 17 00:00:00 2001
 From: Lina Iyer <ilina@codeaurora.org>
 Date: Wed, 7 Oct 2020 14:07:35 -0600
 Subject: [PATCH 056/830] FROMLIST: soc: qcom: Kconfig: make RPMH match Command
@@ -30,7 +30,7 @@ Change-Id: I3f95d6c8c2e86a810fd6334d5e7e2ec1d8f684fa
  1 file changed, 1 insertion(+)
 
 diff --git a/drivers/soc/qcom/Kconfig b/drivers/soc/qcom/Kconfig
-index 6a3b69b..340ff7e 100644
+index 6a3b69b43ad5..340ff7e98d1c 100644
 --- a/drivers/soc/qcom/Kconfig
 +++ b/drivers/soc/qcom/Kconfig
 @@ -110,6 +110,7 @@ config QCOM_RMTFS_MEM
@@ -42,5 +42,5 @@ index 6a3b69b..340ff7e 100644
  	  Support for communication with the hardened-RPM blocks in
  	  Qualcomm Technologies Inc (QTI) SoCs. RPMH communication uses an
 -- 
-2.7.4
+2.17.1
 

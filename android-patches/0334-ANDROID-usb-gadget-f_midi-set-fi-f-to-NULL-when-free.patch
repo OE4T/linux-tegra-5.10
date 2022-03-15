@@ -1,4 +1,4 @@
-From 9b773bd8464dc23b835b6208908ed65c0d8045cc Mon Sep 17 00:00:00 2001
+From 789376bda5c6e9d4c4146db15a9bb62883fd37f2 Mon Sep 17 00:00:00 2001
 From: Winter Wang <wente.wang@nxp.com>
 Date: Fri, 20 May 2016 11:05:00 +0800
 Subject: [PATCH 334/830] ANDROID: usb: gadget: f_midi: set fi->f to NULL when
@@ -41,7 +41,7 @@ Signed-off-by: Winter Wang <wente.wang@nxp.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/drivers/usb/gadget/function/f_midi.c b/drivers/usb/gadget/function/f_midi.c
-index c9383aa..1285d22 100644
+index c9383aade134..1285d2203d8f 100644
 --- a/drivers/usb/gadget/function/f_midi.c
 +++ b/drivers/usb/gadget/function/f_midi.c
 @@ -1324,6 +1324,7 @@ static void f_midi_free(struct usb_function *f)
@@ -53,5 +53,5 @@ index c9383aa..1285d22 100644
  	mutex_unlock(&opts->lock);
  
 -- 
-2.7.4
+2.17.1
 

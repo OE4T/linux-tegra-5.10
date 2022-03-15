@@ -1,4 +1,4 @@
-From 0f014f6bb98cbd0fccb84e40233958d6c21215a9 Mon Sep 17 00:00:00 2001
+From c6f9b5204cc00a2149e8d2535276fc5fabbb5925 Mon Sep 17 00:00:00 2001
 From: Barani Muthukumaran <bmuthuku@codeaurora.org>
 Date: Thu, 6 Feb 2020 18:01:33 -0800
 Subject: [PATCH 513/830] ANDROID: dm: Add wrapped key support in
@@ -31,7 +31,7 @@ Signed-off-by: Barani Muthukumaran <bmuthuku@codeaurora.org>
  1 file changed, 20 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/md/dm-default-key.c b/drivers/md/dm-default-key.c
-index e4dea2b..1c57816 100644
+index e4dea2b16c7e..1c578160c0ed 100644
 --- a/drivers/md/dm-default-key.c
 +++ b/drivers/md/dm-default-key.c
 @@ -9,7 +9,7 @@
@@ -137,5 +137,5 @@ index e4dea2b..1c57816 100644
  	.ctr			= default_key_ctr,
  	.dtr			= default_key_dtr,
 -- 
-2.7.4
+2.17.1
 

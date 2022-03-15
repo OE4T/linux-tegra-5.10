@@ -1,4 +1,4 @@
-From c294193744088643f5a38acf4d6bed767412ff3d Mon Sep 17 00:00:00 2001
+From 0ed356f12031ced7436e7a72d22749ab9b05428e Mon Sep 17 00:00:00 2001
 From: Badhri Jagan Sridharan <badhri@google.com>
 Date: Wed, 28 Oct 2020 23:31:29 -0700
 Subject: [PATCH 017/830] FROMGIT: dt-bindings: usb: Maxim type-c controller
@@ -17,13 +17,13 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@google.com>
 Change-Id: Iae39ee6e6ae2741b1914773da6fefaa2ef2c2a9c
 ---
- .../devicetree/bindings/usb/maxim,max33359.yaml    | 75 ++++++++++++++++++++++
+ .../bindings/usb/maxim,max33359.yaml          | 75 +++++++++++++++++++
  1 file changed, 75 insertions(+)
  create mode 100644 Documentation/devicetree/bindings/usb/maxim,max33359.yaml
 
 diff --git a/Documentation/devicetree/bindings/usb/maxim,max33359.yaml b/Documentation/devicetree/bindings/usb/maxim,max33359.yaml
 new file mode 100644
-index 00000000..93a19ed
+index 000000000000..93a19eda610b
 --- /dev/null
 +++ b/Documentation/devicetree/bindings/usb/maxim,max33359.yaml
 @@ -0,0 +1,75 @@
@@ -103,5 +103,5 @@ index 00000000..93a19ed
 +    };
 +...
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 9cdb4fefaaed83f7d5ca094be12741c353ba60f7 Mon Sep 17 00:00:00 2001
+From 1149ddb37e752c3a155d3c979cfb3a6713c50782 Mon Sep 17 00:00:00 2001
 From: David Stevens <stevensd@chromium.org>
 Date: Mon, 2 Mar 2020 17:10:01 +0900
 Subject: [PATCH 352/830] FROMLIST: drm/prime: add support for virtio exported
@@ -32,7 +32,7 @@ Signed-off-by: Eric Biggers <ebiggers@google.com>
  3 files changed, 34 insertions(+)
 
 diff --git a/drivers/gpu/drm/drm_prime.c b/drivers/gpu/drm/drm_prime.c
-index 9f955f2..ca6d13eb 100644
+index 9f955f2010c2..ca6d13eb3190 100644
 --- a/drivers/gpu/drm/drm_prime.c
 +++ b/drivers/gpu/drm/drm_prime.c
 @@ -780,6 +780,28 @@ int drm_gem_dmabuf_mmap(struct dma_buf *dma_buf, struct vm_area_struct *vma)
@@ -73,7 +73,7 @@ index 9f955f2..ca6d13eb 100644
  
  /**
 diff --git a/include/drm/drm_drv.h b/include/drm/drm_drv.h
-index e57d044..e395d1f 100644
+index e57d0440f00f..e395d1fc186e 100644
 --- a/include/drm/drm_drv.h
 +++ b/include/drm/drm_drv.h
 @@ -29,6 +29,7 @@
@@ -84,10 +84,11 @@ index e57d044..e395d1f 100644
  
  #include <drm/drm_device.h>
  
-@@ -461,6 +462,15 @@ struct drm_driver {
+@@ -460,6 +461,15 @@ struct drm_driver {
+ 	int (*gem_prime_mmap)(struct drm_gem_object *obj,
  				struct vm_area_struct *vma);
  
- 	/**
++	/**
 +	 * @gem_prime_get_uuid
 +	 *
 +	 * get_uuid hook for GEM drivers. Retrieves the virtio uuid of the
@@ -96,12 +97,11 @@ index e57d044..e395d1f 100644
 +	int (*gem_prime_get_uuid)(struct drm_gem_object *obj,
 +				  uuid_t *uuid);
 +
-+	/**
+ 	/**
  	 * @dumb_create:
  	 *
- 	 * This creates a new dumb buffer in the driver's backing storage manager (GEM,
 diff --git a/include/drm/drm_prime.h b/include/drm/drm_prime.h
-index 0f69f9f..a9d0c6b 100644
+index 0f69f9fbf12c..a9d0c6b0854e 100644
 --- a/include/drm/drm_prime.h
 +++ b/include/drm/drm_prime.h
 @@ -107,5 +107,6 @@ void drm_prime_gem_destroy(struct drm_gem_object *obj, struct sg_table *sg);
@@ -112,5 +112,5 @@ index 0f69f9f..a9d0c6b 100644
  
  #endif /* __DRM_PRIME_H__ */
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 38aff794fd01e5521376188aee0d82fdf38b0976 Mon Sep 17 00:00:00 2001
+From bc422f7f73dc7a93912fe91bf434050830129f74 Mon Sep 17 00:00:00 2001
 From: JP Abgrall <jpa@google.com>
 Date: Thu, 26 Apr 2012 23:28:35 -0700
 Subject: [PATCH 502/830] ANDROID: netfilter: xt_IDLETIMER: Add new netlink msg
@@ -31,11 +31,11 @@ Signed-off-by: Alistair Delva <adelva@google.com>
 Signed-off-by: Matthias Maennich <maennich@google.com>
 ---
  include/uapi/linux/netfilter/xt_IDLETIMER.h |   9 +
- net/netfilter/xt_IDLETIMER.c                | 252 +++++++++++++++++++++++++++-
+ net/netfilter/xt_IDLETIMER.c                | 252 +++++++++++++++++++-
  2 files changed, 252 insertions(+), 9 deletions(-)
 
 diff --git a/include/uapi/linux/netfilter/xt_IDLETIMER.h b/include/uapi/linux/netfilter/xt_IDLETIMER.h
-index 49ddcdc..046ee37 100644
+index 49ddcdc61c09..046ee372c442 100644
 --- a/include/uapi/linux/netfilter/xt_IDLETIMER.h
 +++ b/include/uapi/linux/netfilter/xt_IDLETIMER.h
 @@ -4,6 +4,7 @@
@@ -67,7 +67,7 @@ index 49ddcdc..046ee37 100644
  	struct idletimer_tg *timer __attribute__((aligned(8)));
  };
 diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
-index 2f7cf5e..5b45815 100644
+index 2f7cf5ecebf4..5b4581529334 100644
 --- a/net/netfilter/xt_IDLETIMER.c
 +++ b/net/netfilter/xt_IDLETIMER.c
 @@ -6,6 +6,7 @@
@@ -449,5 +449,5 @@ index 2f7cf5e..5b45815 100644
  MODULE_ALIAS("ip6t_IDLETIMER");
 +MODULE_ALIAS("arpt_IDLETIMER");
 -- 
-2.7.4
+2.17.1
 

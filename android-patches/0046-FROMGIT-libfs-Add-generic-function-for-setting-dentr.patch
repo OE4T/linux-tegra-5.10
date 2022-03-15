@@ -1,4 +1,4 @@
-From d2a6b0cc4818294c7e305b66722c7b151c9d7dc8 Mon Sep 17 00:00:00 2001
+From a38a9bceb9b35467731d558299cd7754aee4e1ac Mon Sep 17 00:00:00 2001
 From: Daniel Rosenberg <drosen@google.com>
 Date: Thu, 19 Nov 2020 06:09:02 +0000
 Subject: [PATCH 046/830] FROMGIT: libfs: Add generic function for setting
@@ -34,12 +34,12 @@ Signed-off-by: Jaegeuk Kim <jaegeuk@kernel.org>
 Bug: 161184936
 Change-Id: I68c0ed071f149b906351dab86d8044a41542921b
 ---
- fs/libfs.c         | 70 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ fs/libfs.c         | 70 ++++++++++++++++++++++++++++++++++++++++++++++
  include/linux/fs.h |  1 +
  2 files changed, 71 insertions(+)
 
 diff --git a/fs/libfs.c b/fs/libfs.c
-index 7124c2e..d1c3bad 100644
+index 7124c2e8df2f..d1c3bade9f30 100644
 --- a/fs/libfs.c
 +++ b/fs/libfs.c
 @@ -1451,4 +1451,74 @@ int generic_ci_d_hash(const struct dentry *dentry, struct qstr *str)
@@ -118,7 +118,7 @@ index 7124c2e..d1c3bad 100644
 +}
 +EXPORT_SYMBOL(generic_set_encrypted_ci_d_ops);
 diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 42d246a..e92b293 100644
+index 42d246a94228..e92b29331983 100644
 --- a/include/linux/fs.h
 +++ b/include/linux/fs.h
 @@ -3208,6 +3208,7 @@ extern int generic_ci_d_hash(const struct dentry *dentry, struct qstr *str);
@@ -130,5 +130,5 @@ index 42d246a..e92b293 100644
  #ifdef CONFIG_MIGRATION
  extern int buffer_migrate_page(struct address_space *,
 -- 
-2.7.4
+2.17.1
 

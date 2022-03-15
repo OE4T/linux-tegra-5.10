@@ -1,4 +1,4 @@
-From 6dc7131d331ad80332cb81af31931f10c5617d38 Mon Sep 17 00:00:00 2001
+From e93da28e00a8f8dcb252d2290a214f15b72da327 Mon Sep 17 00:00:00 2001
 From: Sandeep Patil <sspatil@google.com>
 Date: Sun, 1 Sep 2019 22:38:52 -0700
 Subject: [PATCH 254/830] ANDROID: staging: ion: Add support for heap-specific
@@ -22,12 +22,12 @@ Test: ion-unit-test
 Change-Id: Id13c5c280064b6f47de327223733c2c393f1a41a
 Signed-off-by: Sandeep Patil <sspatil@google.com>
 ---
- drivers/staging/android/ion/ion_dma_buf.c | 207 +++++++++++++++++++++++-------
+ drivers/staging/android/ion/ion_dma_buf.c | 207 +++++++++++++++++-----
  include/linux/ion.h                       |   2 +
  2 files changed, 163 insertions(+), 46 deletions(-)
 
 diff --git a/drivers/staging/android/ion/ion_dma_buf.c b/drivers/staging/android/ion/ion_dma_buf.c
-index 0de08e6..e52db6a 100644
+index 0de08e6f1af5..e52db6a182ae 100644
 --- a/drivers/staging/android/ion/ion_dma_buf.c
 +++ b/drivers/staging/android/ion/ion_dma_buf.c
 @@ -6,7 +6,6 @@
@@ -312,7 +312,7 @@ index 0de08e6..e52db6a 100644
  
  struct dma_buf *ion_dmabuf_alloc(struct ion_device *dev, size_t len,
 diff --git a/include/linux/ion.h b/include/linux/ion.h
-index 5d68674..1e4846d 100644
+index 5d68674b015a..1e4846db0c6d 100644
 --- a/include/linux/ion.h
 +++ b/include/linux/ion.h
 @@ -101,6 +101,7 @@ struct ion_heap_ops {
@@ -332,5 +332,5 @@ index 5d68674..1e4846d 100644
  	unsigned int id;
  	const char *name;
 -- 
-2.7.4
+2.17.1
 

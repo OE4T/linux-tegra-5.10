@@ -1,4 +1,4 @@
-From 6343efb67fa6d8e38650a396b4949e9fc93e07a2 Mon Sep 17 00:00:00 2001
+From 50562b6146c582b0cfad23754112c8de36ecfded Mon Sep 17 00:00:00 2001
 From: Ram Muthiah <rammuthiah@google.com>
 Date: Mon, 28 Oct 2019 12:48:06 -0700
 Subject: [PATCH 580/830] ANDROID: gki_defconfig: enable
@@ -14,7 +14,7 @@ Signed-off-by: Ram Muthiah <rammuthiah@google.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index b1535ba..e3aa956 100644
+index b1535ba3b397..e3aa956e5817 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -46,6 +46,7 @@ CONFIG_PM_WAKELOCKS_LIMIT=0
@@ -26,5 +26,5 @@ index b1535ba..e3aa956 100644
  CONFIG_IA32_EMULATION=y
  CONFIG_KPROBES=y
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 5967914df5374a590c9ee76fa26ebeeff05a1b4e Mon Sep 17 00:00:00 2001
+From a3f491c2f1a9b8a917f960a64712a5f7a769eff0 Mon Sep 17 00:00:00 2001
 From: Sandeep Patil <sspatil@google.com>
 Date: Mon, 23 Mar 2020 20:40:00 -0700
 Subject: [PATCH 670/830] ANDROID: GKI: Add CONFIG_SOC_BUS to gki_defconfig
@@ -18,7 +18,7 @@ Change-Id: Ia56f4b0618f8d64acdf44cbb346313119460f745
  1 file changed, 11 insertions(+)
 
 diff --git a/init/Kconfig.gki b/init/Kconfig.gki
-index c752d62..1a43c5d 100644
+index c752d6284773..1a43c5da3309 100644
 --- a/init/Kconfig.gki
 +++ b/init/Kconfig.gki
 @@ -127,6 +127,16 @@ config GKI_HIDDEN_USB_CONFIGS
@@ -47,5 +47,5 @@ index c752d62..1a43c5d 100644
  	  Dummy config option used to enable core functionality used by
  	  modules that may not be selectable in this config.
 -- 
-2.7.4
+2.17.1
 

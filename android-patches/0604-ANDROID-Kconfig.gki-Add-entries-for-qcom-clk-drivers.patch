@@ -1,4 +1,4 @@
-From 1af483a2aaee16216b646217ee0f7645c10c22d0 Mon Sep 17 00:00:00 2001
+From 69fed56ec215a8d4e2fb10677c154e4fef7ea725 Mon Sep 17 00:00:00 2001
 From: John Stultz <john.stultz@linaro.org>
 Date: Tue, 17 Dec 2019 19:58:47 +0000
 Subject: [PATCH 604/830] ANDROID: Kconfig.gki: Add entries for qcom clk
@@ -31,7 +31,7 @@ Signed-off-by: John Stultz <john.stultz@linaro.org>
  1 file changed, 13 insertions(+)
 
 diff --git a/init/Kconfig.gki b/init/Kconfig.gki
-index be47572..2c6f92b 100644
+index be475727cef2..2c6f92b15ea3 100644
 --- a/init/Kconfig.gki
 +++ b/init/Kconfig.gki
 @@ -56,6 +56,18 @@ config GKI_HIDDEN_QCOM_CONFIGS
@@ -62,5 +62,5 @@ index be47572..2c6f92b 100644
  	  Dummy config option used to enable core functionality used by
  	  modules that may not be selectable in this config.
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From b42107e5a8d274063d80a6402a3f9f7626c2e054 Mon Sep 17 00:00:00 2001
+From 20af1815e741927049af7da301287bc3ef16335d Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Wed, 14 Oct 2020 07:42:33 -0700
 Subject: [PATCH 492/830] ANDROID: Incremental fs: Add zstd compression support
@@ -9,17 +9,17 @@ Test: incfs_test passes
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
 Change-Id: Iba28b535d2d5183859ffc721204b036434132d9b
 ---
- fs/incfs/Kconfig                                   |  1 +
- fs/incfs/data_mgmt.c                               | 94 ++++++++++++++++++++--
- fs/incfs/data_mgmt.h                               |  7 ++
- fs/incfs/format.h                                  |  6 +-
- include/uapi/linux/incrementalfs.h                 |  3 +-
- tools/testing/selftests/filesystems/incfs/Makefile |  2 +-
- .../selftests/filesystems/incfs/incfs_test.c       | 34 ++++++--
+ fs/incfs/Kconfig                              |  1 +
+ fs/incfs/data_mgmt.c                          | 94 +++++++++++++++++--
+ fs/incfs/data_mgmt.h                          |  7 ++
+ fs/incfs/format.h                             |  6 +-
+ include/uapi/linux/incrementalfs.h            |  3 +-
+ .../selftests/filesystems/incfs/Makefile      |  2 +-
+ .../selftests/filesystems/incfs/incfs_test.c  | 34 ++++++-
  7 files changed, 131 insertions(+), 16 deletions(-)
 
 diff --git a/fs/incfs/Kconfig b/fs/incfs/Kconfig
-index 8c0e8ae..5f15000 100644
+index 8c0e8ae2030f..5f1500072cd7 100644
 --- a/fs/incfs/Kconfig
 +++ b/fs/incfs/Kconfig
 @@ -2,6 +2,7 @@ config INCREMENTAL_FS
@@ -31,7 +31,7 @@ index 8c0e8ae..5f15000 100644
  	help
  	  Incremental FS is a read-only virtual file system that facilitates execution
 diff --git a/fs/incfs/data_mgmt.c b/fs/incfs/data_mgmt.c
-index b6a8b47..48ab7428 100644
+index b6a8b47b4f6d..48ab7428d627 100644
 --- a/fs/incfs/data_mgmt.c
 +++ b/fs/incfs/data_mgmt.c
 @@ -28,6 +28,19 @@ static void log_wake_up_all(struct work_struct *work)
@@ -191,7 +191,7 @@ index b6a8b47..48ab7428 100644
  	error = down_read_killable(&segment->rwsem);
  	if (error)
 diff --git a/fs/incfs/data_mgmt.h b/fs/incfs/data_mgmt.h
-index 7bbaf6d..a63af70 100644
+index 7bbaf6ddbba4..a63af708fa6d 100644
 --- a/fs/incfs/data_mgmt.h
 +++ b/fs/incfs/data_mgmt.h
 @@ -13,6 +13,7 @@
@@ -216,7 +216,7 @@ index 7bbaf6d..a63af70 100644
  
  struct data_file_block {
 diff --git a/fs/incfs/format.h b/fs/incfs/format.h
-index 7b991c3..81e3c1a 100644
+index 7b991c35dd19..81e3c1a04ce5 100644
 --- a/fs/incfs/format.h
 +++ b/fs/incfs/format.h
 @@ -195,7 +195,11 @@ struct incfs_file_header {
@@ -233,7 +233,7 @@ index 7b991c3..81e3c1a 100644
  
  /* Block map entry pointing to an actual location of the data block. */
 diff --git a/include/uapi/linux/incrementalfs.h b/include/uapi/linux/incrementalfs.h
-index 0cd6b34..482cebd 100644
+index 0cd6b3403222..482cebd67c0d 100644
 --- a/include/uapi/linux/incrementalfs.h
 +++ b/include/uapi/linux/incrementalfs.h
 @@ -143,7 +143,8 @@
@@ -247,7 +247,7 @@ index 0cd6b34..482cebd 100644
  
  enum incfs_block_flags {
 diff --git a/tools/testing/selftests/filesystems/incfs/Makefile b/tools/testing/selftests/filesystems/incfs/Makefile
-index 83e2ecb..f379802 100644
+index 83e2ecb7bad9..f3798029247a 100644
 --- a/tools/testing/selftests/filesystems/incfs/Makefile
 +++ b/tools/testing/selftests/filesystems/incfs/Makefile
 @@ -1,6 +1,6 @@
@@ -259,7 +259,7 @@ index 83e2ecb..f379802 100644
  
  include ../../lib.mk
 diff --git a/tools/testing/selftests/filesystems/incfs/incfs_test.c b/tools/testing/selftests/filesystems/incfs/incfs_test.c
-index 9abfb97..8741a3d 100644
+index 9abfb97425d7..8741a3d1795a 100644
 --- a/tools/testing/selftests/filesystems/incfs/incfs_test.c
 +++ b/tools/testing/selftests/filesystems/incfs/incfs_test.c
 @@ -15,6 +15,7 @@
@@ -332,5 +332,5 @@ index 9abfb97..8741a3d 100644
  			if (current_data + block_size > data_end) {
  				error = -ENOMEM;
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From cf755d25a5b76c294a3ba15664d83c188ac281d5 Mon Sep 17 00:00:00 2001
+From 824990b3a00fa800f1b24e726c0b2e3e495e74f4 Mon Sep 17 00:00:00 2001
 From: Chanho Park <chanho61.park@samsung.com>
 Date: Tue, 13 Oct 2020 08:50:18 +0000
 Subject: [PATCH 787/830] ANDROID: GKI: add built-in PCIE_DW_PLAT_EP
@@ -18,7 +18,7 @@ Change-Id: Iffc1d90419378e1f3cf13c3e5ecddadd84dc1540
  2 files changed, 4 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 80363b8..c2e0ec6 100644
+index 80363b8499e7..c2e0ec69bb74 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -225,8 +225,10 @@ CONFIG_RFKILL=y
@@ -33,7 +33,7 @@ index 80363b8..c2e0ec6 100644
  # CONFIG_FW_CACHE is not set
  # CONFIG_SUN50I_DE2_BUS is not set
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index d8d7b15..7b41f7b 100644
+index d8d7b1513c5f..7b41f7b1add3 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -204,6 +204,8 @@ CONFIG_RFKILL=y
@@ -46,5 +46,5 @@ index d8d7b15..7b41f7b 100644
  # CONFIG_FW_CACHE is not set
  CONFIG_GNSS=y
 -- 
-2.7.4
+2.17.1
 

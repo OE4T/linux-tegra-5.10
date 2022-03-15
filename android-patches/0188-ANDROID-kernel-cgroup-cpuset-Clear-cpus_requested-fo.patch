@@ -1,4 +1,4 @@
-From 0e666c42f29bf883745ff4806334474d486a9123 Mon Sep 17 00:00:00 2001
+From 9d6b93e5db98919349f1e82fb245fb0bfb78964a Mon Sep 17 00:00:00 2001
 From: Roman Kiryanov <rkir@google.com>
 Date: Mon, 17 Jun 2019 10:00:52 -0700
 Subject: [PATCH 188/830] ANDROID: kernel: cgroup: cpuset: Clear cpus_requested
@@ -26,10 +26,10 @@ Signed-off-by: Satya Durga Srinivasu Prabhala <satyap@codeaurora.org>
  1 file changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/kernel/cgroup/cpuset.c b/kernel/cgroup/cpuset.c
-index 01c7724..d55b3ad 100644
+index ef3991d0ea53..53b68c9fc04b 100644
 --- a/kernel/cgroup/cpuset.c
 +++ b/kernel/cgroup/cpuset.c
-@@ -1511,23 +1511,23 @@ static int update_cpumask(struct cpuset *cs, struct cpuset *trialcs,
+@@ -1521,23 +1521,23 @@ static int update_cpumask(struct cpuset *cs, struct cpuset *trialcs,
  		return -EACCES;
  
  	/*
@@ -60,5 +60,5 @@ index 01c7724..d55b3ad 100644
  	/* Nothing to do if the cpus didn't change */
  	if (cpumask_equal(cs->cpus_requested, trialcs->cpus_requested))
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From 7916625ecde27e7f9a2ec3ff5b2724cfe5e24b5a Mon Sep 17 00:00:00 2001
+From 3b2740604e8a976251e452f908fbb44fd4114e2d Mon Sep 17 00:00:00 2001
 From: Barani Muthukumaran <bmuthuku@codeaurora.org>
 Date: Wed, 15 Jan 2020 18:41:54 -0800
 Subject: [PATCH 514/830] ANDROID: fscrypt: add support for hardware-wrapped
@@ -34,16 +34,16 @@ Signed-off-by: Gaurav Kashyap <gaurkash@codeaurora.org>
 Signed-off-by: Barani Muthukumaran <bmuthuku@codeaurora.org>
 Signed-off-by: Eric Biggers <ebiggers@google.com>
 ---
- fs/crypto/fscrypt_private.h  | 44 ++++++++++++++++++---
- fs/crypto/inline_crypt.c     | 32 +++++++++++++---
- fs/crypto/keyring.c          | 50 +++++++++++++++++++-----
- fs/crypto/keysetup.c         | 91 ++++++++++++++++++++++++++++++++------------
+ fs/crypto/fscrypt_private.h  | 44 ++++++++++++++---
+ fs/crypto/inline_crypt.c     | 32 +++++++++++--
+ fs/crypto/keyring.c          | 50 ++++++++++++++++----
+ fs/crypto/keysetup.c         | 91 ++++++++++++++++++++++++++----------
  fs/crypto/keysetup_v1.c      |  3 +-
- include/uapi/linux/fscrypt.h |  5 ++-
+ include/uapi/linux/fscrypt.h |  5 +-
  6 files changed, 178 insertions(+), 47 deletions(-)
 
 diff --git a/fs/crypto/fscrypt_private.h b/fs/crypto/fscrypt_private.h
-index 712f350..a1b6212 100644
+index 712f350b1a9c..a1b6212f6eea 100644
 --- a/fs/crypto/fscrypt_private.h
 +++ b/fs/crypto/fscrypt_private.h
 @@ -22,6 +22,8 @@
@@ -151,7 +151,7 @@ index 712f350..a1b6212 100644
  void fscrypt_destroy_prepared_key(struct fscrypt_prepared_key *prep_key);
  
 diff --git a/fs/crypto/inline_crypt.c b/fs/crypto/inline_crypt.c
-index 33b65f1c..bf2c46c 100644
+index 33b65f1cfe64..bf2c46c2784a 100644
 --- a/fs/crypto/inline_crypt.c
 +++ b/fs/crypto/inline_crypt.c
 @@ -15,6 +15,7 @@
@@ -229,7 +229,7 @@ index 33b65f1c..bf2c46c 100644
  {
  	return inode->i_crypt_info->ci_inlinecrypt;
 diff --git a/fs/crypto/keyring.c b/fs/crypto/keyring.c
-index d7ec52c..1f52e84 100644
+index d7ec52cb3d9a..1f52e841143f 100644
 --- a/fs/crypto/keyring.c
 +++ b/fs/crypto/keyring.c
 @@ -476,6 +476,9 @@ static int do_add_master_key(struct super_block *sb,
@@ -322,7 +322,7 @@ index d7ec52c..1f52e84 100644
  		secret.size = arg.raw_size;
  		err = -EFAULT;
 diff --git a/fs/crypto/keysetup.c b/fs/crypto/keysetup.c
-index 73d96e3..1299d155 100644
+index 73d96e35d9ae..1299d155bc8b 100644
 --- a/fs/crypto/keysetup.c
 +++ b/fs/crypto/keysetup.c
 @@ -126,12 +126,17 @@ fscrypt_allocate_skcipher(struct fscrypt_mode *mode, const u8 *raw_key,
@@ -471,7 +471,7 @@ index 73d96e3..1299d155 100644
  	case FSCRYPT_POLICY_V1:
  		err = fscrypt_setup_v1_file_key(ci, mk->mk_secret.raw);
 diff --git a/fs/crypto/keysetup_v1.c b/fs/crypto/keysetup_v1.c
-index 2762c53..f0c22b5 100644
+index 2762c5350432..f0c22b589804 100644
 --- a/fs/crypto/keysetup_v1.c
 +++ b/fs/crypto/keysetup_v1.c
 @@ -233,7 +233,8 @@ fscrypt_get_direct_key(const struct fscrypt_info *ci, const u8 *raw_key)
@@ -485,7 +485,7 @@ index 2762c53..f0c22b5 100644
  		goto err_free_dk;
  	memcpy(dk->dk_descriptor, ci->ci_policy.v1.master_key_descriptor,
 diff --git a/include/uapi/linux/fscrypt.h b/include/uapi/linux/fscrypt.h
-index 9f4428b..fceafb5 100644
+index 9f4428be3e36..fceafb5ab213 100644
 --- a/include/uapi/linux/fscrypt.h
 +++ b/include/uapi/linux/fscrypt.h
 @@ -124,7 +124,10 @@ struct fscrypt_add_key_arg {
@@ -501,5 +501,5 @@ index 9f4428b..fceafb5 100644
  };
  
 -- 
-2.7.4
+2.17.1
 

@@ -1,4 +1,4 @@
-From e2ce2dba976cd5ba68c94199b060400321fccade Mon Sep 17 00:00:00 2001
+From 23333725fe0c3b9ff50f6440d04dfb8a97712451 Mon Sep 17 00:00:00 2001
 From: Elliot Berman <eberman@codeaurora.org>
 Date: Tue, 4 Aug 2020 10:55:30 -0700
 Subject: [PATCH 742/830] ANDROID: Use DTC from the hermetic toolchain
@@ -14,7 +14,7 @@ Signed-off-by: Elliot Berman <eberman@codeaurora.org>
  1 file changed, 1 insertion(+)
 
 diff --git a/build.config.common b/build.config.common
-index 74f15aa..0ca65cf 100644
+index 74f15aaca731..0ca65cf86544 100644
 --- a/build.config.common
 +++ b/build.config.common
 @@ -7,6 +7,7 @@ LD=ld.lld
@@ -26,5 +26,5 @@ index 74f15aa..0ca65cf 100644
  BUILDTOOLS_PREBUILT_BIN=build/build-tools/path/linux-x86
  
 -- 
-2.7.4
+2.17.1
 

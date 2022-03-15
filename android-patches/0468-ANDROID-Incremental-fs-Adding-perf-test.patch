@@ -1,4 +1,4 @@
-From 4011a375add34e9ae7057b7e576bd29656664d6e Mon Sep 17 00:00:00 2001
+From 2e70cbd3a2eee67574c05f0193cc083170c859b9 Mon Sep 17 00:00:00 2001
 From: Paul Lawrence <paullawrence@google.com>
 Date: Wed, 6 May 2020 12:31:31 -0700
 Subject: [PATCH 468/830] ANDROID: Incremental fs: Adding perf test
@@ -9,18 +9,18 @@ Test: Profile tool runs
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
 Change-Id: Iff91432f7602fc1e23cf30012c893a99e02c868d
 ---
- .../testing/selftests/filesystems/incfs/.gitignore |   1 +
- tools/testing/selftests/filesystems/incfs/Makefile |   2 +-
- .../selftests/filesystems/incfs/incfs_perf.c       | 717 +++++++++++++++++++++
- .../selftests/filesystems/incfs/incfs_stress.c     |  39 +-
- .../selftests/filesystems/incfs/incfs_test.c       |   3 +-
- tools/testing/selftests/filesystems/incfs/utils.c  |  39 ++
- tools/testing/selftests/filesystems/incfs/utils.h  |   7 +
+ .../selftests/filesystems/incfs/.gitignore    |   1 +
+ .../selftests/filesystems/incfs/Makefile      |   2 +-
+ .../selftests/filesystems/incfs/incfs_perf.c  | 717 ++++++++++++++++++
+ .../filesystems/incfs/incfs_stress.c          |  39 +-
+ .../selftests/filesystems/incfs/incfs_test.c  |   3 +-
+ .../selftests/filesystems/incfs/utils.c       |  39 +
+ .../selftests/filesystems/incfs/utils.h       |   7 +
  7 files changed, 772 insertions(+), 36 deletions(-)
  create mode 100644 tools/testing/selftests/filesystems/incfs/incfs_perf.c
 
 diff --git a/tools/testing/selftests/filesystems/incfs/.gitignore b/tools/testing/selftests/filesystems/incfs/.gitignore
-index 6b90110..f0e3cd9 100644
+index 6b90110d6556..f0e3cd99d4ac 100644
 --- a/tools/testing/selftests/filesystems/incfs/.gitignore
 +++ b/tools/testing/selftests/filesystems/incfs/.gitignore
 @@ -1,2 +1,3 @@
@@ -28,7 +28,7 @@ index 6b90110..f0e3cd9 100644
  incfs_stress
 +incfs_perf
 diff --git a/tools/testing/selftests/filesystems/incfs/Makefile b/tools/testing/selftests/filesystems/incfs/Makefile
-index 1484dbe..882b43d 100644
+index 1484dbe8f7e1..882b43decbcd 100644
 --- a/tools/testing/selftests/filesystems/incfs/Makefile
 +++ b/tools/testing/selftests/filesystems/incfs/Makefile
 @@ -1,7 +1,7 @@
@@ -42,7 +42,7 @@ index 1484dbe..882b43d 100644
  
 diff --git a/tools/testing/selftests/filesystems/incfs/incfs_perf.c b/tools/testing/selftests/filesystems/incfs/incfs_perf.c
 new file mode 100644
-index 00000000..ed36bbd
+index 000000000000..ed36bbd774e3
 --- /dev/null
 +++ b/tools/testing/selftests/filesystems/incfs/incfs_perf.c
 @@ -0,0 +1,717 @@
@@ -764,7 +764,7 @@ index 00000000..ed36bbd
 +	return err;
 +}
 diff --git a/tools/testing/selftests/filesystems/incfs/incfs_stress.c b/tools/testing/selftests/filesystems/incfs/incfs_stress.c
-index 4238803..a1d4917 100644
+index 4238803cccd0..a1d491755832 100644
 --- a/tools/testing/selftests/filesystems/incfs/incfs_stress.c
 +++ b/tools/testing/selftests/filesystems/incfs/incfs_stress.c
 @@ -48,7 +48,7 @@ int cancel_threads;
@@ -840,7 +840,7 @@ index 4238803..a1d4917 100644
  {
  	struct read_data *read_data = (struct read_data *)data;
 diff --git a/tools/testing/selftests/filesystems/incfs/incfs_test.c b/tools/testing/selftests/filesystems/incfs/incfs_test.c
-index c9bccc7..5545039 100644
+index c9bccc742bae..55450396dfce 100644
 --- a/tools/testing/selftests/filesystems/incfs/incfs_test.c
 +++ b/tools/testing/selftests/filesystems/incfs/incfs_test.c
 @@ -29,7 +29,6 @@
@@ -861,7 +861,7 @@ index c9bccc7..5545039 100644
  	backing_dir = create_backing_dir(mount_dir);
  	if (!backing_dir)
 diff --git a/tools/testing/selftests/filesystems/incfs/utils.c b/tools/testing/selftests/filesystems/incfs/utils.c
-index e194f63..a801232 100644
+index e194f63ba922..a80123294d5a 100644
 --- a/tools/testing/selftests/filesystems/incfs/utils.c
 +++ b/tools/testing/selftests/filesystems/incfs/utils.c
 @@ -25,6 +25,45 @@
@@ -911,7 +911,7 @@ index e194f63..a801232 100644
  	     int read_timeout_ms)
  {
 diff --git a/tools/testing/selftests/filesystems/incfs/utils.h b/tools/testing/selftests/filesystems/incfs/utils.h
-index 9af63e4..5b59272 100644
+index 9af63e4e922c..5b59272dbb7f 100644
 --- a/tools/testing/selftests/filesystems/incfs/utils.h
 +++ b/tools/testing/selftests/filesystems/incfs/utils.h
 @@ -18,6 +18,13 @@
@@ -929,5 +929,5 @@ index 9af63e4..5b59272 100644
  int mount_fs(const char *mount_dir, const char *backing_dir,
  	     int read_timeout_ms);
 -- 
-2.7.4
+2.17.1
 

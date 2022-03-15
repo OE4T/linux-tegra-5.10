@@ -1,4 +1,4 @@
-From ed592e301e3d1ff5a9ff6b90124f23c95df7ec2e Mon Sep 17 00:00:00 2001
+From 692a87d5cee74dfec6296dd1d27973f966975bf5 Mon Sep 17 00:00:00 2001
 From: Todd Kjos <tkjos@google.com>
 Date: Thu, 7 Nov 2019 11:17:41 -0800
 Subject: [PATCH 584/830] ANDROID: Kconfig.gki: Add SND_SOC_COMPRESS
@@ -14,7 +14,7 @@ Signed-off-by: Todd Kjos <tkjos@google.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/init/Kconfig.gki b/init/Kconfig.gki
-index c5a080e..ad9c434 100644
+index c5a080e7784b..ad9c434bd6b5 100644
 --- a/init/Kconfig.gki
 +++ b/init/Kconfig.gki
 @@ -23,6 +23,7 @@ config GKI_HIDDEN_SND_SOC_CONFIGS
@@ -26,5 +26,5 @@ index c5a080e..ad9c434 100644
  	  Dummy config option used to enable hidden SND_SOC configs.
  	  These are normally selected implicitely when a module
 -- 
-2.7.4
+2.17.1
 

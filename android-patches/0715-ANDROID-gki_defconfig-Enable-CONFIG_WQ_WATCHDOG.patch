@@ -1,4 +1,4 @@
-From bcd067a0c6ff8503be9caf84cbfcb2d4f8af0639 Mon Sep 17 00:00:00 2001
+From 72730d5ba43d404e1b3b84f30185f8d4070a4548 Mon Sep 17 00:00:00 2001
 From: Quentin Perret <qperret@google.com>
 Date: Tue, 23 Jun 2020 11:24:00 +0100
 Subject: [PATCH 715/830] ANDROID: gki_defconfig: Enable CONFIG_WQ_WATCHDOG
@@ -16,7 +16,7 @@ Change-Id: I14d2b112d2d4d1a4a920c71f254fc4ba4d3cd57c
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index c8c3a93..ec85c04 100644
+index c8c3a9388a3b..ec85c04d1b81 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -498,6 +498,7 @@ CONFIG_PANIC_ON_OOPS=y
@@ -28,7 +28,7 @@ index c8c3a93..ec85c04 100644
  # CONFIG_DEBUG_PREEMPT is not set
  CONFIG_BUG_ON_DATA_CORRUPTION=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index faedb2d..1760750 100644
+index faedb2dd3b6a..1760750b25bc 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -446,6 +446,7 @@ CONFIG_PANIC_ON_OOPS=y
@@ -40,5 +40,5 @@ index faedb2d..1760750 100644
  CONFIG_BUG_ON_DATA_CORRUPTION=y
  CONFIG_UNWINDER_FRAME_POINTER=y
 -- 
-2.7.4
+2.17.1
 

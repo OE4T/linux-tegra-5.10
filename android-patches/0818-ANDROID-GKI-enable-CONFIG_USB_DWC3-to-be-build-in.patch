@@ -1,4 +1,4 @@
-From a8f6b4f088d56c025f335f8a1896d0d4eac86265 Mon Sep 17 00:00:00 2001
+From cdf33275a8288aa5739c4ca2f6d731e0f82f6d00 Mon Sep 17 00:00:00 2001
 From: Greg Kroah-Hartman <gregkh@google.com>
 Date: Fri, 20 Nov 2020 16:09:52 +0100
 Subject: [PATCH 818/830] ANDROID: GKI: enable CONFIG_USB_DWC3 to be build in
@@ -19,7 +19,7 @@ Change-Id: I3fc2c4d05f46eebf30c2e222cb85928d9f6a83c5
  2 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 701e331..00d751a 100644
+index 701e3312f565..00d751aefa22 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -415,12 +415,12 @@ CONFIG_USB_HIDDEV=y
@@ -37,7 +37,7 @@ index 701e331..00d751a 100644
  CONFIG_USB_CONFIGFS=y
  CONFIG_USB_CONFIGFS_UEVENT=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 87996cb..72a9a6e 100644
+index 87996cbc1c55..72a9a6e00d14 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -369,12 +369,12 @@ CONFIG_HID_WIIMOTE=y
@@ -55,5 +55,5 @@ index 87996cb..72a9a6e 100644
  CONFIG_USB_CONFIGFS=y
  CONFIG_USB_CONFIGFS_UEVENT=y
 -- 
-2.7.4
+2.17.1
 

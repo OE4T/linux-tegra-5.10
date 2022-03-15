@@ -1,4 +1,4 @@
-From db17d8156052e9aafc1707609bd99203ebf3f505 Mon Sep 17 00:00:00 2001
+From d9cf9b9f5a7e11c13c17a47fa0ca83a8d3f08b02 Mon Sep 17 00:00:00 2001
 From: Dmitry Shmidt <dimitrysh@google.com>
 Date: Thu, 20 Aug 2020 08:17:37 -0700
 Subject: [PATCH 757/830] ANDROID: GKI: Enable V4L MEM2MEM drivers
@@ -16,7 +16,7 @@ Signed-off-by: Dmitry Shmidt <dimitrysh@google.com>
  2 files changed, 2 insertions(+)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index 33d82af..faccb44 100644
+index 33d82afd229c..faccb44d1868 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -337,6 +337,7 @@ CONFIG_MEDIA_SUPPORT_FILTER=y
@@ -28,7 +28,7 @@ index 33d82af..faccb44 100644
  CONFIG_DRM=y
  # CONFIG_DRM_FBDEV_EMULATION is not set
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 7b9e6f2..e5a2986 100644
+index 7b9e6f24b9d1..e5a2986e281f 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -293,6 +293,7 @@ CONFIG_MEDIA_SUPPORT_FILTER=y
@@ -40,5 +40,5 @@ index 7b9e6f2..e5a2986 100644
  # CONFIG_DRM_FBDEV_EMULATION is not set
  CONFIG_BACKLIGHT_CLASS_DEVICE=y
 -- 
-2.7.4
+2.17.1
 

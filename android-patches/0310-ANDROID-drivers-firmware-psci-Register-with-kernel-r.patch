@@ -1,4 +1,4 @@
-From 559351a40f9361db796b491d704a1e252cc05416 Mon Sep 17 00:00:00 2001
+From efbe6ac981227362028602f5251999621defd15d Mon Sep 17 00:00:00 2001
 From: Guenter Roeck <linux@roeck-us.net>
 Date: Tue, 15 Oct 2019 16:51:44 +0200
 Subject: [PATCH 310/830] ANDROID: drivers: firmware: psci: Register with
@@ -30,7 +30,7 @@ Signed-off-by: Elliot Berman <eberman@codeaurora.org>
  1 file changed, 12 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/firmware/psci/psci.c b/drivers/firmware/psci/psci.c
-index baf48af..f9fc569 100644
+index baf48af96886..f9fc5694c226 100644
 --- a/drivers/firmware/psci/psci.c
 +++ b/drivers/firmware/psci/psci.c
 @@ -266,7 +266,8 @@ static int get_set_conduit_method(struct device_node *np)
@@ -79,5 +79,5 @@ index baf48af..f9fc569 100644
  
  /*
 -- 
-2.7.4
+2.17.1
 

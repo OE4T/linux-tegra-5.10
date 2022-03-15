@@ -1,4 +1,4 @@
-From 7064e10a430ecfa857d306ae7dbdae78455081c2 Mon Sep 17 00:00:00 2001
+From 9c5f79e4edf87c8db45029f607d1d087cc1cc827 Mon Sep 17 00:00:00 2001
 From: Sangmoon Kim <sangmoon.kim@samsung.com>
 Date: Thu, 8 Oct 2020 10:42:06 +0900
 Subject: [PATCH 323/830] ANDROID: sysrq: add vendor hook for sysrq crash
@@ -21,7 +21,7 @@ Change-Id: Ib8f14eaa639b2ef959e911d611515868ff9f193d
  create mode 100644 include/trace/hooks/sysrqcrash.h
 
 diff --git a/drivers/android/vendor_hooks.c b/drivers/android/vendor_hooks.c
-index 2040a81..85081a15 100644
+index 2040a8196134..85081a15febf 100644
 --- a/drivers/android/vendor_hooks.c
 +++ b/drivers/android/vendor_hooks.c
 @@ -20,6 +20,7 @@
@@ -41,7 +41,7 @@ index 2040a81..85081a15 100644
  EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_printk_hotplug);
  EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_jiffies_update);
 diff --git a/drivers/tty/sysrq.c b/drivers/tty/sysrq.c
-index 959f9e1..8f01cde 100644
+index 959f9e121cc6..8f01cde61d20 100644
 --- a/drivers/tty/sysrq.c
 +++ b/drivers/tty/sysrq.c
 @@ -55,6 +55,8 @@
@@ -64,7 +64,7 @@ index 959f9e1..8f01cde 100644
  static const struct sysrq_key_op sysrq_crash_op = {
 diff --git a/include/trace/hooks/sysrqcrash.h b/include/trace/hooks/sysrqcrash.h
 new file mode 100644
-index 00000000..e5d9102
+index 000000000000..e5d9102ba4e1
 --- /dev/null
 +++ b/include/trace/hooks/sysrqcrash.h
 @@ -0,0 +1,24 @@
@@ -93,5 +93,5 @@ index 00000000..e5d9102
 +/* This part must be outside protection */
 +#include <trace/define_trace.h>
 -- 
-2.7.4
+2.17.1
 

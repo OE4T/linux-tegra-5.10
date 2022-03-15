@@ -1,4 +1,4 @@
-From 985142145f42cc1702def9800c55dda3fc93e956 Mon Sep 17 00:00:00 2001
+From aa690e498b5f2f2f8d9beecb54979af71b06b810 Mon Sep 17 00:00:00 2001
 From: Lina Iyer <ilina@codeaurora.org>
 Date: Fri, 13 Sep 2019 15:59:15 -0600
 Subject: [PATCH 297/830] FROMLIST: drivers: irqchip: pdc: additionally set
@@ -27,11 +27,11 @@ Change-Id: I73250a04f67549dbf75c40b3672b6b1b78ff8adb
 Signed-off-by: Maulik Shah <mkshah@codeaurora.org>
 Link: https://patchwork.kernel.org/patch/11145353
 ---
- drivers/irqchip/qcom-pdc.c | 104 +++++++++++++++++++++++++++++++++++++++------
+ drivers/irqchip/qcom-pdc.c | 104 ++++++++++++++++++++++++++++++++-----
  1 file changed, 90 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/irqchip/qcom-pdc.c b/drivers/irqchip/qcom-pdc.c
-index 5dc63c2..30e2a85 100644
+index 5dc63c20b67e..30e2a85a0517 100644
 --- a/drivers/irqchip/qcom-pdc.c
 +++ b/drivers/irqchip/qcom-pdc.c
 @@ -19,6 +19,8 @@
@@ -202,5 +202,5 @@ index 5dc63c2..30e2a85 100644
  	kfree(pdc_region);
  	iounmap(pdc_base);
 -- 
-2.7.4
+2.17.1
 

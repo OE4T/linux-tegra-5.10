@@ -1,4 +1,4 @@
-From 3f3b6005950657a7778e4ec97ce21abf9767eed5 Mon Sep 17 00:00:00 2001
+From 2eb9eed20e5a3f9e6a012fb3e647b4848842e985 Mon Sep 17 00:00:00 2001
 From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 Date: Wed, 25 Nov 2020 15:06:41 +0300
 Subject: [PATCH 031/830] FROMGIT: usb: pd: DFP product types
@@ -22,7 +22,7 @@ Change-Id: I2acdd13ecde48b9bf531f3829a4ffa0f22b1d895
  1 file changed, 12 insertions(+), 3 deletions(-)
 
 diff --git a/include/linux/usb/pd_vdo.h b/include/linux/usb/pd_vdo.h
-index 68bdc4e..04a66c2 100644
+index 68bdc4e2f5a9..04a66c2deedc 100644
 --- a/include/linux/usb/pd_vdo.h
 +++ b/include/linux/usb/pd_vdo.h
 @@ -103,17 +103,25 @@
@@ -63,5 +63,5 @@ index 68bdc4e..04a66c2 100644
  /*
   * Cert Stat VDO
 -- 
-2.7.4
+2.17.1
 

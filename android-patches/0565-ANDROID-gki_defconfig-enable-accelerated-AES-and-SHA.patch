@@ -1,4 +1,4 @@
-From d2fed926da8d7300d7f4f95f7af5db2460bf33d7 Mon Sep 17 00:00:00 2001
+From 9e28073985f3de58f11759b72ac64dd258807a20 Mon Sep 17 00:00:00 2001
 From: Eric Biggers <ebiggers@google.com>
 Date: Wed, 9 Oct 2019 13:00:58 -0700
 Subject: [PATCH 565/830] ANDROID: gki_defconfig: enable accelerated AES and
@@ -21,7 +21,7 @@ Signed-off-by: Eric Biggers <ebiggers@google.com>
  2 files changed, 4 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
-index aeb3359..71d7184 100644
+index aeb335949b3a..71d7184770a3 100644
 --- a/arch/arm64/configs/gki_defconfig
 +++ b/arch/arm64/configs/gki_defconfig
 @@ -69,7 +69,8 @@ CONFIG_ARM_SCPI_PROTOCOL=y
@@ -35,7 +35,7 @@ index aeb3359..71d7184 100644
  CONFIG_MODULES=y
  CONFIG_MODULE_UNLOAD=y
 diff --git a/arch/x86/configs/gki_defconfig b/arch/x86/configs/gki_defconfig
-index 161b86f..19ea05f 100644
+index 161b86ff8e4c..19ea05fccd13 100644
 --- a/arch/x86/configs/gki_defconfig
 +++ b/arch/x86/configs/gki_defconfig
 @@ -379,6 +379,8 @@ CONFIG_SECURITY_NETWORK=y
@@ -48,5 +48,5 @@ index 161b86f..19ea05f 100644
  CONFIG_CRYPTO_ZSTD=y
  CONFIG_CRYPTO_ANSI_CPRNG=y
 -- 
-2.7.4
+2.17.1
 

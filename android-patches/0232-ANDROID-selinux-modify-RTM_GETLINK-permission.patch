@@ -1,4 +1,4 @@
-From 747018edc5cad06bf5fdd5c69202a6d5a2f96919 Mon Sep 17 00:00:00 2001
+From dc2a1145ba100458a4b5030412be7d352e68aa8b Mon Sep 17 00:00:00 2001
 From: Jeff Vander Stoep <jeffv@google.com>
 Date: Wed, 22 Jan 2020 11:19:58 +0100
 Subject: [PATCH 232/830] ANDROID: selinux: modify RTM_GETLINK permission
@@ -44,7 +44,7 @@ Signed-off-by: Jeff Vander Stoep <jeffv@google.com>
  6 files changed, 44 insertions(+), 2 deletions(-)
 
 diff --git a/security/selinux/include/classmap.h b/security/selinux/include/classmap.h
-index b9fdba2..fae9a82 100644
+index b9fdba2ff416..fae9a8249547 100644
 --- a/security/selinux/include/classmap.h
 +++ b/security/selinux/include/classmap.h
 @@ -117,7 +117,7 @@ struct security_class_mapping secclass_map[] = {
@@ -57,7 +57,7 @@ index b9fdba2..fae9a82 100644
  	  { COMMON_SOCK_PERMS,
  	    "nlmsg_read", "nlmsg_write", NULL } },
 diff --git a/security/selinux/include/security.h b/security/selinux/include/security.h
-index 63ca6e7..8519c44 100644
+index 63ca6e79daeb..8519c44aabd4 100644
 --- a/security/selinux/include/security.h
 +++ b/security/selinux/include/security.h
 @@ -97,6 +97,7 @@ struct selinux_state {
@@ -90,7 +90,7 @@ index 63ca6e7..8519c44 100644
  
  #endif /* _SELINUX_SECURITY_H_ */
 diff --git a/security/selinux/nlmsgtab.c b/security/selinux/nlmsgtab.c
-index b692319..7968c2e 100644
+index b69231918686..7968c2e45e39 100644
 --- a/security/selinux/nlmsgtab.c
 +++ b/security/selinux/nlmsgtab.c
 @@ -25,7 +25,7 @@ struct nlmsg_perm {
@@ -131,7 +131,7 @@ index b692319..7968c2e 100644
 +		nlmsg_set_getlink_perm(NETLINK_ROUTE_SOCKET__NLMSG_READ);
 +}
 diff --git a/security/selinux/ss/policydb.c b/security/selinux/ss/policydb.c
-index 6a04de2..ac75ff2 100644
+index 6a04de21343f..ac75ff25821b 100644
 --- a/security/selinux/ss/policydb.c
 +++ b/security/selinux/ss/policydb.c
 @@ -2491,6 +2491,10 @@ int policydb_read(struct policydb *p, void *fp)
@@ -146,7 +146,7 @@ index 6a04de2..ac75ff2 100644
  		rc = ebitmap_read(&p->policycaps, fp);
  		if (rc)
 diff --git a/security/selinux/ss/policydb.h b/security/selinux/ss/policydb.h
-index c24d4e1..6bedec4 100644
+index c24d4e1063ea..6bedec43aa0b 100644
 --- a/security/selinux/ss/policydb.h
 +++ b/security/selinux/ss/policydb.h
 @@ -238,6 +238,7 @@ struct genfs {
@@ -166,7 +166,7 @@ index c24d4e1..6bedec4 100644
  /* the config flags related to unknown classes/perms are bits 2 and 3 */
  #define REJECT_UNKNOWN	0x00000002
 diff --git a/security/selinux/ss/services.c b/security/selinux/ss/services.c
-index 31d631f..769dc7c 100644
+index 31d631fa846e..769dc7cb3b9d 100644
 --- a/security/selinux/ss/services.c
 +++ b/security/selinux/ss/services.c
 @@ -2158,6 +2158,9 @@ static void security_load_policycaps(struct selinux_state *state,
@@ -180,5 +180,5 @@ index 31d631f..769dc7c 100644
  
  static int security_preserve_bools(struct selinux_policy *oldpolicy,
 -- 
-2.7.4
+2.17.1
 

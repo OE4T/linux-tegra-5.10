@@ -1,4 +1,4 @@
-From 6715afa15e29399cf3d35f7cb82bd7a46d835c9d Mon Sep 17 00:00:00 2001
+From 4e30d087588008e34cd8a3fceba1630f12fe7325 Mon Sep 17 00:00:00 2001
 From: Alessio Balsini <balsini@android.com>
 Date: Fri, 18 Sep 2020 13:09:42 +0100
 Subject: [PATCH 063/830] FROMLIST: fuse: Use daemon creds in passthrough mode
@@ -44,7 +44,7 @@ Change-Id: I1123f8113578eb8713f2b777a1b5ec76882bd762
  2 files changed, 15 insertions(+), 1 deletion(-)
 
 diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
-index 3d9bb9c..0bf739f 100644
+index 3d9bb9c45127..0bf739f0625c 100644
 --- a/fs/fuse/fuse_i.h
 +++ b/fs/fuse/fuse_i.h
 @@ -182,10 +182,13 @@ struct fuse_release_args;
@@ -63,7 +63,7 @@ index 3d9bb9c..0bf739f 100644
  
  /** FUSE specific file data */
 diff --git a/fs/fuse/passthrough.c b/fs/fuse/passthrough.c
-index 10b6872..ab81dd8 100644
+index 10b6872cdaa7..ab81dd8f010b 100644
 --- a/fs/fuse/passthrough.c
 +++ b/fs/fuse/passthrough.c
 @@ -67,6 +67,7 @@ ssize_t fuse_passthrough_read_iter(struct kiocb *iocb_fuse,
@@ -132,5 +132,5 @@ index 10b6872..ab81dd8 100644
 +	}
  }
 -- 
-2.7.4
+2.17.1
 

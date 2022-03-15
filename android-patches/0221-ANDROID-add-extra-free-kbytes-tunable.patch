@@ -1,4 +1,4 @@
-From 9da3ef70eaf9643524758244ce991a5d24e3ee16 Mon Sep 17 00:00:00 2001
+From 12de4031f2e9087fc86e9105a7e446f0e4b89e24 Mon Sep 17 00:00:00 2001
 From: Rik van Riel <riel@redhat.com>
 Date: Thu, 1 Sep 2011 15:26:50 -0400
 Subject: [PATCH 221/830] ANDROID: add extra free kbytes tunable
@@ -45,7 +45,7 @@ Signed-off-by: Eric Biggers <ebiggers@google.com>
  3 files changed, 46 insertions(+), 4 deletions(-)
 
 diff --git a/Documentation/admin-guide/sysctl/vm.rst b/Documentation/admin-guide/sysctl/vm.rst
-index 06027c6..15e5575 100644
+index 06027c6a233a..15e557570e6a 100644
 --- a/Documentation/admin-guide/sysctl/vm.rst
 +++ b/Documentation/admin-guide/sysctl/vm.rst
 @@ -38,6 +38,7 @@ Currently, these files are in /proc/sys/vm:
@@ -79,7 +79,7 @@ index 06027c6..15e5575 100644
  =================
  
 diff --git a/kernel/sysctl.c b/kernel/sysctl.c
-index b9306d2..20dfb94 100644
+index 72ceb19574d0..86b52017962c 100644
 --- a/kernel/sysctl.c
 +++ b/kernel/sysctl.c
 @@ -106,6 +106,9 @@
@@ -92,10 +92,11 @@ index b9306d2..20dfb94 100644
  /* Constants used for minimum and  maximum */
  #ifdef CONFIG_LOCKUP_DETECTOR
  static int sixty = 60;
-@@ -2905,6 +2908,14 @@ static struct ctl_table vm_table[] = {
+@@ -2923,6 +2926,14 @@ static struct ctl_table vm_table[] = {
+ 		.extra1		= SYSCTL_ONE,
  		.extra2		= &one_thousand,
  	},
- 	{
++	{
 +		.procname	= "extra_free_kbytes",
 +		.data		= &extra_free_kbytes,
 +		.maxlen		= sizeof(extra_free_kbytes),
@@ -103,12 +104,11 @@ index b9306d2..20dfb94 100644
 +		.proc_handler	= min_free_kbytes_sysctl_handler,
 +		.extra1		= SYSCTL_ZERO,
 +	},
-+	{
+ 	{
  		.procname	= "percpu_pagelist_fraction",
  		.data		= &percpu_pagelist_fraction,
- 		.maxlen		= sizeof(percpu_pagelist_fraction),
 diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index e8e0f1c..20750db 100644
+index c63656c42e28..98a61aa6ffbe 100644
 --- a/mm/page_alloc.c
 +++ b/mm/page_alloc.c
 @@ -344,6 +344,11 @@ compound_page_dtor * const compound_page_dtors[NR_COMPOUND_DTORS] = {
@@ -137,7 +137,7 @@ index e8e0f1c..20750db 100644
  static unsigned long nr_kernel_pages __initdata;
  static unsigned long nr_all_pages __initdata;
  static unsigned long dma_reserve __initdata;
-@@ -7845,6 +7857,7 @@ static void setup_per_zone_lowmem_reserve(void)
+@@ -7847,6 +7859,7 @@ static void setup_per_zone_lowmem_reserve(void)
  static void __setup_per_zone_wmarks(void)
  {
  	unsigned long pages_min = min_free_kbytes >> (PAGE_SHIFT - 10);
@@ -145,7 +145,7 @@ index e8e0f1c..20750db 100644
  	unsigned long lowmem_pages = 0;
  	struct zone *zone;
  	unsigned long flags;
-@@ -7856,11 +7869,13 @@ static void __setup_per_zone_wmarks(void)
+@@ -7858,11 +7871,13 @@ static void __setup_per_zone_wmarks(void)
  	}
  
  	for_each_zone(zone) {
@@ -160,7 +160,7 @@ index e8e0f1c..20750db 100644
  		if (is_highmem(zone)) {
  			/*
  			 * __GFP_HIGH and PF_MEMALLOC allocations usually don't
-@@ -7894,8 +7909,8 @@ static void __setup_per_zone_wmarks(void)
+@@ -7896,8 +7911,8 @@ static void __setup_per_zone_wmarks(void)
  				      watermark_scale_factor, 10000));
  
  		zone->watermark_boost = 0;
@@ -171,7 +171,7 @@ index e8e0f1c..20750db 100644
  
  		spin_unlock_irqrestore(&zone->lock, flags);
  	}
-@@ -7980,7 +7995,7 @@ postcore_initcall(init_per_zone_wmark_min)
+@@ -7982,7 +7997,7 @@ postcore_initcall(init_per_zone_wmark_min)
  /*
   * min_free_kbytes_sysctl_handler - just a wrapper around proc_dointvec() so
   *	that we can call two helper functions whenever min_free_kbytes
@@ -181,5 +181,5 @@ index e8e0f1c..20750db 100644
  int min_free_kbytes_sysctl_handler(struct ctl_table *table, int write,
  		void *buffer, size_t *length, loff_t *ppos)
 -- 
-2.7.4
+2.17.1
 

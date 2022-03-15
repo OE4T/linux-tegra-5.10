@@ -1,4 +1,4 @@
-From 98aa67df4d8afb2dddabf5e22c111420c7d1fd92 Mon Sep 17 00:00:00 2001
+From 00b4085610ff101b05a55f94162fe4fc8df29d9e Mon Sep 17 00:00:00 2001
 From: Yun Hsiang <yun.hsiang@mediatek.com>
 Date: Thu, 13 Aug 2020 14:41:46 +0800
 Subject: [PATCH 153/830] ANDROID: sched: add vendor hook for correcting cpu
@@ -27,7 +27,7 @@ Signed-off-by: Eric Biggers <ebiggers@google.com>
  create mode 100644 include/trace/hooks/topology.h
 
 diff --git a/drivers/android/vendor_hooks.c b/drivers/android/vendor_hooks.c
-index 7b16c83..9849a5c 100644
+index 7b16c8381931..9849a5c7e60d 100644
 --- a/drivers/android/vendor_hooks.c
 +++ b/drivers/android/vendor_hooks.c
 @@ -14,6 +14,7 @@
@@ -47,7 +47,7 @@ index 7b16c83..9849a5c 100644
  EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_rwsem_init);
  EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_rwsem_wake);
 diff --git a/drivers/base/arch_topology.c b/drivers/base/arch_topology.c
-index de8587c..513639b 100644
+index de8587cc119e..513639b2e1dd 100644
 --- a/drivers/base/arch_topology.c
 +++ b/drivers/base/arch_topology.c
 @@ -20,6 +20,7 @@
@@ -69,7 +69,7 @@ index de8587c..513639b 100644
  }
 diff --git a/include/trace/hooks/topology.h b/include/trace/hooks/topology.h
 new file mode 100644
-index 00000000..65ee196
+index 000000000000..65ee1962b833
 --- /dev/null
 +++ b/include/trace/hooks/topology.h
 @@ -0,0 +1,27 @@
@@ -101,5 +101,5 @@ index 00000000..65ee196
 +/* This part must be outside protection */
 +#include <trace/define_trace.h>
 -- 
-2.7.4
+2.17.1
 
