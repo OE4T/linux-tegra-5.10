@@ -75,6 +75,10 @@ struct nvdla_ping_args {
 struct nvdla_mem_share_handle {
 	__u32 share_id;
 	__u32 offset;
+#define NVDLA_MEM_ACCESS_NONE (0U)
+#define NVDLA_MEM_ACCESS_READ (1U << 0U)
+#define NVDLA_MEM_ACCESS_WRITE (1U << 1U)
+#define NVDLA_MEM_ACCESS_READ_WRITE (NVDLA_MEM_ACCESS_READ | NVDLA_MEM_ACCESS_WRITE)
 	__u32 access_flags;
 	__u32 import_id;
 };

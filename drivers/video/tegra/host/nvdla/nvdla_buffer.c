@@ -140,7 +140,18 @@ static int nvdla_buffer_map(struct platform_device *pdev,
 		goto buf_attach_err;
 	}
 
-	sgt = dma_buf_map_attachment(attach, DMA_BIDIRECTIONAL);
+	if (desc->access_flags == NVDLA_MEM_ACCESS_READ) {
+		sgt = dma_buf_map_attachment(attach, DMA_TO_DEVICE);
+	} else if (desc->access_flags == NVDLA_MEM_ACCESS_READ_WRITE) {
+		sgt = dma_buf_map_attachment(attach, DMA_BIDIRECTIONAL);
+	} else {
+		err = -EINVAL;
+		dev_err(&pdev->dev,
+			"Invalid access permission: %u\n",
+			desc->access_flags);
+		goto buf_map_err;
+	}
+
 	if (IS_ERR_OR_NULL(sgt)) {
 		err = PTR_ERR(sgt);
 		dev_err(&pdev->dev, "dma mapping failed: %d\n", err);
@@ -199,7 +210,11 @@ static void nvdla_buffer_unmap(struct nvdla_buffers *nvdla_buffers,
 	if ((vm->user_map_count != 0) || (vm->submit_map_count != 0))
 		return;
 
-	dma_buf_unmap_attachment(vm->attach, vm->sgt, DMA_BIDIRECTIONAL);
+	if (vm->access_flags == NVDLA_MEM_ACCESS_READ)
+		dma_buf_unmap_attachment(vm->attach, vm->sgt, DMA_TO_DEVICE);
+	else
+		dma_buf_unmap_attachment(vm->attach, vm->sgt, DMA_BIDIRECTIONAL);
+
 	dma_buf_detach(vm->dmabuf, vm->attach);
 	dma_buf_put(vm->dmabuf);
 
