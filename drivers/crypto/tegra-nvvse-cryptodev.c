@@ -153,8 +153,10 @@ static void free_bufs(unsigned long *buf[NBUFS])
 {
 	int i;
 
-	for (i = 0; i < NBUFS; i++)
+	for (i = 0; i < NBUFS; i++) {
 		free_page((unsigned long)buf[i]);
+		buf[i] = NULL;
+	}
 }
 
 static int wait_async_op(struct tnvvse_crypto_completion *tr, int ret)
@@ -851,7 +853,7 @@ static int tnvvse_crypto_aes_gmac_sign_verify(struct tnvvse_crypto_ctx *ctx,
 	}
 
 stop_sha:
-	if (sha_state->xbuf)
+	if (sha_state->xbuf[0])
 		free_bufs(sha_state->xbuf);
 	if (sha_state->req)
 		ahash_request_free(sha_state->req);
