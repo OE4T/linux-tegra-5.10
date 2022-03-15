@@ -294,6 +294,19 @@ int epl_report_misc_ec_error(struct device *dev, uint8_t err_number,
 }
 EXPORT_SYMBOL(epl_report_misc_ec_error);
 
+int epl_report_error(struct epl_error_report_frame error_report)
+{
+	int ret = -EINVAL;
+
+	if (epl_hsp_v == NULL)
+		return -ENODEV;
+
+	ret = mbox_send_message(epl_hsp_v->tx.chan, (void *)&error_report);
+
+	return ret < 0 ? ret : 0;
+}
+EXPORT_SYMBOL(epl_report_error);
+
 static const struct of_device_id epl_client_dt_match[] = {
 	{ .compatible = "nvidia,tegra234-epl-client"},
 	{}
