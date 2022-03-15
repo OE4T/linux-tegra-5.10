@@ -149,7 +149,7 @@ static phys_addr_t nvmap_alloc_mem(struct nvmap_heap *h, size_t len,
 			return DMA_ERROR_CODE;
 		}
 #else
-		if(!(dma_alloc_from_dev_coherent(dev, len, &pa, &ret))) {
+		if (nvmap_dma_alloc_from_dev_coherent(dev, len, &pa, &ret)) {
 			dev_err(dev, "Failed to reserve len(%zu)\n", len);
 			return DMA_ERROR_CODE;
 		}
@@ -205,7 +205,7 @@ static void nvmap_free_mem(struct nvmap_heap *h, phys_addr_t base,
 		dma_mark_declared_memory_unoccupied(dev, base, len,
 						    DMA_ATTR_ALLOC_EXACT_SIZE);
 #else
-		dma_release_from_dev_coherent(dev, len, (void *)(uintptr_t)base);
+		nvmap_dma_release_from_dev_coherent(dev, len, (void *)(uintptr_t)base);
 #endif
 	} else
 #endif

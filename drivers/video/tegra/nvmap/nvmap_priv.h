@@ -908,4 +908,7 @@ void nvmap_remove_device_name(char *device_name, u32 heap_type);
 bool dmabuf_is_nvmap(struct dma_buf *dmabuf);
 struct nvmap_handle *nvmap_handle_get_from_id(struct nvmap_client *client,
 		int id);
+int nvmap_dma_alloc_from_dev_coherent(struct device *dev, ssize_t size,
+		dma_addr_t *dma_handle, void **ret);
+int nvmap_dma_release_from_dev_coherent(struct device *dev, int order, void *vaddr);
 #endif /* __VIDEO_TEGRA_NVMAP_NVMAP_H */

@@ -487,9 +487,65 @@ void nvmap_dma_free_attrs(struct device *dev, size_t size, void *cpu_addr,
 }
 EXPORT_SYMBOL(nvmap_dma_free_attrs);
 
-#endif /* LINUX_VERSION_CODE */
+int nvmap_dma_alloc_from_dev_coherent(struct device *dev, ssize_t size,
+		dma_addr_t *dma_handle, void **ret)
+{
+	struct dma_coherent_mem_replica *mem;
+	int order;
+	unsigned long flags;
+	int pageno;
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+	if (!dev || !dev->dma_mem)
+		return -EINVAL;
+
+	mem = (struct dma_coherent_mem_replica *)(dev->dma_mem);
+
+	if (size < 0)
+		return -EINVAL;
+	order = get_order(size);
+	spin_lock_irqsave(&mem->spinlock, flags);
+	if (unlikely(size > (mem->size << PAGE_SHIFT)))
+		goto err;
+
+	pageno = bitmap_find_free_region(mem->bitmap, mem->size, order);
+	if (unlikely(pageno < 0))
+		goto err;
+
+	/*
+	 * Memory was found in the coherent area.
+	 */
+	*dma_handle = mem->device_base + ((dma_addr_t)pageno << PAGE_SHIFT);
+	*ret = mem->virt_base + ((dma_addr_t)pageno << PAGE_SHIFT);
+	spin_unlock_irqrestore(&mem->spinlock, flags);
+	memset(*ret, 0, size);
+	return 0;
+
+err:
+	spin_unlock_irqrestore(&mem->spinlock, flags);
+	*ret = NULL;
+	return -EINVAL;
+}
+
+int nvmap_dma_release_from_dev_coherent(struct device *dev, int order, void *vaddr)
+{
+	struct dma_coherent_mem_replica *mem;
+
+	if (!dev || !dev->dma_mem)
+		return -EINVAL;
+	mem = (struct dma_coherent_mem_replica *)(dev->dma_mem);
+	if (vaddr >= mem->virt_base && vaddr <
+		(mem->virt_base + (mem->size << PAGE_SHIFT))) {
+		unsigned int page = (unsigned int)((vaddr - mem->virt_base) >> PAGE_SHIFT);
+		unsigned long flags;
+
+		spin_lock_irqsave(&mem->spinlock, flags);
+		bitmap_release_region(mem->bitmap, page, order);
+		spin_unlock_irqrestore(&mem->spinlock, flags);
+		return 0;
+	}
+	return -EINVAL;
+}
+
 static void nvmap_dma_release_coherent_memory(struct dma_coherent_mem_replica *mem)
 {
 	if (!mem)
@@ -577,7 +633,7 @@ int nvmap_dma_declare_coherent_memory(struct device *dev, phys_addr_t phys_addr,
 		nvmap_dma_release_coherent_memory(mem);
 	return ret;
 }
-#endif
+#endif /* LINUX_VERSION_CODE */
 
 static int __init nvmap_co_device_init(struct reserved_mem *rmem,
 					struct device *dev)
