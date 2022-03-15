@@ -183,6 +183,7 @@ struct tegra_vse_gmac_req_data {
 	enum gmac_request_type request_type;
 	/* Return IV after GMAC_INIT and pass IV during GMAC_VERIFY*/
 	unsigned char *iv;
+	bool is_first;
 	/* For GMAC_VERIFY tag comparison result */
 	uint8_t result;
 };
@@ -196,7 +197,7 @@ struct tegra_vse_priv_data {
 	struct skcipher_request *reqs[TEGRA_HV_VSE_MAX_TASKS_PER_SUBMIT];
 	struct tegra_virtual_se_dev *se_dev;
 	struct completion alg_complete;
-	int req_cnt;
+	unsigned int req_cnt;
 	void (*call_back_vse)(void *);
 	int cmd;
 	int slot_num;
@@ -220,7 +221,7 @@ struct tegra_virtual_se_dev {
 	struct work_struct se_work;
 	struct workqueue_struct *vse_work_q;
 	struct mutex mtx;
-	int req_cnt;
+	unsigned int req_cnt;
 	struct skcipher_request *reqs[TEGRA_HV_VSE_MAX_TASKS_PER_SUBMIT];
 	atomic_t ivc_count;
 	int gather_buf_sz;
@@ -495,8 +496,6 @@ struct tegra_virtual_se_aes_cmac_context {
 struct tegra_virtual_se_aes_gmac_context {
 	/* size of GCM tag*/
 	u32 authsize;
-	/* Represents first part request */
-	bool is_first;
 	/* Mark initialization status */
 	bool req_context_initialized;
 	u32 aes_keyslot;
@@ -1589,7 +1588,7 @@ static int status_to_errno(u32 err)
 
 static void complete_call_back(void *data)
 {
-	int k;
+	unsigned int k;
 	struct skcipher_request *req;
 	struct tegra_virtual_se_aes_req_context *req_ctx;
 	struct tegra_vse_priv_data *priv =
@@ -1640,7 +1639,7 @@ static int tegra_hv_se_setup_ablk_req(struct tegra_virtual_se_dev *se_dev,
 {
 	struct skcipher_request *req;
 	void *buf;
-	int i = 0;
+	unsigned int i = 0;
 	u32 num_sgs;
 
 	priv->buf = kmalloc(se_dev->gather_buf_sz, GFP_KERNEL);
@@ -1676,7 +1675,7 @@ static void tegra_hv_vse_safety_process_new_req(struct tegra_virtual_se_dev *se_
 	struct tegra_hv_ivc_cookie *pivck = g_ivck;
 	dma_addr_t cur_addr;
 	int err = 0;
-	int i, k;
+	unsigned int i, k;
 	struct tegra_virtual_se_ivc_msg_t *ivc_req_msg = NULL;
 	int cur_map_cnt = 0;
 	struct tegra_vse_priv_data *priv = NULL;
@@ -3415,7 +3414,6 @@ static int tegra_hv_vse_aes_gmac_sv_init(struct ahash_request *req)
 		/* Initialize GMAC ctx */
 		gmac_ctx->authsize = crypto_ahash_digestsize(tfm);
 		gmac_ctx->req_context_initialized = true;
-		gmac_ctx->is_first = true;
 		/* Exit as GMAC_INIT request need not be sent to SE Server for SIGN/VERIFY */
 		err = 0;
 		goto exit;
@@ -3500,8 +3498,10 @@ exit:
 
 static void tegra_hv_vse_aes_gmac_deinit(struct ahash_request *req)
 {
-	struct tegra_virtual_se_aes_cmac_context *gmac_ctx = ahash_request_ctx(req);
+	struct tegra_virtual_se_aes_gmac_context *gmac_ctx =
+					crypto_ahash_ctx(crypto_ahash_reqtfm(req));
 
+	gmac_ctx->is_key_slot_allocated = false;
 	gmac_ctx->req_context_initialized = false;
 }
 
@@ -3611,11 +3611,9 @@ static int tegra_hv_vse_aes_gmac_sv_op(struct ahash_request *req, bool is_last)
 		ivc_tx->aes.op_gcm.tag_addr_lo = (u32)(tag_buf_addr & U32_MAX);
 	}
 
-	if (gmac_ctx->is_first == true) {
+	if (gmac_req_data->is_first)
 		ivc_tx->aes.op_gcm.config |=
 					(1 << TEGRA_VIRTUAL_SE_AES_GMAC_SV_CFG_FIRST_REQ_SHIFT);
-		gmac_ctx->is_first = false;
-	}
 
 	if (is_last == true) {
 		ivc_tx->aes.op_gcm.config |= (1 << TEGRA_VIRTUAL_SE_AES_GMAC_SV_CFG_LAST_REQ_SHIFT);
@@ -4197,7 +4195,7 @@ static int tegra_vse_kthread(void *unused)
 	struct tegra_virtual_se_ivc_resp_msg_t *ivc_rx;
 	int ret;
 	int read_size = 0;
-	int k;
+	unsigned int k;
 
 	ivc_msg =
 		kmalloc(sizeof(struct tegra_virtual_se_ivc_msg_t), GFP_KERNEL);
