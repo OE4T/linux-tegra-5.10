@@ -221,6 +221,8 @@ struct gk20a;
 	DEFINE_FLAG(NVGPU_SUPPORT_NVS, "Domain scheduler support"), \
 	DEFINE_FLAG(NVGPU_SUPPORT_TEGRA_RAW, \
 			"TEGRA_RAW format support"), \
+	DEFINE_FLAG(NVGPU_SUPPORT_EMULATE_MODE, \
+			"Emulate mode support"), \
 	DEFINE_FLAG(NVGPU_MAX_ENABLED_BITS, "Marks max number of flags"),
 
 /**

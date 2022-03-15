@@ -1994,6 +1994,7 @@ int ga10b_init_hal(struct gk20a *g)
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	gops->mssnvlink = ga10b_ops_mssnvlink;
 #endif
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_EMULATE_MODE, true);
 	g->name = "ga10b";
 
 	return 0;
