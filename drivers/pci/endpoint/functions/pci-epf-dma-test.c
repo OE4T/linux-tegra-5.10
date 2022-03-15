@@ -1418,6 +1418,12 @@ static int pcie_dma_epf_core_init(struct pci_epf *epf)
 	dev_info(fdev, "BAR0 phy_addr: %llx size: %lx\n",
 		 epf_bar->phys_addr, epf_bar->size);
 
+	ret = pci_epc_set_msi(epc, epf->func_no, epf->msi_interrupts);
+	if (ret) {
+		dev_err(fdev, "pci_epc_set_msi() failed: %d\n", ret);
+		return ret;
+	}
+
 	return 0;
 }
 
