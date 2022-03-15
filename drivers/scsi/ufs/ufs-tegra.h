@@ -132,7 +132,8 @@
 #define SET_TREF(x)			(((x) & 0x7) << 2)
 #define VS_DEBUGSAVECONFIGTIME_ST_SCT	0x3
 #define SET_ST_SCT(x)			((x) & 0x3)
-
+#define VS_BURSTMBLCONFIG		(0x5 << 13)
+#define VS_BURSTMBLREGISTER		0xc0
 #define VS_TXBURSTCLOSUREDELAY		0xD084
 
 /*UFS Clock Defines*/
@@ -144,7 +145,7 @@
 #define UFS_CLK_UPHY_PLL3_RATEB 5840000000
 
 /* HS clock frequencies */
-#define MPHY_TX_HS_BIT_DIV_CLK	499200000
+#define MPHY_TX_HS_BIT_DIV_CLK	583680000
 #define MPHY_RX_HS_BIT_DIV_CLK	312500000
 
 enum ufs_state {

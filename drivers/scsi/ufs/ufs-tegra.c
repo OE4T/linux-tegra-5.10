@@ -179,6 +179,14 @@ static void ufs_tegra_cfg_vendor_registers(struct ufs_hba *hba)
 	ufshcd_writel(hba, UFS_VNDR_HCLKDIV_1US_TICK, REG_UFS_VNDR_HCLKDIV);
 }
 
+static void ufs_tegra_ufs_mmio_axi(struct ufs_hba *hba)
+{
+	u32 mask = GENMASK(15, 13);
+
+	ufshcd_rmwl(hba, mask, VS_BURSTMBLCONFIG, VS_BURSTMBLREGISTER);
+
+}
+
 static int ufs_tegra_host_clk_get(struct device *dev,
 		const char *name, struct clk **clk_out)
 {
@@ -1495,6 +1503,8 @@ static int ufs_tegra_hce_enable_notify(struct ufs_hba *hba,
 		ufs_tegra_ufs_aux_prog(ufs_tegra);
 		ufs_tegra_cfg_vendor_registers(hba);
 		clk_disable_unprepare(ufs_tegra->mphy_force_ls_mode);
+		if (ufs_tegra->chip_id == TEGRA234)
+			ufs_tegra_ufs_mmio_axi(hba);
 		break;
 	default:
 		break;
