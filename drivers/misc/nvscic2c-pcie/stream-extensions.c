@@ -438,6 +438,8 @@ ioctl_import_obj(struct stream_ext_ctx_t *ctx,
 	pr_debug("Imported descriptor = (%llu)\n", args->in.desc);
 
 	filep = fget(handle);
+	if (!filep)
+		return -ENOMEM;
 	stream_obj = filep->private_data;
 	stream_obj->import_type = get_handle_type_from_desc(args->in.desc);
 	ret = pci_client_get_peer_aper(ctx->pci_client_h, stream_obj->vmap.offsetof,
