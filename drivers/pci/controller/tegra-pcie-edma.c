@@ -13,6 +13,7 @@
 #include <linux/slab.h>
 #include <linux/interrupt.h>
 #include <linux/tegra-pcie-edma.h>
+#include <linux/limits.h>
 #include "tegra-pcie-dma-osi.h"
 
 /** Default number of descriptors used */
@@ -166,6 +167,9 @@ static inline int edma_ch_init(struct edma_prv *prv, struct edma_chan *ch)
 	struct edma_dblock *db;
 	dma_addr_t addr;
 	uint32_t j;
+
+	if ((ch->desc_sz <= 1) || (ch->desc_sz & (ch->desc_sz - 1)))
+		return -EINVAL;
 
 	if (prv->is_remote_dma)
 		memset_io(ch->desc, 0, (sizeof(struct edma_dblock)) * ((ch->desc_sz / 2) + 1));
@@ -409,7 +413,11 @@ void *tegra_pcie_edma_initialize(struct tegra_pcie_edma_init_info *info)
 		}
 
 		prv->dev = info->edma_remote->dev;
-		prv->irq = info->edma_remote->msi_irq;
+		if (info->edma_remote->msi_irq > INT_MAX) {
+			pr_err("%s: msi_irq is out of range\n", __func__);
+			goto free_priv;
+		}
+		prv->irq = (int)info->edma_remote->msi_irq;
 		prv->msi_data = info->edma_remote->msi_data;
 		prv->msi_addr = info->edma_remote->msi_addr;
 		prv->is_remote_dma = true;
@@ -445,7 +453,7 @@ void *tegra_pcie_edma_initialize(struct tegra_pcie_edma_init_info *info)
 		}
 
 		prv->irq = platform_get_irq_byname(pdev, "intr");
-		if (!prv->irq) {
+		if (prv->irq <= 0) {
 			dev_err(prv->dev, "failed to get intr interrupt\n");
 			goto put_dev;
 		};

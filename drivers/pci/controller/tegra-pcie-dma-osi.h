@@ -2,13 +2,13 @@
 /*
  * PCIe EDMA Framework
  *
- * Copyright (C) 2021 NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2021-2022 NVIDIA Corporation. All rights reserved.
  */
 
 #ifndef TEGRA_PCIE_DMA_OSI_H
 #define TEGRA_PCIE_DMA_OSI_H
 
-#define OSI_BIT(b)		(1 << (b))
+#define OSI_BIT(b)		(1U << (b))
 /** generates bit mask for 32 bit value */
 #define OSI_GENMASK(h, l)	(((~0U) << (l)) & (~0U >> (31U - (h))))
 
