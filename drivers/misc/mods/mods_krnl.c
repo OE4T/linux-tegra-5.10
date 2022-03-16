@@ -2564,10 +2564,12 @@ static long mods_krnl_ioctl(struct file  *fp,
 			   MODS_TEGRA_PROD_ITERATOR);
 		break;
 
+#ifdef CONFIG_TRUSTY
 	case MODS_ESC_SEND_TZ_MSG:
 		MODS_IOCTL(MODS_ESC_SEND_TZ_MSG,
 			esc_mods_send_trustzone_msg, MODS_TZ_PARAMS);
 		break;
+#endif
 
 	case MODS_ESC_OIST_STATUS:
 		MODS_IOCTL(MODS_ESC_OIST_STATUS,

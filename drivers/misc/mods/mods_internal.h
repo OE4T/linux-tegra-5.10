@@ -698,9 +698,11 @@ int esc_mods_tegra_prod_set_prod_by_name(struct mods_client *client,
 int esc_mods_tegra_prod_set_prod_exact(struct mods_client *client,
 	struct MODS_TEGRA_PROD_SET_TUPLE *tuple);
 
+#ifdef CONFIG_TRUSTY
 /* trustzone app call */
 int esc_mods_send_trustzone_msg(struct mods_client         *client,
 	struct MODS_TZ_PARAMS      *p);
+#endif
 #endif
 
 #ifdef CONFIG_DEBUG_FS
