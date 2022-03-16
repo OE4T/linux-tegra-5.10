@@ -549,4 +549,16 @@ union nvpva_ioctl_submit_args {
 	(NVPVA_SUBMIT_MAX_TASKS * NVPVA_TASK_MAX_SIZE +                      \
 	sizeof(struct nvpva_submit_in_arg_s))
 
+struct pva_ocd_ioctl_vpu_io_param {
+	uint32_t instr;
+	uint32_t n_write;
+	uint32_t n_read;
+	uint32_t data[7];
+};
+
+#define PVA_OCD_MAGIC 'V'
+
+#define PVA_OCD_IOCTL_VPU_IO                                                   \
+	_IOWR(PVA_OCD_MAGIC, 1, struct pva_ocd_ioctl_vpu_io_param)
+
 #endif /* __NVPVA_IOCTL_H__ */

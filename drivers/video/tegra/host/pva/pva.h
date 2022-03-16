@@ -3,7 +3,7 @@
  *
  * Tegra PVA header
  *
- * Copyright (c) 2016-2021, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -77,6 +77,12 @@ struct pva_version_info {
 #define PVA_CCQ5_INDEX 6
 #define PVA_CCQ6_INDEX 7
 #define PVA_CCQ7_INDEX 8
+
+
+/**
+ * Number of VPUs for each PVA
+ */
+#define NUM_VPU_BLOCKS 2
 
 /**
  * @brief		struct to hold the segment details
@@ -210,6 +216,14 @@ struct pva_version_config {
 };
 
 /**
+ * @brief		Describe a VPU hardware debug block
+ * vbase		Address mapped to virtual space
+ */
+struct pva_vpu_dbg_block {
+	void __iomem *vbase;
+};
+
+/**
  * @brief		Driver private data, shared with all applications
  *
  * version		pva version; 1 or 2
@@ -286,6 +300,8 @@ struct pva {
 
 	struct nvpva_client_context *clients;
 	struct mutex clients_lock;
+
+	struct pva_vpu_dbg_block vpu_dbg_blocks[NUM_VPU_BLOCKS];
 };
 
 /**
