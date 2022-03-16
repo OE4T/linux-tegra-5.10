@@ -87,7 +87,7 @@ struct nvpps_device_data {
 
 	bool		memmap_phc_regs;
 	char		*iface_nm;
-	u64			mac_base_addr;
+	void __iomem *mac_base_addr;
 	u32			sts_offset;
 	u32			stns_offset;
 	void __iomem 		*tsc_reg_map_base;
@@ -147,13 +147,13 @@ struct nvpps_file_data {
 #define MAC_STNSR_TSSS_HPOS 30
 
 #define GET_VALUE(data, lbit, hbit) ((data >> lbit) & (~(~0<<(hbit-lbit+1))))
-#define MAC_STNSR_OFFSET ((volatile u32 *)(BASE_ADDRESS + pdev_data->stns_offset))
+#define MAC_STNSR_OFFSET (BASE_ADDRESS + pdev_data->stns_offset)
 #define MAC_STNSR_RD(data) do {\
-	(data) = ioread32((void *)MAC_STNSR_OFFSET);\
+	(data) = ioread32(MAC_STNSR_OFFSET);\
 } while (0)
-#define MAC_STSR_OFFSET ((volatile u32 *)(BASE_ADDRESS + pdev_data->sts_offset))
+#define MAC_STSR_OFFSET (BASE_ADDRESS + pdev_data->sts_offset)
 #define MAC_STSR_RD(data) do {\
-	(data) = ioread32((void *)MAC_STSR_OFFSET);\
+	(data) = ioread32(MAC_STSR_OFFSET);\
 } while (0)
 
 
@@ -454,7 +454,7 @@ static int set_mode(struct nvpps_device_data *pdev_data, u32 mode)
 
 
 /* Character device stuff */
-static unsigned int nvpps_poll(struct file *file, poll_table *wait)
+static __poll_t nvpps_poll(struct file *file, poll_table *wait)
 {
 	struct nvpps_file_data		*pfile_data = (struct nvpps_file_data *)file->private_data;
 	struct nvpps_device_data	*pdev_data = pfile_data->pdev_data;
@@ -719,26 +719,26 @@ static void nvpps_fill_default_mac_phc_info(struct platform_device *pdev,
 					use_eqos_mac = true;
 				} else if (!strncmp(pdev_data->iface_nm, "mgbe0_0", sizeof("mgbe0_0"))) {
 					/* remap base address for mgbe0_0 */
-					pdev_data->mac_base_addr = (u64)devm_ioremap(&pdev->dev, T234_MGBE0_BASE_ADDR, SZ_4K);
-					dev_info(&pdev->dev, "map MGBE0_0 to (%p)\n", (void *)pdev_data->mac_base_addr);
+					pdev_data->mac_base_addr = devm_ioremap(&pdev->dev, T234_MGBE0_BASE_ADDR, SZ_4K);
+					dev_info(&pdev->dev, "map MGBE0_0 to (%p)\n", pdev_data->mac_base_addr);
 					pdev_data->sts_offset = MGBE_STSR_OFFSET;
 					pdev_data->stns_offset = MGBE_STNSR_OFFSET;
 				} else if (!strncmp(pdev_data->iface_nm, "mgbe1_0", sizeof("mgbe1_0"))) {
 					/* remap base address for mgbe1_0 */
-					pdev_data->mac_base_addr = (u64)devm_ioremap(&pdev->dev, T234_MGBE1_BASE_ADDR, SZ_4K);
-					dev_info(&pdev->dev, "map MGBE1_0 to (%p)\n", (void *)pdev_data->mac_base_addr);
+					pdev_data->mac_base_addr = devm_ioremap(&pdev->dev, T234_MGBE1_BASE_ADDR, SZ_4K);
+					dev_info(&pdev->dev, "map MGBE1_0 to (%p)\n", pdev_data->mac_base_addr);
 					pdev_data->sts_offset = MGBE_STSR_OFFSET;
 					pdev_data->stns_offset = MGBE_STNSR_OFFSET;
 				} else if (!strncmp(pdev_data->iface_nm, "mgbe2_0", sizeof("mgbe2_0"))) {
 					/* remap base address for mgbe2_0 */
-					pdev_data->mac_base_addr = (u64)devm_ioremap(&pdev->dev, T234_MGBE2_BASE_ADDR, SZ_4K);
-					dev_info(&pdev->dev, "map MGBE2_0 to (%p)\n", (void *)pdev_data->mac_base_addr);
+					pdev_data->mac_base_addr = devm_ioremap(&pdev->dev, T234_MGBE2_BASE_ADDR, SZ_4K);
+					dev_info(&pdev->dev, "map MGBE2_0 to (%p)\n", pdev_data->mac_base_addr);
 					pdev_data->sts_offset = MGBE_STSR_OFFSET;
 					pdev_data->stns_offset = MGBE_STNSR_OFFSET;
 				} else if (!strncmp(pdev_data->iface_nm, "mgbe3_0", sizeof("mgbe3_0"))) {
 					/* remap base address for mgbe3_0 */
-					pdev_data->mac_base_addr = (u64)devm_ioremap(&pdev->dev, T234_MGBE3_BASE_ADDR, SZ_4K);
-					dev_info(&pdev->dev, "map MGBE3_0 to (%p)\n", (void *)pdev_data->mac_base_addr);
+					pdev_data->mac_base_addr = devm_ioremap(&pdev->dev, T234_MGBE3_BASE_ADDR, SZ_4K);
+					dev_info(&pdev->dev, "map MGBE3_0 to (%p)\n", pdev_data->mac_base_addr);
 					pdev_data->sts_offset = MGBE_STSR_OFFSET;
 					pdev_data->stns_offset = MGBE_STNSR_OFFSET;
 				} else {
@@ -750,8 +750,8 @@ static void nvpps_fill_default_mac_phc_info(struct platform_device *pdev,
 
 			if (use_eqos_mac) {
 				/* remap base address for eqos */
-				pdev_data->mac_base_addr = (u64)devm_ioremap(&pdev->dev, T234_EQOS_BASE_ADDR, SZ_4K);
-				dev_info(&pdev->dev, "map EQOS to (%p)\n", (void *)pdev_data->mac_base_addr);
+				pdev_data->mac_base_addr = devm_ioremap(&pdev->dev, T234_EQOS_BASE_ADDR, SZ_4K);
+				dev_info(&pdev->dev, "map EQOS to (%p)\n", pdev_data->mac_base_addr);
 				pdev_data->sts_offset = EQOS_STSR_OFFSET;
 				pdev_data->stns_offset = EQOS_STNSR_OFFSET;
 			}
@@ -782,8 +782,8 @@ static void nvpps_fill_default_mac_phc_info(struct platform_device *pdev,
 
 			dev_info(&pdev->dev, "using mem mapped MAC PHC reg method with %s MAC\n", pdev_data->iface_nm);
 			/* remap base address for eqos */
-			pdev_data->mac_base_addr = (u64)devm_ioremap(&pdev->dev, T194_EQOS_BASE_ADDR, SZ_4K);
-			dev_info(&pdev->dev, "map EQOS to (%p)\n", (void *)pdev_data->mac_base_addr);
+			pdev_data->mac_base_addr = devm_ioremap(&pdev->dev, T194_EQOS_BASE_ADDR, SZ_4K);
+			dev_info(&pdev->dev, "map EQOS to (%p)\n", pdev_data->mac_base_addr);
 			pdev_data->sts_offset = EQOS_STSR_OFFSET;
 			pdev_data->stns_offset = EQOS_STNSR_OFFSET;
 		} else {
@@ -1010,9 +1010,9 @@ static int nvpps_remove(struct platform_device *pdev)
 			pdev_data->use_gpio_int_timesatmp = false;
 		}
 		if (pdev_data->memmap_phc_regs) {
-			devm_iounmap(&pdev->dev, (void *)pdev_data->mac_base_addr);
+			devm_iounmap(&pdev->dev, pdev_data->mac_base_addr);
 			dev_info(&pdev->dev, "unmap MAC reg space %p for nvpps\n",
-				(void *)pdev_data->mac_base_addr);
+				pdev_data->mac_base_addr);
 		}
 		if (pdev_data->platform_is_orin) {
 			del_timer_sync(&pdev_data->tsc_timer);
