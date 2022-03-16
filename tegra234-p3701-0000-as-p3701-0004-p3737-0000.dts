@@ -30,7 +30,7 @@
 	nvidia,dtbbuildtime = __DATE__, __TIME__;
 
 	compatible = "nvidia,p3737-0000+p3701-0000-as-p3701-0004", "nvidia,tegra234", "nvidia,tegra23x";
-	model = "NVIDIA Orin Jetson-Small Developer Kit as JAO-40W";
+	model = "Jetson AGX Orin as JAO-40W";
 
 	display@13800000 {
 		status = "okay";

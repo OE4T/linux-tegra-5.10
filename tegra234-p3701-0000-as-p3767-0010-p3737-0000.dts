@@ -28,7 +28,7 @@
 	nvidia,dtbbuildtime = __DATE__, __TIME__;
 
 	compatible = "nvidia,p3737-0000+p3701-0000-as-p3767-0010", "nvidia,tegra234", "nvidia,tegra23x";
-	model = "NVIDIA Orin Jetson-Small Developer Kit as NX-8GB";
+	model = "Jetson AGX Orin as NX-8GB";
 
 	display@13800000 {
 		status = "okay";
