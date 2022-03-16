@@ -420,7 +420,7 @@ static int __init nvadsp_probe(struct platform_device *pdev)
 			goto out;
 		}
 		drv_data->base_regs[iter] = base;
-		nvadsp_add_load_mappings(res->start, base,
+		nvadsp_add_load_mappings(res->start, (void __force *)base,
 						resource_size(res));
 	}
 

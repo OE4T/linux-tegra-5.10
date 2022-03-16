@@ -545,8 +545,8 @@ static void copy_io_in_l(void *to, const void *from, int sz)
 {
 	int i;
 	for (i = 0; i < sz; i += 4) {
-		int val = *(int *)(from + i);
-		*(int *)(to + i) = val;
+		u32 val = *(u32 *)(from + i);
+		writel(val, (void __iomem *)(to + i));
 	}
 }
 
@@ -2224,8 +2224,13 @@ static int adsp_create_os_version(struct dentry *adsp_debugfs_root)
 	return 0;
 }
 
+#if KERNEL_VERSION(5, 10, 0) > LINUX_VERSION_CODE
 static unsigned int adsp_health_poll(struct file *file,
 			poll_table *wait)
+#else
+static __poll_t adsp_health_poll(struct file *file,
+			poll_table *wait)
+#endif
 {
 	struct nvadsp_drv_data *drv_data = platform_get_drvdata(priv.pdev);
 
