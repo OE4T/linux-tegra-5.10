@@ -196,7 +196,7 @@ static long xfer_data(struct file *file, char __user *data)
 	long ret = 0;
 	union mbox_msg msg = {};
 	struct xfer_info info;
-	struct xfer_info __user *ptr_xfer = (struct xfer_info *)data;
+	struct xfer_info __user *ptr_xfer = (struct xfer_info __user *)data;
 
 	if (copy_from_user(&info, data, sizeof(struct xfer_info))) {
 		dev_err(&pdev->dev, "failed to copy data.\n");
@@ -342,15 +342,11 @@ setup_extcfg(struct platform_device *pdev, struct psc_debug_dev *dbg,
 				(u8 *)&value, sizeof(value))) {
 		dev_dbg(&pdev->dev, "sidtable:%08x\n", value);
 		writel(value, base + EXT_CFG_SIDTABLE);
-		debugfs_create_x32("sidtable", 0644, root,
-				(u32 *)(base + EXT_CFG_SIDTABLE));
-
 	}
+
 	if (!of_property_read_u32(np, NV(sidconfig), &value)) {
 		dev_dbg(&pdev->dev, "sidcfg:%08x\n", value);
 		writel(value, base + EXT_CFG_SIDCONFIG);
-		debugfs_create_x32("sidcfg", 0644, root,
-				(u32 *)(base + EXT_CFG_SIDCONFIG));
 	}
 
 	return 0;
