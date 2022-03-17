@@ -11,6 +11,7 @@
 #include <linux/crc32.h>
 #include <linux/debugfs.h>
 #include <linux/delay.h>
+#include <linux/tegra-epl.h>
 #include <linux/gpio.h>
 #include <linux/gpio/consumer.h>
 #include <linux/interrupt.h>
@@ -68,18 +69,34 @@
 #define APPL_INTR_EN_L0_0_LINK_STATE_INT_EN	BIT(0)
 #define APPL_INTR_EN_L0_0_MSI_RCV_INT_EN	BIT(4)
 #define APPL_INTR_EN_L0_0_INT_INT_EN		BIT(8)
+#define APPL_INTR_EN_L0_0_TLP_ERR_INT_EN	BIT(11)
+#define APPL_INTR_EN_L0_0_RASDP_INT_EN		BIT(12)
+#define APPL_INTR_EN_L0_0_PARITY_ERR_INT_EN	BIT(14)
 #define APPL_INTR_EN_L0_0_PCI_CMD_EN_INT_EN	BIT(15)
 #define APPL_INTR_EN_L0_0_PEX_RST_INT_EN	BIT(16)
-#define APPL_INTR_EN_L0_0_CDM_REG_CHK_INT_EN	BIT(19)
+#define APPL_INTR_EN_L0_0_SAFETY_CORR_INT_EN	BIT(19)
+#define APPL_INTR_EN_L0_0_SAFETY_UNCORR_INT_EN	BIT(20)
 #define APPL_INTR_EN_L0_0_SYS_INTR_EN		BIT(30)
 #define APPL_INTR_EN_L0_0_SYS_MSI_INTR_EN	BIT(31)
 
 #define APPL_INTR_STATUS_L0			0xC
 #define APPL_INTR_STATUS_L0_LINK_STATE_INT	BIT(0)
 #define APPL_INTR_STATUS_L0_INT_INT		BIT(8)
+#define APPL_INTR_STATUS_L0_TLP_ERR_INT		BIT(11)
+#define APPL_INTR_STATUS_L0_RASDP_INT		BIT(12)
+#define APPL_INTR_STATUS_L0_PARITY_ERR_INT	BIT(14)
 #define APPL_INTR_STATUS_L0_PCI_CMD_EN_INT	BIT(15)
 #define APPL_INTR_STATUS_L0_PEX_RST_INT		BIT(16)
 #define APPL_INTR_STATUS_L0_CDM_REG_CHK_INT	BIT(18)
+#define APPL_INTR_STATUS_L0_SAFETY_CORR_INT	BIT(19)
+#define APPL_INTR_STATUS_L0_SAFETY_UNCORR_INT	BIT(20)
+
+#define APPL_FAULT_EN_L0			0x10
+#define APPL_FAULT_EN_L0_TLP_ERR_FAULT_EN	BIT(11)
+#define APPL_FAULT_EN_L0_RASDP_FAULT_EN		BIT(12)
+#define APPL_FAULT_EN_L0_PARITY_ERR_FAULT_EN	BIT(14)
+#define APPL_FAULT_EN_L0_CDM_REG_CHK_FAULT_EN	BIT(18)
+#define APPL_FAULT_EN_L0_SAFETY_UNCORR_FAULT_EN	BIT(20)
 
 #define APPL_INTR_EN_L1_0_0				0x1C
 #define APPL_INTR_EN_L1_0_0_LINK_REQ_RST_NOT_INT_EN	BIT(1)
@@ -112,11 +129,43 @@
 
 #define APPL_INTR_STATUS_L1_9			0x54
 #define APPL_INTR_STATUS_L1_10			0x58
+
+#define APPL_FAULT_EN_L1_11			0x5c
+#define APPL_FAULT_EN_L1_11_NF_ERR_FAULT_EN	BIT(2)
+#define APPL_FAULT_EN_L1_11_F_ERR_FAULT_EN	BIT(1)
+
+#define APPL_INTR_EN_L1_11			0x60
+#define APPL_INTR_EN_L1_11_NF_ERR_INT_EN	BIT(2)
+#define APPL_INTR_EN_L1_11_F_ERR_INT_EN		BIT(1)
+
 #define APPL_INTR_STATUS_L1_11			0x64
+#define APPL_INTR_STATUS_L1_11_NF_ERR_STATE	BIT(2)
+#define APPL_INTR_STATUS_L1_11_F_ERR_STATE	BIT(1)
+
+#define APPL_FAULT_EN_L1_12			0x68
+#define APPL_FAULT_EN_L1_12_SLV_RASDP_ERR	BIT(1)
+#define APPL_FAULT_EN_L1_12_MSTR_RASDP_ERR	BIT(0)
+
+#define APPL_INTR_EN_L1_12			0x6c
+#define APPL_INTR_EN_L1_12_SLV_RASDP_ERR	BIT(1)
+#define APPL_INTR_EN_L1_12_MSTR_RASDP_ERR	BIT(0)
+
+#define APPL_INTR_STATUS_L1_12			0x70
+#define APPL_INTR_STATUS_L1_12_SLV_RASDP_ERR	BIT(1)
+#define APPL_INTR_STATUS_L1_12_MSTR_RASDP_ERR	BIT(0)
+
 #define APPL_INTR_STATUS_L1_13			0x74
+
 #define APPL_INTR_STATUS_L1_14			0x78
+#define APPL_INTR_STATUS_L1_14_MASK		GENMASK(29, 0)
+#define APPL_INTR_STATUS_L1_14_RETRYRAM		BIT(23)
+
 #define APPL_INTR_STATUS_L1_15			0x7C
 #define APPL_INTR_STATUS_L1_17			0x88
+
+#define APPL_FAULT_EN_L1_18				0x8c
+#define APPL_FAULT_EN_L1_18_CDM_REG_CHK_CMP_ERR		BIT(1)
+#define APPL_FAULT_EN_L1_18_CDM_REG_CHK_LOGIC_ERR	BIT(0)
 
 #define APPL_INTR_EN_L1_18				0x90
 #define APPL_INTR_EN_L1_18_CDM_REG_CHK_CMPLT		BIT(2)
@@ -187,6 +236,27 @@
 #define APPL_GTH_PHY_L1SS_WAKE_COUNT_MASK	GENMASK(15, 2)
 #define APPL_GTH_PHY_L1SS_WAKE_COUNT_SHIFT	2
 
+#define APPL_FAULT_EN_L1_19			0x17c
+#define APPL_FAULT_EN_L1_19_SAFETY_CORR		BIT(0)
+
+#define APPL_INTR_EN_L1_19			0x180
+#define APPL_INTR_EN_L1_19_SAFETY_CORR		BIT(0)
+
+#define APPL_INTR_STATUS_L1_19			0x184
+#define APPL_INTR_STATUS_L1_19_SAFETY_CORR	BIT(0)
+
+#define APPL_FAULT_EN_L1_20			0x188
+#define APPL_FAULT_EN_L1_20_IF_TIMEOUT		BIT(1)
+#define APPL_FAULT_EN_L1_20_SAFETY_UNCORR	BIT(0)
+
+#define APPL_INTR_EN_L1_20			0x18c
+#define APPL_INTR_EN_L1_20_IF_TIMEOUT		BIT(1)
+#define APPL_INTR_EN_L1_20_SAFETY_UNCORR	BIT(0)
+
+#define APPL_INTR_STATUS_L1_20			0x190
+#define APPL_INTR_STATUS_L1_20_IF_TIMEOUT	BIT(1)
+#define APPL_INTR_STATUS_L1_20_SAFETY_UNCORR	BIT(0)
+
 #define APPL_SEC_EXTERNAL_MSI_ADDR_H	0x10100
 #define APPL_SEC_EXTERNAL_MSI_ADDR_L	0x10104
 #define APPL_SEC_INTERNAL_MSI_ADDR_H	0x10108
@@ -240,12 +310,34 @@
 #define AMBA_ERROR_RESPONSE_CRS_OKAY_FFFFFFFF	1
 #define AMBA_ERROR_RESPONSE_CRS_OKAY_FFFF0001	2
 
+#define PL_IF_TIMER_CONTROL_OFF			0x930
+#define PL_IF_TIMER_CONTROL_OFF_IF_TIMER_EN	BIT(0)
+#define PL_IF_TIMER_CONTROL_OFF_IF_TIMER_AER_EN	BIT(1)
+
+#define PL_INTERFACE_TIMER_STATUS_OFF		0x938
+
 #define MSIX_ADDR_MATCH_LOW_OFF			0x940
 #define MSIX_ADDR_MATCH_LOW_OFF_EN		BIT(0)
 #define MSIX_ADDR_MATCH_LOW_OFF_MASK		GENMASK(31, 2)
 
 #define MSIX_ADDR_MATCH_HIGH_OFF		0x944
 #define MSIX_ADDR_MATCH_HIGH_OFF_MASK		GENMASK(31, 0)
+
+#define PL_SAFETY_MASK_OFF			0x960
+#define PL_SAFETY_MASK_OFF_RASDP		BIT(0)
+#define PL_SAFETY_MASK_OFF_CDM			BIT(1)
+#define PL_SAFETY_MASK_OFF_IF_TIMEOUT		BIT(2)
+#define PL_SAFETY_MASK_OFF_UNCOR		BIT(3)
+#define PL_SAFETY_MASK_OFF_COR			BIT(4)
+#define PL_SAFETY_MASK_OFF_RASDP_COR		BIT(5)
+
+#define PL_SAFETY_STATUS_OFF			0x964
+#define PL_SAFETY_STATUS_OFF_RASDP		BIT(0)
+#define PL_SAFETY_STATUS_OFF_CDM		BIT(1)
+#define PL_SAFETY_STATUS_OFF_IF_TIMEOUT		BIT(2)
+#define PL_SAFETY_STATUS_OFF_UNCOR		BIT(3)
+#define PL_SAFETY_STATUS_OFF_COR		BIT(4)
+#define PL_SAFETY_STATUS_OFF_RASDP_COR		BIT(5)
 
 #define PORT_LOGIC_MSIX_DOORBELL			0x948
 
@@ -299,6 +391,31 @@ static const unsigned int pcie_gen_freq[] = {
 	GEN4_CORE_CLK_FREQ
 };
 
+struct pcie_epl_error_code {
+	/* Indicates source of error */
+	uint16_t reporter_id;
+	/* Error code indicates error reported by corresponding reporter_id */
+	uint32_t error_code;
+};
+
+/*
+ * Tegra234 PCIe HSI error codes and reporter ids, refer to link
+ * https://nvidia.jamacloud.com/perspective.req#/items/22181007?projectId=22719
+ */
+static const struct pcie_epl_error_code epl_error_code[] = {
+	{ 0x8023, 0x211e },
+	{ 0x8024, 0x211f },
+	{ 0x8025, 0x2120 },
+	{ 0x8026, 0x2121 },
+	{ 0x8027, 0x2122 },
+	{ 0x8028, 0x2123 },
+	{ 0x8029, 0x2124 },
+	{ 0x802a, 0x2125 },
+	{ 0x802b, 0x2126 },
+	{ 0x802c, 0x2127 },
+	{ 0x802d, 0x212a },
+};
+
 struct tegra_pcie_dw {
 	struct device *dev;
 	struct resource *appl_res;
@@ -329,6 +446,11 @@ struct tegra_pcie_dw {
 	bool gic_v2m;
 	bool enable_ext_refclk;
 	bool is_safety_platform;
+
+	atomic_t report_epl_error;
+	atomic_t bme_state_change;
+	atomic_t ep_link_up;
+
 	u8 init_link_width;
 	u32 msi_ctrl_int;
 	u32 num_lanes;
@@ -494,6 +616,181 @@ static void tegra_pcie_dma_status_clr(struct tegra_pcie_dw *pcie)
 }
 #endif
 
+/* Read TSC counter for timestamp. */
+static inline u64 rdtsc(void)
+{
+	u64 val;
+
+	asm volatile("mrs %0, cntvct_el0" : "=r" (val));
+
+	return val;
+}
+
+static int tegra_pcie_safety_irq_handler(struct tegra_pcie_dw *pcie, u32 status_l0)
+{
+	struct dw_pcie *pci = &pcie->pci;
+	u32 val, status_l1, en_l0;
+	int irq_ret = IRQ_HANDLED;
+
+	atomic_set(&pcie->report_epl_error, 0);
+	en_l0 = appl_readl(pcie, APPL_INTR_EN_L0_0);
+
+	/* Consistency Monitor for Configuration Registers(CDM) */
+	if ((status_l0 & APPL_INTR_STATUS_L0_CDM_REG_CHK_INT) &&
+	    (en_l0 & pcie->of_data->cdm_chk_int_en)) {
+		status_l1 = appl_readl(pcie, APPL_INTR_STATUS_L1_18);
+		val = dw_pcie_readl_dbi(pci, PCIE_PL_CHK_REG_CONTROL_STATUS);
+		if (status_l1 & APPL_INTR_STATUS_L1_18_CDM_REG_CHK_CMPLT) {
+			dev_info(pcie->dev, "CDM check complete\n");
+			val |= PCIE_PL_CHK_REG_CHK_REG_COMPLETE;
+		}
+		if (status_l1 & APPL_INTR_STATUS_L1_18_CDM_REG_CHK_CMP_ERR) {
+			dev_err(pcie->dev, "CDM comparison mismatch\n");
+			val |= PCIE_PL_CHK_REG_CHK_REG_COMPARISON_ERROR;
+		}
+		if (status_l1 & APPL_INTR_STATUS_L1_18_CDM_REG_CHK_LOGIC_ERR) {
+			dev_err(pcie->dev, "CDM Logic error\n");
+			val |= PCIE_PL_CHK_REG_CHK_REG_LOGIC_ERROR;
+		}
+		dw_pcie_writel_dbi(pci, PCIE_PL_CHK_REG_CONTROL_STATUS, val);
+		val = dw_pcie_readl_dbi(pci, PCIE_PL_CHK_REG_ERR_ADDR);
+		dev_err(pcie->dev, "CDM Error Address Offset = 0x%08X\n", val);
+
+		if (status_l1 & (APPL_INTR_STATUS_L1_18_CDM_REG_CHK_CMP_ERR |
+		    APPL_INTR_STATUS_L1_18_CDM_REG_CHK_LOGIC_ERR)) {
+			/*
+			 * Config space may not recover after CDM errors, disable all CDM
+			 * interrupts to avoid interrupt storm.
+			 */
+			appl_writel(pcie, 0x0, APPL_INTR_EN_L1_18);
+			appl_writel(pcie, 0x0, APPL_FAULT_EN_L1_18);
+
+			val = appl_readl(pcie, APPL_INTR_EN_L0_0);
+			val &= ~pcie->of_data->cdm_chk_int_en;
+			appl_writel(pcie, val, APPL_INTR_EN_L0_0);
+
+			val = appl_readl(pcie, APPL_FAULT_EN_L0);
+			val &= ~APPL_FAULT_EN_L0_CDM_REG_CHK_FAULT_EN;
+			appl_writel(pcie, val, APPL_FAULT_EN_L0);
+
+			atomic_set(&pcie->report_epl_error, 1);
+			irq_ret = IRQ_WAKE_THREAD;
+		}
+	}
+
+	/* TLP errors like ECRC, CPL TO, etc. */
+	if ((status_l0 & APPL_INTR_STATUS_L0_TLP_ERR_INT) &&
+	    (en_l0 & APPL_INTR_EN_L0_0_TLP_ERR_INT_EN)) {
+		status_l1 = appl_readl(pcie, APPL_INTR_STATUS_L1_11);
+		appl_writel(pcie, status_l1, APPL_INTR_STATUS_L1_11);
+
+		/* Disable TLP_ERR_INT */
+		appl_writel(pcie, 0x0, APPL_INTR_EN_L1_11);
+		appl_writel(pcie, 0x0, APPL_FAULT_EN_L1_11);
+
+		val = appl_readl(pcie, APPL_INTR_EN_L0_0);
+		val &= ~APPL_INTR_EN_L0_0_TLP_ERR_INT_EN;
+		appl_writel(pcie, val, APPL_INTR_EN_L0_0);
+
+		val = appl_readl(pcie, APPL_FAULT_EN_L0);
+		val &= ~APPL_FAULT_EN_L0_TLP_ERR_FAULT_EN;
+		appl_writel(pcie, val, APPL_FAULT_EN_L0);
+
+		/* Report uncorrectable errors like ECRC */
+		if (status_l1 & (APPL_INTR_STATUS_L1_11_NF_ERR_STATE |
+		    APPL_INTR_STATUS_L1_11_F_ERR_STATE)) {
+			atomic_set(&pcie->report_epl_error, 1);
+			irq_ret = IRQ_WAKE_THREAD;
+		}
+	}
+
+	/* Uncorrectable Memory ECC errors */
+	if ((status_l0 & APPL_INTR_STATUS_L0_RASDP_INT) &&
+	    (en_l0 & APPL_INTR_EN_L0_0_RASDP_INT_EN)) {
+		status_l1 = appl_readl(pcie, APPL_INTR_STATUS_L1_12);
+
+		/* Link is not reliable after RASDP, so disable interrupts. */
+		appl_writel(pcie, 0x0, APPL_FAULT_EN_L1_12);
+		appl_writel(pcie, 0x0, APPL_INTR_EN_L1_12);
+
+		val = appl_readl(pcie, APPL_INTR_EN_L0_0);
+		val &= ~APPL_INTR_EN_L0_0_RASDP_INT_EN;
+		appl_writel(pcie, val, APPL_INTR_EN_L0_0);
+
+		val = appl_readl(pcie, APPL_FAULT_EN_L0);
+		val &= ~APPL_FAULT_EN_L0_RASDP_FAULT_EN;
+		appl_writel(pcie, val, APPL_FAULT_EN_L0);
+
+		if (status_l1 & (APPL_INTR_STATUS_L1_12_SLV_RASDP_ERR |
+		    APPL_INTR_STATUS_L1_12_MSTR_RASDP_ERR)) {
+			atomic_set(&pcie->report_epl_error, 1);
+			irq_ret = IRQ_WAKE_THREAD;
+		}
+	}
+
+	/* Parity errors */
+	if ((status_l0 & APPL_INTR_STATUS_L0_PARITY_ERR_INT) &&
+	    (en_l0 & APPL_INTR_EN_L0_0_PARITY_ERR_INT_EN)) {
+		status_l1 = appl_readl(pcie, APPL_INTR_STATUS_L1_14);
+		appl_writel(pcie, status_l1, APPL_INTR_STATUS_L1_14);
+
+		/* Disable PARITY_ERR */
+		val = appl_readl(pcie, APPL_INTR_EN_L0_0);
+		val &= ~APPL_INTR_EN_L0_0_PARITY_ERR_INT_EN;
+		appl_writel(pcie, val, APPL_INTR_EN_L0_0);
+
+		val = appl_readl(pcie, APPL_FAULT_EN_L0);
+		val &= ~APPL_FAULT_EN_L0_PARITY_ERR_FAULT_EN;
+		appl_writel(pcie, val, APPL_FAULT_EN_L0);
+
+		if (status_l1 & APPL_INTR_STATUS_L1_14_MASK) {
+			/* Don't report EPL error if only RETRYRAM is set */
+			if (status_l1 & ~APPL_INTR_STATUS_L1_14_RETRYRAM) {
+				atomic_set(&pcie->report_epl_error, 1);
+				irq_ret = IRQ_WAKE_THREAD;
+			}
+		}
+	}
+
+	/* Interface transaction timeout errors */
+	if ((status_l0 & APPL_INTR_STATUS_L0_SAFETY_UNCORR_INT) &&
+	    (en_l0 & APPL_INTR_EN_L0_0_SAFETY_UNCORR_INT_EN)) {
+		status_l1 = appl_readl(pcie, APPL_INTR_STATUS_L1_20);
+
+		/* W1C interface transaction timeout errors in PL_INTERFACE_TIMER_STATUS_OFF */
+		val = dw_pcie_readl_dbi(pci, PL_INTERFACE_TIMER_STATUS_OFF);
+		dw_pcie_writel_dbi(pci, PL_INTERFACE_TIMER_STATUS_OFF, val);
+
+		/* W1C interface transaction timeout error in PL_SAFETY_STATUS_OFF_IF_TIMEOUT */
+		val = dw_pcie_readl_dbi(pci, PL_SAFETY_STATUS_OFF);
+		dw_pcie_writel_dbi(pci, PL_SAFETY_STATUS_OFF, val);
+
+		/* Disable SAFETY_UNCORR error */
+		val = appl_readl(pcie, APPL_FAULT_EN_L1_20);
+		val &= ~APPL_FAULT_EN_L1_20_IF_TIMEOUT;
+		appl_writel(pcie, val, APPL_FAULT_EN_L1_20);
+
+		val = appl_readl(pcie, APPL_INTR_EN_L1_20);
+		val &= ~APPL_INTR_EN_L1_20_IF_TIMEOUT;
+		appl_writel(pcie, val, APPL_INTR_EN_L1_20);
+
+		val = appl_readl(pcie, APPL_INTR_EN_L0_0);
+		val &= ~APPL_INTR_EN_L0_0_SAFETY_UNCORR_INT_EN;
+		appl_writel(pcie, val, APPL_INTR_EN_L0_0);
+
+		val = appl_readl(pcie, APPL_FAULT_EN_L0);
+		val &= ~APPL_FAULT_EN_L0_SAFETY_UNCORR_FAULT_EN;
+		appl_writel(pcie, val, APPL_FAULT_EN_L0);
+
+		if (status_l1 & APPL_INTR_EN_L1_20_IF_TIMEOUT) {
+			atomic_set(&pcie->report_epl_error, 1);
+			irq_ret = IRQ_WAKE_THREAD;
+		}
+	}
+
+	return irq_ret;
+}
+
 static irqreturn_t tegra_pcie_rp_irq_handler(int irq, void *arg)
 {
 	struct tegra_pcie_dw *pcie = arg;
@@ -566,25 +863,9 @@ static irqreturn_t tegra_pcie_rp_irq_handler(int irq, void *arg)
 		}
 	}
 
-	if (status_l0 & APPL_INTR_STATUS_L0_CDM_REG_CHK_INT) {
-		status_l1 = appl_readl(pcie, APPL_INTR_STATUS_L1_18);
-		val = dw_pcie_readl_dbi(pci, PCIE_PL_CHK_REG_CONTROL_STATUS);
-		if (status_l1 & APPL_INTR_STATUS_L1_18_CDM_REG_CHK_CMPLT) {
-			dev_info(pci->dev, "CDM check complete\n");
-			val |= PCIE_PL_CHK_REG_CHK_REG_COMPLETE;
-		}
-		if (status_l1 & APPL_INTR_STATUS_L1_18_CDM_REG_CHK_CMP_ERR) {
-			dev_err(pci->dev, "CDM comparison mismatch\n");
-			val |= PCIE_PL_CHK_REG_CHK_REG_COMPARISON_ERROR;
-		}
-		if (status_l1 & APPL_INTR_STATUS_L1_18_CDM_REG_CHK_LOGIC_ERR) {
-			dev_err(pci->dev, "CDM Logic error\n");
-			val |= PCIE_PL_CHK_REG_CHK_REG_LOGIC_ERROR;
-		}
-		dw_pcie_writel_dbi(pci, PCIE_PL_CHK_REG_CONTROL_STATUS, val);
-		val = dw_pcie_readl_dbi(pci, PCIE_PL_CHK_REG_ERR_ADDR);
-		dev_err(pci->dev, "CDM Error Address Offset = 0x%08X\n", val);
-	}
+	/* don't overwrite irq_ret if return value is not IRQ_WAKE_THREAD */
+	if (tegra_pcie_safety_irq_handler(pcie, status_l0) == IRQ_WAKE_THREAD)
+		irq_ret = IRQ_WAKE_THREAD;
 
 	return irq_ret;
 }
@@ -595,8 +876,20 @@ static irqreturn_t tegra_pcie_rp_irq_thread(int irq, void *arg)
 	struct dw_pcie *pci = &pcie->pci;
 	struct pcie_port *pp;
 	struct pci_bus *bus;
+	struct epl_error_report_frame error_report;
 	u16 speed;
 	u32 status_l0, status_l1;
+	int ret;
+
+	if (atomic_dec_and_test(&pcie->report_epl_error)) {
+		error_report.error_code = epl_error_code[pcie->cid].error_code;
+		error_report.timestamp = lower_32_bits(rdtsc());
+		error_report.reporter_id = epl_error_code[pcie->cid].reporter_id;
+
+		ret = epl_report_error(error_report);
+		if (ret < 0)
+			dev_err(pci->dev, "failed to report EPL error: %d\n", ret);
+	}
 
 	pp = &pcie->pci.pp;
 	bus = pp->bridge->bus;
@@ -661,41 +954,57 @@ static irqreturn_t tegra_pcie_ep_irq_thread(int irq, void *arg)
 	struct tegra_pcie_dw *pcie = arg;
 	struct dw_pcie *pci = &pcie->pci;
 	u32 val, speed;
+	struct epl_error_report_frame error_report;
+	int ret;
 
-	speed = dw_pcie_readw_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKSTA) &
-		PCI_EXP_LNKSTA_CLS;
-	if ((speed > 0) && (speed <= 4) && !pcie->is_safety_platform)
-		clk_set_rate(pcie->core_clk, pcie_gen_freq[speed - 1]);
+	if (atomic_dec_and_test(&pcie->report_epl_error)) {
+		error_report.error_code = epl_error_code[pcie->cid].error_code;
+		error_report.timestamp = lower_32_bits(rdtsc());
+		error_report.reporter_id = epl_error_code[pcie->cid].reporter_id;
 
-	if (!pcie->of_data->ltr_req_fixup)
-		return IRQ_HANDLED;
+		ret = epl_report_error(error_report);
+		if (ret < 0)
+			dev_err(pci->dev, "failed to report EPL error: %d\n", ret);
+	}
 
-	/* If EP doesn't advertise L1SS, just return */
-	val = dw_pcie_readl_dbi(pci, pcie->cfg_link_cap_l1sub);
-	if (!(val & (PCI_L1SS_CAP_ASPM_L1_1 | PCI_L1SS_CAP_ASPM_L1_2)))
-		return IRQ_HANDLED;
+	if (atomic_dec_and_test(&pcie->ep_link_up)) {
+		speed = dw_pcie_readw_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKSTA) &
+			PCI_EXP_LNKSTA_CLS;
+		if ((speed > 0) && (speed <= 4) && !pcie->is_safety_platform)
+			clk_set_rate(pcie->core_clk, pcie_gen_freq[speed - 1]);
+	}
 
-	/* Check if BME is set to '1' */
-	val = dw_pcie_readl_dbi(pci, PCI_COMMAND);
-	if (val & PCI_COMMAND_MASTER) {
-		ktime_t timeout;
+	if (atomic_dec_and_test(&pcie->bme_state_change)) {
+		if (!pcie->of_data->ltr_req_fixup)
+			return IRQ_HANDLED;
 
-		/* Send LTR upstream */
-		val = appl_readl(pcie, APPL_LTR_MSG_2);
-		val |= APPL_LTR_MSG_2_LTR_MSG_REQ_STATE;
-		appl_writel(pcie, val, APPL_LTR_MSG_2);
+		/* If EP doesn't advertise L1SS, just return */
+		val = dw_pcie_readl_dbi(pci, pcie->cfg_link_cap_l1sub);
+		if (!(val & (PCI_L1SS_CAP_ASPM_L1_1 | PCI_L1SS_CAP_ASPM_L1_2)))
+			return IRQ_HANDLED;
 
-		timeout = ktime_add_us(ktime_get(), LTR_MSG_TIMEOUT);
-		for (;;) {
+		/* Check if BME is set to '1' */
+		val = dw_pcie_readl_dbi(pci, PCI_COMMAND);
+		if (val & PCI_COMMAND_MASTER) {
+			ktime_t timeout;
+
+			/* Send LTR upstream */
 			val = appl_readl(pcie, APPL_LTR_MSG_2);
-			if (!(val & APPL_LTR_MSG_2_LTR_MSG_REQ_STATE))
-				break;
-			if (ktime_after(ktime_get(), timeout))
-				break;
-			usleep_range(1000, 1100);
+			val |= APPL_LTR_MSG_2_LTR_MSG_REQ_STATE;
+			appl_writel(pcie, val, APPL_LTR_MSG_2);
+
+			timeout = ktime_add_us(ktime_get(), LTR_MSG_TIMEOUT);
+			for (;;) {
+				val = appl_readl(pcie, APPL_LTR_MSG_2);
+				if (!(val & APPL_LTR_MSG_2_LTR_MSG_REQ_STATE))
+					break;
+				if (ktime_after(ktime_get(), timeout))
+					break;
+				usleep_range(1000, 1100);
+			}
+			if (val & APPL_LTR_MSG_2_LTR_MSG_REQ_STATE)
+				dev_err(pcie->dev, "Failed to send LTR message\n");
 		}
-		if (val & APPL_LTR_MSG_2_LTR_MSG_REQ_STATE)
-			dev_err(pcie->dev, "Failed to send LTR message\n");
 	}
 
 	return IRQ_HANDLED;
@@ -705,8 +1014,11 @@ static irqreturn_t tegra_pcie_ep_hard_irq(int irq, void *arg)
 {
 	struct tegra_pcie_dw *pcie = arg;
 	struct dw_pcie_ep *ep = &pcie->pci.ep;
-	int spurious = 1, handled = 1;
+	int irq_ret = IRQ_HANDLED;
 	u32 status_l0, status_l1, link_status;
+
+	atomic_set(&pcie->ep_link_up, 0);
+	atomic_set(&pcie->bme_state_change, 0);
 
 	status_l0 = appl_readl(pcie, APPL_INTR_STATUS_L0);
 	if (status_l0 & APPL_INTR_STATUS_L0_LINK_STATE_INT) {
@@ -721,39 +1033,27 @@ static irqreturn_t tegra_pcie_ep_hard_irq(int irq, void *arg)
 			if (link_status & APPL_LINK_STATUS_RDLH_LINK_UP) {
 				dev_dbg(pcie->dev, "Link is up with Host\n");
 				dw_pcie_ep_linkup(ep);
+				atomic_set(&pcie->ep_link_up, 1);
+				irq_ret = IRQ_WAKE_THREAD;
 			}
 		}
-
-		spurious = 0;
 	}
 
 	if (status_l0 & APPL_INTR_STATUS_L0_PCI_CMD_EN_INT) {
 		status_l1 = appl_readl(pcie, APPL_INTR_STATUS_L1_15);
 		appl_writel(pcie, status_l1, APPL_INTR_STATUS_L1_15);
 
-		if (status_l1 & APPL_INTR_STATUS_L1_15_CFG_BME_CHGED)
-			return IRQ_WAKE_THREAD;
-
-		spurious = 0;
+		if (status_l1 & APPL_INTR_STATUS_L1_15_CFG_BME_CHGED) {
+			atomic_set(&pcie->bme_state_change, 1);
+			irq_ret = IRQ_WAKE_THREAD;
+		}
 	}
 
-	if (status_l0 & APPL_INTR_STATUS_L0_INT_INT) {
-		status_l1 = appl_readl(pcie, APPL_INTR_STATUS_L1_8_0);
-		if (status_l1 & APPL_INTR_STATUS_L1_8_0_EDMA_INT_MASK)
-			handled = 0;
-		spurious = 0;
-	}
+	/* don't overwrite irq_ret if return value is not IRQ_WAKE_THREAD*/
+	if (tegra_pcie_safety_irq_handler(pcie, status_l0) == IRQ_WAKE_THREAD)
+		irq_ret = IRQ_WAKE_THREAD;
 
-	if (!status_l0)
-		spurious = 0;
-
-	if (spurious) {
-		dev_warn(pcie->dev, "Random interrupt (STATUS = 0x%08X)\n",
-			 status_l0);
-		appl_writel(pcie, status_l0, APPL_INTR_STATUS_L0);
-	}
-
-	return IRQ_RETVAL(handled);
+	return irq_ret;
 }
 
 static int tegra_pcie_dw_rd_own_conf(struct pci_bus *bus, u32 devfn, int where,
@@ -1734,6 +2034,67 @@ static void init_debugfs(struct tegra_pcie_dw *pcie)
 #endif
 }
 
+static void tegra_pcie_enable_fault_interrupts(struct tegra_pcie_dw *pcie)
+{
+	struct dw_pcie *pci = &pcie->pci;
+	u32 val;
+
+	val = appl_readl(pcie, APPL_FAULT_EN_L0);
+	val |= APPL_FAULT_EN_L0_TLP_ERR_FAULT_EN;
+	val |= APPL_FAULT_EN_L0_RASDP_FAULT_EN;
+	val |= APPL_FAULT_EN_L0_PARITY_ERR_FAULT_EN;
+	val |= APPL_FAULT_EN_L0_SAFETY_UNCORR_FAULT_EN;
+	appl_writel(pcie, val, APPL_FAULT_EN_L0);
+
+	val = appl_readl(pcie, APPL_INTR_EN_L0_0);
+	val |= APPL_INTR_EN_L0_0_TLP_ERR_INT_EN;
+	val |= APPL_INTR_EN_L0_0_RASDP_INT_EN;
+	val |= APPL_INTR_EN_L0_0_PARITY_ERR_INT_EN;
+	val |= APPL_INTR_EN_L0_0_SAFETY_UNCORR_INT_EN;
+	appl_writel(pcie, val, APPL_INTR_EN_L0_0);
+
+	/* Enable correctable errors reporting */
+	val = appl_readl(pcie, APPL_FAULT_EN_L1_11);
+	val |= (APPL_FAULT_EN_L1_11_NF_ERR_FAULT_EN | APPL_FAULT_EN_L1_11_F_ERR_FAULT_EN);
+	appl_writel(pcie, val, APPL_FAULT_EN_L1_11);
+
+	val = appl_readl(pcie, APPL_INTR_EN_L1_11);
+	val |= (APPL_INTR_EN_L1_11_NF_ERR_INT_EN | APPL_INTR_EN_L1_11_F_ERR_INT_EN);
+	appl_writel(pcie, val, APPL_INTR_EN_L1_11);
+
+	/* Enable uncorrectable memory ECC */
+	val = appl_readl(pcie, APPL_FAULT_EN_L1_12);
+	val |= APPL_FAULT_EN_L1_12_SLV_RASDP_ERR;
+	val |= APPL_FAULT_EN_L1_12_MSTR_RASDP_ERR;
+	appl_writel(pcie, val, APPL_FAULT_EN_L1_12);
+
+	val = appl_readl(pcie, APPL_INTR_EN_L1_12);
+	val |= APPL_INTR_EN_L1_12_SLV_RASDP_ERR;
+	val |= APPL_INTR_EN_L1_12_MSTR_RASDP_ERR;
+	appl_writel(pcie, val, APPL_INTR_EN_L1_12);
+
+	/* Enable interface transaction timeout */
+	val = appl_readl(pcie, APPL_FAULT_EN_L1_20);
+	val |= APPL_FAULT_EN_L1_20_IF_TIMEOUT;
+	appl_writel(pcie, val, APPL_FAULT_EN_L1_20);
+
+	val = appl_readl(pcie, APPL_INTR_EN_L1_20);
+	val |= APPL_INTR_EN_L1_20_IF_TIMEOUT;
+	appl_writel(pcie, val, APPL_INTR_EN_L1_20);
+
+	val = dw_pcie_readl_dbi(pci, PL_IF_TIMER_CONTROL_OFF);
+	val |= PL_IF_TIMER_CONTROL_OFF_IF_TIMER_EN |
+		PL_IF_TIMER_CONTROL_OFF_IF_TIMER_AER_EN;
+	dw_pcie_writel_dbi(pci, PL_SAFETY_MASK_OFF, val);
+
+	/* Mask all uncorectable error except transaction timeout */
+	val = dw_pcie_readl_dbi(pci, PL_SAFETY_MASK_OFF);
+	val |= (PL_SAFETY_MASK_OFF_RASDP | PL_SAFETY_MASK_OFF_CDM |
+			PL_SAFETY_MASK_OFF_UNCOR | PL_SAFETY_MASK_OFF_COR |
+			PL_SAFETY_MASK_OFF_RASDP_COR);
+	dw_pcie_writel_dbi(pci, PL_SAFETY_MASK_OFF, val);
+}
+
 static void tegra_pcie_enable_system_interrupts(struct pcie_port *pp)
 {
 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
@@ -1756,11 +2117,23 @@ static void tegra_pcie_enable_system_interrupts(struct pcie_port *pp)
 		val |= pcie->of_data->cdm_chk_int_en;
 		appl_writel(pcie, val, APPL_INTR_EN_L0_0);
 
+		val = appl_readl(pcie, APPL_FAULT_EN_L0);
+		val |= APPL_FAULT_EN_L0_CDM_REG_CHK_FAULT_EN;
+		appl_writel(pcie, val, APPL_FAULT_EN_L0);
+
 		val = appl_readl(pcie, APPL_INTR_EN_L1_18);
 		val |= APPL_INTR_EN_L1_18_CDM_REG_CHK_CMP_ERR;
 		val |= APPL_INTR_EN_L1_18_CDM_REG_CHK_LOGIC_ERR;
 		appl_writel(pcie, val, APPL_INTR_EN_L1_18);
+
+		val = appl_readl(pcie, APPL_FAULT_EN_L1_18);
+		val |= APPL_FAULT_EN_L1_18_CDM_REG_CHK_CMP_ERR;
+		val |= APPL_FAULT_EN_L1_18_CDM_REG_CHK_LOGIC_ERR;
+		appl_writel(pcie, val, APPL_FAULT_EN_L1_18);
 	}
+
+	if (pcie->is_safety_platform)
+		tegra_pcie_enable_fault_interrupts(pcie);
 
 	val_w = dw_pcie_readw_dbi(&pcie->pci, pcie->pcie_cap_base +
 				  PCI_EXP_LNKSTA);
@@ -3147,6 +3520,26 @@ static void pex_ep_event_pex_rst_deassert(struct tegra_pcie_dw *pcie)
 	val |= APPL_INTR_EN_L1_8_EDMA_INT_EN;
 	appl_writel(pcie, val, APPL_INTR_EN_L1_8_0);
 
+	if (pcie->enable_cdm_check) {
+		val = appl_readl(pcie, APPL_INTR_EN_L0_0);
+		val |= pcie->of_data->cdm_chk_int_en;
+		appl_writel(pcie, val, APPL_INTR_EN_L0_0);
+
+		val = appl_readl(pcie, APPL_FAULT_EN_L0);
+		val |= APPL_FAULT_EN_L0_CDM_REG_CHK_FAULT_EN;
+		appl_writel(pcie, val, APPL_FAULT_EN_L0);
+
+		val = appl_readl(pcie, APPL_INTR_EN_L1_18);
+		val |= APPL_INTR_EN_L1_18_CDM_REG_CHK_CMP_ERR;
+		val |= APPL_INTR_EN_L1_18_CDM_REG_CHK_LOGIC_ERR;
+		appl_writel(pcie, val, APPL_INTR_EN_L1_18);
+
+		val = appl_readl(pcie, APPL_FAULT_EN_L1_18);
+		val |= APPL_FAULT_EN_L1_18_CDM_REG_CHK_CMP_ERR;
+		val |= APPL_FAULT_EN_L1_18_CDM_REG_CHK_LOGIC_ERR;
+		appl_writel(pcie, val, APPL_FAULT_EN_L1_18);
+	}
+
 	/* 110us for both snoop and no-snoop */
 	val = 110 | (2 << PCI_LTR_SCALE_SHIFT) | LTR_MSG_REQ;
 	val |= (val << LTR_MST_NO_SNOOP_SHIFT);
@@ -3175,6 +3568,9 @@ static void pex_ep_event_pex_rst_deassert(struct tegra_pcie_dw *pcie)
 		val |= 0x6;
 		dw_pcie_writel_dbi(pci, AUX_CLK_FREQ, val);
 	}
+
+	if (pcie->is_safety_platform)
+		tegra_pcie_enable_fault_interrupts(pcie);
 
 	val = dw_pcie_readl_dbi(pci, PCIE_LINK_WIDTH_SPEED_CONTROL);
 	val &= ~PORT_LOGIC_SPEED_CHANGE;
