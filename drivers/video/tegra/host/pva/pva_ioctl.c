@@ -546,6 +546,8 @@ static int pva_get_symbol_id(struct pva_private *priv, void *arg)
 	if (symbol_in->name.size > ELF_MAX_SYMBOL_LENGTH) {
 		nvhost_err(&priv->pva->pdev->dev, "symbol size too large:%llu",
 			   symbol_in->name.size);
+		err = -EINVAL;
+		goto out;
 	}
 	symbol_buffer = kmalloc(symbol_in->name.size, GFP_KERNEL);
 	if (symbol_buffer == NULL) {
