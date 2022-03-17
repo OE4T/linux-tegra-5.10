@@ -523,7 +523,7 @@ populate_symtab(void *elf, struct nvpva_elf_context *d,
 		}
 
 		sec_type = find_pva_ucode_segment_type(section_name,
-						       section_header->addr);
+						       sym_scn->addr);
 		if (sec_type != PVA_SEG_VPU_IN_PARAMS)
 			continue;
 
