@@ -599,7 +599,8 @@ populate_symtab(void *elf, struct nvpva_elf_context *d,
 	uint32_t i, count;
 	struct pva_elf_symbol *symID;
 	uint32_t num_symbols = 0;
-	uint32_t totalSymsize = 0;
+	uint32_t num_sys_symbols = 0;
+	uint32_t total_sym_size = 0;
 	const char *symname = NULL;
 	const char *section_name;
 	uint32_t stringsize = 0;
@@ -655,6 +656,13 @@ populate_symtab(void *elf, struct nvpva_elf_context *d,
 		}
 
 		(void)strncpy(symID->symbol_name, symname, stringsize);
+		if (strcmp(symID->symbol_name,
+			   PVA_SYS_INSTANCE_DATA_V1_SYMBOL) == 0) {
+			++num_sys_symbols;
+			symID->is_sys = true;
+		} else
+			symID->is_sys = false;
+
 		symID->symbol_name[stringsize] = '\0';
 		symID->symbolID = num_symbols;
 		symID->size = sym->size;
@@ -666,7 +674,7 @@ populate_symtab(void *elf, struct nvpva_elf_context *d,
 		}
 
 		num_symbols++;
-		totalSymsize += symID->size;
+		total_sym_size += symID->size;
 		ret = nvpva_validate_vmem_offset(symID->addr,
 						 symID->size,
 						 hw_gen);
@@ -676,7 +684,8 @@ populate_symtab(void *elf, struct nvpva_elf_context *d,
 
 update_elf_info:
 	get_elf_image(d, exe_id)->num_symbols = num_symbols;
-	get_elf_image(d, exe_id)->symbol_size_total = totalSymsize;
+	get_elf_image(d, exe_id)->num_sys_symbols = num_sys_symbols;
+	get_elf_image(d, exe_id)->symbol_size_total = total_sym_size;
 
 	return ret;
 fail:
@@ -832,6 +841,51 @@ out:
 	return err;
 }
 
+int32_t
+pva_get_sym_tab_size(struct nvpva_elf_context *d,
+		     uint16_t exe_id,
+		     u64 *tab_size)
+{
+	struct pva_elf_image *image;
+	u32 number_of_symbols;
+
+	image = get_elf_image(d, exe_id);
+	if (image == NULL)
+		return -EINVAL;
+
+	number_of_symbols = image->num_symbols - image->num_sys_symbols;
+	*tab_size = number_of_symbols * sizeof(struct nvpva_sym_info);
+
+	return 0;
+}
+
+int32_t
+pva_get_sym_tab(struct nvpva_elf_context *d,
+		  uint16_t exe_id,
+		  struct nvpva_sym_info *sym_tab)
+
+{
+	u32 i;
+	struct pva_elf_image *image;
+
+	image = get_elf_image(d, exe_id);
+	if (image == NULL)
+		return -EINVAL;
+
+	for (i = 0; i < image->num_symbols; i++) {
+		if (image->sym[i].is_sys)
+			continue;
+		memcpy(sym_tab->sym_name,
+		       image->sym[i].symbol_name,
+		       NVPVA_SYM_NAME_MAX_LEN);
+		sym_tab->sym_size = image->sym[i].size;
+		sym_tab->sym_type = image->sym[i].type;
+		sym_tab->sym_id   = image->sym[i].symbolID;
+		++sym_tab;
+	}
+
+	return 0;
+}
 int32_t pva_get_sym_info(struct nvpva_elf_context *d, uint16_t vpu_exe_id,
 		       const char *sym_name, struct pva_elf_symbol *symbol)
 {

@@ -473,11 +473,13 @@ static int pva_task_write_vpu_parameter(struct pva_submit_task *task,
 	u32 i;
 	if (task->exe_id == NVPVA_NOOP_EXE_ID)
 		return err;
+
 	elf = get_elf_image(&task->client->elf_ctx, task->exe_id);
 	if (task->num_symbols > elf->num_symbols) {
 		task_err(task, "invalid number of symbols");
 		return -EINVAL;
 	}
+
 	memcpy(hw_task->sym_payload, task->symbol_payload,
 	       task->symbol_payload_size);
 	symbol_payload =
@@ -490,6 +492,7 @@ static int pva_task_write_vpu_parameter(struct pva_submit_task *task,
 				 elf->sym[symbolId].symbol_name);
 			return -EINVAL;
 		}
+
 		if (task->symbols[i].config == NVPVA_SYMBOL_POINTER) {
 			struct pva_pinned_memory *mem;
 			ptrSym = (struct nvpva_pointer_symbol *)
@@ -505,15 +508,16 @@ static int pva_task_write_vpu_parameter(struct pva_submit_task *task,
 			ptrSym->size = mem->size;
 			size = sizeof(struct nvpva_pointer_symbol);
 		}
+
 		hw_task->param_list[i].addr = elf->sym[symbolId].addr;
 		hw_task->param_list[i].size = size;
 		hw_task->param_list[i].param_base =
 		    symbol_payload + task->symbols[i].offset;
 	}
+
 	/* Write info for VPU instance data parameter, if available in elf */
 	for (i = 0U; i < elf->num_symbols; i++) {
-		if (strcmp(elf->sym[i].symbol_name,
-			   PVA_SYS_INSTANCE_DATA_V1_SYMBOL) == 0) {
+		if (elf->sym[i].is_sys) {
 			hw_task->param_list[task->num_symbols].addr =
 			    elf->sym[i].addr;
 			hw_task->param_list[task->num_symbols].size =
@@ -523,6 +527,7 @@ static int pva_task_write_vpu_parameter(struct pva_submit_task *task,
 			++task->num_symbols;
 		}
 	}
+
 	hw_task->task.parameter_base =
 	    task->dma_addr + offsetof(struct pva_hw_task, param_list);
 	hw_task->task.num_parameters = task->num_symbols;
@@ -533,13 +538,16 @@ static int pva_task_write_vpu_parameter(struct pva_submit_task *task,
 			 "unable to acquire ref count for app with id = %u",
 			 task->exe_id);
 	}
+
 	task->pinned_app = true;
+
 	return err;
 }
 static int set_flags(struct pva_submit_task *task, struct pva_hw_task *hw_task)
 {
 	int err = 0;
 	uint32_t flags = task->flags;
+
 	if (flags & NVPVA_PRE_BARRIER_TASK_TRUE)
 		hw_task->task.flags |= PVA_TASK_FL_SYNC_TASKS;
 	if (flags & NVPVA_AFFINITY_VPU0)
@@ -570,6 +578,7 @@ static int pva_task_write(struct pva_submit_task *task)
 	struct pva_hw_task *hw_task;
 	u32 pre_ptr, post_ptr;
 	int err = 0;
+
 	if (!pva_vpu_elf_is_registered(&task->client->elf_ctx, task->exe_id) &&
 	    (task->exe_id != NVPVA_NOOP_EXE_ID)) {
 		task_err(task, "invalid exe id: %d", task->exe_id);
@@ -583,12 +592,15 @@ static int pva_task_write(struct pva_submit_task *task)
 	err = pva_task_process_prefences(task, hw_task);
 	if (err)
 		goto out;
+
 	err = pva_task_process_input_status(task, hw_task);
 	if (err)
 		goto out;
+
 	err = pva_task_process_output_status(task, hw_task);
 	if (err)
 		goto out;
+
 	err = pva_task_process_fence_actions(task, hw_task);
 	if (err)
 		goto out;
@@ -596,12 +608,15 @@ static int pva_task_write(struct pva_submit_task *task)
 	err = pva_task_write_dma_info(task, hw_task);
 	if (err)
 		goto out;
+
 	err = pva_task_write_dma_misr_info(task, hw_task);
 	if (err)
 		goto out;
+
 	err = pva_task_write_vpu_parameter(task, hw_task);
 	if (err)
 		goto out;
+
 	hw_task->task.next = 0U;
 	hw_task->task.preactions = task->dma_addr + offsetof(struct pva_hw_task,
 							 preactions);
@@ -612,9 +627,12 @@ static int pva_task_write(struct pva_submit_task *task)
 	err = set_flags(task, hw_task);
 	if (err)
 		goto out;
+
 	hw_task->task.bin_info =
 	    phys_get_bin_info(&task->client->elf_ctx, task->exe_id);
+
 out:
+
 	return err;
 }
 void pva_task_free(struct kref *ref)
@@ -622,6 +640,7 @@ void pva_task_free(struct kref *ref)
 	struct pva_submit_task *task =
 	    container_of(ref, struct pva_submit_task, ref);
 	struct nvpva_queue *my_queue = task->queue;
+
 	pva_task_unpin_mem(task);
 	if (task->pinned_app)
 		pva_task_release_ref_vpu_app(&task->client->elf_ctx,
@@ -644,6 +663,7 @@ static void update_one_task(struct pva *pva)
 	struct pva_hw_task *hw_task;
 	struct pva_task_statistics_s *stats;
 	bool found;
+
 	u64 vpu_time = 0u;
 	u64 r5_overhead = 0u;
 	const u32 tsc_ticks_to_us = 31;
@@ -666,6 +686,7 @@ static void update_one_task(struct pva *pva)
 				break;
 		}
 	}
+
 	mutex_unlock(&queue->list_lock);
 	if (!found) {
 		pr_err("pva: unexpected task: queue:%u, valid:%u, error:%u, vpu:%u",
@@ -673,6 +694,7 @@ static void update_one_task(struct pva *pva)
 		       task_info.vpu);
 		return;
 	}
+
 	WARN_ON(task_info.error == PVA_ERR_BAD_TASK ||
 		task_info.error == PVA_ERR_BAD_TASK_ACTION_LIST);
 	hw_task = task->va;
@@ -705,6 +727,7 @@ void pva_task_update(struct work_struct *work)
 	struct pva *pva = container_of(work, struct pva, task_update_work);
 	int n_tasks = atomic_read(&pva->n_pending_tasks);
 	int i;
+
 	atomic_sub(n_tasks, &pva->n_pending_tasks);
 	for (i = 0; i < n_tasks; i++)
 		update_one_task(pva);
@@ -714,17 +737,20 @@ pva_queue_dump(struct nvpva_queue *queue, struct seq_file *s)
 {
 	struct pva_submit_task *task;
 	int i = 0;
+
 	seq_printf(s, "Queue %u, Tasks\n", queue->id);
 	mutex_lock(&queue->list_lock);
 	list_for_each_entry(task, &queue->tasklist, node) {
 		seq_printf(s, "    #%u: exe_id = %u\n", i++, task->exe_id);
 	}
+
 	mutex_unlock(&queue->list_lock);
 }
 static int pva_task_submit_mmio_ccq(struct pva_submit_task *task, u8 batchsize)
 {
 	u32 flags = PVA_CMD_INT_ON_ERR;
 	int err = 0;
+
 	/* Construct submit command */
 	err = task->pva->version_config->ccq_send_task(
 	    task->pva, task->queue->id, task->dma_addr, batchsize, flags);
@@ -737,6 +763,7 @@ static int pva_task_submit_mailbox(struct pva_submit_task *task, u8 batchsize)
 	struct pva_cmd_s cmd;
 	u32 flags, nregs;
 	int err = 0;
+
 	/* Construct submit command */
 	flags = PVA_CMD_INT_ON_ERR | PVA_CMD_INT_ON_COMPLETE;
 	nregs = pva_cmd_submit_batch(&cmd, queue->id, task->dma_addr, batchsize,
@@ -748,13 +775,16 @@ static int pva_task_submit_mailbox(struct pva_submit_task *task, u8 batchsize)
 			    err);
 		goto out;
 	}
+
 	if (status.error != PVA_ERR_NO_ERROR) {
 		nvhost_warn(&task->pva->pdev->dev, "PVA task rejected: %u",
 			    status.error);
 		err = -EINVAL;
 		goto out;
 	}
+
 out:
+
 	return err;
 }
 u32 nvhost_syncpt_dec_max_ext(struct platform_device *dev, u32 id, u32 dec)
@@ -762,6 +792,7 @@ u32 nvhost_syncpt_dec_max_ext(struct platform_device *dev, u32 id, u32 dec)
 	struct nvhost_master *master = nvhost_get_host(dev);
 	struct nvhost_syncpt *sp =
 	    nvhost_get_syncpt_owner_struct(id, &master->syncpt);
+
 	return (u32)atomic_sub_return(dec, &sp->max_val[id]);
 }
 
@@ -777,6 +808,7 @@ static int pva_task_submit(const struct pva_submit_tasks *task_header)
 	u8 batchsize = task_header->num_tasks - 1U;
 		nvhost_dbg_info("submitting %u tasks; batchsize: %u",
 			task_header->num_tasks, batchsize);
+
 	/*
 	 * TSC timestamp is same as CNTVCT. Task statistics are being
 	 * reported in TSC ticks.
@@ -855,6 +887,7 @@ static int set_timer_flags(const struct pva_submit_tasks *task_header)
 		if (!(hw_task->task.flags & PVA_TASK_FL_SYNC_TASKS))
 			return -EINVAL;
 	}
+
 	return 0;
 }
 
@@ -876,6 +909,7 @@ nvpva_task_config_l2sram_window(const struct pva_submit_tasks *task_header,
 		if (task_num < l2s_end_index)
 			hw_task->task.flags |= PVA_TASK_FL_KEEP_L2RAM;
 	}
+
 	hw_task = task_header->tasks[l2s_start_index]->va;
 	if ((hw_task->task.flags & PVA_TASK_FL_SYNC_TASKS) == 0U)
 		return -EINVAL;
@@ -906,6 +940,7 @@ static int update_batch_tasks(const struct pva_submit_tasks *task_header)
 				l2s_start_index = task_num;
 
 			l2s_end_index = task_num;
+
 			if (l2sram_max_size < task->l2_alloc_size)
 				l2sram_max_size = task->l2_alloc_size;
 
@@ -937,6 +972,7 @@ static int update_batch_tasks(const struct pva_submit_tasks *task_header)
 		if (err)
 			task_err(task, "bad L2SRAM window found");
 	}
+
 	return err;
 }
 
@@ -978,6 +1014,7 @@ static int pva_queue_submit(struct nvpva_queue *queue, void *args)
 
 		prev_hw_task = task->va;
 	}
+
 	err = set_timer_flags(task_header);
 	if (err)
 		goto unlock;

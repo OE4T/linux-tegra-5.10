@@ -90,18 +90,19 @@ struct pva_elf_buffer {
  * Store elf symbols information
  */
 struct pva_elf_symbol {
+	char *symbol_name;
+	/**<IOVA address offset in symbol buffer */
+	uint64_t offset;
 	/**< Type of symbol */
 	uint32_t type;
-	/**< Symbol name */
-	char *symbol_name;
-	/**< Symbol ID */
-	uint16_t symbolID;
 	/**< Symbol Size */
 	uint32_t size;
 	/**< VMEM address of Symbol */
 	uint32_t addr;
-	/**<IOVA address offset in symbol buffer */
-	uint64_t offset;
+	/**< Symbol ID */
+	uint16_t symbolID;
+	/**< Symbol name */
+	bool is_sys;
 };
 
 /**
@@ -122,6 +123,7 @@ struct pva_elf_image {
 	atomic_t submit_refcount;
 	/**< Number of symbols in the VPU app */
 	uint32_t num_symbols;
+	uint32_t num_sys_symbols;
 	/**< Stores symbol information */
 	struct pva_elf_symbol sym[NVPVA_TASK_MAX_SYMBOLS];
 	/**< Total size of all the symbols in VPU app */
@@ -335,4 +337,12 @@ int32_t
 nvpva_validate_vmem_offset(const uint32_t vmem_offset,
 			   const uint32_t size,
 			   const int hw_gen);
+int32_t
+pva_get_sym_tab_size(struct nvpva_elf_context *d,
+		     uint16_t exe_id,
+		     u64 *tab_size);
+int32_t
+pva_get_sym_tab(struct nvpva_elf_context *d,
+	    uint16_t exe_id,
+	    struct nvpva_sym_info *sym_tab);
 #endif

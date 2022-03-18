@@ -515,7 +515,8 @@ static int pva_register_vpu_exec(struct pva_private *priv, void *arg)
 
 	reg_out->exe_id = exe_id;
 	image = get_elf_image(&priv->client->elf_ctx, exe_id);
-	reg_out->num_of_symbols = image->num_symbols;
+	reg_out->num_of_symbols = image->num_symbols -
+				  image->num_sys_symbols;
 	reg_out->symbol_size_total = image->symbol_size_total;
 
 free_mem:
@@ -541,35 +542,38 @@ static int pva_get_symbol_id(struct pva_private *priv, void *arg)
 		(struct nvpva_get_symbol_out_arg *)arg;
 	char *symbol_buffer;
 	int err = 0;
+	uint64_t name_size = symbol_in->name.size;
 	struct pva_elf_symbol symbol = {0};
 
-	if (symbol_in->name.size > ELF_MAX_SYMBOL_LENGTH) {
-		nvhost_err(&priv->pva->pdev->dev, "symbol size too large:%llu",
+	if (name_size > ELF_MAX_SYMBOL_LENGTH) {
+		nvhost_warn(&priv->pva->pdev->dev, "symbol size too large:%llu",
 			   symbol_in->name.size);
-		err = -EINVAL;
-		goto out;
+		name_size = ELF_MAX_SYMBOL_LENGTH;
 	}
-	symbol_buffer = kmalloc(symbol_in->name.size, GFP_KERNEL);
+
+	symbol_buffer = kmalloc(name_size, GFP_KERNEL);
 	if (symbol_buffer == NULL) {
 		err = -ENOMEM;
 		goto out;
 	}
-	err = copy_part_from_user(symbol_buffer, symbol_in->name.size,
-				  symbol_in->name);
+
+	err = copy_from_user(symbol_buffer,
+			     (void __user *)symbol_in->name.addr,
+			     name_size);
 	if (err) {
 		nvhost_err(&priv->pva->pdev->dev,
 			   "failed to copy all name from user");
 		goto free_mem;
 	}
 
-	if (symbol_buffer[symbol_in->name.size - 1] != '\0') {
-		nvhost_err(&priv->pva->pdev->dev,
+	if (symbol_buffer[name_size - 1] != '\0') {
+		nvhost_warn(&priv->pva->pdev->dev,
 			   "symbol name not terminated with NULL");
-		goto free_mem;
+		symbol_buffer[name_size - 1] = '\0';
 	}
 
 	err = pva_get_sym_info(&priv->client->elf_ctx, symbol_in->exe_id,
-			     symbol_buffer, &symbol);
+				symbol_buffer, &symbol);
 	if (err) {
 		goto free_mem;
 	}
@@ -580,6 +584,51 @@ static int pva_get_symbol_id(struct pva_private *priv, void *arg)
 		(symbol.type == (uint32_t)VMEM_TYPE_POINTER) ? 1U : 0U;
 free_mem:
 	kfree(symbol_buffer);
+out:
+	return err;
+}
+
+static int pva_get_symtab(struct pva_private *priv, void *arg)
+{
+	struct nvpva_get_sym_tab_in_arg *sym_tab_in =
+		(struct nvpva_get_sym_tab_in_arg *)arg;
+
+	int err = 0;
+	struct nvpva_sym_info *sym_tab_buffer;
+	u64 tab_size;
+
+	err = pva_get_sym_tab_size(&priv->client->elf_ctx,
+				   sym_tab_in->exe_id,
+				   &tab_size);
+	if (err)
+		goto out;
+
+	if (sym_tab_in->tab.size < tab_size) {
+		nvhost_err(&priv->pva->pdev->dev,
+			   "symbol table size smaller than needed:%llu",
+			   sym_tab_in->tab.size);
+		err = -EINVAL;
+		goto out;
+	}
+
+	sym_tab_buffer = kmalloc(tab_size, GFP_KERNEL);
+	if (sym_tab_buffer == NULL) {
+		err = -ENOMEM;
+		goto out;
+	}
+
+	err = pva_get_sym_tab(&priv->client->elf_ctx,
+			  sym_tab_in->exe_id,
+			  sym_tab_buffer);
+	if (err)
+		goto free_mem;
+
+	err = copy_to_user((void __user *)sym_tab_in->tab.addr,
+		     sym_tab_buffer,
+		     tab_size);
+
+free_mem:
+	kfree(sym_tab_buffer);
 out:
 	return err;
 }
@@ -608,14 +657,17 @@ static long pva_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	}
 
 	switch (cmd) {
+	case NVPVA_IOCTL_GET_SYMBOL_ID:
+		err = pva_get_symbol_id(priv, buf);
+		break;
+	case NVPVA_IOCTL_GET_SYM_TAB:
+		err = pva_get_symtab(priv, buf);
+		break;
 	case NVPVA_IOCTL_REGISTER_VPU_EXEC:
 		err = pva_register_vpu_exec(priv, buf);
 		break;
 	case NVPVA_IOCTL_UNREGISTER_VPU_EXEC:
 		err = pva_unregister_vpu_exec(priv, buf);
-		break;
-	case NVPVA_IOCTL_GET_SYMBOL_ID:
-		err = pva_get_symbol_id(priv, buf);
 		break;
 	case NVPVA_IOCTL_PIN:
 		err = pva_pin(priv, buf);

@@ -23,6 +23,10 @@
 #include <linux/types.h>
 
 #define NVPVA_DEVICE_NODE "/dev/nvhost-ctrl-pva"
+/**
+ * Maximum length of the name of a symbol in a VPU ELF
+ */
+#define NVPVA_SYM_NAME_MAX_LEN 64U
 
 struct nvpva_ioctl_part {
 	uint64_t addr;
@@ -61,6 +65,20 @@ union nvpva_vpu_exe_unregister_args {
 	struct nvpva_vpu_exe_unregister_in_arg in;
 };
 
+enum nvpva_vpu_elf_symbol_type_e {
+	/** Symbol type Invalid */
+	NVPVA_SYMBOL_TYPE_INVALID = 0U,
+	/** Symbol type Data */
+	NVPVA_SYMBOL_TYPE_DATA = 1U,
+	/** Symbol type VPU Config Table */
+	NVPVA_SYMBOL_TYPE_VPUC_TABLE = 2U,
+	/** Symbol type Pointer */
+	NVPVA_SYMBOL_TYPE_POINTER = 3U,
+	/** Symbol type System */
+	NVPVA_SYMBOL_TYPE_SYSTEM = 4U,
+	/** Symbol type upper limit */
+	NVPVA_SYMBOL_TYPE_MAX = 5U
+};
 /*
  * VPU SYMBOL command details
  */
@@ -70,6 +88,17 @@ struct nvpva_symbol {
 	uint16_t id;
 	/* 1 = true; 0 = false */
 	uint8_t isPointer;
+};
+
+struct nvpva_sym_info {
+	/** Null-terminated string indicating the name of the symbol */
+	char sym_name[NVPVA_SYM_NAME_MAX_LEN];
+	/** Size (in bytes) of the symbol */
+	uint32_t sym_size;
+	/** Registered ID of the symbol*/
+	uint16_t sym_id;
+	/** Type of the symbol */
+	uint8_t sym_type;
 };
 
 struct nvpva_get_symbol_in_arg {
@@ -84,6 +113,15 @@ struct nvpva_get_symbol_out_arg {
 union nvpva_get_symbol_args {
 	struct nvpva_get_symbol_in_arg in;
 	struct nvpva_get_symbol_out_arg out;
+};
+
+struct nvpva_get_sym_tab_in_arg {
+	uint16_t exe_id;
+	struct   nvpva_ioctl_part tab;
+};
+
+union nvpva_get_sym_tab_args {
+	struct nvpva_get_sym_tab_in_arg in;
 };
 
 /*
@@ -468,17 +506,21 @@ union nvpva_ioctl_submit_args {
 #define NVPVA_IOCTL_RELEASE_QUEUE \
 	_IOW(NVPVA_IOCTL_MAGIC, 9)
 
-#define NVPVA_IOCTL_NUMBER_MAX 9
+#define NVPVA_IOCTL_GET_SYM_TAB \
+	_IOWR(NVPVA_IOCTL_MAGIC, 10, union nvpva_get_sym_tab_args)
+
+#define NVPVA_IOCTL_NUMBER_MAX 10
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
-#define NVPVA_IOCTL_MAX_SIZE \
+#define NVPVA_IOCTL_MAX_SIZE                                 \
 	    MAX(sizeof(union nvpva_vpu_exe_register_args), \
 	    MAX(sizeof(union nvpva_vpu_exe_unregister_args), \
 	    MAX(sizeof(union nvpva_get_symbol_args), \
 	    MAX(sizeof(union nvpva_pin_args), \
 	    MAX(sizeof(union nvpva_unpin_args), \
 	    MAX(sizeof(union nvpva_ioctl_submit_args), \
-		0))))))
+	    MAX(sizeof(union nvpva_get_sym_tab_args), \
+	    0)))))))
 
 /* NvPva Task param limits */
 #define NVPVA_TASK_MAX_PREFENCES 8U
