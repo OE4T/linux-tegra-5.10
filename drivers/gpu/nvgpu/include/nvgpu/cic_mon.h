@@ -27,7 +27,15 @@
 #include <nvgpu/static_analysis.h>
 #include <nvgpu/log.h>
 
-#define MISC_EC_SW_ERR_CODE_0	0U
+#define MISC_EC_SW_ERR_CODE_0		(0U)
+#define HW_UNIT_ID_MASK			(0xFU)
+#define ERR_ID_MASK			(0x1FU)
+#define ERR_ID_FIELD_SHIFT		(4U)
+#define CORRECTED_BIT_FIELD_SHIFT	(9U)
+#define ERR_REPORT_TIMEOUT_US		(5000U)
+#define SS_WAIT_DURATION_US		(500U)
+#define MAX_SS_RETRIES (ERR_REPORT_TIMEOUT_US / SS_WAIT_DURATION_US)
+#define ERR_TYPE_MASK		((1U) << (CORRECTED_BIT_FIELD_SHIFT))
 
 #define U32_BITS		32U
 #define DIV_BY_U32_BITS(x)	((x) / U32_BITS)

@@ -32,10 +32,6 @@ struct nvgpu_err_msg;
 struct gpu_err_header;
 
 #define ERR_INJECT_TEST_PATTERN		(0xA5U)
-#define HW_UNIT_ID_MASK			(0xFU)
-#define ERR_ID_MASK			(0x1FU)
-#define ERR_ID_FIELD_SHIFT		(4U)
-#define CORRECTED_BIT_FIELD_SHIFT	(9U)
 
 /*
  * This struct contains members related to error-policy look-up table,

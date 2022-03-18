@@ -906,6 +906,10 @@ struct gk20a {
 	struct nvgpu_nvs_scheduler *scheduler;
 	struct nvgpu_mutex sched_mutex;
 #endif
+
+#ifdef CONFIG_NVGPU_ENABLE_MISC_EC
+	bool enable_polling;
+#endif
 };
 
 /**
