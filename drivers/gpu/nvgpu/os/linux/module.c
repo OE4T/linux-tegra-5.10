@@ -452,6 +452,10 @@ int gk20a_pm_finalize_poweron(struct device *dev)
 		}
 	}
 
+#ifdef CONFIG_NVGPU_ENABLE_MISC_EC
+	g->enable_polling = false;
+#endif
+
 	err = gk20a_restore_registers(g);
 	if (err)
 		goto done;

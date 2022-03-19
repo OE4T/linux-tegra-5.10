@@ -19,6 +19,7 @@
 
 #ifdef CONFIG_NVGPU_ENABLE_MISC_EC
 #include <linux/tegra-epl.h>
+#include <nvgpu/timers.h>
 #include "os/linux/os_linux.h"
 #endif
 
@@ -26,10 +27,59 @@ struct gk20a;
 
 int nvgpu_cic_mon_report_err_safety_services(struct gk20a *g, u32 err_id)
 {
-	int ret = 0U;
+	int ret = 0;
 
 #ifdef CONFIG_NVGPU_ENABLE_MISC_EC
+	u32 ss_retries = 0U;
+	bool ss_status;
 	struct device *dev = dev_from_gk20a(g);
+
+	if (g->enable_polling == true) {
+		/**
+		 * Do polling, if the error to be reported is corrected one.
+		 */
+		if ((err_id & ERR_TYPE_MASK) == 0U) {
+			for (ss_retries = MAX_SS_RETRIES; ss_retries > 0U;
+					ss_retries--) {
+				ret = epl_get_misc_ec_err_status(dev,
+						MISC_EC_SW_ERR_CODE_0,
+						&ss_status);
+				if (ret == 0) {
+					if (ss_status == true) {
+						/**
+						 * Previously reported error is
+						 * cleared at Safety_Services.
+						 */
+						break;
+					} else {
+						nvgpu_udelay(SS_WAIT_DURATION_US);
+						continue;
+					}
+				} else if (ret == -ENODEV) {
+					nvgpu_err(g, "Error reporting is not "
+						"supported in this platform");
+					ret = 0;
+					return ret;
+				} else {
+					nvgpu_err(g, "Error reporting failed");
+					return ret;
+				}
+			}
+			if (ss_retries == 0U) {
+				nvgpu_err(g, "Error reporting failed: previous"
+						"error is not cleared");
+				ret = -1;
+				return ret;
+			}
+		}
+	}
+
+	/**
+	 * Enable polling immediately after reporting of first error from boot.
+	 */
+	if (g->enable_polling == false) {
+		g->enable_polling = true;
+	}
 
 	/**
 	 * MISC_EC_SW_ERR_CODE_0 register has been allocated for NvGPU
