@@ -274,6 +274,7 @@ void ga10b_fifo_ctxsw_timeout_isr(struct gk20a *g,
 
 		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_HOST,
 				GPU_HOST_PFIFO_CTXSW_TIMEOUT_ERROR);
+		nvgpu_err (g, "Host pfifo ctxsw timeout error");
 
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 		recover = g->ops.tsg.check_ctxsw_timeout(tsg, &debug_dump, &ms);

@@ -52,6 +52,7 @@ static void report_pbdma_error(struct gk20a *g, u32 pbdma_id,
 		pbdma_intr_0_lback_timeout_pending_f() |
 		pbdma_intr_0_lbdat_timeout_pending_f())) != 0U) {
 			err_type = GPU_HOST_PBDMA_TIMEOUT_ERROR;
+			nvgpu_err (g, "Host pbdma timeout error");
 	}
 	if ((pbdma_intr_0 & (
 		pbdma_intr_0_memack_extra_pending_f() |
@@ -59,6 +60,7 @@ static void report_pbdma_error(struct gk20a *g, u32 pbdma_id,
 		pbdma_intr_0_lback_extra_pending_f() |
 		pbdma_intr_0_lbdat_extra_pending_f())) != 0U) {
 			err_type = GPU_HOST_PBDMA_EXTRA_ERROR;
+			nvgpu_err (g, "Host pbdma extra error");
 	}
 	if ((pbdma_intr_0 & (
 		pbdma_intr_0_gpfifo_pending_f() |
@@ -69,6 +71,7 @@ static void report_pbdma_error(struct gk20a *g, u32 pbdma_id,
 		pbdma_intr_0_pbentry_pending_f() |
 		pbdma_intr_0_pbcrc_pending_f())) != 0U) {
 			err_type = GPU_HOST_PBDMA_GPFIFO_PB_ERROR;
+			nvgpu_err (g, "Host pbdma gpfifo pb error");
 	}
 	if ((pbdma_intr_0 & (
 		pbdma_intr_0_clear_faulted_error_pending_f() |
@@ -81,10 +84,12 @@ static void report_pbdma_error(struct gk20a *g, u32 pbdma_id,
 		pbdma_intr_0_pri_pending_f() |
 		pbdma_intr_0_pbseg_pending_f())) != 0U) {
 			err_type = GPU_HOST_PBDMA_METHOD_ERROR;
+			nvgpu_err (g, "Host pbdma method error");
 	}
 	if ((pbdma_intr_0 &
 		pbdma_intr_0_signature_pending_f()) != 0U) {
 			err_type = GPU_HOST_PBDMA_SIGNATURE_ERROR;
+			nvgpu_err (g, "Host pbdma signature error");
 	}
 	if (err_type != GPU_HOST_INVALID_ERROR) {
 		nvgpu_log_info(g, "pbdma id:%u", pbdma_id);

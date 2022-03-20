@@ -74,12 +74,15 @@ void gk20a_bus_isr(struct gk20a *g)
 			bus_intr_0_pri_timeout_m())) != 0U) {
 		if ((val & bus_intr_0_pri_squash_m()) != 0U) {
 			err_type = GPU_HOST_PBUS_SQUASH_ERROR;
+			nvgpu_err (g, "host pbus squash error");
 		}
 		if ((val & bus_intr_0_pri_fecserr_m()) != 0U) {
 			err_type = GPU_HOST_PBUS_FECS_ERROR;
+			nvgpu_err (g, "host pbus fecs error");
 		}
 		if ((val & bus_intr_0_pri_timeout_m()) != 0U) {
 			err_type = GPU_HOST_PBUS_TIMEOUT_ERROR;
+			nvgpu_err (g, "host pbus timeout error");
 		}
 		g->ops.ptimer.isr(g);
 	} else {

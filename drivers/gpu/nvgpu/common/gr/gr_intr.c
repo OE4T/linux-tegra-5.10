@@ -493,7 +493,7 @@ int nvgpu_gr_intr_handle_fecs_error(struct gk20a *g, struct nvgpu_channel *ch,
 			nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_FECS,
 					GPU_FECS_FAULT_DURING_CTXSW);
 			nvgpu_err(g,
-				 "ctxsw intr0 set by ucode, error_code: 0x%08x",
+				 "ctxsw intr0 set by ucode, error_code: 0x%08x,",
 				 mailbox_value);
 			ret = -1;
 		}
@@ -773,12 +773,11 @@ static u32 gr_intr_handle_illegal_interrupts(struct gk20a *g,
 	u32 do_reset = 0U;
 
 	if (intr_info->illegal_notify != 0U) {
-		nvgpu_err(g, "illegal notify pending");
-
 		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,
 				GPU_PGRAPH_ILLEGAL_NOTIFY_ERROR);
 		nvgpu_gr_intr_set_error_notifier(g, isr_data,
 				NVGPU_ERR_NOTIFIER_GR_ILLEGAL_NOTIFY);
+		nvgpu_err(g, "illegal notify pending");
 		do_reset = 1U;
 		*clear_intr &= ~intr_info->illegal_notify;
 	}
@@ -787,6 +786,7 @@ static u32 gr_intr_handle_illegal_interrupts(struct gk20a *g,
 		if (gr_intr_handle_illegal_method(g, isr_data) != 0) {
 			nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,
 					GPU_PGRAPH_ILLEGAL_METHOD_ERROR);
+			nvgpu_err(g, "illegal method");
 
 			do_reset = 1U;
 		}

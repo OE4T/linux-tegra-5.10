@@ -38,7 +38,7 @@ void nvgpu_pmu_report_bar0_pri_err_status(struct gk20a *g, u32 bar0_status,
 {
 	nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PMU,
 			GPU_PMU_BAR0_ERROR_TIMEOUT);
-	nvgpu_err(g, "Falcon mem scrubbing timeout. status(0x%x), "
+	nvgpu_err(g, "PMU falcon bar0 timeout. status(0x%x), "
 			"error_type(0x%x)", bar0_status, error_type);
 }
 

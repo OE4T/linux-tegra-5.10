@@ -825,6 +825,7 @@ static int gr_init_ctxsw_falcon_support(struct gk20a *g, struct nvgpu_gr *gr)
 	if (err != 0) {
 		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_FECS,
 				GPU_FECS_CTXSW_INIT_ERROR);
+		nvgpu_err (g, "FECS context switch init error");
 		return err;
 	}
 

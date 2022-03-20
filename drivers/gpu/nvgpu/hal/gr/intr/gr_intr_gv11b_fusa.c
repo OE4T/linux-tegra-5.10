@@ -577,8 +577,7 @@ void gv11b_gr_intr_handle_gpc_zcull_exception(struct gk20a *g, u32 gpc,
 				gr_gpc0_zcull_hww_esr_r(), offset),
 				gr_gpc0_zcull_hww_esr_reset_active_f());
 
-	nvgpu_log(g, gpu_dbg_intr,
-		"gpc:%d zcull interrupt intr: 0x%x", gpc, hww_esr);
+	nvgpu_err(g, "gpc:%d zcull interrupt intr: 0x%x", gpc, hww_esr);
 }
 
 void gv11b_gr_intr_handle_gpc_setup_exception(struct gk20a *g, u32 gpc,
@@ -602,8 +601,7 @@ void gv11b_gr_intr_handle_gpc_setup_exception(struct gk20a *g, u32 gpc,
 				gr_gpc0_setup_hww_esr_r(), offset),
 				gr_gpc0_setup_hww_esr_reset_active_f());
 
-	nvgpu_log(g, gpu_dbg_intr,
-		"gpc:%d setup interrupt intr: 0x%x", gpc, hww_esr);
+	nvgpu_err(g, "gpc:%d setup interrupt intr: 0x%x", gpc, hww_esr);
 }
 
 void gv11b_gr_intr_handle_gpc_pes_exception(struct gk20a *g, u32 gpc,
@@ -629,8 +627,7 @@ void gv11b_gr_intr_handle_gpc_pes_exception(struct gk20a *g, u32 gpc,
 				gr_gpc0_ppc0_pes_hww_esr_r(), offset),
 				gr_gpc0_ppc0_pes_hww_esr_reset_task_f());
 
-	nvgpu_log(g, gpu_dbg_intr,
-		"gpc:%d pes interrupt intr: 0x%x", gpc, hww_esr);
+	nvgpu_err(g, "gpc:%d pes interrupt intr: 0x%x", gpc, hww_esr);
 }
 
 void gv11b_gr_intr_handle_gpc_gpccs_exception(struct gk20a *g, u32 gpc,
@@ -724,7 +721,7 @@ void gv11b_gr_intr_handle_tpc_mpc_exception(struct gk20a *g, u32 gpc, u32 tpc)
 	esr = nvgpu_readl(g,
 			nvgpu_safe_add_u32(gr_gpc0_tpc0_mpc_hww_esr_r(),
 						offset));
-	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg, "mpc hww esr 0x%08x", esr);
+	nvgpu_err(g, "mpc hww esr 0x%08x", esr);
 
 	nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,
 			GPU_PGRAPH_MPC_EXCEPTION);
@@ -755,6 +752,7 @@ void gv11b_gr_intr_handle_tpc_pe_exception(struct gk20a *g, u32 gpc, u32 tpc)
 						offset));
 	nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,
 			GPU_PGRAPH_GPC_GFX_TPC_PE_EXCEPTION);
+	nvgpu_err (g, "Gpc Gfx tpc pe exception");
 
 	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg, "pe hww esr 0x%08x", esr);
 

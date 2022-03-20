@@ -102,6 +102,7 @@ void ga10b_bus_isr(struct gk20a *g)
 	 */
 	if ((bus_intr_0 & bus_intr0_pri_mask()) != 0U) {
 		if ((bus_intr_0 & bus_intr_0_pri_fecserr_m()) != 0U) {
+			nvgpu_err (g, "host pbus fecs error");
 			err_type = GPU_HOST_PBUS_FECS_ERROR;
 		}
 		g->ops.ptimer.isr(g);

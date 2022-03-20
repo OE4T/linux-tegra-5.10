@@ -400,7 +400,7 @@ static void ga10b_ltc_intr_handle_rstg_ecc_interrupts(struct gk20a *g,
 				 ltc_ltc0_lts0_l2_cache_ecc_address_subunit_rstg_v());
 
 	if ((ecc_status & ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_rstg_m()) != 0U) {
-		nvgpu_log(g, gpu_dbg_intr, "rstg ecc error uncorrected");
+		nvgpu_err(g, "rstg ecc error uncorrected");
 
 		if (!is_rstg_ecc_addr) {
 			nvgpu_log(g, gpu_dbg_intr, "ECC address doesn't belong to RSTG");
@@ -432,7 +432,7 @@ static void ga10b_ltc_intr_handle_tstg_ecc_interrupts(struct gk20a *g,
 				 ltc_ltc0_lts0_l2_cache_ecc_address_subunit_tstg_v());
 
 	if ((ecc_status & ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_tstg_m()) != 0U) {
-		nvgpu_log(g, gpu_dbg_intr, "tstg ecc error uncorrected");
+		nvgpu_err(g, "tstg ecc error uncorrected");
 
 		if (!is_tstg_ecc_addr) {
 			nvgpu_log(g, gpu_dbg_intr, "ECC address doesn't belong to TSTG");
@@ -498,7 +498,7 @@ static void ga10b_ltc_intr_handle_dstg_ecc_interrupts(struct gk20a *g,
 				 ltc_ltc0_lts0_l2_cache_ecc_address_subunit_dstg_v());
 
 	if ((ecc_status & ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_dstg_m()) != 0U) {
-		nvgpu_log(g, gpu_dbg_intr, "dstg ecc error (SEC) corrected");
+		nvgpu_err(g, "dstg ecc error (SEC) corrected");
 
 		if (!is_dstg_ecc_addr) {
 			nvgpu_log(g, gpu_dbg_intr, "ECC address doesn't belong to DSTG");
@@ -527,7 +527,7 @@ static void ga10b_ltc_intr_handle_dstg_ecc_interrupts(struct gk20a *g,
 	}
 
 	if ((ecc_status & ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_dstg_m()) != 0U) {
-		nvgpu_log(g, gpu_dbg_intr, "dstg ecc error uncorrected");
+		nvgpu_err(g, "dstg ecc error uncorrected");
 
 		if (!is_dstg_ecc_addr) {
 			nvgpu_log(g, gpu_dbg_intr, "ECC address doesn't belong to DSTG");

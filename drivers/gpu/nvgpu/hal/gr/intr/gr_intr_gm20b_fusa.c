@@ -108,6 +108,7 @@ u32 gm20b_gr_intr_check_gr_ssync_exception(struct gk20a *g, u32 exception)
 		}
 		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PGRAPH,
 				GPU_PGRAPH_SSYNC_EXCEPTION);
+		nvgpu_err (g, "ssync exception");
 	}
 	return reset_gpc;
 }
