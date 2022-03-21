@@ -53,7 +53,7 @@ static int open_count;
 * Kernel file functions
 ******************************************************************************/
 
-struct file *file_open(const char *path, int flags, int rights)
+static struct file *file_open(const char *path, int flags, int rights)
 {
 	struct file *filp = NULL;
 	mm_segment_t oldfs;
@@ -70,12 +70,12 @@ struct file *file_open(const char *path, int flags, int rights)
 	return filp;
 }
 
-void file_close(struct file *file)
+static void file_close(struct file *file)
 {
 	filp_close(file, NULL);
 }
 
-int file_write(struct file *file, unsigned long long *offset,
+static int file_write(struct file *file, unsigned long long *offset,
 				unsigned char *data, unsigned int size)
 {
 	mm_segment_t oldfs;
@@ -84,13 +84,13 @@ int file_write(struct file *file, unsigned long long *offset,
 	oldfs = get_fs();
 	set_fs(KERNEL_DS);
 
-	ret = vfs_write(file, data, size, offset);
+	ret = vfs_write(file, (const char __user *)data, size, offset);
 
 	set_fs(oldfs);
 	return ret;
 }
 
-uint32_t file_read(struct file *file, unsigned long long *offset,
+static uint32_t file_read(struct file *file, unsigned long long *offset,
 				unsigned char *data, unsigned int size)
 {
 	mm_segment_t oldfs;
@@ -99,14 +99,14 @@ uint32_t file_read(struct file *file, unsigned long long *offset,
 	oldfs = get_fs();
 	set_fs(KERNEL_DS);
 
-	ret = vfs_read(file, data, size, offset);
+	ret = vfs_read(file, (char __user *)data, size, offset);
 
 	set_fs(oldfs);
 
 	return ret;
 }
 
-uint32_t file_size(struct file *file)
+static uint32_t file_size(struct file *file)
 {
 	mm_segment_t oldfs;
 	uint32_t size = 0;
@@ -137,7 +137,7 @@ static struct nvadsp_mbox rx_mbox;
  * w+ - open for reading and writing (overwrite file)			*
  * a+ - open for reading and writing (append if file exists)	*/
 
-void set_flags(union adspff_message_t *m, unsigned int *flags)
+static void set_flags(union adspff_message_t *m, unsigned int *flags)
 {
 	if (0 == strcmp(m->msg.payload.fopen_msg.modes, "r+"))
 		*flags = O_RDWR;
@@ -202,7 +202,7 @@ static struct file_struct *check_file_opened(const char *path)
 	return file;
 }
 
-void adspff_fopen(void)
+static void adspff_fopen(void)
 {
 	union adspff_message_t *message;
 	union adspff_message_t *msg_recv;
@@ -293,7 +293,7 @@ static inline unsigned int is_write_file(struct file_struct *file)
 	return file->flags & (O_WRONLY | O_RDWR);
 }
 
-void adspff_fclose(void)
+static void adspff_fclose(void)
 {
 	union adspff_message_t *message;
 	struct file_struct *file = NULL;
@@ -326,7 +326,7 @@ void adspff_fclose(void)
 	kfree(message);
 }
 
-void adspff_fsize(void)
+static void adspff_fsize(void)
 {
 	union adspff_message_t *msg_recv;
 	union adspff_message_t message;
@@ -366,7 +366,7 @@ void adspff_fsize(void)
 	kfree(msg_recv);
 }
 
-void adspff_fwrite(void)
+static void adspff_fwrite(void)
 {
 	union adspff_message_t message;
 	union adspff_message_t *msg_recv;
@@ -424,7 +424,7 @@ void adspff_fwrite(void)
 	kfree(msg_recv);
 }
 
-void adspff_fread(void)
+static void adspff_fread(void)
 {
 	union adspff_message_t *message;
 	union adspff_message_t *msg_recv;

@@ -546,7 +546,7 @@ static void copy_io_in_l(void *to, const void *from, int sz)
 	int i;
 	for (i = 0; i < sz; i += 4) {
 		int val = *(int *)(from + i);
-		writel(val, to + i);
+		*(int *)(to + i) = val;
 	}
 }
 
@@ -969,6 +969,7 @@ EXPORT_SYMBOL(nvadsp_os_load);
  *	0 - min emc freq
  *	> 0 - expected emc freq at this adsp freq
  */
+#ifdef CONFIG_TEGRA_ADSP_DFS
 u32 adsp_to_emc_freq(u32 adspfreq)
 {
 	/*
@@ -980,6 +981,7 @@ u32 adsp_to_emc_freq(u32 adspfreq)
 	else
 		return 0;		/* emc min */
 }
+#endif
 
 static int nvadsp_set_ape_emc_freq(struct nvadsp_drv_data *drv_data)
 {

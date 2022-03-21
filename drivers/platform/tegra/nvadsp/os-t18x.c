@@ -25,6 +25,7 @@
 
 #include "dev.h"
 #include "os.h"
+#include "dev-t18x.h"
 
 #if IS_ENABLED(CONFIG_TEGRA_HSP)
 static void nvadsp_dbell_handler(void *data)
