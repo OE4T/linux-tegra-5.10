@@ -122,48 +122,25 @@ struct edma_dblock {
 	struct edma_hw_desc_llp llp;
 };
 
-static inline unsigned int osi_readl(void *addr)
+static inline unsigned int dma_common_rd(void __iomem *p, unsigned int offset)
 {
-	return *(volatile unsigned int *)addr;
+	return readl(p + offset);
 }
 
-
-static inline unsigned int dma_common_rd(void *p, unsigned int offset)
+static inline void dma_common_wr(void __iomem *p, unsigned int val, unsigned int offset)
 {
-	unsigned char *addr;
-
-	addr = (unsigned char *)p + offset;
-	return osi_readl((void *)addr);
+	writel(val, p + offset);
 }
 
-static inline void osi_writel(unsigned int val, void *addr)
-{
-	*(volatile unsigned int *)addr = val;
-}
-
-static inline void dma_common_wr(void *p, unsigned int val, unsigned int offset)
-{
-	unsigned char *addr;
-
-	addr = (unsigned char *)p + offset;
-	osi_writel(val, (void *)addr);
-}
-
-static inline void dma_channel_wr(void *p, unsigned char c, unsigned int val,
+static inline void dma_channel_wr(void __iomem *p, unsigned char c, unsigned int val,
 				  u32 offset)
 {
-	unsigned char *addr;
-
-	addr = (unsigned char *)p + offset + (0x200 * (c + 1));
-	osi_writel(val, (void *)addr);
+	writel(val, (0x200 * (c + 1)) + p + offset);
 }
 
-static inline unsigned int dma_channel_rd(void *p, unsigned char c, u32 offset)
+static inline unsigned int dma_channel_rd(void __iomem *p, unsigned char c, u32 offset)
 {
-	unsigned char *addr;
-
-	addr = (unsigned char *)p + offset + (0x200 * (c + 1));
-	return osi_readl((void *)addr);
+	return readl((0x200 * (c + 1)) + p + offset);
 }
 
 #endif // TEGRA_PCIE_DMA_OSI_H

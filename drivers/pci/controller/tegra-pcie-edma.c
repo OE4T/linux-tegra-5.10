@@ -33,6 +33,7 @@
 
 struct edma_chan {
 	void *desc;
+	void __iomem *remap_desc;
 	struct tegra_pcie_edma_xfer_info *ring;
 	dma_addr_t dma_iova;
 	uint32_t desc_sz;
@@ -53,7 +54,6 @@ struct edma_chan {
 };
 
 struct edma_prv {
-	void __iomem *edma_desc;
 	u32 edma_desc_size;
 	int irq;
 	char *irq_name;
@@ -61,7 +61,7 @@ struct edma_prv {
 	uint16_t msi_data;
 	uint64_t msi_addr;
 	/** EDMA base address */
-	void *edma_base;
+	void __iomem *edma_base;
 	/** EDMA base address size */
 	uint32_t edma_base_size;
 	struct device *dev;
@@ -72,7 +72,7 @@ struct edma_prv {
 };
 
 /** TODO: Define osi_ll_init strcuture and make this as OSI */
-static inline void edma_ll_ch_init(void *edma_base, uint32_t ch,
+static inline void edma_ll_ch_init(void __iomem *edma_base, uint32_t ch,
 					 dma_addr_t ll_phy_addr, bool rw_type,
 					 bool is_remote_dma)
 {
@@ -172,7 +172,8 @@ static inline int edma_ch_init(struct edma_prv *prv, struct edma_chan *ch)
 		return -EINVAL;
 
 	if (prv->is_remote_dma)
-		memset_io(ch->desc, 0, (sizeof(struct edma_dblock)) * ((ch->desc_sz / 2) + 1));
+		memset_io(ch->remap_desc, 0,
+			  (sizeof(struct edma_dblock)) * ((ch->desc_sz / 2) + 1));
 	else
 		memset(ch->desc, 0, (sizeof(struct edma_dblock)) * ((ch->desc_sz / 2) + 1));
 
@@ -475,9 +476,10 @@ void *tegra_pcie_edma_initialize(struct tegra_pcie_edma_init_info *info)
 
 			if (prv->is_remote_dma) {
 				ch->dma_iova = ch_info->desc_iova;
-				ch->desc = devm_ioremap(prv->dev, ch_info->desc_phy_base,
+				ch->remap_desc = devm_ioremap(prv->dev, ch_info->desc_phy_base,
 							(sizeof(struct edma_dblock)) *
 							((ch->desc_sz / 2) + 1));
+				ch->desc = (__force void *)ch->remap_desc;
 				if (!ch->desc) {
 					dev_err(prv->dev, "desc region map failed, phy: 0x%llx\n",
 						ch_info->desc_phy_base);
@@ -548,7 +550,7 @@ free_dma_desc:
 		for (i = 0; i < mode_cnt[j]; i++) {
 			ch = chan[j] + i;
 			if (prv->is_remote_dma && ch->desc)
-				devm_iounmap(prv->dev, ch->desc);
+				devm_iounmap(prv->dev, ch->remap_desc);
 			else if (ch->desc)
 				dma_free_coherent(prv->dev,
 						  (sizeof(struct edma_hw_desc) * ch->desc_sz),
@@ -735,7 +737,7 @@ void tegra_pcie_edma_deinit(void *cookie)
 				process_r_idx(ch, EDMA_XFER_DEINIT, ch->w_idx);
 
 			if (prv->is_remote_dma && ch->desc)
-				devm_iounmap(prv->dev, ch->desc);
+				devm_iounmap(prv->dev, ch->remap_desc);
 			else if (ch->desc)
 				dma_free_coherent(prv->dev,
 						  (sizeof(struct edma_hw_desc) * ch->desc_sz),

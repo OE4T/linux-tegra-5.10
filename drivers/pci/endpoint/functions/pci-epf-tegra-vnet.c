@@ -1651,7 +1651,7 @@ static const struct pci_epf_device_id tvnet_ep_epf_tvnet_ids[] = {
 	{ },
 };
 
-int tvnet_ep_epf_tvnet_probe(struct pci_epf *epf)
+static int tvnet_ep_epf_tvnet_probe(struct pci_epf *epf)
 {
 	struct device *fdev = &epf->dev;
 	struct pci_epf_tvnet *tvnet;
