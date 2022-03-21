@@ -35,6 +35,7 @@
 #include <linux/sched/signal.h>
 #include "linux/tegra-epl.h"
 #include "uapi/linux/tegra-epl.h"
+#include <linux/pm.h>
 
 /*Timeout in millisec*/
 #define TIMEOUT		1000
@@ -307,6 +308,19 @@ int epl_report_error(struct epl_error_report_frame error_report)
 }
 EXPORT_SYMBOL(epl_report_error);
 
+static int __maybe_unused epl_client_suspend(struct device *dev)
+{
+	pr_debug("tegra-epl: suspend called\n");
+	return 0;
+}
+
+static int __maybe_unused epl_client_resume(struct device *dev)
+{
+	pr_debug("tegra-epl: resume called\n");
+	return 0;
+}
+static SIMPLE_DEV_PM_OPS(epl_client_pm, epl_client_suspend, epl_client_resume);
+
 static const struct of_device_id epl_client_dt_match[] = {
 	{ .compatible = "nvidia,tegra234-epl-client"},
 	{}
@@ -380,6 +394,7 @@ static struct platform_driver epl_client = {
 	.name   = "epl_client",
 		.probe_type = PROBE_PREFER_ASYNCHRONOUS,
 		.of_match_table = of_match_ptr(epl_client_dt_match),
+		.pm = pm_ptr(&epl_client_pm),
 	},
 	.probe          = epl_client_probe,
 	.remove         = epl_client_remove,
