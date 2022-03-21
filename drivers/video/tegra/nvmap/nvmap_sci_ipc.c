@@ -268,7 +268,7 @@ int nvmap_get_handle_from_sci_ipc_id(struct nvmap_client *client, u32 flags,
 	if (dmabuf_created)
 		dma_buf_put(h->dmabuf_ro);
 	if (!IS_ERR(ref)) {
-		int id = -1;
+		u32 id = 0;
 
 		dmabuf = is_ro ? h->dmabuf_ro : h->dmabuf;
 		if (client->ida) {
@@ -279,7 +279,7 @@ int nvmap_get_handle_from_sci_ipc_id(struct nvmap_client *client, u32 flags,
 				ret = -ENOMEM;
 				goto unlock;
 			}
-			if (id < 0)
+			if (!id)
 				*handle = 0;
 			else
 				*handle = id;

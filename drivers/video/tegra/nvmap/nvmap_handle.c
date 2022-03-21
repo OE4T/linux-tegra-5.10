@@ -413,7 +413,7 @@ out:
 }
 
 struct nvmap_handle_ref *nvmap_create_handle_from_id(
-			struct nvmap_client *client, int id)
+			struct nvmap_client *client, u32 id)
 {
 	struct nvmap_handle *handle;
 	struct nvmap_handle_ref *ref;

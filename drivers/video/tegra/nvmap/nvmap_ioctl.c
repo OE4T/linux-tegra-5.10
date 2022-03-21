@@ -63,7 +63,7 @@ static ssize_t rw_handle(struct nvmap_client *client, struct nvmap_handle *h,
 			 unsigned long count);
 
 struct nvmap_handle *nvmap_handle_get_from_id(struct nvmap_client *client,
-		int id)
+		u32 id)
 {
 	struct nvmap_handle *handle = ERR_PTR(-EINVAL);
 	struct nvmap_handle_info *info;
@@ -73,10 +73,10 @@ struct nvmap_handle *nvmap_handle_get_from_id(struct nvmap_client *client,
 		return ERR_PTR(-EINVAL);
 
 	if (client->ida)
-		dmabuf = nvmap_id_array_get_dmabuf_from_id(client->ida,
-				id);
+		dmabuf = nvmap_id_array_get_dmabuf_from_id(client->ida, id);
 	else
-		dmabuf = dma_buf_get(id);
+		dmabuf = dma_buf_get((int)id);
+
 	if (IS_ERR_OR_NULL(dmabuf))
 		return ERR_CAST(dmabuf);
 
@@ -279,7 +279,8 @@ int nvmap_ioctl_create(struct file *filp, unsigned int cmd, void __user *arg)
 	struct nvmap_client *client = filp->private_data;
 	struct dma_buf *dmabuf = NULL;
 	struct nvmap_handle *handle = NULL;
-	int fd = -1, id = -1, ret = 0;
+	int fd = -1, ret = 0;
+	u32 id = 0;
 	bool is_ro = false;
 
 	if (copy_from_user(&op, arg, sizeof(op)))
@@ -372,7 +373,8 @@ out:
 
 int nvmap_ioctl_create_from_va(struct file *filp, void __user *arg)
 {
-	int fd = -1, id = -1;
+	int fd = -1;
+	u32 id = 0;
 	int err;
 	struct nvmap_create_handle_from_va op;
 	struct nvmap_handle_ref *ref = NULL;
@@ -800,7 +802,7 @@ int nvmap_ioctl_create_from_ivc(struct file *filp, void __user *arg)
 			NVMAP_TP_ARGS_CHR(client, ref->handle, ref));
 	}
 	if (client->ida) {
-		int id = -1;
+		u32 id = 0;
 
 		if (nvmap_id_array_id_alloc(client->ida, &id,
 			ref->handle->dmabuf) < 0) {
@@ -1359,7 +1361,8 @@ int nvmap_ioctl_dup_handle(struct file *filp, void __user *arg)
 	struct nvmap_handle *handle = NULL;
 	struct nvmap_duplicate_handle op;
 	struct dma_buf *dmabuf = NULL;
-	int fd = -1, id = -1, ret = 0;
+	int fd = -1, ret = 0;
+	u32 id = 0;
 	bool is_ro = false;
 
 	if (copy_from_user(&op, arg, sizeof(op)))

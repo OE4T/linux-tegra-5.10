@@ -519,7 +519,7 @@ struct nvmap_handle_ref *nvmap_try_duplicate_by_ivmid(
 			struct nvmap_heap_block **block);
 
 struct nvmap_handle_ref *nvmap_create_handle_from_id(
-			struct nvmap_client *client, int id);
+			struct nvmap_client *client, u32 id);
 
 struct nvmap_handle_ref *nvmap_create_handle_from_fd(
 			struct nvmap_client *client, int fd);
@@ -863,9 +863,9 @@ __weak void nvmap_sci_ipc_exit(void)
 #ifdef NVMAP_CONFIG_HANDLE_AS_ID
 void nvmap_id_array_init(struct xarray *xarr);
 void nvmap_id_array_exit(struct xarray *xarr);
-struct dma_buf *nvmap_id_array_get_dmabuf_from_id(struct xarray *xarr, int id);
-int nvmap_id_array_id_alloc(struct xarray *xarr, int *id, struct dma_buf *dmabuf);
-struct dma_buf *nvmap_id_array_id_release(struct xarray *xarr, int id);
+struct dma_buf *nvmap_id_array_get_dmabuf_from_id(struct xarray *xarr, u32 id);
+int nvmap_id_array_id_alloc(struct xarray *xarr, u32 *id, struct dma_buf *dmabuf);
+struct dma_buf *nvmap_id_array_id_release(struct xarray *xarr, u32 id);
 #else
 static inline void nvmap_id_array_init(struct xarray *xarr)
 {
@@ -877,17 +877,17 @@ static inline void nvmap_id_array_exit(struct xarray *xarr)
 
 }
 
-static inline struct dma_buf *nvmap_id_array_get_dmabuf_from_id(struct xarray *xarr, int id)
+static inline struct dma_buf *nvmap_id_array_get_dmabuf_from_id(struct xarray *xarr, u32 id)
 {
 	return NULL;
 }
 
-static inline int nvmap_id_array_id_alloc(struct xarray *xarr, int *id, struct dma_buf *dmabuf)
+static inline int nvmap_id_array_id_alloc(struct xarray *xarr, u32 *id, struct dma_buf *dmabuf)
 {
 	return 0;
 }
 
-static inline struct dma_buf *nvmap_id_array_id_release(struct xarray *xarr, int id)
+static inline struct dma_buf *nvmap_id_array_id_release(struct xarray *xarr, u32 id)
 {
 	return NULL;
 }
@@ -907,7 +907,7 @@ void nvmap_remove_device_name(char *device_name, u32 heap_type);
 
 bool dmabuf_is_nvmap(struct dma_buf *dmabuf);
 struct nvmap_handle *nvmap_handle_get_from_id(struct nvmap_client *client,
-		int id);
+		u32 id);
 int nvmap_dma_alloc_from_dev_coherent(struct device *dev, ssize_t size,
 		dma_addr_t *dma_handle, void **ret);
 int nvmap_dma_release_from_dev_coherent(struct device *dev, int order, void *vaddr);
