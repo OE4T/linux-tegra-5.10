@@ -139,7 +139,7 @@ static int safety_i2s_add_kcontrols(struct snd_card *card, int id)
 	return snd_ctl_add(card, snd_ctl_new1(&controls[id], i2s));
 }
 
-static int prealloc_dma_buff(struct snd_pcm *pcm, int stream, size_t size)
+static int prealloc_dma_buff(struct snd_pcm *pcm, unsigned int stream, size_t size)
 {
 	struct snd_pcm_substream *substream = pcm->streams[stream].substream;
 	struct snd_dma_buffer *buff = &substream->dma_buffer;
@@ -167,7 +167,7 @@ static int setup_plls(struct device *dev)
 	return 0;
 }
 
-static int i2s_reset_init_and_deassert(struct device *dev, int id)
+static int i2s_reset_init_and_deassert(struct device *dev, unsigned int id)
 {
 	struct reset_control *reset;
 	int ret;
@@ -189,7 +189,7 @@ static int i2s_reset_init_and_deassert(struct device *dev, int id)
 	return ret;
 }
 
-static int i2s_clock_init(struct device *dev, int id)
+static int i2s_clock_init(struct device *dev, unsigned int id)
 {
 	i2s[id].audio_sync_input = devm_clk_get(dev,
 		clk_names[id * CLK_NUM_ENTRIES + CLK_AUDIO_INPUT_SYNC]);
@@ -278,7 +278,7 @@ static void dump_config(struct i2s_config *config)
 }
 #endif
 
-static int i2s_parse_dt(struct device *dev, int id)
+static int i2s_parse_dt(struct device *dev, unsigned int id)
 {
 	char name[5];
 	struct device_node *i2s_node;
@@ -286,8 +286,11 @@ static int i2s_parse_dt(struct device *dev, int id)
 	struct i2s_config *i2s_config;
 
 	const void *prop;
+	int ret = 0;
 
-	sprintf(name, I2S_DT_NODE, I2S_NODE_START_INDEX + id);
+	ret = sprintf(name, I2S_DT_NODE, I2S_NODE_START_INDEX + id);
+	if (ret < 0)
+		return -EINVAL;
 
 	i2s_config = &i2s[id].config;
 	memcpy(i2s_config, &i2s_defaults, sizeof(i2s_config[0]));
@@ -355,7 +358,7 @@ static int is_supported_rate(int rate)
 	return 1;
 }
 
-static int i2s_set_rate(int id, int rate)
+static int i2s_set_rate(unsigned int id, int rate)
 {
 	unsigned long i2s_clk_freq;
 
@@ -383,7 +386,7 @@ static int i2s_set_rate(int id, int rate)
 	return 0;
 }
 
-static void i2s_setup(int id)
+static void i2s_setup(unsigned int id)
 {
 	i2s_set_rate(id, i2s[id].config.srate);
 
@@ -474,7 +477,7 @@ static int i2s_hw_params(struct snd_pcm_substream *substream,
 	return 0;
 }
 
-static int safety_i2s_probe(struct device *dev, int id)
+static int safety_i2s_probe(struct device *dev, unsigned int id)
 {
 	i2s_parse_dt(dev, id);
 	setup_plls(dev);
@@ -627,7 +630,8 @@ static unsigned int parse_enabled_i2s_mask(struct device *dev)
 static int t234_safety_audio_probe(struct platform_device *pdev)
 {
 	struct snd_card *card;
-	int ret, i, pcm_instance = 0;
+	int ret, pcm_instance = 0;
+	unsigned int i = 0;
 	struct snd_pcm *pcm;
 	char name[5] = {0};
 

@@ -10,7 +10,7 @@
 #define PCM_STREAM_CAPTURE      1
 
 #define NUM_SAFETY_I2S_INST 2
-#define I2S_DT_NODE "i2s%d"
+#define I2S_DT_NODE "i2s%u"
 #define I2S_NODE_START_INDEX 7
 
 enum clock_mode {
