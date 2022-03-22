@@ -834,14 +834,11 @@ static int tegra186_xusb_padctl_vbus_power_on(struct phy *phy)
 	mutex_lock(&padctl->lock);
 
 	if (!padctl->is_disable_regulator) {
-		status = regulator_is_enabled(port->supply);
-		if (!status) {
-			rc = regulator_enable(port->supply);
-			if (rc) {
-				dev_err(padctl->dev,
-					"enable usb2-%d vbus failed %d\n",
-					index, rc);
-			}
+		rc = regulator_enable(port->supply);
+		if (rc) {
+			dev_err(padctl->dev,
+				"enable usb2-%d vbus failed %d\n",
+				index, rc);
 		}
 
 		dev_dbg(padctl->dev, "%s: usb2-%d vbus status: %d->%d\n",
@@ -877,14 +874,11 @@ static int tegra186_xusb_padctl_vbus_power_off(struct phy *phy)
 	mutex_lock(&padctl->lock);
 
 	if (!padctl->is_disable_regulator) {
-		status = regulator_is_enabled(port->supply);
-		if (status) {
-			rc = regulator_disable(port->supply);
-			if (rc) {
-				dev_err(padctl->dev,
-					"disable usb2-%d vbus failed %d\n",
-					index, rc);
-			}
+		rc = regulator_disable(port->supply);
+		if (rc) {
+			dev_err(padctl->dev,
+				"disable usb2-%d vbus failed %d\n",
+				index, rc);
 		}
 
 		dev_dbg(padctl->dev, "%s: usb2-%d vbus status: %d->%d\n",
@@ -992,6 +986,7 @@ static int tegra186_utmi_phy_set_mode(struct phy *phy, enum phy_mode mode,
 	struct tegra_xusb_padctl *padctl = lane->pad->padctl;
 	struct tegra_xusb_usb2_port *port = tegra_xusb_find_usb2_port(padctl,
 								lane->index);
+	u32 value;
 	int err = 0;
 
 	mutex_lock(&padctl->lock);
@@ -1017,8 +1012,10 @@ static int tegra186_utmi_phy_set_mode(struct phy *phy, enum phy_mode mode,
 			 * USB_ROLE_NONE from USB_ROLE_DEVICE, regulator is not
 			 * enabled.
 			 */
+
+			value = padctl_readl(padctl, USB2_VBUS_ID);
 			if ((!padctl->is_disable_regulator) &&
-				regulator_is_enabled(port->supply)) {
+				!(value & ID_OVERRIDE_FLOATING)) {
 				regulator_disable(port->supply);
 			}
 
@@ -1159,8 +1156,7 @@ static int tegra186_utmi_phy_init(struct phy *phy)
 	padctl_writel(padctl, reg, USB2_VBUS_ID);
 
 	if (!padctl->is_disable_regulator) {
-		if (port->supply && port->mode == USB_DR_MODE_HOST &&
-			!regulator_is_enabled(port->supply)) {
+		if (port->supply && port->mode == USB_DR_MODE_HOST) {
 			err = regulator_enable(port->supply);
 			if (err) {
 				dev_err(dev,
@@ -1189,8 +1185,7 @@ static int tegra186_utmi_phy_exit(struct phy *phy)
 	}
 
 	if (!padctl->is_disable_regulator) {
-		if (port->supply && port->mode == USB_DR_MODE_HOST &&
-			regulator_is_enabled(port->supply)) {
+		if (port->supply && port->mode == USB_DR_MODE_HOST) {
 			err = regulator_disable(port->supply);
 			if (err) {
 				dev_err(dev,
