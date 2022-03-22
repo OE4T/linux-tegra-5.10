@@ -690,7 +690,6 @@ static void nvpps_dev_release(struct device *dev)
 	mutex_unlock(&s_nvpps_lock);
 
 	kfree(dev);
-	kfree(pdev_data);
 }
 
 static void nvpps_fill_default_mac_phc_info(struct platform_device *pdev,
@@ -810,7 +809,7 @@ static int nvpps_probe(struct platform_device *pdev)
 		return -EINVAL;
 	}
 
-	pdev_data = kzalloc(sizeof(struct nvpps_device_data), GFP_KERNEL);
+	pdev_data = devm_kzalloc(&pdev->dev, sizeof(struct nvpps_device_data), GFP_KERNEL);
 	if (!pdev_data) {
 		return -ENOMEM;
 	}
