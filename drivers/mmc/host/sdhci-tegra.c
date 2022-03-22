@@ -567,21 +567,6 @@ static void tegra_sdhci_set_tap(struct sdhci_host *host, unsigned int tap)
 	}
 }
 
-static void tegra_sdhci_hs400_enhanced_strobe(struct sdhci_host *host,
-					      bool enable)
-{
-	u32 val;
-
-	val = sdhci_readl(host, SDHCI_TEGRA_VENDOR_SYS_SW_CTRL);
-
-	if (enable)
-		val |= SDHCI_TEGRA_SYS_SW_CTRL_ENHANCED_STROBE;
-	else
-		val &= ~SDHCI_TEGRA_SYS_SW_CTRL_ENHANCED_STROBE;
-
-	sdhci_writel(host, val, SDHCI_TEGRA_VENDOR_SYS_SW_CTRL);
-
-}
 static void tegra_sdhci_apply_tuning_correction(struct sdhci_host *host,
 		u16 tun_iter, u8 upthres, u8 lowthres, u8 fixed_tap)
 {
@@ -1394,6 +1379,32 @@ static void tegra_sdhci_set_clock(struct sdhci_host *host, unsigned int clock)
 		tegra_sdhci_pad_autocalib(host);
 		tegra_host->pad_calib_required = false;
 	}
+}
+
+static void tegra_sdhci_hs400_enhanced_strobe(struct sdhci_host *host,
+					      bool enable)
+{
+	u32 val;
+
+	val = sdhci_readl(host, SDHCI_TEGRA_VENDOR_SYS_SW_CTRL);
+
+	if (enable) {
+		val |= SDHCI_TEGRA_SYS_SW_CTRL_ENHANCED_STROBE;
+		/*
+		 * When CMD13 is sent from mmc_select_hs400es() after
+		 * switching to HS400ES mode, the bus is operating at
+		 * either MMC_HIGH_26_MAX_DTR or MMC_HIGH_52_MAX_DTR.
+		 * To meet Tegra SDHCI requirement at HS400ES mode, force SDHCI
+		 * interface clock to MMC_HS200_MAX_DTR (200 MHz) so that host
+		 * controller CAR clock and the interface clock are rate matched.
+		 */
+		tegra_sdhci_set_clock(host, MMC_HS200_MAX_DTR);
+	} else {
+		val &= ~SDHCI_TEGRA_SYS_SW_CTRL_ENHANCED_STROBE;
+	}
+
+	sdhci_writel(host, val, SDHCI_TEGRA_VENDOR_SYS_SW_CTRL);
+
 }
 
 static int tegra_sdhci_set_host_clock(struct sdhci_host *host, bool enable)
