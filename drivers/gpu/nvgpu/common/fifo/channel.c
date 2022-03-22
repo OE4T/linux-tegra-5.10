@@ -478,26 +478,16 @@ int nvgpu_channel_add_job(struct nvgpu_channel *c,
 		}
 	}
 
-	if (c != NULL) {
-		job->num_mapped_buffers = num_mapped_buffers;
-		job->mapped_buffers = mapped_buffers;
+	job->num_mapped_buffers = num_mapped_buffers;
+	job->mapped_buffers = mapped_buffers;
 
-		nvgpu_channel_launch_wdt(c);
+	nvgpu_channel_launch_wdt(c);
 
-		nvgpu_channel_joblist_lock(c);
-		nvgpu_channel_joblist_add(c, job);
-		nvgpu_channel_joblist_unlock(c);
-	} else {
-		err = -ETIMEDOUT;
-		goto err_put_buffers;
-	}
+	nvgpu_channel_joblist_lock(c);
+	nvgpu_channel_joblist_add(c, job);
+	nvgpu_channel_joblist_unlock(c);
 
 	return 0;
-
-err_put_buffers:
-	nvgpu_vm_put_buffers(vm, mapped_buffers, num_mapped_buffers);
-
-	return err;
 }
 
 /**

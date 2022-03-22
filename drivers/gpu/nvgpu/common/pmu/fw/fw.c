@@ -173,6 +173,10 @@ static void pmu_fw_release(struct gk20a *g, struct pmu_rtos_fw *rtos_fw)
 
 	nvgpu_log_fn(g, " ");
 
+	if (rtos_fw == NULL) {
+		return;
+	}
+
 	if (rtos_fw->fw_sig != NULL) {
 		nvgpu_release_firmware(g, rtos_fw->fw_sig);
 	}
