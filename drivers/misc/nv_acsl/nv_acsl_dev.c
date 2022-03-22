@@ -174,7 +174,7 @@ static long acsl_dev_ioctl(struct file *filp,
 			return -EACCES;
 		ret = copy_from_user(&csm_args, uarg,
 				sizeof(csm_args));
-		if (ret || (csm_args.size > sizeof(csm_args))) {
+		if (ret || (csm_args.size > MAX_PAYLOAD)) {
 			ret = -EACCES;
 			break;
 		}
@@ -200,7 +200,7 @@ static long acsl_dev_ioctl(struct file *filp,
 			return -EACCES;
 		ret = copy_from_user(&csm_args, uarg,
 				sizeof(csm_args));
-		if (ret || (csm_args.size > sizeof(csm_args))) {
+		if (ret || (csm_args.size > MAX_PAYLOAD)) {
 			ret = -EACCES;
 			break;
 		}
@@ -215,7 +215,7 @@ static long acsl_dev_ioctl(struct file *filp,
 			return -EACCES;
 		ret = copy_from_user(&csm_args, uarg,
 				sizeof(csm_args));
-		if (ret || (csm_args.size > sizeof(csm_args))) {
+		if (ret || (csm_args.size > MAX_PAYLOAD)) {
 			ret = -EACCES;
 			break;
 		}
@@ -266,7 +266,7 @@ static long acsl_dev_ioctl(struct file *filp,
 			return -EACCES;
 		ret = copy_from_user(&csm_args, uarg,
 				sizeof(csm_args));
-		if (ret || (csm_args.size > sizeof(csm_args))) {
+		if (ret || (csm_args.size > MAX_PAYLOAD)) {
 			ret = -EACCES;
 			break;
 		}
@@ -280,7 +280,7 @@ static long acsl_dev_ioctl(struct file *filp,
 			return -EACCES;
 		ret = copy_from_user(&csm_args, uarg,
 				sizeof(csm_args));
-		if (ret || (csm_args.size > sizeof(csm_args))) {
+		if (ret || (csm_args.size > MAX_PAYLOAD)) {
 			ret = -EACCES;
 			break;
 		}
