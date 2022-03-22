@@ -368,6 +368,31 @@ static int ivc_macsec_config(struct osi_core_priv_data *const osi_core,
 }
 
 /**
+ * @brief ivc_macsec_update_mtu - Update MACSEC mtu.
+ *
+ * @param[in] osi_core: OSI Core private data structure.
+ * @param[in] mtu: MACSEC MTU len.
+ *
+ * @retval 0 on Success
+ * @retval -1 on Failure
+ */
+static nve32_t ivc_macsec_update_mtu(struct osi_core_priv_data *const osi_core,
+				 nveu32_t mtu)
+{
+	ivc_msg_common_t msg;
+	nveu32_t index = 0;
+
+	osi_memset(&msg, 0, sizeof(msg));
+
+	msg.cmd = macsec_update_mtu_size;
+	msg.data.args.arguments[index] = mtu;
+	index++;
+	msg.data.args.count = index;
+
+	return osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
+}
+
+/**
  * @brief ivc_macsec_enable - Enable or disable Macsec.
  *
  * @param[in] osi_core: OSI Core private data structure.
@@ -555,13 +580,18 @@ static int ivc_macsec_deinit(struct osi_core_priv_data *const osi_core)
  * @retval 0 on Success
  * @retval -1 on Failure
  */
-static int ivc_macsec_init(struct osi_core_priv_data *const osi_core)
+static int ivc_macsec_init(struct osi_core_priv_data *const osi_core,
+			   nveu32_t mtu)
 {
 	ivc_msg_common_t msg;
+	nveu32_t index = 0;
 
 	osi_memset(&msg, 0, sizeof(msg));
 
 	msg.cmd = init_macsec;
+	msg.data.args.arguments[index] = mtu;
+	index++;
+	msg.data.args.count = index;
 
 	return osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
 }
@@ -595,6 +625,7 @@ void ivc_init_macsec_ops(void *macsecops)
 	ops->dbg_buf_config = ivc_macsec_dbg_buf_config;
 	ops->dbg_events_config = ivc_macsec_dbg_events_config;
 	ops->get_sc_lut_key_index = ivc_get_sc_lut_key_index;
+	ops->update_mtu = ivc_macsec_update_mtu;
 }
 #endif
 

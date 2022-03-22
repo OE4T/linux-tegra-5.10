@@ -46,3 +46,4 @@ osi_handle_ioctl
 #osi_macsec_dbg_events_config
 #osi_macsec_kt_config
 #osi_macsec_get_sc_lut_key_index
+#osi_macsec_update_mtu

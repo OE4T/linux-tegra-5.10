@@ -58,6 +58,7 @@ typedef enum ivc_cmd {
 	dbg_buf_config_macsec,
 	dbg_events_config_macsec,
 	macsec_get_sc_lut_key_index,
+	macsec_update_mtu_size,
 }ivc_cmd;
 
 /**

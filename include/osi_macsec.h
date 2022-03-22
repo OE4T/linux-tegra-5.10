@@ -374,7 +374,8 @@ struct osi_macsec_dbg_buf_config {
  */
 struct osi_macsec_core_ops {
 	/** macsec init */
-	nve32_t (*init)(struct osi_core_priv_data *const osi_core);
+	nve32_t (*init)(struct osi_core_priv_data *const osi_core,
+			nveu32_t mtu);
 	/** macsec de-init */
 	nve32_t (*deinit)(struct osi_core_priv_data *const osi_core);
 	/** Non Secure irq handler */
@@ -414,6 +415,9 @@ struct osi_macsec_core_ops {
 	/** macsec get Key Index start for a given SCI */
 	nve32_t (*get_sc_lut_key_index)(struct osi_core_priv_data *const osi_core,
 		 nveu8_t *sci, nve32_t *key_index, nveu16_t ctlr);
+	/** macsec set MTU size */
+	nve32_t (*update_mtu)(struct osi_core_priv_data *const osi_core,
+			      nveu32_t mtu);
 
 };
 
@@ -463,6 +467,7 @@ nve32_t osi_init_macsec_ops(struct osi_core_priv_data *const osi_core);
  *    set BYP LUT entries for MKPDU and BC packets
  *
  * @param[in] osi_core: OSI core private data structure.
+ * @param[in] mtu: MTU Length.
  *
  * @pre
  * - MACSEC should be out of reset and clocks are enabled
@@ -487,7 +492,8 @@ nve32_t osi_init_macsec_ops(struct osi_core_priv_data *const osi_core);
  * @retval 0 on success
  * @retval -1 on failure
  */
-nve32_t osi_macsec_init(struct osi_core_priv_data *const osi_core);
+nve32_t osi_macsec_init(struct osi_core_priv_data *const osi_core,
+			nveu32_t mtu);
 
 /**
  * @brief De-Initialize the macsec controller
@@ -957,4 +963,42 @@ nve32_t osi_macsec_dbg_events_config(
 nve32_t osi_macsec_get_sc_lut_key_index(
 		struct osi_core_priv_data *const osi_core,
 		nveu8_t *sci, nve32_t *key_index, nveu16_t ctlr);
+
+/**
+ * @brief sets MACSEC MTU
+ *
+ * @note
+ * Algorithm:
+ * - Sets MACSEC MTU
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] mtu: MACSEC MTU
+ *
+ *
+ * @pre
+ * - MACSEC shall be initialized and enalbed
+ *
+ * @note
+ * Traceability Details:
+ * - SWUD_ID:
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval vaid Key Index Start on success
+ * @retval -1 on failure
+ */
+nve32_t osi_macsec_update_mtu(struct osi_core_priv_data *const osi_core,
+			      nveu32_t mtu);
+
 #endif /* INCLUDED_OSI_MACSEC_H */
