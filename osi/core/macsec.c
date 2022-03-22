@@ -2453,30 +2453,17 @@ static nve32_t macsec_deinit(struct osi_core_priv_data *const osi_core)
 	return 0;
 }
 
-static nve32_t macsec_init(struct osi_core_priv_data *const osi_core)
+static nve32_t macsec_update_mtu(struct osi_core_priv_data *const osi_core,
+				 nveu32_t mtu)
 {
 	nveu32_t val = 0;
-	struct osi_macsec_lut_config lut_config = {0};
-	struct osi_macsec_table_config *table_config = &lut_config.table_config;
-	struct core_local *l_core = (struct core_local *)osi_core;
-	/* Store MAC address in reverse, per HW design */
-	nveu8_t mac_da_mkpdu[OSI_ETH_ALEN] = {0x3, 0x0, 0x0,
-					      0xC2, 0x80, 0x01};
-	nveu8_t mac_da_bc[OSI_ETH_ALEN] = {0xFF, 0xFF, 0xFF,
-					   0xFF, 0xFF, 0xFF};
-	nveu32_t mtu = osi_core->mtu;
 	nveu8_t *addr = (nveu8_t *)osi_core->macsec_base;
-	nve32_t ret = 0;
-	nveu16_t i, j;
 
-	/* Update MAC value as per macsec requirement */
-	if (l_core->ops_p->macsec_config_mac != OSI_NULL) {
-		l_core->ops_p->macsec_config_mac(osi_core, OSI_ENABLE);
-	} else {
+	if (mtu > OSI_MAX_MTU_SIZE) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
-			     "Failed to config mac per macsec\n", 0ULL);
+			     "Invalid MTU received!!\n", mtu);
+		return -1;
 	}
-
 	/* Set MTU */
 	val = osi_readla(osi_core, addr + MACSEC_TX_MTU_LEN);
 	LOG("Read MACSEC_TX_MTU_LEN: 0x%x\n", val);
@@ -2491,6 +2478,39 @@ static nve32_t macsec_init(struct osi_core_priv_data *const osi_core)
 	val |= (mtu & MTU_LENGTH_MASK);
 	LOG("Write MACSEC_RX_MTU_LEN: 0x%x\n", val);
 	osi_writela(osi_core, val, addr + MACSEC_RX_MTU_LEN);
+
+	return 0;
+}
+
+static nve32_t macsec_init(struct osi_core_priv_data *const osi_core,
+			   nveu32_t mtu)
+{
+	nveu32_t val = 0;
+	struct osi_macsec_lut_config lut_config = {0};
+	struct osi_macsec_table_config *table_config = &lut_config.table_config;
+	struct core_local *l_core = (struct core_local *)osi_core;
+	/* Store MAC address in reverse, per HW design */
+	nveu8_t mac_da_mkpdu[OSI_ETH_ALEN] = {0x3, 0x0, 0x0,
+					      0xC2, 0x80, 0x01};
+	nveu8_t mac_da_bc[OSI_ETH_ALEN] = {0xFF, 0xFF, 0xFF,
+					   0xFF, 0xFF, 0xFF};
+	nveu8_t *addr = (nveu8_t *)osi_core->macsec_base;
+	nve32_t ret = 0;
+	nveu16_t i, j;
+
+	/* Update MAC value as per macsec requirement */
+	if (l_core->ops_p->macsec_config_mac != OSI_NULL) {
+		l_core->ops_p->macsec_config_mac(osi_core, OSI_ENABLE);
+	} else {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+			     "Failed to config mac per macsec\n", 0ULL);
+	}
+
+	/* Set MTU */
+	ret = macsec_update_mtu(osi_core, mtu);
+	if (ret < 0) {
+		return ret;
+	}
 
 	/* set TX/RX SOT, as SOT value different for eqos.
 	 * default value matches for MGBE
@@ -3112,6 +3132,7 @@ static struct osi_macsec_core_ops macsec_ops = {
 	.dbg_buf_config = macsec_dbg_buf_config,
 	.dbg_events_config = macsec_dbg_events_config,
 	.get_sc_lut_key_index = macsec_get_sc_lut_key_index,
+	.update_mtu = macsec_update_mtu,
 };
 
 /**
@@ -3137,11 +3158,12 @@ nve32_t osi_init_macsec_ops(struct osi_core_priv_data *const osi_core)
 	return 0;
 }
 
-nve32_t osi_macsec_init(struct osi_core_priv_data *const osi_core)
+nve32_t osi_macsec_init(struct osi_core_priv_data *const osi_core,
+			nveu32_t mtu)
 {
 	if (osi_core != OSI_NULL && osi_core->macsec_ops != OSI_NULL &&
 	    osi_core->macsec_ops->init != OSI_NULL) {
-		return osi_core->macsec_ops->init(osi_core);
+		return osi_core->macsec_ops->init(osi_core, mtu);
 	}
 
 	return -1;
@@ -3191,6 +3213,17 @@ nve32_t osi_macsec_get_sc_lut_key_index(struct osi_core_priv_data *const osi_cor
 			osi_core->macsec_ops->get_sc_lut_key_index != OSI_NULL) {
 		return osi_core->macsec_ops->get_sc_lut_key_index(osi_core, sci, key_index,
 								  ctlr);
+	}
+
+	return -1;
+}
+
+nve32_t osi_macsec_update_mtu(struct osi_core_priv_data *const osi_core,
+			      nveu32_t mtu)
+{
+	if ((osi_core != OSI_NULL) && (osi_core->macsec_ops != OSI_NULL) &&
+	    (osi_core->macsec_ops->update_mtu != OSI_NULL)) {
+		return osi_core->macsec_ops->update_mtu(osi_core, mtu);
 	}
 
 	return -1;
