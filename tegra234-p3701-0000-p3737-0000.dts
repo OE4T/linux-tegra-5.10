@@ -254,4 +254,8 @@
 	etr@24070000 {
 		status = "disabled";
 	};
+
+	serial@31d0000 {
+		status = "okay";
+	};
 };
