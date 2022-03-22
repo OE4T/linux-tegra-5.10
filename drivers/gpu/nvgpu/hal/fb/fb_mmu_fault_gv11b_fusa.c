@@ -513,7 +513,7 @@ void gv11b_fb_handle_mmu_fault(struct gk20a *g, u32 niso_intr)
 	     fb_niso_intr_mmu_other_fault_notify_m()) != 0U) {
 
 		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_HUBMMU,
-				GPU_HUBMMU_PAGE_FAULT_ERROR);
+				GPU_HUBMMU_PAGE_FAULT_OTHER_FAULT_NOTIFY_ERROR);
 		nvgpu_err(g, "GPU_HUBMMU_PAGE_FAULT_ERROR. "
 				"sub-err: OTHER_FAULT_NOTIFY. "
 				"fault_status(0x%x)", fault_status);
@@ -542,7 +542,7 @@ void gv11b_fb_handle_mmu_fault(struct gk20a *g, u32 niso_intr)
 		     fb_niso_intr_mmu_nonreplayable_fault_overflow_m()) != 0U) {
 
 			nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_HUBMMU,
-					GPU_HUBMMU_PAGE_FAULT_ERROR);
+				GPU_HUBMMU_PAGE_FAULT_NONREPLAYABLE_FAULT_OVERFLOW_ERROR);
 			nvgpu_err(g, "GPU_HUBMMU_PAGE_FAULT_ERROR. "
 				"sub-err: NONREPLAYABLE_FAULT_OVERFLOW. "
 				"fault_status(0x%x)", fault_status);
@@ -567,7 +567,7 @@ void gv11b_fb_handle_mmu_fault(struct gk20a *g, u32 niso_intr)
 		     fb_niso_intr_mmu_replayable_fault_overflow_m()) != 0U) {
 
 			nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_HUBMMU,
-					GPU_HUBMMU_PAGE_FAULT_ERROR);
+				GPU_HUBMMU_PAGE_FAULT_REPLAYABLE_FAULT_OVERFLOW_ERROR);
 			nvgpu_err(g, "GPU_HUBMMU_PAGE_FAULT_ERROR. "
 				"sub-err: REPLAYABLE_FAULT_OVERFLOW. "
 				"fault_status(0x%x)", fault_status);

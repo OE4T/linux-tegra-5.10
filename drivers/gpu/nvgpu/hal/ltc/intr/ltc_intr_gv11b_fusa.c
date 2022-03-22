@@ -126,8 +126,6 @@ void gv11b_ltc_intr_handle_tstg_ecc_interrupts(struct gk20a *g,
 				g->ecc.ltc.tstg_ecc_parity_count[ltc][slice].counter,
 					uncorrected_delta);
 
-		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_LTC,
-				GPU_LTC_CACHE_TSTG_ECC_UNCORRECTED);
 		nvgpu_err(g, "tstg ecc error uncorrected. "
 				"ecc_addr(0x%x)", ecc_addr);
 	}
@@ -281,8 +279,6 @@ static void gv11b_ltc_intr_handle_ecc_sec_ded_interrupts(struct gk20a *g, u32 lt
 				ltc_ltc0_lts0_dstg_ecc_report_r(), offset),
 			ecc_stats_reg_val);
 
-		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_LTC,
-				GPU_LTC_CACHE_DSTG_ECC_CORRECTED);
 		nvgpu_err(g, "dstg ecc error corrected. "
 				"ecc_addr(0x%x)", dstg_ecc_addr);
 
@@ -328,8 +324,6 @@ static void gv11b_ltc_intr_handle_ecc_sec_ded_interrupts(struct gk20a *g, u32 lt
 				ltc_ltc0_lts0_dstg_ecc_report_r(), offset),
 			ecc_stats_reg_val);
 
-		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_LTC,
-				GPU_LTC_CACHE_DSTG_ECC_UNCORRECTED);
 		nvgpu_err(g, "dstg ecc error uncorrected. "
 				"ecc_addr(0x%x)", dstg_ecc_addr);
 	}

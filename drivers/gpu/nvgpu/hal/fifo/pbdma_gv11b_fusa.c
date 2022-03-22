@@ -195,9 +195,6 @@ bool gv11b_pbdma_handle_intr_1(struct gk20a *g, u32 pbdma_id, u32 pbdma_intr_1,
 
 	recover = true;
 
-	nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_HOST,
-			GPU_HOST_PBDMA_HCE_ERROR);
-
 	if ((pbdma_intr_1 & pbdma_intr_1_ctxnotvalid_pending_f()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr, "ctxnotvalid intr on pbdma id %d",
 				 pbdma_id);

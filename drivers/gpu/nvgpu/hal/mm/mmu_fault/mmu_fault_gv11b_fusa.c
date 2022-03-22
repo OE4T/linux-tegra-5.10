@@ -499,7 +499,7 @@ static void gv11b_mm_mmu_fault_handle_buf_valid_entry(struct gk20a *g,
 		u32 *invalidate_replay_val_ptr, u32 rd32_val, u32 fault_status,
 		u32 index, u32 get_indx, u32 offset, u32 entries)
 {
-	u32 sub_err_type =  0U;
+	u32 err_type =  0U;
 #ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 	u64 prev_fault_addr =  0ULL;
 	u64 next_fault_addr =  0ULL;
@@ -513,19 +513,17 @@ static void gv11b_mm_mmu_fault_handle_buf_valid_entry(struct gk20a *g,
 
 #ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 		if (index == NVGPU_MMU_FAULT_REPLAY_REG_INDX) {
-			sub_err_type = GPU_HUBMMU_REPLAYABLE_FAULT_NOTIFY;
+			err_type = GPU_HUBMMU_PAGE_FAULT_REPLAYABLE_FAULT_NOTIFY_ERROR;
 		} else {
 #endif
-			sub_err_type = GPU_HUBMMU_NONREPLAYABLE_FAULT_NOTIFY;
+			err_type = GPU_HUBMMU_PAGE_FAULT_NONREPLAYABLE_FAULT_NOTIFY_ERROR;
 #ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 		}
 #endif
 
-		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_HUBMMU,
-				GPU_HUBMMU_PAGE_FAULT_ERROR);
-		nvgpu_err(g, "page fault error: sub_er_type = 0x%x, "
-				"fault_status = 0x%x",
-				sub_err_type, fault_status);
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_HUBMMU, err_type);
+		nvgpu_err(g, "page fault error: err_type = 0x%x, "
+				"fault_status = 0x%x", err_type, fault_status);
 
 		nvgpu_assert(get_indx < U32_MAX);
 		nvgpu_assert(entries != 0U);

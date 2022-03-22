@@ -132,9 +132,6 @@ bool gv11b_fifo_handle_sched_error(struct gk20a *g)
 		nvgpu_err(g, "fifo sched error code not supported");
 	}
 
-	nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_HOST,
-			GPU_HOST_PFIFO_SCHED_ERROR);
-
 	if (sched_error == SCHED_ERROR_CODE_BAD_TSG) {
 		/* id is unknown, preempt all runlists and do recovery */
 		nvgpu_rc_sched_error_bad_tsg(g);
