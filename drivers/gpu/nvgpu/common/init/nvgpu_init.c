@@ -901,6 +901,15 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		NVGPU_INIT_TABLE_ENTRY(g->ops.acr.acr_construct_execute,
 				       NVGPU_SEC_PRIVSECURITY),
 		/**
+		 * Set ltc_lts_set_mgmt registers only after ACR boot(See
+		 * bug200601972 for details). In order to accomplish this
+		 * ltc_lts_set_mgmt_setup is decoupled from
+		 * nvgpu_init_ltc_support which needs to be executed before ACR
+		 * boot.
+		 */
+		NVGPU_INIT_TABLE_ENTRY(g->ops.ltc.ltc_lts_set_mgmt_setup,
+				       NO_FLAG),
+		/**
 		 * Set atomic mode after acr boot(See Bug 3268664 for
 		 * details). For acr to boot, nvgpu_init_fb_support
 		 * and init_mm_support is required.

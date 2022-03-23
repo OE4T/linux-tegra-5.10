@@ -74,10 +74,6 @@ int nvgpu_init_ltc_support(struct gk20a *g)
 		}
 	}
 
-	if (g->ops.ltc.ltc_lts_set_mgmt_setup != NULL) {
-		g->ops.ltc.ltc_lts_set_mgmt_setup(g);
-	}
-
 	if (g->ops.ltc.intr.configure != NULL) {
 		nvgpu_cic_mon_intr_stall_unit_config(g, NVGPU_CIC_INTR_UNIT_LTC,
 						NVGPU_CIC_INTR_ENABLE);

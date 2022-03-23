@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -75,7 +75,7 @@ void ga10b_ltc_init_fs_state(struct gk20a *g)
 	nvgpu_writel(g, ltc_ltcs_ltss_tstg_set_mgmt_1_r(), reg);
 }
 
-void ga10b_ltc_lts_set_mgmt_setup(struct gk20a *g)
+int ga10b_ltc_lts_set_mgmt_setup(struct gk20a *g)
 {
 	u32 reg;
 
@@ -89,6 +89,8 @@ void ga10b_ltc_lts_set_mgmt_setup(struct gk20a *g)
 			ltc_ltcs_ltss_tstg_set_mgmt_3_disallow_clean_fclr_imm_enabled_f());
 		nvgpu_writel(g, ltc_ltcs_ltss_tstg_set_mgmt_3_r(), reg);
 	}
+
+	return 0;
 }
 
 #ifdef CONFIG_NVGPU_DEBUGGER

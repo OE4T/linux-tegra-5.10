@@ -415,7 +415,7 @@ struct gops_ltc {
 #if defined(CONFIG_NVGPU_NON_FUSA) || defined(CONFIG_NVGPU_KERNEL_MODE_SUBMIT)
 	void (*set_enabled)(struct gk20a *g, bool enabled);
 #endif
-	void (*ltc_lts_set_mgmt_setup)(struct gk20a *g);
+	int (*ltc_lts_set_mgmt_setup)(struct gk20a *g);
 #ifdef CONFIG_NVGPU_GRAPHICS
 	void (*set_zbc_color_entry)(struct gk20a *g,
 					u32 *color_val_l2, u32 index);
