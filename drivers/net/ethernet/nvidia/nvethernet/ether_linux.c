@@ -428,7 +428,8 @@ static void ether_disable_eqos_clks(struct ether_priv_data *pdata)
  */
 static void ether_disable_clks(struct ether_priv_data *pdata)
 {
-	if (pdata->osi_core->use_virtualization == OSI_DISABLE) {
+	if (pdata->osi_core->use_virtualization == OSI_DISABLE &&
+	    !is_tegra_hypervisor_mode()) {
 		if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
 			ether_disable_mgbe_clks(pdata);
 		} else {
