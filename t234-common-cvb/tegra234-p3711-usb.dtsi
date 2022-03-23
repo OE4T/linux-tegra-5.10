@@ -40,7 +40,7 @@
 			     };
 			     usb3 {
 				     lanes {
-					     usb3-0 {
+					     usb3-1 {
 						     nvidia,function = "xusb";
 						     status = "okay";
 					     };
@@ -84,7 +84,7 @@
 				     status = "okay";
 				     vbus-supply = <&p3711_usb2_vbus>;
 			     };
-			     usb3-0 {
+			     usb3-1 {
 				     nvidia,usb2-companion = <0>;
 				     status = "okay";
 			     };
@@ -98,8 +98,8 @@
 	tegra_xudc: xudc@3550000 {
 		    status = "okay";
 		    phys = <&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-0}>,
-			 <&{/xusb_padctl@3520000/pads/usb3/lanes/usb3-0}>;
-		    phy-names = "usb2-0", "usb3-0";
+			 <&{/xusb_padctl@3520000/pads/usb3/lanes/usb3-1}>;
+		    phy-names = "usb2-0", "usb3-1";
 		    nvidia,xusb-padctl = <&xusb_padctl>;
 		    nvidia,boost_cpu_freq = <1200>;
 	    };
