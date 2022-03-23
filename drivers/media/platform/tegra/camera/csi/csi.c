@@ -806,7 +806,7 @@ static int tegra_csi_get_port_info(struct tegra_csi_channel *chan,
 			 * bricks to add as many ports necessary.
 			 */
 			value -= 4;
-			for (i = 1; value > 0 && i < 4; i++, value -= 4) {
+			for (i = 1; value > 0 && i < TEGRA_CSI_BLOCKS; i++, value -= 4) {
 				int next_port = chan->port[i-1] + 2;
 
 				next_port = (next_port % (NVCSI_PORT_H + 1));

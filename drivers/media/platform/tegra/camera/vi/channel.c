@@ -2397,7 +2397,7 @@ static int tegra_channel_csi_init(struct tegra_channel *chan)
 		}
 	}
 
-	for (idx = 0; idx <= TEGRA_CSI_BLOCKS && csi_port_is_valid(chan->port[idx]); idx++) {
+	for (idx = 0; idx < TEGRA_CSI_BLOCKS && csi_port_is_valid(chan->port[idx]); idx++) {
 		chan->total_ports++;
 		/* maximum of 4 lanes are present per CSI block */
 		chan->csibase[idx] = vi->iomem +

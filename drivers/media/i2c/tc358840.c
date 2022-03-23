@@ -1832,6 +1832,8 @@ static int tc358840_log_status(struct v4l2_subdev *sd)
 		"RGB", "YCbCr 601", "Adobe RGB", "YCbCr 709", "NA (4)",
 		"xvYCC 601", "NA(6)", "xvYCC 709", "NA(8)", "sYCC601",
 		"NA(10)", "NA(11)", "NA(12)", "Adobe YCC 601"};
+	u8 num_color_space = sizeof(input_color_space) / sizeof(input_color_space[0]);
+	u8 color_space_index = 0;
 
 	v4l2_ctrl_subdev_log_status(sd);
 	v4l2_info(sd, "-----Chip status-----\n");
@@ -1903,9 +1905,10 @@ static int tc358840_log_status(struct v4l2_subdev *sd)
 	v4l2_info(sd, "-----%s status-----\n", is_hdmi(sd) ? "HDMI" : "DVI-D");
 	v4l2_info(sd, "HDCP encrypted content: %s\n",
 			hdmi_sys_status & MASK_S_HDCP ? "yes" : "no");
-	if (((vi_status3 & MASK_S_V_COLOR) >> 1) >= 0)
+	color_space_index = (vi_status3 & MASK_S_V_COLOR) >> 1;
+	if (color_space_index < num_color_space)
 		v4l2_info(sd, "Input color space: %s %s range\n",
-				input_color_space[(vi_status3 & MASK_S_V_COLOR) >> 1],
+				input_color_space[color_space_index],
 				(vi_status3 & MASK_LIMITED) ? "limited" : "full");
 	if (!is_hdmi(sd))
 		return 0;
