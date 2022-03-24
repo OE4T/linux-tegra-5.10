@@ -67,7 +67,7 @@ typedef struct syncpoint_info {
  *       of stats data per window.
  *  FM = 32 byte header + (64 x 64 x 2 x 4) bytes. FM can have 64 x 64 windows
  *       with each windows having 2 bytes of data for each color channel.
- *  AFM = 32 byte header + 8 byte statistics data per ROI.
+ *  AFM = 32 byte header + 8 byte statistics data + 8 bytes padding per ROI.
  *  LAC = 32 byte header + ( (32 x 32) x ((4 + 2 + 2) x 4) )
  *        Each ROI has 32x32 windows with each window containing 8
  *        bytes of data per color channel.
@@ -88,7 +88,7 @@ typedef struct syncpoint_info {
 /** Focus Metrics (FM) unit statistics data size in bytes */
 #define ISP5_STATS_FM_MAX_SIZE		MK_SIZE(32800)
 /** Auto Focus Metrics (AFM) unit statistics data size in bytes */
-#define ISP5_STATS_AFM_ROI_MAX_SIZE	MK_SIZE(40)
+#define ISP5_STATS_AFM_ROI_MAX_SIZE	MK_SIZE(48)
 /** Local Average Clipping (LAC) unit statistics data size in bytes */
 #define ISP5_STATS_LAC_ROI_MAX_SIZE	MK_SIZE(32800)
 /** Histogram unit statistics data size in bytes */
