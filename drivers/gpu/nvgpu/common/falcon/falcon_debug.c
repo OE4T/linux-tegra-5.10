@@ -352,16 +352,6 @@ int nvgpu_falcon_dbg_buf_display(struct nvgpu_falcon *flcn)
 				curr_data = &buffer_data[debug_buffer->read_offset];
 			}
 
-			if (curr_data == NULL) {
-				status = -EINVAL;
-				nvgpu_err(g, "Debug buffer - no data to print %d", status);
-
-				if (tmp_buf != NULL) {
-					nvgpu_kfree(g, tmp_buf);
-				}
-				return status;
-			}
-
 			/*
 			 * if the flag is set to true print the riscv
 			 * buffer as error

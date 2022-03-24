@@ -862,11 +862,9 @@ u32 ga10b_grmgr_get_allowed_swizzid_size(struct gk20a *g)
 int ga10b_grmgr_get_gpc_instance_gpcgrp_id(struct gk20a *g,
 		u32 gpu_instance_id, u32 gr_syspipe_id, u32 *gpcgrp_id)
 {
-	u32 local_gpcgrp_id;
-	bool supported;
 
-	if ((gr_syspipe_id >= g->ops.grmgr.get_max_sys_pipes(g)) ||
-		(gpu_instance_id >= smcarb_allowed_swizzid__size1_v()) ||
+	if ((gpu_instance_id >= smcarb_allowed_swizzid__size1_v()) ||
+		(gr_syspipe_id >= g->ops.grmgr.get_max_sys_pipes(g)) ||
 		(gpcgrp_id == NULL)) {
 		nvgpu_err(g,
 			"[Invalid_param] gr_syspipe_id[%u %u] gpu_instance_id[%u %u] "
@@ -876,22 +874,14 @@ int ga10b_grmgr_get_gpc_instance_gpcgrp_id(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	for (local_gpcgrp_id = 0U; local_gpcgrp_id < 2U; local_gpcgrp_id++) {
-		supported = GA10B_GRMGR_PSMCARB_ALLOWED_UGPU(
-			gpu_instance_id, local_gpcgrp_id);
-		if (supported) {
-			*gpcgrp_id = local_gpcgrp_id;
-			nvgpu_log(g, gpu_dbg_mig,
-					"Found [%u] gpcgrp id for gpu_instance_id[%u] "
-						"gr_syspipe_id[%u] ",
-					*gpcgrp_id,
-					gpu_instance_id,
-					gr_syspipe_id);
-			return 0;
-		}
-	}
-
-	return -EINVAL;
+	*gpcgrp_id = 0U;
+	nvgpu_log(g, gpu_dbg_mig,
+			"Found [%u] gpcgrp id for gpu_instance_id[%u] "
+				"gr_syspipe_id[%u] ",
+			*gpcgrp_id,
+			gpu_instance_id,
+			gr_syspipe_id);
+	return 0;
 }
 
 int ga10b_grmgr_remove_gr_manager(struct gk20a *g)

@@ -105,9 +105,6 @@ int nvgpu_vm_remap_os_buf_get(struct vm_gk20a *vm,
 	return 0;
 
 clean_up:
-	if (nv_sgt != NULL) {
-		nvgpu_sgt_free(g, nv_sgt);
-	}
 	if (IS_ERR(sgt)) {
 		nvgpu_mm_unpin(dev, dmabuf, attachment, sgt);
 	}

@@ -1205,24 +1205,10 @@ static int devinit_get_vfe_var_table(struct gk20a *g,
 					VBIOS_VFE_3X_VAR_ENTRY_PAR0_SSFUSE_VALUE_SIGNED_INTEGER);
 			var_data.single_sensed_fuse.vfield_info.fuse_val_default =
 				var.param1;
-			if (szfmt >= VBIOS_VFE_3X_VAR_ENTRY_SIZE_19) {
-				var_data.single_sensed_fuse.vfield_info.hw_correction_scale  =
-					var.param2;
-				var_data.single_sensed_fuse.vfield_info.hw_correction_offset =
-					(int)var.param3;
-			} else {
-				var_data.single_sensed_fuse.vfield_info.hw_correction_scale =
-					BIT32(12);
-				var_data.single_sensed_fuse.vfield_info.hw_correction_offset =
-					0;
-				if ((var_data.single_sensed_fuse.vfield_info.v_field_id ==
-				     VFIELD_ID_STRAP_IDDQ) ||
-				    (var_data.single_sensed_fuse.vfield_info.v_field_id ==
-				     VFIELD_ID_STRAP_IDDQ_1)) {
-					var_data.single_sensed_fuse.vfield_info.hw_correction_scale =
-						50U << 12U;
-				}
-			}
+			var_data.single_sensed_fuse.vfield_info.hw_correction_scale  =
+				var.param2;
+			var_data.single_sensed_fuse.vfield_info.hw_correction_offset =
+				(int)var.param3;
 			break;
 
 		case VBIOS_VFE_3X_VAR_ENTRY_TYPE_DERIVED_PRODUCT:

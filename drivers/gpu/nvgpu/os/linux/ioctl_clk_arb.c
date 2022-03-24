@@ -282,9 +282,6 @@ static long nvgpu_clk_arb_ioctl_event_dev(struct file *filp, unsigned int cmd,
 		err = -ENOTTY;
 	}
 
-	if ((err == 0) && (_IOC_DIR(cmd) & _IOC_READ))
-		err = copy_to_user((void __user *) arg, buf, _IOC_SIZE(cmd));
-
 	return err;
 }
 
