@@ -471,11 +471,19 @@ int nvgpu_pmu_rtos_init(struct gk20a *g)
 	nvgpu_pmu_fw_state_change(g, g->pmu, PMU_FW_STATE_STARTING, false);
 #if defined(CONFIG_NVGPU_NON_FUSA)
 	if (nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
+
+		err = nvgpu_falcon_wait_for_nvriscv_brom_completion(g->pmu->flcn);
+		if (err != 0) {
+			nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PMU,
+					GPU_PMU_NVRISCV_BROM_FAILURE);
+			nvgpu_err(g, "PMU NVRISCV BROM FAILURE");
+			goto exit;
+		}
+
 		err = nvgpu_pmu_wait_for_priv_lockdown_release(g,
 				g->pmu->flcn, nvgpu_get_poll_timeout(g));
 		if(err != 0) {
 			nvgpu_err(g, "PRIV lockdown polling failed");
-			nvgpu_riscv_dump_brom_stats(g->pmu->flcn);
 			return err;
 		}
 	}

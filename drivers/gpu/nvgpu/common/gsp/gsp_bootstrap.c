@@ -149,40 +149,6 @@ exit:
 	return err;
 }
 
-static int gsp_check_for_brom_completion(struct nvgpu_falcon *flcn,
-		signed int timeoutms)
-{
-	u32 reg = 0;
-
-	nvgpu_log_fn(flcn->g, " ");
-
-	do {
-		reg = flcn->g->ops.falcon.get_brom_retcode(flcn);
-		if (flcn->g->ops.falcon.check_brom_passed(reg)) {
-			break;
-		}
-
-		if (timeoutms <= 0) {
-			nvgpu_err(flcn->g, "gsp BROM execution check timedout");
-			goto exit;
-		}
-
-		nvgpu_msleep(10);
-		timeoutms -= 10;
-
-	} while (true);
-
-	if ((reg & 0x3) == 0x2) {
-		nvgpu_err(flcn->g, "gsp BROM execution failed");
-		goto exit;
-	}
-
-	return 0;
-exit:
-	flcn->g->ops.falcon.dump_brom_stats(flcn);
-	return -1;
-}
-
 int nvgpu_gsp_wait_for_mailbox_update(struct nvgpu_gsp *gsp,
 		u32 mailbox_index, u32 exp_value, signed int timeoutms)
 {
@@ -268,7 +234,7 @@ int nvgpu_gsp_bootstrap_ns(struct gk20a *g, struct nvgpu_gsp *gsp)
 		goto exit;
 	}
 
-	err = gsp_check_for_brom_completion(flcn, GSP_WAIT_TIME_MS);
+	err = nvgpu_falcon_wait_for_nvriscv_brom_completion(flcn);
 	if (err != 0) {
 		nvgpu_err(g, "gsp BROM failed");
 	}

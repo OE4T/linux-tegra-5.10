@@ -141,6 +141,11 @@
 /** Falcon IMEM block size in bytes */
 #define FALCON_BLOCK_SIZE	0x100U
 
+/** NVRISCV BR completion time check in ms*/
+#define NVRISCV_BR_COMPLETION_TIMEOUT_NON_SILICON_MS   10000U
+#define NVRISCV_BR_COMPLETION_TIMEOUT_SILICON_MS       100U
+#define NVRISCV_BR_COMPLETION_POLLING_TIME_INTERVAL_MS 5U
+
 #define GET_IMEM_TAG(IMEM_ADDR) ((IMEM_ADDR) >> 8U)
 
 #define GET_NEXT_BLOCK(ADDR) \
@@ -710,6 +715,8 @@ int nvgpu_falcon_get_mem_size(struct nvgpu_falcon *flcn,
 bool nvgpu_falcon_is_falcon2_enabled(struct nvgpu_falcon *flcn);
 bool nvgpu_falcon_is_feature_supported(struct nvgpu_falcon *flcn,
 		u32 feature);
+
+int nvgpu_falcon_wait_for_nvriscv_brom_completion(struct nvgpu_falcon *flcn);
 
 #ifdef CONFIG_NVGPU_DGPU
 int nvgpu_falcon_copy_from_emem(struct nvgpu_falcon *flcn,

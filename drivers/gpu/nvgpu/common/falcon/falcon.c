@@ -23,6 +23,7 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/falcon.h>
 #include <nvgpu/io.h>
+#include <nvgpu/soc.h>
 #include <nvgpu/static_analysis.h>
 
 #include "falcon_sw_gk20a.h"
@@ -182,6 +183,58 @@ int nvgpu_falcon_mem_scrub_wait(struct nvgpu_falcon *flcn)
 
 	return status;
 }
+
+int nvgpu_falcon_wait_for_nvriscv_brom_completion(struct nvgpu_falcon *flcn)
+{
+	struct gk20a *g;
+	u32 timeoutms = 0;
+	u32 retcode = 0;
+	int err = 0;
+
+	if (!is_falcon_valid(flcn)) {
+		return -EINVAL;
+	}
+
+	g = flcn->g;
+
+	if (nvgpu_platform_is_silicon(g)) {
+		timeoutms = NVRISCV_BR_COMPLETION_TIMEOUT_SILICON_MS;
+	} else {
+		timeoutms = NVRISCV_BR_COMPLETION_TIMEOUT_NON_SILICON_MS;
+	}
+
+	do {
+		retcode = g->ops.falcon.get_brom_retcode(flcn);
+		if (g->ops.falcon.check_brom_passed(retcode)) {
+			break;
+		}
+
+		if (g->ops.falcon.check_brom_failed(retcode)) {
+			err = -ENOTRECOVERABLE;
+			nvgpu_err(g, "Falcon-%d RISCV BROM Failed", flcn->flcn_id);
+			goto exit;
+		}
+
+		if (timeoutms <= 0) {
+			nvgpu_err(g, "Falcon-%d RISCV BROM timed out, limit: %d ms",
+					flcn->flcn_id, timeoutms);
+			err =  -ETIMEDOUT;
+			goto exit;
+		}
+
+		nvgpu_msleep(NVRISCV_BR_COMPLETION_POLLING_TIME_INTERVAL_MS);
+		timeoutms -= NVRISCV_BR_COMPLETION_POLLING_TIME_INTERVAL_MS;
+
+	} while (true);
+
+	nvgpu_falcon_dbg(flcn->g, "Falcon-%d RISCV BROM passed",
+			flcn->flcn_id);
+
+exit:
+	g->ops.falcon.dump_brom_stats(flcn);
+	return err;
+}
+
 
 static int falcon_memcpy_params_check(struct nvgpu_falcon *flcn,
 		u32 offset, u32 size, enum falcon_mem_type mem_type, u8 port)
