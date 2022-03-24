@@ -509,6 +509,7 @@ static int tegra186_gpio_direction_input(struct gpio_chip *chip,
 	struct tegra_gpio *gpio = gpiochip_get_data(chip);
 	void __iomem *base;
 	u32 value;
+	int ret = 0;
 
 	if (!gpio_is_accessible(gpio, offset))
 		return -EPERM;
@@ -526,7 +527,11 @@ static int tegra186_gpio_direction_input(struct gpio_chip *chip,
 	value &= ~TEGRA186_GPIO_ENABLE_CONFIG_OUT;
 	writel(value, base + TEGRA186_GPIO_ENABLE_CONFIG);
 
-	return 0;
+	ret = pinctrl_gpio_direction_input(chip->base + offset);
+	if (ret < 0)
+		dev_err(chip->parent,
+			"Failed to set input direction: %d\n", ret);
+	return ret;
 }
 
 static int tegra186_gpio_direction_output(struct gpio_chip *chip,
@@ -535,6 +540,7 @@ static int tegra186_gpio_direction_output(struct gpio_chip *chip,
 	struct tegra_gpio *gpio = gpiochip_get_data(chip);
 	void __iomem *base;
 	u32 value;
+	int ret = 0;
 
 	if (!gpio_is_accessible(gpio, offset))
 		return -EPERM;
@@ -555,8 +561,12 @@ static int tegra186_gpio_direction_output(struct gpio_chip *chip,
 	value |= TEGRA186_GPIO_ENABLE_CONFIG_ENABLE;
 	value |= TEGRA186_GPIO_ENABLE_CONFIG_OUT;
 	writel(value, base + TEGRA186_GPIO_ENABLE_CONFIG);
+	ret = pinctrl_gpio_direction_output(chip->base + offset);
 
-	return 0;
+	if (ret < 0)
+		dev_err(chip->parent,
+			"Failed to set output direction: %d\n", ret);
+	return ret;
 }
 
 static int tegra_gpio_suspend_configure(struct gpio_chip *chip, unsigned offset,
@@ -1419,19 +1429,11 @@ static const struct tegra_gpio_port tegra194_main_ports[] = {
 	TEGRA194_MAIN_GPIO_PORT(GG, 0, 0, 2)
 };
 
-static const struct tegra186_pin_range tegra194_main_pin_ranges[] = {
-	{ TEGRA194_MAIN_GPIO(GG, 0), "pex_l5_clkreq_n_pgg0" },
-	{ TEGRA194_MAIN_GPIO(GG, 1), "pex_l5_rst_n_pgg1" },
-};
-
 static const struct tegra_gpio_soc tegra194_main_soc = {
 	.num_ports = ARRAY_SIZE(tegra194_main_ports),
 	.ports = tegra194_main_ports,
 	.name = "tegra194-gpio",
 	.instance = 0,
-	.num_pin_ranges = ARRAY_SIZE(tegra194_main_pin_ranges),
-	.pin_ranges = tegra194_main_pin_ranges,
-	.pinmux = "nvidia,tegra194-pinmux",
 	.multi_ints = true,
 	.do_vm_check = true,
 };
@@ -1500,24 +1502,10 @@ static const struct tegra_gpio_port tegra234_main_ports[] = {
 	TEGRA234_MAIN_GPIO_PORT(AG, 3, 2, 8)
 };
 
-static const struct tegra186_pin_range tegra234_main_pin_ranges[] = {
-	{ TEGRA234_MAIN_GPIO(AF, 0), "pex_l5_clkreq_n_paf0" },
-	{ TEGRA234_MAIN_GPIO(AF, 1), "pex_l5_rst_n_paf1" },
-	{ TEGRA234_MAIN_GPIO(AF, 2), "pex_l6_clkreq_n_paf2" },
-	{ TEGRA234_MAIN_GPIO(AF, 3), "pex_l6_rst_n_paf3" },
-	{ TEGRA234_MAIN_GPIO(AG, 0), "pex_l7_clkreq_n_pag0" },
-	{ TEGRA234_MAIN_GPIO(AG, 1), "pex_l7_rst_n_pag1" },
-	{ TEGRA234_MAIN_GPIO(AG, 6), "pex_l10_clkreq_n_pag6" },
-	{ TEGRA234_MAIN_GPIO(AG, 7), "pex_l10_rst_n_pag7" },
-};
-
 static const struct tegra_gpio_soc tegra234_main_soc = {
 	.num_ports = ARRAY_SIZE(tegra234_main_ports),
 	.ports = tegra234_main_ports,
 	.name = "tegra234-gpio",
-	.num_pin_ranges = ARRAY_SIZE(tegra234_main_pin_ranges),
-	.pinmux = "nvidia,tegra234-pinmux",
-	.pin_ranges = tegra234_main_pin_ranges,
 	.instance = 0,
 	.multi_ints = true,
 	.do_vm_check = true,
