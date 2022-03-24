@@ -86,9 +86,6 @@
 /* total number of crashes allowed on adsp */
 #define ALLOWED_CRASHES	1
 
-#define DISABLE_MBOX2_FULL_INT	0x0
-#define ENABLE_MBOX2_FULL_INT	0xFFFFFFFF
-
 #define LOGGER_TIMEOUT		1 /* in ms */
 #define ADSP_WFI_TIMEOUT	800 /* in ms */
 #define LOGGER_COMPLETE_TIMEOUT	500 /* in ms */
@@ -1701,9 +1698,6 @@ static int nvadsp_setup_os_interrupts(struct nvadsp_os_data *priv)
 		goto free_interrupts;
 	}
 
-	writel(DISABLE_MBOX2_FULL_INT,
-	       priv->hwmailbox_base + drv_data->chip_data->hwmb.hwmbox2_reg);
-
  end:
 
 	return ret;
@@ -1972,12 +1966,13 @@ static void __nvadsp_os_stop(bool reload)
 	}
 #endif
 
-	writel(ENABLE_MBOX2_FULL_INT,
-	       priv.hwmailbox_base + drv_data->chip_data->hwmb.hwmbox2_reg);
+	err = nvadsp_mbox_send(&adsp_com_mbox,
+				ADSP_OS_STOP,
+				NVADSP_MBOX_SMSG, true, UINT_MAX);
+	if (err)
+		dev_err(dev, "failed to send stop msg to adsp\n");
 	err = wait_for_completion_timeout(&entered_wfi,
 		msecs_to_jiffies(ADSP_WFI_TIMEOUT));
-	writel(DISABLE_MBOX2_FULL_INT,
-	       priv.hwmailbox_base + drv_data->chip_data->hwmb.hwmbox2_reg);
 
 	/*
 	 * ADSP needs to be in WFI/WFE state to properly reset it.
