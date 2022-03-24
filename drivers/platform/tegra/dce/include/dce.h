@@ -68,16 +68,6 @@ struct tegra_dce;
  */
 struct dce_platform_data {
 	/**
-	 * @d : Pointer to OS agnostic dce struct. Stores all runitme info
-	 * for dce cluster elements.
-	 */
-	struct tegra_dce *d;
-	/**
-	 * @max_cpu_irqs : stores maximum no. os irqs from DCE cluster to CPU
-	 * for this platform.
-	 */
-	u8 max_cpu_irqs;
-	/**
 	 * @fw_dce_addr : Stores the firmware address that DCE sees before being
 	 * converted by AST.
 	 */
@@ -238,6 +228,15 @@ struct dce_device {
 	 */
 	struct device *dev;
 	/**
+	 * @pdata : Pointer to dce platform data struct.
+	 */
+	struct dce_platform_data *pdata;
+	/**
+	 * @max_cpu_irqs : stores maximum no. os irqs from DCE cluster to CPU
+	 * for this platform.
+	 */
+	u8 max_cpu_irqs;
+	/**
 	 * @regs : Stores the cpu-mapped base address of DCE Cluster. Will be
 	 * used for MMIO transactions to DCE elements.
 	 */
@@ -284,7 +283,7 @@ static inline struct device *dev_from_dce(struct tegra_dce *d)
  */
 static inline struct dce_platform_data *pdata_from_dce(struct tegra_dce *d)
 {
-	return dev_get_drvdata(dev_from_dce(d));
+	return ((struct dce_device *)dev_get_drvdata(dev_from_dce(d)))->pdata;
 }
 
 /**

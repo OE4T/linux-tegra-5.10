@@ -95,11 +95,11 @@ static int dce_pm_suspend(struct device *dev)
 {
 	int ret = 0;
 	struct tegra_dce *d;
+	struct dce_device *d_dev = NULL;
 	struct dce_ipc_message *msg = NULL;
-	struct dce_platform_data *pdata = NULL;
 
-	pdata = dev_get_drvdata(dev);
-	d = pdata->d;
+	d_dev = dev_get_drvdata(dev);
+	d = &d_dev->d;
 
 	msg = dce_admin_allocate_message(d);
 	if (!msg) {
@@ -130,10 +130,10 @@ static int dce_pm_resume(struct device *dev)
 {
 	int ret = 0;
 	struct tegra_dce *d;
-	struct dce_platform_data *pdata = NULL;
+	struct dce_device *d_dev = NULL;
 
-	pdata = dev_get_drvdata(dev);
-	d = pdata->d;
+	d_dev = dev_get_drvdata(dev);
+	d = &d_dev->d;
 
 	dce_pm_restore_state(d);
 
