@@ -1062,11 +1062,9 @@ u64 nvgpu_gmmu_map_locked(struct vm_gk20a *vm,
 				buffer_offset & (ctag_granularity - U64(1)));
 	}
 
-#if defined(CONFIG_NVGPU_NON_FUSA)
 	attrs.cbc_comptagline_mode =
 		g->ops.fb.is_comptagline_mode_enabled != NULL ?
 			g->ops.fb.is_comptagline_mode_enabled(g) : true;
-#endif
 #endif
 
 	attrs.l3_alloc  = ((flags & NVGPU_VM_MAP_L3_ALLOC)  != 0U);
