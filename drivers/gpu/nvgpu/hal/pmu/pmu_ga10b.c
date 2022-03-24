@@ -429,3 +429,87 @@ void ga10b_pmu_enable_irq(struct nvgpu_pmu *pmu, bool enable)
 		gv11b_pmu_enable_irq(pmu, enable);
 	}
 }
+
+static int ga10b_pmu_handle_ecc(struct gk20a *g)
+{
+	int ret = 0;
+	u32 ecc_status = 0;
+
+	ecc_status = nvgpu_readl(g, pwr_pmu_falcon_ecc_status_r());
+
+	if ((ecc_status &
+		pwr_pmu_falcon_ecc_status_uncorrected_err_imem_m()) != 0U) {
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PMU,
+					GPU_PMU_IMEM_ECC_UNCORRECTED);
+		nvgpu_err(g, "imem ecc error uncorrected ");
+		ret = -EFAULT;
+	}
+
+	if ((ecc_status &
+		pwr_pmu_falcon_ecc_status_uncorrected_err_dmem_m()) != 0U) {
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PMU,
+					GPU_PMU_DMEM_ECC_UNCORRECTED);
+		nvgpu_err(g, "dmem ecc error uncorrected");
+		ret = -EFAULT;
+	}
+
+	if ((ecc_status &
+		pwr_pmu_falcon_ecc_status_uncorrected_err_dcls_m()) != 0U) {
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PMU,
+					GPU_PMU_DCLS_UNCORRECTED);
+		nvgpu_err(g, "dcls ecc error uncorrected");
+		ret = -EFAULT;
+	}
+
+	if ((ecc_status &
+		pwr_pmu_falcon_ecc_status_uncorrected_err_reg_m()) != 0U) {
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PMU,
+					GPU_PMU_REG_ECC_UNCORRECTED);
+		nvgpu_err(g, "reg ecc error uncorrected");
+		ret = -EFAULT;
+	}
+
+	if ((ecc_status &
+		pwr_pmu_falcon_ecc_status_uncorrected_err_mpu_ram_m()) != 0U) {
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PMU,
+					GPU_PMU_MPU_ECC_UNCORRECTED);
+		nvgpu_err(g, "mpu ecc error uncorrected");
+		ret = -EFAULT;
+	}
+
+	if (ret != 0) {
+		nvgpu_err(g, "ecc_addr(0x%x)",
+			nvgpu_readl(g, pwr_pmu_falcon_ecc_address_r()));
+	}
+
+	return ret;
+}
+
+void ga10b_pmu_handle_ext_irq(struct gk20a *g, u32 intr0)
+{
+	/* handle the ECC interrupt */
+	if ((intr0 & pwr_falcon_irqstat_ext_ecc_parity_true_f()) != 0U) {
+		ga10b_pmu_handle_ecc(g);
+	}
+
+	/* handle the MEMERR interrupt */
+	if ((intr0 & pwr_falcon_irqstat_memerr_true_f()) != 0U) {
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PMU,
+				GPU_PMU_ACCESS_TIMEOUT_UNCORRECTED);
+		nvgpu_err(g, "memerr/access timeout error uncorrected");
+	}
+
+	/* handle the IOPMP interrupt */
+	if ((intr0 & pwr_falcon_irqstat_iopmp_true_f()) != 0U) {
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PMU,
+				GPU_PMU_ILLEGAL_ACCESS_UNCORRECTED);
+		nvgpu_err(g, "iopmp/illegal access error uncorrected");
+	}
+
+	/* handle the WDT interrupt */
+	if ((intr0 & pwr_falcon_irqstat_wdt_true_f()) != 0U) {
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_PMU,
+				GPU_PMU_WDT_UNCORRECTED);
+		nvgpu_err(g, "wdt error uncorrected");
+	}
+}
