@@ -887,6 +887,11 @@ static ssize_t gpc_pg_mask_store(struct device *dev,
 		return -EINVAL;
 	}
 
+	if (val == g->gpc_pg_mask) {
+		nvgpu_info(g, "no value change, same mask already set");
+		goto exit;
+	}
+
 	if (g->gr != NULL) {
 		gr_golden_image = nvgpu_gr_get_golden_image_ptr(g);
 	}
@@ -897,11 +902,6 @@ static ssize_t gpc_pg_mask_store(struct device *dev,
 		nvgpu_err(g, "golden image size already initialized");
 		nvgpu_mutex_release(&g->static_pg_lock);
 		return -ENODEV;
-	}
-
-	if (val == g->gpc_pg_mask) {
-		nvgpu_info(g, "no value change, same mask already set");
-		goto exit;
 	}
 
 	if (platform->set_gpc_pg_mask != NULL) {
@@ -967,6 +967,11 @@ static ssize_t fbp_pg_mask_store(struct device *dev,
 		return -EINVAL;
 	}
 
+	if (val == g->fbp_pg_mask) {
+		nvgpu_info(g, "no value change, same mask already set");
+		goto exit;
+	}
+
 	if (g->gr != NULL) {
 		gr_golden_image = nvgpu_gr_get_golden_image_ptr(g);
 	}
@@ -977,11 +982,6 @@ static ssize_t fbp_pg_mask_store(struct device *dev,
 		nvgpu_err(g, "golden image size already initialized");
 		nvgpu_mutex_release(&g->static_pg_lock);
 		return -ENODEV;
-	}
-
-	if (val == g->fbp_pg_mask) {
-		nvgpu_info(g, "no value change, same mask already set");
-		goto exit;
 	}
 
 	if (platform->set_fbp_pg_mask != NULL) {
