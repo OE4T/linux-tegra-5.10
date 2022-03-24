@@ -32,6 +32,11 @@
 
 	compatible = "nvidia,p3737-0000+p3701-0000", "nvidia,tegra234", "nvidia,tegra23x";
 
+	nvsciipc-kernel {
+		compatible = "nvidia,nvsciipc";
+		status = "okay";
+	};
+
 	firmware {
 		android {
 			compatible = "android,firmware";
