@@ -165,7 +165,7 @@ static const struct nvmem_cell_info tegra_fuse_cells[] = {
 		.bit_offset = 0,
 		.nbits = 32,
 	}, {
-		.name = "gcplex-config-fuse",
+		.name = "gpu-gcplex-config-fuse",
 		.offset = 0x1c8,
 		.bytes = 4,
 		.bit_offset = 0,
@@ -195,13 +195,13 @@ static const struct nvmem_cell_info tegra_fuse_cells[] = {
 		.bit_offset = 0,
 		.nbits = 32,
 	}, {
-		.name = "pdi0",
+		.name = "gpu-pdi0",
 		.offset = 0x300,
 		.bytes = 4,
 		.bit_offset = 0,
 		.nbits = 32,
 	}, {
-		.name = "pdi1",
+		.name = "gpu-pdi1",
 		.offset = 0x304,
 		.bytes = 4,
 		.bit_offset = 0,
