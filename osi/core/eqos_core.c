@@ -913,7 +913,6 @@ static nve32_t eqos_pad_calibrate(struct osi_core_priv_data *const osi_core)
 	count = 0;
 	while (cond == COND_NOT_MET) {
 		if (count > retry) {
-			ret = -1;
 			goto calibration_failed;
 		}
 		count++;
@@ -933,7 +932,7 @@ calibration_failed:
 	value = osi_readla(osi_core, (nveu8_t *)ioaddr + EQOS_PAD_CRTL);
 	value &=  ~EQOS_PAD_CRTL_E_INPUT_OR_E_PWRD;
 	osi_writela(osi_core, value, (nveu8_t *)ioaddr + EQOS_PAD_CRTL);
-	ret = eqos_post_pad_calibrate(osi_core);
+	ret = eqos_post_pad_calibrate(osi_core) < 0 ? -1 : ret;
 error:
 	__sync_val_compare_and_swap(&osi_core->padctrl.is_pad_cal_in_progress,
 				    OSI_ENABLE, OSI_DISABLE);
