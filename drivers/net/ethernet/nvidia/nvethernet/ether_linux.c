@@ -3930,6 +3930,12 @@ static int ether_change_mtu(struct net_device *ndev, int new_mtu)
 	/* Macsec is supported, reduce MTU */
 	if ((osi_core->mac == OSI_MAC_HW_EQOS && osi_core->mac_ver == OSI_EQOS_MAC_5_30) ||
 	    (osi_core->mac == OSI_MAC_HW_MGBE && osi_core->mac_ver == OSI_MGBE_MAC_3_10)) {
+		ret = osi_macsec_update_mtu(osi_core, new_mtu);
+		if (ret < 0) {
+			dev_err(pdata->dev, "Failed to set MACSEC MTU to %d\n",
+				 new_mtu);
+			return -EINVAL;
+		}
 		ndev->mtu -= MACSEC_TAG_ICV_LEN;
 		netdev_info(pdata->ndev, "Macsec: Reduced MTU: %d Max: %d\n",
 			    ndev->mtu, ndev->max_mtu);
