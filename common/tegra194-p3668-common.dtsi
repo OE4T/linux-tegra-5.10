@@ -1,7 +1,7 @@
 /*
  * Common include DTS file for CVM:P3668-0001 and CVB:P3449-0000 variants.
  *
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,6 +36,11 @@
 		bootargs ="console=ttyTCU0,115200";
 		board-has-eeprom;
 		nvidia,tegra-joint_xpu_rail;
+	};
+
+	nvsciipc-kernel {
+		compatible = "nvidia,nvsciipc";
+		status = "okay";
 	};
 
 	cpufreq {
