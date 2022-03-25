@@ -27,6 +27,8 @@
 #include <t234-common-cvm/tegra234-cpuidle.dtsi>
 #include <tegra234-soc/tegra234-soc-hwpm.dtsi>
 
+#include "tegra234-p3701-0000-prod.dtsi"
+
 / {
 	nvidia,dtsfilename = __FILE__;
 	nvidia,dtbbuildtime = __DATE__, __TIME__;
