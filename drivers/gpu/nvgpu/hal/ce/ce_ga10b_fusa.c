@@ -29,6 +29,7 @@
 #include <nvgpu/fifo.h>
 #include <nvgpu/cic_mon.h>
 #include <nvgpu/mc.h>
+#include <nvgpu/nvgpu_err.h>
 
 #include "hal/ce/ce_gv11b.h"
 #include "hal/ce/ce_ga10b.h"
@@ -199,6 +200,8 @@ void ga10b_ce_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base,
 	 * CRC computed from the methods in the buffer.
 	 */
 	if ((ce_intr & ce_intr_status_fbuf_crc_fail_pending_f()) != 0U) {
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_CE,
+						GPU_CE_FBUF_CRC_FAIL);
 		nvgpu_err(g, "ce: inst %d, fault buffer crc mismatch", inst_id);
 		*needs_quiesce |= true;
 		clear_intr |= ce_intr_status_fbuf_crc_fail_reset_f();
@@ -210,6 +213,8 @@ void ga10b_ce_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base,
 	 * indicates a memory corruption.
 	 */
 	if ((ce_intr & ce_intr_status_fbuf_magic_chk_fail_pending_f()) != 0U) {
+		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_CE,
+						GPU_CE_FBUF_MAGIC_CHK_FAIL);
 		nvgpu_err(g, "ce: inst %d, fault buffer magic check fail",
 				inst_id);
 		*needs_quiesce |= true;
