@@ -238,7 +238,7 @@ static void tegra234_lookup_slave_timeout(struct seq_file *file, u8 slave_id,
 	 *	e) Goto step-a till all bits are set.
 	 */
 
-	addr = (u64)base_addr + sn_lookup[i].off_slave;
+	addr = (__force u64)base_addr + sn_lookup[i].off_slave;
 
 	if (strstr(sn_lookup[i].slave_name, "AXI2APB")) {
 
@@ -316,8 +316,8 @@ static void print_errlog_err(struct seq_file *file,
 
 	print_cbb_err(file, "\t  MASTER_ID\t\t: %s\n",
 					errmon->tegra_cbb_master_id[mstr_id]);
-	print_cbb_err(file, "\t  Address\t\t: 0x%llx\n",
-					(u64)errmon->addr_access);
+	print_cbb_err(file, "\t  Address\t\t: %px\n",
+					errmon->addr_access);
 
 	print_cache(file, cache_type);
 	print_prot(file, prot_type);
@@ -780,8 +780,8 @@ static int tegra234_cbb_errmon_init(struct platform_device *pdev,
 
 	cbb_init_data->secure_irq = errmon->errmon_secure_irq;
 	cbb_init_data->nonsecure_irq = errmon->errmon_nonsecure_irq;
-	cbb_init_data->vaddr = errmon->vaddr+errmon->err_notifier_base;
-	cbb_init_data->addr_mask_erd = (u64)(errmon->vaddr)
+	cbb_init_data->vaddr = errmon->vaddr + (__force u64)(errmon->err_notifier_base);
+	cbb_init_data->addr_mask_erd = (__force u64)(errmon->vaddr)
 						+ bdata->off_mask_erd;
 
 	platform_set_drvdata(pdev, errmon);
