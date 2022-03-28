@@ -1062,6 +1062,11 @@ static int tegra186_utmi_phy_power_on(struct phy *phy)
 				index);
 		}
 
+		err = tegra_prod_set_by_name(&padctl->regs, "prod",
+					     priv->prod_list);
+		if (err)
+			dev_dbg(dev, "failed to apply prod settings\n");
+
 		err = tegra_prod_set_by_name(&padctl->regs, "prod_c_bias",
 					     priv->prod_list);
 		if (err)
