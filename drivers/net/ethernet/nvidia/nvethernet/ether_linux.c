@@ -884,25 +884,31 @@ static void ether_en_dis_monitor_clks(struct ether_priv_data *pdata,
 {
 	if (en_dis == OSI_ENABLE) {
 		/* Enable Monitoring clocks */
-		if (!IS_ERR_OR_NULL(pdata->rx_m_clk)) {
+		if (!IS_ERR_OR_NULL(pdata->rx_m_clk) && !pdata->rx_m_enabled) {
 			if (clk_prepare_enable(pdata->rx_m_clk) < 0)
 				dev_err(pdata->dev,
 					"failed to enable rx_m_clk");
+			else
+				pdata->rx_m_enabled = true;
 		}
 
-		if (!IS_ERR_OR_NULL(pdata->rx_pcs_m_clk)) {
+		if (!IS_ERR_OR_NULL(pdata->rx_pcs_m_clk) && !pdata->rx_pcs_m_enabled) {
 			if (clk_prepare_enable(pdata->rx_pcs_m_clk) < 0)
 				dev_err(pdata->dev,
 					"failed to enable rx_pcs_m_clk");
+			else
+				pdata->rx_pcs_m_enabled = true;
 		}
 	} else {
 		/* Disable Monitoring clocks */
-		if (!IS_ERR_OR_NULL(pdata->rx_pcs_m_clk)) {
+		if (!IS_ERR_OR_NULL(pdata->rx_pcs_m_clk) && pdata->rx_pcs_m_enabled) {
 			clk_disable_unprepare(pdata->rx_pcs_m_clk);
+			pdata->rx_pcs_m_enabled = false;
 		}
 
-		if (!IS_ERR_OR_NULL(pdata->rx_m_clk)) {
+		if (!IS_ERR_OR_NULL(pdata->rx_m_clk) && pdata->rx_m_enabled) {
 			clk_disable_unprepare(pdata->rx_m_clk);
+			pdata->rx_m_enabled = false;
 		}
 	}
 }
@@ -6449,7 +6455,8 @@ static int ether_probe(struct platform_device *pdev)
 	INIT_LIST_HEAD(&pdata->mac_addr_list_head);
 	INIT_LIST_HEAD(&pdata->tx_ts_skb_head);
 	INIT_DELAYED_WORK(&pdata->tx_ts_work, ether_get_tx_ts);
-
+	pdata->rx_m_enabled = false;
+	pdata->rx_pcs_m_enabled = false;
 #ifdef ETHER_NVGRO
 	__skb_queue_head_init(&pdata->mq);
 	__skb_queue_head_init(&pdata->fq);
