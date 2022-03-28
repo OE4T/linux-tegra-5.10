@@ -267,7 +267,7 @@ static struct ptp_clock_info ether_ptp_clock_ops = {
 	.settime64 = ether_set_time,
 };
 
-int ether_early_ptp_init(struct ether_priv_data *pdata)
+static int ether_early_ptp_init(struct ether_priv_data *pdata)
 {
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct osi_ioctl ioctl_data = {};

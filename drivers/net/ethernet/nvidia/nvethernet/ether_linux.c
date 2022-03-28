@@ -1308,7 +1308,7 @@ static int ether_phy_init(struct net_device *dev)
  * @retval IRQ_HANDLED on success.
  * @retval IRQ_NONE on failure.
  */
-irqreturn_t ether_vm_isr(int irq, void *data)
+static irqreturn_t ether_vm_isr(int irq, void *data)
 {
 	struct ether_vm_irq_data *vm_irq = (struct ether_vm_irq_data *)data;
 	struct ether_priv_data *pdata = vm_irq->pdata;
@@ -2314,7 +2314,7 @@ static void ether_init_invalid_chan_ring(struct osi_dma_priv_data *osi_dma)
  *
  * @param[in] pdata: OSD private data structure.
  */
-void free_dma_resources(struct ether_priv_data *pdata)
+static void free_dma_resources(struct ether_priv_data *pdata)
 {
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 	struct device *dev = pdata->dev;
