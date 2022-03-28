@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * mods_krnl.c - This file is part of NVIDIA MODS kernel driver.
+ * This file is part of NVIDIA MODS kernel driver.
  *
  * Copyright (c) 2008-2022, NVIDIA CORPORATION.  All rights reserved.
  *
@@ -46,7 +46,7 @@
  ***********************************************************************/
 static int mods_krnl_open(struct inode *, struct file *);
 static int mods_krnl_close(struct inode *, struct file *);
-static unsigned int mods_krnl_poll(struct file *, poll_table *);
+static POLL_TYPE mods_krnl_poll(struct file *, poll_table *);
 static int mods_krnl_mmap(struct file *, struct vm_area_struct *);
 static long mods_krnl_ioctl(struct file *, unsigned int, unsigned long);
 
@@ -65,7 +65,7 @@ static const struct file_operations mods_fops = {
 
 #define DEVICE_NAME "mods"
 
-struct miscdevice mods_dev = {
+static struct miscdevice mods_dev = {
 	.minor = MISC_DYNAMIC_MINOR,
 	.name  = DEVICE_NAME,
 	.fops  = &mods_fops
@@ -77,7 +77,7 @@ static pci_ers_result_t mods_pci_error_detected(struct pci_dev *,
 static pci_ers_result_t mods_pci_mmio_enabled(struct pci_dev *);
 static void mods_pci_resume(struct pci_dev *);
 
-struct pci_error_handlers mods_pci_error_handlers = {
+static struct pci_error_handlers mods_pci_error_handlers = {
 	.error_detected	= mods_pci_error_detected,
 	.mmio_enabled	= mods_pci_mmio_enabled,
 	.resume		= mods_pci_resume,
@@ -128,7 +128,7 @@ static int mods_pci_probe(struct pci_dev *dev, const struct pci_device_id *id)
 static int mods_pci_sriov_configure(struct pci_dev *dev, int numvfs);
 #endif
 
-struct pci_driver mods_pci_driver = {
+static struct pci_driver mods_pci_driver = {
 	.name            = DEVICE_NAME,
 	.id_table        = mods_pci_table,
 	.probe           = mods_pci_probe,
@@ -467,6 +467,10 @@ static int __init mods_init_module(void)
 
 	/* tegra prod */
 	mods_tegra_prod_init(&mods_dev);
+
+#if defined(CONFIG_DMA_ENGINE)
+	mods_init_dma();
+#endif
 #endif
 
 	mods_info_printk("*** WARNING: DIAGNOSTIC DRIVER LOADED ***\n");
@@ -492,6 +496,9 @@ static void __exit mods_exit_module(void)
 	mods_cleanup_irq();
 
 #if defined(MODS_HAS_TEGRA)
+#if defined(CONFIG_DMA_ENGINE)
+	mods_exit_dma();
+#endif
 	smmu_driver_exit();
 #endif
 
@@ -1053,18 +1060,18 @@ static int mods_krnl_close(struct inode *ip, struct file *fp)
 	return final_err;
 }
 
-static unsigned int mods_krnl_poll(struct file *fp, poll_table *wait)
+static POLL_TYPE mods_krnl_poll(struct file *fp, poll_table *wait)
 {
-	unsigned int mask = 0;
 	struct mods_client *client = fp->private_data;
-	int err;
+	POLL_TYPE           mask   = 0;
+	int                 err;
 
 	if (!validate_client(client))
-		return -EINVAL;
+		return POLLERR;
 
 	err = mods_check_access_token(client);
 	if (err < 0)
-		return err;
+		return POLLERR;
 
 	if (!(fp->f_flags & O_NONBLOCK)) {
 		cl_debug(DEBUG_ISR_DETAILED, "poll wait\n");

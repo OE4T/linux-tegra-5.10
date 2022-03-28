@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0 */
 /*
- * mods_config.h - This file is part of NVIDIA MODS kernel driver.
+ * This file is part of NVIDIA MODS kernel driver.
  *
  * Copyright (c) 2008-2022, NVIDIA CORPORATION.  All rights reserved.
  *
@@ -24,8 +24,8 @@
 #define MODS_KERNEL_VERSION LINUX_VERSION_CODE
 
 #if KERNEL_VERSION(2, 6, 30) <= MODS_KERNEL_VERSION && \
-		KERNEL_VERSION(4, 16, 0) > MODS_KERNEL_VERSION && \
-		defined(CONFIG_X86)
+	KERNEL_VERSION(4, 16, 0) > MODS_KERNEL_VERSION && \
+	defined(CONFIG_X86)
 #       define MODS_HAS_DMA_OPS 1
 #endif
 
@@ -65,7 +65,7 @@
 #endif
 
 #if KERNEL_VERSION(3, 16, 0) <= MODS_KERNEL_VERSION && \
-		defined(CONFIG_VT_HW_CONSOLE_BINDING)
+	defined(CONFIG_VT_HW_CONSOLE_BINDING)
 #       define MODS_HAS_CONSOLE_BINDING 1
 #endif
 
@@ -74,8 +74,8 @@
 #endif
 
 #if KERNEL_VERSION(4, 12, 0) <= MODS_KERNEL_VERSION && \
-		KERNEL_VERSION(4, 13, 0) > MODS_KERNEL_VERSION && \
-		defined(CONFIG_X86)
+	KERNEL_VERSION(4, 13, 0) > MODS_KERNEL_VERSION && \
+	defined(CONFIG_X86)
 #       define MODS_HAS_ASM_SET_MEMORY_HEADER 1
 #endif
 
@@ -86,6 +86,10 @@
 
 #if KERNEL_VERSION(4, 14, 0) <= MODS_KERNEL_VERSION
 #       define MODS_HAS_KERNEL_WRITE
+#endif
+
+#if KERNEL_VERSION(4, 16, 0) <= MODS_KERNEL_VERSION
+#       define MODS_HAS_POLL_T 1
 #endif
 
 #if KERNEL_VERSION(4, 17, 0) <= MODS_KERNEL_VERSION

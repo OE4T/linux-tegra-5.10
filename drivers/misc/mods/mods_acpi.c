@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * mods_acpi.c - This file is part of NVIDIA MODS kernel driver.
+ * This file is part of NVIDIA MODS kernel driver.
  *
  * Copyright (c) 2008-2022, NVIDIA CORPORATION.  All rights reserved.
  *
@@ -579,7 +579,7 @@ static int mods_acpi_get_ddc(struct mods_client         *client,
 int esc_mods_eval_acpi_method(struct mods_client           *client,
 			      struct MODS_EVAL_ACPI_METHOD *p)
 {
-	return mods_eval_acpi_method(client, p, 0, ACPI_MODS_IGNORE_ACPI_ID);
+	return mods_eval_acpi_method(client, p, NULL, ACPI_MODS_IGNORE_ACPI_ID);
 }
 
 int esc_mods_eval_dev_acpi_method_3(struct mods_client                 *client,

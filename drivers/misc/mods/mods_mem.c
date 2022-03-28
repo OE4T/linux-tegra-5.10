@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * mods_mem.c - This file is part of NVIDIA MODS kernel driver.
+ * This file is part of NVIDIA MODS kernel driver.
  *
  * Copyright (c) 2008-2022, NVIDIA CORPORATION.  All rights reserved.
  *
@@ -562,7 +562,7 @@ static void mods_free_pages(struct mods_client   *client,
 		__free_pages(chunk->p_page, chunk->order);
 		atomic_sub(1u << chunk->order, &client->num_pages);
 
-		chunk->p_page = 0;
+		chunk->p_page = NULL;
 	}
 }
 
@@ -1017,9 +1017,9 @@ static int get_addr_range(struct mods_client                 *client,
 /* Returns an offset within an allocation deduced from physical address.
  * If dma address doesn't belong to the allocation, returns non-zero.
  */
-int mods_get_alloc_offset(struct MODS_MEM_INFO *p_mem_info,
-			  u64			dma_addr,
-			  u64		       *ret_offs)
+static int get_alloc_offset(struct MODS_MEM_INFO *p_mem_info,
+			    u64			  dma_addr,
+			    u64			 *ret_offs)
 {
 	u32 i;
 	u64 offset = 0;
@@ -1053,7 +1053,7 @@ struct MODS_MEM_INFO *mods_find_alloc(struct mods_client *client, u64 phys_addr)
 		p_mem_info = list_entry(plist_iter,
 					struct MODS_MEM_INFO,
 					list);
-		if (!mods_get_alloc_offset(p_mem_info, phys_addr, &offset))
+		if (!get_alloc_offset(p_mem_info, phys_addr, &offset))
 			return p_mem_info;
 	}
 
@@ -1835,9 +1835,9 @@ int esc_mods_virtual_to_phys(struct mods_client              *client,
 				return OK;
 			}
 
-			if (mods_get_alloc_offset(p_map_mem->p_mem_info,
-						  p_map_mem->dma_addr,
-						  &phys_offs) != OK)
+			if (get_alloc_offset(p_map_mem->p_mem_info,
+					     p_map_mem->dma_addr,
+					     &phys_offs) != OK)
 				break;
 
 			get_phys_addr.memory_handle =
@@ -1920,15 +1920,15 @@ int esc_mods_phys_to_virtual(struct mods_client              *client,
 		}
 
 		/* offset from the beginning of the allocation */
-		if (mods_get_alloc_offset(p_map_mem->p_mem_info,
-					  p->physical_address,
-					  &offset))
+		if (get_alloc_offset(p_map_mem->p_mem_info,
+				     p->physical_address,
+				     &offset))
 			continue;
 
 		/* offset from the beginning of the mapping */
-		if (mods_get_alloc_offset(p_map_mem->p_mem_info,
-					  p_map_mem->dma_addr,
-					  &map_offset))
+		if (get_alloc_offset(p_map_mem->p_mem_info,
+				     p_map_mem->dma_addr,
+				     &map_offset))
 			continue;
 
 		if ((offset >= map_offset) &&

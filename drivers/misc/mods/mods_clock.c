@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * mods_clock.c - This file is part of NVIDIA MODS kernel driver.
+ * This file is part of NVIDIA MODS kernel driver.
  *
  * Copyright (c) 2011-2022, NVIDIA CORPORATION.  All rights reserved.
  *
@@ -70,8 +70,8 @@ static struct device_node *find_clocks_node(const char *name)
 void mods_init_clock_api(void)
 {
 	const char *okay_value = "okay";
-	struct device_node *mods_np = 0;
-	struct property *pp = 0;
+	struct device_node *mods_np = NULL;
+	struct property *pp = NULL;
 	int size_value = 0;
 
 	mods_np = find_clocks_node("mods-clocks");
@@ -137,7 +137,7 @@ static u32 mods_get_clock_handle(struct clk *pclk)
 {
 	struct list_head *head = &mods_clock_handles;
 	struct list_head *iter;
-	struct clock_entry *entry = 0;
+	struct clock_entry *entry = NULL;
 	u32 handle = 0;
 
 	spin_lock(&mods_clock_lock);
@@ -171,7 +171,7 @@ static struct clk *mods_get_clock(u32 handle)
 {
 	struct list_head *head = &mods_clock_handles;
 	struct list_head *iter = NULL;
-	struct clk *pclk = 0;
+	struct clk *pclk = NULL;
 
 	spin_lock(&mods_clock_lock);
 
@@ -247,11 +247,11 @@ failed:
 int esc_mods_get_clock_handle(struct mods_client *client,
 			      struct MODS_GET_CLOCK_HANDLE *p)
 {
-	struct clk *pclk = 0;
+	struct clk *pclk = NULL;
 	int ret = -EINVAL;
 
-	struct device_node *mods_np = 0;
-	struct property *pp = 0;
+	struct device_node *mods_np = NULL;
+	struct property *pp = NULL;
 
 	LOG_ENT();
 
@@ -337,7 +337,7 @@ err:
 int esc_mods_set_clock_rate(struct mods_client *client,
 			    struct MODS_CLOCK_RATE *p)
 {
-	struct clk *pclk = 0;
+	struct clk *pclk = NULL;
 	int ret = -EINVAL;
 
 	LOG_ENT();
@@ -367,7 +367,7 @@ int esc_mods_set_clock_rate(struct mods_client *client,
 int esc_mods_get_clock_rate(struct mods_client *client,
 			    struct MODS_CLOCK_RATE *p)
 {
-	struct clk *pclk = 0;
+	struct clk *pclk = NULL;
 	int ret = -EINVAL;
 
 	LOG_ENT();
@@ -391,7 +391,7 @@ int esc_mods_get_clock_rate(struct mods_client *client,
 int esc_mods_get_clock_max_rate(struct mods_client *client,
 				struct MODS_CLOCK_RATE *p)
 {
-	struct clk *pclk = 0;
+	struct clk *pclk = NULL;
 	int ret = -EINVAL;
 
 	LOG_ENT();
@@ -417,7 +417,7 @@ int esc_mods_get_clock_max_rate(struct mods_client *client,
 int esc_mods_set_clock_max_rate(struct mods_client *client,
 				struct MODS_CLOCK_RATE *p)
 {
-	struct clk *pclk = 0;
+	struct clk *pclk = NULL;
 	int ret = -EINVAL;
 
 	LOG_ENT();
@@ -453,8 +453,8 @@ int esc_mods_set_clock_max_rate(struct mods_client *client,
 int esc_mods_set_clock_parent(struct mods_client *client,
 			      struct MODS_CLOCK_PARENT *p)
 {
-	struct clk *pclk = 0;
-	struct clk *pparent = 0;
+	struct clk *pclk = NULL;
+	struct clk *pparent = NULL;
 	int ret = -EINVAL;
 
 	LOG_ENT();
@@ -487,7 +487,7 @@ int esc_mods_set_clock_parent(struct mods_client *client,
 int esc_mods_get_clock_parent(struct mods_client *client,
 			      struct MODS_CLOCK_PARENT *p)
 {
-	struct clk *pclk = 0;
+	struct clk *pclk = NULL;
 	int ret = -EINVAL;
 
 	LOG_ENT();
@@ -513,7 +513,7 @@ int esc_mods_get_clock_parent(struct mods_client *client,
 int esc_mods_enable_clock(struct mods_client *client,
 			  struct MODS_CLOCK_HANDLE *p)
 {
-	struct clk *pclk = 0;
+	struct clk *pclk = NULL;
 	int ret = -EINVAL;
 
 	LOG_ENT();
@@ -546,7 +546,7 @@ int esc_mods_enable_clock(struct mods_client *client,
 int esc_mods_disable_clock(struct mods_client *client,
 			   struct MODS_CLOCK_HANDLE *p)
 {
-	struct clk *pclk = 0;
+	struct clk *pclk = NULL;
 	int ret = -EINVAL;
 
 	LOG_ENT();
@@ -570,7 +570,7 @@ int esc_mods_disable_clock(struct mods_client *client,
 int esc_mods_is_clock_enabled(struct mods_client *client,
 			      struct MODS_CLOCK_ENABLED *p)
 {
-	struct clk *pclk = 0;
+	struct clk *pclk = NULL;
 	int ret = -EINVAL;
 
 	LOG_ENT();
@@ -632,7 +632,7 @@ error:
 int esc_mods_clock_reset_assert(struct mods_client *client,
 				struct MODS_CLOCK_HANDLE *p)
 {
-	struct clk *pclk = 0;
+	struct clk *pclk = NULL;
 	int ret = -EINVAL;
 
 	LOG_ENT();
@@ -642,10 +642,10 @@ int esc_mods_clock_reset_assert(struct mods_client *client,
 	if (!pclk) {
 		cl_error("unrecognized clock handle: 0x%x\n", p->clock_handle);
 	} else {
-		const char *clk_name = 0;
-		struct reset_control *prst = 0;
-		struct device_node *mods_np = 0;
-		struct property *pp = 0;
+		const char *clk_name = NULL;
+		struct reset_control *prst = NULL;
+		struct device_node *mods_np = NULL;
+		struct property *pp = NULL;
 
 		mods_np = find_clocks_node("mods-clocks");
 		if (!mods_np || !of_device_is_available(mods_np)) {
@@ -685,7 +685,7 @@ err:
 int esc_mods_clock_reset_deassert(struct mods_client *client,
 				  struct MODS_CLOCK_HANDLE *p)
 {
-	struct clk *pclk = 0;
+	struct clk *pclk = NULL;
 	int ret = -EINVAL;
 
 	LOG_ENT();
@@ -695,10 +695,10 @@ int esc_mods_clock_reset_deassert(struct mods_client *client,
 	if (!pclk) {
 		cl_error("unrecognized clock handle: 0x%x\n", p->clock_handle);
 	} else {
-		const char *clk_name = 0;
-		struct reset_control *prst = 0;
-		struct device_node *mods_np = 0;
-		struct property *pp = 0;
+		const char *clk_name = NULL;
+		struct reset_control *prst = NULL;
+		struct device_node *mods_np = NULL;
+		struct property *pp = NULL;
 
 		mods_np = find_clocks_node("mods-clocks");
 		if (!mods_np || !of_device_is_available(mods_np)) {

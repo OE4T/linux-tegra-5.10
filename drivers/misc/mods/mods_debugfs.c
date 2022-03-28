@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * mods_debugfs.c - This file is part of NVIDIA MODS kernel driver.
+ * This file is part of NVIDIA MODS kernel driver.
  *
  * Copyright (c) 2014-2022, NVIDIA CORPORATION.  All rights reserved.
  *
@@ -606,14 +606,14 @@ int mods_create_debugfs(struct miscdevice *modsdev)
 #endif
 
 	retval = debugfs_create_file("debug", 0644,
-		mods_debugfs_dir, 0, &mods_debug_fops);
+		mods_debugfs_dir, NULL, &mods_debug_fops);
 	if (IS_ERR(retval)) {
 		err = -EIO;
 		goto remove_out;
 	}
 
 	retval = debugfs_create_file("multi_instance", 0644,
-		mods_debugfs_dir, 0, &mods_mi_fops);
+		mods_debugfs_dir, NULL, &mods_mi_fops);
 	if (IS_ERR(retval)) {
 		err = -EIO;
 		goto remove_out;
@@ -621,7 +621,7 @@ int mods_create_debugfs(struct miscdevice *modsdev)
 
 #if defined(MODS_HAS_TEGRA) && defined(CONFIG_TEGRA_KFUSE)
 	retval = debugfs_create_file("kfuse_data", 0444,
-		mods_debugfs_dir, 0, &mods_kfuse_fops);
+		mods_debugfs_dir, NULL, &mods_kfuse_fops);
 	if (IS_ERR(retval)) {
 		err = -EIO;
 		goto remove_out;
