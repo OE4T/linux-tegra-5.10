@@ -349,6 +349,10 @@ static void *__nvmap_dma_alloc_from_coherent(struct device *dev,
 		return NULL;
 
 	bitmap_nos = vzalloc(count * sizeof(int));
+	if (!bitmap_nos) {
+		dev_err(dev, "failed to allocate memory\n");
+		return NULL;
+	}
 	if ((mem->flags & DMA_MEMORY_NOMAP) &&
 	    dma_get_attr(DMA_ATTR_ALLOC_SINGLE_PAGES, attrs)) {
 		alloc_size = 1;
