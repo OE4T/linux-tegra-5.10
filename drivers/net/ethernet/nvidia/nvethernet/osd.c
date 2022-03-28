@@ -537,10 +537,10 @@ exit:
  *
  * @note Rx completion need to make sure that Rx descriptors processed properly.
  */
-void osd_receive_packet(void *priv, struct osi_rx_ring *rx_ring,
-			unsigned int chan, unsigned int dma_buf_len,
-			const struct osi_rx_pkt_cx *rx_pkt_cx,
-			struct osi_rx_swcx *rx_swcx)
+static void osd_receive_packet(void *priv, struct osi_rx_ring *rx_ring,
+			       unsigned int chan, unsigned int dma_buf_len,
+			       const struct osi_rx_pkt_cx *rx_pkt_cx,
+			       struct osi_rx_swcx *rx_swcx)
 {
 	struct ether_priv_data *pdata = (struct ether_priv_data *)priv;
 	struct osi_core_priv_data *osi_core = pdata->osi_core;

@@ -134,7 +134,7 @@ static int ether_set_avb_algo(struct net_device *ndev,
 	}
 
 	if (copy_from_user(&ioctl_data.avb,
-			   (struct osi_core_avb_algorithm *)ifdata->ptr,
+			   (void __user *)ifdata->ptr,
 			   sizeof(struct osi_core_avb_algorithm)) != 0U) {
 		dev_err(pdata->dev,
 			"Failed to fetch AVB Struct info from user\n");
@@ -188,7 +188,7 @@ static int ether_m2m_tsync(struct net_device *ndev,
 	}
 
 	if (copy_from_user(&ioctl_data.arg1_u32,
-			   (unsigned int *)ifdata->ptr,
+			   (void __user *)ifdata->ptr,
 			   sizeof(unsigned int)) != 0U) {
 		dev_err(pdata->dev,
 			"Failed to fetch input info from user\n");
@@ -228,7 +228,7 @@ static int ether_get_tsc_ptp_cap(struct net_device *ndev,
 	}
 
 	if (copy_from_user(&ioctl_data.ptp_tsc,
-			   (struct osi_core_ptp_tsc_data *)ifdata->ptr,
+			   (void __user *)ifdata->ptr,
 			   sizeof(struct osi_core_ptp_tsc_data)) != 0U) {
 		dev_err(pdata->dev,
 			"Failed to fetch TSC Struct info from user\n");
@@ -280,7 +280,7 @@ static int ether_get_avb_algo(struct net_device *ndev,
 	}
 
 	if (copy_from_user(&ioctl_data.avb,
-			   (struct osi_core_avb_algorithm *)ifdata->ptr,
+			   (void __user *)ifdata->ptr,
 			   sizeof(struct osi_core_avb_algorithm)) != 0U) {
 		dev_err(pdata->dev,
 			"Failed to fetch AVB Struct info from user\n");
@@ -334,7 +334,7 @@ static int ether_config_ptp_offload(struct ether_priv_data *pdata,
 		return ret;
 	}
 
-	if (copy_from_user(&param, (struct ptp_offload_param *)ifrd_p->ptr,
+	if (copy_from_user(&param, (void __user *)ifrd_p->ptr,
 			   sizeof(struct ptp_offload_param))) {
 		dev_err(pdata->dev, "%s: copy_from_user failed\n", __func__);
 		return ret;
@@ -430,7 +430,7 @@ static int ether_config_arp_offload(struct ether_priv_data *pdata,
 		return ret;
 	}
 
-	if (copy_from_user(&param, (struct arp_offload_param *)ifrd_p->ptr,
+	if (copy_from_user(&param, (void __user *)ifrd_p->ptr,
 			   sizeof(struct arp_offload_param))) {
 		dev_err(pdata->dev, "%s: copy_from_user failed\n", __func__);
 		return ret;
@@ -484,7 +484,7 @@ static int ether_config_frp_cmd(struct net_device *dev,
 	}
 
 	if (copy_from_user(&ioctl_data.frp_cmd,
-			   (struct osi_core_frp_cmd *)ifdata->ptr,
+			   (void __user *)ifdata->ptr,
 			   sizeof(struct osi_core_frp_cmd)) != 0U) {
 		dev_err(pdata->dev, "%s copy from user failed\n", __func__);
 		return -EFAULT;
@@ -563,7 +563,7 @@ static int ether_config_ip4_filters(struct net_device *dev,
 		return ret;
 	}
 
-	if (copy_from_user(&ioctl_data.l3l4_filter, u_l3_filter,
+	if (copy_from_user(&ioctl_data.l3l4_filter, (void __user *)u_l3_filter,
 			   sizeof(struct osi_l3_l4_filter)) != 0U) {
 		dev_err(pdata->dev, "%s copy from user failed\n", __func__);
 		return -EFAULT;
@@ -625,7 +625,7 @@ static int ether_config_ip6_filters(struct net_device *dev,
 		return ret;
 	}
 
-	if (copy_from_user(&ioctl_data.l3l4_filter, u_l3_filter,
+	if (copy_from_user(&ioctl_data.l3l4_filter, (void __user *)u_l3_filter,
 			   sizeof(struct osi_l3_l4_filter)) != 0U) {
 		dev_err(pdata->dev, "%s copy from user failed\n", __func__);
 		return -EFAULT;
@@ -691,7 +691,7 @@ static int ether_config_tcp_udp_filters(struct net_device *dev,
 		return ret;
 	}
 
-	if (copy_from_user(&ioctl_data.l3l4_filter, u_l4_filter,
+	if (copy_from_user(&ioctl_data.l3l4_filter, (void __user *)u_l4_filter,
 			   sizeof(struct osi_l3_l4_filter)) != 0U) {
 		dev_err(pdata->dev, "%s copy from user failed", __func__);
 		return -EFAULT;
@@ -745,7 +745,7 @@ static int ether_config_vlan_filter(struct net_device *dev,
 		return ret;
 	}
 
-	if (copy_from_user(&ioctl_data.vlan_filter, u_vlan_filter,
+	if (copy_from_user(&ioctl_data.vlan_filter, (void __user *)u_vlan_filter,
 			   sizeof(struct osi_vlan_filter)) != 0U) {
 		dev_err(pdata->dev, "%s copy from user failed", __func__);
 		return -EFAULT;
@@ -848,7 +848,7 @@ static int ether_config_l2_da_filter(struct net_device *dev,
 		return ret;
 	}
 
-	if (copy_from_user(&l_l2_da_filter, u_l2_da_filter,
+	if (copy_from_user(&l_l2_da_filter, (void __user *)u_l2_da_filter,
 			   sizeof(struct osi_l2_da_filter)) != 0U) {
 		return -EFAULT;
 	}
@@ -1094,7 +1094,7 @@ static int ether_config_est(struct net_device *dev,
 		return ret;
 	}
 
-	if (copy_from_user(&ioctl_data.est, u_est_cfg,
+	if (copy_from_user(&ioctl_data.est, (void __user *)u_est_cfg,
 			   sizeof(struct osi_est_config)) != 0U) {
 		return -EFAULT;
 	}
@@ -1141,8 +1141,8 @@ static int ether_config_fpe(struct net_device *dev,
 		return ret;
 	}
 
-	if (copy_from_user(&ioctl_data.fpe, u_fpe_cfg,
-			   sizeof(struct osi_fpe_config)) != 0U) {
+	if (copy_from_user(&ioctl_data.fpe, (void __user *)u_fpe_cfg,
+			   sizeof(struct osi_fpe_config) != 0U)) {
 		return -EFAULT;
 	}
 
@@ -1186,7 +1186,8 @@ int ether_handle_priv_ioctl(struct net_device *ndev,
 	int ret = -EOPNOTSUPP;
 	struct osi_ioctl ioctl_data = {};
 
-	if (copy_from_user(&ifdata, ifr->ifr_data, sizeof(ifdata)) != 0U) {
+	if (copy_from_user(&ifdata, (void __user *)ifr->ifr_data,
+			   sizeof(ifdata)) != 0U) {
 		dev_err(pdata->dev, "%s(): copy_from_user failed %d\n"
 			, __func__, __LINE__);
 		return -EFAULT;
