@@ -135,11 +135,13 @@ static void nvmap_pid_get_locked(struct nvmap_device *dev, pid_t pid)
 		}
 	}
 
+	if (snprintf(name, sizeof(name), "%d", pid) < 0)
+		return;
+
 	p = kzalloc(sizeof(*p), GFP_KERNEL);
 	if (!p)
 		return;
 
-	snprintf(name, sizeof(name), "%d", pid);
 	p->pid = pid;
 	kref_init(&p->refcount);
 	p->handles_file = debugfs_create_file(name, S_IRUGO,
