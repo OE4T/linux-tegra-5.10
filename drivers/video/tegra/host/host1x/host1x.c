@@ -3,7 +3,7 @@
  *
  * Tegra Graphics Host Driver Entrypoint
  *
- * Copyright (c) 2010-2021, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2010-2022, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -54,6 +54,7 @@
 #include "platform.h"
 
 #include "../syncpt_fd.h"
+#include "../nvhost_syncpt_dmabuf.h"
 
 #ifdef CONFIG_TEGRA_GRHOST_SYNC
 #include "nvhost_sync.h"
@@ -704,6 +705,9 @@ static long nvhost_ctrlctl(struct file *filp,
 		break;
 	case NVHOST_IOCTL_CTRL_SYNC_FILE_EXTRACT:
 		err = nvhost_ioctl_ctrl_sync_file_extract(priv, (void *)buf);
+		break;
+	case NVHOST_IOCTL_CTRL_GET_SYNCPT_DMABUF_FD:
+		err = nvhost_syncpt_dmabuf_alloc(priv->dev, (void *)buf);
 		break;
 	default:
 		nvhost_err(&priv->dev->dev->dev, "invalid cmd 0x%x", cmd);

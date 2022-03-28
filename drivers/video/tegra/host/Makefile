@@ -26,6 +26,7 @@ nvhost-y += \
 	chip_support.o \
 	nvhost_vm.o \
 	syncpt_fd.o \
+	nvhost_syncpt_dmabuf.o \
 	interrupt_syncpt.o \
 	iommu_context_dev.o \
 	nvhost_syncpt_unit_interface.o \
