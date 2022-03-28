@@ -55,7 +55,6 @@ static const struct pci_epf_device_id nvscic2c_pcie_epf_ids[] = {
 	{},
 };
 
-
 /* wrapper over tegra-pcie-edma init api. */
 static int
 edma_module_init(struct driver_ctx_t *drv_ctx)
@@ -102,7 +101,7 @@ free_inbound_area(struct pci_epf *epf, struct dma_buff_t *self_mem)
 		return;
 
 	iommu_dma_free_iova(epf->epc->dev.parent, self_mem->dma_handle,
-				 self_mem->size);
+			    self_mem->size);
 	self_mem->dma_handle = 0x0;
 }
 
@@ -149,14 +148,14 @@ free_outbound_area(struct pci_epf *epf, struct pci_aper_t *peer_mem)
  */
 static int
 allocate_outbound_area(struct pci_epf *epf, size_t win_size,
-					struct pci_aper_t *peer_mem)
+		       struct pci_aper_t *peer_mem)
 {
 	int ret = 0;
 
 	peer_mem->size = win_size;
 	peer_mem->pva = pci_epc_mem_alloc_addr(epf->epc,
-					&peer_mem->aper,
-					peer_mem->size);
+					       &peer_mem->aper,
+					       peer_mem->size);
 	if (!peer_mem->pva) {
 		ret = -ENOMEM;
 		pr_err("pci_epc_mem_alloc_addr() fails for size:(0x%lx)\n",
@@ -232,6 +231,7 @@ edma_rx_desc_iova_send(struct driver_ctx_t *drv_ctx)
 	if (ret)
 		pr_err("failed sending COMM_MSG_TYPE_EDMA_CH_DESC_IOVA_RETURN  message\n");
 }
+
 /* Handle bootstrap message from @DRV_MODE_EPC. */
 static void
 bootstrap_msg_cb(void *data, void *ctx)

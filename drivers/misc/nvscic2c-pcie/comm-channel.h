@@ -129,5 +129,4 @@ comm_channel_unregister_msg_cb(void *comm_channel_h, enum comm_msg_type type);
 int
 comm_channel_edma_rx_desc_iova_send(void *comm_channel_h, struct comm_msg *msg);
 
-
 #endif //__COMM_CHANNEL_H__

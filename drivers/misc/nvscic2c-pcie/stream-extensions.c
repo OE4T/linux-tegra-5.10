@@ -165,7 +165,7 @@ struct stream_ext_obj {
 	phys_addr_t aper;
 
 	/* Mapping for ImportObj for CPU Read/Write.*/
-	u64 *import_obj_map;
+	void __iomem *import_obj_map;
 };
 
 /* stream extensions context per NvSciC2cPcie endpoint.*/
@@ -886,9 +886,9 @@ callback_edma_xfer(void *priv, edma_xfer_status_t status,
 	/* increment num_local_fences.*/
 	if (status == EDMA_XFER_SUCCESS) {
 		/* X86 remote end fences are signaled through CPU */
-		if (cr->peer_cpu == NVCPU_X86_64) {
+		if (cr->peer_cpu == NVCPU_X86_64)
 			signal_remote_post_fences(cr);
-		}
+
 		/* Signal local fences for Tegra*/
 		signal_local_post_fences(cr);
 	}
@@ -971,10 +971,11 @@ signal_local_post_fences(struct copy_request *cr)
 {
 	u32 i = 0;
 	struct stream_ext_obj *stream_obj = NULL;
+
 	for (i = 0; i < cr->num_local_post_fences; i++) {
 		stream_obj = cr->local_post_fences[i];
 		nvhost_syncpt_cpu_incr_ext(cr->ctx->host1x_pdev,
-					stream_obj->vmap.syncpt_id);
+					   stream_obj->vmap.syncpt_id);
 	}
 }
 
@@ -983,7 +984,6 @@ signal_remote_post_fences(struct copy_request *cr)
 {
 	u32 i = 0;
 	struct stream_ext_obj *stream_obj = NULL;
-	uint32_t val;
 	/* Dummy read operation is done on the imported buffer object to ensure
 	 * coherence of data on Vidmem of GA100 dGPU, which is connected as an EP to X86.
 	 * This is needed as Ampere architecture doesn't support coherence of Write after
@@ -992,11 +992,11 @@ signal_remote_post_fences(struct copy_request *cr)
 	 */
 	for (i = 0; i < cr->num_remote_buf_objs; i++) {
 		stream_obj = cr->remote_buf_objs[i];
-		val = readl((const volatile void __iomem *)stream_obj->import_obj_map);
+		(void)readl(stream_obj->import_obj_map);
 	}
 	for (i = 0; i < cr->num_remote_post_fences; i++) {
 		stream_obj = cr->remote_post_fences[i];
-		writeq(cr->remote_post_fence_values[i], (volatile void __iomem *)stream_obj->import_obj_map);
+		writeq(cr->remote_post_fence_values[i], stream_obj->import_obj_map);
 	}
 }
 

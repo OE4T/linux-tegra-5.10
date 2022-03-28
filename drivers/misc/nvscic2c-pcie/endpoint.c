@@ -199,6 +199,7 @@ endpoint_fops_open(struct inode *inode, struct file *filp)
 		       endpoint->name);
 		goto err;
 	}
+
 	/* start link, data event handling.*/
 	ret = enable_event_handling(endpoint);
 	if (ret) {
@@ -206,6 +207,7 @@ endpoint_fops_open(struct inode *inode, struct file *filp)
 		       endpoint->name);
 		goto err;
 	}
+
 	filp->private_data = endpoint;
 	atomic_set(&endpoint->in_use, 1);
 err:
@@ -437,7 +439,8 @@ ioctl_notify_remote_impl(struct endpoint_t *endpoint)
 		return -ENOLINK;
 
 	if (peer_cpu == NVCPU_X86_64) {
-		ret = pci_client_raise_irq(endpoint->pci_client_h, PCI_EPC_IRQ_MSI, endpoint->msi_irq);
+		ret = pci_client_raise_irq(endpoint->pci_client_h, PCI_EPC_IRQ_MSI,
+					   endpoint->msi_irq);
 	} else {
 	/*
 	 * increment peer's syncpoint. Write of any 4-byte value
@@ -645,6 +648,7 @@ allocate_syncpoint(struct endpoint_drv_ctx_t *eps_ctx,
 		       endpoint->name);
 		goto err;
 	}
+
 	/*
 	 * every callback will have this scheduled to re-attach the
 	 * syncpoint callback with higher fence value. This would have
@@ -652,6 +656,7 @@ allocate_syncpoint(struct endpoint_drv_ctx_t *eps_ctx,
 	 */
 	INIT_WORK(&syncpt->reprime_work, irqsp_reprime_work);
 	nvhost_interrupt_syncpt_prime(syncpt->is);
+
 	return ret;
 err:
 	free_syncpoint(eps_ctx, endpoint);
@@ -710,10 +715,10 @@ allocate_memory(struct endpoint_drv_ctx_t *eps_ctx, struct endpoint_t *ep)
 		       ep->name, (ep->self_mem.size >> PAGE_SHIFT));
 		goto err;
 	}
-
 	ep->self_mem.phys_addr = page_to_phys(virt_to_page(ep->self_mem.pva));
 	pr_debug("(%s): physical page allocated at:(0x%pa[p]+0x%lx)\n",
 		 ep->name, &ep->self_mem.phys_addr, ep->self_mem.size);
+
 	/* reserve iova with the iova manager.*/
 	ret = pci_client_alloc_iova(ep->pci_client_h, ep->self_mem.size,
 				    &ep->iova, &offsetof, &ep->iova_block_h);
@@ -722,6 +727,7 @@ allocate_memory(struct endpoint_drv_ctx_t *eps_ctx, struct endpoint_t *ep)
 		       ep->name, ep->self_mem.size);
 		goto err;
 	}
+
 	/* map the pages to the reserved iova.*/
 	prot = (IOMMU_CACHE | IOMMU_READ | IOMMU_WRITE);
 	ret = pci_client_map_addr(ep->pci_client_h, ep->iova,
@@ -733,8 +739,10 @@ allocate_memory(struct endpoint_drv_ctx_t *eps_ctx, struct endpoint_t *ep)
 		goto err;
 	}
 	ep->mapped_iova = true;
+
 	pr_debug("(%s): mapped page:0x%pa[p]+0x%lx to iova:0x%llx\n", ep->name,
 		 &ep->self_mem.phys_addr, ep->self_mem.size, ep->iova);
+
 	/* get peer's aperture offset. Used in mmaping tx mem.*/
 	ep->peer_mem.size = ep->self_mem.size;
 	ret = pci_client_get_peer_aper(ep->pci_client_h, offsetof,
@@ -743,6 +751,7 @@ allocate_memory(struct endpoint_drv_ctx_t *eps_ctx, struct endpoint_t *ep)
 		pr_err("Failed to get peer's endpoint pcie aperture\n");
 		goto err;
 	}
+
 	return ret;
 err:
 	free_memory(eps_ctx, ep);
@@ -772,12 +781,14 @@ remove_endpoint_device(struct endpoint_drv_ctx_t *eps_ctx,
 
 	if (!eps_ctx || !endpoint)
 		return ret;
+
 	pci_client_unregister_for_link_event(endpoint->pci_client_h,
 					     endpoint->linkevent_id);
 	free_syncpoint(eps_ctx, endpoint);
 	free_memory(eps_ctx, endpoint);
 	atomic_set(&endpoint->in_use, 0);
 	mutex_destroy(&endpoint->fops_lock);
+
 	if (endpoint->device) {
 		cdev_del(&endpoint->cdev);
 		device_del(endpoint->device);
@@ -922,8 +933,10 @@ endpoints_setup(struct driver_ctx_t *drv_ctx, void **endpoints_h)
 		endpoint->nframes = ep_prop->nframes;
 		endpoint->frame_sz = ep_prop->frame_sz;
 		endpoint->pci_client_h = drv_ctx->pci_client_h;
-		/* set index of the msi-x interruper vector */
-		endpoint->msi_irq = i+1;
+		/* set index of the msi-x interruper vector
+		 * where the first one is reserved for comm-channel
+		 */
+		endpoint->msi_irq = i + 1;
 		stream_ext_params->local_node = &drv_ctx->drv_param.local_node;
 		stream_ext_params->peer_node = &drv_ctx->drv_param.peer_node;
 		stream_ext_params->host1x_pdev = drv_ctx->drv_param.host1x_pdev;

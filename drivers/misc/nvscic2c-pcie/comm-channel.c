@@ -211,7 +211,6 @@ send_msg(struct comm_channel_ctx_t *comm_ctx, struct comm_msg *msg)
 	writel(fifo->local_hdr->wr_count,
 	       (void __iomem *)(&fifo->send_hdr->wr_count));
 
-
 	if (peer_cpu == NVCPU_X86_64) {
 	/* comm-channel irq verctor always take from index 0 */
 		ret = pci_client_raise_irq(comm_ctx->pci_client_h, PCI_EPC_IRQ_MSI, 0);
@@ -258,7 +257,6 @@ comm_channel_edma_rx_desc_iova_send(void *comm_channel_h, struct comm_msg *msg)
 	struct comm_channel_ctx_t *comm_ctx =
 				(struct comm_channel_ctx_t *)comm_channel_h;
 
-
 	if (WARN_ON(!comm_ctx || !msg))
 		return -EINVAL;
 
@@ -272,7 +270,6 @@ comm_channel_edma_rx_desc_iova_send(void *comm_channel_h, struct comm_msg *msg)
 
 	return send_msg(comm_ctx, msg);
 }
-
 
 int
 comm_channel_msg_send(void *comm_channel_h, struct comm_msg *msg)
