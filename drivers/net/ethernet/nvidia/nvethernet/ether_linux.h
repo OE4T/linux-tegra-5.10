@@ -610,6 +610,10 @@ struct ether_priv_data {
 	unsigned int skip_mac_reset;
 	/** Fixed link enable/disable */
 	unsigned int fixed_link;
+	/** Flag to represent rx_m clk enabled or not */
+	bool rx_m_enabled;
+	/** Flag to represent rx_pcs_m clk enabled or not */
+	bool rx_pcs_m_enabled;
 };
 
 /**
