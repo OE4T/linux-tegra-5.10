@@ -24,6 +24,7 @@ dtb-$(BUILD_ENABLE) += tegra234-p3701-0000-as-pxxxx-p3737-0000.dtb
 dtb-$(BUILD_ENABLE) += tegra234-p3701-0000-p3737-0000-kexec.dtb
 dtbo-$(BUILD_ENABLE) += tegra234-p3737-a04-overlay.dtbo
 dtbo-$(BUILD_ENABLE) += tegra234-p3737-overlay-pcie.dtbo
+dtbo-$(BUILD_ENABLE) += tegra234-p3737-overlay-ufs.dtbo
 dtbo-$(BUILD_ENABLE) += tegra234-p3737-audio-codec-rt5658.dtbo
 dtbo-$(BUILD_ENABLE) += tegra234-p3737-audio-codec-rt5640.dtbo
 dtbo-$(BUILD_ENABLE) += tegra234-p3737-audio-codec-rt5658-40pin.dtbo
