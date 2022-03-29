@@ -98,6 +98,10 @@
 		no-mmc;
 		nvidia,boot-detect-delay = <1000>;
 		cd-gpios = <&tegra_main_gpio TEGRA234_MAIN_GPIO(G, 7) 0>;
+		assigned-clocks = <&bpmp TEGRA234_CLK_SDMMC1>,
+				  <&bpmp TEGRA234_CLK_PLLC4_MUXED>;
+		assigned-clock-parents = <&bpmp TEGRA234_CLK_PLLC4_MUXED>,
+					 <&bpmp TEGRA234_CLK_PLLC4_VCO_DIV2>;
 		status = "okay";
 	};
 
