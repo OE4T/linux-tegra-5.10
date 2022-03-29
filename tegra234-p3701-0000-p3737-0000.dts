@@ -24,7 +24,7 @@
 #include <t234-common-cvm/tegra234-thermal.dtsi>
 #include <t234-common-cvm/tegra234-thermal-cooling.dtsi>
 #include <t234-common-cvm/tegra234-thermal-userspace-alert.dtsi>
-#include <tegra234-soc/tegra234-cpuidle.dtsi>
+#include <t234-common-cvm/tegra234-cpuidle.dtsi>
 #include <tegra234-soc/tegra234-soc-hwpm.dtsi>
 
 / {
@@ -101,68 +101,6 @@
 	tegra_soc_hwpm {
                 status = "okay";
         };
-
-	cpus {
-		cpu@0 {
-			cpu-idle-states = <&C7>;
-		};
-
-		cpu@1 {
-			cpu-idle-states = <&C7>;
-		};
-
-		cpu@2 {
-			cpu-idle-states = <&C7>;
-		};
-
-		cpu@3 {
-			cpu-idle-states = <&C7>;
-		};
-
-		cpu@4 {
-			cpu-idle-states = <&C7>;
-		};
-
-		cpu@5 {
-			cpu-idle-states = <&C7>;
-		};
-
-		cpu@6 {
-			cpu-idle-states = <&C7>;
-		};
-
-		cpu@7 {
-			cpu-idle-states = <&C7>;
-		};
-
-		cpu@8 {
-			cpu-idle-states = <&C7>;
-		};
-
-		cpu@9 {
-			cpu-idle-states = <&C7>;
-		};
-
-		cpu@10 {
-			cpu-idle-states = <&C7>;
-		};
-
-		cpu@11 {
-			cpu-idle-states = <&C7>;
-		};
-
-		cpu_core_power_states {
-			c7 {
-				min-residency-us = <30000>;
-				status = "okay";
-			};
-		};
-	};
-
-	cpuidle {
-		compatible = "nvidia,tegra23x-cpuidle-debugfs";
-		status = "okay";
-	};
 
 	tegra-hsp@3d00000 {
 		status = "okay";
