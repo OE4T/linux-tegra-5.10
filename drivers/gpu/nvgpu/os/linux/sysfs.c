@@ -588,7 +588,15 @@ static ssize_t mscg_enable_store(struct device *dev,
 				smp_mb();
 				g->mscg_enabled = false;
 				if (nvgpu_pg_elpg_is_enabled(g)) {
-					nvgpu_pg_elpg_enable(g);
+					err = nvgpu_pg_elpg_enable(g);
+					if (err) {
+						WRITE_ONCE(pmu->pg->mscg_stat, PMU_MSCG_ENABLED);
+						/* make status visible */
+						smp_mb();
+						g->mscg_enabled = true;
+						gk20a_idle(g);
+						return err;
+					}
 				}
 			}
 			g->mscg_enabled = false;

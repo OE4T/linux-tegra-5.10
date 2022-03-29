@@ -496,7 +496,10 @@ long nvgpu_nvs_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 			return -EFAULT;
 	}
 
-	gk20a_busy(g);
+	err = gk20a_busy(g);
+	if (err != 0) {
+		return err;
+	}
 
 	switch (cmd) {
 	case NVGPU_NVS_IOCTL_CREATE_DOMAIN:
