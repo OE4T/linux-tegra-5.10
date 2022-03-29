@@ -1596,12 +1596,6 @@
 		status = "disabled";
 	};
 
-	generic_pwm_tachometer {
-		compatible = "generic-pwm-tachometer";
-		pwms = <&tegra_tachometer 0 1000000>;
-		status = "disabled";
-	};
-
 	tegra_pmc: pmc@c360000 {
 		compatible = "nvidia,tegra194-pmc";
 #if TEGRA_PMC_VERSION >= DT_VERSION_2
