@@ -297,10 +297,6 @@
 		lower-threshold = <0x0>;
 	};
 
-	generic_pwm_tachometer {
-		status = "okay";
-	};
-
 	pwm@3280000 {
 		status = "okay";
 	};
