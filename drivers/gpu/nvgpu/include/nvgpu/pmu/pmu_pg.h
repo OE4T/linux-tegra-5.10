@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -128,7 +128,7 @@ struct nvgpu_pmu_pg {
 	void (*rpc_handler)(struct gk20a *g, struct nvgpu_pmu *pmu,
 			struct nv_pmu_rpc_header *rpc, struct rpc_handler_payload *rpc_payload);
 	int (*init_send)(struct gk20a *g, struct nvgpu_pmu *pmu, u8 pg_engine_id);
-	int (*process_rpc_event)(struct gk20a *g, void *pmumsg);
+	int (*process_pg_event)(struct gk20a *g, void *pmumsg);
 };
 
 /*PG defines used by nvpgu-pmu*/

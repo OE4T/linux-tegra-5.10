@@ -27,6 +27,7 @@
 #include <nvgpu/pmu/cmd.h>
 #include <nvgpu/pmu/pmu_pg.h>
 
+#include "pmu_pg.h"
 #include "pg_sw_gv11b.h"
 #include "pg_sw_gp106.h"
 #include "pg_sw_gm20b.h"
@@ -134,6 +135,30 @@ int gv11b_pg_set_subfeature_mask(struct gk20a *g, u32 pg_engine_id)
 	return 0;
 }
 
+static int gv11b_pmu_pg_process_pg_event(struct gk20a *g, void *pmumsg)
+{
+	int err = 0;
+	struct pmu_msg *msg = (struct pmu_msg *) pmumsg;
+
+	switch (msg->msg.pg.async_cmd_resp.msg_id) {
+	case PMU_PG_MSG_ASYNC_CMD_DISALLOW:
+		if (msg->msg.pg.async_cmd_resp.ctrl_id ==
+					PMU_PG_ELPG_ENGINE_ID_GRAPHICS) {
+			g->pmu->pg->disallow_state = PMU_ELPG_STAT_OFF;
+		} else {
+			nvgpu_err(g, "Invalid engine id");
+			err = -EINVAL;
+		}
+		break;
+	default:
+		nvgpu_err(g, "Invalid message id: %d",
+			msg->msg.pg.async_cmd_resp.msg_id);
+		err = -EINVAL;
+		break;
+	}
+	return err;
+}
+
 void nvgpu_gv11b_pg_sw_init(struct gk20a *g,
 		struct nvgpu_pmu_pg *pg)
 {
@@ -153,4 +178,5 @@ void nvgpu_gv11b_pg_sw_init(struct gk20a *g,
 	pg->hw_load_zbc = gm20b_pmu_pg_elpg_hw_load_zbc;
 	pg->rpc_handler = NULL;
 	pg->init_send = gm20b_pmu_pg_init_send;
+	pg->process_pg_event = gv11b_pmu_pg_process_pg_event;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -433,7 +433,7 @@ static int ga10b_pmu_pg_handle_idle_snap_rpc(struct gk20a *g,
 	return err;
 }
 
-static int ga10b_pmu_pg_process_rpc_event(struct gk20a *g, void *pmumsg)
+static int ga10b_pmu_pg_process_pg_event(struct gk20a *g, void *pmumsg)
 {
 	int err = 0;
 	struct pmu_nv_rpc_struct_lpwr_pg_async_cmd_resp *async_cmd;
@@ -483,5 +483,5 @@ void nvgpu_ga10b_pg_sw_init(struct gk20a *g,
 	pg->hw_load_zbc = NULL;
 	pg->rpc_handler = ga10b_pg_rpc_handler;
 	pg->init_send = ga10b_pmu_pg_init_send;
-	pg->process_rpc_event = ga10b_pmu_pg_process_rpc_event;
+	pg->process_pg_event = ga10b_pmu_pg_process_pg_event;
 }

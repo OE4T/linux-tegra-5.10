@@ -202,8 +202,8 @@ static int pmu_handle_event(struct nvgpu_pmu *pmu, struct pmu_msg *msg)
 		}
 		break;
 	case PMU_UNIT_PG:
-		if (pmu->pg->process_rpc_event != NULL) {
-			err = pmu->pg->process_rpc_event(g, (void *)&msg->hdr);
+		if (pmu->pg->process_pg_event != NULL) {
+			err = pmu->pg->process_pg_event(g, (void *)&msg->hdr);
 		}
 		break;
 	default:
