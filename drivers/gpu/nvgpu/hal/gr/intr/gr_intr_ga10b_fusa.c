@@ -582,7 +582,7 @@ static bool ga10b_gr_intr_sm_lrf_ecc_status_errors(struct gk20a *g,
 
 	if (uncorr_err != 0U) {
 		nvgpu_report_err_to_sdl(g, NVGPU_ERR_MODULE_SM,
-				GPU_SM_CBU_ECC_UNCORRECTED);
+				GPU_SM_LRF_ECC_UNCORRECTED);
 		nvgpu_err(g, "sm_lrf_ecc_uncorrected");
 		ecc_status->err_id[ecc_status->err_count] =
 				GPU_SM_LRF_ECC_UNCORRECTED;
