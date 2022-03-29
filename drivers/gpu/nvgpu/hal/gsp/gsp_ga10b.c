@@ -292,26 +292,42 @@ void ga10b_gsp_enable_irq(struct gk20a *g, bool enable)
 	}
 }
 
-static void gsp_get_emem_boundaries(struct gk20a *g,
+static int gsp_get_emem_boundaries(struct gk20a *g,
 	u32 *start_emem, u32 *end_emem)
 {
+	u32 tag_width_shift = 0;
+	int status = 0;
 	/*
 	 * EMEM is mapped at the top of DMEM VA space
 	 * START_EMEM = DMEM_VA_MAX = 2^(DMEM_TAG_WIDTH + 8)
 	 */
 	if (start_emem == NULL) {
-		return;
+		status = -EINVAL;
+		goto exit;
 	}
-	*start_emem = (u32)1U << ((u32)pgsp_falcon_hwcfg1_dmem_tag_width_v(
+
+	tag_width_shift = ((u32)pgsp_falcon_hwcfg1_dmem_tag_width_v(
 			gk20a_readl(g, pgsp_falcon_hwcfg1_r())) + (u32)8U);
+
+	if (tag_width_shift > 31) {
+		nvgpu_err(g, "Invalid tag width shift, %u", tag_width_shift);
+		status = -EINVAL;
+		goto exit;
+	}
+
+	*start_emem = BIT32(tag_width_shift);
 
 
 	if (end_emem == NULL) {
-		return;
+		goto exit;
 	}
+
 	*end_emem = *start_emem +
 		((u32)pgsp_hwcfg_emem_size_f(gk20a_readl(g, pgsp_hwcfg_r()))
 		* (u32)256U);
+
+exit:
+	return status;
 }
 
 static int gsp_memcpy_params_check(struct gk20a *g, u32 dmem_addr,
@@ -341,7 +357,10 @@ static int gsp_memcpy_params_check(struct gk20a *g, u32 dmem_addr,
 		goto exit;
 	}
 
-	gsp_get_emem_boundaries(g, &start_emem, &end_emem);
+	status = gsp_get_emem_boundaries(g, &start_emem, &end_emem);
+	if (status != 0) {
+		goto exit;
+	}
 
 	if (dmem_addr < start_emem ||
 		(dmem_addr + size_in_bytes) > end_emem) {
@@ -383,7 +402,10 @@ static int ga10b_gsp_emem_transfer(struct gk20a *g, u32 dmem_addr, u8 *buf,
 	emem_d_offset = pgsp_ememd_r(port);
 
 	/* Only start address needed */
-	gsp_get_emem_boundaries(g, &start_emem, NULL);
+	status = gsp_get_emem_boundaries(g, &start_emem, NULL);
+	if (status != 0) {
+		goto exit;
+	}
 
 	/* Convert to emem offset for use by EMEMC/EMEMD */
 	dmem_addr -= start_emem;

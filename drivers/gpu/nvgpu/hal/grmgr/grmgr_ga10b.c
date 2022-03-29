@@ -335,8 +335,8 @@ static int ga10b_grmgr_get_gpu_instance(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	lce_mask = nvgpu_safe_sub_u32(BIT32(num_lce), 1U);
-	gpc_mask = nvgpu_safe_sub_u32(BIT32(num_gpc), 1U);
+	lce_mask = nvgpu_safe_cast_u64_to_u32(nvgpu_safe_sub_u64(BIT64(num_lce), 1ULL));
+	gpc_mask = nvgpu_safe_cast_u64_to_u32(nvgpu_safe_sub_u64(BIT64(num_gpc), 1ULL));
 
 	gr_instance_id_per_swizzid = (u32 *)nvgpu_kzalloc(g,
 		nvgpu_safe_mult_u32(sizeof(u32), allowed_swizzid_size));

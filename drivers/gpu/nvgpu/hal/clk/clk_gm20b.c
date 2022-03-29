@@ -123,14 +123,16 @@ static void dump_gpc_pll(struct gk20a *g, struct pll *gpll, u32 last_cfg)
 static u32 get_interim_pldiv(struct gk20a *g, u32 old_pl, u32 new_pl)
 {
 	u32 pl;
+	unsigned long ffs_old_pl = nvgpu_ffs(old_pl);
+	unsigned long ffs_new_pl = nvgpu_ffs(new_pl);
 
 	if ((g->clk.gpc_pll.id == GM20B_GPC_PLL_C1) ||
-	    ((old_pl & new_pl) != 0U)) {
+	    ((old_pl & new_pl) != 0U) || (ffs_old_pl == 0UL) || (ffs_new_pl == 0UL)) {
 		return 0;
 	}
 
-	pl = old_pl | BIT32(nvgpu_ffs(new_pl) - 1U);	/* pl never 0 */
-	new_pl |= BIT32(nvgpu_ffs(old_pl) - 1U);
+	pl = old_pl | BIT32(nvgpu_safe_cast_u64_to_u32(ffs_new_pl) - 1U);	/* pl never 0 */
+	new_pl |= BIT32(nvgpu_safe_cast_u64_to_u32(ffs_old_pl) - 1U);
 
 	return min(pl, new_pl);
 }
