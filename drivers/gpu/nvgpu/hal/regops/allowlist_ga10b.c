@@ -652,6 +652,18 @@ static const struct nvgpu_pm_resource_register_range ga10b_hwpm_perfmux_register
 	{0x0013cb94, 0x0013cb94},
 };
 
+static const struct nvgpu_pm_resource_register_range ga10b_hwpm_pc_sampler_register_ranges[] = {
+	{0x005043dc, 0x005043dc},
+	{0x00504bdc, 0x00504bdc},
+	{0x005053dc, 0x005053dc},
+	{0x00505bdc, 0x00505bdc},
+	{0x00504bdc, 0x00504bdc},
+	{0x005053dc, 0x005053dc},
+	{0x00505bdc, 0x00505bdc},
+	{0x005063dc, 0x005063dc},
+	{0x00419bdc, 0x00419bdc},
+};
+
 static const struct nvgpu_pm_resource_register_range ga10b_cau_register_ranges[] = {
 	{0x00504180, 0x005041ac},
 	{0x005041b4, 0x005041e8},
@@ -818,6 +830,14 @@ const struct nvgpu_pm_resource_register_range
 	*count = (u32)(sizeof(ga10b_hwpm_perfmux_register_ranges) /
 		sizeof(ga10b_hwpm_perfmux_register_ranges[0]));
 	return ga10b_hwpm_perfmux_register_ranges;
+}
+
+const struct nvgpu_pm_resource_register_range
+		*ga10b_get_hwpm_pc_sampler_register_ranges(u32 *count)
+{
+	*count = (u32)(sizeof(ga10b_hwpm_pc_sampler_register_ranges) /
+		sizeof(ga10b_hwpm_pc_sampler_register_ranges[0]));
+	return ga10b_hwpm_pc_sampler_register_ranges;
 }
 
 const struct nvgpu_pm_resource_register_range

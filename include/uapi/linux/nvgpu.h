@@ -621,6 +621,7 @@ struct nvgpu_profiler_bind_context_args {
 
 #define NVGPU_PROFILER_PM_RESOURCE_ARG_HWPM_LEGACY	0U
 #define NVGPU_PROFILER_PM_RESOURCE_ARG_SMPC		1U
+#define NVGPU_PROFILER_PM_RESOURCE_ARG_PC_SAMPLER	2U
 
 struct nvgpu_profiler_reserve_pm_resource_args {
 	__u32 resource; 	/* in: NVGPU_PROFILER_PM_RESOURCE_ARG_* resource to be reserved */

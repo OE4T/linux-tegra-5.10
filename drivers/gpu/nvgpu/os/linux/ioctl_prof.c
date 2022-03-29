@@ -267,6 +267,9 @@ static int nvgpu_prof_ioctl_get_pm_resource_type(u32 resource,
 	case NVGPU_PROFILER_PM_RESOURCE_ARG_SMPC:
 		*pm_resource = NVGPU_PROFILER_PM_RESOURCE_TYPE_SMPC;
 		return 0;
+	case NVGPU_PROFILER_PM_RESOURCE_ARG_PC_SAMPLER:
+		*pm_resource = NVGPU_PROFILER_PM_RESOURCE_TYPE_PC_SAMPLER;
+		return 0;
 	default:
 		break;
 	}
@@ -305,6 +308,17 @@ static int nvgpu_prof_ioctl_reserve_pm_resource(struct nvgpu_profiler_object *pr
 		if (!flag_ctxsw	&& (pm_resource == NVGPU_PROFILER_PM_RESOURCE_TYPE_SMPC)
 				&& !nvgpu_is_enabled(g, NVGPU_SUPPORT_SMPC_GLOBAL_MODE)) {
 			nvgpu_err(g, "SMPC global mode not supported");
+			return -EINVAL;
+		}
+		/*
+		 * PC_SAMPLER resources are always context switched with a GR
+		 * context, so reservation scope is always context. This
+		 * requires that profiler object is instantiated with a valid
+		 * GR context.
+		 */
+		if ((pm_resource == NVGPU_PROFILER_PM_RESOURCE_TYPE_PC_SAMPLER)
+				&& (prof->tsg == NULL)) {
+			nvgpu_err(g, "PC_SAMPLER reservation is only allowed wth context bound");
 			return -EINVAL;
 		}
 		if (flag_ctxsw) {

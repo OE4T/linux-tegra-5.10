@@ -1117,6 +1117,46 @@ static const struct nvgpu_pm_resource_register_range tu104_hwpm_perfmux_register
 	{0x00a1ec70, 0x00a1ec74},
 };
 
+static const struct nvgpu_pm_resource_register_range tu104_hwpm_pc_sampler_register_ranges[] = {
+	{0x005043dc, 0x005043dc},
+	{0x00504bdc, 0x00504bdc},
+	{0x005053dc, 0x005053dc},
+	{0x00505bdc, 0x00505bdc},
+	{0x005063dc, 0x005063dc},
+	{0x00506bdc, 0x00506bdc},
+	{0x00504bdc, 0x00504bdc},
+	{0x005053dc, 0x005053dc},
+	{0x00505bdc, 0x00505bdc},
+	{0x005063dc, 0x005063dc},
+	{0x00506bdc, 0x00506bdc},
+	{0x005073dc, 0x005073dc},
+	{0x005053dc, 0x005053dc},
+	{0x00505bdc, 0x00505bdc},
+	{0x005063dc, 0x005063dc},
+	{0x00506bdc, 0x00506bdc},
+	{0x005073dc, 0x005073dc},
+	{0x00507bdc, 0x00507bdc},
+	{0x00505bdc, 0x00505bdc},
+	{0x005063dc, 0x005063dc},
+	{0x00506bdc, 0x00506bdc},
+	{0x005073dc, 0x005073dc},
+	{0x00507bdc, 0x00507bdc},
+	{0x005083dc, 0x005083dc},
+	{0x005063dc, 0x005063dc},
+	{0x00506bdc, 0x00506bdc},
+	{0x005073dc, 0x005073dc},
+	{0x00507bdc, 0x00507bdc},
+	{0x005083dc, 0x005083dc},
+	{0x00508bdc, 0x00508bdc},
+	{0x00506bdc, 0x00506bdc},
+	{0x005073dc, 0x005073dc},
+	{0x00507bdc, 0x00507bdc},
+	{0x005083dc, 0x005083dc},
+	{0x00508bdc, 0x00508bdc},
+	{0x005093dc, 0x005093dc},
+	{0x00419bdc, 0x00419bdc},
+};
+
 static const struct nvgpu_pm_resource_register_range tu104_cau_register_ranges[] = {
 	{0x00419980, 0x004199b4},
 	{0x004199c0, 0x004199f4},
@@ -1336,6 +1376,14 @@ const struct nvgpu_pm_resource_register_range
 	*count = (u32)(sizeof(tu104_hwpm_perfmux_register_ranges) /
 		sizeof(tu104_hwpm_perfmux_register_ranges[0]));
 	return tu104_hwpm_perfmux_register_ranges;
+}
+
+const struct nvgpu_pm_resource_register_range
+		*tu104_get_hwpm_pc_sampler_register_ranges(u32 *count)
+{
+	*count = (u32)(sizeof(tu104_hwpm_pc_sampler_register_ranges) /
+		sizeof(tu104_hwpm_pc_sampler_register_ranges[0]));
+	return tu104_hwpm_pc_sampler_register_ranges;
 }
 
 const struct nvgpu_pm_resource_register_range

@@ -234,6 +234,11 @@ int nvgpu_profiler_pm_resource_reserve(struct nvgpu_profiler_object *prof,
 			NVGPU_DBG_REG_OP_TYPE_GLOBAL;
 	}
 
+	if (pm_resource == NVGPU_PROFILER_PM_RESOURCE_TYPE_PC_SAMPLER) {
+		prof->reg_op_type[NVGPU_HWPM_REGISTER_TYPE_PC_SAMPLER] =
+			NVGPU_DBG_REG_OP_TYPE_GR_CTX;
+	}
+
 	nvgpu_log(g, gpu_dbg_prof,
 		"Granted reservation for profiler handle %u, resource %u, scope %u",
 		prof->prof_handle, pm_resource, prof->scope);
@@ -913,6 +918,11 @@ static u32 get_pm_resource_register_range_map_entry_count(struct nvgpu_profiler_
 		count += range_count;
 	}
 
+	if (prof->reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_PC_SAMPLER]) {
+		g->ops.regops.get_hwpm_pc_sampler_register_ranges(&range_count);
+		count += range_count;
+	}
+
 	return count;
 }
 
@@ -1011,6 +1021,12 @@ static int nvgpu_profiler_build_regops_allowlist(struct nvgpu_profiler_object *p
 		range = g->ops.regops.get_hwpm_pma_channel_register_ranges(&range_count);
 		add_range_to_map(range, range_count, map, &map_index,
 			NVGPU_HWPM_REGISTER_TYPE_HWPM_PMA_CHANNEL);
+	}
+
+	if (prof->reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_PC_SAMPLER]) {
+		range = g->ops.regops.get_hwpm_pc_sampler_register_ranges(&range_count);
+		add_range_to_map(range, range_count, map, &map_index,
+				NVGPU_HWPM_REGISTER_TYPE_PC_SAMPLER);
 	}
 
 	add_test_range_to_map(g, map, &map_index, NVGPU_HWPM_REGISTER_TYPE_TEST);

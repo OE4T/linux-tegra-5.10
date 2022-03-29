@@ -58,6 +58,8 @@ struct gops_regops {
 	const struct nvgpu_pm_resource_register_range *
 		(*get_hwpm_pma_channel_register_ranges)(u32 *count);
 	const struct nvgpu_pm_resource_register_range *
+		(*get_hwpm_pc_sampler_register_ranges)(u32 *count);
+	const struct nvgpu_pm_resource_register_range *
 		(*get_hwpm_pma_trigger_register_ranges)(u32 *count);
 	const struct nvgpu_pm_resource_register_range *
 		(*get_smpc_register_ranges)(u32 *count);

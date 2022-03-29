@@ -56,6 +56,8 @@ const struct nvgpu_pm_resource_register_range
 const struct nvgpu_pm_resource_register_range
 	*ga10b_get_hwpm_perfmux_register_ranges(u32 *count);
 const struct nvgpu_pm_resource_register_range
+	*ga10b_get_hwpm_pc_sampler_register_ranges(u32 *count);
+const struct nvgpu_pm_resource_register_range
 	*ga10b_get_cau_register_ranges(u32 *count);
 
 #endif /* NVGPU_GA10B_REGOPS_ALLOWLIST_H */

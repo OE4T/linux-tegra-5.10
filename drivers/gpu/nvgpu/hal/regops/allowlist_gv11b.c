@@ -496,6 +496,14 @@ static const struct nvgpu_pm_resource_register_range gv11b_hwpm_perfmux_register
 	{0x00900100, 0x00900100},
 };
 
+static const struct nvgpu_pm_resource_register_range gv11b_hwpm_pc_sampler_register_ranges[] = {
+	{0x005043dc, 0x005043dc},
+	{0x00504bdc, 0x00504bdc},
+	{0x005053dc, 0x005053dc},
+	{0x00505bdc, 0x00505bdc},
+	{0x00419bdc, 0x00419bdc},
+};
+
 u32 gv11b_get_hwpm_perfmon_register_stride(void)
 {
 	return 0x00000200;
@@ -602,5 +610,13 @@ const struct nvgpu_pm_resource_register_range
 	*count = (u32)(sizeof(gv11b_hwpm_perfmux_register_ranges) /
 		sizeof(gv11b_hwpm_perfmux_register_ranges[0]));
 	return gv11b_hwpm_perfmux_register_ranges;
+}
+
+const struct nvgpu_pm_resource_register_range
+		*gv11b_get_hwpm_pc_sampler_register_ranges(u32 *count)
+{
+	*count = (u32)(sizeof(gv11b_hwpm_pc_sampler_register_ranges) /
+		sizeof(gv11b_hwpm_pc_sampler_register_ranges[0]));
+	return gv11b_hwpm_pc_sampler_register_ranges;
 }
 

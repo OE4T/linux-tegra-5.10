@@ -1438,6 +1438,7 @@ static const struct gops_regops ga10b_ops_regops = {
 	.get_hwpm_perfmon_register_ranges = ga10b_get_hwpm_perfmon_register_ranges,
 	.get_hwpm_router_register_ranges = ga10b_get_hwpm_router_register_ranges,
 	.get_hwpm_pma_channel_register_ranges = ga10b_get_hwpm_pma_channel_register_ranges,
+	.get_hwpm_pc_sampler_register_ranges = ga10b_get_hwpm_pc_sampler_register_ranges,
 	.get_hwpm_pma_trigger_register_ranges = ga10b_get_hwpm_pma_trigger_register_ranges,
 	.get_smpc_register_ranges = ga10b_get_smpc_register_ranges,
 	.get_cau_register_ranges = ga10b_get_cau_register_ranges,

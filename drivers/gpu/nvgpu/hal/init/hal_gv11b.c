@@ -1234,6 +1234,7 @@ static const struct gops_regops gv11b_ops_regops = {
 	.get_hwpm_router_register_ranges = gv11b_get_hwpm_router_register_ranges,
 	.get_hwpm_pma_channel_register_ranges = gv11b_get_hwpm_pma_channel_register_ranges,
 	.get_hwpm_pma_trigger_register_ranges = gv11b_get_hwpm_pma_trigger_register_ranges,
+	.get_hwpm_pc_sampler_register_ranges = gv11b_get_hwpm_pc_sampler_register_ranges,
 	.get_smpc_register_ranges = gv11b_get_smpc_register_ranges,
 	.get_cau_register_ranges = NULL,
 	.get_hwpm_perfmux_register_ranges = gv11b_get_hwpm_perfmux_register_ranges,
