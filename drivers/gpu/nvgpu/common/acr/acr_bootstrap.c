@@ -246,22 +246,10 @@ int nvgpu_acr_bootstrap_hs_ucode(struct gk20a *g, struct nvgpu_acr *acr,
 			return err;
                 }
 	} else {
-		/* Firmware is stored in soc specific path in FMODEL
-		 * Hence NVGPU_REQUEST_FIRMWARE_NO_WARN is used instead
-		 * of NVGPU_REQUEST_FIRMWARE_NO_SOC
-		 */
-#ifdef CONFIG_NVGPU_SIM
-		if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
-			acr_fw = nvgpu_request_firmware(g,
-					acr_desc->acr_fw_name,
-					NVGPU_REQUEST_FIRMWARE_NO_WARN);
-		} else
-#endif
-		{
-			acr_fw = nvgpu_request_firmware(g,
-					acr_desc->acr_fw_name,
-					NVGPU_REQUEST_FIRMWARE_NO_SOC);
-		}
+		acr_fw = nvgpu_request_firmware(g,
+				acr_desc->acr_fw_name,
+				g->acr->fw_load_flag);
+
 		if (acr_fw == NULL) {
 			nvgpu_err(g, "%s ucode get fail for %s",
 				acr_desc->acr_fw_name, g->name);
@@ -334,7 +322,7 @@ static int ga10b_load_riscv_acr_ucodes(struct gk20a *g, struct hs_acr *acr)
 	nvgpu_acr_dbg(g, "loading ACR's manifest bin\n");
 	acr->manifest_fw = nvgpu_request_firmware(g,
 					acr->acr_manifest_name,
-					NVGPU_REQUEST_FIRMWARE_NO_WARN);
+					g->acr->fw_load_flag);
 	if (acr->manifest_fw == NULL) {
 		nvgpu_err(g, "%s ucode get fail for %s",
 			acr->acr_manifest_name, g->name);
@@ -344,7 +332,7 @@ static int ga10b_load_riscv_acr_ucodes(struct gk20a *g, struct hs_acr *acr)
 	nvgpu_acr_dbg(g, "loading ACR's text bin\n");
 	acr->code_fw = nvgpu_request_firmware(g,
 					acr->acr_code_name,
-					NVGPU_REQUEST_FIRMWARE_NO_WARN);
+					g->acr->fw_load_flag);
 	if (acr->code_fw == NULL) {
 		nvgpu_err(g, "%s ucode get fail for %s",
 			acr->acr_code_name, g->name);
@@ -355,7 +343,7 @@ static int ga10b_load_riscv_acr_ucodes(struct gk20a *g, struct hs_acr *acr)
 	nvgpu_acr_dbg(g, "loading ACR's data bin\n");
 	acr->data_fw = nvgpu_request_firmware(g,
 					acr->acr_data_name,
-					NVGPU_REQUEST_FIRMWARE_NO_WARN);
+					g->acr->fw_load_flag);
 	if (acr->data_fw == NULL) {
 		nvgpu_err(g, "%s ucode get fail for %s",
 			acr->acr_data_name, g->name);

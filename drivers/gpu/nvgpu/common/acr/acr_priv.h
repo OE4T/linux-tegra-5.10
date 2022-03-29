@@ -130,6 +130,7 @@ struct acr_lsf_config {
 struct nvgpu_acr {
 	struct gk20a *g;
 
+	u32 fw_load_flag;
 	u32 bootstrap_owner;
 	u32 num_of_sig;
 
