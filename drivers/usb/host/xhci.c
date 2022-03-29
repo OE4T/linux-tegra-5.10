@@ -794,6 +794,13 @@ void xhci_shutdown(struct usb_hcd *hcd)
 
 	xhci_cleanup_msix(xhci);
 
+	/* Don't poll the roothubs on bus shutdown. */
+	xhci_dbg(xhci, "%s: stopping port polling.\n", __func__);
+	clear_bit(HCD_FLAG_POLL_RH, &hcd->flags);
+	del_timer_sync(&hcd->rh_timer);
+	clear_bit(HCD_FLAG_POLL_RH, &xhci->shared_hcd->flags);
+	del_timer_sync(&xhci->shared_hcd->rh_timer);
+
 	xhci_dbg_trace(xhci, trace_xhci_dbg_init,
 			"xhci_shutdown completed - status = %x",
 			readl(&xhci->op_regs->status));
