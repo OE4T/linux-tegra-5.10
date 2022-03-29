@@ -95,7 +95,7 @@ NVMAP_CONFIG_DEFER_FD_RECYCLE_MAX_FD := 0x8000
 # Supports nvmap ioctls to get Unique SciIpcId and attach
 # it with nvmap_handle.
 # Suppports getting nvmap_handle from SciIpcId passed via ioctl.
-NVMAP_CONFIG_SCIIPC := y
+NVMAP_CONFIG_SCIIPC := n
 
 # Config for enabling NvMap as OOT module
 NVMAP_CONFIG_LOADABLE_MODULE := n
@@ -143,7 +143,6 @@ endif
 ifneq ($(findstring 4.9,$(NV_BUILD_KERNEL_OPTIONS)),)
 # For 4.9
 NVMAP_CONFIG_VPR_RESIZE := y
-NVMAP_CONFIG_SCIIPC := n
 endif
 
 ################################################################################
@@ -189,10 +188,10 @@ ccflags-y += -DNVMAP_CONFIG_DEFER_FD_RECYCLE_MAX_FD=${NVMAP_CONFIG_DEFER_FD_RECY
 endif #NVMAP_CONFIG_DEFER_FD_RECYCLE_MAX_FD
 endif #NVMAP_CONFIG_DEFER_FD_RECYCLE
 
-
-ifeq ($(NVMAP_CONFIG_SCIIPC),y)
+ifdef CONFIG_NVSCIIPC
+NVMAP_CONFIG_SCIIPC := y
 ccflags-y += -DNVMAP_CONFIG_SCIIPC
-endif #NVMAP_CONFIG_SCIIPC
+endif #CONFIG_NVSCIIPC
 
 ifeq ($(NVMAP_CONFIG_VPR_RESIZE),y)
 ccflags-y += -DNVMAP_CONFIG_VPR_RESIZE
