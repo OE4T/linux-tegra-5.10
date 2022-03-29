@@ -70,9 +70,9 @@ static int pva_ccq_send_cmd(struct pva *pva, u32 queue_id,
 
 	/* Make the writes to CCQ */
 	host1x_writel(pva->pdev, cfg_ccq_r(pva->version, queue_id),
-		      cmd->mbox[1]);
+		      cmd->cmd_field[1]);
 	host1x_writel(pva->pdev, cfg_ccq_r(pva->version, queue_id),
-		      cmd->mbox[0]);
+		      cmd->cmd_field[0]);
 	return err;
 
 err_wait_ccq:

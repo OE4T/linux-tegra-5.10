@@ -73,8 +73,8 @@ int pva_ccq_send_task_t19x(struct pva *pva, u32 queue_id, dma_addr_t task_addr,
 		goto err_wait_ccq;
 
 	/* Make the writes to CCQ */
-	host1x_writel(pva->pdev, cfg_ccq_r(pva->version, 0), cmd.mbox[1]);
-	host1x_writel(pva->pdev, cfg_ccq_r(pva->version, 0), cmd.mbox[0]);
+	host1x_writel(pva->pdev, cfg_ccq_r(pva->version, 0), cmd.cmd_field[1]);
+	host1x_writel(pva->pdev, cfg_ccq_r(pva->version, 0), cmd.cmd_field[0]);
 
 	mutex_unlock(&pva->ccq_mutex);
 
