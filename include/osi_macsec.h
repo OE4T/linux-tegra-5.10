@@ -381,31 +381,25 @@ struct osi_macsec_core_ops {
 //////////////////////////////////////////////////////////////////////////
 
 /**
- * @brief initializing the macsec core operations
+ * @brief osi_init_macsec_ops - macsec initialize operations
  *
  * @note
  * Algorithm:
- * - Init osi_core macsec ops and lut status structure members
+ *  - If virtualization is enabled initialize virt ops
+ *  - Else
+ *    - If macsec base is null return -1
+ *    - initialize with macsec ops
+ *  - Refer to MACSEC column of <<******, (sequence diagram)>> for API details.
+ *  - TraceID: ***********
  *
- * @param[in] osi_core: OSI core private data structure.
+ * @param[in] osi_core: OSI core private data structure. used param macsec_base
  *
- * @pre
- *
- * @note
- * Traceability Details:
- * - SWUD_ID:
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
+ * @pre MACSEC needs to be out of reset and proper clock configured.
  *
  * @note
  * API Group:
- * - Initialization: Yes
- * - Run time: No
+ * - Initialization: No
+ * - Run time: Yes
  * - De-initialization: No
  *
  * @retval 0 on success
@@ -414,33 +408,24 @@ struct osi_macsec_core_ops {
 nve32_t osi_init_macsec_ops(struct osi_core_priv_data *const osi_core);
 
 /**
- * @brief Initialize the macsec controller
+ * @brief osi_macsec_init - Initialize the macsec controller
  *
  * @note
  * Algorithm:
- * - Configure MTU, controller configs, interrupts, clear all LUT's and
+ *  - Return -1 if osi core or ops is null
+ *  - Configure MTU, controller configs, interrupts, clear all LUT's and
  *    set BYP LUT entries for MKPDU and BC packets
+ *  - Refer to MACSEC column of <<******, (sequence diagram)>> for API details.
+ *  - TraceID: ***********
  *
  * @param[in] osi_core: OSI core private data structure.
- * @param[in] mtu: MTU Length.
+ * @param[in] mtu: mtu to be programmed
  *
- * @pre
- * - MACSEC should be out of reset and clocks are enabled
- *
- * @note
- * Traceability Details:
- * - SWUD_ID:
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
+ * @pre MACSEC needs to be out of reset and proper clock configured.
  *
  * @note
  * API Group:
- * - Initialization: Yes
+ * - Initialization: No
  * - Run time: Yes
  * - De-initialization: No
  *
@@ -451,33 +436,24 @@ nve32_t osi_macsec_init(struct osi_core_priv_data *const osi_core,
 			nveu32_t mtu);
 
 /**
- * @brief De-Initialize the macsec controller
+ * @brief osi_macsec_deinit - De-Initialize the macsec controller
  *
  * @note
  * Algorithm:
- * - Resets macsec global data structures
+ *  - Return -1 if osi core or ops is null
+ *  - Resets macsec global data structured and restores the mac confirguration
+ *  - Refer to MACSEC column of <<******, (sequence diagram)>> for API details.
+ *  - TraceID: ***********
  *
- * @param[in] osi_core: OSI core private data structure.
+ * @param[in] osi_core: OSI core private data structure
  *
- * @pre
- * - MACSEC TX/RX engine shall be disabled.
- *
- * @note
- * Traceability Details:
- * - SWUD_ID:
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
+ * @pre MACSEC needs to be out of reset and proper clock configured.
  *
  * @note
  * API Group:
  * - Initialization: No
  * - Run time: Yes
- * - De-initialization: Yes
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure
@@ -485,27 +461,18 @@ nve32_t osi_macsec_init(struct osi_core_priv_data *const osi_core,
 nve32_t osi_macsec_deinit(struct osi_core_priv_data *const osi_core);
 
 /**
- * @brief Non-secure irq handler.
+ * @brief osi_macsec_ns_isr - macsec non-secure irq handler
  *
  * @note
  * Algorithm:
- *  - Takes care of handling the non secture interrupts accordingly as per
- *    the MACSEC IP
+ *  - Return -1 if osi core or ops is null
+ *  - handles non-secure macsec interrupts
+ *  - Refer to MACSEC column of <<******, (sequence diagram)>> for API details.
+ *  - TraceID: ***********
  *
- * @param[in] osi_core: OSI core private data structure.
+ * @param[in] osi_core: OSI core private data structure
  *
- * @pre MACSEC should be inited and enabled.
- *
- * @note
- * Traceability Details:
- * - SWUD_ID:
- *
- * @note
- * Classification:
- * - Interrupt: Yes
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
+ * @pre MACSEC needs to be out of reset and proper clock configured.
  *
  * @note
  * API Group:
@@ -513,32 +480,23 @@ nve32_t osi_macsec_deinit(struct osi_core_priv_data *const osi_core);
  * - Run time: Yes
  * - De-initialization: No
  *
- * @retval None
+ * @retval none
  */
 void osi_macsec_ns_isr(struct osi_core_priv_data *const osi_core);
 
 /**
- * @brief Secure irq handler
+ * @brief osi_macsec_s_isr - macsec secure irq handler
  *
  * @note
  * Algorithm:
- *  - Takes care of handling the secture interrupts accordingly as per
- *    the MACSEC IP
+ *  - Return -1 if osi core or ops is null
+ *  - handles secure macsec interrupts
+ *  - Refer to MACSEC column of <<******, (sequence diagram)>> for API details.
+ *  - TraceID: ***********
  *
- * @param[in] osi_core: OSI core private data structure.
+ * @param[in] osi_core: OSI core private data structure
  *
- * @pre MACSEC should be inited and enabled.
- *
- * @note
- * Traceability Details:
- * - SWUD_ID:
- *
- * @note
- * Classification:
- * - Interrupt: Yes
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
+ * @pre MACSEC needs to be out of reset and proper clock configured.
  *
  * @note
  * API Group:
@@ -546,34 +504,24 @@ void osi_macsec_ns_isr(struct osi_core_priv_data *const osi_core);
  * - Run time: Yes
  * - De-initialization: No
  *
- * @retval None
+ * @retval none
  */
 void osi_macsec_s_isr(struct osi_core_priv_data *const osi_core);
 
 /**
- * @brief MACSEC Lookup table configuration
+ * @brief osi_macsec_config_lut - Read or write to macsec LUTs
  *
  * @note
  * Algorithm:
- * - Configures MACSEC LUT entry for BYP, SCI, SC PARAM, SC STATE, SA STATE
- *   table
+ *  - Return -1 if osi core or ops is null
+ *  - Reads or writes to MACSEC LUTs
+ *  - Refer to MACSEC column of <<******, (sequence diagram)>> for API details.
+ *  - TraceID: ***********
  *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] lut_config: OSI macsec LUT config data structure.
+ * @param[in] osi_core: OSI core private data structure
+ * @param[out] lut_config: Pointer to the lut configuration
  *
- * @pre
- * - MACSEC shall be initialized and enalbed
- *
- * @note
- * Traceability Details:
- * - SWUD_ID:
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
+ * @pre MACSEC needs to be out of reset and proper clock configured.
  *
  * @note
  * API Group:
@@ -588,28 +536,19 @@ nve32_t osi_macsec_config_lut(struct osi_core_priv_data *const osi_core,
 			  struct osi_macsec_lut_config *const lut_config);
 
 /**
- * @brief MACSEC Key table configuration
+ * @brief osi_macsec_config_kt - API to read or update the keys
  *
  * @note
  * Algorithm:
- * - Configures MACSEC Key Table entry
+ *  - Return -1 if osi core or ops is null
+ *  - Read or write the keys
+ *  - Refer to MACSEC column of <<******, (sequence diagram)>> for API details.
+ *  - TraceID: ***********
  *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] kt_config: OSI macsec Key table config data structure.
+ * @param[in] osi_core: OSI core private data structure
+ * @param[in] kt_config: Keys that needs to be programmed
  *
- * @pre
- * - MACSEC shall be initialized and enalbed
- *
- * @note
- * Traceability Details:
- * - SWUD_ID:
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
+ * @pre MACSEC needs to be out of reset and proper clock configured.
  *
  * @note
  * API Group:
@@ -624,28 +563,19 @@ nve32_t osi_macsec_config_kt(struct osi_core_priv_data *const osi_core,
 			 struct osi_macsec_kt_config *const kt_config);
 
 /**
- * @brief MACSEC cipher configuration
+ * @brief osi_macsec_cipher_config - API to update the cipher
  *
  * @note
  * Algorithm:
- * - Configure MACSEC tx/rx controller cipther mode.
+ *  - Return -1 if osi core or ops is null
+ *  - Updates cipher to use
+ *  - Refer to MACSEC column of <<******, (sequence diagram)>> for API details.
+ *  - TraceID: ***********
  *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] cipher: AES cipher to be configured to controller.
+ * @param[in] osi_core: OSI core private data structure
+ * @param[in] cipher: Cipher suit to be used
  *
- * @pre
- * - MACSEC shall be initialized and enalbed
- *
- * @note
- * Traceability Details:
- * - SWUD_ID:
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
+ * @pre MACSEC needs to be out of reset and proper clock configured.
  *
  * @note
  * API Group:
@@ -660,28 +590,19 @@ nve32_t osi_macsec_cipher_config(struct osi_core_priv_data *const osi_core,
 				 nveu32_t cipher);
 
 /**
- * @brief MACSEC Loopback configuration
+ * @brief osi_macsec_loopback - API to enable/disable macsec loopback
  *
  * @note
  * Algorithm:
- * - Configure MACSEC controller to loopback mode.
+ *  - Return -1 if osi core or ops is null
+ *  - Enables/disables macsec loopback
+ *  - Refer to MACSEC column of <<******, (sequence diagram)>> for API details.
+ *  - TraceID: ***********
  *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] enable: Loopback enable/disable flag.
+ * @param[in] osi_core: OSI core private data structure
+ * @param[in] enable: parameter to enable or disable
  *
- * @pre
- * - MACSEC shall be initialized and enalbed
- *
- * @note
- * Traceability Details:
- * - SWUD_ID:
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
+ * @pre MACSEC needs to be out of reset and proper clock configured.
  *
  * @note
  * API Group:
@@ -696,34 +617,26 @@ nve32_t osi_macsec_loopback(struct osi_core_priv_data *const osi_core,
 			nveu32_t enable);
 
 /**
- * @brief MACSEC Controller Enable/Disable
+ * @brief osi_macsec_en - API to enable/disable macsec
  *
  * @note
  * Algorithm:
- * - Configure MACSEC controller to loopback mode.
+ *  - Return -1 if passed enable param is invalid
+ *  - Return -1 if osi core or ops is null
+ *  - Enables/disables macsec
+ *  - Refer to MACSEC column of <<******, (sequence diagram)>> for API details.
+ *  - TraceID: ***********
  *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] enable: Loopback enable/disable flag.
+ * @param[in] osi_core: OSI core private data structure
+ * @param[in] enable: parameter to enable or disable
  *
- * @pre
- * - MACSEC shall be initialized and enalbed
- *
- * @note
- * Traceability Details:
- * - SWUD_ID:
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
+ * @pre MACSEC needs to be out of reset and proper clock configured.
  *
  * @note
  * API Group:
- * - Initialization: Yes
+ * - Initialization: No
  * - Run time: Yes
- * - De-initialization: Yes
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure
@@ -732,30 +645,22 @@ nve32_t osi_macsec_en(struct osi_core_priv_data *const osi_core,
 		  nveu32_t enable);
 
 /**
- * @brief MACSEC update secure channel/association in controller
+ * @brief osi_macsec_config - Updates SC or SA in the macsec
  *
  * @note
  * Algorithm:
- * - Create/Delete/Update SC/AN in controller.
+ *  - Return -1 if passed params are invalid
+ *  - Return -1 if osi core or ops is null
+ *  - Update/add/delete SC/SA
+ *  - Refer to MACSEC column of <<******, (sequence diagram)>> for API details.
+ *  - TraceID: ***********
  *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] sc: Pointer to osi_macsec_sc_info struct for the tx SA.
- * @param[in] enable: flag to indicate enable/disable for the Tx SA.
- * @param[out] kt_idx: Key table index to program SAK.
+ * @param[in] osi_core: OSI core private data structure
+ * @param[in] sc: Pointer to the sc that needs to be added/deleted/updated
+ * @param[in] ctlr: Controller selected
+ * @param[out] kt_idx: Pointer to the kt_index passed to OSD
  *
- * @pre
- * - MACSEC shall be initialized and enalbed
- *
- * @note
- * Traceability Details:
- * - SWUD_ID:
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
+ * @pre MACSEC needs to be out of reset and proper clock configured.
  *
  * @note
  * API Group:
@@ -772,27 +677,18 @@ nve32_t osi_macsec_config(struct osi_core_priv_data *const osi_core,
 		      nveu16_t *kt_idx);
 
 /**
- * @brief MACSEC read statistics counters
+ * @brief osi_macsec_read_mmc - Updates the mmc counters
  *
  * @note
  * Algorithm:
- * - Reads the MACSEC statistics counters
+ *  - Return -1 if osi core or ops is null
+ *  - Updates the mcc counters in osi_core structure
+ *  - Refer to MACSEC column of <<******, (sequence diagram)>> for API details.
+ *  - TraceID: ***********
  *
- * @param[in] osi_core: OSI core private data structure.
+ * @param[out] osi_core: OSI core private data structure
  *
- * @pre
- * - MACSEC shall be initialized and enalbed
- *
- * @note
- * Traceability Details:
- * - SWUD_ID:
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
+ * @pre MACSEC needs to be out of reset and proper clock configured.
  *
  * @note
  * API Group:
@@ -806,28 +702,19 @@ nve32_t osi_macsec_config(struct osi_core_priv_data *const osi_core,
 nve32_t osi_macsec_read_mmc(struct osi_core_priv_data *const osi_core);
 
 /**
- * @brief MACSEC debug buffer configuration
+ * @brief osi_macsec_config_dbg_buf - Reads the debug buffer captured
  *
  * @note
  * Algorithm:
- * - Read or Write MACSEC debug buffers
+ *  - Return -1 if osi core or ops is null
+ *  - Reads the dbg buffers captured
+ *  - Refer to MACSEC column of <<******, (sequence diagram)>> for API details.
+ *  - TraceID: ***********
  *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] dbg_buf_config: OSI macsec debug buffer config data structure.
+ * @param[in] osi_core: OSI core private data structure
+ * @param[out] dbg_buf_config: dbg buffer data captured
  *
- * @pre
- * - MACSEC shall be initialized and enalbed
- *
- * @note
- * Traceability Details:
- * - SWUD_ID:
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
+ * @pre MACSEC needs to be out of reset and proper clock configured.
  *
  * @note
  * API Group:
@@ -843,28 +730,19 @@ nve32_t osi_macsec_config_dbg_buf(
 		struct osi_macsec_dbg_buf_config *const dbg_buf_config);
 
 /**
- * @brief MACSEC debug events configuration
+ * @brief osi_macsec_dbg_events_config - Enables debug buffer events
  *
  * @note
  * Algorithm:
- * - Configures MACSEC debug events to be triggered.
+ *  - Return -1 if osi core or ops is null
+ *  - Enables specific events to capture debug buffers
+ *  - Refer to MACSEC column of <<******, (sequence diagram)>> for API details.
+ *  - TraceID: ***********
  *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] dbg_buf_config: OSI macsec debug buffer config data structure.
+ * @param[in] osi_core: OSI core private data structure
+ * @param[in] dbg_buf_config: dbg buffer data captured
  *
- * @pre
- * - MACSEC shall be initialized and enalbed
- *
- * @note
- * Traceability Details:
- * - SWUD_ID:
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
+ * @pre MACSEC needs to be out of reset and proper clock configured.
  *
  * @note
  * API Group:
@@ -880,31 +758,21 @@ nve32_t osi_macsec_dbg_events_config(
 		struct osi_macsec_dbg_buf_config *const dbg_buf_config);
 
 /**
- * @brief MACSEC Key Index Start for a given SCI
+ * @brief osi_macsec_get_sc_lut_key_index - API to get key index for a given SCI
  *
  * @note
  * Algorithm:
- * - Retrieves the Key_index used for a given SCI in SC.
+ *  - Return -1 if osi core or ops is null
+ *  - gets the key index for the given sci
+ *  - Refer to MACSEC column of <<******, (sequence diagram)>> for API details.
+ *  - TraceID: ***********
  *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] sci: Secure Channel Identifier
- * @param[out] key_index: Pointer which will be filled with key_index start
- * @param[in] ctrl: Tx or Rx controller
+ * @param[in] osi_core: OSI core private data structure
+ * @param[in] sci: Pointer to sci that needs to be found
+ * @param[out] key_index: Pointer to key_index
+ * @param[in] ctlr: macsec controller selected
  *
- *
- * @pre
- * - MACSEC shall be initialized and enalbed
- *
- * @note
- * Traceability Details:
- * - SWUD_ID:
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
+ * @pre MACSEC needs to be out of reset and proper clock configured.
  *
  * @note
  * API Group:
@@ -912,7 +780,7 @@ nve32_t osi_macsec_dbg_events_config(
  * - Run time: Yes
  * - De-initialization: No
  *
- * @retval vaid Key Index Start on success
+ * @retval 0 on success
  * @retval -1 on failure
  */
 nve32_t osi_macsec_get_sc_lut_key_index(
@@ -920,29 +788,19 @@ nve32_t osi_macsec_get_sc_lut_key_index(
 		nveu8_t *sci, nveu32_t *key_index, nveu16_t ctlr);
 
 /**
- * @brief sets MACSEC MTU
+ * @brief osi_macsec_update_mtu - Update the macsec mtu in run-time
  *
  * @note
  * Algorithm:
- * - Sets MACSEC MTU
+ *  - Return -1 if osi core or ops is null
+ *  - Updates the macsec mtu
+ *  - Refer to MACSEC column of <<******, (sequence diagram)>> for API details.
+ *  - TraceID: ***********
  *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] mtu: MACSEC MTU
+ * @param[in] osi_core: OSI core private data structure
+ * @param[in] mtu: mtu that needs to be programmed
  *
- *
- * @pre
- * - MACSEC shall be initialized and enalbed
- *
- * @note
- * Traceability Details:
- * - SWUD_ID:
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
+ * @pre MACSEC needs to be out of reset and proper clock configured.
  *
  * @note
  * API Group:
@@ -950,7 +808,7 @@ nve32_t osi_macsec_get_sc_lut_key_index(
  * - Run time: Yes
  * - De-initialization: No
  *
- * @retval vaid Key Index Start on success
+ * @retval 0 on success
  * @retval -1 on failure
  */
 nve32_t osi_macsec_update_mtu(struct osi_core_priv_data *const osi_core,
