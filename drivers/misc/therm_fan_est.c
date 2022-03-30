@@ -165,7 +165,7 @@ next_work:
 /*function defined in continu_thermal_gov.c*/
 void register_fetch_pwm_func(int (*func)(struct thermal_cooling_device *cdev, int trip));
 
-/*fetch pwm table for continuous_therm_gov and then caculate the slope*/
+/*fetch pwm table for cont_therm_gov and then caculate the slope*/
 static int fetch_trip_pwm(struct thermal_cooling_device *cdev, int trip)
 {
 	struct fan_dev_data *fan_data = cdev->devdata;

@@ -1,7 +1,7 @@
 /*
  * pwm_fan.c fan driver that is controlled by pwm
  *
- * Copyright (c) 2013-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Author: Anshul Jain <anshulj@nvidia.com>
  *
@@ -355,7 +355,7 @@ static int pwm_fan_set_cur_state(struct thermal_cooling_device *cdev,
 	}
 
 	if (fan_data->continuous_gov) {
-		/* "continuous_therm_gov" used, "cur_state" indicate target pwm
+		/* "cont_therm_gov" used, "cur_state" indicate target pwm
 		 * value
 		 */
 		target_pwm = min(fan_data->fan_cap_pwm, (int)cur_state);
