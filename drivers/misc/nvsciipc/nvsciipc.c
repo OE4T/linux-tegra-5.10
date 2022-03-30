@@ -28,6 +28,7 @@
 #include <linux/mod_devicetable.h>
 #include <linux/mutex.h>
 #include <linux/cred.h>
+#include <linux/of.h>
 
 #include <linux/version.h>
 #ifdef CONFIG_TEGRA_VIRTUALIZATION
@@ -60,7 +61,11 @@ struct nvsciipc_get_vuid_legacy {
 
 DEFINE_MUTEX(nvsciipc_mutex);
 
-struct nvsciipc *ctx;
+#if defined(CONFIG_NVSCIIPC_UPSTREAM)
+static struct platform_device *nvsciipc_pdev;
+#endif
+
+static struct nvsciipc *ctx;
 
 NvSciError NvSciIpcEndpointGetAuthToken(NvSciIpcEndpoint handle,
 		NvSciIpcEndpointAuthToken *authToken)
@@ -553,29 +558,57 @@ exit:
 	return 0;
 }
 
+#if !defined(CONFIG_NVSCIIPC_UPSTREAM)
 static const struct of_device_id nvsciipc_of_match[] = {
 	{ .compatible = "nvidia,nvsciipc", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, nvsciipc_of_match);
+#endif
 
 static struct platform_driver nvsciipc_driver = {
 	.probe  = nvsciipc_probe,
 	.remove = nvsciipc_remove,
 	.driver = {
 		.name = MODULE_NAME,
+#if !defined(CONFIG_NVSCIIPC_UPSTREAM)
 		.of_match_table = nvsciipc_of_match,
+#endif
 	},
 };
 
 static int __init nvsciipc_module_init(void)
 {
-	return platform_driver_register(&(nvsciipc_driver));
+#if defined(CONFIG_NVSCIIPC_UPSTREAM)
+	int ret;
+
+	if (!(of_machine_is_compatible("nvidia,tegra194") ||
+	      of_machine_is_compatible("nvidia,tegra234")))
+		return -ENODEV;
+
+	ret = platform_driver_register(&nvsciipc_driver);
+	if (ret)
+		return ret;
+
+	nvsciipc_pdev = platform_device_register_simple(MODULE_NAME, -1,
+							NULL, 0);
+	if (IS_ERR(nvsciipc_pdev)) {
+		platform_driver_unregister(&nvsciipc_driver);
+		return PTR_ERR(nvsciipc_pdev);
+	}
+
+	return 0;
+#else
+	return platform_driver_register(&nvsciipc_driver);
+#endif
 }
 
 static void __exit nvsciipc_module_deinit(void)
 {
-	platform_driver_unregister(&(nvsciipc_driver));
+#if defined(CONFIG_NVSCIIPC_UPSTREAM)
+	platform_device_unregister(nvsciipc_pdev);
+#endif
+	platform_driver_unregister(&nvsciipc_driver);
 }
 
 module_init(nvsciipc_module_init);
