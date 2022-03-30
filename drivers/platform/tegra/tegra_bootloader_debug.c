@@ -1,7 +1,7 @@
 /*
  * drivers/platform/tegra/tegra_bootloader_debug.c
  *
- * Copyright (C) 2014-2021 NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2014-2022 NVIDIA Corporation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -31,11 +31,13 @@
 
 static const char *module_name = "tegra_bootloader_debug";
 static const char *dir_name = "tegra_bootloader";
+
+#ifdef CONFIG_DEBUG_FS
 static const char *gr_file_mb1 = "gr_mb1";
 static const char *gr_file_mb2 = "gr_mb2";
 static const char *gr_file_cpu_bl = "gr_cpu_bl";
-static const char *profiler = "profiler";
 static const char *boot_cfg = "boot_cfg";
+#endif
 
 struct gr_address_value {
 	unsigned int gr_address;
@@ -81,21 +83,21 @@ struct spi_boot_rx_frame_full {
 	uint8_t data[8200 - sizeof(struct spi_boot_header)];
 };
 
+static struct kobject *boot_profiler_kobj;
+static void *tegra_bl_mapped_prof_start;
+
+#ifdef CONFIG_DEBUG_FS
 const uint32_t gr_mb1 = enum_gr_mb1;
 const uint32_t gr_mb2 = enum_gr_mb2;
 const uint32_t gr_cpu_bl = enum_gr_cpu_bl;
 
 static int dbg_golden_register_show(struct seq_file *s, void *unused);
-static int profiler_show(struct seq_file *s, void *unused);
-static int profiler_open(struct inode *inode, struct file *file);
 static int dbg_golden_register_open_mb1(struct inode *inode, struct file *file);
 static int dbg_golden_register_open_mb2(struct inode *inode, struct file *file);
 static int dbg_golden_register_open_cpu_bl(struct inode *inode, struct file *file);
 static struct dentry *bl_debug_node;
 static struct dentry *bl_debug_verify_reg_node;
-static struct dentry *bl_debug_profiler;
 static struct dentry *bl_debug_boot_cfg;
-static void *tegra_bl_mapped_prof_start;
 static void *tegra_bl_mapped_debug_data_start;
 static int boot_cfg_show(struct seq_file *s, void *unused);
 static int boot_cfg_open(struct inode *inode, struct file *file);
@@ -124,21 +126,13 @@ static const struct file_operations debug_gr_fops_cpu_bl = {
 	.release	= single_release,
 };
 
-
-static const struct file_operations profiler_fops = {
-	.open		= profiler_open,
-	.read		= seq_read,
-	.llseek		= seq_lseek,
-	.release	= single_release,
-};
-
-
 static const struct file_operations boot_cfg_fops = {
 	.open		= boot_cfg_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
 	.release	= single_release,
 };
+#endif /* CONFIG_DEBUG_FS */
 
 #define MAX_PROFILE_STRLEN	55
 
@@ -147,15 +141,18 @@ struct profiler_record {
 	uint64_t timestamp;
 } __packed;
 
-static int profiler_show(struct seq_file *s, void *unused)
+static ssize_t profiler_show(struct kobject *kobj,
+			struct kobj_attribute *attr,
+			char *buf)
 {
+	ssize_t ret = 0;
 	struct profiler_record *profiler_data;
 	int count = 0;
 	int i = 0;
 	int prof_data_section_valid = 0;
 
 	if (!tegra_bl_mapped_prof_start || !tegra_bl_prof_size) {
-		seq_puts(s, "Error mapping profiling data\n");
+		ret += sprintf(buf + ret, "%s\n", "Error mapping profiling data\n");
 		return 0;
 	}
 
@@ -166,28 +163,28 @@ static int profiler_show(struct seq_file *s, void *unused)
 		i++;
 		if (!profiler_data[i].timestamp) {
 			if (prof_data_section_valid) {
-				seq_puts(s, "\n");
+				ret += sprintf(buf + ret, "\n");
 				prof_data_section_valid = 0;
 			}
 			continue;
 		}
-		seq_printf(s, "%-54s\t%16lld", profiler_data[i].str, profiler_data[i].timestamp);
+		ret += sprintf(buf + ret, "%-54s\t%16lld",
+			profiler_data[i].str, profiler_data[i].timestamp);
 		if (i > 0 && profiler_data[i - 1].timestamp) {
-			seq_printf(s, "\t%16lld",
+			ret += sprintf(buf + ret, "\t%16lld",
 				profiler_data[i].timestamp - profiler_data[i - 1].timestamp);
 		}
-		seq_puts(s, "\n");
+		ret += sprintf(buf + ret, "\n");
 		prof_data_section_valid = 1;
 	}
 
-	return 0;
+	return ret;
 }
 
-static int profiler_open(struct inode *inode, struct file *file)
-{
-	return single_open(file, profiler_show, &inode->i_private);
-}
+static struct kobj_attribute profiler_attribute =
+	__ATTR(profiler, 0400, profiler_show, NULL);
 
+#ifdef CONFIG_DEBUG_FS
 static int dbg_golden_register_show(struct seq_file *s, void *unused)
 {
 	struct gr_header *golden_reg_header = (struct gr_header *)tegra_bl_mapped_debug_data_start;
@@ -244,10 +241,13 @@ static int dbg_golden_register_open_cpu_bl( __attribute((unused))struct inode *i
 {
 	return single_open(file, dbg_golden_register_show, (void *)&gr_cpu_bl);
 }
+#endif /* CONFIG_DEBUG_FS */
 
 static int __init tegra_bootloader_debuginit(void)
 {
 	void __iomem *ptr_bl_prof_start = NULL;
+	int bl_debug_verify_file_entry;
+#ifdef CONFIG_DEBUG_FS
 	void __iomem *ptr_bl_debug_data_start = NULL;
 	void __iomem *ptr_bl_boot_cfg_start = NULL;
 
@@ -286,33 +286,6 @@ static int __init tegra_bootloader_debuginit(void)
 		pr_err("%s: failed to create debugfs entries: %ld\n",
 			module_name, PTR_ERR(bl_debug_verify_reg_node));
 		goto out_err;
-	}
-	bl_debug_profiler = debugfs_create_file(profiler, S_IRUGO,
-				bl_debug_node, NULL, &profiler_fops);
-	if (IS_ERR_OR_NULL(bl_debug_profiler)) {
-		pr_err("%s: failed to create debugfs entries: %ld\n",
-			module_name, PTR_ERR(bl_debug_profiler));
-		goto out_err;
-	}
-
-	tegra_bl_mapped_prof_start = phys_to_virt(tegra_bl_prof_start);
-	if (tegra_bl_prof_start != 0
-			&& !pfn_valid(__phys_to_pfn(tegra_bl_prof_start))) {
-		ptr_bl_prof_start = ioremap(tegra_bl_prof_start, tegra_bl_prof_size);
-
-		WARN_ON(!ptr_bl_prof_start);
-		if (!ptr_bl_prof_start) {
-			pr_err("%s: Failed to map tegra_bl_prof_start%08x\n",
-				__func__, (unsigned int)tegra_bl_prof_start);
-			goto out_err;
-		}
-		pr_info("Remapped tegra_bl_prof_start(0x%llx)"
-			" to address 0x%llx, size(0x%llx)\n",
-			(u64)tegra_bl_prof_start,
-			(u64)ptr_bl_prof_start,
-			(u64)tegra_bl_prof_size);
-
-		tegra_bl_mapped_prof_start = ptr_bl_prof_start;
 	}
 
 	tegra_bl_mapped_debug_data_start =
@@ -365,23 +338,65 @@ static int __init tegra_bootloader_debuginit(void)
 			tegra_bl_mapped_boot_cfg_start = ptr_bl_boot_cfg_start;
 		}
 	}
+#endif /* CONFIG_DEBUG_FS */
+	boot_profiler_kobj = kobject_create_and_add(dir_name, kernel_kobj);
+	if (IS_ERR_OR_NULL(boot_profiler_kobj)) {
+		pr_err("%s: failed to create sysfs entries: %ld\n",
+			module_name, PTR_ERR(boot_profiler_kobj));
+		goto out_err;
+	}
+
+	bl_debug_verify_file_entry = sysfs_create_file(boot_profiler_kobj,
+			&profiler_attribute.attr);
+	if (bl_debug_verify_file_entry) {
+		pr_err("%s: failed to create sysfs file : %d\n",
+			module_name, bl_debug_verify_file_entry);
+		goto out_err;
+	}
+
+	if (tegra_bl_prof_start != 0
+			&& !pfn_valid(__phys_to_pfn(tegra_bl_prof_start))) {
+		ptr_bl_prof_start = ioremap(tegra_bl_prof_start, tegra_bl_prof_size);
+
+		WARN_ON(!ptr_bl_prof_start);
+		if (!ptr_bl_prof_start) {
+			pr_err("%s: Failed to map tegra_bl_prof_start%08x\n",
+				__func__, (unsigned int)tegra_bl_prof_start);
+			goto out_err;
+		}
+		pr_info("Remapped tegra_bl_prof_start(0x%llx) "
+			"to address 0x%llx, size(0x%llx)\n",
+			(u64)tegra_bl_prof_start,
+			(u64)ptr_bl_prof_start,
+			(u64)tegra_bl_prof_size);
+
+		tegra_bl_mapped_prof_start = ptr_bl_prof_start;
+	}
 	return 0;
 
 out_err:
+#ifdef CONFIG_DEBUG_FS
 	if (!IS_ERR_OR_NULL(bl_debug_node))
 		debugfs_remove_recursive(bl_debug_node);
-
-	if (ptr_bl_prof_start)
-		iounmap(ptr_bl_prof_start);
 	if (ptr_bl_debug_data_start)
 		iounmap(ptr_bl_debug_data_start);
 	if (ptr_bl_boot_cfg_start)
 		iounmap(ptr_bl_boot_cfg_start);
+#endif
+	if (ptr_bl_prof_start)
+		iounmap(ptr_bl_prof_start);
+
+	if (boot_profiler_kobj) {
+		sysfs_remove_file(boot_profiler_kobj,
+			&profiler_attribute.attr);
+		kobject_put(boot_profiler_kobj);
+		boot_profiler_kobj = NULL;
+	}
 
 	return -ENODEV;
 }
 
-
+#ifdef CONFIG_DEBUG_FS
 static int boot_cfg_show(struct seq_file *s, void *unused)
 {
 	uint8_t *data = tegra_bl_mapped_boot_cfg_start;
@@ -426,6 +441,7 @@ static int boot_cfg_open(struct inode *inode, struct file *file)
 {
 	return single_open(file, boot_cfg_show, &inode->i_private);
 }
+#endif /* CONFIG_DEBUG_FS */
 
 static int __init tegra_bl_debuginit_module_init(void)
 {
@@ -434,17 +450,25 @@ static int __init tegra_bl_debuginit_module_init(void)
 
 static void __exit tegra_bl_debuginit_module_exit(void)
 {
+#ifdef CONFIG_DEBUG_FS
 	if (!IS_ERR_OR_NULL(bl_debug_node))
 		debugfs_remove_recursive(bl_debug_node);
-
-	if (tegra_bl_mapped_prof_start)
-		iounmap(tegra_bl_mapped_prof_start);
 
 	if (tegra_bl_mapped_debug_data_start)
 		iounmap(tegra_bl_mapped_debug_data_start);
 
 	if (tegra_bl_mapped_boot_cfg_start)
 		iounmap(tegra_bl_mapped_boot_cfg_start);
+#endif
+	if (tegra_bl_mapped_prof_start)
+		iounmap(tegra_bl_mapped_prof_start);
+
+	if (boot_profiler_kobj) {
+		sysfs_remove_file(boot_profiler_kobj,
+			&profiler_attribute.attr);
+		kobject_put(boot_profiler_kobj);
+		boot_profiler_kobj = NULL;
+	}
 }
 
 module_init(tegra_bl_debuginit_module_init);
