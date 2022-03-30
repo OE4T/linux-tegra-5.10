@@ -974,7 +974,8 @@
 			 <&bpmp_clks TEGRA234_CLK_AZA_2XBIT>,
 			 <&bpmp_clks TEGRA234_CLK_AZA_BIT>,
 			 <&bpmp_clks TEGRA234_CLK_MIPI_CAL>,
-			 <&bpmp_clks TEGRA234_CLK_UART_FST_MIPI_CAL>;
+			 <&bpmp_clks TEGRA234_CLK_UART_FST_MIPI_CAL>,
+			 <&bpmp_clks TEGRA234_CLK_SOR0_DIV>;
 		clock-names = "nvdisplayhub_clk",
 			      "nvdisplay_disp_clk",
 			      "nvdisplay_p0_clk",
@@ -1035,7 +1036,8 @@
 			      "aza_2xbit_clk",
 			      "aza_bit_clk",
 			      "mipi_cal_clk",
-			      "uart_fst_mipi_cal_clk";
+			      "uart_fst_mipi_cal_clk",
+			      "sor0_div_clk";
 		resets = <&bpmp_resets TEGRA234_RESET_NVDISPLAY>,
 			 <&bpmp_resets TEGRA234_RESET_DPAUX>,
 			 <&bpmp_resets TEGRA234_RESET_DSI_CORE>,
