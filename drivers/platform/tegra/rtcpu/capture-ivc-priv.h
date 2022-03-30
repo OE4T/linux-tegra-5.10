@@ -2,7 +2,7 @@
  * @file drivers/platform/tegra/rtcpu/capture-ivc-priv.h
  * @brief Capture IVC driver private header for T186/T194
  *
- * Copyright (c) 2017-2019 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2022 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -50,7 +50,11 @@ struct tegra_capture_ivc {
 	/** Channel write lock */
 	struct mutex ivc_wr_lock;
 	/** Deferred work */
-	struct work_struct work;
+	struct kthread_work work;
+	/** ivc worker thread **/
+	struct kthread_worker ivc_worker;
+	/** task struct **/
+	struct task_struct *ivc_kthread;
 	/** Channel work queue head */
 	wait_queue_head_t write_q;
 	/** Array holding callbacks registered by each channel */
@@ -95,10 +99,10 @@ static struct tegra_capture_ivc *__scivc_capture;
  * @brief Worker thread to handle the asynchronous msgs on the IVC channel.
 	This will further calls callbacks registered by Channel drivers.
  *
- * @param[in]	work	work_struct pointer
+ * @param[in]	work	kthread_work pointer
  */
 static void tegra_capture_ivc_worker(
-	struct work_struct *work);
+	struct kthread_work *work);
 
 /**
  * @brief Implementation of IVC notify operation which gets called when we any
