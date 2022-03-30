@@ -26,7 +26,7 @@
 	fragment@0 {
 		target-path = "/";
 		board_config {
-			ids = ">=3737-0000-TS4";
+			ids = ">=3737-0000-TS4","3737-0000-RC1";
 		};
 		__overlay__ {
 			i2c@c240000 {
