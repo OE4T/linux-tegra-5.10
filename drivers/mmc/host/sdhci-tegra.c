@@ -251,7 +251,7 @@ struct sdhci_tegra {
 	bool ddr_signaling;
 	bool pad_calib_required;
 	bool pad_control_available;
-
+	struct dentry *sdhcid;
 	struct reset_control *rst;
 	struct pinctrl *pinctrl_sdmmc;
 	struct pinctrl_state *pinctrl_state_3v3;
@@ -3049,6 +3049,11 @@ static int sdhci_tegra_remove(struct platform_device *pdev)
 		clk_disable_unprepare(tegra_host->tmclk);
 	}
 
+	if (!tegra_host->disable_rtpm)
+		pm_runtime_disable(mmc_dev(host->mmc));
+
+	debugfs_remove_recursive(tegra_host->sdhcid);
+
 	sdhci_pltfm_free(pdev);
 
 	return 0;
@@ -3397,10 +3402,6 @@ err_detect:
 DEFINE_SIMPLE_ATTRIBUTE(sdhci_tegra_card_insert_fops, get_card_insert,
 	set_card_insert, "%llu\n");
 
-
-
-
-
 static void sdhci_tegra_debugfs_init(struct sdhci_host *host)
 {
 	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
@@ -3412,6 +3413,8 @@ static void sdhci_tegra_debugfs_init(struct sdhci_host *host)
 		dev_err(mmc_dev(host->mmc), "Failed to create debugfs\n");
 		return;
 	}
+
+	tegra_host->sdhcid = sdhcidir;
 
 	/* Create clock debugfs dir under sdhci debugfs dir */
 	clkdir = debugfs_create_dir("clock_data", sdhcidir);
