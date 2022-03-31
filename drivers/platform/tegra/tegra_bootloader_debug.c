@@ -239,6 +239,18 @@ size_t tegra_bl_add_profiler_entry(const char *buf, size_t len)
 }
 EXPORT_SYMBOL(tegra_bl_add_profiler_entry);
 
+static ssize_t add_profiler_record_store(struct kobject *kobj,
+			struct kobj_attribute *attr,
+			const char *buf, size_t len)
+{
+	if (tegra_bl_add_profiler_entry(buf, len))
+		pr_err("Error adding profiler entry failed\n");
+
+	return len;
+}
+
+static struct kobj_attribute add_profiler_record_attribute =
+	__ATTR_WO(add_profiler_record);
 
 #ifdef CONFIG_DEBUG_FS
 static int dbg_golden_register_show(struct seq_file *s, void *unused)
@@ -410,6 +422,14 @@ static int __init tegra_bootloader_debuginit(void)
 		goto out_err;
 	}
 
+	bl_debug_verify_file_entry = sysfs_create_file(boot_profiler_kobj,
+			&add_profiler_record_attribute.attr);
+	if (bl_debug_verify_file_entry) {
+		pr_err("%s: failed to create sysfs file : %d\n",
+			module_name, bl_debug_verify_file_entry);
+		goto out_err;
+	}
+
 	if (tegra_bl_prof_start != 0
 			&& !pfn_valid(__phys_to_pfn(tegra_bl_prof_start))) {
 		ptr_bl_prof_start = ioremap(tegra_bl_prof_start, tegra_bl_prof_size);
@@ -454,6 +474,8 @@ out_err:
 	if (boot_profiler_kobj) {
 		sysfs_remove_file(boot_profiler_kobj,
 			&profiler_attribute.attr);
+		sysfs_remove_file(boot_profiler_kobj,
+			&add_profiler_record_attribute.attr);
 		kobject_put(boot_profiler_kobj);
 		boot_profiler_kobj = NULL;
 	}
@@ -531,6 +553,8 @@ static void __exit tegra_bl_debuginit_module_exit(void)
 	if (boot_profiler_kobj) {
 		sysfs_remove_file(boot_profiler_kobj,
 			&profiler_attribute.attr);
+		sysfs_remove_file(boot_profiler_kobj,
+			&add_profiler_record_attribute.attr);
 		kobject_put(boot_profiler_kobj);
 		boot_profiler_kobj = NULL;
 	}
