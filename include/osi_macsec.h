@@ -25,6 +25,7 @@
 
 #include <osi_core.h>
 
+#ifdef MACSEC_SUPPORT
 //////////////////////////////////////////////////////////////////////////
 	/* MACSEC OSI data structures */
 //////////////////////////////////////////////////////////////////////////
@@ -35,14 +36,10 @@
  * @brief Helper macros for LUT programming
  * @{
  */
-#define OSI_SCI_LEN			8U
-#define OSI_KEY_LEN_128			16U
-#define OSI_KEY_LEN_256			32U
 #define OSI_AN0_VALID			OSI_BIT(0)
 #define OSI_AN1_VALID			OSI_BIT(1)
 #define OSI_AN2_VALID			OSI_BIT(2)
 #define OSI_AN3_VALID			OSI_BIT(3)
-#define OSI_MAX_NUM_SC			8U
 #define OSI_MAX_NUM_SA			4U
 #define OSI_CURR_AN_MAX 		3
 #define OSI_KEY_INDEX_MAX		31U
@@ -108,7 +105,6 @@
 #define OSI_CTLR_SEL_TX		0U
 #define OSI_CTLR_SEL_RX		1U
 #define OSI_CTLR_SEL_MAX	1U
-#define OSI_NUM_CTLR		2U
 #define OSI_LUT_READ		0U
 #define OSI_LUT_WRITE		1U
 #define OSI_RW_MAX		1U
@@ -270,46 +266,6 @@ struct osi_lut_inputs {
 	nveu32_t vlan_pcp;
 	/** VLAN ID to compare */
 	nveu32_t vlan_id;
-};
-
-/**
- * @brief MACSEC secure channel basic information
- */
-struct osi_macsec_sc_info {
-	/** Secure channel identifier */
-	nveu8_t sci[OSI_SCI_LEN];
-	/** Secure association key */
-	nveu8_t sak[OSI_KEY_LEN_128];
-#ifdef MACSEC_KEY_PROGRAM
-	/** Secure association key */
-	nveu8_t hkey[OSI_KEY_LEN_128];
-#endif /* MACSEC_KEY_PROGRAM */
-	/** current AN */
-	nveu8_t curr_an;
-	/** Next PN to use for the current AN */
-	nveu32_t next_pn;
-	/** Lowest PN to use for the current AN */
-	nveu32_t lowest_pn;
-	/** bitmap of valid AN */
-	nveu32_t an_valid;
-	/** PN window */
-	nveu32_t pn_window;
-	/** SC LUT index */
-	nveu32_t sc_idx_start;
-	/** flags - encoding various states of SA */
-	nveu32_t flags;
-};
-
-/**
- * @brief MACSEC HW controller LUT's global status
- */
-struct osi_macsec_lut_status {
-	/** List of max SC's supported */
-	struct osi_macsec_sc_info sc_info[OSI_MAX_NUM_SC];
-	/** next available BYP LUT index */
-	nveu16_t next_byp_idx;
-	/** number of active SCs */
-	nveu32_t num_of_sc_used;
 };
 
 /**
@@ -1000,4 +956,5 @@ nve32_t osi_macsec_get_sc_lut_key_index(
 nve32_t osi_macsec_update_mtu(struct osi_core_priv_data *const osi_core,
 			      nveu32_t mtu);
 
+#endif /* MACSEC_SUPPORT */
 #endif /* INCLUDED_OSI_MACSEC_H */

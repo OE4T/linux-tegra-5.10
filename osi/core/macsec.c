@@ -2722,7 +2722,7 @@ exit:
 }
 
 static struct osi_macsec_sc_info *find_existing_sc(
-				const struct osi_core_priv_data *const osi_core,
+				struct osi_core_priv_data *const osi_core,
 				struct osi_macsec_sc_info *const sc,
 				nveu16_t ctlr)
 {
@@ -3206,11 +3206,9 @@ static nve32_t config_macsec(struct osi_core_priv_data *const osi_core,
  * @brief if_ops - Static core interface operations for virtual
  * case
  */
-
 nve32_t osi_init_macsec_ops(struct osi_core_priv_data *const osi_core)
 {
 	static struct osi_macsec_core_ops virt_macsec_ops;
-	static struct osi_macsec_lut_status lut_status[OSI_NUM_CTLR];
 	static struct osi_macsec_core_ops macsec_ops = {
 		.init = macsec_init,
 		.deinit = macsec_deinit,
@@ -3240,7 +3238,6 @@ nve32_t osi_init_macsec_ops(struct osi_core_priv_data *const osi_core)
 		}
 		osi_core->macsec_ops = &macsec_ops;
 	}
-	osi_core->macsec_lut_status = lut_status;
 	return 0;
 }
 
