@@ -418,6 +418,9 @@
 		#gpio-cells = <2>;
 		interrupt-controller;
 		#interrupt-cells = <2>;
+		gpio-ranges =
+			<&tegra_pinctrl TEGRA234_MAIN_GPIO_OFFSET TEGRA234_MAIN_PINCTRL_OFFSET_A TEGRA234_MAIN_PINS_A_TO_Z>,
+			<&tegra_pinctrl TEGRA234_MAIN_PINS_A_TO_Z TEGRA234_MAIN_PINCTRL_OFFSET_AC TEGRA234_MAIN_PINS_AC_TO_AG>;
 		status = "disabled";
 	};
 
@@ -435,6 +438,9 @@
 		#gpio-cells = <2>;
 		interrupt-controller;
 		#interrupt-cells = <2>;
+		gpio-ranges =
+			<&tegra_pinctrl TEGRA234_MAIN_GPIO_OFFSET TEGRA234_MAIN_PINS_A_TO_Z TEGRA234_AON_PINS_AA>,
+			<&tegra_pinctrl TEGRA234_AON_PINS_AA TEGRA234_AON_PINCTRL_OFFSET_BB TEGRA234_AON_PINS_BB_TO_GG>;
 		status = "disabled";
 	};
 
