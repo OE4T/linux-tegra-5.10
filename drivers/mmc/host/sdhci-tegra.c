@@ -109,6 +109,8 @@
 #define SDHCI_VNDR_TUN_CTRL0_TUN_WORD_SEL_MASK		0x7
 
 #define SDHCI_TEGRA_VNDR_TUN_CTRL1_0			0x1c4
+#define SDHCI_TEGRA_VNDR_TUN_CTRL1_DQ_OFF_MASK          0xc0000000
+#define SDHCI_TEGRA_VNDR_TUN_CTRL1_DQ_OFF_SHIFT         30
 #define SDHCI_TEGRA_VNDR_TUN_STATUS0			0x1C8
 #define SDHCI_TEGRA_VNDR_TUN_STATUS1			0x1CC
 #define SDHCI_TEGRA_VNDR_TUN_STATUS1_TAP_MASK		0xFF
@@ -164,6 +166,7 @@
  */
 #define NVQUIRK_HAS_TMCLK				BIT(14)
 #define NVQUIRK_ENABLE_PERIODIC_CALIB			BIT(15)
+#define NVQUIRK_ENABLE_TUNING_DQ_OFFSET			BIT(16)
 #define SDHCI_TEGRA_FALLBACK_CLK_HZ			400000
 
 #define MAX_TAP_VALUE		256
@@ -1533,12 +1536,31 @@ static void tegra_sdhci_dll_calib(struct sdhci_host *host)
 static int tegra_sdhci_execute_hw_tuning(struct mmc_host *mmc, u32 opcode)
 {
 	struct sdhci_host *host = mmc_priv(mmc);
+	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
+	struct sdhci_tegra *tegra_host = sdhci_pltfm_priv(pltfm_host);
+	const struct sdhci_tegra_soc_data *soc_data = tegra_host->soc_data;
 	int err;
+	u32 val;
 
 	if (tegra_sdhci_skip_retuning(host))
 		return 0;
 
+	if (soc_data->nvquirks & NVQUIRK_ENABLE_TUNING_DQ_OFFSET) {
+		/* Configure DQ_OFFSET=1 before tuning */
+		val = sdhci_readl(host, SDHCI_TEGRA_VNDR_TUN_CTRL1_0);
+		val &= ~SDHCI_TEGRA_VNDR_TUN_CTRL1_DQ_OFF_MASK;
+		val |= (1U << SDHCI_TEGRA_VNDR_TUN_CTRL1_DQ_OFF_SHIFT);
+		sdhci_writel(host, val, SDHCI_TEGRA_VNDR_TUN_CTRL1_0);
+	}
 	err = sdhci_execute_tuning(mmc, opcode);
+
+	if (soc_data->nvquirks & NVQUIRK_ENABLE_TUNING_DQ_OFFSET) {
+		/* Reset DQ_OFFSET=0 after tuning */
+		val = sdhci_readl(host, SDHCI_TEGRA_VNDR_TUN_CTRL1_0);
+		val &= ~SDHCI_TEGRA_VNDR_TUN_CTRL1_DQ_OFF_MASK;
+		sdhci_writel(host, val, SDHCI_TEGRA_VNDR_TUN_CTRL1_0);
+	}
+
 	if (!err && !host->tuning_err)
 		tegra_sdhci_post_tuning(host);
 
@@ -2664,11 +2686,29 @@ static const struct sdhci_tegra_soc_data soc_data_tegra234 = {
 		    NVQUIRK_SDMMC_CLK_OVERRIDE |
 		    NVQUIRK_ENABLE_SDR104 |
 		    NVQUIRK_HAS_TMCLK,
+	.min_tap_delay = 95,
+	.max_tap_delay = 111,
+	.use_bwmgr = false,
+};
+
+static const struct sdhci_tegra_soc_data soc_data_tegra239 = {
+	.pdata = &sdhci_tegra186_pdata,
+	.dma_mask = DMA_BIT_MASK(39),
+	.nvquirks = NVQUIRK_NEEDS_PAD_CONTROL |
+		    NVQUIRK_HAS_PADCALIB |
+		    NVQUIRK_DIS_CARD_CLK_CONFIG_TAP |
+		    NVQUIRK_CONTROL_TRIMMER_SUPPLY |
+		    NVQUIRK_ENABLE_SDR50 |
+		    NVQUIRK_SDMMC_CLK_OVERRIDE |
+		    NVQUIRK_ENABLE_SDR104 |
+		    NVQUIRK_ENABLE_TUNING_DQ_OFFSET |
+		    NVQUIRK_HAS_TMCLK,
 	.use_bwmgr = false,
 };
 
 
 static const struct of_device_id sdhci_tegra_dt_match[] = {
+	{ .compatible = "nvidia,tegra239-sdhci", .data = &soc_data_tegra239 },
 	{ .compatible = "nvidia,tegra234-sdhci", .data = &soc_data_tegra234 },
 	{ .compatible = "nvidia,tegra194-sdhci", .data = &soc_data_tegra194 },
 	{ .compatible = "nvidia,tegra186-sdhci", .data = &soc_data_tegra186 },
