@@ -277,7 +277,10 @@ static int tegra_hv_add_ivc(struct tegra_hv_data *hvd,
 		rx_base = ivc->givci->shmem + qd->offset + qd->size;
 	}
 
-	snprintf(ivc->name, sizeof(ivc->name), "ivc%u", qd->id);
+	ret = snprintf(ivc->name, sizeof(ivc->name), "ivc%u", qd->id);
+	if (ret < 0) {
+		return -EINVAL;
+	}
 
 	ivc->irq = of_irq_get(hvd->dev, index);
 	if (ivc->irq < 0) {
