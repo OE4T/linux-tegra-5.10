@@ -751,7 +751,8 @@ static int tegra_csi_get_port_info(struct tegra_csi_channel *chan,
 	struct device_node *chan_dt;
 
 	int value = 0xFFFF;
-	int ret = 0, i;
+	int ret = 0;
+	u32 i = 0;
 
 	memset(&chan->port[0], INVALID_CSI_PORT, TEGRA_CSI_BLOCKS);
 	for_each_child_of_node(node, chan_dt) {

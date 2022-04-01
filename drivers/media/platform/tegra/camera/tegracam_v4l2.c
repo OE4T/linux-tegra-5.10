@@ -148,6 +148,9 @@ static int v4l2sd_set_fmt(struct v4l2_subdev *sd,
 	struct camera_common_data *s_data = to_camera_common_data(&client->dev);
 	int ret;
 
+	if (!s_data)
+		return -EINVAL;
+
 	if (format->which == V4L2_SUBDEV_FORMAT_TRY)
 		ret = camera_common_try_fmt(sd, &format->format);
 	else {
@@ -194,10 +197,15 @@ int tegracam_v4l2subdev_register(struct tegracam_device *tc_dev,
 				bool is_sensor)
 {
 	struct camera_common_data *s_data = tc_dev->s_data;
-	struct tegracam_ctrl_handler *ctrl_hdl = s_data->tegracam_ctrl_hdl;
+	struct tegracam_ctrl_handler *ctrl_hdl;
 	struct v4l2_subdev *sd = NULL;
 	struct device *dev = tc_dev->dev;
 	int err = 0;
+
+	if (!s_data)
+		return -EINVAL;
+
+	ctrl_hdl = s_data->tegracam_ctrl_hdl;
 
 	/* init v4l2 subdevice for registration */
 	sd = &s_data->subdev;
@@ -246,7 +254,12 @@ EXPORT_SYMBOL_GPL(tegracam_v4l2subdev_register);
 void tegracam_v4l2subdev_unregister(struct tegracam_device *tc_dev)
 {
 	struct camera_common_data *s_data = tc_dev->s_data;
-	struct v4l2_subdev *sd = &s_data->subdev;
+	struct v4l2_subdev *sd;
+
+	if (!s_data)
+		return;
+
+	sd = &s_data->subdev;
 
 	v4l2_ctrl_handler_free(s_data->ctrl_handler);
 	v4l2_async_unregister_subdev(sd);

@@ -525,7 +525,8 @@ int tegra_vi_get_port_info(struct tegra_channel *chan,
 	struct device_node *ports;
 	struct device_node *port;
 	int value = 0xFFFF;
-	int ret = 0, i;
+	int ret = 0;
+	u32 i = 0;
 
 	ports = of_get_child_by_name(node, "ports");
 	if (ports == NULL)
