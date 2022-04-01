@@ -64,7 +64,6 @@
 #include "chip_support.h"
 #include "t210/t210.h"
 
-#include "t186/t186.h"
 #include "t194/t194.h"
 #include "t23x/t23x.h"
 #ifdef CONFIG_TEGRA_T239_GRHOST
@@ -1002,17 +1001,6 @@ static int nvhost_alloc_resources(struct nvhost_master *host)
 static struct of_device_id tegra_host1x_of_match[] = {
 	{ .compatible = "nvidia,tegra210-host1x",
 		.data = (struct nvhost_device_data *)&t21_host1x_info },
-	{ .name = "host1x",
-		.compatible = "nvidia,tegra186-host1x",
-		.data = (struct nvhost_device_data *)&t18_host1x_info },
-	{ .name = "host1xb",
-		.compatible = "nvidia,tegra186-host1x",
-		.data = (struct nvhost_device_data *)&t18_host1xb_info },
-	{ .compatible = "nvidia,tegra186-host1x-cl34000094",
-		.data = (struct nvhost_device_data *)&t18_host1x_info },
-	{ .name = "host1x",
-	  .compatible = "nvidia,tegra186-host1x-hv",
-		.data = (struct nvhost_device_data *)&t18_host1x_hv_info },
 	{ .name = "host1x",
 		.compatible = "nvidia,tegra194-host1x",
 		.data = (struct nvhost_device_data *)&t19_host1x_info },

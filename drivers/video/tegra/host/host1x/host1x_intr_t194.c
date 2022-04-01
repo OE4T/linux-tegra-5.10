@@ -1,7 +1,7 @@
 /*
  * Tegra Graphics Host Interrupt Management
  *
- * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -20,7 +20,7 @@
 #include <linux/irq.h>
 #include <linux/io.h>
 
-#include "bus_client_t186.h"
+#include "bus_client_t194.h"
 #include "nvhost_intr.h"
 #include "nvhost_ktime.h"
 #include "dev.h"

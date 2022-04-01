@@ -239,7 +239,7 @@ struct nvhost_device_data t23x_msenc_info = {
 		 TEGRA_SET_EMC_SHARED_BW}
 	},
 	.poweron_reset		= true,
-	.finalize_poweron	= nvhost_flcn_finalize_poweron_t186,
+	.finalize_poweron	= nvhost_flcn_finalize_poweron_t194,
 	.moduleid		= NVHOST_MODULE_MSENC,
 	.num_channels		= 1,
 	.firmware_name		= "nvhost_nvenc080.fw",
@@ -332,7 +332,7 @@ struct nvhost_device_data t23x_nvjpg_info = {
 		 TEGRA_SET_EMC_SHARED_BW}
 	},
 	.poweron_reset		= true,
-	.finalize_poweron	= nvhost_flcn_finalize_poweron_t186,
+	.finalize_poweron	= nvhost_flcn_finalize_poweron_t194,
 	.moduleid		= NVHOST_MODULE_NVJPG,
 	.num_channels		= 1,
 	.firmware_name		= "nvhost_nvjpg013.fw",
@@ -362,7 +362,7 @@ struct nvhost_device_data t23x_nvjpg1_info = {
 		 TEGRA_SET_EMC_SHARED_BW}
 	},
 	.poweron_reset		= true,
-	.finalize_poweron	= nvhost_flcn_finalize_poweron_t186,
+	.finalize_poweron	= nvhost_flcn_finalize_poweron_t194,
 	.moduleid		= NVHOST_MODULE_NVJPG1,
 	.num_channels		= 1,
 	.firmware_name		= "nvhost_nvjpg013.fw",
@@ -394,7 +394,7 @@ struct nvhost_device_data t23x_ofa_info = {
 		 TEGRA_SET_EMC_SHARED_BW}
 	},
 	.poweron_reset		= true,
-	.finalize_poweron	= nvhost_flcn_finalize_poweron_t186,
+	.finalize_poweron	= nvhost_flcn_finalize_poweron_t194,
 	.memory_init		= ofa_safety_ram_init,
 	.moduleid		= NVHOST_MODULE_OFA,
 	.num_channels		= 1,
@@ -469,7 +469,7 @@ struct nvhost_device_data t23x_vic_info = {
 	.poweron_reset		= true,
 	.modulemutexes		= {NV_HOST1X_MLOCK_ID_VIC},
 	.class			= NV_GRAPHICS_VIC_CLASS_ID,
-	.finalize_poweron	= nvhost_flcn_finalize_poweron_t186,
+	.finalize_poweron	= nvhost_flcn_finalize_poweron_t194,
 	.prepare_poweroff	= nvhost_flcn_prepare_poweroff,
 	.flcn_isr		= nvhost_flcn_common_isr,
 	.firmware_name		= "nvhost_vic042.fw",
@@ -537,7 +537,7 @@ struct nvhost_device_data t23x_pva0_info = {
 };
 #endif
 
-#include "host1x/host1x_channel_t186.c"
+#include "host1x/host1x_channel_t194.c"
 
 static void t23x_set_nvhost_chanops(struct nvhost_channel *ch)
 {
@@ -649,14 +649,14 @@ static void t23x_init_map_regs(struct platform_device *pdev)
 	}
 }
 
-#include "host1x/host1x_cdma_t186.c"
+#include "host1x/host1x_cdma_t194.c"
 #include "host1x/host1x_syncpt.c"
-#include "host1x/host1x_syncpt_prot_t186.c"
-#include "host1x/host1x_intr_t186.c"
-#include "host1x/host1x_debug_t186.c"
-#include "host1x/host1x_vm_t186.c"
+#include "host1x/host1x_syncpt_prot_t194.c"
+#include "host1x/host1x_intr_t194.c"
+#include "host1x/host1x_debug_t194.c"
+#include "host1x/host1x_vm_t194.c"
 #if IS_ENABLED(CONFIG_TEGRA_GRHOST_SCALE)
-#include "host1x/host1x_actmon_t186.c"
+#include "host1x/host1x_actmon_t194.c"
 #endif
 
 static void host1x08_intr_resume(struct nvhost_intr *intr)
@@ -720,11 +720,11 @@ int nvhost_init_t23x_support(struct nvhost_master *host,
 	op->nvhost_dev.load_gating_regs = t23x_init_gating_regs;
 	op->nvhost_dev.load_map_regs = t23x_init_map_regs;
 
-	op->syncpt.reset = t186_syncpt_reset;
-	op->syncpt.mark_used = t186_syncpt_mark_used;
-	op->syncpt.mark_unused = t186_syncpt_mark_unused;
+	op->syncpt.reset = t194_syncpt_reset;
+	op->syncpt.mark_used = t194_syncpt_mark_used;
+	op->syncpt.mark_unused = t194_syncpt_mark_unused;
 
-	op->syncpt.mutex_owner = t186_syncpt_mutex_owner;
+	op->syncpt.mutex_owner = t194_syncpt_mutex_owner;
 
 	op->remove_support = t23x_remove_support;
 

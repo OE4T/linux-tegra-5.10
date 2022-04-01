@@ -1,7 +1,7 @@
 /*
  * Tegra Graphics Host Syncpt Protection
  *
- * Copyright (c) 2015, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -18,11 +18,11 @@
 
 #include <linux/io.h>
 
-#include "bus_client_t186.h"
+#include "bus_client_t194.h"
 #include "nvhost_syncpt.h"
 #include "chip_support.h"
 
-static void t186_syncpt_reset(struct nvhost_syncpt *sp, u32 id)
+static void t194_syncpt_reset(struct nvhost_syncpt *sp, u32 id)
 {
 	struct nvhost_master *dev = syncpt_to_dev(sp);
 	int min = nvhost_syncpt_read_min(sp, id);
@@ -32,7 +32,7 @@ static void t186_syncpt_reset(struct nvhost_syncpt *sp, u32 id)
 
 }
 
-static int t186_syncpt_mark_used(struct nvhost_syncpt *sp,
+static int t194_syncpt_mark_used(struct nvhost_syncpt *sp,
 				 u32 chid, u32 syncptid)
 {
 	struct nvhost_master *dev = syncpt_to_dev(sp);
@@ -43,7 +43,7 @@ static int t186_syncpt_mark_used(struct nvhost_syncpt *sp,
 	return 0;
 }
 
-static int t186_syncpt_mark_unused(struct nvhost_syncpt *sp, u32 id)
+static int t194_syncpt_mark_unused(struct nvhost_syncpt *sp, u32 id)
 {
 	struct nvhost_master *dev = syncpt_to_dev(sp);
 
@@ -70,7 +70,7 @@ static int t186_syncpt_mark_unused(struct nvhost_syncpt *sp, u32 id)
 }
 
 
-static void t186_syncpt_mutex_owner(struct nvhost_syncpt *sp,
+static void t194_syncpt_mutex_owner(struct nvhost_syncpt *sp,
 				unsigned int idx,
 				bool *cpu, bool *ch,
 				unsigned int *chid)

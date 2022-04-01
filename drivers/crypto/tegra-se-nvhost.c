@@ -55,7 +55,7 @@
 #include <dt-bindings/interconnect/tegra_icc_id.h>
 
 #include "tegra-se-nvhost.h"
-#include "t186/hardware_t186.h"
+#include "t194/hardware_t194.h"
 #include "nvhost_job.h"
 #include "nvhost_channel.h"
 #include "nvhost_acm.h"

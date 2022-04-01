@@ -50,7 +50,6 @@
 #include "host1x/host1x04_hardware.h" /* for nvhost opcodes*/
 #include "t210/t210.h"
 
-#include "t186/t186.h"
 #include "t194/t194.h"
 #include "t23x/t23x.h"
 #ifdef CONFIG_TEGRA_T239_GRHOST
@@ -487,7 +486,7 @@ void flcn_enable_thi_sec(struct platform_device *pdev)
 	host1x_writel(pdev, 0x38, BIT(8));
 }
 
-int nvhost_flcn_finalize_poweron_t186(struct platform_device *pdev)
+int nvhost_flcn_finalize_poweron_t194(struct platform_device *pdev)
 {
 	flcn_enable_thi_sec(pdev);
 
@@ -737,8 +736,6 @@ static struct of_device_id tegra_flcn_of_match[] = {
 #if IS_ENABLED(CONFIG_TEGRA_GRHOST_VIC)
 	{ .compatible = "nvidia,tegra210-vic",
 		.data = (struct nvhost_device_data *)&t21_vic_info },
-	{ .compatible = "nvidia,tegra186-vic",
-		.data = (struct nvhost_device_data *)&t18_vic_info },
 	{ .compatible = "nvidia,tegra194-vic",
 		.data = (struct nvhost_device_data *)&t19_vic_info },
 	{ .compatible = "nvidia,tegra234-vic",
@@ -747,8 +744,6 @@ static struct of_device_id tegra_flcn_of_match[] = {
 #if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVENC)
 	{ .compatible = "nvidia,tegra210-nvenc",
 		.data = (struct nvhost_device_data *)&t21_msenc_info },
-	{ .compatible = "nvidia,tegra186-nvenc",
-		.data = (struct nvhost_device_data *)&t18_msenc_info },
 	{ .compatible = "nvidia,tegra194-nvenc",
 		.data = (struct nvhost_device_data *)&t19_msenc_info,
 		.name = "nvenc" },
@@ -762,8 +757,6 @@ static struct of_device_id tegra_flcn_of_match[] = {
 #if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVJPG)
 	{ .compatible = "nvidia,tegra210-nvjpg",
 		.data = (struct nvhost_device_data *)&t21_nvjpg_info },
-	{ .compatible = "nvidia,tegra186-nvjpg",
-		.data = (struct nvhost_device_data *)&t18_nvjpg_info },
 	{ .compatible = "nvidia,tegra194-nvjpg",
 		.data = (struct nvhost_device_data *)&t19_nvjpg_info },
 	{ .compatible = "nvidia,tegra234-nvjpg",

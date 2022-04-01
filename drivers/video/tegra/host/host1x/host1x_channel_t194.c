@@ -3,7 +3,7 @@
  *
  * Tegra Graphics Host Channel
  *
- * Copyright (c) 2010-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2010-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "bus_client_t186.h"
+#include "bus_client_t194.h"
 #include "nvhost_channel.h"
 #include "dev.h"
 #include "class_ids.h"
@@ -368,7 +368,7 @@ static void set_mlock_timeout(struct nvhost_channel *ch)
 
 	if (nvhost_dev_is_virtual(host->dev)) {
 		/*
-		 * On T186 and T194, per channel Mlock timeout is provided.
+		 * On T194, per channel Mlock timeout is provided.
 		 * So Nvhost driver configures Mlock timeout counter.
 		 * On T234, per engine Mlock timeout is provided. And per engine
 		 * Mlock timeout counter register is in HOST1X COMMON page.

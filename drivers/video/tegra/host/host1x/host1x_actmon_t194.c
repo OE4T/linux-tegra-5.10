@@ -1,7 +1,7 @@
 /*
- * Tegra Graphics Host Actmon support for T186
+ * Tegra Graphics Host Actmon support for T194
  *
- * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -25,7 +25,7 @@
 #include "dev.h"
 #include "chip_support.h"
 #include "host1x/host1x_actmon.h"
-#include "bus_client_t186.h"
+#include "bus_client_t194.h"
 #include "nvhost_scale.h"
 
 static void host1x_actmon_process_isr(u32 hintstat, void *priv);

@@ -34,7 +34,6 @@ nvhost-y += \
 	flcn/flcn.o \
 	riscv/riscv.o \
 	t210/t210.o \
-	t186/t186.o \
 	t194/t194.o \
 	t23x/t23x.o
 

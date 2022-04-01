@@ -85,8 +85,8 @@ int flcn_setup_ucode_image(struct platform_device *dev,
 			   struct ucode_v1_flcn *ucode);
 int nvhost_vic_prepare_poweroff(struct platform_device *);
 void flcn_enable_thi_sec(struct platform_device *);
-int nvhost_flcn_finalize_poweron_t186(struct platform_device *);
-int nvhost_vic_finalize_poweron(struct platform_device *);
+int nvhost_flcn_finalize_poweron_t194(struct platform_device *device);
+int nvhost_vic_finalize_poweron(struct platform_device *device);
 int nvhost_vic_init_context(struct platform_device *pdev,
 			    struct nvhost_cdma *cdma);
 void flcn_enable_timestamps(struct platform_device *pdev,
