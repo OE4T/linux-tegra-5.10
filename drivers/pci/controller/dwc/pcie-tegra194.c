@@ -462,6 +462,7 @@ struct tegra_pcie_dw {
 	u32 aspm_pwr_on_t;
 	u32 aspm_l0s_enter_lat;
 	u32 disabled_aspm_states;
+	u32 link_up_to;
 
 	struct regulator *pex_ctl_supply;
 	struct regulator *slot_ctl_3v3;
@@ -2388,13 +2389,25 @@ static int tegra_pcie_dw_host_init(struct pcie_port *pp)
 {
 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
 	struct tegra_pcie_dw *pcie = to_tegra_pcie(pci);
-	u32 val, tmp, offset, speed;
+	u32 val, tmp, offset, speed, link_up_to = pcie->link_up_to, linkup = 0;
 
 	pp->bridge->ops = &tegra_pci_ops;
 
 	tegra_pcie_prepare_host(pp);
 
-	if (dw_pcie_wait_for_link(pci)) {
+	do {
+		if (dw_pcie_wait_for_link(pci) == 0) {
+			linkup = 1;
+			break;
+		}
+		if (link_up_to > (LINK_WAIT_MAX_RETRIES * LINK_WAIT_USLEEP_MAX)) {
+			link_up_to -= (LINK_WAIT_MAX_RETRIES * LINK_WAIT_USLEEP_MAX);
+			dev_info(pci->dev, "Link up timeout set, retrying Link up");
+		} else
+			break;
+	} while (link_up_to);
+
+	if (!linkup) {
 		/*
 		 * There are some endpoints which can't get the link up if
 		 * root port has Data Link Feature (DLF) enabled.
@@ -2616,7 +2629,7 @@ static int tegra_pcie_dw_parse_dt(struct tegra_pcie_dw *pcie)
 	if (pcie->mode == DW_PCIE_RC_TYPE)
 		flags = GPIOD_IN;
 	else
-		flags = GPIOD_OUT_HIGH;
+		flags = GPIOD_OUT_LOW;
 
 	pcie->pex_prsnt_gpiod = devm_gpiod_get(pcie->dev, "nvidia,pex-prsnt",
 					       flags);
@@ -2628,6 +2641,15 @@ static int tegra_pcie_dw_parse_dt(struct tegra_pcie_dw *pcie)
 
 		dev_dbg(pcie->dev, "Failed to get PCIe PRSNT GPIO: %d\n", err);
 		pcie->pex_prsnt_gpiod = NULL;
+	}
+
+	ret = of_property_read_u32(np, "nvidia,link_up_to", &pcie->link_up_to);
+	/* convert to usec */
+	pcie->link_up_to *= 1000;
+	if ((ret < 0) || (pcie->link_up_to < (LINK_WAIT_MAX_RETRIES * LINK_WAIT_USLEEP_MAX))) {
+		dev_dbg(pcie->dev,
+			"configuring default link up timeout\n");
+		pcie->link_up_to = (LINK_WAIT_MAX_RETRIES * LINK_WAIT_USLEEP_MAX);
 	}
 
 	if (pcie->mode == DW_PCIE_RC_TYPE) {
