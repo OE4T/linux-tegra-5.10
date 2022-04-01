@@ -150,6 +150,7 @@ static void mgbe_get_rx_csum(const struct osi_rx_desc *const rx_desc,
 			     struct osi_rx_pkt_cx *rx_pkt_cx)
 {
 	nveu32_t ellt = rx_desc->rdes3 & RDES3_ELLT;
+	nveu32_t pkt_type;
 
 	/* Always include either checksum none/unnecessary
 	 * depending on status fields in desc.
@@ -158,8 +159,31 @@ static void mgbe_get_rx_csum(const struct osi_rx_desc *const rx_desc,
 	if ((ellt != RDES3_ELLT_IPHE) && (ellt != RDES3_ELLT_CSUM_ERR)) {
 		rx_pkt_cx->rxcsum |= OSI_CHECKSUM_UNNECESSARY;
 	}
+
+	rx_pkt_cx->rxcsum |= OSI_CHECKSUM_IPv4;
+	if (ellt == RDES3_ELLT_IPHE) {
+		rx_pkt_cx->rxcsum |= OSI_CHECKSUM_IPv4_BAD;
+	}
+
+	pkt_type = rx_desc->rdes3 & MGBE_RDES3_PT_MASK;
+	if (pkt_type == MGBE_RDES3_PT_IPV4_TCP) {
+		rx_pkt_cx->rxcsum |= OSI_CHECKSUM_TCPv4;
+	} else if (pkt_type == MGBE_RDES3_PT_IPV4_UDP) {
+		rx_pkt_cx->rxcsum |= OSI_CHECKSUM_UDPv4;
+	} else if (pkt_type == MGBE_RDES3_PT_IPV6_TCP) {
+		rx_pkt_cx->rxcsum |= OSI_CHECKSUM_TCPv6;
+	} else if (pkt_type == MGBE_RDES3_PT_IPV6_UDP) {
+		rx_pkt_cx->rxcsum |= OSI_CHECKSUM_UDPv6;
+	} else {
+		/* Do nothing */
+	}
+
+	if (ellt == RDES3_ELLT_CSUM_ERR) {
+		rx_pkt_cx->rxcsum |= OSI_CHECKSUM_TCP_UDP_BAD;
+	}
 }
-/** 
+
+/**
  * @brief mgbe_get_rx_hwstamp - Get Rx HW Time stamp
  *
  * Algorithm:

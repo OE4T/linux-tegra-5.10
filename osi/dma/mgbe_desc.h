@@ -35,5 +35,18 @@
 /** @} */
 #endif /* !OSI_STRIPPED_LIB */
 
-#endif /* MGBE_DESC_H_ */
+/**
+ * @addtogroup MGBE RDESC bits.
+ *
+ * @brief Values defined for the MGBE rx descriptor bit fields
+ * @{
+ */
 
+#define MGBE_RDES3_PT_MASK	(OSI_BIT(20) | OSI_BIT(21) | OSI_BIT(22) | OSI_BIT(23))
+#define MGBE_RDES3_PT_IPV4_TCP	OSI_BIT(20)
+#define MGBE_RDES3_PT_IPV4_UDP	OSI_BIT(21)
+#define MGBE_RDES3_PT_IPV6_TCP	(OSI_BIT(20) | OSI_BIT(23))
+#define MGBE_RDES3_PT_IPV6_UDP	(OSI_BIT(21) | OSI_BIT(23))
+/** @} */
+
+#endif /* MGBE_DESC_H_ */
