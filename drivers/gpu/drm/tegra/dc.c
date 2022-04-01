@@ -2293,8 +2293,6 @@ static void tegra_crtc_atomic_begin(struct drm_crtc *crtc,
 
 		crtc->state->event = NULL;
 	}
-
-	tegra_dc_disable_vblank(crtc);
 }
 
 static void tegra_crtc_atomic_flush(struct drm_crtc *crtc,
@@ -2321,8 +2319,6 @@ static void tegra_crtc_atomic_flush(struct drm_crtc *crtc,
 	value = dc_state->planes | GENERAL_ACT_REQ;
 	tegra_dc_writel(dc, value, DC_CMD_STATE_CONTROL);
 	value = tegra_dc_readl(dc, DC_CMD_STATE_CONTROL);
-
-	tegra_dc_enable_vblank(crtc);
 }
 
 static bool tegra_plane_is_cursor(const struct drm_plane_state *state)
@@ -2539,10 +2535,9 @@ static const struct drm_crtc_helper_funcs tegra_crtc_helper_funcs = {
 static irqreturn_t tegra_dc_irq(int irq, void *data)
 {
 	struct tegra_dc *dc = data;
-	u32 status, value, mask;
+	unsigned long status;
 
-	mask = tegra_dc_readl(dc, DC_CMD_INT_MASK);
-	status = tegra_dc_readl(dc, DC_CMD_INT_STATUS) & mask;
+	status = tegra_dc_readl(dc, DC_CMD_INT_STATUS);
 	tegra_dc_writel(dc, status, DC_CMD_INT_STATUS);
 
 	if (status & FRAME_END_INT) {
@@ -2557,9 +2552,7 @@ static irqreturn_t tegra_dc_irq(int irq, void *data)
 		/*
 		dev_dbg(dc->dev, "%s(): vertical blank\n", __func__);
 		*/
-		value = tegra_dc_readl(dc, DC_CMD_STATE_CONTROL);
-		if (!value)
-			drm_crtc_handle_vblank(&dc->base);
+		drm_crtc_handle_vblank(&dc->base);
 		dc->stats.vblank_total++;
 		dc->stats.vblank++;
 	}
