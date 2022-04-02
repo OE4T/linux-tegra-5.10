@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -19,6 +19,11 @@
 		#address-cells = <2>;
 		#size-cells = <2>;
 		ranges;
+
+		vpr: vpr-carveout {
+			compatible = "nvidia,vpr-carveout";
+			status = "disabled";
+		};
 
 		generic_reserved: generic_carveout {
 			compatible = "nvidia,generic_carveout";
@@ -77,13 +82,7 @@
 
 	tegra-carveouts {
 		compatible = "nvidia,carveouts-t19x";
-                /* *************Note**************
-		 * Zero sized memory regions has to be kept at the end of "memory-region"
-		 * array. "memory-region" parser stops parsing other regions in the array
-                 * once it finds Zero size "memory-region". Hence keep non zero sized
-		 * "memory-region" before the zero sized ones.
-		 */
-		memory-region = <&gos_reserved &generic_reserved>;
+		memory-region = <&generic_reserved &vpr>;
 		status = "disabled";
 	};
 
