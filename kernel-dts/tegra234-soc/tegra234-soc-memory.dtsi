@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -56,13 +56,10 @@
 			no-map;
 			alloc-ranges = <0x0 0x0 0x1 0x0>;
 			status = "okay";
-                };
+		};
 
 		vpr: vpr-carveout {
 			compatible = "nvidia,vpr-carveout";
-			size = <0 0x2a000000>;
-			alignment = <0 0x400000>;
-			alloc-ranges = <0x0 0x80000000 0x0 0x70000000>;
 			status = "disabled";
 		};
 
@@ -84,7 +81,7 @@
 		 * once it finds Zero size "memory-region". Hence keep non zero sized
 		 * "memory-region" before the zero sized ones.
 		 */
-		memory-region = <&fsi_reserved &generic_reserved &gos_reserved>;
+		memory-region = <&fsi_reserved &generic_reserved &vpr>;
 		status = "okay";
 	};
 
