@@ -31,6 +31,7 @@
 
 static const char *module_name = "tegra_bootloader_debug";
 static const char *dir_name = "tegra_bootloader";
+void __iomem *usc;
 
 #ifdef CONFIG_DEBUG_FS
 static const char *gr_file_mb1 = "gr_mb1";
@@ -83,6 +84,7 @@ struct spi_boot_rx_frame_full {
 	uint8_t data[8200 - sizeof(struct spi_boot_header)];
 };
 
+static spinlock_t tegra_bl_lock;
 static struct kobject *boot_profiler_kobj;
 static void *tegra_bl_mapped_prof_start;
 
@@ -135,6 +137,10 @@ static const struct file_operations boot_cfg_fops = {
 #endif /* CONFIG_DEBUG_FS */
 
 #define MAX_PROFILE_STRLEN	55
+/* This address corresponds to T234
+ * TBD - get this information from DT node
+ */
+#define TEGRA_US_COUNTER_REG	0x0C6B0000
 
 struct profiler_record {
 	char str[MAX_PROFILE_STRLEN + 1];
@@ -183,6 +189,56 @@ static ssize_t profiler_show(struct kobject *kobj,
 
 static struct kobj_attribute profiler_attribute =
 	__ATTR(profiler, 0400, profiler_show, NULL);
+
+/**
+ * tegra_bl_add_profiler_entry - add a new profiling point
+ * @buf: string to add as a profiling marker
+ * @len: length of the string
+ *
+ * Return: 0 on success or error code in case of failure.
+ */
+size_t tegra_bl_add_profiler_entry(const char *buf, size_t len)
+{
+	int count = 0;
+	int i = 0;
+	struct profiler_record *profiler_data;
+
+	if (len > MAX_PROFILE_STRLEN) {
+		pr_err("%s: Failed to add record, invalid length: %ld\n",
+			module_name, len);
+		return -EINVAL;
+	}
+
+	if (!tegra_bl_mapped_prof_start || !tegra_bl_prof_size) {
+		pr_err("Error mapping profiling data\n");
+		return -EINVAL;
+	}
+
+	spin_lock(&tegra_bl_lock);
+
+	profiler_data = (struct profiler_record *)tegra_bl_mapped_prof_start;
+	count = tegra_bl_prof_size / sizeof(struct profiler_record);
+	while (i < count) {
+		if (!profiler_data[i].timestamp)
+			break;
+		i++;
+	}
+
+	if (i == count) {
+		pr_err("Error profiling data buffer full\n");
+		spin_unlock(&tegra_bl_lock);
+		return -ENOMEM;
+	}
+
+	profiler_data[i].timestamp = readl(usc);
+	spin_unlock(&tegra_bl_lock);
+
+	strncpy(profiler_data[i].str, buf, len);
+
+	return 0;
+}
+EXPORT_SYMBOL(tegra_bl_add_profiler_entry);
+
 
 #ifdef CONFIG_DEBUG_FS
 static int dbg_golden_register_show(struct seq_file *s, void *unused)
@@ -372,6 +428,15 @@ static int __init tegra_bootloader_debuginit(void)
 
 		tegra_bl_mapped_prof_start = ptr_bl_prof_start;
 	}
+
+	usc = ioremap(TEGRA_US_COUNTER_REG, 4);
+	if (!usc) {
+		pr_err("Failed to map TEGRA_US_COUNTER_REG\n");
+		goto out_err;
+	}
+
+	spin_lock_init(&tegra_bl_lock);
+
 	return 0;
 
 out_err:
@@ -469,6 +534,9 @@ static void __exit tegra_bl_debuginit_module_exit(void)
 		kobject_put(boot_profiler_kobj);
 		boot_profiler_kobj = NULL;
 	}
+
+	if (usc)
+		iounmap(usc);
 }
 
 module_init(tegra_bl_debuginit_module_init);
