@@ -66,6 +66,13 @@
 #define KEYSTR "%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x \
 %02x %02x %02x %02x %02x %02x"
 
+/* For 128 bit SAK, key len is 16 bytes, wrapped key len is 24 bytes
+ * and for 256 SAK, key len is 32 bytes, wrapped key len is 40 bytes
+ */
+#define NV_SAK_WRAPPED_LEN 24
+/* PKCS KEK CK_OBJECT_HANDLE is u64 type */
+#define NV_KEK_HANDLE_SIZE 8
+
 /* keep the same enum definition in nv macsec supplicant driver */
 enum nv_macsec_sa_attrs {
 	NV_MACSEC_SA_ATTR_UNSPEC,
@@ -73,7 +80,12 @@ enum nv_macsec_sa_attrs {
 	NV_MACSEC_SA_ATTR_AN,
 	NV_MACSEC_SA_ATTR_PN,
 	NV_MACSEC_SA_ATTR_LOWEST_PN,
+#ifdef NVPKCS_MACSEC
+	NV_MACSEC_SA_PKCS_KEY_WRAP,
+	NV_MACSEC_SA_PKCS_KEK_HANDLE,
+#else
 	NV_MACSEC_SA_ATTR_KEY,
+#endif /* NVPKCS_MACSEC */
 	__NV_MACSEC_SA_ATTR_END,
 	NUM_NV_MACSEC_SA_ATTR = __NV_MACSEC_SA_ATTR_END,
 	NV_MACSEC_SA_ATTR_MAX = __NV_MACSEC_SA_ATTR_END - 1,
@@ -85,7 +97,12 @@ enum nv_macsec_tz_attrs {
 	NV_MACSEC_TZ_ATTR_CTRL,
 	NV_MACSEC_TZ_ATTR_RW,
 	NV_MACSEC_TZ_ATTR_INDEX,
+#ifdef NVPKCS_MACSEC
+	NV_MACSEC_TZ_PKCS_KEY_WRAP,
+	NV_MACSEC_TZ_PKCS_KEK_HANDLE,
+#else
 	NV_MACSEC_TZ_ATTR_KEY,
+#endif /* NVPKCS_MACSEC */
 	NV_MACSEC_TZ_ATTR_FLAG,
 	__NV_MACSEC_TZ_ATTR_END,
 	NUM_NV_MACSEC_TZ_ATTR = __NV_MACSEC_TZ_ATTR_END,
@@ -123,8 +140,14 @@ static const struct nla_policy nv_macsec_sa_genl_policy[NUM_NV_MACSEC_SA_ATTR] =
 	[NV_MACSEC_SA_ATTR_AN] = { .type = NLA_U8 },
 	[NV_MACSEC_SA_ATTR_PN] = { .type = NLA_U32 },
 	[NV_MACSEC_SA_ATTR_LOWEST_PN] = { .type = NLA_U32 },
+#ifdef NVPKCS_MACSEC
+	[NV_MACSEC_SA_PKCS_KEY_WRAP] = { .type = NLA_BINARY,
+					 .len = NV_SAK_WRAPPED_LEN,},
+	[NV_MACSEC_SA_PKCS_KEK_HANDLE] = { .type = NLA_U64 },
+#else
 	[NV_MACSEC_SA_ATTR_KEY] = { .type = NLA_BINARY,
 				    .len = OSI_KEY_LEN_256,},
+#endif /* NVPKCS_MACSEC */
 };
 
 static const struct nla_policy nv_macsec_tz_genl_policy[NUM_NV_MACSEC_TZ_ATTR] = {
@@ -132,8 +155,14 @@ static const struct nla_policy nv_macsec_tz_genl_policy[NUM_NV_MACSEC_TZ_ATTR] =
 	[NV_MACSEC_TZ_ATTR_CTRL] = { .type = NLA_U8 }, /* controller Tx or Rx */
 	[NV_MACSEC_TZ_ATTR_RW] = { .type = NLA_U8 },
 	[NV_MACSEC_TZ_ATTR_INDEX] = { .type = NLA_U8 },
+#ifdef NVPKCS_MACSEC
+	[NV_MACSEC_SA_PKCS_KEY_WRAP] = { .type = NLA_BINARY,
+					 .len = NV_SAK_WRAPPED_LEN,},
+	[NV_MACSEC_SA_PKCS_KEK_HANDLE] = { .type = NLA_U64 },
+#else
 	[NV_MACSEC_TZ_ATTR_KEY] = { .type = NLA_BINARY,
 				    .len = OSI_KEY_LEN_256 },
+#endif /* NVPKCS_MACSEC */
 	[NV_MACSEC_TZ_ATTR_FLAG] = { .type = NLA_U32 },
 };
 
@@ -183,6 +212,18 @@ struct macsec_supplicant_data {
 	unsigned int enabled;
 	/** MACsec cipher suite */
 	unsigned int cipher;
+};
+
+/**
+ * @brief MACsec supplicant pkcs data structure
+ */
+struct nvpkcs_data {
+	/** wrapped key */
+	u8 nv_key[NV_SAK_WRAPPED_LEN];
+	/** wrapped key length */
+	int nv_key_len;
+	/** pkcs KEK handle(CK_OBJECT_HANDLE ) is u64 */
+	u64 nv_kek;
 };
 
 /**
