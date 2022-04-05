@@ -262,7 +262,7 @@ static void icc_set_rate(struct actmon_dev *adev, unsigned long freq)
 	u32 floor_bw_kbps = 0;
 
 	icc_path_handle = (struct icc_path *)adev->clnt;
-	floor_bw_kbps = emc_freq_to_bw(freq / 1000);
+	floor_bw_kbps = emc_freq_to_bw(freq);
 
 	icc_set_bw(icc_path_handle, 0, floor_bw_kbps);
 #endif
