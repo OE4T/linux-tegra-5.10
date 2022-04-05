@@ -59,11 +59,11 @@
 #endif
 #endif /* LINUX_VERSION_CODE */
 
-#ifndef NVMAP_LOADABLE_MODULE
+#ifndef NVMAP_KSTABLE_KERNEL
 extern phys_addr_t tegra_vpr_start;
 extern phys_addr_t tegra_vpr_size;
 extern bool tegra_vpr_resize;
-#endif /* !NVMAP_LOADABLE_MODULE */
+#endif /* !NVMAP_KSTABLE_KERNEL */
 
 struct device __weak tegra_generic_dev;
 
@@ -297,9 +297,9 @@ err:
 }
 #endif /* CONFIG_TEGRA_VIRTUALIZATION */
 
-#ifndef NVMAP_LOADABLE_MODULE
+#ifndef NVMAP_KSTABLE_KERNEL
 static int __nvmap_init_legacy(struct device *dev);
-#endif /* !NVMAP_LOADABLE_MODULE */
+#endif /* !NVMAP_KSTABLE_KERNEL */
 static int __nvmap_init_dt(struct platform_device *pdev)
 {
 	if (!of_match_device(nvmap_of_ids, &pdev->dev)) {
@@ -307,10 +307,10 @@ static int __nvmap_init_dt(struct platform_device *pdev)
 		return -EINVAL;
 	}
 
-#ifndef NVMAP_LOADABLE_MODULE
+#ifndef NVMAP_KSTABLE_KERNEL
 	/* For VM_2 we need carveout. So, enabling it here */
 	__nvmap_init_legacy(&pdev->dev);
-#endif /* !NVMAP_LOADABLE_MODULE */
+#endif /* !NVMAP_KSTABLE_KERNEL */
 
 	pdev->dev.platform_data = &nvmap_data;
 
@@ -817,7 +817,7 @@ RESERVEDMEM_OF_DECLARE(nvmap_fsi_co, "nvidia,fsi-carveout", nvmap_co_setup);
 /*
  * This requires proper kernel arguments to have been passed.
  */
-#ifndef NVMAP_LOADABLE_MODULE
+#ifndef NVMAP_KSTABLE_KERNEL
 static int __nvmap_init_legacy(struct device *dev)
 {
 	/* VPR */
@@ -830,7 +830,7 @@ static int __nvmap_init_legacy(struct device *dev)
 
 	return 0;
 }
-#endif /* !NVMAP_LOADABLE_MODULE */
+#endif /* !NVMAP_KSTABLE_KERNEL */
 
 /*
  * Fills in the platform data either from the device tree or with the
