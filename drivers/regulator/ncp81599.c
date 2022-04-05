@@ -103,10 +103,10 @@ static int ncp81599_probe(struct i2c_client *client,
 	rdesc->owner = THIS_MODULE;
 	rdesc->ops = &ncp81599_regulator_ops;
 
-	of_property_read_string(np, "regulator-name", &rdesc->name);
-	if (!rdesc->name) {
-		dev_err(dev, "failed to get a regulator-name\n");
-		return -EINVAL;
+	ret = of_property_read_string(np, "regulator-name", &rdesc->name);
+	if (ret) {
+		dev_err(dev, "read string regulator-name failed\n");
+		return ret;
 	}
 
 	rdesc->supply_name = rdesc->name;
