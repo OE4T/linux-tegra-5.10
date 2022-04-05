@@ -336,6 +336,9 @@ static void dce_print(const char *func_name, int line,
 #define DCE_LOG_FMT	"dce: %15s:%-4d %s\n"
 
 	switch (type) {
+	case DCE_DEBUG:
+		pr_debug(DCE_LOG_FMT, func_name, line, log);
+		break;
 	case DCE_INFO:
 		pr_info(DCE_LOG_FMT, func_name, line, log);
 		break;
