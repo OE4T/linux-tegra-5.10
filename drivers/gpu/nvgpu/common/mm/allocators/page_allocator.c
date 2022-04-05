@@ -1069,6 +1069,11 @@ int nvgpu_page_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 		return -EINVAL;
 	}
 
+	if (strlen(name) >= (sizeof(buddy_name)) - (sizeof("-src"))) {
+		nvgpu_err(g, "allocator name too long");
+		return -EINVAL;
+	}
+
 	a = nvgpu_kzalloc(g, sizeof(struct nvgpu_page_allocator));
 	if (a == NULL) {
 		return -ENOMEM;
