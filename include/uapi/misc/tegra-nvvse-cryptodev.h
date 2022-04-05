@@ -148,22 +148,6 @@ struct tegra_nvvse_sha_final_ctl {
 						struct tegra_nvvse_sha_final_ctl)
 
 /**
-  * \brief Holds AES Set Key Header Params
-  */
-struct tegra_nvvse_aes_set_key_ctl {
-	/** Holds the pointer of the key data buffer */
-	uint8_t		*key_data;
-	/** Holds the key slot number */
-	uint32_t	key_slot_number;
-	/** Holds the length of key */
-	uint32_t	key_length;
-	/** Indicates the key is CMAC or not */
-	uint8_t		is_cmac;
-};
-#define NVVSE_IOCTL_CMDID_AES_SET_KEY _IOW(TEGRA_NVVSE_IOC_MAGIC, TEGRA_NVVSE_CMDID_AES_SET_KEY, \
-						struct tegra_nvvse_aes_set_key_ctl)
-
-/**
   *  \brief Holds AES encrypt/decrypt parameters for IO Control.
   */
 struct  tegra_nvvse_aes_enc_dec_ctl {
@@ -379,31 +363,6 @@ struct tegra_nvvse_aes_cmac_sign_verify_ctl {
 #define NVVSE_IOCTL_CMDID_AES_CMAC_SIGN_VERIFY _IOWR(TEGRA_NVVSE_IOC_MAGIC, \
 						TEGRA_NVVSE_CMDID_AES_CMAC_SIGN_VERIFY, \
 						struct  tegra_nvvse_aes_cmac_sign_verify_ctl)
-
-/**
-  *  \brief Holds AES CMAC parameters.
-  */
-struct tegra_nvvse_aes_cmac_ctl {
-	/** [in] Holds a keyslot number */
-	uint32_t	key_slot;
-	/** [in] Holds the Key length */
-	/** Supported keylength is only 16 bytes */
-	uint8_t		key_length;
-	/** [in] Length of the input buffer.
-	  * Range supported for data length is 0 to (16MB - 16) bytes.
-	  * uDataLength shall not be more than the size configured through "-aes_ip_max"
-	  * option during launch of driver (devc-nvvse-safety).
-	  */
-	uint32_t	data_length;
-	/** [in] Holds a pointer to the input buffer for which
-	  * AES CMAC is to be calculated.
-	  */
-	uint8_t		*src_buffer;
-	/** [inout] Holds a pointer the AES CMAC signature. */
-	uint8_t		*dest_buffer;
-};
-#define NVVSE_IOCTL_CMDID_AES_CMAC _IOWR(TEGRA_NVVSE_IOC_MAGIC, TEGRA_NVVSE_CMDID_AES_CMAC, \
-						struct tegra_nvvse_aes_cmac_ctl)
 
 /**
   * \brief Holds AES generated RNG IO control params
