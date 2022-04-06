@@ -1188,22 +1188,21 @@ u64 nvgpu_pmu_pg_buf_get_gpu_va(struct gk20a *g, struct nvgpu_pmu *pmu)
 	return pmu->pg->pg_buf.gpu_va;
 }
 
-struct nvgpu_mem *nvgpu_pmu_pg_buf(struct gk20a *g, struct nvgpu_pmu *pmu)
+int nvgpu_pmu_pg_buf_alloc(struct gk20a *g, struct nvgpu_pmu *pmu, u32 size)
 {
-	if (!is_pg_supported(g, pmu->pg)) {
-		return NULL;
+	struct mm_gk20a *mm = &g->mm;
+	struct vm_gk20a *vm = mm->pmu.vm;
+	int err = 0;
+
+	if (!nvgpu_mem_is_valid(&pmu->pg->pg_buf)) {
+		err = nvgpu_dma_alloc_map_sys(vm, size, &pmu->pg->pg_buf);
+		if (err != 0) {
+			nvgpu_err(g, "failed to allocate pg_buf");
+			return err;
+		}
 	}
 
-	return &pmu->pg->pg_buf;
-}
-
-void *nvgpu_pmu_pg_buf_get_cpu_va(struct gk20a *g, struct nvgpu_pmu *pmu)
-{
-	if (!is_pg_supported(g, pmu->pg)) {
-		return NULL;
-	}
-
-	return pmu->pg->pg_buf.cpu_va;
+	return err;
 }
 
 int nvgpu_pmu_restore_golden_img_state(struct gk20a *g)

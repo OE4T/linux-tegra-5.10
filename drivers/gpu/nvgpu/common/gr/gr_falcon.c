@@ -90,7 +90,6 @@ int nvgpu_gr_falcon_bind_fecs_elpg(struct gk20a *g)
 #ifdef CONFIG_NVGPU_LS_PMU
 	struct nvgpu_pmu *pmu = g->pmu;
 	struct mm_gk20a *mm = &g->mm;
-	struct vm_gk20a *vm = mm->pmu.vm;
 	int err = 0;
 	u32 size;
 	u32 data;
@@ -109,12 +108,10 @@ int nvgpu_gr_falcon_bind_fecs_elpg(struct gk20a *g)
 
 	nvgpu_log(g, gpu_dbg_gr, "FECS PG buffer size = %u", size);
 
-	if (nvgpu_pmu_pg_buf_get_cpu_va(g, pmu) == NULL) {
-		err = nvgpu_dma_alloc_map_sys(vm, size, nvgpu_pmu_pg_buf(g, pmu));
-		if (err != 0) {
-			nvgpu_err(g, "failed to allocate memory");
-			return -ENOMEM;
-		}
+	err = nvgpu_pmu_pg_buf_alloc(g, pmu, size);
+	if (err != 0) {
+		nvgpu_err(g, "failed to allocate pg_buf memory");
+		return err;
 	}
 
 	data = g->ops.gr.falcon.get_fecs_current_ctx_data(g,
