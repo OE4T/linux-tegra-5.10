@@ -30,6 +30,9 @@
 #include <linux/of.h>
 #include <linux/version.h>
 #include <linux/iommu.h>
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 18, 0)
+#include <linux/iosys-map.h>
+#endif
 
 #include <trace/events/nvmap.h>
 
@@ -393,7 +396,11 @@ static void nvmap_dmabuf_vunmap(struct dma_buf *dmabuf, void *vaddr)
 	__nvmap_munmap(info->handle, vaddr);
 }
 #else
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 18, 0)
+static int nvmap_dmabuf_vmap(struct dma_buf *dmabuf, struct iosys_map *map)
+#else
 static int nvmap_dmabuf_vmap(struct dma_buf *dmabuf, struct dma_buf_map *map)
+#endif
 {
 	struct nvmap_handle_info *info = dmabuf->priv;
 	void *res;
@@ -416,7 +423,11 @@ static int nvmap_dmabuf_vmap(struct dma_buf *dmabuf, struct dma_buf_map *map)
 	return ret;
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 18, 0)
+static void nvmap_dmabuf_vunmap(struct dma_buf *dmabuf, struct iosys_map *map)
+#else
 static void nvmap_dmabuf_vunmap(struct dma_buf *dmabuf, struct dma_buf_map *map)
+#endif
 {
        struct nvmap_handle_info *info = dmabuf->priv;
 
