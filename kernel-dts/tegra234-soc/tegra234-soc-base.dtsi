@@ -87,6 +87,11 @@
 			method = "smc";
 			status = "disabled";
 		};
+
+		ftpm {
+			compatible = "microsoft,ftpm";
+			status = "disabled";
+		};
 	};
 
 	timer@3010000 {
