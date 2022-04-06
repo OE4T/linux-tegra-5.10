@@ -673,7 +673,7 @@ allocate_fifo_memory(struct comm_channel_ctx_t *comm_ctx)
 	}
 
 	fifo->recv_hdr = (struct header *)(fifo->self_mem.pva);
-	fifo->send_hdr = (struct header *)(fifo->peer_mem.pva);
+	fifo->send_hdr = (__force struct header *)(fifo->peer_mem.pva);
 	fifo->recv = ((u8 *)fifo->recv_hdr + sizeof(struct header));
 	fifo->send = ((u8 *)fifo->send_hdr + sizeof(struct header));
 

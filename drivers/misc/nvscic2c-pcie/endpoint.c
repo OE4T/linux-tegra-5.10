@@ -320,14 +320,14 @@ exit:
  * to be serviced, we return letting application call get_event(), otherwise
  * kernel f/w will wait for waitq activity to occur.
  */
-static unsigned int
+static __poll_t
 endpoint_fops_poll(struct file *filp, poll_table *wait)
 {
-	unsigned int mask = 0;
+	__poll_t mask = 0;
 	struct endpoint_t *endpoint = filp->private_data;
 
 	if (WARN_ON(!endpoint))
-		return -EFAULT;
+		return POLLNVAL;
 
 	mutex_lock(&endpoint->fops_lock);
 
