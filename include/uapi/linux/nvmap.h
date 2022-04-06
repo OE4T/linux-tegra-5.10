@@ -69,7 +69,7 @@ struct nvmap_create_handle {
 			 */
 			union {
 				__u64 ivm_id;	 /* CreateHandle from ivm*/
-				__s32 ivm_handle;/* Get ivm_id from handle */
+				__u32 ivm_handle;/* Get ivm_id from handle */
 			};
 		};
 		struct {
