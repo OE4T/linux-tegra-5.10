@@ -56,6 +56,7 @@
 #include "ioctl_dbg.h"
 #include "ioctl_channel.h"
 #include "ioctl.h"
+#include "dmabuf_priv.h"
 #include "dmabuf_vidmem.h"
 
 #include "common/gr/ctx_priv.h"
@@ -2440,15 +2441,8 @@ static int nvgpu_gpu_access_sysmem_gpu_va(struct gk20a *g, u8 cmd, u32 size,
 {
 	int ret = 0;
 	u8 *cpu_va = NULL;
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
-	struct dma_buf_map map;
 
-	ret = dma_buf_vmap(dmabuf, &map);
-	cpu_va = ret ? NULL : map.vaddr;
-#else
-	cpu_va = (u8 *)dma_buf_vmap(dmabuf);
-#endif
-
+	cpu_va = (u8 *)gk20a_dmabuf_vmap(dmabuf);
 	if (!cpu_va) {
 		return -ENOMEM;
 	}
@@ -2467,11 +2461,8 @@ static int nvgpu_gpu_access_sysmem_gpu_va(struct gk20a *g, u8 cmd, u32 size,
 		ret = -EINVAL;
 	}
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
-	dma_buf_vunmap(dmabuf, &map);
-#else
-	dma_buf_vunmap(dmabuf, cpu_va);
-#endif
+	gk20a_dmabuf_vunmap(dmabuf, cpu_va);
+
 	return ret;
 }
 

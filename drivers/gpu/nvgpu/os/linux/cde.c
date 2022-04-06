@@ -1042,9 +1042,6 @@ __releases(&l->cde_app->mutex)
 	const s16 compbits_kind = 0;
 	u32 submit_op;
 	struct dma_buf_attachment *attachment;
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
-	struct dma_buf_map map;
-#endif
 
 	nvgpu_log(g, gpu_dbg_cde, "compbits_byte_offset=%llu scatterbuffer_byte_offset=%llu",
 		  compbits_byte_offset, scatterbuffer_byte_offset);
@@ -1135,12 +1132,7 @@ __releases(&l->cde_app->mutex)
 		struct sg_table *sgt;
 		void *scatter_buffer;
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
-		err = dma_buf_vmap(compbits_scatter_buf, &map);
-		surface = err ? NULL : map.vaddr;
-#else
-		surface = dma_buf_vmap(compbits_scatter_buf);
-#endif
+		surface = gk20a_dmabuf_vmap(compbits_scatter_buf);
 		if (!surface) {
 			nvgpu_warn(g, "dma_buf_vmap failed");
 			err = -EINVAL;
@@ -1189,11 +1181,7 @@ __releases(&l->cde_app->mutex)
 				goto exit_unmap_surface;
 		}
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
-		dma_buf_vunmap(compbits_scatter_buf, &map);
-#else
-		dma_buf_vunmap(compbits_scatter_buf, surface);
-#endif
+		gk20a_dmabuf_vunmap(compbits_scatter_buf, surface);
 		surface = NULL;
 	}
 
@@ -1282,13 +1270,8 @@ __releases(&l->cde_app->mutex)
 	return err;
 
 exit_unmap_surface:
-	if (surface) {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
-		dma_buf_vunmap(compbits_scatter_buf, &map);
-#else
-		dma_buf_vunmap(compbits_scatter_buf, surface);
-#endif
-	}
+	if (surface)
+		gk20a_dmabuf_vunmap(compbits_scatter_buf, surface);
 exit_unmap_vaddr:
 	nvgpu_vm_unmap(cde_ctx->vm, map_vaddr, NULL);
 exit_idle:
