@@ -118,6 +118,15 @@ config POWER_RESET_MAX77620
 	  This driver supports turning off and resetting board through MAX77620
 	  PMIC.
 
+config POWER_RESET_MAX77851
+	bool "max77851 power reset driver"
+	default y
+	depends on OF
+	select REBOOT_MODE
+	help
+	  This driver supports turning off and resetting board through MAX77851
+	  PMIC.
+
 config POWER_RESET_MSM
 	bool "Qualcomm MSM power-off driver"
 	depends on ARCH_QCOM
