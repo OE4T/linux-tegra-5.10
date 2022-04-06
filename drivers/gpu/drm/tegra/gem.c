@@ -177,10 +177,12 @@ static void tegra_bo_unpin(struct host1x_bo_mapping *map)
 static void *tegra_bo_mmap(struct host1x_bo *bo)
 {
 	struct tegra_bo *obj = host1x_to_tegra_bo(bo);
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 18, 0)
+	struct iosys_map map;
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
 	struct dma_buf_map map;
-	int ret;
 #endif
+	int ret;
 
 	if (obj->vaddr) {
 		return obj->vaddr;
@@ -200,7 +202,9 @@ static void *tegra_bo_mmap(struct host1x_bo *bo)
 static void tegra_bo_munmap(struct host1x_bo *bo, void *addr)
 {
 	struct tegra_bo *obj = host1x_to_tegra_bo(bo);
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 18, 0)
+	struct iosys_map map = IOSYS_MAP_INIT_VADDR(addr);
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
 	struct dma_buf_map map = DMA_BUF_MAP_INIT_VADDR(addr);
 #endif
 
@@ -718,7 +722,21 @@ static int tegra_gem_prime_mmap(struct dma_buf *buf, struct vm_area_struct *vma)
 	return __tegra_gem_mmap(gem, vma);
 }
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 18, 0)
+static int tegra_gem_prime_vmap(struct dma_buf *buf, struct iosys_map *map)
+{
+	struct drm_gem_object *gem = buf->priv;
+	struct tegra_bo *bo = to_tegra_bo(gem);
+
+	iosys_map_set_vaddr(map, bo->vaddr);
+
+	return 0;
+}
+
+static void tegra_gem_prime_vunmap(struct dma_buf *buf, struct iosys_map *map)
+{
+}
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
 static int tegra_gem_prime_vmap(struct dma_buf *buf, struct dma_buf_map *map)
 {
 	struct drm_gem_object *gem = buf->priv;

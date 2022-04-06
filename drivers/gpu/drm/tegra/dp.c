@@ -4,8 +4,13 @@
  * Copyright (C) 2015 Rob Clark
  */
 
+#include <linux/version.h>
 #include <drm/drm_crtc.h>
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 18, 0)
+#include <drm/dp/drm_dp_helper.h>
+#else
 #include <drm/drm_dp_helper.h>
+#endif
 #include <drm/drm_print.h>
 
 #include "dp.h"
