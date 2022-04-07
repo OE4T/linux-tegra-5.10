@@ -83,9 +83,7 @@ void nvgpu_gsp_sched_sw_deinit(struct gk20a *g)
 		nvgpu_gsp_sequences_free(g, gsp_sched->sequences);
 	}
 
-	if (gsp_sched->queues != NULL) {
-		nvgpu_gsp_queues_free(g, gsp_sched->queues);
-	}
+	nvgpu_gsp_queues_free(g, gsp_sched->queues);
 
 	if (gsp_sched != NULL) {
 		gsp_sched_deinit(g, gsp_sched);
