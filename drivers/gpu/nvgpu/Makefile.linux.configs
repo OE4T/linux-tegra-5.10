@@ -41,6 +41,9 @@ CONFIG_NVGPU_COMPRESSION := y
 # Enable MIG Support
 CONFIG_NVGPU_MIG := y
 
+# Enable gv11b support
+CONFIG_NVGPU_SUPPORT_GV11B := y
+
 # Enable support for extraction of comptags for CDE.
 ifeq ($(CONFIG_NVGPU_COMPRESSION),y)
 CONFIG_NVGPU_SUPPORT_CDE := y
@@ -212,6 +215,9 @@ ccflags-y += -DCONFIG_NVGPU_RECOVERY
 endif
 ifeq ($(CONFIG_NVGPU_COMPRESSION),y)
 ccflags-y += -DCONFIG_NVGPU_COMPRESSION
+endif
+ifeq ($(CONFIG_NVGPU_SUPPORT_GV11B),y)
+ccflags-y += -DCONFIG_NVGPU_SUPPORT_GV11B
 endif
 ifeq ($(CONFIG_NVGPU_REMAP),y)
 ccflags-y += -DCONFIG_NVGPU_REMAP

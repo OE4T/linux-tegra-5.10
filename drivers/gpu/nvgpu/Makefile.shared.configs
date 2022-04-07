@@ -78,6 +78,9 @@ NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_SYNCFD_NONE
 CONFIG_NVGPU_GRAPHICS                := 1
 NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_GRAPHICS
 
+CONFIG_NVGPU_SUPPORT_GV11B           := 1
+NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_SUPPORT_GV11B
+
 # Error reporting needs to be supported in qnx-safety, qnx-standard, linux.
 # In qnx-standard, nvgpu makefile is used for RM SERVER. Since iGPU is in
 # pass through mode in all three platforms, EPL libraries should not be

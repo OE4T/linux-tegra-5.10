@@ -165,7 +165,6 @@ srcs +=	common/device.c \
 	common/cic/mon/mon_report_err.c \
 	common/cic/rm/rm_init.c \
 	common/cic/rm/rm_intr.c \
-	hal/init/hal_gv11b.c \
 	hal/init/hal_gv11b_litter.c \
 	hal/init/hal_init.c \
 	hal/power_features/cg/gv11b_gating_reglist.c \
@@ -297,6 +296,10 @@ srcs += hal/mm/mm_gv11b_fusa.c \
 
 ifeq ($(CONFIG_NVGPU_COMPRESSION),1)
 srcs += hal/cbc/cbc_tu104.c
+endif
+
+ifeq ($(CONFIG_NVGPU_SUPPORT_GV11B),1)
+srcs += hal/init/hal_gv11b.c
 endif
 
 # Source files below are not guaranteed to be functionaly safe (FuSa) and are

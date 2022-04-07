@@ -367,7 +367,6 @@ nvgpu-y += \
 	hal/gr/gr/gr_gv100.o \
 	hal/gr/gr/gr_gv11b.o \
 	hal/gr/gr/gr_tu104.o \
-	hal/init/hal_gv11b.o \
 	hal/init/hal_gv11b_litter.o \
 	hal/init/hal_init.o \
 	hal/perf/perf_gv11b.o \
@@ -414,6 +413,11 @@ nvgpu-y += \
 	hal/priv_ring/priv_ring_gv11b.o \
 	hal/cic/mon/init_ga10b_fusa.o \
 	hal/cic/mon/lut_ga10b_fusa.o
+
+ifeq ($(CONFIG_NVGPU_SUPPORT_GV11B),y)
+nvgpu-$(CONFIG_NVGPU_SUPPORT_GV11B) += \
+	hal/init/hal_gv11b.o
+endif
 
 ifeq ($(CONFIG_NVGPU_INTR_DEBUG),y)
 nvgpu-$(CONFIG_NVGPU_INTR_DEBUG) += \
