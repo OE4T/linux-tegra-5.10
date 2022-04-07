@@ -836,6 +836,7 @@ static int nvgpu_prof_ioctl_vab_flush(struct nvgpu_profiler_object *prof,
 
 	err = gk20a_busy(g);
 	if (err != 0) {
+		nvgpu_kfree(g, user_data);
 		nvgpu_err(g, "failed to poweron");
 		return -EINVAL;
 	}
