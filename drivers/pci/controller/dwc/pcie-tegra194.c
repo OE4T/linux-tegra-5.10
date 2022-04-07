@@ -685,21 +685,21 @@ static int tegra_pcie_safety_irq_handler(struct tegra_pcie_dw *pcie, u32 status_
 		status_l1 = appl_readl(pcie, APPL_INTR_STATUS_L1_11);
 		appl_writel(pcie, status_l1, APPL_INTR_STATUS_L1_11);
 
-		/* Disable TLP_ERR_INT */
-		appl_writel(pcie, 0x0, APPL_INTR_EN_L1_11);
-		appl_writel(pcie, 0x0, APPL_FAULT_EN_L1_11);
-
-		val = appl_readl(pcie, APPL_INTR_EN_L0_0);
-		val &= ~APPL_INTR_EN_L0_0_TLP_ERR_INT_EN;
-		appl_writel(pcie, val, APPL_INTR_EN_L0_0);
-
-		val = appl_readl(pcie, APPL_FAULT_EN_L0);
-		val &= ~APPL_FAULT_EN_L0_TLP_ERR_FAULT_EN;
-		appl_writel(pcie, val, APPL_FAULT_EN_L0);
-
 		/* Report uncorrectable errors like ECRC */
 		if (status_l1 & (APPL_INTR_STATUS_L1_11_NF_ERR_STATE |
 		    APPL_INTR_STATUS_L1_11_F_ERR_STATE)) {
+			/* Disable TLP_ERR_INT */
+			appl_writel(pcie, 0x0, APPL_INTR_EN_L1_11);
+			appl_writel(pcie, 0x0, APPL_FAULT_EN_L1_11);
+
+			val = appl_readl(pcie, APPL_INTR_EN_L0_0);
+			val &= ~APPL_INTR_EN_L0_0_TLP_ERR_INT_EN;
+			appl_writel(pcie, val, APPL_INTR_EN_L0_0);
+
+			val = appl_readl(pcie, APPL_FAULT_EN_L0);
+			val &= ~APPL_FAULT_EN_L0_TLP_ERR_FAULT_EN;
+			appl_writel(pcie, val, APPL_FAULT_EN_L0);
+
 			atomic_set(&pcie->report_epl_error, 1);
 			irq_ret = IRQ_WAKE_THREAD;
 		}
@@ -710,20 +710,20 @@ static int tegra_pcie_safety_irq_handler(struct tegra_pcie_dw *pcie, u32 status_
 	    (en_l0 & APPL_INTR_EN_L0_0_RASDP_INT_EN)) {
 		status_l1 = appl_readl(pcie, APPL_INTR_STATUS_L1_12);
 
-		/* Link is not reliable after RASDP, so disable interrupts. */
-		appl_writel(pcie, 0x0, APPL_FAULT_EN_L1_12);
-		appl_writel(pcie, 0x0, APPL_INTR_EN_L1_12);
-
-		val = appl_readl(pcie, APPL_INTR_EN_L0_0);
-		val &= ~APPL_INTR_EN_L0_0_RASDP_INT_EN;
-		appl_writel(pcie, val, APPL_INTR_EN_L0_0);
-
-		val = appl_readl(pcie, APPL_FAULT_EN_L0);
-		val &= ~APPL_FAULT_EN_L0_RASDP_FAULT_EN;
-		appl_writel(pcie, val, APPL_FAULT_EN_L0);
-
 		if (status_l1 & (APPL_INTR_STATUS_L1_12_SLV_RASDP_ERR |
 		    APPL_INTR_STATUS_L1_12_MSTR_RASDP_ERR)) {
+			/* Link is not reliable after RASDP, so disable interrupts. */
+			appl_writel(pcie, 0x0, APPL_FAULT_EN_L1_12);
+			appl_writel(pcie, 0x0, APPL_INTR_EN_L1_12);
+
+			val = appl_readl(pcie, APPL_INTR_EN_L0_0);
+			val &= ~APPL_INTR_EN_L0_0_RASDP_INT_EN;
+			appl_writel(pcie, val, APPL_INTR_EN_L0_0);
+
+			val = appl_readl(pcie, APPL_FAULT_EN_L0);
+			val &= ~APPL_FAULT_EN_L0_RASDP_FAULT_EN;
+			appl_writel(pcie, val, APPL_FAULT_EN_L0);
+
 			atomic_set(&pcie->report_epl_error, 1);
 			irq_ret = IRQ_WAKE_THREAD;
 		}
@@ -735,18 +735,18 @@ static int tegra_pcie_safety_irq_handler(struct tegra_pcie_dw *pcie, u32 status_
 		status_l1 = appl_readl(pcie, APPL_INTR_STATUS_L1_14);
 		appl_writel(pcie, status_l1, APPL_INTR_STATUS_L1_14);
 
-		/* Disable PARITY_ERR */
-		val = appl_readl(pcie, APPL_INTR_EN_L0_0);
-		val &= ~APPL_INTR_EN_L0_0_PARITY_ERR_INT_EN;
-		appl_writel(pcie, val, APPL_INTR_EN_L0_0);
-
-		val = appl_readl(pcie, APPL_FAULT_EN_L0);
-		val &= ~APPL_FAULT_EN_L0_PARITY_ERR_FAULT_EN;
-		appl_writel(pcie, val, APPL_FAULT_EN_L0);
-
 		if (status_l1 & APPL_INTR_STATUS_L1_14_MASK) {
 			/* Don't report EPL error if only RETRYRAM is set */
 			if (status_l1 & ~APPL_INTR_STATUS_L1_14_RETRYRAM) {
+				/* Disable PARITY_ERR */
+				val = appl_readl(pcie, APPL_INTR_EN_L0_0);
+				val &= ~APPL_INTR_EN_L0_0_PARITY_ERR_INT_EN;
+				appl_writel(pcie, val, APPL_INTR_EN_L0_0);
+
+				val = appl_readl(pcie, APPL_FAULT_EN_L0);
+				val &= ~APPL_FAULT_EN_L0_PARITY_ERR_FAULT_EN;
+				appl_writel(pcie, val, APPL_FAULT_EN_L0);
+
 				atomic_set(&pcie->report_epl_error, 1);
 				irq_ret = IRQ_WAKE_THREAD;
 			}
@@ -766,24 +766,24 @@ static int tegra_pcie_safety_irq_handler(struct tegra_pcie_dw *pcie, u32 status_
 		val = dw_pcie_readl_dbi(pci, PL_SAFETY_STATUS_OFF);
 		dw_pcie_writel_dbi(pci, PL_SAFETY_STATUS_OFF, val);
 
-		/* Disable SAFETY_UNCORR error */
-		val = appl_readl(pcie, APPL_FAULT_EN_L1_20);
-		val &= ~APPL_FAULT_EN_L1_20_IF_TIMEOUT;
-		appl_writel(pcie, val, APPL_FAULT_EN_L1_20);
-
-		val = appl_readl(pcie, APPL_INTR_EN_L1_20);
-		val &= ~APPL_INTR_EN_L1_20_IF_TIMEOUT;
-		appl_writel(pcie, val, APPL_INTR_EN_L1_20);
-
-		val = appl_readl(pcie, APPL_INTR_EN_L0_0);
-		val &= ~APPL_INTR_EN_L0_0_SAFETY_UNCORR_INT_EN;
-		appl_writel(pcie, val, APPL_INTR_EN_L0_0);
-
-		val = appl_readl(pcie, APPL_FAULT_EN_L0);
-		val &= ~APPL_FAULT_EN_L0_SAFETY_UNCORR_FAULT_EN;
-		appl_writel(pcie, val, APPL_FAULT_EN_L0);
-
 		if (status_l1 & APPL_INTR_EN_L1_20_IF_TIMEOUT) {
+			/* Disable SAFETY_UNCORR error */
+			val = appl_readl(pcie, APPL_FAULT_EN_L1_20);
+			val &= ~APPL_FAULT_EN_L1_20_IF_TIMEOUT;
+			appl_writel(pcie, val, APPL_FAULT_EN_L1_20);
+
+			val = appl_readl(pcie, APPL_INTR_EN_L1_20);
+			val &= ~APPL_INTR_EN_L1_20_IF_TIMEOUT;
+			appl_writel(pcie, val, APPL_INTR_EN_L1_20);
+
+			val = appl_readl(pcie, APPL_INTR_EN_L0_0);
+			val &= ~APPL_INTR_EN_L0_0_SAFETY_UNCORR_INT_EN;
+			appl_writel(pcie, val, APPL_INTR_EN_L0_0);
+
+			val = appl_readl(pcie, APPL_FAULT_EN_L0);
+			val &= ~APPL_FAULT_EN_L0_SAFETY_UNCORR_FAULT_EN;
+			appl_writel(pcie, val, APPL_FAULT_EN_L0);
+
 			atomic_set(&pcie->report_epl_error, 1);
 			irq_ret = IRQ_WAKE_THREAD;
 		}
