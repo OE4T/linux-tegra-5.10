@@ -758,8 +758,6 @@ int nvgpu_profiler_unbind_pm_resources(struct nvgpu_profiler_object *prof)
 		return -EINVAL;
 	}
 
-	nvgpu_profiler_destroy_regops_allowlist(prof);
-
 	err = gk20a_busy(g);
 	if (err) {
 		nvgpu_err(g, "failed to poweron");
@@ -820,6 +818,7 @@ int nvgpu_profiler_unbind_pm_resources(struct nvgpu_profiler_object *prof)
 			"SMPC unbound from profiler handle %u",	prof->prof_handle);
 	}
 
+	nvgpu_profiler_destroy_regops_allowlist(prof);
 	prof->bound = false;
 
 fail:
