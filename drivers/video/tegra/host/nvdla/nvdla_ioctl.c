@@ -832,10 +832,10 @@ static int nvdla_emu_task_submit(struct nvdla_private *priv, void *arg)
 	struct nvdla_submit_args *args =
 			(struct nvdla_submit_args *)arg;
 	struct nvdla_ioctl_emu_submit_task __user *user_tasks;
-	struct nvdla_ioctl_emu_submit_task local_tasks[MAX_NVDLA_TASKS_PER_SUBMIT];
+	struct nvdla_ioctl_emu_submit_task local_task;
 	struct platform_device *pdev;
 	struct nvdla_queue *queue;
-	struct nvdla_emu_task task;
+	struct nvdla_emu_task *task;
 	int err = 0, i = 0;
 	u32 num_tasks;
 
@@ -849,8 +849,6 @@ static int nvdla_emu_task_submit(struct nvdla_private *priv, void *arg)
 
 	nvdla_dbg_fn(pdev, "inside emulator task submit");
 
-	task.queue = queue;
-
 	user_tasks = (struct nvdla_ioctl_emu_submit_task __user *)
 			(uintptr_t)args->tasks;
 	if (!user_tasks)
@@ -862,40 +860,44 @@ static int nvdla_emu_task_submit(struct nvdla_private *priv, void *arg)
 
 	nvdla_dbg_info(pdev, "num of emulator tasks [%d]", num_tasks);
 
-	/* IOCTL copy descriptors*/
-	if (copy_from_user(local_tasks, (void __user *)user_tasks,
-			(num_tasks * sizeof(*user_tasks)))) {
-		err = -EFAULT;
-		goto exit;
-	}
-	nvdla_dbg_info(pdev, "copy of user tasks done");
+	task = kmalloc(sizeof(*task), GFP_KERNEL);
+	if (!task)
+		return -ENOMEM;
+
+	task->queue = queue;
 
 	for (i = 0; i < num_tasks; i++) {
+		/* IOCTL copy descriptor */
+		if (copy_from_user(&local_task, (void __user *)&user_tasks[i],
+				   sizeof(*user_tasks))) {
+			err = -EFAULT;
+			goto exit;
+		}
 
 		nvdla_dbg_info(pdev, "submit [%d]th task", i + 1);
 
-		task.num_prefences = local_tasks[i].num_prefences;
-		task.num_postfences = local_tasks[i].num_postfences;
+		task->num_prefences = local_task.num_prefences;
+		task->num_postfences = local_task.num_postfences;
 
 		/* get pre fences */
-		if (copy_from_user(task.prefences,
-			(void __user *)local_tasks[i].prefences,
-			(task.num_prefences * sizeof(struct nvdev_fence)))) {
+		if (copy_from_user(task->prefences,
+			(void __user *)local_task.prefences,
+			(task->num_prefences * sizeof(struct nvdev_fence)))) {
 			err = -EFAULT;
 			nvdla_dbg_err(pdev, "failed to copy prefences");
 			goto exit;
 		}
 
 		/* get post fences */
-		if (copy_from_user(task.postfences,
-			(void __user *)local_tasks[i].postfences,
-			(task.num_postfences * sizeof(struct nvdev_fence)))) {
+		if (copy_from_user(task->postfences,
+			(void __user *)local_task.postfences,
+			(task->num_postfences * sizeof(struct nvdev_fence)))) {
 			err = -EFAULT;
 			nvdla_dbg_err(pdev, "failed to copy postfences");
 			goto exit;
 		}
 
-		err = nvdla_emulator_submit(queue, &task);
+		err = nvdla_emulator_submit(queue, task);
 		if (err) {
 			nvdla_dbg_err(pdev, "fail to submit task: %d", i + 1);
 			goto exit;
@@ -903,7 +905,7 @@ static int nvdla_emu_task_submit(struct nvdla_private *priv, void *arg)
 		nvdla_dbg_info(pdev, "task[%d] submitted", i + 1);
 
 		/* send signal fences to user */
-		err = nvdla_send_emu_signal_fences(&task, local_tasks + i);
+		err = nvdla_send_emu_signal_fences(task, &local_task);
 		if (err) {
 			nvdla_dbg_err(pdev, "fail to send sig fence%d", i + 1);
 			goto exit;
@@ -914,6 +916,8 @@ static int nvdla_emu_task_submit(struct nvdla_private *priv, void *arg)
 	nvdla_dbg_fn(pdev, "Emulator task submitted, done!");
 
 exit:
+	kfree(task);
+
 	return 0;
 }
 
@@ -986,7 +990,7 @@ static int nvdla_submit(struct nvdla_private *priv, void *arg)
 	struct nvdla_submit_args *args =
 			(struct nvdla_submit_args *)arg;
 	struct nvdla_ioctl_submit_task __user *user_tasks;
-	struct nvdla_ioctl_submit_task local_tasks[MAX_NVDLA_TASKS_PER_SUBMIT];
+	struct nvdla_ioctl_submit_task local_task;
 	struct platform_device *pdev;
 	struct nvdla_queue *queue;
 	struct nvdla_buffers *buffers;
@@ -1020,15 +1024,14 @@ static int nvdla_submit(struct nvdla_private *priv, void *arg)
 	bypass_exec = ((args->flags & NVDLA_SUBMIT_FLAGS_BYPASS_EXEC) != 0U);
 	nvdla_dbg_info(pdev, "submit flags [%u]", args->flags);
 
-	/* IOCTL copy descriptors*/
-	if (copy_from_user(local_tasks, (void __user *)user_tasks,
-			(num_tasks * sizeof(*user_tasks)))) {
-		err = -EFAULT;
-		goto fail_to_copy_task;
-	}
-	nvdla_dbg_info(pdev, "copy of user tasks done");
-
 	for (i = 0; i < num_tasks; i++) {
+		/* IOCTL copy descriptor */
+		if (copy_from_user(&local_task, (void __user *)&user_tasks[i],
+				   sizeof(*user_tasks))) {
+			err = -EFAULT;
+			goto fail_to_copy_task;
+		}
+
 		nvdla_dbg_info(pdev, "submit [%d]th task", i + 1);
 
 		err = nvdla_get_task_mem(queue, &task);
@@ -1042,7 +1045,7 @@ static int nvdla_submit(struct nvdla_private *priv, void *arg)
 		kref_init(&task->ref);
 
 		/* fill local task param from user args */
-		err = nvdla_fill_task(queue, buffers, local_tasks + i, task);
+		err = nvdla_fill_task(queue, buffers, &local_task, task);
 		if (err) {
 			nvdla_dbg_err(pdev, "failed to fill task[%d]", i + 1);
 			goto fail_to_fill_task;
@@ -1075,7 +1078,7 @@ static int nvdla_submit(struct nvdla_private *priv, void *arg)
 		nvdla_dbg_info(pdev, "task[%d] got fences", i + 1);
 
 		/* update fences to user */
-		err = nvdla_update_signal_fences(task, local_tasks + i);
+		err = nvdla_update_signal_fences(task, &local_task);
 		if (err) {
 			nvdla_dbg_err(pdev, "fail update postfence%d", i + 1);
 			goto fail_to_update_postfences;
