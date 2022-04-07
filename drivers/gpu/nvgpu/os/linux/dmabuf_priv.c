@@ -17,6 +17,7 @@
 #include <linux/version.h>
 #include <linux/device.h>
 #include <linux/dma-buf.h>
+#include <linux/fs.h>
 #include <linux/scatterlist.h>
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 18, 0)
 #include <linux/iosys-map.h>
@@ -325,7 +326,7 @@ out:
 	return err;
 }
 
-void *gk20a_dmabuf_vmap(struct dma_buf *dmabuf)
+static void *__gk20a_dmabuf_vmap(struct dma_buf *dmabuf)
 {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 18, 0)
@@ -342,6 +343,15 @@ void *gk20a_dmabuf_vmap(struct dma_buf *dmabuf)
 	/* Linux v5.10 and earlier kernels */
 	return dma_buf_vmap(dmabuf);
 #endif
+}
+
+void *gk20a_dmabuf_vmap(struct dma_buf *dmabuf)
+{
+	if ((dmabuf->file->f_mode & (FMODE_WRITE | FMODE_PWRITE)) == 0U) {
+		return NULL;
+	}
+
+	return __gk20a_dmabuf_vmap(dmabuf);
 }
 
 void gk20a_dmabuf_vunmap(struct dma_buf *dmabuf, void *addr)
