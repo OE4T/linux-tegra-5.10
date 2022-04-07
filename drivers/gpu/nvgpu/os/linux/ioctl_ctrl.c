@@ -1490,8 +1490,9 @@ static int nvgpu_gpu_clk_set_info(struct gk20a *g,
 
 	int fd;
 	u32 clk_domains = 0;
+	u32 num_domains;
 	u16 freq_mhz;
-	int i;
+	u32 i;
 	int ret;
 
 	nvgpu_log_fn(g, " ");
@@ -1502,6 +1503,13 @@ static int nvgpu_gpu_clk_set_info(struct gk20a *g,
 	clk_domains = nvgpu_clk_arb_get_arbiter_clk_domains(g);
 	if (!clk_domains)
 		return -EINVAL;
+
+	num_domains = hweight_long(clk_domains);
+
+	if ((args->num_entries == 0) || (args->num_entries > num_domains)) {
+		nvgpu_err(g, "invalid num_entries %u", args->num_entries);
+		return -EINVAL;
+	}
 
 	entry = (struct nvgpu_gpu_clk_info __user *)
 			(uintptr_t)args->clk_info_entries;
