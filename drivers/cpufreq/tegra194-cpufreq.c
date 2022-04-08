@@ -7,11 +7,13 @@
 #include <linux/cpufreq.h>
 #include <linux/delay.h>
 #include <linux/dma-mapping.h>
+#include <linux/interconnect.h>
 #include <linux/module.h>
 #include <linux/of.h>
 #include <linux/of_platform.h>
 #include <linux/platform_device.h>
 #include <linux/platform/tegra/emc_bwmgr.h>
+#include <linux/platform/tegra/mc_utils.h>
 #include <linux/slab.h>
 
 #include <asm/smp_plat.h>
@@ -21,6 +23,7 @@
 #include <soc/tegra/cpufreq_cpu_emc_table.h>
 #include <soc/tegra/fuse.h>
 #include <soc/tegra/virt/syscalls.h>
+#include <dt-bindings/interconnect/tegra_icc_id.h>
 
 #define KHZ                     1000
 #define REF_CLK_MHZ             408 /* 408 MHz */
@@ -54,6 +57,12 @@ enum cluster {
 	MAX_CLUSTERS,
 };
 
+enum emc_scaling_mngr {
+	NO_EMC_SCALING_MNGR,
+	BWMGR,
+	ICC,
+};
+
 struct tegra_cpu_ctr {
 	u32 cpu;
 	u32 coreclk_cnt, last_coreclk_cnt;
@@ -76,6 +85,7 @@ struct tegra_cpufreq_soc {
 	struct tegra_cpufreq_ops *ops;
 	int maxcpus_per_cluster;
 	phys_addr_t actmon_cntr_base;
+	enum emc_scaling_mngr emc_scal_mgr;
 };
 
 struct tegra194_cpufreq_data {
@@ -85,6 +95,8 @@ struct tegra194_cpufreq_data {
 	const struct tegra_cpufreq_soc *soc;
 	struct tegra_bwmgr_client **bwmgr;
 	bool bypass_bwmgr_mode;
+	struct icc_path **icc_handle;
+	bool bypass_icc;
 };
 
 static struct workqueue_struct *read_counters_wq;
@@ -189,12 +201,14 @@ const struct tegra_cpufreq_soc tegra234_cpufreq_soc = {
 	.ops = &tegra234_cpufreq_ops,
 	.actmon_cntr_base = 0x9000,
 	.maxcpus_per_cluster = 4,
+	.emc_scal_mgr = ICC,
 };
 
 const struct tegra_cpufreq_soc tegra239_cpufreq_soc = {
 	.ops = &tegra234_cpufreq_ops,
 	.actmon_cntr_base = 0x4000,
 	.maxcpus_per_cluster = 8,
+	.emc_scal_mgr = ICC,
 };
 
 static void tegra194_get_cpu_cluster_id(u32 cpu, u32 *cpuid, u32 *clusterid)
@@ -458,19 +472,32 @@ static int tegra194_cpufreq_init(struct cpufreq_policy *policy)
 static void set_cpufreq_to_emcfreq(enum cluster cl, uint32_t cluster_freq)
 {
 	struct tegra194_cpufreq_data *data = cpufreq_get_driver_data();
-	unsigned long emc_freq;
+	unsigned long emc_freq_khz;
+	unsigned long emc_freq_kbps;
 
-	if (!data->bwmgr[cl] || data->bypass_bwmgr_mode)
+	if ((data->soc->emc_scal_mgr == BWMGR) &&
+	    (!data->bwmgr[cl] || data->bypass_bwmgr_mode))
 		return;
 
-	emc_freq = tegra_cpu_to_emc_freq(cluster_freq, cpu_emc_map_ptr);
-	if (!emc_freq)
+	if ((data->soc->emc_scal_mgr == ICC) &&
+	    (!data->icc_handle[cl] || data->bypass_icc))
 		return;
 
-	tegra_bwmgr_set_emc(data->bwmgr[cl], emc_freq * KHZ,
-			    TEGRA_BWMGR_SET_EMC_FLOOR);
+	emc_freq_khz = tegra_cpu_to_emc_freq(cluster_freq, cpu_emc_map_ptr);
+	if (!emc_freq_khz)
+		return;
+
+	if (data->soc->emc_scal_mgr == BWMGR)
+		tegra_bwmgr_set_emc(data->bwmgr[cl], emc_freq_khz * KHZ,
+				    TEGRA_BWMGR_SET_EMC_FLOOR);
+
+	if (data->soc->emc_scal_mgr == ICC) {
+		emc_freq_kbps = emc_freq_to_bw(emc_freq_khz);
+		icc_set_bw(data->icc_handle[cl], 0, emc_freq_kbps);
+	}
+
 	pr_debug("cluster %d, emc freq(KHz): %lu cluster_freq(KHz): %u\n",
-		 cl, emc_freq, cluster_freq);
+		 cl, emc_freq_khz, cluster_freq);
 }
 
 static int tegra194_cpufreq_set_target(struct cpufreq_policy *policy,
@@ -517,6 +544,7 @@ static struct tegra_cpufreq_ops tegra194_cpufreq_ops = {
 const struct tegra_cpufreq_soc tegra194_cpufreq_soc = {
 	.ops = &tegra194_cpufreq_ops,
 	.maxcpus_per_cluster = 2,
+	.emc_scal_mgr = BWMGR,
 };
 
 static void tegra194_cpufreq_free_resources(void)
@@ -524,16 +552,23 @@ static void tegra194_cpufreq_free_resources(void)
 	struct tegra194_cpufreq_data *data = cpufreq_get_driver_data();
 	enum cluster cl;
 
-	destroy_workqueue(read_counters_wq);
+	if (read_counters_wq)
+		destroy_workqueue(read_counters_wq);
 
 	LOOP_FOR_EACH_CLUSTER(cl) {
-		if (data->bwmgr[cl]) {
-			/* unregister from emc bw manager */
-			tegra_bwmgr_unregister(data->bwmgr[cl]);
+		/* unregister from emc scaling manager */
+		if (data->soc->emc_scal_mgr == BWMGR) {
+			if (data->bwmgr[cl])
+				tegra_bwmgr_unregister(data->bwmgr[cl]);
+		}
+
+		if (data->soc->emc_scal_mgr == ICC) {
+			if (data->icc_handle[cl])
+				icc_put(data->icc_handle[cl]);
 		}
 	}
-
-	kfree(cpu_emc_map_ptr);
+	if (cpu_emc_map_ptr)
+		kfree(cpu_emc_map_ptr);
 }
 
 static struct cpufreq_frequency_table *
@@ -627,6 +662,12 @@ static int tegra194_cpufreq_probe(struct platform_device *pdev)
 	struct device_node *dn;
 	int err, i;
 
+	const int icc_id_array[MAX_CLUSTERS] = {
+		TEGRA_ICC_CPU_CLUSTER0,
+		TEGRA_ICC_CPU_CLUSTER1,
+		TEGRA_ICC_CPU_CLUSTER2
+	};
+
 	dn = pdev->dev.of_node;
 	cpu_emc_map_ptr = tegra_cpufreq_cpu_emc_map_dt_init(dn);
 	if (!cpu_emc_map_ptr)
@@ -658,12 +699,22 @@ static int tegra194_cpufreq_probe(struct platform_device *pdev)
 		goto err_free_map_ptr;
 	}
 
-	data->bwmgr = devm_kcalloc(&pdev->dev, data->num_clusters,
-				   sizeof(struct tegra_bwmgr_client),
-				   GFP_KERNEL);
-	if (!data->bwmgr) {
-		err = -ENOMEM;
-		goto err_free_map_ptr;
+	if (data->soc->emc_scal_mgr == BWMGR) {
+		data->bwmgr = devm_kcalloc(&pdev->dev, data->num_clusters,
+					   sizeof(struct tegra_bwmgr_client), GFP_KERNEL);
+		if (!data->bwmgr) {
+			err = -ENOMEM;
+			goto err_free_map_ptr;
+		}
+	}
+
+	if (data->soc->emc_scal_mgr == ICC) {
+		data->icc_handle = devm_kcalloc(&pdev->dev, data->num_clusters,
+						sizeof(*data->icc_handle), GFP_KERNEL);
+		if (!data->icc_handle) {
+			err = -ENOMEM;
+			goto err_free_map_ptr;
+		}
 	}
 
 	if (soc->actmon_cntr_base) {
@@ -697,6 +748,15 @@ static int tegra194_cpufreq_probe(struct platform_device *pdev)
 			err = PTR_ERR(data->tables[i]);
 			goto err_free_res;
 		}
+
+		if (data->soc->emc_scal_mgr == ICC) {
+			data->icc_handle[i] = icc_get(&pdev->dev, icc_id_array[i],
+						      TEGRA_ICC_MASTER);
+			if (IS_ERR_OR_NULL(data->icc_handle[i])) {
+				dev_err(&pdev->dev, "cpufreq icc register failed\n");
+				data->icc_handle[i] = NULL;
+			}
+		}
 	}
 
 	tegra194_cpufreq_driver.driver_data = data;
@@ -704,6 +764,10 @@ static int tegra194_cpufreq_probe(struct platform_device *pdev)
 	err = cpufreq_register_driver(&tegra194_cpufreq_driver);
 	if (!err) {
 		tegra_bpmp_put(bpmp);
+		if (data->soc->emc_scal_mgr == ICC)
+			dev_info(&pdev->dev, "probed with ICC\n");
+		else if (data->soc->emc_scal_mgr == BWMGR)
+			dev_info(&pdev->dev, "probed with BWMGR\n");
 		return err;
 	}
 
@@ -737,7 +801,11 @@ static int tegra194_cpufreq_suspend(struct device *dev)
 {
 	struct tegra194_cpufreq_data *data = cpufreq_get_driver_data();
 
-	data->bypass_bwmgr_mode = true;
+	if (data->soc->emc_scal_mgr == BWMGR)
+		data->bypass_bwmgr_mode = true;
+	if (data->soc->emc_scal_mgr == ICC)
+		data->bypass_icc = true;
+
 	return 0;
 }
 
@@ -745,7 +813,11 @@ static int tegra194_cpufreq_resume(struct device *dev)
 {
 	struct tegra194_cpufreq_data *data = cpufreq_get_driver_data();
 
-	data->bypass_bwmgr_mode = false;
+	if (data->soc->emc_scal_mgr == BWMGR)
+		data->bypass_bwmgr_mode = false;
+	if (data->soc->emc_scal_mgr == ICC)
+		data->bypass_icc = false;
+
 	return 0;
 }
 #endif
