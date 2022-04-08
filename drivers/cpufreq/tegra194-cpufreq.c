@@ -191,6 +191,12 @@ const struct tegra_cpufreq_soc tegra234_cpufreq_soc = {
 	.maxcpus_per_cluster = 4,
 };
 
+const struct tegra_cpufreq_soc tegra239_cpufreq_soc = {
+	.ops = &tegra234_cpufreq_ops,
+	.actmon_cntr_base = 0x4000,
+	.maxcpus_per_cluster = 8,
+};
+
 static void tegra194_get_cpu_cluster_id(u32 cpu, u32 *cpuid, u32 *clusterid)
 {
 	u64 mpidr;
@@ -722,6 +728,7 @@ static int tegra194_cpufreq_remove(struct platform_device *pdev)
 static const struct of_device_id tegra194_cpufreq_of_match[] = {
 	{ .compatible = "nvidia,tegra194-ccplex", .data = &tegra194_cpufreq_soc },
 	{ .compatible = "nvidia,tegra234-ccplex-cluster", .data = &tegra234_cpufreq_soc },
+	{ .compatible = "nvidia,tegra239-ccplex-cluster", .data = &tegra239_cpufreq_soc },
 	{ /* sentinel */ }
 };
 
