@@ -330,7 +330,6 @@ int macsec_suspend(struct macsec_priv_data *macsec_pdata)
 		dev_err(dev, "Failed to close macsec\n");
 		return ret;
 	}
-	macsec_disable_car(macsec_pdata);
 	return ret;
 }
 
@@ -345,11 +344,14 @@ int macsec_resume(struct macsec_priv_data *macsec_pdata)
 	struct device *dev = pdata->dev;
 	int ret = 0;
 
-	ret = macsec_enable_car(macsec_pdata);
-	if (ret < 0) {
-		dev_err(dev, "Unable to enable macsec clks & reset\n");
-		return ret;
+	if (macsec_pdata->ns_rst) {
+		ret = reset_control_reset(macsec_pdata->ns_rst);
+		if (ret < 0) {
+			dev_err(dev, "failed to reset macsec\n");
+			return ret;
+		}
 	}
+
 	return macsec_open(macsec_pdata, OSI_NULL);
 }
 

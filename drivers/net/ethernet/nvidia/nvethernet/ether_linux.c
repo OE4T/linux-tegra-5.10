@@ -6821,7 +6821,7 @@ static int ether_resume(struct ether_priv_data *pdata)
 #ifdef MACSEC_SUPPORT
 	if ((osi_core->mac == OSI_MAC_HW_EQOS && osi_core->mac_ver == OSI_EQOS_MAC_5_30) ||
 	    (osi_core->mac == OSI_MAC_HW_MGBE && osi_core->mac_ver == OSI_MGBE_MAC_3_10)) {
-		if (pdata->macsec_pdata->enabled_before_suspend != OSI_DISABLE) {
+		if (pdata->macsec_pdata->next_supp_idx != OSI_DISABLE) {
 			ret = macsec_resume(pdata->macsec_pdata);
 			if (ret < 0)
 				dev_err(pdata->dev, "Failed to resume MACSEC ");
@@ -6869,9 +6869,7 @@ static int ether_suspend_noirq(struct device *dev)
 #ifdef MACSEC_SUPPORT
 	if ((osi_core->mac == OSI_MAC_HW_EQOS && osi_core->mac_ver == OSI_EQOS_MAC_5_30) ||
 	    (osi_core->mac == OSI_MAC_HW_MGBE && osi_core->mac_ver == OSI_MGBE_MAC_3_10)) {
-		pdata->macsec_pdata->enabled_before_suspend =
-			pdata->macsec_pdata->enabled;
-		if (pdata->macsec_pdata->enabled != OSI_DISABLE) {
+		if (pdata->macsec_pdata->next_supp_idx != OSI_DISABLE) {
 			ret = macsec_suspend(pdata->macsec_pdata);
 			if (ret < 0)
 				dev_err(pdata->dev, "Failed to suspend macsec");

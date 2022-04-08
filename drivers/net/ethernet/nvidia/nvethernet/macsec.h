@@ -205,8 +205,6 @@ struct macsec_priv_data {
 	unsigned int protect_frames;
 	/** MACsec enabled flags for Tx/Rx controller status */
 	unsigned int enabled;
-	/** MACsec enabled flags for Tx/Rx controller status before Suspend */
-	unsigned int enabled_before_suspend;
 	/** MACsec Rx PN Window */
 	unsigned int pn_window;
 	/** MACsec controller init reference count */
