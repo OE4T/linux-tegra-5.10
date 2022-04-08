@@ -54,6 +54,7 @@ u32 gm20b_gr_intr_read_pending_interrupts(struct gk20a *g,
 
 	(void) memset(intr_info, 0, sizeof(struct nvgpu_gr_intr_info));
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 	if ((gr_intr & gr_intr_notify_pending_f()) != 0U) {
 		intr_info->notify = gr_intr_notify_pending_f();
 	}
@@ -61,6 +62,7 @@ u32 gm20b_gr_intr_read_pending_interrupts(struct gk20a *g,
 	if ((gr_intr & gr_intr_semaphore_pending_f()) != 0U) {
 		intr_info->semaphore = gr_intr_semaphore_pending_f();
 	}
+#endif
 
 	if ((gr_intr & gr_intr_illegal_notify_pending_f()) != 0U) {
 		intr_info->illegal_notify = gr_intr_illegal_notify_pending_f();

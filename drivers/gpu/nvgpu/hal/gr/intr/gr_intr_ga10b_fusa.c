@@ -43,13 +43,16 @@
 
 static u32 gr_intr_en_mask(void)
 {
-	u32 mask = gr_intr_en_notify__prod_f() |
+	u32 mask =
+#ifdef CONFIG_NVGPU_NON_FUSA
+		gr_intr_en_notify__prod_f() |
 		gr_intr_en_semaphore__prod_f() |
+		gr_intr_en_debug_method__prod_f() |
+		gr_intr_en_buffer_notify__prod_f() |
+#endif
 		gr_intr_en_illegal_method__prod_f() |
 		gr_intr_en_illegal_notify__prod_f() |
-		gr_intr_en_debug_method__prod_f() |
 		gr_intr_en_firmware_method__prod_f() |
-		gr_intr_en_buffer_notify__prod_f() |
 		gr_intr_en_fecs_error__prod_f() |
 		gr_intr_en_class_error__prod_f() |
 		gr_intr_en_exception__prod_f() |
@@ -1112,6 +1115,7 @@ u32 ga10b_gr_intr_read_pending_interrupts(struct gk20a *g,
 
 	(void) memset(intr_info, 0, sizeof(struct nvgpu_gr_intr_info));
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 	if ((gr_intr & gr_intr_notify_pending_f()) != 0U) {
 		intr_info->notify = gr_intr_notify_pending_f();
 	}
@@ -1119,6 +1123,15 @@ u32 ga10b_gr_intr_read_pending_interrupts(struct gk20a *g,
 	if ((gr_intr & gr_intr_semaphore_pending_f()) != 0U) {
 		intr_info->semaphore = gr_intr_semaphore_pending_f();
 	}
+
+	if ((gr_intr & gr_intr_buffer_notify_pending_f()) != 0U) {
+		intr_info->buffer_notify = gr_intr_buffer_notify_pending_f();
+	}
+
+	if ((gr_intr & gr_intr_debug_method_pending_f()) != 0U) {
+		intr_info->debug_method = gr_intr_debug_method_pending_f();
+	}
+#endif
 
 	if ((gr_intr & gr_intr_illegal_notify_pending_f()) != 0U) {
 		intr_info->illegal_notify = gr_intr_illegal_notify_pending_f();
@@ -1128,20 +1141,12 @@ u32 ga10b_gr_intr_read_pending_interrupts(struct gk20a *g,
 		intr_info->illegal_method = gr_intr_illegal_method_pending_f();
 	}
 
-	if ((gr_intr & gr_intr_buffer_notify_pending_f()) != 0U) {
-		intr_info->buffer_notify = gr_intr_buffer_notify_pending_f();
-	}
-
 	if ((gr_intr & gr_intr_fecs_error_pending_f()) != 0U) {
 		intr_info->fecs_error = gr_intr_fecs_error_pending_f();
 	}
 
 	if ((gr_intr & gr_intr_class_error_pending_f()) != 0U) {
 		intr_info->class_error = gr_intr_class_error_pending_f();
-	}
-
-	if ((gr_intr & gr_intr_debug_method_pending_f()) != 0U) {
-		intr_info->debug_method = gr_intr_debug_method_pending_f();
 	}
 
 	/* this one happens if someone tries to hit a non-whitelisted

@@ -851,6 +851,7 @@ static u32 gr_intr_handle_error_interrupts(struct gk20a *g,
 	return do_reset;
 }
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 static void gr_intr_handle_pending_interrupts(struct gk20a *g,
 		u32 *clear_intr,
 		struct nvgpu_gr_intr_info *intr_info,
@@ -882,6 +883,7 @@ static void gr_intr_handle_pending_interrupts(struct gk20a *g,
 		*clear_intr &= ~intr_info->debug_method;
 	}
 }
+#endif
 
 static struct nvgpu_tsg *gr_intr_get_channel_from_ctx(struct gk20a *g,
 			u32 gr_intr, u32 *chid,
@@ -972,9 +974,10 @@ int nvgpu_gr_intr_stall_isr(struct gk20a *g)
 							&isr_data);
 	}
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 	gr_intr_handle_pending_interrupts(g, &clear_intr,
 					&intr_info, &isr_data);
-
+#endif
 	need_reset |= gr_intr_handle_illegal_interrupts(g,
 				&clear_intr, &intr_info, &isr_data);
 
