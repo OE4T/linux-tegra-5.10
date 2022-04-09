@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2012, 2013, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012, 2013-2020, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/io.h>
@@ -180,9 +180,14 @@ void __init tegra_audio_clk_init(void __iomem *clk_base,
 
 		dt_clk = tegra_lookup_dt_id(info->clk_id, tegra_clks);
 		if (dt_clk) {
-			clk = tegra_clk_register_pll(info->name, info->parent,
-					clk_base, pmc_base, 0, info->pll_params,
-					NULL);
+			if (info->register_fn)
+				clk = info->register_fn(
+					info->name, info->parent, clk_base,
+					pmc_base, 0, info->pll_params, NULL);
+			else
+				clk = tegra_clk_register_pll(
+					info->name, info->parent, clk_base,
+					pmc_base, 0, info->pll_params, NULL);
 			*dt_clk = clk;
 		}
 	}
@@ -219,6 +224,7 @@ void __init tegra_audio_clk_init(void __iomem *clk_base,
 	/* make sure the DMIC sync clocks have a valid parent */
 	for (i = 0; i < ARRAY_SIZE(dmic_clks); i++)
 		writel_relaxed(1, clk_base + dmic_clks[i].offset);
+	fence_udelay(2, clk_base);
 
 	tegra_audio_sync_clk_init(clk_base, tegra_clks, dmic_clks,
 				  ARRAY_SIZE(dmic_clks), mux_dmic_sync_clk,

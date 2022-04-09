@@ -2380,4 +2380,9 @@
 		interrupt-parent = <&gic>;
 		always-on;
 	};
+
+	tegra-cache {
+		compatible = "nvidia,t19x-cache";
+		status = "disabled";
+	};
 };

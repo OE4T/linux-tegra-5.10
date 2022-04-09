@@ -1788,30 +1788,43 @@ int isolate_lru_page(struct page *page)
 	return ret;
 }
 
-/*
- * A direct reclaimer may isolate SWAP_CLUSTER_MAX pages from the LRU list and
- * then get rescheduled. When there are massive number of tasks doing page
- * allocation, such sleeping direct reclaimers may keep piling up on each CPU,
- * the LRU list will go small and be scanned faster than necessary, leading to
- * unnecessary swapping, thrashing and OOM.
- */
-static int too_many_isolated(struct pglist_data *pgdat, int file,
-		struct scan_control *sc)
+static inline ulong node_page_state_snapshot(pg_data_t *pgdat,
+					     enum node_stat_item item)
+{
+	long x = atomic_long_read(&pgdat->vm_stat[item]);
+
+#ifdef CONFIG_SMP
+	int cpu;
+	for_each_online_cpu(cpu)
+		x += per_cpu_ptr(pgdat->per_cpu_nodestats, cpu)->vm_node_stat_diff[item];
+
+	if (x < 0)
+		x = 0;
+#endif
+	return x;
+}
+
+static int __too_many_isolated(struct pglist_data *pgdat, int file,
+		struct scan_control *sc, int safe)
 {
 	unsigned long inactive, isolated;
 
-	if (current_is_kswapd())
-		return 0;
-
-	if (!writeback_throttling_sane(sc))
-		return 0;
-
 	if (file) {
-		inactive = node_page_state(pgdat, NR_INACTIVE_FILE);
-		isolated = node_page_state(pgdat, NR_ISOLATED_FILE);
+		if (safe) {
+			inactive = node_page_state_snapshot(pgdat, NR_INACTIVE_FILE);
+			isolated = node_page_state_snapshot(pgdat, NR_ISOLATED_FILE);
+		} else {
+			inactive = node_page_state(pgdat, NR_INACTIVE_FILE);
+			isolated = node_page_state(pgdat, NR_ISOLATED_FILE);
+		}
 	} else {
-		inactive = node_page_state(pgdat, NR_INACTIVE_ANON);
-		isolated = node_page_state(pgdat, NR_ISOLATED_ANON);
+		if (safe) {
+			inactive = node_page_state_snapshot(pgdat, NR_INACTIVE_ANON);
+			isolated = node_page_state_snapshot(pgdat, NR_ISOLATED_ANON);
+		} else {
+			inactive = node_page_state(pgdat, NR_INACTIVE_ANON);
+			isolated = node_page_state(pgdat, NR_ISOLATED_ANON);
+		}
 	}
 
 	/*
@@ -1823,6 +1836,32 @@ static int too_many_isolated(struct pglist_data *pgdat, int file,
 		inactive >>= 3;
 
 	return isolated > inactive;
+}
+
+/*
+ * A direct reclaimer may isolate SWAP_CLUSTER_MAX pages from the LRU list and
+ * then get rescheduled. When there are massive number of tasks doing page
+ * allocation, such sleeping direct reclaimers may keep piling up on each CPU,
+ * the LRU list will go small and be scanned faster than necessary, leading to
+ * unnecessary swapping, thrashing and OOM.
+ */
+static int too_many_isolated(struct pglist_data *pgdat, int file,
+		struct scan_control *sc, int safe)
+{
+	if (current_is_kswapd())
+		return 0;
+
+	if (!writeback_throttling_sane(sc))
+		return 0;
+
+	if (unlikely(__too_many_isolated(pgdat, file, sc, 0))) {
+		if (safe)
+			return __too_many_isolated(pgdat, file, sc, safe);
+		else
+			return 1;
+	}
+
+	return 0;
 }
 
 /*
@@ -1929,8 +1968,9 @@ shrink_inactive_list(unsigned long nr_to_scan, struct lruvec *lruvec,
 	enum vm_event_item item;
 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
 	bool stalled = false;
+	int safe = 0;
 
-	while (unlikely(too_many_isolated(pgdat, file, sc))) {
+	while (unlikely(too_many_isolated(pgdat, file, sc, safe))) {
 		if (stalled)
 			return 0;
 
@@ -1941,6 +1981,8 @@ shrink_inactive_list(unsigned long nr_to_scan, struct lruvec *lruvec,
 		/* We are about to die and free our memory. Return now. */
 		if (fatal_signal_pending(current))
 			return SWAP_CLUSTER_MAX;
+
+		safe = 1;
 	}
 
 	lru_add_drain();

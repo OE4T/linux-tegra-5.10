@@ -440,7 +440,7 @@ static int card_busy_detect(struct mmc_card *card, unsigned int timeout_ms,
 				 __func__, status);
 			return -ETIMEDOUT;
 		}
-	} while (!mmc_ready_for_data(status));
+	} while (!mmc_broken_ready_for_data(card, status));
 
 	return err;
 }
@@ -1164,10 +1164,23 @@ static void mmc_blk_issue_flush(struct mmc_queue *mq, struct request *req)
 {
 	struct mmc_blk_data *md = mq->blkdata;
 	struct mmc_card *card = md->queue.card;
+	struct mmc_host *host = card->host;
 	int ret = 0;
+
+	if (host->en_periodic_cflush && host->flush_timeout &&
+			!host->cache_flush_needed) {
+		blk_mq_end_request(req, BLK_STS_OK);
+		return;
+	}
 
 	ret = mmc_flush_cache(card);
 	blk_mq_end_request(req, ret ? BLK_STS_IOERR : BLK_STS_OK);
+
+	if (host->en_periodic_cflush && host->flush_timeout && !ret) {
+		host->cache_flush_needed = false;
+		mod_timer(&host->flush_timer, jiffies +
+			msecs_to_jiffies(host->flush_timeout));
+	}
 }
 
 /*
@@ -1658,7 +1671,7 @@ static void mmc_blk_read_single(struct mmc_queue *mq, struct request *req)
 			goto error_exit;
 
 		if (!mmc_host_is_spi(host) &&
-		    !mmc_ready_for_data(status)) {
+		    !mmc_broken_ready_for_data(card, status)) {
 			err = mmc_blk_fix_state(card, req);
 			if (err)
 				goto error_exit;
@@ -1708,6 +1721,7 @@ static bool mmc_blk_status_error(struct request *req, u32 status)
 	struct mmc_queue_req *mqrq = req_to_mmc_queue_req(req);
 	struct mmc_blk_request *brq = &mqrq->brq;
 	struct mmc_queue *mq = req->q->queuedata;
+	struct mmc_card *card = mq->card;
 	u32 stop_err_bits;
 
 	if (mmc_host_is_spi(mq->card->host))
@@ -1718,7 +1732,8 @@ static bool mmc_blk_status_error(struct request *req, u32 status)
 	return brq->cmd.resp[0]  & CMD_ERRORS    ||
 	       brq->stop.resp[0] & stop_err_bits ||
 	       status            & stop_err_bits ||
-	       (rq_data_dir(req) == WRITE && !mmc_ready_for_data(status));
+	       (rq_data_dir(req) == WRITE &&
+		!mmc_broken_ready_for_data(card, status));
 }
 
 static inline bool mmc_blk_cmd_started(struct mmc_blk_request *brq)
@@ -2241,11 +2256,22 @@ enum mmc_issued mmc_blk_mq_issue_rq(struct mmc_queue *mq, struct request *req)
 	case MMC_ISSUE_ASYNC:
 		switch (req_op(req)) {
 		case REQ_OP_FLUSH:
-			if (!mmc_cache_enabled(host)) {
+			if (!mmc_cache_enabled(host) ||
+			    (host->en_periodic_cflush && host->flush_timeout &&
+			     !host->cache_flush_needed)) {
 				blk_mq_end_request(req, BLK_STS_OK);
 				return MMC_REQ_FINISHED;
 			}
+
 			ret = mmc_blk_cqe_issue_flush(mq, req);
+
+			if (host->en_periodic_cflush && host->flush_timeout &&
+					!ret) {
+				host->cache_flush_needed = false;
+				mod_timer(&host->flush_timer, jiffies +
+						msecs_to_jiffies(host->flush_timeout));
+			}
+
 			break;
 		case REQ_OP_READ:
 		case REQ_OP_WRITE:
@@ -2384,6 +2410,7 @@ static struct mmc_blk_data *mmc_blk_alloc_req(struct mmc_card *card,
 	     card->ext_csd.rel_sectors)) {
 		md->flags |= MMC_BLK_REL_WR;
 		blk_queue_write_cache(md->queue.queue, true, true);
+		card->host->cache_flush_needed = true;
 	}
 
 	return md;

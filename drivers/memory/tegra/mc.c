@@ -668,7 +668,7 @@ static int tegra_mc_probe(struct platform_device *pdev)
 
 	mc_writel(mc, mc->soc->intmask, MC_INTMASK);
 
-	err = devm_request_irq(&pdev->dev, mc->irq, isr, 0,
+	err = devm_request_irq(&pdev->dev, mc->irq, isr, IRQF_SHARED,
 			       dev_name(&pdev->dev), mc);
 	if (err < 0) {
 		dev_err(&pdev->dev, "failed to request IRQ#%u: %d\n", mc->irq,
@@ -735,7 +735,7 @@ static const struct dev_pm_ops tegra_mc_pm_ops = {
 	.resume = tegra_mc_resume,
 };
 
-static struct platform_driver tegra_mc_driver = {
+struct platform_driver tegra_mc_driver = {
 	.driver = {
 		.name = "tegra-mc",
 		.of_match_table = tegra_mc_of_match,

@@ -258,6 +258,14 @@ config ARM_SMMU
 	  Say Y here if your SoC includes an IOMMU device implementing
 	  the ARM SMMU architecture.
 
+config ARM_SMMU_DEBUG
+        bool "ARM SMMU DEBUG"
+        depends on (ARM_SMMU && DEBUG_FS)
+        default n
+        help
+          Support for ARM System MMU debugfs where all the required SMMU context
+          registers and other deubg information will be saved.
+
 config ARM_SMMU_LEGACY_DT_BINDINGS
 	bool "Support the legacy \"mmu-masters\" devicetree bindings"
 	depends on ARM_SMMU=y && OF

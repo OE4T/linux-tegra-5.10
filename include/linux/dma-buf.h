@@ -26,6 +26,9 @@ struct device;
 struct dma_buf;
 struct dma_buf_attachment;
 
+#define DMABUF_CAN_DEFER_UNMAP		BIT(0)
+#define DMABUF_SKIP_CACHE_SYNC		BIT(1)
+
 /**
  * struct dma_buf_ops - operations possible on struct dma_buf
  * @vmap: [optional] creates a virtual mapping for the buffer into kernel
@@ -311,12 +314,18 @@ struct dma_buf {
 	unsigned vmapping_counter;
 	void *vmap_ptr;
 	const char *exp_name;
+	unsigned long flags;
 	const char *name;
 	spinlock_t name_lock;
 	struct module *owner;
 	struct list_head list_node;
 	void *priv;
 	struct dma_resv *resv;
+
+	/* dma-buf stashing is optimized for host1x context device. Adding flag
+	 * to find out whether dma_buf is attached to any context device or not.
+	 */
+	bool context_dev;
 
 	/* poll support */
 	wait_queue_head_t poll;
@@ -390,12 +399,16 @@ struct dma_buf_attachment {
 	struct dma_buf *dmabuf;
 	struct device *dev;
 	struct list_head node;
+	/* Adding list node for device attachments. */
+	struct list_head dev_node;
 	struct sg_table *sgt;
 	enum dma_data_direction dir;
 	bool peer2peer;
 	const struct dma_buf_attach_ops *importer_ops;
 	void *importer_priv;
 	void *priv;
+	atomic_t ref;
+	atomic_t maps;
 };
 
 /**
@@ -417,6 +430,7 @@ struct dma_buf_export_info {
 	const struct dma_buf_ops *ops;
 	size_t size;
 	int flags;
+	int exp_flags;
 	struct dma_resv *resv;
 	void *priv;
 };
@@ -490,6 +504,8 @@ int dma_buf_fd(struct dma_buf *dmabuf, int flags);
 struct dma_buf *dma_buf_get(int fd);
 void dma_buf_put(struct dma_buf *dmabuf);
 
+void dma_buf_release_stash(struct device *dev);
+
 struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *,
 					enum dma_data_direction);
 void dma_buf_unmap_attachment(struct dma_buf_attachment *, struct sg_table *,
@@ -504,4 +520,5 @@ int dma_buf_mmap(struct dma_buf *, struct vm_area_struct *,
 		 unsigned long);
 void *dma_buf_vmap(struct dma_buf *);
 void dma_buf_vunmap(struct dma_buf *, void *vaddr);
+extern int dma_buf_disable_defer_unmapping(struct device *device);
 #endif /* __DMA_BUF_H__ */

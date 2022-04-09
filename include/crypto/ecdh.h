@@ -3,10 +3,13 @@
  * ECDH params to be used with kpp API
  *
  * Copyright (c) 2016, Intel Corporation
+ * Copyright (c) 2017-2020, NVIDIA Corporation. All Rights Reserved.
  * Authors: Salvatore Benedetto <salvatore.benedetto@intel.com>
  */
 #ifndef _CRYPTO_ECDH_
 #define _CRYPTO_ECDH_
+
+#include <crypto/ecc.h>
 
 /**
  * DOC: ECDH Helper Functions
@@ -14,17 +17,10 @@
  * To use ECDH with the KPP cipher API, the following data structure and
  * functions should be used.
  *
- * The ECC curves known to the ECDH implementation are specified in this
- * header file.
- *
  * To use ECDH with KPP, the following functions should be used to operate on
  * an ECDH private key. The packet private key that can be set with
  * the KPP API function call of crypto_kpp_set_secret.
  */
-
-/* Curves IDs */
-#define ECC_CURVE_NIST_P192	0x0001
-#define ECC_CURVE_NIST_P256	0x0002
 
 /**
  * struct ecdh - define an ECDH private key

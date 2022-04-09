@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2013-2014, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2021, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/device.h>
@@ -65,6 +65,43 @@ static u32 tegra30_fuse_read(struct tegra_fuse *fuse, unsigned int offset)
 	return value;
 }
 
+static u32 tegra30_fuse_control_read(struct tegra_fuse *fuse,
+	unsigned int offset)
+{
+	u32 value;
+	int err;
+
+	err = clk_prepare_enable(fuse->clk);
+	if (err < 0) {
+		dev_err(fuse->dev, "failed to enable FUSE clock: %d\n", err);
+		return 0;
+	}
+
+	value = readl_relaxed(fuse->base + offset);
+
+	clk_disable_unprepare(fuse->clk);
+
+	return value;
+}
+
+static int tegra30_fuse_control_write(struct tegra_fuse *fuse, u32 value,
+	unsigned int offset)
+{
+	int err;
+
+	err = clk_prepare_enable(fuse->clk);
+	if (err < 0) {
+		dev_err(fuse->dev, "failed to enable FUSE clock: %d\n", err);
+		return -EIO;
+	}
+
+	writel(value, fuse->base + offset);
+
+	clk_disable_unprepare(fuse->clk);
+
+	return 0;
+}
+
 static void __init tegra30_fuse_add_randomness(void)
 {
 	u32 randomness[12];
@@ -87,10 +124,31 @@ static void __init tegra30_fuse_add_randomness(void)
 	add_device_randomness(randomness, sizeof(randomness));
 }
 
+static int tegra30_fuse_write(struct tegra_fuse *fuse, u32 value,
+	unsigned int offset)
+{
+	int err;
+
+	err = clk_prepare_enable(fuse->clk);
+	if (err < 0) {
+		dev_err(fuse->dev, "failed to enable FUSE clock: %d\n", err);
+		return -EIO;
+	}
+
+	writel(value, fuse->base + FUSE_BEGIN + offset);
+
+	clk_disable_unprepare(fuse->clk);
+
+	return 0;
+}
+
 static void __init tegra30_fuse_init(struct tegra_fuse *fuse)
 {
 	fuse->read_early = tegra30_fuse_read_early;
 	fuse->read = tegra30_fuse_read;
+	fuse->write = tegra30_fuse_write;
+	fuse->control_read = tegra30_fuse_control_read;
+	fuse->control_write = tegra30_fuse_control_write;
 
 	tegra_init_revision();
 
@@ -370,6 +428,16 @@ static const struct nvmem_cell_lookup tegra234_fuse_lookups[] = {
 		.cell_name = "xusb-pad-calibration-ext",
 		.dev_id = "3520000.padctl",
 		.con_id = "calibration-ext",
+	}, {
+		.nvmem_name = "fuse",
+		.cell_name = "opt-dla-disable",
+		.dev_id = "15880000.nvdla0",
+		.con_id = "dla-disable",
+	}, {
+		.nvmem_name = "fuse",
+		.cell_name = "opt-dla-disable",
+		.dev_id = "158c0000.nvdla1",
+		.con_id = "dla-disable",
 	},
 };
 

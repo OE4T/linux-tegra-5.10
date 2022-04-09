@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/*
+ * Copyright (c) 2015, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/delay.h>
@@ -277,6 +279,16 @@ static void __cqhci_enable(struct cqhci_host *cq_host)
 
 	if (cq_host->ops->enable)
 		cq_host->ops->enable(mmc);
+
+	/* Enable interrupt coalescing feature and set task counter and timer*/
+	if (cq_host->quirks & CQHCI_QUIRK_CQIC_SUPPORT) {
+		cqhci_writel(cq_host, (CQHCI_IC_ENABLE |
+				CQHCI_IC_ICTOVALWEN |
+				CQHCI_IC_ICTOVAL(CQHCI_IC_MAX_ICTOVAL) |
+				CQHCI_IC_ICCTHWEN |
+				CQHCI_IC_ICCTH(CQHCI_IC_DEFAULT_ICCTH)),
+				CQHCI_IC);
+	}
 
 	/* Ensure all writes are done before interrupts are enabled */
 	wmb();
@@ -572,6 +584,7 @@ static int cqhci_request(struct mmc_host *mmc, struct mmc_request *mrq)
 	int tag = cqhci_tag(mrq);
 	struct cqhci_host *cq_host = mmc->cqe_private;
 	unsigned long flags;
+	bool intr = true;
 
 	if (!cq_host->enabled) {
 		pr_err("%s: cqhci: not enabled\n", mmc_hostname(mmc));
@@ -599,7 +612,13 @@ static int cqhci_request(struct mmc_host *mmc, struct mmc_request *mrq)
 
 	if (mrq->data) {
 		task_desc = (__le64 __force *)get_desc(cq_host, tag);
-		cqhci_prep_task_desc(mrq, &data, 1);
+		/*
+		 * If interrupt coalescing is enabled,
+		 * disable per task interrupt
+		 */
+		if (cq_host->quirks & CQHCI_QUIRK_CQIC_SUPPORT)
+			intr = false;
+		cqhci_prep_task_desc(mrq, &data, intr);
 		*task_desc = cpu_to_le64(data);
 		err = cqhci_prep_tran_desc(mrq, cq_host, tag);
 		if (err) {
@@ -766,7 +785,7 @@ irqreturn_t cqhci_irq(struct mmc_host *mmc, u32 intmask, int cmd_error,
 		      int data_error)
 {
 	u32 status;
-	unsigned long tag = 0, comp_status;
+	unsigned long tag = 0, comp_status, cqic;
 	struct cqhci_host *cq_host = mmc->cqe_private;
 
 	status = cqhci_readl(cq_host, CQHCI_IS);
@@ -776,6 +795,12 @@ irqreturn_t cqhci_irq(struct mmc_host *mmc, u32 intmask, int cmd_error,
 
 	if ((status & CQHCI_IS_RED) || cmd_error || data_error)
 		cqhci_error_irq(mmc, status, cmd_error, data_error);
+
+	/* Reset interrupt coalescing task counter and timer */
+	if (cq_host->quirks & CQHCI_QUIRK_CQIC_SUPPORT) {
+		cqic = cqhci_readl(cq_host, CQHCI_IC);
+		cqhci_writel(cq_host, cqic | CQHCI_IC_RESET, CQHCI_IC);
+	}
 
 	if (status & CQHCI_IS_TCC) {
 		/* read TCN and complete the request */
@@ -1063,6 +1088,26 @@ static void cqhci_recovery_finish(struct mmc_host *mmc)
 	pr_debug("%s: cqhci: recovery done\n", mmc_hostname(mmc));
 }
 
+static void cqhci_mode_disable(struct mmc_host *mmc)
+{
+	struct cqhci_host *cq_host = mmc->cqe_private;
+	u32 cqcfg;
+
+	cqcfg = cqhci_readl(cq_host, CQHCI_CFG);
+	cqcfg &= ~CQHCI_ENABLE;
+	cqhci_writel(cq_host, cqcfg, CQHCI_CFG);
+}
+
+static void cqhci_mode_enable(struct mmc_host *mmc)
+{
+	struct cqhci_host *cq_host = mmc->cqe_private;
+	u32 cqcfg;
+
+	cqcfg = cqhci_readl(cq_host, CQHCI_CFG);
+	cqcfg |= CQHCI_ENABLE;
+	cqhci_writel(cq_host, cqcfg, CQHCI_CFG);
+}
+
 static const struct mmc_cqe_ops cqhci_cqe_ops = {
 	.cqe_enable = cqhci_enable,
 	.cqe_disable = cqhci_disable,
@@ -1073,6 +1118,8 @@ static const struct mmc_cqe_ops cqhci_cqe_ops = {
 	.cqe_timeout = cqhci_timeout,
 	.cqe_recovery_start = cqhci_recovery_start,
 	.cqe_recovery_finish = cqhci_recovery_finish,
+	.cqe_mode_enable = cqhci_mode_enable,
+	.cqe_mode_disable = cqhci_mode_disable,
 };
 
 struct cqhci_host *cqhci_pltfm_init(struct platform_device *pdev)

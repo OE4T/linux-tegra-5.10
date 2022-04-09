@@ -812,6 +812,8 @@ void do_coredump(const kernel_siginfo_t *siginfo)
 	}
 	if (ispipe && core_pipe_limit)
 		wait_for_dump_helpers(cprm.file);
+	if (cprm.file->f_op->fsync != NULL)
+		cprm.file->f_op->fsync(cprm.file, 0, LLONG_MAX, 0);
 close_fail:
 	if (cprm.file)
 		filp_close(cprm.file, NULL);

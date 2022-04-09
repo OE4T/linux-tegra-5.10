@@ -644,7 +644,8 @@ u64 ata_tf_read_block(const struct ata_taskfile *tf, struct ata_device *dev)
 			return U64_MAX;
 		}
 
-		block = (cyl * dev->heads + head) * dev->sectors + sect - 1;
+		block = ((u64)cyl * dev->heads + head) *
+			dev->sectors + sect - 1;
 	}
 
 	return block;
@@ -1110,10 +1111,10 @@ static u64 ata_id_n_sectors(const u16 *id)
 			return ata_id_u32(id, ATA_ID_LBA_CAPACITY);
 	} else {
 		if (ata_id_current_chs_valid(id))
-			return id[ATA_ID_CUR_CYLS] * id[ATA_ID_CUR_HEADS] *
+			return (u64)id[ATA_ID_CUR_CYLS] * id[ATA_ID_CUR_HEADS] *
 			       id[ATA_ID_CUR_SECTORS];
 		else
-			return id[ATA_ID_CYLS] * id[ATA_ID_HEADS] *
+			return (u64)id[ATA_ID_CYLS] * id[ATA_ID_HEADS] *
 			       id[ATA_ID_SECTORS];
 	}
 }
@@ -3134,8 +3135,10 @@ int ata_down_xfermask_limit(struct ata_device *dev, unsigned int sel)
 
 	switch (sel) {
 	case ATA_DNXFER_PIO:
-		highbit = fls(pio_mask) - 1;
-		pio_mask &= ~(1 << highbit);
+		if (pio_mask) {
+			highbit = fls(pio_mask) - 1;
+			pio_mask &= ~(1 << highbit);
+		}
 		break;
 
 	case ATA_DNXFER_DMA:

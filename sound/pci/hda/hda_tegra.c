@@ -2,11 +2,14 @@
 /*
  *
  * Implementation of primary ALSA driver code base for NVIDIA Tegra HDA.
+ *
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION. All rights reserved.
  */
 
 #include <linux/clk.h>
 #include <linux/clocksource.h>
 #include <linux/completion.h>
+#include <linux/cpumask.h>
 #include <linux/delay.h>
 #include <linux/dma-mapping.h>
 #include <linux/init.h>
@@ -22,14 +25,21 @@
 #include <linux/string.h>
 #include <linux/pm_runtime.h>
 
+#include <soc/tegra/fuse.h>
 #include <sound/core.h>
 #include <sound/initval.h>
 
 #include <sound/hda_codec.h>
 #include "hda_controller.h"
+#include "hda_jack.h"
+
+#if IS_ENABLED(CONFIG_TEGRA_DC)
+#include <video/tegra_hdmi_audio.h>
+#endif
 
 /* Defines for Nvidia Tegra HDA support */
 #define HDA_BAR0           0x8000
+#define HDA_DFPCI_CFG      0x1000
 
 #define HDA_CFG_CMD        0x1004
 #define HDA_CFG_BAR0       0x1010
@@ -61,20 +71,43 @@
 #define NUM_CAPTURE_SD 1
 #define NUM_PLAYBACK_SD 1
 
+/* GSC_ID register */
+#define HDA_GSC_REG		0x1e0
+#define HDA_GSC_ID		10
+
+#if IS_ENABLED(CONFIG_TEGRA_DC)
+#define CHAR_BUF_SIZE_MAX	50
+struct hda_pcm_devices {
+	struct azx_pcm *apcm;
+	struct kobject *kobj;
+	struct kobj_attribute pcm_attr;
+	struct kobj_attribute name_attr;
+	char switch_name[CHAR_BUF_SIZE_MAX];
+	int dev_id;
+};
+#endif
+
 /*
  * Tegra194 does not reflect correct number of SDO lines. Below macro
  * is used to update the GCAP register to workaround the issue.
  */
 #define TEGRA194_NUM_SDO_LINES	  4
+#define JACKPOLL_INTERVAL	msecs_to_jiffies(5000)
 
 struct hda_tegra {
 	struct azx chip;
 	struct device *dev;
-	struct clk *hda_clk;
-	struct clk *hda2codec_2x_clk;
-	struct clk *hda2hdmi_clk;
+	struct clk_bulk_data *clocks;
+	unsigned int nclocks;
 	void __iomem *regs;
+	void __iomem *regs_fpci;
 	struct work_struct probe_work;
+	struct delayed_work jack_work;
+#if IS_ENABLED(CONFIG_TEGRA_DC)
+	int num_codecs;
+	struct kobject *kobj;
+	struct hda_pcm_devices *hda_pcm_dev;
+#endif
 };
 
 #ifdef CONFIG_PM
@@ -111,36 +144,15 @@ static void hda_tegra_init(struct hda_tegra *hda)
 	v = readl(hda->regs + HDA_IPFS_INTR_MASK);
 	v |= HDA_IPFS_EN_INTR;
 	writel(v, hda->regs + HDA_IPFS_INTR_MASK);
-}
 
-static int hda_tegra_enable_clocks(struct hda_tegra *data)
-{
-	int rc;
-
-	rc = clk_prepare_enable(data->hda_clk);
-	if (rc)
-		return rc;
-	rc = clk_prepare_enable(data->hda2codec_2x_clk);
-	if (rc)
-		goto disable_hda;
-	rc = clk_prepare_enable(data->hda2hdmi_clk);
-	if (rc)
-		goto disable_codec_2x;
-
-	return 0;
-
-disable_codec_2x:
-	clk_disable_unprepare(data->hda2codec_2x_clk);
-disable_hda:
-	clk_disable_unprepare(data->hda_clk);
-	return rc;
-}
-
-static void hda_tegra_disable_clocks(struct hda_tegra *data)
-{
-	clk_disable_unprepare(data->hda2hdmi_clk);
-	clk_disable_unprepare(data->hda2codec_2x_clk);
-	clk_disable_unprepare(data->hda_clk);
+	/* program HDA_GSC_ID to get access to APR */
+	switch (tegra_get_chip_id()) {
+	case TEGRA194:
+		writel(HDA_GSC_ID, hda->regs + HDA_GSC_REG);
+		break;
+	default:
+		break;
+	}
 }
 
 /*
@@ -149,8 +161,11 @@ static void hda_tegra_disable_clocks(struct hda_tegra *data)
 static int __maybe_unused hda_tegra_suspend(struct device *dev)
 {
 	struct snd_card *card = dev_get_drvdata(dev);
+	struct azx *chip = card->private_data;
+	struct hda_tegra *hda = container_of(chip, struct hda_tegra, chip);
 	int rc;
 
+	cancel_delayed_work_sync(&hda->jack_work);
 	rc = pm_runtime_force_suspend(dev);
 	if (rc < 0)
 		return rc;
@@ -162,12 +177,16 @@ static int __maybe_unused hda_tegra_suspend(struct device *dev)
 static int __maybe_unused hda_tegra_resume(struct device *dev)
 {
 	struct snd_card *card = dev_get_drvdata(dev);
+	struct azx *chip = card->private_data;
+	struct hda_tegra *hda = container_of(chip, struct hda_tegra, chip);
 	int rc;
 
 	rc = pm_runtime_force_resume(dev);
 	if (rc < 0)
 		return rc;
 	snd_power_change_state(card, SNDRV_CTL_POWER_D0);
+
+	schedule_delayed_work(&hda->jack_work, JACKPOLL_INTERVAL);
 
 	return 0;
 }
@@ -186,7 +205,7 @@ static int __maybe_unused hda_tegra_runtime_suspend(struct device *dev)
 		azx_stop_chip(chip);
 		azx_enter_link_reset(chip);
 	}
-	hda_tegra_disable_clocks(hda);
+	clk_bulk_disable_unprepare(hda->nclocks, hda->clocks);
 
 	return 0;
 }
@@ -198,7 +217,7 @@ static int __maybe_unused hda_tegra_runtime_resume(struct device *dev)
 	struct hda_tegra *hda = container_of(chip, struct hda_tegra, chip);
 	int rc;
 
-	rc = hda_tegra_enable_clocks(hda);
+	rc = clk_bulk_prepare_enable(hda->nclocks, hda->clocks);
 	if (rc != 0)
 		return rc;
 	if (chip && chip->running) {
@@ -219,6 +238,29 @@ static const struct dev_pm_ops hda_tegra_pm = {
 			   NULL)
 };
 
+static void  hda_tegra_jack_work(struct work_struct *work)
+{
+	struct hda_tegra *hda =
+			container_of(work, struct hda_tegra, jack_work.work);
+	struct azx *chip = &hda->chip;
+	struct hda_codec *codec;
+
+	if (!chip->running)
+		return;
+
+	list_for_each_codec(codec, &chip->bus) {
+		if (snd_hdac_is_power_on(&codec->core))
+			continue;
+
+		snd_hda_power_up_pm(codec);
+		snd_hda_jack_set_dirty_all(codec);
+		snd_hda_jack_poll_all(codec);
+		snd_hda_power_down_pm(codec);
+	}
+
+	schedule_delayed_work(&hda->jack_work, JACKPOLL_INTERVAL);
+}
+
 static int hda_tegra_dev_disconnect(struct snd_device *device)
 {
 	struct azx *chip = device->device_data;
@@ -236,6 +278,7 @@ static int hda_tegra_dev_free(struct snd_device *device)
 	struct hda_tegra *hda = container_of(chip, struct hda_tegra, chip);
 
 	cancel_work_sync(&hda->probe_work);
+	cancel_delayed_work_sync(&hda->jack_work);
 	if (azx_bus(chip)->chip_init) {
 		azx_stop_all_streams(chip);
 		azx_stop_chip(chip);
@@ -262,31 +305,9 @@ static int hda_tegra_init_chip(struct azx *chip, struct platform_device *pdev)
 
 	bus->remap_addr = hda->regs + HDA_BAR0;
 	bus->addr = res->start + HDA_BAR0;
+	hda->regs_fpci = hda->regs + HDA_DFPCI_CFG;
 
 	hda_tegra_init(hda);
-
-	return 0;
-}
-
-static int hda_tegra_init_clk(struct hda_tegra *hda)
-{
-	struct device *dev = hda->dev;
-
-	hda->hda_clk = devm_clk_get(dev, "hda");
-	if (IS_ERR(hda->hda_clk)) {
-		dev_err(dev, "failed to get hda clock\n");
-		return PTR_ERR(hda->hda_clk);
-	}
-	hda->hda2codec_2x_clk = devm_clk_get(dev, "hda2codec_2x");
-	if (IS_ERR(hda->hda2codec_2x_clk)) {
-		dev_err(dev, "failed to get hda2codec_2x clock\n");
-		return PTR_ERR(hda->hda2codec_2x_clk);
-	}
-	hda->hda2hdmi_clk = devm_clk_get(dev, "hda2hdmi");
-	if (IS_ERR(hda->hda2hdmi_clk)) {
-		dev_err(dev, "failed to get hda2hdmi clock\n");
-		return PTR_ERR(hda->hda2hdmi_clk);
-	}
 
 	return 0;
 }
@@ -301,6 +322,9 @@ static int hda_tegra_first_init(struct azx *chip, struct platform_device *pdev)
 	int irq_id = platform_get_irq(pdev, 0);
 	const char *sname, *drv_name = "tegra-hda";
 	struct device_node *np = pdev->dev.of_node;
+#ifdef CONFIG_ANDROID
+	cpumask_t mask;
+#endif /* #ifdef CONFIG_ANDROID */
 
 	if (irq_id < 0)
 		return irq_id;
@@ -317,6 +341,12 @@ static int hda_tegra_first_init(struct azx *chip, struct platform_device *pdev)
 			irq_id);
 		return err;
 	}
+#ifdef CONFIG_ANDROID
+	/* We want to run on all but CPU0 */
+	cpumask_setall(&mask);
+	cpumask_clear_cpu(0, &mask);
+	irq_set_affinity_hint(irq_id, &mask);
+#endif /* #ifdef CONFIG_ANDROID */
 	bus->irq = irq_id;
 	bus->dma_stop_delay = 100;
 	card->sync_irq = bus->irq;
@@ -350,6 +380,18 @@ static int hda_tegra_first_init(struct azx *chip, struct platform_device *pdev)
 	 * hardcoded value
 	 */
 	chip->capture_streams = (gcap >> 8) & 0x0f;
+
+	/* The GCAP register on T23x implies no Input Streams(ISS) supported,
+	 * but the HW output stream descriptor programming should start with
+	 * offset 0x20*4 from base stream descriptor address. This will be a
+	 * problem while calculating the offset for output stream descriptor
+	 * which will be considering input stream also. So here output stream
+	 * starts with offset 0 which is wrong as HW register for output stream
+	 * offset starts with 4.
+	 */
+	if (of_device_is_compatible(np, "nvidia,tegra23x-hda"))
+		chip->capture_streams = 4;
+
 	chip->playback_streams = (gcap >> 12) & 0x0f;
 	if (!chip->playback_streams && !chip->capture_streams) {
 		/* gcap didn't give any info, switching to old method */
@@ -451,6 +493,7 @@ static int hda_tegra_create(struct snd_card *card,
 	chip->snoop = true;
 
 	INIT_WORK(&hda->probe_work, hda_tegra_probe_work);
+	INIT_DELAYED_WORK(&hda->jack_work, hda_tegra_jack_work);
 
 	err = azx_bus_init(chip, NULL);
 	if (err < 0)
@@ -472,6 +515,7 @@ static int hda_tegra_create(struct snd_card *card,
 static const struct of_device_id hda_tegra_match[] = {
 	{ .compatible = "nvidia,tegra30-hda" },
 	{ .compatible = "nvidia,tegra194-hda" },
+	{ .compatible = "nvidia,tegra23x-hda" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, hda_tegra_match);
@@ -479,17 +523,37 @@ MODULE_DEVICE_TABLE(of, hda_tegra_match);
 static int hda_tegra_probe(struct platform_device *pdev)
 {
 	const unsigned int driver_flags = AZX_DCAPS_CORBRP_SELF_CLEAR |
-					  AZX_DCAPS_PM_RUNTIME;
+					  AZX_DCAPS_PM_RUNTIME |
+					  AZX_DCAPS_4K_BDLE_BOUNDARY;
 	struct snd_card *card;
 	struct azx *chip;
 	struct hda_tegra *hda;
-	int err;
+	struct device_node *np;
+	struct property *prop;
+	const char *name;
+	int err, num, i = 0;
 
 	hda = devm_kzalloc(&pdev->dev, sizeof(*hda), GFP_KERNEL);
 	if (!hda)
 		return -ENOMEM;
 	hda->dev = &pdev->dev;
 	chip = &hda->chip;
+	np = hda->dev->of_node;
+
+	num = of_property_count_strings(np, "clock-names");
+	if (num < 0) {
+		dev_err(&pdev->dev, "No hda clocks specified\n");
+		return -EINVAL;
+	}
+	hda->nclocks = num;
+	hda->clocks = devm_kzalloc(&pdev->dev,
+				num * sizeof(struct clk_bulk_data *),
+				GFP_KERNEL);
+	if (!hda->clocks)
+		return -ENOMEM;
+
+	of_property_for_each_string(np, "clock-names", prop, name)
+		hda->clocks[i++].id = name;
 
 	err = snd_card_new(&pdev->dev, SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_STR1,
 			   THIS_MODULE, 0, &card);
@@ -498,7 +562,7 @@ static int hda_tegra_probe(struct platform_device *pdev)
 		return err;
 	}
 
-	err = hda_tegra_init_clk(hda);
+	err = devm_clk_bulk_get(&pdev->dev, hda->nclocks, hda->clocks);
 	if (err < 0)
 		goto out_free;
 
@@ -521,6 +585,122 @@ out_free:
 	snd_card_free(card);
 	return err;
 }
+
+#if IS_ENABLED(CONFIG_TEGRA_DC)
+static ssize_t hda_get_pcm_device_id(struct kobject *kobj,
+	struct kobj_attribute *attr,
+	char *buf)
+{
+	struct hda_pcm_devices *pcm_dev = container_of(attr,
+		struct hda_pcm_devices, pcm_attr);
+	return snprintf(buf, PAGE_SIZE, "%d\n", pcm_dev->apcm->info->device);
+}
+
+static ssize_t hda_get_pcm_switch_name(struct kobject *kobj,
+	struct kobj_attribute *attr, char *buf)
+{
+	struct hda_pcm_devices *pcm_dev = container_of(attr,
+		struct hda_pcm_devices, name_attr);
+	return snprintf(buf, PAGE_SIZE, "%s\n", pcm_dev->switch_name);
+}
+
+static int hda_tegra_create_sysfs(struct hda_tegra *hda)
+{
+	struct azx *chip = &hda->chip;
+	char dirname[CHAR_BUF_SIZE_MAX] = "hda_pcm_map";
+	int dev_count = 0, ret = 0;
+	struct azx_pcm *apcm;
+	struct kobject *parent = hda->dev->kobj.parent;
+
+	/* maintains list of all hda codecs */
+	hda->hda_pcm_dev = devm_kzalloc(hda->dev,
+		sizeof(struct hda_pcm_devices) * azx_bus(chip)->num_codecs,
+		GFP_KERNEL);
+	if (!hda->hda_pcm_dev)
+		return -ENOMEM;
+
+	hda->kobj = kobject_create_and_add(dirname, parent);
+	if (!hda->kobj)
+		return -ENOMEM;
+
+	list_for_each_entry(apcm, &chip->pcm_list, list) {
+		char subdirname[CHAR_BUF_SIZE_MAX];
+		struct hda_pcm_devices *pcm_dev = &hda->hda_pcm_dev[dev_count];
+
+		pcm_dev->apcm = apcm;
+		snprintf(subdirname, sizeof(subdirname), "hda%d", dev_count);
+		pcm_dev->kobj = kobject_create_and_add(subdirname, hda->kobj);
+		if (!pcm_dev->kobj)
+			return -ENOMEM;
+
+		/* attributes for pcm device ID */
+		sysfs_attr_init(&(pcm_dev->pcm_attr.attr));
+		pcm_dev->pcm_attr.attr.name = "pcm_dev_id";
+		pcm_dev->pcm_attr.attr.mode = 0644;
+		pcm_dev->pcm_attr.show = hda_get_pcm_device_id;
+
+		/* attributes for switch name */
+		sysfs_attr_init(&(pcm_dev->name_attr.attr));
+		pcm_dev->name_attr.attr.name = "switch_name";
+		pcm_dev->name_attr.attr.mode = 0644;
+		pcm_dev->name_attr.show = hda_get_pcm_switch_name;
+
+		/* gets registered switch name for give dev ID
+		 * TODO: may be we can create extcon node here itself and
+		 * not rely on display driver
+		 */
+		pcm_dev->dev_id = (apcm->codec->core.vendor_id) & 0xffff;
+		if (tegra_hda_get_switch_name(pcm_dev->dev_id,
+			pcm_dev->switch_name) < 0) {
+			dev_dbg(hda->dev, "error in getting switch name"
+				" for hda_pcm_id(%d)\n", apcm->info->device);
+			kobject_put(pcm_dev->kobj);
+			pcm_dev->kobj = NULL;
+			continue;
+		}
+
+		/* create files for read from userspace */
+		ret = sysfs_create_file(pcm_dev->kobj,
+			&(pcm_dev->pcm_attr.attr));
+		if (ret < 0)
+			break;
+
+		ret = sysfs_create_file(pcm_dev->kobj,
+			&(pcm_dev->name_attr.attr));
+		if (ret < 0)
+			break;
+
+		dev_count++;
+	}
+	return ret;
+}
+
+static void hda_tegra_remove_sysfs(struct device *dev)
+{
+	struct snd_card *card = dev_get_drvdata(dev);
+	struct azx *chip = card->private_data;
+	struct hda_tegra *hda = container_of(chip, struct hda_tegra, chip);
+	int i;
+
+	if (!hda || !hda->hda_pcm_dev || !hda->kobj)
+		return;
+
+	for (i = 0; i < azx_bus(chip)->num_codecs; i++) {
+		struct hda_pcm_devices *pcm_dev = &hda->hda_pcm_dev[i];
+
+		if (pcm_dev->kobj) {
+			sysfs_remove_file(pcm_dev->kobj,
+				&pcm_dev->pcm_attr.attr);
+			sysfs_remove_file(pcm_dev->kobj,
+				&pcm_dev->name_attr.attr);
+			kobject_put(pcm_dev->kobj);
+			pcm_dev->kobj = NULL;
+		}
+	}
+	kobject_put(hda->kobj);
+	hda->kobj = NULL;
+}
+#endif
 
 static void hda_tegra_probe_work(struct work_struct *work)
 {
@@ -550,15 +730,35 @@ static void hda_tegra_probe_work(struct work_struct *work)
 	chip->running = 1;
 	snd_hda_set_power_save(&chip->bus, power_save * 1000);
 
- out_free:
+#if IS_ENABLED(CONFIG_TEGRA_DC)
+	/* export pcm device mapping to userspace - needed for android */
+	err = hda_tegra_create_sysfs(hda);
+	if (err < 0) {
+		dev_err(&pdev->dev,
+			"error:%d in creating sysfs nodes for hda\n", err);
+		/* free allocated resources */
+		hda_tegra_remove_sysfs(&pdev->dev);
+	}
+#endif
+out_free:
 	pm_runtime_put(hda->dev);
+	schedule_delayed_work(&hda->jack_work, JACKPOLL_INTERVAL);
 	return; /* no error return from async probe */
 }
 
 static int hda_tegra_remove(struct platform_device *pdev)
 {
+	struct snd_card *card = dev_get_drvdata(&pdev->dev);
+	struct azx *chip = card->private_data;
+	struct hda_tegra *hda = container_of(chip, struct hda_tegra, chip);
 	int ret;
 
+#if IS_ENABLED(CONFIG_TEGRA_DC)
+	/* remove sysfs files */
+	hda_tegra_remove_sysfs(&pdev->dev);
+#endif
+
+	cancel_delayed_work_sync(&hda->jack_work);
 	ret = snd_card_free(dev_get_drvdata(&pdev->dev));
 	pm_runtime_disable(&pdev->dev);
 
@@ -569,10 +769,13 @@ static void hda_tegra_shutdown(struct platform_device *pdev)
 {
 	struct snd_card *card = dev_get_drvdata(&pdev->dev);
 	struct azx *chip;
+	struct hda_tegra *hda;
 
 	if (!card)
 		return;
 	chip = card->private_data;
+	hda = container_of(chip, struct hda_tegra, chip);
+	cancel_delayed_work_sync(&hda->jack_work);
 	if (chip && chip->running)
 		azx_stop_chip(chip);
 }

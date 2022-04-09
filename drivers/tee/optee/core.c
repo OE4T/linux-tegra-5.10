@@ -271,7 +271,7 @@ static void optee_release(struct tee_context *ctx)
 	struct optee *optee = tee_get_drvdata(teedev);
 	struct tee_shm *shm;
 	struct optee_msg_arg *arg = NULL;
-	phys_addr_t parg;
+	phys_addr_t parg = 0;
 	struct optee_session *sess;
 	struct optee_session *sess_tmp;
 

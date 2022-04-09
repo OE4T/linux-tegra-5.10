@@ -44,6 +44,7 @@
 #include <linux/percpu.h>
 #include <linux/thread_info.h>
 #include <linux/prctl.h>
+#include <linux/console.h>
 
 #include <asm/alternative.h>
 #include <asm/arch_gicv3.h>
@@ -71,6 +72,9 @@ void (*pm_power_off)(void);
 EXPORT_SYMBOL_GPL(pm_power_off);
 
 void (*arm_pm_restart)(enum reboot_mode reboot_mode, const char *cmd);
+
+void (*pm_power_reset)(void);
+EXPORT_SYMBOL(pm_power_reset);
 
 static void noinstr __cpu_do_idle(void)
 {
@@ -159,6 +163,7 @@ void machine_halt(void)
 {
 	local_irq_disable();
 	smp_send_stop();
+	console_unlock();
 	while (1);
 }
 
@@ -172,6 +177,7 @@ void machine_power_off(void)
 {
 	local_irq_disable();
 	smp_send_stop();
+	console_unlock();
 	if (pm_power_off)
 		pm_power_off();
 }
@@ -190,13 +196,14 @@ void machine_restart(char *cmd)
 	/* Disable interrupts first */
 	local_irq_disable();
 	smp_send_stop();
+	console_unlock();
 
 	/*
 	 * UpdateCapsule() depends on the system being reset via
 	 * ResetSystem().
 	 */
 	if (efi_enabled(EFI_RUNTIME_SERVICES))
-		efi_reboot(reboot_mode, NULL);
+		efi_reboot(reboot_mode, cmd);
 
 	/* Now call the architecture specific reboot code. */
 	if (arm_pm_restart)

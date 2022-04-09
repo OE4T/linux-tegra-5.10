@@ -2414,8 +2414,9 @@ static int build_audio_procunit(struct mixer_build *state, int unitid,
 		__u8 *controls = uac_processing_unit_bmControls(desc, state->mixer->protocol);
 
 		if (state->mixer->protocol == UAC_VERSION_1) {
-			if (!(controls[valinfo->control / 8] &
-					(1 << ((valinfo->control % 8) - 1))))
+			if ((valinfo->control % 8) &&
+				!(controls[valinfo->control / 8] &
+				(1 << ((valinfo->control % 8) - 1))))
 				continue;
 		} else { /* UAC_VERSION_2/3 */
 			if (!uac_v2v3_control_is_readable(controls[valinfo->control / 8],

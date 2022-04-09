@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/console.h>
@@ -19,6 +19,7 @@
 #define TCU_MBOX_BYTE_V(x, i)			(((x) >> (i * 8)) & 0xff)
 #define TCU_MBOX_NUM_BYTES(x)			((x) << 24)
 #define TCU_MBOX_NUM_BYTES_V(x)			(((x) >> 24) & 0x3)
+#define RX_ESCAPE_CHAR				(0xFFU)
 
 struct tegra_tcu {
 	struct uart_driver driver;
@@ -29,6 +30,9 @@ struct tegra_tcu {
 
 	struct mbox_client tx_client, rx_client;
 	struct mbox_chan *tx, *rx;
+
+	bool skip_frame_info;
+	bool char_is_ccplex_id;
 };
 
 static unsigned int tegra_tcu_uart_tx_empty(struct uart_port *port)
@@ -158,18 +162,35 @@ static int tegra_tcu_console_setup(struct console *cons, char *options)
 }
 #endif
 
+static bool tegra_tcu_is_rx_char(struct tegra_tcu *tcu, unsigned char ch)
+{
+	if (ch == RX_ESCAPE_CHAR) {
+		tcu->char_is_ccplex_id = true;
+		return false;
+	} else if (tcu->char_is_ccplex_id) {
+		tcu->char_is_ccplex_id = false;
+		return false;
+	}
+
+	return true;
+}
+
 static void tegra_tcu_receive(struct mbox_client *cl, void *msg)
 {
 	struct tegra_tcu *tcu = container_of(cl, struct tegra_tcu, rx_client);
 	struct tty_port *port = &tcu->port.state->port;
 	u32 value = (u32)(unsigned long)msg;
 	unsigned int num_bytes, i;
+	unsigned char ch;
 
 	num_bytes = TCU_MBOX_NUM_BYTES_V(value);
 
-	for (i = 0; i < num_bytes; i++)
-		tty_insert_flip_char(port, TCU_MBOX_BYTE_V(value, i),
-				     TTY_NORMAL);
+	for (i = 0; i < num_bytes; i++) {
+		ch = TCU_MBOX_BYTE_V(value, i);
+
+		if (!tcu->skip_frame_info || tegra_tcu_is_rx_char(tcu, ch))
+			tty_insert_flip_char(port, ch, TTY_NORMAL);
+	}
 
 	tty_flip_buffer_push(port);
 }
@@ -178,6 +199,7 @@ static int tegra_tcu_probe(struct platform_device *pdev)
 {
 	struct uart_port *port;
 	struct tegra_tcu *tcu;
+	struct device_node *np = pdev->dev.of_node;
 	int err;
 
 	tcu = devm_kzalloc(&pdev->dev, sizeof(*tcu), GFP_KERNEL);
@@ -193,13 +215,6 @@ static int tegra_tcu_probe(struct platform_device *pdev)
 		err = PTR_ERR(tcu->tx);
 		dev_err(&pdev->dev, "failed to get tx mailbox: %d\n", err);
 		return err;
-	}
-
-	tcu->rx = mbox_request_channel_byname(&tcu->rx_client, "rx");
-	if (IS_ERR(tcu->rx)) {
-		err = PTR_ERR(tcu->rx);
-		dev_err(&pdev->dev, "failed to get rx mailbox: %d\n", err);
-		goto free_tx;
 	}
 
 #if IS_ENABLED(CONFIG_SERIAL_TEGRA_TCU_CONSOLE)
@@ -226,7 +241,7 @@ static int tegra_tcu_probe(struct platform_device *pdev)
 	if (err) {
 		dev_err(&pdev->dev, "failed to register UART driver: %d\n",
 			err);
-		goto free_rx;
+		goto free_tx;
 	}
 
 	/* setup the port */
@@ -246,6 +261,19 @@ static int tegra_tcu_probe(struct platform_device *pdev)
 		goto unregister_uart;
 	}
 
+	tcu->skip_frame_info = of_property_read_bool(np, "skip-frame-info");
+
+	/*
+	 * Request RX channel after creating port to ensure tcu->port
+	 * is ready for any immediate incoming bytes.
+	 */
+	tcu->rx = mbox_request_channel_byname(&tcu->rx_client, "rx");
+	if (IS_ERR(tcu->rx)) {
+		err = PTR_ERR(tcu->rx);
+		dev_err(&pdev->dev, "failed to get rx mailbox: %d\n", err);
+		goto remove_uart_port;
+	}
+
 	platform_set_drvdata(pdev, tcu);
 #if IS_ENABLED(CONFIG_SERIAL_TEGRA_TCU_CONSOLE)
 	register_console(&tcu->console);
@@ -253,10 +281,10 @@ static int tegra_tcu_probe(struct platform_device *pdev)
 
 	return 0;
 
+remove_uart_port:
+	uart_remove_one_port(&tcu->driver, &tcu->port);
 unregister_uart:
 	uart_unregister_driver(&tcu->driver);
-free_rx:
-	mbox_free_channel(tcu->rx);
 free_tx:
 	mbox_free_channel(tcu->tx);
 
@@ -270,9 +298,9 @@ static int tegra_tcu_remove(struct platform_device *pdev)
 #if IS_ENABLED(CONFIG_SERIAL_TEGRA_TCU_CONSOLE)
 	unregister_console(&tcu->console);
 #endif
+	mbox_free_channel(tcu->rx);
 	uart_remove_one_port(&tcu->driver, &tcu->port);
 	uart_unregister_driver(&tcu->driver);
-	mbox_free_channel(tcu->rx);
 	mbox_free_channel(tcu->tx);
 
 	return 0;

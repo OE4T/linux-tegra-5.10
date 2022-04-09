@@ -261,15 +261,10 @@ static int gart_iommu_of_xlate(struct device *dev,
 	return 0;
 }
 
-static void gart_iommu_sync_map(struct iommu_domain *domain)
-{
-	FLUSH_GART_REGS(gart_handle);
-}
-
 static void gart_iommu_sync(struct iommu_domain *domain,
 			    struct iommu_iotlb_gather *gather)
 {
-	gart_iommu_sync_map(domain);
+	FLUSH_GART_REGS(gart_handle);
 }
 
 static const struct iommu_ops gart_iommu_ops = {
@@ -286,7 +281,7 @@ static const struct iommu_ops gart_iommu_ops = {
 	.iova_to_phys	= gart_iommu_iova_to_phys,
 	.pgsize_bitmap	= GART_IOMMU_PGSIZES,
 	.of_xlate	= gart_iommu_of_xlate,
-	.iotlb_sync_map	= gart_iommu_sync_map,
+	.iotlb_sync_map = gart_iommu_sync,
 	.iotlb_sync	= gart_iommu_sync,
 };
 

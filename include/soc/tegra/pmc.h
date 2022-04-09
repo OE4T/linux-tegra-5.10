@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
  * Copyright (c) 2010 Google, Inc
- * Copyright (c) 2014 NVIDIA Corporation
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * Author:
  *	Colin Cross <ccross@google.com>
@@ -11,6 +11,8 @@
 #define __SOC_TEGRA_PMC_H__
 
 #include <linux/reboot.h>
+#include <linux/usb/ch9.h>
+#include <linux/pinctrl/pinctrl.h>
 
 #include <soc/tegra/pm.h>
 
@@ -148,6 +150,12 @@ enum tegra_io_pad {
 	TEGRA_IO_PAD_AO_HV,
 };
 
+/* Define reboot-reset mode */
+#define RECOVERY_MODE           BIT(31)
+#define BOOTLOADER_MODE         BIT(30)
+#define UPDATE_MODE             BIT(29)
+#define FORCED_RECOVERY_MODE    BIT(1)
+
 /* deprecated, use TEGRA_IO_PAD_{HDMI,LVDS} instead */
 #define TEGRA_IO_RAIL_HDMI	TEGRA_IO_PAD_HDMI
 #define TEGRA_IO_RAIL_LVDS	TEGRA_IO_PAD_LVDS
@@ -170,6 +178,24 @@ int tegra_io_rail_power_off(unsigned int id);
 
 void tegra_pmc_set_suspend_mode(enum tegra_suspend_mode mode);
 void tegra_pmc_enter_suspend_mode(enum tegra_suspend_mode mode);
+
+/* T210 USB2 SLEEPWALK APIs */
+struct tegra_utmi_pad_config {
+	u32 tctrl;
+	u32 pctrl;
+	u32 rpd_ctrl;
+};
+int tegra_pmc_utmi_phy_enable_sleepwalk(int port, enum usb_device_speed speed,
+					struct tegra_utmi_pad_config *config);
+int tegra_pmc_utmi_phy_disable_sleepwalk(int port);
+int tegra_pmc_hsic_phy_enable_sleepwalk(int port);
+int tegra_pmc_hsic_phy_disable_sleepwalk(int port);
+
+int tegra_pmc_set_reboot_reason(u32 reboot_reason);
+int tegra_pmc_clear_reboot_reason(u32 reboot_reason);
+
+u32 tegra_pmc_gpu_clamp_enable(void);
+u32 tegra_pmc_gpu_clamp_disable(void);
 
 #else
 static inline int tegra_powergate_power_on(unsigned int id)
@@ -227,8 +253,32 @@ static inline void tegra_pmc_enter_suspend_mode(enum tegra_suspend_mode mode)
 {
 }
 
+static inline int tegra_pmc_set_reboot_reason(u32 reboot_reason)
+{
+	return -ENOTSUPP;
+}
+
+static inline int tegra_pmc_clear_reboot_reason(u32 reboot_reason)
+{
+	return -ENOTSUPP;
+}
+
+static inline u32 tegra_pmc_gpu_clamp_enable(void)
+{
+	return 0;
+}
+static inline u32 tegra_pmc_gpu_clamp_disable(void)
+{
+	return 0;
+}
+
 #endif /* CONFIG_SOC_TEGRA_PMC */
 
+void tegra_pmc_fuse_control_ps18_latch_set(void);
+void tegra_pmc_fuse_control_ps18_latch_clear(void);
+
+void tegra_pmc_fuse_disable_mirroring(void);
+void tegra_pmc_fuse_enable_mirroring(void);
 #if defined(CONFIG_SOC_TEGRA_PMC) && defined(CONFIG_PM_SLEEP)
 enum tegra_suspend_mode tegra_pmc_get_suspend_mode(void);
 #else
@@ -238,4 +288,35 @@ static inline enum tegra_suspend_mode tegra_pmc_get_suspend_mode(void)
 }
 #endif
 
+void tegra_io_pad_pinconf_dbg_show(struct pinctrl_dev *pctldev,
+				struct seq_file *s, unsigned int pin);
+int tegra_pmc_nvcsi_brick_getstatus(const char *pad_name);
+int tegra_pmc_nvcsi_ab_brick_dpd_enable(void);
+int tegra_pmc_nvcsi_cdef_brick_dpd_enable(void);
+int tegra_pmc_nvcsi_ab_brick_dpd_disable(void);
+int tegra_pmc_nvcsi_cdef_brick_dpd_disable(void);
+
+int tegra_pmc_save_se_context_buffer_address(u32 add);
+u32 tegra_pmc_get_se_context_buffer_address(void);
+bool tegra_pmc_is_halt_in_fiq(void);
+
+void tegra_pmc_sata_pwrgt_update(unsigned long mask, unsigned long val);
+unsigned long tegra_pmc_sata_pwrgt_get(void);
+
+void tegra_pmc_write_bootrom_command(u32 command_offset, unsigned long val);
+void tegra_pmc_reset_system(void);
+
+int tegra_pmc_pwm_blink_enable(void);
+int tegra_pmc_pwm_blink_disable(void);
+int tegra_pmc_pwm_blink_config(int duty_ns, int period_ns);
+
+int tegra_pmc_soft_led_blink_enable(void);
+int tegra_pmc_soft_led_blink_disable(void);
+int tegra_pmc_soft_led_blink_configure(int duty_cycle_ns, int ll_period_ns,
+				int ramp_time_ns);
+int tegra_pmc_soft_led_blink_set_ramptime(int ramp_time_ns);
+int tegra_pmc_soft_led_blink_set_short_period(int short_low_period_ns);
+
+u32 tegra_pmc_aotag_readl(unsigned long offset);
+void tegra_pmc_aotag_writel(u32 value, unsigned long offset);
 #endif /* __SOC_TEGRA_PMC_H__ */

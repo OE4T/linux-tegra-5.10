@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (C) 2001 Jens Axboe <axboe@kernel.dk>
- */
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ *
+*/
 #include <linux/mm.h>
 #include <linux/swap.h>
 #include <linux/bio.h>
@@ -524,7 +526,11 @@ struct bio *bio_alloc_bioset(gfp_t gfp_mask, unsigned int nr_iovecs,
 	return bio;
 
 err_free:
-	mempool_free(p, &bs->bio_pool);
+	if (!bs)
+		kfree(bio);
+	else
+		mempool_free(p, &bs->bio_pool);
+
 	return NULL;
 }
 EXPORT_SYMBOL(bio_alloc_bioset);

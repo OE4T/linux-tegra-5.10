@@ -82,9 +82,9 @@ struct spidev_data {
 static LIST_HEAD(device_list);
 static DEFINE_MUTEX(device_list_lock);
 
-static unsigned bufsiz = 4096;
-module_param(bufsiz, uint, S_IRUGO);
-MODULE_PARM_DESC(bufsiz, "data bytes in biggest supported SPI message");
+static unsigned int bufsize = 8192;
+module_param(bufsize, uint, S_IRUGO);
+MODULE_PARM_DESC(bufsize, "data bytes in biggest supported SPI message");
 
 /*-------------------------------------------------------------------------*/
 
@@ -149,7 +149,7 @@ spidev_read(struct file *filp, char __user *buf, size_t count, loff_t *f_pos)
 	ssize_t			status;
 
 	/* chipselect only toggles at start or end of operation */
-	if (count > bufsiz)
+	if (count > bufsize)
 		return -EMSGSIZE;
 
 	spidev = filp->private_data;
@@ -180,7 +180,7 @@ spidev_write(struct file *filp, const char __user *buf,
 	unsigned long		missing;
 
 	/* chipselect only toggles at start or end of operation */
-	if (count > bufsiz)
+	if (count > bufsize)
 		return -EMSGSIZE;
 
 	spidev = filp->private_data;
@@ -194,6 +194,28 @@ spidev_write(struct file *filp, const char __user *buf,
 	mutex_unlock(&spidev->buf_lock);
 
 	return status;
+}
+
+static int spidev_start_controller(struct spidev_data *spidev,
+				   struct spi_ioc_transfer *u_xfer)
+{
+	struct spi_transfer	*t;
+	int ret;
+
+	t = kzalloc(sizeof(*t), GFP_KERNEL);
+	if (t == NULL)
+		return -ENOMEM;
+
+	t->speed_hz = u_xfer->speed_hz;
+	t->bits_per_word = u_xfer->bits_per_word;
+	t->delay_usecs = u_xfer->delay_usecs;
+	t->cs_change = u_xfer->cs_change;
+	t->tx_nbits = u_xfer->tx_nbits;
+	t->rx_nbits = u_xfer->rx_nbits;
+
+	ret = spi_start_controller(spidev->spi, t);
+
+	return ret;
 }
 
 static int spidev_message(struct spidev_data *spidev,
@@ -245,7 +267,7 @@ static int spidev_message(struct spidev_data *spidev,
 		if (u_tmp->rx_buf) {
 			/* this transfer needs space in RX bounce buffer */
 			rx_total += len_aligned;
-			if (rx_total > bufsiz) {
+			if (rx_total > bufsize) {
 				status = -EMSGSIZE;
 				goto done;
 			}
@@ -255,7 +277,7 @@ static int spidev_message(struct spidev_data *spidev,
 		if (u_tmp->tx_buf) {
 			/* this transfer needs space in TX bounce buffer */
 			tx_total += len_aligned;
-			if (tx_total > bufsiz) {
+			if (tx_total > bufsize) {
 				status = -EMSGSIZE;
 				goto done;
 			}
@@ -325,7 +347,6 @@ spidev_get_ioc_message(unsigned int cmd, struct spi_ioc_transfer __user *u_ioc,
 
 	/* Check type, command number and direction */
 	if (_IOC_TYPE(cmd) != SPI_IOC_MAGIC
-			|| _IOC_NR(cmd) != _IOC_NR(SPI_IOC_MESSAGE(0))
 			|| _IOC_DIR(cmd) != _IOC_WRITE)
 		return ERR_PTR(-ENOTTY);
 
@@ -469,6 +490,25 @@ spidev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		}
 		break;
 
+	case SPI_IOC_WR_START_CTRL:
+		ioc = spidev_get_ioc_message(cmd,
+				(struct spi_ioc_transfer __user *)arg, &n_ioc);
+		if (IS_ERR(ioc)) {
+			retval = PTR_ERR(ioc);
+			break;
+		}
+		if (!ioc)
+			break;	/* n_ioc is also 0 */
+
+		/* translate to spi_message, execute */
+		retval = spidev_start_controller(spidev, ioc);
+		kfree(ioc);
+		break;
+
+	case SPI_IOC_STOP_CTRL:
+		spi_stop_controller(spidev->spi);
+		break;
+
 	default:
 		/* segmented and/or full-duplex I/O request */
 		/* Check message and copy into scratch area */
@@ -579,7 +619,7 @@ static int spidev_open(struct inode *inode, struct file *filp)
 	}
 
 	if (!spidev->tx_buffer) {
-		spidev->tx_buffer = kmalloc(bufsiz, GFP_KERNEL);
+		spidev->tx_buffer = kmalloc(bufsize, GFP_KERNEL);
 		if (!spidev->tx_buffer) {
 			dev_dbg(&spidev->spi->dev, "open/ENOMEM\n");
 			status = -ENOMEM;
@@ -588,7 +628,7 @@ static int spidev_open(struct inode *inode, struct file *filp)
 	}
 
 	if (!spidev->rx_buffer) {
-		spidev->rx_buffer = kmalloc(bufsiz, GFP_KERNEL);
+		spidev->rx_buffer = kmalloc(bufsize, GFP_KERNEL);
 		if (!spidev->rx_buffer) {
 			dev_dbg(&spidev->spi->dev, "open/ENOMEM\n");
 			status = -ENOMEM;
@@ -682,6 +722,7 @@ static const struct of_device_id spidev_dt_ids[] = {
 	{ .compatible = "lwn,bk4" },
 	{ .compatible = "dh,dhcom-board" },
 	{ .compatible = "menlo,m53cpld" },
+	{ .compatible = "tegra-spidev" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, spidev_dt_ids);

@@ -60,6 +60,9 @@ struct tegra186_dspk {
 	unsigned int rx_fifo_th;
 	unsigned int osr_val;
 	unsigned int lrsel;
+	unsigned int srate_override;
+	unsigned int audio_ch_override;
+	unsigned int audio_fmt_override;
 	unsigned int ch_sel;
 	unsigned int mono_to_stereo;
 	unsigned int stereo_to_mono;

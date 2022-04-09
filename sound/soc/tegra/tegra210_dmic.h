@@ -71,6 +71,9 @@ enum tegra_dmic_lrsel {
 struct tegra210_dmic {
 	struct clk *clk_dmic;
 	struct regmap *regmap;
+	unsigned int audio_ch_override;
+	unsigned int audio_bits_override;
+	unsigned int srate_override;
 	unsigned int mono_to_stereo;
 	unsigned int stereo_to_mono;
 	unsigned int boost_gain;

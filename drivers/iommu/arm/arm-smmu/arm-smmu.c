@@ -3,6 +3,7 @@
  * IOMMU API for ARM architected SMMU implementations.
  *
  * Copyright (C) 2013 ARM Limited
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * Author: Will Deacon <will.deacon@arm.com>
  *
@@ -41,7 +42,17 @@
 #include <linux/amba/bus.h>
 #include <linux/fsl/mc.h>
 
+#include <soc/tegra/fuse.h>
+#include <soc/tegra/tegra-sid-override.h>
+
 #include "arm-smmu.h"
+
+#ifdef CONFIG_ARM_SMMU_DEBUG
+#include <linux/arm-smmu-debug.h>
+#endif
+
+#define CREATE_TRACE_POINTS
+#include <trace/events/arm_smmu.h>
 
 /*
  * Apparently, some Qualcomm arm64 platforms which appear to expose their SMMU
@@ -54,6 +65,8 @@
 
 #define MSI_IOVA_BASE			0x8000000
 #define MSI_IOVA_LENGTH			0x100000
+
+#define TLB_INV_DELAY_NSEC	10000
 
 static int force_stage;
 module_param(force_stage, int, S_IRUGO);
@@ -247,15 +260,29 @@ static void arm_smmu_tlb_sync_context(struct arm_smmu_domain *smmu_domain)
 	struct arm_smmu_device *smmu = smmu_domain->smmu;
 	unsigned long flags;
 
-	spin_lock_irqsave(&smmu_domain->cb_lock, flags);
-	__arm_smmu_tlb_sync(smmu, ARM_SMMU_CB(smmu, smmu_domain->cfg.cbndx),
-			    ARM_SMMU_CB_TLBSYNC, ARM_SMMU_CB_TLBSTATUS);
-	spin_unlock_irqrestore(&smmu_domain->cb_lock, flags);
+	if (tegra_platform_is_sim()) {
+		arm_smmu_tlb_sync_global(smmu);
+	} else {
+		spin_lock_irqsave(&smmu_domain->cb_lock, flags);
+		__arm_smmu_tlb_sync(smmu, ARM_SMMU_CB(smmu, smmu_domain->cfg.cbndx),
+				    ARM_SMMU_CB_TLBSYNC, ARM_SMMU_CB_TLBSTATUS);
+		spin_unlock_irqrestore(&smmu_domain->cb_lock, flags);
+	}
 }
 
 static void arm_smmu_tlb_inv_context_s1(void *cookie)
 {
 	struct arm_smmu_domain *smmu_domain = cookie;
+#if defined(CONFIG_TRACEPOINTS) && defined(CONFIG_ARM_SMMU_DEBUG)
+	struct arm_smmu_device *smmu = smmu_domain->smmu;
+#endif
+	u64 time_before = 0;
+
+#if defined(CONFIG_TRACEPOINTS) && defined(CONFIG_ARM_SMMU_DEBUG)
+	if (static_key_false(&__tracepoint_arm_smmu_tlb_inv_context.key)
+		&& test_bit(smmu_domain->cfg.cbndx, smmu->debug_info->context_filter))
+		time_before = local_clock();
+#endif
 	/*
 	 * The TLBI write may be relaxed, so ensure that PTEs cleared by the
 	 * current CPU are visible beforehand.
@@ -264,17 +291,33 @@ static void arm_smmu_tlb_inv_context_s1(void *cookie)
 	arm_smmu_cb_write(smmu_domain->smmu, smmu_domain->cfg.cbndx,
 			  ARM_SMMU_CB_S1_TLBIASID, smmu_domain->cfg.asid);
 	arm_smmu_tlb_sync_context(smmu_domain);
+
+	if (time_before)
+		trace_arm_smmu_tlb_inv_context(time_before,
+						smmu_domain->cfg.cbndx);
 }
 
 static void arm_smmu_tlb_inv_context_s2(void *cookie)
 {
 	struct arm_smmu_domain *smmu_domain = cookie;
 	struct arm_smmu_device *smmu = smmu_domain->smmu;
+	u64 time_before = 0;
+
+#if defined(CONFIG_TRACEPOINTS) && defined(CONFIG_ARM_SMMU_DEBUG)
+	if (static_key_false(&__tracepoint_arm_smmu_tlb_inv_context.key)
+		&& test_bit(smmu_domain->cfg.cbndx,
+					smmu->debug_info->context_filter))
+		time_before = local_clock();
+#endif
 
 	/* See above */
 	wmb();
 	arm_smmu_gr0_write(smmu, ARM_SMMU_GR0_TLBIVMID, smmu_domain->cfg.vmid);
 	arm_smmu_tlb_sync_global(smmu);
+
+	if (time_before)
+		trace_arm_smmu_tlb_inv_context(time_before,
+						smmu_domain->cfg.cbndx);
 }
 
 static void arm_smmu_tlb_inv_range_s1(unsigned long iova, size_t size,
@@ -284,9 +327,20 @@ static void arm_smmu_tlb_inv_range_s1(unsigned long iova, size_t size,
 	struct arm_smmu_device *smmu = smmu_domain->smmu;
 	struct arm_smmu_cfg *cfg = &smmu_domain->cfg;
 	int idx = cfg->cbndx;
+	u64 time_before = 0, time1 = 0, time2 = 0;
+	bool throttle = smmu->tlb_inv_throttle;
+
+#if defined(CONFIG_TRACEPOINTS) && defined(CONFIG_ARM_SMMU_DEBUG)
+	if (static_key_false(&__tracepoint_arm_smmu_tlb_inv_range.key)
+		&& test_bit(cfg->cbndx, smmu->debug_info->context_filter))
+		time_before = local_clock();
+#endif
 
 	if (smmu->features & ARM_SMMU_FEAT_COHERENT_WALK)
 		wmb();
+
+	if (throttle)
+		time1 = local_clock();
 
 	if (cfg->fmt != ARM_SMMU_CTX_FMT_AARCH64) {
 		iova = (iova >> 12) << 12;
@@ -294,6 +348,13 @@ static void arm_smmu_tlb_inv_range_s1(unsigned long iova, size_t size,
 		do {
 			arm_smmu_cb_write(smmu, idx, reg, iova);
 			iova += granule;
+			if (throttle) {
+				time2 = local_clock() - time1;
+				if (time2 < TLB_INV_DELAY_NSEC)
+					udelay(round_up(TLB_INV_DELAY_NSEC -
+							time2, 1000) / 1000);
+				time1 = local_clock();
+			}
 		} while (size -= granule);
 	} else {
 		iova >>= 12;
@@ -301,8 +362,19 @@ static void arm_smmu_tlb_inv_range_s1(unsigned long iova, size_t size,
 		do {
 			arm_smmu_cb_writeq(smmu, idx, reg, iova);
 			iova += granule >> 12;
+			if (throttle) {
+				time2 = local_clock() - time1;
+				if (time2 < TLB_INV_DELAY_NSEC)
+					udelay(round_up(TLB_INV_DELAY_NSEC -
+							time2, 1000) / 1000);
+				time1 = local_clock();
+			}
 		} while (size -= granule);
 	}
+
+	if (time_before)
+		trace_arm_smmu_tlb_inv_range(time_before, cfg->cbndx,
+			iova, size);
 }
 
 static void arm_smmu_tlb_inv_range_s2(unsigned long iova, size_t size,
@@ -611,13 +683,16 @@ void arm_smmu_write_context_bank(struct arm_smmu_device *smmu, int idx)
 
 	/* SCTLR */
 	reg = ARM_SMMU_SCTLR_CFIE | ARM_SMMU_SCTLR_CFRE | ARM_SMMU_SCTLR_AFE |
-	      ARM_SMMU_SCTLR_TRE | ARM_SMMU_SCTLR_M;
+	      ARM_SMMU_SCTLR_TRE | ARM_SMMU_SCTLR_M | ARM_SMMU_SCTLR_HUPCF;
 	if (stage1)
 		reg |= ARM_SMMU_SCTLR_S1_ASIDPNE;
 	if (IS_ENABLED(CONFIG_CPU_BIG_ENDIAN))
 		reg |= ARM_SMMU_SCTLR_E;
 
-	arm_smmu_cb_write(smmu, idx, ARM_SMMU_CB_SCTLR, reg);
+	if (smmu->impl && smmu->impl->write_sctlr)
+		smmu->impl->write_sctlr(smmu, idx, reg);
+	else
+		arm_smmu_cb_write(smmu, idx, ARM_SMMU_CB_SCTLR, reg);
 }
 
 static int arm_smmu_alloc_context_bank(struct arm_smmu_domain *smmu_domain,
@@ -776,6 +851,8 @@ static int arm_smmu_init_domain_context(struct iommu_domain *domain,
 		.tlb		= smmu_domain->flush_ops,
 		.iommu_dev	= smmu->dev,
 	};
+
+	pgtbl_cfg.coherent_walk = true;
 
 	if (smmu->impl && smmu->impl->init_context) {
 		ret = smmu->impl->init_context(smmu_domain, &pgtbl_cfg, dev);
@@ -1047,6 +1124,10 @@ static bool arm_smmu_free_sme(struct arm_smmu_device *smmu, int idx)
 	return true;
 }
 
+void __weak platform_override_streamid(int streamid)
+{
+}
+
 static int arm_smmu_master_alloc_smes(struct device *dev)
 {
 	struct iommu_fwspec *fwspec = dev_iommu_fwspec_get(dev);
@@ -1083,6 +1164,10 @@ static int arm_smmu_master_alloc_smes(struct device *dev)
 	/* It worked! Now, poke the actual hardware */
 	for_each_cfg_sme(cfg, fwspec, i, idx)
 		arm_smmu_write_sme(smmu, idx);
+
+	/* Enable stream Id override, which enables SMMU translation for dev */
+	for (i = 0; i < fwspec->num_ids; i++)
+		platform_override_streamid(fwspec->ids[i] & smmu->streamid_mask);
 
 	mutex_unlock(&smmu->stream_map_mutex);
 	return 0;
@@ -1185,6 +1270,12 @@ static int arm_smmu_attach_dev(struct iommu_domain *domain, struct device *dev)
 		goto rpm_put;
 	}
 
+	mutex_lock(&smmu_domain->init_mutex);
+	ret = iommu_create_device_direct_mappings(domain, dev);
+	if (ret)
+		dev_warn(dev, "Direct mappings failed\n");
+	mutex_unlock(&smmu_domain->init_mutex);
+
 	/* Looks ok, so add the device to the domain */
 	ret = arm_smmu_domain_add_master(smmu_domain, cfg, fwspec);
 
@@ -1202,24 +1293,44 @@ static int arm_smmu_attach_dev(struct iommu_domain *domain, struct device *dev)
 	pm_runtime_set_autosuspend_delay(smmu->dev, 20);
 	pm_runtime_use_autosuspend(smmu->dev);
 
+#ifdef CONFIG_ARM_SMMU_DEBUG
+	arm_smmu_debugfs_add_master(dev, smmu->debug_info,
+				    &smmu_domain->cfg.cbndx, cfg->smendx);
+#endif
+
 rpm_put:
 	arm_smmu_rpm_put(smmu);
 	return ret;
 }
 
 static int arm_smmu_map(struct iommu_domain *domain, unsigned long iova,
-			phys_addr_t paddr, size_t size, int prot, gfp_t gfp)
+			phys_addr_t paddr, size_t size, int prot, gfp_t gfp,
+			struct iommu_iotlb_gather *gather)
 {
-	struct io_pgtable_ops *ops = to_smmu_domain(domain)->pgtbl_ops;
+	struct arm_smmu_domain *smmu_domain = to_smmu_domain(domain);
+	struct io_pgtable_ops *ops = smmu_domain->pgtbl_ops;
 	struct arm_smmu_device *smmu = to_smmu_domain(domain)->smmu;
+	u64 time_before = 0;
 	int ret;
 
 	if (!ops)
 		return -ENODEV;
 
+#if defined(CONFIG_TRACEPOINTS) && defined(CONFIG_ARM_SMMU_DEBUG)
+	if (static_key_false(&__tracepoint_arm_smmu_handle_mapping.key)
+		&& test_bit(smmu_domain->cfg.cbndx,
+				smmu_domain->smmu->debug_info->context_filter))
+		time_before = local_clock();
+#endif
+
 	arm_smmu_rpm_get(smmu);
 	ret = ops->map(ops, iova, paddr, size, prot, gfp);
 	arm_smmu_rpm_put(smmu);
+
+	if (time_before)
+		trace_arm_smmu_handle_mapping(dev_name(smmu->dev), time_before,
+				to_smmu_domain(domain)->cfg.cbndx, iova, paddr,
+				size, prot);
 
 	return ret;
 }
@@ -1227,18 +1338,47 @@ static int arm_smmu_map(struct iommu_domain *domain, unsigned long iova,
 static size_t arm_smmu_unmap(struct iommu_domain *domain, unsigned long iova,
 			     size_t size, struct iommu_iotlb_gather *gather)
 {
-	struct io_pgtable_ops *ops = to_smmu_domain(domain)->pgtbl_ops;
+	struct arm_smmu_domain *smmu_domain = to_smmu_domain(domain);
+	struct io_pgtable_ops *ops = smmu_domain->pgtbl_ops;
 	struct arm_smmu_device *smmu = to_smmu_domain(domain)->smmu;
+	u64 time_before = 0;
 	size_t ret;
 
 	if (!ops)
 		return 0;
 
+#if defined(CONFIG_TRACEPOINTS) && defined(CONFIG_ARM_SMMU_DEBUG)
+	if (static_key_false(&__tracepoint_arm_smmu_handle_mapping.key)
+		&& test_bit(smmu_domain->cfg.cbndx,
+				smmu_domain->smmu->debug_info->context_filter))
+		time_before = local_clock();
+#endif
+
 	arm_smmu_rpm_get(smmu);
 	ret = ops->unmap(ops, iova, size, gather);
 	arm_smmu_rpm_put(smmu);
 
+	if (time_before)
+		trace_arm_smmu_handle_mapping(dev_name(smmu->dev), time_before,
+				to_smmu_domain(domain)->cfg.cbndx, iova, 0,
+				size, 0);
 	return ret;
+}
+
+static int arm_smmu_dma_sync(struct iommu_domain *domain, unsigned long iova,
+			     size_t size)
+{
+	struct arm_smmu_domain *smmu_domain = to_smmu_domain(domain);
+	struct io_pgtable_ops *ops = smmu_domain->pgtbl_ops;
+	size_t ret;
+
+	if (!ops)
+		return 0;
+
+	ret = ops->dma_sync(ops, iova, size);
+
+	return ret;
+
 }
 
 static void arm_smmu_flush_iotlb_all(struct iommu_domain *domain)
@@ -1458,6 +1598,10 @@ static void arm_smmu_release_device(struct device *dev)
 	if (ret < 0)
 		return;
 
+#if defined(CONFIG_ARM_SMMU_DEBUG)
+	arm_smmu_debugfs_remove_master(dev, smmu->debug_info);
+#endif
+
 	arm_smmu_master_free_smes(cfg, fwspec);
 
 	arm_smmu_rpm_put(smmu);
@@ -1475,6 +1619,7 @@ static struct iommu_group *arm_smmu_device_group(struct device *dev)
 	struct iommu_group *group = NULL;
 	int i, idx;
 
+	mutex_lock(&smmu->stream_map_mutex);
 	for_each_cfg_sme(cfg, fwspec, i, idx) {
 		if (group && smmu->s2crs[idx].group &&
 		    group != smmu->s2crs[idx].group)
@@ -1483,8 +1628,10 @@ static struct iommu_group *arm_smmu_device_group(struct device *dev)
 		group = smmu->s2crs[idx].group;
 	}
 
-	if (group)
+	if (group) {
+		mutex_unlock(&smmu->stream_map_mutex);
 		return iommu_group_ref_get(group);
+	}
 
 	if (dev_is_pci(dev))
 		group = pci_device_group(dev);
@@ -1498,6 +1645,7 @@ static struct iommu_group *arm_smmu_device_group(struct device *dev)
 		for_each_cfg_sme(cfg, fwspec, i, idx)
 			smmu->s2crs[idx].group = group;
 
+	mutex_unlock(&smmu->stream_map_mutex);
 	return group;
 }
 
@@ -1601,6 +1749,9 @@ static void arm_smmu_get_resv_regions(struct device *dev,
 
 	list_add_tail(&region->list, head);
 
+	of_get_iommu_resv_regions(dev, head);
+	of_get_iommu_direct_regions(dev, head);
+
 	iommu_dma_get_resv_regions(dev, head);
 }
 
@@ -1622,6 +1773,7 @@ static struct iommu_ops arm_smmu_ops = {
 	.attach_dev		= arm_smmu_attach_dev,
 	.map			= arm_smmu_map,
 	.unmap			= arm_smmu_unmap,
+	.dma_sync		= arm_smmu_dma_sync,
 	.flush_iotlb_all	= arm_smmu_flush_iotlb_all,
 	.iotlb_sync		= arm_smmu_iotlb_sync,
 	.iova_to_phys		= arm_smmu_iova_to_phys,
@@ -1886,6 +2038,9 @@ static int arm_smmu_device_cfg_probe(struct arm_smmu_device *smmu)
 			smmu->features |= ARM_SMMU_FEAT_FMT_AARCH64_64K;
 	}
 
+#ifdef CONFIG_ARM_SMMU_DEBUG
+	arm_smmu_debugfs_setup_cfg(smmu);
+#endif
 	if (smmu->impl && smmu->impl->cfg_probe) {
 		ret = smmu->impl->cfg_probe(smmu);
 		if (ret)
@@ -1902,6 +2057,13 @@ static int arm_smmu_device_cfg_probe(struct arm_smmu_device *smmu)
 		smmu->pgsize_bitmap |= SZ_16K | SZ_32M;
 	if (smmu->features & ARM_SMMU_FEAT_FMT_AARCH64_64K)
 		smmu->pgsize_bitmap |= SZ_64K | SZ_512M;
+
+	/*
+	 * FIXME: There is some issue with large page size, until it is fixed,
+	 * restricting it to the same as kernel page size, once it is fixed below
+	 * WAR has to be removed.
+	 */
+	smmu->pgsize_bitmap = PAGE_SIZE;
 
 	if (arm_smmu_ops.pgsize_bitmap == -1UL)
 		arm_smmu_ops.pgsize_bitmap = smmu->pgsize_bitmap;
@@ -2099,6 +2261,26 @@ err_reset_platform_ops: __maybe_unused;
 	return err;
 }
 
+/**
+ * It returns true if throttle is required between tlb invalidates
+ */
+static bool arm_smmu_get_tlb_inv_throttle(struct device_node *np)
+{
+	struct device_node *node;
+
+	node = of_node_get(np);
+
+	if (node) {
+		if (of_property_read_bool(node, "tlb-inv-throttle")) {
+			of_node_put(node);
+			return true;
+		}
+	}
+
+	of_node_put(node);
+	return false;
+}
+
 static int arm_smmu_device_probe(struct platform_device *pdev)
 {
 	struct resource *res;
@@ -2241,6 +2423,8 @@ static int arm_smmu_device_probe(struct platform_device *pdev)
 		pm_runtime_set_active(dev);
 		pm_runtime_enable(dev);
 	}
+
+	smmu->tlb_inv_throttle = arm_smmu_get_tlb_inv_throttle(dev->of_node);
 
 	/*
 	 * For ACPI and generic DT bindings, an SMMU will be probed before

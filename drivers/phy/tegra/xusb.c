@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2014-2016, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/delay.h>
@@ -72,6 +72,12 @@ static const struct of_device_id tegra_xusb_padctl_of_match[] = {
 		.data = &tegra194_xusb_padctl_soc,
 	},
 #endif
+#if defined(CONFIG_ARCH_TEGRA_234_SOC)
+	{
+		.compatible = "nvidia,tegra234-xusb-padctl",
+		.data = &tegra234_xusb_padctl_soc,
+	},
+#endif
 	{ }
 };
 MODULE_DEVICE_TABLE(of, tegra_xusb_padctl_of_match);
@@ -109,8 +115,10 @@ tegra_xusb_pad_find_phy_node(struct tegra_xusb_pad *pad, unsigned int index)
 int tegra_xusb_lane_parse_dt(struct tegra_xusb_lane *lane,
 			     struct device_node *np)
 {
+	struct tegra_xusb_usb2_lane *usb2 = to_usb2_lane(lane);
 	struct device *dev = &lane->pad->dev;
 	const char *function;
+	s32 offset;
 	int err;
 
 	err = of_property_read_string(np, "nvidia,function", &function);
@@ -126,7 +134,15 @@ int tegra_xusb_lane_parse_dt(struct tegra_xusb_lane *lane,
 
 	lane->function = err;
 
-	return 0;
+	err = of_property_read_s32(np, "nvidia,hs_curr_level_offset", &offset);
+	if (err == 0)
+		usb2->hs_curr_level_offset = offset;
+
+	/* this property is optional, ignore -EINVAL error */
+	if (err == -EINVAL)
+		err = 0;
+
+	return err;
 }
 
 static void tegra_xusb_lane_destroy(struct phy *phy)
@@ -321,11 +337,17 @@ static void tegra_xusb_lane_program(struct tegra_xusb_lane *lane)
 	if (soc->num_funcs < 2)
 		return;
 
+	if (lane->pad->ops->iddq_enable)
+		lane->pad->ops->iddq_enable(lane);
+
 	/* choose function */
 	value = padctl_readl(padctl, soc->offset);
 	value &= ~(soc->mask << soc->shift);
 	value |= lane->function << soc->shift;
 	padctl_writel(padctl, value, soc->offset);
+
+	if (lane->pad->ops->iddq_disable)
+		lane->pad->ops->iddq_disable(lane);
 }
 
 static void tegra_xusb_pad_program(struct tegra_xusb_pad *pad)
@@ -376,7 +398,7 @@ static int tegra_xusb_setup_pads(struct tegra_xusb_padctl *padctl)
 	return 0;
 }
 
-static bool tegra_xusb_lane_check(struct tegra_xusb_lane *lane,
+bool tegra_xusb_lane_check(struct tegra_xusb_lane *lane,
 				  const char *function)
 {
 	const char *func = lane->soc->funcs[lane->function];
@@ -556,6 +578,7 @@ static void tegra_xusb_port_unregister(struct tegra_xusb_port *port)
 		usb_role_switch_unregister(port->usb_role_sw);
 		cancel_work_sync(&port->usb_phy_work);
 		usb_remove_phy(&port->usb_phy);
+		port->usb_phy.dev->driver = NULL;
 	}
 
 	if (port->ops->remove)
@@ -650,6 +673,7 @@ static int tegra_xusb_setup_usb_role_switch(struct tegra_xusb_port *port)
 	struct usb_role_switch_desc role_sx_desc = {
 		.fwnode = dev_fwnode(&port->dev),
 		.set = tegra_xusb_role_sw_set,
+		.allow_userspace_control = true,
 	};
 	int err = 0;
 
@@ -780,8 +804,17 @@ static int tegra_xusb_add_usb2_port(struct tegra_xusb_padctl *padctl,
 
 	err = tegra_xusb_usb2_port_parse_dt(usb2);
 	if (err < 0) {
-		tegra_xusb_port_unregister(&usb2->base);
-		goto out;
+		if (err != -EPROBE_DEFER) {
+			dev_err(&usb2->base.dev, "ignore regulator_get failure\n");
+			err = 0;
+		} else  {
+			if (padctl->is_disable_regulator) {
+				err = 0;
+			} else {
+				tegra_xusb_port_unregister(&usb2->base);
+				goto out;
+			}
+		}
 	}
 
 	list_add_tail(&usb2->base.list, &padctl->ports);
@@ -947,8 +980,7 @@ static int tegra_xusb_usb3_port_parse_dt(struct tegra_xusb_usb3_port *usb3)
 			return -EINVAL;
 	}
 
-	usb3->supply = regulator_get(&port->dev, "vbus");
-	return PTR_ERR_OR_ZERO(usb3->supply);
+	return 0;
 }
 
 static int tegra_xusb_add_usb3_port(struct tegra_xusb_padctl *padctl,
@@ -1007,9 +1039,7 @@ void tegra_xusb_usb3_port_release(struct tegra_xusb_port *port)
 
 void tegra_xusb_usb3_port_remove(struct tegra_xusb_port *port)
 {
-	struct tegra_xusb_usb3_port *usb3 = to_usb3_port(port);
 
-	regulator_put(usb3->supply);
 }
 
 static void __tegra_xusb_remove_ports(struct tegra_xusb_padctl *padctl)
@@ -1161,11 +1191,28 @@ static int tegra_xusb_padctl_probe(struct platform_device *pdev)
 	of_node_put(np);
 
 	match = of_match_node(tegra_xusb_padctl_of_match, pdev->dev.of_node);
+	if (!match) {
+		dev_warn(&pdev->dev, "of_match_node() failed\n");
+		return -ENODEV;
+	}
 	soc = match->data;
 
 	padctl = soc->ops->probe(&pdev->dev, soc);
 	if (IS_ERR(padctl))
 		return PTR_ERR(padctl);
+
+	np = of_node_get(pdev->dev.of_node);
+	if (of_find_property(np, "is_xhci_iov", NULL))
+		padctl->is_xhci_iov = true;
+	else
+		padctl->is_xhci_iov = false;
+
+	if (of_find_property(np, "is_disable_regulator", NULL))
+		padctl->is_disable_regulator = true;
+	else
+		padctl->is_disable_regulator = false;
+
+	of_node_put(np);
 
 	platform_set_drvdata(pdev, padctl);
 	INIT_LIST_HEAD(&padctl->ports);
@@ -1180,39 +1227,50 @@ static int tegra_xusb_padctl_probe(struct platform_device *pdev)
 		goto remove;
 	}
 
-	padctl->rst = devm_reset_control_get(&pdev->dev, NULL);
-	if (IS_ERR(padctl->rst)) {
-		err = PTR_ERR(padctl->rst);
-		goto remove;
-	}
+	if (tegra_platform_is_silicon() && !padctl->is_xhci_iov) {
+		padctl->rst = devm_reset_control_get(&pdev->dev, NULL);
+		if (IS_ERR(padctl->rst)) {
+			err = PTR_ERR(padctl->rst);
+			goto remove;
+		}
 
-	padctl->supplies = devm_kcalloc(&pdev->dev, padctl->soc->num_supplies,
-					sizeof(*padctl->supplies), GFP_KERNEL);
-	if (!padctl->supplies) {
-		err = -ENOMEM;
-		goto remove;
-	}
+		padctl->supplies = devm_kcalloc(&pdev->dev,
+						padctl->soc->num_supplies,
+						sizeof(*padctl->supplies),
+						GFP_KERNEL);
+		if (!padctl->supplies) {
+			err = -ENOMEM;
+			goto remove;
+		}
 
-	regulator_bulk_set_supply_names(padctl->supplies,
-					padctl->soc->supply_names,
-					padctl->soc->num_supplies);
+		regulator_bulk_set_supply_names(padctl->supplies,
+						padctl->soc->supply_names,
+						padctl->soc->num_supplies);
 
-	err = devm_regulator_bulk_get(&pdev->dev, padctl->soc->num_supplies,
-				      padctl->supplies);
-	if (err < 0) {
-		dev_err(&pdev->dev, "failed to get regulators: %d\n", err);
-		goto remove;
-	}
+		if (!padctl->is_disable_regulator) {
+			err = devm_regulator_bulk_get(&pdev->dev,
+				padctl->soc->num_supplies,
+				padctl->supplies);
+			if (err < 0) {
+				dev_err(&pdev->dev,
+					"failed to get regulators: %d\n", err);
+				goto remove;
+			}
+		}
 
-	err = reset_control_deassert(padctl->rst);
-	if (err < 0)
-		goto remove;
+		err = reset_control_deassert(padctl->rst);
+		if (err < 0)
+			goto remove;
 
-	err = regulator_bulk_enable(padctl->soc->num_supplies,
-				    padctl->supplies);
-	if (err < 0) {
-		dev_err(&pdev->dev, "failed to enable supplies: %d\n", err);
-		goto reset;
+		if (!padctl->is_disable_regulator) {
+			err = regulator_bulk_enable(padctl->soc->num_supplies,
+				padctl->supplies);
+			if (err < 0) {
+				dev_err(&pdev->dev,
+					"failed to enable supplies: %d\n", err);
+				goto reset;
+			}
+		}
 	}
 
 	err = tegra_xusb_setup_pads(padctl);
@@ -1238,9 +1296,13 @@ static int tegra_xusb_padctl_probe(struct platform_device *pdev)
 remove_pads:
 	tegra_xusb_remove_pads(padctl);
 power_down:
-	regulator_bulk_disable(padctl->soc->num_supplies, padctl->supplies);
+	if (tegra_platform_is_silicon() && !padctl->is_xhci_iov)
+		regulator_bulk_disable(padctl->soc->num_supplies,
+				       padctl->supplies);
 reset:
-	reset_control_assert(padctl->rst);
+	if (tegra_platform_is_silicon() && !padctl->is_xhci_iov)
+		reset_control_assert(padctl->rst);
+
 remove:
 	platform_set_drvdata(pdev, NULL);
 	soc->ops->remove(padctl);
@@ -1255,24 +1317,54 @@ static int tegra_xusb_padctl_remove(struct platform_device *pdev)
 	tegra_xusb_remove_ports(padctl);
 	tegra_xusb_remove_pads(padctl);
 
-	err = regulator_bulk_disable(padctl->soc->num_supplies,
-				     padctl->supplies);
-	if (err < 0)
-		dev_err(&pdev->dev, "failed to disable supplies: %d\n", err);
+	if (tegra_platform_is_silicon() && !padctl->is_xhci_iov) {
+		err = regulator_bulk_disable(padctl->soc->num_supplies,
+					     padctl->supplies);
+		if (err < 0)
+			dev_err(&pdev->dev, "failed to disable supplies: %d\n",
+				err);
 
-	err = reset_control_assert(padctl->rst);
-	if (err < 0)
-		dev_err(&pdev->dev, "failed to assert reset: %d\n", err);
+		err = reset_control_assert(padctl->rst);
+		if (err < 0)
+			dev_err(&pdev->dev, "failed to assert reset: %d\n",
+				err);
+	}
 
 	padctl->soc->ops->remove(padctl);
 
 	return err;
 }
 
+static int tegra_xusb_padctl_suspend_noirq(struct device *dev)
+{
+	struct tegra_xusb_padctl *padctl = dev_get_drvdata(dev);
+
+	if (padctl->soc && padctl->soc->ops && padctl->soc->ops->suspend_noirq)
+		return padctl->soc->ops->suspend_noirq(padctl);
+
+	return 0;
+}
+
+static int tegra_xusb_padctl_resume_noirq(struct device *dev)
+{
+	struct tegra_xusb_padctl *padctl = dev_get_drvdata(dev);
+
+	if (padctl->soc && padctl->soc->ops && padctl->soc->ops->resume_noirq)
+		return padctl->soc->ops->resume_noirq(padctl);
+
+	return 0;
+}
+
+static const struct dev_pm_ops tegra_xusb_padctl_pm_ops = {
+	SET_NOIRQ_SYSTEM_SLEEP_PM_OPS(tegra_xusb_padctl_suspend_noirq,
+				      tegra_xusb_padctl_resume_noirq)
+};
+
 static struct platform_driver tegra_xusb_padctl_driver = {
 	.driver = {
 		.name = "tegra-xusb-padctl",
 		.of_match_table = tegra_xusb_padctl_of_match,
+		.pm = &tegra_xusb_padctl_pm_ops,
 	},
 	.probe = tegra_xusb_padctl_probe,
 	.remove = tegra_xusb_padctl_remove,
@@ -1339,6 +1431,62 @@ int tegra_xusb_padctl_hsic_set_idle(struct tegra_xusb_padctl *padctl,
 }
 EXPORT_SYMBOL_GPL(tegra_xusb_padctl_hsic_set_idle);
 
+int tegra_xusb_padctl_enable_phy_sleepwalk(struct tegra_xusb_padctl *padctl, struct phy *phy,
+					   enum usb_device_speed speed)
+{
+	struct tegra_xusb_lane *lane = phy_get_drvdata(phy);
+
+	if (lane->pad->ops->enable_phy_sleepwalk)
+		return lane->pad->ops->enable_phy_sleepwalk(lane, speed);
+
+	return -EOPNOTSUPP;
+}
+EXPORT_SYMBOL_GPL(tegra_xusb_padctl_enable_phy_sleepwalk);
+
+int tegra_xusb_padctl_disable_phy_sleepwalk(struct tegra_xusb_padctl *padctl, struct phy *phy)
+{
+	struct tegra_xusb_lane *lane = phy_get_drvdata(phy);
+
+	if (lane->pad->ops->disable_phy_sleepwalk)
+		return lane->pad->ops->disable_phy_sleepwalk(lane);
+
+	return -EOPNOTSUPP;
+}
+EXPORT_SYMBOL_GPL(tegra_xusb_padctl_disable_phy_sleepwalk);
+
+int tegra_xusb_padctl_enable_phy_wake(struct tegra_xusb_padctl *padctl, struct phy *phy)
+{
+	struct tegra_xusb_lane *lane = phy_get_drvdata(phy);
+
+	if (lane->pad->ops->enable_phy_wake)
+		return lane->pad->ops->enable_phy_wake(lane);
+
+	return -EOPNOTSUPP;
+}
+EXPORT_SYMBOL_GPL(tegra_xusb_padctl_enable_phy_wake);
+
+int tegra_xusb_padctl_disable_phy_wake(struct tegra_xusb_padctl *padctl, struct phy *phy)
+{
+	struct tegra_xusb_lane *lane = phy_get_drvdata(phy);
+
+	if (lane->pad->ops->disable_phy_wake)
+		return lane->pad->ops->disable_phy_wake(lane);
+
+	return -EOPNOTSUPP;
+}
+EXPORT_SYMBOL_GPL(tegra_xusb_padctl_disable_phy_wake);
+
+bool tegra_xusb_padctl_remote_wake_detected(struct tegra_xusb_padctl *padctl, struct phy *phy)
+{
+	struct tegra_xusb_lane *lane = phy_get_drvdata(phy);
+
+	if (lane->pad->ops->remote_wake_detected)
+		return lane->pad->ops->remote_wake_detected(lane);
+
+	return false;
+}
+EXPORT_SYMBOL_GPL(tegra_xusb_padctl_remote_wake_detected);
+
 int tegra_xusb_padctl_usb3_set_lfps_detect(struct tegra_xusb_padctl *padctl,
 					   unsigned int port, bool enable)
 {
@@ -1359,6 +1507,70 @@ int tegra_xusb_padctl_set_vbus_override(struct tegra_xusb_padctl *padctl,
 	return -ENOTSUPP;
 }
 EXPORT_SYMBOL_GPL(tegra_xusb_padctl_set_vbus_override);
+
+int tegra_xusb_padctl_vbus_power_on(struct phy *phy)
+{
+	struct tegra_xusb_lane *lane;
+	struct tegra_xusb_padctl *padctl;
+
+	if (!phy)
+		return 0;
+
+	lane = phy_get_drvdata(phy);
+	padctl = lane->pad->padctl;
+	if (padctl->soc->ops->vbus_power_on)
+		return padctl->soc->ops->vbus_power_on(phy);
+
+	return 0;
+}
+EXPORT_SYMBOL_GPL(tegra_xusb_padctl_vbus_power_on);
+
+int tegra_xusb_padctl_vbus_power_off(struct phy *phy)
+{
+	struct tegra_xusb_lane *lane;
+	struct tegra_xusb_padctl *padctl;
+
+	if (!phy)
+		return 0;
+
+	lane = phy_get_drvdata(phy);
+	padctl = lane->pad->padctl;
+	if (padctl->soc->ops->vbus_power_off)
+		return padctl->soc->ops->vbus_power_off(phy);
+
+	return 0;
+}
+EXPORT_SYMBOL_GPL(tegra_xusb_padctl_vbus_power_off);
+
+void tegra_phy_xusb_utmi_pad_power_on(struct phy *phy)
+{
+	struct tegra_xusb_lane *lane;
+	struct tegra_xusb_padctl *padctl;
+
+	if (!phy)
+		return;
+
+	lane = phy_get_drvdata(phy);
+	padctl = lane->pad->padctl;
+	if (padctl->soc->ops->utmi_pad_power_on)
+		padctl->soc->ops->utmi_pad_power_on(phy);
+}
+EXPORT_SYMBOL_GPL(tegra_phy_xusb_utmi_pad_power_on);
+
+void tegra_phy_xusb_utmi_pad_power_down(struct phy *phy)
+{
+	struct tegra_xusb_lane *lane;
+	struct tegra_xusb_padctl *padctl;
+
+	if (!phy)
+		return;
+
+	lane = phy_get_drvdata(phy);
+	padctl = lane->pad->padctl;
+	if (padctl->soc->ops->utmi_pad_power_down)
+		padctl->soc->ops->utmi_pad_power_down(phy);
+}
+EXPORT_SYMBOL_GPL(tegra_phy_xusb_utmi_pad_power_down);
 
 int tegra_phy_xusb_utmi_port_reset(struct phy *phy)
 {
@@ -1392,6 +1604,38 @@ int tegra_xusb_padctl_get_usb3_companion(struct tegra_xusb_padctl *padctl,
 	return -ENODEV;
 }
 EXPORT_SYMBOL_GPL(tegra_xusb_padctl_get_usb3_companion);
+
+void tegra_xusb_padctl_enable_receiver_detector(struct tegra_xusb_padctl
+					*padctl, struct phy *phy)
+{
+	if (padctl->soc->ops->receiver_detector)
+		padctl->soc->ops->receiver_detector(phy, true);
+}
+EXPORT_SYMBOL_GPL(tegra_xusb_padctl_enable_receiver_detector);
+
+void tegra_xusb_padctl_disable_receiver_detector(struct tegra_xusb_padctl
+					*padctl, struct phy *phy)
+{
+	if (padctl->soc->ops->receiver_detector)
+		padctl->soc->ops->receiver_detector(phy, false);
+}
+EXPORT_SYMBOL_GPL(tegra_xusb_padctl_disable_receiver_detector);
+
+void tegra_xusb_padctl_enable_clamp_en_early(struct tegra_xusb_padctl
+					*padctl, struct phy *phy)
+{
+	if (padctl->soc->ops->clamp_en_early)
+		padctl->soc->ops->clamp_en_early(phy, true);
+}
+EXPORT_SYMBOL_GPL(tegra_xusb_padctl_enable_clamp_en_early);
+
+void tegra_xusb_padctl_disable_clamp_en_early(struct tegra_xusb_padctl
+					*padctl, struct phy *phy)
+{
+	if (padctl->soc->ops->clamp_en_early)
+		padctl->soc->ops->clamp_en_early(phy, false);
+}
+EXPORT_SYMBOL_GPL(tegra_xusb_padctl_disable_clamp_en_early);
 
 MODULE_AUTHOR("Thierry Reding <treding@nvidia.com>");
 MODULE_DESCRIPTION("Tegra XUSB Pad Controller driver");

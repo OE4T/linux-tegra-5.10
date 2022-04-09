@@ -45,6 +45,7 @@ struct regulator {
 	struct device_attribute dev_attr;
 	struct regulator_dev *rdev;
 	struct dentry *debugfs;
+	int use_count;
 };
 
 extern struct class regulator_class;

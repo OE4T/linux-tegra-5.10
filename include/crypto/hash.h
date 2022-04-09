@@ -3,6 +3,7 @@
  * Hash: Hash algorithms under the crypto API
  * 
  * Copyright (c) 2008 Herbert Xu <herbert@gondor.apana.org.au>
+ * Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
  */
 
 #ifndef _CRYPTO_HASH_H
@@ -55,6 +56,9 @@ struct ahash_request {
 
 	/* This field may only be used by the ahash API code. */
 	void *priv;
+
+	/* This field used for SHAKE128/SHAKE256 where destination size vary */
+	unsigned int dst_size;
 
 	void *__ctx[] CRYPTO_MINALIGN_ATTR;
 };
@@ -601,7 +605,7 @@ static inline struct ahash_request *ahash_request_alloc(
 {
 	struct ahash_request *req;
 
-	req = kmalloc(sizeof(struct ahash_request) +
+	req = kzalloc(sizeof(struct ahash_request) +
 		      crypto_ahash_reqsize(tfm), gfp);
 
 	if (likely(req))

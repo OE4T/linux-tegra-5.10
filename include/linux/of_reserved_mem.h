@@ -80,7 +80,19 @@ static inline struct reserved_mem *of_reserved_mem_lookup(struct device_node *np
  */
 static inline int of_reserved_mem_device_init(struct device *dev)
 {
-	return of_reserved_mem_device_init_by_idx(dev, dev->of_node, 0);
+	int ret = -ENODEV, idx = 0, max = 0;
+
+	if (!dev)
+		return ret;
+
+	while (of_parse_phandle(dev->of_node, "memory-region", max))
+		max++;
+
+	do {
+		ret = of_reserved_mem_device_init_by_idx(dev,
+			dev->of_node, idx++);
+	} while (!ret && (idx != max));
+	return ret;
 }
 
 #endif /* __OF_RESERVED_MEM_H */

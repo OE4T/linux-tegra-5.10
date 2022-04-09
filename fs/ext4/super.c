@@ -436,6 +436,7 @@ static void __save_error_info(struct super_block *sb, int error,
 	es->s_state |= cpu_to_le16(EXT4_ERROR_FS);
 	ext4_update_tstamp(es, s_last_error_time);
 	strncpy(es->s_last_error_func, func, sizeof(es->s_last_error_func));
+	es->s_last_error_func[sizeof(es->s_last_error_func) - 1] = '\0';
 	es->s_last_error_line = cpu_to_le32(line);
 	es->s_last_error_ino = cpu_to_le32(ino);
 	es->s_last_error_block = cpu_to_le64(block);
@@ -498,6 +499,8 @@ static void __save_error_info(struct super_block *sb, int error,
 		es->s_first_error_time_hi = es->s_last_error_time_hi;
 		strncpy(es->s_first_error_func, func,
 			sizeof(es->s_first_error_func));
+		es->s_first_error_func[sizeof(es->s_first_error_func) - 1]
+					 = '\0';
 		es->s_first_error_line = cpu_to_le32(line);
 		es->s_first_error_ino = es->s_last_error_ino;
 		es->s_first_error_block = es->s_last_error_block;

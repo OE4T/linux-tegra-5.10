@@ -76,13 +76,33 @@
 #define EXTCON_DISP_VGA		43	/* Video Graphics Array */
 #define EXTCON_DISP_DP		44	/* Display Port */
 #define EXTCON_DISP_HMD		45	/* Head-Mounted Display */
+#define EXTCON_DISP_AUDIO_AUX0	46	/* Audio for SOR 0 */
+#define EXTCON_DISP_AUDIO_AUX1	47	/* Audio for SOR 1 */
+#define EXTCON_DISP_AUDIO_AUX2	48	/* Audio for SOR 2 */
+#define EXTCON_DISP_AUDIO_AUX3	49	/* Audio for SOR 3 */
+#define EXTCON_DISP_DSIHPD	50	/* DSI with hotplug support */
+#define EXTCON_DISP_HDMI2	51	/* 2nd HDMI port */
+#define EXTCON_DISP_HDMI3	52	/* 3rd HDMI port */
+#define EXTCON_DISP_HDMI4	53	/* 4th HDMI port */
 
 /* Miscellaneous external connector */
 #define EXTCON_DOCK		60
 #define EXTCON_JIG		61
 #define EXTCON_MECHANICAL	62
 
-#define EXTCON_NUM		63
+#define EXTCON_USB_QC2		63
+#define EXTCON_USB_MAXIM	64
+#define EXTCON_USB_APPLE_500mA	65
+#define EXTCON_USB_APPLE_1A	66
+#define EXTCON_USB_APPLE_2A	67
+#define EXTCON_USB_ACA_NV	68
+#define EXTCON_USB_ACA_RIDA	69
+#define EXTCON_USB_ACA_RIDB	70
+#define EXTCON_USB_ACA_RIDC	71
+#define EXTCON_USB_Y_CABLE	72
+#define EXTCON_USB_PD		73
+
+#define EXTCON_NUM		74
 
 /*
  * Define the properties of supported external connectors.

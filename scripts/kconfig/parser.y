@@ -46,6 +46,8 @@ static struct menu *current_menu, *current_entry;
 %token <string> T_WORD
 %token <string> T_WORD_QUOTE
 %token T_ALLNOCONFIG_Y
+%token T_APPEND_CHOICE
+%token T_APPEND_MENU
 %token T_BOOL
 %token T_CHOICE
 %token T_CLOSE_PAREN
@@ -96,7 +98,7 @@ static struct menu *current_menu, *current_entry;
 %type <expr> expr
 %type <expr> if_expr
 %type <string> end
-%type <menu> if_entry menu_entry choice_entry
+%type <menu> if_entry menu_entry append_menu_entry choice_entry append_choice_entry
 %type <string> word_opt assign_val
 %type <flavor> assign_op
 
@@ -105,7 +107,7 @@ static struct menu *current_menu, *current_entry;
 		$$->file->name, $$->lineno);
 	if (current_menu == $$)
 		menu_end_menu();
-} if_entry menu_entry choice_entry
+} if_entry menu_entry append_menu_entry choice_entry append_choice_entry
 
 %%
 input: mainmenu_stmt stmt_list | stmt_list;
@@ -250,6 +252,12 @@ choice_entry: choice choice_option_list
 	$$ = menu_add_menu();
 };
 
+append_choice_entry: T_APPEND_CHOICE T_WORD_QUOTE T_EOL
+{
+	printd(DEBUG_PARSE, "%s:%d:append_choice\n", zconf_curname(), zconf_lineno());
+	$$ = menu_append_choice($2);
+};
+
 choice_end: end
 {
 	if (zconf_endtoken($1, "choice")) {
@@ -258,7 +266,9 @@ choice_end: end
 	}
 };
 
-choice_stmt: choice_entry stmt_list_in_choice choice_end
+choice_stmt:
+	  choice_entry stmt_list_in_choice choice_end
+	| append_choice_entry stmt_list_in_choice choice_end
 ;
 
 choice_option_list:
@@ -347,6 +357,12 @@ menu_entry: menu menu_option_list
 	$$ = menu_add_menu();
 };
 
+append_menu_entry: T_APPEND_MENU T_WORD_QUOTE T_EOL
+{
+	printd(DEBUG_PARSE, "%s:%d:append_menu\n", zconf_curname(), zconf_lineno());
+	$$ = menu_append_entry($2);
+};
+
 menu_end: end
 {
 	if (zconf_endtoken($1, "menu")) {
@@ -355,7 +371,9 @@ menu_end: end
 	}
 };
 
-menu_stmt: menu_entry stmt_list menu_end
+menu_stmt:
+	  menu_entry stmt_list menu_end
+	| append_menu_entry stmt_list menu_end
 ;
 
 menu_option_list:
@@ -529,7 +547,7 @@ static bool zconf_endtoken(const char *tokenname,
 		yynerrs++;
 		return false;
 	}
-	if (current_menu->file != current_file) {
+	if (strcmp(current_menu->file->logical_name, current_file->logical_name)) {
 		zconf_error("'%s' in different file than '%s'",
 			    tokenname, expected_tokenname);
 		fprintf(stderr, "%s:%d: location of the '%s'\n",

@@ -62,6 +62,8 @@ static inline int of_mm_gpiochip_add(struct device_node *np,
 }
 extern void of_mm_gpiochip_remove(struct of_mm_gpio_chip *mm_gc);
 
+extern int of_gpiochip_suspend(struct gpio_chip *gc);
+
 #else /* CONFIG_OF_GPIO */
 
 #include <linux/errno.h>
@@ -74,6 +76,11 @@ static inline int of_get_named_gpio_flags(struct device_node *np,
 		*flags = 0;
 
 	return -ENOSYS;
+}
+
+static inline int of_gpiochip_suspend(struct gpio_chip *gc)
+{
+	return 0;
 }
 
 #endif /* CONFIG_OF_GPIO */

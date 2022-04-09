@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  */
 #include <linux/debugfs.h>
 #include <linux/dma-mapping.h>
 #include <linux/slab.h>
 #include <linux/uaccess.h>
+#include <linux/delay.h>
 
 #include <soc/tegra/bpmp.h>
 #include <soc/tegra/bpmp-abi.h>
@@ -129,8 +130,15 @@ static int mrq_debug_open(struct tegra_bpmp *bpmp, const char *name,
 	err = tegra_bpmp_transfer(bpmp, &msg);
 	if (err < 0)
 		return err;
-	else if (msg.rx.ret < 0)
-		return -EINVAL;
+	else if (msg.rx.ret < 0) {
+		if (msg.rx.ret == -BPMP_EBUSY) {
+			/* Retry if BPMP filesystem was busy, but bail out eventually */
+			return -EBUSY;
+		} else {
+			/* Any other BPMP filesystem error*/
+			return -EINVAL;
+		}
+	}
 
 	*len = resp.fop.datalen;
 	*fd = resp.fop.fd;
@@ -374,6 +382,7 @@ static int bpmp_populate_debugfs_inband(struct tegra_bpmp *bpmp,
 	char *buf, *pathbuf;
 	const char *name;
 	int err = 0;
+	int retry_count = 50;
 
 	if (!bpmp || !parent || !ppath)
 		return -EINVAL;
@@ -388,9 +397,15 @@ static int bpmp_populate_debugfs_inband(struct tegra_bpmp *bpmp,
 		return -ENOMEM;
 	}
 
+retry:
 	err = mrq_debug_read(bpmp, ppath, buf, bufsize, &dsize);
-	if (err)
-		goto out;
+	if (err) {
+		if (err == -BPMP_EBUSY && retry_count-- > 0) {
+			msleep(20);
+			goto retry;
+		} else
+			goto out;
+	}
 
 	seqbuf_init(&seqbuf, buf, dsize);
 

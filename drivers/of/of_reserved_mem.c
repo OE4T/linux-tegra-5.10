@@ -21,6 +21,7 @@
 #include <linux/sort.h>
 #include <linux/slab.h>
 #include <linux/memblock.h>
+#include <linux/kmemleak.h>
 
 #define MAX_RESERVED_REGIONS	64
 static struct reserved_mem reserved_mem[MAX_RESERVED_REGIONS];
@@ -39,8 +40,9 @@ static int __init early_init_dt_alloc_reserved_memory_arch(phys_addr_t size,
 		return -ENOMEM;
 
 	*res_base = base;
-	if (nomap)
+	if (nomap) {
 		return memblock_remove(base, size);
+	}
 
 	return memblock_reserve(base, size);
 }
@@ -113,6 +115,11 @@ static int __init __reserved_mem_alloc_size(unsigned long node,
 			max_t(unsigned long, MAX_ORDER - 1, pageblock_order);
 
 		align = max(align, (phys_addr_t)PAGE_SIZE << order);
+	}
+
+	if (IS_ENABLED(CONFIG_CMA) && of_flat_dt_is_compatible(node, "nvidia,vpr-carveout")) {
+		align = max(align, (phys_addr_t)PAGE_SIZE << max(MAX_ORDER - 1, pageblock_order));
+		size = roundup(size, align);
 	}
 
 	prop = of_get_flat_dt_prop(node, "alloc-ranges", &len);

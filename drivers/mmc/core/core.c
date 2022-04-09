@@ -929,6 +929,14 @@ int mmc_execute_tuning(struct mmc_card *card)
 	if (host->cqe_on)
 		host->cqe_ops->cqe_off(host);
 
+	if ((host->caps2 & MMC_CAP2_HS400_ES) && card->ext_csd.strobe_support) {
+		pr_info("%s: Skipping tuning since strobe enabled\n",
+				mmc_hostname(host));
+		return 0;
+	}
+
+	if (host->ops->skip_host_clkgate)
+		host->ops->skip_host_clkgate(host, true);
 	if (mmc_card_mmc(card))
 		opcode = MMC_SEND_TUNING_BLOCK_HS200;
 	else
@@ -945,6 +953,8 @@ int mmc_execute_tuning(struct mmc_card *card)
 		mmc_retune_enable(host);
 	}
 
+	if (host->ops->skip_host_clkgate)
+		host->ops->skip_host_clkgate(host, false);
 	return err;
 }
 
@@ -1155,9 +1165,10 @@ int mmc_set_signal_voltage(struct mmc_host *host, int signal_voltage)
 void mmc_set_initial_signal_voltage(struct mmc_host *host)
 {
 	/* Try to set signal voltage to 3.3V but fall back to 1.8v or 1.2v */
-	if (!mmc_set_signal_voltage(host, MMC_SIGNAL_VOLTAGE_330))
-		dev_dbg(mmc_dev(host), "Initial signal voltage of 3.3v\n");
-	else if (!mmc_set_signal_voltage(host, MMC_SIGNAL_VOLTAGE_180))
+	if (!(host->caps2 & MMC_CAP2_ONLY_1V8_SIGNAL_VOLTAGE)) {
+		if (!mmc_set_signal_voltage(host, MMC_SIGNAL_VOLTAGE_330))
+			dev_dbg(mmc_dev(host), "Initial signal voltage of 3.3v\n");
+	} else if (!mmc_set_signal_voltage(host, MMC_SIGNAL_VOLTAGE_180))
 		dev_dbg(mmc_dev(host), "Initial signal voltage of 1.8v\n");
 	else if (!mmc_set_signal_voltage(host, MMC_SIGNAL_VOLTAGE_120))
 		dev_dbg(mmc_dev(host), "Initial signal voltage of 1.2v\n");
@@ -1173,6 +1184,8 @@ int mmc_host_set_uhs_voltage(struct mmc_host *host)
 	 */
 	clock = host->ios.clock;
 	host->ios.clock = 0;
+	if (host->ops->skip_host_clkgate)
+		host->ops->skip_host_clkgate(host, true);
 	mmc_set_ios(host);
 
 	if (mmc_set_signal_voltage(host, MMC_SIGNAL_VOLTAGE_180))
@@ -1228,11 +1241,15 @@ int mmc_set_uhs_voltage(struct mmc_host *host, u32 ocr)
 		 * sent CMD11, so a power cycle is required anyway
 		 */
 		err = -EAGAIN;
+		if (host->ops->skip_host_clkgate)
+			host->ops->skip_host_clkgate(host, false);
 		goto power_cycle;
 	}
 
 	/* Wait for at least 1 ms according to spec */
 	mmc_delay(1);
+	if (host->ops->skip_host_clkgate)
+		host->ops->skip_host_clkgate(host, false);
 
 	/*
 	 * Failure to switch is indicated by the card holding
@@ -2209,7 +2226,8 @@ int mmc_detect_card_removed(struct mmc_host *host)
 	if (!card)
 		return 1;
 
-	if (!mmc_card_is_removable(host))
+	if (!mmc_card_is_removable(host) &&
+		!(host->caps2 & MMC_CAP2_FORCE_RESCAN))
 		return 0;
 
 	ret = mmc_card_removed(card);
@@ -2358,6 +2376,136 @@ void mmc_stop_host(struct mmc_host *host)
 	mmc_release_host(host);
 }
 
+/*
+ * Fill in the mmc_request structure given a set of transfer parameters.
+ */
+void mmc_prepare_mrq(struct mmc_card *card,
+	struct mmc_request *mrq, struct scatterlist *sg,
+		unsigned int sg_len, unsigned int dev_addr,
+		unsigned int blocks, unsigned int blksz, int write)
+{
+	BUG_ON(!mrq || !mrq->cmd || !mrq->data || !mrq->stop);
+
+	if (blocks > 1) {
+		mrq->cmd->opcode = write ?
+			MMC_WRITE_MULTIPLE_BLOCK : MMC_READ_MULTIPLE_BLOCK;
+	} else {
+		mrq->cmd->opcode = write ?
+			MMC_WRITE_BLOCK : MMC_READ_SINGLE_BLOCK;
+	}
+
+	mrq->cmd->arg = dev_addr;
+	if (!mmc_card_blockaddr(card))
+		mrq->cmd->arg <<= 9;
+
+	mrq->cmd->flags = MMC_RSP_R1 | MMC_CMD_ADTC;
+
+	if (blocks == 1)
+		mrq->stop = NULL;
+	else {
+		mrq->stop->opcode = MMC_STOP_TRANSMISSION;
+		mrq->stop->arg = 0;
+		mrq->stop->flags = MMC_RSP_R1B | MMC_CMD_AC;
+	}
+
+	mrq->data->blksz = blksz;
+	mrq->data->blocks = blocks;
+	mrq->data->flags = write ? MMC_DATA_WRITE : MMC_DATA_READ;
+	mrq->data->sg = sg;
+	mrq->data->sg_len = sg_len;
+
+	mmc_set_data_timeout(mrq->data, card);
+}
+EXPORT_SYMBOL(mmc_prepare_mrq);
+
+static int mmc_busy(struct mmc_command *cmd)
+{
+	return !(cmd->resp[0] & R1_READY_FOR_DATA) ||
+		(R1_CURRENT_STATE(cmd->resp[0]) == R1_STATE_PRG);
+}
+
+/*
+ * Wait for the card to finish the busy state
+ */
+int mmc_wait_busy(struct mmc_card *card)
+{
+	int ret, busy = 0;
+	struct mmc_command cmd = {0};
+
+	memset(&cmd, 0, sizeof(struct mmc_command));
+	cmd.opcode = MMC_SEND_STATUS;
+	cmd.arg = card->rca << 16;
+	cmd.flags = MMC_RSP_SPI_R2 | MMC_RSP_R1 | MMC_CMD_AC;
+
+	do {
+		ret = mmc_wait_for_cmd(card->host, &cmd, 0);
+		if (ret)
+			break;
+
+		if (!busy && mmc_busy(&cmd)) {
+			busy = 1;
+			if (card->host->caps & MMC_CAP_WAIT_WHILE_BUSY) {
+				pr_warn("%s: Warning: Host did not "
+					"wait for busy state to end.\n",
+					mmc_hostname(card->host));
+			}
+		}
+
+	} while (mmc_busy(&cmd));
+
+	return ret;
+}
+EXPORT_SYMBOL(mmc_wait_busy);
+
+int mmc_check_result(struct mmc_request *mrq)
+{
+	int ret;
+
+	BUG_ON(!mrq || !mrq->cmd || !mrq->data);
+
+	ret = 0;
+
+	if (!ret && mrq->cmd->error)
+		ret = mrq->cmd->error;
+	if (!ret && mrq->data->error)
+		ret = mrq->data->error;
+	if (!ret && mrq->stop && mrq->stop->error)
+		ret = mrq->stop->error;
+	if (!ret && mrq->data->bytes_xfered !=
+		mrq->data->blocks * mrq->data->blksz)
+		ret = -EPERM;
+
+	return ret;
+}
+EXPORT_SYMBOL(mmc_check_result);
+
+/*
+ * transfer with certain parameters
+ */
+int mmc_simple_transfer(struct mmc_card *card,
+	struct scatterlist *sg, unsigned int sg_len, unsigned int dev_addr,
+	unsigned int blocks, unsigned int blksz, int write)
+{
+	struct mmc_request mrq = {0};
+	struct mmc_command cmd = {0};
+	struct mmc_command stop = {0};
+	struct mmc_data data = {0};
+
+	mrq.cmd = &cmd;
+	mrq.data = &data;
+	mrq.stop = &stop;
+
+	mmc_prepare_mrq(card, &mrq, sg, sg_len, dev_addr,
+		blocks, blksz, write);
+
+	mmc_wait_for_req(card->host, &mrq);
+
+	mmc_wait_busy(card);
+
+	return mmc_check_result(&mrq);
+}
+EXPORT_SYMBOL(mmc_simple_transfer);
+
 static int __init mmc_init(void)
 {
 	int ret;
@@ -2382,6 +2530,61 @@ unregister_bus:
 	mmc_unregister_bus();
 	return ret;
 }
+
+int mmc_power_save_host(struct mmc_host *host)
+{
+        int ret = 0;
+
+#ifdef CONFIG_MMC_DEBUG
+        pr_info("%s: %s: powering down\n", mmc_hostname(host), __func__);
+#endif
+
+        cancel_delayed_work_sync(&host->detect);
+        mmc_bus_get(host);
+
+        if (!host->bus_ops || host->bus_dead) {
+                mmc_bus_put(host);
+                return -EINVAL;
+        }
+
+        if (host->bus_ops->power_save)
+                ret = host->bus_ops->power_save(host);
+
+        mmc_bus_put(host);
+
+        mmc_claim_host(host);
+        mmc_power_off(host);
+        mmc_release_host(host);
+
+        return ret;
+}
+EXPORT_SYMBOL(mmc_power_save_host);
+
+int mmc_power_restore_host(struct mmc_host *host)
+{
+        int ret;
+
+#ifdef CONFIG_MMC_DEBUG
+        pr_info("%s: %s: powering up\n", mmc_hostname(host), __func__);
+#endif
+
+        mmc_bus_get(host);
+
+        if (!host->bus_ops || host->bus_dead) {
+                mmc_bus_put(host);
+                return -EINVAL;
+        }
+
+        mmc_claim_host(host);
+        mmc_power_up(host, host->card->ocr);
+        mmc_release_host(host);
+        ret = host->bus_ops->power_restore(host);
+
+        mmc_bus_put(host);
+
+        return ret;
+}
+EXPORT_SYMBOL(mmc_power_restore_host);
 
 static void __exit mmc_exit(void)
 {

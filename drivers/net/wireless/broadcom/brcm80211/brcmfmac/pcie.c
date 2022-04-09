@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ISC
 /*
  * Copyright (c) 2014 Broadcom Corporation
+ * Copyright (c) 2021, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  */
 
 #include <linux/kernel.h>
@@ -48,8 +49,8 @@ enum brcmf_pcie_state {
 BRCMF_FW_DEF(43602, "brcmfmac43602-pcie");
 BRCMF_FW_DEF(4350, "brcmfmac4350-pcie");
 BRCMF_FW_DEF(4350C, "brcmfmac4350c2-pcie");
-BRCMF_FW_DEF(4356, "brcmfmac4356-pcie");
-BRCMF_FW_DEF(43570, "brcmfmac43570-pcie");
+CY_FW_DEF(4356, "cyfmac4356-pcie");
+CY_FW_DEF(43570, "cyfmac43570-pcie");
 BRCMF_FW_DEF(4358, "brcmfmac4358-pcie");
 BRCMF_FW_DEF(4359, "brcmfmac4359-pcie");
 BRCMF_FW_DEF(4364, "brcmfmac4364-pcie");
@@ -58,6 +59,7 @@ BRCMF_FW_DEF(4365C, "brcmfmac4365c-pcie");
 BRCMF_FW_DEF(4366B, "brcmfmac4366b-pcie");
 BRCMF_FW_DEF(4366C, "brcmfmac4366c-pcie");
 BRCMF_FW_DEF(4371, "brcmfmac4371-pcie");
+CY_FW_DEF(4355, "cyfmac54591-pcie");
 
 static const struct brcmf_firmware_mapping brcmf_pcie_fwnames[] = {
 	BRCMF_FW_ENTRY(BRCM_CC_43602_CHIP_ID, 0xFFFFFFFF, 43602),
@@ -78,6 +80,7 @@ static const struct brcmf_firmware_mapping brcmf_pcie_fwnames[] = {
 	BRCMF_FW_ENTRY(BRCM_CC_4366_CHIP_ID, 0xFFFFFFF0, 4366C),
 	BRCMF_FW_ENTRY(BRCM_CC_43664_CHIP_ID, 0xFFFFFFF0, 4366C),
 	BRCMF_FW_ENTRY(BRCM_CC_4371_CHIP_ID, 0xFFFFFFFF, 4371),
+	BRCMF_FW_ENTRY(CY_CC_89459_CHIP_ID, 0xFFFFFFFF, 4355),
 };
 
 #define BRCMF_PCIE_FW_UP_TIMEOUT		5000 /* msec */
@@ -1407,8 +1410,10 @@ int brcmf_pcie_get_fwname(struct device *dev, const char *ext, u8 *fw_name)
 	struct brcmf_fw_name fwnames[] = {
 		{ ext, fw_name },
 	};
+	u32 chip;
 
-	fwreq = brcmf_fw_alloc_request(bus_if->chip, bus_if->chiprev,
+	chip = bus_if->chip;
+	fwreq = brcmf_fw_alloc_request(chip, bus_if->chiprev,
 				       brcmf_pcie_fwnames,
 				       ARRAY_SIZE(brcmf_pcie_fwnames),
 				       fwnames, ARRAY_SIZE(fwnames));
@@ -1847,8 +1852,10 @@ brcmf_pcie_prepare_fw_request(struct brcmf_pciedev_info *devinfo)
 		{ ".bin", devinfo->fw_name },
 		{ ".txt", devinfo->nvram_name },
 	};
+	u32 chip;
 
-	fwreq = brcmf_fw_alloc_request(devinfo->ci->chip, devinfo->ci->chiprev,
+	chip = devinfo->ci->chip;
+	fwreq = brcmf_fw_alloc_request(chip, devinfo->ci->chiprev,
 				       brcmf_pcie_fwnames,
 				       ARRAY_SIZE(brcmf_pcie_fwnames),
 				       fwnames, ARRAY_SIZE(fwnames));
@@ -1963,6 +1970,27 @@ fail:
 	return ret;
 }
 
+
+static void
+brcmf_pcie_shutdown(struct pci_dev *pdev)
+{
+	struct brcmf_pciedev_info *devinfo;
+	struct brcmf_bus *bus;
+	u32 status;
+
+	brcmf_dbg(PCIE, "Enter\n");
+
+	bus = dev_get_drvdata(&pdev->dev);
+	if (bus == NULL)
+		return;
+
+	devinfo = bus->bus_priv.pcie->devinfo;
+
+	brcmf_pcie_intr_disable(devinfo);
+
+	status = brcmf_pcie_read_reg32(devinfo, BRCMF_PCIE_PCIE2REG_MAILBOXINT);
+	brcmf_pcie_write_reg32(devinfo, BRCMF_PCIE_PCIE2REG_MAILBOXINT, status);
+}
 
 static void
 brcmf_pcie_remove(struct pci_dev *pdev)
@@ -2118,6 +2146,9 @@ static const struct pci_device_id brcmf_pcie_devid_table[] = {
 	BRCMF_PCIE_DEVICE(BRCM_PCIE_4366_2G_DEVICE_ID),
 	BRCMF_PCIE_DEVICE(BRCM_PCIE_4366_5G_DEVICE_ID),
 	BRCMF_PCIE_DEVICE(BRCM_PCIE_4371_DEVICE_ID),
+	BRCMF_PCIE_DEVICE(CY_PCIE_89459_DEVICE_ID),
+	BRCMF_PCIE_DEVICE(CY_PCIE_89459_RAW_DEVICE_ID),
+	BRCMF_PCIE_DEVICE(CY_PCIE_54591_DEVICE_ID),
 	{ /* end: all zeroes */ }
 };
 
@@ -2131,6 +2162,7 @@ static struct pci_driver brcmf_pciedrvr = {
 	.id_table = brcmf_pcie_devid_table,
 	.probe = brcmf_pcie_probe,
 	.remove = brcmf_pcie_remove,
+	.shutdown = brcmf_pcie_shutdown,
 #ifdef CONFIG_PM
 	.driver.pm = &brcmf_pciedrvr_pm,
 #endif

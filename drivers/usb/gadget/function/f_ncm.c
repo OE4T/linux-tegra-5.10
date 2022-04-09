@@ -9,6 +9,7 @@
  *
  * Copyright (C) 2003-2005,2008 David Brownell
  * Copyright (C) 2008 Nokia Corporation
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION. All rights reserved.
  */
 
 #include <linux/kernel.h>
@@ -876,11 +877,9 @@ static int ncm_set_alt(struct usb_function *f, unsigned intf, unsigned alt)
 		DBG(cdev, "reset ncm control %d\n", intf);
 		usb_ep_disable(ncm->notify);
 
-		if (!(ncm->notify->desc)) {
-			DBG(cdev, "init ncm ctrl %d\n", intf);
-			if (config_ep_by_speed(cdev->gadget, f, ncm->notify))
-				goto fail;
-		}
+		DBG(cdev, "init ncm ctrl %d\n", intf);
+		if (config_ep_by_speed(cdev->gadget, f, ncm->notify))
+			goto fail;
 		usb_ep_enable(ncm->notify);
 
 	/* Data interface has two altsettings, 0 and 1 */
@@ -903,17 +902,14 @@ static int ncm_set_alt(struct usb_function *f, unsigned intf, unsigned alt)
 		if (alt == 1) {
 			struct net_device	*net;
 
-			if (!ncm->port.in_ep->desc ||
-			    !ncm->port.out_ep->desc) {
-				DBG(cdev, "init ncm\n");
-				if (config_ep_by_speed(cdev->gadget, f,
-						       ncm->port.in_ep) ||
-				    config_ep_by_speed(cdev->gadget, f,
-						       ncm->port.out_ep)) {
-					ncm->port.in_ep->desc = NULL;
-					ncm->port.out_ep->desc = NULL;
-					goto fail;
-				}
+			DBG(cdev, "init ncm\n");
+			if (config_ep_by_speed(cdev->gadget, f,
+					       ncm->port.in_ep) ||
+			    config_ep_by_speed(cdev->gadget, f,
+					       ncm->port.out_ep)) {
+				ncm->port.in_ep->desc = NULL;
+				ncm->port.out_ep->desc = NULL;
+				goto fail;
 			}
 
 			/* TODO */
@@ -1108,6 +1104,8 @@ static struct sk_buff *ncm_wrap_ntb(struct gether *port,
 		}
 
 		/* Add the datagram position entries */
+		if (!ncm->skb_tx_ndp)
+			goto err;
 		ntb_ndp = skb_put_zero(ncm->skb_tx_ndp, dgram_idx_len);
 
 		ncb_len = ncm->skb_tx_data->len;

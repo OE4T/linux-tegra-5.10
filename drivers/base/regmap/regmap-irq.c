@@ -585,6 +585,7 @@ int regmap_add_irq_chip_fwnode(struct fwnode_handle *fwnode,
 			       struct regmap_irq_chip_data **data)
 {
 	struct regmap_irq_chip_data *d;
+	struct irq_desc *desc;
 	int i;
 	int ret = -ENOMEM;
 	int num_type_reg;
@@ -689,6 +690,12 @@ int regmap_add_irq_chip_fwnode(struct fwnode_handle *fwnode,
 	}
 
 	mutex_init(&d->lock);
+
+	/* Determine interrupt controller nesting depth for lockdep */
+	desc = irq_to_desc(d->irq);
+	for (i = 0; desc; ++i)
+		desc = irq_to_desc(desc->parent_irq);
+	lockdep_set_subclass(&d->lock, i);
 
 	for (i = 0; i < chip->num_irqs; i++)
 		d->mask_buf_def[chip->irqs[i].reg_offset / map->reg_stride]

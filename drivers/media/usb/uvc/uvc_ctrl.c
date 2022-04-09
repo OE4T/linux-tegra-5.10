@@ -781,7 +781,8 @@ static s32 uvc_get_le_value(struct uvc_control_mapping *mapping,
 			break;
 
 		offset -= 8;
-		mask = (1 << bits) - 1;
+		if (bits >= 0)
+			mask = (1 << bits) - 1;
 		data++;
 	}
 

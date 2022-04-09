@@ -205,6 +205,56 @@ void __iomem *pci_epc_mem_alloc_addr(struct pci_epc *epc,
 }
 EXPORT_SYMBOL_GPL(pci_epc_mem_alloc_addr);
 
+/**
+ * pci_epc_wc_mem_alloc_addr() - allocate wc memory address from EPC addr space
+ * @epc: the EPC device on which memory has to be allocated
+ * @phys_addr: populate the allocated physical address here
+ * @size: the size of the address space that has to be allocated
+ *
+ * Invoke to allocate wc memory address from the EPC address space. This
+ * is usually done to map the remote RC address backed by RAM into the
+ * local system.
+ */
+void __iomem *pci_epc_wc_mem_alloc_addr(struct pci_epc *epc,
+				     phys_addr_t *phys_addr, size_t size)
+{
+	void __iomem *virt_addr = NULL;
+	struct pci_epc_mem *mem;
+	unsigned int page_shift;
+	size_t align_size;
+	int pageno;
+	int order;
+	int i;
+
+	for (i = 0; i < epc->num_windows; i++) {
+		mem = epc->windows[i];
+		mutex_lock(&mem->lock);
+		align_size = ALIGN(size, mem->window.page_size);
+		order = pci_epc_mem_get_order(mem, align_size);
+
+		pageno = bitmap_find_free_region(mem->bitmap, mem->pages,
+						 order);
+		if (pageno >= 0) {
+			page_shift = ilog2(mem->window.page_size);
+			*phys_addr = mem->window.phys_base +
+				((phys_addr_t)pageno << page_shift);
+			virt_addr = ioremap_wc(*phys_addr, align_size);
+			if (!virt_addr) {
+				bitmap_release_region(mem->bitmap,
+						      pageno, order);
+				mutex_unlock(&mem->lock);
+				continue;
+			}
+			mutex_unlock(&mem->lock);
+			return virt_addr;
+		}
+		mutex_unlock(&mem->lock);
+	}
+
+	return virt_addr;
+}
+EXPORT_SYMBOL_GPL(pci_epc_wc_mem_alloc_addr);
+
 static struct pci_epc_mem *pci_epc_get_matching_window(struct pci_epc *epc,
 						       phys_addr_t phys_addr)
 {
@@ -229,7 +279,8 @@ static struct pci_epc_mem *pci_epc_get_matching_window(struct pci_epc *epc,
  * @virt_addr: virtual address of the allocated mem space
  * @size: the size of the allocated address space
  *
- * Invoke to free the memory allocated using pci_epc_mem_alloc_addr.
+ * Invoke to free the memory allocated using pci_epc_mem_alloc_addr or
+ * pci_epc_wc_mem_alloc_addr.
  */
 void pci_epc_mem_free_addr(struct pci_epc *epc, phys_addr_t phys_addr,
 			   void __iomem *virt_addr, size_t size)

@@ -2556,9 +2556,12 @@ static int blk_mq_hctx_notify_dead(unsigned int cpu, struct hlist_node *node)
 	enum hctx_type type;
 
 	hctx = hlist_entry_safe(node, struct blk_mq_hw_ctx, cpuhp_dead);
+	if (!hctx) {
+		pr_err("No requests present in software queue\n");
+		return -EINVAL;
+	}
 	if (!cpumask_test_cpu(cpu, hctx->cpumask))
 		return 0;
-
 	ctx = __blk_mq_get_ctx(hctx->queue, cpu);
 	type = hctx->type;
 

@@ -6,13 +6,13 @@
  * Copyright (C) 2012 ARM Ltd.
  */
 
-#include <linux/errno.h>
 #include <linux/linkage.h>
 #include <linux/init.h>
 #include <asm/assembler.h>
 #include <asm/cpufeature.h>
 #include <asm/alternative.h>
 #include <asm/asm-uaccess.h>
+#include <asm/errno.h>
 
 /*
  *	flush_icache_range(start,end)

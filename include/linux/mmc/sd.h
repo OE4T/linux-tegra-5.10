@@ -51,10 +51,15 @@
 /*
  * SD_SEND_IF_COND argument format:
  *
- *	[31:12] Reserved (0)
+ *	[31:14] Reserved (0)
+ *	[13:12] SD Express bit fields
  *	[11:8] Host Voltage Supply Flags
  *	[7:0] Check Pattern (0xAA)
  */
+#define SD_EXP_1V8_MASK		0x1
+#define SD_EXP_1V2_MASK		0x2
+#define SD_EXP_AVAIL_MASK	(SD_EXP_1V8_MASK | SD_EXP_1V2_MASK)
+#define SD_EXP_SHIFT		12
 
 /*
  * SCR field definitions

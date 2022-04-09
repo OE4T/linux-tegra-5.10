@@ -4,6 +4,7 @@
  *
  * Copyright (c) 2002 ShuChen <shuchen@realtek.com.tw>
  * Copyright (c) 2003 - 2007 Francois Romieu <romieu@fr.zoreil.com>
+ * Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
  * Copyright (c) a lot of people too. Please respect their work.
  *
  * See MAINTAINERS file for support contact information.
@@ -5482,6 +5483,10 @@ static int rtl_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	/* chip gets powered up in rtl_open() */
 	rtl_pll_power_down(tp);
+
+	rc = dev_alloc_name(dev, "enp2s0");
+	if (rc < 0)
+		netdev_err(dev, "failed to name netdev enp2s0, err = %d\n", rc);
 
 	rc = register_netdev(dev);
 	if (rc)

@@ -47,6 +47,7 @@
 #include <linux/pkeys.h>
 #include <linux/oom.h>
 #include <linux/sched/mm.h>
+#include <linux/tegra_profiler.h>
 
 #include <linux/uaccess.h>
 #include <asm/cacheflush.h>
@@ -1869,6 +1870,7 @@ unmap_writable:
 	file = vma->vm_file;
 out:
 	perf_event_mmap(vma);
+	quadd_event_mmap(vma);
 
 	vm_stat_account(mm, vm_flags, len >> PAGE_SHIFT);
 	if (vm_flags & VM_LOCKED) {
@@ -2478,6 +2480,7 @@ int expand_upwards(struct vm_area_struct *vma, unsigned long address)
 				spin_unlock(&mm->page_table_lock);
 
 				perf_event_mmap(vma);
+				quadd_event_mmap(vma);
 			}
 		}
 	}
@@ -2556,6 +2559,7 @@ int expand_downwards(struct vm_area_struct *vma,
 				spin_unlock(&mm->page_table_lock);
 
 				perf_event_mmap(vma);
+				quadd_event_mmap(vma);
 			}
 		}
 	}
@@ -3122,6 +3126,7 @@ static int do_brk_flags(unsigned long addr, unsigned long len, unsigned long fla
 	vma_link(mm, vma, prev, rb_link, rb_parent);
 out:
 	perf_event_mmap(vma);
+	quadd_event_mmap(vma);
 	mm->total_vm += len >> PAGE_SHIFT;
 	mm->data_vm += len >> PAGE_SHIFT;
 	if (flags & VM_LOCKED)
@@ -3491,6 +3496,7 @@ static struct vm_area_struct *__install_special_mapping(
 	vm_stat_account(mm, vma->vm_flags, len >> PAGE_SHIFT);
 
 	perf_event_mmap(vma);
+	quadd_event_mmap(vma);
 
 	return vma;
 

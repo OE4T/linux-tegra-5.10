@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
  * Copyright (C) 2012 ARM Ltd.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  */
 #ifndef __ASM_PGTABLE_H
 #define __ASM_PGTABLE_H
@@ -141,6 +142,12 @@ extern unsigned long empty_zero_page[PAGE_SIZE / sizeof(unsigned long)];
 #define pud_access_permitted(pud, write) \
 	(pte_access_permitted(pud_pte(pud), (write)))
 
+#ifdef CONFIG_ARM64_NON_SHARED_TLBI
+#define __DSB_FOR_PGTABLE()	dsb(nshst)
+#else
+#define __DSB_FOR_PGTABLE()	dsb(ishst)
+#endif
+
 static inline pte_t clear_pte_bit(pte_t pte, pgprot_t prot)
 {
 	pte_val(pte) &= ~pgprot_val(prot);
@@ -254,7 +261,7 @@ static inline void set_pte(pte_t *ptep, pte_t pte)
 	 * or update_mmu_cache() have the necessary barriers.
 	 */
 	if (pte_valid_not_user(pte)) {
-		dsb(ishst);
+		__DSB_FOR_PGTABLE();
 		isb();
 	}
 }
@@ -552,7 +559,7 @@ static inline void set_pmd(pmd_t *pmdp, pmd_t pmd)
 	WRITE_ONCE(*pmdp, pmd);
 
 	if (pmd_valid(pmd)) {
-		dsb(ishst);
+		__DSB_FOR_PGTABLE();
 		isb();
 	}
 }
@@ -613,7 +620,7 @@ static inline void set_pud(pud_t *pudp, pud_t pud)
 	WRITE_ONCE(*pudp, pud);
 
 	if (pud_valid(pud)) {
-		dsb(ishst);
+		__DSB_FOR_PGTABLE();
 		isb();
 	}
 }
@@ -675,7 +682,7 @@ static inline void set_p4d(p4d_t *p4dp, p4d_t p4d)
 	}
 
 	WRITE_ONCE(*p4dp, p4d);
-	dsb(ishst);
+	__DSB_FOR_PGTABLE();
 	isb();
 }
 

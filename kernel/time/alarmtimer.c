@@ -2,6 +2,8 @@
 /*
  * Alarmtimer interface
  *
+ * Copyright (C) 2016-2017 NVIDIA CORPORATION. All rights reserved.
+ *
  * This interface provides a timer which is similarto hrtimers,
  * but triggers a RTC alarm if the box is suspend.
  *
@@ -521,7 +523,7 @@ static enum alarmtimer_type clock2alarm(clockid_t clockid)
 		return ALARM_REALTIME;
 	if (clockid == CLOCK_BOOTTIME_ALARM)
 		return ALARM_BOOTTIME;
-	return -1;
+	return ALARM_UNDEFINED;
 }
 
 /**
@@ -665,7 +667,13 @@ static int alarm_clock_getres(const clockid_t which_clock, struct timespec64 *tp
  */
 static int alarm_clock_get_timespec(clockid_t which_clock, struct timespec64 *tp)
 {
-	struct alarm_base *base = &alarm_bases[clock2alarm(which_clock)];
+	enum alarmtimer_type type = clock2alarm(which_clock);
+	struct alarm_base *base;
+
+	if (type == ALARM_UNDEFINED)
+		return -EINVAL;
+
+	base = &alarm_bases[type];
 
 	if (!alarmtimer_get_rtcdev())
 		return -EINVAL;
@@ -708,6 +716,10 @@ static int alarm_timer_create(struct k_itimer *new_timer)
 		return -EPERM;
 
 	type = clock2alarm(new_timer->it_clock);
+
+	if (type == ALARM_UNDEFINED)
+		return -EINVAL;
+
 	alarm_init(&new_timer->it.alarm.alarmtimer, type, alarm_handle_timer);
 	return 0;
 }
@@ -827,6 +839,9 @@ static int alarm_timer_nsleep(const clockid_t which_clock, int flags,
 
 	if (!capable(CAP_WAKE_ALARM))
 		return -EPERM;
+
+	if (type == ALARM_UNDEFINED)
+		return -EINVAL;
 
 	alarm_init_on_stack(&alarm, type, alarmtimer_nsleep_wakeup);
 

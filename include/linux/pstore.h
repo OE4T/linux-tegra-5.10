@@ -197,6 +197,19 @@ struct pstore_info {
 	int		(*erase)(struct pstore_record *record);
 };
 
+enum rtrace_event_type {
+	RTRACE_READ = 0,
+	RTRACE_WRITE = 1,
+};
+
+#ifndef CONFIG_PSTORE_RTRACE
+static inline void
+pstore_rtrace_call(enum rtrace_event_type log_type, void *data)
+{ }
+static inline void pstore_rtrace_set_bypass(int bypass)
+{ }
+#endif
+
 /* Supported frontends */
 #define PSTORE_FLAGS_DMESG	BIT(0)
 #define PSTORE_FLAGS_CONSOLE	BIT(1)

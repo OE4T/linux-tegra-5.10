@@ -90,8 +90,6 @@ static int __iommu_attach_group(struct iommu_domain *domain,
 				struct iommu_group *group);
 static void __iommu_detach_group(struct iommu_domain *domain,
 				 struct iommu_group *group);
-static int iommu_create_device_direct_mappings(struct iommu_group *group,
-					       struct device *dev);
 static struct iommu_group *iommu_group_get_for_dev(struct device *dev);
 
 #define IOMMU_GROUP_ATTR(_name, _mode, _show, _store)		\
@@ -262,7 +260,9 @@ int iommu_probe_device(struct device *dev)
 	 * support default domains, so the return value is not yet
 	 * checked.
 	 */
+	mutex_lock(&group->mutex);
 	iommu_alloc_default_domain(group, dev);
+	mutex_unlock(&group->mutex);
 
 	if (group->default_domain) {
 		ret = __iommu_attach_device(group->default_domain, dev);
@@ -271,8 +271,6 @@ int iommu_probe_device(struct device *dev)
 			goto err_release;
 		}
 	}
-
-	iommu_create_device_direct_mappings(group, dev);
 
 	iommu_group_put(group);
 
@@ -717,10 +715,9 @@ int iommu_group_set_name(struct iommu_group *group, const char *name)
 }
 EXPORT_SYMBOL_GPL(iommu_group_set_name);
 
-static int iommu_create_device_direct_mappings(struct iommu_group *group,
+int iommu_create_device_direct_mappings(struct iommu_domain *domain,
 					       struct device *dev)
 {
-	struct iommu_domain *domain = group->default_domain;
 	struct iommu_resv_region *entry;
 	struct list_head mappings;
 	unsigned long pg_size;
@@ -1728,16 +1725,16 @@ static void __iommu_group_dma_finalize(struct iommu_group *group)
 
 static int iommu_do_create_direct_mappings(struct device *dev, void *data)
 {
-	struct iommu_group *group = data;
+	struct iommu_domain *domain = data;
 
-	iommu_create_device_direct_mappings(group, dev);
+	iommu_create_device_direct_mappings(domain, dev);
 
 	return 0;
 }
 
 static int iommu_group_create_direct_mappings(struct iommu_group *group)
 {
-	return __iommu_group_for_each_dev(group, group,
+	return __iommu_group_for_each_dev(group, group->default_domain,
 					  iommu_do_create_direct_mappings);
 }
 
@@ -2365,9 +2362,11 @@ static size_t iommu_pgsize(struct iommu_domain *domain,
 }
 
 static int __iommu_map(struct iommu_domain *domain, unsigned long iova,
-		       phys_addr_t paddr, size_t size, int prot, gfp_t gfp)
+		       phys_addr_t paddr, size_t size, int prot, gfp_t gfp,
+		       struct iommu_iotlb_gather *gather)
 {
 	const struct iommu_ops *ops = domain->ops;
+	struct iommu_iotlb_gather *iotlb_gather = gather;
 	unsigned long orig_iova = iova;
 	unsigned int min_pagesz;
 	size_t orig_size = size;
@@ -2395,6 +2394,8 @@ static int __iommu_map(struct iommu_domain *domain, unsigned long iova,
 		return -EINVAL;
 	}
 
+	iommu_iotlb_gather_init(iotlb_gather);
+
 	pr_debug("map: iova 0x%lx pa %pa size 0x%zx\n", iova, &paddr, size);
 
 	while (size) {
@@ -2402,7 +2403,7 @@ static int __iommu_map(struct iommu_domain *domain, unsigned long iova,
 
 		pr_debug("mapping: iova 0x%lx pa %pa pgsize 0x%zx\n",
 			 iova, &paddr, pgsize);
-		ret = ops->map(domain, iova, paddr, pgsize, prot, gfp);
+		ret = ops->map(domain, iova, paddr, pgsize, prot, gfp, iotlb_gather);
 
 		if (ret)
 			break;
@@ -2418,6 +2419,9 @@ static int __iommu_map(struct iommu_domain *domain, unsigned long iova,
 	else
 		trace_map(orig_iova, orig_paddr, orig_size);
 
+	if (domain->ops->dma_sync)
+		domain->ops->dma_sync(domain, orig_iova, orig_size);
+
 	return ret;
 }
 
@@ -2425,11 +2429,12 @@ static int _iommu_map(struct iommu_domain *domain, unsigned long iova,
 		      phys_addr_t paddr, size_t size, int prot, gfp_t gfp)
 {
 	const struct iommu_ops *ops = domain->ops;
+	struct iommu_iotlb_gather iotlb_gather;
 	int ret;
 
-	ret = __iommu_map(domain, iova, paddr, size, prot, gfp);
+	ret = __iommu_map(domain, iova, paddr, size, prot, gfp, &iotlb_gather);
 	if (ret == 0 && ops->iotlb_sync_map)
-		ops->iotlb_sync_map(domain);
+		ops->iotlb_sync_map(domain, &iotlb_gather);
 
 	return ret;
 }
@@ -2499,6 +2504,9 @@ static size_t __iommu_unmap(struct iommu_domain *domain,
 		unmapped += unmapped_page;
 	}
 
+	if (ops->dma_sync)
+		ops->dma_sync(domain, orig_iova, size);
+
 	trace_unmap(orig_iova, size, unmapped);
 	return unmapped;
 }
@@ -2530,6 +2538,7 @@ static size_t __iommu_map_sg(struct iommu_domain *domain, unsigned long iova,
 			     gfp_t gfp)
 {
 	const struct iommu_ops *ops = domain->ops;
+	struct iommu_iotlb_gather iotlb_gather;
 	size_t len = 0, mapped = 0;
 	phys_addr_t start;
 	unsigned int i = 0;
@@ -2540,7 +2549,7 @@ static size_t __iommu_map_sg(struct iommu_domain *domain, unsigned long iova,
 
 		if (len && s_phys != start + len) {
 			ret = __iommu_map(domain, iova + mapped, start,
-					len, prot, gfp);
+					len, prot, gfp, &iotlb_gather);
 
 			if (ret)
 				goto out_err;
@@ -2561,7 +2570,7 @@ static size_t __iommu_map_sg(struct iommu_domain *domain, unsigned long iova,
 	}
 
 	if (ops->iotlb_sync_map)
-		ops->iotlb_sync_map(domain);
+		ops->iotlb_sync_map(domain, &iotlb_gather);
 	return mapped;
 
 out_err:

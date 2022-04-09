@@ -256,7 +256,10 @@ static int dw_pcie_ep_set_bar(struct pci_epc *epc, u8 func_no,
 	ep->epf_bar[bar] = epf_bar;
 	dw_pcie_dbi_ro_wr_dis(pci);
 
-	return 0;
+	if (!ep->ops->set_bar)
+		return 0;
+
+	return ep->ops->set_bar(ep, func_no, epf_bar);
 }
 
 static int dw_pcie_find_index(struct dw_pcie_ep *ep, phys_addr_t addr,
@@ -633,12 +636,32 @@ static unsigned int dw_pcie_ep_find_ext_capability(struct dw_pcie *pci, int cap)
 	return 0;
 }
 
+void dw_pcie_ep_deinit(struct dw_pcie_ep *ep)
+{
+	struct dw_pcie *pci = to_dw_pcie_from_ep(ep);
+	struct dw_pcie_ep_func *ep_func, *tmp;
+	struct device *dev = pci->dev;
+
+	memset(ep->ib_window_map, 0x0,
+	       BITS_TO_LONGS(ep->num_ib_windows) * sizeof(long));
+
+	list_for_each_entry_safe(ep_func, tmp, &ep->func_list, list) {
+		list_del(&ep_func->list);
+		devm_kfree(dev, ep_func);
+	}
+}
+EXPORT_SYMBOL_GPL(dw_pcie_ep_deinit);
+
 int dw_pcie_ep_init_complete(struct dw_pcie_ep *ep)
 {
 	struct dw_pcie *pci = to_dw_pcie_from_ep(ep);
+	struct dw_pcie_ep_func *ep_func;
+	struct pci_epc *epc = ep->epc;
+	struct device *dev = pci->dev;
 	unsigned int offset;
 	unsigned int nbars;
 	u8 hdr_type;
+	u8 func_no;
 	u32 reg;
 	int i;
 
@@ -649,6 +672,20 @@ int dw_pcie_ep_init_complete(struct dw_pcie_ep *ep)
 			"PCIe controller is not set to EP mode (hdr_type:0x%x)!\n",
 			hdr_type);
 		return -EIO;
+	}
+
+	for (func_no = 0; func_no < epc->max_functions; func_no++) {
+		ep_func = devm_kzalloc(dev, sizeof(*ep_func), GFP_KERNEL);
+		if (!ep_func)
+			return -ENOMEM;
+
+		ep_func->func_no = func_no;
+		ep_func->msi_cap = dw_pcie_ep_find_capability(ep, func_no,
+							      PCI_CAP_ID_MSI);
+		ep_func->msix_cap = dw_pcie_ep_find_capability(ep, func_no,
+							       PCI_CAP_ID_MSIX);
+
+		list_add_tail(&ep_func->list, &ep->func_list);
 	}
 
 	offset = dw_pcie_ep_find_ext_capability(pci, PCI_EXT_CAP_ID_REBAR);
@@ -675,13 +712,11 @@ int dw_pcie_ep_init(struct dw_pcie_ep *ep)
 {
 	int ret;
 	void *addr;
-	u8 func_no;
 	struct pci_epc *epc;
 	struct dw_pcie *pci = to_dw_pcie_from_ep(ep);
 	struct device *dev = pci->dev;
 	struct device_node *np = dev->of_node;
 	const struct pci_epc_features *epc_features;
-	struct dw_pcie_ep_func *ep_func;
 
 	INIT_LIST_HEAD(&ep->func_list);
 
@@ -745,20 +780,6 @@ int dw_pcie_ep_init(struct dw_pcie_ep *ep)
 	ret = of_property_read_u8(np, "max-functions", &epc->max_functions);
 	if (ret < 0)
 		epc->max_functions = 1;
-
-	for (func_no = 0; func_no < epc->max_functions; func_no++) {
-		ep_func = devm_kzalloc(dev, sizeof(*ep_func), GFP_KERNEL);
-		if (!ep_func)
-			return -ENOMEM;
-
-		ep_func->func_no = func_no;
-		ep_func->msi_cap = dw_pcie_ep_find_capability(ep, func_no,
-							      PCI_CAP_ID_MSI);
-		ep_func->msix_cap = dw_pcie_ep_find_capability(ep, func_no,
-							       PCI_CAP_ID_MSIX);
-
-		list_add_tail(&ep_func->list, &ep->func_list);
-	}
 
 	if (ep->ops->ep_init)
 		ep->ops->ep_init(ep);

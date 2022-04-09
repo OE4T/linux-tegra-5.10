@@ -279,4 +279,7 @@
 /* Freescale LINFlexD UART */
 #define PORT_LINFLEXUART	122
 
+/* Tegra HV */
+#define PORT_TEGRA_HV	123
+
 #endif /* _UAPILINUX_SERIAL_CORE_H */

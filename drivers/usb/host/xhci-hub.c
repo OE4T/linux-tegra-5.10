@@ -3,6 +3,7 @@
  * xHCI host controller driver
  *
  * Copyright (C) 2008 Intel Corp.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Author: Sarah Sharp
  * Some code borrowed from the Linux EHCI driver.
@@ -572,6 +573,7 @@ static void xhci_set_port_power(struct xhci_hcd *xhci, struct usb_hcd *hcd,
 	struct xhci_hub *rhub;
 	struct xhci_port *port;
 	u32 temp;
+	unsigned long end;
 
 	rhub = xhci_get_rhub(hcd);
 	port = rhub->ports[index];
@@ -589,6 +591,24 @@ static void xhci_set_port_power(struct xhci_hcd *xhci, struct usb_hcd *hcd,
 	} else {
 		/* Power off */
 		writel(temp & ~PORT_POWER, port->addr);
+
+		/* check port in disabled state */
+		end = jiffies + msecs_to_jiffies(1000);
+
+		while (time_is_after_jiffies(end)) {
+			temp = readl(port->addr);
+			if ((temp & PORT_POWER) == 0)
+				break;
+
+			spin_unlock_irqrestore(&xhci->lock, *flags);
+			msleep(200);
+			spin_lock_irqsave(&xhci->lock, *flags);
+		}
+
+		if (temp & PORT_POWER) {
+			xhci_warn(xhci, "Clear port power error, port %d\n", index);
+			return;
+		}
 	}
 
 	spin_unlock_irqrestore(&xhci->lock, *flags);
@@ -1710,6 +1730,14 @@ retry:
 		}
 		writel(portsc_buf[port_index], ports[port_index]->addr);
 	}
+
+	/* Wait for port enter U3 state */
+	if (bus_state->bus_suspended) {
+		spin_unlock_irqrestore(&xhci->lock, flags);
+		msleep(10);
+		spin_lock_irqsave(&xhci->lock, flags);
+	}
+
 	hcd->state = HC_STATE_SUSPENDED;
 	bus_state->next_statechange = jiffies + msecs_to_jiffies(10);
 	spin_unlock_irqrestore(&xhci->lock, flags);

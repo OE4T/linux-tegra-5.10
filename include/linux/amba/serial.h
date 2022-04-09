@@ -70,6 +70,14 @@
 #define ZX_UART011_ICR		0x4c
 #define ZX_UART011_DMACR	0x50
 
+/*
+ * Nvidia Tegra UART supports EORD interrupt through misc registers.
+ */
+#define NV_UART011_MIS		0x1008	/* MISC interrupt status */
+#define NV_UART011_MIM		0x100c	/* MISC interrupt mask  */
+#define NV_UART011_MMIS		0x1010	/* MISC masked interrupt status */
+#define NV_UART011_MIC		0x1014	/* MISC interrupt clear */
+
 #define UART011_DR_OE		(1 << 11)
 #define UART011_DR_BE		(1 << 10)
 #define UART011_DR_PE		(1 << 9)
@@ -175,6 +183,9 @@
 #define UART011_CTSMIM		(1 << 1)	/* CTS interrupt mask */
 #define UART011_RIMIM		(1 << 0)	/* RI interrupt mask */
 
+/* Values for Nvidia MISC interrupts */
+#define NV_UART011_EORDIM	(1 << 0)	/* EORD interrupt mask */
+
 #define UART011_OEIS		(1 << 10)	/* overrun error interrupt status */
 #define UART011_BEIS		(1 << 9)	/* break error interrupt status */
 #define UART011_PEIS		(1 << 8)	/* parity error interrupt status */
@@ -187,6 +198,9 @@
 #define UART011_CTSMIS		(1 << 1)	/* CTS interrupt status */
 #define UART011_RIMIS		(1 << 0)	/* RI interrupt status */
 
+/* Values for Nvidia MISC interrupts */
+#define NV_UART011_EORDIS	(1 << 0)	/* EORD interrupt status */
+
 #define UART011_OEIC		(1 << 10)	/* overrun error interrupt clear */
 #define UART011_BEIC		(1 << 9)	/* break error interrupt clear */
 #define UART011_PEIC		(1 << 8)	/* parity error interrupt clear */
@@ -198,6 +212,9 @@
 #define UART011_DCDMIC		(1 << 2)	/* DCD interrupt clear */
 #define UART011_CTSMIC		(1 << 1)	/* CTS interrupt clear */
 #define UART011_RIMIC		(1 << 0)	/* RI interrupt clear */
+
+/* Values for Nvidia MISC interrupts */
+#define NV_UART011_EORDIC	(1 << 0)	/* EORD interrupt clear */
 
 #define UART011_DMAONERR	(1 << 2)	/* disable dma on error */
 #define UART011_TXDMAE		(1 << 1)	/* enable transmit dma */

@@ -104,7 +104,7 @@ struct pci_epc_mem {
  * @num_windows: number of windows supported by device
  * @max_functions: max number of functions that can be configured in this EPC
  * @group: configfs group representing the PCI EPC device
- * @lock: mutex to protect pci_epc ops
+ * @lock: spinlock to protect pci_epc ops
  * @function_num_map: bitmap to manage physical function number
  * @notifier: used to notify EPF of any EPC events (like linkup)
  */
@@ -117,8 +117,8 @@ struct pci_epc {
 	unsigned int			num_windows;
 	u8				max_functions;
 	struct config_group		*group;
-	/* mutex to protect against concurrent access of EP controller */
-	struct mutex			lock;
+	/* spinlock to protect against concurrent access of EP controller */
+	spinlock_t			lock;
 	unsigned long			function_num_map;
 	struct atomic_notifier_head	notifier;
 };
@@ -132,6 +132,9 @@ struct pci_epc {
  * @bar_fixed_64bit: bitmap to indicate fixed 64bit BARs
  * @bar_fixed_size: Array specifying the size supported by each BAR
  * @align: alignment size required for BAR buffer allocation
+ * @msi_rcv_bar: BAR to target Endpoint MSI from Root port
+ * @msi_rcv_offset: Offset in BAR to target Endpoint MSI from Root port
+ * @msi_rcv_size: Endpoint MSI page size in BAR
  */
 struct pci_epc_features {
 	unsigned int	linkup_notifier : 1;
@@ -142,6 +145,9 @@ struct pci_epc_features {
 	u8	bar_fixed_64bit;
 	u64	bar_fixed_size[PCI_STD_NUM_BARS];
 	size_t	align;
+	u8	msi_rcv_bar;
+	u64	msi_rcv_offset;
+	u32	msi_rcv_size;
 };
 
 #define to_pci_epc(device) container_of((device), struct pci_epc, dev)
@@ -216,6 +222,8 @@ int pci_epc_multi_mem_init(struct pci_epc *epc,
 void pci_epc_mem_exit(struct pci_epc *epc);
 void __iomem *pci_epc_mem_alloc_addr(struct pci_epc *epc,
 				     phys_addr_t *phys_addr, size_t size);
+void __iomem *pci_epc_wc_mem_alloc_addr(struct pci_epc *epc,
+					phys_addr_t *phys_addr, size_t size);
 void pci_epc_mem_free_addr(struct pci_epc *epc, phys_addr_t phys_addr,
 			   void __iomem *virt_addr, size_t size);
 #endif /* __LINUX_PCI_EPC_H */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -644,6 +644,36 @@ struct drm_tegra_gem_get_flags {
 	__u32 flags;
 };
 
+struct drm_tegra_gem_cache_ops {
+	/**
+	 * @handle:
+	 *
+	 * Handle to the GEM object for which to query the flags.
+	 */
+	__u32 handle;
+
+	/**
+	 * @addr:
+	 *
+	 * user pointer for cache-maint to start
+	 */
+	__u64 addr;
+
+	/**
+	 * @len:
+	 *
+	 * bytes to flush
+	 */
+	__u64 len;
+
+	/**
+	 * @op:
+	 *
+	 * cache-operation: wb/wb_inv/inv
+	 */
+	__s32 op;
+};
+
 #define DRM_TEGRA_GEM_CREATE		0x00
 #define DRM_TEGRA_GEM_MMAP		0x01
 #define DRM_TEGRA_SYNCPT_READ		0x02
@@ -658,6 +688,7 @@ struct drm_tegra_gem_get_flags {
 #define DRM_TEGRA_GEM_GET_TILING	0x0b
 #define DRM_TEGRA_GEM_SET_FLAGS		0x0c
 #define DRM_TEGRA_GEM_GET_FLAGS		0x0d
+#define DRM_TEGRA_GEM_CACHE_OPS		0x20
 
 #define DRM_IOCTL_TEGRA_GEM_CREATE DRM_IOWR(DRM_COMMAND_BASE + DRM_TEGRA_GEM_CREATE, struct drm_tegra_gem_create)
 #define DRM_IOCTL_TEGRA_GEM_MMAP DRM_IOWR(DRM_COMMAND_BASE + DRM_TEGRA_GEM_MMAP, struct drm_tegra_gem_mmap)
@@ -673,6 +704,9 @@ struct drm_tegra_gem_get_flags {
 #define DRM_IOCTL_TEGRA_GEM_GET_TILING DRM_IOWR(DRM_COMMAND_BASE + DRM_TEGRA_GEM_GET_TILING, struct drm_tegra_gem_get_tiling)
 #define DRM_IOCTL_TEGRA_GEM_SET_FLAGS DRM_IOWR(DRM_COMMAND_BASE + DRM_TEGRA_GEM_SET_FLAGS, struct drm_tegra_gem_set_flags)
 #define DRM_IOCTL_TEGRA_GEM_GET_FLAGS DRM_IOWR(DRM_COMMAND_BASE + DRM_TEGRA_GEM_GET_FLAGS, struct drm_tegra_gem_get_flags)
+#define DRM_IOCTL_TEGRA_GEM_CACHE_OPS DRM_IOWR(DRM_COMMAND_BASE + \
+						DRM_TEGRA_GEM_CACHE_OPS, \
+						struct drm_tegra_gem_cache_ops)
 
 #if defined(__cplusplus)
 }

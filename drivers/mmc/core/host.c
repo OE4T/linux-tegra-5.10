@@ -180,6 +180,9 @@ int mmc_retune(struct mmc_host *host)
 			goto out;
 
 		return_to_hs400 = true;
+
+		if (host->ops->prepare_hs400_tuning)
+			host->ops->prepare_hs400_tuning(host, &host->ios);
 	}
 
 	err = mmc_execute_tuning(host->card);
@@ -326,6 +329,8 @@ int mmc_of_parse(struct mmc_host *host)
 		host->caps |= MMC_CAP_3_3V_DDR;
 	if (device_property_read_bool(dev, "mmc-ddr-1_8v"))
 		host->caps |= MMC_CAP_1_8V_DDR;
+	if (device_property_read_bool(dev, "ignore-pm-notify"))
+		host->pm_caps |= MMC_PM_IGNORE_PM_NOTIFY;
 	if (device_property_read_bool(dev, "mmc-ddr-1_2v"))
 		host->caps |= MMC_CAP_1_2V_DDR;
 	if (device_property_read_bool(dev, "mmc-hs200-1_8v"))
@@ -344,6 +349,10 @@ int mmc_of_parse(struct mmc_host *host)
 		host->caps2 |= MMC_CAP2_NO_SD;
 	if (device_property_read_bool(dev, "no-mmc"))
 		host->caps2 |= MMC_CAP2_NO_MMC;
+	if (device_property_read_bool(dev, "only-1-8-v"))
+		host->caps2 |= MMC_CAP2_ONLY_1V8_SIGNAL_VOLTAGE;
+	if (device_property_read_bool(dev, "supports-sdexp"))
+		host->caps2 |= MMC_CAP2_SD_EXPRESS_SUPPORT;
 
 	/* Must be after "non-removable" check */
 	if (device_property_read_u32(dev, "fixed-emmc-driver-type", &drv_type) == 0) {

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
+ *   Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/gfp.h>
@@ -1187,7 +1188,7 @@ int snd_usb_endpoint_start(struct snd_usb_endpoint *ep)
 
 		err = usb_submit_urb(urb, GFP_ATOMIC);
 		if (err < 0) {
-			usb_audio_err(ep->chip,
+			usb_audio_err_ratelimited(ep->chip,
 				"cannot submit urb %d, error %d: %s\n",
 				i, err, usb_error_string(err));
 			goto __error;

@@ -16,6 +16,7 @@ description: |
 maintainers:
   - Jon Hunter <jonathanh@nvidia.com>
   - Sameer Pujar <spujar@nvidia.com>
+  - Mohan Kumar D <mkumard@nvidia.com>
 
 properties:
   $nodename:
@@ -36,6 +37,10 @@ properties:
   dmas: true
 
   dma-names: true
+
+  "#sound-dai-cells":
+    description: The cell specifies number of DAIs.
+    const: 1
 
 if:
   properties:
@@ -80,6 +85,7 @@ required:
   - reg
   - dmas
   - dma-names
+  - "#sound-dai-cells"
 
 additionalProperties: false
 
@@ -108,6 +114,7 @@ examples:
                     "rx8",  "tx8",
                     "rx9",  "tx9",
                     "rx10", "tx10";
+        #sound-dai-cells = <1>;
     };
 
 ...

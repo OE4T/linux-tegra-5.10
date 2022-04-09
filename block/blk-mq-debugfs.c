@@ -147,7 +147,7 @@ static ssize_t queue_state_write(void *data, const char __user *buf,
 				 size_t count, loff_t *ppos)
 {
 	struct request_queue *q = data;
-	char opbuf[16] = { }, *op;
+	char opbuf[16] = { 0 }, *op;
 
 	/*
 	 * The "state" attribute is removed after blk_cleanup_queue() has called

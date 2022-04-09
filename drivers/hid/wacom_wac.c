@@ -2886,8 +2886,12 @@ static void wacom_bpt3_touch_msg(struct wacom_wac *wacom, unsigned char *data)
 	struct wacom_features *features = &wacom->features;
 	struct input_dev *input = wacom->touch_input;
 	bool touch = data[1] & 0x80;
-	int slot = input_mt_get_slot_by_key(input, data[0]);
+	int slot;
 
+	if (!input || !input->absinfo)
+		return;
+
+	slot = input_mt_get_slot_by_key(input, data[0]);
 	if (slot < 0)
 		return;
 
@@ -2899,7 +2903,7 @@ static void wacom_bpt3_touch_msg(struct wacom_wac *wacom, unsigned char *data)
 	if (touch) {
 		int x = (data[2] << 4) | (data[4] >> 4);
 		int y = (data[3] << 4) | (data[4] & 0x0f);
-		int width, height;
+		int width, height = 0;
 
 		if (features->type >= INTUOSPS && features->type <= INTUOSHT2) {
 			width  = data[5] * 100;
@@ -2914,7 +2918,8 @@ static void wacom_bpt3_touch_msg(struct wacom_wac *wacom, unsigned char *data)
 			int x_res = input_abs_get_res(input, ABS_MT_POSITION_X);
 			int y_res = input_abs_get_res(input, ABS_MT_POSITION_Y);
 			width = 2 * int_sqrt(a * WACOM_CONTACT_AREA_SCALE);
-			height = width * y_res / x_res;
+			if (x_res)
+				height = width * y_res / x_res;
 		}
 
 		input_report_abs(input, ABS_MT_POSITION_X, x);

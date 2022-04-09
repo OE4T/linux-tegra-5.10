@@ -29,6 +29,7 @@ static void sas_resume_port(struct asd_sas_phy *phy)
 	struct asd_sas_port *port = phy->port;
 	struct sas_ha_struct *sas_ha = phy->ha;
 	struct sas_internal *si = to_sas_internal(sas_ha->core.shost->transportt);
+	struct ex_phy *temp_phy;
 
 	if (si->dft->lldd_port_formed)
 		si->dft->lldd_port_formed(phy);
@@ -57,9 +58,9 @@ static void sas_resume_port(struct asd_sas_phy *phy)
 		if (dev_is_expander(dev->dev_type)) {
 			dev->ex_dev.ex_change_count = -1;
 			for (i = 0; i < dev->ex_dev.num_phys; i++) {
-				struct ex_phy *phy = &dev->ex_dev.ex_phy[i];
+				temp_phy = &dev->ex_dev.ex_phy[i];
 
-				phy->phy_change_count = -1;
+				temp_phy->phy_change_count = -1;
 			}
 		}
 	}
@@ -215,7 +216,6 @@ void sas_deform_port(struct asd_sas_phy *phy, int gone)
 	if (port->num_phys == 1) {
 		sas_unregister_domain_devices(port, gone);
 		sas_destruct_devices(port);
-		sas_port_delete(port->port);
 		port->port = NULL;
 	} else {
 		sas_port_delete_phy(port->port, phy->phy);

@@ -87,6 +87,7 @@
 
 #define I2S_BITS_8				1
 #define I2S_BITS_16				3
+#define I2S_BITS_24				5
 #define I2S_BITS_32				7
 #define I2S_CTRL_BIT_SIZE_MASK			0x7
 
@@ -114,6 +115,12 @@ struct tegra210_i2s {
 	struct regmap *regmap;
 	unsigned int stereo_to_mono[I2S_PATHS];
 	unsigned int mono_to_stereo[I2S_PATHS];
+	unsigned int audio_ch_override[I2S_PATHS];
+	unsigned int audio_fmt_override[I2S_PATHS];
+	/* Client overrides are common for TX and RX paths */
+	unsigned int client_ch_override;
+	unsigned int client_fmt_override;
+	unsigned int srate_override;
 	unsigned int dai_fmt;
 	unsigned int fsync_width;
 	unsigned int bclk_ratio;

@@ -171,6 +171,7 @@ struct snd_usb_substream {
 
 	bool trigger_tstamp_pending_update; /* trigger timestamp being updated from initial estimate */
 	struct media_ctl *media_ctl;
+	unsigned long last_prepare;
 };
 
 struct snd_usb_stream {

@@ -21,6 +21,11 @@ dot-target = $(dir $@).$(notdir $@)
 depfile = $(subst $(comma),_,$(dot-target).d)
 
 ###
+# The conversion of .. to the _ddot_ to avoid any relative path to be
+# outside of out folder.
+replace_ddot = $(subst ..,_ddot_,$(1))
+
+###
 # filename of target with directory and extension stripped
 basetarget = $(basename $(notdir $@))
 
@@ -174,13 +179,8 @@ clean := -f $(srctree)/scripts/Makefile.clean obj
 echo-cmd = $(if $($(quiet)cmd_$(1)),\
 	echo '  $(call escsq,$($(quiet)cmd_$(1)))$(echo-why)';)
 
-# sink stdout for 'make -s'
-       redirect :=
- quiet_redirect :=
-silent_redirect := exec >/dev/null;
-
 # printing commands
-cmd = @set -e; $(echo-cmd) $($(quiet)redirect) $(cmd_$(1))
+cmd = @set -e; $(echo-cmd) $(cmd_$(1))
 
 ###
 # if_changed      - execute command if any prerequisite is newer than
@@ -326,3 +326,13 @@ endef
 
 # do not delete intermediate files automatically
 .SECONDARY:
+
+# dt variables
+ifneq ($(NV_BUILD_KERNEL_DTS_ROOT),)
+tegra-dtstree = $(NV_BUILD_KERNEL_DTS_ROOT)
+else
+tegra-dtstree = $(srctree)/../../hardware/nvidia
+endif
+
+tegra-root-dtstree = $(subst ^$(realpath $(tegra-dtstree)/../..)/,,^$(realpath $(srctree)/arch/arm64/boot/dts))
+tegra-rel-dtstree = $(subst $(space),/,$(patsubst %,..,$(subst /, ,$(tegra-root-dtstree))))

@@ -144,6 +144,7 @@ enum arm_smmu_cbar_type {
 #define ARM_SMMU_CB_SCTLR		0x0
 #define ARM_SMMU_SCTLR_S1_ASIDPNE	BIT(12)
 #define ARM_SMMU_SCTLR_CFCFG		BIT(7)
+#define ARM_SMMU_SCTLR_HUPCF		BIT(8)
 #define ARM_SMMU_SCTLR_CFIE		BIT(6)
 #define ARM_SMMU_SCTLR_CFRE		BIT(5)
 #define ARM_SMMU_SCTLR_E		BIT(4)
@@ -321,8 +322,15 @@ struct arm_smmu_device {
 	struct clk_bulk_data		*clks;
 	int				num_clks;
 
+	bool				tlb_inv_throttle;
+
 	spinlock_t			global_sync_lock;
 
+	spinlock_t			inv_range_lock;
+
+#ifdef CONFIG_ARM_SMMU_DEBUG
+	struct smmu_debugfs_info	*debug_info;
+#endif
 	/* IOMMU core code handle */
 	struct iommu_device		iommu;
 };
@@ -436,6 +444,7 @@ struct arm_smmu_impl {
 	int (*alloc_context_bank)(struct arm_smmu_domain *smmu_domain,
 				  struct arm_smmu_device *smmu,
 				  struct device *dev, int start);
+	void (*write_sctlr)(struct arm_smmu_device *smmu, int idx, u32 reg);
 	void (*write_s2cr)(struct arm_smmu_device *smmu, int idx);
 };
 
@@ -524,5 +533,6 @@ struct arm_smmu_device *qcom_smmu_impl_init(struct arm_smmu_device *smmu);
 
 void arm_smmu_write_context_bank(struct arm_smmu_device *smmu, int idx);
 int arm_mmu500_reset(struct arm_smmu_device *smmu);
+struct arm_smmu_device *nvidia_smmu_impl_init(struct arm_smmu_device *smmu);
 
 #endif /* _ARM_SMMU_H */

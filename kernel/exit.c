@@ -63,6 +63,7 @@
 #include <linux/random.h>
 #include <linux/rcuwait.h>
 #include <linux/compat.h>
+#include <linux/tegra_profiler.h>
 #include <linux/io_uring.h>
 
 #include <linux/uaccess.h>
@@ -818,6 +819,7 @@ void __noreturn do_exit(long code)
 	 * because of cgroup mode, must be called before cgroup_exit()
 	 */
 	perf_event_exit_task(tsk);
+	quadd_event_exit(tsk);
 
 	sched_autogroup_exit_task(tsk);
 	cgroup_exit(tsk);

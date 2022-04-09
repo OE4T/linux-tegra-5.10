@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (C) 2012 Avionic Design GmbH
- * Copyright (C) 2012-2016 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012-2020, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/bitops.h>
@@ -727,6 +727,17 @@ static int tegra_gem_get_flags(struct drm_device *drm, void *data,
 
 	return 0;
 }
+
+static int tegra_gem_cache_ops(struct drm_device *drm, void *data,
+			       struct drm_file *file)
+{
+	struct drm_tegra_gem_cache_ops *args = data;
+	struct drm_gem_object *gem;
+
+	gem = drm_gem_object_lookup(file, args->handle);
+
+	return tegra_gem_cache_maint(gem, args);
+}
 #endif
 
 static const struct drm_ioctl_desc tegra_drm_ioctls[] = {
@@ -759,6 +770,8 @@ static const struct drm_ioctl_desc tegra_drm_ioctls[] = {
 			  DRM_RENDER_ALLOW),
 	DRM_IOCTL_DEF_DRV(TEGRA_GEM_GET_FLAGS, tegra_gem_get_flags,
 			  DRM_RENDER_ALLOW),
+	DRM_IOCTL_DEF_DRV(TEGRA_GEM_CACHE_OPS, tegra_gem_cache_ops,
+			  DRM_UNLOCKED | DRM_RENDER_ALLOW),
 #endif
 };
 
@@ -1350,6 +1363,7 @@ static struct platform_driver * const drivers[] = {
 	&tegra_gr2d_driver,
 	&tegra_gr3d_driver,
 	&tegra_vic_driver,
+	&tegra_cache_maint_driver
 };
 
 static int __init host1x_drm_init(void)

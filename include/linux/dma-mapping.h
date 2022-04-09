@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0 */
+/* SPDX-License-Identifier: GPL-2.0
+ * Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
+ */
 #ifndef _LINUX_DMA_MAPPING_H
 #define _LINUX_DMA_MAPPING_H
 
@@ -60,6 +62,27 @@
  * at least read-only at lesser-privileged levels).
  */
 #define DMA_ATTR_PRIVILEGED		(1UL << 9)
+/*
+ * DMA_ATTR_SKIP_IOVA_GAP: This tells the DMA-mapping subsystem to skip gap pages
+ */
+#define DMA_ATTR_SKIP_IOVA_GAP		(1UL << 10)
+
+/*
+ * DMA_ATTR_ALLOC_EXACT_SIZE: This tells the DMA-mapping subsystem to allocate
+ * the exact number of pages
+ */
+#define DMA_ATTR_ALLOC_EXACT_SIZE	(1UL << 11)
+
+/*
+ * DMA_ATTR_READ_ONLY: for DMA memory allocations, attempt to map
+ * memory as read-only for the device. CPU access will still be
+ * read-write. This corresponds to the direction being DMA_TO_DEVICE
+ * instead of DMA_BIDIRECTIONAL.
+ */
+#define DMA_ATTR_READ_ONLY	(1UL << 12)
+
+/* DMA_ATTR_WRITE_ONLY: This tells the DMA-mapping subsystem to map as write-only */
+#define DMA_ATTR_WRITE_ONLY	(1UL << 13)
 
 /*
  * A dma_addr_t can hold any valid DMA or bus address for the platform.  It can
@@ -74,6 +97,16 @@
 #define DMA_MAPPING_ERROR		(~(dma_addr_t)0)
 
 #define DMA_BIT_MASK(n)	(((n) == 64) ? ~0ULL : ((1ULL<<(n))-1))
+
+#define DMA_MASK_NONE	0x0ULL
+
+#ifdef CONFIG_DMA_DECLARE_COHERENT
+int dma_alloc_from_dev_coherent_attr(struct device *dev, ssize_t size,
+					dma_addr_t *dma_handle, void **ret,
+					unsigned long attrs);
+int dma_release_from_dev_coherent_attr(struct device *dev, ssize_t size,
+					void *vaddr, unsigned long attrs);
+#endif
 
 #ifdef CONFIG_DMA_API_DEBUG
 void debug_dma_mapping_error(struct device *dev, dma_addr_t dma_addr);
@@ -523,6 +556,25 @@ static inline int dma_get_cache_alignment(void)
 #endif
 	return 1;
 }
+
+/* flags for the coherent memory api */
+#define DMA_MEMORY_NOMAP		0x02
+
+#ifdef CONFIG_DMA_DECLARE_COHERENT
+int dma_declare_coherent_memory(struct device *dev, phys_addr_t phys_addr,
+				dma_addr_t device_addr, size_t size, int flags);
+struct dma_resize_notifier_ops {
+	int (*resize)(phys_addr_t, size_t);
+};
+
+#else
+static inline int
+dma_declare_coherent_memory(struct device *dev, phys_addr_t phys_addr,
+			    dma_addr_t device_addr, size_t size, int flags)
+{
+	return -ENOSYS;
+}
+#endif /* CONFIG_DMA_DECLARE_COHERENT */
 
 static inline void *dmam_alloc_coherent(struct device *dev, size_t size,
 		dma_addr_t *dma_handle, gfp_t gfp)

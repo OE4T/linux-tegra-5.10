@@ -8,6 +8,7 @@
  * Based on inode.c (GadgetFS) which was:
  * Copyright (C) 2003-2004 David Brownell
  * Copyright (C) 2003 Agilent Technologies
+ * Copyright (c) 2017-2020 NVIDIA CORPORATION. All rights reserved.
  */
 
 
@@ -199,6 +200,7 @@ struct ffs_epfile {
 	unsigned char			isoc;	/* P: ffs->eps_lock */
 
 	unsigned char			_pad;
+	bool				reset;
 };
 
 struct ffs_buffer {
@@ -949,6 +951,9 @@ static ssize_t ffs_epfile_io(struct file *file, struct ffs_io_data *io_data)
 	if (WARN_ON(epfile->ffs->state != FFS_ACTIVE))
 		return -ENODEV;
 
+	if (epfile->reset)
+		return -ESHUTDOWN;
+
 	/* Wait for endpoint to be enabled */
 	ep = epfile->ep;
 	if (!ep) {
@@ -1073,7 +1078,13 @@ static ssize_t ffs_epfile_io(struct file *file, struct ffs_io_data *io_data)
 
 		spin_unlock_irq(&epfile->ffs->eps_lock);
 
-		if (unlikely(wait_for_completion_interruptible(&done))) {
+		ret = wait_for_completion_interruptible(&done);
+		/* check if endpoint got disabled or changed. */
+		if (epfile->ep != ep) {
+			ret = -ESHUTDOWN;
+			goto error_mutex;
+		}
+		if (unlikely(ret)) {
 			/*
 			 * To avoid race condition with ffs_epfile_io_complete,
 			 * dequeue the request first then check
@@ -1272,6 +1283,8 @@ ffs_epfile_release(struct inode *inode, struct file *file)
 	__ffs_epfile_read_buffer_free(epfile);
 	ffs_data_closed(epfile->ffs);
 
+	epfile->reset = false;
+
 	return 0;
 }
 
@@ -1286,6 +1299,9 @@ static long ffs_epfile_ioctl(struct file *file, unsigned code,
 
 	if (WARN_ON(epfile->ffs->state != FFS_ACTIVE))
 		return -ENODEV;
+
+	if (epfile->reset)
+		return -ESHUTDOWN;
 
 	/* Wait for endpoint to be enabled */
 	ep = epfile->ep;
@@ -1931,6 +1947,7 @@ static void ffs_func_eps_disable(struct ffs_function *func)
 		++ep;
 
 		if (epfile) {
+			epfile->reset = true;
 			epfile->ep = NULL;
 			__ffs_epfile_read_buffer_free(epfile);
 			++epfile;
@@ -2958,8 +2975,10 @@ static int __ffs_func_bind_do_os_desc(enum ffs_os_desc_type type,
 		t = &func->function.os_desc_table[desc->bFirstInterfaceNumber];
 		t->if_id = func->interfaces_nums[desc->bFirstInterfaceNumber];
 		memcpy(t->os_desc->ext_compat_id, &desc->CompatibleID,
-		       ARRAY_SIZE(desc->CompatibleID) +
-		       ARRAY_SIZE(desc->SubCompatibleID));
+			ARRAY_SIZE(desc->CompatibleID));
+		memcpy(t->os_desc->ext_compat_id +
+			ARRAY_SIZE(desc->CompatibleID), &desc->SubCompatibleID,
+			ARRAY_SIZE(desc->SubCompatibleID));
 		length = sizeof(*desc);
 	}
 		break;
@@ -3580,9 +3599,9 @@ static void ffs_func_unbind(struct usb_configuration *c,
 		ep->req = NULL;
 		++ep;
 	}
-	spin_unlock_irqrestore(&func->ffs->eps_lock, flags);
 	kfree(func->eps);
 	func->eps = NULL;
+	spin_unlock_irqrestore(&func->ffs->eps_lock, flags);
 	/*
 	 * eps, descriptors and interfaces_nums are allocated in the
 	 * same chunk so only one free is required.

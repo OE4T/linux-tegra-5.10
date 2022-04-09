@@ -5,6 +5,7 @@
  *
  * Copyright (C) 2011 Samsung Electronics
  *	MyungJoo Ham <myungjoo.ham@samsung.com>
+ * Copyright (c) 2014, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #ifndef __LINUX_DEVFREQ_H__
@@ -55,6 +56,8 @@ struct devfreq_governor;
  *			own protocol with private_data. However, because
  *			this is governor-specific, a governor using this
  *			will be only compatible with devices aware of it.
+ * @busy:		The current status of the device; True if the
+ *			device is busy, false if it is not.
  */
 struct devfreq_dev_status {
 	/* both since the last measure */
@@ -62,6 +65,7 @@ struct devfreq_dev_status {
 	unsigned long busy_time;
 	unsigned long current_frequency;
 	void *private_data;
+	bool busy;
 };
 
 /*
@@ -92,6 +96,16 @@ struct devfreq_dev_status {
  *			devfreq.last_status.
  * @get_cur_freq:	The device should provide the current frequency
  *			at which it is operating.
+ * @set_high_wmark:	This is an optional callback to set high
+ *			watermark for watermark event. The value is
+ *			be scaled between 0 and 1000 where 1000 equals to
+ *			100% load. Setting this value to 1000 disables
+ *			the event
+ * @set_low_wmark:	This is an optional callback to set low
+ *			watermark for watermark event. The value is
+ *			be scaled between 0 and 1000 where 1000 equals to
+ *			100% load. Setting this value to 0 disables the
+ *			event.
  * @exit:		An optional callback that is called when devfreq
  *			is removing the devfreq object due to error or
  *			from devfreq_remove_device() call. If the user
@@ -110,6 +124,8 @@ struct devfreq_dev_profile {
 	int (*get_dev_status)(struct device *dev,
 			      struct devfreq_dev_status *stat);
 	int (*get_cur_freq)(struct device *dev, unsigned long *freq);
+	int (*set_high_wmark)(struct device *dev, unsigned int val);
+	int (*set_low_wmark)(struct device *dev, unsigned int val);
 	void (*exit)(struct device *dev);
 
 	unsigned long *freq_table;
@@ -224,6 +240,7 @@ void devm_devfreq_remove_device(struct device *dev, struct devfreq *devfreq);
 /* Supposed to be called by PM callbacks */
 int devfreq_suspend_device(struct devfreq *devfreq);
 int devfreq_resume_device(struct devfreq *devfreq);
+int devfreq_watermark_event(struct devfreq *devfreq, int type);
 
 void devfreq_suspend(void);
 void devfreq_resume(void);
@@ -425,6 +442,12 @@ static inline struct devfreq *devfreq_get_devfreq_by_phandle(struct device *dev,
 static inline int devfreq_update_stats(struct devfreq *df)
 {
 	return -EINVAL;
+}
+
+static inline int devfreq_watermark_event(struct devfreq *devfreq,
+					int type)
+{
+	return 0;
 }
 #endif /* CONFIG_PM_DEVFREQ */
 

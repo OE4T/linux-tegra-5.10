@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION. All rights reserved.
  */
 
 #include <linux/cpu.h>
@@ -11,12 +11,16 @@
 #include <linux/of.h>
 #include <linux/of_platform.h>
 #include <linux/platform_device.h>
+#include <linux/platform/tegra/emc_bwmgr.h>
 #include <linux/slab.h>
 
 #include <asm/smp_plat.h>
 
 #include <soc/tegra/bpmp.h>
 #include <soc/tegra/bpmp-abi.h>
+#include <soc/tegra/cpufreq_cpu_emc_table.h>
+#include <soc/tegra/fuse.h>
+#include <soc/tegra/virt/syscalls.h>
 
 #define KHZ                     1000
 #define REF_CLK_MHZ             408 /* 408 MHz */
@@ -27,6 +31,9 @@
 
 /* cpufreq transisition latency */
 #define TEGRA_CPUFREQ_TRANSITION_LATENCY (300 * 1000) /* unit in nanoseconds */
+
+#define LOOP_FOR_EACH_CLUSTER(cl)       for (cl = 0; \
+					cl < MAX_CLUSTERS; cl++)
 
 enum cluster {
 	CLUSTER0,
@@ -39,7 +46,9 @@ enum cluster {
 struct tegra194_cpufreq_data {
 	void __iomem *regs;
 	size_t num_clusters;
+	struct tegra_bwmgr_client **bwmgr;
 	struct cpufreq_frequency_table **tables;
+	bool bypass_bwmgr_mode;
 };
 
 struct tegra_cpu_ctr {
@@ -55,6 +64,19 @@ struct read_counters_work {
 };
 
 static struct workqueue_struct *read_counters_wq;
+
+struct tegra_bwmgr_client {
+	unsigned long bw;
+	unsigned long iso_bw;
+	unsigned long cap;
+	unsigned long iso_cap;
+	unsigned long floor;
+	int refcount;
+};
+
+static struct cpu_emc_mapping *cpu_emc_map_ptr;
+static bool tegra_hypervisor_mode;
+static int cpufreq_single_policy;
 
 static void get_cpu_cluster(void *cluster)
 {
@@ -76,7 +98,12 @@ static u64 read_freq_feedback(void)
 {
 	u64 val = 0;
 
-	asm volatile("mrs %0, s3_0_c15_c0_5" : "=r" (val) : );
+	if (tegra_hypervisor_mode) {
+		if (!hyp_read_freq_feedback(&val))
+			pr_err("%s:failed\n", __func__);
+	} else {
+		asm volatile("mrs %0, s3_0_c15_c0_5" : "=r" (val) : );
+	}
 
 	return val;
 }
@@ -193,18 +220,29 @@ static int tegra194_cpufreq_init(struct cpufreq_policy *policy)
 
 	smp_call_function_single(policy->cpu, get_cpu_cluster, &cl, true);
 
-	if (cl >= data->num_clusters)
+	if (cl >= data->num_clusters || !data->tables[cl])
 		return -EINVAL;
 
 	/* boot freq */
 	policy->cur = tegra194_get_speed_common(policy->cpu, US_DELAY_MIN);
 
-	/* set same policy for all cpus in a cluster */
-	for (cpu = (cl * 2); cpu < ((cl + 1) * 2); cpu++)
-		cpumask_set_cpu(cpu, policy->cpus);
+	if (cpufreq_single_policy)
+		cpumask_copy(policy->cpus, cpu_possible_mask);
+	else {
+		/* set same policy for all cpus in a cluster */
+		for (cpu = (cl * 2); cpu < ((cl + 1) * 2); cpu++)
+			cpumask_set_cpu(cpu, policy->cpus);
+	}
 
 	policy->freq_table = data->tables[cl];
 	policy->cpuinfo.transition_latency = TEGRA_CPUFREQ_TRANSITION_LATENCY;
+
+	data->bwmgr[cl] = tegra_bwmgr_register(cl);
+	if (IS_ERR_OR_NULL(data->bwmgr[cl])) {
+		pr_warn("cpufreq: fail to register with emc bw manager");
+		pr_warn(" for cluster %d\n", cl);
+		return -ENODEV;
+	}
 
 	return 0;
 }
@@ -214,13 +252,38 @@ static void set_cpu_ndiv(void *data)
 	struct cpufreq_frequency_table *tbl = data;
 	u64 ndiv_val = (u64)tbl->driver_data;
 
-	asm volatile("msr s3_0_c15_c0_4, %0" : : "r" (ndiv_val));
+	if (tegra_hypervisor_mode) {
+		if (!hyp_write_freq_request(ndiv_val))
+			pr_info("%s: Write didn't succeed\n", __func__);
+	} else {
+		asm volatile("msr s3_0_c15_c0_4, %0" : : "r" (ndiv_val));
+	}
+}
+
+/* Set emc clock by referring cpu_to_emc freq mapping */
+static void set_cpufreq_to_emcfreq(enum cluster cl, uint32_t cluster_freq)
+{
+	struct tegra194_cpufreq_data *data = cpufreq_get_driver_data();
+	unsigned long emc_freq;
+
+	if (!data->bwmgr[cl] || data->bypass_bwmgr_mode)
+		return;
+
+	emc_freq = tegra_cpu_to_emc_freq(cluster_freq, cpu_emc_map_ptr);
+	if (!emc_freq)
+		return;
+
+	tegra_bwmgr_set_emc(data->bwmgr[cl], emc_freq * KHZ,
+			    TEGRA_BWMGR_SET_EMC_FLOOR);
+	pr_debug("cluster %d, emc freq(KHz): %lu cluster_freq(KHz): %u\n",
+		 cl, emc_freq, cluster_freq);
 }
 
 static int tegra194_cpufreq_set_target(struct cpufreq_policy *policy,
 				       unsigned int index)
 {
 	struct cpufreq_frequency_table *tbl = policy->freq_table + index;
+	u32 cl;
 
 	/*
 	 * Each core writes frequency in per core register. Then both cores
@@ -229,13 +292,18 @@ static int tegra194_cpufreq_set_target(struct cpufreq_policy *policy,
 	 */
 	on_each_cpu_mask(policy->cpus, set_cpu_ndiv, tbl, true);
 
+	if (cpu_emc_map_ptr) {
+		smp_call_function_single(policy->cpu, get_cpu_cluster, &cl, true);
+		set_cpufreq_to_emcfreq(cl, tbl->frequency);
+	}
+
 	return 0;
 }
 
 static struct cpufreq_driver tegra194_cpufreq_driver = {
 	.name = "tegra194",
 	.flags = CPUFREQ_STICKY | CPUFREQ_CONST_LOOPS |
-		CPUFREQ_NEED_INITIAL_FREQ_CHECK,
+		CPUFREQ_NEED_INITIAL_FREQ_CHECK | CPUFREQ_IS_COOLING_DEV,
 	.verify = cpufreq_generic_frequency_table_verify,
 	.target_index = tegra194_cpufreq_set_target,
 	.get = tegra194_get_speed,
@@ -245,7 +313,19 @@ static struct cpufreq_driver tegra194_cpufreq_driver = {
 
 static void tegra194_cpufreq_free_resources(void)
 {
+	struct tegra194_cpufreq_data *data = cpufreq_get_driver_data();
+	enum cluster cl;
+
 	destroy_workqueue(read_counters_wq);
+
+	LOOP_FOR_EACH_CLUSTER(cl) {
+		if (!data->bwmgr[cl]) {
+			/* unregister from emc bw manager */
+			tegra_bwmgr_unregister(data->bwmgr[cl]);
+		}
+	}
+
+	kfree(cpu_emc_map_ptr);
 }
 
 static struct cpufreq_frequency_table *
@@ -273,6 +353,12 @@ init_freq_table(struct platform_device *pdev, struct tegra_bpmp *bpmp,
 	err = tegra_bpmp_transfer(bpmp, &msg);
 	if (err)
 		return ERR_PTR(err);
+	if (msg.rx.ret == -BPMP_EINVAL) {
+		/* Cluster not available */
+		return NULL;
+	}
+	if (msg.rx.ret)
+		return ERR_PTR(-EINVAL);
 
 	/*
 	 * Make sure frequency table step is a multiple of mdiv to match
@@ -314,27 +400,62 @@ init_freq_table(struct platform_device *pdev, struct tegra_bpmp *bpmp,
 	return freq_table;
 }
 
+static bool tegra_cpufreq_single_policy(struct device_node *dn)
+{
+	struct property *prop;
+
+	prop = of_find_property(dn, "cpufreq_single_policy", NULL);
+	if (prop)
+		return 1;
+	else
+		return 0;
+}
+
 static int tegra194_cpufreq_probe(struct platform_device *pdev)
 {
 	struct tegra194_cpufreq_data *data;
 	struct tegra_bpmp *bpmp;
+	struct device_node *dn;
 	int err, i;
 
+	dn = pdev->dev.of_node;
+	cpu_emc_map_ptr = tegra_cpufreq_cpu_emc_map_dt_init(dn);
+	if (!cpu_emc_map_ptr)
+		dev_info(&pdev->dev, "cpu_emc_map not present\n");
+
+	cpufreq_single_policy = tegra_cpufreq_single_policy(dn);
+
 	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
-	if (!data)
-		return -ENOMEM;
+	if (!data) {
+		err = -ENOMEM;
+		goto err_free_map_ptr;
+	}
 
 	data->num_clusters = MAX_CLUSTERS;
 	data->tables = devm_kcalloc(&pdev->dev, data->num_clusters,
 				    sizeof(*data->tables), GFP_KERNEL);
-	if (!data->tables)
-		return -ENOMEM;
+	if (!data->tables) {
+		err = -ENOMEM;
+		goto err_free_map_ptr;
+	}
+
+	data->bwmgr = devm_kcalloc(&pdev->dev, data->num_clusters,
+				   sizeof(struct tegra_bwmgr_client),
+				   GFP_KERNEL);
+	if (!data->bwmgr) {
+		err = -ENOMEM;
+		goto err_free_map_ptr;
+	}
+
+	tegra_hypervisor_mode = is_tegra_hypervisor_mode();
 
 	platform_set_drvdata(pdev, data);
 
 	bpmp = tegra_bpmp_get(&pdev->dev);
-	if (IS_ERR(bpmp))
-		return PTR_ERR(bpmp);
+	if (IS_ERR(bpmp)) {
+		err = PTR_ERR(bpmp);
+		goto err_free_map_ptr;
+	}
 
 	read_counters_wq = alloc_workqueue("read_counters_wq", __WQ_LEGACY, 1);
 	if (!read_counters_wq) {
@@ -354,13 +475,18 @@ static int tegra194_cpufreq_probe(struct platform_device *pdev)
 	tegra194_cpufreq_driver.driver_data = data;
 
 	err = cpufreq_register_driver(&tegra194_cpufreq_driver);
-	if (!err)
-		goto put_bpmp;
+	if (!err) {
+		tegra_bpmp_put(bpmp);
+		return err;
+	}
 
 err_free_res:
 	tegra194_cpufreq_free_resources();
 put_bpmp:
 	tegra_bpmp_put(bpmp);
+err_free_map_ptr:
+	if (cpu_emc_map_ptr)
+		kfree(cpu_emc_map_ptr);
 	return err;
 }
 
@@ -378,10 +504,33 @@ static const struct of_device_id tegra194_cpufreq_of_match[] = {
 };
 MODULE_DEVICE_TABLE(of, tegra194_cpufreq_of_match);
 
+#ifdef CONFIG_PM_SLEEP
+static int tegra194_cpufreq_suspend(struct device *dev)
+{
+	struct tegra194_cpufreq_data *data = cpufreq_get_driver_data();
+
+	data->bypass_bwmgr_mode = true;
+	return 0;
+}
+
+static int tegra194_cpufreq_resume(struct device *dev)
+{
+	struct tegra194_cpufreq_data *data = cpufreq_get_driver_data();
+
+	data->bypass_bwmgr_mode = false;
+	return 0;
+}
+#endif
+
+static const struct dev_pm_ops tegra194_cpufreq_pm_ops = {
+	SET_SYSTEM_SLEEP_PM_OPS(tegra194_cpufreq_suspend, tegra194_cpufreq_resume)
+};
+
 static struct platform_driver tegra194_ccplex_driver = {
 	.driver = {
 		.name = "tegra194-cpufreq",
 		.of_match_table = tegra194_cpufreq_of_match,
+		.pm = &tegra194_cpufreq_pm_ops,
 	},
 	.probe = tegra194_cpufreq_probe,
 	.remove = tegra194_cpufreq_remove,

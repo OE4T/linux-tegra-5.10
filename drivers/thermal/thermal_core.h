@@ -23,6 +23,8 @@
 #define DEFAULT_THERMAL_GOVERNOR       "user_space"
 #elif defined(CONFIG_THERMAL_DEFAULT_GOV_POWER_ALLOCATOR)
 #define DEFAULT_THERMAL_GOVERNOR       "power_allocator"
+#elif defined(CONFIG_THERMAL_DEFAULT_GOV_PID)
+#define DEFAULT_THERMAL_GOVERNOR       "pid_thermal_gov"
 #endif
 
 /* Initial state of a cooling device during binding */
@@ -124,6 +126,7 @@ struct thermal_instance {
 
 int thermal_register_governor(struct thermal_governor *);
 void thermal_unregister_governor(struct thermal_governor *);
+struct thermal_governor *thermal_find_governor(const char *name);
 void thermal_zone_device_rebind_exception(struct thermal_zone_device *,
 					  const char *, size_t);
 void thermal_zone_device_unbind_exception(struct thermal_zone_device *,
@@ -135,7 +138,7 @@ int thermal_build_list_of_policies(char *buf);
 void thermal_zone_set_trips(struct thermal_zone_device *tz);
 
 /* sysfs I/F */
-int thermal_zone_create_device_groups(struct thermal_zone_device *, int);
+int thermal_zone_create_device_groups(struct thermal_zone_device *, u64);
 void thermal_zone_destroy_device_groups(struct thermal_zone_device *);
 void thermal_cooling_device_setup_sysfs(struct thermal_cooling_device *);
 void thermal_cooling_device_destroy_sysfs(struct thermal_cooling_device *cdev);

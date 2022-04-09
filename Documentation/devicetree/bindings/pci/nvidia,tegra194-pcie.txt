@@ -112,12 +112,44 @@ Optional properties:
     2. If C0/C1/C2/C3/C4/C5 operate at their respective max link widths and
        a) speed is Gen-2 and MPS is 256B
        b) speed is >= Gen-3 with any MPS
+- max-link-speed: Limits controllers max speed to this value. For more info,
+    please refer to Documentation/devicetree/bindings/pci/pci.txt file.
+- nvidia,init-link-speed: Limits controllers init speed to this value. It means
+    that link is brought up to the speed specified by this property initially by
+    hardware (provided connected end point also supports that). Since the
+    controller continues to advertise maximum supported link speed set up
+    through max-link-speed property (Gen-4 if max-link-speed is not present) in
+    its configuration space, software can take link the desired speed at a later
+    point of time by spec defined speed change mechanism.
+    1: Gen-1 (2.5 GT/s)
+    2: Gen-2 (5 GT/s)
+    3: Gen-3 (8 GT/s)
+    4: Gen-4 (16 GT/s)
+- nvidia,disable-aspm-states: Controls advertisement of ASPM states
+    bit-0 to '1': Disables advertisement of ASPM-L0s
+    bit-1 to '1': Disables advertisement of ASPM-L1. This also disables
+                   advertisement of ASPM-L1.1 and ASPM-L1.2
+    bit-2 to '1': Disables advertisement of ASPM-L1.1
+    bit-3 to '1': Disables advertisement of ASPM-L1.2
 - nvidia,aspm-cmrt-us: Common Mode Restore Time for proper operation of ASPM
    to be specified in microseconds
 - nvidia,aspm-pwr-on-t-us: Power On time for proper operation of ASPM to be
    specified in microseconds
 - nvidia,aspm-l0s-entrance-latency-us: ASPM L0s entrance latency to be
    specified in microseconds
+- nvidia,enable-srns: This property needs to be present if the platform has SRNS
+   (Separate Reference clocks with No Spread-spectrum clocking) configuration
+   implemented. This property disables REFCLK supply to EP on the RC side and
+   initializes PLLs with the internal clock source on the EP side.
+- nvidia,pex-prsnt-gpios: Must contain a phandle to a GPIO controller followed
+  by GPIO that is being used to support hot plug and unplug via PRSNT# pin.
+- nvidia,disable-power-down: Set this property to keep root port enabled even
+   if no Endpoint is connected to the root port
+- nvidia,enable-ext-refclk: Set this property if the controller is using the
+   reference clock from an external source. This is supported only on Tegra234
+   based platforms for controllers C5, C6 and C7.
+- nvidia,enable-safety: Set this property to enable safety features like
+   PCIe core clk monitoring, HSI, etc.
 
 RC mode:
 - vpcie3v3-supply: A phandle to the regulator node that supplies 3.3V to the slot
@@ -126,6 +158,16 @@ RC mode:
 - vpcie12v-supply: A phandle to the regulator node that supplies 12V to the slot
   if the platform has one such slot. (Ex:- x16 slot owned by C5 controller
   in p2972-0000 platform).
+- "nvidia,wake-gpios": Add PEX_WAKE GPIO pin. It contains phandle to GPIO
+    controller followed by GPIO specifier.
+    Refer ../gpio/nvidia,tegra186-gpio.txt for more info.
+
+EP mode:
+- nvidia,refclk-select-gpios: Must contain a phandle to a GPIO controller
+  followed by GPIO that is being used to enable REFCLK to controller from host
+
+NOTE:- On Tegra194's P2972-0000 platform, only C5 controller can be enabled to
+operate in the endpoint mode because of the way the platform is designed.
 
 EP mode:
 - nvidia,refclk-select-gpios: Must contain a phandle to a GPIO controller
@@ -140,6 +182,8 @@ Examples:
 Tegra194 RC mode:
 -----------------
 
+SoC DTSI:
+
 	pcie@14180000 {
 		compatible = "nvidia,tegra194-pcie";
 		power-domains = <&bpmp TEGRA194_POWER_DOMAIN_PCIEX8B>;
@@ -147,6 +191,8 @@ Tegra194 RC mode:
 		       0x00 0x38000000 0x0 0x00040000   /* configuration space (256K) */
 		       0x00 0x38040000 0x0 0x00040000>; /* iATU_DMA reg space (256K)  */
 		reg-names = "appl", "config", "atu_dma";
+
+		status = "disabled";
 
 		#address-cells = <3>;
 		#size-cells = <2>;
@@ -175,6 +221,8 @@ Tegra194 RC mode:
 		nvidia,bpmp = <&bpmp 0>;
 
 		supports-clkreq;
+		nvidia,disable-aspm-states = <0xf>;
+		nvidia,controller-id = <0>;
 		nvidia,aspm-cmrt-us = <60>;
 		nvidia,aspm-pwr-on-t-us = <20>;
 		nvidia,aspm-l0s-entrance-latency-us = <3>;

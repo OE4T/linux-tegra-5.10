@@ -4,6 +4,7 @@
  * xHCI host controller driver
  *
  * Copyright (C) 2008 Intel Corp.
+ * Copyright (c) 2018-2021 NVIDIA CORPORATION.  All rights reserved.
  *
  * Author: Sarah Sharp
  * Some code borrowed from the Linux EHCI driver.
@@ -1618,6 +1619,7 @@ struct xhci_ring {
 	enum xhci_ring_type	type;
 	bool			last_td_was_short;
 	struct radix_tree_root	*trb_address_map;
+	bool			soft_try;
 };
 
 struct xhci_erst_entry {
@@ -1732,6 +1734,11 @@ struct xhci_hub {
 	/* supported prococol extended capabiliy values */
 	u8			maj_rev;
 	u8			min_rev;
+};
+
+struct xhci_err_cnt {
+	unsigned int version;
+	unsigned int comp_tx_err;
 };
 
 /* There is one xhci_hcd structure per controller */
@@ -1907,11 +1914,17 @@ struct xhci_hcd {
 /* Compliance Mode Timer Triggered every 2 seconds */
 #define COMP_MODE_RCVRY_MSECS 2000
 
+	struct  work_struct	tegra_xhci_reinit_work;
+	bool	recovery_in_progress;
+	struct platform_device *pdev;
+
 	struct dentry		*debugfs_root;
 	struct dentry		*debugfs_slots;
 	struct list_head	regset_list;
 
 	void			*dbc;
+	/* Error collecting struct for sysfs */
+	struct xhci_err_cnt xhci_ereport;
 	/* platform-specific data -- must come last */
 	unsigned long		priv[] __aligned(sizeof(s64));
 };
@@ -1949,6 +1962,8 @@ static inline struct usb_hcd *xhci_to_hcd(struct xhci_hcd *xhci)
 	dev_dbg(xhci_to_hcd(xhci)->self.controller , fmt , ## args)
 #define xhci_err(xhci, fmt, args...) \
 	dev_err(xhci_to_hcd(xhci)->self.controller , fmt , ## args)
+#define xhci_err_ratelimited(xhci, fmt, args...) \
+	dev_err_ratelimited(xhci_to_hcd(xhci)->self.controller, fmt, ## args)
 #define xhci_warn(xhci, fmt, args...) \
 	dev_warn(xhci_to_hcd(xhci)->self.controller , fmt , ## args)
 #define xhci_warn_ratelimited(xhci, fmt, args...) \
@@ -2092,6 +2107,9 @@ int xhci_alloc_tt_info(struct xhci_hcd *xhci,
 		struct xhci_virt_device *virt_dev,
 		struct usb_device *hdev,
 		struct usb_tt *tt, gfp_t mem_flags);
+int xhci_update_device(struct usb_hcd *hcd, struct usb_device *udev);
+int xhci_urb_enqueue(struct usb_hcd *hcd, struct urb *urb, gfp_t mem_flags);
+int xhci_add_endpoint(struct usb_hcd *hcd, struct usb_device *udev, struct usb_host_endpoint *ep);
 
 /* xHCI ring, segment, TRB, and TD functions */
 dma_addr_t xhci_trb_virt_to_dma(struct xhci_segment *seg, union xhci_trb *trb);
@@ -2124,6 +2142,8 @@ int xhci_queue_evaluate_context(struct xhci_hcd *xhci, struct xhci_command *cmd,
 int xhci_queue_reset_ep(struct xhci_hcd *xhci, struct xhci_command *cmd,
 		int slot_id, unsigned int ep_index,
 		enum xhci_ep_reset_type reset_type);
+int xhci_queue_soft_retry(struct xhci_hcd *xhci, int slot_id,
+		unsigned int ep_index);
 int xhci_queue_reset_device(struct xhci_hcd *xhci, struct xhci_command *cmd,
 		u32 slot_id);
 void xhci_find_new_dequeue_state(struct xhci_hcd *xhci,
@@ -2153,6 +2173,8 @@ void xhci_set_link_state(struct xhci_hcd *xhci, struct xhci_port *port,
 				u32 link_state);
 void xhci_test_and_clear_bit(struct xhci_hcd *xhci, struct xhci_port *port,
 				u32 port_bit);
+int xhci_enable_usb3_lpm_timeout(struct usb_hcd *hcd,
+			struct usb_device *udev, enum usb3_link_state state);
 int xhci_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue, u16 wIndex,
 		char *buf, u16 wLength);
 int xhci_hub_status_data(struct usb_hcd *hcd, char *buf);

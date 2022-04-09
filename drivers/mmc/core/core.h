@@ -10,6 +10,7 @@
 
 #include <linux/delay.h>
 #include <linux/sched.h>
+#include <linux/mmc/mmc.h>
 
 struct mmc_host;
 struct mmc_card;
@@ -29,6 +30,8 @@ struct mmc_bus_ops {
 	int (*shutdown)(struct mmc_host *);
 	int (*hw_reset)(struct mmc_host *);
 	int (*sw_reset)(struct mmc_host *);
+	int (*power_save)(struct mmc_host *);
+	int (*power_restore)(struct mmc_host *);
 	bool (*cache_enabled)(struct mmc_host *);
 };
 
@@ -93,6 +96,10 @@ void mmc_remove_card_debugfs(struct mmc_card *card);
 int mmc_execute_tuning(struct mmc_card *card);
 int mmc_hs200_to_hs400(struct mmc_card *card);
 int mmc_hs400_to_hs200(struct mmc_card *card);
+int mmc_hs400_to_ddr(struct mmc_card *card);
+int mmc_ddr_to_hs400(struct mmc_card *card);
+int mmc_hs200_to_ddr(struct mmc_card *card);
+int mmc_ddr_to_hs200(struct mmc_card *card);
 
 void mmc_wait_for_req_done(struct mmc_host *host, struct mmc_request *mrq);
 bool mmc_is_req_done(struct mmc_host *host, struct mmc_request *mrq);
@@ -162,6 +169,17 @@ static inline void mmc_post_req(struct mmc_host *host, struct mmc_request *mrq,
 {
 	if (host->ops->post_req)
 		host->ops->post_req(host, mrq, err);
+}
+
+static inline bool mmc_broken_ready_for_data(struct mmc_card *card, u32 status)
+{
+	struct mmc_host *host = card->host;
+
+	if (host->caps2 & MMC_CAP2_BROKEN_CARD_BUSY_DETECT)
+		return (status & R1_READY_FOR_DATA) ||
+			(R1_CURRENT_STATE(status) == R1_STATE_TRAN);
+	else
+		return mmc_ready_for_data(status);
 }
 
 static inline bool mmc_cache_enabled(struct mmc_host *host)

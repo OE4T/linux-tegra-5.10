@@ -2520,7 +2520,15 @@ EXPORT_SYMBOL(genphy_write_mmd_unsupported);
 
 int genphy_suspend(struct phy_device *phydev)
 {
-	return phy_set_bits(phydev, MII_BMCR, BMCR_PDOWN);
+	int ret;
+
+	ret = phy_set_bits(phydev, MII_BMCR, BMCR_PDOWN);
+	/* FIXME: WAR for bug 200628956 */
+	if (ret == -ENODEV) {
+		pr_err("Genphy suspend returned %d error\n", ret);
+		return 0;
+	}
+	return ret;
 }
 EXPORT_SYMBOL(genphy_suspend);
 

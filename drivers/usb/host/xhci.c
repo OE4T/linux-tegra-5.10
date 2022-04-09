@@ -3,6 +3,7 @@
  * xHCI host controller driver
  *
  * Copyright (C) 2008 Intel Corp.
+ * Copyright (c) 2021 NVIDIA CORPORATION.  All rights reserved.
  *
  * Author: Sarah Sharp
  * Some code borrowed from the Linux EHCI driver.
@@ -608,12 +609,21 @@ static int xhci_init(struct usb_hcd *hcd)
 
 static int xhci_run_finished(struct xhci_hcd *xhci)
 {
+	u32 temp;
+
 	if (xhci_start(xhci)) {
 		xhci_halt(xhci);
 		return -ENODEV;
 	}
 	xhci->shared_hcd->state = HC_STATE_RUNNING;
 	xhci->cmd_ring_state = CMD_RING_STATE_RUNNING;
+
+	/* Set the HCD state before we enable the irqs */
+	temp = readl(&xhci->op_regs->command);
+	temp |= (CMD_EIE);
+	xhci_dbg_trace(xhci, trace_xhci_dbg_init,
+			"// Enable interrupts, cmd = 0x%x.", temp);
+	writel(temp, &xhci->op_regs->command);
 
 	if (xhci->quirks & XHCI_NEC_HOST)
 		xhci_ring_cmd_db(xhci);
@@ -668,13 +678,6 @@ int xhci_run(struct usb_hcd *hcd)
 	temp |= (xhci->imod_interval / 250) & ER_IRQ_INTERVAL_MASK;
 	writel(temp, &xhci->ir_set->irq_control);
 
-	/* Set the HCD state before we enable the irqs */
-	temp = readl(&xhci->op_regs->command);
-	temp |= (CMD_EIE);
-	xhci_dbg_trace(xhci, trace_xhci_dbg_init,
-			"// Enable interrupts, cmd = 0x%x.", temp);
-	writel(temp, &xhci->op_regs->command);
-
 	temp = readl(&xhci->ir_set->irq_pending);
 	xhci_dbg_trace(xhci, trace_xhci_dbg_init,
 			"// Enabling event ring interrupter %p by writing 0x%x to irq_pending",
@@ -728,13 +731,14 @@ static void xhci_stop(struct usb_hcd *hcd)
 
 	xhci_dbc_exit(xhci);
 
-	spin_lock_irq(&xhci->lock);
-	xhci->xhc_state |= XHCI_STATE_HALTED;
-	xhci->cmd_ring_state = CMD_RING_STATE_STOPPED;
-	xhci_halt(xhci);
-	xhci_reset(xhci);
-	spin_unlock_irq(&xhci->lock);
-
+	if (!(xhci->xhc_state & XHCI_STATE_HALTED)) {
+		spin_lock_irq(&xhci->lock);
+		xhci->xhc_state |= XHCI_STATE_HALTED;
+		xhci->cmd_ring_state = CMD_RING_STATE_STOPPED;
+		xhci_halt(xhci);
+		xhci_reset(xhci);
+		spin_unlock_irq(&xhci->lock);
+	}
 	xhci_cleanup_msix(xhci);
 
 	/* Deleting Compliance Mode Recovery Timer */
@@ -789,6 +793,13 @@ void xhci_shutdown(struct usb_hcd *hcd)
 	spin_unlock_irq(&xhci->lock);
 
 	xhci_cleanup_msix(xhci);
+
+	/* Don't poll the roothubs on bus shutdown. */
+	xhci_dbg(xhci, "%s: stopping port polling.\n", __func__);
+	clear_bit(HCD_FLAG_POLL_RH, &hcd->flags);
+	del_timer_sync(&hcd->rh_timer);
+	clear_bit(HCD_FLAG_POLL_RH, &xhci->shared_hcd->flags);
+	del_timer_sync(&xhci->shared_hcd->rh_timer);
 
 	xhci_dbg_trace(xhci, trace_xhci_dbg_init,
 			"xhci_shutdown completed - status = %x",
@@ -1470,7 +1481,7 @@ command_cleanup:
  * non-error returns are a promise to giveback() the urb later
  * we drop ownership so next owner (or urb unlink) can get it
  */
-static int xhci_urb_enqueue(struct usb_hcd *hcd, struct urb *urb, gfp_t mem_flags)
+int xhci_urb_enqueue(struct usb_hcd *hcd, struct urb *urb, gfp_t mem_flags)
 {
 	struct xhci_hcd *xhci = hcd_to_xhci(hcd);
 	unsigned long flags;
@@ -1829,7 +1840,7 @@ static int xhci_drop_endpoint(struct usb_hcd *hcd, struct usb_device *udev,
  * configuration or alt setting is installed in the device, so there's no need
  * for mutual exclusion to protect the xhci->devs[slot_id] structure.
  */
-static int xhci_add_endpoint(struct usb_hcd *hcd, struct usb_device *udev,
+int xhci_add_endpoint(struct usb_hcd *hcd, struct usb_device *udev,
 		struct usb_host_endpoint *ep)
 {
 	struct xhci_hcd *xhci;
@@ -1937,6 +1948,7 @@ static int xhci_add_endpoint(struct usb_hcd *hcd, struct usb_device *udev,
 			(unsigned int) new_add_flags);
 	return 0;
 }
+EXPORT_SYMBOL_GPL(xhci_add_endpoint);
 
 static void xhci_zero_in_ctx(struct xhci_hcd *xhci, struct xhci_virt_device *virt_dev)
 {
@@ -4528,6 +4540,13 @@ static int xhci_check_usb2_port_capability(struct xhci_hcd *xhci, int port,
 			/* port offsets starts at 1 */
 			port_offset = XHCI_EXT_PORT_OFF(xhci->ext_caps[i]) - 1;
 			port_count = XHCI_EXT_PORT_COUNT(xhci->ext_caps[i]);
+
+			/* Convert from per hub port number to the xHC Root Hub
+			 * ports number (numbered from 1 to MaxPorts defined in
+			 * HCSPARAMS1 register)
+			 */
+			port += port_offset;
+
 			if (port >= port_offset &&
 			    port < port_offset + port_count)
 				return 1;
@@ -4536,7 +4555,7 @@ static int xhci_check_usb2_port_capability(struct xhci_hcd *xhci, int port,
 	return 0;
 }
 
-static int xhci_update_device(struct usb_hcd *hcd, struct usb_device *udev)
+int xhci_update_device(struct usb_hcd *hcd, struct usb_device *udev)
 {
 	struct xhci_hcd	*xhci = hcd_to_xhci(hcd);
 	int		portnum = udev->portnum - 1;
@@ -4562,6 +4581,8 @@ static int xhci_update_device(struct usb_hcd *hcd, struct usb_device *udev)
 
 	return 0;
 }
+EXPORT_SYMBOL_GPL(xhci_update_device);
+
 
 /*---------------------- USB 3.0 Link PM functions ------------------------*/
 
@@ -4626,22 +4647,22 @@ static unsigned long long xhci_calculate_intel_u1_timeout(
 		struct usb_device *udev,
 		struct usb_endpoint_descriptor *desc)
 {
-	unsigned long long timeout_ns;
+	unsigned long long timeout_ns = udev->u1_params.sel;
 	int ep_type;
 	int intr_type;
 
 	ep_type = usb_endpoint_type(desc);
 	switch (ep_type) {
 	case USB_ENDPOINT_XFER_CONTROL:
-		timeout_ns = udev->u1_params.sel * 3;
+		timeout_ns *= 3;
 		break;
 	case USB_ENDPOINT_XFER_BULK:
-		timeout_ns = udev->u1_params.sel * 5;
+		timeout_ns *= 5;
 		break;
 	case USB_ENDPOINT_XFER_INT:
 		intr_type = usb_endpoint_interrupt_type(desc);
 		if (intr_type == USB_ENDPOINT_INTR_NOTIFICATION) {
-			timeout_ns = udev->u1_params.sel * 3;
+			timeout_ns *= 3;
 			break;
 		}
 		/* Otherwise the calculation is the same as isoc eps */
@@ -4963,7 +4984,7 @@ static int calculate_max_exit_latency(struct usb_device *udev,
 }
 
 /* Returns the USB3 hub-encoded value for the U1/U2 timeout. */
-static int xhci_enable_usb3_lpm_timeout(struct usb_hcd *hcd,
+int xhci_enable_usb3_lpm_timeout(struct usb_hcd *hcd,
 			struct usb_device *udev, enum usb3_link_state state)
 {
 	struct xhci_hcd	*xhci;
@@ -5016,10 +5037,12 @@ static int xhci_set_usb2_hardware_lpm(struct usb_hcd *hcd,
 	return 0;
 }
 
-static int xhci_update_device(struct usb_hcd *hcd, struct usb_device *udev)
+int xhci_update_device(struct usb_hcd *hcd, struct usb_device *udev)
 {
 	return 0;
 }
+EXPORT_SYMBOL_GPL(xhci_update_device);
+
 
 static int xhci_enable_usb3_lpm_timeout(struct usb_hcd *hcd,
 			struct usb_device *udev, enum usb3_link_state state)

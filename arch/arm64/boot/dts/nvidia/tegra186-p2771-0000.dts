@@ -365,4 +365,8 @@
 
 		vin-supply = <&vdd_5v0_sys>;
 	};
+
+	tegra-cache {
+		status = "okay";
+	};
 };

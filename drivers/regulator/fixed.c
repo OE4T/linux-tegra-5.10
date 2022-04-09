@@ -270,6 +270,10 @@ static const struct of_device_id fixed_of_match[] = {
 		.data = &fixed_clkenable_data,
 	},
 	{
+		.compatible = "regulator-fixed-sync",
+		.data = &fixed_voltage_data,
+	},
+	{
 	},
 };
 MODULE_DEVICE_TABLE(of, fixed_of_match);

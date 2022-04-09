@@ -31,6 +31,12 @@ int pinmux_map_to_setting(const struct pinctrl_map *map,
 void pinmux_free_setting(const struct pinctrl_setting *setting);
 int pinmux_enable_setting(const struct pinctrl_setting *setting);
 void pinmux_disable_setting(const struct pinctrl_setting *setting);
+int pinmux_gpio_save_config(struct pinctrl_dev *pctldev,
+			    struct pinctrl_gpio_range *range,
+			    unsigned pin);
+int pinmux_gpio_restore_config(struct pinctrl_dev *pctldev,
+			       struct pinctrl_gpio_range *range,
+			       unsigned pin);
 
 #else
 
@@ -89,6 +95,18 @@ static inline void pinmux_disable_setting(const struct pinctrl_setting *setting)
 {
 }
 
+int pinmux_gpio_save_config(struct pinctrl_dev *pctldev,
+			    struct pinctrl_gpio_range *range,
+			    unsigned pin)
+{
+	return 0;
+}
+int pinmux_gpio_restore_config(struct pinctrl_dev *pctldev,
+			       struct pinctrl_gpio_range *range,
+			       unsigned pin)
+{
+	return 0;
+}
 #endif
 
 #if defined(CONFIG_PINMUX) && defined(CONFIG_DEBUG_FS)

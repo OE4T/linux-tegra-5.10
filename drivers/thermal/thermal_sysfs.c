@@ -260,6 +260,54 @@ passive_show(struct device *dev, struct device_attribute *attr,
 }
 
 static ssize_t
+passive_delay_store(struct device *dev, struct device_attribute *attr,
+		    const char *buf, size_t count)
+{
+	struct thermal_zone_device *tz = to_thermal_zone(dev);
+	int passive_delay;
+
+	if (!sscanf(buf, "%d\n", &passive_delay))
+		return -EINVAL;
+
+	tz->passive_delay = passive_delay;
+	thermal_zone_device_update(tz, THERMAL_EVENT_UNSPECIFIED);
+	return count;
+}
+
+static ssize_t
+passive_delay_show(struct device *dev, struct device_attribute *attr,
+		   char *buf)
+{
+	struct thermal_zone_device *tz = to_thermal_zone(dev);
+
+	return sprintf(buf, "%d\n", tz->passive_delay);
+}
+
+static ssize_t
+polling_delay_store(struct device *dev, struct device_attribute *attr,
+		    const char *buf, size_t count)
+{
+	struct thermal_zone_device *tz = to_thermal_zone(dev);
+	int polling_delay;
+
+	if (!sscanf(buf, "%d\n", &polling_delay))
+		return -EINVAL;
+
+	tz->polling_delay = polling_delay;
+	thermal_zone_device_update(tz, THERMAL_EVENT_UNSPECIFIED);
+	return count;
+}
+
+static ssize_t
+polling_delay_show(struct device *dev, struct device_attribute *attr,
+		   char *buf)
+{
+	struct thermal_zone_device *tz = to_thermal_zone(dev);
+
+	return sprintf(buf, "%d\n", tz->polling_delay);
+}
+
+static ssize_t
 policy_store(struct device *dev, struct device_attribute *attr,
 	     const char *buf, size_t count)
 {
@@ -400,6 +448,8 @@ static DEVICE_ATTR_RO(temp);
 static DEVICE_ATTR_RW(policy);
 static DEVICE_ATTR_RO(available_policies);
 static DEVICE_ATTR_RW(sustainable_power);
+static DEVICE_ATTR_RW(passive_delay);
+static DEVICE_ATTR_RW(polling_delay);
 
 /* These thermal zone device attributes are created based on conditions */
 static DEVICE_ATTR_RW(mode);
@@ -415,6 +465,8 @@ static struct attribute *thermal_zone_dev_attrs[] = {
 	&dev_attr_policy.attr,
 	&dev_attr_available_policies.attr,
 	&dev_attr_sustainable_power.attr,
+	&dev_attr_passive_delay.attr,
+	&dev_attr_polling_delay.attr,
 	&dev_attr_k_po.attr,
 	&dev_attr_k_pu.attr,
 	&dev_attr_k_i.attr,
@@ -490,7 +542,7 @@ static const struct attribute_group *thermal_zone_attribute_groups[] = {
  *
  * Return: 0 on success, the proper error value otherwise.
  */
-static int create_trip_attrs(struct thermal_zone_device *tz, int mask)
+static int create_trip_attrs(struct thermal_zone_device *tz, u64 mask)
 {
 	struct attribute **attrs;
 	int indx;
@@ -553,7 +605,7 @@ static int create_trip_attrs(struct thermal_zone_device *tz, int mask)
 		tz->trip_temp_attrs[indx].attr.attr.mode = S_IRUGO;
 		tz->trip_temp_attrs[indx].attr.show = trip_point_temp_show;
 		if (IS_ENABLED(CONFIG_THERMAL_WRITABLE_TRIPS) &&
-		    mask & (1 << indx)) {
+		    mask & (1ULL << indx)) {
 			tz->trip_temp_attrs[indx].attr.attr.mode |= S_IWUSR;
 			tz->trip_temp_attrs[indx].attr.store =
 							trip_point_temp_store;
@@ -605,7 +657,7 @@ static void destroy_trip_attrs(struct thermal_zone_device *tz)
 }
 
 int thermal_zone_create_device_groups(struct thermal_zone_device *tz,
-				      int mask)
+				      u64 mask)
 {
 	const struct attribute_group **groups;
 	int i, size, result;
@@ -687,8 +739,8 @@ cur_state_store(struct device *dev, struct device_attribute *attr,
 		const char *buf, size_t count)
 {
 	struct thermal_cooling_device *cdev = to_cooling_device(dev);
-	unsigned long state;
-	int result;
+	unsigned long state, max_state;
+	int result, ret;
 
 	if (sscanf(buf, "%ld\n", &state) != 1)
 		return -EINVAL;
@@ -697,6 +749,17 @@ cur_state_store(struct device *dev, struct device_attribute *attr,
 		return -EINVAL;
 
 	mutex_lock(&cdev->lock);
+
+	ret = cdev->ops->get_max_state(cdev, &max_state);
+	if (ret) {
+		mutex_unlock(&cdev->lock);
+		return ret;
+	}
+
+	if (state > max_state) {
+		mutex_unlock(&cdev->lock);
+		return -EINVAL;
+	}
 
 	result = cdev->ops->set_cur_state(cdev, state);
 	if (!result)

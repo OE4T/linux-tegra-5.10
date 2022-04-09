@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
- * Copyright (c) 2014-2015, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  * Copyright (c) 2015, Google Inc.
  */
 
@@ -8,9 +8,11 @@
 #define __PHY_TEGRA_XUSB_H
 
 #include <linux/io.h>
+#include <linux/iopoll.h>
 #include <linux/mutex.h>
 #include <linux/workqueue.h>
 
+#include <linux/usb/ch9.h>
 #include <linux/usb/otg.h>
 #include <linux/usb/role.h>
 
@@ -35,6 +37,10 @@ struct tegra_xusb_lane_soc {
 
 	const char * const *funcs;
 	unsigned int num_funcs;
+
+	struct {
+		unsigned int misc_ctl2;
+	} regs;
 };
 
 struct tegra_xusb_lane {
@@ -62,7 +68,7 @@ to_usb3_lane(struct tegra_xusb_lane *lane)
 struct tegra_xusb_usb2_lane {
 	struct tegra_xusb_lane base;
 
-	u32 hs_curr_level_offset;
+	s32 hs_curr_level_offset;
 	bool powered_on;
 };
 
@@ -126,7 +132,16 @@ struct tegra_xusb_lane_ops {
 					 struct device_node *np,
 					 unsigned int index);
 	void (*remove)(struct tegra_xusb_lane *lane);
+	void (*iddq_enable)(struct tegra_xusb_lane *lane);
+	void (*iddq_disable)(struct tegra_xusb_lane *lane);
+	int (*enable_phy_sleepwalk)(struct tegra_xusb_lane *lane, enum usb_device_speed speed);
+	int (*disable_phy_sleepwalk)(struct tegra_xusb_lane *lane);
+	int (*enable_phy_wake)(struct tegra_xusb_lane *lane);
+	int (*disable_phy_wake)(struct tegra_xusb_lane *lane);
+	bool (*remote_wake_detected)(struct tegra_xusb_lane *lane);
 };
+
+bool tegra_xusb_lane_check(struct tegra_xusb_lane *lane, const char *function);
 
 /*
  * pads
@@ -230,7 +245,7 @@ struct tegra_xusb_pcie_pad {
 	struct reset_control *rst;
 	struct clk *pll;
 
-	unsigned int enable;
+	bool enable;
 };
 
 static inline struct tegra_xusb_pcie_pad *
@@ -245,7 +260,7 @@ struct tegra_xusb_sata_pad {
 	struct reset_control *rst;
 	struct clk *pll;
 
-	unsigned int enable;
+	bool enable;
 };
 
 static inline struct tegra_xusb_sata_pad *
@@ -345,11 +360,12 @@ void tegra_xusb_hsic_port_release(struct tegra_xusb_port *port);
 
 struct tegra_xusb_usb3_port {
 	struct tegra_xusb_port base;
-	struct regulator *supply;
 	bool context_saved;
 	unsigned int port;
 	bool internal;
 	bool disable_gen2;
+	bool clamp_en_early_enabled;
+	bool receiver_detector_disabled;
 
 	u32 tap1;
 	u32 amp;
@@ -388,6 +404,8 @@ struct tegra_xusb_padctl_ops {
 			 const struct tegra_xusb_padctl_soc *soc);
 	void (*remove)(struct tegra_xusb_padctl *padctl);
 
+	int (*suspend_noirq)(struct tegra_xusb_padctl *padctl);
+	int (*resume_noirq)(struct tegra_xusb_padctl *padctl);
 	int (*usb3_save_context)(struct tegra_xusb_padctl *padctl,
 				 unsigned int index);
 	int (*hsic_set_idle)(struct tegra_xusb_padctl *padctl,
@@ -395,7 +413,13 @@ struct tegra_xusb_padctl_ops {
 	int (*usb3_set_lfps_detect)(struct tegra_xusb_padctl *padctl,
 				    unsigned int index, bool enable);
 	int (*vbus_override)(struct tegra_xusb_padctl *padctl, bool set);
+	int (*vbus_power_on)(struct phy *phy);
+	int (*vbus_power_off)(struct phy *phy);
+	void (*utmi_pad_power_on)(struct phy *phy);
+	void (*utmi_pad_power_down)(struct phy *phy);
 	int (*utmi_port_reset)(struct phy *phy);
+	void (*receiver_detector)(struct phy *phy, bool on);
+	void (*clamp_en_early)(struct phy *phy, bool on);
 };
 
 struct tegra_xusb_padctl_soc {
@@ -415,6 +439,9 @@ struct tegra_xusb_padctl_soc {
 	unsigned int num_supplies;
 	bool supports_gen2;
 	bool need_fake_usb3_port;
+	bool port_cap_quirk;
+	bool poll_trk_completed;
+	bool trk_hw_mode;
 };
 
 struct tegra_xusb_padctl {
@@ -436,6 +463,8 @@ struct tegra_xusb_padctl {
 	struct list_head pads;
 
 	unsigned int enable;
+	bool is_xhci_iov;
+	bool is_disable_regulator;
 
 	struct clk *clk;
 
@@ -457,6 +486,24 @@ static inline u32 padctl_readl(struct tegra_xusb_padctl *padctl,
 	return value;
 }
 
+static inline u32 padctl_readl_poll(struct tegra_xusb_padctl *padctl,
+	unsigned long offset, u32 val, u32 mask, int us)
+{
+	u32 regval;
+	int err;
+
+	err = readl_poll_timeout_atomic(padctl->regs + offset, regval,
+					 (regval & mask) == val, 1, us);
+	dev_dbg(padctl->dev, "%08lx poll > %08x, %d\n", offset,
+		regval, err);
+	if (err) {
+		dev_err(padctl->dev, "%08lx poll timeout > %08x\n", offset,
+			regval);
+	}
+
+	return err;
+}
+
 struct tegra_xusb_lane *tegra_xusb_find_lane(struct tegra_xusb_padctl *padctl,
 					     const char *name,
 					     unsigned int index);
@@ -472,6 +519,9 @@ extern const struct tegra_xusb_padctl_soc tegra186_xusb_padctl_soc;
 #endif
 #if defined(CONFIG_ARCH_TEGRA_194_SOC)
 extern const struct tegra_xusb_padctl_soc tegra194_xusb_padctl_soc;
+#endif
+#if defined(CONFIG_ARCH_TEGRA_234_SOC)
+extern const struct tegra_xusb_padctl_soc tegra234_xusb_padctl_soc;
 #endif
 
 #endif /* __PHY_TEGRA_XUSB_H */

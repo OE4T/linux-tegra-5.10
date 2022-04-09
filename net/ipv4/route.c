@@ -761,7 +761,7 @@ static void __ip_do_redirect(struct rtable *rt, struct sk_buff *skb, struct flow
 	__be32 old_gw = ip_hdr(skb)->saddr;
 	struct net_device *dev = skb->dev;
 	struct in_device *in_dev;
-	struct fib_result res;
+	struct fib_result res = { 0 };
 	struct neighbour *n;
 	struct net *net;
 
@@ -1037,7 +1037,7 @@ static void __ip_rt_update_pmtu(struct rtable *rt, struct flowi4 *fl4, u32 mtu)
 {
 	struct dst_entry *dst = &rt->dst;
 	struct net *net = dev_net(dst->dev);
-	struct fib_result res;
+	struct fib_result res = { 0 };
 	bool lock = false;
 	u32 old_mtu;
 
@@ -1290,7 +1290,7 @@ void ip_rt_get_source(u8 *addr, struct sk_buff *skb, struct rtable *rt)
 	if (rt_is_output_route(rt))
 		src = ip_hdr(skb)->saddr;
 	else {
-		struct fib_result res;
+		struct fib_result res = { 0 };
 		struct iphdr *iph = ip_hdr(skb);
 		struct flowi4 fl4 = {
 			.daddr = iph->daddr,

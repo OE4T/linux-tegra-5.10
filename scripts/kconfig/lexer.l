@@ -93,6 +93,8 @@ n	[A-Za-z0-9_-]
 \\\n			/* escaped new line */
 \n			return T_EOL;
 "allnoconfig_y"		return T_ALLNOCONFIG_Y;
+"append_menu"	return T_APPEND_MENU;
+"append_choice"	return T_APPEND_CHOICE;
 "bool"			return T_BOOL;
 "choice"		return T_CHOICE;
 "comment"		return T_COMMENT;
@@ -360,6 +362,43 @@ static void zconf_endhelp(void)
 	BEGIN(INITIAL);
 }
 
+char **overlays;
+int overlay_count;
+
+static void zconf_init_overlays(void)
+{
+	static int initialized;
+	char *env, *elem;
+
+	if (initialized)
+		return;
+	initialized = 1;
+
+	overlays = xmalloc(2 * sizeof(*overlays));
+	overlays[0] = "";
+	overlays[1] = NULL;
+	overlay_count = 2;
+
+	env = getenv(SRCTREE);
+	if (env && strcmp(env, "."))
+		overlays[1] = env;
+
+	env = getenv("KERNEL_OVERLAYS");
+	if (!env)
+		return;
+	env = xstrdup(env);
+
+	for (;;) {
+		elem = strtok(env, " ");
+		if (!elem)
+			break;
+		env = NULL;
+
+		overlays = xrealloc(overlays, (overlay_count + 1) * sizeof(*overlays));
+		overlays[overlay_count] = elem;
+		overlay_count++;
+	}
+}
 
 /*
  * Try to open specified file with following names:
@@ -369,26 +408,46 @@ static void zconf_endhelp(void)
  * when compiling the kernel.
  * Return NULL if file is not found.
  */
-FILE *zconf_fopen(const char *name)
+FILE *zconf_fopen(const char *name, int init_overlay_id, int *found_overlay_id, const char **found_name)
 {
-	char *env, fullname[PATH_MAX+1];
-	FILE *f;
+	int i;
+	char fullname[PATH_MAX+1];
+	FILE *fp;
 
-	f = fopen(name, "r");
-	if (!f && name != NULL && name[0] != '/') {
-		env = getenv(SRCTREE);
-		if (env) {
-			snprintf(fullname, sizeof(fullname),
-				 "%s/%s", env, name);
-			f = fopen(fullname, "r");
+	zconf_init_overlays();
+
+	for (i = init_overlay_id; i < overlay_count; i++) {
+		if (!overlays[i])
+			continue;
+		if (overlays[i][0])
+			sprintf(fullname, "%s/%s", overlays[i], name);
+		else
+			strcpy(fullname, name);
+		fp = fopen(fullname, "r");
+		if (fp) {
+			if (found_overlay_id)
+				*found_overlay_id = i;
+			if (found_name) {
+				if (i < 2)
+					*found_name = name;
+				else
+					*found_name = fullname;
+				*found_name = xstrdup(*found_name);
+			}
+			return fp;
 		}
 	}
-	return f;
+
+	return NULL;
 }
 
 void zconf_initscan(const char *name)
 {
-	yyin = zconf_fopen(name);
+	int found_overlay_id;
+
+	zconf_init_overlays();
+
+	yyin = zconf_fopen(name, 0, &found_overlay_id, NULL);
 	if (!yyin) {
 		fprintf(stderr, "can't find file %s\n", name);
 		exit(1);
@@ -397,33 +456,52 @@ void zconf_initscan(const char *name)
 	current_buf = xmalloc(sizeof(*current_buf));
 	memset(current_buf, 0, sizeof(*current_buf));
 
-	current_file = file_lookup(name);
+	/*
+	 * file_lookup can't find name, so won't free it, so no need to
+	 * duplicate the allocation
+	 */
+	current_file = file_lookup(name, found_overlay_id, name);
 	yylineno = 1;
 }
 
-void zconf_nextfile(const char *name)
+static void zconf_nextfile_imp(int init_overlay_id, const char *name, int must_exist)
 {
+	FILE *fp;
 	struct file *iter;
-	struct file *file = file_lookup(name);
-	struct buffer *buf = xmalloc(sizeof(*buf));
-	memset(buf, 0, sizeof(*buf));
+	struct file *file;
+	struct buffer *buf;
+	int found_overlay_id;
+	const char *found_name;
 
-	current_buf->state = YY_CURRENT_BUFFER;
-	yyin = zconf_fopen(file->name);
-	if (!yyin) {
-		fprintf(stderr, "%s:%d: can't open file \"%s\"\n",
-			zconf_curname(), zconf_lineno(), file->name);
-		exit(1);
+	if (current_buf)
+		current_buf->state = YY_CURRENT_BUFFER;
+
+	fp = zconf_fopen(name, init_overlay_id, &found_overlay_id, &found_name);
+	if (!fp) {
+		if (must_exist) {
+			printf("%s:%d: can't open file \"%s\"\n",
+			    zconf_curname(), zconf_lineno(), name);
+			exit(1);
+		}
+		return;
 	}
+
+	yyin = fp;
 	yy_switch_to_buffer(yy_create_buffer(yyin, YY_BUF_SIZE));
+
+	buf = xmalloc(sizeof(*buf));
+	memset(buf, 0, sizeof(*buf));
 	buf->parent = current_buf;
 	current_buf = buf;
+
+	file = file_lookup(found_name, found_overlay_id, name);
 
 	current_file->lineno = yylineno;
 	file->parent = current_file;
 
+	if (must_exist) {
 	for (iter = current_file; iter; iter = iter->parent) {
-		if (!strcmp(iter->name, file->name)) {
+		if (!strcmp(iter->logical_name, file->name)) {
 			fprintf(stderr,
 				"Recursive inclusion detected.\n"
 				"Inclusion path:\n"
@@ -436,16 +514,24 @@ void zconf_nextfile(const char *name)
 			} while (strcmp(iter->name, file->name));
 			exit(1);
 		}
+        }
 	}
 
 	yylineno = 1;
 	current_file = file;
 }
 
+void zconf_nextfile(const char *name)
+{
+	zconf_nextfile_imp(0, name, 1);
+}
+
 static void zconf_endfile(void)
 {
 	struct buffer *parent;
+	struct file *prev_file;
 
+	prev_file = current_file;
 	current_file = current_file->parent;
 	if (current_file)
 		yylineno = current_file->lineno;
@@ -458,6 +544,9 @@ static void zconf_endfile(void)
 	}
 	free(current_buf);
 	current_buf = parent;
+
+	if (prev_file->overlay_id < overlay_count - 1)
+		zconf_nextfile_imp(prev_file->overlay_id + 1, prev_file->logical_name, 0);
 }
 
 int zconf_lineno(void)

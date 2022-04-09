@@ -2,6 +2,8 @@
 /*
  *  linux/include/linux/mmc/card.h
  *
+ *  Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ *
  *  Card driver specific definitions.
  */
 #ifndef LINUX_MMC_CARD_H
@@ -10,6 +12,7 @@
 #include <linux/device.h>
 #include <linux/mod_devicetable.h>
 
+#define MAX_CARDS_NUM 4
 struct mmc_cid {
 	unsigned int		manfid;
 	char			prod_name[8];
@@ -92,6 +95,7 @@ struct mmc_ext_csd {
 	unsigned int		cmdq_depth;	/* Command Queue depth */
 #define MMC_FIRMWARE_LEN 8
 	u8			fwrev[MMC_FIRMWARE_LEN];  /* FW version */
+	bool			ffu_mode_op;		/* FFU mode operation */
 	u8			raw_exception_status;	/* 54 */
 	u8			raw_partition_support;	/* 160 */
 	u8			raw_rpmb_size_mult;	/* 168 */
@@ -164,6 +168,7 @@ struct sd_switch_caps {
 #define UHS_SDR50_BUS_SPEED	2
 #define UHS_SDR104_BUS_SPEED	3
 #define UHS_DDR50_BUS_SPEED	4
+#define UHS_HS400_BUS_SPEED	5
 
 #define SD_MODE_HIGH_SPEED	(1 << HIGH_SPEED_BUS_SPEED)
 #define SD_MODE_UHS_SDR12	(1 << UHS_SDR12_BUS_SPEED)
@@ -279,6 +284,7 @@ struct mmc_card {
 	unsigned int		eg_boundary;	/* don't cross erase-group boundaries */
 	unsigned int		erase_arg;	/* erase / trim / discard */
  	u8			erased_byte;	/* value of erased bytes */
+	u8			speed_class;	/* speed class of the card */
 
 	u32			raw_cid[4];	/* raw card CID */
 	u32			raw_csd[4];	/* raw card CSD */
@@ -319,6 +325,8 @@ static inline bool mmc_large_sector(struct mmc_card *card)
 {
 	return card->ext_csd.data_sector_size == 4096;
 }
+
+extern struct mmc_card *mmc_cards[MAX_CARDS_NUM];
 
 bool mmc_card_is_blockaddr(struct mmc_card *card);
 

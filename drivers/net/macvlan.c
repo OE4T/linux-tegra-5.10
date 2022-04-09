@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
  * Copyright (c) 2007 Patrick McHardy <kaber@trash.net>
+ * Copyright (c) 2008-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * The code this is based on carried the following copyright notice:
  * ---
@@ -1353,6 +1354,9 @@ static int macvlan_changelink_sources(struct macvlan_dev *vlan, u32 mode,
 	struct nlattr *nla, *head;
 	struct macvlan_source_entry *entry;
 
+	if (!data)
+		return -EINVAL;
+
 	if (data[IFLA_MACVLAN_MACADDR])
 		addr = nla_data(data[IFLA_MACVLAN_MACADDR]);
 
@@ -1382,7 +1386,7 @@ static int macvlan_changelink_sources(struct macvlan_dev *vlan, u32 mode,
 				return ret;
 		}
 
-		if (!data || !data[IFLA_MACVLAN_MACADDR_DATA])
+		if (!data[IFLA_MACVLAN_MACADDR_DATA])
 			return 0;
 
 		head = nla_data(data[IFLA_MACVLAN_MACADDR_DATA]);

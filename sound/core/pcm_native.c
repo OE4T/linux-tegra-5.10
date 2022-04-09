@@ -1700,13 +1700,10 @@ int snd_pcm_suspend_all(struct snd_pcm *pcm)
 			err = snd_pcm_suspend(substream);
 			if (err < 0 && err != -EBUSY)
 				return err;
+
+			snd_pcm_sync_stop(substream, true);
 		}
 	}
-
-	for (stream = 0; stream < 2; stream++)
-		for (substream = pcm->streams[stream].substream;
-		     substream; substream = substream->next)
-			snd_pcm_sync_stop(substream, false);
 
 	return 0;
 }
@@ -1959,6 +1956,8 @@ static int snd_pcm_do_drain_init(struct snd_pcm_substream *substream,
 				 snd_pcm_state_t state)
 {
 	struct snd_pcm_runtime *runtime = substream->runtime;
+	struct snd_pcm_substream *trigger_master = runtime->trigger_master;
+
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
 		switch (runtime->status->state) {
 		case SNDRV_PCM_STATE_PREPARED:
@@ -1990,6 +1989,13 @@ static int snd_pcm_do_drain_init(struct snd_pcm_substream *substream,
 			snd_pcm_post_stop(substream, new_state);
 		}
 	}
+
+	/*
+	 * trigger_master would be cleared if the control
+	 * entered snd_pcm_post_start or snd_pcm_post_stop,
+	 * hence it has to be restored
+	 */
+	runtime->trigger_master = trigger_master;
 
 	if (runtime->status->state == SNDRV_PCM_STATE_DRAINING &&
 	    runtime->trigger_master == substream &&

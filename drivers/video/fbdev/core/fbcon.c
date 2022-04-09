@@ -915,7 +915,7 @@ static int var_to_display(struct fbcon_display *disp,
 	disp->transp = var->transp;
 	disp->rotate = var->rotate;
 	disp->mode = fb_match_mode(var, &info->modelist);
-	if (disp->mode == NULL)
+	if (WARN_ON(disp->mode == NULL))
 		/* This should not happen */
 		return -EINVAL;
 	return 0;
@@ -1029,6 +1029,10 @@ static void fbcon_init(struct vc_data *vc, int init)
 {
 	struct fb_info *info;
 	struct fbcon_ops *ops;
+	struct fb_info *cur_fb_info = NULL;
+	struct fbcon_ops *cur_ops = NULL;
+	struct fb_var_screeninfo *var = NULL;
+
 	struct vc_data **default_mode = vc->vc_display_fg;
 	struct vc_data *svc = *default_mode;
 	struct fbcon_display *t, *p = &fb_display[vc->vc_num];
@@ -1050,7 +1054,17 @@ static void fbcon_init(struct vc_data *vc, int init)
 	    (info->fix.type == FB_TYPE_TEXT))
 		logo = 0;
 
-	if (var_to_display(p, &info->var, info))
+	cur_fb_info = registered_fb[con2fb_map[fg_console]];
+	if (cur_fb_info != NULL)
+		cur_ops = cur_fb_info->fbcon_par;
+	if ((cur_ops != NULL) && (cur_ops->var.xres != 0UL) &&
+					(cur_ops->var.yres != 0UL)) {
+		var = &cur_ops->var;
+	} else {
+		var = &info->var;
+	}
+
+	if (var_to_display(p, var, info))
 		return;
 
 	if (!info->fbcon_par)
@@ -1969,6 +1983,9 @@ static void updatescrollmode(struct fbcon_display *p,
 	int vyres = FBCON_SWAP(ops->rotate, info->var.yres_virtual,
 				   info->var.xres_virtual);
 
+	if (fh == 0)
+		return;
+
 	p->vrows = vyres/fh;
 	if (yres > (fh * (vc->vc_rows + 1)))
 		p->vrows -= (yres - (fh * vc->vc_rows)) / fh;
@@ -2195,11 +2212,12 @@ static int fbcon_blank(struct vc_data *vc, int blank, int mode_switch)
 	struct fbcon_ops *ops = info->fbcon_par;
 
 	if (mode_switch) {
-		struct fb_var_screeninfo var = info->var;
+		struct fb_var_screeninfo var = ops->var;
 
 		ops->graphics = 1;
 
 		if (!blank) {
+			fb_blank(info, FB_BLANK_POWERDOWN);
 			var.activate = FB_ACTIVATE_NOW | FB_ACTIVATE_FORCE |
 				FB_ACTIVATE_KD_TEXT;
 			fb_set_var(info, &var);
@@ -2209,7 +2227,7 @@ static int fbcon_blank(struct vc_data *vc, int blank, int mode_switch)
 	}
 
  	if (!fbcon_is_inactive(vc, info)) {
-		if (ops->blank_state != blank) {
+		if (ops->blank_state != blank || mode_switch) {
 			ops->blank_state = blank;
 			fbcon_cursor(vc, blank ? CM_ERASE : CM_DRAW);
 			ops->cursor_flash = (!blank);
@@ -2692,11 +2710,19 @@ static void fbcon_set_all_vcs(struct fb_info *info)
 
 	for (i = first_fb_vc; i <= last_fb_vc; i++) {
 		vc = vc_cons[i].d;
-		if (!vc || vc->vc_mode != KD_TEXT ||
-		    registered_fb[con2fb_map[i]] != info)
+
+		/*
+		 * We need to update console parameters for graphical VTs too.
+		 * This will help in cases where a graphical client exits
+		 * abruptly without switching to a fbconsole VT. In such a case,
+		 * VT owned by graphical client is moved to fbconsole. If
+		 * console data is not initialized on that VT, fbconsole might
+		 * enable display controller with invalid/random data (mode).
+		 */
+		if (!vc || registered_fb[con2fb_map[i]] != info)
 			continue;
 
-		if (con_is_visible(vc)) {
+		if (con_is_visible(vc) && vc->vc_mode == KD_TEXT) {
 			fg = i;
 			continue;
 		}
@@ -2981,11 +3007,15 @@ void fbcon_new_modelist(struct fb_info *info)
 		if (!fb_display[i].mode)
 			continue;
 		vc = vc_cons[i].d;
-		display_to_var(&var, &fb_display[i]);
-		mode = fb_find_nearest_mode(fb_display[i].mode,
+		if (NULL == vc)
+			continue;
+		if (vc->vc_mode == KD_TEXT) {
+			display_to_var(&var, &fb_display[i]);
+			mode = fb_find_nearest_mode(fb_display[i].mode,
 					    &info->modelist);
-		fb_videomode_to_var(&var, mode);
-		fbcon_set_disp(info, &var, vc->vc_num);
+			fb_videomode_to_var(&var, mode);
+			fbcon_set_disp(info, &var, vc->vc_num);
+		}
 	}
 }
 

@@ -3,7 +3,7 @@
  * pinctrl-tegra-io-pad.h: Tegra I/O pad source voltage configuration constants
  * pinctrl bindings.
  *
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Author: Aapo Vienamo <avienamo@nvidia.com>
  */
@@ -14,5 +14,6 @@
 /* Voltage levels of the I/O pad's source rail */
 #define TEGRA_IO_PAD_VOLTAGE_1V8	0
 #define TEGRA_IO_PAD_VOLTAGE_3V3	1
+#define TEGRA_IO_PAD_VOLTAGE_1V2	3
 
 #endif

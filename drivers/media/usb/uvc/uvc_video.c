@@ -2,6 +2,7 @@
 /*
  *      uvc_video.c  --  USB Video Class driver - Video handling
  *
+ *      Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
  *      Copyright (C) 2005-2010
  *          Laurent Pinchart (laurent.pinchart@ideasonboard.com)
  */
@@ -2134,10 +2135,9 @@ error_commit:
 void uvc_video_stop_streaming(struct uvc_streaming *stream)
 {
 	uvc_video_stop_transfer(stream, 1);
+	usb_set_interface(stream->dev->udev, stream->intfnum, 0);
 
-	if (stream->intf->num_altsetting > 1) {
-		usb_set_interface(stream->dev->udev, stream->intfnum, 0);
-	} else {
+	if (stream->intf->num_altsetting <= 1) {
 		/* UVC doesn't specify how to inform a bulk-based device
 		 * when the video stream is stopped. Windows sends a
 		 * CLEAR_FEATURE(HALT) request to the video streaming

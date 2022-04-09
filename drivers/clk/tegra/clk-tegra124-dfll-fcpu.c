@@ -2,7 +2,7 @@
 /*
  * Tegra124 DFLL FCPU clock source driver
  *
- * Copyright (C) 2012-2019 NVIDIA Corporation.  All rights reserved.
+ * Copyright (C) 2012-2020 NVIDIA Corporation.  All rights reserved.
  *
  * Aleksandr Frid <afrid@nvidia.com>
  * Paul Walmsley <pwalmsley@nvidia.com>
@@ -17,15 +17,18 @@
 #include <linux/regulator/consumer.h>
 #include <soc/tegra/fuse.h>
 
+#include <dt-bindings/thermal/tegra210-dfll-trips.h>
+#include <dt-bindings/thermal/tegra210b01-trips.h>
+
 #include "clk.h"
 #include "clk-dfll.h"
-#include "cvb.h"
 
 struct dfll_fcpu_data {
 	const unsigned long *cpu_max_freq_table;
 	unsigned int cpu_max_freq_table_size;
 	const struct cvb_table *cpu_cvb_tables;
 	unsigned int cpu_cvb_tables_size;
+	const struct thermal_table *cpu_thermal_table;
 };
 
 /* Maximum CPU frequency, indexed by CPU speedo id */
@@ -74,7 +77,7 @@ static const struct cvb_table tegra124_cpu_cvb_tables[] = {
 		.cpu_dfll_data = {
 			.tune0_low = 0x005020ff,
 			.tune0_high = 0x005040ff,
-			.tune1 = 0x00000060,
+			.tune1_low = 0x00000060,
 		}
 	},
 };
@@ -242,7 +245,7 @@ static struct cvb_table tegra210_cpu_cvb_tables[] = {
 		.cpu_dfll_data = {
 			.tune0_low = 0xffead0ff,
 			.tune0_high = 0xffead0ff,
-			.tune1 = 0x20091d9,
+			.tune1_low = 0x20091d9,
 			.tune_high_min_millivolts = 864,
 		}
 	},
@@ -255,7 +258,7 @@ static struct cvb_table tegra210_cpu_cvb_tables[] = {
 		.cpu_dfll_data = {
 			.tune0_low = 0xffead0ff,
 			.tune0_high = 0xffead0ff,
-			.tune1 = 0x20091d9,
+			.tune1_low = 0x20091d9,
 			.tune_high_min_millivolts = 864,
 		}
 	},
@@ -268,7 +271,7 @@ static struct cvb_table tegra210_cpu_cvb_tables[] = {
 		.cpu_dfll_data = {
 			.tune0_low = 0xffead0ff,
 			.tune0_high = 0xffead0ff,
-			.tune1 = 0x20091d9,
+			.tune1_low = 0x20091d9,
 		}
 	},
 	{
@@ -280,7 +283,7 @@ static struct cvb_table tegra210_cpu_cvb_tables[] = {
 		.cpu_dfll_data = {
 			.tune0_low = 0xffead0ff,
 			.tune0_high = 0xffead0ff,
-			.tune1 = 0x20091d9,
+			.tune1_low = 0x20091d9,
 		}
 	},
 	{
@@ -292,7 +295,7 @@ static struct cvb_table tegra210_cpu_cvb_tables[] = {
 		.cpu_dfll_data = {
 			.tune0_low = 0xffead0ff,
 			.tune0_high = 0xffead0ff,
-			.tune1 = 0x20091d9,
+			.tune1_low = 0x20091d9,
 		}
 	},
 	{
@@ -304,7 +307,7 @@ static struct cvb_table tegra210_cpu_cvb_tables[] = {
 		.cpu_dfll_data = {
 			.tune0_low = 0xffead0ff,
 			.tune0_high = 0xffead0ff,
-			.tune1 = 0x20091d9,
+			.tune1_low = 0x20091d9,
 		}
 	},
 	{
@@ -316,7 +319,7 @@ static struct cvb_table tegra210_cpu_cvb_tables[] = {
 		.cpu_dfll_data = {
 			.tune0_low = 0xffead0ff,
 			.tune0_high = 0xffead0ff,
-			.tune1 = 0x20091d9,
+			.tune1_low = 0x20091d9,
 			.tune_high_min_millivolts = 864,
 		}
 	},
@@ -329,7 +332,7 @@ static struct cvb_table tegra210_cpu_cvb_tables[] = {
 		.cpu_dfll_data = {
 			.tune0_low = 0xffead0ff,
 			.tune0_high = 0xffead0ff,
-			.tune1 = 0x20091d9,
+			.tune1_low = 0x20091d9,
 			.tune_high_min_millivolts = 864,
 		}
 	},
@@ -341,7 +344,7 @@ static struct cvb_table tegra210_cpu_cvb_tables[] = {
 		CPU_CVB_TABLE,
 		.cpu_dfll_data = {
 			.tune0_low = 0xffead0ff,
-			.tune1 = 0x20091d9,
+			.tune1_low = 0x20091d9,
 		}
 	},
 	{
@@ -352,7 +355,7 @@ static struct cvb_table tegra210_cpu_cvb_tables[] = {
 		CPU_CVB_TABLE,
 		.cpu_dfll_data = {
 			.tune0_low = 0xffead0ff,
-			.tune1 = 0x25501d0,
+			.tune1_low = 0x25501d0,
 		}
 	},
 	{
@@ -364,7 +367,7 @@ static struct cvb_table tegra210_cpu_cvb_tables[] = {
 		.cpu_dfll_data = {
 			.tune0_low = 0xffead0ff,
 			.tune0_high = 0xffead0ff,
-			.tune1 = 0x20091d9,
+			.tune1_low = 0x20091d9,
 			.tune_high_min_millivolts = 864,
 		}
 	},
@@ -377,7 +380,7 @@ static struct cvb_table tegra210_cpu_cvb_tables[] = {
 		.cpu_dfll_data = {
 			.tune0_low = 0xffead0ff,
 			.tune0_high = 0xffead0ff,
-			.tune1 = 0x25501d0,
+			.tune1_low = 0x25501d0,
 			.tune_high_min_millivolts = 864,
 		}
 	},
@@ -389,7 +392,7 @@ static struct cvb_table tegra210_cpu_cvb_tables[] = {
 		CPU_CVB_TABLE_XA,
 		.cpu_dfll_data = {
 			.tune0_low = 0xffead0ff,
-			.tune1 = 0x17711BD,
+			.tune1_low = 0x17711BD,
 		}
 	},
 	{
@@ -401,7 +404,7 @@ static struct cvb_table tegra210_cpu_cvb_tables[] = {
 		.cpu_dfll_data = {
 			.tune0_low = 0xffead0ff,
 			.tune0_high = 0xffead0ff,
-			.tune1 = 0x20091d9,
+			.tune1_low = 0x20091d9,
 			.tune_high_min_millivolts = 864,
 		}
 	},
@@ -414,7 +417,7 @@ static struct cvb_table tegra210_cpu_cvb_tables[] = {
 		.cpu_dfll_data = {
 			.tune0_low = 0xffead0ff,
 			.tune0_high = 0xffead0ff,
-			.tune1 = 0x25501d0,
+			.tune1_low = 0x25501d0,
 			.tune_high_min_millivolts = 864,
 		}
 	},
@@ -426,7 +429,7 @@ static struct cvb_table tegra210_cpu_cvb_tables[] = {
 		CPU_CVB_TABLE,
 		.cpu_dfll_data = {
 			.tune0_low = 0xffead0ff,
-			.tune1 = 0x20091d9,
+			.tune1_low = 0x20091d9,
 		}
 	},
 	{
@@ -437,7 +440,7 @@ static struct cvb_table tegra210_cpu_cvb_tables[] = {
 		CPU_CVB_TABLE,
 		.cpu_dfll_data = {
 			.tune0_low = 0xffead0ff,
-			.tune1 = 0x25501d0,
+			.tune1_low = 0x25501d0,
 		}
 	},
 	{
@@ -449,7 +452,7 @@ static struct cvb_table tegra210_cpu_cvb_tables[] = {
 		.cpu_dfll_data = {
 			.tune0_low = 0xffead0ff,
 			.tune0_high = 0xffead0ff,
-			.tune1 = 0x20091d9,
+			.tune1_low = 0x20091d9,
 			.tune_high_min_millivolts = 864,
 		}
 	},
@@ -462,7 +465,7 @@ static struct cvb_table tegra210_cpu_cvb_tables[] = {
 		.cpu_dfll_data = {
 			.tune0_low = 0xffead0ff,
 			.tune0_high = 0xffead0ff,
-			.tune1 = 0x25501d0,
+			.tune1_low = 0x25501d0,
 			.tune_high_min_millivolts = 864,
 		}
 	},
@@ -475,7 +478,7 @@ static struct cvb_table tegra210_cpu_cvb_tables[] = {
 		.cpu_dfll_data = {
 			.tune0_low = 0xffead0ff,
 			.tune0_high = 0xffead0ff,
-			.tune1 = 0x20091d9,
+			.tune1_low = 0x20091d9,
 			.tune_high_min_millivolts = 864,
 		}
 	},
@@ -488,10 +491,211 @@ static struct cvb_table tegra210_cpu_cvb_tables[] = {
 		.cpu_dfll_data = {
 			.tune0_low = 0xffead0ff,
 			.tune0_high = 0xffead0ff,
-			.tune1 = 0x25501d0,
+			.tune1_low = 0x25501d0,
 			.tune_high_min_millivolts = 864,
 		}
 	},
+};
+
+static const unsigned long tegra210b01_cpu_max_freq_table[] = {
+	[0] = 1963500000UL,
+	[1] = 1963500000UL,
+	[2] = 2091000000UL,
+	[3] = 2014500000UL,
+};
+
+#define CPUB01_CVB_TABLE_SLT_B1 \
+	.speedo_scale = 100,	\
+	.voltage_scale = 1000,	\
+	.entries = {		\
+		/* f	                c0,       c1,       c2 */   \
+		{  204000000UL, {   732856,   -17335,      113 } }, \
+		{  306000000UL, {   760024,   -18195,      113 } }, \
+		{  408000000UL, {   789258,   -19055,      113 } }, \
+		{  510000000UL, {   820558,   -19915,      113 } }, \
+		{  612000000UL, {   853926,   -20775,      113 } }, \
+		{  714000000UL, {   889361,   -21625,      113 } }, \
+		{  816000000UL, {   926862,   -22485,      113 } }, \
+		{  918000000UL, {   966431,   -23345,      113 } }, \
+		{ 1020000000UL, {  1008066,   -24205,      113 } }, \
+		{ 1122000000UL, {  1051768,   -25065,      113 } }, \
+		{ 1224000000UL, {  1097537,   -25925,      113 } }, \
+		{ 1326000000UL, {  1145373,   -26785,      113 } }, \
+		{ 1428000000UL, {  1195276,   -27645,      113 } }, \
+		{ 1581000000UL, {  1274006,   -28935,      113 } }, \
+		{ 1683000000UL, {  1329076,   -29795,      113 } }, \
+		{ 1785000000UL, {  1386213,   -30655,      113 } }, \
+		{ 1887000000UL, {  1445416,   -31515,      113 } }, \
+		{ 1963500000UL, {  1490873,   -32155,      113 } }, \
+		{ 2065500000UL, {  1553683,   -33015,      113 } }, \
+		{ 2091000000UL, {  1580725,   -33235,      113 } }, \
+		{ 0,	        { } }, \
+	}, \
+	.vmin_coefficients =	{   600000,        0,        0 }, \
+	.cpu_dfll_data = {					  \
+		.tune0_low  = 0x0000FFA0,			  \
+		.tune0_high = 0x0000FFFF,			  \
+		.tune1_low  = 0x21107FF,			  \
+		.tune_high_min_millivolts = 850,		  \
+		.tune_high_margin_millivolts = 38,		  \
+		.dvco_calibration_max = ULONG_MAX,		  \
+	}, \
+	.cvb_version = "FCPU Table - p4v3-AggressiveSLT"
+
+#define CPUB01_CVB_TABLE_SLT_B0 \
+	.speedo_scale = 100,	\
+	.voltage_scale = 1000,	\
+	.entries = {		\
+		/* f	                c0,       c1,       c2 */   \
+		{  204000000UL, {   732856,   -17335,      113 } }, \
+		{  306000000UL, {   760024,   -18195,      113 } }, \
+		{  408000000UL, {   789258,   -19055,      113 } }, \
+		{  510000000UL, {   820558,   -19915,      113 } }, \
+		{  612000000UL, {   853926,   -20775,      113 } }, \
+		{  714000000UL, {   889361,   -21625,      113 } }, \
+		{  816000000UL, {   926862,   -22485,      113 } }, \
+		{  918000000UL, {   966431,   -23345,      113 } }, \
+		{ 1020000000UL, {  1008066,   -24205,      113 } }, \
+		{ 1122000000UL, {  1051768,   -25065,      113 } }, \
+		{ 1224000000UL, {  1097537,   -25925,      113 } }, \
+		{ 1326000000UL, {  1145373,   -26785,      113 } }, \
+		{ 1428000000UL, {  1195276,   -27645,      113 } }, \
+		{ 1581000000UL, {  1274006,   -28935,      113 } }, \
+		{ 1683000000UL, {  1329076,   -29795,      113 } }, \
+		{ 1785000000UL, {  1386213,   -30655,      113 } }, \
+		{ 1887000000UL, {  1445416,   -31515,      113 } }, \
+		{ 1963500000UL, {  1490873,   -32155,      113 } }, \
+		{ 2065500000UL, {  1553683,   -33015,      113 } }, \
+		{ 2091000000UL, {  1580725,   -33235,      113 } }, \
+		{ 0,	        { } }, \
+	}, \
+	.vmin_coefficients =	{   600000,        0,        0 }, \
+	.cpu_dfll_data = {					  \
+		.tune0_low  = 0x0000FF90,			  \
+		.tune0_high = 0x0000FFFF,			  \
+		.tune1_low  = 0x21107FF,			  \
+		.tune_high_min_millivolts = 850,		  \
+		.tune_high_margin_millivolts = 38,		  \
+		.dvco_calibration_max = ULONG_MAX,		  \
+	}, \
+	.cvb_version = "FCPU Table - p4v3-AggressiveSLT"
+
+#define CPUB01_CVB_TABLE	\
+	.speedo_scale = 100,	\
+	.voltage_scale = 1000,	\
+	.entries = {		\
+		/* f	                c0,       c1,       c2 */   \
+		{  204000000UL, {   721589,   -12695,       27 } }, \
+		{  306000000UL, {   747134,   -14195,       27 } }, \
+		{  408000000UL, {   776324,   -15705,       27 } }, \
+		{  510000000UL, {   809160,   -17205,       27 } }, \
+		{  612000000UL, {   845641,   -18715,       27 } }, \
+		{  714000000UL, {   885768,   -20215,       27 } }, \
+		{  816000000UL, {   929540,   -21725,       27 } }, \
+		{  918000000UL, {   976958,   -23225,       27 } }, \
+		{ 1020000000UL, {  1028021,   -24725,       27 } }, \
+		{ 1122000000UL, {  1082730,   -26235,       27 } }, \
+		{ 1224000000UL, {  1141084,   -27735,       27 } }, \
+		{ 1326000000UL, {  1203084,   -29245,       27 } }, \
+		{ 1428000000UL, {  1268729,   -30745,       27 } }, \
+		{ 1581000000UL, {  1374032,   -33005,       27 } }, \
+		{ 1683000000UL, {  1448791,   -34505,       27 } }, \
+		{ 1785000000UL, {  1527196,   -36015,       27 } }, \
+		{ 1887000000UL, {  1609246,   -37515,       27 } }, \
+		{ 1963500000UL, {  1675751,   -38635,       27 } }, \
+		{ 2014500000UL, {  1716501,   -39395,       27 } }, \
+		{ 0,	        { } }, \
+	}, \
+	.vmin_coefficients =	{   620000,        0,        0 }, \
+	.cpu_dfll_data = {					  \
+		.tune0_low  = 0x0000FFCF,			  \
+		.tune1_low  = 0x016607FF,			  \
+		.tune1_high = 0x03FFF7FF,			  \
+		.tune_high_min_millivolts = 850,		  \
+		.tune_high_margin_millivolts = 38,		  \
+		.dvco_calibration_max = ULONG_MAX,		  \
+	}, \
+	.cvb_version = "FCPU Table - p4v3"
+
+struct cvb_table tegra210b01_cpu_cvb_tables[] = {
+	{
+		.speedo_id = 3,
+		.process_id = -1,
+		.max_millivolts = 1120,
+		CPUB01_CVB_TABLE,
+	},
+	{
+		.speedo_id = 2,
+		.process_id = 1,
+		.max_millivolts = 1120,
+		CPUB01_CVB_TABLE_SLT_B1,
+	},
+	{
+		.speedo_id = 2,
+		.process_id = 0,
+		.max_millivolts = 1120,
+		CPUB01_CVB_TABLE_SLT_B0,
+	},
+	{
+		.speedo_id = -1,
+		.process_id = -1,
+		.max_millivolts = 1120,
+		CPUB01_CVB_TABLE,
+	},
+};
+
+static struct thermal_tv tegra210_thermal_floor_table[] = {
+	{TEGRA210_DFLL_THERMAL_FLOOR_0 / 1000, 950},
+	{DFLL_THERMAL_FLOOR_NOFLOOR / 1000,    0},
+};
+
+static const struct thermal_tv tegra210_thermal_cap_table[] = {
+	{DFLL_THERMAL_CAP_NOCAP / 1000,      INT_MAX},
+	{TEGRA210_DFLL_THERMAL_CAP_0 / 1000, 1170},
+	{TEGRA210_DFLL_THERMAL_CAP_1 / 1000, 1132},
+};
+
+static const struct thermal_tv tegra210_thermal_cap_ucm2_table[] = {
+	{DFLL_THERMAL_CAP_NOCAP / 1000,      INT_MAX},
+	{TEGRA210_DFLL_THERMAL_CAP_0 / 1000, 1162},
+	{TEGRA210_DFLL_THERMAL_CAP_1 / 1000, 1090},
+};
+
+static const struct thermal_table tegra210_cpu_thermal_table = {
+	.thermal_floor_table = tegra210_thermal_floor_table,
+	.thermal_floor_table_size = ARRAY_SIZE(tegra210_thermal_floor_table),
+	.coefficients = { {800000, 0, 0}, 0, 0, 0 },
+	.speedo_scale = 100,
+	.voltage_scale = 1000,
+	.temp_scale = 10,
+	.thermal_cap_table = tegra210_thermal_cap_table,
+	.thermal_cap_table_size = ARRAY_SIZE(tegra210_thermal_cap_table),
+	.thermal_cap_ucm2_table = tegra210_thermal_cap_ucm2_table,
+	.thermal_cap_ucm2_table_size = ARRAY_SIZE(tegra210_thermal_cap_ucm2_table),
+};
+
+static struct thermal_tv tegra210b01_thermal_floor_table[] = {
+	{TEGRA210B01_DFLL_THERMAL_FLOOR_0 / 1000, 800},
+	{TEGRA210B01_DFLL_THERMAL_FLOOR_1 / 1000, 0},
+	{DFLL_THERMAL_FLOOR_NOFLOOR / 1000,       0},
+};
+
+static const struct thermal_tv tegra210b01_thermal_cap_table[] = {
+	{DFLL_THERMAL_CAP_NOCAP / 1000,         INT_MAX},
+	{TEGRA210B01_DFLL_THERMAL_CAP_0 / 1000, 1060},
+	{TEGRA210B01_DFLL_THERMAL_CAP_1 / 1000, 1010},
+};
+
+static const struct thermal_table tegra210b01_cpu_thermal_table = {
+	.thermal_floor_table = tegra210b01_thermal_floor_table,
+	.thermal_floor_table_size = ARRAY_SIZE(tegra210b01_thermal_floor_table),
+	.speedo_scale = 100,
+	.voltage_scale = 1000,
+	.temp_scale = 10,
+	.thermal_cap_table = tegra210b01_thermal_cap_table,
+	.thermal_cap_table_size = ARRAY_SIZE(tegra210b01_thermal_cap_table),
+	.thermal_cap_ucm2_table =  tegra210b01_thermal_cap_table,
+	.thermal_cap_ucm2_table_size = ARRAY_SIZE(tegra210b01_thermal_cap_table)
 };
 
 static const struct dfll_fcpu_data tegra124_dfll_fcpu_data = {
@@ -506,6 +710,15 @@ static const struct dfll_fcpu_data tegra210_dfll_fcpu_data = {
 	.cpu_max_freq_table_size = ARRAY_SIZE(tegra210_cpu_max_freq_table),
 	.cpu_cvb_tables = tegra210_cpu_cvb_tables,
 	.cpu_cvb_tables_size = ARRAY_SIZE(tegra210_cpu_cvb_tables),
+	.cpu_thermal_table = &tegra210_cpu_thermal_table
+};
+
+static const struct dfll_fcpu_data tegra210b01_dfll_fcpu_data = {
+	.cpu_max_freq_table = tegra210b01_cpu_max_freq_table,
+	.cpu_max_freq_table_size = ARRAY_SIZE(tegra210b01_cpu_max_freq_table),
+	.cpu_cvb_tables = tegra210b01_cpu_cvb_tables,
+	.cpu_cvb_tables_size = ARRAY_SIZE(tegra210b01_cpu_cvb_tables),
+	.cpu_thermal_table = &tegra210b01_cpu_thermal_table
 };
 
 static const struct of_device_id tegra124_dfll_fcpu_of_match[] = {
@@ -516,6 +729,10 @@ static const struct of_device_id tegra124_dfll_fcpu_of_match[] = {
 	{
 		.compatible = "nvidia,tegra210-dfll",
 		.data = &tegra210_dfll_fcpu_data
+	},
+	{
+		.compatible = "nvidia,tegra210b01-dfll",
+		.data = &tegra210b01_dfll_fcpu_data
 	},
 	{ },
 };
@@ -550,17 +767,29 @@ static int get_alignment_from_regulator(struct device *dev,
 	return 0;
 }
 
+#define INIT_TUNE_PRAM(p) \
+do {								\
+	if (of_property_read_u32(pdev->dev.of_node,		\
+			"nvidia,dfll-override-" #p, &soc->p))	\
+		soc->p = soc->cvb->cpu_dfll_data.p;		\
+} while (0)
+
 static int tegra124_dfll_fcpu_probe(struct platform_device *pdev)
 {
 	int process_id, speedo_id, speedo_value, err;
 	struct tegra_dfll_soc_data *soc;
 	const struct dfll_fcpu_data *fcpu_data;
 	struct rail_alignment align;
+	const struct thermal_table *thermal;
+	unsigned long max_freq;
+	bool ucm2;
+	u32 f;
 
 	fcpu_data = of_device_get_match_data(&pdev->dev);
 	if (!fcpu_data)
 		return -ENODEV;
 
+	ucm2 = tegra_sku_info.ucm == TEGRA_UCM2;
 	process_id = tegra_sku_info.cpu_process_id;
 	speedo_id = tegra_sku_info.cpu_speedo_id;
 	speedo_value = tegra_sku_info.cpu_speedo_value;
@@ -570,6 +799,9 @@ static int tegra124_dfll_fcpu_probe(struct platform_device *pdev)
 			speedo_id);
 		return -ENODEV;
 	}
+	max_freq = fcpu_data->cpu_max_freq_table[speedo_id];
+	if (!of_property_read_u32(pdev->dev.of_node, "nvidia,dfll-max-freq-khz", &f))
+		max_freq = min(max_freq, f * 1000UL);
 
 	soc = devm_kzalloc(&pdev->dev, sizeof(*soc), GFP_KERNEL);
 	if (!soc)
@@ -589,18 +821,45 @@ static int tegra124_dfll_fcpu_probe(struct platform_device *pdev)
 			return err;
 	}
 
-	soc->max_freq = fcpu_data->cpu_max_freq_table[speedo_id];
-
+	soc->max_freq = max_freq;
 	soc->cvb = tegra_cvb_add_opp_table(soc->dev, fcpu_data->cpu_cvb_tables,
 					   fcpu_data->cpu_cvb_tables_size,
 					   &align, process_id, speedo_id,
-					   speedo_value, soc->max_freq);
+					   speedo_value, soc->max_freq,
+					   &soc->min_millivolts);
 	soc->alignment = align;
 
 	if (IS_ERR(soc->cvb)) {
 		dev_err(&pdev->dev, "couldn't add OPP table: %ld\n",
 			PTR_ERR(soc->cvb));
 		return PTR_ERR(soc->cvb);
+	}
+
+	INIT_TUNE_PRAM(tune0_low);
+	INIT_TUNE_PRAM(tune0_high);
+	INIT_TUNE_PRAM(tune1_low);
+	INIT_TUNE_PRAM(tune1_high);
+	INIT_TUNE_PRAM(tune_high_min_millivolts);
+	INIT_TUNE_PRAM(tune_high_margin_millivolts);
+
+	thermal = fcpu_data->cpu_thermal_table;
+	err = tegra_cvb_build_thermal_table(thermal, speedo_value,
+						soc->min_millivolts);
+	if (err < 0) {
+		pr_warn("couldn't build thermal floor table\n");
+	} else {
+		soc->thermal_floor_table = thermal->thermal_floor_table;
+		soc->thermal_floor_table_size = thermal->thermal_floor_table_size;
+	}
+
+	if (thermal && thermal->thermal_cap_table && !ucm2) {
+		soc->thermal_cap_table = thermal->thermal_cap_table;
+		soc->thermal_cap_table_size = thermal->thermal_cap_table_size;
+	} else if (thermal && thermal->thermal_cap_ucm2_table && ucm2) {
+		soc->thermal_cap_table = thermal->thermal_cap_ucm2_table;
+		soc->thermal_cap_table_size = thermal->thermal_cap_ucm2_table_size;
+	} else {
+		pr_warn("couldn't get thermal cap table\n");
 	}
 
 	err = tegra_dfll_register(pdev, soc);
@@ -632,6 +891,7 @@ static const struct dev_pm_ops tegra124_dfll_pm_ops = {
 	SET_RUNTIME_PM_OPS(tegra_dfll_runtime_suspend,
 			   tegra_dfll_runtime_resume, NULL)
 	SET_SYSTEM_SLEEP_PM_OPS(tegra_dfll_suspend, tegra_dfll_resume)
+	SET_LATE_SYSTEM_SLEEP_PM_OPS(NULL, tegra_dfll_resume_tuning)
 };
 
 static struct platform_driver tegra124_dfll_fcpu_driver = {

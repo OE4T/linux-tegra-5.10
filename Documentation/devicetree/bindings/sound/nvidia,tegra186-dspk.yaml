@@ -16,6 +16,7 @@ description: |
 maintainers:
   - Jon Hunter <jonathanh@nvidia.com>
   - Sameer Pujar <spujar@nvidia.com>
+  - Mohan Kumar D <mkumard@nvidia.com>
 
 properties:
   $nodename:
@@ -55,6 +56,13 @@ properties:
       The name can be "DSPK1" or "DSPKx", where x depends on the maximum
       available instances on a Tegra SoC.
 
+  "#sound-dai-cells":
+    description: cell specifies number of DAIs.
+    const: 1
+
+  nvidia,ahub-dspk-id:
+    description: must be specified to uniquely indentify DSPK instance
+
 required:
   - compatible
   - reg
@@ -62,7 +70,7 @@ required:
   - clock-names
   - assigned-clocks
   - assigned-clock-parents
-  - sound-name-prefix
+  - "#sound-dai-cells"
 
 additionalProperties: false
 
@@ -79,6 +87,8 @@ examples:
         assigned-clock-parents = <&bpmp TEGRA186_CLK_PLL_A_OUT0>;
         assigned-clock-rates = <12288000>;
         sound-name-prefix = "DSPK1";
+        #sound-dai-cells = <1>;
+        nvidia,ahub-dspk-id = <0>;
     };
 
 ...

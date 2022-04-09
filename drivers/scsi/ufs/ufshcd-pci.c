@@ -4,6 +4,7 @@
  *
  * This code is based on drivers/scsi/ufs/ufshcd-pci.c
  * Copyright (C) 2011-2013 Samsung India Software Operations
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Authors:
  *	Santosh Yaraganavi <santosh.sy@samsung.com>
@@ -350,6 +351,7 @@ ufshcd_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	pci_set_drvdata(pdev, hba);
 
 	hba->vops = (struct ufs_hba_variant_ops *)id->driver_data;
+	INIT_LIST_HEAD(&hba->clk_list_head);
 
 	err = ufshcd_init(hba, mmio_base, pdev->irq);
 	if (err) {

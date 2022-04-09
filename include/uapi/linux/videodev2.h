@@ -642,6 +642,11 @@ struct v4l2_pix_format {
 #define V4L2_PIX_FMT_SGBRG10 v4l2_fourcc('G', 'B', '1', '0') /* 10  GBGB.. RGRG.. */
 #define V4L2_PIX_FMT_SGRBG10 v4l2_fourcc('B', 'A', '1', '0') /* 10  GRGR.. BGBG.. */
 #define V4L2_PIX_FMT_SRGGB10 v4l2_fourcc('R', 'G', '1', '0') /* 10  RGRG.. GBGB.. */
+	/*10bit raw bayer packed, 4 bytes for every 3 pixels */
+#define V4L2_PIX_FMT_XBGGR10P   v4l2_fourcc('X', 'B', 'G', 'P') /* 32  BGGR Packed 10-10-10-2 */
+#define V4L2_PIX_FMT_XGBRG10P   v4l2_fourcc('X', 'G', 'B', 'P') /* 32  GBRG Packed 10-10-10-2 */
+#define V4L2_PIX_FMT_XGRBG10P   v4l2_fourcc('X', 'G', 'R', 'P') /* 32  GRBG Packed 10-10-10-2 */
+#define V4L2_PIX_FMT_XRGGB10P   v4l2_fourcc('X', 'R', 'G', 'P') /* 32  RGGB Packed 10-10-10-2 */
 	/* 10bit raw bayer packed, 5 bytes for every 4 pixels */
 #define V4L2_PIX_FMT_SBGGR10P v4l2_fourcc('p', 'B', 'A', 'A')
 #define V4L2_PIX_FMT_SGBRG10P v4l2_fourcc('p', 'G', 'A', 'A')
@@ -740,6 +745,14 @@ struct v4l2_pix_format {
 #define V4L2_PIX_FMT_INZI     v4l2_fourcc('I', 'N', 'Z', 'I') /* Intel Planar Greyscale 10-bit and Depth 16-bit */
 #define V4L2_PIX_FMT_SUNXI_TILED_NV12 v4l2_fourcc('S', 'T', '1', '2') /* Sunxi Tiled NV12 Format */
 #define V4L2_PIX_FMT_CNF4     v4l2_fourcc('C', 'N', 'F', '4') /* Intel 4-bit packed depth confidence information */
+#define V4L2_PIX_FMT_RW16     v4l2_fourcc('R', 'W', '1', '6') /* Raw data 16-bit */
+#define V4L2_PIX_FMT_W10      v4l2_fourcc('W', '1', '0', ' ') /* Packed raw data 10-bit */
+#define V4L2_PIX_FMT_CONFIDENCE_MAP	v4l2_fourcc('C', ' ', ' ', ' ') /* Two pixels in one byte */
+/*  Librealsense development */
+#define V4L2_PIX_FMT_FG       v4l2_fourcc('F', 'G', ' ', ' ') /* Frame Grabber */
+#define V4L2_PIX_FMT_INZC     v4l2_fourcc('I', 'N', 'Z', 'C') /* Planar Depth/Confidence */
+#define V4L2_PIX_FMT_PAIR     v4l2_fourcc('P', 'A', 'I', 'R') /* Relative IR */
+#define V4L2_PIX_FMT_Z16H     v4l2_fourcc('Z', '1', '6', 'H') /* Depth Z16 custom Huffman Code compression*/
 
 /* 10bit raw bayer packed, 32 bytes for every 25 pixels, last LSB 6 bits unused */
 #define V4L2_PIX_FMT_IPU3_SBGGR10	v4l2_fourcc('i', 'p', '3', 'b') /* IPU3 packed 10-bit BGGR bayer */
@@ -2251,7 +2264,8 @@ struct v4l2_pix_format_mplane {
 	};
 	__u8				quantization;
 	__u8				xfer_func;
-	__u8				reserved[7];
+	__u8				metadata_height;
+	__u8				reserved[6];
 } __attribute__ ((packed));
 
 /**
@@ -2353,6 +2367,7 @@ struct v4l2_event_frame_sync {
 };
 
 #define V4L2_EVENT_SRC_CH_RESOLUTION		(1 << 0)
+#define V4L2_EVENT_SRC_ERROR			(1 << 1)
 
 struct v4l2_event_src_change {
 	__u32 changes;

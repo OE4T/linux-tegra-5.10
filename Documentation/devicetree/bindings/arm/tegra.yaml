@@ -108,10 +108,35 @@ properties:
       - items:
           - enum:
               - nvidia,p2771-0000
+              - nvidia,p2382_t186
           - const: nvidia,tegra186
       - items:
           - enum:
               - nvidia,p2972-0000
+              - nvidia,tegra194-neckar-b2-A
+              - nvidia,tegra194-neckar-b2-B
+          - const: nvidia,tegra194
+      - items:
+          - enum:
+              - nvidia,tegra194-e3550-b01-A
+              - nvidia,tegra194-e3550-b03-A
+              - nvidia,tegra194-i-e3550-b01-A
+              - nvidia,tegra194-i-e3550-b03-A
+          - const: nvidia,tegra194-e3550-A
+          - const: nvidia,tegra194
+
+      - items:
+          - enum:
+              - nvidia,tegra194-e3550-b01-B
+              - nvidia,tegra194-e3550-b03-B
+          - const: nvidia,tegra194-e3550-B
+          - const: nvidia,tegra194
+      - items:
+          - enum:
+              - nvidia,tegra194-p3479-a01
+              - nvidia,tegra194-p3479-a04
+              - nvidia,tegra194-ad125-p3479-a04
+          - const: nvidia,tegra194-p3479
           - const: nvidia,tegra194
       - description: Jetson Xavier NX
         items:

@@ -78,6 +78,7 @@ struct max77686_rtc_driver_data {
 	int			alarm_pending_status_reg;
 	/* RTC IRQ CHIP for regmap */
 	const struct regmap_irq_chip *rtc_irq_chip;
+	bool avoid_rtc_bulk_write;
 	/* regmap configuration for the chip */
 	const struct regmap_config *regmap_config;
 };
@@ -141,13 +142,13 @@ static const unsigned int max77686_map[REG_RTC_END] = {
 	[REG_RTC_CONTROL]    = MAX77686_RTC_CONTROL,
 	[REG_RTC_UPDATE0]    = MAX77686_RTC_UPDATE0,
 	[REG_WTSR_SMPL_CNTL] = MAX77686_WTSR_SMPL_CNTL,
-	[REG_RTC_SEC]        = MAX77686_RTC_SEC,
-	[REG_RTC_MIN]        = MAX77686_RTC_MIN,
-	[REG_RTC_HOUR]       = MAX77686_RTC_HOUR,
+	[REG_RTC_SEC]	     = MAX77686_RTC_SEC,
+	[REG_RTC_MIN]	     = MAX77686_RTC_MIN,
+	[REG_RTC_HOUR]	     = MAX77686_RTC_HOUR,
 	[REG_RTC_WEEKDAY]    = MAX77686_RTC_WEEKDAY,
 	[REG_RTC_MONTH]      = MAX77686_RTC_MONTH,
-	[REG_RTC_YEAR]       = MAX77686_RTC_YEAR,
-	[REG_RTC_DATE]       = MAX77686_RTC_DATE,
+	[REG_RTC_YEAR]	     = MAX77686_RTC_YEAR,
+	[REG_RTC_DATE]	     = MAX77686_RTC_DATE,
 	[REG_ALARM1_SEC]     = MAX77686_ALARM1_SEC,
 	[REG_ALARM1_MIN]     = MAX77686_ALARM1_MIN,
 	[REG_ALARM1_HOUR]    = MAX77686_ALARM1_HOUR,
@@ -198,6 +199,7 @@ static const struct max77686_rtc_driver_data max77686_drv_data = {
 	.alarm_pending_status_reg = MAX77686_REG_STATUS2,
 	.rtc_i2c_addr = MAX77686_I2C_ADDR_RTC,
 	.rtc_irq_chip = &max77686_rtc_irq_chip,
+	.avoid_rtc_bulk_write = false,
 	.regmap_config = &max77686_rtc_regmap_config,
 };
 
@@ -216,6 +218,7 @@ static const struct max77686_rtc_driver_data max77620_drv_data = {
 	.alarm_pending_status_reg = MAX77686_INVALID_REG,
 	.rtc_i2c_addr = MAX77620_I2C_ADDR_RTC,
 	.rtc_irq_chip = &max77686_rtc_irq_chip,
+	.avoid_rtc_bulk_write = true,
 	.regmap_config = &max77620_rtc_regmap_config,
 };
 
@@ -224,13 +227,13 @@ static const unsigned int max77802_map[REG_RTC_END] = {
 	[REG_RTC_CONTROL]    = MAX77802_RTC_CONTROL,
 	[REG_RTC_UPDATE0]    = MAX77802_RTC_UPDATE0,
 	[REG_WTSR_SMPL_CNTL] = MAX77802_WTSR_SMPL_CNTL,
-	[REG_RTC_SEC]        = MAX77802_RTC_SEC,
-	[REG_RTC_MIN]        = MAX77802_RTC_MIN,
-	[REG_RTC_HOUR]       = MAX77802_RTC_HOUR,
+	[REG_RTC_SEC]	     = MAX77802_RTC_SEC,
+	[REG_RTC_MIN]	     = MAX77802_RTC_MIN,
+	[REG_RTC_HOUR]	     = MAX77802_RTC_HOUR,
 	[REG_RTC_WEEKDAY]    = MAX77802_RTC_WEEKDAY,
 	[REG_RTC_MONTH]      = MAX77802_RTC_MONTH,
-	[REG_RTC_YEAR]       = MAX77802_RTC_YEAR,
-	[REG_RTC_DATE]       = MAX77802_RTC_DATE,
+	[REG_RTC_YEAR]	     = MAX77802_RTC_YEAR,
+	[REG_RTC_DATE]	     = MAX77802_RTC_DATE,
 	[REG_ALARM1_SEC]     = MAX77802_ALARM1_SEC,
 	[REG_ALARM1_MIN]     = MAX77802_ALARM1_MIN,
 	[REG_ALARM1_HOUR]    = MAX77802_ALARM1_HOUR,
@@ -267,6 +270,32 @@ static const struct max77686_rtc_driver_data max77802_drv_data = {
 	.rtc_i2c_addr = MAX77686_INVALID_I2C_ADDR,
 	.rtc_irq_chip = &max77802_rtc_irq_chip,
 };
+
+static inline int _regmap_bulk_write(struct max77686_rtc_info *info,
+		unsigned int reg, void *val, int len)
+{
+	int ret = 0;
+
+	if (!info->drv_data->avoid_rtc_bulk_write) {
+		/* RTC registers support sequential writing */
+		ret = regmap_bulk_write(info->rtc_regmap, reg, val, len);
+	} else {
+		/* Power registers support register-data pair writing */
+		u8 *src = (u8 *)val;
+		int i;
+
+		for (i = 0; i < len; i++) {
+			ret = regmap_write(info->rtc_regmap, reg, *src++);
+			if (ret < 0)
+				break;
+			reg++;
+		}
+	}
+	if (ret < 0)
+		dev_err(info->dev, "%s() failed, e %d\n", __func__, ret);
+
+	return ret;
+}
 
 static void max77686_rtc_data_to_tm(u8 *data, struct rtc_time *tm,
 				    struct max77686_rtc_info *info)
@@ -390,9 +419,9 @@ static int max77686_rtc_set_time(struct device *dev, struct rtc_time *tm)
 
 	mutex_lock(&info->lock);
 
-	ret = regmap_bulk_write(info->rtc_regmap,
-				info->drv_data->map[REG_RTC_SEC],
-				data, ARRAY_SIZE(data));
+	ret = _regmap_bulk_write(info,
+				 info->drv_data->map[REG_RTC_SEC],
+				 data, ARRAY_SIZE(data));
 	if (ret < 0) {
 		dev_err(info->dev, "Fail to write time reg(%d)\n", ret);
 		goto out;
@@ -513,8 +542,8 @@ static int max77686_rtc_stop_alarm(struct max77686_rtc_info *info)
 		for (i = 0; i < ARRAY_SIZE(data); i++)
 			data[i] &= ~ALARM_ENABLE_MASK;
 
-		ret = regmap_bulk_write(info->rtc_regmap, map[REG_ALARM1_SEC],
-					data, ARRAY_SIZE(data));
+		ret = _regmap_bulk_write(info, map[REG_ALARM1_SEC],
+					 data, ARRAY_SIZE(data));
 	}
 
 	if (ret < 0) {
@@ -565,8 +594,8 @@ static int max77686_rtc_start_alarm(struct max77686_rtc_info *info)
 		if (data[RTC_DATE] & 0x1f)
 			data[RTC_DATE] |= (1 << ALARM_ENABLE_SHIFT);
 
-		ret = regmap_bulk_write(info->rtc_regmap, map[REG_ALARM1_SEC],
-					data, ARRAY_SIZE(data));
+		ret = _regmap_bulk_write(info, map[REG_ALARM1_SEC],
+					 data, ARRAY_SIZE(data));
 	}
 
 	if (ret < 0) {
@@ -595,9 +624,9 @@ static int max77686_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 	if (ret < 0)
 		goto out;
 
-	ret = regmap_bulk_write(info->rtc_regmap,
-				info->drv_data->map[REG_ALARM1_SEC],
-				data, ARRAY_SIZE(data));
+	ret = _regmap_bulk_write(info,
+				 info->drv_data->map[REG_ALARM1_SEC],
+				 data, ARRAY_SIZE(data));
 
 	if (ret < 0) {
 		dev_err(info->dev, "Fail to write alarm reg(%d)\n", ret);
@@ -661,9 +690,9 @@ static int max77686_rtc_init_reg(struct max77686_rtc_info *info)
 
 	info->rtc_24hr_mode = 1;
 
-	ret = regmap_bulk_write(info->rtc_regmap,
-				info->drv_data->map[REG_RTC_CONTROLM],
-				data, ARRAY_SIZE(data));
+	ret = _regmap_bulk_write(info,
+				 info->drv_data->map[REG_RTC_CONTROLM],
+				 data, ARRAY_SIZE(data));
 	if (ret < 0) {
 		dev_err(info->dev, "Fail to write controlm reg(%d)\n", ret);
 		return ret;
@@ -732,7 +761,12 @@ static int max77686_rtc_probe(struct platform_device *pdev)
 {
 	struct max77686_rtc_info *info;
 	const struct platform_device_id *id = platform_get_device_id(pdev);
+	struct device_node *np;
 	int ret;
+
+	np = of_get_child_by_name(pdev->dev.parent->of_node, "rtc");
+	if (np && !of_device_is_available(np))
+		return -ENODEV;
 
 	info = devm_kzalloc(&pdev->dev, sizeof(struct max77686_rtc_info),
 			    GFP_KERNEL);

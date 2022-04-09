@@ -1,6 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-only */
+/* SPDX-License-Identifier: GPL-2.0 OR MIT */
 /*
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #ifndef ABI_BPMP_ABI_H
@@ -74,6 +74,32 @@
 
 /**
  * @ingroup MRQ_Format
+ * Request an answer from the peer.
+ * This should be set in mrq_request::flags for all requests targetted
+ * at BPMP. For requests originating in BPMP, this flag is optional except
+ * for messages targeting MCE, for which the field must be set.
+ * When this flag is not set, the remote peer must not send a response
+ * back.
+ */
+#define BPMP_MAIL_DO_ACK	(1U << 0U)
+
+/**
+ * @ingroup MRQ_Format
+ * Ring the sender's doorbell when responding. This should be set unless
+ * the sender wants to poll the underlying communications layer directly.
+ *
+ * An optional direction that can be specified in mrq_request::flags.
+ */
+#define BPMP_MAIL_RING_DB	(1U << 1U)
+
+/**
+ * @ingroup MRQ_Format
+ * CRC present
+ */
+#define BPMP_MAIL_CRC_PRESENT	(1U << 2U)
+
+/**
+ * @ingroup MRQ_Format
  * @brief Header for an MRQ message
  *
  * Provides the MRQ number for the MRQ message: #mrq. The remainder of
@@ -85,12 +111,128 @@ struct mrq_request {
 	uint32_t mrq;
 
 	/**
-	 * @brief Flags providing follow up directions to the receiver
+	 * @brief 32bit word containing a number of fields as follows:
 	 *
-	 * | Bit | Description                                |
-	 * |-----|--------------------------------------------|
-	 * | 1   | ring the sender's doorbell when responding |
-	 * | 0   | should be 1                                |
+	 * 	struct {
+	 * 		uint8_t options:4;
+	 * 		uint8_t xid:4;
+	 * 		uint8_t payload_length;
+	 * 		uint16_t crc16;
+	 * 	};
+	 *
+	 * **options** directions to the receiver and indicates CRC presence.
+	 *
+	 * #BPMP_MAIL_DO_ACK and  #BPMP_MAIL_RING_DB see documentation of respective options.
+	 * #BPMP_MAIL_CRC_PRESENT is supported on T234 and later platforms. It indicates the
+	 * crc16, xid and length fields are present when set.
+	 * Some platform configurations, especially when targeted to applications requiring
+	 * functional safety, mandate this option being set or otherwise will respond with
+	 * -BPMP_EBADMSG and ignore the request.
+	 *
+	 * **xid** is a transaction ID.
+	 *
+	 * Only used when #BPMP_MAIL_CRC_PRESENT is set.
+	 *
+	 * **payload_length** of the message expressed in bytes without the size of this header.
+	 * See table below for minimum accepted payload lengths for each MRQ.
+	 * Note: For DMCE communication, this field expresses the length as a multiple of 4 bytes
+	 * rather than bytes.
+	 *
+	 * Only used when #BPMP_MAIL_CRC_PRESENT is set.
+	 *
+	 * | MRQ                  | CMD                                  | minimum payload length
+	 * | -------------------- | ------------------------------------ | ------------------------------------------ |
+	 * | MRQ_PING             |                                      | 4                                          |
+	 * | MRQ_THREADED_PING    |                                      | 4                                          |
+	 * | MRQ_RESET            | any                                  | 8                                          |
+	 * | MRQ_I2C              |                                      | 12 + cmd_i2c_xfer_request.data_size        |
+	 * | MRQ_CLK              | CMD_CLK_GET_RATE                     | 4                                          |
+	 * | MRQ_CLK              | CMD_CLK_SET_RATE                     | 16                                         |
+	 * | MRQ_CLK              | CMD_CLK_ROUND_RATE                   | 16                                         |
+	 * | MRQ_CLK              | CMD_CLK_GET_PARENT                   | 4                                          |
+	 * | MRQ_CLK              | CMD_CLK_SET_PARENT                   | 8                                          |
+	 * | MRQ_CLK              | CMD_CLK_ENABLE                       | 4                                          |
+	 * | MRQ_CLK              | CMD_CLK_DISABLE                      | 4                                          |
+	 * | MRQ_CLK              | CMD_CLK_IS_ENABLED                   | 4                                          |
+	 * | MRQ_CLK              | CMD_CLK_GET_ALL_INFO                 | 4                                          |
+	 * | MRQ_CLK              | CMD_CLK_GET_MAX_CLK_ID               | 4                                          |
+	 * | MRQ_CLK              | CMD_CLK_GET_FMAX_AT_VMIN             | 4                                          |
+	 * | MRQ_QUERY_ABI        |                                      | 4                                          |
+	 * | MRQ_PG               | CMD_PG_QUERY_ABI                     | 12                                         |
+	 * | MRQ_PG               | CMD_PG_SET_STATE                     | 12                                         |
+	 * | MRQ_PG               | CMD_PG_GET_STATE                     | 8                                          |
+	 * | MRQ_PG               | CMD_PG_GET_NAME                      | 8                                          |
+	 * | MRQ_PG               | CMD_PG_GET_MAX_ID                    | 8                                          |
+	 * | MRQ_THERMAL          | CMD_THERMAL_QUERY_ABI                | 8                                          |
+	 * | MRQ_THERMAL          | CMD_THERMAL_GET_TEMP                 | 8                                          |
+	 * | MRQ_THERMAL          | CMD_THERMAL_SET_TRIP                 | 20                                         |
+	 * | MRQ_THERMAL          | CMD_THERMAL_GET_NUM_ZONES            | 4                                          |
+	 * | MRQ_THERMAL          | CMD_THERMAL_GET_THERMTRIP            | 8                                          |
+	 * | MRQ_CPU_VHINT        |                                      | 8                                          |
+	 * | MRQ_ABI_RATCHET      |                                      | 2                                          |
+	 * | MRQ_EMC_DVFS_LATENCY |                                      | 8                                          |
+	 * | MRQ_EMC_DVFS_EMCHUB  |                                      | 8                                          |
+	 * | MRQ_BWMGR            | CMD_BWMGR_QUERY_ABI                  | 8                                          |
+	 * | MRQ_BWMGR            | CMD_BWMGR_CALC_RATE                  | 112                                        |
+	 * | MRQ_ISO_CLIENT       | CMD_ISO_CLIENT_QUERY_ABI             | 8                                          |
+	 * | MRQ_ISO_CLIENT       | CMD_ISO_CLIENT_CALCULATE_LA          | 16                                         |
+	 * | MRQ_ISO_CLIENT       | CMD_ISO_CLIENT_SET_LA                | 16                                         |
+	 * | MRQ_ISO_CLIENT       | CMD_ISO_CLIENT_GET_MAX_BW            | 8                                          |
+	 * | MRQ_CPU_NDIV_LIMITS  |                                      | 4                                          |
+	 * | MRQ_CPU_AUTO_CC3     |                                      | 4                                          |
+	 * | MRQ_RINGBUF_CONSOLE  | CMD_RINGBUF_CONSOLE_QUERY_ABI        | 8                                          |
+	 * | MRQ_RINGBUF_CONSOLE  | CMD_RINGBUF_CONSOLE_READ             | 5                                          |
+	 * | MRQ_RINGBUF_CONSOLE  | CMD_RINGBUF_CONSOLE_WRITE            | 5 + cmd_ringbuf_console_write_req.len      |
+	 * | MRQ_RINGBUF_CONSOLE  | CMD_RINGBUF_CONSOLE_GET_FIFO         | 4                                          |
+	 * | MRQ_STRAP            | STRAP_SET                            | 12                                         |
+	 * | MRQ_UPHY             | CMD_UPHY_PCIE_LANE_MARGIN_CONTROL    | 24                                         |
+	 * | MRQ_UPHY             | CMD_UPHY_PCIE_LANE_MARGIN_STATUS     | 4                                          |
+	 * | MRQ_UPHY             | CMD_UPHY_PCIE_EP_CONTROLLER_PLL_INIT | 5                                          |
+	 * | MRQ_UPHY             | CMD_UPHY_PCIE_CONTROLLER_STATE       | 6                                          |
+	 * | MRQ_UPHY             | CMD_UPHY_PCIE_EP_CONTROLLER_PLL_OFF  | 5                                          |
+	 * | MRQ_FMON             | CMD_FMON_GEAR_CLAMP                  | 16                                         |
+	 * | MRQ_FMON             | CMD_FMON_GEAR_FREE                   | 4                                          |
+	 * | MRQ_FMON             | CMD_FMON_GEAR_GET                    | 4                                          |
+	 * | MRQ_FMON             | CMD_FMON_FAULT_STS_GET               | 8                                          |
+	 * | MRQ_EC               | CMD_EC_STATUS_EX_GET                 | 12                                         |
+	 * | MRQ_QUERY_FW_TAG     |                                      | 0                                          |
+	 * | MRQ_DEBUG            | CMD_DEBUG_OPEN_RO                    | 4 + length of cmd_debug_fopen_request.name |
+	 * | MRQ_DEBUG            | CMD_DEBUG_OPEN_WO                    | 4 + length of cmd_debug_fopen_request.name |
+	 * | MRQ_DEBUG            | CMD_DEBUG_READ                       | 8                                          |
+	 * | MRQ_DEBUG            | CMD_DEBUG_WRITE                      | 12 + cmd_debug_fwrite_request.datalen      |
+	 * | MRQ_DEBUG            | CMD_DEBUG_CLOSE                      | 8                                          |
+	 *
+	 * **crc16**
+	 *
+	 * CRC16 using polynomial x^16 + x^14 + x^12 + x^11 + x^8 + x^5 + x^4 + x^2 + 1
+	 * and initialization value 0x4657. The CRC is calculated over all bytes of the message
+	 * including this header. However the crc16 field is considered to be set to 0 when
+	 * calculating the CRC. Only used when #BPMP_MAIL_CRC_PRESENT is set. If
+	 * #BPMP_MAIL_CRC_PRESENT is set and this field does not match the CRC as
+	 * calculated by BPMP, -BPMP_EBADMSG will be returned and the request will
+	 * be ignored. See code snippet below on how to calculate the CRC.
+	 *
+	 * @code
+	 *	uint16_t calc_crc_digest(uint16_t crc, uint8_t *data, size_t size)
+	 *	{
+	 *		for (size_t i = 0; i < size; i++) {
+	 *			crc ^= data[i] << 8;
+	 *			for (size_t j = 0; j < 8; j++) {
+	 *				if ((crc & 0x8000) == 0x8000) {
+	 *					crc = (crc << 1) ^ 0xAC9A;
+	 *				} else {
+	 *					crc = (crc << 1);
+	 *				}
+	 *			}
+	 *		}
+	 *		return crc;
+	 *	}
+	 *
+	 *	uint16_t calc_crc(uint8_t *data, size_t size)
+	 *	{
+	 *		return calc_crc_digest(0x4657, data, size);
+	 *	}
+	 * @endcode
 	 */
 	uint32_t flags;
 } BPMP_ABI_PACKED;
@@ -107,7 +249,35 @@ struct mrq_request {
 struct mrq_response {
 	/** @brief Error code for the MRQ request itself */
 	int32_t err;
-	/** @brief Reserved for future use */
+
+	/**
+	 * @brief 32bit word containing a number of fields as follows:
+	 *
+	 * 	struct {
+	 * 		uint8_t options:4;
+	 * 		uint8_t xid:4;
+	 * 		uint8_t payload_length;
+	 * 		uint16_t crc16;
+	 * 	};
+	 *
+	 * **options** indicates CRC presence.
+	 *
+	 * #BPMP_MAIL_CRC_PRESENT is supported on T234 and later platforms and
+	 * indicates the crc16 related fields are present when set.
+	 *
+	 * **xid** is the transaction ID as sent by the requestor.
+	 *
+	 * **length** of the message expressed in bytes without the size of this header.
+	 * Note: For DMCE communication, this field expresses the length as a multiple of 4 bytes
+	 * rather than bytes.
+	 *
+	 * **crc16**
+	 *
+	 * CRC16 using polynomial x^16 + x^14 + x^12 + x^11 + x^8 + x^5 + x^4 + x^2 + 1
+	 * and initialization value 0x4657. The CRC is calculated over all bytes of the message
+	 * including this header. However the crc16 field is considered to be set to 0 when
+	 * calculating the CRC. Only used when #BPMP_MAIL_CRC_PRESENT is set.
+	 */
 	uint32_t flags;
 } BPMP_ABI_PACKED;
 
@@ -131,24 +301,16 @@ struct mrq_response {
 
 #define MRQ_PING		0U
 #define MRQ_QUERY_TAG		1U
-#define MRQ_MODULE_LOAD		4U
-#define MRQ_MODULE_UNLOAD	5U
-#define MRQ_TRACE_MODIFY	7U
-#define MRQ_WRITE_TRACE		8U
 #define MRQ_THREADED_PING	9U
-#define MRQ_MODULE_MAIL		11U
 #define MRQ_DEBUGFS		19U
 #define MRQ_RESET		20U
 #define MRQ_I2C			21U
 #define MRQ_CLK			22U
 #define MRQ_QUERY_ABI		23U
-#define MRQ_PG_READ_STATE	25U
-#define MRQ_PG_UPDATE_STATE	26U
 #define MRQ_THERMAL		27U
 #define MRQ_CPU_VHINT		28U
 #define MRQ_ABI_RATCHET		29U
 #define MRQ_EMC_DVFS_LATENCY	31U
-#define MRQ_TRACE_ITER		64U
 #define MRQ_RINGBUF_CONSOLE	65U
 #define MRQ_PG			66U
 #define MRQ_CPU_NDIV_LIMITS	67U
@@ -159,6 +321,9 @@ struct mrq_response {
 #define MRQ_FMON		72U
 #define MRQ_EC			73U
 #define MRQ_DEBUG		75U
+#define MRQ_EMC_DVFS_EMCHUB	76U
+#define MRQ_BWMGR		77U
+#define MRQ_ISO_CLIENT		78U
 
 /** @} */
 
@@ -167,7 +332,7 @@ struct mrq_response {
  * @brief Maximum MRQ code to be sent by CPU software to
  * BPMP. Subject to change in future
  */
-#define MAX_CPU_MRQ_ID		75U
+#define MAX_CPU_MRQ_ID		78U
 
 /**
  * @addtogroup MRQ_Payloads
@@ -185,6 +350,8 @@ struct mrq_response {
  *   @defgroup Thermal Thermal
  *   @defgroup Vhint CPU Voltage hint
  *   @defgroup EMC EMC
+ *   @defgroup BWMGR BWMGR
+ *   @defgroup ISO_CLIENT ISO_CLIENT
  *   @defgroup CPU NDIV Limits
  *   @defgroup RingbufConsole Ring Buffer Console
  *   @defgroup Strap Straps
@@ -2023,7 +2190,7 @@ struct mrq_abi_ratchet_response {
  * @def MRQ_EMC_DVFS_LATENCY
  * @brief Query frequency dependent EMC DVFS latency
  *
- * * Platforms: T186, T194
+ * * Platforms: T186, T194, T234
  * * Initiators: CCPLEX
  * * Targets: BPMP
  * * Request Payload: N/A
@@ -2053,6 +2220,351 @@ struct mrq_emc_dvfs_latency_response {
 	struct emc_dvfs_latency pairs[EMC_DVFS_LATENCY_MAX_SIZE];
 } BPMP_ABI_PACKED;
 
+/** @} */
+
+/**
+ * @ingroup MRQ_Codes
+ * @def MRQ_EMC_DVFS_EMCHUB
+ * @brief Query EMC HUB frequencies
+ *
+ * * Platforms: T234 onwards
+ * @cond bpmp_t234
+ * * Initiators: CCPLEX
+ * * Targets: BPMP
+ * * Request Payload: N/A
+ * * Response Payload: @ref mrq_emc_dvfs_emchub_response
+ * @addtogroup EMC
+ * @{
+ */
+
+/**
+ * @brief Used by @ref mrq_emc_dvfs_emchub_response
+ */
+struct emc_dvfs_emchub {
+	/** @brief EMC DVFS node frequency in kHz */
+	uint32_t freq;
+	/** @brief EMC HUB frequency in kHz */
+	uint32_t hub_freq;
+} BPMP_ABI_PACKED;
+
+#define EMC_DVFS_EMCHUB_MAX_SIZE	EMC_DVFS_LATENCY_MAX_SIZE
+/**
+ * @brief Response to #MRQ_EMC_DVFS_EMCHUB
+ */
+struct mrq_emc_dvfs_emchub_response {
+	/** @brief The number valid entries in #pairs */
+	uint32_t num_pairs;
+	/** @brief EMC DVFS node <frequency, hub frequency> information */
+	struct emc_dvfs_emchub pairs[EMC_DVFS_EMCHUB_MAX_SIZE];
+} BPMP_ABI_PACKED;
+
+/** @} */
+/** @endcond */
+
+/**
+ * @ingroup MRQ_Codes
+ * @def MRQ_BWMGR
+ * @brief bwmgr requests
+ *
+ * * Platforms: T234 onwards
+ * @cond bpmp_t234
+ * * Initiators: CCPLEX
+ * * Targets: BPMP
+ * * Request Payload: @ref mrq_bwmgr_request
+ * * Response Payload: @ref mrq_bwmgr_response
+ *
+ * @addtogroup BWMGR
+ *
+ * @{
+ */
+
+enum mrq_bwmgr_cmd {
+	/**
+	 * @brief Check whether the BPMP driver supports the specified
+	 * request type
+	 *
+	 * mrq_response::err is 0 if the specified request is
+	 * supported and -#BPMP_ENODEV otherwise.
+	 */
+	CMD_BWMGR_QUERY_ABI = 0,
+
+	/**
+	 * @brief Determine dram rate to satisfy iso/niso bw requests
+	 *
+	 * mrq_response::err is
+	 * *  0: calc_rate succeeded.
+	 * *  -#BPMP_EINVAL: Invalid request parameters.
+	 * *  -#BPMP_ENOTSUP: Requested bw is not available.
+	 */
+	CMD_BWMGR_CALC_RATE = 1
+};
+
+/*
+ * request data for request type CMD_BWMGR_QUERY_ABI
+ *
+ * type: Request type for which to check existence.
+ */
+struct cmd_bwmgr_query_abi_request {
+	uint32_t type;
+} BPMP_ABI_PACKED;
+
+/**
+ * @brief Used by @ref cmd_bwmgr_calc_rate_request
+ */
+struct iso_req {
+	/* @brief bwmgr client ID @ref bpmp_bwmgr_ids */
+	uint32_t id;
+	/* @brief bw in kBps requested by client */
+	uint32_t iso_bw;
+} BPMP_ABI_PACKED;
+
+#define MAX_ISO_CLIENTS		13U
+/*
+ * request data for request type CMD_BWMGR_CALC_RATE
+ */
+struct cmd_bwmgr_calc_rate_request {
+	/* @brief total bw in kBps requested by all niso clients */
+	uint32_t sum_niso_bw;
+	/* @brief The number of iso clients */
+	uint32_t num_iso_clients;
+	/* @brief iso_req <id, iso_bw> information */
+	struct iso_req isobw_reqs[MAX_ISO_CLIENTS];
+} BPMP_ABI_PACKED;
+
+/*
+ * response data for request type CMD_BWMGR_CALC_RATE
+ *
+ * iso_rate_min: min dram data clk rate in kHz to satisfy all iso bw reqs
+ * total_rate_min: min dram data clk rate in kHz to satisfy all bw reqs
+ */
+struct cmd_bwmgr_calc_rate_response {
+	uint32_t iso_rate_min;
+	uint32_t total_rate_min;
+} BPMP_ABI_PACKED;
+
+/*
+ * @brief Request with #MRQ_BWMGR
+ *
+ *
+ * |sub-command                 |payload                       |
+ * |----------------------------|------------------------------|
+ * |CMD_BWMGR_QUERY_ABI         | cmd_bwmgr_query_abi_request  |
+ * |CMD_BWMGR_CALC_RATE         | cmd_bwmgr_calc_rate_request  |
+ *
+ */
+struct mrq_bwmgr_request {
+	uint32_t cmd;
+	union {
+		struct cmd_bwmgr_query_abi_request query_abi;
+		struct cmd_bwmgr_calc_rate_request bwmgr_rate_req;
+	} BPMP_UNION_ANON;
+} BPMP_ABI_PACKED;
+
+/*
+ * @brief Response to MRQ_BWMGR
+ *
+ * |sub-command                 |payload                       |
+ * |----------------------------|------------------------------|
+ * |CMD_BWMGR_CALC_RATE         | cmd_bwmgr_calc_rate_response |
+ */
+struct mrq_bwmgr_response {
+	union {
+		struct cmd_bwmgr_calc_rate_response bwmgr_rate_resp;
+	} BPMP_UNION_ANON;
+} BPMP_ABI_PACKED;
+
+/** @endcond */
+/** @} */
+
+/**
+ * @ingroup MRQ_Codes
+ * @def MRQ_ISO_CLIENT
+ * @brief ISO client requests
+ *
+ * * Platforms: T234 onwards
+ * @cond bpmp_t234
+ * * Initiators: CCPLEX
+ * * Targets: BPMP
+ * * Request Payload: @ref mrq_iso_client_request
+ * * Response Payload: @ref mrq_iso_client_response
+ *
+ * @addtogroup ISO_CLIENT
+ * @{
+ */
+
+enum mrq_iso_client_cmd {
+	/**
+	 * @brief Check whether the BPMP driver supports the specified
+	 * request type
+	 *
+	 * mrq_response::err is 0 if the specified request is
+	 * supported and -#BPMP_ENODEV otherwise.
+	 */
+	CMD_ISO_CLIENT_QUERY_ABI = 0,
+
+	/*
+	 * @brief check for legal LA for the iso client. Without programming
+	 * LA MC registers, calculate and ensure that legal LA is possible for
+	 * iso bw requested by the ISO client.
+	 *
+	 * mrq_response::err is
+	 * *  0: check la succeeded.
+	 * *  -#BPMP_EINVAL: Invalid request parameters.
+	 * *  -#BPMP_EFAULT: Legal LA is not possible for client requested iso_bw
+	 */
+	CMD_ISO_CLIENT_CALCULATE_LA = 1,
+
+	/*
+	 * @brief set LA for the iso client. Calculate and program the LA/PTSA
+	 * MC registers corresponding to the client making bw request
+	 *
+	 * mrq_response::err is
+	 * *  0: set la succeeded.
+	 * *  -#BPMP_EINVAL: Invalid request parameters.
+	 * *  -#BPMP_EFAULT: Failed to calculate or program MC registers.
+	 */
+	CMD_ISO_CLIENT_SET_LA = 2,
+
+	/*
+	 * @brief Get max possible bw for iso client
+	 *
+	 * mrq_response::err is
+	 * *  0: get_max_bw succeeded.
+	 * *  -#BPMP_EINVAL: Invalid request parameters.
+	 */
+	CMD_ISO_CLIENT_GET_MAX_BW = 3
+};
+
+/*
+ * request data for request type CMD_ISO_CLIENT_QUERY_ABI
+ *
+ * type: Request type for which to check existence.
+ */
+struct cmd_iso_client_query_abi_request {
+	uint32_t type;
+} BPMP_ABI_PACKED;
+
+/*
+ * request data for request type CMD_ISO_CLIENT_CALCULATE_LA
+ *
+ * id: client ID in @ref bpmp_bwmgr_ids
+ * bw: bw requested in kBps by client ID.
+ * init_bw_floor: initial dram_bw_floor in kBps passed by client ID.
+ * ISO client will perform mempool allocation and DVFS buffering based
+ * on this dram_bw_floor.
+ */
+struct cmd_iso_client_calculate_la_request {
+	uint32_t id;
+	uint32_t bw;
+	uint32_t init_bw_floor;
+} BPMP_ABI_PACKED;
+
+/*
+ * request data for request type CMD_ISO_CLIENT_SET_LA
+ *
+ * id: client ID in @ref bpmp_bwmgr_ids
+ * bw: bw requested in kBps by client ID.
+ * final_bw_floor: final dram_bw_floor in kBps.
+ * Sometimes the initial dram_bw_floor passed by ISO client may need to be
+ * updated by considering higher dram freq's. This is the final dram_bw_floor
+ * used to calculate and program MC registers.
+ */
+struct cmd_iso_client_set_la_request {
+	uint32_t id;
+	uint32_t bw;
+	uint32_t final_bw_floor;
+} BPMP_ABI_PACKED;
+
+/*
+ * request data for request type CMD_ISO_CLIENT_GET_MAX_BW
+ *
+ * id: client ID in @ref bpmp_bwmgr_ids
+ */
+struct cmd_iso_client_get_max_bw_request {
+	uint32_t id;
+} BPMP_ABI_PACKED;
+
+/*
+ * response data for request type CMD_ISO_CLIENT_CALCULATE_LA
+ *
+ * la_rate_floor: minimum dram_rate_floor in kHz at which a legal la is possible
+ * iso_client_only_rate: Minimum dram freq in kHz required to satisfy this clients
+ * iso bw request, assuming all other iso clients are inactive
+ */
+struct cmd_iso_client_calculate_la_response {
+	uint32_t la_rate_floor;
+	uint32_t iso_client_only_rate;
+} BPMP_ABI_PACKED;
+
+/**
+ * @brief Used by @ref cmd_iso_client_get_max_bw_response
+ */
+struct iso_max_bw {
+	/* @brief dram frequency in kHz */
+	uint32_t freq;
+	/* @brief max possible iso-bw in kBps */
+	uint32_t iso_bw;
+} BPMP_ABI_PACKED;
+
+#define ISO_MAX_BW_MAX_SIZE	14U
+/*
+ * response data for request type CMD_ISO_CLIENT_GET_MAX_BW
+ */
+struct cmd_iso_client_get_max_bw_response {
+	/* @brief The number valid entries in iso_max_bw pairs */
+	uint32_t num_pairs;
+	/* @brief max ISOBW <dram freq, max bw> information */
+	struct iso_max_bw pairs[ISO_MAX_BW_MAX_SIZE];
+} BPMP_ABI_PACKED;
+
+/**
+ * @brief Request with #MRQ_ISO_CLIENT
+ *
+ * Used by the sender of an #MRQ_ISO_CLIENT message.
+ *
+ * |sub-command                          |payload                                 |
+ * |------------------------------------ |----------------------------------------|
+ * |CMD_ISO_CLIENT_QUERY_ABI		 |cmd_iso_client_query_abi_request        |
+ * |CMD_ISO_CLIENT_CALCULATE_LA		 |cmd_iso_client_calculate_la_request     |
+ * |CMD_ISO_CLIENT_SET_LA		 |cmd_iso_client_set_la_request           |
+ * |CMD_ISO_CLIENT_GET_MAX_BW		 |cmd_iso_client_get_max_bw_request       |
+ *
+ */
+
+struct mrq_iso_client_request {
+	/* Type of request. Values listed in enum mrq_iso_client_cmd */
+	uint32_t cmd;
+	union {
+		struct cmd_iso_client_query_abi_request query_abi;
+		struct cmd_iso_client_calculate_la_request calculate_la_req;
+		struct cmd_iso_client_set_la_request set_la_req;
+		struct cmd_iso_client_get_max_bw_request max_isobw_req;
+	} BPMP_UNION_ANON;
+} BPMP_ABI_PACKED;
+
+/**
+ * @brief Response to MRQ_ISO_CLIENT
+ *
+ * Each sub-command supported by @ref mrq_iso_client_request may return
+ * sub-command-specific data. Some do and some do not as indicated in
+ * the following table
+ *
+ * |sub-command                  |payload                             |
+ * |---------------------------- |------------------------------------|
+ * |CMD_ISO_CLIENT_CALCULATE_LA  |cmd_iso_client_calculate_la_response|
+ * |CMD_ISO_CLIENT_SET_LA        |N/A                                 |
+ * |CMD_ISO_CLIENT_GET_MAX_BW    |cmd_iso_client_get_max_bw_response  |
+ *
+ */
+
+struct mrq_iso_client_response {
+	union {
+		struct cmd_iso_client_calculate_la_response calculate_la_resp;
+		struct cmd_iso_client_get_max_bw_response max_isobw_resp;
+	} BPMP_UNION_ANON;
+} BPMP_ABI_PACKED;
+
+/** @endcond */
 /** @} */
 
 /**
@@ -2464,9 +2976,10 @@ struct cmd_uphy_ep_controller_pll_off_request {
  * @ingroup UPHY
  * @brief Request with #MRQ_UPHY
  *
- * Used by the sender of an #MRQ_UPHY message to control UPHY Lane RX margining.
- * The uphy_request is split into several sub-commands. Some sub-commands
- * require no additional data. Others have a sub-command specific payload
+ * Used by the sender of an #MRQ_UPHY message to control UPHY.
+ * The uphy_request is split into several sub-commands. CMD_UPHY_PCIE_LANE_MARGIN_STATUS
+ * requires no additional data. Others have a sub-command specific payload. Below table
+ * shows sub-commands with their corresponding payload data.
  *
  * |sub-command                          |payload                                 |
  * |------------------------------------ |----------------------------------------|
@@ -2522,7 +3035,7 @@ struct mrq_uphy_response {
  * @brief Perform a frequency monitor configuration operations
  *
  * * Platforms: T194 onwards
- * @cond bpmp_t194
+ * @cond (bpmp_t194 || bpmp_t234)
  * * Initiators: CCPLEX
  * * Targets: BPMP
  * * Request Payload: @ref mrq_fmon_request
@@ -2538,6 +3051,20 @@ enum {
 	 * The monitored clock must be running for clamp to succeed. If
 	 * clamped, FMON configuration is preserved when clock rate
 	 * and/or state is changed.
+	 *
+	 * mrq_response::err is 0 if the operation was successful, or @n
+	 * -#BPMP_EACCES: FMON access error @n
+	 * -#BPMP_EBADCMD if subcommand is not supported @n
+	 * -#BPMP_EBADSLT: clamp FMON on cluster with auto-CC3 enabled @n
+	 * -#BPMP_EBUSY: fmon is already clamped at different rate @n
+	 * -#BPMP_EFAULT: self-diagnostic error @n
+	 * -#BPMP_EINVAL: invalid FMON configuration @n
+	 * -#BPMP_EOPNOTSUPP: not in production mode @n
+	 * -#BPMP_ENODEV: invalid clk_id @n
+	 * -#BPMP_ENOENT: no calibration data, uninitialized @n
+	 * -#BPMP_ENOTSUP: avfs config not set @n
+	 * -#BPMP_ENOSYS: clamp FMON on cluster clock w/ no NAFLL @n
+	 * -#BPMP_ETIMEDOUT: operation timed out @n
 	 */
 	CMD_FMON_GEAR_CLAMP = 1,
 	/**
@@ -2545,6 +3072,13 @@ enum {
 	 *
 	 * Allow FMON configuration to follow monitored clock rate
 	 * and/or state changes.
+	 *
+	 * mrq_response::err is 0 if the operation was successful, or @n
+	 * -#BPMP_EBADCMD if subcommand is not supported @n
+	 * -#BPMP_ENODEV: invalid clk_id @n
+	 * -#BPMP_ENOENT: no calibration data, uninitialized @n
+	 * -#BPMP_ENOTSUP: avfs config not set @n
+	 * -#BPMP_EOPNOTSUPP: not in production mode @n
 	 */
 	CMD_FMON_GEAR_FREE = 2,
 	/**
@@ -2553,10 +3087,50 @@ enum {
 	 *
 	 * Inherently racy, since clamp state can be changed
 	 * concurrently. Useful for testing.
+	 *
+	 * mrq_response::err is 0 if the operation was successful, or @n
+	 * -#BPMP_EBADCMD if subcommand is not supported @n
+	 * -#BPMP_ENODEV: invalid clk_id @n
+	 * -#BPMP_ENOENT: no calibration data, uninitialized @n
+	 * -#BPMP_ENOTSUP: avfs config not set @n
+	 * -#BPMP_EOPNOTSUPP: not in production mode @n
 	 */
 	CMD_FMON_GEAR_GET = 3,
-	CMD_FMON_NUM,
+	/**
+	 * @brief Return current status of FMON faults detected by FMON
+	 *         h/w or s/w since last invocation of this command.
+	 *         Clears fault status.
+	 *
+	 * mrq_response::err is 0 if the operation was successful, or @n
+	 * -#BPMP_EBADCMD if subcommand is not supported @n
+	 * -#BPMP_EINVAL: invalid fault type @n
+	 * -#BPMP_ENODEV: invalid clk_id @n
+	 * -#BPMP_ENOENT: no calibration data, uninitialized @n
+	 * -#BPMP_ENOTSUP: avfs config not set @n
+	 * -#BPMP_EOPNOTSUPP: not in production mode @n
+	 */
+	CMD_FMON_FAULT_STS_GET = 4,
 };
+
+/**
+ * @cond DEPRECATED
+ * Kept for backward compatibility
+ */
+#define CMD_FMON_NUM		4
+/** @endcond */
+
+/**
+ * @defgroup fmon_fault_type FMON fault type
+ * @addtogroup fmon_fault_type
+ * @{
+ */
+/** @brief All detected FMON faults (h/w or s/w) */
+#define FMON_FAULT_TYPE_ALL		0U
+/** @brief FMON faults detected by h/w */
+#define FMON_FAULT_TYPE_HW		1U
+/** @brief FMON faults detected by s/w */
+#define FMON_FAULT_TYPE_SW		2U
+/** @} */
 
 struct cmd_fmon_gear_clamp_request {
 	int32_t unused;
@@ -2587,6 +3161,14 @@ struct cmd_fmon_gear_get_response {
 	int64_t rate;
 } BPMP_ABI_PACKED;
 
+struct cmd_fmon_fault_sts_get_request {
+	uint32_t fault_type;	/**< @ref fmon_fault_type */
+} BPMP_ABI_PACKED;
+
+struct cmd_fmon_fault_sts_get_response {
+	uint32_t fault_sts;
+} BPMP_ABI_PACKED;
+
 /**
  * @ingroup FMON
  * @brief Request with #MRQ_FMON
@@ -2601,6 +3183,7 @@ struct cmd_fmon_gear_get_response {
  * |CMD_FMON_GEAR_CLAMP         |fmon_gear_clamp        |
  * |CMD_FMON_GEAR_FREE          |-                      |
  * |CMD_FMON_GEAR_GET           |-                      |
+ * |CMD_FMON_FAULT_STS_GET      |fmon_fault_sts_get     |
  *
  */
 
@@ -2618,6 +3201,7 @@ struct mrq_fmon_request {
 		struct cmd_fmon_gear_free_request fmon_gear_free;
 		/** @private */
 		struct cmd_fmon_gear_get_request fmon_gear_get;
+		struct cmd_fmon_fault_sts_get_request fmon_fault_sts_get;
 	} BPMP_UNION_ANON;
 } BPMP_ABI_PACKED;
 
@@ -2633,6 +3217,7 @@ struct mrq_fmon_request {
  * |CMD_FMON_GEAR_CLAMP         |-                       |
  * |CMD_FMON_GEAR_FREE          |-                       |
  * |CMD_FMON_GEAR_GET           |fmon_gear_get           |
+ * |CMD_FMON_FAULT_STS_GET      |fmon_fault_sts_get      |
  *
  */
 
@@ -2643,6 +3228,7 @@ struct mrq_fmon_response {
 		/** @private */
 		struct cmd_fmon_gear_free_response fmon_gear_free;
 		struct cmd_fmon_gear_get_response fmon_gear_get;
+		struct cmd_fmon_fault_sts_get_response fmon_fault_sts_get;
 	} BPMP_UNION_ANON;
 } BPMP_ABI_PACKED;
 
@@ -2655,7 +3241,7 @@ struct mrq_fmon_response {
  * @brief Provide status information on faults reported by Error
  *        Collator (EC) to HSM.
  *
- * * Platforms: T194 onwards
+ * * Platforms: T194
  * @cond bpmp_t194
  * * Initiators: CCPLEX
  * * Targets: BPMP
@@ -3047,6 +3633,12 @@ struct mrq_ec_response {
 #define BPMP_ENOSYS	38
 /** @brief Invalid slot */
 #define BPMP_EBADSLT	57
+/** @brief Invalid message */
+#define BPMP_EBADMSG	77
+/** @brief Operation not supported */
+#define BPMP_EOPNOTSUPP 95
+/** @brief Targeted resource not available */
+#define BPMP_ENAVAIL	119
 /** @brief Not supported */
 #define BPMP_ENOTSUP	134
 /** @brief No such device or address */

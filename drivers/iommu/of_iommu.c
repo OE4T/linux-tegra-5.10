@@ -2,15 +2,17 @@
 /*
  * OF helpers for IOMMU
  *
- * Copyright (c) 2012, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012-2020, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/export.h>
 #include <linux/iommu.h>
+#include <linux/dma-iommu.h>
 #include <linux/limits.h>
 #include <linux/module.h>
 #include <linux/msi.h>
 #include <linux/of.h>
+#include <linux/of_address.h>
 #include <linux/of_iommu.h>
 #include <linux/of_pci.h>
 #include <linux/pci.h>
@@ -18,6 +20,161 @@
 #include <linux/fsl/mc.h>
 
 #define NO_IOMMU	1
+
+/*
+ * Parses &prop_name from the DT node &resv_node, then
+ * creates and adds a resv regions with a &type and &prot
+ * status.
+ *
+ * The DT property at &prop_name must be in start, size pairs
+ * of u64 values.
+*/
+static void parse_resv_regions(struct device_node *resv_node,
+					struct list_head *head,
+					char *prop_name,
+					int prot,
+					enum iommu_resv_type type)
+{
+	int total_values, i, ret;
+
+	total_values = of_property_count_elems_of_size(resv_node,
+			prop_name,
+			sizeof(u64));
+	if (total_values % 2 != 0) {
+		pr_warn("iommu-region props must be pairs of <start size>\n");
+		return;
+	}
+
+	for (i = 0; i < total_values; i += 2) {
+		u64 size, start;
+		struct iommu_resv_region *resv;
+
+		ret = of_property_read_u64_index(resv_node, prop_name,
+				i, &start);
+		if (ret)
+			return;
+
+		ret = of_property_read_u64_index(resv_node, prop_name,
+				i + 1, &size);
+		if (ret)
+			return;
+
+		if (start == 0 && size == 0)
+			continue;
+
+		/* If there is overflow, replace size with max possible size */
+		if (start + size < start) {
+			size = (~0x0) - start;
+		}
+		resv = iommu_alloc_resv_region(start, size,
+				prot,
+				type);
+		if (!resv)
+			continue;
+
+		list_add_tail(&resv->list, head);
+	}
+}
+
+void of_get_iommu_resv_regions(struct device *dev, struct list_head *head)
+{
+	parse_resv_regions(dev->of_node, head, "iommu-resv-regions", 0,
+					IOMMU_RESV_RESERVED);
+}
+
+static int of_iommu_alloc_resv_msi_region(struct device_node *np,
+		struct list_head *head)
+{
+	int prot = IOMMU_WRITE | IOMMU_NOEXEC | IOMMU_MMIO;
+	struct iommu_resv_region *region;
+	struct resource res;
+	int i = 0;
+
+	while (of_address_to_resource(np, i++, &res) == 0) {
+		region = iommu_alloc_resv_region(res.start, resource_size(&res),
+				prot, IOMMU_RESV_MSI);
+		if (!region)
+			return -ENOMEM;
+
+		list_add_tail(&region->list, head);
+	}
+
+	return 0;
+}
+
+static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
+{
+	u32 *rid = data;
+
+	*rid = alias;
+	return 0;
+}
+
+static int of_pci_msi_get_resv_regions(struct device *dev,
+		struct list_head *head)
+{
+	struct device_node *msi_np;
+	struct device *pdev;
+	u32 rid;
+	int err, resv = 0;
+
+	pci_for_each_dma_alias(to_pci_dev(dev), __get_pci_rid, &rid);
+
+	for_each_node_with_property(msi_np, "msi-controller") {
+		for (pdev = dev; pdev; pdev = pdev->parent) {
+			if (!pdev->of_node)
+				continue;
+
+			if (!of_map_id(pdev->of_node, rid, "msi-map",
+					"msi-map-mask", &msi_np, NULL)) {
+				err = of_iommu_alloc_resv_msi_region(msi_np,
+									head);
+				if (err)
+					return err;
+				resv++;
+			}
+		}
+	}
+
+	return resv;
+}
+
+static int of_platform_msi_get_resv_regions(struct device *dev,
+		struct list_head *head)
+{
+	struct of_phandle_args args;
+	int err, resv = 0;
+
+	while (!of_parse_phandle_with_args(dev->of_node, "msi-parent",
+				"#msi-cells", resv, &args)) {
+		err = of_iommu_alloc_resv_msi_region(args.np, head);
+		of_node_put(args.np);
+		if (err)
+			return err;
+
+		resv++;
+	}
+
+	return resv;
+}
+
+void of_get_iommu_direct_regions(struct device *dev, struct list_head *head)
+{
+	struct device_node *dn = dev->of_node;
+	struct device_node *dm_node;
+	int phandle_index = 0;
+
+	dm_node = of_parse_phandle(dn, "iommu-direct-regions", phandle_index++);
+	while (dm_node != NULL) {
+		parse_resv_regions(dm_node, head, "reg",
+						IOMMU_READ | IOMMU_WRITE,
+						IOMMU_RESV_DIRECT);
+		dm_node = of_parse_phandle(dn, "iommu-direct-regions",
+							phandle_index++);
+	}
+
+	return;
+}
 
 /**
  * of_get_dma_window - Parse *dma-window property and returns 0 if found.
@@ -244,4 +401,23 @@ const struct iommu_ops *of_iommu_configure(struct device *dev,
 	}
 
 	return ops;
+}
+
+/*
+ * of_iommu_msi_get_resv_regions - Reserved region driver helper
+ * @dev: Device from iommu_get_resv_regions()
+ * @head: Reserved region list from iommu_get_resv_regions()
+ *
+ * Returns: Number of reserved regions on success (0 if no associated
+ * msi parent), appropriate error value otherwise.
+ */
+int of_iommu_msi_get_resv_regions(struct device *dev, struct list_head *head)
+{
+
+	if (dev_is_pci(dev))
+		return of_pci_msi_get_resv_regions(dev, head);
+	else if (dev->of_node)
+		return of_platform_msi_get_resv_regions(dev, head);
+
+	return 0;
 }

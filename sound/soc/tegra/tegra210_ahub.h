@@ -2,7 +2,7 @@
 /*
  * tegra210_ahub.h - TEGRA210 AHUB
  *
- * Copyright (c) 2020 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021 NVIDIA CORPORATION.  All rights reserved.
  *
  */
 
@@ -27,6 +27,13 @@
 #define TEGRA186_XBAR_REG_MASK_2			0xff3cf311
 #define TEGRA186_XBAR_REG_MASK_3			0x3f0f00ff
 #define TEGRA186_XBAR_UPDATE_MAX_REG			4
+
+/* Fields in *AHUBRAMCTL_CTRL; used by different AHUB modules */
+#define TEGRA210_AHUBRAMCTL_CTRL_RW_READ		0
+#define TEGRA210_AHUBRAMCTL_CTRL_RW_WRITE		(1 << 14)
+#define TEGRA210_AHUBRAMCTL_CTRL_ADDR_INIT_EN		(1 << 13)
+#define TEGRA210_AHUBRAMCTL_CTRL_SEQ_ACCESS_EN		(1 << 12)
+#define TEGRA210_AHUBRAMCTL_CTRL_RAM_ADDR_MASK		0x1ff
 
 #define TEGRA_XBAR_UPDATE_MAX_REG (TEGRA186_XBAR_UPDATE_MAX_REG)
 
@@ -74,6 +81,10 @@
 				  tegra_ahub_get_value_enum,		\
 				  tegra_ahub_put_value_enum)
 
+#define IN_OUT_ROUTES(name)						\
+	{ name " XBAR-RX",	NULL,	name " XBAR-Playback" },	\
+	{ name " XBAR-Capture",	NULL,	name " XBAR-TX" },
+
 #define WIDGETS(sname, ename)						     \
 	SND_SOC_DAPM_AIF_IN(sname " XBAR-RX", NULL, 0, SND_SOC_NOPM, 0, 0),  \
 	SND_SOC_DAPM_AIF_OUT(sname " XBAR-TX", NULL, 0, SND_SOC_NOPM, 0, 0), \
@@ -91,7 +102,7 @@
 			.stream_name = #sname " XBAR-Playback",		\
 			.channels_min = 1,				\
 			.channels_max = 16,				\
-			.rates = SNDRV_PCM_RATE_8000_192000,		\
+			.rates = SNDRV_PCM_RATE_KNOT,		\
 			.formats = SNDRV_PCM_FMTBIT_S8 |		\
 				SNDRV_PCM_FMTBIT_S16_LE |		\
 				SNDRV_PCM_FMTBIT_S24_LE |		\
@@ -101,7 +112,7 @@
 			.stream_name = #sname " XBAR-Capture",		\
 			.channels_min = 1,				\
 			.channels_max = 16,				\
-			.rates = SNDRV_PCM_RATE_8000_192000,		\
+			.rates = SNDRV_PCM_RATE_KNOT,		\
 			.formats = SNDRV_PCM_FMTBIT_S8 |		\
 				SNDRV_PCM_FMTBIT_S16_LE |		\
 				SNDRV_PCM_FMTBIT_S24_LE |		\
@@ -123,5 +134,12 @@ struct tegra_ahub {
 	struct regmap *regmap;
 	struct clk *clk;
 };
+
+void tegra210_ahub_write_ram(struct regmap *regmap, unsigned int reg_ctrl,
+			     unsigned int reg_data, unsigned int ram_offset,
+			     unsigned int *data, size_t size);
+void tegra210_ahub_read_ram(struct regmap *regmap, unsigned int reg_ctrl,
+			    unsigned int reg_data, unsigned int ram_offset,
+			    unsigned int *data, size_t size);
 
 #endif

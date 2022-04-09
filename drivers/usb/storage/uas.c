@@ -6,6 +6,7 @@
  * Copyright Hans de Goede <hdegoede@redhat.com> for Red Hat, Inc. 2013 - 2016
  * Copyright Matthew Wilcox for Intel Corp, 2010
  * Copyright Sarah Sharp for Intel Corp, 2010
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
  */
 
 #include <linux/blkdev.h>
@@ -842,6 +843,8 @@ static int uas_slave_alloc(struct scsi_device *sdev)
 	else if (devinfo->flags & US_FL_MAX_SECTORS_240)
 		blk_queue_max_hw_sectors(sdev->request_queue, 240);
 
+	blk_queue_rq_timeout(sdev->request_queue, HZ);
+
 	return 0;
 }
 
@@ -1252,6 +1255,7 @@ static struct usb_driver uas_driver = {
 	.resume = uas_resume,
 	.reset_resume = uas_reset_resume,
 	.drvwrap.driver.shutdown = uas_shutdown,
+	.drvwrap.driver.probe_type = PROBE_FORCE_SYNCHRONOUS,
 	.id_table = uas_usb_ids,
 };
 

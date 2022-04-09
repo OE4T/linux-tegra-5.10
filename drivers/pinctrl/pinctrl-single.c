@@ -345,6 +345,8 @@ static int pcs_get_function(struct pinctrl_dev *pctldev, unsigned pin,
 	unsigned fselector;
 
 	/* If pin is not described in DTS & enabled, mux_setting is NULL. */
+	if (!pdesc)
+		return -EINVAL;
 	setting = pdesc->mux_setting;
 	if (!setting)
 		return -ENOTSUPP;
@@ -721,19 +723,24 @@ static int pcs_add_pin(struct pcs_device *pcs, unsigned int offset)
  */
 static int pcs_allocate_pin_table(struct pcs_device *pcs)
 {
-	int mux_bytes, nr_pins, i;
+	int mux_bytes, nr_pins = 0, i;
 	int num_pins_in_register = 0;
 
 	mux_bytes = pcs->width / BITS_PER_BYTE;
 
 	if (pcs->bits_per_mux) {
 		pcs->bits_per_pin = fls(pcs->fmask);
-		nr_pins = (pcs->size * BITS_PER_BYTE) / pcs->bits_per_pin;
-		num_pins_in_register = pcs->width / pcs->bits_per_pin;
+		if (pcs->bits_per_pin) {
+			nr_pins = (pcs->size * BITS_PER_BYTE) /
+					pcs->bits_per_pin;
+			num_pins_in_register = pcs->width / pcs->bits_per_pin;
+		}
 	} else {
 		nr_pins = pcs->size / mux_bytes;
 	}
 
+	if (!nr_pins)
+		return -EINVAL;
 	dev_dbg(pcs->dev, "allocating %i pins\n", nr_pins);
 	pcs->pins.pa = devm_kcalloc(pcs->dev,
 				nr_pins, sizeof(*pcs->pins.pa),

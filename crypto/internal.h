@@ -19,6 +19,11 @@
 #include <linux/sched.h>
 #include <linux/types.h>
 
+#define SE_STORE_KEY_IN_MEM    0x0001
+#define SE_MAGIC_PATTERN_OFFSET 16
+#define IS_KEY_IN_MEM(x) \
+		((((x) >> SE_MAGIC_PATTERN_OFFSET) == SE_STORE_KEY_IN_MEM))
+
 struct crypto_instance;
 struct crypto_template;
 

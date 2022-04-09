@@ -8,12 +8,14 @@
 #include <linux/power_supply.h>
 #include <linux/types.h>
 #include <linux/usb/typec.h>
+#include <linux/usb/role.h>
 #include <linux/usb/pd.h>
 
 /* -------------------------------------------------------------------------- */
 
 struct ucsi;
 struct ucsi_altmode;
+struct ucsi_connector;
 
 /* UCSI offsets (Bytes) */
 #define UCSI_VERSION			0
@@ -39,6 +41,7 @@ struct ucsi_altmode;
  * @sync_write: Blocking write operation
  * @async_write: Non-blocking write operation
  * @update_altmodes: Squashes duplicate DP altmodes
+ * @set_data_role: Set USB data role control
  *
  * Read and write routines for UCSI interface. @sync_write must wait for the
  * Command Completion Event from the PPM before returning, and @async_write must
@@ -53,6 +56,7 @@ struct ucsi_operations {
 			   const void *val, size_t val_len);
 	bool (*update_altmodes)(struct ucsi *ucsi, struct ucsi_altmode *orig,
 				struct ucsi_altmode *updated);
+	int (*set_data_role)(struct ucsi_connector *con, enum usb_role role);
 };
 
 struct ucsi *ucsi_create(struct device *dev, const struct ucsi_operations *ops);

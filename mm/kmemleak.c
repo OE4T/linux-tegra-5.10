@@ -611,7 +611,7 @@ static struct kmemleak_object *create_object(unsigned long ptr, size_t size,
 		 * dependency issues with current->alloc_lock. In the worst
 		 * case, the command line is not correct.
 		 */
-		strncpy(object->comm, current->comm, sizeof(object->comm));
+		strlcpy(object->comm, current->comm, sizeof(object->comm));
 	}
 
 	/* kernel backtrace */

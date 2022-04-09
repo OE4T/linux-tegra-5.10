@@ -3,6 +3,7 @@
  * xHCI host controller driver
  *
  * Copyright (C) 2008 Intel Corp.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * Author: Sarah Sharp
  * Some code borrowed from the Linux EHCI driver.
@@ -1035,6 +1036,10 @@ void xhci_stop_endpoint_command_watchdog(struct timer_list *t)
 	spin_unlock_irqrestore(&xhci->lock, flags);
 	xhci_dbg_trace(xhci, trace_xhci_dbg_cancel_urb,
 			"xHCI host controller is dead.");
+
+	if ((xhci_to_hcd(xhci)->driver) &&
+		(xhci_to_hcd(xhci))->driver->hcd_reinit)
+		xhci_to_hcd(xhci)->driver->hcd_reinit(xhci_to_hcd(xhci));
 }
 
 static void update_ring_for_set_deq_completion(struct xhci_hcd *xhci,
@@ -1465,6 +1470,7 @@ static void handle_cmd_completion(struct xhci_hcd *xhci,
 	cmd = list_first_entry(&xhci->cmd_list, struct xhci_command, cmd_list);
 
 	cancel_delayed_work(&xhci->cmd_timer);
+	pm_runtime_put(xhci->main_hcd->self.controller);
 
 	cmd_comp_code = GET_COMP_CODE(le32_to_cpu(event->status));
 
@@ -1556,6 +1562,7 @@ static void handle_cmd_completion(struct xhci_hcd *xhci,
 		xhci->current_cmd = list_first_entry(&cmd->cmd_list,
 						struct xhci_command, cmd_list);
 		xhci_mod_cmd_timer(xhci, XHCI_CMD_DEFAULT_TIMEOUT);
+		pm_runtime_get(xhci->main_hcd->self.controller);
 	} else if (xhci->current_cmd == cmd) {
 		xhci->current_cmd = NULL;
 	}
@@ -2230,6 +2237,7 @@ static int process_isoc_td(struct xhci_hcd *xhci, struct xhci_td *td,
 		frame->status = -EPROTO;
 		break;
 	case COMP_USB_TRANSACTION_ERROR:
+		xhci->xhci_ereport.comp_tx_err++;
 		frame->status = -EPROTO;
 		if (ep_trb != td->last_trb)
 			return 0;
@@ -2369,6 +2377,31 @@ finish_td:
 	return finish_td(xhci, td, event, ep, status);
 }
 
+static void xhci_endpoint_soft_retry(struct xhci_hcd *xhci,
+			unsigned int slot_id,
+			unsigned int dci, bool on)
+{
+	struct xhci_virt_device *xdev = xhci->devs[slot_id];
+	struct usb_host_endpoint *ep;
+
+	if (!xhci->shared_hcd || !xhci->shared_hcd->driver ||
+			!xhci->shared_hcd->driver->endpoint_soft_retry)
+		return;
+
+	if (xdev->udev->speed != USB_SPEED_SUPER)
+		return;
+
+	if (dci & 0x1)
+		ep = xdev->udev->ep_in[(dci - 1)/2];
+	else
+		ep = xdev->udev->ep_out[dci/2];
+
+	if (!ep)
+		return;
+
+	xhci->shared_hcd->driver->endpoint_soft_retry(xhci->shared_hcd, ep, on);
+}
+
 /*
  * If this function returns an error condition, it means it got a Transfer
  * event with a corrupted Slot ID, Endpoint ID, or TRB DMA address.
@@ -2392,6 +2425,7 @@ static int handle_tx_event(struct xhci_hcd *xhci,
 	u32 trb_comp_code;
 	int td_num = 0;
 	bool handling_skipped_tds = false;
+	bool disable_u0_ts1_detect = false;
 
 	slot_id = TRB_TO_SLOT_ID(le32_to_cpu(event->flags));
 	ep_index = TRB_TO_EP_ID(le32_to_cpu(event->flags)) - 1;
@@ -2403,6 +2437,11 @@ static int handle_tx_event(struct xhci_hcd *xhci,
 		xhci_err(xhci, "ERROR Invalid Transfer event\n");
 		goto err_out;
 	}
+
+	if (xhci->shared_hcd && xhci->shared_hcd->driver->is_u0_ts1_detect_disabled)
+		disable_u0_ts1_detect =
+			xhci->shared_hcd->driver->is_u0_ts1_detect_disabled(
+				xhci->shared_hcd);
 
 	xdev = xhci->devs[slot_id];
 	ep_ring = xhci_dma_to_transfer_ring(ep, ep_trb_dma);
@@ -2448,8 +2487,12 @@ static int handle_tx_event(struct xhci_hcd *xhci,
 	 * transfer type
 	 */
 	case COMP_SUCCESS:
-		if (EVENT_TRB_LEN(le32_to_cpu(event->transfer_len)) == 0)
-			break;
+		if (EVENT_TRB_LEN(le32_to_cpu(event->transfer_len)) == 0) {
+			if (disable_u0_ts1_detect)
+				goto check_soft_try;
+			else
+				break;
+		}
 		if (xhci->quirks & XHCI_TRUST_TX_LENGTH ||
 		    ep_ring->last_td_was_short)
 			trb_comp_code = COMP_SHORT_PACKET;
@@ -2457,7 +2500,15 @@ static int handle_tx_event(struct xhci_hcd *xhci,
 			xhci_warn_ratelimited(xhci,
 					      "WARN Successful completion on short TX for slot %u ep %u: needs XHCI_TRUST_TX_LENGTH quirk?\n",
 					      slot_id, ep_index);
+		fallthrough;
 	case COMP_SHORT_PACKET:
+check_soft_try:
+		if (disable_u0_ts1_detect && ep_ring->soft_try) {
+			xhci_dbg(xhci, "soft retry completed successfully\n");
+			ep_ring->soft_try = false;
+			xhci_endpoint_soft_retry(xhci,
+						slot_id, ep_index + 1, false);
+		}
 		break;
 	/* Completion codes for endpoint stopped state */
 	case COMP_STOPPED:
@@ -2487,6 +2538,27 @@ static int handle_tx_event(struct xhci_hcd *xhci,
 		status = -EPROTO;
 		break;
 	case COMP_USB_TRANSACTION_ERROR:
+		if (disable_u0_ts1_detect &&
+				xdev->udev->speed == USB_SPEED_SUPER &&
+				ep_ring->type != TYPE_ISOC) {
+			if (!ep_ring->soft_try) {
+				xhci_dbg(xhci, "SuperSpeed transfer error, do soft retry\n");
+				if (!xhci_queue_soft_retry(xhci,
+						slot_id, ep_index)) {
+					xhci_endpoint_soft_retry(xhci,
+						slot_id, ep_index + 1, true);
+					xhci_ring_cmd_db(xhci);
+					ep_ring->soft_try = true;
+					goto cleanup;
+				}
+			} else {
+				xhci_dbg(xhci, "soft retry complete but transfer still failed\n");
+				ep_ring->soft_try = false;
+			}
+			xhci_endpoint_soft_retry(xhci,
+						slot_id, ep_index + 1, false);
+		}
+		xhci->xhci_ereport.comp_tx_err++;
 		xhci_dbg(xhci, "Transfer error for slot %u ep %u on endpoint\n",
 			 slot_id, ep_index);
 		status = -EPROTO;
@@ -2648,6 +2720,8 @@ static int handle_tx_event(struct xhci_hcd *xhci,
 		if (!ep_seg) {
 			if (!ep->skip ||
 			    !usb_endpoint_xfer_isoc(&td->urb->ep->desc)) {
+				static bool printit = true;
+				static unsigned long lastprint;
 				/* Some host controllers give a spurious
 				 * successful event after a short transfer.
 				 * Ignore it.
@@ -2658,14 +2732,23 @@ static int handle_tx_event(struct xhci_hcd *xhci,
 					goto cleanup;
 				}
 				/* HC is busted, give up! */
-				xhci_err(xhci,
+				if (!printit &&
+					time_is_before_jiffies(lastprint))
+					printit = true;
+
+				if (printit) {
+					xhci_err_ratelimited(xhci,
 					"ERROR Transfer event TRB DMA ptr not "
 					"part of current TD ep_index %d "
 					"comp_code %u\n", ep_index,
 					trb_comp_code);
-				trb_in_td(xhci, ep_ring->deq_seg,
+					printit = false;
+					lastprint = jiffies +
+						msecs_to_jiffies(5000);
+					trb_in_td(xhci, ep_ring->deq_seg,
 					  ep_ring->dequeue, td->last_trb,
 					  ep_trb_dma, true);
+				}
 				return -ESHUTDOWN;
 			}
 
@@ -2889,9 +2972,20 @@ irqreturn_t xhci_irq(struct usb_hcd *hcd)
 	if (!(status & STS_EINT))
 		goto out;
 
-	if (status & STS_FATAL) {
-		xhci_warn(xhci, "WARNING: Host System Error\n");
+	if (status & (STS_FATAL | STS_HCE)) {
+		if (status & STS_FATAL)
+			xhci_warn(xhci, "WARNING: Host System Error\n");
+		else if (status & STS_HCE)
+			xhci_warn(xhci,
+				"WARNING: Host Controller Error\n");
 		xhci_halt(xhci);
+		if ((xhci_to_hcd(xhci)->driver) &&
+				(xhci_to_hcd(xhci))->driver->hcd_reinit)
+			xhci_to_hcd(xhci)->driver->hcd_reinit(
+				xhci_to_hcd(xhci));
+		else
+			xhci_warn(xhci,
+			"Couldn't Recover From Failure\n");
 		ret = IRQ_HANDLED;
 		goto out;
 	}
@@ -3474,7 +3568,7 @@ int xhci_queue_bulk_tx(struct xhci_hcd *xhci, gfp_t mem_flags,
 		addr += trb_buff_len;
 		sent_len = trb_buff_len;
 
-		while (sg && sent_len >= block_len) {
+		while (sg && sent_len >= block_len && num_sgs) {
 			/* New sg entry */
 			--num_sgs;
 			sent_len -= block_len;
@@ -4108,6 +4202,7 @@ static int queue_command(struct xhci_hcd *xhci, struct xhci_command *cmd,
 	/* if there are no other commands queued we start the timeout timer */
 	if (list_empty(&xhci->cmd_list)) {
 		xhci->current_cmd = cmd;
+		pm_runtime_get(xhci->main_hcd->self.controller);
 		xhci_mod_cmd_timer(xhci, XHCI_CMD_DEFAULT_TIMEOUT);
 	}
 
@@ -4183,6 +4278,25 @@ int xhci_queue_stop_endpoint(struct xhci_hcd *xhci, struct xhci_command *cmd,
 	u32 trb_ep_index = EP_ID_FOR_TRB(ep_index);
 	u32 type = TRB_TYPE(TRB_STOP_RING);
 	u32 trb_suspend = SUSPEND_PORT_FOR_TRB(suspend);
+	bool disable_u0_ts1_detect = false;
+	struct xhci_ring *ep_ring;
+
+	if (xhci->shared_hcd && xhci->shared_hcd->driver->is_u0_ts1_detect_disabled)
+		disable_u0_ts1_detect =
+			xhci->shared_hcd->driver->is_u0_ts1_detect_disabled(
+					xhci->shared_hcd);
+
+	if (disable_u0_ts1_detect) {
+		ep_ring = xhci_triad_to_transfer_ring(xhci, slot_id,
+			ep_index, 0);
+
+		if (ep_ring && ep_ring->soft_try) {
+			xhci_dbg(xhci, "stop soft retry\n");
+			ep_ring->soft_try = false;
+			xhci_endpoint_soft_retry(xhci,
+				slot_id, ep_index + 1, false);
+		}
+	}
 
 	return queue_command(xhci, cmd, 0, 0, 0,
 			trb_slot_id | trb_ep_index | type | trb_suspend, false);
@@ -4265,5 +4379,21 @@ int xhci_queue_reset_ep(struct xhci_hcd *xhci, struct xhci_command *cmd,
 		type |= TRB_TSP;
 
 	return queue_command(xhci, cmd, 0, 0, 0,
+			trb_slot_id | trb_ep_index | type, false);
+}
+
+int xhci_queue_soft_retry(struct xhci_hcd *xhci, int slot_id,
+		unsigned int ep_index)
+{
+	struct xhci_command *command;
+	u32 trb_slot_id = SLOT_ID_FOR_TRB(slot_id);
+	u32 trb_ep_index = EP_ID_FOR_TRB(ep_index);
+	u32 type = TRB_TYPE(TRB_RESET_EP) | TRB_TSP;
+
+	command = xhci_alloc_command(xhci, false, GFP_ATOMIC);
+	if (!command)
+		return -EINVAL;
+
+	return queue_command(xhci, command, 0, 0, 0,
 			trb_slot_id | trb_ep_index | type, false);
 }

@@ -11,6 +11,13 @@ config ARM_GIC
 	select GENERIC_IRQ_MULTI_HANDLER
 	select GENERIC_IRQ_EFFECTIVE_AFF_MASK
 
+config FIQ
+	bool "Enable FIQ"
+	default n
+	help
+	  Enable fiq interrupts to be enabled on gics which allow control
+	  fiqs in the kernel space
+
 config ARM_GIC_PM
 	bool
 	depends on PM
@@ -499,6 +506,19 @@ config TI_SCI_INTA_IRQCHIP
 	  over TI System Control Interface available on some new TI's SoCs.
 	  If you wish to use interrupt aggregator irq resources managed by the
 	  TI System Controller, say Y here. Otherwise, say N.
+
+config MINIMAL_GIC_INIT
+	def_bool n
+	help
+	  Minimize the number of GIC register access during initialization
+	  Disable GICD_INT_DEF_PRI register initialization if this register setting already
+	  specifies that all interrupts are of same priority either by hardware default or
+	  set by bootloader
+	  Disable GIC_DIST_TARGET register initialization - Per GIC spec, for uniprocessor systems
+	  all interrupts are routed to the same core by default so this register initialization can
+	  be removed for Linux running on Single core
+	  This config should not be enabled if either GICD_INT_DEF_PRI or GIC_DIST_TARGET
+	  initialization cannot be disabled in the system
 
 config TI_PRUSS_INTC
 	tristate "TI PRU-ICSS Interrupt Controller"

@@ -71,6 +71,7 @@ struct regulator_dev;
  *             in a sleep/standby state. This mode is likely to be
  *             the most noisy and may not be able to handle fast load
  *             switching.
+ *  OFF        Regulator turn off completely.
  *
  * NOTE: Most regulators will only support a subset of these modes. Some
  * will only just support NORMAL.
@@ -83,6 +84,20 @@ struct regulator_dev;
 #define REGULATOR_MODE_NORMAL			0x2
 #define REGULATOR_MODE_IDLE			0x4
 #define REGULATOR_MODE_STANDBY			0x8
+#define REGULATOR_MODE_OFF			0x10
+
+/*
+ * Regulator control modes.
+ *
+ * Regulators can be control through i2c or PWM or any other interface.
+ * The control mode provides the way to control the regulator.
+ *
+ *  Mode       Description
+ *  I2C        Regulator can be control through I2C interface.
+ *  PWM        Regulator can be control through PWM interface.
+ */
+#define REGULATOR_CONTROL_MODE_I2C		0x1
+#define REGULATOR_CONTROL_MODE_PWM		0x2
 
 /*
  * Regulator notifier events.
@@ -102,6 +117,10 @@ struct regulator_dev;
  *                      Data passed is old voltage cast to (void *).
  * PRE_DISABLE    Regulator is about to be disabled
  * ABORT_DISABLE  Regulator disable failed for some reason
+ * PRE_ENABLE     Regulator is to be enabled
+ * ENABLE         Regulator was enabled
+ * OUT_PRECHANGE  Regulator is enabled and its voltage is to be changed
+ * OUT_POSTCHANGE Regulator is enabled and its voltage was changed
  *
  * NOTE: These events can be OR'ed together when passed into handler.
  */
@@ -119,7 +138,9 @@ struct regulator_dev;
 #define REGULATOR_EVENT_PRE_DISABLE		0x400
 #define REGULATOR_EVENT_ABORT_DISABLE		0x800
 #define REGULATOR_EVENT_ENABLE			0x1000
-
+#define REGULATOR_EVENT_PRE_ENABLE		0x2000
+#define REGULATOR_EVENT_OUT_PRECHANGE		0x4000
+#define REGULATOR_EVENT_OUT_POSTCHANGE		0x8000
 /*
  * Regulator errors that can be queried using regulator_get_error_flags
  *
@@ -248,13 +269,18 @@ unsigned int regulator_get_linear_step(struct regulator *regulator);
 int regulator_set_voltage(struct regulator *regulator, int min_uV, int max_uV);
 int regulator_set_voltage_time(struct regulator *regulator,
 			       int old_uV, int new_uV);
+int regulator_set_sleep_voltage(struct regulator *regulator,
+				int min_uV, int max_uV);
 int regulator_get_voltage(struct regulator *regulator);
+int regulator_get_constraint_voltages(struct regulator *regulator,
+	int *min_uV, int *max_uV);
 int regulator_sync_voltage(struct regulator *regulator);
 int regulator_set_current_limit(struct regulator *regulator,
 			       int min_uA, int max_uA);
 int regulator_get_current_limit(struct regulator *regulator);
 
 int regulator_set_mode(struct regulator *regulator, unsigned int mode);
+int regulator_set_sleep_mode(struct regulator *regulator, unsigned int mode);
 unsigned int regulator_get_mode(struct regulator *regulator);
 int regulator_get_error_flags(struct regulator *regulator,
 				unsigned int *flags);
@@ -268,6 +294,9 @@ int regulator_get_hardware_vsel_register(struct regulator *regulator,
 					 unsigned *vsel_mask);
 int regulator_list_hardware_vsel(struct regulator *regulator,
 				 unsigned selector);
+
+int regulator_set_control_mode(struct regulator *regulator, unsigned int mode);
+unsigned int regulator_get_control_mode(struct regulator *regulator);
 
 /* regulator notifier block */
 int regulator_register_notifier(struct regulator *regulator,
@@ -552,6 +581,18 @@ static inline int regulator_list_hardware_vsel(struct regulator *regulator,
 					       unsigned selector)
 {
 	return -EOPNOTSUPP;
+}
+
+static inline int regulator_set_control_mode(struct regulator *regulator,
+		unsigned int mode)
+{
+	return 0;
+}
+
+static inline unsigned int regulator_get_control_mode(
+		struct regulator *regulator)
+{
+	return REGULATOR_CONTROL_MODE_I2C;
 }
 
 static inline int regulator_register_notifier(struct regulator *regulator,

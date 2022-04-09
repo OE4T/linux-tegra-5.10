@@ -114,6 +114,7 @@ static void snd_usb_init_substream(struct snd_usb_stream *as,
 	}
 
 	snd_usb_preallocate_buffer(subs);
+	subs->last_prepare = 0;
 }
 
 /* kctl callbacks for usb-audio channel maps */

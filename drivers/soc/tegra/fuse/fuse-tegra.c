@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2013-2014, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2021, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/clk.h>
@@ -27,10 +27,15 @@ EXPORT_SYMBOL(tegra_sku_info);
 static const char *tegra_revision_name[TEGRA_REVISION_MAX] = {
 	[TEGRA_REVISION_UNKNOWN] = "unknown",
 	[TEGRA_REVISION_A01]     = "A01",
+	[TEGRA_REVISION_A01q]    = "A01q",
 	[TEGRA_REVISION_A02]     = "A02",
+	[TEGRA_REVISION_A02p]	 = "A02p",
 	[TEGRA_REVISION_A03]     = "A03",
-	[TEGRA_REVISION_A03p]    = "A03 prime",
+	[TEGRA_REVISION_A03p]    = "A03p",
 	[TEGRA_REVISION_A04]     = "A04",
+	[TEGRA_REVISION_A04p]     = "A04p",
+	[TEGRA_REVISION_QT]     = "QT",
+	[TEGRA_REVISION_SIM]     = "SIM",
 };
 
 static const struct of_device_id car_match[] __initconst = {
@@ -160,6 +165,12 @@ static const struct nvmem_cell_info tegra_fuse_cells[] = {
 		.bit_offset = 0,
 		.nbits = 32,
 	}, {
+		.name = "gcplex-config-fuse",
+		.offset = 0x1c8,
+		.bytes = 4,
+		.bit_offset = 0,
+		.nbits = 32,
+	}, {
 		.name = "tsensor-realignment",
 		.offset = 0x1fc,
 		.bytes = 4,
@@ -174,6 +185,24 @@ static const struct nvmem_cell_info tegra_fuse_cells[] = {
 	}, {
 		.name = "xusb-pad-calibration-ext",
 		.offset = 0x250,
+		.bytes = 4,
+		.bit_offset = 0,
+		.nbits = 32,
+	}, {
+		.name = "pdi0",
+		.offset = 0x300,
+		.bytes = 4,
+		.bit_offset = 0,
+		.nbits = 32,
+	}, {
+		.name = "pdi1",
+		.offset = 0x304,
+		.bytes = 4,
+		.bit_offset = 0,
+		.nbits = 32,
+	}, {
+		.name = "opt-dla-disable",
+		.offset = 0x3f0,
 		.bytes = 4,
 		.bit_offset = 0,
 		.nbits = 32,
@@ -214,6 +243,14 @@ static int tegra_fuse_probe(struct platform_device *pdev)
 		err = fuse->soc->probe(fuse);
 		if (err < 0)
 			goto restore;
+	}
+
+	if (of_property_read_bool(pdev->dev.of_node, "nvidia,clock-always-on")) {
+		err = clk_prepare_enable(fuse->clk);
+		if (err < 0) {
+			dev_err(fuse->dev, "failed to enable FUSE clock: %d\n", err);
+			goto restore;
+		}
 	}
 
 	memset(&nvmem, 0, sizeof(nvmem));
@@ -258,16 +295,21 @@ static struct platform_driver tegra_fuse_driver = {
 	},
 	.probe = tegra_fuse_probe,
 };
-builtin_platform_driver(tegra_fuse_driver);
 
-bool __init tegra_fuse_read_spare(unsigned int spare)
+static int __init tegra_fuse_init(void)
+{
+	return platform_driver_register(&tegra_fuse_driver);
+}
+subsys_initcall_sync(tegra_fuse_init);
+
+bool tegra_fuse_read_spare(unsigned int spare)
 {
 	unsigned int offset = fuse->soc->info->spare + spare * 4;
 
 	return fuse->read_early(fuse, offset) & 1;
 }
 
-u32 __init tegra_fuse_read_early(unsigned int offset)
+u32 tegra_fuse_read_early(unsigned int offset)
 {
 	return fuse->read_early(fuse, offset);
 }
@@ -285,6 +327,44 @@ int tegra_fuse_readl(unsigned long offset, u32 *value)
 	return 0;
 }
 EXPORT_SYMBOL(tegra_fuse_readl);
+
+void tegra_fuse_writel(u32 value, unsigned long offset)
+{
+	if (!fuse->write || !fuse->clk)
+		return;
+
+	if (IS_ERR(fuse->clk))
+		return;
+
+	fuse->write(fuse, value, offset);
+}
+EXPORT_SYMBOL(tegra_fuse_writel);
+
+int tegra_fuse_control_read(unsigned long offset, u32 *value)
+{
+	if (!fuse->control_read || !fuse->clk)
+		return -EPROBE_DEFER;
+
+	if (IS_ERR(fuse->clk))
+		return PTR_ERR(fuse->clk);
+
+	*value = fuse->control_read(fuse, offset);
+
+	return 0;
+}
+EXPORT_SYMBOL_GPL(tegra_fuse_control_read);
+
+void tegra_fuse_control_write(u32 value, unsigned long offset)
+{
+	if (!fuse->control_write || !fuse->clk)
+		return;
+
+	if (IS_ERR(fuse->clk))
+		return;
+
+	fuse->control_write(fuse, value, offset);
+}
+EXPORT_SYMBOL_GPL(tegra_fuse_control_write);
 
 static void tegra_enable_fuse_clk(void __iomem *base)
 {
@@ -319,9 +399,27 @@ static ssize_t minor_show(struct device *dev, struct device_attribute *attr,
 
 static DEVICE_ATTR_RO(minor);
 
+static ssize_t production_show(struct device *dev, struct device_attribute *attr,
+			     char *buf)
+{
+	u32 reg = 0;
+	int ret;
+
+	if (tegra_get_platform() == TEGRA_PLATFORM_SILICON) {
+		ret = tegra_fuse_readl(TEGRA_FUSE_PRODUCTION_MODE, &reg);
+		if (ret)
+			reg = 0;
+	}
+
+	return sprintf(buf, "%d\n", reg);
+}
+
+static DEVICE_ATTR_RO(production);
+
 static struct attribute *tegra_soc_attr[] = {
 	&dev_attr_major.attr,
 	&dev_attr_minor.attr,
+	&dev_attr_production.attr,
 	NULL,
 };
 
@@ -340,15 +438,60 @@ static ssize_t platform_show(struct device *dev, struct device_attribute *attr,
 	 * platform type is silicon and all other non-zero values indicate
 	 * the type of simulation platform is being used.
 	 */
-	return sprintf(buf, "%d\n", tegra_get_platform());
+	return sprintf(buf, "%d\n", (tegra_read_chipid() >> 20) & 0xf);
 }
 
 static DEVICE_ATTR_RO(platform);
 
+#if IS_ENABLED(CONFIG_ARCH_TEGRA_23x_SOC)
+#define OPT_FUSE_ATTR(name, offset)				\
+static ssize_t name ## _show(struct device *dev,		\
+			     struct device_attribute *attr,	\
+			     char *buf)				\
+{								\
+	u32 reg = 0;						\
+	int ret;						\
+								\
+	if (tegra_get_platform() == TEGRA_PLATFORM_SILICON) {	\
+		ret = tegra_fuse_readl(offset, &reg);		\
+		if (ret)					\
+			reg = 0;				\
+	}							\
+								\
+	return sprintf(buf, "%d\n", reg);			\
+}								\
+static DEVICE_ATTR_RO(name)
+
+OPT_FUSE_ATTR(opt_ccplex_cluster_disable,
+					TEGRA_FUSE_OPT_CCPLEX_CLUSTER_DISABLE);
+OPT_FUSE_ATTR(opt_dla_disable,		TEGRA_FUSE_OPT_DLA_DISABLE);
+OPT_FUSE_ATTR(opt_emc_disable,		TEGRA_FUSE_OPT_EMC_DISABLE);
+OPT_FUSE_ATTR(opt_fbp_disable,		TEGRA_FUSE_OPT_FBP_DISABLE);
+OPT_FUSE_ATTR(opt_fsi_disable,		TEGRA_FUSE_OPT_FSI_DISABLE);
+OPT_FUSE_ATTR(opt_gpc_disable,		TEGRA_FUSE_OPT_GPC_DISABLE);
+OPT_FUSE_ATTR(opt_nvdec_disable,	TEGRA_FUSE_OPT_NVENC_DISABLE);
+OPT_FUSE_ATTR(opt_nvenc_disable,	TEGRA_FUSE_OPT_NVDEC_DISABLE);
+OPT_FUSE_ATTR(opt_pva_disable,		TEGRA_FUSE_OPT_PVA_DISABLE);
+OPT_FUSE_ATTR(opt_tpc_disable,		TEGRA_FUSE_OPT_TPC_DISABLE);
+#endif
+
 static struct attribute *tegra194_soc_attr[] = {
 	&dev_attr_major.attr,
 	&dev_attr_minor.attr,
+	&dev_attr_production.attr,
 	&dev_attr_platform.attr,
+#if IS_ENABLED(CONFIG_ARCH_TEGRA_23x_SOC)
+	&dev_attr_opt_ccplex_cluster_disable.attr,
+	&dev_attr_opt_dla_disable.attr,
+	&dev_attr_opt_emc_disable.attr,
+	&dev_attr_opt_fbp_disable.attr,
+	&dev_attr_opt_fsi_disable.attr,
+	&dev_attr_opt_gpc_disable.attr,
+	&dev_attr_opt_nvdec_disable.attr,
+	&dev_attr_opt_nvenc_disable.attr,
+	&dev_attr_opt_pva_disable.attr,
+	&dev_attr_opt_tpc_disable.attr,
+#endif
 	NULL,
 };
 
@@ -478,7 +621,7 @@ static int __init tegra_init_fuse(void)
 
 	fuse->soc->init(fuse);
 
-	pr_info("Tegra Revision: %s SKU: %d CPU Process: %d SoC Process: %d\n",
+	pr_info("Tegra Revision: %s SKU: 0x%x CPU Process: %d SoC Process: %d\n",
 		tegra_revision_name[tegra_sku_info.revision],
 		tegra_sku_info.sku_id, tegra_sku_info.cpu_process_id,
 		tegra_sku_info.soc_process_id);

@@ -2,6 +2,7 @@
 /*
  * USB hub driver.
  *
+ * Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
  * (C) Copyright 1999 Linus Torvalds
  * (C) Copyright 1999 Johannes Erdfelt
  * (C) Copyright 1999 Gregory P. Smith
@@ -1169,7 +1170,10 @@ static void hub_activate(struct usb_hub *hub, enum hub_activation_type type)
 			need_debounce_delay = true;
 
 		/* Clear status-change flags; we'll debounce later */
-		if (portchange & USB_PORT_STAT_C_CONNECTION) {
+		if ((portchange & USB_PORT_STAT_C_CONNECTION) &&
+			!(hub_is_superspeed(hub->hdev) &&
+			((portstatus & USB_PORT_STAT_LINK_STATE) ==
+						USB_SS_PORT_LS_SS_INACTIVE))) {
 			need_debounce_delay = true;
 			usb_clear_port_feature(hub->hdev, port1,
 					USB_PORT_FEAT_C_CONNECTION);
@@ -1322,7 +1326,7 @@ static void hub_quiesce(struct usb_hub *hub, enum hub_quiescing_type type)
 	if (type != HUB_SUSPEND) {
 		/* Disconnect all the children */
 		for (i = 0; i < hdev->maxchild; ++i) {
-			if (hub->ports[i]->child)
+			if (hub->ports[i] && hub->ports[i]->child)
 				usb_disconnect(&hub->ports[i]->child);
 		}
 	}
@@ -3555,6 +3559,7 @@ static int wait_for_connected(struct usb_device *udev,
 int usb_port_resume(struct usb_device *udev, pm_message_t msg)
 {
 	struct usb_hub	*hub = usb_hub_to_struct_hub(udev->parent);
+	struct usb_interface *intf = to_usb_interface(hub->intfdev);
 	struct usb_port *port_dev = hub->ports[udev->portnum  - 1];
 	int		port1 = udev->portnum;
 	int		status;
@@ -3571,6 +3576,7 @@ int usb_port_resume(struct usb_device *udev, pm_message_t msg)
 
 	usb_lock_port(port_dev);
 
+	usb_autopm_get_interface(intf);
 	/* Skip the initial Clear-Suspend step for a remote wakeup */
 	status = hub_port_status(hub, port1, &portstatus, &portchange);
 	if (status == 0 && !port_is_suspended(hub, portstatus)) {
@@ -3635,6 +3641,7 @@ int usb_port_resume(struct usb_device *udev, pm_message_t msg)
 		/* Try to enable USB3 LTM */
 		usb_enable_ltm(udev);
 	}
+	usb_autopm_put_interface(intf);
 
 	usb_unlock_port(port_dev);
 

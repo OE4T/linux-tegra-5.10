@@ -2,6 +2,7 @@
 /*
  * Universal Flash Storage Host controller Platform bus based glue driver
  * Copyright (C) 2011-2013 Samsung India Software Operations
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Authors:
  *	Santosh Yaraganavi <santosh.sy@samsung.com>
@@ -33,6 +34,8 @@ static int ufshcd_parse_clock_info(struct ufs_hba *hba)
 
 	if (!np)
 		goto out;
+
+	INIT_LIST_HEAD(&hba->clk_list_head);
 
 	cnt = of_property_count_strings(np, "clock-names");
 	if (!cnt || (cnt == -EINVAL)) {
@@ -381,10 +384,19 @@ int ufshcd_pltfrm_init(struct platform_device *pdev,
 		goto out;
 	}
 
-	err = ufshcd_alloc_host(dev, &hba);
-	if (err) {
-		dev_err(&pdev->dev, "Allocation failed\n");
+	hba = kzalloc(sizeof(struct ufs_hba), GFP_KERNEL);
+	if (!hba) {
+		dev_err(dev, "Allocation failed\n");
+		err = -ENOMEM;
 		goto out;
+	}
+
+	hba->dev = dev;
+
+	err = ufshcd_alloc_host(hba);
+	if (err) {
+		dev_err(&pdev->dev, "Host allocation failed\n");
+		goto dealloc_host;
 	}
 
 	hba->vops = vops;
@@ -406,7 +418,9 @@ int ufshcd_pltfrm_init(struct platform_device *pdev,
 
 	err = ufshcd_init(hba, mmio_base, irq);
 	if (err) {
-		dev_err(dev, "Initialization failed\n");
+		if (err != -EPROBE_DEFER) {
+			dev_err(dev, "Initialization failed\n");
+		}
 		goto dealloc_host;
 	}
 
@@ -419,6 +433,7 @@ int ufshcd_pltfrm_init(struct platform_device *pdev,
 
 dealloc_host:
 	ufshcd_dealloc_host(hba);
+	kfree(hba);
 out:
 	return err;
 }

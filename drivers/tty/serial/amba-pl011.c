@@ -7,6 +7,7 @@
  *  Copyright 1999 ARM Limited
  *  Copyright (C) 2000 Deep Blue Solutions Ltd.
  *  Copyright (C) 2010 ST-Ericsson SA
+ *  Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This is a generic driver for ARM AMBA-type serial ports.  They
  * have a lot of 16550-like features, but are not register compatible.
@@ -29,6 +30,7 @@
 #include <linux/amba/bus.h>
 #include <linux/amba/serial.h>
 #include <linux/clk.h>
+#include <linux/reset.h>
 #include <linux/slab.h>
 #include <linux/dmaengine.h>
 #include <linux/dma-mapping.h>
@@ -86,6 +88,9 @@ struct vendor_data {
 	bool			cts_event_workaround;
 	bool			always_enabled;
 	bool			fixed_options;
+	bool			enable_car;
+	bool			dma_workaround;
+	bool			eord_interrupt;
 
 	unsigned int (*get_fifosize)(struct amba_device *dev);
 };
@@ -140,6 +145,44 @@ static const struct vendor_data vendor_qdt_qdf2400_e44 = {
 	.fixed_options		= true,
 };
 #endif
+
+static u16 pl011_tegra_offsets[REG_ARRAY_SIZE] = {
+	[REG_DR] = UART01x_DR,
+	[REG_FR] = UART01x_FR,
+	[REG_LCRH_RX] = UART011_LCRH,
+	[REG_LCRH_TX] = UART011_LCRH,
+	[REG_IBRD] = UART011_IBRD,
+	[REG_FBRD] = UART011_FBRD,
+	[REG_CR] = UART011_CR,
+	[REG_IFLS] = UART011_IFLS,
+	[REG_IMSC] = UART011_IMSC,
+	[REG_RIS] = UART011_RIS,
+	[REG_MIS] = UART011_MIS,
+	[REG_ICR] = UART011_ICR,
+	[REG_DMACR] = UART011_DMACR,
+	[REG_NV_MIS] = NV_UART011_MIS,
+	[REG_NV_MIM] = NV_UART011_MIM,
+	[REG_NV_MMIS] = NV_UART011_MIS,
+	[REG_NV_MIC] = NV_UART011_MIC,
+};
+
+static struct vendor_data vendor_nvidia = {
+	.reg_offset		= pl011_tegra_offsets,
+	.ifls			= UART011_IFLS_RX4_8|UART011_IFLS_TX4_8,
+	.fr_busy		= UART01x_FR_BUSY,
+	.fr_dsr			= UART01x_FR_DSR,
+	.fr_cts			= UART01x_FR_CTS,
+	.fr_ri			= UART011_FR_RI,
+	.oversampling		= false,
+	.dma_threshold		= false,
+	.cts_event_workaround	= false,
+	.always_enabled		= false,
+	.fixed_options		= false,
+	.enable_car		= true,
+	.dma_workaround		= true,
+	.eord_interrupt		= true,
+	.get_fifosize		= get_fifosize_arm,
+};
 
 static u16 pl011_st_offsets[REG_ARRAY_SIZE] = {
 	[REG_DR] = UART01x_DR,
@@ -257,6 +300,7 @@ struct uart_amba_port {
 	struct uart_port	port;
 	const u16		*reg_offset;
 	struct clk		*clk;
+	struct reset_control	*rst;
 	const struct vendor_data *vendor;
 	unsigned int		dmacr;		/* dma control reg */
 	unsigned int		im;		/* interrupt mask */
@@ -619,6 +663,19 @@ static int pl011_dma_tx_refill(struct uart_amba_port *uap)
 	 * will prevent XON from notifying us to restart DMA.
 	 */
 	count -= 1;
+
+	/*
+	 * Tegra GPC DMA driver requires the data to be multiple of burst size.
+	 * Make count a multiple of burst size.
+	 */
+	if (uap->vendor->dma_workaround) {
+		count -= (count % (uap->fifosize >> 1));
+
+		if (count < (uap->fifosize >> 1)) {
+			uap->dmatx.queued = false;
+			return 0;
+		}
+	}
 
 	/* Else proceed to copy the TX chars to the DMA buffer and fire DMA */
 	if (count > PL011_DMA_BUFFER_SIZE)
@@ -1323,7 +1380,36 @@ static void pl011_stop_rx(struct uart_port *port)
 		     UART011_PEIM|UART011_BEIM|UART011_OEIM);
 	pl011_write(uap->im, uap, REG_IMSC);
 
+	if (uap->vendor->eord_interrupt)
+		pl011_write(~NV_UART011_EORDIM, uap, REG_NV_MIM);
+
 	pl011_dma_rx_stop(uap);
+}
+
+static void pl011_throttle(struct uart_port *port)
+{
+	struct uart_amba_port *uap =
+	    container_of(port, struct uart_amba_port, port);
+
+	uap->im &= ~(UART011_RTIM);
+
+	if (uap->vendor->eord_interrupt)
+		pl011_write(~NV_UART011_EORDIM, uap, REG_NV_MIM);
+
+	pl011_write(uap->im, uap, REG_IMSC);
+}
+
+static void pl011_unthrottle(struct uart_port *port)
+{
+	struct uart_amba_port *uap =
+	    container_of(port, struct uart_amba_port, port);
+
+	uap->im |= UART011_RTIM;
+
+	if (uap->vendor->eord_interrupt)
+		pl011_write(NV_UART011_EORDIM, uap, REG_NV_MIM);
+
+	pl011_write(uap->im, uap, REG_IMSC);
 }
 
 static void pl011_enable_ms(struct uart_port *port)
@@ -1487,6 +1573,14 @@ static irqreturn_t pl011_int(int irq, void *dev_id)
 					pl011_dma_rx_irq(uap);
 				else
 					pl011_rx_chars(uap);
+
+				/*
+				 * Clear EORD interrupt as receive timeout
+				 * interrupt already triggered.
+				 */
+				if (uap->vendor->eord_interrupt)
+					pl011_write(NV_UART011_EORDIC, uap,
+						    REG_NV_MIC);
 			}
 			if (status & (UART011_DSRMIS|UART011_DCDMIS|
 				      UART011_CTSMIS|UART011_RIMIS))
@@ -1500,8 +1594,36 @@ static irqreturn_t pl011_int(int irq, void *dev_id)
 			status = pl011_read(uap, REG_RIS) & uap->im;
 		} while (status != 0);
 		handled = 1;
+	} else {
+		/*
+		 * We are here because Receive timeout interrupt did not fire.
+		 * Check if EORD interrupt is supported.
+		 */
+		if (!uap->vendor->eord_interrupt)
+			goto out;
+
+		status = pl011_read(uap, REG_NV_MMIS);
+		if (!status)
+			goto out;
+
+		do {
+			pl011_write(NV_UART011_EORDIC, uap,
+				    REG_NV_MIC);
+
+			if (status & NV_UART011_EORDIS) {
+				if (pl011_dma_rx_running(uap))
+					pl011_dma_rx_irq(uap);
+				else
+					pl011_rx_chars(uap);
+			}
+
+			status = pl011_read(uap, REG_NV_MMIS);
+		} while (status != 0);
+
+		handled = 1;
 	}
 
+out:
 	spin_unlock_irqrestore(&uap->port.lock, flags);
 
 	return IRQ_RETVAL(handled);
@@ -1738,8 +1860,13 @@ static void pl011_enable_interrupts(struct uart_amba_port *uap)
 	}
 
 	uap->im = UART011_RTIM;
-	if (!pl011_dma_rx_running(uap))
+	if (!pl011_dma_rx_running(uap)) {
 		uap->im |= UART011_RXIM;
+	} else {
+		/* Enable EORD interrupt only if DMA is running. */
+		if (uap->vendor->eord_interrupt)
+			pl011_write(NV_UART011_EORDIM, uap, REG_NV_MIM);
+	}
 	pl011_write(uap->im, uap, REG_IMSC);
 	spin_unlock_irq(&uap->port.lock);
 }
@@ -2137,6 +2264,8 @@ static const struct uart_ops amba_pl011_pops = {
 	.break_ctl	= pl011_break_ctl,
 	.startup	= pl011_startup,
 	.shutdown	= pl011_shutdown,
+	.throttle	= pl011_throttle,
+	.unthrottle	= pl011_unthrottle,
 	.flush_buffer	= pl011_dma_flush_buffer,
 	.set_termios	= pl011_set_termios,
 	.type		= pl011_type,
@@ -2619,6 +2748,16 @@ static int pl011_register_port(struct uart_amba_port *uap)
 {
 	int ret, i;
 
+	/* Reset the controller and enable clock for initial reg_write.
+	 * This is required for Tegra Pl011 controller.
+	 */
+	if (uap->vendor->enable_car) {
+		reset_control_assert(uap->rst);
+		udelay(10);
+		reset_control_deassert(uap->rst);
+		clk_prepare_enable(uap->clk);
+	}
+
 	/* Ensure interrupts from this UART are masked and cleared */
 	pl011_write(0, uap, REG_IMSC);
 	pl011_write(0xffff, uap, REG_ICR);
@@ -2660,6 +2799,13 @@ static int pl011_probe(struct amba_device *dev, const struct amba_id *id)
 	uap->clk = devm_clk_get(&dev->dev, NULL);
 	if (IS_ERR(uap->clk))
 		return PTR_ERR(uap->clk);
+
+	if (vendor->enable_car) {
+		uap->rst = devm_reset_control_get_exclusive(&dev->dev,
+							    "serial");
+		if (IS_ERR(uap->rst))
+			return PTR_ERR(uap->rst);
+	}
 
 	uap->reg_offset = vendor->reg_offset;
 	uap->vendor = vendor;
@@ -2822,6 +2968,11 @@ static const struct amba_id pl011_ids[] = {
 		.id	= AMBA_LINUX_ID(0x00, 0x1, 0xffe),
 		.mask	= 0x00ffffff,
 		.data	= &vendor_zte,
+	},
+	{
+		.id	= 0x00051011,
+		.mask	= 0x00ffffff,
+		.data	= &vendor_nvidia,
 	},
 	{ 0, 0 },
 };

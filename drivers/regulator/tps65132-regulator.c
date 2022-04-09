@@ -1,7 +1,7 @@
 /*
  * TI TPS65132 Regulator driver
  *
- * Copyright (C) 2017 NVIDIA CORPORATION. All rights reserved.
+ * Copyright (C) 2017-2020 NVIDIA CORPORATION. All rights reserved.
  *
  * Author: Venkat Reddy Talla <vreddytalla@nvidia.com>
  *		Laxman Dewangan <ldewangan@nvidia.com>
@@ -275,7 +275,17 @@ static struct i2c_driver tps65132_i2c_driver = {
 	.id_table = tps65132_id,
 };
 
-module_i2c_driver(tps65132_i2c_driver);
+static int __init tps65132_init(void)
+{
+	return i2c_add_driver(&tps65132_i2c_driver);
+}
+subsys_initcall(tps65132_init);
+
+static void __exit tps65132_exit(void)
+{
+	i2c_del_driver(&tps65132_i2c_driver);
+}
+module_exit(tps65132_exit);
 
 MODULE_DESCRIPTION("tps65132 regulator driver");
 MODULE_AUTHOR("Venkat Reddy Talla <vreddytalla@nvidia.com>");

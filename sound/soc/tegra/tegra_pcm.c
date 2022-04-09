@@ -3,7 +3,7 @@
  * tegra_pcm.c - Tegra PCM driver
  *
  * Author: Stephen Warren <swarren@nvidia.com>
- * Copyright (C) 2010,2012 - NVIDIA, Inc.
+ * Copyright (c) 2010-2021 NVIDIA CORPORATION.  All rights reserved.
  *
  * Based on code copyright/by:
  *
@@ -24,13 +24,29 @@
 #include <sound/dmaengine_pcm.h>
 #include "tegra_pcm.h"
 
+static unsigned int tegra_supported_rate[] = {
+	8000, 11025, 16000, 22050, 24000, 32000, 44100, 48000,
+	64000, 88200, 96000, 176400, 192000,
+};
+
+static struct snd_pcm_hw_constraint_list tegra_rate_constraints = {
+	.count = ARRAY_SIZE(tegra_supported_rate),
+	.list = tegra_supported_rate,
+};
+
 static const struct snd_pcm_hardware tegra_pcm_hardware = {
 	.info			= SNDRV_PCM_INFO_MMAP |
 				  SNDRV_PCM_INFO_MMAP_VALID |
+				  SNDRV_PCM_INFO_PAUSE |
+				  SNDRV_PCM_INFO_RESUME |
 				  SNDRV_PCM_INFO_INTERLEAVED,
-	.period_bytes_min	= 1024,
-	.period_bytes_max	= PAGE_SIZE,
-	.periods_min		= 2,
+	.formats		= SNDRV_PCM_FMTBIT_S8 |
+				  SNDRV_PCM_FMTBIT_S16_LE |
+				  SNDRV_PCM_FMTBIT_S24_LE |
+				  SNDRV_PCM_FMTBIT_S32_LE,
+	.period_bytes_min	= 128,
+	.period_bytes_max	= PAGE_SIZE * 4,
+	.periods_min		= 1,
 	.periods_max		= 8,
 	.buffer_bytes_max	= PAGE_SIZE * 8,
 	.fifo_size		= 4,
@@ -89,6 +105,13 @@ int tegra_pcm_open(struct snd_soc_component *component,
 					 SNDRV_PCM_HW_PARAM_PERIOD_BYTES, 0x8);
 	if (ret) {
 		dev_err(rtd->dev, "failed to set constraint %d\n", ret);
+		return ret;
+	}
+
+	ret = snd_pcm_hw_constraint_list(substream->runtime, 0,
+			SNDRV_PCM_HW_PARAM_RATE, &tegra_rate_constraints);
+	if (ret) {
+		dev_err(rtd->dev, "failed to set rate constraint %d\n", ret);
 		return ret;
 	}
 
@@ -165,6 +188,8 @@ int tegra_pcm_hw_params(struct snd_soc_component *component,
 		slave_config.src_maxburst = 8;
 	}
 
+	slave_config.slave_id = dmap->slave_id;
+
 	ret = dmaengine_slave_config(chan, &slave_config);
 	if (ret < 0) {
 		dev_err(rtd->dev, "dma slave config failed with err %d\n", ret);
@@ -201,15 +226,43 @@ int tegra_pcm_mmap(struct snd_soc_component *component,
 	if (rtd->dai_link->no_pcm)
 		return 0;
 
-	return dma_mmap_wc(substream->pcm->card->dev, vma, runtime->dma_area,
-			   runtime->dma_addr, runtime->dma_bytes);
+	return dma_mmap_coherent(substream->pcm->card->dev, vma,
+				 runtime->dma_area, runtime->dma_addr,
+				 runtime->dma_bytes);
 }
 EXPORT_SYMBOL_GPL(tegra_pcm_mmap);
 
 snd_pcm_uframes_t tegra_pcm_pointer(struct snd_soc_component *component,
 				    struct snd_pcm_substream *substream)
 {
-	return snd_dmaengine_pcm_pointer(substream);
+	snd_pcm_uframes_t appl_offset, pos = 0;
+	struct snd_pcm_runtime *runtime = substream->runtime;
+	char *appl_ptr;
+
+	pos = snd_dmaengine_pcm_pointer(substream);
+
+	/*
+	 * In DRAINING state pointer callback comes from dma completion, here
+	 * we want to make sure if dma completion callback is late we should
+	 * not end up playing stale data.
+	 */
+	if ((runtime->status->state == SNDRV_PCM_STATE_DRAINING) &&
+		(substream->stream == SNDRV_PCM_STREAM_PLAYBACK)) {
+		appl_offset = runtime->control->appl_ptr %
+					runtime->buffer_size;
+		appl_ptr = runtime->dma_area + frames_to_bytes(runtime,
+					appl_offset);
+		if (pos < appl_offset) {
+			memset(appl_ptr, 0, frames_to_bytes(runtime,
+					runtime->buffer_size - appl_offset));
+			memset(runtime->dma_area, 0, frames_to_bytes(runtime,
+					pos));
+		} else
+			memset(appl_ptr, 0, frames_to_bytes(runtime,
+					pos - appl_offset));
+	}
+
+	return pos;
 }
 EXPORT_SYMBOL_GPL(tegra_pcm_pointer);
 
@@ -219,7 +272,8 @@ static int tegra_pcm_preallocate_dma_buffer(struct snd_pcm *pcm, int stream,
 	struct snd_pcm_substream *substream = pcm->streams[stream].substream;
 	struct snd_dma_buffer *buf = &substream->dma_buffer;
 
-	buf->area = dma_alloc_wc(pcm->card->dev, size, &buf->addr, GFP_KERNEL);
+	buf->area = dma_alloc_coherent(pcm->card->dev, size, &buf->addr,
+				       GFP_KERNEL);
 	if (!buf->area)
 		return -ENOMEM;
 
@@ -244,7 +298,7 @@ static void tegra_pcm_deallocate_dma_buffer(struct snd_pcm *pcm, int stream)
 	if (!buf->area)
 		return;
 
-	dma_free_wc(pcm->card->dev, buf->bytes, buf->area, buf->addr);
+	dma_free_coherent(pcm->card->dev, buf->bytes, buf->area, buf->addr);
 	buf->area = NULL;
 }
 
@@ -255,12 +309,8 @@ static int tegra_pcm_dma_allocate(struct snd_soc_pcm_runtime *rtd,
 	struct snd_pcm *pcm = rtd->pcm;
 	int ret;
 
-	ret = dma_set_mask(card->dev, DMA_BIT_MASK(32));
-	if (ret < 0)
-		return ret;
-
-	ret = dma_set_coherent_mask(card->dev, DMA_BIT_MASK(32));
-	if (ret < 0)
+	ret = dma_set_mask_and_coherent(card->dev, DMA_BIT_MASK(32));
+	if (ret)
 		return ret;
 
 	if (pcm->streams[SNDRV_PCM_STREAM_PLAYBACK].substream) {

@@ -19,6 +19,8 @@
 
 #include <linux/mmc/host.h>
 
+#include <soc/tegra/fuse.h>
+
 /*
  * Controller registers
  */
@@ -474,6 +476,12 @@ struct sdhci_host {
  * block count.
  */
 #define SDHCI_QUIRK2_USE_32BIT_BLK_CNT			(1<<18)
+/* Issue CMD and DATA reset together */
+#define SDHCI_QUIRK2_ISSUE_CMD_DAT_RESET_TOGETHER	(1<<19)
+/* Select SDR104 UHS mode for SDR50 */
+#define SDHCI_QUIRK2_SEL_SDR104_UHS_MODE_IN_SDR50	(1<<20)
+/* Turn off/on card clock before sending/after tuning command */
+#define SDHCI_QUIRK2_NON_STD_TUN_CARD_CLOCK		(1<<21)
 
 	int irq;		/* Device IRQ */
 	void __iomem *ioaddr;	/* Mapped address */
@@ -502,6 +510,7 @@ struct sdhci_host {
 #define SDHCI_REQ_USE_DMA	(1<<2)	/* Use DMA for this req. */
 #define SDHCI_DEVICE_DEAD	(1<<3)	/* Device unresponsive */
 #define SDHCI_SDR50_NEEDS_TUNING (1<<4)	/* SDR50 needs tuning */
+#define SDHCI_SDR104_NEEDS_TUNING (1<<5)/* SDR104 needs tuning */
 #define SDHCI_AUTO_CMD12	(1<<6)	/* Auto CMD12 support */
 #define SDHCI_AUTO_CMD23	(1<<7)	/* Auto CMD23 support */
 #define SDHCI_PV_ENABLED	(1<<8)	/* Preset value enabled */
@@ -567,6 +576,7 @@ struct sdhci_host {
 	u32 caps;		/* CAPABILITY_0 */
 	u32 caps1;		/* CAPABILITY_1 */
 	bool read_caps;		/* Capability flags have been read */
+	u32 caps_timing_orig;	/* older timing capabilities */
 
 	bool sdhci_core_to_disable_vqmmc;  /* sdhci core can disable vqmmc */
 	unsigned int            ocr_avail_sdio;	/* OCR bit masks */
@@ -645,20 +655,29 @@ struct sdhci_ops {
 	void    (*adma_workaround)(struct sdhci_host *host, u32 intmask);
 	void    (*card_event)(struct sdhci_host *host);
 	void	(*voltage_switch)(struct sdhci_host *host);
+	int	(*get_max_tuning_loop_counter)(struct sdhci_host *host);
 	void	(*adma_write_desc)(struct sdhci_host *host, void **desc,
 				   dma_addr_t addr, int len, unsigned int cmd);
+	void	(*hs400_enhanced_strobe)(struct sdhci_host *host, bool enable);
+	unsigned int	(*get_sw_timeout)(struct sdhci_host *host);
+	void	(*voltage_switch_req)(struct sdhci_host *sdhci, bool req);
+	void	(*skip_host_clkgate)(struct sdhci_host *host, bool req);
 	void	(*copy_to_bounce_buffer)(struct sdhci_host *host,
 					 struct mmc_data *data,
 					 unsigned int length);
 	void	(*request_done)(struct sdhci_host *host,
 				struct mmc_request *mrq);
 	void    (*dump_vendor_regs)(struct sdhci_host *host);
+	int	(*pre_card_init)(struct sdhci_host *host, int val,
+				 unsigned int mask);
 };
 
 #ifdef CONFIG_MMC_SDHCI_IO_ACCESSORS
 
 static inline void sdhci_writel(struct sdhci_host *host, u32 val, int reg)
 {
+	if (tegra_platform_is_vsp() && (reg > SDHCI_HOST_VERSION))
+		return;
 	if (unlikely(host->ops->write_l))
 		host->ops->write_l(host, val, reg);
 	else
@@ -667,6 +686,8 @@ static inline void sdhci_writel(struct sdhci_host *host, u32 val, int reg)
 
 static inline void sdhci_writew(struct sdhci_host *host, u16 val, int reg)
 {
+	if (tegra_platform_is_vsp() && (reg > SDHCI_HOST_VERSION))
+		return;
 	if (unlikely(host->ops->write_w))
 		host->ops->write_w(host, val, reg);
 	else
@@ -675,6 +696,8 @@ static inline void sdhci_writew(struct sdhci_host *host, u16 val, int reg)
 
 static inline void sdhci_writeb(struct sdhci_host *host, u8 val, int reg)
 {
+	if (tegra_platform_is_vsp() && (reg > SDHCI_HOST_VERSION))
+		return;
 	if (unlikely(host->ops->write_b))
 		host->ops->write_b(host, val, reg);
 	else
@@ -683,6 +706,8 @@ static inline void sdhci_writeb(struct sdhci_host *host, u8 val, int reg)
 
 static inline u32 sdhci_readl(struct sdhci_host *host, int reg)
 {
+	if (tegra_platform_is_vsp() && (reg > SDHCI_HOST_VERSION))
+		return 0;
 	if (unlikely(host->ops->read_l))
 		return host->ops->read_l(host, reg);
 	else
@@ -691,6 +716,8 @@ static inline u32 sdhci_readl(struct sdhci_host *host, int reg)
 
 static inline u16 sdhci_readw(struct sdhci_host *host, int reg)
 {
+	if (tegra_platform_is_vsp() && (reg > SDHCI_HOST_VERSION))
+		return 0;
 	if (unlikely(host->ops->read_w))
 		return host->ops->read_w(host, reg);
 	else
@@ -699,6 +726,8 @@ static inline u16 sdhci_readw(struct sdhci_host *host, int reg)
 
 static inline u8 sdhci_readb(struct sdhci_host *host, int reg)
 {
+	if (tegra_platform_is_vsp() && (reg > SDHCI_HOST_VERSION))
+		return 0;
 	if (unlikely(host->ops->read_b))
 		return host->ops->read_b(host, reg);
 	else
@@ -709,31 +738,43 @@ static inline u8 sdhci_readb(struct sdhci_host *host, int reg)
 
 static inline void sdhci_writel(struct sdhci_host *host, u32 val, int reg)
 {
+	if (tegra_platform_is_vsp() && (reg > SDHCI_HOST_VERSION))
+		return;
 	writel(val, host->ioaddr + reg);
 }
 
 static inline void sdhci_writew(struct sdhci_host *host, u16 val, int reg)
 {
+	if (tegra_platform_is_vsp() && (reg > SDHCI_HOST_VERSION))
+		return;
 	writew(val, host->ioaddr + reg);
 }
 
 static inline void sdhci_writeb(struct sdhci_host *host, u8 val, int reg)
 {
+	if (tegra_platform_is_vsp() && (reg > SDHCI_HOST_VERSION))
+		return;
 	writeb(val, host->ioaddr + reg);
 }
 
 static inline u32 sdhci_readl(struct sdhci_host *host, int reg)
 {
+	if (tegra_platform_is_vsp() && (reg > SDHCI_HOST_VERSION))
+		return 0;
 	return readl(host->ioaddr + reg);
 }
 
 static inline u16 sdhci_readw(struct sdhci_host *host, int reg)
 {
+	if (tegra_platform_is_vsp() && (reg > SDHCI_HOST_VERSION))
+		return 0;
 	return readw(host->ioaddr + reg);
 }
 
 static inline u8 sdhci_readb(struct sdhci_host *host, int reg)
 {
+	if (tegra_platform_is_vsp() && (reg > SDHCI_HOST_VERSION))
+		return 0;
 	return readb(host->ioaddr + reg);
 }
 
@@ -763,6 +804,7 @@ static inline void sdhci_read_caps(struct sdhci_host *host)
 
 u16 sdhci_calc_clk(struct sdhci_host *host, unsigned int clock,
 		   unsigned int *actual_clock);
+void sdhci_set_card_clock(struct sdhci_host *host, bool enable);
 void sdhci_set_clock(struct sdhci_host *host, unsigned int clock);
 void sdhci_enable_clk(struct sdhci_host *host, u16 clk);
 void sdhci_set_power(struct sdhci_host *host, unsigned char mode,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015, Mellanox Technologies. All rights reserved.
+ * Copyright (c) 2013-2021, Mellanox Technologies. All rights reserved.
  *
  * This software is available to you under a choice of one of two
  * licenses.  You may choose to be licensed under the terms of the GNU
@@ -47,6 +47,7 @@
 #include <linux/kmod.h>
 #include <linux/mlx5/mlx5_ifc.h>
 #include <linux/mlx5/vport.h>
+#include <linux/mlx5/thermal.h>
 #ifdef CONFIG_RFS_ACCEL
 #include <linux/cpu_rmap.h>
 #endif
@@ -1379,6 +1380,8 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *id)
 	if (err)
 		dev_err(&pdev->dev, "mlx5_crdump_enable failed with error code %d\n", err);
 
+	if (mlx5_thermal_init(dev))
+		pr_info("failed to register thermal device\n");
 	pci_save_state(pdev);
 	if (!mlx5_core_is_mp_slave(dev))
 		devlink_reload_enable(devlink);
@@ -1413,6 +1416,7 @@ static pci_ers_result_t mlx5_pci_err_detected(struct pci_dev *pdev,
 {
 	struct mlx5_core_dev *dev = pci_get_drvdata(pdev);
 
+	mlx5_thermal_deinit(dev);
 	mlx5_core_info(dev, "%s was called\n", __func__);
 
 	mlx5_enter_error_state(dev, false);
@@ -1557,6 +1561,7 @@ static void shutdown(struct pci_dev *pdev)
 	int err;
 
 	mlx5_core_info(dev, "Shutdown was called\n");
+	mlx5_thermal_deinit(dev);
 	err = mlx5_try_fast_unload(dev);
 	if (err)
 		mlx5_unload_one(dev, false);

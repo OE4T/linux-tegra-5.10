@@ -66,6 +66,32 @@ static const unsigned int sd_au_size[] = {
 		__res & __mask;						\
 	})
 
+static int voltage_switch_uhs_failure;
+static ssize_t error_stats_show(struct device *dev,
+				struct device_attribute *attr, char *buf)
+{
+	int bytes_written = 0;
+
+	bytes_written += sprintf(buf + bytes_written,
+				"%d\n", voltage_switch_uhs_failure);
+	return bytes_written;
+}
+
+static ssize_t error_stats_store(struct device *dev,
+	struct device_attribute *attr, const char *buf, size_t count)
+{
+	int ret, error_stats = 0;
+
+	ret = kstrtoint(buf, 10, &error_stats);
+	if (ret != 0 || error_stats != 0)
+		return -EINVAL;
+
+	voltage_switch_uhs_failure = error_stats;
+	return count;
+}
+
+static DEVICE_ATTR(error_stats, 0644, error_stats_show, error_stats_store);
+
 /*
  * Given the decoded CSD structure, decode the raw CID to our CID structure.
  */
@@ -283,6 +309,8 @@ static int mmc_read_ssr(struct mmc_card *card)
 				card->ssr.erase_timeout = (et * 1000) / es;
 				card->ssr.erase_offset = eo * 1000;
 			}
+			card->speed_class = UNSTUFF_BITS(card->raw_ssr,
+								440 - 384, 8);
 		} else {
 			pr_warn("%s: SD Status: Invalid Allocation Unit size\n",
 				mmc_hostname(card->host));
@@ -759,6 +787,7 @@ static struct attribute *sd_std_attrs[] = {
 	&dev_attr_ocr.attr,
 	&dev_attr_rca.attr,
 	&dev_attr_dsr.attr,
+	&dev_attr_error_stats.attr,
 	NULL,
 };
 
@@ -801,6 +830,8 @@ int mmc_sd_get_cid(struct mmc_host *host, u32 ocr, u32 *cid, u32 *rocr)
 	u32 max_current;
 	int retries = 10;
 	u32 pocr = ocr;
+	if (host->ops->voltage_switch_req)
+		host->ops->voltage_switch_req(host, false);
 
 try_again:
 	if (!retries) {
@@ -865,6 +896,10 @@ try_again:
 	}
 
 	err = mmc_send_cid(host, cid);
+
+	if (host->ops->voltage_switch_req)
+		host->ops->voltage_switch_req(host, true);
+
 	return err;
 }
 
@@ -1099,7 +1134,8 @@ retry:
 				goto free_card;
 		}
 		if (mmc_sd_card_using_v18(card)) {
-			if (mmc_host_set_uhs_voltage(host) ||
+			if (mmc_set_signal_voltage(host,
+						   MMC_SIGNAL_VOLTAGE_180) ||
 			    mmc_sd_init_uhs_card(card)) {
 				v18_fixup_failed = true;
 				mmc_power_cycle(host, ocr);
@@ -1114,8 +1150,16 @@ retry:
 	/* Initialization sequence for UHS-I cards */
 	if (rocr & SD_ROCR_S18A && mmc_host_uhs(host)) {
 		err = mmc_sd_init_uhs_card(card);
-		if (err)
+		if (err) {
+			/*
+			 * Disable UHS modes if init fails.
+			 * Sd card enumerates in HS mode in the next init.
+			 */
+			card->host->caps &= ~(MMC_CAP_UHS_SDR12 |
+				MMC_CAP_UHS_SDR25 | MMC_CAP_UHS_SDR50 |
+				MMC_CAP_UHS_SDR104 | MMC_CAP_UHS_DDR50);
 			goto free_card;
+		}
 	} else {
 		/*
 		 * Attempt to change to high-speed (if supported)
@@ -1344,6 +1388,9 @@ int mmc_attach_sd(struct mmc_host *host)
 	u32 ocr, rocr;
 
 	WARN_ON(!host->claimed);
+
+	if (host->is_card_sd_express)
+		return 0;
 
 	err = mmc_send_app_op_cond(host, 0, &ocr);
 	if (err)

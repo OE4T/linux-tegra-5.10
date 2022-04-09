@@ -57,6 +57,8 @@ struct cpuinfo_arm64 {
 
 	/* pseudo-ZCR for recording maximum ZCR_EL1 LEN value: */
 	u64		reg_zcr;
+	/* Denver firmware revision */
+	u32		reg_aidr;
 };
 
 DECLARE_PER_CPU(struct cpuinfo_arm64, cpu_data);

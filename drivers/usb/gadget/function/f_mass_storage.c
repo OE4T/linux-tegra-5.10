@@ -6,6 +6,7 @@
  * Copyright (C) 2009 Samsung Electronics
  *                    Author: Michal Nazarewicz <mina86@mina86.com>
  * All rights reserved.
+ * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -1444,6 +1445,29 @@ static int wedge_bulk_in_endpoint(struct fsg_dev *fsg)
 	return rc;
 }
 
+static int wedge_bulk_out_endpoint(struct fsg_dev *fsg)
+{
+	int	rc;
+
+	DBG(fsg, "bulk-out set wedge\n");
+	rc = usb_ep_set_wedge(fsg->bulk_out);
+	if (rc == -EAGAIN)
+		VDBG(fsg, "delayed bulk-out endpoint wedge\n");
+	while (rc != 0) {
+		if (rc != -EAGAIN) {
+			WARNING(fsg, "usb_ep_set_wedge -> %d\n", rc);
+			rc = 0;
+			break;
+		}
+
+		/* Wait for a short time and then try again */
+		if (msleep_interruptible(100) != 0)
+			return -EINTR;
+		rc = usb_ep_set_wedge(fsg->bulk_out);
+	}
+	return rc;
+}
+
 static int throw_away_data(struct fsg_common *common)
 {
 	struct fsg_buffhd	*bh, *bh2;
@@ -2097,12 +2121,18 @@ static int received_cbw(struct fsg_dev *fsg, struct fsg_buffhd *bh)
 		 * retain this state until the next reset, but there's
 		 * no way to tell the controller driver it should ignore
 		 * Clear-Feature(HALT) requests.
-		 *
-		 * We aren't required to halt the OUT endpoint; instead
-		 * we can simply accept and discard any data received
-		 * until the next reset.
 		 */
 		wedge_bulk_in_endpoint(fsg);
+
+		/*
+		 * According to 5.3.4 Reset Recovery, Clear-Feature(HALT) would
+		 * be issued after a Bulk-Only Mass Storage Reset. If Bulk-Out
+		 * endpoint is not stalled here, Clear-Feature(HALT) on the
+		 * Bulk-Out endpoint results in sequence number mismatch between
+		 * host and device on some USB device controller (e.g. TEGRA USB
+		 * device controller).
+		 */
+		wedge_bulk_out_endpoint(fsg);
 		set_bit(IGNORE_BULK_OUT, &fsg->atomic_bitflags);
 		return -EINVAL;
 	}
@@ -2404,8 +2434,10 @@ static void handle_exception(struct fsg_common *common)
 		if (!fsg_is_set(common))
 			break;
 		if (test_and_clear_bit(IGNORE_BULK_OUT,
-				       &common->fsg->atomic_bitflags))
+				       &common->fsg->atomic_bitflags)) {
+			usb_ep_clear_halt(common->fsg->bulk_out);
 			usb_ep_clear_halt(common->fsg->bulk_in);
+		}
 
 		if (common->ep0_req_tag == exception_req_tag)
 			ep0_queue(common);	/* Complete the status stage */

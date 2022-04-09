@@ -599,12 +599,24 @@ static int ucsi_register_partner(struct ucsi_connector *con)
 	return 0;
 }
 
+static void ucsi_set_data_role(struct ucsi_connector *con, enum usb_role role)
+{
+	if (con->ucsi->ops->set_data_role)
+		con->ucsi->ops->set_data_role(con, role);
+
+	if (role == USB_ROLE_HOST)
+		typec_set_data_role(con->port, TYPEC_HOST);
+	else if (role == USB_ROLE_DEVICE)
+		typec_set_data_role(con->port, TYPEC_DEVICE);
+}
+
 static void ucsi_unregister_partner(struct ucsi_connector *con)
 {
 	if (!con->partner)
 		return;
 
 	ucsi_unregister_altmodes(con, UCSI_RECIPIENT_SOP);
+	ucsi_set_data_role(con, USB_ROLE_NONE);
 	typec_unregister_partner(con->partner);
 	con->partner = NULL;
 }
@@ -620,10 +632,10 @@ static void ucsi_partner_change(struct ucsi_connector *con)
 	case UCSI_CONSTAT_PARTNER_TYPE_UFP:
 	case UCSI_CONSTAT_PARTNER_TYPE_CABLE:
 	case UCSI_CONSTAT_PARTNER_TYPE_CABLE_AND_UFP:
-		typec_set_data_role(con->port, TYPEC_HOST);
+		ucsi_set_data_role(con, USB_ROLE_HOST);
 		break;
 	case UCSI_CONSTAT_PARTNER_TYPE_DFP:
-		typec_set_data_role(con->port, TYPEC_DEVICE);
+		ucsi_set_data_role(con, USB_ROLE_DEVICE);
 		break;
 	default:
 		break;
@@ -778,10 +790,10 @@ static void ucsi_handle_connector_change(struct work_struct *work)
 		case UCSI_CONSTAT_PARTNER_TYPE_UFP:
 		case UCSI_CONSTAT_PARTNER_TYPE_CABLE:
 		case UCSI_CONSTAT_PARTNER_TYPE_CABLE_AND_UFP:
-			typec_set_data_role(con->port, TYPEC_HOST);
+			ucsi_set_data_role(con, USB_ROLE_HOST);
 			break;
 		case UCSI_CONSTAT_PARTNER_TYPE_DFP:
-			typec_set_data_role(con->port, TYPEC_DEVICE);
+			ucsi_set_data_role(con, USB_ROLE_DEVICE);
 			break;
 		default:
 			break;
@@ -1092,10 +1104,10 @@ static int ucsi_register_port(struct ucsi *ucsi, int index)
 	case UCSI_CONSTAT_PARTNER_TYPE_UFP:
 	case UCSI_CONSTAT_PARTNER_TYPE_CABLE:
 	case UCSI_CONSTAT_PARTNER_TYPE_CABLE_AND_UFP:
-		typec_set_data_role(con->port, TYPEC_HOST);
+		ucsi_set_data_role(con, USB_ROLE_HOST);
 		break;
 	case UCSI_CONSTAT_PARTNER_TYPE_DFP:
-		typec_set_data_role(con->port, TYPEC_DEVICE);
+		ucsi_set_data_role(con, USB_ROLE_DEVICE);
 		break;
 	default:
 		break;

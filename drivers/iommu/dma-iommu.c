@@ -2,6 +2,7 @@
 /*
  * A fairly generic DMA-API to IOMMU-API glue layer.
  *
+ * Copyright (c) 2020 NVIDIA CORPORATION.  All rights reserved.
  * Copyright (C) 2014-2015 ARM Ltd.
  *
  * based in part on arch/arm/mm/dma-mapping.c:
@@ -19,6 +20,7 @@
 #include <linux/irq.h>
 #include <linux/mm.h>
 #include <linux/mutex.h>
+#include <linux/of_iommu.h>
 #include <linux/pci.h>
 #include <linux/scatterlist.h>
 #include <linux/vmalloc.h>
@@ -162,6 +164,8 @@ void iommu_dma_get_resv_regions(struct device *dev, struct list_head *list)
 
 	if (!is_of_node(dev_iommu_fwspec_get(dev)->iommu_fwnode))
 		iort_iommu_msi_get_resv_regions(dev, list);
+	else
+		of_iommu_msi_get_resv_regions(dev, list);
 
 }
 EXPORT_SYMBOL(iommu_dma_get_resv_regions);
@@ -391,17 +395,27 @@ static int dma_info_to_prot(enum dma_data_direction dir, bool coherent,
 
 	switch (dir) {
 	case DMA_BIDIRECTIONAL:
-		return prot | IOMMU_READ | IOMMU_WRITE;
+		prot |= IOMMU_READ | IOMMU_WRITE;
+		break;
 	case DMA_TO_DEVICE:
-		return prot | IOMMU_READ;
+		prot |= IOMMU_READ;
+		break;
 	case DMA_FROM_DEVICE:
-		return prot | IOMMU_WRITE;
+		prot |= IOMMU_WRITE;
+		break;
 	default:
 		return 0;
 	}
+
+	if (DMA_ATTR_READ_ONLY & attrs)
+		prot &= ~IOMMU_WRITE;
+	else if (DMA_ATTR_WRITE_ONLY & attrs)
+		prot &= ~IOMMU_READ;
+
+	return prot;
 }
 
-static dma_addr_t iommu_dma_alloc_iova(struct iommu_domain *domain,
+dma_addr_t __iommu_dma_alloc_iova(struct iommu_domain *domain,
 		size_t size, u64 dma_limit, struct device *dev)
 {
 	struct iommu_dma_cookie *cookie = domain->iova_cookie;
@@ -441,7 +455,7 @@ static dma_addr_t iommu_dma_alloc_iova(struct iommu_domain *domain,
 	return (dma_addr_t)iova << shift;
 }
 
-static void iommu_dma_free_iova(struct iommu_dma_cookie *cookie,
+static void __iommu_dma_free_iova(struct iommu_dma_cookie *cookie,
 		dma_addr_t iova, size_t size)
 {
 	struct iova_domain *iovad = &cookie->iovad;
@@ -456,6 +470,24 @@ static void iommu_dma_free_iova(struct iommu_dma_cookie *cookie,
 		free_iova_fast(iovad, iova_pfn(iovad, iova),
 				size >> iova_shift(iovad));
 }
+
+dma_addr_t iommu_dma_alloc_iova(struct device *dev, size_t size,
+				u64 dma_limit)
+{
+	struct iommu_domain *domain = iommu_get_domain_for_dev(dev);
+
+	return __iommu_dma_alloc_iova(domain, size, dma_limit, dev);
+}
+EXPORT_SYMBOL(iommu_dma_alloc_iova);
+
+void iommu_dma_free_iova(struct device *dev, dma_addr_t iova, size_t size)
+{
+	struct iommu_domain *domain = iommu_get_domain_for_dev(dev);
+	struct iommu_dma_cookie *cookie = domain->iova_cookie;
+
+	__iommu_dma_free_iova(cookie, iova, size);
+}
+EXPORT_SYMBOL(iommu_dma_free_iova);
 
 static void __iommu_dma_unmap(struct device *dev, dma_addr_t dma_addr,
 		size_t size)
@@ -476,7 +508,7 @@ static void __iommu_dma_unmap(struct device *dev, dma_addr_t dma_addr,
 
 	if (!cookie->fq_domain)
 		iommu_iotlb_sync(domain, &iotlb_gather);
-	iommu_dma_free_iova(cookie, dma_addr, size);
+	__iommu_dma_free_iova(cookie, dma_addr, size);
 }
 
 static dma_addr_t __iommu_dma_map(struct device *dev, phys_addr_t phys,
@@ -493,12 +525,12 @@ static dma_addr_t __iommu_dma_map(struct device *dev, phys_addr_t phys,
 
 	size = iova_align(iovad, size + iova_off);
 
-	iova = iommu_dma_alloc_iova(domain, size, dma_mask, dev);
+	iova = __iommu_dma_alloc_iova(domain, size, dma_mask, dev);
 	if (!iova)
 		return DMA_MAPPING_ERROR;
 
 	if (iommu_map_atomic(domain, iova, phys - iova_off, size, prot)) {
-		iommu_dma_free_iova(cookie, iova, size);
+		__iommu_dma_free_iova(cookie, iova, size);
 		return DMA_MAPPING_ERROR;
 	}
 	return iova + iova_off;
@@ -618,7 +650,7 @@ static void *iommu_dma_alloc_remap(struct device *dev, size_t size,
 		return NULL;
 
 	size = iova_align(iovad, size);
-	iova = iommu_dma_alloc_iova(domain, size, dev->coherent_dma_mask, dev);
+	iova = __iommu_dma_alloc_iova(domain, size, (u64)dev->coherent_dma_mask, dev);
 	if (!iova)
 		goto out_free_pages;
 
@@ -651,7 +683,7 @@ out_unmap:
 out_free_sg:
 	sg_free_table(&sgt);
 out_free_iova:
-	iommu_dma_free_iova(cookie, iova, size);
+	__iommu_dma_free_iova(cookie, iova, size);
 out_free_pages:
 	__iommu_dma_free_pages(pages, count);
 	return NULL;
@@ -733,7 +765,7 @@ static dma_addr_t iommu_dma_map_page(struct device *dev, struct page *page,
 	int prot = dma_info_to_prot(dir, coherent, attrs);
 	dma_addr_t dma_handle;
 
-	dma_handle = __iommu_dma_map(dev, phys, size, prot, dma_get_mask(dev));
+	dma_handle = __iommu_dma_map(dev, phys, size, prot, (u64)dma_get_mask(dev));
 	if (!coherent && !(attrs & DMA_ATTR_SKIP_CPU_SYNC) &&
 	    dma_handle != DMA_MAPPING_ERROR)
 		arch_sync_dma_for_device(phys, size, dir);
@@ -888,7 +920,7 @@ static int iommu_dma_map_sg(struct device *dev, struct scatterlist *sg,
 		prev = s;
 	}
 
-	iova = iommu_dma_alloc_iova(domain, iova_len, dma_get_mask(dev), dev);
+	iova = __iommu_dma_alloc_iova(domain, iova_len, (u64)dma_get_mask(dev), dev);
 	if (!iova)
 		goto out_restore_sg;
 
@@ -902,7 +934,7 @@ static int iommu_dma_map_sg(struct device *dev, struct scatterlist *sg,
 	return __finalise_sg(dev, sg, nents, iova);
 
 out_free_iova:
-	iommu_dma_free_iova(cookie, iova, iova_len);
+	__iommu_dma_free_iova(cookie, iova, iova_len);
 out_restore_sg:
 	__invalidate_sg(sg, nents);
 	return 0;
@@ -937,7 +969,7 @@ static dma_addr_t iommu_dma_map_resource(struct device *dev, phys_addr_t phys,
 {
 	return __iommu_dma_map(dev, phys, size,
 			dma_info_to_prot(dir, false, attrs) | IOMMU_MMIO,
-			dma_get_mask(dev));
+			(u64)dma_get_mask(dev));
 }
 
 static void iommu_dma_unmap_resource(struct device *dev, dma_addr_t handle,
@@ -1025,9 +1057,17 @@ static void *iommu_dma_alloc(struct device *dev, size_t size,
 		dma_addr_t *handle, gfp_t gfp, unsigned long attrs)
 {
 	bool coherent = dev_is_dma_coherent(dev);
-	int ioprot = dma_info_to_prot(DMA_BIDIRECTIONAL, coherent, attrs);
+	enum dma_data_direction dir;
 	struct page *page = NULL;
 	void *cpu_addr;
+	int ioprot;
+
+	if (attrs & DMA_ATTR_READ_ONLY)
+		dir = DMA_TO_DEVICE;
+	else
+		dir = DMA_BIDIRECTIONAL;
+
+	ioprot = dma_info_to_prot(dir, coherent, attrs);
 
 	gfp |= __GFP_ZERO;
 
@@ -1047,7 +1087,7 @@ static void *iommu_dma_alloc(struct device *dev, size_t size,
 		return NULL;
 
 	*handle = __iommu_dma_map(dev, page_to_phys(page), size, ioprot,
-			dev->coherent_dma_mask);
+			(u64)dev->coherent_dma_mask);
 	if (*handle == DMA_MAPPING_ERROR) {
 		__iommu_dma_free(dev, size, cpu_addr);
 		return NULL;
@@ -1216,7 +1256,7 @@ static struct iommu_dma_msi_page *iommu_dma_get_msi_page(struct device *dev,
 	if (!msi_page)
 		return NULL;
 
-	iova = iommu_dma_alloc_iova(domain, size, dma_get_mask(dev), dev);
+	iova = __iommu_dma_alloc_iova(domain, size, (u64)dma_get_mask(dev), dev);
 	if (!iova)
 		goto out_free_page;
 
@@ -1230,7 +1270,7 @@ static struct iommu_dma_msi_page *iommu_dma_get_msi_page(struct device *dev,
 	return msi_page;
 
 out_free_iova:
-	iommu_dma_free_iova(cookie, iova, size);
+	__iommu_dma_free_iova(cookie, iova, size);
 out_free_page:
 	kfree(msi_page);
 	return NULL;
@@ -1285,4 +1325,56 @@ static int iommu_dma_init(void)
 {
 	return iova_cache_get();
 }
+
+void iommu_dma_map_msi_pages(struct device *dev, phys_addr_t msi_base, int irq,
+		unsigned int nr_irqs)
+{
+	struct iommu_domain *domain = iommu_get_domain_for_dev(dev);
+	struct iommu_dma_cookie *cookie;
+	struct iommu_dma_msi_page *msi_page;
+	size_t size;
+	int prot = IOMMU_WRITE | IOMMU_NOEXEC | IOMMU_MMIO;
+	phys_addr_t msi_phys;
+	dma_addr_t msi_iova;
+
+	if (!domain || !domain->iova_cookie)
+		return;
+
+	cookie = domain->iova_cookie;
+	size = cookie_msi_granule(cookie);
+
+	msi_base &= ~(phys_addr_t)(size - 1);
+	list_for_each_entry(msi_page, &cookie->msi_page_list, list)
+		if (msi_page->phys == msi_base)
+			break;
+
+	msi_iova = msi_page->iova + (irq * SZ_64K);
+	msi_phys = msi_page->phys + (irq * SZ_64K);
+	iommu_map(domain, msi_iova, msi_phys, nr_irqs * SZ_64K, prot);
+}
+
+void iommu_dma_unmap_msi_pages(struct device *dev, phys_addr_t msi_base,
+		int irq, unsigned int nr_irqs)
+{
+	struct iommu_domain *domain = iommu_get_domain_for_dev(dev);
+	struct iommu_dma_cookie *cookie;
+	struct iommu_dma_msi_page *msi_page;
+	size_t size;
+	dma_addr_t msi_iova;
+
+	if (!domain || !domain->iova_cookie)
+		return;
+
+	cookie = domain->iova_cookie;
+	size = cookie_msi_granule(cookie);
+
+	msi_base &= ~(phys_addr_t)(size - 1);
+	list_for_each_entry(msi_page, &cookie->msi_page_list, list)
+		if (msi_page->phys == msi_base)
+			break;
+
+	msi_iova = msi_page->iova + (irq * SZ_64K);
+	iommu_unmap(domain, msi_iova, nr_irqs * SZ_64K);
+}
+
 arch_initcall(iommu_dma_init);

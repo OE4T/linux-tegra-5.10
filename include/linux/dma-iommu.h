@@ -17,6 +17,9 @@
 int iommu_get_dma_cookie(struct iommu_domain *domain);
 int iommu_get_msi_cookie(struct iommu_domain *domain, dma_addr_t base);
 void iommu_put_dma_cookie(struct iommu_domain *domain);
+dma_addr_t iommu_dma_alloc_iova(struct device *dev, size_t size,
+				u64 dma_limit);
+void iommu_dma_free_iova(struct device *dev, dma_addr_t iova, size_t size);
 
 /* Setup call for arch DMA mapping code */
 void iommu_setup_dma_ops(struct device *dev, u64 dma_base, u64 size);
@@ -35,6 +38,10 @@ int iommu_dma_prepare_msi(struct msi_desc *desc, phys_addr_t msi_addr);
 void iommu_dma_compose_msi_msg(struct msi_desc *desc,
 			       struct msi_msg *msg);
 
+void iommu_dma_map_msi_pages(struct device *dev, phys_addr_t msi_base,
+		int irq, unsigned int nr_irqs);
+void iommu_dma_unmap_msi_pages(struct device *dev, phys_addr_t msi_base,
+		int irq, unsigned int nr_irqs);
 void iommu_dma_get_resv_regions(struct device *dev, struct list_head *list);
 
 #else /* CONFIG_IOMMU_DMA */
@@ -63,6 +70,15 @@ static inline void iommu_put_dma_cookie(struct iommu_domain *domain)
 {
 }
 
+static dma_addr_t iommu_dma_alloc_iova(struct device *dev, size_t size,
+				       u64 dma_limit)
+{
+	return 0;
+}
+void iommu_dma_free_iova(struct device *dev, dma_addr_t iova, size_t size)
+{
+}
+
 static inline int iommu_dma_prepare_msi(struct msi_desc *desc,
 					phys_addr_t msi_addr)
 {
@@ -71,6 +87,16 @@ static inline int iommu_dma_prepare_msi(struct msi_desc *desc,
 
 static inline void iommu_dma_compose_msi_msg(struct msi_desc *desc,
 					     struct msi_msg *msg)
+{
+}
+
+static void iommu_dma_map_msi_pages(struct device *dev, phys_addr_t msi_base,
+		int irq, unsigned int nr_irqs)
+{
+}
+
+static void iommu_dma_unmap_msi_pages(struct device *dev, phys_addr_t msi_base,
+		int irq, unsigned int nr_irqs)
 {
 }
 

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+//  Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
 /*
  *      NET3    Protocol independent device support routines.
  *
@@ -5766,7 +5767,7 @@ static void gro_normal_one(struct napi_struct *napi, struct sk_buff *skb, int se
 
 INDIRECT_CALLABLE_DECLARE(int inet_gro_complete(struct sk_buff *, int));
 INDIRECT_CALLABLE_DECLARE(int ipv6_gro_complete(struct sk_buff *, int));
-static int napi_gro_complete(struct napi_struct *napi, struct sk_buff *skb)
+int napi_gro_complete(struct napi_struct *napi, struct sk_buff *skb)
 {
 	struct packet_offload *ptype;
 	__be16 type = skb->protocol;
@@ -5802,6 +5803,7 @@ out:
 	gro_normal_one(napi, skb, NAPI_GRO_CB(skb)->count);
 	return NET_RX_SUCCESS;
 }
+EXPORT_SYMBOL(napi_gro_complete);
 
 static void __napi_gro_flush_chain(struct napi_struct *napi, u32 index,
 				   bool flush_old)

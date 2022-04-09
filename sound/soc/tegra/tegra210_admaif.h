@@ -154,9 +154,15 @@ struct tegra_admaif {
 	struct snd_dmaengine_dai_dma_data *capture_dma_data;
 	struct snd_dmaengine_dai_dma_data *playback_dma_data;
 	const struct tegra_admaif_soc_data *soc_data;
+	unsigned int *audio_ch_override[ADMAIF_PATHS];
+	unsigned int *client_ch_override[ADMAIF_PATHS];
+	int reg_dump_flag;
+	void __iomem *base_addr;
 	unsigned int *mono_to_stereo[ADMAIF_PATHS];
 	unsigned int *stereo_to_mono[ADMAIF_PATHS];
 	struct regmap *regmap;
 };
+
+extern void tegra_adma_dump_ch_reg(void);
 
 #endif

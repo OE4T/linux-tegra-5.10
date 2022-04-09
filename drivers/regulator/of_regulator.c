@@ -15,7 +15,7 @@
 
 #include "internal.h"
 
-static const char *const regulator_states[PM_SUSPEND_MAX + 1] = {
+static const char *const regulator_states[(__force int) PM_SUSPEND_MAX + 1] = {
 	[PM_SUSPEND_STANDBY]	= "regulator-state-standby",
 	[PM_SUSPEND_MEM]	= "regulator-state-mem",
 	[PM_SUSPEND_MAX]	= "regulator-state-disk",
@@ -46,6 +46,9 @@ static int of_get_regulation_constraints(struct device *dev,
 	if (!of_property_read_u32(np, "regulator-max-microvolt", &pval))
 		constraints->max_uV = pval;
 
+	if (!of_property_read_u32(np, "regulator-init-microvolt", &pval))
+		constraints->init_uV = pval;
+
 	/* Voltage change possible? */
 	if (constraints->min_uV != constraints->max_uV)
 		constraints->valid_ops_mask |= REGULATOR_CHANGE_VOLTAGE;
@@ -75,6 +78,9 @@ static int of_get_regulation_constraints(struct device *dev,
 		constraints->valid_ops_mask |= REGULATOR_CHANGE_STATUS;
 
 	constraints->pull_down = of_property_read_bool(np, "regulator-pull-down");
+
+	if (of_find_property(np, "regulator-bypass-on", NULL))
+		constraints->bypass_on = true;
 
 	if (of_property_read_bool(np, "regulator-allow-bypass"))
 		constraints->valid_ops_mask |= REGULATOR_CHANGE_BYPASS;
@@ -189,7 +195,7 @@ static int of_get_regulation_constraints(struct device *dev,
 					"regulator-over-current-protection");
 
 	for (i = 0; i < ARRAY_SIZE(regulator_states); i++) {
-		switch (i) {
+		switch ((__force suspend_state_t) i) {
 		case PM_SUSPEND_MEM:
 			suspend_state = &constraints->state_mem;
 			break;
@@ -249,7 +255,7 @@ static int of_get_regulation_constraints(struct device *dev,
 					"regulator-changeable-in-suspend"))
 			suspend_state->changeable = true;
 
-		if (i == PM_SUSPEND_MEM)
+		if ((__force suspend_state_t) i == PM_SUSPEND_MEM)
 			constraints->initial_state = PM_SUSPEND_MEM;
 
 		of_node_put(suspend_np);

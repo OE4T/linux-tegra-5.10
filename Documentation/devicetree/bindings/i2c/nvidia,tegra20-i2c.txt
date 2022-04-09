@@ -3,9 +3,10 @@ NVIDIA Tegra20/Tegra30/Tegra114 I2C controller driver.
 Required properties:
 - compatible : For Tegra20, must be one of "nvidia,tegra20-i2c-dvc" or
   "nvidia,tegra20-i2c".  For Tegra30, must be "nvidia,tegra30-i2c".
-  For Tegra114, must be "nvidia,tegra114-i2c".  Otherwise, must be
-  "nvidia,<chip>-i2c", plus at least one of the above, where <chip> is
-  tegra124, tegra132, or tegra210.
+  For Tegra114, must be "nvidia,tegra114-i2c" or must be one of the following:
+  "nvidia,tegra124-i2c" , "nvidia,tegra132-i2c" or "nvidia,tegra210-i2c".
+  For Tegra186, must be "nvidia,tegra186-i2c".
+  For Tegra194, must be "nvidia,tegra194-i2c".
   Details of compatible are as follows:
   nvidia,tegra20-i2c-dvc: Tegra20 has specific I2C controller called as DVC I2C
 	controller. This only support master mode of I2C communication. Register
@@ -35,6 +36,13 @@ Required properties:
 	Due to above changes, Tegra114 I2C driver makes incompatible with
 	previous hardware driver. Hence, tegra114 I2C controller is compatible
 	with "nvidia,tegra114-i2c".
+  nvidia,tegra186-i2c: Tegra186 has 9 generic I2C controller. This controller is
+	very much similar to Tegra114 I2C controller with additional feature
+	such as multi master mode.
+  nvidia,tegra194-i2c: This controller is very much similar to Tegra186 I2C
+	controller with additional feature such as high speed mode and MST FIFO
+	register support.
+
   nvidia,tegra210-i2c-vi: Tegra210 has one I2C controller that is on host1x bus
 	and is part of VE power domain and typically used for camera use-cases.
 	This VI I2C controller is mostly compatible with the programming model
@@ -53,6 +61,11 @@ Required properties:
   - fast-clk
   Tegra114:
   - div-clk
+  Tegra186
+  - div-clk
+  - slow-clk
+  Tegra194
+  - div-clk
   Tegra210:
   - div-clk
   - slow (only for nvidia,tegra210-i2c-vi compatible node)
@@ -69,6 +82,16 @@ Required properties:
 - dma-names: Must include the following entries:
   - rx
   - tx
+- print-rate-limit: Limit the error print rate
+- scl-gpio: Contains GPIO pin for I2C serial clock(scl)
+- sda-gpio: Contains GPIO pin for I2C serial data(sda)
+- iommus: A reference to the IOMMU.
+  See ../iommu/iommu.txt for details.
+- dma-coherent: Indicates that the hardware IP block can ensure the coherency
+  of the data transferred from/to the IP block. This can avoid the software
+  cache flush/invalid actions, and improve the performance significantly.
+- clock-frequency : frequency of bus clock in Hz;
+  See ../i2c-ocores.txt
 
 Example:
 
@@ -84,4 +107,10 @@ Example:
 		reset-names = "i2c";
 		dmas = <&apbdma 16>, <&apbdma 16>;
 		dma-names = "rx", "tx";
+		print-rate-limit = <120 1>;
+		scl-gpio = <&tegra_main_gpio TEGRA_MAIN_GPIO(O, 2) 0>;
+		sda-gpio = <&tegra_main_gpio TEGRA_MAIN_GPIO(O, 3) 0>;
+		iommus = <&smmu TEGRA_SID_GPCDMA_0>;
+		dma-coherent;
+		clock-frequency = <400000>;
 	};

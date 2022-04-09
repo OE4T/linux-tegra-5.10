@@ -1275,10 +1275,32 @@ static ssize_t available_clocksource_show(struct device *dev,
 }
 static DEVICE_ATTR_RO(available_clocksource);
 
+/**
+ * offset_ns_show - sysfs interface for reading start count
+ * @dev:	unused
+ * @attr:	unused
+ * @buf:	char buffer to be filled with start count
+ *
+ * Provides the start count of clock source
+ */
+static ssize_t
+offset_ns_show(struct device *dev,
+		       struct device_attribute *attr,
+		       char *buf)
+{
+	ssize_t count = 0;
+
+	count = sprintf(buf, "%llu\n", curr_clocksource->offset_ns);
+	return count;
+}
+
+static DEVICE_ATTR_RO(offset_ns);
+
 static struct attribute *clocksource_attrs[] = {
 	&dev_attr_current_clocksource.attr,
 	&dev_attr_unbind_clocksource.attr,
 	&dev_attr_available_clocksource.attr,
+	&dev_attr_offset_ns.attr,
 	NULL
 };
 ATTRIBUTE_GROUPS(clocksource);
@@ -1300,7 +1322,6 @@ static int __init init_clocksource_sysfs(void)
 
 	if (!error)
 		error = device_register(&device_clocksource);
-
 	return error;
 }
 

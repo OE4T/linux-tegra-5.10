@@ -363,6 +363,12 @@ uart_update_timeout(struct uart_port *port, unsigned int cflag,
 	bits = bits * port->fifosize;
 
 	/*
+	 * If B0 rate use 9600 baud
+	 */
+	if (!baud)
+		baud = 9600;
+
+	/*
 	 * Figure the timeout to send the above number of bits.
 	 * Add .02 seconds of slop
 	 */
@@ -2239,6 +2245,10 @@ int uart_resume_port(struct uart_driver *drv, struct uart_port *uport)
 	mutex_lock(&port->mutex);
 
 	tty_dev = device_find_child(uport->dev, &match, serial_match_port);
+
+	if(!tty_dev)
+		return -ENODEV;
+
 	if (!uport->suspended && device_may_wakeup(tty_dev)) {
 		if (irqd_is_wakeup_set(irq_get_irq_data((uport->irq))))
 			disable_irq_wake(uport->irq);
@@ -2863,6 +2873,7 @@ int uart_add_one_port(struct uart_driver *drv, struct uart_port *uport)
 	struct uart_state *state;
 	struct tty_port *port;
 	int ret = 0;
+	int ret_rt = 0;
 	struct device *tty_dev;
 	int num_groups;
 
@@ -2937,6 +2948,15 @@ int uart_add_one_port(struct uart_driver *drv, struct uart_port *uport)
 	} else {
 		dev_err(uport->dev, "Cannot register tty device on line %d\n",
 		       uport->line);
+	}
+
+	if (uport->rt_flush) {
+		ret_rt = tty_buffer_start_rt_thread(port, uport->line);
+		if (ret_rt < 0) {
+			dev_err(uport->dev,
+				"cannot start RT thread on line %d: %d",
+				uport->line, ret_rt);
+		}
 	}
 
 	/*

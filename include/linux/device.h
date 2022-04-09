@@ -550,6 +550,7 @@ struct device {
 	bool			offline:1;
 	bool			of_node_reused:1;
 	bool			state_synced:1;
+	bool			no_dmabuf_defer_unmap:1;
 #if defined(CONFIG_ARCH_HAS_SYNC_DMA_FOR_DEVICE) || \
     defined(CONFIG_ARCH_HAS_SYNC_DMA_FOR_CPU) || \
     defined(CONFIG_ARCH_HAS_SYNC_DMA_FOR_CPU_ALL)
@@ -558,6 +559,14 @@ struct device {
 #ifdef CONFIG_DMA_OPS_BYPASS
 	bool			dma_ops_bypass : 1;
 #endif
+	/* dma-buf stashing is optimized for host1x context device. Adding
+	 * flag to find out whether device is context device or not.
+	 * To iterate over all dma-bufs attached to dev for stashing, we need
+	 * dev to dma-buf mappings list stored in dev node, adding attachments
+	 * for that purpose.
+	 */
+	bool			context_dev;
+	struct list_head	attachments;
 };
 
 /**

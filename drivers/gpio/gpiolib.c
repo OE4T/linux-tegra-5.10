@@ -506,7 +506,8 @@ static int gpiochip_setup_dev(struct gpio_device *gdev)
 
 	/* From this point, the .release() function cleans up gpio_device */
 	gdev->dev.release = gpiodevice_release;
-	dev_dbg(&gdev->dev, "registered GPIOs %d to %d on %s\n", gdev->base,
+	pr_info("%s: registered GPIOs %d to %d on %s\n",
+		dev_name(&gdev->dev), gdev->base,
 		gdev->base + gdev->ngpio - 1, gdev->chip->label ? : "generic");
 
 	return 0;
@@ -1983,9 +1984,16 @@ static int gpiod_request_commit(struct gpio_desc *desc, const char *label)
 	struct gpio_chip	*gc = desc->gdev->chip;
 	int			ret;
 	unsigned long		flags;
+	bool			hogged = false;
 	unsigned		offset;
 
 	if (label) {
+		/* Free desc->label if already allocated. */
+		if (desc->label) {
+			kfree_const(desc->label);
+			desc_set_label(desc, NULL);
+		}
+
 		label = kstrdup_const(label, GFP_KERNEL);
 		if (!label)
 			return -ENOMEM;
@@ -2001,12 +2009,19 @@ static int gpiod_request_commit(struct gpio_desc *desc, const char *label)
 		desc_set_label(desc, label ? : "?");
 		ret = 0;
 	} else {
-		kfree_const(label);
-		ret = -EBUSY;
-		goto done;
+		if (test_bit(FLAG_IS_HOGGED, &desc->flags)) {
+			hogged = true;
+			desc_set_label(desc, label ? : "?");
+			clear_bit(FLAG_IS_HOGGED, &desc->flags);
+			ret = 0;
+		} else {
+			kfree_const(label);
+			ret = -EBUSY;
+			goto done;
+		}
 	}
 
-	if (gc->request) {
+	if (gc->request && !hogged) {
 		/* gc->request may sleep */
 		spin_unlock_irqrestore(&gpio_lock, flags);
 		offset = gpio_chip_hwgpio(desc);
@@ -2494,6 +2509,61 @@ set_output_flag:
 	return ret;
 }
 EXPORT_SYMBOL_GPL(gpiod_direction_output);
+
+/**
+ * gpiod_timestamp_control - Enable/Disable timstamping for GPIO
+ * @desc:       GPIO for which to Enable/Disable Timestamp
+ * @enable:     Enable/Disable timestamp
+ *
+ * Enable or Disable timestamping feature for given GPIO
+ *
+ * Return 0 in case of success, else an error code.
+ */
+int gpiod_timestamp_control(struct gpio_desc *desc, int enable)
+{
+	struct gpio_chip *chip;
+
+	VALIDATE_DESC(desc);
+	chip = desc->gdev->chip;
+	if (!chip->timestamp_control) {
+		gpiod_warn(desc, "%s: missing timestamp_control operations\n",
+				__func__);
+		return -ENOTSUPP;
+	}
+
+	return chip->timestamp_control(chip, gpio_chip_hwgpio(desc), enable);
+}
+EXPORT_SYMBOL_GPL(gpiod_timestamp_control);
+
+/**
+ * gpiod_timestamp_read - Read timstamp value for GPIO
+ * @desc:       GPIO to read timestamp value
+ * @ts:         data where to store the timestamp
+ *
+ * Read timestamp value for given GPIO
+ *
+ * Return 0 in case of success, else an error code.
+ */
+int gpiod_timestamp_read(struct gpio_desc *desc, u64 *ts)
+{
+	struct gpio_chip *chip;
+	u64 gpio_ts;
+	int ret;
+
+	VALIDATE_DESC(desc);
+	chip = desc->gdev->chip;
+	if (!chip->timestamp_read) {
+		gpiod_warn(desc, "%s: missing timestamp_read operations\n",
+				__func__);
+		return -ENOTSUPP;
+	}
+
+	ret = chip->timestamp_read(chip, gpio_chip_hwgpio(desc), &gpio_ts);
+	*ts = gpio_ts;
+
+	return ret;
+}
+EXPORT_SYMBOL_GPL(gpiod_timestamp_read);
 
 /**
  * gpiod_set_config - sets @config for a GPIO

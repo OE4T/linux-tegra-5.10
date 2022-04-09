@@ -900,12 +900,20 @@ static int check_update_ftr_reg(u32 sys_id, int cpu, u64 val, u64 boot)
 {
 	struct arm64_ftr_reg *regp = get_arm64_ftr_reg(sys_id);
 
+	u32 midr = read_cpuid_id();
+	const struct midr_range range = MIDR_ALL_VERSIONS(MIDR_NVIDIA_DENVER);
+
 	if (!regp)
 		return 0;
 
 	update_cpu_ftr_reg(regp, val);
 	if ((boot & regp->strict_mask) == (val & regp->strict_mask))
 		return 0;
+
+	if (is_midr_in_range(midr, &range) &&
+		(sys_id == SYS_ID_AA64DFR0_EL1 || sys_id == SYS_ID_DFR0_EL1 || sys_id == SYS_CTR_EL0))
+		return 0;
+
 	pr_warn("SANITY CHECK: Unexpected variation in %s. Boot CPU: %#016llx, CPU%d: %#016llx\n",
 			regp->name, boot, cpu, val);
 	return 1;
@@ -1271,7 +1279,10 @@ has_useable_cnp(const struct arm64_cpu_capabilities *entry, int scope)
 	 * may share TLB entries with a CPU stuck in the crashed
 	 * kernel.
 	 */
-	 if (is_kdump_kernel())
+	if (is_kdump_kernel())
+		return false;
+
+	if (cpus_have_const_cap(ARM64_WORKAROUND_NVIDIA_CARMEL_CNP))
 		return false;
 
 	return has_cpuid_feature(entry, scope);
@@ -2681,6 +2692,7 @@ unsigned long cpu_get_elf_hwcap(void)
 	 */
 	return lower_32_bits(elf_hwcap);
 }
+EXPORT_SYMBOL_GPL(cpu_get_elf_hwcap);
 
 unsigned long cpu_get_elf_hwcap2(void)
 {

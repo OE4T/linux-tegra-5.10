@@ -2,7 +2,7 @@
 /*
  * Maxim MAX77620 Watchdog Driver
  *
- * Copyright (C) 2016 NVIDIA CORPORATION. All rights reserved.
+ * Copyright (C) 2016-2020 NVIDIA CORPORATION. All rights reserved.
  *
  * Author: Laxman Dewangan <ldewangan@nvidia.com>
  */
@@ -13,6 +13,7 @@
 #include <linux/module.h>
 #include <linux/mod_devicetable.h>
 #include <linux/mfd/max77620.h>
+#include <linux/of.h>
 #include <linux/platform_device.h>
 #include <linux/regmap.h>
 #include <linux/slab.h>
@@ -112,8 +113,13 @@ static int max77620_wdt_probe(struct platform_device *pdev)
 	struct device *dev = &pdev->dev;
 	struct max77620_wdt *wdt;
 	struct watchdog_device *wdt_dev;
+	struct device_node *np;
 	unsigned int regval;
 	int ret;
+
+	np = of_get_child_by_name(pdev->dev.parent->of_node, "watchdog");
+	if (np && !of_device_is_available(np))
+		return -ENODEV;
 
 	wdt = devm_kzalloc(dev, sizeof(*wdt), GFP_KERNEL);
 	if (!wdt)
@@ -134,6 +140,7 @@ static int max77620_wdt_probe(struct platform_device *pdev)
 	wdt_dev->max_hw_heartbeat_ms = 128 * 1000;
 
 	platform_set_drvdata(pdev, wdt);
+	watchdog_set_drvdata(wdt_dev, wdt);
 
 	/* Enable WD_RST_WK - WDT expire results in a restart */
 	ret = regmap_update_bits(wdt->rmap, MAX77620_REG_ONOFFCNFG2,
@@ -151,6 +158,12 @@ static int max77620_wdt_probe(struct platform_device *pdev)
 	if (ret < 0) {
 		dev_err(wdt->dev, "Failed to set WDT OFF mode: %d\n", ret);
 		return ret;
+	}
+
+	/* start watchdog when "wdt-boot-init" flag is set */
+	if (of_property_read_bool(np, "maxim,wdt-boot-init")) {
+		if (max77620_wdt_start(wdt_dev) < 0)
+			dev_err(&pdev->dev, "Failed to start watchdog on booting\n");
 	}
 
 	/* Check if WDT running and if yes then set flags properly */
@@ -179,7 +192,9 @@ static int max77620_wdt_probe(struct platform_device *pdev)
 		set_bit(WDOG_HW_RUNNING, &wdt_dev->status);
 
 	watchdog_set_nowayout(wdt_dev, nowayout);
-	watchdog_set_drvdata(wdt_dev, wdt);
+
+	/* Stop watchdog on reboot */
+	watchdog_stop_on_reboot(wdt_dev);
 
 	watchdog_stop_on_unregister(wdt_dev);
 	return devm_watchdog_register_device(dev, wdt_dev);

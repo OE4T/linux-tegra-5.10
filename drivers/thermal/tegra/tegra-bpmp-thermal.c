@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2015-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Author:
  *	Mikko Perttunen <mperttunen@nvidia.com>
@@ -52,8 +52,51 @@ static int tegra_bpmp_thermal_get_temp(void *data, int *out_temp)
 	err = tegra_bpmp_transfer(zone->tegra->bpmp, &msg);
 	if (err)
 		return err;
+	if (msg.rx.ret == -BPMP_EFAULT) {
+		/*
+		 * Problem reading temperature measurement, return an invalid
+		 * temperature so that thermal core can program thresholds and
+		 * get notified when the sensor starts operating again.
+		 */
+		*out_temp = -256000;
+		return 0;
+	} else if (msg.rx.ret != 0) {
+		return -EINVAL;
+	}
 
 	*out_temp = reply.get_temp.temp;
+
+	return 0;
+}
+
+static int tegra_bpmp_thermal_get_trend(void *data, int trip,
+					enum thermal_trend *trend)
+{
+	struct tegra_bpmp_thermal_zone *zone = data;
+	int ret;
+	int trip_temp, temp, last_temp;
+
+	if (!zone->tzd)
+		return -ENODEV;
+
+	ret = zone->tzd->ops->get_trip_temp(zone->tzd, trip, &trip_temp);
+	if (ret)
+		return ret;
+
+	mutex_lock(&zone->tzd->lock);
+	temp = zone->tzd->temperature;
+	last_temp = zone->tzd->last_temperature;
+	mutex_unlock(&zone->tzd->lock);
+
+	if (temp > trip_temp)
+		*trend = (temp >= last_temp) ? THERMAL_TREND_RAISING :
+						THERMAL_TREND_STABLE;
+	else if (temp < trip_temp)
+		*trend = THERMAL_TREND_DROPPING;
+	else
+		/* start polling if temp > last_temp */
+		*trend = (temp > last_temp) ? THERMAL_TREND_RAISING :
+						THERMAL_TREND_STABLE;
 
 	return 0;
 }
@@ -63,6 +106,7 @@ static int tegra_bpmp_thermal_set_trips(void *data, int low, int high)
 	struct tegra_bpmp_thermal_zone *zone = data;
 	struct mrq_thermal_host_to_bpmp_request req;
 	struct tegra_bpmp_message msg;
+	int err;
 
 	memset(&req, 0, sizeof(req));
 	req.type = CMD_THERMAL_SET_TRIP;
@@ -76,7 +120,13 @@ static int tegra_bpmp_thermal_set_trips(void *data, int low, int high)
 	msg.tx.data = &req;
 	msg.tx.size = sizeof(req);
 
-	return tegra_bpmp_transfer(zone->tegra->bpmp, &msg);
+	err = tegra_bpmp_transfer(zone->tegra->bpmp, &msg);
+	if (err)
+		return err;
+	if (msg.rx.ret)
+		return -EINVAL;
+
+	return 0;
 }
 
 static void tz_device_update_work_fn(struct work_struct *work)
@@ -140,6 +190,8 @@ static int tegra_bpmp_thermal_get_num_zones(struct tegra_bpmp *bpmp,
 	err = tegra_bpmp_transfer(bpmp, &msg);
 	if (err)
 		return err;
+	if (msg.rx.ret)
+		return -EINVAL;
 
 	*num_zones = reply.get_num_zones.num;
 
@@ -148,6 +200,7 @@ static int tegra_bpmp_thermal_get_num_zones(struct tegra_bpmp *bpmp,
 
 static const struct thermal_zone_of_device_ops tegra_bpmp_of_thermal_ops = {
 	.get_temp = tegra_bpmp_thermal_get_temp,
+	.get_trend = tegra_bpmp_thermal_get_trend,
 	.set_trips = tegra_bpmp_thermal_set_trips,
 };
 
@@ -190,7 +243,7 @@ static int tegra_bpmp_thermal_probe(struct platform_device *pdev)
 		zone->tegra = tegra;
 
 		err = tegra_bpmp_thermal_get_temp(zone, &temp);
-		if (err < 0) {
+		if (err != 0) {
 			devm_kfree(&pdev->dev, zone);
 			continue;
 		}

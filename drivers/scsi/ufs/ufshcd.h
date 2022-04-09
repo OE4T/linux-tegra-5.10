@@ -3,6 +3,7 @@
  * Universal Flash Storage Host controller driver
  * Copyright (C) 2011-2013 Samsung India Software Operations
  * Copyright (c) 2013-2016, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Authors:
  *	Santosh Yaraganavi <santosh.sy@samsung.com>
@@ -57,6 +58,8 @@ enum dev_cmd_type {
 	DEV_CMD_TYPE_NOP		= 0x0,
 	DEV_CMD_TYPE_QUERY		= 0x1,
 };
+
+#define UFS_BIT(x)     (1L << (x))
 
 /**
  * struct uic_command - UIC command structure
@@ -300,10 +303,13 @@ struct ufs_hba_variant_ops {
 	int	(*setup_clocks)(struct ufs_hba *, bool,
 				enum ufs_notify_change_status);
 	int     (*setup_regulators)(struct ufs_hba *, bool);
+	void	(*hce_disable_notify)(struct ufs_hba *,
+				     enum ufs_notify_change_status);
 	int	(*hce_enable_notify)(struct ufs_hba *,
 				     enum ufs_notify_change_status);
 	int	(*link_startup_notify)(struct ufs_hba *,
 				       enum ufs_notify_change_status);
+	void	(*hibern8_entry_notify)(struct ufs_hba *, int flag);
 	int	(*pwr_change_notify)(struct ufs_hba *,
 					enum ufs_notify_change_status status,
 					struct ufs_pa_layer_attr *,
@@ -322,6 +328,7 @@ struct ufs_hba_variant_ops {
 	void	(*config_scaling_param)(struct ufs_hba *hba,
 					struct devfreq_dev_profile *profile,
 					void *data);
+	int	(*set_ufs_mphy_clocks)(struct ufs_hba *, bool);
 	int	(*program_key)(struct ufs_hba *hba,
 			       const union ufs_crypto_cfg_entry *cfg, int slot);
 };
@@ -399,6 +406,17 @@ struct ufs_clk_scaling {
 	bool is_allowed;
 	bool is_busy_started;
 	bool is_suspended;
+};
+
+/**
+ * struct ufs_init_prefetch - contains data that is pre-fetched once during
+ * initialization
+ * @icc_level: icc level which was read during initialization
+ * @ref_clk_freq: ref clk freq which was read during initialization
+ */
+struct ufs_init_prefetch {
+	u32 icc_level;
+	u32 ref_clk_freq;
 };
 
 #define UFS_ERR_REG_HIST_LENGTH 8
@@ -554,6 +572,16 @@ enum ufshcd_quirks {
 	 * This quirk allows only sg entries aligned with page size.
 	 */
 	UFSHCD_QUIRK_ALIGN_SG_WITH_PAGE_SIZE		= 1 << 14,
+
+	/*
+	 * This quirk needs to be enabled if BKOPS feature has to be enabled
+	 */
+	UFSHCD_QUIRK_ENABLE_BKOPS			= 1 << 15,
+
+	/*
+	 * Enable this quirk to support UFS WLUNS
+	 */
+	UFSHCD_QUIRK_ENABLE_WLUNS			= 1 << 16,
 };
 
 enum ufshcd_caps {
@@ -741,6 +769,8 @@ struct ufs_hba {
 	u32 intr_mask;
 	u16 ee_ctrl_mask;
 	bool is_powered;
+	bool is_init_prefetch;
+	struct ufs_init_prefetch init_prefetch_data;
 
 	/* Work Queues */
 	struct workqueue_struct *eh_wq;
@@ -797,6 +827,7 @@ struct ufs_hba {
 	bool wb_buf_flush_enabled;
 	bool wb_enabled;
 	struct delayed_work rpm_dev_flush_recheck_work;
+	bool card_present;
 
 #ifdef CONFIG_SCSI_UFS_CRYPTO
 	union ufs_crypto_capabilities crypto_capabilities;
@@ -804,6 +835,8 @@ struct ufs_hba {
 	u32 crypto_cfg_register;
 	struct blk_keyslot_manager ksm;
 #endif
+	unsigned card_enumerated:1;
+	struct mutex hotplug_lock;
 };
 
 /* Returns true if clocks can be gated. Otherwise false */
@@ -880,7 +913,7 @@ static inline void ufshcd_rmwl(struct ufs_hba *hba, u32 mask, u32 val, u32 reg)
 	ufshcd_writel(hba, tmp, reg);
 }
 
-int ufshcd_alloc_host(struct device *, struct ufs_hba **);
+int ufshcd_alloc_host(struct ufs_hba *);
 void ufshcd_dealloc_host(struct ufs_hba *);
 int ufshcd_hba_enable(struct ufs_hba *hba);
 int ufshcd_init(struct ufs_hba * , void __iomem * , unsigned int);
@@ -941,6 +974,9 @@ extern int ufshcd_runtime_idle(struct ufs_hba *hba);
 extern int ufshcd_system_suspend(struct ufs_hba *hba);
 extern int ufshcd_system_resume(struct ufs_hba *hba);
 extern int ufshcd_shutdown(struct ufs_hba *hba);
+extern int ufshcd_dme_configure_adapt(struct ufs_hba *hba,
+	      int agreed_gear,
+	      int adapt_val);
 extern int ufshcd_dme_set_attr(struct ufs_hba *hba, u32 attr_sel,
 			       u8 attr_set, u32 mib_val, u8 peer);
 extern int ufshcd_dme_get_attr(struct ufs_hba *hba, u32 attr_sel,
@@ -1004,7 +1040,7 @@ static inline bool ufshcd_is_hs_mode(struct ufs_pa_layer_attr *pwr_info)
 
 static inline int ufshcd_disable_host_tx_lcc(struct ufs_hba *hba)
 {
-	return ufshcd_dme_set(hba, UIC_ARG_MIB(PA_LOCAL_TX_LCC_ENABLE), 0);
+	return ufshcd_dme_set(hba, UIC_ARG_MIB(PA_Local_TX_LCC_Enable), 0);
 }
 
 /* Expose Query-Request API */
@@ -1103,6 +1139,13 @@ static inline int ufshcd_vops_setup_regulators(struct ufs_hba *hba, bool status)
 	return 0;
 }
 
+static inline void ufshcd_vops_hce_disable_notify(struct ufs_hba *hba,
+						bool status)
+{
+	if (hba->vops && hba->vops->hce_disable_notify)
+		hba->vops->hce_disable_notify(hba, status);
+}
+
 static inline int ufshcd_vops_hce_enable_notify(struct ufs_hba *hba,
 						bool status)
 {
@@ -1118,6 +1161,14 @@ static inline int ufshcd_vops_link_startup_notify(struct ufs_hba *hba,
 		return hba->vops->link_startup_notify(hba, status);
 
 	return 0;
+}
+
+
+static inline void ufshcd_vops_hibern8_entry_notify(struct ufs_hba *hba,
+							int flag)
+{
+	if (hba->vops && hba->vops->hibern8_entry_notify)
+		hba->vops->hibern8_entry_notify(hba, flag);
 }
 
 static inline int ufshcd_vops_pwr_change_notify(struct ufs_hba *hba,
@@ -1234,4 +1285,10 @@ static inline u8 ufshcd_scsi_to_upiu_lun(unsigned int scsi_lun)
 int ufshcd_dump_regs(struct ufs_hba *hba, size_t offset, size_t len,
 		     const char *prefix);
 
+int ufshcd_get_refclk_value(struct ufs_hba *hba, u32 *value);
+int ufshcd_set_refclk_value(struct ufs_hba *hba, u32 *value);
+int ufshcd_get_bootlun_en_value(struct ufs_hba *hba, u32 *value);
+int ufshcd_set_bootlun_en_value(struct ufs_hba *hba, u32 *value);
+int ufshcd_get_config_desc_lock(struct ufs_hba *hba, u32 *value);
+int ufshcd_set_config_desc(struct ufs_hba *hba, u8 *desc_buf);
 #endif /* End of Header */

@@ -3558,6 +3558,7 @@ prepare_task_switch(struct rq *rq, struct task_struct *prev,
 	kcov_prepare_switch(prev);
 	sched_info_switch(rq, prev, next);
 	perf_event_task_sched_out(prev, next);
+	quadd_task_sched_out(prev, next);
 	rseq_preempt(prev);
 	fire_sched_out_preempt_notifiers(prev, next);
 	prepare_task(next);
@@ -3622,6 +3623,7 @@ static struct rq *finish_task_switch(struct task_struct *prev)
 	prev_state = prev->state;
 	vtime_task_switch(prev);
 	perf_event_task_sched_in(prev, current);
+	quadd_task_sched_in(prev, current);
 	finish_task(prev);
 	finish_lock_switch(rq);
 	finish_arch_post_lock_switch();

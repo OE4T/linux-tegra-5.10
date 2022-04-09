@@ -1793,6 +1793,7 @@ struct rt5659_priv {
 	struct snd_soc_component *component;
 	struct rt5659_platform_data pdata;
 	struct regmap *regmap;
+	struct i2c_client *i2c;
 	struct gpio_desc *gpiod_ldo1_en;
 	struct gpio_desc *gpiod_reset;
 	struct snd_soc_jack *hs_jack;
@@ -1814,8 +1815,5 @@ struct rt5659_priv {
 	bool hda_hp_plugged;
 	bool hda_mic_plugged;
 };
-
-int rt5659_set_jack_detect(struct snd_soc_component *component,
-	struct snd_soc_jack *hs_jack);
 
 #endif /* __RT5659_H__ */

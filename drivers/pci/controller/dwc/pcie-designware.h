@@ -80,9 +80,6 @@
 #define PCIE_ATU_VIEWPORT		0x900
 #define PCIE_ATU_REGION_INBOUND		BIT(31)
 #define PCIE_ATU_REGION_OUTBOUND	0
-#define PCIE_ATU_REGION_INDEX2		0x2
-#define PCIE_ATU_REGION_INDEX1		0x1
-#define PCIE_ATU_REGION_INDEX0		0x0
 #define PCIE_ATU_CR1			0x904
 #define PCIE_ATU_TYPE_MEM		0x0
 #define PCIE_ATU_TYPE_IO		0x2
@@ -219,6 +216,8 @@ struct dw_pcie_ep_ops {
 	 * driver.
 	 */
 	unsigned int (*func_conf_select)(struct dw_pcie_ep *ep, u8 func_no);
+	int	(*set_bar)(struct dw_pcie_ep *ep, u8 func_no,
+			   struct pci_epf_bar *epf_bar);
 };
 
 struct dw_pcie_ep_func {
@@ -266,7 +265,6 @@ struct dw_pcie {
 	/* Used when iatu_unroll_enabled is true */
 	void __iomem		*atu_base;
 	u32			num_viewport;
-	u8			iatu_unroll_enabled;
 	struct pcie_port	pp;
 	struct dw_pcie_ep	ep;
 	const struct dw_pcie_ops *ops;
@@ -274,6 +272,8 @@ struct dw_pcie {
 	int			num_lanes;
 	int			link_gen;
 	u8			n_fts[2];
+	bool			iatu_unroll_enabled: 1;
+	bool			io_cfg_atu_shared: 1;
 };
 
 #define to_dw_pcie_from_pp(port) container_of((port), struct dw_pcie, pp)
@@ -416,6 +416,7 @@ static inline void __iomem *dw_pcie_own_conf_map_bus(struct pci_bus *bus,
 void dw_pcie_ep_linkup(struct dw_pcie_ep *ep);
 int dw_pcie_ep_init(struct dw_pcie_ep *ep);
 int dw_pcie_ep_init_complete(struct dw_pcie_ep *ep);
+void dw_pcie_ep_deinit(struct dw_pcie_ep *ep);
 void dw_pcie_ep_init_notify(struct dw_pcie_ep *ep);
 void dw_pcie_ep_exit(struct dw_pcie_ep *ep);
 int dw_pcie_ep_raise_legacy_irq(struct dw_pcie_ep *ep, u8 func_no);
@@ -441,6 +442,10 @@ static inline int dw_pcie_ep_init(struct dw_pcie_ep *ep)
 static inline int dw_pcie_ep_init_complete(struct dw_pcie_ep *ep)
 {
 	return 0;
+}
+
+static inline void dw_pcie_ep_deinit(struct dw_pcie_ep *ep)
+{
 }
 
 static inline void dw_pcie_ep_init_notify(struct dw_pcie_ep *ep)

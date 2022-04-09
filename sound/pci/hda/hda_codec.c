@@ -1674,6 +1674,7 @@ int snd_hda_ctl_add(struct hda_codec *codec, hda_nid_t nid,
 		nid = kctl->id.subdevice & 0xffff;
 	if (kctl->id.subdevice & (HDA_SUBDEV_NID_FLAG|HDA_SUBDEV_AMP_FLAG))
 		kctl->id.subdevice = 0;
+
 	err = snd_ctl_add(codec->card, kctl);
 	if (err < 0)
 		return err;
@@ -2405,6 +2406,72 @@ static int snd_hda_spdif_out_switch_put(struct snd_kcontrol *kcontrol,
 	return change;
 }
 
+int snd_hda_max_pcm_ch_info(struct snd_kcontrol *kcontrol,
+		struct snd_ctl_elem_info *uinfo)
+{
+	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
+	uinfo->count = 1;
+	uinfo->value.integer.min = 0;
+	uinfo->value.integer.max = 0xFFFFFFFF;
+	return 0;
+}
+
+int snd_hda_hdmi_decode_info(struct snd_kcontrol *kcontrol,
+				struct snd_ctl_elem_info *uinfo)
+{
+	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
+	uinfo->count = 1;
+	uinfo->value.integer.min = 0;
+	uinfo->value.integer.max = 0xFFFFFFFF;
+	return 0;
+}
+
+int snd_hda_comfort_noise_info(struct snd_kcontrol *kcontrol,
+		struct snd_ctl_elem_info *uinfo)
+{
+	uinfo->type = SNDRV_CTL_ELEM_TYPE_BOOLEAN;
+	uinfo->count = 1;
+	uinfo->value.integer.min = 0;
+	uinfo->value.integer.max = 1;
+	return 0;
+}
+
+static int snd_hda_max_pcm_ch_get(struct snd_kcontrol *kcontrol,
+		struct snd_ctl_elem_value *ucontrol)
+{
+	struct hda_codec *codec = snd_kcontrol_chip(kcontrol);
+
+	ucontrol->value.integer.value[0] = codec->max_pcm_channels;
+	return 0;
+}
+
+static int snd_hda_hdmi_decode_get(struct snd_kcontrol *kcontrol,
+					struct snd_ctl_elem_value *ucontrol)
+{
+	struct hda_codec *codec = snd_kcontrol_chip(kcontrol);
+
+	ucontrol->value.integer.value[0] = codec->recv_dec_cap;
+	return 0;
+}
+
+static int snd_hda_comfort_noise_get(struct snd_kcontrol *kcontrol,
+					struct snd_ctl_elem_value *ucontrol)
+{
+	struct hda_codec *codec = snd_kcontrol_chip(kcontrol);
+
+	ucontrol->value.integer.value[0] = codec->comfort_noise;
+	return 0;
+}
+
+static int snd_hda_comfort_noise_put(struct snd_kcontrol *kcontrol,
+				     struct snd_ctl_elem_value *ucontrol)
+{
+	struct hda_codec *codec = snd_kcontrol_chip(kcontrol);
+
+	codec->comfort_noise = ucontrol->value.integer.value[0];
+	return 0;
+}
+
 static const struct snd_kcontrol_new dig_mixes[] = {
 	{
 		.access = SNDRV_CTL_ELEM_ACCESS_READ,
@@ -2433,6 +2500,27 @@ static const struct snd_kcontrol_new dig_mixes[] = {
 		.info = snd_hda_spdif_out_switch_info,
 		.get = snd_hda_spdif_out_switch_get,
 		.put = snd_hda_spdif_out_switch_put,
+	},
+	{
+		.access = SNDRV_CTL_ELEM_ACCESS_READ,
+		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+		.name = "HDA Decode Capability",
+		.info = snd_hda_hdmi_decode_info,
+		.get = snd_hda_hdmi_decode_get,
+	},
+	{
+		.access = SNDRV_CTL_ELEM_ACCESS_READ,
+		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+		.name = "HDA Maximum PCM Channels",
+		.info = snd_hda_max_pcm_ch_info,
+		.get = snd_hda_max_pcm_ch_get,
+	},
+	{
+		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+		.name = "HDA Comfort Noise",
+		.info = snd_hda_comfort_noise_info,
+		.get = snd_hda_comfort_noise_get,
+		.put = snd_hda_comfort_noise_put,
 	},
 	{ } /* end */
 };
@@ -2801,10 +2889,26 @@ static unsigned int hda_set_power_state(struct hda_codec *codec,
 
 	/* this delay seems necessary to avoid click noise at power-down */
 	if (power_state == AC_PWRST_D3) {
+#ifndef CONFIG_SND_HDA_TEGRA
 		if (codec->depop_delay < 0)
 			msleep(codec_has_epss(codec) ? 10 : 100);
 		else if (codec->depop_delay > 0)
 			msleep(codec->depop_delay);
+#else
+		int hda_active = 0;
+		struct hda_pcm *cpcm;
+
+		list_for_each_entry(cpcm, &codec->pcm_list_head, list) {
+			if (!cpcm->pcm)
+				continue;
+			if (cpcm->pcm->streams[0].substream_opened ||
+			    cpcm->pcm->streams[1].substream_opened) {
+				hda_active = 1;
+				break;
+			}
+		}
+		msleep(codec_has_epss(codec) || !hda_active ? 10 : 100);
+#endif
 		flags = HDA_RW_NO_RESPONSE_FALLBACK;
 	}
 

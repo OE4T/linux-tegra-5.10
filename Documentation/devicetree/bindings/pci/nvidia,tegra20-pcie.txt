@@ -135,6 +135,9 @@ Power supplies for Tegra186:
   - vddio-pexctl-aud-supply: Power supply for PCIe side band signals. Must
     supply 1.8 V.
 
+Optional properties:
+- nvidia,wake-gpio: Part of connector, used for wake up from mem sleep
+
 Root ports are defined as subnodes of the PCIe controller node.
 
 Required properties:
@@ -156,6 +159,13 @@ Required properties for Tegra124 and later:
   of entries does not have to (though usually will) be equal to the specified
   number of lanes in the nvidia,num-lanes property. Entries are of the form
   "pcie-N": where N ranges from 0 to the value specified in nvidia,num-lanes.
+
+Optional properties:
+- nvidia,disable-aspm-states: Controls advertisement of ASPM states.
+    bit-0 set to '1' : disables advertisement of ASPM-L0s
+    bit-1 set to '1' : disables advertisement of ASPM-L1, L1.1 and L1.2
+    bit-2 set to '1' : disables advertisement of ASPM-L1.1
+    bit-3 set to '1' : disables advertisement of ASPM-L1.2
 
 Examples:
 =========

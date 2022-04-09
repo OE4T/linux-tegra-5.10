@@ -3,6 +3,7 @@
  *
  * Copyright (C) 2004-5 Red Hat, Inc. All Rights Reserved.
  * Written by David Howells (dhowells@redhat.com)
+ * Copyright (C) 2017, NVIDIA Corporation. All rights reserved.
  */
 
 #include <linux/init.h>
@@ -1419,7 +1420,6 @@ long keyctl_set_reqkey_keyring(int reqkey_defl)
 	case KEY_REQKEY_DEFL_REQUESTOR_KEYRING:
 		goto set;
 
-	case KEY_REQKEY_DEFL_NO_CHANGE:
 	case KEY_REQKEY_DEFL_GROUP_KEYRING:
 	default:
 		ret = -EINVAL;

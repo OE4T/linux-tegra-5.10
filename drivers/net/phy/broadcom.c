@@ -22,6 +22,18 @@
 #define BRCM_PHY_REV(phydev) \
 	((phydev)->drv->phy_id & ~((phydev)->drv->phy_id_mask))
 
+#ifdef CONFIG_EQOS_DISABLE_EEE
+#define MII_BCM89610_CLAUSE22_DEVAD_FIELD	0x1F
+#define MII_BCM89610_CLAUSE22_FUNCTION_FIELD	0xC000
+#define MII_BCM89610_CLAUSE22_DEVAD_7		0x7
+#define MII_BCM89610_CLAUSE22_FUNCTION_ADDR	(0UL << 14)
+#define MII_BCM89610_CLAUSE22_FUNCTION_DATA	BIT(14)
+#define MII_BCM89610_CLAUSE22_REG_ADDR		0xd
+#define MII_BCM89610_CLAUSE22_REG_DATA		0xe
+#define BCM89610_EEE_ADVERTISEMENT_REG		0x3c
+#define BCM89610_EEE_ADVERTISEMENT_DISABLE	0x0
+#endif /* CONFIG_EQOS_DISABLE_EEE */
+
 MODULE_DESCRIPTION("Broadcom PHY driver");
 MODULE_AUTHOR("Maciej W. Rozycki");
 MODULE_LICENSE("GPL");
@@ -310,6 +322,53 @@ static void bcm54xx_adjust_rxrefclk(struct phy_device *phydev)
 		bcm_phy_write_shadow(phydev, BCM54XX_SHD_APD, val);
 }
 
+#ifdef CONFIG_EQOS_DISABLE_EEE
+static int bcm89610_disable_eee_adv(struct phy_device *phydev)
+{
+	int ret;
+	u32 val;
+
+	val = phy_read(phydev, MII_BCM89610_CLAUSE22_REG_ADDR);
+
+	/* Clear function field and device address fields */
+	val &= ~(MII_BCM89610_CLAUSE22_DEVAD_FIELD |
+		 MII_BCM89610_CLAUSE22_FUNCTION_FIELD);
+	/* Set function field to addr and device addr 7 */
+	val |= (MII_BCM89610_CLAUSE22_DEVAD_7 |
+		MII_BCM89610_CLAUSE22_FUNCTION_ADDR);
+
+	ret = phy_write(phydev, MII_BCM89610_CLAUSE22_REG_ADDR, val);
+	if (ret < 0)
+		goto exit;
+
+	ret = phy_write(phydev, MII_BCM89610_CLAUSE22_REG_DATA,
+			BCM89610_EEE_ADVERTISEMENT_REG);
+	if (ret < 0)
+		goto exit;
+
+	val = phy_read(phydev, MII_BCM89610_CLAUSE22_REG_ADDR);
+
+	/* Clear function field and device address fields */
+	val &= ~(MII_BCM89610_CLAUSE22_DEVAD_FIELD |
+		 MII_BCM89610_CLAUSE22_FUNCTION_FIELD);
+	/* Set function field to data and device addr 7 */
+	val |= (MII_BCM89610_CLAUSE22_DEVAD_7 |
+		MII_BCM89610_CLAUSE22_FUNCTION_DATA);
+
+	ret = phy_write(phydev, MII_BCM89610_CLAUSE22_REG_ADDR, val);
+	if (ret < 0)
+		goto exit;
+
+	val = phy_write(phydev, MII_BCM89610_CLAUSE22_REG_DATA,
+			BCM89610_EEE_ADVERTISEMENT_DISABLE);
+	if (ret < 0)
+		goto exit;
+
+exit:
+	return ret;
+}
+#endif /* CONFIG_EQOS_DISABLE_EEE */
+
 static int bcm54xx_config_init(struct phy_device *phydev)
 {
 	int reg, err, val;
@@ -361,7 +420,15 @@ static int bcm54xx_config_init(struct phy_device *phydev)
 		err = bcm_phy_write_exp(phydev,
 					BCM54810_EXP_BROADREACH_LRE_MISC_CTL,
 					val);
-		break;
+		if (err < 0)
+			break;
+
+#ifdef CONFIG_EQOS_DISABLE_EEE
+		/* Disable EEE advertisement. Nvbugs 2678273 */
+		err = bcm89610_disable_eee_adv(phydev);
+		if (err < 0)
+			break;
+#endif /* CONFIG_EQOS_DISABLE_EEE */
 	}
 	if (err)
 		return err;

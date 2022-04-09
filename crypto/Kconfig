@@ -112,6 +112,16 @@ config CRYPTO_ACOMP
 	select CRYPTO_ALGAPI
 	select CRYPTO_ACOMP2
 
+config CRYPTO_ECDSA
+	tristate "ECDSA algorithm"
+	select CRYPTO_AKCIPHER
+	select CRYPTO_ECC
+	help
+	  Generic implementation of the ECDSA algorithm. This
+	  is SW implementation use case that internally makes
+	  use of HW blocks like ECC Shamir feature, ECC point
+	  multiplication feature, etc.
+
 config CRYPTO_MANAGER
 	tristate "Cryptographic algorithm manager"
 	select CRYPTO_MANAGER2
@@ -237,7 +247,12 @@ config CRYPTO_DH
 	  Generic implementation of the Diffie-Hellman algorithm.
 
 config CRYPTO_ECC
-	tristate
+	tristate "ECC functions"
+	help
+	  Implementation of ECC functions. This includes different
+	  kinds of ECC functionalities that can be also used as
+	  helper functions for the other implementations that
+	  build upon the basic ECC features.
 
 config CRYPTO_ECDH
 	tristate "ECDH algorithm"

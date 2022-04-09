@@ -365,6 +365,12 @@ static void tk_setup_internals(struct timekeeper *tk, struct clocksource *clock)
 	tk->tkr_raw.mult = clock->mult;
 	tk->ntp_err_mult = 0;
 	tk->skip_second_overflow = 0;
+
+	/* update clocksource offset_ns */
+	tmp = mul_u64_u32_shr(tk->tkr_raw.cycle_last,
+			clock->mult, clock->shift);
+	clock->offset_ns = tmp - tk->raw_sec * NSEC_PER_SEC -
+				(tk->tkr_raw.xtime_nsec >> clock->shift);
 }
 
 /* Timekeeper helper functions. */
@@ -1778,6 +1784,7 @@ void timekeeping_resume(void)
 	cycle_now = tk_clock_read(&tk->tkr_mono);
 	nsec = clocksource_stop_suspend_timing(clock, cycle_now);
 	if (nsec > 0) {
+		tk->tkr_raw.clock->offset_ns += nsec;
 		ts_delta = ns_to_timespec64(nsec);
 		inject_sleeptime = true;
 	} else if (timespec64_compare(&ts_new, &timekeeping_suspend_time) > 0) {

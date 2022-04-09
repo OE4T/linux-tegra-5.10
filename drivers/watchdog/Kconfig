@@ -171,6 +171,13 @@ config BD70528_WATCHDOG
 	  Say Y here to include support for the ROHM BD70528 watchdog.
 	  Alternatively say M to compile the driver as a module,
 	  which will be called bd70528_wdt.
+config SOFT_PLATFORM_WATCHDOG
+	tristate "Software watchdog platform driver"
+	select WATCHDOG_CORE
+	help
+	  A software monitoring watchdog platform device driver. This will fail to
+	  reboot your system from some situations that the hardware watchdog will
+	  recover from. Equally it's a lot cheaper to install.
 
 config DA9052_WATCHDOG
 	tristate "Dialog DA9052 Watchdog"
@@ -810,10 +817,14 @@ config ST_LPC_WATCHDOG
 	  To compile this driver as a module, choose M here: the
 	  module will be called st_lpc_wdt.
 
+config TEGRA_WATCHDOG_LEGACY
+	bool "Tegra Watchdog legacy Driver"
+
 config TEGRA_WATCHDOG
 	tristate "Tegra watchdog"
 	depends on (ARCH_TEGRA || COMPILE_TEST) && HAS_IOMEM
 	select WATCHDOG_CORE
+	select TEGRA_WATCHDOG_LEGACY
 	help
 	  Say Y here to include support for the watchdog timer
 	  embedded in NVIDIA Tegra SoCs.

@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2012, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012-2020, NVIDIA CORPORATION.  All rights reserved.
  */
 
+#include <linux/clk.h>
 #include <linux/kernel.h>
 #include <linux/io.h>
 #include <linux/err.h>
@@ -41,7 +42,7 @@ static int clk_pll_out_enable(struct clk_hw *hw)
 	val |= (pll_out_enb(pll_out) | pll_out_rst(pll_out));
 
 	writel_relaxed(val, pll_out->reg);
-	udelay(2);
+	fence_udelay(2, pll_out->reg);
 
 	if (pll_out->lock)
 		spin_unlock_irqrestore(pll_out->lock, flags);
@@ -63,7 +64,7 @@ static void clk_pll_out_disable(struct clk_hw *hw)
 	val &= ~(pll_out_enb(pll_out) | pll_out_rst(pll_out));
 
 	writel_relaxed(val, pll_out->reg);
-	udelay(2);
+	fence_udelay(2, pll_out->reg);
 
 	if (pll_out->lock)
 		spin_unlock_irqrestore(pll_out->lock, flags);
@@ -118,3 +119,27 @@ struct clk *tegra_clk_register_pll_out(const char *name,
 
 	return clk;
 }
+
+#if defined(CONFIG_PM_SLEEP)
+void tegra_clk_pll_out_resume(struct clk *clk, unsigned long rate)
+{
+	struct clk *parent = clk_get_parent(clk);
+	struct clk_hw *hw = __clk_get_hw(clk);
+
+	if (IS_ERR(parent)) {
+		WARN_ON(1);
+		return;
+	}
+
+	tegra_clk_divider_resume(parent, rate);
+	clk_pll_out_enable(hw);
+}
+
+void tegra_clk_sync_state_pll_out(struct clk *clk)
+{
+	struct clk_hw *hw = __clk_get_hw(clk);
+
+	if (!__clk_get_enable_count(clk))
+		clk_pll_out_disable(hw);
+}
+#endif

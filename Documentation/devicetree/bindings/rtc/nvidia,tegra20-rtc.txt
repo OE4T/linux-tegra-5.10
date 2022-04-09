@@ -6,9 +6,9 @@ state.
 
 Required properties:
 
-- compatible : For Tegra20, must contain "nvidia,tegra20-rtc".  Otherwise,
-  must contain '"nvidia,<chip>-rtc", "nvidia,tegra20-rtc"', where <chip>
-  can be tegra30, tegra114, tegra124, or tegra132.
+- compatible :
+  for Tegra20, must contain "nvidia,tegra20-rtc",
+  for Tegra186, must contain "nvidia,tegra18-rtc" can follow tsc clock.
 - reg : Specifies base physical address and size of the registers.
 - interrupts : A single interrupt specifier.
 - clocks : Must contain one entry, for the module clock.

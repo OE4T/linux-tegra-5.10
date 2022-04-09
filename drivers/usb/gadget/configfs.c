@@ -10,6 +10,8 @@
 #include "u_f.h"
 #include "u_os_desc.h"
 
+#define DEFAULT_SERIAL_NO	"0123456789ABCDEF"
+
 int check_user_usb_string(const char *name,
 		struct usb_gadget_strings *stringtab_dev)
 {
@@ -1333,6 +1335,10 @@ static int configfs_composite_bind(struct usb_gadget *gadget,
 			gs->strings[USB_GADGET_MANUFACTURER_IDX].s =
 				gs->manufacturer;
 			gs->strings[USB_GADGET_PRODUCT_IDX].s = gs->product;
+			if ((!gs->serialnumber) &&
+				(usb_string_copy(DEFAULT_SERIAL_NO,
+					&gs->serialnumber) < 0))
+				goto err_comp_cleanup;
 			gs->strings[USB_GADGET_SERIAL_IDX].s = gs->serialnumber;
 			i++;
 		}
@@ -1353,6 +1359,8 @@ static int configfs_composite_bind(struct usb_gadget *gadget,
 		cdev->use_os_string = true;
 		cdev->b_vendor_code = gi->b_vendor_code;
 		memcpy(cdev->qw_sign, gi->qw_sign, OS_STRING_QW_SIGN_LEN);
+	} else {
+		cdev->use_os_string = false;
 	}
 
 	if (gadget_is_otg(gadget) && !otg_desc[0]) {

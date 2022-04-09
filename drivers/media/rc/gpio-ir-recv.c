@@ -102,10 +102,15 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
 	rcdev->timeout = IR_DEFAULT_TIMEOUT;
 	rcdev->max_timeout = 10 * IR_DEFAULT_TIMEOUT;
 	rcdev->allowed_protocols = RC_PROTO_BIT_ALL_IR_DECODER;
+	rcdev->min_delay = pdata->min_delay;
 	rcdev->map_name = of_get_property(np, "linux,rc-map-name", NULL);
 	if (!rcdev->map_name)
 		rcdev->map_name = RC_MAP_EMPTY;
 
+	if (pdata->allowed_protos)
+		rcdev->allowed_protocols = pdata->allowed_protos;
+	else
+		rcdev->allowed_protocols = RC_BIT_ALL;
 	gpio_dev->rcdev = rcdev;
 
 	rc = devm_rc_register_device(dev, rcdev);

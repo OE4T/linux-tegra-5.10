@@ -1952,6 +1952,8 @@ static int of_spi_parse_dt(struct spi_controller *ctlr, struct spi_device *spi,
 		spi->mode |= SPI_LSB_FIRST;
 	if (of_property_read_bool(nc, "spi-cs-high"))
 		spi->mode |= SPI_CS_HIGH;
+	if (of_find_property(nc, "spi-lsbyte-first", NULL))
+		spi->mode |= SPI_LSBYTE_FIRST;
 
 	/* Device DUAL/QUAD mode */
 	if (!of_property_read_u32(nc, "spi-tx-bus-width", &value)) {
@@ -2085,6 +2087,8 @@ static void of_register_spi_devices(struct spi_controller *ctlr)
 
 	for_each_available_child_of_node(ctlr->dev.of_node, nc) {
 		if (of_node_test_and_set_flag(nc, OF_POPULATED))
+			continue;
+		if (!strcmp(nc->name, "prod-settings"))
 			continue;
 		spi = of_register_spi_device(ctlr, nc);
 		if (IS_ERR(spi)) {
@@ -3430,10 +3434,11 @@ int spi_setup(struct spi_device *spi)
 		spi_set_thread_rt(spi->controller);
 	}
 
-	dev_dbg(&spi->dev, "setup mode %d, %s%s%s%s%u bits/w, %u Hz max --> %d\n",
+	dev_dbg(&spi->dev, "setup mode %d, %s%s%s%s%s%u bits/w, %u Hz max --> %d\n",
 			(int) (spi->mode & (SPI_CPOL | SPI_CPHA)),
 			(spi->mode & SPI_CS_HIGH) ? "cs_high, " : "",
 			(spi->mode & SPI_LSB_FIRST) ? "lsb, " : "",
+			(spi->mode & SPI_LSBYTE_FIRST) ? "lsbyte, " : "",
 			(spi->mode & SPI_3WIRE) ? "3wire, " : "",
 			(spi->mode & SPI_LOOP) ? "loopback, " : "",
 			spi->bits_per_word, spi->max_speed_hz,
@@ -4043,6 +4048,63 @@ int spi_write_then_read(struct spi_device *spi,
 	return status;
 }
 EXPORT_SYMBOL_GPL(spi_write_then_read);
+
+/**
+ * spi_cs_low - set chip select pin state
+ * @spi: device for which chip select pin state to be set
+ * state: if true chip select pin will be kept low else high
+ *
+ * The return value is zero for success, else
+ * errno status code.
+ */
+int spi_cs_low(struct spi_device *spi, bool state)
+{
+	struct spi_controller *ctrl = spi->master;
+	int ret = 0;
+
+	mutex_lock(&ctrl->bus_lock_mutex);
+
+	if (ctrl->spi_cs_low)
+		ret = ctrl->spi_cs_low(spi, state);
+
+	mutex_unlock(&ctrl->bus_lock_mutex);
+	return ret;
+}
+EXPORT_SYMBOL_GPL(spi_cs_low);
+
+/* spi_start_controller - start the controller independently
+ * for spi slave continuous mode use case.
+ */
+int spi_start_controller(struct spi_device *spi, struct spi_transfer *t)
+{
+	struct spi_controller *ctrl = spi->master;
+	int ret = 0;
+
+	mutex_lock(&ctrl->bus_lock_mutex);
+
+	if (ctrl->start_controller)
+		ret = ctrl->start_controller(spi, t);
+
+	mutex_unlock(&ctrl->bus_lock_mutex);
+	return ret;
+}
+EXPORT_SYMBOL_GPL(spi_start_controller);
+
+/* spi_stop_controller - stop the controller independently
+ * for spi slave continuous mode use case.
+ */
+void spi_stop_controller(struct spi_device *spi)
+{
+	struct spi_controller *ctrl = spi->master;
+
+	mutex_lock(&ctrl->bus_lock_mutex);
+
+	if (ctrl->stop_controller)
+		ctrl->stop_controller(spi);
+
+	mutex_unlock(&ctrl->bus_lock_mutex);
+}
+EXPORT_SYMBOL_GPL(spi_stop_controller);
 
 /*-------------------------------------------------------------------------*/
 

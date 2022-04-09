@@ -56,6 +56,10 @@ struct asoc_simple_priv {
 	struct asoc_simple_dai *dais;
 	struct snd_soc_codec_conf *codec_conf;
 	struct gpio_desc *pa_gpio;
+	const struct snd_soc_ops *ops;
+	const struct snd_soc_compr_ops *compr_ops;
+	unsigned int dpcm_selectable:1;
+	unsigned int force_dpcm:1;
 };
 #define simple_priv_to_card(priv)	(&(priv)->snd_card)
 #define simple_priv_to_props(priv, i)	((priv)->dai_props + (i))
@@ -89,6 +93,8 @@ int asoc_simple_parse_clk(struct device *dev,
 			  struct device_node *node,
 			  struct asoc_simple_dai *simple_dai,
 			  struct snd_soc_dai_link_component *dlc);
+int asoc_simple_dais_clk_enable(struct snd_soc_pcm_runtime *rtd);
+void asoc_simple_dais_clk_disable(struct snd_soc_pcm_runtime *rtd);
 int asoc_simple_startup(struct snd_pcm_substream *substream);
 void asoc_simple_shutdown(struct snd_pcm_substream *substream);
 int asoc_simple_hw_params(struct snd_pcm_substream *substream,

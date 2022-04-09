@@ -623,6 +623,19 @@ config TEGRA210_ADMA
 	  peripheral and vice versa. It does not support memory to
 	  memory data transfer.
 
+config TEGRA_GPC_DMA
+	bool "NVIDIA Tegra GPC DMA support"
+	depends on ARCH_TEGRA_186_SOC || ARCH_TEGRA_194_SOC || COMPILE_TEST
+	select DMA_ENGINE
+	select DMA_VIRTUAL_CHANNELS
+	help
+	  Support for the NVIDIA Tegra186 and Tegra194 GPC DMA controller
+	  driver. The DMA controller is having multiple DMA channel which
+	  can be configured for different peripherals like UART, SPI, etc
+	  which are on APB bus.
+	  This DMA controller transfers data from memory to peripheral fifo
+	  or vice versa. It also supports memory to memory data transfer.
+
 config TIMB_DMA
 	tristate "Timberdale FPGA DMA support"
 	depends on MFD_TIMBERDALE || COMPILE_TEST

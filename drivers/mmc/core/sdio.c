@@ -236,6 +236,9 @@ static int sdio_read_cccr(struct mmc_card *card, u32 ocr)
 				card->cccr.high_speed = 0;
 				card->sw_caps.hs_max_dtr = 25000000;
 			}
+		} else {
+			card->sw_caps.sd3_bus_mode |= (SD_MODE_UHS_SDR25 |
+				SD_MODE_UHS_SDR12);
 		}
 	}
 
@@ -1197,8 +1200,18 @@ int mmc_attach_sdio(struct mmc_host *host)
 	if (host->ocr_avail_sdio)
 		host->ocr_avail = host->ocr_avail_sdio;
 
-
-	rocr = mmc_select_voltage(host, ocr);
+	/*
+	 * SDIO devices can support 1.8V but SDIO spec doesn't define any bits
+	 * in OCR register for 1.8V voltage window. Bit 24 indicates 1.8V
+	 * voltage switching support only. As this is checked at a later point,
+	 * skip selecting voltages if the host indicates support only for 1.8V.
+	 * Also, if the host only supports low voltage(1.8V), mask 2.7-3.6V VDD
+	 * range from the card returned OCR.
+	 */
+	if (host->ocr_avail == MMC_VDD_165_195)
+		rocr = ((ocr | MMC_VDD_165_195) & ~MMC_VDD_27_36);
+	else
+		rocr = mmc_select_voltage(host, ocr);
 
 	/*
 	 * Can we support the voltage(s) of the card(s)?

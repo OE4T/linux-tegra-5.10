@@ -1083,12 +1083,12 @@ static int print_wakeup_source_stats(struct seq_file *m,
 		active_time = 0;
 	}
 
-	seq_printf(m, "%-12s\t%lu\t\t%lu\t\t%lu\t\t%lu\t\t%lld\t\t%lld\t\t%lld\t\t%lld\t\t%lld\n",
+	seq_printf(m, "%-12s\t%lu\t\t%lu\t\t%lu\t\t%lu\t\t%lld\t\t%lld\t\t%lld\t\t%lld\t\t%lld\t\t\t%s\n",
 		   ws->name, active_count, ws->event_count,
 		   ws->wakeup_count, ws->expire_count,
 		   ktime_to_ms(active_time), ktime_to_ms(total_time),
 		   ktime_to_ms(max_time), ktime_to_ms(ws->last_time),
-		   ktime_to_ms(prevent_sleep_time));
+		   ktime_to_ms(prevent_sleep_time), ws->active ? "ACTIVE" : "");
 
 	spin_unlock_irqrestore(&ws->lock, flags);
 
@@ -1105,7 +1105,7 @@ static void *wakeup_sources_stats_seq_start(struct seq_file *m,
 	if (n == 0) {
 		seq_puts(m, "name\t\tactive_count\tevent_count\twakeup_count\t"
 			"expire_count\tactive_since\ttotal_time\tmax_time\t"
-			"last_change\tprevent_suspend_time\n");
+			"last_change\tprevent_suspend_time\tis_active\n");
 	}
 
 	*srcuidx = srcu_read_lock(&wakeup_srcu);

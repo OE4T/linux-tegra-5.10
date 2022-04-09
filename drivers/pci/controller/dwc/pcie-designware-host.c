@@ -4,6 +4,7 @@
  *
  * Copyright (C) 2013 Samsung Electronics Co., Ltd.
  *		https://www.samsung.com
+ * Copyright (C) 2021 NVIDIA Corporation.
  *
  * Author: Jingoo Han <jg1.han@samsung.com>
  */
@@ -310,10 +311,15 @@ int dw_pcie_host_init(struct pcie_port *pp)
 		dev_err(dev, "Missing *config* reg space\n");
 	}
 
-	bridge = devm_pci_alloc_host_bridge(dev, 0);
+	bridge = pci_alloc_host_bridge(0);
 	if (!bridge)
 		return -ENOMEM;
 
+	ret = devm_of_pci_bridge_init(dev, bridge);
+	if (ret)
+		return -ENOMEM;
+
+	bridge->dev.parent = dev;
 	pp->bridge = bridge;
 
 	/* Get the I/O and memory ranges from DT */
@@ -388,6 +394,14 @@ int dw_pcie_host_init(struct pcie_port *pp)
 							    dw_chained_msi_isr,
 							    pp);
 
+			ret = dma_set_mask(pci->dev, DMA_BIT_MASK(32));
+			if (ret) {
+				dev_warn(pci->dev,
+					 "Failed to set DMA mask to 32-bit. "
+					 "Devices with only 32-bit MSI support"
+					 " may not work properly\n");
+			}
+
 			pp->msi_data = dma_map_single_attrs(pci->dev, &pp->msi_msg,
 						      sizeof(pp->msi_msg),
 						      DMA_FROM_DEVICE,
@@ -423,16 +437,36 @@ int dw_pcie_host_init(struct pcie_port *pp)
 err_free_msi:
 	if (pci_msi_enabled() && !pp->ops->msi_host_init)
 		dw_pcie_free_msi(pp);
+	pci_free_host_bridge(bridge);
 	return ret;
 }
 EXPORT_SYMBOL_GPL(dw_pcie_host_init);
 
 void dw_pcie_host_deinit(struct pcie_port *pp)
 {
+	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
+	struct device *dev = pci->dev;
+	struct resource_entry *win, *tmp;
+
 	pci_stop_root_bus(pp->bridge->bus);
 	pci_remove_root_bus(pp->bridge->bus);
 	if (pci_msi_enabled() && !pp->ops->msi_host_init)
 		dw_pcie_free_msi(pp);
+
+	resource_list_for_each_entry_safe(win, tmp, &pp->bridge->windows) {
+		switch (resource_type(win->res)) {
+		case IORESOURCE_IO:
+			pci_unmap_iospace(win->res);
+			devm_release_resource(dev, win->res);
+			break;
+		case IORESOURCE_MEM:
+			devm_release_resource(dev, win->res);
+			break;
+		default:
+			continue;
+		}
+	}
+	pci_free_host_bridge(pp->bridge);
 }
 EXPORT_SYMBOL_GPL(dw_pcie_host_deinit);
 
@@ -464,9 +498,7 @@ static void __iomem *dw_pcie_other_conf_map_bus(struct pci_bus *bus,
 		type = PCIE_ATU_TYPE_CFG1;
 
 
-	dw_pcie_prog_outbound_atu(pci, PCIE_ATU_REGION_INDEX1,
-				  type, pp->cfg0_base,
-				  busdev, pp->cfg0_size);
+	dw_pcie_prog_outbound_atu(pci, 0, type, pp->cfg0_base, busdev, pp->cfg0_size);
 
 	return pp->va_cfg0_base + where;
 }
@@ -480,9 +512,8 @@ static int dw_pcie_rd_other_conf(struct pci_bus *bus, unsigned int devfn,
 
 	ret = pci_generic_config_read(bus, devfn, where, size, val);
 
-	if (!ret && pci->num_viewport <= 2)
-		dw_pcie_prog_outbound_atu(pci, PCIE_ATU_REGION_INDEX1,
-					  PCIE_ATU_TYPE_IO, pp->io_base,
+	if (!ret && pci->io_cfg_atu_shared)
+		dw_pcie_prog_outbound_atu(pci, 0, PCIE_ATU_TYPE_IO, pp->io_base,
 					  pp->io_bus_addr, pp->io_size);
 
 	return ret;
@@ -497,9 +528,8 @@ static int dw_pcie_wr_other_conf(struct pci_bus *bus, unsigned int devfn,
 
 	ret = pci_generic_config_write(bus, devfn, where, size, val);
 
-	if (!ret && pci->num_viewport <= 2)
-		dw_pcie_prog_outbound_atu(pci, PCIE_ATU_REGION_INDEX1,
-					  PCIE_ATU_TYPE_IO, pp->io_base,
+	if (!ret && pci->io_cfg_atu_shared)
+		dw_pcie_prog_outbound_atu(pci, 0, PCIE_ATU_TYPE_IO, pp->io_base,
 					  pp->io_bus_addr, pp->io_size);
 
 	return ret;
@@ -533,6 +563,8 @@ void dw_pcie_setup_rc(struct pcie_port *pp)
 {
 	u32 val, ctrl, num_ctrls;
 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
+	struct resource_entry *entry;
+	int atu_idx;
 
 	/*
 	 * Enable DBI read-only registers for writing/updating configuration.
@@ -585,23 +617,33 @@ void dw_pcie_setup_rc(struct pcie_port *pp)
 	 * the platform uses its own address translation component rather than
 	 * ATU, so we should not program the ATU here.
 	 */
-	if (pp->bridge->child_ops == &dw_child_pcie_ops) {
-		struct resource_entry *tmp, *entry = NULL;
+	atu_idx = (pp->bridge->child_ops == &dw_child_pcie_ops) ? 0 : -1;
 
-		/* Get last memory resource entry */
-		resource_list_for_each_entry(tmp, &pp->bridge->windows)
-			if (resource_type(tmp->res) == IORESOURCE_MEM)
-				entry = tmp;
+	resource_list_for_each_entry(entry, &pp->bridge->windows) {
+		if (resource_type(entry->res) != IORESOURCE_MEM)
+			continue;
 
-		dw_pcie_prog_outbound_atu(pci, PCIE_ATU_REGION_INDEX0,
+		if (pci->num_viewport <= ++atu_idx)
+			break;
+
+		dw_pcie_prog_outbound_atu(pci, atu_idx,
 					  PCIE_ATU_TYPE_MEM, entry->res->start,
 					  entry->res->start - entry->offset,
 					  resource_size(entry->res));
-		if (pci->num_viewport > 2)
-			dw_pcie_prog_outbound_atu(pci, PCIE_ATU_REGION_INDEX2,
+	}
+
+	if (pp->io_size) {
+		if (pci->num_viewport > ++atu_idx)
+			dw_pcie_prog_outbound_atu(pci, atu_idx,
 						  PCIE_ATU_TYPE_IO, pp->io_base,
 						  pp->io_bus_addr, pp->io_size);
+		else
+			pci->io_cfg_atu_shared = true;
 	}
+
+	if (pci->num_viewport <= atu_idx)
+		dev_warn(pci->dev, "Resources exceed number of ATU entries (%d)",
+			 pci->num_viewport);
 
 	dw_pcie_writel_dbi(pci, PCI_BASE_ADDRESS_0, 0);
 

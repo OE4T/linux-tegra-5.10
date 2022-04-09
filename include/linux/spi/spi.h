@@ -185,6 +185,7 @@ struct spi_device {
 #define	SPI_TX_OCTAL	0x2000			/* transmit with 8 wires */
 #define	SPI_RX_OCTAL	0x4000			/* receive with 8 wires */
 #define	SPI_3WIRE_HIZ	0x8000			/* high impedance turnaround */
+#define	SPI_LSBYTE_FIRST	0x1000		/* per-word bytes-on-wire */
 	int			irq;
 	void			*controller_state;
 	void			*controller_data;
@@ -661,7 +662,7 @@ struct spi_controller {
 	void			*dummy_tx;
 
 	int (*fw_translate_cs)(struct spi_controller *ctlr, unsigned cs);
-
+	int (*spi_cs_low)(struct spi_device *spi, bool state);
 	/*
 	 * Driver sets this field to indicate it is able to snapshot SPI
 	 * transfers (needed e.g. for reading the time of POSIX clocks)
@@ -670,6 +671,9 @@ struct spi_controller {
 
 	/* Interrupt enable state during PTP system timestamping */
 	unsigned long		irq_flags;
+	int (*start_controller)(struct spi_device *spi,
+				struct spi_transfer *transfer);
+	void (*stop_controller)(struct spi_device *spi);
 };
 
 static inline void *spi_controller_get_devdata(struct spi_controller *ctlr)
@@ -1535,6 +1539,16 @@ of_find_spi_device_by_node(struct device_node *node)
 }
 
 #endif /* IS_ENABLED(CONFIG_OF) */
+
+/**
+ * spi_cs_low - set chip select pin state
+ * @spi: device for which chip select pin state to be set
+ * state: if true chip select pin will be kept low else high
+ */
+extern int spi_cs_low(struct spi_device *spi, bool state);
+extern int spi_start_controller(struct spi_device *spi,
+				struct spi_transfer *t);
+extern void spi_stop_controller(struct spi_device *spi);
 
 /* Compatibility layer */
 #define spi_master			spi_controller

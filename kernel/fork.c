@@ -95,6 +95,7 @@
 #include <linux/stackleak.h>
 #include <linux/kasan.h>
 #include <linux/scs.h>
+#include <linux/tegra_profiler.h>
 #include <linux/io_uring.h>
 
 #include <asm/pgalloc.h>
@@ -2312,6 +2313,7 @@ static __latent_entropy struct task_struct *copy_process(
 	sched_post_fork(p);
 	cgroup_post_fork(p, args);
 	perf_event_fork(p);
+	quadd_event_fork(p);
 
 	trace_task_newtask(p, clone_flags);
 	uprobe_copy_process(p, clone_flags);

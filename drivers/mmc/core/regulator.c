@@ -109,11 +109,15 @@ int mmc_regulator_set_ocr(struct mmc_host *mmc,
 {
 	int			result = 0;
 	int			min_uV, max_uV;
+	int			reg_min_uV, reg_max_uV;
 
 	if (vdd_bit) {
 		mmc_ocrbitnum_to_vdd(vdd_bit, &min_uV, &max_uV);
 
-		result = regulator_set_voltage(supply, min_uV, max_uV);
+		result = regulator_get_constraint_voltages(supply, &reg_min_uV,
+                                                           &reg_max_uV);
+		if ((result == 0) && (reg_min_uV != reg_max_uV))
+			result = regulator_set_voltage(supply, min_uV, max_uV);
 		if (result == 0 && !mmc->regulator_enabled) {
 			result = regulator_enable(supply);
 			if (!result)
@@ -249,6 +253,22 @@ int mmc_regulator_get_supply(struct mmc_host *mmc)
 
 	mmc->supply.vmmc = devm_regulator_get_optional(dev, "vmmc");
 	mmc->supply.vqmmc = devm_regulator_get_optional(dev, "vqmmc");
+
+	if (mmc->caps2 & MMC_CAP2_SD_EXPRESS_SUPPORT) {
+		mmc->supply.vdd2 = devm_regulator_get_optional(dev, "vdd2");
+		mmc->supply.vdd3 = devm_regulator_get_optional(dev, "vdd3");
+		if (IS_ERR(mmc->supply.vdd2)) {
+			if (PTR_ERR(mmc->supply.vdd2) == -EPROBE_DEFER)
+				return -EPROBE_DEFER;
+			dev_err(dev, "No VDD2 regulator found\n");
+		}
+
+		if (IS_ERR(mmc->supply.vdd3)) {
+			if (PTR_ERR(mmc->supply.vdd3) == -EPROBE_DEFER)
+				return -EPROBE_DEFER;
+			dev_err(dev, "No VDD3 regulator found\n");
+		}
+	}
 
 	if (IS_ERR(mmc->supply.vmmc)) {
 		if (PTR_ERR(mmc->supply.vmmc) == -EPROBE_DEFER)

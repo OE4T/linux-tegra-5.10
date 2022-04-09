@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
- * Copyright (c) 2012, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012-2020, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #ifndef __LINUX_CLK_TEGRA_H_
@@ -123,13 +123,19 @@ static inline void tegra_cpu_clock_resume(void)
 }
 #endif
 
+extern int tegra210_plle_hw_sequence_start(void);
+extern bool tegra210_plle_hw_sequence_is_enabled(void);
+extern bool tegra210_xusb_pll_hw_sequence_is_enabled(void);
 extern void tegra210_xusb_pll_hw_control_enable(void);
 extern void tegra210_xusb_pll_hw_sequence_start(void);
+extern bool tegra210_sata_pll_hw_sequence_is_enabled(void);
 extern void tegra210_sata_pll_hw_control_enable(void);
 extern void tegra210_sata_pll_hw_sequence_start(void);
 extern void tegra210_set_sata_pll_seq_sw(bool state);
 extern void tegra210_put_utmipll_in_iddq(void);
 extern void tegra210_put_utmipll_out_iddq(void);
+extern bool tegra210_plle_hw_sequence_is_enabled(void);
+
 extern int tegra210_clk_handle_mbist_war(unsigned int id);
 extern void tegra210_clk_emc_dll_enable(bool flag);
 extern void tegra210_clk_emc_dll_update_setting(u32 emc_dll_src_value);
@@ -169,5 +175,9 @@ struct tegra210_clk_emc_provider {
 int tegra210_clk_emc_attach(struct clk *clk,
 			    struct tegra210_clk_emc_provider *provider);
 void tegra210_clk_emc_detach(struct clk *clk);
+int tegra_super_cdiv_use_therm_controls(bool);
+
+extern void tegra210_csi_source_from_brick(void);
+extern void tegra210_csi_source_from_plld(void);
 
 #endif /* __LINUX_CLK_TEGRA_H_ */

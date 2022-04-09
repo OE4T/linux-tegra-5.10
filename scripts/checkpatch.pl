@@ -25,6 +25,7 @@ use Getopt::Long qw(:config no_auto_abbrev);
 my $quiet = 0;
 my $tree = 1;
 my $chk_signoff = 1;
+my $ignore_changeid = 1;
 my $chk_patch = 1;
 my $tst_only;
 my $emacs = 0;
@@ -80,6 +81,7 @@ Options:
   -q, --quiet                quiet
   --no-tree                  run without a kernel tree
   --no-signoff               do not check for 'Signed-off-by' line
+  --ignore-changeid          ignore Gerrit Change-Id
   --patch                    treat FILE as patchfile (default)
   --emacs                    emacs compile window format
   --terse                    one line per report
@@ -210,6 +212,7 @@ GetOptions(
 	'q|quiet+'	=> \$quiet,
 	'tree!'		=> \$tree,
 	'signoff!'	=> \$chk_signoff,
+	'ignore-changeid!' => \$ignore_changeid,
 	'patch!'	=> \$chk_patch,
 	'emacs!'	=> \$emacs,
 	'terse!'	=> \$terse,
@@ -2738,6 +2741,8 @@ sub process {
 			}
 		}
 
+# Check if MAINTAINERS and/or NVIDIA-REVIEWERS is being updated.  If so, there's probably no need to
+# emit the "does MAINTAINERS/NVIDIA-REVIEWERS need updating?" message on file add/move/delete
 # Check for patch separator
 		if ($line =~ /^---$/) {
 			$has_patch_separator = 1;
@@ -2747,6 +2752,10 @@ sub process {
 # Check if MAINTAINERS is being updated.  If so, there's probably no need to
 # emit the "does MAINTAINERS need updating?" message on file add/move/delete
 		if ($line =~ /^\s*MAINTAINERS\s*\|/) {
+			$reported_maintainer_file = 1;
+		}
+
+		if ($line =~ /^\s*NVIDIA-REVIEWERS\s*\|/) {
 			$reported_maintainer_file = 1;
 		}
 
@@ -2844,7 +2853,7 @@ sub process {
 		}
 
 # Check for Gerrit Change-Ids not in any patch context
-		if ($realfile eq '' && !$has_patch_separator && $line =~ /^\s*change-id:/i) {
+		if ($realfile eq '' && !$has_patch_separator && !$ignore_changeid && $line =~ /^\s*change-id:/i) {
 			ERROR("GERRIT_CHANGE_ID",
 			      "Remove Gerrit Change-Id's before submitting upstream\n" . $herecurr);
 		}
@@ -2950,7 +2959,7 @@ sub process {
 			$is_patch = 1;
 			$reported_maintainer_file = 1;
 			WARN("FILE_PATH_CHANGES",
-			     "added, moved or deleted file(s), does MAINTAINERS need updating?\n" . $herecurr);
+			     "added, moved or deleted file(s), does MAINTAINERS and/or NVIDIA-REVIEWERS need updating?\n" . $herecurr);
 		}
 
 # Check for adding new DT bindings not in schema format

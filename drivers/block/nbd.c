@@ -2340,7 +2340,9 @@ static int nbd_genl_status(struct sk_buff *skb, struct genl_info *info)
 			}
 		}
 	}
-	nla_nest_end(reply, dev_list);
+	if (dev_list)
+		nla_nest_end(reply, dev_list);
+
 	genlmsg_end(reply, reply_head);
 	ret = genlmsg_reply(reply, info);
 out:

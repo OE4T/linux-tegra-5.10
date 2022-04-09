@@ -2,7 +2,7 @@
 /*
  * UCSI driver for Cypress CCGx Type-C controller
  *
- * Copyright (C) 2017-2018 NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2017-2022 NVIDIA Corporation. All rights reserved.
  * Author: Ajay Gupta <ajayg@nvidia.com>
  *
  * Some code borrowed from drivers/usb/typec/ucsi/ucsi_acpi.c
@@ -17,7 +17,7 @@
 #include <linux/pm.h>
 #include <linux/pm_runtime.h>
 #include <linux/usb/typec_dp.h>
-
+#include <linux/usb/role.h>
 #include <asm/unaligned.h>
 #include "ucsi.h"
 
@@ -28,6 +28,7 @@ enum enum_fw_mode {
 	FW_INVALID,
 };
 
+/* CCGx dev info registers */
 #define CCGX_RAB_DEVICE_MODE			0x0000
 #define CCGX_RAB_INTR_REG			0x0006
 #define  DEV_INT				BIT(0)
@@ -122,8 +123,13 @@ struct version_format {
  * Firmware version 3.1.10 or earlier, built for NVIDIA has known issue
  * of missing interrupt when a device is connected for runtime resume
  */
-#define CCG_FW_BUILD_NVIDIA	(('n' << 8) | 'v')
+#define CCG_FW_BUILD_NVIDIA_RTX	(('n' << 8) | 'v')
 #define CCG_OLD_FW_VERSION	(CCG_VERSION(0x31) | CCG_VERSION_PATCH(10))
+
+/* Firmware for Jetson Xavier doesn't support UCSI ALT command, built
+ * for NVIDIA has known issue of reporting wrong capability info
+ */
+#define CCG_FW_BUILD_NVIDIA_XAVIER	(('g' << 8) | 'n')
 
 /* Altmode offset for NVIDIA Function Test Board (FTB) */
 #define NVIDIA_FTB_DP_OFFSET	(2)
@@ -187,6 +193,12 @@ struct ucsi_ccg_altmode {
 	bool checked;
 } __packed;
 
+#define CCGX_MESSAGE_IN_MAX 4
+struct op_region {
+	u32 cci;
+	u32 message_in[CCGX_MESSAGE_IN_MAX];
+};
+
 struct ucsi_ccg {
 	struct device *dev;
 	struct ucsi *ucsi;
@@ -204,6 +216,7 @@ struct ucsi_ccg {
 	u8 cmd_resp;
 	int port_num;
 	int irq;
+	unsigned long irqflags;
 	struct work_struct work;
 	struct mutex lock; /* to sync between user and driver thread */
 
@@ -217,6 +230,11 @@ struct ucsi_ccg {
 	bool has_multiple_dp;
 	struct ucsi_ccg_altmode orig[UCSI_MAX_ALTMODES];
 	struct ucsi_ccg_altmode updated[UCSI_MAX_ALTMODES];
+
+	struct usb_role_switch **role_sw;
+
+	spinlock_t op_lock;
+	struct op_region op_data;
 };
 
 static int ccg_read(struct ucsi_ccg *uc, u16 rab, u8 *data, u32 len)
@@ -300,11 +318,56 @@ static int ccg_write(struct ucsi_ccg *uc, u16 rab, const u8 *data, u32 len)
 	return 0;
 }
 
+static void ccg_op_region_read(struct ucsi_ccg *uc, unsigned int offset,
+		void *val, size_t val_len)
+{
+	struct op_region *data = &uc->op_data;
+
+	spin_lock(&uc->op_lock);
+	if (offset == UCSI_CCI)
+		memcpy(val, &data->cci, val_len);
+	else if (offset == UCSI_MESSAGE_IN)
+		memcpy(val, &data->message_in, val_len);
+	spin_unlock(&uc->op_lock);
+}
+
+static void ccg_op_region_update(struct ucsi_ccg *uc, u32 cci)
+{
+	u16 reg = CCGX_RAB_UCSI_DATA_BLOCK(UCSI_MESSAGE_IN);
+	struct op_region *data = &uc->op_data;
+	u32 message_in[CCGX_MESSAGE_IN_MAX];
+
+	if (UCSI_CCI_LENGTH(cci))
+		if (ccg_read(uc, reg, (void *)&message_in,
+					sizeof(message_in))) {
+			dev_err(uc->dev, "failed to read MESSAGE_IN\n");
+			return;
+		}
+
+	spin_lock(&uc->op_lock);
+	memcpy(&data->cci, &cci, sizeof(cci));
+	if (UCSI_CCI_LENGTH(cci))
+		memcpy(&data->message_in, &message_in, sizeof(message_in));
+	spin_unlock(&uc->op_lock);
+}
+
+static void ccg_op_region_clean(struct ucsi_ccg *uc)
+{
+	struct op_region *data = &uc->op_data;
+
+	spin_lock(&uc->op_lock);
+	memset(&data->cci, 0, sizeof(data->cci));
+	memset(&data->message_in, 0, sizeof(data->message_in));
+	spin_unlock(&uc->op_lock);
+}
+
 static int ucsi_ccg_init(struct ucsi_ccg *uc)
 {
 	unsigned int count = 10;
 	u8 data;
 	int status;
+
+	spin_lock_init(&uc->op_lock);
 
 	data = CCGX_RAB_UCSI_CONTROL_STOP;
 	status = ccg_write(uc, CCGX_RAB_UCSI_CONTROL, &data, sizeof(data));
@@ -325,7 +388,7 @@ static int ucsi_ccg_init(struct ucsi_ccg *uc)
 		if (status < 0)
 			return status;
 
-		if (!data)
+		if (!(data & DEV_INT))
 			return 0;
 
 		status = ccg_write(uc, CCGX_RAB_INTR_REG, &data, sizeof(data));
@@ -513,10 +576,15 @@ static int ucsi_ccg_read(struct ucsi *ucsi, unsigned int offset,
 {
 	struct ucsi_ccg *uc = ucsi_get_drvdata(ucsi);
 	u16 reg = CCGX_RAB_UCSI_DATA_BLOCK(offset);
+	struct ucsi_capability *cap;
 	struct ucsi_altmode *alt;
-	int ret;
+	int ret = 0;
 
-	ret = ccg_read(uc, reg, val, val_len);
+	if ((offset == UCSI_CCI) || (offset == UCSI_MESSAGE_IN))
+		ccg_op_region_read(uc, offset, val, val_len);
+	else
+		ret = ccg_read(uc, reg, val, val_len);
+
 	if (ret)
 		return ret;
 
@@ -536,6 +604,12 @@ static int ucsi_ccg_read(struct ucsi *ucsi, unsigned int offset,
 				ucsi_ccg_nvidia_altmode(uc, alt);
 		}
 		break;
+	case UCSI_GET_CAPABILITY:
+		if (uc->fw_build == CCG_FW_BUILD_NVIDIA_XAVIER) {
+			cap = val;
+			cap->features &= ~UCSI_CAP_ALT_MODE_DETAILS;
+		}
+		break;
 	default:
 		break;
 	}
@@ -547,9 +621,13 @@ static int ucsi_ccg_read(struct ucsi *ucsi, unsigned int offset,
 static int ucsi_ccg_async_write(struct ucsi *ucsi, unsigned int offset,
 				const void *val, size_t val_len)
 {
+	struct ucsi_ccg *uc = ucsi_get_drvdata(ucsi);
 	u16 reg = CCGX_RAB_UCSI_DATA_BLOCK(offset);
 
-	return ccg_write(ucsi_get_drvdata(ucsi), reg, val, val_len);
+	if (offset == UCSI_CONTROL)
+		ccg_op_region_clean(uc);
+
+	return ccg_write(uc, reg, val, val_len);
 }
 
 static int ucsi_ccg_sync_write(struct ucsi *ucsi, unsigned int offset,
@@ -591,11 +669,88 @@ err_clear_bit:
 	return ret;
 }
 
+static int usb_set_role_sw(struct ucsi_connector *con, enum usb_role role)
+{
+	struct ucsi_ccg *uc = ucsi_get_drvdata(con->ucsi);
+	enum usb_role prev_role;
+	unsigned int port_num;
+
+	if (con->num < 1 || con->num > uc->port_num) {
+		dev_err(uc->dev, "Not supported con->num %d\n", con->num);
+		return -EINVAL;
+	}
+
+	/* con->num counts from 1 */
+	port_num = con->num - 1;
+
+	if (!uc->role_sw[port_num])
+		return -EINVAL;
+
+	prev_role = usb_role_switch_get_role(uc->role_sw[port_num]);
+	if (prev_role == role)
+		return 0;
+
+	return usb_role_switch_set_role(uc->role_sw[port_num], role);
+}
+
+static int ucsi_ccg_role_sw_get(struct ucsi_ccg *uc)
+{
+	int err;
+	unsigned int i;
+	struct fwnode_handle *typec;
+	struct fwnode_handle *child_node = NULL;
+
+	uc->role_sw = devm_kcalloc(uc->dev, uc->port_num,
+					   sizeof(*uc->role_sw), GFP_KERNEL);
+
+	if (!uc->role_sw)
+		return -ENOMEM;
+
+	typec = dev_fwnode(uc->dev);
+	if (!typec)
+		return -ENODEV;
+
+	child_node = fwnode_get_named_child_node(typec, "connector");
+	for (i = 0; i < uc->port_num; i++) {
+		if (!child_node)
+			break;
+
+		uc->role_sw[i] = fwnode_usb_role_switch_get(child_node);
+		if (IS_ERR_OR_NULL(uc->role_sw[i])) {
+			err = PTR_ERR(uc->role_sw[i]);
+			uc->role_sw[i] = NULL;
+			if (err == -EPROBE_DEFER) {
+				fwnode_handle_put(child_node);
+				return err;
+			}
+			dev_info(uc->dev, "Port-%d: no role switch found\n", i);
+		}
+		child_node = fwnode_get_next_child_node(typec, child_node);
+	}
+
+	fwnode_handle_put(child_node);
+	return 0;
+}
+
+static void ucsi_ccg_role_sw_put(struct ucsi_ccg *uc)
+{
+	unsigned int i;
+
+	if (!uc)
+		return;
+
+	for (i = 0; i < uc->port_num; i++) {
+		if (uc->role_sw[i])
+			usb_role_switch_put(uc->role_sw[i]);
+	}
+}
+
 static const struct ucsi_operations ucsi_ccg_ops = {
 	.read = ucsi_ccg_read,
 	.sync_write = ucsi_ccg_sync_write,
 	.async_write = ucsi_ccg_async_write,
-	.update_altmodes = ucsi_ccg_update_altmodes
+	.update_altmodes = ucsi_ccg_update_altmodes,
+	.set_data_role = usb_set_role_sw
 };
 
 static irqreturn_t ccg_irq_handler(int irq, void *data)
@@ -603,12 +758,17 @@ static irqreturn_t ccg_irq_handler(int irq, void *data)
 	u16 reg = CCGX_RAB_UCSI_DATA_BLOCK(UCSI_CCI);
 	struct ucsi_ccg *uc = data;
 	u8 intr_reg;
-	u32 cci;
+	u32 cci = 0;
 	int ret;
 
 	ret = ccg_read(uc, CCGX_RAB_INTR_REG, &intr_reg, sizeof(intr_reg));
 	if (ret)
 		return ret;
+
+	if (!intr_reg)
+		return IRQ_HANDLED;
+	else if (!(intr_reg & UCSI_READ_INT))
+		goto err_clear_irq;
 
 	ret = ccg_read(uc, reg, (void *)&cci, sizeof(cci));
 	if (ret)
@@ -617,12 +777,17 @@ static irqreturn_t ccg_irq_handler(int irq, void *data)
 	if (UCSI_CCI_CONNECTOR(cci))
 		ucsi_connector_change(uc->ucsi, UCSI_CCI_CONNECTOR(cci));
 
-	if (test_bit(DEV_CMD_PENDING, &uc->flags) &&
-	    cci & (UCSI_CCI_ACK_COMPLETE | UCSI_CCI_COMMAND_COMPLETE))
-		complete(&uc->complete);
+	/* As per CCGx UCSI interface guide, copy CCI and MESSAGE_IN
+	 * to the OpRegion before clear the UCSI interrupt
+	 */
+	ccg_op_region_update(uc, cci);
 
 err_clear_irq:
 	ccg_write(uc, CCGX_RAB_INTR_REG, &intr_reg, sizeof(intr_reg));
+
+	if (test_bit(DEV_CMD_PENDING, &uc->flags) &&
+	    cci & (UCSI_CCI_ACK_COMPLETE | UCSI_CCI_COMMAND_COMPLETE))
+		complete(&uc->complete);
 
 	return IRQ_HANDLED;
 }
@@ -1251,8 +1416,7 @@ static int ccg_restart(struct ucsi_ccg *uc)
 	}
 
 	status = request_threaded_irq(uc->irq, NULL, ccg_irq_handler,
-				      IRQF_ONESHOT | IRQF_TRIGGER_HIGH,
-				      dev_name(dev), uc);
+				      uc->irqflags, dev_name(dev), uc);
 	if (status < 0) {
 		dev_err(dev, "request_threaded_irq failed - %d\n", status);
 		return status;
@@ -1280,6 +1444,7 @@ static void ccg_update_firmware(struct work_struct *work)
 
 	if (flash_mode != FLASH_NOT_NEEDED) {
 		ucsi_unregister(uc->ucsi);
+		ucsi_ccg_role_sw_put(uc);
 		pm_runtime_disable(uc->dev);
 		free_irq(uc->irq, uc);
 
@@ -1360,15 +1525,25 @@ static int ucsi_ccg_probe(struct i2c_client *client,
 	if (uc->info.mode & CCG_DEVINFO_PDPORTS_MASK)
 		uc->port_num++;
 
+	status = ucsi_ccg_role_sw_get(uc);
+	if (status) {
+		if (status != -EPROBE_DEFER)
+			dev_err(uc->dev, "ucsi_ccg_role_sw_get failed - %d\n", status);
+		return status;
+	}
+
 	uc->ucsi = ucsi_create(dev, &ucsi_ccg_ops);
 	if (IS_ERR(uc->ucsi))
 		return PTR_ERR(uc->ucsi);
 
 	ucsi_set_drvdata(uc->ucsi, uc);
 
+	uc->irqflags = IRQF_ONESHOT;
+	if (uc->fw_build == CCG_FW_BUILD_NVIDIA_RTX)
+		uc->irqflags |= IRQF_TRIGGER_HIGH;
+
 	status = request_threaded_irq(client->irq, NULL, ccg_irq_handler,
-				      IRQF_ONESHOT | IRQF_TRIGGER_HIGH,
-				      dev_name(dev), uc);
+				      uc->irqflags, dev_name(dev), uc);
 	if (status < 0) {
 		dev_err(uc->dev, "request_threaded_irq failed - %d\n", status);
 		goto out_ucsi_destroy;
@@ -1407,10 +1582,17 @@ static int ucsi_ccg_remove(struct i2c_client *client)
 	pm_runtime_disable(uc->dev);
 	ucsi_unregister(uc->ucsi);
 	ucsi_destroy(uc->ucsi);
+	ucsi_ccg_role_sw_put(uc);
 	free_irq(uc->irq, uc);
 
 	return 0;
 }
+
+static const struct of_device_id ucsi_ccg_of_match_table[] = {
+		{ .compatible = "nvidia,ccgx-ucsi", },
+		{ /* sentinel */ }
+};
+MODULE_DEVICE_TABLE(of, ucsi_ccg_of_match_table);
 
 static const struct i2c_device_id ucsi_ccg_device_id[] = {
 	{"ccgx-ucsi", 0},
@@ -1441,7 +1623,7 @@ static int ucsi_ccg_runtime_resume(struct device *dev)
 	 * of missing interrupt when a device is connected for runtime resume.
 	 * Schedule a work to call ISR as a workaround.
 	 */
-	if (uc->fw_build == CCG_FW_BUILD_NVIDIA &&
+	if (uc->fw_build == CCG_FW_BUILD_NVIDIA_RTX &&
 	    uc->fw_version <= CCG_OLD_FW_VERSION)
 		schedule_work(&uc->pm_work);
 
@@ -1459,6 +1641,7 @@ static struct i2c_driver ucsi_ccg_driver = {
 		.name = "ucsi_ccg",
 		.pm = &ucsi_ccg_pm,
 		.dev_groups = ucsi_ccg_groups,
+		.of_match_table = ucsi_ccg_of_match_table,
 	},
 	.probe = ucsi_ccg_probe,
 	.remove = ucsi_ccg_remove,

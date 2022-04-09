@@ -891,6 +891,8 @@ int tegra_xusb_padctl_legacy_probe(struct platform_device *pdev)
 	 * from the updated driver and fail.
 	 */
 	match = of_match_node(tegra_xusb_padctl_of_match, pdev->dev.of_node);
+	if (!match)
+		return -ENXIO;
 	padctl->soc = match->data;
 
 	padctl->regs = devm_platform_ioremap_resource(pdev, 0);

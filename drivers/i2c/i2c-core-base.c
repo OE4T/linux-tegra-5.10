@@ -852,6 +852,63 @@ int i2c_dev_irq_from_resources(const struct resource *resources,
 	return 0;
 }
 
+void i2c_shutdown_adapter(struct i2c_adapter *adapter)
+{
+	i2c_lock_bus(adapter, I2C_LOCK_ROOT_ADAPTER);
+	adapter->cancel_xfer_on_shutdown = true;
+	i2c_unlock_bus(adapter, I2C_LOCK_ROOT_ADAPTER);
+}
+EXPORT_SYMBOL_GPL(i2c_shutdown_adapter);
+
+void i2c_shutdown_clear_adapter(struct i2c_adapter *adapter)
+{
+	adapter->cancel_xfer_on_shutdown = false;
+	adapter->atomic_xfer_only = true;
+}
+EXPORT_SYMBOL_GPL(i2c_shutdown_clear_adapter);
+
+int i2c_set_adapter_bus_clk_rate(struct i2c_adapter *adap, int bus_rate)
+{
+	i2c_lock_bus(adap, I2C_LOCK_ROOT_ADAPTER);
+	adap->bus_clk_rate = bus_rate;
+	i2c_unlock_bus(adap, I2C_LOCK_ROOT_ADAPTER);
+
+	return 0;
+}
+EXPORT_SYMBOL_GPL(i2c_set_adapter_bus_clk_rate);
+
+int i2c_get_adapter_bus_clk_rate(struct i2c_adapter *adap)
+{
+	int bus_clk_rate;
+
+	i2c_lock_bus(adap, I2C_LOCK_ROOT_ADAPTER);
+	bus_clk_rate = adap->bus_clk_rate;
+	i2c_unlock_bus(adap, I2C_LOCK_ROOT_ADAPTER);
+
+	return bus_clk_rate;
+}
+EXPORT_SYMBOL_GPL(i2c_get_adapter_bus_clk_rate);
+
+int i2c_bus_status(struct i2c_adapter *adap, int *scl_status, int *sda_status)
+{
+	int ret;
+
+	i2c_lock_bus(adap, I2C_LOCK_ROOT_ADAPTER);
+
+	if (!adap->i2c_bus_status) {
+		dev_err(&adap->dev, "Invalid i2c bus status fn pointer\n");
+		ret = -EINVAL;
+		goto out;
+	}
+
+	ret = adap->i2c_bus_status(adap, scl_status, sda_status);
+
+out:
+	i2c_unlock_bus(adap, I2C_LOCK_ROOT_ADAPTER);
+	return ret;
+}
+EXPORT_SYMBOL_GPL(i2c_bus_status);
+
 /**
  * i2c_new_client_device - instantiate an i2c device
  * @adap: the adapter managing the device
@@ -1252,10 +1309,33 @@ delete_device_store(struct device *dev, struct device_attribute *attr,
 static DEVICE_ATTR_IGNORE_LOCKDEP(delete_device, S_IWUSR, NULL,
 				  delete_device_store);
 
+static ssize_t show_bus_clk_rate(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	struct i2c_adapter *adap = to_i2c_adapter(dev);
+
+	return sprintf(buf, "%ld\n", adap->bus_clk_rate);
+}
+
+static ssize_t set_bus_clk_rate(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct i2c_adapter *adap = to_i2c_adapter(dev);
+	char *p = (char *)buf;
+	int bus_clk_rate;
+
+	bus_clk_rate = memparse(p, &p);
+	dev_info(dev, "Setting clock rate %d on next transfer\n", bus_clk_rate);
+	adap->bus_clk_rate = bus_clk_rate;
+	return count;
+}
+static DEVICE_ATTR(bus_clk_rate, 0644, show_bus_clk_rate, set_bus_clk_rate);
+
 static struct attribute *i2c_adapter_attrs[] = {
 	&dev_attr_name.attr,
 	&dev_attr_new_device.attr,
 	&dev_attr_delete_device.attr,
+	&dev_attr_bus_clk_rate.attr,
 	NULL
 };
 ATTRIBUTE_GROUPS(i2c_adapter);
@@ -2111,7 +2191,10 @@ int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
 	if (ret)
 		return ret;
 
-	ret = __i2c_transfer(adap, msgs, num);
+	if (!adap->cancel_xfer_on_shutdown)
+		ret = __i2c_transfer(adap, msgs, num);
+	else
+		ret = -EPERM;
 	i2c_unlock_bus(adap, I2C_LOCK_SEGMENT);
 
 	return ret;

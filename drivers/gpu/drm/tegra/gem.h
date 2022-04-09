@@ -2,7 +2,7 @@
 /*
  * Tegra host1x GEM implementation
  *
- * Copyright (c) 2012-2013, NVIDIA Corporation.
+ * Copyright (c) 2012-2020, NVIDIA Corporation.
  */
 
 #ifndef __HOST1X_GEM_H
@@ -12,6 +12,8 @@
 
 #include <drm/drm.h>
 #include <drm/drm_gem.h>
+#include <drm/drm_gem.h>
+#include <drm/tegra_drm.h>
 
 #define TEGRA_BO_BOTTOM_UP (1 << 0)
 
@@ -74,4 +76,6 @@ struct dma_buf *tegra_gem_prime_export(struct drm_gem_object *gem,
 struct drm_gem_object *tegra_gem_prime_import(struct drm_device *drm,
 					      struct dma_buf *buf);
 
+int tegra_gem_cache_maint(struct drm_gem_object *gem,
+			  struct drm_tegra_gem_cache_ops *ca_obj);
 #endif

@@ -329,6 +329,9 @@ config ARCH_PROC_KCORE_TEXT
 config BROKEN_GAS_INST
 	def_bool !$(as-instr,1:\n.inst 0\n.rept . - 1b\n\nnop\n.endr\n)
 
+config ARM64_NON_SHARED_TLBI
+	def_bool n
+
 config KASAN_SHADOW_OFFSET
 	hex
 	depends on KASAN
@@ -800,6 +803,16 @@ config QCOM_FALKOR_ERRATUM_E1041
 	  Falkor CPU may speculatively fetch instructions from an improper
 	  memory location when MMU translation is changed from SCTLR_ELn[M]=1
 	  to SCTLR_ELn[M]=0. Prefix an ISB instruction to fix the problem.
+
+	  If unsure, say Y.
+
+config NVIDIA_CARMEL_CNP_ERRATUM
+	bool "NVIDIA Carmel CNP: CNP on Carmel semantically different than ARM cores"
+	default y
+	help
+	  If CNP is enabled on Carmel cores, non-sharable TLBIs on a core will not
+	  invalidate shared TLB entries installed by a different core, as it would
+	  on standard ARM cores.
 
 	  If unsure, say Y.
 
@@ -1579,7 +1592,7 @@ config ARM64_AMU_EXTN
 	  indicating that the counter is not enabled.
 
 config AS_HAS_ARMV8_4
-	def_bool $(cc-option,-Wa$(comma)-march=armv8.4-a)
+	def_bool n
 
 config ARM64_TLB_RANGE
 	bool "Enable support for tlbi range feature"
@@ -1938,6 +1951,13 @@ source "drivers/firmware/Kconfig"
 source "drivers/acpi/Kconfig"
 
 source "arch/arm64/kvm/Kconfig"
+
+if ARCH_TEGRA
+config TEGRA_DTC_SUPPRESS_WARNINGS
+	bool "Suppress Tegra DTC warnings"
+	help
+	  Allow in-tree or out-of-tree DTs build at any time
+endif
 
 if CRYPTO
 source "arch/arm64/crypto/Kconfig"

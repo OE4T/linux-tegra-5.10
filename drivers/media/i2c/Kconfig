@@ -755,8 +755,6 @@ config VIDEO_IMX214
 config VIDEO_IMX219
 	tristate "Sony IMX219 sensor support"
 	depends on I2C && VIDEO_V4L2
-	select MEDIA_CONTROLLER
-	select VIDEO_V4L2_SUBDEV_API
 	select V4L2_FWNODE
 	help
 	  This is a Video4Linux2 sensor driver for the Sony
@@ -780,8 +778,6 @@ config VIDEO_IMX258
 config VIDEO_IMX274
 	tristate "Sony IMX274 sensor support"
 	depends on I2C && VIDEO_V4L2
-	select MEDIA_CONTROLLER
-	select VIDEO_V4L2_SUBDEV_API
 	select REGMAP_I2C
 	help
 	  This is a V4L2 sensor driver for the Sony IMX274

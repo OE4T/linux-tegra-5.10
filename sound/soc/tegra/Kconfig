@@ -118,6 +118,71 @@ config SND_SOC_TEGRA210_ADMAIF
 	  channel. Buffer size is configurable for each ADMAIIF channel.
 	  Say Y or M if you want to add support for Tegra210 ADMAIF module.
 
+config SND_SOC_TEGRA186_ARAD
+	tristate "Tegra186 ARAD module"
+	depends on SND_SOC_TEGRA
+
+config SND_SOC_TEGRA186_ASRC
+	tristate "Tegra186 ASRC module"
+	depends on SND_SOC_TEGRA
+
+config SND_SOC_TEGRA210_AMX
+	tristate "Tegra186 AMX module"
+	depends on SND_SOC_TEGRA
+
+config SND_SOC_TEGRA210_ADX
+	tristate "Tegra186 ADX module"
+	depends on SND_SOC_TEGRA
+
+config SND_SOC_TEGRA210_MIXER
+	tristate "Tegra186 MIXER module"
+	depends on SND_SOC_TEGRA
+
+config SND_SOC_TEGRA210_SFC
+	tristate "Tegra186 SFC module"
+	depends on SND_SOC_TEGRA
+
+config SND_SOC_TEGRA210_MVC
+	tristate "Tegra186 MVC module"
+	depends on SND_SOC_TEGRA
+
+config SND_SOC_TEGRA210_AFC
+	tristate "Tegra186 AFC module"
+	depends on SND_SOC_TEGRA
+
+config SND_SOC_TEGRA210_IQC
+	tristate "Tegra186 IQC module"
+	depends on SND_SOC_TEGRA
+
+config SND_SOC_TEGRA210_OPE
+	tristate "Tegra186 OPE module"
+	depends on SND_SOC_TEGRA
+
+config SND_SOC_TEGRA210_ADSP
+	tristate "Tegra210 ADSP Audio module"
+	depends on SND_SOC_TEGRA && TEGRA_NVADSP
+	select SND_SOC_COMPRESS
+
+config SND_SOC_TEGRA210_AUDIO
+	tristate "SoC Audio support for Tegra210"
+	depends on I2C
+	depends on ARCH_TEGRA_210_SOC || ARCH_TEGRA_18x_SOC
+	select SND_SOC_RT5659
+	select SND_SOC_TAS2552
+	select SND_SOC_SGTL5000
+	help
+	  Say Y or M here if you want to enable support for ASoC machine driver
+	  on Tegra210 and successor platforms like Tegra186, Tegra194.
+
+config SND_SOC_TEGRA_AUDIO_GRAPH_CARD
+	tristate "Audio Graph Card based Tegra driver"
+	depends on SND_AUDIO_GRAPH_CARD
+	help
+	  Config to enable Tegra audio machine driver based on generic
+	  audio graph driver. It is a thin driver written to customize
+	  few things for Tegra audio. Most of the code is re-used from
+	  audio graph driver and the same DT bindings are used.
+
 config SND_SOC_TEGRA_RT5640
 	tristate "SoC Audio support for Tegra boards using an RT5640 codec"
 	depends on SND_SOC_TEGRA && I2C && GPIOLIB

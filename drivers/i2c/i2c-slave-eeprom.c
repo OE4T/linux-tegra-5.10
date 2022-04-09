@@ -26,15 +26,17 @@
 #include <linux/spinlock.h>
 #include <linux/sysfs.h>
 
+#define EEPROM_SIZE	(64 * 1024)
+
 struct eeprom_data {
 	struct bin_attribute bin;
 	spinlock_t buffer_lock;
-	u16 buffer_idx;
+	u32 buffer_idx;
 	u16 address_mask;
 	u8 num_address_bytes;
 	u8 idx_write_cnt;
 	bool read_only;
-	u8 buffer[];
+	u8 *buffer;
 };
 
 #define I2C_SLAVE_BYTELEN GENMASK(15, 0)
@@ -43,21 +45,25 @@ struct eeprom_data {
 #define I2C_SLAVE_DEVICE_MAGIC(_len, _flags) ((_flags) | ((_len) - 1))
 
 static int i2c_slave_eeprom_slave_cb(struct i2c_client *client,
-				     enum i2c_slave_event event, u8 *val)
+				     enum i2c_slave_event event, void *data)
 {
 	struct eeprom_data *eeprom = i2c_get_clientdata(client);
+	struct i2c_slave_data *sdata = (struct i2c_slave_data *)data;
+	u8 *buf = sdata->buf;
+	u32 size = sdata->size;
+	u32 i;
 
 	switch (event) {
 	case I2C_SLAVE_WRITE_RECEIVED:
 		if (eeprom->idx_write_cnt < eeprom->num_address_bytes) {
 			if (eeprom->idx_write_cnt == 0)
 				eeprom->buffer_idx = 0;
-			eeprom->buffer_idx = *val | (eeprom->buffer_idx << 8);
+			eeprom->buffer_idx = *buf | (eeprom->buffer_idx << 8);
 			eeprom->idx_write_cnt++;
 		} else {
 			if (!eeprom->read_only) {
 				spin_lock(&eeprom->buffer_lock);
-				eeprom->buffer[eeprom->buffer_idx++ & eeprom->address_mask] = *val;
+				eeprom->buffer[eeprom->buffer_idx++ & eeprom->address_mask] = *buf;
 				spin_unlock(&eeprom->buffer_lock);
 			}
 		}
@@ -69,7 +75,7 @@ static int i2c_slave_eeprom_slave_cb(struct i2c_client *client,
 		fallthrough;
 	case I2C_SLAVE_READ_REQUESTED:
 		spin_lock(&eeprom->buffer_lock);
-		*val = eeprom->buffer[eeprom->buffer_idx & eeprom->address_mask];
+		*buf = eeprom->buffer[eeprom->buffer_idx++ & eeprom->address_mask];
 		spin_unlock(&eeprom->buffer_lock);
 		/*
 		 * Do not increment buffer_idx here, because we don't know if
@@ -81,6 +87,42 @@ static int i2c_slave_eeprom_slave_cb(struct i2c_client *client,
 	case I2C_SLAVE_STOP:
 	case I2C_SLAVE_WRITE_REQUESTED:
 		eeprom->idx_write_cnt = 0;
+		break;
+
+	case I2C_SLAVE_WRITE_BUFFER_RECEIVED:
+		if (eeprom->idx_write_cnt) {
+			spin_lock(&eeprom->buffer_lock);
+			for (i = 0; i < size; i++)
+				eeprom->buffer[eeprom->buffer_idx + i] = buf[i];
+			eeprom->buffer_idx += size;
+			spin_unlock(&eeprom->buffer_lock);
+		}
+		break;
+
+	case I2C_SLAVE_READ_BUFFER_REQUESTED:
+		spin_lock(&eeprom->buffer_lock);
+		sdata->buf = eeprom->buffer + eeprom->buffer_idx;
+		sdata->size = EEPROM_SIZE - eeprom->buffer_idx;
+		spin_unlock(&eeprom->buffer_lock);
+		break;
+	case I2C_SLAVE_READ_BUFFER_COUNT:
+		/* if number of bytes read from slave device is beyond
+		 * EEPROM_SIZE then wrap around the buffer_idx to the
+		 * beginning of the buffer and set buffer_idx with
+		 * remaining number of read bytes to read.
+		 */
+		if (sdata->size >= (EEPROM_SIZE - eeprom->buffer_idx))
+			eeprom->buffer_idx = (sdata->size -
+					(EEPROM_SIZE - eeprom->buffer_idx));
+		else
+			eeprom->buffer_idx = eeprom->buffer_idx + sdata->size;
+		break;
+
+	case I2C_SLAVE_WRITE_BUFFER_REQUESTED:
+		if (eeprom->idx_write_cnt == 0) {
+			eeprom->buffer_idx = buf[0];
+			eeprom->idx_write_cnt++;
+		}
 		break;
 
 	default:
@@ -151,6 +193,10 @@ static int i2c_slave_eeprom_probe(struct i2c_client *client, const struct i2c_de
 	if (!eeprom)
 		return -ENOMEM;
 
+	eeprom->buffer = devm_kzalloc(&client->dev, EEPROM_SIZE, GFP_KERNEL);
+	if (!eeprom->buffer)
+		return -ENOMEM;
+
 	eeprom->num_address_bytes = flag_addr16 ? 2 : 1;
 	eeprom->address_mask = size - 1;
 	eeprom->read_only = FIELD_GET(I2C_SLAVE_FLAG_RO, id->driver_data);
@@ -167,6 +213,7 @@ static int i2c_slave_eeprom_probe(struct i2c_client *client, const struct i2c_de
 	eeprom->bin.read = i2c_slave_eeprom_bin_read;
 	eeprom->bin.write = i2c_slave_eeprom_bin_write;
 	eeprom->bin.size = size;
+	client->buffer_size = EEPROM_SIZE;
 
 	ret = sysfs_create_bin_file(&client->dev.kobj, &eeprom->bin);
 	if (ret)

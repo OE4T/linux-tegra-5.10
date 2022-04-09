@@ -92,6 +92,7 @@ struct tty_bufhead {
 	atomic_t	   mem_used;    /* In-use buffers excluding free list */
 	int		   mem_limit;
 	struct tty_buffer *tail;	/* Active buffer */
+	atomic_t	  current_data_count;
 };
 /*
  * When a break, frame error, or parity error happens, these codes are
@@ -252,6 +253,7 @@ struct tty_port {
 						   set to size of fifo */
 	struct kref		kref;		/* Ref counter */
 	void 			*client_data;
+	struct task_struct	*tty_kthread;	/* RT thread to flush data */
 };
 
 /* tty_port::iflags bits -- use atomic bit ops */
@@ -799,3 +801,6 @@ static inline void proc_tty_unregister_driver(struct tty_driver *d) {}
 		tty_msg(pr_info_ratelimited, tty, f, ##__VA_ARGS__)
 
 #endif
+
+extern int tty_buffer_start_rt_thread(struct tty_port *port, int id);
+extern void tty_buffer_stop_rt_thread(struct tty_port *port);

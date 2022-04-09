@@ -2,6 +2,7 @@
 /*
  *
  * Copyright (C) 2015 ARM Limited
+ * Copyright (C) 2021 NVIDIA CORPORATION.  All rights reserved.
  */
 
 #define pr_fmt(fmt) "psci: " fmt
@@ -15,6 +16,7 @@
 #include <linux/pm.h>
 #include <linux/printk.h>
 #include <linux/psci.h>
+#include <linux/power/reset/system-pmic.h>
 #include <linux/reboot.h>
 #include <linux/slab.h>
 #include <linux/suspend.h>
@@ -26,6 +28,9 @@
 #include <asm/system_misc.h>
 #include <asm/smp_plat.h>
 #include <asm/suspend.h>
+
+void (*psci_handle_reboot_cmd)(const char *cmd);
+void (*psci_prepare_poweroff)(void);
 
 /*
  * While a 64-bit OS can make calls with SMC32 calling conventions, for some
@@ -53,6 +58,8 @@ bool psci_tos_resident_on(int cpu)
 {
 	return cpu == resident_cpu;
 }
+
+struct extended_psci_operations extended_ops;
 
 typedef unsigned long (psci_fn)(unsigned long, unsigned long,
 				unsigned long, unsigned long);
@@ -270,6 +277,10 @@ static void psci_sys_reset(enum reboot_mode reboot_mode, const char *cmd)
 		 */
 		invoke_psci_fn(PSCI_FN_NATIVE(1_1, SYSTEM_RESET2), 0, 0, 0);
 	} else {
+		if (psci_handle_reboot_cmd)
+				psci_handle_reboot_cmd(cmd);
+		if (psci_prepare_poweroff)
+				psci_prepare_poweroff();
 		invoke_psci_fn(PSCI_0_2_FN_SYSTEM_RESET, 0, 0, 0);
 	}
 }
@@ -290,6 +301,9 @@ static int psci_suspend_finisher(unsigned long state)
 {
 	u32 power_state = state;
 
+	if (extended_ops.make_power_state)
+		power_state = extended_ops.make_power_state(power_state);
+
 	return psci_ops.cpu_suspend(power_state, __pa_symbol(cpu_resume));
 }
 
@@ -297,8 +311,11 @@ int psci_cpu_suspend_enter(u32 state)
 {
 	int ret;
 
-	if (!psci_power_state_loses_context(state))
+	if (!psci_power_state_loses_context(state)) {
+		if (extended_ops.make_power_state)
+			state = extended_ops.make_power_state(state);
 		ret = psci_ops.cpu_suspend(state, 0);
+	}
 	else
 		ret = cpu_suspend(state, psci_suspend_finisher);
 
@@ -440,9 +457,10 @@ static void __init psci_0_2_set_functions(void)
 
 	psci_ops.migrate_info_type = psci_migrate_info_type;
 
+	pm_power_off = psci_sys_poweroff;
 	arm_pm_restart = psci_sys_reset;
 
-	pm_power_off = psci_sys_poweroff;
+	set_system_pmic_post_power_off_handler(psci_sys_poweroff);
 }
 
 /*

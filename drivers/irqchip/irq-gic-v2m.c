@@ -24,6 +24,8 @@
 #include <linux/slab.h>
 #include <linux/spinlock.h>
 #include <linux/irqchip/arm-gic.h>
+#include <linux/dma-iommu.h>
+#include <linux/iommu.h>
 
 /*
 * MSI_TYPER:
@@ -174,11 +176,13 @@ static void gicv2m_unalloc_msi(struct v2m_data *v2m, unsigned int hwirq,
 	spin_unlock(&v2m_lock);
 }
 
+#define TEGRA_MSI_BASE 0x54000000
 static int gicv2m_irq_domain_alloc(struct irq_domain *domain, unsigned int virq,
 				   unsigned int nr_irqs, void *args)
 {
 	msi_alloc_info_t *info = args;
 	struct v2m_data *v2m = NULL, *tmp;
+	struct device *dev =  msi_desc_to_dev(info->desc);
 	int hwirq, offset, i, err = 0;
 
 	spin_lock(&v2m_lock);
@@ -211,6 +215,8 @@ static int gicv2m_irq_domain_alloc(struct irq_domain *domain, unsigned int virq,
 					      &gicv2m_irq_chip, v2m);
 	}
 
+	iommu_dma_map_msi_pages(dev, TEGRA_MSI_BASE, hwirq, nr_irqs);
+
 	return 0;
 
 fail:
@@ -224,9 +230,12 @@ static void gicv2m_irq_domain_free(struct irq_domain *domain,
 {
 	struct irq_data *d = irq_domain_get_irq_data(domain, virq);
 	struct v2m_data *v2m = irq_data_get_irq_chip_data(d);
+	struct device *dev = msi_desc_to_dev(irq_get_msi_desc(d->irq));
 
 	gicv2m_unalloc_msi(v2m, d->hwirq, nr_irqs);
 	irq_domain_free_irqs_parent(domain, virq, nr_irqs);
+
+	iommu_dma_unmap_msi_pages(dev, TEGRA_MSI_BASE, d->hwirq, nr_irqs);
 }
 
 static const struct irq_domain_ops gicv2m_domain_ops = {

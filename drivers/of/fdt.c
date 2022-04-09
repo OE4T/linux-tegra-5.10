@@ -292,7 +292,7 @@ static int unflatten_dt_nodes(const void *blob,
 	struct device_node *root;
 	int offset = 0, depth = 0, initial_depth = 0;
 #define FDT_MAX_DEPTH	64
-	struct device_node *nps[FDT_MAX_DEPTH];
+	struct device_node *nps[FDT_MAX_DEPTH + 1];
 	void *base = mem;
 	bool dryrun = !base;
 
@@ -1010,7 +1010,7 @@ int __init early_init_dt_scan_memory(unsigned long node, const char *uname,
 	endp = reg + (l / sizeof(__be32));
 	hotpluggable = of_get_flat_dt_prop(node, "hotpluggable", NULL);
 
-	pr_debug("memory scan node %s, reg size %d,\n", uname, l);
+	pr_info("memory scan node %s, reg size %d,\n", uname, l);
 
 	while ((endp - reg) >= (dt_root_addr_cells + dt_root_size_cells)) {
 		u64 base, size;
@@ -1020,7 +1020,7 @@ int __init early_init_dt_scan_memory(unsigned long node, const char *uname,
 
 		if (size == 0)
 			continue;
-		pr_debug(" - %llx ,  %llx\n", (unsigned long long)base,
+		pr_info(" - %llx ,  %llx\n", (unsigned long long)base,
 		    (unsigned long long)size);
 
 		early_init_dt_add_memory_arch(base, size);

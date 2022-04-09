@@ -31,6 +31,7 @@
  * values depending on configuration at or after reset.
  */
 DEFINE_PER_CPU(struct cpuinfo_arm64, cpu_data);
+EXPORT_PER_CPU_SYMBOL(cpu_data);
 static struct cpuinfo_arm64 boot_cpu_data;
 
 static const char *icache_policy_str[] = {
@@ -148,9 +149,8 @@ static int c_show(struct seq_file *m, void *v)
 		 * "processor".  Give glibc what it expects.
 		 */
 		seq_printf(m, "processor\t: %d\n", i);
-		if (compat)
-			seq_printf(m, "model name\t: ARMv8 Processor rev %d (%s)\n",
-				   MIDR_REVISION(midr), COMPAT_ELF_PLATFORM);
+		seq_printf(m, "model name\t: ARMv8 Processor rev %d (%s)\n",
+			   MIDR_REVISION(midr), COMPAT_ELF_PLATFORM);
 
 		seq_printf(m, "BogoMIPS\t: %lu.%02lu\n",
 			   loops_per_jiffy / (500000UL/HZ),
@@ -194,7 +194,10 @@ static int c_show(struct seq_file *m, void *v)
 		seq_printf(m, "CPU architecture: 8\n");
 		seq_printf(m, "CPU variant\t: 0x%x\n", MIDR_VARIANT(midr));
 		seq_printf(m, "CPU part\t: 0x%03x\n", MIDR_PARTNUM(midr));
-		seq_printf(m, "CPU revision\t: %d\n\n", MIDR_REVISION(midr));
+		seq_printf(m, "CPU revision\t: %d\n", MIDR_REVISION(midr));
+		if (MIDR_IMPLEMENTOR(midr) == ARM_CPU_IMP_NVIDIA)
+			seq_printf(m, "MTS version\t: %u\n", cpuinfo->reg_aidr);
+		seq_printf(m, "\n");
 	}
 
 	return 0;
@@ -402,6 +405,10 @@ static void __cpuinfo_store_cpu(struct cpuinfo_arm64 *info)
 		info->reg_zcr = read_zcr_features();
 
 	cpuinfo_detect_icache_policy(info);
+
+	/* Denver firmware version */
+	if (MIDR_IMPLEMENTOR(info->reg_midr) == ARM_CPU_IMP_NVIDIA)
+		asm volatile("mrs %0, AIDR_EL1" : "=r" (info->reg_aidr) : );
 }
 
 void cpuinfo_store_cpu(void)

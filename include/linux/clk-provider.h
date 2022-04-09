@@ -8,7 +8,7 @@
 
 #include <linux/of.h>
 #include <linux/of_clk.h>
-
+#include<asm/io.h>
 /*
  * flags used across common struct clk.  these flags should only affect the
  * top-level framework.  custom flags for dealing with hardware specifics
@@ -32,6 +32,7 @@
 #define CLK_OPS_PARENT_ENABLE	BIT(12)
 /* duty cycle call may be forwarded to the parent clock */
 #define CLK_DUTY_CYCLE_PARENT	BIT(13)
+#define CLK_SET_RATE_NOCACHE	BIT(14) /* do not check cached clk rate */
 
 struct clk;
 struct clk_hw;
@@ -1104,6 +1105,8 @@ bool clk_hw_is_prepared(const struct clk_hw *hw);
 bool clk_hw_rate_is_protected(const struct clk_hw *hw);
 bool clk_hw_is_enabled(const struct clk_hw *hw);
 bool __clk_is_enabled(struct clk *clk);
+bool __clk_is_prepared(struct clk *clk);
+
 struct clk *__clk_lookup(const char *name);
 int __clk_mux_determine_rate(struct clk_hw *hw,
 			     struct clk_rate_request *req);
@@ -1116,6 +1119,9 @@ int clk_mux_determine_rate_flags(struct clk_hw *hw,
 void clk_hw_reparent(struct clk_hw *hw, struct clk_hw *new_parent);
 void clk_hw_set_rate_range(struct clk_hw *hw, unsigned long min_rate,
 			   unsigned long max_rate);
+int __clk_hw_set_rate(struct clk_hw *hw, unsigned long rate,
+		      unsigned long parent_rate);
+int __clk_hw_enable(struct clk_hw *hw);
 
 static inline void __clk_hw_set_clk(struct clk_hw *dst, struct clk_hw *src)
 {
@@ -1384,5 +1390,17 @@ static inline int of_clk_detect_critical(struct device_node *np, int index,
 #endif /* CONFIG_OF */
 
 void clk_gate_restore_context(struct clk_hw *hw);
+
+#ifdef CONFIG_DEBUG_FS
+struct dentry *__clk_debugfs_add_file(struct clk *clk, char *name,
+		umode_t mode, void *data, const struct file_operations *fops);
+#else
+static inline struct dentry *__clk_debugfs_add_file(struct clk *clk, char *name,
+		umode_t mode, void *data, const struct file_operations *fops)
+{ return NULL; }
+static inline struct dentry *clk_debugfs_add_file(struct clk_hw *hw, char *name,
+		umode_t mode, void *data, const struct file_operations *fops)
+{ return NULL; }
+#endif
 
 #endif /* CLK_PROVIDER_H */

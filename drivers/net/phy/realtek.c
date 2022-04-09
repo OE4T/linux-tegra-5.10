@@ -6,6 +6,7 @@
  * Author: Johnson Leung <r58129@freescale.com>
  *
  * Copyright (c) 2004 Freescale Semiconductor, Inc.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION. All rights reserved.
  */
 #include <linux/bitops.h>
 #include <linux/phy.h>
@@ -27,6 +28,7 @@
 #define RTL821x_PAGE_SELECT			0x1f
 
 #define RTL8211F_PHYCR1				0x18
+#define RTL8211F_PHYCR2				0x19
 #define RTL8211F_INSR				0x1d
 
 #define RTL8211F_TX_DELAY			BIT(8)
@@ -57,6 +59,16 @@
 #define RTLGEN_SPEED_MASK			0x0630
 
 #define RTL_GENERIC_PHYID			0x001cc800
+
+#define RTL8211F_LED_PAGE			0xd04
+
+#define RTL8211F_LED0_LINK_1000		0x8
+#define RTL8211F_LED1_LINK_1000		0x100
+#define RTL8211F_LED1_LINK_100			0x40
+#define RTL8211F_LED1_LINK_10			0x20
+#define RTL8211F_LED1_LINK_ACTIVE		0x200
+#define RTL8211F_PAGE_LCR_LED_CONTROL		0x10
+#define RTL8211F_PAGE_EEE_LED_CONTROL		0x11
 
 MODULE_DESCRIPTION("Realtek PHY driver");
 MODULE_AUTHOR("Johnson Leung");
@@ -188,6 +200,9 @@ static int rtl8211f_config_init(struct phy_device *phydev)
 	val = RTL8211F_ALDPS_ENABLE | RTL8211F_ALDPS_PLL_OFF | RTL8211F_ALDPS_XTAL_OFF;
 	phy_modify_paged_changed(phydev, 0xa43, RTL8211F_PHYCR1, val, val);
 
+	val = phy_read_paged(phydev, 0xa43, RTL8211F_PHYCR2);
+	phy_modify_paged_changed(phydev, 0xa43, RTL8211F_PHYCR2, 0, (val & ~BIT(0)));
+
 	switch (phydev->interface) {
 	case PHY_INTERFACE_MODE_RGMII:
 		val_txdly = 0;
@@ -242,6 +257,29 @@ static int rtl8211f_config_init(struct phy_device *phydev)
 			"2ns RX delay was already %s (by pin-strapping RXD0 or bootloader configuration)\n",
 			val_rxdly ? "enabled" : "disabled");
 	}
+
+	/* Enable all speeds for activity indicator  and LED0 for GBE */
+	val = RTL8211F_LED0_LINK_1000 | RTL8211F_LED1_LINK_1000 |
+		RTL8211F_LED1_LINK_100 | RTL8211F_LED1_LINK_10 |
+		RTL8211F_LED1_LINK_ACTIVE;
+
+	ret = phy_modify_paged_changed(phydev, RTL8211F_LED_PAGE, RTL8211F_PAGE_LCR_LED_CONTROL, val,
+				       val);
+	if (ret < 0) {
+		dev_err(dev, "Failed to LED registers\n");
+		return ret;
+	}
+	/* disable EEE LED control */
+	ret = phy_modify_paged_changed(phydev, RTL8211F_LED_PAGE, RTL8211F_PAGE_EEE_LED_CONTROL, 0, 0);
+	if (ret < 0) {
+		dev_err(dev, "Failed to EEE LED registers\n");
+		return ret;
+	}
+
+	/* Advertise Flow Control */
+	linkmode_set_bit(ETHTOOL_LINK_MODE_Pause_BIT, phydev->supported);
+	linkmode_set_bit(ETHTOOL_LINK_MODE_Asym_Pause_BIT, phydev->supported);
+	linkmode_copy(phydev->advertising, phydev->supported);
 
 	return 0;
 }

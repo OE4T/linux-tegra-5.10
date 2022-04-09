@@ -95,6 +95,7 @@ config ARCH_TEGRA_210_SOC
 
 config ARCH_TEGRA_186_SOC
 	bool "NVIDIA Tegra186 SoC"
+	select PINCTRL_TEGRA186
 	select MAILBOX
 	select TEGRA_BPMP
 	select TEGRA_HSP_MBOX
@@ -110,6 +111,7 @@ config ARCH_TEGRA_186_SOC
 
 config ARCH_TEGRA_194_SOC
 	bool "NVIDIA Tegra194 SoC"
+	select PINCTRL_TEGRA194
 	select MAILBOX
 	select PINCTRL_TEGRA194
 	select TEGRA_BPMP
@@ -142,8 +144,10 @@ config SOC_TEGRA_FLOWCTRL
 	bool
 
 config SOC_TEGRA_PMC
-	bool
+	bool "TEGRA SOC Power Management Controller"
 	select GENERIC_PINCONF
+        help
+	  Say Y here to enable tegra soc pmc driver.
 
 config SOC_TEGRA_POWERGATE_BPMP
 	def_bool y
@@ -157,3 +161,13 @@ config SOC_TEGRA20_VOLTAGE_COUPLER
 config SOC_TEGRA30_VOLTAGE_COUPLER
 	bool "Voltage scaling support for Tegra30 SoCs"
 	depends on ARCH_TEGRA_3x_SOC || COMPILE_TEST
+
+config TEGRA_USE_NA_GPCPLL
+	bool "Enable noise aware mode of GM20B GPCPLL on Tegra"
+	depends on COMMON_CLK
+	depends on ARCH_TEGRA_210_SOC
+	default y
+	help
+	  Enable noise aware (NA) mode of GM20b GPCPLL. In this mode PLL output
+	  frequency is automatically adjusted when GM20b voltage is fluctuating
+	  because of transient PMIC or power distribution tree noise.

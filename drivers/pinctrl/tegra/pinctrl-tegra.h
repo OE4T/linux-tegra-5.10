@@ -18,6 +18,7 @@ struct tegra_pmx {
 	int nbanks;
 	void __iomem **regs;
 	u32 *backup_regs;
+	u32 *gpio_conf;
 };
 
 enum tegra_pinconf_param {
@@ -36,6 +37,8 @@ enum tegra_pinconf_param {
 	/* argument: Boolean */
 	TEGRA_PINCONF_PARAM_RCV_SEL,
 	/* argument: Boolean */
+	TEGRA_PINCONF_PARAM_LOOPBACK,
+	/* argument: Boolean */
 	TEGRA_PINCONF_PARAM_HIGH_SPEED_MODE,
 	/* argument: Boolean */
 	TEGRA_PINCONF_PARAM_SCHMITT,
@@ -51,6 +54,10 @@ enum tegra_pinconf_param {
 	TEGRA_PINCONF_PARAM_SLEW_RATE_RISING,
 	/* argument: Integer, range is HW-dependant */
 	TEGRA_PINCONF_PARAM_DRIVE_TYPE,
+	/* argument: pinmux settings */
+	TEGRA_PINCONF_PARAM_FUNCTION,
+	/* argument: Boolean */
+	TEGRA_PINCONF_PARAM_PAD_POWER,
 };
 
 enum tegra_pinconf_pull {
@@ -118,8 +125,15 @@ struct tegra_function {
  * @slwr_width:		Slew Rising field width.
  * @slwf_bit:		Slew Falling register bit.
  * @slwf_width:		Slew Falling field width.
+ * @lpdr_bit:		Base driver enabling bit.
  * @drvtype_bit:	Drive type register bit.
  * @parked_bitmask:	Parked register mask. 0 if unsupported.
+ * @pad_bank:		Register bank for the PAD control.
+ * @pad_reg:		Register address for PAD control.
+ * @pad_bit:		PAD control bit.
+ * @lpbk_bank:		Register bank for the Loopback control.
+ * @lpbk_reg:		Register address for Loopback control.
+ * @lpbk_bit:		Loopback register bit
  *
  * -1 in a *_reg field means that feature is unsupported for this group.
  * *_bank and *_reg values are irrelevant when *_reg is -1.
@@ -141,10 +155,14 @@ struct tegra_pingroup {
 	s32 pupd_reg;
 	s32 tri_reg;
 	s32 drv_reg;
+	s32 pad_reg;
+	s32 lpbk_reg;
 	u32 mux_bank:2;
 	u32 pupd_bank:2;
 	u32 tri_bank:2;
 	u32 drv_bank:2;
+	u32 pad_bank:2;
+	u32 lpbk_bank:2;
 	s32 mux_bit:6;
 	s32 pupd_bit:6;
 	s32 tri_bit:6;
@@ -161,11 +179,14 @@ struct tegra_pingroup {
 	s32 drvup_bit:6;
 	s32 slwr_bit:6;
 	s32 slwf_bit:6;
+	s32 lpdr_bit:6;
 	s32 drvtype_bit:6;
+	s32 lpbk_bit:6;
 	s32 drvdn_width:6;
 	s32 drvup_width:6;
 	s32 slwr_width:6;
 	s32 slwf_width:6;
+	s32 pad_bit:6;
 	u32 parked_bitmask;
 };
 

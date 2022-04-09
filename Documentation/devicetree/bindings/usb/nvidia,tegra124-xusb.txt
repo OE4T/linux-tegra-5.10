@@ -11,6 +11,11 @@ Required properties:
   - Tegra132: "nvidia,tegra132-xusb", "nvidia,tegra124-xusb"
   - Tegra210: "nvidia,tegra210-xusb"
   - Tegra186: "nvidia,tegra186-xusb"
+  - Tegra194: "nvidia,tegra194-xusb"
+  - Tegra194 Virtual Function 1: "nvidia,tegra194-xusb-vf1"
+  - Tegra194 Virtual Function 2: "nvidia,tegra194-xusb-vf2"
+  - Tegra194 Virtual Function 3: "nvidia,tegra194-xusb-vf3"
+  - Tegra194 Virtual Function 4: "nvidia,tegra194-xusb-vf4"
 - reg: Must contain the base and length of the xHCI host registers, XUSB FPCI
   registers and XUSB IPFS registers.
 - reg-names: Must contain the following entries:
@@ -82,6 +87,11 @@ Optional properties:
   - Tegra210: usb2-0, usb2-1, usb2-2, usb2-3, hsic-0, usb3-0, usb3-1, usb3-2,
               usb3-3
   - Tegra186: usb2-0, usb2-1, usb2-2, hsic-0, usb3-0, usb3-1, usb3-2
+  - Tegra194: usb2-0, usb2-1, usb2-2, usb2-3, usb3-0, usb3-1, usb3-2, usb3-3
+  - Tegra194 Virtual Function 1: usb2-0, usb2-1, usb2-2, usb2-3, usb3-0, usb3-1, usb3-2, usb3-3
+  - Tegra194 Virtual Function 2: usb2-0, usb2-1, usb2-2, usb2-3, usb3-0, usb3-1, usb3-2, usb3-3
+  - Tegra194 Virtual Function 3: usb2-0, usb2-1, usb2-2, usb2-3, usb3-0, usb3-1, usb3-2, usb3-3
+  - Tegra194 Virtual Function 4: usb2-0, usb2-1, usb2-2, usb2-3, usb3-0, usb3-1, usb3-2, usb3-3
 
 Example:
 --------

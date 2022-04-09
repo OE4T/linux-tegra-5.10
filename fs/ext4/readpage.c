@@ -242,6 +242,7 @@ int ext4_mpage_readpages(struct inode *inode,
 	struct ext4_map_blocks map;
 	unsigned int nr_pages = rac ? readahead_count(rac) : 1;
 
+	memset(blocks, 0x0, sizeof(blocks));
 	map.m_pblk = 0;
 	map.m_lblk = 0;
 	map.m_len = 0;

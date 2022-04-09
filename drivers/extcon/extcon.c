@@ -2,6 +2,8 @@
 /*
  * drivers/extcon/extcon.c - External Connector (extcon) framework.
  *
+ * Copyright (c) 2015-2020, NVIDIA CORPORATION. All rights reserved.
+ *
  * Copyright (C) 2015 Samsung Electronics
  * Author: Chanwoo Choi <cw00.choi@samsung.com>
  *
@@ -23,6 +25,7 @@
 #include <linux/of.h>
 #include <linux/slab.h>
 #include <linux/sysfs.h>
+#include <linux/suspend.h>
 
 #include "extcon.h"
 
@@ -167,6 +170,46 @@ static const struct __extcon_info {
 		.id = EXTCON_DISP_HMD,
 		.name = "HMD",
 	},
+	[EXTCON_DISP_AUDIO_AUX0] = {
+		.type = EXTCON_TYPE_DISP,
+		.id = EXTCON_DISP_AUDIO_AUX0,
+		.name = "AUDIO_AUX0",
+	},
+	[EXTCON_DISP_AUDIO_AUX1] = {
+		.type = EXTCON_TYPE_DISP,
+		.id = EXTCON_DISP_AUDIO_AUX1,
+		.name = "AUDIO_AUX1",
+	},
+	[EXTCON_DISP_AUDIO_AUX2] = {
+		.type = EXTCON_TYPE_DISP,
+		.id = EXTCON_DISP_AUDIO_AUX2,
+		.name = "AUDIO_AUX2",
+	},
+	[EXTCON_DISP_AUDIO_AUX3] = {
+		.type = EXTCON_TYPE_DISP,
+		.id = EXTCON_DISP_AUDIO_AUX3,
+		.name = "AUDIO_AUX3",
+	},
+	[EXTCON_DISP_DSIHPD] = {
+		.type = EXTCON_TYPE_DISP,
+		.id = EXTCON_DISP_DSIHPD,
+		.name = "DSIHPD",
+	},
+	[EXTCON_DISP_HDMI2] = {
+		.type = EXTCON_TYPE_DISP,
+		.id = EXTCON_DISP_HDMI2,
+		.name = "HDMI2",
+	},
+	[EXTCON_DISP_HDMI3] = {
+		.type = EXTCON_TYPE_DISP,
+		.id = EXTCON_DISP_HDMI3,
+		.name = "HDMI3",
+	},
+	[EXTCON_DISP_HDMI4] = {
+		.type = EXTCON_TYPE_DISP,
+		.id = EXTCON_DISP_HDMI4,
+		.name = "HDMI4",
+	},
 
 	/* Miscellaneous external connector */
 	[EXTCON_DOCK] = {
@@ -183,6 +226,72 @@ static const struct __extcon_info {
 		.type = EXTCON_TYPE_MISC,
 		.id = EXTCON_MECHANICAL,
 		.name = "MECHANICAL",
+	},
+
+	[EXTCON_USB_QC2] = {
+		.type = EXTCON_TYPE_CHG | EXTCON_TYPE_USB,
+		.id = EXTCON_USB_QC2,
+		.name = "QC2",
+	},
+
+	[EXTCON_USB_MAXIM] = {
+		.type = EXTCON_TYPE_CHG | EXTCON_TYPE_USB,
+		.id = EXTCON_USB_MAXIM,
+		.name = "MAXIM",
+	},
+
+	[EXTCON_USB_APPLE_500mA] = {
+		.type = EXTCON_TYPE_CHG | EXTCON_TYPE_USB,
+		.id = EXTCON_USB_APPLE_500mA,
+		.name = "APPLE-500mA",
+	},
+
+	[EXTCON_USB_APPLE_1A] = {
+		.type = EXTCON_TYPE_CHG | EXTCON_TYPE_USB,
+		.id = EXTCON_USB_APPLE_1A,
+		.name = "APPLE-1A",
+	},
+
+	[EXTCON_USB_APPLE_2A] = {
+		.type = EXTCON_TYPE_CHG | EXTCON_TYPE_USB,
+		.id = EXTCON_USB_APPLE_2A,
+		.name = "APPLE-2A",
+	},
+
+	[EXTCON_USB_ACA_NV] = {
+		.type = EXTCON_TYPE_CHG | EXTCON_TYPE_USB,
+		.id = EXTCON_USB_ACA_NV,
+		.name = "ACA-NV",
+	},
+
+	[EXTCON_USB_ACA_RIDA] = {
+		.type = EXTCON_TYPE_CHG | EXTCON_TYPE_USB,
+		.id = EXTCON_USB_ACA_RIDA,
+		.name = "ACA-RIDA",
+	},
+
+	[EXTCON_USB_ACA_RIDB] = {
+		.type = EXTCON_TYPE_CHG | EXTCON_TYPE_USB,
+		.id = EXTCON_USB_ACA_RIDB,
+		.name = "ACA-RIDB",
+	},
+
+	[EXTCON_USB_ACA_RIDC] = {
+		.type = EXTCON_TYPE_CHG | EXTCON_TYPE_USB,
+		.id = EXTCON_USB_ACA_RIDC,
+		.name = "ACA-RIDC",
+	},
+
+	[EXTCON_USB_Y_CABLE] = {
+		.type = EXTCON_TYPE_CHG | EXTCON_TYPE_USB,
+		.id = EXTCON_USB_Y_CABLE,
+		.name = "Y-CABLE",
+	},
+
+	[EXTCON_USB_PD] = {
+		.type = EXTCON_TYPE_CHG | EXTCON_TYPE_USB,
+		.id = EXTCON_USB_PD,
+		.name = "USB-PD",
 	},
 
 	{ /* sentinel */ }
@@ -362,7 +471,29 @@ static ssize_t state_show(struct device *dev, struct device_attribute *attr,
 
 	return count;
 }
-static DEVICE_ATTR_RO(state);
+
+static ssize_t state_store(struct device *dev, struct device_attribute *attr,
+			   const char *buf, size_t count)
+{
+	u32 state;
+	ssize_t ret = 0;
+	struct extcon_dev *edev = dev_get_drvdata(dev);
+	int i;
+
+	ret = sscanf(buf, "0x%4x", &state);
+	if (ret == 0)
+		return -EINVAL;
+
+	for (i = 0; i < edev->max_supported; i++) {
+		ret = extcon_set_state_sync(edev, edev->supported_cable[i],
+					    !!(state & BIT(i)));
+		if (ret < 0)
+			return ret;
+	}
+
+	return count;
+}
+static DEVICE_ATTR_RW(state);
 
 static ssize_t name_show(struct device *dev, struct device_attribute *attr,
 		char *buf)
@@ -380,7 +511,7 @@ static ssize_t cable_name_show(struct device *dev,
 						  attr_name);
 	int i = cable->cable_index;
 
-	return sprintf(buf, "%s\n",
+	return snprintf(buf, PAGE_SIZE, "%s\n",
 			extcon_info[cable->edev->supported_cable[i]].name);
 }
 
@@ -392,9 +523,38 @@ static ssize_t cable_state_show(struct device *dev,
 
 	int i = cable->cable_index;
 
-	return sprintf(buf, "%d\n",
+	return snprintf(buf, PAGE_SIZE, "%d\n",
 		extcon_get_state(cable->edev, cable->edev->supported_cable[i]));
 }
+
+static ssize_t uevent_in_suspend_show(struct device *dev,
+				      struct device_attribute *attr, char *buf)
+{
+	struct extcon_dev *edev = dev_get_drvdata(dev);
+
+	return sprintf(buf, "%c\n", edev->uevent_in_suspend ? 'Y' : 'N');
+}
+
+static ssize_t uevent_in_suspend_store(struct device *dev,
+				       struct device_attribute *attr,
+				       const char *buf, size_t count)
+{
+	struct extcon_dev *edev = dev_get_drvdata(dev);
+	bool uevent_in_suspend;
+	int ret;
+	unsigned long flags;
+
+	ret = strtobool(buf, &uevent_in_suspend);
+	if (ret)
+		return ret;
+
+	spin_lock_irqsave(&edev->lock, flags);
+	edev->uevent_in_suspend = uevent_in_suspend;
+	spin_unlock_irqrestore(&edev->lock, flags);
+
+	return count;
+}
+DEVICE_ATTR_RW(uevent_in_suspend);
 
 /**
  * extcon_sync() - Synchronize the state for an external connector.
@@ -425,6 +585,16 @@ int extcon_sync(struct extcon_dev *edev, unsigned int id)
 		return index;
 
 	spin_lock_irqsave(&edev->lock, flags);
+
+	/* The cable state will be synced after resume. */
+	if (edev->is_suspend && !edev->uevent_in_suspend) {
+		spin_unlock_irqrestore(&edev->lock, flags);
+		dev_info(&edev->dev,
+			"%s: didn't sync cable state (0x%08x 0x%08x) due to suspending\n",
+			__func__, edev->last_state_in_suspend, edev->state);
+		return 0;
+	}
+
 	state = !!(edev->state & BIT(index));
 	spin_unlock_irqrestore(&edev->lock, flags);
 
@@ -1002,6 +1172,7 @@ EXPORT_SYMBOL_GPL(extcon_unregister_notifier_all);
 static struct attribute *extcon_attrs[] = {
 	&dev_attr_state.attr,
 	&dev_attr_name.attr,
+	&dev_attr_uevent_in_suspend.attr,
 	NULL,
 };
 ATTRIBUTE_GROUPS(extcon);
@@ -1064,6 +1235,41 @@ void extcon_dev_free(struct extcon_dev *edev)
 	kfree(edev);
 }
 EXPORT_SYMBOL_GPL(extcon_dev_free);
+
+static int extcon_pm_notify(struct notifier_block *nb,
+			    unsigned long event, void *data)
+{
+	struct extcon_dev *edev = container_of(nb, struct extcon_dev, pm_nb);
+	unsigned long flags;
+	int i;
+
+	if (event == PM_SUSPEND_PREPARE) {
+		spin_lock_irqsave(&edev->lock, flags);
+		edev->is_suspend = true;
+		if (!edev->uevent_in_suspend)
+			edev->last_state_in_suspend = edev->state;
+		spin_unlock_irqrestore(&edev->lock, flags);
+	} else if (event == PM_POST_SUSPEND) {
+		spin_lock_irqsave(&edev->lock, flags);
+		edev->is_suspend = false;
+		if (edev->uevent_in_suspend) {
+			spin_unlock_irqrestore(&edev->lock, flags);
+			return NOTIFY_OK;
+		}
+		spin_unlock_irqrestore(&edev->lock, flags);
+
+		/* Sync state of cables. */
+		for (i = 0; i < edev->max_supported; i++)
+			extcon_sync(edev, edev->supported_cable[i]);
+	}
+
+	return NOTIFY_OK;
+}
+
+static struct notifier_block extcon_pm_nb = {
+	.notifier_call = extcon_pm_notify,
+	.priority = -1,
+};
 
 /**
  * extcon_dev_register() - Register an new extcon device
@@ -1253,6 +1459,11 @@ int extcon_dev_register(struct extcon_dev *edev)
 	dev_set_drvdata(&edev->dev, edev);
 	edev->state = 0;
 
+	edev->uevent_in_suspend = true;
+	edev->is_suspend = false;
+	edev->pm_nb = extcon_pm_nb;
+	register_pm_notifier(&edev->pm_nb);
+
 	mutex_lock(&extcon_dev_list_lock);
 	list_add(&edev->entry, &extcon_dev_list);
 	mutex_unlock(&extcon_dev_list_lock);
@@ -1305,6 +1516,7 @@ void extcon_dev_unregister(struct extcon_dev *edev)
 	}
 
 	device_unregister(&edev->dev);
+	unregister_pm_notifier(&edev->pm_nb);
 
 	if (edev->mutually_exclusive && edev->max_supported) {
 		for (index = 0; edev->mutually_exclusive[index];
@@ -1381,6 +1593,79 @@ struct extcon_dev *extcon_get_edev_by_phandle(struct device *dev, int index)
 
 	return edev;
 }
+
+static struct extcon_dev *of_extcon_dev_get_by_cable_name(
+		struct device_node *np, const char *cable_name,
+		int *cable_index)
+{
+	struct extcon_dev *edev = NULL;
+	struct of_phandle_args npspec;
+	int ret;
+	int index = 0;
+	int cindex = -1;
+
+	/*
+	 * For named cable, first look up the name in the "extcon-names"
+	 * property.  If it cannot be found, the index will be an error
+	 * code, and of_extcon_dev_get_by_name() will fail.
+	 */
+	if (cable_name)
+		index = of_property_match_string(np, "extcon-cable-names",
+					cable_name);
+
+	ret = of_parse_phandle_with_args(np, "extcon-cables", "#extcon-cells",
+						index, &npspec);
+	if (ret < 0)
+		return ERR_PTR(ret);
+
+	mutex_lock(&extcon_dev_list_lock);
+	list_for_each_entry(edev, &extcon_dev_list, entry) {
+		if (edev->dev.parent && edev->dev.parent->of_node ==
+		    npspec.np) {
+			cindex = npspec.args_count ? npspec.args[0] : 0;
+			goto out;
+		}
+	}
+	edev = NULL;
+out:
+	mutex_unlock(&extcon_dev_list_lock);
+
+	of_node_put(npspec.np);
+	if (!edev) {
+		if (cable_name && index >= 0)
+			pr_warn("Could not get extcon-dev %s:%s(%i)\n",
+					np->full_name,
+					cable_name ? cable_name : "", index);
+		return ERR_PTR(-EPROBE_DEFER);
+	}
+
+	if (cindex >= edev->max_supported) {
+		pr_err("ERROR: Cable %s Index %d is not supported\n",
+				cable_name ? cable_name : "", cindex);
+		return ERR_PTR(-EINVAL);
+	}
+
+	*cable_index = cindex;
+	return edev;
+}
+
+struct extcon_dev *extcon_get_extcon_dev_by_cable(struct device *dev,
+			const char *cable_name)
+{
+	struct extcon_dev *edev;
+	int index = -1;
+
+	if (!dev || !dev->of_node || !cable_name)
+		return ERR_PTR(-EINVAL);
+
+	edev = of_extcon_dev_get_by_cable_name(dev->of_node,
+					cable_name, &index);
+
+	if (IS_ERR(edev) || index < 0)
+		return ERR_PTR(-EPROBE_DEFER);
+	return edev;
+}
+EXPORT_SYMBOL_GPL(extcon_get_extcon_dev_by_cable);
 
 #else
 
