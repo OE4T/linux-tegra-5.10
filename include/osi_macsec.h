@@ -160,7 +160,7 @@
 #define OSI_MACSEC_TX_EN	OSI_BIT(0)
 #define OSI_MACSEC_RX_EN	OSI_BIT(1)
 /* MACSEC SECTAG + ICV + 2B ethertype adds upto 34B */
-#define MACSEC_TAG_ICV_LEN		34
+#define MACSEC_TAG_ICV_LEN		34U
 /* MACSEC TZ key config cmd */
 #define OSI_MACSEC_CMD_TZ_CONFIG	0x1
 /* MACSEC TZ key table entries reset cmd */
