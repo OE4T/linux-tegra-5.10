@@ -447,17 +447,33 @@ static u32 nvgpu_swprofile_subsample_basic_stats(struct gk20a *g,
 	/* With the sorted list of samples we can easily compute the median. */
 	sort(storage, samples, sizeof(u64), profile_cmp, NULL);
 
+	if (samples == 0U) {
+		return 0U;
+	}
+
 	mean = sum / samples;
 	median = storage[samples / 2];
 
-	/* Compute the sample variance (i.e sigma squared). */
-	for (i = 0U; i < samples; i++) {
-		sigma_2 += storage[i] * storage[i];
-	}
+	/*
+	 * If only 1 sample is found, the min, max, median and mean would be
+	 * the value of that one observation (storage[0]). The variance in this
+	 * case would be 0.
+	 * The need for this special case is because in the original implementation,
+	 * sigma_2 is divided by samples-1 which is 0 in our case, causing a divide
+	 * by zero error.
+	 */
+	if (samples == 1U) {
+		sigma_2 = 0U;
+	} else {
+		/* Compute the sample variance (i.e sigma squared). */
+		for (i = 0U; i < samples; i++) {
+			sigma_2 += storage[i] * storage[i];
+		}
 
-	/* Remember: _sample_ variance. */
-	sigma_2 /= (samples - 1U);
-	sigma_2 -= (mean * mean);
+		/* Remember: _sample_ variance. */
+		sigma_2 /= (samples - 1U);
+		sigma_2 -= (mean * mean);
+	}
 
 	results[0] = min;
 	results[1] = max;
@@ -509,9 +525,12 @@ void nvgpu_swprofile_print_basic_stats(struct gk20a *g,
 		samples = nvgpu_swprofile_subsample_basic_stats(g, p, i,
 								results, storage);
 
+		if (samples == 0U) {
+			continue;
+		}
 		gk20a_debug_output(o, fmt_output, p->col_names[i],
-				   results[0], results[1],
-				   results[2], results[3], results[4]);
+				results[0], results[1],
+				results[2], results[3], results[4]);
 	}
 
 	gk20a_debug_output(o, "Number of samples: %u\n", samples);
