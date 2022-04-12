@@ -53,7 +53,7 @@ struct l1ss_data {
 	spinlock_t slock;
 	struct l1ss_req_node *head;
 	struct cdev cdev;
-	int dev_major;
+	unsigned int dev_major;
 	struct class *l1ss_class;
 	dev_t dev;
 	struct tegra_safety_ivc *safety_ivc;
