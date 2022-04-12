@@ -4478,6 +4478,10 @@ static int tegra_se_elp_probe(struct platform_device *pdev)
 		return -ENOMEM;
 
 	se_dev->chipdata = of_device_get_match_data(&pdev->dev);
+	if (!se_dev->chipdata) {
+		dev_err(&pdev->dev, "no device match found for tegra-se-elp\n");
+		return -EINVAL;
+	}
 
 	platform_set_drvdata(pdev, se_dev);
 	se_dev->dev = &pdev->dev;
