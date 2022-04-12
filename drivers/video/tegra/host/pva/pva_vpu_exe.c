@@ -656,14 +656,15 @@ populate_symtab(void *elf, struct nvpva_elf_context *d,
 		}
 
 		(void)strncpy(symID->symbol_name, symname, stringsize);
-		if (strcmp(symID->symbol_name,
-			   PVA_SYS_INSTANCE_DATA_V1_SYMBOL) == 0) {
+		symID->symbol_name[stringsize] = '\0';
+		if (strncmp(symID->symbol_name,
+			   PVA_SYS_INSTANCE_DATA_V1_SYMBOL,
+			   ELF_MAX_SYMBOL_LENGTH) == 0) {
 			++num_sys_symbols;
 			symID->is_sys = true;
 		} else
 			symID->is_sys = false;
 
-		symID->symbol_name[stringsize] = '\0';
 		symID->symbolID = num_symbols;
 		symID->size = sym->size;
 		symID->addr = sym->value;
