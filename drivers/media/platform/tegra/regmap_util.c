@@ -115,7 +115,7 @@ regmap_util_write_table_16_as_8(struct regmap *regmap,
 	int range_start = -1;
 	int range_count = 0;
 	u8 range_vals[256];
-	int max_range_vals = ARRAY_SIZE(range_vals);
+	int max_range_vals = ARRAY_SIZE(range_vals) - 1;
 
 	for (next = table;; next++) {
 		/* If we have a range open and */
