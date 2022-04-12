@@ -2636,6 +2636,9 @@ static nve32_t macsec_init(struct osi_core_priv_data *const osi_core,
 	LOG("Write MACSEC_TX_IMR: 0x%x\n", val);
 	osi_writela(osi_core, val, addr + MACSEC_TX_IMR);
 
+	/* set ICV error threshold to 1 */
+	osi_writela(osi_core, 1U, addr + MACSEC_RX_ICV_ERR_CNTRL);
+
 	val = osi_readla(osi_core, addr + MACSEC_RX_IMR);
 	LOG("Read MACSEC_RX_IMR: 0x%x\n", val);
 
