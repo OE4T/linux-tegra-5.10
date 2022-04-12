@@ -340,7 +340,7 @@ static int tegra23x_mce_echo_set(void *data, u64 val)
 
 struct cstats_req {
 	char *name;
-	int id;
+	uint32_t id;
 };
 
 struct cstats_resp {
