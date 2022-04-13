@@ -205,7 +205,10 @@ struct PVA_PACKED pva_td_s {
 	/** Number of parameters in parameter_base array */
 	uint16_t num_parameters;
 	/** IOVA pointer to an array of struct pva_vpu_parameter_s */
+	/* TODO : Remove once KMD migrates to new format */
 	pva_iova parameter_base;
+	/** IOVA pointer to an instance of pva_vpu_parameter_info_t */
+	pva_iova parameter_info_base;
 	/** IOVA pointer to a struct pva_bin_info_s structure */
 	pva_iova bin_info;
 	/** IOVA pointer to a struct pva_dma_info_s structure */
