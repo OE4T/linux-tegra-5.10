@@ -394,8 +394,9 @@ int nvgpu_prepare_poweroff(struct gk20a *g)
 	 * This will ensure that CIC will not get probed
 	 * after it's deinit.
 	 */
-	ret = nvgpu_cic_mon_deinit(g);
-	if (ret != 0) {
+	tmp_ret = nvgpu_cic_mon_deinit(g);
+	if (tmp_ret != 0) {
+		ret = tmp_ret;
 		nvgpu_err(g, "Failed to deinit CIC-mon.");
 	}
 
