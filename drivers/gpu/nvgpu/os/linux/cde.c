@@ -423,9 +423,9 @@ static int gk20a_cde_patch_params(struct gk20a_cde_ctx *cde_ctx)
 			new_data = cbc->comptags_per_cacheline;
 			break;
 		case TYPE_PARAM_GPU_CONFIGURATION:
-			new_data = (u64) (nvgpu_ltc_get_ltc_count(g) *
+			new_data = (u64)nvgpu_ltc_get_ltc_count(g) *
 					nvgpu_ltc_get_slices_per_ltc(g) *
-					nvgpu_ltc_get_cacheline_size(g));
+					nvgpu_ltc_get_cacheline_size(g);
 			break;
 		case TYPE_PARAM_FIRSTPAGEOFFSET:
 			new_data = cde_ctx->surf_param_offset;
