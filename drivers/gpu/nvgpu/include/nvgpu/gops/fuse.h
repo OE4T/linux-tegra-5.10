@@ -276,6 +276,10 @@ struct gops_fuse {
 	void (*write_feature_override_ecc)(struct gk20a *g, u32 val);
 	void (*write_feature_override_ecc_1)(struct gk20a *g, u32 val);
 #endif
+
+#if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_HAL_NON_FUSA)
+#include "gops/nvgpu_next_fuse.h"
+#endif
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 };
 
