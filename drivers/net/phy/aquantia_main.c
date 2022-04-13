@@ -15,6 +15,7 @@
 #include <linux/phy.h>
 #include <soc/tegra/fuse.h>
 #include <linux/netdevice.h>
+#include <linux/of.h>
 
 #include "aquantia.h"
 
@@ -168,6 +169,10 @@
 #define VEND1_GLOBAL_SYS_CONFIG_SGMII		(BIT(0) | BIT(1) | BIT(3))
 #define VEND1_GLOBAL_SYS_CONFIG_XFI		BIT(8)
 
+#define VEND1_GLOBAL_CFG_2_5G			0x031D
+#define VEND1_GLOBAL_CFG_5G			0x031E
+#define VEND1_GLOBAL_CFG_10G			0x031F
+
 #define BIT_SHIFT_8 8
 #define MAC_ADDRESS_BYTE_0 0
 #define MAC_ADDRESS_BYTE_1 1
@@ -260,9 +265,11 @@ static void aqr107_get_stats(struct phy_device *phydev,
 
 static int aqr_config_aneg(struct phy_device *phydev)
 {
+	struct device_node *node = phydev->mdio.dev.of_node;
 	bool changed = false;
 	u16 reg;
-	int ret;
+	int ret, err;
+	int phy_mode;
 
 	if (phydev->autoneg == AUTONEG_DISABLE)
 		return genphy_c45_pma_setup_forced(phydev);
@@ -292,6 +299,23 @@ static int aqr_config_aneg(struct phy_device *phydev)
 		return ret;
 	if (ret > 0)
 		changed = true;
+
+	err = of_property_read_u32(node, "aquantia,phy_mode", &phy_mode);
+	if (!err) {
+		if (phy_mode == 1) {
+			phydev_info(phydev, "Configuring AQR PHY to 5G Mode\n");
+			phy_write_mmd(phydev, MDIO_MMD_VEND1, VEND1_GLOBAL_CFG_2_5G, 0x0106);
+			phy_write_mmd(phydev, MDIO_MMD_VEND1, VEND1_GLOBAL_CFG_5G, 0x0106);
+			phy_write_mmd(phydev, MDIO_MMD_VEND1, VEND1_GLOBAL_CFG_10G, 0x0000);
+			/* Disable 10G advertizement and restart autoneg */
+			phy_write_mmd(phydev, MDIO_MMD_AN, MDIO_AN_10GBT_CTRL, 0x01E1);
+			/* restart auto-negotiation */
+			genphy_c45_restart_aneg(phydev);
+			phy_write_mmd(phydev, MDIO_MMD_PHYXS, VEND1_GLOBAL_MDIO_PHYXS_PROV2, 0x8);
+		}
+	} else {
+		phydev_info(phydev, "No AQR phy_mode setting in DT\n");
+	}
 
 	return genphy_c45_check_and_restart_aneg(phydev, changed);
 }
