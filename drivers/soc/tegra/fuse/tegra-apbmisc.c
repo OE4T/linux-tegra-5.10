@@ -317,7 +317,8 @@ void __init tegra_init_apbmisc(void)
 	} else {
 		chipid = readl_relaxed(apbmisc_base + 4);
 		if (!of_machine_is_compatible("nvidia,tegra194") &&
-			!of_machine_is_compatible("nvidia,tegra234")) {
+			!of_machine_is_compatible("nvidia,tegra234") &&
+			!of_machine_is_compatible("nvidia,tegra239")) {
 			iounmap(apbmisc_base);
 		}
 	}
