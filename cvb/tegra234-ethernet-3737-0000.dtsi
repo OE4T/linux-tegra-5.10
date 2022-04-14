@@ -40,8 +40,6 @@
 				reg = <0x0>;
 				nvidia,phy-rst-pdelay-msec = <150>; /* msec */
 				nvidia,phy-rst-duration-usec = <221000>; /* usec */
-				interrupt-parent = <&tegra_main_gpio>;
-				interrupts = <TEGRA234_MAIN_GPIO(Y, 3) IRQ_TYPE_LEVEL_LOW>;
 			};
 		};
 	};
