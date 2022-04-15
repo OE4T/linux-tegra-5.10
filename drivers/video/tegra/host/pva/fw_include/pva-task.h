@@ -229,6 +229,17 @@ struct PVA_PACKED pva_td_s {
 	uint32_t l2sram_size;
 	/** Index of the stream ID assigned to this task */
 	uint32_t sid_index;
+	//! @endcond
+	/** @brief padding */
+	uint8_t pad0[2];
+	/** Number of total tasks with timer resource utilization */
+	uint16_t timer_ref_cnt;
+	/** Number of total tasks with L2SRAM resource utilization */
+	uint16_t l2sram_ref_cnt;
+	/** Additional padding to maintain alignement */
+	uint8_t pad1[4];
+	/** @brief An area reserved for Cortex R5 firmware usage.
+	 * This area may be modified by the R5 during the task */
 	uint8_t r5_reserved[32] __aligned(8);
 };
 
@@ -251,6 +262,15 @@ struct PVA_PACKED pva_td_s {
 /** Flag to request masking of floating point NAN error for the task */
 #define PVA_TASK_FL_ERR_MASK_FP_NAN		PVA_BIT(3U)
 
+/** Flag to indicate persistence window of L2SRAM */
+#define PVA_TASK_FL_KEEP_L2RAM PVA_BIT(4U)
+
+/** Flag to indicate first task of batch with execution timeout */
+#define PVA_TASK_FL_TIMER_START PVA_BIT(5U)
+
+/** Flag to indicate last task of batch with execution timeout */
+#define PVA_TASK_FL_TIMER_STOP PVA_BIT(6U)
+
 /** Schedule on VPU0 only */
 #define PVA_TASK_FL_VPU0 PVA_BIT(8U)
 
@@ -263,20 +283,15 @@ struct PVA_PACKED pva_td_s {
  */
 #define PVA_TASK_FL_HOT_VPU PVA_BIT(10U)
 
-/** Pass L2RAM allocation to the next task in list.
- *
- * Not allowed in the last task of batch list.
+/** @brief Flag to identify a barrier task */
+#define PVA_TASK_FL_SYNC_TASKS PVA_BIT(11U)
+
+/** @brief Flag to identify L2SRAM is being utilized for
+ * the task and to decrement l2sram_ref_count after task is done
  */
-#define PVA_TASK_FL_KEEP_L2RAM PVA_BIT(11U)
+#define PVA_TASK_FL_DEC_L2SRAM PVA_BIT(12U)
 
-/** Flag to identify a barrier task */
-#define PVA_TASK_FL_SYNC_TASKS PVA_BIT(12U)
-
-/** Flag to indicate timer start */
-#define PVA_TASK_FL_TIMER_START PVA_BIT(13U)
-
-/** Flag to indicate timer stop */
-#define PVA_TASK_FL_TIMER_STOP PVA_BIT(14U)
+#define PVA_TASK_FL_DEC_TIMER PVA_BIT(13U)
 
 /** Flag to indicate specail access needed by task */
 #define PVA_TASK_FL_SPECIAL_ACCESS PVA_BIT(15U)
