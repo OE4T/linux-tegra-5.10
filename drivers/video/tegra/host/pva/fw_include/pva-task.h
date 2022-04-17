@@ -262,15 +262,6 @@ struct PVA_PACKED pva_td_s {
 /** Flag to request masking of floating point NAN error for the task */
 #define PVA_TASK_FL_ERR_MASK_FP_NAN		PVA_BIT(3U)
 
-/** Flag to indicate persistence window of L2SRAM */
-#define PVA_TASK_FL_KEEP_L2RAM PVA_BIT(4U)
-
-/** Flag to indicate first task of batch with execution timeout */
-#define PVA_TASK_FL_TIMER_START PVA_BIT(5U)
-
-/** Flag to indicate last task of batch with execution timeout */
-#define PVA_TASK_FL_TIMER_STOP PVA_BIT(6U)
-
 /** Schedule on VPU0 only */
 #define PVA_TASK_FL_VPU0 PVA_BIT(8U)
 

@@ -871,60 +871,45 @@ remove_tasks:
 	return err;
 }
 
-static int set_timer_flags(const struct pva_submit_tasks *task_header)
+static void
+set_timer_flags(const struct pva_submit_tasks *task_header)
 {
 	struct pva_hw_task *hw_task = NULL;
+	u16 idx;
 
 	if (task_header->execution_timeout_us > 0U) {
 		hw_task = task_header->tasks[0]->va;
-		hw_task->task.flags |= PVA_TASK_FL_TIMER_START;
+		hw_task->task.timer_ref_cnt = task_header->num_tasks;
 		hw_task->task.timeout = task_header->execution_timeout_us;
-		if (!(hw_task->task.flags & PVA_TASK_FL_SYNC_TASKS))
-			return -EINVAL;
-
-		hw_task = task_header->tasks[task_header->num_tasks - 1]->va;
-		hw_task->task.flags |= PVA_TASK_FL_TIMER_STOP;
-		if (!(hw_task->task.flags & PVA_TASK_FL_SYNC_TASKS))
-			return -EINVAL;
+		for (idx = 0U; idx < task_header->num_tasks; idx++) {
+			hw_task = task_header->tasks[idx]->va;
+			hw_task->task.flags |= PVA_TASK_FL_DEC_TIMER;
+		}
 	}
 
-	return 0;
 }
 
-static int
+static void
 nvpva_task_config_l2sram_window(const struct pva_submit_tasks *task_header,
-				u32 l2s_start_index, u32 l2s_end_index,
-				u32 l2sram_max_size)
+				u32 start_index, u32 end_index,
+				u32 size)
 {
-	struct pva_submit_task *task = NULL;
 	struct pva_hw_task *hw_task = NULL;
-	u32 task_num;
+	u32    task_num;
 
-	for (task_num = l2s_start_index; task_num <= l2s_end_index;
-	     task_num++) {
-		task = task_header->tasks[task_num];
-		hw_task = task->va;
-
-		hw_task->task.l2sram_size = l2sram_max_size;
-		if (task_num < l2s_end_index)
-			hw_task->task.flags |= PVA_TASK_FL_KEEP_L2RAM;
+	hw_task = task_header->tasks[start_index]->va;
+	hw_task->task.l2sram_ref_cnt = (end_index - start_index) + 1U;
+	for (task_num = start_index; task_num <= end_index; task_num++) {
+		hw_task = task_header->tasks[task_num]->va;
+		hw_task->task.l2sram_size = size;
+		hw_task->task.flags |= PVA_TASK_FL_DEC_L2SRAM;
 	}
-
-	hw_task = task_header->tasks[l2s_start_index]->va;
-	if ((hw_task->task.flags & PVA_TASK_FL_SYNC_TASKS) == 0U)
-		return -EINVAL;
-
-	hw_task = task_header->tasks[l2s_end_index]->va;
-	if ((hw_task->task.flags & PVA_TASK_FL_SYNC_TASKS) == 0U)
-		return -EINVAL;
-
-	return 0;
 }
 
-static int update_batch_tasks(const struct pva_submit_tasks *task_header)
+static void
+update_batch_tasks(const struct pva_submit_tasks *task_header)
 {
 	struct pva_submit_task *task = NULL;
-	int err = 0;
 	u32 task_num;
 	u32 l2s_start_index, l2s_end_index;
 	u32 l2sram_max_size = 0U;
@@ -948,15 +933,10 @@ static int update_batch_tasks(const struct pva_submit_tasks *task_header)
 			/* An L2SRAM window is found within the batch which
 			 * needs to be sanitized
 			 */
-			err = nvpva_task_config_l2sram_window(task_header,
-							      l2s_start_index,
-							      l2s_end_index,
-							      l2sram_max_size);
-			if (err) {
-				task_err(task, "bad L2SRAM window found");
-				break;
-			}
-
+			nvpva_task_config_l2sram_window(task_header,
+							l2s_start_index,
+							l2s_end_index,
+							l2sram_max_size);
 			l2s_start_index = invalid_index;
 			l2s_end_index = invalid_index;
 			l2sram_max_size = 0;
@@ -964,16 +944,12 @@ static int update_batch_tasks(const struct pva_submit_tasks *task_header)
 	}
 
 	/* Last L2SRAM window in batch may need to be sanitized */
-	if ((err == 0) && (l2s_end_index != invalid_index)) {
-		err = nvpva_task_config_l2sram_window(task_header,
-						      l2s_start_index,
-						      l2s_end_index,
-						      l2sram_max_size);
-		if (err)
-			task_err(task, "bad L2SRAM window found");
+	if (l2s_end_index != invalid_index) {
+		nvpva_task_config_l2sram_window(task_header,
+						l2s_start_index,
+						l2s_end_index,
+						l2sram_max_size);
 	}
-
-	return err;
 }
 
 static int pva_queue_submit(struct nvpva_queue *queue, void *args)
@@ -1015,22 +991,15 @@ static int pva_queue_submit(struct nvpva_queue *queue, void *args)
 		prev_hw_task = task->va;
 	}
 
-	err = set_timer_flags(task_header);
-	if (err)
-		goto unlock;
+	set_timer_flags(task_header);
 
 	/* Update L2SRAM flags for T23x */
-	if (task_header->tasks[0]->pva->version == PVA_HW_GEN2) {
-		err = update_batch_tasks(task_header);
-		if (err)
-			goto unlock;
-	}
+	if (task_header->tasks[0]->pva->version == PVA_HW_GEN2)
+		update_batch_tasks(task_header);
 
 	err = pva_task_submit(task_header);
-	if (err) {
+	if (err)
 		dev_err(&queue->vm_pdev->dev, "failed to submit task");
-		goto unlock;
-	}
 unlock:
 	mutex_unlock(&client->sema_val_lock);
 	return err;
