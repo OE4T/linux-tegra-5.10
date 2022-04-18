@@ -340,5 +340,10 @@ config TEGRA_SAFETY_IVC_DEBUG
         help
           When enabled, stub the IVC responses from SCE FW.
 
+config TEGRA_HSIERRRPTINJ
+	bool "Enable Tegra HSI Error Report Injection client driver"
+	depends on ARCH_TEGRA_23x_SOC && MAILBOX && TEGRA_EPL && DEBUG_FS
+	default n
+
 source "drivers/platform/tegra/nvadsp/Kconfig"
 source "drivers/platform/tegra/nvaudio_ivc/Kconfig"
