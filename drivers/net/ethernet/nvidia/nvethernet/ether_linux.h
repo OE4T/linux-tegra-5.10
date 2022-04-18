@@ -616,6 +616,8 @@ struct ether_priv_data {
 	/** HSI lock */
 	struct mutex hsi_lock;
 #endif
+	/** Protect critical section of TX TS SKB list */
+	raw_spinlock_t txts_lock;
 };
 
 /**
