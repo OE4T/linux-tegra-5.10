@@ -28,6 +28,7 @@
 #include <soc/tegra/fuse.h>
 #include <soc/tegra/tegra-cbb.h>
 #include <soc/tegra/tegra234-cbb.h>
+#include <soc/tegra/tegra239-cbb.h>
 #include <soc/tegra/tegra-grace-cbb.h>
 
 static LIST_HEAD(cbb_errmon_list);
@@ -632,6 +633,39 @@ static struct tegra_cbb_fabric_data tegra_grace_bpmp_fab_data = {
 	.err_notifier_base = 0x19000
 };
 
+static struct tegra_cbb_fabric_data tegra239_aon_fab_data = {
+	.name   = "aon-fabric",
+	.tegra_cbb_master_id = t234_master_id,
+	.sn_addr_map = t234_aon_sn_lookup,
+	.noc_errors = t234_errmon_errors,
+	.err_notifier_base = 0x17000
+};
+
+static struct tegra_cbb_fabric_data tegra239_bpmp_fab_data = {
+	.name   = "bpmp-fabric",
+	.tegra_cbb_master_id = t234_master_id,
+	.sn_addr_map = t234_bpmp_sn_lookup,
+	.noc_errors = t234_errmon_errors,
+	.err_notifier_base = 0x19000
+};
+
+static struct tegra_cbb_fabric_data tegra239_cbb_fab_data = {
+	.name   = "cbb-fabric",
+	.tegra_cbb_master_id = t234_master_id,
+	.sn_addr_map = t239_cbb_sn_lookup,
+	.noc_errors = t234_errmon_errors,
+	.err_notifier_base = 0x60000,
+	.off_mask_erd = 0x3d004
+};
+
+static struct tegra_cbb_fabric_data tegra239_ape_fab_data = {
+	.name   = "ape-fabric",
+	.tegra_cbb_master_id = t234_master_id,
+	.sn_addr_map = t239_ape_sn_lookup,
+	.noc_errors = t234_errmon_errors,
+	.err_notifier_base = 0x1E000
+};
+
 static const struct of_device_id tegra234_cbb_dt_ids[] = {
 	{.compatible    = "nvidia,tegra234-cbb-fabric",
 		.data = &tegra234_cbb_fab_data},
@@ -645,6 +679,14 @@ static const struct of_device_id tegra234_cbb_dt_ids[] = {
 		.data = &tegra234_rce_fab_data},
 	{.compatible    = "nvidia,tegra234-sce-fabric",
 		.data = &tegra234_sce_fab_data},
+	{.compatible    = "nvidia,tegra239-cbb-fabric",
+		.data = &tegra239_cbb_fab_data},
+	{.compatible    = "nvidia,tegra239-aon-fabric",
+		.data = &tegra239_aon_fab_data},
+	{.compatible    = "nvidia,tegra239-bpmp-fabric",
+		.data = &tegra239_bpmp_fab_data},
+	{.compatible    = "nvidia,tegra239-ape-fabric",
+		.data = &tegra239_ape_fab_data},
 	{},
 };
 MODULE_DEVICE_TABLE(of, tegra234_cbb_dt_ids);
@@ -729,7 +771,8 @@ static int tegra234_cbb_probe(struct platform_device *pdev)
 	int err = 0;
 
 	if (of_machine_is_compatible("nvidia,tegra23x") ||
-	    of_machine_is_compatible("nvidia,tegra234")) {
+	    of_machine_is_compatible("nvidia,tegra234") ||
+	    of_machine_is_compatible("nvidia,tegra239")) {
 		pdata = of_device_get_match_data(&pdev->dev);
 	} else {
 		device = ACPI_COMPANION(dev);

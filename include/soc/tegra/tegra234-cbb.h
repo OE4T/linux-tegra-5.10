@@ -54,6 +54,7 @@ enum tegra_cbb_fabric_ids {
 	PSC_FAB_ID,
 	BPMP_FAB_ID,
 	FSI_FAB_ID,
+	APE_FAB_ID,
 	MAX_FAB_ID,
 };
 
