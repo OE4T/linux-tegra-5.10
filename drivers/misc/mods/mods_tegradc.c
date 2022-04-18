@@ -88,7 +88,15 @@ int esc_mods_tegra_dc_config_possible(struct mods_client *client,
 	}
 
 	for (i = 0; i < args->win_num; i++) {
-		int idx = args->windows[i].index;
+		unsigned int idx;
+
+		if (args->windows[i].index < 0) {
+			cl_debug(DEBUG_TEGRADC,
+				 "invalid index %d for win %d\n",
+				 i, args->windows[i].index);
+			return -EINVAL;
+		}
+		idx = (unsigned int)args->windows[i].index;
 
 		if (args->windows[i].flags &
 			MODS_TEGRA_DC_WINDOW_FLAG_ENABLED) {
