@@ -258,7 +258,7 @@ void dce_client_deinit(struct tegra_dce *d)
 	destroy_workqueue(d_aipc->async_event_wq);
 }
 
-static int dce_client_ipc_wait_rpc(struct tegra_dce *d, u32 int_type)
+int dce_client_ipc_wait(struct tegra_dce *d, u32 int_type)
 {
 	uint32_t type;
 	struct tegra_dce_client_ipc *cl;
@@ -287,25 +287,6 @@ retry_wait:
 	atomic_set(&cl->complete, 0);
 
 	return 0;
-}
-
-int dce_client_ipc_wait(struct tegra_dce *d, u32 w_type, u32 ch_type)
-{
-	int ret = 0;
-
-	switch (w_type) {
-	case DCE_IPC_WAIT_TYPE_SYNC:
-		ret = dce_admin_ipc_wait(d, w_type);
-		break;
-	case DCE_IPC_WAIT_TYPE_RPC:
-		ret = dce_client_ipc_wait_rpc(d, ch_type);
-		break;
-	default:
-		dce_err(d, "Invalid wait type [%d]", w_type);
-		break;
-	}
-
-	return ret;
 }
 
 static void dce_client_process_event_ipc(struct tegra_dce *d,

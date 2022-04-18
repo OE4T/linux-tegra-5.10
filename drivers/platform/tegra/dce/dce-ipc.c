@@ -235,7 +235,7 @@ static int _dce_ipc_wait(struct tegra_dce *d, u32 w_type, u32 ch_type)
 	if (ch_type == DCE_IPC_TYPE_ADMIN)
 		ret = dce_admin_ipc_wait(d, w_type);
 	else
-		ret = dce_client_ipc_wait(d, w_type, ch_type);
+		ret = dce_client_ipc_wait(d, ch_type);
 
 	dce_mutex_lock(&ch->lock);
 

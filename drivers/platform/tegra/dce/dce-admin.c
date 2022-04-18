@@ -33,9 +33,6 @@ int dce_admin_ipc_wait(struct tegra_dce *d, u32 w_type)
 	struct admin_rpc_post_boot_info *admin_rpc = &d->admin_rpc;
 
 	switch (w_type) {
-	case DCE_IPC_WAIT_TYPE_SYNC:
-		event = EVENT_ID_DCE_IPC_MESSAGE_SENT;
-		break;
 	case DCE_IPC_WAIT_TYPE_RPC:
 		event = EVENT_ID_DCE_IPC_MESSAGE_SENT;
 		break;
