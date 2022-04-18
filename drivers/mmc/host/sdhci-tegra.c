@@ -1367,7 +1367,7 @@ static void tegra_sdhci_set_clock(struct sdhci_host *host, unsigned int clock)
 	if (!tegra_host->skip_clk_rst) {
 		host_clk = tegra_sdhci_apply_clk_limits(host, clock);
 		clk_set_rate(pltfm_host->clk, host_clk);
-		tegra_host->curr_clk_rate = host_clk;
+		tegra_host->curr_clk_rate = clk_get_rate(pltfm_host->clk);
 		if (tegra_host->ddr_signaling)
 			host->max_clk = host_clk;
 		else
