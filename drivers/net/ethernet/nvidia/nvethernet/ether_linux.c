@@ -44,6 +44,7 @@ static void ether_get_tx_ts(struct work_struct *work)
 	unsigned long long nsec = 0x0;
 	struct ether_tx_ts_skb_list *pnode;
 	int ret = -1;
+	unsigned long flags;
 
 	if (list_empty(&pdata->tx_ts_skb_head)) {
 		return;
@@ -87,8 +88,10 @@ update_skb:
 				dev_consume_skb_any(pnode->skb);
 			}
 
+			raw_spin_lock_irqsave(&pdata->txts_lock, flags);
 			list_del(head_node);
 			pnode->in_use = OSI_DISABLE;
+			raw_spin_unlock_irqrestore(&pdata->txts_lock, flags);
 
 		} else {
 			dev_dbg(pdata->dev, "Unable to retrieve TS from OSI\n");
@@ -2828,10 +2831,12 @@ static inline void ether_flush_tx_ts_skb_list(struct ether_priv_data *pdata)
 {
 	struct ether_tx_ts_skb_list *pnode;
 	struct list_head *head_node, *temp_head_node;
+	unsigned long flags;
 
 	/* stop workqueue */
 	cancel_delayed_work_sync(&pdata->tx_ts_work);
 
+	raw_spin_lock_irqsave(&pdata->txts_lock, flags);
 	/* Delete nodes from list and rest static memory for reuse */
 	if (!list_empty(&pdata->tx_ts_skb_head)) {
 		list_for_each_safe(head_node, temp_head_node,
@@ -2844,6 +2849,7 @@ static inline void ether_flush_tx_ts_skb_list(struct ether_priv_data *pdata)
 			pnode->in_use = OSI_DISABLE;
 		}
 	}
+	raw_spin_unlock_irqrestore(&pdata->txts_lock, flags);
 }
 
 /**
@@ -6560,6 +6566,7 @@ static int ether_probe(struct platform_device *pdev)
 
 
 	raw_spin_lock_init(&pdata->rlock);
+	raw_spin_lock_init(&pdata->txts_lock);
 	init_filter_values(pdata);
 
 	if (osi_core->mac == OSI_MAC_HW_MGBE)

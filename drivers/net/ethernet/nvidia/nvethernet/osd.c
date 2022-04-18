@@ -704,6 +704,7 @@ static void osd_transmit_complete(void *priv, const struct osi_tx_swcx *swcx,
 	unsigned int chan, qinx;
 	unsigned int idx;
 	unsigned int len = swcx->len;
+	unsigned long flags;
 
 	ndev->stats.tx_bytes += len;
 
@@ -746,11 +747,13 @@ static void osd_transmit_complete(void *priv, const struct osi_tx_swcx *swcx,
 		    OSI_TXDONE_CX_TS_DELAYED) {
 			struct ether_tx_ts_skb_list *pnode = NULL;
 
+			raw_spin_lock_irqsave(&pdata->txts_lock, flags);
 			idx = ether_get_free_tx_ts_node(pdata);
 			if (idx == ETHER_MAX_PENDING_SKB_CNT) {
 				dev_dbg(pdata->dev,
 					"No free node to store pending SKB\n");
 				dev_consume_skb_any(skb);
+				raw_spin_unlock_irqrestore(&pdata->txts_lock, flags);
 				return;
 			}
 
@@ -763,6 +766,7 @@ static void osd_transmit_complete(void *priv, const struct osi_tx_swcx *swcx,
 				skb, txdone_pkt_cx->pktid);
 			list_add_tail(&pnode->list_head,
 				      &pdata->tx_ts_skb_head);
+			raw_spin_unlock_irqrestore(&pdata->txts_lock, flags);
 			schedule_delayed_work(&pdata->tx_ts_work,
 					      msecs_to_jiffies(ETHER_TS_MS_TIMER));
 		} else {
