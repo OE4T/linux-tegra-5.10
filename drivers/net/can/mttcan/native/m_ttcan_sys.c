@@ -28,10 +28,20 @@ static ssize_t show_std_fltr(struct device *dev,
 	int i = 0;
 
 	ret = sprintf(buf, "%s\n", "Standard Filters");
+	if (ret < 0) {
+		pr_err("sprintf() failed at line %d\n", __LINE__);
+		return -ENOMEM;
+	}
+
 	total += ret;
 	while (cur_filter_size--) {
 		ret = sprintf(buf+total, "%d. 0x%x\n", i,
 			ttcan_get_std_id_filter(priv->ttcan, i));
+		if (ret < 0) {
+			pr_err("sprintf() failed at line %d\n", __LINE__);
+			return -ENOMEM;
+		}
+
 		total += ret;
 		i++;
 	}
@@ -47,10 +57,20 @@ static ssize_t show_xtd_fltr(struct device *dev,
 	int i = 0;
 
 	ret = sprintf(buf, "%s\n", "Extended Filters");
+	if (ret < 0) {
+		pr_err("sprintf() failed at line %d\n", __LINE__);
+		return -ENOMEM;
+	}
+
 	total += ret;
 	while (cur_filter_size--) {
 		ret = sprintf(buf+total, "%d. 0x%llx\n", i,
 			ttcan_get_xtd_id_filter(priv->ttcan, i));
+		if (ret < 0) {
+			pr_err("sprintf() failed at line %d\n", __LINE__);
+			return -ENOMEM;
+		}
+
 		total += ret;
 		i++;
 	}
@@ -565,10 +585,20 @@ static ssize_t show_trigger_mem(struct device *dev,
 	int i = 0;
 
 	ret = sprintf(buf, "%s\n", "Trigger Memory Elements");
+	if (ret < 0) {
+		pr_err("sprintf() failed at line %d\n", __LINE__);
+		return -ENOMEM;
+	}
+
 	total += ret;
 	while (cur--) {
 		ret = sprintf(buf+total, "%d. 0x%llx\n", i,
 			ttcan_get_trigger_mem(priv->ttcan, i));
+		if (ret < 0) {
+			pr_err("sprintf() failed at line %d\n", __LINE__);
+			return -ENOMEM;
+		}
+
 		total += ret;
 		i++;
 	}
