@@ -93,6 +93,7 @@ struct nvpps_device_data {
 	void __iomem 		*tsc_reg_map_base;
 	bool		platform_is_orin;
 	u32			tsc_ptp_src;
+	bool		only_timer_mode;
 };
 
 
@@ -404,20 +405,25 @@ static int set_mode(struct nvpps_device_data *pdev_data, u32 mode)
 	if (mode != pdev_data->evt_mode) {
 		switch (mode) {
 			case NVPPS_MODE_GPIO:
-				if (pdev_data->timer_inited) {
-					pdev_data->timer_inited = false;
-					del_timer_sync(&pdev_data->timer);
-				}
-				if (!pdev_data->irq_registered) {
-					/* register IRQ handler */
-					err = devm_request_irq(pdev_data->dev, pdev_data->irq, nvpps_gpio_isr,
-							IRQF_TRIGGER_RISING, "nvpps_isr", pdev_data);
-					if (err) {
-						dev_err(pdev_data->dev, "failed to acquire IRQ %d\n", pdev_data->irq);
-					} else {
-						pdev_data->irq_registered = true;
-						dev_info(pdev_data->dev, "Registered IRQ %d for nvpps\n", pdev_data->irq);
+				if (!pdev_data->only_timer_mode) {
+					if (pdev_data->timer_inited) {
+						pdev_data->timer_inited = false;
+						del_timer_sync(&pdev_data->timer);
 					}
+					if (!pdev_data->irq_registered) {
+						/* register IRQ handler */
+						err = devm_request_irq(pdev_data->dev, pdev_data->irq, nvpps_gpio_isr,
+								IRQF_TRIGGER_RISING, "nvpps_isr", pdev_data);
+						if (err) {
+							dev_err(pdev_data->dev, "failed to acquire IRQ %d\n", pdev_data->irq);
+						} else {
+							pdev_data->irq_registered = true;
+							dev_info(pdev_data->dev, "Registered IRQ %d for nvpps\n", pdev_data->irq);
+						}
+					}
+				} else {
+					dev_err(pdev_data->dev, "unable to switch mode. Only timer mode is supported\n");
+					err = -EINVAL;
 				}
 				break;
 
@@ -816,36 +822,36 @@ static int nvpps_probe(struct platform_device *pdev)
 
 	err = of_get_gpio(np, 0);
 	if (err < 0) {
-		dev_err(&pdev->dev, "unable to get GPIO from device tree\n");
-		return err;
+		dev_warn(&pdev->dev, "PPS GPIO not provided in DT, only Timer mode available\n");
+		pdev_data->only_timer_mode = true;
 	} else {
 		pdev_data->gpio_pin = (unsigned int)err;
 		dev_info(&pdev->dev, "gpio_pin(%d)\n", pdev_data->gpio_pin);
-	}
 
-	/* GPIO setup */
-	if (gpio_is_valid(pdev_data->gpio_pin)) {
-		err = devm_gpio_request(&pdev->dev, pdev_data->gpio_pin, "gpio_pps");
-		if (err) {
-			dev_err(&pdev->dev, "failed to request GPIO %u\n",
-				pdev_data->gpio_pin);
-			return err;
-		}
+		/* GPIO setup */
+		if (gpio_is_valid(pdev_data->gpio_pin)) {
+			err = devm_gpio_request(&pdev->dev, pdev_data->gpio_pin, "gpio_pps");
+			if (err) {
+				dev_err(&pdev->dev, "failed to request GPIO %u\n",
+					pdev_data->gpio_pin);
+				return err;
+			}
 
-		err = gpio_direction_input(pdev_data->gpio_pin);
-		if (err) {
-			dev_err(&pdev->dev, "failed to set pin direction\n");
-			return -EINVAL;
-		}
+			err = gpio_direction_input(pdev_data->gpio_pin);
+			if (err) {
+				dev_err(&pdev->dev, "failed to set pin direction\n");
+				return -EINVAL;
+			}
 
-		/* IRQ setup */
-		err = gpio_to_irq(pdev_data->gpio_pin);
-		if (err < 0) {
-			dev_err(&pdev->dev, "failed to map GPIO to IRQ: %d\n", err);
-			return -EINVAL;
+			/* IRQ setup */
+			err = gpio_to_irq(pdev_data->gpio_pin);
+			if (err < 0) {
+				dev_err(&pdev->dev, "failed to map GPIO to IRQ: %d\n", err);
+				return -EINVAL;
+			}
+			pdev_data->irq = err;
+			dev_info(&pdev->dev, "gpio_to_irq(%d)\n", pdev_data->irq);
 		}
-		pdev_data->irq = err;
-		dev_info(&pdev->dev, "gpio_to_irq(%d)\n", pdev_data->irq);
 	}
 
 	nvpps_fill_default_mac_phc_info(pdev, pdev_data);
@@ -937,13 +943,14 @@ static int nvpps_probe(struct platform_device *pdev)
 	}
 
 	/* setup PPS event hndler */
-	err = set_mode(pdev_data, NVPPS_DEF_MODE);
+	err = set_mode(pdev_data,
+				   (pdev_data->only_timer_mode) ? NVPPS_MODE_TIMER : NVPPS_MODE_GPIO);
 	if (err) {
 		dev_err(&pdev->dev, "set_mode failed err = %d\n", err);
 		device_destroy(s_nvpps_class, pdev_data->dev->devt);
 		goto error_ret;
 	}
-	pdev_data->evt_mode = NVPPS_DEF_MODE;
+	pdev_data->evt_mode = (pdev_data->only_timer_mode) ? NVPPS_MODE_TIMER : NVPPS_MODE_GPIO;
 
 	if (pdev_data->platform_is_orin) {
 		pdev_data->tsc_reg_map_base = ioremap(TSC_CAPTURE_CONFIGURATION_PTX_0, 0x100);
