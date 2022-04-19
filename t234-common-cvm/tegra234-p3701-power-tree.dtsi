@@ -20,6 +20,10 @@
 		vqmmc-supply = <&p3701_vdd_1v8_hs>;
 	};
 
+	sdhci@3400000 {
+		vqmmc-supply = <&p3701_vdd_AO_1v8>;
+	};
+
 	ethernet@2310000 {
 		vddio_sys_enet_bias-supply = <&battery_reg>;
 		vddio_enet-supply = <&battery_reg>;
