@@ -987,6 +987,16 @@ static int tnvvse_crypto_aes_enc_dec(struct tnvvse_crypto_ctx *ctx,
 					tnvvse_crypto_complete, &tcrypt_complete);
 		tcrypt_complete.req_err = 0;
 
+		/* Set first byte of IV to 1 for first encryption request and 0 for other
+		 * encryption requests. This is used to invoke generation of random IV.
+		 */
+		if (aes_enc_dec_ctl->is_encryption) {
+			if (first_loop && !aes_enc_dec_ctl->is_non_first_call)
+				next_block_iv[0] = 1;
+			else
+				next_block_iv[0] = 0;
+		}
+
 		ret = aes_enc_dec_ctl->is_encryption ? crypto_skcipher_encrypt(req) :
 						crypto_skcipher_decrypt(req);
 		if ((ret == -EINPROGRESS) || (ret == -EBUSY)) {
@@ -1221,8 +1231,14 @@ static int tnvvse_crypto_aes_enc_dec_gcm(struct tnvvse_crypto_ctx *ctx,
 					tnvvse_crypto_complete, &tcrypt_complete);
 	aead_request_set_ad(req, aad_length);
 
+	memset(iv, 0, TEGRA_NVVSE_AES_GCM_IV_LEN);
 	if (!enc)
 		memcpy(iv, aes_enc_dec_ctl->initial_vector, TEGRA_NVVSE_AES_GCM_IV_LEN);
+	else if (enc && !aes_enc_dec_ctl->is_non_first_call)
+		/* Set first byte of IV to 1 for first encryption request. This is used to invoke
+		 * generation of random IV.
+		 */
+		iv[0] = 1;
 
 	/* Prepare buffers
 	 * - AEAD encryption input:  assoc data || plaintext
