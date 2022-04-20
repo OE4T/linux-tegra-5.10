@@ -515,6 +515,7 @@ struct global_sym_info * __maybe_unused find_global_symbol(const char *sym_name)
 static void *get_mailbox_shared_region(const struct firmware *fw)
 {
 	struct device *dev;
+	struct nvadsp_drv_data *drv_data = platform_get_drvdata(priv.pdev);
 	struct elf32_shdr *shdr;
 	int addr;
 	int size;
@@ -535,6 +536,7 @@ static void *get_mailbox_shared_region(const struct firmware *fw)
 	dev_dbg(dev, "the shared section is present at 0x%x\n", shdr->sh_addr);
 	addr = shdr->sh_addr;
 	size = shdr->sh_size;
+	drv_data->shared_adsp_os_data_iova  = addr;
 	return nvadsp_da_to_va_mappings(addr, size);
 }
 
