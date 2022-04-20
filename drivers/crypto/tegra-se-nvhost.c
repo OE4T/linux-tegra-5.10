@@ -1312,7 +1312,7 @@ static int tegra_se_channel_submit_gather(struct tegra_se_dev *se_dev,
 		/* wait until host1x has processed work */
 		nvhost_syncpt_wait_timeout_ext(
 			se_dev->pdev, job->sp->id, job->sp->fence,
-			(u32)MAX_SCHEDULE_TIMEOUT, NULL, NULL);
+			U32_MAX, NULL, NULL);
 
 		if (se_dev->cmdbuf_addr_list)
 			atomic_set(&se_dev->cmdbuf_addr_list[
@@ -1967,7 +1967,7 @@ static int tegra_se_read_cmac_result(struct tegra_se_dev *se_dev, u8 *pdata,
 					     (i * sizeof(u32)));
 		}
 		if (swap32)
-			result[i] = be32_to_cpu(result[i]);
+			result[i] = be32_to_cpu((__force __be32)result[i]);
 	}
 
 	nvhost_module_idle(se_dev->pdev);
@@ -4660,7 +4660,8 @@ static int tegra_se_dh_setkey(struct crypto_kpp *tfm)
 			cmdbuf_cpuvaddr[i++] = __nvhost_opcode_nonincr(
 					se_dev->opcode_addr +
 					SE_RSA_KEYTABLE_DATA_OFFSET, 1);
-			cmdbuf_cpuvaddr[i++] = be32_to_cpu(*pkeydata++);
+			cmdbuf_cpuvaddr[i++] =
+				be32_to_cpu((__force __be32)*pkeydata++);
 		}
 	}
 
@@ -4680,7 +4681,8 @@ static int tegra_se_dh_setkey(struct crypto_kpp *tfm)
 			cmdbuf_cpuvaddr[i++] = __nvhost_opcode_nonincr(
 					se_dev->opcode_addr +
 					SE_RSA_KEYTABLE_DATA_OFFSET, 1);
-			cmdbuf_cpuvaddr[i++] = be32_to_cpu(*pkeydata++);
+			cmdbuf_cpuvaddr[i++] =
+				be32_to_cpu((__force __be32)*pkeydata++);
 		}
 	}
 
@@ -4714,9 +4716,11 @@ static void tegra_se_fix_endianness(struct tegra_se_dev *se_dev,
 
 	for (j = (nbytes / 4 - 1), k = 0; j >= 0; j--, k++) {
 		if (be)
-			se_dev->dh_buf2[k] = be32_to_cpu(se_dev->dh_buf1[j]);
+			se_dev->dh_buf2[k] =
+				be32_to_cpu((__force __be32)se_dev->dh_buf1[j]);
 		else
-			se_dev->dh_buf2[k] = cpu_to_be32(se_dev->dh_buf1[j]);
+			se_dev->dh_buf2[k] =
+				(__force u32)cpu_to_be32(se_dev->dh_buf1[j]);
 	}
 
 	sg_copy_from_buffer(sg, num_sgs, se_dev->dh_buf2, nbytes);
