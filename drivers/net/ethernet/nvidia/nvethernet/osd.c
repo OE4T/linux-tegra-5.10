@@ -682,30 +682,28 @@ static inline unsigned int ether_get_free_tx_ts_node(struct ether_priv_data *pda
  * 3) Time stamp will be update to stack if available.
  *
  * @param[in] priv: OSD private data structure.
- * @param[in] buffer: Buffer address to free.
- * @param[in] dmaaddr: DMA address to unmap.
- * @param[in] len: Length of data.
+ * @param[in] swcx: Pointer to swcx
  * @param[in] txdone_pkt_cx: Pointer to struct which has tx done status info.
  * This struct has flags to indicate tx error, whether DMA address
  * is mapped from paged/linear buffer.
  *
  * @note Tx completion need to make sure that Tx descriptors processed properly.
  */
-static void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaaddr,
-				  unsigned int len,
+static void osd_transmit_complete(void *priv, const struct osi_tx_swcx *swcx,
 				  const struct osi_txdone_pkt_cx
 				  *txdone_pkt_cx)
 {
 	struct ether_priv_data *pdata = (struct ether_priv_data *)priv;
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
-	struct sk_buff *skb = (struct sk_buff *)buffer;
-	dma_addr_t dma_addr = (dma_addr_t)dmaaddr;
+	struct sk_buff *skb = (struct sk_buff *)swcx->buf_virt_addr;
+	unsigned long dmaaddr = swcx->buf_phy_addr;
 	struct skb_shared_hwtstamps shhwtstamp;
 	struct net_device *ndev = pdata->ndev;
 	struct osi_tx_ring *tx_ring;
 	struct netdev_queue *txq;
 	unsigned int chan, qinx;
 	unsigned int idx;
+	unsigned int len = swcx->len;
 
 	ndev->stats.tx_bytes += len;
 
@@ -716,7 +714,7 @@ static void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaadd
 		skb_tstamp_tx(skb, &shhwtstamp);
 	}
 
-	if (dma_addr) {
+	if (dmaaddr != 0UL) {
 		if ((txdone_pkt_cx->flags & OSI_TXDONE_CX_PAGED_BUF) ==
 		    OSI_TXDONE_CX_PAGED_BUF) {
 			dma_unmap_page(pdata->dev, dmaaddr,
