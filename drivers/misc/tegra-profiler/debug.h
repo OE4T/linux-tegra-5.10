@@ -64,7 +64,7 @@ void quadd_test_delay(void);
 
 #define QM_ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 static inline const char *
-quadd_get_hw_event_str(int event)
+quadd_get_hw_event_str(unsigned int event)
 {
 	static const char * const str[] = {
 		[QUADD_EVENT_HW_CPU_CYCLES]		= "cpu-cycles",

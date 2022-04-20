@@ -105,14 +105,15 @@ struct ex_entry_node {
 
 static struct quadd_unwind_ctx ctx;
 
-static inline int is_debug_frame(int secid)
+static inline int is_debug_frame(unsigned int secid)
 {
 	return (secid == QUADD_SEC_TYPE_DEBUG_FRAME ||
 		secid == QUADD_SEC_TYPE_DEBUG_FRAME_HDR) ? 1 : 0;
 }
 
 unsigned long
-get_ex_sec_address(struct ex_region_info *ri, struct extab_info *ti, int secid)
+get_ex_sec_address(struct ex_region_info *ri, struct extab_info *ti,
+		   unsigned int secid)
 {
 	struct quadd_mmap_area *mmap;
 	unsigned long res = ti->addr;
@@ -834,7 +835,7 @@ err_out:
 
 void
 quadd_unwind_set_tail_info(struct ex_region_info *ri,
-			   int secid,
+			   unsigned int secid,
 			   unsigned long tf_start,
 			   unsigned long tf_end,
 			   struct task_struct *task)
@@ -847,7 +848,7 @@ quadd_unwind_set_tail_info(struct ex_region_info *ri,
 	mmap->fi.ex_sec[secid].tf_start = tf_start;
 	mmap->fi.ex_sec[secid].tf_end = tf_end;
 
-	pr_debug("%s: pid: %u, secid: %d, tf: %#lx - %#lx\n",
+	pr_debug("%s: pid: %u, secid: %u, tf: %#lx - %#lx\n",
 		 __func__, task_tgid_nr(task), secid, tf_start, tf_end);
 
 	raw_spin_unlock(&ctx.quadd_ctx->mmaps_lock);

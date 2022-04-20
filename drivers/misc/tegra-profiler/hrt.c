@@ -447,8 +447,9 @@ read_all_sources(struct pt_regs *regs, struct task_struct *task, u64 ts)
 	u32 vpid, vtgid;
 	u32 state, extra_data = 0, urcs = 0, ts_delta;
 	u64 ts_start, ts_end;
-	int i, vec_idx = 0, bt_size = 0;
+	int i, bt_size = 0;
 	int nr_events = 0, nr_positive_events = 0;
+	unsigned int vec_idx = 0;
 	struct pt_regs *user_regs;
 	struct quadd_iovec vec[9];
 	struct quadd_event_data events[QUADD_MAX_COUNTERS];
