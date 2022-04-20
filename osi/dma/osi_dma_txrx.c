@@ -656,9 +656,7 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
 				tx_swcx->len = 0;
 			}
 			osi_dma->osd_ops.transmit_complete(osi_dma->osd,
-						       tx_swcx->buf_virt_addr,
-						       tx_swcx->buf_phy_addr,
-						       tx_swcx->len,
+						       tx_swcx,
 						       txdone_pkt_cx);
 		} else {
 			OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
