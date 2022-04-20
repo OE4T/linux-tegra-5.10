@@ -384,6 +384,12 @@ struct osi_tx_swcx {
 	unsigned int flags;
 	/** Packet id of packet for which TX timestamp needed */
 	unsigned int pktid;
+	/** dma channel number for osd use */
+	nveu32_t chan;
+	/** reserved field 1 for future use */
+	nveu64_t rsvd1;
+	/** reserved field 2 for future use */
+	nveu64_t rsvd2;
 };
 
 /**
@@ -491,8 +497,7 @@ struct osi_dma_priv_data;
  */
 struct osd_dma_ops {
 	/** DMA transmit complete callback */
-	void (*transmit_complete)(void *priv, void *buffer,
-				  nveu64_t dmaaddr, nveu32_t len,
+	void (*transmit_complete)(void *priv, const struct osi_tx_swcx *swcx,
 				  const struct osi_txdone_pkt_cx
 				  *txdone_pkt_cx);
 	/** DMA receive packet callback */
