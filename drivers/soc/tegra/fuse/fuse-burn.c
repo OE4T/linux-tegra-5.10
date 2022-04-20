@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/clk.h>
@@ -524,7 +524,7 @@ static ssize_t tegra_fuse_show(struct device *dev,
 	char str[9];
 	u32 *macro_buf;
 	int num_words, i;
-	u32 val;
+	__be32 val;
 
 	data = container_of(attr, struct fuse_burn_data, attr);
 	num_words = DIV_ROUND_UP(data->size_bits, 32);
@@ -567,7 +567,7 @@ static ssize_t tegra_fuse_store(struct device *dev,
 	int len = count;
 	int num_nibbles;
 	u32 input_data[17] = {0};
-	u32 temp_data[17] = {0};
+	__be32 temp_data[17] = {0};
 	char str[9] = {0};
 	int copy_cnt, copy_idx;
 	int burn_idx = 0, idx;
@@ -686,7 +686,7 @@ static ssize_t tegra_fuse_calc_h2_code(struct device *dev,
 #define FUSE_OPT_Y_COORDINATE		0x118
 #define FUSE_OPT_Y_COORDINATE_MASK	0x1ff
 
-unsigned long long tegra_chip_uid(void)
+static unsigned long long tegra_chip_uid(void)
 {
 
 	u64 uid = 0ull;
