@@ -78,6 +78,7 @@ endif
 srcs += os/posix/bug.c \
 	os/posix/rwsem.c \
 	os/posix/timers.c \
+	os/posix/periodic_timer.c \
 	os/posix/cond.c \
 	os/posix/lock.c \
 	os/posix/thread.c \

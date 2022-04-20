@@ -114,7 +114,9 @@ timers:
   safe: yes
   owner: Ajesh K
   sources: [ os/posix/timers.c,
-             include/nvgpu/posix/timers.h ]
+             os/posix/periodic_timer.c,
+             include/nvgpu/posix/timers.h,
+             include/nvgpu/posix/periodic_timer.h ]
   deps:
 
 atomic:

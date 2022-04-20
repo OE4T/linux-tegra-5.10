@@ -35,7 +35,7 @@
 #include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/gr/gr_utils.h>
 
-static int nvgpu_gr_fecs_trace_periodic_polling(void *arg);
+static void nvgpu_gr_fecs_trace_periodic_polling(void *arg);
 
 int nvgpu_gr_fecs_trace_add_context(struct gk20a *g, u32 context_ptr,
 	pid_t pid, u32 vmid, struct nvgpu_list_node *list)
@@ -134,6 +134,7 @@ void nvgpu_gr_fecs_trace_find_pid(struct gk20a *g, u32 context_ptr,
 int nvgpu_gr_fecs_trace_init(struct gk20a *g)
 {
 	struct nvgpu_gr_fecs_trace *trace;
+	int err;
 
 	if (!is_power_of_2((u32)GK20A_FECS_TRACE_NUM_RECORDS)) {
 		nvgpu_err(g, "invalid NUM_RECORDS chosen");
@@ -157,7 +158,13 @@ int nvgpu_gr_fecs_trace_init(struct gk20a *g)
 
 	trace->enable_count = 0;
 
-	return 0;
+	err = nvgpu_periodic_timer_init(&trace->poll_timer,
+			nvgpu_gr_fecs_trace_periodic_polling, g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to create fecs_trace timer err=%d", err);
+	}
+
+	return err;
 }
 
 int nvgpu_gr_fecs_trace_deinit(struct gk20a *g)
@@ -170,11 +177,12 @@ int nvgpu_gr_fecs_trace_deinit(struct gk20a *g)
 
 	/*
 	 * Check if tracer was enabled before attempting to stop the
-	 * tracer thread.
+	 * tracer timer.
 	 */
 	if (trace->enable_count > 0) {
-		nvgpu_thread_stop(&trace->poll_task);
+		nvgpu_periodic_timer_stop(&trace->poll_timer);
 	}
+	nvgpu_periodic_timer_destroy(&trace->poll_timer);
 
 	nvgpu_gr_fecs_trace_remove_contexts(g, &trace->context_list);
 
@@ -280,10 +288,10 @@ int nvgpu_gr_fecs_trace_enable(struct gk20a *g)
 			g->ops.gr.fecs_trace.set_read_index(g, write);
 		}
 
-		err = nvgpu_thread_create(&trace->poll_task, g,
-				nvgpu_gr_fecs_trace_periodic_polling, __func__);
+		err = nvgpu_periodic_timer_start(&trace->poll_timer,
+				GK20A_FECS_TRACE_FRAME_PERIOD_NS);
 		if (err != 0) {
-			nvgpu_warn(g, "failed to create FECS polling task");
+			nvgpu_warn(g, "failed to start FECS polling timer");
 			goto done;
 		}
 	}
@@ -333,7 +341,7 @@ int nvgpu_gr_fecs_trace_disable(struct gk20a *g)
 				g->ops.gr.fecs_trace.set_read_index(g, read);
 			}
 		}
-		nvgpu_thread_stop(&trace->poll_task);
+		nvgpu_periodic_timer_stop(&trace->poll_timer);
 	}
 	nvgpu_mutex_release(&trace->enable_lock);
 
@@ -572,23 +580,14 @@ done_unlock:
 	return err;
 }
 
-static int nvgpu_gr_fecs_trace_periodic_polling(void *arg)
+static void nvgpu_gr_fecs_trace_periodic_polling(void *arg)
 {
 	struct gk20a *g = (struct gk20a *)arg;
 	struct nvgpu_gr_fecs_trace *trace = g->fecs_trace;
 
-	nvgpu_log(g, gpu_dbg_ctxsw, "thread running");
-
-	while (!nvgpu_thread_should_stop(&trace->poll_task) &&
-			trace->enable_count > 0U) {
-
-		nvgpu_usleep_range(GK20A_FECS_TRACE_FRAME_PERIOD_US,
-				   GK20A_FECS_TRACE_FRAME_PERIOD_US * 2U);
-
+	if (trace->enable_count > 0U) {
 		nvgpu_gr_fecs_trace_poll(g);
 	}
-
-	return 0;
 }
 
 int nvgpu_gr_fecs_trace_reset(struct gk20a *g)

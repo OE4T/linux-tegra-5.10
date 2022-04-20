@@ -28,14 +28,14 @@
 #include <nvgpu/types.h>
 #include <nvgpu/list.h>
 #include <nvgpu/lock.h>
-#include <nvgpu/thread.h>
+#include <nvgpu/periodic_timer.h>
 
 /*
  * If HW circular buffer is getting too many "buffer full" conditions,
  * increasing this constant should help (it drives Linux' internal buffer size).
  */
 #define GK20A_FECS_TRACE_NUM_RECORDS		(1 << 10)
-#define GK20A_FECS_TRACE_FRAME_PERIOD_US	(1000000ULL/60ULL)
+#define GK20A_FECS_TRACE_FRAME_PERIOD_NS	(1000000000ULL/60ULL)
 #define GK20A_FECS_TRACE_PTIMER_SHIFT		5
 
 #define NVGPU_GPU_CTXSW_TAG_SOF                     0x00U
@@ -71,7 +71,7 @@ struct nvgpu_gr_fecs_trace {
 	struct nvgpu_mutex list_lock;
 
 	struct nvgpu_mutex poll_lock;
-	struct nvgpu_thread poll_task;
+	struct nvgpu_periodic_timer poll_timer;
 
 	struct nvgpu_mutex enable_lock;
 	u32 enable_count;

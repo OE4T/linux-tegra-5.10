@@ -483,7 +483,8 @@ nvgpu-y += \
 	os/linux/bsearch.o \
 	os/linux/cic/cic_report_err.o \
 	os/linux/dmabuf_priv.o \
-	os/linux/power_ops.o
+	os/linux/power_ops.o \
+	os/linux/periodic_timer.o
 
 nvgpu-$(CONFIG_NVGPU_IVM_BUILD) += \
 	os/linux/nvgpu_ivm.o \

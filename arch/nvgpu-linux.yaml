@@ -220,7 +220,8 @@ thread:
   sources: [ os/linux/thread.c ]
 
 timers:
-  sources: [ os/linux/timers.c ]
+  sources: [ os/linux/timers.c,
+             os/linux/periodic_timer.c ]
 
 vgpu:
   sources: [ os/linux/vgpu/fecs_trace_vgpu_linux.c,
@@ -254,6 +255,7 @@ headers:
              include/nvgpu/linux/nvgpu_mem.h,
              include/nvgpu/linux/os_fence_android.h,
              include/nvgpu/linux/os_fence_dma.h,
+             include/nvgpu/linux/periodic_timer.h,
              include/nvgpu/linux/rwsem.h,
              include/nvgpu/linux/nvmem.h,
              include/nvgpu/linux/sim.h,
