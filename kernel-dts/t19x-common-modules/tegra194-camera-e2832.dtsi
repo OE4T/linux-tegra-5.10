@@ -210,7 +210,7 @@
 				line_length = "1920";
 				inherent_gain = "1";
 				mclk_multiplier = "24";
-				pix_clk_hz = "576000000";
+				pix_clk_hz = "220000000";
 
 				gain_factor = "16";
 				framerate_factor = "1000000";
@@ -286,7 +286,7 @@
 				line_length = "1280";
 				inherent_gain = "1";
 				mclk_multiplier = "24";
-				pix_clk_hz = "576000000";
+				pix_clk_hz = "220000000";
 
 				gain_factor = "16";
 				framerate_factor = "1000000";
