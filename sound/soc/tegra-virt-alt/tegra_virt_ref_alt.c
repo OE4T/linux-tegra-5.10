@@ -121,13 +121,14 @@ static int tegra_virt_machine_driver_probe(struct platform_device *pdev)
 
 		/* Get ADSP ADMAIF default param info */
 		for (i = 0; i < MAX_ADMAIF_IDS; i++) {
-			sprintf(buffer, "adsp-admaif%d-channels", i + 1);
+			if ((sprintf(buffer, "adsp-admaif%d-channels", i + 1)) < 0)
+				return -EINVAL;
 			if (of_property_read_u32(pdev->dev.of_node,
 					buffer, &adsp_admaif_channels))
 				adsp_admaif_channels = 2;
 
-
-			sprintf(buffer, "adsp-admaif%d-bits", i + 1);
+			if ((sprintf(buffer, "adsp-admaif%d-bits", i + 1) < 0))
+				return -EINVAL;
 			if (of_property_read_u32(pdev->dev.of_node,
 					buffer, &adsp_admaif_bits))
 				adsp_admaif_bits = 16;

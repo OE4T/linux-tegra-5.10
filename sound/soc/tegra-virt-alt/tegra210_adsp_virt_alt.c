@@ -1205,9 +1205,11 @@ static void tegra210_adsp_nl_send_msg(struct tegra210_adsp *adsp,
 	NETLINK_CB(skb).dst_group = NETLINK_ADSP_EVENT_GROUP;
 
 	msg = (struct adsp_event_nlmsg *)nlmsg_data(nlh);
-	msg->err = apm_err_msg->err;
-	memcpy(msg->data, apm_err_msg->data,
-		(sizeof(uint32_t) * NVFX_MAX_CALL_PARAMS_WSIZE));
+	if (msg != NULL) {
+		msg->err = apm_err_msg->err;
+		memcpy(msg->data, apm_err_msg->data,
+				(sizeof(uint32_t) * NVFX_MAX_CALL_PARAMS_WSIZE));
+	}
 
 	res = nlmsg_multicast(adsp->nl_sk, skb, 0, NETLINK_ADSP_EVENT_GROUP, 0);
 	if (res < 0)
@@ -2438,7 +2440,8 @@ static void tegra_adsp_set_admaif_id(
 				uint32_t be_reg,
 				int s_stream)
 {
-	int i, j, stream;
+	unsigned int i, j;
+	int stream;
 	uint32_t src;
 	struct tegra210_adsp_app *app = NULL;
 
@@ -2540,7 +2543,8 @@ static int tegra_adsp_admaif_ivc_set_cif(struct tegra210_adsp *adsp,
 				nvfx_adma_init_params_t *adma_params,
 				int stream)
 {
-	int ret = 0;
+	unsigned int ret = 0;
+	int err = 0;
 	uint32_t ivc_msg_admaif_id;
 	struct tegra210_adsp_app *app;
 	struct tegra210_virt_audio_cif cif_setting;
@@ -2558,8 +2562,8 @@ static int tegra_adsp_admaif_ivc_set_cif(struct tegra210_adsp *adsp,
 
 	if (!adsp->hivc_client) {
 		dev_err(adsp->dev, "Failed to allocate IVC context\n");
-		ret = -ENODEV;
-		return ret;
+		err = -ENODEV;
+		return err;
 	}
 
 
@@ -2673,12 +2677,12 @@ static int tegra_adsp_admaif_ivc_set_cif(struct tegra210_adsp *adsp,
 	else
 		msg.cmd = NVAUDIO_DMAIF_SET_RXCIF;
 
-	ret = nvaudio_ivc_send_retry(adsp->hivc_client,
+	err = nvaudio_ivc_send_retry(adsp->hivc_client,
 				&msg,
 				sizeof(struct nvaudio_ivc_msg));
-	if (ret < 0)
+	if (err < 0)
 		pr_err("%s: error during ivc_send\n", __func__);
-	return ret;
+	return err;
 }
 
 static int tegra210_adsp_admaif_hv_hw_params(
@@ -4998,8 +5002,8 @@ static const struct of_device_id tegra210_adsp_audio_of_match[] = {
 	{},
 };
 
-static void adsp_control_name_override(struct device *dev, int wt_idx, int i,
-							int mux_idx)
+static void adsp_control_name_override(struct device *dev, unsigned int wt_idx, unsigned int i,
+			unsigned int mux_idx)
 {
 	char *name = devm_kzalloc(dev, strlen(adsp_app_desc[i].wt_name) + 3,
 					GFP_KERNEL);
@@ -5037,8 +5041,8 @@ static int tegra210_adsp_audio_probe(struct platform_device *pdev)
 	const struct of_device_id *match;
 	struct soc_bytes *controls;
 	struct tegra210_adsp *adsp;
-	int i, j, wt_idx, mux_idx, ret = 0;
-	unsigned int compr_ops = 1;
+	int32_t j, ret = 0;
+	uint32_t i, wt_idx, mux_idx, compr_ops = 1;
 	uint32_t adma_ch_page = 0;
 	uint32_t adma_ch_start = TEGRA210_ADSP_ADMA_CHANNEL_START_HV;
 	uint32_t adma_ch_cnt = TEGRA210_ADSP_ADMA_CHANNEL_COUNT;
@@ -5149,7 +5153,8 @@ static int tegra210_adsp_audio_probe(struct platform_device *pdev)
 	/* parse the plugin, firmware, widget names and params */
 	for (i = 0; i < adsp_app_count; i++) {
 		memset((void *)plugin_info, '\0', 20);
-		sprintf(plugin_info, "plugin-info-%d", i+1);
+		if ((sprintf(plugin_info, "plugin-info-%u", i+1)) < 0)
+			return -EINVAL;
 		subnp = of_get_child_by_name(np, plugin_info);
 		if (subnp) {
 			if (of_property_read_string(subnp, "plugin-name",

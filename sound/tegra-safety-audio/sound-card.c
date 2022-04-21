@@ -656,7 +656,8 @@ static int t234_safety_audio_probe(struct platform_device *pdev)
 		if (!enabled_i2s_mask[i])
 			continue;
 
-		sprintf(name, I2S_DT_NODE, I2S_NODE_START_INDEX + i);
+		if ((sprintf(name, I2S_DT_NODE, I2S_NODE_START_INDEX + i)) < 0)
+			return -EINVAL;
 		ret = snd_pcm_new(card, name, pcm_instance++, 1, 1, &pcm);
 		if (ret < 0) {
 			pr_alert("Could not register i2s pcm, ret: %d\n", ret);
