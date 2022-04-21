@@ -280,7 +280,7 @@ struct core_ops {
 			       struct osi_core_ptp_tsc_data *data);
 #ifdef HSI_SUPPORT
 	/** Interface function called to initialize HSI */
-	void (*core_hsi_configure)(struct osi_core_priv_data *const osi_core,
+	int (*core_hsi_configure)(struct osi_core_priv_data *const osi_core,
 				   const nveu32_t enable);
 #endif
 };

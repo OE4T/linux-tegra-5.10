@@ -1714,8 +1714,10 @@ static void eqos_configure_rxq_priority(
  * @param[in, out] osi_core: OSI core private data structure.
  * @param[in] enable: OSI_ENABLE for enabling HSI feature, else disable
  *
+ * @retval 0 on success
+ * @retval -1 on failure
  */
-static void eqos_hsi_configure(struct osi_core_priv_data *const osi_core,
+static int eqos_hsi_configure(struct osi_core_priv_data *const osi_core,
 			       const nveu32_t enable)
 {
 	nveu32_t value;
@@ -1841,6 +1843,7 @@ static void eqos_hsi_configure(struct osi_core_priv_data *const osi_core,
 		osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
 			    EQOS_WRAP_COMMON_INTR_ENABLE);
 	}
+	return 0;
 }
 #endif
 /**

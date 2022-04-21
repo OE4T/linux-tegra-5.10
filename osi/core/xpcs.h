@@ -127,7 +127,7 @@
 
 int xpcs_init(struct osi_core_priv_data *osi_core);
 int xpcs_start(struct osi_core_priv_data *osi_core);
-int xpcs_eee(void *xpcs_base, unsigned int en_dis);
+int xpcs_eee(struct osi_core_priv_data *osi_core, unsigned int en_dis);
 
 /**
  * @brief xpcs_read - read from xpcs.
@@ -148,7 +148,7 @@ static inline unsigned int xpcs_read(void *xpcs_base, unsigned int reg_addr)
 }
 
 /**
- * @brief xpcs_read - write to xpcs.
+ * @brief xpcs_write - write to xpcs.
  *
  * Algorithm: This routine writes data to XPCS register.
  *
@@ -163,5 +163,41 @@ static inline void xpcs_write(void *xpcs_base, unsigned int reg_addr,
 		   ((unsigned char *)xpcs_base + XPCS_ADDRESS));
 	osi_writel(val, (unsigned char *)xpcs_base +
 		   (((reg_addr) & XPCS_REG_VALUE_MASK)));
+}
+
+/**
+ * @brief xpcs_write_safety - write to xpcs.
+ *
+ * Algorithm: This routine writes data to XPCS register.
+ * And verifiy by reading back the value
+ *
+ * @param[in] osi_core: OSI core data structure
+ * @param[in] reg_addr: register address for writing
+ * @param[in] val: write value to register address
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ *
+ */
+static inline int xpcs_write_safety(struct osi_core_priv_data *osi_core,
+				    unsigned int reg_addr,
+				    unsigned int val)
+{
+	void *xpcs_base = osi_core->xpcs_base;
+	unsigned int read_val;
+	int retry = 10;
+
+	while (--retry > 0) {
+		xpcs_write(xpcs_base, reg_addr, val);
+		read_val = xpcs_read(xpcs_base, reg_addr);
+		if (val == read_val) {
+			return 0;
+		}
+		osi_core->osd_ops.udelay(OSI_DELAY_1US);
+	}
+
+	OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+		     "xpcs_write_safety failed", reg_addr);
+	return -1;
 }
 #endif
