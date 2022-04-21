@@ -2572,12 +2572,14 @@ static int mgbe_config_flow_control(struct osi_core_priv_data *const osi_core,
  * @param[in, out] osi_core: OSI core private data structure.
  * @param[in] enable: OSI_ENABLE for Enabling HSI feature, else disable
  *
+ * @retval 0 on success
+ * @retval -1 on failure
  */
-static void mgbe_hsi_configure(struct osi_core_priv_data *const osi_core,
+static int mgbe_hsi_configure(struct osi_core_priv_data *const osi_core,
 			       const nveu32_t enable)
 {
 	nveu32_t value = 0U;
-	void *xpcs_base = osi_core->xpcs_base;
+	int ret = 0;
 
 	if (enable == OSI_ENABLE) {
 		osi_core->hsi.enabled = OSI_ENABLE;
@@ -2585,13 +2587,17 @@ static void mgbe_hsi_configure(struct osi_core_priv_data *const osi_core,
 
 		/* T23X-MGBE_HSIv2-10 Enable PCS ECC */
 		value = (EN_ERR_IND | FEC_EN);
-		xpcs_write(xpcs_base, XPCS_BASE_PMA_MMD_SR_PMA_KR_FEC_CTRL, value);
-
+		ret = xpcs_write_safety(osi_core, XPCS_BASE_PMA_MMD_SR_PMA_KR_FEC_CTRL, value);
+		if (ret != 0) {
+			return ret;
+		}
 		/* T23X-MGBE_HSIv2-12:Initialization of Transaction Timeout in PCS */
 		/* T23X-MGBE_HSIv2-11:Initialization of Watchdog Timer */
 		value = (0xCCU << XPCS_SFTY_1US_MULT_SHIFT) & XPCS_SFTY_1US_MULT_MASK;
-		xpcs_write(xpcs_base, XPCS_VR_XS_PCS_SFTY_TMR_CTRL, value);
-
+		ret = xpcs_write_safety(osi_core, XPCS_VR_XS_PCS_SFTY_TMR_CTRL, value);
+		if (ret != 0) {
+			return ret;
+		}
 		/* T23X-MGBE_HSIv2-1 Configure ECC */
 		value = osi_readla(osi_core,
 				   (nveu8_t *)osi_core->base + MGBE_MTL_ECC_CONTROL);
@@ -2670,11 +2676,15 @@ static void mgbe_hsi_configure(struct osi_core_priv_data *const osi_core,
 		osi_core->hsi.enabled = OSI_DISABLE;
 
 		/* T23X-MGBE_HSIv2-10 Disable PCS ECC */
-		xpcs_write(xpcs_base, XPCS_BASE_PMA_MMD_SR_PMA_KR_FEC_CTRL, 0);
-
+		ret = xpcs_write_safety(osi_core, XPCS_BASE_PMA_MMD_SR_PMA_KR_FEC_CTRL, 0);
+		if (ret != 0) {
+			return ret;
+		}
 		/* T23X-MGBE_HSIv2-11:Deinitialization of Watchdog Timer */
-		xpcs_write(xpcs_base, XPCS_VR_XS_PCS_SFTY_TMR_CTRL, 0);
-
+		ret = xpcs_write_safety(osi_core, XPCS_VR_XS_PCS_SFTY_TMR_CTRL, 0);
+		if (ret != 0) {
+			return ret;
+		}
 		/* T23X-MGBE_HSIv2-1 Disable ECC */
 		value = osi_readla(osi_core,
 				   (nveu8_t *)osi_core->base + MGBE_MTL_ECC_CONTROL);
@@ -2732,6 +2742,7 @@ static void mgbe_hsi_configure(struct osi_core_priv_data *const osi_core,
 		osi_writela(osi_core, value, (nveu8_t *)osi_core->xpcs_base +
 			    XPCS_WRAP_INTERRUPT_CONTROL);
 	}
+	return ret;
 }
 #endif
 
@@ -4250,11 +4261,11 @@ static void mgbe_handle_hsi_intr(struct osi_core_priv_data *osi_core)
 		/* Clear status register for PCS error */
 		val = xpcs_read(xpcs_base, XPCS_VR_XS_PCS_SFTY_UE_INTR0);
 		if (val != 0U) {
-			xpcs_write(xpcs_base, XPCS_VR_XS_PCS_SFTY_UE_INTR0, 0);
+			(void)xpcs_write_safety(osi_core, XPCS_VR_XS_PCS_SFTY_UE_INTR0, 0);
 		}
 		val = xpcs_read(xpcs_base, XPCS_VR_XS_PCS_SFTY_CE_INTR);
 		if (val != 0U) {
-			xpcs_write(xpcs_base, XPCS_VR_XS_PCS_SFTY_CE_INTR, 0);
+			(void)xpcs_write_safety(osi_core, XPCS_VR_XS_PCS_SFTY_CE_INTR, 0);
 		}
 	}
 }
@@ -5258,7 +5269,7 @@ static void mgbe_configure_eee(struct osi_core_priv_data *osi_core,
 	unsigned int tic_counter = 0;
 	void *addr =  osi_core->base;
 
-	if (xpcs_eee(osi_core->xpcs_base, tx_lpi_enabled) != 0) {
+	if (xpcs_eee(osi_core, tx_lpi_enabled) != 0) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "xpcs_eee call failed\n", 0ULL);
 		return;
