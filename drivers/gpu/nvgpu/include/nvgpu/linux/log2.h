@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2017-2022, NVIDIA CORPORATION.  All rights reserved.
+/* SPDX-License-Identifier: MIT
+ * Copyright (c) 2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,13 +19,28 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_LOG2_H
-#define NVGPU_LOG2_H
 
-#ifdef __KERNEL__
-#include <nvgpu/linux/log2.h>
-#else
-#include <nvgpu/posix/log2.h>
+#ifndef __LOG2_LINUX_H__
+#define __LOG2_LINUX_H__
+
+#include <linux/log2.h>
+
+/**
+ * @brief Integer logarithm for base 2.
+ *
+ * Calculates the log to the base 2 of input value \a x and returns the
+ * integer value of the same.
+ * Macro performs validation of the parameter.
+ *
+ * @param x [in]	The number to get the log for.
+ *
+ * @return Integer value of log to the base 2 of input \a x.
+ */
+
+#define nvgpu_ilog2(x)	({	\
+				unsigned long result;	\
+				nvgpu_assert(x > 0ULL);	\
+				result = nvgpu_safe_cast_s32_to_u64(ilog2(x));	\
+				result;				\
+			})
 #endif
-
-#endif /* NVGPU_LOG2_H */

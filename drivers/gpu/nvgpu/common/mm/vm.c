@@ -1272,11 +1272,16 @@ static int nvgpu_vm_do_map(struct vm_gk20a *vm,
 	 * Figure out the kind and ctag offset for the GMMU page tables
 	 */
 	if (binfo_ptr->compr_kind != NVGPU_KIND_INVALID && ctag_offset != 0U) {
+
+		u64 compression_page_size = g->ops.fb.compression_page_size(g);
+
+		nvgpu_assert(compression_page_size > 0ULL);
+
 		/*
 		 * Adjust the ctag_offset as per the buffer map offset
 		 */
 		ctag_offset += (u32)(phys_offset >>
-			ilog2(g->ops.fb.compression_page_size(g)));
+			nvgpu_ilog2(compression_page_size));
 		nvgpu_assert((binfo_ptr->compr_kind >= 0) &&
 			     (binfo_ptr->compr_kind <= (s16)U8_MAX));
 		pte_kind = (u8)binfo_ptr->compr_kind;

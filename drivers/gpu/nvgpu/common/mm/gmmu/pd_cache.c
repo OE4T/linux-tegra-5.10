@@ -52,8 +52,12 @@ nvgpu_pd_mem_entry_from_tree_entry(struct nvgpu_rbtree_node *node)
 
 static u32 nvgpu_pd_cache_nr(u32 bytes)
 {
-	unsigned long tmp = ilog2((unsigned long)bytes >>
-			((unsigned long)NVGPU_PD_CACHE_MIN_SHIFT - 1UL));
+	unsigned long bytes_shift = (unsigned long)bytes >>
+			((unsigned long)NVGPU_PD_CACHE_MIN_SHIFT - 1UL);
+	unsigned long tmp;
+
+	nvgpu_assert(bytes_shift > 0UL);
+	tmp = nvgpu_ilog2(bytes_shift);
 
 	nvgpu_assert(tmp <= U32_MAX);
 	return (u32)tmp;

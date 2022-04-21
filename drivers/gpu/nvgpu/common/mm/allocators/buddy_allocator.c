@@ -96,7 +96,7 @@ static u32 nvgpu_balloc_page_size_to_pte_size(struct nvgpu_buddy_allocator *a,
  */
 static void balloc_compute_max_order(struct nvgpu_buddy_allocator *a)
 {
-	u64 true_max_order = ilog2(a->blks);
+	u64 true_max_order = nvgpu_ilog2(a->blks);
 
 	if (true_max_order > GPU_BALLOC_MAX_ORDER) {
 		alloc_dbg(balloc_owner(a),
@@ -113,15 +113,25 @@ static void balloc_compute_max_order(struct nvgpu_buddy_allocator *a)
  * Since we can only allocate in chucks of a->blk_size we need to trim off
  * any excess data that is not aligned to a->blk_size.
  */
-static void balloc_allocator_align(struct nvgpu_buddy_allocator *a)
+static int balloc_allocator_align(struct nvgpu_buddy_allocator *a)
 {
+	int err = 0;
+	u64 blks;
 	a->start = NVGPU_ALIGN(a->base, a->blk_size);
 	WARN_ON(a->start != a->base);
 	nvgpu_assert(a->blk_size > 0ULL);
 	a->end   = nvgpu_safe_add_u64(a->base, a->length) &
 						~(a->blk_size - 1U);
 	a->count = nvgpu_safe_sub_u64(a->end, a->start);
-	a->blks  = a->count >> a->blk_shift;
+	blks = a->count >> a->blk_shift;
+	if (blks == 0ULL) {
+		err = -EINVAL;
+		goto fail;
+	}
+	a->blks  = blks;
+
+fail:
+	return err;
 }
 
 /*
@@ -228,7 +238,7 @@ static u64 balloc_max_order_in(struct nvgpu_buddy_allocator *a,
 	u64 size = nvgpu_safe_sub_u64(end, start) >> a->blk_shift;
 
 	if (size > 0U) {
-		return min_t(u64, ilog2(size), a->max_order);
+		return min_t(u64, nvgpu_ilog2(size), a->max_order);
 	} else {
 		return GPU_BALLOC_MAX_ORDER;
 	}
@@ -1506,7 +1516,10 @@ int nvgpu_buddy_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 		goto fail;
 	}
 
-	balloc_allocator_align(a);
+	err = balloc_allocator_align(a);
+	if (err != 0) {
+		goto fail;
+	}
 	balloc_compute_max_order(a);
 
 	a->buddy_cache = nvgpu_kmem_cache_create(g, sizeof(struct nvgpu_buddy));

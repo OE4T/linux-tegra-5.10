@@ -20,6 +20,7 @@
 #include <uapi/linux/nvgpu.h>
 
 #include <nvgpu/log.h>
+#include<nvgpu/log2.h>
 #include <nvgpu/lock.h>
 #include <nvgpu/rbtree.h>
 #include <nvgpu/vm_area.h>
@@ -468,6 +469,7 @@ int nvgpu_vm_mapping_modify(struct vm_gk20a *vm,
 	u32 page_size;
 	u64 ctag_offset;
 	s16 kind = NV_KIND_INVALID;
+	u64 compression_page_size;
 
 	nvgpu_mutex_acquire(&vm->update_gmmu_lock);
 
@@ -528,8 +530,12 @@ int nvgpu_vm_mapping_modify(struct vm_gk20a *vm,
 	}
 
 	ctag_offset = mapped_buffer->ctag_offset;
+
+	compression_page_size = g->ops.fb.compression_page_size(g);
+	nvgpu_assert(compression_page_size > 0ULL);
+
 	ctag_offset += (u32)(buffer_offset >>
-			ilog2(g->ops.fb.compression_page_size(g)));
+			nvgpu_ilog2(compression_page_size));
 
 	if (g->ops.mm.gmmu.map(vm,
 				map_address + buffer_offset,

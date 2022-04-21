@@ -379,7 +379,7 @@ u32 gm20b_pbdma_get_gp_base_hi(u64 gpfifo_base, u32 gpfifo_entry)
 {
 	return 	(pbdma_gp_base_hi_offset_f(u64_hi32(gpfifo_base)) |
 		pbdma_gp_base_hi_limit2_f(
-			nvgpu_safe_cast_u64_to_u32(ilog2(gpfifo_entry))));
+			nvgpu_safe_cast_u64_to_u32(nvgpu_ilog2(gpfifo_entry))));
 }
 
 u32 gm20b_pbdma_get_fc_subdevice(void)

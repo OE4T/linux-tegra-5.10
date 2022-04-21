@@ -125,12 +125,9 @@ static void update_pte(struct vm_gk20a *vm,
 	u64 compression_page_size;
 
 	compression_page_size = g->ops.fb.compression_page_size(g);
+	nvgpu_assert(compression_page_size > 0ULL);
 
-	if (compression_page_size == 0ULL) {
-		nvgpu_err(g, "compression_page_size is 0");
-	} else {
-		ctag_shift = (u32)ilog2(compression_page_size);
-	}
+	ctag_shift = (u32)nvgpu_ilog2(compression_page_size);
 #endif
 
 	pte_w[0] = pte_valid | addr;
@@ -192,12 +189,9 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 	u32 ctag_shift = 0;
 
 	compression_page_size = g->ops.fb.compression_page_size(g);
+	nvgpu_assert(compression_page_size > 0ULL);
 
-	if (compression_page_size == 0ULL) {
-		nvgpu_err(g, "compression_page_size is 0");
-	} else {
-		ctag_shift = (u32)ilog2(compression_page_size);
-	}
+	ctag_shift = (u32)nvgpu_ilog2(compression_page_size);
 #endif
 
 	if (phys_addr != 0ULL) {

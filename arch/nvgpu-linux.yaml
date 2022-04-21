@@ -261,6 +261,7 @@ headers:
              include/nvgpu/linux/soc_fuse.h,
              include/nvgpu/linux/thread.h,
              include/nvgpu/linux/log.h,
+             include/nvgpu/linux/log2.h,
              include/nvgpu/linux/utils.h,
              include/nvgpu/linux/vm.h,
              include/nvgpu/linux/vm_remap.h ]

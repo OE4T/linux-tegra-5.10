@@ -36,7 +36,7 @@
  *
  * @return Integer value of log to the base 2 of input \a x.
  */
-#define ilog2(x)	({						\
+#define nvgpu_ilog2(x)	({						\
 				unsigned long fls_val =	nvgpu_fls(x);	\
 									\
 				nvgpu_assert(fls_val > 0ULL);		\

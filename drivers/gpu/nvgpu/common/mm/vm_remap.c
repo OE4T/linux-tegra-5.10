@@ -27,6 +27,7 @@
 #include <nvgpu/comptags.h>
 #include <nvgpu/string.h>
 #include <nvgpu/power_features/pg.h>
+#include<nvgpu/log2.h>
 
 /*
  * Return a pointer to the os-specific structure for the specified physical
@@ -357,6 +358,7 @@ static u64 nvgpu_vm_remap_get_ctag_offset(struct vm_gk20a *vm,
 	u64 page_size = nvgpu_vm_remap_page_size(op);
 	u64 phys_offset = nvgpu_safe_mult_u64(op->mem_offset_in_pages,
 					page_size);
+	u64 compression_page_size;
 
 	gk20a_get_comptags(os_buf, &comptags);
 
@@ -366,9 +368,13 @@ static u64 nvgpu_vm_remap_get_ctag_offset(struct vm_gk20a *vm,
 
 	if (op->compr_kind != NVGPU_KIND_INVALID) {
 		*kind = op->compr_kind;
+		compression_page_size = g->ops.fb.compression_page_size(g);
+
+		nvgpu_assert(compression_page_size > 0ULL);
+
 		if (ctag != 0) {
 			ctag_offset = ctag + (phys_offset >>
-				ilog2(g->ops.fb.compression_page_size(g)));
+				nvgpu_ilog2(compression_page_size));
 		} else {
 			ctag_offset = 0;
 		}
@@ -727,6 +733,7 @@ int nvgpu_vm_remap_vpool_create(struct vm_gk20a *vm,
 	struct gk20a *g = gk20a_from_vm(vm);
 	struct nvgpu_vm_remap_vpool *vp;
 	u64 start_page_nr = 0;
+	u32 gmmu_page_size;
 
 	if ((num_pages == 0ULL) ||
 		((vm_area->flags & NVGPU_VM_AREA_ALLOC_SPARSE) == 0U)) {
@@ -737,9 +744,11 @@ int nvgpu_vm_remap_vpool_create(struct vm_gk20a *vm,
 	if (vp == NULL) {
 		return -ENOMEM;
 	}
+	gmmu_page_size = vm->gmmu_page_sizes[vm_area->pgsz_idx];
+	nvgpu_assert(gmmu_page_size > 0U);
 
 	start_page_nr = vm_area->addr >>
-		ilog2(vm->gmmu_page_sizes[vm_area->pgsz_idx]);
+		nvgpu_ilog2(gmmu_page_size);
 
 	vp->base_offset_in_pages = start_page_nr;
 	vp->num_pages = num_pages;
