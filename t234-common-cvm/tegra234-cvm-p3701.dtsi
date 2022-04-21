@@ -85,27 +85,27 @@
 		status = "okay";
 	};
 
-	aon-en@C600000 {
+	aon-fabric@C600000 {
 		status = "okay";
 	};
 
-	cbb-en@1300000 {
+	cbb-fabric@1300000 {
 		status = "okay";
 	};
 
-	bpmp-en@D600000 {
+	bpmp-fabric@D600000 {
 		status = "okay";
 	};
 
-	dce-en@BE00000 {
+	dce-fabric@BE00000 {
 		status = "okay";
 	};
 
-	rce-en@BE00000 {
+	rce-fabric@BE00000 {
 		status = "okay";
 	};
 
-	sce-en@B600000 {
+	sce-fabric@B600000 {
 		status = "okay";
 	};
 
