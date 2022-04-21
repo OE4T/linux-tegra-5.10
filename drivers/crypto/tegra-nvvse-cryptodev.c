@@ -193,7 +193,8 @@ static int tnvvse_crypto_sha_init(struct tnvvse_crypto_ctx *ctx,
 	int ret = -ENOMEM;
 	char *result_buff = NULL;
 
-	if (init_ctl->sha_type >= TEGRA_NVVSE_SHA_TYPE_MAX) {
+	if (init_ctl->sha_type < TEGRA_NVVSE_SHA_TYPE_SHA256  ||
+			init_ctl->sha_type >= TEGRA_NVVSE_SHA_TYPE_MAX) {
 		pr_err("%s(): SHA Type requested %d is not supported\n",
 					__func__, init_ctl->sha_type);
 		return -EINVAL;
@@ -522,7 +523,8 @@ static int tnvvse_crypto_aes_cmac_sign_verify(struct tnvvse_crypto_ctx *ctx,
 		priv_data.request_type = CMAC_SIGN;
 	else
 		priv_data.request_type = CMAC_VERIFY;
-	ret = snprintf(key_as_keyslot, AES_KEYSLOT_NAME_SIZE, "NVSEAES %x", aes_cmac_ctl->key_slot);
+	ret = snprintf(key_as_keyslot, AES_KEYSLOT_NAME_SIZE, "NVSEAES %x",
+						aes_cmac_ctl->key_slot);
 	if (ret >= AES_KEYSLOT_NAME_SIZE) {
 		pr_err("%s(): Buffer overflow while setting key for cmac-vse(aes): %d\n",
 						__func__, ret);
@@ -664,7 +666,14 @@ static int tnvvse_crypto_aes_cmac(struct tnvvse_crypto_ctx *ctx,
 
 	crypto_ahash_clear_flags(tfm, ~0);
 
-	snprintf(key_as_keyslot, AES_KEYSLOT_NAME_SIZE, "NVSEAES %x", aes_cmac_ctl->key_slot);
+	ret = snprintf(key_as_keyslot, AES_KEYSLOT_NAME_SIZE, "NVSEAES %x", aes_cmac_ctl->key_slot);
+	if (ret >= AES_KEYSLOT_NAME_SIZE) {
+		pr_err("%s(): Buffer overflow while preparing key for cmac-vse(aes): %d\n",
+					__func__, ret);
+		ret = -EINVAL;
+		goto free_xbuf;
+	}
+
 	klen = strlen(key_as_keyslot);
 	ret = crypto_ahash_setkey(tfm, key_as_keyslot, klen);
 	if (ret) {
@@ -1019,7 +1028,15 @@ static int tnvvse_crypto_aes_set_key(struct tnvvse_crypto_ctx *ctx,
 
 	crypto_ahash_clear_flags(tfm, ~0);
 
-	snprintf(key_as_keyslot, AES_KEYSLOT_NAME_SIZE, "NVSEAES %x", aes_set_key_ctl->key_slot_number);
+	ret = snprintf(key_as_keyslot, AES_KEYSLOT_NAME_SIZE, "NVSEAES %x",
+					aes_set_key_ctl->key_slot_number);
+	if (ret >= AES_KEYSLOT_NAME_SIZE) {
+		pr_err("%s(): Buffer overflow while preparing key for cmac-vse(aes): %d\n",
+					__func__, ret);
+		ret = -EINVAL;
+		goto out;
+	}
+
 	klen = strlen(key_as_keyslot);
 	ret = crypto_ahash_setkey(tfm, key_as_keyslot, klen);
 	if (ret) {
@@ -1096,7 +1113,15 @@ static int tnvvse_crypto_aes_enc_dec(struct tnvvse_crypto_ctx *ctx,
 	crypto_skcipher_clear_flags(tfm, ~0);
 
 	if (!aes_enc_dec_ctl->skip_key) {
-		snprintf(key_as_keyslot, AES_KEYSLOT_NAME_SIZE, "NVSEAES %x", aes_enc_dec_ctl->key_slot);
+		ret = snprintf(key_as_keyslot, AES_KEYSLOT_NAME_SIZE, "NVSEAES %x",
+			       aes_enc_dec_ctl->key_slot);
+		if (ret >= AES_KEYSLOT_NAME_SIZE) {
+			pr_err("%s(): Buffer overflow while preparing key for %s: %d\n",
+						__func__, aes_algo[aes_enc_dec_ctl->aes_mode], ret);
+			ret = -EINVAL;
+			goto free_req;
+		}
+
 		klen = strlen(key_as_keyslot);
 		if(klen != 16) {
 			pr_err("%s(): key length is invalid, length %d, key %s\n", __func__, klen, key_as_keyslot);
@@ -1330,10 +1355,10 @@ static int tnvvse_crypto_aes_enc_dec_gcm(struct tnvvse_crypto_ctx *ctx,
 
 	driver_name = crypto_tfm_alg_driver_name(crypto_aead_tfm(tfm));
 	if (driver_name == NULL) {
-		pr_err("%s(): Failed to get driver name for gcm(aes)\n", __func__);
+		pr_err("%s(): Failed to get driver name for gcm-vse(aes)\n", __func__);
 		goto free_req;
 	}
-	pr_debug("%s(): The aead driver name is %s for gcm(aes)\n",
+	pr_debug("%s(): The aead driver name is %s for gcm-vse(aes)\n",
 						__func__, driver_name);
 
 	if ((aes_enc_dec_ctl->key_length != TEGRA_CRYPTO_KEY_128_SIZE) &&
@@ -1353,8 +1378,14 @@ static int tnvvse_crypto_aes_enc_dec_gcm(struct tnvvse_crypto_ctx *ctx,
 	crypto_aead_clear_flags(tfm, ~0);
 
 	if (!aes_enc_dec_ctl->skip_key) {
-		snprintf(key_as_keyslot, AES_KEYSLOT_NAME_SIZE, "NVSEAES %x",
+		ret = snprintf(key_as_keyslot, AES_KEYSLOT_NAME_SIZE, "NVSEAES %x",
 				aes_enc_dec_ctl->key_slot);
+		if (ret >= AES_KEYSLOT_NAME_SIZE) {
+			pr_err("%s(): Buffer overflow while preparing key for gcm(aes): %d\n",
+						__func__, ret);
+			ret = -EINVAL;
+			goto free_req;
+		}
 
 		ret = crypto_aead_setkey(tfm, key_as_keyslot, aes_enc_dec_ctl->key_length);
 		if (ret < 0) {
