@@ -111,8 +111,8 @@
 			compatible = "nvidia,ccgx-ucsi";
 			ccgx,firmware-build = "gn";
 			reg = <0x08>;
-			interrupt-parent = <&tegra_aon_gpio>;
-			interrupts = <TEGRA234_AON_GPIO(BB, 2) IRQ_TYPE_LEVEL_LOW>;
+			interrupt-parent = <&tegra_main_gpio>;
+			interrupts = <TEGRA234_MAIN_GPIO(Y, 4) IRQ_TYPE_LEVEL_LOW>;
 			interrupt-names = "wakeup";
 			wakeup-source;
 			ccg_typec_con0: connector@0 {
