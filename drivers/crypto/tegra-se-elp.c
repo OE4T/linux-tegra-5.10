@@ -1659,7 +1659,7 @@ static void tegra_se_read_pka1_mod_result(struct tegra_se_pka1_mod_request *req)
 		for (i = 0; i < req->size / 4; i++) {
 			val = se_elp_readl(se_dev, PKA1, reg_bank_offset(
 					BANK_A, 0, req->op_mode) + (i * 4));
-			*RES = le32_to_cpu(val);
+			*RES = le32_to_cpu((__force __le32)val);
 			RES++;
 		}
 	} else if (req->type == MOD_DIV || req->type == MOD_INV ||
@@ -1667,7 +1667,7 @@ static void tegra_se_read_pka1_mod_result(struct tegra_se_pka1_mod_request *req)
 		for (i = 0; i < req->size / 4; i++) {
 			val = se_elp_readl(se_dev, PKA1, reg_bank_offset(
 					BANK_C, 0, req->op_mode) + (i * 4));
-			*RES = le32_to_cpu(val);
+			*RES = le32_to_cpu((__force __le32)val);
 			RES++;
 		}
 	} else if (req->type == NON_MOD_MULT) {
@@ -1676,7 +1676,7 @@ static void tegra_se_read_pka1_mod_result(struct tegra_se_pka1_mod_request *req)
 					reg_bank_offset(BANK_C,
 							0,
 							req->op_mode) + (i*4));
-			*RX = le32_to_cpu(val);
+			*RX = le32_to_cpu((__force __le32)val);
 			RX++;
 		}
 		for (i = 0; i < req->size/4; i++) {
@@ -1684,7 +1684,7 @@ static void tegra_se_read_pka1_mod_result(struct tegra_se_pka1_mod_request *req)
 					reg_bank_offset(BANK_C,
 							1,
 							req->op_mode) + (i*4));
-			*RY = le32_to_cpu(val);
+			*RY = le32_to_cpu((__force __le32)val);
 			RY++;
 		}
 	}
