@@ -66,6 +66,7 @@
 
 #define TEGRA_VIRTUAL_SE_CMD_AES_SET_KEY			0xF1
 #define TEGRA_VIRTUAL_SE_CMD_AES_ALLOC_KEY			0xF0
+#define TEGRA_VIRTUAL_SE_CMD_AES_ENCRYPT_INIT		0x20
 #define TEGRA_VIRTUAL_SE_CMD_AES_ENCRYPT			0x21
 #define TEGRA_VIRTUAL_SE_CMD_AES_DECRYPT			0x22
 #define TEGRA_VIRTUAL_SE_CMD_AES_CMAC				0x23
@@ -1561,6 +1562,55 @@ static int status_to_errno(u32 err)
 	return err;
 }
 
+static int tegra_hv_vse_safety_aes_gen_random_iv(
+		struct tegra_virtual_se_dev *se_dev,
+		struct skcipher_request *req,
+		struct tegra_vse_priv_data *priv,
+		struct tegra_virtual_se_ivc_msg_t *ivc_req_msg)
+{
+	struct tegra_virtual_se_ivc_tx_msg_t *ivc_tx = &ivc_req_msg->tx[0];
+	struct tegra_hv_ivc_cookie *pivck = g_ivck;
+	union tegra_virtual_se_aes_args *aes = &ivc_tx->aes;
+	struct tegra_virtual_se_aes_context *aes_ctx;
+	int err = 0;
+	int time_left;
+
+	ivc_tx->cmd = TEGRA_VIRTUAL_SE_CMD_AES_ENCRYPT_INIT;
+	priv->cmd = VIRTUAL_SE_PROCESS;
+	aes_ctx = crypto_skcipher_ctx(crypto_skcipher_reqtfm(req));
+	aes->op.keyslot = aes_ctx->aes_keyslot;
+	aes->op.key_length = aes_ctx->keylen;
+
+	init_completion(&priv->alg_complete);
+	mutex_lock(&se_dev->server_lock);
+	err = tegra_hv_vse_safety_send_ivc(se_dev, pivck, ivc_req_msg,
+			sizeof(struct tegra_virtual_se_ivc_msg_t));
+	if (err) {
+		dev_err(se_dev->dev,
+				"\n %s send ivc failed %d\n", __func__, err);
+		mutex_unlock(&se_dev->server_lock);
+		return err;
+	}
+	time_left = wait_for_completion_timeout(&priv->alg_complete,
+			TEGRA_HV_VSE_TIMEOUT);
+	if (time_left == 0) {
+		dev_err(se_dev->dev, "%s timeout\n", __func__);
+		err = -ETIMEDOUT;
+		mutex_unlock(&se_dev->server_lock);
+		return err;
+	}
+	mutex_unlock(&se_dev->server_lock);
+
+	err = status_to_errno(priv->rx_status);
+
+	if (err) {
+		dev_err(se_dev->dev,
+			"\n %s IV generation failed %d\n", __func__, err);
+	}
+
+	return err;
+}
+
 static int tegra_hv_vse_safety_process_aes_req(struct tegra_virtual_se_dev *se_dev,
 		struct skcipher_request *req)
 {
@@ -1624,12 +1674,6 @@ static int tegra_hv_vse_safety_process_aes_req(struct tegra_virtual_se_dev *se_d
 		goto exit;
 	}
 
-	tegra_hv_vse_safety_prepare_cmd(se_dev, ivc_tx, req_ctx, aes_ctx, req);
-	aes->op.src_addr.lo = priv->buf_addr;
-	aes->op.src_addr.hi = req->cryptlen;
-	aes->op.dst_addr.lo = priv->buf_addr;
-	aes->op.dst_addr.hi = req->cryptlen;
-
 	ivc_hdr = &ivc_req_msg->ivc_hdr;
 	//Currently we support only one request per IVC message
 	ivc_hdr->num_reqs = 1U;
@@ -1641,10 +1685,31 @@ static int tegra_hv_vse_safety_process_aes_req(struct tegra_virtual_se_dev *se_d
 
 	priv_data_ptr = (struct tegra_vse_tag *)ivc_hdr->tag;
 	priv_data_ptr->priv_data = (unsigned int *)priv;
-	priv->cmd = VIRTUAL_SE_AES_CRYPTO;
 	priv->se_dev = se_dev;
-
 	vse_thread_start = true;
+
+	/*
+	 * If first byte of iv is 1 and the request is for AES CBC/CTR encryption,
+	 * it means that generation of random IV is required.
+	 */
+	if (req_ctx->encrypt &&
+			(req_ctx->op_mode == AES_CBC ||
+			req_ctx->op_mode == AES_CTR) &&
+			req->iv[0] == 1) {
+		//Random IV generation is required
+		err = tegra_hv_vse_safety_aes_gen_random_iv(se_dev, req,
+				priv, ivc_req_msg);
+		if (err)
+			goto exit;
+	}
+	priv->cmd = VIRTUAL_SE_AES_CRYPTO;
+
+	tegra_hv_vse_safety_prepare_cmd(se_dev, ivc_tx, req_ctx, aes_ctx, req);
+	aes->op.src_addr.lo = priv->buf_addr;
+	aes->op.src_addr.hi = req->cryptlen;
+	aes->op.dst_addr.lo = priv->buf_addr;
+	aes->op.dst_addr.hi = req->cryptlen;
+
 	init_completion(&priv->alg_complete);
 	mutex_lock(&se_dev->server_lock);
 	err = tegra_hv_vse_safety_send_ivc(se_dev, pivck, ivc_req_msg,
@@ -1724,6 +1789,13 @@ static int tegra_hv_vse_safety_aes_cbc_encrypt(struct skcipher_request *req)
 
 	if (!req) {
 		pr_err("NULL req received by %s", __func__);
+		return -EINVAL;
+	}
+	if (unlikely(!req->iv)) {
+		/* If IV is not set we cannot determine whether
+		 * random IV generation is required.
+		 */
+		pr_err("%s: Unable to determine if random IV generation is needed\n", __func__);
 		return -EINVAL;
 	}
 	req_ctx = skcipher_request_ctx(req);
@@ -1820,6 +1892,13 @@ static int tegra_hv_vse_safety_aes_ctr_encrypt(struct skcipher_request *req)
 
 	if (!req) {
 		pr_err("NULL req received by %s", __func__);
+		return -EINVAL;
+	}
+	if (unlikely(!req->iv)) {
+		/* If IV is not set we cannot determine whether
+		 * random IV generation is required.
+		 */
+		pr_err("%s: Unable to determine if random IV generation is needed\n", __func__);
 		return -EINVAL;
 	}
 	req_ctx = skcipher_request_ctx(req);
@@ -2921,17 +3000,54 @@ static int tegra_vse_aes_gcm_enc_dec(struct aead_request *req, bool encrypt)
 	priv_data_ptr = (struct tegra_vse_tag *)ivc_hdr->tag;
 	priv_data_ptr->priv_data = (unsigned int *)priv;
 
-	if (encrypt)
-		priv->cmd = VIRTUAL_SE_AES_GCM_ENC_PROCESS;
-	else
-		priv->cmd = VIRTUAL_SE_PROCESS;
-
 	priv->se_dev = se_dev;
 
-	if (encrypt == true)
+	vse_thread_start = true;
+
+	ivc_tx->aes.op_gcm.keyslot = aes_ctx->aes_keyslot;
+	ivc_tx->aes.op_gcm.key_length = aes_ctx->keylen;
+
+	if (encrypt) {
+		/*
+		 * If first byte of iv is 1 and the request is for AES CBC/CTR encryption,
+		 * it means that generation of random IV is required.
+		 */
+		if (req->iv[0] == 1) {
+			//Random IV generation is required
+			ivc_tx->cmd = TEGRA_VIRTUAL_SE_CMD_AES_ENCRYPT_INIT;
+			priv->cmd = VIRTUAL_SE_PROCESS;
+			init_completion(&priv->alg_complete);
+			mutex_lock(&se_dev->server_lock);
+			err = tegra_hv_vse_safety_send_ivc(se_dev, pivck, ivc_req_msg,
+					sizeof(struct tegra_virtual_se_ivc_msg_t));
+			if (err) {
+				dev_err(se_dev->dev,
+						"\n %s send ivc failed %d\n", __func__, err);
+				mutex_unlock(&se_dev->server_lock);
+				goto free_exit;
+			}
+			time_left = wait_for_completion_timeout(&priv->alg_complete,
+					TEGRA_HV_VSE_TIMEOUT);
+			if (time_left == 0) {
+				dev_err(se_dev->dev, "%s timeout\n", __func__);
+				err = -ETIMEDOUT;
+				mutex_unlock(&se_dev->server_lock);
+				goto free_exit;
+			}
+			mutex_unlock(&se_dev->server_lock);
+			err = status_to_errno(priv->rx_status);
+			if (err) {
+				dev_err(se_dev->dev,
+					"\n %s IV generation failed %d\n", __func__, err);
+				goto free_exit;
+			}
+		}
+		priv->cmd = VIRTUAL_SE_AES_GCM_ENC_PROCESS;
 		ivc_tx->cmd = TEGRA_VIRTUAL_SE_CMD_AES_GCM_CMD_ENCRYPT;
-	else
+	} else {
+		priv->cmd = VIRTUAL_SE_PROCESS;
 		ivc_tx->cmd = TEGRA_VIRTUAL_SE_CMD_AES_GCM_CMD_DECRYPT;
+	}
 
 	if (!encrypt) {
 		/* copy iv for decryption*/
@@ -2942,9 +3058,6 @@ static int tegra_vse_aes_gcm_enc_dec(struct aead_request *req, bool encrypt)
 			ivc_tx->aes.op_gcm.expected_tag, TEGRA_VIRTUAL_SE_AES_GCM_TAG_SIZE,
 			req->assoclen + cryptlen);
 	}
-
-	ivc_tx->aes.op_gcm.keyslot = aes_ctx->aes_keyslot;
-	ivc_tx->aes.op_gcm.key_length = aes_ctx->keylen;
 
 	ivc_tx->aes.op_gcm.src_addr_hi = cryptlen;
 	ivc_tx->aes.op_gcm.dst_addr_hi = cryptlen;
@@ -2967,7 +3080,6 @@ static int tegra_vse_aes_gcm_enc_dec(struct aead_request *req, bool encrypt)
 		ivc_tx->aes.op_gcm.tag_addr_lo = tag_buf_addr;
 	}
 
-	vse_thread_start = true;
 	init_completion(&priv->alg_complete);
 	mutex_lock(&se_dev->server_lock);
 	/* Return error if engine is in suspended state */
@@ -3044,6 +3156,13 @@ static int tegra_vse_aes_gcm_encrypt(struct aead_request *req)
 
 	if (!req) {
 		dev_err(se_dev->dev, "%s: req is invalid\n", __func__);
+		return -EINVAL;
+	}
+	if (unlikely(!req->iv)) {
+		/* If IV is not set we cannot determine whether
+		 * random IV generation is required.
+		 */
+		pr_err("%s: Unable to determine if random IV generation is needed\n", __func__);
 		return -EINVAL;
 	}
 
