@@ -396,3 +396,10 @@ B:	Automotive-NvSciC2C
 S:	Supported
 F:	drivers/misc/nvscic2c-pcie/
 F:	include/uapi/misc/nvscic2c-pcie-ioctl.h
+
+HSIERRRPTINJ
+M:	Prasun Kumar <prasunk@nvidia.com>
+B:	Mobile_Linux_Kernel
+S:	Supported
+F:	drivers/platform/tegra/tegra-hsierrrptinj.c
+F:	include/linux/tegra-hsierrrptinj.h
