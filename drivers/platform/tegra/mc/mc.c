@@ -305,7 +305,7 @@ static void __iomem *tegra_mc_map_regs(struct platform_device *pdev, int device)
 	if (of_address_to_resource(pdev->dev.of_node, start, &res))
 		return NULL;
 
-	pr_info("mapped MMIO address: 0x%p -> 0x%lx\n",
+	pr_info("mapped MMIO address: 0x%px -> 0x%lx\n",
 		regs_start, (unsigned long)res.start);
 
 	return regs_start;
