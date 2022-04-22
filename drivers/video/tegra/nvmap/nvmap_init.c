@@ -852,8 +852,9 @@ int __init nvmap_init(struct platform_device *pdev)
 			    !of_device_is_compatible(it.node, "nvidia,ivm_carveout")) {
 				rmem2 = of_reserved_mem_lookup(it.node);
 				if (!rmem2) {
-					of_property_read_string(it.node, "compatible", &compp);
-					pr_err("unable to acquire memory-region: %s\n", compp);
+					if (!of_property_read_string(it.node, "compatible", &compp))
+						pr_err("unable to acquire memory-region: %s\n",
+							compp);
 					return -EINVAL;
 				}
 				nvmap_co_setup(rmem2);
