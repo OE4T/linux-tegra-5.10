@@ -894,6 +894,14 @@ long nvgpu_prof_fops_ioctl(struct file *filp, unsigned int cmd,
 	nvgpu_log(g, gpu_dbg_prof, "Profiler handle %u received IOCTL cmd %u",
 		prof->prof_handle, cmd);
 
+#ifdef CONFIG_NVGPU_DEBUGGER
+	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
+	if (g->dbg_powergating_disabled_refcount == 0) {
+		nvgpu_err(g, "powergate is not disabled");
+	}
+	nvgpu_mutex_release(&g->dbg_sessions_lock);
+#endif
+
 	nvgpu_mutex_acquire(&prof->ioctl_lock);
 
 	nvgpu_speculation_barrier();
