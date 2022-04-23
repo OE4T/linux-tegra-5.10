@@ -107,7 +107,10 @@ void print_segments_info(struct pva_elf_image *elf_img)
 int32_t pva_get_sym_offset(struct nvpva_elf_context *d, uint16_t exe_id,
 			   uint32_t sym_id, uint32_t *addr, uint32_t *size)
 {
-	if ((!pva_vpu_elf_is_registered(d, exe_id)) || (addr == NULL))
+	if ((!pva_vpu_elf_is_registered(d, exe_id))
+	   || (addr == NULL)
+	   || (size == NULL)
+	   || (sym_id >= get_elf_image(d, exe_id)->num_symbols))
 		return -EINVAL;
 
 	*addr = get_elf_image(d, exe_id)->sym[sym_id].addr;
