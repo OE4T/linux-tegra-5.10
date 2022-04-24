@@ -74,35 +74,43 @@ struct nvpva_buffers *nvpva_buffer_init(struct platform_device *pdev);
  *
  * @param nvpva_buffers		Pointer to nvpva_buffers struct
  * @param dmabufs		Pointer to dmabuffer list
+ * @param offset		pointer to offsets of regions to be pinned
+ * @param size			pointer to sizes of regions to be pinned
  * @param count			Number of memhandles in the list
  * @return			0 on success or negative on error
  *
  */
 int nvpva_buffer_pin(struct nvpva_buffers *nvpva_buffers,
-			struct dma_buf **dmabufs,
-			u32 count,
-			u32 *id);
-
+		     struct dma_buf **dmabufs,
+		     u64 *offset,
+		     u64 *size,
+		     u32 count,
+		     u32 *id);
 /**
  * @brief			UnPins the mapped address space.
  *
  * @param nvpva_buffers		Pointer to nvpva_buffer struct
  * @param dmabufs		Pointer to dmabuffer list
+ * @param count			Pointer to offset list
+ * @param offset		Pointer to size list
  * @param count			Number of memhandles in the list
- * @param id			pointer to variable where assigned
- *				ID is returned
  * @return			None
  *
  */
-void nvpva_buffer_unpin(struct nvpva_buffers *nvpva_buffers,
-				struct dma_buf **dmabufs,
-				u32 count);
+void
+nvpva_buffer_unpin(struct nvpva_buffers *nvpva_buffers,
+		   struct dma_buf **dmabufs,
+		   u64 *offset,
+		   u64 *size,
+		   u32 count);
 /**
  * @brief			UnPins the mapped address space.
  *
  * @param nvpva_buffers		Pointer to nvpva_buffer struct
  * @param ids			Pointer to id list
  * @param count			Number of memhandles in the list
+ * @param id			pointer to variable where assigned
+ *				ID is returned
  * @return			None
  *
  */

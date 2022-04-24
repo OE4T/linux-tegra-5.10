@@ -427,9 +427,12 @@ static int pva_pin(struct pva_private *priv, void *arg)
 		goto out;
 	}
 
-	err = nvpva_buffer_pin(priv->client->buffers, &dmabuf[0], 1,
+	err = nvpva_buffer_pin(priv->client->buffers,
+				&dmabuf[0],
+				&in_arg->pin.offset,
+				&in_arg->pin.size,
+				1,
 				&out_arg->pin_id);
-
 	dma_buf_put(dmabuf[0]);
 out:
 	return err;

@@ -1,6 +1,5 @@
+/* SPDX-License-Identifier: GPL-2.0 */
 /*
- * NVPVA buffer management for T194 and T234
- *
  * Copyright (c) 2016-2022, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -41,21 +40,21 @@
  *
  */
 struct nvpva_vm_buffer {
-	struct dma_buf_attachment *attach;
-	struct dma_buf *dmabuf;
-	struct sg_table *sgt;
-
-	dma_addr_t addr;
-	size_t size;
-	enum nvpva_buffers_heap heap;
-
-	s32 user_map_count;
-	s32 submit_map_count;
-	u32 id;
-
-	struct rb_node rb_node;
-	struct rb_node rb_node_id;
-	struct list_head list_head;
+	struct dma_buf_attachment	*attach;
+	struct dma_buf			*dmabuf;
+	struct sg_table			*sgt;
+	dma_addr_t			addr;
+	size_t				size;
+	enum				nvpva_buffers_heap heap;
+	s32				user_map_count;
+	s32				submit_map_count;
+	u32				id;
+	dma_addr_t			user_addr;
+	u64				user_offset;
+	u64				user_size;
+	struct				rb_node rb_node;
+	struct				rb_node rb_node_id;
+	struct				list_head list_head;
 };
 
 static uint32_t get_unique_id(struct nvpva_buffers *nvpva_buffers)
@@ -89,23 +88,52 @@ static int32_t put_unique_id(struct nvpva_buffers *nvpva_buffers, uint32_t id)
 	return 0;
 }
 
-static struct nvpva_vm_buffer *nvpva_find_map_buffer(
-	struct nvpva_buffers *nvpva_buffers, struct dma_buf *dmabuf)
+#define COMPARE_AND_ASSIGN(a1, a2, b1, b2, c1, c2, curr, n1, n2)	\
+	do {								\
+		is_equal = false;					\
+		if ((a1) > (a2))					\
+			(curr) = (n1);					\
+		else if ((a1) < (a2))					\
+			(curr) = (n2);					\
+		else if ((b1) > (b2))					\
+			(curr) = (n1);					\
+		else if ((b1) < (b2))					\
+			(curr) = (n2);					\
+		else if ((c1) > (c2))					\
+			(curr) = (n1);					\
+		else if ((c1) < (c2))					\
+			(curr) = (n2);					\
+		else							\
+			is_equal = true;				\
+	} while (0)
+
+
+
+static struct nvpva_vm_buffer *
+nvpva_find_map_buffer(struct nvpva_buffers *nvpva_buffers,
+		      u64 offset,
+		      u64 size,
+		      struct dma_buf *dmabuf)
 {
 	struct rb_root *root = &nvpva_buffers->rb_root;
 	struct rb_node *node = root->rb_node;
 	struct nvpva_vm_buffer *vm;
+	bool is_equal = false;
 
 	/* check in a sorted tree */
 	while (node) {
 		vm = rb_entry(node, struct nvpva_vm_buffer,
 						rb_node);
-
-		if (vm->dmabuf > dmabuf)
-			node = node->rb_left;
-		else if (vm->dmabuf != dmabuf)
-			node = node->rb_right;
-		else
+		COMPARE_AND_ASSIGN(vm->dmabuf,
+				   dmabuf,
+				   vm->user_offset,
+				   offset,
+				   vm->user_size,
+				   size,
+				   node,
+				   node->rb_left,
+				   node->rb_right);
+		if (is_equal)
 			return vm;
 	}
 
@@ -140,6 +168,7 @@ static void nvpva_buffer_insert_map_buffer(
 {
 	struct rb_node **new_node = &(nvpva_buffers->rb_root.rb_node);
 	struct rb_node *parent = NULL;
+	bool is_equal = false;
 
 	/* Figure out where to put the new node */
 	while (*new_node) {
@@ -148,9 +177,16 @@ static void nvpva_buffer_insert_map_buffer(
 						rb_node);
 		parent = *new_node;
 
-		if (vm->dmabuf > new_vm->dmabuf)
-			new_node = &((*new_node)->rb_left);
-		else
+		COMPARE_AND_ASSIGN(vm->dmabuf,
+				   new_vm->dmabuf,
+				   vm->user_offset,
+				   new_vm->user_offset,
+				   vm->user_size,
+				   new_vm->user_size,
+				   new_node,
+				   &((*new_node)->rb_left),
+				   &((*new_node)->rb_right));
+		if (is_equal)
 			new_node = &((*new_node)->rb_right);
 	}
 
@@ -187,9 +223,12 @@ static void nvpva_buffer_insert_map_buffer_id(
 	rb_insert_color(&new_vm->rb_node_id, &nvpva_buffers->rb_root_id);
 }
 
-static int nvpva_buffer_map(struct platform_device *pdev,
-				struct dma_buf *dmabuf,
-				struct nvpva_vm_buffer *vm)
+static int
+nvpva_buffer_map(struct platform_device *pdev,
+		 struct dma_buf *dmabuf,
+		 u64 offset,
+		 u64 size,
+		 struct nvpva_vm_buffer *vm)
 {
 
 	const dma_addr_t cvnas_begin = nvcvnas_get_cvsram_base();
@@ -201,7 +240,6 @@ static int nvpva_buffer_map(struct platform_device *pdev,
 	int err = 0;
 
 	get_dma_buf(dmabuf);
-
 	attach = dma_buf_attach(dmabuf, &pdev->dev);
 	if (IS_ERR_OR_NULL(attach)) {
 		err = PTR_ERR(dmabuf);
@@ -237,6 +275,9 @@ static int nvpva_buffer_map(struct platform_device *pdev,
 	vm->dmabuf = dmabuf;
 	vm->size = dmabuf->size;
 	vm->addr = dma_addr;
+	vm->user_addr = dma_addr + offset;
+	vm->user_offset = offset;
+	vm->user_size = size;
 	vm->user_map_count = 1;
 
 	return err;
@@ -302,45 +343,6 @@ nvpva_buffer_init_err:
 	return ERR_PTR(err);
 }
 
-int nvpva_buffer_submit_pin(struct nvpva_buffers *nvpva_buffers,
-			     struct dma_buf **dmabufs, u32 count,
-			     dma_addr_t *paddr, size_t *psize,
-			     enum nvpva_buffers_heap *heap)
-{
-	struct nvpva_vm_buffer *vm;
-	int i = 0;
-
-	kref_get(&nvpva_buffers->kref);
-
-	mutex_lock(&nvpva_buffers->mutex);
-
-	for (i = 0; i < count; i++) {
-		vm = nvpva_find_map_buffer(nvpva_buffers, dmabufs[i]);
-		if (vm == NULL)
-			goto submit_err;
-
-		vm->submit_map_count++;
-		paddr[i] = vm->addr;
-		psize[i] = vm->size;
-
-		/* Return heap only if requested */
-		if (heap != NULL)
-			heap[i] = vm->heap;
-	}
-
-	mutex_unlock(&nvpva_buffers->mutex);
-	return 0;
-
-submit_err:
-	mutex_unlock(&nvpva_buffers->mutex);
-
-	count = i;
-
-	nvpva_buffer_submit_unpin(nvpva_buffers, dmabufs, count);
-
-	return -EINVAL;
-}
-
 int nvpva_buffer_submit_pin_id(struct nvpva_buffers *nvpva_buffers,
 			       u32 *ids, u32 count, struct dma_buf **dmabuf,
 			       dma_addr_t *paddr, size_t *psize,
@@ -359,8 +361,8 @@ int nvpva_buffer_submit_pin_id(struct nvpva_buffers *nvpva_buffers,
 			goto submit_err;
 
 		vm->submit_map_count++;
-		paddr[i] = vm->addr;
-		psize[i] = vm->size;
+		paddr[i] = vm->user_addr;
+		psize[i] = vm->user_size;
 		dmabuf[i] = vm->dmabuf;
 
 		/* Return heap only if requested */
@@ -382,8 +384,11 @@ submit_err:
 }
 
 int nvpva_buffer_pin(struct nvpva_buffers *nvpva_buffers,
-			struct dma_buf **dmabufs, u32 count,
-			u32 *id)
+		     struct dma_buf **dmabufs,
+		     u64 *offset,
+		     u64 *size,
+		     u32 count,
+		     u32 *id)
 {
 	struct nvpva_vm_buffer *vm;
 	int i = 0;
@@ -392,7 +397,24 @@ int nvpva_buffer_pin(struct nvpva_buffers *nvpva_buffers,
 	mutex_lock(&nvpva_buffers->mutex);
 
 	for (i = 0; i < count; i++) {
-		vm = nvpva_find_map_buffer(nvpva_buffers, dmabufs[i]);
+		u64 limit;
+
+		if (U64_MAX - size[i] < offset[i]) {
+			err = -EFAULT;
+			goto unpin;
+		} else {
+			limit = (size[i] + offset[i]);
+		}
+
+		if (dmabufs[i]->size < limit) {
+			err = -EFAULT;
+			goto unpin;
+		}
+
+		vm = nvpva_find_map_buffer(nvpva_buffers,
+					   offset[i],
+					   size[i],
+					   dmabufs[i]);
 		if (vm) {
 			vm->user_map_count++;
 			id[i] = vm->id;
@@ -406,7 +428,11 @@ int nvpva_buffer_pin(struct nvpva_buffers *nvpva_buffers,
 			goto unpin;
 		}
 
-		err = nvpva_buffer_map(nvpva_buffers->pdev, dmabufs[i], vm);
+		err = nvpva_buffer_map(nvpva_buffers->pdev,
+				       dmabufs[i],
+				       offset[i],
+				       size[i],
+				       vm);
 		if (err)
 			goto free_vm;
 
@@ -426,33 +452,9 @@ unpin:
 
 	/* free pinned buffers */
 	count = i;
-	nvpva_buffer_unpin(nvpva_buffers, dmabufs, count);
+	nvpva_buffer_unpin(nvpva_buffers, dmabufs, offset, size, count);
 
 	return err;
-}
-
-void nvpva_buffer_submit_unpin(struct nvpva_buffers *nvpva_buffers,
-				struct dma_buf **dmabufs, u32 count)
-{
-	struct nvpva_vm_buffer *vm;
-	int i = 0;
-
-	mutex_lock(&nvpva_buffers->mutex);
-
-	for (i = 0; i < count; i++) {
-
-		vm = nvpva_find_map_buffer(nvpva_buffers, dmabufs[i]);
-		if (vm == NULL)
-			continue;
-
-		if (vm->submit_map_count-- < 0)
-			vm->submit_map_count = 0;
-		nvpva_buffer_unmap(nvpva_buffers, vm);
-	}
-
-	mutex_unlock(&nvpva_buffers->mutex);
-
-	kref_put(&nvpva_buffers->kref, nvpva_free_buffers);
 }
 
 void nvpva_buffer_submit_unpin_id(struct nvpva_buffers *nvpva_buffers,
@@ -469,8 +471,10 @@ void nvpva_buffer_submit_unpin_id(struct nvpva_buffers *nvpva_buffers,
 		if (vm == NULL)
 			continue;
 
-		if (vm->submit_map_count-- < 0)
+		--vm->submit_map_count;
+		if ((vm->submit_map_count) < 0)
 			vm->submit_map_count = 0;
+
 		nvpva_buffer_unmap(nvpva_buffers, vm);
 	}
 
@@ -478,8 +482,13 @@ void nvpva_buffer_submit_unpin_id(struct nvpva_buffers *nvpva_buffers,
 
 	kref_put(&nvpva_buffers->kref, nvpva_free_buffers);
 }
-void nvpva_buffer_unpin(struct nvpva_buffers *nvpva_buffers,
-			 struct dma_buf **dmabufs, u32 count)
+
+void
+nvpva_buffer_unpin(struct nvpva_buffers *nvpva_buffers,
+		   struct dma_buf **dmabufs,
+		   u64 *offset,
+		   u64 *size,
+		   u32 count)
 {
 	int i = 0;
 
@@ -488,12 +497,17 @@ void nvpva_buffer_unpin(struct nvpva_buffers *nvpva_buffers,
 	for (i = 0; i < count; i++) {
 		struct nvpva_vm_buffer *vm = NULL;
 
-		vm = nvpva_find_map_buffer(nvpva_buffers, dmabufs[i]);
+		vm = nvpva_find_map_buffer(nvpva_buffers,
+					   offset[i],
+					   size[i],
+					   dmabufs[i]);
 		if (vm == NULL)
 			continue;
 
-		if (vm->user_map_count-- < 0)
+		--vm->user_map_count;
+		if (vm->user_map_count < 0)
 			vm->user_map_count = 0;
+
 		nvpva_buffer_unmap(nvpva_buffers, vm);
 	}
 
@@ -514,8 +528,10 @@ void nvpva_buffer_unpin_id(struct nvpva_buffers *nvpva_buffers,
 		if (vm == NULL)
 			continue;
 
-		if (vm->user_map_count-- < 0)
+		--vm->user_map_count;
+		if (vm->user_map_count < 0)
 			vm->user_map_count = 0;
+
 		nvpva_buffer_unmap(nvpva_buffers, vm);
 	}
 
