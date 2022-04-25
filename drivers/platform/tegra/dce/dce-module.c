@@ -189,6 +189,11 @@ static int tegra_dce_probe(struct platform_device *pdev)
 	const struct of_device_id *match = NULL;
 
 	match = of_match_device(tegra_dce_of_match, dev);
+	if (!match) {
+		dev_info(dev, "no device match found\n");
+		return -ENODEV;
+	}
+
 	pdata = (struct dce_platform_data *)match->data;
 
 	WARN_ON(!pdata);
