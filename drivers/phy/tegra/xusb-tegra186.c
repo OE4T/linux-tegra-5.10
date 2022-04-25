@@ -1802,12 +1802,18 @@ static const struct tegra_xusb_padctl_ops tegra186_xusb_padctl_ops = {
 	.utmi_pad_power_down = tegra_phy_xusb_utmi_pad_power_down,
 };
 
-#if IS_ENABLED(CONFIG_ARCH_TEGRA_186_SOC)
+#if IS_ENABLED(CONFIG_ARCH_TEGRA_186_SOC) || \
+	IS_ENABLED(CONFIG_ARCH_TEGRA_239_SOC)
 static const char * const tegra186_xusb_padctl_supply_names[] = {
 	"avdd-pll-erefeut",
 	"avdd-usb",
 	"vclamp-usb",
 	"vddio-hsic",
+};
+
+static const char * const tegra239_xusb_padctl_supply_names[] = {
+	"avdd-usb",
+	"vclamp-usb",
 };
 
 static const struct tegra_xusb_lane_soc tegra186_usb2_lanes[] = {
@@ -1868,6 +1874,28 @@ const struct tegra_xusb_padctl_soc tegra186_xusb_padctl_soc = {
 	.num_supplies = ARRAY_SIZE(tegra186_xusb_padctl_supply_names),
 };
 EXPORT_SYMBOL_GPL(tegra186_xusb_padctl_soc);
+
+const struct tegra_xusb_padctl_soc tegra239_xusb_padctl_soc = {
+	.num_pads = ARRAY_SIZE(tegra186_pads),
+	.pads = tegra186_pads,
+	.ports = {
+		.usb2 = {
+			.ops = &tegra186_usb2_port_ops,
+			.count = 3,
+		},
+		.usb3 = {
+			.ops = &tegra186_usb3_port_ops,
+			.count = 3,
+		},
+	},
+	.ops = &tegra186_xusb_padctl_ops,
+	.supply_names = tegra239_xusb_padctl_supply_names,
+	.num_supplies = ARRAY_SIZE(tegra239_xusb_padctl_supply_names),
+	.supports_gen2 = true,
+	.poll_trk_completed = true,
+	.trk_hw_mode = true,
+};
+EXPORT_SYMBOL_GPL(tegra239_xusb_padctl_soc);
 #endif
 
 #if IS_ENABLED(CONFIG_ARCH_TEGRA_194_SOC) || \
