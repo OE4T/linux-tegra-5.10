@@ -33,6 +33,10 @@
 #include <nvgpu/pmu/fw.h>
 #include <nvgpu/pmu/pmu_pg.h>
 
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include <nvgpu_next_fw.h>
+#endif
+
 /* PMU UCODE IMG */
 #define NVGPU_PMU_UCODE_IMAGE "gpmu_ucode_image.bin"
 #define NVGPU_PMU_UCODE_DESC "gpmu_ucode_desc.bin"
@@ -325,10 +329,14 @@ int nvgpu_pmu_init_pmu_fw(struct gk20a *g, struct nvgpu_pmu *pmu,
 					NVGPU_PMU_UCODE_NEXT_SIG);
 		} else {
 			nvgpu_pmu_dbg(g, "FW read for PROD RISCV/PKC");
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+			err = nvgpu_next_pmu_load_fw(g);
+#else
 			err = pmu_fw_read(g,
 					NVGPU_PMU_UCODE_NEXT_PROD_IMAGE,
 					NVGPU_PMU_UCODE_NEXT_PROD_DESC,
 					NVGPU_PMU_UCODE_NEXT_PROD_SIG);
+#endif
 		}
 	} else {
 		nvgpu_pmu_dbg(g, "FW read for Falcon/AES\n");
