@@ -183,7 +183,7 @@ static int tegra_crypto_dev_release(struct inode *inode, struct file *filp)
 {
 	struct tegra_crypto_ctx *ctx = filp->private_data;
 	int i = 0;
-	static int tfm_index;
+	static unsigned int tfm_index;
 	int ret = 0;
 
 	/* store_tfm is needed to store the tfms in order to free them
