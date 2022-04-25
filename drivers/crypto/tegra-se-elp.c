@@ -2695,10 +2695,14 @@ static bool tegra_se_eddsa_params_is_valid(struct tegra_se_eddsa_params *params)
 {
 	const u32 *private_key = params->key;
 	int private_key_len = params->key_size;
-	const struct tegra_se_ecc_curve *curve = tegra_se_ecc_get_curve(
-							params->curve_id);
-	int nbytes = curve->nbytes;
+	const struct tegra_se_ecc_curve *curve;
+	int nbytes;
 
+	curve = tegra_se_ecc_get_curve(params->curve_id);
+	if (!curve)
+		return false;
+
+	nbytes = curve->nbytes;
 	if (!nbytes || !private_key)
 		return false;
 
@@ -2850,11 +2854,10 @@ static int tegra_se_eddsa_gen_pub_key(struct crypto_akcipher *tfm,
 				      const void *key, unsigned int keylen)
 {
 	struct tegra_se_eddsa_ctx *ctx = akcipher_tfm_ctx(tfm);
-	const struct tegra_se_ecc_curve *curve = tegra_se_ecc_get_curve(
-							ctx->curve_id);
+	const struct tegra_se_ecc_curve *curve;
 	u32 *secret_hash = NULL;
 	int i, j;
-	unsigned int nbytes = curve->nbytes, nwords = ctx->nwords;
+	unsigned int nbytes, nwords;
 	u32 h0[SHA512_WORDS], h1[SHA512_WORDS];
 	struct tegra_se_ecc_point *pk = NULL;
 	int ret = 0;
@@ -2863,6 +2866,16 @@ static int tegra_se_eddsa_gen_pub_key(struct crypto_akcipher *tfm,
 			SHA512_WORDS*WORD_SIZE_BYTES, GFP_KERNEL);
 	if (!secret_hash)
 		return -ENOMEM;
+
+	curve = tegra_se_ecc_get_curve(ctx->curve_id);
+	if (!curve) {
+		dev_err(ctx->se_dev->dev, "ECC Curve not supported\n");
+		ret = -EOPNOTSUPP;
+		goto free;
+	}
+
+	nbytes = curve->nbytes;
+	nwords = ctx->nwords;
 
 	ret = tegra_se_hash_data(ctx->se_dev, ctx->private_key,
 				 secret_hash, nbytes, "sha512");
@@ -3026,14 +3039,21 @@ static int tegra_se_eddsa_sign(struct akcipher_request *req)
 {
 	struct crypto_akcipher *tfm = crypto_akcipher_reqtfm(req);
 	struct tegra_se_eddsa_ctx *ctx = akcipher_tfm_ctx(tfm);
-	const struct tegra_se_ecc_curve *curve =
-		tegra_se_ecc_get_curve(ctx->curve_id);
+	const struct tegra_se_ecc_curve *curve;
 	struct tegra_se_ecc_point *pk = NULL;
-	unsigned int nbytes = curve->nbytes, nwords = ctx->nwords;
+	unsigned int nbytes, nwords = ctx->nwords;
 	u32 num_msg_words = req->src_len / WORD_SIZE_BYTES;
 	int i, j, cnt, ret = 0;
 	u8 *r_ptr, *s_ptr;
 	struct tegra_se_eddsa_vars params;
+
+	curve = tegra_se_ecc_get_curve(ctx->curve_id);
+	if (!curve) {
+		dev_err(ctx->se_dev->dev, "ECC Curve not supported\n");
+		return -EOPNOTSUPP;
+	}
+
+	nbytes = curve->nbytes;
 
 	ret = tegra_se_eddsa_allocate_mem(ctx->se_dev, &params,
 		  nwords*WORD_SIZE_BYTES, req->src_len);
@@ -3356,15 +3376,22 @@ static int tegra_se_ecdh_gen_pub_key(struct tegra_se_elp_dev *se_dev,
 {
 	struct tegra_se_ecc_point *G;
 	int ret;
-	const struct tegra_se_ecc_curve *curve = tegra_se_ecc_get_curve(cid);
-	unsigned int nbytes = curve->nbytes;
-	unsigned int nwords = nbytes / WORD_SIZE_BYTES;
+	const struct tegra_se_ecc_curve *curve;
+	unsigned int nbytes;
+	unsigned int nwords;
 	u32 priv[ECC_MAX_WORDS];
 
 	if (!private_key) {
 		dev_err(se_dev->dev, "Invalid ECDH private key\n");
 		return -ENODATA;
 	}
+
+	curve = tegra_se_ecc_get_curve(cid);
+	if (!curve)
+		return -EOPNOTSUPP;
+
+	nbytes = curve->nbytes;
+	nwords = nbytes / WORD_SIZE_BYTES;
 
 	tegra_se_ecc_swap(private_key, priv, nwords);
 
@@ -3430,7 +3457,7 @@ static int tegra_se_ecdh_compute_value(struct kpp_request *req)
 	curve = tegra_se_ecc_get_curve(ctx->curve_id);
 	if (!curve) {
 		dev_err(ctx->se_dev->dev, "ECC Curve not supported\n");
-		return -ENOTSUPP;
+		return -EOPNOTSUPP;
 	}
 
 	sec_nbytes = curve->nbytes;
@@ -3516,9 +3543,16 @@ static int tegra_se_ecdh_max_size(struct crypto_kpp *tfm)
 #endif
 {
 	struct tegra_se_ecdh_context *ctx = kpp_tfm_ctx(tfm);
-	const struct tegra_se_ecc_curve *curve =
-			tegra_se_ecc_get_curve(ctx->curve_id);
-	unsigned int nbytes = curve->nbytes;
+	const struct tegra_se_ecc_curve *curve;
+	unsigned int nbytes;
+
+	curve = tegra_se_ecc_get_curve(ctx->curve_id);
+	if (!curve) {
+		dev_err(ctx->se_dev->dev, "ECC Curve not supported\n");
+		return -EOPNOTSUPP;
+	}
+
+	nbytes = curve->nbytes;
 
 	/* Public key is made of two coordinates */
 	return 2 * nbytes;
