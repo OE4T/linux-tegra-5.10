@@ -678,8 +678,12 @@ static int mgbe_update_mac_addr_low_high_reg(
 			value &= ~(MGBE_MAC_ADDRH_AE);
 		}
 
+		value |= OSI_MASK_16BITS;
 		osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
 			    MGBE_MAC_ADDRH((idx)));
+		osi_writela(osi_core, OSI_MAX_32BITS,
+			    (unsigned char *)osi_core->base +  MGBE_MAC_ADDRL((idx)));
+
 		return 0;
 	}
 

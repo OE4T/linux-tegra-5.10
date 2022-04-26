@@ -3341,6 +3341,10 @@ static void eqos_l2_filter_delete(struct osi_core_priv_data *osi_core,
 	nveu32_t dcs_check = *value;
 	nveu32_t temp = OSI_DISABLE;
 
+	osi_writela(osi_core, OSI_MAX_32BITS,
+		    (nveu8_t *)osi_core->base + EQOS_MAC_ADDRL((idx)));
+
+	*value |= OSI_MASK_16BITS;
 	if (dma_routing_enable == OSI_DISABLE ||
 	    osi_core->mac_ver < OSI_EQOS_MAC_5_00) {
 		*value &= ~(EQOS_MAC_ADDRH_AE | EQOS_MAC_ADDRH_DCS);
