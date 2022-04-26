@@ -37,14 +37,11 @@
 #define MAX_TANGENTIAL_COEFFICIENTS     2
 #define MAX_FISHEYE_COEFFICIENTS        6
 
-
 extern int max96712_write_reg_Dser(int slaveAddr,int channel,
 		u16 addr, u8 val);
 
 extern int max96712_read_reg_Dser(int slaveAddr,int channel,
 		                u16 addr, unsigned int *val);
-
-
 
 #define AR0234_MIN_GAIN         (1)
 #define AR0234_MAX_GAIN         (8)
@@ -54,7 +51,7 @@ extern int max96712_read_reg_Dser(int slaveAddr,int channel,
 #define AR0234_ANALOG_GAIN    0x3060
 
 const struct of_device_id ar0234_of_match[] = {
-	{ .compatible = "onsemi,ar0234",},
+	{.compatible = "onsemi,ar0234",},
 	{ },
 };
 MODULE_DEVICE_TABLE(of, ar0234_of_match);
@@ -73,103 +70,100 @@ static const u32 ctrl_cid_list[] = {
 // Coefficients as per distortion model (wide FOV) being used
 typedef struct
 {
-    // Radial coefficients count
-    u32 coeff_count;
-    // Radial coefficients
-    float k[MAX_FISHEYE_COEFFICIENTS];
-    // 0 -> equidistant, 1 -> equisolid, 2 -> orthographic, 3 -> stereographic
-    u32 mapping_type;
+	// Radial coefficients count
+	u32 coeff_count;
+	// Radial coefficients
+	float k[MAX_FISHEYE_COEFFICIENTS];
+	// 0 -> equidistant, 1 -> equisolid, 2 -> orthographic, 3 -> stereographic
+	u32 mapping_type;
 } fisheye_lens_distortion_coeff;
 
 // Coefficients as per distortion model being used
 typedef struct
 {
-    // Radial coefficients count
-    u32 radial_coeff_count;
-    // Radial coefficients
-    float k[MAX_RADIAL_COEFFICIENTS];
-    // Tangential coefficients count
-    u32 tangential_coeff_count;
-    // Tangential coefficients
-    float p[MAX_TANGENTIAL_COEFFICIENTS];
+	// Radial coefficients count
+	u32 radial_coeff_count;
+	// Radial coefficients
+	float k[MAX_RADIAL_COEFFICIENTS];
+	// Tangential coefficients count
+	u32 tangential_coeff_count;
+	// Tangential coefficients
+	float p[MAX_TANGENTIAL_COEFFICIENTS];
 } polynomial_lens_distortion_coeff;
 
 /*
  * Stereo Eeprom Data
-*/
+ */
 typedef struct
 {
-    //Width and height of image in pixels
-    u32 width ,height;
-    // Focal length in pixels
-    float fx , fy;
-    float skew ;
-    // Principal point (optical center) in pixels
-    float cx , cy;
-
-    /*
-    * Structure for distortion coefficients as per the model being used
-     * 0: pinhole, assuming polynomial distortion
-     * 1: fisheye, assuming fisheye distortion)
-     * 2: ocam (omini-directional)
-     */
-    u32 distortion_type;
-    union distortion_coefficients
-    {
-        polynomial_lens_distortion_coeff poly;
-        fisheye_lens_distortion_coeff fisheye;
-    } dist_coeff;
-
+	// Width and height of image in pixels
+	u32 width, height;
+	// Focal length in pixels
+	float fx, fy;
+	float skew;
+	// Principal point (optical center) in pixels
+	float cx, cy;
+	/*
+	 * Structure for distortion coefficients as per the model being used
+	 * 0: pinhole, assuming polynomial distortion
+	 * 1: fisheye, assuming fisheye distortion)
+	 * 2: ocam (omini-directional)
+	 */
+	u32 distortion_type;
+	union distortion_coefficients {
+		polynomial_lens_distortion_coeff poly;
+		fisheye_lens_distortion_coeff fisheye;
+	} dist_coeff;
 } camera_intrinsics;
 
 /*
  * Extrinsic parameters shared by camera and IMU.
  * All rotation + translation with respect to the same reference point
-*/
+ */
 typedef struct
 {
-    /*
-     * Rotation parameter expressed in Rodrigues notation
-     * angle = sqrt(rx^2+ry^2+rz^2)
-     * unit axis = [rx,ry,rz]/angle
-     */
-    float rx , ry , rz ;
-    // Translation parameter from one camera to another parameter
-    float tx , ty , tz ;
+	/*
+	 * Rotation parameter expressed in Rodrigues notation
+	 * angle = sqrt(rx^2+ry^2+rz^2)
+	 * unit axis = [rx,ry,rz]/angle
+	 */
+	float rx, ry, rz;
+	// Translation parameter from one camera to another parameter
+	float tx, ty, tz;
 } camera_extrinsics;
 
 typedef struct
 {
-    // 3D vector to add to accelerometer readings
-    float linear_acceleration_bias[3];
-    // 3D vector to add to gyroscope readings
-    float angular_velocity_bias[3];
-    // gravity acceleration
-    float gravity_acceleration[3];
-    // Extrinsic structure for IMU device
-    camera_extrinsics extr;
+	// 3D vector to add to accelerometer readings
+	float linear_acceleration_bias[3];
+	// 3D vector to add to gyroscope readings
+	float angular_velocity_bias[3];
+	// gravity acceleration
+	float gravity_acceleration[3];
+	// Extrinsic structure for IMU device
+	camera_extrinsics extr;
 } imu_params;
 
 typedef struct
 {
-    // Intrinsic structure for  camera device
-    camera_intrinsics cam_intr;
+	// Intrinsic structure for  camera device
+	camera_intrinsics cam_intr;
 
-    // Extrinsic structure for camera device
-    camera_extrinsics cam_extr;
+	// Extrinsic structure for camera device
+	camera_extrinsics cam_extr;
 
-    // Flag for IMU availability
-    u32 imu_present;
+	// Flag for IMU availability
+	u32 imu_present;
 
-    // Intrinsic structure for IMU
-    imu_params imu;
+	// Intrinsic structure for IMU
+	imu_params imu;
 } NvCamSyncSensorCalibData;
 
 typedef struct
 {
 	/**
-	* EEPROM layout version
-	*/
+	 * EEPROM layout version
+	 */
 	u32 version;
 	/**
 	 * Factory Blob Flag, to set when factory flashed and reset to 0
@@ -215,7 +209,6 @@ static const struct regmap_config sensor_regmap_config = {
 	.cache_type = REGCACHE_RBTREE,
 };
 
-
 static inline void ar0234_get_coarse_time_regs_shs1(ar0234_reg *regs,
 		u16 coarse_time)
 {
@@ -224,7 +217,6 @@ static inline void ar0234_get_coarse_time_regs_shs1(ar0234_reg *regs,
 
 }
 
-
 static inline void ar0234_get_gain_reg(ar0234_reg *regs,
 		u16 gain)
 {
@@ -232,7 +224,6 @@ static inline void ar0234_get_gain_reg(ar0234_reg *regs,
 	regs->val = (gain) & 0xffff;
 
 }
-
 
 static int test_mode;
 module_param(test_mode, int, 0644);
@@ -263,7 +254,6 @@ static int ar0234_write_reg(struct camera_common_data *s_data,
 	return err;
 }
 
-
 static int ar0234_hawk_link_check(struct ar0234 *priv)
 {
 	struct tegracam_device *tc_dev = priv->tc_dev;
@@ -271,19 +261,18 @@ static int ar0234_hawk_link_check(struct ar0234 *priv)
 	unsigned int linkA = 0;
 	unsigned int linkB = 0;
 
-
 	dev_dbg(dev, "%s: channel %d, ", __func__, priv->channel);
 
-        if(priv->channel == CHANNEL_N)
+	if (priv->channel == CHANNEL_N)
 		return 3;
 
 	max96712_read_reg_Dser(0x52, priv->channel, 0x1A, &linkA);
 	max96712_read_reg_Dser(0x52, priv->channel, 0x0A, &linkB);
 
-	printk("linA=%x, linB=%x\n", linkA, linkB);
-	if((linkB & 0x8) && (linkA & 0x8)){
+	dev_dbg(dev, "linA=%x, linB=%x\n", linkA, linkB);
+	if ((linkB & 0x8) && (linkA & 0x8)) {
 		return 2;
-	} else if(linkA & 0x8) {
+	} else if (linkA & 0x8) {
 		return 1;
 	} else {
 		return 0;
@@ -301,12 +290,11 @@ static int ar0234_write_table(struct ar0234 *priv,
 	int retry = 5;
 
 	dev_dbg(dev, "%s: channel %d, ", __func__, priv->channel);
-
 	while (table[i].source != 0x00) {
 		if (table[i].source == 0x06) {
 			retry = 1;
 
-			if(table[i].addr == AR0234_TABLE_WAIT_MS)
+			if (table[i].addr == AR0234_TABLE_WAIT_MS)
 			{
 				dev_dbg(dev, "%s: sleep 500\n", __func__);
 				msleep(table[i].val);
@@ -330,7 +318,7 @@ retry_sensor:
 		} else {
 			retry = 5;
 
-			if(priv->channel == CHANNEL_N)
+			if (priv->channel == CHANNEL_N)
 			{
 				i++;
 				continue;
@@ -338,7 +326,7 @@ retry_sensor:
 
 retry_serdes:
 			ret = max96712_write_reg_Dser(table[i].source, priv->channel, table[i].addr, (u8)table[i].val);
-			if(ret && (table[i].addr != 0x0000))
+			if (ret && (table[i].addr != 0x0000))
 			{
 				retry--;
 				if (retry > 0) {
@@ -357,7 +345,6 @@ retry_serdes:
 	}
 	return 0;
 }
-
 
 static int ar0234_power_on(struct camera_common_data *s_data)
 {
@@ -397,8 +384,6 @@ static int ar0234_power_off(struct camera_common_data *s_data)
 	struct device *dev = s_data->dev;
 
 	dev_dbg(dev, "%s:\n", __func__);
-
-	return 0;
 	if (pdata && pdata->power_off) {
 		err = pdata->power_off(pw);
 		if (!err)
@@ -448,7 +433,6 @@ static int ar0234_power_get(struct tegracam_device *tc_dev)
 		pw->pwdn_gpio = pdata->pwdn_gpio;
 	}
 
-
 	pw->state = SWITCH_OFF;
 
 	return err;
@@ -467,7 +451,6 @@ static int ar0234_power_put(struct tegracam_device *tc_dev)
 
 static int ar0234_set_group_hold(struct tegracam_device *tc_dev, bool val)
 {
-	//	struct camera_common_data *s_data = tc_dev->s_data;
 	struct device *dev = tc_dev->dev;
 	int err = 0;
 
@@ -489,7 +472,7 @@ static int ar0234_set_gain(struct tegracam_device *tc_dev, s64 val)
 	u16 gain = (u16)val;
 	u16 gain_reg = 0;
 
-	if(val < 200) {
+	if (val < 200) {
 		gain_reg = (32 * (1000 - (100000/gain)))/1000;
 	} else if (val < 400 && val >= 200) {
 		gain = gain /2;
@@ -515,6 +498,7 @@ static int ar0234_set_gain(struct tegracam_device *tc_dev, s64 val)
 	if (err)
 		goto fail;
 	return 0;
+
 fail:
 	dev_info(dev, "%s: GAIN control error\n", __func__);
 	return err;
@@ -524,7 +508,6 @@ static int ar0234_set_frame_rate(struct tegracam_device *tc_dev, s64 val)
 {
 	struct ar0234 *priv = (struct ar0234 *)tegracam_get_privdata(tc_dev);
 
-	return 0;
 	if (val == 30000000) {  //30fps full resolution
 		max96712_write_reg_Dser(0x52, priv->channel, 0x04A5, 0x35);
 		max96712_write_reg_Dser(0x52, priv->channel, 0x04A6, 0xB7);
@@ -541,8 +524,7 @@ static int ar0234_set_frame_rate(struct tegracam_device *tc_dev, s64 val)
 		max96712_write_reg_Dser(0x52, priv->channel, 0x04A7, 0x03);
 		priv->frame_length = 0x308;
 	}
-	/* fixed 30fps */
-//	priv->frame_length = AR0234_DEFAULT_FRAME_LENGTH;
+
 	return 0;
 }
 
@@ -565,8 +547,8 @@ static int ar0234_set_exposure(struct tegracam_device *tc_dev, s64 val)
 		val / mode->image_properties.line_length /
 		mode->control_properties.exposure_factor;
 
-	if(coarse_time > priv->frame_length )
-		coarse_time = priv->frame_length ;
+	if (coarse_time > priv->frame_length)
+		coarse_time = priv->frame_length;
 	shs1 = coarse_time;
 	/* 0 and 1 are prohibited */
 	if (shs1 < 2)
@@ -602,9 +584,8 @@ static int ar0234_fill_string_ctrl(struct tegracam_device *tc_dev,
 			return -EINVAL;
 	}
 	ctrl->p_cur.p_char = ctrl->p_new.p_char;
+
 	return 0;
-
-
 }
 
 static int ar0234_fill_eeprom(struct tegracam_device *tc_dev,
@@ -620,9 +601,9 @@ static int ar0234_fill_eeprom(struct tegracam_device *tc_dev,
 			memset(ctrl->p_new.p, 0, sizeof(NvCamSyncSensorCalibData));
 			memcpy(&tmp, priv->eeprom_buf, sizeof(LiEeprom_Content_Struct));
 
-			if(priv->sync_sensor_index == 1) {
+			if (priv->sync_sensor_index == 1) {
 				priv->EepromCalib.cam_intr =  tmp.left_cam_intr;
-			} else if( priv->sync_sensor_index == 2) {
+			} else if (priv->sync_sensor_index == 2) {
 				priv->EepromCalib.cam_intr =  tmp.right_cam_intr;
 			} else {
 				priv->EepromCalib.cam_intr =  tmp.left_cam_intr;
@@ -719,13 +700,11 @@ static int ar0234_set_mode(struct tegracam_device *tc_dev)
 	if (err)
 		return err;
 
-
-#if 1
 	dev_dbg(dev, "%s: mode index:%d\n", __func__,s_data->mode_prop_idx);
 	err = ar0234_write_table(priv, mode_table[s_data->mode_prop_idx]);
 	if (err)
 		return err;
-#endif
+
 	return 0;
 }
 
@@ -825,11 +804,10 @@ static int ar0234_eeprom_device_init(struct ar0234 *priv)
 		strncpy(priv->eeprom[i].brd.type, dev_name,
 				sizeof(priv->eeprom[i].brd.type));
 
-		if(priv->sync_sensor_index == 1) {
+		if (priv->sync_sensor_index == 1)
 			priv->eeprom[i].brd.addr = AR0234_EEPROM_ADDRESS + i;
-		} else if( priv->sync_sensor_index == 2) {
+		else if (priv->sync_sensor_index == 2)
 			priv->eeprom[i].brd.addr = AR0234_EEPROM_ADDRESS_R + i;
-		}
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
 		priv->eeprom[i].i2c_client = i2c_new_device(
@@ -966,49 +944,48 @@ static int ar0234_probe(struct i2c_client *client,
 	priv->subdev = &tc_dev->s_data->subdev;
 	tegracam_set_privdata(tc_dev, (void *)priv);
 
-
 	ar0234_power_on(tc_dev->s_data);
 	msleep(100);
 
-	if(ar0234_hawk_link_check(priv) == 2) {
+	if (ar0234_hawk_link_check(priv) == 2) {
 		err = ar0234_write_table(priv, mode_table[AR0234_MODE_Dser_Ser]);
-		if(err) {
+		if (err) {
 			dev_info(&client->dev,"dual camera detect error\n");
 			return err;
 		} else {
 			dev_info(&client->dev,"dual camera detect success\n");
 		}
-	} else if(ar0234_hawk_link_check(priv) == 1) {
+	} else if (ar0234_hawk_link_check(priv) == 1) {
 		err = ar0234_write_table(priv, mode_table[AR0234_MODE_Single_Dser_Ser]);
-		if(err) {
+		if (err) {
 			dev_info(&client->dev,"single detect error\n");
 			return err;
 		} else {
 			dev_info(&client->dev,"single detect success\n");
 		}
-	} else if (ar0234_hawk_link_check(priv) == 3){
+	} else if (ar0234_hawk_link_check(priv) == 3) {
 		;
 	} else {
 		return -1;
 	}
 
 	err = ar0234_write_table(priv, mode_table[AR0234_MODE_STOP_STREAM]);
-	if(err) {
+	if (err) {
 		dev_info(&client->dev,"ar0234 detect error\n");
-//		return err;
+		return err;
 	}
 
 	msleep(100);
 	err = ar0234_board_setup(priv);
 	if (err) {
 		dev_err(dev, "board setup failed\n");
-//		return err;
+		return err;
 	}
 
 	err = tegracam_v4l2subdev_register(tc_dev, true);
 	if (err) {
 		dev_err(dev, "tegra camera subdev registration failed\n");
-//		return err;
+		return err;
 	}
 
 	dev_info(&client->dev, "Detected AR0234 sensor\n");
