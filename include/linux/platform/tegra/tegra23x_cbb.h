@@ -53,7 +53,7 @@ struct tegra_cbb_errmon_record {
 	struct list_head node;
 	const char *name;
 	int errmon_no;
-	int err_type;
+	u32 err_type;
 	phys_addr_t start;
 	phys_addr_t err_notifier_base;
 	void __iomem *vaddr;

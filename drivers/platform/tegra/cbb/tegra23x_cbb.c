@@ -174,6 +174,7 @@ static void tegra234_cbb_lookup_apbslv
 	unsigned int reset_client, client_id;
 	char slv_name[40];
 	int block_num = 0;
+	int ret = 0;
 
 	tmo_status = tegra234_cbb_get_tmo_slv((void __iomem *)addr);
 	if (tmo_status)
@@ -193,14 +194,15 @@ static void tegra234_cbb_lookup_apbslv
 				while (blockno_tmo_status) {
 					if (blockno_tmo_status & 0x1) {
 						if (reset_client != 0xffffffff)
-							reset_client &=
-								client_id;
-						sprintf(slv_name,
-							"%s_BLOCK%d_TMO",
-							slave_name, block_num);
+							reset_client &= client_id;
+						ret = sprintf(slv_name, "%s_BLOCK%d_TMO",
+							      slave_name, block_num);
+						if (ret < 0) {
+							pr_err("%s: sprintf failed\n", __func__);
+							return;
+						}
 						tegra234_cbb_reset_tmo_slv
-						(file, slv_name,
-						 (void __iomem *)addr,
+						(file, slv_name, (void __iomem *)addr,
 						 reset_client);
 					}
 					blockno_tmo_status >>= 1;
