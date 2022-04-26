@@ -1,7 +1,7 @@
 /*
  * NVHOST queue management for T194
  *
- * Copyright (c) 2021, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
  * version 2, as published by the Free Software Foundation.
@@ -30,6 +30,7 @@
 #include "nvpva_queue.h"
 #include "dev.h"
 #include "pva_bit_helpers.h"
+#include "pva.h"
 
 #define CMDBUF_SIZE	4096
 
@@ -51,11 +52,11 @@
 struct nvpva_queue_task_pool {
 	dma_addr_t dma_addr;
 	void *va;
-	void *kmem_addr;
+	void *kmem_addr[MAX_PVA_SEG_COUNT_PER_QUEUE];
 	struct mutex lock;
 
 	unsigned long alloc_table[NUM_POOL_ALLOC_SUB_TABLES];
-	unsigned long max_task_cnt;
+	unsigned int max_task_cnt;
 };
 
 static int nvpva_queue_task_pool_alloc(struct platform_device *pdev,
@@ -63,19 +64,25 @@ static int nvpva_queue_task_pool_alloc(struct platform_device *pdev,
 					unsigned int num_tasks)
 {
 	int err = 0;
+	unsigned int i;
+	unsigned int num_segments = num_tasks/MAX_PVA_TASK_COUNT_PER_QUEUE_SEG;
 	struct nvpva_queue_task_pool *task_pool;
 
 	task_pool = queue->task_pool;
 
 	/* Allocate the kernel memory needed for the task */
 	if (queue->task_kmem_size) {
-		task_pool->kmem_addr = kcalloc(num_tasks,
+		for (i = 0; i < num_segments; i++) {
+			task_pool->kmem_addr[i] =
+				kcalloc(MAX_PVA_TASK_COUNT_PER_QUEUE_SEG,
 					queue->task_kmem_size, GFP_KERNEL);
-		if (!task_pool->kmem_addr) {
-			nvhost_err(&pdev->dev,
-				   "failed to allocate task_pool->kmem_addr");
-			err = -ENOMEM;
-			goto err_alloc_task_kmem;
+			if (!task_pool->kmem_addr[i]) {
+				nvhost_err(&pdev->dev,
+					   "failed to allocate " \
+					   "task_pool->kmem_addr");
+				err = -ENOMEM;
+				goto err_alloc_task_pool;
+			}
 		}
 	}
 
@@ -90,32 +97,43 @@ static int nvpva_queue_task_pool_alloc(struct platform_device *pdev,
 		err = -ENOMEM;
 		goto err_alloc_task_pool;
 	}
-	task_pool->max_task_cnt = num_tasks;
 
+	task_pool->max_task_cnt = num_tasks;
 	mutex_init(&task_pool->lock);
 
 	return err;
 
 err_alloc_task_pool:
-	kfree(task_pool->kmem_addr);
-err_alloc_task_kmem:
+	for (i = 0; i < num_segments; i++) {
+		if (task_pool->kmem_addr[i] == NULL)
+			continue;
+
+		kfree(task_pool->kmem_addr[i]);
+		task_pool->kmem_addr[i] = NULL;
+	}
+
 	return err;
 }
 
 static void nvpva_queue_task_free_pool(struct platform_device *pdev,
 					struct nvpva_queue *queue)
 {
+	unsigned int i;
+	unsigned int segments;
 	struct nvpva_queue_task_pool *task_pool =
 		(struct nvpva_queue_task_pool *)queue->task_pool;
 
+	segments = task_pool->max_task_cnt/MAX_PVA_TASK_COUNT_PER_QUEUE_SEG;
 	dma_free_attrs(&queue->vm_pdev->dev,
 			queue->task_dma_size * task_pool->max_task_cnt,
 			task_pool->va, task_pool->dma_addr,
 			0);
 
-	kfree(task_pool->kmem_addr);
-	task_pool->max_task_cnt = 0;
+	for (i = 0; i < segments; i++)
+		kfree(task_pool->kmem_addr[i]);
+
 	memset(task_pool->alloc_table, 0, sizeof(task_pool->alloc_table));
+	task_pool->max_task_cnt = 0U;
 }
 
 static int nvpva_queue_dump(struct nvpva_queue_pool *pool,
@@ -410,7 +428,11 @@ int nvpva_queue_alloc_task_memory(
 			struct nvpva_queue_task_mem_info *task_mem_info)
 {
 	int err = 0;
-	int index, hw_offset, sw_offset;
+	unsigned int index;
+	unsigned int hw_offset;
+	unsigned int sw_offset;
+	unsigned int seg_base;
+	unsigned int seg_index;
 	struct platform_device *pdev = queue->pool->pdev;
 	struct nvpva_queue_task_pool *task_pool =
 		(struct nvpva_queue_task_pool *)queue->task_pool;
@@ -423,17 +445,19 @@ int nvpva_queue_alloc_task_memory(
 	/* quit if pre-allocated task array is not free */
 	if (index >= task_pool->max_task_cnt) {
 		dev_err(&pdev->dev,
-				"failed to get Task Pool Memory\n");
+			"failed to get Task Pool Memory\n");
 		err = -EAGAIN;
 		goto err_alloc_task_mem;
 	}
 
 	/* assign the task array */
+	seg_index = index%MAX_PVA_TASK_COUNT_PER_QUEUE_SEG;
+	seg_base = (index/MAX_PVA_TASK_COUNT_PER_QUEUE_SEG);
 	set_bit(index%64, &task_pool->alloc_table[index/64]);
 	hw_offset = index * queue->task_dma_size;
-	sw_offset = index * queue->task_kmem_size;
+	sw_offset = seg_index * queue->task_kmem_size;
 	task_mem_info->kmem_addr =
-			(void *)((u8 *)task_pool->kmem_addr + sw_offset);
+		(void *)((u8 *)task_pool->kmem_addr[seg_base] + sw_offset);
 	task_mem_info->va = (void *)((u8 *)task_pool->va + hw_offset);
 	task_mem_info->dma_addr = task_pool->dma_addr + hw_offset;
 	task_mem_info->pool_index = index;
@@ -446,15 +470,21 @@ err_alloc_task_mem:
 
 void nvpva_queue_free_task_memory(struct nvpva_queue *queue, int index)
 {
-	int hw_offset, sw_offset;
+	unsigned int hw_offset;
+	unsigned int sw_offset;
+	unsigned int seg_index;
+	unsigned int seg_base;
+
 	u8 *task_kmem, *task_dma_va;
 	struct nvpva_queue_task_pool *task_pool =
 			(struct nvpva_queue_task_pool *)queue->task_pool;
 
 	/* clear task kernel and dma virtual memory contents*/
+	seg_index = index%MAX_PVA_TASK_COUNT_PER_QUEUE_SEG;
+	seg_base = (index/MAX_PVA_TASK_COUNT_PER_QUEUE_SEG);
 	hw_offset = index * queue->task_dma_size;
-	sw_offset = index * queue->task_kmem_size;
-	task_kmem = (u8 *)task_pool->kmem_addr + sw_offset;
+	sw_offset = seg_index * queue->task_kmem_size;
+	task_kmem = (u8 *)task_pool->kmem_addr[seg_base] + sw_offset;
 	task_dma_va = (u8 *)task_pool->va + hw_offset;
 
 	memset(task_kmem, 0, queue->task_kmem_size);

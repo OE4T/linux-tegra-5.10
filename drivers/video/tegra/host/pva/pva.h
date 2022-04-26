@@ -49,12 +49,15 @@ struct pva_version_info {
  */
 #define MAX_PVA_QUEUE_COUNT 8
 #define MAX_PVA_CLIENTS 8
-#define MAX_PVA_TASK_COUNT_PER_QUEUE	128
+#define MAX_PVA_TASK_COUNT_PER_QUEUE		256U
+#define MAX_PVA_SEG_COUNT_PER_QUEUE		4U
+#define MAX_PVA_TASK_COUNT_PER_QUEUE_SEG	\
+	(MAX_PVA_TASK_COUNT_PER_QUEUE/MAX_PVA_SEG_COUNT_PER_QUEUE)
 
 /**
  * Maximum task count that a PVA engine can support
  */
-#define MAX_PVA_TASK_COUNT                                                     \
+#define MAX_PVA_TASK_COUNT					\
 	((MAX_PVA_QUEUE_COUNT) * (MAX_PVA_TASK_COUNT_PER_QUEUE))
 
 /**

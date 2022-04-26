@@ -335,13 +335,11 @@ static int pva_submit(struct pva_private *priv, void *arg)
 	struct nvpva_ioctl_submit_in_arg *ioctl_tasks_header =
 		(struct nvpva_ioctl_submit_in_arg *)arg;
 	struct nvpva_ioctl_task *ioctl_tasks = NULL;
-	struct pva_submit_tasks tasks_header;
+	struct pva_submit_tasks *tasks_header;
 	int err = 0;
 	unsigned long rest;
 	int i, j;
 	uint32_t num_tasks;
-
-	memset(&tasks_header, 0, sizeof(tasks_header));
 
 	num_tasks = ioctl_tasks_header->tasks.size / sizeof(*ioctl_tasks);
 	/* Sanity checks for the task heaader */
@@ -367,6 +365,16 @@ static int pva_submit(struct pva_private *priv, void *arg)
 		goto out;
 	}
 
+
+	tasks_header = kzalloc(sizeof(struct pva_submit_tasks), GFP_KERNEL);
+	if (tasks_header == NULL) {
+		pr_err("pva: submit: allocation for tasks_header failed");
+		kfree(ioctl_tasks);
+		err = -ENOMEM;
+		goto out;
+	}
+
+
 	/* Copy the tasks from userspace */
 	rest = copy_from_user(ioctl_tasks,
 			      (void __user *)ioctl_tasks_header->tasks.addr,
@@ -377,6 +385,8 @@ static int pva_submit(struct pva_private *priv, void *arg)
 		pr_err("pva: failed to copy tasks");
 		goto free_ioctl_tasks;
 	}
+
+	tasks_header->num_tasks = 0;
 
 	/* Go through the tasks and make a KMD representation of them */
 	for (i = 0; i < num_tasks; i++) {
@@ -409,8 +419,8 @@ static int pva_submit(struct pva_private *priv, void *arg)
 		kref_init(&task->ref);
 		INIT_LIST_HEAD(&task->node);
 
-		tasks_header.tasks[i] = task;
-		tasks_header.num_tasks += 1;
+		tasks_header->tasks[i] = task;
+		tasks_header->num_tasks += 1;
 
 		task->dma_addr = task_mem_info.dma_addr;
 		task->va = task_mem_info.va;
@@ -436,21 +446,21 @@ static int pva_submit(struct pva_private *priv, void *arg)
 	}
 
 	/* Populate header structure */
-	tasks_header.execution_timeout_us =
+	tasks_header->execution_timeout_us =
 		ioctl_tasks_header->execution_timeout_us;
 
 	/* TODO: submission timeout */
 
 	/* ..and submit them */
-	err = nvpva_queue_submit(priv->queue, &tasks_header);
+	err = nvpva_queue_submit(priv->queue, tasks_header);
 
 	if (err < 0) {
 		goto free_tasks;
 	}
 
 	/* Copy fences back to userspace */
-	for (i = 0; i < tasks_header.num_tasks; i++) {
-		struct pva_submit_task *task = tasks_header.tasks[i];
+	for (i = 0; i < tasks_header->num_tasks; i++) {
+		struct pva_submit_task *task = tasks_header->tasks[i];
 		u32 n_copied[NVPVA_MAX_FENCE_TYPES] = {};
 		struct nvpva_fence_action __user *action_fences =
 			(struct nvpva_fence_action __user *)ioctl_tasks[i]
@@ -481,13 +491,15 @@ static int pva_submit(struct pva_private *priv, void *arg)
 	}
 
 free_tasks:
-	for (i = 0; i < tasks_header.num_tasks; i++) {
-		struct pva_submit_task *task = tasks_header.tasks[i];
+	for (i = 0; i < tasks_header->num_tasks; i++) {
+		struct pva_submit_task *task = tasks_header->tasks[i];
 		/* Drop the reference */
 		kref_put(&task->ref, pva_task_free);
 	}
 free_ioctl_tasks:
 	kfree(ioctl_tasks);
+	kfree(tasks_header);
+
 out:
 	return err;
 }
