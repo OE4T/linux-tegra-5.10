@@ -369,6 +369,7 @@ static void setup_device(struct vblk_dev *vblkdev)
 		dev_warn(vblkdev->device,
 			"Only %d concurrent requests can be filed, consider reducing mempool size\n",
 			MAX_OOPS_VSC_REQS);
+		max_requests = MAX_OOPS_VSC_REQS;
 	}
 
 	/* if the number of ivc frames is lesser than th  maximum requests that
