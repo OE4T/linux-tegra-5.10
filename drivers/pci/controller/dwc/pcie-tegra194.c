@@ -3383,6 +3383,10 @@ static void pex_ep_event_pex_rst_assert(struct tegra_pcie_dw *pcie)
 	if (pcie->ep_state == EP_STATE_DISABLED)
 		return;
 
+	/* Endpoint is going away, assert PRSNT# to mask EP from RP until it is ready link up */
+	if (pcie->pex_prsnt_gpiod)
+		gpiod_set_value_cansleep(pcie->pex_prsnt_gpiod, 0);
+
 	dw_pcie_ep_deinit_notify(ep);
 
 	if (pcie->is_safety_platform)
