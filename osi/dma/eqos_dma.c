@@ -476,26 +476,11 @@ static void eqos_configure_dma_channel(nveu32_t chan,
 	CHECK_CHAN_BOUND(chan);
 #endif
 	/* enable DMA channel interrupts */
-	/* Enable TIE and TBUE */
 	/* TIE - Transmit Interrupt Enable */
-	/* TBUE - Transmit Buffer Unavailable Enable */
 	/* RIE - Receive Interrupt Enable */
-	/* RBUE - Receive Buffer Unavailable Enable  */
-	/* AIE - Abnormal Interrupt Summary Enable */
-	/* NIE - Normal Interrupt Summary Enable */
-	/* FBE - Fatal Bus Error Enable */
 	value = osi_readl((nveu8_t *)osi_dma->base +
 			  EQOS_DMA_CHX_INTR_ENA(chan));
-	if (osi_dma->use_virtualization == OSI_DISABLE) {
-		value |= EQOS_DMA_CHX_INTR_TBUE |
-			 EQOS_DMA_CHX_INTR_RBUE;
-	}
-
-	value |= EQOS_DMA_CHX_INTR_TIE | EQOS_DMA_CHX_INTR_RIE |
-		 EQOS_DMA_CHX_INTR_FBEE | EQOS_DMA_CHX_INTR_AIE |
-		 EQOS_DMA_CHX_INTR_NIE;
-	/* For multi-irqs to work nie needs to be disabled */
-	value &= ~(EQOS_DMA_CHX_INTR_NIE);
+	value |= (EQOS_DMA_CHX_INTR_TIE | EQOS_DMA_CHX_INTR_RIE);
 	eqos_dma_safety_writel(osi_dma, value, (nveu8_t *)osi_dma->base +
 			       EQOS_DMA_CHX_INTR_ENA(chan),
 			       EQOS_DMA_CH0_INTR_ENA_IDX + chan);
@@ -752,7 +737,56 @@ void *eqos_get_dma_safety_config(void)
 	return &eqos_dma_safety_config;
 }
 
+#ifdef OSI_DEBUG
 /**
+ * @brief Enable/disable debug interrupt
+ *
+ * @param[in] osi_dma: OSI DMA private data structure.
+ *
+ * Algorithm:
+ * - if osi_dma->ioctl_data.arg_u32 == OSI_ENABLE enable debug interrupt
+ * - else disable bebug inerrupts
+ */
+static void eqos_debug_intr_config(struct osi_dma_priv_data *osi_dma)
+{
+	nveu32_t chinx;
+	nveu32_t chan;
+	nveu32_t val;
+	nveu32_t enable = osi_dma->ioctl_data.arg_u32;
+
+	if (enable == OSI_ENABLE) {
+		for (chinx = 0; chinx < osi_dma->num_dma_chans; chinx++) {
+			chan = osi_dma->dma_chans[chinx];
+			val = osi_readl((nveu8_t *)osi_dma->base +
+					EQOS_DMA_CHX_INTR_ENA(chan));
+
+			val |= (EQOS_DMA_CHX_INTR_AIE |
+				EQOS_DMA_CHX_INTR_FBEE |
+				EQOS_DMA_CHX_INTR_RBUE |
+				EQOS_DMA_CHX_INTR_TBUE |
+				EQOS_DMA_CHX_INTR_NIE);
+			osi_writel(val, (nveu8_t *)osi_dma->base +
+				   EQOS_DMA_CHX_INTR_ENA(chan));
+		}
+
+	} else {
+		for (chinx = 0; chinx < osi_dma->num_dma_chans; chinx++) {
+			chan = osi_dma->dma_chans[chinx];
+			val = osi_readl((nveu8_t *)osi_dma->base +
+					EQOS_DMA_CHX_INTR_ENA(chan));
+			val &= (~EQOS_DMA_CHX_INTR_AIE &
+				~EQOS_DMA_CHX_INTR_FBEE &
+				~EQOS_DMA_CHX_INTR_RBUE &
+				~EQOS_DMA_CHX_INTR_TBUE &
+				~EQOS_DMA_CHX_INTR_NIE);
+			osi_writel(val, (nveu8_t *)osi_dma->base +
+				   EQOS_DMA_CHX_INTR_ENA(chan));
+		}
+	}
+}
+#endif
+
+/*
  * @brief eqos_init_dma_chan_ops - Initialize EQOS DMA operations.
  *
  * @param[in] ops: DMA channel operations pointer.
@@ -773,4 +807,7 @@ void eqos_init_dma_chan_ops(struct dma_chan_ops *ops)
 	ops->validate_regs = eqos_validate_dma_regs;
 	ops->config_slot = eqos_config_slot;
 #endif /* !OSI_STRIPPED_LIB */
+#ifdef OSI_DEBUG
+	ops->debug_intr_config = eqos_debug_intr_config;
+#endif
 }

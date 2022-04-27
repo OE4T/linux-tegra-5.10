@@ -2366,12 +2366,6 @@ static nve32_t mgbe_configure_mtl_queue(nveu32_t qinx,
 	osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
 		   MGBE_MAC_RQC0R);
 
-	/* Enable TX Underflow Interrupt for MTL Q */
-	value = osi_readl((unsigned char *)osi_core->base +
-			  MGBE_MTL_QINT_ENABLE(qinx));
-	value |= MGBE_MTL_QINT_TXUIE;
-	osi_writel(value, (unsigned char *)osi_core->base +
-		   MGBE_MTL_QINT_ENABLE(qinx));
 	return 0;
 }
 

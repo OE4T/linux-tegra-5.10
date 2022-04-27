@@ -284,24 +284,11 @@ static void mgbe_configure_dma_channel(nveu32_t chan,
 	MGBE_CHECK_CHAN_BOUND(chan);
 #endif
 	/* enable DMA channel interrupts */
-	/* Enable TIE and TBUE */
 	/* TIE - Transmit Interrupt Enable */
-	/* TBUE - Transmit Buffer Unavailable Enable */
 	/* RIE - Receive Interrupt Enable */
-	/* RBUE - Receive Buffer Unavailable Enable  */
-	/* AIE - Abnormal Interrupt Summary Enable */
-	/* NIE - Normal Interrupt Summary Enable */
-	/* FBE - Fatal Bus Error Enable */
 	value = osi_readl((nveu8_t *)osi_dma->base +
 			  MGBE_DMA_CHX_INTR_ENA(chan));
-	value |= MGBE_DMA_CHX_INTR_TIE | MGBE_DMA_CHX_INTR_TBUE |
-		 MGBE_DMA_CHX_INTR_RIE | MGBE_DMA_CHX_INTR_RBUE |
-		 MGBE_DMA_CHX_INTR_FBEE | MGBE_DMA_CHX_INTR_AIE |
-		 MGBE_DMA_CHX_INTR_NIE;
-
-	/* For multi-irqs to work nie needs to be disabled */
-	/* TODO: do we need this ? */
-	value &= ~(MGBE_DMA_CHX_INTR_NIE);
+	value |= (MGBE_DMA_CHX_INTR_TIE | MGBE_DMA_CHX_INTR_RIE);
 	osi_writel(value, (nveu8_t *)osi_dma->base +
 		   MGBE_DMA_CHX_INTR_ENA(chan));
 
@@ -580,6 +567,55 @@ static void mgbe_config_slot(struct osi_dma_priv_data *osi_dma,
 	}
 }
 
+#ifdef OSI_DEBUG
+/**
+ * @brief Enable/disable debug interrupt
+ *
+ * @param[in] osi_dma: OSI DMA private data structure.
+ *
+ * Algorithm:
+ * - if osi_dma->ioctl_data.arg_u32 == OSI_ENABLE enable debug interrupt
+ * - else disable bebug inerrupts
+ */
+static void mgbe_debug_intr_config(struct osi_dma_priv_data *osi_dma)
+{
+	nveu32_t chinx;
+	nveu32_t chan;
+	nveu32_t val;
+	nveu32_t enable = osi_dma->ioctl_data.arg_u32;
+
+	if (enable == OSI_ENABLE) {
+		for (chinx = 0; chinx < osi_dma->num_dma_chans; chinx++) {
+			chan = osi_dma->dma_chans[chinx];
+			val = osi_readl((nveu8_t *)osi_dma->base +
+					MGBE_DMA_CHX_INTR_ENA(chan));
+
+			val |= (MGBE_DMA_CHX_INTR_AIE |
+				MGBE_DMA_CHX_INTR_FBEE |
+				MGBE_DMA_CHX_INTR_RBUE |
+				MGBE_DMA_CHX_INTR_TBUE |
+				MGBE_DMA_CHX_INTR_NIE);
+			osi_writel(val, (nveu8_t *)osi_dma->base +
+				   MGBE_DMA_CHX_INTR_ENA(chan));
+		}
+
+	} else {
+		for (chinx = 0; chinx < osi_dma->num_dma_chans; chinx++) {
+			chan = osi_dma->dma_chans[chinx];
+			val = osi_readl((nveu8_t *)osi_dma->base +
+					MGBE_DMA_CHX_INTR_ENA(chan));
+			val &= (~MGBE_DMA_CHX_INTR_AIE &
+				~MGBE_DMA_CHX_INTR_FBEE &
+				~MGBE_DMA_CHX_INTR_RBUE &
+				~MGBE_DMA_CHX_INTR_TBUE &
+				~MGBE_DMA_CHX_INTR_NIE);
+			osi_writel(val, (nveu8_t *)osi_dma->base +
+				   MGBE_DMA_CHX_INTR_ENA(chan));
+		}
+	}
+}
+#endif
+
 void mgbe_init_dma_chan_ops(struct dma_chan_ops *ops)
 {
 	ops->set_tx_ring_len = mgbe_set_tx_ring_len;
@@ -594,4 +630,7 @@ void mgbe_init_dma_chan_ops(struct dma_chan_ops *ops)
 	ops->set_rx_buf_len = mgbe_set_rx_buf_len;
 	ops->validate_regs = mgbe_validate_dma_regs;
 	ops->config_slot = mgbe_config_slot;
+#ifdef OSI_DEBUG
+	ops->debug_intr_config = mgbe_debug_intr_config;
+#endif
 };

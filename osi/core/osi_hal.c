@@ -2057,6 +2057,15 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		ret = ops_p->core_hsi_configure(osi_core, data->arg1_u32);
 		break;
 #endif
+
+#ifdef OSI_DEBUG
+	case OSI_CMD_DEBUG_INTR_CONFIG:
+#ifdef MACSEC_SUPPORT
+		osi_core->macsec_ops->debug_intr_config(osi_core, data->arg1_u32);
+#endif
+		ret = 0;
+		break;
+#endif
 	default:
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			     "CORE: Incorrect command\n",

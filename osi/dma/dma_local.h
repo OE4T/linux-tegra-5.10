@@ -84,6 +84,10 @@ struct dma_chan_ops {
 			    nveu32_t set,
 			    nveu32_t interval);
 #endif /* !OSI_STRIPPED_LIB */
+#ifdef OSI_DEBUG
+	/** Called to enable/disable debug interrupt */
+	void (*debug_intr_config)(struct osi_dma_priv_data *osi_dma);
+#endif
 };
 
 /**

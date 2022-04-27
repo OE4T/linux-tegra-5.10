@@ -249,6 +249,9 @@ typedef my_lint_64		nvel64_t;
 #ifdef HSI_SUPPORT
 #define OSI_CMD_HSI_CONFIGURE		51U
 #endif
+#ifdef OSI_DEBUG
+#define OSI_CMD_DEBUG_INTR_CONFIG	52U
+#endif
 /** @} */
 
 /**

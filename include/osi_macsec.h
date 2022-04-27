@@ -373,7 +373,9 @@ struct osi_macsec_core_ops {
 	/** macsec set MTU size */
 	nve32_t (*update_mtu)(struct osi_core_priv_data *const osi_core,
 			      nveu32_t mtu);
-
+#ifdef OSI_DEBUG
+	void (*debug_intr_config)(struct osi_core_priv_data *const osi_core, nveu32_t enable);
+#endif
 };
 
 //////////////////////////////////////////////////////////////////////////

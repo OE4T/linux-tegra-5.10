@@ -4436,16 +4436,10 @@ static nve32_t macsec_init(struct osi_core_priv_data *const osi_core,
 	LOG("Write MACSEC_STATS_CONTROL_0: 0x%x\n", val);
 	osi_writela(osi_core, val, addr + MACSEC_STATS_CONTROL_0);
 
-	/* Enable default interrupts needed */
+	/* Enable default HSI related interrupts needed */
 	val = osi_readla(osi_core, addr + MACSEC_TX_IMR);
 	LOG("Read MACSEC_TX_IMR: 0x%x\n", val);
-	val |= (MACSEC_TX_DBG_BUF_CAPTURE_DONE_INT_EN |
-		MACSEC_TX_MTU_CHECK_FAIL_INT_EN |
-		MACSEC_TX_MAC_CRC_ERROR_INT_EN |
-		MACSEC_TX_SC_AN_NOT_VALID_INT_EN |
-		MACSEC_TX_AES_GCM_BUF_OVF_INT_EN |
-		MACSEC_TX_PN_EXHAUSTED_INT_EN |
-		MACSEC_TX_PN_THRSHLD_RCHD_INT_EN);
+	val |= MACSEC_TX_MAC_CRC_ERROR_INT_EN;
 	LOG("Write MACSEC_TX_IMR: 0x%x\n", val);
 	osi_writela(osi_core, val, addr + MACSEC_TX_IMR);
 
@@ -4454,27 +4448,10 @@ static nve32_t macsec_init(struct osi_core_priv_data *const osi_core,
 
 	val = osi_readla(osi_core, addr + MACSEC_RX_IMR);
 	LOG("Read MACSEC_RX_IMR: 0x%x\n", val);
-
-	val |= (MACSEC_RX_DBG_BUF_CAPTURE_DONE_INT_EN |
-		MACSEC_RX_ICV_ERROR_INT_EN | RX_REPLAY_ERROR_INT_EN |
-		MACSEC_RX_MTU_CHECK_FAIL_INT_EN |
-		MACSEC_RX_MAC_CRC_ERROR_INT_EN |
-		MACSEC_RX_AES_GCM_BUF_OVF_INT_EN |
-		MACSEC_RX_PN_EXHAUSTED_INT_EN
-		);
+	val |= (MACSEC_RX_ICV_ERROR_INT_EN |
+		MACSEC_RX_MAC_CRC_ERROR_INT_EN);
 	LOG("Write MACSEC_RX_IMR: 0x%x\n", val);
 	osi_writela(osi_core, val, addr + MACSEC_RX_IMR);
-
-	val = osi_readla(osi_core, addr + MACSEC_COMMON_IMR);
-	LOG("Read MACSEC_COMMON_IMR: 0x%x\n", val);
-
-	val |= (MACSEC_SECURE_REG_VIOL_INT_EN |
-		MACSEC_RX_UNINIT_KEY_SLOT_INT_EN |
-		MACSEC_RX_LKUP_MISS_INT_EN |
-		MACSEC_TX_UNINIT_KEY_SLOT_INT_EN |
-		MACSEC_TX_LKUP_MISS_INT_EN);
-	LOG("Write MACSEC_COMMON_IMR: 0x%x\n", val);
-	osi_writela(osi_core, val, addr + MACSEC_COMMON_IMR);
 
 	/* Set AES mode
 	 * Default power on reset is AES-GCM128, leave it.
@@ -5280,6 +5257,69 @@ static nve32_t config_macsec(struct osi_core_priv_data *const osi_core,
 	}
 }
 
+#ifdef OSI_DEBUG
+static void macsec_debug_intr_config(struct osi_core_priv_data *const osi_core, nveu32_t enable)
+{
+	nveu32_t val = 0;
+	nveu8_t *addr = (nveu8_t *)osi_core->macsec_base;
+
+	if (enable == OSI_ENABLE) {
+		val = osi_readla(osi_core, addr + MACSEC_TX_IMR);
+		val |= (MACSEC_TX_DBG_BUF_CAPTURE_DONE_INT_EN |
+			MACSEC_TX_MTU_CHECK_FAIL_INT_EN |
+			MACSEC_TX_SC_AN_NOT_VALID_INT_EN |
+			MACSEC_TX_AES_GCM_BUF_OVF_INT_EN |
+			MACSEC_TX_PN_EXHAUSTED_INT_EN |
+			MACSEC_TX_PN_THRSHLD_RCHD_INT_EN);
+		osi_writela(osi_core, val, addr + MACSEC_TX_IMR);
+
+		val = osi_readla(osi_core, addr + MACSEC_RX_IMR);
+
+		val |= (MACSEC_RX_DBG_BUF_CAPTURE_DONE_INT_EN |
+			RX_REPLAY_ERROR_INT_EN |
+			MACSEC_RX_MTU_CHECK_FAIL_INT_EN |
+			MACSEC_RX_AES_GCM_BUF_OVF_INT_EN |
+			MACSEC_RX_PN_EXHAUSTED_INT_EN
+		       );
+		osi_writela(osi_core, val, addr + MACSEC_RX_IMR);
+
+		val = osi_readla(osi_core, addr + MACSEC_COMMON_IMR);
+		val |= (MACSEC_RX_UNINIT_KEY_SLOT_INT_EN |
+			MACSEC_RX_LKUP_MISS_INT_EN |
+			MACSEC_TX_UNINIT_KEY_SLOT_INT_EN |
+			MACSEC_TX_LKUP_MISS_INT_EN |
+			MACSEC_SECURE_REG_VIOL_INT_EN);
+		osi_writela(osi_core, val, addr + MACSEC_COMMON_IMR);
+	} else {
+		val = osi_readla(osi_core, addr + MACSEC_TX_IMR);
+		val &= (~MACSEC_TX_DBG_BUF_CAPTURE_DONE_INT_EN &
+			~MACSEC_TX_MTU_CHECK_FAIL_INT_EN &
+			~MACSEC_TX_SC_AN_NOT_VALID_INT_EN &
+			~MACSEC_TX_AES_GCM_BUF_OVF_INT_EN &
+			~MACSEC_TX_PN_EXHAUSTED_INT_EN &
+			~MACSEC_TX_PN_THRSHLD_RCHD_INT_EN);
+		osi_writela(osi_core, val, addr + MACSEC_TX_IMR);
+
+		val = osi_readla(osi_core, addr + MACSEC_RX_IMR);
+		val &= (~MACSEC_RX_DBG_BUF_CAPTURE_DONE_INT_EN &
+			~RX_REPLAY_ERROR_INT_EN &
+			~MACSEC_RX_MTU_CHECK_FAIL_INT_EN &
+			~MACSEC_RX_AES_GCM_BUF_OVF_INT_EN &
+			~MACSEC_RX_PN_EXHAUSTED_INT_EN
+		       );
+		osi_writela(osi_core, val, addr + MACSEC_RX_IMR);
+
+		val = osi_readla(osi_core, addr + MACSEC_COMMON_IMR);
+		val &= (~MACSEC_RX_UNINIT_KEY_SLOT_INT_EN &
+			~MACSEC_RX_LKUP_MISS_INT_EN &
+			~MACSEC_TX_UNINIT_KEY_SLOT_INT_EN &
+			~MACSEC_TX_LKUP_MISS_INT_EN &
+			~MACSEC_SECURE_REG_VIOL_INT_EN);
+		osi_writela(osi_core, val, addr + MACSEC_COMMON_IMR);
+	}
+}
+#endif
+
 /**
  * @brief osi_init_macsec_ops - macsec initialize operations
  *
@@ -5326,6 +5366,9 @@ nve32_t osi_init_macsec_ops(struct osi_core_priv_data *const osi_core)
 		.dbg_events_config = macsec_dbg_events_config,
 		.get_sc_lut_key_index = macsec_get_key_index,
 		.update_mtu = macsec_update_mtu,
+#ifdef OSI_DEBUG
+		.debug_intr_config = macsec_debug_intr_config,
+#endif
 	};
 
 	if (osi_core->use_virtualization == OSI_ENABLE) {

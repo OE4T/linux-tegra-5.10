@@ -244,6 +244,7 @@
 #ifdef OSI_DEBUG
 #define OSI_DMA_IOCTL_CMD_REG_DUMP	1U
 #define OSI_DMA_IOCTL_CMD_STRUCTS_DUMP	2U
+#define OSI_DMA_IOCTL_CMD_DEBUG_INTR_CONFIG	3U
 #endif /* OSI_DEBUG */
 /** @} */
 
@@ -528,6 +529,8 @@ struct osd_dma_ops {
 struct osi_dma_ioctl_data {
 	/** IOCTL command number */
 	nveu32_t cmd;
+	/** IOCTL command argument */
+	nveu32_t arg_u32;
 };
 
 /**

@@ -867,6 +867,9 @@ nve32_t osi_dma_ioctl(struct osi_dma_priv_data *osi_dma)
 	case OSI_DMA_IOCTL_CMD_STRUCTS_DUMP:
 		structs_dump(osi_dma);
 		break;
+	case OSI_DMA_IOCTL_CMD_DEBUG_INTR_CONFIG:
+		l_dma->ops_p->debug_intr_config(osi_dma);
+		break;
 #endif /* OSI_DEBUG */
 	default:
 		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,

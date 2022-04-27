@@ -308,7 +308,6 @@
 #define MGBE_MTL_TCQ_ETS_LCR(x)		((0x0080U * (x)) + 0x1124U)
 #define MGBE_MTL_CHX_RX_OP_MODE(x)	((0x0080U * (x)) + 0x1140U)
 #define MGBE_MTL_RXQ_FLOW_CTRL(x)	((0x0080U * (x)) + 0x1150U)
-#define MGBE_MTL_QINT_ENABLE(x)		((0x0080U * (x)) + 0x1170U)
 #define MGBE_MTL_QINT_STATUS(x)		((0x0080U * (x)) + 0x1174U)
 #define MGBE_MTL_TC_PRTY_MAP0		0x1040
 #define MGBE_MTL_TC_PRTY_MAP1		0x1044
@@ -426,7 +425,6 @@
 #define MGBE_MTL_RSF				OSI_BIT(5)
 #define MGBE_MTL_TCQ_QW_ISCQW                   OSI_BIT(4)
 #define MGBE_MTL_QINT_TXUNIFS			OSI_BIT(0)
-#define MGBE_MTL_QINT_TXUIE			OSI_BIT(0)
 #define MGBE_MAC_RMCR_ACS			OSI_BIT(1)
 #define MGBE_MAC_RMCR_CST			OSI_BIT(2)
 #define MGBE_MAC_RMCR_IPC			OSI_BIT(9)
