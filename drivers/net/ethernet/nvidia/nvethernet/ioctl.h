@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -79,6 +79,9 @@
 #endif /* OSI_DEBUG */
 #define ETHER_CAP_TSC_PTP		58
 #define ETHER_M2M_TSYNC			59
+#ifdef OSI_DEBUG
+#define ETHER_DEBUG_INTR_CONFIG	60
+#endif
 
 /** @} */
 

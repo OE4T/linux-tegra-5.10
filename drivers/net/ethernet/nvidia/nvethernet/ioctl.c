@@ -1157,6 +1157,44 @@ static int ether_config_fpe(struct net_device *dev,
 	return ret;
 }
 
+#ifdef OSI_DEBUG
+/**
+ * @brief handle ETHER_DEBUG_INTR_CONFIG ioctl
+ *
+ * Algorithm:
+ * - Call OSI_DMA_DEBUG_INTR_CONFIG to enable/disable debug interrupt
+ * - Call OSI_CMD_DEBUG_INTR_CONFIG to enable/disable debug interrupt
+ *
+ * @param[in] ndev: network device structure
+ * @param[in] ifdata: interface private data structure
+ *
+ * @note Ethernet interface need to be up.
+ *
+ * @retval 0 on Success
+ * @retval "nagative value" on Failure
+ */
+static int ether_debug_intr_config(struct net_device *ndev,
+				   struct ether_ifr_data *ifdata)
+{
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_ioctl ioctl_data = {};
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	unsigned int enable = ifdata->if_flags;
+	int ret = -1;
+
+	osi_dma->ioctl_data.cmd = OSI_DMA_IOCTL_CMD_DEBUG_INTR_CONFIG;
+	osi_dma->ioctl_data.arg_u32 = enable;
+	ret = osi_dma_ioctl(osi_dma);
+	if (ret < 0)
+		return ret;
+
+	ioctl_data.cmd = OSI_CMD_DEBUG_INTR_CONFIG;
+	ioctl_data.arg1_u32 = enable;
+	return osi_handle_ioctl(osi_core, &ioctl_data);
+}
+#endif
+
 /**
  * @brief ether_priv_ioctl - Handle private IOCTLs
  *
@@ -1346,6 +1384,9 @@ int ether_handle_priv_ioctl(struct net_device *ndev,
 
 		ioctl_data.cmd = OSI_CMD_STRUCTS_DUMP;
 		ret = osi_handle_ioctl(pdata->osi_core, &ioctl_data);
+		break;
+	case ETHER_DEBUG_INTR_CONFIG:
+		ret = ether_debug_intr_config(ndev, &ifdata);
 		break;
 #endif
 	case ETHER_CAP_TSC_PTP:
