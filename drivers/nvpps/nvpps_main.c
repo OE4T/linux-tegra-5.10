@@ -87,6 +87,7 @@ struct nvpps_device_data {
 
 	bool		memmap_phc_regs;
 	char		*iface_nm;
+	char		*sec_iface_nm;
 	void __iomem *mac_base_addr;
 	u32			sts_offset;
 	u32			stns_offset;
@@ -94,6 +95,7 @@ struct nvpps_device_data {
 	bool		platform_is_orin;
 	u32			tsc_ptp_src;
 	bool		only_timer_mode;
+	s64			ptp_offset;
 };
 
 
@@ -216,9 +218,10 @@ static void nvpps_get_ts(struct nvpps_device_data *pdev_data, bool in_isr)
 	u64		tsc;
 	u64		irq_tsc = 0;
 	u64		phc = 0;
+	s64		ptp_offset = 0;
 	u64		irq_latency = 0;
 	unsigned long	flags;
-	struct ptp_tsc_data ptp_tsc_ts;
+	struct ptp_tsc_data ptp_tsc_ts, sec_ptp_tsc_ts;
 
 	if (in_isr) {
 		/* initialize irq_tsc to the current TSC just in case the
@@ -259,13 +262,32 @@ static void nvpps_get_ts(struct nvpps_device_data *pdev_data, bool in_isr)
 	if (pdev_data->memmap_phc_regs) {
 		/* get both the phc(using memmap reg) and tsc */
 		phc = get_systime(pdev_data, &tsc);
+		/*TODO : support fetching ptp offset using memmap method */
 	} else {
 		/* get PTP_TSC concurrent timestamp(using ptp notifier) from MAC driver */
 		if (tegra_get_hwtime(pdev_data->iface_nm, &ptp_tsc_ts, PTP_TSC_HWTIME))
-			dev_err(pdev_data->dev, "failed to get PTP_TSC concurrent timestamp\n");
+			dev_warn_ratelimited(pdev_data->dev,
+					 "failed to get PTP_TSC concurrent timestamp from interface(%s)\nMake sure ptp is running\n",
+					 pdev_data->iface_nm);
 
 		phc = ptp_tsc_ts.ptp_ts;
 		tsc = ptp_tsc_ts.tsc_ts / pdev_data->tsc_res_ns;
+
+		if ((pdev_data->platform_is_orin) &&
+			/* primary & secondary ptp interface are not same */
+			(strncmp(pdev_data->iface_nm, pdev_data->sec_iface_nm, strlen(pdev_data->iface_nm)))) {
+
+			/* get PTP_TSC concurrent timestamp(using ptp notifier) from MAC
+			 * driver for secondary interface
+			 */
+			if (tegra_get_hwtime(pdev_data->sec_iface_nm, &sec_ptp_tsc_ts, PTP_TSC_HWTIME))
+				dev_warn_ratelimited(pdev_data->dev,
+						 "failed to get PTP_TSC concurrent timestamp for secondary interface(%s)\nMake sure ptp is running\n",
+						 pdev_data->sec_iface_nm);
+
+			/* offset between primary ptp inteface & secondary interface */
+			ptp_offset = (s64)(sec_ptp_tsc_ts.ptp_ts - phc);
+		}
 	}
 
 #ifdef NVPPS_ARM_COUNTER_PROFILING
@@ -311,6 +333,7 @@ static void nvpps_get_ts(struct nvpps_device_data *pdev_data, bool in_isr)
 #endif /* NVPPS_ARM_COUNTER_PROFILING || NVPPS_EQOS_REG_PROFILING */
 	pdev_data->irq_latency = irq_latency;
 	pdev_data->actual_evt_mode = in_isr ? NVPPS_MODE_GPIO : NVPPS_MODE_TIMER;
+	pdev_data->ptp_offset = ptp_offset;
 	raw_spin_unlock_irqrestore(&pdev_data->lock, flags);
 
 	/* event notification */
@@ -552,6 +575,7 @@ static long nvpps_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 			time_event.evt_nb = pdev_data->pps_event_id;
 			time_event.tsc = pdev_data->tsc;
 			time_event.ptp = pdev_data->phc;
+			time_event.ptp_offset = pdev_data->ptp_offset;
 			time_event.irq_latency = pdev_data->irq_latency;
 			raw_spin_unlock_irqrestore(&pdev_data->lock, flags);
 			if (NVPPS_TSC_NSEC == pdev_data->tsc_mode) {
@@ -708,12 +732,20 @@ static void nvpps_fill_default_mac_phc_info(struct platform_device *pdev,
 
 	/* Get default params from dt */
 	pdev_data->iface_nm = (char *)of_get_property(np, "interface", NULL);
+	pdev_data->sec_iface_nm = (char *)of_get_property(np, "sec_interface", NULL);
 	pdev_data->memmap_phc_regs = of_property_read_bool(np, "memmap_phc_regs");
 
 	/* For orin */
 	if (of_machine_is_compatible("nvidia,tegra234")) {
 		pdev_data->platform_is_orin = true;
+
+		/* set default seconday interface for ptp timestamp */
+		if (pdev_data->sec_iface_nm == NULL) {
+			pdev_data->sec_iface_nm = devm_kstrdup(&pdev->dev, "eqos_0", GFP_KERNEL);
+		}
+
 		if (pdev_data->memmap_phc_regs) {
+			/* TODO: Add support to map secondary interfaces PHC registers */
 			dev_info(&pdev->dev, "using mem mapped MAC PHC reg method\n");
 			if (pdev_data->iface_nm == NULL) {
 				pdev_data->iface_nm = devm_kstrdup(&pdev->dev, "eqos_0", GFP_KERNEL);
