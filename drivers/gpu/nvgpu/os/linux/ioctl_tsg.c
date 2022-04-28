@@ -380,7 +380,7 @@ static int gk20a_tsg_event_id_enable(struct nvgpu_tsg *tsg,
 		goto free_ref;
 	}
 
-	err = get_unused_fd_flags(O_RDWR);
+	err = get_unused_fd_flags(O_RDWR | O_CLOEXEC);
 	if (err < 0)
 		goto free_ref;
 	local_fd = err;

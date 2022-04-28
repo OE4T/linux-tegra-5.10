@@ -583,7 +583,7 @@ int gk20a_channel_open_ioctl(struct gk20a *g, struct nvgpu_cdev *cdev,
 	char name[64];
 	s32 runlist_id = args->in.runlist_id;
 
-	err = get_unused_fd_flags(O_RDWR);
+	err = get_unused_fd_flags(O_RDWR | O_CLOEXEC);
 	if (err < 0)
 		return err;
 	fd = err;
@@ -901,7 +901,7 @@ static int gk20a_ioctl_channel_submit_gpfifo(
 
 	/* Try and allocate an fd here*/
 	if (flag_fence_get && flag_sync_fence) {
-		fd = get_unused_fd_flags(O_RDWR);
+		fd = get_unused_fd_flags(O_RDWR | O_CLOEXEC);
 		if (fd < 0)
 			return fd;
 	}

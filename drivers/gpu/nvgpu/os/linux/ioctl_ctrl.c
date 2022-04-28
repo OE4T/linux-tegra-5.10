@@ -575,7 +575,7 @@ static int gk20a_ctrl_prepare_compressible_read(
 	/* Try and allocate an fd here*/
 	if ((submit_flags & NVGPU_SUBMIT_FLAGS_FENCE_GET)
 		&& (submit_flags & NVGPU_SUBMIT_FLAGS_SYNC_FENCE)) {
-			fd = get_unused_fd_flags(O_RDWR);
+			fd = get_unused_fd_flags(O_RDWR | O_CLOEXEC);
 			if (fd < 0)
 				return fd;
 	}
@@ -648,7 +648,7 @@ static int gk20a_ctrl_alloc_as(
 	struct file *file;
 	char name[64];
 
-	err = get_unused_fd_flags(O_RDWR);
+	err = get_unused_fd_flags(O_RDWR | O_CLOEXEC);
 	if (err < 0)
 		return err;
 	fd = err;
@@ -691,7 +691,7 @@ static int gk20a_ctrl_open_tsg(struct gk20a *g, struct nvgpu_cdev *cdev,
 	struct file *file;
 	char name[64];
 
-	err = get_unused_fd_flags(O_RDWR);
+	err = get_unused_fd_flags(O_RDWR | O_CLOEXEC);
 	if (err < 0)
 		return err;
 	fd = err;

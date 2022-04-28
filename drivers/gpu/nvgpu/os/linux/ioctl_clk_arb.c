@@ -327,7 +327,7 @@ static int nvgpu_clk_arb_install_fd(struct gk20a *g,
 		goto fail;
 	}
 
-	fd = get_unused_fd_flags(O_RDWR);
+	fd = get_unused_fd_flags(O_RDWR | O_CLOEXEC);
 	if (fd < 0) {
 		err = fd;
 		goto fail;
