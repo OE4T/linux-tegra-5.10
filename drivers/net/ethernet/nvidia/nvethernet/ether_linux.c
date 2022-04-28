@@ -101,141 +101,6 @@ update_skb:
 	}
 }
 
-/** @brief invalidate local l2 address list
- *
- * Algorithm: Invalidate all nodes in local address link list
- *
- * @param[in] pdata: OSD private data.
- *
- */
-static inline void ether_invalidate_mac_addr_list(struct ether_priv_data *pdata)
-{
-	struct ether_mac_addr_list *pnode;
-	struct list_head *head_node, *temp_head_node;
-
-	if (list_empty(&pdata->mac_addr_list_head)) {
-		return;
-	}
-
-	list_for_each_safe(head_node, temp_head_node,
-			   &pdata->mac_addr_list_head) {
-		pnode = list_entry(head_node,
-				   struct ether_mac_addr_list,
-				   list_head);
-		if (pnode->index != ETHER_MAC_ADDRESS_INDEX &&
-		    pnode->index != ETHER_BC_ADDRESS_INDEX) {
-			pnode->is_valid_addr = OSI_DISABLE;
-		}
-	}
-}
-
-/**
- * @brief find index and add l2 address
- *
- * Algorithm: Find index for already added address or empty index to add filter
- *	      address. If new L2 address, add it in local link list and call OSI
- *	      API.
- * @param[in] pdata: OSD private data.
- * @param[in] filter: OSI filter structure pointer
- */
-static int ether_update_mac_addr(struct ether_priv_data *pdata,
-				 struct osi_ioctl *ioctl_data)
-{
-	struct ether_mac_addr_list *pnode = NULL;
-	struct list_head *head_node, *temp_head_node;
-	struct osi_core_priv_data *osi_core = pdata->osi_core;
-	int ret = 0;
-
-	list_for_each_safe(head_node, temp_head_node,
-			   &pdata->mac_addr_list_head) {
-		pnode = list_entry(head_node,
-				   struct ether_mac_addr_list,
-				   list_head);
-		if (memcmp(ioctl_data->l2_filter.mac_address, pnode->addr,
-			   OSI_ETH_ALEN) == 0) {
-			pnode->is_valid_addr = OSI_ENABLE;
-			return ret;
-		}
-	}
-
-	pnode = kmalloc(sizeof(*pnode), GFP_KERNEL);
-	if (!pnode) {
-		dev_err(pdata->dev, "kmalloc failed %s()\n", __func__);
-		return -1;
-	}
-
-	memcpy(pnode->addr, ioctl_data->l2_filter.mac_address, OSI_ETH_ALEN);
-	pnode->is_valid_addr = OSI_ENABLE;
-	pnode->dma_chan = ioctl_data->l2_filter.dma_chan;
-	pnode->index = ioctl_data->l2_filter.index;
-
-	ret = osi_handle_ioctl(osi_core, ioctl_data);
-	if (ret < 0) {
-		kfree(pnode);
-		return ret;
-	}
-
-	list_add(&pnode->list_head,
-		 &pdata->mac_addr_list_head);
-
-	return ret;
-}
-
-/**
- * @brief remove invalid l2 address
- *
- * Algorithm: call OSI call for  addresses which are not valid with new list
- *	      from network stack.
- *
- * @param[in] pdata: OSD private data.
- * @param[in] ioctl_data: OSI IOCTL data structure.
- *
- */
-static inline int ether_remove_invalid_mac_addr(struct ether_priv_data *pdata,
-						struct osi_ioctl *ioctl_data)
-{
-	struct ether_mac_addr_list *pnode;
-	struct list_head *head_node, *temp_head_node;
-	struct osi_core_priv_data *osi_core = pdata->osi_core;
-	int ret = 0;
-
-	if (list_empty(&pdata->mac_addr_list_head)) {
-		return ret;
-	}
-
-	list_for_each_safe(head_node, temp_head_node,
-			   &pdata->mac_addr_list_head) {
-		pnode = list_entry(head_node,
-				   struct ether_mac_addr_list,
-				   list_head);
-		if (pnode->is_valid_addr == OSI_DISABLE) {
-			memset(&ioctl_data->l2_filter, 0x0,
-			       sizeof(struct osi_filter));
-			ioctl_data->l2_filter.dma_routing = OSI_ENABLE;
-			ioctl_data->l2_filter.addr_mask = OSI_AMASK_DISABLE;
-			ioctl_data->l2_filter.src_dest = OSI_DA_MATCH;
-			ioctl_data->l2_filter.oper_mode = OSI_OPER_ADDR_DEL;
-			memcpy(ioctl_data->l2_filter.mac_address, pnode->addr,
-			       OSI_ETH_ALEN);
-			ioctl_data->l2_filter.dma_chan = pnode->dma_chan;
-			ioctl_data->l2_filter.index = pnode->index;
-
-			ret = osi_handle_ioctl(osi_core, ioctl_data);
-			if (ret < 0) {
-				dev_err(pdata->dev,
-					"%s failed to remove address\n",
-					__func__);
-				return ret;
-			}
-
-			list_del(head_node);
-			kfree(pnode);
-		}
-	}
-
-	return ret;
-}
-
 #ifdef HSI_SUPPORT
 static inline u64 rdtsc(void)
 {
@@ -2900,9 +2765,6 @@ static inline void ether_reset_stats(struct ether_priv_data *pdata)
 static inline void ether_delete_l2_filter(struct ether_priv_data *pdata)
 {
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
-	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
-	struct ether_mac_addr_list *pnode;
-	struct list_head *head_node, *temp_head_node;
 	struct osi_ioctl ioctl_data = {};
 	int ret, i;
 
@@ -2921,38 +2783,30 @@ static inline void ether_delete_l2_filter(struct ether_priv_data *pdata)
 	}
 
 	/* Loop to delete l2 address list filters */
-	for (i = ETHER_MAC_ADDRESS_INDEX + 1; i <= pdata->last_filter_index;
+	for (i = ETHER_MAC_ADDRESS_INDEX + 1; i < pdata->last_filter_index;
 	     i++) {
 		/* Reset the filter structure to avoid any old value */
 		memset(&ioctl_data.l2_filter, 0x0, sizeof(struct osi_filter));
 		ioctl_data.l2_filter.oper_mode = OSI_OPER_ADDR_DEL;
 		ioctl_data.l2_filter.index = i;
 		ioctl_data.l2_filter.dma_routing = OSI_ENABLE;
-		if (osi_dma->num_dma_chans > 1) {
-			ioctl_data.l2_filter.dma_chan = osi_dma->dma_chans[1];
-		} else {
-			ioctl_data.l2_filter.dma_chan = osi_dma->dma_chans[0];
-		}
+		memcpy(ioctl_data.l2_filter.mac_address,
+		       pdata->mac_addr[i].addr, ETH_ALEN);
+		ioctl_data.l2_filter.dma_chan = pdata->mac_addr[i].dma_chan;
 		ioctl_data.l2_filter.addr_mask = OSI_AMASK_DISABLE;
 		ioctl_data.l2_filter.src_dest = OSI_DA_MATCH;
 		ioctl_data.cmd = OSI_CMD_L2_FILTER;
+
 		ret = osi_handle_ioctl(osi_core, &ioctl_data);
 		if (ret < 0) {
 			dev_err(pdata->dev,
 				"failed to delete L2 filter index = %d\n", i);
+			mutex_unlock(&pdata->rx_mode_lock);
+			return;
 		}
 	}
 
-	if (!list_empty(&pdata->mac_addr_list_head)) {
-		list_for_each_safe(head_node, temp_head_node,
-				   &pdata->mac_addr_list_head) {
-			pnode = list_entry(head_node,
-					   struct ether_mac_addr_list,
-					   list_head);
-			list_del(head_node);
-			kfree(pnode);
-		}
-	}
+	pdata->last_filter_index = 0;
 }
 
 /**
@@ -3555,13 +3409,14 @@ static int ether_start_xmit(struct sk_buff *skb, struct net_device *ndev)
  * @retval "negative value" on failure.
  */
 static int ether_prepare_mc_list(struct net_device *dev,
-				 struct osi_ioctl *ioctl_data)
+				 struct osi_ioctl *ioctl_data,
+				 unsigned int *mac_addr_idx)
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 	struct netdev_hw_addr *ha;
-	unsigned int i = ETHER_MAC_ADDRESS_INDEX + 1;
+	unsigned int i = *mac_addr_idx;
 	int ret = -1;
 
 	if (ioctl_data == NULL) {
@@ -3619,12 +3474,15 @@ static int ether_prepare_mc_list(struct net_device *dev,
 			ioctl_data->l2_filter.addr_mask = OSI_AMASK_DISABLE;
 			ioctl_data->l2_filter.src_dest = OSI_DA_MATCH;
 			ioctl_data->cmd = OSI_CMD_L2_FILTER;
-			ret = ether_update_mac_addr(pdata, ioctl_data);
+			ret = osi_handle_ioctl(pdata->osi_core, ioctl_data);
 			if (ret < 0) {
 				dev_err(pdata->dev, "issue in creating mc list\n");
-				pdata->last_filter_index = i - 1;
+				*mac_addr_idx = i;
 				return ret;
 			}
+
+			memcpy(pdata->mac_addr[i].addr, ha->addr, ETH_ALEN);
+			pdata->mac_addr[i].dma_chan = ioctl_data->l2_filter.dma_chan;
 
 			if (i == EQOS_MAX_MAC_ADDRESS_FILTER - 1) {
 				dev_err(pdata->dev, "Configured max number of supported MAC, ignoring it\n");
@@ -3632,8 +3490,7 @@ static int ether_prepare_mc_list(struct net_device *dev,
 			}
 			i++;
 		}
-		/* preserve last filter index to pass on to UC */
-		pdata->last_filter_index = i - 1;
+		*mac_addr_idx = i;
 	}
 
 	return ret;
@@ -3654,13 +3511,14 @@ static int ether_prepare_mc_list(struct net_device *dev,
  * @retval "negative value" on failure.
  */
 static int ether_prepare_uc_list(struct net_device *dev,
-				 struct osi_ioctl *ioctl_data)
+				 struct osi_ioctl *ioctl_data,
+				 unsigned int *mac_addr_idx)
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 	/* last valid MC/MAC DA + 1 should be start of UC addresses */
-	unsigned int i = pdata->last_filter_index + 1;
+	unsigned int i = *mac_addr_idx;
 	struct netdev_hw_addr *ha;
 	int ret = -1;
 
@@ -3717,13 +3575,16 @@ static int ether_prepare_uc_list(struct net_device *dev,
 			ioctl_data->l2_filter.src_dest = OSI_DA_MATCH;
 
 			ioctl_data->cmd = OSI_CMD_L2_FILTER;
-			ret = ether_update_mac_addr(pdata, ioctl_data);
+			ret = osi_handle_ioctl(pdata->osi_core, ioctl_data);
 			if (ret < 0) {
 				dev_err(pdata->dev,
 					"issue in creating uc list\n");
-				pdata->last_filter_index = i - 1;
+				*mac_addr_idx = i;
 				return ret;
 			}
+
+			memcpy(pdata->mac_addr[i].addr, ha->addr, ETH_ALEN);
+			pdata->mac_addr[i].dma_chan = ioctl_data->l2_filter.dma_chan;
 
 			if (i == EQOS_MAX_MAC_ADDRESS_FILTER - 1) {
 				dev_err(pdata->dev, "Already MAX MAC added\n");
@@ -3731,7 +3592,7 @@ static int ether_prepare_uc_list(struct net_device *dev,
 			}
 			i++;
 		}
-		pdata->last_filter_index  = i - 1;
+		*mac_addr_idx = i;
 	}
 
 	return ret;
@@ -3752,6 +3613,7 @@ static inline void set_rx_mode_work_func(struct work_struct *work)
 	/* store last call last_uc_filter_index in temporary variable */
 	struct osi_ioctl ioctl_data = {};
 	struct net_device *dev = pdata->ndev;
+	unsigned int mac_addr_idx = ETHER_MAC_ADDRESS_INDEX + 1U, i;
 	int ret = -1;
 
 	mutex_lock(&pdata->rx_mode_lock);
@@ -3790,9 +3652,7 @@ static inline void set_rx_mode_work_func(struct work_struct *work)
 		mutex_unlock(&pdata->rx_mode_lock);
 		return;
 	} else if (!netdev_mc_empty(dev)) {
-		/*MC list will be always there, invalidate list only once*/
-		ether_invalidate_mac_addr_list(pdata);
-		if (ether_prepare_mc_list(dev, &ioctl_data) != 0) {
+		if (ether_prepare_mc_list(dev, &ioctl_data, &mac_addr_idx) != 0) {
 			dev_err(pdata->dev, "Setting MC address failed\n");
 		}
 	} else {
@@ -3801,19 +3661,36 @@ static inline void set_rx_mode_work_func(struct work_struct *work)
 	}
 
 	if (!netdev_uc_empty(dev)) {
-		if (ether_prepare_uc_list(dev, &ioctl_data) != 0) {
+		if (ether_prepare_uc_list(dev, &ioctl_data, &mac_addr_idx) != 0) {
 			dev_err(pdata->dev, "Setting UC address failed\n");
 		}
 	}
 
-	ret = ether_remove_invalid_mac_addr(pdata, &ioctl_data);
-	if (ret < 0) {
-		dev_err(pdata->dev,
-			"Invalidating expired L2 filter failed\n");
-		mutex_unlock(&pdata->rx_mode_lock);
-		return;
+	if (pdata->last_filter_index > mac_addr_idx) {
+		for (i = mac_addr_idx; i < pdata->last_filter_index; i++) {
+			/* Reset the filter structure to avoid any old value */
+			memset(&ioctl_data.l2_filter, 0x0, sizeof(struct osi_filter));
+			ioctl_data.l2_filter.oper_mode = OSI_OPER_ADDR_DEL;
+			ioctl_data.l2_filter.index = i;
+			ioctl_data.l2_filter.dma_routing = OSI_ENABLE;
+			memcpy(ioctl_data.l2_filter.mac_address,
+			       pdata->mac_addr[i].addr, ETH_ALEN);
+			ioctl_data.l2_filter.dma_chan = pdata->mac_addr[i].dma_chan;
+			ioctl_data.l2_filter.addr_mask = OSI_AMASK_DISABLE;
+			ioctl_data.l2_filter.src_dest = OSI_DA_MATCH;
+			ioctl_data.cmd = OSI_CMD_L2_FILTER;
+
+			ret = osi_handle_ioctl(osi_core, &ioctl_data);
+			if (ret < 0) {
+				dev_err(pdata->dev,
+					"failed to delete L2 filter index = %d\n", i);
+				mutex_unlock(&pdata->rx_mode_lock);
+				return;
+			}
+		}
 	}
 
+	pdata->last_filter_index = mac_addr_idx;
 	/* Set default MAC configuration because if this path is called
 	 * only when flag for promiscuous or all_multi is not set.
 	 */
@@ -6659,7 +6536,6 @@ static int ether_probe(struct platform_device *pdev)
 	/* Initialization of set speed workqueue */
 	INIT_DELAYED_WORK(&pdata->set_speed_work, set_speed_work_func);
 	osi_core->hw_feature = &pdata->hw_feat;
-	INIT_LIST_HEAD(&pdata->mac_addr_list_head);
 	INIT_LIST_HEAD(&pdata->tx_ts_skb_head);
 	INIT_DELAYED_WORK(&pdata->tx_ts_work, ether_get_tx_ts);
 	pdata->rx_m_enabled = false;
