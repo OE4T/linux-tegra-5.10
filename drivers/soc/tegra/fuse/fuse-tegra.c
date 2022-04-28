@@ -461,8 +461,7 @@ static ssize_t platform_show(struct device *dev, struct device_attribute *attr,
 
 static DEVICE_ATTR_RO(platform);
 
-#if IS_ENABLED(CONFIG_ARCH_TEGRA_23x_SOC)
-#define OPT_FUSE_ATTR(name, offset)				\
+#define FUSE_ATTR(name, offset)				\
 static ssize_t name ## _show(struct device *dev,		\
 			     struct device_attribute *attr,	\
 			     char *buf)				\
@@ -476,21 +475,25 @@ static ssize_t name ## _show(struct device *dev,		\
 			reg = 0;				\
 	}							\
 								\
-	return sprintf(buf, "%d\n", reg);			\
+	return sprintf(buf, "0x%x\n", reg);			\
 }								\
 static DEVICE_ATTR_RO(name)
 
-OPT_FUSE_ATTR(opt_ccplex_cluster_disable,
-					TEGRA_FUSE_OPT_CCPLEX_CLUSTER_DISABLE);
-OPT_FUSE_ATTR(opt_dla_disable,		TEGRA_FUSE_OPT_DLA_DISABLE);
-OPT_FUSE_ATTR(opt_emc_disable,		TEGRA_FUSE_OPT_EMC_DISABLE);
-OPT_FUSE_ATTR(opt_fbp_disable,		TEGRA_FUSE_OPT_FBP_DISABLE);
-OPT_FUSE_ATTR(opt_fsi_disable,		TEGRA_FUSE_OPT_FSI_DISABLE);
-OPT_FUSE_ATTR(opt_gpc_disable,		TEGRA_FUSE_OPT_GPC_DISABLE);
-OPT_FUSE_ATTR(opt_nvdec_disable,	TEGRA_FUSE_OPT_NVENC_DISABLE);
-OPT_FUSE_ATTR(opt_nvenc_disable,	TEGRA_FUSE_OPT_NVDEC_DISABLE);
-OPT_FUSE_ATTR(opt_pva_disable,		TEGRA_FUSE_OPT_PVA_DISABLE);
-OPT_FUSE_ATTR(opt_tpc_disable,		TEGRA_FUSE_OPT_TPC_DISABLE);
+FUSE_ATTR(odmid0,	TEGRA_FUSE_ODMID_0);
+FUSE_ATTR(odmid1,	TEGRA_FUSE_ODMID_1);
+FUSE_ATTR(odm_info,	TEGRA_FUSE_ODM_INFO);
+
+#if IS_ENABLED(CONFIG_ARCH_TEGRA_23x_SOC)
+FUSE_ATTR(opt_ccplex_cluster_disable,	TEGRA_FUSE_OPT_CCPLEX_CLUSTER_DISABLE);
+FUSE_ATTR(opt_dla_disable,		TEGRA_FUSE_OPT_DLA_DISABLE);
+FUSE_ATTR(opt_emc_disable,		TEGRA_FUSE_OPT_EMC_DISABLE);
+FUSE_ATTR(opt_fbp_disable,		TEGRA_FUSE_OPT_FBP_DISABLE);
+FUSE_ATTR(opt_fsi_disable,		TEGRA_FUSE_OPT_FSI_DISABLE);
+FUSE_ATTR(opt_gpc_disable,		TEGRA_FUSE_OPT_GPC_DISABLE);
+FUSE_ATTR(opt_nvdec_disable,		TEGRA_FUSE_OPT_NVENC_DISABLE);
+FUSE_ATTR(opt_nvenc_disable,		TEGRA_FUSE_OPT_NVDEC_DISABLE);
+FUSE_ATTR(opt_pva_disable,		TEGRA_FUSE_OPT_PVA_DISABLE);
+FUSE_ATTR(opt_tpc_disable,		TEGRA_FUSE_OPT_TPC_DISABLE);
 #endif
 
 static struct attribute *tegra194_soc_attr[] = {
@@ -498,6 +501,9 @@ static struct attribute *tegra194_soc_attr[] = {
 	&dev_attr_minor.attr,
 	&dev_attr_production.attr,
 	&dev_attr_platform.attr,
+	&dev_attr_odmid0.attr,
+	&dev_attr_odmid1.attr,
+	&dev_attr_odm_info.attr,
 #if IS_ENABLED(CONFIG_ARCH_TEGRA_23x_SOC)
 	&dev_attr_opt_ccplex_cluster_disable.attr,
 	&dev_attr_opt_dla_disable.attr,
