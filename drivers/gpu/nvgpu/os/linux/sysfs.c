@@ -1327,10 +1327,6 @@ static ssize_t emulate_mode_store(struct device *dev,
 	if (kstrtoul(buf, 10, &val) < 0)
 		return -EINVAL;
 
-	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_EMULATE_MODE)) {
-		nvgpu_err(g, "Emulate mode not supported");
-		return -EINVAL;
-	}
 	if (nvgpu_is_powered_on(g)) {
 		nvgpu_err(g, "GPU is powered on already, emulate mode "
 					"cannot be enabled");

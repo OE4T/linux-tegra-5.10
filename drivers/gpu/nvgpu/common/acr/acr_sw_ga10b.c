@@ -21,6 +21,7 @@
  */
 #include <nvgpu/types.h>
 #include <nvgpu/firmware.h>
+#include <nvgpu/enabled.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/dma.h>
@@ -166,9 +167,12 @@ static int ga10b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 		 */
 		acr_sysmem_desc->wpr_offset = WPR_OFFSET;
 
-		if (g->emulate_mode < EMULATE_MODE_MAX_CONFIG) {
+		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_EMULATE_MODE) &&
+				(g->emulate_mode < EMULATE_MODE_MAX_CONFIG)) {
 			acr_sysmem_desc->gpu_mode &= (~EMULATE_MODE_MASK);
 			acr_sysmem_desc->gpu_mode |= g->emulate_mode;
+		} else {
+			acr_sysmem_desc->gpu_mode &= (~EMULATE_MODE_MASK);
 		}
 
 		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {

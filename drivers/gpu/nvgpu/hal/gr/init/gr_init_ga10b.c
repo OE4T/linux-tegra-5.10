@@ -26,6 +26,7 @@
 #include <nvgpu/log.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/gr/ctx.h>
+#include <nvgpu/enabled.h>
 #include <nvgpu/static_analysis.h>
 
 #include "gr_init_ga10b.h"
@@ -65,7 +66,8 @@ u32 ga10b_gr_init_get_ctx_betacb_size(struct gk20a *g)
 void ga10b_gr_init_commit_rops_crop_override(struct gk20a *g,
 				struct nvgpu_gr_ctx *gr_ctx, bool patch)
 {
-	if (g->emulate_mode) {
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_EMULATE_MODE) &&
+			(g->emulate_mode > 0U)) {
 		u32 data = 0U;
 		data = nvgpu_readl(g, gr_pri_gpcs_rops_crop_debug1_r());
 		data = set_field(data,
