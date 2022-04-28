@@ -225,7 +225,7 @@
 /**
  * @brief Broadcast and MAC address macros
  */
-#define ETHER_MAC_ADDRESS_INDEX		1
+#define ETHER_MAC_ADDRESS_INDEX		1U
 #define ETHER_BC_ADDRESS_INDEX		0
 #define ETHER_ADDRESS_MAC		1
 #define ETHER_ADDRESS_BC		0
@@ -368,17 +368,11 @@ struct ether_ivc_ctxt {
 /**
  * @brief local L2 filter table structure
  */
-struct ether_mac_addr_list {
-	/** Link list node head */
-	struct list_head list_head;
+struct ether_mac_addr {
 	/** L2 address */
 	unsigned char addr[ETH_ALEN];
-	/** Flag represent is address valid(1) or not (0) */
-	char is_valid_addr;
 	/** DMA channel to route packets */
 	unsigned int dma_chan;
-	/** index number at the time of add */
-	unsigned int index;
 };
 
 /**
@@ -503,7 +497,7 @@ struct ether_priv_data {
 	/** max address register count, 2*mac_addr64_sel */
 	int num_mac_addr_regs;
 	/** Last address reg filter index added in last call*/
-	int last_filter_index;
+	unsigned int last_filter_index;
 	/** vlan hash filter 1: hash, 0: perfect */
 	unsigned int vlan_hash_filtering;
 	/** L2 filter mode */
@@ -565,7 +559,7 @@ struct ether_priv_data {
 	struct macsec_priv_data *macsec_pdata;
 #endif /* MACSEC_SUPPORT */
 	/** local L2 filter address list head pointer */
-	struct list_head mac_addr_list_head;
+	struct ether_mac_addr mac_addr[ETHER_ADDR_REG_CNT_128];
 	/** skb tx timestamp update work queue */
 	struct delayed_work tx_ts_work;
 	/** local skb list head */
