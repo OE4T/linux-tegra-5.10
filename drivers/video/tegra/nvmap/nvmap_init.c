@@ -74,7 +74,7 @@ struct device __weak tegra_generic_cma_dev;
 struct device __weak tegra_vpr_cma_dev;
 
 #ifdef NVMAP_LOADABLE_MODULE
-	struct platform_device *pdev;
+static struct platform_device *pdev;
 #endif /* NVMAP_LOADABLE_MODULE */
 
 #ifdef NVMAP_CONFIG_VPR_RESIZE

@@ -5,6 +5,7 @@
 
 #include <linux/xarray.h>
 #include <linux/dma-buf.h>
+#include "nvmap_priv.h"
 
 #define XA_START (U32_MAX / 2)
 /*
