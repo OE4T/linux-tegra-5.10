@@ -1566,10 +1566,10 @@ static long tnvvse_crypto_dev_ioctl(struct file *filp,
 	unsigned int ioctl_num, unsigned long arg)
 {
 	struct tnvvse_crypto_ctx *ctx = filp->private_data;
-	struct tegra_nvvse_aes_enc_dec_ctl *arg_aes_enc_dec_ctl = (void __user *)arg;
-	struct tegra_nvvse_aes_gmac_init_ctl *arg_aes_gmac_init_ctl = (void __user *)arg;
-	struct tegra_nvvse_aes_gmac_sign_verify_ctl *arg_aes_gmac_sign_verify_ctl;
-	struct tegra_nvvse_aes_cmac_sign_verify_ctl *arg_aes_cmac_sign_verify_ctl;
+	struct tegra_nvvse_aes_enc_dec_ctl __user *arg_aes_enc_dec_ctl = (void __user *)arg;
+	struct tegra_nvvse_aes_gmac_init_ctl __user *arg_aes_gmac_init_ctl = (void __user *)arg;
+	struct tegra_nvvse_aes_gmac_sign_verify_ctl __user *arg_aes_gmac_sign_verify_ctl;
+	struct tegra_nvvse_aes_cmac_sign_verify_ctl __user *arg_aes_cmac_sign_verify_ctl;
 	struct tegra_nvvse_sha_init_ctl sha_init_ctl;
 	struct tegra_nvvse_sha_update_ctl sha_update_ctl;
 	struct tegra_nvvse_sha_final_ctl sha_final_ctl;
