@@ -136,6 +136,7 @@
 			compatible = "nvidia,ncp81599";
 			reg = <0x74>;
 			regulator-name = "ncp81599";
+			ncp81599-supply = <&p3737_vdd_5v_sys>;
 			status = "disabled";
 		};
 	};
