@@ -171,6 +171,13 @@ static int nvvrs_pseq_vendor_info(struct nvvrs_pseq_chip *chip)
 	}
 
 	model_rev = (unsigned int)ret;
+
+	if (model_rev < 0x40) {
+		dev_info(chip->dev, "NVVRS Chip Rev: 0x%X which is < 0x40\n", model_rev);
+		dev_info(chip->dev, "Silicon issues thus exiting...\n");
+		return -EINVAL;
+	}
+
 	dev_info(chip->dev, "NVVRS Model Rev: 0x%X\n", model_rev);
 
 	return 0;
@@ -208,6 +215,12 @@ static int nvvrs_pseq_probe(struct i2c_client *client,
 		return ret;
 	}
 
+	ret = nvvrs_pseq_vendor_info(nvvrs_chip);
+	if (ret < 0) {
+		dev_err(nvvrs_chip->dev, "Invalid vendor info: %d\n", ret);
+		return ret;
+	}
+
 	nvvrs_pseq_irq_chip.irq_drv_data = nvvrs_chip;
 	ret = devm_regmap_add_irq_chip(nvvrs_chip->dev, nvvrs_chip->rmap, client->irq,
 				       IRQF_ONESHOT | IRQF_SHARED, 0,
@@ -227,12 +240,6 @@ static int nvvrs_pseq_probe(struct i2c_client *client,
 				    regmap_irq_get_domain(nvvrs_chip->irq_data));
 	if (ret < 0) {
 		dev_err(nvvrs_chip->dev, "Failed to add MFD children: %d\n", ret);
-		return ret;
-	}
-
-	ret = nvvrs_pseq_vendor_info(nvvrs_chip);
-	if (ret < 0) {
-		dev_err(nvvrs_chip->dev, "Failed to read vendor info: %d\n", ret);
 		return ret;
 	}
 
