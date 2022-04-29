@@ -197,7 +197,7 @@ static int falcon_update_debug_buffer_from_dmem(struct nvgpu_falcon *flcn,
 	}
 
 	if (first_read_size == 0 && second_read_size == 0) {
-		nvgpu_err(g, "Debug buffer empty, can't read any data!");
+		nvgpu_falcon_dbg(g, "Debug buffer empty, can't read any data!");
 		return -EINVAL;
 	}
 
@@ -300,8 +300,9 @@ int nvgpu_falcon_dbg_buf_display(struct nvgpu_falcon *flcn)
 	}
 
 	if (falcon_update_debug_buffer_from_dmem(flcn, write_offset) != 0) {
-		nvgpu_err(g, "Failed to fetch debug buffer contents");
-		return -EINVAL;
+		nvgpu_falcon_dbg(g, "Failed to fetch debug buffer contents");
+		// Return error once Bug 3623500 issue is fixed
+		return 0;
 	}
 
 	/* Buffer is empty when read_offset == write_offset */
