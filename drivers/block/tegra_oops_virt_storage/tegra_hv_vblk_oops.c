@@ -68,12 +68,12 @@ static ssize_t vblk_oops_read(char *buf, size_t bytes, loff_t pos)
 		pos, bytes);
 
 	/*
-	 * We expect to be invoked in task context for read, but let's
+	 * We expect to be invoked in non-atomic context for read, but let's
 	 * make sure that's always the case.
 	 */
-	if (!in_task()) {
+	if (in_atomic()) {
 		dev_warn(vblkdev_oops->device,
-			"%s invoked in non-task context..aborting\n", __func__);
+			"%s invoked in atomic context..aborting\n", __func__);
 		return -EBUSY;
 	}
 
@@ -157,13 +157,13 @@ static ssize_t vblk_oops_write(const char *buf, size_t bytes,
 		pos, bytes);
 
 	/*
-	 * It is possible for write to be invoked from non-task context.  We
+	 * It is possible for write to be invoked from atomic context.  We
 	 * will return EBUSY so pstore_zone will attempt a retry from
 	 * workqueue later.
 	 */
-	if (!in_task()) {
+	if (in_atomic()) {
 		dev_warn(vblkdev_oops->device,
-			"%s invoked in non-task context..aborting\n", __func__);
+			"%s invoked in atomic context..aborting\n", __func__);
 		return -EBUSY;
 	}
 
