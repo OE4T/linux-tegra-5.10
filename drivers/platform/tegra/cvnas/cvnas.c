@@ -80,10 +80,31 @@ static bool cvnas_rail;
 #define HSM_CVSRAM_ECC_DED_MASK_0	0x80000000
 #define HSM_CVSRAM_ECC_DED_MASK_1	0x00000007
 
-struct cvnas_device *cvnas_dev;
-#ifndef CVNAS_MODULE
-EXPORT_SYMBOL(cvnas_dev);
-#endif /* !CVNAS_MODULE */
+struct cvnas_device {
+	struct dentry *debugfs_root;
+
+	void __iomem *cvsram_iobase;
+	void __iomem *cvreg_iobase;
+	void __iomem *hsm_iobase;
+
+	struct device dma_dev;
+
+	int nslices;
+	int slice_size;
+	phys_addr_t cvsram_base;
+	size_t cvsram_size;
+
+	struct clk *clk;
+	struct device_attribute *attr;
+
+	struct reset_control *rst;
+	struct reset_control *rst_fcm;
+
+	bool virt;
+
+	int (*pmops_busy)(void);
+	int (*pmops_idle)(void);
+};
 
 static struct platform_device *cvnas_plat_dev;
 
@@ -521,6 +542,7 @@ MODULE_DEVICE_TABLE(of, nvcvnas_of_ids);
 
 static int nvcvnas_probe(struct platform_device *pdev)
 {
+	struct cvnas_device *cvnas_dev;
 	int ret;
 	u32 cvsram_slice_data[2];
 	u32 cvsram_reg_data[4];

@@ -81,10 +81,6 @@ struct nvmap_device *nvmap_dev;
 EXPORT_SYMBOL(nvmap_dev);
 ulong nvmap_init_time;
 
-#ifdef CVNAS_BUILTIN
-extern struct cvnas_device *cvnas_dev;
-#endif /* CVNAS_BUILTIN */
-
 static struct device_dma_parameters nvmap_dma_parameters = {
 	.max_segment_size = UINT_MAX,
 };
@@ -1527,9 +1523,12 @@ int __init nvmap_probe(struct platform_device *pdev)
 
 #ifdef CVNAS_BUILTIN
 	if (tegra_get_chip_id() == TEGRA194) {
-		e = nvmap_register_cvsram_carveout(&cvnas_dev->dma_dev,
-			cvnas_dev->cvsram_base, cvnas_dev->cvsram_size,
-			cvnas_dev->pmops_busy, cvnas_dev->pmops_idle);
+		phys_addr_t cvs_base = nvcvnas_get_cvsram_base();
+		size_t cvs_size = nvcvnas_get_cvsram_size();
+
+		e = nvmap_register_cvsram_carveout(NULL,
+			cvs_base, cvs_size,
+			nvcvnas_busy, nvcvnas_idle);
 		if (e) {
 			dev_err(&pdev->dev, "failed to register cvsram carveout\n");
 			goto fail_sci_ipc;

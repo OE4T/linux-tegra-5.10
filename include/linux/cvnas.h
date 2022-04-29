@@ -21,33 +21,6 @@
 #define __LINUX_CVNAS_H
 
 #include <linux/types.h>
-#include <linux/device.h>
-
-struct cvnas_device {
-	struct dentry *debugfs_root;
-
-	void __iomem *cvsram_iobase;
-	void __iomem *cvreg_iobase;
-	void __iomem *hsm_iobase;
-
-	struct device dma_dev;
-
-	int nslices;
-	int slice_size;
-	phys_addr_t cvsram_base;
-	size_t cvsram_size;
-
-	struct clk *clk;
-	struct device_attribute *attr;
-
-	struct reset_control *rst;
-	struct reset_control *rst_fcm;
-
-	bool virt;
-
-	int (*pmops_busy)(void);
-	int (*pmops_idle)(void);
-};
 
 int nvcvnas_busy(void);
 int nvcvnas_busy_no_rpm(void);
