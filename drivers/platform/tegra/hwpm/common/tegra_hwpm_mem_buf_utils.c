@@ -169,10 +169,6 @@ int tegra_hwpm_map_stream_buffer(struct tegra_soc_hwpm *hwpm,
 	}
 
 	/* Configure memory management */
-	if (hwpm->active_chip->enable_mem_mgmt == NULL) {
-		tegra_hwpm_err(hwpm, "enable memory mgmt HAL uninitialized");
-		return -ENODEV;
-	}
 	ret = hwpm->active_chip->enable_mem_mgmt(hwpm, alloc_pma_stream);
 	if (ret != 0) {
 		tegra_hwpm_err(hwpm, "Failed to configure stream memory");
@@ -183,20 +179,12 @@ int tegra_hwpm_map_stream_buffer(struct tegra_soc_hwpm *hwpm,
 
 fail:
 	/* Invalidate memory config */
-	if (hwpm->active_chip->invalidate_mem_config == NULL) {
-		tegra_hwpm_err(hwpm, "invalidate_mem_config HAL uninitialized");
-		return -ENODEV;
-	}
 	err = hwpm->active_chip->invalidate_mem_config(hwpm);
 	if (err != 0) {
 		tegra_hwpm_err(hwpm, "Failed to invalidate memory config");
 	}
 
 	/* Disable memory management */
-	if (hwpm->active_chip->disable_mem_mgmt == NULL) {
-		tegra_hwpm_err(hwpm, "disable_mem_mgmt HAL uninitialized");
-		return -ENODEV;
-	}
 	err = hwpm->active_chip->disable_mem_mgmt(hwpm);
 	if (err != 0) {
 		tegra_hwpm_err(hwpm, "Failed to disable memory management");
@@ -224,10 +212,6 @@ int tegra_hwpm_clear_mem_pipeline(struct tegra_soc_hwpm *hwpm)
 		bool timeout = false;
 		u32 *mem_bytes_kernel_u32 = (u32 *)(hwpm->mem_bytes_kernel);
 
-		if (hwpm->active_chip->stream_mem_bytes == NULL) {
-			tegra_hwpm_err(hwpm, "stream_mem_bytes uninitialized");
-			return -ENODEV;
-		}
 		ret = hwpm->active_chip->stream_mem_bytes(hwpm);
 		if (ret != 0) {
 			tegra_hwpm_err(hwpm,
@@ -243,10 +227,6 @@ int tegra_hwpm_clear_mem_pipeline(struct tegra_soc_hwpm *hwpm)
 		}
 	}
 
-	if (hwpm->active_chip->disable_pma_streaming == NULL) {
-		tegra_hwpm_err(hwpm, "disable_pma_streaming uninitialized");
-		return -ENODEV;
-	}
 	ret = hwpm->active_chip->disable_pma_streaming(hwpm);
 	if (ret != 0) {
 		tegra_hwpm_err(hwpm, "Failed to disable pma streaming");
@@ -254,10 +234,6 @@ int tegra_hwpm_clear_mem_pipeline(struct tegra_soc_hwpm *hwpm)
 	}
 
 	/* Disable memory management */
-	if (hwpm->active_chip->disable_mem_mgmt == NULL) {
-		tegra_hwpm_err(hwpm, "disable_mem_mgmt HAL uninitialized");
-		return -ENODEV;
-	}
 	ret = hwpm->active_chip->disable_mem_mgmt(hwpm);
 	if (ret != 0) {
 		tegra_hwpm_err(hwpm, "Failed to disable memory management");
@@ -282,10 +258,6 @@ int tegra_hwpm_update_mem_bytes(struct tegra_soc_hwpm *hwpm,
 	tegra_hwpm_fn(hwpm, " ");
 
 	/* Update SW get pointer */
-	if (hwpm->active_chip->update_mem_bytes_get_ptr == NULL) {
-		tegra_hwpm_err(hwpm, "update_mem_bytes_get_ptr uninitialized");
-		return -ENODEV;
-	}
 	ret = hwpm->active_chip->update_mem_bytes_get_ptr(hwpm,
 		update_get_put->mem_bump);
 	if (ret != 0) {
@@ -295,10 +267,6 @@ int tegra_hwpm_update_mem_bytes(struct tegra_soc_hwpm *hwpm,
 
 	/* Stream MEM_BYTES value to MEM_BYTES buffer */
 	if (update_get_put->b_stream_mem_bytes) {
-		if (hwpm->active_chip->stream_mem_bytes == NULL) {
-			tegra_hwpm_err(hwpm, "stream_mem_bytes uninitialized");
-			return -ENODEV;
-		}
 		ret = hwpm->active_chip->stream_mem_bytes(hwpm);
 		if (ret != 0) {
 			tegra_hwpm_err(hwpm,
@@ -308,11 +276,6 @@ int tegra_hwpm_update_mem_bytes(struct tegra_soc_hwpm *hwpm,
 
 	/* Read HW put pointer */
 	if (update_get_put->b_read_mem_head) {
-		if (hwpm->active_chip->get_mem_bytes_put_ptr == NULL) {
-			tegra_hwpm_err(hwpm,
-				"get_mem_bytes_put_ptr uninitialized");
-			return -ENODEV;
-		}
 		update_get_put->mem_head =
 			hwpm->active_chip->get_mem_bytes_put_ptr(hwpm);
 		tegra_hwpm_dbg(hwpm, hwpm_verbose,
@@ -321,11 +284,6 @@ int tegra_hwpm_update_mem_bytes(struct tegra_soc_hwpm *hwpm,
 
 	/* Check overflow error status */
 	if (update_get_put->b_check_overflow) {
-		if (hwpm->active_chip->membuf_overflow_status == NULL) {
-			tegra_hwpm_err(hwpm,
-				"membuf_overflow_status uninitialized");
-			return -ENODEV;
-		}
 		update_get_put->b_overflowed =
 			(u8) hwpm->active_chip->membuf_overflow_status(hwpm);
 		tegra_hwpm_dbg(hwpm, hwpm_verbose, "OVERFLOWED = %u",

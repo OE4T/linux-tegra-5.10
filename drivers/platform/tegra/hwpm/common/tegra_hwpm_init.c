@@ -81,10 +81,6 @@ int tegra_hwpm_init_sw_components(struct tegra_soc_hwpm *hwpm)
 		return err;
 	}
 
-	if (hwpm->active_chip->init_chip_ip_structures == NULL) {
-		tegra_hwpm_err(hwpm, "init_chip_ip_structures uninitialized");
-	}
-
 	err = hwpm->active_chip->init_chip_ip_structures(hwpm);
 	if (err != 0) {
 		tegra_hwpm_err(hwpm, "IP structure init failed");
@@ -101,11 +97,7 @@ void tegra_hwpm_release_sw_components(struct tegra_soc_hwpm *hwpm)
 
 	tegra_hwpm_fn(hwpm, " ");
 
-	if (hwpm->active_chip->release_sw_setup == NULL) {
-		tegra_hwpm_err(hwpm, "release_sw_setup uninitialized");
-	} else {
-		hwpm->active_chip->release_sw_setup(hwpm);
-	}
+	hwpm->active_chip->release_sw_setup(hwpm);
 
 	while (node != NULL) {
 		tmp_node = node;
@@ -152,20 +144,12 @@ int tegra_hwpm_setup_hw(struct tegra_soc_hwpm *hwpm)
 	 * Map/reserve these apertures to get MMIO address required for hwpm
 	 * configuration (following steps).
 	 */
-	if (hwpm->active_chip->reserve_pma == NULL) {
-		tegra_hwpm_err(hwpm, "reserve_pma uninitialized");
-		goto enodev;
-	}
 	ret = hwpm->active_chip->reserve_pma(hwpm);
 	if (ret < 0) {
 		tegra_hwpm_err(hwpm, "Unable to reserve PMA aperture");
 		goto fail;
 	}
 
-	if (hwpm->active_chip->reserve_rtr == NULL) {
-		tegra_hwpm_err(hwpm, "reserve_rtr uninitialized");
-		goto enodev;
-	}
 	ret = hwpm->active_chip->reserve_rtr(hwpm);
 	if (ret < 0) {
 		tegra_hwpm_err(hwpm, "Unable to reserve RTR aperture");
@@ -173,10 +157,6 @@ int tegra_hwpm_setup_hw(struct tegra_soc_hwpm *hwpm)
 	}
 
 	/* Disable SLCG */
-	if (hwpm->active_chip->disable_slcg == NULL) {
-		tegra_hwpm_err(hwpm, "disable_slcg uninitialized");
-		goto enodev;
-	}
 	ret = hwpm->active_chip->disable_slcg(hwpm);
 	if (ret < 0) {
 		tegra_hwpm_err(hwpm, "Unable to disable SLCG");
@@ -184,10 +164,6 @@ int tegra_hwpm_setup_hw(struct tegra_soc_hwpm *hwpm)
 	}
 
 	/* Program PROD values */
-	if (hwpm->active_chip->init_prod_values == NULL) {
-		tegra_hwpm_err(hwpm, "init_prod_values uninitialized");
-		goto enodev;
-	}
 	ret = hwpm->active_chip->init_prod_values(hwpm);
 	if (ret < 0) {
 		tegra_hwpm_err(hwpm, "Unable to set PROD values");
@@ -195,8 +171,6 @@ int tegra_hwpm_setup_hw(struct tegra_soc_hwpm *hwpm)
 	}
 
 	return 0;
-enodev:
-	ret = -ENODEV;
 fail:
 	return ret;
 }
@@ -205,10 +179,6 @@ int tegra_hwpm_disable_triggers(struct tegra_soc_hwpm *hwpm)
 {
 	tegra_hwpm_fn(hwpm, " ");
 
-	if (hwpm->active_chip->disable_triggers == NULL) {
-		tegra_hwpm_err(hwpm, "disable_triggers uninitialized");
-		return -ENODEV;
-	}
 	return hwpm->active_chip->disable_triggers(hwpm);
 }
 
@@ -219,10 +189,6 @@ int tegra_hwpm_release_hw(struct tegra_soc_hwpm *hwpm)
 	tegra_hwpm_fn(hwpm, " ");
 
 	/* Enable SLCG */
-	if (hwpm->active_chip->enable_slcg == NULL) {
-		tegra_hwpm_err(hwpm, "enable_slcg uninitialized");
-		goto enodev;
-	}
 	ret = hwpm->active_chip->enable_slcg(hwpm);
 	if (ret < 0) {
 		tegra_hwpm_err(hwpm, "Unable to enable SLCG");
@@ -235,20 +201,12 @@ int tegra_hwpm_release_hw(struct tegra_soc_hwpm *hwpm)
 	 * these aperture mappings are required to reset hwpm config.
 	 * Hence, explicitly unmap/release these apertures as a last step.
 	 */
-	if (hwpm->active_chip->release_rtr == NULL) {
-		tegra_hwpm_err(hwpm, "release_rtr uninitialized");
-		goto enodev;
-	}
 	ret = hwpm->active_chip->release_rtr(hwpm);
 	if (ret < 0) {
 		tegra_hwpm_err(hwpm, "Unable to release RTR aperture");
 		goto fail;
 	}
 
-	if (hwpm->active_chip->release_pma == NULL) {
-		tegra_hwpm_err(hwpm, "release_pma uninitialized");
-		goto enodev;
-	}
 	ret = hwpm->active_chip->release_pma(hwpm);
 	if (ret < 0) {
 		tegra_hwpm_err(hwpm, "Unable to release PMA aperture");
@@ -256,8 +214,6 @@ int tegra_hwpm_release_hw(struct tegra_soc_hwpm *hwpm)
 	}
 
 	return 0;
-enodev:
-	ret = -ENODEV;
 fail:
 	return ret;
 }

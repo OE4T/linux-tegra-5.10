@@ -106,10 +106,6 @@ void tegra_soc_hwpm_ip_register(struct tegra_soc_hwpm_ip_ops *hwpm_ip_ops)
 		tegra_hwpm_dbg(hwpm, hwpm_info,
 		"Register IP 0x%llx", hwpm_ip_ops->ip_base_address);
 
-		if (hwpm->active_chip->extract_ip_ops == NULL) {
-			tegra_hwpm_err(hwpm, "extract_ip_ops uninitialized");
-			return;
-		}
 		ret = hwpm->active_chip->extract_ip_ops(hwpm,
 			hwpm_ip_ops, REGISTER_IP);
 		if (ret < 0) {
@@ -141,10 +137,6 @@ void tegra_soc_hwpm_ip_unregister(struct tegra_soc_hwpm_ip_ops *hwpm_ip_ops)
 		tegra_hwpm_dbg(hwpm, hwpm_info,
 		"Unregister IP 0x%llx", hwpm_ip_ops->ip_base_address);
 
-		if (hwpm->active_chip->extract_ip_ops == NULL) {
-			tegra_hwpm_err(hwpm, "extract_ip_ops uninitialized");
-			return;
-		}
 		ret = hwpm->active_chip->extract_ip_ops(hwpm,
 			hwpm_ip_ops, UNREGISTER_IP);
 		if (ret < 0) {
@@ -161,11 +153,6 @@ int tegra_hwpm_get_floorsweep_info(struct tegra_soc_hwpm *hwpm,
 	u32 i = 0U;
 
 	tegra_hwpm_fn(hwpm, " ");
-
-	if (hwpm->active_chip->get_fs_info == NULL) {
-		tegra_hwpm_err(hwpm, "get_fs_info uninitialized");
-		return -ENODEV;
-	}
 
 	for (i = 0U; i < fs_info->num_queries; i++) {
 		ret = hwpm->active_chip->get_fs_info(

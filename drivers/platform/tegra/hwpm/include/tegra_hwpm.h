@@ -98,6 +98,25 @@ struct tegra_hwpm_ip_ops {
 				__u64 reg_offset, __u32 *reg_data);
 };
 
+struct tegra_hwpm_func_args {
+	u64 *alist;
+	u64 full_alist_idx;
+};
+
+enum tegra_hwpm_funcs {
+	TEGRA_HWPM_GET_ALIST_SIZE,
+	TEGRA_HWPM_COMBINE_ALIST,
+	TEGRA_HWPM_RESERVE_GIVEN_RESOURCE,
+	TEGRA_HWPM_BIND_RESOURCES,
+	TEGRA_HWPM_RELEASE_RESOURCES,
+};
+
+enum hwpm_aperture_type {
+	HWPM_APERTURE_INVALID,
+	HWPM_APERTURE_PERFMUX,
+	HWPM_APERTURE_PERFMON,
+};
+
 struct hwpm_ip_aperture {
 	/*
 	 * Indicates which domain (HWPM or IP) aperture belongs to,

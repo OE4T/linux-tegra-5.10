@@ -464,11 +464,6 @@ static int tegra_hwpm_complete_ip_register(struct tegra_soc_hwpm *hwpm)
 
 	tegra_hwpm_fn(hwpm, " ");
 
-	if (hwpm->active_chip->extract_ip_ops == NULL) {
-		tegra_hwpm_err(hwpm, "extract_ip_ops uninitialized");
-		return -ENODEV;
-	}
-
 	while (node != NULL) {
 		tegra_hwpm_dbg(hwpm, hwpm_info, "IP ext idx %d info",
 			node->ip_ops.ip_index);
@@ -507,10 +502,6 @@ int tegra_hwpm_finalize_chip_info(struct tegra_soc_hwpm *hwpm)
 		return ret;
 	}
 
-	if (hwpm->active_chip->force_enable_ips == NULL) {
-		tegra_hwpm_err(hwpm, "force_enable_ips uninitialized");
-		return -ENODEV;
-	}
 	ret = hwpm->active_chip->force_enable_ips(hwpm);
 	if (ret != 0) {
 		tegra_hwpm_err(hwpm, "Failed to force enable IPs");
