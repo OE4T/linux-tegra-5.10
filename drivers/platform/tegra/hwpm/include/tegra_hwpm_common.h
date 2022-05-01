@@ -56,9 +56,7 @@ int tegra_hwpm_reserve_resource(struct tegra_soc_hwpm *hwpm, u32 resource);
 int tegra_hwpm_release_resources(struct tegra_soc_hwpm *hwpm);
 int tegra_hwpm_bind_resources(struct tegra_soc_hwpm *hwpm);
 
-int tegra_hwpm_reserve_pma(struct tegra_soc_hwpm *hwpm);
 int tegra_hwpm_reserve_rtr(struct tegra_soc_hwpm *hwpm);
-int tegra_hwpm_release_pma(struct tegra_soc_hwpm *hwpm);
 int tegra_hwpm_release_rtr(struct tegra_soc_hwpm *hwpm);
 
 int tegra_hwpm_perfmon_reserve(struct tegra_soc_hwpm *hwpm,

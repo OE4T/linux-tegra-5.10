@@ -28,7 +28,6 @@ struct tegra_soc_hwpm_chip t234_chip_info = {
 	.is_ip_active = t234_hwpm_is_ip_active,
 	.is_resource_active = t234_hwpm_is_resource_active,
 
-	.get_pma_int_idx = t234_get_pma_int_idx,
 	.get_rtr_int_idx = t234_get_rtr_int_idx,
 	.get_ip_max_idx = t234_get_ip_max_idx,
 
@@ -42,9 +41,7 @@ struct tegra_soc_hwpm_chip t234_chip_info = {
 	.disable_slcg = t234_hwpm_disable_slcg,
 	.enable_slcg = t234_hwpm_enable_slcg,
 
-	.reserve_pma = tegra_hwpm_reserve_pma,
 	.reserve_rtr = tegra_hwpm_reserve_rtr,
-	.release_pma = tegra_hwpm_release_pma,
 	.release_rtr = tegra_hwpm_release_rtr,
 
 	.perfmon_enable = t234_hwpm_perfmon_enable,
@@ -80,11 +77,6 @@ static bool t234_hwpm_validate_hals(struct tegra_soc_hwpm *hwpm)
 
 	if (hwpm->active_chip->is_resource_active == NULL) {
 		tegra_hwpm_err(hwpm, "is_resource_active HAL uninitialized");
-		return false;
-	}
-
-	if (hwpm->active_chip->get_pma_int_idx == NULL) {
-		tegra_hwpm_err(hwpm, "get_pma_int_idx HAL uninitialized");
 		return false;
 	}
 
@@ -133,18 +125,8 @@ static bool t234_hwpm_validate_hals(struct tegra_soc_hwpm *hwpm)
 		return false;
 	}
 
-	if (hwpm->active_chip->reserve_pma == NULL) {
-		tegra_hwpm_err(hwpm, "reserve_pma uninitialized");
-		return false;
-	}
-
 	if (hwpm->active_chip->reserve_rtr == NULL) {
 		tegra_hwpm_err(hwpm, "reserve_rtr uninitialized");
-		return false;
-	}
-
-	if (hwpm->active_chip->release_pma == NULL) {
-		tegra_hwpm_err(hwpm, "release_pma uninitialized");
 		return false;
 	}
 
@@ -442,11 +424,6 @@ bool t234_hwpm_is_resource_active(struct tegra_soc_hwpm *hwpm,
 
 	*config_ip_index = config_ip;
 	return (config_ip != TEGRA_SOC_HWPM_IP_INACTIVE);
-}
-
-u32 t234_get_pma_int_idx(struct tegra_soc_hwpm *hwpm)
-{
-	return T234_HWPM_IP_PMA;
 }
 
 u32 t234_get_rtr_int_idx(struct tegra_soc_hwpm *hwpm)

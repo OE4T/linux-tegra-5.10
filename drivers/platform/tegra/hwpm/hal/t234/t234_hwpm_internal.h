@@ -36,8 +36,8 @@
 #define T234_HWPM_ACTIVE_IP_MAX		T234_HWPM_IP_MAX
 
 #define T234_ACTIVE_IPS							\
-	DEFINE_SOC_HWPM_ACTIVE_IP(T234_HWPM_ACTIVE_IP_PMA),		\
 	DEFINE_SOC_HWPM_ACTIVE_IP(T234_HWPM_ACTIVE_IP_RTR),		\
+	DEFINE_SOC_HWPM_ACTIVE_IP(T234_HWPM_ACTIVE_IP_PMA),		\
 	DEFINE_SOC_HWPM_ACTIVE_IP(T234_HWPM_ACTIVE_IP_VI),		\
 	DEFINE_SOC_HWPM_ACTIVE_IP(T234_HWPM_ACTIVE_IP_ISP),		\
 	DEFINE_SOC_HWPM_ACTIVE_IP(T234_HWPM_ACTIVE_IP_VIC),		\
@@ -73,7 +73,6 @@ bool t234_hwpm_is_ip_active(struct tegra_soc_hwpm *hwpm,
 bool t234_hwpm_is_resource_active(struct tegra_soc_hwpm *hwpm,
 	u32 res_index, u32 *config_ip_index);
 
-u32 t234_get_pma_int_idx(struct tegra_soc_hwpm *hwpm);
 u32 t234_get_rtr_int_idx(struct tegra_soc_hwpm *hwpm);
 u32 t234_get_ip_max_idx(struct tegra_soc_hwpm *hwpm);
 

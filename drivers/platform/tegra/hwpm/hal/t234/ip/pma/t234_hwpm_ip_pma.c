@@ -85,7 +85,7 @@ struct hwpm_ip t234_hwpm_ip_pma = {
 	.ip_perfmux = NULL,
 
 	.override_enable = false,
-	.fs_mask = 0U,
+	.fs_mask = 0x1U,
 	.perfmon_static_array = t234_pma_perfmon_static_array,
 	.perfmux_static_array = t234_pma_perfmux_static_array,
 	.reserved = false,

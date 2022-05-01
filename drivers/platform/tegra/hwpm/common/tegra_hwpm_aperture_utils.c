@@ -147,168 +147,19 @@ int tegra_hwpm_perfmux_release(struct tegra_soc_hwpm *hwpm,
 	return 0;
 }
 
-int tegra_hwpm_reserve_pma(struct tegra_soc_hwpm *hwpm)
-{
-	u32 perfmux_idx = 0U, perfmon_idx;
-	struct tegra_soc_hwpm_chip *active_chip = hwpm->active_chip;
-	struct hwpm_ip *chip_ip_pma = NULL;
-	hwpm_ip_perfmux *pma_perfmux = NULL;
-	hwpm_ip_perfmon *pma_perfmon = NULL;
-	int ret = 0, err = 0;
-
-	tegra_hwpm_fn(hwpm, " ");
-
-	chip_ip_pma = active_chip->chip_ips[active_chip->get_pma_int_idx(hwpm)];
-
-	/* Make sure that PMA is not reserved */
-	if (chip_ip_pma->reserved == true) {
-		tegra_hwpm_err(hwpm, "PMA already reserved, ignoring");
-		return 0;
-	}
-
-	/* Reserve PMA perfmux */
-	for (perfmux_idx = 0U; perfmux_idx < chip_ip_pma->num_perfmux_slots;
-		perfmux_idx++) {
-		pma_perfmux = chip_ip_pma->ip_perfmux[perfmux_idx];
-
-		if (pma_perfmux == NULL) {
-			continue;
-		}
-
-		/* Since PMA is hwpm component, use perfmon reserve function */
-		ret = tegra_hwpm_perfmon_reserve(hwpm, pma_perfmux);
-		if (ret != 0) {
-			tegra_hwpm_err(hwpm,
-				"PMA perfmux %d reserve failed", perfmux_idx);
-			return ret;
-		}
-
-		chip_ip_pma->fs_mask |= pma_perfmux->hw_inst_mask;
-	}
-
-	/* Reserve PMA perfmons */
-	for (perfmon_idx = 0U; perfmon_idx < chip_ip_pma->num_perfmon_slots;
-		perfmon_idx++) {
-		pma_perfmon = chip_ip_pma->ip_perfmon[perfmon_idx];
-
-		if (pma_perfmon == NULL) {
-			continue;
-		}
-
-		ret = tegra_hwpm_perfmon_reserve(hwpm, pma_perfmon);
-		if (ret != 0) {
-			tegra_hwpm_err(hwpm,
-				"PMA perfmon %d reserve failed", perfmon_idx);
-			goto fail;
-		}
-	}
-
-	chip_ip_pma->reserved = true;
-
-	return 0;
-fail:
-	for (perfmux_idx = 0U; perfmux_idx < chip_ip_pma->num_perfmux_slots;
-		perfmux_idx++) {
-		pma_perfmux = chip_ip_pma->ip_perfmux[perfmux_idx];
-
-		if (pma_perfmux == NULL) {
-			continue;
-		}
-
-		/* Since PMA is hwpm component, use perfmon release function */
-		err = tegra_hwpm_perfmon_release(hwpm, pma_perfmux);
-		if (err != 0) {
-			tegra_hwpm_err(hwpm,
-				"PMA perfmux %d release failed", perfmux_idx);
-		}
-		chip_ip_pma->fs_mask &= ~(pma_perfmux->hw_inst_mask);
-	}
-	return ret;
-}
-
-int tegra_hwpm_release_pma(struct tegra_soc_hwpm *hwpm)
-{
-	int ret = 0;
-	u32 perfmux_idx, perfmon_idx;
-	struct tegra_soc_hwpm_chip *active_chip = hwpm->active_chip;
-	struct hwpm_ip *chip_ip_pma = NULL;
-	hwpm_ip_perfmux *pma_perfmux = NULL;
-	hwpm_ip_perfmon *pma_perfmon = NULL;
-
-	tegra_hwpm_fn(hwpm, " ");
-
-	chip_ip_pma = active_chip->chip_ips[active_chip->get_pma_int_idx(hwpm)];
-
-	if (!chip_ip_pma->reserved) {
-		tegra_hwpm_dbg(hwpm, hwpm_info, "PMA wasn't mapped, ignoring.");
-		return 0;
-	}
-
-	/* Release PMA perfmux */
-	for (perfmux_idx = 0U; perfmux_idx < chip_ip_pma->num_perfmux_slots;
-		perfmux_idx++) {
-		pma_perfmux = chip_ip_pma->ip_perfmux[perfmux_idx];
-
-		if (pma_perfmux == NULL) {
-			continue;
-		}
-
-		/* Since PMA is hwpm component, use perfmon release function */
-		ret = tegra_hwpm_perfmon_release(hwpm, pma_perfmux);
-		if (ret != 0) {
-			tegra_hwpm_err(hwpm,
-				"PMA perfmux %d release failed", perfmux_idx);
-			return ret;
-		}
-		chip_ip_pma->fs_mask &= ~(pma_perfmux->hw_inst_mask);
-	}
-
-	/* Release PMA perfmons */
-	for (perfmon_idx = 0U; perfmon_idx < chip_ip_pma->num_perfmon_slots;
-		perfmon_idx++) {
-		pma_perfmon = chip_ip_pma->ip_perfmon[perfmon_idx];
-
-		if (pma_perfmon == NULL) {
-			continue;
-		}
-
-		ret = tegra_hwpm_perfmon_release(hwpm, pma_perfmon);
-		if (ret != 0) {
-			tegra_hwpm_err(hwpm,
-				"PMA perfmon %d release failed", perfmon_idx);
-			return ret;
-		}
-	}
-
-	chip_ip_pma->reserved = false;
-
-	return 0;
-}
-
 int tegra_hwpm_reserve_rtr(struct tegra_soc_hwpm *hwpm)
 {
 	int ret = 0;
-	u32 perfmux_idx = 0U, perfmon_idx;
+	u32 perfmux_idx = 0U;
 	struct tegra_soc_hwpm_chip *active_chip = hwpm->active_chip;
 	struct hwpm_ip *chip_ip_rtr = NULL;
-	struct hwpm_ip *chip_ip_pma = NULL;
-	hwpm_ip_perfmux *pma_perfmux = NULL;
 	hwpm_ip_perfmux *rtr_perfmux = NULL;
 
 	tegra_hwpm_fn(hwpm, " ");
 
-	chip_ip_pma = active_chip->chip_ips[active_chip->get_pma_int_idx(hwpm)];
 	chip_ip_rtr = active_chip->chip_ips[active_chip->get_rtr_int_idx(hwpm)];
-	/* Currently, PMA has only one perfmux */
-	pma_perfmux = &chip_ip_pma->perfmux_static_array[0U];
 
-	/* Verify that PMA is reserved before RTR */
-	if (chip_ip_pma->reserved == false) {
-		tegra_hwpm_err(hwpm, "PMA should be reserved before RTR");
-		return -EINVAL;
-	}
-
-	/* Make sure that RTR is not reserved */
+	/* Make sure that RTR is not already reserved */
 	if (chip_ip_rtr->reserved == true) {
 		tegra_hwpm_err(hwpm, "RTR already reserved, ignoring");
 		return 0;
@@ -323,34 +174,19 @@ int tegra_hwpm_reserve_rtr(struct tegra_soc_hwpm *hwpm)
 			continue;
 		}
 
-		if (rtr_perfmux->start_abs_pa == pma_perfmux->start_abs_pa) {
-			/* This is PMA perfmux wrt RTR aperture */
-			rtr_perfmux->start_pa = pma_perfmux->start_pa;
-			rtr_perfmux->end_pa = pma_perfmux->end_pa;
-			rtr_perfmux->dt_mmio = pma_perfmux->dt_mmio;
-			if (hwpm->fake_registers_enabled) {
-				rtr_perfmux->fake_registers =
-					pma_perfmux->fake_registers;
-			}
-		} else {
-			/* Since RTR is hwpm component,
-			 * use perfmon reserve function */
-			ret = tegra_hwpm_perfmon_reserve(hwpm, rtr_perfmux);
-			if (ret != 0) {
-				tegra_hwpm_err(hwpm,
-					"RTR perfmux %d reserve failed",
-					perfmux_idx);
-				return ret;
-			}
+		/* Since RTR is hwpm component, use perfmon reserve function */
+		ret = tegra_hwpm_perfmon_reserve(hwpm, rtr_perfmux);
+		if (ret != 0) {
+			tegra_hwpm_err(hwpm,
+				"RTR perfmux %d reserve failed",
+				perfmux_idx);
+			return ret;
 		}
+
 		chip_ip_rtr->fs_mask |= rtr_perfmux->hw_inst_mask;
 	}
 
-	/* Reserve RTR perfmons */
-	for (perfmon_idx = 0U; perfmon_idx < chip_ip_rtr->num_perfmon_slots;
-		perfmon_idx++) {
-		/* No perfmons in RTR */
-	}
+	/* No perfmons in RTR */
 
 	chip_ip_rtr->reserved = true;
 
@@ -360,25 +196,14 @@ int tegra_hwpm_reserve_rtr(struct tegra_soc_hwpm *hwpm)
 int tegra_hwpm_release_rtr(struct tegra_soc_hwpm *hwpm)
 {
 	int ret = 0;
-	u32 perfmux_idx, perfmon_idx;
+	u32 perfmux_idx;
 	struct tegra_soc_hwpm_chip *active_chip = hwpm->active_chip;
 	struct hwpm_ip *chip_ip_rtr = NULL;
-	struct hwpm_ip *chip_ip_pma = NULL;
-	hwpm_ip_perfmux *pma_perfmux = NULL;
 	hwpm_ip_perfmux *rtr_perfmux = NULL;
 
 	tegra_hwpm_fn(hwpm, " ");
 
-	chip_ip_pma = active_chip->chip_ips[active_chip->get_pma_int_idx(hwpm)];
 	chip_ip_rtr = active_chip->chip_ips[active_chip->get_rtr_int_idx(hwpm)];
-	/* Currently, PMA has only one perfmux */
-	pma_perfmux = &chip_ip_pma->perfmux_static_array[0U];
-
-	/* Verify that PMA isn't released before RTR */
-	if (chip_ip_pma->reserved == false) {
-		tegra_hwpm_err(hwpm, "PMA shouldn't be released before RTR");
-		return -EINVAL;
-	}
 
 	if (!chip_ip_rtr->reserved) {
 		tegra_hwpm_dbg(hwpm, hwpm_info, "RTR wasn't mapped, ignoring.");
@@ -394,32 +219,18 @@ int tegra_hwpm_release_rtr(struct tegra_soc_hwpm *hwpm)
 			continue;
 		}
 
-		if (rtr_perfmux->start_abs_pa == pma_perfmux->start_abs_pa) {
-			/* This is PMA perfmux wrt RTR aperture */
-			rtr_perfmux->start_pa = 0ULL;
-			rtr_perfmux->end_pa = 0ULL;
-			rtr_perfmux->dt_mmio = NULL;
-			if (hwpm->fake_registers_enabled) {
-				rtr_perfmux->fake_registers = NULL;
-			}
-		} else {
-			/* RTR is hwpm component, use perfmon release func */
-			ret = tegra_hwpm_perfmon_release(hwpm, rtr_perfmux);
-			if (ret != 0) {
-				tegra_hwpm_err(hwpm,
-					"RTR perfmux %d release failed",
-					perfmux_idx);
-				return ret;
-			}
+		/* RTR is hwpm component, use perfmon release func */
+		ret = tegra_hwpm_perfmon_release(hwpm, rtr_perfmux);
+		if (ret != 0) {
+			tegra_hwpm_err(hwpm, "RTR perfmux %d release failed",
+				perfmux_idx);
+			return ret;
 		}
+
 		chip_ip_rtr->fs_mask &= ~(rtr_perfmux->hw_inst_mask);
 	}
 
-	/* Release RTR perfmon */
-	for (perfmon_idx = 0U; perfmon_idx < chip_ip_rtr->num_perfmon_slots;
-		perfmon_idx++) {
-		/* No RTR perfmons */
-	}
+	/* No perfmons in RTR */
 
 	chip_ip_rtr->reserved = false;
 	return 0;

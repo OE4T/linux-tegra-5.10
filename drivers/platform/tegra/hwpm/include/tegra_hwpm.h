@@ -232,7 +232,6 @@ struct tegra_soc_hwpm_chip {
 	bool (*is_resource_active)(struct tegra_soc_hwpm *hwpm,
 	u32 res_index, u32 *config_ip_index);
 
-	u32 (*get_pma_int_idx)(struct tegra_soc_hwpm *hwpm);
 	u32 (*get_rtr_int_idx)(struct tegra_soc_hwpm *hwpm);
 	u32 (*get_ip_max_idx)(struct tegra_soc_hwpm *hwpm);
 
@@ -248,9 +247,7 @@ struct tegra_soc_hwpm_chip {
 	int (*disable_slcg)(struct tegra_soc_hwpm *hwpm);
 	int (*enable_slcg)(struct tegra_soc_hwpm *hwpm);
 
-	int (*reserve_pma)(struct tegra_soc_hwpm *hwpm);
 	int (*reserve_rtr)(struct tegra_soc_hwpm *hwpm);
-	int (*release_pma)(struct tegra_soc_hwpm *hwpm);
 	int (*release_rtr)(struct tegra_soc_hwpm *hwpm);
 
 	int (*disable_triggers)(struct tegra_soc_hwpm *hwpm);

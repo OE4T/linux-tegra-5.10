@@ -37,12 +37,12 @@ int t234_hwpm_disable_triggers(struct tegra_soc_hwpm *hwpm)
 
 	tegra_hwpm_fn(hwpm, " ");
 
-	/* Currently, PMA has only one perfmux */
-	pma_perfmux = &active_chip->chip_ips[
-		active_chip->get_pma_int_idx(hwpm)]->perfmux_static_array[0U];
-	/* Currently, RTR specific perfmux is added at index 0 */
 	rtr_perfmux = &active_chip->chip_ips[
-		active_chip->get_rtr_int_idx(hwpm)]->perfmux_static_array[0U];
+		active_chip->get_rtr_int_idx(hwpm)]->perfmux_static_array[
+		T234_HWPM_IP_RTR_STATIC_INDEX_RTR];
+	pma_perfmux = &active_chip->chip_ips[
+		active_chip->get_rtr_int_idx(hwpm)]->perfmux_static_array[
+		T234_HWPM_IP_RTR_STATIC_INDEX_PMA];
 
 	/* Disable PMA triggers */
 	reg_val = tegra_hwpm_readl(hwpm, pma_perfmux,
@@ -99,7 +99,8 @@ int t234_hwpm_init_prod_values(struct tegra_soc_hwpm *hwpm)
 	struct tegra_soc_hwpm_chip *active_chip = hwpm->active_chip;
 	/* Currently, PMA has only one perfmux */
 	hwpm_ip_perfmux *pma_perfmux = &active_chip->chip_ips[
-		active_chip->get_pma_int_idx(hwpm)]->perfmux_static_array[0U];
+		active_chip->get_rtr_int_idx(hwpm)]->perfmux_static_array[
+		T234_HWPM_IP_RTR_STATIC_INDEX_PMA];
 
 	tegra_hwpm_fn(hwpm, " ");
 
@@ -126,7 +127,7 @@ int t234_hwpm_disable_slcg(struct tegra_soc_hwpm *hwpm)
 	u32 field_val = 0U;
 	u32 reg_val = 0U;
 	struct tegra_soc_hwpm_chip *active_chip = hwpm->active_chip;
-	struct hwpm_ip *pma_ip = NULL, *rtr_ip = NULL;
+	struct hwpm_ip *rtr_ip = NULL;
 	hwpm_ip_perfmux *pma_perfmux = NULL;
 	hwpm_ip_perfmux *rtr_perfmux = NULL;
 
@@ -136,23 +137,17 @@ int t234_hwpm_disable_slcg(struct tegra_soc_hwpm *hwpm)
 		return -ENODEV;
 	}
 
-	pma_ip = active_chip->chip_ips[active_chip->get_pma_int_idx(hwpm)];
 	rtr_ip = active_chip->chip_ips[active_chip->get_rtr_int_idx(hwpm)];
-
-	if ((pma_ip == NULL) || !(pma_ip->reserved)) {
-		tegra_hwpm_err(hwpm, "PMA uninitialized");
-		return -ENODEV;
-	}
 
 	if ((rtr_ip == NULL) || !(rtr_ip->reserved)) {
 		tegra_hwpm_err(hwpm, "RTR uninitialized");
 		return -ENODEV;
 	}
 
-	/* Currently, PMA has only one perfmux */
-	pma_perfmux = &pma_ip->perfmux_static_array[0U];
-	/* Currently, RTR specific perfmux is added at index 0 */
-	rtr_perfmux = &rtr_ip->perfmux_static_array[0U];
+	pma_perfmux = &rtr_ip->perfmux_static_array[
+		T234_HWPM_IP_RTR_STATIC_INDEX_PMA];
+	rtr_perfmux = &rtr_ip->perfmux_static_array[
+		T234_HWPM_IP_RTR_STATIC_INDEX_RTR];
 
 	reg_val = tegra_hwpm_readl(hwpm, pma_perfmux, pmasys_cg2_r());
 	reg_val = set_field(reg_val, pmasys_cg2_slcg_m(),
@@ -180,7 +175,7 @@ int t234_hwpm_enable_slcg(struct tegra_soc_hwpm *hwpm)
 	u32 field_mask = 0U;
 	u32 field_val = 0U;
 	struct tegra_soc_hwpm_chip *active_chip = hwpm->active_chip;
-	struct hwpm_ip *pma_ip = NULL, *rtr_ip = NULL;
+	struct hwpm_ip *rtr_ip = NULL;
 	hwpm_ip_perfmux *pma_perfmux = NULL;
 	hwpm_ip_perfmux *rtr_perfmux = NULL;
 
@@ -190,23 +185,17 @@ int t234_hwpm_enable_slcg(struct tegra_soc_hwpm *hwpm)
 		return -ENODEV;
 	}
 
-	pma_ip = active_chip->chip_ips[active_chip->get_pma_int_idx(hwpm)];
 	rtr_ip = active_chip->chip_ips[active_chip->get_rtr_int_idx(hwpm)];
-
-	if ((pma_ip == NULL) || !(pma_ip->reserved)) {
-		tegra_hwpm_err(hwpm, "PMA uninitialized");
-		return -ENODEV;
-	}
 
 	if ((rtr_ip == NULL) || !(rtr_ip->reserved)) {
 		tegra_hwpm_err(hwpm, "RTR uninitialized");
 		return -ENODEV;
 	}
 
-	/* Currently, PMA has only one perfmux */
-	pma_perfmux = &pma_ip->perfmux_static_array[0U];
-	/* Currently, RTR specific perfmux is added at index 0 */
-	rtr_perfmux = &rtr_ip->perfmux_static_array[0U];
+	pma_perfmux = &rtr_ip->perfmux_static_array[
+		T234_HWPM_IP_RTR_STATIC_INDEX_PMA];
+	rtr_perfmux = &rtr_ip->perfmux_static_array[
+		T234_HWPM_IP_RTR_STATIC_INDEX_RTR];
 
 	reg_val = tegra_hwpm_readl(hwpm, pma_perfmux, pmasys_cg2_r());
 	reg_val = set_field(reg_val, pmasys_cg2_slcg_m(),

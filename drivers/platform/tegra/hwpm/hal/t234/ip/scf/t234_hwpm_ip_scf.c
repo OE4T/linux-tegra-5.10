@@ -66,7 +66,7 @@ struct hwpm_ip t234_hwpm_ip_scf = {
 	.ip_perfmux = NULL,
 
 	.override_enable = false,
-	.fs_mask = 0U,
+	.fs_mask = 0x1U,
 	.perfmon_static_array = t234_scf_perfmon_static_array,
 	.perfmux_static_array = t234_scf_perfmux_static_array,
 	.reserved = false,

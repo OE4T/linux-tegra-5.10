@@ -337,8 +337,7 @@ int tegra_hwpm_func_single_ip(struct tegra_soc_hwpm *hwpm,
 		break;
 	case TEGRA_HWPM_RESERVE_GIVEN_RESOURCE:
 		/* PMA and RTR are already reserved */
-		if ((ip_idx == active_chip->get_pma_int_idx(hwpm)) ||
-			(ip_idx == active_chip->get_rtr_int_idx(hwpm))) {
+		if (ip_idx == active_chip->get_rtr_int_idx(hwpm)) {
 			return 0;
 		}
 		/* Skip IPs which are already reserved */
@@ -354,11 +353,11 @@ int tegra_hwpm_func_single_ip(struct tegra_soc_hwpm *hwpm,
 				"Chip IP %d not available", ip_idx);
 			return 0;
 		}
+
 		break;
 	case TEGRA_HWPM_RELEASE_RESOURCES:
 		/* PMA and RTR will be released later */
-		if ((ip_idx == active_chip->get_pma_int_idx(hwpm)) ||
-			(ip_idx == active_chip->get_rtr_int_idx(hwpm))) {
+		if (ip_idx == active_chip->get_rtr_int_idx(hwpm)) {
 			return 0;
 		}
 		/* Skip unavailable IPs */

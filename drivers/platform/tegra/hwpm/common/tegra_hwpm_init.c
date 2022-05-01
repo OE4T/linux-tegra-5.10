@@ -139,17 +139,11 @@ int tegra_hwpm_setup_hw(struct tegra_soc_hwpm *hwpm)
 	tegra_hwpm_fn(hwpm, " ");
 
 	/*
-	 * Map PMA and RTR apertures
-	 * PMA and RTR are hwpm apertures which include hwpm config registers.
+	 * Map RTR aperture
+	 * RTR is hwpm aperture which includes hwpm config registers.
 	 * Map/reserve these apertures to get MMIO address required for hwpm
 	 * configuration (following steps).
 	 */
-	ret = hwpm->active_chip->reserve_pma(hwpm);
-	if (ret < 0) {
-		tegra_hwpm_err(hwpm, "Unable to reserve PMA aperture");
-		goto fail;
-	}
-
 	ret = hwpm->active_chip->reserve_rtr(hwpm);
 	if (ret < 0) {
 		tegra_hwpm_err(hwpm, "Unable to reserve RTR aperture");
@@ -196,20 +190,14 @@ int tegra_hwpm_release_hw(struct tegra_soc_hwpm *hwpm)
 	}
 
 	/*
-	 * Unmap PMA and RTR apertures
-	 * Since, PMA and RTR hwpm apertures consist of hwpm config registers,
+	 * Unmap RTR apertures
+	 * Since, RTR hwpm apertures consist of hwpm config registers,
 	 * these aperture mappings are required to reset hwpm config.
 	 * Hence, explicitly unmap/release these apertures as a last step.
 	 */
 	ret = hwpm->active_chip->release_rtr(hwpm);
 	if (ret < 0) {
 		tegra_hwpm_err(hwpm, "Unable to release RTR aperture");
-		goto fail;
-	}
-
-	ret = hwpm->active_chip->release_pma(hwpm);
-	if (ret < 0) {
-		tegra_hwpm_err(hwpm, "Unable to release PMA aperture");
 		goto fail;
 	}
 
