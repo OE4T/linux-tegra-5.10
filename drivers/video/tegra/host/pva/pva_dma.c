@@ -753,6 +753,8 @@ int pva_task_write_dma_info(struct pva_submit_task *task,
 	bool is_hwseq_mode = false;
 	struct pva_pinned_memory *mem;
 	u32 i;
+	u32 j;
+	u32 mask;
 
 	if (task->num_dma_descriptors == 0L || task->num_dma_channels == 0L) {
 		nvhost_dbg_info("pva: no DMA resources: NOOP mode");
@@ -825,86 +827,22 @@ int pva_task_write_dma_info(struct pva_submit_task *task,
 			task_err(task, "invalid HWSeq config in SW mode");
 			return -EINVAL;
 		}
-		hw_task->dma_info.dma_channels[i].ch_number = ch_num;
-		switch (task->dma_channels[i].outputEnableMask) {
-		case PVA_DMA_READ0:
-			hw_task->dma_info.dma_triggers[0] |= 0x1 << ch_num;
-			break;
-		case PVA_DMA_STORE0:
-			hw_task->dma_info.dma_triggers[0] |= 0x2
-							     << (ch_num + 15);
-			break;
-		case PVA_DMA_READ1:
-			hw_task->dma_info.dma_triggers[1] |= 0x1 << ch_num;
-			break;
-		case PVA_DMA_STORE1:
-			hw_task->dma_info.dma_triggers[1] |= 0x2
-							     << (ch_num + 15);
-			break;
-		case PVA_DMA_READ2:
-			hw_task->dma_info.dma_triggers[2] |= 0x1 << ch_num;
-			break;
-		case PVA_DMA_STORE2:
-			hw_task->dma_info.dma_triggers[2] |= 0x2
-							     << (ch_num + 15);
-			break;
-		case PVA_DMA_READ3:
-			hw_task->dma_info.dma_triggers[3] |= 0x1 << ch_num;
-			break;
-		case PVA_DMA_STORE3:
-			hw_task->dma_info.dma_triggers[3] |= 0x2
-							     << (ch_num + 15);
-			break;
-		case PVA_DMA_READ4:
-			hw_task->dma_info.dma_triggers[4] |= 0x1 << ch_num;
-			break;
-		case PVA_DMA_STORE4:
-			hw_task->dma_info.dma_triggers[4] |= 0x2
-							     << (ch_num + 15);
-			break;
-		case PVA_DMA_READ5:
-			hw_task->dma_info.dma_triggers[5] |= 0x1 << ch_num;
-			break;
-		case PVA_DMA_STORE5:
-			hw_task->dma_info.dma_triggers[5] |= 0x2
-							     << (ch_num + 15);
-			break;
-		case PVA_DMA_READ6:
-			hw_task->dma_info.dma_triggers[6] |= 0x1 << ch_num;
-			break;
-		case PVA_DMA_STORE6:
-			hw_task->dma_info.dma_triggers[6] |= 0x2
-							     << (ch_num + 15);
-			break;
-		case PVA_VPUCONFIG:
-			hw_task->dma_info.dma_triggers[7] |= 0x1 << ch_num;
-			break;
-		/**
-		 * Last dma_triggers register is applicable for HWSeq vpu
-		 * read/write start trigger for T23x, ignored for T19x.
-		 */
-		case PVA_HWSEQ_VPUREAD_START:
-			if (hwgen == PVA_HW_GEN2) {
-				hw_task->dma_info.dma_triggers[8] |= 0x1
-								     << ch_num;
-			}
-			break;
-		case PVA_HWSEQ_VPUWRITE_START:
-			if (hwgen == PVA_HW_GEN2) {
-				hw_task->dma_info.dma_triggers[8] |=
-					0x2 << (ch_num + 15);
-			}
-			break;
-		default:
-			{
-			struct pva_elf_image *image;
 
-			image = get_elf_image(&task->client->elf_ctx,
-					      task->exe_id);
-			if ((image == NULL) || (!image->is_system_app))
-				task_err(task, "trigger value is not set");
-			}
-			break;
+		hw_task->dma_info.dma_channels[i].ch_number = ch_num;
+		mask = task->dma_channels[i].outputEnableMask;
+		for (j = 0; j < 7; j++) {
+			u32 *trig = &(hw_task->dma_info.dma_triggers[j]);
+
+			(*trig) |= (((mask >> 2*j) & 1U) << ch_num);
+			(*trig) |= (((mask >> (2*j + 1)) & 1U) << (ch_num + 16U));
+		}
+
+		hw_task->dma_info.dma_triggers[7] |= (((mask >> 14) & 1U) << ch_num);
+		if (hwgen == PVA_HW_GEN2) {
+			u32 *trig = &(hw_task->dma_info.dma_triggers[8]);
+
+			(*trig) |= (((mask >> 15) & 1U) << ch_num);
+			(*trig) |= (((mask >> 16) & 1U) << (ch_num + 16U));
 		}
 	}
 
