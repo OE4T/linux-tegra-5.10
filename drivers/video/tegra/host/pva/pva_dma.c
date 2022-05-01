@@ -146,9 +146,10 @@ patch_dma_desc_address(struct pva_submit_task *task,
 						  false);
 		} else {
 			addr_base = 0;
-			err = check_address_range(umd_dma_desc,
-						  task->l2_alloc_size,
-						  false);
+			if (task->pinned_hwseq_config == false)
+				err = check_address_range(umd_dma_desc,
+							  task->l2_alloc_size,
+							  false);
 		}
 
 		if (err)
@@ -177,6 +178,7 @@ patch_dma_desc_address(struct pva_submit_task *task,
 				task, "ERROR: Invalid offset or address");
 			goto out;
 		}
+
 		addr_base = addr;
 		break;
 	}
@@ -221,12 +223,15 @@ patch_dma_desc_address(struct pva_submit_task *task,
 			goto out;
 		}
 
-		err = check_address_range(umd_dma_desc, mem->size, false);
+		if (task->pinned_hwseq_config == false)
+			err = check_address_range(umd_dma_desc, mem->size, false);
+
 		if (err) {
 			err = -EINVAL;
 			task_err(task, "ERROR: address");
 			goto out;
 		}
+
 		addr_base = mem->dma_addr;
 		task->src_surf_base_addr = addr_base;
 
@@ -746,16 +751,11 @@ int pva_task_write_dma_info(struct pva_submit_task *task,
 	u8 ch_num = 0L;
 	int hwgen = task->pva->version;
 	bool is_hwseq_mode = false;
+	struct pva_pinned_memory *mem;
 	u32 i;
 
 	if (task->num_dma_descriptors == 0L || task->num_dma_channels == 0L) {
 		nvhost_dbg_info("pva: no DMA resources: NOOP mode");
-		return err;
-	}
-
-	err = nvpva_task_dma_desc_mapping(task, hw_task);
-	if (err) {
-		task_err(task, "failed to map DMA desc info");
 		return err;
 	}
 
@@ -775,6 +775,32 @@ int pva_task_write_dma_info(struct pva_submit_task *task,
 		}
 
 		is_hwseq_mode = true;
+
+		/* Configure HWSeq trigger mode selection in DMA Configuration
+		 * Register
+		 */
+		hw_task->dma_info.dma_common_config |=
+			(task->hwseq_config.hwseqTrigMode & 0x1U) << 12U;
+
+		mem = pva_task_pin_mem(task,
+				       task->hwseq_config.hwseqBuf.pin_id);
+		if (IS_ERR(mem)) {
+			err = PTR_ERR(mem);
+			task_err(task, "failed to pin hwseq buffer");
+			return err;
+		}
+
+		task->pinned_hwseq_config = true;
+
+		hw_task->dma_info.dma_hwseq_base =
+			mem->dma_addr + task->hwseq_config.hwseqBuf.offset;
+		hw_task->dma_info.num_hwseq = task->hwseq_config.hwseqBuf.size;
+	}
+
+	err = nvpva_task_dma_desc_mapping(task, hw_task);
+	if (err) {
+		task_err(task, "failed to map DMA desc info");
+		return err;
 	}
 
 	/* write dma channel info */
@@ -886,27 +912,6 @@ int pva_task_write_dma_info(struct pva_submit_task *task,
 		task->dma_addr + offsetof(struct pva_hw_task, dma_info);
 	hw_task->dma_info.dma_descriptor_base =
 		task->dma_addr + offsetof(struct pva_hw_task, dma_desc);
-
-	if (is_hwseq_mode) {
-		struct pva_pinned_memory *mem;
-
-		/* Configure HWSeq trigger mode selection in DMA Configuration
-		 * Register
-		 */
-		hw_task->dma_info.dma_common_config |=
-			(task->hwseq_config.hwseqTrigMode & 0x1U) << 12U;
-
-		mem = pva_task_pin_mem(task,
-				       task->hwseq_config.hwseqBuf.pin_id);
-		if (IS_ERR(mem)) {
-			err = PTR_ERR(mem);
-			task_err(task, "failed to pin hwseq buffer");
-			return err;
-		}
-		hw_task->dma_info.dma_hwseq_base =
-			mem->dma_addr + task->hwseq_config.hwseqBuf.offset;
-		hw_task->dma_info.num_hwseq = task->hwseq_config.hwseqBuf.size;
-	}
 
 	hw_task->dma_info.dma_info_version = PVA_DMA_INFO_VERSION_ID;
 	hw_task->dma_info.dma_info_size = sizeof(struct pva_dma_info_s);

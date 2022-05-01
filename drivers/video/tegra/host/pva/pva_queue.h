@@ -145,6 +145,7 @@ struct pva_submit_task {
 	u64 src_surf_base_addr;
 	u64 dst_surf_base_addr;
 	bool is_system_app;
+	bool pinned_hwseq_config;
 	u8   special_access;
 };
 

@@ -122,6 +122,7 @@ static void pva_task_unpin_mem(struct pva_submit_task *task)
 	}
 
 	task->num_pinned = 0;
+	task->pinned_hwseq_config = false;
 }
 
 struct pva_pinned_memory *pva_task_pin_mem(struct pva_submit_task *task,
