@@ -429,13 +429,16 @@ static int imx185_fill_string_ctrl(struct tegracam_device *tc_dev,
 				struct v4l2_ctrl *ctrl)
 {
 	struct imx185 *priv = tc_dev->priv;
-	int i;
+	int i, ret;
 
 	switch (ctrl->id) {
 	case TEGRA_CAMERA_CID_FUSE_ID:
-		for (i = 0; i < IMX185_FUSE_ID_SIZE; i++)
-			sprintf(&ctrl->p_new.p_char[i*2], "%02x",
+		for (i = 0; i < IMX185_FUSE_ID_SIZE; i++) {
+			ret = sprintf(&ctrl->p_new.p_char[i*2], "%02x",
 				priv->fuse_id[i]);
+			if (ret < 0)
+				return -EINVAL;
+		}
 		break;
 	default:
 		return -EINVAL;
@@ -619,6 +622,8 @@ static int imx185_set_mode(struct tegracam_device *tc_dev)
 
 	limit_analog_gain = of_property_read_bool(np, "limit_analog_gain");
 
+	if (s_data->mode_prop_idx < 0)
+		return -EINVAL;
 	err = imx185_write_table(priv, mode_table[s_data->mode_prop_idx]);
 	if (err)
 		return err;

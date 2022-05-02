@@ -1244,7 +1244,9 @@ static int imx274_debugfs_create(struct imx274 *priv)
 		dev_err(&client->dev, "devnode not in DT\n");
 		return err;
 	}
-	snprintf(debugfs_dir, sizeof(debugfs_dir), "camera-%s", devnode);
+	err = snprintf(debugfs_dir, sizeof(debugfs_dir), "camera-%s", devnode);
+	if (err < 0)
+		return -EINVAL;
 
 	priv->debugfs_dir = debugfs_create_dir(debugfs_dir, NULL);
 	if (priv->debugfs_dir == NULL)

@@ -171,9 +171,13 @@ static int max96712_debugfs_init(const char *dir_name,
 		if (err)
 			dev_err(&i2c_client->dev, "channel not found\n");
 
-		snprintf(dev_name, sizeof(dev_name), "max96712_%s", priv->channel);
+		err = snprintf(dev_name, sizeof(dev_name), "max96712_%s", priv->channel);
+		if (err < 0)
+			return -EINVAL;
 	}
 	index = priv->channel[0] - 'a';
+	if (index < 0)
+		return -EINVAL;
 	global_priv[index] = priv;
 
 	dev_dbg(&i2c_client->dev, "%s: index %d\n", __func__, index);

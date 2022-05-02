@@ -572,13 +572,16 @@ static int ar0234_fill_string_ctrl(struct tegracam_device *tc_dev,
 		struct v4l2_ctrl *ctrl)
 {
 	struct ar0234 *priv = tc_dev->priv;
-	int i;
+	int i, ret;
 
 	switch (ctrl->id) {
 		case TEGRA_CAMERA_CID_EEPROM_DATA:
-			for (i = 0; i < AR0234_EEPROM_SIZE; i++)
-				sprintf(&ctrl->p_new.p_char[i*2], "%02x",
+			for (i = 0; i < AR0234_EEPROM_SIZE; i++) {
+				ret = sprintf(&ctrl->p_new.p_char[i*2], "%02x",
 						priv->eeprom_buf[i]);
+				if (ret < 0)
+					return -EINVAL;
+			}
 			break;
 		default:
 			return -EINVAL;
@@ -700,6 +703,8 @@ static int ar0234_set_mode(struct tegracam_device *tc_dev)
 	if (err)
 		return err;
 
+	if (s_data->mode_prop_idx < 0)
+		return -EINVAL;
 	dev_dbg(dev, "%s: mode index:%d\n", __func__,s_data->mode_prop_idx);
 	err = ar0234_write_table(priv, mode_table[s_data->mode_prop_idx]);
 	if (err)
