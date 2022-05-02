@@ -112,7 +112,7 @@ static int tegra_cbb_err_dbgfs_init(struct tegra_cbb *cbb)
 }
 
 #else
-static int tegra_cbb_err_dbgfs_init(void) { return 0; }
+static int tegra_cbb_err_dbgfs_init(struct tegra_cbb *cbb) { return 0; }
 #endif
 
 void tegra_cbb_stallen(struct tegra_cbb *cbb)
