@@ -202,7 +202,7 @@ endif
 
 # Set config for OOT module build
 ifeq ($(CONFIG_TEGRA_OOT_MODULE),m)
-CONFIG_GK20A_DEVFREQ := n
+CONFIG_GK20A_DEVFREQ := y
 CONFIG_GK20A_PM_QOS := n
 endif
 
