@@ -850,7 +850,7 @@
 		compatible = "nvidia,tegra234-ccplex-cluster";
 		reg = <0x0 0x0e000000 0x0 0x5ffff>;
 		nvidia,bpmp = <&bpmp>;
-		status = "okay";
+		status = "disabled";
 		cpu_emc_map = <1500000 800000>,
 				<900000  665000>,
 				<550000  533000>,
