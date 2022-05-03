@@ -54,25 +54,9 @@
 #include "scale.h"
 #include "module.h"
 
-/* Select every GP10B_FREQ_SELECT_STEP'th frequency from h/w table */
-#define GP10B_FREQ_SELECT_STEP	8
-
-/* Max number of freq supported in h/w */
-#define GP10B_MAX_SUPPORTED_FREQS 120
-
-/* Allow limited set of frequencies to be available */
-#define GP10B_NUM_SUPPORTED_FREQS ((GP10B_MAX_SUPPORTED_FREQS) / (GP10B_FREQ_SELECT_STEP))
-
-static unsigned long
-gp10b_freq_table[GP10B_NUM_SUPPORTED_FREQS];
-
+unsigned long gp10b_freq_table[GP10B_NUM_SUPPORTED_FREQS];
 static bool freq_table_init_complete;
 static int num_supported_freq;
-
-#define TEGRA_GP10B_BW_PER_FREQ 64
-#define TEGRA_DDR4_BW_PER_FREQ 16
-
-#define EMC_BW_RATIO  (TEGRA_GP10B_BW_PER_FREQ / TEGRA_DDR4_BW_PER_FREQ)
 
 #define GPCCLK_INIT_RATE 1000000000
 
