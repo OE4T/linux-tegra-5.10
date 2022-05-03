@@ -51,6 +51,7 @@ static inline u32 get_field(u32 input_data, u32 mask)
 
 
 struct tegra_soc_hwpm;
+struct hwpm_ip_inst;
 struct hwpm_ip_aperture;
 
 u32 tegra_hwpm_readl(struct tegra_soc_hwpm *hwpm,
@@ -58,8 +59,10 @@ u32 tegra_hwpm_readl(struct tegra_soc_hwpm *hwpm,
 void tegra_hwpm_writel(struct tegra_soc_hwpm *hwpm,
 	struct hwpm_ip_aperture *aperture, u64 addr, u32 val);
 u32 tegra_hwpm_regops_readl(struct tegra_soc_hwpm *hwpm,
-	struct hwpm_ip_aperture *aperture, u64 addr);
+	u64 addr, struct hwpm_ip_inst *ip_inst,
+	struct hwpm_ip_aperture *aperture);
 void tegra_hwpm_regops_writel(struct tegra_soc_hwpm *hwpm,
-	struct hwpm_ip_aperture *aperture, u64 addr, u32 val);
+	u64 addr, u32 val, struct hwpm_ip_inst *ip_inst,
+	struct hwpm_ip_aperture *aperture);
 
 #endif /* TEGRA_HWPM_IO_H */

@@ -18,10 +18,10 @@
 
 #include <uapi/linux/tegra-soc-hwpm-uapi.h>
 
-#include <tegra_hwpm_log.h>
-#include <tegra_hwpm_io.h>
-#include <tegra_hwpm_static_analysis.h>
 #include <tegra_hwpm.h>
+#include <tegra_hwpm_io.h>
+#include <tegra_hwpm_log.h>
+#include <tegra_hwpm_static_analysis.h>
 
 static u32 fake_readl(struct tegra_soc_hwpm *hwpm,
 	struct hwpm_ip_aperture *aperture, u64 offset)
@@ -52,7 +52,7 @@ static void fake_writel(struct tegra_soc_hwpm *hwpm,
  * Read IP domain registers
  * IP(except PMA and RTR) perfmux fall in this category
  */
-static u32 ip_readl(struct tegra_soc_hwpm *hwpm,
+static u32 ip_readl(struct tegra_soc_hwpm *hwpm, struct hwpm_ip_inst *ip_inst,
 	struct hwpm_ip_aperture *aperture, u64 offset)
 {
 	tegra_hwpm_dbg(hwpm, hwpm_register,
@@ -63,7 +63,7 @@ static u32 ip_readl(struct tegra_soc_hwpm *hwpm,
 		return fake_readl(hwpm, aperture, offset);
 	} else {
 		u32 reg_val = 0U;
-		struct tegra_hwpm_ip_ops *ip_ops_ptr = &aperture->ip_ops;
+		struct tegra_hwpm_ip_ops *ip_ops_ptr = &ip_inst->ip_ops;
 		if (ip_ops_ptr->hwpm_ip_reg_op != NULL) {
 			int err = 0;
 
@@ -107,7 +107,7 @@ static u32 ip_readl(struct tegra_soc_hwpm *hwpm,
  * Write to IP domain registers
  * IP(except PMA and RTR) perfmux fall in this category
  */
-static void ip_writel(struct tegra_soc_hwpm *hwpm,
+static void ip_writel(struct tegra_soc_hwpm *hwpm, struct hwpm_ip_inst *ip_inst,
 	struct hwpm_ip_aperture *aperture, u64 offset, u32 val)
 {
 	tegra_hwpm_dbg(hwpm, hwpm_register,
@@ -117,7 +117,7 @@ static void ip_writel(struct tegra_soc_hwpm *hwpm,
 	if (hwpm->fake_registers_enabled) {
 		fake_writel(hwpm, aperture, offset, val);
 	} else {
-		struct tegra_hwpm_ip_ops *ip_ops_ptr = &aperture->ip_ops;
+		struct tegra_hwpm_ip_ops *ip_ops_ptr = &ip_inst->ip_ops;
 		if (ip_ops_ptr->hwpm_ip_reg_op != NULL) {
 			int err = 0;
 
@@ -216,7 +216,8 @@ u32 tegra_hwpm_readl(struct tegra_soc_hwpm *hwpm,
 		return 0;
 	}
 
-	if (aperture->is_hwpm_element) {
+	if ((aperture->element_type == HWPM_ELEMENT_PERFMON) ||
+		(aperture->element_type == HWPM_ELEMENT_PERFMUX)) {
 		u64 reg_offset = tegra_hwpm_safe_sub_u64(
 					addr, aperture->base_pa);
 		/* HWPM domain registers */
@@ -240,7 +241,8 @@ void tegra_hwpm_writel(struct tegra_soc_hwpm *hwpm,
 		return;
 	}
 
-	if (aperture->is_hwpm_element) {
+	if ((aperture->element_type == HWPM_ELEMENT_PERFMON) ||
+		(aperture->element_type == HWPM_ELEMENT_PERFMUX)) {
 		u64 reg_offset = tegra_hwpm_safe_sub_u64(
 					addr, aperture->base_pa);
 		/* HWPM domain internal registers */
@@ -256,7 +258,8 @@ void tegra_hwpm_writel(struct tegra_soc_hwpm *hwpm,
  * check has been done before calling this function.
  */
 u32 tegra_hwpm_regops_readl(struct tegra_soc_hwpm *hwpm,
-	struct hwpm_ip_aperture *aperture, u64 addr)
+	u64 addr, struct hwpm_ip_inst *ip_inst,
+	struct hwpm_ip_aperture *aperture)
 {
 	u32 reg_val = 0;
 	u64 reg_offset = 0ULL;
@@ -268,11 +271,11 @@ u32 tegra_hwpm_regops_readl(struct tegra_soc_hwpm *hwpm,
 
 	reg_offset = tegra_hwpm_safe_sub_u64(addr, aperture->start_abs_pa);
 
-	if (aperture->is_hwpm_element) {
-		/* HWPM unit internal registers */
+	if ((aperture->element_type == HWPM_ELEMENT_PERFMON) ||
+		(aperture->element_type == HWPM_ELEMENT_PERFMUX)) {
 		reg_val = hwpm_readl(hwpm, aperture, reg_offset);
 	} else {
-		reg_val = ip_readl(hwpm, aperture, reg_offset);
+		reg_val = ip_readl(hwpm, ip_inst, aperture, reg_offset);
 	}
 	return reg_val;
 }
@@ -282,7 +285,8 @@ u32 tegra_hwpm_regops_readl(struct tegra_soc_hwpm *hwpm,
  * allowlist check has been done before calling this function.
  */
 void tegra_hwpm_regops_writel(struct tegra_soc_hwpm *hwpm,
-	struct hwpm_ip_aperture *aperture, u64 addr, u32 val)
+	u64 addr, u32 val, struct hwpm_ip_inst *ip_inst,
+	struct hwpm_ip_aperture *aperture)
 {
 	u64 reg_offset = 0ULL;
 
@@ -293,10 +297,10 @@ void tegra_hwpm_regops_writel(struct tegra_soc_hwpm *hwpm,
 
 	reg_offset = tegra_hwpm_safe_sub_u64(addr, aperture->start_abs_pa);
 
-	if (aperture->is_hwpm_element) {
-		/* HWPM unit internal registers */
+	if ((aperture->element_type == HWPM_ELEMENT_PERFMON) ||
+		(aperture->element_type == HWPM_ELEMENT_PERFMUX)) {
 		hwpm_writel(hwpm, aperture, reg_offset, val);
 	} else {
-		ip_writel(hwpm, aperture, reg_offset, val);
+		ip_writel(hwpm, ip_inst, aperture, reg_offset, val);
 	}
 }

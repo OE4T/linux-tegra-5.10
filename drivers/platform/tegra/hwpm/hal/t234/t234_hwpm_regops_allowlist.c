@@ -341,6 +341,12 @@ struct allowlist t234_mc8_res_mss_iso_niso_hub_alist[1] = {
 	{0x00000828, true},
 };
 
+struct allowlist t234_mcb_res_mss_iso_niso_hub_alist[3] = {
+	{0x00000818, true},
+	{0x0000081c, true},
+	{0x00000828, true},
+};
+
 struct allowlist t234_mcb_mss_mcf_alist[4] = {
 	{0x00000800, true},
 	{0x00000820, true},

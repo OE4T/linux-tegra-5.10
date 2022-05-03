@@ -20,11 +20,7 @@
 #define T234_HWPM_REGOPS_ALLOWLIST_H
 
 #include <linux/types.h>
-
-struct allowlist {
-	u64 reg_offset;
-	bool zero_at_init;
-};
+#include <tegra_hwpm.h>
 
 extern struct allowlist t234_perfmon_alist[67];
 extern struct allowlist t234_pma_res_cmd_slice_rtr_alist[86];
@@ -45,6 +41,7 @@ extern struct allowlist t234_mss_channel_alist[2];
 extern struct allowlist t234_mss_nvlink_alist[1];
 extern struct allowlist t234_mc0to7_res_mss_iso_niso_hub_alist[2];
 extern struct allowlist t234_mc8_res_mss_iso_niso_hub_alist[1];
+extern struct allowlist t234_mcb_res_mss_iso_niso_hub_alist[3];
 extern struct allowlist t234_mcb_mss_mcf_alist[4];
 extern struct allowlist t234_mc0to1_mss_mcf_alist[3];
 extern struct allowlist t234_mc2to7_mss_mcf_alist[1];

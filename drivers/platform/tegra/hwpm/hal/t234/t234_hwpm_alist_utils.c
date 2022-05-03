@@ -27,7 +27,7 @@ size_t t234_hwpm_get_alist_buf_size(struct tegra_soc_hwpm *hwpm)
 }
 
 int t234_hwpm_zero_alist_regs(struct tegra_soc_hwpm *hwpm,
-	struct hwpm_ip_aperture *aperture)
+	struct hwpm_ip_inst *ip_inst, struct hwpm_ip_aperture *aperture)
 {
 	u32 alist_idx = 0U;
 
@@ -35,10 +35,10 @@ int t234_hwpm_zero_alist_regs(struct tegra_soc_hwpm *hwpm,
 
 	for (alist_idx = 0; alist_idx < aperture->alist_size; alist_idx++) {
 		if (aperture->alist[alist_idx].zero_at_init) {
-			tegra_hwpm_regops_writel(hwpm, aperture,
+			tegra_hwpm_regops_writel(hwpm,
 				tegra_hwpm_safe_add_u64(aperture->start_abs_pa,
 					aperture->alist[alist_idx].reg_offset),
-				0U);
+				0U, ip_inst, aperture);
 		}
 	}
 	return 0;

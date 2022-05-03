@@ -31,8 +31,6 @@ struct tegra_soc_hwpm_chip t234_chip_info = {
 	.get_rtr_int_idx = t234_get_rtr_int_idx,
 	.get_ip_max_idx = t234_get_ip_max_idx,
 
-	.init_chip_ip_structures = tegra_hwpm_init_chip_ip_structures,
-
 	.extract_ip_ops = t234_hwpm_extract_ip_ops,
 	.force_enable_ips = t234_hwpm_force_enable_ips,
 	.get_fs_info = t234_hwpm_get_fs_info,
@@ -63,8 +61,6 @@ struct tegra_soc_hwpm_chip t234_chip_info = {
 	.copy_alist = t234_hwpm_copy_alist,
 	.check_alist = t234_hwpm_check_alist,
 
-	.exec_reg_ops = t234_hwpm_exec_reg_ops,
-
 	.release_sw_setup = tegra_hwpm_release_sw_setup,
 };
 
@@ -87,11 +83,6 @@ static bool t234_hwpm_validate_hals(struct tegra_soc_hwpm *hwpm)
 
 	if (hwpm->active_chip->get_ip_max_idx == NULL) {
 		tegra_hwpm_err(hwpm, "get_ip_max_idx HAL uninitialized");
-		return false;
-	}
-
-	if (hwpm->active_chip->init_chip_ip_structures == NULL) {
-		tegra_hwpm_err(hwpm, "init_chip_ip_structures uninitialized");
 		return false;
 	}
 
@@ -212,11 +203,6 @@ static bool t234_hwpm_validate_hals(struct tegra_soc_hwpm *hwpm)
 
 	if (hwpm->active_chip->check_alist == NULL) {
 		tegra_hwpm_err(hwpm, "check_alist uninitialized");
-		return false;
-	}
-
-	if (hwpm->active_chip->exec_reg_ops == NULL) {
-		tegra_hwpm_err(hwpm, "exec_reg_ops uninitialized");
 		return false;
 	}
 

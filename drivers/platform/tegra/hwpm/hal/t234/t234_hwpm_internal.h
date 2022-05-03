@@ -88,11 +88,11 @@ int t234_hwpm_enable_slcg(struct tegra_soc_hwpm *hwpm);
 
 int t234_hwpm_disable_triggers(struct tegra_soc_hwpm *hwpm);
 int t234_hwpm_perfmon_enable(struct tegra_soc_hwpm *hwpm,
-	hwpm_ip_perfmon *perfmon);
+	struct hwpm_ip_aperture *perfmon);
 int t234_hwpm_perfmux_disable(struct tegra_soc_hwpm *hwpm,
-	hwpm_ip_perfmux *perfmux);
+	struct hwpm_ip_aperture *perfmux);
 int t234_hwpm_perfmon_disable(struct tegra_soc_hwpm *hwpm,
-	hwpm_ip_perfmon *perfmon);
+	struct hwpm_ip_aperture *perfmon);
 
 int t234_hwpm_disable_mem_mgmt(struct tegra_soc_hwpm *hwpm);
 int t234_hwpm_enable_mem_mgmt(struct tegra_soc_hwpm *hwpm,
@@ -107,14 +107,11 @@ bool t234_hwpm_membuf_overflow_status(struct tegra_soc_hwpm *hwpm);
 
 size_t t234_hwpm_get_alist_buf_size(struct tegra_soc_hwpm *hwpm);
 int t234_hwpm_zero_alist_regs(struct tegra_soc_hwpm *hwpm,
-	struct hwpm_ip_aperture *aperture);
+	struct hwpm_ip_inst *ip_inst, struct hwpm_ip_aperture *aperture);
 int t234_hwpm_copy_alist(struct tegra_soc_hwpm *hwpm,
 	struct hwpm_ip_aperture *aperture, u64 *full_alist,
 	u64 *full_alist_idx);
 bool t234_hwpm_check_alist(struct tegra_soc_hwpm *hwpm,
 	struct hwpm_ip_aperture *aperture, u64 phys_addr);
-
-int t234_hwpm_exec_reg_ops(struct tegra_soc_hwpm *hwpm,
-	struct tegra_soc_hwpm_reg_op *reg_op);
 
 #endif /* T234_HWPM_INTERNAL_H */

@@ -20,7 +20,8 @@
 /* This data should ideally be available in HW headers */
 #define T234_HWPM_IP_MSS_MCF_NUM_INSTANCES		1U
 #define T234_HWPM_IP_MSS_MCF_NUM_PERFMON_PER_INST	3U
-#define T234_HWPM_IP_MSS_MCF_NUM_PERFMUX_PER_INST	9U
+#define T234_HWPM_IP_MSS_MCF_NUM_PERFMUX_PER_INST	8U
+#define T234_HWPM_IP_MSS_MCF_NUM_BROADCAST_PER_INST	1U
 
 extern struct hwpm_ip t234_hwpm_ip_mss_mcf;
 

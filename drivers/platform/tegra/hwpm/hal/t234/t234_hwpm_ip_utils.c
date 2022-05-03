@@ -263,25 +263,7 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 
 		/* MSS CHANNEL */
 		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
-			addr_map_mc0_base_r(),
-			T234_HWPM_IP_MSS_CHANNEL, true);
-		if (ret != 0) {
-			goto fail;
-		}
-		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
-			addr_map_mc4_base_r(),
-			T234_HWPM_IP_MSS_CHANNEL, true);
-		if (ret != 0) {
-			goto fail;
-		}
-		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
-			addr_map_mc8_base_r(),
-			T234_HWPM_IP_MSS_CHANNEL, true);
-		if (ret != 0) {
-			goto fail;
-		}
-		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
-			addr_map_mc12_base_r(),
+			addr_map_mcb_base_r(),
 			T234_HWPM_IP_MSS_CHANNEL, true);
 		if (ret != 0) {
 			goto fail;
@@ -289,7 +271,7 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 
 		/* MSS ISO NISO HUBS */
 		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
-			addr_map_mc0_base_r(),
+			addr_map_mcb_base_r(),
 			T234_HWPM_IP_MSS_ISO_NISO_HUBS, true);
 		if (ret != 0) {
 			goto fail;
@@ -297,7 +279,7 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 
 		/* MSS MCF */
 		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
-			addr_map_mc0_base_r(),
+			addr_map_mcb_base_r(),
 			T234_HWPM_IP_MSS_MCF, true);
 		if (ret != 0) {
 			goto fail;
@@ -316,7 +298,7 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 	for (i = 0U; i < active_chip->get_ip_max_idx(hwpm); i++) {
 		chip_ip = active_chip->chip_ips[i];
 		tegra_hwpm_dbg(hwpm, hwpm_verbose, "IP:%d fs_mask:0x%x",
-			i, chip_ip->fs_mask);
+			i, chip_ip->inst_fs_mask);
 	}
 
 fail:
@@ -327,10 +309,9 @@ int t234_hwpm_get_fs_info(struct tegra_soc_hwpm *hwpm,
 	u32 ip_index, u64 *fs_mask, u8 *ip_status)
 {
 	u32 ip_idx = 0U;
-	u32 i = 0U;
-	u32 mcc_fs_mask = 0U;
 	struct tegra_soc_hwpm_chip *active_chip = NULL;
 	struct hwpm_ip *chip_ip = NULL;
+	struct hwpm_ip_inst *ip_inst = NULL;
 
 	tegra_hwpm_fn(hwpm, " ");
 
@@ -348,22 +329,20 @@ int t234_hwpm_get_fs_info(struct tegra_soc_hwpm *hwpm,
 				ip_index);
 			*ip_status = TEGRA_SOC_HWPM_IP_STATUS_VALID;
 		}
-	} else {
-		active_chip = hwpm->active_chip;
-		chip_ip = active_chip->chip_ips[ip_idx];
-		/* TODO: Update after fS IOCTL discussion */
-		if (ip_idx == T234_HWPM_IP_MSS_CHANNEL) {
-			for (i = 0U; i < 4U; i++) {
-				if (((0x1U << i) & chip_ip->fs_mask) != 0U) {
-					mcc_fs_mask |= (0xFU << (i*4U));
-				}
-			}
-			*fs_mask = mcc_fs_mask;
-		} else {
-			*fs_mask = chip_ip->fs_mask;
-		}
-		*ip_status = TEGRA_SOC_HWPM_IP_STATUS_VALID;
+		return 0;
 	}
+
+	active_chip = hwpm->active_chip;
+	chip_ip = active_chip->chip_ips[ip_idx];
+	ip_inst = &chip_ip->ip_inst_static_array[0U];
+	/* TODO: Update after fS IOCTL discussion */
+	if (ip_idx == T234_HWPM_IP_MSS_CHANNEL) {
+		*fs_mask = ip_inst->element_fs_mask;
+	} else {
+		*fs_mask = chip_ip->inst_fs_mask;
+	}
+	*ip_status = TEGRA_SOC_HWPM_IP_STATUS_VALID;
+
 
 	return 0;
 }

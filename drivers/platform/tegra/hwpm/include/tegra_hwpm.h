@@ -98,23 +98,51 @@ struct tegra_hwpm_ip_ops {
 				__u64 reg_offset, __u32 *reg_data);
 };
 
+/* There are 3 types of HWPM components/apertures */
+#define TEGRA_HWPM_APERTURE_TYPE_PERFMUX	0U
+#define TEGRA_HWPM_APERTURE_TYPE_BROADCAST	1U
+#define TEGRA_HWPM_APERTURE_TYPE_PERFMON	2U
+#define TEGRA_HWPM_APERTURE_TYPE_MAX		3U
+
+/*
+ * Devices handled by HWPM driver can be divided into 2 categories
+ * - HWPM : Components in HWPM device address space
+ *          All perfmons, PMA and RTR perfmuxes
+ * - IP : Components in IP address space
+ *        IP perfmuxes
+ *
+ * This enum defines MACROS to specify an element to be HWPM or IP
+ * and the specific aperture.
+ */
+enum tegra_hwpm_element_type {
+	HWPM_ELEMENT_INVALID,
+	HWPM_ELEMENT_PERFMON,
+	HWPM_ELEMENT_PERFMUX,
+	IP_ELEMENT_PERFMUX,
+	IP_ELEMENT_BROADCAST,
+};
+
+enum tegra_hwpm_funcs {
+	TEGRA_HWPM_INIT_IP_STRUCTURES,
+	TEGRA_HWPM_MATCH_BASE_ADDRESS,
+	TEGRA_HWPM_GET_ALIST_SIZE,
+	TEGRA_HWPM_COMBINE_ALIST,
+	TEGRA_HWPM_RESERVE_GIVEN_RESOURCE,
+	TEGRA_HWPM_BIND_RESOURCES,
+	TEGRA_HWPM_FIND_GIVEN_ADDRESS,
+	TEGRA_HWPM_RELEASE_RESOURCES,
+	TEGRA_HWPM_RELEASE_ROUTER,
+	TEGRA_HWPM_RELEASE_IP_STRUCTURES
+};
+
 struct tegra_hwpm_func_args {
 	u64 *alist;
 	u64 full_alist_idx;
 };
 
-enum tegra_hwpm_funcs {
-	TEGRA_HWPM_GET_ALIST_SIZE,
-	TEGRA_HWPM_COMBINE_ALIST,
-	TEGRA_HWPM_RESERVE_GIVEN_RESOURCE,
-	TEGRA_HWPM_BIND_RESOURCES,
-	TEGRA_HWPM_RELEASE_RESOURCES,
-};
-
-enum hwpm_aperture_type {
-	HWPM_APERTURE_INVALID,
-	HWPM_APERTURE_PERFMUX,
-	HWPM_APERTURE_PERFMON,
+struct allowlist {
+	u64 reg_offset;
+	bool zero_at_init;
 };
 
 struct hwpm_ip_aperture {
@@ -122,19 +150,25 @@ struct hwpm_ip_aperture {
 	 * Indicates which domain (HWPM or IP) aperture belongs to,
 	 * used for reverse mapping
 	 */
-	bool is_hwpm_element;
+	enum tegra_hwpm_element_type element_type;
 
-	/* HW index : This is used to update IP fs_mask */
-	u32 hw_inst_mask;
+	/*
+	 * Element index : Index of this aperture within the instance
+	 * This will be used to update element_fs_mask to indicate availability.
+	 */
+	u32 element_index_mask;
+
+	/*
+	 * Element index in device tree entry
+	 * For perfmux entries, this index is passed to hwpm_ip_reg_op()
+	 */
+	u32 dt_index;
 
 	/* MMIO device tree aperture - only populated for perfmon */
 	void __iomem *dt_mmio;
 
 	/* DT tree name */
 	char name[64];
-
-	/* IP ops - only populated for perfmux */
-	struct tegra_hwpm_ip_ops ip_ops;
 
 	/* Allowlist */
 	struct allowlist *alist;
@@ -155,50 +189,90 @@ struct hwpm_ip_aperture {
 	u32 *fake_registers;
 };
 
-typedef struct hwpm_ip_aperture hwpm_ip_perfmon;
-typedef struct hwpm_ip_aperture hwpm_ip_perfmux;
+struct hwpm_ip_element_info {
+	/* Number of apertures per instance */
+	u32 num_element_per_inst;
+
+	/*
+	 * Static elements in this instance corresponding to aperture
+	 * Array size: num_element_per_inst
+	 */
+	struct hwpm_ip_aperture *element_static_array;
+
+	/* Instance address range corresponding to aperture */
+	u64 range_start;
+	u64 range_end;
+
+	/* Element physical address stride for each element of IP instance */
+	u64 element_stride;
+
+	/*
+	 * Elements that can fit into instance address range.
+	 * This gives number of indices in element_arr
+	 */
+	u32 element_slots;
+
+	/*
+	 * Dynamic elements array corresponding to this aperture
+	 * Array size: element_slots pointers
+	 */
+	struct hwpm_ip_aperture **element_arr;
+};
+
+struct hwpm_ip_inst {
+	/*
+	 * HW inst index : HW instance index of this instance
+	 * This mask builds hwpm_ip.inst_fs_mask indicating availability.
+	 */
+	u32 hw_inst_mask;
+
+	/* Element details specific to this instance */
+	struct hwpm_ip_element_info element_info[TEGRA_HWPM_APERTURE_TYPE_MAX];
+
+	/*
+	 * IP ops are specific for an instance, used for perfmux and broadcast
+	 * register accesses.
+	 */
+	struct tegra_hwpm_ip_ops ip_ops;
+
+	/*
+	 * An IP contains perfmux-perfmon groups that correspond to each other.
+	 * If a perfmux is present, it indicates that the corresponding
+	 * perfmon is present.
+	 * This mask is usually updated based on available perfmuxes.
+	 * (except for SCF).
+	 */
+	u32 element_fs_mask;
+};
+
+struct hwpm_ip_inst_per_aperture_info {
+	/* IP address range corresponding to aperture */
+	u64 range_start;
+	u64 range_end;
+
+	/* Aperture address range for each IP instance */
+	u64 inst_stride;
+
+	/*
+	 * Aperture instances that can fit into IP aperture address range.
+	 * This gives number of entries in inst_arr
+	 */
+	u32 inst_slots;
+
+	/* IP inst aperture array */
+	struct hwpm_ip_inst **inst_arr;
+};
 
 struct hwpm_ip {
 	/* Number of instances */
 	u32 num_instances;
 
-	/* Number of perfmons per instance */
-	u32 num_perfmon_per_inst;
+	/* Static array of IP instances */
+	struct hwpm_ip_inst *ip_inst_static_array;
 
-	/* Number of perfmuxes per instance */
-	u32 num_perfmux_per_inst;
-
-	/* IP perfmon address range */
-	u64 perfmon_range_start;
-	u64 perfmon_range_end;
-
-	/* Perfmon physical address stride for each IP instance */
-	u64 inst_perfmon_stride;
-
-	/*
-	 * Perfmon slots that can fit into perfmon address range.
-	 * This gives number of indices in ip_perfmon
-	 */
-	u32 num_perfmon_slots;
-
-	/* IP perfmon array */
-	hwpm_ip_perfmon **ip_perfmon;
-
-	/* IP perfmux address range */
-	u64 perfmux_range_start;
-	u64 perfmux_range_end;
-
-	/* Perfmux physical address stride for each IP instance */
-	u64 inst_perfmux_stride;
-
-	/*
-	 * Perfmux slots that can fit into perfmux address range.
-	 * This gives number of indices in ip_perfmux
-	 */
-	u32 num_perfmux_slots;
-
-	/* IP perfmux array */
-	hwpm_ip_perfmux **ip_perfmux;
+	/* Instance info corresponding to apertures in this IP */
+	struct hwpm_ip_inst_per_aperture_info inst_aperture_info[
+		TEGRA_HWPM_APERTURE_TYPE_MAX];
 
 	/* Override IP config based on fuse value */
 	bool override_enable;
@@ -209,13 +283,7 @@ struct hwpm_ip {
 	 * hwpm driver clients use hw instance index to find aperture
 	 * info (start/end address) from hw manual.
 	 */
-	u32 fs_mask;
-
-	/* IP perfmon array */
-	hwpm_ip_perfmon *perfmon_static_array;
-
-	/* IP perfmux array */
-	hwpm_ip_perfmux *perfmux_static_array;
+	u32 inst_fs_mask;
 
 	bool reserved;
 };
@@ -235,8 +303,6 @@ struct tegra_soc_hwpm_chip {
 	u32 (*get_rtr_int_idx)(struct tegra_soc_hwpm *hwpm);
 	u32 (*get_ip_max_idx)(struct tegra_soc_hwpm *hwpm);
 
-	int (*init_chip_ip_structures)(struct tegra_soc_hwpm *hwpm);
-
 	int (*extract_ip_ops)(struct tegra_soc_hwpm *hwpm,
 	struct tegra_soc_hwpm_ip_ops *hwpm_ip_ops, bool available);
 	int (*force_enable_ips)(struct tegra_soc_hwpm *hwpm);
@@ -252,11 +318,11 @@ struct tegra_soc_hwpm_chip {
 
 	int (*disable_triggers)(struct tegra_soc_hwpm *hwpm);
 	int (*perfmon_enable)(struct tegra_soc_hwpm *hwpm,
-	hwpm_ip_perfmon *perfmon);
+	struct hwpm_ip_aperture *perfmon);
 	int (*perfmon_disable)(struct tegra_soc_hwpm *hwpm,
-		hwpm_ip_perfmon *perfmon);
+		struct hwpm_ip_aperture *perfmon);
 	int (*perfmux_disable)(struct tegra_soc_hwpm *hwpm,
-		hwpm_ip_perfmux *perfmux);
+		struct hwpm_ip_aperture *perfmux);
 
 	int (*disable_mem_mgmt)(struct tegra_soc_hwpm *hwpm);
 	int (*enable_mem_mgmt)(struct tegra_soc_hwpm *hwpm,
@@ -271,6 +337,7 @@ struct tegra_soc_hwpm_chip {
 
 	size_t (*get_alist_buf_size)(struct tegra_soc_hwpm *hwpm);
 	int (*zero_alist_regs)(struct tegra_soc_hwpm *hwpm,
+		struct hwpm_ip_inst *ip_inst,
 		struct hwpm_ip_aperture *aperture);
 	int (*copy_alist)(struct tegra_soc_hwpm *hwpm,
 		struct hwpm_ip_aperture *aperture,
@@ -278,9 +345,6 @@ struct tegra_soc_hwpm_chip {
 		u64 *full_alist_idx);
 	bool (*check_alist)(struct tegra_soc_hwpm *hwpm,
 		struct hwpm_ip_aperture *aperture, u64 phys_addr);
-
-	int (*exec_reg_ops)(struct tegra_soc_hwpm *hwpm,
-		struct tegra_soc_hwpm_reg_op *reg_op);
 
 	void (*release_sw_setup)(struct tegra_soc_hwpm *hwpm);
 };

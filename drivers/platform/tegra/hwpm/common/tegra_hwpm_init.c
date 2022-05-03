@@ -71,9 +71,26 @@ static int tegra_hwpm_init_chip_info(struct tegra_soc_hwpm *hwpm)
 	return err;
 }
 
+static int tegra_hwpm_init_chip_ip_structures(struct tegra_soc_hwpm *hwpm)
+{
+	int err = 0;
+
+	tegra_hwpm_fn(hwpm, " ");
+
+	err = tegra_hwpm_func_all_ip(hwpm, NULL, TEGRA_HWPM_INIT_IP_STRUCTURES);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "failed init IP structures");
+		return err;
+	}
+
+	return err;
+}
+
 int tegra_hwpm_init_sw_components(struct tegra_soc_hwpm *hwpm)
 {
 	int err = 0;
+
+	tegra_hwpm_fn(hwpm, " ");
 
 	err = tegra_hwpm_init_chip_info(hwpm);
 	if (err != 0) {
@@ -81,9 +98,15 @@ int tegra_hwpm_init_sw_components(struct tegra_soc_hwpm *hwpm)
 		return err;
 	}
 
-	err = hwpm->active_chip->init_chip_ip_structures(hwpm);
+	err = tegra_hwpm_init_chip_ip_structures(hwpm);
 	if (err != 0) {
 		tegra_hwpm_err(hwpm, "IP structure init failed");
+		return err;
+	}
+
+	err = tegra_hwpm_finalize_chip_info(hwpm);
+	if (err < 0) {
+		tegra_hwpm_err(hwpm, "Unable to initialize chip fs_info");
 		return err;
 	}
 
@@ -112,24 +135,13 @@ void tegra_hwpm_release_sw_components(struct tegra_soc_hwpm *hwpm)
 
 int tegra_hwpm_setup_sw(struct tegra_soc_hwpm *hwpm)
 {
-	int ret = 0;
-
 	tegra_hwpm_fn(hwpm, " ");
-
-	ret = tegra_hwpm_finalize_chip_info(hwpm);
-	if (ret < 0) {
-		tegra_hwpm_err(hwpm, "Unable to initialize chip fs_info");
-		goto fail;
-	}
 
 	/* Initialize SW state */
 	hwpm->bind_completed = false;
 	hwpm->full_alist_size = 0;
 
 	return 0;
-
-fail:
-	return ret;
 }
 
 int tegra_hwpm_setup_hw(struct tegra_soc_hwpm *hwpm)
@@ -208,23 +220,16 @@ fail:
 
 void tegra_hwpm_release_sw_setup(struct tegra_soc_hwpm *hwpm)
 {
-	struct tegra_soc_hwpm_chip *active_chip = hwpm->active_chip;
-	struct hwpm_ip *chip_ip = NULL;
-	u32 ip_idx;
+	int err = 0;
 
-	for (ip_idx = 0U; ip_idx < active_chip->get_ip_max_idx(hwpm);
-		ip_idx++) {
-		chip_ip = active_chip->chip_ips[ip_idx];
+	tegra_hwpm_fn(hwpm, " ");
 
-		/* Release perfmux array */
-		if (chip_ip->num_perfmux_per_inst != 0U) {
-			kfree(chip_ip->ip_perfmux);
-		}
-
-		/* Release perfmon array */
-		if (chip_ip->num_perfmon_per_inst != 0U) {
-			kfree(chip_ip->ip_perfmon);
-		}
+	err = tegra_hwpm_func_all_ip(hwpm, NULL,
+		TEGRA_HWPM_RELEASE_IP_STRUCTURES);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "failed release IP structures");
+		return;
 	}
+
 	return;
 }

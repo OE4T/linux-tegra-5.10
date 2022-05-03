@@ -49,7 +49,6 @@ obj-y += hal/t234/t234_hwpm_aperture_utils.o
 obj-y += hal/t234/t234_hwpm_interface_utils.o
 obj-y += hal/t234/t234_hwpm_ip_utils.o
 obj-y += hal/t234/t234_hwpm_mem_buf_utils.o
-obj-y += hal/t234/t234_hwpm_regops_utils.o
 obj-y += hal/t234/t234_hwpm_regops_allowlist.o
 obj-y += hal/t234/t234_hwpm_resource_utils.o
 

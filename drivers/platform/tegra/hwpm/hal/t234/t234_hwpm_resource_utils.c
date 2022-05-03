@@ -26,7 +26,7 @@
 #include <hal/t234/hw/t234_pmmsys_soc_hwpm.h>
 
 int t234_hwpm_perfmon_enable(struct tegra_soc_hwpm *hwpm,
-	hwpm_ip_perfmon *perfmon)
+	struct hwpm_ip_aperture *perfmon)
 {
 	u32 reg_val;
 
@@ -47,38 +47,27 @@ int t234_hwpm_perfmon_enable(struct tegra_soc_hwpm *hwpm,
 }
 
 int t234_hwpm_perfmux_disable(struct tegra_soc_hwpm *hwpm,
-	hwpm_ip_perfmux *perfmux)
+	struct hwpm_ip_aperture *perfmux)
 {
-	int err = 0;
-
 	tegra_hwpm_fn(hwpm, " ");
-
-	/*
-	 * Indicate that HWPM monitoring is disabled/closed.
-	 * Since perfmux is controlled by IP, indicate monitoring disabled
-	 * by enabling IP power management.
-	 */
-	/* Make sure that ip_ops are initialized */
-	if ((perfmux->ip_ops.ip_dev != NULL) &&
-		(perfmux->ip_ops.hwpm_ip_pm != NULL)) {
-		err = (*perfmux->ip_ops.hwpm_ip_pm)(
-			perfmux->ip_ops.ip_dev, false);
-		if (err != 0) {
-			tegra_hwpm_err(hwpm, "Runtime PM enable failed");
-		}
-	} else {
-		tegra_hwpm_dbg(hwpm, hwpm_verbose, "Runtime PM not configured");
-	}
 
 	return 0;
 }
 
 int t234_hwpm_perfmon_disable(struct tegra_soc_hwpm *hwpm,
-	hwpm_ip_perfmon *perfmon)
+	struct hwpm_ip_aperture *perfmon)
 {
 	u32 reg_val;
 
 	tegra_hwpm_fn(hwpm, " ");
+
+	if (perfmon->element_type == HWPM_ELEMENT_PERFMUX) {
+		/*
+		 * Since HWPM elements use perfmon functions,
+		 * skip disabling HWPM PERFMUX elements
+		 */
+		return 0;
+	}
 
 	/* Disable */
 	tegra_hwpm_dbg(hwpm, hwpm_verbose, "Disabling PERFMON(0x%llx - 0x%llx)",
