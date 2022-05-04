@@ -1079,8 +1079,10 @@ u64 nvgpu_gmmu_map_locked(struct vm_gk20a *vm,
 #if defined(CONFIG_NVGPU_NON_FUSA)
 	if (nvgpu_is_errata_present(g, NVGPU_ERRATA_3288192) &&
 							(attrs.l3_alloc)) {
+#ifdef CONFIG_NVGPU_TRACE
 		nvgpu_gmmu_dbg_v(g, &attrs,
 			"L3 alloc is requested when L3 cache is not supported");
+#endif
 		attrs.l3_alloc = false;
 	}
 #endif

@@ -31,6 +31,7 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/rc.h>
+#include <nvgpu/string.h>
 #include <nvgpu/static_analysis.h>
 #ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/mutex.h>

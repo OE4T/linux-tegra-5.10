@@ -515,7 +515,7 @@ int nvgpu_gr_fecs_trace_poll(struct gk20a *g)
 
 	read = g->ops.gr.fecs_trace.get_read_index(g);
 
-	cnt = CIRC_CNT(write, read, GK20A_FECS_TRACE_NUM_RECORDS);
+	cnt = CIRC_CNT((u32)write, (u32)read, GK20A_FECS_TRACE_NUM_RECORDS);
 	if (!cnt)
 		goto done;
 

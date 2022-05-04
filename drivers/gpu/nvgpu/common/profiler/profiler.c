@@ -434,6 +434,8 @@ static int nvgpu_profiler_quiesce_hwpm_streamout_resident(struct gk20a *g,
 	u64 bytes_available;
 	int err = 0;
 
+	(void)gr_instance_id;
+
 	nvgpu_log(g, gpu_dbg_prof,
 		"HWPM streamout quiesce in resident state started");
 

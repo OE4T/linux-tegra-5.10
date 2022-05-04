@@ -87,8 +87,9 @@ static int ga10b_pmu_ns_falcon_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu,
 	struct pmu_ucode_desc_v1 *desc = NULL;
 	u32 addr_code_lo, addr_data_lo, addr_load_lo;
 	u32 addr_code_hi, addr_data_hi;
-	u32  blocks, i, err;
+	u32  blocks, i;
 	u32 inst_block_ptr;
+	int err;
 
 	nvgpu_log_fn(g, " ");
 
@@ -154,7 +155,7 @@ static int ga10b_pmu_ns_falcon_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu,
 		addr_load_lo -
 		(right_shift_8bits(desc->bootloader_imem_offset)));
 
-	blocks = right_shift_8bits(((desc->bootloader_size + U8_MAX) & ~U8_MAX));
+	blocks = right_shift_8bits(((desc->bootloader_size + U8_MAX) & ~(u32)U8_MAX));
 
 	for (i = DMA_OFFSET_START; i < blocks; i++) {
 		nvgpu_writel(g, pwr_falcon_dmatrfmoffs_r(),
@@ -196,6 +197,8 @@ static int ga10b_pmu_ns_nvriscv_bootstrap(struct gk20a *g,  struct nvgpu_pmu *pm
 	u64 fmc_code_addr = 0;
 	u64 fmc_data_addr = 0;
 	u64 manifest_addr = 0;
+
+	(void)args_offset;
 
 	desc = (struct falcon_next_core_ucode_desc *)(void *)
 			rtos_fw->fw_desc->data;

@@ -1043,6 +1043,8 @@ void nvgpu_gr_ctx_free_pm_ctx(struct gk20a *g, struct vm_gk20a *vm,
 	if (pm_ctx->mem.gpu_va != 0ULL) {
 		nvgpu_dma_unmap_free(vm, &pm_ctx->mem);
 	}
+
+	(void)g;
 }
 
 struct nvgpu_mem *nvgpu_gr_ctx_get_pm_ctx_mem(struct nvgpu_gr_ctx *gr_ctx)

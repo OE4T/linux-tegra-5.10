@@ -146,5 +146,6 @@ exit:
 
 u32 nvgpu_gsp_get_last_cmd_id(struct gk20a *g)
 {
+	(void)g;
 	return GSP_NV_CMDQ_LOG_ID__LAST;
 }

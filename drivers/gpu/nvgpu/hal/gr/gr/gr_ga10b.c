@@ -619,6 +619,8 @@ int gr_ga10b_process_context_buffer_priv_segment(struct gk20a *g,
 	u32 tpc_segment_pri_layout;
 	bool is_tpc_layout_interleaved = false;
 
+	(void)ppc_mask;
+
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, "pri_addr=0x%x", pri_addr);
 
 	if (!g->netlist_valid) {
@@ -1135,7 +1137,7 @@ void ga10b_gr_vab_reserve(struct gk20a *g, u32 vab_reg, u32 num_range_checkers,
 			U32(vab_range_checker[i].start_phys_addr >> 32U));
 
 		nvgpu_writel(g, gr_gpcs_mmu_vidmem_access_bit_start_addr_lo_r(i),
-			(vab_range_checker[i].start_phys_addr &
+			(u32)(vab_range_checker[i].start_phys_addr &
 			gr_gpcs_mmu_vidmem_access_bit_start_addr_lo_val_m()) |
 			gr_gpcs_mmu_vidmem_access_bit_start_addr_lo_granularity_f(
 				granularity_shift_bits));

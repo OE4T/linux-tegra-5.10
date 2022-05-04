@@ -32,6 +32,7 @@
 #include <nvgpu/pmu/pmuif/pg.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/nvgpu_mem.h>
+#include <nvgpu/atomic.h>
 #include <include/nvgpu/pmu.h>
 
 struct nvgpu_pmu;

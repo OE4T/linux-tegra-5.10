@@ -29,6 +29,7 @@
 #include <nvgpu/device.h>
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/runlist.h>
+#include <nvgpu/string.h>
 
 #include "ipc/gsp_cmd.h"
 #include "ipc/gsp_msg.h"
@@ -58,6 +59,8 @@ static void gsp_handle_cmd_ack(struct gk20a *g, struct nv_flcn_msg_gsp *msg,
 		*command_ack = false;
 		break;
 	}
+
+	(void)status;
 }
 
 static void gsp_get_runlist_info(struct gk20a *g,
@@ -148,7 +151,7 @@ int nvgpu_gsp_send_devices_info(struct gk20a *g)
 	cmd.hdr.unit_id = NV_GSP_UNIT_DEVICES_INFO;
 	tmp_size = GSP_CMD_HDR_SIZE + sizeof(struct nvgpu_gsp_device_info);
 	nvgpu_assert(tmp_size <= U64(U8_MAX));
-	cmd.hdr.size = tmp_size;
+	cmd.hdr.size = (u8)tmp_size;
 
 	/* copy domain info into cmd buffer */
 	gsp_get_device_info(g, &cmd.cmd.device);

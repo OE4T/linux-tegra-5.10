@@ -92,7 +92,6 @@ int nvgpu_gsp_seq_acquire(struct gk20a *g,
 			gsp_callback callback, void *cb_params)
 {
 	struct gsp_sequence *seq;
-	u16 size_of_seq_tbl = 0;
 	u32 index = 0;
 	int err = 0;
 
@@ -100,10 +99,7 @@ int nvgpu_gsp_seq_acquire(struct gk20a *g,
 
 	nvgpu_mutex_acquire(&sequences->gsp_seq_lock);
 
-	size_of_seq_tbl = sizeof(sequences->gsp_seq_tbl) *
-			sizeof(sequences->gsp_seq_tbl[0]);
-
-	index = find_first_zero_bit(sequences->gsp_seq_tbl,
+	index = (u32)find_first_zero_bit(sequences->gsp_seq_tbl,
 			GSP_MAX_NUM_SEQUENCES);
 
 	if (index >= GSP_MAX_NUM_SEQUENCES) {

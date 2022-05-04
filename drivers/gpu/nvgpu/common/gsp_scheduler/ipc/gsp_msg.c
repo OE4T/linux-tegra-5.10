@@ -49,6 +49,7 @@ static int gsp_handle_event(struct nvgpu_gsp_sched *gsp_sched,
 		break;
 	}
 
+	(void)gsp_sched;
 	return err;
 }
 
@@ -193,7 +194,7 @@ int nvgpu_gsp_process_message(struct gk20a *g)
 		nvgpu_info(g, "ctrl_flags = 0x%08x, seq_id = 0x%08x",
 			msg.hdr.ctrl_flags, msg.hdr.seq_id);
 
-		msg.hdr.ctrl_flags &= ~GSP_CMD_FLAGS_MASK;
+		msg.hdr.ctrl_flags &= (u8)~GSP_CMD_FLAGS_MASK;
 
 		if (msg.hdr.ctrl_flags == GSP_CMD_FLAGS_EVENT) {
 			gsp_handle_event(gsp_sched, &msg);

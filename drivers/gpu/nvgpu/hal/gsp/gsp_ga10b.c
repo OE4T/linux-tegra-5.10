@@ -203,7 +203,7 @@ static void ga10b_gsp_clr_intr(struct gk20a *g, u32 intr)
 	gk20a_writel(g, pgsp_falcon_irqsclr_r(), intr);
 }
 
-void ga10b_gsp_handle_interrupts(struct gk20a *g, u32 intr)
+static void ga10b_gsp_handle_interrupts(struct gk20a *g, u32 intr)
 {
 	int err = 0;
 
@@ -561,6 +561,7 @@ void ga10b_gsp_msgq_tail(struct gk20a *g, struct nvgpu_gsp *gsp,
 	} else {
 		gk20a_writel(g, pgsp_msgq_tail_r(0U), *tail);
 	}
+	(void)gsp;
 }
 
 void ga10b_gsp_set_msg_intr(struct gk20a *g)

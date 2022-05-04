@@ -1036,6 +1036,8 @@ void nvgpu_pmu_pg_destroy(struct gk20a *g, struct nvgpu_pmu *pmu,
 	}
 
 	pg->zbc_ready = false;
+
+	(void)pmu;
 }
 
 int nvgpu_pmu_pg_init(struct gk20a *g, struct nvgpu_pmu *pmu,

@@ -91,16 +91,19 @@ int nvgpu_gsp_debug_buf_init(struct gk20a *g, u32 queue_no, u32 buffer_size)
 
 void nvgpu_gsp_isr_mutex_acquire(struct gk20a *g, struct nvgpu_gsp *gsp)
 {
+	(void)g;
 	nvgpu_mutex_acquire(&gsp->isr_mutex);
 }
 
 void nvgpu_gsp_isr_mutex_release(struct gk20a *g, struct nvgpu_gsp *gsp)
 {
+	(void)g;
 	nvgpu_mutex_release(&gsp->isr_mutex);
 }
 
 bool nvgpu_gsp_is_isr_enable(struct gk20a *g, struct nvgpu_gsp *gsp)
 {
+	(void)g;
 	return gsp->isr_enabled;
 }
 

@@ -47,6 +47,7 @@ u32 ga10b_ctxsw_prog_hw_get_gpccs_header_stride(void)
 
 u32 ga10b_ctxsw_prog_get_tpc_segment_pri_layout(struct gk20a *g, u32 *main_hdr)
 {
+	(void)g;
 	return ctxsw_prog_main_tpc_segment_pri_layout_v_v(
 			main_hdr[ctxsw_prog_main_tpc_segment_pri_layout_o() >>
 			BYTE_TO_DW_SHIFT]);

@@ -287,7 +287,6 @@ void nvgpu_gsp_test_sw_deinit(struct gk20a *g)
 int nvgpu_gsp_stress_test_sw_init(struct gk20a *g)
 {
 	int err = 0;
-	struct nvgpu_gsp_test *gsp_stest;
 	struct nvgpu_gsp *gsp;
 
 	nvgpu_log_fn(g, " ");
@@ -318,7 +317,6 @@ int nvgpu_gsp_stress_test_sw_init(struct gk20a *g)
 		goto de_init;
 	}
 
-	gsp_stest = g->gsp_stest;
 	gsp = g->gsp_stest->gsp;
 
 	/* gsp falcon software state */

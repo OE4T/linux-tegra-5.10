@@ -574,6 +574,7 @@ static int profiler_obj_validate_reg_op_offset(struct nvgpu_profiler_object *pro
 	return 0;
 error:
 	op->status |= REGOP(STATUS_INVALID_OFFSET);
+	(void)ret;
 	return -EINVAL;
 }
 
@@ -615,7 +616,7 @@ static int validate_reg_op_offset(struct gk20a *g,
 		}
 	}
 #endif
-
+	(void)ret;
 	return 0;
 }
 

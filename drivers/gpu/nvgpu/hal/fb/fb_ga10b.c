@@ -390,7 +390,7 @@ int ga10b_fb_set_remote_swizid(struct gk20a *g, bool enable)
 		while (pbdma_id_mask != 0U) {
 			u32 fault_id;
 			u32 pbdma_id = nvgpu_safe_sub_u32(
-				nvgpu_ffs(pbdma_id_mask), 1UL);
+				(u32)nvgpu_ffs(pbdma_id_mask), 1UL);
 
 			fault_id =
 				g->ops.pbdma.get_mmu_fault_id(g, pbdma_id);

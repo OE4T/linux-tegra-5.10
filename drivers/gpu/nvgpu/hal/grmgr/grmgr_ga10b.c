@@ -190,7 +190,7 @@ static u32 ga10b_grmgr_get_local_gr_syspipe_index(struct gk20a *g,
 
 	while (gr_syspipe_mask != 0U) {
 		u32 bit_position = nvgpu_safe_sub_u32(
-			nvgpu_ffs(gr_syspipe_mask), 1UL);
+			(u32)nvgpu_ffs(gr_syspipe_mask), 1UL);
 		++local_gr_syspipe_index;
 		gr_syspipe_mask ^= BIT32(bit_position);
 	}
@@ -218,7 +218,7 @@ static u32 ga10b_grmgr_get_gr_syspipe_id_from_local_gr_syspipe_index(
 
 	while (temp_gr_syspipe_index < max_allowed_syspipe_index) {
 		gr_syspipe_id = nvgpu_safe_sub_u32(
-			nvgpu_ffs(usable_gr_syspipe_mask), 1UL);
+			(u32)nvgpu_ffs(usable_gr_syspipe_mask), 1UL);
 		++temp_gr_syspipe_index;
 		usable_gr_syspipe_mask ^= BIT32(gr_syspipe_id);
 	}
@@ -245,7 +245,7 @@ static u32 ga10b_grmgr_get_num_gr_syspipe_enabled(struct gk20a *g,
 
 	while (gr_syspipe_enabled_mask != 0U) {
 		u32 bit_pos = nvgpu_safe_sub_u32(
-					nvgpu_ffs(gr_syspipe_enabled_mask), 1UL);
+					(u32)nvgpu_ffs(gr_syspipe_enabled_mask), 1UL);
 		gr_syspipe_enabled_mask ^= BIT32(bit_pos);
 		++gr_syspipe_enabled_count;
 	}
@@ -399,7 +399,7 @@ static int ga10b_grmgr_get_gpu_instance(struct gk20a *g,
 				(gpu_instance_static_config[index].num_gpc))) {
 
 			logical_gpc_id = nvgpu_safe_sub_u32(
-					nvgpu_ffs(temp_gpc_mask), 1UL);
+					(u32)nvgpu_ffs(temp_gpc_mask), 1UL);
 
 			if ((gpcs[logical_gpc_id].gpcgrp_id ==
 					gpu_instance_gpcgrp_id[index]) ||
@@ -499,7 +499,7 @@ static int ga10b_grmgr_get_gpu_instance(struct gk20a *g,
 						nvgpu_safe_add_u32(local_gr_syspipe_index,
 							temp_lce_cnt));
 				physical_ce_id = nvgpu_safe_sub_u32(
-					nvgpu_ffs(temp_lce_mask), 1UL);
+					(u32)nvgpu_ffs(temp_lce_mask), 1UL);
 				if (ga10b_grmgr_is_syspipe_lce(g,
 						nvgpu_device_get(g, NVGPU_DEVTYPE_GRAPHICS,
 							gr_syspipe_id),
@@ -536,7 +536,7 @@ static int ga10b_grmgr_get_gpu_instance(struct gk20a *g,
 					struct nvgpu_gr_syspipe *local_gr_syspipe =
 						&gpu_instance[gpu_instance_id].gr_syspipe;
 					physical_ce_id = nvgpu_safe_sub_u32(
-						nvgpu_ffs(lce_mask), 1UL);
+						(u32)nvgpu_ffs(lce_mask), 1UL);
 					temp_lce_cnt = gpu_instance[gpu_instance_id].num_lce;
 					gpu_instance[gpu_instance_id].lce_devs[temp_lce_cnt] =
 						lces[physical_ce_id];
@@ -798,7 +798,7 @@ int ga10b_grmgr_init_gr_manager(struct gk20a *g)
 			continue;
 		}
 		gr_syspipe = &g->mig.gpu_instance[index].gr_syspipe;
-		g->mig.gr_syspipe_en_mask |= BIT(gr_syspipe->gr_syspipe_id);
+		g->mig.gr_syspipe_en_mask |= BIT32(gr_syspipe->gr_syspipe_id);
 
 		gr_dev = nvgpu_device_get(g, NVGPU_DEVTYPE_GRAPHICS,
 			gr_syspipe->gr_syspipe_id);
@@ -851,11 +851,13 @@ int ga10b_grmgr_init_gr_manager(struct gk20a *g)
 
 u32 ga10b_grmgr_get_max_sys_pipes(struct gk20a *g)
 {
+	(void)g;
 	return smcarb_max_partitionable_sys_pipes_v();
 }
 
 u32 ga10b_grmgr_get_allowed_swizzid_size(struct gk20a *g)
 {
+	(void)g;
 	return smcarb_allowed_swizzid__size1_v();
 }
 

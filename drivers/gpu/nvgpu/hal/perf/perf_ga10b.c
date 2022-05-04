@@ -370,7 +370,7 @@ void ga10b_perf_enable_membuf(struct gk20a *g, u32 size, u64 buf_addr)
 
 void ga10b_perf_disable_membuf(struct gk20a *g)
 {
-	int zero_value = 0;
+	u32 zero_value = 0U;
 	u32 i;
 
 	nvgpu_assert(perf_pmasys_channel_outbase__size_1_v() ==
@@ -516,20 +516,24 @@ u32 ga10b_perf_get_pmmfbprouter_per_chiplet_offset(void)
 
 u32 ga10b_get_hwpm_fbp_perfmon_regs_base(struct gk20a *g)
 {
+	(void)g;
 	return perf_pmmfbp_base_v();
 }
 u32 ga10b_get_hwpm_gpc_perfmon_regs_base(struct gk20a *g)
 {
+	(void)g;
 	return perf_pmmgpc_base_v();
 }
 
 u32 ga10b_get_hwpm_fbprouter_perfmon_regs_base(struct gk20a *g)
 {
+	(void)g;
 	return perf_pmmfbprouter_base_v();
 }
 
 u32 ga10b_get_hwpm_gpcrouter_perfmon_regs_base(struct gk20a *g)
 {
+	(void)g;
 	return perf_pmmgpcrouter_base_v();
 }
 
@@ -666,7 +670,7 @@ int ga10b_perf_update_get_put(struct gk20a *g, u64 bytes_consumed,
 
 
 	if (bytes_consumed != 0U) {
-		nvgpu_writel(g, perf_pmasys_channel_mem_bump_r(inst_zero), bytes_consumed);
+		nvgpu_writel(g, perf_pmasys_channel_mem_bump_r(inst_zero), (u32)bytes_consumed);
 	}
 
 	if (update_available_bytes) {

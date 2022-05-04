@@ -72,7 +72,7 @@ int ga10b_fb_vab_init(struct gk20a *g)
 	 * Each packet contains 32B access bits and 32B meta data.
 	 * Thus, total entry size is twice of the VAB access bits.
 	 */
-	vab_entry_size = nvgpu_safe_mult_u32(vab_size_bytes, 2UL);
+	vab_entry_size = nvgpu_safe_mult_u32((u32)vab_size_bytes, 2UL);
 	nvgpu_log(g, gpu_dbg_vab, "vab_entry_size 0x%lx", vab_entry_size);
 
 	vab->entry_size = vab_entry_size;
@@ -81,7 +81,7 @@ int ga10b_fb_vab_init(struct gk20a *g)
 	if (!nvgpu_mem_is_valid(vab_buf)) {
 		/* Allocate memory for single VAB entry */
 		err = nvgpu_dma_alloc_map_sys(vm, nvgpu_safe_mult_u32(
-			vab->entry_size, vab->num_entries), vab_buf);
+			(u32)vab->entry_size, vab->num_entries), vab_buf);
 		if (err != 0) {
 			nvgpu_err(g, "Error in vab buffer alloc in bar2 vm ");
 			return -ENOMEM;
@@ -220,7 +220,7 @@ static int ga10b_fb_vab_config_address_range(struct gk20a *g,
 			U32(vab_range_checker[i].start_phys_addr >> 32U));
 
 		nvgpu_writel(g, fb_mmu_vidmem_access_bit_start_addr_lo_r(i),
-			(vab_range_checker[i].start_phys_addr &
+			((u32)vab_range_checker[i].start_phys_addr &
 			fb_mmu_vidmem_access_bit_start_addr_lo_val_m()) |
 			fb_mmu_vidmem_access_bit_start_addr_lo_granularity_f(
 				granularity_shift_bits));

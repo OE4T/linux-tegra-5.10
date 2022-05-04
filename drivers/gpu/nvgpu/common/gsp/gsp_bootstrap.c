@@ -88,9 +88,9 @@ static int gsp_ucode_load_and_bootstrap(struct gk20a *g,
 		struct nvgpu_falcon *flcn, struct gsp_fw *gsp_ucode)
 {
 	u32 dmem_size = 0U;
-	u32 code_size = gsp_ucode->code->size;
-	u32 data_size = gsp_ucode->data->size;
-	u32 manifest_size = gsp_ucode->manifest->size;
+	u32 code_size = (u32)gsp_ucode->code->size;
+	u32 data_size = (u32)gsp_ucode->data->size;
+	u32 manifest_size = (u32)gsp_ucode->manifest->size;
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");

@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/string.h>
 #include <nvgpu/pmu.h>
 #include <nvgpu/pmu/pmu_pg.h>
 #include <nvgpu/pmu/pmuif/pg.h>
@@ -361,7 +362,7 @@ static int ga10b_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
 	(void) memset(&rpc, 0,
 			sizeof(struct pmu_rpc_struct_lpwr_pg_ctrl_stats_get));
 
-	rpc.ctrl_id = (u32)pg_engine_id;
+	rpc.ctrl_id = (u8)pg_engine_id;
 	PMU_RPC_EXECUTE_CPB(status, g->pmu, PG, PG_CTRL_STATS_GET, &rpc, 0);
 
 	if (status != 0) {

@@ -26,6 +26,7 @@
 #include <nvgpu/engines.h>
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/errata.h>
+#include <nvgpu/string.h>
 
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr.h>

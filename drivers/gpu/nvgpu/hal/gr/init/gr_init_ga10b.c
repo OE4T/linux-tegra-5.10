@@ -120,6 +120,7 @@ void ga10b_gr_init_get_access_map(struct gk20a *g,
 	};
 	size_t array_size;
 
+	(void)g;
 	*whitelist = wl_addr_ga10b;
 	array_size = ARRAY_SIZE(wl_addr_ga10b);
 	*num_entries = nvgpu_safe_cast_u64_to_u32(array_size);
