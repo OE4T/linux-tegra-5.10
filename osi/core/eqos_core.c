@@ -4308,7 +4308,7 @@ static nve32_t eqos_set_systime_to_mac(
 				      const nveu32_t nsec)
 {
 	void *addr = osi_core->base;
-	nveu32_t mac_tcr;
+	nveu32_t mac_tcr = 0U;
 	nve32_t ret;
 
 	/* To be sure previous write was flushed (if Any) */
@@ -4422,7 +4422,7 @@ static inline nve32_t eqos_poll_for_addend_complete(
 static nve32_t eqos_config_addend(struct osi_core_priv_data *const osi_core,
 				  const nveu32_t addend)
 {
-	nveu32_t mac_tcr;
+	nveu32_t mac_tcr = 0U;
 	nve32_t ret;
 
 	/* To be sure previous write was flushed (if Any) */
@@ -4542,7 +4542,7 @@ static nve32_t eqos_adjust_mactime(struct osi_core_priv_data *const osi_core,
 				   const nveu32_t one_nsec_accuracy)
 {
 	void *addr = osi_core->base;
-	nveu32_t mac_tcr;
+	nveu32_t mac_tcr = 0U;
 	nveu32_t value = 0;
 	nveul64_t temp = 0;
 	nveu32_t sec1 = sec;
@@ -4675,8 +4675,6 @@ static void eqos_config_tscr(struct osi_core_priv_data *const osi_core,
 					mac_tcr |= OSI_MAC_TCR_CSC;
 					break;
 				default:
-					/* To avoid MISRA violation */
-					mac_tcr |= mac_tcr;
 					break;
 			}
 		}

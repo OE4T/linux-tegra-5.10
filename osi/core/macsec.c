@@ -4306,7 +4306,7 @@ static nve32_t set_byp_lut(struct osi_core_priv_data *const osi_core)
 				      "Failed to set BYP for BC addr\n", (nveul64_t)ret);
 			return ret;
 		} else {
-			osi_core->macsec_lut_status[i].next_byp_idx =
+			osi_core->macsec_lut_status[i].next_byp_idx = (nveu16_t )
 				((osi_core->macsec_lut_status[i].next_byp_idx & 0xFFU) + 1U);
 		}
 	}
@@ -4326,7 +4326,7 @@ static nve32_t set_byp_lut(struct osi_core_priv_data *const osi_core)
 
 			return ret;
 		} else {
-			osi_core->macsec_lut_status[i].next_byp_idx =
+			osi_core->macsec_lut_status[i].next_byp_idx = (nveu16_t )
 				((osi_core->macsec_lut_status[i].next_byp_idx & 0xFFU) + 1U);
 		}
 	}

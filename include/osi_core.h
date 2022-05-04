@@ -36,14 +36,9 @@ struct ivc_msg_common;
 /* Following added to avoid misraC 4.6
  * Here we are defining intermediate type
  */
-/** intermediate type for unsigned short */
-typedef unsigned short		my_uint16_t;
 /** intermediate type for long long */
 typedef long long		my_lint_64;
 
-/* Actual type used in code */
-/** typedef equivalent to unsigned short */
-typedef my_uint16_t		nveu16_t;
 /** typedef equivalent to long long */
 typedef my_lint_64		nvel64_t;
 /** @} */

@@ -32,6 +32,7 @@
 
 static struct desc_ops d_ops[MAX_MAC_IP_TYPES];
 
+#ifdef OSI_DEBUG
 /**
  * @brief get_rx_err_stats - Detect Errors from Rx Descriptor
  *
@@ -70,6 +71,7 @@ static inline void get_rx_err_stats(struct osi_rx_desc *rx_desc,
 					1UL);
 	}
 }
+#endif
 
 /**
  * @brief validate_rx_completions_arg- Validate input argument of rx_completions
