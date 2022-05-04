@@ -2623,10 +2623,11 @@ static int nvgpu_dbg_gpu_access_gpu_va(struct dbg_session_gk20a *dbg_s,
 		struct nvgpu_dbg_gpu_va_access_args *arg)
 {
 	int ret = 0;
-	u32 i, buf_len;
+	size_t buf_len;
+	u32 i;
 	u8 cmd;
 	u64 *buffer = NULL;
-	u32 size, allocated_size = 0;
+	size_t size, allocated_size = 0;
 	void __user *user_buffer;
 	struct gk20a *g = dbg_s->g;
 	struct nvgpu_channel *ch;
@@ -2660,6 +2661,13 @@ static int nvgpu_dbg_gpu_access_gpu_va(struct dbg_session_gk20a *dbg_s,
 	cmd = arg->cmd;
 	for (i = 0; i < arg->count; i++) {
 		size = ops_buffer[i].size;
+
+		if (size == 0UL) {
+			nvgpu_err(g, "size is zero");
+			ret = -EINVAL;
+			goto fail;
+		}
+
 		if ((ops_buffer[i].gpu_va & 0x3)) {
 			nvgpu_err(g, "gpu va is not aligned %u 0x%llx", i,
 				ops_buffer[i].gpu_va);
