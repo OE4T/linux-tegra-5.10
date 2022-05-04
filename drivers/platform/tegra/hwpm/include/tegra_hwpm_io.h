@@ -54,15 +54,15 @@ struct tegra_soc_hwpm;
 struct hwpm_ip_inst;
 struct hwpm_ip_aperture;
 
-u32 tegra_hwpm_readl(struct tegra_soc_hwpm *hwpm,
-	struct hwpm_ip_aperture *aperture, u64 addr);
-void tegra_hwpm_writel(struct tegra_soc_hwpm *hwpm,
+int tegra_hwpm_readl(struct tegra_soc_hwpm *hwpm,
+	struct hwpm_ip_aperture *aperture, u64 addr, u32 *val);
+int tegra_hwpm_writel(struct tegra_soc_hwpm *hwpm,
 	struct hwpm_ip_aperture *aperture, u64 addr, u32 val);
-u32 tegra_hwpm_regops_readl(struct tegra_soc_hwpm *hwpm,
-	u64 addr, struct hwpm_ip_inst *ip_inst,
-	struct hwpm_ip_aperture *aperture);
-void tegra_hwpm_regops_writel(struct tegra_soc_hwpm *hwpm,
-	u64 addr, u32 val, struct hwpm_ip_inst *ip_inst,
-	struct hwpm_ip_aperture *aperture);
+int tegra_hwpm_regops_readl(struct tegra_soc_hwpm *hwpm,
+	struct hwpm_ip_inst *ip_inst, struct hwpm_ip_aperture *aperture,
+	u64 addr, u32 *val);
+int tegra_hwpm_regops_writel(struct tegra_soc_hwpm *hwpm,
+	struct hwpm_ip_inst *ip_inst, struct hwpm_ip_aperture *aperture,
+	u64 addr, u32 val);
 
 #endif /* TEGRA_HWPM_IO_H */

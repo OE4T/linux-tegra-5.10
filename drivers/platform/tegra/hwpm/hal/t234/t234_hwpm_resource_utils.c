@@ -28,6 +28,7 @@
 int t234_hwpm_perfmon_enable(struct tegra_soc_hwpm *hwpm,
 	struct hwpm_ip_aperture *perfmon)
 {
+	int err = 0;
 	u32 reg_val;
 
 	tegra_hwpm_fn(hwpm, " ");
@@ -36,12 +37,20 @@ int t234_hwpm_perfmon_enable(struct tegra_soc_hwpm *hwpm,
 	tegra_hwpm_dbg(hwpm, hwpm_verbose, "Enabling PERFMON(0x%llx - 0x%llx)",
 		perfmon->start_abs_pa, perfmon->end_abs_pa);
 
-	reg_val = tegra_hwpm_readl(hwpm, perfmon,
-		pmmsys_sys0_enginestatus_r(0));
+	err = tegra_hwpm_readl(hwpm, perfmon,
+		pmmsys_sys0_enginestatus_r(0), &reg_val);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "hwpm read failed");
+		return err;
+	}
 	reg_val = set_field(reg_val, pmmsys_sys0_enginestatus_enable_m(),
 		pmmsys_sys0_enginestatus_enable_out_f());
-	tegra_hwpm_writel(hwpm, perfmon,
+	err = tegra_hwpm_writel(hwpm, perfmon,
 		pmmsys_sys0_enginestatus_r(0), reg_val);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "hwpm write failed");
+		return err;
+	}
 
 	return 0;
 }
@@ -57,6 +66,7 @@ int t234_hwpm_perfmux_disable(struct tegra_soc_hwpm *hwpm,
 int t234_hwpm_perfmon_disable(struct tegra_soc_hwpm *hwpm,
 	struct hwpm_ip_aperture *perfmon)
 {
+	int err = 0;
 	u32 reg_val;
 
 	tegra_hwpm_fn(hwpm, " ");
@@ -73,10 +83,18 @@ int t234_hwpm_perfmon_disable(struct tegra_soc_hwpm *hwpm,
 	tegra_hwpm_dbg(hwpm, hwpm_verbose, "Disabling PERFMON(0x%llx - 0x%llx)",
 		perfmon->start_abs_pa, perfmon->end_abs_pa);
 
-	reg_val = tegra_hwpm_readl(hwpm, perfmon, pmmsys_control_r(0));
+	err = tegra_hwpm_readl(hwpm, perfmon, pmmsys_control_r(0), &reg_val);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "hwpm read failed");
+		return err;
+	}
 	reg_val = set_field(reg_val, pmmsys_control_mode_m(),
 		pmmsys_control_mode_disable_f());
-	tegra_hwpm_writel(hwpm, perfmon, pmmsys_control_r(0), reg_val);
+	err = tegra_hwpm_writel(hwpm, perfmon, pmmsys_control_r(0), reg_val);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "hwpm write failed");
+		return err;
+	}
 
 	return 0;
 }

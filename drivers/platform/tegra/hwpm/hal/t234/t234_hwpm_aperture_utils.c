@@ -26,7 +26,7 @@
 
 int t234_hwpm_disable_triggers(struct tegra_soc_hwpm *hwpm)
 {
-	int ret = 0;
+	int err = 0;
 	bool timeout = false;
 	u32 reg_val = 0U;
 	u32 field_mask = 0U;
@@ -48,57 +48,97 @@ int t234_hwpm_disable_triggers(struct tegra_soc_hwpm *hwpm)
 	tegra_hwpm_fn(hwpm, " ");
 
 	/* Disable PMA triggers */
-	reg_val = tegra_hwpm_readl(hwpm, pma_perfmux,
-		pmasys_trigger_config_user_r(0));
+	err = tegra_hwpm_readl(hwpm, pma_perfmux,
+		pmasys_trigger_config_user_r(0), &reg_val);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "hwpm read failed");
+		return err;
+	}
 	reg_val = set_field(reg_val, pmasys_trigger_config_user_pma_pulse_m(),
 		pmasys_trigger_config_user_pma_pulse_disable_f());
-	tegra_hwpm_writel(hwpm, pma_perfmux,
+	err = tegra_hwpm_writel(hwpm, pma_perfmux,
 		pmasys_trigger_config_user_r(0), reg_val);
-
-	tegra_hwpm_writel(hwpm, pma_perfmux,
-		pmasys_sys_trigger_start_mask_r(), 0);
-	tegra_hwpm_writel(hwpm, pma_perfmux,
-		pmasys_sys_trigger_start_maskb_r(), 0);
-	tegra_hwpm_writel(hwpm, pma_perfmux,
-		pmasys_sys_trigger_stop_mask_r(), 0);
-	tegra_hwpm_writel(hwpm, pma_perfmux,
-		pmasys_sys_trigger_stop_maskb_r(), 0);
-
-	/* Wait for PERFMONs, ROUTER, and PMA to idle */
-	timeout = HWPM_TIMEOUT(pmmsys_sys0router_perfmonstatus_merged_v(
-		tegra_hwpm_readl(hwpm, rtr_perfmux,
-			pmmsys_sys0router_perfmonstatus_r())) == 0U,
-		"NV_PERF_PMMSYS_SYS0ROUTER_PERFMONSTATUS_MERGED_EMPTY");
-	if (timeout && ret == 0) {
-		ret = -EIO;
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "hwpm write failed");
+		return err;
 	}
 
-	timeout = HWPM_TIMEOUT(pmmsys_sys0router_enginestatus_status_v(
-		tegra_hwpm_readl(hwpm, rtr_perfmux,
-			pmmsys_sys0router_enginestatus_r())) ==
-		pmmsys_sys0router_enginestatus_status_empty_v(),
+	err = tegra_hwpm_writel(hwpm, pma_perfmux,
+		pmasys_sys_trigger_start_mask_r(), 0);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "hwpm write failed");
+		return err;
+	}
+	err = tegra_hwpm_writel(hwpm, pma_perfmux,
+		pmasys_sys_trigger_start_maskb_r(), 0);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "hwpm write failed");
+		return err;
+	}
+	err = tegra_hwpm_writel(hwpm, pma_perfmux,
+		pmasys_sys_trigger_stop_mask_r(), 0);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "hwpm write failed");
+		return err;
+	}
+	err = tegra_hwpm_writel(hwpm, pma_perfmux,
+		pmasys_sys_trigger_stop_maskb_r(), 0);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "hwpm write failed");
+		return err;
+	}
+
+	/* Wait for PERFMONs, ROUTER, and PMA to idle */
+	err = tegra_hwpm_readl(hwpm, rtr_perfmux,
+		pmmsys_sys0router_perfmonstatus_r(), &reg_val);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "hwpm read failed");
+		return err;
+	}
+	timeout = HWPM_TIMEOUT(
+		pmmsys_sys0router_perfmonstatus_merged_v(reg_val) == 0U,
+		"NV_PERF_PMMSYS_SYS0ROUTER_PERFMONSTATUS_MERGED_EMPTY");
+	if (timeout) {
+		return -ETIMEDOUT;
+	}
+
+	err = tegra_hwpm_readl(hwpm, rtr_perfmux,
+		pmmsys_sys0router_enginestatus_r(), &reg_val);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "hwpm read failed");
+		return err;
+	}
+	timeout = HWPM_TIMEOUT(
+		pmmsys_sys0router_enginestatus_status_v(reg_val) ==
+			pmmsys_sys0router_enginestatus_status_empty_v(),
 		"NV_PERF_PMMSYS_SYS0ROUTER_ENGINESTATUS_STATUS_EMPTY");
-	if (timeout && ret == 0) {
-		ret = -EIO;
+	if (timeout) {
+		return -ETIMEDOUT;
 	}
 
 	field_mask = pmasys_enginestatus_status_m() |
 		     pmasys_enginestatus_rbufempty_m();
 	field_val = pmasys_enginestatus_status_empty_f() |
 		pmasys_enginestatus_rbufempty_empty_f();
-	timeout = HWPM_TIMEOUT((tegra_hwpm_readl(hwpm, pma_perfmux,
-			pmasys_enginestatus_r()) & field_mask) == field_val,
+	err = tegra_hwpm_readl(hwpm, pma_perfmux,
+		pmasys_enginestatus_r(), &reg_val);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "hwpm read failed");
+		return err;
+	}
+	timeout = HWPM_TIMEOUT((reg_val & field_mask) == field_val,
 		"NV_PERF_PMASYS_ENGINESTATUS");
-	if (timeout && ret == 0) {
-		ret = -EIO;
+	if (timeout) {
+		return -ETIMEDOUT;
 	}
 
-	return ret;
+	return err;
 }
 
 int t234_hwpm_init_prod_values(struct tegra_soc_hwpm *hwpm)
 {
-	u32 reg_val = 0U;
+	int err = 0;
+	u32 val = 0U;
 	struct tegra_soc_hwpm_chip *active_chip = hwpm->active_chip;
 	struct hwpm_ip *chip_ip = active_chip->chip_ips[
 		active_chip->get_rtr_int_idx(hwpm)];
@@ -110,25 +150,41 @@ int t234_hwpm_init_prod_values(struct tegra_soc_hwpm *hwpm)
 
 	tegra_hwpm_fn(hwpm, " ");
 
-	reg_val = tegra_hwpm_readl(hwpm, pma_perfmux, pmasys_controlb_r());
-	reg_val = set_field(reg_val,
-			pmasys_controlb_coalesce_timeout_cycles_m(),
+	err = tegra_hwpm_readl(hwpm, pma_perfmux, pmasys_controlb_r(), &val);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "hwpm read failed");
+		return err;
+	}
+	val = set_field(val, pmasys_controlb_coalesce_timeout_cycles_m(),
 			pmasys_controlb_coalesce_timeout_cycles__prod_f());
-	tegra_hwpm_writel(hwpm, pma_perfmux, pmasys_controlb_r(), reg_val);
+	err = tegra_hwpm_writel(hwpm, pma_perfmux, pmasys_controlb_r(), val);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "hwpm write failed");
+		return err;
+	}
 
-	reg_val = tegra_hwpm_readl(hwpm, pma_perfmux,
-		pmasys_channel_config_user_r(0));
-	reg_val = set_field(reg_val,
+	err = tegra_hwpm_readl(hwpm, pma_perfmux,
+		pmasys_channel_config_user_r(0), &val);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "hwpm read failed");
+		return err;
+	}
+	val = set_field(val,
 		pmasys_channel_config_user_coalesce_timeout_cycles_m(),
 		pmasys_channel_config_user_coalesce_timeout_cycles__prod_f());
-	tegra_hwpm_writel(hwpm, pma_perfmux,
-		pmasys_channel_config_user_r(0), reg_val);
+	err = tegra_hwpm_writel(hwpm, pma_perfmux,
+		pmasys_channel_config_user_r(0), val);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "hwpm write failed");
+		return err;
+	}
 
 	return 0;
 }
 
 int t234_hwpm_disable_slcg(struct tegra_soc_hwpm *hwpm)
 {
+	int err = 0;
 	u32 field_mask = 0U;
 	u32 field_val = 0U;
 	u32 reg_val = 0U;
@@ -146,10 +202,18 @@ int t234_hwpm_disable_slcg(struct tegra_soc_hwpm *hwpm)
 		TEGRA_HWPM_APERTURE_TYPE_PERFMUX].element_static_array[
 			T234_HWPM_IP_RTR_PERMUX_INDEX];
 
-	reg_val = tegra_hwpm_readl(hwpm, pma_perfmux, pmasys_cg2_r());
+	err = tegra_hwpm_readl(hwpm, pma_perfmux, pmasys_cg2_r(), &reg_val);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "hwpm read failed");
+		return err;
+	}
 	reg_val = set_field(reg_val, pmasys_cg2_slcg_m(),
 			pmasys_cg2_slcg_disabled_f());
-	tegra_hwpm_writel(hwpm, pma_perfmux, pmasys_cg2_r(), reg_val);
+	err = tegra_hwpm_writel(hwpm, pma_perfmux, pmasys_cg2_r(), reg_val);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "hwpm write failed");
+		return err;
+	}
 
 	field_mask = pmmsys_sys0router_cg2_slcg_perfmon_m() |
 		pmmsys_sys0router_cg2_slcg_router_m() |
@@ -157,17 +221,26 @@ int t234_hwpm_disable_slcg(struct tegra_soc_hwpm *hwpm)
 	field_val = pmmsys_sys0router_cg2_slcg_perfmon_disabled_f() |
 		pmmsys_sys0router_cg2_slcg_router_disabled_f() |
 		pmmsys_sys0router_cg2_slcg_disabled_f();
-	reg_val = tegra_hwpm_readl(hwpm, rtr_perfmux,
-		pmmsys_sys0router_cg2_r());
+	err = tegra_hwpm_readl(hwpm, rtr_perfmux,
+		pmmsys_sys0router_cg2_r(), &reg_val);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "hwpm read failed");
+		return err;
+	}
 	reg_val = set_field(reg_val, field_mask, field_val);
-	tegra_hwpm_writel(hwpm, rtr_perfmux,
+	err = tegra_hwpm_writel(hwpm, rtr_perfmux,
 		pmmsys_sys0router_cg2_r(), reg_val);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "hwpm write failed");
+		return err;
+	}
 
 	return 0;
 }
 
 int t234_hwpm_enable_slcg(struct tegra_soc_hwpm *hwpm)
 {
+	int err = 0;
 	u32 reg_val = 0U;
 	u32 field_mask = 0U;
 	u32 field_val = 0U;
@@ -185,10 +258,18 @@ int t234_hwpm_enable_slcg(struct tegra_soc_hwpm *hwpm)
 		TEGRA_HWPM_APERTURE_TYPE_PERFMUX].element_static_array[
 			T234_HWPM_IP_RTR_PERMUX_INDEX];
 
-	reg_val = tegra_hwpm_readl(hwpm, pma_perfmux, pmasys_cg2_r());
+	err = tegra_hwpm_readl(hwpm, pma_perfmux, pmasys_cg2_r(), &reg_val);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "hwpm read failed");
+		return err;
+	}
 	reg_val = set_field(reg_val, pmasys_cg2_slcg_m(),
 		pmasys_cg2_slcg_enabled_f());
-	tegra_hwpm_writel(hwpm, pma_perfmux, pmasys_cg2_r(), reg_val);
+	err = tegra_hwpm_writel(hwpm, pma_perfmux, pmasys_cg2_r(), reg_val);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "hwpm write failed");
+		return err;
+	}
 
 	field_mask = pmmsys_sys0router_cg2_slcg_perfmon_m() |
 		pmmsys_sys0router_cg2_slcg_router_m() |
@@ -196,11 +277,19 @@ int t234_hwpm_enable_slcg(struct tegra_soc_hwpm *hwpm)
 	field_val = pmmsys_sys0router_cg2_slcg_perfmon__prod_f() |
 		pmmsys_sys0router_cg2_slcg_router__prod_f() |
 		pmmsys_sys0router_cg2_slcg__prod_f();
-	reg_val = tegra_hwpm_readl(hwpm, rtr_perfmux,
-		pmmsys_sys0router_cg2_r());
+	err = tegra_hwpm_readl(hwpm, rtr_perfmux,
+		pmmsys_sys0router_cg2_r(), &reg_val);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "hwpm read failed");
+		return err;
+	}
 	reg_val = set_field(reg_val, field_mask, field_val);
-	tegra_hwpm_writel(hwpm, rtr_perfmux,
+	err = tegra_hwpm_writel(hwpm, rtr_perfmux,
 		pmmsys_sys0router_cg2_r(), reg_val);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "hwpm write failed");
+		return err;
+	}
 
 	return 0;
 }

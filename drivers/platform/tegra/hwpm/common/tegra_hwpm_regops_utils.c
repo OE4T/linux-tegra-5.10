@@ -30,6 +30,7 @@ static int tegra_hwpm_exec_reg_ops(struct tegra_soc_hwpm *hwpm,
 	u32 a_type = 0U;
 	u32 reg_val = 0U;
 	u64 addr_hi = 0ULL;
+	int err = 0;
 	enum tegra_hwpm_element_type element_type = HWPM_ELEMENT_INVALID;
 	struct tegra_soc_hwpm_chip *active_chip = hwpm->active_chip;
 	struct hwpm_ip *chip_ip = NULL;
@@ -82,28 +83,48 @@ static int tegra_hwpm_exec_reg_ops(struct tegra_soc_hwpm *hwpm,
 
 	switch (reg_op->cmd) {
 	case TEGRA_SOC_HWPM_REG_OP_CMD_RD32:
-		reg_op->reg_val_lo = tegra_hwpm_regops_readl(hwpm,
-			reg_op->phys_addr, ip_inst, element);
+		err = tegra_hwpm_regops_readl(hwpm, ip_inst, element,
+			reg_op->phys_addr, &reg_op->reg_val_lo);
+		if (err != 0) {
+			reg_op->status = TEGRA_SOC_HWPM_REG_OP_STATUS_RD_FAILED;
+			break;
+		}
 		reg_op->status = TEGRA_SOC_HWPM_REG_OP_STATUS_SUCCESS;
 		break;
 
 	case TEGRA_SOC_HWPM_REG_OP_CMD_RD64:
 		addr_hi = tegra_hwpm_safe_add_u64(reg_op->phys_addr, 4ULL);
-		reg_op->reg_val_lo = tegra_hwpm_regops_readl(hwpm,
-			reg_op->phys_addr, ip_inst, element);
-		reg_op->reg_val_hi = tegra_hwpm_regops_readl(hwpm,
-			addr_hi, ip_inst, element);
+		err = tegra_hwpm_regops_readl(hwpm, ip_inst, element,
+			reg_op->phys_addr, &reg_op->reg_val_lo);
+		if (err != 0) {
+			reg_op->status = TEGRA_SOC_HWPM_REG_OP_STATUS_RD_FAILED;
+			break;
+		}
+		err = tegra_hwpm_regops_readl(hwpm, ip_inst, element,
+			addr_hi, &reg_op->reg_val_hi);
+		if (err != 0) {
+			reg_op->status = TEGRA_SOC_HWPM_REG_OP_STATUS_RD_FAILED;
+			break;
+		}
 		reg_op->status = TEGRA_SOC_HWPM_REG_OP_STATUS_SUCCESS;
 		break;
 
 	/* Read Modify Write operation */
 	case TEGRA_SOC_HWPM_REG_OP_CMD_WR32:
-		reg_val = tegra_hwpm_regops_readl(hwpm,
-			reg_op->phys_addr, ip_inst, element);
+		err = tegra_hwpm_regops_readl(hwpm, ip_inst, element,
+			reg_op->phys_addr, &reg_val);
+		if (err != 0) {
+			reg_op->status = TEGRA_SOC_HWPM_REG_OP_STATUS_RD_FAILED;
+			break;
+		}
 		reg_val = set_field(reg_val, reg_op->mask_lo,
 				reg_op->reg_val_lo);
-		tegra_hwpm_regops_writel(hwpm,
-			reg_op->phys_addr, reg_val, ip_inst, element);
+		err = tegra_hwpm_regops_writel(hwpm, ip_inst, element,
+			reg_op->phys_addr, reg_val);
+		if (err != 0) {
+			reg_op->status = TEGRA_SOC_HWPM_REG_OP_STATUS_WR_FAILED;
+			break;
+		}
 		reg_op->status = TEGRA_SOC_HWPM_REG_OP_STATUS_SUCCESS;
 		break;
 
@@ -112,20 +133,36 @@ static int tegra_hwpm_exec_reg_ops(struct tegra_soc_hwpm *hwpm,
 		addr_hi = tegra_hwpm_safe_add_u64(reg_op->phys_addr, 4ULL);
 
 		/* Lower 32 bits */
-		reg_val = tegra_hwpm_regops_readl(hwpm,
-			reg_op->phys_addr, ip_inst, element);
+		err = tegra_hwpm_regops_readl(hwpm, ip_inst, element,
+			reg_op->phys_addr, &reg_val);
+		if (err != 0) {
+			reg_op->status = TEGRA_SOC_HWPM_REG_OP_STATUS_RD_FAILED;
+			break;
+		}
 		reg_val = set_field(reg_val, reg_op->mask_lo,
 				reg_op->reg_val_lo);
-		tegra_hwpm_regops_writel(hwpm,
-			reg_op->phys_addr, reg_val, ip_inst, element);
+		err = tegra_hwpm_regops_writel(hwpm, ip_inst, element,
+			reg_op->phys_addr, reg_val);
+		if (err != 0) {
+			reg_op->status = TEGRA_SOC_HWPM_REG_OP_STATUS_WR_FAILED;
+			break;
+		}
 
 		/* Upper 32 bits */
-		reg_val = tegra_hwpm_regops_readl(hwpm,
-			addr_hi, ip_inst, element);
+		err = tegra_hwpm_regops_readl(hwpm, ip_inst, element,
+			addr_hi, &reg_val);
+		if (err != 0) {
+			reg_op->status = TEGRA_SOC_HWPM_REG_OP_STATUS_RD_FAILED;
+			break;
+		}
 		reg_val = set_field(reg_val, reg_op->mask_hi,
 				reg_op->reg_val_hi);
-		tegra_hwpm_regops_writel(hwpm,
-			reg_op->phys_addr, reg_val, ip_inst, element);
+		err = tegra_hwpm_regops_writel(hwpm, ip_inst, element,
+			reg_op->phys_addr, reg_val);
+		if (err != 0) {
+			reg_op->status = TEGRA_SOC_HWPM_REG_OP_STATUS_WR_FAILED;
+			break;
+		}
 		reg_op->status = TEGRA_SOC_HWPM_REG_OP_STATUS_SUCCESS;
 		break;
 

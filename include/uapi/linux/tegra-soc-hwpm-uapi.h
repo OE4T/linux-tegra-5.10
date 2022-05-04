@@ -227,6 +227,7 @@ struct tegra_soc_hwpm_reg_op {
  /* not in allowlist */
 #define TEGRA_SOC_HWPM_REG_OP_STATUS_INSUFFICIENT_PERMISSIONS	3
 #define TEGRA_SOC_HWPM_REG_OP_STATUS_WR_FAILED			4
+#define TEGRA_SOC_HWPM_REG_OP_STATUS_RD_FAILED			5
 	__u8 status;
 
 	/* Explicit padding for 8 Byte alignment */

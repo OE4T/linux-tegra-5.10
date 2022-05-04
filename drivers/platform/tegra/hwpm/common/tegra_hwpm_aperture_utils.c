@@ -64,7 +64,8 @@ static int tegra_hwpm_perfmon_reserve(struct tegra_soc_hwpm *hwpm,
 static int tegra_hwpm_perfmux_reserve(struct tegra_soc_hwpm *hwpm,
 	struct hwpm_ip_inst *ip_inst, struct hwpm_ip_aperture *perfmux)
 {
-	u32 val = 0U;
+	int ret = 0;
+	u32 reg_val = 0U;
 
 	tegra_hwpm_fn(hwpm, " ");
 
@@ -89,10 +90,10 @@ static int tegra_hwpm_perfmux_reserve(struct tegra_soc_hwpm *hwpm,
 	}
 
 	/* Validate perfmux availability by reading 1st alist offset */
-	val = tegra_hwpm_regops_readl(hwpm,
+	ret = tegra_hwpm_regops_readl(hwpm, ip_inst, perfmux,
 		tegra_hwpm_safe_add_u64(perfmux->start_abs_pa,
-			perfmux->alist[0U].reg_offset), ip_inst, perfmux);
-	if (val < 0U) {
+			perfmux->alist[0U].reg_offset), &reg_val);
+	if (ret != 0) {
 		tegra_hwpm_dbg(hwpm, hwpm_info,
 			"perfmux start_abs_pa 0x%llx unavailable",
 			perfmux->start_abs_pa);
