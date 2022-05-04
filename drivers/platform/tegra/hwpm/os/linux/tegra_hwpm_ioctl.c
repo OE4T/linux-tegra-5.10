@@ -433,8 +433,8 @@ static int tegra_hwpm_open(struct inode *inode, struct file *filp)
 	filp->private_data = hwpm;
 
 	/* Initialize driver on first open call only */
-	if (atomic_add_return(1, &hwpm->hwpm_in_use) != 1) {
-		return 0;
+	if (!atomic_add_unless(&hwpm->hwpm_in_use, 1U, 1U)) {
+		return -EAGAIN;
 	}
 
 	if (tegra_platform_is_silicon()) {
