@@ -620,6 +620,8 @@ static int gr_reset_engine(struct gk20a *g)
 		nvgpu_device_get(g, NVGPU_DEVTYPE_GRAPHICS,
 			nvgpu_gr_get_syspipe_id(g, g->mig.cur_gr_instance));
 
+	nvgpu_assert(dev != NULL);
+
 	nvgpu_log(g, gpu_dbg_gr, "Reset GR%u", cur_gr_instance_id);
 
 	/* Reset GR engine: Disable then enable GR engine */

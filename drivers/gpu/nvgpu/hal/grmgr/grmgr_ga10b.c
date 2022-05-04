@@ -803,6 +803,8 @@ int ga10b_grmgr_init_gr_manager(struct gk20a *g)
 		gr_dev = nvgpu_device_get(g, NVGPU_DEVTYPE_GRAPHICS,
 			gr_syspipe->gr_syspipe_id);
 
+		nvgpu_assert(gr_dev != NULL);
+
 		/*
 		 * HW recommended to put GR engine into reset before programming
 		 * config_gpc_rs_map (ga10b_grmgr_config_gpc_smc_map()).
