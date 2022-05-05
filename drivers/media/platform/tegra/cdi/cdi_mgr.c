@@ -533,9 +533,16 @@ static int __cdi_create_dev(
 		cdi_dev->cfg.drv_name, cdi_dev->cfg.addr,
 		cdi_dev->cfg.reg_bits, cdi_dev->cfg.val_bits);
 
-	snprintf(cdi_dev->pdata.drv_name, sizeof(cdi_dev->pdata.drv_name),
-			"%s.%u.%02x", cdi_dev->cfg.drv_name,
-			cdi_mgr->adap->nr, cdi_dev->cfg.addr);
+	cdi_dev->pdata.drv_name[sizeof(cdi_dev->pdata.drv_name) - 1] = '\0';
+	err = snprintf(cdi_dev->pdata.drv_name, sizeof(cdi_dev->pdata.drv_name),
+		       "%s.%u.%02x", cdi_dev->cfg.drv_name,
+		       cdi_mgr->adap->nr, cdi_dev->cfg.addr);
+
+	if (err < 0) {
+		dev_err(cdi_mgr->dev, "encoding error: %d", err);
+		goto dev_create_err;
+	}
+
 	cdi_dev->pdata.reg_bits = cdi_dev->cfg.reg_bits;
 	cdi_dev->pdata.val_bits = cdi_dev->cfg.val_bits;
 	cdi_dev->pdata.pdev = cdi_mgr->dev;
@@ -1690,11 +1697,17 @@ static int cdi_mgr_probe(struct platform_device *pdev)
 	dev_set_drvdata(&pdev->dev, cdi_mgr);
 
 	if (pd->drv_name)
-		snprintf(cdi_mgr->devname, sizeof(cdi_mgr->devname),
-			"%s.%x.%c", pd->drv_name, pd->bus, 'a' + pd->csi_port);
+		err = snprintf(cdi_mgr->devname, sizeof(cdi_mgr->devname),
+			       "%s.%x.%c", pd->drv_name, pd->bus,
+			       'a' + pd->csi_port);
 	else
-		snprintf(cdi_mgr->devname, sizeof(cdi_mgr->devname),
-			"cdi-mgr.%x.%c", pd->bus, 'a' + pd->csi_port);
+		err = snprintf(cdi_mgr->devname, sizeof(cdi_mgr->devname),
+			       "cdi-mgr.%x.%c", pd->bus, 'a' + pd->csi_port);
+
+	if (err < 0) {
+		dev_err(&pdev->dev, "encoding error: %d\n", err);
+		goto err_probe;
+	}
 
 	/* Request dynamic allocation of a device major number */
 	err = alloc_chrdev_region(&cdi_mgr->devt,
