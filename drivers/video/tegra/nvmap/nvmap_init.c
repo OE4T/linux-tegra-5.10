@@ -60,9 +60,11 @@
 #endif /* LINUX_VERSION_CODE */
 
 #ifndef NVMAP_KSTABLE_KERNEL
+#ifdef CONFIG_TEGRA_VPR
 extern phys_addr_t tegra_vpr_start;
 extern phys_addr_t tegra_vpr_size;
 extern bool tegra_vpr_resize;
+#endif /* CONFIG_TEGRA_VPR */
 #endif /* !NVMAP_KSTABLE_KERNEL */
 
 struct device __weak tegra_generic_dev;
@@ -297,9 +299,26 @@ err:
 }
 #endif /* CONFIG_TEGRA_VIRTUALIZATION */
 
+/*
+ * This requires proper kernel arguments to have been passed.
+ */
 #ifndef NVMAP_KSTABLE_KERNEL
-static int __nvmap_init_legacy(struct device *dev);
+static int __nvmap_init_legacy(struct device *dev)
+{
+#ifdef CONFIG_TEGRA_VPR
+	/* VPR */
+	if (!nvmap_carveouts[1].base) {
+		nvmap_carveouts[1].base = tegra_vpr_start;
+		nvmap_carveouts[1].size = tegra_vpr_size;
+		if (!tegra_vpr_resize)
+			nvmap_carveouts[1].cma_dev = NULL;
+	}
+#endif /* CONFIG_TEGRA_VPR */
+
+	return 0;
+}
 #endif /* !NVMAP_KSTABLE_KERNEL */
+
 static int __nvmap_init_dt(struct platform_device *pdev)
 {
 	if (!of_match_device(nvmap_of_ids, &pdev->dev)) {
@@ -813,24 +832,6 @@ RESERVEDMEM_OF_DECLARE(nvmap_co, "nvidia,generic_carveout", nvmap_co_setup);
 RESERVEDMEM_OF_DECLARE(nvmap_vpr_co, "nvidia,vpr-carveout", nvmap_co_setup);
 RESERVEDMEM_OF_DECLARE(nvmap_fsi_co, "nvidia,fsi-carveout", nvmap_co_setup);
 #endif /* !NVMAP_LOADABLE_MODULE */
-
-/*
- * This requires proper kernel arguments to have been passed.
- */
-#ifndef NVMAP_KSTABLE_KERNEL
-static int __nvmap_init_legacy(struct device *dev)
-{
-	/* VPR */
-	if (!nvmap_carveouts[1].base) {
-		nvmap_carveouts[1].base = tegra_vpr_start;
-		nvmap_carveouts[1].size = tegra_vpr_size;
-		if (!tegra_vpr_resize)
-			nvmap_carveouts[1].cma_dev = NULL;
-	}
-
-	return 0;
-}
-#endif /* !NVMAP_KSTABLE_KERNEL */
 
 /*
  * Fills in the platform data either from the device tree or with the
