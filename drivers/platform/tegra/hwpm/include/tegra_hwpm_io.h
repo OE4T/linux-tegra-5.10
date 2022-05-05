@@ -54,6 +54,8 @@ struct tegra_soc_hwpm;
 struct hwpm_ip_inst;
 struct hwpm_ip_aperture;
 
+int tegra_hwpm_read_sticky_bits(struct tegra_soc_hwpm *hwpm,
+	u64 reg_base, u64 reg_offset, u32 *val);
 int tegra_hwpm_readl(struct tegra_soc_hwpm *hwpm,
 	struct hwpm_ip_aperture *aperture, u64 addr, u32 *val);
 int tegra_hwpm_writel(struct tegra_soc_hwpm *hwpm,

@@ -225,6 +225,7 @@ struct hwpm_ip t234_hwpm_ip_rtr = {
 		},
 	},
 
+	.dependent_fuse_mask = 0U,
 	.override_enable = false,
 	/* RTR is defined as 2 instance IP corresponding to router and pma */
 	/* Set this mask to indicate that instances are available */

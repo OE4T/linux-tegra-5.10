@@ -23,6 +23,24 @@
 #include <tegra_hwpm_log.h>
 #include <tegra_hwpm_static_analysis.h>
 
+int tegra_hwpm_read_sticky_bits(struct tegra_soc_hwpm *hwpm,
+	u64 reg_base, u64 reg_offset, u32 *val)
+{
+	void __iomem *ptr = NULL;
+	u64 reg_addr = tegra_hwpm_safe_add_u64(reg_base, reg_offset);
+
+	ptr = ioremap(reg_addr, 0x4);
+	if (!ptr) {
+		tegra_hwpm_err(hwpm, "Failed to map register(0x%llx)",
+			reg_addr);
+		return -ENODEV;
+	}
+	*val = __raw_readl(ptr);
+	iounmap(ptr);
+
+	return 0;
+}
+
 static int fake_readl(struct tegra_soc_hwpm *hwpm,
 	struct hwpm_ip_aperture *aperture, u64 offset, u32 *val)
 {

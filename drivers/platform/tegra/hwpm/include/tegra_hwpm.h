@@ -94,6 +94,10 @@ struct tegra_hwpm_ip_ops {
 #define TEGRA_HWPM_RESOURCE_STATUS_VALID	\
 		TEGRA_SOC_HWPM_RESOURCE_STATUS_VALID
 
+#define TEGRA_HWPM_FUSE_PRODUCTION_MODE_MASK		BIT(0)
+#define TEGRA_HWPM_FUSE_SECURITY_MODE_MASK		BIT(1)
+#define TEGRA_HWPM_FUSE_HWPM_GLOBAL_DISABLE_MASK	BIT(2)
+
 /*
  * Devices handled by HWPM driver can be divided into 2 categories
  * - HWPM : Components in HWPM device address space
@@ -287,6 +291,13 @@ struct hwpm_ip {
 	struct hwpm_ip_inst_per_aperture_info inst_aperture_info[
 		TEGRA_HWPM_APERTURE_TYPE_MAX];
 
+	/*
+	 * Indicates fuses this IP depends on
+	 * If fuse corresponding to the mask is blown,
+	 * set override_enable = true
+	 */
+	u32 dependent_fuse_mask;
+
 	/* Override IP config based on fuse value */
 	bool override_enable;
 
@@ -327,6 +338,7 @@ struct tegra_soc_hwpm_chip {
 	int (*extract_ip_ops)(struct tegra_soc_hwpm *hwpm,
 	struct tegra_soc_hwpm_ip_ops *hwpm_ip_ops, bool available);
 	int (*force_enable_ips)(struct tegra_soc_hwpm *hwpm);
+	int (*validate_current_config)(struct tegra_soc_hwpm *hwpm);
 	int (*get_fs_info)(struct tegra_soc_hwpm *hwpm,
 	u32 ip_enum, u64 *fs_mask, u8 *ip_status);
 	int (*get_resource_info)(struct tegra_soc_hwpm *hwpm,

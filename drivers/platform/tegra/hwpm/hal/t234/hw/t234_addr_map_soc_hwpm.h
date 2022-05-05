@@ -262,4 +262,5 @@
 #define addr_map_mss_nvlink_8_limit_r()                            (0x01e1ffffU)
 #define addr_map_rpg_pm_scf_base_r()                               (0x0f110000U)
 #define addr_map_rpg_pm_scf_limit_r()                              (0x0f110fffU)
+#define addr_map_pmc_misc_base_r()                                 (0x0c3a0000U)
 #endif

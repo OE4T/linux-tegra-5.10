@@ -135,7 +135,14 @@ void tegra_hwpm_release_sw_components(struct tegra_soc_hwpm *hwpm)
 
 int tegra_hwpm_setup_sw(struct tegra_soc_hwpm *hwpm)
 {
+	int ret = 0;
 	tegra_hwpm_fn(hwpm, " ");
+
+	ret = hwpm->active_chip->validate_current_config(hwpm);
+	if (ret != 0) {
+		tegra_hwpm_err(hwpm, "Failed to validate current conifg");
+		return ret;
+	}
 
 	/* Initialize SW state */
 	hwpm->bind_completed = false;

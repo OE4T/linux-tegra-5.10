@@ -14,9 +14,10 @@
 #include <soc/tegra/fuse.h>
 #include <uapi/linux/tegra-soc-hwpm-uapi.h>
 
+#include <tegra_hwpm.h>
+#include <tegra_hwpm_io.h>
 #include <tegra_hwpm_log.h>
 #include <tegra_hwpm_common.h>
-#include <tegra_hwpm.h>
 #include <tegra_hwpm_static_analysis.h>
 #include <hal/t234/t234_hwpm_internal.h>
 #include <hal/t234/hw/t234_addr_map_soc_hwpm.h>
@@ -186,9 +187,86 @@ fail:
 	return ret;
 }
 
+int t234_hwpm_validate_current_config(struct tegra_soc_hwpm *hwpm)
+{
+	u32 production_mode = 0U;
+	u32 security_mode = 0U;
+	u32 hwpm_global_disable = 0U;
+	u32 idx = 0U;
+	int err;
+	struct tegra_soc_hwpm_chip *active_chip = hwpm->active_chip;
+	struct hwpm_ip *chip_ip = NULL;
+
+	tegra_hwpm_fn(hwpm, " ");
+
+	if (!tegra_platform_is_silicon()) {
+		return 0;
+	}
+
+	/* Read production mode fuse */
+	err = tegra_fuse_readl(TEGRA_FUSE_PRODUCTION_MODE, &production_mode);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "prod mode fuse read failed");
+		return err;
+	}
+
+#define TEGRA_FUSE_SECURITY_MODE		0xA0U
+	err = tegra_fuse_readl(TEGRA_FUSE_SECURITY_MODE, &security_mode);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "security mode fuse read failed");
+		return err;
+	}
+
+#define TEGRA_HWPM_GLOBAL_DISABLE_OFFSET	0x3CU
+#define TEGRA_HWPM_GLOBAL_DISABLE_DISABLED	0x1U
+	err = tegra_hwpm_read_sticky_bits(hwpm, addr_map_pmc_misc_base_r(),
+		TEGRA_HWPM_GLOBAL_DISABLE_OFFSET, &hwpm_global_disable);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "hwpm global disable read failed");
+		return err;
+	}
+
+	/* Override enable depends on security mode and global hwpm disable */
+	if ((security_mode == 0U) &&
+		(hwpm_global_disable == TEGRA_HWPM_GLOBAL_DISABLE_DISABLED)) {
+		tegra_hwpm_dbg(hwpm, hwpm_info, "PROD_MODE fuse = 0x%x "
+			"SECURITY_MODE fuse = 0x%x HWPM_GLOBAL_DISABLE = 0x%x,"
+			" no override required",
+			production_mode, security_mode, hwpm_global_disable);
+		return 0;
+	}
+
+	for (idx = 0U; idx < active_chip->get_ip_max_idx(hwpm); idx++) {
+		chip_ip = active_chip->chip_ips[idx];
+
+		if ((hwpm_global_disable !=
+			TEGRA_HWPM_GLOBAL_DISABLE_DISABLED) &&
+			((chip_ip->dependent_fuse_mask &
+			TEGRA_HWPM_FUSE_HWPM_GLOBAL_DISABLE_MASK) != 0U)) {
+			/* HWPM disable is true */
+			/* IP depends on HWPM global disable */
+			chip_ip->override_enable = true;
+		} else {
+			/* HWPM disable is false */
+			if ((security_mode != 0U) &&
+				((chip_ip->dependent_fuse_mask &
+				TEGRA_HWPM_FUSE_SECURITY_MODE_MASK) != 0U)) {
+				/* Security mode fuse is set */
+				/* IP depends on security mode fuse */
+				chip_ip->override_enable = true;
+			} else {
+				tegra_hwpm_err(hwpm,
+				"Execution shouldn't reach here");
+			}
+		}
+	}
+
+	return 0;
+}
+
 int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 {
-	int ret = 0;
+	int ret = 0, err = 0;
 
 	tegra_hwpm_fn(hwpm, " ");
 
@@ -200,7 +278,9 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 			addr_map_mc0_base_r(),
 			T234_HWPM_IP_MSS_CHANNEL, true);
 		if (ret != 0) {
-			return ret;
+			tegra_hwpm_err(hwpm,
+				"T234_HWPM_IP_MSS_CHANNEL force enable failed");
+			err = ret;
 		}
 #endif
 #if defined(CONFIG_SOC_HWPM_IP_MSS_GPU_HUB)
@@ -210,7 +290,9 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 			addr_map_mss_nvlink_1_base_r(),
 			T234_HWPM_IP_MSS_GPU_HUB, true);
 		if (ret != 0) {
-			return ret;
+			tegra_hwpm_err(hwpm,
+				"T234_HWPM_IP_MSS_GPU_HUB force enable failed");
+			err = ret;
 		}
 #endif
 	}
@@ -223,13 +305,17 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 			addr_map_vi_thi_base_r(),
 			T234_HWPM_IP_VI, true);
 		if (ret != 0) {
-			return ret;
+			tegra_hwpm_err(hwpm,
+				"T234_HWPM_IP_VI force enable failed");
+			err = ret;
 		}
 		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
 			addr_map_vi2_thi_base_r(),
 			T234_HWPM_IP_VI, true);
 		if (ret != 0) {
-			return ret;
+			tegra_hwpm_err(hwpm,
+				"T234_HWPM_IP_VI force enable failed");
+			err = ret;
 		}
 #endif
 */
@@ -239,7 +325,9 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 			addr_map_isp_thi_base_r(),
 			T234_HWPM_IP_ISP, true);
 		if (ret != 0) {
-			return ret;
+			tegra_hwpm_err(hwpm,
+				"T234_HWPM_IP_ISP force enable failed");
+			err = ret;
 		}
 #endif
 
@@ -264,7 +352,9 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 			addr_map_mgbe0_mac_rm_base_r(),
 			T234_HWPM_IP_MGBE, true);
 		if (ret != 0) {
-			return ret;
+			tegra_hwpm_err(hwpm,
+				"T234_HWPM_IP_MGBE force enable failed");
+			err = ret;
 		}
 #endif
 */
@@ -275,7 +365,9 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 			addr_map_rpg_pm_scf_base_r(),
 			T234_HWPM_IP_SCF, true);
 		if (ret != 0) {
-			return ret;
+			tegra_hwpm_err(hwpm,
+				"T234_HWPM_IP_SCF force enable failed");
+			err = ret;
 		}
 #endif
 #if defined(CONFIG_SOC_HWPM_IP_NVDEC)
@@ -285,7 +377,9 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 			addr_map_nvdec_base_r(),
 			T234_HWPM_IP_NVDEC, true);
 		if (ret != 0) {
-			return ret;
+			tegra_hwpm_err(hwpm,
+				"T234_HWPM_IP_NVDEC force enable failed");
+			err = ret;
 		}
 #endif
 
@@ -296,19 +390,25 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 			addr_map_pcie_c1_ctl_base_r(),
 			T234_HWPM_IP_PCIE, true);
 		if (ret != 0) {
-			return ret;
+			tegra_hwpm_err(hwpm,
+				"T234_HWPM_IP_PCIE force enable failed");
+			err = ret;
 		}
 		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
 			addr_map_pcie_c4_ctl_base_r(),
 			T234_HWPM_IP_PCIE, true);
 		if (ret != 0) {
-			return ret;
+			tegra_hwpm_err(hwpm,
+				"T234_HWPM_IP_PCIE force enable failed");
+			err = ret;
 		}
 		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
 			addr_map_pcie_c5_ctl_base_r(),
 			T234_HWPM_IP_PCIE, true);
 		if (ret != 0) {
-			return ret;
+			tegra_hwpm_err(hwpm,
+				"T234_HWPM_IP_PCIE force enable failed");
+			err = ret;
 		}
 #endif
 */
@@ -320,7 +420,9 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 			addr_map_disp_base_r(),
 			T234_HWPM_IP_DISPLAY, true);
 		if (ret != 0) {
-			return ret;
+			tegra_hwpm_err(hwpm,
+				"T234_HWPM_IP_DISPLAY force enable failed");
+			err = ret;
 		}
 #endif
 */
@@ -331,12 +433,14 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 			addr_map_mss_nvlink_1_base_r(),
 			T234_HWPM_IP_MSS_GPU_HUB, true);
 		if (ret != 0) {
-			return ret;
+			tegra_hwpm_err(hwpm,
+				"T234_HWPM_IP_MSS_GPU_HUB force enable failed");
+			err = ret;
 		}
 #endif
 	}
 
-	return 0;
+	return err;
 }
 
 int t234_hwpm_get_fs_info(struct tegra_soc_hwpm *hwpm,
@@ -351,31 +455,39 @@ int t234_hwpm_get_fs_info(struct tegra_soc_hwpm *hwpm,
 	tegra_hwpm_fn(hwpm, " ");
 
 	/* Convert tegra_soc_hwpm_ip enum to internal ip index */
-	if (!(t234_hwpm_is_ip_active(hwpm, ip_enum, &ip_idx))) {
-		tegra_hwpm_dbg(hwpm, hwpm_info,
-			"SOC hwpm IP %d is unavailable", ip_enum);
+	if (t234_hwpm_is_ip_active(hwpm, ip_enum, &ip_idx)) {
+		active_chip = hwpm->active_chip;
+		chip_ip = active_chip->chip_ips[ip_idx];
 
-		*ip_status = TEGRA_SOC_HWPM_IP_STATUS_INVALID;
-		*fs_mask = 0ULL;
-		return 0;
-	}
+		if (!(chip_ip->override_enable)) {
+			for (inst_idx = 0U; inst_idx < chip_ip->num_instances;
+				inst_idx++) {
+				ip_inst = &chip_ip->ip_inst_static_array[
+					inst_idx];
+				element_mask_shift = (inst_idx == 0U ? 0U :
+					ip_inst->num_core_elements_per_inst);
 
-	active_chip = hwpm->active_chip;
-	chip_ip = active_chip->chip_ips[ip_idx];
+				if (ip_inst->hw_inst_mask &
+					chip_ip->inst_fs_mask) {
+					floorsweep = (floorsweep <<
+						element_mask_shift);
+					floorsweep |=
+						((u64)ip_inst->element_fs_mask);
+				}
+			}
 
-	for (inst_idx = 0U; inst_idx < chip_ip->num_instances; inst_idx++) {
-		ip_inst = &chip_ip->ip_inst_static_array[inst_idx];
-		element_mask_shift = (inst_idx == 0U ?
-			0U : ip_inst->num_core_elements_per_inst);
+			*fs_mask = floorsweep;
+			*ip_status = TEGRA_SOC_HWPM_IP_STATUS_VALID;
 
-		if (ip_inst->hw_inst_mask & chip_ip->inst_fs_mask) {
-			floorsweep = (floorsweep << element_mask_shift);
-			floorsweep |= ((u64)ip_inst->element_fs_mask);
+			return 0;
 		}
 	}
 
-	*fs_mask = floorsweep;
-	*ip_status = TEGRA_SOC_HWPM_IP_STATUS_VALID;
+	tegra_hwpm_dbg(hwpm, hwpm_info,
+		"SOC hwpm IP %d is unavailable", ip_enum);
+
+	*ip_status = TEGRA_SOC_HWPM_IP_STATUS_INVALID;
+	*fs_mask = 0ULL;
 
 	return 0;
 }
@@ -390,14 +502,18 @@ int t234_hwpm_get_resource_info(struct tegra_soc_hwpm *hwpm,
 	tegra_hwpm_fn(hwpm, " ");
 
 	/* Convert tegra_soc_hwpm_resource to internal enum */
-	if (!(t234_hwpm_is_resource_active(hwpm, resource_enum, &ip_idx))) {
-		*status = tegra_hwpm_safe_cast_u32_to_u8(
-				TEGRA_HWPM_RESOURCE_STATUS_INVALID);
-	} else {
+	if (t234_hwpm_is_resource_active(hwpm, resource_enum, &ip_idx)) {
 		chip_ip = active_chip->chip_ips[ip_idx];
-		*status = tegra_hwpm_safe_cast_u32_to_u8(
+
+		if (!(chip_ip->override_enable)) {
+			*status = tegra_hwpm_safe_cast_u32_to_u8(
 				chip_ip->resource_status);
+			return 0;
+		}
 	}
+
+	*status = tegra_hwpm_safe_cast_u32_to_u8(
+		TEGRA_HWPM_RESOURCE_STATUS_INVALID);
 
 	return 0;
 }

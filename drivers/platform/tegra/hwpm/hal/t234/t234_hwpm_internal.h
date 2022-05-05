@@ -79,6 +79,7 @@ u32 t234_get_ip_max_idx(struct tegra_soc_hwpm *hwpm);
 int t234_hwpm_extract_ip_ops(struct tegra_soc_hwpm *hwpm,
 	struct tegra_soc_hwpm_ip_ops *hwpm_ip_ops, bool available);
 int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm);
+int t234_hwpm_validate_current_config(struct tegra_soc_hwpm *hwpm);
 int t234_hwpm_get_fs_info(struct tegra_soc_hwpm *hwpm,
 	u32 ip_enum, u64 *fs_mask, u8 *ip_status);
 int t234_hwpm_get_resource_info(struct tegra_soc_hwpm *hwpm,
