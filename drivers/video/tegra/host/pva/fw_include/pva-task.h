@@ -101,7 +101,8 @@ struct PVA_PACKED pva_task_statistics_s {
 	uint64_t vpu_complete_time; /* when execution completed */
 	uint64_t complete_time; /* when task considered complete */
 	uint8_t vpu_assigned; /* which VPU task was assigned */
-	uint8_t reserved[7];
+	uint8_t	queue_id; /* ID of the queue the task was submitted on*/
+	uint8_t reserved[6];
 };
 
 enum pva_task_parameter_type_e {

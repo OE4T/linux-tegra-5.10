@@ -648,6 +648,133 @@ out:
 
 	return err;
 }
+#ifdef CONFIG_EVENTLIB
+
+static void
+pva_eventlib_fill_fence(struct nvdev_fence *dst_fence,
+			struct nvpva_submit_fence *src_fence)
+{
+	static u32 obj_type[] = {NVDEV_FENCE_TYPE_SYNCPT,
+				 NVDEV_FENCE_TYPE_SEMAPHORE,
+				 NVDEV_FENCE_TYPE_SEMAPHORE_TS,
+				 NVDEV_FENCE_TYPE_SYNC_FD};
+
+	memset(dst_fence, 0, sizeof(struct nvdev_fence));
+	dst_fence->type = obj_type[src_fence->type];
+	switch (src_fence->type) {
+	case NVPVA_FENCE_OBJ_SYNCPT:
+		dst_fence->syncpoint_index = src_fence->obj.syncpt.id;
+		dst_fence->syncpoint_value = src_fence->obj.syncpt.value;
+		break;
+	case NVPVA_FENCE_OBJ_SEM:
+	case NVPVA_FENCE_OBJ_SEMAPHORE_TS:
+		dst_fence->semaphore_handle = src_fence->obj.sem.mem.pin_id;
+		dst_fence->semaphore_offset = src_fence->obj.sem.mem.offset;
+		dst_fence->semaphore_value  = src_fence->obj.sem.value;
+		break;
+	case NVPVA_FENCE_OBJ_SYNC_FD:
+		break;
+	default:
+		break;
+	}
+}
+
+static void
+pva_eventlib_record_r5_states(struct platform_device *pdev,
+			      u32 syncpt_id,
+			      u32 syncpt_thresh,
+			      struct pva_task_statistics_s *stats,
+			      struct pva_submit_task *task)
+{
+	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
+	struct nvhost_pva_task_state state;
+	struct nvdev_fence post_fence;
+	struct nvpva_submit_fence *fence;
+
+	if (!pdata->eventlib_id)
+		return;
+
+	/* Record task postfences */
+	fence = &(task->pva_fence_actions[NVPVA_FENCE_POST][0].fence);
+	pva_eventlib_fill_fence(&post_fence, fence);
+	nvhost_eventlib_log_fences(pdev,
+				   syncpt_id,
+				   syncpt_thresh,
+				   &post_fence,
+				   1,
+				   NVDEV_FENCE_KIND_POST,
+				   stats->complete_time);
+
+	state.class_id		= pdata->class;
+	state.syncpt_id		= syncpt_id;
+	state.syncpt_thresh	= syncpt_thresh;
+	state.vpu_id		= stats->vpu_assigned;
+	state.queue_id		= stats->queue_id;
+	state.iova		= task->dma_addr;
+
+	keventlib_write(pdata->eventlib_id,
+			&state,
+			sizeof(state),
+			NVHOST_PVA_QUEUE_BEGIN,
+			stats->queued_time);
+
+	keventlib_write(pdata->eventlib_id,
+			&state,
+			sizeof(state),
+			NVHOST_PVA_QUEUE_END,
+			stats->vpu_assigned_time);
+
+	keventlib_write(pdata->eventlib_id,
+			&state,
+			sizeof(state),
+			NVHOST_PVA_PREPARE_BEGIN,
+			stats->vpu_assigned_time);
+
+	keventlib_write(pdata->eventlib_id,
+			&state,
+			sizeof(state),
+			NVHOST_PVA_PREPARE_END,
+			stats->vpu_start_time);
+
+	keventlib_write(pdata->eventlib_id,
+			&state,
+			sizeof(state),
+			stats->vpu_assigned == 0 ? NVHOST_PVA_VPU0_BEGIN
+						 : NVHOST_PVA_VPU1_BEGIN,
+			stats->vpu_start_time);
+
+	keventlib_write(pdata->eventlib_id,
+			&state,
+			sizeof(state),
+			stats->vpu_assigned == 0 ? NVHOST_PVA_VPU0_END
+						 : NVHOST_PVA_VPU1_END,
+			stats->vpu_complete_time);
+
+	keventlib_write(pdata->eventlib_id,
+			&state,
+			sizeof(state),
+			NVHOST_PVA_POST_BEGIN,
+			stats->vpu_complete_time);
+
+	keventlib_write(pdata->eventlib_id,
+			&state,
+			sizeof(state),
+			NVHOST_PVA_POST_END,
+			stats->complete_time);
+}
+#else
+static void
+pva_eventlib_fill_fence(struct nvdev_fence *dst_fence,
+			struct nvpva_submit_fence *src_fence)
+)
+{
+}
+static void
+pva_eventlib_record_r5_states(struct platform_device *pdev,
+			      struct pva_task_statistics_s *stats)
+{
+}
+#endif
 
 void pva_task_free(struct kref *ref)
 {
@@ -677,7 +804,6 @@ static void update_one_task(struct pva *pva)
 	struct pva_hw_task *hw_task;
 	struct pva_task_statistics_s *stats;
 	bool found;
-
 	u64 vpu_time = 0u;
 	u64 r5_overhead = 0u;
 	const u32 tsc_ticks_to_us = 31;
@@ -685,14 +811,16 @@ static void update_one_task(struct pva *pva)
 	WARN_ON(!task_info.valid);
 	WARN_ON(task_info.queue >= MAX_PVA_QUEUE_COUNT);
 	queue = &pva->pool->queues[task_info.queue];
+
 	/* find the finished task; since two tasks can be scheduled at the same
- * time, the finished one is not necessarily the first one
- */
+	 * time, the finished one is not necessarily the first one
+	 */
 	found = false;
 	mutex_lock(&queue->list_lock);
+
 	/* since we are only taking one entry out, we don't need to use the safe
- * version
- */
+	 * version
+	 */
 	list_for_each_entry(task, &queue->tasklist, node) {
 		if (task->dma_addr == task_info.addr) {
 			list_del(&task->node);
@@ -716,22 +844,40 @@ static void update_one_task(struct pva *pva)
 	vpu_time = (stats->vpu_complete_time - stats->vpu_start_time);
 	r5_overhead = ((stats->complete_time - stats->queued_time) - vpu_time);
 	r5_overhead = r5_overhead / tsc_ticks_to_us;
-	trace_nvhost_task_timestamp(dev_name(&pdev->dev), pdata->class,
-				    queue->syncpt_id, task->syncpt_thresh,
+
+	trace_nvhost_task_timestamp(dev_name(&pdev->dev),
+				    pdata->class,
+				    queue->syncpt_id,
+				    task->syncpt_thresh,
 				    stats->vpu_assigned_time,
 				    stats->complete_time);
-	nvhost_eventlib_log_task(pdev, queue->syncpt_id, task->syncpt_thresh,
+	nvhost_eventlib_log_task(pdev,
+				 queue->syncpt_id,
+				 task->syncpt_thresh,
 				 stats->vpu_assigned_time,
 				 stats->complete_time);
-	nvhost_dbg_info(
-	    "Completed task %p (0x%llx), start_time=%llu, end_time=%llu",
-	    task, (u64)task->dma_addr, stats->vpu_assigned_time,
-	    stats->complete_time);
-	trace_nvhost_pva_task_stats(
-	    pdev->name, stats->queued_time, stats->head_time,
-	    stats->input_actions_complete, stats->vpu_assigned_time,
-	    stats->vpu_start_time, stats->vpu_complete_time,
-	    stats->complete_time, stats->vpu_assigned, r5_overhead);
+	nvhost_dbg_info("Completed task %p (0x%llx), "
+			"start_time=%llu, "
+			"end_time=%llu",
+			task,
+			(u64)task->dma_addr,
+			stats->vpu_assigned_time,
+			stats->complete_time);
+	trace_nvhost_pva_task_stats(pdev->name,
+				    stats->queued_time,
+				    stats->head_time,
+				    stats->input_actions_complete,
+				    stats->vpu_assigned_time,
+				    stats->vpu_start_time,
+				    stats->vpu_complete_time,
+				    stats->complete_time,
+				    stats->vpu_assigned,
+				    r5_overhead);
+	pva_eventlib_record_r5_states(pdev,
+				      queue->syncpt_id,
+				      task->syncpt_thresh,
+				      stats,
+				      task);
 
 	/* Not linked anymore so drop the reference */
 	kref_put(&task->ref, pva_task_free);
@@ -848,6 +994,16 @@ static int pva_task_submit(const struct pva_submit_tasks *task_header)
 		mutex_unlock(&queue->list_lock);
 	}
 
+	/*
+	 * TSC timestamp is same as CNTVCT. Task statistics are being
+	 * reported in TSC ticks.
+	 */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+	timestamp = arch_timer_read_counter();
+#else
+	timestamp = arch_counter_get_cntvct();
+#endif
+
 	/* Choose the submit policy based on the mode */
 	switch (first_task->pva->submit_task_mode) {
 	case PVA_SUBMIT_MODE_MAILBOX:
@@ -864,6 +1020,29 @@ static int pva_task_submit(const struct pva_submit_tasks *task_header)
 		pr_err("pva: failed to submit %u tasks",
 		       task_header->num_tasks);
 		goto remove_tasks;
+	}
+
+	for (i = 0; i < task_header->num_tasks; i++) {
+		u32 j;
+		struct nvdev_fence pre_fence;
+		struct pva_submit_task *task = task_header->tasks[i];
+
+		for (j = 0; j < task->num_prefences; j++) {
+			pva_eventlib_fill_fence(&pre_fence,
+						&task->prefences[j]);
+			nvhost_eventlib_log_fences(task->pva->pdev,
+						   queue->syncpt_id,
+						   task->syncpt_thresh,
+						   &pre_fence,
+						   1,
+						   NVDEV_FENCE_KIND_PRE,
+						   timestamp);
+		}
+
+		nvhost_eventlib_log_submit(task->pva->pdev,
+					   queue->syncpt_id,
+					   task->syncpt_thresh,
+					   timestamp);
 	}
 
 	return 0;

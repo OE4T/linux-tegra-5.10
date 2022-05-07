@@ -1140,8 +1140,7 @@ static void
 pva_eventlib_record_r5_states(struct platform_device *pdev,
 			      u32 syncpt_id,
 			      u32 syncpt_thresh,
-			      struct pva_task_statistics *stats,
-			      u32 operation)
+			      struct pva_task_statistics *stats)
 {
 	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
 	struct nvhost_pva_task_state state;
@@ -1152,7 +1151,9 @@ pva_eventlib_record_r5_states(struct platform_device *pdev,
 	state.class_id = pdata->class;
 	state.syncpt_id = syncpt_id;
 	state.syncpt_thresh = syncpt_thresh;
-	state.operation = operation;
+	state.vpu_id	= stats->vpu_assigned;
+	state.queue_id	= 0;
+	state.iova	= 0;
 
 	keventlib_write(pdata->eventlib_id,
 			&state,
@@ -1222,8 +1223,7 @@ pva_eventlib_record_perf_counter(struct platform_device *pdev,
 }
 static void
 pva_eventlib_record_r5_states(struct platform_device *pdev,
-			      struct pva_task_statistics *stats,
-			      u32 operation)
+			      struct pva_task_statistics *stats)
 {
 }
 #endif
@@ -1288,7 +1288,7 @@ static void pva_task_update(struct pva_submit_task *task)
 	pva_eventlib_record_r5_states(pdev,
 			queue->syncpt_id,
 			task->syncpt_thresh,
-			stats, task->operation);
+			stats);
 
 	/* Record task postfences */
 	nvhost_eventlib_log_fences(pdev,
