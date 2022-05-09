@@ -430,9 +430,14 @@ static int nvdla_send_emu_signal_fences(struct nvdla_emu_task *task,
 					info.id, info.thresh);
 
 			/* create fence name format example: nvdla0_1_fence */
-			snprintf(fence_name, sizeof(fence_name),
+			err = snprintf(fence_name, sizeof(fence_name),
 				"%s_%d_%d_prefence", dev_name(&dla_pdev->dev),
 				task->prefences[i].syncpoint_index, i);
+			if (err < 0) {
+				nvdla_dbg_err(dla_pdev,
+					"encoding error: %d\n", err);
+				goto fail;
+			}
 
 			err = nvhost_fence_create_fd(host_pdev,
 				&info, 1, fence_name,
@@ -472,9 +477,14 @@ static int nvdla_send_emu_signal_fences(struct nvdla_emu_task *task,
 					info.id, info.thresh);
 
 			/* create fence name format example: nvdla0_1_fence */
-			snprintf(fence_name, sizeof(fence_name),
+			err = snprintf(fence_name, sizeof(fence_name),
 				"%s_%d_%d_postfence", dev_name(&dla_pdev->dev),
 				task->postfences[i].syncpoint_index, i);
+			if (err < 0) {
+				nvdla_dbg_err(dla_pdev,
+					"encoding error: %d\n", err);
+				goto fail;
+			}
 
 			err = nvhost_fence_create_fd(host_pdev,
 				&info, 1, fence_name,
@@ -534,9 +544,14 @@ static int nvdla_update_signal_fences(struct nvdla_task *task,
 					info.id, info.thresh);
 
 			/* create fence name format example: nvdla0_1_fence */
-			snprintf(fence_name, sizeof(fence_name),
+			err = snprintf(fence_name, sizeof(fence_name),
 				"%s_%d_%d_prefence", dev_name(&dla_pdev->dev),
 				task->prefences[i].syncpoint_index, i);
+			if (err < 0) {
+				nvdla_dbg_err(dla_pdev,
+					"encoding error: %d\n", err);
+				goto fail;
+			}
 
 			err = nvhost_fence_create_fd(host_pdev,
 				&info, 1, fence_name,
@@ -576,9 +591,14 @@ static int nvdla_update_signal_fences(struct nvdla_task *task,
 					info.id, info.thresh);
 
 			/* create fence name format example: nvdla0_1_fence */
-			snprintf(fence_name, sizeof(fence_name),
+			err = snprintf(fence_name, sizeof(fence_name),
 				"%s_%d_%d_postfence", dev_name(&dla_pdev->dev),
 				task->postfences[i].syncpoint_index, i);
+			if (err < 0) {
+				nvdla_dbg_err(dla_pdev,
+					"encoding error: %d\n", err);
+				goto fail;
+			}
 
 			err = nvhost_fence_create_fd(host_pdev,
 				&info, 1, fence_name,
