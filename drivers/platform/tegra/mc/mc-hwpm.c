@@ -103,7 +103,7 @@ int tegra_mc_hwpm_pm(void *ip_dev, bool disable)
 	return err;
 }
 
-int tegra_mc_hwpm_reg_op(void *ip_dev, enum tegra_soc_hwpm_ip_reg_op reg_op,
+static int tegra_mc_hwpm_reg_op(void *ip_dev, enum tegra_soc_hwpm_ip_reg_op reg_op,
 						u32 chnl_no,
 						u64 reg_offset, u32 *reg_data)
 {
@@ -123,6 +123,16 @@ int tegra_mc_hwpm_reg_op(void *ip_dev, enum tegra_soc_hwpm_ip_reg_op reg_op,
 		memctrl_writel(chnl_no, *reg_data, (u32)reg_offset);
 
 	return 0;
+}
+
+/*
+ * Return HWPM operations for Broadcast channel until
+ * HWPM driver implements channel no as parameter
+ */
+static int __tegra_mc_hwpm_reg_op(void *ip_dev, enum tegra_soc_hwpm_ip_reg_op reg_op,
+						u64 reg_offset, u32 *reg_data)
+{
+	return tegra_mc_hwpm_reg_op(ip_dev, reg_op, 0, reg_offset, reg_data);
 }
 
 /*
@@ -235,7 +245,7 @@ static int tegra_mc_hwpm_hwpm_probe(struct platform_device *pdev)
 	hwpm_ip_ops.ip_index = TEGRA_SOC_HWPM_IP_MSS_CHANNEL;
 	hwpm_ip_ops.ip_base_address = pdev->resource[0].start;
 	hwpm_ip_ops.hwpm_ip_pm = &tegra_mc_hwpm_pm;
-	hwpm_ip_ops.hwpm_ip_reg_op = &tegra_mc_hwpm_reg_op;
+	hwpm_ip_ops.hwpm_ip_reg_op = &__tegra_mc_hwpm_reg_op;
 	tegra_soc_hwpm_ip_register(&hwpm_ip_ops);
 
 	return 0;
