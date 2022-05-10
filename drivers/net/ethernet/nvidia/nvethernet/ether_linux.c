@@ -2452,7 +2452,11 @@ static int ether_mdio_register(struct ether_priv_data *pdata)
 	new_bus->name = "nvethernet_mdio_bus";
 	new_bus->read = ether_mdio_read;
 	new_bus->write = ether_mdio_write;
-	snprintf(new_bus->id, MII_BUS_ID_SIZE, "%s", dev_name(dev));
+	ret = snprintf(new_bus->id, MII_BUS_ID_SIZE, "%s", dev_name(dev));
+	if (ret < 0) {
+		dev_err(dev, "%s:encoding error", __func__);
+		goto exit;
+	}
 	new_bus->priv = pdata->ndev;
 	new_bus->parent = dev;
 
