@@ -195,14 +195,6 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 			goto fail;
 		}
 
-		/* PVA */
-		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
-			addr_map_pva0_pm_base_r(),
-			T234_HWPM_IP_PVA, true);
-		if (ret != 0) {
-			goto fail;
-		}
-
 		/* NVDLA */
 		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
 			addr_map_nvdla0_base_r(),
