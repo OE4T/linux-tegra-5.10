@@ -483,6 +483,25 @@ int flcn_reload_fw(struct platform_device *pdev)
 }
 EXPORT_SYMBOL(flcn_reload_fw);
 
+static int nvhost_flcn_init(struct platform_device *pdev,
+			    struct nvhost_device_data *pdata)
+{
+	struct falcon *falcon;
+
+	falcon = devm_kzalloc(&pdev->dev, sizeof(*falcon), GFP_KERNEL);
+	if (!falcon)
+		return -ENOMEM;
+
+	falcon->dev = &pdev->dev;
+	falcon->regs = pdata->aperture[0];
+
+	falcon_init(falcon);
+
+	pdata->falcon_data = falcon;
+
+	return 0;
+}
+
 int nvhost_flcn_prepare_poweroff(struct platform_device *pdev)
 {
 	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
@@ -494,10 +513,10 @@ int nvhost_flcn_prepare_poweroff(struct platform_device *pdev)
 }
 EXPORT_SYMBOL(nvhost_flcn_prepare_poweroff);
 
-static int nvhost_flcn_load_firmware(struct platform_device *pdev)
+static int nvhost_flcn_load_firmware(struct platform_device *pdev,
+				     struct falcon *falcon,
+				     char *firmware_name)
 {
-	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
-	struct falcon *falcon = pdata->falcon_data;
 	dma_addr_t iova;
 	size_t size;
 	void *virt;
@@ -506,7 +525,7 @@ static int nvhost_flcn_load_firmware(struct platform_device *pdev)
 	if (falcon->firmware.virt)
 		return 0;
 
-	err = falcon_read_firmware(falcon, pdata->firmware_name);
+	err = falcon_read_firmware(falcon, firmware_name);
 	if (err < 0)
 		return err;
 
@@ -533,12 +552,24 @@ cleanup:
 int nvhost_flcn_finalize_poweron(struct platform_device *pdev)
 {
 	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
-	struct falcon *falcon = pdata->falcon_data;
 #ifdef CONFIG_IOMMU_API
 	struct iommu_fwspec *spec = dev_iommu_fwspec_get(&pdev->dev);
 #endif
+	struct falcon *falcon;
 	int err;
 	u32 value;
+
+	if (!pdata->falcon_data) {
+		err = nvhost_flcn_init(pdev, pdata);
+		if (err < 0)
+			return -ENOMEM;
+	}
+
+	falcon = pdata->falcon_data;
+
+	err = nvhost_flcn_load_firmware(pdev, falcon, pdata->firmware_name);
+	if (err < 0)
+		return err;
 
 #ifdef CONFIG_IOMMU_API
 	if (spec) {
@@ -639,9 +670,13 @@ void nvhost_module_deinit(struct platform_device *pdev)
 	struct falcon *falcon = pdata->falcon_data;
 
 	pm_runtime_disable(&pdev->dev);
-	dma_free_coherent(&pdev->dev, falcon->firmware.size,
+
+	if (falcon) {
+		dma_free_coherent(&pdev->dev, falcon->firmware.size,
 			  falcon->firmware.virt, falcon->firmware.iova);
-	falcon_exit(falcon);
+		falcon_exit(falcon);
+	}
+
 	debugfs_remove_recursive(pdata->debugfs);
 }
 EXPORT_SYMBOL(nvhost_module_deinit);
@@ -649,16 +684,8 @@ EXPORT_SYMBOL(nvhost_module_deinit);
 int nvhost_module_init(struct platform_device *pdev)
 {
 	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
-	struct falcon *falcon;
 	unsigned int i;
 	int err;
-
-	falcon = devm_kzalloc(&pdev->dev, sizeof(*falcon), GFP_KERNEL);
-	if (!falcon)
-		return -ENOMEM;
-
-	falcon->dev = &pdev->dev;
-	falcon->regs = pdata->aperture[0];
 
 	err = devm_clk_bulk_get_all(&pdev->dev, &pdata->clks);
 	if (err < 0) {
@@ -712,11 +739,7 @@ int nvhost_module_init(struct platform_device *pdev)
 	pdata->debugfs = debugfs_create_dir(pdev->dev.of_node->name,
 					    NULL);
 
-	falcon_init(falcon);
-
-	pdata->falcon_data = falcon;
-
-	return nvhost_flcn_load_firmware(pdev);
+	return 0;
 }
 EXPORT_SYMBOL(nvhost_module_init);
 
