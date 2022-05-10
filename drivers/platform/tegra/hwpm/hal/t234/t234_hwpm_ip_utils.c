@@ -264,30 +264,6 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 			goto fail;
 		}*/
 
-		/* MSS CHANNEL */
-		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
-			addr_map_mcb_base_r(),
-			T234_HWPM_IP_MSS_CHANNEL, true);
-		if (ret != 0) {
-			goto fail;
-		}
-
-		/* MSS ISO NISO HUBS */
-		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
-			addr_map_mcb_base_r(),
-			T234_HWPM_IP_MSS_ISO_NISO_HUBS, true);
-		if (ret != 0) {
-			goto fail;
-		}
-
-		/* MSS MCF */
-		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
-			addr_map_mcb_base_r(),
-			T234_HWPM_IP_MSS_MCF, true);
-		if (ret != 0) {
-			goto fail;
-		}
-
 		/* MSS GPU HUB */
 		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
 			addr_map_mss_nvlink_1_base_r(),
