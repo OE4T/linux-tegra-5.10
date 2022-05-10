@@ -927,6 +927,7 @@ static int __exit nvdla_remove(struct platform_device *pdev)
 
 	nvdla_queue_deinit(nvdla_dev->pool);
 	nvhost_client_device_release(pdev);
+	nvhost_module_deinit(pdev);
 
 	nvdla_free_gcov_region(pdev, false);
 
