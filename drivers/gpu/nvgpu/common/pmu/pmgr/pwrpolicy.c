@@ -269,6 +269,8 @@ static struct pmu_board_obj *construct_pwr_policy(struct gk20a *g,
 		return NULL;
 	}
 
+	obj = (struct pmu_board_obj *)(void *)pwrpolicy;
+
 	status = pmu_board_obj_construct_super(g,
 			(struct pmu_board_obj *)(void *)pwrpolicy, pargs);
 	if (status != 0) {
