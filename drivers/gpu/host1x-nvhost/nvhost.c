@@ -106,6 +106,7 @@ static struct device *nvhost_client_device_create(struct platform_device *pdev,
 	err = cdev_add(cdev, devno, 1);
 	if (err < 0) {
 		dev_err(&pdev->dev, "failed to add cdev\n");
+		class_destroy(pdata->nvhost_class);
 		return ERR_PTR(err);
 	}
 
@@ -115,6 +116,7 @@ static struct device *nvhost_client_device_create(struct platform_device *pdev,
 
 	if (IS_ERR(dev)) {
 		dev_err(&pdev->dev, "failed to create %s device\n", cdev_name);
+		class_destroy(pdata->nvhost_class);
 		cdev_del(cdev);
 	}
 
@@ -156,19 +158,12 @@ int nvhost_client_device_init(struct platform_device *pdev)
 	pdata->ctrl_node = nvhost_client_device_create(pdev, &pdata->ctrl_cdev,
 						       "ctrl-", devno,
 						       pdata->ctrl_ops);
-	if (IS_ERR(pdata->ctrl_node)) {
-		err = PTR_ERR(pdata->ctrl_node);
-		goto destroy;
-	}
+	if (IS_ERR(pdata->ctrl_node))
+		return PTR_ERR(pdata->ctrl_node);
 
 	pdata->cdev_region = devno;
 
 	return 0;
-
-destroy:
-	device_destroy(pdata->nvhost_class, pdata->ctrl_cdev.dev);
-
-	return err;
 }
 EXPORT_SYMBOL(nvhost_client_device_init);
 
@@ -179,6 +174,7 @@ int nvhost_client_device_release(struct platform_device *pdev)
 	if (!IS_ERR_OR_NULL(pdata->ctrl_node)) {
 		device_destroy(pdata->nvhost_class, pdata->ctrl_cdev.dev);
 		cdev_del(&pdata->ctrl_cdev);
+		class_destroy(pdata->nvhost_class);
 	}
 
 	unregister_chrdev_region(pdata->cdev_region, NVHOST_NUM_CDEV);
@@ -418,7 +414,8 @@ int flcn_intr_init(struct platform_device *pdev)
 	}
 
 	spin_lock_init(&pdata->mirq_lock);
-	ret = request_irq(pdata->irq, flcn_isr, 0, dev_name(&pdev->dev), pdev);
+	ret = devm_request_irq(&pdev->dev, pdata->irq, flcn_isr, 0,
+			       dev_name(&pdev->dev), pdev);
 	if (ret) {
 		dev_err(&pdev->dev, "failed to request irq. err %d\n", ret);
 		return ret;
