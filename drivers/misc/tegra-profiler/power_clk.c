@@ -178,7 +178,8 @@ read_source(struct power_clk_source *s, unsigned int cpu)
 	switch (s->type) {
 	case QUADD_POWER_CLK_CPU:
 		/* update cpu frequency */
-		if (cpu >= max_t(unsigned int, s->nr, nr_cpu_ids)) {
+		if (cpu == UINT_MAX ||
+		    cpu >= max_t(unsigned int, s->nr, nr_cpu_ids)) {
 			pr_err_once("error: cpu id: %u\n", cpu);
 			break;
 		}
@@ -236,7 +237,7 @@ static int
 gpu_notifier_call(struct notifier_block *nb,
 		  unsigned long action, void *data)
 {
-	read_source(&power_ctx.gpu, -1);
+	read_source(&power_ctx.gpu, UINT_MAX);
 	return NOTIFY_DONE;
 }
 
@@ -244,7 +245,7 @@ static int
 emc_notifier_call(struct notifier_block *nb,
 		  unsigned long action, void *data)
 {
-	read_source(&power_ctx.emc, -1);
+	read_source(&power_ctx.emc, UINT_MAX);
 	return NOTIFY_DONE;
 }
 
@@ -370,8 +371,8 @@ static void init_source(struct power_clk_source *s,
 static void
 power_clk_work_func(struct work_struct *work)
 {
-	read_source(&power_ctx.gpu, -1);
-	read_source(&power_ctx.emc, -1);
+	read_source(&power_ctx.gpu, UINT_MAX);
+	read_source(&power_ctx.emc, UINT_MAX);
 }
 
 static DECLARE_WORK(power_clk_work, power_clk_work_func);
@@ -401,8 +402,8 @@ read_all_sources_work_func(struct work_struct *work)
 			read_source(s, cpu_id);
 	}
 
-	read_source(&power_ctx.gpu, -1);
-	read_source(&power_ctx.emc, -1);
+	read_source(&power_ctx.gpu, UINT_MAX);
+	read_source(&power_ctx.emc, UINT_MAX);
 }
 
 static DECLARE_WORK(read_all_sources_work, read_all_sources_work_func);
