@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2016-2022, NVIDIA CORPORATION & AFFILIATES.
- * All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -247,6 +246,7 @@ struct pva_hw_task {
 	struct pva_dma_info_s dma_info;
 	struct pva_dma_misr_config_s dma_misr_config;
 	struct pva_dtd_s dma_desc[NVPVA_TASK_MAX_DMA_DESCRIPTORS];
+	struct pva_vpu_parameter_info_s param_info;
 	struct pva_vpu_parameters_s param_list[NVPVA_TASK_MAX_SYMBOLS];
 	u8 sym_payload[NVPVA_TASK_MAX_PAYLOAD_SIZE];
 	struct pva_task_statistics_s statistics;

@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2016-2022, NVIDIA CORPORATION & AFFILIATES.
- * All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -504,48 +503,107 @@ static int pva_task_write_vpu_parameter(struct pva_submit_task *task,
 	dma_addr_t symbol_payload = 0U;
 	u32 size = 0U;
 	u32 i;
-	if (task->exe_id == NVPVA_NOOP_EXE_ID)
-		return err;
+	u32 index = 0;
 
+	u32 head_index = 0U;
+	u8 *headPtr = NULL;
+	u32 head_size = 0U;
+	u32 head_count = 0U;
+
+	int tail_index = 0;
+	u8 *tailPtr = NULL;
+	u32 tail_count = 0U;
+
+	if ((task->exe_id == NVPVA_NOOP_EXE_ID) || (task->num_symbols == 0U))
+		goto out;
+
+	tail_index = ((int)task->num_symbols - 1);
 	elf = get_elf_image(&task->client->elf_ctx, task->exe_id);
 	if (task->num_symbols > elf->num_symbols) {
 		task_err(task, "invalid number of symbols");
-		return -EINVAL;
+		err = -EINVAL;
+		goto out;
 	}
 
-	memcpy(hw_task->sym_payload, task->symbol_payload,
-	       task->symbol_payload_size);
-	symbol_payload =
-	    task->dma_addr + offsetof(struct pva_hw_task, sym_payload);
+	if (task->symbol_payload_size == 0U) {
+		task_err(task, "Empty Symbol payload");
+		err = -EINVAL;
+		goto out;
+	}
+
+	symbol_payload = task->dma_addr + offsetof(struct pva_hw_task, sym_payload);
+
+	headPtr = (u8 *)(hw_task->sym_payload);
+	tailPtr = (u8 *)(hw_task->sym_payload + task->symbol_payload_size);
+
 	for (i = 0U; i < task->num_symbols; i++) {
 		symbolId = task->symbols[i].symbol.id;
 		size = elf->sym[symbolId].size;
 		if (task->symbols[i].symbol.size != size) {
 			task_err(task, "size does not match symbol:%s",
 				 elf->sym[symbolId].symbol_name);
-			return -EINVAL;
+			err = -EINVAL;
+			goto out;
 		}
 
 		if (task->symbols[i].config == NVPVA_SYMBOL_POINTER) {
 			struct pva_pinned_memory *mem;
-			ptrSym = (struct nvpva_pointer_symbol *)
-					 (hw_task->sym_payload +
-					 task->symbols[i].offset);
+
+			memcpy(headPtr, (task->symbol_payload + task->symbols[i].offset),
+				sizeof(struct nvpva_pointer_symbol));
+			ptrSym = (struct nvpva_pointer_symbol *)(headPtr);
 			mem = pva_task_pin_mem(task, ptrSym->base);
 			if (IS_ERR(mem)) {
 				err = PTR_ERR(mem);
 				task_err(task, "failed to pin symbol pointer");
-				return -EINVAL;
+				err = -EINVAL;
+				goto out;
 			}
+
 			ptrSym->base = mem->dma_addr;
 			ptrSym->size = mem->size;
 			size = sizeof(struct nvpva_pointer_symbol);
+		} else if (size < PVA_DMA_VMEM_COPY_THRESHOLD) {
+			(void)memcpy(headPtr,
+				(task->symbol_payload + task->symbols[i].offset),
+				size);
+		} else if ((uintptr_t)(tailPtr) < ((uintptr_t)(headPtr) + size)) {
+			task_err(task, "Symbol payload overflow");
+			err = -EINVAL;
+			goto out;
+		} else {
+			tailPtr = (tailPtr - size);
+			(void)memcpy(tailPtr,
+				(task->symbol_payload + task->symbols[i].offset),
+				size);
+			hw_task->param_list[tail_index].param_base =
+						(pva_iova)(symbol_payload +
+						((uintptr_t)(tailPtr) -
+						(uintptr_t)(hw_task->sym_payload)));
+			index = tail_index;
+			tail_index--;
+			tail_count++;
+			hw_task->param_list[index].addr = elf->sym[symbolId].addr;
+			hw_task->param_list[index].size = size;
+			continue;
 		}
 
-		hw_task->param_list[i].addr = elf->sym[symbolId].addr;
-		hw_task->param_list[i].size = size;
-		hw_task->param_list[i].param_base =
-		    symbol_payload + task->symbols[i].offset;
+		hw_task->param_list[head_index].param_base = (pva_iova)(symbol_payload +
+						((uintptr_t)(headPtr) -
+						(uintptr_t)(hw_task->sym_payload)));
+		index = head_index;
+		if ((uintptr_t)(headPtr) > ((uintptr_t)(tailPtr) - size)) {
+			task_err(task, "Symbol payload overflow");
+			err = -EINVAL;
+			goto out;
+		} else {
+			headPtr = (headPtr + size);
+			head_index++;
+			head_size += size;
+			head_count++;
+			hw_task->param_list[index].addr = elf->sym[symbolId].addr;
+			hw_task->param_list[index].size = size;
+		}
 	}
 
 	/* Write info for VPU instance data parameter, if available in elf */
@@ -561,9 +619,24 @@ static int pva_task_write_vpu_parameter(struct pva_submit_task *task,
 		}
 	}
 
-	hw_task->task.parameter_base =
-	    task->dma_addr + offsetof(struct pva_hw_task, param_list);
+	hw_task->param_info.small_vpu_param_data_iova =
+			(head_size != 0U) ? symbol_payload : 0UL;
+
+	hw_task->param_info.small_vpu_parameter_data_size = head_size;
+
+	hw_task->param_info.large_vpu_parameter_list_start_index = head_count;
+	hw_task->param_info.vpu_instance_parameter_list_start_index =
+			(head_count + tail_count);
+
+	hw_task->param_info.parameter_data_iova = task->dma_addr
+			+ offsetof(struct pva_hw_task, param_list);
+
 	hw_task->task.num_parameters = task->num_symbols;
+
+	hw_task->task.parameter_base = 0UL;
+	hw_task->task.parameter_info_base = task->dma_addr
+					    + offsetof(struct pva_hw_task, param_info);
+
 	err = pva_task_acquire_ref_vpu_app(&task->client->elf_ctx,
 					   task->exe_id);
 	if (err) {
@@ -573,9 +646,10 @@ static int pva_task_write_vpu_parameter(struct pva_submit_task *task,
 	}
 
 	task->pinned_app = true;
-
+out:
 	return err;
 }
+
 static int set_flags(struct pva_submit_task *task, struct pva_hw_task *hw_task)
 {
 	int err = 0;
