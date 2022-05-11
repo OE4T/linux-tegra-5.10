@@ -44,6 +44,12 @@ CONFIG_NVGPU_MIG := y
 # Enable gv11b support
 CONFIG_NVGPU_SUPPORT_GV11B := y
 
+# Set config for OOT module build
+ifeq ($(CONFIG_TEGRA_OOT_MODULE),m)
+CONFIG_TEGRA_HOST1X_NEXT := m
+CONFIG_TEGRA_NVMAP_NEXT := m
+endif
+
 # Enable support for extraction of comptags for CDE.
 ifeq ($(CONFIG_NVGPU_COMPRESSION),y)
 CONFIG_NVGPU_SUPPORT_CDE := y
@@ -117,8 +123,16 @@ ifneq ($(findstring stable,$(NV_BUILD_KERNEL_OPTIONS)),)
 CONFIG_NVGPU_NVMEM_FUSE := y
 endif
 
+# Set CONFIG_NVGPU_IVM_BUILD for non-stable and non-oot build
 ifeq ($(findstring stable,$(NV_BUILD_KERNEL_OPTIONS)),)
+ifneq ($(CONFIG_TEGRA_OOT_MODULE),m)
 CONFIG_NVGPU_IVM_BUILD := y
+endif
+endif
+
+# Set config for OOT module build
+ifeq ($(CONFIG_TEGRA_OOT_MODULE),m)
+CONFIG_NVGPU_NVMEM_FUSE := y
 endif
 
 # Enable support for GPUs on PCIe bus.
@@ -184,6 +198,12 @@ else ifneq ($(filter 4.9 4.14,$(patsubst -,$(space),$(NV_BUILD_KERNEL_OPTIONS)))
 CONFIG_GK20A_PM_QOS := y
 endif
 
+endif
+
+# Set config for OOT module build
+ifeq ($(CONFIG_TEGRA_OOT_MODULE),m)
+CONFIG_GK20A_DEVFREQ := n
+CONFIG_GK20A_PM_QOS := n
 endif
 
 ifeq ($(CONFIG_GK20A_PMU),y)
