@@ -124,8 +124,8 @@ NVMAP_CONFIG_KSTABLE_KERNEL := n
 # Enable/Disable configs based upon the kernel version
 # Specify the values which are different from the default values
 
-#Enable/Disable the below configs for kstable
-ifneq ($(findstring stable,$(NV_BUILD_KERNEL_OPTIONS)),)
+#Enable/Disable the below configs for kstable and OOT
+ifneq ($(filter stable oot,$(patsubst -,$(space),$(NV_BUILD_KERNEL_OPTIONS))),)
 NVMAP_CONFIG_KSTABLE_KERNEL := y
 NVMAP_CONFIG_COLOR_PAGES := n
 NVMAP_CONFIG_LOADABLE_MODULE := y
