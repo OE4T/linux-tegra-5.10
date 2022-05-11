@@ -85,24 +85,6 @@ static void memctrl_writel(u32 chnl_no, u32 val, u32 reg)
 	writel(val, memctlr_regs[chnl_no] + reg);
 }
 
-int tegra_mc_hwpm_pm(void *ip_dev, bool disable)
-{
-	int err = 0;
-	struct platform_device *dev = (struct platform_device *)ip_dev;
-
-	pr_debug("disable %d\n", disable);
-	if (disable) {
-		err = pm_runtime_get_sync(&dev->dev);
-		if (err != 0)
-			pr_err("pm_runtime_get_sync failed");
-	} else {
-		err = pm_runtime_put_sync(&dev->dev);
-		if (err != 0)
-			pr_err("pm_runtime_put_sync failed");
-	}
-	return err;
-}
-
 static int tegra_mc_hwpm_reg_op(void *ip_dev, enum tegra_soc_hwpm_ip_reg_op reg_op,
 						u32 chnl_no,
 						u64 reg_offset, u32 *reg_data)
@@ -184,6 +166,7 @@ static void __iomem *tegra_mc_hwpm_map_regs(struct platform_device *pdev, int de
 	return regs_start;
 }
 
+static struct tegra_soc_hwpm_ip_ops hwpm_ip_ops;
 
 const struct of_device_id mc_hwpm_of_ids[] = {
 	{ .compatible = "nvidia,tegra-t23x-mc-hwpm" },
@@ -196,7 +179,6 @@ const struct of_device_id mc_hwpm_of_ids[] = {
 static int tegra_mc_hwpm_hwpm_probe(struct platform_device *pdev)
 {
 
-	struct tegra_soc_hwpm_ip_ops hwpm_ip_ops;
 	const struct of_device_id *match;
 	const void *prop;
 	int i;
@@ -244,7 +226,6 @@ static int tegra_mc_hwpm_hwpm_probe(struct platform_device *pdev)
 	hwpm_ip_ops.ip_dev = (void *)pdev;
 	hwpm_ip_ops.ip_index = TEGRA_SOC_HWPM_IP_MSS_CHANNEL;
 	hwpm_ip_ops.ip_base_address = pdev->resource[0].start;
-	hwpm_ip_ops.hwpm_ip_pm = &tegra_mc_hwpm_pm;
 	hwpm_ip_ops.hwpm_ip_reg_op = &__tegra_mc_hwpm_reg_op;
 	tegra_soc_hwpm_ip_register(&hwpm_ip_ops);
 
