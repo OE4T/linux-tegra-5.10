@@ -2528,6 +2528,11 @@ static void eqos_handle_mac_intrs(struct osi_core_priv_data *const osi_core,
 	mac_isr = osi_readla(osi_core,
 			     (nveu8_t *)osi_core->base + EQOS_MAC_ISR);
 
+	/* Handle MAC interrupts */
+	if ((dma_isr & EQOS_DMA_ISR_MACIS) != EQOS_DMA_ISR_MACIS) {
+		return;
+	}
+
 #ifdef HSI_SUPPORT
 	if (osi_core->mac_ver >= OSI_EQOS_MAC_5_30) {
 		/* T23X-EQOS_HSIv2-19: Consistency Monitor for TX Frame */
@@ -2547,10 +2552,6 @@ static void eqos_handle_mac_intrs(struct osi_core_priv_data *const osi_core,
 		}
 	}
 #endif
-	/* Handle MAC interrupts */
-	if ((dma_isr & EQOS_DMA_ISR_MACIS) != EQOS_DMA_ISR_MACIS) {
-		return;
-	}
 
 	/* handle only those MAC interrupts which are enabled */
 	mac_imr = osi_readla(osi_core,
@@ -2566,10 +2567,7 @@ static void eqos_handle_mac_intrs(struct osi_core_priv_data *const osi_core,
 	if (((mac_isr & EQOS_MAC_IMR_FPEIS) == EQOS_MAC_IMR_FPEIS) &&
 	    ((mac_imr & EQOS_IMR_FPEIE) == EQOS_IMR_FPEIE)) {
 		eqos_handle_mac_fpe_intrs(osi_core);
-		mac_isr &= ~EQOS_MAC_IMR_FPEIS;
 	}
-	osi_writela(osi_core, mac_isr,
-		    (nveu8_t *) osi_core->base + EQOS_MAC_ISR);
 
 	mac_pcs = osi_readla(osi_core,
 			     (nveu8_t *)osi_core->base + EQOS_MAC_PCS);
@@ -2608,13 +2606,6 @@ static void eqos_handle_mac_intrs(struct osi_core_priv_data *const osi_core,
 		/* Nothing here */
 	}
 
-	if (((mac_isr & EQOS_MAC_IMR_FPEIS) == EQOS_MAC_IMR_FPEIS) &&
-	    ((mac_imr & EQOS_IMR_FPEIE) == EQOS_IMR_FPEIE)) {
-		eqos_handle_mac_fpe_intrs(osi_core);
-		mac_isr &= ~EQOS_MAC_IMR_FPEIS;
-	}
-	osi_writela(osi_core, mac_isr,
-		    (unsigned char *)osi_core->base + EQOS_MAC_ISR);
 }
 
 /** \cond DO_NOT_DOCUMENT */

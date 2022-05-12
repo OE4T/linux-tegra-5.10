@@ -3505,7 +3505,6 @@ static void mgbe_handle_mac_intrs(struct osi_core_priv_data *osi_core,
 	if (((mac_isr & MGBE_MAC_IMR_FPEIS) == MGBE_MAC_IMR_FPEIS) &&
 	    ((mac_ier & MGBE_IMR_FPEIE) == MGBE_IMR_FPEIE)) {
 		mgbe_handle_mac_fpe_intrs(osi_core);
-		mac_isr &= ~MGBE_MAC_IMR_FPEIS;
 	}
 	/* Check for any MAC Transmit Error Status Interrupt */
 	if ((mac_isr & MGBE_IMR_TXESIE) == MGBE_IMR_TXESIE) {
@@ -3537,8 +3536,6 @@ static void mgbe_handle_mac_intrs(struct osi_core_priv_data *osi_core,
 		}
 	}
 
-	osi_writela(osi_core, mac_isr,
-		    (unsigned char *)osi_core->base + MGBE_MAC_ISR);
 	if ((mac_isr & MGBE_ISR_TSIS) == MGBE_ISR_TSIS) {
 		struct osi_core_tx_ts *head = &l_core->tx_ts_head;
 
@@ -3597,11 +3594,8 @@ static void mgbe_handle_mac_intrs(struct osi_core_priv_data *osi_core,
 		(void)__sync_fetch_and_sub(&l_core->ts_lock, 1);
 	}
 done:
-	mac_isr &= ~MGBE_ISR_TSIS;
-
-	osi_writela(osi_core, mac_isr,
-		    (unsigned char *)osi_core->base + MGBE_MAC_ISR);
 	/* TODO: Duplex/speed settigs - Its not same as EQOS for MGBE */
+	return;
 }
 
 /**
