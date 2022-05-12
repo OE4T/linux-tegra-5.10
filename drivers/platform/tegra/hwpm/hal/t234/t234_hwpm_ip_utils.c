@@ -45,19 +45,45 @@ int t234_hwpm_extract_ip_ops(struct tegra_soc_hwpm *hwpm,
 	}
 
 	switch (ip_idx) {
+#if defined(CONFIG_SOC_HWPM_IP_VI)
 	case T234_HWPM_IP_VI:
+#endif
+#if defined(CONFIG_SOC_HWPM_IP_ISP)
 	case T234_HWPM_IP_ISP:
+#endif
+#if defined(CONFIG_SOC_HWPM_IP_VIC)
 	case T234_HWPM_IP_VIC:
+#endif
+#if defined(CONFIG_SOC_HWPM_IP_OFA)
 	case T234_HWPM_IP_OFA:
+#endif
+#if defined(CONFIG_SOC_HWPM_IP_PVA)
 	case T234_HWPM_IP_PVA:
+#endif
+#if defined(CONFIG_SOC_HWPM_IP_NVDLA)
 	case T234_HWPM_IP_NVDLA:
+#endif
+#if defined(CONFIG_SOC_HWPM_IP_MGBE)
 	case T234_HWPM_IP_MGBE:
+#endif
+#if defined(CONFIG_SOC_HWPM_IP_SCF)
 	case T234_HWPM_IP_SCF:
+#endif
+#if defined(CONFIG_SOC_HWPM_IP_NVDEC)
 	case T234_HWPM_IP_NVDEC:
+#endif
+#if defined(CONFIG_SOC_HWPM_IP_NVENC)
 	case T234_HWPM_IP_NVENC:
+#endif
+#if defined(CONFIG_SOC_HWPM_IP_PCIE)
 	case T234_HWPM_IP_PCIE:
+#endif
+#if defined(CONFIG_SOC_HWPM_IP_DISPLAY)
 	case T234_HWPM_IP_DISPLAY:
+#endif
+#if defined(CONFIG_SOC_HWPM_IP_MSS_GPU_HUB)
 	case T234_HWPM_IP_MSS_GPU_HUB:
+#endif
 		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, hwpm_ip_ops,
 			hwpm_ip_ops->ip_base_address, ip_idx, available);
 		if (ret != 0) {
@@ -68,12 +94,19 @@ int t234_hwpm_extract_ip_ops(struct tegra_soc_hwpm *hwpm,
 			goto fail;
 		}
 		break;
+#if defined(CONFIG_SOC_HWPM_IP_MSS_CHANNEL)
 	case T234_HWPM_IP_MSS_CHANNEL:
+#endif
+#if defined(CONFIG_SOC_HWPM_IP_MSS_ISO_NISO_HUBS)
 	case T234_HWPM_IP_MSS_ISO_NISO_HUBS:
+#endif
+#if defined(CONFIG_SOC_HWPM_IP_MSS_MCF)
 	case T234_HWPM_IP_MSS_MCF:
+#endif
 		/* MSS channel, ISO NISO hubs and MCF share MC channels */
 
 		/* Check base address in T234_HWPM_IP_MSS_CHANNEL */
+#if defined(CONFIG_SOC_HWPM_IP_MSS_CHANNEL)
 		ip_idx = T234_HWPM_IP_MSS_CHANNEL;
 		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, hwpm_ip_ops,
 			hwpm_ip_ops->ip_base_address, ip_idx, available);
@@ -94,7 +127,8 @@ int t234_hwpm_extract_ip_ops(struct tegra_soc_hwpm *hwpm,
 			}
 			ret = 0;
 		}
-
+#endif
+#if defined(CONFIG_SOC_HWPM_IP_MSS_ISO_NISO_HUBS)
 		/* Check base address in T234_HWPM_IP_MSS_ISO_NISO_HUBS */
 		ip_idx = T234_HWPM_IP_MSS_ISO_NISO_HUBS;
 		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, hwpm_ip_ops,
@@ -116,7 +150,8 @@ int t234_hwpm_extract_ip_ops(struct tegra_soc_hwpm *hwpm,
 			}
 			ret = 0;
 		}
-
+#endif
+#if defined(CONFIG_SOC_HWPM_IP_MSS_MCF)
 		/* Check base address in T234_HWPM_IP_MSS_MCF */
 		ip_idx = T234_HWPM_IP_MSS_MCF;
 		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, hwpm_ip_ops,
@@ -139,6 +174,7 @@ int t234_hwpm_extract_ip_ops(struct tegra_soc_hwpm *hwpm,
 			ret = 0;
 		}
 		break;
+#endif
 	case T234_HWPM_IP_PMA:
 	case T234_HWPM_IP_RTR:
 	default:
@@ -159,122 +195,148 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 	if (tegra_platform_is_vsp()) {
 		/* Static IP instances as per VSP netlist */
 		/* MSS CHANNEL: vsp has single instance available */
+#if defined(CONFIG_SOC_HWPM_IP_MSS_CHANNEL)
 		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
 			addr_map_mc0_base_r(),
 			T234_HWPM_IP_MSS_CHANNEL, true);
 		if (ret != 0) {
-			goto fail;
+			return ret;
 		}
+#endif
+#if defined(CONFIG_SOC_HWPM_IP_MSS_GPU_HUB)
 
 		/* MSS GPU HUB */
 		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
 			addr_map_mss_nvlink_1_base_r(),
 			T234_HWPM_IP_MSS_GPU_HUB, true);
 		if (ret != 0) {
-			goto fail;
+			return ret;
 		}
+#endif
 	}
 	if (tegra_platform_is_silicon()) {
 		/* Static IP instances corresponding to silicon */
 		/* VI */
-		/*ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
+/*
+#if defined(CONFIG_SOC_HWPM_IP_VI)
+		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
 			addr_map_vi_thi_base_r(),
 			T234_HWPM_IP_VI, true);
 		if (ret != 0) {
-			goto fail;
+			return ret;
 		}
 		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
 			addr_map_vi2_thi_base_r(),
 			T234_HWPM_IP_VI, true);
 		if (ret != 0) {
-			goto fail;
-		}*/
-
+			return ret;
+		}
+#endif
+*/
+#if defined(CONFIG_SOC_HWPM_IP_ISP)
 		/* ISP */
 		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
 			addr_map_isp_thi_base_r(),
 			T234_HWPM_IP_ISP, true);
 		if (ret != 0) {
-			goto fail;
+			return ret;
 		}
+#endif
 
 		/* NVDLA */
 		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
 			addr_map_nvdla0_base_r(),
 			T234_HWPM_IP_NVDLA, true);
 		if (ret != 0) {
-			goto fail;
+			return ret;
 		}
 		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
 			addr_map_nvdla1_base_r(),
 			T234_HWPM_IP_NVDLA, true);
 		if (ret != 0) {
-			goto fail;
+			return ret;
 		}
 
 		/* MGBE */
-		/*ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
+/*
+#if defined(CONFIG_SOC_HWPM_IP_MGBE)
+		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
 			addr_map_mgbe0_mac_rm_base_r(),
 			T234_HWPM_IP_MGBE, true);
 		if (ret != 0) {
-			goto fail;
-		}*/
+			return ret;
+		}
+#endif
+*/
 
+#if defined(CONFIG_SOC_HWPM_IP_SCF)
 		/* SCF */
 		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
 			addr_map_rpg_pm_scf_base_r(),
 			T234_HWPM_IP_SCF, true);
 		if (ret != 0) {
-			goto fail;
+			return ret;
 		}
+#endif
+#if defined(CONFIG_SOC_HWPM_IP_NVDEC)
 
 		/* NVDEC */
 		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
 			addr_map_nvdec_base_r(),
 			T234_HWPM_IP_NVDEC, true);
 		if (ret != 0) {
-			goto fail;
+			return ret;
 		}
+#endif
 
 		/* PCIE */
-		/*ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
+/*
+#if defined(CONFIG_SOC_HWPM_IP_PCIE)
+		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
 			addr_map_pcie_c1_ctl_base_r(),
 			T234_HWPM_IP_PCIE, true);
 		if (ret != 0) {
-			goto fail;
+			return ret;
 		}
 		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
 			addr_map_pcie_c4_ctl_base_r(),
 			T234_HWPM_IP_PCIE, true);
 		if (ret != 0) {
-			goto fail;
+			return ret;
 		}
 		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
 			addr_map_pcie_c5_ctl_base_r(),
 			T234_HWPM_IP_PCIE, true);
 		if (ret != 0) {
-			goto fail;
-		}*/
+			return ret;
+		}
+#endif
+*/
 
 		/* DISPLAY */
-		/*ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
+/*
+#if defined(CONFIG_SOC_HWPM_IP_DISPLAY)
+		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
 			addr_map_disp_base_r(),
 			T234_HWPM_IP_DISPLAY, true);
 		if (ret != 0) {
-			goto fail;
-		}*/
+			return ret;
+		}
+#endif
+*/
 
+#if defined(CONFIG_SOC_HWPM_IP_MSS_GPU_HUB)
 		/* MSS GPU HUB */
 		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
 			addr_map_mss_nvlink_1_base_r(),
 			T234_HWPM_IP_MSS_GPU_HUB, true);
 		if (ret != 0) {
-			goto fail;
+			return ret;
 		}
+#endif
 	}
 
-fail:
-	return ret;
+	return 0;
 }
 
 int t234_hwpm_get_fs_info(struct tegra_soc_hwpm *hwpm,

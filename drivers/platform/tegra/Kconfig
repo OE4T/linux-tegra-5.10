@@ -345,5 +345,6 @@ config TEGRA_HSIERRRPTINJ
 	depends on ARCH_TEGRA_23x_SOC && MAILBOX && TEGRA_EPL && DEBUG_FS
 	default n
 
+source "drivers/platform/tegra/hwpm/Kconfig"
 source "drivers/platform/tegra/nvadsp/Kconfig"
 source "drivers/platform/tegra/nvaudio_ivc/Kconfig"

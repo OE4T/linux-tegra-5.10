@@ -16,6 +16,13 @@
 
 struct tegra_soc_hwpm;
 
+#ifdef CONFIG_TEGRA_T234_HWPM
 int t234_hwpm_init_chip_info(struct tegra_soc_hwpm *hwpm);
+#else
+int t234_hwpm_init_chip_info(struct tegra_soc_hwpm *hwpm)
+{
+	return -EINVAL;
+}
+#endif
 
 #endif /* T234_HWPM_INIT_H */
