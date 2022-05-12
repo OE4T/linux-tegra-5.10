@@ -4,7 +4,7 @@
  * Copyright (C) 2010 Google, Inc.
  * Author: Erik Gilling <konkers@android.com>
  *
- * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -91,7 +91,8 @@ enum {
 	/* 19-31 rsvd for other audio related blocks */
 
 	CEA_DATA_BLOCK_EXT_IDB = 32, /* infoframe data block */
-	/* 33-255 rsvd */
+	CEA_DATA_BLOCK_EXT_SCDB = 121, /* sink capability data block */
+	/* 122-255 rsvd */
 };
 
 #define ELD_MAX_MNL	16
@@ -213,7 +214,6 @@ u16 tegra_edid_get_quant_cap(struct tegra_edid *edid);
 u16 tegra_edid_get_max_clk_rate(struct tegra_edid *edid);
 bool tegra_edid_is_scdc_present(struct tegra_edid *edid);
 bool tegra_edid_is_420db_present(struct tegra_edid *edid);
-bool tegra_edid_is_hfvsdb_present(struct tegra_edid *edid);
 bool tegra_edid_require_dv_vsif(struct tegra_edid *edid);
 bool tegra_edid_support_dv_std_422(struct tegra_edid *edid);
 bool tegra_edid_support_yuv422(struct tegra_edid *edid);

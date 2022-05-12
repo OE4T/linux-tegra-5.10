@@ -1,7 +1,7 @@
 /*
  * hdmi2.0.c: hdmi2.0 driver.
  *
- * Copyright (c) 2014-2021, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2014-2022, NVIDIA CORPORATION, All rights reserved.
  * Author: Animesh Kishore <ankishore@nvidia.com>
  *
  * This software is licensed under the terms of the GNU General Public
@@ -360,8 +360,7 @@ static bool tegra_hdmi_fb_mode_filter(const struct tegra_dc *dc,
 	/* some non-compliant edids list 420vdb modes in vdb */
 	if ((mode->vmode & FB_VMODE_Y420) &&
 		!(mode->flag & FB_MODE_IS_FROM_VAR) &&
-		!(tegra_edid_is_hfvsdb_present(hdmi->edid) &&
-		tegra_edid_is_scdc_present(hdmi->edid)) &&
+		!(tegra_edid_is_scdc_present(hdmi->edid)) &&
 		tegra_edid_is_420db_present(hdmi->edid)) {
 		mode->vmode &= ~FB_VMODE_Y420;
 		mode->vmode |= FB_VMODE_Y420_ONLY;
@@ -386,8 +385,7 @@ static bool tegra_hdmi_fb_mode_filter(const struct tegra_dc *dc,
 	 */
 	if (((tegra_hdmi_mode_min_tmds_rate(mode) / 1000 >= 340) &&
 		!(mode->flag & FB_MODE_IS_FROM_VAR)) &&
-		(!tegra_edid_is_hfvsdb_present(hdmi->edid) ||
-		!tegra_edid_is_scdc_present(hdmi->edid)))
+		(!tegra_edid_is_scdc_present(hdmi->edid)))
 		return false;
 
 	/* Check if the mode's pixel clock is more than the max rate*/
@@ -3973,8 +3971,6 @@ static int tegra_hdmi_status_dbg_show(struct seq_file *m, void *unused)
 	seq_printf(m, "hotplug state: %d\n", tegra_dc_hpd(dc));
 	seq_printf(m, "SCDC present: %d\n",
 		tegra_edid_is_scdc_present(hdmi->edid));
-	seq_printf(m, "Forum VSDB present: %d\n",
-		tegra_edid_is_hfvsdb_present(hdmi->edid));
 	seq_printf(m, "YCbCr4:2:0 VDB present: %d\n",
 		tegra_edid_is_420db_present(hdmi->edid));
 
