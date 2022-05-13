@@ -5539,7 +5539,7 @@ static void ether_get_dma_ring_size(struct device *dev,
 	ret = of_property_read_u32(np, "nvidia,dma_rx_ring_sz",
 				   &osi_dma->rx_ring_sz);
 	if (ret < 0) {
-		dev_info(dev, "Failed to read DMA Tx ring size, using default [%d]\n",
+		dev_info(dev, "Failed to read DMA Rx ring size, using default [%d]\n",
 			 default_sz[osi_dma->mac]);
 		osi_dma->rx_ring_sz = default_sz[osi_dma->mac];
 	}
