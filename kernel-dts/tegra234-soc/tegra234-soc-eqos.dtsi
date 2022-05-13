@@ -130,5 +130,7 @@
 		pinctrl-0 = <&eqos_mii_rx_input_state_disable>;
 		pinctrl-1 = <&eqos_mii_rx_input_state_enable>;
 		dma-coherent;
+		nvidia,dma_rx_ring_sz = <1024>;
+		nvidia,dma_tx_ring_sz = <1024>;
 	};
 };
