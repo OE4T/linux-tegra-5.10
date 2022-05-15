@@ -3758,6 +3758,9 @@ EXPORT_SYMBOL_GPL(__clk_debugfs_add_file);
 static int __init clk_debug_init(void)
 {
 	struct clk_core *core;
+#ifdef CONFIG_COMMON_CLK_FREQ_STATS_ACCOUNTING
+	struct dentry *d;
+#endif
 
 #ifdef CLOCK_ALLOW_WRITE_DEBUGFS
 	pr_warn("\n");
