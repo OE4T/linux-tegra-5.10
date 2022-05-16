@@ -487,12 +487,16 @@ static int pva_task_process_output_status(struct pva_submit_task *task,
 						1U /* PVA task error code */);
 		++hw_task->task.num_postactions;
 	}
+
 	stats_addr = task->dma_addr + offsetof(struct pva_hw_task, statistics);
 	fw_postactions = &hw_task->postactions[hw_task->task.num_postactions];
-	pva_task_write_stats_action_op(fw_postactions,
-				       (uint8_t)TASK_ACT_PVA_STATISTICS,
-				       stats_addr);
-	++hw_task->task.num_postactions;
+	if ((task->pva->stats_enabled)
+	  || (task->pva->profiling_level > 0)) {
+		pva_task_write_stats_action_op(fw_postactions,
+					       (uint8_t)TASK_ACT_PVA_STATISTICS,
+					       stats_addr);
+		++hw_task->task.num_postactions;
+	}
 
 out:
 	return err;
@@ -800,7 +804,7 @@ pva_eventlib_record_r5_states(struct platform_device *pdev,
 	struct nvdev_fence post_fence;
 	struct nvpva_submit_fence *fence;
 
-	if (!pdata->eventlib_id)
+	if ((task->pva->profiling_level == 0) || (!pdata->eventlib_id))
 		return;
 
 	/* Record task postfences */
@@ -824,30 +828,6 @@ pva_eventlib_record_r5_states(struct platform_device *pdev,
 	keventlib_write(pdata->eventlib_id,
 			&state,
 			sizeof(state),
-			NVHOST_PVA_QUEUE_BEGIN,
-			stats->queued_time);
-
-	keventlib_write(pdata->eventlib_id,
-			&state,
-			sizeof(state),
-			NVHOST_PVA_QUEUE_END,
-			stats->vpu_assigned_time);
-
-	keventlib_write(pdata->eventlib_id,
-			&state,
-			sizeof(state),
-			NVHOST_PVA_PREPARE_BEGIN,
-			stats->vpu_assigned_time);
-
-	keventlib_write(pdata->eventlib_id,
-			&state,
-			sizeof(state),
-			NVHOST_PVA_PREPARE_END,
-			stats->vpu_start_time);
-
-	keventlib_write(pdata->eventlib_id,
-			&state,
-			sizeof(state),
 			stats->vpu_assigned == 0 ? NVHOST_PVA_VPU0_BEGIN
 						 : NVHOST_PVA_VPU1_BEGIN,
 			stats->vpu_start_time);
@@ -858,18 +838,42 @@ pva_eventlib_record_r5_states(struct platform_device *pdev,
 			stats->vpu_assigned == 0 ? NVHOST_PVA_VPU0_END
 						 : NVHOST_PVA_VPU1_END,
 			stats->vpu_complete_time);
-
+	keventlib_write(pdata->eventlib_id,
+			&state,
+			sizeof(state),
+			NVHOST_PVA_PREPARE_END,
+			stats->vpu_start_time);
 	keventlib_write(pdata->eventlib_id,
 			&state,
 			sizeof(state),
 			NVHOST_PVA_POST_BEGIN,
 			stats->vpu_complete_time);
 
-	keventlib_write(pdata->eventlib_id,
-			&state,
-			sizeof(state),
-			NVHOST_PVA_POST_END,
-			stats->complete_time);
+	if (task->pva->profiling_level >= 2) {
+		keventlib_write(pdata->eventlib_id,
+				&state,
+				sizeof(state),
+				NVHOST_PVA_QUEUE_BEGIN,
+				stats->queued_time);
+
+		keventlib_write(pdata->eventlib_id,
+				&state,
+				sizeof(state),
+				NVHOST_PVA_QUEUE_END,
+				stats->vpu_assigned_time);
+
+		keventlib_write(pdata->eventlib_id,
+				&state,
+				sizeof(state),
+				NVHOST_PVA_PREPARE_BEGIN,
+				stats->vpu_assigned_time);
+
+		keventlib_write(pdata->eventlib_id,
+				&state,
+				sizeof(state),
+				NVHOST_PVA_POST_END,
+				stats->complete_time);
+	}
 }
 #else
 static void
@@ -961,6 +965,9 @@ static void update_one_task(struct pva *pva)
 		task_info.error == PVA_ERR_BAD_TASK_ACTION_LIST);
 	hw_task = task->va;
 	stats = &hw_task->statistics;
+	if (!task->pva->stats_enabled)
+		goto prof;
+
 	vpu_time = (stats->vpu_complete_time - stats->vpu_start_time);
 	r5_overhead = ((stats->complete_time - stats->queued_time) - vpu_time);
 	r5_overhead = r5_overhead / tsc_ticks_to_us;
@@ -993,12 +1000,21 @@ static void update_one_task(struct pva *pva)
 				    stats->complete_time,
 				    stats->vpu_assigned,
 				    r5_overhead);
+prof:
+	if (task->pva->profiling_level == 0)
+		goto out;
+
+	nvhost_eventlib_log_task(pdev,
+				 queue->syncpt_id,
+				 task->syncpt_thresh,
+				 stats->vpu_assigned_time,
+				 stats->complete_time);
 	pva_eventlib_record_r5_states(pdev,
 				      queue->syncpt_id,
 				      task->syncpt_thresh,
 				      stats,
 				      task);
-
+out:
 	/* Not linked anymore so drop the reference */
 	kref_put(&task->ref, pva_task_free);
 }
@@ -1092,8 +1108,8 @@ static int pva_task_submit(const struct pva_submit_tasks *task_header)
 	int err = 0;
 	u32 i;
 	u8 batchsize = task_header->num_tasks - 1U;
-		nvpva_dbg_info(first_task->pva, "submitting %u tasks; batchsize: %u",
-			task_header->num_tasks, batchsize);
+	nvpva_dbg_info(first_task->pva, "submitting %u tasks; batchsize: %u",
+		task_header->num_tasks, batchsize);
 
 	/*
 	 * TSC timestamp is same as CNTVCT. Task statistics are being
@@ -1104,7 +1120,6 @@ static int pva_task_submit(const struct pva_submit_tasks *task_header)
 #else
 	timestamp = arch_counter_get_cntvct();
 #endif
-
 	for (i = 0; i < task_header->num_tasks; i++) {
 		struct pva_submit_task *task = task_header->tasks[i];
 		struct pva_hw_task *hw_task = task->va;
@@ -1150,6 +1165,9 @@ static int pva_task_submit(const struct pva_submit_tasks *task_header)
 		goto remove_tasks;
 	}
 
+	if (first_task->pva->profiling_level == 0)
+		goto out;
+
 	for (i = 0; i < task_header->num_tasks; i++) {
 		u32 j;
 		struct nvdev_fence pre_fence;
@@ -1172,7 +1190,7 @@ static int pva_task_submit(const struct pva_submit_tasks *task_header)
 					   task->syncpt_thresh,
 					   timestamp);
 	}
-
+out:
 	return 0;
 
 remove_tasks:

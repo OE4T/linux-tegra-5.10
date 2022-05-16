@@ -254,6 +254,9 @@ void pva_debugfs_init(struct platform_device *pdev)
 	debugfs_create_u32("driver_log_mask", 0644, de, &pva->driver_log_mask);
 	debugfs_create_file("vpu_app_authentication", 0644, de, pva,
 			    &pva_auth_fops);
+	debugfs_create_u32("profiling_level", 0644, de, &pva->profiling_level);
+	debugfs_create_bool("stats_enabled", 0644, de, &pva->stats_enabled);
+
 	err = pva_vpu_ocd_init(pva);
 	if (err == 0) {
 		for (i = 0; i < NUM_VPU_BLOCKS; i++)

@@ -325,11 +325,15 @@ struct pva_vpu_dbg_block {
  * r5_dbg_wait		Set the r5 debugger to wait
  * timeout_enabled	Set pva timeout enabled based on debug
  * slcg_disable		Second level Clock Gating control variable
+ * vpu_printf_enabled
+ * vpu_debug_enabled
  * log_level		controls the level of detail printed by FW
  *			debug statements
+ * profiling_level
  * driver_log_mask	controls the level of detail printed by kernel
  *			debug statements
- **/
+ */
+
 struct pva {
 	int version;
 	struct pva_version_config *version_config;
@@ -376,6 +380,8 @@ struct pva {
 	u32 vmem_war_disable;
 	bool vpu_printf_enabled;
 	bool vpu_debug_enabled;
+	bool stats_enabled;
+	u32 profiling_level;
 
 	struct work_struct pva_abort_handler_work;
 	bool booted;

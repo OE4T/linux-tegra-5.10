@@ -1014,6 +1014,8 @@ static int pva_probe(struct platform_device *pdev)
 	pva->vpu_printf_enabled = true;
 	pva->vpu_debug_enabled = true;
 	pva->driver_log_mask = NVPVA_DEFAULT_DBG_MASK;
+	pva->profiling_level = 0;
+	pva->stats_enabled = false;
 
 #ifdef __linux__
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)
