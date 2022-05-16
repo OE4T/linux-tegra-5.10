@@ -29,12 +29,13 @@ int t234_hwpm_extract_ip_ops(struct tegra_soc_hwpm *hwpm,
 
 	tegra_hwpm_fn(hwpm, " ");
 
-	/* Convert tegra_soc_hwpm_ip to internal enum */
-	if (!(t234_hwpm_is_ip_active(hwpm,
-			hwpm_ip_ops->ip_index, &ip_idx))) {
+	/* Convert tegra_soc_hwpm_resource to internal enum */
+	if (!(t234_hwpm_is_resource_active(hwpm,
+			hwpm_ip_ops->resource_enum, &ip_idx))) {
 		tegra_hwpm_err(hwpm,
-			"SOC hwpm IP %d (base 0x%llx) is unconfigured",
-			hwpm_ip_ops->ip_index, hwpm_ip_ops->ip_base_address);
+			"SOC hwpm resource %d (base 0x%llx) is unconfigured",
+			hwpm_ip_ops->resource_enum,
+			hwpm_ip_ops->ip_base_address);
 		goto fail;
 	}
 
@@ -306,7 +307,7 @@ fail:
 }
 
 int t234_hwpm_get_fs_info(struct tegra_soc_hwpm *hwpm,
-	u32 ip_index, u64 *fs_mask, u8 *ip_status)
+	u32 ip_enum, u64 *fs_mask, u8 *ip_status)
 {
 	u32 ip_idx = 0U;
 	struct tegra_soc_hwpm_chip *active_chip = NULL;
@@ -316,17 +317,17 @@ int t234_hwpm_get_fs_info(struct tegra_soc_hwpm *hwpm,
 	tegra_hwpm_fn(hwpm, " ");
 
 	/* Convert tegra_soc_hwpm_ip to internal enum */
-	if (!(t234_hwpm_is_ip_active(hwpm, ip_index, &ip_idx))) {
+	if (!(t234_hwpm_is_ip_active(hwpm, ip_enum, &ip_idx))) {
 		tegra_hwpm_dbg(hwpm, hwpm_info,
-			"SOC hwpm IP %d is not configured", ip_index);
+			"SOC hwpm IP %d is not configured", ip_enum);
 
 		*ip_status = TEGRA_SOC_HWPM_IP_STATUS_INVALID;
 		*fs_mask = 0ULL;
 		/* Remove after uapi update */
-		if (ip_index == TEGRA_SOC_HWPM_IP_MSS_NVLINK) {
+		if (ip_enum == TEGRA_SOC_HWPM_IP_MSS_NVLINK) {
 			tegra_hwpm_dbg(hwpm, hwpm_verbose,
 				"For hwpm IP %d setting status as valid",
-				ip_index);
+				ip_enum);
 			*ip_status = TEGRA_SOC_HWPM_IP_STATUS_VALID;
 		}
 		return 0;

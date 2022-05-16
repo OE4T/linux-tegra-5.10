@@ -110,7 +110,7 @@ void tegra_soc_hwpm_ip_register(struct tegra_soc_hwpm_ip_ops *hwpm_ip_ops)
 			hwpm_ip_ops, REGISTER_IP);
 		if (ret < 0) {
 			tegra_hwpm_err(hwpm, "Failed to set IP ops for IP %d",
-				hwpm_ip_ops->ip_index);
+				hwpm_ip_ops->resource_enum);
 		}
 	}
 }
@@ -141,7 +141,7 @@ void tegra_soc_hwpm_ip_unregister(struct tegra_soc_hwpm_ip_ops *hwpm_ip_ops)
 			hwpm_ip_ops, UNREGISTER_IP);
 		if (ret < 0) {
 			tegra_hwpm_err(hwpm, "Failed to reset IP ops for IP %d",
-				hwpm_ip_ops->ip_index);
+				hwpm_ip_ops->resource_enum);
 		}
 	}
 }

@@ -224,7 +224,7 @@ static int tegra_mc_hwpm_hwpm_probe(struct platform_device *pdev)
 	}
 
 	hwpm_ip_ops.ip_dev = (void *)pdev;
-	hwpm_ip_ops.ip_index = TEGRA_SOC_HWPM_IP_MSS_CHANNEL;
+	hwpm_ip_ops.resource_enum = TEGRA_SOC_HWPM_RESOURCE_MSS_CHANNEL;
 	hwpm_ip_ops.ip_base_address = pdev->resource[0].start;
 	hwpm_ip_ops.hwpm_ip_reg_op = &__tegra_mc_hwpm_reg_op;
 	tegra_soc_hwpm_ip_register(&hwpm_ip_ops);

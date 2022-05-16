@@ -73,18 +73,19 @@ int pva_hwpm_ip_pm(void *ip_dev, bool disable);
  * This function called from Tegra HWPM driver to
  * access PVA HWPM registers.
  *
- * @param ip_dev	Pointer to PVA device
- * @param reg_op	access operationand can be one of
- *			TEGRA_SOC_HWPM_IP_REG_OP_READ
- *			TEGRA_SOC_HWPM_IP_REG_OP_WRITE
- * @param reg_offset	offset of register relative to PVA HWP base
- * @param reg_data	pointer to where data is to be placed or read.
- * @return		0 on Success or negative error code
+ * @param ip_dev		Pointer to PVA device
+ * @param reg_op		access operation and can be one of
+ *				TEGRA_SOC_HWPM_IP_REG_OP_READ
+ *				TEGRA_SOC_HWPM_IP_REG_OP_WRITE
+ * @param inst_element_index	element index within PVA instance
+ * @param reg_offset		offset of register relative to PVA HWP base
+ * @param reg_data		pointer to where data is to be placed or read.
+ * @return			0 on Success or negative error code
  *
  */
 int pva_hwpm_ip_reg_op(void *ip_dev,
 		       enum tegra_soc_hwpm_ip_reg_op reg_op,
-		       u64 reg_offset,
+		       u32 inst_element_index, u64 reg_offset,
 		       u32 *reg_data);
 #endif
 #endif

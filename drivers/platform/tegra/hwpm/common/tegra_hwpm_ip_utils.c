@@ -201,7 +201,7 @@ static int tegra_hwpm_complete_ip_register(struct tegra_soc_hwpm *hwpm)
 
 	while (node != NULL) {
 		tegra_hwpm_dbg(hwpm, hwpm_info, "IP ext idx %d info",
-			node->ip_ops.ip_index);
+			node->ip_ops.resource_enum);
 		ret = hwpm->active_chip->extract_ip_ops(
 			hwpm, &node->ip_ops, true);
 		if (ret != 0) {

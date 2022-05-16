@@ -803,15 +803,16 @@ static DEVICE_ATTR(reload_fw, 0200, NULL, reload_fw_write);
 static u32 flcn_hwpm_get_ip_index(const char *name)
 {
 	if (strstr(name, "vic")) {
-		return (u32)TEGRA_SOC_HWPM_IP_VIC;
+		return (u32)TEGRA_SOC_HWPM_RESOURCE_VIC;
 	} else if (strstr(name, "nvenc")) {
-		return (u32)TEGRA_SOC_HWPM_IP_NVENC;
+		return (u32)TEGRA_SOC_HWPM_RESOURCE_NVENC;
 	} else if (strstr(name, "ofa")) {
-		return (u32)TEGRA_SOC_HWPM_IP_OFA;
+		return (u32)TEGRA_SOC_HWPM_RESOURCE_OFA;
 	}
 	return (u32)TERGA_SOC_HWPM_NUM_IPS;
 }
-int flcn_hwpm_ip_pm(void *ip_dev, bool disable)
+
+static int flcn_hwpm_ip_pm(void *ip_dev, bool disable)
 {
 	int err = 0;
 	struct platform_device *dev = (struct platform_device *)ip_dev;
@@ -819,21 +820,19 @@ int flcn_hwpm_ip_pm(void *ip_dev, bool disable)
 	nvhost_dbg_fn("ip power management %s", disable ? "disable" : "enable");
 
 	if (disable) {
-		err = pm_runtime_get_sync(&dev->dev);
-		if (err != 0) {
-			nvhost_err(&dev->dev, "pm_runtime_get_sync failed");
-		}
+		err = nvhost_module_busy(ip_dev);
+		if (err < 0)
+			dev_err(&dev->dev, "nvhost_module_busy failed");
 	} else {
-		err = pm_runtime_put_sync(&dev->dev);
-		if (err != 0) {
-			nvhost_err(&dev->dev, "pm_runtime_put_sync failed");
-		}
+		nvhost_module_idle(ip_dev);
 	}
+
 	return err;
 }
 
-int flcn_hwpm_ip_reg_op(void *ip_dev, enum tegra_soc_hwpm_ip_reg_op reg_op,
-						u64 reg_offset, u32 *reg_data)
+static int flcn_hwpm_ip_reg_op(void *ip_dev,
+	enum tegra_soc_hwpm_ip_reg_op reg_op,
+	u32 inst_element_index, u64 reg_offset, u32 *reg_data)
 {
 	struct platform_device *dev = (struct platform_device *)ip_dev;
 
@@ -914,7 +913,7 @@ static int flcn_probe(struct platform_device *dev)
 	if (hwpm_ip_index != TERGA_SOC_HWPM_NUM_IPS) {
 		hwpm_ip_ops.ip_dev = (void *)dev;
 		hwpm_ip_ops.ip_base_address = dev->resource[0].start;
-		hwpm_ip_ops.ip_index = hwpm_ip_index;
+		hwpm_ip_ops.resource_enum = hwpm_ip_index;
 		hwpm_ip_ops.hwpm_ip_pm = &flcn_hwpm_ip_pm;
 		hwpm_ip_ops.hwpm_ip_reg_op = &flcn_hwpm_ip_reg_op;
 		tegra_soc_hwpm_ip_register(&hwpm_ip_ops);

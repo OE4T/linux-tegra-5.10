@@ -65,11 +65,13 @@ struct tegra_hwpm_ip_ops {
 	 * For read:
 	 *      input : dev - IP device handle
 	 *      input : reg_op - TEGRA_SOC_HWPM_IP_REG_OP_READ
+	 *      input : inst_element_index - element index within IP instance
 	 *      input : reg_offset - register offset
 	 *      output: reg_data - u32 read value
 	 * For write:
 	 *      input : dev - IP device handle
 	 *      input : reg_op - TEGRA_SOC_HWPM_IP_REG_OP_WRITE
+	 *      input : inst_element_index - element index within IP instance
 	 *      input : reg_offset - register offset
 	 *      output: reg_data -  u32 write value
 	 * Return:
@@ -77,7 +79,8 @@ struct tegra_hwpm_ip_ops {
 	 */
 	int (*hwpm_ip_reg_op)(void *dev,
 				enum tegra_soc_hwpm_ip_reg_op reg_op,
-				__u64 reg_offset, __u32 *reg_data);
+				u32 inst_element_index, u64 reg_offset,
+				u32 *reg_data);
 };
 
 /* There are 3 types of HWPM components/apertures */
@@ -303,7 +306,7 @@ struct tegra_soc_hwpm_chip {
 	struct tegra_soc_hwpm_ip_ops *hwpm_ip_ops, bool available);
 	int (*force_enable_ips)(struct tegra_soc_hwpm *hwpm);
 	int (*get_fs_info)(struct tegra_soc_hwpm *hwpm,
-	u32 ip_index, u64 *fs_mask, u8 *ip_status);
+	u32 ip_enum, u64 *fs_mask, u8 *ip_status);
 
 	int (*init_prod_values)(struct tegra_soc_hwpm *hwpm);
 	int (*disable_slcg)(struct tegra_soc_hwpm *hwpm);

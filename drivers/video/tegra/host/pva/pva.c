@@ -884,7 +884,7 @@ int pva_hwpm_ip_pm(void *ip_dev, bool disable)
 }
 
 int pva_hwpm_ip_reg_op(void *ip_dev, enum tegra_soc_hwpm_ip_reg_op reg_op,
-	u64 reg_offset, u32 *reg_data)
+	u32 inst_element_index, u64 reg_offset, u32 *reg_data)
 {
 	struct platform_device *dev = (struct platform_device *)ip_dev;
 	struct nvhost_device_data *pdata = platform_get_drvdata(dev);
@@ -1104,7 +1104,7 @@ static int pva_probe(struct platform_device *pdev)
 	nvpva_dbg_info(pva, "hwpm ip %s register", pdev->name);
 	pva->hwpm_ip_ops.ip_dev = (void *)pdev;
 	pva->hwpm_ip_ops.ip_base_address = (pdev->resource[0].start + offset);
-	pva->hwpm_ip_ops.ip_index = TEGRA_SOC_HWPM_RESOURCE_PVA;
+	pva->hwpm_ip_ops.resource_enum = TEGRA_SOC_HWPM_RESOURCE_PVA;
 	pva->hwpm_ip_ops.hwpm_ip_pm = &pva_hwpm_ip_pm;
 	pva->hwpm_ip_ops.hwpm_ip_reg_op = &pva_hwpm_ip_reg_op;
 	tegra_soc_hwpm_ip_register(&pva->hwpm_ip_ops);
