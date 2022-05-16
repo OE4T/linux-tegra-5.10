@@ -17,5 +17,10 @@ ccflags-y += -Werror
 ccflags-y += -I$(srctree.nvidia)/include/
 
 
+# Make as module for OOT module build
+ifeq ($(CONFIG_TEGRA_OOT_MODULE),m)
+obj-m := nvsciipc.o
+else
 obj-$(CONFIG_NVSCIIPC) := nvsciipc.o
+endif
 
