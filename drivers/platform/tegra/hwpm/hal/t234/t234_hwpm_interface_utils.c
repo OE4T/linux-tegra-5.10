@@ -34,6 +34,7 @@ struct tegra_soc_hwpm_chip t234_chip_info = {
 	.extract_ip_ops = t234_hwpm_extract_ip_ops,
 	.force_enable_ips = t234_hwpm_force_enable_ips,
 	.get_fs_info = t234_hwpm_get_fs_info,
+	.get_resource_info = t234_hwpm_get_resource_info,
 
 	.init_prod_values = t234_hwpm_init_prod_values,
 	.disable_slcg = t234_hwpm_disable_slcg,
@@ -98,6 +99,11 @@ static bool t234_hwpm_validate_hals(struct tegra_soc_hwpm *hwpm)
 
 	if (hwpm->active_chip->get_fs_info == NULL) {
 		tegra_hwpm_err(hwpm, "get_fs_info uninitialized");
+		return false;
+	}
+
+	if (hwpm->active_chip->get_resource_info == NULL) {
+		tegra_hwpm_err(hwpm, "get_resource_info uninitialized");
 		return false;
 	}
 

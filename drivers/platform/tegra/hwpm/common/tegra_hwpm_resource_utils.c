@@ -71,12 +71,6 @@ int tegra_hwpm_reserve_resource(struct tegra_soc_hwpm *hwpm, u32 resource)
 	if (!active_chip->is_resource_active(hwpm, resource, &ip_idx)) {
 		tegra_hwpm_err(hwpm, "Requested resource %d is unavailable",
 			resource);
-		/* Remove after uapi update */
-		if (resource == TEGRA_SOC_HWPM_RESOURCE_MSS_NVLINK) {
-			tegra_hwpm_dbg(hwpm, hwpm_verbose,
-				"ignoring resource %d", resource);
-			return 0;
-		}
 		return -EINVAL;
 	}
 

@@ -89,6 +89,11 @@ struct tegra_hwpm_ip_ops {
 #define TEGRA_HWPM_APERTURE_TYPE_PERFMON	2U
 #define TEGRA_HWPM_APERTURE_TYPE_MAX		3U
 
+#define TEGRA_HWPM_RESOURCE_STATUS_INVALID	\
+		TEGRA_SOC_HWPM_RESOURCE_STATUS_INVALID
+#define TEGRA_HWPM_RESOURCE_STATUS_VALID	\
+		TEGRA_SOC_HWPM_RESOURCE_STATUS_VALID
+
 /*
  * Devices handled by HWPM driver can be divided into 2 categories
  * - HWPM : Components in HWPM device address space
@@ -284,6 +289,14 @@ struct hwpm_ip {
 	 */
 	u32 inst_fs_mask;
 
+	/*
+	 * Resource status can be: TEGRA_HWPM_RESOURCE_STATUS_*
+	 * - invalid:  resource is not available to be reserved
+	 * - valid:    resource exists on the chip
+	 * - reserved: resource is reserved
+	 * - fault:    resource faulted during reservation
+	 */
+	u32 resource_status;
 	bool reserved;
 };
 
@@ -307,6 +320,8 @@ struct tegra_soc_hwpm_chip {
 	int (*force_enable_ips)(struct tegra_soc_hwpm *hwpm);
 	int (*get_fs_info)(struct tegra_soc_hwpm *hwpm,
 	u32 ip_enum, u64 *fs_mask, u8 *ip_status);
+	int (*get_resource_info)(struct tegra_soc_hwpm *hwpm,
+	u32 resource_enum, u8 *status);
 
 	int (*init_prod_values)(struct tegra_soc_hwpm *hwpm);
 	int (*disable_slcg)(struct tegra_soc_hwpm *hwpm);

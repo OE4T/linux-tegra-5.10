@@ -708,9 +708,10 @@ int tegra_hwpm_func_single_ip(struct tegra_soc_hwpm *hwpm,
 			return 0;
 		}
 
-		if (chip_ip->inst_fs_mask == 0U) {
+		if (chip_ip->resource_status ==
+			TEGRA_HWPM_RESOURCE_STATUS_INVALID) {
 			/* No IP instance is available to reserve */
-			return 0;
+			return -EINVAL;
 		}
 		break;
 	case TEGRA_HWPM_RELEASE_RESOURCES:

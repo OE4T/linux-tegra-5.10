@@ -164,5 +164,6 @@ struct hwpm_ip t234_hwpm_ip_pma = {
 
 	.override_enable = false,
 	.inst_fs_mask = 0x1U,
+	.resource_status = TEGRA_HWPM_RESOURCE_STATUS_VALID,
 	.reserved = false,
 };

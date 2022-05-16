@@ -21,6 +21,11 @@
 #include <hal/t234/t234_hwpm_internal.h>
 #include <hal/t234/hw/t234_addr_map_soc_hwpm.h>
 
+/*
+ * This function is invoked by register_ip API.
+ * Convert the external resource enum to internal IP index.
+ * Extract given ip_ops and update corresponding IP structure.
+ */
 int t234_hwpm_extract_ip_ops(struct tegra_soc_hwpm *hwpm,
 	struct tegra_soc_hwpm_ip_ops *hwpm_ip_ops, bool available)
 {
@@ -344,6 +349,28 @@ int t234_hwpm_get_fs_info(struct tegra_soc_hwpm *hwpm,
 	}
 	*ip_status = TEGRA_SOC_HWPM_IP_STATUS_VALID;
 
+
+	return 0;
+}
+
+int t234_hwpm_get_resource_info(struct tegra_soc_hwpm *hwpm,
+	u32 resource_enum, u8 *status)
+{
+	u32 ip_idx = 0U;
+	struct tegra_soc_hwpm_chip *active_chip = hwpm->active_chip;
+	struct hwpm_ip *chip_ip = NULL;
+
+	tegra_hwpm_fn(hwpm, " ");
+
+	/* Convert tegra_soc_hwpm_resource to internal enum */
+	if (!(t234_hwpm_is_resource_active(hwpm, resource_enum, &ip_idx))) {
+		*status = tegra_hwpm_safe_cast_u32_to_u8(
+				TEGRA_HWPM_RESOURCE_STATUS_INVALID);
+	} else {
+		chip_ip = active_chip->chip_ips[ip_idx];
+		*status = tegra_hwpm_safe_cast_u32_to_u8(
+				chip_ip->resource_status);
+	}
 
 	return 0;
 }

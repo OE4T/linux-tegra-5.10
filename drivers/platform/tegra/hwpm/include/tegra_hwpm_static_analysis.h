@@ -224,4 +224,25 @@ static inline s32 tegra_hwpm_safe_cast_u64_to_s32(u64 ul_a)
 	}
 }
 
+/**
+ * @brief Cast u32 to u8 and check for overflow.
+ *
+ * @param ui_a [in]	Value to cast.
+ *
+ * Casts \a ui_a to a u8 unless the result will overflow a u8. If \a ui_a is
+ * greater than UCHAR_MAX (typecasted to u32) which indicates overflow, call
+ * #BUG().
+ *
+ * @return If no overflow, u8 representation of the value in \a ui_a.
+ */
+static inline u8 tegra_hwpm_safe_cast_u32_to_u8(u32 ui_a)
+{
+	if (ui_a > U8_MAX) {
+		WARN_ON(true);
+		return 0U;
+	} else {
+		return (u8)ui_a;
+	}
+}
+
 #endif /* TEGRA_HWPM_STATIC_ANALYSIS_H */

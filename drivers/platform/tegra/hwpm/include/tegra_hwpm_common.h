@@ -21,6 +21,7 @@ struct tegra_hwpm_func_args;
 struct tegra_soc_hwpm;
 struct tegra_soc_hwpm_exec_reg_ops;
 struct tegra_soc_hwpm_ip_floorsweep_info;
+struct tegra_soc_hwpm_resource_info;
 struct tegra_soc_hwpm_alloc_pma_stream;
 struct tegra_soc_hwpm_update_get_put;
 struct hwpm_ip;
@@ -76,6 +77,8 @@ void tegra_hwpm_release_sw_setup(struct tegra_soc_hwpm *hwpm);
 
 int tegra_hwpm_get_floorsweep_info(struct tegra_soc_hwpm *hwpm,
 	struct tegra_soc_hwpm_ip_floorsweep_info *fs_info);
+int tegra_hwpm_get_resource_info(struct tegra_soc_hwpm *hwpm,
+	struct tegra_soc_hwpm_resource_info *rsrc_info);
 
 int tegra_hwpm_map_stream_buffer(struct tegra_soc_hwpm *hwpm,
 	struct tegra_soc_hwpm_alloc_pma_stream *alloc_pma_stream);

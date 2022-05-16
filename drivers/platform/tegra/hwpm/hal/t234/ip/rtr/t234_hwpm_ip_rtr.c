@@ -225,5 +225,6 @@ struct hwpm_ip t234_hwpm_ip_rtr = {
 	/* RTR is defined as 2 instance IP corresponding to router and pma */
 	/* Set this mask to indicate that instances are available */
 	.inst_fs_mask = 0x3U,
+	.resource_status = TEGRA_HWPM_RESOURCE_STATUS_VALID,
 	.reserved = false,
 };

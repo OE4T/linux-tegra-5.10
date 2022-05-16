@@ -1135,5 +1135,6 @@ struct hwpm_ip t234_hwpm_ip_pcie = {
 
 	.override_enable = false,
 	.inst_fs_mask = 0U,
+	.resource_status = TEGRA_HWPM_RESOURCE_STATUS_INVALID,
 	.reserved = false,
 };

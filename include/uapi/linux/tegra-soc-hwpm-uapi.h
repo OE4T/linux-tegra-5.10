@@ -75,30 +75,6 @@ struct tegra_soc_hwpm_ip_floorsweep_info {
 	__u32 num_queries;
 };
 
-enum tegra_soc_hwpm_timer_relation_cpu_clk {
-	TEGRA_SOC_HWPM_TIMER_RELATION_CPU_CLK_OSTIME, /* FIXME: Is this needed? */
-	TEGRA_SOC_HWPM_TIMER_RELATION_CPU_CLK_PLAT_API,
-	TEGRA_SOC_HWPM_TIMER_RELATION_CPU_CLK_TSC /* FIXME: Is this needed? */
-};
-
-struct tegra_soc_hwpm_timer_relation_sample {
-	__u64 cpu_time;
-	__u64 gpu_time;
-};
-
-/* TEGRA_CTRL_CMD_SOC_HWPM_GET_GPU_CPU_TIME_CORRELATION_INFO IOCTL */
-struct tegra_soc_hwpm_timer_relation {
-	/*
-	 * Inputs
-	 */
-	enum tegra_soc_hwpm_timer_relation_cpu_clk cpu_clk;
-
-	/*
-	 * Outputs
-	 */
-	struct tegra_soc_hwpm_timer_relation_sample sample;
-};
-
 /* The resources which can be reserved for profiling */
 enum tegra_soc_hwpm_resource {
 	TEGRA_SOC_HWPM_RESOURCE_VI,
@@ -117,7 +93,6 @@ enum tegra_soc_hwpm_resource {
 	TEGRA_SOC_HWPM_RESOURCE_MSS_GPU_HUB,
 	TEGRA_SOC_HWPM_RESOURCE_MSS_ISO_NISO_HUBS,
 	TEGRA_SOC_HWPM_RESOURCE_MSS_MCF,
-	TEGRA_SOC_HWPM_RESOURCE_MSS_NVLINK,
 
 	/*
 	 * - SYS0 PERMON in RPG_PMG
@@ -132,6 +107,26 @@ enum tegra_soc_hwpm_resource {
 	TEGRA_SOC_HWPM_RESOURCE_CMD_SLICE_RTR,
 
 	TERGA_SOC_HWPM_NUM_RESOURCES
+};
+
+/* TEGRA_CTRL_CMD_SOC_HWPM_RESOURCE_INFO IOCTL */
+struct tegra_soc_hwpm_resource_info_query {
+	/* input */
+	__u16 resource;		/* enum tegra_soc_hwpm_resource */
+	/* output */
+#define TEGRA_SOC_HWPM_RESOURCE_STATUS_INVALID		0
+#define TEGRA_SOC_HWPM_RESOURCE_STATUS_VALID		1
+	__u8 status;		/* Resource status */
+	__u8 reserved1;
+	__u32 reserved2;
+};
+
+#define TEGRA_SOC_HWPM_RESOURCE_QUERIES_MAX	32
+struct tegra_soc_hwpm_resource_info {
+	/* Holds queries */
+	struct tegra_soc_hwpm_resource_info_query resource_info[
+		TEGRA_SOC_HWPM_RESOURCE_QUERIES_MAX];
+	__u32 num_queries;
 };
 
 /* TEGRA_CTRL_CMD_SOC_HWPM_RESERVE_RESOURCE IOCTL */
@@ -293,7 +288,7 @@ struct tegra_soc_hwpm_update_get_put {
 enum tegra_soc_hwpm_ioctl_num {
 	TEGRA_SOC_HWPM_IOCTL_DEVICE_INFO,
 	TEGRA_SOC_HWPM_IOCTL_FLOORSWEEP_INFO,
-	TEGRA_SOC_HWPM_IOCTL_GET_GPU_CPU_TIME_CORRELATION_INFO,
+	TEGRA_SOC_HWPM_IOCTL_RESOURCE_INFO,
 	TEGRA_SOC_HWPM_IOCTL_RESERVE_RESOURCE,
 	TEGRA_SOC_HWPM_IOCTL_ALLOC_PMA_STREAM,
 	TEGRA_SOC_HWPM_IOCTL_BIND,
@@ -317,12 +312,12 @@ enum tegra_soc_hwpm_ioctl_num {
 			struct tegra_soc_hwpm_device_info)
 
 /*
- * IOCTL for finding the relationship between the CPU and GPU timers
+ * IOCTL for resource status
  */
-#define	TEGRA_CTRL_CMD_SOC_HWPM_GET_GPU_CPU_TIME_CORRELATION_INFO		\
-		_IOWR(TEGRA_SOC_HWPM_IOC_MAGIC,					\
-			TEGRA_SOC_HWPM_IOCTL_GET_GPU_CPU_TIME_CORRELATION_INFO,	\
-			struct tegra_soc_hwpm_timer_relation)
+#define	TEGRA_CTRL_CMD_SOC_HWPM_RESOURCE_INFO			\
+		_IOWR(TEGRA_SOC_HWPM_IOC_MAGIC,			\
+			TEGRA_SOC_HWPM_IOCTL_RESOURCE_INFO,	\
+			struct tegra_soc_hwpm_resource_info)
 
 /*
  * IOCTL for reserving a resource for profiling

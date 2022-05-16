@@ -81,6 +81,8 @@ int t234_hwpm_extract_ip_ops(struct tegra_soc_hwpm *hwpm,
 int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm);
 int t234_hwpm_get_fs_info(struct tegra_soc_hwpm *hwpm,
 	u32 ip_enum, u64 *fs_mask, u8 *ip_status);
+int t234_hwpm_get_resource_info(struct tegra_soc_hwpm *hwpm,
+	u32 resource_enum, u8 *status);
 
 int t234_hwpm_init_prod_values(struct tegra_soc_hwpm *hwpm);
 int t234_hwpm_disable_slcg(struct tegra_soc_hwpm *hwpm);

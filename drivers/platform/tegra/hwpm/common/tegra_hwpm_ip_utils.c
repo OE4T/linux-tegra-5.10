@@ -20,6 +20,31 @@
 #include <tegra_hwpm_common.h>
 #include <tegra_hwpm_static_analysis.h>
 
+int tegra_hwpm_get_resource_info(struct tegra_soc_hwpm *hwpm,
+	struct tegra_soc_hwpm_resource_info *rsrc_info)
+{
+	int ret = 0;
+	u32 i = 0U;
+
+	tegra_hwpm_fn(hwpm, " ");
+
+	for (i = 0U; i < rsrc_info->num_queries; i++) {
+		ret = hwpm->active_chip->get_resource_info(
+			hwpm, (u32)rsrc_info->resource_info[i].resource,
+			&rsrc_info->resource_info[i].status);
+		if (ret < 0) {
+			/* Print error for debug purpose. */
+			tegra_hwpm_err(hwpm, "Failed to get rsrc_info");
+		}
+
+		tegra_hwpm_dbg(hwpm, hwpm_verbose,
+			"Query %d: resource %d: status: %d",
+			i, rsrc_info->resource_info[i].resource,
+			rsrc_info->resource_info[i].status);
+	}
+	return ret;
+}
+
 int tegra_hwpm_ip_handle_power_mgmt(struct tegra_soc_hwpm *hwpm,
 	struct hwpm_ip_inst *ip_inst, bool disable)
 {
@@ -86,8 +111,13 @@ static int tegra_hwpm_update_ip_inst_fs_mask(struct tegra_soc_hwpm *hwpm,
 	/* Update inst fs info */
 	if (available) {
 		chip_ip->inst_fs_mask |= ip_inst->hw_inst_mask;
+		chip_ip->resource_status = TEGRA_HWPM_RESOURCE_STATUS_VALID;
 	} else {
 		chip_ip->inst_fs_mask &= ~(ip_inst->hw_inst_mask);
+		if (chip_ip->inst_fs_mask == 0U) {
+			chip_ip->resource_status =
+				TEGRA_HWPM_RESOURCE_STATUS_INVALID;
+		}
 	}
 
 	return tegra_hwpm_update_ip_inst_element_fs_mask(hwpm, ip_idx,

@@ -42,7 +42,7 @@ static int device_info_ioctl(struct tegra_soc_hwpm *hwpm,
 			     void *ioctl_struct);
 static int floorsweep_info_ioctl(struct tegra_soc_hwpm *hwpm,
 			     void *ioctl_struct);
-static int timer_relation_ioctl(struct tegra_soc_hwpm *hwpm,
+static int resource_info_ioctl(struct tegra_soc_hwpm *hwpm,
 				void *ioctl_struct);
 static int reserve_resource_ioctl(struct tegra_soc_hwpm *hwpm,
 				  void *ioctl_struct);
@@ -68,10 +68,10 @@ static const struct tegra_soc_hwpm_ioctl ioctls[] = {
 		.struct_size		= sizeof(struct tegra_soc_hwpm_ip_floorsweep_info),
 		.handler		= floorsweep_info_ioctl,
 	},
-	[TEGRA_SOC_HWPM_IOCTL_GET_GPU_CPU_TIME_CORRELATION_INFO] = {
-		.name			= "timer_relation",
-		.struct_size		= sizeof(struct tegra_soc_hwpm_timer_relation),
-		.handler		= timer_relation_ioctl,
+	[TEGRA_SOC_HWPM_IOCTL_RESOURCE_INFO] = {
+		.name			= "resource_info",
+		.struct_size		= sizeof(struct tegra_soc_hwpm_resource_info),
+		.handler		= resource_info_ioctl,
 	},
 	[TEGRA_SOC_HWPM_IOCTL_RESERVE_RESOURCE] = {
 		.name			= "reserve_resource",
@@ -142,18 +142,19 @@ static int floorsweep_info_ioctl(struct tegra_soc_hwpm *hwpm,
 	return tegra_hwpm_get_floorsweep_info(hwpm, fs_info);
 }
 
-static int timer_relation_ioctl(struct tegra_soc_hwpm *hwpm,
+static int resource_info_ioctl(struct tegra_soc_hwpm *hwpm,
 				void *ioctl_struct)
 {
-/* FIXME: Implement IOCTL */
-#if 0
-	struct tegra_soc_hwpm_timer_relation *timer_relation =
-			(struct tegra_soc_hwpm_timer_relation *)ioctl_struct;
-#endif
+	struct tegra_soc_hwpm_resource_info *rsrc_info =
+			(struct tegra_soc_hwpm_resource_info *)ioctl_struct;
 
-	tegra_hwpm_err(hwpm, "The GET_GPU_CPU_TIME_CORRELATION_INFO IOCTL is"
-			   " currently not implemented");
-	return -ENXIO;
+	if (rsrc_info->num_queries > TEGRA_SOC_HWPM_RESOURCE_QUERIES_MAX) {
+		tegra_hwpm_err(hwpm, "Number of queries exceed max limit of %u",
+			TEGRA_SOC_HWPM_RESOURCE_QUERIES_MAX);
+		return -EINVAL;
+	}
+
+	return tegra_hwpm_get_resource_info(hwpm, rsrc_info);
 
 }
 
