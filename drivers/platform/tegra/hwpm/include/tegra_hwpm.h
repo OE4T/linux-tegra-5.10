@@ -223,6 +223,15 @@ struct hwpm_ip_inst {
 	 */
 	u32 hw_inst_mask;
 
+	/*
+	 * An IP instance is a group of core elements of the IP
+	 * Eg., channels in MSS, controllers in PCIe
+	 * Performance tracking is counted by 0, 1 or more HWPM components
+	 * (perfmux/perfmon) connected to each IP core element.
+	 *
+	 */
+	u32 num_core_elements_per_inst;
+
 	/* Element details specific to this instance */
 	struct hwpm_ip_element_info element_info[TEGRA_HWPM_APERTURE_TYPE_MAX];
 

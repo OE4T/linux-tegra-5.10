@@ -221,11 +221,11 @@ static bool t234_hwpm_validate_hals(struct tegra_soc_hwpm *hwpm)
 }
 
 bool t234_hwpm_is_ip_active(struct tegra_soc_hwpm *hwpm,
-	u32 ip_index, u32 *config_ip_index)
+	u32 ip_enum, u32 *config_ip_index)
 {
 	u32 config_ip = TEGRA_SOC_HWPM_IP_INACTIVE;
 
-	switch (ip_index) {
+	switch (ip_enum) {
 	case TEGRA_SOC_HWPM_IP_VI:
 #if defined(CONFIG_SOC_HWPM_IP_VI)
 		config_ip = T234_HWPM_IP_VI;
@@ -307,8 +307,8 @@ bool t234_hwpm_is_ip_active(struct tegra_soc_hwpm *hwpm,
 #endif
 		break;
 	default:
-		tegra_hwpm_err(hwpm, "Queried enum tegra_soc_hwpm_ip %d invalid",
-			ip_index);
+		tegra_hwpm_err(hwpm,
+			"Queried enum tegra_soc_hwpm_ip %d invalid", ip_enum);
 		break;
 	}
 

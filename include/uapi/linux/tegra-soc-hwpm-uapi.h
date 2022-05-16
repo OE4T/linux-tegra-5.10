@@ -25,7 +25,7 @@
 
 #define TEGRA_SOC_HWPM_DEV_NODE		"/dev/tegra-soc-hwpm"
 
-/* The IPs which can be profiled */
+/* IPs supported for HW configurations queries */
 enum tegra_soc_hwpm_ip {
 	TEGRA_SOC_HWPM_IP_VI,
 	TEGRA_SOC_HWPM_IP_ISP,
@@ -43,7 +43,6 @@ enum tegra_soc_hwpm_ip {
 	TEGRA_SOC_HWPM_IP_MSS_GPU_HUB,
 	TEGRA_SOC_HWPM_IP_MSS_ISO_NISO_HUBS,
 	TEGRA_SOC_HWPM_IP_MSS_MCF,
-	TEGRA_SOC_HWPM_IP_MSS_NVLINK,
 	TERGA_SOC_HWPM_NUM_IPS
 };
 
@@ -55,20 +54,24 @@ struct tegra_soc_hwpm_device_info {
 	__u32 platform;	/* Eg. Pre-Si, Si */
 };
 
+/* TEGRA_CTRL_CMD_SOC_HWPM_IP_FLOORSWEEP_INFO IOCTL */
 struct tegra_soc_hwpm_ip_floorsweep_info_query {
 	/* input */
-	__u16 ip_type;		/* enum tegra_soc_hwpm_ip */
+	__u16 ip;		/* enum tegra_soc_hwpm_ip */
 	/* output */
 #define TEGRA_SOC_HWPM_IP_STATUS_VALID		0
 #define TEGRA_SOC_HWPM_IP_STATUS_INVALID	1
 	__u8 status;		/* IP status */
 	__u8 reserved1;
 	__u32 reserved2;
-	__u64 ip_inst_mask;	/* each set bit corresponds to an IP instance */
+	/*
+	 * flattened availability mask of IP elements.
+	 * Each set bit corresponds to available IP element.
+	 */
+	__u64 ip_inst_mask;
 };
 
 #define TEGRA_SOC_HWPM_IP_QUERIES_MAX	32
-/* TEGRA_CTRL_CMD_SOC_HWPM_IP_FLOORSWEEP_INFO IOCTL */
 struct tegra_soc_hwpm_ip_floorsweep_info {
 	/* Holds queries */
 	struct tegra_soc_hwpm_ip_floorsweep_info_query ip_fsinfo[TEGRA_SOC_HWPM_IP_QUERIES_MAX];
@@ -312,6 +315,14 @@ enum tegra_soc_hwpm_ioctl_num {
 			struct tegra_soc_hwpm_device_info)
 
 /*
+ * IOCTL for querying IP instance info
+ */
+#define TEGRA_CTRL_CMD_SOC_HWPM_IP_FLOORSWEEP_INFO		\
+		_IOWR(TEGRA_SOC_HWPM_IOC_MAGIC,			\
+			TEGRA_SOC_HWPM_IOCTL_FLOORSWEEP_INFO,	\
+			struct tegra_soc_hwpm_ip_floorsweep_info)
+
+/*
  * IOCTL for resource status
  */
 #define	TEGRA_CTRL_CMD_SOC_HWPM_RESOURCE_INFO			\
@@ -390,14 +401,6 @@ enum tegra_soc_hwpm_ioctl_num {
 			_IOWR(TEGRA_SOC_HWPM_IOC_MAGIC,			\
 				TEGRA_SOC_HWPM_IOCTL_UPDATE_GET_PUT,	\
 				struct tegra_soc_hwpm_update_get_put)
-
-/*
- * IOCTL for querying IP instance info
- */
-#define TEGRA_CTRL_CMD_SOC_HWPM_IP_FLOORSWEEP_INFO		\
-		_IOWR(TEGRA_SOC_HWPM_IOC_MAGIC,			\
-			TEGRA_SOC_HWPM_IOCTL_FLOORSWEEP_INFO,	\
-			struct tegra_soc_hwpm_ip_floorsweep_info)
 
 
 /* Interface for IP driver communication */

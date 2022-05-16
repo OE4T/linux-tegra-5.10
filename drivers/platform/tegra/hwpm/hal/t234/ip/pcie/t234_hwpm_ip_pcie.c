@@ -440,6 +440,8 @@ struct hwpm_ip_inst t234_pcie_inst_static_array[
 	T234_HWPM_IP_PCIE_NUM_INSTANCES] = {
 	{
 		.hw_inst_mask = BIT(0),
+		.num_core_elements_per_inst =
+			T234_HWPM_IP_PCIE_NUM_CORE_ELEMENT_PER_INST,
 		.element_info = {
 			/*
 			 * Instance info corresponding to
@@ -499,6 +501,8 @@ struct hwpm_ip_inst t234_pcie_inst_static_array[
 	},
 	{
 		.hw_inst_mask = BIT(1),
+		.num_core_elements_per_inst =
+			T234_HWPM_IP_PCIE_NUM_CORE_ELEMENT_PER_INST,
 		.element_info = {
 			/*
 			 * Instance info corresponding to
@@ -558,6 +562,8 @@ struct hwpm_ip_inst t234_pcie_inst_static_array[
 	},
 	{
 		.hw_inst_mask = BIT(2),
+		.num_core_elements_per_inst =
+			T234_HWPM_IP_PCIE_NUM_CORE_ELEMENT_PER_INST,
 		.element_info = {
 			/*
 			 * Instance info corresponding to
@@ -617,6 +623,8 @@ struct hwpm_ip_inst t234_pcie_inst_static_array[
 	},
 	{
 		.hw_inst_mask = BIT(3),
+		.num_core_elements_per_inst =
+			T234_HWPM_IP_PCIE_NUM_CORE_ELEMENT_PER_INST,
 		.element_info = {
 			/*
 			 * Instance info corresponding to
@@ -676,6 +684,8 @@ struct hwpm_ip_inst t234_pcie_inst_static_array[
 	},
 	{
 		.hw_inst_mask = BIT(4),
+		.num_core_elements_per_inst =
+			T234_HWPM_IP_PCIE_NUM_CORE_ELEMENT_PER_INST,
 		.element_info = {
 			/*
 			 * Instance info corresponding to
@@ -735,6 +745,8 @@ struct hwpm_ip_inst t234_pcie_inst_static_array[
 	},
 	{
 		.hw_inst_mask = BIT(5),
+		.num_core_elements_per_inst =
+			T234_HWPM_IP_PCIE_NUM_CORE_ELEMENT_PER_INST,
 		.element_info = {
 			/*
 			 * Instance info corresponding to
@@ -794,6 +806,8 @@ struct hwpm_ip_inst t234_pcie_inst_static_array[
 	},
 	{
 		.hw_inst_mask = BIT(6),
+		.num_core_elements_per_inst =
+			T234_HWPM_IP_PCIE_NUM_CORE_ELEMENT_PER_INST,
 		.element_info = {
 			/*
 			 * Instance info corresponding to
@@ -853,6 +867,8 @@ struct hwpm_ip_inst t234_pcie_inst_static_array[
 	},
 	{
 		.hw_inst_mask = BIT(7),
+		.num_core_elements_per_inst =
+			T234_HWPM_IP_PCIE_NUM_CORE_ELEMENT_PER_INST,
 		.element_info = {
 			/*
 			 * Instance info corresponding to
@@ -912,6 +928,8 @@ struct hwpm_ip_inst t234_pcie_inst_static_array[
 	},
 	{
 		.hw_inst_mask = BIT(8),
+		.num_core_elements_per_inst =
+			T234_HWPM_IP_PCIE_NUM_CORE_ELEMENT_PER_INST,
 		.element_info = {
 			/*
 			 * Instance info corresponding to
@@ -971,6 +989,8 @@ struct hwpm_ip_inst t234_pcie_inst_static_array[
 	},
 	{
 		.hw_inst_mask = BIT(9),
+		.num_core_elements_per_inst =
+			T234_HWPM_IP_PCIE_NUM_CORE_ELEMENT_PER_INST,
 		.element_info = {
 			/*
 			 * Instance info corresponding to
@@ -1030,6 +1050,8 @@ struct hwpm_ip_inst t234_pcie_inst_static_array[
 	},
 	{
 		.hw_inst_mask = BIT(10),
+		.num_core_elements_per_inst =
+			T234_HWPM_IP_PCIE_NUM_CORE_ELEMENT_PER_INST,
 		.element_info = {
 			/*
 			 * Instance info corresponding to

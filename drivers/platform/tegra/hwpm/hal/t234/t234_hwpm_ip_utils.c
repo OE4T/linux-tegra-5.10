@@ -152,10 +152,7 @@ fail:
 
 int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 {
-	u32 i = 0U;
 	int ret = 0;
-	struct tegra_soc_hwpm_chip *active_chip = hwpm->active_chip;
-	struct hwpm_ip *chip_ip = NULL;
 
 	tegra_hwpm_fn(hwpm, " ");
 
@@ -300,13 +297,6 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 		}
 	}
 
-	tegra_hwpm_dbg(hwpm, hwpm_verbose, "IP floorsweep info:");
-	for (i = 0U; i < active_chip->get_ip_max_idx(hwpm); i++) {
-		chip_ip = active_chip->chip_ips[i];
-		tegra_hwpm_dbg(hwpm, hwpm_verbose, "IP:%d fs_mask:0x%x",
-			i, chip_ip->inst_fs_mask);
-	}
-
 fail:
 	return ret;
 }
@@ -314,41 +304,40 @@ fail:
 int t234_hwpm_get_fs_info(struct tegra_soc_hwpm *hwpm,
 	u32 ip_enum, u64 *fs_mask, u8 *ip_status)
 {
-	u32 ip_idx = 0U;
+	u32 ip_idx = 0U, inst_idx = 0U, element_mask_shift = 0U;
+	u64 floorsweep = 0ULL;
 	struct tegra_soc_hwpm_chip *active_chip = NULL;
 	struct hwpm_ip *chip_ip = NULL;
 	struct hwpm_ip_inst *ip_inst = NULL;
 
 	tegra_hwpm_fn(hwpm, " ");
 
-	/* Convert tegra_soc_hwpm_ip to internal enum */
+	/* Convert tegra_soc_hwpm_ip enum to internal ip index */
 	if (!(t234_hwpm_is_ip_active(hwpm, ip_enum, &ip_idx))) {
 		tegra_hwpm_dbg(hwpm, hwpm_info,
-			"SOC hwpm IP %d is not configured", ip_enum);
+			"SOC hwpm IP %d is unavailable", ip_enum);
 
 		*ip_status = TEGRA_SOC_HWPM_IP_STATUS_INVALID;
 		*fs_mask = 0ULL;
-		/* Remove after uapi update */
-		if (ip_enum == TEGRA_SOC_HWPM_IP_MSS_NVLINK) {
-			tegra_hwpm_dbg(hwpm, hwpm_verbose,
-				"For hwpm IP %d setting status as valid",
-				ip_enum);
-			*ip_status = TEGRA_SOC_HWPM_IP_STATUS_VALID;
-		}
 		return 0;
 	}
 
 	active_chip = hwpm->active_chip;
 	chip_ip = active_chip->chip_ips[ip_idx];
-	ip_inst = &chip_ip->ip_inst_static_array[0U];
-	/* TODO: Update after fS IOCTL discussion */
-	if (ip_idx == T234_HWPM_IP_MSS_CHANNEL) {
-		*fs_mask = ip_inst->element_fs_mask;
-	} else {
-		*fs_mask = chip_ip->inst_fs_mask;
-	}
-	*ip_status = TEGRA_SOC_HWPM_IP_STATUS_VALID;
 
+	for (inst_idx = 0U; inst_idx < chip_ip->num_instances; inst_idx++) {
+		ip_inst = &chip_ip->ip_inst_static_array[inst_idx];
+		element_mask_shift = (inst_idx == 0U ?
+			0U : ip_inst->num_core_elements_per_inst);
+
+		if (ip_inst->hw_inst_mask & chip_ip->inst_fs_mask) {
+			floorsweep = (floorsweep << element_mask_shift);
+			floorsweep |= ((u64)ip_inst->element_fs_mask);
+		}
+	}
+
+	*fs_mask = floorsweep;
+	*ip_status = TEGRA_SOC_HWPM_IP_STATUS_VALID;
 
 	return 0;
 }

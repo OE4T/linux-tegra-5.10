@@ -60,6 +60,8 @@ struct hwpm_ip_inst t234_display_inst_static_array[
 	T234_HWPM_IP_DISPLAY_NUM_INSTANCES] = {
 	{
 		.hw_inst_mask = BIT(0),
+		.num_core_elements_per_inst =
+			T234_HWPM_IP_DISPLAY_NUM_CORE_ELEMENT_PER_INST,
 		.element_info = {
 			/*
 			 * Instance info corresponding to

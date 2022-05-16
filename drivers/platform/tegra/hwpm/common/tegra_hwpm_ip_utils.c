@@ -20,6 +20,33 @@
 #include <tegra_hwpm_common.h>
 #include <tegra_hwpm_static_analysis.h>
 
+int tegra_hwpm_get_floorsweep_info(struct tegra_soc_hwpm *hwpm,
+	struct tegra_soc_hwpm_ip_floorsweep_info *fs_info)
+{
+	int ret = 0;
+	u32 i = 0U;
+
+	tegra_hwpm_fn(hwpm, " ");
+
+	for (i = 0U; i < fs_info->num_queries; i++) {
+		ret = hwpm->active_chip->get_fs_info(
+			hwpm, (u32)fs_info->ip_fsinfo[i].ip,
+			&fs_info->ip_fsinfo[i].ip_inst_mask,
+			&fs_info->ip_fsinfo[i].status);
+		if (ret < 0) {
+			/* Print error for debug purpose. */
+			tegra_hwpm_err(hwpm, "Failed to get fs_info");
+		}
+
+		tegra_hwpm_dbg(hwpm, hwpm_verbose,
+			"Query %d: ip %d: ip_status: %d inst_mask 0x%llx",
+			i, fs_info->ip_fsinfo[i].ip,
+			fs_info->ip_fsinfo[i].status,
+			fs_info->ip_fsinfo[i].ip_inst_mask);
+	}
+	return ret;
+}
+
 int tegra_hwpm_get_resource_info(struct tegra_soc_hwpm *hwpm,
 	struct tegra_soc_hwpm_resource_info *rsrc_info)
 {
