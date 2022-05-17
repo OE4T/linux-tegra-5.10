@@ -594,7 +594,7 @@ void nvhost_module_deinit(struct platform_device *pdev)
 	dma_free_coherent(&pdev->dev, falcon->firmware.size,
 			  falcon->firmware.virt, falcon->firmware.iova);
 	falcon_exit(falcon);
-	debugfs_remove(pdata->debugfs);
+	debugfs_remove_recursive(pdata->debugfs);
 }
 EXPORT_SYMBOL(nvhost_module_deinit);
 
