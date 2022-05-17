@@ -61,10 +61,7 @@ struct nvsciipc_get_vuid_legacy {
 
 DEFINE_MUTEX(nvsciipc_mutex);
 
-#if defined(CONFIG_NVSCIIPC_UPSTREAM)
 static struct platform_device *nvsciipc_pdev;
-#endif
-
 static struct nvsciipc *ctx;
 
 NvSciError NvSciIpcEndpointGetAuthToken(NvSciIpcEndpoint handle,
@@ -558,28 +555,16 @@ exit:
 	return 0;
 }
 
-#if !defined(CONFIG_NVSCIIPC_UPSTREAM)
-static const struct of_device_id nvsciipc_of_match[] = {
-	{ .compatible = "nvidia,nvsciipc", },
-	{},
-};
-MODULE_DEVICE_TABLE(of, nvsciipc_of_match);
-#endif
-
 static struct platform_driver nvsciipc_driver = {
 	.probe  = nvsciipc_probe,
 	.remove = nvsciipc_remove,
 	.driver = {
 		.name = MODULE_NAME,
-#if !defined(CONFIG_NVSCIIPC_UPSTREAM)
-		.of_match_table = nvsciipc_of_match,
-#endif
 	},
 };
 
 static int __init nvsciipc_module_init(void)
 {
-#if defined(CONFIG_NVSCIIPC_UPSTREAM)
 	int ret;
 
 	if (!(of_machine_is_compatible("nvidia,tegra194") ||
@@ -598,17 +583,11 @@ static int __init nvsciipc_module_init(void)
 	}
 
 	return 0;
-#else
-	return platform_driver_register(&nvsciipc_driver);
-#endif
 }
 
 static void __exit nvsciipc_module_deinit(void)
 {
-#if defined(CONFIG_NVSCIIPC_UPSTREAM)
 	platform_device_unregister(nvsciipc_pdev);
-#endif
-	platform_driver_unregister(&nvsciipc_driver);
 }
 
 module_init(nvsciipc_module_init);

@@ -16,9 +16,6 @@
 ccflags-y += -Werror
 ccflags-y += -I$(srctree.nvidia)/include/
 
-ifeq ($(CONFIG_NVSCIIPC_UPSTREAM),y)
-ccflags-y += -DCONFIG_NVSCIIPC_UPSTREAM
-endif
 
 obj-$(CONFIG_NVSCIIPC) := nvsciipc.o
 
