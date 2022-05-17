@@ -360,22 +360,6 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 		}
 #endif
 
-#if defined(CONFIG_SOC_HWPM_IP_NVDLA)
-		/* NVDLA */
-		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
-			addr_map_nvdla0_base_r(),
-			T234_HWPM_IP_NVDLA, true);
-		if (ret != 0) {
-			return ret;
-		}
-		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
-			addr_map_nvdla1_base_r(),
-			T234_HWPM_IP_NVDLA, true);
-		if (ret != 0) {
-			return ret;
-		}
-#endif
-
 		/* MGBE */
 /*
 #if defined(CONFIG_SOC_HWPM_IP_MGBE)

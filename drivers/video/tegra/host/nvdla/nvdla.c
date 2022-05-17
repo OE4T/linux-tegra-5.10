@@ -30,6 +30,9 @@
 #include <linux/nvmem-consumer.h>
 #include <soc/tegra/fuse-helper.h>
 #include <uapi/linux/nvhost_nvdla_ioctl.h>
+#ifdef CONFIG_TEGRA_SOC_HWPM
+#include <uapi/linux/tegra-soc-hwpm-uapi.h>
+#endif
 
 #include "nvdla.h"
 #include "nvdla_hw_flcn.h"
@@ -589,6 +592,46 @@ out:
 	return ret;
 }
 
+#ifdef CONFIG_TEGRA_SOC_HWPM
+static int nvdla_hwpm_ip_pm(void *ip_dev, bool disable)
+{
+	int err = 0;
+	struct platform_device *dev = (struct platform_device *)ip_dev;
+
+	nvdla_dbg_fn(dev, "ip power management %s",
+			disable ? "disable" : "enable");
+
+	if (disable) {
+		err = nvhost_module_busy(ip_dev);
+		if (err < 0)
+			nvdla_dbg_err(dev, "nvhost_module_busy failed");
+	} else {
+		nvhost_module_idle(ip_dev);
+	}
+
+	return err;
+}
+
+static int nvdla_hwpm_ip_reg_op(void *ip_dev,
+	enum tegra_soc_hwpm_ip_reg_op reg_op,
+	u32 inst_element_index, u64 reg_offset, u32 *reg_data)
+{
+	struct platform_device *dev = (struct platform_device *)ip_dev;
+
+	if (reg_offset > UINT_MAX)
+		return -EINVAL;
+
+	nvdla_dbg_fn(dev, "reg_op %d reg_offset %llu", reg_op, reg_offset);
+
+	if (reg_op == TEGRA_SOC_HWPM_IP_REG_OP_READ)
+		*reg_data = host1x_readl(dev, (unsigned int)reg_offset);
+	else if (reg_op == TEGRA_SOC_HWPM_IP_REG_OP_WRITE)
+		host1x_writel(dev, (unsigned int)reg_offset, *reg_data);
+
+	return 0;
+}
+#endif
+
 static uint32_t nvdla_read_soft_sku_scratch_register(void)
 {
 	uint32_t dla_soft_sku_opt_disable = 0U;
@@ -707,6 +750,9 @@ static int nvdla_probe(struct platform_device *pdev)
 	struct device *dev = &pdev->dev;
 	int fuse_ret = 0;
 	uint32_t soft_fuse_ret = 0U;
+#ifdef CONFIG_TEGRA_SOC_HWPM
+	struct tegra_soc_hwpm_ip_ops hwpm_ip_ops;
+#endif
 
 	if (pdev->dev.of_node) {
 		const struct of_device_id *match;
@@ -832,6 +878,16 @@ static int nvdla_probe(struct platform_device *pdev)
 	if (err)
 		goto err_alloc_cmd_mem;
 
+#ifdef CONFIG_TEGRA_SOC_HWPM
+	nvdla_dbg_info(pdev, "hwpm ip %s register", pdev->name);
+	hwpm_ip_ops.ip_dev = (void *)pdev;
+	hwpm_ip_ops.ip_base_address = pdev->resource[0].start;
+	hwpm_ip_ops.resource_enum = TEGRA_SOC_HWPM_RESOURCE_NVDLA;
+	hwpm_ip_ops.hwpm_ip_pm = &nvdla_hwpm_ip_pm;
+	hwpm_ip_ops.hwpm_ip_reg_op = &nvdla_hwpm_ip_reg_op;
+	tegra_soc_hwpm_ip_register(&hwpm_ip_ops);
+#endif
+
 	nvdla_dbg_info(pdev, "pdata:%p initialized\n", pdata);
 
 	return 0;
@@ -856,6 +912,18 @@ static int __exit nvdla_remove(struct platform_device *pdev)
 {
 	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
 	struct nvdla_device *nvdla_dev = pdata->private_data;
+
+#ifdef CONFIG_TEGRA_SOC_HWPM
+	struct tegra_soc_hwpm_ip_ops hwpm_ip_ops;
+
+	nvdla_dbg_info(pdev, "hwpm ip %s unregister", pdev->name);
+	hwpm_ip_ops.ip_dev = (void *)pdev;
+	hwpm_ip_ops.ip_base_address = pdev->resource[0].start;
+	hwpm_ip_ops.resource_enum = TEGRA_SOC_HWPM_RESOURCE_NVDLA;
+	hwpm_ip_ops.hwpm_ip_pm = NULL;
+	hwpm_ip_ops.hwpm_ip_reg_op = NULL;
+	tegra_soc_hwpm_ip_unregister(&hwpm_ip_ops);
+#endif
 
 	nvdla_queue_deinit(nvdla_dev->pool);
 	nvhost_client_device_release(pdev);
