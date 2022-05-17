@@ -108,6 +108,7 @@ struct hwpm_ip_inst t234_vi_inst_static_array[
 					T234_HWPM_IP_VI_NUM_PERFMUX_PER_INST,
 				.element_static_array =
 					t234_vi_inst0_perfmux_element_static_array,
+				/* NOTE: range should be in ascending order */
 				.range_start = addr_map_vi_thi_base_r(),
 				.range_end = addr_map_vi_thi_limit_r(),
 				.element_stride = addr_map_vi_thi_limit_r() -
@@ -227,6 +228,7 @@ struct hwpm_ip t234_hwpm_ip_vi = {
 		 * TEGRA_HWPM_APERTURE_TYPE_PERFMUX
 		 */
 		{
+			/* NOTE: range should be in ascending order */
 			.range_start = addr_map_vi2_thi_base_r(),
 			.range_end = addr_map_vi_thi_limit_r(),
 			.inst_stride = addr_map_vi2_thi_limit_r() -

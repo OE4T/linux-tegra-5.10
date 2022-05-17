@@ -224,6 +224,7 @@ struct hwpm_ip_inst t234_mss_mcf_inst_static_array[
 					T234_HWPM_IP_MSS_MCF_NUM_PERFMUX_PER_INST,
 				.element_static_array =
 					t234_mss_mcf_inst0_perfmux_element_static_array,
+				/* NOTE: range should be in ascending order */
 				.range_start = addr_map_mc4_base_r(),
 				.range_end = addr_map_mc3_limit_r(),
 				.element_stride = addr_map_mc4_limit_r() -
@@ -286,9 +287,10 @@ struct hwpm_ip t234_hwpm_ip_mss_mcf = {
 		 * TEGRA_HWPM_APERTURE_TYPE_PERFMUX
 		 */
 		{
+			/* NOTE: range should be in ascending order */
 			.range_start = addr_map_mc4_base_r(),
 			.range_end = addr_map_mc3_limit_r(),
-			.inst_stride = addr_map_mc4_limit_r() -
+			.inst_stride = addr_map_mc3_limit_r() -
 				addr_map_mc4_base_r() + 1ULL,
 			.inst_slots = 0U,
 			.inst_arr = NULL,
@@ -312,7 +314,7 @@ struct hwpm_ip t234_hwpm_ip_mss_mcf = {
 		{
 			.range_start = addr_map_rpg_pm_mcf0_base_r(),
 			.range_end = addr_map_rpg_pm_mcf2_limit_r(),
-			.inst_stride = addr_map_rpg_pm_mcf0_limit_r() -
+			.inst_stride = addr_map_rpg_pm_mcf2_limit_r() -
 				addr_map_rpg_pm_mcf0_base_r() + 1ULL,
 			.inst_slots = 0U,
 			.inst_arr = NULL,

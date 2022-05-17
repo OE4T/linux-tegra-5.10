@@ -27,10 +27,11 @@
 int t234_hwpm_disable_triggers(struct tegra_soc_hwpm *hwpm)
 {
 	int err = 0;
-	bool timeout = false;
 	u32 reg_val = 0U;
 	u32 field_mask = 0U;
 	u32 field_val = 0U;
+	s32 timeout_msecs = 1000;
+	u32 sleep_msecs = 100;
 	struct tegra_soc_hwpm_chip *active_chip = hwpm->active_chip;
 	struct hwpm_ip *chip_ip = active_chip->chip_ips[
 		active_chip->get_rtr_int_idx(hwpm)];
@@ -89,46 +90,64 @@ int t234_hwpm_disable_triggers(struct tegra_soc_hwpm *hwpm)
 	}
 
 	/* Wait for PERFMONs, ROUTER, and PMA to idle */
-	err = tegra_hwpm_readl(hwpm, rtr_perfmux,
-		pmmsys_sys0router_perfmonstatus_r(), &reg_val);
-	if (err != 0) {
-		tegra_hwpm_err(hwpm, "hwpm read failed");
-		return err;
-	}
-	timeout = HWPM_TIMEOUT(
-		pmmsys_sys0router_perfmonstatus_merged_v(reg_val) == 0U,
-		"NV_PERF_PMMSYS_SYS0ROUTER_PERFMONSTATUS_MERGED_EMPTY");
-	if (timeout) {
+	do {
+		err = tegra_hwpm_readl(hwpm, rtr_perfmux,
+			pmmsys_sys0router_perfmonstatus_r(), &reg_val);
+		if (err != 0) {
+			tegra_hwpm_err(hwpm, "hwpm read failed");
+			return err;
+		}
+		msleep(sleep_msecs);
+		timeout_msecs -= sleep_msecs;
+	} while ((pmmsys_sys0router_perfmonstatus_merged_v(reg_val) != 0U) &&
+		(timeout_msecs > 0));
+
+	if (timeout_msecs <= 0) {
+		tegra_hwpm_err(hwpm, "Timeout expired for "
+			"NV_PERF_PMMSYS_SYS0ROUTER_PERFMONSTATUS_MERGED_EMPTY");
 		return -ETIMEDOUT;
 	}
 
-	err = tegra_hwpm_readl(hwpm, rtr_perfmux,
-		pmmsys_sys0router_enginestatus_r(), &reg_val);
-	if (err != 0) {
-		tegra_hwpm_err(hwpm, "hwpm read failed");
-		return err;
-	}
-	timeout = HWPM_TIMEOUT(
-		pmmsys_sys0router_enginestatus_status_v(reg_val) ==
-			pmmsys_sys0router_enginestatus_status_empty_v(),
-		"NV_PERF_PMMSYS_SYS0ROUTER_ENGINESTATUS_STATUS_EMPTY");
-	if (timeout) {
+	timeout_msecs = 1000;
+
+	do {
+		err = tegra_hwpm_readl(hwpm, rtr_perfmux,
+			pmmsys_sys0router_enginestatus_r(), &reg_val);
+		if (err != 0) {
+			tegra_hwpm_err(hwpm, "hwpm read failed");
+			return err;
+		}
+		msleep(sleep_msecs);
+		timeout_msecs -= sleep_msecs;
+	} while ((pmmsys_sys0router_enginestatus_status_v(reg_val) !=
+			pmmsys_sys0router_enginestatus_status_empty_v()) &&
+		(timeout_msecs > 0));
+	if (timeout_msecs <= 0) {
+		tegra_hwpm_err(hwpm, "Timeout expired for "
+			"NV_PERF_PMMSYS_SYS0ROUTER_ENGINESTATUS_STATUS_EMPTY");
 		return -ETIMEDOUT;
 	}
+
+	timeout_msecs = 1000;
 
 	field_mask = pmasys_enginestatus_status_m() |
 		     pmasys_enginestatus_rbufempty_m();
 	field_val = pmasys_enginestatus_status_empty_f() |
 		pmasys_enginestatus_rbufempty_empty_f();
-	err = tegra_hwpm_readl(hwpm, pma_perfmux,
-		pmasys_enginestatus_r(), &reg_val);
-	if (err != 0) {
-		tegra_hwpm_err(hwpm, "hwpm read failed");
-		return err;
-	}
-	timeout = HWPM_TIMEOUT((reg_val & field_mask) == field_val,
-		"NV_PERF_PMASYS_ENGINESTATUS");
-	if (timeout) {
+	do {
+		err = tegra_hwpm_readl(hwpm, pma_perfmux,
+			pmasys_enginestatus_r(), &reg_val);
+		if (err != 0) {
+			tegra_hwpm_err(hwpm, "hwpm read failed");
+			return err;
+		}
+		msleep(sleep_msecs);
+		timeout_msecs -= sleep_msecs;
+	} while (((reg_val & field_mask) != field_val) && (timeout_msecs > 0));
+
+	if (timeout_msecs <= 0) {
+		tegra_hwpm_err(hwpm, "Timeout expired for "
+			"NV_PERF_PMASYS_ENGINESTATUS");
 		return -ETIMEDOUT;
 	}
 

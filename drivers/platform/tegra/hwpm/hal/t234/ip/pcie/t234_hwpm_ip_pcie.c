@@ -1100,6 +1100,7 @@ struct hwpm_ip t234_hwpm_ip_pcie = {
 		 * TEGRA_HWPM_APERTURE_TYPE_PERFMUX
 		 */
 		{
+			/* NOTE: range should be in ascending order */
 			.range_start = addr_map_pcie_c8_ctl_base_r(),
 			.range_end = addr_map_pcie_c7_ctl_limit_r(),
 			.inst_stride = addr_map_pcie_c8_ctl_limit_r() -

@@ -209,21 +209,27 @@ int tegra_hwpm_clear_mem_pipeline(struct tegra_soc_hwpm *hwpm)
 
 	/* Stream MEM_BYTES to clear pipeline */
 	if (hwpm->mem_bytes_kernel) {
-		bool timeout = false;
+		s32 timeout_msecs = 1000;
+		u32 sleep_msecs = 100;
 		u32 *mem_bytes_kernel_u32 = (u32 *)(hwpm->mem_bytes_kernel);
 
-		ret = hwpm->active_chip->stream_mem_bytes(hwpm);
-		if (ret != 0) {
+		do {
+			ret = hwpm->active_chip->stream_mem_bytes(hwpm);
+			if (ret != 0) {
+				tegra_hwpm_err(hwpm,
+					"Trigger mem_bytes streaming failed");
+				goto fail;
+			}
+			msleep(sleep_msecs);
+			timeout_msecs -= sleep_msecs;
+		} while ((*mem_bytes_kernel_u32 ==
+			TEGRA_SOC_HWPM_MEM_BYTES_INVALID) &&
+			(timeout_msecs > 0));
+
+		if (timeout_msecs <= 0) {
 			tegra_hwpm_err(hwpm,
-				"Failed to trigger mem_bytes streaming");
-			goto fail;
-		}
-		timeout = HWPM_TIMEOUT(*mem_bytes_kernel_u32 !=
-			       TEGRA_SOC_HWPM_MEM_BYTES_INVALID,
-			     "MEM_BYTES streaming");
-		if (timeout) {
-			ret = -EIO;
-			goto fail;
+				"Timeout expired for MEM_BYTES streaming");
+			return -ETIMEDOUT;
 		}
 	}
 

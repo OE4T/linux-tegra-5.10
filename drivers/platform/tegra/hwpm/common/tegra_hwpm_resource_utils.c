@@ -46,7 +46,7 @@ int tegra_hwpm_release_rtr(struct tegra_soc_hwpm *hwpm)
 	tegra_hwpm_fn(hwpm, " ");
 
 	err = tegra_hwpm_func_single_ip(hwpm, NULL,
-		TEGRA_HWPM_RELEASE_RESOURCES,
+		TEGRA_HWPM_RELEASE_ROUTER,
 		active_chip->get_rtr_int_idx(hwpm));
 	if (err != 0) {
 		tegra_hwpm_err(hwpm, "failed to release IP %d",

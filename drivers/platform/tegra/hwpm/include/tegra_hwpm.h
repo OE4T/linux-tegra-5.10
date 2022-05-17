@@ -30,24 +30,6 @@
 
 #define TEGRA_SOC_HWPM_IP_INACTIVE	~(0U)
 
-/* FIXME: Default timeout is 1 sec. Is this sufficient for pre-si? */
-#define HWPM_TIMEOUT(timeout_check, expiry_msg) ({			\
-	bool timeout_expired = false;					\
-	s32 timeout_msecs = 1000;					\
-	u32 sleep_msecs = 100;						\
-	while (!(timeout_check)) {					\
-		msleep(sleep_msecs);					\
-		timeout_msecs -= sleep_msecs;				\
-		if (timeout_msecs <= 0) {				\
-			tegra_hwpm_err(NULL, "Timeout expired for %s!",	\
-					expiry_msg);			\
-			timeout_expired = true;				\
-			break;						\
-		}							\
-	}								\
-	timeout_expired;						\
-})
-
 struct hwpm_ip_register_list {
 	struct tegra_soc_hwpm_ip_ops ip_ops;
 	struct hwpm_ip_register_list *next;
@@ -190,7 +172,7 @@ struct hwpm_ip_aperture {
 };
 
 struct hwpm_ip_element_info {
-	/* Number of apertures per instance */
+	/* Number of elements per instance */
 	u32 num_element_per_inst;
 
 	/*
@@ -199,7 +181,14 @@ struct hwpm_ip_element_info {
 	 */
 	struct hwpm_ip_aperture *element_static_array;
 
-	/* Instance address range corresponding to aperture */
+	/*
+	 * Ascending instance address range corresponding to elements
+	 * NOTE: It is possible that address range of elements in the instance
+	 * are not in same sequential order as their indexes.
+	 * For example, 0th element of an instance can have start address higher
+	 * than element 1. In this case, range_start and range_end should be
+	 * initialized in increasing order.
+	 */
 	u64 range_start;
 	u64 range_end;
 
@@ -213,7 +202,7 @@ struct hwpm_ip_element_info {
 	u32 element_slots;
 
 	/*
-	 * Dynamic elements array corresponding to this aperture
+	 * Dynamic elements array corresponding to this element
 	 * Array size: element_slots pointers
 	 */
 	struct hwpm_ip_aperture **element_arr;
@@ -246,7 +235,14 @@ struct hwpm_ip_inst {
 };
 
 struct hwpm_ip_inst_per_aperture_info {
-	/* IP address range corresponding to aperture */
+	/*
+	 * Ascending IP address range corresponding to instances
+	 * NOTE: It is possible that address range of IP instances
+	 * are not in same sequential order as their indexes.
+	 * For example, 0th instance of an IP can have start address higher
+	 * than instance 1. In this case, range_start and range_end should be
+	 * initialized in increasing order.
+	 */
 	u64 range_start;
 	u64 range_end;
 
