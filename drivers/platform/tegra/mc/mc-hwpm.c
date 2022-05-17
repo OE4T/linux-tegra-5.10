@@ -85,36 +85,26 @@ static void memctrl_writel(u32 chnl_no, u32 val, u32 reg)
 	writel(val, memctlr_regs[chnl_no] + reg);
 }
 
-static int tegra_mc_hwpm_reg_op(void *ip_dev, enum tegra_soc_hwpm_ip_reg_op reg_op,
-						u32 chnl_no,
-						u64 reg_offset, u32 *reg_data)
+static int tegra_mc_hwpm_reg_op(void *ip_dev,
+	enum tegra_soc_hwpm_ip_reg_op reg_op,
+	u32 inst_element_index, u64 reg_offset, u32 *reg_data)
 {
 	if (reg_offset > 0x10000) {
 		pr_err("Incorrect reg offset: %llu\n", reg_offset);
 		return -EPERM;
 	}
 
-	if (chnl_no > get_dram_num_channels()) {
-		pr_err("Incorrect channel number: %u\n", chnl_no);
+	if (inst_element_index > get_dram_num_channels()) {
+		pr_err("Incorrect channel number: %u\n", inst_element_index);
 		return -EPERM;
 	}
 
 	if (reg_op == TEGRA_SOC_HWPM_IP_REG_OP_READ)
-		*reg_data = memctrl_readl(chnl_no, (u32)reg_offset);
+		*reg_data = memctrl_readl(inst_element_index, (u32)reg_offset);
 	else if (reg_op == TEGRA_SOC_HWPM_IP_REG_OP_WRITE)
-		memctrl_writel(chnl_no, *reg_data, (u32)reg_offset);
+		memctrl_writel(inst_element_index, *reg_data, (u32)reg_offset);
 
 	return 0;
-}
-
-/*
- * Return HWPM operations for Broadcast channel until
- * HWPM driver implements channel no as parameter
- */
-static int __tegra_mc_hwpm_reg_op(void *ip_dev, enum tegra_soc_hwpm_ip_reg_op reg_op,
-						u64 reg_offset, u32 *reg_data)
-{
-	return tegra_mc_hwpm_reg_op(ip_dev, reg_op, 0, reg_offset, reg_data);
 }
 
 /*
@@ -226,7 +216,7 @@ static int tegra_mc_hwpm_hwpm_probe(struct platform_device *pdev)
 	hwpm_ip_ops.ip_dev = (void *)pdev;
 	hwpm_ip_ops.resource_enum = TEGRA_SOC_HWPM_RESOURCE_MSS_CHANNEL;
 	hwpm_ip_ops.ip_base_address = pdev->resource[0].start;
-	hwpm_ip_ops.hwpm_ip_reg_op = &__tegra_mc_hwpm_reg_op;
+	hwpm_ip_ops.hwpm_ip_reg_op = &tegra_mc_hwpm_reg_op;
 	tegra_soc_hwpm_ip_register(&hwpm_ip_ops);
 
 	return 0;
