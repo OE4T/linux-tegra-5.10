@@ -2608,14 +2608,13 @@ static int mgbe_hsi_configure(struct osi_core_priv_data *const osi_core,
 		value = (0x198U << MGBE_TMR_SHIFT) & MGBE_TMR_MASK;
 		value |= (0x0U << MGBE_CTMR_SHIFT) & MGBE_CTMR_MASK;
 		value |= (0x2U << MGBE_LTMRMD_SHIFT) & MGBE_LTMRMD_MASK;
-		value |= (0x1U << MGBE_NTMRMD_SHIFT) & MGBE_NTMRMD_MASK;
+		value |= (0x2U << MGBE_NTMRMD_SHIFT) & MGBE_NTMRMD_MASK;
 		osi_writela(osi_core, value,
 			    (nveu8_t *)osi_core->base + MGBE_DWCXG_CORE_MAC_FSM_ACT_TIMER);
 
 		/* T23X-MGBE_HSIv2-3: Enabling and Initialization of Watchdog Timer */
 		/* T23X-MGBE_HSIv2-4: Enabling of Consistency Monitor for XGMAC FSM State */
-		// TODO: enable MGBE_TMOUTEN.
-		value = MGBE_PRTYEN;
+		value = (MGBE_PRTYEN | MGBE_TMOUTEN);
 		osi_writela(osi_core, value,
 			    (nveu8_t *)osi_core->base + MGBE_MAC_FSM_CONTROL);
 
