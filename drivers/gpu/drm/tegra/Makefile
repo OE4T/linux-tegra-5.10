@@ -32,7 +32,8 @@ tegra-drm-next-y := \
 	vic.o \
 	nvdec.o \
 	nvenc.o \
-	nvjpg.o
+	nvjpg.o \
+	util.o
 
 tegra-drm-next-y += trace.o
 

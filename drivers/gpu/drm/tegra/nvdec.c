@@ -19,6 +19,7 @@
 
 #include "drm.h"
 #include "falcon.h"
+#include "util.h"
 #include "vic.h"
 
 #define NVDEC_TFBIF_TRANSCFG			0x2c44
@@ -57,26 +58,10 @@ static inline void nvdec_writel(struct nvdec *nvdec, u32 value,
 
 static int nvdec_boot(struct nvdec *nvdec)
 {
-#ifdef CONFIG_IOMMU_API
-	struct iommu_fwspec *spec = dev_iommu_fwspec_get(nvdec->dev);
-#endif
 	int err;
 
-#ifdef CONFIG_IOMMU_API
-	if (nvdec->config->supports_sid && spec) {
-		u32 value;
-
-		value = TRANSCFG_ATT(1, TRANSCFG_SID_FALCON) | TRANSCFG_ATT(0, TRANSCFG_SID_HW);
-		nvdec_writel(nvdec, value, NVDEC_TFBIF_TRANSCFG);
-
-		if (spec->num_ids > 0) {
-			value = spec->ids[0] & 0xffff;
-
-			nvdec_writel(nvdec, value, VIC_THI_STREAMID0);
-			nvdec_writel(nvdec, value, VIC_THI_STREAMID1);
-		}
-	}
-#endif
+	if (nvdec->config->supports_sid)
+		tegra_drm_program_iommu_regs(nvdec->dev, nvdec->regs, NVDEC_TFBIF_TRANSCFG);
 
 	err = falcon_boot(&nvdec->falcon);
 	if (err < 0)
