@@ -573,8 +573,14 @@ static int32_t update_exports_symbol(void *elf, const struct elf_section_header 
 				     struct pva_elf_symbol *symID)
 {
 	const u8 *data;
-	const char *section_name = elf_section_name(elf, section_header);
-	int32_t section_type = find_pva_ucode_segment_type(section_name, section_header->addr);
+	const char *section_name;
+	int32_t section_type;
+
+	section_name = elf_section_name(elf, section_header);
+	if (section_name == NULL)
+		return -EINVAL;
+
+	section_type = find_pva_ucode_segment_type(section_name, section_header->addr);
 	if (section_type == PVA_SEG_VPU_IN_PARAMS) {
 		uint32_t symOffset = symID->addr - section_header->addr;
 		data = elf_section_contents(elf, section_header);
@@ -648,6 +654,11 @@ populate_symtab(void *elf, struct nvpva_elf_context *d,
 			continue;
 
 		symname = elf_symbol_name(elf, section_header, i);
+		if (symname == NULL) {
+			ret = -EINVAL;
+			goto fail;
+		}
+
 		stringsize = strnlen(symname, (ELF_MAX_SYMBOL_LENGTH - 1));
 		symID = &get_elf_image(d, exe_id)->sym[num_symbols];
 		symID->symbol_name =
@@ -1130,6 +1141,11 @@ nvpva_validate_vmem_offset(const uint32_t vmem_offset,
 
 	int i;
 	int32_t err = -EINVAL;
+
+	if (hw_gen < 0 || hw_gen > NUM_HEM_GEN) {
+		pr_err("invalid hw_gen index: %d", hw_gen);
+		return err;
+	}
 
 	for (i = VMEM_REGION_COUNT; i > 0; i--) {
 		if (vmem_offset >= vmem_regions_tab[hw_gen][i-1].start)

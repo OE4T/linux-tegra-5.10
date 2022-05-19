@@ -1,7 +1,7 @@
 /*
  * PVA uCode Self Test
  *
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -41,14 +41,22 @@ static void *pva_dma_alloc_and_map_at(struct device *dev, size_t size,
 				      dma_addr_t iova, gfp_t flags,
 				      unsigned long attrs)
 {
-	struct iommu_domain *domain = iommu_get_domain_for_dev(dev);
-	unsigned long shift = __ffs(domain->pgsize_bitmap);
-	unsigned long pg_size = 1UL << shift;
-	unsigned long mp_size = pg_size;
+	struct iommu_domain *domain;
+	unsigned long shift, pg_size, mp_size;
 	dma_addr_t tmp_iova, offset;
 	phys_addr_t pa, pa_new;
 	void *cpu_va;
 	int ret;
+
+	domain = iommu_get_domain_for_dev(dev);
+	if (!domain) {
+		dev_err(dev, "IOMMU domain not found");
+		return NULL;
+	}
+
+	shift = __ffs(domain->pgsize_bitmap);
+	pg_size = 1UL << shift;
+	mp_size = pg_size;
 
 	/* Reserve iova range */
 	tmp_iova = iommu_dma_alloc_iova(dev, size, iova + size - pg_size);
