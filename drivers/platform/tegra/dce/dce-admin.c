@@ -431,6 +431,79 @@ out:
 	return ret;
 }
 
+/**
+ * dce_admin_send_prepare_sc7 - Sends DCE_ADMIN_CMD_PREPARE_SC7 cmd.
+ *
+ * @d - Pointer to tegra_dce struct.
+ * @msg - Pointer to dce_ipc_msg struct.
+ *
+ * Return - 0 if successful
+ */
+int dce_admin_send_prepare_sc7(struct tegra_dce *d,
+			    struct dce_ipc_message *msg)
+{
+	int ret = -1;
+	struct dce_admin_ipc_cmd *req_msg;
+	struct dce_admin_ipc_resp *resp_msg;
+
+	if (!msg || !msg->tx.data || !msg->rx.data)
+		goto out;
+
+	req_msg = (struct dce_admin_ipc_cmd *)(msg->tx.data);
+	resp_msg = (struct dce_admin_ipc_resp *) (msg->rx.data);
+
+	req_msg->cmd = (uint32_t)DCE_ADMIN_CMD_PREPARE_SC7;
+
+	ret = dce_admin_send_msg(d, msg);
+	if (ret) {
+		dce_err(d, "Error sending prepare sc7 command [%d]", ret);
+		goto out;
+	}
+
+out:
+	return ret;
+}
+
+/**
+ * dce_admin_send_enter_sc7 - Sends DCE_ADMIN_CMD_ENTER_SC7 cmd.
+ *
+ * @d - Pointer to tegra_dce struct.
+ * @msg - Pointer to dce_ipc_msg struct.
+ *
+ * Return - 0 if successful
+ */
+int dce_admin_send_enter_sc7(struct tegra_dce *d,
+			     struct dce_ipc_message *msg)
+{
+	int ret = -1;
+	struct dce_admin_ipc_cmd *req_msg;
+	struct dce_admin_ipc_resp *resp_msg;
+
+	if (!msg || !msg->tx.data || !msg->rx.data)
+		goto out;
+
+	req_msg = (struct dce_admin_ipc_cmd *)(msg->tx.data);
+	resp_msg = (struct dce_admin_ipc_resp *) (msg->rx.data);
+
+	req_msg->cmd = (uint32_t)DCE_ADMIN_CMD_ENTER_SC7;
+
+	ret = dce_ipc_send_message(d, DCE_IPC_CHANNEL_TYPE_ADMIN, msg->tx.data, msg->tx.size);
+	if (ret) {
+		dce_err(d, "Error sending enter sc7 command [%d]", ret);
+		goto out;
+	}
+
+	/* Wait for SC7 Enter done */
+	ret = dce_wait_interruptible(d, DCE_WAIT_SC7_ENTER);
+	if (ret) {
+		dce_err(d, "SC7 Enter wait was interrupted with err:%d", ret);
+		goto out;
+	}
+
+out:
+	return ret;
+}
+
 static int dce_admin_setup_clients_ipc(struct tegra_dce *d,
 		struct dce_ipc_message *msg)
 {

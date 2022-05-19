@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0
-# Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# Copyright (c) 2022-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 #
 # Display Controller Engine code.
 #
@@ -35,6 +35,7 @@ tegra-dce-$(CONFIG_TEGRA_DCE) += \
 	dce-ipc-signal.o \
 	dce-client-ipc.o \
 	dce-module.o \
+	dce-pm.o \
 	dce-util-common.o
 
 ifeq ($(CONFIG_DEBUG_FS),y)

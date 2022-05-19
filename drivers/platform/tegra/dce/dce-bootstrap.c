@@ -242,8 +242,12 @@ void dce_handle_irq_status(struct tegra_dce *d, u32 status)
 					 NULL);
 	}
 
-	if (status & DCE_IRQ_SC7_ENTERED)
+	if (status & DCE_IRQ_SC7_ENTERED) {
 		dce_info(d, "DCE can be safely powered-off now");
+		(void)dce_fsm_post_event(d,
+					 EVENT_ID_DCE_SC7_ENTERED_RECEIVED,
+					 NULL);
+	}
 
 	if (status & DCE_IRQ_LOG_READY) {
 		dce_info(d, "DCE trace log buffers available");

@@ -53,11 +53,15 @@ static struct dce_event_process_struct event_process_table[] = {
 	},
 	{
 		.event			= EVENT_ID_DCE_SC7_ENTER_REQUESTED,
-		.fsm_event_handle	= dce_handle_event_stub,
+		.fsm_event_handle	= dce_pm_handle_sc7_enter_requested_event,
 	},
 	{
 		.event			= EVENT_ID_DCE_SC7_ENTERED_RECEIVED,
-		.fsm_event_handle	= dce_handle_event_stub,
+		.fsm_event_handle	= dce_pm_handle_sc7_enter_received_event,
+	},
+	{
+		.event			= EVENT_ID_DCE_SC7_EXIT_RECEIVED,
+		.fsm_event_handle	= dce_pm_handle_sc7_exit_received_event,
 	},
 	{
 		.event			= EVENT_ID_DCE_LOG_REQUESTED,
@@ -176,6 +180,11 @@ dce_fsm_set_state(struct tegra_dce *d,
 	case EVENT_ID_DCE_SC7_ENTERED_RECEIVED:
 		fsm->c_state = STATE_DCE_SC7_ENTERED;
 		fsm->requested_ipcs &= ~DCE_BIT(DCE_WAIT_SC7_ENTER);
+		break;
+
+	case EVENT_ID_DCE_SC7_EXIT_RECEIVED:
+		fsm->c_state = STATE_DCE_FSM_IDLE;
+		fsm->requested_ipcs = 0;
 		break;
 
 	case EVENT_ID_DCE_LOG_REQUESTED:
@@ -355,11 +364,16 @@ dce_fsm_validate_event(struct tegra_dce *d,
 		}
 		break;
 	case STATE_DCE_SC7_ENTERED:
-		//
-		// STATE_DCE_SC7_ENTERED is short lived state for now
-		// FSM can expect only EVENT_ID_DCE_FSM_START event here
-		//
-		dce_err(d, "Event received while in STATE_DCE_SC7_ENTERED state");
+		switch (event) {
+		case EVENT_ID_DCE_SC7_EXIT_RECEIVED:
+			ret = 0;
+			break;
+		default:
+			dce_err(d, "Invalid event received [%d] state:[%d]\n",
+				event, curr_state);
+			ret = -EINVAL;
+			break;
+		}
 		break;
 	default:
 		dce_err(d, "Invalid state:[%d] event received [%d]\n", curr_state,

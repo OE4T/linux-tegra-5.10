@@ -59,6 +59,19 @@ static inline struct tegra_dce *dce_get_pdata_dce(struct platform_device *pdev)
 }
 
 /**
+ * dce_get_tegra_dce_from_dev - inline function to get the tegra_dce pointer
+ *						from devicve struct.
+ *
+ * @pdev : Pointer to the device data structure.
+ *
+ * Return :  Pointer pointing to tegra_dce data structure.
+ */
+static inline struct tegra_dce *dce_get_tegra_dce_from_dev(struct device *dev)
+{
+	return (&((struct dce_device *)dev_get_drvdata(dev))->d);
+}
+
+/**
  * dce_init_dev_data - Function to initialize the dce device data structure.
  *
  * @pdev : Pointer to Linux's platform device used for registering DCE.
@@ -254,11 +267,35 @@ static int tegra_dce_remove(struct platform_device *pdev)
 	return 0;
 }
 
+#ifdef CONFIG_PM
+static int dce_pm_suspend(struct device *dev)
+{
+	struct tegra_dce *d = dce_get_tegra_dce_from_dev(dev);
+
+	return dce_pm_enter_sc7(d);
+}
+
+static int dce_pm_resume(struct device *dev)
+{
+	struct tegra_dce *d = dce_get_tegra_dce_from_dev(dev);
+
+	return dce_pm_exit_sc7(d);
+}
+
+const struct dev_pm_ops dce_pm_ops = {
+	.suspend = dce_pm_suspend,
+	.resume  = dce_pm_resume,
+};
+#endif
+
 static struct platform_driver tegra_dce_driver = {
 	.driver = {
 		.name   = "tegra-dce",
 		.of_match_table =
 			of_match_ptr(tegra_dce_of_match),
+#ifdef CONFIG_PM
+		.pm	= &dce_pm_ops,
+#endif
 	},
 	.probe = tegra_dce_probe,
 	.remove = tegra_dce_remove,
