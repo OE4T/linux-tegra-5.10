@@ -143,6 +143,35 @@ void dce_fsm_bootstrap_work_fn(struct tegra_dce *d)
 }
 
 /**
+ * dce_resume_work_fn : execute resume and bootstrap flow
+ *
+ * @d : Pointer to tegra_dce struct.
+ *
+ * Return : void
+ */
+void dce_resume_work_fn(struct tegra_dce *d)
+{
+	int ret = 0;
+
+	if (d == NULL) {
+		dce_err(d, "tegra_dce struct is NULL");
+		return;
+	}
+
+	ret = dce_fsm_post_event(d, EVENT_ID_DCE_BOOT_COMPLETE_REQUESTED, NULL);
+	if (ret) {
+		dce_err(d, "Error while posting DCE_BOOT_COMPLETE_REQUESTED event");
+		return;
+	}
+
+	ret = dce_start_boot_flow(d);
+	if (ret) {
+		dce_err(d, "DCE bootstrapping failed\n");
+		return;
+	}
+}
+
+/**
  * dce_fsm_resource_init : Init dce workques related resources
  *
  * @d : Pointer to tegra_dce struct.
@@ -157,6 +186,12 @@ int dce_fsm_resource_init(struct tegra_dce *d)
 	ret = dce_init_work(d, &d->dce_fsm_bootstrap_work, dce_fsm_bootstrap_work_fn);
 	if (ret) {
 		dce_err(d, "fsm_start work init failed");
+		goto exit;
+	}
+
+	ret = dce_init_work(d, &d->dce_resume_work, dce_resume_work_fn);
+	if (ret) {
+		dce_err(d, "resume work init failed");
 		goto exit;
 	}
 
