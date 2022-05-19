@@ -269,6 +269,18 @@ static const struct host1x_sid_entry tegra234_sid_table[] = {
 		.limit = 0x34
 	},
 	{
+		/* NVDEC channel */
+		.base = 0x17c8,
+		.offset = 0x30,
+		.limit = 0x30,
+	},
+	{
+		/* NVDEC MMIO */
+		.base = 0x1698,
+		.offset = 0x34,
+		.limit = 0x34,
+	},
+	{
 		/* NVDLA channel */
 		.base = 0x17e0,
 		.offset = 0x30,
