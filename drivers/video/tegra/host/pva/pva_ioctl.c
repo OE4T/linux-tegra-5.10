@@ -927,12 +927,6 @@ static int pva_open(struct inode *inode, struct file *file)
 
 	file->private_data = priv;
 	priv->pva = pva;
-
-	/* add the pva client to nvhost */
-	err = nvhost_module_add_client(pdev, priv);
-	if (err < 0)
-		goto err_add_client;
-
 	priv->queue = nvpva_queue_alloc(pva->pool,
 					 MAX_PVA_TASK_COUNT_PER_QUEUE);
 
@@ -955,7 +949,6 @@ err_alloc_context:
 	nvpva_queue_put(priv->queue);
 err_alloc_queue:
 	nvhost_module_remove_client(pdev, priv);
-err_add_client:
 	kfree(priv);
 err_alloc_priv:
 	return err;
@@ -1031,9 +1024,6 @@ static int pva_release(struct inode *inode, struct file *file)
 	 * own references to the queue
 	 */
 	nvpva_queue_put(priv->queue);
-
-	/* Release handle to nvhost_acm */
-	nvhost_module_remove_client(priv->pva->pdev, priv);
 
 	/* Finally, release the private data */
 	kfree(priv);
