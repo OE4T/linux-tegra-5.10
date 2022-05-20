@@ -24,10 +24,41 @@ enum tegra_soc_hwpm_log_type {
 };
 
 #define TEGRA_HWPM_DEFAULT_DBG_MASK	(0)
-#define hwpm_fn				BIT(0)
-#define hwpm_info			BIT(1)
+/* Primary info prints */
+#define hwpm_info			BIT(0)
+/* Trace function execution */
+#define hwpm_fn				BIT(1)
+/* Log register accesses */
 #define hwpm_register			BIT(2)
+/* General verbose prints */
 #define hwpm_verbose			BIT(3)
+/* Driver init specific verbose prints */
+#define hwpm_dbg_driver_init		BIT(4)
+/* IP register specific verbose prints */
+#define hwpm_dbg_ip_register		BIT(5)
+/* Device info specific verbose prints */
+#define hwpm_dbg_device_info		BIT(6)
+/* Floorsweep info specific verbose prints */
+#define hwpm_dbg_floorsweep_info	BIT(7)
+/* Resource info specific verbose prints */
+#define hwpm_dbg_resource_info		BIT(8)
+/* Reserve resource specific verbose prints */
+#define hwpm_dbg_reserve_resource	BIT(9)
+/* Release resource specific verbose prints */
+#define hwpm_dbg_release_resource	BIT(10)
+/* Alloc PMA stream specific verbose prints */
+#define hwpm_dbg_alloc_pma_stream	BIT(11)
+/* Bind operation specific verbose prints */
+#define hwpm_dbg_bind			BIT(12)
+/* Allowlist specific verbose prints */
+#define hwpm_dbg_allowlist		BIT(13)
+/* Regops specific verbose prints */
+#define hwpm_dbg_regops			BIT(14)
+/* Get Put pointer specific verbose prints */
+#define hwpm_dbg_update_get_put		BIT(15)
+/* Driver release specific verbose prints */
+#define hwpm_dbg_driver_release		BIT(16)
+
 
 #define tegra_hwpm_err(hwpm, fmt, arg...)				\
 	tegra_hwpm_err_impl(hwpm, __func__, __LINE__, fmt, ##arg)

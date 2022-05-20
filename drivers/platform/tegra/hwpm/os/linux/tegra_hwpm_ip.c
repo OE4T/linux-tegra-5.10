@@ -90,6 +90,9 @@ void tegra_soc_hwpm_ip_register(struct tegra_soc_hwpm_ip_ops *hwpm_ip_ops)
 	}
 
 	if (tegra_soc_hwpm_pdev == NULL) {
+		tegra_hwpm_dbg(hwpm, hwpm_info | hwpm_dbg_ip_register,
+			"Noting IP 0x%llx register request",
+			hwpm_ip_ops->ip_base_address);
 		ret = tegra_hwpm_note_ip_register(hwpm_ip_ops);
 		if (ret != 0) {
 			tegra_hwpm_err(NULL,
@@ -103,7 +106,7 @@ void tegra_soc_hwpm_ip_register(struct tegra_soc_hwpm_ip_ops *hwpm_ip_ops)
 		}
 		hwpm = platform_get_drvdata(tegra_soc_hwpm_pdev);
 
-		tegra_hwpm_dbg(hwpm, hwpm_info,
+		tegra_hwpm_dbg(hwpm, hwpm_info | hwpm_dbg_ip_register,
 		"Register IP 0x%llx", hwpm_ip_ops->ip_base_address);
 
 		ret = hwpm->active_chip->extract_ip_ops(hwpm,
@@ -126,7 +129,8 @@ void tegra_soc_hwpm_ip_unregister(struct tegra_soc_hwpm_ip_ops *hwpm_ip_ops)
 	}
 
 	if (tegra_soc_hwpm_pdev == NULL) {
-		tegra_hwpm_dbg(hwpm, hwpm_info, "HWPM device not available");
+		tegra_hwpm_dbg(hwpm, hwpm_info | hwpm_dbg_ip_register,
+			"HWPM device not available");
 	} else {
 		if (hwpm_ip_ops->ip_dev == NULL) {
 			tegra_hwpm_err(hwpm, "IP dev to unregister is NULL");
@@ -134,7 +138,7 @@ void tegra_soc_hwpm_ip_unregister(struct tegra_soc_hwpm_ip_ops *hwpm_ip_ops)
 		}
 		hwpm = platform_get_drvdata(tegra_soc_hwpm_pdev);
 
-		tegra_hwpm_dbg(hwpm, hwpm_info,
+		tegra_hwpm_dbg(hwpm, hwpm_info | hwpm_dbg_ip_register,
 		"Unregister IP 0x%llx", hwpm_ip_ops->ip_base_address);
 
 		ret = hwpm->active_chip->extract_ip_ops(hwpm,

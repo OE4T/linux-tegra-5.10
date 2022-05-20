@@ -100,6 +100,9 @@ int tegra_hwpm_update_allowlist(struct tegra_soc_hwpm *hwpm,
 	alist_buf_size = tegra_hwpm_safe_mult_u64(hwpm->full_alist_size,
 		hwpm->active_chip->get_alist_buf_size(hwpm));
 
+	tegra_hwpm_dbg(hwpm, hwpm_info | hwpm_dbg_allowlist,
+		"alist_buf_size 0x%llx", alist_buf_size);
+
 	/* Memory map user buffer into kernel address space */
 	alist_buf_size = tegra_hwpm_safe_add_u64(offset, alist_buf_size);
 

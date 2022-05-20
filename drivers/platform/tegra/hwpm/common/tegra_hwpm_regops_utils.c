@@ -47,14 +47,14 @@ static int tegra_hwpm_exec_reg_ops(struct tegra_soc_hwpm *hwpm,
 		&ip_idx, &inst_idx, &element_idx, &element_type);
 	if (!found) {
 		/* Silent failure as regops can continue on error */
-		tegra_hwpm_dbg(hwpm, hwpm_verbose,
+		tegra_hwpm_dbg(hwpm, hwpm_dbg_regops,
 			"Phys addr 0x%llx not available in any IP",
 			reg_op->phys_addr);
 		reg_op->status = TEGRA_SOC_HWPM_REG_OP_STATUS_INVALID_ADDR;
 		return -EINVAL;
 	}
 
-	tegra_hwpm_dbg(hwpm, hwpm_verbose,
+	tegra_hwpm_dbg(hwpm, hwpm_dbg_regops,
 		"Found addr 0x%llx IP %d inst_idx %d element_idx %d e_type %d",
 		reg_op->phys_addr, ip_idx, inst_idx, element_idx, element_type);
 
@@ -210,7 +210,7 @@ int tegra_hwpm_exec_regops(struct tegra_soc_hwpm *hwpm,
 
 	for (op_idx = 0; op_idx < exec_reg_ops->op_count; op_idx++) {
 		reg_op = &(exec_reg_ops->ops[op_idx]);
-		tegra_hwpm_dbg(hwpm, hwpm_verbose,
+		tegra_hwpm_dbg(hwpm, hwpm_dbg_regops,
 			"reg op: idx(%d), phys(0x%llx), cmd(%u)",
 			op_idx, reg_op->phys_addr, reg_op->cmd);
 

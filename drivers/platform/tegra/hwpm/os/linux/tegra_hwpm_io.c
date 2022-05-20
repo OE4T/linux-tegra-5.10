@@ -232,6 +232,8 @@ static int hwpm_writel(struct tegra_soc_hwpm *hwpm,
 int tegra_hwpm_readl(struct tegra_soc_hwpm *hwpm,
 	struct hwpm_ip_aperture *aperture, u64 addr, u32 *val)
 {
+	tegra_hwpm_fn(hwpm, " ");
+
 	if (!aperture) {
 		tegra_hwpm_err(hwpm, "aperture is NULL");
 		return -ENODEV;
@@ -257,6 +259,8 @@ int tegra_hwpm_readl(struct tegra_soc_hwpm *hwpm,
 int tegra_hwpm_writel(struct tegra_soc_hwpm *hwpm,
 	struct hwpm_ip_aperture *aperture, u64 addr, u32 val)
 {
+	tegra_hwpm_fn(hwpm, " ");
+
 	if (!aperture) {
 		tegra_hwpm_err(hwpm, "aperture is NULL");
 		return -ENODEV;
@@ -286,6 +290,8 @@ int tegra_hwpm_regops_readl(struct tegra_soc_hwpm *hwpm,
 	u64 reg_offset = 0ULL;
 	int err = 0;
 
+	tegra_hwpm_fn(hwpm, " ");
+
 	if (!aperture) {
 		tegra_hwpm_err(hwpm, "aperture is NULL");
 		return -ENODEV;
@@ -312,6 +318,8 @@ int tegra_hwpm_regops_writel(struct tegra_soc_hwpm *hwpm,
 {
 	u64 reg_offset = 0ULL;
 	int err = 0;
+
+	tegra_hwpm_fn(hwpm, " ");
 
 	if (!aperture) {
 		tegra_hwpm_err(hwpm, "aperture is NULL");

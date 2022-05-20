@@ -94,7 +94,14 @@ static int tegra_hwpm_perfmux_reserve(struct tegra_soc_hwpm *hwpm,
 		tegra_hwpm_safe_add_u64(perfmux->start_abs_pa,
 			perfmux->alist[0U].reg_offset), &reg_val);
 	if (ret != 0) {
-		tegra_hwpm_dbg(hwpm, hwpm_info,
+		/*
+		 * If an IP element is unavailable, perfmux register
+		 * read will return with failure.
+		 * Mark corresponding element as unavailable.
+		 * NOTE: This is possible if IP elements are floorswept.
+		 * Hence, failure should not be propagated.
+		 */
+		tegra_hwpm_dbg(hwpm, hwpm_dbg_reserve_resource,
 			"perfmux start_abs_pa 0x%llx unavailable",
 			perfmux->start_abs_pa);
 
@@ -244,7 +251,9 @@ static void tegra_hwpm_free_dynamic_inst_array(struct tegra_soc_hwpm *hwpm,
 			&chip_ip->inst_aperture_info[a_type];
 
 		if (inst_a_info->inst_arr == NULL) {
-			/* No a_type elements in the IP */
+			tegra_hwpm_dbg(hwpm, hwpm_verbose,
+				"No a_type = %d elements in IP %d",
+				a_type, ip_idx);
 			continue;
 		}
 
@@ -263,7 +272,8 @@ static int tegra_hwpm_alloc_dynamic_inst_element_array(
 	tegra_hwpm_fn(hwpm, " ");
 
 	if (inst_a_info->range_start == 0ULL) {
-		/* No a_type elements in the IP */
+		tegra_hwpm_dbg(hwpm, hwpm_dbg_driver_init,
+			"No a_type = %d elements in IP", a_type);
 		return 0;
 	}
 
@@ -276,8 +286,7 @@ static int tegra_hwpm_alloc_dynamic_inst_element_array(
 	inst_a_info->inst_arr = kcalloc(inst_a_info->inst_slots,
 		sizeof(struct hwpm_ip_inst *), GFP_KERNEL);
 	if (inst_a_info->inst_arr == NULL) {
-		tegra_hwpm_err(hwpm,
-			"a_type %d instance array alloc failed",
+		tegra_hwpm_err(hwpm, "a_type %d instance array alloc failed",
 			a_type);
 		return -ENOMEM;
 	}
@@ -340,7 +349,7 @@ static int tegra_hwpm_func_single_element(struct tegra_soc_hwpm *hwpm,
 		idx = tegra_hwpm_safe_cast_u64_to_u32(
 			element_offset / e_info->element_stride);
 
-		tegra_hwpm_dbg(hwpm, hwpm_info,
+		tegra_hwpm_dbg(hwpm, hwpm_dbg_driver_init,
 			"IP %d inst %d a_type %d element type %d"
 			" start_addr 0x%llx static idx %d == dynamic idx %d",
 			ip_idx, static_inst_idx, a_type, element->element_type,
@@ -352,6 +361,11 @@ static int tegra_hwpm_func_single_element(struct tegra_soc_hwpm *hwpm,
 	case TEGRA_HWPM_GET_ALIST_SIZE:
 		if ((element->element_index_mask &
 			ip_inst->element_fs_mask) == 0U) {
+			tegra_hwpm_dbg(hwpm, hwpm_dbg_allowlist,
+				"IP %d inst %d a_type %d element type %d"
+				" start_addr 0x%llx not reserved",
+				ip_idx, static_inst_idx, a_type,
+				element->element_type, element->start_abs_pa);
 			return 0;
 		}
 		if (element->alist) {
@@ -366,6 +380,11 @@ static int tegra_hwpm_func_single_element(struct tegra_soc_hwpm *hwpm,
 	case TEGRA_HWPM_COMBINE_ALIST:
 		if ((element->element_index_mask &
 			ip_inst->element_fs_mask) == 0U) {
+			tegra_hwpm_dbg(hwpm, hwpm_dbg_allowlist,
+				"IP %d inst %d a_type %d element type %d"
+				" start_addr 0x%llx not reserved",
+				ip_idx, static_inst_idx, a_type,
+				element->element_type, element->start_abs_pa);
 			return 0;
 		}
 		err = hwpm->active_chip->copy_alist(hwpm,
@@ -381,6 +400,11 @@ static int tegra_hwpm_func_single_element(struct tegra_soc_hwpm *hwpm,
 	case TEGRA_HWPM_RESERVE_GIVEN_RESOURCE:
 		if ((element->element_index_mask &
 			ip_inst->element_fs_mask) == 0U) {
+			tegra_hwpm_dbg(hwpm, hwpm_dbg_reserve_resource,
+				"IP %d inst %d a_type %d element type %d"
+				" start_addr 0x%llx not reservable",
+				ip_idx, static_inst_idx, a_type,
+				element->element_type, element->start_abs_pa);
 			return 0;
 		}
 		err = tegra_hwpm_element_reserve(hwpm, ip_inst, element);
@@ -395,6 +419,11 @@ static int tegra_hwpm_func_single_element(struct tegra_soc_hwpm *hwpm,
 	case TEGRA_HWPM_RELEASE_ROUTER:
 		if ((element->element_index_mask &
 			ip_inst->element_fs_mask) == 0U) {
+			tegra_hwpm_dbg(hwpm, hwpm_dbg_release_resource,
+				"IP %d inst %d a_type %d element type %d"
+				" start_addr 0x%llx not reserved",
+				ip_idx, static_inst_idx, a_type,
+				element->element_type, element->start_abs_pa);
 			return 0;
 		}
 		ret = tegra_hwpm_element_release(hwpm, element);
@@ -407,6 +436,11 @@ static int tegra_hwpm_func_single_element(struct tegra_soc_hwpm *hwpm,
 	case TEGRA_HWPM_BIND_RESOURCES:
 		if ((element->element_index_mask &
 			ip_inst->element_fs_mask) == 0U) {
+			tegra_hwpm_dbg(hwpm, hwpm_dbg_bind,
+				"IP %d inst %d a_type %d element type %d"
+				" start_addr 0x%llx not reserved",
+				ip_idx, static_inst_idx, a_type,
+				element->element_type, element->start_abs_pa);
 			return 0;
 		}
 		err = hwpm->active_chip->zero_alist_regs(
@@ -430,6 +464,11 @@ static int tegra_hwpm_func_single_element(struct tegra_soc_hwpm *hwpm,
 	case TEGRA_HWPM_RELEASE_IP_STRUCTURES:
 		if ((element->element_index_mask &
 			ip_inst->element_fs_mask) == 0U) {
+			tegra_hwpm_dbg(hwpm, hwpm_dbg_driver_release,
+				"IP %d inst %d a_type %d element type %d"
+				" start_addr 0x%llx not reserved",
+				ip_idx, static_inst_idx, a_type,
+				element->element_type, element->start_abs_pa);
 			return 0;
 		}
 		break;
@@ -461,6 +500,9 @@ static int tegra_hwpm_func_all_elements_of_type(struct tegra_soc_hwpm *hwpm,
 	if (iia_func == TEGRA_HWPM_INIT_IP_STRUCTURES) {
 		if (e_info->num_element_per_inst == 0U) {
 			/* no a_type elements in this IP */
+			tegra_hwpm_dbg(hwpm, hwpm_dbg_driver_init,
+				"No a_type = %d elements in IP %d",
+				a_type, ip_idx);
 			return 0;
 		}
 
@@ -556,7 +598,9 @@ static int tegra_hwpm_func_single_inst(struct tegra_soc_hwpm *hwpm,
 			e_info = &ip_inst->element_info[a_type];
 
 			if (inst_a_info->range_start == 0ULL) {
-				/* No a_type elements in the IP */
+				tegra_hwpm_dbg(hwpm, hwpm_dbg_driver_init,
+				"No a_type = %d elements in IP %d",
+				a_type, ip_idx);
 				continue;
 			}
 
@@ -568,7 +612,8 @@ static int tegra_hwpm_func_single_inst(struct tegra_soc_hwpm *hwpm,
 			idx = tegra_hwpm_safe_cast_u64_to_u32(
 				inst_offset / inst_a_info->inst_stride);
 
-			tegra_hwpm_dbg(hwpm, hwpm_info, "IP %d a_type %d "
+			tegra_hwpm_dbg(hwpm, hwpm_dbg_driver_init,
+				"IP %d a_type %d "
 				" static inst idx %d == dynamic idx %d",
 				ip_idx, a_type, static_inst_idx, idx);
 
@@ -654,7 +699,7 @@ fail:
 				ip_idx, chip_ip, idx);
 			if (ret != 0) {
 				tegra_hwpm_err(hwpm,
-					"IP %d inst %d func 0x%x failed",
+					"IP %d inst %ld func 0x%x failed",
 					ip_idx, idx,
 					TEGRA_HWPM_RELEASE_RESOURCES);
 			}
@@ -685,25 +730,28 @@ int tegra_hwpm_func_single_ip(struct tegra_soc_hwpm *hwpm,
 	case TEGRA_HWPM_BIND_RESOURCES:
 		/* Skip unavailable IPs */
 		if (!chip_ip->reserved) {
+			tegra_hwpm_dbg(hwpm, hwpm_dbg_allowlist | hwpm_dbg_bind,
+				"Chip IP %d not reserved", ip_idx);
 			return 0;
 		}
 
 		if (chip_ip->inst_fs_mask == 0U) {
-			/* No IP instance is available */
+			tegra_hwpm_dbg(hwpm, hwpm_dbg_allowlist | hwpm_dbg_bind,
+				"Chip IP %d not available", ip_idx);
 			return 0;
 		}
 		break;
 	case TEGRA_HWPM_RESERVE_GIVEN_RESOURCE:
 		/* Skip IPs which are already reserved */
 		if (chip_ip->reserved) {
-			tegra_hwpm_dbg(hwpm, hwpm_info,
+			tegra_hwpm_dbg(hwpm, hwpm_dbg_reserve_resource,
 				"Chip IP %d already reserved", ip_idx);
 			return 0;
 		}
 
 		/* Make sure IP override is not enabled */
 		if (chip_ip->override_enable) {
-			tegra_hwpm_dbg(hwpm, hwpm_info,
+			tegra_hwpm_dbg(hwpm, hwpm_dbg_reserve_resource,
 				"Chip IP %d not available", ip_idx);
 			return 0;
 		}
@@ -711,32 +759,43 @@ int tegra_hwpm_func_single_ip(struct tegra_soc_hwpm *hwpm,
 		if (chip_ip->resource_status ==
 			TEGRA_HWPM_RESOURCE_STATUS_INVALID) {
 			/* No IP instance is available to reserve */
+			tegra_hwpm_dbg(hwpm, hwpm_dbg_reserve_resource,
+				"Chip IP %d not available", ip_idx);
 			return -EINVAL;
 		}
 		break;
 	case TEGRA_HWPM_RELEASE_RESOURCES:
-		/* RTR will be released later */
 		if (ip_idx == active_chip->get_rtr_int_idx(hwpm)) {
+			tegra_hwpm_dbg(hwpm, hwpm_dbg_release_resource,
+				"Router will be released later");
 			return 0;
 		}
 		/* Skip unavailable IPs */
 		if (!chip_ip->reserved) {
+			tegra_hwpm_dbg(hwpm, hwpm_dbg_release_resource,
+				"Chip IP %d not reserved", ip_idx);
 			return 0;
 		}
 
 		if (chip_ip->inst_fs_mask == 0U) {
 			/* No IP instance is available to release */
+			tegra_hwpm_dbg(hwpm, hwpm_dbg_release_resource,
+				"Chip IP %d not available", ip_idx);
 			return 0;
 		}
 		break;
 	case TEGRA_HWPM_RELEASE_ROUTER:
 		/* Skip unavailable IPs */
 		if (!chip_ip->reserved) {
+			tegra_hwpm_dbg(hwpm, hwpm_dbg_release_resource,
+				"Router not reserved");
 			return 0;
 		}
 
 		if (chip_ip->inst_fs_mask == 0U) {
 			/* No IP instance is available to release */
+			tegra_hwpm_dbg(hwpm, hwpm_dbg_release_resource,
+				"Router not available");
 			return 0;
 		}
 		break;

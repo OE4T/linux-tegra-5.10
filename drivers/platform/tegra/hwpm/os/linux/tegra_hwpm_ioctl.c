@@ -109,19 +109,22 @@ static int device_info_ioctl(struct tegra_soc_hwpm *hwpm,
 			     void *ioctl_struct)
 {
 	struct tegra_soc_hwpm_device_info *device_info =
-			(struct tegra_soc_hwpm_device_info *)ioctl_struct;
+		(struct tegra_soc_hwpm_device_info *)ioctl_struct;
+
+	tegra_hwpm_fn(hwpm, " ");
 
 	device_info->chip = hwpm->device_info.chip;
 	device_info->chip_revision = hwpm->device_info.chip_revision;
 	device_info->revision = hwpm->device_info.revision;
 	device_info->platform = hwpm->device_info.platform;
 
-	tegra_hwpm_dbg(hwpm, hwpm_verbose, "chip id 0x%x", device_info->chip);
-	tegra_hwpm_dbg(hwpm, hwpm_verbose,
+	tegra_hwpm_dbg(hwpm, hwpm_info | hwpm_dbg_device_info,
+		"chip id 0x%x", device_info->chip);
+	tegra_hwpm_dbg(hwpm, hwpm_info | hwpm_dbg_device_info,
 		"chip_revision 0x%x", device_info->chip_revision);
-	tegra_hwpm_dbg(hwpm, hwpm_verbose,
+	tegra_hwpm_dbg(hwpm, hwpm_info | hwpm_dbg_device_info,
 		"revision 0x%x", device_info->revision);
-	tegra_hwpm_dbg(hwpm, hwpm_verbose,
+	tegra_hwpm_dbg(hwpm, hwpm_info | hwpm_dbg_device_info,
 		"platform 0x%x", device_info->platform);
 
 	return 0;
@@ -132,6 +135,8 @@ static int floorsweep_info_ioctl(struct tegra_soc_hwpm *hwpm,
 {
 	struct tegra_soc_hwpm_ip_floorsweep_info *fs_info =
 		(struct tegra_soc_hwpm_ip_floorsweep_info *)ioctl_struct;
+
+	tegra_hwpm_fn(hwpm, " ");
 
 	if (fs_info->num_queries > TEGRA_SOC_HWPM_IP_QUERIES_MAX) {
 		tegra_hwpm_err(hwpm, "Number of queries exceed max limit of %u",
@@ -146,7 +151,9 @@ static int resource_info_ioctl(struct tegra_soc_hwpm *hwpm,
 				void *ioctl_struct)
 {
 	struct tegra_soc_hwpm_resource_info *rsrc_info =
-			(struct tegra_soc_hwpm_resource_info *)ioctl_struct;
+		(struct tegra_soc_hwpm_resource_info *)ioctl_struct;
+
+	tegra_hwpm_fn(hwpm, " ");
 
 	if (rsrc_info->num_queries > TEGRA_SOC_HWPM_RESOURCE_QUERIES_MAX) {
 		tegra_hwpm_err(hwpm, "Number of queries exceed max limit of %u",
@@ -165,6 +172,8 @@ static int reserve_resource_ioctl(struct tegra_soc_hwpm *hwpm,
 			(struct tegra_soc_hwpm_reserve_resource *)ioctl_struct;
 	u32 resource = reserve_resource->resource;
 	int ret = 0;
+
+	tegra_hwpm_fn(hwpm, " ");
 
 	if (hwpm->bind_completed) {
 		tegra_hwpm_err(hwpm, "The RESERVE_RESOURCE IOCTL can only be"
@@ -192,6 +201,8 @@ static int alloc_pma_stream_ioctl(struct tegra_soc_hwpm *hwpm,
 	struct tegra_soc_hwpm_alloc_pma_stream *alloc_pma_stream =
 			(struct tegra_soc_hwpm_alloc_pma_stream *)ioctl_struct;
 	int ret = 0;
+
+	tegra_hwpm_fn(hwpm, " ");
 
 	if (hwpm->bind_completed) {
 		tegra_hwpm_err(hwpm, "The ALLOC_PMA_STREAM IOCTL can only be"
@@ -225,6 +236,8 @@ static int bind_ioctl(struct tegra_soc_hwpm *hwpm,
 {
 	int ret = 0;
 
+	tegra_hwpm_fn(hwpm, " ");
+
 	ret = tegra_hwpm_bind_resources(hwpm);
 	if (ret != 0) {
 		tegra_hwpm_err(hwpm, "Failed to bind resources");
@@ -240,7 +253,9 @@ static int query_allowlist_ioctl(struct tegra_soc_hwpm *hwpm,
 {
 	int ret = 0;
 	struct tegra_soc_hwpm_query_allowlist *query_allowlist =
-			(struct tegra_soc_hwpm_query_allowlist *)ioctl_struct;
+		(struct tegra_soc_hwpm_query_allowlist *)ioctl_struct;
+
+	tegra_hwpm_fn(hwpm, " ");
 
 	if (!hwpm->bind_completed) {
 		tegra_hwpm_err(hwpm,
@@ -275,6 +290,8 @@ static int query_allowlist_ioctl(struct tegra_soc_hwpm *hwpm,
 static int exec_reg_ops_ioctl(struct tegra_soc_hwpm *hwpm,
 			      void *ioctl_struct)
 {
+	tegra_hwpm_fn(hwpm, " ");
+
 	if (!hwpm->bind_completed) {
 		tegra_hwpm_err(hwpm, "The EXEC_REG_OPS IOCTL can only be called"
 				   " after the BIND IOCTL.");
@@ -289,7 +306,9 @@ static int update_get_put_ioctl(struct tegra_soc_hwpm *hwpm,
 				void *ioctl_struct)
 {
 	struct tegra_soc_hwpm_update_get_put *update_get_put =
-			(struct tegra_soc_hwpm_update_get_put *)ioctl_struct;
+		(struct tegra_soc_hwpm_update_get_put *)ioctl_struct;
+
+	tegra_hwpm_fn(hwpm, " ");
 
 	if (!hwpm->bind_completed) {
 		tegra_hwpm_err(hwpm,
@@ -343,6 +362,8 @@ static long tegra_hwpm_ioctl(struct file *file,
 		ret = -ENODEV;
 		goto fail;
 	}
+
+	tegra_hwpm_fn(hwpm, " ");
 
 	if (!hwpm->device_opened) {
 		tegra_hwpm_err(hwpm, "Device open failed, can't process IOCTL");
@@ -432,6 +453,8 @@ static int tegra_hwpm_open(struct inode *inode, struct file *filp)
 		return -EINVAL;
 	}
 	filp->private_data = hwpm;
+
+	tegra_hwpm_fn(hwpm, " ");
 
 	/* Initialize driver on first open call only */
 	if (!atomic_add_unless(&hwpm->hwpm_in_use, 1U, 1U)) {
@@ -534,6 +557,8 @@ static int tegra_hwpm_release(struct inode *inode, struct file *filp)
 		tegra_hwpm_err(hwpm, "Invalid hwpm struct");
 		return -EINVAL;
 	}
+
+	tegra_hwpm_fn(hwpm, " ");
 
 	/* De-init driver on last close call only */
 	if (!atomic_dec_and_test(&hwpm->hwpm_in_use)) {

@@ -158,8 +158,9 @@ int tegra_hwpm_map_stream_buffer(struct tegra_soc_hwpm *hwpm,
 		ret = -ENXIO;
 		goto fail;
 	}
-	tegra_hwpm_dbg(hwpm, hwpm_verbose, "stream_buf_pma_va = 0x%llx",
-			   alloc_pma_stream->stream_buf_pma_va);
+	tegra_hwpm_dbg(hwpm, hwpm_dbg_alloc_pma_stream,
+		"stream_buf_pma_va = 0x%llx",
+		alloc_pma_stream->stream_buf_pma_va);
 
 	/* Memory map mem bytes buffer */
 	ret = tegra_hwpm_dma_map_mem_bytes_buffer(hwpm, alloc_pma_stream);
@@ -284,7 +285,7 @@ int tegra_hwpm_update_mem_bytes(struct tegra_soc_hwpm *hwpm,
 	if (update_get_put->b_read_mem_head) {
 		update_get_put->mem_head =
 			hwpm->active_chip->get_mem_bytes_put_ptr(hwpm);
-		tegra_hwpm_dbg(hwpm, hwpm_verbose,
+		tegra_hwpm_dbg(hwpm, hwpm_dbg_update_get_put,
 			"MEM_HEAD = 0x%llx", update_get_put->mem_head);
 	}
 
@@ -292,7 +293,7 @@ int tegra_hwpm_update_mem_bytes(struct tegra_soc_hwpm *hwpm,
 	if (update_get_put->b_check_overflow) {
 		update_get_put->b_overflowed =
 			(u8) hwpm->active_chip->membuf_overflow_status(hwpm);
-		tegra_hwpm_dbg(hwpm, hwpm_verbose, "OVERFLOWED = %u",
+		tegra_hwpm_dbg(hwpm, hwpm_dbg_update_get_put, "OVERFLOWED = %u",
 			update_get_put->b_overflowed);
 	}
 

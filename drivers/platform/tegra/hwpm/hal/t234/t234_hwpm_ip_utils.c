@@ -35,6 +35,10 @@ int t234_hwpm_extract_ip_ops(struct tegra_soc_hwpm *hwpm,
 
 	tegra_hwpm_fn(hwpm, " ");
 
+	tegra_hwpm_dbg(hwpm, hwpm_dbg_ip_register,
+			"Extract IP ops for resource enum %d info",
+			hwpm_ip_ops->resource_enum);
+
 	/* Convert tegra_soc_hwpm_resource to internal enum */
 	if (!(t234_hwpm_is_resource_active(hwpm,
 			hwpm_ip_ops->resource_enum, &ip_idx))) {
@@ -226,13 +230,15 @@ int t234_hwpm_validate_current_config(struct tegra_soc_hwpm *hwpm)
 		return err;
 	}
 
+	tegra_hwpm_dbg(hwpm, hwpm_info, "PROD_MODE fuse = 0x%x "
+		"SECURITY_MODE fuse = 0x%x HWPM_GLOBAL_DISABLE = 0x%x",
+		production_mode, security_mode, hwpm_global_disable);
+
 	/* Override enable depends on security mode and global hwpm disable */
 	if ((security_mode == 0U) &&
 		(hwpm_global_disable == TEGRA_HWPM_GLOBAL_DISABLE_DISABLED)) {
-		tegra_hwpm_dbg(hwpm, hwpm_info, "PROD_MODE fuse = 0x%x "
-			"SECURITY_MODE fuse = 0x%x HWPM_GLOBAL_DISABLE = 0x%x,"
-			" no override required",
-			production_mode, security_mode, hwpm_global_disable);
+		tegra_hwpm_dbg(hwpm, hwpm_info,
+			"security fuses are disabled, no override required");
 		return 0;
 	}
 
@@ -255,8 +261,12 @@ int t234_hwpm_validate_current_config(struct tegra_soc_hwpm *hwpm)
 				/* IP depends on security mode fuse */
 				chip_ip->override_enable = true;
 			} else {
-				tegra_hwpm_err(hwpm,
-				"Execution shouldn't reach here");
+				/*
+				 * This is a valid case since not all IPs
+				 * depend on security fuse.
+				 */
+				tegra_hwpm_dbg(hwpm, hwpm_info,
+					"IP %d not overridden", idx);
 			}
 		}
 	}
@@ -483,7 +493,7 @@ int t234_hwpm_get_fs_info(struct tegra_soc_hwpm *hwpm,
 		}
 	}
 
-	tegra_hwpm_dbg(hwpm, hwpm_info,
+	tegra_hwpm_dbg(hwpm, hwpm_dbg_floorsweep_info,
 		"SOC hwpm IP %d is unavailable", ip_enum);
 
 	*ip_status = TEGRA_SOC_HWPM_IP_STATUS_INVALID;
