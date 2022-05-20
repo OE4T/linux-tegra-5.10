@@ -62,7 +62,7 @@ static uint32_t get_unique_id(struct nvpva_buffers *nvpva_buffers)
 	uint32_t id = rmos_find_first_zero_bit(nvpva_buffers->ids,
 					 NVPVA_MAX_NUM_UNIQUE_IDS);
 	if (id == NVPVA_MAX_NUM_UNIQUE_IDS) {
-		pr_err("No buffer ID available ");
+		nvhost_dbg_fn("No buffer ID available");
 		id = 0;
 		goto out;
 	}

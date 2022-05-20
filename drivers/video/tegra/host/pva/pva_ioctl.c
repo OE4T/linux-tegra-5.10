@@ -1000,7 +1000,7 @@ static int pva_release(struct inode *inode, struct file *file)
 	mutex_unlock(&priv->queue->list_lock);
 	if (!queue_empty) {
 		/* Cancel remaining tasks */
-		nvhost_warn(&priv->pva->pdev->dev, "cancel remaining tasks");
+		nvhost_dbg_info("pva: cancel remaining tasks");
 		pva_queue_flush(priv->pva, priv->queue);
 	}
 
