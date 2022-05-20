@@ -1,4 +1,12 @@
 GCOV_PROFILE := y
+
+# Set config to build as module for OOT build
+ifeq ($(CONFIG_TEGRA_OOT_MODULE),m)
+CONFIG_TEGRA_GRHOST_NVDLA := m
+CONFIG_TEGRA_HOST1X_NEXT := m
+CONFIG_TEGRA_FUSE_UPSTREAM := y
+endif
+
 ifdef CONFIG_TEGRA_GRHOST
 ccflags-y += -I$(srctree.nvidia)/drivers/video/tegra/host
 ccflags-y += -DCONFIG_TEGRA_NVDLA_CHANNEL
