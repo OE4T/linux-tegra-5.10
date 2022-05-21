@@ -122,15 +122,9 @@ CONFIG_NVGPU_NVMEM_FUSE := n
 CONFIG_NVGPU_NVMAP_NEXT := y
 CONFIG_NVGPU_NVMEM_FUSE := y
 
-ifneq ($(findstring stable,$(NV_BUILD_KERNEL_OPTIONS)),)
-CONFIG_NVGPU_NVMEM_FUSE := y
-endif
-
-# Set CONFIG_NVGPU_IVM_BUILD for non-stable and non-oot build
-ifeq ($(findstring stable,$(NV_BUILD_KERNEL_OPTIONS)),)
+# Set CONFIG_NVGPU_IVM_BUILD for non-oot build
 ifneq ($(CONFIG_TEGRA_OOT_MODULE),m)
 CONFIG_NVGPU_IVM_BUILD := y
-endif
 endif
 
 # Set config for OOT module build
@@ -194,11 +188,7 @@ endif
 # internal build system.
 ifneq ($(NV_BUILD_KERNEL_OPTIONS),)
 
-# Disable the below configs for kstable
-ifneq ($(findstring stable,$(NV_BUILD_KERNEL_OPTIONS)),)
-CONFIG_GK20A_DEVFREQ := n
-CONFIG_GK20A_PM_QOS := n
-else ifneq ($(filter 4.9 4.14,$(patsubst -,$(space),$(NV_BUILD_KERNEL_OPTIONS))),)
+ifneq ($(filter 4.9 4.14,$(patsubst -,$(space),$(NV_BUILD_KERNEL_OPTIONS))),)
 # Enable support to pass PM_QOS constraints to devfreq based scaling.
 CONFIG_GK20A_PM_QOS := y
 endif
