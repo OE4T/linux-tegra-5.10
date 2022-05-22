@@ -131,6 +131,11 @@
 #define TS_MISS_THRESHOLD		200U
 
 /**
+ * @brief SEC to MSEC converter
+ */
+#define ETHER_SECTOMSEC			1000U
+
+/**
  * @brief Ethernet clk rates
  */
 #define ETHER_RX_INPUT_CLK_RATE		125000000UL
@@ -388,6 +393,8 @@ struct ether_tx_ts_skb_list {
 	struct sk_buff *skb;
 	/** packet id to identify timestamp */
 	unsigned int pktid;
+	/** SKB jiffies to find time */
+	unsigned long pkt_jiffies;
 };
 
 /**
