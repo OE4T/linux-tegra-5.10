@@ -15,6 +15,7 @@
 #include "tegra234-p3509-a02-pwm-fan.dtsi"
 #include "tegra234-p3509-a02-pcie.dtsi"
 #include "tegra234-p3509-a02-fixed-regulator.dtsi"
+#include "tegra234-p3509-audio.dtsi"
 
 / {
 	gpio-keys {

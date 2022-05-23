@@ -15,6 +15,7 @@
 #include "tegra234-p3768-0000-a0-pwm-fan.dtsi"
 #include "tegra234-p3768-0000-a0-pcie.dtsi"
 #include "tegra234-p3768-0000-a0-fixed-regulator.dtsi"
+#include "tegra234-p3768-audio.dtsi"
 
 / {
 	gpio-keys {
