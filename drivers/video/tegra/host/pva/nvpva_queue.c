@@ -77,7 +77,7 @@ static int nvpva_queue_task_pool_alloc(struct platform_device *pdev,
 				kcalloc(MAX_PVA_TASK_COUNT_PER_QUEUE_SEG,
 					queue->task_kmem_size, GFP_KERNEL);
 			if (!task_pool->kmem_addr[i]) {
-				nvhost_err(&pdev->dev,
+				nvpva_err(&pdev->dev,
 					   "failed to allocate " \
 					   "task_pool->kmem_addr");
 				err = -ENOMEM;
@@ -93,7 +93,7 @@ static int nvpva_queue_task_pool_alloc(struct platform_device *pdev,
 				0);
 
 	if (task_pool->va == NULL) {
-		nvhost_err(&pdev->dev, "failed to allocate task_pool->va");
+		nvpva_err(&pdev->dev, "failed to allocate task_pool->va");
 		err = -ENOMEM;
 		goto err_alloc_task_pool;
 	}
@@ -191,14 +191,12 @@ struct nvpva_queue_pool *nvpva_queue_init(struct platform_device *pdev,
 
 	pool = kzalloc(sizeof(struct nvpva_queue_pool), GFP_KERNEL);
 	if (pool == NULL) {
-		nvhost_err(&pdev->dev, "failed to allocate queue pool");
 		err = -ENOMEM;
 		goto fail_alloc_pool;
 	}
 
 	queues = kcalloc(num_queues, sizeof(struct nvpva_queue), GFP_KERNEL);
 	if (queues == NULL) {
-		nvhost_err(&pdev->dev, "failed to allocate queues");
 		err = -ENOMEM;
 		goto fail_alloc_queues;
 	}
@@ -206,7 +204,7 @@ struct nvpva_queue_pool *nvpva_queue_init(struct platform_device *pdev,
 	task_pool = kcalloc(num_queues,
 			sizeof(struct nvpva_queue_task_pool), GFP_KERNEL);
 	if (task_pool == NULL) {
-		nvhost_err(&pdev->dev, "failed to allocate task_pool");
+		nvpva_err(&pdev->dev, "failed to allocate task_pool");
 		err = -ENOMEM;
 		goto fail_alloc_task_pool;
 	}
@@ -277,7 +275,10 @@ static void nvpva_queue_release(struct kref *ref)
 						kref);
 	struct nvpva_queue_pool *pool = queue->pool;
 
-	nvhost_dbg_fn("");
+	struct nvhost_device_data *pdata = platform_get_drvdata(pool->pdev);
+	struct pva *pva = pdata->private_data;
+
+	nvpva_dbg_fn(pva, "");
 
 	/* release allocated resources */
 	nvhost_syncpt_put_ref_ext(pool->pdev, queue->syncpt_id);
@@ -294,13 +295,19 @@ static void nvpva_queue_release(struct kref *ref)
 
 void nvpva_queue_put(struct nvpva_queue *queue)
 {
-	nvhost_dbg_fn("");
+	struct nvhost_device_data *pdata = platform_get_drvdata(queue->pool->pdev);
+	struct pva *pva = pdata->private_data;
+
+	nvpva_dbg_fn(pva, "");
 	kref_put(&queue->kref, nvpva_queue_release);
 }
 
 void nvpva_queue_get(struct nvpva_queue *queue)
 {
-	nvhost_dbg_fn("");
+	struct nvhost_device_data *pdata = platform_get_drvdata(queue->pool->pdev);
+	struct pva *pva = pdata->private_data;
+
+	nvpva_dbg_fn(pva, "");
 	kref_get(&queue->kref);
 }
 
@@ -312,6 +319,7 @@ struct nvpva_queue *nvpva_queue_alloc(struct nvpva_queue_pool *pool,
 	struct nvpva_queue *queue;
 	int index = 0;
 	int err = 0;
+	u32 syncpt_val;
 
 	mutex_lock(&pool->queue_lock);
 
@@ -330,12 +338,18 @@ struct nvpva_queue *nvpva_queue_alloc(struct nvpva_queue_pool *pool,
 	set_bit(index%64, &pool->alloc_table[index/64]);
 
 	/* allocate a syncpt for the queue */
-	queue->syncpt_id = nvhost_get_syncpt_host_managed(pdev, index, NULL);
-	if (!queue->syncpt_id) {
-		dev_err(&pdev->dev, "failed to get syncpt id\n");
+	queue->syncpt_id = nvhost_get_syncpt_client_managed(pdev, "pva_syncpt");
+	if (queue->syncpt_id == 0) {
+		dev_err(&pdev->dev, "failed to get syncpt\n");
 		err = -ENOMEM;
 		goto err_alloc_syncpt;
 	}
+	if (nvhost_syncpt_read_ext_check(pdev, queue->syncpt_id, &syncpt_val) !=
+	    0) {
+		err = -EIO;
+		goto err_read_syncpt;
+	}
+	atomic_set(&queue->syncpt_maxval, syncpt_val);
 
 	/* initialize queue ref count and sequence*/
 	kref_init(&queue->kref);
@@ -365,6 +379,7 @@ struct nvpva_queue *nvpva_queue_alloc(struct nvpva_queue_pool *pool,
 
 err_alloc_task_pool:
 	mutex_lock(&pool->queue_lock);
+err_read_syncpt:
 	nvhost_syncpt_put_ref_ext(pdev, queue->syncpt_id);
 err_alloc_syncpt:
 	clear_bit(queue->id%64, &pool->alloc_table[queue->id/64]);

@@ -50,7 +50,7 @@ static int pva_crashdump(struct seq_file *s, void *data)
 
 	err = nvhost_module_busy(pva->pdev);
 	if (err) {
-		nvhost_dbg_info("err in powering up pva\n");
+		nvpva_dbg_info(pva, "err in powering up pva\n");
 		goto err_poweron;
 	}
 
@@ -225,7 +225,8 @@ void pva_debugfs_init(struct platform_device *pdev)
 	debugfs_create_u32("cg_disable", 0644, de, &pva->slcg_disable);
 	debugfs_create_bool("vpu_printf_enabled", 0644, de,
 			    &pva->vpu_printf_enabled);
-	debugfs_create_file("log_level", 0644, de, pva, &log_level_fops);
+	debugfs_create_file("fw_log_level", 0644, de, pva, &log_level_fops);
+	debugfs_create_u32("driver_log_mask", 0644, de, &pva->driver_log_mask);
 
 	err = pva_vpu_ocd_init(pva);
 	if (err == 0) {

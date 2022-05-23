@@ -47,9 +47,6 @@
 #if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVDEC)
 #include "nvdec/nvdec.h"
 #endif
-#if IS_ENABLED(CONFIG_TEGRA_GRHOST_PVA)
-#include "pva/pva_nvhost.h"
-#endif
 #include "hardware_t194.h"
 
 #if IS_ENABLED(CONFIG_TEGRA_GRHOST_SLVSEC)
@@ -514,61 +511,6 @@ struct nvhost_device_data t19_vic_info = {
 	.actmon_weight_count	= 216,
 	.actmon_setting_regs	= t19x_vic_actmon_registers,
 	.devfreq_governor	= "userspace",
-};
-#endif
-
-#if IS_ENABLED(CONFIG_TEGRA_GRHOST_PVA)
-struct nvhost_device_data t19_pva1_info = {
-	.num_channels		= 1,
-	.clocks			= {
-		{"axi", UINT_MAX,},
-		{"vps0", UINT_MAX,},
-		{"vps1", UINT_MAX,},
-	},
-	.ctrl_ops		= &tegra_pva_ctrl_ops,
-	.devfs_name_family	= "pva",
-	.class			= NV_PVA1_CLASS_ID,
-	.autosuspend_delay      = 500,
-	.finalize_poweron	= pva_finalize_poweron,
-	.prepare_poweroff	= pva_prepare_poweroff,
-	.firmware_name		= "nvhost_pva010.fw",
-	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
-	.vm_regs		= {
-		{0x70000, true, 0},
-		{0x80000, false, 0},
-		{0x80000, false, 8} },
-	.poweron_reset		= true,
-	.serialize		= true,
-	.push_work_done		= true,
-	.get_reloc_phys_addr	= nvhost_t194_get_reloc_phys_addr,
-	.can_powergate		= true,
-};
-
-struct nvhost_device_data t19_pva0_info = {
-	.num_channels		= 1,
-	.clocks			= {
-		{"nafll_pva_vps", UINT_MAX,},
-		{"nafll_pva_core", UINT_MAX,},
-		{"axi", UINT_MAX,},
-		{"vps0", UINT_MAX,},
-		{"vps1", UINT_MAX,},
-	},
-	.ctrl_ops		= &tegra_pva_ctrl_ops,
-	.devfs_name_family	= "pva",
-	.class			= NV_PVA0_CLASS_ID,
-	.autosuspend_delay      = 500,
-	.finalize_poweron	= pva_finalize_poweron,
-	.prepare_poweroff	= pva_prepare_poweroff,
-	.firmware_name		= "nvhost_pva010.fw",
-	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
-	.vm_regs		= {
-		{0x70000, true, 0},
-		{0x80000, false, 0},
-		{0x80000, false, 8} },
-	.poweron_reset		= true,
-	.serialize		= true,
-	.get_reloc_phys_addr	= nvhost_t194_get_reloc_phys_addr,
-	.can_powergate		= true,
 };
 #endif
 

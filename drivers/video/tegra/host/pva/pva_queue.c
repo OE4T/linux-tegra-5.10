@@ -29,6 +29,7 @@
 #include <linux/errno.h>
 #include <linux/nvhost.h>
 #include <linux/cvnas.h>
+#include <linux/host1x.h>
 
 #include <trace/events/nvhost.h>
 
@@ -54,7 +55,7 @@
 #include "pva_queue.h"
 #include "dev.h"
 #include "pva_regs.h"
-#include "t194/hardware_t194.h"
+
 #include "pva-vpu-perf.h"
 #include "pva-interface.h"
 #include "pva_vpu_exe.h"
@@ -63,24 +64,63 @@
 #include <uapi/linux/nvpva_ioctl.h>
 #include <trace/events/nvhost_pva.h>
 
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST)
+#include "t194/hardware_t194.h"
+#endif
+
+static void *pva_dmabuf_vmap(struct dma_buf *dmabuf)
+{
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 18, 0)
+	struct iosys_map map;
+#else
+	struct dma_buf_map map;
+#endif
+	/* Linux v5.11 and later kernels */
+	if (dma_buf_vmap(dmabuf, &map))
+		return NULL;
+
+	return map.vaddr;
+#else
+	/* Linux v5.10 and earlier kernels */
+	return dma_buf_vmap(dmabuf);
+#endif
+}
+
+static void pva_dmabuf_vunmap(struct dma_buf *dmabuf, void *addr)
+{
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 18, 0)
+	struct iosys_map map = IOSYS_MAP_INIT_VADDR(addr);
+#else
+	struct dma_buf_map map = DMA_BUF_MAP_INIT_VADDR(addr);
+#endif
+	/* Linux v5.11 and later kernels */
+	dma_buf_vunmap(dmabuf, &map);
+#else
+	/* Linux v5.10 and earlier kernels */
+	dma_buf_vunmap(dmabuf, addr);
+#endif
+}
+
 static void pva_task_dump(struct pva_submit_task *task)
 {
 	int i;
 
-	nvhost_dbg_info("task=%p, exe_id=%u", task, task->exe_id);
+	nvpva_dbg_info(task->pva, "task=%p, exe_id=%u", task, task->exe_id);
 
 	for (i = 0; i < task->num_input_task_status; i++)
-		nvhost_dbg_info("input task status %d: pin_id=%u, offset=%u", i,
+		nvpva_dbg_info(task->pva, "input task status %d: pin_id=%u, offset=%u", i,
 				task->input_task_status[i].pin_id,
 				task->input_task_status[i].offset);
 
 	for (i = 0; i < task->num_output_task_status; i++)
-		nvhost_dbg_info("output task status %d: pin_id=%u, offset=%u",
+		nvpva_dbg_info(task->pva, "output task status %d: pin_id=%u, offset=%u",
 				i, task->output_task_status[i].pin_id,
 				task->output_task_status[i].offset);
 
 	for (i = 0; i < task->num_user_fence_actions; i++)
-		nvhost_dbg_info("fence action %d: type=%u", i,
+		nvpva_dbg_info(task->pva, "fence action %d: type=%u", i,
 				task->user_fence_actions[i].type);
 }
 
@@ -766,12 +806,14 @@ pva_eventlib_record_r5_states(struct platform_device *pdev,
 static void
 pva_eventlib_fill_fence(struct nvdev_fence *dst_fence,
 			struct nvpva_submit_fence *src_fence)
-)
 {
 }
 static void
 pva_eventlib_record_r5_states(struct platform_device *pdev,
-			      struct pva_task_statistics_s *stats)
+			      u32 syncpt_id,
+			      u32 syncpt_thresh,
+			      struct pva_task_statistics_s *stats,
+			      struct pva_submit_task *task)
 {
 }
 #endif
@@ -845,7 +887,7 @@ static void update_one_task(struct pva *pva)
 	r5_overhead = ((stats->complete_time - stats->queued_time) - vpu_time);
 	r5_overhead = r5_overhead / tsc_ticks_to_us;
 
-	trace_nvhost_task_timestamp(dev_name(&pdev->dev),
+	trace_nvhost_pva_task_timestamp(dev_name(&pdev->dev),
 				    pdata->class,
 				    queue->syncpt_id,
 				    task->syncpt_thresh,
@@ -856,7 +898,7 @@ static void update_one_task(struct pva *pva)
 				 task->syncpt_thresh,
 				 stats->vpu_assigned_time,
 				 stats->complete_time);
-	nvhost_dbg_info("Completed task %p (0x%llx), "
+	nvpva_dbg_info(pva, "Completed task %p (0x%llx), "
 			"start_time=%llu, "
 			"end_time=%llu",
 			task,
@@ -932,13 +974,13 @@ static int pva_task_submit_mailbox(struct pva_submit_task *task, u8 batchsize)
 	/* Submit request to PVA and wait for response */
 	err = pva_mailbox_send_cmd_sync(task->pva, &cmd, nregs, &status);
 	if (err < 0) {
-		nvhost_warn(&task->pva->pdev->dev, "Failed to submit task: %d",
+		nvpva_warn(&task->pva->pdev->dev, "Failed to submit task: %d",
 			    err);
 		goto out;
 	}
 
 	if (status.error != PVA_ERR_NO_ERROR) {
-		nvhost_warn(&task->pva->pdev->dev, "PVA task rejected: %u",
+		nvpva_warn(&task->pva->pdev->dev, "PVA task rejected: %u",
 			    status.error);
 		err = -EINVAL;
 		goto out;
@@ -948,26 +990,31 @@ out:
 
 	return err;
 }
-u32 nvhost_syncpt_dec_max_ext(struct platform_device *dev, u32 id, u32 dec)
-{
-	struct nvhost_master *master = nvhost_get_host(dev);
-	struct nvhost_syncpt *sp =
-	    nvhost_get_syncpt_owner_struct(id, &master->syncpt);
 
-	return (u32)atomic_sub_return(dec, &sp->max_val[id]);
+static void nvpva_syncpt_dec_max(struct nvpva_queue *queue, u32 val)
+{
+	atomic_sub(val, &queue->syncpt_maxval);
+}
+
+static void nvpva_syncpt_incr_max(struct nvpva_queue *queue, u32 val)
+{
+	atomic_add(val, &queue->syncpt_maxval);
+}
+
+static u32 nvpva_syncpt_read_max(struct nvpva_queue *queue)
+{
+	return (u32)atomic_read(&queue->syncpt_maxval);
 }
 
 static int pva_task_submit(const struct pva_submit_tasks *task_header)
 {
 	struct pva_submit_task *first_task = task_header->tasks[0];
-	struct platform_device *host1x_pdev =
-	    to_platform_device(first_task->pva->pdev->dev.parent);
 	struct nvpva_queue *queue = first_task->queue;
 	u64 timestamp;
 	int err = 0;
 	u32 i;
 	u8 batchsize = task_header->num_tasks - 1U;
-		nvhost_dbg_info("submitting %u tasks; batchsize: %u",
+		nvpva_dbg_info(first_task->pva, "submitting %u tasks; batchsize: %u",
 			task_header->num_tasks, batchsize);
 
 	/*
@@ -985,8 +1032,7 @@ static int pva_task_submit(const struct pva_submit_tasks *task_header)
 		/* take the reference until task is finished */
 		kref_get(&task->ref);
 
-		(void)nvhost_syncpt_incr_max_ext(host1x_pdev, queue->syncpt_id,
-						 task->fence_num);
+		nvpva_syncpt_incr_max(queue, task->fence_num);
 		task->client->curr_sema_value += task->sem_num;
 
 		mutex_lock(&queue->list_lock);
@@ -1055,8 +1101,7 @@ remove_tasks:
 		list_del(&task->node);
 		mutex_unlock(&queue->list_lock);
 
-		(void)nvhost_syncpt_dec_max_ext(host1x_pdev, queue->syncpt_id,
-						task->fence_num);
+		nvpva_syncpt_dec_max(queue, task->fence_num);
 		task->client->curr_sema_value -= task->sem_num;
 
 		kref_put(&task->ref, pva_task_free);
@@ -1153,12 +1198,10 @@ static int pva_queue_submit(struct nvpva_queue *queue, void *args)
 	int i;
 	uint32_t thresh, sem_thresh;
 	struct pva_hw_task *prev_hw_task = NULL;
-	struct platform_device *host1x_pdev =
-		to_platform_device(queue->vm_pdev->dev.parent);
 	struct nvpva_client_context *client = task_header->tasks[0]->client;
 
 	mutex_lock(&client->sema_val_lock);
-	thresh = nvhost_syncpt_read_maxval(host1x_pdev, queue->syncpt_id);
+	thresh = nvpva_syncpt_read_max(queue);
 	sem_thresh = client->curr_sema_value;
 	for (i = 0; i < task_header->num_tasks; i++) {
 		struct pva_submit_task *task = task_header->tasks[i];
@@ -1228,7 +1271,7 @@ static void pva_queue_cleanup_semaphore(struct pva_submit_task *task,
 		goto out;
 	}
 
-	dmabuf_cpuva = dma_buf_vmap(mem->dmabuf);
+	dmabuf_cpuva = pva_dmabuf_vmap(mem->dmabuf);
 
 	if (!dmabuf_cpuva)
 		goto out;
@@ -1236,7 +1279,7 @@ static void pva_queue_cleanup_semaphore(struct pva_submit_task *task,
 	fence_cpuva = (void *)&dmabuf_cpuva[fence->obj.sem.mem.offset];
 	*fence_cpuva = fence->obj.sem.value;
 
-	dma_buf_vunmap(mem->dmabuf, dmabuf_cpuva);
+	pva_dmabuf_vunmap(mem->dmabuf, dmabuf_cpuva);
 out:
 	return;
 }
@@ -1254,7 +1297,7 @@ static void pva_queue_cleanup_status(struct pva_submit_task *task,
 		goto out;
 	}
 
-	dmabuf_cpuva = dma_buf_vmap(mem->dmabuf);
+	dmabuf_cpuva = pva_dmabuf_vmap(mem->dmabuf);
 	if (!dmabuf_cpuva)
 		goto out;
 
@@ -1262,7 +1305,7 @@ static void pva_queue_cleanup_status(struct pva_submit_task *task,
 	status_ptr->status = PVA_ERR_BAD_TASK_STATE;
 	status_ptr->info32 = PVA_ERR_VPU_BAD_STATE;
 
-	dma_buf_vunmap(mem->dmabuf, dmabuf_cpuva);
+	pva_dmabuf_vunmap(mem->dmabuf, dmabuf_cpuva);
 out:
 	return;
 }
@@ -1270,7 +1313,6 @@ out:
 static void pva_queue_cleanup(struct nvpva_queue *queue,
 			      struct pva_submit_task *task)
 {
-	struct platform_device *pdev = queue->pool->pdev;
 	unsigned int i, fence_type;
 
 	/* Write task status first */
@@ -1285,10 +1327,6 @@ static void pva_queue_cleanup(struct nvpva_queue *queue,
 				task,
 				&task->pva_fence_actions[fence_type][i].fence);
 	}
-
-	/* Finish syncpoint increments to release waiters */
-	for (i = 0; i < task->fence_num; i++)
-		nvhost_syncpt_cpu_incr_ext(pdev, queue->syncpt_id);
 }
 
 static int pva_queue_abort(struct nvpva_queue *queue)
@@ -1303,6 +1341,9 @@ static int pva_queue_abort(struct nvpva_queue *queue)
 		kref_put(&task->ref, pva_task_free);
 	}
 
+	/* Finish syncpoint increments to release waiters */
+	nvhost_syncpt_set_min_update(queue->vm_pdev, queue->syncpt_id,
+				     atomic_read(&queue->syncpt_maxval));
 	mutex_unlock(&queue->list_lock);
 
 	return 0;

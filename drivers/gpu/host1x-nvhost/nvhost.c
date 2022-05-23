@@ -126,20 +126,38 @@ static struct device *nvhost_client_device_create(struct platform_device *pdev,
 int nvhost_client_device_get_resources(struct platform_device *pdev)
 {
 	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
-	struct resource *res;
 	int err;
+	u32 i;
 
 	err = nvhost_get_host1x_dev(pdev);
 	if (err)
 		return err;
 
-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+	for (i = 0; i < pdev->num_resources; i++) {
+		void __iomem *regs = NULL;
+		struct resource *r;
 
-	pdata->aperture[0] = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(pdata->aperture[0]))
-		return PTR_ERR(pdata->aperture);
+		r = platform_get_resource(pdev, IORESOURCE_MEM, i);
+		/* We've run out of mem resources */
+		if (!r)
+			break;
+
+		regs = devm_ioremap_resource(&pdev->dev, r);
+		if (IS_ERR(regs)) {
+			err = PTR_ERR(regs);
+			goto fail;
+		}
+
+		pdata->aperture[i] = regs;
+	}
 
 	return 0;
+
+fail:
+	dev_err(&pdev->dev, "failed to get register memory\n");
+
+	return err;
+
 }
 EXPORT_SYMBOL(nvhost_client_device_get_resources);
 
@@ -197,6 +215,22 @@ u32 nvhost_get_syncpt_host_managed(struct platform_device *pdev,
 	return host1x_syncpt_id(sp);
 }
 EXPORT_SYMBOL(nvhost_get_syncpt_host_managed);
+
+u32 nvhost_get_syncpt_client_managed(struct platform_device *pdev,
+				     const char *syncpt_name)
+{
+	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
+	struct host1x_syncpt *sp;
+
+	sp = host1x_syncpt_alloc(pdata->host1x, HOST1X_SYNCPT_CLIENT_MANAGED,
+				 syncpt_name ? syncpt_name :
+						     dev_name(&pdev->dev));
+	if (!sp)
+		return 0;
+
+	return host1x_syncpt_id(sp);
+}
+EXPORT_SYMBOL_GPL(nvhost_get_syncpt_client_managed);
 
 void nvhost_syncpt_put_ref_ext(struct platform_device *pdev, u32 id)
 {
@@ -277,6 +311,20 @@ void nvhost_syncpt_set_min_update(struct platform_device *pdev, u32 id, u32 val)
 	host1x_syncpt_read(sp);
 }
 EXPORT_SYMBOL(nvhost_syncpt_set_min_update);
+
+int nvhost_syncpt_read_ext_check(struct platform_device *pdev, u32 id, u32 *val)
+{
+	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
+	struct host1x_syncpt *sp;
+
+	sp = host1x_syncpt_get_by_id_noref(pdata->host1x, id);
+	if (!sp)
+		return -EINVAL;
+
+	*val = host1x_syncpt_read(sp);
+	return 0;
+}
+EXPORT_SYMBOL(nvhost_syncpt_read_ext_check);
 
 u32 nvhost_syncpt_read_maxval(struct platform_device *pdev, u32 id)
 {

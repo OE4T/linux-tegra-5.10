@@ -182,7 +182,7 @@ static int pva_copy_task(struct nvpva_ioctl_task *ioctl_task,
 	u32 i;
 	struct pva_elf_image *image = NULL;
 
-	nvhost_dbg_fn("");
+	nvpva_dbg_fn(task->pva, "");
 	/*
 	 * These fields are clear-text in the task descriptor. Just
 	 * copy them.
@@ -483,7 +483,7 @@ static int pva_submit(struct pva_private *priv, void *arg)
 				    ioctl_tasks[i].user_fence_actions.size);
 
 		if (rest) {
-			nvhost_warn(&priv->pva->pdev->dev,
+			nvpva_warn(&priv->pva->pdev->dev,
 				    "Failed to copy pva fences to userspace");
 			err = -EFAULT;
 			goto free_tasks;
@@ -556,7 +556,7 @@ static int pva_register_vpu_exec(struct pva_private *priv, void *arg)
 	if (reg_in->exe_data.addr == 0xFFFFFFFFFFFFFFFFULL) {
 		system_app_id = reg_in->exe_data.size;
 		if (system_app_id > NVPVA_MAX_TEST_ID) {
-			nvhost_dbg_fn("invalid test app ID");
+			nvpva_dbg_fn(priv->pva, "invalid test app ID");
 			err = -ENOENT;
 			return err;
 		}
@@ -564,7 +564,7 @@ static int pva_register_vpu_exec(struct pva_private *priv, void *arg)
 		test_app = nvhost_client_request_firmware(priv->pva->pdev,
 				tests_app_names[system_app_id], true);
 		if (!test_app) {
-			nvhost_dbg_fn("pva test app request failed");
+			nvpva_dbg_fn(priv->pva, "pva test app request failed");
 			dev_err(&priv->pva->pdev->dev,
 				"Failed to load the %s test_app\n",
 				tests_app_names[system_app_id]);
@@ -584,8 +584,6 @@ static int pva_register_vpu_exec(struct pva_private *priv, void *arg)
 		reg_in->exe_data.size &= 0x7FFFFFFFFFFFFFFFULL;
 		exec_data = kmalloc(data_size, GFP_KERNEL);
 		if (exec_data == NULL) {
-			nvhost_err(&priv->pva->pdev->dev,
-				   "failed to allocate memory for elf");
 			err = -ENOMEM;
 			goto out;
 		}
@@ -593,7 +591,7 @@ static int pva_register_vpu_exec(struct pva_private *priv, void *arg)
 		err = copy_part_from_user(exec_data, data_size,
 					  reg_in->exe_data);
 		if (err) {
-			nvhost_err(&priv->pva->pdev->dev,
+			nvpva_err(&priv->pva->pdev->dev,
 				"failed to copy vpu exe data");
 			goto free_mem;
 		}
@@ -604,7 +602,7 @@ static int pva_register_vpu_exec(struct pva_private *priv, void *arg)
 	}
 
 	if (err) {
-		nvhost_err(&priv->pva->pdev->dev, "failed to register vpu app");
+		nvpva_err(&priv->pva->pdev->dev, "failed to register vpu app");
 		goto free_mem;
 	}
 
@@ -641,7 +639,7 @@ static int pva_get_symbol_id(struct pva_private *priv, void *arg)
 	struct pva_elf_symbol symbol = {0};
 
 	if (name_size > ELF_MAX_SYMBOL_LENGTH) {
-		nvhost_warn(&priv->pva->pdev->dev, "symbol size too large:%llu",
+		nvpva_warn(&priv->pva->pdev->dev, "symbol size too large:%llu",
 			   symbol_in->name.size);
 		name_size = ELF_MAX_SYMBOL_LENGTH;
 	}
@@ -656,13 +654,13 @@ static int pva_get_symbol_id(struct pva_private *priv, void *arg)
 			     (void __user *)symbol_in->name.addr,
 			     name_size);
 	if (err) {
-		nvhost_err(&priv->pva->pdev->dev,
+		nvpva_err(&priv->pva->pdev->dev,
 			   "failed to copy all name from user");
 		goto free_mem;
 	}
 
 	if (symbol_buffer[name_size - 1] != '\0') {
-		nvhost_warn(&priv->pva->pdev->dev,
+		nvpva_warn(&priv->pva->pdev->dev,
 			   "symbol name not terminated with NULL");
 		symbol_buffer[name_size - 1] = '\0';
 	}
@@ -699,7 +697,7 @@ static int pva_get_symtab(struct pva_private *priv, void *arg)
 		goto out;
 
 	if (sym_tab_in->tab.size < tab_size) {
-		nvhost_err(&priv->pva->pdev->dev,
+		nvpva_err(&priv->pva->pdev->dev,
 			   "symbol table size smaller than needed:%llu",
 			   sym_tab_in->tab.size);
 		err = -EINVAL;
@@ -857,7 +855,7 @@ static long pva_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	u8 buf[NVPVA_IOCTL_MAX_SIZE] __aligned(sizeof(u64));
 	int err = 0;
 
-	nvhost_dbg_fn("");
+	nvpva_dbg_fn(priv->pva, "");
 
 	if ((_IOC_TYPE(cmd) != NVPVA_IOCTL_MAGIC) ||
 	    (_IOC_NR(cmd) == 0) ||
@@ -1000,14 +998,14 @@ static int pva_release(struct inode *inode, struct file *file)
 	mutex_unlock(&priv->queue->list_lock);
 	if (!queue_empty) {
 		/* Cancel remaining tasks */
-		nvhost_dbg_info("pva: cancel remaining tasks");
+		nvpva_dbg_info(priv->pva, "cancel remaining tasks");
 		pva_queue_flush(priv->pva, priv->queue);
 	}
 
 	/* make sure all tasks have been finished */
 	for (i = 0; i < MAX_PVA_TASK_COUNT_PER_QUEUE; i++) {
 		if (down_killable(&priv->queue->task_pool_sem) != 0) {
-			nvhost_err(
+			nvpva_err(
 				&priv->pva->pdev->dev,
 				"interrupted while waiting %d tasks\n",
 				MAX_PVA_TASK_COUNT_PER_QUEUE - i);

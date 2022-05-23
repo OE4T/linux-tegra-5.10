@@ -757,7 +757,7 @@ int pva_task_write_dma_info(struct pva_submit_task *task,
 	u32 mask;
 
 	if (task->num_dma_descriptors == 0L || task->num_dma_channels == 0L) {
-		nvhost_dbg_info("pva: no DMA resources: NOOP mode");
+		nvpva_dbg_info(task->pva, "pva: no DMA resources: NOOP mode");
 		return err;
 	}
 

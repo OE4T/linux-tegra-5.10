@@ -115,7 +115,7 @@ void pva_mailbox_isr(struct pva *pva)
 	struct platform_device *pdev = pva->pdev;
 	u32 int_status = pva->version_config->read_mailbox(pdev, PVA_MBOX_ISR);
 	if (pva->cmd_status[PVA_MAILBOX_INDEX] != PVA_CMD_STATUS_WFI) {
-		nvhost_warn(&pdev->dev, "Unexpected PVA ISR (%x)", int_status);
+		nvpva_warn(&pdev->dev, "Unexpected PVA ISR (%x)", int_status);
 		return;
 	}
 

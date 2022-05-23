@@ -101,7 +101,7 @@ void pva_ccq_isr_handler(struct pva *pva, unsigned int queue_id)
 		host1x_readl(pdev, cfg_ccq_status_r(pva->version, queue_id,
 						    PVA_CCQ_STATUS7_INDEX));
 	if (pva->cmd_status[cmd_status_index] != PVA_CMD_STATUS_WFI) {
-		nvhost_warn(&pdev->dev, "No ISR for CCQ %u", queue_id);
+		nvpva_warn(&pdev->dev, "No ISR for CCQ %u", queue_id);
 		return;
 	}
 	/* Save the current command and subcommand for later processing */

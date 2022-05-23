@@ -1,20 +1,22 @@
-ifeq ($(CONFIG_TEGRA_PVA_V1),y)
-V2 := n
-BRINGUP := $(CONFIG_TEGRA_GRHOST_PVA)
-else
-V2 := $(CONFIG_TEGRA_GRHOST_PVA)
-BRINGUP := n
+GCOV_PROFILE := y
+ccflags-y += -I$(srctree.nvidia)/drivers/video/tegra/host/pva
+ccflags-y += -I$(srctree.nvidia)/drivers/video/tegra/host
+ccflags-y += -I$(srctree.nvidia)/drivers/video/tegra/host/pva/fw_include
+ccflags-y += -I$(srctree.nvidia)/include
+ccflags-y += -I$(srctree.nvidia)/include/linux
+ccflags-y += -Werror
+
+# When using the upstream host1x driver, the Makefile must define the
+# srctree.host1x path in order to find the necessary header files for
+# the upstream host1x driver.
+ifdef CONFIG_TEGRA_HOST1X_NEXT
+ccflags-y += -I$(srctree.host1x)/include
+ccflags-y += -DCONFIG_TEGRA_HOST1X
 endif
 
-obj-$(BRINGUP) = bringup/
-
-GCOV_PROFILE := y
-ccflags-$(V2) += -I$(srctree.nvidia)/drivers/video/tegra/host/pva
-ccflags-$(V2) += -I$(srctree.nvidia)/drivers/video/tegra/host
-ccflags-$(V2) += -I$(srctree.nvidia)/drivers/video/tegra/host/pva/fw_include
-ccflags-$(V2) += -I$(srctree.nvidia)/include
-ccflags-$(V2) += -Werror
-
+ifeq ($(CONFIG_TEGRA_FUSE_UPSTREAM),y)
+ccflags-y += -DCONFIG_TEGRA_FUSE_UPSTREAM
+endif
 
 nvhost-pva-objs  = \
 		pva.o \
@@ -29,7 +31,6 @@ nvhost-pva-objs  = \
 		pva_trace.o \
 		pva_abort.o \
 		pva_ccq_t19x.o \
-		pva_selftest.o \
 		nvpva_elf_parser.o \
 		pva_vpu_exe.o \
 		nvpva_client.o \
@@ -38,7 +39,7 @@ nvhost-pva-objs  = \
 		nvpva_buffer.o \
 		pva_vpu_ocd.o
 
-obj-$(V2) += nvhost-pva.o
+obj-$(CONFIG_TEGRA_GRHOST_PVA) += nvhost-pva.o
 
 ifdef CONFIG_TEGRA_T23X_GRHOST
 nvhost-pva-t23x-objs  = \
@@ -49,6 +50,6 @@ nvhost-pva-t23x-objs  = \
 		pva_ccq_t23x.o
 
 
-obj-$(V2) += nvhost-pva-t23x.o
+obj-$(CONFIG_TEGRA_GRHOST_PVA) += nvhost-pva-t23x.o
 
 endif

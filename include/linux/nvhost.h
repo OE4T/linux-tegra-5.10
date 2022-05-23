@@ -481,10 +481,13 @@ int nvhost_client_device_init(struct platform_device *dev);
 /* public host1x sync-point management APIs */
 u32 nvhost_get_syncpt_host_managed(struct platform_device *pdev,
 				   u32 param, const char *syncpt_name);
+u32 nvhost_get_syncpt_client_managed(struct platform_device *pdev,
+				     const char *syncpt_name);
 void nvhost_syncpt_put_ref_ext(struct platform_device *pdev, u32 id);
 bool nvhost_syncpt_is_valid_pt_ext(struct platform_device *dev, u32 id);
 void nvhost_syncpt_set_minval(struct platform_device *dev, u32 id, u32 val);
 void nvhost_syncpt_set_min_update(struct platform_device *pdev, u32 id, u32 val);
+int nvhost_syncpt_read_ext_check(struct platform_device *dev, u32 id, u32 *val);
 u32 nvhost_syncpt_read_maxval(struct platform_device *dev, u32 id);
 u32 nvhost_syncpt_incr_max_ext(struct platform_device *dev, u32 id, u32 incrs);
 int nvhost_syncpt_is_expired_ext(struct platform_device *dev, u32 id,

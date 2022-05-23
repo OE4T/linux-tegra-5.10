@@ -56,9 +56,6 @@
 #include "nvdec/nvdec.h"
 #include "nvdec/nvdec_t23x.h"
 #endif
-#if IS_ENABLED(CONFIG_TEGRA_GRHOST_PVA)
-#include "pva/pva_nvhost.h"
-#endif
 #include "hardware_t23x.h"
 #if IS_ENABLED(CONFIG_VIDEO_TEGRA_VI)
 #include "vi/vi5.h"
@@ -496,44 +493,6 @@ struct nvhost_device_data t23x_vic_info = {
 	.actmon_weight_count	= 216,
 	.actmon_setting_regs	= t23x_vic_actmon_registers,
 	.devfreq_governor	= "userspace",
-};
-#endif
-
-#if IS_ENABLED(CONFIG_TEGRA_GRHOST_PVA)
-struct nvhost_device_data t23x_pva0_info = {
-	.num_channels		= 1,
-	.clocks			= {
-		{"axi", UINT_MAX,},
-		{"vps0", UINT_MAX,},
-		{"vps1", UINT_MAX,},
-	},
-	.ctrl_ops		= &tegra_pva_ctrl_ops,
-	.devfs_name_family	= "pva",
-	.class			= NV_PVA0_CLASS_ID,
-	.autosuspend_delay      = 500,
-	.finalize_poweron	= pva_finalize_poweron,
-	.prepare_poweroff	= pva_prepare_poweroff,
-	.firmware_name		= "nvhost_pva020.fw",
-	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
-	.vm_regs		= {
-		{0x240000, false, 0},
-		{0x240004, false, 0},
-		{0x240008, false, 0},
-		{0x24000c, false, 0},
-		{0x240010, false, 0},
-		{0x240014, false, 0},
-		{0x240018, false, 0},
-		{0x24001c, false, 0},
-		{0x240020, false, 0},
-		{0x240020, false, 8},
-		{0x240020, false, 16},
-		{0x240024, false, 0},
-		{0x240024, false, 8}
-		},
-	.poweron_reset		= true,
-	.serialize		= true,
-	.get_reloc_phys_addr	= nvhost_t23x_get_reloc_phys_addr,
-	.can_powergate		= true,
 };
 #endif
 

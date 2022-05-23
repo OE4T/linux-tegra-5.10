@@ -47,15 +47,15 @@ irqreturn_t pva_ccq_isr(int irq, void *dev_id)
 		printk("Invalid IRQ received. Returning from ISR");
 		return IRQ_HANDLED;
 	}
-	nvhost_dbg_info("Recieved ISR from CCQ block, IRQ: %d", irq);
+	nvpva_dbg_info(pva, "Received ISR from CCQ block, IRQ: %d", irq);
 	int_status = host1x_readl(pdev, cfg_ccq_status_r(pva->version,
 				queue_id, PVA_CCQ_STATUS2_INDEX))
 				& ~PVA_MASK_LOW_16BITS;
 
 	if (int_status != 0x0) {
-		nvhost_dbg_info("Clear ccq interrrupt for %d, \
-				current status: 0x%x",
-				queue_id, int_status);
+		nvpva_dbg_info(pva, "Clear CCQ interrupt for %d, \
+			       current status: 0x%x",
+			       queue_id, int_status);
 		host1x_writel(pdev,
 			      cfg_ccq_status_r(pva->version, queue_id,
 					       PVA_CCQ_STATUS2_INDEX),
@@ -71,7 +71,7 @@ irqreturn_t pva_ccq_isr(int irq, void *dev_id)
 					queue_id, PVA_CCQ_STATUS8_INDEX));
 	}
 	if (aisr_status & PVA_AISR_INT_PENDING) {
-		nvhost_dbg_info("PVA CCQ AISR (%x)", aisr_status);
+		nvpva_dbg_info(pva, "PVA CCQ AISR (%x)", aisr_status);
 		if (aisr_status &
 		    (PVA_AISR_TASK_COMPLETE | PVA_AISR_TASK_ERROR)) {
 			atomic_add(1, &pva->n_pending_tasks);
@@ -82,31 +82,31 @@ irqreturn_t pva_ccq_isr(int irq, void *dev_id)
 		/* For now, just log the errors */
 
 		if (aisr_status & PVA_AISR_TASK_ERROR)
-			nvhost_warn(&pdev->dev,
+			nvpva_warn(&pdev->dev,
 				    "PVA AISR: \
 				    PVA_AISR_TASK_ERROR for queue id = %d",
 				    queue_id);
 		if (aisr_status & PVA_AISR_THRESHOLD_EXCEEDED)
-			nvhost_warn(&pdev->dev, "PVA AISR: \
+			nvpva_warn(&pdev->dev, "PVA AISR: \
 				PVA_AISR_THRESHOLD_EXCEEDED for queue id = %d",
 				queue_id);
 		if (aisr_status & PVA_AISR_LOGGING_OVERFLOW)
-			nvhost_warn(&pdev->dev, "PVA AISR: \
+			nvpva_warn(&pdev->dev, "PVA AISR: \
 				PVA_AISR_LOGGING_OVERFLOW for queue id = %d",
 				queue_id);
 		if (aisr_status & PVA_AISR_PRINTF_OVERFLOW)
-			nvhost_warn(&pdev->dev, "PVA AISR: \
+			nvpva_warn(&pdev->dev, "PVA AISR: \
 				PVA_AISR_PRINTF_OVERFLOW for queue id = %d",
 				queue_id);
 		if (aisr_status & PVA_AISR_CRASH_LOG)
-			nvhost_warn(&pdev->dev, "PVA AISR: \
+			nvpva_warn(&pdev->dev, "PVA AISR: \
 				PVA_AISR_CRASH_LOG for queue id = %d",
 				queue_id);
 		if (aisr_status & PVA_AISR_ABORT) {
-			nvhost_warn(&pdev->dev, "PVA AISR: \
+			nvpva_warn(&pdev->dev, "PVA AISR: \
 				PVA_AISR_ABORT for queue id = %d",
 				queue_id);
-			nvhost_warn(&pdev->dev, "Checkpoint value: 0x%08x",
+			nvpva_warn(&pdev->dev, "Checkpoint value: 0x%08x",
 				    aisr_status);
 			recover = true;
 		}

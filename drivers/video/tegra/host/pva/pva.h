@@ -30,6 +30,18 @@
 #include "pva_nvhost.h"
 #include "pva-ucode-header.h"
 
+#ifdef CONFIG_TEGRA_SOC_HWPM
+#include <uapi/linux/tegra-soc-hwpm-uapi.h>
+#endif
+
+/**
+ * PVA Host1x class IDs
+ */
+enum {
+	NV_PVA0_CLASS_ID	= 0xF1,
+	NV_PVA1_CLASS_ID	= 0xF2,
+};
+
 struct nvpva_client_context;
 
 enum pva_submit_mode {
@@ -86,6 +98,62 @@ struct pva_version_info {
  * Number of VPUs for each PVA
  */
 #define NUM_VPU_BLOCKS 2
+
+/**
+ * nvpva_dbg_* macros provide wrappers around kernel print functions
+ * that use a debug mask configurable at runtime to provide control over
+ * the level of detail that gets printed.
+ */
+#ifdef CONFIG_DEBUG_FS
+    /* debug info, default is compiled-in but effectively disabled (0 mask) */
+    #define NVPVA_DEBUG
+    /*e.g: echo 1 > /d/pva0/driver_dbg_mask */
+    #define NVPVA_DEFAULT_DBG_MASK 0
+#else
+    /* manually enable and turn on the mask */
+    #define NVPVA_DEFAULT_DBG_MASK (pva_dbg_info)
+#endif
+
+enum nvpva_dbg_categories {
+	pva_dbg_info    = BIT(0),  /* slightly verbose info */
+	pva_dbg_fn      = BIT(2),  /* fn name tracing */
+	pva_dbg_reg     = BIT(3),  /* register accesses, very verbose */
+	pva_dbg_clk     = BIT(7),  /* nvhost clk */
+	pva_dbg_mem     = BIT(31), /* memory accesses, very verbose */
+};
+
+#if defined(NVPVA_DEBUG)
+#define nvpva_dbg(pva, dbg_mask, format, arg...)                               \
+	do {                                                                   \
+		if (unlikely((dbg_mask)&pva->driver_log_mask)) {               \
+			pr_info("nvpva %s: " format "\n", __func__, ##arg);    \
+		}                                                              \
+	} while (0)
+
+#else /* NVPVA_DEBUG */
+#define nvpva_dbg(pva, dbg_mask, format, arg...)                               \
+	do {                                                                   \
+		if (0)                                                         \
+			pr_info("nvhost %s: " format "\n", __func__, ##arg);   \
+	} while (0)
+
+#endif
+
+/* convenience,shorter err/fn/dbg_info */
+#define nvpva_err(d, fmt, arg...) \
+	dev_err(d, "%s: " fmt "\n", __func__, ##arg)
+
+#define nvpva_err_ratelimited(d, fmt, arg...) \
+	dev_err_ratelimited(d, "%s: " fmt "\n", __func__, ##arg)
+
+#define nvpva_warn(d, fmt, arg...) \
+	dev_warn(d, "%s: " fmt "\n", __func__, ##arg)
+
+#define nvpva_dbg_fn(pva, fmt, arg...) \
+	nvpva_dbg(pva, pva_dbg_fn, fmt, ##arg)
+
+#define nvpva_dbg_info(pva, fmt, arg...) \
+	nvpva_dbg(pva, pva_dbg_info, fmt, ##arg)
 
 /**
  * @brief		struct to hold the segment details
@@ -299,12 +367,25 @@ struct pva {
 	struct work_struct pva_abort_handler_work;
 	bool booted;
 
+	/**
+	 * log_level controls the level of detail printed by FW debug
+	 * statements
+	 */
 	u32 log_level;
+	/**
+	 * driver_log_mask controls the level of detail printed by kernel debug
+	 * statements
+	 */
+	u32 driver_log_mask;
 
 	struct nvpva_client_context *clients;
 	struct mutex clients_lock;
 
 	struct pva_vpu_dbg_block vpu_dbg_blocks[NUM_VPU_BLOCKS];
+
+#ifdef CONFIG_TEGRA_SOC_HWPM
+	struct tegra_soc_hwpm_ip_ops hwpm_ip_ops;
+#endif
 };
 
 /**

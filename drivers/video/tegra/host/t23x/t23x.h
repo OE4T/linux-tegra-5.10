@@ -57,10 +57,6 @@ extern struct nvhost_device_data t23x_msenc_info;
 #if defined(CONFIG_TEGRA_GRHOST_TSEC)
 extern struct nvhost_device_data t23x_tsec_info;
 #endif
-#if defined(CONFIG_TEGRA_GRHOST_PVA)
-extern struct nvhost_device_data t23x_pva0_info;
-extern struct nvhost_device_data t23x_pva1_info;
-#endif
 
 int nvhost_init_t23x_support(struct nvhost_master *host,
 			     struct nvhost_chip_support *op);

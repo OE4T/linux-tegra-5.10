@@ -23,6 +23,7 @@
 #include <linux/cvnas.h>
 
 #include "dev.h"
+#include "pva.h"
 #include "nvpva_buffer.h"
 
 /**
@@ -300,7 +301,10 @@ static void nvpva_free_buffers(struct kref *kref)
 static void nvpva_buffer_unmap(struct nvpva_buffers *nvpva_buffers,
 				struct nvpva_vm_buffer *vm)
 {
-	nvhost_dbg_fn("");
+	struct nvhost_device_data *pdata = platform_get_drvdata(nvpva_buffers->pdev);
+	struct pva *pva = pdata->private_data;
+
+	nvpva_dbg_fn(pva, "");
 
 	if ((vm->user_map_count != 0) || (vm->submit_map_count != 0))
 		return;
@@ -423,7 +427,6 @@ int nvpva_buffer_pin(struct nvpva_buffers *nvpva_buffers,
 
 		vm = kzalloc(sizeof(struct nvpva_vm_buffer), GFP_KERNEL);
 		if (!vm) {
-			nvhost_err(NULL, "could not allocate vm_buffer");
 			err = -ENOMEM;
 			goto unpin;
 		}
