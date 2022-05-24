@@ -83,6 +83,21 @@ struct tegra_hwpm_ip_ops {
 				u32 *reg_data);
 };
 
+/*
+ * One of the HWPM components is a perfmux. Perfmux registers belong to the
+ * IP domain. There are 2 ways of accessing perfmux registers
+ * - option 1: implement HWPM <-> IP interface. IP drivers register with HWPM
+ *             driver and share required function pointers
+ * - option 2: map perfmux register address in HWPM driver
+ * Option 1 is a preferred solution. However, IP drivers have yet to
+ * implement the interface. Such IPs can be force enabled from HWPM driver
+ * perspective. However, forcing an IP will enable all instances of the IP.
+ * Hence, IP force enable should only be done on full chip config.
+ * Note as power management API is not available, unpowergating the IP via
+ * command line is required.
+ */
+/*#define CONFIG_HWPM_ALLOW_FORCE_ENABLE*/
+
 /* There are 3 types of HWPM components/apertures */
 #define TEGRA_HWPM_APERTURE_TYPE_PERFMUX	0U
 #define TEGRA_HWPM_APERTURE_TYPE_BROADCAST	1U

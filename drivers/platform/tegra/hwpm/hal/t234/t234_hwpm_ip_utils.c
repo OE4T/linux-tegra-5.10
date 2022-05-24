@@ -276,10 +276,11 @@ int t234_hwpm_validate_current_config(struct tegra_soc_hwpm *hwpm)
 
 int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 {
-	int ret = 0, err = 0;
+
+	int ret = 0;
 
 	tegra_hwpm_fn(hwpm, " ");
-
+#if defined(CONFIG_HWPM_ALLOW_FORCE_ENABLE)
 	if (tegra_platform_is_vsp()) {
 		/* Static IP instances as per VSP netlist */
 		/* MSS CHANNEL: vsp has single instance available */
@@ -290,7 +291,7 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 		if (ret != 0) {
 			tegra_hwpm_err(hwpm,
 				"T234_HWPM_IP_MSS_CHANNEL force enable failed");
-			err = ret;
+			return ret;
 		}
 #endif
 #if defined(CONFIG_SOC_HWPM_IP_MSS_GPU_HUB)
@@ -302,7 +303,7 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 		if (ret != 0) {
 			tegra_hwpm_err(hwpm,
 				"T234_HWPM_IP_MSS_GPU_HUB force enable failed");
-			err = ret;
+			return ret;
 		}
 #endif
 	}
@@ -317,7 +318,7 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 		if (ret != 0) {
 			tegra_hwpm_err(hwpm,
 				"T234_HWPM_IP_VI force enable failed");
-			err = ret;
+			return ret;
 		}
 		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
 			addr_map_vi2_thi_base_r(),
@@ -325,7 +326,7 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 		if (ret != 0) {
 			tegra_hwpm_err(hwpm,
 				"T234_HWPM_IP_VI force enable failed");
-			err = ret;
+			return ret;
 		}
 #endif
 */
@@ -337,7 +338,7 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 		if (ret != 0) {
 			tegra_hwpm_err(hwpm,
 				"T234_HWPM_IP_ISP force enable failed");
-			err = ret;
+			return ret;
 		}
 #endif
 
@@ -364,22 +365,11 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 		if (ret != 0) {
 			tegra_hwpm_err(hwpm,
 				"T234_HWPM_IP_MGBE force enable failed");
-			err = ret;
+			return ret;
 		}
 #endif
 */
 
-#if defined(CONFIG_SOC_HWPM_IP_SCF)
-		/* SCF */
-		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
-			addr_map_rpg_pm_scf_base_r(),
-			T234_HWPM_IP_SCF, true);
-		if (ret != 0) {
-			tegra_hwpm_err(hwpm,
-				"T234_HWPM_IP_SCF force enable failed");
-			err = ret;
-		}
-#endif
 #if defined(CONFIG_SOC_HWPM_IP_NVDEC)
 
 		/* NVDEC */
@@ -389,7 +379,7 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 		if (ret != 0) {
 			tegra_hwpm_err(hwpm,
 				"T234_HWPM_IP_NVDEC force enable failed");
-			err = ret;
+			return ret;
 		}
 #endif
 
@@ -402,7 +392,7 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 		if (ret != 0) {
 			tegra_hwpm_err(hwpm,
 				"T234_HWPM_IP_PCIE force enable failed");
-			err = ret;
+			return ret;
 		}
 		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
 			addr_map_pcie_c4_ctl_base_r(),
@@ -410,7 +400,7 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 		if (ret != 0) {
 			tegra_hwpm_err(hwpm,
 				"T234_HWPM_IP_PCIE force enable failed");
-			err = ret;
+			return ret;
 		}
 		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
 			addr_map_pcie_c5_ctl_base_r(),
@@ -418,7 +408,7 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 		if (ret != 0) {
 			tegra_hwpm_err(hwpm,
 				"T234_HWPM_IP_PCIE force enable failed");
-			err = ret;
+			return ret;
 		}
 #endif
 */
@@ -432,7 +422,7 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 		if (ret != 0) {
 			tegra_hwpm_err(hwpm,
 				"T234_HWPM_IP_DISPLAY force enable failed");
-			err = ret;
+			return ret;
 		}
 #endif
 */
@@ -445,12 +435,28 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 		if (ret != 0) {
 			tegra_hwpm_err(hwpm,
 				"T234_HWPM_IP_MSS_GPU_HUB force enable failed");
-			err = ret;
+			return ret;
 		}
 #endif
 	}
+#endif
+		/*
+		 * SCF is an independent IP with a single perfmon only.
+		 * SCF should not be part of force enable config flag.
+		 */
+#if defined(CONFIG_SOC_HWPM_IP_SCF)
+		/* SCF */
+		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
+			addr_map_rpg_pm_scf_base_r(),
+			T234_HWPM_IP_SCF, true);
+		if (ret != 0) {
+			tegra_hwpm_err(hwpm,
+				"T234_HWPM_IP_SCF force enable failed");
+			return ret;
+		}
+#endif
 
-	return err;
+	return 0;
 }
 
 int t234_hwpm_get_fs_info(struct tegra_soc_hwpm *hwpm,
