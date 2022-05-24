@@ -21,14 +21,16 @@
 #ifndef __NVHOST_PVA_H__
 #define __NVHOST_PVA_H__
 
-#include <linux/workqueue.h>
+#include <linux/firmware.h>
 #include <linux/mutex.h>
 #include <linux/version.h>
+#include <linux/workqueue.h>
 
 #include "nvpva_queue.h"
 #include "pva_regs.h"
 #include "pva_nvhost.h"
 #include "pva-ucode-header.h"
+#include "pva_vpu_app_auth.h"
 
 #ifdef CONFIG_TEGRA_SOC_HWPM
 #include <uapi/linux/tegra-soc-hwpm-uapi.h>
@@ -327,6 +329,8 @@ struct pva {
 	struct platform_device *pdev;
 	struct nvpva_queue_pool *pool;
 	struct pva_fw fw_info;
+	struct pva_vpu_auth_s pva_auth;
+	struct pva_vpu_auth_s pva_auth_sys;
 
 	int irq[MAX_PVA_IRQS];
 
@@ -511,4 +515,8 @@ int pva_get_firmware_version(struct pva *pva, struct pva_version_info *info);
 int pva_boot_kpi(struct pva *pva, u64 *r5_boot_time);
 
 int pva_set_log_level(struct pva *pva, u32 log_level, bool mailbox_locked);
+
+int nvpva_request_firmware(struct platform_device *pdev, const char *fw_name,
+			   const struct firmware **ucode_fw);
+
 #endif

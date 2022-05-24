@@ -60,10 +60,13 @@ struct nvpva_vm_buffer {
 
 static uint32_t get_unique_id(struct nvpva_buffers *nvpva_buffers)
 {
+	struct nvhost_device_data *pdata =
+		platform_get_drvdata(nvpva_buffers->pdev);
+	struct pva *pva = pdata->private_data;
 	uint32_t id = rmos_find_first_zero_bit(nvpva_buffers->ids,
 					 NVPVA_MAX_NUM_UNIQUE_IDS);
 	if (id == NVPVA_MAX_NUM_UNIQUE_IDS) {
-		nvhost_dbg_fn("No buffer ID available");
+		nvpva_dbg_fn(pva, "No buffer ID available");
 		id = 0;
 		goto out;
 	}

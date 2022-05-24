@@ -517,7 +517,7 @@ copy_segments(void *elf, struct pva_elf_image *elf_img,
 
 		if (buffer_temp->num_segments >= (UINT_MAX - 1U)) {
 			ret = -EINVAL;
-			pr_err("Number of data segments exceeds UINT32_MAX");
+			pr_err("Number of data segments exceeds UINT_MAX");
 			goto out;
 		}
 
@@ -711,7 +711,7 @@ fail:
  * @param elf			Buffer containing elf file
  * @param size			Size of buffer containing elf file
  *
- * @return			EOK if everything is correct else return error
+ * @return			0 if everything is correct else return error
  */
 
 static int32_t validate_vpu(const void *elf, size_t size)

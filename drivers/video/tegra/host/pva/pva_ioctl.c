@@ -40,6 +40,7 @@
 #include "nvpva_buffer.h"
 #include "nvhost_acm.h"
 #include "pva_vpu_exe.h"
+#include "pva_vpu_app_auth.h"
 #include "nvpva_client.h"
 /**
  * @brief pva_private - Per-fd specific data
@@ -54,12 +55,6 @@ struct pva_private {
 	struct pva_cb *vpu_print_buffer;
 	struct nvpva_client_context *client;
 };
-
-static char *tests_app_names[3] = {
-					"nvpva_stress_power.elf",
-					"nvpva_stress_power_didt.elf",
-					"nvpva_stress_timing.elf"
-				};
 
 static int copy_part_from_user(void *kbuffer, size_t kbuffer_size,
 			       struct nvpva_ioctl_part part)
@@ -357,6 +352,7 @@ static int pva_submit(struct pva_private *priv, void *arg)
 		goto out;
 	}
 
+
 	/* Allocate memory for the UMD representation of the tasks */
 	ioctl_tasks = kzalloc(ioctl_tasks_header->tasks.size, GFP_KERNEL);
 	if (ioctl_tasks == NULL) {
@@ -365,7 +361,6 @@ static int pva_submit(struct pva_private *priv, void *arg)
 		goto out;
 	}
 
-
 	tasks_header = kzalloc(sizeof(struct pva_submit_tasks), GFP_KERNEL);
 	if (tasks_header == NULL) {
 		pr_err("pva: submit: allocation for tasks_header failed");
@@ -373,7 +368,6 @@ static int pva_submit(struct pva_private *priv, void *arg)
 		err = -ENOMEM;
 		goto out;
 	}
-
 
 	/* Copy the tasks from userspace */
 	rest = copy_from_user(ioctl_tasks,
@@ -450,13 +444,11 @@ static int pva_submit(struct pva_private *priv, void *arg)
 		ioctl_tasks_header->execution_timeout_us;
 
 	/* TODO: submission timeout */
-
 	/* ..and submit them */
 	err = nvpva_queue_submit(priv->queue, tasks_header);
 
-	if (err < 0) {
+	if (err < 0)
 		goto free_tasks;
-	}
 
 	/* Copy fences back to userspace */
 	for (i = 0; i < tasks_header->num_tasks; i++) {
@@ -491,12 +483,15 @@ static int pva_submit(struct pva_private *priv, void *arg)
 	}
 
 free_tasks:
+
 	for (i = 0; i < tasks_header->num_tasks; i++) {
 		struct pva_submit_task *task = tasks_header->tasks[i];
 		/* Drop the reference */
 		kref_put(&task->ref, pva_task_free);
 	}
+
 free_ioctl_tasks:
+
 	kfree(ioctl_tasks);
 	kfree(tasks_header);
 
@@ -540,69 +535,89 @@ static int pva_unpin(struct pva_private *priv, void *arg)
 	return err;
 }
 
-static int pva_register_vpu_exec(struct pva_private *priv, void *arg)
+static int
+pva_authenticate_vpu_app(struct pva *pva,
+			 struct pva_vpu_auth_s *auth,
+			 uint8_t *data,
+			 u32 size)
 {
-	struct nvpva_vpu_exe_register_in_arg *reg_in =
-		(struct nvpva_vpu_exe_register_in_arg *)arg;
-	struct nvpva_vpu_exe_register_out_arg *reg_out =
-		(struct nvpva_vpu_exe_register_out_arg *)arg;
-	struct pva_elf_image *image;
-	void *exec_data = NULL;
 	int err = 0;
-	uint16_t exe_id;
-	uint16_t system_app_id;
-	const struct firmware *test_app;
 
-	if (reg_in->exe_data.addr == 0xFFFFFFFFFFFFFFFFULL) {
-		system_app_id = reg_in->exe_data.size;
-		if (system_app_id > NVPVA_MAX_TEST_ID) {
-			nvpva_dbg_fn(priv->pva, "invalid test app ID");
-			err = -ENOENT;
-			return err;
-		}
+	if (!auth->pva_auth_enable)
+		goto out;
 
-		test_app = nvhost_client_request_firmware(priv->pva->pdev,
-				tests_app_names[system_app_id], true);
-		if (!test_app) {
-			nvpva_dbg_fn(priv->pva, "pva test app request failed");
-			dev_err(&priv->pva->pdev->dev,
-				"Failed to load the %s test_app\n",
-				tests_app_names[system_app_id]);
-			err = -ENOENT;
-			return err;
-		}
-		err = pva_load_vpu_app(&priv->client->elf_ctx,
-				       (uint8_t *)(test_app->data),
-				       test_app->size, &exe_id, true,
-				       priv->pva->version);
-		release_firmware(test_app);
-	} else {
-		uint64_t data_size = reg_in->exe_data.size;
-		bool is_system = ((data_size & 0x8000000000000000ULL) != 0);
-
-		data_size &= 0x7FFFFFFFFFFFFFFFULL;
-		reg_in->exe_data.size &= 0x7FFFFFFFFFFFFFFFULL;
-		exec_data = kmalloc(data_size, GFP_KERNEL);
-		if (exec_data == NULL) {
-			err = -ENOMEM;
+	if (!auth->pva_auth_allow_list_parsed) {
+		err = pva_auth_allow_list_parse(pva->pdev, auth);
+		if (err != 0) {
+			nvpva_warn(&pva->pdev->dev,
+				   "allow list parse failed");
 			goto out;
 		}
-
-		err = copy_part_from_user(exec_data, data_size,
-					  reg_in->exe_data);
-		if (err) {
-			nvpva_err(&priv->pva->pdev->dev,
-				"failed to copy vpu exe data");
-			goto free_mem;
-		}
-
-		err = pva_load_vpu_app(&priv->client->elf_ctx, exec_data,
-				       data_size, &exe_id, is_system,
-				       priv->pva->version);
 	}
 
+	err = pva_vpu_check_sha256_key(pva,
+				       auth->vpu_hash_keys,
+				       data,
+				       size);
+	if (err != 0)
+		nvpva_dbg_fn(pva, "app authentication failed");
+out:
+	return err;
+}
+
+static int pva_register_vpu_exec(struct pva_private *priv, void *arg)
+{
+	struct	nvpva_vpu_exe_register_in_arg *reg_in =
+			(struct nvpva_vpu_exe_register_in_arg *)arg;
+	struct	nvpva_vpu_exe_register_out_arg *reg_out =
+			(struct nvpva_vpu_exe_register_out_arg *)arg;
+	struct pva_elf_image	*image;
+	void			*exec_data = NULL;
+	uint16_t		exe_id;
+	bool			is_system = false;
+	uint64_t		data_size;
+	int			err = 0;
+
+	data_size = reg_in->exe_data.size;
+	exec_data = kmalloc(data_size, GFP_KERNEL);
+	if (exec_data == NULL) {
+		nvpva_err(&priv->pva->pdev->dev,
+				"failed to allocate memory for elf");
+		err = -ENOMEM;
+		goto out;
+	}
+
+	err = copy_part_from_user(exec_data, data_size,
+				  reg_in->exe_data);
 	if (err) {
-		nvpva_err(&priv->pva->pdev->dev, "failed to register vpu app");
+		nvpva_err(&priv->pva->pdev->dev,
+			"failed to copy vpu exe data");
+		goto free_mem;
+	}
+
+	err = pva_authenticate_vpu_app(priv->pva,
+				       &priv->pva->pva_auth,
+				       (uint8_t *)exec_data,
+				       data_size);
+	if (err != 0) {
+		err = pva_authenticate_vpu_app(priv->pva,
+					       &priv->pva->pva_auth_sys,
+					       (uint8_t *)exec_data,
+					       data_size);
+		if (err != 0)
+			goto free_mem;
+
+		is_system = true;
+	}
+
+	err = pva_load_vpu_app(&priv->client->elf_ctx, exec_data,
+				data_size, &exe_id,
+				is_system,
+				priv->pva->version);
+
+	if (err) {
+		nvpva_err(&priv->pva->pdev->dev,
+			  "failed to register vpu app");
 		goto free_mem;
 	}
 
@@ -613,6 +628,7 @@ static int pva_register_vpu_exec(struct pva_private *priv, void *arg)
 	reg_out->symbol_size_total = image->symbol_size_total;
 
 free_mem:
+
 	if (exec_data != NULL)
 		kfree(exec_data);
 out:

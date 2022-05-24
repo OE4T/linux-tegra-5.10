@@ -61,6 +61,7 @@
 #include "pva_version_config_t19x.h"
 #include "pva_ccq_t19x.h"
 #include "pva-ucode-header.h"
+#include "pva_system_allow_list.h"
 
 struct nvhost_device_data t19_pva1_info = {
 	.version = PVA_HW_GEN1,
@@ -798,6 +799,20 @@ int pva_finalize_poweron(struct platform_device *pdev)
 
 	pva->booted = true;
 
+	(void) pva_auth_allow_list_parse_buf(pdev,
+					     &pva->pva_auth_sys,
+					     pva_auth_allow_list_sys,
+					     pva_auth_allow_list_sys_len);
+
+	if (pva->pva_auth.pva_auth_enable) {
+		err = pva_auth_allow_list_parse(pdev,
+						&pva->pva_auth);
+		if (err != 0)
+			nvpva_warn(NULL, "PVA: Parsing "
+				   "pva_auth_allow_list failed");
+	}
+
+
 	return err;
 
 err_poweron:
@@ -1036,6 +1051,8 @@ static int pva_probe(struct platform_device *pdev)
 	if (err)
 		goto err_mss_init;
 
+	pva->pva_auth.pva_auth_enable = true;
+
 #ifdef CONFIG_DEBUG_FS
 	pva_debugfs_init(pdev);
 #endif
@@ -1089,6 +1106,8 @@ static int __exit pva_remove(struct platform_device *pdev)
 	tegra_soc_hwpm_ip_unregister(&pva->hwpm_ip_ops);
 #endif
 
+	pva_auth_allow_list_destroy(&pva->pva_auth_sys);
+	pva_auth_allow_list_destroy(&pva->pva_auth);
 	pva_free_task_status_buffer(pva);
 	nvpva_client_context_deinit(pva);
 	nvpva_queue_deinit(pva->pool);

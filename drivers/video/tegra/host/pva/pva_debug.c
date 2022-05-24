@@ -148,6 +148,30 @@ static int set_log_level(void *data, u64 val)
 
 DEFINE_DEBUGFS_ATTRIBUTE(log_level_fops, get_log_level, set_log_level, "%llu");
 
+static int get_authentication(void *data, u64 *val)
+{
+	struct pva *pva = (struct pva *) data;
+
+	*val = pva->pva_auth.pva_auth_enable ? 1 : 0;
+
+	return 0;
+}
+
+static int set_authentication(void *data, u64 val)
+{
+	struct pva *pva = (struct pva *) data;
+
+	pva->pva_auth.pva_auth_enable = (val == 1) ? true : false;
+
+	if (pva->pva_auth.pva_auth_enable)
+		return pva_auth_allow_list_parse(pva->pdev,
+						 &pva->pva_auth);
+	else
+		return 0;
+}
+
+DEFINE_DEBUGFS_ATTRIBUTE(pva_auth_fops, get_authentication, set_authentication, "%llu");
+
 static long vpu_ocd_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 {
 	struct pva_vpu_dbg_block *dbg_block = f->f_inode->i_private;
@@ -227,7 +251,8 @@ void pva_debugfs_init(struct platform_device *pdev)
 			    &pva->vpu_printf_enabled);
 	debugfs_create_file("fw_log_level", 0644, de, pva, &log_level_fops);
 	debugfs_create_u32("driver_log_mask", 0644, de, &pva->driver_log_mask);
-
+	debugfs_create_file("vpu_app_authentation", 0644, de, pva,
+			    &pva_auth_fops);
 	err = pva_vpu_ocd_init(pva);
 	if (err == 0) {
 		for (i = 0; i < NUM_VPU_BLOCKS; i++)

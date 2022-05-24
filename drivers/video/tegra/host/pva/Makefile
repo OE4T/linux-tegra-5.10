@@ -37,7 +37,11 @@ nvhost-pva-objs  = \
 		nvpva_queue.o \
 		pva_dma.o \
 		nvpva_buffer.o \
-		pva_vpu_ocd.o
+		pva_vpu_ocd.o \
+		pva_sha256.o \
+		pva_system_allow_list.o \
+		pva_vpu_app_auth.o
+
 
 obj-$(CONFIG_TEGRA_GRHOST_PVA) += nvhost-pva.o
 
