@@ -18,6 +18,7 @@
  */
 
 #include <linux/completion.h>
+#include <linux/nospec.h>
 #include <linux/nvhost.h>
 #include <linux/of_platform.h>
 #include <linux/printk.h>
@@ -551,6 +552,14 @@ void vi_get_nvhost_device(
 		platform_get_drvdata(chan->vi_capture_pdev);
 
 	vi_inst = info->vi_instance_table[setup->csi_stream_id];
+
+	if (vi_inst >= MAX_VI_UNITS) {
+		dev_err(&chan->vi_capture_pdev->dev, "Invalid VI device Id\n");
+		chan->dev = NULL;
+		chan->ndev = NULL;
+		return;
+	}
+	vi_inst = array_index_nospec(vi_inst, MAX_VI_UNITS);
 
 	chan->dev = &info->vi_pdevices[vi_inst]->dev;
 	chan->ndev = info->vi_pdevices[vi_inst];
