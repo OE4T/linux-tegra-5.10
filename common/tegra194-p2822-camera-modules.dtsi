@@ -24,7 +24,7 @@
 #include "tegra194-p2822-0000-camera-imx390-a00.dtsi"
 #include "tegra194-e2832-hdmi.dtsi"
 #include "tegra194-p2822-0000-camera-vivid.dtsi"
-#include "tegra194-p2822-camera-eCAM130A_CUXVR.dtsi""
+#include "tegra194-p2822-camera-eCAM130A_CUXVR.dtsi"
 
 #define CAM0_RST_L	TEGRA194_MAIN_GPIO(H, 3)
 #define CAM0_PWDN	TEGRA194_MAIN_GPIO(H, 6)
