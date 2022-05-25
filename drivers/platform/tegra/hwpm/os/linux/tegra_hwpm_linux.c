@@ -36,6 +36,30 @@ static const struct of_device_id tegra_soc_hwpm_of_match[] = {
 };
 MODULE_DEVICE_TABLE(of, tegra_soc_hwpm_of_match);
 
+static char *tegra_hwpm_get_devnode(struct device *dev, umode_t *mode)
+{
+	if (!mode) {
+		return NULL;
+	}
+
+	/* Allow root:debug ownership */
+	*mode = 0660;
+
+	return NULL;
+}
+
+static bool tegra_hwpm_read_support_soc_tools_prop(struct platform_device *pdev)
+{
+	struct device_node *np = pdev->dev.of_node;
+	bool allow_node = of_property_read_bool(np, "support-soc-tools");
+
+	if (!allow_node) {
+		tegra_hwpm_err(NULL, "support-soc-tools is absent");
+	}
+
+	return allow_node;
+}
+
 static int tegra_hwpm_probe(struct platform_device *pdev)
 {
 	int ret = 0;
@@ -44,6 +68,12 @@ static int tegra_hwpm_probe(struct platform_device *pdev)
 
 	if (!pdev) {
 		tegra_hwpm_err(NULL, "Invalid platform device");
+		ret = -ENODEV;
+		goto fail;
+	}
+
+	if (!tegra_hwpm_read_support_soc_tools_prop(pdev)) {
+		tegra_hwpm_err(NULL, "SOC HWPM not supported in this config");
 		ret = -ENODEV;
 		goto fail;
 	}
@@ -66,6 +96,9 @@ static int tegra_hwpm_probe(struct platform_device *pdev)
 		tegra_hwpm_err(hwpm, "Failed to register class");
 		goto class_register;
 	}
+
+	/* Set devnode to retrieve device permissions */
+	hwpm->class.devnode = tegra_hwpm_get_devnode;
 
 	ret = alloc_chrdev_region(&hwpm->dev_t, 0, 1, dev_name(hwpm->dev));
 	if (ret) {
