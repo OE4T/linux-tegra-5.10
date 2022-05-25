@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -395,6 +395,11 @@ static long isp_channel_ioctl(
 	struct tegra_isp_channel *chan = file->private_data;
 	void __user *ptr = (void __user *)arg;
 	long err = -EFAULT;
+
+	if (unlikely(chan == NULL)) {
+		pr_err("%s: invalid channel\n", __func__);
+		return -EINVAL;
+	}
 
 	switch (_IOC_NR(cmd)) {
 	case _IOC_NR(ISP_CAPTURE_SETUP): {
