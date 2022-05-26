@@ -59,6 +59,9 @@ typedef enum ivc_cmd {
 	dbg_events_config_macsec,
 	macsec_get_sc_lut_key_index,
 	macsec_update_mtu_size,
+	nvethmgr_get_status,
+	nvethmgr_verify_ts,
+	nvethmgr_get_avb_perf,
 }ivc_cmd;
 
 /**
