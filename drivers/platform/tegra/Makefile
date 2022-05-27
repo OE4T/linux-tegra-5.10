@@ -64,13 +64,12 @@ obj-$(CONFIG_TEGRA_NVADSP) += nvadsp/
 
 obj-$(CONFIG_TEGRA_VIRT_AUDIO_IVC) += nvaudio_ivc/
 
-obj-$(CONFIG_TEGRA_VPR) += tegra_vpr.o
-obj-y += smc-calls.o
-
-ifneq ($(findstring 4.9,$(NV_BUILD_KERNEL_OPTIONS)),)
-# For 4.9
-ccflags-y += -DNVMAP_CONFIG_VPR_RESIZE
+ifeq ($(CONFIG_TEGRA_VPR),y)
+obj-y += tegra_vpr_resize.o
+else
+obj-y += tegra_vpr.o
 endif
+obj-y += smc-calls.o
 
 ifeq ($(CONFIG_CPU_FREQ),y)
 obj-$(CONFIG_ARCH_TEGRA_21x_SOC) += cpu_emc.o

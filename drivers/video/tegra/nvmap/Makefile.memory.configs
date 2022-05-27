@@ -103,9 +103,6 @@ NVMAP_CONFIG_LOADABLE_MODULE := n
 # Config for enabling PROCRANK functionality
 NVMAP_CONFIG_PROCRANK := y
 
-# Config for enabling VPR resize functionality
-NVMAP_CONFIG_VPR_RESIZE := n
-
 # Config for enabling few debugfs which would impact the NvMap performance
 # There are few debugfs which would impact NvMap performance.
 # Disable this when perf regression is observed.
@@ -159,11 +156,6 @@ endif
 NVMAP_CONFIG_PROCRANK := n
 endif
 
-ifneq ($(findstring 4.9,$(NV_BUILD_KERNEL_OPTIONS)),)
-# For 4.9
-NVMAP_CONFIG_VPR_RESIZE := y
-endif
-
 ################################################################################
 # Section 4
 # This section creates ccflags based upon the values specified
@@ -211,10 +203,6 @@ ifdef CONFIG_NVSCIIPC
 NVMAP_CONFIG_SCIIPC := y
 ccflags-y += -DNVMAP_CONFIG_SCIIPC
 endif #CONFIG_NVSCIIPC
-
-ifeq ($(NVMAP_CONFIG_VPR_RESIZE),y)
-ccflags-y += -DNVMAP_CONFIG_VPR_RESIZE
-endif #NVMAP_CONFIG_VPR_RESIZE
 
 ifeq ($(NVMAP_CONFIG_LOADABLE_MODULE),y)
 ccflags-y += -DNVMAP_LOADABLE_MODULE

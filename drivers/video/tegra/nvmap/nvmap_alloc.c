@@ -613,7 +613,7 @@ static struct device *nvmap_heap_pgalloc_dev(unsigned long type)
 		return ERR_PTR(-EINVAL);
 
 	dma_dev = dma_dev_from_handle(type);
-#ifdef NVMAP_CONFIG_VPR_RESIZE
+#ifdef CONFIG_TEGRA_VPR
 	if (!IS_ERR(dma_dev)) {
 		ret = dma_set_resizable_heap_floor_size(dma_dev, 0);
 		if (ret)
