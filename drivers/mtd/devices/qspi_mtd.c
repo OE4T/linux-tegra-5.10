@@ -1459,8 +1459,7 @@ static int qspi_read(struct mtd_info *mtd, loff_t from, size_t len,
 		spi_message_add_tail(&t[2], &m);
 	}
 
-	if (flash->flash_info->jedec_id == JEDEC_ID_MX25U51279G ||
-		flash->flash_info->jedec_id == JEDEC_ID_MX25U3235F) {
+	if (flash->flash_info->jedec_id == JEDEC_ID_MX25U3235F) {
 		max_dummy_cyle_set(flash,
 				flash->cmd_table.qcmd.op_code,
 				flash->cmd_table.qaddr.dummy_cycles);
