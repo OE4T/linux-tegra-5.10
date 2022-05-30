@@ -488,6 +488,14 @@ static const struct mc_error sbs_mc_errors[] = {
 
 static void set_intstatus(unsigned int irq)
 {
+	mc_channel = 0;
+	global_intstatus = 0;
+	global_intstatus_1 = 0;
+	slice_int_status = 0;
+	ch_int_status = 0;
+	hubc_int_status = 0;
+	sbs_int_status = 0;
+	hub_int_status = 0;
 }
 
 static void save_intstatus(unsigned int irq)
@@ -616,8 +624,6 @@ static void log_mcerr_fault(unsigned int irq)
 {
 	int faults_handled = 0;
 	const struct mc_error *err;
-	u32 g_intstatus = global_intstatus;
-	u32 g_intstatus_1 = global_intstatus_1;
 
 	LOG_FAULT(slice, mc_int_mask, _);
 	LOG_FAULT(hub, U32_MAX, _HUB_);
@@ -626,8 +632,8 @@ static void log_mcerr_fault(unsigned int irq)
 	LOG_FAULT(sbs, U32_MAX, _MSS_SBS_);
 
 	if (faults_handled) {
-		mc_writel(g_intstatus, MC_GLOBAL_INTSTATUS);
-		mc_writel(g_intstatus_1, MC_GLOBAL_INTSTATUS_1);
+		mc_writel(global_intstatus, MC_GLOBAL_INTSTATUS);
+		mc_writel(global_intstatus_1, MC_GLOBAL_INTSTATUS_1);
 	} else {
 		pr_err("unknown mcerr fault, int_status=0x%08x, "
 			"ch_int_status=0x%08x, hubc_int_status=0x%08x "
