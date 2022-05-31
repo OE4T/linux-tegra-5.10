@@ -30,6 +30,27 @@
 		};
 	};
 
+	efuse@03810000 {
+		compatible = "nvidia,tegra234-efuse";
+		reg = <0x0 0x03810000 0x0 0x600>;
+		status = "disabled";
+		secure-status = "okay";
+	};
+
+	se0@03b50000 {
+		compatible = "nvidia,tegra234-se0";
+		reg = <0x0 0x03b50000 0x0 0x30000>;
+		status = "disabled";
+		secure-status = "okay";
+	};
+
+	rng1@03b70000 {
+		compatible = "nvidia,tegra234-rng1";
+		reg = <0x0 0x03b70000 0x0 0x10000>;
+		status = "disabled";
+		secure-status = "okay";
+	};
+
 	stmm-device-mappings {
 		uuid = <0xed32d533 0x99e64209 0x9cc02d72 0xcdd998a7>;
 		description = "UEFI-mm";
