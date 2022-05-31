@@ -1023,6 +1023,12 @@ static int pva_release(struct inode *inode, struct file *file)
 	 */
 	nvpva_queue_put(priv->queue);
 
+	/* Free VPU print buffer if allocated */
+	if (priv->vpu_print_buffer != NULL) {
+		pva_free_cb(&priv->pva->pdev->dev, priv->vpu_print_buffer);
+		priv->vpu_print_buffer = NULL;
+	}
+
 	/* Finally, release the private data */
 	kfree(priv);
 
