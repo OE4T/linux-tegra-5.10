@@ -195,6 +195,7 @@ int t234_hwpm_validate_current_config(struct tegra_soc_hwpm *hwpm)
 {
 	u32 production_mode = 0U;
 	u32 security_mode = 0U;
+	u32 fa_mode = 0U;
 	u32 hwpm_global_disable = 0U;
 	u32 idx = 0U;
 	int err;
@@ -221,6 +222,13 @@ int t234_hwpm_validate_current_config(struct tegra_soc_hwpm *hwpm)
 		return err;
 	}
 
+#define TEGRA_FUSE_FA_MODE			0x48U
+	err = tegra_fuse_readl(TEGRA_FUSE_FA_MODE, &fa_mode);
+	if (err != 0) {
+		tegra_hwpm_err(hwpm, "fa mode fuse read failed");
+		return err;
+	}
+
 #define TEGRA_HWPM_GLOBAL_DISABLE_OFFSET	0x3CU
 #define TEGRA_HWPM_GLOBAL_DISABLE_DISABLED	0x1U
 	err = tegra_hwpm_read_sticky_bits(hwpm, addr_map_pmc_misc_base_r(),
@@ -231,8 +239,16 @@ int t234_hwpm_validate_current_config(struct tegra_soc_hwpm *hwpm)
 	}
 
 	tegra_hwpm_dbg(hwpm, hwpm_info, "PROD_MODE fuse = 0x%x "
-		"SECURITY_MODE fuse = 0x%x HWPM_GLOBAL_DISABLE = 0x%x",
-		production_mode, security_mode, hwpm_global_disable);
+		"SECURITY_MODE fuse = 0x%x FA mode fuse = 0x%x"
+		"HWPM_GLOBAL_DISABLE = 0x%x",
+		production_mode, security_mode, fa_mode, hwpm_global_disable);
+
+	/* Do not enable override if FA mode fuse is set */
+	if (fa_mode != 0U) {
+		tegra_hwpm_dbg(hwpm, hwpm_info,
+			"fa mode fuse enabled, no override required");
+		return 0;
+	}
 
 	/* Override enable depends on security mode and global hwpm disable */
 	if ((security_mode == 0U) &&
