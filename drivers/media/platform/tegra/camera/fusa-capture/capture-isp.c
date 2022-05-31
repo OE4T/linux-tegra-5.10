@@ -1364,6 +1364,7 @@ int isp_capture_release(
 			&capture->progress_status_notifier);
 
 	destroy_buffer_table(capture->buffer_ctx);
+	capture->buffer_ctx = NULL;
 
 	capture->channel_id = CAPTURE_CHANNEL_ISP_INVALID_ID;
 

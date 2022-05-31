@@ -432,6 +432,11 @@ static long vi_channel_ioctl(
 			return -EINVAL;
 		}
 
+		if (capture->buf_ctx) {
+			dev_err(chan->dev, "vi buffer setup already done");
+			return -EFAULT;
+		}
+
 		capture->buf_ctx = create_buffer_table(chan->dev);
 		if (capture->buf_ctx == NULL) {
 			dev_err(chan->dev, "vi buffer setup failed");
@@ -445,6 +450,7 @@ static long vi_channel_ioctl(
 			dev_err(chan->dev,
 				"%s: memory setup failed\n", __func__);
 			destroy_buffer_table(capture->buf_ctx);
+			capture->buf_ctx = NULL;
 			return -EFAULT;
 		}
 
@@ -456,6 +462,7 @@ static long vi_channel_ioctl(
 				__func__);
 			capture_common_unpin_memory(&capture->requests);
 			destroy_buffer_table(capture->buf_ctx);
+			capture->buf_ctx = NULL;
 			return -ENOMEM;
 		}
 
@@ -465,6 +472,7 @@ static long vi_channel_ioctl(
 			dev_err(chan->dev, "vi capture setup failed\n");
 			capture_common_unpin_memory(&capture->requests);
 			destroy_buffer_table(capture->buf_ctx);
+			capture->buf_ctx = NULL;
 			return err;
 		}
 		break;
@@ -503,6 +511,7 @@ static long vi_channel_ioctl(
 				vi_capture_request_unpin(chan, i);
 			capture_common_unpin_memory(&capture->requests);
 			destroy_buffer_table(capture->buf_ctx);
+			capture->buf_ctx = NULL;
 			vfree(capture->unpins_list);
 			capture->unpins_list = NULL;
 		}
