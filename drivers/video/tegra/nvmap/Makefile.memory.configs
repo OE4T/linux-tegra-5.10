@@ -124,46 +124,24 @@ NVMAP_CONFIG_KSTABLE_KERNEL := n
 # Enable/Disable configs based upon the kernel version
 # Specify the values which are different from the default values
 
-#Enable/Disable the below configs for kstable and OOT
-ifneq ($(filter stable oot,$(patsubst -,$(space),$(NV_BUILD_KERNEL_OPTIONS))),)
-NVMAP_CONFIG_KSTABLE_KERNEL := y
-NVMAP_CONFIG_COLOR_PAGES := n
+ifdef CONFIG_TEGRA_VPR
+# For 4.9
+NVMAP_CONFIG_VPR_RESIZE := y
+else
+# For 5.10+
 NVMAP_CONFIG_LOADABLE_MODULE := y
 NVMAP_CONFIG_PROCRANK := n
 ifneq ($(NVMAP_CONFIG_HANDLE_AS_FD),y)
 NVMAP_CONFIG_HANDLE_AS_ID := y
 NVMAP_CONFIG_FD_START := 0x0
 endif
-endif
-
+NVMAP_CONFIG_SCIIPC := y
 # For OOT build
 ifeq ($(CONFIG_TEGRA_OOT_MODULE),m)
 NVMAP_CONFIG_KSTABLE_KERNEL := y
 NVMAP_CONFIG_COLOR_PAGES := n
-NVMAP_CONFIG_LOADABLE_MODULE := y
-NVMAP_CONFIG_PROCRANK := n
-CONFIG_NVSCIIPC := m
-ifneq ($(NVMAP_CONFIG_HANDLE_AS_FD),y)
-NVMAP_CONFIG_HANDLE_AS_ID := y
-NVMAP_CONFIG_FD_START := 0x0
 endif
 endif
-
-ifneq ($(findstring 5.10,$(NV_BUILD_KERNEL_OPTIONS)),)
-# For 5.10
-NVMAP_CONFIG_LOADABLE_MODULE := y
-ifneq ($(NVMAP_CONFIG_HANDLE_AS_FD),y)
-NVMAP_CONFIG_HANDLE_AS_ID := y
-NVMAP_CONFIG_FD_START := 0x0
-endif
-NVMAP_CONFIG_PROCRANK := n
-endif
-
-ifneq ($(findstring 4.9,$(NV_BUILD_KERNEL_OPTIONS)),)
-# For 4.9
-NVMAP_CONFIG_VPR_RESIZE := y
-endif
-
 ################################################################################
 # Section 4
 # This section creates ccflags based upon the values specified
@@ -207,10 +185,9 @@ ccflags-y += -DNVMAP_CONFIG_DEFER_FD_RECYCLE_MAX_FD=${NVMAP_CONFIG_DEFER_FD_RECY
 endif #NVMAP_CONFIG_DEFER_FD_RECYCLE_MAX_FD
 endif #NVMAP_CONFIG_DEFER_FD_RECYCLE
 
-ifdef CONFIG_NVSCIIPC
-NVMAP_CONFIG_SCIIPC := y
+ifeq ($(NVMAP_CONFIG_SCIIPC),y)
 ccflags-y += -DNVMAP_CONFIG_SCIIPC
-endif #CONFIG_NVSCIIPC
+endif #NVMAP_CONFIG_SCIIPC
 
 ifeq ($(NVMAP_CONFIG_VPR_RESIZE),y)
 ccflags-y += -DNVMAP_CONFIG_VPR_RESIZE
