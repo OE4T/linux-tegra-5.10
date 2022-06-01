@@ -66,10 +66,10 @@ obj-$(CONFIG_TEGRA_VIRT_AUDIO_IVC) += nvaudio_ivc/
 
 ifeq ($(CONFIG_TEGRA_VPR),y)
 obj-y += tegra_vpr_resize.o
+obj-y += smc-calls.o
 else
 obj-y += tegra_vpr.o
 endif
-obj-y += smc-calls.o
 
 ifeq ($(CONFIG_CPU_FREQ),y)
 obj-$(CONFIG_ARCH_TEGRA_21x_SOC) += cpu_emc.o
