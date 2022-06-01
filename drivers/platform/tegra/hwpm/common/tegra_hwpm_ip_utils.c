@@ -406,7 +406,7 @@ static bool tegra_hwpm_addr_in_all_elements(struct tegra_soc_hwpm *hwpm,
 		/* Address not in this instance corresponding to a_type */
 		tegra_hwpm_dbg(hwpm, hwpm_verbose, "IP %d inst_idx %d: "
 			"addr 0x%llx not in type %d elements",
-			*ip_idx, find_addr, *inst_idx, a_type);
+			*ip_idx, *inst_idx, find_addr, a_type);
 		return false;
 	}
 
