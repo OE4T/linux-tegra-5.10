@@ -230,7 +230,7 @@ int t234_hwpm_validate_current_config(struct tegra_soc_hwpm *hwpm)
 	}
 
 #define TEGRA_HWPM_GLOBAL_DISABLE_OFFSET	0x3CU
-#define TEGRA_HWPM_GLOBAL_DISABLE_DISABLED	0x1U
+#define TEGRA_HWPM_GLOBAL_DISABLE_DISABLED	0x0U
 	err = tegra_hwpm_read_sticky_bits(hwpm, addr_map_pmc_misc_base_r(),
 		TEGRA_HWPM_GLOBAL_DISABLE_OFFSET, &hwpm_global_disable);
 	if (err != 0) {
