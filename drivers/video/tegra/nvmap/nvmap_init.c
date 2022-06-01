@@ -60,11 +60,11 @@
 #endif /* LINUX_VERSION_CODE */
 
 #ifndef NVMAP_KSTABLE_KERNEL
-#ifndef CONFIG_TEGRA_VPR
+#ifndef NVMAP_CONFIG_VPR_RESIZE
 extern phys_addr_t tegra_vpr_start;
 extern phys_addr_t tegra_vpr_size;
 extern bool tegra_vpr_resize;
-#endif /* CONFIG_TEGRA_VPR */
+#endif /* NVMAP_CONFIG_VPR_RESIZE */
 #endif /* !NVMAP_KSTABLE_KERNEL */
 
 struct device __weak tegra_generic_dev;
@@ -79,7 +79,7 @@ struct device __weak tegra_vpr_cma_dev;
 static struct platform_device *pdev;
 #endif /* NVMAP_LOADABLE_MODULE */
 
-#ifdef CONFIG_TEGRA_VPR
+#ifdef NVMAP_CONFIG_VPR_RESIZE
 struct dma_resize_notifier_ops __weak vpr_dev_ops;
 
 static struct dma_declare_info generic_dma_info = {
@@ -109,7 +109,7 @@ static struct nvmap_platform_carveout nvmap_carveouts[] = {
 		.size		= 0,
 		.dma_dev	= &tegra_generic_dev,
 		.cma_dev	= &tegra_generic_cma_dev,
-#ifdef CONFIG_TEGRA_VPR
+#ifdef NVMAP_CONFIG_VPR_RESIZE
 		.dma_info	= &generic_dma_info,
 #endif
 	},
@@ -120,7 +120,7 @@ static struct nvmap_platform_carveout nvmap_carveouts[] = {
 		.size		= 0,
 		.dma_dev	= &tegra_vpr_dev,
 		.cma_dev	= &tegra_vpr_cma_dev,
-#ifdef CONFIG_TEGRA_VPR
+#ifdef NVMAP_CONFIG_VPR_RESIZE
 		.dma_info	= &vpr_dma_info,
 #endif
 		.enable_static_dma_map = true,
@@ -305,14 +305,14 @@ err:
 #ifndef NVMAP_KSTABLE_KERNEL
 static int __nvmap_init_legacy(struct device *dev)
 {
-#ifndef CONFIG_TEGRA_VPR
+#ifndef NVMAP_CONFIG_VPR_RESIZE
 	/* VPR */
 	if (!nvmap_carveouts[1].base) {
 		nvmap_carveouts[1].base = tegra_vpr_start;
 		nvmap_carveouts[1].size = tegra_vpr_size;
 		nvmap_carveouts[1].cma_dev = NULL;
 	}
-#endif /* CONFIG_TEGRA_VPR */
+#endif /* NVMAP_CONFIG_VPR_RESIZE */
 
 	return 0;
 }
@@ -699,7 +699,7 @@ static int __init nvmap_co_device_init(struct reserved_mem *rmem,
 				"%s :dma coherent mem declare fail %pa,%zu,err:%d\n",
 				co->name, &co->base, co->size, err);
 	} else {
-#ifdef CONFIG_TEGRA_VPR
+#ifdef NVMAP_CONFIG_VPR_RESIZE
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
 		/*
 		 * When vpr memory is reserved, kmemleak tries to scan vpr
@@ -746,7 +746,7 @@ int __init nvmap_co_setup(struct reserved_mem *rmem)
 {
 	struct nvmap_platform_carveout *co;
 	int ret = 0;
-#ifdef CONFIG_TEGRA_VPR
+#ifdef NVMAP_CONFIG_VPR_RESIZE
 	struct cma *cma;
 #endif
 	ulong start = sched_clock();
@@ -761,7 +761,7 @@ int __init nvmap_co_setup(struct reserved_mem *rmem)
 	co->base = rmem->base;
 	co->size = rmem->size;
 
-#ifdef CONFIG_TEGRA_VPR
+#ifdef NVMAP_CONFIG_VPR_RESIZE
 	if (!of_get_flat_dt_prop(rmem->fdt_node, "reusable", NULL) ||
 	    of_get_flat_dt_prop(rmem->fdt_node, "no-map", NULL))
 		goto skip_cma;
@@ -797,7 +797,7 @@ int __init nvmap_co_setup(struct reserved_mem *rmem)
 skip_cma:
 #endif
 	co->cma_dev = NULL;
-#ifdef CONFIG_TEGRA_VPR
+#ifdef NVMAP_CONFIG_VPR_RESIZE
 finish:
 #endif
 	nvmap_init_time += sched_clock() - start;
