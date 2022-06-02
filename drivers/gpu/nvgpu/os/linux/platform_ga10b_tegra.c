@@ -765,7 +765,7 @@ struct gk20a_platform ga10b_tegra_platform = {
 	 * This specifies the maximum contiguous size of a DMA mapping to Linux
 	 * kernel's DMA framework.
 	 * The IOMMU is capable of mapping all of physical memory and hence
-	 * dma_mask is set to memory size (128GB in this case).
+	 * dma_mask is set to memory size (512GB in this case).
 	 * For iGPU, nvgpu executes own dma allocs (e.g. alloc_page()) and
 	 * sg_table construction. No IOMMU mapping is required and so dma_mask
 	 * value is not important.
@@ -773,7 +773,7 @@ struct gk20a_platform ga10b_tegra_platform = {
 	 * significant. In this case, IOMMU bit in GPU physical address is not
 	 * relevant.
 	 */
-	.dma_mask = DMA_BIT_MASK(37),
+	.dma_mask = DMA_BIT_MASK(39),
 
 	.reset_assert = gp10b_tegra_reset_assert,
 	.reset_deassert = gp10b_tegra_reset_deassert,
