@@ -116,9 +116,9 @@ NVMAP_CONFIG_DEBUG_MAPS := n
 # This config is useful to debug issue if its due to handle as ID or FD
 NVMAP_CONFIG_HANDLE_AS_FD := n
 
-# Config for kstable kernel
-# This is useful when any kstable specific checks are needed
-NVMAP_CONFIG_KSTABLE_KERNEL := n
+# Config for kstable/OOT kernel
+# This is useful when any kstable/OOT specific checks are needed
+NVMAP_CONFIG_UPSTREAM_KERNEL := n
 ################################################################################
 # Section 3
 # Enable/Disable configs based upon the kernel version
@@ -138,7 +138,7 @@ endif
 NVMAP_CONFIG_SCIIPC := y
 # For OOT build
 ifeq ($(CONFIG_TEGRA_OOT_MODULE),m)
-NVMAP_CONFIG_KSTABLE_KERNEL := y
+NVMAP_CONFIG_UPSTREAM_KERNEL := y
 NVMAP_CONFIG_COLOR_PAGES := n
 endif
 endif
@@ -197,9 +197,9 @@ ifeq ($(NVMAP_CONFIG_LOADABLE_MODULE),y)
 ccflags-y += -DNVMAP_LOADABLE_MODULE
 endif #NVMAP_CONFIG_LOADABLE_MODULE
 
-ifeq ($(NVMAP_CONFIG_KSTABLE_KERNEL),y)
-ccflags-y += -DNVMAP_KSTABLE_KERNEL
-endif #NVMAP_CONFIG_KSTABLE_KERNEL
+ifeq ($(NVMAP_CONFIG_UPSTREAM_KERNEL),y)
+ccflags-y += -DNVMAP_UPSTREAM_KERNEL
+endif #NVMAP_CONFIG_UPSTREAM_KERNEL
 
 ifeq ($(NVMAP_CONFIG_PROCRANK),y)
 ccflags-y += -DNVMAP_CONFIG_PROCRANK

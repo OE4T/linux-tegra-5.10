@@ -113,7 +113,7 @@ do {                                                    \
 
 #ifdef NVMAP_LOADABLE_MODULE
 
-#ifdef NVMAP_KSTABLE_KERNEL
+#ifdef NVMAP_UPSTREAM_KERNEL
 /*
  * DMA_ATTR_READ_ONLY: for DMA memory allocations, attempt to map
  * memory as read-only for the device. CPU access will still be
@@ -127,7 +127,7 @@ do {                                                    \
  */
 #define DMA_ATTR_WRITE_ONLY	(DMA_ATTR_PRIVILEGED << 13)
 
-#endif /* NVMAP_KSTABLE_KERNEL */
+#endif /* NVMAP_UPSTREAM_KERNEL */
 #endif /* NVMAP_LOADABLE_MODULE */
 
 #define DMA_ALLOC_FREE_ATTR	DMA_ATTR_ALLOC_SINGLE_PAGES

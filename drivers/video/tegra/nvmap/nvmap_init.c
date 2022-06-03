@@ -59,13 +59,13 @@
 #endif
 #endif /* LINUX_VERSION_CODE */
 
-#ifndef NVMAP_KSTABLE_KERNEL
+#ifndef NVMAP_UPSTREAM_KERNEL
 #ifndef NVMAP_CONFIG_VPR_RESIZE
 extern phys_addr_t tegra_vpr_start;
 extern phys_addr_t tegra_vpr_size;
 extern bool tegra_vpr_resize;
 #endif /* NVMAP_CONFIG_VPR_RESIZE */
-#endif /* !NVMAP_KSTABLE_KERNEL */
+#endif /* !NVMAP_UPSTREAM_KERNEL */
 
 struct device __weak tegra_generic_dev;
 
@@ -302,7 +302,7 @@ err:
 /*
  * This requires proper kernel arguments to have been passed.
  */
-#ifndef NVMAP_KSTABLE_KERNEL
+#ifndef NVMAP_UPSTREAM_KERNEL
 static int __nvmap_init_legacy(struct device *dev)
 {
 #ifndef NVMAP_CONFIG_VPR_RESIZE
@@ -316,7 +316,7 @@ static int __nvmap_init_legacy(struct device *dev)
 
 	return 0;
 }
-#endif /* !NVMAP_KSTABLE_KERNEL */
+#endif /* !NVMAP_UPSTREAM_KERNEL */
 
 static int __nvmap_init_dt(struct platform_device *pdev)
 {
@@ -325,10 +325,10 @@ static int __nvmap_init_dt(struct platform_device *pdev)
 		return -EINVAL;
 	}
 
-#ifndef NVMAP_KSTABLE_KERNEL
+#ifndef NVMAP_UPSTREAM_KERNEL
 	/* For VM_2 we need carveout. So, enabling it here */
 	__nvmap_init_legacy(&pdev->dev);
-#endif /* !NVMAP_KSTABLE_KERNEL */
+#endif /* !NVMAP_UPSTREAM_KERNEL */
 
 	pdev->dev.platform_data = &nvmap_data;
 
