@@ -41,6 +41,33 @@ obj-y += hal/t234/ip/rtr/t234_hwpm_ip_rtr.o
 # IP config flag and IP specific .o file.
 #
 
+#
+# Define a Minimal IP config flag
+# Enable only MSS_Channel, NVDLA and PVA IPs
+# When CONFIG_TEGRA_HWPM_MINIMAL_IP_ENABLE is set to y.
+#
+CONFIG_TEGRA_HWPM_MINIMAL_IP_ENABLE=y
+
+ifeq ($(CONFIG_TEGRA_HWPM_MINIMAL_IP_ENABLE),y)
+ccflags-y += -DCONFIG_HWPM_ALLOW_FORCE_ENABLE
+endif
+
+ifeq ($(CONFIG_TEGRA_GRHOST_NVDLA),y)
+ccflags-y += -DCONFIG_SOC_HWPM_IP_NVDLA
+obj-y += hal/t234/ip/nvdla/t234_hwpm_ip_nvdla.o
+endif
+
+ifeq ($(CONFIG_TEGRA_GRHOST_PVA),y)
+ccflags-y += -DCONFIG_SOC_HWPM_IP_PVA
+obj-y += hal/t234/ip/pva/t234_hwpm_ip_pva.o
+endif
+
+ifeq ($(CONFIG_NV_TEGRA_MC),y)
+ccflags-y += -DCONFIG_SOC_HWPM_IP_MSS_CHANNEL
+obj-y += hal/t234/ip/mss_channel/t234_hwpm_ip_mss_channel.o
+endif
+
+ifneq ($(CONFIG_TEGRA_HWPM_MINIMAL_IP_ENABLE),y)
 ccflags-y += -DCONFIG_SOC_HWPM_IP_DISPLAY
 obj-y += hal/t234/ip/display/t234_hwpm_ip_display.o
 
@@ -55,9 +82,6 @@ obj-y += hal/t234/ip/mgbe/t234_hwpm_ip_mgbe.o
 endif
 
 ifeq ($(CONFIG_NV_TEGRA_MC),y)
-ccflags-y += -DCONFIG_SOC_HWPM_IP_MSS_CHANNEL
-obj-y += hal/t234/ip/mss_channel/t234_hwpm_ip_mss_channel.o
-
 ccflags-y += -DCONFIG_SOC_HWPM_IP_MSS_ISO_NISO_HUBS
 obj-y += hal/t234/ip/mss_iso_niso_hubs/t234_hwpm_ip_mss_iso_niso_hubs.o
 
@@ -73,11 +97,6 @@ ccflags-y += -DCONFIG_SOC_HWPM_IP_NVDEC
 obj-y += hal/t234/ip/nvdec/t234_hwpm_ip_nvdec.o
 endif
 
-ifeq ($(CONFIG_TEGRA_GRHOST_NVDLA),y)
-ccflags-y += -DCONFIG_SOC_HWPM_IP_NVDLA
-obj-y += hal/t234/ip/nvdla/t234_hwpm_ip_nvdla.o
-endif
-
 ifeq ($(CONFIG_TEGRA_GRHOST_NVENC),y)
 ccflags-y += -DCONFIG_SOC_HWPM_IP_NVENC
 obj-y += hal/t234/ip/nvenc/t234_hwpm_ip_nvenc.o
@@ -88,14 +107,9 @@ ccflags-y += -DCONFIG_SOC_HWPM_IP_OFA
 obj-y += hal/t234/ip/ofa/t234_hwpm_ip_ofa.o
 endif
 
-ifeq ($(CONFIG_PCIE_TEGRA),y)
+ifeq ($(CONFIG_PCIE_TEGRA194),y)
 ccflags-y += -DCONFIG_SOC_HWPM_IP_PCIE
 obj-y += hal/t234/ip/pcie/t234_hwpm_ip_pcie.o
-endif
-
-ifeq ($(CONFIG_TEGRA_GRHOST_PVA),y)
-ccflags-y += -DCONFIG_SOC_HWPM_IP_PVA
-obj-y += hal/t234/ip/pva/t234_hwpm_ip_pva.o
 endif
 
 ccflags-y += -DCONFIG_SOC_HWPM_IP_SCF
@@ -109,6 +123,8 @@ endif
 ifeq ($(CONFIG_TEGRA_GRHOST_VIC),y)
 ccflags-y += -DCONFIG_SOC_HWPM_IP_VIC
 obj-y += hal/t234/ip/vic/t234_hwpm_ip_vic.o
+endif
+
 endif
 
 endif

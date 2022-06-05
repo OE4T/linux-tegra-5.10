@@ -42,7 +42,7 @@ int t234_hwpm_extract_ip_ops(struct tegra_soc_hwpm *hwpm,
 	/* Convert tegra_soc_hwpm_resource to internal enum */
 	if (!(t234_hwpm_is_resource_active(hwpm,
 			hwpm_ip_ops->resource_enum, &ip_idx))) {
-		tegra_hwpm_err(hwpm,
+		tegra_hwpm_dbg(hwpm, hwpm_dbg_ip_register,
 			"SOC hwpm resource %d (base 0x%llx) is unconfigured",
 			hwpm_ip_ops->resource_enum,
 			hwpm_ip_ops->ip_base_address);
@@ -178,8 +178,8 @@ int t234_hwpm_extract_ip_ops(struct tegra_soc_hwpm *hwpm,
 			}
 			ret = 0;
 		}
-		break;
 #endif
+		break;
 	case T234_HWPM_IP_PMA:
 	case T234_HWPM_IP_RTR:
 	default:
@@ -297,10 +297,10 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 
 	tegra_hwpm_fn(hwpm, " ");
 #if defined(CONFIG_HWPM_ALLOW_FORCE_ENABLE)
-	if (tegra_platform_is_vsp()) {
-		/* Static IP instances as per VSP netlist */
-		/* MSS CHANNEL: vsp has single instance available */
+
 #if defined(CONFIG_SOC_HWPM_IP_MSS_CHANNEL)
+
+	if (is_tegra_hypervisor_mode()) {
 		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
 			addr_map_mc0_base_r(),
 			T234_HWPM_IP_MSS_CHANNEL, true);
@@ -309,7 +309,9 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 				"T234_HWPM_IP_MSS_CHANNEL force enable failed");
 			return ret;
 		}
+	}
 #endif
+
 #if defined(CONFIG_SOC_HWPM_IP_MSS_GPU_HUB)
 
 		/* MSS GPU HUB */
@@ -322,7 +324,7 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 			return ret;
 		}
 #endif
-	}
+
 	if (tegra_platform_is_silicon()) {
 		/* Static IP instances corresponding to silicon */
 		/* VI */
@@ -358,6 +360,7 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 		}
 #endif
 
+#if defined(CONFIG_SOC_HWPM_IP_NVDLA)
 		/* NVDLA */
 		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
 			addr_map_nvdla0_base_r(),
@@ -371,6 +374,7 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 		if (ret != 0) {
 			return ret;
 		}
+#endif
 
 		/* MGBE */
 /*
@@ -443,17 +447,6 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 #endif
 */
 
-#if defined(CONFIG_SOC_HWPM_IP_MSS_GPU_HUB)
-		/* MSS GPU HUB */
-		ret = tegra_hwpm_set_fs_info_ip_ops(hwpm, NULL,
-			addr_map_mss_nvlink_1_base_r(),
-			T234_HWPM_IP_MSS_GPU_HUB, true);
-		if (ret != 0) {
-			tegra_hwpm_err(hwpm,
-				"T234_HWPM_IP_MSS_GPU_HUB force enable failed");
-			return ret;
-		}
-#endif
 	}
 #endif
 		/*
@@ -472,7 +465,7 @@ int t234_hwpm_force_enable_ips(struct tegra_soc_hwpm *hwpm)
 		}
 #endif
 
-	return 0;
+	return ret;
 }
 
 int t234_hwpm_get_fs_info(struct tegra_soc_hwpm *hwpm,
