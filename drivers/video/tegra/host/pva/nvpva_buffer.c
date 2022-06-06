@@ -21,8 +21,8 @@
 #include <linux/slab.h>
 #include <linux/dma-buf.h>
 #include <linux/cvnas.h>
+#include <linux/nvhost.h>
 
-#include "dev.h"
 #include "pva.h"
 #include "nvpva_buffer.h"
 

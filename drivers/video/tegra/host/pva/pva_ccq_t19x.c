@@ -28,7 +28,6 @@
 #include <soc/tegra/fuse.h>
 #endif
 
-#include "dev.h"
 #include "pva.h"
 #include "pva_ccq_t19x.h"
 

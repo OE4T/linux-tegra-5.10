@@ -33,19 +33,15 @@
 #include <linux/iommu.h>
 #include <linux/reset.h>
 #include <linux/version.h>
-#include <linux/platform/tegra/common.h>
 #include <linux/platform/tegra/emc_bwmgr.h>
 #include <linux/nvhost.h>
+#include <linux/interrupt.h>
 #include <dt-bindings/interconnect/tegra_icc_id.h>
 #if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
 #endif
 #include <soc/tegra/fuse-helper.h>
 
-#include "nvhost_syncpt_unit_interface.h"
-#include "dev.h"
-#include "bus_client.h"
-#include "nvhost_acm.h"
 #ifdef CONFIG_TEGRA_T23X_GRHOST
 #include "pva_mailbox_t23x.h"
 #include "pva_interface_regs_t23x.h"

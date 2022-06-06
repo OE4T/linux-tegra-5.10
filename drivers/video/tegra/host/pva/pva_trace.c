@@ -1,7 +1,7 @@
 /*
  * PVA trace log
  *
- * Copyright (c) 2017-2021, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -19,7 +19,6 @@
 #define CREATE_TRACE_POINTS
 #include <trace/events/nvhost_pva.h>
 
-#include "dev.h"
 #include "pva.h"
 #include "pva_trace.h"
 

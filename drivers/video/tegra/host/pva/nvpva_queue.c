@@ -24,11 +24,7 @@
 
 #include <linux/nvhost.h>
 
-#include "nvhost_vm.h"
-#include "nvhost_channel.h"
-#include "nvhost_job.h"
 #include "nvpva_queue.h"
-#include "dev.h"
 #include "pva_bit_helpers.h"
 #include "pva.h"
 

@@ -2,7 +2,6 @@ ifeq ($(CONFIG_TEGRA_OOT_MODULE),m)
 NVPVA_OOT = y
 NVPVA_OBJ = m
 else
-NVPVA_INT = y
 NVPVA_OBJ = $(CONFIG_TEGRA_GRHOST_PVA)
 endif
 
@@ -13,14 +12,10 @@ ccflags-y += -I$(srctree.nvidia)/include
 ccflags-y += -I$(srctree.nvidia)/include/linux
 ccflags-y += -Werror
 
-ccflags-$(NVPVA_INT) += -I$(srctree.nvidia)/drivers/video/tegra/host
-
 # When using the upstream host1x driver, the Makefile must define the
 # srctree.host1x path in order to find the necessary header files for
 # the upstream host1x driver.
 ccflags-$(NVPVA_OOT) += -I$(srctree.host1x)/include
-# Remove this include after cleaning up headers for out of tree build
-ccflags-$(NVPVA_OOT) += -I$(srctree.nvidia)/drivers/video/tegra/host
 ccflags-$(NVPVA_OOT) += -DCONFIG_TEGRA_HOST1X
 ccflags-$(NVPVA_OOT) += -DCONFIG_TEGRA_FUSE_UPSTREAM
 

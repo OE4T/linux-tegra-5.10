@@ -22,7 +22,6 @@
 #include "pva.h"
 #include "pva_vpu_exe.h"
 #include "nvpva_client.h"
-#include "dev.h"
 #include "pva-bit.h"
 #include "fw_config.h"
 

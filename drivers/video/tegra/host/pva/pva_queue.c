@@ -31,8 +31,6 @@
 #include <linux/cvnas.h>
 #include <linux/host1x.h>
 
-#include <trace/events/nvhost.h>
-
 #ifdef CONFIG_EVENTLIB
 #include <linux/keventlib.h>
 #include <uapi/linux/nvdev_fence.h>
@@ -46,14 +44,12 @@
 #include <soc/tegra/fuse.h>
 #endif
 
-#include "nvhost_syncpt_unit_interface.h"
 #include <linux/seq_file.h>
 #include "pva.h"
 #include "nvpva_buffer.h"
 #include "nvpva_queue.h"
 #include "pva_mailbox.h"
 #include "pva_queue.h"
-#include "dev.h"
 #include "pva_regs.h"
 
 #include "pva-vpu-perf.h"
@@ -63,10 +59,6 @@
 
 #include <uapi/linux/nvpva_ioctl.h>
 #include <trace/events/nvhost_pva.h>
-
-#if IS_ENABLED(CONFIG_TEGRA_GRHOST)
-#include "t194/hardware_t194.h"
-#endif
 
 static void *pva_dmabuf_vmap(struct dma_buf *dmabuf)
 {

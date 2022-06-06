@@ -20,7 +20,9 @@
 #include <linux/module.h>
 #include <linux/debugfs.h>
 #include <linux/platform_device.h>
-#include "dev.h"
+#include <linux/interrupt.h>
+#include <linux/nvhost.h>
+#include <linux/uaccess.h>
 #include "pva.h"
 #include <uapi/linux/nvpva_ioctl.h>
 #include "pva_vpu_ocd.h"

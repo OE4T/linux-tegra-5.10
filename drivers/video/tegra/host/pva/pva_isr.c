@@ -1,7 +1,7 @@
 /*
  * PVA ISR code
  *
- * Copyright (c) 2016-2021, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -17,13 +17,13 @@
  */
 
 #include "pva-interface.h"
+#include <linux/interrupt.h>
 #include <linux/irq.h>
 #include <linux/slab.h>
 #include <linux/wait.h>
+#include <linux/nvhost.h>
 
-#include "bus_client.h"
 #include "pva_regs.h"
-#include "dev.h"
 #include "pva.h"
 
 #define PVA_MASK_LOW_16BITS 0xff

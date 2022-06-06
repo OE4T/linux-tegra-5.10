@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2016-2022, NVIDIA CORPORATION & AFFILIATES.
- * All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -36,9 +35,7 @@
 
 #include "pva.h"
 #include "pva_queue.h"
-#include "dev.h"
 #include "nvpva_buffer.h"
-#include "nvhost_acm.h"
 #include "pva_vpu_exe.h"
 #include "pva_vpu_app_auth.h"
 #include "nvpva_client.h"

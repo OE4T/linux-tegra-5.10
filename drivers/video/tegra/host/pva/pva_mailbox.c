@@ -28,8 +28,6 @@
 #endif
 #include <linux/platform_device.h>
 
-#include "nvhost_acm.h"
-#include "dev.h"
 #include "pva.h"
 #include "pva_mailbox.h"
 #include "pva-interface.h"

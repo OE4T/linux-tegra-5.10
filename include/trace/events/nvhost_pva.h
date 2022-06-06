@@ -247,7 +247,7 @@ TRACE_EVENT(nvhost_pva_task_timestamp,
 /* This part must be outside protection */
 #undef TRACE_INCLUDE_PATH
 #undef TRACE_INCLUDE_FILE
-#define TRACE_INCLUDE_PATH ../../../nvidia/include/trace/events
+#define TRACE_INCLUDE_PATH ../../include/trace/events
 
 #define TRACE_INCLUDE_FILE nvhost_pva
 /* This part must be outside protection */

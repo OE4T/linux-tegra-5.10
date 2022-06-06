@@ -25,8 +25,6 @@
 #include <linux/nvhost.h>
 #include <linux/cvnas.h>
 
-#include <trace/events/nvhost.h>
-
 #ifdef CONFIG_EVENTLIB
 #include <linux/keventlib.h>
 #include <uapi/linux/nvdev_fence.h>

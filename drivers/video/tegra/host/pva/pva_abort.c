@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2019-2021, NVIDIA CORPORATION & AFFILIATES.
- * All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -15,10 +14,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <linux/nvhost.h>
 #include <linux/wait.h>
 
-#include "nvhost_acm.h"
-#include "dev.h"
 #include "pva.h"
 
 static void pva_abort_handler(struct work_struct *work)

@@ -19,8 +19,8 @@
 #include <linux/string.h>
 #include <linux/firmware.h>
 #include <linux/nvhost.h>
+#include <linux/slab.h>
 
-#include "dev.h"
 #include "pva.h"
 #include "pva_bit_helpers.h"
 #include "pva_vpu_app_auth.h"
