@@ -53,6 +53,7 @@ struct tegra_safety_ivc {
 	atomic_t ivc_ready;
 	struct work_struct work;
 	struct work_struct l1ss_init_work;
+	struct delayed_work init_done_work;
 	struct workqueue_struct *wq;
 	struct mutex rlock;
 	struct mutex wlock;

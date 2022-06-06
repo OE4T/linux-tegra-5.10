@@ -29,6 +29,7 @@
 #include "tegra_l1ss.h"
 
 #define NV(p) "nvidia," #p
+#define TEGRA_SAFETY_IVC_INIT_DONE_TIME		(15 * 1000)
 
 uint32_t ivc_chan_count;
 struct tegra_safety_ivc_chan *tegra_safety_get_ivc_chan_from_str(
@@ -381,13 +382,26 @@ static int tegra_safety_ivc_remove(struct platform_device *pdev)
 	return 0;
 }
 
+static void tegra_safety_init_done_work_func(struct work_struct *work)
+{
+	int ret;
+	nv_guard_request_t req;
+
+	req.srv_id_cmd = NVGUARD_PHASE_NOTIFICATION;
+	req.phase = NVGUARD_TEGRA_PHASE_INITDONE;
+	ret = l1ss_submit_rq(&req, false);
+	if (ret) {
+		pr_err("%s: failed to submit phase init done: %d\n", __func__,
+				ret);
+	}
+}
+
 static int tegra_safety_ivc_probe(struct platform_device *pdev)
 {
 	struct tegra_safety_ivc *safety_ivc;
 	struct device *dev = &pdev->dev;
 	int ret;
 	uint32_t i;
-	nv_guard_request_t req;
 
 	dev_info(dev, "Probing sce safety driver\n");
 
@@ -402,6 +416,7 @@ static int tegra_safety_ivc_probe(struct platform_device *pdev)
 	safety_ivc->wq = alloc_workqueue("safety_cmdresp", WQ_HIGHPRI, 0);
 	INIT_WORK(&safety_ivc->work, tegra_safety_cmdresp_work_func);
 	INIT_WORK(&safety_ivc->l1ss_init_work, tegra_safety_l1ss_init_work_func);
+	INIT_DELAYED_WORK(&safety_ivc->init_done_work, tegra_safety_init_done_work_func);
 	mutex_init(&safety_ivc->rlock);
 	mutex_init(&safety_ivc->wlock);
 
@@ -444,13 +459,8 @@ static int tegra_safety_ivc_probe(struct platform_device *pdev)
 		}
 	}
 
-	req.srv_id_cmd = NVGUARD_PHASE_NOTIFICATION;
-	req.phase = NVGUARD_TEGRA_PHASE_INITDONE;
-	ret = l1ss_submit_rq(&req, false);
-	if (ret) {
-		dev_err(dev, "failed to submit phase init done: %d\n", ret);
-		goto fail;
-	}
+	schedule_delayed_work(&safety_ivc->init_done_work,
+			msecs_to_jiffies(TEGRA_SAFETY_IVC_INIT_DONE_TIME));
 	dev_info(dev, "Successfully probed safety ivc driver\n");
 
 	return 0;
