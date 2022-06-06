@@ -197,8 +197,6 @@ pva_auth_allow_list_destroy(struct pva_vpu_auth_s *pva_auth)
 	kfree(pva_auth->vpu_hash_keys->pvpu_hash_vector);
 	kfree(pva_auth->vpu_hash_keys->psha_key);
 	kfree(pva_auth->vpu_hash_keys);
-	pva_auth->vpu_hash_keys->pvpu_hash_vector = NULL;
-	pva_auth->vpu_hash_keys->psha_key = NULL;
 	pva_auth->vpu_hash_keys = NULL;
 }
 
