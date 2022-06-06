@@ -32,6 +32,7 @@ dtbo-$(BUILD_19x_ENABLE) += tegra194-p2888-0001-p2822-0000-m2ke.dtbo
 dtbo-$(BUILD_19x_ENABLE) += tegra194-p2888-0001-p2822-0000-csi.dtbo
 dtbo-$(BUILD_19x_ENABLE) += tegra194-p2888-0005-overlay.dtbo
 dtbo-$(BUILD_19x_ENABLE) += tegra194-p2822-camera-dual-imx274-overlay.dtbo
+dtbo-$(BUILD_19x_ENABLE) += tegra194-p2822-camera-e3326-overlay.dtbo
 dtbo-$(BUILD_19x_ENABLE) += tegra194-p2822-camera-e3331-overlay.dtbo
 dtbo-$(BUILD_19x_ENABLE) += tegra194-p2822-camera-e3333-overlay.dtbo
 dtbo-$(BUILD_19x_ENABLE) += tegra194-p2822-camera-imx185-overlay.dtbo
