@@ -126,6 +126,9 @@ struct gk20a_platform {
 
 	/* Valid GPC-PG and FBP-PG mask */
 	u32 valid_gpc_fbp_pg_mask[MAX_PG_GPC_FBP_CONFIGS];
+
+	/* available TPC count in a chip */
+	u32 tpc_count;
 #endif
 	/* Delay before rail gated */
 	int railgate_delay_init;

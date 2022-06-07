@@ -783,15 +783,6 @@ struct gk20a {
 	bool can_tpc_pg;
 	bool can_fbp_pg;
 	bool can_gpc_pg;
-
-	/*
-	 * Valid config array for tpc pg mask
-	 * and gpc/fbp mask. These valid values
-	 * are chip specific and calculated based
-	 * on available number of GPC, FBP and TPC
-	 */
-	u32 valid_tpc_pg_mask[MAX_PG_TPC_CONFIGS];
-	u32 valid_gpc_fbp_pg_mask[MAX_PG_GPC_FBP_CONFIGS];
 #endif
 
 #ifdef CONFIG_NVGPU_DGPU

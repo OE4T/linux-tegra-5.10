@@ -182,7 +182,6 @@ static void nvgpu_init_timeslice(struct gk20a *g)
 static void nvgpu_init_pm_vars(struct gk20a *g)
 {
 	struct gk20a_platform *platform = dev_get_drvdata(dev_from_gk20a(g));
-	u32 i = 0;
 
 	/*
 	 * Set up initial power settings. For non-slicon platforms, disable
@@ -231,12 +230,6 @@ static void nvgpu_init_pm_vars(struct gk20a *g)
 	g->can_tpc_pg = platform->can_tpc_pg;
 	g->can_gpc_pg = platform->can_gpc_pg;
 	g->can_fbp_pg = platform->can_fbp_pg;
-
-	for (i = 0; i < MAX_PG_TPC_CONFIGS; i++)
-		g->valid_tpc_pg_mask[i] = platform->valid_tpc_pg_mask[i];
-
-	for (i = 0; i < MAX_PG_GPC_FBP_CONFIGS; i++)
-		g->valid_gpc_fbp_pg_mask[i] = platform->valid_gpc_fbp_pg_mask[i];
 #endif
 	g->ldiv_slowdown_factor = platform->ldiv_slowdown_factor_init;
 	/* if default delay is not set, set default delay to 500msec */
