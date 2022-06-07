@@ -17,7 +17,7 @@
 #include <hal/t234/t234_hwpm_regops_allowlist.h>
 #include <hal/t234/hw/t234_addr_map_soc_hwpm.h>
 
-struct hwpm_ip_aperture t234_pcie_inst0_perfmon_element_static_array[
+static struct hwpm_ip_aperture t234_pcie_inst0_perfmon_element_static_array[
 	T234_HWPM_IP_PCIE_NUM_PERFMON_PER_INST] = {
 	{
 		.element_type = HWPM_ELEMENT_PERFMON,
@@ -36,7 +36,7 @@ struct hwpm_ip_aperture t234_pcie_inst0_perfmon_element_static_array[
 	},
 };
 
-struct hwpm_ip_aperture t234_pcie_inst1_perfmon_element_static_array[
+static struct hwpm_ip_aperture t234_pcie_inst1_perfmon_element_static_array[
 	T234_HWPM_IP_PCIE_NUM_PERFMON_PER_INST] = {
 	{
 		.element_type = HWPM_ELEMENT_PERFMON,
@@ -55,7 +55,7 @@ struct hwpm_ip_aperture t234_pcie_inst1_perfmon_element_static_array[
 	},
 };
 
-struct hwpm_ip_aperture t234_pcie_inst2_perfmon_element_static_array[
+static struct hwpm_ip_aperture t234_pcie_inst2_perfmon_element_static_array[
 	T234_HWPM_IP_PCIE_NUM_PERFMON_PER_INST] = {
 	{
 		.element_type = HWPM_ELEMENT_PERFMON,
@@ -74,7 +74,7 @@ struct hwpm_ip_aperture t234_pcie_inst2_perfmon_element_static_array[
 	},
 };
 
-struct hwpm_ip_aperture t234_pcie_inst3_perfmon_element_static_array[
+static struct hwpm_ip_aperture t234_pcie_inst3_perfmon_element_static_array[
 	T234_HWPM_IP_PCIE_NUM_PERFMON_PER_INST] = {
 	{
 		.element_type = HWPM_ELEMENT_PERFMON,
@@ -93,7 +93,7 @@ struct hwpm_ip_aperture t234_pcie_inst3_perfmon_element_static_array[
 	},
 };
 
-struct hwpm_ip_aperture t234_pcie_inst4_perfmon_element_static_array[
+static struct hwpm_ip_aperture t234_pcie_inst4_perfmon_element_static_array[
 	T234_HWPM_IP_PCIE_NUM_PERFMON_PER_INST] = {
 	{
 		.element_type = HWPM_ELEMENT_PERFMON,
@@ -112,7 +112,7 @@ struct hwpm_ip_aperture t234_pcie_inst4_perfmon_element_static_array[
 	},
 };
 
-struct hwpm_ip_aperture t234_pcie_inst5_perfmon_element_static_array[
+static struct hwpm_ip_aperture t234_pcie_inst5_perfmon_element_static_array[
 	T234_HWPM_IP_PCIE_NUM_PERFMON_PER_INST] = {
 	{
 		.element_type = HWPM_ELEMENT_PERFMON,
@@ -131,7 +131,7 @@ struct hwpm_ip_aperture t234_pcie_inst5_perfmon_element_static_array[
 	},
 };
 
-struct hwpm_ip_aperture t234_pcie_inst6_perfmon_element_static_array[
+static struct hwpm_ip_aperture t234_pcie_inst6_perfmon_element_static_array[
 	T234_HWPM_IP_PCIE_NUM_PERFMON_PER_INST] = {
 	{
 		.element_type = HWPM_ELEMENT_PERFMON,
@@ -150,7 +150,7 @@ struct hwpm_ip_aperture t234_pcie_inst6_perfmon_element_static_array[
 	},
 };
 
-struct hwpm_ip_aperture t234_pcie_inst7_perfmon_element_static_array[
+static struct hwpm_ip_aperture t234_pcie_inst7_perfmon_element_static_array[
 	T234_HWPM_IP_PCIE_NUM_PERFMON_PER_INST] = {
 	{
 		.element_type = HWPM_ELEMENT_PERFMON,
@@ -169,7 +169,7 @@ struct hwpm_ip_aperture t234_pcie_inst7_perfmon_element_static_array[
 	},
 };
 
-struct hwpm_ip_aperture t234_pcie_inst8_perfmon_element_static_array[
+static struct hwpm_ip_aperture t234_pcie_inst8_perfmon_element_static_array[
 	T234_HWPM_IP_PCIE_NUM_PERFMON_PER_INST] = {
 	{
 		.element_type = HWPM_ELEMENT_PERFMON,
@@ -188,7 +188,7 @@ struct hwpm_ip_aperture t234_pcie_inst8_perfmon_element_static_array[
 	},
 };
 
-struct hwpm_ip_aperture t234_pcie_inst9_perfmon_element_static_array[
+static struct hwpm_ip_aperture t234_pcie_inst9_perfmon_element_static_array[
 	T234_HWPM_IP_PCIE_NUM_PERFMON_PER_INST] = {
 	{
 		.element_type = HWPM_ELEMENT_PERFMON,
@@ -207,7 +207,7 @@ struct hwpm_ip_aperture t234_pcie_inst9_perfmon_element_static_array[
 	},
 };
 
-struct hwpm_ip_aperture t234_pcie_inst10_perfmon_element_static_array[
+static struct hwpm_ip_aperture t234_pcie_inst10_perfmon_element_static_array[
 	T234_HWPM_IP_PCIE_NUM_PERFMON_PER_INST] = {
 	{
 		.element_type = HWPM_ELEMENT_PERFMON,
@@ -226,7 +226,7 @@ struct hwpm_ip_aperture t234_pcie_inst10_perfmon_element_static_array[
 	},
 };
 
-struct hwpm_ip_aperture t234_pcie_inst0_perfmux_element_static_array[
+static struct hwpm_ip_aperture t234_pcie_inst0_perfmux_element_static_array[
 	T234_HWPM_IP_PCIE_NUM_PERFMUX_PER_INST] = {
 	{
 		.element_type = IP_ELEMENT_PERFMUX,
@@ -245,7 +245,7 @@ struct hwpm_ip_aperture t234_pcie_inst0_perfmux_element_static_array[
 	},
 };
 
-struct hwpm_ip_aperture t234_pcie_inst1_perfmux_element_static_array[
+static struct hwpm_ip_aperture t234_pcie_inst1_perfmux_element_static_array[
 	T234_HWPM_IP_PCIE_NUM_PERFMUX_PER_INST] = {
 	{
 		.element_type = IP_ELEMENT_PERFMUX,
@@ -264,7 +264,7 @@ struct hwpm_ip_aperture t234_pcie_inst1_perfmux_element_static_array[
 	},
 };
 
-struct hwpm_ip_aperture t234_pcie_inst2_perfmux_element_static_array[
+static struct hwpm_ip_aperture t234_pcie_inst2_perfmux_element_static_array[
 	T234_HWPM_IP_PCIE_NUM_PERFMUX_PER_INST] = {
 	{
 		.element_type = IP_ELEMENT_PERFMUX,
@@ -283,7 +283,7 @@ struct hwpm_ip_aperture t234_pcie_inst2_perfmux_element_static_array[
 	},
 };
 
-struct hwpm_ip_aperture t234_pcie_inst3_perfmux_element_static_array[
+static struct hwpm_ip_aperture t234_pcie_inst3_perfmux_element_static_array[
 	T234_HWPM_IP_PCIE_NUM_PERFMUX_PER_INST] = {
 	{
 		.element_type = IP_ELEMENT_PERFMUX,
@@ -302,7 +302,7 @@ struct hwpm_ip_aperture t234_pcie_inst3_perfmux_element_static_array[
 	},
 };
 
-struct hwpm_ip_aperture t234_pcie_inst4_perfmux_element_static_array[
+static struct hwpm_ip_aperture t234_pcie_inst4_perfmux_element_static_array[
 	T234_HWPM_IP_PCIE_NUM_PERFMUX_PER_INST] = {
 	{
 		.element_type = IP_ELEMENT_PERFMUX,
@@ -321,7 +321,7 @@ struct hwpm_ip_aperture t234_pcie_inst4_perfmux_element_static_array[
 	},
 };
 
-struct hwpm_ip_aperture t234_pcie_inst5_perfmux_element_static_array[
+static struct hwpm_ip_aperture t234_pcie_inst5_perfmux_element_static_array[
 	T234_HWPM_IP_PCIE_NUM_PERFMUX_PER_INST] = {
 	{
 		.element_type = IP_ELEMENT_PERFMUX,
@@ -340,7 +340,7 @@ struct hwpm_ip_aperture t234_pcie_inst5_perfmux_element_static_array[
 	},
 };
 
-struct hwpm_ip_aperture t234_pcie_inst6_perfmux_element_static_array[
+static struct hwpm_ip_aperture t234_pcie_inst6_perfmux_element_static_array[
 	T234_HWPM_IP_PCIE_NUM_PERFMUX_PER_INST] = {
 	{
 		.element_type = IP_ELEMENT_PERFMUX,
@@ -359,7 +359,7 @@ struct hwpm_ip_aperture t234_pcie_inst6_perfmux_element_static_array[
 	},
 };
 
-struct hwpm_ip_aperture t234_pcie_inst7_perfmux_element_static_array[
+static struct hwpm_ip_aperture t234_pcie_inst7_perfmux_element_static_array[
 	T234_HWPM_IP_PCIE_NUM_PERFMUX_PER_INST] = {
 	{
 		.element_type = IP_ELEMENT_PERFMUX,
@@ -378,7 +378,7 @@ struct hwpm_ip_aperture t234_pcie_inst7_perfmux_element_static_array[
 	},
 };
 
-struct hwpm_ip_aperture t234_pcie_inst8_perfmux_element_static_array[
+static struct hwpm_ip_aperture t234_pcie_inst8_perfmux_element_static_array[
 	T234_HWPM_IP_PCIE_NUM_PERFMUX_PER_INST] = {
 	{
 		.element_type = IP_ELEMENT_PERFMUX,
@@ -397,7 +397,7 @@ struct hwpm_ip_aperture t234_pcie_inst8_perfmux_element_static_array[
 	},
 };
 
-struct hwpm_ip_aperture t234_pcie_inst9_perfmux_element_static_array[
+static struct hwpm_ip_aperture t234_pcie_inst9_perfmux_element_static_array[
 	T234_HWPM_IP_PCIE_NUM_PERFMUX_PER_INST] = {
 	{
 		.element_type = IP_ELEMENT_PERFMUX,
@@ -416,7 +416,7 @@ struct hwpm_ip_aperture t234_pcie_inst9_perfmux_element_static_array[
 	},
 };
 
-struct hwpm_ip_aperture t234_pcie_inst10_perfmux_element_static_array[
+static struct hwpm_ip_aperture t234_pcie_inst10_perfmux_element_static_array[
 	T234_HWPM_IP_PCIE_NUM_PERFMUX_PER_INST] = {
 	{
 		.element_type = IP_ELEMENT_PERFMUX,
@@ -436,7 +436,7 @@ struct hwpm_ip_aperture t234_pcie_inst10_perfmux_element_static_array[
 };
 
 /* IP instance array */
-struct hwpm_ip_inst t234_pcie_inst_static_array[
+static struct hwpm_ip_inst t234_pcie_inst_static_array[
 	T234_HWPM_IP_PCIE_NUM_INSTANCES] = {
 	{
 		.hw_inst_mask = BIT(0),

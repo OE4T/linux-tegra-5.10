@@ -17,7 +17,7 @@
 #include <hal/t234/t234_hwpm_regops_allowlist.h>
 #include <hal/t234/hw/t234_addr_map_soc_hwpm.h>
 
-struct hwpm_ip_aperture t234_mss_gpu_hub_inst0_perfmon_element_static_array[
+static struct hwpm_ip_aperture t234_mss_gpu_hub_inst0_perfmon_element_static_array[
 	T234_HWPM_IP_MSS_GPU_HUB_NUM_PERFMON_PER_INST] = {
 	{
 		.element_type = HWPM_ELEMENT_PERFMON,
@@ -36,7 +36,7 @@ struct hwpm_ip_aperture t234_mss_gpu_hub_inst0_perfmon_element_static_array[
 	},
 };
 
-struct hwpm_ip_aperture t234_mss_gpu_hub_inst0_perfmux_element_static_array[
+static struct hwpm_ip_aperture t234_mss_gpu_hub_inst0_perfmux_element_static_array[
 	T234_HWPM_IP_MSS_GPU_HUB_NUM_PERFMUX_PER_INST] = {
 	{
 		.element_type = IP_ELEMENT_PERFMUX,
@@ -161,7 +161,7 @@ struct hwpm_ip_aperture t234_mss_gpu_hub_inst0_perfmux_element_static_array[
 };
 
 /* IP instance array */
-struct hwpm_ip_inst t234_mss_gpu_hub_inst_static_array[
+static struct hwpm_ip_inst t234_mss_gpu_hub_inst_static_array[
 	T234_HWPM_IP_MSS_GPU_HUB_NUM_INSTANCES] = {
 	{
 		.hw_inst_mask = BIT(0),

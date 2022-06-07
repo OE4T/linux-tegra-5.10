@@ -17,7 +17,7 @@
 #include <hal/t234/t234_hwpm_regops_allowlist.h>
 #include <hal/t234/hw/t234_addr_map_soc_hwpm.h>
 
-struct hwpm_ip_aperture t234_mss_channel_inst0_perfmon_element_static_array[
+static struct hwpm_ip_aperture t234_mss_channel_inst0_perfmon_element_static_array[
 	T234_HWPM_IP_MSS_CHANNEL_NUM_PERFMON_PER_INST] = {
 	{
 		.element_type = HWPM_ELEMENT_PERFMON,
@@ -261,7 +261,7 @@ struct hwpm_ip_aperture t234_mss_channel_inst0_perfmon_element_static_array[
 	},
 };
 
-struct hwpm_ip_aperture t234_mss_channel_inst0_perfmux_element_static_array[
+static struct hwpm_ip_aperture t234_mss_channel_inst0_perfmux_element_static_array[
 	T234_HWPM_IP_MSS_CHANNEL_NUM_PERFMUX_PER_INST] = {
 	{
 		.element_type = IP_ELEMENT_PERFMUX,
@@ -406,7 +406,8 @@ struct hwpm_ip_aperture t234_mss_channel_inst0_perfmux_element_static_array[
 		.name = {'\0'},
 		.start_abs_pa = addr_map_mc9_base_r(),
 		.end_abs_pa = addr_map_mc9_limit_r(),
-		.fake_registers = NULL,
+		.start_pa = 0ULL,
+		.end_pa = 0ULL,
 		.base_pa = 0ULL,
 		.alist = t234_mss_channel_alist,
 		.alist_size = ARRAY_SIZE(t234_mss_channel_alist),
@@ -504,7 +505,7 @@ struct hwpm_ip_aperture t234_mss_channel_inst0_perfmux_element_static_array[
 	},
 };
 
-struct hwpm_ip_aperture t234_mss_channel_inst0_broadcast_element_static_array[
+static struct hwpm_ip_aperture t234_mss_channel_inst0_broadcast_element_static_array[
 	T234_HWPM_IP_MSS_CHANNEL_NUM_BROADCAST_PER_INST] = {
 	{
 		.element_type = IP_ELEMENT_BROADCAST,
@@ -524,7 +525,7 @@ struct hwpm_ip_aperture t234_mss_channel_inst0_broadcast_element_static_array[
 };
 
 /* IP instance array */
-struct hwpm_ip_inst t234_mss_channel_inst_static_array[
+static struct hwpm_ip_inst t234_mss_channel_inst_static_array[
 	T234_HWPM_IP_MSS_CHANNEL_NUM_INSTANCES] = {
 	{
 		.hw_inst_mask = BIT(0),

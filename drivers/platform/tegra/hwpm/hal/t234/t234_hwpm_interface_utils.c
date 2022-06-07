@@ -21,7 +21,7 @@
 #include <hal/t234/t234_hwpm_init.h>
 #include <hal/t234/t234_hwpm_internal.h>
 
-struct tegra_soc_hwpm_chip t234_chip_info = {
+static struct tegra_soc_hwpm_chip t234_chip_info = {
 	.chip_ips = NULL,
 
 	/* HALs */

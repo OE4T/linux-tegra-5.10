@@ -18,7 +18,7 @@
 #include <hal/t234/hw/t234_addr_map_soc_hwpm.h>
 
 /* RTR aperture should be placed in instance T234_HWPM_IP_RTR_STATIC_RTR_INST */
-struct hwpm_ip_aperture t234_rtr_inst0_perfmux_element_static_array[
+static struct hwpm_ip_aperture t234_rtr_inst0_perfmux_element_static_array[
 	T234_HWPM_IP_RTR_NUM_PERFMUX_PER_INST] = {
 	{
 		.element_type = HWPM_ELEMENT_PERFMUX,
@@ -39,7 +39,7 @@ struct hwpm_ip_aperture t234_rtr_inst0_perfmux_element_static_array[
 
 /* PMA from RTR perspective */
 /* PMA aperture should be placed in instance T234_HWPM_IP_RTR_STATIC_PMA_INST */
-struct hwpm_ip_aperture t234_rtr_inst1_perfmux_element_static_array[
+static struct hwpm_ip_aperture t234_rtr_inst1_perfmux_element_static_array[
 	T234_HWPM_IP_RTR_NUM_PERFMUX_PER_INST] = {
 	{
 		.element_type = HWPM_ELEMENT_PERFMUX,
@@ -59,7 +59,7 @@ struct hwpm_ip_aperture t234_rtr_inst1_perfmux_element_static_array[
 };
 
 /* IP instance array */
-struct hwpm_ip_inst t234_rtr_inst_static_array[
+static struct hwpm_ip_inst t234_rtr_inst_static_array[
 	T234_HWPM_IP_RTR_NUM_INSTANCES] = {
 	{
 		.hw_inst_mask = BIT(0),
