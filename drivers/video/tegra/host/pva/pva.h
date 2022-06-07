@@ -135,8 +135,10 @@ enum nvpva_dbg_categories {
 #else /* NVPVA_DEBUG */
 #define nvpva_dbg(pva, dbg_mask, format, arg...)                               \
 	do {                                                                   \
-		if (0)                                                         \
+		if (0) {                                                       \
+			(void) pva; /* unused variable */                      \
 			pr_info("nvhost %s: " format "\n", __func__, ##arg);   \
+		}                                                              \
 	} while (0)
 
 #endif
