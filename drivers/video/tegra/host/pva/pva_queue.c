@@ -510,14 +510,14 @@ static int pva_task_write_vpu_parameter(struct pva_submit_task *task,
 	u32 head_size = 0U;
 	u32 head_count = 0U;
 
-	int tail_index = 0;
+	u32 tail_index = 0U;
 	u8 *tailPtr = NULL;
 	u32 tail_count = 0U;
 
 	if ((task->exe_id == NVPVA_NOOP_EXE_ID) || (task->num_symbols == 0U))
 		goto out;
 
-	tail_index = ((int)task->num_symbols - 1);
+	tail_index = ((u32)task->num_symbols - 1U);
 	elf = get_elf_image(&task->client->elf_ctx, task->exe_id);
 	if (task->num_symbols > elf->num_symbols) {
 		task_err(task, "invalid number of symbols");
