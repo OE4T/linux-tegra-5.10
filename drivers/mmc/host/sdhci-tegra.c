@@ -2637,6 +2637,7 @@ static const struct sdhci_pltfm_data sdhci_tegra186_pdata = {
 		  SDHCI_QUIRK_NO_ENDATTR_IN_NOPDESC,
 	.quirks2 = SDHCI_QUIRK2_PRESET_VALUE_BROKEN |
 		   SDHCI_QUIRK2_HOST_OFF_CARD_ON |
+		   SDHCI_QUIRK2_ISSUE_CMD_DAT_RESET_TOGETHER |
 		   SDHCI_QUIRK2_SEL_SDR104_UHS_MODE_IN_SDR50,
 	.ops  = &tegra_sdhci_ops,
 };
