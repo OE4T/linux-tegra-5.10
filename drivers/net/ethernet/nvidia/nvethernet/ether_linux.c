@@ -6533,6 +6533,12 @@ static int ether_probe(struct platform_device *pdev)
 			ether_tx_usecs_hrtimer;
 	}
 
+	ret = register_netdev(ndev);
+	if (ret < 0) {
+		dev_err(&pdev->dev, "failed to register netdev\n");
+		goto err_netdev;
+	}
+
 #ifdef MACSEC_SUPPORT
 	ret = macsec_probe(pdata);
 	if (ret < 0) {
@@ -6540,7 +6546,7 @@ static int ether_probe(struct platform_device *pdev)
 		goto err_macsec;
 	} else if (ret == 1) {
 		/* Nothing to do, macsec is not supported */
-		dev_info(&pdev->dev, "Macsec not supported\n");
+		dev_info(&pdev->dev, "Macsec not supported/Not enabled in DT\n");
 	} else {
 		dev_info(&pdev->dev, "Macsec not enabled\n");
 		/* Macsec is supported, reduce MTU */
@@ -6549,12 +6555,6 @@ static int ether_probe(struct platform_device *pdev)
 			 ndev->mtu, ndev->max_mtu);
 	}
 #endif /*  MACSEC_SUPPORT */
-
-	ret = register_netdev(ndev);
-	if (ret < 0) {
-		dev_err(&pdev->dev, "failed to register netdev\n");
-		goto err_netdev;
-	}
 
 	/* Register sysfs entry */
 	ret = ether_sysfs_register(pdata);
@@ -6614,11 +6614,11 @@ static int ether_probe(struct platform_device *pdev)
 	return 0;
 
 err_sysfs:
-	unregister_netdev(ndev);
-err_netdev:
 #ifdef MACSEC_SUPPORT
 err_macsec:
 #endif /* MACSEC_SUPPORT */
+	unregister_netdev(ndev);
+err_netdev:
 err_dma_mask:
 	ether_disable_clks(pdata);
 	ether_put_clks(pdata);

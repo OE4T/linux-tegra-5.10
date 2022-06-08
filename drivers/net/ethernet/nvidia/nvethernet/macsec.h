@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -44,8 +44,6 @@
  */
 #define MACSEC_IRQ_NAME_SZ		32
 
-/* TODO - include name of driver interface as well */
-#define NV_MACSEC_GENL_NAME	"nv_macsec"
 #define NV_MACSEC_GENL_VERSION	1
 
 #ifdef MACSEC_KEY_PROGRAM
@@ -221,6 +219,12 @@ struct macsec_priv_data {
 	struct mutex lock;
 	/** macsec hw instance id */
 	unsigned int id;
+	/** Macsec enable flag in DT */
+	unsigned int is_macsec_enabled_in_dt;
+	/** Context family name  */
+	struct genl_family nv_macsec_fam;
+	/** Flag to check if nv macsec nl registered */
+	unsigned int is_nv_macsec_fam_registered;
 };
 
 int macsec_probe(struct ether_priv_data *pdata);

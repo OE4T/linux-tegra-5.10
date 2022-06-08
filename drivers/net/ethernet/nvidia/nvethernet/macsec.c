@@ -22,10 +22,6 @@
 #ifdef HSI_SUPPORT
 #include <linux/tegra-epl.h>
 #endif
-/**
- * @brief is_nv_macsec_fam_registered - Is nv macsec nl registered
- */
-static int is_nv_macsec_fam_registered = OSI_DISABLE;
 static int macsec_get_tx_next_pn(struct sk_buff *skb, struct genl_info *info);
 
 #ifndef MACSEC_KEY_PROGRAM
@@ -1472,16 +1468,6 @@ static const struct genl_ops nv_macsec_genl_ops[] = {
 	},
 };
 
-static struct genl_family nv_macsec_fam = {
-	.name = NV_MACSEC_GENL_NAME,
-	.hdrsize = 0,
-	.version = NV_MACSEC_GENL_VERSION,
-	.maxattr = NV_MACSEC_ATTR_MAX,
-	.module = THIS_MODULE,
-	.ops = nv_macsec_genl_ops,
-	.n_ops = ARRAY_SIZE(nv_macsec_genl_ops),
-};
-
 void macsec_remove(struct ether_priv_data *pdata)
 {
 	struct macsec_priv_data *macsec_pdata = NULL;
@@ -1509,9 +1495,9 @@ void macsec_remove(struct ether_priv_data *pdata)
 		}
 
 		/* Unregister generic netlink */
-		if (is_nv_macsec_fam_registered == OSI_ENABLE) {
-			genl_unregister_family(&nv_macsec_fam);
-			is_nv_macsec_fam_registered = OSI_DISABLE;
+		if (macsec_pdata->is_nv_macsec_fam_registered == OSI_ENABLE) {
+			genl_unregister_family(&macsec_pdata->nv_macsec_fam);
+			macsec_pdata->is_nv_macsec_fam_registered = OSI_DISABLE;
 		}
 
 		/* Release platform resources */
@@ -1550,7 +1536,7 @@ int macsec_probe(struct ether_priv_data *pdata)
 		tz_addr = (res->start - MACSEC_SIZE);
 #endif
 	} else {
-		/* MACsec not enabled in DT, nothing more to do */
+		/* MACsec not supported per DT config, nothing more to do */
 		osi_core->macsec_base = NULL;
 		osi_core->tz_base = NULL;
 		pdata->macsec_pdata = NULL;
@@ -1577,6 +1563,17 @@ int macsec_probe(struct ether_priv_data *pdata)
 	}
 	macsec_pdata->ether_pdata = pdata;
 	pdata->macsec_pdata = macsec_pdata;
+
+	/* Read if macsec is enabled in DT */
+	ret = of_property_read_u32(np, "nvidia,macsec-enable",
+				   &macsec_pdata->is_macsec_enabled_in_dt);
+	if ((ret != 0) || (macsec_pdata->is_macsec_enabled_in_dt == 0U)) {
+		dev_info(dev,
+			 "macsec param in DT is missing or disabled\n");
+		ret = 1;
+		goto init_err;
+	}
+
 	mutex_init(&pdata->macsec_pdata->lock);
 
 	/* Read MAC instance id and used in TZ api's */
@@ -1613,15 +1610,31 @@ int macsec_probe(struct ether_priv_data *pdata)
 	}
 
 	/* Register macsec generic netlink ops */
-	if (is_nv_macsec_fam_registered == OSI_DISABLE) {
-		ret = genl_register_family(&nv_macsec_fam);
+	macsec_pdata->nv_macsec_fam.hdrsize = 0;
+	macsec_pdata->nv_macsec_fam.version = NV_MACSEC_GENL_VERSION;
+	macsec_pdata->nv_macsec_fam.maxattr = NV_MACSEC_ATTR_MAX;
+	macsec_pdata->nv_macsec_fam.module = THIS_MODULE;
+	macsec_pdata->nv_macsec_fam.ops = nv_macsec_genl_ops;
+	macsec_pdata->nv_macsec_fam.n_ops = ARRAY_SIZE(nv_macsec_genl_ops);
+	if (macsec_pdata->is_nv_macsec_fam_registered == OSI_DISABLE) {
+		if (strlen(netdev_name(pdata->ndev)) >= GENL_NAMSIZ) {
+			dev_err(dev, "Intf name %s of len %lu exceed nl_family name size\n",
+				netdev_name(pdata->ndev),
+				strlen(netdev_name(pdata->ndev)));
+			ret = -1;
+			goto genl_err;
+		} else {
+			strncpy(macsec_pdata->nv_macsec_fam.name,
+				netdev_name(pdata->ndev), GENL_NAMSIZ - 1);
+		}
+		ret = genl_register_family(&macsec_pdata->nv_macsec_fam);
 			if (ret) {
 				dev_err(dev, "Failed to register GENL ops %d\n",
 					ret);
 				goto genl_err;
 			}
 
-			is_nv_macsec_fam_registered = OSI_ENABLE;
+			macsec_pdata->is_nv_macsec_fam_registered = OSI_ENABLE;
 	}
 
 	PRINT_EXIT();
@@ -1689,7 +1702,7 @@ static int macsec_tz_kt_config(struct ether_priv_data *pdata,
 		goto fail;
 	}
 
-	msg_head = genlmsg_put_reply(msg, info, &nv_macsec_fam, 0, cmd);
+	msg_head = genlmsg_put_reply(msg, info, &macsec_pdata->nv_macsec_fam, 0, cmd);
 	if (msg_head == NULL) {
 		dev_err(dev, "unable to get replyhead\n");
 		ret = -EINVAL;
@@ -1815,7 +1828,7 @@ static int macsec_get_tx_next_pn(struct sk_buff *skb, struct genl_info *info)
 		goto exit;
 	}
 
-	msg_head = genlmsg_put_reply(msg, info, &nv_macsec_fam, 0, cmd);
+	msg_head = genlmsg_put_reply(msg, info, &macsec_pdata->nv_macsec_fam, 0, cmd);
 	if (!msg_head) {
 		dev_err(dev, "unable to get replyhead\n");
 		ret = -EINVAL;
