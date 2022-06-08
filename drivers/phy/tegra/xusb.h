@@ -441,6 +441,7 @@ struct tegra_xusb_padctl_soc {
 	bool port_cap_quirk;
 	bool poll_trk_completed;
 	bool trk_hw_mode;
+	bool supports_vbus_id_map;
 };
 
 struct tegra_xusb_padctl {
