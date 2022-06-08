@@ -20,6 +20,8 @@
 
 		phys = <&p2u_hsio_3>;
 		phy-names = "p2u-0";
+		supports-clkreq;
+		nvidia,disable-aspm-states = <0x0>;
 	};
 
 	pcie@14160000 {
