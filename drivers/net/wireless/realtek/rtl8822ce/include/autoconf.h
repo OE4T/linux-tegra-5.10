@@ -108,7 +108,7 @@
 
 #endif
 
-/*#define CONFIG_PCI_ASPM*/
+#define CONFIG_PCI_ASPM
 #ifdef CONFIG_PCI_ASPM
 #define CONFIG_PCI_DYNAMIC_ASPM_L1_LATENCY
 #endif
