@@ -22,7 +22,7 @@
 
 static void eprom_cs(struct net_device *dev, short bit)
 {
-	u8 cmdreg;
+	u8 cmdreg = 0;
 	int err;
 
 	err = read_nic_byte_E(dev, EPROM_CMD, &cmdreg);
@@ -41,7 +41,7 @@ static void eprom_cs(struct net_device *dev, short bit)
 
 static void eprom_ck_cycle(struct net_device *dev)
 {
-	u8 cmdreg;
+	u8 cmdreg = 0;
 	int err;
 
 	err = read_nic_byte_E(dev, EPROM_CMD, &cmdreg);
@@ -59,7 +59,7 @@ static void eprom_ck_cycle(struct net_device *dev)
 
 static void eprom_w(struct net_device *dev, short bit)
 {
-	u8 cmdreg;
+	u8 cmdreg = 0;
 	int err;
 
 	err = read_nic_byte_E(dev, EPROM_CMD, &cmdreg);
