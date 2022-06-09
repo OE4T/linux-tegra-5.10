@@ -1051,11 +1051,6 @@ static struct device *tegra_camrtc_get_hsp_device(struct device_node *hsp_node)
 	if (pdev == NULL)
 		return ERR_PTR(-EPROBE_DEFER);
 
-	if (&pdev->dev.driver == NULL) {
-		platform_device_put(pdev);
-		return ERR_PTR(-EPROBE_DEFER);
-	}
-
 	return &pdev->dev;
 }
 
