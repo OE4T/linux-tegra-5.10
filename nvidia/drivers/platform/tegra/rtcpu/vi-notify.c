@@ -481,10 +481,6 @@ static struct platform_device *tegra_vi_get(struct device *dev)
 	if (vi_pdev == NULL)
 		return ERR_PTR(-EPROBE_DEFER);
 
-	if (&vi_pdev->dev.driver == NULL) {
-		platform_device_put(vi_pdev);
-		return ERR_PTR(-EPROBE_DEFER);
-	}
 	return vi_pdev;
 }
 
