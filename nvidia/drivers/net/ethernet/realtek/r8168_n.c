@@ -27736,7 +27736,7 @@ rtl8168_rx_interrupt(struct net_device *dev,
         assert(tp != NULL);
         assert(ioaddr != NULL);
 
-        if ((tp->RxDescArray == NULL) || (tp->Rx_skbuff == NULL))
+        if (tp->RxDescArray == NULL)
                 goto rx_out;
 
         rx_quota = RTL_RX_QUOTA(budget);
