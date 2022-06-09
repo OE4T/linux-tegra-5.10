@@ -110,6 +110,9 @@ static __inline__ int __nat25_add_pppoe_tag(struct sk_buff *skb, struct pppoe_ta
 		return -1;
 	}
 
+	if (data_len > sizeof(struct pppoe_tag))
+		data_len = sizeof(struct pppoe_tag);
+
 	skb_put(skb, data_len);
 	/* have a room for new tag */
 	memmove(((unsigned char *)ph->tag + data_len), (unsigned char *)ph->tag, ntohs(ph->length));

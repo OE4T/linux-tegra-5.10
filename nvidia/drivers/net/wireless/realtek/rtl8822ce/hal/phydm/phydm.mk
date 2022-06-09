@@ -1,4 +1,4 @@
-EXTRA_CFLAGS += -I$(SOURCETREE)/hal/phydm
+EXTRA_CFLAGS += -I$(SOURCETREE)/hal/phydm -Wno-error=address
 
 _PHYDM_FILES := hal/phydm/phydm_debug.o	\
 								hal/phydm/phydm_antdiv.o\
