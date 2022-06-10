@@ -28,6 +28,12 @@
  */
 #define NVPVA_SYM_NAME_MAX_LEN 64U
 
+/*
+ * PVA specific error code
+ */
+
+#define NVPVA_ENOSLOT 102
+
 struct nvpva_ioctl_part {
 	uint64_t addr;
 	uint64_t size;
@@ -160,6 +166,7 @@ struct nvpva_pin_in_arg {
 
 struct nvpva_pin_out_arg {
 	uint32_t pin_id; /* Unique ID assigned by KMD for the Pin */
+	uint32_t error_code;
 };
 
 union nvpva_pin_args {

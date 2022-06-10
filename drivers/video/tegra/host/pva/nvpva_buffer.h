@@ -85,7 +85,8 @@ int nvpva_buffer_pin(struct nvpva_buffers *nvpva_buffers,
 		     u64 *offset,
 		     u64 *size,
 		     u32 count,
-		     u32 *id);
+		     u32 *id,
+		     u32 *eerr);
 /**
  * @brief			UnPins the mapped address space.
  *

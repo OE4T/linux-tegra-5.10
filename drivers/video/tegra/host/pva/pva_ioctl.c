@@ -512,11 +512,12 @@ static int pva_pin(struct pva_private *priv, void *arg)
 	}
 
 	err = nvpva_buffer_pin(priv->client->buffers,
-				&dmabuf[0],
-				&in_arg->pin.offset,
-				&in_arg->pin.size,
-				1,
-				&out_arg->pin_id);
+			       &dmabuf[0],
+			       &in_arg->pin.offset,
+			       &in_arg->pin.size,
+			       1,
+			       &out_arg->pin_id,
+			       &out_arg->error_code);
 	dma_buf_put(dmabuf[0]);
 out:
 	return err;
@@ -867,6 +868,7 @@ static long pva_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	struct pva_private *priv = file->private_data;
 	u8 buf[NVPVA_IOCTL_MAX_SIZE] __aligned(sizeof(u64));
 	int err = 0;
+	int err2 = 0;
 
 	nvpva_dbg_fn(priv->pva, "");
 
@@ -915,8 +917,10 @@ static long pva_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		break;
 	}
 
-	if ((err == 0) && (_IOC_DIR(cmd) & _IOC_READ))
-		err = copy_to_user((void __user *)arg, buf, _IOC_SIZE(cmd));
+	if ((_IOC_DIR(cmd) & _IOC_READ))
+		err2 = copy_to_user((void __user *)arg, buf, _IOC_SIZE(cmd));
+
+	err = (err == 0) ? err2 : err;
 
 	return err;
 }

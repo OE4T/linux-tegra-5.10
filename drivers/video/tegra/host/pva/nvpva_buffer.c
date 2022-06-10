@@ -395,16 +395,20 @@ int nvpva_buffer_pin(struct nvpva_buffers *nvpva_buffers,
 		     u64 *offset,
 		     u64 *size,
 		     u32 count,
-		     u32 *id)
+		     u32 *id,
+		     u32 *eerr)
 {
 	struct nvpva_vm_buffer *vm;
 	int i = 0;
 	int err = 0;
+	u32 uid;
 
+	*eerr = 0;
 	mutex_lock(&nvpva_buffers->mutex);
 
 	for (i = 0; i < count; i++) {
 		u64 limit;
+		uid = 0;
 
 		if (U64_MAX - size[i] < offset[i]) {
 			err = -EFAULT;
@@ -434,23 +438,33 @@ int nvpva_buffer_pin(struct nvpva_buffers *nvpva_buffers,
 			goto unpin;
 		}
 
+		uid = get_unique_id(nvpva_buffers);
+		if (uid == 0) {
+			*eerr = NVPVA_ENOSLOT;
+			err = -EINVAL;
+			goto free_vm;
+		}
+
 		err = nvpva_buffer_map(nvpva_buffers->pdev,
 				       dmabufs[i],
 				       offset[i],
 				       size[i],
 				       vm);
 		if (err)
-			goto free_vm;
+			goto free_uid;
 
-		vm->id = get_unique_id(nvpva_buffers);
+		vm->id = uid;
 		nvpva_buffer_insert_map_buffer(nvpva_buffers, vm);
 		nvpva_buffer_insert_map_buffer_id(nvpva_buffers, vm);
 		id[i] = vm->id;
 	}
 
 	mutex_unlock(&nvpva_buffers->mutex);
+
 	return err;
 
+free_uid:
+	put_unique_id(nvpva_buffers, uid);
 free_vm:
 	kfree(vm);
 unpin:
