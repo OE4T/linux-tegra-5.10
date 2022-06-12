@@ -106,6 +106,10 @@ struct dce_platform_data {
 	 */
 	u8 stream_id;
 	/**
+	 * hsp_id - HSP instance id used for dce communication
+	 */
+	u32 hsp_id;
+	/**
 	 * fw_vmindex : VMIndex to program the AST region to read FW in debug
 	 * mode only.
 	 */
@@ -184,6 +188,10 @@ struct tegra_dce {
 	 * @d_async_ipc_info - stores data to handle async events
 	 */
 	struct tegra_dce_async_ipc_info d_async_ipc;
+	/**
+	 * @hsp_id - HSP instance id used for dce communication
+	 */
+	u32 hsp_id;
 	/**
 	 * @boot_status - u32 variable to store dce's boot status.
 	 */

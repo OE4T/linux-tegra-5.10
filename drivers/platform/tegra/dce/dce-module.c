@@ -28,6 +28,7 @@ static const struct dce_platform_data t234_dce_platform_data = {
 	.stream_id = 0x08,
 	.phys_stream_id = 0x7f,
 	.fw_carveout_id = 9,
+	.hsp_id = 0x0,
 	.fw_vmindex = 0,
 	.fw_name = "display-t234-dce.bin",
 	.fw_dce_addr = 0x40000000,
@@ -219,6 +220,12 @@ static int tegra_dce_probe(struct platform_device *pdev)
 	}
 
 	d = pdata->d;
+
+	/**
+	 * TODO: Get HSP_ID from DT
+	 */
+	d->hsp_id = pdata->hsp_id;
+
 
 	err = dce_driver_init(d);
 	if (err) {
