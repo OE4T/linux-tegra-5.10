@@ -338,6 +338,8 @@ void gp10b_clk_arb_run_arbiter_cb(struct nvgpu_clk_arb *arb)
 		goto exit_arb;
 	}
 
+	g->last_freq = rounded_rate;
+
 	actual = ((NV_READ_ONCE(arb->actual)) == &arb->actual_pool[0] ?
 			&arb->actual_pool[1] : &arb->actual_pool[0]);
 

@@ -100,6 +100,9 @@ static void nvgpu_init_vars(struct gk20a *g)
 	/* Init the clock req count to 0 */
 	nvgpu_atomic_set(&g->clk_arb_global_nr, 0);
 
+	/* Atomic set doesn't guarantee a barrier */
+	nvgpu_smp_wmb();
+
 	nvgpu_mutex_init(&l->ctrl_privs_lock);
 	nvgpu_init_list_node(&l->ctrl_privs);
 

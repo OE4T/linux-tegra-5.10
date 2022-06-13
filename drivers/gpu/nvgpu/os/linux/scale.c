@@ -163,11 +163,13 @@ static int gk20a_scale_target(struct device *dev, unsigned long *freq,
 	struct devfreq *devfreq = l->devfreq;
 #endif
 	unsigned long local_freq = *freq;
-	unsigned long rounded_rate;
+	unsigned long rounded_rate = 0;
 	unsigned long min_freq = 0, max_freq = 0;
 
-	if (nvgpu_clk_arb_has_active_req(g))
-		return 0;
+	if (nvgpu_clk_arb_has_active_req(g)) {
+		rounded_rate = g->last_freq;
+		goto post_scale;
+	}
 	/*
 	 * Calculate floor and cap frequency values
 	 *
@@ -222,6 +224,7 @@ static int gk20a_scale_target(struct device *dev, unsigned long *freq,
 
 	g->last_freq = *freq;
 
+post_scale:
 	/* postscale will only scale emc (dram clock) if evaluating
 	 * gk20a_tegra_get_emc_rate() produces a new or different emc
 	 * target because the load or_and gpufreq has changed */
