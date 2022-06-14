@@ -1391,7 +1391,13 @@ static int macsec_set_replay_prot(struct sk_buff *skb, struct genl_info *info)
 		goto exit;
 	}
 
-	macsec_pdata->pn_window = window;
+	/* If Replay protection is disabled from supplicant use maximum
+	 * PN window as replay protecion is already enabled in macsec_init
+	 */
+	if (replay_prot == OSI_ENABLE)
+		macsec_pdata->pn_window = window;
+	else
+		macsec_pdata->pn_window = OSI_PN_MAX_DEFAULT;
 
 exit:
 	PRINT_EXIT();
