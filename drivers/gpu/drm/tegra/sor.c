@@ -19,14 +19,20 @@
 
 #include <drm/drm_atomic_helper.h>
 #include <drm/drm_debugfs.h>
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 18, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0)
+#include <drm/display/drm_dp_helper.h>
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(5, 18, 0)
 #include <drm/dp/drm_dp_helper.h>
 #else
 #include <drm/drm_dp_helper.h>
 #endif
 #include <drm/drm_file.h>
 #include <drm/drm_panel.h>
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0)
+#include <drm/display/drm_scdc_helper.h>
+#else
 #include <drm/drm_scdc_helper.h>
+#endif
 #include <drm/drm_simple_kms_helper.h>
 
 #include "dc.h"

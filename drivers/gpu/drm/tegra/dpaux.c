@@ -19,7 +19,9 @@
 #include <linux/version.h>
 #include <linux/workqueue.h>
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 18, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0)
+#include <drm/display/drm_dp_helper.h>
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(5, 18, 0)
 #include <drm/dp/drm_dp_helper.h>
 #else
 #include <drm/drm_dp_helper.h>
