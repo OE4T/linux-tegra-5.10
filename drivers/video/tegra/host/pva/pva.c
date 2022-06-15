@@ -928,6 +928,11 @@ static int pva_probe(struct platform_device *pdev)
 #endif
 
 	match = of_match_device(tegra_pva_of_match, dev);
+	if (!match) {
+		dev_err(dev, "no match for pva dev\n");
+		err = -ENODATA;
+		goto err_get_pdata;
+	}
 	pdata = (struct nvhost_device_data *)match->data;
 
 	WARN_ON(!pdata);
