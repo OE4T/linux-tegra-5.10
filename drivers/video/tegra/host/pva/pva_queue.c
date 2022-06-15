@@ -157,7 +157,8 @@ static void pva_task_unpin_mem(struct pva_submit_task *task)
 }
 
 struct pva_pinned_memory *pva_task_pin_mem(struct pva_submit_task *task,
-					   u32 id)
+					   u32 id,
+					   bool is_cntxt)
 {
 	int err;
 	struct pva_pinned_memory *mem;
@@ -177,14 +178,15 @@ struct pva_pinned_memory *pva_task_pin_mem(struct pva_submit_task *task,
 	mem = &task->pinned_memory[task->num_pinned];
 	mem->id = id;
 	err = nvpva_buffer_submit_pin_id(task->client->buffers, &mem->id, 1,
-				       &mem->dmabuf, &mem->dma_addr,
-				       &mem->size, &mem->heap);
+					 &mem->dmabuf, &mem->dma_addr,
+					 &mem->size, &mem->heap, is_cntxt);
 	if (err) {
 		task_err(task, "submit pin failed; Is the handled pinned?");
 		goto err_out;
 	}
 
 	task->num_pinned += 1;
+
 	return mem;
 err_out:
 	return ERR_PTR(err);
@@ -201,7 +203,7 @@ static int pva_task_pin_fence(struct pva_submit_task *task,
 	case NVPVA_FENCE_OBJ_SEM: {
 		struct pva_pinned_memory *mem;
 
-		mem = pva_task_pin_mem(task, fence->obj.sem.mem.pin_id);
+		mem = pva_task_pin_mem(task, fence->obj.sem.mem.pin_id, false);
 		if (IS_ERR(mem)) {
 			task_err(task, "sempahore submit pin failed");
 			err = PTR_ERR(mem);
@@ -368,11 +370,13 @@ static int pva_task_process_fence_actions(struct pva_submit_task *task,
 				err = -EINVAL;
 				goto out;
 			}
+
 			if (fence_action->timestamp_buf.pin_id) {
 				struct pva_pinned_memory *mem;
 				mem = pva_task_pin_mem(
-				    task,
-				    fence_action->timestamp_buf.pin_id);
+					task,
+					fence_action->timestamp_buf.pin_id,
+					false);
 				if (IS_ERR(mem)) {
 					err = PTR_ERR(mem);
 					task_err(
@@ -440,7 +444,7 @@ static int pva_task_process_input_status(struct pva_submit_task *task,
 		dma_addr_t status_addr;
 
 		status = &task->input_task_status[i];
-		mem = pva_task_pin_mem(task, status->pin_id);
+		mem = pva_task_pin_mem(task, status->pin_id, false);
 		if (IS_ERR(mem)) {
 			err = PTR_ERR(mem);
 			goto out;
@@ -469,7 +473,7 @@ static int pva_task_process_output_status(struct pva_submit_task *task,
 	for (i = 0; i < task->num_output_task_status; i++) {
 		struct nvpva_mem *status = &task->output_task_status[i];
 		struct pva_pinned_memory *mem =
-		    pva_task_pin_mem(task, status->pin_id);
+		    pva_task_pin_mem(task, status->pin_id, false);
 		dma_addr_t status_addr;
 		if (IS_ERR(mem)) {
 			err = PTR_ERR(mem);
@@ -552,7 +556,7 @@ static int pva_task_write_vpu_parameter(struct pva_submit_task *task,
 			memcpy(headPtr, (task->symbol_payload + task->symbols[i].offset),
 				sizeof(struct nvpva_pointer_symbol));
 			ptrSym = (struct nvpva_pointer_symbol *)(headPtr);
-			mem = pva_task_pin_mem(task, ptrSym->base);
+			mem = pva_task_pin_mem(task, ptrSym->base, true);
 			if (IS_ERR(mem)) {
 				err = PTR_ERR(mem);
 				task_err(task, "failed to pin symbol pointer");
@@ -730,7 +734,7 @@ static int pva_task_write(struct pva_submit_task *task)
 	hw_task->task.postactions = task->dma_addr + offsetof(struct pva_hw_task,
 							  postactions);
 	hw_task->task.runlist_version = PVA_RUNLIST_VERSION_ID;
-	hw_task->task.sid_index = 0;
+	hw_task->task.sid_index = task->client->sid_index;
 	err = set_flags(task, hw_task);
 	if (err)
 		goto out;

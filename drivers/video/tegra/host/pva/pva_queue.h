@@ -259,7 +259,8 @@ void pva_task_free(struct kref *ref);
 void pva_task_update(struct work_struct *work);
 
 struct pva_pinned_memory *pva_task_pin_mem(struct pva_submit_task *task,
-					   u32 id);
+					   u32 id,
+					   bool is_cntxt);
 
 #define task_err(task, fmt, ...)                                               \
 	dev_err(&task->pva->pdev->dev, fmt, ##__VA_ARGS__)

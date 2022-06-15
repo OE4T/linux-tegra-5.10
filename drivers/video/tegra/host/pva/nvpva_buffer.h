@@ -43,7 +43,7 @@ enum nvpva_buffers_heap {
 			(NVPVA_MAX_NUM_UNIQUE_IDS/NVPVA_ID_SEGMENT_SIZE)
 struct nvpva_buffers {
 	struct platform_device *pdev;
-
+	struct platform_device *pdev_cntxt;
 	struct list_head list_head;
 	struct rb_root rb_root;
 	struct rb_root rb_root_id;
@@ -64,7 +64,9 @@ struct nvpva_buffers {
  *				or negative on error
  *
  */
-struct nvpva_buffers *nvpva_buffer_init(struct platform_device *pdev);
+struct nvpva_buffers
+*nvpva_buffer_init(struct platform_device *pdev,
+		   struct platform_device *pdev_cntxt);
 
 /**
  * @brief			Pin the memhandle using dma_buf functions
@@ -158,9 +160,13 @@ int nvpva_buffer_submit_pin(struct nvpva_buffers *nvpva_buffers,
  *
  */
 int nvpva_buffer_submit_pin_id(struct nvpva_buffers *nvpva_buffers,
-			       u32 *ids, u32 count, struct dma_buf **dmabuf,
-			       dma_addr_t *paddr, size_t *psize,
-			       enum nvpva_buffers_heap *heap);
+			       u32 *ids,
+			       u32 count,
+			       struct dma_buf **dmabuf,
+			       dma_addr_t *paddr,
+			       size_t *psize,
+			       enum nvpva_buffers_heap *heap,
+			       bool is_cntxt);
 
 /**
  * @brief		UnPins the mapped address space on task completion.

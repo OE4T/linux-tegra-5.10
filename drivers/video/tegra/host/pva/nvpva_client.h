@@ -27,11 +27,16 @@ struct nvpva_client_context {
 	/* Reference to the device*/
 	struct pva *pva;
 
+	/* context device */
+	struct platform_device *cntxt_dev;
+
 	/* PID of client process which uses this context */
 	pid_t pid;
 
 	/* This tracks active users */
 	u32 ref_count;
+
+	u32 sid_index;
 
 	/* Data structure to track pinned buffers for this client */
 	struct nvpva_buffers *buffers;
@@ -47,8 +52,10 @@ struct pva;
 int nvpva_client_context_init(struct pva *pva);
 void nvpva_client_context_deinit(struct pva *pva);
 void nvpva_client_context_get(struct nvpva_client_context *client);
-struct nvpva_client_context *nvpva_client_context_alloc(struct pva *dev,
-							pid_t pid);
+struct nvpva_client_context
+*nvpva_client_context_alloc(struct platform_device *pdev,
+			    struct pva *dev,
+			    pid_t pid);
 void nvpva_client_context_put(struct nvpva_client_context *client);
 
 #endif /* NVPVA_CLIENT_H */

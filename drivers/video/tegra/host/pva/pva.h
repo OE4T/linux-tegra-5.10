@@ -68,6 +68,8 @@ struct pva_version_info {
 #define MAX_PVA_TASK_COUNT_PER_QUEUE_SEG	\
 	(MAX_PVA_TASK_COUNT_PER_QUEUE/MAX_PVA_SEG_COUNT_PER_QUEUE)
 
+#define NVPVA_USER_VM_COUNT	MAX_PVA_CLIENTS
+
 /**
  * Maximum task count that a PVA engine can support
  */
@@ -323,8 +325,11 @@ struct pva_vpu_dbg_block {
  * r5_dbg_wait		Set the r5 debugger to wait
  * timeout_enabled	Set pva timeout enabled based on debug
  * slcg_disable		Second level Clock Gating control variable
- *
- */
+ * log_level		controls the level of detail printed by FW
+ *			debug statements
+ * driver_log_mask	controls the level of detail printed by kernel
+ *			debug statements
+ **/
 struct pva {
 	int version;
 	struct pva_version_config *version_config;
@@ -335,6 +340,8 @@ struct pva {
 	struct pva_vpu_auth_s pva_auth_sys;
 
 	int irq[MAX_PVA_IRQS];
+	s32 sids[16];
+	u32 sid_count;
 
 	wait_queue_head_t cmd_waitqueue[MAX_PVA_INTERFACE];
 	struct pva_cmd_status_regs cmd_status_regs[MAX_PVA_INTERFACE];
@@ -372,16 +379,7 @@ struct pva {
 
 	struct work_struct pva_abort_handler_work;
 	bool booted;
-
-	/**
-	 * log_level controls the level of detail printed by FW debug
-	 * statements
-	 */
 	u32 log_level;
-	/**
-	 * driver_log_mask controls the level of detail printed by kernel debug
-	 * statements
-	 */
 	u32 driver_log_mask;
 
 	struct nvpva_client_context *clients;
@@ -521,4 +519,8 @@ int pva_set_log_level(struct pva *pva, u32 log_level, bool mailbox_locked);
 int nvpva_request_firmware(struct platform_device *pdev, const char *fw_name,
 			   const struct firmware **ucode_fw);
 
+int nvpva_get_device_hwid(struct platform_device *pdev,
+			  unsigned int id);
+
+u32 nvpva_get_id_idx(struct pva *dev, struct platform_device *pdev);
 #endif

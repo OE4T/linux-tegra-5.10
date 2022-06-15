@@ -41,8 +41,8 @@ nvhost-pva-objs  = \
 		pva_vpu_ocd.o \
 		pva_sha256.o \
 		pva_system_allow_list.o \
-		pva_vpu_app_auth.o
-
+		pva_vpu_app_auth.o \
+		pva_iommu_context_dev.o
 
 obj-$(NVPVA_OBJ) += nvhost-pva.o
 

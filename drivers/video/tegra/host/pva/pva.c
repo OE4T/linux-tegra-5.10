@@ -58,6 +58,14 @@
 #include "pva_ccq_t19x.h"
 #include "pva-ucode-header.h"
 #include "pva_system_allow_list.h"
+#include "pva_iommu_context_dev.h"
+
+extern struct platform_driver nvpva_iommu_context_dev_driver;
+
+static u32 vm_regs_sid_idx_t234[] = {1, 2, 3, 4, 5, 6, 7, 8,
+				     0, 0, 0, 0, 0, 0, 0, 0};
+static u32 vm_regs_sid_idx_t19x[] = {0, 0, 0, 0, 0, 0, 0, 0,
+				     0, 0, 0, 0, 0, 0, 0, 0};
 
 struct nvhost_device_data t19_pva1_info = {
 	.version = PVA_HW_GEN1,
@@ -78,7 +86,8 @@ struct nvhost_device_data t19_pva1_info = {
 	.vm_regs		= {
 		{0x70000, true, 0},
 		{0x80000, false, 0},
-		{0x80000, false, 8} },
+		{0x80000, false, 8}
+	},
 	.poweron_reset		= true,
 	.serialize		= true,
 	.push_work_done		= true,
@@ -107,7 +116,8 @@ struct nvhost_device_data t19_pva0_info = {
 	.vm_regs		= {
 		{0x70000, true, 0},
 		{0x80000, false, 0},
-		{0x80000, false, 8} },
+		{0x80000, false, 8}
+	},
 	.poweron_reset		= true,
 	.serialize		= true,
 	.get_reloc_phys_addr	= nvhost_t194_get_reloc_phys_addr,
@@ -171,6 +181,7 @@ static struct of_device_id tegra_pva_of_match[] = {
 #endif
 	{ },
 };
+
 MODULE_DEVICE_TABLE(of, tegra_pva_of_match);
 
 #define EVP_REG_NUM 8
@@ -696,10 +707,27 @@ int pva_set_log_level(struct pva *pva, u32 log_level, bool mailbox_locked)
 	return err;
 }
 
+u32 nvpva_get_id_idx(struct pva *dev, struct platform_device *pdev)
+{
+	s32 sid;
+	u32 i;
 
+	if (pdev == NULL)
+		return 0;
 
-static inline int get_device_hwid(struct platform_device *pdev,
-				     unsigned int id)
+	sid = nvpva_get_device_hwid(pdev, 0);
+	if (sid < 0)
+		return UINT_MAX;
+
+	for (i = 0; i < dev->sid_count; i++)
+		if (dev->sids[i] == sid)
+			return i;
+
+	return UINT_MAX;
+}
+
+int nvpva_get_device_hwid(struct platform_device *pdev,
+					   unsigned int id)
 {
 	struct device *dev = &pdev->dev;
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0)
@@ -717,16 +745,18 @@ static inline int get_device_hwid(struct platform_device *pdev,
 	return fwspec->ids[id] & 0xffff;
 }
 
-
-
 static int nvpva_write_hwid(struct platform_device *pdev)
 {
 	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
-	int streamid = get_device_hwid(pdev, 0);
+	struct pva *pva = pdata->private_data;
 	int i;
+	u32 *id_idx;
+	int *streamids = pva->sids;
 
-	if (streamid < 0)
-		return streamid;
+	if (pva->version == PVA_HW_GEN1)
+		id_idx = vm_regs_sid_idx_t19x;
+	else
+		id_idx = vm_regs_sid_idx_t234;
 
 	/* Clear the reset value of the StreamID registers in case any of them
 	 * includes multiple StreamIDs
@@ -753,7 +783,7 @@ static int nvpva_write_hwid(struct platform_device *pdev)
 
 		/* Update the StreamID value */
 		val = host1x_readl(pdev, addr);
-		val = val | (streamid << shift);
+		val = val | ((streamids[id_idx[i]] & 0x000000FF) << shift);
 		host1x_writel(pdev, addr, val);
 	}
 
@@ -914,6 +944,13 @@ static int pva_probe(struct platform_device *pdev)
 		goto err_get_pdata;
 	}
 
+	if ((pdata->version != PVA_HW_GEN1)
+	     && !is_cntxt_initialized()) {
+		dev_warn(&pdev->dev,
+			 "nvpva cntxt was not initialized, deferring probe.");
+		return -EPROBE_DEFER;
+	}
+
 	if (pdata->version == PVA_HW_GEN1 &&
 	    tegra_get_sku_id() == 0x9E) {
 		dev_err(dev, "PVA IP is disabled in SKU\n");
@@ -1013,8 +1050,8 @@ static int pva_probe(struct platform_device *pdev)
 		goto err_client_device_init;
 	}
 
-	pva->pool =
-		nvpva_queue_init(pdev, &pva_queue_ops, MAX_PVA_QUEUE_COUNT);
+	pva->pool = nvpva_queue_init(pdev, &pva_queue_ops,
+				     MAX_PVA_QUEUE_COUNT);
 	if (IS_ERR(pva->pool)) {
 		err = PTR_ERR(pva->pool);
 		goto err_queue_init;
@@ -1053,6 +1090,21 @@ static int pva_probe(struct platform_device *pdev)
 	pva_debugfs_init(pdev);
 #endif
 
+	pva->sid_count = 0;
+	err = nvpva_iommu_context_dev_get_sids(&pva->sids[1],
+					 &pva->sid_count,
+					 NVPVA_USER_VM_COUNT);
+	if (err)
+		goto err_mss_init;
+
+	pva->sids[0] = nvpva_get_device_hwid(pdev, 0);
+	if (pva->sids[0] < 0) {
+		err =  pva->sids[0];
+		goto err_mss_init;
+	}
+
+	++(pva->sid_count);
+
 #ifdef CONFIG_TEGRA_SOC_HWPM
 	offset = hwpm_get_offset();
 
@@ -1069,6 +1121,7 @@ static int pva_probe(struct platform_device *pdev)
 	pva->hwpm_ip_ops.hwpm_ip_reg_op = &pva_hwpm_ip_reg_op;
 	tegra_soc_hwpm_ip_register(&pva->hwpm_ip_ops);
 #endif
+
 	return 0;
 
 err_mss_init:
@@ -1135,7 +1188,27 @@ static struct platform_driver pva_driver = {
 	},
 };
 #if IS_ENABLED(CONFIG_TEGRA_GRHOST)
-module_platform_driver(pva_driver);
+static int __init nvpva_init(void)
+{
+	int err;
+
+	err = platform_driver_register(&nvpva_iommu_context_dev_driver);
+	if (err < 0)
+		return err;
+
+	err = platform_driver_register(&pva_driver);
+	if (err < 0)
+		platform_driver_unregister(&nvpva_iommu_context_dev_driver);
+
+	return err;
+}
+module_init(nvpva_init);
+static void __exit nvpva_exit(void)
+{
+	platform_driver_unregister(&pva_driver);
+	platform_driver_unregister(&nvpva_iommu_context_dev_driver);
+}
+module_exit(nvpva_exit);
 #else
 static struct host1x_driver host1x_nvpva_driver = {
 	.driver = {
@@ -1153,14 +1226,17 @@ static int __init nvpva_init(void)
 	err = platform_driver_register(&pva_driver);
 	if (err < 0)
 		host1x_driver_unregister(&host1x_nvpva_driver);
+
 	return err;
 }
+
 module_init(nvpva_init);
 static void __exit nvpva_exit(void)
 {
 	platform_driver_unregister(&pva_driver);
 	host1x_driver_unregister(&host1x_nvpva_driver);
 }
+
 module_exit(nvpva_exit);
 #endif
 

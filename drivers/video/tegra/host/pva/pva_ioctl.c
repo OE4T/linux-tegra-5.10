@@ -949,9 +949,9 @@ static int pva_open(struct inode *inode, struct file *file)
 		err = PTR_ERR(priv->queue);
 		goto err_alloc_queue;
 	}
-	sema_init(&priv->queue->task_pool_sem, MAX_PVA_TASK_COUNT_PER_QUEUE);
 
-	priv->client = nvpva_client_context_alloc(pva, current->pid);
+	sema_init(&priv->queue->task_pool_sem, MAX_PVA_TASK_COUNT_PER_QUEUE);
+	priv->client = nvpva_client_context_alloc(pdev, pva, current->pid);
 	if (priv->client == NULL) {
 		err = -ENOMEM;
 		dev_err(&pdev->dev, "failed to allocate client context");

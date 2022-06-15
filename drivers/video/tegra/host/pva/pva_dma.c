@@ -130,7 +130,7 @@ patch_dma_desc_address(struct pva_submit_task *task,
 		 */
 		if (task->pva->version == PVA_HW_GEN1) {
 			struct pva_pinned_memory *mem =
-				pva_task_pin_mem(task, umd_dma_desc->srcPtr);
+				pva_task_pin_mem(task, umd_dma_desc->srcPtr, false);
 			if (IS_ERR(mem)) {
 				err = PTR_ERR(mem);
 				task_err(task,
@@ -213,7 +213,7 @@ patch_dma_desc_address(struct pva_submit_task *task,
 	}
 	case DMA_DESC_SRC_XFER_MC: {
 		struct pva_pinned_memory *mem =
-			pva_task_pin_mem(task, umd_dma_desc->srcPtr);
+			pva_task_pin_mem(task, umd_dma_desc->srcPtr, true);
 		if (IS_ERR(mem)) {
 			err = PTR_ERR(mem);
 			task_err(
@@ -288,7 +288,7 @@ patch_dma_desc_address(struct pva_submit_task *task,
 	case DMA_DESC_DST_XFER_L2RAM:
 		if (task->pva->version == PVA_HW_GEN1) {
 			struct pva_pinned_memory *mem =
-				pva_task_pin_mem(task, umd_dma_desc->dstPtr);
+				pva_task_pin_mem(task, umd_dma_desc->dstPtr, false);
 			if (IS_ERR(mem)) {
 				err = PTR_ERR(mem);
 				task_err(task,
@@ -343,7 +343,7 @@ patch_dma_desc_address(struct pva_submit_task *task,
 	}
 	case DMA_DESC_DST_XFER_MC: {
 		struct pva_pinned_memory *mem =
-			pva_task_pin_mem(task, umd_dma_desc->dstPtr);
+			pva_task_pin_mem(task, umd_dma_desc->dstPtr, true);
 		if (IS_ERR(mem)) {
 			err = PTR_ERR(mem);
 			task_err(
@@ -784,7 +784,8 @@ int pva_task_write_dma_info(struct pva_submit_task *task,
 			(task->hwseq_config.hwseqTrigMode & 0x1U) << 12U;
 
 		mem = pva_task_pin_mem(task,
-				       task->hwseq_config.hwseqBuf.pin_id);
+				       task->hwseq_config.hwseqBuf.pin_id,
+				       false);
 		if (IS_ERR(mem)) {
 			err = PTR_ERR(mem);
 			task_err(task, "failed to pin hwseq buffer");
