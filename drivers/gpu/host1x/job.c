@@ -95,6 +95,9 @@ static void job_free(struct kref *ref)
 	if (job->syncpt)
 		host1x_syncpt_put(job->syncpt);
 
+	if (job->secondary_syncpt)
+		host1x_syncpt_put(job->secondary_syncpt);
+
 	kfree(job);
 }
 

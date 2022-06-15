@@ -916,6 +916,8 @@ struct drm_tegra_submit_syncpt {
 	__u32 value;
 };
 
+#define DRM_TEGRA_SUBMIT_SECONDARY_SYNCPT		(1<<0)
+
 struct drm_tegra_channel_submit {
 	/**
 	 * @context: [in]
@@ -989,6 +991,20 @@ struct drm_tegra_channel_submit {
 	 * Information about the syncpoint the job will increment.
 	 */
 	struct drm_tegra_submit_syncpt syncpt;
+
+	/**
+	 * @flags: [in]
+	 *
+	 * Flags.
+	 */
+	__u32 flags;
+
+	/**
+	 * @secondary_syncpt_id: [in]
+	 *
+	 * Secondary syncpoint the job may increment, not used for job tracking.
+	 */
+	__u32 secondary_syncpt_id;
 };
 
 struct drm_tegra_syncpoint_allocate {

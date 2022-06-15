@@ -350,6 +350,16 @@ static int submit_get_syncpt(struct tegra_drm_context *context, struct host1x_jo
 	job->syncpt = host1x_syncpt_get(sp);
 	job->syncpt_incrs = args->syncpt.increments;
 
+	if (args->flags & DRM_TEGRA_SUBMIT_SECONDARY_SYNCPT) {
+		sp = xa_load(syncpoints, args->secondary_syncpt_id);
+		if (!sp) {
+			SUBMIT_ERR(context, "secondary syncpt was not allocated");
+			return -EINVAL;
+		}
+
+		job->secondary_syncpt = host1x_syncpt_get(sp);
+	}
+
 	return 0;
 }
 
@@ -530,6 +540,11 @@ int tegra_drm_ioctl_channel_submit(struct drm_device *drm, void *data,
 		pr_err_ratelimited("%s: %s: invalid channel context '%#x'", __func__,
 				   current->comm, args->context);
 		return -EINVAL;
+	}
+
+	if (args->flags & !(DRM_TEGRA_SUBMIT_SECONDARY_SYNCPT)) {
+		SUBMIT_ERR(context, "invalid flags '%#x'", args->flags);
+		goto unlock;
 	}
 
 	if (args->syncobj_in) {

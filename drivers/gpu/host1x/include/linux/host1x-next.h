@@ -290,6 +290,9 @@ struct host1x_job {
 	u32 syncpt_incrs;
 	u32 syncpt_end;
 
+	/* Non-job tracking related syncpoint */
+	struct host1x_syncpt *secondary_syncpt;
+
 	/* Completion waiter ref */
 	void *waiter;
 
