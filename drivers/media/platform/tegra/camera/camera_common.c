@@ -238,8 +238,7 @@ int camera_common_parse_clocks(struct device *dev,
 		err = of_property_read_string(np, "parent-clk",
 						  &pdata->parentclk_name);
 		if (err) {
-			dev_err(dev, "Failed to find parent-clk\n");
-			return -ENODATA;
+			dev_dbg(dev, "Failed to find parent-clk\n");
 		}
 		return 0;
 	}
