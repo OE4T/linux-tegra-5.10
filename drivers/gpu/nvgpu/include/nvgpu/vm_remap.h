@@ -155,16 +155,33 @@ static inline u64 nvgpu_vm_remap_page_size(struct nvgpu_vm_remap_op *op)
 {
 	u64 pagesize = 0;
 
-	/* validate_map/unmap_op ensures a single pagesize flag */
-	if (op->flags & NVGPU_VM_REMAP_OP_FLAGS_PAGESIZE_4K)
+	/* validate map/unmap_op ensures a single pagesize flag */
+	if (op->flags & NVGPU_VM_REMAP_OP_FLAGS_PAGESIZE_4K) {
 		pagesize = SZ_4K;
-	if (op->flags & NVGPU_VM_REMAP_OP_FLAGS_PAGESIZE_64K)
+	} else if (op->flags & NVGPU_VM_REMAP_OP_FLAGS_PAGESIZE_64K) {
 		pagesize = SZ_64K;
-	if (op->flags & NVGPU_VM_REMAP_OP_FLAGS_PAGESIZE_128K)
+	} else if (op->flags & NVGPU_VM_REMAP_OP_FLAGS_PAGESIZE_128K) {
 		pagesize = SZ_128K;
+	}
 
 	nvgpu_assert(pagesize);
 	return pagesize;
+}
+
+static inline u32 nvgpu_vm_remap_page_size_flag(u64 pagesize)
+{
+	u32 flag = 0;
+
+	if (pagesize == SZ_4K) {
+		flag = NVGPU_VM_REMAP_OP_FLAGS_PAGESIZE_4K;
+	} else if (pagesize == SZ_64K) {
+		flag = NVGPU_VM_REMAP_OP_FLAGS_PAGESIZE_64K;
+	} else if (pagesize == SZ_128K) {
+		flag = NVGPU_VM_REMAP_OP_FLAGS_PAGESIZE_128K;
+	}
+
+	nvgpu_assert(flag);
+	return flag;
 }
 
 /**

@@ -778,6 +778,8 @@ void nvgpu_vm_remap_vpool_destroy(struct vm_gk20a *vm,
 		u32 num_ops = 1;
 		int err;
 
+		op.flags = nvgpu_vm_remap_page_size_flag(
+			vm->gmmu_page_sizes[vm_area->pgsz_idx]);
 		op.virt_offset_in_pages = vpool->base_offset_in_pages;
 		op.num_pages = vpool->num_pages;
 
