@@ -1126,7 +1126,7 @@ struct osi_macsec_sc_info {
 	/** Secure channel identifier */
 	nveu8_t sci[OSI_SCI_LEN];
 	/** Secure association key */
-	nveu8_t sak[OSI_KEY_LEN_128];
+	nveu8_t sak[OSI_KEY_LEN_256];
 #ifdef MACSEC_KEY_PROGRAM
 	/** Secure association key */
 	nveu8_t hkey[OSI_KEY_LEN_128];
