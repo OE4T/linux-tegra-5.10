@@ -114,7 +114,7 @@ static const struct nla_policy nv_macsec_sa_genl_policy[NUM_NV_MACSEC_SA_ATTR] =
 	[NV_MACSEC_SA_ATTR_PN] = { .type = NLA_U32 },
 	[NV_MACSEC_SA_ATTR_LOWEST_PN] = { .type = NLA_U32 },
 	[NV_MACSEC_SA_ATTR_KEY] = { .type = NLA_BINARY,
-				    .len = OSI_KEY_LEN_128,},
+				    .len = OSI_KEY_LEN_256,},
 };
 
 static const struct nla_policy nv_macsec_tz_genl_policy[NUM_NV_MACSEC_TZ_ATTR] = {

@@ -910,7 +910,7 @@ static int macsec_create_rx_sa(struct sk_buff *skb, struct genl_info *info)
 	table_config->index = kt_idx;
 	kt_config.flags |= OSI_LUT_FLAGS_ENTRY_VALID;
 
-	for (i = 0; i < OSI_KEY_LEN_128; i++) {
+	for (i = 0; i < OSI_KEY_LEN_256; i++) {
 		kt_config.entry.sak[i] = rx_sa.sak[i];
 	}
 
@@ -1138,7 +1138,7 @@ static int macsec_create_tx_sa(struct sk_buff *skb, struct genl_info *info)
 	table_config->index = kt_idx;
 	kt_config.flags |= OSI_LUT_FLAGS_ENTRY_VALID;
 
-	for (i = 0; i < OSI_KEY_LEN_128; i++) {
+	for (i = 0; i < OSI_KEY_LEN_256; i++) {
 		kt_config.entry.sak[i] = tx_sa.sak[i];
 	}
 
