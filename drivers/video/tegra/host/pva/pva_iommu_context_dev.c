@@ -110,8 +110,12 @@ struct platform_device
 
 void nvpva_iommu_context_dev_release(struct platform_device *pdev)
 {
-	struct pva_iommu_ctx *ctx = platform_get_drvdata(pdev);
+	struct pva_iommu_ctx *ctx;
 
+	if (pdev == NULL)
+		return;
+
+	ctx = platform_get_drvdata(pdev);
 	mutex_lock(&pva_iommu_ctx_list_mutex);
 	ctx->allocated = false;
 	mutex_unlock(&pva_iommu_ctx_list_mutex);

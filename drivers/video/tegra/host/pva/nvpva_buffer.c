@@ -401,7 +401,7 @@ int nvpva_buffer_submit_pin_id(struct nvpva_buffers *nvpva_buffers,
 			goto submit_err;
 
 		vm->submit_map_count++;
-		if (!is_cntxt) {
+		if (!is_cntxt || (nvpva_buffers->pdev_cntxt == NULL)) {
 			paddr[i]  = vm->user_addr;
 			dmabuf[i] = vm->dmabuf;
 			psize[i]  = vm->user_size;
@@ -494,15 +494,17 @@ int nvpva_buffer_pin(struct nvpva_buffers *nvpva_buffers,
 		if (err)
 			goto free_uid;
 
-		err = nvpva_buffer_map(nvpva_buffers->pdev_cntxt,
-				       dmabufs[i],
-				       offset[i],
-				       size[i],
-				       vm,
-				       true);
-		if (err) {
-			nvpva_buffer_unmap(nvpva_buffers, vm);
-			goto free_uid;
+		if (nvpva_buffers->pdev_cntxt != NULL) {
+			err = nvpva_buffer_map(nvpva_buffers->pdev_cntxt,
+					       dmabufs[i],
+					       offset[i],
+					       size[i],
+					       vm,
+					       true);
+			if (err) {
+				nvpva_buffer_unmap(nvpva_buffers, vm);
+				goto free_uid;
+			}
 		}
 
 

@@ -65,7 +65,7 @@ client_context_search_locked(struct platform_device *pdev,
 
 		c_node->sid_index = nvpva_get_id_idx(dev, c_node->cntxt_dev) - 1;
 	} else {
-		c_node->cntxt_dev = pdev;
+		c_node->cntxt_dev = NULL;
 		c_node->sid_index = 0;
 	}
 
@@ -117,8 +117,7 @@ static void
 nvpva_client_context_free_locked(struct nvpva_client_context *client)
 {
 	nvpva_buffer_release(client->buffers);
-	if (client->pva->version == PVA_HW_GEN2)
-		nvpva_iommu_context_dev_release(client->cntxt_dev);
+	nvpva_iommu_context_dev_release(client->cntxt_dev);
 	mutex_destroy(&client->sema_val_lock);
 	client->buffers = NULL;
 	client->pva = NULL;
