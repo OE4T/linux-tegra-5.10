@@ -881,6 +881,28 @@ static void osd_core_printf(struct osi_core_priv_data *osi_core,
 }
 #endif
 
+static void osd_restart_lane_bringup(void *priv, unsigned int en_disable)
+{
+	struct ether_priv_data *pdata = (struct ether_priv_data *)priv;
+
+	if (en_disable == OSI_DISABLE) {
+		netif_tx_lock(pdata->ndev);
+		netif_tx_stop_all_queues(pdata->ndev);
+		netif_tx_unlock(pdata->ndev);
+		schedule_delayed_work(&pdata->set_speed_work, msecs_to_jiffies(500));
+		if (netif_msg_drv(pdata)) {
+			netdev_info(pdata->ndev, "Disable network Tx Queue\n");
+		}
+	} else if (en_disable == OSI_ENABLE) {
+		netif_tx_lock(pdata->ndev);
+		netif_tx_start_all_queues(pdata->ndev);
+		netif_tx_unlock(pdata->ndev);
+		if (netif_msg_drv(pdata)) {
+			netdev_info(pdata->ndev, "Enable network Tx Queue\n");
+		}
+	}
+}
+
 void ether_assign_osd_ops(struct osi_core_priv_data *osi_core,
 			  struct osi_dma_priv_data *osi_dma)
 {
@@ -892,7 +914,7 @@ void ether_assign_osd_ops(struct osi_core_priv_data *osi_core,
 #ifdef OSI_DEBUG
 	osi_core->osd_ops.printf = osd_core_printf;
 #endif
-
+	osi_core->osd_ops.restart_lane_bringup = osd_restart_lane_bringup;
 	osi_dma->osd_ops.transmit_complete = osd_transmit_complete;
 	osi_dma->osd_ops.receive_packet = osd_receive_packet;
 	osi_dma->osd_ops.realloc_buf = osd_realloc_buf;

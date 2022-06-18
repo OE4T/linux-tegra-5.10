@@ -623,6 +623,10 @@ struct ether_priv_data {
 	raw_spinlock_t txts_lock;
 	/** Ref count for ether_get_tx_ts_func */
 	atomic_t tx_ts_ref_cnt;
+	/** Ref count for set_speed_work_func */
+	atomic_t set_speed_ref_cnt;
+	/** flag to enable logs using ethtool */
+	u32 msg_enable;
 };
 
 /**

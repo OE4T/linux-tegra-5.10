@@ -884,6 +884,13 @@ static inline void set_speed_work_func(struct work_struct *work)
 		return;
 	}
 
+	if (atomic_read(&pdata->set_speed_ref_cnt) == 1) {
+		/* set_speed already going on either from workq or interrupt */
+		return;
+	}
+
+	atomic_set(&pdata->set_speed_ref_cnt, OSI_ENABLE);
+
 	/* Speed will be overwritten as per the PHY interface mode */
 	speed = phydev->speed;
 	/* MAC and XFI speed should match in XFI mode */
@@ -903,6 +910,7 @@ static inline void set_speed_work_func(struct work_struct *work)
 		netdev_dbg(dev, "Retry set speed\n");
 		schedule_delayed_work(&pdata->set_speed_work,
 				      msecs_to_jiffies(1000));
+		atomic_set(&pdata->set_speed_ref_cnt, OSI_DISABLE);
 		return;
 	}
 
@@ -918,6 +926,8 @@ static inline void set_speed_work_func(struct work_struct *work)
 	}
 	pdata->eee_active = ether_conf_eee(pdata, eee_enable);
 	netif_carrier_on(dev);
+
+	atomic_set(&pdata->set_speed_ref_cnt, OSI_DISABLE);
 }
 
 static void ether_en_dis_monitor_clks(struct ether_priv_data *pdata,
@@ -6567,6 +6577,7 @@ static int ether_probe(struct platform_device *pdev)
 	pdata->rx_m_enabled = false;
 	pdata->rx_pcs_m_enabled = false;
 	atomic_set(&pdata->tx_ts_ref_cnt, -1);
+	atomic_set(&pdata->set_speed_ref_cnt, OSI_DISABLE);
 #ifdef ETHER_NVGRO
 	__skb_queue_head_init(&pdata->mq);
 	__skb_queue_head_init(&pdata->fq);

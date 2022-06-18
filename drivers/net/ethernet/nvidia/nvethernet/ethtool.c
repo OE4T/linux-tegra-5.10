@@ -1603,6 +1603,20 @@ static int ether_set_ringparam(struct net_device *ndev,
 	return ret;
 }
 
+static unsigned int ether_get_msglevel(struct net_device *ndev)
+{
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+
+	return pdata->msg_enable;
+}
+
+static void ether_set_msglevel(struct net_device *ndev, u32 level)
+{
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+
+	pdata->msg_enable = level;
+}
+
 /**
  * @brief Set of ethtool operations
  */
@@ -1634,6 +1648,8 @@ static const struct ethtool_ops ether_ethtool_ops = {
 	.set_rxfh = ether_set_rxfh,
 	.get_ringparam = ether_get_ringparam,
 	.set_ringparam = ether_set_ringparam,
+	.get_msglevel = ether_get_msglevel,
+	.set_msglevel = ether_set_msglevel,
 };
 
 void ether_set_ethtool_ops(struct net_device *ndev)
