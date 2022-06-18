@@ -913,11 +913,11 @@ static long pva_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		err = pva_set_vpu_print_buffer_size(priv, buf);
 		break;
 	default:
-		err = -ENOIOCTLCMD;
+		err2 = -ENOIOCTLCMD;
 		break;
 	}
 
-	if ((_IOC_DIR(cmd) & _IOC_READ))
+	if ((err2 == 0) && (_IOC_DIR(cmd) & _IOC_READ))
 		err2 = copy_to_user((void __user *)arg, buf, _IOC_SIZE(cmd));
 
 	err = (err == 0) ? err2 : err;

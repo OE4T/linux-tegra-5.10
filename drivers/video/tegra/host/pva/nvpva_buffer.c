@@ -477,22 +477,23 @@ int nvpva_buffer_pin(struct nvpva_buffers *nvpva_buffers,
 			goto unpin;
 		}
 
-		uid = get_unique_id(nvpva_buffers);
-		if (uid == 0) {
+		vm->id = get_unique_id(nvpva_buffers);
+		if (vm->id  == 0) {
 			*eerr = NVPVA_ENOSLOT;
 			err = -EINVAL;
 			goto free_vm;
 		}
 
-		vm->id = uid;
 		err = nvpva_buffer_map(nvpva_buffers->pdev,
 				       dmabufs[i],
 				       offset[i],
 				       size[i],
 				       vm,
 				       false);
-		if (err)
-			goto free_uid;
+		if (err) {
+			put_unique_id(nvpva_buffers, uid);
+			goto free_vm;
+		}
 
 		if (nvpva_buffers->pdev_cntxt != NULL) {
 			err = nvpva_buffer_map(nvpva_buffers->pdev_cntxt,
@@ -503,10 +504,10 @@ int nvpva_buffer_pin(struct nvpva_buffers *nvpva_buffers,
 					       true);
 			if (err) {
 				nvpva_buffer_unmap(nvpva_buffers, vm);
-				goto free_uid;
+				put_unique_id(nvpva_buffers, uid);
+				goto unpin;
 			}
 		}
-
 
 		nvpva_buffer_insert_map_buffer(nvpva_buffers, vm);
 		nvpva_buffer_insert_map_buffer_id(nvpva_buffers, vm);
@@ -517,8 +518,6 @@ int nvpva_buffer_pin(struct nvpva_buffers *nvpva_buffers,
 
 	return err;
 
-free_uid:
-	put_unique_id(nvpva_buffers, uid);
 free_vm:
 	kfree(vm);
 unpin:
