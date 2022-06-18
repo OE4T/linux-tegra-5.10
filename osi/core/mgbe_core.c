@@ -3297,6 +3297,18 @@ static void mgbe_handle_mac_intrs(struct osi_core_priv_data *osi_core,
 		return;
 	}
 
+	/* Check for Link status change interrupt */
+	if ((mac_isr & MGBE_MAC_ISR_LSI) == OSI_ENABLE) {
+		/* For Local fault need to stop network data and restart the LANE bringup */
+		if ((mac_isr & MGBE_MAC_ISR_LS_MASK) == MGBE_MAC_ISR_LS_LOCAL_FAULT) {
+			osi_core->osd_ops.restart_lane_bringup(osi_core->osd, OSI_DISABLE);
+		} else if ((mac_isr & MGBE_MAC_ISR_LS_MASK) == MGBE_MAC_ISR_LS_LINK_OK) {
+			osi_core->osd_ops.restart_lane_bringup(osi_core->osd, OSI_ENABLE);
+		} else {
+			/* Do Nothing */
+		}
+	}
+
 #ifndef OSI_STRIPPED_LIB
 	mac_ier = osi_readla(osi_core,
 			     (unsigned char *)osi_core->base + MGBE_MAC_IER);

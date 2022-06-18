@@ -1130,6 +1130,8 @@ struct osd_core_ops {
 		       nveu32_t type,
 		       const char *fmt, ...);
 #endif
+	/** Lane bringup restart callback */
+	void (*restart_lane_bringup)(void *priv, unsigned int en_disable);
 };
 
 #ifdef MACSEC_SUPPORT
