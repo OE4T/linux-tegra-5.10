@@ -440,14 +440,12 @@ int nvpva_buffer_pin(struct nvpva_buffers *nvpva_buffers,
 	struct nvpva_vm_buffer *vm;
 	int i = 0;
 	int err = 0;
-	u32 uid;
 
 	*eerr = 0;
 	mutex_lock(&nvpva_buffers->mutex);
 
 	for (i = 0; i < count; i++) {
 		u64 limit;
-		uid = 0;
 
 		if (U64_MAX - size[i] < offset[i]) {
 			err = -EFAULT;
@@ -491,7 +489,7 @@ int nvpva_buffer_pin(struct nvpva_buffers *nvpva_buffers,
 				       vm,
 				       false);
 		if (err) {
-			put_unique_id(nvpva_buffers, uid);
+			put_unique_id(nvpva_buffers, vm->id);
 			goto free_vm;
 		}
 
@@ -504,7 +502,7 @@ int nvpva_buffer_pin(struct nvpva_buffers *nvpva_buffers,
 					       true);
 			if (err) {
 				nvpva_buffer_unmap(nvpva_buffers, vm);
-				put_unique_id(nvpva_buffers, uid);
+				put_unique_id(nvpva_buffers, vm->id);
 				goto unpin;
 			}
 		}
