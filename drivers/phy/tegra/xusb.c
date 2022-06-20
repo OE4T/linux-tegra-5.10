@@ -1504,16 +1504,6 @@ int tegra_xusb_padctl_usb3_set_lfps_detect(struct tegra_xusb_padctl *padctl,
 }
 EXPORT_SYMBOL_GPL(tegra_xusb_padctl_usb3_set_lfps_detect);
 
-int tegra_xusb_padctl_set_vbus_override(struct tegra_xusb_padctl *padctl,
-							bool val)
-{
-	if (padctl->soc->ops->vbus_override)
-		return padctl->soc->ops->vbus_override(padctl, val);
-
-	return -ENOTSUPP;
-}
-EXPORT_SYMBOL_GPL(tegra_xusb_padctl_set_vbus_override);
-
 int tegra_xusb_padctl_vbus_power_on(struct phy *phy)
 {
 	struct tegra_xusb_lane *lane;

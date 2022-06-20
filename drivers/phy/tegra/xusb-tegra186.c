@@ -1795,7 +1795,6 @@ static const struct tegra_xusb_padctl_ops tegra186_xusb_padctl_ops = {
 	.remove = tegra186_xusb_padctl_remove,
 	.suspend_noirq = tegra186_xusb_padctl_suspend_noirq,
 	.resume_noirq = tegra186_xusb_padctl_resume_noirq,
-	.vbus_override = tegra186_xusb_padctl_vbus_override,
 	.vbus_power_on = tegra186_xusb_padctl_vbus_power_on,
 	.vbus_power_off = tegra186_xusb_padctl_vbus_power_off,
 	.utmi_pad_power_on = tegra_phy_xusb_utmi_pad_power_on,
