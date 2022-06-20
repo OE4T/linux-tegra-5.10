@@ -1418,62 +1418,6 @@ static inline void free_tx_ts(struct osi_core_priv_data *osi_core,
 }
 
 /**
- * @brief Parses internal ts structure array and update time stamp if packet
- *   id matches.
- * Algorithm:
- * - Check for if any timestamp with packet ID in list and valid
- * - update sec and nsec in timestamp structure
- * - reset node to reuse for next call
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in,out] ts: osi core ts structure, pkt_id is input and time is output.
- *
- * @retval 0 on success
- * @retval -1 any other failure.
- */
-static inline nve32_t get_tx_ts(struct osi_core_priv_data *osi_core,
-				struct osi_core_tx_ts *ts)
-{
-	struct core_local *l_core = (struct core_local *)(void *)osi_core;
-	struct osi_core_tx_ts *temp = l_core->tx_ts_head.next;
-	struct osi_core_tx_ts *head = &l_core->tx_ts_head;
-	nve32_t ret = -1;
-	nveu32_t count = 0U;
-
-	if (__sync_fetch_and_add(&l_core->ts_lock, 1) == 1U) {
-		/* mask return as initial value is returned always */
-		(void)__sync_fetch_and_sub(&l_core->ts_lock, 1);
-		osi_core->xstats.ts_lock_del_fail =
-				osi_update_stats_counter(
-				osi_core->xstats.ts_lock_del_fail, 1U);
-		goto done;
-	}
-
-	while ((temp != head) && (count < MAX_TX_TS_CNT)) {
-		if ((temp->pkt_id == ts->pkt_id) &&
-		    (temp->in_use != OSI_NONE)) {
-			ts->sec = temp->sec;
-			ts->nsec = temp->nsec;
-			/* remove temp node from the link */
-			temp->next->prev = temp->prev;
-			temp->prev->next =  temp->next;
-			/* Clear in_use fields */
-			temp->in_use = OSI_DISABLE;
-			ret = 0;
-			break;
-		}
-		count++;
-		temp = temp->next;
-	}
-
-	/* mask return as initial value is returned always */
-	(void)__sync_fetch_and_sub(&l_core->ts_lock, 1);
-done:
-	return ret;
-}
-
-#if DRIFT_CAL
-/**
  * @brief read time counters from HW register
  *
  * Algorithm:
@@ -1511,6 +1455,92 @@ static void read_sec_ns(void *addr, nveu32_t mac,
 	}
 }
 
+/**
+ * @brief Parses internal ts structure array and update time stamp if packet
+ *   id matches.
+ * Algorithm:
+ * - Check for if any timestamp with packet ID in list and valid
+ * - update sec and nsec in timestamp structure
+ * - reset node to reuse for next call
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in,out] ts: osi core ts structure, pkt_id is input and time is output.
+ *
+ * @retval 0 on success
+ * @retval -1 any other failure.
+ */
+static inline nve32_t get_tx_ts(struct osi_core_priv_data *osi_core,
+				struct osi_core_tx_ts *ts)
+{
+	struct core_local *l_core = (struct core_local *)(void *)osi_core;
+	struct osi_core_tx_ts *temp = l_core->tx_ts_head.next;
+	struct osi_core_tx_ts const *head = &l_core->tx_ts_head;
+	nve32_t ret = -1;
+	nveu32_t count = 0U;
+#if !defined(__QNX__)
+	nveu32_t nsec, sec, temp_nsec;
+	nvel64_t temp_val = 0LL;
+	nvel64_t ts_val = 0LL;
+
+	read_sec_ns(osi_core->base, osi_core->mac, &sec, &nsec);
+	ts_val = (nvel64_t)(sec * OSI_1SEC_TO_NSEC) + (nvel64_t)nsec;
+#endif
+
+	if (__sync_fetch_and_add(&l_core->ts_lock, 1) == 1U) {
+		/* mask return as initial value is returned always */
+		(void)__sync_fetch_and_sub(&l_core->ts_lock, 1);
+		osi_core->xstats.ts_lock_del_fail =
+				osi_update_stats_counter(
+				osi_core->xstats.ts_lock_del_fail, 1U);
+		goto done;
+	}
+
+	while ((temp != head) && (count < MAX_TX_TS_CNT)) {
+#if !defined(__QNX__)
+		temp_nsec = temp->nsec & ETHER_NSEC_MASK;
+		temp_val = (nvel64_t)(temp->sec * OSI_1SEC_TO_NSEC) + (nvel64_t)temp_nsec;
+
+		if (((ts_val - temp_val) > (2LL * OSI_1SEC_TO_NSEC)) &&
+		    (temp->in_use != OSI_NONE)) {
+			/* remove old node from the link */
+			temp->next->prev = temp->prev;
+			temp->prev->next =  temp->next;
+			/* Clear in_use fields */
+			temp->in_use = OSI_DISABLE;
+			OSI_CORE_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
+				      "Removing stale TS from queue pkt_id\n",
+				      temp->pkt_id);
+			count++;
+			temp = temp->next;
+			continue;
+		} else
+#endif
+		if ((temp->pkt_id == ts->pkt_id) &&
+			   (temp->in_use != OSI_NONE)) {
+			ts->sec = temp->sec;
+			ts->nsec = temp->nsec;
+			/* remove temp node from the link */
+			temp->next->prev = temp->prev;
+			temp->prev->next =  temp->next;
+			/* Clear in_use fields */
+			temp->in_use = OSI_DISABLE;
+			ret = 0;
+			break;
+		} else {
+			/* empty case */
+		}
+
+		count++;
+		temp = temp->next;
+	}
+
+	/* mask return as initial value is returned always */
+	(void)__sync_fetch_and_sub(&l_core->ts_lock, 1);
+done:
+	return ret;
+}
+
+#if DRIFT_CAL
 /**
  * @brief calculate time drift between primary and secondary
  *  interface.

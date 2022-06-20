@@ -79,6 +79,14 @@ typedef my_lint_64		nvel64_t;
 /** @} */
 
 /**
+ * @addtogroup PTP PTP related information
+ *
+ *@brief 1 Second in NenoSec
+ */
+#define OSI_1SEC_TO_NSEC		1000000000LL
+/** @} */
+
+/**
  * @addtogroup EQOS_PTP PTP Helper MACROS
  *
  * @brief EQOS PTP MAC Time stamp control reg bit fields
