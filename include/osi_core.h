@@ -1509,41 +1509,6 @@ struct osi_core_priv_data {
 };
 
 /**
- * @brief osi_poll_for_mac_reset_complete - Poll Software reset bit in MAC HW
- *
- * @note
- * Algorithm:
- *  - Invokes EQOS routine to check for SWR (software reset)
- *    bit in DMA Basic mode register to make sure IP reset was successful.
- *
- * @param[in] osi_core: OSI Core private data structure.
- *
- * @pre MAC needs to be out of reset and proper clock configured.
- *
- * @note
- * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_004
- *
- * @usage
- * - Allowed context for the API call
- *  - Interrupt handler: No
- *  - Signal handler: No
- *  - Thread safe: No
- *  - Async/Sync: Sync
- *  - Required Privileges: None
- * - API Group:
- *  - Initialization: Yes
- *  - Run time: No
- *  - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-
-nve32_t osi_poll_for_mac_reset_complete(
-			struct osi_core_priv_data *const osi_core);
-
-/**
  * @brief osi_hw_core_init - EQOS MAC, MTL and common DMA initialization.
  * 
  * @note

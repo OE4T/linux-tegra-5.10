@@ -87,8 +87,6 @@ struct if_core_ops {
  * @brief Initialize MAC & MTL core operations.
  */
 struct core_ops {
-	/** Called to poll for software reset bit */
-	nve32_t (*poll_for_swr)(struct osi_core_priv_data *const osi_core);
 	/** Called to initialize MAC and MTL registers */
 	nve32_t (*core_init)(struct osi_core_priv_data *const osi_core,
 			     const nveu32_t tx_fifo_size,

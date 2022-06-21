@@ -25,6 +25,49 @@
 #include "mgbe_core.h"
 #include "eqos_core.h"
 
+static inline nve32_t poll_check(struct osi_core_priv_data *const osi_core, nveu8_t *addr,
+				 nveu32_t bit_check, nveu32_t *value)
+{
+	nveu32_t retry = RETRY_COUNT;
+	nve32_t cond = COND_NOT_MET;
+	nveu32_t count;
+	nve32_t ret = 0;
+
+	/* Poll Until Poll Condition */
+	count = 0;
+	while (cond == COND_NOT_MET) {
+		if (count > retry) {
+			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+				     "poll_check: timeout\n", 0ULL);
+			ret = -1;
+			goto fail;
+		}
+
+		count++;
+
+		*value = osi_readla(osi_core, addr);
+		if ((*value & bit_check) == OSI_NONE) {
+			cond = COND_MET;
+		} else {
+			osi_core->osd_ops.udelay(OSI_DELAY_1000US);
+		}
+	}
+fail:
+	return ret;
+}
+
+
+nve32_t hw_poll_for_swr(struct osi_core_priv_data *const osi_core)
+{
+	nveu32_t dma_mode_val = 0U;
+	const nveu32_t dma_mode[2] = { EQOS_DMA_BMR, MGBE_DMA_MODE };
+	void *addr = osi_core->base;
+
+	return poll_check(osi_core, ((nveu8_t *)addr + dma_mode[osi_core->mac]),
+			  DMA_MODE_SWR, &dma_mode_val);
+}
+
+
 /**
  * @brief hw_est_read - indirect read the GCL to Software own list
  * (SWOL)

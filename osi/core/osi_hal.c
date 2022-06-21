@@ -25,6 +25,7 @@
 #include "core_local.h"
 #include "../osi/common/common.h"
 #include "vlan_filter.h"
+#include "core_common.h"
 #include "frp.h"
 #ifdef OSI_DEBUG
 #include "debug.h"
@@ -198,18 +199,6 @@ static nve32_t osi_hal_init_core_ops(struct osi_core_priv_data *const osi_core)
 	l_core->init_done = OSI_ENABLE;
 
 	return 0;
-}
-
-nve32_t osi_poll_for_mac_reset_complete(
-				      struct osi_core_priv_data *const osi_core)
-{
-	struct core_local *l_core = (struct core_local *)(void *)osi_core;
-
-	if (validate_args(osi_core, l_core) < 0) {
-		return -1;
-	}
-
-	return l_core->ops_p->poll_for_swr(osi_core);
 }
 
 /**
@@ -1982,7 +1971,7 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 
 #endif /* !OSI_STRIPPED_LIB */
 	case OSI_CMD_POLL_FOR_MAC_RST:
-		ret = ops_p->poll_for_swr(osi_core);
+		ret = hw_poll_for_swr(osi_core);
 		break;
 
 	case OSI_CMD_START_MAC:

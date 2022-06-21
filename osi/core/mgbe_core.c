@@ -156,55 +156,6 @@ static nve32_t mgbe_config_fw_err_pkts(struct osi_core_priv_data *const osi_core
 }
 
 /**
- * @brief mgbe_poll_for_swr - Poll for software reset (SWR bit in DMA Mode)
- *
- * Algorithm: CAR reset will be issued through MAC reset pin.
- *	  Waits for SWR reset to be cleared in DMA Mode register.
- *
- * @param[in] osi_core: OSI core private data structure.
- *
- * @note MAC needs to be out of reset and proper clock configured.
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static nve32_t mgbe_poll_for_swr(struct osi_core_priv_data *const osi_core)
-{
-	void *addr = osi_core->base;
-	nveu32_t retry = 1000;
-	nveu32_t count;
-	nveu32_t dma_bmr = 0;
-	nve32_t cond = 1;
-	nveu32_t pre_si = osi_core->pre_si;
-
-	/* Performing software reset */
-	if (pre_si == OSI_ENABLE) {
-		osi_writela(osi_core, OSI_ENABLE,
-			    (nveu8_t *)addr + MGBE_DMA_MODE);
-	}
-
-	/* Poll Until Poll Condition */
-	count = 0;
-	while (cond == 1) {
-		if (count > retry) {
-			return -1;
-		}
-
-		count++;
-
-		dma_bmr = osi_readla(osi_core, (nveu8_t *)addr + MGBE_DMA_MODE);
-		if ((dma_bmr & MGBE_DMA_MODE_SWR) == OSI_NONE) {
-			cond = 0;
-		} else {
-			/* sleep if SWR is set */
-			osi_core->osd_ops.msleep(1U);
-		}
-	}
-
-	return 0;
-}
-
-/**
  * @brief mgbe_calculate_per_queue_fifo - Calculate per queue FIFO size
  *
  * Algorithm: Total Tx/Rx FIFO size which is read from
@@ -6205,7 +6156,6 @@ exit:
  */
 void mgbe_init_core_ops(struct core_ops *ops)
 {
-	ops->poll_for_swr = mgbe_poll_for_swr;
 	ops->core_init = mgbe_core_init;
 	ops->core_deinit = mgbe_core_deinit;
 	ops->validate_regs = mgbe_validate_core_regs;

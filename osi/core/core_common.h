@@ -38,6 +38,7 @@
 #define MTL_EST_ERR0			OSI_BIT(20)
 #define MTL_EST_CONTROL_EEST		OSI_BIT(0)
 #define MTL_EST_STATUS_SWOL		OSI_BIT(7)
+#define DMA_MODE_SWR			OSI_BIT(0)
 
 /**
  * @addtogroup typedef related info
@@ -58,4 +59,5 @@ struct est_read {
 nve32_t gcl_validate(struct osi_core_priv_data *const osi_core,
 		     struct osi_est_config *const est,
 		     const nveu32_t *btr, nveu32_t mac);
+nve32_t hw_poll_for_swr(struct osi_core_priv_data *const osi_core);
 #endif /* INCLUDED_CORE_COMMON_H */

@@ -553,69 +553,6 @@ static nve32_t eqos_config_fw_err_pkts(
 }
 
 /**
- * @brief eqos_poll_for_swr - Poll for software reset (SWR bit in DMA Mode)
- *
- * @note
- * Algorithm:
- *  - Waits for SWR reset to be cleared in DMA Mode register for max polling count of 1000.
- *   - Sleeps for 1 milli sec for each iteration.
- *  - Refer to EQOS column of <<RM_04, (sequence diagram)>> for API details.
- *  - TraceID: ETHERNET_NVETHERNETRM_004
- *
- * @param[in] osi_core: OSI core private data structure.Used param base, osd_ops.usleep_range.
- *
- * @pre MAC needs to be out of reset and proper clock configured.
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: No
- * - De-initialization: No
- *
- * @retval 0 on success if reset is success
- * @retval -1 on if reset didnot happen in timeout.
- */
-static nve32_t eqos_poll_for_swr(struct osi_core_priv_data *const osi_core)
-{
-	void *addr = osi_core->base;
-	nveu32_t retry = RETRY_COUNT;
-	nveu32_t count;
-	nveu32_t dma_bmr = 0;
-	nve32_t cond = COND_NOT_MET;
-	nveu32_t pre_si = osi_core->pre_si;
-
-	if (pre_si == OSI_ENABLE) {
-		osi_writela(osi_core, OSI_ENABLE,
-			    (nveu8_t *)addr + EQOS_DMA_BMR);
-	}
-	/* add delay of 10 usec */
-	osi_core->osd_ops.usleep_range(9, 11);
-
-	/* Poll Until Poll Condition */
-	count = 0;
-	while (cond == COND_NOT_MET) {
-		if (count > retry) {
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
-				     "poll_for_swr: timeout\n", 0ULL);
-			return -1;
-		}
-
-		count++;
-
-
-		dma_bmr = osi_readla(osi_core,
-				     (nveu8_t *)addr + EQOS_DMA_BMR);
-		if ((dma_bmr & EQOS_DMA_BMR_SWR) != EQOS_DMA_BMR_SWR) {
-			cond = COND_MET;
-		} else {
-			osi_core->osd_ops.msleep(1U);
-		}
-	}
-
-	return 0;
-}
-
-/**
  * @brief eqos_set_speed - Set operating speed
  *
  * @note
@@ -6869,7 +6806,6 @@ void *eqos_get_core_safety_config(void)
 
 void eqos_init_core_ops(struct core_ops *ops)
 {
-	ops->poll_for_swr = eqos_poll_for_swr;
 	ops->core_init = eqos_core_init;
 	ops->core_deinit = eqos_core_deinit;
 	ops->start_mac = eqos_start_mac;

@@ -371,7 +371,6 @@
  * @brief consists of corresponding MGBE MAC, MTL register bit values
  * @{
  */
-#define MGBE_DMA_MODE_SWR			OSI_BIT(0)
 #define MGBE_MTL_TCQ_ETS_CR_CC			OSI_BIT(3)
 #define MGBE_MTL_TCQ_ETS_CR_CC_SHIFT		3U
 #define MGBE_MTL_TCQ_ETS_CR_AVALG		(OSI_BIT(1) | OSI_BIT(0))
