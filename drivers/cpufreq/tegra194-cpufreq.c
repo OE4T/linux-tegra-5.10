@@ -86,6 +86,7 @@ struct tegra_cpufreq_soc {
 	int maxcpus_per_cluster;
 	phys_addr_t actmon_cntr_base;
 	enum emc_scaling_mngr emc_scal_mgr;
+	bool register_cpuhp_state;
 };
 
 struct tegra194_cpufreq_data {
@@ -113,6 +114,7 @@ struct tegra_bwmgr_client {
 static struct cpu_emc_mapping *cpu_emc_map_ptr;
 static bool tegra_hypervisor_mode;
 static int cpufreq_single_policy;
+static enum cpuhp_state hp_state;
 
 static void tegra_get_cpu_mpidr(void *mpidr)
 {
@@ -202,6 +204,7 @@ const struct tegra_cpufreq_soc tegra234_cpufreq_soc = {
 	.actmon_cntr_base = 0x9000,
 	.maxcpus_per_cluster = 4,
 	.emc_scal_mgr = ICC,
+	.register_cpuhp_state = true,
 };
 
 const struct tegra_cpufreq_soc tegra239_cpufreq_soc = {
@@ -209,6 +212,7 @@ const struct tegra_cpufreq_soc tegra239_cpufreq_soc = {
 	.actmon_cntr_base = 0x4000,
 	.maxcpus_per_cluster = 8,
 	.emc_scal_mgr = ICC,
+	.register_cpuhp_state = true,
 };
 
 static void tegra194_get_cpu_cluster_id(u32 cpu, u32 *cpuid, u32 *clusterid)
@@ -545,6 +549,7 @@ const struct tegra_cpufreq_soc tegra194_cpufreq_soc = {
 	.ops = &tegra194_cpufreq_ops,
 	.maxcpus_per_cluster = 2,
 	.emc_scal_mgr = BWMGR,
+	.register_cpuhp_state = false,
 };
 
 static void tegra194_cpufreq_free_resources(void)
@@ -654,6 +659,24 @@ static bool tegra_cpufreq_single_policy(struct device_node *dn)
 		return 0;
 }
 
+static int tegra23x_cpufreq_offline(unsigned int cpu)
+{
+	struct tegra194_cpufreq_data *data = cpufreq_get_driver_data();
+	u64 mpidr_id;
+	u32 cpuid, clusterid;
+	void __iomem *freq_core_reg;
+
+	// Caculate the base address of the target cpu core register
+	data->soc->ops->get_cpu_cluster_id(cpu, &cpuid, &clusterid);
+	mpidr_id = (clusterid * data->soc->maxcpus_per_cluster) + cpuid;
+	freq_core_reg = SCRATCH_FREQ_CORE_REG(data, mpidr_id);
+
+	// Put cpu core to fmin
+	writel(data->tables[clusterid]->driver_data, freq_core_reg);
+
+	return 0;
+}
+
 static int tegra194_cpufreq_probe(struct platform_device *pdev)
 {
 	const struct tegra_cpufreq_soc *soc;
@@ -759,6 +782,16 @@ static int tegra194_cpufreq_probe(struct platform_device *pdev)
 		}
 	}
 
+	if (data->soc->register_cpuhp_state) {
+		hp_state = cpuhp_setup_state_nocalls(CPUHP_AP_ONLINE_DYN,
+							"tegra23x_cpufreq:online", NULL,
+							tegra23x_cpufreq_offline);
+		if (hp_state < 0) {
+			dev_info(&pdev->dev, "fail to register cpuhp state\n");
+			goto err_register_cpuhp_state;
+		}
+	}
+
 	tegra194_cpufreq_driver.driver_data = data;
 
 	err = cpufreq_register_driver(&tegra194_cpufreq_driver);
@@ -771,6 +804,7 @@ static int tegra194_cpufreq_probe(struct platform_device *pdev)
 		return err;
 	}
 
+err_register_cpuhp_state:
 err_free_res:
 	tegra194_cpufreq_free_resources();
 put_bpmp:
@@ -785,6 +819,8 @@ static int tegra194_cpufreq_remove(struct platform_device *pdev)
 {
 	cpufreq_unregister_driver(&tegra194_cpufreq_driver);
 	tegra194_cpufreq_free_resources();
+	if (hp_state > 0)
+		cpuhp_remove_state_nocalls(hp_state);
 
 	return 0;
 }
