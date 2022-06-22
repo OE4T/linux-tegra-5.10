@@ -126,11 +126,6 @@
 #define ETHER_DEFAULT_PTP_QUEUE		3U
 
 /**
- * @brief  TX timestamp miss threshold
- */
-#define TS_MISS_THRESHOLD		200U
-
-/**
  * @brief SEC to MSEC converter
  */
 #define ETHER_SECTOMSEC			1000U
@@ -626,6 +621,8 @@ struct ether_priv_data {
 #endif
 	/** Protect critical section of TX TS SKB list */
 	raw_spinlock_t txts_lock;
+	/** Ref count for ether_get_tx_ts_func */
+	atomic_t tx_ts_ref_cnt;
 };
 
 /**
@@ -800,6 +797,18 @@ int ether_tc_setup_cbs(struct ether_priv_data *pdata,
 		       struct tc_cbs_qopt_offload *qopt);
 
 #endif
+
+/**
+ * @brief Get Tx done timestamp from OSI and update in skb
+ *
+ * @param[in] pdata: Pointer to private data structure.
+ *
+ * @note Network interface should be up
+ *
+ * @retval 0 on success
+ * @retval EAGAIN on Failure
+ */
+int ether_get_tx_ts(struct ether_priv_data *pdata);
 #ifdef ETHER_NVGRO
 void ether_nvgro_purge_timer(struct timer_list *t);
 #endif /* ETHER_NVGRO */

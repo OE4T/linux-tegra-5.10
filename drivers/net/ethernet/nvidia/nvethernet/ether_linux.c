@@ -21,33 +21,25 @@
 #endif
 #include "ether_linux.h"
 
-/**
- * @brief Gets timestamp and update skb
- *
- * Algorithm:
- * - Parse through tx_ts_skb_head.
- * - Issue osi_handle_ioctl(OSI_CMD_GET_TX_TS) to read timestamp.
- * - Update skb with timestamp and give to network stack
- * - Free skb and node.
- *
- * @param[in] work: Work to handle SKB list update
- */
-static void ether_get_tx_ts(struct work_struct *work)
+int ether_get_tx_ts(struct ether_priv_data *pdata)
 {
-	struct delayed_work *dwork = to_delayed_work(work);
-	struct ether_priv_data *pdata = container_of(dwork,
-			struct ether_priv_data, tx_ts_work);
 	struct list_head *head_node, *temp_head_node;
 	struct skb_shared_hwtstamps shhwtstamp;
 	struct osi_ioctl ioctl_data = {};
-	static unsigned int miss_count;
 	unsigned long long nsec = 0x0;
 	struct ether_tx_ts_skb_list *pnode;
 	int ret = -1;
 	unsigned long flags;
+	bool pending = false;
+
+	if (!atomic_inc_and_test(&pdata->tx_ts_ref_cnt)) {
+		/* Tx time stamp consumption already going on either from workq or func */
+		return 0;
+	}
 
 	if (list_empty(&pdata->tx_ts_skb_head)) {
-		return;
+		atomic_set(&pdata->tx_ts_ref_cnt, -1);
+		return 0;
 	}
 
 	list_for_each_safe(head_node, temp_head_node,
@@ -62,7 +54,6 @@ static void ether_get_tx_ts(struct work_struct *work)
 		ioctl_data.tx_ts.pkt_id = pnode->pktid;
 		ret = osi_handle_ioctl(pdata->osi_core, &ioctl_data);
 		if (ret == 0) {
-			miss_count = 0U;
 			/* get time stamp form ethernet server */
 			dev_dbg(pdata->dev, "%s() pktid = %x, skb = %p\n",
 				__func__, pnode->pktid, pnode->skb);
@@ -95,12 +86,37 @@ update_skb:
 
 		} else {
 			dev_dbg(pdata->dev, "Unable to retrieve TS from OSI\n");
-			miss_count++;
-			if (miss_count < TS_MISS_THRESHOLD) {
-				schedule_delayed_work(&pdata->tx_ts_work,
-					   msecs_to_jiffies(ETHER_TS_MS_TIMER));
-			}
+			pending = true;
 		}
+	}
+
+	if (pending)
+		ret = -EAGAIN;
+
+	atomic_set(&pdata->tx_ts_ref_cnt, -1);
+	return ret;
+}
+
+/**
+ * @brief Gets timestamp and update skb
+ *
+ * Algorithm:
+ * - Parse through tx_ts_skb_head.
+ * - Issue osi_handle_ioctl(OSI_CMD_GET_TX_TS) to read timestamp.
+ * - Update skb with timestamp and give to network stack
+ * - Free skb and node.
+ *
+ * @param[in] work: Work to handle SKB list update
+ */
+static void ether_get_tx_ts_work(struct work_struct *work)
+{
+	struct delayed_work *dwork = to_delayed_work(work);
+	struct ether_priv_data *pdata = container_of(dwork,
+					struct ether_priv_data, tx_ts_work);
+
+	if (ether_get_tx_ts(pdata) < 0) {
+		schedule_delayed_work(&pdata->tx_ts_work,
+				      msecs_to_jiffies(ETHER_TS_MS_TIMER));
 	}
 }
 
@@ -6595,9 +6611,10 @@ static int ether_probe(struct platform_device *pdev)
 	INIT_DELAYED_WORK(&pdata->set_speed_work, set_speed_work_func);
 	osi_core->hw_feature = &pdata->hw_feat;
 	INIT_LIST_HEAD(&pdata->tx_ts_skb_head);
-	INIT_DELAYED_WORK(&pdata->tx_ts_work, ether_get_tx_ts);
+	INIT_DELAYED_WORK(&pdata->tx_ts_work, ether_get_tx_ts_work);
 	pdata->rx_m_enabled = false;
 	pdata->rx_pcs_m_enabled = false;
+	atomic_set(&pdata->tx_ts_ref_cnt, -1);
 #ifdef ETHER_NVGRO
 	__skb_queue_head_init(&pdata->mq);
 	__skb_queue_head_init(&pdata->fq);
