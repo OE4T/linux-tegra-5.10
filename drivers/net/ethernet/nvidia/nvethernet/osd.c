@@ -799,8 +799,11 @@ static void osd_transmit_complete(void *priv, const struct osi_tx_swcx *swcx,
 		if ((txdone_pkt_cx->flags & OSI_TXDONE_CX_TS_DELAYED) ==
 		    OSI_TXDONE_CX_TS_DELAYED) {
 			add_skb_node(pdata, skb, txdone_pkt_cx->pktid);
-			schedule_delayed_work(&pdata->tx_ts_work,
-					      msecs_to_jiffies(ETHER_TS_MS_TIMER));
+			/* Consume the timestamp immediately if already available */
+			if (ether_get_tx_ts(pdata) < 0)
+				schedule_delayed_work(&pdata->tx_ts_work,
+						      msecs_to_jiffies(ETHER_TS_MS_TIMER));
+
 		} else {
 			dev_consume_skb_any(skb);
 		}
