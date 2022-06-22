@@ -216,13 +216,13 @@ static int ivc_macsec_dbg_events_config(
 
 	ret = osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
 	if (ret != 0) {
-		return ret;
+		goto exit;
 	}
 
 	msg.status = osi_memcpy((void *)dbg_buf_config,
 				(void *)&msg.data.dbg_buf_config,
 				sizeof(struct osi_macsec_dbg_buf_config));
-
+exit:
 	return ret;
 }
 
@@ -252,13 +252,13 @@ static int ivc_macsec_dbg_buf_config(
 
 	ret = osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
 	if (ret != 0) {
-		return ret;
+		goto exit;
 	}
 
 	msg.status = osi_memcpy((void *)dbg_buf_config,
 				(void *) &msg.data.dbg_buf_config,
 				sizeof(struct osi_macsec_dbg_buf_config));
-
+exit:
 	return ret;
 }
 
@@ -360,10 +360,11 @@ static int ivc_macsec_config(struct osi_core_priv_data *const osi_core,
 
 	ret = osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
 	if (ret != 0) {
-		return ret;
+		goto exit;
 	}
 
 	*kt_idx = msg.data.macsec_cfg.kt_idx;
+exit:
 	return ret;
 }
 
@@ -525,12 +526,13 @@ static nve32_t ivc_macsec_lut_config(struct osi_core_priv_data *const osi_core,
 
 	ret = osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
 	if (ret != 0) {
-		return ret;
+		goto exit;
 	}
 
 	msg.status = osi_memcpy((void *)lut_config,
 				(void *)&msg.data.lut_config,
 				sizeof(struct osi_macsec_lut_config));
+exit:
 	return ret;
 }
 

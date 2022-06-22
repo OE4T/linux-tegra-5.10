@@ -41,7 +41,9 @@
 #define OSI_AN2_VALID			OSI_BIT(2)
 #define OSI_AN3_VALID			OSI_BIT(3)
 #define OSI_MAX_NUM_SA			4U
+#ifdef DEBUG_MACSEC
 #define OSI_CURR_AN_MAX 		3
+#endif /* DEBUG_MACSEC */
 #define OSI_KEY_INDEX_MAX		31U
 #define OSI_PN_MAX_DEFAULT		0xFFFFFFFFU
 #define OSI_PN_THRESHOLD_DEFAULT	0xC0000000U
@@ -120,8 +122,6 @@
  * @brief Helper macros for debug buffer table CONFIG register programming
  * @{
  */
-#define OSI_DBG_TBL_READ	OSI_LUT_READ
-#define OSI_DBG_TBL_WRITE	OSI_LUT_WRITE
 /* Num of Tx debug buffers */
 #define OSI_TX_DBG_BUF_IDX_MAX		12U
 /* Num of Rx debug buffers */
@@ -159,20 +159,15 @@
  */
 #define OSI_MACSEC_TX_EN	OSI_BIT(0)
 #define OSI_MACSEC_RX_EN	OSI_BIT(1)
-/* MACSEC SECTAG + ICV + 2B ethertype adds upto 34B */
-#define MACSEC_TAG_ICV_LEN		34U
-/* MACSEC TZ key config cmd */
-#define OSI_MACSEC_CMD_TZ_CONFIG	0x1
-/* MACSEC TZ key table entries reset cmd */
-#define OSI_MACSEC_CMD_TZ_KT_RESET	0x2
 /** @} */
 
 /**
  * @brief Indicates different operations on MACSEC SA
  */
+#ifdef MACSEC_KEY_PROGRAM
 #define OSI_CREATE_SA           1U
+#endif /* MACSEC_KEY_PROGRAM */
 #define OSI_ENABLE_SA           2U
-#define OSI_DISABLE_SA          3U
 
 /**
  * @brief MACSEC SA State LUT entry outputs structure
@@ -238,6 +233,7 @@ struct osi_macsec_table_config {
 	nveu16_t index;
 };
 
+#if defined(MACSEC_KEY_PROGRAM) || defined(LINUX_OS)
 /**
  * @brief MACSEC Key Table entry structure
  */
@@ -247,6 +243,7 @@ struct osi_kt_entry {
 	/** Indicates Hash-key */
 	nveu8_t h[OSI_KEY_LEN_128];
 };
+#endif /* MACSEC_KEY_PROGRAM */
 
 /**
  * @brief MACSEC BYP/SCI LUT entry inputs structure
@@ -296,6 +293,7 @@ struct osi_macsec_lut_config {
 	struct osi_sa_state_outputs sa_state_out;
 };
 
+#if defined(MACSEC_KEY_PROGRAM) || defined(LINUX_OS)
 /**
  * @brief MACSEC Key Table config data structure
  */
@@ -307,6 +305,7 @@ struct osi_macsec_kt_config {
 	/** Indicates key table entry valid or not, bit 31 */
 	nveu32_t flags;
 };
+#endif /* MACSEC_KEY_PROGRAM */
 
 /**
  * @brief MACSEC Debug buffer config data structure
@@ -537,6 +536,7 @@ void osi_macsec_s_isr(struct osi_core_priv_data *const osi_core);
 nve32_t osi_macsec_config_lut(struct osi_core_priv_data *const osi_core,
 			  struct osi_macsec_lut_config *const lut_config);
 
+#ifdef MACSEC_KEY_PROGRAM
 /**
  * @brief osi_macsec_config_kt - API to read or update the keys
  *
@@ -563,6 +563,7 @@ nve32_t osi_macsec_config_lut(struct osi_core_priv_data *const osi_core,
  */
 nve32_t osi_macsec_config_kt(struct osi_core_priv_data *const osi_core,
 			 struct osi_macsec_kt_config *const kt_config);
+#endif /* MACSEC_KEY_PROGRAM */
 
 /**
  * @brief osi_macsec_cipher_config - API to update the cipher

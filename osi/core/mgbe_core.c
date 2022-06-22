@@ -6133,7 +6133,7 @@ static void mgbe_config_for_macsec(struct osi_core_priv_data *const osi_core,
 	if ((enable != OSI_ENABLE) && (enable != OSI_DISABLE)) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			     "Failed to config MGBE per MACSEC\n", 0ULL);
-		return;
+		goto exit;
 	}
 	/* stop MAC Tx */
 	mgbe_config_mac_tx(osi_core, OSI_DISABLE);
@@ -6195,6 +6195,8 @@ static void mgbe_config_for_macsec(struct osi_core_priv_data *const osi_core,
 				0ULL);
 		}
 	}
+exit:
+	return;
 }
 #endif /*  MACSEC_SUPPORT */
 

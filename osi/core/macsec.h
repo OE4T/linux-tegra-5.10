@@ -48,8 +48,10 @@
  * @brief MACsec controller register offsets
  * @{
  */
+#ifdef MACSEC_KEY_PROGRAM
 #define MACSEC_GCM_KEYTABLE_CONFIG		0x0000
 #define MACSEC_GCM_KEYTABLE_DATA(x)		((0x0004U) + ((x) * 4U))
+#endif /* MACSEC_KEY_PROGRAM */
 #define MACSEC_RX_ICV_ERR_CNTRL			0x4000
 #define MACSEC_INTERRUPT_COMMON_SR		0x4004
 #define MACSEC_TX_IMR				0x4008
@@ -89,8 +91,9 @@
 #define MACSEC_TX_SCI_LUT_VALID 	0xD028
 #define MACSEC_RX_BYP_LUT_VALID 	0xD02C
 #define MACSEC_RX_SCI_LUT_VALID 	0xD030
-
+#ifdef OSI_DEBUG
 #define MACSEC_COMMON_IMR		0xD054
+#endif /* OSI_DEBUG */
 #define MACSEC_COMMON_ISR		0xD058
 #define MACSEC_TX_SC_KEY_INVALID_STS0_0	0xD064
 #define MACSEC_TX_SC_KEY_INVALID_STS1_0	0xD068
@@ -114,6 +117,7 @@
 #define MACSEC_RX_SOT_DELAY		0xE01C
 /** @} */
 
+#ifdef MACSEC_KEY_PROGRAM
 /**
  * @addtogroup MACSEC_GCM_KEYTABLE_CONFIG register
  *
@@ -138,6 +142,7 @@
 #define MACSEC_KT_DATA_REG_SAK_CNT	8U
 #define MACSEC_KT_DATA_REG_H_CNT	4U
 /** @} */
+#endif /* MACSEC_KEY_PROGRAM */
 
 /**
  * @addtogroup MACSEC_LUT_CONFIG register
@@ -208,6 +213,7 @@
 #define MACSEC_TX_AES_MODE_AES256	OSI_BIT(1)
 /** @} */
 
+#ifdef OSI_DEBUG
 /**
  * @addtogroup MACSEC_COMMON_IMR register
  *
@@ -220,6 +226,7 @@
 #define MACSEC_TX_UNINIT_KEY_SLOT_INT_EN	OSI_BIT(1)
 #define MACSEC_TX_LKUP_MISS_INT_EN		OSI_BIT(0)
 /** @} */
+#endif /* OSI_DEBUG */
 
 /**
  * @addtogroup MACSEC_TX_IMR register
@@ -227,11 +234,12 @@
  * @brief Bit definitions of TX_INTERRUPT_MASK register
  * @{
  */
+#define MACSEC_TX_MAC_CRC_ERROR_INT_EN		OSI_BIT(16)
+#ifdef OSI_DEBUG
 #define MACSEC_TX_DBG_BUF_CAPTURE_DONE_INT_EN	OSI_BIT(22)
 #define MACSEC_TX_MTU_CHECK_FAIL_INT_EN 	OSI_BIT(19)
 #define MACSEC_TX_AES_GCM_BUF_OVF_INT_EN	OSI_BIT(18)
 #define MACSEC_TX_SC_AN_NOT_VALID_INT_EN	OSI_BIT(17)
-#define MACSEC_TX_MAC_CRC_ERROR_INT_EN		OSI_BIT(16)
 #define MACSEC_TX_PN_EXHAUSTED_INT_EN		OSI_BIT(1)
 #define MACSEC_TX_PN_THRSHLD_RCHD_INT_EN	OSI_BIT(0)
 /** @} */
@@ -243,12 +251,13 @@
  * @{
  */
 #define MACSEC_RX_DBG_BUF_CAPTURE_DONE_INT_EN	OSI_BIT(22)
-#define MACSEC_RX_ICV_ERROR_INT_EN		OSI_BIT(21)
 #define RX_REPLAY_ERROR_INT_EN  		OSI_BIT(20)
 #define MACSEC_RX_MTU_CHECK_FAIL_INT_EN 	OSI_BIT(19)
 #define MACSEC_RX_AES_GCM_BUF_OVF_INT_EN	OSI_BIT(18)
-#define MACSEC_RX_MAC_CRC_ERROR_INT_EN		OSI_BIT(16)
 #define MACSEC_RX_PN_EXHAUSTED_INT_EN		OSI_BIT(1)
+#endif /* OSI_DEBUG */
+#define MACSEC_RX_ICV_ERROR_INT_EN		OSI_BIT(21)
+#define MACSEC_RX_MAC_CRC_ERROR_INT_EN		OSI_BIT(16)
 /** @} */
 
 /**
@@ -441,6 +450,8 @@
 
 /* debug buffer data read/write length */
 #define DBG_BUF_LEN		4U
+#ifdef MACSEC_KEY_PROGRAM
 #define INTEGER_LEN		4U
+#endif /* MACSEC_KEY_PROGRAM */
 
 #endif /* INCLUDED_MACSEC_H */

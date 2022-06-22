@@ -6779,7 +6779,7 @@ static void eqos_config_for_macsec(struct osi_core_priv_data *const osi_core,
 	if ((enable != OSI_ENABLE) && (enable != OSI_DISABLE)) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			     "Failed to config EQOS per MACSEC\n", 0ULL);
-		return;
+		goto exit;
 	}
 	if (osi_core->mac_ver == OSI_EQOS_MAC_5_30) {
 		/* stop MAC Tx */
@@ -6847,6 +6847,8 @@ static void eqos_config_for_macsec(struct osi_core_priv_data *const osi_core,
 			OSI_LOG_ARG_HW_FAIL, "Error: osi_core->hw_feature is NULL\n",
 			0ULL);
 	}
+exit:
+	return;
 }
 
 #endif /*  MACSEC_SUPPORT */
