@@ -84,29 +84,6 @@ static void mgbe_update_tx_tailptr(void *addr, nveu32_t chan,
 }
 
 /**
- * @brief mgbe_set_rx_ring_len - Set Rx channel ring length.
- *
- * Algorithm: Sets DMA Rx channel ring length for specific DMA channel.
- *
- * @param[in] osi_dma: OSI DMA data structure.
- * @param[in] chan: DMA Rx channel number.
- * @param[in] len: Length
- */
-static void mgbe_set_rx_ring_len(struct osi_dma_priv_data *osi_dma,
-				 nveu32_t chan,
-				 nveu32_t len)
-{
-	void *addr = osi_dma->base;
-	nveu32_t value;
-#if 0
-	MGBE_CHECK_CHAN_BOUND(chan);
-#endif
-	value = osi_readl((nveu8_t *)addr + MGBE_DMA_CHX_RX_CNTRL2(chan));
-	value |= (len & MGBE_DMA_RING_LENGTH_MASK);
-	osi_writel(value, (nveu8_t *)addr + MGBE_DMA_CHX_RX_CNTRL2(chan));
-}
-
-/**
  * @brief mgbe_set_rx_ring_start_addr - Set DMA Rx ring base address.
  *
  * Algorithm: Sets DMA Rx channel ring base address.
@@ -595,7 +572,6 @@ static void mgbe_debug_intr_config(struct osi_dma_priv_data *osi_dma)
 
 void mgbe_init_dma_chan_ops(struct dma_chan_ops *ops)
 {
-	ops->set_rx_ring_len = mgbe_set_rx_ring_len;
 	ops->set_tx_ring_start_addr = mgbe_set_tx_ring_start_addr;
 	ops->set_rx_ring_start_addr = mgbe_set_rx_ring_start_addr;
 	ops->update_tx_tailptr = mgbe_update_tx_tailptr;

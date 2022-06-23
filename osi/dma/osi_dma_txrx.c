@@ -1182,12 +1182,15 @@ static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
 					  nveu32_t chan,
 					  struct dma_chan_ops *ops)
 {
+	const nveu32_t ring_len_reg[2] = { EQOS_DMA_CHX_RDRL(chan), MGBE_DMA_CHX_RX_CNTRL2(chan) };
+	const nveu32_t mask[2] = { 0x3FFU, 0x3FFFU };
 	struct osi_rx_ring *rx_ring = OSI_NULL;
 	struct osi_rx_desc *rx_desc = OSI_NULL;
 	struct osi_rx_swcx *rx_swcx = OSI_NULL;
 	nveu64_t tailptr = 0;
-	nveu32_t i;
 	nve32_t ret = 0;
+	nveu32_t val;
+	nveu32_t i;
 
 	rx_ring = osi_dma->rx_ring[chan];
 	if (osi_unlikely(rx_ring == OSI_NULL)) {
@@ -1246,7 +1249,11 @@ static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
 		return -1;
 	}
 
-	ops->set_rx_ring_len(osi_dma, chan, (osi_dma->rx_ring_sz - 1U));
+	/* Update the HW DMA ring length */
+	val = osi_readl((nveu8_t *)osi_dma->base + ring_len_reg[osi_dma->mac]);
+	val |= (osi_dma->rx_ring_sz - 1U) & mask[osi_dma->mac];
+	osi_writel(val, (nveu8_t *)osi_dma->base + ring_len_reg[osi_dma->mac]);
+
 	ops->update_rx_tailptr(osi_dma->base, chan, tailptr);
 	ops->set_rx_ring_start_addr(osi_dma->base, chan,
 				    rx_ring->rx_desc_phy_addr);

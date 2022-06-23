@@ -52,10 +52,6 @@ struct dma_chan_ops {
 	/** Called to update Tx Ring tail pointer */
 	void (*update_tx_tailptr)(void *addr, nveu32_t chan,
 				  nveu64_t tailptr);
-	/** Called to set Receive channel ring length */
-	void (*set_rx_ring_len)(struct osi_dma_priv_data *osi_dma,
-				nveu32_t chan,
-				nveu32_t len);
 	/** Called to set receive channel ring base address */
 	void (*set_rx_ring_start_addr)(void *addr, nveu32_t chan,
 				       nveu64_t base_addr);
