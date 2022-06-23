@@ -968,7 +968,6 @@ fail:
 
 nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 		    struct osi_tx_ring *tx_ring,
-		    struct dma_chan_ops *ops,
 		    nveu32_t chan)
 {
 	struct dma_local *l_dma = (struct dma_local *)osi_dma;
@@ -982,6 +981,10 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 	nveu32_t f_idx = tx_ring->cur_tx_idx;
 	nveu32_t l_idx = 0;
 #endif /* OSI_DEBUG */
+	const nveu32_t tail_ptr_reg[2] = {
+		EQOS_DMA_CHX_TDTP(chan),
+		MGBE_DMA_CHX_TDTLP(chan)
+	};
 	nve32_t cntx_desc_consumed;
 	nveu32_t pkt_id = 0x0U;
 	nveu32_t desc_cnt = 0U;
@@ -1151,7 +1154,8 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 	 */
 	tx_ring->cur_tx_idx = entry;
 
-	ops->update_tx_tailptr(osi_dma->base, chan, tailptr);
+	/* Update the Tx tail pointer */
+	osi_writel(L32(tailptr), (nveu8_t *)osi_dma->base + tail_ptr_reg[osi_dma->mac]);
 
 	return 0;
 }

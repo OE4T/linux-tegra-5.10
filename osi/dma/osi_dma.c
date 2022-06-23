@@ -761,7 +761,7 @@ nve32_t osi_hw_transmit(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
 		return -1;
 	}
 
-	return hw_transmit(osi_dma, osi_dma->tx_ring[chan], l_dma->ops_p, chan);
+	return hw_transmit(osi_dma, osi_dma->tx_ring[chan], chan);
 }
 
 nve32_t osi_dma_ioctl(struct osi_dma_priv_data *osi_dma)

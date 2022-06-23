@@ -46,9 +46,6 @@
  * @brief MAC DMA Channel operations
  */
 struct dma_chan_ops {
-	/** Called to update Tx Ring tail pointer */
-	void (*update_tx_tailptr)(void *addr, nveu32_t chan,
-				  nveu64_t tailptr);
 	/** Called to update Rx ring tail pointer */
 	void (*update_rx_tailptr)(void *addr, nveu32_t chan,
 				  nveu64_t tailptr);
@@ -172,7 +169,6 @@ nve32_t init_desc_ops(struct osi_dma_priv_data *osi_dma);
  *
  * @param[in, out] osi_dma: OSI DMA private data.
  * @param[in] tx_ring: DMA Tx ring.
- * @param[in] ops: DMA channel operations.
  * @param[in] chan: DMA Tx channel number. Max OSI_EQOS_MAX_NUM_CHANS.
  *
  * @note
@@ -183,7 +179,6 @@ nve32_t init_desc_ops(struct osi_dma_priv_data *osi_dma);
  */
 nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 		    struct osi_tx_ring *tx_ring,
-		    struct dma_chan_ops *ops,
 		    nveu32_t chan);
 
 /* Function prototype needed for misra */
