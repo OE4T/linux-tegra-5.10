@@ -49,9 +49,6 @@ struct dma_chan_ops {
 	/** Called to update Tx Ring tail pointer */
 	void (*update_tx_tailptr)(void *addr, nveu32_t chan,
 				  nveu64_t tailptr);
-	/** Called to set receive channel ring base address */
-	void (*set_rx_ring_start_addr)(void *addr, nveu32_t chan,
-				       nveu64_t base_addr);
 	/** Called to update Rx ring tail pointer */
 	void (*update_rx_tailptr)(void *addr, nveu32_t chan,
 				  nveu64_t tailptr);

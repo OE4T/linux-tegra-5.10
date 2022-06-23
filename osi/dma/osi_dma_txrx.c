@@ -1182,7 +1182,18 @@ static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
 					  nveu32_t chan,
 					  struct dma_chan_ops *ops)
 {
-	const nveu32_t ring_len_reg[2] = { EQOS_DMA_CHX_RDRL(chan), MGBE_DMA_CHX_RX_CNTRL2(chan) };
+	const nveu32_t start_addr_high_reg[2] = {
+		EQOS_DMA_CHX_RDLH(chan),
+		MGBE_DMA_CHX_RDLH(chan)
+	};
+	const nveu32_t start_addr_low_reg[2] = {
+		EQOS_DMA_CHX_RDLA(chan),
+		MGBE_DMA_CHX_RDLA(chan)
+	};
+	const nveu32_t ring_len_reg[2] = {
+		EQOS_DMA_CHX_RDRL(chan),
+		MGBE_DMA_CHX_RX_CNTRL2(chan)
+	};
 	const nveu32_t mask[2] = { 0x3FFU, 0x3FFFU };
 	struct osi_rx_ring *rx_ring = OSI_NULL;
 	struct osi_rx_desc *rx_desc = OSI_NULL;
@@ -1255,8 +1266,12 @@ static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
 	osi_writel(val, (nveu8_t *)osi_dma->base + ring_len_reg[osi_dma->mac]);
 
 	ops->update_rx_tailptr(osi_dma->base, chan, tailptr);
-	ops->set_rx_ring_start_addr(osi_dma->base, chan,
-				    rx_ring->rx_desc_phy_addr);
+
+	/* Program Ring start address */
+	osi_writel(H32(rx_ring->rx_desc_phy_addr),
+		   (nveu8_t *)osi_dma->base + start_addr_high_reg[osi_dma->mac]);
+	osi_writel(L32(rx_ring->rx_desc_phy_addr),
+		   (nveu8_t *)osi_dma->base + start_addr_low_reg[osi_dma->mac]);
 
 	return ret;
 }
