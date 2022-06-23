@@ -26,36 +26,6 @@
 #include "dma_local.h"
 
 /**
- * @brief mgbe_start_dma - Start DMA.
- *
- * Algorithm: Start Tx and Rx DMA for specific channel.
- *
- * @param[in] osi_dma: OSI DMA private data structure.
- * @param[in] chan: DMA Tx/Rx channel number.
- *
- * @note 1) MAC needs to be out of reset and proper clocks need to be configured
- *	 2) DMA HW init need to be completed successfully, see osi_hw_dma_init
- */
-static void mgbe_start_dma(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
-{
-	nveu32_t val;
-	void *addr = osi_dma->base;
-#if 0
-	MGBE_CHECK_CHAN_BOUND(chan);
-#endif
-	/* start Tx DMA */
-	val = osi_readl((nveu8_t *)addr + MGBE_DMA_CHX_TX_CTRL(chan));
-	val |= OSI_BIT(0);
-	osi_writel(val, (nveu8_t *)addr + MGBE_DMA_CHX_TX_CTRL(chan));
-
-	/* start Rx DMA */
-	val = osi_readl((nveu8_t *)addr + MGBE_DMA_CHX_RX_CTRL(chan));
-	val |= OSI_BIT(0);
-	val &= ~OSI_BIT(31);
-	osi_writel(val, (nveu8_t *)addr + MGBE_DMA_CHX_RX_CTRL(chan));
-}
-
-/**
  * @brief mgbe_stop_dma - Stop DMA.
  *
  * Algorithm: Start Tx and Rx DMA for specific channel.
@@ -451,7 +421,6 @@ static void mgbe_debug_intr_config(struct osi_dma_priv_data *osi_dma)
 
 void mgbe_init_dma_chan_ops(struct dma_chan_ops *ops)
 {
-	ops->start_dma = mgbe_start_dma;
 	ops->stop_dma = mgbe_stop_dma;
 	ops->init_dma_channel = mgbe_init_dma_channel;
 	ops->set_rx_buf_len = mgbe_set_rx_buf_len;

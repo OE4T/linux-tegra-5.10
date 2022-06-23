@@ -146,51 +146,6 @@ static void eqos_dma_safety_init(struct osi_dma_priv_data *osi_dma)
 }
 
 /**
- * @brief eqos_start_dma - Start DMA.
- *
- * @note
- * Algorithm:
- *  - Start Tx and Rx DMA for specific channel.
- *
- * @param[in] osi_dma: OSI DMA private data structure.
- * @param[in] chan: DMA Tx/Rx channel number.
- *
- * @pre
- *  - MAC needs to be out of reset and proper clocks need to be configured
- *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: No
- * - De-initialization: No
- */
-static void eqos_start_dma(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
-{
-	nveu32_t val;
-	void *addr = osi_dma->base;
-#if 0
-	CHECK_CHAN_BOUND(chan);
-#endif
-	/* start Tx DMA */
-	val = osi_readla(osi_dma->osd,
-			 (nveu8_t *)addr + EQOS_DMA_CHX_TX_CTRL(chan));
-	val |= OSI_BIT(0);
-	eqos_dma_safety_writel(osi_dma, val, (nveu8_t *)addr +
-			       EQOS_DMA_CHX_TX_CTRL(chan),
-			       EQOS_DMA_CH0_TX_CTRL_IDX + chan);
-
-	/* start Rx DMA */
-	val = osi_readla(osi_dma->osd,
-			 (nveu8_t *)addr + EQOS_DMA_CHX_RX_CTRL(chan));
-	val |= OSI_BIT(0);
-	val &= ~OSI_BIT(31);
-	eqos_dma_safety_writel(osi_dma, val, (nveu8_t *)addr +
-			       EQOS_DMA_CHX_RX_CTRL(chan),
-			       EQOS_DMA_CH0_RX_CTRL_IDX + chan);
-}
-
-/**
  * @brief eqos_stop_dma - Stop DMA.
  *
  * @note
@@ -584,7 +539,6 @@ static void eqos_debug_intr_config(struct osi_dma_priv_data *osi_dma)
  */
 void eqos_init_dma_chan_ops(struct dma_chan_ops *ops)
 {
-	ops->start_dma = eqos_start_dma;
 	ops->stop_dma = eqos_stop_dma;
 	ops->init_dma_channel = eqos_init_dma_channel;
 	ops->set_rx_buf_len = eqos_set_rx_buf_len;
