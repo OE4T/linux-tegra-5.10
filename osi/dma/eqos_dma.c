@@ -146,36 +146,6 @@ static void eqos_dma_safety_init(struct osi_dma_priv_data *osi_dma)
 }
 
 /**
- * @brief eqos_set_tx_ring_len - Set DMA Tx ring length.
- *
- * @note
- * Algorithm:
- *  - Set DMA Tx channel ring length for specific channel.
- *
- * @param[in] osi_dma: OSI DMA private data structure.
- * @param[in] chan: DMA Tx channel number.
- * @param[in] len: Length.
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: No
- * - De-initialization: No
- */
-static void eqos_set_tx_ring_len(struct osi_dma_priv_data *osi_dma,
-				 nveu32_t chan,
-				 nveu32_t len)
-{
-	void *addr = osi_dma->base;
-#if 0
-	CHECK_CHAN_BOUND(chan);
-#endif
-	eqos_dma_safety_writel(osi_dma, len, (nveu8_t *)addr +
-			       EQOS_DMA_CHX_TDRL(chan),
-			       EQOS_DMA_CH0_TDRL_IDX + chan);
-}
-
-/**
  * @brief eqos_set_tx_ring_start_addr - Set DMA Tx ring base address.
  *
  * @note
@@ -793,7 +763,6 @@ static void eqos_debug_intr_config(struct osi_dma_priv_data *osi_dma)
  */
 void eqos_init_dma_chan_ops(struct dma_chan_ops *ops)
 {
-	ops->set_tx_ring_len = eqos_set_tx_ring_len;
 	ops->set_rx_ring_len = eqos_set_rx_ring_len;
 	ops->set_tx_ring_start_addr = eqos_set_tx_ring_start_addr;
 	ops->set_rx_ring_start_addr = eqos_set_rx_ring_start_addr;

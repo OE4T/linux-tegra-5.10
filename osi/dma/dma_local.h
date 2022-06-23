@@ -46,10 +46,6 @@
  * @brief MAC DMA Channel operations
  */
 struct dma_chan_ops {
-	/** Called to set Transmit Ring length */
-	void (*set_tx_ring_len)(struct osi_dma_priv_data *osi_dma,
-				nveu32_t chan,
-				nveu32_t len);
 	/** Called to set Transmit Ring Base address */
 	void (*set_tx_ring_start_addr)(void *addr, nveu32_t chan,
 				       nveu64_t base_addr);

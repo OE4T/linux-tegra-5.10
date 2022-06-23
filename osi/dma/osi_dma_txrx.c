@@ -1294,6 +1294,19 @@ static nve32_t rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 	return ret;
 }
 
+static inline void set_tx_ring_len(const struct osi_dma_priv_data *const osi_dma,
+				   nveu32_t chan,
+				   nveu32_t len)
+{
+	const nveu32_t ring_len_reg[2] = { EQOS_DMA_CHX_TDRL(chan), MGBE_DMA_CHX_TX_CNTRL2(chan) };
+	const nveu32_t mask[2] = { 0x3FFU, 0x3FFFU };
+	nveu32_t val;
+
+	val = osi_readl((nveu8_t *)osi_dma->base + ring_len_reg[osi_dma->mac]);
+	val |= len & mask[osi_dma->mac];
+	osi_writel(val, (nveu8_t *)osi_dma->base + ring_len_reg[osi_dma->mac]);
+}
+
 /**
  * @brief tx_dma_desc_init - Initialize DMA Transmit descriptors.
  *
@@ -1355,8 +1368,7 @@ static nve32_t tx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 		tx_ring->slot_number = 0U;
 		tx_ring->slot_check = OSI_DISABLE;
 
-		ops->set_tx_ring_len(osi_dma, chan,
-				     (osi_dma->tx_ring_sz - 1U));
+		set_tx_ring_len(osi_dma, chan, (osi_dma->tx_ring_sz - 1U));
 		ops->set_tx_ring_start_addr(osi_dma->base, chan,
 					    tx_ring->tx_desc_phy_addr);
 	}
