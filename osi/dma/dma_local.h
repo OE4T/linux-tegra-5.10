@@ -24,8 +24,10 @@
 #ifndef INCLUDED_DMA_LOCAL_H
 #define INCLUDED_DMA_LOCAL_H
 
+#include "../osi/common/common.h"
 #include <osi_dma.h>
 #include "eqos_dma.h"
+#include "mgbe_dma.h"
 
 /**
  * @brief Maximum number of OSI DMA instances.
@@ -46,9 +48,6 @@
  * @brief MAC DMA Channel operations
  */
 struct dma_chan_ops {
-	/** Called to update Rx ring tail pointer */
-	void (*update_rx_tailptr)(void *addr, nveu32_t chan,
-				  nveu64_t tailptr);
 	/** Called to start the Tx/Rx DMA */
 	void (*start_dma)(struct osi_dma_priv_data *osi_dma, nveu32_t chan);
 	/** Called to stop the Tx/Rx DMA */
@@ -203,8 +202,7 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-nve32_t dma_desc_init(struct osi_dma_priv_data *osi_dma,
-		      struct dma_chan_ops *ops);
+nve32_t dma_desc_init(struct osi_dma_priv_data *osi_dma);
 
 static inline nveu32_t is_power_of_two(nveu32_t num)
 {
@@ -238,6 +236,19 @@ static inline nveu32_t is_power_of_two(nveu32_t num)
 #define BOOLEAN_FALSE	(0U != 0U)
 #define L32(data)       ((nveu32_t)((data) & 0xFFFFFFFFU))
 #define H32(data)       ((nveu32_t)(((data) & 0xFFFFFFFF00000000UL) >> 32UL))
+
+static inline void update_rx_tail_ptr(const struct osi_dma_priv_data *const osi_dma,
+				      nveu32_t chan,
+				      nveu64_t tailptr)
+{
+	const nveu32_t tail_ptr_reg[2] = {
+		EQOS_DMA_CHX_RDTP(chan),
+		MGBE_DMA_CHX_RDTLP(chan)
+	};
+
+	osi_writel(L32(tailptr), (nveu8_t *)osi_dma->base + tail_ptr_reg[osi_dma->mac]);
+}
+
 /** @} */
 
 #endif /* INCLUDED_DMA_LOCAL_H */

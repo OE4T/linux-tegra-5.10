@@ -395,7 +395,7 @@ nve32_t osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
 		return ret;
 	}
 
-	ret = dma_desc_init(osi_dma, l_dma->ops_p);
+	ret = dma_desc_init(osi_dma);
 	if (ret != 0) {
 		return ret;
 	}
@@ -700,7 +700,7 @@ nve32_t osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 		return -1;
 	}
 
-	l_dma->ops_p->update_rx_tailptr(osi_dma->base, chan, tailptr);
+	update_rx_tail_ptr(osi_dma, chan, tailptr);
 
 	return 0;
 }

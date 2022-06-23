@@ -1183,8 +1183,7 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
  * @retval -1 on failure.
  */
 static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
-					  nveu32_t chan,
-					  struct dma_chan_ops *ops)
+					  nveu32_t chan)
 {
 	const nveu32_t start_addr_high_reg[2] = {
 		EQOS_DMA_CHX_RDLH(chan),
@@ -1269,7 +1268,7 @@ static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
 	val |= (osi_dma->rx_ring_sz - 1U) & mask[osi_dma->mac];
 	osi_writel(val, (nveu8_t *)osi_dma->base + ring_len_reg[osi_dma->mac]);
 
-	ops->update_rx_tailptr(osi_dma->base, chan, tailptr);
+	update_rx_tail_ptr(osi_dma, chan, tailptr);
 
 	/* Program Ring start address */
 	osi_writel(H32(rx_ring->rx_desc_phy_addr),
@@ -1301,8 +1300,7 @@ static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static nve32_t rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
-				struct dma_chan_ops *ops)
+static nve32_t rx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
 {
 	nveu32_t chan = 0;
 	nveu32_t i;
@@ -1311,7 +1309,7 @@ static nve32_t rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
 		chan = osi_dma->dma_chans[i];
 
-		ret = rx_dma_desc_initialization(osi_dma, chan, ops);
+		ret = rx_dma_desc_initialization(osi_dma, chan);
 		if (ret != 0) {
 			return ret;
 		}
@@ -1419,8 +1417,7 @@ static nve32_t tx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
 	return 0;
 }
 
-nve32_t dma_desc_init(struct osi_dma_priv_data *osi_dma,
-		      struct dma_chan_ops *ops)
+nve32_t dma_desc_init(struct osi_dma_priv_data *osi_dma)
 {
 	nve32_t ret = 0;
 
@@ -1429,7 +1426,7 @@ nve32_t dma_desc_init(struct osi_dma_priv_data *osi_dma,
 		return ret;
 	}
 
-	ret = rx_dma_desc_init(osi_dma, ops);
+	ret = rx_dma_desc_init(osi_dma);
 	if (ret != 0) {
 		return ret;
 	}
