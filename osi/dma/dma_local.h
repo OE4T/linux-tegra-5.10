@@ -46,9 +46,6 @@
  * @brief MAC DMA Channel operations
  */
 struct dma_chan_ops {
-	/** Called to set Transmit Ring Base address */
-	void (*set_tx_ring_start_addr)(void *addr, nveu32_t chan,
-				       nveu64_t base_addr);
 	/** Called to update Tx Ring tail pointer */
 	void (*update_tx_tailptr)(void *addr, nveu32_t chan,
 				  nveu64_t tailptr);

@@ -146,44 +146,6 @@ static void eqos_dma_safety_init(struct osi_dma_priv_data *osi_dma)
 }
 
 /**
- * @brief eqos_set_tx_ring_start_addr - Set DMA Tx ring base address.
- *
- * @note
- * Algorithm:
- *  - Sets DMA Tx ring base address for specific channel.
- *
- * @param[in] addr: Base address indicating the start of
- * 	      memory mapped IO region of the MAC.
- * @param[in] chan: DMA Tx channel number.
- * @param[in] tx_desc: Tx desc base address.
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: No
- * - De-initialization: No
- */
-static void eqos_set_tx_ring_start_addr(void *addr, nveu32_t chan,
-					nveu64_t tx_desc)
-{
-	nveu64_t tmp;
-#if 0
-	CHECK_CHAN_BOUND(chan);
-#endif
-	tmp = H32(tx_desc);
-	if (tmp < UINT_MAX) {
-		osi_writel((nveu32_t)tmp, (nveu8_t *)addr +
-			   EQOS_DMA_CHX_TDLH(chan));
-	}
-
-	tmp = L32(tx_desc);
-	if (tmp < UINT_MAX) {
-		osi_writel((nveu32_t)tmp, (nveu8_t *)addr +
-			   EQOS_DMA_CHX_TDLA(chan));
-	}
-}
-
-/**
  * @brief eqos_update_tx_tailptr - Updates DMA Tx ring tail pointer.
  *
  * @note
@@ -733,7 +695,6 @@ static void eqos_debug_intr_config(struct osi_dma_priv_data *osi_dma)
  */
 void eqos_init_dma_chan_ops(struct dma_chan_ops *ops)
 {
-	ops->set_tx_ring_start_addr = eqos_set_tx_ring_start_addr;
 	ops->set_rx_ring_start_addr = eqos_set_rx_ring_start_addr;
 	ops->update_tx_tailptr = eqos_update_tx_tailptr;
 	ops->update_rx_tailptr = eqos_update_rx_tailptr;

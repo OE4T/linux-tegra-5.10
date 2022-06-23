@@ -26,36 +26,6 @@
 #include "dma_local.h"
 
 /**
- * @brief mgbe_set_tx_ring_start_addr - Set DMA Tx ring base address.
- *
- * Algorithm: Sets DMA Tx ring base address for specific channel.
- *
- * @param[in] addr: Base address indicating the start of
- *	      memory mapped IO region of the MAC.
- * @param[in] chan: DMA Tx channel number.
- * @param[in] tx_desc: Tx desc base addess.
- */
-static void mgbe_set_tx_ring_start_addr(void *addr, nveu32_t chan,
-					nveu64_t tx_desc)
-{
-	nveu64_t temp;
-#if 0
-	MGBE_CHECK_CHAN_BOUND(chan);
-#endif
-	temp = H32(tx_desc);
-	if (temp < UINT_MAX) {
-		osi_writel((nveu32_t)temp, (nveu8_t *)addr +
-			   MGBE_DMA_CHX_TDLH(chan));
-	}
-
-	temp = L32(tx_desc);
-	if (temp < UINT_MAX) {
-		osi_writel((nveu32_t)temp, (nveu8_t *)addr +
-			   MGBE_DMA_CHX_TDLA(chan));
-	}
-}
-
-/**
  * @brief mgbe_update_tx_tailptr - Updates DMA Tx ring tail pointer.
  *
  * Algorithm: Updates DMA Tx ring tail pointer for specific channel.
@@ -572,7 +542,6 @@ static void mgbe_debug_intr_config(struct osi_dma_priv_data *osi_dma)
 
 void mgbe_init_dma_chan_ops(struct dma_chan_ops *ops)
 {
-	ops->set_tx_ring_start_addr = mgbe_set_tx_ring_start_addr;
 	ops->set_rx_ring_start_addr = mgbe_set_rx_ring_start_addr;
 	ops->update_tx_tailptr = mgbe_update_tx_tailptr;
 	ops->update_rx_tailptr = mgbe_update_rx_tailptr;

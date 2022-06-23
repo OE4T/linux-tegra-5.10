@@ -1301,17 +1301,36 @@ static nve32_t rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 	return ret;
 }
 
-static inline void set_tx_ring_len(const struct osi_dma_priv_data *const osi_dma,
-				   nveu32_t chan,
-				   nveu32_t len)
+static inline void set_tx_ring_len_and_start_addr(const struct osi_dma_priv_data *const osi_dma,
+						  nveu64_t tx_desc_phy_addr,
+						  nveu32_t chan,
+						  nveu32_t len)
 {
-	const nveu32_t ring_len_reg[2] = { EQOS_DMA_CHX_TDRL(chan), MGBE_DMA_CHX_TX_CNTRL2(chan) };
+	const nveu32_t ring_len_reg[2] = {
+		EQOS_DMA_CHX_TDRL(chan),
+		MGBE_DMA_CHX_TX_CNTRL2(chan)
+	};
+	const nveu32_t start_addr_high_reg[2] = {
+		EQOS_DMA_CHX_TDLH(chan),
+		MGBE_DMA_CHX_TDLH(chan)
+	};
+	const nveu32_t start_addr_low_reg[2] = {
+		EQOS_DMA_CHX_TDLA(chan),
+		MGBE_DMA_CHX_TDLA(chan)
+	};
 	const nveu32_t mask[2] = { 0x3FFU, 0x3FFFU };
 	nveu32_t val;
 
+	/* Program ring length */
 	val = osi_readl((nveu8_t *)osi_dma->base + ring_len_reg[osi_dma->mac]);
 	val |= len & mask[osi_dma->mac];
 	osi_writel(val, (nveu8_t *)osi_dma->base + ring_len_reg[osi_dma->mac]);
+
+	/* Program tx ring start address */
+	osi_writel(H32(tx_desc_phy_addr),
+		   (nveu8_t *)osi_dma->base + start_addr_high_reg[osi_dma->mac]);
+	osi_writel(L32(tx_desc_phy_addr),
+		   (nveu8_t *)osi_dma->base + start_addr_low_reg[osi_dma->mac]);
 }
 
 /**
@@ -1334,8 +1353,7 @@ static inline void set_tx_ring_len(const struct osi_dma_priv_data *const osi_dma
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static nve32_t tx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
-				struct dma_chan_ops *ops)
+static nve32_t tx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
 {
 	struct osi_tx_ring *tx_ring = OSI_NULL;
 	struct osi_tx_desc *tx_desc = OSI_NULL;
@@ -1375,9 +1393,8 @@ static nve32_t tx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 		tx_ring->slot_number = 0U;
 		tx_ring->slot_check = OSI_DISABLE;
 
-		set_tx_ring_len(osi_dma, chan, (osi_dma->tx_ring_sz - 1U));
-		ops->set_tx_ring_start_addr(osi_dma->base, chan,
-					    tx_ring->tx_desc_phy_addr);
+		set_tx_ring_len_and_start_addr(osi_dma, tx_ring->tx_desc_phy_addr,
+					       chan, (osi_dma->tx_ring_sz - 1U));
 	}
 
 	return 0;
@@ -1388,7 +1405,7 @@ nve32_t dma_desc_init(struct osi_dma_priv_data *osi_dma,
 {
 	nve32_t ret = 0;
 
-	ret = tx_dma_desc_init(osi_dma, ops);
+	ret = tx_dma_desc_init(osi_dma);
 	if (ret != 0) {
 		return ret;
 	}
