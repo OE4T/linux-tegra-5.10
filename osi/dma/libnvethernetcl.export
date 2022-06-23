@@ -23,7 +23,6 @@
 # libnvethernetcl interface export
 #
 ###############################################################################
-osi_stop_dma
 osi_get_refill_rx_desc_cnt
 osi_rx_dma_desc_init
 osi_set_rx_buf_len

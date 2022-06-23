@@ -629,41 +629,6 @@ struct osi_dma_priv_data {
 nveu32_t osi_get_global_dma_status(struct osi_dma_priv_data *osi_dma);
 
 /**
- * @brief osi_stop_dma - Stop DMA
- *
- * @note
- * Algorithm:
- *  - Stop the DMA for specific MAC
- *
- * @param[in] osi_dma: OSI DMA private data.
- * @param[in] chan: DMA Tx/Rx channel number. Max OSI_EQOS_MAX_NUM_CHANS.
- *
- * @pre
- *  - MAC needs to be out of reset and proper clocks need to be configured.
- *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
- *
- * @note
- * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETCL_006
- *
- * @usage
- * - Allowed context for the API call
- *  - Interrupt handler: No
- *  - Signal handler: No
- *  - Thread safe: No
- *  - Async/Sync: Sync
- *  - Required Privileges: None
- * - API Group:
- *  - Initialization: No
- *  - Run time: No
- *  - De-initialization: Yes
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-nve32_t osi_stop_dma(struct osi_dma_priv_data *osi_dma, nveu32_t chan);
-
-/**
  * @brief osi_get_refill_rx_desc_cnt - Rx descriptors count that needs to refill
  *
  * @note

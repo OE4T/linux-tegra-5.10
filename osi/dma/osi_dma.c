@@ -464,6 +464,31 @@ nve32_t osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
 	return 0;
 }
 
+static inline void stop_dma(const struct osi_dma_priv_data *const osi_dma,
+			    nveu32_t chan)
+{
+	const nveu32_t dma_tx_reg[2] = {
+		EQOS_DMA_CHX_TX_CTRL(chan),
+		MGBE_DMA_CHX_TX_CTRL(chan)
+	};
+	const nveu32_t dma_rx_reg[2] = {
+		EQOS_DMA_CHX_RX_CTRL(chan),
+		MGBE_DMA_CHX_RX_CTRL(chan)
+	};
+	nveu32_t val;
+
+	/* Stop Tx DMA */
+	val = osi_readl((nveu8_t *)osi_dma->base + dma_tx_reg[osi_dma->mac]);
+	val &= ~OSI_BIT(0);
+	osi_writel(val, (nveu8_t *)osi_dma->base + dma_tx_reg[osi_dma->mac]);
+
+	/* Stop Rx DMA */
+	val = osi_readl((nveu8_t *)osi_dma->base + dma_rx_reg[osi_dma->mac]);
+	val &= ~OSI_BIT(0);
+	val |= OSI_BIT(31);
+	osi_writel(val, (nveu8_t *)osi_dma->base + dma_rx_reg[osi_dma->mac]);
+}
+
 nve32_t osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma)
 {
 	struct dma_local *l_dma = (struct dma_local *)osi_dma;
@@ -486,12 +511,8 @@ nve32_t osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma)
 	}
 
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
-		l_dma->ops_p->stop_dma(osi_dma, osi_dma->dma_chans[i]);
+		stop_dma(osi_dma, osi_dma->dma_chans[i]);
 	}
-
-	/* FIXME: Need to fix */
-//	l_dma->magic_num = 0;
-//	l_dma->init_done = OSI_DISABLE;
 
 	return 0;
 }
@@ -531,24 +552,6 @@ nve32_t osi_handle_dma_intr(struct osi_dma_priv_data *osi_dma,
 		VIRT_INTR_CHX_STATUS(chan), ((osi_dma->mac == OSI_MAC_HW_MGBE) ?
 		MGBE_DMA_CHX_STATUS(chan) : EQOS_DMA_CHX_STATUS(chan)),
 		OSI_BIT(tx_rx));
-}
-
-nve32_t osi_stop_dma(struct osi_dma_priv_data *osi_dma,
-		     nveu32_t chan)
-{
-	struct dma_local *l_dma = (struct dma_local *)osi_dma;
-
-	if (validate_args(osi_dma, l_dma) < 0) {
-		return -1;
-	}
-
-	if (validate_dma_chan_num(osi_dma, chan) < 0) {
-		return -1;
-	}
-
-	l_dma->ops_p->stop_dma(osi_dma, chan);
-
-	return 0;
 }
 
 nveu32_t osi_get_refill_rx_desc_cnt(struct osi_dma_priv_data *osi_dma,

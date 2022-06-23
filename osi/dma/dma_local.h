@@ -48,8 +48,6 @@
  * @brief MAC DMA Channel operations
  */
 struct dma_chan_ops {
-	/** Called to stop the Tx/Rx DMA */
-	void (*stop_dma)(struct osi_dma_priv_data *osi_dma, nveu32_t chan);
 	/** Called to initialize the DMA channel */
 	nve32_t (*init_dma_channel)(struct osi_dma_priv_data *osi_dma);
 	/** Called to set Rx buffer length */
