@@ -160,14 +160,14 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 	*more_data_avail = OSI_NONE;
 
 	while ((received < budget) && (received_resv < budget)) {
-		osi_memset(rx_pkt_cx, 0U, sizeof(*rx_pkt_cx));
 		rx_desc = rx_ring->rx_desc + rx_ring->cur_rx_idx;
-		rx_swcx = rx_ring->rx_swcx + rx_ring->cur_rx_idx;
 
 		/* check for data availability */
 		if ((rx_desc->rdes3 & RDES3_OWN) == RDES3_OWN) {
 			break;
 		}
+		rx_swcx = rx_ring->rx_swcx + rx_ring->cur_rx_idx;
+		osi_memset(rx_pkt_cx, 0U, sizeof(*rx_pkt_cx));
 #ifdef OSI_DEBUG
 		if (osi_dma->enable_desc_dump == 1U) {
 			desc_dump(osi_dma, rx_ring->cur_rx_idx,
