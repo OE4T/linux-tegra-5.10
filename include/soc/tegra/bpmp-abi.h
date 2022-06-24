@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0 OR MIT */
 /*
- * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2022, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #ifndef ABI_BPMP_ABI_H
@@ -174,7 +174,7 @@ struct mrq_request {
 	 * | MRQ_EMC_DVFS_EMCHUB  |                                      | 8                                          |
 	 * | MRQ_EMC_DISP_RFL     |                                      | 4                                          |
 	 * | MRQ_BWMGR            | CMD_BWMGR_QUERY_ABI                  | 8                                          |
-	 * | MRQ_BWMGR            | CMD_BWMGR_CALC_RATE                  | 112                                        |
+	 * | MRQ_BWMGR            | CMD_BWMGR_CALC_RATE                  | 8 + 8 * bwmgr_rate_req.num_iso_clients     |
 	 * | MRQ_ISO_CLIENT       | CMD_ISO_CLIENT_QUERY_ABI             | 8                                          |
 	 * | MRQ_ISO_CLIENT       | CMD_ISO_CLIENT_CALCULATE_LA          | 16                                         |
 	 * | MRQ_ISO_CLIENT       | CMD_ISO_CLIENT_SET_LA                | 16                                         |
@@ -202,6 +202,14 @@ struct mrq_request {
 	 * | MRQ_DEBUG            | CMD_DEBUG_READ                       | 8                                          |
 	 * | MRQ_DEBUG            | CMD_DEBUG_WRITE                      | 12 + cmd_debug_fwrite_request.datalen      |
 	 * | MRQ_DEBUG            | CMD_DEBUG_CLOSE                      | 8                                          |
+	 * | MRQ_TELEMETRY        |                                      | 8                                          |
+	 * | MRQ_PWR_LIMIT        | CMD_PWR_LIMIT_QUERY_ABI              | 8                                          |
+	 * | MRQ_PWR_LIMIT        | CMD_PWR_LIMIT_SET                    | 20                                         |
+	 * | MRQ_PWR_LIMIT        | CMD_PWR_LIMIT_GET                    | 16                                         |
+	 * | MRQ_GEARS            |                                      | 0                                          |
+	 * | MRQ_BWMGR_INT        | CMD_BWMGR_INT_QUERY_ABI              | 8                                          |
+	 * | MRQ_BWMGR_INT        | CMD_BWMGR_INT_CALC_AND_SET           | 16                                         |
+	 * | MRQ_BWMGR_INT        | CMD_BWMGR_INT_CAP_SET                | 8                                          |
 	 *
 	 * **crc16**
 	 *
@@ -326,6 +334,10 @@ struct mrq_response {
 #define MRQ_BWMGR		77U
 #define MRQ_ISO_CLIENT		78U
 #define MRQ_EMC_DISP_RFL	79U
+#define MRQ_TELEMETRY		80U
+#define MRQ_PWR_LIMIT		81U
+#define MRQ_GEARS		82U
+#define MRQ_BWMGR_INT		83U
 
 /** @} */
 
@@ -334,7 +346,7 @@ struct mrq_response {
  * @brief Maximum MRQ code to be sent by CPU software to
  * BPMP. Subject to change in future
  */
-#define MAX_CPU_MRQ_ID		79U
+#define MAX_CPU_MRQ_ID		83U
 
 /**
  * @addtogroup MRQ_Payloads
@@ -362,6 +374,10 @@ struct mrq_response {
  *   @defgroup FMON FMON
  *   @defgroup EC EC
  *   @defgroup Fbvolt_status Fuse Burn Voltage Status
+ *   @defgroup Telemetry Telemetry
+ *   @defgroup Pwrlimit PWR_LIMIT
+ *   @defgroup Gears Gears
+ *   @defgroup BWMGR_INT Bandwidth Manager Integrated
  * @}
  */
 
@@ -2424,6 +2440,152 @@ struct mrq_bwmgr_response {
 
 /**
  * @ingroup MRQ_Codes
+ * @def MRQ_BWMGR_INT
+ * @brief bpmp-integrated bwmgr requests
+ *
+ * * Platforms: T234 onwards
+ * @cond bpmp_t234
+ * * Initiators: CCPLEX
+ * * Targets: BPMP
+ * * Request Payload: @ref mrq_bwmgr_int_request
+ * * Response Payload: @ref mrq_bwmgr_int_response
+ *
+ * @addtogroup BWMGR_INT
+ *
+ * @{
+ */
+
+enum mrq_bwmgr_int_cmd {
+	/**
+	 * @brief Check whether the BPMP-FW supports the specified
+	 * request type
+	 *
+	 * mrq_response::err is 0 if the specified request is
+	 * supported and -#BPMP_ENODEV otherwise.
+	 */
+	CMD_BWMGR_INT_QUERY_ABI = 1,
+
+	/**
+	 * @brief Determine and set dram rate to satisfy iso/niso bw request
+	 *
+	 * mrq_response::err is
+	 * *  0: request succeeded.
+	 * *  -#BPMP_EINVAL: Invalid request parameters.
+	 *          set_frequency in @ref cmd_bwmgr_int_calc_and_set_response
+	 *          will not be set.
+	 * *  -#BPMP_ENOTSUP: Requested bw is not available.
+	 *          set_frequency in @ref cmd_bwmgr_int_calc_and_set_response
+	 *          will be current dram-clk rate.
+	 */
+	CMD_BWMGR_INT_CALC_AND_SET = 2,
+
+	/**
+	 * @brief Set a max DRAM frequency for the bandwidth-manager
+	 *
+	 * mrq_response::err is
+	 * *  0: request succeeded.
+	 * *  -#BPMP_ENOTSUP: Requested cap frequency is not possible.
+	 */
+	CMD_BWMGR_INT_CAP_SET = 3
+};
+
+/*
+ * request structure for request type CMD_BWMGR_QUERY_ABI
+ *
+ * type: Request type for which to check existence.
+ */
+struct cmd_bwmgr_int_query_abi_request {
+	/* @brief request type determined by @ref mrq_bwmgr_int_cmd */
+	uint32_t type;
+} BPMP_ABI_PACKED;
+
+/**
+ * @defgroup bwmgr_int_unit_type BWMGR_INT floor unit-types
+ * @addtogroup bwmgr_int_unit_type
+ * @{
+ */
+/** @brief kilobytes per second unit-type */
+#define BWMGR_INT_UNIT_KBPS  0U
+/** @brief kilohertz unit-type */
+#define BWMGR_INT_UNIT_KHZ   1U
+/** @} */
+
+/*
+ * request data for request type CMD_BWMGR_INT_CALC_AND_SET
+ */
+struct cmd_bwmgr_int_calc_and_set_request {
+	/* @brief bwmgr client ID @ref bpmp_bwmgr_ids */
+	uint32_t client_id;
+	/* @brief average niso bw usage in kBps requested by client. */
+	uint32_t niso_bw;
+	/*
+	 * @brief average iso bw usage in kBps requested by client.
+	 *  Value is ignored if client is niso. Determined by client_id.
+	 */
+	uint32_t iso_bw;
+	/*
+	 * @brief memory clock floor requested by client.
+	 *  Unit determined by floor_unit.
+	 */
+	uint32_t mc_floor;
+	/*
+	 * @brief toggle to determine the unit-type of floor value.
+	 *  See @ref bwmgr_int_unit_type definitions for unit-type mappings.
+	 */
+	uint8_t floor_unit;
+} BPMP_ABI_PACKED;
+
+struct cmd_bwmgr_int_cap_set_request {
+	/* @brief requested cap frequency in Hz. */
+	uint64_t rate;
+} BPMP_ABI_PACKED;
+
+/*
+ * response data for request type CMD_BWMGR_CALC_AND_SET
+ */
+struct cmd_bwmgr_int_calc_and_set_response {
+	/* @brief current set memory clock frequency in Hz */
+	uint64_t rate;
+} BPMP_ABI_PACKED;
+
+/*
+ * @brief Request with #MRQ_BWMGR_INT
+ *
+ *
+ * |sub-command                 |payload                            |
+ * |----------------------------|-----------------------------------|
+ * |CMD_BWMGR_INT_QUERY_ABI     | cmd_bwmgr_int_query_abi_request   |
+ * |CMD_BWMGR_INT_CALC_AND_SET  | cmd_bwmgr_int_calc_and_set_request|
+ * |CMD_BWMGR_INT_CAP_SET       | cmd_bwmgr_int_cap_set_request     |
+ *
+ */
+struct mrq_bwmgr_int_request {
+	uint32_t cmd;
+	union {
+		struct cmd_bwmgr_int_query_abi_request query_abi;
+		struct cmd_bwmgr_int_calc_and_set_request bwmgr_calc_set_req;
+		struct cmd_bwmgr_int_cap_set_request bwmgr_cap_set_req;
+	} BPMP_UNION_ANON;
+} BPMP_ABI_PACKED;
+
+/*
+ * @brief Response to MRQ_BWMGR_INT
+ *
+ * |sub-command                 |payload                                |
+ * |----------------------------|---------------------------------------|
+ * |CMD_BWMGR_INT_CALC_AND_SET  | cmd_bwmgr_int_calc_and_set_response   |
+ */
+struct mrq_bwmgr_int_response {
+	union {
+		struct cmd_bwmgr_int_calc_and_set_response bwmgr_calc_set_resp;
+	} BPMP_UNION_ANON;
+} BPMP_ABI_PACKED;
+
+/** @endcond */
+/** @} */
+
+/**
+ * @ingroup MRQ_Codes
  * @def MRQ_ISO_CLIENT
  * @brief ISO client requests
  *
@@ -2660,7 +2822,7 @@ struct mrq_cpu_ndiv_limits_response {
  * @def MRQ_CPU_AUTO_CC3
  * @brief Query CPU cluster auto-CC3 configuration
  *
- * * Platforms: T194 onwards
+ * * Platforms: T194
  * @cond bpmp_t194
  * * Initiators: CCPLEX
  * * Targets: BPMP
@@ -2917,7 +3079,7 @@ union mrq_ringbuf_console_bpmp_to_host_response {
  * @brief Set a strap value controlled by BPMP
  *
  * * Platforms: T194 onwards
- * @cond bpmp_t194
+ * @cond (bpmp_t194 || bpmp_t234)
  * * Initiators: CCPLEX
  * * Targets: BPMP
  * * Request Payload: @ref mrq_strap_request
@@ -2966,7 +3128,7 @@ struct mrq_strap_request {
  * @brief Perform a UPHY operation
  *
  * * Platforms: T194 onwards
- * @cond bpmp_t194
+ * @cond (bpmp_t194 || bpmp_t234 || bpmp_t239)
  * * Initiators: CCPLEX
  * * Targets: BPMP
  * * Request Payload: @ref mrq_uphy_request
@@ -2981,6 +3143,8 @@ enum {
 	CMD_UPHY_PCIE_EP_CONTROLLER_PLL_INIT = 3,
 	CMD_UPHY_PCIE_CONTROLLER_STATE = 4,
 	CMD_UPHY_PCIE_EP_CONTROLLER_PLL_OFF = 5,
+	CMD_UPHY_DISPLAY_PORT_INIT = 6,
+	CMD_UPHY_DISPLAY_PORT_OFF = 7,
 	CMD_UPHY_MAX,
 };
 
@@ -3003,19 +3167,26 @@ struct cmd_uphy_margin_status_response {
 } BPMP_ABI_PACKED;
 
 struct cmd_uphy_ep_controller_pll_init_request {
-	/** @brief EP controller number, valid: 0, 4, 5 */
+	/** @brief EP controller number, T194 valid: 0, 4, 5; T234 valid: 5, 6, 7, 10; T239 valid: 0 */
 	uint8_t ep_controller;
 } BPMP_ABI_PACKED;
 
 struct cmd_uphy_pcie_controller_state_request {
-	/** @brief PCIE controller number, valid: 0, 1, 2, 3, 4 */
+	/** @brief PCIE controller number, T194 valid: 0-4; T234 valid: 0-10; T239 valid: 0-3 */
 	uint8_t pcie_controller;
 	uint8_t enable;
 } BPMP_ABI_PACKED;
 
 struct cmd_uphy_ep_controller_pll_off_request {
-	/** @brief EP controller number, valid: 0, 4, 5 */
+	/** @brief EP controller number, T194 valid: 0, 4, 5; T234 valid: 5, 6, 7, 10; T239 valid: 0 */
 	uint8_t ep_controller;
+} BPMP_ABI_PACKED;
+
+struct cmd_uphy_display_port_init_request {
+	/** @brief DisplayPort link rate, T239 valid: 1620, 2700, 5400, 8100, 2160, 2430, 3240, 4320, 6750 */
+	uint16_t link_rate;
+	/** @brief 1: lane 0; 2: lane 1; 3: lane 0 and 1 */
+	uint16_t lanes_bitmap;
 } BPMP_ABI_PACKED;
 
 /**
@@ -3034,6 +3205,8 @@ struct cmd_uphy_ep_controller_pll_off_request {
  * |CMD_UPHY_PCIE_EP_CONTROLLER_PLL_INIT |cmd_uphy_ep_controller_pll_init_request |
  * |CMD_UPHY_PCIE_CONTROLLER_STATE       |cmd_uphy_pcie_controller_state_request  |
  * |CMD_UPHY_PCIE_EP_CONTROLLER_PLL_OFF  |cmd_uphy_ep_controller_pll_off_request  |
+ * |CMD_UPHY_PCIE_DISPLAY_PORT_INIT      |cmd_uphy_display_port_init_request      |
+ * |CMD_UPHY_PCIE_DISPLAY_PORT_OFF       |                                        |
  *
  */
 
@@ -3048,6 +3221,7 @@ struct mrq_uphy_request {
 		struct cmd_uphy_ep_controller_pll_init_request ep_ctrlr_pll_init;
 		struct cmd_uphy_pcie_controller_state_request controller_state;
 		struct cmd_uphy_ep_controller_pll_off_request ep_ctrlr_pll_off;
+		struct cmd_uphy_display_port_init_request display_port_init;
 	} BPMP_UNION_ANON;
 } BPMP_ABI_PACKED;
 
@@ -3633,6 +3807,226 @@ struct mrq_ec_response {
 		struct cmd_ec_status_ex_get_response ec_status_ex_get;
 	} BPMP_UNION_ANON;
 } BPMP_ABI_PACKED;
+
+/** @} */
+/** @endcond */
+
+/**
+ * @ingroup MRQ_Codes
+ * @def MRQ_TELEMETRY
+ * @brief Get address of memory buffer refreshed with recently sampled
+ *        telemetry data
+ *
+ * * Platforms: TH500 onwards
+ * @cond bpmp_th500
+ * * Initiators: CCPLEX
+ * * Targets: BPMP
+ * * Request Payload: N/A
+ * * Response Payload: @ref mrq_telemetry_response
+ * @addtogroup Telemetry
+ * @{
+ */
+
+/**
+ * @brief Response to #MRQ_TELEMETRY
+ *
+ * mrq_response::err is
+ * * 0: Telemetry data is available at returned address
+ * * -#BPMP_EACCES: MRQ master is not allowed to request buffer refresh
+ * * -#BPMP_ENAVAIL: Telemetry buffer cannot be refreshed via this MRQ channel
+ * * -#BPMP_ENOTSUP: Telemetry buffer is not supported by BPMP-FW
+ * * -#BPMP_ENODEV: Telemetry mrq is not supported by BPMP-FW
+ */
+struct mrq_telemetry_response {
+	/** @brief Physical address of telemetry data buffer */
+	uint64_t data_buf_addr;	/**< see @ref bpmp_telemetry_layout */
+} BPMP_ABI_PACKED;
+
+/** @} */
+/** @endcond */
+
+/**
+ * @ingroup MRQ_Codes
+ * @def MRQ_PWR_LIMIT
+ * @brief Control power limits.
+ *
+ * * Platforms: TH500 onwards
+ * @cond bpmp_th500
+ * * Initiators: Any
+ * * Targets: BPMP
+ * * Request Payload: @ref mrq_pwr_limit_request
+ * * Response Payload: @ref mrq_pwr_limit_response
+ *
+ * @addtogroup Pwrlimit
+ * @{
+ */
+enum mrq_pwr_limit_cmd {
+	/**
+	 * @brief Check whether the BPMP-FW supports the specified
+	 * command
+	 *
+	 * mrq_response::err is 0 if the specified request is
+	 * supported and -#BPMP_ENODEV otherwise.
+	 */
+	CMD_PWR_LIMIT_QUERY_ABI = 0,
+
+	/**
+	 * @brief Set power limit
+	 *
+	 * mrq_response:err is
+	 * * 0: Success
+	 * * -#BPMP_ENODEV: Pwr limit mrq is not supported by BPMP-FW
+	 * * -#BPMP_ENAVAIL: Invalid request parameters
+	 * * -#BPMP_EACCES: Request is not accepted
+	 */
+	CMD_PWR_LIMIT_SET = 1,
+
+	/**
+	 * @brief Get power limit setting
+	 *
+	* mrq_response:err is
+	* * 0: Success
+	* * -#BPMP_ENODEV: Pwr limit mrq is not supported by BPMP-FW
+	* * -#BPMP_ENAVAIL: Invalid request parameters
+	* * -#BPMP_EACCES: Request is not accepted
+	 */
+	CMD_PWR_LIMIT_GET = 2,
+};
+
+/**
+ * @defgroup bpmp_pwr_limit_type PWR_LIMIT TYPEs
+ * @{
+ */
+/** @brief Limit value specifies traget cap */
+#define PWR_LIMIT_TYPE_TARGET_CAP		0U
+/** @brief Limit value specifies maximum possible target cap */
+#define PWR_LIMIT_TYPE_BOUND_MAX		1U
+/** @brief Limit value specifies minimum possible target cap */
+#define PWR_LIMIT_TYPE_BOUND_MIN		2U
+/** @brief Number of limit types supported by mrq interface */
+#define PWR_LIMIT_TYPE_NUM			3U
+/** @} */
+
+/**
+ * @brief Request data for #MRQ_PWR_LIMIT command CMD_PWR_LIMIT_QUERY_ABI
+ */
+struct cmd_pwr_limit_query_abi_request {
+	uint32_t cmd_code; /**< @ref mrq_pwr_limit_cmd */
+} BPMP_ABI_PACKED;
+
+/**
+ * @brief Request data for #MRQ_PWR_LIMIT command CMD_PWR_LIMIT_SET
+ *
+ * Set specified limit of specified type from specified source. The success of
+ * the request means that specified value is accepted as input to arbitration
+ * with other sources settings for the same limit of the same type. Zero limit
+ * is ignored by the arbitration (i.e., indicates "no limit set").
+ */
+struct cmd_pwr_limit_set_request {
+	uint32_t limit_id;   /**< @ref bpmp_pwr_limit_id */
+	uint32_t limit_src;  /**< @ref bpmp_pwr_limit_src */
+	uint32_t limit_type; /**< @ref bpmp_pwr_limit_type */
+	uint32_t limit_setting;
+} BPMP_ABI_PACKED;
+
+/**
+ * @brief Request data for #MRQ_PWR_LIMIT command CMD_PWR_LIMIT_GET
+ *
+ * Get previously set from specified source specified limit value of specified
+ * type.
+ */
+struct cmd_pwr_limit_get_request {
+	uint32_t limit_id;   /**< @ref bpmp_pwr_limit_id */
+	uint32_t limit_src;  /**< @ref bpmp_pwr_limit_src */
+	uint32_t limit_type; /**< @ref bpmp_pwr_limit_type */
+} BPMP_ABI_PACKED;
+
+/**
+ * @brief Response data for #MRQ_PWR_LIMIT command CMD_PWR_LIMIT_GET
+ */
+struct cmd_pwr_limit_get_response {
+	uint32_t limit_setting;
+} BPMP_ABI_PACKED;
+
+/**
+ * @brief Request with #MRQ_PWR_LIMIT
+ *
+ * |sub-command                 |payload                          |
+ * |----------------------------|---------------------------------|
+ * |CMD_PWR_LIMIT_QUERY_ABI     | cmd_pwr_limit_query_abi_request |
+ * |CMD_PWR_LIMIT_SET           | cmd_pwr_limit_set_request       |
+ * |CMD_PWR_LIMIT_GET           | cmd_pwr_limit_get_request       |
+ */
+struct mrq_pwr_limit_request {
+	uint32_t cmd;
+	union {
+		struct cmd_pwr_limit_query_abi_request pwr_limit_query_abi_req;
+		struct cmd_pwr_limit_set_request pwr_limit_set_req;
+		struct cmd_pwr_limit_get_request pwr_limit_get_req;
+	} BPMP_UNION_ANON;
+} BPMP_ABI_PACKED;
+
+/**
+ * @brief Response to MRQ_PWR_LIMIT
+ *
+ * |sub-command                 |payload                          |
+ * |----------------------------|---------------------------------|
+ * |CMD_PWR_LIMIT_QUERY_ABI     | -                               |
+ * |CMD_PWR_LIMIT_SET           | -                               |
+ * |CMD_PWR_LIMIT_GET           | cmd_pwr_limit_get_response      |
+ */
+struct mrq_pwr_limit_response {
+	union {
+		struct cmd_pwr_limit_get_response pwr_limit_get_rsp;
+	} BPMP_UNION_ANON;
+} BPMP_ABI_PACKED;
+
+/**
+ * @ingroup MRQ_Codes
+ * @def MRQ_GEARS
+ * @brief Get thresholds for NDIV offset switching
+ *
+ * * Platforms: TH500 onwards
+ * @cond bpmp_th500
+ * * Initiators: CCPLEX
+ * * Targets: BPMP
+ * * Request Payload: N/A
+ * * Response Payload: @ref mrq_gears_response
+ * @addtogroup Gears
+ * @{
+ */
+
+/**
+ * @brief Response to #MRQ_GEARS
+ *
+ * Used by the sender of an #MRQ_GEARS message to request thresholds
+ * for NDIV offset switching.
+ *
+ * The mrq_gears_response::ncpu array defines four thresholds in units
+ * of number of online CPUS to be used for choosing between five different
+ * NDIV offset settings for CCPLEX cluster NAFLLs
+ *
+ * 1. If number of online CPUs < ncpu[0] use offset0
+ * 2. If number of online CPUs < ncpu[1] use offset1
+ * 3. If number of online CPUs < ncpu[2] use offset2
+ * 4. If number of online CPUs < ncpu[3] use offset3
+ * 5. If number of online CPUs >= ncpu[3] disable offsetting
+ *
+ * For TH500 mrq_gears_response::ncpu array has four valid entries.
+ *
+ * mrq_response::err is
+ * * 0: gears defined and response data valid
+ * * -#BPMP_ENODEV: MRQ is not supported by BPMP-FW
+ * * -#BPMP_EACCES: Operation not permitted for the MRQ master
+ * * -#BPMP_ENAVAIL: NDIV offsetting is disabled
+ */
+struct mrq_gears_response {
+	/** @brief number of online CPUs for each gear */
+	uint32_t ncpu[16];
+} BPMP_ABI_PACKED;
+
+/** @} */
+/** @endcond */
 
 /** @} */
 /** @endcond */
