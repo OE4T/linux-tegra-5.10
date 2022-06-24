@@ -99,32 +99,6 @@ int tegra_hwpm_ip_handle_power_mgmt(struct tegra_soc_hwpm *hwpm,
 	return err;
 }
 
-static int tegra_hwpm_update_ip_inst_element_fs_mask(
-	struct tegra_soc_hwpm *hwpm,
-	u32 ip_idx, u32 a_type, u32 inst_idx, bool available)
-{
-	struct tegra_soc_hwpm_chip *active_chip = hwpm->active_chip;
-	struct hwpm_ip *chip_ip = active_chip->chip_ips[ip_idx];
-	struct hwpm_ip_inst_per_aperture_info *inst_a_info =
-		&chip_ip->inst_aperture_info[a_type];
-	struct hwpm_ip_inst *ip_inst = inst_a_info->inst_arr[inst_idx];
-	struct hwpm_ip_element_info *perfmux_info =
-		&ip_inst->element_info[TEGRA_HWPM_APERTURE_TYPE_PERFMUX];
-	struct hwpm_ip_aperture *perfmux = NULL;
-	u32 idx = 0U;
-
-	tegra_hwpm_fn(hwpm, " ");
-
-	/* Only perfmuxes are essential for element_fs_mask */
-	for (idx = 0U; idx < perfmux_info->num_element_per_inst; idx++) {
-		perfmux = &perfmux_info->element_static_array[idx];
-
-		ip_inst->element_fs_mask |= perfmux->element_index_mask;
-	}
-
-	return 0;
-}
-
 static int tegra_hwpm_update_ip_inst_fs_mask(struct tegra_soc_hwpm *hwpm,
 	u32 ip_idx, u32 a_type, u32 inst_idx, bool available)
 {
@@ -133,6 +107,7 @@ static int tegra_hwpm_update_ip_inst_fs_mask(struct tegra_soc_hwpm *hwpm,
 	struct hwpm_ip_inst_per_aperture_info *inst_a_info =
 		&chip_ip->inst_aperture_info[a_type];
 	struct hwpm_ip_inst *ip_inst = inst_a_info->inst_arr[inst_idx];
+	int ret = 0;
 
 	tegra_hwpm_fn(hwpm, " ");
 
@@ -140,6 +115,22 @@ static int tegra_hwpm_update_ip_inst_fs_mask(struct tegra_soc_hwpm *hwpm,
 	if (available) {
 		chip_ip->inst_fs_mask |= ip_inst->hw_inst_mask;
 		chip_ip->resource_status = TEGRA_HWPM_RESOURCE_STATUS_VALID;
+
+		if (hwpm->device_opened) {
+			/*
+			 * IP fs_info is updated during device open call
+			 * However, if IP registers after HWPM device was open,
+			 * this function call will update IP element mask
+			 */
+			ret = tegra_hwpm_func_single_ip(hwpm, NULL,
+				TEGRA_HWPM_UPDATE_IP_INST_MASK, ip_idx);
+			if (ret != 0) {
+				tegra_hwpm_err(hwpm,
+					"IP %d Failed to update fs_info",
+					ip_idx);
+				return ret;
+			}
+		}
 	} else {
 		chip_ip->inst_fs_mask &= ~(ip_inst->hw_inst_mask);
 		if (chip_ip->inst_fs_mask == 0U) {
@@ -148,8 +139,7 @@ static int tegra_hwpm_update_ip_inst_fs_mask(struct tegra_soc_hwpm *hwpm,
 		}
 	}
 
-	return tegra_hwpm_update_ip_inst_element_fs_mask(hwpm, ip_idx,
-		a_type, inst_idx, available);
+	return 0;
 }
 
 static int tegra_hwpm_update_ip_ops_info(struct tegra_soc_hwpm *hwpm,

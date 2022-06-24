@@ -64,9 +64,6 @@ static int tegra_hwpm_perfmon_reserve(struct tegra_soc_hwpm *hwpm,
 static int tegra_hwpm_perfmux_reserve(struct tegra_soc_hwpm *hwpm,
 	struct hwpm_ip_inst *ip_inst, struct hwpm_ip_aperture *perfmux)
 {
-	int ret = 0;
-	u32 reg_val = 0U;
-
 	tegra_hwpm_fn(hwpm, " ");
 
 	perfmux->start_pa = perfmux->start_abs_pa;
@@ -87,25 +84,6 @@ static int tegra_hwpm_perfmux_reserve(struct tegra_soc_hwpm *hwpm,
 				perfmux->start_pa, perfmux->end_pa);
 			return -ENOMEM;
 		}
-	}
-
-	/* Validate perfmux availability by reading 1st alist offset */
-	ret = tegra_hwpm_regops_readl(hwpm, ip_inst, perfmux,
-		tegra_hwpm_safe_add_u64(perfmux->start_abs_pa,
-			perfmux->alist[0U].reg_offset), &reg_val);
-	if (ret != 0) {
-		/*
-		 * If an IP element is unavailable, perfmux register
-		 * read will return with failure.
-		 * Mark corresponding element as unavailable.
-		 * NOTE: This is possible if IP elements are floorswept.
-		 * Hence, failure should not be propagated.
-		 */
-		tegra_hwpm_dbg(hwpm, hwpm_dbg_reserve_resource,
-			"perfmux start_abs_pa 0x%llx unavailable",
-			perfmux->start_abs_pa);
-
-		ip_inst->element_fs_mask &= ~(perfmux->element_index_mask);
 	}
 
 	return 0;
@@ -336,6 +314,7 @@ static int tegra_hwpm_func_single_element(struct tegra_soc_hwpm *hwpm,
 		&e_info->element_static_array[static_aperture_idx];
 	u64 element_offset = 0ULL;
 	u32 idx = 0U;
+	u32 reg_val = 0U;
 
 	tegra_hwpm_fn(hwpm, " ");
 
@@ -355,8 +334,32 @@ static int tegra_hwpm_func_single_element(struct tegra_soc_hwpm *hwpm,
 			ip_idx, static_inst_idx, a_type, element->element_type,
 			element->start_abs_pa, static_aperture_idx, idx);
 
-		/* Set perfmux slot pointer */
+		/* Set element slot pointer */
 		e_info->element_arr[idx] = element;
+		break;
+	case TEGRA_HWPM_UPDATE_IP_INST_MASK:
+		/* Validate perfmux availability by reading 1st alist offset */
+		ret = tegra_hwpm_regops_readl(hwpm, ip_inst, element,
+			tegra_hwpm_safe_add_u64(element->start_abs_pa,
+				element->alist[0U].reg_offset), &reg_val);
+		if (ret != 0) {
+			/*
+			 * If an IP element is unavailable, perfmux register
+			 * read will return with failure.
+			 * Mark corresponding element as unavailable.
+			 * NOTE: This is possible for floorswept IP elements.
+			 * Hence, failure should not be propagated.
+			 */
+			tegra_hwpm_dbg(hwpm, hwpm_dbg_floorsweep_info,
+				"perfmux start_abs_pa 0x%llx unavailable",
+				element->start_abs_pa);
+
+			ip_inst->element_fs_mask &=
+				~(element->element_index_mask);
+		} else {
+			/* Update element mask in the instance */
+			ip_inst->element_fs_mask |= element->element_index_mask;
+		}
 		break;
 	case TEGRA_HWPM_GET_ALIST_SIZE:
 		if ((element->element_index_mask &
@@ -525,6 +528,13 @@ static int tegra_hwpm_func_all_elements_of_type(struct tegra_soc_hwpm *hwpm,
 		}
 	}
 
+	if (iia_func == TEGRA_HWPM_UPDATE_IP_INST_MASK) {
+		if (a_type != TEGRA_HWPM_APERTURE_TYPE_PERFMUX) {
+			/* Only perfmuxes are essential for element_fs_mask */
+			return 0;
+		}
+	}
+
 	for (static_idx = 0U; static_idx < e_info->num_element_per_inst;
 		static_idx++) {
 		err = tegra_hwpm_func_single_element(
@@ -622,11 +632,14 @@ static int tegra_hwpm_func_single_inst(struct tegra_soc_hwpm *hwpm,
 		}
 	}
 
-	if (iia_func == TEGRA_HWPM_RESERVE_GIVEN_RESOURCE) {
-		/*
-		 * Disable IP power management indicating
-		 * start of profiling session
-		 */
+	if ((iia_func == TEGRA_HWPM_RESERVE_GIVEN_RESOURCE) ||
+		(iia_func == TEGRA_HWPM_UPDATE_IP_INST_MASK)) {
+		if ((chip_ip->inst_fs_mask & ip_inst->hw_inst_mask) == 0U) {
+			/* This instance is unavailable */
+			return 0;
+		}
+
+		/* Disable IP power management */
 		err = tegra_hwpm_ip_handle_power_mgmt(hwpm, ip_inst, true);
 		if (err != 0) {
 			tegra_hwpm_err(hwpm,
@@ -645,11 +658,21 @@ static int tegra_hwpm_func_single_inst(struct tegra_soc_hwpm *hwpm,
 		goto fail;
 	}
 
-	if (iia_func == TEGRA_HWPM_RELEASE_RESOURCES) {
-		/*
-		 * Enable IP power management indicating
-		 * end of profiling session
-		 */
+	if (iia_func == TEGRA_HWPM_UPDATE_IP_INST_MASK) {
+		if (ip_inst->element_fs_mask == 0U) {
+			/* No element available in this inst */
+			chip_ip->inst_fs_mask &= ~(ip_inst->hw_inst_mask);
+		}
+		if (chip_ip->inst_fs_mask == 0U) {
+			/* No instance is available */
+			chip_ip->resource_status =
+				TEGRA_HWPM_RESOURCE_STATUS_INVALID;
+		}
+	}
+
+	if ((iia_func == TEGRA_HWPM_RELEASE_RESOURCES) ||
+		(iia_func == TEGRA_HWPM_UPDATE_IP_INST_MASK)) {
+		/* Enable IP power management */
 		err = tegra_hwpm_ip_handle_power_mgmt(hwpm, ip_inst, false);
 		if (err != 0) {
 			tegra_hwpm_err(hwpm,
@@ -725,6 +748,14 @@ int tegra_hwpm_func_single_ip(struct tegra_soc_hwpm *hwpm,
 	}
 
 	switch (iia_func) {
+	case TEGRA_HWPM_UPDATE_IP_INST_MASK:
+		if (chip_ip->inst_fs_mask == 0U) {
+			/* No available IP instances */
+			tegra_hwpm_dbg(hwpm, hwpm_dbg_floorsweep_info,
+				"Chip IP %d not available", ip_idx);
+			return 0;
+		}
+		break;
 	case TEGRA_HWPM_GET_ALIST_SIZE:
 	case TEGRA_HWPM_COMBINE_ALIST:
 	case TEGRA_HWPM_BIND_RESOURCES:

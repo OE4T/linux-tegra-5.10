@@ -144,6 +144,13 @@ int tegra_hwpm_setup_sw(struct tegra_soc_hwpm *hwpm)
 		return ret;
 	}
 
+	ret = tegra_hwpm_func_all_ip(hwpm, NULL,
+		TEGRA_HWPM_UPDATE_IP_INST_MASK);
+	if (ret != 0) {
+		tegra_hwpm_err(hwpm, "Failed to update IP fs_info");
+		return ret;
+	}
+
 	/* Initialize SW state */
 	hwpm->bind_completed = false;
 	hwpm->full_alist_size = 0;
