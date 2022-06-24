@@ -260,7 +260,7 @@ static int frp_entry_add(struct osi_core_priv_data *const osi_core,
 	/* Check for avilable space */
 	req_entries = frp_req_entries(offset, length);
 	if ((req_entries >= OSI_FRP_MAX_ENTRY) ||
-	    (req_entries + pos) >= OSI_FRP_MAX_ENTRY) {
+	    ((req_entries + pos) >= OSI_FRP_MAX_ENTRY)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"No space to update FRP ID\n",
 			OSI_NONE);
@@ -268,8 +268,8 @@ static int frp_entry_add(struct osi_core_priv_data *const osi_core,
 	}
 
 	/* Validate next_frp_id index ok_index */
-	if (filter_mode == OSI_FRP_MODE_LINK ||
-	    filter_mode == OSI_FRP_MODE_IM_LINK) {
+	if ((filter_mode == OSI_FRP_MODE_LINK) ||
+	    (filter_mode == OSI_FRP_MODE_IM_LINK)) {
 		if (frp_entry_find(osi_core, next_frp_id, &i, &j) < 0) {
 			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 				"No Link FRP ID index found\n",
@@ -334,8 +334,8 @@ static int frp_entry_add(struct osi_core_priv_data *const osi_core,
 	}
 
 	/* Check and fill final OKI */
-	if (filter_mode == OSI_FRP_MODE_LINK ||
-	    filter_mode == OSI_FRP_MODE_IM_LINK) {
+	if ((filter_mode == OSI_FRP_MODE_LINK) ||
+	    (filter_mode == OSI_FRP_MODE_IM_LINK)) {
 		/* Update NIC and OKI in final entry */
 		data->next_ins_ctrl = OSI_ENABLE;
 		data->ok_index = ok_index;

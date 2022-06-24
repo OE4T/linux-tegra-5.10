@@ -1376,7 +1376,7 @@ static int eqos_config_frp(struct osi_core_priv_data *const osi_core,
 	unsigned int op_mode = 0U, val = 0U;
 	int ret = 0;
 
-	if (enabled != OSI_ENABLE && enabled != OSI_DISABLE) {
+	if ((enabled != OSI_ENABLE) && (enabled != OSI_DISABLE)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"Invalid enable input\n",
 			enabled);
@@ -2127,19 +2127,19 @@ static inline void eqos_save_gcl_params(struct osi_core_priv_data *osi_core)
 				       OSI_GCL_SIZE_256, OSI_GCL_SIZE_512,
 				       OSI_GCL_SIZE_1024};
 
-	if ((osi_core->hw_feature->gcl_width == 0) ||
-	    (osi_core->hw_feature->gcl_width > 3)) {
-			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-				     "Wrong HW feature GCL width\n",
-			   (unsigned long long)osi_core->hw_feature->gcl_width);
+	if ((osi_core->hw_feature->gcl_width == 0U) ||
+	    (osi_core->hw_feature->gcl_width > 3U)) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "Wrong HW feature GCL width\n",
+			     (unsigned long long)osi_core->hw_feature->gcl_width);
 	} else {
 		l_core->gcl_width_val =
 				    gcl_widhth[osi_core->hw_feature->gcl_width];
 		l_core->ti_mask = gcl_ti_mask[osi_core->hw_feature->gcl_width];
 	}
 
-	if ((osi_core->hw_feature->gcl_depth == 0) ||
-	    (osi_core->hw_feature->gcl_depth > 5)) {
+	if ((osi_core->hw_feature->gcl_depth == 0U) ||
+	    (osi_core->hw_feature->gcl_depth > 5U)) {
 		/* Do Nothing */
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "Wrong HW feature GCL depth\n",
@@ -2594,13 +2594,25 @@ static void eqos_handle_mac_intrs(struct osi_core_priv_data *const osi_core,
 	/* TODO: set_tx_clk needs to be done */
 	/* Maybe through workqueue for QNX */
 	if ((mac_pcs & EQOS_MAC_PCS_LNKSPEED) == EQOS_MAC_PCS_LNKSPEED_10) {
-		eqos_set_speed(osi_core, OSI_SPEED_10);
+		ret = eqos_set_speed(osi_core, OSI_SPEED_10);
+		if (osi_unlikely(ret < 0)) {
+			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+				     "set speed in 10Mbps failed\n", 0ULL);
+		}
 	} else if ((mac_pcs & EQOS_MAC_PCS_LNKSPEED) ==
 		   EQOS_MAC_PCS_LNKSPEED_100) {
-		eqos_set_speed(osi_core, OSI_SPEED_100);
+		ret = eqos_set_speed(osi_core, OSI_SPEED_100);
+		if (osi_unlikely(ret < 0)) {
+			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+				     "set speed in 100Mbps failed\n", 0ULL);
+		}
 	} else if ((mac_pcs & EQOS_MAC_PCS_LNKSPEED) ==
 		   EQOS_MAC_PCS_LNKSPEED_1000) {
-		eqos_set_speed(osi_core, OSI_SPEED_1000);
+		ret = eqos_set_speed(osi_core, OSI_SPEED_1000);
+		if (osi_unlikely(ret < 0)) {
+			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+				     "set speed in 1000Mbps failed\n", 0ULL);
+		}
 	} else {
 		/* Nothing here */
 	}
@@ -3338,8 +3350,8 @@ static void eqos_l2_filter_delete(struct osi_core_priv_data *osi_core,
 		    (nveu8_t *)osi_core->base + EQOS_MAC_ADDRL((idx)));
 
 	*value |= OSI_MASK_16BITS;
-	if (dma_routing_enable == OSI_DISABLE ||
-	    osi_core->mac_ver < OSI_EQOS_MAC_5_00) {
+	if ((dma_routing_enable == OSI_DISABLE) ||
+	    (osi_core->mac_ver < OSI_EQOS_MAC_5_00)) {
 		*value &= ~(EQOS_MAC_ADDRH_AE | EQOS_MAC_ADDRH_DCS);
 		osi_writela(osi_core, *value, (nveu8_t *)osi_core->base +
 			    EQOS_MAC_ADDRH((idx)));
@@ -3479,7 +3491,7 @@ static nve32_t eqos_update_mac_addr_low_high_reg(
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_config_ptp_offload(struct osi_core_priv_data *osi_core,
+static int eqos_config_ptp_offload(struct osi_core_priv_data *const osi_core,
 				   struct osi_pto_config *const pto_config)
 {
 	unsigned char *addr = (unsigned char *)osi_core->base;
@@ -4698,9 +4710,9 @@ static void eqos_config_tscr(struct osi_core_priv_data *const osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_config_ptp_rxq(struct osi_core_priv_data *osi_core,
-			       const unsigned int rxq_idx,
-			       const unsigned int enable)
+static nve32_t  eqos_config_ptp_rxq(struct osi_core_priv_data *const osi_core,
+				    const unsigned int rxq_idx,
+				    const unsigned int enable)
 {
 	unsigned char *base = osi_core->base;
 	unsigned int value = OSI_NONE;
@@ -4720,7 +4732,7 @@ static int eqos_config_ptp_rxq(struct osi_core_priv_data *osi_core,
 	}
 
 	/* Validate enable argument */
-	if (enable != OSI_ENABLE && enable != OSI_DISABLE) {
+	if ((enable != OSI_ENABLE) && (enable != OSI_DISABLE)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"Invalid enable input\n",
 			enable);
@@ -4937,8 +4949,8 @@ static int eqos_hw_est_write(struct osi_core_priv_data *osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_hw_config_est(struct osi_core_priv_data *osi_core,
-			      struct osi_est_config *est)
+static int eqos_hw_config_est(struct osi_core_priv_data *const osi_core,
+			      struct osi_est_config *const est)
 {
 	void *base = osi_core->base;
 	unsigned int btr[2] = {0};
@@ -4966,7 +4978,7 @@ static int eqos_hw_config_est(struct osi_core_priv_data *osi_core,
 	btr[0] = est->btr[0];
 	btr[1] = est->btr[1];
 
-	if (btr[0] == 0U && btr[1] == 0U) {
+	if ((btr[0] == 0U) && (btr[1] == 0U)) {
 		common_get_systime_from_mac(osi_core->base, osi_core->mac,
 					    &btr[1], &btr[0]);
 	}
@@ -5074,8 +5086,8 @@ static int eqos_hw_config_est(struct osi_core_priv_data *osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_hw_config_fpe(struct osi_core_priv_data *osi_core,
-			      struct osi_fpe_config *fpe)
+static int eqos_hw_config_fpe(struct osi_core_priv_data *const osi_core,
+			      struct osi_fpe_config *const fpe)
 {
 	unsigned int i = 0U;
 	unsigned int val = 0U;
@@ -5133,7 +5145,7 @@ static int eqos_hw_config_fpe(struct osi_core_priv_data *osi_core,
 		    (nveu8_t *)osi_core->base + EQOS_MTL_FPE_CTS);
 
 	/* Setting RQ as RxQ 0 is not allowed */
-	if (fpe->rq == 0x0U || fpe->rq >= OSI_EQOS_MAX_NUM_CHANS) {
+	if ((fpe->rq == 0x0U) || (fpe->rq >= OSI_EQOS_MAX_NUM_CHANS)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "EST init failed due to wrong RQ\n", fpe->rq);
 		return -1;
@@ -6727,7 +6739,7 @@ static nve32_t eqos_post_pad_calibrate(
  *
  * @retval -1 Always
  */
-static nve32_t eqos_config_rss(struct osi_core_priv_data *const osi_core)
+static nve32_t eqos_config_rss(struct osi_core_priv_data *osi_core)
 {
 	OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
 		     "RSS not supported by EQOS\n", 0ULL);

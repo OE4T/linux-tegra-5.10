@@ -276,10 +276,6 @@ nve32_t osi_hal_hw_core_deinit(struct osi_core_priv_data *const osi_core)
 
 	l_core->state = OSI_DISABLE;
 
-	/* FIXME: Should be fixed */
-	//l_core->init_done = OSI_DISABLE;
-	//l_core->magic_num = 0;
-
 	return 0;
 }
 
@@ -383,33 +379,33 @@ static nve32_t conf_ptp_offload(struct osi_core_priv_data *const osi_core,
 		return ret;
 	}
 
-	if (pto_config->mc_uc != OSI_ENABLE &&
-	    pto_config->mc_uc != OSI_DISABLE) {
+	if ((pto_config->mc_uc != OSI_ENABLE) &&
+	    (pto_config->mc_uc != OSI_DISABLE)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "invalid mc_uc flag value\n",
 			     (nveul64_t)pto_config->mc_uc);
 		return ret;
 	}
 
-	if (pto_config->en_dis != OSI_ENABLE &&
-	    pto_config->en_dis != OSI_DISABLE) {
+	if ((pto_config->en_dis != OSI_ENABLE) &&
+	    (pto_config->en_dis != OSI_DISABLE)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "invalid enable flag value\n",
 			     (nveul64_t)pto_config->en_dis);
 		return ret;
 	}
 
-	if (pto_config->snap_type != OSI_PTP_SNAP_ORDINARY &&
-	    pto_config->snap_type != OSI_PTP_SNAP_TRANSPORT &&
-	    pto_config->snap_type != OSI_PTP_SNAP_P2P) {
+	if ((pto_config->snap_type != OSI_PTP_SNAP_ORDINARY) &&
+	    (pto_config->snap_type != OSI_PTP_SNAP_TRANSPORT) &&
+	    (pto_config->snap_type != OSI_PTP_SNAP_P2P)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "invalid SNAP type value\n",
 			     (nveul64_t)pto_config->snap_type);
 		return ret;
 	}
 
-	if (pto_config->master != OSI_ENABLE &&
-	    pto_config->master != OSI_DISABLE) {
+	if ((pto_config->master != OSI_ENABLE) &&
+	    (pto_config->master != OSI_DISABLE)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "invalid master flag value\n",
 			     (nveul64_t)pto_config->master);
@@ -1055,7 +1051,7 @@ static nve32_t vlan_id_update(struct osi_core_priv_data *const osi_core,
 {
 	struct core_local *const l_core = (struct core_local *)(void *)osi_core;
 	unsigned int action = vid & VLAN_ACTION_MASK;
-	unsigned short vlan_id = vid & VLAN_VID_MASK;
+	unsigned short vlan_id = (unsigned short)(vid & VLAN_VID_MASK);
 
 	if ((osi_core->mac_ver == OSI_EQOS_MAC_4_10) ||
 	    (osi_core->mac_ver == OSI_EQOS_MAC_5_00)) {
@@ -1271,7 +1267,7 @@ static nve32_t conf_mac_loopback(struct osi_core_priv_data *const osi_core,
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 
 	/* don't allow only if loopback mode is other than 0 or 1 */
-	if (lb_mode != OSI_ENABLE && lb_mode != OSI_DISABLE) {
+	if ((lb_mode != OSI_ENABLE) && (lb_mode != OSI_DISABLE)) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			     "Invalid loopback mode\n", 0ULL);
 		return -1;
@@ -1572,7 +1568,7 @@ static inline nve32_t freq_offset_calculate(struct osi_core_priv_data *sec_osi_c
 	 * it should be corrected with adjust time
 	 * threshold value 1 sec
 	 */
-	if (offset >= 1000000000 || offset <= -1000000000) {
+	if ((offset >= 1000000000) || (offset <= -1000000000)) {
 		s->count = SERVO_STATS_0; /* JUMP */
 		return (nve32_t) s->last_ppb;
 	}
@@ -1603,6 +1599,8 @@ static inline nve32_t freq_offset_calculate(struct osi_core_priv_data *sec_osi_c
 			s->drift = -MAX_FREQ;
 		} else if (s->drift > MAX_FREQ) {
 			s->drift = MAX_FREQ;
+		} else {
+			/* Do Nothing */
 		}
 
 		ppb = s->drift;
@@ -1616,8 +1614,8 @@ static inline nve32_t freq_offset_calculate(struct osi_core_priv_data *sec_osi_c
 		s->local[1] = secondary_time;
 		cofficient = (1000000000LL) / (s->local[1] - s->local[0]);
 		/* calculate ppb */
-		ki_term = (s->const_i * cofficient * offset * WEIGHT_BY_10) / (100);//weight;
-		ppb = (s->const_p * cofficient * offset * WEIGHT_BY_10) / (100) + s->drift +
+		ki_term = (s->const_i * cofficient * offset * WEIGHT_BY_10) / (100);
+		ppb = ((s->const_p * cofficient * offset * WEIGHT_BY_10) / (100)) + s->drift +
 		      ki_term;
 
 		/* FIXME tune cofficients */

@@ -28,7 +28,7 @@
 					 OSI_BIT(10) | OSI_BIT(11) | \
 					 OSI_BIT(12) | OSI_BIT(13) | \
 					 OSI_BIT(14) | OSI_BIT(15) | \
-					 OSI_BIT(16) | (17) | \
+					 OSI_BIT(16) | (17U) | \
 					 OSI_BIT(18) | OSI_BIT(19))
 #define MTL_EST_SRWO			OSI_BIT(0)
 #define MTL_EST_R1W0			OSI_BIT(1)

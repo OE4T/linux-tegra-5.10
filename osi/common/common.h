@@ -250,24 +250,30 @@ static inline void osi_writela(OSI_UNUSED void *priv, nveu32_t val, void *addr)
 static inline nve32_t validate_mac_ver_update_chans(nveu32_t mac_ver,
 						    nveu32_t *max_chans)
 {
+	nve32_t ret;
+
 	switch (mac_ver) {
 	case OSI_EQOS_MAC_4_10:
 	case OSI_EQOS_MAC_5_00:
 		*max_chans = OSI_EQOS_XP_MAX_CHANS;
+		ret = 1;
 		break;
 	case OSI_EQOS_MAC_5_30:
 		*max_chans = OSI_EQOS_MAX_NUM_CHANS;
+		ret = 1;
 		break;
 	case OSI_MGBE_MAC_3_00:
 	case OSI_MGBE_MAC_3_10:
 	case OSI_MGBE_MAC_4_00:
 		*max_chans = OSI_MGBE_MAX_NUM_CHANS;
+		ret = 1;
 		break;
 	default:
-		return 0;
+		ret = 0;
+		break;
 	}
 
-	return 1;
+	return ret;
 }
 
 /**
@@ -320,7 +326,7 @@ static inline nve32_t osi_memcpy(void *dest, void *src, nveu64_t n)
 	nve8_t *cdest = (nve8_t *)dest;
 	nveu64_t i = 0;
 
-	if (src == OSI_NULL || dest == OSI_NULL) {
+	if ((src == OSI_NULL) || (dest == OSI_NULL)) {
 		return -1;
 	}
 	for (i = 0; i < n; i++) {
@@ -336,7 +342,7 @@ static inline nve32_t osi_memcmp(void *dest, void *src, nve32_t n)
 	nve8_t *csrc = (nve8_t *)src;
 	nve8_t *cdest = (nve8_t *)dest;
 
-	if (src == OSI_NULL || dest == OSI_NULL)
+	if ((src == OSI_NULL) || (dest == OSI_NULL))
 		return -1;
 
 	for (i = 0; i < n; i++) {
@@ -344,6 +350,8 @@ static inline nve32_t osi_memcmp(void *dest, void *src, nve32_t n)
 			return -1;
 		} else if (csrc[i] > cdest[i]) {
 			return 1;
+		} else {
+			/* Do Nothing */
 		}
 	}
 	return 0;

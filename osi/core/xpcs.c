@@ -397,7 +397,7 @@ static nve32_t xpcs_lane_bring_up(struct osi_core_priv_data *osi_core)
 		val = osi_readla(osi_core,
 				(nveu8_t *)osi_core->xpcs_base +
 				XPCS_WRAP_UPHY_RX_CONTROL_0_0);
-		if ((val & XPCS_WRAP_UPHY_RX_CONTROL_0_0_RX_CAL_EN) == 0) {
+		if ((val & XPCS_WRAP_UPHY_RX_CONTROL_0_0_RX_CAL_EN) == 0U) {
 			cond = COND_MET;
 		} else {
 			osi_core->osd_ops.udelay(1000U);
@@ -591,7 +591,7 @@ int xpcs_eee(struct osi_core_priv_data *osi_core, unsigned int en_dis)
 	unsigned int val = 0x0U;
 	int ret = 0;
 
-	if (en_dis != OSI_ENABLE && en_dis != OSI_DISABLE) {
+	if ((en_dis != OSI_ENABLE) && (en_dis != OSI_DISABLE)) {
 		return  -1;
 	}
 

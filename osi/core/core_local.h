@@ -308,17 +308,16 @@ struct core_ops {
 #define	I_COMPONENT_BY_10	3
 #define	P_COMPONENT_BY_10	7
 #define	WEIGHT_BY_10		10
-#define	CONST_FACTOR		8 //(1sec/125ns)
-#define	MAX_FREQ		 85000000LL
+#define	MAX_FREQ		85000000LL
 #endif
 #define EQOS_SEC_OFFSET		0xB08
 #define EQOS_NSEC_OFFSET	0xB0C
 #define MGBE_SEC_OFFSET		0xD08
 #define MGBE_NSEC_OFFSET	0xD0C
-#define ETHER_NSEC_MASK		0x7FFFFFFF
-#define SERVO_STATS_0		0
-#define SERVO_STATS_1		1
-#define SERVO_STATS_2		2
+#define ETHER_NSEC_MASK		0x7FFFFFFFU
+#define SERVO_STATS_0		0U
+#define SERVO_STATS_1		1U
+#define SERVO_STATS_2		2U
 
 /**
  * @brief servo data structure.
@@ -506,19 +505,6 @@ static inline void update_counter_u(nveu32_t *value, nveu32_t incr)
  * - De-initialization: No
  */
 void eqos_init_core_ops(struct core_ops *ops);
-
-/**
- * @brief ivc_init_core_ops - Initialize IVC core operations.
- *
- * @param[in] ops: Core operations pointer.
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: No
- * - De-initialization: No
- */
-void ivc_init_core_ops(struct core_ops *ops);
 
 /**
  * @brief mgbe_init_core_ops - Initialize MGBE core operations.

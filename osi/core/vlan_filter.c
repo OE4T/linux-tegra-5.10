@@ -336,14 +336,14 @@ static inline int dequeue_vlan_id(struct osi_core_priv_data *osi_core,
 
 	/* Left shift the array elements by one for the VID order */
 	for (i = idx; i <= osi_core->vlan_filter_cnt; i++) {
-		osi_core->vid[i] = osi_core->vid[i + 1];
+		osi_core->vid[i] = osi_core->vid[i + 1U];
 	}
 
 	osi_core->vid[i] = VLAN_ID_INVALID;
 	osi_core->vlan_filter_cnt--;
 
 	if (osi_core->vlan_filter_cnt == VLAN_HW_MAX_NRVF) {
-		allow_all_vid_tags(osi_core->base, OSI_DISABLE);
+		return allow_all_vid_tags(osi_core->base, OSI_DISABLE);
 	}
 
 	return 0;
@@ -390,7 +390,7 @@ static inline int dequeue_vid_to_add_filter_reg(
 	}
 
 	for (i = VLAN_HW_FILTER_FULL_IDX; i <=  osi_core->vlan_filter_cnt; i++) {
-		osi_core->vid[i] = osi_core->vid[i + 1];
+		osi_core->vid[i] = osi_core->vid[i + 1U];
 	}
 
 	osi_core->vid[i] = VLAN_ID_INVALID;
@@ -452,7 +452,10 @@ static inline int del_vlan_id(struct osi_core_priv_data *osi_core,
 	}
 
 	if (osi_core->vlan_filter_cnt == VLAN_HW_MAX_NRVF) {
-		allow_all_vid_tags(osi_core->base, OSI_DISABLE);
+		ret = allow_all_vid_tags(osi_core->base, OSI_DISABLE);
+		if (ret < 0) {
+			return -1;
+		}
 	}
 
 	/* if SW queue is not empty dequeue from SW queue and update filter */
@@ -464,7 +467,7 @@ int update_vlan_id(struct osi_core_priv_data *osi_core,
 		   unsigned int vid)
 {
 	unsigned int action = vid & VLAN_ACTION_MASK;
-	unsigned short vlan_id = vid & VLAN_VID_MASK;
+	unsigned short vlan_id = (unsigned short)(vid & VLAN_VID_MASK);
 
 	if (action == OSI_VLAN_ACTION_ADD) {
 		return add_vlan_id(osi_core, ops_p, vlan_id);

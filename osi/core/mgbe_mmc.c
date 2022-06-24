@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -75,7 +75,7 @@ static inline unsigned long update_mmc_val(struct osi_core_priv_data *osi_core,
  *	1) MAC should be init and started. see osi_start_mac()
  *	2) osi_core->osd should be populated
  */
-void mgbe_reset_mmc(struct osi_core_priv_data *osi_core)
+void mgbe_reset_mmc(struct osi_core_priv_data *const osi_core)
 {
 	unsigned int value;
 
@@ -99,7 +99,7 @@ void mgbe_reset_mmc(struct osi_core_priv_data *osi_core)
  *	1) MAC should be init and started. see osi_start_mac()
  *	2) osi_core->osd should be populated
  */
-void mgbe_read_mmc(struct osi_core_priv_data *osi_core)
+void mgbe_read_mmc(struct osi_core_priv_data *const osi_core)
 {
 	struct osi_mmc_counters *mmc = &osi_core->mmc;
 

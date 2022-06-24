@@ -115,15 +115,15 @@ done:
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int mgbe_config_fw_err_pkts(struct osi_core_priv_data *osi_core,
-				   const unsigned int qinx,
-				   const unsigned int enable_fw_err_pkts)
+static nve32_t mgbe_config_fw_err_pkts(struct osi_core_priv_data *const osi_core,
+				       const nveu32_t qinx,
+				       const nveu32_t enable_fw_err_pkts)
 {
 	unsigned int val;
 
 	/* Check for valid enable_fw_err_pkts and qinx values */
-	if ((enable_fw_err_pkts!= OSI_ENABLE &&
-	    enable_fw_err_pkts != OSI_DISABLE) ||
+	if (((enable_fw_err_pkts != OSI_ENABLE) &&
+	    (enable_fw_err_pkts != OSI_DISABLE)) ||
 	    (qinx >= OSI_MGBE_MAX_NUM_CHANS)) {
 		return -1;
 	}
@@ -473,7 +473,7 @@ static inline void mgbe_config_l2_da_perfect_inverse_match(
  *
  * @retval 0 always
  */
-static int mgbe_config_mac_pkt_filter_reg(struct osi_core_priv_data *osi_core,
+static nve32_t mgbe_config_mac_pkt_filter_reg(struct osi_core_priv_data *const osi_core,
 					  const struct osi_filter *filter)
 {
 	unsigned int value = 0U;
@@ -567,8 +567,8 @@ static int mgbe_filter_args_validate(struct osi_core_priv_data *const osi_core,
 	}
 
 	/* check for DMA channel index (0 to 9) */
-	if ((dma_chan > OSI_MGBE_MAX_NUM_CHANS - 0x1U) &&
-	    (dma_chan != OSI_CHAN_ANY)){
+	if ((dma_chan > (OSI_MGBE_MAX_NUM_CHANS - 0x1U)) &&
+	    (dma_chan != OSI_CHAN_ANY)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
 			"invalid dma channel\n",
 			(nveul64_t)dma_chan);
@@ -592,7 +592,7 @@ static int mgbe_filter_args_validate(struct osi_core_priv_data *const osi_core,
 	}
 
 	/* validate src_dest argument */
-	if (src_dest != OSI_SA_MATCH && src_dest != OSI_DA_MATCH) {
+	if ((src_dest != OSI_SA_MATCH) && (src_dest != OSI_DA_MATCH)) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			"Invalid src_dest value\n",
 			src_dest);
@@ -600,8 +600,8 @@ static int mgbe_filter_args_validate(struct osi_core_priv_data *const osi_core,
 	}
 
 	/* validate dma_routing_enable argument */
-	if (dma_routing_enable != OSI_ENABLE &&
-		dma_routing_enable != OSI_DISABLE) {
+	if ((dma_routing_enable != OSI_ENABLE) &&
+		(dma_routing_enable != OSI_DISABLE)) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			"Invalid dma_routing value\n",
 			dma_routing_enable);
@@ -909,10 +909,10 @@ static int mgbe_l3l4_filter_read(struct osi_core_priv_data *osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int mgbe_update_ip4_addr(struct osi_core_priv_data *osi_core,
-				const unsigned int filter_no,
-				const unsigned char addr[],
-				const unsigned int src_dst_addr_match)
+static nve32_t mgbe_update_ip4_addr(struct osi_core_priv_data *const osi_core,
+				    const nveu32_t filter_no,
+				    const nveu8_t addr[],
+				    const nveu32_t src_dst_addr_match)
 {
 	unsigned int value = 0U;
 	unsigned int temp = 0U;
@@ -933,8 +933,8 @@ static int mgbe_update_ip4_addr(struct osi_core_priv_data *osi_core,
 	}
 
 	/* validate src_dst_addr_match argument */
-	if (src_dst_addr_match != OSI_SOURCE_MATCH &&
-	    src_dst_addr_match != OSI_INV_MATCH) {
+	if ((src_dst_addr_match != OSI_SOURCE_MATCH) &&
+	    (src_dst_addr_match != OSI_INV_MATCH)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"Invalid src_dst_addr_match value\n",
 			src_dst_addr_match);
@@ -978,9 +978,9 @@ static int mgbe_update_ip4_addr(struct osi_core_priv_data *osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int mgbe_update_ip6_addr(struct osi_core_priv_data *osi_core,
-				const unsigned int filter_no,
-				const unsigned short addr[])
+static nve32_t mgbe_update_ip6_addr(struct osi_core_priv_data *const osi_core,
+				    const nveu32_t filter_no,
+				    const nveu16_t addr[])
 {
 	unsigned int value = 0U;
 	unsigned int temp = 0U;
@@ -1055,15 +1055,15 @@ static int mgbe_update_ip6_addr(struct osi_core_priv_data *osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int mgbe_config_l3_l4_filter_enable(
+static nve32_t mgbe_config_l3_l4_filter_enable(
 				struct osi_core_priv_data *const osi_core,
-				unsigned int filter_enb_dis)
+				const nveu32_t filter_enb_dis)
 {
 	unsigned int value = 0U;
 	void *base = osi_core->base;
 
 	/* validate filter_enb_dis argument */
-	if (filter_enb_dis != OSI_ENABLE && filter_enb_dis != OSI_DISABLE) {
+	if ((filter_enb_dis != OSI_ENABLE) && (filter_enb_dis != OSI_DISABLE)) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			"Invalid filter_enb_dis value\n",
 			filter_enb_dis);
@@ -1097,10 +1097,10 @@ static int mgbe_config_l3_l4_filter_enable(
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int mgbe_update_l4_port_no(struct osi_core_priv_data *osi_core,
-				  unsigned int filter_no,
-				  unsigned short port_no,
-				  unsigned int src_dst_port_match)
+static nve32_t mgbe_update_l4_port_no(struct osi_core_priv_data *osi_core,
+				      const nveu32_t filter_no,
+				      const nveu16_t port_no,
+				      const nveu32_t src_dst_port_match)
 {
 	unsigned int value = 0U;
 	unsigned int temp = 0U;
@@ -1228,14 +1228,14 @@ static inline void mgbe_helper_l3l4_bitmask(unsigned int *bitmask,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int mgbe_config_l3_filters(struct osi_core_priv_data *osi_core,
-				  unsigned int filter_no,
-				  unsigned int enb_dis,
-				  unsigned int ipv4_ipv6_match,
-				  unsigned int src_dst_addr_match,
-				  unsigned int perfect_inverse_match,
-				  unsigned int dma_routing_enable,
-				  unsigned int dma_chan)
+static nve32_t mgbe_config_l3_filters(struct osi_core_priv_data *osi_core,
+				      const nveu32_t filter_no,
+				      const nveu32_t enb_dis,
+				      const nveu32_t ipv4_ipv6_match,
+				      const nveu32_t src_dst_addr_match,
+				      const nveu32_t perfect_inverse_match,
+				      const nveu32_t dma_routing_enable,
+				      const nveu32_t dma_chan)
 {
 	unsigned int value = 0U;
 	int ret = 0;
@@ -1247,38 +1247,38 @@ static int mgbe_config_l3_filters(struct osi_core_priv_data *osi_core,
 		return -1;
 	}
 	/* validate enb_dis argument */
-	if (enb_dis != OSI_ENABLE && enb_dis != OSI_DISABLE) {
+	if ((enb_dis != OSI_ENABLE) && (enb_dis != OSI_DISABLE)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"Invalid filter_enb_dis value\n",
 			enb_dis);
 		return -1;
 	}
 	/* validate ipv4_ipv6_match argument */
-	if (ipv4_ipv6_match != OSI_IPV6_MATCH &&
-	    ipv4_ipv6_match != OSI_IPV4_MATCH) {
+	if ((ipv4_ipv6_match != OSI_IPV6_MATCH) &&
+	    (ipv4_ipv6_match != OSI_IPV4_MATCH)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"Invalid ipv4_ipv6_match value\n",
 			ipv4_ipv6_match);
 		return -1;
 	}
 	/* validate src_dst_addr_match argument */
-	if (src_dst_addr_match != OSI_SOURCE_MATCH &&
-	    src_dst_addr_match != OSI_INV_MATCH) {
+	if ((src_dst_addr_match != OSI_SOURCE_MATCH) &&
+	    (src_dst_addr_match != OSI_INV_MATCH)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"Invalid src_dst_addr_match value\n",
 			src_dst_addr_match);
 		return -1;
 	}
 	/* validate perfect_inverse_match argument */
-	if (perfect_inverse_match != OSI_ENABLE &&
-	    perfect_inverse_match != OSI_DISABLE) {
+	if ((perfect_inverse_match != OSI_ENABLE) &&
+	    (perfect_inverse_match != OSI_DISABLE)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"Invalid perfect_inverse_match value\n",
 			perfect_inverse_match);
 		return -1;
 	}
 	if ((dma_routing_enable == OSI_ENABLE) &&
-	    (dma_chan > OSI_MGBE_MAX_NUM_CHANS - 1U)) {
+	    (dma_chan > (OSI_MGBE_MAX_NUM_CHANS - 1U))) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
 			"Wrong DMA channel\n",
 			(unsigned long long)dma_chan);
@@ -1303,10 +1303,10 @@ static int mgbe_config_l3_filters(struct osi_core_priv_data *osi_core,
 				 *  matching
 				 */
 				value &= ~MGBE_MAC_L3_IP6_CTRL_CLEAR;
-				value |= ((MGBE_MAC_L3L4_CTR_L3SAM0 |
-					  perfect_inverse_match <<
+				value |= ((MGBE_MAC_L3L4_CTR_L3SAM0) |
+					  ((perfect_inverse_match <<
 					  MGBE_MAC_L3L4_CTR_L3SAIM0_SHIFT) &
-					  ((MGBE_MAC_L3L4_CTR_L3SAM0 |
+					  (MGBE_MAC_L3L4_CTR_L3SAM0 |
 					  MGBE_MAC_L3L4_CTR_L3SAIM0)));
 				value |= mgbe_set_dcs(osi_core, value,
 						      dma_routing_enable,
@@ -1317,10 +1317,10 @@ static int mgbe_config_l3_filters(struct osi_core_priv_data *osi_core,
 				 * matching
 				 */
 				value &= ~MGBE_MAC_L3_IP6_CTRL_CLEAR;
-				value |= ((MGBE_MAC_L3L4_CTR_L3DAM0 |
-					  perfect_inverse_match <<
+				value |= ((MGBE_MAC_L3L4_CTR_L3DAM0) |
+					  ((perfect_inverse_match <<
 					  MGBE_MAC_L3L4_CTR_L3DAIM0_SHIFT) &
-					  ((MGBE_MAC_L3L4_CTR_L3DAM0 |
+					  (MGBE_MAC_L3L4_CTR_L3DAM0 |
 					  MGBE_MAC_L3L4_CTR_L3DAIM0)));
 				value |= mgbe_set_dcs(osi_core, value,
 						      dma_routing_enable,
@@ -1340,10 +1340,10 @@ static int mgbe_config_l3_filters(struct osi_core_priv_data *osi_core,
 				 * matching
 				 */
 				value &= ~MGBE_MAC_L3_IP4_SA_CTRL_CLEAR;
-				value |= ((MGBE_MAC_L3L4_CTR_L3SAM0 |
-					  perfect_inverse_match <<
+				value |= ((MGBE_MAC_L3L4_CTR_L3SAM0) |
+					  ((perfect_inverse_match <<
 					  MGBE_MAC_L3L4_CTR_L3SAIM0_SHIFT) &
-					  ((MGBE_MAC_L3L4_CTR_L3SAM0 |
+					  (MGBE_MAC_L3L4_CTR_L3SAM0 |
 					  MGBE_MAC_L3L4_CTR_L3SAIM0)));
 				value |= mgbe_set_dcs(osi_core, value,
 						      dma_routing_enable,
@@ -1360,10 +1360,10 @@ static int mgbe_config_l3_filters(struct osi_core_priv_data *osi_core,
 				 * matching
 				 */
 				value &= ~MGBE_MAC_L3_IP4_DA_CTRL_CLEAR;
-				value |= ((MGBE_MAC_L3L4_CTR_L3DAM0 |
-					  perfect_inverse_match <<
+				value |= ((MGBE_MAC_L3L4_CTR_L3DAM0) |
+					  ((perfect_inverse_match <<
 					  MGBE_MAC_L3L4_CTR_L3DAIM0_SHIFT) &
-					  ((MGBE_MAC_L3L4_CTR_L3DAM0 |
+					  (MGBE_MAC_L3L4_CTR_L3DAM0 |
 					  MGBE_MAC_L3L4_CTR_L3DAIM0)));
 				value |= mgbe_set_dcs(osi_core, value,
 						      dma_routing_enable,
@@ -1412,14 +1412,14 @@ static int mgbe_config_l3_filters(struct osi_core_priv_data *osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int mgbe_config_l4_filters(struct osi_core_priv_data *osi_core,
-				  unsigned int filter_no,
-				  unsigned int enb_dis,
-				  unsigned int tcp_udp_match,
-				  unsigned int src_dst_port_match,
-				  unsigned int perfect_inverse_match,
-				  unsigned int dma_routing_enable,
-				  unsigned int dma_chan)
+static nve32_t mgbe_config_l4_filters(struct osi_core_priv_data *const osi_core,
+				  const nveu32_t filter_no,
+				  const nveu32_t enb_dis,
+				  const nveu32_t tcp_udp_match,
+				  const nveu32_t src_dst_port_match,
+				  const nveu32_t perfect_inverse_match,
+				  const nveu32_t dma_routing_enable,
+				  const nveu32_t dma_chan)
 {
 	unsigned int value = 0U;
 	int ret = 0;
@@ -1431,37 +1431,37 @@ static int mgbe_config_l4_filters(struct osi_core_priv_data *osi_core,
 		return -1;
 	}
 	/* validate enb_dis argument */
-	if (enb_dis != OSI_ENABLE && enb_dis != OSI_DISABLE) {
+	if ((enb_dis != OSI_ENABLE) && (enb_dis != OSI_DISABLE)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"Invalid filter_enb_dis value\n",
 			enb_dis);
 		return -1;
 	}
 	/* validate tcp_udp_match argument */
-	if (tcp_udp_match != OSI_ENABLE && tcp_udp_match != OSI_DISABLE) {
+	if ((tcp_udp_match != OSI_ENABLE) && (tcp_udp_match != OSI_DISABLE)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"Invalid tcp_udp_match value\n",
 			tcp_udp_match);
 		return -1;
 	}
 	/* validate src_dst_port_match argument */
-	if (src_dst_port_match != OSI_SOURCE_MATCH &&
-	    src_dst_port_match != OSI_INV_MATCH) {
+	if ((src_dst_port_match != OSI_SOURCE_MATCH) &&
+	    (src_dst_port_match != OSI_INV_MATCH)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"Invalid src_dst_port_match value\n",
 			src_dst_port_match);
 		return -1;
 	}
 	/* validate perfect_inverse_match argument */
-	if (perfect_inverse_match != OSI_ENABLE &&
-	    perfect_inverse_match != OSI_DISABLE) {
+	if ((perfect_inverse_match != OSI_ENABLE) &&
+	    (perfect_inverse_match != OSI_DISABLE)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"Invalid perfect_inverse_match value\n",
 			perfect_inverse_match);
 		return -1;
 	}
 	if ((dma_routing_enable == OSI_ENABLE) &&
-	    (dma_chan > OSI_MGBE_MAX_NUM_CHANS - 1U)) {
+	    (dma_chan > (OSI_MGBE_MAX_NUM_CHANS - 1U))) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
 			"Wrong DMA channel\n",
 			(unsigned int)dma_chan);
@@ -1482,11 +1482,11 @@ static int mgbe_config_l4_filters(struct osi_core_priv_data *osi_core,
 		if (enb_dis == OSI_ENABLE) {
 			/* Enable L4 filters for SOURCE Port No matching */
 			value &= ~MGBE_MAC_L4_SP_CTRL_CLEAR;
-			value |= ((MGBE_MAC_L3L4_CTR_L4SPM0 |
-				  perfect_inverse_match <<
+			value |= ((MGBE_MAC_L3L4_CTR_L4SPM0) |
+				  ((perfect_inverse_match <<
 				  MGBE_MAC_L3L4_CTR_L4SPIM0_SHIFT) &
 				  (MGBE_MAC_L3L4_CTR_L4SPM0 |
-				  MGBE_MAC_L3L4_CTR_L4SPIM0));
+				  MGBE_MAC_L3L4_CTR_L4SPIM0)));
 			value |= mgbe_set_dcs(osi_core, value,
 					      dma_routing_enable,
 					      dma_chan);
@@ -1500,9 +1500,9 @@ static int mgbe_config_l4_filters(struct osi_core_priv_data *osi_core,
 			 * matching
 			 */
 			value &= ~MGBE_MAC_L4_DP_CTRL_CLEAR;
-			value |= ((MGBE_MAC_L3L4_CTR_L4DPM0 |
-				  perfect_inverse_match <<
-				  MGBE_MAC_L3L4_CTR_L4DPIM0_SHIFT) &
+			value |= (((MGBE_MAC_L3L4_CTR_L4DPM0) |
+				  (perfect_inverse_match <<
+				  MGBE_MAC_L3L4_CTR_L4DPIM0_SHIFT)) &
 				  (MGBE_MAC_L3L4_CTR_L4DPM0 |
 				  MGBE_MAC_L3L4_CTR_L4DPIM0));
 			value |= mgbe_set_dcs(osi_core, value,
@@ -1547,10 +1547,10 @@ static int mgbe_config_l4_filters(struct osi_core_priv_data *osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int mgbe_config_vlan_filtering(struct osi_core_priv_data *osi_core,
-				      unsigned int filter_enb_dis,
-				      unsigned int perfect_hash_filtering,
-				      unsigned int perfect_inverse_match)
+static nve32_t mgbe_config_vlan_filtering(struct osi_core_priv_data *osi_core,
+					  const nveu32_t filter_enb_dis,
+					  const nveu32_t perfect_hash_filtering,
+					  const nveu32_t perfect_inverse_match)
 {
 	unsigned int value;
 	unsigned char *base = osi_core->base;
@@ -1570,7 +1570,7 @@ static int mgbe_config_vlan_filtering(struct osi_core_priv_data *osi_core,
 	}
 
 	/* validate filter_enb_dis argument */
-	if (filter_enb_dis != OSI_ENABLE && filter_enb_dis != OSI_DISABLE) {
+	if ((filter_enb_dis != OSI_ENABLE) && (filter_enb_dis != OSI_DISABLE)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"Invalid filter_enb_dis value\n",
 			filter_enb_dis);
@@ -1578,8 +1578,8 @@ static int mgbe_config_vlan_filtering(struct osi_core_priv_data *osi_core,
 	}
 
 	/* validate perfect_inverse_match argument */
-	if (perfect_inverse_match != OSI_ENABLE &&
-	    perfect_inverse_match != OSI_DISABLE) {
+	if ((perfect_inverse_match != OSI_ENABLE) &&
+	    (perfect_inverse_match != OSI_DISABLE)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"Invalid perfect_inverse_match value\n",
 			perfect_inverse_match);
@@ -1635,7 +1635,7 @@ static int mgbe_config_ptp_rxq(struct osi_core_priv_data *const osi_core,
 	}
 
 	/* Validate enable argument */
-	if (enable != OSI_ENABLE && enable != OSI_DISABLE) {
+	if ((enable != OSI_ENABLE) && (enable != OSI_DISABLE)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"Invalid enable input\n",
 			enable);
@@ -1752,14 +1752,14 @@ static nve32_t mgbe_flush_mtl_tx_queue(
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int mgbe_config_mac_loopback(struct osi_core_priv_data *const osi_core,
-				    unsigned int lb_mode)
+static nve32_t mgbe_config_mac_loopback(struct osi_core_priv_data *const osi_core,
+					nveu32_t lb_mode)
 {
 	unsigned int value;
 	void *addr = osi_core->base;
 
 	/* don't allow only if loopback mode is other than 0 or 1 */
-	if (lb_mode != OSI_ENABLE && lb_mode != OSI_DISABLE) {
+	if ((lb_mode != OSI_ENABLE) && (lb_mode != OSI_DISABLE)) {
 		return -1;
 	}
 
@@ -1805,7 +1805,7 @@ static int mgbe_config_arp_offload(struct osi_core_priv_data *const osi_core,
 	unsigned int val;
 	void *addr = osi_core->base;
 
-	if (enable != OSI_ENABLE && enable != OSI_DISABLE) {
+	if ((enable != OSI_ENABLE) && (enable != OSI_DISABLE)) {
 		return -1;
 	}
 
@@ -1846,14 +1846,14 @@ static int mgbe_config_arp_offload(struct osi_core_priv_data *const osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int mgbe_config_rxcsum_offload(
+static nve32_t mgbe_config_rxcsum_offload(
 				struct osi_core_priv_data *const osi_core,
-				unsigned int enabled)
+				nveu32_t enabled)
 {
 	void *addr = osi_core->base;
 	unsigned int mac_rmcr;
 
-	if (enabled != OSI_ENABLE && enabled != OSI_DISABLE) {
+	if ((enabled != OSI_ENABLE) && (enabled != OSI_DISABLE)) {
 		return -1;
 	}
 
@@ -1892,7 +1892,7 @@ static int mgbe_config_frp(struct osi_core_priv_data *const osi_core,
 	unsigned int op_mode = 0U, val = 0U;
 	int ret = -1;
 
-	if (enabled != OSI_ENABLE && enabled != OSI_DISABLE) {
+	if ((enabled != OSI_ENABLE) && (enabled != OSI_DISABLE)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"Invalid enable input\n",
 			enabled);
@@ -1985,7 +1985,7 @@ static int mgbe_frp_write(struct osi_core_priv_data *osi_core,
 	unsigned char *base = osi_core->base;
 	unsigned int val = 0U;
 
-	if (acc_sel != OSI_ENABLE && acc_sel != OSI_DISABLE) {
+	if ((acc_sel != OSI_ENABLE) && (acc_sel != OSI_DISABLE)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"Invalid acc_sel argment\n",
 			acc_sel);
@@ -2461,9 +2461,9 @@ static int mgbe_config_rss(struct osi_core_priv_data *osi_core)
 	/* Program the hash key */
 	for (i = 0; i < OSI_RSS_HASH_KEY_SIZE; i += 4U) {
 		value = ((unsigned int)osi_core->rss.key[i] |
-			 (unsigned int)osi_core->rss.key[i + 1U] << 8U |
-			 (unsigned int)osi_core->rss.key[i + 2U] << 16U |
-			 (unsigned int)osi_core->rss.key[i + 3U] << 24U);
+			 ((unsigned int)osi_core->rss.key[i + 1U] << 8U) |
+			 ((unsigned int)osi_core->rss.key[i + 2U] << 16U) |
+			 ((unsigned int)osi_core->rss.key[i + 3U] << 24U));
 		ret = mgbe_rss_write_reg(osi_core, j, value, OSI_ENABLE);
 		if (ret < 0) {
 			return ret;
@@ -2773,8 +2773,8 @@ static int mgbe_configure_mac(struct osi_core_priv_data *osi_core)
 	value |= MGBE_MAC_RMCR_ACS | MGBE_MAC_RMCR_CST | MGBE_MAC_RMCR_IPC;
 
 	/* Jumbo Packet Enable */
-	if (osi_core->mtu > OSI_DFLT_MTU_SIZE &&
-	    osi_core->mtu <= OSI_MTU_SIZE_9000) {
+	if ((osi_core->mtu > OSI_DFLT_MTU_SIZE) &&
+	    (osi_core->mtu <= OSI_MTU_SIZE_9000)) {
 		value |= MGBE_MAC_RMCR_JE;
 	} else if (osi_core->mtu > OSI_MTU_SIZE_9000){
 		/* if MTU greater 9K use GPSLCE */
@@ -3103,19 +3103,19 @@ static inline void mgbe_save_gcl_params(struct osi_core_priv_data *osi_core)
 				       OSI_GCL_SIZE_256, OSI_GCL_SIZE_512,
 				       OSI_GCL_SIZE_1024};
 
-	if (osi_core->hw_feature->gcl_width == 0 ||
-	    osi_core->hw_feature->gcl_width > 3) {
-			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-				     "Wrong HW feature GCL width\n",
-			   (unsigned long long)osi_core->hw_feature->gcl_width);
+	if ((osi_core->hw_feature->gcl_width == 0U) ||
+	    (osi_core->hw_feature->gcl_width > 3U)) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "Wrong HW feature GCL width\n",
+			     (unsigned long long)osi_core->hw_feature->gcl_width);
 	} else {
 		l_core->gcl_width_val =
 				    gcl_widhth[osi_core->hw_feature->gcl_width];
 		l_core->ti_mask = gcl_ti_mask[osi_core->hw_feature->gcl_width];
 	}
 
-	if (osi_core->hw_feature->gcl_depth == 0 ||
-	    osi_core->hw_feature->gcl_depth > 5) {
+	if ((osi_core->hw_feature->gcl_depth == 0U) ||
+	    (osi_core->hw_feature->gcl_depth > 5U)) {
 		/* Do Nothing */
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "Wrong HW feature GCL depth\n",
@@ -3306,7 +3306,7 @@ static nve32_t mgbe_dma_chan_to_vmirq_map(struct osi_core_priv_data *osi_core)
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static nve32_t mgbe_core_init(struct osi_core_priv_data *osi_core,
+static nve32_t mgbe_core_init(struct osi_core_priv_data *const osi_core,
 			  nveu32_t tx_fifo_size,
 			  nveu32_t rx_fifo_size)
 {
@@ -4267,7 +4267,7 @@ static void mgbe_handle_hsi_intr(struct osi_core_priv_data *osi_core)
  *
  * @note MAC should be init and started. see osi_start_mac()
  */
-static void mgbe_handle_common_intr(struct osi_core_priv_data *osi_core)
+static void mgbe_handle_common_intr(struct osi_core_priv_data *const osi_core)
 {
 	void *base = osi_core->base;
 	unsigned int dma_isr = 0;
@@ -4459,7 +4459,7 @@ static void mgbe_config_mac_tx(struct osi_core_priv_data *const osi_core,
  *
  * @note Required clks and resets has to be enabled
  */
-static void mgbe_core_deinit(struct osi_core_priv_data *osi_core)
+static void mgbe_core_deinit(struct osi_core_priv_data *const osi_core)
 {
 	/* Stop the MAC by disabling both MAC Tx and Rx */
 	mgbe_stop_mac(osi_core);
@@ -4725,9 +4725,9 @@ static inline int mgbe_restore_registers(
  * @retval -1 on failure.
  */
 static int mgbe_write_phy_reg(struct osi_core_priv_data *osi_core,
-			      unsigned int phyaddr,
-			      unsigned int phyreg,
-			      unsigned short phydata)
+			      nveu32_t phyaddr,
+			      nveu32_t phyreg,
+			      nveu16_t phydata)
 {
 	int ret = 0;
 	unsigned int reg;
@@ -4912,7 +4912,7 @@ static int mgbe_hw_est_write(struct osi_core_priv_data *osi_core,
 		break;
 	}
 
-	if ((val & MGBE_MTL_EST_ERR0) == MGBE_MTL_EST_ERR0 ||
+	if (((val & MGBE_MTL_EST_ERR0) == MGBE_MTL_EST_ERR0) ||
 	    (retry <= 0)) {
 		return -1;
 	}
@@ -4943,8 +4943,8 @@ static int mgbe_hw_est_write(struct osi_core_priv_data *osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int mgbe_hw_config_est(struct osi_core_priv_data *osi_core,
-			      struct osi_est_config *est)
+static int mgbe_hw_config_est(struct osi_core_priv_data *const osi_core,
+			      struct osi_est_config *const est)
 {
 	unsigned int btr[2] = {0};
 	unsigned int val = 0x0;
@@ -4972,7 +4972,7 @@ static int mgbe_hw_config_est(struct osi_core_priv_data *osi_core,
 
 	btr[0] = est->btr[0];
 	btr[1] = est->btr[1];
-	if (btr[0] == 0U && btr[1] == 0U) {
+	if ((btr[0] == 0U) && (btr[1] == 0U)) {
 		common_get_systime_from_mac(osi_core->base,
 					    osi_core->mac,
 					    &btr[1], &btr[0]);
@@ -5077,8 +5077,8 @@ static int mgbe_hw_config_est(struct osi_core_priv_data *osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int mgbe_hw_config_fpe(struct osi_core_priv_data *osi_core,
-			      struct osi_fpe_config *fpe)
+static int mgbe_hw_config_fpe(struct osi_core_priv_data *const osi_core,
+			      struct osi_fpe_config *const fpe)
 {
 	unsigned int i = 0U;
 	unsigned int val = 0U;
@@ -5150,7 +5150,7 @@ static int mgbe_hw_config_fpe(struct osi_core_priv_data *osi_core,
 	osi_writela(osi_core, val, (nveu8_t *)osi_core->base +
 		    MGBE_MTL_FPE_CTS);
 
-	if (fpe->rq == 0x0U || fpe->rq >= OSI_MGBE_MAX_NUM_CHANS) {
+	if ((fpe->rq == 0x0U) || (fpe->rq >= OSI_MGBE_MAX_NUM_CHANS)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"FPE init failed due to wrong RQ\n", fpe->rq);
 		ret = -1;
@@ -5246,9 +5246,9 @@ static inline void mgbe_disable_tx_lpi(struct osi_core_priv_data *osi_core)
  * MAC/PHY should be initialized
  *
  */
-static void mgbe_configure_eee(struct osi_core_priv_data *osi_core,
-			       unsigned int tx_lpi_enabled,
-			       unsigned int tx_lpi_timer)
+static void mgbe_configure_eee(struct osi_core_priv_data *const osi_core,
+			       const nveu32_t tx_lpi_enabled,
+			       const nveu32_t tx_lpi_timer)
 {
 	unsigned int lpi_csr = 0;
 	unsigned int lpi_timer_ctrl = 0;
@@ -5328,7 +5328,7 @@ static void mgbe_configure_eee(struct osi_core_priv_data *osi_core,
 	}
 }
 
-static int mgbe_get_hw_features(struct osi_core_priv_data *osi_core,
+static int mgbe_get_hw_features(struct osi_core_priv_data *const osi_core,
 				struct osi_hw_features *hw_feat)
 {
 	unsigned char *base = (unsigned char *)osi_core->base;
@@ -5546,9 +5546,8 @@ static inline int mgbe_poll_for_tsinit_complete(
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int mgbe_set_systime_to_mac(struct osi_core_priv_data *osi_core,
-				   unsigned int sec,
-				   unsigned int nsec)
+static nve32_t mgbe_set_systime_to_mac(struct osi_core_priv_data *osi_core,
+				       nveu32_t sec, nveu32_t nsec)
 {
 	unsigned int mac_tcr;
 	void *addr = osi_core->base;
@@ -5631,8 +5630,8 @@ static inline int mgbe_poll_for_addend_complete(
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int mgbe_config_addend(struct osi_core_priv_data *osi_core,
-			      unsigned int addend)
+static nve32_t mgbe_config_addend(struct osi_core_priv_data *const osi_core,
+				  const nveu32_t addend)
 {
 	unsigned int mac_tcr;
 	void *addr = osi_core->base;
@@ -5714,9 +5713,9 @@ static inline int mgbe_poll_for_update_ts_complete(
  * @retval -1 on failure.
  */
 static int mgbe_adjust_mactime(struct osi_core_priv_data *osi_core,
-			       unsigned int sec, unsigned int nsec,
-			       unsigned int add_sub,
-			       unsigned int one_nsec_accuracy)
+			       nveu32_t sec, nveu32_t nsec,
+			       nveu32_t add_sub,
+			       nveu32_t one_nsec_accuracy)
 {
 	void *addr = osi_core->base;
 	unsigned int mac_tcr;
@@ -5793,7 +5792,7 @@ static int mgbe_adjust_mactime(struct osi_core_priv_data *osi_core,
  * @note MAC should be init and started. see osi_start_mac()
  */
 static void mgbe_config_tscr(struct osi_core_priv_data *osi_core,
-			     unsigned int ptp_filter)
+			     nveu32_t ptp_filter)
 {
 	struct core_local *l_core = (struct core_local *)osi_core;
 	unsigned int mac_tcr = 0;

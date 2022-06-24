@@ -39,14 +39,11 @@
 #define FULL_MINUS_4_K		(unsigned int)6
 #define FULL_MINUS_6_K		(unsigned int)10
 #define FULL_MINUS_10_K		(unsigned int)18
-#define FULL_MINUS_13_K		(unsigned int)24
-#define FULL_MINUS_14_K		(unsigned int)26
 #define FULL_MINUS_16_K		(unsigned int)30
 #define FULL_MINUS_18_K		(unsigned int)34
 #define FULL_MINUS_21_K		(unsigned int)40
 #define FULL_MINUS_24_K		(unsigned int)46
 #define FULL_MINUS_29_K		(unsigned int)56
-#define FULL_MINUS_31_K		(unsigned int)60
 #define FULL_MINUS_32_K		(unsigned int)62
 /** @} */
 
@@ -175,15 +172,17 @@
 #define OSI_LOG_ARG_OUTOFBOUND          1U
 #define OSI_LOG_ARG_INVALID		2U
 #define OSI_LOG_ARG_HW_FAIL		4U
-#define OSI_LOG_WARN			2U
 #ifndef OSI_STRIPPED_LIB
 #define OSI_LOG_ARG_OPNOTSUPP		3U
 #endif /* !OSI_STRIPPED_LIB */
 /* Default maximum Giant Packet Size Limit is 16K */
 #define OSI_MAX_MTU_SIZE	16383U
+
+#ifdef UPDATED_PAD_CAL
 /* MAC Tx/Rx Idle retry and delay count */
 #define OSI_TXRX_IDLE_RETRY	5000U
 #define OSI_DELAY_COUNT		10U
+#endif
 
 #define EQOS_DMA_CHX_STATUS(x)		((0x0080U * (x)) + 0x1160U)
 #define MGBE_DMA_CHX_STATUS(x)		((0x0080U * (x)) + 0x3160U)
@@ -232,21 +231,11 @@
 #define OSI_IP6_FILTER		1U
 
 #ifndef OSI_STRIPPED_LIB
-#define OSI_L2_FILTER_INDEX_ANY		127U
 #define OSI_HASH_FILTER_MODE	1U
 #define OSI_L4_FILTER_TCP	0U
 #define OSI_L4_FILTER_UDP	1U
 #define OSI_PERFECT_FILTER_MODE	0U
 
-#define NV_ETH_FCS_LEN		0x4U
-#define NV_ETH_FRAME_LEN	1514U
-
-#define MAX_ETH_FRAME_LEN_DEFAULT \
-	(NV_ETH_FRAME_LEN + NV_ETH_FCS_LEN + NV_VLAN_HLEN)
-#define OSI_MTU_SIZE_16K	16000U
-#define OSI_MTU_SIZE_8K		8000U
-#define OSI_MTU_SIZE_4K		4000U
-#define OSI_MTU_SIZE_2K		2000U
 #define OSI_INVALID_CHAN_NUM    0xFFU
 #endif /* OSI_STRIPPED_LIB */
 /** @} */
