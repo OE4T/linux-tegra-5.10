@@ -69,16 +69,14 @@ struct vpu_hash_key_pair_s {
  * Stores all the information related to pva vpu elf authentication.
  */
 struct pva_vpu_auth_s {
+	/** Stores crc32-sha256 of ELFs */
+	struct vpu_hash_key_pair_s *vpu_hash_keys;
+	struct mutex allow_list_lock;
 	/** Flag to check if allowlist is enabled */
 	bool pva_auth_enable;
 	/** Flag to track if the allow list is already parsed */
 	bool pva_auth_allow_list_parsed;
-	/** Stores the path to allowlist binary file. */
-	char pva_auth_allow_list_path[ALLOWLIST_FILE_LEN];
-	/** Stores crc32-sha256 of ELFs */
-	struct vpu_hash_key_pair_s *vpu_hash_keys;
 };
-
 
 struct nvpva_drv_ctx;
 
@@ -195,4 +193,3 @@ const void *binary_search(const void *key,
 			  int (*compare)(const void *pkey,
 			  const void *pbase));
 #endif
-

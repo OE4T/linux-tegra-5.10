@@ -822,22 +822,7 @@ int pva_finalize_poweron(struct platform_device *pdev)
 	}
 
 	pva_set_log_level(pva, pva->log_level, true);
-
 	pva->booted = true;
-
-	(void) pva_auth_allow_list_parse_buf(pdev,
-					     &pva->pva_auth_sys,
-					     pva_auth_allow_list_sys,
-					     pva_auth_allow_list_sys_len);
-
-	if (pva->pva_auth.pva_auth_enable) {
-		err = pva_auth_allow_list_parse(pdev,
-						&pva->pva_auth);
-		if (err != 0)
-			nvpva_warn(NULL, "PVA: Parsing "
-				   "pva_auth_allow_list failed");
-	}
-
 
 	return err;
 
@@ -1084,7 +1069,10 @@ static int pva_probe(struct platform_device *pdev)
 	if (err)
 		goto err_mss_init;
 
+	mutex_init(&pva->pva_auth.allow_list_lock);
+	mutex_init(&pva->pva_auth_sys.allow_list_lock);
 	pva->pva_auth.pva_auth_enable = true;
+	pva->pva_auth_sys.pva_auth_enable = true;
 
 #ifdef CONFIG_DEBUG_FS
 	pva_debugfs_init(pdev);
@@ -1169,6 +1157,8 @@ static int __exit pva_remove(struct platform_device *pdev)
 	mutex_destroy(&pdata->lock);
 	mutex_destroy(&pva->mailbox_mutex);
 	mutex_destroy(&pva->ccq_mutex);
+	mutex_destroy(&pva->pva_auth.allow_list_lock);
+	mutex_destroy(&pva->pva_auth_sys.allow_list_lock);
 
 	return 0;
 }

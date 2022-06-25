@@ -38,6 +38,7 @@
 #include "nvpva_buffer.h"
 #include "pva_vpu_exe.h"
 #include "pva_vpu_app_auth.h"
+#include "pva_system_allow_list.h"
 #include "nvpva_client.h"
 /**
  * @brief pva_private - Per-fd specific data
@@ -537,22 +538,32 @@ static int
 pva_authenticate_vpu_app(struct pva *pva,
 			 struct pva_vpu_auth_s *auth,
 			 uint8_t *data,
-			 u32 size)
+			 u32 size,
+			 bool is_sys)
 {
 	int err = 0;
 
 	if (!auth->pva_auth_enable)
 		goto out;
 
+	mutex_lock(&auth->allow_list_lock);
 	if (!auth->pva_auth_allow_list_parsed) {
-		err = pva_auth_allow_list_parse(pva->pdev, auth);
-		if (err != 0) {
+		if (is_sys)
+			err = pva_auth_allow_list_parse_buf(pva->pdev,
+				auth, pva_auth_allow_list_sys,
+				pva_auth_allow_list_sys_len);
+		else
+			err = pva_auth_allow_list_parse(pva->pdev, auth);
+
+		if (err) {
 			nvpva_warn(&pva->pdev->dev,
-				   "allow list parse failed");
+					"allow list parse failed");
+			mutex_unlock(&auth->allow_list_lock);
 			goto out;
 		}
 	}
 
+	mutex_unlock(&auth->allow_list_lock);
 	err = pva_vpu_check_sha256_key(pva,
 				       auth->vpu_hash_keys,
 				       data,
@@ -596,12 +607,14 @@ static int pva_register_vpu_exec(struct pva_private *priv, void *arg)
 	err = pva_authenticate_vpu_app(priv->pva,
 				       &priv->pva->pva_auth,
 				       (uint8_t *)exec_data,
-				       data_size);
+				       data_size,
+				       false);
 	if (err != 0) {
 		err = pva_authenticate_vpu_app(priv->pva,
 					       &priv->pva->pva_auth_sys,
 					       (uint8_t *)exec_data,
-					       data_size);
+					       data_size,
+					       true);
 		if (err != 0)
 			goto free_mem;
 

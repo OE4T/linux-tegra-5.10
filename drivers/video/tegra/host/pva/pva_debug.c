@@ -166,10 +166,9 @@ static int set_authentication(void *data, u64 val)
 	pva->pva_auth.pva_auth_enable = (val == 1) ? true : false;
 
 	if (pva->pva_auth.pva_auth_enable)
-		return pva_auth_allow_list_parse(pva->pdev,
-						 &pva->pva_auth);
-	else
-		return 0;
+		pva->pva_auth.pva_auth_allow_list_parsed = false;
+
+	return 0;
 }
 
 DEFINE_DEBUGFS_ATTRIBUTE(pva_auth_fops, get_authentication, set_authentication, "%llu");
@@ -253,7 +252,7 @@ void pva_debugfs_init(struct platform_device *pdev)
 			    &pva->vpu_printf_enabled);
 	debugfs_create_file("fw_log_level", 0644, de, pva, &log_level_fops);
 	debugfs_create_u32("driver_log_mask", 0644, de, &pva->driver_log_mask);
-	debugfs_create_file("vpu_app_authentation", 0644, de, pva,
+	debugfs_create_file("vpu_app_authentication", 0644, de, pva,
 			    &pva_auth_fops);
 	err = pva_vpu_ocd_init(pva);
 	if (err == 0) {
