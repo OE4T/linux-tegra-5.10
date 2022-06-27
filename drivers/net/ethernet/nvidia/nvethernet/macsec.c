@@ -283,7 +283,7 @@ int macsec_open(struct macsec_priv_data *macsec_pdata,
 
 #ifndef MACSEC_KEY_PROGRAM
 	/* Clear KT entries */
-	ret = macsec_tz_kt_config(pdata, OSI_MACSEC_CMD_TZ_KT_RESET,
+	ret = macsec_tz_kt_config(pdata, NV_MACSEC_CMD_TZ_KT_RESET,
 				  OSI_NULL, genl_info);
 	if (ret < 0) {
 		dev_err(dev, "TZ key config failed %d\n", ret);
@@ -768,8 +768,6 @@ static int macsec_dis_rx_sa(struct sk_buff *skb, struct genl_info *info)
 		rx_sa.curr_an, rx_sa.next_pn);
 	dev_info(dev, "\tkey: " KEYSTR, KEY2STR(rx_sa.sak));
 
-	rx_sa.flags = OSI_DISABLE_SA;
-
 	mutex_lock(&macsec_pdata->lock);
 	ret = osi_macsec_config(pdata->osi_core, &rx_sa, OSI_DISABLE,
 				OSI_CTLR_SEL_RX, &kt_idx);
@@ -785,7 +783,7 @@ static int macsec_dis_rx_sa(struct sk_buff *skb, struct genl_info *info)
 	table_config->rw = OSI_LUT_WRITE;
 	table_config->index = kt_idx;
 
-	ret = macsec_tz_kt_config(pdata, OSI_MACSEC_CMD_TZ_CONFIG, &kt_config,
+	ret = macsec_tz_kt_config(pdata, NV_MACSEC_CMD_TZ_CONFIG, &kt_config,
 				  info);
 	if (ret < 0) {
 		dev_err(dev, "%s: failed to program SAK through TZ %d",
@@ -892,8 +890,8 @@ static int macsec_create_rx_sa(struct sk_buff *skb, struct genl_info *info)
 		ret = -EINVAL;
 		goto exit;
 	}
-#endif /* MACSEC_KEY_PROGRAM */
 	rx_sa.flags = OSI_CREATE_SA;
+#endif /* MACSEC_KEY_PROGRAM */
 
 	mutex_lock(&macsec_pdata->lock);
 	ret = osi_macsec_config(pdata->osi_core, &rx_sa, OSI_ENABLE,
@@ -916,7 +914,7 @@ static int macsec_create_rx_sa(struct sk_buff *skb, struct genl_info *info)
 		kt_config.entry.sak[i] = rx_sa.sak[i];
 	}
 
-	ret = macsec_tz_kt_config(pdata, OSI_MACSEC_CMD_TZ_CONFIG, &kt_config,
+	ret = macsec_tz_kt_config(pdata, NV_MACSEC_CMD_TZ_CONFIG, &kt_config,
 				  info);
 	if (ret < 0) {
 		dev_err(dev, "%s: failed to program SAK through TZ %d",
@@ -1032,8 +1030,6 @@ static int macsec_dis_tx_sa(struct sk_buff *skb, struct genl_info *info)
 		tx_sa.curr_an, tx_sa.next_pn);
 	dev_info(dev, "\tkey: " KEYSTR, KEY2STR(tx_sa.sak));
 
-	tx_sa.flags = OSI_DISABLE_SA;
-
 	mutex_lock(&macsec_pdata->lock);
 	ret = osi_macsec_config(pdata->osi_core, &tx_sa, OSI_DISABLE,
 				OSI_CTLR_SEL_TX, &kt_idx);
@@ -1050,7 +1046,7 @@ static int macsec_dis_tx_sa(struct sk_buff *skb, struct genl_info *info)
 	table_config->rw = OSI_LUT_WRITE;
 	table_config->index = kt_idx;
 
-	ret = macsec_tz_kt_config(pdata, OSI_MACSEC_CMD_TZ_CONFIG, &kt_config,
+	ret = macsec_tz_kt_config(pdata, NV_MACSEC_CMD_TZ_CONFIG, &kt_config,
 				  info);
 	if (ret < 0) {
 		dev_err(dev, "%s: failed to program SAK through TZ %d",
@@ -1113,8 +1109,8 @@ static int macsec_create_tx_sa(struct sk_buff *skb, struct genl_info *info)
 		tx_sa.sci[4], tx_sa.sci[5], tx_sa.sci[6], tx_sa.sci[7],
 		tx_sa.curr_an, tx_sa.next_pn);
 	dev_info(dev, "\tkey: " KEYSTR, KEY2STR(tx_sa.sak));
-	tx_sa.flags = OSI_CREATE_SA;
 #ifdef MACSEC_KEY_PROGRAM
+	tx_sa.flags = OSI_CREATE_SA;
 	ret = hkey_generation(tx_sa.sak, tx_sa.hkey);
 	if (ret != 0) {
 		dev_err(dev, "%s: failed to Generate HKey", __func__);
@@ -1144,7 +1140,7 @@ static int macsec_create_tx_sa(struct sk_buff *skb, struct genl_info *info)
 		kt_config.entry.sak[i] = tx_sa.sak[i];
 	}
 
-	ret = macsec_tz_kt_config(pdata, OSI_MACSEC_CMD_TZ_CONFIG, &kt_config,
+	ret = macsec_tz_kt_config(pdata, NV_MACSEC_CMD_TZ_CONFIG, &kt_config,
 				  info);
 	if (ret < 0) {
 		dev_err(dev, "%s: failed to program SAK through TZ %d",
@@ -1686,12 +1682,8 @@ static int macsec_tz_kt_config(struct ether_priv_data *pdata,
 		goto fail;
 	}
 
-	/* remap osi tz cmd to netlink cmd */
-	if (cmd == OSI_MACSEC_CMD_TZ_CONFIG) {
-		cmd = NV_MACSEC_CMD_TZ_CONFIG;
-	} else if (cmd == OSI_MACSEC_CMD_TZ_KT_RESET) {
-		cmd = NV_MACSEC_CMD_TZ_KT_RESET;
-	} else {
+	if (cmd != NV_MACSEC_CMD_TZ_KT_RESET &&
+	    cmd != NV_MACSEC_CMD_TZ_CONFIG) {
 		dev_err(dev, "%s: Wrong TZ cmd %d\n", __func__, cmd);
 		ret = -1;
 		goto fail;

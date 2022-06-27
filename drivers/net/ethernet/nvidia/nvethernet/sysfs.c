@@ -1018,7 +1018,7 @@ static void dump_dbg_buffers(char **buf_p, unsigned short ctlr_sel,
 	}
 	for (i = 0; i < idx_max; i++) {
 		memset(&dbg_buf_config, OSI_NONE, sizeof(dbg_buf_config));
-		dbg_buf_config.rw = OSI_DBG_TBL_READ;
+		dbg_buf_config.rw = OSI_LUT_READ;
 		dbg_buf_config.ctlr_sel = ctlr_sel;
 		dbg_buf_config.index = i;
 		if (osi_macsec_config_dbg_buf(osi_core, &dbg_buf_config) < 0) {
@@ -1037,7 +1037,7 @@ static void dump_dbg_buffers(char **buf_p, unsigned short ctlr_sel,
 	/* reset debug buffer after buf read */
 	for (i = 0; i < idx_max; i++) {
 		memset(&dbg_buf_config, OSI_NONE, sizeof(dbg_buf_config));
-		dbg_buf_config.rw = OSI_DBG_TBL_WRITE;
+		dbg_buf_config.rw = OSI_LUT_WRITE;
 		dbg_buf_config.ctlr_sel = ctlr_sel;
 		dbg_buf_config.index = i;
 		if (osi_macsec_config_dbg_buf(osi_core, &dbg_buf_config) < 0) {
@@ -1131,7 +1131,7 @@ static ssize_t macsec_dbg_events_store(struct device *dev,
 		}
 	}
 	dbg_buf_config.ctlr_sel = controller;
-	dbg_buf_config.rw = OSI_DBG_TBL_WRITE;
+	dbg_buf_config.rw = OSI_LUT_WRITE;
 
 	if (osi_macsec_dbg_events_config(osi_core, &dbg_buf_config) < 0) {
 		dev_err(dev, "%s: Failed to config dbg trigger events\n", __func__);
@@ -1672,7 +1672,7 @@ static ssize_t macsec_sc_state_lut_store(struct device *dev,
 
 	if ((index > OSI_SC_LUT_MAX_INDEX) ||
 	    (ctlr != OSI_CTLR_SEL_TX && ctlr != OSI_CTLR_SEL_RX) ||
-	    (curr_an > OSI_CURR_AN_MAX)) {
+	    (curr_an >= OSI_MAX_NUM_SA)) {
 		dev_err(pdata->dev, "%s:Invalid inputs", __func__);
 		goto exit;
 	}

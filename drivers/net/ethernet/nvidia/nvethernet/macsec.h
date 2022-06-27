@@ -40,6 +40,11 @@
 #define BYP_LUT_INPUTS			1
 
 /**
+ * @brief MACSEC SECTAG + ICV + 2B ethertype adds up to 34B
+ */
+#define MACSEC_TAG_ICV_LEN		34U
+
+/**
  * @brief Size of Macsec IRQ name.
  */
 #define MACSEC_IRQ_NAME_SZ		32

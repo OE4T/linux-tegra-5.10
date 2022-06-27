@@ -22,7 +22,7 @@ ccflags-y += -DLINUX_IVC -DUPDATED_PAD_CAL \
 	     -I$(srctree.nvidia)/drivers/net/ethernet/nvidia/nvethernet/nvethernetrm/include \
 	     -I$(srctree.nvidia)/drivers/net/ethernet/nvidia/nvethernet/nvethernetrm/osi/common/include
 
-ccflags-y += -DMACSEC_SUPPORT -DNET30 -DMACSEC_DEBUG -DOSI_DEBUG -DHSI_SUPPORT
+ccflags-y += -DMACSEC_SUPPORT -DNET30 -DMACSEC_DEBUG -DOSI_DEBUG -DHSI_SUPPORT -DLINUX_OS
 
 nvethernet-objs:= ether_linux.o \
 		  osd.o \
