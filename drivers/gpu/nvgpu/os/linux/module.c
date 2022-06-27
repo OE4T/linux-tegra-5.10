@@ -70,6 +70,7 @@
 #include <nvgpu/cic_rm.h>
 #include <nvgpu/fb.h>
 #include <nvgpu/nvs.h>
+#include <nvgpu/l1ss_err_reporting.h>
 
 #include "platform_gk20a.h"
 #include "sysfs.h"
@@ -1016,6 +1017,10 @@ void gk20a_remove_support(struct gk20a *g)
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	struct sim_nvgpu_linux *sim_linux;
 
+#ifdef CONFIG_TEGRA_L1SS_SUPPORT
+	nvgpu_l1ss_deinit_reporting(g);
+#endif
+
 #if NVGPU_VPR_RESIZE_SUPPORTED
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_VPR)) {
 		tegra_unregister_idle_unidle(gk20a_do_idle);
@@ -1864,6 +1869,10 @@ static int gk20a_probe(struct platform_device *dev)
 	err = register_reboot_notifier(&l->nvgpu_reboot_nb);
 	if (err)
 		goto return_err;
+
+#ifdef CONFIG_TEGRA_L1SS_SUPPORT
+	nvgpu_l1ss_init_reporting(gk20a);
+#endif
 
 	nvgpu_mutex_init(&l->dmabuf_priv_list_lock);
 	nvgpu_init_list_node(&l->dmabuf_priv_list);

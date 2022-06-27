@@ -15,7 +15,8 @@ nvgpu:
   sources: [ include/nvgpu/gk20a.h,
              include/nvgpu/nvgpu_common.h,
              include/nvgpu/cov_whitelist.h,
-             include/nvgpu/static_analysis.h ]
+             include/nvgpu/static_analysis.h,
+             include/nvgpu/l1ss_err_reporting.h ]
 
 bios:
   safe: yes

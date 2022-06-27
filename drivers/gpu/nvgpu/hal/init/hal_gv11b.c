@@ -49,6 +49,8 @@
 #include <nvgpu/pmu/pmu_pg.h>
 #endif
 
+#include <nvgpu/l1ss_err_reporting.h>
+
 #include "hal/mm/mm_gp10b.h"
 #include "hal/mm/mm_gv11b.h"
 #include "hal/mm/cache/flush_gk20a.h"
@@ -197,6 +199,10 @@
 
 #ifdef CONFIG_NVGPU_STATIC_POWERGATE
 #include "hal/tpc/tpc_gv11b.h"
+#endif
+
+#ifdef CONFIG_TEGRA_L1SS_SUPPORT
+#include "hal/cic/mon/cic_gv11b.h"
 #endif
 
 #include "hal_gv11b.h"
@@ -1488,6 +1494,13 @@ static const struct gops_grmgr gv11b_ops_grmgr = {
 	.init_gr_manager = nvgpu_init_gr_manager,
 };
 
+#ifdef CONFIG_TEGRA_L1SS_SUPPORT
+static const struct gops_cic_mon gv11b_ops_cic_mon = {
+	.init = gv11b_cic_mon_init,
+	.report_err = nvgpu_l1ss_report_err
+};
+#endif
+
 int gv11b_init_hal(struct gk20a *g)
 {
 	struct gpu_ops *gops = &g->ops;
@@ -1587,6 +1600,9 @@ int gv11b_init_hal(struct gk20a *g)
 	gops->gpc_pg = gv11b_ops_gpc_pg;
 #endif
 	gops->grmgr = gv11b_ops_grmgr;
+#ifdef CONFIG_TEGRA_L1SS_SUPPORT
+	gops->cic_mon = gv11b_ops_cic_mon;
+#endif
 	gops->chip_init_gpu_characteristics = gv11b_init_gpu_characteristics;
 	gops->get_litter_value = gv11b_get_litter_value;
 	gops->semaphore_wakeup = nvgpu_channel_semaphore_wakeup;

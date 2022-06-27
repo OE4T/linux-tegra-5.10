@@ -241,7 +241,8 @@ vm:
              os/linux/nvgpu_ivm.c ]
 
 cic:
-  sources: [ os/linux/cic/cic_report_err.c ]
+  sources: [ os/linux/cic/cic_report_err.c,
+             os/linux/cic/l1ss_report_err.c ]
 
 # Group all the Linux headers for now.
 headers:

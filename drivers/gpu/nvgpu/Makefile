@@ -61,6 +61,10 @@ ifeq ($(CONFIG_NVGPU_IVM_BUILD),y)
 ccflags-y += -DCONFIG_NVGPU_IVM_BUILD
 endif
 
+ifeq ($(CONFIG_TEGRA_L1SS_SUPPORT),y)
+ccflags-y += -DCONFIG_TEGRA_L1SS_SUPPORT
+endif
+
 ccflags-y += -DCONFIG_NVGPU_DETERMINISTIC_CHANNELS
 ccflags-y += -DCONFIG_NVGPU_STATIC_POWERGATE
 ccflags-y += -DCONFIG_NVGPU_ACR_LEGACY
@@ -605,6 +609,10 @@ ifeq ($(CONFIG_DEBUG_FS),y)
 nvgpu-$(CONFIG_NVGPU_SUPPORT_CDE) += \
 	os/linux/debug_cde.o
 endif
+
+nvgpu-$(CONFIG_TEGRA_L1SS_SUPPORT) += \
+	os/linux/cic/l1ss_report_err.o \
+	hal/cic/mon/init_gv11b_non_fusa.o \
 
 nvgpu-y += \
 	common/mm/allocators/nvgpu_allocator.o \

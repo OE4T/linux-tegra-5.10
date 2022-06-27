@@ -108,6 +108,10 @@ struct nvgpu_os_linux {
 
 	struct nvgpu_os_linux_ops ops;
 
+#ifdef CONFIG_TEGRA_L1SS_SUPPORT
+	struct nvgpu_l1ss_ecc_reporting *l1ss_linux_ecc_reporting;
+#endif
+
 	struct notifier_block nvgpu_reboot_nb;
 
 #ifdef CONFIG_DEBUG_FS
