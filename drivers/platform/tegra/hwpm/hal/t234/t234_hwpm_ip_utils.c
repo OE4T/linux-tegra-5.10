@@ -467,24 +467,21 @@ int t234_hwpm_get_fs_info(struct tegra_soc_hwpm *hwpm,
 	if (t234_hwpm_is_ip_active(hwpm, ip_enum, &ip_idx)) {
 		active_chip = hwpm->active_chip;
 		chip_ip = active_chip->chip_ips[ip_idx];
-
-		if (!(chip_ip->override_enable)) {
+		if (!(chip_ip->override_enable) && chip_ip->inst_fs_mask) {
 			for (inst_idx = 0U; inst_idx < chip_ip->num_instances;
 				inst_idx++) {
 				ip_inst = &chip_ip->ip_inst_static_array[
 					inst_idx];
 				element_mask_shift = (inst_idx == 0U ? 0U :
 					ip_inst->num_core_elements_per_inst);
+				floorsweep = (floorsweep << element_mask_shift);
 
 				if (ip_inst->hw_inst_mask &
 					chip_ip->inst_fs_mask) {
-					floorsweep = (floorsweep <<
-						element_mask_shift);
 					floorsweep |=
 						((u64)ip_inst->element_fs_mask);
 				}
 			}
-
 			*fs_mask = floorsweep;
 			*ip_status = TEGRA_SOC_HWPM_IP_STATUS_VALID;
 
