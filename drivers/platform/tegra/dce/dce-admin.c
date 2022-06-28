@@ -16,6 +16,7 @@
 #include <dce-mailbox.h>
 #include <dce-util-common.h>
 #include <dce-client-ipc-internal.h>
+#include <interface/dce-core-interface-errors.h>
 #include <interface/dce-interface.h>
 #include <interface/dce-admin-cmds.h>
 
@@ -383,8 +384,9 @@ int dce_admin_send_cmd_echo(struct tegra_dce *d,
 	req_msg->cmd = (uint32_t)DCE_ADMIN_CMD_ECHO;
 
 	ret = dce_admin_send_msg(d, msg);
-	if (ret) {
+	if ((ret) || (resp_msg->error != DCE_ERR_CORE_SUCCESS)) {
 		dce_err(d, "Error sending echo msg : [%d]", ret);
+		ret = ret ? ret : resp_msg->error;
 		goto out;
 	}
 
@@ -542,7 +544,7 @@ static int dce_admin_setup_clients_ipc(struct tegra_dce *d,
 			goto out;
 		}
 
-		if (resp_msg->error) {
+		if (resp_msg->error != DCE_ERR_CORE_SUCCESS) {
 			dce_err(d, "IPC create for type [%u] failed", i);
 			goto out;
 		}
@@ -578,7 +580,7 @@ static int dce_admin_send_rm_bootstrap(struct tegra_dce *d,
 		goto out;
 	}
 
-	if (resp_msg->error) {
+	if (resp_msg->error != DCE_ERR_CORE_SUCCESS) {
 		dce_err(d, "Error in handling rm bootstrap cmd on dce: [0x%x]",
 			resp_msg->error);
 		ret = -EINVAL;
