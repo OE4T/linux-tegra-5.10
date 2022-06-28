@@ -141,11 +141,9 @@ static unsigned int pin_job(struct host1x *host, struct host1x_job *job)
 	struct host1x_client *client = job->client;
 	struct device *dev = client->dev;
 	struct host1x_job_gather *g;
-	struct iommu_domain *domain;
 	unsigned int i;
 	int err;
 
-	domain = iommu_get_domain_for_dev(dev);
 	job->num_unpins = 0;
 
 	for (i = 0; i < job->num_relocs; i++) {
