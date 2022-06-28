@@ -32,6 +32,7 @@
 #define HW_GLOBAL_DMA_STATUS		0x8700U
 #define VIRT_INTR_CHX_CNTRL(x)		(0x8600U + ((x) * 8U))
 #define VIRT_INTR_CHX_STATUS(x)		(0x8604U + ((x) * 8U))
+#define AXI_BUS_WIDTH			0x10U
 /** @} */
 
 #endif /* INCLUDED_HW_COMMON_H */

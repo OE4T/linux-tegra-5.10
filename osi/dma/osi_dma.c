@@ -717,12 +717,24 @@ nve32_t osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 nve32_t osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
 {
 	struct dma_local *l_dma = (struct dma_local *)osi_dma;
+	nveu32_t rx_buf_len;
 
 	if (validate_args(osi_dma, l_dma) < 0) {
 		return -1;
 	}
 
-	l_dma->ops_p->set_rx_buf_len(osi_dma);
+	if (osi_dma->mtu > OSI_MAX_MTU_SIZE) {
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "Invalid MTU setting\n", 0ULL);
+		return -1;
+	}
+
+	/* Add Ethernet header + FCS */
+	rx_buf_len = osi_dma->mtu + OSI_ETH_HLEN + NV_VLAN_HLEN;
+
+	/* Buffer alignment */
+	osi_dma->rx_buf_len = ((rx_buf_len + (AXI_BUS_WIDTH - 1U)) &
+			       ~(AXI_BUS_WIDTH - 1U));
 
 	return 0;
 }

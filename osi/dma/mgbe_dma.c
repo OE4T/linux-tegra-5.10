@@ -243,28 +243,7 @@ static nve32_t mgbe_init_dma_channel(struct osi_dma_priv_data *osi_dma)
 	return 0;
 }
 
-/**
- * @brief mgbe_set_rx_buf_len - Set Rx buffer length
- *	  Sets the Rx buffer length based on the new MTU size set.
- *
- * @param[in] osi_dma: OSI DMA private data structure.
- *
- * @note 1) MAC needs to be out of reset and proper clocks need to be configured
- *	 2) DMA HW init need to be completed successfully, see osi_hw_dma_init
- *	 3) osi_dma->mtu need to be filled with current MTU size <= 9K
- */
-static void mgbe_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
-{
-	nveu32_t rx_buf_len;
-
-	/* Add Ethernet header + FCS + NET IP align size to MTU */
-	rx_buf_len = osi_dma->mtu + OSI_ETH_HLEN +
-		     NV_VLAN_HLEN + OSI_NET_IP_ALIGN;
-	/* Buffer alignment */
-	osi_dma->rx_buf_len = ((rx_buf_len + (MGBE_AXI_BUS_WIDTH - 1U)) &
-			       ~(MGBE_AXI_BUS_WIDTH - 1U));
-}
-
+#ifndef OSI_STRIPPED_LIB
 /**
  * @brief Read-validate HW registers for functional safety.
  *
@@ -392,7 +371,7 @@ static void mgbe_debug_intr_config(struct osi_dma_priv_data *osi_dma)
 void mgbe_init_dma_chan_ops(struct dma_chan_ops *ops)
 {
 	ops->init_dma_channel = mgbe_init_dma_channel;
-	ops->set_rx_buf_len = mgbe_set_rx_buf_len;
+#ifndef OSI_STRIPPED_LIB
 	ops->validate_regs = mgbe_validate_dma_regs;
 	ops->config_slot = mgbe_config_slot;
 #ifdef OSI_DEBUG

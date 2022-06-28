@@ -45,7 +45,6 @@
  * @brief EQOS generic helper MACROS.
  * @{
  */
-#define OSI_NET_IP_ALIGN	0x2U
 #define NV_VLAN_HLEN		0x4U
 #define OSI_ETH_HLEN		0xEU
 

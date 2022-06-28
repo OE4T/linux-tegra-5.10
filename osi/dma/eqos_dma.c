@@ -279,41 +279,6 @@ static nve32_t eqos_init_dma_channel(struct osi_dma_priv_data *osi_dma)
 	return 0;
 }
 
-/**
- * @brief eqos_set_rx_buf_len - Set Rx buffer length
- *        Sets the Rx buffer length based on the new MTU size set.
- *
- * @param[in, out] osi_dma: OSI DMA private data structure.
- *
- * @pre
- *  - MAC needs to be out of reset and proper clocks need to be configured
- *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
- *  - osi_dma->mtu need to be filled with current MTU size <= 9K
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: Yes
- * - De-initialization: No
- */
-static void eqos_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
-{
-	nveu32_t rx_buf_len = 0U;
-
-	/* Add Ethernet header + VLAN header + NET IP align size to MTU */
-	if (osi_dma->mtu <= OSI_MAX_MTU_SIZE) {
-		rx_buf_len = osi_dma->mtu + OSI_ETH_HLEN + NV_VLAN_HLEN +
-			     OSI_NET_IP_ALIGN;
-	} else {
-		rx_buf_len = OSI_MAX_MTU_SIZE + OSI_ETH_HLEN + NV_VLAN_HLEN +
-			     OSI_NET_IP_ALIGN;
-	}
-
-	/* Buffer alignment */
-	osi_dma->rx_buf_len = ((rx_buf_len + (EQOS_AXI_BUS_WIDTH - 1U)) &
-			       ~(EQOS_AXI_BUS_WIDTH - 1U));
-}
-
 #ifndef OSI_STRIPPED_LIB
 /**
  * @brief Read-validate HW registers for functional safety.
@@ -495,7 +460,6 @@ static void eqos_debug_intr_config(struct osi_dma_priv_data *osi_dma)
 void eqos_init_dma_chan_ops(struct dma_chan_ops *ops)
 {
 	ops->init_dma_channel = eqos_init_dma_channel;
-	ops->set_rx_buf_len = eqos_set_rx_buf_len;
 #ifndef OSI_STRIPPED_LIB
 	ops->validate_regs = eqos_validate_dma_regs;
 	ops->config_slot = eqos_config_slot;

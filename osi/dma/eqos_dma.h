@@ -159,7 +159,6 @@
 #define EQOS_DMA_CH6_INTR_ENA_IDX		46U
 #define EQOS_DMA_CH7_INTR_ENA_IDX		47U
 #define EQOS_MAX_DMA_SAFETY_REGS		48U
-#define EQOS_AXI_BUS_WIDTH			0x10U
 /** @} */
 
 /**

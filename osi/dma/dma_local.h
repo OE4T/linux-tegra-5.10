@@ -50,8 +50,6 @@
 struct dma_chan_ops {
 	/** Called to initialize the DMA channel */
 	nve32_t (*init_dma_channel)(struct osi_dma_priv_data *osi_dma);
-	/** Called to set Rx buffer length */
-	void (*set_rx_buf_len)(struct osi_dma_priv_data *osi_dma);
 #ifndef OSI_STRIPPED_LIB
 	/** Called periodically to read and validate safety critical
 	 * registers against last written value */
