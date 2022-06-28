@@ -226,6 +226,7 @@ static inline nve32_t validate_dma_chans(struct osi_dma_priv_data *osi_dma)
 	return 0;
 }
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @brief Function to validate function pointers.
  *
@@ -269,6 +270,7 @@ static nve32_t validate_func_ptrs(struct osi_dma_priv_data *osi_dma,
 
 	return 0;
 }
+#endif
 
 nve32_t osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 {
@@ -276,14 +278,9 @@ nve32_t osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 	nveu32_t default_rz[] = { EQOS_DEFAULT_RING_SZ, MGBE_DEFAULT_RING_SZ };
 	nveu32_t max_rz[] = { EQOS_DEFAULT_RING_SZ, MGBE_MAX_RING_SZ };
 	typedef void (*init_ops_arr)(struct dma_chan_ops *temp);
-	typedef void *(*safety_init)(void);
 
 	init_ops_arr i_ops[MAX_MAC_IP_TYPES] = {
 		eqos_init_dma_chan_ops, mgbe_init_dma_chan_ops
-	};
-
-	safety_init s_init[MAX_MAC_IP_TYPES] = {
-		eqos_get_dma_safety_config, OSI_NULL
 	};
 
 	if (osi_dma == OSI_NULL) {
@@ -335,21 +332,19 @@ nve32_t osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 
 	i_ops[osi_dma->mac](&g_ops[osi_dma->mac]);
 
-	if (s_init[osi_dma->mac] != OSI_NULL) {
-		osi_dma->safety_config = s_init[osi_dma->mac]();
-	}
-
 	if (init_desc_ops(osi_dma) < 0) {
 		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			    "DMA desc ops init failed\n", 0ULL);
 		return -1;
 	}
 
+#ifndef OSI_STRIPPED_LIB
 	if (validate_func_ptrs(osi_dma, &g_ops[osi_dma->mac]) < 0) {
 		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			    "DMA ops validation failed\n", 0ULL);
 		return -1;
 	}
+#endif
 
 	l_dma->ops_p = &g_ops[osi_dma->mac];
 	l_dma->init_done = OSI_ENABLE;
@@ -379,6 +374,132 @@ static inline void start_dma(const struct osi_dma_priv_data *const osi_dma, nveu
 	val |= OSI_BIT(0);
 	val &= ~OSI_BIT(31);
 	osi_writel(val, (nveu8_t *)osi_dma->base + rx_dma_reg[osi_dma->mac]);
+}
+
+static void init_dma_channel(const struct osi_dma_priv_data *const osi_dma,
+			     nveu32_t chan)
+{
+	const nveu32_t intr_en_reg[2] = {
+		EQOS_DMA_CHX_INTR_ENA(chan),
+		MGBE_DMA_CHX_INTR_ENA(chan)
+	};
+	const nveu32_t chx_ctrl_reg[2] = {
+		EQOS_DMA_CHX_CTRL(chan),
+		MGBE_DMA_CHX_CTRL(chan)
+	};
+	const nveu32_t tx_ctrl_reg[2] = {
+		EQOS_DMA_CHX_TX_CTRL(chan),
+		MGBE_DMA_CHX_TX_CTRL(chan)
+	};
+	const nveu32_t rx_ctrl_reg[2] = {
+		EQOS_DMA_CHX_RX_CTRL(chan),
+		MGBE_DMA_CHX_RX_CTRL(chan)
+	};
+	const nveu32_t rx_wdt_reg[2] = {
+		EQOS_DMA_CHX_RX_WDT(chan),
+		MGBE_DMA_CHX_RX_WDT(chan)
+	};
+	const nveu32_t tx_pbl[2] = {
+		EQOS_DMA_CHX_TX_CTRL_TXPBL_RECOMMENDED,
+		((((MGBE_TXQ_SIZE / osi_dma->num_dma_chans) -
+		   osi_dma->mtu) / (MGBE_AXI_DATAWIDTH / 8U)) - 5U)
+	};
+	const nveu32_t rx_pbl[2] = {
+		EQOS_DMA_CHX_RX_CTRL_RXPBL_RECOMMENDED,
+		((MGBE_RXQ_SIZE / osi_dma->num_dma_chans) / 2U)
+	};
+	const nveu32_t rwt_val[2] = {
+		(((osi_dma->rx_riwt * (EQOS_AXI_CLK_FREQ / OSI_ONE_MEGA_HZ)) /
+		  EQOS_DMA_CHX_RX_WDT_RWTU) & EQOS_DMA_CHX_RX_WDT_RWT_MASK),
+		(((osi_dma->rx_riwt * ((nveu32_t)MGBE_AXI_CLK_FREQ / OSI_ONE_MEGA_HZ)) /
+		 MGBE_DMA_CHX_RX_WDT_RWTU) & MGBE_DMA_CHX_RX_WDT_RWT_MASK)
+	};
+	const nveu32_t rwtu_val[2] = {
+		EQOS_DMA_CHX_RX_WDT_RWTU_512_CYCLE,
+		MGBE_DMA_CHX_RX_WDT_RWTU_2048_CYCLE
+	};
+	const nveu32_t rwtu_mask[2] = {
+		EQOS_DMA_CHX_RX_WDT_RWTU_MASK,
+		MGBE_DMA_CHX_RX_WDT_RWTU_MASK
+	};
+	const nveu32_t owrq = (MGBE_DMA_CHX_RX_CNTRL2_OWRQ_MCHAN / osi_dma->num_dma_chans);
+	const nveu32_t owrq_arr[OSI_MGBE_MAX_NUM_CHANS] = {
+		MGBE_DMA_CHX_RX_CNTRL2_OWRQ_SCHAN, owrq, owrq, owrq,
+		owrq, owrq, owrq, owrq, owrq, owrq
+	};
+	nveu32_t val;
+
+	/* Enable Transmit/Receive interrupts */
+	val = osi_readl((nveu8_t *)osi_dma->base + intr_en_reg[osi_dma->mac]);
+	val |= (DMA_CHX_INTR_TIE | DMA_CHX_INTR_RIE);
+	osi_writel(val, (nveu8_t *)osi_dma->base + intr_en_reg[osi_dma->mac]);
+
+	/* Enable PBLx8 */
+	val = osi_readl((nveu8_t *)osi_dma->base + chx_ctrl_reg[osi_dma->mac]);
+	val |= DMA_CHX_CTRL_PBLX8;
+	osi_writel(val, (nveu8_t *)osi_dma->base + chx_ctrl_reg[osi_dma->mac]);
+
+	/* Program OSP, TSO enable and TXPBL */
+	val = osi_readl((nveu8_t *)osi_dma->base + tx_ctrl_reg[osi_dma->mac]);
+	val |= (DMA_CHX_TX_CTRL_OSP | DMA_CHX_TX_CTRL_TSE);
+
+	if (osi_dma->mac == OSI_MAC_HW_EQOS) {
+		val |= tx_pbl[osi_dma->mac];
+	} else {
+		/*
+		 * Formula for TxPBL calculation is
+		 * (TxPBL) < ((TXQSize - MTU)/(DATAWIDTH/8)) - 5
+		 * if TxPBL exceeds the value of 256 then we need to make use of 256
+		 * as the TxPBL else we should be using the value whcih we get after
+		 * calculation by using above formula
+		 */
+		if (tx_pbl[osi_dma->mac] >= MGBE_DMA_CHX_MAX_PBL) {
+			val |= ((MGBE_DMA_CHX_MAX_PBL / 8U) << MGBE_DMA_CHX_CTRL_PBL_SHIFT);
+		} else {
+			val |= ((tx_pbl[osi_dma->mac] / 8U) << MGBE_DMA_CHX_CTRL_PBL_SHIFT);
+		}
+	}
+	osi_writel(val, (nveu8_t *)osi_dma->base + tx_ctrl_reg[osi_dma->mac]);
+
+	val = osi_readl((nveu8_t *)osi_dma->base + rx_ctrl_reg[osi_dma->mac]);
+	val &= ~DMA_CHX_RBSZ_MASK;
+	val |= (osi_dma->rx_buf_len << DMA_CHX_RBSZ_SHIFT);
+	if (osi_dma->mac == OSI_MAC_HW_EQOS) {
+		val |= rx_pbl[osi_dma->mac];
+	} else {
+		if (rx_pbl[osi_dma->mac] >= MGBE_DMA_CHX_MAX_PBL) {
+			val |= ((MGBE_DMA_CHX_MAX_PBL / 8U) << MGBE_DMA_CHX_CTRL_PBL_SHIFT);
+		} else {
+			val |= ((rx_pbl[osi_dma->mac] / 8U) << MGBE_DMA_CHX_CTRL_PBL_SHIFT);
+		}
+	}
+	osi_writel(val, (nveu8_t *)osi_dma->base + rx_ctrl_reg[osi_dma->mac]);
+
+	if ((osi_dma->use_riwt == OSI_ENABLE) &&
+	    (osi_dma->rx_riwt < UINT_MAX)) {
+		val = osi_readl((nveu8_t *)osi_dma->base + rx_wdt_reg[osi_dma->mac]);
+		val &= ~DMA_CHX_RX_WDT_RWT_MASK;
+		val |= rwt_val[osi_dma->mac];
+		osi_writel(val, (nveu8_t *)osi_dma->base + rx_wdt_reg[osi_dma->mac]);
+
+		val = osi_readl((nveu8_t *)osi_dma->base + rx_wdt_reg[osi_dma->mac]);
+		val &= ~rwtu_mask[osi_dma->mac];
+		val |= rwtu_val[osi_dma->mac];
+		osi_writel(val, (nveu8_t *)osi_dma->base + rx_wdt_reg[osi_dma->mac]);
+	}
+
+	if (osi_dma->mac == OSI_MAC_HW_MGBE) {
+		/* Update ORRQ in DMA_CH(#i)_Tx_Control2 register */
+		val = osi_readl((nveu8_t *)osi_dma->base + MGBE_DMA_CHX_TX_CNTRL2(chan));
+		val |= (((MGBE_DMA_CHX_TX_CNTRL2_ORRQ_RECOMMENDED / osi_dma->num_dma_chans)) <<
+			MGBE_DMA_CHX_TX_CNTRL2_ORRQ_SHIFT);
+		osi_writel(val, (nveu8_t *)osi_dma->base + MGBE_DMA_CHX_TX_CNTRL2(chan));
+
+		/* Update OWRQ in DMA_CH(#i)_Rx_Control2 register */
+		val = osi_readl((nveu8_t *)osi_dma->base + MGBE_DMA_CHX_RX_CNTRL2(chan));
+		val |= (owrq_arr[osi_dma->num_dma_chans - 1U] << MGBE_DMA_CHX_RX_CNTRL2_OWRQ_SHIFT);
+		osi_writel(val, (nveu8_t *)osi_dma->base + MGBE_DMA_CHX_RX_CNTRL2(chan));
+	}
 }
 
 nve32_t osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
@@ -412,13 +533,6 @@ nve32_t osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
 		return -1;
 	}
 
-	ret = l_dma->ops_p->init_dma_channel(osi_dma);
-	if (ret < 0) {
-		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			    "dma: init dma channel failed\n", 0ULL);
-		return ret;
-	}
-
 	ret = dma_desc_init(osi_dma);
 	if (ret != 0) {
 		return ret;
@@ -427,6 +541,8 @@ nve32_t osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
 	/* Enable channel interrupts at wrapper level and start DMA */
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
 		chan = osi_dma->dma_chans[i];
+
+		init_dma_channel(osi_dma, chan);
 
 		ret = intr_fn[OSI_DMA_INTR_ENABLE](osi_dma,
 				VIRT_INTR_CHX_CNTRL(chan),
@@ -905,17 +1021,6 @@ nve32_t osi_config_slot_function(struct osi_dma_priv_data *osi_dma,
 	}
 
 	return 0;
-}
-
-nve32_t osi_validate_dma_regs(struct osi_dma_priv_data *osi_dma)
-{
-	struct dma_local *l_dma = (struct dma_local *)osi_dma;
-
-	if (validate_args(osi_dma, l_dma) < 0) {
-		return -1;
-	}
-
-	return l_dma->ops_p->validate_regs(osi_dma);
 }
 
 nve32_t osi_txring_empty(struct osi_dma_priv_data *osi_dma, nveu32_t chan)

@@ -576,9 +576,6 @@ struct osi_dma_priv_data {
 	nveu32_t use_tx_frames;
 	/** Flag which decides virtualization is enabled(1) or disabled(0) */
 	nveu32_t use_virtualization;
-	/** Functional safety config to do periodic read-verify of
-	 * certain safety critical dma registers */
-	void *safety_config;
 	/** Array of DMA channel slot snterval value from DT */
 	nveu32_t slot_interval[OSI_MGBE_MAX_NUM_CHANS];
 	/** Array of DMA channel slot enabled status from DT*/
@@ -1108,43 +1105,6 @@ nve32_t osi_handle_dma_intr(struct osi_dma_priv_data *osi_dma,
  */
 nve32_t osi_dma_ioctl(struct osi_dma_priv_data *osi_dma);
 #ifndef OSI_STRIPPED_LIB
-/**
- * @brief - Read-validate HW registers for func safety.
- *
- * @note
- * Algorithm:
- *  - Reads pre-configured list of DMA configuration registers
- *    and compares with last written value for any modifications.
- *
- * @param[in] osi_dma: OSI DMA private data structure.
- *
- * @pre
- *  - MAC has to be out of reset.
- *  - osi_hw_dma_init has to be called. Internally this would initialize
- *    the safety_config (see osi_dma_priv_data) based on MAC version and
- *    which specific registers needs to be validated periodically.
- *  - Invoke this call if (osi_dma_priv_data->safety_config != OSI_NULL)
- *
- * @note
- * Traceability Details:
- *
- * @usage
- * - Allowed context for the API call
- *  - Interrupt handler: No
- *  - Signal handler: No
- *  - Thread safe: No
- *  - Async/Sync: Sync
- *  - Required Privileges: None
- * - API Group:
- *  - Initialization: No
- *  - Run time: Yes
- *  - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-nve32_t osi_validate_dma_regs(struct osi_dma_priv_data *osi_dma);
-
 /**
  * @brief osi_clear_tx_pkt_err_stats - Clear tx packet error stats.
  *

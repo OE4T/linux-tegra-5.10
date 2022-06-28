@@ -48,12 +48,7 @@
  * @brief MAC DMA Channel operations
  */
 struct dma_chan_ops {
-	/** Called to initialize the DMA channel */
-	nve32_t (*init_dma_channel)(struct osi_dma_priv_data *osi_dma);
 #ifndef OSI_STRIPPED_LIB
-	/** Called periodically to read and validate safety critical
-	 * registers against last written value */
-	nve32_t (*validate_regs)(struct osi_dma_priv_data *osi_dma);
 	/** Called to configure the DMA channel slot function */
 	void (*config_slot)(struct osi_dma_priv_data *osi_dma,
 			    nveu32_t chan,
