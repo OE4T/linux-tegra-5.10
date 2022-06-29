@@ -26,12 +26,16 @@
 #include "fw_config.h"
 
 static int32_t check_address_range(struct nvpva_dma_descriptor const *desc,
-		uint64_t max_size, bool src_dst)
+				   uint64_t max_size,
+				   uint64_t max_size2,
+				   bool src_dst,
+				   bool dst2)
 {
 	int32_t err = 0;
 	int64_t start = 0;
 	int64_t end = 0;
 	int64_t offset = 0;
+	int64_t offset2 = 0;
 	uint32_t i;
 	int64_t bppSize = ((int64_t)desc->bytePerPixel == 0) ? 1 :
 				((int64_t)desc->bytePerPixel == 1) ? 2 : 4;
@@ -71,6 +75,7 @@ static int32_t check_address_range(struct nvpva_dma_descriptor const *desc,
 		}
 
 		offset = (int64_t)desc->dst_offset;
+		offset2 = (int64_t)desc->dst2Offset;
 		/* 3rd destination dim */
 		s[2] = ((int64_t)desc->dstAdv1 * (int64_t)desc->dstRpt1);
 		/* 4th destination dim */
@@ -102,11 +107,20 @@ static int32_t check_address_range(struct nvpva_dma_descriptor const *desc,
 		start += min(s[i]*bppSize, 0LL);
 		end += max(s[i]*bppSize, 0LL);
 	}
+
 	/* check for out of range access */
 	if ((max_size > UINT_MAX) || !(((offset + start) >= 0)
 	    && ((offset + end) < (int64_t)max_size))) {
 		pr_err("ERROR: Out of range detected");
 		err = -EINVAL;
+	}
+
+	if (dst2) {
+		if ((max_size2 > UINT_MAX) || !(((offset2 + start) >= 0)
+		    && ((offset2 + end) < (int64_t)max_size2))) {
+			pr_err("ERROR: Out of range detected");
+			err = -EINVAL;
+		}
 	}
 
 	return err;
@@ -142,12 +156,16 @@ patch_dma_desc_address(struct pva_submit_task *task,
 			addr_base = mem->dma_addr;
 			err = check_address_range(umd_dma_desc,
 						  mem->size,
+						  0,
+						  false,
 						  false);
 		} else {
 			addr_base = 0;
 			if (task->pinned_hwseq_config == false)
 				err = check_address_range(umd_dma_desc,
 							  task->l2_alloc_size,
+							  0,
+							  false,
 							  false);
 		}
 
@@ -170,7 +188,11 @@ patch_dma_desc_address(struct pva_submit_task *task,
 			goto out;
 		}
 
-		err = check_address_range(umd_dma_desc, size, false);
+		err = check_address_range(umd_dma_desc,
+					  size,
+					  0,
+					  false,
+					  false);
 		if (err) {
 			err = -EINVAL;
 			task_err(
@@ -186,9 +208,9 @@ patch_dma_desc_address(struct pva_submit_task *task,
 		u32 size = 0;
 
 		/* dest must be null*/
-		if ((umd_dma_desc->dstPtr != 0U) &&
-				(umd_dma_desc->linkDescId != 0U)) {
-			task_err(task, "vpu config's dstPtr must be 0");
+		if ((umd_dma_desc->dstPtr != 0U)
+		    || (umd_dma_desc->dst2Ptr != 0U)) {
+			task_err(task, "ERROR: Invalid VPUC");
 			err = -EINVAL;
 			goto out;
 		}
@@ -223,7 +245,11 @@ patch_dma_desc_address(struct pva_submit_task *task,
 		}
 
 		if (task->pinned_hwseq_config == false)
-			err = check_address_range(umd_dma_desc, mem->size, false);
+			err = check_address_range(umd_dma_desc,
+						  mem->size,
+						  0,
+						  false,
+						  false);
 
 		if (err) {
 			err = -EINVAL;
@@ -300,12 +326,16 @@ patch_dma_desc_address(struct pva_submit_task *task,
 			addr_base = mem->dma_addr;
 			err = check_address_range(umd_dma_desc,
 						  mem->size,
-						  true);
+						  0,
+						  true,
+						  false);
 		} else {
 			addr_base = 0;
 			err = check_address_range(umd_dma_desc,
 						  task->l2_alloc_size,
-						  true);
+						  0,
+						  true,
+						  false);
 		}
 
 		if (err) {
@@ -319,6 +349,9 @@ patch_dma_desc_address(struct pva_submit_task *task,
 		/* calculate symbol address */
 		u32 addr = 0;
 		u32 size = 0;
+		u32 addr2 = 0;
+		u32 size2 = 0;
+		bool check_size2 = false;
 
 		err = pva_get_sym_offset(&task->client->elf_ctx, task->exe_id,
 					 umd_dma_desc->dstPtr, &addr, &size);
@@ -330,7 +363,37 @@ patch_dma_desc_address(struct pva_submit_task *task,
 			goto out;
 		}
 
-		err = check_address_range(umd_dma_desc, size, true);
+		if (umd_dma_desc->dst2Ptr) {
+			err = pva_get_sym_offset(&task->client->elf_ctx,
+						 task->exe_id,
+						 umd_dma_desc->dst2Ptr,
+						 &addr2,
+						 &size2);
+
+			if (err) {
+				err = -EINVAL;
+				task_err(
+					task,
+					"invalid symbol id in descriptor "
+					"for dst2 VMEM");
+				goto out;
+			}
+
+			if ((addr2 + umd_dma_desc->dst2Offset) & 0x3F) {
+				task_err(task,
+					 "ERR: dst2Ptr/Offset not aligned");
+				err = -EINVAL;
+				goto out;
+			}
+
+			check_size2 = true;
+		}
+
+		err = check_address_range(umd_dma_desc,
+					  size,
+					  size2,
+					  true,
+					  check_size2);
 		if (err) {
 			err = -EINVAL;
 			task_err(
@@ -352,7 +415,11 @@ patch_dma_desc_address(struct pva_submit_task *task,
 			goto out;
 		}
 
-		err = check_address_range(umd_dma_desc, mem->size, true);
+		err = check_address_range(umd_dma_desc,
+					  mem->size,
+					  0,
+					  true,
+					  false);
 		if (err) {
 			err = -EINVAL;
 			task_err(task, "ERROR: address");
@@ -629,15 +696,10 @@ static int32_t nvpva_task_dma_desc_mapping(struct pva_submit_task *task,
 				goto out;
 			}
 
-			if (umd_dma_desc->dst2Offset >= size) {
-				err = -EINVAL;
-				task_err(task,
-					 "ERR: dst2Ptr/Offset out of range");
-				goto out;
-			}
-			    addr = addr + umd_dma_desc->dst2Offset;
-			dma_desc->frda |= (addr & 0x3FFC0) >> 6U;
+			addr = addr + umd_dma_desc->dst2Offset;
+			dma_desc->frda |= ((addr >> 6U) & 0x3FFF);
 		}
+
 		/* DMA_DESC_NDTM_CNTL0 */
 		dma_desc->cb_ext = (((umd_dma_desc->srcCbStart >> 16) & 0x1) << 0)
 			| (((umd_dma_desc->dstCbStart >> 16) & 0x1) << 2)
@@ -699,27 +761,32 @@ static int nvpva_task_dma_channel_mapping(struct nvpva_dma_channel *user_ch,
 
 	/* DMA_CHANNEL_CNTL0_CHSDID: DMA_CHANNEL_CNTL0[0] = descIndex + 1;*/
 	ch->cntl0 = (((user_ch->descIndex + 1U) & 0xFFU) << 0U);
+
 	/* DMA_CHANNEL_CNTL0_CHVMEMOREQ */
 	ch->cntl0 |= ((user_ch->vdbSize & 0xFFU) << 8U);
+
 	/* DMA_CHANNEL_CNTL0_CHBH */
 	ch->cntl0 |= ((user_ch->adbSize & 0x1FFU) << 16U);
+
 	/* DMA_CHANNEL_CNTL0_CHAXIOREQ */
 	ch->cntl0 |= ((user_ch->blockHeight & 7U) << 25U);
+
 	/* DMA_CHANNEL_CNTL0_CHPREF */
 	ch->cntl0 |= ((user_ch->prefetchEnable & 1U) << 30U);
+
 	/* Enable DMA channel */
 	ch->cntl0 |= (0x1U << 31U);
 
 	/* DMA_CHANNEL_CNTL1_CHPWT */
 	ch->cntl1 = ((user_ch->reqPerGrant & 0x7U) << 2U);
-	/* DMA_CHANNEL_CNTL1_CHREP */
-	ch->cntl1 |= ((user_ch->chRepFactor & 0x7U) << 8U);
+
 	/* DMA_CHANNEL_CNTL1_CHVDBSTART */
 	ch->cntl1 |= ((user_ch->vdbOffset & 0x7FU) << 16U);
+
 	/* DMA_CHANNEL_CNTL1_CHADBSTART */
 	if (hwgen == PVA_HW_GEN1)
 		ch->cntl1 |= ((user_ch->adbOffset & 0xFFU) << 24U);
-	else if (hwgen == PVA_HW_GEN2)
+	else
 		ch->cntl1 |= ((user_ch->adbOffset & 0x1FFU) << 23U);
 
 	ch->boundary_pad = user_ch->padValue;
@@ -727,16 +794,30 @@ static int nvpva_task_dma_channel_mapping(struct nvpva_dma_channel *user_ch,
 		goto out;
 
 	/* Applicable only for T23x */
+
+	/* DMA_CHANNEL_CNTL1_CHREP */
+	if ((user_ch->chRepFactor) && (user_ch->chRepFactor != 6)) {
+		pr_err("ERR: Invalid replication factor");
+		return -EINVAL;
+	}
+
+	ch->cntl1 |= ((user_ch->chRepFactor & 0x7U) << 8U);
+
 	/* DMA_CHANNEL_HWSEQCNTL_CHHWSEQSTART */
 	ch->hwseqcntl = ((user_ch->hwseqStart & 0xFFU) << 0U);
+
 	/* DMA_CHANNEL_HWSEQCNTL_CHHWSEQEND */
 	ch->hwseqcntl |= ((user_ch->hwseqEnd & 0xFFU) << 12U);
+
 	/* DMA_CHANNEL_HWSEQCNTL_CHHWSEQTD */
 	ch->hwseqcntl |= ((user_ch->hwseqTriggerDone & 0x3U) << 24U);
+
 	/* DMA_CHANNEL_HWSEQCNTL_CHHWSEQTS */
 	ch->hwseqcntl |= ((user_ch->hwseqTxSelect & 0x1U) << 27U);
+
 	/* DMA_CHANNEL_HWSEQCNTL_CHHWSEQTO */
 	ch->hwseqcntl |= ((user_ch->hwseqTraversalOrder & 0x1U) << 30U);
+
 	/* DMA_CHANNEL_HWSEQCNTL_CHHWSEQEN */
 	ch->hwseqcntl |= ((user_ch->hwseqEnable & 0x1U) << 31U);
 out:
