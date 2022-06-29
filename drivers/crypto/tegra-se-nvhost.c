@@ -3598,7 +3598,7 @@ static int tegra_t23x_se_aes_cmac_op(struct ahash_request *req,
 
 	if (process_cur_req) {
 		if ((cmac_ctx->nbytes + req->nbytes)
-				> (TEGRA_SE_AES_BLOCK_SIZE * 20)) {
+				> TEGRA_SE_CMAC_MAX_INPUT_SIZE) {
 			dev_err(se_dev->dev, "num of SG buffers bytes are more\n");
 			mutex_unlock(&se_dev->mtx);
 			return -EOPNOTSUPP;
@@ -3682,7 +3682,7 @@ static int tegra_se_aes_cmac_op(struct ahash_request *req, bool process_cur_req)
 
 	if (process_cur_req) {
 		if ((cmac_ctx->nbytes + req->nbytes)
-				> (TEGRA_SE_AES_BLOCK_SIZE * 20)) {
+				> TEGRA_SE_CMAC_MAX_INPUT_SIZE) {
 			dev_err(se_dev->dev, "num of SG buffers bytes are more\n");
 			mutex_unlock(&se_dev->mtx);
 			return -EOPNOTSUPP;
@@ -4015,7 +4015,7 @@ static int tegra_se_aes_cmac_update(struct ahash_request *req)
 	se_dev = se_devices[SE_CMAC];
 
 	if ((cmac_ctx->nbytes + req->nbytes)
-			> (TEGRA_SE_AES_BLOCK_SIZE * 20)) {
+			> TEGRA_SE_CMAC_MAX_INPUT_SIZE) {
 		dev_err(se_dev->dev, "num of SG buffers bytes are more\n");
 		return -EOPNOTSUPP;
 	}
