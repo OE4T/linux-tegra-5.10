@@ -265,7 +265,7 @@ static nve32_t xpcs_uphy_lane_bring_up(struct osi_core_priv_data *osi_core,
 			/* exit loop */
 			cond = COND_MET;
 		} else {
-			osi_core->osd_ops.udelay(500U);
+			osi_core->osd_ops.udelay(5U);
 		}
 	}
 
@@ -304,7 +304,7 @@ static nve32_t xpcs_check_pcs_lock_status(struct osi_core_priv_data *osi_core)
 			/* exit loop */
 			cond = COND_MET;
 		} else {
-			osi_core->osd_ops.udelay(500U);
+			osi_core->osd_ops.udelay(5U);
 		}
 	}
 
