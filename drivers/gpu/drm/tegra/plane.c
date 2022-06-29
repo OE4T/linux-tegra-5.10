@@ -5,16 +5,11 @@
 
 #include <linux/iommu.h>
 #include <linux/interconnect.h>
-#include <linux/version.h>
 
 #include <drm/drm_atomic.h>
 #include <drm/drm_atomic_helper.h>
 #include <drm/drm_fourcc.h>
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 13, 0)
 #include <drm/drm_gem_atomic_helper.h>
-#else
-#include <drm/drm_gem_framebuffer_helper.h>
-#endif
 #include <drm/drm_plane_helper.h>
 
 #include "dc.h"
@@ -210,11 +205,7 @@ int tegra_plane_prepare_fb(struct drm_plane *plane,
 	if (!state->fb)
 		return 0;
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 13, 0)
 	err = drm_gem_plane_helper_prepare_fb(plane, state);
-#else
-	err = drm_gem_fb_prepare_fb(plane, state);
-#endif
 	if (err < 0)
 		return err;
 
@@ -715,7 +706,6 @@ static const char * const tegra_plane_icc_names[TEGRA_DC_LEGACY_PLANES_NUM] = {
 
 int tegra_plane_interconnect_init(struct tegra_plane *plane)
 {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
 	const char *icc_name = tegra_plane_icc_names[plane->index];
 	struct device *dev = plane->dc->dev;
 	struct tegra_dc *dc = plane->dc;
@@ -743,7 +733,6 @@ int tegra_plane_interconnect_init(struct tegra_plane *plane)
 			return err;
 		}
 	}
-#endif
 
 	return 0;
 }

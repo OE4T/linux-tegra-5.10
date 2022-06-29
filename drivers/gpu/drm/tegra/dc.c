@@ -13,7 +13,6 @@
 #include <linux/of_device.h>
 #include <linux/pm_runtime.h>
 #include <linux/reset.h>
-#include <linux/version.h>
 
 #include <soc/tegra/pmc.h>
 
@@ -606,16 +605,10 @@ static const u64 tegra124_modifiers[] = {
 };
 
 static int tegra_plane_atomic_check(struct drm_plane *plane,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 13, 0)
 				    struct drm_atomic_state *state)
 {
 	struct drm_plane_state *new_plane_state = drm_atomic_get_new_plane_state(state,
 										 plane);
-#else
-				    struct drm_plane_state *state)
-{
-	struct drm_plane_state *new_plane_state = state;
-#endif
 	struct tegra_plane_state *plane_state = to_tegra_plane_state(new_plane_state);
 	unsigned int supported_rotation = DRM_MODE_ROTATE_0 |
 					  DRM_MODE_REFLECT_X |
@@ -704,15 +697,10 @@ static int tegra_plane_atomic_check(struct drm_plane *plane,
 }
 
 static void tegra_plane_atomic_disable(struct drm_plane *plane,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 13, 0)
 				       struct drm_atomic_state *state)
 {
 	struct drm_plane_state *old_state = drm_atomic_get_old_plane_state(state,
 									   plane);
-#else
-				       struct drm_plane_state *old_state)
-{
-#endif
 	struct tegra_plane *p = to_tegra_plane(plane);
 	u32 value;
 
@@ -726,16 +714,10 @@ static void tegra_plane_atomic_disable(struct drm_plane *plane,
 }
 
 static void tegra_plane_atomic_update(struct drm_plane *plane,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 13, 0)
 				      struct drm_atomic_state *state)
 {
 	struct drm_plane_state *new_state = drm_atomic_get_new_plane_state(state,
 									   plane);
-#else
-				      struct drm_plane_state *old_state)
-{
-	struct drm_plane_state *new_state = plane->state;
-#endif
 	struct tegra_plane_state *tegra_plane_state = to_tegra_plane_state(new_state);
 	struct drm_framebuffer *fb = new_state->fb;
 	struct tegra_plane *p = to_tegra_plane(plane);
@@ -747,11 +729,7 @@ static void tegra_plane_atomic_update(struct drm_plane *plane,
 		return;
 
 	if (!new_state->visible)
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 13, 0)
 		return tegra_plane_atomic_disable(plane, state);
-#else
-		return tegra_plane_atomic_disable(plane, old_state);
-#endif
 
 	memset(&window, 0, sizeof(window));
 	window.src.x = new_state->src.x1 >> 16;
@@ -875,15 +853,10 @@ static const u32 tegra_cursor_plane_formats[] = {
 };
 
 static int tegra_cursor_atomic_check(struct drm_plane *plane,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 13, 0)
 				     struct drm_atomic_state *state)
 {
 	struct drm_plane_state *new_plane_state = drm_atomic_get_new_plane_state(state,
 										 plane);
-#else
-				     struct drm_plane_state *new_plane_state)
-{
-#endif
 	struct tegra_plane_state *plane_state = to_tegra_plane_state(new_plane_state);
 	struct tegra_plane *tegra = to_tegra_plane(plane);
 	int err;
@@ -997,13 +970,7 @@ static void __tegra_cursor_atomic_update(struct drm_plane *plane,
 		x = new_state->dst.x1;
 		y = new_state->dst.y1;
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 12, 0)
 		drm_rect_fp_to_int(&src, &new_state->src);
-#else
-		drm_rect_init(&src, new_state->src.x1 >> 16, new_state->src.y1 >> 16,
-			      drm_rect_width(&new_state->src) >> 16,
-			      drm_rect_height(&new_state->src) >> 16);
-#endif
 
 		value = (src.y1 & tegra->vmask) << 16 | (src.x1 & tegra->hmask);
 		tegra_dc_writel(dc, value, DC_DISP_PCALC_HEAD_SET_CROPPED_POINT_IN_CURSOR);
@@ -1023,29 +990,18 @@ static void __tegra_cursor_atomic_update(struct drm_plane *plane,
 
 
 static void tegra_cursor_atomic_update(struct drm_plane *plane,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 13, 0)
 				       struct drm_atomic_state *state)
 {
 	struct drm_plane_state *new_state = drm_atomic_get_new_plane_state(state, plane);
-#else
-				       struct drm_plane_state *old_state)
-{
-	struct drm_plane_state *new_state = plane->state;
-#endif
 
 	__tegra_cursor_atomic_update(plane, new_state);
 }
 
 static void tegra_cursor_atomic_disable(struct drm_plane *plane,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 13, 0)
 					struct drm_atomic_state *state)
 {
 	struct drm_plane_state *old_state = drm_atomic_get_old_plane_state(state,
 									   plane);
-#else
-					struct drm_plane_state *old_state)
-{
-#endif
 	struct tegra_dc *dc;
 	u32 value;
 
@@ -1061,24 +1017,14 @@ static void tegra_cursor_atomic_disable(struct drm_plane *plane,
 }
 
 static int tegra_cursor_atomic_async_check(struct drm_plane *plane,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 13, 0)
 					   struct drm_atomic_state *state)
 {
 	struct drm_plane_state *new_state = drm_atomic_get_new_plane_state(state, plane);
-#else
-					   struct drm_plane_state *new_state)
-{
-#endif
 	struct drm_crtc_state *crtc_state;
 	int min_scale, max_scale;
 	int err;
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 13, 0)
 	crtc_state = drm_atomic_get_existing_crtc_state(state, new_state->crtc);
-#else
-	crtc_state = drm_atomic_get_existing_crtc_state(new_state->state,
-							new_state->crtc);
-#endif
 	if (WARN_ON(!crtc_state))
 		return -EINVAL;
 
@@ -1109,14 +1055,9 @@ static int tegra_cursor_atomic_async_check(struct drm_plane *plane,
 }
 
 static void tegra_cursor_atomic_async_update(struct drm_plane *plane,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 13, 0)
 					     struct drm_atomic_state *state)
 {
 	struct drm_plane_state *new_state = drm_atomic_get_new_plane_state(state, plane);
-#else
-					     struct drm_plane_state *new_state)
-{
-#endif
 	struct tegra_dc *dc = to_tegra_dc(new_state->crtc);
 
 	plane->state->src_x = new_state->src_x;
@@ -1150,12 +1091,10 @@ static const struct drm_plane_helper_funcs tegra_cursor_plane_helper_funcs = {
 	.atomic_async_update = tegra_cursor_atomic_async_update,
 };
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 14, 0)
 static const uint64_t linear_modifiers[] = {
 	DRM_FORMAT_MOD_LINEAR,
 	DRM_FORMAT_MOD_INVALID
 };
-#endif
 
 static struct drm_plane *tegra_dc_cursor_plane_create(struct drm_device *drm,
 						      struct tegra_dc *dc)
@@ -1196,11 +1135,7 @@ static struct drm_plane *tegra_dc_cursor_plane_create(struct drm_device *drm,
 
 	err = drm_universal_plane_init(drm, &plane->base, possible_crtcs,
 				       &tegra_plane_funcs, formats,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 14, 0)
 				       num_formats, linear_modifiers,
-#else
-				       num_formats, NULL,
-#endif
 				       DRM_PLANE_TYPE_CURSOR, NULL);
 	if (err < 0) {
 		kfree(plane);
@@ -1325,12 +1260,8 @@ static struct drm_plane *tegra_dc_overlay_plane_create(struct drm_device *drm,
 
 	err = drm_universal_plane_init(drm, &plane->base, possible_crtcs,
 				       &tegra_plane_funcs, formats,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 14, 0)
 				       num_formats, linear_modifiers,
 				       type, NULL);
-#else
-				       num_formats, NULL, type, NULL);
-#endif
 	if (err < 0) {
 		kfree(plane);
 		return ERR_PTR(err);
@@ -1982,7 +1913,6 @@ static int tegra_dc_wait_idle(struct tegra_dc *dc, unsigned long timeout)
 	return -ETIMEDOUT;
 }
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
 static void
 tegra_crtc_update_memory_bandwidth(struct drm_crtc *crtc,
 				   struct drm_atomic_state *state,
@@ -2082,14 +2012,9 @@ tegra_crtc_update_memory_bandwidth(struct drm_crtc *crtc,
 			icc_set_bw(tegra->icc_mem_vfilter, 0, 0);
 	}
 }
-#endif
 
 static void tegra_crtc_atomic_disable(struct drm_crtc *crtc,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
 				      struct drm_atomic_state *state)
-#else
-				      struct drm_crtc_state *old_state)
-#endif
 {
 	struct tegra_dc *dc = to_tegra_dc(crtc);
 	u32 value;
@@ -2146,11 +2071,7 @@ static void tegra_crtc_atomic_disable(struct drm_crtc *crtc,
 }
 
 static void tegra_crtc_atomic_enable(struct drm_crtc *crtc,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
 				     struct drm_atomic_state *state)
-#else
-				     struct drm_crtc_state *old_state)
-#endif
 {
 	struct drm_display_mode *mode = &crtc->state->adjusted_mode;
 	struct tegra_dc_state *crtc_state = to_dc_state(crtc->state);
@@ -2269,17 +2190,11 @@ static void tegra_crtc_atomic_enable(struct drm_crtc *crtc,
 }
 
 static void tegra_crtc_atomic_begin(struct drm_crtc *crtc,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
 				    struct drm_atomic_state *state)
-#else
-				    struct drm_crtc_state *old_crtc_state)
-#endif
 {
 	unsigned long flags;
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
 	tegra_crtc_update_memory_bandwidth(crtc, state, true);
-#endif
 
 	if (crtc->state->event) {
 		spin_lock_irqsave(&crtc->dev->event_lock, flags);
@@ -2296,19 +2211,11 @@ static void tegra_crtc_atomic_begin(struct drm_crtc *crtc,
 }
 
 static void tegra_crtc_atomic_flush(struct drm_crtc *crtc,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
 				    struct drm_atomic_state *state)
-#else
-				    struct drm_crtc_state *old_crtc_state)
-#endif
 {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
 	struct drm_crtc_state *crtc_state = drm_atomic_get_new_crtc_state(state,
 									  crtc);
 	struct tegra_dc_state *dc_state = to_dc_state(crtc_state);
-#else
-	struct tegra_dc_state *dc_state = to_dc_state(crtc->state);
-#endif
 	struct tegra_dc *dc = to_tegra_dc(crtc);
 	u32 value;
 
@@ -2383,7 +2290,6 @@ tegra_plane_overlap_mask(struct drm_crtc_state *state,
 	return overlap_mask;
 }
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
 static int tegra_crtc_calculate_memory_bandwidth(struct drm_crtc *crtc,
 						 struct drm_atomic_state *state)
 {
@@ -2520,12 +2426,9 @@ void tegra_crtc_atomic_post_commit(struct drm_crtc *crtc,
 	 */
 	tegra_crtc_update_memory_bandwidth(crtc, state, false);
 }
-#endif
 
 static const struct drm_crtc_helper_funcs tegra_crtc_helper_funcs = {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
 	.atomic_check = tegra_crtc_atomic_check,
-#endif
 	.atomic_begin = tegra_crtc_atomic_begin,
 	.atomic_flush = tegra_crtc_atomic_flush,
 	.atomic_enable = tegra_crtc_atomic_enable,
@@ -2794,14 +2697,8 @@ static int tegra_dc_runtime_resume(struct host1x_client *client)
 	struct device *dev = client->dev;
 	int err;
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
 	err = pm_runtime_resume_and_get(dev);
 	if (err < 0) {
-#else
-	err = pm_runtime_get_sync(dev);
-	if (err < 0) {
-		pm_runtime_put_noidle(dev);
-#endif
 		dev_err(dev, "failed to get runtime PM: %d\n", err);
 		return err;
 	}

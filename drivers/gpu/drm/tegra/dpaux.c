@@ -720,9 +720,7 @@ int drm_dp_aux_attach(struct drm_dp_aux *aux, struct tegra_output *output)
 	unsigned long timeout;
 	int err;
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 14, 0)
 	aux->drm_dev = output->connector.dev;
-#endif
 	err = drm_dp_aux_register(aux);
 	if (err < 0)
 		return err;

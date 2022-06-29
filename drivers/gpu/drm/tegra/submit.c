@@ -13,7 +13,6 @@
 #include <linux/scatterlist.h>
 #include <linux/slab.h>
 #include <linux/sync_file.h>
-#include <linux/version.h>
 
 #include <drm/drm_drv.h>
 #include <drm/drm_file.h>
@@ -606,14 +605,8 @@ int tegra_drm_ioctl_channel_submit(struct drm_device *drm, void *data,
 
 	/* Boot engine. */
 	if (pm_runtime_enabled(context->client->base.dev)) {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
 		err = pm_runtime_resume_and_get(context->client->base.dev);
 		if (err < 0) {
-#else
-		err = pm_runtime_get_sync(context->client->base.dev);
-		if (err < 0) {
-			pm_runtime_put_noidle(context->client->base.dev);
-#endif
 			SUBMIT_ERR(context, "could not power up engine: %d", err);
 			goto unpin_job;
 		}

@@ -12,9 +12,7 @@
 #include <linux/platform_device.h>
 #include <linux/version.h>
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 14, 0)
 #include <drm/drm_aperture.h>
-#endif
 #include <drm/drm_atomic.h>
 #include <drm/drm_atomic_helper.h>
 #include <drm/drm_debugfs.h>
@@ -63,14 +61,12 @@ static const struct drm_mode_config_funcs tegra_drm_mode_config_funcs = {
 static void tegra_atomic_post_commit(struct drm_device *drm,
 				     struct drm_atomic_state *old_state)
 {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
 	struct drm_crtc_state *old_crtc_state __maybe_unused;
 	struct drm_crtc *crtc;
 	unsigned int i;
 
 	for_each_old_crtc_in_state(old_state, crtc, old_crtc_state, i)
 		tegra_crtc_atomic_post_commit(crtc, old_state);
-#endif
 }
 
 static void tegra_atomic_commit_tail(struct drm_atomic_state *old_state)
@@ -867,11 +863,7 @@ static void tegra_debugfs_init(struct drm_minor *minor)
 }
 #endif
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
 static const struct drm_driver tegra_drm_driver = {
-#else
-static struct drm_driver tegra_drm_driver = {
-#endif
 	.driver_features = DRIVER_MODESET | DRIVER_GEM |
 			   DRIVER_ATOMIC | DRIVER_RENDER | DRIVER_SYNCOBJ,
 	.open = tegra_drm_open,
@@ -1156,10 +1148,6 @@ static int host1x_drm_probe(struct host1x_device *dev)
 	drm->mode_config.max_width = 0;
 	drm->mode_config.max_height = 0;
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 14, 0)
-	drm->mode_config.allow_fb_modifiers = true;
-#endif
-
 	drm->mode_config.normalize_zpos = true;
 
 	drm->mode_config.funcs = &tegra_drm_mode_config_funcs;
@@ -1243,11 +1231,8 @@ static int host1x_drm_probe(struct host1x_device *dev)
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0)
 	err = drm_aperture_remove_framebuffers(false, &tegra_drm_driver);
-#elif LINUX_VERSION_CODE >= KERNEL_VERSION(5, 14, 0)
-	err = drm_aperture_remove_framebuffers(false, "tegradrmfb");
 #else
-	err = drm_fb_helper_remove_conflicting_framebuffers(NULL, "tegradrmfb",
-							    false);
+	err = drm_aperture_remove_framebuffers(false, "tegradrmfb");
 #endif
 	if (err < 0)
 		goto hub;

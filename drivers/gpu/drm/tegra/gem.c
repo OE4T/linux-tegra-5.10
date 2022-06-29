@@ -180,7 +180,7 @@ static void *tegra_bo_mmap(struct host1x_bo *bo)
 	struct tegra_bo *obj = host1x_to_tegra_bo(bo);
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 18, 0)
 	struct iosys_map map;
-#elif LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+#else
 	struct dma_buf_map map;
 #endif
 	int ret;
@@ -188,12 +188,8 @@ static void *tegra_bo_mmap(struct host1x_bo *bo)
 	if (obj->vaddr) {
 		return obj->vaddr;
 	} else if (obj->gem.import_attach) {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
 		ret = dma_buf_vmap(obj->gem.import_attach->dmabuf, &map);
 		return ret ? NULL : map.vaddr;
-#else
-		return dma_buf_vmap(obj->gem.import_attach->dmabuf);
-#endif
 	} else {
 		return vmap(obj->pages, obj->num_pages, VM_MAP,
 			    pgprot_writecombine(PAGE_KERNEL));
@@ -205,18 +201,14 @@ static void tegra_bo_munmap(struct host1x_bo *bo, void *addr)
 	struct tegra_bo *obj = host1x_to_tegra_bo(bo);
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 18, 0)
 	struct iosys_map map = IOSYS_MAP_INIT_VADDR(addr);
-#elif LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+#else
 	struct dma_buf_map map = DMA_BUF_MAP_INIT_VADDR(addr);
 #endif
 
 	if (obj->vaddr)
 		return;
 	else if (obj->gem.import_attach)
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
 		dma_buf_vunmap(obj->gem.import_attach->dmabuf, &map);
-#else
-		dma_buf_vunmap(obj->gem.import_attach->dmabuf, addr);
-#endif
 	else
 		vunmap(addr);
 }
@@ -357,11 +349,7 @@ static int tegra_bo_get_pages(struct drm_device *drm, struct tegra_bo *bo)
 
 	bo->num_pages = bo->gem.size >> PAGE_SHIFT;
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
 	bo->sgt = drm_prime_pages_to_sg(bo->gem.dev, bo->pages, bo->num_pages);
-#else
-	bo->sgt = drm_prime_pages_to_sg(bo->pages, bo->num_pages);
-#endif
 	if (IS_ERR(bo->sgt)) {
 		err = PTR_ERR(bo->sgt);
 		goto put_pages;
@@ -737,7 +725,7 @@ static int tegra_gem_prime_vmap(struct dma_buf *buf, struct iosys_map *map)
 static void tegra_gem_prime_vunmap(struct dma_buf *buf, struct iosys_map *map)
 {
 }
-#elif LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+#else
 static int tegra_gem_prime_vmap(struct dma_buf *buf, struct dma_buf_map *map)
 {
 	struct drm_gem_object *gem = buf->priv;
@@ -749,18 +737,6 @@ static int tegra_gem_prime_vmap(struct dma_buf *buf, struct dma_buf_map *map)
 }
 
 static void tegra_gem_prime_vunmap(struct dma_buf *buf, struct dma_buf_map *map)
-{
-}
-#else
-static void *tegra_gem_prime_vmap(struct dma_buf *buf)
-{
-	struct drm_gem_object *gem = buf->priv;
-	struct tegra_bo *bo = to_tegra_bo(gem);
-
-	return bo->vaddr;
-}
-
-static void tegra_gem_prime_vunmap(struct dma_buf *buf, void *vaddr)
 {
 }
 #endif
