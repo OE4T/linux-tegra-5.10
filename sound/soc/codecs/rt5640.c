@@ -2387,8 +2387,10 @@ static irqreturn_t rt5640_irq(int irq, void *data)
 	struct rt5640_priv *rt5640 = data;
 	int delay = 0;
 
-	if (rt5640->jd_src == RT5640_JD_SRC_HDA_HEADER)
+	if (rt5640->jd_src == RT5640_JD_SRC_HDA_HEADER) {
+		cancel_delayed_work_sync(&rt5640->jack_work);
 		delay = 100;
+	}
 
 	if (rt5640->jack)
 		schedule_delayed_work(&rt5640->jack_work,
@@ -2507,8 +2509,9 @@ static void rt5640_enable_hda_jack_detect(struct snd_soc_component *component,
 	rt5640->jack = jack;
 
 	enable_irq(rt5640->irq);
+
 	/* sync initial jack state */
-	schedule_delayed_work(&rt5640->jack_work, 0);
+	schedule_delayed_work(&rt5640->jack_work, msecs_to_jiffies(100));
 }
 
 static void rt5640_disable_jack_detect(struct snd_soc_component *component)
