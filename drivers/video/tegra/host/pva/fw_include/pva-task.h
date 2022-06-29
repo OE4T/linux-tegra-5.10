@@ -93,6 +93,7 @@ struct PVA_PACKED pva_gen_task_status_s {
 };
 
 struct PVA_PACKED pva_task_statistics_s {
+	uint64_t submit_time; /* when task is submitted to PVA FW */
 	uint64_t queued_time; /* when task was accepted by PVA */
 	uint64_t head_time; /* when task reached head of queue */
 	uint64_t input_actions_complete; /* when input actions done */
