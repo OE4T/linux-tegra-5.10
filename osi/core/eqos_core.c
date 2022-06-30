@@ -2936,40 +2936,6 @@ static void eqos_handle_common_intr(struct osi_core_priv_data *const osi_core)
 		    (unsigned char *)base + EQOS_MTL_RXP_INTR_CS);
 }
 
-/**
- * @brief eqos_stop_mac - Stop MAC Tx/Rx engine
- *
- * @note
- * Algorithm:
- *  - Disable MAC Transmitter and Receiver in EQOS_MAC_MCR_IDX
- *  - Refer to EQOS column of <<RM_07, (sequence diagram)>> for API details.
- *  - TraceID:ETHERNET_NVETHERNETRM_007
- *
- * @param[in] osi_core: OSI core private data structure.
- *
- * @pre MAC DMA deinit should be complete. See osi_hw_dma_deinit()
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: No
- * - De-initialization: Yes
- */
-static void eqos_stop_mac(struct osi_core_priv_data *const osi_core)
-{
-	nveu32_t value;
-	void *addr = osi_core->base;
-
-	value = osi_readla(osi_core, (nveu8_t *)addr + EQOS_MAC_MCR);
-	/* Disable MAC Transmit */
-	/* Disable MAC Receive */
-	value &= ~EQOS_MCR_TE;
-	value &= ~EQOS_MCR_RE;
-	eqos_core_safety_writel(osi_core, value,
-				(nveu8_t *)addr + EQOS_MAC_MCR,
-				EQOS_MAC_MCR_IDX);
-}
-
 #ifdef MACSEC_SUPPORT
 /**
  * @brief eqos_config_mac_tx - Enable/Disable MAC Tx
@@ -4758,7 +4724,7 @@ static void eqos_config_ssir(struct osi_core_priv_data *const osi_core,
  *
  * @note
  * Algorithm:
- *  - This function calls eqos_stop_mac()
+ *  - This function calls hw_stop_mac()
  *  - TraceId:ETHERNET_NVETHERNETRM_007
  *
  * @param[in] osi_core: OSI core private data structure. Used param is base.
@@ -4774,7 +4740,7 @@ static void eqos_config_ssir(struct osi_core_priv_data *const osi_core,
 static void eqos_core_deinit(struct osi_core_priv_data *const osi_core)
 {
 	/* Stop the MAC by disabling both MAC Tx and Rx */
-	eqos_stop_mac(osi_core);
+	hw_stop_mac(osi_core);
 }
 
 /**
@@ -6534,7 +6500,7 @@ static int eqos_pre_pad_calibrate(struct osi_core_priv_data *const osi_core)
 	value &= ~(EQOS_IMR_RGSMIIIE);
 	eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
 				EQOS_MAC_IMR, EQOS_MAC_IMR_IDX);
-	eqos_stop_mac(osi_core);
+	hw_stop_mac(osi_core);
 	ret = poll_for_mii_idle(osi_core);
 	if (ret < 0) {
 		goto error;
@@ -6773,7 +6739,6 @@ void eqos_init_core_ops(struct core_ops *ops)
 {
 	ops->core_init = eqos_core_init;
 	ops->core_deinit = eqos_core_deinit;
-	ops->stop_mac = eqos_stop_mac;
 	ops->handle_common_intr = eqos_handle_common_intr;
 	ops->set_mode = eqos_set_mode;
 	ops->set_speed = eqos_set_speed;

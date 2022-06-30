@@ -93,8 +93,6 @@ struct core_ops {
 			     const nveu32_t rx_fifo_size);
 	/** Called to deinitialize MAC and MTL registers */
 	void (*core_deinit)(struct osi_core_priv_data *const osi_core);
-	/** Called to stop MAC Tx and Rx engine */
-	void (*stop_mac)(struct osi_core_priv_data *const osi_core);
 	/** Called to handle common interrupt */
 	void (*handle_common_intr)(struct osi_core_priv_data *const osi_core);
 	/** Called to set the mode at MAC (full/duplex) */
