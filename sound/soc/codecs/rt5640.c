@@ -2477,10 +2477,17 @@ static void rt5640_enable_jack_detect(struct snd_soc_component *component,
 	schedule_delayed_work(&rt5640->jack_work, 0);
 }
 
+static const struct snd_soc_dapm_route rt5640_hda_jack_dapm_routes[] = {
+	{"IN1P", NULL, "MICBIAS1"},
+	{"IN2P", NULL, "MICBIAS1"},
+	{"IN3P", NULL, "MICBIAS1"},
+};
+
 static void rt5640_enable_hda_jack_detect(struct snd_soc_component *component,
 	struct snd_soc_jack *jack)
 {
 	struct rt5640_priv *rt5640 = snd_soc_component_get_drvdata(component);
+	struct snd_soc_dapm_context *dapm = snd_soc_component_get_dapm(component);
 
 	/* Select JD1 for Mic */
 	snd_soc_component_update_bits(component, RT5640_JD_CTRL,
@@ -2512,6 +2519,9 @@ static void rt5640_enable_hda_jack_detect(struct snd_soc_component *component,
 
 	/* sync initial jack state */
 	schedule_delayed_work(&rt5640->jack_work, msecs_to_jiffies(100));
+
+	snd_soc_dapm_add_routes(dapm, rt5640_hda_jack_dapm_routes,
+		ARRAY_SIZE(rt5640_hda_jack_dapm_routes));
 }
 
 static void rt5640_disable_jack_detect(struct snd_soc_component *component)
@@ -2942,7 +2952,7 @@ static int rt5640_i2c_probe(struct i2c_client *i2c,
 	if (ret)
 		return ret;
 
-	ret = devm_request_irq(&i2c->dev, rt5640->irq, rt5640_irq,
+	ret = devm_request_threaded_irq(&i2c->dev, rt5640->irq, NULL, rt5640_irq,
 			       IRQF_TRIGGER_RISING | IRQF_ONESHOT,
 			       "rt5640", rt5640);
 	if (ret == 0) {
