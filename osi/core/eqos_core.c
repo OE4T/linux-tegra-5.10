@@ -607,58 +607,6 @@ static int eqos_set_speed(struct osi_core_priv_data *const osi_core,
 }
 
 /**
- * @brief eqos_set_mode - Set operating mode
- *
- * @note
- * Algorithm:
- *  - Based on the mode (HALF/FULL Duplex) MAC will be configured
- *    accordingly.
- *  - If invalid value for mode, return -1.
- *  - Refer to EQOS column of <<RM_11, (sequence diagram)>> for API details.
- *  - TraceID: ETHERNET_NVETHERNETRM_011
- *
- * @param[in] osi_core: OSI core private data structure. used param is base.
- * @param[in] mode:	Operating mode. (OSI_FULL_DUPLEX/OSI_HALF_DUPLEX)
- *
- * @pre MAC should be initialized and started. see osi_start_mac()
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static nve32_t eqos_set_mode(struct osi_core_priv_data *const osi_core,
-			     const nve32_t mode)
-{
-	void *base = osi_core->base;
-	nveu32_t mcr_val;
-
-	mcr_val = osi_readla(osi_core, (nveu8_t *)base + EQOS_MAC_MCR);
-	if (mode == OSI_FULL_DUPLEX) {
-		mcr_val |= EQOS_MCR_DM;
-		/* DO (disable receive own) bit is not applicable, don't care */
-		mcr_val &= ~EQOS_MCR_DO;
-	} else if (mode == OSI_HALF_DUPLEX) {
-		mcr_val &= ~EQOS_MCR_DM;
-		/* Set DO (disable receive own) bit */
-		mcr_val |= EQOS_MCR_DO;
-	} else {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			     "set_mode: invalid mode\n", 0ULL);
-		return -1;
-		/* Nothing here */
-	}
-	eqos_core_safety_writel(osi_core, mcr_val,
-				(nveu8_t *)base + EQOS_MAC_MCR,
-				EQOS_MAC_MCR_IDX);
-	return 0;
-}
-
-/**
  * @brief eqos_calculate_per_queue_fifo - Calculate per queue FIFO size
  *
  * @note
@@ -2437,7 +2385,7 @@ static void eqos_handle_mac_fpe_intrs(struct osi_core_priv_data *osi_core)
  *    - RGMII/SMII MAC interrupt
  *    - If link is down
  *  - Identify speed and mode changes from EQOS_MAC_PCS register and configure the same by calling
- *    eqos_set_speed(), eqos_set_mode()(proceed even on error for this call) API's.
+ *    eqos_set_speed(), hw_set_mode()(proceed even on error for this call) API's.
  *  - SWUD_ID: ETHERNET_NVETHERNETRM_010_1
  *
  * @param[in] osi_core: OSI core private data structure. Used param base.
@@ -2514,13 +2462,13 @@ static void eqos_handle_mac_intrs(struct osi_core_priv_data *const osi_core,
 
 	/* check for Link mode (full/half duplex) */
 	if ((mac_pcs & EQOS_MAC_PCS_LNKMOD) == EQOS_MAC_PCS_LNKMOD) {
-		ret = eqos_set_mode(osi_core, OSI_FULL_DUPLEX);
+		ret = hw_set_mode(osi_core, OSI_FULL_DUPLEX);
 		if (osi_unlikely(ret < 0)) {
 			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
 				     "set mode in full duplex failed\n", 0ULL);
 		}
 	} else {
-		ret = eqos_set_mode(osi_core, OSI_HALF_DUPLEX);
+		ret = hw_set_mode(osi_core, OSI_HALF_DUPLEX);
 		if (osi_unlikely(ret < 0)) {
 			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
 				     "set mode in half duplex failed\n", 0ULL);
@@ -6740,7 +6688,6 @@ void eqos_init_core_ops(struct core_ops *ops)
 	ops->core_init = eqos_core_init;
 	ops->core_deinit = eqos_core_deinit;
 	ops->handle_common_intr = eqos_handle_common_intr;
-	ops->set_mode = eqos_set_mode;
 	ops->set_speed = eqos_set_speed;
 	ops->pad_calibrate = eqos_pad_calibrate;
 	ops->config_fw_err_pkts = eqos_config_fw_err_pkts;

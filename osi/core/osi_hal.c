@@ -316,7 +316,7 @@ nve32_t osi_set_mode(struct osi_core_priv_data *const osi_core,
 		return -1;
 	}
 
-	return l_core->ops_p->set_mode(osi_core, mode);
+	return hw_set_mode(osi_core, mode);
 }
 
 nve32_t osi_set_speed(struct osi_core_priv_data *const osi_core,
@@ -2003,7 +2003,7 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		break;
 
 	case OSI_CMD_SET_MODE:
-		ret = ops_p->set_mode(osi_core, data->arg6_32);
+		ret = hw_set_mode(osi_core, data->arg6_32);
 		break;
 
 	case OSI_CMD_SET_SPEED:

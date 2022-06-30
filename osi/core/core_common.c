@@ -103,6 +103,32 @@ void hw_stop_mac(struct osi_core_priv_data *const osi_core)
 	osi_writela(osi_core, value, ((nveu8_t *)addr + mac_mcr_re_reg[osi_core->mac]));
 }
 
+nve32_t hw_set_mode(struct osi_core_priv_data *const osi_core, const nve32_t mode)
+{
+	void *base = osi_core->base;
+	nveu32_t mcr_val;
+	nve32_t ret = 0;
+	const nveu32_t set_bit[2] = { EQOS_MCR_DO, EQOS_MCR_DM };
+	const nveu32_t clear_bit[2] = { EQOS_MCR_DM, EQOS_MCR_DO };
+
+	/* don't allow only if loopback mode is other than 0 or 1 */
+	if ((mode != OSI_FULL_DUPLEX) && (mode != OSI_HALF_DUPLEX)) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				"Invalid duplex mode\n", 0ULL);
+		ret = -1;
+		goto fail;
+	}
+
+	if (osi_core->mac == OSI_MAC_HW_EQOS) {
+		mcr_val = osi_readla(osi_core, (nveu8_t *)base + EQOS_MAC_MCR);
+		mcr_val |= set_bit[mode];
+		mcr_val &= ~clear_bit[mode];
+		osi_writela(osi_core, mcr_val, ((nveu8_t *)base + EQOS_MAC_MCR));
+	}
+fail:
+	return ret;
+}
+
 /**
  * @brief hw_est_read - indirect read the GCL to Software own list
  * (SWOL)

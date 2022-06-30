@@ -5817,26 +5817,6 @@ static void mgbe_config_ssir(struct osi_core_priv_data *const osi_core,
 }
 
 /**
- * @brief mgbe_set_mode - Setting the mode.
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] mode: mode to be set.
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: Yes
- * - De-initialization: Yes
- * @retval 0
- */
-static nve32_t mgbe_set_mode(OSI_UNUSED
-			     struct osi_core_priv_data *const osi_core,
-			     OSI_UNUSED const nve32_t mode)
-{
-	return 0;
-}
-
-/**
  * @brief mgbe_read_reg - Read a register
  *
  * @param[in] osi_core: OSI core private data structure.
@@ -6109,8 +6089,6 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->core_deinit = mgbe_core_deinit;
 	ops->validate_regs = mgbe_validate_core_regs;
 	ops->handle_common_intr = mgbe_handle_common_intr;
-	/* only MGBE supports full duplex */
-	ops->set_mode = mgbe_set_mode;
 	/* by default speed is 10G */
 	ops->set_speed = mgbe_set_speed;
 	ops->pad_calibrate = mgbe_pad_calibrate;

@@ -95,9 +95,6 @@ struct core_ops {
 	void (*core_deinit)(struct osi_core_priv_data *const osi_core);
 	/** Called to handle common interrupt */
 	void (*handle_common_intr)(struct osi_core_priv_data *const osi_core);
-	/** Called to set the mode at MAC (full/duplex) */
-	nve32_t (*set_mode)(struct osi_core_priv_data *const osi_core,
-			    const nve32_t mode);
 	/** Called to set the speed at MAC */
 	nve32_t (*set_speed)(struct osi_core_priv_data *const osi_core,
 			     const nve32_t speed);
