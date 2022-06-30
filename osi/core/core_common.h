@@ -63,4 +63,5 @@ nve32_t hw_poll_for_swr(struct osi_core_priv_data *const osi_core);
 void hw_start_mac(struct osi_core_priv_data *const osi_core);
 void hw_stop_mac(struct osi_core_priv_data *const osi_core);
 nve32_t hw_set_mode(struct osi_core_priv_data *const osi_core, const nve32_t mode);
+nve32_t hw_set_speed(struct osi_core_priv_data *const osi_core, const nve32_t speed);
 #endif /* INCLUDED_CORE_COMMON_H */

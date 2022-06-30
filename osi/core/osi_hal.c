@@ -328,7 +328,7 @@ nve32_t osi_set_speed(struct osi_core_priv_data *const osi_core,
 		return -1;
 	}
 
-	return l_core->ops_p->set_speed(osi_core, speed);
+	return hw_set_speed(osi_core, speed);
 }
 
 nve32_t osi_pad_calibrate(struct osi_core_priv_data *const osi_core)
@@ -2007,7 +2007,7 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		break;
 
 	case OSI_CMD_SET_SPEED:
-		ret = ops_p->set_speed(osi_core, data->arg6_32);
+		ret = hw_set_speed(osi_core, data->arg6_32);
 		break;
 
 	case OSI_CMD_L2_FILTER:

@@ -95,9 +95,6 @@ struct core_ops {
 	void (*core_deinit)(struct osi_core_priv_data *const osi_core);
 	/** Called to handle common interrupt */
 	void (*handle_common_intr)(struct osi_core_priv_data *const osi_core);
-	/** Called to set the speed at MAC */
-	nve32_t (*set_speed)(struct osi_core_priv_data *const osi_core,
-			     const nve32_t speed);
 	/** Called to do pad caliberation */
 	nve32_t (*pad_calibrate)(struct osi_core_priv_data *const osi_core);
 	/** Called to configure MTL RxQ to forward the err pkt */

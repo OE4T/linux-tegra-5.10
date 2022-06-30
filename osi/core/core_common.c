@@ -24,6 +24,7 @@
 #include "core_common.h"
 #include "mgbe_core.h"
 #include "eqos_core.h"
+#include "xpcs.h"
 
 static inline nve32_t poll_check(struct osi_core_priv_data *const osi_core, nveu8_t *addr,
 				 nveu32_t bit_check, nveu32_t *value)
@@ -128,6 +129,73 @@ nve32_t hw_set_mode(struct osi_core_priv_data *const osi_core, const nve32_t mod
 fail:
 	return ret;
 }
+
+nve32_t hw_set_speed(struct osi_core_priv_data *const osi_core, const nve32_t speed)
+{
+	nveu32_t  value;
+	nve32_t  ret = 0;
+	void *base = osi_core->base;
+	const nveu32_t mac_mcr[2] = { EQOS_MAC_MCR, MGBE_MAC_TMCR };
+
+	if ((osi_core->mac == OSI_MAC_HW_EQOS && speed > OSI_SPEED_1000) ||
+	    (osi_core->mac == OSI_MAC_HW_MGBE && (speed < OSI_SPEED_2500 ||
+	    speed > OSI_SPEED_10000))) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+			     "unsupported speed\n", (nveul64_t)speed);
+		ret = -1;
+		goto fail;
+	}
+
+	value = osi_readla(osi_core, ((nveu8_t *)base + mac_mcr[osi_core->mac]));
+	switch (speed) {
+	default:
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+			     "unsupported speed\n",  (nveul64_t)speed);
+		ret = -1;
+		goto fail;
+	case OSI_SPEED_10:
+		value |= EQOS_MCR_PS;
+		value &= ~EQOS_MCR_FES;
+		break;
+	case OSI_SPEED_100:
+		value |= EQOS_MCR_PS;
+		value |= EQOS_MCR_FES;
+		break;
+	case OSI_SPEED_1000:
+		value &= ~EQOS_MCR_PS;
+		value &= ~EQOS_MCR_FES;
+		break;
+	case OSI_SPEED_2500:
+		value |= MGBE_MAC_TMCR_SS_2_5G;
+		break;
+	case OSI_SPEED_5000:
+		value |= MGBE_MAC_TMCR_SS_5G;
+		break;
+	case OSI_SPEED_10000:
+		value &= ~MGBE_MAC_TMCR_SS_10G;
+		break;
+
+	}
+	osi_writela(osi_core, value, ((nveu8_t *)osi_core->base + mac_mcr[osi_core->mac]));
+
+	if (osi_core->mac == OSI_MAC_HW_MGBE) {
+		if (xpcs_init(osi_core) < 0) {
+			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+					"xpcs_init failed\n", OSI_NONE);
+			ret = -1;
+			goto fail;
+		}
+
+		ret = xpcs_start(osi_core);
+		if (ret < 0) {
+			goto fail;
+		}
+	}
+fail:
+	return ret;
+}
+
+
 
 /**
  * @brief hw_est_read - indirect read the GCL to Software own list

@@ -553,60 +553,6 @@ static nve32_t eqos_config_fw_err_pkts(
 }
 
 /**
- * @brief eqos_set_speed - Set operating speed
- *
- * @note
- * Algorithm:
- *  - Based on the speed (10/100/1000Mbps) MAC will be configured
- *    accordingly.
- *  - If invalid value for speed, configure for 1000Mbps.
- *  - Refer to EQOS column of <<RM_12, (sequence diagram)>> for API details.
- *  - TraceID: ETHERNET_NVETHERNETRM_012
- *
- * @param[in] base:	EQOS virtual base address.
- * @param[in] speed: Operating speed. Valid values are OSI_SPEED_*
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: Yes
- * - De-initialization: No
- *
- * @pre MAC should be initialized and started. see osi_start_mac()
- */
-static int eqos_set_speed(struct osi_core_priv_data *const osi_core,
-			   const nve32_t speed)
-{
-	nveu32_t  mcr_val;
-	void *base = osi_core->base;
-
-	mcr_val = osi_readla(osi_core, (nveu8_t *)base + EQOS_MAC_MCR);
-	switch (speed) {
-	default:
-		mcr_val &= ~EQOS_MCR_PS;
-		mcr_val &= ~EQOS_MCR_FES;
-		break;
-	case OSI_SPEED_1000:
-		mcr_val &= ~EQOS_MCR_PS;
-		mcr_val &= ~EQOS_MCR_FES;
-		break;
-	case OSI_SPEED_100:
-		mcr_val |= EQOS_MCR_PS;
-		mcr_val |= EQOS_MCR_FES;
-		break;
-	case OSI_SPEED_10:
-		mcr_val |= EQOS_MCR_PS;
-		mcr_val &= ~EQOS_MCR_FES;
-		break;
-	}
-
-	eqos_core_safety_writel(osi_core, mcr_val,
-				(unsigned char *)osi_core->base + EQOS_MAC_MCR,
-				EQOS_MAC_MCR_IDX);
-	return 0;
-}
-
-/**
  * @brief eqos_calculate_per_queue_fifo - Calculate per queue FIFO size
  *
  * @note
@@ -2385,7 +2331,7 @@ static void eqos_handle_mac_fpe_intrs(struct osi_core_priv_data *osi_core)
  *    - RGMII/SMII MAC interrupt
  *    - If link is down
  *  - Identify speed and mode changes from EQOS_MAC_PCS register and configure the same by calling
- *    eqos_set_speed(), hw_set_mode()(proceed even on error for this call) API's.
+ *    hw_set_speed(), hw_set_mode()(proceed even on error for this call) API's.
  *  - SWUD_ID: ETHERNET_NVETHERNETRM_010_1
  *
  * @param[in] osi_core: OSI core private data structure. Used param base.
@@ -2479,25 +2425,13 @@ static void eqos_handle_mac_intrs(struct osi_core_priv_data *const osi_core,
 	/* TODO: set_tx_clk needs to be done */
 	/* Maybe through workqueue for QNX */
 	if ((mac_pcs & EQOS_MAC_PCS_LNKSPEED) == EQOS_MAC_PCS_LNKSPEED_10) {
-		ret = eqos_set_speed(osi_core, OSI_SPEED_10);
-		if (osi_unlikely(ret < 0)) {
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
-				     "set speed in 10Mbps failed\n", 0ULL);
-		}
+		hw_set_speed(osi_core, OSI_SPEED_10);
 	} else if ((mac_pcs & EQOS_MAC_PCS_LNKSPEED) ==
 		   EQOS_MAC_PCS_LNKSPEED_100) {
-		ret = eqos_set_speed(osi_core, OSI_SPEED_100);
-		if (osi_unlikely(ret < 0)) {
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
-				     "set speed in 100Mbps failed\n", 0ULL);
-		}
+		hw_set_speed(osi_core, OSI_SPEED_100);
 	} else if ((mac_pcs & EQOS_MAC_PCS_LNKSPEED) ==
 		   EQOS_MAC_PCS_LNKSPEED_1000) {
-		ret = eqos_set_speed(osi_core, OSI_SPEED_1000);
-		if (osi_unlikely(ret < 0)) {
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
-				     "set speed in 1000Mbps failed\n", 0ULL);
-		}
+		hw_set_speed(osi_core, OSI_SPEED_1000);
 	} else {
 		/* Nothing here */
 	}
@@ -6688,7 +6622,6 @@ void eqos_init_core_ops(struct core_ops *ops)
 	ops->core_init = eqos_core_init;
 	ops->core_deinit = eqos_core_deinit;
 	ops->handle_common_intr = eqos_handle_common_intr;
-	ops->set_speed = eqos_set_speed;
 	ops->pad_calibrate = eqos_pad_calibrate;
 	ops->config_fw_err_pkts = eqos_config_fw_err_pkts;
 	ops->config_rxcsum_offload = eqos_config_rxcsum_offload;

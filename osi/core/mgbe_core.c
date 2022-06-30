@@ -4366,53 +4366,6 @@ static void mgbe_core_deinit(struct osi_core_priv_data *const osi_core)
 }
 
 /**
- * @brief mgbe_set_speed - Set operating speed
- *
- * Algorithm: Based on the speed (2.5G/5G/10G) MAC will be configured
- *        accordingly.
- *
- * @param[in] osi_core:	OSI core private data.
- * @param[in] speed:    Operating speed.
- *
- * @note MAC should be init and started. see osi_start_mac()
- */
-static int mgbe_set_speed(struct osi_core_priv_data *const osi_core,
-			  const int speed)
-{
-	unsigned int value = 0;
-
-	value = osi_readla(osi_core,
-			   (unsigned char *) osi_core->base + MGBE_MAC_TMCR);
-
-	switch (speed) {
-	case OSI_SPEED_2500:
-		value |= MGBE_MAC_TMCR_SS_2_5G;
-		break;
-	case OSI_SPEED_5000:
-		value |= MGBE_MAC_TMCR_SS_5G;
-		break;
-	case OSI_SPEED_10000:
-		value &= ~MGBE_MAC_TMCR_SS_10G;
-		break;
-	default:
-		/* setting default to 10G */
-		value &= ~MGBE_MAC_TMCR_SS_10G;
-		break;
-	}
-
-	osi_writela(osi_core, value, (unsigned char *)
-		    osi_core->base + MGBE_MAC_TMCR);
-
-	if (xpcs_init(osi_core) < 0) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
-			     "xpcs_init failed\n", OSI_NONE);
-		return -1;
-	}
-
-	return xpcs_start(osi_core);
-}
-
-/**
  * @brief mgbe_mdio_busy_wait - MDIO busy wait loop
  *
  * Algorithm: Wait for any previous MII read/write operation to complete
@@ -6089,8 +6042,6 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->core_deinit = mgbe_core_deinit;
 	ops->validate_regs = mgbe_validate_core_regs;
 	ops->handle_common_intr = mgbe_handle_common_intr;
-	/* by default speed is 10G */
-	ops->set_speed = mgbe_set_speed;
 	ops->pad_calibrate = mgbe_pad_calibrate;
 	ops->set_mdc_clk_rate = mgbe_set_mdc_clk_rate;
 	ops->flush_mtl_tx_queue = mgbe_flush_mtl_tx_queue;
