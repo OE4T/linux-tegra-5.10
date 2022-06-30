@@ -276,7 +276,7 @@ nve32_t osi_start_mac(struct osi_core_priv_data *const osi_core)
 		return -1;
 	}
 
-	l_core->ops_p->start_mac(osi_core);
+	hw_start_mac(osi_core);
 
 	return 0;
 }
@@ -1975,7 +1975,7 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		break;
 
 	case OSI_CMD_START_MAC:
-		ops_p->start_mac(osi_core);
+		hw_start_mac(osi_core);
 		ret = 0;
 		break;
 

@@ -4320,32 +4320,6 @@ static nve32_t mgbe_pad_calibrate(OSI_UNUSED
 }
 
 /**
- * @brief mgbe_start_mac - Start MAC Tx/Rx engine
- *
- * Algorithm: Enable MAC Transmitter and Receiver
- *
- * @param[in] osi_core: OSI core private data structure.
- *
- * @note 1) MAC init should be complete. See osi_hw_core_init() and
- *	 osi_hw_dma_init()
- */
-static void mgbe_start_mac(struct osi_core_priv_data *const osi_core)
-{
-	nveu32_t value;
-	void *addr = osi_core->base;
-
-	value = osi_readla(osi_core, (nveu8_t *)addr + MGBE_MAC_TMCR);
-	/* Enable MAC Transmit */
-	value |= MGBE_MAC_TMCR_TE;
-	osi_writela(osi_core, value, (nveu8_t *)addr + MGBE_MAC_TMCR);
-
-	value = osi_readla(osi_core, (nveu8_t *)addr + MGBE_MAC_RMCR);
-	/* Enable MAC Receive */
-	value |= MGBE_MAC_RMCR_RE;
-	osi_writela(osi_core, value, (nveu8_t *)addr + MGBE_MAC_RMCR);
-}
-
-/**
  * @brief mgbe_stop_mac - Stop MAC Tx/Rx engine
  *
  * Algorithm: Disables MAC Transmitter and Receiver
@@ -6159,7 +6133,6 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->core_init = mgbe_core_init;
 	ops->core_deinit = mgbe_core_deinit;
 	ops->validate_regs = mgbe_validate_core_regs;
-	ops->start_mac = mgbe_start_mac;
 	ops->stop_mac = mgbe_stop_mac;
 	ops->handle_common_intr = mgbe_handle_common_intr;
 	/* only MGBE supports full duplex */

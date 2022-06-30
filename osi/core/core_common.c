@@ -67,6 +67,24 @@ nve32_t hw_poll_for_swr(struct osi_core_priv_data *const osi_core)
 			  DMA_MODE_SWR, &dma_mode_val);
 }
 
+void hw_start_mac(struct osi_core_priv_data *const osi_core)
+{
+	void *addr = osi_core->base;
+	nveu32_t value;
+	const nveu32_t mac_mcr_te_reg[2] = { EQOS_MAC_MCR, MGBE_MAC_TMCR };
+	const nveu32_t mac_mcr_re_reg[2] = { EQOS_MAC_MCR, MGBE_MAC_RMCR };
+	const nveu32_t set_bit_te[2] = { EQOS_MCR_TE, MGBE_MAC_TMCR_TE };
+	const nveu32_t set_bit_re[2] = { EQOS_MCR_RE, MGBE_MAC_RMCR_RE };
+
+	value = osi_readla(osi_core, ((nveu8_t *)addr + mac_mcr_te_reg[osi_core->mac]));
+	value |= set_bit_te[osi_core->mac];
+	osi_writela(osi_core, value, ((nveu8_t *)addr + mac_mcr_te_reg[osi_core->mac]));
+
+	value = osi_readla(osi_core, ((nveu8_t *)addr + mac_mcr_re_reg[osi_core->mac]));
+	value |= set_bit_re[osi_core->mac];
+	osi_writela(osi_core, value, ((nveu8_t *)addr + mac_mcr_re_reg[osi_core->mac]));
+}
+
 
 /**
  * @brief hw_est_read - indirect read the GCL to Software own list

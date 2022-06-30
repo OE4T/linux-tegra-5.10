@@ -2937,41 +2937,6 @@ static void eqos_handle_common_intr(struct osi_core_priv_data *const osi_core)
 }
 
 /**
- * @brief eqos_start_mac - Start MAC Tx/Rx engine
- *
- * @note
- * Algorithm:
- *  - Enable MAC Transmitter and Receiver in EQOS_MAC_MCR_IDX
- *  - Refer to EQOS column of <<RM_08, (sequence diagram)>> for API details.
- *  - TraceID:ETHERNET_NVETHERNETRM_008
- *
- * @param[in] osi_core: OSI core private data structure.
- *
- * @pre
- *  - MAC init should be complete. See osi_hw_core_init() and
- *    osi_hw_dma_init()
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: No
- * - De-initialization: No
- */
-static void eqos_start_mac(struct osi_core_priv_data *const osi_core)
-{
-	nveu32_t value;
-	void *addr = osi_core->base;
-
-	value = osi_readla(osi_core, (nveu8_t *)addr + EQOS_MAC_MCR);
-	/* Enable MAC Transmit */
-	/* Enable MAC Receive */
-	value |= EQOS_MCR_TE | EQOS_MCR_RE;
-	eqos_core_safety_writel(osi_core, value,
-				(nveu8_t *)addr + EQOS_MAC_MCR,
-				EQOS_MAC_MCR_IDX);
-}
-
-/**
  * @brief eqos_stop_mac - Stop MAC Tx/Rx engine
  *
  * @note
@@ -6593,7 +6558,7 @@ static int eqos_pre_pad_calibrate(struct osi_core_priv_data *const osi_core)
 	return ret;
 error:
 	/* roll back on fail */
-	eqos_start_mac(osi_core);
+	hw_start_mac(osi_core);
 	if (osi_core->osd_ops.padctrl_mii_rx_pins != OSI_NULL) {
 		(void)osi_core->osd_ops.padctrl_mii_rx_pins(osi_core->osd,
 							   OSI_ENABLE);
@@ -6658,7 +6623,7 @@ static nve32_t eqos_post_pad_calibrate(
 			/* do nothing */
 		}
 	}
-	eqos_start_mac(osi_core);
+	hw_start_mac(osi_core);
 	/* Enable MAC RGSMIIIE - RGMII/SMII interrupts */
 	mac_imr |= EQOS_IMR_RGSMIIIE;
 	eqos_core_safety_writel(osi_core, mac_imr, (nveu8_t *)osi_core->base +
@@ -6808,7 +6773,6 @@ void eqos_init_core_ops(struct core_ops *ops)
 {
 	ops->core_init = eqos_core_init;
 	ops->core_deinit = eqos_core_deinit;
-	ops->start_mac = eqos_start_mac;
 	ops->stop_mac = eqos_stop_mac;
 	ops->handle_common_intr = eqos_handle_common_intr;
 	ops->set_mode = eqos_set_mode;
