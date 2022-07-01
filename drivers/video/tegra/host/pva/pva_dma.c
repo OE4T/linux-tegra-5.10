@@ -209,7 +209,7 @@ patch_dma_desc_address(struct pva_submit_task *task,
 
 		/* dest must be null*/
 		if ((umd_dma_desc->dstPtr != 0U)
-		    || (umd_dma_desc->dst2Ptr != 0U)) {
+		   || (umd_dma_desc->dst2Ptr != 0U)) {
 			task_err(task, "ERROR: Invalid VPUC");
 			err = -EINVAL;
 			goto out;
