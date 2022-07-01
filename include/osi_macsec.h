@@ -332,10 +332,8 @@ struct osi_macsec_core_ops {
 			nveu32_t mtu);
 	/** macsec de-init */
 	nve32_t (*deinit)(struct osi_core_priv_data *const osi_core);
-	/** Non Secure irq handler */
-	void (*handle_ns_irq)(struct osi_core_priv_data *const osi_core);
-	/** Secure irq handler */
-	void (*handle_s_irq)(struct osi_core_priv_data *const osi_core);
+	/** Macsec irq handler */
+	void (*handle_irq)(struct osi_core_priv_data *const osi_core);
 	/** macsec lut config */
 	nve32_t (*lut_config)(struct osi_core_priv_data *const osi_core,
 			  struct osi_macsec_lut_config *const lut_config);
@@ -347,9 +345,11 @@ struct osi_macsec_core_ops {
 	/** macsec cipher config */
 	nve32_t (*cipher_config)(struct osi_core_priv_data *const osi_core,
 			     nveu32_t cipher);
+#ifdef DEBUG_MACSEC
 	/** macsec loopback config */
 	nve32_t (*loopback_config)(struct osi_core_priv_data *const osi_core,
 			       nveu32_t enable);
+#endif /* DEBUG_MACSEC */
 	/** macsec enable */
 	nve32_t (*macsec_en)(struct osi_core_priv_data *const osi_core,
 			 nveu32_t enable);
@@ -360,21 +360,24 @@ struct osi_macsec_core_ops {
 		      nveu16_t *kt_idx);
 	/** macsec read mmc counters */
 	void (*read_mmc)(struct osi_core_priv_data *const osi_core);
+#ifdef DEBUG_MACSEC
 	/** macsec debug buffer config */
 	nve32_t (*dbg_buf_config)(struct osi_core_priv_data *const osi_core,
 		struct osi_macsec_dbg_buf_config *const dbg_buf_config);
 	/** macsec debug buffer config */
 	nve32_t (*dbg_events_config)(struct osi_core_priv_data *const osi_core,
 		 struct osi_macsec_dbg_buf_config *const dbg_buf_config);
+#endif /* DEBUG_MACSEC */
 	/** macsec get Key Index start for a given SCI */
 	nve32_t (*get_sc_lut_key_index)(struct osi_core_priv_data *const osi_core,
 		 nveu8_t *sci, nveu32_t *key_index, nveu16_t ctlr);
 	/** macsec set MTU size */
 	nve32_t (*update_mtu)(struct osi_core_priv_data *const osi_core,
 			      nveu32_t mtu);
-#ifdef OSI_DEBUG
-	void (*debug_intr_config)(struct osi_core_priv_data *const osi_core, nveu32_t enable);
-#endif
+#ifdef DEBUG_MACSEC
+	/** macsec interrupts configuration */
+	void (*intr_config)(struct osi_core_priv_data *const osi_core, nveu32_t enable);
+#endif /* DEBUG_MACSEC */
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -462,12 +465,12 @@ nve32_t osi_macsec_init(struct osi_core_priv_data *const osi_core,
 nve32_t osi_macsec_deinit(struct osi_core_priv_data *const osi_core);
 
 /**
- * @brief osi_macsec_ns_isr - macsec non-secure irq handler
+ * @brief osi_macsec_isr - macsec irq handler
  *
  * @note
  * Algorithm:
  *  - Return -1 if osi core or ops is null
- *  - handles non-secure macsec interrupts
+ *  - handles macsec interrupts
  *  - Refer to MACSEC column of <<******, (sequence diagram)>> for API details.
  *  - TraceID: ***********
  *
@@ -483,31 +486,7 @@ nve32_t osi_macsec_deinit(struct osi_core_priv_data *const osi_core);
  *
  * @retval none
  */
-void osi_macsec_ns_isr(struct osi_core_priv_data *const osi_core);
-
-/**
- * @brief osi_macsec_s_isr - macsec secure irq handler
- *
- * @note
- * Algorithm:
- *  - Return -1 if osi core or ops is null
- *  - handles secure macsec interrupts
- *  - Refer to MACSEC column of <<******, (sequence diagram)>> for API details.
- *  - TraceID: ***********
- *
- * @param[in] osi_core: OSI core private data structure
- *
- * @pre MACSEC needs to be out of reset and proper clock configured.
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval none
- */
-void osi_macsec_s_isr(struct osi_core_priv_data *const osi_core);
+void osi_macsec_isr(struct osi_core_priv_data *const osi_core);
 
 /**
  * @brief osi_macsec_config_lut - Read or write to macsec LUTs
@@ -592,6 +571,7 @@ nve32_t osi_macsec_config_kt(struct osi_core_priv_data *const osi_core,
 nve32_t osi_macsec_cipher_config(struct osi_core_priv_data *const osi_core,
 				 nveu32_t cipher);
 
+#ifdef DEBUG_MACSEC
 /**
  * @brief osi_macsec_loopback - API to enable/disable macsec loopback
  *
@@ -616,8 +596,10 @@ nve32_t osi_macsec_cipher_config(struct osi_core_priv_data *const osi_core,
  * @retval 0 on success
  * @retval -1 on failure
  */
+
 nve32_t osi_macsec_loopback(struct osi_core_priv_data *const osi_core,
 			nveu32_t enable);
+#endif /* DEBUG_MACSEC */
 
 /**
  * @brief osi_macsec_en - API to enable/disable macsec
@@ -704,6 +686,7 @@ nve32_t osi_macsec_config(struct osi_core_priv_data *const osi_core,
  */
 nve32_t osi_macsec_read_mmc(struct osi_core_priv_data *const osi_core);
 
+#ifdef DEBUG_MACSEC
 /**
  * @brief osi_macsec_config_dbg_buf - Reads the debug buffer captured
  *
@@ -759,7 +742,7 @@ nve32_t osi_macsec_config_dbg_buf(
 nve32_t osi_macsec_dbg_events_config(
 		struct osi_core_priv_data *const osi_core,
 		struct osi_macsec_dbg_buf_config *const dbg_buf_config);
-
+#endif /* DEBUG_MACSEC */
 /**
  * @brief osi_macsec_get_sc_lut_key_index - API to get key index for a given SCI
  *

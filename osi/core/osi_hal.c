@@ -2271,6 +2271,11 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 
 	case OSI_CMD_MAC_MTU:
 		ret = 0;
+#ifdef MACSEC_SUPPORT
+		if (osi_core->macsec_ops->update_mtu != OSI_NULL) {
+			ret = osi_core->macsec_ops->update_mtu(osi_core, data->arg1_u32);
+		}
+#endif /*  MACSEC_SUPPORT */
 		break;
 
 #ifdef OSI_DEBUG
@@ -2301,8 +2306,8 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 
 #ifdef OSI_DEBUG
 	case OSI_CMD_DEBUG_INTR_CONFIG:
-#ifdef MACSEC_SUPPORT
-		osi_core->macsec_ops->debug_intr_config(osi_core, data->arg1_u32);
+#ifdef DEBUG_MACSEC
+		osi_core->macsec_ops->intr_config(osi_core, data->arg1_u32);
 #endif
 		ret = 0;
 		break;

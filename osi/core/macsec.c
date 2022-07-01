@@ -36,12 +36,13 @@
 #include <linux/printk.h>
 #define LOG(...) \
 	{ \
-		pr_err(##__VA_ARGS__); \
+		pr_err(__VA_ARGS__); \
 	}
 #else
 #define LOG(...)
 #endif
 
+#ifdef DEBUG_MACSEC
 /**
  * @brief poll_for_dbg_buf_update - Query the status of a debug buffer update.
  *
@@ -649,6 +650,7 @@ static nve32_t macsec_dbg_events_config(
 err:
 	return ret;
 }
+#endif /* DEBUG_MACSEC */
 
 /**
  * @brief update_macsec_mmc_val - Reads specific macsec mmc counters
@@ -3703,7 +3705,7 @@ static inline void handle_common_irq(struct osi_core_priv_data *const osi_core)
 }
 
 /**
- * @brief macsec_handle_ns_irq - Non-secure interrupt handler
+ * @brief macsec_handle_irq - Macsec interrupt handler
  *
  * @note
  * Algorithm:
@@ -3725,7 +3727,7 @@ static inline void handle_common_irq(struct osi_core_priv_data *const osi_core)
  * - Run time: Yes
  * - De-initialization: No
  */
-static void macsec_handle_ns_irq(struct osi_core_priv_data *const osi_core)
+static void macsec_handle_irq(struct osi_core_priv_data *const osi_core)
 {
 	nveu32_t irq_common_sr, common_isr;
 	nveu8_t *addr = (nveu8_t *)osi_core->macsec_base;
@@ -3744,38 +3746,6 @@ static void macsec_handle_ns_irq(struct osi_core_priv_data *const osi_core)
 	    MACSEC_COMMON_SR_SFTY_ERR) {
 		handle_safety_err_irq(osi_core);
 	}
-
-	common_isr = osi_readla(osi_core, addr + MACSEC_COMMON_ISR);
-	if (common_isr != OSI_NONE) {
-		handle_common_irq(osi_core);
-	}
-}
-
-/**
- * @brief macsec_handle_s_irq - secure interrupt handler
- *
- * @note
- * Algorithm:
- *  - Handles common interrupts
- *  - Refer to MACSEC column of <<******, (sequence diagram)>> for API details.
- *  - TraceID: ***********
- *
- * @param[in] osi_core: OSI core private data structure. used param macsec_base
- *
- * @pre MACSEC needs to be out of reset and proper clock configured.
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: Yes
- * - De-initialization: No
- */
-static void macsec_handle_s_irq(struct osi_core_priv_data *const osi_core)
-{
-	nveu32_t common_isr;
-	nveu8_t *addr = (nveu8_t *)osi_core->macsec_base;
-
-	LOG("%s()\n", __func__);
 
 	common_isr = osi_readla(osi_core, addr + MACSEC_COMMON_ISR);
 	if (common_isr != OSI_NONE) {
@@ -3833,6 +3803,7 @@ exit:
 	return ret;
 }
 
+#ifdef DEBUG_MACSEC
 /**
  * @brief macsec_loopback_config - Configures the loopback mode
  *
@@ -3879,6 +3850,7 @@ static nve32_t macsec_loopback_config(
 exit:
 	return ret;
 }
+#endif /* DEBUG_MACSEC */
 
 /**
  * @brief clear_byp_lut - Clears the bypass lut
@@ -4393,6 +4365,81 @@ exit:
 	return ret;
 }
 
+#ifdef DEBUG_MACSEC
+static void macsec_intr_config(struct osi_core_priv_data *const osi_core, nveu32_t enable)
+{
+	nveu32_t val = 0;
+	nveu8_t *addr = (nveu8_t *)osi_core->macsec_base;
+
+	if (enable == OSI_ENABLE) {
+		val = osi_readla(osi_core, addr + MACSEC_TX_IMR);
+		LOG("Read MACSEC_TX_IMR: 0x%x\n", val);
+		val |= (MACSEC_TX_DBG_BUF_CAPTURE_DONE_INT_EN |
+			MACSEC_TX_MTU_CHECK_FAIL_INT_EN |
+			MACSEC_TX_SC_AN_NOT_VALID_INT_EN |
+			MACSEC_TX_AES_GCM_BUF_OVF_INT_EN |
+			MACSEC_TX_PN_EXHAUSTED_INT_EN |
+			MACSEC_TX_PN_THRSHLD_RCHD_INT_EN);
+		osi_writela(osi_core, val, addr + MACSEC_TX_IMR);
+		LOG("Write MACSEC_TX_IMR: 0x%x\n", val);
+
+		val = osi_readla(osi_core, addr + MACSEC_RX_IMR);
+		LOG("Read MACSEC_RX_IMR: 0x%x\n", val);
+
+		val |= (MACSEC_RX_DBG_BUF_CAPTURE_DONE_INT_EN |
+			RX_REPLAY_ERROR_INT_EN |
+			MACSEC_RX_MTU_CHECK_FAIL_INT_EN |
+			MACSEC_RX_AES_GCM_BUF_OVF_INT_EN |
+			MACSEC_RX_PN_EXHAUSTED_INT_EN
+		       );
+		osi_writela(osi_core, val, addr + MACSEC_RX_IMR);
+		LOG("Write MACSEC_RX_IMR: 0x%x\n", val);
+
+		val = osi_readla(osi_core, addr + MACSEC_COMMON_IMR);
+		LOG("Read MACSEC_COMMON_IMR: 0x%x\n", val);
+		val |= (MACSEC_RX_UNINIT_KEY_SLOT_INT_EN |
+			MACSEC_RX_LKUP_MISS_INT_EN |
+			MACSEC_TX_UNINIT_KEY_SLOT_INT_EN |
+			MACSEC_TX_LKUP_MISS_INT_EN |
+			MACSEC_SECURE_REG_VIOL_INT_EN);
+		osi_writela(osi_core, val, addr + MACSEC_COMMON_IMR);
+		LOG("Write MACSEC_COMMON_IMR: 0x%x\n", val);
+	} else {
+		val = osi_readla(osi_core, addr + MACSEC_TX_IMR);
+		LOG("Read MACSEC_TX_IMR: 0x%x\n", val);
+		val &= (~MACSEC_TX_DBG_BUF_CAPTURE_DONE_INT_EN &
+			~MACSEC_TX_MTU_CHECK_FAIL_INT_EN &
+			~MACSEC_TX_SC_AN_NOT_VALID_INT_EN &
+			~MACSEC_TX_AES_GCM_BUF_OVF_INT_EN &
+			~MACSEC_TX_PN_EXHAUSTED_INT_EN &
+			~MACSEC_TX_PN_THRSHLD_RCHD_INT_EN);
+		osi_writela(osi_core, val, addr + MACSEC_TX_IMR);
+		LOG("Write MACSEC_TX_IMR: 0x%x\n", val);
+
+		val = osi_readla(osi_core, addr + MACSEC_RX_IMR);
+		LOG("Read MACSEC_RX_IMR: 0x%x\n", val);
+		val &= (~MACSEC_RX_DBG_BUF_CAPTURE_DONE_INT_EN &
+			~RX_REPLAY_ERROR_INT_EN &
+			~MACSEC_RX_MTU_CHECK_FAIL_INT_EN &
+			~MACSEC_RX_AES_GCM_BUF_OVF_INT_EN &
+			~MACSEC_RX_PN_EXHAUSTED_INT_EN
+		       );
+		osi_writela(osi_core, val, addr + MACSEC_RX_IMR);
+		LOG("Write MACSEC_RX_IMR: 0x%x\n", val);
+
+		val = osi_readla(osi_core, addr + MACSEC_COMMON_IMR);
+		LOG("Read MACSEC_COMMON_IMR: 0x%x\n", val);
+		val &= (~MACSEC_RX_UNINIT_KEY_SLOT_INT_EN &
+			~MACSEC_RX_LKUP_MISS_INT_EN &
+			~MACSEC_TX_UNINIT_KEY_SLOT_INT_EN &
+			~MACSEC_TX_LKUP_MISS_INT_EN &
+			~MACSEC_SECURE_REG_VIOL_INT_EN);
+		osi_writela(osi_core, val, addr + MACSEC_COMMON_IMR);
+		LOG("Write MACSEC_COMMON_IMR: 0x%x\n", val);
+	}
+}
+#endif /* DEBUG_MACSEC */
+
 /**
  * @brief macsec_init - Inititlizes macsec
  *
@@ -4505,7 +4552,7 @@ static nve32_t macsec_init(struct osi_core_priv_data *const osi_core,
 
 	/* set ICV error threshold to 1 */
 	osi_writela(osi_core, 1U, addr + MACSEC_RX_ICV_ERR_CNTRL);
-
+	/* Enabling interrupts only related to HSI */
 	val = osi_readla(osi_core, addr + MACSEC_RX_IMR);
 	LOG("Read MACSEC_RX_IMR: 0x%x\n", val);
 	val |= (MACSEC_RX_ICV_ERROR_INT_EN |
@@ -5386,69 +5433,6 @@ exit:
 	return ret;
 }
 
-#ifdef OSI_DEBUG
-static void macsec_debug_intr_config(struct osi_core_priv_data *const osi_core, nveu32_t enable)
-{
-	nveu32_t val = 0;
-	nveu8_t *addr = (nveu8_t *)osi_core->macsec_base;
-
-	if (enable == OSI_ENABLE) {
-		val = osi_readla(osi_core, addr + MACSEC_TX_IMR);
-		val |= (MACSEC_TX_DBG_BUF_CAPTURE_DONE_INT_EN |
-			MACSEC_TX_MTU_CHECK_FAIL_INT_EN |
-			MACSEC_TX_SC_AN_NOT_VALID_INT_EN |
-			MACSEC_TX_AES_GCM_BUF_OVF_INT_EN |
-			MACSEC_TX_PN_EXHAUSTED_INT_EN |
-			MACSEC_TX_PN_THRSHLD_RCHD_INT_EN);
-		osi_writela(osi_core, val, addr + MACSEC_TX_IMR);
-
-		val = osi_readla(osi_core, addr + MACSEC_RX_IMR);
-
-		val |= (MACSEC_RX_DBG_BUF_CAPTURE_DONE_INT_EN |
-			RX_REPLAY_ERROR_INT_EN |
-			MACSEC_RX_MTU_CHECK_FAIL_INT_EN |
-			MACSEC_RX_AES_GCM_BUF_OVF_INT_EN |
-			MACSEC_RX_PN_EXHAUSTED_INT_EN
-		       );
-		osi_writela(osi_core, val, addr + MACSEC_RX_IMR);
-
-		val = osi_readla(osi_core, addr + MACSEC_COMMON_IMR);
-		val |= (MACSEC_RX_UNINIT_KEY_SLOT_INT_EN |
-			MACSEC_RX_LKUP_MISS_INT_EN |
-			MACSEC_TX_UNINIT_KEY_SLOT_INT_EN |
-			MACSEC_TX_LKUP_MISS_INT_EN |
-			MACSEC_SECURE_REG_VIOL_INT_EN);
-		osi_writela(osi_core, val, addr + MACSEC_COMMON_IMR);
-	} else {
-		val = osi_readla(osi_core, addr + MACSEC_TX_IMR);
-		val &= (~MACSEC_TX_DBG_BUF_CAPTURE_DONE_INT_EN &
-			~MACSEC_TX_MTU_CHECK_FAIL_INT_EN &
-			~MACSEC_TX_SC_AN_NOT_VALID_INT_EN &
-			~MACSEC_TX_AES_GCM_BUF_OVF_INT_EN &
-			~MACSEC_TX_PN_EXHAUSTED_INT_EN &
-			~MACSEC_TX_PN_THRSHLD_RCHD_INT_EN);
-		osi_writela(osi_core, val, addr + MACSEC_TX_IMR);
-
-		val = osi_readla(osi_core, addr + MACSEC_RX_IMR);
-		val &= (~MACSEC_RX_DBG_BUF_CAPTURE_DONE_INT_EN &
-			~RX_REPLAY_ERROR_INT_EN &
-			~MACSEC_RX_MTU_CHECK_FAIL_INT_EN &
-			~MACSEC_RX_AES_GCM_BUF_OVF_INT_EN &
-			~MACSEC_RX_PN_EXHAUSTED_INT_EN
-		       );
-		osi_writela(osi_core, val, addr + MACSEC_RX_IMR);
-
-		val = osi_readla(osi_core, addr + MACSEC_COMMON_IMR);
-		val &= (~MACSEC_RX_UNINIT_KEY_SLOT_INT_EN &
-			~MACSEC_RX_LKUP_MISS_INT_EN &
-			~MACSEC_TX_UNINIT_KEY_SLOT_INT_EN &
-			~MACSEC_TX_LKUP_MISS_INT_EN &
-			~MACSEC_SECURE_REG_VIOL_INT_EN);
-		osi_writela(osi_core, val, addr + MACSEC_COMMON_IMR);
-	}
-}
-#endif
-
 /**
  * @brief osi_init_macsec_ops - macsec initialize operations
  *
@@ -5481,23 +5465,22 @@ nve32_t osi_init_macsec_ops(struct osi_core_priv_data *const osi_core)
 	static struct osi_macsec_core_ops macsec_ops = {
 		.init = macsec_init,
 		.deinit = macsec_deinit,
-		.handle_ns_irq = macsec_handle_ns_irq,
-		.handle_s_irq = macsec_handle_s_irq,
+		.handle_irq = macsec_handle_irq,
 		.lut_config = macsec_lut_config,
 #ifdef MACSEC_KEY_PROGRAM
 		.kt_config = macsec_kt_config,
 #endif /* MACSEC_KEY_PROGRAM */
 		.cipher_config = macsec_cipher_config,
-		.loopback_config = macsec_loopback_config,
 		.macsec_en = macsec_enable,
 		.config = config_macsec,
 		.read_mmc = macsec_read_mmc,
-		.dbg_buf_config = macsec_dbg_buf_config,
-		.dbg_events_config = macsec_dbg_events_config,
 		.get_sc_lut_key_index = macsec_get_key_index,
 		.update_mtu = macsec_update_mtu,
-#ifdef OSI_DEBUG
-		.debug_intr_config = macsec_debug_intr_config,
+#ifdef DEBUG_MACSEC
+		.loopback_config = macsec_loopback_config,
+		.dbg_buf_config = macsec_dbg_buf_config,
+		.dbg_events_config = macsec_dbg_events_config,
+		.intr_config = macsec_intr_config,
 #endif
 	};
 
@@ -5588,12 +5571,12 @@ nve32_t osi_macsec_deinit(struct osi_core_priv_data *const osi_core)
 }
 
 /**
- * @brief osi_macsec_ns_isr - macsec non-secure irq handler
+ * @brief osi_macsec_isr - macsec irq handler
  *
  * @note
  * Algorithm:
  *  - Return -1 if osi core or ops is null
- *  - handles non-secure macsec interrupts
+ *  - handles macsec interrupts
  *  - Refer to MACSEC column of <<******, (sequence diagram)>> for API details.
  *  - TraceID: ***********
  *
@@ -5607,39 +5590,11 @@ nve32_t osi_macsec_deinit(struct osi_core_priv_data *const osi_core)
  * - Run time: Yes
  * - De-initialization: No
  */
-void osi_macsec_ns_isr(struct osi_core_priv_data *const osi_core)
+void osi_macsec_isr(struct osi_core_priv_data *const osi_core)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->macsec_ops != OSI_NULL) &&
-	    (osi_core->macsec_ops->handle_ns_irq != OSI_NULL)) {
-		osi_core->macsec_ops->handle_ns_irq(osi_core);
-	}
-}
-
-/**
- * @brief osi_macsec_s_isr - macsec secure irq handler
- *
- * @note
- * Algorithm:
- *  - Return -1 if osi core or ops is null
- *  - handles secure macsec interrupts
- *  - Refer to MACSEC column of <<******, (sequence diagram)>> for API details.
- *  - TraceID: ***********
- *
- * @param[in] osi_core: OSI core private data structure
- *
- * @pre MACSEC needs to be out of reset and proper clock configured.
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: Yes
- * - De-initialization: No
- */
-void osi_macsec_s_isr(struct osi_core_priv_data *const osi_core)
-{
-	if ((osi_core != OSI_NULL) && (osi_core->macsec_ops != OSI_NULL) &&
-	    (osi_core->macsec_ops->handle_s_irq != OSI_NULL)) {
-		osi_core->macsec_ops->handle_s_irq(osi_core);
+	    (osi_core->macsec_ops->handle_irq != OSI_NULL)) {
+		osi_core->macsec_ops->handle_irq(osi_core);
 	}
 }
 
@@ -5835,6 +5790,7 @@ nve32_t osi_macsec_cipher_config(struct osi_core_priv_data *const osi_core,
 	return ret;
 }
 
+#ifdef DEBUG_MACSEC
 /**
  * @brief osi_macsec_loopback - API to enable/disable macsec loopback
  *
@@ -5871,6 +5827,7 @@ nve32_t osi_macsec_loopback(struct osi_core_priv_data *const osi_core,
 
 	return ret;
 }
+#endif /* DEBUG_MACSEC */
 
 /**
  * @brief osi_macsec_en - API to enable/disable macsec
@@ -5999,6 +5956,7 @@ nve32_t osi_macsec_read_mmc(struct osi_core_priv_data *const osi_core)
 	return ret;
 }
 
+#ifdef DEBUG_MACSEC
 /**
  * @brief osi_macsec_config_dbg_buf - Reads the debug buffer captured
  *
@@ -6077,4 +6035,5 @@ nve32_t osi_macsec_dbg_events_config(
 	return ret;
 }
 
+#endif /* DEBUG_MACSEC */
 #endif /* MACSEC_SUPPORT */
