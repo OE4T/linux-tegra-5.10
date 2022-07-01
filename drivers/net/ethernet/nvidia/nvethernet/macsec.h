@@ -238,13 +238,13 @@ int macsec_close(struct macsec_priv_data *macsec_pdata);
 int macsec_suspend(struct macsec_priv_data *macsec_pdata);
 int macsec_resume(struct macsec_priv_data *macsec_pdata);
 
-#ifdef MACSEC_DEBUG
+#ifdef DEBUG_MACSEC
 #define PRINT_ENTRY()	(printk(KERN_DEBUG "-->%s()\n", __func__))
 #define PRINT_EXIT()	(printk(KERN_DEBUG "<--%s()\n", __func__))
 #else
 #define PRINT_ENTRY()
 #define PRINT_EXIT()
-#endif /* MACSEC_DEBUG */
+#endif /* DEBUG_MACSEC */
 
 #endif /* INCLUDED_MACSEC_H */
 

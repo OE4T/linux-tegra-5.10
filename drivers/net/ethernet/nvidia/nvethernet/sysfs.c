@@ -337,6 +337,7 @@ static DEVICE_ATTR(macsec_cipher, (S_IRUGO | S_IWUSR),
 		   macsec_cipher_show,
 		   macsec_cipher_store);
 
+#ifdef DEBUG_MACSEC
 /**
  * @brief Shows the current setting of MACsec loopback
  *
@@ -421,6 +422,7 @@ static ssize_t macsec_loopback_store(struct device *dev,
 static DEVICE_ATTR(macsec_loopback, (S_IRUGO | S_IWUSR),
 		   macsec_loopback_show,
 		   macsec_loopback_store);
+#endif /* DEBUG_MACSEC */
 
 #ifdef HSI_SUPPORT
 /**
@@ -1002,7 +1004,7 @@ static DEVICE_ATTR(macsec_mmc_counters, (S_IRUGO | S_IWUSR),
 		   macsec_mmc_counters_show,
 		   NULL);
 
-
+#ifdef DEBUG_MACSEC
 static void dump_dbg_buffers(char **buf_p, unsigned short ctlr_sel,
 			 struct osi_core_priv_data *osi_core)
 {
@@ -1153,6 +1155,7 @@ exit:
 static DEVICE_ATTR(macsec_dbg_events, (S_IRUGO | S_IWUSR),
 		   NULL,
 		   macsec_dbg_events_store);
+#endif /* DEBUG_MACSEC */
 
 /**
  * @brief Shows the current SCI LUT configuration
@@ -2626,11 +2629,13 @@ static struct attribute *ether_sysfs_attrs[] = {
 	&dev_attr_macsec_sa_state_lut.attr,
 	&dev_attr_macsec_sc_param_lut.attr,
 	&dev_attr_macsec_cipher.attr,
-	&dev_attr_macsec_loopback.attr,
 	&dev_attr_macsec_enable.attr,
 	&dev_attr_macsec_mmc_counters.attr,
+#ifdef DEBUG_MACSEC
+	&dev_attr_macsec_loopback.attr,
 	&dev_attr_macsec_dbg_buffers.attr,
 	&dev_attr_macsec_dbg_events.attr,
+#endif /* DEBUG_MACSEC */
 #endif /* MACSEC_SUPPORT */
 	&dev_attr_uphy_gbe_mode.attr,
 	&dev_attr_phy_iface_mode.attr,

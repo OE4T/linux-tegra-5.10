@@ -36,7 +36,7 @@ static irqreturn_t macsec_s_isr(int irq, void *data)
 	struct macsec_priv_data *macsec_pdata = (struct macsec_priv_data *)data;
 	struct ether_priv_data *pdata = macsec_pdata->ether_pdata;
 
-	osi_macsec_s_isr(pdata->osi_core);
+	osi_macsec_isr(pdata->osi_core);
 
 	return IRQ_HANDLED;
 }
@@ -98,7 +98,7 @@ static irqreturn_t macsec_ns_isr(int irq, void *data)
 	struct ether_priv_data *pdata = macsec_pdata->ether_pdata;
 	int irq_ret = IRQ_HANDLED;
 
-	osi_macsec_ns_isr(pdata->osi_core);
+	osi_macsec_isr(pdata->osi_core);
 
 #ifdef HSI_SUPPORT
 	if (pdata->osi_core->hsi.enabled == OSI_ENABLE &&
