@@ -114,10 +114,8 @@ endif
 
 CONFIG_NVGPU_NVMEM_FUSE := n
 
-ifneq ($(findstring 5.10,$(NV_BUILD_KERNEL_OPTIONS)),)
 CONFIG_NVGPU_NVMAP_NEXT := y
 CONFIG_NVGPU_NVMEM_FUSE := y
-endif
 
 ifneq ($(findstring stable,$(NV_BUILD_KERNEL_OPTIONS)),)
 CONFIG_NVGPU_NVMEM_FUSE := y
@@ -153,6 +151,8 @@ endif
 ifeq ($(CONFIG_NV_TEGRA_MC),y)
 CONFIG_NVGPU_USE_TEGRA_ALLOC_FD := y
 endif
+
+CONFIG_TEGRA_NVLINK := n
 
 # Support Nvlink
 ifeq ($(CONFIG_TEGRA_NVLINK),y)
