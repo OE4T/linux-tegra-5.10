@@ -8,6 +8,7 @@
  */
 
 #include <linux/console.h>
+#include <linux/version.h>
 
 #include <drm/drm_fourcc.h>
 #include <drm/drm_gem_framebuffer_helper.h>
@@ -44,7 +45,11 @@ int tegra_fb_get_tiling(struct drm_framebuffer *framebuffer,
 {
 	uint64_t modifier = framebuffer->modifier;
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 16, 0)
+	if (fourcc_mod_is_vendor(modifier, NVIDIA)) {
+#else
 	if ((modifier >> 56) == DRM_FORMAT_MOD_VENDOR_NVIDIA) {
+#endif
 		if ((modifier & DRM_FORMAT_MOD_NVIDIA_SECTOR_LAYOUT) == 0)
 			tiling->sector_layout = TEGRA_BO_SECTOR_LAYOUT_TEGRA;
 		else

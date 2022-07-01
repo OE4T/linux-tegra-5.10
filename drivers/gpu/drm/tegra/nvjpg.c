@@ -45,7 +45,7 @@ static inline struct nvjpg *to_nvjpg(struct tegra_drm_client *client)
 	return container_of(client, struct nvjpg, client);
 }
 
-static void nvjpg_writel(struct nvjpg *nvjpg, u32 value, unsigned int offset)
+static inline void nvjpg_writel(struct nvjpg *nvjpg, u32 value, unsigned int offset)
 {
 	writel(value, nvjpg->regs + offset);
 }
@@ -112,9 +112,13 @@ static int nvjpg_init(struct host1x_client *client)
 		goto free_channel;
 	}
 
+	pm_runtime_enable(client->dev);
+	pm_runtime_use_autosuspend(client->dev);
+	pm_runtime_set_autosuspend_delay(client->dev, 500);
+
 	err = tegra_drm_register_client(tegra, drm);
 	if (err < 0)
-		goto free_syncpt;
+		goto disable_rpm;
 
 	/*
 	 * Inherit the DMA parameters (such as maximum segment size) from the
@@ -124,7 +128,9 @@ static int nvjpg_init(struct host1x_client *client)
 
 	return 0;
 
-free_syncpt:
+disable_rpm:
+	pm_runtime_dont_use_autosuspend(client->dev);
+	pm_runtime_force_suspend(client->dev);
 	host1x_syncpt_put(client->syncpts[0]);
 free_channel:
 	host1x_channel_put(nvjpg->channel);
@@ -149,9 +155,14 @@ static int nvjpg_exit(struct host1x_client *client)
 	if (err < 0)
 		return err;
 
+	pm_runtime_dont_use_autosuspend(client->dev);
+	pm_runtime_force_suspend(client->dev);
+
 	host1x_syncpt_put(client->syncpts[0]);
 	host1x_channel_put(nvjpg->channel);
 	host1x_client_iommu_detach(client);
+
+	nvjpg->channel = NULL;
 
 	if (client->group) {
 		dma_unmap_single(nvjpg->dev, nvjpg->falcon.firmware.phys,
@@ -237,7 +248,7 @@ cleanup:
 }
 
 
-static int nvjpg_runtime_resume(struct device *dev)
+static __maybe_unused int nvjpg_runtime_resume(struct device *dev)
 {
 	struct nvjpg *nvjpg = dev_get_drvdata(dev);
 	int err;
@@ -263,9 +274,11 @@ disable:
 	return err;
 }
 
-static int nvjpg_runtime_suspend(struct device *dev)
+static __maybe_unused int nvjpg_runtime_suspend(struct device *dev)
 {
 	struct nvjpg *nvjpg = dev_get_drvdata(dev);
+
+	host1x_channel_stop(nvjpg->channel);
 
 	clk_disable_unprepare(nvjpg->clk);
 
@@ -406,10 +419,6 @@ static int nvjpg_probe(struct platform_device *pdev)
 		goto exit_falcon;
 	}
 
-	pm_runtime_enable(&pdev->dev);
-	pm_runtime_set_autosuspend_delay(&pdev->dev, 500);
-	pm_runtime_use_autosuspend(&pdev->dev);
-
 	return 0;
 
 exit_falcon:
@@ -430,11 +439,6 @@ static int nvjpg_remove(struct platform_device *pdev)
 		return err;
 	}
 
-	if (pm_runtime_enabled(&pdev->dev))
-		pm_runtime_disable(&pdev->dev);
-	else
-		nvjpg_runtime_suspend(&pdev->dev);
-
 	falcon_exit(&nvjpg->falcon);
 
 	return 0;
@@ -442,6 +446,8 @@ static int nvjpg_remove(struct platform_device *pdev)
 
 static const struct dev_pm_ops nvjpg_pm_ops = {
 	SET_RUNTIME_PM_OPS(nvjpg_runtime_suspend, nvjpg_runtime_resume, NULL)
+	SET_SYSTEM_SLEEP_PM_OPS(pm_runtime_force_suspend,
+				pm_runtime_force_resume)
 };
 
 struct platform_driver tegra_nvjpg_driver = {

@@ -21,9 +21,14 @@
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0)
 #include <drm/display/drm_dp_helper.h>
+#include <drm/display/drm_dp_aux_bus.h>
 #elif LINUX_VERSION_CODE >= KERNEL_VERSION(5, 18, 0)
 #include <drm/dp/drm_dp_helper.h>
+#include <drm/dp/drm_dp_aux_bus.h>
 #else
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 17, 0)
+#include <drm/drm_dp_aux_bus.h>
+#endif
 #include <drm/drm_dp_helper.h>
 #endif
 #include <drm/drm_panel.h>
@@ -31,6 +36,7 @@
 #include "dp.h"
 #include "dpaux.h"
 #include "drm.h"
+#include <trace/events/trace.h>
 
 static DEFINE_MUTEX(dpaux_lock);
 static LIST_HEAD(dpaux_list);
@@ -285,7 +291,6 @@ static void tegra_dpaux_hotplug(struct work_struct *work)
 static irqreturn_t tegra_dpaux_irq(int irq, void *data)
 {
 	struct tegra_dpaux *dpaux = data;
-	irqreturn_t ret = IRQ_HANDLED;
 	u32 value;
 
 	/* clear interrupts */
@@ -302,7 +307,7 @@ static irqreturn_t tegra_dpaux_irq(int irq, void *data)
 	if (value & DPAUX_INTR_AUX_DONE)
 		complete(&dpaux->complete);
 
-	return ret;
+	return IRQ_HANDLED;
 }
 
 enum tegra_dpaux_functions {
@@ -575,6 +580,14 @@ static int tegra_dpaux_probe(struct platform_device *pdev)
 	mutex_lock(&dpaux_lock);
 	list_add_tail(&dpaux->list, &dpaux_list);
 	mutex_unlock(&dpaux_lock);
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 17, 0)
+	err = devm_of_dp_aux_populate_ep_devices(&dpaux->aux);
+	if (err < 0) {
+		dev_err(dpaux->dev, "failed to populate AUX bus: %d\n", err);
+		return err;
+	}
+#endif
 
 	return 0;
 }

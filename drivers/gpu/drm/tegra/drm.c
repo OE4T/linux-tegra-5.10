@@ -10,6 +10,7 @@
 #include <linux/iommu.h>
 #include <linux/module.h>
 #include <linux/platform_device.h>
+#include <linux/pm_runtime.h>
 #include <linux/version.h>
 
 #include <drm/drm_aperture.h>
@@ -21,6 +22,10 @@
 #include <drm/drm_ioctl.h>
 #include <drm/drm_prime.h>
 #include <drm/drm_vblank.h>
+
+#if IS_ENABLED(CONFIG_ARM_DMA_USE_IOMMU)
+#include <asm/dma-iommu.h>
+#endif
 
 #include "dc.h"
 #include "drm.h"
@@ -117,6 +122,7 @@ static int tegra_drm_open(struct drm_device *drm, struct drm_file *filp)
 static void tegra_drm_context_free(struct tegra_drm_context *context)
 {
 	context->client->ops->close_channel(context);
+	pm_runtime_put(context->client->base.dev);
 	kfree(context);
 }
 
@@ -427,13 +433,20 @@ static int tegra_client_open(struct tegra_drm_file *fpriv,
 {
 	int err;
 
-	err = client->ops->open_channel(client, context);
-	if (err < 0)
+	err = pm_runtime_resume_and_get(client->base.dev);
+	if (err)
 		return err;
+
+	err = client->ops->open_channel(client, context);
+	if (err < 0) {
+		pm_runtime_put(client->base.dev);
+		return err;
+	}
 
 	err = idr_alloc(&fpriv->legacy_contexts, context, 1, 0, GFP_KERNEL);
 	if (err < 0) {
 		client->ops->close_channel(context);
+		pm_runtime_put(client->base.dev);
 		return err;
 	}
 
@@ -933,6 +946,17 @@ int host1x_client_iommu_attach(struct host1x_client *client)
 	struct iommu_group *group = NULL;
 	int err;
 
+#if IS_ENABLED(CONFIG_ARM_DMA_USE_IOMMU)
+	if (client->dev->archdata.mapping) {
+		struct dma_iommu_mapping *mapping =
+				to_dma_iommu_mapping(client->dev);
+		arm_iommu_detach_device(client->dev);
+		arm_iommu_release_mapping(mapping);
+
+		domain = iommu_get_domain_for_dev(client->dev);
+	}
+#endif
+
 	/*
 	 * If the host1x client is already attached to an IOMMU domain that is
 	 * not the shared IOMMU domain, don't try to attach it to a different
@@ -1403,6 +1427,11 @@ static struct platform_driver * const drivers[] = {
 static int __init host1x_drm_init(void)
 {
 	int err;
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 18, 0)
+	if (drm_firmware_drivers_only())
+		return -ENODEV;
+#endif
 
 	err = host1x_driver_register(&host1x_drm_driver);
 	if (err < 0)

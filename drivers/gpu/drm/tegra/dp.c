@@ -5,7 +5,6 @@
  */
 
 #include <linux/version.h>
-#include <drm/drm_crtc.h>
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0)
 #include <drm/display/drm_dp_helper.h>
 #elif LINUX_VERSION_CODE >= KERNEL_VERSION(5, 18, 0)
@@ -13,6 +12,7 @@
 #else
 #include <drm/drm_dp_helper.h>
 #endif
+#include <drm/drm_crtc.h>
 #include <drm/drm_print.h>
 
 #include "dp.h"
