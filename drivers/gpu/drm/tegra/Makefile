@@ -34,4 +34,6 @@ tegra-drm-next-y := \
 	nvenc.o \
 	nvjpg.o
 
+tegra-drm-next-y += trace.o
+
 obj-m := tegra-drm-next.o

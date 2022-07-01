@@ -22,6 +22,7 @@
 
 #include "gem.h"
 #include "hub.h"
+#include <trace/events/trace.h>
 
 /* XXX move to include/uapi/drm/drm_fourcc.h? */
 #define DRM_FORMAT_MOD_NVIDIA_SECTOR_LAYOUT BIT_ULL(22)

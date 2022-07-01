@@ -83,12 +83,15 @@ static inline u32 tegra_dpaux_readl(struct tegra_dpaux *dpaux,
 {
 	u32 value = readl(dpaux->regs + (offset << 2));
 
+	trace_dpaux_readl(dpaux->dev, offset, value);
+
 	return value;
 }
 
 static inline void tegra_dpaux_writel(struct tegra_dpaux *dpaux,
 				      u32 value, unsigned int offset)
 {
+	trace_dpaux_writel(dpaux->dev, offset, value);
 	writel(value, dpaux->regs + (offset << 2));
 }
 

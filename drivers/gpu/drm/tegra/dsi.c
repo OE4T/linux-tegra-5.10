@@ -28,6 +28,7 @@
 #include "drm.h"
 #include "dsi.h"
 #include "mipi-phy.h"
+#include <trace/events/trace.h>
 
 struct tegra_dsi_state {
 	struct drm_connector_state base;
@@ -107,12 +108,15 @@ static inline u32 tegra_dsi_readl(struct tegra_dsi *dsi, unsigned int offset)
 {
 	u32 value = readl(dsi->regs + (offset << 2));
 
+	trace_dsi_readl(dsi->dev, offset, value);
+
 	return value;
 }
 
 static inline void tegra_dsi_writel(struct tegra_dsi *dsi, u32 value,
 				    unsigned int offset)
 {
+	trace_dsi_writel(dsi->dev, offset, value);
 	writel(value, dsi->regs + (offset << 2));
 }
 

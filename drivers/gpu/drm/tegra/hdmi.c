@@ -27,6 +27,7 @@
 #include "hdmi.h"
 #include "drm.h"
 #include "dc.h"
+#include <trace/events/trace.h>
 
 #define HDMI_ELD_BUFFER_SIZE 96
 
@@ -104,12 +105,15 @@ static inline u32 tegra_hdmi_readl(struct tegra_hdmi *hdmi,
 {
 	u32 value = readl(hdmi->regs + (offset << 2));
 
+	trace_hdmi_readl(hdmi->dev, offset, value);
+
 	return value;
 }
 
 static inline void tegra_hdmi_writel(struct tegra_hdmi *hdmi, u32 value,
 				     unsigned int offset)
 {
+	trace_hdmi_writel(hdmi->dev, offset, value);
 	writel(value, hdmi->regs + (offset << 2));
 }
 

@@ -40,6 +40,7 @@
 #include "drm.h"
 #include "hda.h"
 #include "sor.h"
+#include <trace/events/trace.h>
 
 #define SOR_REKEY 0x38
 
@@ -495,12 +496,15 @@ static inline u32 tegra_sor_readl(struct tegra_sor *sor, unsigned int offset)
 {
 	u32 value = readl(sor->regs + (offset << 2));
 
+	trace_sor_readl(sor->dev, offset, value);
+
 	return value;
 }
 
 static inline void tegra_sor_writel(struct tegra_sor *sor, u32 value,
 				    unsigned int offset)
 {
+	trace_sor_writel(sor->dev, offset, value);
 	writel(value, sor->regs + (offset << 2));
 }
 
