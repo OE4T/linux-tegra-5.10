@@ -123,14 +123,16 @@ static bool ga10b_tegra_is_clock_available(struct gk20a *g, char *clk_name)
 	}
 
 	if ((strcmp(clk_name, "gpc0clk") == 0) &&
-				(gpc_disable & NVGPU_GPC0_DISABLE)) {
-		nvgpu_info(g, "GPC0 is floor-swept");
+				((gpc_disable & NVGPU_GPC0_DISABLE) ||
+				 (g->gpc_pg_mask & NVGPU_GPC0_DISABLE))) {
+		nvgpu_log_info(g, "GPC0 is floor-swept");
 		return false;
 	}
 
 	if ((strcmp(clk_name, "gpc1clk") == 0) &&
-				(gpc_disable & NVGPU_GPC1_DISABLE)) {
-		nvgpu_info(g, "GPC1 is floor-swept");
+				((gpc_disable & NVGPU_GPC1_DISABLE) ||
+				 (g->gpc_pg_mask & NVGPU_GPC1_DISABLE))) {
+		nvgpu_log_info(g, "GPC1 is floor-swept");
 		return false;
 	}
 
@@ -149,7 +151,7 @@ static int ga10b_tegra_acquire_platform_clocks(struct device *dev,
 	struct gk20a_platform *platform = dev_get_drvdata(dev);
 	struct gk20a *g = platform->g;
 	struct device_node *np = nvgpu_get_node(g);
-	unsigned int i, num_clks_dt;
+	unsigned int i, j = 0, num_clks_dt;
 	int err;
 
 	/* Get clocks only on supported platforms(silicon and fpga) */
@@ -166,6 +168,8 @@ static int ga10b_tegra_acquire_platform_clocks(struct device *dev,
 		nvgpu_err(g, "unable to read clocks from DT");
 		return -ENODEV;
 	}
+
+	nvgpu_mutex_acquire(&platform->clks_lock);
 
 	platform->num_clks = 0;
 
@@ -187,11 +191,17 @@ static int ga10b_tegra_acquire_platform_clocks(struct device *dev,
 		} else {
 			rate = clk_entries[i].default_rate;
 			clk_set_rate(c, rate);
-			platform->clk[i] = c;
+
+			/*
+			 * Note that DT clocks are iterated by index 'i' and
+			 * available clocks are iterated by index 'j' in the
+			 * platform->clk array.
+			 */
+			platform->clk[j++] = c;
 		}
 	}
 
-	platform->num_clks = i;
+	platform->num_clks = j;
 
 #ifdef CONFIG_NV_TEGRA_BPMP
 	if (platform->clk[0]) {
@@ -202,13 +212,17 @@ static int ga10b_tegra_acquire_platform_clocks(struct device *dev,
 	}
 #endif
 
+	nvgpu_mutex_release(&platform->clks_lock);
+
 	return 0;
 
 err_get_clock:
-	while (i > 0 && i--) {
-		clk_put(platform->clk[i]);
-		platform->clk[i] = NULL;
+	while (j > 0 && j--) {
+		clk_put(platform->clk[j]);
+		platform->clk[j] = NULL;
 	}
+
+	nvgpu_mutex_release(&platform->clks_lock);
 
 	return err;
 }
@@ -292,6 +306,8 @@ static int ga10b_tegra_probe(struct device *dev)
 		nvgpu_set_enabled(g, NVGPU_CAN_RAILGATE, false);
 	}
 
+	nvgpu_mutex_init(&platform->clks_lock);
+
 	err = ga10b_tegra_get_clocks(dev);
 	if (err != 0) {
 		return err;
@@ -326,6 +342,7 @@ static int ga10b_tegra_remove(struct device *dev)
 #endif
 
 	nvgpu_mutex_destroy(&platform->clk_get_freq_lock);
+	nvgpu_mutex_destroy(&platform->clks_lock);
 
 	return 0;
 }
@@ -433,6 +450,13 @@ static int ga10b_tegra_bpmp_mrq_set(struct device *dev)
 							"for GPC: %d", i);
 					return ret;
 				}
+			}
+
+			/* re-initialize the clocks */
+			ret = ga10b_tegra_get_clocks(dev);
+			if (ret != 0) {
+				nvgpu_err(g, "get clocks failed ");
+				return ret;
 			}
 		}
 	}

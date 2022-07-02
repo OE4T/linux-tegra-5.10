@@ -96,6 +96,8 @@ int gp10b_tegra_acquire_platform_clocks(struct device *dev,
 		return -ENODEV;
 	}
 
+	nvgpu_mutex_acquire(&platform->clks_lock);
+
 	platform->num_clks = 0;
 
 	for (i = 0; i < num_clks_dt; i++) {
@@ -124,6 +126,8 @@ int gp10b_tegra_acquire_platform_clocks(struct device *dev,
 	}
 #endif
 
+	nvgpu_mutex_release(&platform->clks_lock);
+
 	return 0;
 
 err_get_clock:
@@ -131,6 +135,8 @@ err_get_clock:
 		clk_put(platform->clk[i]);
 		platform->clk[i] = NULL;
 	}
+
+	nvgpu_mutex_release(&platform->clks_lock);
 
 	return err;
 }
@@ -166,7 +172,10 @@ void gp10b_tegra_clks_control(struct device *dev, bool enable)
 {
 	struct gk20a_platform *platform = gk20a_get_platform(dev);
 	struct gk20a *g = get_gk20a(dev);
+	int err;
 	int i;
+
+	nvgpu_mutex_acquire(&platform->clks_lock);
 
 	for (i = 0; i < platform->num_clks; i++) {
 		if (!platform->clk[i]) {
@@ -176,13 +185,18 @@ void gp10b_tegra_clks_control(struct device *dev, bool enable)
 		if (enable) {
 			nvgpu_log(g, gpu_dbg_info,
 				  "clk_prepare_enable");
-			clk_prepare_enable(platform->clk[i]);
+			err = clk_prepare_enable(platform->clk[i]);
+			if (err != 0) {
+				nvgpu_err(g, "could not turn on clock %d", i);
+			}
 		} else {
 			nvgpu_log(g, gpu_dbg_info,
 				  "clk_disable_unprepare");
 			clk_disable_unprepare(platform->clk[i]);
 		}
 	}
+
+	nvgpu_mutex_release(&platform->clks_lock);
 }
 
 int gp10b_tegra_reset_assert(struct device *dev)

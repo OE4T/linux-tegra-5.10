@@ -1177,11 +1177,16 @@ static int gk20a_pm_railgate(struct device *dev)
 					g->pstats.last_rail_ungate_complete);
 #endif
 
+	nvgpu_mutex_acquire(&g->static_pg_lock);
+
 	ret = platform->railgate(dev);
 	if (ret) {
 		nvgpu_err(g, "failed to railgate platform, err=%d", ret);
+		nvgpu_mutex_release(&g->static_pg_lock);
 		return ret;
 	}
+
+	nvgpu_mutex_release(&g->static_pg_lock);
 
 #ifdef CONFIG_DEBUG_FS
 	g->pstats.last_rail_gate_complete = jiffies;
