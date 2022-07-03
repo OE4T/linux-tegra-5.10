@@ -342,19 +342,6 @@ nve32_t osi_pad_calibrate(struct osi_core_priv_data *const osi_core)
 	return l_core->ops_p->pad_calibrate(osi_core);
 }
 
-nve32_t osi_config_fw_err_pkts(struct osi_core_priv_data *const osi_core,
-			       const nveu32_t qinx, const nveu32_t fw_err)
-{
-	struct core_local *l_core = (struct core_local *)(void *)osi_core;
-
-	if (validate_args(osi_core, l_core) < 0) {
-		return -1;
-	}
-
-	/* Configure Forwarding of Error packets */
-	return l_core->ops_p->config_fw_err_pkts(osi_core, qinx, fw_err);
-}
-
 static nve32_t conf_ptp_offload(struct osi_core_priv_data *const osi_core,
 				struct osi_pto_config *const pto_config)
 {
@@ -1943,8 +1930,7 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		break;
 
 	case OSI_CMD_CONFIG_FW_ERR:
-		ret = ops_p->config_fw_err_pkts(osi_core, data->arg1_u32,
-						data->arg2_u32);
+		ret = hw_config_fw_err_pkts(osi_core, data->arg1_u32, data->arg2_u32);
 		break;
 
 	case OSI_CMD_ARP_OFFLOAD:

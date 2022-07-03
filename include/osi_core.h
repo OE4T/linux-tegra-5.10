@@ -1782,42 +1782,6 @@ nve32_t osi_set_speed(struct osi_core_priv_data *const osi_core,
 nve32_t osi_pad_calibrate(struct osi_core_priv_data *const osi_core);
 
 /**
- * @brief osi_config_fw_err_pkts - Configure forwarding of error packets
- *
- * @note
- * Algorithm:
- *  - Configure MAC to enable/disable forwarding of error packets.
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] qinx: Q index. Max OSI_EQOS_MAX_NUM_QUEUES.
- * @param[in] fw_err: Enable or disable forwarding of error packets.
- *            0: Disable 1: Enable
- *
- * @pre MAC should be init and started. see osi_start_mac()
- *
- * @note
- * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_020
- *
- * @usage
- * - Allowed context for the API call
- *  - Interrupt handler: No
- *  - Signal handler: No
- *  - Thread safe: No
- *  - Async/Sync: Sync
- *  - Required Privileges: None
- * - API Group:
- *  - Initialization: Yes
- *  - Run time: Yes
- *  - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-nve32_t osi_config_fw_err_pkts(struct osi_core_priv_data *const osi_core,
-			       const nveu32_t qinx, const nveu32_t fw_err);
-
-/**
  * @brief osi_config_rxcsum_offload - Configure RX checksum offload in MAC.
  *
  * @note

@@ -483,76 +483,6 @@ static nve32_t eqos_config_flow_control(
 }
 
 /**
- * @brief eqos_config_fw_err_pkts - Configure forwarding of error packets
- *
- * @note
- * Algorithm:
- *  - Validate fw_err and return -1 if fails.
- *  - Enable or disable forward error packet confiration based on fw_err.
- *  - Refer to EQOS column of <<RM_20, (sequence diagram)>> for API details.
- *  - TraceID: ETHERNET_NVETHERNETRM_020
- *
- * @param[in] osi_core: OSI core private data structure. Used param base.
- * @param[in] qinx: Queue index. Max value OSI_EQOS_MAX_NUM_CHANS-1.
- * @param[in] fw_err: Enable(OSI_ENABLE) or Disable(OSI_DISABLE) the forwarding of error packets
- *
- * @pre MAC should be initialized and started. see osi_start_mac()
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static nve32_t eqos_config_fw_err_pkts(
-				   struct osi_core_priv_data *const osi_core,
-				   const nveu32_t qinx,
-				   const nveu32_t fw_err)
-{
-	void *addr = osi_core->base;
-	nveu32_t val;
-
-	/* Check for valid fw_err and qinx values */
-	if (((fw_err != OSI_ENABLE) && (fw_err != OSI_DISABLE)) ||
-	    (qinx >= OSI_EQOS_MAX_NUM_CHANS)) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			     "config_fw_err: invalid input\n", 0ULL);
-		return -1;
-	}
-
-	/* Read MTL RXQ Operation_Mode Register */
-	val = osi_readla(osi_core,
-			 (nveu8_t *)addr + EQOS_MTL_CHX_RX_OP_MODE(qinx));
-
-	/* fw_err, 1 is for enable and 0 is for disable */
-	if (fw_err == OSI_ENABLE) {
-		/* When fw_err bit is set, all packets except the runt error
-		 * packets are forwarded to the application or DMA.
-		 */
-		val |= EQOS_MTL_RXQ_OP_MODE_FEP;
-	} else if (fw_err == OSI_DISABLE) {
-		/* When this bit is reset, the Rx queue drops packets with error
-		 * status (CRC error, GMII_ER, watchdog timeout, or overflow)
-		 */
-		val &= ~EQOS_MTL_RXQ_OP_MODE_FEP;
-	} else {
-		/* Nothing here */
-	}
-
-	/* Write to FEP bit of MTL RXQ operation Mode Register to enable or
-	 * disable the forwarding of error packets to DMA or application.
-	 */
-	eqos_core_safety_writel(osi_core, val, (nveu8_t *)addr +
-				EQOS_MTL_CHX_RX_OP_MODE(qinx),
-				EQOS_MTL_CH0_RX_OP_MODE_IDX + qinx);
-
-	return 0;
-}
-
-/**
  * @brief eqos_calculate_per_queue_fifo - Calculate per queue FIFO size
  *
  * @note
@@ -6548,7 +6478,6 @@ void eqos_init_core_ops(struct core_ops *ops)
 	ops->core_deinit = eqos_core_deinit;
 	ops->handle_common_intr = eqos_handle_common_intr;
 	ops->pad_calibrate = eqos_pad_calibrate;
-	ops->config_fw_err_pkts = eqos_config_fw_err_pkts;
 	ops->config_rxcsum_offload = eqos_config_rxcsum_offload;
 	ops->config_mac_pkt_filter_reg = eqos_config_mac_pkt_filter_reg;
 	ops->update_mac_addr_low_high_reg = eqos_update_mac_addr_low_high_reg;

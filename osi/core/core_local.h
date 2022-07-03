@@ -97,10 +97,6 @@ struct core_ops {
 	void (*handle_common_intr)(struct osi_core_priv_data *const osi_core);
 	/** Called to do pad caliberation */
 	nve32_t (*pad_calibrate)(struct osi_core_priv_data *const osi_core);
-	/** Called to configure MTL RxQ to forward the err pkt */
-	nve32_t (*config_fw_err_pkts)(struct osi_core_priv_data *const osi_core,
-				      const nveu32_t qinx,
-				      const nveu32_t fw_err);
 	/** Called to configure Rx Checksum offload engine */
 	nve32_t (*config_rxcsum_offload)(
 				struct osi_core_priv_data *const osi_core,

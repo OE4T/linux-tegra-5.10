@@ -97,65 +97,6 @@ done:
 }
 
 /**
- * @brief mgbe_config_fw_err_pkts - Configure forwarding of error packets
- *
- * Algorithm: When FEP bit is reset, the Rx queue drops packets with
- *	  error status (CRC error, GMII_ER, watchdog timeout, or overflow).
- *	  When FEP bit is set, all packets except the runt error packets
- *	  are forwarded to the application or DMA.
- *
- * @param[in] addr: Base address indicating the start of memory mapped IO
- * region of the MAC.
- * @param[in] qinx: Q index
- * @param[in] enable_fw_err_pkts: Enable or Disable the forwarding of error
- * packets
- *
- * @note MAC should be init and started. see osi_start_mac()
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static nve32_t mgbe_config_fw_err_pkts(struct osi_core_priv_data *const osi_core,
-				       const nveu32_t qinx,
-				       const nveu32_t enable_fw_err_pkts)
-{
-	unsigned int val;
-
-	/* Check for valid enable_fw_err_pkts and qinx values */
-	if (((enable_fw_err_pkts != OSI_ENABLE) &&
-	    (enable_fw_err_pkts != OSI_DISABLE)) ||
-	    (qinx >= OSI_MGBE_MAX_NUM_CHANS)) {
-		return -1;
-	}
-
-	/* Read MTL RXQ Operation_Mode Register */
-	val = osi_readla(osi_core, (unsigned char *)osi_core->base +
-			MGBE_MTL_CHX_RX_OP_MODE(qinx));
-
-	/* enable_fw_err_pkts, 1 is for enable and 0 is for disable */
-	if (enable_fw_err_pkts == OSI_ENABLE) {
-		/* When enable_fw_err_pkts bit is set, all packets except
-		 * the runt error packets are forwarded to the application
-		 * or DMA.
-		 */
-		val |= MGBE_MTL_RXQ_OP_MODE_FEP;
-	} else {
-		/* When this bit is reset, the Rx queue drops packets with error
-		 * status (CRC error, GMII_ER, watchdog timeout, or overflow)
-		 */
-		val &= ~MGBE_MTL_RXQ_OP_MODE_FEP;
-	}
-
-	/* Write to FEP bit of MTL RXQ Operation Mode Register to enable or
-	 * disable the forwarding of error packets to DMA or application.
-	 */
-	osi_writela(osi_core, val, (unsigned char *)osi_core->base +
-		   MGBE_MTL_CHX_RX_OP_MODE(qinx));
-
-	return 0;
-}
-
-/**
  * @brief mgbe_calculate_per_queue_fifo - Calculate per queue FIFO size
  *
  * Algorithm: Total Tx/Rx FIFO size which is read from
@@ -5993,7 +5934,6 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->config_mac_loopback = mgbe_config_mac_loopback;
 	ops->set_avb_algorithm = mgbe_set_avb_algorithm;
 	ops->get_avb_algorithm = mgbe_get_avb_algorithm,
-	ops->config_fw_err_pkts = mgbe_config_fw_err_pkts;
 	ops->config_tx_status = mgbe_config_tx_status;
 	ops->config_rx_crc_check = mgbe_config_rx_crc_check;
 	ops->config_flow_control = mgbe_config_flow_control;

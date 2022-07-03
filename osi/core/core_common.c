@@ -215,6 +215,50 @@ nve32_t hw_flush_mtl_tx_queue(struct osi_core_priv_data *const osi_core,
 			  MTL_QTOMR_FTQ, &tx_op_mode_val);
 }
 
+nve32_t hw_config_fw_err_pkts(struct osi_core_priv_data *osi_core,
+			      const nveu32_t qinx, const nveu32_t enable_fw_err_pkts)
+{
+	nveu32_t val;
+	nve32_t ret = 0;
+	const nveu32_t rx_op_mode[2] = { EQOS_MTL_CHX_RX_OP_MODE(qinx),
+					 MGBE_MTL_CHX_RX_OP_MODE(qinx)};
+	const nveu32_t max_q[2] = { OSI_EQOS_MAX_NUM_QUEUES,
+				    OSI_MGBE_MAX_NUM_QUEUES};
+
+	/* Check for valid enable_fw_err_pkts and qinx values */
+	if ((enable_fw_err_pkts != OSI_ENABLE &&
+	    enable_fw_err_pkts != OSI_DISABLE) ||
+	    (qinx >= max_q[osi_core->mac])) {
+		ret = -1;
+		goto fail;
+	}
+
+	/* Read MTL RXQ Operation_Mode Register */
+	val = osi_readla(osi_core, ((nveu8_t *)osi_core->base +
+			 rx_op_mode[osi_core->mac]));
+
+	/* enable_fw_err_pkts, 1 is for enable and 0 is for disable */
+	if (enable_fw_err_pkts == OSI_ENABLE) {
+		/* When enable_fw_err_pkts bit is set, all packets except
+		 * the runt error packets are forwarded to the application
+		 * or DMA.
+		 */
+		val |= MTL_RXQ_OP_MODE_FEP;
+	} else {
+		/* When this bit is reset, the Rx queue drops packets with error
+		 * status (CRC error, GMII_ER, watchdog timeout, or overflow)
+		 */
+		val &= ~MTL_RXQ_OP_MODE_FEP;
+	}
+
+	/* Write to FEP bit of MTL RXQ Operation Mode Register to enable or
+	 * disable the forwarding of error packets to DMA or application.
+	 */
+	osi_writela(osi_core, val, ((nveu8_t *)osi_core->base +
+		    rx_op_mode[osi_core->mac]));
+fail:
+	return ret;
+}
 /**
  * @brief hw_est_read - indirect read the GCL to Software own list
  * (SWOL)

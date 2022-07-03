@@ -40,6 +40,7 @@
 #define MTL_EST_STATUS_SWOL		OSI_BIT(7)
 #define DMA_MODE_SWR			OSI_BIT(0)
 #define MTL_QTOMR_FTQ			OSI_BIT(0)
+#define MTL_RXQ_OP_MODE_FEP		OSI_BIT(4)
 
 /**
  * @addtogroup typedef related info
@@ -67,4 +68,6 @@ nve32_t hw_set_mode(struct osi_core_priv_data *const osi_core, const nve32_t mod
 nve32_t hw_set_speed(struct osi_core_priv_data *const osi_core, const nve32_t speed);
 nve32_t hw_flush_mtl_tx_queue(struct osi_core_priv_data *const osi_core,
 			       const nveu32_t qinx);
+nve32_t hw_config_fw_err_pkts(struct osi_core_priv_data *osi_core,
+			      const nveu32_t qinx, const nveu32_t enable_fw_err_pkts);
 #endif /* INCLUDED_CORE_COMMON_H */
