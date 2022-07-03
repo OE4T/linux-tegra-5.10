@@ -259,6 +259,34 @@ nve32_t hw_config_fw_err_pkts(struct osi_core_priv_data *osi_core,
 fail:
 	return ret;
 }
+
+nve32_t hw_config_rxcsum_offload(struct osi_core_priv_data *const osi_core,
+				nveu32_t enabled)
+{
+	void *addr = osi_core->base;
+	nveu32_t value;
+	nve32_t ret = 0;
+	const nveu32_t rxcsum_mode[2] = { EQOS_MAC_MCR, MGBE_MAC_RMCR};
+	const nveu32_t ipc_value[2] = { EQOS_MCR_IPC, MGBE_MAC_RMCR_IPC};
+
+	if (enabled != OSI_ENABLE && enabled != OSI_DISABLE) {
+		ret = -1;
+		goto fail;
+	}
+
+	value = osi_readla(osi_core, ((nveu8_t *)addr + rxcsum_mode[osi_core->mac]));
+	if (enabled == OSI_ENABLE) {
+		value |= ipc_value[osi_core->mac];
+	} else {
+		value &= ~ipc_value[osi_core->mac];
+	}
+
+	osi_writela(osi_core, value, ((nveu8_t *)addr + rxcsum_mode[osi_core->mac]));
+fail:
+	return ret;
+}
+
+
 /**
  * @brief hw_est_read - indirect read the GCL to Software own list
  * (SWOL)

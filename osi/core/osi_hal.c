@@ -629,7 +629,7 @@ nve32_t osi_config_rxcsum_offload(struct osi_core_priv_data *const osi_core,
 		return -1;
 	}
 
-	return l_core->ops_p->config_rxcsum_offload(osi_core, enable);
+	return hw_config_rxcsum_offload(osi_core, enable);
 }
 
 nve32_t osi_set_systime_to_mac(struct osi_core_priv_data *const osi_core,
@@ -1702,7 +1702,7 @@ static void cfg_l2_filter(struct core_local *l_core)
 
 static void cfg_rxcsum(struct core_local *l_core)
 {
-	(void)l_core->ops_p->config_rxcsum_offload((struct osi_core_priv_data *)(void *)l_core,
+	(void)hw_config_rxcsum_offload((struct osi_core_priv_data *)(void *)l_core,
 						    l_core->cfg.rxcsum);
 }
 
@@ -2006,7 +2006,7 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		break;
 
 	case OSI_CMD_RXCSUM_OFFLOAD:
-		ret = ops_p->config_rxcsum_offload(osi_core, data->arg1_u32);
+		ret = hw_config_rxcsum_offload(osi_core, data->arg1_u32);
 		if (ret == 0) {
 			l_core->cfg.rxcsum = data->arg1_u32;
 			l_core->cfg.flags |= DYNAMIC_CFG_RXCSUM;

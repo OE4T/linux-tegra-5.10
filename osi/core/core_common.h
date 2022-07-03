@@ -70,4 +70,7 @@ nve32_t hw_flush_mtl_tx_queue(struct osi_core_priv_data *const osi_core,
 			       const nveu32_t qinx);
 nve32_t hw_config_fw_err_pkts(struct osi_core_priv_data *osi_core,
 			      const nveu32_t qinx, const nveu32_t enable_fw_err_pkts);
+nve32_t hw_config_rxcsum_offload(struct osi_core_priv_data *const osi_core,
+				nveu32_t enabled);
+
 #endif /* INCLUDED_CORE_COMMON_H */

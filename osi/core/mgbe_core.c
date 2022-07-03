@@ -1669,45 +1669,6 @@ static int mgbe_config_arp_offload(struct osi_core_priv_data *const osi_core,
 }
 
 /**
- * @brief mgbe_config_rxcsum_offload - Enable/Disale rx checksum offload in HW
- *
- * Algorithm:
- *      1) Read the MAC configuration register.
- *      2) Enable the IP checksum offload engine COE in MAC receiver.
- *      3) Update the MAC configuration register.
- *
- * @param[in] addr: MGBE virtual base address.
- * @param[in] enabled: Flag to indicate feature is to be enabled/disabled.
- *
- * @note MAC should be init and started. see osi_start_mac()
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static nve32_t mgbe_config_rxcsum_offload(
-				struct osi_core_priv_data *const osi_core,
-				nveu32_t enabled)
-{
-	void *addr = osi_core->base;
-	unsigned int mac_rmcr;
-
-	if ((enabled != OSI_ENABLE) && (enabled != OSI_DISABLE)) {
-		return -1;
-	}
-
-	mac_rmcr = osi_readla(osi_core, (unsigned char *)addr + MGBE_MAC_RMCR);
-	if (enabled == OSI_ENABLE) {
-		mac_rmcr |= MGBE_MAC_RMCR_IPC;
-	} else {
-		mac_rmcr &= ~MGBE_MAC_RMCR_IPC;
-	}
-
-	osi_writela(osi_core, mac_rmcr, (unsigned char *)addr + MGBE_MAC_RMCR);
-
-	return 0;
-}
-
-/**
  * @brief mgbe_config_frp - Enable/Disale RX Flexible Receive Parser in HW
  *
  * Algorithm:
@@ -5939,7 +5900,6 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->config_flow_control = mgbe_config_flow_control;
 	ops->config_arp_offload = mgbe_config_arp_offload;
 	ops->config_ptp_offload = mgbe_config_ptp_offload;
-	ops->config_rxcsum_offload = mgbe_config_rxcsum_offload;
 	ops->config_mac_pkt_filter_reg = mgbe_config_mac_pkt_filter_reg;
 	ops->update_mac_addr_low_high_reg = mgbe_update_mac_addr_low_high_reg;
 	ops->config_l3_l4_filter_enable = mgbe_config_l3_l4_filter_enable;

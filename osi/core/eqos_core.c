@@ -985,61 +985,6 @@ static nve32_t eqos_configure_mtl_queue(nveu32_t qinx,
 /** \endcond */
 
 /**
- * @brief eqos_config_rxcsum_offload - Enable/Disable rx checksum offload in HW
- *
- * @note
- * Algorithm:
- *  - VAlidate enabled param and return -1 if invalid.
- *  - Read the MAC configuration register.
- *  - Enable/disable the IP checksum offload engine COE in MAC receiver based on enabled.
- *  - Update the MAC configuration register.
- *  - Refer to OSI column of <<RM_17, (sequence diagram)>> for sequence
- * of execution.
- *  - TraceID:ETHERNET_NVETHERNETRM_017
- *
- * @param[in] osi_core: OSI core private data structure. Used param is base.
- * @param[in] enabled: Flag to indicate feature is to be enabled(OSI_ENABLE)/disabled(OSI_DISABLE).
- *
- * @pre MAC should be initialized and started. see osi_start_mac()
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static nve32_t eqos_config_rxcsum_offload(
-				      struct osi_core_priv_data *const osi_core,
-				      const nveu32_t enabled)
-{
-	void *addr = osi_core->base;
-	nveu32_t mac_mcr;
-
-	if ((enabled != OSI_ENABLE) && (enabled != OSI_DISABLE)) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			     "rxsum_offload: invalid input\n", 0ULL);
-		return -1;
-	}
-
-	mac_mcr = osi_readla(osi_core, (nveu8_t *)addr + EQOS_MAC_MCR);
-
-	if (enabled == OSI_ENABLE) {
-		mac_mcr |= EQOS_MCR_IPC;
-	} else {
-		mac_mcr &= ~EQOS_MCR_IPC;
-	}
-
-	eqos_core_safety_writel(osi_core, mac_mcr,
-				(nveu8_t *)addr + EQOS_MAC_MCR,
-				EQOS_MAC_MCR_IDX);
-
-	return 0;
-}
-
-/**
  * @brief eqos_config_frp - Enable/Disale RX Flexible Receive Parser in HW
  *
  * Algorithm:
@@ -6478,7 +6423,6 @@ void eqos_init_core_ops(struct core_ops *ops)
 	ops->core_deinit = eqos_core_deinit;
 	ops->handle_common_intr = eqos_handle_common_intr;
 	ops->pad_calibrate = eqos_pad_calibrate;
-	ops->config_rxcsum_offload = eqos_config_rxcsum_offload;
 	ops->config_mac_pkt_filter_reg = eqos_config_mac_pkt_filter_reg;
 	ops->update_mac_addr_low_high_reg = eqos_update_mac_addr_low_high_reg;
 	ops->config_l3_l4_filter_enable = eqos_config_l3_l4_filter_enable;
