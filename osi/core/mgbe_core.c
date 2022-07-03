@@ -1638,60 +1638,6 @@ static int mgbe_config_ptp_rxq(struct osi_core_priv_data *const osi_core,
 }
 
 /**
- * @brief mgbe_flush_mtl_tx_queue - Flush MTL Tx queue
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] qinx: MTL queue index.
- *
- * @note 1) MAC should out of reset and clocks enabled.
- *	 2) hw core initialized. see osi_hw_core_init().
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static nve32_t mgbe_flush_mtl_tx_queue(
-				struct osi_core_priv_data *const osi_core,
-				const nveu32_t qinx)
-{
-	void *addr = osi_core->base;
-	nveu32_t retry = 1000;
-	nveu32_t count;
-	nveu32_t value;
-	nve32_t cond = 1;
-
-	if (qinx >= OSI_MGBE_MAX_NUM_QUEUES) {
-		return -1;
-	}
-
-	/* Read Tx Q Operating Mode Register and flush TxQ */
-	value = osi_readla(osi_core, (nveu8_t *)addr +
-			  MGBE_MTL_CHX_TX_OP_MODE(qinx));
-	value |= MGBE_MTL_QTOMR_FTQ;
-	osi_writela(osi_core, value, (nveu8_t *)addr +
-		   MGBE_MTL_CHX_TX_OP_MODE(qinx));
-
-	/* Poll Until FTQ bit resets for Successful Tx Q flush */
-	count = 0;
-	while (cond == 1) {
-		if (count > retry) {
-			return -1;
-		}
-
-		count++;
-
-		value = osi_readla(osi_core, (nveu8_t *)addr +
-				  MGBE_MTL_CHX_TX_OP_MODE(qinx));
-		if ((value & MGBE_MTL_QTOMR_FTQ_LPOS) == OSI_NONE) {
-			cond = 0;
-		} else {
-			osi_core->osd_ops.msleep(1);
-		}
-	}
-
-	return 0;
-}
-
-/**
  * @brief mgbe_config_mac_loopback - Configure MAC to support loopback
  *
  * @param[in] addr: Base address indicating the start of
@@ -2266,7 +2212,7 @@ static nve32_t mgbe_configure_mtl_queue(nveu32_t qinx,
 	 * Setting related to CBS will come here for TC.
 	 * default: 0x0 SP
 	 */
-	ret = mgbe_flush_mtl_tx_queue(osi_core, qinx);
+	ret = hw_flush_mtl_tx_queue(osi_core, qinx);
 	if (ret < 0) {
 		return ret;
 	}
@@ -6044,7 +5990,6 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->handle_common_intr = mgbe_handle_common_intr;
 	ops->pad_calibrate = mgbe_pad_calibrate;
 	ops->set_mdc_clk_rate = mgbe_set_mdc_clk_rate;
-	ops->flush_mtl_tx_queue = mgbe_flush_mtl_tx_queue;
 	ops->config_mac_loopback = mgbe_config_mac_loopback;
 	ops->set_avb_algorithm = mgbe_set_avb_algorithm;
 	ops->get_avb_algorithm = mgbe_get_avb_algorithm,

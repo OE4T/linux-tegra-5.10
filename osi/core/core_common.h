@@ -39,6 +39,7 @@
 #define MTL_EST_CONTROL_EEST		OSI_BIT(0)
 #define MTL_EST_STATUS_SWOL		OSI_BIT(7)
 #define DMA_MODE_SWR			OSI_BIT(0)
+#define MTL_QTOMR_FTQ			OSI_BIT(0)
 
 /**
  * @addtogroup typedef related info
@@ -64,4 +65,6 @@ void hw_start_mac(struct osi_core_priv_data *const osi_core);
 void hw_stop_mac(struct osi_core_priv_data *const osi_core);
 nve32_t hw_set_mode(struct osi_core_priv_data *const osi_core, const nve32_t mode);
 nve32_t hw_set_speed(struct osi_core_priv_data *const osi_core, const nve32_t speed);
+nve32_t hw_flush_mtl_tx_queue(struct osi_core_priv_data *const osi_core,
+			       const nveu32_t qinx);
 #endif /* INCLUDED_CORE_COMMON_H */

@@ -196,6 +196,24 @@ fail:
 }
 
 
+nve32_t hw_flush_mtl_tx_queue(struct osi_core_priv_data *const osi_core,
+			      const nveu32_t qinx)
+{
+	void *addr = osi_core->base;
+	nveu32_t tx_op_mode_val = 0U;
+	nveu32_t value;
+	const nveu32_t tx_op_mode[2] = { EQOS_MTL_CHX_TX_OP_MODE(qinx),
+					 MGBE_MTL_CHX_TX_OP_MODE(qinx)};
+
+	/* Read Tx Q Operating Mode Register and flush TxQ */
+	value = osi_readla(osi_core, ((nveu8_t *)addr + tx_op_mode[osi_core->mac]));
+	value |= MTL_QTOMR_FTQ;
+	osi_writela(osi_core, value, ((nveu8_t *)addr + tx_op_mode[osi_core->mac]));
+
+	/* Poll Until FTQ bit resets for Successful Tx Q flush */
+	return poll_check(osi_core, ((nveu8_t *)addr + tx_op_mode[osi_core->mac]),
+			  MTL_QTOMR_FTQ, &tx_op_mode_val);
+}
 
 /**
  * @brief hw_est_read - indirect read the GCL to Software own list

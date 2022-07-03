@@ -203,9 +203,6 @@ struct core_ops {
 	/** Called periodically to read and validate safety critical
 	 * registers against last written value */
 	nve32_t (*validate_regs)(struct osi_core_priv_data *const osi_core);
-	/** Called to flush MTL Tx queue */
-	nve32_t (*flush_mtl_tx_queue)(struct osi_core_priv_data *const osi_core,
-				      const nveu32_t qinx);
 	/** Called to set av parameter */
 	nve32_t (*set_avb_algorithm)(struct osi_core_priv_data *const osi_core,
 			   const struct osi_core_avb_algorithm *const avb);

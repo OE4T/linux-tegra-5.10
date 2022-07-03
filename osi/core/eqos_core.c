@@ -858,81 +858,6 @@ calibration_failed:
 #endif /* UPDATED_PAD_CAL */
 
 /**
- * @brief eqos_flush_mtl_tx_queue - Flush MTL Tx queue
- *
- * @note
- * Algorithm:
- *  - Validate qinx for maximum value of OSI_EQOS_MAX_NUM_QUEUES and return -1 if fails.
- *  - Configure EQOS_MTL_CHX_TX_OP_MODE to flush corresponding MTL queue.
- *  - Wait on EQOS_MTL_QTOMR_FTQ_LPOS bit set for a loop of 1000 with a sleep of
- *    1 milli second between itertions.
- *  - return 0 if EQOS_MTL_QTOMR_FTQ_LPOS is set else -1.
- *  - SWUD_ID: ETHERNET_NVETHERNETRM_006_2
- *
- * @param[in] osi_core: OSI core private data structure. Used param base, osd_ops.msleep.
- * @param[in] qinx: MTL queue index. Max value is OSI_EQOS_MAX_NUM_QUEUES-1.
- *
- * @note
- *  - MAC should out of reset and clocks enabled.
- *  - hw core initialized. see osi_hw_core_init().
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: No
- * - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static nve32_t eqos_flush_mtl_tx_queue(
-				   struct osi_core_priv_data *const osi_core,
-				   const nveu32_t qinx)
-{
-	void *addr = osi_core->base;
-	nveu32_t retry = RETRY_COUNT;
-	nveu32_t count;
-	nveu32_t value;
-	nve32_t cond = COND_NOT_MET;
-
-	if (qinx >= OSI_EQOS_MAX_NUM_QUEUES) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			     "flush_mtl_tx_queue: invalid input\n", 0ULL);
-		return -1;
-	}
-
-	/* Read Tx Q Operating Mode Register and flush TxQ */
-	value = osi_readla(osi_core, (nveu8_t *)addr +
-			   EQOS_MTL_CHX_TX_OP_MODE(qinx));
-	value |= EQOS_MTL_QTOMR_FTQ;
-	eqos_core_safety_writel(osi_core, value, (nveu8_t *)addr +
-				EQOS_MTL_CHX_TX_OP_MODE(qinx),
-				EQOS_MTL_CH0_TX_OP_MODE_IDX + qinx);
-
-	/* Poll Until FTQ bit resets for Successful Tx Q flush */
-	count = 0;
-	while (cond == COND_NOT_MET) {
-		if (count > retry) {
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-				     "Poll FTQ bit timeout\n", 0ULL);
-				return -1;
-		}
-
-		count++;
-		osi_core->osd_ops.msleep(1);
-
-		value = osi_readla(osi_core, (nveu8_t *)addr +
-				   EQOS_MTL_CHX_TX_OP_MODE(qinx));
-
-		if ((value & EQOS_MTL_QTOMR_FTQ_LPOS) == 0U) {
-			cond = COND_MET;
-		}
-	}
-
-	return 0;
-}
-
-/**
  * @brief update_ehfc_rfa_rfd - Update EHFC, RFD and RSA values
  *
  * @note
@@ -1080,7 +1005,7 @@ static nve32_t eqos_configure_mtl_queue(nveu32_t qinx,
 	nveu32_t value = 0;
 	nve32_t ret = 0;
 
-	ret = eqos_flush_mtl_tx_queue(osi_core, qinx);
+	ret = hw_flush_mtl_tx_queue(osi_core, qinx);
 	if (ret < 0) {
 		return ret;
 	}
@@ -6655,7 +6580,6 @@ void eqos_init_core_ops(struct core_ops *ops)
 	ops->config_arp_offload = eqos_config_arp_offload;
 	ops->config_ptp_offload = eqos_config_ptp_offload;
 	ops->validate_regs = eqos_validate_core_regs;
-	ops->flush_mtl_tx_queue = eqos_flush_mtl_tx_queue;
 	ops->set_avb_algorithm = eqos_set_avb_algorithm;
 	ops->get_avb_algorithm = eqos_get_avb_algorithm;
 	ops->config_vlan_filtering = eqos_config_vlan_filtering;
