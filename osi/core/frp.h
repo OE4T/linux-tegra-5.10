@@ -23,6 +23,7 @@
 #ifndef FRP_H
 #define FRP_H
 
+#ifndef OSI_STRIPPED_LIB
 #include <osi_common.h>
 #include <osi_core.h>
 #include "core_local.h"
@@ -80,5 +81,6 @@ int setup_frp(struct osi_core_priv_data *const osi_core,
  * @retval -1 on failure.
  */
 void init_frp(struct osi_core_priv_data *const osi_core);
+#endif /* !OSI_STRIPPED_LIB */
 
 #endif /* FRP_H */

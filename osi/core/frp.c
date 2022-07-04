@@ -23,6 +23,7 @@
 #include "../osi/common/common.h"
 #include "frp.h"
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @brief frp_entry_copy - Copy FRP entry
  *
@@ -834,3 +835,4 @@ void init_frp(struct osi_core_priv_data *const osi_core)
 	osi_memset(osi_core->frp_table, 0U,
 		   (sizeof(struct osi_core_frp_entry) * OSI_FRP_MAX_ENTRY));
 }
+#endif /* !OSI_STRIPPED_LIB */

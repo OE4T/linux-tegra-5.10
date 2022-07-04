@@ -286,7 +286,7 @@ fail:
 	return ret;
 }
 
-
+#ifndef OSI_STRIPPED_LIB
 /**
  * @brief hw_est_read - indirect read the GCL to Software own list
  * (SWOL)
@@ -488,3 +488,4 @@ nve32_t gcl_validate(struct osi_core_priv_data *const osi_core,
 
 	return 0;
 }
+#endif /* !OSI_STRIPPED_LIB */

@@ -86,8 +86,6 @@ typedef struct ivc_core_args {
 	nveu32_t rxq_prio[OSI_EQOS_MAX_NUM_CHANS];
 	/** Ethernet MAC address */
 	nveu8_t mac_addr[OSI_ETH_ALEN];
-	/** Tegra Pre-si platform info */
-	nveu32_t pre_si;
 	/** VLAN tag stripping enable(1) or disable(0) */
 	nveu32_t strip_vlan_tag;
 	/** pause frame support */

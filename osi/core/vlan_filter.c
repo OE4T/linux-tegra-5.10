@@ -23,6 +23,7 @@
 #include "../osi/common/common.h"
 #include "vlan_filter.h"
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @brief get_vlan_filter_idx - Get VLAN HW filter index which match vlan_id
  *
@@ -475,3 +476,4 @@ int update_vlan_id(struct osi_core_priv_data *osi_core,
 
 	return del_vlan_id(osi_core, ops_p, vlan_id);
 }
+#endif /* !OSI_STRIPPED_LIB */

@@ -56,7 +56,20 @@
 #define DYNAMIC_CFG_PTP		OSI_BIT(7)
 #define DYNAMIC_CFG_EST		OSI_BIT(8)
 #define DYNAMIC_CFG_FPE		OSI_BIT(9)
+
+#define DYNAMIC_CFG_L3_L4_IDX	0U
+#define DYNAMIC_CFG_FC_IDX	1U
+#define DYNAMIC_CFG_AVB_IDX	2U
+#define DYNAMIC_CFG_L2_IDX	3U
+#define DYNAMIC_CFG_RXCSUM_IDX	4U
+#define DYNAMIC_CFG_VLAN_IDX	5U
+#define DYNAMIC_CFG_EEE_IDX	6U
+#define DYNAMIC_CFG_PTP_IDX	7U
+#define DYNAMIC_CFG_EST_IDX	8U
+#define DYNAMIC_CFG_FPE_IDX	9U
+
 #define OSI_SUSPENDED		OSI_BIT(0)
+
 
 /**
  * interface core ops
@@ -118,11 +131,67 @@ struct core_ops {
 				     const nveu32_t perfect_inverse_match,
 				     const nveu32_t dma_routing_enable,
 				     const nveu32_t dma_chan);
+	/** Called to set current system time to MAC */
+	nve32_t (*set_systime_to_mac)(struct osi_core_priv_data *const osi_core,
+				      const nveu32_t sec,
+				      const nveu32_t nsec);
+	/** Called to set the addend value to adjust the time */
+	nve32_t (*config_addend)(struct osi_core_priv_data *const osi_core,
+				 const nveu32_t addend);
+	/** Called to configure the TimeStampControl register */
+	void (*config_tscr)(struct osi_core_priv_data *const osi_core,
+			    const nveu32_t ptp_filter);
+	/** Called to configure the sub second increment register */
+	void (*config_ssir)(struct osi_core_priv_data *const osi_core,
+			    const nveu32_t ptp_clock);
+	/** Called to adjust the mac time */
+	nve32_t (*adjust_mactime)(struct osi_core_priv_data *const osi_core,
+				  const nveu32_t sec,
+				  const nveu32_t nsec,
+				  const nveu32_t neg_adj,
+				  const nveu32_t one_nsec_accuracy);
+	/** Called to update MMC counter from HW register */
+	void (*read_mmc)(struct osi_core_priv_data *const osi_core);
+	/** Called to write into a PHY reg over MDIO bus */
+	nve32_t (*write_phy_reg)(struct osi_core_priv_data *const osi_core,
+				 const nveu32_t phyaddr,
+				 const nveu32_t phyreg,
+				 const nveu16_t phydata);
+	/** Called to read from a PHY reg over MDIO bus */
+	nve32_t (*read_phy_reg)(struct osi_core_priv_data *const osi_core,
+				const nveu32_t phyaddr,
+				const nveu32_t phyreg);
+	/** Called to get HW features */
+	nve32_t (*get_hw_features)(struct osi_core_priv_data *const osi_core,
+				   struct osi_hw_features *hw_feat);
+	int (*ptp_tsc_capture)(struct osi_core_priv_data *const osi_core,
+			       struct osi_core_ptp_tsc_data *data);
 	/** Called to update ip4 src or desc address */
 	nve32_t (*update_ip4_addr)(struct osi_core_priv_data *const osi_core,
 				   const nveu32_t filter_no,
 				   const nveu8_t addr[],
 				   const nveu32_t src_dst_addr_match);
+	/** Called to read reg */
+	nveu32_t (*read_reg)(struct osi_core_priv_data *const osi_core,
+			     const nve32_t reg);
+	/** Called to write reg */
+	nveu32_t (*write_reg)(struct osi_core_priv_data *const osi_core,
+			      const nveu32_t val,
+			      const nve32_t reg);
+#ifdef MACSEC_SUPPORT
+	/** Called to read macsec reg */
+	nveu32_t (*read_macsec_reg)(struct osi_core_priv_data *const osi_core,
+				    const nve32_t reg);
+	/** Called to write macsec reg */
+	nveu32_t (*write_macsec_reg)(struct osi_core_priv_data *const osi_core,
+				     const nveu32_t val,
+				     const nve32_t reg);
+#ifndef OSI_STRIPPED_LIB
+	void (*macsec_config_mac)(struct osi_core_priv_data *const osi_core,
+				  const nveu32_t enable);
+#endif /* !OSI_STRIPPED_LIB */
+#endif /*  MACSEC_SUPPORT */
+#ifndef OSI_STRIPPED_LIB
 	/** Called to update ip6 address */
 	nve32_t (*update_ip6_addr)(struct osi_core_priv_data *const osi_core,
 				   const nveu32_t filter_no,
@@ -141,66 +210,7 @@ struct core_ops {
 				     const nveu32_t filter_no,
 				     const nveu16_t port_no,
 				     const nveu32_t src_dst_port_match);
-	/** Called to set the addend value to adjust the time */
-	nve32_t (*config_addend)(struct osi_core_priv_data *const osi_core,
-				 const nveu32_t addend);
-	/** Called to adjust the mac time */
-	nve32_t (*adjust_mactime)(struct osi_core_priv_data *const osi_core,
-				  const nveu32_t sec,
-				  const nveu32_t nsec,
-				  const nveu32_t neg_adj,
-				  const nveu32_t one_nsec_accuracy);
-	/** Called to set current system time to MAC */
-	nve32_t (*set_systime_to_mac)(struct osi_core_priv_data *const osi_core,
-				      const nveu32_t sec,
-				      const nveu32_t nsec);
-	/** Called to configure the TimeStampControl register */
-	void (*config_tscr)(struct osi_core_priv_data *const osi_core,
-			    const nveu32_t ptp_filter);
-	/** Called to configure the sub second increment register */
-	void (*config_ssir)(struct osi_core_priv_data *const osi_core,
-			    const nveu32_t ptp_clock);
-	/** Called to configure the PTP RX packets Queue */
-	nve32_t (*config_ptp_rxq)(struct osi_core_priv_data *const osi_core,
-				  const unsigned int rxq_idx,
-				  const unsigned int enable);
-	/** Called to update MMC counter from HW register */
-	void (*read_mmc)(struct osi_core_priv_data *const osi_core);
-	/** Called to write into a PHY reg over MDIO bus */
-	nve32_t (*write_phy_reg)(struct osi_core_priv_data *const osi_core,
-				 const nveu32_t phyaddr,
-				 const nveu32_t phyreg,
-				 const nveu16_t phydata);
-	/** Called to read from a PHY reg over MDIO bus */
-	nve32_t (*read_phy_reg)(struct osi_core_priv_data *const osi_core,
-				const nveu32_t phyaddr,
-				const nveu32_t phyreg);
-	/** Called to read reg */
-	nveu32_t (*read_reg)(struct osi_core_priv_data *const osi_core,
-			     const nve32_t reg);
-	/** Called to write reg */
-	nveu32_t (*write_reg)(struct osi_core_priv_data *const osi_core,
-			      const nveu32_t val,
-			      const nve32_t reg);
-#ifdef MACSEC_SUPPORT
-	/** Called to read macsec reg */
-	nveu32_t (*read_macsec_reg)(struct osi_core_priv_data *const osi_core,
-				    const nve32_t reg);
-	/** Called to write macsec reg */
-	nveu32_t (*write_macsec_reg)(struct osi_core_priv_data *const osi_core,
-				     const nveu32_t val,
-				     const nve32_t reg);
-#endif /*  MACSEC_SUPPORT */
-#ifndef OSI_STRIPPED_LIB
-	/** Called periodically to read and validate safety critical
-	 * registers against last written value */
-	nve32_t (*validate_regs)(struct osi_core_priv_data *const osi_core);
-	/** Called to set av parameter */
-	nve32_t (*set_avb_algorithm)(struct osi_core_priv_data *const osi_core,
-			   const struct osi_core_avb_algorithm *const avb);
-	/** Called to get av parameter */
-	nve32_t (*get_avb_algorithm)(struct osi_core_priv_data *const osi_core,
-				     struct osi_core_avb_algorithm *const avb);
+
 	/** Called to configure the MTL to forward/drop tx status */
 	nve32_t (*config_tx_status)(struct osi_core_priv_data *const osi_core,
 				    const nveu32_t tx_status);
@@ -216,6 +226,19 @@ struct core_ops {
 	nve32_t (*config_arp_offload)(struct osi_core_priv_data *const osi_core,
 				      const nveu32_t enable,
 				      const nveu8_t *ip_addr);
+	/** Called to configure HW PTP offload feature */
+	int (*config_ptp_offload)(struct osi_core_priv_data *const osi_core,
+				  struct osi_pto_config *const pto_config);
+	/** Called periodically to read and validate safety critical
+	 * registers against last written value */
+	nve32_t (*validate_regs)(struct osi_core_priv_data *const osi_core);
+	/** Called to set av parameter */
+	nve32_t (*set_avb_algorithm)(struct osi_core_priv_data *const osi_core,
+			   const struct osi_core_avb_algorithm *const avb);
+	/** Called to get av parameter */
+	nve32_t (*get_avb_algorithm)(struct osi_core_priv_data *const osi_core,
+				     struct osi_core_avb_algorithm *const avb);
+
 	/** Called to configure VLAN filtering */
 	nve32_t (*config_vlan_filtering)(
 				     struct osi_core_priv_data *const osi_core,
@@ -239,12 +262,6 @@ struct core_ops {
 	nve32_t (*config_mac_loopback)(
 				struct osi_core_priv_data *const osi_core,
 				const nveu32_t lb_mode);
-#endif /* !OSI_STRIPPED_LIB */
-	/** Called to get HW features */
-	nve32_t (*get_hw_features)(struct osi_core_priv_data *const osi_core,
-				   struct osi_hw_features *hw_feat);
-	/** Called to configure RSS for MAC */
-	nve32_t (*config_rss)(struct osi_core_priv_data *osi_core);
 	/** Called to update GCL config */
 	int (*hw_config_est)(struct osi_core_priv_data *const osi_core,
 			     struct osi_est_config *const est);
@@ -261,15 +278,13 @@ struct core_ops {
 	/** Called to update FRP NVE and  */
 	int (*update_frp_nve)(struct osi_core_priv_data *const osi_core,
 			      const unsigned int nve);
-	/** Called to configure HW PTP offload feature */
-	int (*config_ptp_offload)(struct osi_core_priv_data *const osi_core,
-				  struct osi_pto_config *const pto_config);
-#ifdef MACSEC_SUPPORT
-	void (*macsec_config_mac)(struct osi_core_priv_data *const osi_core,
-				  const nveu32_t enable);
-#endif /* MACSEC_SUPPORT */
-	int (*ptp_tsc_capture)(struct osi_core_priv_data *const osi_core,
-			       struct osi_core_ptp_tsc_data *data);
+	/** Called to configure RSS for MAC */
+	nve32_t (*config_rss)(struct osi_core_priv_data *osi_core);
+	/** Called to configure the PTP RX packets Queue */
+	nve32_t (*config_ptp_rxq)(struct osi_core_priv_data *const osi_core,
+				  const unsigned int rxq_idx,
+				  const unsigned int enable);
+#endif /* !OSI_STRIPPED_LIB */
 #ifdef HSI_SUPPORT
 	/** Interface function called to initialize HSI */
 	int (*core_hsi_configure)(struct osi_core_priv_data *const osi_core,
@@ -339,6 +354,7 @@ struct l3_l4_filters {
 	struct osi_l3_l4_filter l3l4_filter;
 };
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @brief AVB dynamic config storage structure
  */
@@ -348,6 +364,7 @@ struct core_avb {
 	/** AVB data structure */
 	struct osi_core_avb_algorithm avb_info;
 };
+#endif /* !OSI_STRIPPED_LIB */
 
 /**
  * @brief VLAN dynamic config storage structure
@@ -376,8 +393,10 @@ struct dynamic_cfg {
 	struct l3_l4_filters l3_l4[OSI_MGBE_MAX_L3_L4_FILTER];
 	/** flow control */
 	nveu32_t flow_ctrl;
+#ifndef OSI_STRIPPED_LIB
 	/** AVB */
 	struct core_avb avb[OSI_MGBE_MAX_NUM_QUEUES];
+#endif /* !OSI_STRIPPED_LIB */
 	/** RXCSUM */
 	nveu32_t rxcsum;
 	/** VLAN arguments storage */
@@ -387,10 +406,12 @@ struct dynamic_cfg {
 	nveu32_t tx_lpi_timer;
 	/** PTP information storage */
 	nveu32_t ptp;
+#ifndef OSI_STRIPPED_LIB
 	/** EST information storage */
 	struct osi_est_config est;
 	/** FPE information storage */
 	struct osi_fpe_config fpe;
+#endif /* !OSI_STRIPPED_LIB */
 	/** L2 filter storage */
 	struct osi_filter l2_filter;
 	/** L2 filter configuration */

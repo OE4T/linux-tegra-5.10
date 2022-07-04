@@ -4211,13 +4211,16 @@ exit:
 static nve32_t macsec_deinit(struct osi_core_priv_data *const osi_core)
 {
 	nveu32_t i;
+#if defined(MACSEC_SUPPORT) && !defined(OSI_STRIPPED_LIB)
 	const struct core_local *l_core = (void *)osi_core;
+#endif
 
 	for (i = OSI_CTLR_SEL_TX; i <= OSI_CTLR_SEL_RX; i++) {
 		osi_memset(&osi_core->macsec_lut_status[i], OSI_NONE,
 			   sizeof(struct osi_macsec_lut_status));
 	}
 
+#if defined(MACSEC_SUPPORT) && !defined(OSI_STRIPPED_LIB)
 	/* Update MAC as per macsec requirement */
 	if (l_core->ops_p->macsec_config_mac != OSI_NULL) {
 		l_core->ops_p->macsec_config_mac(osi_core, OSI_DISABLE);
@@ -4225,6 +4228,7 @@ static nve32_t macsec_deinit(struct osi_core_priv_data *const osi_core)
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			     "Failed config MAC per macsec\n", 0ULL);
 	}
+#endif
 	return 0;
 }
 
@@ -4481,10 +4485,13 @@ static nve32_t macsec_init(struct osi_core_priv_data *const osi_core,
 			   nveu32_t mtu)
 {
 	nveu32_t val = 0;
+#if defined(MACSEC_SUPPORT) && !defined(OSI_STRIPPED_LIB)
 	const struct core_local *l_core = (void *)osi_core;
+#endif
 	nveu8_t *addr = (nveu8_t *)osi_core->macsec_base;
 	nve32_t ret = 0;
 
+#if defined(MACSEC_SUPPORT) && !defined(OSI_STRIPPED_LIB)
 	/* Update MAC value as per macsec requirement */
 	if (l_core->ops_p->macsec_config_mac != OSI_NULL) {
 		l_core->ops_p->macsec_config_mac(osi_core, OSI_ENABLE);
@@ -4492,7 +4499,7 @@ static nve32_t macsec_init(struct osi_core_priv_data *const osi_core,
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			     "Failed to config mac per macsec\n", 0ULL);
 	}
-
+#endif
 	/* Set MTU */
 	ret = macsec_update_mtu(osi_core, mtu);
 	if (ret < 0) {

@@ -586,8 +586,6 @@ struct osi_dma_priv_data {
 	void *resv_buf_virt_addr;
 	/** Physical address of reserved DMA buffer */
 	nveu64_t resv_buf_phy_addr;
-	/** Tegra Pre-si platform info */
-	nveu32_t pre_si;
 	/** PTP flags
 	 * OSI_PTP_SYNC_MASTER - acting as master
 	 * OSI_PTP_SYNC_SLAVE  - acting as slave

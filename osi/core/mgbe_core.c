@@ -854,7 +854,7 @@ static nve32_t mgbe_update_ip4_addr(struct osi_core_priv_data *const osi_core,
 
 	return ret;
 }
-
+#ifndef OSI_STRIPPED_LIB
 /**
  * @brief mgbe_update_ip6_addr - add ipv6 address in register
  *
@@ -936,42 +936,6 @@ static nve32_t mgbe_update_ip6_addr(struct osi_core_priv_data *const osi_core,
 }
 
 /**
- * @brief mgbe_config_l3_l4_filter_enable - register write to enable L3/L4
- *	filters.
- *
- * Algorithm: This routine to enable/disable L3/l4 filter
- *
- * @param[in] osi_core: OSI core private data structure.
- * @note MAC should be init and started. see osi_start_mac()
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static nve32_t mgbe_config_l3_l4_filter_enable(
-				struct osi_core_priv_data *const osi_core,
-				const nveu32_t filter_enb_dis)
-{
-	unsigned int value = 0U;
-	void *base = osi_core->base;
-
-	/* validate filter_enb_dis argument */
-	if ((filter_enb_dis != OSI_ENABLE) && (filter_enb_dis != OSI_DISABLE)) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			"Invalid filter_enb_dis value\n",
-			filter_enb_dis);
-		return -1;
-	}
-
-	value = osi_readla(osi_core, (unsigned char *)base + MGBE_MAC_PFR);
-	value &= ~(MGBE_MAC_PFR_IPFE);
-	value |= ((filter_enb_dis << MGBE_MAC_PFR_IPFE_SHIFT) &
-		  MGBE_MAC_PFR_IPFE);
-	osi_writela(osi_core, value, (unsigned char *)base + MGBE_MAC_PFR);
-
-	return 0;
-}
-
-/**
  * @brief mgbe_update_l4_port_no -program source  port no
  *
  * Algorithm: sequence is used to update Source Port Number for
@@ -1025,7 +989,43 @@ static nve32_t mgbe_update_l4_port_no(struct osi_core_priv_data *osi_core,
 	return mgbe_l3l4_filter_write(osi_core, filter_no,
 				      MGBE_MAC_L4_ADDR, value);
 }
+#endif /* !OSI_STRIPPED_LIB */
 
+/**
+ * @brief mgbe_config_l3_l4_filter_enable - register write to enable L3/L4
+ *	filters.
+ *
+ * Algorithm: This routine to enable/disable L3/l4 filter
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int mgbe_config_l3_l4_filter_enable(
+				struct osi_core_priv_data *const osi_core,
+				unsigned int filter_enb_dis)
+{
+	unsigned int value = 0U;
+	void *base = osi_core->base;
+
+	/* validate filter_enb_dis argument */
+	if (filter_enb_dis != OSI_ENABLE && filter_enb_dis != OSI_DISABLE) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			"Invalid filter_enb_dis value\n",
+			filter_enb_dis);
+		return -1;
+	}
+
+	value = osi_readla(osi_core, (unsigned char *)base + MGBE_MAC_PFR);
+	value &= ~(MGBE_MAC_PFR_IPFE);
+	value |= ((filter_enb_dis << MGBE_MAC_PFR_IPFE_SHIFT) &
+		  MGBE_MAC_PFR_IPFE);
+	osi_writela(osi_core, value, (unsigned char *)base + MGBE_MAC_PFR);
+
+	return 0;
+}
 /**
  * @brief mgbe_set_dcs - check and update dma routing register
  *
@@ -1283,6 +1283,7 @@ static nve32_t mgbe_config_l3_filters(struct osi_core_priv_data *osi_core,
 	return ret;
 }
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @brief mgbe_config_l4_filters - Config L4 filters.
  *
@@ -1970,6 +1971,7 @@ static int mgbe_update_frp_nve(struct osi_core_priv_data *const osi_core,
 
 	return 0;
 }
+#endif /* !OSI_STRIPPED_LIB */
 
 /**
  * @brief update_rfa_rfd - Update RFD and RSA values
@@ -2168,6 +2170,7 @@ static nve32_t mgbe_configure_mtl_queue(nveu32_t qinx,
 	return 0;
 }
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @brief mgbe_rss_write_reg - Write into RSS registers
  *
@@ -2355,6 +2358,7 @@ static int mgbe_config_flow_control(struct osi_core_priv_data *const osi_core,
 
 	return 0;
 }
+#endif /* !OSI_STRIPPED_LIB */
 
 #ifdef HSI_SUPPORT
 /**
@@ -2672,6 +2676,7 @@ static int mgbe_configure_mac(struct osi_core_priv_data *osi_core)
 	osi_writela(osi_core, value,
 		    (unsigned char *)osi_core->base + MGBE_MAC_VLANTIR);
 
+#ifndef OSI_STRIPPED_LIB
 	/* Configure default flow control settings */
 	if (osi_core->pause_frames == OSI_PAUSE_FRAMES_ENABLE) {
 		osi_core->flow_ctrl = (OSI_FLOW_CTRL_TX | OSI_FLOW_CTRL_RX);
@@ -2685,7 +2690,10 @@ static int mgbe_configure_mac(struct osi_core_priv_data *osi_core)
 	/* TODO: USP (user Priority) to RxQ Mapping */
 
 	/* RSS cofiguration */
-	return mgbe_config_rss(osi_core);
+	mgbe_config_rss(osi_core);
+#endif /* !OSI_STRIPPED_LIB */
+
+	return 0;
 }
 
 /**
@@ -2701,8 +2709,7 @@ static int mgbe_configure_mac(struct osi_core_priv_data *osi_core)
  *
  * @note MAC has to be out of reset.
  */
-static void mgbe_configure_dma(struct osi_core_priv_data *osi_core,
-			       nveu32_t pre_si)
+static void mgbe_configure_dma(struct osi_core_priv_data *osi_core)
 {
 	nveu32_t value = 0;
 
@@ -2723,28 +2730,19 @@ static void mgbe_configure_dma(struct osi_core_priv_data *osi_core,
 	/* Configure TDPS to 5 */
 	value = osi_readla(osi_core,
 			   (nveu8_t *)osi_core->base + MGBE_DMA_TX_EDMA_CTRL);
-	if (pre_si == OSI_ENABLE) {
-		/* For Pre silicon TDPS Value is 3 */
-		value |= MGBE_DMA_TX_EDMA_CTRL_TDPS_PRESI;
-	} else {
-		value |= MGBE_DMA_TX_EDMA_CTRL_TDPS;
-	}
+	value |= MGBE_DMA_TX_EDMA_CTRL_TDPS;
 	osi_writela(osi_core, value,
 		    (nveu8_t *)osi_core->base + MGBE_DMA_TX_EDMA_CTRL);
 
 	/* Configure RDPS to 5 */
 	value = osi_readla(osi_core,
 			   (nveu8_t *)osi_core->base + MGBE_DMA_RX_EDMA_CTRL);
-	if (pre_si == OSI_ENABLE) {
-		/* For Pre silicon RDPS Value is 3 */
-		value |= MGBE_DMA_RX_EDMA_CTRL_RDPS_PRESI;
-	} else {
-		value |= MGBE_DMA_RX_EDMA_CTRL_RDPS;
-	}
+	value |= MGBE_DMA_RX_EDMA_CTRL_RDPS;
 	osi_writela(osi_core, value,
 		    (nveu8_t *)osi_core->base + MGBE_DMA_RX_EDMA_CTRL);
 }
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @brief Initialize the osi_core->backup_config.
  *
@@ -2962,12 +2960,7 @@ static void mgbe_tsn_init(struct osi_core_priv_data *osi_core,
 		 * set other default value
 		 */
 		val &= ~MGBE_MTL_EST_CONTROL_PTOV;
-		if (osi_core->pre_si == OSI_ENABLE) {
-			/* 6*1/(78.6 MHz) in ns*/
-			temp = (6U * 13U);
-		} else {
-			temp = MGBE_MTL_EST_PTOV_RECOMMEND;
-		}
+		temp = MGBE_MTL_EST_PTOV_RECOMMEND;
 		temp = temp << MGBE_MTL_EST_CONTROL_PTOV_SHIFT;
 		val |= temp;
 
@@ -3024,6 +3017,7 @@ static void mgbe_tsn_init(struct osi_core_priv_data *osi_core,
 	   user application should use IOCTL to set CBS as per requirement
 	 */
 }
+#endif /* !OSI_STRIPPED_LIB */
 
 /**
  * @brief Map DMA channels to a specific VM IRQ.
@@ -3038,7 +3032,9 @@ static void mgbe_tsn_init(struct osi_core_priv_data *osi_core,
  */
 static nve32_t mgbe_dma_chan_to_vmirq_map(struct osi_core_priv_data *osi_core)
 {
+#ifndef OSI_STRIPPED_LIB
 	nveu32_t sid[4] = { MGBE0_SID, MGBE1_SID, MGBE2_SID, MGBE3_SID };
+#endif
 	struct osi_vm_irq_data *irq_data;
 	nveu32_t i, j;
 	nveu32_t chan;
@@ -3061,6 +3057,7 @@ static nve32_t mgbe_dma_chan_to_vmirq_map(struct osi_core_priv_data *osi_core)
 			   (nveu8_t *)osi_core->base + MGBE_VIRTUAL_APB_ERR_CTRL);
 	}
 
+#ifndef OSI_STRIPPED_LIB
 	if ((osi_core->use_virtualization == OSI_DISABLE) &&
 	    (osi_core->hv_base != OSI_NULL)) {
 		if (osi_core->instance_id > 3U) {
@@ -3082,7 +3079,7 @@ static nve32_t mgbe_dma_chan_to_vmirq_map(struct osi_core_priv_data *osi_core)
 			    (nveu8_t *)osi_core->hv_base +
 			    MGBE_WRAP_AXI_ASID2_CTRL);
 	}
-
+#endif
 	return 0;
 }
 
@@ -3115,7 +3112,9 @@ static nve32_t mgbe_core_init(struct osi_core_priv_data *const osi_core,
 	nveu32_t tx_fifo = 0;
 	nveu32_t rx_fifo = 0;
 
+#ifndef OSI_STRIPPED_LIB
 	mgbe_core_backup_init(osi_core);
+#endif /* !OSI_STRIPPED_LIB */
 
 	/* reset mmc counters */
 	osi_writela(osi_core, MGBE_MMC_CNTRL_CNTRST, (nveu8_t *)osi_core->base +
@@ -3150,15 +3149,9 @@ static nve32_t mgbe_core_init(struct osi_core_priv_data *const osi_core,
 	osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
 		   MGBE_MAC_EXT_CNF);
 
-	if (osi_core->pre_si == OSI_ENABLE) {
-		/* For pre silicon Tx and Rx Queue sizes are 64KB */
-		tx_fifo_size = MGBE_TX_FIFO_SIZE_64KB;
-		rx_fifo_size = MGBE_RX_FIFO_SIZE_64KB;
-	} else {
-		/* Actual HW RAM size for Tx is 128KB and Rx is 192KB */
-		tx_fifo_size = MGBE_TX_FIFO_SIZE_128KB;
-		rx_fifo_size = MGBE_RX_FIFO_SIZE_192KB;
-	}
+	/* Actual HW RAM size for Tx is 128KB and Rx is 192KB */
+	tx_fifo_size = MGBE_TX_FIFO_SIZE_128KB;
+	rx_fifo_size = MGBE_RX_FIFO_SIZE_192KB;
 
 	/* Calculate value of Transmit queue fifo size to be programmed */
 	tx_fifo = mgbe_calculate_per_queue_fifo(tx_fifo_size,
@@ -3185,17 +3178,20 @@ static nve32_t mgbe_core_init(struct osi_core_priv_data *const osi_core,
 	}
 
 	/* configure MGBE DMA */
-	mgbe_configure_dma(osi_core, osi_core->pre_si);
+	mgbe_configure_dma(osi_core);
 
+#ifndef OSI_STRIPPED_LIB
 	/* tsn initialization */
 	if (osi_core->hw_feature != OSI_NULL) {
 		mgbe_tsn_init(osi_core, osi_core->hw_feature->est_sel,
 			      osi_core->hw_feature->fpe_sel);
 	}
+#endif /* !OSI_STRIPPED_LIB */
 
 	return mgbe_dma_chan_to_vmirq_map(osi_core);
 }
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @brief mgbe_handle_mac_fpe_intrs
  *
@@ -3249,6 +3245,7 @@ static void mgbe_handle_mac_fpe_intrs(struct osi_core_priv_data *osi_core)
 	osi_writela(osi_core, val, (unsigned char *)
 		    osi_core->base + MGBE_MAC_FPE_CTS);
 }
+#endif /* !OSI_STRIPPED_LIB */
 
 /**
  * @brief Get free timestamp index from TS array by validating in_use param
@@ -3288,8 +3285,10 @@ static void mgbe_handle_mac_intrs(struct osi_core_priv_data *osi_core,
 {
 	struct core_local *l_core = (struct core_local *)osi_core;
 	nveu32_t mac_isr = 0;
+#ifndef OSI_STRIPPED_LIB
 	nveu32_t mac_ier = 0;
 	nveu32_t tx_errors = 0;
+#endif /* !OSI_STRIPPED_LIB */
 
 	mac_isr = osi_readla(osi_core,
 			     (unsigned char *)osi_core->base + MGBE_MAC_ISR);
@@ -3298,12 +3297,14 @@ static void mgbe_handle_mac_intrs(struct osi_core_priv_data *osi_core,
 		return;
 	}
 
+#ifndef OSI_STRIPPED_LIB
 	mac_ier = osi_readla(osi_core,
 			     (unsigned char *)osi_core->base + MGBE_MAC_IER);
 	if (((mac_isr & MGBE_MAC_IMR_FPEIS) == MGBE_MAC_IMR_FPEIS) &&
 	    ((mac_ier & MGBE_IMR_FPEIE) == MGBE_IMR_FPEIE)) {
 		mgbe_handle_mac_fpe_intrs(osi_core);
 	}
+
 	/* Check for any MAC Transmit Error Status Interrupt */
 	if ((mac_isr & MGBE_IMR_TXESIE) == MGBE_IMR_TXESIE) {
 		/* Check for the type of Tx error by reading  MAC_Rx_Tx_Status
@@ -3333,6 +3334,7 @@ static void mgbe_handle_mac_intrs(struct osi_core_priv_data *osi_core,
 				1UL);
 		}
 	}
+#endif /* !OSI_STRIPPED_LIB */
 
 	if ((mac_isr & MGBE_ISR_TSIS) == MGBE_ISR_TSIS) {
 		struct osi_core_tx_ts *head = &l_core->tx_ts_head;
@@ -3340,9 +3342,11 @@ static void mgbe_handle_mac_intrs(struct osi_core_priv_data *osi_core,
 		if (__sync_fetch_and_add(&l_core->ts_lock, 1) == 1U) {
 			/* mask return as initial value is returned always */
 			(void)__sync_fetch_and_sub(&l_core->ts_lock, 1);
+#ifndef OSI_STRIPPED_LIB
 			osi_core->xstats.ts_lock_add_fail =
 					osi_update_stats_counter(
 					osi_core->xstats.ts_lock_add_fail, 1U);
+#endif /* !OSI_STRIPPED_LIB */
 			goto done;
 		}
 
@@ -3396,6 +3400,7 @@ done:
 	return;
 }
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @brief mgbe_update_dma_sr_stats - stats for dma_status error
  *
@@ -3709,10 +3714,12 @@ static void mgbe_handle_mtl_intrs(struct osi_core_priv_data *osi_core,
 					    MGBE_MTL_QINT_STATUS(qinx));
 			/* Transmit Queue Underflow Interrupt Status */
 			if (qstatus & MGBE_MTL_QINT_TXUNIFS) {
+#ifndef OSI_STRIPPED_LIB
 				osi_core->pkt_err_stats.mgbe_tx_underflow_err =
 				osi_update_stats_counter(
 				osi_core->pkt_err_stats.mgbe_tx_underflow_err,
 				1UL);
+#endif /* !OSI_STRIPPED_LIB */
 			}
 			/* Clear interrupt status by writing back with 1 */
 			osi_writel(1U, (unsigned char *)osi_core->base +
@@ -3939,6 +3946,7 @@ static int mgbe_config_ptp_offload(struct osi_core_priv_data *const osi_core,
 
 	return ret;
 }
+#endif /* !OSI_STRIPPED_LIB */
 
 #ifdef HSI_SUPPORT
 /**
@@ -4074,8 +4082,10 @@ static void mgbe_handle_common_intr(struct osi_core_priv_data *const osi_core)
 	unsigned int i = 0;
 	unsigned int dma_sr = 0;
 	unsigned int dma_ier = 0;
+#ifndef OSI_STRIPPED_LIB
 	unsigned int mtl_isr = 0;
 	unsigned int val = 0;
+#endif /* !OSI_STRIPPED_LIB */
 
 #ifdef HSI_SUPPORT
 	if (osi_core->hsi.enabled == OSI_ENABLE) {
@@ -4120,12 +4130,15 @@ static void mgbe_handle_common_intr(struct osi_core_priv_data *const osi_core)
 			/* ack non ti/ri nve32_ts */
 			osi_writela(osi_core, dma_sr, (nveu8_t *)base +
 				   MGBE_DMA_CHX_STATUS(qinx));
+#ifndef OSI_STRIPPED_LIB
 			mgbe_update_dma_sr_stats(osi_core, dma_sr, qinx);
+#endif /* !OSI_STRIPPED_LIB */
 		}
 	}
 
 	mgbe_handle_mac_intrs(osi_core, dma_isr);
 
+#ifndef OSI_STRIPPED_LIB
 	/* Handle MTL inerrupts */
 	mtl_isr = osi_readla(osi_core,
 			     (unsigned char *)base + MGBE_MTL_INTR_STATUS);
@@ -4149,6 +4162,7 @@ static void mgbe_handle_common_intr(struct osi_core_priv_data *const osi_core)
 		MGBE_MTL_RXP_INTR_CS_FOOVIS |
 		MGBE_MTL_RXP_INTR_CS_PDRFIS);
 	osi_writela(osi_core, val, (nveu8_t *)base + MGBE_MTL_RXP_INTR_CS);
+#endif /* !OSI_STRIPPED_LIB */
 }
 
 /**
@@ -4167,7 +4181,7 @@ static nve32_t mgbe_pad_calibrate(OSI_UNUSED
 	return 0;
 }
 
-#ifdef MACSEC_SUPPORT
+#if defined(MACSEC_SUPPORT) && !defined(OSI_STRIPPED_LIB)
 /**
  * @brief mgbe_config_mac_tx - Enable/Disable MAC Tx
  *
@@ -4248,6 +4262,7 @@ static int mgbe_mdio_busy_wait(struct osi_core_priv_data *const osi_core)
 	return 0;
 }
 
+#ifndef OSI_STRIPPED_LIB
 /*
  * @brief mgbe_save_registers Function to store a backup of
  * MAC register space during SOC suspend.
@@ -4409,6 +4424,7 @@ static inline int mgbe_restore_registers(
 
 	return ret;
 }
+#endif /* !OSI_STRIPPED_LIB */
 
 /**
  * @brief mgbe_write_phy_reg - Write to a PHY register over MDIO bus.
@@ -4464,15 +4480,8 @@ static int mgbe_write_phy_reg(struct osi_core_priv_data *osi_core,
 	 * On Silicon AXI/APB clock is 408MHz. To achive maximum MDC clock
 	 * of 2.5MHz only CR need to be set to 5.
 	 */
-	if (osi_core->pre_si) {
-		reg |= (MGBE_MDIO_SCCD_CRS |
-			((0x1U & MGBE_MDIO_SCCD_CR_MASK) <<
-			MGBE_MDIO_SCCD_CR_SHIFT));
-	} else {
-		reg &= ~MGBE_MDIO_SCCD_CRS;
-		reg |= ((0x5U & MGBE_MDIO_SCCD_CR_MASK) <<
-			MGBE_MDIO_SCCD_CR_SHIFT);
-	}
+	reg &= ~MGBE_MDIO_SCCD_CRS;
+	reg |= ((0x5U & MGBE_MDIO_SCCD_CR_MASK) << MGBE_MDIO_SCCD_CR_SHIFT);
 
 	osi_writela(osi_core, reg, (unsigned char *)
 		    osi_core->base + MGBE_MDIO_SCCD);
@@ -4541,15 +4550,8 @@ static int mgbe_read_phy_reg(struct osi_core_priv_data *osi_core,
          * On Silicon AXI/APB clock is 408MHz. To achive maximum MDC clock
          * of 2.5MHz only CR need to be set to 5.
          */
-        if (osi_core->pre_si) {
-                reg |= (MGBE_MDIO_SCCD_CRS |
-                        ((0x1U & MGBE_MDIO_SCCD_CR_MASK) <<
-                        MGBE_MDIO_SCCD_CR_SHIFT));
-        } else {
-                reg &= ~MGBE_MDIO_SCCD_CRS;
-                reg |= ((0x5U & MGBE_MDIO_SCCD_CR_MASK) <<
-                        MGBE_MDIO_SCCD_CR_SHIFT);
-        }
+	reg &= ~MGBE_MDIO_SCCD_CRS;
+	reg |= ((0x5U & MGBE_MDIO_SCCD_CR_MASK) << MGBE_MDIO_SCCD_CR_SHIFT);
 
 	osi_writela(osi_core, reg, (unsigned char *)
 		    osi_core->base + MGBE_MDIO_SCCD);
@@ -4570,6 +4572,7 @@ static int mgbe_read_phy_reg(struct osi_core_priv_data *osi_core,
 	return (int)data;
 }
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @brief mgbe_hw_est_write - indirect write the GCL to Software own list
  * (SWOL)
@@ -5028,6 +5031,7 @@ static void mgbe_configure_eee(struct osi_core_priv_data *const osi_core,
 		mgbe_disable_tx_lpi(osi_core);
 	}
 }
+#endif /* !OSI_STRIPPED_LIB */
 
 static int mgbe_get_hw_features(struct osi_core_priv_data *const osi_core,
 				struct osi_hw_features *hw_feat)
@@ -5591,12 +5595,7 @@ static void mgbe_config_ssir(struct osi_core_priv_data *const osi_core,
 	 * and ptp_clock = PTP reference clock if COARSE correction
 	 */
 	if ((mac_tcr & MGBE_MAC_TCR_TSCFUPDT) == MGBE_MAC_TCR_TSCFUPDT) {
-		if (osi_core->pre_si == OSI_ENABLE) {
-			val = OSI_PTP_SSINC_16;
-		} else {
-			/* For silicon */
-			val = OSI_PTP_SSINC_4;
-		}
+		val = OSI_PTP_SSINC_4;
 	} else {
 		val = ((1U * OSI_NSEC_PER_SEC) / ptp_clock);
 	}
@@ -5700,6 +5699,7 @@ static nveu32_t mgbe_write_macsec_reg(struct osi_core_priv_data *const osi_core,
 }
 #endif /*  MACSEC_SUPPORT */
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @brief mgbe_validate_core_regs - Validates MGBE core registers.
  *
@@ -5781,8 +5781,9 @@ static void mgbe_set_mdc_clk_rate(OSI_UNUSED
 				  const nveu64_t csr_clk_rate)
 {
 }
+#endif /* !OSI_STRIPPED_LIB */
 
-#ifdef MACSEC_SUPPORT
+#if defined(MACSEC_SUPPORT) && !defined(OSI_STRIPPED_LIB)
 /**
  * @brief mgbe_config_for_macsec - Configure MAC according to macsec IAS
  *
@@ -5888,55 +5889,59 @@ void mgbe_init_core_ops(struct core_ops *ops)
 {
 	ops->core_init = mgbe_core_init;
 	ops->core_deinit = mgbe_core_deinit;
-	ops->validate_regs = mgbe_validate_core_regs;
 	ops->handle_common_intr = mgbe_handle_common_intr;
 	ops->pad_calibrate = mgbe_pad_calibrate;
-	ops->set_mdc_clk_rate = mgbe_set_mdc_clk_rate;
-	ops->config_mac_loopback = mgbe_config_mac_loopback;
-	ops->set_avb_algorithm = mgbe_set_avb_algorithm;
-	ops->get_avb_algorithm = mgbe_get_avb_algorithm,
+	ops->config_mac_pkt_filter_reg = mgbe_config_mac_pkt_filter_reg;
+	ops->update_mac_addr_low_high_reg = mgbe_update_mac_addr_low_high_reg;
+	ops->config_l3_l4_filter_enable = mgbe_config_l3_l4_filter_enable;
+	ops->config_l3_filters = mgbe_config_l3_filters;
+	ops->set_systime_to_mac = mgbe_set_systime_to_mac;
+	ops->config_addend = mgbe_config_addend;
+	ops->config_tscr = mgbe_config_tscr;
+	ops->config_ssir = mgbe_config_ssir,
+	ops->adjust_mactime = mgbe_adjust_mactime;
+	ops->read_mmc = mgbe_read_mmc;
+	ops->write_phy_reg = mgbe_write_phy_reg;
+	ops->read_phy_reg = mgbe_read_phy_reg;
+	ops->get_hw_features = mgbe_get_hw_features;
+	ops->ptp_tsc_capture = mgbe_ptp_tsc_capture;
+	ops->update_ip4_addr = mgbe_update_ip4_addr;
+	ops->read_reg = mgbe_read_reg;
+	ops->write_reg = mgbe_write_reg;
+#ifdef MACSEC_SUPPORT
+	ops->read_macsec_reg = mgbe_read_macsec_reg;
+	ops->write_macsec_reg = mgbe_write_macsec_reg;
+#ifndef OSI_STRIPPED_LIB
+	ops->macsec_config_mac = mgbe_config_for_macsec;
+#endif /* !OSI_STRIPPED_LIB */
+#endif /*  MACSEC_SUPPORT */
+#ifndef OSI_STRIPPED_LIB
+	ops->update_ip6_addr = mgbe_update_ip6_addr;
+	ops->config_l4_filters = mgbe_config_l4_filters;
+	ops->update_l4_port_no = mgbe_update_l4_port_no;
 	ops->config_tx_status = mgbe_config_tx_status;
 	ops->config_rx_crc_check = mgbe_config_rx_crc_check;
 	ops->config_flow_control = mgbe_config_flow_control;
 	ops->config_arp_offload = mgbe_config_arp_offload;
 	ops->config_ptp_offload = mgbe_config_ptp_offload;
-	ops->config_mac_pkt_filter_reg = mgbe_config_mac_pkt_filter_reg;
-	ops->update_mac_addr_low_high_reg = mgbe_update_mac_addr_low_high_reg;
-	ops->config_l3_l4_filter_enable = mgbe_config_l3_l4_filter_enable;
-	ops->config_l3_filters = mgbe_config_l3_filters;
-	ops->update_ip4_addr = mgbe_update_ip4_addr;
-	ops->update_ip6_addr = mgbe_update_ip6_addr;
-	ops->config_l4_filters = mgbe_config_l4_filters;
-	ops->update_l4_port_no = mgbe_update_l4_port_no;
+	ops->validate_regs = mgbe_validate_core_regs;
+	ops->set_avb_algorithm = mgbe_set_avb_algorithm;
+	ops->get_avb_algorithm = mgbe_get_avb_algorithm,
 	ops->config_vlan_filtering = mgbe_config_vlan_filtering;
-	ops->set_systime_to_mac = mgbe_set_systime_to_mac;
-	ops->config_addend = mgbe_config_addend;
-	ops->adjust_mactime = mgbe_adjust_mactime;
-	ops->config_tscr = mgbe_config_tscr;
-	ops->config_ssir = mgbe_config_ssir,
-	ops->config_ptp_rxq = mgbe_config_ptp_rxq;
-	ops->write_phy_reg = mgbe_write_phy_reg;
-	ops->read_phy_reg = mgbe_read_phy_reg;
-	ops->save_registers = mgbe_save_registers;
-	ops->restore_registers = mgbe_restore_registers;
-	ops->read_mmc = mgbe_read_mmc;
 	ops->reset_mmc = mgbe_reset_mmc;
 	ops->configure_eee = mgbe_configure_eee;
-	ops->get_hw_features = mgbe_get_hw_features;
-	ops->config_rss = mgbe_config_rss;
+	ops->save_registers = mgbe_save_registers;
+	ops->restore_registers = mgbe_restore_registers;
+	ops->set_mdc_clk_rate = mgbe_set_mdc_clk_rate;
+	ops->config_mac_loopback = mgbe_config_mac_loopback;
 	ops->hw_config_est = mgbe_hw_config_est;
 	ops->hw_config_fpe = mgbe_hw_config_fpe;
 	ops->config_frp = mgbe_config_frp;
 	ops->update_frp_entry = mgbe_update_frp_entry;
 	ops->update_frp_nve = mgbe_update_frp_nve;
-	ops->ptp_tsc_capture = mgbe_ptp_tsc_capture;
-	ops->write_reg = mgbe_write_reg;
-	ops->read_reg = mgbe_read_reg;
-#ifdef MACSEC_SUPPORT
-	ops->write_macsec_reg = mgbe_write_macsec_reg;
-	ops->read_macsec_reg = mgbe_read_macsec_reg;
-	ops->macsec_config_mac = mgbe_config_for_macsec;
-#endif /*  MACSEC_SUPPORT */
+	ops->config_rss = mgbe_config_rss;
+	ops->config_ptp_rxq = mgbe_config_ptp_rxq;
+#endif /* !OSI_STRIPPED_LIB */
 #ifdef HSI_SUPPORT
 	ops->core_hsi_configure = mgbe_hsi_configure;
 #endif

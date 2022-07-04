@@ -317,6 +317,7 @@ typedef my_lint_64		nvel64_t;
 #define OSI_PTP_SSINC_6		6U
 /** @} */
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @addtogroup Flexible Receive Parser related information
  *
@@ -354,6 +355,7 @@ typedef my_lint_64		nvel64_t;
 #define OSI_FRP_MATCH_VLAN		9U
 #define OSI_FRP_MATCH_MAX		10U
 /** @} */
+#endif /* !OSI_STRIPPED_LIB */
 
 #ifdef HSI_SUPPORT
 /**
@@ -451,6 +453,7 @@ struct osi_filter {
 	nveu32_t dma_chansel;
 };
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @brief OSI core structure for RXQ route
  */
@@ -463,7 +466,7 @@ struct osi_rxq_route {
 	/** RX queue index */
 	unsigned int idx;
 };
-
+#endif
 /**
  * @brief L3/L4 filter function dependent parameter
  */
@@ -909,7 +912,6 @@ struct  osi_core_avb_algorithm {
 	/** TC index */
 	unsigned int tcindex;
 };
-#endif /* !OSI_STRIPPED_LIB */
 
 /**
  * @brief struct ptp_offload_param - Parameter to support PTP offload.
@@ -989,6 +991,37 @@ struct osi_tsn_stats {
 };
 
 /**
+ * @brief osi_core_rss - Struture used to store RSS Hash key and table
+ * information.
+ */
+struct osi_core_rss {
+	/** Flag to represent to enable RSS or not */
+	unsigned int enable;
+	/** Array for storing RSS Hash key */
+	unsigned char key[OSI_RSS_HASH_KEY_SIZE];
+	/** Array for storing RSS Hash table */
+	unsigned int table[OSI_RSS_MAX_TABLE_SIZE];
+};
+
+/**
+ * @brief Max num of MAC core registers to backup. It should be max of or >=
+ * (EQOS_MAX_BAK_IDX=380, coreX,...etc) backup registers.
+ */
+#define CORE_MAX_BAK_IDX	700U
+
+/**
+ * @brief core_backup - Struct used to store backup of core HW registers.
+ */
+struct core_backup {
+	/** Array of reg MMIO addresses (base of MAC + offset of reg) */
+	void *reg_addr[CORE_MAX_BAK_IDX];
+	/** Array of value stored in each corresponding register */
+	nveu32_t reg_val[CORE_MAX_BAK_IDX];
+};
+
+#endif /* !OSI_STRIPPED_LIB */
+
+/**
  * @brief PTP configuration structure
  */
 struct osi_ptp_config {
@@ -1037,18 +1070,6 @@ struct osi_ptp_config {
 	nveu32_t ptp_rx_queue;
 };
 
-/**
- * @brief osi_core_rss - Struture used to store RSS Hash key and table
- * information.
- */
-struct osi_core_rss {
-	/** Flag to represent to enable RSS or not */
-	unsigned int enable;
-	/** Array for storing RSS Hash key */
-	unsigned char key[OSI_RSS_HASH_KEY_SIZE];
-	/** Array for storing RSS Hash table */
-	unsigned int table[OSI_RSS_MAX_TABLE_SIZE];
-};
 
 /**
  * @brief osi_core_ptp_tsc_data - Struture used to store TSC and PTP time
@@ -1065,21 +1086,6 @@ struct osi_core_ptp_tsc_data {
 	nveu32_t tsc_low_bits;
 };
 
-/**
- * @brief Max num of MAC core registers to backup. It should be max of or >=
- * (EQOS_MAX_BAK_IDX=380, coreX,...etc) backup registers.
- */
-#define CORE_MAX_BAK_IDX	700U
-
-/**
- * @brief core_backup - Struct used to store backup of core HW registers.
- */
-struct core_backup {
-	/** Array of reg MMIO addresses (base of MAC + offset of reg) */
-	void *reg_addr[CORE_MAX_BAK_IDX];
-	/** Array of value stored in each corresponding register */
-	nveu32_t reg_val[CORE_MAX_BAK_IDX];
-};
 
 /**
  * @brief OSI VM IRQ data
@@ -1263,17 +1269,17 @@ struct osi_ioctl {
 	struct osi_core_avb_algorithm avb;
 	/* VLAN filter structure */
 	struct osi_vlan_filter vlan_filter;
-#endif /* !OSI_STRIPPED_LIB */
 	/* PTP offload config structure*/
 	struct osi_pto_config pto_config;
-	/* RXQ route structure */
-	struct osi_rxq_route rxq_route;
 	/* FRP structure */
 	struct osi_core_frp_cmd frp_cmd;
 	/* EST structure */
 	struct osi_est_config est;
 	/* FRP structure */
 	struct osi_fpe_config fpe;
+	/* RXQ route structure */
+	struct osi_rxq_route rxq_route;
+#endif /* !OSI_STRIPPED_LIB */
 	/** PTP configuration settings */
 	struct osi_ptp_config ptp_config;
 	/** TX Timestamp structure */
@@ -1304,6 +1310,7 @@ struct core_padctrl {
 	unsigned int pad_calibration_enable;
 };
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @brief OSI CORE packet error stats
  */
@@ -1317,6 +1324,7 @@ struct osi_core_pkt_err_stats {
 	/** Under Flow Error */
 	nveu64_t mgbe_tx_underflow_err;
 };
+#endif
 
 #ifdef HSI_SUPPORT
 /**
@@ -1370,8 +1378,6 @@ struct osi_hsi_data {
 struct osi_core_priv_data {
 	/** Memory mapped base address of MAC IP */
 	void *base;
-	/** Memory mapped base address of HV window */
-	void *hv_base;
 	/** Memory mapped base address of DMA window of MAC IP */
 	void *dma_base;
 	/** Memory mapped base address of XPCS IP */
@@ -1411,18 +1417,12 @@ struct osi_core_priv_data {
 	nveu32_t rxq_ctrl[OSI_MGBE_MAX_NUM_CHANS];
 	/** Rx MTl Queue mapping based on User Priority field */
 	nveu32_t rxq_prio[OSI_MGBE_MAX_NUM_CHANS];
-	/** TQ:TC mapping */
-	unsigned int tc[OSI_MGBE_MAX_NUM_CHANS];
-	/** Residual queue valid with FPE support */
-	unsigned int residual_queue;
 	/** MAC HW type EQOS based on DT compatible */
 	nveu32_t mac;
 	/** MAC version */
 	nveu32_t mac_ver;
 	/** HW supported feature list */
 	struct osi_hw_features *hw_feat;
-	/** MDC clock rate */
-	nveu32_t mdc_cr;
 	/** MTU size */
 	nveu32_t mtu;
 	/** Ethernet MAC address */
@@ -1437,49 +1437,61 @@ struct osi_core_priv_data {
 	nveu32_t default_addend;
 	/** mmc counter structure */
 	struct osi_mmc_counters mmc;
-	/** xtra sw error counters */
-	struct osi_xtra_stat_counters xstats;
 	/** DMA channel selection enable (1) */
 	nveu32_t dcs_en;
+	/** TQ:TC mapping */
+	unsigned int tc[OSI_MGBE_MAX_NUM_CHANS];
+#ifndef OSI_STRIPPED_LIB
+	/** xtra sw error counters */
+	struct osi_xtra_stat_counters xstats;
+	/** Memory mapped base address of HV window */
+	void *hv_base;
+	/** Residual queue valid with FPE support */
+	unsigned int residual_queue;
 	/** Functional safety config to do periodic read-verify of
 	 * certain safety critical registers */
 	void *safety_config;
 	/** Backup config to save/restore registers during suspend/resume */
 	struct core_backup backup_config;
-	/** VLAN tag stripping enable(1) or disable(0) */
-	nveu32_t strip_vlan_tag;
-	/** L3L4 filter bit bask, set index corresponding bit for
-	 * filter if filter enabled */
-	nveu32_t l3l4_filter_bitmask;
-	/** csr clock is to program LPI 1 us tick timer register.
-	 * Value stored in MHz
-	 */
-	nveu32_t csr_clk_speed;
-	/** Tegra Pre-si platform info */
-	nveu32_t pre_si;
-	/** Flag which decides virtualization is enabled(1) or disabled(0) */
-	nveu32_t use_virtualization;
-	unsigned long vf_bitmap;
-	/** Array to maintaion VLAN filters */
-	unsigned short vid[VLAN_NUM_VID];
-	/** Count of number of VLAN filters in vid array */
-	unsigned short vlan_filter_cnt;
 	/** FRP Instruction Table */
 	struct osi_core_frp_entry frp_table[OSI_FRP_MAX_ENTRY];
 	/** Number of valid Entries in the FRP Instruction Table */
 	unsigned int frp_cnt;
 	/** RSS core structure */
 	struct osi_core_rss rss;
-	/** HW supported feature list */
-	struct osi_hw_features *hw_feature;
-	/** Switch to Software Owned List Complete.
-	  *  1 - Successful and User configured GCL in placed */
+	/* Switch to Software Owned List Complete.
+	 *  1 - Successful and User configured GCL in placed
+	 */
 	unsigned int est_ready;
-	/** FPE enabled, verify and respose done with peer device
-	  * 1- Sucessful and can be used between P2P device */
+	/* FPE enabled, verify and respose done with peer device
+	 * 1- Successful and can be used between P2P device
+	 */
 	unsigned int fpe_ready;
 	/** TSN stats counters */
 	struct osi_tsn_stats tsn_stats;
+	/** csr clock is to program LPI 1 us tick timer register.
+	 * Value stored in MHz
+	 */
+	nveu32_t csr_clk_speed;
+	unsigned long vf_bitmap;
+	/** Array to maintaion VLAN filters */
+	unsigned short vid[VLAN_NUM_VID];
+	/** Count of number of VLAN filters in vid array */
+	unsigned short vlan_filter_cnt;
+#endif
+	/** eqos pad control structure */
+	struct core_padctrl padctrl;
+	/** MDC clock rate */
+	nveu32_t mdc_cr;
+	/** VLAN tag stripping enable(1) or disable(0) */
+	nveu32_t strip_vlan_tag;
+	/** L3L4 filter bit bask, set index corresponding bit for
+	 * filter if filter enabled */
+	nveu32_t l3l4_filter_bitmask;
+	/** Flag which decides virtualization is enabled(1) or disabled(0) */
+	nveu32_t use_virtualization;
+	/** HW supported feature list */
+	struct osi_hw_features *hw_feature;
 	/** MC packets Multiple DMA channel selection flags */
 	nveu32_t mc_dmasel;
 	/** UPHY GBE mode (1 for 10G, 0 for 5G) */
@@ -1490,12 +1502,12 @@ struct osi_core_priv_data {
 	nveu32_t num_vm_irqs;
 	/** PHY interface mode (0/1 for XFI 10/5G, 2/3 for USXGMII 10/5) */
 	nveu32_t phy_iface_mode;
-	/** eqos pad control structure */
-	struct core_padctrl padctrl;
 	/** MGBE MAC instance ID's */
 	nveu32_t instance_id;
+#ifndef OSI_STRIPPED_LIB
 	/** Packet error stats */
 	struct osi_core_pkt_err_stats pkt_err_stats;
+#endif
 	/** Ethernet controller MAC to MAC Time sync role
 	 * 1 - Primary interface, 2 - secondary interface, 0 - inactive interface
 	 */
@@ -1581,71 +1593,6 @@ nve32_t osi_hw_core_init(struct osi_core_priv_data *const osi_core,
 nve32_t osi_hw_core_deinit(struct osi_core_priv_data *const osi_core);
 
 /**
- * @brief osi_start_mac - Start MAC Tx/Rx engine
- * 
- * @note
- * Algorithm:
- *  - Enable MAC Tx and Rx engine.
- *
- * @param[in] osi_core: OSI core private data structure.
- *
- * @pre MAC init should be complete. See osi_hw_core_init() and
- *      osi_hw_dma_init()
- *
- * @note
- * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_008
- *
- * @usage
- * - Allowed context for the API call
- *  - Interrupt handler: No
- *  - Signal handler: No
- *  - Thread safe: No
- *  - Async/Sync: Sync
- *  - Required Privileges: None
- * - API Group:
- *  - Initialization: Yes
- *  - Run time: No
- *  - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-nve32_t osi_start_mac(struct osi_core_priv_data *const osi_core);
-
-/**
- * @brief osi_stop_mac - Stop MAC Tx/Rx engine
- * 
- * @note
- * Algorithm:
- *  - Stop MAC Tx and Rx engine
- *
- * @param[in] osi_core: OSI core private data structure.
- *
- * @pre MAC DMA deinit should be complete. See osi_hw_dma_deinit()
- *
- * @note
- * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_009
- *
- * @usage
- * - Allowed context for the API call
- *  - Interrupt handler: No
- *  - Signal handler: No
- *  - Thread safe: No
- *  - Async/Sync: Sync
- *  - Required Privileges: None
- * - API Group:
- *  - Initialization: No
- *  - Run time: No
- *  - De-initialization: Yes
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-nve32_t osi_stop_mac(struct osi_core_priv_data *const osi_core);
-
-/**
  * @brief osi_common_isr - Common ISR.
  * 
  * @note
@@ -1677,109 +1624,6 @@ nve32_t osi_stop_mac(struct osi_core_priv_data *const osi_core);
  * @retval -1 on failure.
  */
 nve32_t osi_common_isr(struct osi_core_priv_data *const osi_core);
-
-/**
- * @brief osi_set_mode - Set FD/HD mode.
- *
- * @note
- * Algorithm:
- *  - Takes care of  setting HD or FD mode accordingly as per the MAC IP
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] mode: Operating mode. (OSI_FULL_DUPLEX/OSI_HALF_DUPLEX)
- *
- * @pre MAC should be init and started. see osi_start_mac()
- *
- * @note
- * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_011
- *
- * @usage
- * - Allowed context for the API call
- *  - Interrupt handler: No
- *  - Signal handler: No
- *  - Thread safe: No
- *  - Async/Sync: Sync
- *  - Required Privileges: None
- * - API Group:
- *  - Initialization: Yes
- *  - Run time: Yes
- *  - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-nve32_t osi_set_mode(struct osi_core_priv_data *const osi_core,
-		     const nve32_t mode);
-
-/**
- * @brief osi_set_speed - Set operating speed.
- * 
- * @note
- * Algorithm:
- *  - Takes care of  setting the operating speed accordingly as per
- *    the MAC IP.
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] speed: Operating speed.
- *
- * @pre MAC should be init and started. see osi_start_mac()
- *
- * @note
- * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_012
- *
- * @usage
- * - Allowed context for the API call
- *  - Interrupt handler: No
- *  - Signal handler: No
- *  - Thread safe: No
- *  - Async/Sync: Sync
- *  - Required Privileges: None
- * - API Group:
- *  - Initialization: Yes
- *  - Run time: Yes
- *  - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-nve32_t osi_set_speed(struct osi_core_priv_data *const osi_core,
-		      const nve32_t speed);
-
-/**
- * @brief osi_pad_calibrate - PAD calibration
- *
- * @note
- * Algorithm:
- *  - Takes care of  doing the pad calibration
- *    accordingly as per the MAC IP.
- *
- * @param[in] osi_core: OSI core private data structure.
- *
- * @pre
- *  - MAC should out of reset and clocks enabled.
- *
- * @note
- * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_013
- *
- * @usage
- * - Allowed context for the API call
- *  - Interrupt handler: No
- *  - Signal handler: No
- *  - Thread safe: No
- *  - Async/Sync: Sync
- *  - Required Privileges: None
- * - API Group:
- *  - Initialization: Yes
- *  - Run time: Yes
- *  - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 value on failure or pad calibration is disabled
- */
-nve32_t osi_pad_calibrate(struct osi_core_priv_data *const osi_core);
 
 /**
  * @brief osi_config_rxcsum_offload - Configure RX checksum offload in MAC.
@@ -2154,130 +1998,14 @@ nve32_t osi_adjust_time(struct osi_core_priv_data *const osi_core,
 nve32_t osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
 			      const nveu32_t enable);
 
+#ifndef OSI_STRIPPED_LIB
 /* MAC version specific implementation function prototypes added here
  * for misra compliance to have
  * 1. Visible prototype for all functions.
  * 2. Only one prototype for all function.
  */
 void *eqos_get_core_safety_config(void);
-
-/**
- * @brief osi_l3l4_filter -  invoke OSI call to add L3/L4
- * filters.
- *
- * @note
- * Algorithm:
- *  - This routine is to enable/disable L3/l4 filter.
- *    Check for DCS enable as well as validate channel
- *    number if dcs_enable is set. After validation, configure L3(IPv4/IPv6)
- *    filters register for given address. Based on input arguments update
- *    IPv4/IPv6 source/destination address for L3 layer filtering or source and
- *    destination Port Number for L4(TCP/UDP) layer
- *    filtering.
- *
- * @param[in, out] osi_core: OSI core private data structure.
- * @param[in] l_filter: L3L4 filter data structure.
- * @param[in] type: L3 filter (ipv4(0) or ipv6(1))
- *            or L4 filter (tcp(0) or udp(1))
- * @param[in] dma_routing_enable: filter based dma routing enable(1)
- * @param[in] dma_chan: dma channel for routing based on filter.
- *            Max OSI_EQOS_MAX_NUM_CHANS.
- * @param[in] is_l4_filter: API call for L3 filter(0) or L4 filter(1)
- *
- * @pre
- *  - MAC should be init and started. see osi_start_mac()
- *  - Concurrent invocations to configure filters is not supported.
- *    OSD driver shall serialize calls.
- *
- * @note
- * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_019
- *
- * @usage
- * - Allowed context for the API call
- *  - Interrupt handler: No
- *  - Signal handler: No
- *  - Thread safe: No
- *  - Async/Sync: Sync
- *  - Required Privileges: None
- * - API Group:
- *  - Initialization: Yes
- *  - Run time: Yes
- *  - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-nve32_t osi_l3l4_filter(struct osi_core_priv_data *const osi_core,
-			struct osi_l3_l4_filter *const l_filter,
-			const nveu32_t type,
-			const nveu32_t dma_routing_enable,
-			const nveu32_t dma_chan,
-			const nveu32_t is_l4_filter);
-
-/**
- * @brief osi_get_mac_version - Reading MAC version
- *
- * @note
- * Algorithm:
- *  - Reads MAC version and check whether its valid or not.
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[out] mac_ver: holds mac version.
- *
- * @pre MAC has to be out of reset.
- *
- * @note
- * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_015
- *
- * @usage
- * - Allowed context for the API call
- *  - Interrupt handler: No
- *  - Signal handler: No
- *  - Thread safe: No
- *  - Async/Sync: Sync
- *  - Required Privileges: None
- * - API Group:
- *  - Initialization: No
- *  - Run time: Yes
- *  - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-nve32_t osi_get_mac_version(struct osi_core_priv_data *const osi_core,
-			    nveu32_t *mac_ver);
-
-/**
- * @brief osi_get_hw_features - Reading MAC HW features
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[out] hw_feat: holds the supported features of the hardware.
- *
- * @pre MAC has to be out of reset.
- *
- * @note
- * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_016
- *
- * @usage
- * - Allowed context for the API call
- *  - Interrupt handler: No
- *  - Signal handler: No
- *  - Thread safe: No
- *  - Async/Sync: Sync
- *  - Required Privileges: None
- * - API Group:
- *  - Initialization: No
- *  - Run time: Yes
- *  - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-nve32_t osi_get_hw_features(struct osi_core_priv_data *const osi_core,
-			    struct osi_hw_features *hw_feat);
+#endif
 
 /**
  * @brief osi_handle_ioctl - API to handle runtime command

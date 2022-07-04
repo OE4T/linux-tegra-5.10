@@ -137,18 +137,20 @@ static nve32_t osi_hal_init_core_ops(struct osi_core_priv_data *const osi_core)
 {
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 	typedef void (*init_ops_arr)(struct core_ops *local_ops);
+#ifndef OSI_STRIPPED_LIB
 	typedef void *(*safety_init)(void);
-
+#endif
 	init_ops_arr i_ops[MAX_MAC_IP_TYPES][MAX_MAC_IP_TYPES] = {
 		{ eqos_init_core_ops, OSI_NULL },
 		{ mgbe_init_core_ops, OSI_NULL }
 	};
 
+#ifndef OSI_STRIPPED_LIB
 	safety_init s_init[MAX_MAC_IP_TYPES][MAX_MAC_IP_TYPES] = {
 		{ eqos_get_core_safety_config, ivc_get_core_safety_config },
 		{ OSI_NULL, OSI_NULL }
 	};
-
+#endif
 	if (osi_core == OSI_NULL) {
 		return -1;
 	}
@@ -184,11 +186,12 @@ static nve32_t osi_hal_init_core_ops(struct osi_core_priv_data *const osi_core)
 		i_ops[osi_core->mac][osi_core->use_virtualization](&g_ops[osi_core->mac]);
 	}
 
+#ifndef OSI_STRIPPED_LIB
 	if (s_init[osi_core->mac][osi_core->use_virtualization] != OSI_NULL) {
 		osi_core->safety_config =
 			s_init[osi_core->mac][osi_core->use_virtualization]();
 	}
-
+#endif
 	if (validate_func_ptrs(osi_core, &g_ops[osi_core->mac]) < 0) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			     "core: function ptrs validation failed\n", 0ULL);
@@ -201,6 +204,7 @@ static nve32_t osi_hal_init_core_ops(struct osi_core_priv_data *const osi_core)
 	return 0;
 }
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @brief init_vlan_filters - Helper function to init all VLAN SW information.
  *
@@ -219,6 +223,7 @@ static inline void init_vlan_filters(struct osi_core_priv_data *const osi_core)
 	osi_core->vf_bitmap = 0U;
 	osi_core->vlan_filter_cnt = 0U;
 }
+#endif
 
 nve32_t osi_hal_hw_core_init(struct osi_core_priv_data *const osi_core,
 			     nveu32_t tx_fifo_size, nveu32_t rx_fifo_size)
@@ -230,10 +235,12 @@ nve32_t osi_hal_hw_core_init(struct osi_core_priv_data *const osi_core,
 		return -1;
 	}
 
+#ifndef OSI_STRIPPED_LIB
 	init_vlan_filters(osi_core);
 
 	/* Init FRP */
 	init_frp(osi_core);
+#endif /* !OSI_STRIPPED_LIB */
 
 	ret = l_core->ops_p->core_init(osi_core, tx_fifo_size, rx_fifo_size);
 	if (ret < 0) {
@@ -268,32 +275,6 @@ nve32_t osi_hal_hw_core_deinit(struct osi_core_priv_data *const osi_core)
 	return 0;
 }
 
-nve32_t osi_start_mac(struct osi_core_priv_data *const osi_core)
-{
-	struct core_local *l_core = (struct core_local *)(void *)osi_core;
-
-	if (validate_args(osi_core, l_core) < 0) {
-		return -1;
-	}
-
-	hw_start_mac(osi_core);
-
-	return 0;
-}
-
-nve32_t osi_stop_mac(struct osi_core_priv_data *const osi_core)
-{
-	struct core_local *l_core = (struct core_local *)(void *)osi_core;
-
-	if (validate_args(osi_core, l_core) < 0) {
-		return -1;
-	}
-
-	hw_stop_mac(osi_core);
-
-	return 0;
-}
-
 nve32_t osi_common_isr(struct osi_core_priv_data *const osi_core)
 {
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
@@ -307,41 +288,7 @@ nve32_t osi_common_isr(struct osi_core_priv_data *const osi_core)
 	return 0;
 }
 
-nve32_t osi_set_mode(struct osi_core_priv_data *const osi_core,
-		     const nve32_t mode)
-{
-	struct core_local *l_core = (struct core_local *)(void *)osi_core;
-
-	if (validate_args(osi_core, l_core) < 0) {
-		return -1;
-	}
-
-	return hw_set_mode(osi_core, mode);
-}
-
-nve32_t osi_set_speed(struct osi_core_priv_data *const osi_core,
-		      const nve32_t speed)
-{
-	struct core_local *l_core = (struct core_local *)(void *)osi_core;
-
-	if (validate_args(osi_core, l_core) < 0) {
-		return -1;
-	}
-
-	return hw_set_speed(osi_core, speed);
-}
-
-nve32_t osi_pad_calibrate(struct osi_core_priv_data *const osi_core)
-{
-	struct core_local *l_core = (struct core_local *)(void *)osi_core;
-
-	if (validate_args(osi_core, l_core) < 0) {
-		return -1;
-	}
-
-	return l_core->ops_p->pad_calibrate(osi_core);
-}
-
+#ifndef OSI_STRIPPED_LIB
 static nve32_t conf_ptp_offload(struct osi_core_priv_data *const osi_core,
 				struct osi_pto_config *const pto_config)
 {
@@ -421,6 +368,7 @@ static nve32_t conf_ptp_offload(struct osi_core_priv_data *const osi_core,
 
 	return ret;
 }
+#endif /* !OSI_STRIPPED_LIB */
 
 nve32_t osi_l2_filter(struct osi_core_priv_data *const osi_core,
 		      const struct osi_filter *filter)
@@ -465,6 +413,7 @@ nve32_t osi_l2_filter(struct osi_core_priv_data *const osi_core,
 	return ret;
 }
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @brief helper_l4_filter helper function for l4 filtering
  *
@@ -514,6 +463,7 @@ static inline nve32_t helper_l4_filter(
 				     l_filter->port_no,
 				     l_filter->src_dst_addr_match);
 }
+#endif /* !OSI_STRIPPED_LIB */
 
 /**
  * @brief helper_l3_filter helper function for l3 filtering
@@ -560,8 +510,10 @@ static inline nve32_t helper_l3_filter(
 	}
 
 	if (type == OSI_IP6_FILTER) {
+#ifndef OSI_STRIPPED_LIB
 		ret = ops_p->update_ip6_addr(osi_core, l_filter->filter_no,
 					  l_filter->ip6_addr);
+#endif /* !OSI_STRIPPED_LIB */
 	} else if (type == OSI_IP4_FILTER) {
 		ret = ops_p->update_ip4_addr(osi_core, l_filter->filter_no,
 					  l_filter->ip4_addr,
@@ -575,10 +527,10 @@ static inline nve32_t helper_l3_filter(
 	return ret;
 }
 
-nve32_t osi_l3l4_filter(struct osi_core_priv_data *const osi_core,
-			struct osi_l3_l4_filter *const l_filter,
-			const nveu32_t type, const nveu32_t dma_routing_enable,
-			const nveu32_t dma_chan, const nveu32_t is_l4_filter)
+static nve32_t osi_l3l4_filter(struct osi_core_priv_data *const osi_core,
+			       struct osi_l3_l4_filter *const l_filter,
+			       const nveu32_t type, const nveu32_t dma_routing_enable,
+			       const nveu32_t dma_chan, const nveu32_t is_l4_filter)
 {
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 	nve32_t ret = -1;
@@ -596,8 +548,10 @@ nve32_t osi_l3l4_filter(struct osi_core_priv_data *const osi_core,
 	}
 
 	if (is_l4_filter == OSI_ENABLE) {
+#ifndef OSI_STRIPPED_LIB
 		ret = helper_l4_filter(osi_core, l_core->ops_p, l_filter, type,
 				       dma_routing_enable, dma_chan);
+#endif /* !OSI_STRIPPED_LIB */
 	} else {
 		ret = helper_l3_filter(osi_core, l_core->ops_p, l_filter, type,
 				       dma_routing_enable, dma_chan);
@@ -790,28 +744,17 @@ nve32_t osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
 		/* disable hw time stamping */
 		/* Program MAC_Timestamp_Control Register */
 		l_core->ops_p->config_tscr(osi_core, OSI_DISABLE);
+#ifndef OSI_STRIPPED_LIB
 		/* Disable PTP RX Queue routing */
 		ret = l_core->ops_p->config_ptp_rxq(osi_core,
 					    osi_core->ptp_config.ptp_rx_queue,
 					    OSI_DISABLE);
+#endif /* !OSI_STRIPPED_LIB */
 	} else {
 		/* Program MAC_Timestamp_Control Register */
 		l_core->ops_p->config_tscr(osi_core,
 					   osi_core->ptp_config.ptp_filter);
 
-		if (osi_core->pre_si == OSI_ENABLE) {
-			if (osi_core->mac == OSI_MAC_HW_MGBE) {
-				/* FIXME: Pass it from OSD */
-				osi_core->ptp_config.ptp_clock = 78125000U;
-				osi_core->ptp_config.ptp_ref_clk_rate =
-								 78125000U;
-			} else {
-				/* FIXME: Pass it from OSD */
-				osi_core->ptp_config.ptp_clock = 312500000U;
-				osi_core->ptp_config.ptp_ref_clk_rate =
-								 312500000U;
-			}
-		}
 		/* Program Sub Second Increment Register */
 		l_core->ops_p->config_ssir(osi_core,
 					   osi_core->ptp_config.ptp_clock);
@@ -822,15 +765,9 @@ nve32_t osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
 		 * 2^32 * 1000 == (1000 << 32)
 		 * so addend = (2^32 * 1000)/(ptp_ref_clk_rate in MHZ * SSINC);
 		 */
-		if ((osi_core->pre_si == OSI_ENABLE) &&
-		    ((osi_core->mac == OSI_MAC_HW_MGBE) ||
-		    (osi_core->mac_ver <= OSI_EQOS_MAC_4_10))) {
-			ssinc = OSI_PTP_SSINC_16;
-		} else {
-			ssinc = OSI_PTP_SSINC_4;
-			if (osi_core->mac_ver == OSI_EQOS_MAC_5_30) {
-				ssinc = OSI_PTP_SSINC_6;
-			}
+		ssinc = OSI_PTP_SSINC_4;
+		if (osi_core->mac_ver == OSI_EQOS_MAC_5_30) {
+			ssinc = OSI_PTP_SSINC_6;
 		}
 
 		temp = ((nveu64_t)1000 << 32);
@@ -859,10 +796,12 @@ nve32_t osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
 						     osi_core->ptp_config.sec,
 						     osi_core->ptp_config.nsec);
 			if (ret == 0) {
+#ifndef OSI_STRIPPED_LIB
 				/* Enable PTP RX Queue routing */
 				ret = l_core->ops_p->config_ptp_rxq(osi_core,
 					osi_core->ptp_config.ptp_rx_queue,
 					OSI_ENABLE);
+#endif /* !OSI_STRIPPED_LIB */
 			}
 		}
 	}
@@ -870,6 +809,46 @@ nve32_t osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
 	return ret;
 }
 
+nve32_t osi_read_mmc(struct osi_core_priv_data *const osi_core)
+{
+	struct core_local *l_core = (struct core_local *)(void *)osi_core;
+
+	if (validate_args(osi_core, l_core) < 0) {
+		return -1;
+	}
+
+	l_core->ops_p->read_mmc(osi_core);
+
+	return 0;
+}
+
+static nve32_t osi_get_mac_version(struct osi_core_priv_data *const osi_core, nveu32_t *mac_ver)
+{
+	struct core_local *l_core = (struct core_local *)(void *)osi_core;
+
+	if (validate_args(osi_core, l_core) < 0) {
+		return -1;
+	}
+
+	if (mac_ver == OSI_NULL) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "mac_ver is NULL\n", 0ULL);
+		return -1;
+	}
+
+	*mac_ver = osi_readla(osi_core, ((nveu8_t *)osi_core->base + (nve32_t)MAC_VERSION)) &
+			      MAC_VERSION_SNVER_MASK;
+
+	if (validate_mac_ver_update_chans(*mac_ver, &l_core->max_chans) == 0) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "Invalid MAC version\n", (nveu64_t)*mac_ver)
+		return -1;
+	}
+
+	return 0;
+}
+
+#ifndef OSI_STRIPPED_LIB
 /**
  * @brief rxq_route_config - Enable PTP RX packets routing
  *
@@ -901,47 +880,7 @@ static nve32_t rxq_route_config(struct osi_core_priv_data *const osi_core,
 				     rxq_route->enable);
 }
 
-nve32_t osi_read_mmc(struct osi_core_priv_data *const osi_core)
-{
-	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 
-	if (validate_args(osi_core, l_core) < 0) {
-		return -1;
-	}
-
-	l_core->ops_p->read_mmc(osi_core);
-
-	return 0;
-}
-
-nve32_t osi_get_mac_version(struct osi_core_priv_data *const osi_core,
-			    nveu32_t *mac_ver)
-{
-	struct core_local *l_core = (struct core_local *)(void *)osi_core;
-
-	if (validate_args(osi_core, l_core) < 0) {
-		return -1;
-	}
-
-	if (mac_ver == OSI_NULL) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			     "mac_ver is NULL\n", 0ULL);
-		return -1;
-	}
-
-	*mac_ver = ((l_core->ops_p->read_reg(osi_core, (nve32_t)MAC_VERSION)) &
-		    MAC_VERSION_SNVER_MASK);
-
-	if (validate_mac_ver_update_chans(*mac_ver, &l_core->max_chans) == 0) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			     "Invalid MAC version\n", (nveu64_t)*mac_ver)
-		return -1;
-	}
-
-	return 0;
-}
-
-#ifndef OSI_STRIPPED_LIB
 /**
  * @brief validate_core_regs - Read-validate HW registers for func safety.
  *
@@ -1251,7 +1190,6 @@ static nve32_t conf_mac_loopback(struct osi_core_priv_data *const osi_core,
 
 	return l_core->ops_p->config_mac_loopback(osi_core, lb_mode);
 }
-#endif /* !OSI_STRIPPED_LIB */
 
 /**
  * @brief config_est - Read Setting for GCL from input and update
@@ -1361,6 +1299,7 @@ static nve32_t config_fpe(struct osi_core_priv_data *osi_core,
 
 	return l_core->ops_p->hw_config_fpe(osi_core, fpe);
 }
+#endif /* !OSI_STRIPPED_LIB */
 
 /**
  * @brief Free stale timestamps for channel
@@ -1465,9 +1404,11 @@ static inline nve32_t get_tx_ts(struct osi_core_priv_data *osi_core,
 	if (__sync_fetch_and_add(&l_core->ts_lock, 1) == 1U) {
 		/* mask return as initial value is returned always */
 		(void)__sync_fetch_and_sub(&l_core->ts_lock, 1);
+#ifndef OSI_STRIPPED_LIB
 		osi_core->xstats.ts_lock_del_fail =
 				osi_update_stats_counter(
 				osi_core->xstats.ts_lock_del_fail, 1U);
+#endif
 		goto done;
 	}
 
@@ -1663,26 +1604,6 @@ static void cfg_l3_l4_filter(struct core_local *l_core)
 	}
 }
 
-static void cfg_fc(struct core_local *l_core)
-{
-	(void)l_core->ops_p->config_flow_control((struct osi_core_priv_data *)(void *)l_core,
-						  l_core->cfg.flow_ctrl);
-}
-
-static void cfg_avb(struct core_local *l_core)
-{
-	nveu32_t i;
-
-	for (i = 0U; i < OSI_MGBE_MAX_NUM_QUEUES; i++) {
-		if (l_core->cfg.avb[i].used == OSI_DISABLE) {
-			continue;
-		}
-
-		(void)l_core->ops_p->set_avb_algorithm((struct osi_core_priv_data *)(void *)l_core,
-						       &l_core->cfg.avb[i].avb_info);
-	}
-}
-
 static void cfg_l2_filter(struct core_local *l_core)
 {
 	nveu32_t i;
@@ -1706,6 +1627,7 @@ static void cfg_rxcsum(struct core_local *l_core)
 						    l_core->cfg.rxcsum);
 }
 
+#ifndef OSI_STRIPPED_LIB
 static void cfg_vlan(struct core_local *l_core)
 {
 	nveu32_t i;
@@ -1720,22 +1642,31 @@ static void cfg_vlan(struct core_local *l_core)
 	}
 }
 
+static void cfg_fc(struct core_local *l_core)
+{
+	(void)l_core->ops_p->config_flow_control((struct osi_core_priv_data *)(void *)l_core,
+						  l_core->cfg.flow_ctrl);
+}
+
+static void cfg_avb(struct core_local *l_core)
+{
+	nveu32_t i;
+
+	for (i = 0U; i < OSI_MGBE_MAX_NUM_QUEUES; i++) {
+		if (l_core->cfg.avb[i].used == OSI_DISABLE) {
+			continue;
+		}
+
+		(void)l_core->ops_p->set_avb_algorithm((struct osi_core_priv_data *)(void *)l_core,
+						       &l_core->cfg.avb[i].avb_info);
+	}
+}
+
 static void cfg_eee(struct core_local *l_core)
 {
 	(void)conf_eee((struct osi_core_priv_data *)(void *)l_core,
 		       l_core->cfg.tx_lpi_enabled,
 		       l_core->cfg.tx_lpi_timer);
-}
-
-static void cfg_ptp(struct core_local *l_core)
-{
-	struct osi_core_priv_data *osi_core = (struct osi_core_priv_data *)(void *)l_core;
-	struct osi_ioctl ioctl_data = {};
-
-	ioctl_data.arg1_u32 = l_core->cfg.ptp;
-	ioctl_data.cmd = OSI_CMD_CONFIG_PTP;
-
-	(void)osi_handle_ioctl(osi_core, &ioctl_data);
 }
 
 static void cfg_est(struct core_local *l_core)
@@ -1749,14 +1680,36 @@ static void cfg_fpe(struct core_local *l_core)
 	(void)config_fpe((struct osi_core_priv_data *)(void *)l_core,
 			 &l_core->cfg.fpe);
 }
+#endif /* !OSI_STRIPPED_LIB */
+
+static void cfg_ptp(struct core_local *l_core)
+{
+	struct osi_core_priv_data *osi_core = (struct osi_core_priv_data *)(void *)l_core;
+	struct osi_ioctl ioctl_data = {};
+
+	ioctl_data.arg1_u32 = l_core->cfg.ptp;
+	ioctl_data.cmd = OSI_CMD_CONFIG_PTP;
+
+	(void)osi_handle_ioctl(osi_core, &ioctl_data);
+}
 
 static void apply_dynamic_cfg(struct osi_core_priv_data *osi_core)
 {
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 	typedef void (*cfg_fn)(struct core_local *local_core);
 	const cfg_fn fn[] = {
-		cfg_l3_l4_filter, cfg_fc, cfg_avb, cfg_l2_filter,
-		cfg_rxcsum, cfg_vlan, cfg_eee, cfg_ptp, cfg_est, cfg_fpe
+		[DYNAMIC_CFG_L3_L4_IDX] = cfg_l3_l4_filter,
+		[DYNAMIC_CFG_L2_IDX] = cfg_l2_filter,
+		[DYNAMIC_CFG_RXCSUM_IDX] = cfg_rxcsum,
+#ifndef OSI_STRIPPED_LIB
+		[DYNAMIC_CFG_VLAN_IDX] = cfg_vlan,
+		[DYNAMIC_CFG_FC_IDX] = cfg_fc,
+		[DYNAMIC_CFG_AVB_IDX] = cfg_avb,
+		[DYNAMIC_CFG_EEE_IDX] = cfg_eee,
+		[DYNAMIC_CFG_EST_IDX] = cfg_est,
+		[DYNAMIC_CFG_FPE_IDX] = cfg_fpe,
+#endif /* !OSI_STRIPPED_LIB */
+		[DYNAMIC_CFG_PTP_IDX] = cfg_ptp
 	};
 	nveu32_t flags = l_core->cfg.flags;
 	nveu32_t i = 0U;
@@ -1841,11 +1794,6 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 	}
 
 	switch (data->cmd) {
-#ifndef OSI_STRIPPED_LIB
-	case OSI_CMD_RESTORE_REGISTER:
-		ret = ops_p->restore_registers(osi_core);
-		break;
-
 	case OSI_CMD_L3L4_FILTER:
 		ret = osi_l3l4_filter(osi_core, &data->l3l4_filter,
 				      data->arg1_u32, data->arg2_u32,
@@ -1857,6 +1805,11 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 			l_core->cfg.flags |= DYNAMIC_CFG_L3_L4;
 		}
 
+		break;
+
+#ifndef OSI_STRIPPED_LIB
+	case OSI_CMD_RESTORE_REGISTER:
+		ret = ops_p->restore_registers(osi_core);
 		break;
 
 	case OSI_CMD_MDC_CONFIG:
@@ -1929,9 +1882,6 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		ret = ops_p->config_tx_status(osi_core, data->arg1_u32);
 		break;
 
-	case OSI_CMD_CONFIG_FW_ERR:
-		ret = hw_config_fw_err_pkts(osi_core, data->arg1_u32, data->arg2_u32);
-		break;
 
 	case OSI_CMD_ARP_OFFLOAD:
 		ret = conf_arp_offload(osi_core, data->arg1_u32,
@@ -1956,6 +1906,10 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		break;
 
 #endif /* !OSI_STRIPPED_LIB */
+	case OSI_CMD_CONFIG_FW_ERR:
+		ret = hw_config_fw_err_pkts(osi_core, data->arg1_u32, data->arg2_u32);
+		break;
+
 	case OSI_CMD_POLL_FOR_MAC_RST:
 		ret = hw_poll_for_swr(osi_core);
 		break;
@@ -2206,6 +2160,7 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		}
 #endif
 		break;
+#ifndef OSI_STRIPPED_LIB
 	case OSI_CMD_CONFIG_PTP_OFFLOAD:
 		ret = conf_ptp_offload(osi_core, &data->pto_config);
 		break;
@@ -2241,7 +2196,7 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		}
 
 		break;
-
+#endif /* !OSI_STRIPPED_LIB */
 	case OSI_CMD_READ_REG:
 		ret = (nve32_t) ops_p->read_reg(osi_core, (nve32_t) data->arg1_u32);
 		break;
@@ -2332,24 +2287,6 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 	}
 
 	return ret;
-}
-
-nve32_t osi_get_hw_features(struct osi_core_priv_data *const osi_core,
-			    struct osi_hw_features *hw_feat)
-{
-	struct core_local *l_core = (struct core_local *)(void *)osi_core;
-
-	if (validate_args(osi_core, l_core) < 0) {
-		return -1;
-	}
-
-	if (hw_feat == OSI_NULL) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			     "CORE: Invalid hw_feat\n", 0ULL);
-		return -1;
-	}
-
-	return l_core->ops_p->get_hw_features(osi_core, hw_feat);
 }
 
 void hw_interface_init_core_ops(struct if_core_ops *if_ops_p)

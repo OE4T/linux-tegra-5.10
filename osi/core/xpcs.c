@@ -467,12 +467,10 @@ int xpcs_init(struct osi_core_priv_data *osi_core)
 		return 0;
 	}
 
-	if (osi_core->pre_si != OSI_ENABLE) {
-		if (xpcs_lane_bring_up(osi_core) < 0) {
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
-				     "TX/RX lane bring-up failed\n", 0ULL);
-			return -1;
-		}
+	if (xpcs_lane_bring_up(osi_core) < 0) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+			     "TX/RX lane bring-up failed\n", 0ULL);
+		return -1;
 	}
 
 	/* Switching to USXGMII Mode based on

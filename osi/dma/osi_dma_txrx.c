@@ -168,7 +168,7 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 		}
 		rx_swcx = rx_ring->rx_swcx + rx_ring->cur_rx_idx;
 		osi_memset(rx_pkt_cx, 0U, sizeof(*rx_pkt_cx));
-#ifdef OSI_DEBUG
+#if defined OSI_DEBUG && !defined OSI_STRIPPED_LIB
 		if (osi_dma->enable_desc_dump == 1U) {
 			desc_dump(osi_dma, rx_ring->cur_rx_idx,
 				  rx_ring->cur_rx_idx, RX_DESC_DUMP, chan);

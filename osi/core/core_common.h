@@ -58,9 +58,11 @@ struct est_read {
 
 /** @} */
 
+#ifndef OSI_STRIPPED_LIB
 nve32_t gcl_validate(struct osi_core_priv_data *const osi_core,
 		     struct osi_est_config *const est,
 		     const nveu32_t *btr, nveu32_t mac);
+#endif /* !OSI_STRIPPED_LIB */
 nve32_t hw_poll_for_swr(struct osi_core_priv_data *const osi_core);
 void hw_start_mac(struct osi_core_priv_data *const osi_core);
 void hw_stop_mac(struct osi_core_priv_data *const osi_core);
