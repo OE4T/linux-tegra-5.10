@@ -5212,91 +5212,6 @@ static int mgbe_get_hw_features(struct osi_core_priv_data *const osi_core,
 }
 
 /**
- * @brief mgbe_poll_for_tsinit_complete - Poll for time stamp init complete
- *
- * Algorithm: Read TSINIT value from MAC TCR register until it is
- *	equal to zero.
- *
- * @param[in] addr: Base address indicating the start of
- *	      memory mapped IO region of the MAC.
- * @param[in] mac_tcr: Address to store time stamp control register read value
- *
- * @note MAC should be init and started. see osi_start_mac()
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static inline int mgbe_poll_for_tsinit_complete(
-					struct osi_core_priv_data *osi_core,
-					unsigned int *mac_tcr)
-{
-	unsigned int retry = 0U;
-
-	while (retry < OSI_POLL_COUNT) {
-		/* Read and Check TSINIT in MAC_Timestamp_Control register */
-		*mac_tcr = osi_readla(osi_core, (unsigned char *)
-				      osi_core->base + MGBE_MAC_TCR);
-		if ((*mac_tcr & MGBE_MAC_TCR_TSINIT) == 0U) {
-			return 0;
-		}
-
-		retry++;
-		osi_core->osd_ops.udelay(OSI_DELAY_1000US);
-	}
-
-	return -1;
-}
-
-/**
- * @brief mgbe_set_systime - Set system time
- *
- * Algorithm: Updates system time (seconds and nano seconds)
- *	in hardware registers
- *
- * @param[in] addr: Base address indicating the start of
- *	      memory mapped IO region of the MAC.
- * @param[in] sec: Seconds to be configured
- * @param[in] nsec: Nano Seconds to be configured
- *
- * @note MAC should be init and started. see osi_start_mac()
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static nve32_t mgbe_set_systime_to_mac(struct osi_core_priv_data *osi_core,
-				       nveu32_t sec, nveu32_t nsec)
-{
-	unsigned int mac_tcr;
-	void *addr = osi_core->base;
-	int ret;
-
-	/* To be sure previous write was flushed (if Any) */
-	ret = mgbe_poll_for_tsinit_complete(osi_core, &mac_tcr);
-	if (ret == -1) {
-		return -1;
-	}
-
-	/* write seconds value to MAC_System_Time_Seconds_Update register */
-	osi_writela(osi_core, sec, (unsigned char *)addr + MGBE_MAC_STSUR);
-
-	/* write nano seconds value to MAC_System_Time_Nanoseconds_Update
-	 * register
-	 */
-	osi_writela(osi_core, nsec, (unsigned char *)addr + MGBE_MAC_STNSUR);
-
-	/* issue command to update the configured secs and nsecs values */
-	mac_tcr |= MGBE_MAC_TCR_TSINIT;
-	osi_writela(osi_core, mac_tcr, (unsigned char *)addr + MGBE_MAC_TCR);
-
-	ret = mgbe_poll_for_tsinit_complete(osi_core, &mac_tcr);
-	if (ret == -1) {
-		return -1;
-	}
-
-	return 0;
-}
-
-/**
  * @brief mgbe_poll_for_addend_complete - Poll for addend value write complete
  *
  * Algorithm: Read TSADDREG value from MAC TCR register until it is
@@ -5907,7 +5822,6 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->update_mac_addr_low_high_reg = mgbe_update_mac_addr_low_high_reg;
 	ops->config_l3_l4_filter_enable = mgbe_config_l3_l4_filter_enable;
 	ops->config_l3_filters = mgbe_config_l3_filters;
-	ops->set_systime_to_mac = mgbe_set_systime_to_mac;
 	ops->config_addend = mgbe_config_addend;
 	ops->config_tscr = mgbe_config_tscr;
 	ops->config_ssir = mgbe_config_ssir,

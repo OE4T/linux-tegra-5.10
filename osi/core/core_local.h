@@ -131,10 +131,6 @@ struct core_ops {
 				     const nveu32_t perfect_inverse_match,
 				     const nveu32_t dma_routing_enable,
 				     const nveu32_t dma_chan);
-	/** Called to set current system time to MAC */
-	nve32_t (*set_systime_to_mac)(struct osi_core_priv_data *const osi_core,
-				      const nveu32_t sec,
-				      const nveu32_t nsec);
 	/** Called to set the addend value to adjust the time */
 	nve32_t (*config_addend)(struct osi_core_priv_data *const osi_core,
 				 const nveu32_t addend);

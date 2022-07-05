@@ -284,6 +284,41 @@ fail:
 	return ret;
 }
 
+nve32_t hw_set_systime_to_mac(struct osi_core_priv_data *const osi_core,
+			      const nveu32_t sec, const nveu32_t nsec)
+{
+	void *addr = osi_core->base;
+	nveu32_t mac_tcr = 0U;
+	nve32_t ret = 0;
+	const nveu32_t mac_tscr[2] = { EQOS_MAC_TCR, MGBE_MAC_TCR};
+	const nveu32_t mac_stsur[2] = { EQOS_MAC_STSUR, MGBE_MAC_STSUR};
+	const nveu32_t mac_stnsur[2] = { EQOS_MAC_STNSUR, MGBE_MAC_STNSUR};
+
+	ret = poll_check(osi_core, ((nveu8_t *)addr + mac_tscr[osi_core->mac]),
+			 MAC_TCR_TSINIT, &mac_tcr);
+	if (ret == -1) {
+		goto fail;
+	}
+
+	/* write seconds value to MAC_System_Time_Seconds_Update register */
+	osi_writela(osi_core, sec, ((nveu8_t *)addr + mac_stsur[osi_core->mac]));
+
+	/* write nano seconds value to MAC_System_Time_Nanoseconds_Update
+	 * register
+	 */
+	osi_writela(osi_core, nsec, ((nveu8_t *)addr + mac_stnsur[osi_core->mac]));
+
+	/* issue command to update the configured secs and nsecs values */
+	mac_tcr |= MAC_TCR_TSINIT;
+	osi_writela(osi_core, mac_tcr, ((nveu8_t *)addr + mac_tscr[osi_core->mac]));
+
+	ret = poll_check(osi_core, ((nveu8_t *)addr + mac_tscr[osi_core->mac]),
+			 MAC_TCR_TSINIT, &mac_tcr);
+fail:
+	return ret;
+}
+
+
 #ifndef OSI_STRIPPED_LIB
 /**
  * @brief hw_est_read - indirect read the GCL to Software own list

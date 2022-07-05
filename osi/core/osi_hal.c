@@ -596,7 +596,7 @@ nve32_t osi_set_systime_to_mac(struct osi_core_priv_data *const osi_core,
 		return -1;
 	}
 
-	return l_core->ops_p->set_systime_to_mac(osi_core, sec, nsec);
+	return hw_set_systime_to_mac(osi_core, sec, nsec);
 }
 
 /**
@@ -793,9 +793,9 @@ nve32_t osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
 
 		/* Set current time */
 		if (ret == 0) {
-			ret = l_core->ops_p->set_systime_to_mac(osi_core,
-						     osi_core->ptp_config.sec,
-						     osi_core->ptp_config.nsec);
+			ret = hw_set_systime_to_mac(osi_core,
+						    osi_core->ptp_config.sec,
+						    osi_core->ptp_config.nsec);
 			if (ret == 0) {
 #ifndef OSI_STRIPPED_LIB
 				/* Enable PTP RX Queue routing */
@@ -1772,7 +1772,6 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 #if DRIFT_CAL
 	struct osi_core_priv_data *sec_osi_core;
 	struct core_local *secondary_osi_lcore;
-	struct core_ops *secondary_ops_p;
 	nvel64_t drift_value = 0x0;
 	nveu32_t sec = 0x0;
 	nveu32_t nsec = 0x0;
@@ -2116,8 +2115,7 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		break;
 
 	case OSI_CMD_SET_SYSTOHW_TIME:
-		ret = ops_p->set_systime_to_mac(osi_core, data->arg1_u32,
-						data->arg2_u32);
+		ret = hw_set_systime_to_mac(osi_core, data->arg1_u32, data->arg2_u32);
 #if DRIFT_CAL
 		if (ret < 0) {
 			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
@@ -2144,9 +2142,7 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 			read_sec_ns(osi_core->base,
 				    osi_core->mac, &sec, &nsec);
 			osi_unlock_irq_enabled(&secondary_osi_lcore->serv.m2m_lock);
-			secondary_ops_p = secondary_osi_lcore->ops_p;
-			ret = secondary_ops_p->set_systime_to_mac(sec_osi_core, sec,
-								  nsec);
+			ret = hw_set_systime_to_mac(sec_osi_core, sec, nsec);
 			if (ret == 0) {
 				secondary_osi_lcore->serv.count = SERVO_STATS_0;
 				secondary_osi_lcore->serv.drift = 0;
