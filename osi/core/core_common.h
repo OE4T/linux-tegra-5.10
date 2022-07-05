@@ -42,7 +42,7 @@
 #define MTL_QTOMR_FTQ			OSI_BIT(0)
 #define MTL_RXQ_OP_MODE_FEP		OSI_BIT(4)
 #define MAC_TCR_TSINIT			OSI_BIT(2)
-
+#define MAC_TCR_TSADDREG		OSI_BIT(5)
 /**
  * @addtogroup typedef related info
  *
@@ -77,5 +77,6 @@ nve32_t hw_config_rxcsum_offload(struct osi_core_priv_data *const osi_core,
 				nveu32_t enabled);
 nve32_t hw_set_systime_to_mac(struct osi_core_priv_data *const osi_core,
 			      const nveu32_t sec, const nveu32_t nsec);
-
+nve32_t hw_config_addend(struct osi_core_priv_data *const osi_core,
+			 const nveu32_t addend);
 #endif /* INCLUDED_CORE_COMMON_H */

@@ -681,7 +681,7 @@ nve32_t osi_adjust_freq(struct osi_core_priv_data *const osi_core, nve32_t ppb)
 		}
 	}
 
-	return l_core->ops_p->config_addend(osi_core, addend);
+	return hw_config_addend(osi_core, addend);
 }
 
 nve32_t osi_adjust_time(struct osi_core_priv_data *const osi_core,
@@ -788,8 +788,7 @@ nve32_t osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
 		}
 
 		/* Program addend value */
-		ret = l_core->ops_p->config_addend(osi_core,
-						   osi_core->default_addend);
+		ret = hw_config_addend(osi_core, osi_core->default_addend);
 
 		/* Set current time */
 		if (ret == 0) {

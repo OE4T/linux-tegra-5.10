@@ -131,9 +131,6 @@ struct core_ops {
 				     const nveu32_t perfect_inverse_match,
 				     const nveu32_t dma_routing_enable,
 				     const nveu32_t dma_chan);
-	/** Called to set the addend value to adjust the time */
-	nve32_t (*config_addend)(struct osi_core_priv_data *const osi_core,
-				 const nveu32_t addend);
 	/** Called to configure the TimeStampControl register */
 	void (*config_tscr)(struct osi_core_priv_data *const osi_core,
 			    const nveu32_t ptp_filter);

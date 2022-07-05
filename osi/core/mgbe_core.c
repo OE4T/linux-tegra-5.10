@@ -5212,85 +5212,6 @@ static int mgbe_get_hw_features(struct osi_core_priv_data *const osi_core,
 }
 
 /**
- * @brief mgbe_poll_for_addend_complete - Poll for addend value write complete
- *
- * Algorithm: Read TSADDREG value from MAC TCR register until it is
- *	equal to zero.
- *
- * @param[in] addr: Base address indicating the start of
- *	      memory mapped IO region of the MAC.
- * @param[in] mac_tcr: Address to store time stamp control register read value
- *
- * @note MAC should be init and started. see osi_start_mac()
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static inline int mgbe_poll_for_addend_complete(
-					struct osi_core_priv_data *osi_core,
-					unsigned int *mac_tcr)
-{
-	unsigned int retry = 0U;
-
-	/* Poll */
-	while (retry < OSI_POLL_COUNT) {
-		/* Read and Check TSADDREG in MAC_Timestamp_Control register */
-		*mac_tcr = osi_readla(osi_core, (unsigned char *)
-				      osi_core->base + MGBE_MAC_TCR);
-		if ((*mac_tcr & MGBE_MAC_TCR_TSADDREG) == 0U) {
-			return 0;
-		}
-
-		retry++;
-		osi_core->osd_ops.udelay(OSI_DELAY_1000US);
-	}
-
-	return -1;
-}
-
-/**
- * @brief mgbe_config_addend - Configure addend
- *
- * Algorithm: Updates the Addend value in HW register
- *
- * @param[in] addr: Base address indicating the start of
- *	      memory mapped IO region of the MAC.
- * @param[in] addend: Addend value to be configured
- *
- * @note MAC should be init and started. see osi_start_mac()
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static nve32_t mgbe_config_addend(struct osi_core_priv_data *const osi_core,
-				  const nveu32_t addend)
-{
-	unsigned int mac_tcr;
-	void *addr = osi_core->base;
-	int ret;
-
-	/* To be sure previous write was flushed (if Any) */
-	ret = mgbe_poll_for_addend_complete(osi_core, &mac_tcr);
-	if (ret == -1) {
-		return -1;
-	}
-
-	/* write addend value to MAC_Timestamp_Addend register */
-	osi_writela(osi_core, addend, (unsigned char *)addr + MGBE_MAC_TAR);
-
-	/* issue command to update the configured addend value */
-	mac_tcr |= MGBE_MAC_TCR_TSADDREG;
-	osi_writela(osi_core, mac_tcr, (unsigned char *)addr + MGBE_MAC_TCR);
-
-	ret = mgbe_poll_for_addend_complete(osi_core, &mac_tcr);
-	if (ret == -1) {
-		return -1;
-	}
-
-	return 0;
-}
-
-/**
  * @brief mgbe_poll_for_update_ts_complete - Poll for update time stamp
  *
  * Algorithm: Read time stamp update value from TCR register until it is
@@ -5822,7 +5743,6 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->update_mac_addr_low_high_reg = mgbe_update_mac_addr_low_high_reg;
 	ops->config_l3_l4_filter_enable = mgbe_config_l3_l4_filter_enable;
 	ops->config_l3_filters = mgbe_config_l3_filters;
-	ops->config_addend = mgbe_config_addend;
 	ops->config_tscr = mgbe_config_tscr;
 	ops->config_ssir = mgbe_config_ssir,
 	ops->adjust_mactime = mgbe_adjust_mactime;

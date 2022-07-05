@@ -3799,117 +3799,6 @@ static nve32_t eqos_config_l4_filters(
 #endif /* !OSI_STRIPPED_LIB */
 
 /**
- * @brief eqos_poll_for_addend_complete - Poll for addend value write complete
- *
- * @note
- * Algorithm:
- *  - Read TSADDREG value from MAC TCR register until it is equal to zero.
- *   - Max loop count of 1000 with 1 ms delay between iterations.
- *  - SWUD_ID: ETHERNET_NVETHERNETRM_023_1
- *
- * @param[in] osi_core: OSI core private data structure. Used param is base, osd_ops.udelay.
- * @param[in, out] mac_tcr: Address to store time stamp control register read
- *  value
- *
- * @pre MAC should be initialized and started. see osi_start_mac()
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static inline nve32_t eqos_poll_for_addend_complete(
-				struct osi_core_priv_data *const osi_core,
-				nveu32_t *mac_tcr)
-{
-	nveu32_t retry = RETRY_COUNT;
-	nveu32_t count;
-	nve32_t cond = COND_NOT_MET;
-
-	/* Wait for previous(if any) addend value update to complete */
-	/* Poll */
-	count = 0;
-	while (cond == COND_NOT_MET) {
-		if (count > retry) {
-			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
-				     "poll_for_addend: timeout\n", 0ULL);
-			return -1;
-		}
-		/* Read and Check TSADDREG in MAC_Timestamp_Control register */
-		*mac_tcr = osi_readla(osi_core,
-				      (nveu8_t *)osi_core->base + EQOS_MAC_TCR);
-		if ((*mac_tcr & EQOS_MAC_TCR_TSADDREG) == 0U) {
-			cond = COND_MET;
-		}
-
-		count++;
-		osi_core->osd_ops.udelay(OSI_DELAY_1000US);
-	}
-
-	return 0;
-}
-
-/**
- * @brief eqos_config_addend - Configure addend
- *
- * @note
- * Algorithm:
- *  - Updates the Addend value in HW register
- *  - Calls eqos_poll_for_addend_complete() before and after setting time.
- *   - return -1 if API fails.
- *  - Refer to EQOS column of <<RM_23, (sequence diagram)>> for API details.
- *  - TraceID:ETHERNET_NVETHERNETRM_023
- *
- * @param[in] osi_core: OSI core private data structure. Used param is base.
- * @param[in] addend: Addend value to be configured
- *
- * @pre MAC should be initialized and started. see osi_start_mac()
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static nve32_t eqos_config_addend(struct osi_core_priv_data *const osi_core,
-				  const nveu32_t addend)
-{
-	nveu32_t mac_tcr = 0U;
-	nve32_t ret;
-
-	/* To be sure previous write was flushed (if Any) */
-	ret = eqos_poll_for_addend_complete(osi_core, &mac_tcr);
-	if (ret == -1) {
-		return -1;
-	}
-
-	/* write addend value to MAC_Timestamp_Addend register */
-	eqos_core_safety_writel(osi_core, addend,
-				(nveu8_t *)osi_core->base + EQOS_MAC_TAR,
-				EQOS_MAC_TAR_IDX);
-
-	/* issue command to update the configured addend value */
-	mac_tcr |= EQOS_MAC_TCR_TSADDREG;
-	eqos_core_safety_writel(osi_core, mac_tcr,
-				(nveu8_t *)osi_core->base + EQOS_MAC_TCR,
-				EQOS_MAC_TCR_IDX);
-
-	ret = eqos_poll_for_addend_complete(osi_core, &mac_tcr);
-	if (ret == -1) {
-		return -1;
-	}
-
-	return 0;
-}
-
-/**
  * @brief eqos_poll_for_update_ts_complete - Poll for update time stamp
  *
  * @note
@@ -6342,7 +6231,6 @@ void eqos_init_core_ops(struct core_ops *ops)
 	ops->update_mac_addr_low_high_reg = eqos_update_mac_addr_low_high_reg;
 	ops->config_l3_l4_filter_enable = eqos_config_l3_l4_filter_enable;
 	ops->config_l3_filters = eqos_config_l3_filters;
-	ops->config_addend = eqos_config_addend;
 	ops->config_tscr = eqos_config_tscr;
 	ops->config_ssir = eqos_config_ssir;
 	ops->adjust_mactime = eqos_adjust_mactime;

@@ -318,6 +318,33 @@ fail:
 	return ret;
 }
 
+nve32_t hw_config_addend(struct osi_core_priv_data *const osi_core,
+			 const nveu32_t addend)
+{
+	void *addr = osi_core->base;
+	nveu32_t mac_tcr = 0U;
+	nve32_t ret = 0;
+	const nveu32_t mac_tscr[2] = { EQOS_MAC_TCR, MGBE_MAC_TCR};
+	const nveu32_t mac_tar[2] = { EQOS_MAC_TAR, MGBE_MAC_TAR};
+
+	ret = poll_check(osi_core, ((nveu8_t *)addr + mac_tscr[osi_core->mac]),
+			 MAC_TCR_TSADDREG, &mac_tcr);
+	if (ret == -1) {
+		goto fail;
+	}
+
+	/* write addend value to MAC_Timestamp_Addend register */
+	osi_writela(osi_core, addend, ((nveu8_t *)addr + mac_tar[osi_core->mac]));
+
+	/* issue command to update the configured addend value */
+	mac_tcr |= MAC_TCR_TSADDREG;
+	osi_writela(osi_core, mac_tcr, ((nveu8_t *)addr + mac_tscr[osi_core->mac]));
+
+	ret = poll_check(osi_core, ((nveu8_t *)addr + mac_tscr[osi_core->mac]),
+			 MAC_TCR_TSADDREG, &mac_tcr);
+fail:
+	return ret;
+}
 
 #ifndef OSI_STRIPPED_LIB
 /**
