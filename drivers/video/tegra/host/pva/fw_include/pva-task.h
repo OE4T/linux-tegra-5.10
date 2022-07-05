@@ -200,51 +200,68 @@ struct PVA_PACKED pva_task_point2d_s {
  * describing its binary code, and its dma setup.
  */
 struct PVA_PACKED pva_td_s {
-	pva_iova next;
-	uint8_t runlist_version;
-	uint8_t pva_td_pad0[7];
-	uint16_t flags;
-	/** Number of parameters in parameter_base array */
-	uint16_t num_parameters;
-	/** IOVA pointer to an array of struct pva_vpu_parameter_s */
-	/* TODO : Remove once KMD migrates to new format */
-	pva_iova parameter_base;
-	/** IOVA pointer to an instance of pva_vpu_parameter_info_t */
-	pva_iova parameter_info_base;
-	/** IOVA pointer to a struct pva_bin_info_s structure */
-	pva_iova bin_info;
-	/** IOVA pointer to a struct pva_dma_info_s structure */
-	pva_iova dma_info;
-	/** IOVA pointer to a pva_circular_info_t structure */
-	pva_iova stdout_info;
-
-	/** Number of pre-actions */
-	uint8_t num_preactions;
-	/** Number of post-actions */
-	uint8_t num_postactions;
-
-	/** IOVA pointer to an array of pva_task_action_t structure */
-	pva_iova preactions;
-	/** IOVA pointer to  an array of pva_task_action_t structure */
-	pva_iova postactions;
-
-	uint64_t timeout;
-	/** Size of L2SRAM required for the task */
-	uint32_t l2sram_size;
+	/** @brief IOVA pointer to the next task */
+	pva_iova			next;
+	/** @brief Version of task descriptor internal to PVA.
+	 * Should hold a value of 2 for safety architecture
+	 */
+	uint8_t				runlist_version;
+	/** @brief Number of pre-actions.
+	 * Valid range is 0..PVA_MAX_PREACTION_LISTS - both inclusive
+	 */
+	uint8_t				num_preactions;
+	/** @brief Number of post-actions.
+	 * Valid range is 0..PVA_MAX_POSTACTION_LISTS - both inclusive
+	 */
+	uint8_t				num_postactions;
 	/** Index of the stream ID assigned to this task */
-	uint32_t sid_index;
-	//! @endcond
-	/** @brief padding */
-	uint8_t pad0[2];
+	uint8_t				sid_index;
+	/** @brief Task configuration flags */
+	uint16_t			flags;
+	/** @brief Number of parameters in parameter_base array */
+	uint16_t			num_parameters;
+	/** @brief IOVA pointer to an array of pva_vpu_parameter_t */
+	/* TODO : To be removed once KMD changes are in */
+	pva_iova			parameter_base;
+	/** @brief IOVA pointer to an instance of pva_vpu_parameter_info_t */
+	pva_iova			parameter_info_base;
+	/** @brief IOVA pointer to a pva_bin_info_t structure */
+	pva_iova			bin_info;
+	/** @brief IOVA pointer to a pva_dma_info_t structure */
+	pva_iova			dma_info;
+	/** IOVA pointer to a pva_circular_info_t structure */
+	pva_iova			stdout_info;
+	/** @brief IOVA pointer to an array of pva_task_action_t structure */
+	pva_iova			preactions;
+	/** @brief IOVA pointer to  an array of pva_task_action_t structure */
+	pva_iova			postactions;
+	/** @brief Timeout for the VPU algorithm in micro-seconds.
+	 *  Valid range is 0..PVA_MAX_TIMEOUT - both inclusive
+	 */
+	uint64_t			timeout;
+	/** @brief Variable to hold the submit time of the task */
+	uint64_t			submit_time;
+	/** @brief Variable to hold the queued time of the task */
+	uint64_t			queued_time;
+	/** Size of L2SRAM required for the task */
+	uint32_t			l2sram_size;
 	/** Number of total tasks with timer resource utilization */
-	uint16_t timer_ref_cnt;
+	uint16_t			timer_ref_cnt;
 	/** Number of total tasks with L2SRAM resource utilization */
-	uint16_t l2sram_ref_cnt;
+	uint16_t			l2sram_ref_cnt;
+	/** @brief Interface on which FW should return status */
+	uint8_t				status_interface;
+	/** @brief The ID of the batch that this task belongs to */
+	uint8_t				batch_id;
+	/** @note The below two fields are added for backward
+	 * compatibility, will be removed once changes are merged
+	 */
 	/** Additional padding to maintain alignement */
-	uint8_t pad1[4];
+	uint8_t				pad0[6];
 	/** @brief An area reserved for Cortex R5 firmware usage.
-	 * This area may be modified by the R5 during the task */
-	uint8_t r5_reserved[32] __aligned(8);
+	 * This area may be modified by the R5 during the task
+	 */
+	uint8_t				r5_reserved[32]	__aligned(8);
 };
 
 /** Runlist version for new task descriptor format */
