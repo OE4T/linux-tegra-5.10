@@ -107,8 +107,6 @@ struct core_ops {
 	nve32_t (*core_init)(struct osi_core_priv_data *const osi_core,
 			     const nveu32_t tx_fifo_size,
 			     const nveu32_t rx_fifo_size);
-	/** Called to deinitialize MAC and MTL registers */
-	void (*core_deinit)(struct osi_core_priv_data *const osi_core);
 	/** Called to handle common interrupt */
 	void (*handle_common_intr)(struct osi_core_priv_data *const osi_core);
 	/** Called to do pad caliberation */

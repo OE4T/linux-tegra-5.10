@@ -4198,21 +4198,6 @@ static void mgbe_config_mac_tx(struct osi_core_priv_data *const osi_core,
 #endif /*  MACSEC_SUPPORT */
 
 /**
- * @brief mgbe_core_deinit - MGBE MAC core deinitialization
- *
- * Algorithm: This function will take care of deinitializing MAC
- *
- * @param[in] osi_core: OSI core private data structure.
- *
- * @note Required clks and resets has to be enabled
- */
-static void mgbe_core_deinit(struct osi_core_priv_data *const osi_core)
-{
-	/* Stop the MAC by disabling both MAC Tx and Rx */
-	hw_stop_mac(osi_core);
-}
-
-/**
  * @brief mgbe_mdio_busy_wait - MDIO busy wait loop
  *
  * Algorithm: Wait for any previous MII read/write operation to complete
@@ -5580,7 +5565,6 @@ exit:
 void mgbe_init_core_ops(struct core_ops *ops)
 {
 	ops->core_init = mgbe_core_init;
-	ops->core_deinit = mgbe_core_deinit;
 	ops->handle_common_intr = mgbe_handle_common_intr;
 	ops->pad_calibrate = mgbe_pad_calibrate;
 	ops->config_mac_pkt_filter_reg = mgbe_config_mac_pkt_filter_reg;

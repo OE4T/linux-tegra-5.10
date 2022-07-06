@@ -264,7 +264,7 @@ nve32_t osi_hal_hw_core_deinit(struct osi_core_priv_data *const osi_core)
 	}
 
 	l_core->hw_init_successful = OSI_DISABLE;
-	l_core->ops_p->core_deinit(osi_core);
+	hw_stop_mac(osi_core);
 
 	if (l_core->state != OSI_SUSPENDED) {
 		/* Reset restore operation flags on interface down */

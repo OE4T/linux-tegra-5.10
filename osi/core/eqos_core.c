@@ -3978,30 +3978,6 @@ static nve32_t  eqos_config_ptp_rxq(struct osi_core_priv_data *const osi_core,
 }
 #endif /* !OSI_STRIPPED_LIB */
 
-/**
- * @brief eqos_core_deinit - EQOS MAC core deinitialization
- *
- * @note
- * Algorithm:
- *  - This function calls hw_stop_mac()
- *  - TraceId:ETHERNET_NVETHERNETRM_007
- *
- * @param[in] osi_core: OSI core private data structure. Used param is base.
- *
- * @pre Required clks and resets has to be enabled
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: No
- * - De-initialization: Yes
- */
-static void eqos_core_deinit(struct osi_core_priv_data *const osi_core)
-{
-	/* Stop the MAC by disabling both MAC Tx and Rx */
-	hw_stop_mac(osi_core);
-}
-
 #ifndef OSI_STRIPPED_LIB
 /**
  * @brief eqos_hw_est_write - indirect write the GCL to Software own list
@@ -6014,7 +5990,6 @@ void *eqos_get_core_safety_config(void)
 void eqos_init_core_ops(struct core_ops *ops)
 {
 	ops->core_init = eqos_core_init;
-	ops->core_deinit = eqos_core_deinit;
 	ops->handle_common_intr = eqos_handle_common_intr;
 	ops->pad_calibrate = eqos_pad_calibrate;
 	ops->config_mac_pkt_filter_reg = eqos_config_mac_pkt_filter_reg;
