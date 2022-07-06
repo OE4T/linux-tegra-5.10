@@ -2059,6 +2059,9 @@ static void __exit gk20a_exit(void)
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 16, 0)
 MODULE_IMPORT_NS(DMA_BUF);
 #endif
+#ifdef CONFIG_GK20A_DEVFREQ
+MODULE_SOFTDEP("pre: governor_pod_scaling_v2");
+#endif
 MODULE_LICENSE("GPL v2");
 module_init(gk20a_init);
 module_exit(gk20a_exit);

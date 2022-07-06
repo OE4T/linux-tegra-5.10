@@ -441,8 +441,11 @@ void gk20a_scale_init(struct device *dev)
 					&profile->devfreq_profile,
 					platform->devfreq_governor, NULL);
 
-		if (IS_ERR(devfreq))
+		if (IS_ERR(devfreq)) {
 			devfreq = NULL;
+		} else {
+			nvgpu_info(g, "enabled scaling for GPU\n");
+		}
 
 		l->devfreq = devfreq;
 
