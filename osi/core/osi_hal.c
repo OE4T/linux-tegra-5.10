@@ -565,11 +565,9 @@ static nve32_t osi_l3l4_filter(struct osi_core_priv_data *const osi_core,
 	}
 
 	if (osi_core->l3l4_filter_bitmask != OSI_DISABLE) {
-		ret = l_core->ops_p->config_l3_l4_filter_enable(osi_core,
-								OSI_ENABLE);
+		ret = hw_config_l3_l4_filter_enable(osi_core, OSI_ENABLE);
 	} else {
-		ret = l_core->ops_p->config_l3_l4_filter_enable(osi_core,
-								OSI_DISABLE);
+		ret = hw_config_l3_l4_filter_enable(osi_core, OSI_DISABLE);
 	}
 
 	return ret;

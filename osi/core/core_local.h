@@ -115,10 +115,6 @@ struct core_ops {
 	nve32_t (*update_mac_addr_low_high_reg)(
 				struct osi_core_priv_data *const osi_core,
 				const struct osi_filter *filter);
-	/** Called to configure l3/L4 filter */
-	nve32_t (*config_l3_l4_filter_enable)(
-				struct osi_core_priv_data *const osi_core,
-				const nveu32_t enable);
 	/** Called to configure L3 filter */
 	nve32_t (*config_l3_filters)(struct osi_core_priv_data *const osi_core,
 				     const nveu32_t filter_no,

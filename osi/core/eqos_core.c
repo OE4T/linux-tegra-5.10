@@ -2859,46 +2859,6 @@ static nve32_t eqos_update_mac_addr_low_high_reg(
 }
 
 /**
- * @brief eqos_config_l3_l4_filter_enable - register write to enable L3/L4
- *  filters.
- *
- * @note
- * Algorithm:
- *  - This routine to update filter_enb_dis value in IP filter enable register.
- *  - TraceID:ETHERNET_NVETHERNETRM_019
- *
- * @param[in] osi_core: OSI core private data.
- * @param[in] filter_enb_dis: enable/disable
- *
- * @pre MAC should be initialized and started. see osi_start_mac()
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static nve32_t eqos_config_l3_l4_filter_enable(
-				struct osi_core_priv_data *const osi_core,
-				const nveu32_t filter_enb_dis)
-{
-	nveu32_t value = 0U;
-	void *base = osi_core->base;
-
-	value = osi_readla(osi_core, (nveu8_t *)base + EQOS_MAC_PFR);
-	value &= ~(EQOS_MAC_PFR_IPFE);
-	value |= ((filter_enb_dis << EQOS_MAC_PFR_IPFE_SHIFT) &
-		   EQOS_MAC_PFR_IPFE);
-	eqos_core_safety_writel(osi_core, value, (nveu8_t *)base + EQOS_MAC_PFR,
-				EQOS_MAC_PFR_IDX);
-
-	return 0;
-}
-
-/**
  * @brief eqos_update_ip4_addr - configure register for IPV4 address filtering
  *
  * @note
@@ -2963,6 +2923,7 @@ static nve32_t eqos_update_ip4_addr(struct osi_core_priv_data *const osi_core,
 
 	return 0;
 }
+
 #ifndef OSI_STRIPPED_LIB
 /**
  * @brief eqos_config_ptp_offload - Enable/Disable PTP offload
@@ -5873,7 +5834,6 @@ void eqos_init_core_ops(struct core_ops *ops)
 	ops->handle_common_intr = eqos_handle_common_intr;
 	ops->pad_calibrate = eqos_pad_calibrate;
 	ops->update_mac_addr_low_high_reg = eqos_update_mac_addr_low_high_reg;
-	ops->config_l3_l4_filter_enable = eqos_config_l3_l4_filter_enable;
 	ops->config_l3_filters = eqos_config_l3_filters;
 	ops->adjust_mactime = eqos_adjust_mactime;
 	ops->read_mmc = eqos_read_mmc;

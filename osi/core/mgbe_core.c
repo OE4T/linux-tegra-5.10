@@ -825,41 +825,6 @@ static nve32_t mgbe_update_l4_port_no(struct osi_core_priv_data *osi_core,
 #endif /* !OSI_STRIPPED_LIB */
 
 /**
- * @brief mgbe_config_l3_l4_filter_enable - register write to enable L3/L4
- *	filters.
- *
- * Algorithm: This routine to enable/disable L3/l4 filter
- *
- * @param[in] osi_core: OSI core private data structure.
- * @note MAC should be init and started. see osi_start_mac()
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static nve32_t mgbe_config_l3_l4_filter_enable(
-				struct osi_core_priv_data *const osi_core,
-				nveu32_t filter_enb_dis)
-{
-	nveu32_t value = 0U;
-	void *base = osi_core->base;
-
-	/* validate filter_enb_dis argument */
-	if (filter_enb_dis != OSI_ENABLE && filter_enb_dis != OSI_DISABLE) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			"Invalid filter_enb_dis value\n",
-			filter_enb_dis);
-		return -1;
-	}
-
-	value = osi_readla(osi_core, (nveu8_t *)base + MGBE_MAC_PFR);
-	value &= ~(MGBE_MAC_PFR_IPFE);
-	value |= ((filter_enb_dis << MGBE_MAC_PFR_IPFE_SHIFT) &
-		  MGBE_MAC_PFR_IPFE);
-	osi_writela(osi_core, value, (nveu8_t *)base + MGBE_MAC_PFR);
-
-	return 0;
-}
-/**
  * @brief mgbe_set_dcs - check and update dma routing register
  *
  * Algorithm: Check for request for DCS_enable as well as validate chan
@@ -5465,7 +5430,6 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->handle_common_intr = mgbe_handle_common_intr;
 	ops->pad_calibrate = mgbe_pad_calibrate;
 	ops->update_mac_addr_low_high_reg = mgbe_update_mac_addr_low_high_reg;
-	ops->config_l3_l4_filter_enable = mgbe_config_l3_l4_filter_enable;
 	ops->config_l3_filters = mgbe_config_l3_filters;
 	ops->adjust_mactime = mgbe_adjust_mactime;
 	ops->read_mmc = mgbe_read_mmc;

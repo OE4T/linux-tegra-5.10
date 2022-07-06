@@ -116,4 +116,6 @@ nve32_t hw_ptp_tsc_capture(struct osi_core_priv_data *const osi_core,
 			   struct osi_core_ptp_tsc_data *data);
 nve32_t hw_config_mac_pkt_filter_reg(struct osi_core_priv_data *const osi_core,
 				     const struct osi_filter *filter);
+nve32_t hw_config_l3_l4_filter_enable(struct osi_core_priv_data *const osi_core,
+				      const nveu32_t filter_enb_dis);
 #endif /* INCLUDED_CORE_COMMON_H */

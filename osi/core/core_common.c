@@ -558,6 +558,30 @@ nve32_t hw_config_mac_pkt_filter_reg(struct osi_core_priv_data *const osi_core,
 	return ret;
 }
 
+nve32_t hw_config_l3_l4_filter_enable(struct osi_core_priv_data *const osi_core,
+				      const nveu32_t filter_enb_dis)
+{
+	nveu32_t value = 0U;
+	void *base = osi_core->base;
+	nve32_t ret = 0;
+
+	/* validate filter_enb_dis argument */
+	if (filter_enb_dis != OSI_ENABLE && filter_enb_dis != OSI_DISABLE) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			"Invalid filter_enb_dis value\n",
+			filter_enb_dis);
+		ret = -1;
+		goto fail;
+	}
+
+	value = osi_readla(osi_core, ((nveu8_t *)base + MAC_PKT_FILTER_REG));
+	value &= ~(MAC_PFR_IPFE);
+	value |= ((filter_enb_dis << MAC_PFR_IPFE_SHIFT) & MAC_PFR_IPFE);
+	osi_writela(osi_core, value, ((nveu8_t *)base + MAC_PKT_FILTER_REG));
+fail:
+	return ret;
+}
+
 #ifndef OSI_STRIPPED_LIB
 /**
  * @brief hw_est_read - indirect read the GCL to Software own list
