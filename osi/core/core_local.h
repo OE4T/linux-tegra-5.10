@@ -131,9 +131,6 @@ struct core_ops {
 				     const nveu32_t perfect_inverse_match,
 				     const nveu32_t dma_routing_enable,
 				     const nveu32_t dma_chan);
-	/** Called to configure the TimeStampControl register */
-	void (*config_tscr)(struct osi_core_priv_data *const osi_core,
-			    const nveu32_t ptp_filter);
 	/** Called to configure the sub second increment register */
 	void (*config_ssir)(struct osi_core_priv_data *const osi_core,
 			    const nveu32_t ptp_clock);

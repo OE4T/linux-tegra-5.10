@@ -5336,91 +5336,6 @@ static int mgbe_adjust_mactime(struct osi_core_priv_data *osi_core,
 }
 
 /**
- * @brief mgbe_config_tscr - Configure Time Stamp Register
- *
- * @param[in] addr: Base address indicating the start of
- *	      memory mapped IO region of the MAC.
- * @param[in] ptp_filter: PTP rx filter parameters
- *
- * @note MAC should be init and started. see osi_start_mac()
- */
-static void mgbe_config_tscr(struct osi_core_priv_data *osi_core,
-			     nveu32_t ptp_filter)
-{
-	struct core_local *l_core = (struct core_local *)osi_core;
-	unsigned int mac_tcr = 0;
-	nveu32_t value = 0x0U;
-	void *addr = osi_core->base;
-
-	if (ptp_filter != OSI_DISABLE) {
-		mac_tcr = (OSI_MAC_TCR_TSENA	|
-			   OSI_MAC_TCR_TSCFUPDT |
-			   OSI_MAC_TCR_TSCTRLSSR);
-
-		if ((ptp_filter & OSI_MAC_TCR_SNAPTYPSEL_1) ==
-		    OSI_MAC_TCR_SNAPTYPSEL_1) {
-			mac_tcr |= OSI_MAC_TCR_SNAPTYPSEL_1;
-		}
-		if ((ptp_filter & OSI_MAC_TCR_SNAPTYPSEL_2) ==
-		    OSI_MAC_TCR_SNAPTYPSEL_2) {
-			mac_tcr |= OSI_MAC_TCR_SNAPTYPSEL_2;
-		}
-		if ((ptp_filter & OSI_MAC_TCR_SNAPTYPSEL_3) ==
-		    OSI_MAC_TCR_SNAPTYPSEL_3) {
-			mac_tcr |= OSI_MAC_TCR_SNAPTYPSEL_3;
-		}
-		if ((ptp_filter & OSI_MAC_TCR_TSIPV4ENA) ==
-		    OSI_MAC_TCR_TSIPV4ENA) {
-			mac_tcr |= OSI_MAC_TCR_TSIPV4ENA;
-		}
-		if ((ptp_filter & OSI_MAC_TCR_TSIPV6ENA) ==
-		    OSI_MAC_TCR_TSIPV6ENA) {
-			mac_tcr |= OSI_MAC_TCR_TSIPV6ENA;
-		}
-		if ((ptp_filter & OSI_MAC_TCR_TSEVENTENA) ==
-		    OSI_MAC_TCR_TSEVENTENA) {
-			mac_tcr |= OSI_MAC_TCR_TSEVENTENA;
-		}
-		if ((ptp_filter & OSI_MAC_TCR_TSMASTERENA) ==
-		    OSI_MAC_TCR_TSMASTERENA) {
-			mac_tcr |= OSI_MAC_TCR_TSMASTERENA;
-		}
-		if ((ptp_filter & OSI_MAC_TCR_TSVER2ENA) ==
-		    OSI_MAC_TCR_TSVER2ENA) {
-			mac_tcr |= OSI_MAC_TCR_TSVER2ENA;
-		}
-		if ((ptp_filter & OSI_MAC_TCR_TSIPENA) ==
-		    OSI_MAC_TCR_TSIPENA) {
-			mac_tcr |= OSI_MAC_TCR_TSIPENA;
-		}
-		if ((ptp_filter & OSI_MAC_TCR_AV8021ASMEN) ==
-		    OSI_MAC_TCR_AV8021ASMEN) {
-			mac_tcr |= OSI_MAC_TCR_AV8021ASMEN;
-		}
-		if ((ptp_filter & OSI_MAC_TCR_TSENALL) ==
-		    OSI_MAC_TCR_TSENALL) {
-			mac_tcr |= OSI_MAC_TCR_TSENALL;
-		}
-		if ((ptp_filter & OSI_MAC_TCR_CSC) ==
-				OSI_MAC_TCR_CSC) {
-			mac_tcr |= OSI_MAC_TCR_CSC;
-		}
-	} else {
-		/* Disabling the MAC time stamping */
-		mac_tcr = OSI_DISABLE;
-	}
-
-	osi_writela(osi_core, mac_tcr, (unsigned char *)addr + MGBE_MAC_TCR);
-
-	value = osi_readla(osi_core, (nveu8_t *)addr + MGBE_MAC_PPS_CTL);
-	value &= ~MGBE_MAC_PPS_CTL_PPSCTRL0;
-	if (l_core->pps_freq == OSI_ENABLE) {
-		value |= OSI_ENABLE;
-	}
-	osi_writela(osi_core, value, (nveu8_t *)addr + MGBE_MAC_PPS_CTL);
-}
-
-/**
  * @brief mgbe_config_ssir - Configure SSIR
  *
  * @param[in] osi_core: OSI core private data structure.
@@ -5743,7 +5658,6 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->update_mac_addr_low_high_reg = mgbe_update_mac_addr_low_high_reg;
 	ops->config_l3_l4_filter_enable = mgbe_config_l3_l4_filter_enable;
 	ops->config_l3_filters = mgbe_config_l3_filters;
-	ops->config_tscr = mgbe_config_tscr;
 	ops->config_ssir = mgbe_config_ssir,
 	ops->adjust_mactime = mgbe_adjust_mactime;
 	ops->read_mmc = mgbe_read_mmc;

@@ -3957,92 +3957,6 @@ static nve32_t eqos_adjust_mactime(struct osi_core_priv_data *const osi_core,
 	return 0;
 }
 
-/** \cond DO_NOT_DOCUMENT */
-/**
- * @brief eqos_config_tscr - Configure Time Stamp Register
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] ptp_filter: PTP rx filter parameters
- *
- * @pre MAC should be initialized and started. see osi_start_mac()
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: Yes
- * - De-initialization: No
- */
-static void eqos_config_tscr(struct osi_core_priv_data *const osi_core,
-			     const nveu32_t ptp_filter)
-{
-	void *addr = osi_core->base;
-	struct core_local *l_core = (struct core_local *)osi_core;
-	nveu32_t mac_tcr = 0U, i = 0U, temp = 0U;
-	nveu32_t value = 0x0U;
-
-	if (ptp_filter != OSI_DISABLE) {
-		mac_tcr = (OSI_MAC_TCR_TSENA	|
-				OSI_MAC_TCR_TSCFUPDT |
-				OSI_MAC_TCR_TSCTRLSSR);
-
-		for (i = 0U; i < 32U; i++) {
-			temp = ptp_filter & OSI_BIT(i);
-
-			switch (temp) {
-				case OSI_MAC_TCR_SNAPTYPSEL_1:
-					mac_tcr |= OSI_MAC_TCR_SNAPTYPSEL_1;
-					break;
-				case OSI_MAC_TCR_SNAPTYPSEL_2:
-					mac_tcr |= OSI_MAC_TCR_SNAPTYPSEL_2;
-					break;
-				case OSI_MAC_TCR_TSIPV4ENA:
-					mac_tcr |= OSI_MAC_TCR_TSIPV4ENA;
-					break;
-				case OSI_MAC_TCR_TSIPV6ENA:
-					mac_tcr |= OSI_MAC_TCR_TSIPV6ENA;
-					break;
-				case OSI_MAC_TCR_TSEVENTENA:
-					mac_tcr |= OSI_MAC_TCR_TSEVENTENA;
-					break;
-				case OSI_MAC_TCR_TSMASTERENA:
-					mac_tcr |= OSI_MAC_TCR_TSMASTERENA;
-					break;
-				case OSI_MAC_TCR_TSVER2ENA:
-					mac_tcr |= OSI_MAC_TCR_TSVER2ENA;
-					break;
-				case OSI_MAC_TCR_TSIPENA:
-					mac_tcr |= OSI_MAC_TCR_TSIPENA;
-					break;
-				case OSI_MAC_TCR_AV8021ASMEN:
-					mac_tcr |= OSI_MAC_TCR_AV8021ASMEN;
-					break;
-				case OSI_MAC_TCR_TSENALL:
-					mac_tcr |= OSI_MAC_TCR_TSENALL;
-					break;
-				case OSI_MAC_TCR_CSC:
-					mac_tcr |= OSI_MAC_TCR_CSC;
-					break;
-				default:
-					break;
-			}
-		}
-	} else {
-		/* Disabling the MAC time stamping */
-		mac_tcr = OSI_DISABLE;
-	}
-
-	eqos_core_safety_writel(osi_core, mac_tcr,
-				(nveu8_t *)addr + EQOS_MAC_TCR,
-				EQOS_MAC_TCR_IDX);
-	value = osi_readla(osi_core, (nveu8_t *)addr + EQOS_MAC_PPS_CTL);
-	value &= ~EQOS_MAC_PPS_CTL_PPSCTRL0;
-	if (l_core->pps_freq == OSI_ENABLE) {
-		value |= OSI_ENABLE;
-	}
-	osi_writela(osi_core, value, (nveu8_t *)addr + EQOS_MAC_PPS_CTL);
-}
-/** \endcond */
-
 #ifndef OSI_STRIPPED_LIB
 /**
  * @brief eqos_config_ptp_rxq - To config PTP RX packets queue
@@ -6231,7 +6145,6 @@ void eqos_init_core_ops(struct core_ops *ops)
 	ops->update_mac_addr_low_high_reg = eqos_update_mac_addr_low_high_reg;
 	ops->config_l3_l4_filter_enable = eqos_config_l3_l4_filter_enable;
 	ops->config_l3_filters = eqos_config_l3_filters;
-	ops->config_tscr = eqos_config_tscr;
 	ops->config_ssir = eqos_config_ssir;
 	ops->adjust_mactime = eqos_adjust_mactime;
 	ops->read_mmc = eqos_read_mmc;

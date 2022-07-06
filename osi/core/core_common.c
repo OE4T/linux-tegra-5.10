@@ -347,6 +347,89 @@ fail:
 }
 
 #ifndef OSI_STRIPPED_LIB
+void hw_config_tscr(struct osi_core_priv_data *const osi_core, const nveu32_t ptp_filter)
+#else
+void hw_config_tscr(struct osi_core_priv_data *const osi_core, OSI_UNUSED const nveu32_t ptp_filter)
+#endif /* !OSI_STRIPPED_LIB */
+{
+	void *addr = osi_core->base;
+	struct core_local *l_core = (struct core_local *)osi_core;
+	nveu32_t mac_tcr = 0U;
+#ifndef OSI_STRIPPED_LIB
+	nveu32_t i = 0U, temp = 0U;
+#endif /* !OSI_STRIPPED_LIB */
+	nveu32_t value = 0x0U;
+	const nveu32_t mac_tscr[2] = { EQOS_MAC_TCR, MGBE_MAC_TCR};
+	const nveu32_t mac_pps[2] = { EQOS_MAC_PPS_CTL, MGBE_MAC_PPS_CTL};
+
+#ifndef OSI_STRIPPED_LIB
+	if (ptp_filter != OSI_DISABLE) {
+		mac_tcr = (OSI_MAC_TCR_TSENA | OSI_MAC_TCR_TSCFUPDT | OSI_MAC_TCR_TSCTRLSSR);
+		for (i = 0U; i < 32U; i++) {
+			temp = ptp_filter & OSI_BIT(i);
+
+			switch (temp) {
+			case OSI_MAC_TCR_SNAPTYPSEL_1:
+				mac_tcr |= OSI_MAC_TCR_SNAPTYPSEL_1;
+				break;
+			case OSI_MAC_TCR_SNAPTYPSEL_2:
+				mac_tcr |= OSI_MAC_TCR_SNAPTYPSEL_2;
+				break;
+			case OSI_MAC_TCR_SNAPTYPSEL_3:
+				mac_tcr |= OSI_MAC_TCR_SNAPTYPSEL_3;
+				break;
+			case OSI_MAC_TCR_TSIPV4ENA:
+				mac_tcr |= OSI_MAC_TCR_TSIPV4ENA;
+				break;
+			case OSI_MAC_TCR_TSIPV6ENA:
+				mac_tcr |= OSI_MAC_TCR_TSIPV6ENA;
+				break;
+			case OSI_MAC_TCR_TSEVENTENA:
+				mac_tcr |= OSI_MAC_TCR_TSEVENTENA;
+				break;
+			case OSI_MAC_TCR_TSMASTERENA:
+				mac_tcr |= OSI_MAC_TCR_TSMASTERENA;
+				break;
+			case OSI_MAC_TCR_TSVER2ENA:
+				mac_tcr |= OSI_MAC_TCR_TSVER2ENA;
+				break;
+			case OSI_MAC_TCR_TSIPENA:
+				mac_tcr |= OSI_MAC_TCR_TSIPENA;
+				break;
+			case OSI_MAC_TCR_AV8021ASMEN:
+				mac_tcr |= OSI_MAC_TCR_AV8021ASMEN;
+				break;
+			case OSI_MAC_TCR_TSENALL:
+				mac_tcr |= OSI_MAC_TCR_TSENALL;
+				break;
+			case OSI_MAC_TCR_CSC:
+				mac_tcr |= OSI_MAC_TCR_CSC;
+				break;
+			default:
+				break;
+			}
+		}
+	} else {
+		/* Disabling the MAC time stamping */
+		mac_tcr = OSI_DISABLE;
+	}
+#else
+	mac_tcr = (OSI_MAC_TCR_TSENA | OSI_MAC_TCR_TSCFUPDT | OSI_MAC_TCR_TSCTRLSSR
+		   | OSI_MAC_TCR_TSVER2ENA | OSI_MAC_TCR_TSIPENA | OSI_MAC_TCR_TSIPV6ENA |
+		   OSI_MAC_TCR_TSIPV4ENA | OSI_MAC_TCR_SNAPTYPSEL_1);
+#endif /* !OSI_STRIPPED_LIB */
+
+	osi_writela(osi_core, mac_tcr, ((nveu8_t *)addr + mac_tscr[osi_core->mac]));
+
+	value = osi_readla(osi_core, (nveu8_t *)addr + mac_pps[osi_core->mac]);
+	value &= ~MAC_PPS_CTL_PPSCTRL0;
+	if (l_core->pps_freq == OSI_ENABLE) {
+		value |= OSI_ENABLE;
+	}
+	osi_writela(osi_core, value, ((nveu8_t *)addr + mac_pps[osi_core->mac]));
+}
+
+#ifndef OSI_STRIPPED_LIB
 /**
  * @brief hw_est_read - indirect read the GCL to Software own list
  * (SWOL)

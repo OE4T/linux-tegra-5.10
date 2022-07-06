@@ -43,6 +43,9 @@
 #define MTL_RXQ_OP_MODE_FEP		OSI_BIT(4)
 #define MAC_TCR_TSINIT			OSI_BIT(2)
 #define MAC_TCR_TSADDREG		OSI_BIT(5)
+#define MAC_PPS_CTL_PPSCTRL0		(OSI_BIT(3) | OSI_BIT(2) |\
+					OSI_BIT(1) | OSI_BIT(0))
+
 /**
  * @addtogroup typedef related info
  *
@@ -79,4 +82,5 @@ nve32_t hw_set_systime_to_mac(struct osi_core_priv_data *const osi_core,
 			      const nveu32_t sec, const nveu32_t nsec);
 nve32_t hw_config_addend(struct osi_core_priv_data *const osi_core,
 			 const nveu32_t addend);
+void hw_config_tscr(struct osi_core_priv_data *const osi_core, const nveu32_t ptp_filter);
 #endif /* INCLUDED_CORE_COMMON_H */

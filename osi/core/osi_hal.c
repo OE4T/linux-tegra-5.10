@@ -744,7 +744,7 @@ nve32_t osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
 	if (enable == OSI_DISABLE) {
 		/* disable hw time stamping */
 		/* Program MAC_Timestamp_Control Register */
-		l_core->ops_p->config_tscr(osi_core, OSI_DISABLE);
+		hw_config_tscr(osi_core, OSI_DISABLE);
 #ifndef OSI_STRIPPED_LIB
 		/* Disable PTP RX Queue routing */
 		ret = l_core->ops_p->config_ptp_rxq(osi_core,
@@ -753,7 +753,7 @@ nve32_t osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
 #endif /* !OSI_STRIPPED_LIB */
 	} else {
 		/* Program MAC_Timestamp_Control Register */
-		l_core->ops_p->config_tscr(osi_core,
+		hw_config_tscr(osi_core,
 					   osi_core->ptp_config.ptp_filter);
 
 		/* Program Sub Second Increment Register */
