@@ -2615,126 +2615,6 @@ static void eqos_config_mac_tx(struct osi_core_priv_data *const osi_core,
 #endif /*  MACSEC_SUPPORT */
 
 /**
- * @brief eqos_config_l2_da_perfect_inverse_match - configure register for
- *  inverse or perfect match.
- *
- * @note
- * Algorithm:
- *  - use perfect_inverse_match filed to set perfect/inverse matching for L2 DA.
- *  - Refer to EQOS column of <<RM_18, (sequence diagram)>> for API details.
- *  - TraceID:ETHERNET_NVETHERNETRM_018
- *
- * @param[in] base: Base address from OSI core private data structure.
- * @param[in] perfect_inverse_match: OSI_INV_MATCH - inverse mode else - perfect mode
- *
- * @pre MAC should be initialized and started. see osi_start_mac()
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval 0 always
- */
-static inline nve32_t eqos_config_l2_da_perfect_inverse_match(
-				struct osi_core_priv_data *const osi_core,
-				nveu32_t perfect_inverse_match)
-{
-	nveu32_t value = 0U;
-
-	value = osi_readla(osi_core,
-			   (nveu8_t *)osi_core->base + EQOS_MAC_PFR);
-	value &= ~EQOS_MAC_PFR_DAIF;
-	if (perfect_inverse_match == OSI_INV_MATCH) {
-		value |= EQOS_MAC_PFR_DAIF;
-	}
-	eqos_core_safety_writel(osi_core, value,
-				(nveu8_t *)osi_core->base + EQOS_MAC_PFR,
-				EQOS_MAC_PFR_IDX);
-
-	return 0;
-}
-
-/**
- * @brief eqos_config_mac_pkt_filter_reg - configure mac filter register.
- *
- * @note
- *  - This sequence is used to configure MAC in different pkt
- *    processing modes like promiscuous, multicast, unicast,
- *    hash unicast/multicast based on input filter arguments.
- *  - Refer to EQOS column of <<RM_18, (sequence diagram)>> for API details.
- *  - TraceID:ETHERNET_NVETHERNETRM_018
- *
- * @param[in] osi_core: OSI core private data structure. Used param base.
- * @param[in] filter: OSI filter structure. used param oper_mode.
- *
- * @pre MAC should be initialized and started. see osi_start_mac()
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval 0 always
- */
-static nve32_t eqos_config_mac_pkt_filter_reg(
-				struct osi_core_priv_data *const osi_core,
-				const struct osi_filter *filter)
-{
-	nveu32_t value = 0U;
-	nve32_t ret = 0;
-
-	value = osi_readla(osi_core, (nveu8_t *)osi_core->base + EQOS_MAC_PFR);
-
-	/*Retain all other values */
-	value &= (EQOS_MAC_PFR_DAIF | EQOS_MAC_PFR_DBF | EQOS_MAC_PFR_SAIF |
-		  EQOS_MAC_PFR_SAF | EQOS_MAC_PFR_PCF | EQOS_MAC_PFR_VTFE |
-		  EQOS_MAC_PFR_IPFE | EQOS_MAC_PFR_DNTU | EQOS_MAC_PFR_RA);
-
-	if ((filter->oper_mode & OSI_OPER_EN_PROMISC) != OSI_DISABLE) {
-		value |= EQOS_MAC_PFR_PR;
-	}
-
-	if ((filter->oper_mode & OSI_OPER_DIS_PROMISC) != OSI_DISABLE) {
-		value &= ~EQOS_MAC_PFR_PR;
-	}
-
-	if ((filter->oper_mode & OSI_OPER_EN_ALLMULTI) != OSI_DISABLE) {
-		value |= EQOS_MAC_PFR_PM;
-	}
-
-	if ((filter->oper_mode & OSI_OPER_DIS_ALLMULTI) != OSI_DISABLE) {
-		value &= ~EQOS_MAC_PFR_PM;
-	}
-
-	if ((filter->oper_mode & OSI_OPER_EN_PERFECT) != OSI_DISABLE) {
-		value |= EQOS_MAC_PFR_HPF;
-	}
-
-	if ((filter->oper_mode & OSI_OPER_DIS_PERFECT) != OSI_DISABLE) {
-		value &= ~EQOS_MAC_PFR_HPF;
-	}
-
-
-	eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
-				EQOS_MAC_PFR, EQOS_MAC_PFR_IDX);
-
-	if ((filter->oper_mode & OSI_OPER_EN_L2_DA_INV) != OSI_DISABLE) {
-		ret = eqos_config_l2_da_perfect_inverse_match(osi_core,
-							      OSI_INV_MATCH);
-	}
-
-	if ((filter->oper_mode & OSI_OPER_DIS_L2_DA_INV) != OSI_DISABLE) {
-		ret = eqos_config_l2_da_perfect_inverse_match(osi_core,
-							      OSI_PFT_MATCH);
-	}
-
-	return ret;
-}
-
-/**
  * @brief eqos_update_mac_addr_helper - Function to update DCS and MBC; helper function for
  * eqos_update_mac_addr_low_high_reg()
  *
@@ -5992,7 +5872,6 @@ void eqos_init_core_ops(struct core_ops *ops)
 	ops->core_init = eqos_core_init;
 	ops->handle_common_intr = eqos_handle_common_intr;
 	ops->pad_calibrate = eqos_pad_calibrate;
-	ops->config_mac_pkt_filter_reg = eqos_config_mac_pkt_filter_reg;
 	ops->update_mac_addr_low_high_reg = eqos_update_mac_addr_low_high_reg;
 	ops->config_l3_l4_filter_enable = eqos_config_l3_l4_filter_enable;
 	ops->config_l3_filters = eqos_config_l3_filters;

@@ -387,7 +387,7 @@ nve32_t osi_l2_filter(struct osi_core_priv_data *const osi_core,
 		return -1;
 	}
 
-	ret = l_core->ops_p->config_mac_pkt_filter_reg(osi_core, filter);
+	ret = hw_config_mac_pkt_filter_reg(osi_core, filter);
 	if (ret < 0) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			     "failed to configure MAC packet filter register\n",

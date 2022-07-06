@@ -486,6 +486,78 @@ exit:
 	return ret;
 }
 
+static inline void config_l2_da_perfect_inverse_match(
+					struct osi_core_priv_data *osi_core,
+					nveu32_t perfect_inverse_match)
+{
+	nveu32_t value = 0U;
+
+	value = osi_readla(osi_core, ((nveu8_t *)osi_core->base + MAC_PKT_FILTER_REG));
+	value &= ~MAC_PFR_DAIF;
+	if (perfect_inverse_match == OSI_INV_MATCH) {
+		/* Set DA Inverse Filtering */
+		value |= MAC_PFR_DAIF;
+	}
+	osi_writela(osi_core, value, ((nveu8_t *)osi_core->base + MAC_PKT_FILTER_REG));
+}
+
+nve32_t hw_config_mac_pkt_filter_reg(struct osi_core_priv_data *const osi_core,
+				     const struct osi_filter *filter)
+{
+	nveu32_t value = 0U;
+	nve32_t ret = 0;
+
+	value = osi_readla(osi_core, ((nveu8_t *)osi_core->base + MAC_PKT_FILTER_REG));
+
+	/*Retain all other values */
+	value &= (MAC_PFR_DAIF | MAC_PFR_DBF  | MAC_PFR_SAIF |
+		  MAC_PFR_SAF  | MAC_PFR_PCF  | MAC_PFR_VTFE |
+		  MAC_PFR_IPFE | MAC_PFR_DNTU | MAC_PFR_RA);
+
+	if ((filter->oper_mode & OSI_OPER_EN_PERFECT) != OSI_DISABLE) {
+		value |= MAC_PFR_HPF;
+	}
+
+#ifndef OSI_STRIPPED_LIB
+	if ((filter->oper_mode & OSI_OPER_DIS_PERFECT) != OSI_DISABLE) {
+		value &= ~MAC_PFR_HPF;
+	}
+
+	if ((filter->oper_mode & OSI_OPER_EN_PROMISC) != OSI_DISABLE) {
+		value |= MAC_PFR_PR;
+	}
+
+	if ((filter->oper_mode & OSI_OPER_DIS_PROMISC) != OSI_DISABLE) {
+		value &= ~MAC_PFR_PR;
+	}
+
+	if ((filter->oper_mode & OSI_OPER_EN_ALLMULTI) != OSI_DISABLE) {
+		value |= MAC_PFR_PM;
+	}
+
+	if ((filter->oper_mode & OSI_OPER_DIS_ALLMULTI) != OSI_DISABLE) {
+		value &= ~MAC_PFR_PM;
+	}
+#endif /* !OSI_STRIPPED_LIB */
+
+	osi_writela(osi_core, value,
+		    ((nveu8_t *)osi_core->base + MAC_PKT_FILTER_REG));
+
+#ifndef OSI_STRIPPED_LIB
+	if ((filter->oper_mode & OSI_OPER_EN_L2_DA_INV) != OSI_DISABLE) {
+		config_l2_da_perfect_inverse_match(osi_core, OSI_INV_MATCH);
+	}
+
+	if ((filter->oper_mode & OSI_OPER_DIS_L2_DA_INV) != OSI_DISABLE) {
+#endif /* !OSI_STRIPPED_LIB */
+		config_l2_da_perfect_inverse_match(osi_core, OSI_PFT_MATCH);
+#ifndef OSI_STRIPPED_LIB
+	}
+#endif /* !OSI_STRIPPED_LIB */
+
+	return ret;
+}
+
 #ifndef OSI_STRIPPED_LIB
 /**
  * @brief hw_est_read - indirect read the GCL to Software own list

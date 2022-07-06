@@ -111,10 +111,6 @@ struct core_ops {
 	void (*handle_common_intr)(struct osi_core_priv_data *const osi_core);
 	/** Called to do pad caliberation */
 	nve32_t (*pad_calibrate)(struct osi_core_priv_data *const osi_core);
-	/** Called to config mac packet filter */
-	nve32_t (*config_mac_pkt_filter_reg)(
-				struct osi_core_priv_data *const osi_core,
-				const struct osi_filter *filter);
 	/** Called to update MAC address 1-127 */
 	nve32_t (*update_mac_addr_low_high_reg)(
 				struct osi_core_priv_data *const osi_core,

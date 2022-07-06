@@ -259,109 +259,6 @@ static nve32_t mgbe_mac_indir_addr_read(struct osi_core_priv_data *osi_core,
 }
 
 /**
- * @brief mgbe_config_l2_da_perfect_inverse_match - configure register for
- *	inverse or perfect match.
- *
- * Algorithm: This sequence is used to select perfect/inverse matching
- *	for L2 DA
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] perfect_inverse_match: 1 - inverse mode 0- perfect mode
- *
- * @note MAC should be init and started. see osi_start_mac()
- */
-static inline void mgbe_config_l2_da_perfect_inverse_match(
-					struct osi_core_priv_data *osi_core,
-					nveu32_t perfect_inverse_match)
-{
-	nveu32_t value = 0U;
-
-	value = osi_readla(osi_core,
-			   (nveu8_t *)osi_core->base + MGBE_MAC_PFR);
-	value &= ~MGBE_MAC_PFR_DAIF;
-	if (perfect_inverse_match == OSI_INV_MATCH) {
-		/* Set DA Inverse Filtering */
-		value |= MGBE_MAC_PFR_DAIF;
-	}
-	osi_writela(osi_core, value,
-		    (nveu8_t *)osi_core->base + MGBE_MAC_PFR);
-}
-
-/**
- * @brief mgbe_config_mac_pkt_filter_reg - configure mac filter register.
- *
- * Algorithm: This sequence is used to configure MAC in differnet pkt
- *	processing modes like promiscuous, multicast, unicast,
- *	hash unicast/multicast.
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] filter: OSI filter structure.
- *
- * @note 1) MAC should be initialized and started. see osi_start_mac()
- *
- * @retval 0 always
- */
-static nve32_t mgbe_config_mac_pkt_filter_reg(struct osi_core_priv_data *const osi_core,
-					  const struct osi_filter *filter)
-{
-	nveu32_t value = 0U;
-	nve32_t ret = 0;
-
-	value = osi_readla(osi_core,
-			   (nveu8_t *)osi_core->base + MGBE_MAC_PFR);
-
-	/* Retain all other values */
-	value &= (MGBE_MAC_PFR_DAIF | MGBE_MAC_PFR_DBF | MGBE_MAC_PFR_SAIF |
-		  MGBE_MAC_PFR_SAF | MGBE_MAC_PFR_PCF | MGBE_MAC_PFR_VTFE |
-		  MGBE_MAC_PFR_IPFE | MGBE_MAC_PFR_DNTU | MGBE_MAC_PFR_RA);
-
-	if ((filter->oper_mode & OSI_OPER_EN_PROMISC) != OSI_DISABLE) {
-		/* Set Promiscuous Mode Bit */
-		value |= MGBE_MAC_PFR_PR;
-	}
-
-	if ((filter->oper_mode & OSI_OPER_DIS_PROMISC) != OSI_DISABLE) {
-		/* Reset Promiscuous Mode Bit */
-		value &= ~MGBE_MAC_PFR_PR;
-	}
-
-	if ((filter->oper_mode & OSI_OPER_EN_ALLMULTI) != OSI_DISABLE) {
-		/* Set Pass All Multicast Bit */
-		value |= MGBE_MAC_PFR_PM;
-	}
-
-	if ((filter->oper_mode & OSI_OPER_DIS_ALLMULTI) != OSI_DISABLE) {
-		/* Reset Pass All Multicast Bit */
-		value &= ~MGBE_MAC_PFR_PM;
-	}
-
-	if ((filter->oper_mode & OSI_OPER_EN_PERFECT) != OSI_DISABLE) {
-		/* Set Hash or Perfect Filter Bit */
-		value |= MGBE_MAC_PFR_HPF;
-	}
-
-	if ((filter->oper_mode & OSI_OPER_DIS_PERFECT) != OSI_DISABLE) {
-		/* Reset Hash or Perfect Filter Bit */
-		value &= ~MGBE_MAC_PFR_HPF;
-	}
-
-	osi_writela(osi_core, value,
-		    (nveu8_t *)osi_core->base + MGBE_MAC_PFR);
-
-	if ((filter->oper_mode & OSI_OPER_EN_L2_DA_INV) != OSI_DISABLE) {
-		mgbe_config_l2_da_perfect_inverse_match(osi_core,
-							OSI_INV_MATCH);
-	}
-
-	if ((filter->oper_mode & OSI_OPER_DIS_L2_DA_INV) != OSI_DISABLE) {
-		mgbe_config_l2_da_perfect_inverse_match(osi_core,
-							OSI_PFT_MATCH);
-	}
-
-	return ret;
-}
-
-/**
  * @brief mgbe_filter_args_validate - Validates the filter arguments
  *
  * Algorithm: This function just validates all arguments provided by
@@ -5567,7 +5464,6 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->core_init = mgbe_core_init;
 	ops->handle_common_intr = mgbe_handle_common_intr;
 	ops->pad_calibrate = mgbe_pad_calibrate;
-	ops->config_mac_pkt_filter_reg = mgbe_config_mac_pkt_filter_reg;
 	ops->update_mac_addr_low_high_reg = mgbe_update_mac_addr_low_high_reg;
 	ops->config_l3_l4_filter_enable = mgbe_config_l3_l4_filter_enable;
 	ops->config_l3_filters = mgbe_config_l3_filters;

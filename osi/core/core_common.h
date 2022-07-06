@@ -52,13 +52,27 @@
 #define MAC_PPS_CTL_PPSCTRL0		(OSI_BIT(3) | OSI_BIT(2) |\
 					OSI_BIT(1) | OSI_BIT(0))
 #define MAC_SSIR_SSINC_SHIFT		16U
-
+#define MAC_PFR_PR			OSI_BIT(0)
+#define MAC_PFR_DAIF			OSI_BIT(3)
+#define MAC_PFR_PM			OSI_BIT(4)
+#define MAC_PFR_DBF			OSI_BIT(5)
+#define MAC_PFR_PCF			(OSI_BIT(6) | OSI_BIT(7))
+#define MAC_PFR_SAIF			OSI_BIT(8)
+#define MAC_PFR_SAF			OSI_BIT(9)
+#define MAC_PFR_HPF			OSI_BIT(10)
+#define MAC_PFR_VTFE			OSI_BIT(16)
+#define MAC_PFR_IPFE			OSI_BIT(20)
+#define MAC_PFR_IPFE_SHIFT		20U
+#define MAC_PFR_DNTU			OSI_BIT(21)
+#define MAC_PFR_RA			OSI_BIT(31)
 
 #define WRAP_SYNC_TSC_PTP_CAPTURE	0x800CU
 #define WRAP_TSC_CAPTURE_LOW		0x8010U
 #define WRAP_TSC_CAPTURE_HIGH		0x8014U
 #define WRAP_PTP_CAPTURE_LOW		0x8018U
 #define WRAP_PTP_CAPTURE_HIGH		0x801CU
+#define MAC_PKT_FILTER_REG		0x0008
+
 
 #ifndef OSI_STRIPPED_LIB
 /**
@@ -100,4 +114,6 @@ void hw_config_tscr(struct osi_core_priv_data *const osi_core, const nveu32_t pt
 void hw_config_ssir(struct osi_core_priv_data *const osi_core);
 nve32_t hw_ptp_tsc_capture(struct osi_core_priv_data *const osi_core,
 			   struct osi_core_ptp_tsc_data *data);
+nve32_t hw_config_mac_pkt_filter_reg(struct osi_core_priv_data *const osi_core,
+				     const struct osi_filter *filter);
 #endif /* INCLUDED_CORE_COMMON_H */
