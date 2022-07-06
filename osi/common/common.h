@@ -37,6 +37,12 @@
 #define RETRY_DELAY	1U
 /** @} */
 
+/** MAC version type for EQOS version previous to 5.30 */
+#define MAC_CORE_VER_TYPE_EQOS		0U
+/** MAC version type for EQOS version 5.30 */
+#define MAC_CORE_VER_TYPE_EQOS_5_30	1U
+/** MAC version type for MGBE IP */
+#define MAC_CORE_VER_TYPE_MGBE		2U
 
 /**
  * @brief Maximum number of supported MAC IP types (EQOS and MGBE)
@@ -248,24 +254,26 @@ static inline void osi_writela(OSI_UNUSED void *priv, nveu32_t val, void *addr)
  * @retval 1 - for Valid MAC
  */
 static inline nve32_t validate_mac_ver_update_chans(nveu32_t mac_ver,
-						    nveu32_t *max_chans)
+						    nveu32_t *max_chans,
+						    nveu32_t *l_mac_ver)
 {
 	nve32_t ret;
 
 	switch (mac_ver) {
-	case OSI_EQOS_MAC_4_10:
 	case OSI_EQOS_MAC_5_00:
 		*max_chans = OSI_EQOS_XP_MAX_CHANS;
+		*l_mac_ver = MAC_CORE_VER_TYPE_EQOS;
 		ret = 1;
 		break;
 	case OSI_EQOS_MAC_5_30:
 		*max_chans = OSI_EQOS_MAX_NUM_CHANS;
+		*l_mac_ver = MAC_CORE_VER_TYPE_EQOS_5_30;
 		ret = 1;
 		break;
-	case OSI_MGBE_MAC_3_00:
 	case OSI_MGBE_MAC_3_10:
 	case OSI_MGBE_MAC_4_00:
 		*max_chans = OSI_MGBE_MAX_NUM_CHANS;
+		*l_mac_ver = MAC_CORE_VER_TYPE_MGBE;
 		ret = 1;
 		break;
 	default:

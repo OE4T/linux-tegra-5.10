@@ -5336,50 +5336,6 @@ static int mgbe_adjust_mactime(struct osi_core_priv_data *osi_core,
 }
 
 /**
- * @brief mgbe_config_ssir - Configure SSIR
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] ptp_clock: PTP required clock frequency
- *
- * @note MAC should be init and started. see osi_start_mac()
- */
-static void mgbe_config_ssir(struct osi_core_priv_data *const osi_core,
-			     const unsigned int ptp_clock)
-{
-	unsigned long long val;
-	unsigned int mac_tcr;
-	void *addr = osi_core->base;
-
-	mac_tcr = osi_readla(osi_core, (unsigned char *)addr + MGBE_MAC_TCR);
-
-	/* convert the PTP required clock frequency to nano second.
-	 * formula is : ((1/ptp_clock) * 1000000000)
-	 * where, ptp_clock = OSI_PTP_REQ_CLK_FREQ if FINE correction
-	 * and ptp_clock = PTP reference clock if COARSE correction
-	 */
-	if ((mac_tcr & MGBE_MAC_TCR_TSCFUPDT) == MGBE_MAC_TCR_TSCFUPDT) {
-		val = OSI_PTP_SSINC_4;
-	} else {
-		val = ((1U * OSI_NSEC_PER_SEC) / ptp_clock);
-	}
-
-	/* 0.465ns accurecy */
-	if ((mac_tcr & MGBE_MAC_TCR_TSCTRLSSR) == 0U) {
-		if (val < UINT_MAX) {
-			val = (val * 1000U) / 465U;
-		}
-	}
-
-	val |= (val << MGBE_MAC_SSIR_SSINC_SHIFT);
-
-	/* update Sub-second Increment Value */
-	if (val < UINT_MAX) {
-		osi_writela(osi_core, (unsigned int)val,
-			   (unsigned char *)addr + MGBE_MAC_SSIR);
-	}
-}
-
-/**
  * @brief mgbe_read_reg - Read a register
  *
  * @param[in] osi_core: OSI core private data structure.
@@ -5658,7 +5614,6 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->update_mac_addr_low_high_reg = mgbe_update_mac_addr_low_high_reg;
 	ops->config_l3_l4_filter_enable = mgbe_config_l3_l4_filter_enable;
 	ops->config_l3_filters = mgbe_config_l3_filters;
-	ops->config_ssir = mgbe_config_ssir,
 	ops->adjust_mactime = mgbe_adjust_mactime;
 	ops->read_mmc = mgbe_read_mmc;
 	ops->write_phy_reg = mgbe_write_phy_reg;

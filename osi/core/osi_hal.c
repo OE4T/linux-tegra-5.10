@@ -757,8 +757,7 @@ nve32_t osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
 					   osi_core->ptp_config.ptp_filter);
 
 		/* Program Sub Second Increment Register */
-		l_core->ops_p->config_ssir(osi_core,
-					   osi_core->ptp_config.ptp_clock);
+		hw_config_ssir(osi_core);
 
 		/* formula for calculating addend value is
 		 * TSAR = (2^32 * 1000) / (ptp_ref_clk_rate in MHz * SSINC)
@@ -839,7 +838,7 @@ static nve32_t osi_get_mac_version(struct osi_core_priv_data *const osi_core, nv
 	*mac_ver = osi_readla(osi_core, ((nveu8_t *)osi_core->base + (nve32_t)MAC_VERSION)) &
 			      MAC_VERSION_SNVER_MASK;
 
-	if (validate_mac_ver_update_chans(*mac_ver, &l_core->max_chans) == 0) {
+	if (validate_mac_ver_update_chans(*mac_ver, &l_core->max_chans, &l_core->l_mac_ver) == 0) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "Invalid MAC version\n", (nveu64_t)*mac_ver)
 		return -1;

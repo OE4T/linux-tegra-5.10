@@ -4048,72 +4048,6 @@ static nve32_t  eqos_config_ptp_rxq(struct osi_core_priv_data *const osi_core,
 #endif /* !OSI_STRIPPED_LIB */
 
 /**
- * @brief eqos_config_ssir - Configure SSIR register
- *
- * @note
- * Algorithm:
- *  - Calculate SSIR
- *   - For Coarse method(EQOS_MAC_TCR_TSCFUPDT not set in TCR register), ((1/ptp_clock) * 1000000000).
- *   - For fine correction use predeined value based on MAC version OSI_PTP_SSINC_16 if MAC version
- *     less than OSI_EQOS_MAC_4_10 and OSI_PTP_SSINC_4 if otherwise.
- *  - If EQOS_MAC_TCR_TSCTRLSSR bit not set in TCR register, set accurasy to 0.465ns.
- *   - i.e new val = val * 1000/465;
- *  - Program the calculated value to EQOS_MAC_SSIR register
- *  - Refer to EQOS column of <<RM_21, (sequence diagram)>> for API details.
- *  - SWUD_ID: ETHERNET_NVETHERNETRM_021_1
- *
- * @param[in] osi_core: OSI core private data structure. Used param is base, mac_ver.
- *
- * @pre MAC should be initialized and started. see osi_start_mac()
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: Yes
- * - De-initialization: No
- */
-static void eqos_config_ssir(struct osi_core_priv_data *const osi_core,
-			     const unsigned int ptp_clock)
-{
-	nveul64_t val;
-	nveu32_t mac_tcr;
-	void *addr = osi_core->base;
-
-	mac_tcr = osi_readla(osi_core, (nveu8_t *)addr + EQOS_MAC_TCR);
-
-	if ((mac_tcr & EQOS_MAC_TCR_TSCFUPDT) == EQOS_MAC_TCR_TSCFUPDT) {
-		if (osi_core->mac_ver <= OSI_EQOS_MAC_4_10) {
-			val = OSI_PTP_SSINC_16;
-		} else if (osi_core->mac_ver == OSI_EQOS_MAC_5_30) {
-			val = OSI_PTP_SSINC_6;
-		} else {
-			val = OSI_PTP_SSINC_4;
-		}
-	} else {
-		/* convert the PTP required clock frequency to nano second for
-		 * COARSE correction.
-		 * Formula: ((1/ptp_clock) * 1000000000)
-		 */
-		val = ((1U * OSI_NSEC_PER_SEC) / ptp_clock);
-	}
-
-	/* 0.465ns accurecy */
-	if ((mac_tcr & EQOS_MAC_TCR_TSCTRLSSR) == 0U) {
-		if (val < UINT_MAX) {
-			val = (val * 1000U) / 465U;
-		}
-	}
-
-	val |= val << EQOS_MAC_SSIR_SSINC_SHIFT;
-	/* update Sub-second Increment Value */
-	if (val < UINT_MAX) {
-		eqos_core_safety_writel(osi_core, (nveu32_t)val,
-					(nveu8_t *)addr + EQOS_MAC_SSIR,
-					EQOS_MAC_SSIR_IDX);
-	}
-}
-
-/**
  * @brief eqos_core_deinit - EQOS MAC core deinitialization
  *
  * @note
@@ -6145,7 +6079,6 @@ void eqos_init_core_ops(struct core_ops *ops)
 	ops->update_mac_addr_low_high_reg = eqos_update_mac_addr_low_high_reg;
 	ops->config_l3_l4_filter_enable = eqos_config_l3_l4_filter_enable;
 	ops->config_l3_filters = eqos_config_l3_filters;
-	ops->config_ssir = eqos_config_ssir;
 	ops->adjust_mactime = eqos_adjust_mactime;
 	ops->read_mmc = eqos_read_mmc;
 	ops->write_phy_reg = eqos_write_phy_reg;

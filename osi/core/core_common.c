@@ -429,6 +429,23 @@ void hw_config_tscr(struct osi_core_priv_data *const osi_core, OSI_UNUSED const 
 	osi_writela(osi_core, value, ((nveu8_t *)addr + mac_pps[osi_core->mac]));
 }
 
+void hw_config_ssir(struct osi_core_priv_data *const osi_core)
+{
+	nveul64_t val = 0U;
+	void *addr = osi_core->base;
+	const struct core_local *l_core = (struct core_local *)osi_core;
+	const nveu32_t mac_ssir[2] = { EQOS_MAC_SSIR, MGBE_MAC_SSIR};
+	const nveu32_t ptp_ssinc[3] = {OSI_PTP_SSINC_4, OSI_PTP_SSINC_6, OSI_PTP_SSINC_4};
+
+	/* by default Fine method is enabled */
+	/* Fix the SSINC value based on Exact MAC used */
+	val = ptp_ssinc[l_core->l_mac_ver];
+
+	val |= val << MAC_SSIR_SSINC_SHIFT;
+	/* update Sub-second Increment Value */
+	osi_writela(osi_core, (nveu32_t)val, ((nveu8_t *)addr + mac_ssir[osi_core->mac]));
+}
+
 #ifndef OSI_STRIPPED_LIB
 /**
  * @brief hw_est_read - indirect read the GCL to Software own list

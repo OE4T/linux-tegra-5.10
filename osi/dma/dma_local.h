@@ -108,6 +108,8 @@ struct dma_local {
 	nveu64_t magic_num;
 	/** Maximum number of DMA channels */
 	nveu32_t max_chans;
+	/** Exact MAC used across SOCs 0:Legacy EQOS, 1:Orin EQOS, 2:Orin MGBE */
+	nveu32_t l_mac_ver;
 };
 
 /**
