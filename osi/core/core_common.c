@@ -446,6 +446,46 @@ void hw_config_ssir(struct osi_core_priv_data *const osi_core)
 	osi_writela(osi_core, (nveu32_t)val, ((nveu8_t *)addr + mac_ssir[osi_core->mac]));
 }
 
+nve32_t hw_ptp_tsc_capture(struct osi_core_priv_data *const osi_core,
+			   struct osi_core_ptp_tsc_data *data)
+{
+#ifndef OSI_STRIPPED_LIB
+	const struct core_local *l_core = (struct core_local *)osi_core;
+#endif /* !OSI_STRIPPED_LIB */
+	void *addr = osi_core->base;
+	nveu32_t tsc_ptp = 0U;
+	nve32_t ret = 0;
+
+#ifndef OSI_STRIPPED_LIB
+	/* This code is NA for Orin use case */
+	if (l_core->l_mac_ver < MAC_CORE_VER_TYPE_EQOS_5_30) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "ptp_tsc: older IP\n", 0ULL);
+		ret = -1;
+		goto exit;
+	}
+#endif /* !OSI_STRIPPED_LIB */
+
+	osi_writela(osi_core, OSI_ENABLE, (nveu8_t *)osi_core->base + WRAP_SYNC_TSC_PTP_CAPTURE);
+
+	ret = poll_check(osi_core, ((nveu8_t *)addr + WRAP_SYNC_TSC_PTP_CAPTURE),
+			 OSI_ENABLE, &tsc_ptp);
+	if (ret == -1) {
+		goto exit;
+	}
+
+	data->tsc_low_bits = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+					WRAP_TSC_CAPTURE_LOW);
+	data->tsc_high_bits =  osi_readla(osi_core, (nveu8_t *)osi_core->base +
+					  WRAP_TSC_CAPTURE_HIGH);
+	data->ptp_low_bits =  osi_readla(osi_core, (nveu8_t *)osi_core->base +
+					 WRAP_PTP_CAPTURE_LOW);
+	data->ptp_high_bits =  osi_readla(osi_core, (nveu8_t *)osi_core->base +
+					  WRAP_PTP_CAPTURE_HIGH);
+exit:
+	return ret;
+}
+
 #ifndef OSI_STRIPPED_LIB
 /**
  * @brief hw_est_read - indirect read the GCL to Software own list

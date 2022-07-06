@@ -50,6 +50,12 @@
 #define MAC_SSIR_SSINC_SHIFT		16U
 
 
+#define WRAP_SYNC_TSC_PTP_CAPTURE	0x800CU
+#define WRAP_TSC_CAPTURE_LOW		0x8010U
+#define WRAP_TSC_CAPTURE_HIGH		0x8014U
+#define WRAP_PTP_CAPTURE_LOW		0x8018U
+#define WRAP_PTP_CAPTURE_HIGH		0x801CU
+
 /**
  * @addtogroup typedef related info
  *
@@ -88,4 +94,6 @@ nve32_t hw_config_addend(struct osi_core_priv_data *const osi_core,
 			 const nveu32_t addend);
 void hw_config_tscr(struct osi_core_priv_data *const osi_core, const nveu32_t ptp_filter);
 void hw_config_ssir(struct osi_core_priv_data *const osi_core);
+nve32_t hw_ptp_tsc_capture(struct osi_core_priv_data *const osi_core,
+			   struct osi_core_ptp_tsc_data *data);
 #endif /* INCLUDED_CORE_COMMON_H */

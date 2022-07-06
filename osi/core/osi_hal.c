@@ -2239,7 +2239,7 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		break;
 #endif /* OSI_DEBUG */
 	case OSI_CMD_CAP_TSC_PTP:
-		ret = ops_p->ptp_tsc_capture(osi_core, &data->ptp_tsc);
+		ret = hw_ptp_tsc_capture(osi_core, &data->ptp_tsc);
 		break;
 
 	case OSI_CMD_CONF_M2M_TS:

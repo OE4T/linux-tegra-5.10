@@ -151,8 +151,6 @@ struct core_ops {
 	/** Called to get HW features */
 	nve32_t (*get_hw_features)(struct osi_core_priv_data *const osi_core,
 				   struct osi_hw_features *hw_feat);
-	int (*ptp_tsc_capture)(struct osi_core_priv_data *const osi_core,
-			       struct osi_core_ptp_tsc_data *data);
 	/** Called to update ip4 src or desc address */
 	nve32_t (*update_ip4_addr)(struct osi_core_priv_data *const osi_core,
 				   const nveu32_t filter_no,

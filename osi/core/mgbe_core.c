@@ -33,70 +33,6 @@
 #include "core_common.h"
 
 /**
- * @brief mgbe_ptp_tsc_capture - read PTP and TSC registers
- *
- * Algorithm:
- * - write 1 to MGBE_WRAP_SYNC_TSC_PTP_CAPTURE_0
- * - wait till MGBE_WRAP_SYNC_TSC_PTP_CAPTURE_0 is 0x0
- * - read and return following registers
- *   MGBE_WRAP _TSC_CAPTURE_LOW_0
- *   MGBE_WRAP _TSC_CAPTURE_HIGH_0
- *   MGBE_WRAP _PTP_CAPTURE_LOW_0
- *   MGBE_WRAP _PTP_CAPTURE_HIGH_0
- *
- * @param[in] base: MGBE virtual base address.
- * @param[out]: osi_core_ptp_tsc_data register
- *
- * @note MAC needs to be out of reset and proper clock configured. TSC and PTP
- * registers should be configured.
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static nve32_t mgbe_ptp_tsc_capture(struct osi_core_priv_data *const osi_core,
-				    struct osi_core_ptp_tsc_data *data)
-{
-	nveu32_t retry = 20U;
-	nveu32_t count = 0U, val = 0U;
-	nve32_t cond = COND_NOT_MET;
-	nve32_t ret = -1;
-
-	osi_writela(osi_core, OSI_ENABLE, (nveu8_t *)osi_core->base +
-		    MGBE_WRAP_SYNC_TSC_PTP_CAPTURE);
-
-	/* Poll Until Poll Condition */
-	while (cond == COND_NOT_MET) {
-		if (count > retry) {
-			/* Max retries reached */
-			goto done;
-		}
-
-		count++;
-
-		val = osi_readla(osi_core, (nveu8_t *)osi_core->base +
-				 MGBE_WRAP_SYNC_TSC_PTP_CAPTURE);
-		if ((val & OSI_ENABLE) == OSI_NONE) {
-			cond = COND_MET;
-		} else {
-			/* delay if SWR is set */
-			osi_core->osd_ops.udelay(1U);
-		}
-	}
-
-	data->tsc_low_bits = osi_readla(osi_core, (nveu8_t *)osi_core->base +
-					MGBE_WRAP_TSC_CAPTURE_LOW);
-	data->tsc_high_bits =  osi_readla(osi_core, (nveu8_t *)osi_core->base +
-					 MGBE_WRAP_TSC_CAPTURE_HIGH);
-	data->ptp_low_bits =  osi_readla(osi_core, (nveu8_t *)osi_core->base +
-					 MGBE_WRAP_PTP_CAPTURE_LOW);
-	data->ptp_high_bits =  osi_readla(osi_core, (nveu8_t *)osi_core->base +
-					 MGBE_WRAP_PTP_CAPTURE_HIGH);
-	ret = 0;
-done:
-	return ret;
-}
-
-/**
  * @brief mgbe_calculate_per_queue_fifo - Calculate per queue FIFO size
  *
  * Algorithm: Total Tx/Rx FIFO size which is read from
@@ -5619,7 +5555,6 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->write_phy_reg = mgbe_write_phy_reg;
 	ops->read_phy_reg = mgbe_read_phy_reg;
 	ops->get_hw_features = mgbe_get_hw_features;
-	ops->ptp_tsc_capture = mgbe_ptp_tsc_capture;
 	ops->update_ip4_addr = mgbe_update_ip4_addr;
 	ops->read_reg = mgbe_read_reg;
 	ops->write_reg = mgbe_write_reg;
