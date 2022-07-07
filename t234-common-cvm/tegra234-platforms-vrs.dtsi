@@ -33,7 +33,7 @@
 				status = "okay";
 
 				vrs_rtc: rtc {
-					status = "disabled";
+					status = "okay";
 				};
 			};
 		};
