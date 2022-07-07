@@ -21,7 +21,7 @@
 			#io-channel-cells = <1>;
 			channel@0 {
 				reg = <0x0>;
-				label = "VDD_IN_20V";
+				label = "VDD_IN";
 				shunt-resistor-micro-ohms = <5000>;
 			};
 			channel@1 {
@@ -31,7 +31,7 @@
 			};
 			channel@2 {
 				reg = <0x2>;
-				label = "VDD_IN_SOC";
+				label = "VDD_SOC";
 				shunt-resistor-micro-ohms = <5000>;
 			};
 		};
