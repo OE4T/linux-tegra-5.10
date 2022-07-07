@@ -6451,6 +6451,16 @@ static int tegra_dc_probe(struct platform_device *ndev)
 
 	dc->ctrl_num = dt_pdata->ctrl_num;
 
+	/* Check if DCs are being probed in the order specified in DT */
+	if (tegra_dc_is_nvdisplay() &&
+			!tegra_dc_common_check_dc_probe_seq(dc->ctrl_num)) {
+		dev_info(&ndev->dev,
+			"dc.%d probe not in device tree order, deferring\n",
+			dc->ctrl_num);
+		ret = -EPROBE_DEFER;
+		goto err_free;
+	}
+
 	base = of_iomap(np, 0);
 	if (!base) {
 		dev_err(&ndev->dev, "registers can't be mapped\n");
@@ -6938,6 +6948,10 @@ static int tegra_dc_probe(struct platform_device *ndev)
 	dc->vedid = false;
 	dc->vedid_data = NULL;
 
+	// Increment count of probed DCs
+	if (tegra_dc_is_nvdisplay())
+		tegra_dc_common_increment_probed_dc_count();
+
 	mutex_unlock(&tegra_dc_registration_lock);
 	return 0;
 
@@ -6981,6 +6995,14 @@ err_free:
 	kfree(dc);
 	dc = NULL;
 	mutex_unlock(&tegra_dc_registration_lock);
+
+	/*
+	 * If a DC probe failed and is not going to be called again,
+	 * increment the DC probed count so that the subsequent DCs
+	 * can get probed.
+	 */
+	if (ret != -EPROBE_DEFER)
+		tegra_dc_common_increment_probed_dc_count();
 
 	return ret;
 }
