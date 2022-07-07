@@ -894,6 +894,12 @@ void pva_task_free(struct kref *ref)
 	    container_of(ref, struct pva_submit_task, ref);
 	struct nvpva_queue *my_queue = task->queue;
 
+	mutex_lock(&my_queue->tail_lock);
+	if (my_queue->hw_task_tail == task->va)
+		my_queue->hw_task_tail = NULL;
+
+	mutex_unlock(&my_queue->tail_lock);
+
 	pva_task_unpin_mem(task);
 	if (task->pinned_app)
 		pva_task_release_ref_vpu_app(&task->client->elf_ctx,
@@ -1303,6 +1309,14 @@ static int pva_queue_submit(struct nvpva_queue *queue, void *args)
 	/* Update L2SRAM flags for T23x */
 	if (task_header->tasks[0]->pva->version == PVA_HW_GEN2)
 		update_batch_tasks(task_header);
+
+	mutex_lock(&queue->tail_lock);
+	/*Once batch is ready, link it to the FW queue*/
+	if (queue->hw_task_tail != NULL)
+		queue->hw_task_tail->task.next = task_header->tasks[0]->dma_addr;
+
+	queue->hw_task_tail = prev_hw_task;
+	mutex_unlock(&queue->tail_lock);
 
 	err = pva_task_submit(task_header);
 	if (err)

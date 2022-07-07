@@ -1,7 +1,7 @@
 /*
  * NVPVA Queue management header for T194 and T234
  *
- * Copyright (c) 2021, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -26,6 +26,8 @@
 #define NUM_POOL_ALLOC_SUB_TABLES	4
 
 struct nvpva_queue_task_pool;
+/** @brief Holds PVA HW task which can be submitted to PVA R5 FW */
+struct pva_hw_task;
 
 /**
  * @brief	Describe a allocated task mem struct
@@ -85,6 +87,10 @@ struct nvpva_queue {
 
 	struct mutex list_lock;
 	struct list_head tasklist;
+
+	/*! Mutex for exclusive access of tail task submit */
+	struct mutex tail_lock;
+	struct pva_hw_task *hw_task_tail;
 };
 
 /**

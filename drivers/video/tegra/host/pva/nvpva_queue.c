@@ -283,6 +283,9 @@ static void nvpva_queue_release(struct kref *ref)
 	if (queue->task_dma_size)
 		nvpva_queue_task_free_pool(pool->pdev, queue);
 
+	/* free the queue mutex */
+	mutex_destroy(&queue->tail_lock);
+
 	/* ..and mark the queue free */
 	mutex_lock(&pool->queue_lock);
 	clear_bit(queue->id%64, &pool->alloc_table[queue->id/64]);
@@ -362,6 +365,8 @@ struct nvpva_queue *nvpva_queue_alloc(struct nvpva_queue_pool *pool,
 	mutex_unlock(&pool->queue_lock);
 
 	queue->vm_pdev = pdev;
+
+	mutex_init(&queue->tail_lock);
 
 	if (queue->task_dma_size) {
 		err = nvpva_queue_task_pool_alloc(queue->vm_pdev,
