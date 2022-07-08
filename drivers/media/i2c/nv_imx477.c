@@ -35,6 +35,8 @@
 #include "../platform/tegra/camera/camera_gpio.h"
 #include "imx477_mode_tbls.h"
 
+#define IMX477_SENSOR_INTERNAL_CLK_FREQ   840000000
+
 static const struct of_device_id imx477_of_match[] = {
 	{.compatible = "ridgerun,imx477",},
 	{},
@@ -230,7 +232,7 @@ static int imx477_set_frame_rate(struct tegracam_device *tc_dev, s64 val)
 
 	dev_dbg(dev, "%s: Setting framerate control to: %lld\n", __func__, val);
 
-	frame_length = (u32) (mode->signal_properties.pixel_clock.val *
+	frame_length = (u32) (IMX477_SENSOR_INTERNAL_CLK_FREQ *
 			      (u64) mode->control_properties.framerate_factor /
 			      mode->image_properties.line_length / val);
 
@@ -271,14 +273,14 @@ static int imx477_set_exposure(struct tegracam_device *tc_dev, s64 val)
 	const s32 max_coarse_time = priv->frame_length - IMX477_MAX_COARSE_DIFF;
 	const s32 fine_integ_time_factor = priv->fine_integ_time *
 	    mode->control_properties.exposure_factor /
-	    mode->signal_properties.pixel_clock.val;
+	    IMX477_SENSOR_INTERNAL_CLK_FREQ;
 	u32 coarse_time;
 	int i;
 
 	dev_dbg(dev, "%s: Setting exposure control to: %lld\n", __func__, val);
 
 	coarse_time = (val - fine_integ_time_factor)
-	    * mode->signal_properties.pixel_clock.val
+	    * IMX477_SENSOR_INTERNAL_CLK_FREQ
 	    / mode->control_properties.exposure_factor
 	    / mode->image_properties.line_length;
 
