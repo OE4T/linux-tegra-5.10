@@ -19,11 +19,62 @@
 	 * };
 	 */
 
-	/* MB2 will fill the address and size of EKB blob */
 	reserved-memory {
 		#address-cells = <2>;
 		#size-cells = <2>;
 
+		/* MB2 will fill the DICE identities in the DICE node. */
+		dice {
+			compatible = "nvidia,dice-identity";
+			status = "disabled";
+			secure-status = "disabled";
+			#address-cells = <2>;
+			#size-cells = <2>;
+
+			eca-csr@0 {
+				compatible = "nvidia,dice-eca-csr";
+				reg = <0 0 0 0>;
+				status = "disabled";
+				secure-status = "disabled";
+			};
+
+			device-id-cert@0 {
+				compatible = "nvidia,dice-device-id-cert";
+				reg = <0 0 0 0>;
+				status = "disabled";
+				secure-status = "disabled";
+			};
+
+			device-id-key-pub@0 {
+				compatible = "nvidia,dice-device-id-key-pub";
+				reg = <0 0 0 0>;
+				status = "disabled";
+				secure-status = "disabled";
+			};
+
+			alias-key-cert@0 {
+				compatible = "nvidia,dice-alias-key-cert";
+				reg = <0 0 0 0>;
+				status = "disabled";
+				secure-status = "disabled";
+			};
+
+			alias-key-pub@0 {
+				compatible = "nvidia,dice-alias-key-pub";
+				reg = <0 0 0 0>;
+				status = "disabled";
+				secure-status = "disabled";
+			};
+
+			alias-key-priv@0 {
+				compatible = "nvidia,dice-alias-key-priv";
+				reg = <0 0 0 0>;
+				status = "disabled";
+				secure-status = "disabled";
+			};
+		};
+
+		/* MB2 will fill the address and size of EKB blob. */
 		ekb-blob@0 {
 			compatible = "jetson-ekb-blob";
 			reg = <0 0 0 0>;
