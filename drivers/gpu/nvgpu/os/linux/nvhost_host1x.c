@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -193,8 +193,9 @@ void nvgpu_nvhost_syncpt_set_minval(struct nvgpu_nvhost_dev *nvhost_dev,
 
 	cur = host1x_syncpt_read(sp);
 
-	while (cur++ != val)
+	while (cur++ < val) {
 		host1x_syncpt_incr(sp);
+	}
 }
 
 void nvgpu_nvhost_syncpt_put_ref_ext(struct nvgpu_nvhost_dev *nvhost_dev,
