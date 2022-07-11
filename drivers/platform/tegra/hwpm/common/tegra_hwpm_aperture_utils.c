@@ -338,6 +338,11 @@ static int tegra_hwpm_func_single_element(struct tegra_soc_hwpm *hwpm,
 		e_info->element_arr[idx] = element;
 		break;
 	case TEGRA_HWPM_UPDATE_IP_INST_MASK:
+		/* HWPM perfmuxes can be assumed to be available */
+		if (element->element_type == HWPM_ELEMENT_PERFMUX) {
+			break;
+		}
+
 		/* Validate perfmux availability by reading 1st alist offset */
 		ret = tegra_hwpm_regops_readl(hwpm, ip_inst, element,
 			tegra_hwpm_safe_add_u64(element->start_abs_pa,
