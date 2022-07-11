@@ -405,6 +405,7 @@ int dce_reset_dce(struct tegra_dce *d);
 
 #ifdef CONFIG_DEBUG_FS
 void dce_init_debug(struct tegra_dce *d);
+void dce_remove_debug(struct tegra_dce *d);
 #endif
 
 #endif

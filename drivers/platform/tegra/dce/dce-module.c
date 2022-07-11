@@ -251,6 +251,11 @@ static int tegra_dce_remove(struct platform_device *pdev)
 	/* TODO */
 	struct tegra_dce *d =
 			dce_get_pdata_dce(pdev);
+
+#ifdef CONFIG_DEBUG_FS
+	dce_remove_debug(d);
+#endif
+
 	dce_set_irqs(pdev, false);
 	dce_driver_deinit(d);
 	return 0;
