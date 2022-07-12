@@ -146,10 +146,10 @@ static void mgbe_get_rx_hash(struct osi_rx_desc *rx_desc,
  * @param[in] rx_desc: Rx descriptor
  * @param[in] rx_pkt_cx: Per-Rx packet context structure
  */
-static void mgbe_get_rx_csum(struct osi_rx_desc *rx_desc,
+static void mgbe_get_rx_csum(const struct osi_rx_desc *const rx_desc,
 			     struct osi_rx_pkt_cx *rx_pkt_cx)
 {
-	unsigned int ellt = rx_desc->rdes3 & RDES3_ELLT;
+	nveu32_t ellt = rx_desc->rdes3 & RDES3_ELLT;
 
 	/* Always include either checksum none/unnecessary
 	 * depending on status fields in desc.
@@ -175,15 +175,17 @@ static void mgbe_get_rx_csum(struct osi_rx_desc *rx_desc,
  * @retval -1 if TimeStamp is not available
  * @retval 0 if TimeStamp is available.
  */
-static int mgbe_get_rx_hwstamp(struct osi_dma_priv_data *osi_dma,
-			       struct osi_rx_desc *rx_desc,
-			       struct osi_rx_desc *context_desc,
-			       struct osi_rx_pkt_cx *rx_pkt_cx)
+static nve32_t mgbe_get_rx_hwstamp(const struct osi_dma_priv_data *const osi_dma,
+				   const struct osi_rx_desc *const rx_desc,
+				   const struct osi_rx_desc *const context_desc,
+				   struct osi_rx_pkt_cx *rx_pkt_cx)
 {
-	int retry;
+	nve32_t ret = 0;
+	nve32_t retry;
 
 	if ((rx_desc->rdes3 & RDES3_CDA) != RDES3_CDA) {
-		return -1;
+		ret = -1;
+		goto fail;
 	}
 
 	for (retry = 0; retry < 10; retry++) {
@@ -194,7 +196,8 @@ static int mgbe_get_rx_hwstamp(struct osi_dma_priv_data *osi_dma,
 			if ((context_desc->rdes0 == OSI_INVALID_VALUE) &&
 			    (context_desc->rdes1 == OSI_INVALID_VALUE)) {
 				/* Invalid time stamp */
-				return -1;
+				ret = -1;
+				goto fail;
 			}
 			/* Update rx pkt context flags to indicate PTP */
 			rx_pkt_cx->flags |= OSI_PKT_CX_PTP;
@@ -208,26 +211,27 @@ static int mgbe_get_rx_hwstamp(struct osi_dma_priv_data *osi_dma,
 
 	if (retry == 10) {
 		/* Timed out waiting for Rx timestamp */
-		return -1;
+		ret = -1;
+		goto fail;
 	}
 
 	rx_pkt_cx->ns = context_desc->rdes0 +
 			(OSI_NSEC_PER_SEC * context_desc->rdes1);
 	if (rx_pkt_cx->ns < context_desc->rdes0) {
-		/* Will not hit this case */
-		return -1;
+		ret = -1;
 	}
 
-	return 0;
+fail:
+	return ret;
 }
 
-void mgbe_init_desc_ops(struct desc_ops *d_ops)
+void mgbe_init_desc_ops(struct desc_ops *p_dops)
 {
 #ifndef OSI_STRIPPED_LIB
-	d_ops->update_rx_err_stats = mgbe_update_rx_err_stats;
-	d_ops->get_rx_vlan = mgbe_get_rx_vlan;
-	d_ops->get_rx_hash = mgbe_get_rx_hash;
+	p_dops->update_rx_err_stats = mgbe_update_rx_err_stats;
+	p_dops->get_rx_vlan = mgbe_get_rx_vlan;
+	p_dops->get_rx_hash = mgbe_get_rx_hash;
 #endif /* !OSI_STRIPPED_LIB */
-	d_ops->get_rx_csum = mgbe_get_rx_csum;
-	d_ops->get_rx_hwstamp = mgbe_get_rx_hwstamp;
+	p_dops->get_rx_csum = mgbe_get_rx_csum;
+	p_dops->get_rx_hwstamp = mgbe_get_rx_hwstamp;
 }

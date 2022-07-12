@@ -313,7 +313,7 @@ static inline nveu64_t osi_update_stats_counter(nveu64_t last_value,
 
 	if (temp < last_value) {
 		/* Stats overflow, so reset it to zero */
-		return 0UL;
+		temp = 0UL;
 	}
 
 	return temp;

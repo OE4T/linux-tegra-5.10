@@ -256,25 +256,25 @@ static inline void osi_writela(OSI_UNUSED void *priv, nveu32_t val, void *addr)
  * @retval 1 - for Valid MAC
  */
 static inline nve32_t validate_mac_ver_update_chans(nveu32_t mac_ver,
-						    nveu32_t *max_chans,
+						    nveu32_t *num_max_chans,
 						    nveu32_t *l_mac_ver)
 {
 	nve32_t ret;
 
 	switch (mac_ver) {
 	case OSI_EQOS_MAC_5_00:
-		*max_chans = OSI_EQOS_XP_MAX_CHANS;
+		*num_max_chans = OSI_EQOS_XP_MAX_CHANS;
 		*l_mac_ver = MAC_CORE_VER_TYPE_EQOS;
 		ret = 1;
 		break;
 	case OSI_EQOS_MAC_5_30:
-		*max_chans = OSI_EQOS_MAX_NUM_CHANS;
+		*num_max_chans = OSI_EQOS_MAX_NUM_CHANS;
 		*l_mac_ver = MAC_CORE_VER_TYPE_EQOS_5_30;
 		ret = 1;
 		break;
 	case OSI_MGBE_MAC_3_10:
 	case OSI_MGBE_MAC_4_00:
-		*max_chans = OSI_MGBE_MAX_NUM_CHANS;
+		*num_max_chans = OSI_MGBE_MAX_NUM_CHANS;
 		*l_mac_ver = MAC_CORE_VER_TYPE_MGBE;
 		ret = 1;
 		break;
@@ -305,7 +305,7 @@ static inline void osi_memset(void *s, nveu32_t c, nveu64_t count)
 	nveu64_t temp = count;
 
 	if (s == OSI_NULL) {
-		return;
+		goto done;
 	}
 	xs = (nveu8_t *)s;
 	while (temp != 0UL) {
@@ -315,6 +315,8 @@ static inline void osi_memset(void *s, nveu32_t c, nveu64_t count)
 		}
 		temp--;
 	}
+done:
+	return;
 }
 
 /**
@@ -332,38 +334,47 @@ static inline void osi_memset(void *s, nveu32_t c, nveu64_t count)
  */
 static inline nve32_t osi_memcpy(void *dest, void *src, nveu64_t n)
 {
-	nve8_t *csrc = (nve8_t *)src;
 	nve8_t *cdest = (nve8_t *)dest;
+	const nve8_t *csrc = (nve8_t *)src;
+	nve32_t ret = 0;
 	nveu64_t i = 0;
 
 	if ((src == OSI_NULL) || (dest == OSI_NULL)) {
-		return -1;
+		ret = -1;
+		goto fail;
 	}
 	for (i = 0; i < n; i++) {
 		cdest[i] = csrc[i];
 	}
 
-	return 0;
+fail:
+	return ret;
 }
 
 static inline nve32_t osi_memcmp(void *dest, void *src, nve32_t n)
 {
+	const nve8_t *const cdest = (nve8_t *)dest;
+	const nve8_t *const csrc = (nve8_t *)src;
+	nve32_t ret = 0;
 	nve32_t i;
-	nve8_t *csrc = (nve8_t *)src;
-	nve8_t *cdest = (nve8_t *)dest;
 
-	if ((src == OSI_NULL) || (dest == OSI_NULL))
-		return -1;
+	if ((src == OSI_NULL) || (dest == OSI_NULL)) {
+		ret = -1;
+		goto fail;
+	}
 
 	for (i = 0; i < n; i++) {
 		if (csrc[i] < cdest[i]) {
-			return -1;
+			ret = -1;
+			goto fail;
 		} else if (csrc[i] > cdest[i]) {
-			return 1;
+			ret = 1;
+			goto fail;
 		} else {
 			/* Do Nothing */
 		}
 	}
-	return 0;
+fail:
+	return ret;
 }
 #endif

@@ -23,6 +23,7 @@
 #ifndef MGBE_DESC_H_
 #define MGBE_DESC_H_
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @addtogroup MGBE MAC FRP Stats.
  *
@@ -32,6 +33,7 @@
 #define MGBE_RDES2_FRPSM			OSI_BIT(10)
 #define MGBE_RDES3_FRPSL			OSI_BIT(14)
 /** @} */
+#endif /* !OSI_STRIPPED_LIB */
 
 #endif /* MGBE_DESC_H_ */
 

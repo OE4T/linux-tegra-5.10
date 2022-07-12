@@ -250,6 +250,8 @@ void desc_dump(struct osi_dma_priv_data *osi_dma, unsigned int f_idx,
 		rx_desc_dump(osi_dma, f_idx, chan);
 		break;
 	default:
+		OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
+			    "Invalid desc dump flag\n", 0ULL);
 		break;
 	}
 }

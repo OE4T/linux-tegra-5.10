@@ -118,7 +118,9 @@
 /** Paged buffer */
 #define OSI_PKT_CX_PAGED_BUF		OSI_BIT(4)
 /** Rx packet has RSS hash */
+#ifndef OSI_STRIPPED_LIB
 #define OSI_PKT_CX_RSS			OSI_BIT(5)
+#endif /* !OSI_STRIPPED_LIB */
 /** Valid packet */
 #define OSI_PKT_CX_VALID		OSI_BIT(10)
 /** Update Packet Length in Tx Desc3 */
@@ -127,18 +129,18 @@
 #define OSI_PKT_CX_IP_CSUM		OSI_BIT(12)
 /** @} */
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @addtogroup SLOT function context fields
  *
  * @brief These flags are used for DMA channel Slot context configuration
  * @{
  */
-#ifndef OSI_STRIPPED_LIB
 #define OSI_SLOT_INTVL_DEFAULT		125U
 #define OSI_SLOT_INTVL_MAX		4095U
-#endif /* !OSI_STRIPPED_LIB */
 #define OSI_SLOT_NUM_MAX		16U
 /** @} */
+#endif /* !OSI_STRIPPED_LIB */
 
 /**
  * @addtogroup EQOS-TX Tx done packet context fields
@@ -208,7 +210,7 @@
 
 /** @} */
 
-
+#ifndef OSI_STRIPPED_LIB
 /**
  * @addtogroup RSS-HASH type
  *
@@ -220,6 +222,7 @@
 #define OSI_RX_PKT_HASH_TYPE_L3	0x2U
 #define OSI_RX_PKT_HASH_TYPE_L4	0x3U
 /** @} */
+#endif /* !OSI_STRIPPED_LIB */
 
 /**
  * @addtogroup OSI-INTR OSI DMA interrupt handling macros.
@@ -666,7 +669,7 @@ nveu32_t osi_get_global_dma_status(struct osi_dma_priv_data *osi_dma);
  *
  * @retval "Number of available free descriptors."
  */
-nveu32_t osi_get_refill_rx_desc_cnt(struct osi_dma_priv_data *osi_dma,
+nveu32_t osi_get_refill_rx_desc_cnt(const struct osi_dma_priv_data *const osi_dma,
 				    nveu32_t chan);
 
 /**

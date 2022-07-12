@@ -66,7 +66,7 @@ struct dma_chan_ops {
  */
 struct desc_ops {
 	/** Called to get receive checksum */
-	void (*get_rx_csum)(struct osi_rx_desc *rx_desc,
+	void (*get_rx_csum)(const struct osi_rx_desc *const rx_desc,
 			    struct osi_rx_pkt_cx *rx_pkt_cx);
 #ifndef OSI_STRIPPED_LIB
 	/** Called to get rx error stats */
@@ -80,10 +80,10 @@ struct desc_ops {
 			    struct osi_rx_pkt_cx *rx_pkt_cx);
 #endif /* !OSI_STRIPPED_LIB */
 	/** Called to get RX hw timestamp */
-	int (*get_rx_hwstamp)(struct osi_dma_priv_data *osi_dma,
-			      struct osi_rx_desc *rx_desc,
-			      struct osi_rx_desc *context_desc,
-			      struct osi_rx_pkt_cx *rx_pkt_cx);
+	nve32_t (*get_rx_hwstamp)(const struct osi_dma_priv_data *const osi_dma,
+				  const struct osi_rx_desc *const rx_desc,
+				  const struct osi_rx_desc *const context_desc,
+				  struct osi_rx_pkt_cx *rx_pkt_cx);
 };
 
 /**
@@ -107,7 +107,7 @@ struct dma_local {
 	/** Magic number to validate osi_dma pointer */
 	nveu64_t magic_num;
 	/** Maximum number of DMA channels */
-	nveu32_t max_chans;
+	nveu32_t num_max_chans;
 	/** Exact MAC used across SOCs 0:Legacy EQOS, 1:Orin EQOS, 2:Orin MGBE */
 	nveu32_t l_mac_ver;
 };
@@ -141,14 +141,14 @@ void mgbe_init_dma_chan_ops(struct dma_chan_ops *ops);
 /**
  * @brief eqos_get_desc_ops - EQOS init DMA descriptor operations
  */
-void eqos_init_desc_ops(struct desc_ops *d_ops);
+void eqos_init_desc_ops(struct desc_ops *p_dops);
 
 /**
  * @brief mgbe_get_desc_ops - MGBE init DMA descriptor operations
  */
-void mgbe_init_desc_ops(struct desc_ops *d_ops);
+void mgbe_init_desc_ops(struct desc_ops *p_dops);
 
-nve32_t init_desc_ops(struct osi_dma_priv_data *osi_dma);
+nve32_t init_desc_ops(const struct osi_dma_priv_data *const osi_dma);
 
 /**
  * @brief osi_hw_transmit - Initialize Tx DMA descriptors for a channel
@@ -199,32 +199,14 @@ nve32_t dma_desc_init(struct osi_dma_priv_data *osi_dma);
 
 static inline nveu32_t is_power_of_two(nveu32_t num)
 {
+	nveu32_t ret = OSI_DISABLE;
+
 	if ((num > 0U) && ((num & (num - 1U)) == 0U)) {
-		return OSI_ENABLE;
+		ret = OSI_ENABLE;
 	}
 
-	return OSI_DISABLE;
+	return ret;
 }
-
-/**
- * @addtogroup Helper Helper MACROS
- *
- * @brief EQOS generic helper MACROS.
- * @{
- */
-#define CHECK_CHAN_BOUND(chan)						\
-	{								\
-		if ((chan) >= OSI_EQOS_MAX_NUM_CHANS) {			\
-			return;						\
-		}							\
-	}
-
-#define MGBE_CHECK_CHAN_BOUND(chan)					\
-{									\
-	if ((chan) >= OSI_MGBE_MAX_NUM_CHANS) {				\
-		return;							\
-	}								\
-}									\
 
 #define BOOLEAN_FALSE	(0U != 0U)
 #define L32(data)       ((nveu32_t)((data) & 0xFFFFFFFFU))

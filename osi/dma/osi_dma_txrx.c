@@ -58,16 +58,18 @@ static struct desc_ops d_ops[MAX_MAC_IP_TYPES];
 static inline nve32_t validate_rx_completions_arg(
 					      struct osi_dma_priv_data *osi_dma,
 					      nveu32_t chan,
-					      nveu32_t *more_data_avail,
+					      const nveu32_t *const more_data_avail,
 					      struct osi_rx_ring **rx_ring,
 					      struct osi_rx_pkt_cx **rx_pkt_cx)
 {
-	struct dma_local *l_dma = (struct dma_local *)osi_dma;
+	const struct dma_local *const l_dma = (struct dma_local *)(void *)osi_dma;
+	nve32_t ret = 0;
 
 	if (osi_unlikely((osi_dma == OSI_NULL) ||
 			 (more_data_avail == OSI_NULL) ||
-			 (chan >= l_dma->max_chans))) {
-		return -1;
+			 (chan >= l_dma->num_max_chans))) {
+		ret = -1;
+		goto fail;
 	}
 
 	*rx_ring = osi_dma->rx_ring[chan];
@@ -75,17 +77,20 @@ static inline nve32_t validate_rx_completions_arg(
 		OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 			    "validate_input_rx_completions: Invalid pointers\n",
 			    0ULL);
-		return -1;
+		ret = -1;
+		goto fail;
 	}
 	*rx_pkt_cx = &(*rx_ring)->rx_pkt_cx;
 	if (osi_unlikely(*rx_pkt_cx == OSI_NULL)) {
 		OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 			    "validate_input_rx_completions: Invalid pointers\n",
 			    0ULL);
-		return -1;
+		ret = -1;
+		goto fail;
 	}
 
-	return 0;
+fail:
+	return ret;
 }
 
 nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
@@ -108,13 +113,15 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 	ret = validate_rx_completions_arg(osi_dma, chan, more_data_avail,
 					  &rx_ring, &rx_pkt_cx);
 	if (osi_unlikely(ret < 0)) {
-		return ret;
+		received = -1;
+		goto fail;
 	}
 
 	if (rx_ring->cur_rx_idx >= osi_dma->rx_ring_sz) {
 		OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 			    "dma_txrx: Invalid cur_rx_idx\n", 0ULL);
-		return -1;
+		received = -1;
+		goto fail;
 	}
 
 	/* Reset flag to indicate if more Rx frames available to OSD layer */
@@ -248,7 +255,8 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 				OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 					    "dma_txrx: Invalid function pointer\n",
 					    0ULL);
-				return -1;
+				received = -1;
+				goto fail;
 			}
 		}
 #ifndef OSI_STRIPPED_LIB
@@ -280,6 +288,8 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 		}
 	}
 #endif /* !OSI_STRIPPED_LIB */
+
+fail:
 	return received;
 }
 
@@ -484,11 +494,13 @@ static inline nve32_t validate_tx_completions_arg(
 					      nveu32_t chan,
 					      struct osi_tx_ring **tx_ring)
 {
-	struct dma_local *l_dma = (struct dma_local *)osi_dma;
+	const struct dma_local *const l_dma = (struct dma_local *)(void *)osi_dma;
+	nve32_t ret = 0;
 
 	if (osi_unlikely((osi_dma == OSI_NULL) ||
-			 (chan >= l_dma->max_chans))) {
-		return -1;
+			 (chan >= l_dma->num_max_chans))) {
+		ret = -1;
+		goto fail;
 	}
 
 	*tx_ring = osi_dma->tx_ring[chan];
@@ -497,10 +509,11 @@ static inline nve32_t validate_tx_completions_arg(
 		OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 			    "validate_tx_completions_arg: Invalid pointers\n",
 			    0ULL);
-		return -1;
+		ret = -1;
+		goto fail;
 	}
-
-	return 0;
+fail:
+	return ret;
 }
 
 /**
@@ -513,15 +526,15 @@ static inline nve32_t validate_tx_completions_arg(
  * @retval 1 if condition is true
  * @retval 0 if condition is false.
  */
-static inline unsigned int is_ptp_twostep_or_slave_mode(unsigned int ptp_flag)
+static inline nveu32_t is_ptp_twostep_or_slave_mode(nveu32_t ptp_flag)
 {
 	return (((ptp_flag & OSI_PTP_SYNC_SLAVE) == OSI_PTP_SYNC_SLAVE) ||
 		((ptp_flag & OSI_PTP_SYNC_TWOSTEP) == OSI_PTP_SYNC_TWOSTEP)) ?
 	       OSI_ENABLE : OSI_DISABLE;
 }
 
-int osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
-			       unsigned int chan, int budget)
+nve32_t osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
+				   nveu32_t chan, nve32_t budget)
 {
 	struct osi_tx_ring *tx_ring = OSI_NULL;
 	struct osi_txdone_pkt_cx *txdone_pkt_cx = OSI_NULL;
@@ -535,7 +548,8 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
 
 	ret = validate_tx_completions_arg(osi_dma, chan, &tx_ring);
 	if (osi_unlikely(ret < 0)) {
-		return ret;
+		processed = -1;
+		goto fail;
 	}
 
 	txdone_pkt_cx = &tx_ring->txdone_pkt_cx;
@@ -642,7 +656,8 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
 			OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 				    "dma_txrx: Invalid function pointer\n",
 				    0ULL);
-			return -1;
+			processed = -1;
+			goto fail;
 		}
 
 		tx_desc->tdes3 = 0;
@@ -664,6 +679,7 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
 		tx_ring->clean_idx = entry;
 	}
 
+fail:
 	return processed;
 }
 
@@ -692,18 +708,17 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
  * @retval 1 - cntx desc used.
  */
 
-static inline nve32_t need_cntx_desc(struct osi_tx_pkt_cx *tx_pkt_cx,
-				 struct osi_tx_swcx *tx_swcx,
-				 struct osi_tx_desc *tx_desc,
-				 unsigned int ptp_sync_flag,
-				 unsigned int mac)
+static inline nve32_t need_cntx_desc(const struct osi_tx_pkt_cx *const tx_pkt_cx,
+				     struct osi_tx_swcx *tx_swcx,
+				     struct osi_tx_desc *tx_desc,
+				     nveu32_t ptp_sync_flag,
+				     nveu32_t mac)
 {
 	nve32_t ret = 0;
 
 	if (((tx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) ||
 	    ((tx_pkt_cx->flags & OSI_PKT_CX_TSO) == OSI_PKT_CX_TSO) ||
 	    ((tx_pkt_cx->flags & OSI_PKT_CX_PTP) == OSI_PKT_CX_PTP)) {
-
 		if ((tx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) {
 			/* Set context type */
 			tx_desc->tdes3 |= TDES3_CTXT;
@@ -730,24 +745,22 @@ static inline nve32_t need_cntx_desc(struct osi_tx_pkt_cx *tx_pkt_cx,
 
 		/* This part of code must be at the end of function */
 		if ((tx_pkt_cx->flags & OSI_PKT_CX_PTP) == OSI_PKT_CX_PTP) {
-			if ((mac == OSI_MAC_HW_EQOS) &&
-			    ((ptp_sync_flag & OSI_PTP_SYNC_TWOSTEP) ==
-			     OSI_PTP_SYNC_TWOSTEP)){
-				/* return the current ret value */
-				return ret;
-			}
+			if (((mac == OSI_MAC_HW_EQOS) &&
+			    ((ptp_sync_flag & OSI_PTP_SYNC_TWOSTEP) == OSI_PTP_SYNC_TWOSTEP))) {
+				/* Doing nothing */
+			} else {
+				/* Set context type */
+				tx_desc->tdes3 |= TDES3_CTXT;
+				/* in case of One-step sync */
+				if ((ptp_sync_flag & OSI_PTP_SYNC_ONESTEP) ==
+				    OSI_PTP_SYNC_ONESTEP) {
+					/* Set TDES3_OSTC */
+					tx_desc->tdes3 |= TDES3_OSTC;
+					tx_desc->tdes3 &= ~TDES3_TCMSSV;
+				}
 
-			/* Set context type */
-			tx_desc->tdes3 |= TDES3_CTXT;
-			/* in case of One-step sync */
-			if ((ptp_sync_flag & OSI_PTP_SYNC_ONESTEP) ==
-			    OSI_PTP_SYNC_ONESTEP) {
-				/* Set TDES3_OSTC */
-				tx_desc->tdes3 |= TDES3_OSTC;
-				tx_desc->tdes3 &= ~TDES3_TCMSSV;
+				ret = 1;
 			}
-
-			ret = 1;
 		}
 	}
 
@@ -764,7 +777,7 @@ static inline nve32_t need_cntx_desc(struct osi_tx_pkt_cx *tx_pkt_cx,
  * @retval 1 if condition is true
  * @retval 0 if condition is false.
  */
-static inline unsigned int is_ptp_onestep_and_master_mode(unsigned int ptp_flag)
+static inline nveu32_t is_ptp_onestep_and_master_mode(nveu32_t ptp_flag)
 {
 	return (((ptp_flag & OSI_PTP_SYNC_MASTER) == OSI_PTP_SYNC_MASTER) &&
 		((ptp_flag & OSI_PTP_SYNC_ONESTEP) == OSI_PTP_SYNC_ONESTEP)) ?
@@ -798,13 +811,13 @@ static inline void fill_first_desc(struct osi_tx_ring *tx_ring,
 				   struct osi_tx_pkt_cx *tx_pkt_cx,
 				   struct osi_tx_desc *tx_desc,
 				   struct osi_tx_swcx *tx_swcx,
-				   unsigned int ptp_flag)
+				   nveu32_t ptp_flag)
 #else
 static inline void fill_first_desc(OSI_UNUSED struct osi_tx_ring *tx_ring,
 				   struct osi_tx_pkt_cx *tx_pkt_cx,
 				   struct osi_tx_desc *tx_desc,
 				   struct osi_tx_swcx *tx_swcx,
-				   unsigned int ptp_flag)
+				   nveu32_t ptp_flag)
 #endif /* !OSI_STRIPPED_LIB */
 {
 	tx_desc->tdes0 = L32(tx_swcx->buf_phy_addr);
@@ -911,54 +924,63 @@ static inline void dmb_oshst(void)
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static inline nve32_t validate_ctx(struct osi_dma_priv_data *osi_dma,
-				   struct osi_tx_pkt_cx *tx_pkt_cx)
+static inline nve32_t validate_ctx(const struct osi_dma_priv_data *const osi_dma,
+				   const struct osi_tx_pkt_cx *const tx_pkt_cx)
 {
+	nve32_t ret = 0;
+
 	if ((tx_pkt_cx->flags & OSI_PKT_CX_TSO) == OSI_PKT_CX_TSO) {
 		if (osi_unlikely((tx_pkt_cx->tcp_udp_hdrlen /
 				  OSI_TSO_HDR_LEN_DIVISOR) > TDES3_THL_MASK)) {
 			OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 				    "dma_txrx: Invalid TSO header len\n",
 				    (nveul64_t)tx_pkt_cx->tcp_udp_hdrlen);
+			ret = -1;
 			goto fail;
 		} else if (osi_unlikely(tx_pkt_cx->payload_len >
 					TDES3_TPL_MASK)) {
 			OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 				    "dma_txrx: Invalid TSO payload len\n",
 				    (nveul64_t)tx_pkt_cx->payload_len);
+			ret = -1;
 			goto fail;
 		} else if (osi_unlikely(tx_pkt_cx->mss > TDES2_MSS_MASK)) {
 			OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 				    "dma_txrx: Invalid MSS\n",
 				    (nveul64_t)tx_pkt_cx->mss);
+			ret = -1;
 			goto fail;
+		} else {
+			/* empty statement */
 		}
 	}  else if ((tx_pkt_cx->flags & OSI_PKT_CX_LEN) == OSI_PKT_CX_LEN) {
 		if (osi_unlikely(tx_pkt_cx->payload_len > TDES3_PL_MASK)) {
 			OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 				    "dma_txrx: Invalid frame len\n",
 				    (nveul64_t)tx_pkt_cx->payload_len);
+			ret = -1;
 			goto fail;
 		}
+	} else {
+		/* empty statement */
 	}
 
 	if (osi_unlikely(tx_pkt_cx->vtag_id > TDES3_VT_MASK)) {
 		OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 			    "dma_txrx: Invalid VTAG_ID\n",
 			    (nveul64_t)tx_pkt_cx->vtag_id);
-		goto fail;
+		ret = -1;
 	}
 
-	return 0;
 fail:
-	return -1;
+	return ret;
 }
 
 nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 		    struct osi_tx_ring *tx_ring,
 		    nveu32_t chan)
 {
-	struct dma_local *l_dma = (struct dma_local *)osi_dma;
+	struct dma_local *l_dma = (struct dma_local *)(void *)osi_dma;
 	struct osi_tx_pkt_cx *tx_pkt_cx = OSI_NULL;
 	struct osi_tx_desc *first_desc = OSI_NULL;
 	struct osi_tx_desc *last_desc = OSI_NULL;
@@ -978,13 +1000,15 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 	nveu32_t desc_cnt = 0U;
 	nveu64_t tailptr;
 	nveu32_t entry = 0U;
+	nve32_t ret = 0;
 	nveu32_t i;
 
 	entry = tx_ring->cur_tx_idx;
 	if (entry >= osi_dma->tx_ring_sz) {
 		OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 			    "dma_txrx: Invalid cur_tx_idx\n", 0ULL);
-		return -1;
+		ret = -1;
+		goto fail;
 	}
 
 	tx_desc = tx_ring->tx_desc + entry;
@@ -996,11 +1020,13 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 		/* Will not hit this case */
 		OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 			    "dma_txrx: Invalid desc_cnt\n", 0ULL);
-		return -1;
+		ret = -1;
+		goto fail;
 	}
 
 	if (validate_ctx(osi_dma, tx_pkt_cx) < 0) {
-		return -1;
+		ret = -1;
+		goto fail;
 	}
 
 #ifndef OSI_STRIPPED_LIB
@@ -1135,7 +1161,8 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 		/* Will not hit this case */
 		OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 			    "dma_txrx: Invalid tx_desc_phy_addr\n", 0ULL);
-		return -1;
+		ret = -1;
+		goto fail;
 	}
 
 	/*
@@ -1147,7 +1174,8 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 	/* Update the Tx tail pointer */
 	osi_writel(L32(tailptr), (nveu8_t *)osi_dma->base + tail_ptr_reg[osi_dma->mac]);
 
-	return 0;
+fail:
+	return ret;
 }
 
 /**
@@ -1172,7 +1200,7 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
+static nve32_t rx_dma_desc_initialization(const struct osi_dma_priv_data *const osi_dma,
 					  nveu32_t chan)
 {
 	const nveu32_t start_addr_high_reg[2] = {
@@ -1200,7 +1228,8 @@ static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
 	if (osi_unlikely(rx_ring == OSI_NULL)) {
 		OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 			    "dma_txrx: Invalid argument\n", 0ULL);
-		return -1;
+		ret = -1;
+		goto fail;
 	};
 
 	rx_ring->cur_rx_idx = 0;
@@ -1250,7 +1279,8 @@ static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
 		/* Will not hit this case */
 		OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 			    "dma_txrx: Invalid phys address\n", 0ULL);
-		return -1;
+		ret = -1;
+		goto fail;
 	}
 
 	/* Update the HW DMA ring length */
@@ -1266,6 +1296,7 @@ static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
 	osi_writel(L32(rx_ring->rx_desc_phy_addr),
 		   (nveu8_t *)osi_dma->base + start_addr_low_reg[osi_dma->mac]);
 
+fail:
 	return ret;
 }
 
@@ -1293,18 +1324,19 @@ static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
 static nve32_t rx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
 {
 	nveu32_t chan = 0;
-	nveu32_t i;
 	nve32_t ret = 0;
+	nveu32_t i;
 
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
 		chan = osi_dma->dma_chans[i];
 
 		ret = rx_dma_desc_initialization(osi_dma, chan);
 		if (ret != 0) {
-			return ret;
+			goto fail;
 		}
 	}
 
+fail:
 	return ret;
 }
 
@@ -1360,12 +1392,13 @@ static inline void set_tx_ring_len_and_start_addr(const struct osi_dma_priv_data
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static nve32_t tx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
+static nve32_t tx_dma_desc_init(const struct osi_dma_priv_data *const osi_dma)
 {
 	struct osi_tx_ring *tx_ring = OSI_NULL;
 	struct osi_tx_desc *tx_desc = OSI_NULL;
 	struct osi_tx_swcx *tx_swcx = OSI_NULL;
 	nveu32_t chan = 0;
+	nve32_t ret = 0;
 	nveu32_t i, j;
 
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
@@ -1375,7 +1408,8 @@ static nve32_t tx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
 		if (osi_unlikely(tx_ring == OSI_NULL)) {
 			OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 				    "dma_txrx: Invalid pointers\n", 0ULL);
-			return -1;
+			ret = -1;
+			goto fail;
 		}
 
 		for (j = 0; j < osi_dma->tx_ring_sz; j++) {
@@ -1406,7 +1440,8 @@ static nve32_t tx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
 					       chan, (osi_dma->tx_ring_sz - 1U));
 	}
 
-	return 0;
+fail:
+	return ret;
 }
 
 nve32_t dma_desc_init(struct osi_dma_priv_data *osi_dma)
@@ -1415,26 +1450,27 @@ nve32_t dma_desc_init(struct osi_dma_priv_data *osi_dma)
 
 	ret = tx_dma_desc_init(osi_dma);
 	if (ret != 0) {
-		return ret;
+		goto fail;
 	}
 
 	ret = rx_dma_desc_init(osi_dma);
 	if (ret != 0) {
-		return ret;
+		goto fail;
 	}
 
+fail:
 	return ret;
 }
 
-nve32_t init_desc_ops(struct osi_dma_priv_data *osi_dma)
+nve32_t init_desc_ops(const struct osi_dma_priv_data *const osi_dma)
 {
-	typedef void (*desc_ops_arr)(struct desc_ops *);
+	typedef void (*desc_ops_arr)(struct desc_ops *p_ops);
 
-	desc_ops_arr desc_ops[2] = {
+	const desc_ops_arr desc_ops_a[2] = {
 		eqos_init_desc_ops, mgbe_init_desc_ops
 	};
 
-	desc_ops[osi_dma->mac](&d_ops[osi_dma->mac]);
+	desc_ops_a[osi_dma->mac](&d_ops[osi_dma->mac]);
 
 	/* TODO: validate function pointers */
 	return 0;
