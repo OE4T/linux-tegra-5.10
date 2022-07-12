@@ -1105,6 +1105,8 @@ static int pva_task_submit(const struct pva_submit_tasks *task_header)
 
 	for (i = 0; i < task_header->num_tasks; i++) {
 		struct pva_submit_task *task = task_header->tasks[i];
+		struct pva_hw_task *hw_task = task->va;
+
 		/* take the reference until task is finished */
 		kref_get(&task->ref);
 
@@ -1114,6 +1116,8 @@ static int pva_task_submit(const struct pva_submit_tasks *task_header)
 		mutex_lock(&queue->list_lock);
 		list_add_tail(&task->node, &queue->tasklist);
 		mutex_unlock(&queue->list_lock);
+
+		hw_task->task.queued_time = timestamp;
 	}
 
 	/*
@@ -1187,19 +1191,46 @@ remove_tasks:
 }
 
 static void
-set_timer_flags(const struct pva_submit_tasks *task_header)
+set_task_parameters(const struct pva_submit_tasks *task_header)
 {
-	struct pva_hw_task *hw_task = NULL;
+	struct pva_submit_task *task = task_header->tasks[0];
+	struct pva_hw_task *hw_task = task->va;
+	struct nvpva_queue *queue = task->queue;
+
+	u8 status_interface = 0U;
+	u32 flag = 0;
+	u8 batch_id;
 	u16 idx;
+
+	/* Storing to local variable to update in task
+	 * Increment the batch ID and let it overflow
+	 * after it reached U8_MAX
+	 */
+	batch_id = (queue->batch_id++);
 
 	if (task_header->execution_timeout_us > 0U) {
 		hw_task = task_header->tasks[0]->va;
 		hw_task->task.timer_ref_cnt = task_header->num_tasks;
 		hw_task->task.timeout = task_header->execution_timeout_us;
-		for (idx = 0U; idx < task_header->num_tasks; idx++) {
-			hw_task = task_header->tasks[idx]->va;
-			hw_task->task.flags |= PVA_TASK_FL_DEC_TIMER;
-		}
+		flag = PVA_TASK_FL_DEC_TIMER;
+	}
+
+	/* In T19x, there is only 1 CCQ, so the response should come there
+	 * irrespective of the queue ID. In T23x, there are 8 CCQ FIFO's
+	 * thus the response should come in the correct CCQ
+	 */
+	if ((task->pva->submit_task_mode == PVA_SUBMIT_MODE_MMIO_CCQ)
+	   && (task_header->tasks[0]->pva->version == PVA_HW_GEN2))
+		status_interface = (task->queue->id + 1U);
+
+	for (idx = 0U; idx < task_header->num_tasks; idx++) {
+		task = task_header->tasks[idx];
+		hw_task = task->va;
+
+		hw_task->task.status_interface = status_interface;
+		hw_task->task.batch_id = batch_id;
+
+		hw_task->task.flags |= flag;
 	}
 
 }
@@ -1304,7 +1335,7 @@ static int pva_queue_submit(struct nvpva_queue *queue, void *args)
 		prev_hw_task = task->va;
 	}
 
-	set_timer_flags(task_header);
+	set_task_parameters(task_header);
 
 	/* Update L2SRAM flags for T23x */
 	if (task_header->tasks[0]->pva->version == PVA_HW_GEN2)

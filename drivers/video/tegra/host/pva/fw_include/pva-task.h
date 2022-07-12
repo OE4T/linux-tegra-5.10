@@ -93,8 +93,7 @@ struct PVA_PACKED pva_gen_task_status_s {
 };
 
 struct PVA_PACKED pva_task_statistics_s {
-	uint64_t submit_time; /* when task is submitted to PVA FW */
-	uint64_t queued_time; /* when task was accepted by PVA */
+	uint64_t queued_time; /* Time when the task was queued by KMD */
 	uint64_t head_time; /* when task reached head of queue */
 	uint64_t input_actions_complete; /* when input actions done */
 	uint64_t vpu_assigned_time; /* when task assigned a VPU */
@@ -239,8 +238,6 @@ struct PVA_PACKED pva_td_s {
 	 *  Valid range is 0..PVA_MAX_TIMEOUT - both inclusive
 	 */
 	uint64_t			timeout;
-	/** @brief Variable to hold the submit time of the task */
-	uint64_t			submit_time;
 	/** @brief Variable to hold the queued time of the task */
 	uint64_t			queued_time;
 	/** Size of L2SRAM required for the task */
@@ -258,10 +255,6 @@ struct PVA_PACKED pva_td_s {
 	 */
 	/** Additional padding to maintain alignement */
 	uint8_t				pad0[6];
-	/** @brief An area reserved for Cortex R5 firmware usage.
-	 * This area may be modified by the R5 during the task
-	 */
-	uint8_t				r5_reserved[32]	__aligned(8);
 };
 
 /** Runlist version for new task descriptor format */
