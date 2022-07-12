@@ -23,6 +23,7 @@
 #include "dma_local.h"
 #include "hw_desc.h"
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @brief eqos_get_rx_vlan - Get Rx VLAN from descriptor
  *
@@ -76,6 +77,22 @@ static inline void eqos_update_rx_err_stats(struct osi_rx_desc *rx_desc,
 			osi_update_stats_counter(stats->rx_frame_error, 1UL);
 	}
 }
+
+/**
+ * @brief eqos_get_rx_hash - Get Rx packet hash from descriptor if valid
+ *
+ * Algorithm: This routine will be invoked by OSI layer itself to get received
+ * packet Hash from descriptor if RSS hash is valid and it also sets the type
+ * of RSS hash.
+ *
+ * @param[in] rx_desc: Rx Descriptor.
+ * @param[in] rx_pkt_cx: Per-Rx packet context structure
+ */
+static void eqos_get_rx_hash(OSI_UNUSED struct osi_rx_desc *rx_desc,
+			     OSI_UNUSED struct osi_rx_pkt_cx *rx_pkt_cx)
+{
+}
+#endif /* !OSI_STRIPPED_LIB */
 
 /**
  * @brief eqos_get_rx_csum - Get the Rx checksum from descriptor if valid
@@ -156,21 +173,6 @@ static void eqos_get_rx_csum(struct osi_rx_desc *rx_desc,
 }
 
 /**
- * @brief eqos_get_rx_hash - Get Rx packet hash from descriptor if valid
- *
- * Algorithm: This routine will be invoked by OSI layer itself to get received
- * packet Hash from descriptor if RSS hash is valid and it also sets the type
- * of RSS hash.
- *
- * @param[in] rx_desc: Rx Descriptor.
- * @param[in] rx_pkt_cx: Per-Rx packet context structure
- */
-static void eqos_get_rx_hash(OSI_UNUSED struct osi_rx_desc *rx_desc,
-			     OSI_UNUSED struct osi_rx_pkt_cx *rx_pkt_cx)
-{
-}
-
-/**
  * @brief eqos_get_rx_hwstamp - Get Rx HW Time stamp
  *
  * Algorithm:
@@ -237,9 +239,11 @@ static int eqos_get_rx_hwstamp(struct osi_dma_priv_data *osi_dma,
 
 void eqos_init_desc_ops(struct desc_ops *d_ops)
 {
-	d_ops->get_rx_csum = eqos_get_rx_csum;
+#ifndef OSI_STRIPPED_LIB
 	d_ops->update_rx_err_stats = eqos_update_rx_err_stats;
 	d_ops->get_rx_vlan = eqos_get_rx_vlan;
 	d_ops->get_rx_hash = eqos_get_rx_hash;
+#endif /* !OSI_STRIPPED_LIB */
+	d_ops->get_rx_csum = eqos_get_rx_csum;
 	d_ops->get_rx_hwstamp = eqos_get_rx_hwstamp;
 }

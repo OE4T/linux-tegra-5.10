@@ -24,6 +24,7 @@
 #include "hw_desc.h"
 #include "mgbe_desc.h"
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @brief mgbe_get_rx_vlan - Get Rx VLAN from descriptor
  *
@@ -95,34 +96,6 @@ static inline void mgbe_update_rx_err_stats(struct osi_rx_desc *rx_desc,
 }
 
 /**
- * @brief mgbe_get_rx_csum - Get the Rx checksum from descriptor if valid
- *
- * Algorithm:
- *      1) Check if the descriptor has any checksum validation errors.
- *      2) If none, set a per packet context flag indicating no err in
- *              Rx checksum
- *      3) The OSD layer will mark the packet appropriately to skip
- *              IP/TCP/UDP checksum validation in software based on whether
- *              COE is enabled for the device.
- *
- * @param[in] rx_desc: Rx descriptor
- * @param[in] rx_pkt_cx: Per-Rx packet context structure
- */
-static void mgbe_get_rx_csum(struct osi_rx_desc *rx_desc,
-			     struct osi_rx_pkt_cx *rx_pkt_cx)
-{
-	unsigned int ellt = rx_desc->rdes3 & RDES3_ELLT;
-
-	/* Always include either checksum none/unnecessary
-	 * depending on status fields in desc.
-	 * Hence no need to explicitly add OSI_PKT_CX_CSUM flag.
-	 */
-	if ((ellt != RDES3_ELLT_IPHE) && (ellt != RDES3_ELLT_CSUM_ERR)) {
-		rx_pkt_cx->rxcsum |= OSI_CHECKSUM_UNNECESSARY;
-	}
-}
-
-/**
  * @brief mgbe_get_rx_hash - Get Rx packet hash from descriptor if valid
  *
  * Algorithm: This routine will be invoked by OSI layer itself to get received
@@ -157,7 +130,35 @@ static void mgbe_get_rx_hash(struct osi_rx_desc *rx_desc,
 	rx_pkt_cx->rx_hash = rx_desc->rdes1;
 	rx_pkt_cx->flags |= OSI_PKT_CX_RSS;
 }
+#endif /* !OSI_STRIPPED_LIB */
 
+/**
+ * @brief mgbe_get_rx_csum - Get the Rx checksum from descriptor if valid
+ *
+ * Algorithm:
+ *      1) Check if the descriptor has any checksum validation errors.
+ *      2) If none, set a per packet context flag indicating no err in
+ *              Rx checksum
+ *      3) The OSD layer will mark the packet appropriately to skip
+ *              IP/TCP/UDP checksum validation in software based on whether
+ *              COE is enabled for the device.
+ *
+ * @param[in] rx_desc: Rx descriptor
+ * @param[in] rx_pkt_cx: Per-Rx packet context structure
+ */
+static void mgbe_get_rx_csum(struct osi_rx_desc *rx_desc,
+			     struct osi_rx_pkt_cx *rx_pkt_cx)
+{
+	unsigned int ellt = rx_desc->rdes3 & RDES3_ELLT;
+
+	/* Always include either checksum none/unnecessary
+	 * depending on status fields in desc.
+	 * Hence no need to explicitly add OSI_PKT_CX_CSUM flag.
+	 */
+	if ((ellt != RDES3_ELLT_IPHE) && (ellt != RDES3_ELLT_CSUM_ERR)) {
+		rx_pkt_cx->rxcsum |= OSI_CHECKSUM_UNNECESSARY;
+	}
+}
 /** 
  * @brief mgbe_get_rx_hwstamp - Get Rx HW Time stamp
  *
@@ -222,9 +223,11 @@ static int mgbe_get_rx_hwstamp(struct osi_dma_priv_data *osi_dma,
 
 void mgbe_init_desc_ops(struct desc_ops *d_ops)
 {
-        d_ops->get_rx_csum = mgbe_get_rx_csum;
+#ifndef OSI_STRIPPED_LIB
 	d_ops->update_rx_err_stats = mgbe_update_rx_err_stats;
 	d_ops->get_rx_vlan = mgbe_get_rx_vlan;
 	d_ops->get_rx_hash = mgbe_get_rx_hash;
+#endif /* !OSI_STRIPPED_LIB */
+	d_ops->get_rx_csum = mgbe_get_rx_csum;
 	d_ops->get_rx_hwstamp = mgbe_get_rx_hwstamp;
 }

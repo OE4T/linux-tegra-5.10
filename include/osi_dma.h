@@ -252,6 +252,7 @@
  */
 #define OSI_TX_MAX_BUFF_SIZE		0x3FFFU
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @brief OSI packet error stats
  */
@@ -295,6 +296,7 @@ struct osi_pkt_err_stats {
 	/** FRP Incomplete Parsing */
 	unsigned long frp_incomplete;
 };
+#endif /* !OSI_STRIPPED_LIB */
 
 /**
  * @brief Receive Descriptor
@@ -333,16 +335,18 @@ struct osi_rx_pkt_cx {
 	nveu32_t flags;
 	/** Stores the Rx csum */
 	nveu32_t rxcsum;
-	/** Stores the VLAN tag ID in received packet */
-	nveu32_t vlan_tag;
 	/** Length of received packet */
 	nveu32_t pkt_len;
+	/** TS in nsec for the received packet */
+	nveul64_t ns;
+#ifndef OSI_STRIPPED_LIB
+	/** Stores the VLAN tag ID in received packet */
+	nveu32_t vlan_tag;
 	/** Stores received packet hash */
 	nveu32_t rx_hash;
 	/** Store type of packet for which hash carries at rx_hash */
 	nveu32_t rx_hash_type;
-	/** TS in nsec for the received packet */
-	nveul64_t ns;
+#endif /* !OSI_STRIPPED_LIB */
 };
 
 /**
@@ -374,9 +378,11 @@ struct osi_tx_swcx {
 	void *buf_virt_addr;
 	/** Length of buffer */
 	nveu32_t len;
+#ifndef OSI_STRIPPED_LIB
 	/** Flag to keep track of whether buffer pointed by buf_phy_addr
 	 * is a paged buffer/linear buffer */
 	nveu32_t is_paged_buf;
+#endif /* !OSI_STRIPPED_LIB */
 	/** Flag to keep track of SWCX
 	 * Bit 0 is_paged_buf - whether buffer pointed by buf_phy_addr
 	 * is a paged buffer/linear buffer
@@ -456,10 +462,12 @@ struct osi_tx_ring {
 	nveu32_t cur_tx_idx;
 	/** Descriptor index for descriptor cleanup */
 	nveu32_t clean_idx;
+#ifndef OSI_STRIPPED_LIB
 	/** Slot function check */
 	nveu32_t slot_check;
 	/** Slot number */
 	nveu32_t slot_number;
+#endif /* !OSI_STRIPPED_LIB */
 	/** Transmit packet context */
 	struct osi_tx_pkt_cx tx_pkt_cx;
 	/** Transmit complete packet context information */
@@ -468,6 +476,7 @@ struct osi_tx_ring {
 	nveu32_t frame_cnt;
 };
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @brief osi_xtra_dma_stat_counters -  OSI DMA extra stats counters
  */
@@ -489,6 +498,7 @@ struct osi_xtra_dma_stat_counters {
 	/** Total number of TSO packet count */
 	nveu64_t tx_tso_pkt_n;
 };
+#endif /* !OSI_STRIPPED_LIB */
 
 struct osi_dma_priv_data;
 
@@ -522,6 +532,7 @@ struct osd_dma_ops {
 #endif /* OSI_DEBUG */
 };
 
+#ifdef OSI_DEBUG
 /**
  * @brief The OSI DMA IOCTL data structure.
  */
@@ -531,6 +542,7 @@ struct osi_dma_ioctl_data {
 	/** IOCTL command argument */
 	nveu32_t arg_u32;
 };
+#endif /* OSI_DEBUG */
 
 /**
  * @brief The OSI DMA private data structure.
@@ -554,10 +566,12 @@ struct osi_dma_priv_data {
 	nveu32_t rx_buf_len;
 	/** MTU size */
 	nveu32_t mtu;
+#ifndef OSI_STRIPPED_LIB
 	/** Packet error stats */
 	struct osi_pkt_err_stats pkt_err_stats;
 	/** Extra DMA stats */
 	struct osi_xtra_dma_stat_counters dstats;
+#endif /* !OSI_STRIPPED_LIB */
 	/** Receive Interrupt Watchdog Timer Count Units */
 	nveu32_t rx_riwt;
 	/** Flag which decides riwt is enabled(1) or disabled(0) */
@@ -574,18 +588,20 @@ struct osi_dma_priv_data {
 	nveu32_t tx_frames;
 	/** Flag which decides tx_frames is enabled(1) or disabled(0) */
 	nveu32_t use_tx_frames;
+	/** DMA callback ops structure */
+	struct osd_dma_ops osd_ops;
+#ifndef OSI_STRIPPED_LIB
 	/** Flag which decides virtualization is enabled(1) or disabled(0) */
 	nveu32_t use_virtualization;
 	/** Array of DMA channel slot snterval value from DT */
 	nveu32_t slot_interval[OSI_MGBE_MAX_NUM_CHANS];
 	/** Array of DMA channel slot enabled status from DT*/
 	nveu32_t slot_enabled[OSI_MGBE_MAX_NUM_CHANS];
-	/** DMA callback ops structure */
-	struct osd_dma_ops osd_ops;
 	/** Virtual address of reserved DMA buffer */
 	void *resv_buf_virt_addr;
 	/** Physical address of reserved DMA buffer */
 	nveu64_t resv_buf_phy_addr;
+#endif /* !OSI_STRIPPED_LIB */
 	/** PTP flags
 	 * OSI_PTP_SYNC_MASTER - acting as master
 	 * OSI_PTP_SYNC_SLAVE  - acting as slave
@@ -593,9 +609,9 @@ struct osi_dma_priv_data {
 	 * OSI_PTP_SYNC_TWOSTEP - two step mode
 	 */
 	unsigned int ptp_flag;
+#ifdef OSI_DEBUG
 	/** OSI DMA IOCTL data */
 	struct osi_dma_ioctl_data ioctl_data;
-#ifdef OSI_DEBUG
 	/** Flag to enable/disable descriptor dump */
 	nveu32_t enable_desc_dump;
 #endif /* OSI_DEBUG */
@@ -1086,6 +1102,7 @@ nveu32_t osi_is_mac_enabled(struct osi_dma_priv_data *const osi_dma);
 nve32_t osi_handle_dma_intr(struct osi_dma_priv_data *osi_dma,
 			    nveu32_t chan, nveu32_t tx_rx, nveu32_t en_dis);
 
+#ifdef OSI_DEBUG
 /**
  * @brief osi_dma_ioctl - OSI DMA IOCTL
  *
@@ -1102,6 +1119,7 @@ nve32_t osi_handle_dma_intr(struct osi_dma_priv_data *osi_dma,
  * @retval -1 on failure.
  */
 nve32_t osi_dma_ioctl(struct osi_dma_priv_data *osi_dma);
+#endif /* OSI_DEBUG */
 #ifndef OSI_STRIPPED_LIB
 /**
  * @brief osi_clear_tx_pkt_err_stats - Clear tx packet error stats.

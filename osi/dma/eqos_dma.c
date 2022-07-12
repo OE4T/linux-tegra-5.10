@@ -137,7 +137,11 @@ static void eqos_debug_intr_config(struct osi_dma_priv_data *osi_dma)
  *
  * @param[in] ops: DMA channel operations pointer.
  */
+#ifndef OSI_STRIPPED_LIB
 void eqos_init_dma_chan_ops(struct dma_chan_ops *ops)
+#else
+void eqos_init_dma_chan_ops(OSI_UNUSED struct dma_chan_ops *ops)
+#endif /* !OSI_STRIPPED_LIB */
 {
 #ifndef OSI_STRIPPED_LIB
 	ops->config_slot = eqos_config_slot;

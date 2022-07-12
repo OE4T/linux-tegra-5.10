@@ -68,6 +68,7 @@ struct desc_ops {
 	/** Called to get receive checksum */
 	void (*get_rx_csum)(struct osi_rx_desc *rx_desc,
 			    struct osi_rx_pkt_cx *rx_pkt_cx);
+#ifndef OSI_STRIPPED_LIB
 	/** Called to get rx error stats */
 	void (*update_rx_err_stats)(struct osi_rx_desc *rx_desc,
 				    struct osi_pkt_err_stats *stats);
@@ -77,6 +78,7 @@ struct desc_ops {
 	/** Called to get rx HASH from descriptor */
 	void (*get_rx_hash)(struct osi_rx_desc *rx_desc,
 			    struct osi_rx_pkt_cx *rx_pkt_cx);
+#endif /* !OSI_STRIPPED_LIB */
 	/** Called to get RX hw timestamp */
 	int (*get_rx_hwstamp)(struct osi_dma_priv_data *osi_dma,
 			      struct osi_rx_desc *rx_desc,

@@ -901,6 +901,7 @@ nve32_t osi_hw_transmit(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
 	return hw_transmit(osi_dma, osi_dma->tx_ring[chan], chan);
 }
 
+#ifdef OSI_DEBUG
 nve32_t osi_dma_ioctl(struct osi_dma_priv_data *osi_dma)
 {
 	struct dma_local *l_dma = (struct dma_local *)osi_dma;
@@ -913,7 +914,6 @@ nve32_t osi_dma_ioctl(struct osi_dma_priv_data *osi_dma)
 	data = &osi_dma->ioctl_data;
 
 	switch (data->cmd) {
-#ifdef OSI_DEBUG
 	case OSI_DMA_IOCTL_CMD_REG_DUMP:
 		reg_dump(osi_dma);
 		break;
@@ -923,7 +923,6 @@ nve32_t osi_dma_ioctl(struct osi_dma_priv_data *osi_dma)
 	case OSI_DMA_IOCTL_CMD_DEBUG_INTR_CONFIG:
 		l_dma->ops_p->debug_intr_config(osi_dma);
 		break;
-#endif /* OSI_DEBUG */
 	default:
 		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			    "DMA: Invalid IOCTL command", 0ULL);
@@ -932,6 +931,7 @@ nve32_t osi_dma_ioctl(struct osi_dma_priv_data *osi_dma)
 
 	return 0;
 }
+#endif /* OSI_DEBUG */
 
 #ifndef OSI_STRIPPED_LIB
 

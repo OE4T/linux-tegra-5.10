@@ -32,47 +32,6 @@
 
 static struct desc_ops d_ops[MAX_MAC_IP_TYPES];
 
-#ifdef OSI_DEBUG
-/**
- * @brief get_rx_err_stats - Detect Errors from Rx Descriptor
- *
- * @note
- * Algorithm:
- *  - This routine will be invoked by OSI layer itself which
- *    checks for the Last Descriptor and updates the receive status errors
- *    accordingly.
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: Yes
- * - De-initialization: No
- *
- * @param[in] rx_desc: Rx Descriptor.
- * @param[in, out] pkt_err_stats: Packet error stats which stores the errors
- *  reported
- */
-static inline void get_rx_err_stats(struct osi_rx_desc *rx_desc,
-				    struct osi_pkt_err_stats *pkt_err_stats)
-{
-	/* increment rx crc if we see CE bit set */
-	if ((rx_desc->rdes3 & RDES3_ERR_CRC) == RDES3_ERR_CRC) {
-		pkt_err_stats->rx_crc_error =
-			osi_update_stats_counter(
-					pkt_err_stats->rx_crc_error,
-					1UL);
-	}
-
-	/* increment rx frame error if we see RE bit set */
-	if ((rx_desc->rdes3 & RDES3_ERR_RE) == RDES3_ERR_RE) {
-		pkt_err_stats->rx_frame_error =
-			osi_update_stats_counter(
-					pkt_err_stats->rx_frame_error,
-					1UL);
-	}
-}
-#endif
-
 /**
  * @brief validate_rx_completions_arg- Validate input argument of rx_completions
  *
@@ -141,7 +100,9 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 	struct osi_rx_desc *context_desc = OSI_NULL;
 	nveu32_t ip_type = osi_dma->mac;
 	nve32_t received = 0;
+#ifndef OSI_STRIPPED_LIB
 	nve32_t received_resv = 0;
+#endif /* !OSI_STRIPPED_LIB */
 	nve32_t ret = 0;
 
 	ret = validate_rx_completions_arg(osi_dma, chan, more_data_avail,
@@ -159,7 +120,11 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 	/* Reset flag to indicate if more Rx frames available to OSD layer */
 	*more_data_avail = OSI_NONE;
 
-	while ((received < budget) && (received_resv < budget)) {
+	while ((received < budget)
+#ifndef OSI_STRIPPED_LIB
+	       && (received_resv < budget)
+#endif /* !OSI_STRIPPED_LIB */
+	       ) {
 		rx_desc = rx_ring->rx_desc + rx_ring->cur_rx_idx;
 
 		/* check for data availability */
@@ -177,6 +142,7 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 
 		INCR_RX_DESC_INDEX(rx_ring->cur_rx_idx, osi_dma->rx_ring_sz);
 
+#ifndef OSI_STRIPPED_LIB
 		if (osi_unlikely(rx_swcx->buf_virt_addr ==
 		    osi_dma->resv_buf_virt_addr)) {
 			rx_swcx->buf_virt_addr  = OSI_NULL;
@@ -189,6 +155,7 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 			}
 			continue;
 		}
+#endif /* !OSI_STRIPPED_LIB */
 
 		/* packet already processed */
 		if ((rx_swcx->flags & OSI_RX_SWCX_PROCESSED) ==
@@ -229,19 +196,22 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 				 * are set
 				 */
 				rx_pkt_cx->flags &= ~OSI_PKT_CX_VALID;
+#ifndef OSI_STRIPPED_LIB
 				d_ops[ip_type].update_rx_err_stats(rx_desc,
 						&osi_dma->pkt_err_stats);
+#endif /* !OSI_STRIPPED_LIB */
 			}
 
 			/* Check if COE Rx checksum is valid */
 			d_ops[ip_type].get_rx_csum(rx_desc, rx_pkt_cx);
 
+#ifndef OSI_STRIPPED_LIB
 			/* Get Rx VLAN from descriptor */
 			d_ops[ip_type].get_rx_vlan(rx_desc, rx_pkt_cx);
 
 			/* get_rx_hash for RSS */
 			d_ops[ip_type].get_rx_hash(rx_desc, rx_pkt_cx);
-
+#endif /* !OSI_STRIPPED_LIB */
 			context_desc = rx_ring->rx_desc + rx_ring->cur_rx_idx;
 			/* Get rx time stamp */
 			ret = d_ops[ip_type].get_rx_hwstamp(osi_dma, rx_desc,
@@ -281,15 +251,18 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 				return -1;
 			}
 		}
+#ifndef OSI_STRIPPED_LIB
 		osi_dma->dstats.q_rx_pkt_n[chan] =
 			osi_update_stats_counter(
 					osi_dma->dstats.q_rx_pkt_n[chan],
 					1UL);
 		osi_dma->dstats.rx_pkt_n =
 			osi_update_stats_counter(osi_dma->dstats.rx_pkt_n, 1UL);
+#endif /* !OSI_STRIPPED_LIB */
 		received++;
 	}
 
+#ifndef OSI_STRIPPED_LIB
 	/* If budget is done, check if HW ring still has unprocessed
 	 * Rx packets, so that the OSD layer can decide to schedule
 	 * this function again.
@@ -306,10 +279,11 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 			*more_data_avail = OSI_ENABLE;
 		}
 	}
-
+#endif /* !OSI_STRIPPED_LIB */
 	return received;
 }
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @brief inc_tx_pkt_stats - Increment Tx packet count Stats
  *
@@ -439,7 +413,6 @@ static inline void get_tx_err_stats(struct osi_tx_desc *tx_desc,
 	}
 }
 
-#ifndef OSI_STRIPPED_LIB
 nve32_t osi_clear_tx_pkt_err_stats(struct osi_dma_priv_data *osi_dma)
 {
 	nve32_t ret = -1;
@@ -568,9 +541,10 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
 	txdone_pkt_cx = &tx_ring->txdone_pkt_cx;
 	entry = tx_ring->clean_idx;
 
+#ifndef OSI_STRIPPED_LIB
 	osi_dma->dstats.tx_clean_n[chan] =
 		osi_update_stats_counter(osi_dma->dstats.tx_clean_n[chan], 1U);
-
+#endif /* !OSI_STRIPPED_LIB */
 	while ((entry != tx_ring->cur_tx_idx) && (entry < osi_dma->tx_ring_sz) &&
 	       (processed < budget)) {
 		osi_memset(txdone_pkt_cx, 0U, sizeof(*txdone_pkt_cx));
@@ -594,11 +568,15 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
 			if (((tx_desc->tdes3 & TDES3_ES_BITS) != 0U) &&
 			    (osi_dma->mac != OSI_MAC_HW_MGBE)) {
 				txdone_pkt_cx->flags |= OSI_TXDONE_CX_ERROR;
+#ifndef OSI_STRIPPED_LIB
 				/* fill packet error stats */
 				get_tx_err_stats(tx_desc,
 						 &osi_dma->pkt_err_stats);
+#endif /* !OSI_STRIPPED_LIB */
 			} else {
+#ifndef OSI_STRIPPED_LIB
 				inc_tx_pkt_stats(osi_dma, chan);
+#endif /* !OSI_STRIPPED_LIB */
 			}
 
 			if (processed < INT_MAX) {
@@ -815,11 +793,19 @@ static inline unsigned int is_ptp_onestep_and_master_mode(unsigned int ptp_flag)
  * @param[in, out] tx_desc: Pointer to transmit descriptor to be filled.
  * @param[in] tx_swcx: Pointer to corresponding tx descriptor software context.
  */
+#ifndef OSI_STRIPPED_LIB
 static inline void fill_first_desc(struct osi_tx_ring *tx_ring,
 				   struct osi_tx_pkt_cx *tx_pkt_cx,
 				   struct osi_tx_desc *tx_desc,
 				   struct osi_tx_swcx *tx_swcx,
 				   unsigned int ptp_flag)
+#else
+static inline void fill_first_desc(OSI_UNUSED struct osi_tx_ring *tx_ring,
+				   struct osi_tx_pkt_cx *tx_pkt_cx,
+				   struct osi_tx_desc *tx_desc,
+				   struct osi_tx_swcx *tx_swcx,
+				   unsigned int ptp_flag)
+#endif /* !OSI_STRIPPED_LIB */
 {
 	tx_desc->tdes0 = L32(tx_swcx->buf_phy_addr);
 	tx_desc->tdes1 = H32(tx_swcx->buf_phy_addr);
@@ -878,6 +864,7 @@ static inline void fill_first_desc(struct osi_tx_ring *tx_ring,
 		tx_desc->tdes3 &= ~TDES3_TPL_MASK;
 		tx_desc->tdes3 |= tx_pkt_cx->payload_len;
 	} else {
+#ifndef OSI_STRIPPED_LIB
 		if ((tx_ring->slot_check == OSI_ENABLE) &&
 		    (tx_ring->slot_number < OSI_SLOT_NUM_MAX)) {
 			/* Fill Slot number */
@@ -886,6 +873,7 @@ static inline void fill_first_desc(struct osi_tx_ring *tx_ring,
 			tx_ring->slot_number = ((tx_ring->slot_number + 1U) %
 						OSI_SLOT_NUM_MAX);
 		}
+#endif /* !OSI_STRIPPED_LIB */
 	}
 }
 
@@ -1015,6 +1003,7 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 		return -1;
 	}
 
+#ifndef OSI_STRIPPED_LIB
 	/* Context descriptor for VLAN/TSO */
 	if ((tx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) {
 		osi_dma->dstats.tx_vlan_pkt_n =
@@ -1027,6 +1016,7 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 			osi_update_stats_counter(osi_dma->dstats.tx_tso_pkt_n,
 						 1UL);
 	}
+#endif /* !OSI_STRIPPED_LIB */
 
 	cntx_desc_consumed = need_cntx_desc(tx_pkt_cx, tx_swcx, tx_desc,
 					    osi_dma->ptp_flag, osi_dma->mac);
@@ -1406,9 +1396,11 @@ static nve32_t tx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
 		tx_ring->cur_tx_idx = 0;
 		tx_ring->clean_idx = 0;
 
+#ifndef OSI_STRIPPED_LIB
 		/* Slot function parameter initialization */
 		tx_ring->slot_number = 0U;
 		tx_ring->slot_check = OSI_DISABLE;
+#endif /* !OSI_STRIPPED_LIB */
 
 		set_tx_ring_len_and_start_addr(osi_dma, tx_ring->tx_desc_phy_addr,
 					       chan, (osi_dma->tx_ring_sz - 1U));

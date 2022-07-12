@@ -118,7 +118,11 @@ static void mgbe_debug_intr_config(struct osi_dma_priv_data *osi_dma)
 }
 #endif
 
+#ifndef OSI_STRIPPED_LIB
 void mgbe_init_dma_chan_ops(struct dma_chan_ops *ops)
+#else
+void mgbe_init_dma_chan_ops(OSI_UNUSED struct dma_chan_ops *ops)
+#endif
 {
 #ifndef OSI_STRIPPED_LIB
 	ops->config_slot = mgbe_config_slot;
