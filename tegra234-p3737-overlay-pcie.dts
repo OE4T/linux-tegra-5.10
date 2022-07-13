@@ -58,7 +58,7 @@
 	fragment@2 {
 		target-path = "/";
 		board_config {
-			ids = ">=3737-0000-TS4";
+			ids = ">=3737-0000-TS4",">=3737-0000-RC1",">=3737-0000-400";
 		};
 		__overlay__ {
 			pcie_ep@141a0000 {
