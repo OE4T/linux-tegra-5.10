@@ -215,7 +215,9 @@ static inline int ether_alloc_skb(struct ether_priv_data *pdata,
 	dma_addr_t dma_addr;
 #endif
 	unsigned long val;
-	if ((rx_swcx->flags & OSI_RX_SWCX_REUSE) == OSI_RX_SWCX_REUSE) {
+
+	if (((rx_swcx->flags & OSI_RX_SWCX_REUSE) == OSI_RX_SWCX_REUSE) &&
+	    (rx_swcx->buf_virt_addr != pdata->osi_dma->resv_buf_virt_addr)) {
 		/* Skip buffer allocation and DMA mapping since
 		 * PTP software context will have valid buffer and
 		 * DMA addresses so use them as is.
