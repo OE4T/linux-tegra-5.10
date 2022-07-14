@@ -502,7 +502,6 @@ int nvpva_buffer_pin(struct nvpva_buffers *nvpva_buffers,
 					       true);
 			if (err) {
 				nvpva_buffer_unmap(nvpva_buffers, vm);
-				put_unique_id(nvpva_buffers, vm->id);
 				goto unpin;
 			}
 		}
