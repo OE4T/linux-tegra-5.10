@@ -29,14 +29,14 @@
 #if defined(DEBUG_MACSEC) && defined(QNX_OS)
 #define LOG(...) \
 	{ \
-		slogf(0, 2, ##__VA_ARGS__); \
+		slogf(0, 6, ##__VA_ARGS__); \
 	}
 
 #elif defined(DEBUG_MACSEC) && defined(LINUX_OS)
 #include <linux/printk.h>
 #define LOG(...) \
 	{ \
-		pr_err(__VA_ARGS__); \
+		pr_debug(__VA_ARGS__); \
 	}
 #else
 #define LOG(...)
@@ -803,26 +803,21 @@ static nve32_t macsec_enable(struct osi_core_priv_data *const osi_core,
 	}
 
 	val = osi_readla(osi_core, base + MACSEC_CONTROL0);
-	OSI_CORE_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
-		      "Read MACSEC_CONTROL0: \n", val);
+	LOG("Read MACSEC_CONTROL0: 0x%x \n", val);
 
 	if ((enable & OSI_MACSEC_TX_EN) == OSI_MACSEC_TX_EN) {
-		OSI_CORE_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
-			      "Enabling macsec TX \n", 0ULL);
+		LOG("Enabling macsec TX\n");
 		val |= (MACSEC_TX_EN);
 	} else {
-		OSI_CORE_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
-			      "Disabling macsec TX \n", 0ULL);
+		LOG("Disabling macsec TX\n");
 		val &= ~(MACSEC_TX_EN);
 	}
 
 	if ((enable & OSI_MACSEC_RX_EN) == OSI_MACSEC_RX_EN) {
-		OSI_CORE_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
-			      "Enabling macsec RX \n", 0ULL);
+		LOG("Enabling macsec RX\n");
 		val |= (MACSEC_RX_EN);
 	} else {
-		OSI_CORE_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
-			      "Disabling macsec RX \n", 0ULL);
+		LOG("Disabling macsec RX\n");
 		val &= ~(MACSEC_RX_EN);
 	}
 
