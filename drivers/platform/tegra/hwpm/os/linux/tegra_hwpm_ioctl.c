@@ -540,7 +540,7 @@ static ssize_t tegra_hwpm_read(struct file *file,
 /* FIXME: Fix double release bug */
 static int tegra_hwpm_release(struct inode *inode, struct file *filp)
 {
-	int ret = 0;
+	int ret = 0, err = 0;
 	struct tegra_soc_hwpm *hwpm = NULL;
 
 	if (!inode) {
@@ -560,11 +560,6 @@ static int tegra_hwpm_release(struct inode *inode, struct file *filp)
 
 	tegra_hwpm_fn(hwpm, " ");
 
-	/* De-init driver on last close call only */
-	if (!atomic_dec_and_test(&hwpm->hwpm_in_use)) {
-		return 0;
-	}
-
 	if (hwpm->device_opened == false) {
 		/* Device was not opened, do nothing */
 		return 0;
@@ -573,13 +568,14 @@ static int tegra_hwpm_release(struct inode *inode, struct file *filp)
 	ret = tegra_hwpm_disable_triggers(hwpm);
 	if (ret < 0) {
 		tegra_hwpm_err(hwpm, "Failed to disable PMA triggers");
-		goto fail;
+		err = ret;
 	}
 
 	/* Disable and release reserved IPs */
 	ret = tegra_hwpm_release_resources(hwpm);
 	if (ret < 0) {
 		tegra_hwpm_err(hwpm, "Failed to release IP apertures");
+		err = ret;
 		goto fail;
 	}
 
@@ -587,12 +583,14 @@ static int tegra_hwpm_release(struct inode *inode, struct file *filp)
 	ret = tegra_hwpm_clear_mem_pipeline(hwpm);
 	if (ret < 0) {
 		tegra_hwpm_err(hwpm, "Failed to clear MEM_BYTES pipeline");
+		err = ret;
 		goto fail;
 	}
 
 	ret = tegra_hwpm_release_hw(hwpm);
 	if (ret < 0) {
 		tegra_hwpm_err(hwpm, "Failed to release hw");
+		err = ret;
 		goto fail;
 	}
 
@@ -600,19 +598,26 @@ static int tegra_hwpm_release(struct inode *inode, struct file *filp)
 		ret = reset_control_assert(hwpm->hwpm_rst);
 		if (ret < 0) {
 			tegra_hwpm_err(hwpm, "hwpm reset assert failed");
+			err = ret;
 			goto fail;
 		}
 		ret = reset_control_assert(hwpm->la_rst);
 		if (ret < 0) {
 			tegra_hwpm_err(hwpm, "la reset assert failed");
+			err = ret;
 			goto fail;
 		}
 		clk_disable_unprepare(hwpm->la_clk);
 	}
 
+	/* De-init driver on last close call only */
+	if (!atomic_dec_and_test(&hwpm->hwpm_in_use)) {
+		return 0;
+	}
+
 	hwpm->device_opened = false;
 fail:
-	return ret;
+	return err;
 }
 
 /* File ops for device node */
