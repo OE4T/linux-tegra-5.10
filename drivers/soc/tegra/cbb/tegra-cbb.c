@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (c) 2021-2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2021-2022, NVIDIA CORPORATION. All rights reserved
  */
 
-#include <asm/cpufeature.h>
 #include <linux/clk.h>
+#include <linux/cpufeature.h>
 #include <linux/debugfs.h>
 #include <linux/module.h>
 #include <linux/of.h>
@@ -22,8 +22,8 @@
 
 void tegra_cbb_print_err(struct seq_file *file, const char *fmt, ...)
 {
-	va_list args;
 	struct va_format vaf;
+	va_list args;
 
 	va_start(args, fmt);
 
@@ -40,10 +40,7 @@ void tegra_cbb_print_err(struct seq_file *file, const char *fmt, ...)
 
 void tegra_cbb_print_cache(struct seq_file *file, u32 cache)
 {
-	char *buff_str;
-	char *mod_str;
-	char *rd_str;
-	char *wr_str;
+	const char *buff_str, *mod_str, *rd_str, *wr_str;
 
 	buff_str = (cache & BIT(0)) ? "Bufferable " : "";
 	mod_str = (cache & BIT(1)) ? "Modifiable " : "";
@@ -59,9 +56,7 @@ void tegra_cbb_print_cache(struct seq_file *file, u32 cache)
 
 void tegra_cbb_print_prot(struct seq_file *file, u32 prot)
 {
-	char *data_str;
-	char *secure_str;
-	char *priv_str;
+	const char *data_str, *secure_str, *priv_str;
 
 	data_str = (prot & 0x4) ? "Instruction" : "Data";
 	secure_str = (prot & 0x2) ? "Non-Secure" : "Secure";
@@ -71,127 +66,124 @@ void tegra_cbb_print_prot(struct seq_file *file, u32 prot)
 			    prot, priv_str, secure_str, data_str);
 }
 
-#ifdef CONFIG_DEBUG_FS
-static int created_root;
-
-static int cbb_err_show(struct seq_file *file, void *data)
+static int tegra_cbb_err_show(struct seq_file *file, void *data)
 {
 	struct tegra_cbb *cbb = file->private;
 
-	return cbb->ops->cbb_err_debugfs_show(cbb, file, data);
+	return cbb->ops->debugfs_show(cbb, file, data);
 }
 
-static int cbb_err_open(struct inode *inode, struct file *file)
+static int tegra_cbb_err_open(struct inode *inode, struct file *file)
 {
-	return single_open(file, cbb_err_show, inode->i_private);
+	return single_open(file, tegra_cbb_err_show, inode->i_private);
 }
 
-static const struct file_operations cbb_err_fops = {
-	.open = cbb_err_open,
+static const struct file_operations tegra_cbb_err_fops = {
+	.open = tegra_cbb_err_open,
 	.read = seq_read,
 	.llseek = seq_lseek,
 	.release = single_release
 };
 
-static int tegra_cbb_err_dbgfs_init(struct tegra_cbb *cbb)
+static int tegra_cbb_err_debugfs_init(struct tegra_cbb *cbb)
 {
-	struct dentry *d;
+	static struct dentry *root;
 
-	if (!created_root) {
-		d = debugfs_create_file("tegra_cbb_err", 0444, NULL, cbb,
-					&cbb_err_fops);
-		if (IS_ERR_OR_NULL(d)) {
-			pr_err
-			("%s: could not create 'tegra_cbb_err' node\n",
-			 __func__);
-			return PTR_ERR(d);
+	if (!root) {
+		root = debugfs_create_file("tegra_cbb_err", 0444, NULL, cbb, &tegra_cbb_err_fops);
+		if (IS_ERR_OR_NULL(root)) {
+			pr_err("%s(): could not create debugfs node\n", __func__);
+			return PTR_ERR(root);
 		}
-		created_root = true;
 	}
+
 	return 0;
 }
 
-#else
-static int tegra_cbb_err_dbgfs_init(struct tegra_cbb *cbb) { return 0; }
-#endif
-
-void tegra_cbb_stallen(struct tegra_cbb *cbb)
+void tegra_cbb_stall_enable(struct tegra_cbb *cbb)
 {
-	if (cbb->ops->stallen)
-		cbb->ops->stallen(cbb);
+	if (cbb->ops->stall_enable)
+		cbb->ops->stall_enable(cbb);
 }
 
-void tegra_cbb_faulten(struct tegra_cbb *cbb)
+void tegra_cbb_fault_enable(struct tegra_cbb *cbb)
 {
-	if (cbb->ops->faulten)
-		cbb->ops->faulten(cbb);
+	if (cbb->ops->fault_enable)
+		cbb->ops->fault_enable(cbb);
 }
 
-void tegra_cbb_errclr(struct tegra_cbb *cbb)
+void tegra_cbb_error_clear(struct tegra_cbb *cbb)
 {
-	if (cbb->ops->errclr)
-		cbb->ops->errclr(cbb);
+	if (cbb->ops->error_clear)
+		cbb->ops->error_clear(cbb);
 }
 
-u32 tegra_cbb_errvld(struct tegra_cbb *cbb)
+u32 tegra_cbb_get_status(struct tegra_cbb *cbb)
 {
-	if (cbb->ops->errvld)
-		return cbb->ops->errvld(cbb);
-	else
-		return 0;
+	if (cbb->ops->get_status)
+		return cbb->ops->get_status(cbb);
+
+	return 0;
 }
 
-int tegra_cbb_err_getirq(struct platform_device *pdev, int *nonsec_irq, int *sec_irq)
+int tegra_cbb_get_irq(struct platform_device *pdev, unsigned int *nonsec_irq,
+		      unsigned int *sec_irq)
 {
-	int num_intr = 0;
-	int intr_indx = 0;
+	unsigned int index = 0;
+	int num_intr = 0, irq;
 
 	num_intr = platform_irq_count(pdev);
 	if (!num_intr)
 		return -EINVAL;
 
 	if (num_intr == 2) {
-		*nonsec_irq = platform_get_irq(pdev, intr_indx);
-		if (*nonsec_irq <= 0) {
-			dev_err(&pdev->dev, "can't get irq (%d)\n", *nonsec_irq);
+		irq = platform_get_irq(pdev, index);
+		if (irq <= 0) {
+			dev_err(&pdev->dev, "failed to get non-secure IRQ: %d\n", irq);
 			return -ENOENT;
 		}
-		intr_indx++;
+
+		*nonsec_irq = irq;
+		index++;
 	}
 
-	*sec_irq = platform_get_irq(pdev, intr_indx);
-	if (*sec_irq <= 0) {
-		dev_err(&pdev->dev, "can't get irq (%d)\n", *sec_irq);
+	irq = platform_get_irq(pdev, index);
+	if (irq <= 0) {
+		dev_err(&pdev->dev, "failed to get secure IRQ: %d\n", irq);
 		return -ENOENT;
 	}
 
+	*sec_irq = irq;
+
 	if (num_intr == 1)
-		dev_info(&pdev->dev, "secure_irq = %d\n", *sec_irq);
+		dev_dbg(&pdev->dev, "secure IRQ: %u\n", *sec_irq);
+
 	if (num_intr == 2)
-		dev_info(&pdev->dev, "secure_irq = %d, nonsecure_irq = %d>\n",
-			 *sec_irq, *nonsec_irq);
+		dev_dbg(&pdev->dev, "secure IRQ: %u, non-secure IRQ: %u\n", *sec_irq, *nonsec_irq);
+
 	return 0;
 }
 
-int tegra_cbb_register_isr_enaberr(struct tegra_cbb *cbb)
+int tegra_cbb_register(struct tegra_cbb *cbb)
 {
-	struct platform_device *pdev = cbb->pdev;
-	int ret = 0;
+	int ret;
 
-	ret = tegra_cbb_err_dbgfs_init(cbb);
-	if (ret) {
-		dev_err(&pdev->dev, "failed to create debugfs\n");
-		return ret;
+	if (IS_ENABLED(CONFIG_DEBUG_FS)) {
+		ret = tegra_cbb_err_debugfs_init(cbb);
+		if (ret) {
+			dev_err(cbb->dev, "failed to create debugfs\n");
+			return ret;
+		}
 	}
 
 	/* register interrupt handler for errors due to different initiators */
-	ret = cbb->ops->cbb_intr_enable(cbb);
+	ret = cbb->ops->interrupt_enable(cbb);
 	if (ret < 0) {
-		dev_err(&pdev->dev, "Failed to register CBB Interrupt ISR");
+		dev_err(cbb->dev, "Failed to register CBB Interrupt ISR");
 		return ret;
 	}
 
-	cbb->ops->cbb_err_enable(cbb);
+	cbb->ops->error_enable(cbb);
 	dsb(sy);
 
 	return 0;
