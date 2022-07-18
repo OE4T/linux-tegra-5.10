@@ -227,6 +227,6 @@
 	};
 
 	display@13800000 {
-		status = "okay";
+		status = "disabled";
 	};
 };
