@@ -9,6 +9,7 @@ ifeq ($(KERNEL_OVERLAYS),)
 KERNEL_OVERLAYS :=
 KERNEL_OVERLAYS += $(dir $(lastword $(MAKEFILE_LIST)))/nvidia
 KERNEL_OVERLAYS += $(dir $(lastword $(MAKEFILE_LIST)))/nvidia/nvgpu
+KERNEL_OVERLAYS += $(dir $(lastword $(MAKEFILE_LIST)))/nvidia/drivers/video/tegra/nvmap
 else
 override KERNEL_OVERLAYS := $(subst :, ,$(KERNEL_OVERLAYS))
 endif
