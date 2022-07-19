@@ -4663,69 +4663,60 @@ static int ether_get_mac_address(struct ether_priv_data *pdata)
 	unsigned int mac_addr_idx = 0x0;
 	int ret = 0;
 
-	if (!osi_core->pre_si) {
-		/** For all new Platforms, ethernet DT node must have
-		 * "nvidia,mac-addr-idx" property which give MAC address
-		 * index of ethernet controller.
-		 *
-		 * - Algorithm: MAC address index for a functional driver is
-		 *   known from platform dts file.
-		 *
-		 *   For example:
-		 *     if there is MGBE controller DT node with index 8 MGBE,
-		 *     MAC address is at /chosen/nvidia,ether-mac8
-		 */
-		if ((pdata->osi_core->mac_ver > OSI_EQOS_MAC_5_10) ||
-		    (pdata->osi_core->mac == OSI_MAC_HW_MGBE)) {
-			ret = of_property_read_u32(np,
-						   "nvidia,mac-addr-idx",
-						   &mac_addr_idx);
-			if (ret < 0) {
-				dev_err(dev,
-					"Ethernet MAC index missing\n");
-				/* TODO Must return error if index is not
-				 * present in ethernet dt node
-				 * which is having status "okay".
-				 */
-			}
-
-			offset = mac_addr_idx;
-			sprintf(str_mac_address, "nvidia,ether-mac%d", offset);
-		}
-
-		ret = ether_get_mac_address_dtb("/chosen", str_mac_address,
-						mac_addr);
-		/* If return value is valid update eth_mac_addr */
-		if (ret == 0) {
-			eth_mac_addr = mac_addr;
-		}
-
-		/* if chosen nodes are not present for platform */
-		if (IS_ERR_OR_NULL(eth_mac_addr)) {
-			/* Read MAC address using default ethernet property
-			 * upstream driver should have only this call to get
-			 * MAC address
+	/** For all new Platforms, ethernet DT node must have
+	 * "nvidia,mac-addr-idx" property which give MAC address
+	 * index of ethernet controller.
+	 *
+	 * - Algorithm: MAC address index for a functional driver is
+	 *   known from platform dts file.
+	 *
+	 *   For example:
+	 *     if there is MGBE controller DT node with index 8 MGBE,
+	 *     MAC address is at /chosen/nvidia,ether-mac8
+	 */
+	if ((pdata->osi_core->mac_ver > OSI_EQOS_MAC_5_10) ||
+	    (pdata->osi_core->mac == OSI_MAC_HW_MGBE)) {
+		ret = of_property_read_u32(np, "nvidia,mac-addr-idx",
+					   &mac_addr_idx);
+		if (ret < 0) {
+			dev_err(dev, "Ethernet MAC index missing\n");
+			/* TODO Must return error if index is not
+			 * present in ethernet dt node
+			 * which is having status "okay".
 			 */
-			eth_mac_addr = of_get_mac_address(np);
-
-			if (IS_ERR_OR_NULL(eth_mac_addr)) {
-				dev_err(dev, "No MAC address in local DT!\n");
-				return -EINVAL;
-			}
 		}
 
-		/* If neither chosen node nor kernel supported dt strings are
-		 * present in platform device tree.
+		offset = mac_addr_idx;
+		sprintf(str_mac_address, "nvidia,ether-mac%d", offset);
+	}
+
+	ret = ether_get_mac_address_dtb("/chosen", str_mac_address, mac_addr);
+	/* If return value is valid update eth_mac_addr */
+	if (ret == 0) {
+		eth_mac_addr = mac_addr;
+	}
+
+	/* if chosen nodes are not present for platform */
+	if (IS_ERR_OR_NULL(eth_mac_addr)) {
+		/* Read MAC address using default ethernet property
+		 * upstream driver should have only this call to get
+		 * MAC address
 		 */
-		if (!(is_valid_ether_addr(eth_mac_addr)) ||
-		    IS_ERR_OR_NULL(eth_mac_addr)) {
-			dev_err(dev, "Bad mac address exiting\n");
+		eth_mac_addr = of_get_mac_address(np);
+
+		if (IS_ERR_OR_NULL(eth_mac_addr)) {
+			dev_err(dev, "No MAC address in local DT!\n");
 			return -EINVAL;
 		}
-	} else {
-		ndev->addr_assign_type = NET_ADDR_RANDOM;
-		eth_random_addr(mac_addr);
-		eth_mac_addr = mac_addr;
+	}
+
+	/* If neither chosen node nor kernel supported dt strings are
+	 * present in platform device tree.
+	 */
+	if (!(is_valid_ether_addr(eth_mac_addr)) ||
+	    IS_ERR_OR_NULL(eth_mac_addr)) {
+		dev_err(dev, "Bad mac address exiting\n");
+		return -EINVAL;
 	}
 
 	/* Found a valid mac address */
@@ -6286,29 +6277,6 @@ static void init_filter_values(struct ether_priv_data *pdata)
 }
 
 /**
- * @brief Sets whether platform is Pre-silicon or not.
- *
- * Algorithm: Updates OSI whether respective platform is Pre-silicon or not
- *
- * @param[in] osi_core: OSI core private data structure
- * @param[in] osi_dma: OSI dma private data structure
- */
-static inline void tegra_pre_si_platform(struct osi_core_priv_data *osi_core,
-					 struct osi_dma_priv_data *osi_dma)
-{
-	/* VDK set true for both VDK/uFPGA */
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0))
-	if (tegra_platform_is_vdk()) {
-		osi_core->pre_si = 1;
-		osi_dma->pre_si = 1;
-	}
-	return;
-#endif
-	osi_core->pre_si = 0;
-	osi_dma->pre_si = 0;
-}
-
-/**
  * @brief ether_init_rss - Init OSI RSS structure
  *
  * Algorithm: Populates RSS hash key and table in OSI core structure.
@@ -6428,7 +6396,6 @@ static int ether_probe(struct platform_device *pdev)
 
 	osi_core->mtu = ndev->mtu;
 	osi_dma->mtu = ndev->mtu;
-	tegra_pre_si_platform(osi_core, osi_dma);
 
 	/* Parse the ethernet DT node */
 	ret = ether_parse_dt(pdata);
