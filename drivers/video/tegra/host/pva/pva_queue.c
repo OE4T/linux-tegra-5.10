@@ -898,6 +898,9 @@ void pva_task_free(struct kref *ref)
 	if (my_queue->hw_task_tail == task->va)
 		my_queue->hw_task_tail = NULL;
 
+	if (my_queue->old_tail == task->va)
+		my_queue->old_tail = NULL;
+
 	mutex_unlock(&my_queue->tail_lock);
 
 	pva_task_unpin_mem(task);
@@ -1342,16 +1345,24 @@ static int pva_queue_submit(struct nvpva_queue *queue, void *args)
 		update_batch_tasks(task_header);
 
 	mutex_lock(&queue->tail_lock);
-	/*Once batch is ready, link it to the FW queue*/
-	if (queue->hw_task_tail != NULL)
+
+	/* Once batch is ready, link it to the FW queue*/
+	if (queue->hw_task_tail)
 		queue->hw_task_tail->task.next = task_header->tasks[0]->dma_addr;
+
+	/* Hold a reference to old tail in case submission fails*/
+	queue->old_tail = queue->hw_task_tail;
 
 	queue->hw_task_tail = prev_hw_task;
 	mutex_unlock(&queue->tail_lock);
 
 	err = pva_task_submit(task_header);
-	if (err)
+	if (err) {
 		dev_err(&queue->vm_pdev->dev, "failed to submit task");
+		mutex_lock(&queue->tail_lock);
+		queue->hw_task_tail = queue->old_tail;
+		mutex_unlock(&queue->tail_lock);
+	}
 unlock:
 	mutex_unlock(&client->sema_val_lock);
 	return err;

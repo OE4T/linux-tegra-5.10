@@ -90,6 +90,7 @@ struct nvpva_queue {
 
 	/*! Mutex for exclusive access of tail task submit */
 	struct mutex tail_lock;
+	struct pva_hw_task *old_tail;
 	struct pva_hw_task *hw_task_tail;
 
 	u8 batch_id;
