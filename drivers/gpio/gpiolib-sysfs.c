@@ -446,10 +446,38 @@ static struct attribute *gpiochip_attrs[] = {
 ATTRIBUTE_GROUPS(gpiochip);
 
 /*
+ * Gets a gpio_desc based on the gpio name. It trims whitespace
+ * from the name as the buffer written by the user via the
+ * sysfs will most likely have a trailing \n if they used echo
+ */
+
+static struct gpio_desc *gpio_desc_from_name(const char *name)
+{
+	struct gpio_desc *desc;
+	char *trimmed;
+
+	if (!name)
+		return NULL;
+
+	trimmed = kzalloc(strlen(name) + 1, GFP_KERNEL);
+	strcpy(trimmed, name);
+
+	//remove trailing whitespace
+	trimmed = strim(trimmed);
+
+	desc = gpio_name_to_desc(trimmed);
+	kfree(trimmed);
+
+	return desc;
+}
+
+/*
  * /sys/class/gpio/export ... write-only
  *	integer N ... number of GPIO to export (full access)
+ *	char* name ... name of GPIO to export (full access)
  * /sys/class/gpio/unexport ... write-only
  *	integer N ... number of GPIO to unexport
+ *	char* name ... name of GPIO to unexport (full access)
  */
 static ssize_t export_store(struct class *class,
 				struct class_attribute *attr,
@@ -462,15 +490,26 @@ static ssize_t export_store(struct class *class,
 	int			offset;
 
 	status = kstrtol(buf, 0, &gpio);
-	if (status < 0)
-		goto done;
 
-	desc = gpio_to_desc(gpio);
-	/* reject invalid GPIOs */
-	if (!desc) {
-		pr_warn("%s: invalid GPIO %ld\n", __func__, gpio);
-		return -EINVAL;
+	/* If buf is not a number then try to find by name */
+	if (status < 0) {
+		desc = gpio_desc_from_name(buf);
+
+		/* reject invalid GPIOs */
+		if (!desc) {
+			pr_warn("%s: GPIO named %s not found\n", __func__, buf);
+			return -EINVAL;
+		}
+	} else {
+		desc = gpio_to_desc(gpio);
+
+		/* reject invalid GPIOs */
+		if (!desc) {
+			pr_warn("%s: invalid GPIO %ld\n", __func__, gpio);
+			return -EINVAL;
+		}
 	}
+
 	gc = desc->gdev->chip;
 	offset = gpio_chip_hwgpio(desc);
 	if (!gpiochip_line_is_valid(gc, offset)) {
@@ -515,14 +554,24 @@ static ssize_t unexport_store(struct class *class,
 	int			status;
 
 	status = kstrtol(buf, 0, &gpio);
-	if (status < 0)
-		goto done;
 
-	desc = gpio_to_desc(gpio);
-	/* reject bogus commands (gpio_unexport ignores them) */
-	if (!desc) {
-		pr_warn("%s: invalid GPIO %ld\n", __func__, gpio);
-		return -EINVAL;
+	/* If buf is not a number then try to find by name */
+	if (status < 0) {
+		desc = gpio_desc_from_name(buf);
+
+		/* reject invalid GPIOs */
+		if (!desc) {
+			pr_warn("%s: GPIO named %s not found\n", __func__, buf);
+			return -EINVAL;
+		}
+	} else {
+		desc = gpio_to_desc(gpio);
+
+		/* reject invalid GPIOs */
+		if (!desc) {
+			pr_warn("%s: invalid GPIO %ld\n", __func__, gpio);
+			return -EINVAL;
+		}
 	}
 
 	status = -EINVAL;
@@ -535,7 +584,7 @@ static ssize_t unexport_store(struct class *class,
 		status = 0;
 		gpiod_free(desc);
 	}
-done:
+
 	if (status)
 		pr_debug("%s: status %d\n", __func__, status);
 	return status ? : len;

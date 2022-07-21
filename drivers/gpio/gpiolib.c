@@ -296,7 +296,7 @@ static int gpiodev_add_to_list(struct gpio_device *gdev)
  * Hence this function will return, if it exists, a reference to the first GPIO
  * line found that matches the given name.
  */
-static struct gpio_desc *gpio_name_to_desc(const char * const name)
+struct gpio_desc *gpio_name_to_desc(const char * const name)
 {
 	struct gpio_device *gdev;
 	unsigned long flags;
