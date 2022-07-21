@@ -209,7 +209,7 @@
 	};
 
 	soctherm-oc-event {
-		status = "disabled";
+		status = "okay";
 	};
 
 	display@13800000 {
