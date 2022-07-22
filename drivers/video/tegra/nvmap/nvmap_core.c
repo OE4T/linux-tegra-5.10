@@ -41,6 +41,7 @@ static phys_addr_t handle_phys(struct nvmap_handle *h)
 	return h->carveout->base;
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 void *__nvmap_kmap(struct nvmap_handle *h, unsigned int pagenum)
 {
 	phys_addr_t paddr;
@@ -129,6 +130,7 @@ out:
 	nvmap_kmaps_dec(h);
 	nvmap_handle_put(h);
 }
+#endif
 
 void *__nvmap_mmap(struct nvmap_handle *h)
 {
