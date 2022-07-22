@@ -901,7 +901,7 @@ static nve32_t eqos_configure_mtl_queue(nveu32_t qinx,
 	/* Transmit Queue weight */
 	value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
 			   EQOS_MTL_TXQ_QW(qinx));
-	value |= (EQOS_MTL_TXQ_QW_ISCQW + qinx);
+	value |= EQOS_MTL_TXQ_QW_ISCQW;
 	eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
 				EQOS_MTL_TXQ_QW(qinx),
 				EQOS_MTL_TXQ0_QW_IDX + qinx);
@@ -4958,10 +4958,8 @@ static nve32_t eqos_set_avb_algorithm(
 				   EQOS_MTL_TXQ_QW(qinx));
 		value &= ~EQOS_MTL_TXQ_ETS_QW_ISCQW_MASK;
 		value |= avb->idle_slope & EQOS_MTL_TXQ_ETS_QW_ISCQW_MASK;
-		eqos_core_safety_writel(osi_core, value,
-					(nveu8_t *)osi_core->base +
-					EQOS_MTL_TXQ_QW(qinx),
-					EQOS_MTL_TXQ0_QW_IDX + qinx);
+		osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
+			    EQOS_MTL_TXQ_QW(qinx));
 
 		/* Set Hi credit */
 		value = avb->hi_credit & EQOS_MTL_TXQ_ETS_HCR_HC_MASK;
@@ -4973,6 +4971,19 @@ static nve32_t eqos_set_avb_algorithm(
 		 */
 		value = avb->low_credit & EQOS_MTL_TXQ_ETS_LCR_LC_MASK;
 		osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
+			    EQOS_MTL_TXQ_ETS_LCR(qinx));
+	} else {
+		/* Reset register values to POR/initialized values */
+		osi_writela(osi_core, OSI_DISABLE, (nveu8_t *)osi_core->base +
+			    EQOS_MTL_TXQ_ETS_SSCR(qinx));
+
+		osi_writela(osi_core, EQOS_MTL_TXQ_QW_ISCQW,
+			   (nveu8_t *)osi_core->base + EQOS_MTL_TXQ_QW(qinx));
+
+		osi_writela(osi_core, OSI_DISABLE, (nveu8_t *)osi_core->base +
+			    EQOS_MTL_TXQ_ETS_HCR(qinx));
+
+		osi_writela(osi_core, OSI_DISABLE, (nveu8_t *)osi_core->base +
 			    EQOS_MTL_TXQ_ETS_LCR(qinx));
 	}
 

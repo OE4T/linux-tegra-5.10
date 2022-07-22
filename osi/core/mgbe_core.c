@@ -2057,6 +2057,14 @@ static nve32_t mgbe_configure_mtl_queue(nveu32_t qinx,
 		return ret;
 	}
 
+	if (osi_unlikely((qinx >= OSI_MGBE_MAX_NUM_QUEUES) ||
+			 (osi_core->tc[qinx] >= OSI_MAX_TC_NUM))) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+				"Incorrect queues/TC number\n", 0ULL);
+		ret = -1;
+		goto end;
+	}
+
 	value = (tx_fifo << MGBE_MTL_TXQ_SIZE_SHIFT);
 	/* Enable Store and Forward mode */
 	value |= MGBE_MTL_TSF;
@@ -2089,12 +2097,21 @@ static nve32_t mgbe_configure_mtl_queue(nveu32_t qinx,
 	osi_writela(osi_core, value, (unsigned char *)osi_core->base +
 		   MGBE_MTL_RXQ_FLOW_CTRL(qinx));
 
-	/* Transmit Queue weight */
+	/* Transmit Queue weight, all TX weights are equal */
 	value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
 			  MGBE_MTL_TCQ_QW(qinx));
-	value |= (MGBE_MTL_TCQ_QW_ISCQW + qinx);
+	value |= MGBE_MTL_TCQ_QW_ISCQW;
 	osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
 		   MGBE_MTL_TCQ_QW(qinx));
+
+	/* Default ETS tx selection algo */
+	value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+			   MGBE_MTL_TCQ_ETS_CR(osi_core->tc[qinx]));
+	value &= ~MGBE_MTL_TCQ_ETS_CR_AVALG;
+	value |= OSI_MGBE_TXQ_AVALG_ETS;
+	osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
+		   MGBE_MTL_TCQ_ETS_CR(osi_core->tc[qinx]));
+
 	/* Enable Rx Queue Control */
 	value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
 			  MGBE_MAC_RQC0R);
@@ -2102,8 +2119,8 @@ static nve32_t mgbe_configure_mtl_queue(nveu32_t qinx,
 		  (MGBE_MAC_RXQC0_RXQEN_SHIFT(qinx)));
 	osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
 		   MGBE_MAC_RQC0R);
-
-	return 0;
+end:
+	return ret;
 }
 
 #ifndef OSI_STRIPPED_LIB
@@ -3487,14 +3504,17 @@ static int mgbe_set_avb_algorithm(
 	/* Set Algo and Credit control */
 	value = osi_readla(osi_core, (unsigned char *)osi_core->base +
 			  MGBE_MTL_TCQ_ETS_CR(tcinx));
+	value &= ~MGBE_MTL_TCQ_ETS_CR_AVALG;
+	value &= ~MGBE_MTL_TCQ_ETS_CR_CC;
 	if (avb->algo == OSI_MTL_TXQ_AVALG_CBS) {
-		value &= ~MGBE_MTL_TCQ_ETS_CR_CC;
 		value |= (avb->credit_control << MGBE_MTL_TCQ_ETS_CR_CC_SHIFT) &
 			 MGBE_MTL_TCQ_ETS_CR_CC;
+		value |= (OSI_MTL_TXQ_AVALG_CBS << MGBE_MTL_TCQ_ETS_CR_AVALG_SHIFT) &
+			  MGBE_MTL_TCQ_ETS_CR_AVALG;
+	} else {
+		value |= (OSI_MGBE_TXQ_AVALG_ETS << MGBE_MTL_TCQ_ETS_CR_AVALG_SHIFT) &
+			  MGBE_MTL_TCQ_ETS_CR_AVALG;
 	}
-	value &= ~MGBE_MTL_TCQ_ETS_CR_AVALG;
-	value |= (avb->algo << MGBE_MTL_TCQ_ETS_CR_AVALG_SHIFT) &
-		  MGBE_MTL_TCQ_ETS_CR_AVALG;
 	osi_writela(osi_core, value, (unsigned char *)osi_core->base +
 		   MGBE_MTL_TCQ_ETS_CR(tcinx));
 
@@ -3526,6 +3546,23 @@ static int mgbe_set_avb_algorithm(
 		value = avb->low_credit & MGBE_MTL_TCQ_ETS_LCR_LC_MASK;
 		osi_writela(osi_core, value, (unsigned char *)osi_core->base +
 			   MGBE_MTL_TCQ_ETS_LCR(tcinx));
+	} else {
+		/* Reset register values to POR/initialized values */
+		osi_writela(osi_core, MGBE_MTL_TCQ_QW_ISCQW, (nveu8_t *)osi_core->base +
+			    MGBE_MTL_TCQ_QW(tcinx));
+		osi_writela(osi_core, OSI_DISABLE, (nveu8_t *)osi_core->base +
+			    MGBE_MTL_TCQ_ETS_SSCR(tcinx));
+		osi_writela(osi_core, OSI_DISABLE, (nveu8_t *)osi_core->base +
+			    MGBE_MTL_TCQ_ETS_HCR(tcinx));
+		osi_writela(osi_core, OSI_DISABLE, (nveu8_t *)osi_core->base +
+			    MGBE_MTL_TCQ_ETS_LCR(tcinx));
+
+		value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				   MGBE_MTL_CHX_TX_OP_MODE(qinx));
+		value &= ~MGBE_MTL_TX_OP_MODE_Q2TCMAP;
+		value |= (osi_core->tc[qinx] << MGBE_MTL_CHX_TX_OP_MODE_Q2TC_SH);
+		osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
+				MGBE_MTL_CHX_TX_OP_MODE(qinx));
 	}
 
 	return 0;

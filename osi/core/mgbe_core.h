@@ -52,7 +52,15 @@
  * it should be APB clock in MHZ i.e 480-1 for silicon and 13MHZ-1 for uFPGA
  */
 #define MGBE_1US_TIC_COUNTER		0x1DF
+/** @} */
 
+/**
+ * @addtogroup MGBE MTL queue ETS algorithm mode
+ *
+ * @brief MTL queue algorithm type
+ * @{
+ */
+#define OSI_MGBE_TXQ_AVALG_ETS	2U
 /** @} */
 
 /**
