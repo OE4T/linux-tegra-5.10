@@ -111,7 +111,8 @@ static const struct i2c_device_id bmi_i2c_device_ids[] = {
 	{},
 };
 
-static char *gte_hw_str = "nvidia,tegra194-gte-aon";
+static char *gte_hw_str_t194 = "nvidia,tegra194-gte-aon";
+static char *gte_hw_str_t234 = "nvidia,tegra234-gte-aon";
 static struct device_node *gte_nd;
 
 struct bmi_gte_irq {
@@ -1608,7 +1609,14 @@ static int bmi_init(struct bmi_state *st, const struct i2c_device_id *id)
 	for (i = 0; i < st->hw_n; i++)
 		st->snsrs[i].period_us = st->snsrs[i].cfg.delay_us_max;
 
-	gte_nd = of_find_compatible_node(NULL, NULL, gte_hw_str);
+	gte_nd = of_find_compatible_node(NULL, NULL, gte_hw_str_t194);
+	if (!gte_nd)
+		gte_nd = of_find_compatible_node(NULL, NULL, gte_hw_str_t234);
+
+	if (!gte_nd) {
+		dev_err(&st->i2c->dev, "Failed to find GTE node\n");
+		return -ENODEV;
+	}
 
 	return ret;
 }
