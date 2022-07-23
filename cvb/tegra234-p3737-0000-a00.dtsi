@@ -291,6 +291,14 @@
 		};
 	};
 
+	gte@c1e0000 {
+		status = "okay";
+	};
+
+	gpio@c2f0000 {
+		/delete-property/ use-timestamp;
+	};
+
 	mttcan@c310000 {
 		status = "okay";
 	};
