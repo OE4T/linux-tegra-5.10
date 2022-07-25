@@ -66,10 +66,11 @@ static int nvgpu_vm_translate_linux_flags(struct gk20a *g, u32 flags, u32 *out_c
 		core_flags |= NVGPU_VM_MAP_UNMAPPED_PTE;
 		consumed_flags |= NVGPU_AS_MAP_BUFFER_FLAGS_UNMAPPED_PTE;
 	}
-	if ((flags & NVGPU_AS_MAP_BUFFER_FLAGS_L3_ALLOC) != 0U &&
-			!nvgpu_is_enabled(g, NVGPU_DISABLE_L3_SUPPORT)) {
-		core_flags |= NVGPU_VM_MAP_L3_ALLOC;
+	if ((flags & NVGPU_AS_MAP_BUFFER_FLAGS_L3_ALLOC) != 0U) {
+		/* Consume the flag even if the core flag cannot be set */
 		consumed_flags |= NVGPU_AS_MAP_BUFFER_FLAGS_L3_ALLOC;
+		if (!nvgpu_is_enabled(g, NVGPU_DISABLE_L3_SUPPORT))
+			core_flags |= NVGPU_VM_MAP_L3_ALLOC;
 	}
 	if ((flags & NVGPU_AS_MAP_BUFFER_FLAGS_DIRECT_KIND_CTRL) != 0U) {
 		core_flags |= NVGPU_VM_MAP_DIRECT_KIND_CTRL;
