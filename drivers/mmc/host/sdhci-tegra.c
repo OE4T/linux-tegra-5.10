@@ -309,6 +309,7 @@ struct sdhci_tegra {
 	bool defer_calib;
 	bool wake_enable_failed;
 	bool enable_cqic;
+	u32 streamid;
 };
 
 static void sdhci_tegra_debugfs_init(struct sdhci_host *host);
@@ -2820,7 +2821,6 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 	struct clk *clk;
 	struct iommu_fwspec *fwspec;
 	int rc;
-	u32 streamid;
 
 	match = of_match_device(sdhci_tegra_dt_match, &pdev->dev);
 	if (!match)
@@ -3074,8 +3074,9 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 				rc);
 			goto err_rst_get;
 		} else {
-			streamid = fwspec->ids[0] & 0xffff;
-			tegra_sdhci_writel(host, streamid | (streamid << 8),
+			tegra_host->streamid = fwspec->ids[0] & 0xffff;
+			tegra_sdhci_writel(host, tegra_host->streamid |
+						(tegra_host->streamid << 8),
 						SDHCI_TEGRA_CIF2AXI_CTRL_0);
 		}
 	}
@@ -3319,6 +3320,13 @@ static int __maybe_unused sdhci_tegra_resume(struct device *dev)
 	ret = tegra_sdhci_set_host_clock(host, true);
 	if (ret)
 		return ret;
+
+	/* Re-program MC streamID for DMA transfers */
+	if (tegra_host->soc_data->nvquirks & NVQUIRK_PROGRAM_MC_STREAMID) {
+		tegra_sdhci_writel(host, tegra_host->streamid |
+					(tegra_host->streamid << 8),
+					SDHCI_TEGRA_CIF2AXI_CTRL_0);
+	}
 
 	ret = sdhci_resume_host(host);
 	if (ret)
