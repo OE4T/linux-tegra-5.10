@@ -72,6 +72,8 @@
 
 #define REQ_SOCKET_ID			GENMASK(27, 24)
 
+#define FIREWALL_APERTURE_SIZE		0x10000
+
 enum tegra234_cbb_fabric_ids {
 	CBB_FAB_ID,
 	SCE_FAB_ID,
@@ -92,6 +94,7 @@ struct tegra234_slave_lookup {
 struct tegra234_cbb_fabric {
 	const char *name;
 	phys_addr_t off_mask_erd;
+	phys_addr_t firewall_base;
 	bool erd_mask_inband_err;
 	const char * const *master_id;
 	unsigned int notifier_offset;
@@ -127,6 +130,34 @@ static inline struct tegra234_cbb *to_tegra234_cbb(struct tegra_cbb *cbb)
 
 static LIST_HEAD(cbb_list);
 static DEFINE_SPINLOCK(cbb_lock);
+
+u32 tegra234_cbb_readl(unsigned long addr)
+{
+	unsigned long offset = (addr & 0x0FFFF);
+	struct tegra_cbb *cbb;
+	bool flag = 0;
+	u32 val = 0;
+
+	if (offset > FIREWALL_APERTURE_SIZE) {
+		pr_err("%s: wrong offset value\n", __func__);
+		return 0;
+	}
+
+	list_for_each_entry(cbb, &cbb_list, node) {
+		struct tegra234_cbb *priv = to_tegra234_cbb(cbb);
+
+		if (priv->fabric->firewall_base) {
+			val = readl(priv->regs + priv->fabric->firewall_base + offset);
+			flag = true;
+			break;
+		}
+	}
+	if (!flag)
+		pr_err("%s: cbb fabric not initialized\n", __func__);
+
+	return val;
+}
+EXPORT_SYMBOL(tegra234_cbb_readl);
 
 static void tegra234_cbb_fault_enable(struct tegra_cbb *cbb)
 {
@@ -730,7 +761,8 @@ static const struct tegra234_cbb_fabric tegra234_cbb_fabric = {
 	.slave_map = tegra234_cbb_slave_map,
 	.errors = tegra234_cbb_errors,
 	.notifier_offset = 0x60000,
-	.off_mask_erd = 0x3a004
+	.off_mask_erd = 0x3a004,
+	.firewall_base = 0x10000,
 };
 
 static const struct tegra234_slave_lookup tegra234_dce_slave_map[] = {
@@ -953,6 +985,7 @@ static const struct tegra234_cbb_fabric tegra241_cbb_fabric = {
 	.errors = tegra241_cbb_errors,
 	.notifier_offset = 0x60000,
 	.off_mask_erd = 0x40004,
+	.firewall_base = 0x20000,
 };
 
 static const struct tegra234_slave_lookup tegra241_bpmp_slave_map[] = {
