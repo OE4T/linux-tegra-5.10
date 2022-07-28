@@ -158,6 +158,8 @@ struct hdmi_spec {
 	bool dyn_pin_out;
 	bool dyn_pcm_assign;
 	bool tegra_fixup;	/* apply Nvidia Tegra platform-specific fixups */
+	/* hdmi interrupt trigger control flag for Nvidia codec */
+	bool hdmi_intr_trig_ctrl;
 	bool intel_hsw_fixup;	/* apply Intel platform-specific fixups */
 	/*
 	 * Non-generic VIA/NVIDIA specific
@@ -3714,7 +3716,7 @@ static int patch_nvhdmi_legacy(struct hda_codec *codec)
  *
  * Note that for the trigger bit to take effect it needs to change value
  * (i.e. it needs to be toggled). The trigger bit is not applicable from
- * TEGRA23x chip onwards, as new verb id 0xf80 will be used for interrupt
+ * TEGRA234 chip onwards, as new verb id 0xf80 will be used for interrupt
  * trigger to hdmi.
  */
 #define NVIDIA_SET_HOST_INTR		0xf80
@@ -3742,9 +3744,10 @@ static void tegra_hdmi_set_format(struct hda_codec *codec,
 {
 	unsigned int value;
 	unsigned int nid = NVIDIA_AFG_NID;
+	struct hdmi_spec *spec = codec->spec;
 
 	/*
-	 * Tegra HDA codec design from TEGRA23x chip onwards support DP MST.
+	 * Tegra HDA codec design from TEGRA234 chip onwards support DP MST.
 	 * This resulted in moving scratch registers from audio function
 	 * group to converter widget context. So CVT NID should be used for
 	 * scratch register read/write for DP MST supported Tegra HDA codec.
@@ -3778,7 +3781,7 @@ static void tegra_hdmi_set_format(struct hda_codec *codec,
 	else
 		value |= NVIDIA_SCRATCH_VALID;
 
-	if (codec->hdmi_intr_trig_ctrl) {
+	if (spec->hdmi_intr_trig_ctrl) {
 		/*
 		 * For Tegra HDA Codec design from TEGRA23x onwards, the
 		 * Interrupt to hdmi driver is triggered by writing
@@ -3925,10 +3928,10 @@ static int patch_tegra_t23x_hdmi(struct hda_codec *codec)
 
 	codec->dp_mst = true;
 	codec->mst_no_extra_pcms = true;
-	codec->hdmi_intr_trig_ctrl = true;
 	spec = codec->spec;
 	spec->dyn_pin_out = true;
 	spec->dyn_pcm_assign = true;
+	spec->hdmi_intr_trig_ctrl = true;
 
 	return tegra_hdmi_init(codec);
 }
