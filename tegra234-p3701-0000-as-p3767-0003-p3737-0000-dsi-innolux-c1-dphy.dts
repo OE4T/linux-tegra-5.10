@@ -14,9 +14,9 @@
  */
 
 /dts-v1/;
-#include "tegra234-p3701-0000-as-p3769-p3737-0000.dts"
+#include "tegra234-p3701-0000-as-p3767-0003-p3737-0000.dts"
 #include "tegra234-dcb-p3701-0000-a02-p3737-0000-a01_dsi.dtsi"
-#include <panels/t23x/dsi-innolux-a1-cphy.dtsi>
+#include <panels/t23x/dsi-innolux-c1-dphy.dtsi>
 
 / {
 	nvidia,dtsfilename = __FILE__;
