@@ -111,21 +111,22 @@ static void ga10b_intr_subtree_clear(struct gk20a *g, u32 subtree,
 			subtree, subtree_mask);
 }
 
-static void ga10b_intr_subtree_enable(struct gk20a *g, u32 subtree,
+static void ga10b_intr_unit_enable(struct gk20a *g, u32 subtree,
 		u64 subtree_mask)
 {
 	/**
-	 * Enable interrupts in Top and Leaf registers for the subtree.
+	 * Enable interrupts in Top & Leaf registers for the subtree.
 	 * top bit 0 -> subtree 0 -> leaf0, leaf1 -> leaf 0, 1
 	 * top bit 1 -> subtree 1 -> leaf0, leaf1 -> leaf 2, 3
 	 * top bit 2 -> subtree 2 -> leaf0, leaf1 -> leaf 4, 5
 	 * top bit 3 -> subtree 3 -> leaf0, leaf1 -> leaf 6, 7
 	 */
+	//TODO top_en manipulation needs to be decoupled from leaf_en enablement
+	//process.
 	nvgpu_func_writel(g,
 		func_priv_cpu_intr_top_en_set_r(
 			HOST2SOC_SUBTREE_TO_TOP_IDX(subtree)),
-		BIT32(HOST2SOC_SUBTREE_TO_TOP_BIT(subtree)));
-
+			BIT32(HOST2SOC_SUBTREE_TO_TOP_BIT(subtree)));
 	nvgpu_func_writel(g,
 		func_priv_cpu_intr_leaf_en_set_r(
 			HOST2SOC_SUBTREE_TO_LEAF0(subtree)),
@@ -139,21 +140,16 @@ static void ga10b_intr_subtree_enable(struct gk20a *g, u32 subtree,
 			subtree, subtree_mask);
 }
 
-static void ga10b_intr_subtree_disable(struct gk20a *g, u32 subtree,
+static void ga10b_intr_unit_disable(struct gk20a *g, u32 subtree,
 		u64 subtree_mask)
 {
 	/**
-	 * Disable interrupts in Top and Leaf registers for the subtree.
+	 * Disable unit specific Leaf interrupt registers for the subtree.
 	 * top bit 0 -> subtree 0 -> leaf0, leaf1 -> leaf 0, 1
 	 * top bit 1 -> subtree 1 -> leaf0, leaf1 -> leaf 2, 3
 	 * top bit 2 -> subtree 2 -> leaf0, leaf1 -> leaf 4, 5
 	 * top bit 3 -> subtree 3 -> leaf0, leaf1 -> leaf 6, 7
 	 */
-	nvgpu_func_writel(g,
-		func_priv_cpu_intr_top_en_clear_r(
-			HOST2SOC_SUBTREE_TO_TOP_IDX(subtree)),
-		BIT32(HOST2SOC_SUBTREE_TO_TOP_BIT(subtree)));
-
 	nvgpu_func_writel(g,
 		func_priv_cpu_intr_leaf_en_clear_r(
 			HOST2SOC_SUBTREE_TO_LEAF0(subtree)),
@@ -173,15 +169,11 @@ static void ga10b_intr_config(struct gk20a *g, bool enable, u32 subtree,
 	if (enable) {
 		g->mc.subtree_mask_restore[subtree] |=
 			subtree_mask;
-		subtree_mask = g->mc.subtree_mask_restore[subtree];
-
-		ga10b_intr_subtree_enable(g, subtree, subtree_mask);
+		ga10b_intr_unit_enable(g, subtree, subtree_mask);
 	} else {
 		g->mc.subtree_mask_restore[subtree] &=
 			~(subtree_mask);
-		subtree_mask = g->mc.subtree_mask_restore[subtree];
-
-		ga10b_intr_subtree_disable(g, subtree, subtree_mask);
+		ga10b_intr_unit_disable(g, subtree, subtree_mask);
 	}
 }
 
