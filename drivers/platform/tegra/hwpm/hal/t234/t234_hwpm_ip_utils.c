@@ -464,7 +464,7 @@ int t234_hwpm_get_fs_info(struct tegra_soc_hwpm *hwpm,
 	tegra_hwpm_fn(hwpm, " ");
 
 	/* Convert tegra_soc_hwpm_ip enum to internal ip index */
-	if (t234_hwpm_is_ip_active(hwpm, ip_enum, &ip_idx)) {
+	if (hwpm->active_chip->is_ip_active(hwpm, ip_enum, &ip_idx)) {
 		active_chip = hwpm->active_chip;
 		chip_ip = active_chip->chip_ips[ip_idx];
 		if (!(chip_ip->override_enable) && chip_ip->inst_fs_mask) {
@@ -474,12 +474,12 @@ int t234_hwpm_get_fs_info(struct tegra_soc_hwpm *hwpm,
 					inst_idx];
 				element_mask_shift = (inst_idx == 0U ? 0U :
 					ip_inst->num_core_elements_per_inst);
-				floorsweep = (floorsweep << element_mask_shift);
 
 				if (ip_inst->hw_inst_mask &
 					chip_ip->inst_fs_mask) {
-					floorsweep |=
-						((u64)ip_inst->element_fs_mask);
+					floorsweep |= ((u64)
+						ip_inst->element_fs_mask <<
+							element_mask_shift);
 				}
 			}
 			*fs_mask = floorsweep;
@@ -508,7 +508,7 @@ int t234_hwpm_get_resource_info(struct tegra_soc_hwpm *hwpm,
 	tegra_hwpm_fn(hwpm, " ");
 
 	/* Convert tegra_soc_hwpm_resource to internal enum */
-	if (t234_hwpm_is_resource_active(hwpm, resource_enum, &ip_idx)) {
+	if (hwpm->active_chip->is_resource_active(hwpm, resource_enum, &ip_idx)) {
 		chip_ip = active_chip->chip_ips[ip_idx];
 
 		if (!(chip_ip->override_enable)) {
