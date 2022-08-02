@@ -30,7 +30,8 @@
  *
  * The VPU App parameters contains kernel-user-provided data to be
  * copied into the VMEM before executing the VPU app. The parameter
- * headers are stored in the parameter_base memory area.
+ * headers are stored in the parameter_data_iova memory area of
+ * parameter_info_base field.
  *
  * The FW can also initialize complex datatypes, which are marked by
  * special param_base outside the normal IOVA space. See the structure

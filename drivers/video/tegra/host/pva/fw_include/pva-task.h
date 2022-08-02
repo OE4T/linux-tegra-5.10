@@ -217,11 +217,8 @@ struct PVA_PACKED pva_td_s {
 	uint8_t				sid_index;
 	/** @brief Task configuration flags */
 	uint16_t			flags;
-	/** @brief Number of parameters in parameter_base array */
+	/** @brief Number of parameters in parameter  array */
 	uint16_t			num_parameters;
-	/** @brief IOVA pointer to an array of pva_vpu_parameter_t */
-	/* TODO : To be removed once KMD changes are in */
-	pva_iova			parameter_base;
 	/** @brief IOVA pointer to an instance of pva_vpu_parameter_info_t */
 	pva_iova			parameter_info_base;
 	/** @brief IOVA pointer to a pva_bin_info_t structure */

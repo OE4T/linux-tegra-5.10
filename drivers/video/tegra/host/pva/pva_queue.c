@@ -637,7 +637,6 @@ static int pva_task_write_vpu_parameter(struct pva_submit_task *task,
 
 	hw_task->task.num_parameters = task->num_symbols;
 
-	hw_task->task.parameter_base = 0UL;
 	hw_task->task.parameter_info_base = task->dma_addr
 					    + offsetof(struct pva_hw_task, param_info);
 
