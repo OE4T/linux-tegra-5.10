@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -184,6 +184,12 @@ struct PVA_PACKED pva_dma_misr_config_s {
 	 * second 256-bits of AXI write data
 	 */
 	uint32_t ref_data_2;
+	/*
+	 * MISR timeout value configured in DMA common register
+	 * @ref PVA_DMA_COMMON_MISR_ENABLE. Timeout is caclutated as
+	 * number of AXI clock cycles.
+	 */
+	uint32_t misr_timeout;
 };
 
 /**

@@ -421,6 +421,12 @@ struct nvpva_dma_misr {
 	 * MC or L2SRAM
 	 */
 	uint64_t descriptor_mask;
+	/*
+	 * MISR timeout value configured in DMA common register
+	 * @ref PVA_DMA_COMMON_MISR_ENABLE. Timeout is caclutated as
+	 * number of AXI clock cycles.
+	 */
+	uint32_t misr_timeout;
 };
 
 /**

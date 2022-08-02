@@ -963,6 +963,8 @@ int pva_task_write_dma_misr_info(struct pva_submit_task *task,
 			task->dma_misr_config.seed_crc1;
 		hw_task->dma_misr_config.ref_data_2 =
 			task->dma_misr_config.ref_data_2;
+		hw_task->dma_misr_config.misr_timeout =
+			task->dma_misr_config.misr_timeout;
 
 		hw_task->dma_info.dma_misr_base = task->dma_addr +
 			offsetof(struct pva_hw_task, dma_misr_config);
