@@ -2,7 +2,7 @@
 /*
  * Tegra host1x driver
  *
- * Copyright (c) 2010-2013, NVIDIA Corporation.
+ * Copyright (c) 2010-2022, NVIDIA Corporation.
  */
 
 #include <linux/clk.h>
@@ -267,6 +267,30 @@ static const struct host1x_sid_entry tegra234_sid_table[] = {
 		.base = 0x1688,
 		.offset = 0x34,
 		.limit = 0x34
+	},
+	{
+		/* NVDLA channel */
+		.base = 0x17e0,
+		.offset = 0x30,
+		.limit = 0x34
+	},
+	{
+		/* NVDLA MMIO */
+		.base = 0x16d8,
+		.offset = 0x0030,
+		.limit = 0x0034
+	},
+	{
+		/* NVDLA1 channel */
+		.base = 0x17e8,
+		.offset = 0x30,
+		.limit = 0x34
+	},
+	{
+		/* NVDLA1 MMIO */
+		.base = 0x16e0,
+		.offset = 0x0030,
+		.limit = 0x0034
 	},
 };
 
