@@ -33,6 +33,7 @@ tegra-drm-next-y := \
 	nvdec.o \
 	nvenc.o \
 	nvjpg.o \
+	riscv.o \
 	util.o
 
 tegra-drm-next-y += trace.o

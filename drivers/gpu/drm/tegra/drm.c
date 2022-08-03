@@ -1397,6 +1397,7 @@ static const struct of_device_id host1x_drm_subdevs[] = {
 	{ .compatible = "nvidia,tegra194-nvenc", },
 	{ .compatible = "nvidia,tegra194-nvjpg", },
 	{ .compatible = "nvidia,tegra234-vic", },
+	{ .compatible = "nvidia,tegra234-nvdec", },
 	{ /* sentinel */ }
 };
 
