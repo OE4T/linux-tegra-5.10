@@ -210,6 +210,7 @@ struct mrq_request {
 	 * | MRQ_BWMGR_INT        | CMD_BWMGR_INT_QUERY_ABI              | 8                                          |
 	 * | MRQ_BWMGR_INT        | CMD_BWMGR_INT_CALC_AND_SET           | 16                                         |
 	 * | MRQ_BWMGR_INT        | CMD_BWMGR_INT_CAP_SET                | 8                                          |
+	 * | MRQ_OC_STATUS        |                                      | 0                                          |
 	 *
 	 * **crc16**
 	 *
@@ -338,6 +339,7 @@ struct mrq_response {
 #define MRQ_PWR_LIMIT		81U
 #define MRQ_GEARS		82U
 #define MRQ_BWMGR_INT		83U
+#define MRQ_OC_STATUS		84U
 
 /** @} */
 
@@ -346,7 +348,7 @@ struct mrq_response {
  * @brief Maximum MRQ code to be sent by CPU software to
  * BPMP. Subject to change in future
  */
-#define MAX_CPU_MRQ_ID		83U
+#define MAX_CPU_MRQ_ID		84U
 
 /**
  * @addtogroup MRQ_Payloads
@@ -362,6 +364,7 @@ struct mrq_response {
  *   @defgroup ABI_info ABI Info
  *   @defgroup Powergating Power Gating
  *   @defgroup Thermal Thermal
+ *   @defgroup OC_status OC status
  *   @defgroup Vhint CPU Voltage hint
  *   @defgroup EMC EMC
  *   @defgroup BWMGR BWMGR
@@ -2078,6 +2081,41 @@ union mrq_thermal_bpmp_to_host_response {
 
 /**
  * @ingroup MRQ_Codes
+ * @def MRQ_OC_STATUS
+ * @brief Query over current status
+ *
+ * * Platforms: T234
+ * @cond bpmp_t234
+ * * Initiators: CCPLEX
+ * * Targets: BPMP
+ * * Request Payload: N/A
+ * * Response Payload: @ref mrq_oc_status_response
+ *
+ * @addtogroup OC_status
+ * @{
+ */
+
+#define OC_STATUS_MAX_SIZE	24U
+
+/*
+ * @brief Response to #MRQ_OC_STATUS
+ *
+ * throt_en: Value for each OC alarm where zero signifies throttle is
+ *           disabled, and non-zero throttle is enabled.
+ * event_cnt: Total number of OC events for each OC alarm.
+ *
+ * mrq_response::err is 0 if the operation was successful and
+ * -#BPMP_ENODEV otherwise.
+ */
+struct mrq_oc_status_response {
+	uint8_t throt_en[OC_STATUS_MAX_SIZE];
+	uint32_t event_cnt[OC_STATUS_MAX_SIZE];
+} BPMP_ABI_PACKED;
+/** @endcond */
+/** @} */
+
+/**
+ * @ingroup MRQ_Codes
  * @def MRQ_CPU_VHINT
  * @brief Query CPU voltage hint data
  *
@@ -3145,6 +3183,7 @@ enum {
 	CMD_UPHY_PCIE_EP_CONTROLLER_PLL_OFF = 5,
 	CMD_UPHY_DISPLAY_PORT_INIT = 6,
 	CMD_UPHY_DISPLAY_PORT_OFF = 7,
+	CMD_UPHY_XUSB_DYN_LANES_RESTORE = 8,
 	CMD_UPHY_MAX,
 };
 
@@ -3189,6 +3228,11 @@ struct cmd_uphy_display_port_init_request {
 	uint16_t lanes_bitmap;
 } BPMP_ABI_PACKED;
 
+struct cmd_uphy_xusb_dyn_lanes_restore_request {
+	/** @brief 1: lane 0; 2: lane 1; 3: lane 0 and 1 */
+	uint16_t lanes_bitmap;
+} BPMP_ABI_PACKED;
+
 /**
  * @ingroup UPHY
  * @brief Request with #MRQ_UPHY
@@ -3207,6 +3251,7 @@ struct cmd_uphy_display_port_init_request {
  * |CMD_UPHY_PCIE_EP_CONTROLLER_PLL_OFF  |cmd_uphy_ep_controller_pll_off_request  |
  * |CMD_UPHY_PCIE_DISPLAY_PORT_INIT      |cmd_uphy_display_port_init_request      |
  * |CMD_UPHY_PCIE_DISPLAY_PORT_OFF       |                                        |
+ * |CMD_UPHY_XUSB_DYN_LANES_RESTORE      |cmd_uphy_xusb_dyn_lanes_restore_request |
  *
  */
 
@@ -3222,6 +3267,7 @@ struct mrq_uphy_request {
 		struct cmd_uphy_pcie_controller_state_request controller_state;
 		struct cmd_uphy_ep_controller_pll_off_request ep_ctrlr_pll_off;
 		struct cmd_uphy_display_port_init_request display_port_init;
+		struct cmd_uphy_xusb_dyn_lanes_restore_request xusb_dyn_lanes_restore;
 	} BPMP_UNION_ANON;
 } BPMP_ABI_PACKED;
 
