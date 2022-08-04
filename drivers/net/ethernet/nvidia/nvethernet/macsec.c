@@ -342,9 +342,11 @@ int macsec_resume(struct macsec_priv_data *macsec_pdata)
 {
 	struct ether_priv_data *pdata = macsec_pdata->ether_pdata;
 	struct device *dev = pdata->dev;
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	int ret = 0;
 
-	if (macsec_pdata->ns_rst) {
+	if ((osi_core->use_virtualization == OSI_DISABLE) &&
+	    (macsec_pdata->ns_rst)) {
 		ret = reset_control_reset(macsec_pdata->ns_rst);
 		if (ret < 0) {
 			dev_err(dev, "failed to reset macsec\n");
@@ -1601,10 +1603,12 @@ int macsec_probe(struct ether_priv_data *pdata)
 	}
 
 	/* Enable CAR */
-	ret = macsec_enable_car(macsec_pdata);
-	if (ret < 0) {
-		dev_err(dev, "Unable to enable macsec clks & reset\n");
-		goto car_err;
+	if (osi_core->use_virtualization == OSI_DISABLE) {
+		ret = macsec_enable_car(macsec_pdata);
+		if (ret < 0) {
+			dev_err(dev, "Unable to enable macsec clks & reset\n");
+			goto car_err;
+		}
 	}
 
 	/* Register macsec generic netlink ops */
@@ -1638,7 +1642,9 @@ int macsec_probe(struct ether_priv_data *pdata)
 	PRINT_EXIT();
 	return ret;
 genl_err:
-	macsec_disable_car(macsec_pdata);
+	if (osi_core->use_virtualization == OSI_DISABLE) {
+		macsec_disable_car(macsec_pdata);
+	}
 car_err:
 	macsec_release_platform_res(macsec_pdata);
 init_err:
