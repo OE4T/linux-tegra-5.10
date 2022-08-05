@@ -143,6 +143,7 @@
 			regulator-min-microvolt = <3300000>;
 			regulator-max-microvolt = <3300000>;
 			gpio = <&tegra_aon_gpio TEGRA234_AON_GPIO(AA, 5) GPIO_ACTIVE_HIGH>;
+			enable-active-high;
  		};
 	};
 };
