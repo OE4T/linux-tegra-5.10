@@ -116,6 +116,7 @@
 		nvidia,ptp_ref_clock_speed = <312500000>;
 		nvidia,instance_id = <0>; /* MGBE0 instance */
 		nvidia,ptp-rx-queue = <3>;
+		dma-coherent;
 	};
 
 	ethernet@6910000 {
@@ -186,6 +187,7 @@
 		nvidia,ptp_ref_clock_speed = <312500000>;
 		nvidia,instance_id = <1>; /* MGBE1 instance */
 		nvidia,ptp-rx-queue = <3>;
+		dma-coherent;
 	};
 
 	ethernet@6A10000 {
@@ -256,6 +258,7 @@
 		nvidia,ptp_ref_clock_speed = <312500000>;
 		nvidia,instance_id = <2>; /* MGBE2 instance */
 		nvidia,ptp-rx-queue = <3>;
+		dma-coherent;
 	};
 
 	ethernet@6B10000 {
@@ -326,5 +329,6 @@
 		nvidia,ptp_ref_clock_speed = <312500000>;
 		nvidia,instance_id = <3>; /* MGBE3 instance */
 		nvidia,ptp-rx-queue = <3>;
+		dma-coherent;
 	};
 };

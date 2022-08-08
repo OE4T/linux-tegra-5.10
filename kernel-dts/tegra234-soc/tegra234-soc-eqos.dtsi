@@ -129,5 +129,6 @@
 		pinctrl-names = "mii_rx_disable", "mii_rx_enable";
 		pinctrl-0 = <&eqos_mii_rx_input_state_disable>;
 		pinctrl-1 = <&eqos_mii_rx_input_state_enable>;
+		dma-coherent;
 	};
 };
