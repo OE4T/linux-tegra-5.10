@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2021, NVIDIA Corporation.
+ * Copyright (c) 2021-2022, NVIDIA Corporation.
  */
 
 #include <linux/clk.h>
@@ -19,7 +19,10 @@
 
 #include "drm.h"
 #include "falcon.h"
+#include "util.h"
 #include "vic.h"
+
+#define NVENC_TFBIF_TRANSCFG		0x1844
 
 struct nvenc_config {
 	const char *firmware;
@@ -53,26 +56,10 @@ static inline void nvenc_writel(struct nvenc *nvenc, u32 value, unsigned int off
 
 static int nvenc_boot(struct nvenc *nvenc)
 {
-#ifdef CONFIG_IOMMU_API
-	struct iommu_fwspec *spec = dev_iommu_fwspec_get(nvenc->dev);
-#endif
 	int err;
 
-#ifdef CONFIG_IOMMU_API
-	if (nvenc->config->supports_sid && spec) {
-		u32 value;
-
-		value = TRANSCFG_ATT(1, TRANSCFG_SID_FALCON) | TRANSCFG_ATT(0, TRANSCFG_SID_HW);
-		nvenc_writel(nvenc, value, VIC_TFBIF_TRANSCFG);
-
-		if (spec->num_ids > 0) {
-			value = spec->ids[0] & 0xffff;
-
-			nvenc_writel(nvenc, value, VIC_THI_STREAMID0);
-			nvenc_writel(nvenc, value, VIC_THI_STREAMID1);
-		}
-	}
-#endif
+	if (nvenc->config->supports_sid)
+		tegra_drm_program_iommu_regs(nvenc->dev, nvenc->regs, NVENC_TFBIF_TRANSCFG);
 
 	err = falcon_boot(&nvenc->falcon);
 	if (err < 0)

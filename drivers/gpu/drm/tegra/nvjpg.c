@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2021, NVIDIA Corporation.
+ * Copyright (c) 2021-2022, NVIDIA Corporation.
  */
 
 #include <linux/clk.h>
@@ -19,7 +19,10 @@
 
 #include "drm.h"
 #include "falcon.h"
+#include "util.h"
 #include "vic.h"
+
+#define NVJPG_TFBIF_TRANSCFG		0x1444
 
 struct nvjpg_config {
 	const char *firmware;
@@ -52,26 +55,10 @@ static inline void nvjpg_writel(struct nvjpg *nvjpg, u32 value, unsigned int off
 
 static int nvjpg_boot(struct nvjpg *nvjpg)
 {
-#ifdef CONFIG_IOMMU_API
-	struct iommu_fwspec *spec = dev_iommu_fwspec_get(nvjpg->dev);
-#endif
 	int err;
 
-#ifdef CONFIG_IOMMU_API
-	if (nvjpg->config->supports_sid && spec) {
-		u32 value;
-
-		value = TRANSCFG_ATT(1, TRANSCFG_SID_FALCON) | TRANSCFG_ATT(0, TRANSCFG_SID_HW);
-		nvjpg_writel(nvjpg, value, VIC_TFBIF_TRANSCFG);
-
-		if (spec->num_ids > 0) {
-			value = spec->ids[0] & 0xffff;
-
-			nvjpg_writel(nvjpg, value, VIC_THI_STREAMID0);
-			nvjpg_writel(nvjpg, value, VIC_THI_STREAMID1);
-		}
-	}
-#endif
+	if (nvjpg->config->supports_sid)
+		tegra_drm_program_iommu_regs(nvjpg->dev, nvjpg->regs, NVJPG_TFBIF_TRANSCFG);
 
 	err = falcon_boot(&nvjpg->falcon);
 	if (err < 0)
