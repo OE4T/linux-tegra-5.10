@@ -377,6 +377,9 @@ static void ether_config_slot_function(struct ether_priv_data *pdata, u32 set)
 			       sizeof(struct osi_core_avb_algorithm));
 			qinx = osi_core->mtl_queues[i];
 			ioctl_data.avb.qindex = qinx;
+			/* For EQOS harware library code use internally SP(0) and
+			   For MGBE harware library code use internally ETS(2) if
+			   algo != CBS. */
 			ioctl_data.avb.algo = OSI_MTL_TXQ_AVALG_SP;
 			ioctl_data.avb.oper_mode = (set == OSI_ENABLE) ?
 						    OSI_MTL_QUEUE_AVB :
