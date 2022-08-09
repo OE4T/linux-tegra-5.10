@@ -14,6 +14,7 @@
  */
 
 /dts-v1/;
+#include "tegra234-p3701-0000-prod.dtsi"
 #include "cvm/tegra234-p3701-0000.dtsi"
 #include "cvb/tegra234-p3737-0000-a00.dtsi"
 #include "tegra234-power-tree-p3701-0000-p3737-0000.dtsi"
@@ -27,7 +28,6 @@
 #include <t234-common-cvm/tegra234-thermal-userspace-alert.dtsi>
 #include <tegra234-soc/tegra234-soc-hwpm.dtsi>
 
-#include "tegra234-p3701-0000-prod.dtsi"
 
 / {
 	nvidia,dtsfilename = __FILE__;
