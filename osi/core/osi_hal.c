@@ -88,14 +88,14 @@ static nve32_t validate_func_ptrs(struct osi_core_priv_data *const osi_core,
 #elif __SIZEOF_POINTER__ == 4
 	nveu32_t *l_ops = (nveu32_t *)temp_ops;
 #else
-	OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+	OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 		     "Undefined architecture\n", 0ULL);
 	return -1;
 #endif
 
 	for (i = 0; i < (sizeof(*ops_p) / (nveu64_t)__SIZEOF_POINTER__); i++) {
 		if (*l_ops == 0U) {
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "core: fn ptr validation failed at\n",
 				     (nveu64_t)i);
 			return -1;
@@ -171,13 +171,13 @@ static nve32_t osi_hal_init_core_ops(struct osi_core_priv_data *const osi_core)
 	}
 
 	if (osi_core->mac > OSI_MAC_HW_MGBE) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "Invalid MAC HW type\n", 0ULL);
 		return -1;
 	}
 
 	if (osi_core->use_virtualization > OSI_ENABLE) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "Invalid use_virtualization value\n", 0ULL);
 		return -1;
 	}
@@ -193,7 +193,7 @@ static nve32_t osi_hal_init_core_ops(struct osi_core_priv_data *const osi_core)
 	}
 #endif
 	if (validate_func_ptrs(osi_core, &g_ops[osi_core->mac]) < 0) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "core: function ptrs validation failed\n", 0ULL);
 		return -1;
 	}
@@ -247,6 +247,7 @@ nve32_t osi_hal_hw_core_init(struct osi_core_priv_data *const osi_core,
 		return ret;
 	}
 
+	l_core->lane_status = OSI_ENABLE;
 	l_core->tx_fifo_size = tx_fifo_size;
 	l_core->rx_fifo_size = rx_fifo_size;
 	l_core->hw_init_successful = OSI_ENABLE;
@@ -297,7 +298,7 @@ static nve32_t conf_ptp_offload(struct osi_core_priv_data *const osi_core,
 
 	/* Validate input arguments */
 	if (pto_config == OSI_NULL) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "pto_config is NULL\n", 0ULL);
 		return ret;
 	}
@@ -381,14 +382,14 @@ nve32_t osi_l2_filter(struct osi_core_priv_data *const osi_core,
 	}
 
 	if (filter == OSI_NULL) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "CORE: filter is NULL\n", 0ULL);
 		return -1;
 	}
 
 	ret = l_core->ops_p->config_mac_pkt_filter_reg(osi_core, filter);
 	if (ret < 0) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			     "failed to configure MAC packet filter register\n",
 			     0ULL);
 		return ret;
@@ -453,7 +454,7 @@ static inline nve32_t helper_l4_filter(
 				    dma_routing_enable,
 				    dma_chan);
 	if (ret < 0) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			     "failed to configure L4 filters\n", 0ULL);
 		return ret;
 	}
@@ -504,7 +505,7 @@ static inline nve32_t helper_l3_filter(
 				    dma_routing_enable,
 				    dma_chan);
 	if (ret < 0) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			     "failed to configure L3 filters\n", 0ULL);
 		return ret;
 	}
@@ -519,7 +520,7 @@ static inline nve32_t helper_l3_filter(
 					  l_filter->ip4_addr,
 					  l_filter->src_dst_addr_match);
 	} else {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "Invalid L3 filter type\n", 0ULL);
 		return -1;
 	}
@@ -656,7 +657,7 @@ nve32_t osi_adjust_freq(struct osi_core_priv_data *const osi_core, nve32_t ppb)
 	if (temp < UINT_MAX) {
 		diff = (nveu32_t)temp;
 	} else {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID, "temp > UINT_MAX\n",
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID, "temp > UINT_MAX\n",
 			     0ULL);
 		return ret;
 	}
@@ -665,7 +666,7 @@ nve32_t osi_adjust_freq(struct osi_core_priv_data *const osi_core, nve32_t ppb)
 		if (addend <= (UINT_MAX - diff)) {
 			addend = (addend + diff);
 		} else {
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "addend > UINT_MAX\n", 0ULL);
 			return ret;
 		}
@@ -675,7 +676,7 @@ nve32_t osi_adjust_freq(struct osi_core_priv_data *const osi_core, nve32_t ppb)
 		} else if (addend < diff) {
 			addend = diff - addend;
 		} else {
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "addend = diff\n", 0ULL);
 		}
 	}
@@ -711,7 +712,7 @@ nve32_t osi_adjust_time(struct osi_core_priv_data *const osi_core,
 	if (quotient <= UINT_MAX) {
 		sec = (nveu32_t)quotient;
 	} else {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "quotient > UINT_MAX\n", 0ULL);
 		return ret;
 	}
@@ -719,7 +720,7 @@ nve32_t osi_adjust_time(struct osi_core_priv_data *const osi_core,
 	if (reminder <= UINT_MAX) {
 		nsec = (nveu32_t)reminder;
 	} else {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "reminder > UINT_MAX\n", 0ULL);
 		return ret;
 	}
@@ -781,7 +782,7 @@ nve32_t osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
 		if (temp2 < UINT_MAX) {
 			osi_core->default_addend = (nveu32_t)temp2;
 		} else {
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "core: temp2 >= UINT_MAX\n", 0ULL);
 			return -1;
 		}
@@ -831,7 +832,7 @@ static nve32_t osi_get_mac_version(struct osi_core_priv_data *const osi_core, nv
 	}
 
 	if (mac_ver == OSI_NULL) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "mac_ver is NULL\n", 0ULL);
 		return -1;
 	}
@@ -840,7 +841,7 @@ static nve32_t osi_get_mac_version(struct osi_core_priv_data *const osi_core, nv
 			      MAC_VERSION_SNVER_MASK;
 
 	if (validate_mac_ver_update_chans(*mac_ver, &l_core->max_chans) == 0) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "Invalid MAC version\n", (nveu64_t)*mac_ver)
 		return -1;
 	}
@@ -922,7 +923,7 @@ static nve32_t validate_core_regs(struct osi_core_priv_data *const osi_core)
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 
 	if (osi_core->safety_config == OSI_NULL) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "CORE: Safety config is NULL\n", 0ULL);
 		return -1;
 	}
@@ -977,7 +978,7 @@ static nve32_t vlan_id_update(struct osi_core_priv_data *const osi_core,
 	if (((action != OSI_VLAN_ACTION_ADD) &&
 	    (action != OSI_VLAN_ACTION_DEL)) ||
 	    (vlan_id >= VLAN_NUM_VID)) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "CORE: Invalid action/vlan_id\n", 0ULL);
 		/* Unsupported action */
 		return -1;
@@ -1028,7 +1029,7 @@ static nve32_t conf_eee(struct osi_core_priv_data *const osi_core,
 	if ((tx_lpi_timer >= OSI_MAX_TX_LPI_TIMER) ||
 	    (tx_lpi_timer <= OSI_MIN_TX_LPI_TIMER) ||
 	    ((tx_lpi_timer % OSI_MIN_TX_LPI_TIMER) != OSI_NONE)) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "Invalid Tx LPI timer value\n",
 			     (nveul64_t)tx_lpi_timer);
 		return -1;
@@ -1074,7 +1075,7 @@ static int configure_frp(struct osi_core_priv_data *const osi_core,
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 
 	if (cmd == OSI_NULL) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"Invalid argment\n", OSI_NONE);
 		return -1;
 	}
@@ -1131,13 +1132,13 @@ static nve32_t conf_arp_offload(struct osi_core_priv_data *const osi_core,
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 
 	if (ip_addr == OSI_NULL) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "CORE: ip_addr is NULL\n", 0ULL);
 		return -1;
 	}
 
 	if ((flags != OSI_ENABLE) && (flags != OSI_DISABLE)) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "Invalid ARP offload enable/disable flag\n", 0ULL);
 		return -1;
 	}
@@ -1183,7 +1184,7 @@ static nve32_t conf_mac_loopback(struct osi_core_priv_data *const osi_core,
 
 	/* don't allow only if loopback mode is other than 0 or 1 */
 	if ((lb_mode != OSI_ENABLE) && (lb_mode != OSI_DISABLE)) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "Invalid loopback mode\n", 0ULL);
 		return -1;
 	}
@@ -1237,14 +1238,14 @@ static nve32_t config_est(struct osi_core_priv_data *osi_core,
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 
 	if (est == OSI_NULL) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "EST data is NULL", 0ULL);
 		return -1;
 	}
 
 	if ((osi_core->flow_ctrl & OSI_FLOW_CTRL_TX) ==
 	     OSI_FLOW_CTRL_TX) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "TX Flow control enabled, please disable it",
 			      0ULL);
 		return -1;
@@ -1292,7 +1293,7 @@ static nve32_t config_fpe(struct osi_core_priv_data *osi_core,
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 
 	if (fpe == OSI_NULL) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "FPE data is NULL", 0ULL);
 		return -1;
 	}
@@ -1788,7 +1789,7 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 	ops_p = l_core->ops_p;
 
 	if (data == OSI_NULL) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "CORE: Invalid argument\n", 0ULL);
 		return -1;
 	}
@@ -1972,7 +1973,7 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		ret = osi_adjust_freq(osi_core, data->arg6_32);
 #if DRIFT_CAL
 		if (ret < 0) {
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "CORE: adjust freq failed\n", 0ULL);
 			break;
 		}
@@ -2017,7 +2018,7 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		}
 
 		if (ret < 0) {
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "CORE: adjust_freq for sec_controller failed\n",
 				     0ULL);
 			ret = 0;
@@ -2029,7 +2030,7 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		ret = osi_adjust_time(osi_core, data->arg8_64);
 #if DRIFT_CAL
 		if (ret < 0) {
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "CORE: adjust_time failed\n", 0ULL);
 			break;
 		}
@@ -2067,7 +2068,7 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		}
 
 		if (ret < 0) {
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "CORE: adjust_time for sec_controller failed\n",
 				     0ULL);
 			ret = 0;
@@ -2083,7 +2084,7 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		}
 #if DRIFT_CAL
 		if (ret < 0) {
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "CORE: configure_ptp failed\n", 0ULL);
 			break;
 		}
@@ -2119,7 +2120,7 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 						data->arg2_u32);
 #if DRIFT_CAL
 		if (ret < 0) {
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "CORE: set systohw time failed\n", 0ULL);
 			break;
 		}
@@ -2153,7 +2154,7 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 			}
 		}
 		if (ret < 0) {
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "CORE: set_time for sec_controller failed\n",
 				     0ULL);
 			ret = 0;
@@ -2280,7 +2281,7 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		apply_dynamic_cfg(osi_core);
 		break;
 	default:
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "CORE: Incorrect command\n",
 			     (nveul64_t)data->cmd);
 		break;

@@ -38,7 +38,7 @@ static inline nve32_t poll_check(struct osi_core_priv_data *const osi_core, nveu
 	count = 0;
 	while (cond == COND_NOT_MET) {
 		if (count > retry) {
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 				     "poll_check: timeout\n", 0ULL);
 			ret = -1;
 			goto fail;
@@ -114,7 +114,7 @@ nve32_t hw_set_mode(struct osi_core_priv_data *const osi_core, const nve32_t mod
 
 	/* don't allow only if loopback mode is other than 0 or 1 */
 	if ((mode != OSI_FULL_DUPLEX) && (mode != OSI_HALF_DUPLEX)) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				"Invalid duplex mode\n", 0ULL);
 		ret = -1;
 		goto fail;
@@ -180,8 +180,6 @@ nve32_t hw_set_speed(struct osi_core_priv_data *const osi_core, const nve32_t sp
 
 	if (osi_core->mac == OSI_MAC_HW_MGBE) {
 		if (xpcs_init(osi_core) < 0) {
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
-					"xpcs_init failed\n", OSI_NONE);
 			ret = -1;
 			goto fail;
 		}

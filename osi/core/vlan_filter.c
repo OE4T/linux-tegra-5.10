@@ -155,7 +155,7 @@ static inline int enqueue_vlan_id(struct osi_core_priv_data *osi_core,
 	/* Check if requested vlan_id alredy queued */
 	ret = is_vlan_id_enqueued(osi_core, vlan_id, &idx);
 	if (ret == 0) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"VLAN ID already programmed\n",
 			0ULL);
 		return -1;
@@ -189,7 +189,7 @@ static inline int poll_for_vlan_filter_reg_rw(
 	count = 0;
 	while (cond == 1) {
 		if (count > retry) {
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 				     "VLAN filter update timedout\n", 0ULL);
 			return -1;
 		}
@@ -241,7 +241,7 @@ static inline int update_vlan_filters(struct osi_core_priv_data *osi_core,
 
 	ret = poll_for_vlan_filter_reg_rw(osi_core);
 	if (ret < 0) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			     "Failed to update VLAN filters\n", 0ULL);
 		return -1;
 	}
@@ -300,7 +300,7 @@ static inline int add_vlan_id(struct osi_core_priv_data *osi_core,
 						   OSI_DISABLE,
 						   OSI_DISABLE);
 		if (ret < 0) {
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				"Failed to enable VLAN filtering\n", 0ULL);
 			return -1;
 		}
@@ -446,7 +446,7 @@ static inline int del_vlan_id(struct osi_core_priv_data *osi_core,
 						   OSI_DISABLE,
 						   OSI_DISABLE);
 		if (ret < 0) {
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				"Failed to disable VLAN filtering\n", 0ULL);
 			return -1;
 		}

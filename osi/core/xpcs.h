@@ -191,7 +191,7 @@ static inline int xpcs_write_safety(struct osi_core_priv_data *osi_core,
 		osi_core->osd_ops.udelay(OSI_DELAY_1US);
 	}
 
-	OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+	OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 		     "xpcs_write_safety failed", reg_addr);
 	return -1;
 }

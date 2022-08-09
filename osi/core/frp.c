@@ -190,7 +190,7 @@ static void frp_entry_mode_parse(unsigned char filter_mode,
 		data->inverse_match = OSI_DISABLE;
 		break;
 	default:
-		//OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		//OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 		//	"Invalid filter mode argment\n",
 		//	filter_mode);
 		break;

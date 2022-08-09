@@ -257,7 +257,7 @@ static int mgbe_mac_indir_addr_write(struct osi_core_priv_data *osi_core,
 
 	/* Wait until OB bit reset */
 	if (mgbe_poll_for_mac_acrtl(osi_core) < 0) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			     "Fail to write MAC_Indir_Access_Ctrl\n", mc_no);
 		return -1;
 	}
@@ -312,7 +312,7 @@ static int mgbe_mac_indir_addr_read(struct osi_core_priv_data *osi_core,
 
 	/* Wait until OB bit reset */
 	if (mgbe_poll_for_mac_acrtl(osi_core) < 0) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			     "Fail to write MAC_Indir_Access_Ctrl\n", mc_no);
 		return -1;
 	}
@@ -477,7 +477,7 @@ static int mgbe_filter_args_validate(struct osi_core_priv_data *const osi_core,
 
 	/* validate addr_mask argument */
 	if (addr_mask > MGBE_MAB_ADDRH_MBC_MAX_MASK) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"Invalid addr_mask value\n",
 			addr_mask);
 		return -1;
@@ -485,7 +485,7 @@ static int mgbe_filter_args_validate(struct osi_core_priv_data *const osi_core,
 
 	/* validate src_dest argument */
 	if ((src_dest != OSI_SA_MATCH) && (src_dest != OSI_DA_MATCH)) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"Invalid src_dest value\n",
 			src_dest);
 		return -1;
@@ -494,7 +494,7 @@ static int mgbe_filter_args_validate(struct osi_core_priv_data *const osi_core,
 	/* validate dma_routing_enable argument */
 	if ((dma_routing_enable != OSI_ENABLE) &&
 		(dma_routing_enable != OSI_DISABLE)) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"Invalid dma_routing value\n",
 			dma_routing_enable);
 		return -1;
@@ -715,7 +715,7 @@ static int mgbe_l3l4_filter_write(struct osi_core_priv_data *osi_core,
 
 	/* Wait untile XB bit reset */
 	if (mgbe_poll_for_l3l4crtl(osi_core) < 0) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			     "Fail to write L3_L4_Address_Control\n",
 			     filter_type);
 		return -1;
@@ -773,7 +773,7 @@ static int mgbe_l3l4_filter_read(struct osi_core_priv_data *osi_core,
 
 	/* Wait untile XB bit reset */
 	if (mgbe_poll_for_l3l4crtl(osi_core) < 0) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			    "Fail to read L3L4 Address\n",
 			    filter_type);
 		return -1;
@@ -1012,7 +1012,7 @@ static int mgbe_config_l3_l4_filter_enable(
 
 	/* validate filter_enb_dis argument */
 	if (filter_enb_dis != OSI_ENABLE && filter_enb_dis != OSI_DISABLE) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"Invalid filter_enb_dis value\n",
 			filter_enb_dis);
 		return -1;
@@ -2212,7 +2212,7 @@ static int mgbe_rss_write_reg(struct osi_core_priv_data *osi_core,
 	/* poll for write operation to complete */
 	while (cond == 1) {
 		if (count > retry) {
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 				     "Failed to update RSS Hash key or table\n",
 				     0ULL);
 			return -1;
@@ -3788,7 +3788,7 @@ static void mgbe_handle_mtl_intrs(struct osi_core_priv_data *osi_core,
 		value &= ~MGBE_MTL_EST_EEST;
 		osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
 			    MGBE_MTL_EST_CONTROL);
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "Disabling EST due to HLBS, correct GCL\n", OSI_NONE);
 	}
 
@@ -3822,7 +3822,7 @@ static void mgbe_handle_mtl_intrs(struct osi_core_priv_data *osi_core,
 			value &= ~MGBE_MTL_EST_EEST;
 			osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
 				    MGBE_MTL_EST_CONTROL);
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "Disabling EST due to HLBF, correct GCL\n",
 				     OSI_NONE);
 		}
@@ -5825,7 +5825,7 @@ static void mgbe_config_for_macsec(struct osi_core_priv_data *const osi_core,
 	nveu32_t value = 0U, temp = 0U;
 
 	if ((enable != OSI_ENABLE) && (enable != OSI_DISABLE)) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "Failed to config MGBE per MACSEC\n", 0ULL);
 		goto exit;
 	}

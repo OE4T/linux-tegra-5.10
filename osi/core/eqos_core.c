@@ -74,7 +74,7 @@ static nve32_t eqos_ptp_tsc_capture(struct osi_core_priv_data *const osi_core,
 	nve32_t ret = -1;
 
 	if (osi_core->mac_ver < OSI_EQOS_MAC_5_30) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "ptp_tsc: older IP\n", 0ULL);
 		goto done;
 	}
@@ -431,7 +431,7 @@ static nve32_t eqos_config_flow_control(
 
 	/* return on invalid argument */
 	if (flw_ctrl > (OSI_FLOW_CTRL_RX | OSI_FLOW_CTRL_TX)) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "flw_ctr: invalid input\n", 0ULL);
 		return -1;
 	}
@@ -1965,7 +1965,7 @@ static nve32_t eqos_core_init(struct osi_core_priv_data *const osi_core,
 	/* PAD calibration */
 	ret = eqos_pad_calibrate(osi_core);
 	if (ret < 0) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			     "eqos pad calibration failed\n", 0ULL);
 		return ret;
 	}
@@ -2024,7 +2024,7 @@ static nve32_t eqos_core_init(struct osi_core_priv_data *const osi_core,
 	}
 
 	if (osi_unlikely(osi_core->num_mtl_queues > OSI_EQOS_MAX_NUM_QUEUES)) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "Number of queues is incorrect\n", 0ULL);
 		return -1;
 	}
@@ -2042,7 +2042,7 @@ static nve32_t eqos_core_init(struct osi_core_priv_data *const osi_core,
 	for (qinx = 0; qinx < osi_core->num_mtl_queues; qinx++) {
 		if (osi_unlikely(osi_core->mtl_queues[qinx] >=
 				 OSI_EQOS_MAX_NUM_QUEUES)) {
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "Incorrect queues number\n", 0ULL);
 			return -1;
 		}
@@ -2223,13 +2223,13 @@ static void eqos_handle_mac_intrs(struct osi_core_priv_data *const osi_core,
 	if ((mac_pcs & EQOS_MAC_PCS_LNKMOD) == EQOS_MAC_PCS_LNKMOD) {
 		ret = hw_set_mode(osi_core, OSI_FULL_DUPLEX);
 		if (osi_unlikely(ret < 0)) {
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 				     "set mode in full duplex failed\n", 0ULL);
 		}
 	} else {
 		ret = hw_set_mode(osi_core, OSI_HALF_DUPLEX);
 		if (osi_unlikely(ret < 0)) {
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 				     "set mode in half duplex failed\n", 0ULL);
 		}
 	}
@@ -2382,7 +2382,7 @@ static void eqos_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 			value &= ~EQOS_MTL_EST_CONTROL_EEST;
 			osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
 				    EQOS_MTL_EST_CONTROL);
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "Disabling EST due to HLBS, correct GCL\n",
 				     OSI_NONE);
 		}
@@ -2417,7 +2417,7 @@ static void eqos_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 			value &= ~EQOS_MTL_EST_CONTROL_EEST;
 			osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
 				    EQOS_MTL_EST_CONTROL);
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "Disabling EST due to HLBF, correct GCL\n",
 				     OSI_NONE);
 		}
@@ -3836,7 +3836,7 @@ static inline nve32_t eqos_poll_for_tsinit_complete(
 	count = 0;
 	while (cond == COND_NOT_MET) {
 		if (count > retry) {
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 				     "poll_for_tsinit: timeout\n", 0ULL);
 			return -1;
 		}
@@ -3954,7 +3954,7 @@ static inline nve32_t eqos_poll_for_addend_complete(
 	count = 0;
 	while (cond == COND_NOT_MET) {
 		if (count > retry) {
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 				     "poll_for_addend: timeout\n", 0ULL);
 			return -1;
 		}
@@ -4065,7 +4065,7 @@ static inline nve32_t eqos_poll_for_update_ts_complete(
 	count = 0;
 	while (cond == COND_NOT_MET) {
 		if (count > retry) {
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 				     "poll_for_update_ts: timeout\n", 0ULL);
 			return -1;
 		}
@@ -5180,7 +5180,7 @@ static nve32_t eqos_validate_core_regs(
 			 * take care of corrective action.
 			 */
 			osi_unlock_irq_enabled(&config->core_safety_lock);
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "register mismatch\n", 0ULL);
 			return -1;
 		}
@@ -5222,7 +5222,7 @@ static nve32_t eqos_config_rx_crc_check(
 
 	/* return on invalid argument */
 	if ((crc_chk != OSI_ENABLE) && (crc_chk != OSI_DISABLE)) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "rx_crc: invalid input\n", 0ULL);
 		return -1;
 	}
@@ -5279,7 +5279,7 @@ static nve32_t eqos_config_tx_status(struct osi_core_priv_data *const osi_core,
 
 	/* don't allow if tx_status is other than 0 or 1 */
 	if ((tx_status != OSI_ENABLE) && (tx_status != OSI_DISABLE)) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "tx_status: invalid input\n", 0ULL);
 		return -1;
 	}
@@ -5575,7 +5575,7 @@ static nve32_t eqos_config_arp_offload(
 				    EQOS_5_00_MAC_ARPPA);
 		} else {
 			/* Unsupported MAC ver */
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "arp_offload: invalid HW\n", 0ULL);
 			return -1;
 		}
@@ -5629,21 +5629,21 @@ static nve32_t eqos_config_vlan_filtering(
 
 	if ((filter_enb_dis != OSI_ENABLE) &&
         (filter_enb_dis != OSI_DISABLE)) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "vlan_filter: invalid input\n", 0ULL);
 		return -1;
 	}
 
 	if ((perfect_hash_filtering != OSI_ENABLE) &&
 	    (perfect_hash_filtering != OSI_DISABLE)) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "vlan_filter: invalid input\n", 0ULL);
 		return -1;
 	}
 
 	if ((perfect_inverse_match != OSI_ENABLE) &&
 	    (perfect_inverse_match != OSI_DISABLE)) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "vlan_filter: invalid input\n", 0ULL);
 		return -1;
 	}
@@ -6322,7 +6322,7 @@ static nve32_t eqos_post_pad_calibrate(
  */
 static nve32_t eqos_config_rss(struct osi_core_priv_data *osi_core)
 {
-	OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+	OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 		     "RSS not supported by EQOS\n", 0ULL);
 
 	return -1;
@@ -6359,7 +6359,7 @@ static void eqos_config_for_macsec(struct osi_core_priv_data *const osi_core,
 	nveu32_t value = 0U, temp = 0U;
 
 	if ((enable != OSI_ENABLE) && (enable != OSI_DISABLE)) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "Failed to config EQOS per MACSEC\n", 0ULL);
 		goto exit;
 	}

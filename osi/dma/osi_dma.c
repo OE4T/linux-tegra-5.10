@@ -187,7 +187,7 @@ static inline nve32_t validate_dma_chan_num(struct osi_dma_priv_data *osi_dma,
 	struct dma_local *l_dma = (struct dma_local *)osi_dma;
 
 	if (chan >= l_dma->max_chans) {
-		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 				"Invalid DMA channel number\n", chan);
 		return -1;
 	}
@@ -216,7 +216,7 @@ static inline nve32_t validate_dma_chans(struct osi_dma_priv_data *osi_dma)
 
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
 		if (osi_dma->dma_chans[i] > l_dma->max_chans) {
-			OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 				    "Invalid DMA channel number:\n",
 				    osi_dma->dma_chans[i]);
 			return -1;
@@ -252,14 +252,14 @@ static nve32_t validate_func_ptrs(struct osi_dma_priv_data *osi_dma,
 #elif __SIZEOF_POINTER__ == 4
 	nveu32_t *l_ops = (nveu32_t *)temp_ops;
 #else
-	OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+	OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 		    "DMA: Undefined architecture\n", 0ULL);
 	return -1;
 #endif
 
 	for (i = 0; i < (sizeof(*ops_p) / (nveu64_t)__SIZEOF_POINTER__); i++) {
 		if (*l_ops == 0U) {
-			OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 				    "dma: fn ptr validation failed at\n",
 				    (nveu64_t)i);
 			return -1;
@@ -305,7 +305,7 @@ nve32_t osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 	}
 
 	if (osi_dma->mac > OSI_MAC_HW_MGBE) {
-		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 			    "DMA: Invalid MAC HW type\n", 0ULL);
 		return -1;
 	}
@@ -315,7 +315,7 @@ nve32_t osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 	    (osi_dma->tx_ring_sz < HW_MIN_RING_SZ) ||
 	    (osi_dma->tx_ring_sz > default_rz[osi_dma->mac])) {
 		osi_dma->tx_ring_sz = default_rz[osi_dma->mac];
-		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 			    "DMA: Using default Tx ring size: \n",
 			     osi_dma->tx_ring_sz);
 	}
@@ -325,7 +325,7 @@ nve32_t osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 	    (osi_dma->rx_ring_sz < HW_MIN_RING_SZ) ||
 	    (osi_dma->rx_ring_sz > max_rz[osi_dma->mac])) {
 		osi_dma->rx_ring_sz = default_rz[osi_dma->mac];
-		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 			    "DMA: Using default rx ring size: \n",
 			     osi_dma->tx_ring_sz);
 	}
@@ -333,14 +333,14 @@ nve32_t osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 	i_ops[osi_dma->mac](&g_ops[osi_dma->mac]);
 
 	if (init_desc_ops(osi_dma) < 0) {
-		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 			    "DMA desc ops init failed\n", 0ULL);
 		return -1;
 	}
 
 #ifndef OSI_STRIPPED_LIB
 	if (validate_func_ptrs(osi_dma, &g_ops[osi_dma->mac]) < 0) {
-		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 			    "DMA ops validation failed\n", 0ULL);
 		return -1;
 	}
@@ -516,19 +516,19 @@ nve32_t osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
 				   MAC_VERSION_SNVER_MASK;
 	if (validate_mac_ver_update_chans(l_dma->mac_ver,
 					  &l_dma->max_chans) == 0) {
-		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 			    "Invalid MAC version\n", (nveu64_t)l_dma->mac_ver);
 		return -1;
 	}
 
 	if (osi_dma->num_dma_chans > l_dma->max_chans) {
-		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 			    "Invalid number of DMA channels\n", 0ULL);
 		return -1;
 	}
 
 	if (validate_dma_chans(osi_dma) < 0) {
-		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 			    "DMA channels validation failed\n", 0ULL);
 		return -1;
 	}
@@ -615,13 +615,13 @@ nve32_t osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma)
 	}
 
 	if (osi_dma->num_dma_chans > l_dma->max_chans) {
-		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 			    "Invalid number of DMA channels\n", 0ULL);
 		return -1;
 	}
 
 	if (validate_dma_chans(osi_dma) < 0) {
-		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 			    "DMA channels validation failed\n", 0ULL);
 		return -1;
 	}
@@ -715,13 +715,13 @@ static inline nve32_t rx_dma_desc_validate_args(
 
 	if (!((rx_ring != OSI_NULL) && (rx_ring->rx_swcx != OSI_NULL) &&
 	      (rx_ring->rx_desc != OSI_NULL))) {
-		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 			    "dma: Invalid pointers\n", 0ULL);
 		return -1;
 	}
 
 	if (validate_dma_chan_num(osi_dma, chan) < 0) {
-		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 			    "dma: Invalid channel\n", 0ULL);
 		return -1;
 	}
@@ -820,7 +820,7 @@ nve32_t osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 
 	if (osi_unlikely(tailptr < rx_ring->rx_desc_phy_addr)) {
 		/* Will not hit this case, used for CERT-C compliance */
-		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 			    "dma: Invalid tailptr\n", 0ULL);
 		return -1;
 	}
@@ -840,7 +840,7 @@ nve32_t osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
 	}
 
 	if (osi_dma->mtu > OSI_MAX_MTU_SIZE) {
-		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 			    "Invalid MTU setting\n", 0ULL);
 		return -1;
 	}
@@ -893,7 +893,7 @@ nve32_t osi_hw_transmit(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
 	}
 
 	if (osi_unlikely(osi_dma->tx_ring[chan] == OSI_NULL)) {
-		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 			    "DMA: Invalid Tx ring\n", 0ULL);
 		return -1;
 	}
@@ -924,7 +924,7 @@ nve32_t osi_dma_ioctl(struct osi_dma_priv_data *osi_dma)
 		l_dma->ops_p->debug_intr_config(osi_dma);
 		break;
 	default:
-		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 			    "DMA: Invalid IOCTL command", 0ULL);
 		return -1;
 	}

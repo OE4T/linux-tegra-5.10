@@ -21,6 +21,7 @@
  */
 
 #include "xpcs.h"
+#include "core_local.h"
 
 /**
  * @brief xpcs_poll_for_an_complete - Polling for AN complete.
@@ -49,7 +50,7 @@ static inline int xpcs_poll_for_an_complete(struct osi_core_priv_data *osi_core,
 	count = 0;
 	while (cond == 1) {
 		if (count > retry) {
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 				     "XPCS AN completion timed out\n", 0ULL);
 #ifdef HSI_SUPPORT
 			if (osi_core->hsi.enabled == OSI_ENABLE) {
@@ -80,7 +81,7 @@ static inline int xpcs_poll_for_an_complete(struct osi_core_priv_data *osi_core,
 	}
 
 	if ((status & XPCS_USXG_AN_STS_SPEED_MASK) == 0U) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			     "XPCS AN completed with zero speed\n", 0ULL);
 		return -1;
 	}
@@ -152,7 +153,7 @@ int xpcs_start(struct osi_core_priv_data *osi_core)
 	int cond = COND_NOT_MET;
 
 	if (osi_core->xpcs_base == OSI_NULL) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			     "XPCS base is NULL", 0ULL);
 		/* TODO: Remove this once silicon arrives */
 		return 0;
@@ -327,6 +328,7 @@ static nve32_t xpcs_check_pcs_lock_status(struct osi_core_priv_data *osi_core)
  */
 static nve32_t xpcs_lane_bring_up(struct osi_core_priv_data *osi_core)
 {
+	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 	unsigned int retry = 1000;
 	unsigned int count;
 	nveu32_t val = 0;
@@ -334,7 +336,7 @@ static nve32_t xpcs_lane_bring_up(struct osi_core_priv_data *osi_core)
 
 	if (xpcs_uphy_lane_bring_up(osi_core,
 				    XPCS_WRAP_UPHY_HW_INIT_CTRL_TX_EN) < 0) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			     "UPHY TX lane bring-up failed\n", 0ULL);
 		return -1;
 	}
@@ -433,9 +435,16 @@ static nve32_t xpcs_lane_bring_up(struct osi_core_priv_data *osi_core)
 		    XPCS_WRAP_UPHY_RX_CONTROL_0_0);
 
 	if (xpcs_check_pcs_lock_status(osi_core) < 0) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
-			     "Failed to get PCS block lock\n", 0ULL);
+		if (l_core->lane_status == OSI_ENABLE) {
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+				     "Failed to get PCS block lock\n", 0ULL);
+			l_core->lane_status = OSI_DISABLE;
+		}
 		return -1;
+	} else {
+		OSI_CORE_INFO(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+			      "PCS block lock SUCCESS\n", 0ULL);
+		l_core->lane_status = OSI_ENABLE;
 	}
 
 	return 0;
@@ -461,15 +470,13 @@ int xpcs_init(struct osi_core_priv_data *osi_core)
 	int ret = 0;
 
 	if (osi_core->xpcs_base == OSI_NULL) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			     "XPCS base is NULL", 0ULL);
 		/* TODO: Remove this once silicon arrives */
 		return 0;
 	}
 
 	if (xpcs_lane_bring_up(osi_core) < 0) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
-			     "TX/RX lane bring-up failed\n", 0ULL);
 		return -1;
 	}
 

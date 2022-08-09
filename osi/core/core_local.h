@@ -466,6 +466,8 @@ struct core_local {
 	struct dynamic_cfg cfg;
 	/** Hardware dynamic configuration state */
 	nveu32_t state;
+	/** XPCS Lane bringup/Block lock status */
+	nveu32_t lane_status;
 };
 
 /**

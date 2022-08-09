@@ -79,7 +79,7 @@ static nve32_t validate_if_func_ptrs(struct osi_core_priv_data *const osi_core,
 #elif __SIZEOF_POINTER__ == 4
 	nveu32_t *l_ops = (nveu32_t *)temp_ops;
 #else
-	OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+	OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 		     "Undefined architecture\n", 0ULL);
 	return -1;
 #endif
@@ -87,7 +87,7 @@ static nve32_t validate_if_func_ptrs(struct osi_core_priv_data *const osi_core,
 	for (i = 0; i < (sizeof(*if_ops_p) / (nveu64_t)__SIZEOF_POINTER__);
 	     i++) {
 		if (*l_ops == 0U) {
-			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "failed at index : ", i);
 			return -1;
 		}
@@ -195,14 +195,14 @@ nve32_t osi_init_core_ops(struct osi_core_priv_data *const osi_core)
 	}
 
 	if (validate_if_func_ptrs(osi_core, l_core->if_ops_p) < 0) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "Interface function validation failed\n", 0ULL);
 		return -1;
 	}
 
 	ret = l_core->if_ops_p->if_init_core_ops(osi_core);
 	if (ret < 0) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "if_init_core_ops failed\n", 0ULL);
 		return ret;
 	}
@@ -228,7 +228,7 @@ nve32_t osi_init_core_ops(struct osi_core_priv_data *const osi_core)
 	if (osi_core->pps_frq <= OSI_ENABLE) {
 		l_core->pps_freq = osi_core->pps_frq;
 	} else {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "invalid pps_frq\n", (nveu64_t)osi_core->pps_frq);
 		ret = -1;
 	}
@@ -297,7 +297,7 @@ nve32_t osi_handle_ioctl(struct osi_core_priv_data *osi_core,
 	}
 
 	if (data == OSI_NULL) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "CORE: Invalid argument\n", 0ULL);
 		return ret;
 	}
