@@ -335,10 +335,20 @@ static const struct nvenc_config nvenc_t194_config = {
 	.num_instances = 2,
 };
 
+#define NVIDIA_TEGRA_234_NVENC_FIRMWARE "nvidia/tegra234/nvenc.bin"
+
+static const struct nvenc_config nvenc_t234_config = {
+	.firmware = NVIDIA_TEGRA_234_NVENC_FIRMWARE,
+	.version = 0x23,
+	.supports_sid = true,
+	.num_instances = 1,
+};
+
 static const struct of_device_id tegra_nvenc_of_match[] = {
 	{ .compatible = "nvidia,tegra210-nvenc", .data = &nvenc_t210_config },
 	{ .compatible = "nvidia,tegra186-nvenc", .data = &nvenc_t186_config },
 	{ .compatible = "nvidia,tegra194-nvenc", .data = &nvenc_t194_config },
+	{ .compatible = "nvidia,tegra234-nvenc", .data = &nvenc_t234_config },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, tegra_nvenc_of_match);
@@ -465,4 +475,7 @@ MODULE_FIRMWARE(NVIDIA_TEGRA_186_NVENC_FIRMWARE);
 #endif
 #if IS_ENABLED(CONFIG_ARCH_TEGRA_194_SOC)
 MODULE_FIRMWARE(NVIDIA_TEGRA_194_NVENC_FIRMWARE);
+#endif
+#if IS_ENABLED(CONFIG_ARCH_TEGRA_234_SOC)
+MODULE_FIRMWARE(NVIDIA_TEGRA_234_NVENC_FIRMWARE);
 #endif
