@@ -206,21 +206,9 @@
 #define ETHER_TX_MAX_FRAME_SIZE	GSO_MAX_SIZE
 
 /**
- * @brief IVC wait timeout.
+ * @brief IVC wait timeout cnt in micro seconds.
  */
-#define IVC_WAIT_TIMEOUT		(msecs_to_jiffies(100))
-
-/**
- * @brief IVC read timeout cnt.
- * used as 20*IVC_WAIT_TIMEOUT hence Max is 2 sec timeout.
- */
-#define IVC_READ_TIMEOUT_CNT		20
-
-/**
- * @brief IVC channel timeout.
- * Used with 1 millisec so max timeout is 50 ms.
- */
-#define IVC_CHANNEL_TIMEOUT_CNT		50
+#define IVC_WAIT_TIMEOUT_CNT		200000
 
 /**
  * @brief Broadcast and MAC address macros
@@ -357,11 +345,7 @@ struct ether_ivc_ctxt {
 	/** ivc cookie */
 	struct tegra_hv_ivc_cookie *ivck;
 	/** ivc lock */
-	struct mutex ivck_lock;
-	/** ivc work */
-	struct work_struct ivc_work;
-	/** wait for event */
-	struct completion msg_complete;
+	raw_spinlock_t ivck_lock;
 	/** Flag to indicate ivc started or stopped */
 	unsigned int ivc_state;
 };
@@ -525,10 +509,6 @@ struct ether_priv_data {
 	unsigned int promisc_mode;
 	/** Delayed work queue to read RMON counters periodically */
 	struct delayed_work ether_stats_work;
-	/** process rx work */
-	struct work_struct set_rx_mode_work;
-	/** rx lock */
-	struct mutex rx_mode_lock;
 	/** set speed work */
 	struct delayed_work set_speed_work;
 	/** Flag to check if EEE LPI is enabled for the MAC */

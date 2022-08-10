@@ -946,64 +946,49 @@ int osd_ivc_send_cmd(void *priv, ivc_msg_common_t *ivc_buf, unsigned int len)
 	struct ether_ivc_ctxt *ictxt = &pdata->ictxt;
 	struct tegra_hv_ivc_cookie *ivck =
 				  (struct tegra_hv_ivc_cookie *) ictxt->ivck;
-	int dcnt = IVC_CHANNEL_TIMEOUT_CNT;
-	int is_atomic = 0;
+	int status = -1;
+	unsigned long flags = 0;
+
 	if (len > ETHER_MAX_IVC_BUF) {
 		dev_err(pdata->dev, "Invalid IVC len\n");
 		return -1;
 	}
-
 	ivc_buf->status = -1;
-	if (in_atomic()) {
-		preempt_enable();
-		is_atomic = 1;
-	}
-
-	mutex_lock(&ictxt->ivck_lock);
 	ivc_buf->count = cnt++;
+
+	raw_spin_lock_irqsave(&ictxt->ivck_lock, flags);
+
 	/* Waiting for the channel to be ready */
-	while (tegra_hv_ivc_channel_notified(ivck) != 0){
-		osd_msleep(1);
-		dcnt--;
-		if (!dcnt) {
-			dev_err(pdata->dev, "IVC channel timeout\n");
-			goto fail;
-		}
+	ret = readx_poll_timeout_atomic(tegra_hv_ivc_channel_notified, ivck,
+					status, status == 0, 10, IVC_WAIT_TIMEOUT_CNT);
+	if (ret == -ETIMEDOUT) {
+		dev_err(pdata->dev, "IVC channel timeout\n");
+		goto fail;
 	}
 
 	/* Write the current message for the ethernet server */
 	ret = tegra_hv_ivc_write(ivck, ivc_buf, len);
 	if (ret != len) {
-		dev_err(pdata->dev, "IVC write len %d ret %d cmd %d failed\n",
-			  len, ret, ivc_buf->cmd);
+		dev_err(pdata->dev, "IVC write with len %d ret %d cmd %d ioctlcmd %d failed\n",
+			len, ret, ivc_buf->cmd, ivc_buf->data.ioctl_data.cmd);
 		goto fail;
 	}
 
-	dcnt = IVC_READ_TIMEOUT_CNT;
-	while ((!tegra_hv_ivc_can_read(ictxt->ivck))) {
-		if (!wait_for_completion_timeout(&ictxt->msg_complete,
-						 IVC_WAIT_TIMEOUT)) {
-			ret = -ETIMEDOUT;
-			goto fail;
-		}
-
-		dcnt--;
-		if (!dcnt) {
-			dev_err(pdata->dev, "IVC read timeout\n");
-			break;
-		}
+	ret = readx_poll_timeout_atomic(tegra_hv_ivc_can_read, ictxt->ivck,
+					status, status, 10, IVC_WAIT_TIMEOUT_CNT);
+	if (ret == -ETIMEDOUT) {
+		dev_err(pdata->dev, "IVC read timeout status %d\n", status);
+		goto fail;
 	}
 
 	ret = tegra_hv_ivc_read(ivck, ivc_buf, len);
 	if (ret < 0) {
-		dev_err(pdata->dev, "IVC read failed: %d\n", ret);
+		dev_err(pdata->dev, "IVC read failed: %d cmd %d ioctlcmd %d\n",
+			ret, ivc_buf->cmd, ivc_buf->data.ioctl_data.cmd);
 	}
 	ret = ivc_buf->status;
 fail:
-	mutex_unlock(&ictxt->ivck_lock);
-	if (is_atomic) {
-		preempt_disable();
-	}
+	raw_spin_unlock_irqrestore(&ictxt->ivck_lock, flags);
 	return ret;
 }
 

@@ -1438,32 +1438,6 @@ static void ether_free_irqs(struct ether_priv_data *pdata)
 }
 
 /**
- * @brief IVC ISR Routine
- *
- * Algorithm: IVC routine to handle common interrupt.
- * 1) Verify if IVC channel is readable
- * 2) Read IVC msg
- * 3) Schedule ivc_work
- *
- * @param[in] irq: IRQ number.
- * @param[in] data: Private data from ISR.
- *
- * @note MAC and PHY need to be initialized.
- *
- * @retval IRQ_HANDLED on success
- * @retval IRQ_NONE on failure.
- */
-static irqreturn_t ether_ivc_irq(int irq, void *data)
-{
-	struct ether_priv_data *pdata = (struct ether_priv_data *)data;
-	struct ether_ivc_ctxt *ictxt = &pdata->ictxt;
-
-	complete(&ictxt->msg_complete);
-
-	return IRQ_HANDLED;
-}
-
-/**
  * @brief Start IVC, initializes IVC.
  *
  * @param[in]: Priv data.
@@ -1473,23 +1447,11 @@ static irqreturn_t ether_ivc_irq(int irq, void *data)
 
 static void ether_start_ivc(struct ether_priv_data *pdata)
 {
-	int ret;
 	struct ether_ivc_ctxt *ictxt = &pdata->ictxt;
 	if (ictxt->ivck != NULL && !ictxt->ivc_state) {
 		tegra_hv_ivc_channel_reset(ictxt->ivck);
-
-		ret = devm_request_irq(pdata->dev, ictxt->ivck->irq,
-				       ether_ivc_irq,
-				       0, dev_name(pdata->dev), pdata);
-		if (ret) {
-			dev_err(pdata->dev,
-				"Unable to request irq(%d)\n", ictxt->ivck->irq);
-			tegra_hv_ivc_unreserve(ictxt->ivck);
-			return;
-		}
 		ictxt->ivc_state = 1;
-		// initialize
-		mutex_init(&ictxt->ivck_lock);
+		raw_spin_lock_init(&ictxt->ivck_lock);
 	}
 }
 
@@ -1506,7 +1468,6 @@ static void ether_stop_ivc(struct ether_priv_data *pdata)
 	struct ether_ivc_ctxt *ictxt = &pdata->ictxt;
 	if (ictxt->ivck != NULL) {
 		tegra_hv_ivc_unreserve(ictxt->ivck);
-		devm_free_irq(pdata->dev, ictxt->ivck->irq, pdata);
 		ictxt->ivc_state = 0;
 	}
 }
@@ -1562,7 +1523,6 @@ static int ether_init_ivc(struct ether_priv_data *pdata)
 	dev_info(dev, "Reserved IVC channel #%u - frame_size=%d irq %d\n",
 		 id, ictxt->ivck->frame_size, ictxt->ivck->irq);
 	osi_core->osd_ops.ivc_send = osd_ivc_send_cmd;
-	init_completion(&ictxt->msg_complete);
 	ether_start_ivc(pdata);
 	return 0;
 }
@@ -2836,7 +2796,6 @@ static inline void ether_delete_l2_filter(struct ether_priv_data *pdata)
 		if (ret < 0) {
 			dev_err(pdata->dev,
 				"failed to delete L2 filter index = %d\n", i);
-			mutex_unlock(&pdata->rx_mode_lock);
 			return;
 		}
 	}
@@ -2969,8 +2928,6 @@ static int ether_close(struct net_device *ndev)
 
 	/* stop tx ts pending SKB workqueue and remove skb nodes */
 	ether_flush_tx_ts_skb_list(pdata);
-
-	cancel_work_sync(&pdata->set_rx_mode_work);
 
 	ether_stop_ivc(pdata);
 
@@ -3628,24 +3585,24 @@ static int ether_prepare_uc_list(struct net_device *dev,
 }
 
 /**
- * @brief Work Queue function to call rx mode.
+ * @brief This function is used to set RX mode.
  *
- * @param[in] work: work structure
+ * Algorithm: Based on Network interface flag, MAC registers are programmed to
+ * set mode.
+ *
+ * @param[in] dev - pointer to net_device structure.
  *
  * @note MAC and PHY need to be initialized.
  */
-static inline void set_rx_mode_work_func(struct work_struct *work)
+void ether_set_rx_mode(struct net_device *dev)
 {
-	struct ether_priv_data *pdata = container_of(work,
-			struct ether_priv_data, set_rx_mode_work);
+	struct ether_priv_data *pdata = netdev_priv(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	/* store last call last_uc_filter_index in temporary variable */
 	struct osi_ioctl ioctl_data = {};
-	struct net_device *dev = pdata->ndev;
 	unsigned int mac_addr_idx = ETHER_MAC_ADDRESS_INDEX + 1U, i;
 	int ret = -1;
 
-	mutex_lock(&pdata->rx_mode_lock);
 	memset(&ioctl_data.l2_filter, 0x0, sizeof(struct osi_filter));
 	if ((dev->flags & IFF_PROMISC) == IFF_PROMISC) {
 		if (pdata->promisc_mode == OSI_ENABLE) {
@@ -3664,8 +3621,6 @@ static inline void set_rx_mode_work_func(struct work_struct *work)
 			dev_warn(pdata->dev,
 				 "Promiscuous mode not supported\n");
 		}
-
-		mutex_unlock(&pdata->rx_mode_lock);
 		return;
 	} else if ((dev->flags & IFF_ALLMULTI) == IFF_ALLMULTI) {
 		ioctl_data.l2_filter.oper_mode = (OSI_OPER_EN_ALLMULTI |
@@ -3677,8 +3632,6 @@ static inline void set_rx_mode_work_func(struct work_struct *work)
 		if (ret < 0) {
 			dev_err(pdata->dev, "Setting All Multicast allow mode failed\n");
 		}
-
-		mutex_unlock(&pdata->rx_mode_lock);
 		return;
 	} else if (!netdev_mc_empty(dev)) {
 		if (ether_prepare_mc_list(dev, &ioctl_data, &mac_addr_idx) != 0) {
@@ -3713,7 +3666,6 @@ static inline void set_rx_mode_work_func(struct work_struct *work)
 			if (ret < 0) {
 				dev_err(pdata->dev,
 					"failed to delete L2 filter index = %d\n", i);
-				mutex_unlock(&pdata->rx_mode_lock);
 				return;
 			}
 		}
@@ -3733,26 +3685,7 @@ static inline void set_rx_mode_work_func(struct work_struct *work)
 	if (ret < 0) {
 		dev_err(pdata->dev, "failed to set operation mode\n");
 	}
-
-	mutex_unlock(&pdata->rx_mode_lock);
 	return;
-}
-
-/**
- * @brief This function is used to set RX mode.
- *
- * Algorithm: Based on Network interface flag, MAC registers are programmed to
- * set mode.
- *
- * @param[in] dev - pointer to net_device structure.
- *
- * @note MAC and PHY need to be initialized.
- */
-void ether_set_rx_mode(struct net_device *dev)
-{
-	struct ether_priv_data *pdata = netdev_priv(dev);
-
-	schedule_work(&pdata->set_rx_mode_work);
 }
 
 /**
@@ -6566,9 +6499,6 @@ static int ether_probe(struct platform_device *pdev)
 	/* Initialization of delayed workqueue for HSI error reporting */
 	INIT_DELAYED_WORK(&pdata->ether_hsi_work, ether_hsi_work_func);
 #endif
-	mutex_init(&pdata->rx_mode_lock);
-	/* Initialization of delayed workqueue */
-	INIT_WORK(&pdata->set_rx_mode_work, set_rx_mode_work_func);
 	/* Initialization of set speed workqueue */
 	INIT_DELAYED_WORK(&pdata->set_speed_work, set_speed_work_func);
 	osi_core->hw_feature = &pdata->hw_feat;
