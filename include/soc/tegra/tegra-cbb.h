@@ -44,6 +44,4 @@ void tegra_cbb_stall_enable(struct tegra_cbb *cbb);
 void tegra_cbb_error_clear(struct tegra_cbb *cbb);
 u32 tegra_cbb_get_status(struct tegra_cbb *cbb);
 
-u32 tegra234_cbb_readl(unsigned long addr);
-
 #endif /* TEGRA_CBB_H */
