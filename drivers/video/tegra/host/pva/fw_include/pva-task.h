@@ -216,9 +216,7 @@ struct PVA_PACKED pva_td_s {
 	/** Index of the stream ID assigned to this task */
 	uint8_t				sid_index;
 	/** @brief Task configuration flags */
-	uint16_t			flags;
-	/** @brief Number of parameters in parameter  array */
-	uint16_t			num_parameters;
+	uint32_t			flags;
 	/** @brief IOVA pointer to an instance of pva_vpu_parameter_info_t */
 	pva_iova			parameter_info_base;
 	/** @brief IOVA pointer to a pva_bin_info_t structure */
@@ -243,6 +241,8 @@ struct PVA_PACKED pva_td_s {
 	uint16_t			timer_ref_cnt;
 	/** Number of total tasks with L2SRAM resource utilization */
 	uint16_t			l2sram_ref_cnt;
+	/** @brief Number of parameters in parameter  array */
+	uint16_t			num_parameters;
 	/** @brief Interface on which FW should return status */
 	uint8_t				status_interface;
 	/** @brief The ID of the batch that this task belongs to */
@@ -251,7 +251,7 @@ struct PVA_PACKED pva_td_s {
 	 * compatibility, will be removed once changes are merged
 	 */
 	/** Additional padding to maintain alignement */
-	uint8_t				pad0[6];
+	uint8_t				pad0[4];
 };
 
 /** Runlist version for new task descriptor format */
@@ -295,9 +295,35 @@ struct PVA_PACKED pva_td_s {
 
 #define PVA_TASK_FL_DEC_TIMER PVA_BIT(13U)
 
-/** Flag to indicate specail access needed by task */
+/** Flag to indicate special access needed by task */
 #define PVA_TASK_FL_SPECIAL_ACCESS PVA_BIT(15U)
 
+/** Flag to indicate queued time is needed by task */
+#define PVA_TASK_FL_QUEUED_TS PVA_BIT(16U)
+
+/** Flag to indicate head time is needed by task */
+#define PVA_TASK_FL_HEAD_TS PVA_BIT(17U)
+
+/** Flag to indicate ready time is needed by task */
+#define PVA_TASK_FL_READY_TS PVA_BIT(18U)
+
+/** Flag to indicate R5 start time/vpu assigned time is needed by task */
+#define PVA_TASK_FL_SOT_R_TS PVA_BIT(19U)
+
+/** Flag to indicate VPU start time is needed by task */
+#define PVA_TASK_FL_SOT_V_TS PVA_BIT(20U)
+
+/** Flag to indicate VPU done time is  needed by task */
+#define PVA_TASK_FL_EOT_V_TS PVA_BIT(21U)
+
+/** Flag to indicate R5 complete time is needed by task */
+#define PVA_TASK_FL_EOT_R_TS PVA_BIT(22U)
+
+/** Flag to indicate that stats are enabled */
+#define PVA_TASK_FL_STATS_ENABLE (PVA_TASK_FL_QUEUED_TS | PVA_TASK_FL_HEAD_TS  |\
+				  PVA_TASK_FL_READY_TS  | PVA_TASK_FL_SOT_R_TS |\
+				  PVA_TASK_FL_SOT_V_TS  | PVA_TASK_FL_EOT_V_TS |\
+				  PVA_TASK_FL_EOT_R_TS)
 /** @} */
 
 /** Version of the binary info */

@@ -289,6 +289,7 @@ static int pva_task_process_fence_actions(struct pva_submit_task *task,
 	int err = 0;
 	u32 i;
 	u32 fence_type;
+	u32 ts_flag = 0;
 	u8 *action_counter;
 	u8 action_code;
 	struct pva_task_action_s *fw_actions;
@@ -301,26 +302,31 @@ static int pva_task_process_fence_actions(struct pva_submit_task *task,
 			fw_actions = &hw_task->preactions[0];
 			action_code = TASK_ACT_PTR_WRITE_SOT_R;
 			action_counter = &hw_task->task.num_preactions;
+			ts_flag = PVA_TASK_FL_SOT_R_TS;
 			break;
 		case NVPVA_FENCE_SOT_VPU:
 			fw_actions = &hw_task->preactions[0];
 			action_code = TASK_ACT_PTR_WRITE_SOT_V;
 			action_counter = &hw_task->task.num_preactions;
+			ts_flag = PVA_TASK_FL_SOT_V_TS;
 			break;
 		case NVPVA_FENCE_EOT_R5:
 			fw_actions = &hw_task->postactions[0];
 			action_code = TASK_ACT_PTR_WRITE_EOT_R;
 			action_counter = &hw_task->task.num_postactions;
+			ts_flag = PVA_TASK_FL_EOT_R_TS;
 			break;
 		case NVPVA_FENCE_EOT_VPU:
 			fw_actions = &hw_task->postactions[0];
 			action_code = TASK_ACT_PTR_WRITE_EOT_V;
 			action_counter = &hw_task->task.num_postactions;
+			ts_flag = PVA_TASK_FL_EOT_V_TS;
 			break;
 		case NVPVA_FENCE_POST:
 			fw_actions = &hw_task->postactions[0];
 			action_code = TASK_ACT_PTR_WRITE_EOT;
 			action_counter = &hw_task->task.num_postactions;
+			ts_flag = 0;
 			break;
 		default:
 			task_err(task, "unknown fence action type");
@@ -387,6 +393,7 @@ static int pva_task_process_fence_actions(struct pva_submit_task *task,
 				timestamp_addr =
 				    mem->dma_addr +
 				    fence_action->timestamp_buf.offset;
+				hw_task->task.flags |= ts_flag;
 			} else {
 				timestamp_addr = 0;
 			}
@@ -495,6 +502,7 @@ static int pva_task_process_output_status(struct pva_submit_task *task,
 		pva_task_write_stats_action_op(fw_postactions,
 					       (uint8_t)TASK_ACT_PVA_STATISTICS,
 					       stats_addr);
+		hw_task->task.flags |= PVA_TASK_FL_STATS_ENABLE;
 		++hw_task->task.num_postactions;
 	}
 
