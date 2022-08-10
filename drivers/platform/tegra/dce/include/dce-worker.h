@@ -32,8 +32,8 @@ struct dce_wait_cond {
 	struct dce_cond cond_wait;
 };
 
-int dce_fsm_resource_init(struct tegra_dce *d);
-void dce_fsm_resource_deinit(struct tegra_dce *d);
+int dce_work_cond_sw_resource_init(struct tegra_dce *d);
+void dce_work_cond_sw_resource_deinit(struct tegra_dce *d);
 void dce_schedule_boot_complete_wait_worker(struct tegra_dce *d);
 int dce_wait_interruptible(struct tegra_dce *d, u32 msg_id);
 void dce_wakeup_interruptible(struct tegra_dce *d, u32 msg_id);

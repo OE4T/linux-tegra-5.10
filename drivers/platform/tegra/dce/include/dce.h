@@ -300,6 +300,20 @@ static inline void dce_set_boot_complete(struct tegra_dce *d, bool val)
 }
 
 /**
+ * dce_is_bootcmds_done - Checks if dce bootstrap bootcmds done.
+ *
+ * Chekc if all the mailbox boot commands are completed
+ *
+ * @d - Pointer to tegra_dce struct.
+ *
+ * Return : True if bootcmds are completed
+ */
+static inline bool dce_is_bootcmds_done(struct tegra_dce *d)
+{
+	return (d->boot_status & DCE_FW_BOOTSTRAP_DONE) ? true : false;
+}
+
+/**
  * dce_is_bootstrap_done - check if dce bootstrap is done.
  *
  * @d : Pointer to tegra_dce struct.
@@ -367,6 +381,8 @@ const char *dce_get_fw_name(struct tegra_dce *d);
 int dce_driver_init(struct tegra_dce *d);
 void dce_driver_deinit(struct tegra_dce *d);
 
+int dce_start_boot_flow(struct tegra_dce *d);
+void dce_bootstrap_work_fn(struct tegra_dce *d);
 int dce_start_bootstrap_flow(struct tegra_dce *d);
 int dce_boot_interface_init(struct tegra_dce *d);
 void dce_boot_interface_deinit(struct tegra_dce *d);

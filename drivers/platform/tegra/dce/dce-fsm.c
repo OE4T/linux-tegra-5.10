@@ -19,6 +19,9 @@ struct dce_event_process_struct {
 	int (*fsm_event_handle)(struct tegra_dce *d, void *params);
 };
 
+/*
+ * Please update FSM design Document, whenever updating below event table
+ */
 static struct dce_event_process_struct event_process_table[] = {
 	{
 		.event			= EVENT_ID_DCE_FSM_START,
@@ -124,6 +127,8 @@ int dce_handle_event_stub(struct tegra_dce *d, void *params)
  * @event : Event for which FSM state need to be set
  *
  * Return : void
+ *
+ * Please update FSM design Document, whenever updating below event states
  */
 static void
 dce_fsm_set_state(struct tegra_dce *d,
@@ -220,6 +225,8 @@ dce_fsm_set_state(struct tegra_dce *d,
  * @event : Posted FSM event
  *
  * @return : ESUCCESS if event valid else error code
+ *
+ * Please update FSM design Document, whenever updating below event validation
  */
 static int
 dce_fsm_validate_event(struct tegra_dce *d,
@@ -488,21 +495,10 @@ int dce_fsm_init(struct tegra_dce *d)
 		return ret;
 	}
 
-	dce_fsm_resource_init(d);
-	if (ret) {
-		dce_err(d, "dce sw resource init failed");
-		goto out;
-	}
-
 	fsm->d = d;
 	fsm->initialized = true;
 
-	return ret;
-
-out:
-	dce_fsm_resource_deinit(d);
-	dce_mutex_destroy(&fsm->lock);
-	return ret;
+	return 0;
 }
 
 /**
@@ -518,7 +514,6 @@ void dce_fsm_deinit(struct tegra_dce *d)
 
 	dce_fsm_post_event(d, EVENT_ID_DCE_FSM_STOP, NULL);
 	dce_mutex_destroy(&fsm->lock);
-	dce_fsm_resource_deinit(d);
 
 	fsm->initialized = false;
 }

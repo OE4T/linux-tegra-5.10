@@ -308,13 +308,22 @@ int dce_admin_handle_ipc_requested_event(struct tegra_dce *d, void *params)
 	struct dce_admin_send_msg_params *admin_params =
 			(struct dce_admin_send_msg_params *)params;
 
+	/*
+	 * Do not handle admin IPC if boot commands are not completed
+	 */
+	if (!dce_is_bootcmds_done(d)) {
+		dce_err(d, "Boot commands are not yet completed\n");
+		ret = -EINVAL;
+		goto out;
+	}
+
 	/* Error check on msg */
 	msg = admin_params->msg;
 
 	ret = dce_ipc_send_message_sync(d, DCE_IPC_CHANNEL_TYPE_ADMIN, msg);
 	if (ret)
 		dce_err(d, "Error sending admin message on admin interface");
-
+out:
 	return ret;
 }
 

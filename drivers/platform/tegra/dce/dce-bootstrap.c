@@ -145,6 +145,76 @@ int dce_handle_boot_complete_received_event(struct tegra_dce *d, void *params)
 	return 0;
 }
 
+/*
+ * dce_start_boot_flow : Start dce bootstrap flow
+ *
+ * @d : Pointer to tegra_dce struct.
+ *
+ * Return : 0 if successful else error code
+ */
+int
+dce_start_boot_flow(struct tegra_dce *d)
+{
+	int ret = 0;
+
+	ret = dce_start_bootstrap_flow(d);
+	if (ret) {
+		dce_err(d, "DCE_BOOT_FAILED: Bootstrap flow didn't complete");
+		goto exit;
+	}
+
+	dce_admin_ivc_channel_reset(d);
+
+	ret = dce_start_admin_seq(d);
+	if (ret) {
+		dce_err(d, "DCE_BOOT_FAILED: Admin flow didn't complete");
+	} else {
+		d->boot_status |= DCE_FW_BOOT_DONE;
+		dce_info(d, "DCE_BOOT_DONE");
+	}
+
+exit:
+	if (ret)
+		d->boot_status |= DCE_STATUS_FAILED;
+
+	return ret;
+}
+
+/**
+ * dce_bootstrap_work_fn : execute fsm start and bootstrap flow
+ *
+ * @d : Pointer to tegra_dce struct.
+ *
+ * Return : void
+ */
+void dce_bootstrap_work_fn(struct tegra_dce *d)
+{
+	int ret = 0;
+
+	if (d == NULL) {
+		dce_err(d, "tegra_dce struct is NULL");
+		return;
+	}
+
+	ret = dce_fsm_post_event(d, EVENT_ID_DCE_FSM_START, NULL);
+	if (ret) {
+		dce_err(d, "FSM start failed\n");
+		return;
+	}
+
+	ret = dce_fsm_post_event(d, EVENT_ID_DCE_BOOT_COMPLETE_REQUESTED, NULL);
+	if (ret) {
+		dce_err(d, "Error while posting DCE_BOOT_COMPLETE_REQUESTED event");
+		return;
+	}
+
+	ret = dce_start_boot_flow(d);
+	if (ret) {
+		dce_err(d, "DCE bootstrapping failed\n");
+		return;
+	}
+}
+
 /**
  * dce_handle_irq_status - Handles irq status from DCE
  *
