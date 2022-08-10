@@ -32,10 +32,14 @@
 #define TEGRA194_SYNCPT_PAGE_SIZE 0x1000
 #define TEGRA194_SYNCPT_SHIM_BASE 0x60000000
 #define TEGRA194_SYNCPT_SHIM_SIZE 0x00400000
+#define TEGRA234_SYNCPT_PAGE_SIZE 0x10000
+#define TEGRA234_SYNCPT_SHIM_BASE 0x60000000
+#define TEGRA234_SYNCPT_SHIM_SIZE 0x04000000
 
 static const struct of_device_id host1x_match[] = {
 	{ .compatible = "nvidia,tegra186-host1x", },
 	{ .compatible = "nvidia,tegra194-host1x", },
+	{ .compatible = "nvidia,tegra234-host1x", },
 	{},
 };
 
@@ -308,6 +312,12 @@ int nvgpu_nvhost_get_syncpt_aperture(struct nvgpu_nvhost_dev *nvhost_dev,
 		return 0;
 	}
 
+	if (of_device_is_compatible(np, "nvidia,tegra234-host1x")) {
+		*base = TEGRA234_SYNCPT_SHIM_BASE;
+		*size = TEGRA234_SYNCPT_SHIM_SIZE;
+		return 0;
+	}
+
 	return -ENOTSUPP;
 }
 
@@ -319,6 +329,9 @@ u32 nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(struct gk20a *g,
 
 	if (of_device_is_compatible(np, "nvidia,tegra194-host1x"))
 		return syncpt_id * TEGRA194_SYNCPT_PAGE_SIZE;
+
+	if (of_device_is_compatible(np, "nvidia,tegra234-host1x"))
+		return syncpt_id * TEGRA234_SYNCPT_PAGE_SIZE;
 
 	return 0;
 }
