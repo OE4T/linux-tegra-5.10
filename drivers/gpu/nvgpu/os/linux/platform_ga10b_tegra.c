@@ -415,7 +415,7 @@ static int ga10b_tegra_bpmp_mrq_set(struct device *dev)
 	 */
 	if (nvgpu_platform_is_silicon(g)) {
 		bpmp = tegra_bpmp_get(dev);
-		if (bpmp != NULL) {
+		if (!IS_ERR(bpmp)) {
 			/* send GPC-PG mask */
 			memset(&req, 0, sizeof(req));
 			req.cmd = STRAP_SET;
