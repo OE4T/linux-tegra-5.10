@@ -17,6 +17,7 @@
 #ifndef IOCTL_H
 #define IOCTL_H
 
+#include "ether_export.h"
 /**
  *@addtogroup IOCTL Helper MACROS
  * @{
@@ -41,13 +42,10 @@
 #define ETHER_PRV_TS_IOCTL		(SIOCDEVPRIVATE + 1)
 #define ETHER_PRV_RMDIO_IOCTL		(SIOCDEVPRIVATE + 2)
 #define ETHER_PRV_WMDIO_IOCTL		(SIOCDEVPRIVATE + 3)
+/* private ioctl number*/
 /* TX/RX channel/queue count */
 #define EQOS_GET_TX_QCNT		23
 #define EQOS_GET_RX_QCNT		24
-/* Line speed */
-#define EQOS_GET_CONNECTED_SPEED	25
-/* private ioctl number*/
-#define ETHER_AVB_ALGORITHM		27
 /* L3/L4 filter */
 #define EQOS_L3_L4_FILTER_CMD		29
 /* IPv4/6 and TCP/UDP filtering */
@@ -62,13 +60,8 @@
 #define ETHER_CONFIG_ARP_OFFLOAD	36
 #define ETHER_CONFIG_LOOPBACK_MODE	40
 #define ETHER_CONFIG_PTP_OFFLOAD	42
-#define ETHER_GET_AVB_ALGORITHM		46
 #define ETHER_SAVE_RESTORE		47
 #define ETHER_PTP_RXQUEUE		48
-#define ETHER_CONFIG_EST		49
-#define ETHER_CONFIG_FPE		50
-/* FRP Command */
-#define ETHER_CONFIG_FRP_CMD		51
 #define ETHER_MC_DMA_ROUTE		52
 #define ETHER_READ_REG			53
 #define ETHER_WRITE_REG			54
