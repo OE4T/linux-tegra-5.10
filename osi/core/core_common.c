@@ -462,7 +462,7 @@ nve32_t hw_ptp_tsc_capture(struct osi_core_priv_data *const osi_core,
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "ptp_tsc: older IP\n", 0ULL);
 		ret = -1;
-		goto exit;
+		goto done;
 	}
 #endif /* !OSI_STRIPPED_LIB */
 
@@ -471,7 +471,7 @@ nve32_t hw_ptp_tsc_capture(struct osi_core_priv_data *const osi_core,
 	ret = poll_check(osi_core, ((nveu8_t *)addr + WRAP_SYNC_TSC_PTP_CAPTURE),
 			 OSI_ENABLE, &tsc_ptp);
 	if (ret == -1) {
-		goto exit;
+		goto done;
 	}
 
 	data->tsc_low_bits = osi_readla(osi_core, (nveu8_t *)osi_core->base +
@@ -482,7 +482,7 @@ nve32_t hw_ptp_tsc_capture(struct osi_core_priv_data *const osi_core,
 					 WRAP_PTP_CAPTURE_LOW);
 	data->ptp_high_bits =  osi_readla(osi_core, (nveu8_t *)osi_core->base +
 					  WRAP_PTP_CAPTURE_HIGH);
-exit:
+done:
 	return ret;
 }
 
@@ -582,7 +582,6 @@ fail:
 	return ret;
 }
 
-#ifndef OSI_STRIPPED_LIB
 /**
  * @brief hw_est_read - indirect read the GCL to Software own list
  * (SWOL)
@@ -611,8 +610,7 @@ static inline nve32_t hw_est_read(struct osi_core_priv_data *osi_core,
 	nve32_t ret;
 	const nveu32_t MTL_EST_GCL_CONTROL[MAX_MAC_IP_TYPES] = {
 			EQOS_MTL_EST_GCL_CONTROL, MGBE_MTL_EST_GCL_CONTROL};
-	const nveu32_t MTL_EST_DATA[MAX_MAC_IP_TYPES] = {EQOS_MTL_EST_DATA,
-						   MGBE_MTL_EST_DATA};
+	const nveu32_t MTL_EST_DATA[MAX_MAC_IP_TYPES] = {EQOS_MTL_EST_DATA, MGBE_MTL_EST_DATA};
 
 	*data = 0U;
 	val &= ~MTL_EST_ADDR_MASK;
@@ -659,11 +657,11 @@ err:
  * @retval 0 on success
  * @retval -1 on failure.
  */
-nve32_t gcl_validate(struct osi_core_priv_data *const osi_core,
-		     struct osi_est_config *const est,
-		     const nveu32_t *btr, nveu32_t mac)
+static nve32_t gcl_validate(struct osi_core_priv_data *const osi_core,
+			    struct osi_est_config *const est,
+			    const nveu32_t *btr, nveu32_t mac)
 {
-	const struct core_local *l_core = (struct core_local *)osi_core;
+	const struct core_local *l_core = (struct core_local *)(void *)osi_core;
 	const nveu32_t PTP_CYCLE_8[MAX_MAC_IP_TYPES] = {EQOS_8PTP_CYCLE,
 						  MGBE_8PTP_CYCLE};
 	const nveu32_t MTL_EST_CONTROL[MAX_MAC_IP_TYPES] = {EQOS_MTL_EST_CONTROL,
@@ -687,7 +685,7 @@ nve32_t gcl_validate(struct osi_core_priv_data *const osi_core,
 	nveu32_t bunk = 0U;
 	nveu32_t est_status;
 	nveu64_t old_btr, old_ctr;
-	nve32_t ret;
+	nve32_t ret = 0;
 	nveu32_t val = 0U;
 	nveu64_t rem = 0U;
 	const struct est_read hw_read_arr[4] = {
@@ -700,7 +698,8 @@ nve32_t gcl_validate(struct osi_core_priv_data *const osi_core,
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "input argument more than GCL depth\n",
 			     (nveul64_t)est->llr);
-		return -1;
+		ret = -1;
+		goto done;
 	}
 
 	ctr = ((nveu64_t)est->ctr[1] * OSI_NSEC_PER_SEC)  + est->ctr[0];
@@ -713,12 +712,13 @@ nve32_t gcl_validate(struct osi_core_priv_data *const osi_core,
 			    ((ctr - sum_tin) >= PTP_CYCLE_8[mac])) {
 				continue;
 			} else if (((ctr - sum_ti) != 0U) &&
-			    ((ctr - sum_ti) < PTP_CYCLE_8[mac])) {
+				   ((ctr - sum_ti) < PTP_CYCLE_8[mac])) {
 				OSI_CORE_ERR(osi_core->osd,
 					     OSI_LOG_ARG_INVALID,
 					     "CTR issue due to trancate\n",
 					     (nveul64_t)i);
-				return -1;
+				ret = -1;
+				goto done;
 			} else {
 				//do nothing
 			}
@@ -729,16 +729,17 @@ nve32_t gcl_validate(struct osi_core_priv_data *const osi_core,
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "validation of GCL entry failed\n",
 			     (nveul64_t)i);
-		return -1;
+		ret = -1;
+		goto done;
 	}
 
 	/* Check for BTR in case of new ETS while current GCL enabled */
 
-	val = osi_readla(osi_core,
-			 (nveu8_t *)osi_core->base +
+	val = osi_readla(osi_core, (nveu8_t *)osi_core->base +
 			 MTL_EST_CONTROL[mac]);
 	if ((val & MTL_EST_CONTROL_EEST) != MTL_EST_CONTROL_EEST) {
-		return 0;
+		ret = 0;
+		goto done;
 	}
 
 	/* Read EST_STATUS for bunk */
@@ -758,7 +759,7 @@ nve32_t gcl_validate(struct osi_core_priv_data *const osi_core,
 			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "Reading failed for index\n",
 				     (nveul64_t)i);
-			return ret;
+			goto done;
 		}
 	}
 
@@ -769,19 +770,630 @@ nve32_t gcl_validate(struct osi_core_priv_data *const osi_core,
 		if ((rem != OSI_NONE) && (rem < PTP_CYCLE_8[mac])) {
 			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "invalid BTR", (nveul64_t)rem);
-			return -1;
+			ret = -1;
+			goto done;
 		}
 	} else if (btr_new > old_btr) {
 		rem = (btr_new - old_btr) % old_ctr;
 		if ((rem != OSI_NONE) && (rem < PTP_CYCLE_8[mac])) {
 			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "invalid BTR", (nveul64_t)rem);
-			return -1;
+			ret = -1;
+			goto done;
 		}
 	} else {
 		// Nothing to do
 	}
 
-	return 0;
+done:
+	return ret;
 }
-#endif /* !OSI_STRIPPED_LIB */
+
+/**
+ * @brief hw_est_write - indirect write the GCL to Software own list
+ * (SWOL)
+ *
+ * @param[in] base: MAC base IOVA address.
+ * @param[in] addr_val: Address offset for indirect write.
+ * @param[in] data: Data to be written at offset.
+ * @param[in] gcla: Gate Control List Address, 0 for ETS register.
+ *	      1 for GCL memory.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static nve32_t hw_est_write(struct osi_core_priv_data *osi_core,
+			    nveu32_t addr_val, nveu32_t data,
+			    nveu32_t gcla)
+{
+	nve32_t retry = 1000;
+	nveu32_t val = 0x0;
+	nve32_t ret = 0;
+	const nveu32_t MTL_EST_DATA[MAX_MAC_IP_TYPES] = {EQOS_MTL_EST_DATA,
+						MGBE_MTL_EST_DATA};
+	const nveu32_t MTL_EST_GCL_CONTROL[MAX_MAC_IP_TYPES] = {EQOS_MTL_EST_GCL_CONTROL,
+						MGBE_MTL_EST_GCL_CONTROL};
+
+	osi_writela(osi_core, data, (nveu8_t *)osi_core->base +
+		   MTL_EST_DATA[osi_core->mac]);
+
+	val &= ~MTL_EST_ADDR_MASK;
+	val |= (gcla == 1U) ? 0x0U : MTL_EST_GCRR;
+	val |= MTL_EST_SRWO;
+	val |= addr_val;
+	osi_writela(osi_core, val, (nveu8_t *)osi_core->base +
+		    MTL_EST_GCL_CONTROL[osi_core->mac]);
+
+	while (--retry > 0) {
+		val = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				 MTL_EST_GCL_CONTROL[osi_core->mac]);
+		if ((val & MTL_EST_SRWO) == MTL_EST_SRWO) {
+			osi_core->osd_ops.udelay(OSI_DELAY_1US);
+			continue;
+		}
+
+		break;
+	}
+
+	if (((val & MTL_EST_ERR0) == MTL_EST_ERR0) ||
+	    (retry <= 0)) {
+		ret = -1;
+	}
+
+	return ret;
+}
+
+/**
+ * @brief hw_config_est - Read Setting for GCL from input and update
+ * registers.
+ *
+ * Algorithm:
+ * 1) Write  TER, LLR and EST control register
+ * 2) Update GCL to sw own GCL (MTL_EST_Status bit SWOL will tell which is
+ *    owned by SW) and store which GCL is in use currently in sw.
+ * 3) TODO set DBGB and DBGM for debugging
+ * 4) EST_data and GCRR to 1, update entry sno in ADDR and put data at
+ *    est_gcl_data enable GCL MTL_EST_SSWL and wait for self clear or use
+ *    SWLC in MTL_EST_Status. Please note new GCL will be pushed for each entry.
+ * 5) Configure btr. Update btr based on current time (current time
+ *    should be updated based on PTP by this time)
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] est: EST configuration input argument.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+nve32_t hw_config_est(struct osi_core_priv_data *const osi_core,
+		      struct osi_est_config *const est)
+{
+	nveu32_t btr[2] = {0};
+	nveu32_t val = 0x0;
+	void *base = osi_core->base;
+	nveu32_t i;
+	nve32_t ret = 0;
+	nveu32_t addr = 0x0;
+	const nveu32_t MTL_EST_CONTROL[MAX_MAC_IP_TYPES] = {EQOS_MTL_EST_CONTROL,
+						MGBE_MTL_EST_CONTROL};
+	const nveu32_t MTL_EST_BTR_LOW[MAX_MAC_IP_TYPES] = {EQOS_MTL_EST_BTR_LOW,
+						MGBE_MTL_EST_BTR_LOW};
+	const nveu32_t MTL_EST_BTR_HIGH[MAX_MAC_IP_TYPES] = {EQOS_MTL_EST_BTR_HIGH,
+						MGBE_MTL_EST_BTR_HIGH};
+	const nveu32_t MTL_EST_CTR_LOW[MAX_MAC_IP_TYPES] = {EQOS_MTL_EST_CTR_LOW,
+						MGBE_MTL_EST_CTR_LOW};
+	const nveu32_t MTL_EST_CTR_HIGH[MAX_MAC_IP_TYPES] = {EQOS_MTL_EST_CTR_HIGH,
+						MGBE_MTL_EST_CTR_HIGH};
+	const nveu32_t MTL_EST_TER[MAX_MAC_IP_TYPES] = {EQOS_MTL_EST_TER,
+						MGBE_MTL_EST_TER};
+	const nveu32_t MTL_EST_LLR[MAX_MAC_IP_TYPES] = {EQOS_MTL_EST_LLR,
+						MGBE_MTL_EST_LLR};
+
+	if ((osi_core->hw_feature != OSI_NULL) &&
+	    (osi_core->hw_feature->est_sel == OSI_DISABLE)) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "EST not supported in HW\n", 0ULL);
+		ret = -1;
+		goto done;
+	}
+
+	if (est->en_dis == OSI_DISABLE) {
+		val = osi_readla(osi_core, (nveu8_t *)base +
+				 MTL_EST_CONTROL[osi_core->mac]);
+		val &= ~MTL_EST_EEST;
+		osi_writela(osi_core, val, (nveu8_t *)base +
+			    MTL_EST_CONTROL[osi_core->mac]);
+
+		ret = 0;
+	} else {
+		btr[0] = est->btr[0];
+		btr[1] = est->btr[1];
+		if ((btr[0] == 0U) && (btr[1] == 0U)) {
+			common_get_systime_from_mac(osi_core->base,
+						    osi_core->mac,
+						    &btr[1], &btr[0]);
+		}
+
+		if (gcl_validate(osi_core, est, btr, osi_core->mac) < 0) {
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+				     "GCL validation failed\n", 0LL);
+			ret = -1;
+			goto done;
+		}
+
+		ret = hw_est_write(osi_core, MTL_EST_CTR_LOW[osi_core->mac], est->ctr[0], 0);
+		if (ret < 0) {
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+				     "GCL CTR[0] failed\n", 0LL);
+			goto done;
+		}
+		/* check for est->ctr[i]  not more than FF, TODO as per hw config
+		 * parameter we can have max 0x3 as this value in sec */
+		est->ctr[1] &= MTL_EST_CTR_HIGH_MAX;
+		ret = hw_est_write(osi_core, MTL_EST_CTR_HIGH[osi_core->mac], est->ctr[1], 0);
+		if (ret < 0) {
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+				     "GCL CTR[1] failed\n", 0LL);
+			goto done;
+		}
+
+		ret = hw_est_write(osi_core, MTL_EST_TER[osi_core->mac], est->ter, 0);
+		if (ret < 0) {
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+				     "GCL TER failed\n", 0LL);
+			goto done;
+		}
+
+		ret = hw_est_write(osi_core, MTL_EST_LLR[osi_core->mac], est->llr, 0);
+		if (ret < 0) {
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+				     "GCL LLR failed\n", 0LL);
+			goto done;
+		}
+
+		/* Write GCL table */
+		for (i = 0U; i < est->llr; i++) {
+			addr = i;
+			addr = addr << MTL_EST_ADDR_SHIFT;
+			addr &= MTL_EST_ADDR_MASK;
+			ret = hw_est_write(osi_core, addr, est->gcl[i], 1);
+			if (ret < 0) {
+				OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+					     "GCL enties write failed\n",
+					     (nveul64_t)i);
+				goto done;
+			}
+		}
+
+		/* Write parameters */
+		ret = hw_est_write(osi_core, MTL_EST_BTR_LOW[osi_core->mac],
+				btr[0] + est->btr_offset[0], OSI_DISABLE);
+		if (ret < 0) {
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+				     "GCL BTR[0] failed\n",
+				     (btr[0] + est->btr_offset[0]));
+			goto done;
+		}
+
+		ret = hw_est_write(osi_core, MTL_EST_BTR_HIGH[osi_core->mac],
+				btr[1] + est->btr_offset[1], OSI_DISABLE);
+		if (ret < 0) {
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+				     "GCL BTR[1] failed\n",
+				     (btr[1] + est->btr_offset[1]));
+			goto done;
+		}
+
+		val = osi_readla(osi_core, (nveu8_t *)base +
+				 MTL_EST_CONTROL[osi_core->mac]);
+		/* Store table */
+		val |= MTL_EST_SSWL;
+		val |= MTL_EST_EEST;
+		val |= MTL_EST_QHLBF;
+		osi_writela(osi_core, val, (nveu8_t *)base +
+			    MTL_EST_CONTROL[osi_core->mac]);
+	}
+done:
+	return ret;
+}
+
+/**
+ * @brief hw_config_fpe - Read Setting for preemption and express for TC
+ * and update registers.
+ *
+ * Algorithm:
+ * 1) Check for TC enable and TC has masked for setting to preemptable.
+ * 2) update FPE control status register
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] fpe: FPE configuration input argument.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+nve32_t hw_config_fpe(struct osi_core_priv_data *const osi_core,
+		      struct osi_fpe_config *const fpe)
+{
+	nveu32_t i = 0U;
+	nveu32_t val = 0U;
+	nveu32_t temp = 0U, temp1 = 0U;
+	nveu32_t temp_shift = 0U;
+	nve32_t ret = 0;
+	const nveu32_t MTL_FPE_CTS[MAX_MAC_IP_TYPES] = {EQOS_MTL_FPE_CTS,
+						MGBE_MTL_FPE_CTS};
+	const nveu32_t MAC_FPE_CTS[MAX_MAC_IP_TYPES] = {EQOS_MAC_FPE_CTS,
+						MGBE_MAC_FPE_CTS};
+	const nveu32_t max_number_queue[MAX_MAC_IP_TYPES] = {OSI_EQOS_MAX_NUM_QUEUES,
+						OSI_MGBE_MAX_NUM_QUEUES};
+	const nveu32_t MAC_RQC1R[MAX_MAC_IP_TYPES] = {EQOS_MAC_RQC1R,
+						MGBE_MAC_RQC1R};
+	const nveu32_t MAC_RQC1R_RQ[MAX_MAC_IP_TYPES] = {EQOS_MAC_RQC1R_FPRQ,
+						MGBE_MAC_RQC1R_RQ};
+	const nveu32_t MAC_RQC1R_RQ_SHIFT[MAX_MAC_IP_TYPES] = {EQOS_MAC_RQC1R_FPRQ_SHIFT,
+						MGBE_MAC_RQC1R_RQ_SHIFT};
+	const nveu32_t MTL_FPE_ADV[MAX_MAC_IP_TYPES] = {EQOS_MTL_FPE_ADV,
+						MGBE_MTL_FPE_ADV};
+
+	if ((osi_core->hw_feature != OSI_NULL) &&
+	    (osi_core->hw_feature->fpe_sel == OSI_DISABLE)) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "FPE not supported in HW\n", 0ULL);
+		ret = -1;
+		goto error;
+	}
+
+	if (osi_core->mac == OSI_MAC_HW_MGBE) {
+#ifdef MACSEC_SUPPORT
+		osi_lock_irq_enabled(&osi_core->macsec_fpe_lock);
+		/* MACSEC and FPE cannot coexist on MGBE refer bug 3484034 */
+		if (osi_core->is_macsec_enabled == OSI_ENABLE) {
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+				     "FPE and MACSEC cannot co-exist\n", 0ULL);
+			ret = -1;
+			goto done;
+		}
+#endif /*  MACSEC_SUPPORT */
+	}
+
+	osi_core->fpe_ready = OSI_DISABLE;
+
+	if (((fpe->tx_queue_preemption_enable << MTL_FPE_CTS_PEC_SHIFT) &
+	     MTL_FPE_CTS_PEC) == OSI_DISABLE) {
+		val = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				 MTL_FPE_CTS[osi_core->mac]);
+		val &= ~MTL_FPE_CTS_PEC;
+		osi_writela(osi_core, val, (nveu8_t *)osi_core->base +
+			    MTL_FPE_CTS[osi_core->mac]);
+
+		val = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				 MAC_FPE_CTS[osi_core->mac]);
+		val &= ~MAC_FPE_CTS_EFPE;
+		osi_writela(osi_core, val, (nveu8_t *)osi_core->base +
+			    MAC_FPE_CTS[osi_core->mac]);
+
+		if (osi_core->mac == OSI_MAC_HW_MGBE) {
+#ifdef MACSEC_SUPPORT
+			osi_core->is_fpe_enabled = OSI_DISABLE;
+#endif /*  MACSEC_SUPPORT */
+		}
+		ret = 0;
+	} else {
+		val = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				 MTL_FPE_CTS[osi_core->mac]);
+		val &= ~MTL_FPE_CTS_PEC;
+		for (i = 0U; i < OSI_MAX_TC_NUM; i++) {
+			/* max 8 bit for this structure fot TC/TXQ. Set the TC for express or
+			 * preemption. Default is express for a TC. DWCXG_NUM_TC = 8 */
+			temp = OSI_BIT(i);
+			if ((fpe->tx_queue_preemption_enable & temp) == temp) {
+				temp_shift = i;
+				temp_shift += MTL_FPE_CTS_PEC_SHIFT;
+				/* set queue for preemtable */
+				if (temp_shift < MTL_FPE_CTS_PEC_MAX_SHIFT) {
+					temp1 = OSI_ENABLE;
+					temp1 = temp1 << temp_shift;
+					val |= temp1;
+				} else {
+					/* Do nothing */
+				}
+			}
+		}
+		osi_writela(osi_core, val, (nveu8_t *)osi_core->base +
+			    MTL_FPE_CTS[osi_core->mac]);
+
+		if ((fpe->rq == 0x0U) || (fpe->rq >= max_number_queue[osi_core->mac])) {
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+				     "FPE init failed due to wrong RQ\n", fpe->rq);
+			ret = -1;
+			goto done;
+		}
+
+		val = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				 MAC_RQC1R[osi_core->mac]);
+		val &= ~MAC_RQC1R_RQ[osi_core->mac];
+		temp = fpe->rq;
+		temp = temp << MAC_RQC1R_RQ_SHIFT[osi_core->mac];
+		temp = (temp & MAC_RQC1R_RQ[osi_core->mac]);
+		val |= temp;
+		osi_core->residual_queue = fpe->rq;
+		osi_writela(osi_core, val, (nveu8_t *)osi_core->base +
+			    MAC_RQC1R[osi_core->mac]);
+
+		if (osi_core->mac == OSI_MAC_HW_MGBE) {
+			val = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+					 MGBE_MAC_RQC4R);
+			val &= ~MGBE_MAC_RQC4R_PMCBCQ;
+			temp = fpe->rq;
+			temp = temp << MGBE_MAC_RQC4R_PMCBCQ_SHIFT;
+			temp = (temp & MGBE_MAC_RQC4R_PMCBCQ);
+			val |= temp;
+			osi_writela(osi_core, val, (nveu8_t *)osi_core->base +
+				    MGBE_MAC_RQC4R);
+		}
+		/* initiate SVER for SMD-V and SMD-R */
+		val = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				 MTL_FPE_CTS[osi_core->mac]);
+		val |= MAC_FPE_CTS_SVER;
+		osi_writela(osi_core, val, (nveu8_t *)osi_core->base +
+			    MAC_FPE_CTS[osi_core->mac]);
+
+		val = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				 MTL_FPE_ADV[osi_core->mac]);
+		val &= ~MTL_FPE_ADV_HADV_MASK;
+		//(minimum_fragment_size +IPG/EIPG + Preamble) *.8 ~98ns for10G
+		val |= MTL_FPE_ADV_HADV_VAL;
+		osi_writela(osi_core, val, (nveu8_t *)osi_core->base +
+			    MTL_FPE_ADV[osi_core->mac]);
+
+		if (osi_core->mac == OSI_MAC_HW_MGBE) {
+#ifdef MACSEC_SUPPORT
+			osi_core->is_fpe_enabled = OSI_ENABLE;
+#endif /*  MACSEC_SUPPORT */
+		}
+	}
+done:
+
+	if (osi_core->mac == OSI_MAC_HW_MGBE) {
+#ifdef MACSEC_SUPPORT
+		osi_unlock_irq_enabled(&osi_core->macsec_fpe_lock);
+#endif /*  MACSEC_SUPPORT */
+	}
+
+error:
+	return ret;
+}
+
+/**
+ * @brief enable_mtl_interrupts - Enable MTL interrupts
+ *
+ * Algorithm: enable MTL interrupts for EST
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ */
+static inline void enable_mtl_interrupts(struct osi_core_priv_data *osi_core)
+{
+	nveu32_t  mtl_est_ir = OSI_DISABLE;
+	const nveu32_t MTL_EST_ITRE[MAX_MAC_IP_TYPES] = {EQOS_MTL_EST_ITRE,
+							 MGBE_MTL_EST_ITRE};
+
+	mtl_est_ir = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				MTL_EST_ITRE[osi_core->mac]);
+	/* enable only MTL interrupt realted to
+	 * Constant Gate Control Error
+	 * Head-Of-Line Blocking due to Scheduling
+	 * Head-Of-Line Blocking due to Frame Size
+	 * BTR Error
+	 * Switch to S/W owned list Complete
+	 */
+	mtl_est_ir |= (MTL_EST_ITRE_CGCE | MTL_EST_ITRE_IEHS |
+		       MTL_EST_ITRE_IEHF | MTL_EST_ITRE_IEBE |
+		       MTL_EST_ITRE_IECC);
+	osi_writela(osi_core, mtl_est_ir, (nveu8_t *)osi_core->base +
+		    MTL_EST_ITRE[osi_core->mac]);
+}
+
+/**
+ * @brief enable_fpe_interrupts - Enable MTL interrupts
+ *
+ * Algorithm: enable FPE interrupts
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ */
+static inline void enable_fpe_interrupts(struct osi_core_priv_data *osi_core)
+{
+	nveu32_t  value = OSI_DISABLE;
+	const nveu32_t MAC_IER[MAX_MAC_IP_TYPES] = {EQOS_MAC_IMR,
+						    MGBE_MAC_IER};
+	const nveu32_t IMR_FPEIE[MAX_MAC_IP_TYPES] = {EQOS_IMR_FPEIE,
+						      MGBE_IMR_FPEIE};
+
+	/* Read MAC IER Register and enable Frame Preemption Interrupt
+	 * Enable */
+	value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+			   MAC_IER[osi_core->mac]);
+	value |= IMR_FPEIE[osi_core->mac];
+	osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
+		    MAC_IER[osi_core->mac]);
+}
+
+/**
+ * @brief save_gcl_params - save GCL configs in local core structure
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ */
+static inline void save_gcl_params(struct osi_core_priv_data *osi_core)
+{
+	struct core_local *l_core = (struct core_local *)(void *)osi_core;
+	const nveu32_t gcl_widhth[4] = {0, OSI_MAX_24BITS, OSI_MAX_28BITS,
+					OSI_MAX_32BITS};
+	const nveu32_t gcl_ti_mask[4] = {0, OSI_MASK_16BITS, OSI_MASK_20BITS,
+					 OSI_MASK_24BITS};
+	const nveu32_t gcl_depthth[6] = {0, OSI_GCL_SIZE_64, OSI_GCL_SIZE_128,
+					 OSI_GCL_SIZE_256, OSI_GCL_SIZE_512,
+					 OSI_GCL_SIZE_1024};
+
+	if ((osi_core->hw_feature->gcl_width == 0U) ||
+	    (osi_core->hw_feature->gcl_width > 3U)) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "Wrong HW feature GCL width\n",
+			     (nveul64_t)osi_core->hw_feature->gcl_width);
+	} else {
+		l_core->gcl_width_val =
+				    gcl_widhth[osi_core->hw_feature->gcl_width];
+		l_core->ti_mask = gcl_ti_mask[osi_core->hw_feature->gcl_width];
+	}
+
+	if ((osi_core->hw_feature->gcl_depth == 0U) ||
+	    (osi_core->hw_feature->gcl_depth > 5U)) {
+		/* Do Nothing */
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "Wrong HW feature GCL depth\n",
+			   (nveul64_t)osi_core->hw_feature->gcl_depth);
+	} else {
+		l_core->gcl_dep = gcl_depthth[osi_core->hw_feature->gcl_depth];
+	}
+}
+
+/**
+ * @brief hw_tsn_init - initialize TSN feature
+ *
+ * Algorithm:
+ * 1) If hardware support EST,
+ *   a) Set default EST configuration
+ *   b) Set enable interrupts
+ * 2) If hardware supports FPE
+ *   a) Set default FPE configuration
+ *   b) enable interrupts
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] est_sel: EST HW support present or not
+ * @param[in] fpe_sel: FPE HW support present or not
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ */
+void hw_tsn_init(struct osi_core_priv_data *osi_core,
+		 nveu32_t est_sel, nveu32_t fpe_sel)
+{
+	nveu32_t val = 0x0;
+	nveu32_t temp = 0U;
+	const nveu32_t MTL_EST_CONTROL[MAX_MAC_IP_TYPES] = {EQOS_MTL_EST_CONTROL,
+							MGBE_MTL_EST_CONTROL};
+	const nveu32_t MTL_EST_CONTROL_PTOV[MAX_MAC_IP_TYPES] = {EQOS_MTL_EST_CONTROL_PTOV,
+							MGBE_MTL_EST_CONTROL_PTOV};
+	const nveu32_t MTL_EST_PTOV_RECOMMEND[MAX_MAC_IP_TYPES] = {EQOS_MTL_EST_PTOV_RECOMMEND,
+							MGBE_MTL_EST_PTOV_RECOMMEND};
+	const nveu32_t MTL_EST_CONTROL_PTOV_SHIFT[MAX_MAC_IP_TYPES] = {EQOS_MTL_EST_CONTROL_PTOV_SHIFT,
+							MGBE_MTL_EST_CONTROL_PTOV_SHIFT};
+	const nveu32_t MTL_EST_CONTROL_CTOV[MAX_MAC_IP_TYPES] = {EQOS_MTL_EST_CONTROL_CTOV,
+							MGBE_MTL_EST_CONTROL_CTOV};
+	const nveu32_t MTL_EST_CTOV_RECOMMEND[MAX_MAC_IP_TYPES] = {EQOS_MTL_EST_CTOV_RECOMMEND,
+							MGBE_MTL_EST_CTOV_RECOMMEND};
+	const nveu32_t MTL_EST_CONTROL_CTOV_SHIFT[MAX_MAC_IP_TYPES] = {EQOS_MTL_EST_CONTROL_CTOV_SHIFT,
+							MGBE_MTL_EST_CONTROL_CTOV_SHIFT};
+	const nveu32_t MTL_EST_CONTROL_LCSE[MAX_MAC_IP_TYPES] = {EQOS_MTL_EST_CONTROL_LCSE,
+							MGBE_MTL_EST_CONTROL_LCSE};
+	const nveu32_t MTL_EST_CONTROL_LCSE_VAL[MAX_MAC_IP_TYPES] = {EQOS_MTL_EST_CONTROL_LCSE_VAL,
+							MGBE_MTL_EST_CONTROL_LCSE_VAL};
+	const nveu32_t MTL_EST_CONTROL_DDBF[MAX_MAC_IP_TYPES] = {EQOS_MTL_EST_CONTROL_DDBF,
+							MGBE_MTL_EST_CONTROL_DDBF};
+	const nveu32_t MTL_EST_OVERHEAD[MAX_MAC_IP_TYPES] = {EQOS_MTL_EST_OVERHEAD,
+							MGBE_MTL_EST_OVERHEAD};
+	const nveu32_t MTL_EST_OVERHEAD_OVHD[MAX_MAC_IP_TYPES] = {EQOS_MTL_EST_OVERHEAD_OVHD,
+							MGBE_MTL_EST_OVERHEAD_OVHD};
+	const nveu32_t MTL_EST_OVERHEAD_RECOMMEND[MAX_MAC_IP_TYPES] = {EQOS_MTL_EST_OVERHEAD_RECOMMEND,
+							MGBE_MTL_EST_OVERHEAD_RECOMMEND};
+	const nveu32_t MAC_RQC1R[MAX_MAC_IP_TYPES] = {EQOS_MAC_RQC1R,
+							MGBE_MAC_RQC1R};
+	const nveu32_t MAC_RQC1R_RQ[MAX_MAC_IP_TYPES] = {EQOS_MAC_RQC1R_FPRQ,
+							MGBE_MAC_RQC1R_RQ};
+	const nveu32_t MAC_RQC1R_RQ_SHIFT[MAX_MAC_IP_TYPES] = {EQOS_MAC_RQC1R_FPRQ_SHIFT,
+							MGBE_MAC_RQC1R_RQ_SHIFT};
+
+	if (est_sel == OSI_ENABLE) {
+		save_gcl_params(osi_core);
+		val = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				 MTL_EST_CONTROL[osi_core->mac]);
+
+		/*
+		 * PTOV PTP clock period * 6
+		 * dual-port RAM based asynchronous FIFO controllers or
+		 * Single-port RAM based synchronous FIFO controllers
+		 * CTOV 96 x Tx clock period
+		 * :
+		 * :
+		 * set other default value
+		 */
+		val &= ~MTL_EST_CONTROL_PTOV[osi_core->mac];
+		temp = MTL_EST_PTOV_RECOMMEND[osi_core->mac];
+		temp = temp << MTL_EST_CONTROL_PTOV_SHIFT[osi_core->mac];
+		val |= temp;
+
+		val &= ~MTL_EST_CONTROL_CTOV[osi_core->mac];
+		temp = MTL_EST_CTOV_RECOMMEND[osi_core->mac];
+		temp = temp << MTL_EST_CONTROL_CTOV_SHIFT[osi_core->mac];
+		val |= temp;
+
+		/*Loop Count to report Scheduling Error*/
+		val &= ~MTL_EST_CONTROL_LCSE[osi_core->mac];
+		val |= MTL_EST_CONTROL_LCSE_VAL[osi_core->mac];
+
+		if (osi_core->mac == OSI_MAC_HW_EQOS) {
+			val &= ~EQOS_MTL_EST_CONTROL_DFBS;
+		}
+		val &= ~MTL_EST_CONTROL_DDBF[osi_core->mac];
+		val |= MTL_EST_CONTROL_DDBF[osi_core->mac];
+		osi_writela(osi_core, val, (nveu8_t *)osi_core->base +
+			    MTL_EST_CONTROL[osi_core->mac]);
+
+		val = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				MTL_EST_OVERHEAD[osi_core->mac]);
+		val &= ~MTL_EST_OVERHEAD_OVHD[osi_core->mac];
+		/* As per hardware programming info */
+		val |= MTL_EST_OVERHEAD_RECOMMEND[osi_core->mac];
+		osi_writela(osi_core, val, (nveu8_t *)osi_core->base +
+			    MTL_EST_OVERHEAD[osi_core->mac]);
+
+		enable_mtl_interrupts(osi_core);
+	}
+
+	if (fpe_sel == OSI_ENABLE) {
+		val = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+				 MAC_RQC1R[osi_core->mac]);
+		val &= ~MAC_RQC1R_RQ[osi_core->mac];
+		temp = osi_core->residual_queue;
+		temp = temp << MAC_RQC1R_RQ_SHIFT[osi_core->mac];
+		temp = (temp & MAC_RQC1R_RQ[osi_core->mac]);
+		val |= temp;
+		osi_writela(osi_core, val, (nveu8_t *)osi_core->base +
+			    MAC_RQC1R[osi_core->mac]);
+
+		if (osi_core->mac == OSI_MAC_HW_MGBE) {
+			val = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+					 MGBE_MAC_RQC4R);
+			val &= ~MGBE_MAC_RQC4R_PMCBCQ;
+			temp = osi_core->residual_queue;
+			temp = temp << MGBE_MAC_RQC4R_PMCBCQ_SHIFT;
+			temp = (temp & MGBE_MAC_RQC4R_PMCBCQ);
+			val |= temp;
+			osi_writela(osi_core, val, (nveu8_t *)osi_core->base +
+				    MGBE_MAC_RQC4R);
+		}
+
+		enable_fpe_interrupts(osi_core);
+	}
+
+	/* CBS setting for TC or TXQ for default configuration
+	   user application should use IOCTL to set CBS as per requirement
+	 */
+}

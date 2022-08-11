@@ -1037,57 +1037,6 @@ static nve32_t conf_eee(struct osi_core_priv_data *const osi_core,
 }
 
 /**
- * @brief configure_frp - Configure the FRP offload entry in the
- * Instruction Table.
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] cmd: FRP command data structure.
- *
- * @pre
- *  - MAC and PHY should be init and started. see osi_start_mac()
- *
- * @note
- * Traceability Details:
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static nve32_t configure_frp(struct osi_core_priv_data *const osi_core,
-			 struct osi_core_frp_cmd *const cmd)
-{
-	struct core_local *l_core = (struct core_local *)(void *)osi_core;
-
-	if (cmd == OSI_NULL) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			"Invalid argment\n", OSI_NONE);
-		return -1;
-	}
-
-	/* Check for supported MAC version */
-	if ((osi_core->mac == OSI_MAC_HW_EQOS) &&
-	    (osi_core->mac_ver < OSI_EQOS_MAC_5_10)) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
-			     "MAC doesn't support FRP\n", OSI_NONE);
-		return -1;
-	}
-
-	return setup_frp(osi_core, l_core->ops_p, cmd);
-}
-
-/**
  * @brief config_arp_offload - Configure ARP offload in MAC.
  *
  * @note
@@ -1187,6 +1136,63 @@ static nve32_t conf_mac_loopback(struct osi_core_priv_data *const osi_core,
 
 	return l_core->ops_p->config_mac_loopback(osi_core, lb_mode);
 }
+#endif /* !OSI_STRIPPED_LIB */
+
+/**
+ * @brief configure_frp - Configure the FRP offload entry in the
+ * Instruction Table.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] cmd: FRP command data structure.
+ *
+ * @pre
+ *  - MAC and PHY should be init and started. see osi_start_mac()
+ *
+ * @note
+ * Traceability Details:
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static nve32_t configure_frp(struct osi_core_priv_data *const osi_core,
+			     struct osi_core_frp_cmd *const cmd)
+{
+	struct core_local *l_core = (struct core_local *)(void *)osi_core;
+	nve32_t ret;
+
+	if (cmd == OSI_NULL) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "FRP command invalid\n", 0ULL);
+		ret = -1;
+		goto done;
+	}
+
+	/* Check for supported MAC version */
+	if ((osi_core->mac == OSI_MAC_HW_EQOS) &&
+	    (osi_core->mac_ver < OSI_EQOS_MAC_5_30)) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+			     "MAC doesn't support FRP\n", OSI_NONE);
+		ret = -1;
+		goto done;
+	}
+
+	ret = setup_frp(osi_core, l_core->ops_p, cmd);
+done:
+	return ret;
+}
 
 /**
  * @brief config_est - Read Setting for GCL from input and update
@@ -1231,12 +1237,13 @@ static nve32_t conf_mac_loopback(struct osi_core_priv_data *const osi_core,
 static nve32_t config_est(struct osi_core_priv_data *osi_core,
 			  struct osi_est_config *est)
 {
-	struct core_local *l_core = (struct core_local *)(void *)osi_core;
+	nve32_t ret;
 
 	if (est == OSI_NULL) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "EST data is NULL", 0ULL);
-		return -1;
+		ret = -1;
+		goto done;
 	}
 
 	if ((osi_core->flow_ctrl & OSI_FLOW_CTRL_TX) ==
@@ -1244,10 +1251,14 @@ static nve32_t config_est(struct osi_core_priv_data *osi_core,
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "TX Flow control enabled, please disable it",
 			      0ULL);
-		return -1;
+		ret = -1;
+		goto done;
 	}
 
-	return l_core->ops_p->hw_config_est(osi_core, est);
+	ret = hw_config_est(osi_core, est);
+
+done:
+	return ret;
 }
 
 /**
@@ -1286,17 +1297,20 @@ static nve32_t config_est(struct osi_core_priv_data *osi_core,
 static nve32_t config_fpe(struct osi_core_priv_data *osi_core,
 			  struct osi_fpe_config *fpe)
 {
-	struct core_local *l_core = (struct core_local *)(void *)osi_core;
+	nve32_t ret;
 
 	if (fpe == OSI_NULL) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "FPE data is NULL", 0ULL);
-		return -1;
+		ret = -1;
+		goto done;
 	}
 
-	return l_core->ops_p->hw_config_fpe(osi_core, fpe);
+	ret = hw_config_fpe(osi_core, fpe);
+
+done:
+	return ret;
 }
-#endif /* !OSI_STRIPPED_LIB */
 
 /**
  * @brief Free stale timestamps for channel
@@ -1645,6 +1659,14 @@ static void cfg_fc(struct core_local *l_core)
 						  l_core->cfg.flow_ctrl);
 }
 
+static void cfg_eee(struct core_local *l_core)
+{
+	(void)conf_eee((struct osi_core_priv_data *)(void *)l_core,
+		       l_core->cfg.tx_lpi_enabled,
+		       l_core->cfg.tx_lpi_timer);
+}
+#endif /* !OSI_STRIPPED_LIB */
+
 static void cfg_avb(struct core_local *l_core)
 {
 	nveu32_t i;
@@ -1659,13 +1681,6 @@ static void cfg_avb(struct core_local *l_core)
 	}
 }
 
-static void cfg_eee(struct core_local *l_core)
-{
-	(void)conf_eee((struct osi_core_priv_data *)(void *)l_core,
-		       l_core->cfg.tx_lpi_enabled,
-		       l_core->cfg.tx_lpi_timer);
-}
-
 static void cfg_est(struct core_local *l_core)
 {
 	(void)config_est((struct osi_core_priv_data *)(void *)l_core,
@@ -1677,7 +1692,6 @@ static void cfg_fpe(struct core_local *l_core)
 	(void)config_fpe((struct osi_core_priv_data *)(void *)l_core,
 			 &l_core->cfg.fpe);
 }
-#endif /* !OSI_STRIPPED_LIB */
 
 static void cfg_ptp(struct core_local *l_core)
 {
@@ -1701,11 +1715,11 @@ static void apply_dynamic_cfg(struct osi_core_priv_data *osi_core)
 #ifndef OSI_STRIPPED_LIB
 		[DYNAMIC_CFG_VLAN_IDX] = cfg_vlan,
 		[DYNAMIC_CFG_FC_IDX] = cfg_fc,
-		[DYNAMIC_CFG_AVB_IDX] = cfg_avb,
 		[DYNAMIC_CFG_EEE_IDX] = cfg_eee,
+#endif /* !OSI_STRIPPED_LIB */
+		[DYNAMIC_CFG_AVB_IDX] = cfg_avb,
 		[DYNAMIC_CFG_EST_IDX] = cfg_est,
 		[DYNAMIC_CFG_FPE_IDX] = cfg_fpe,
-#endif /* !OSI_STRIPPED_LIB */
 		[DYNAMIC_CFG_PTP_IDX] = cfg_ptp
 	};
 	nveu32_t flags = l_core->cfg.flags;
@@ -1778,7 +1792,8 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 #endif
 
 	if (validate_args(osi_core, l_core) < 0) {
-		return ret;
+		ret = -1;
+		goto done;
 	}
 
 	ops_p = l_core->ops_p;
@@ -1786,7 +1801,8 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 	if (data == OSI_NULL) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "CORE: Invalid argument\n", 0ULL);
-		return -1;
+		ret = -1;
+		goto done;
 	}
 
 	switch (data->cmd) {
@@ -1839,21 +1855,6 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 
 		break;
 
-	case OSI_CMD_GET_AVB:
-		ret = ops_p->get_avb_algorithm(osi_core, &data->avb);
-		break;
-
-	case OSI_CMD_SET_AVB:
-		ret = ops_p->set_avb_algorithm(osi_core, &data->avb);
-		if (ret == 0) {
-			(void)osi_memcpy(&l_core->cfg.avb[data->avb.qindex].avb_info,
-					 &data->avb, sizeof(struct osi_core_avb_algorithm));
-			l_core->cfg.avb[data->avb.qindex].used = OSI_ENABLE;
-			l_core->cfg.flags |= DYNAMIC_CFG_AVB;
-		}
-
-		break;
-
 	case OSI_CMD_CONFIG_RX_CRC_CHECK:
 		ret = ops_p->config_rx_crc_check(osi_core, data->arg1_u32);
 		break;
@@ -1900,8 +1901,21 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		}
 
 		break;
-
 #endif /* !OSI_STRIPPED_LIB */
+	case OSI_CMD_GET_AVB:
+		ret = ops_p->get_avb_algorithm(osi_core, &data->avb);
+		break;
+
+	case OSI_CMD_SET_AVB:
+		ret = ops_p->set_avb_algorithm(osi_core, &data->avb);
+		if (ret == 0) {
+			(void)osi_memcpy(&l_core->cfg.avb[data->avb.qindex].avb_info,
+					 &data->avb, sizeof(struct osi_core_avb_algorithm));
+			l_core->cfg.avb[data->avb.qindex].used = OSI_ENABLE;
+			l_core->cfg.flags |= DYNAMIC_CFG_AVB;
+		}
+		break;
+
 	case OSI_CMD_CONFIG_FW_ERR:
 		ret = hw_config_fw_err_pkts(osi_core, data->arg1_u32, data->arg2_u32);
 		break;
@@ -2161,12 +2175,13 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		ret = rxq_route_config(osi_core, &data->rxq_route);
 		break;
 
-	case OSI_CMD_CONFIG_FRP:
-		ret = configure_frp(osi_core, &data->frp_cmd);
-		break;
-
 	case OSI_CMD_CONFIG_RSS:
 		ret = ops_p->config_rss(osi_core);
+		break;
+
+#endif /* !OSI_STRIPPED_LIB */
+	case OSI_CMD_CONFIG_FRP:
+		ret = configure_frp(osi_core, &data->frp_cmd);
 		break;
 
 	case OSI_CMD_CONFIG_EST:
@@ -2188,7 +2203,7 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		}
 
 		break;
-#endif /* !OSI_STRIPPED_LIB */
+
 	case OSI_CMD_READ_REG:
 		ret = (nve32_t) ops_p->read_reg(osi_core, (nve32_t) data->arg1_u32);
 		break;
@@ -2278,6 +2293,7 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		break;
 	}
 
+done:
 	return ret;
 }
 

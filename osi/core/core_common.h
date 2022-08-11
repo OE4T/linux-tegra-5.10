@@ -24,9 +24,8 @@
 #define INCLUDED_CORE_COMMON_H
 
 #include "core_local.h"
-
-#ifndef OSI_STRIPPED_LIB
 #define MAC_TCR_TSCTRLSSR		OSI_BIT(9)
+#define MTL_EST_ADDR_SHIFT			8
 #define MTL_EST_ADDR_MASK		(OSI_BIT(8) | OSI_BIT(9) | \
 					 OSI_BIT(10) | OSI_BIT(11) | \
 					 OSI_BIT(12) | OSI_BIT(13) | \
@@ -42,8 +41,28 @@
 #define MTL_EST_CONTROL_EEST		OSI_BIT(0)
 #define MTL_EST_STATUS_SWOL		OSI_BIT(7)
 #define MAC_TCR_TSCFUPDT		OSI_BIT(1)
-#endif /* !OSI_STRIPPED_LIB */
-
+/* EST control OSI_BIT map */
+#define MTL_EST_EEST			OSI_BIT(0)
+#define MTL_EST_SSWL			OSI_BIT(1)
+#define MTL_EST_QHLBF			OSI_BIT(3)
+#define MTL_EST_CTR_HIGH_MAX		0xFFU
+#define MTL_EST_ITRE_CGCE			OSI_BIT(4)
+#define MTL_EST_ITRE_IEHS			OSI_BIT(3)
+#define MTL_EST_ITRE_IEHF			OSI_BIT(2)
+#define MTL_EST_ITRE_IEBE			OSI_BIT(1)
+#define MTL_EST_ITRE_IECC			OSI_BIT(0)
+/* MTL_FPE_CTRL_STS */
+#define MTL_FPE_CTS_PEC			(OSI_BIT(8) | OSI_BIT(9) | \
+					 OSI_BIT(10) | OSI_BIT(11) | \
+					 OSI_BIT(12) | OSI_BIT(13) | \
+					 OSI_BIT(14) | OSI_BIT(15))
+#define MTL_FPE_CTS_PEC_SHIFT		8U
+#define MTL_FPE_CTS_PEC_MAX_SHIFT	16U
+#define MAC_FPE_CTS_EFPE		OSI_BIT(0)
+#define MAC_FPE_CTS_SVER		OSI_BIT(1)
+/* MTL FPE adv registers */
+#define MTL_FPE_ADV_HADV_MASK		(0xFFFFU)
+#define MTL_FPE_ADV_HADV_VAL		100U
 #define DMA_MODE_SWR			OSI_BIT(0)
 #define MTL_QTOMR_FTQ			OSI_BIT(0)
 #define MTL_RXQ_OP_MODE_FEP		OSI_BIT(4)
@@ -74,7 +93,6 @@
 #define MAC_PKT_FILTER_REG		0x0008
 
 
-#ifndef OSI_STRIPPED_LIB
 /**
  * @addtogroup typedef related info
  *
@@ -83,18 +101,14 @@
  */
 
 struct est_read {
-	/* variable pointer */
+	/** variable pointer */
 	nveu32_t *var;
-	/* memory register/address offset */
+	/** memory register/address offset */
 	nveu32_t addr;
 };
 
 /** @} */
 
-nve32_t gcl_validate(struct osi_core_priv_data *const osi_core,
-		     struct osi_est_config *const est,
-		     const nveu32_t *btr, nveu32_t mac);
-#endif /* !OSI_STRIPPED_LIB */
 nve32_t hw_poll_for_swr(struct osi_core_priv_data *const osi_core);
 void hw_start_mac(struct osi_core_priv_data *const osi_core);
 void hw_stop_mac(struct osi_core_priv_data *const osi_core);
@@ -118,4 +132,10 @@ nve32_t hw_config_mac_pkt_filter_reg(struct osi_core_priv_data *const osi_core,
 				     const struct osi_filter *filter);
 nve32_t hw_config_l3_l4_filter_enable(struct osi_core_priv_data *const osi_core,
 				      const nveu32_t filter_enb_dis);
+nve32_t hw_config_est(struct osi_core_priv_data *const osi_core,
+		      struct osi_est_config *const est);
+nve32_t hw_config_fpe(struct osi_core_priv_data *const osi_core,
+		      struct osi_fpe_config *const fpe);
+void hw_tsn_init(struct osi_core_priv_data *osi_core,
+		 nveu32_t est_sel, nveu32_t fpe_sel);
 #endif /* INCLUDED_CORE_COMMON_H */

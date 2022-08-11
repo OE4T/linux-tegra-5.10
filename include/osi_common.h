@@ -70,6 +70,22 @@
 /** @} */
 
 #ifndef OSI_STRIPPED_LIB
+
+/**
+ * @addtogroup Helper MACROS
+ *
+ * @brief EQOS generic helper MACROS.
+ * @{
+ */
+#define OSI_PAUSE_FRAMES_ENABLE		0U
+#define OSI_PTP_REQ_CLK_FREQ		250000000U
+#define OSI_FLOW_CTRL_DISABLE		0U
+
+#define OSI_ADDRESS_32BIT		0
+#define OSI_ADDRESS_40BIT		1
+#define OSI_ADDRESS_48BIT		2
+/** @ } */
+
 /**
  * @addtogroup - LPI-Timers LPI configuration macros
  *
@@ -117,34 +133,7 @@
 /** @} */
 #endif /* !OSI_STRIPPED_LIB */
 
-/**
- * @addtogroup Helper Helper MACROS
- *
- * @brief EQOS generic helper MACROS.
- * @{
- */
-#ifndef OSI_STRIPPED_LIB
-#define OSI_PAUSE_FRAMES_ENABLE		0U
-#define OSI_PTP_REQ_CLK_FREQ		250000000U
-#define OSI_FLOW_CTRL_DISABLE		0U
-#define OSI_MAX_24BITS			0xFFFFFFU
-#define OSI_MAX_28BITS			0xFFFFFFFU
-#define OSI_MASK_20BITS			0xFFFFFU
-#define OSI_MASK_24BITS			0xFFFFFFU
-#define OSI_GCL_SIZE_64			64U
-#define OSI_GCL_SIZE_128		128U
-#define OSI_GCL_SIZE_256		256U
-#define OSI_GCL_SIZE_512		512U
-#define OSI_GCL_SIZE_1024		1024U
-
-#define OSI_ADDRESS_32BIT		0
-#define OSI_ADDRESS_40BIT		1
-#define OSI_ADDRESS_48BIT		2
-#endif /* !OSI_STRIPPED_LIB */
-
 #define OSI_POLL_COUNT			1000U
-#define OSI_MAX_32BITS			0xFFFFFFFFU
-#define OSI_MASK_16BITS			0xFFFFU
 #ifndef UINT_MAX
 #define UINT_MAX			(~0U)
 #endif
@@ -165,15 +154,15 @@
 /* log levels */
 
 #define OSI_LOG_INFO                    1U
+#ifndef OSI_STRIPPED_LIB
+#define OSI_LOG_WARN			2U
+#endif /* OSI_STRIPPED_LIB */
 #define OSI_LOG_ERR			3U
 /* Error types */
 #define OSI_LOG_ARG_OUTOFBOUND          1U
 #define OSI_LOG_ARG_INVALID		2U
 #define OSI_LOG_ARG_HW_FAIL		4U
-#ifndef OSI_STRIPPED_LIB
-#define OSI_LOG_WARN			2U
 #define OSI_LOG_ARG_OPNOTSUPP		3U
-#endif /* !OSI_STRIPPED_LIB */
 /* Default maximum Giant Packet Size Limit is 16K */
 #define OSI_MAX_MTU_SIZE	16383U
 
@@ -255,30 +244,6 @@
 #define OSI_DEBUG_TYPE_REG		2U
 #define OSI_DEBUG_TYPE_STRUCTS		3U
 #endif /* OSI_DEBUG */
-
-#ifndef OSI_STRIPPED_LIB
-/**
- * @addtogroup MTL queue operation mode
- *
- * @brief MTL queue operation mode options
- * @{
- */
-#define OSI_MTL_QUEUE_DISABLED	0x0U
-#define OSI_MTL_QUEUE_AVB	0x1U
-#define OSI_MTL_QUEUE_ENABLE	0x2U
-#define OSI_MTL_QUEUE_MODEMAX	0x3U
-/** @} */
-
-/**
- * @addtogroup EQOS_MTL MTL queue AVB algorithm mode
- *
- * @brief MTL AVB queue algorithm type
- * @{
- */
-#define OSI_MTL_TXQ_AVALG_CBS	1U
-#define OSI_MTL_TXQ_AVALG_SP	0U
-/** @} */
-#endif /* OSI_STRIPPED_LIB */
 
 /**
  * @brief unused function attribute

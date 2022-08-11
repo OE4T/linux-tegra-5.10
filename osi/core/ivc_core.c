@@ -69,11 +69,14 @@ static nve32_t ivc_handle_ioctl(struct osi_core_priv_data *osi_core,
 
 	if (data->cmd == OSI_CMD_READ_MMC) {
 		msg.status = osi_memcpy((void *)&osi_core->mmc,
-					(void *)&msg.data.mmc,
-					sizeof(struct osi_mmc_counters));
+				(void *)&msg.data.mmc,
+				sizeof(struct osi_mmc_counters));
+		msg.status = osi_memcpy((void *)&osi_core->tsn_stats,
+				(void *)&msg.data.eth_stats.tsn_s,
+				sizeof(struct osi_tsn_stats));
 	} else {
 		msg.status = osi_memcpy((void *)data,
-					(void *)&msg.data.ioctl_data,
+				(void *)&msg.data.ioctl_data,
 					sizeof(struct osi_ioctl));
 	}
 	return ret;
@@ -217,13 +220,13 @@ static nve32_t ivc_macsec_dbg_events_config(
 
 	ret = osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
 	if (ret != 0) {
-		goto exit;
+		goto done;
 	}
 
 	msg.status = osi_memcpy((void *)dbg_buf_config,
 				(void *)&msg.data.dbg_buf_config,
 				sizeof(struct osi_macsec_dbg_buf_config));
-exit:
+done:
 	return ret;
 }
 
@@ -253,13 +256,13 @@ static nve32_t ivc_macsec_dbg_buf_config(
 
 	ret = osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
 	if (ret != 0) {
-		goto exit;
+		goto done;
 	}
 
 	msg.status = osi_memcpy((void *)dbg_buf_config,
 				(void *) &msg.data.dbg_buf_config,
 				sizeof(struct osi_macsec_dbg_buf_config));
-exit:
+done:
 	return ret;
 }
 #endif /* DEBUG_MACSEC */
@@ -362,11 +365,11 @@ static nve32_t ivc_macsec_config(struct osi_core_priv_data *const osi_core,
 
 	ret = osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
 	if (ret != 0) {
-		goto exit;
+		goto done;
 	}
 
 	*kt_idx = msg.data.macsec_cfg.kt_idx;
-exit:
+done:
 	return ret;
 }
 
@@ -505,13 +508,13 @@ static nve32_t ivc_macsec_lut_config(struct osi_core_priv_data *const osi_core,
 
 	ret = osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
 	if (ret != 0) {
-		goto exit;
+		goto done;
 	}
 
 	msg.status = osi_memcpy((void *)lut_config,
 				(void *)&msg.data.lut_config,
 				sizeof(struct osi_macsec_lut_config));
-exit:
+done:
 	return ret;
 }
 

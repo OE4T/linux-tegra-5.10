@@ -23,7 +23,6 @@
 #include "../osi/common/common.h"
 #include "frp.h"
 
-#ifndef OSI_STRIPPED_LIB
 /**
  * @brief frp_entry_copy - Copy FRP entry
  *
@@ -34,7 +33,7 @@
  *
  */
 static void frp_entry_copy(struct osi_core_frp_entry *dst,
-			   struct osi_core_frp_entry *src)
+			   struct osi_core_frp_entry *const src)
 {
 	dst->frp_id = src->frp_id;
 	dst->data.match_data = src->data.match_data;
@@ -63,12 +62,13 @@ static void frp_entry_copy(struct osi_core_frp_entry *dst,
  * @retval -1 on failure.
  */
 static nve32_t frp_entry_find(struct osi_core_priv_data *const osi_core,
-			  nve32_t frp_id,
-			  nveu8_t *start,
-			  nveu8_t *no_entries)
+			      nve32_t frp_id,
+			      nveu8_t *start,
+			      nveu8_t *no_entries)
 {
 	nveu8_t count = OSI_NONE, found = OSI_NONE;
 	struct osi_core_frp_entry *entry = OSI_NULL;
+	nve32_t ret = 0;
 
 	/* Parse the FRP table for give frp_id */
 	for (count = 0U; count < osi_core->frp_cnt; count++) {
@@ -81,17 +81,17 @@ static nve32_t frp_entry_find(struct osi_core_priv_data *const osi_core,
 				found = OSI_ENABLE;
 			} else {
 				/* Increment entries */
-				*no_entries =  (nveu8_t) (*no_entries + 1U);
+				*no_entries =  (nveu8_t)(*no_entries + 1U);
 			}
 		}
 	}
 
 	if (found == OSI_NONE) {
 		/* No entry found return error */
-		return -1;
+		ret = -1;
 	}
 
-	return 0;
+	return ret;
 }
 
 /**
@@ -106,33 +106,37 @@ static nve32_t frp_entry_find(struct osi_core_priv_data *const osi_core,
  * @retval No of FRP entries required.
  */
 static nveu8_t frp_req_entries(nveu8_t offset,
-				     nveu8_t match_length)
+			       nveu8_t match_length)
 {
 	nveu8_t req = 0U;
+	nveu8_t temp_match_length = match_length;
 
-	/* Validate for match_length */
-	if ((match_length == OSI_NONE) ||
-	    (match_length > OSI_FRP_MATCH_DATA_MAX)) {
+	/* Validate for temp_match_length */
+	if ((temp_match_length == OSI_NONE) ||
+	    (temp_match_length > OSI_FRP_MATCH_DATA_MAX)) {
 		/* return zero */
-		return req;
+		goto done;
 	}
 
 	/* Check does the given length can fit in fist entry */
-	if (match_length <= (nveu8_t) FRP_OFFSET_BYTES(offset)) {
+	if (temp_match_length <= (nveu8_t)FRP_OFFSET_BYTES(offset)) {
 		/* Require one entry */
-		return 1U;
+		req = 1U;
+		goto done;
 	}
 	/* Initialize req as 1U and decrement length by FRP_OFFSET_BYTES */
 	req = 1U;
-	match_length = (nveu8_t) (match_length - (nveu8_t) FRP_OFFSET_BYTES(offset));
-	if ((match_length / FRP_MD_SIZE) < OSI_FRP_MATCH_DATA_MAX) {
-		req = (nveu8_t) (req + (match_length /  FRP_MD_SIZE));
-		if ((match_length % FRP_MD_SIZE) != OSI_NONE) {
+	temp_match_length = (nveu8_t)(temp_match_length -
+				      (nveu8_t)FRP_OFFSET_BYTES(offset));
+	if ((temp_match_length / FRP_MD_SIZE) < OSI_FRP_MATCH_DATA_MAX) {
+		req = (nveu8_t)(req + (temp_match_length /  FRP_MD_SIZE));
+		if ((temp_match_length % FRP_MD_SIZE) != OSI_NONE) {
 			/* Need one more entry */
-			req  = (nveu8_t) (req + 1U);
+			req  = (nveu8_t)(req + 1U);
 		}
 	}
 
+done:
 	return req;
 }
 
@@ -217,14 +221,14 @@ static void frp_entry_mode_parse(nveu8_t filter_mode,
  * @retval -1 on failure.
  */
 static nve32_t frp_entry_add(struct osi_core_priv_data *const osi_core,
-			 nve32_t frp_id,
-			 nveu8_t pos,
-			 nveu8_t *const match,
-			 nveu8_t length,
-			 nveu8_t offset,
-			 nveu8_t filter_mode,
-			 nve32_t next_frp_id,
-			 nveu32_t dma_sel)
+			     nve32_t frp_id,
+			     nveu8_t pos,
+			     nveu8_t *const match,
+			     nveu8_t length,
+			     nveu8_t offset,
+			     nveu8_t filter_mode,
+			     nve32_t next_frp_id,
+			     nveu32_t dma_sel)
 {
 	struct osi_core_frp_entry *entry = OSI_NULL;
 	struct osi_core_frp_data *data = OSI_NULL;
@@ -233,13 +237,16 @@ static nve32_t frp_entry_add(struct osi_core_priv_data *const osi_core,
 	nveu8_t fo_t = 0U;
 	nveu8_t fp_t = 0U;
 	nveu8_t i = 0U, j = 0U, md_pos = 0U;
+	nveu8_t temp_pos = pos;
+	nve32_t ret;
 
 	/* Validate length */
 	if (length > OSI_FRP_MATCH_DATA_MAX) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
 			"Invalid match length\n",
 			length);
-		return -1;
+		ret = -1;
+		goto done;
 	}
 
 	/* Validate filter_mode */
@@ -247,7 +254,8 @@ static nve32_t frp_entry_add(struct osi_core_priv_data *const osi_core,
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"Invalid filter mode argment\n",
 			filter_mode);
-		return -1;
+		ret = -1;
+		goto done;
 	}
 
 	/* Validate offset */
@@ -255,17 +263,19 @@ static nve32_t frp_entry_add(struct osi_core_priv_data *const osi_core,
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"Invalid offset value\n",
 			offset);
-		return -1;
+		ret = -1;
+		goto done;
 	}
 
 	/* Check for avilable space */
 	req_entries = frp_req_entries(offset, length);
 	if ((req_entries >= OSI_FRP_MAX_ENTRY) ||
-	    ((req_entries + pos) >= OSI_FRP_MAX_ENTRY)) {
+	    ((req_entries + temp_pos) >= OSI_FRP_MAX_ENTRY)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"No space to update FRP ID\n",
 			OSI_NONE);
-		return -1;
+		ret = -1;
+		goto done;
 	}
 
 	/* Validate next_frp_id index ok_index */
@@ -275,7 +285,7 @@ static nve32_t frp_entry_add(struct osi_core_priv_data *const osi_core,
 			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 				"No Link FRP ID index found\n",
 				OSI_NONE);
-			i = (nveu8_t) next_frp_id;
+			i = (nveu8_t)next_frp_id;
 		}
 		ok_index = i;
 	}
@@ -286,7 +296,7 @@ static nve32_t frp_entry_add(struct osi_core_priv_data *const osi_core,
 	md_pos = 0U;
 	for (i = 0U; i < req_entries; i++) {
 		/* Get FRP entry*/
-		entry = &osi_core->frp_table[pos];
+		entry = &osi_core->frp_table[temp_pos];
 		data = &entry->data;
 
 		/* Fill FRP ID */
@@ -324,10 +334,10 @@ static nve32_t frp_entry_add(struct osi_core_priv_data *const osi_core,
 			data->next_ins_ctrl = OSI_ENABLE;
 
 			/* Init next FRP entry */
-			pos++;
+			temp_pos++;
 			fo_t++;
 			fp_t = OSI_NONE;
-			data->ok_index = pos;
+			data->ok_index = temp_pos;
 		} else {
 			data->next_ins_ctrl = OSI_DISABLE;
 			data->ok_index = OSI_DISABLE;
@@ -342,7 +352,9 @@ static nve32_t frp_entry_add(struct osi_core_priv_data *const osi_core,
 		data->ok_index = ok_index;
 	}
 
-	return 0;
+	ret = 0;
+done:
+	return ret;
 }
 
 /**
@@ -356,9 +368,9 @@ static nve32_t frp_entry_add(struct osi_core_priv_data *const osi_core,
  * @retval -1 on failure.
  */
 static nve32_t frp_hw_write(struct osi_core_priv_data *const osi_core,
-			struct core_ops *ops_p)
+			    struct core_ops *const ops_p)
 {
-	nve32_t ret = -1, tmp = -1;
+	nve32_t ret, tmp;
 	struct osi_core_frp_entry *entry;
 	nveu32_t frp_cnt = osi_core->frp_cnt, i = OSI_NONE;
 
@@ -411,10 +423,10 @@ hw_write_enable_frp:
  * @retval -1 on failure.
  */
 static nve32_t frp_add_proto(struct osi_core_priv_data *const osi_core,
-			 struct osi_core_frp_cmd *const cmd,
-			 nveu8_t *pos)
+			     struct osi_core_frp_cmd *const cmd,
+			     nveu8_t *pos)
 {
-	nve32_t ret = -1, proto_oki = -1;
+	nve32_t ret, proto_oki;
 	nveu8_t proto_entry = OSI_DISABLE;
 	nveu8_t req = 0U;
 	nveu8_t proto_match[FRP_PROTO_LENGTH];
@@ -463,16 +475,18 @@ static nve32_t frp_add_proto(struct osi_core_priv_data *const osi_core,
 	/* Check and Add protocol FRP entire */
 	if (proto_entry == OSI_ENABLE) {
 		/* Check for space */
-		req = (nveu8_t) (frp_req_entries(cmd->offset, cmd->match_length) + 1U);
+		req = (nveu8_t)(frp_req_entries(cmd->offset, cmd->match_length) + 1U);
 		if (*pos > (OSI_FRP_MAX_ENTRY - req)) {
 			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 				"Fail add FRP protocol entry\n",
 				OSI_NONE);
-			return -1;
+			ret = -1;
+			goto done;
 		}
 
 		/* Add protocol FRP entire */
-		proto_oki = *pos + 1;
+		proto_oki = (nve32_t)*pos;
+		proto_oki += 1;
 		ret = frp_entry_add(osi_core, cmd->frp_id, *pos,
 				    proto_match, proto_lendth,
 				    proto_offset, OSI_FRP_MODE_LINK,
@@ -481,14 +495,16 @@ static nve32_t frp_add_proto(struct osi_core_priv_data *const osi_core,
 			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 				"Fail add FRP protocol entry\n",
 				OSI_NONE);
-			return ret;
+			goto done;
 		}
 
 		/* Increment pos value */
-		*pos = (nveu8_t) (*pos + 1U);
+		*pos = (nveu8_t)(*pos + (nveu8_t)1);
 	}
 
-	return 0;
+	ret = 0;
+done:
+	return ret;
 }
 
 /**
@@ -496,12 +512,10 @@ static nve32_t frp_add_proto(struct osi_core_priv_data *const osi_core,
  *
  * Algorithm: Parse give FRP command match type and update it's offset.
  *
- * @param[in] osi_core: OSI core private data structure.
  * @param[in] cmd: OSI FRP command structure.
  *
  */
-static void frp_parse_mtype(OSI_UNUSED struct osi_core_priv_data *const osi_core,
-			    struct osi_core_frp_cmd *const cmd)
+static void frp_parse_mtype(struct osi_core_frp_cmd *const cmd)
 {
 	nveu8_t offset;
 	nveu8_t match_type = cmd->match_type;
@@ -556,10 +570,10 @@ static void frp_parse_mtype(OSI_UNUSED struct osi_core_priv_data *const osi_core
  * @retval -1 on failure.
  */
 static nve32_t frp_delete(struct osi_core_priv_data *const osi_core,
-		      struct core_ops *ops_p,
-		      struct osi_core_frp_cmd *const cmd)
+			  struct core_ops *ops_p,
+			  struct osi_core_frp_cmd *const cmd)
 {
-	nve32_t ret = -1;
+	nve32_t ret;
 	nveu8_t i = 0U, pos = 0U, count = 0U;
 	nve32_t frp_id = cmd->frp_id;
 	nveu32_t frp_cnt = osi_core->frp_cnt;
@@ -569,7 +583,8 @@ static nve32_t frp_delete(struct osi_core_priv_data *const osi_core,
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			"No FRP entries in the table\n",
 			OSI_NONE);
-		return -1;
+		ret = -1;
+		goto done;
 	}
 
 	/* Find the FRP entry */
@@ -577,7 +592,8 @@ static nve32_t frp_delete(struct osi_core_priv_data *const osi_core,
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			"No FRP entry found to delete\n",
 			OSI_NONE);
-		return -1;
+		ret = -1;
+		goto done;
 	}
 
 	/* Validate pos and count */
@@ -585,7 +601,8 @@ static nve32_t frp_delete(struct osi_core_priv_data *const osi_core,
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			"Invalid FRP entry index\n",
 			OSI_NONE);
-		return -1;
+		ret = -1;
+		goto done;
 	}
 
 	/* Update the frp_table entry */
@@ -593,7 +610,7 @@ static nve32_t frp_delete(struct osi_core_priv_data *const osi_core,
 		   (sizeof(struct osi_core_frp_entry) * count));
 
 	/* Move in FRP table entries by count */
-	for (i = (nveu8_t) (pos + count); i <= frp_cnt; i++) {
+	for (i = (nveu8_t)(pos + count); i <= frp_cnt; i++) {
 		frp_entry_copy(&osi_core->frp_table[pos],
 			       &osi_core->frp_table[i]);
 		pos++;
@@ -610,6 +627,7 @@ static nve32_t frp_delete(struct osi_core_priv_data *const osi_core,
 	/* Update the frp_cnt entry */
 	osi_core->frp_cnt = (frp_cnt - count);
 
+done:
 	return ret;
 }
 
@@ -625,10 +643,10 @@ static nve32_t frp_delete(struct osi_core_priv_data *const osi_core,
  * @retval -1 on failure.
  */
 static nve32_t frp_update(struct osi_core_priv_data *const osi_core,
-		      struct core_ops *ops_p,
-		      struct osi_core_frp_cmd *const cmd)
+			  struct core_ops *ops_p,
+			  struct osi_core_frp_cmd *const cmd)
 {
-	nve32_t ret = -1;
+	nve32_t ret;
 	nveu8_t pos = 0U, count = 0U, req = 0U;
 	nve32_t frp_id = cmd->frp_id;
 
@@ -637,11 +655,12 @@ static nve32_t frp_update(struct osi_core_priv_data *const osi_core,
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"No FRP entry found\n",
 			OSI_NONE);
-		return -1;
+		ret = -1;
+		goto done;
 	}
 
 	/* Parse match type and update command offset */
-	frp_parse_mtype(osi_core, cmd);
+	frp_parse_mtype(cmd);
 
 	/* Calculate the required FRP entries for Update Command. */
 	req = frp_req_entries(cmd->offset, cmd->match_length);
@@ -663,7 +682,8 @@ static nve32_t frp_update(struct osi_core_priv_data *const osi_core,
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"Old and New required FRP entries mismatch\n",
 			OSI_NONE);
-		return -1;
+		ret = -1;
+		goto done;
 	}
 
 	/* Process and update FRP Command Protocal Entry */
@@ -672,7 +692,7 @@ static nve32_t frp_update(struct osi_core_priv_data *const osi_core,
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			"Fail to parse match type\n",
 			OSI_NONE);
-		return ret;
+		goto done;
 	}
 
 	/* Update FRP entries */
@@ -684,7 +704,7 @@ static nve32_t frp_update(struct osi_core_priv_data *const osi_core,
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			"Fail to update FRP entry\n",
 			OSI_NONE);
-		return ret;
+		goto done;
 	}
 
 	/* Write FRP Table into HW */
@@ -695,6 +715,7 @@ static nve32_t frp_update(struct osi_core_priv_data *const osi_core,
 			OSI_NONE);
 	}
 
+done:
 	return ret;
 }
 
@@ -710,10 +731,10 @@ static nve32_t frp_update(struct osi_core_priv_data *const osi_core,
  * @retval -1 on failure.
  */
 static nve32_t frp_add(struct osi_core_priv_data *const osi_core,
-		   struct core_ops *ops_p,
-		   struct osi_core_frp_cmd *const cmd)
+		       struct core_ops *ops_p,
+		       struct osi_core_frp_cmd *const cmd)
 {
-	nve32_t ret = -1;
+	nve32_t ret;
 	nveu8_t pos = 0U, count = 0U;
 	nve32_t frp_id = cmd->frp_id;
 	nveu32_t nve = osi_core->frp_cnt;
@@ -723,7 +744,8 @@ static nve32_t frp_add(struct osi_core_priv_data *const osi_core,
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
 			"FRP etries are full\n",
 			nve);
-		return -1;
+		ret = -1;
+		goto done;
 	}
 
 	/* Check the FRP entry already exists */
@@ -732,11 +754,12 @@ static nve32_t frp_add(struct osi_core_priv_data *const osi_core,
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"FRP entry already exists\n",
 			OSI_NONE);
-		return -1;
+		ret = -1;
+		goto done;
 	}
 
 	/* Parse match type and update command offset */
-	frp_parse_mtype(osi_core, cmd);
+	frp_parse_mtype(cmd);
 
 	/* Process and add FRP Command Protocal Entry */
 	ret = frp_add_proto(osi_core, cmd, (nveu8_t *)&nve);
@@ -744,7 +767,7 @@ static nve32_t frp_add(struct osi_core_priv_data *const osi_core,
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			"Fail to parse match type\n",
 			OSI_NONE);
-		return ret;
+		goto done;
 	}
 
 	/* Add Match data FRP Entry */
@@ -756,7 +779,7 @@ static nve32_t frp_add(struct osi_core_priv_data *const osi_core,
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			"Fail to add FRP entry\n",
 			nve);
-		return ret;
+		goto done;
 	}
 	osi_core->frp_cnt = nve + frp_req_entries(cmd->offset,
 						  cmd->match_length);
@@ -769,6 +792,7 @@ static nve32_t frp_add(struct osi_core_priv_data *const osi_core,
 			OSI_NONE);
 	}
 
+done:
 	return ret;
 }
 
@@ -784,8 +808,8 @@ static nve32_t frp_add(struct osi_core_priv_data *const osi_core,
  * @retval -1 on failure.
  */
 nve32_t setup_frp(struct osi_core_priv_data *const osi_core,
-	      struct core_ops *ops_p,
-	      struct osi_core_frp_cmd *const cmd)
+		  struct core_ops *ops_p,
+		  struct osi_core_frp_cmd *const cmd)
 {
 	nve32_t ret = -1;
 
@@ -835,4 +859,3 @@ void init_frp(struct osi_core_priv_data *const osi_core)
 	osi_memset(osi_core->frp_table, 0U,
 		   (sizeof(struct osi_core_frp_entry) * OSI_FRP_MAX_ENTRY));
 }
-#endif /* !OSI_STRIPPED_LIB */

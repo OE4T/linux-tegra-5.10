@@ -23,6 +23,7 @@
 #ifndef INCLUDED_OSI_CORE_H
 #define INCLUDED_OSI_CORE_H
 
+#include "nvethernetrm_export.h"
 #include <osi_common.h>
 #include "mmc.h"
 
@@ -65,16 +66,17 @@ typedef my_lint_64		nvel64_t;
 #define OSI_CMD_RESET_MMC		12U
 #define OSI_CMD_MDC_CONFIG		1U
 #define OSI_CMD_MAC_LB			14U
-#define OSI_CMD_GET_AVB			23U
 #define OSI_CMD_FLOW_CTRL		15U
 #define OSI_CMD_CONFIG_TXSTATUS		27U
 #define OSI_CMD_CONFIG_RX_CRC_CHECK	25U
 #define OSI_CMD_CONFIG_EEE		32U
 #define OSI_CMD_ARP_OFFLOAD		30U
 #define OSI_CMD_UPDATE_VLAN_ID		26U
-#define OSI_CMD_SET_AVB			24U
 #define OSI_CMD_VLAN_FILTER		31U
 #define OSI_CMD_VALIDATE_CORE_REG	11U
+#define OSI_CMD_CONFIG_PTP_OFFLOAD	34U
+#define OSI_CMD_PTP_RXQ_ROUTE		35U
+#define OSI_CMD_CONFIG_RSS		37U
 
 /**
  * @addtogroup PTP-offload PTP offload defines
@@ -94,7 +96,6 @@ typedef my_lint_64		nvel64_t;
 #define OSI_MAC_TCR_CSC			OSI_BIT(19)
 #define OSI_MAC_TCR_AV8021ASMEN		OSI_BIT(28)
 
-#define OSI_FLOW_CTRL_TX		OSI_BIT(0)
 #define OSI_FLOW_CTRL_RX		OSI_BIT(1)
 #endif /* !OSI_STRIPPED_LIB */
 
@@ -163,7 +164,6 @@ typedef my_lint_64		nvel64_t;
 #define OSI_INV_MATCH			1U
 #define OSI_AMASK_DISABLE		0U
 #define OSI_CHAN_ANY			0xFFU
-#define OSI_MAX_TC_NUM			8U
 #define OSI_DFLT_MTU_SIZE		1500U
 #define OSI_MTU_SIZE_9000		9000U
 
@@ -172,8 +172,7 @@ typedef my_lint_64		nvel64_t;
 #define OSI_EQOS_MAX_HASH_REGS		4U
 #endif /* !OSI_STRIPPED_LIB */
 
-#define OSI_ETH_ALEN			6U
-
+#define OSI_FLOW_CTRL_TX		OSI_BIT(0)
 
 #define OSI_FULL_DUPLEX			1
 #define OSI_HALF_DUPLEX			0
@@ -190,8 +189,6 @@ typedef my_lint_64		nvel64_t;
 #define OSI_OPER_DIS_PROMISC		OSI_BIT(1)
 #define OSI_OPER_EN_ALLMULTI		OSI_BIT(2)
 #define OSI_OPER_DIS_ALLMULTI		OSI_BIT(3)
-#define OSI_OPER_EN_L2_DA_INV		OSI_BIT(4)
-#define OSI_OPER_DIS_L2_DA_INV		OSI_BIT(5)
 #define OSI_OPER_EN_PERFECT		OSI_BIT(6)
 #define OSI_OPER_DIS_PERFECT		OSI_BIT(7)
 #define OSI_OPER_ADDR_UPDATE		OSI_BIT(8)
@@ -224,7 +221,6 @@ typedef my_lint_64		nvel64_t;
 #define OSI_USXGMII_MODE_10G	2U
 #define OSI_USXGMII_MODE_5G	3U
 
-
 /**
  * @addtogroup IOCTL OPS MACROS
  *
@@ -239,6 +235,7 @@ typedef my_lint_64		nvel64_t;
 #define OSI_CMD_PAD_CALIBRATION		8U
 #define OSI_CMD_READ_MMC		9U
 #define OSI_CMD_GET_MAC_VER		10U
+#define OSI_CMD_RESET_MMC		12U
 #define OSI_CMD_SET_MODE		16U
 #define OSI_CMD_SET_SPEED		17U
 #define OSI_CMD_L2_FILTER		18U
@@ -246,13 +243,12 @@ typedef my_lint_64		nvel64_t;
 #define OSI_CMD_ADJ_FREQ		20U
 #define OSI_CMD_ADJ_TIME		21U
 #define OSI_CMD_CONFIG_PTP		22U
+#define OSI_CMD_GET_AVB			23U
+#define OSI_CMD_SET_AVB			24U
 #define OSI_CMD_GET_HW_FEAT		28U
 #define OSI_CMD_CONFIG_FW_ERR		29U
 #define OSI_CMD_SET_SYSTOHW_TIME	33U
-#define OSI_CMD_CONFIG_PTP_OFFLOAD	34U
-#define OSI_CMD_PTP_RXQ_ROUTE		35U
 #define OSI_CMD_CONFIG_FRP		36U
-#define OSI_CMD_CONFIG_RSS		37U
 #define OSI_CMD_CONFIG_EST		38U
 #define OSI_CMD_CONFIG_FPE		39U
 #define OSI_CMD_READ_REG		40U
@@ -320,20 +316,22 @@ typedef my_lint_64		nvel64_t;
 #define OSI_PTP_SSINC_6		6U
 /** @} */
 
-#ifndef OSI_STRIPPED_LIB
 /**
  * @addtogroup Flexible Receive Parser related information
  *
  * @brief Flexible Receive Parser commands, table size and other defines
  * @{
  */
+#ifndef OSI_STRIPPED_LIB
+#define OSI_FRP_CMD_MAX			3U
+#define OSI_FRP_MATCH_MAX		10U
+#endif /* !OSI_STRIPPED_LIB */
 #define OSI_FRP_MAX_ENTRY		256U
 #define OSI_FRP_OFFSET_MAX		64U
 /* FRP Command types */
 #define OSI_FRP_CMD_ADD			0U
 #define OSI_FRP_CMD_UPDATE		1U
 #define OSI_FRP_CMD_DEL			2U
-#define OSI_FRP_CMD_MAX			3U
 /* FRP Filter mode defines */
 #define OSI_FRP_MODE_ROUTE		0U
 #define OSI_FRP_MODE_DROP		1U
@@ -345,7 +343,6 @@ typedef my_lint_64		nvel64_t;
 #define OSI_FRP_MODE_IM_LINK		7U
 #define OSI_FRP_MODE_MAX		8U
 /* Match data defines */
-#define OSI_FRP_MATCH_DATA_MAX		12U
 #define OSI_FRP_MATCH_NORMAL		0U
 #define OSI_FRP_MATCH_L2_DA		1U
 #define OSI_FRP_MATCH_L2_SA		2U
@@ -356,9 +353,7 @@ typedef my_lint_64		nvel64_t;
 #define OSI_FRP_MATCH_L4_S_TPORT	7U
 #define OSI_FRP_MATCH_L4_D_TPORT	8U
 #define OSI_FRP_MATCH_VLAN		9U
-#define OSI_FRP_MATCH_MAX		10U
 /** @} */
-#endif /* !OSI_STRIPPED_LIB */
 
 #ifdef HSI_SUPPORT
 /**
@@ -428,34 +423,6 @@ extern nveu32_t hsi_err_code[][3];
 
 struct osi_core_priv_data;
 
-/**
- * @brief OSI core structure for filters
- */
-struct osi_filter {
-	/** indicates operation needs to perform. refer to OSI_OPER_* */
-	nveu32_t oper_mode;
-	/** Indicates the index of the filter to be modified.
-	 * Filter index must be between 0 - 127 */
-	nveu32_t index;
-	/** Ethernet MAC address to be added */
-	nveu8_t mac_address[OSI_ETH_ALEN];
-	/** Indicates dma channel routing enable(1) disable (0) */
-	nveu32_t dma_routing;
-	/**  indicates dma channel number to program */
-	nveu32_t dma_chan;
-	/** filter will not consider byte in comparison
-	 *	Bit 5: MAC_Address${i}_High[15:8]
-	 *	Bit 4: MAC_Address${i}_High[7:0]
-	 *	Bit 3: MAC_Address${i}_Low[31:24]
-	 *	..
-	 *	Bit 0: MAC_Address${i}_Low[7:0] */
-	nveu32_t addr_mask;
-	/** src_dest: SA(1) or DA(0) */
-	nveu32_t src_dest;
-	/**  indicates one hot encoded DMA receive channels to program */
-	nveu32_t dma_chansel;
-};
-
 #ifndef OSI_STRIPPED_LIB
 /**
  * @brief OSI core structure for RXQ route
@@ -470,26 +437,6 @@ struct osi_rxq_route {
 	nveu32_t idx;
 };
 #endif
-/**
- * @brief L3/L4 filter function dependent parameter
- */
-struct osi_l3_l4_filter {
-	/** Indicates the index of the filter to be modified.
-	 * Filter index must be between 0 - 7 */
-	nveu32_t filter_no;
-	/** filter enable(1) or disable(0) */
-	nveu32_t filter_enb_dis;
-	/** source(0) or destination(1) */
-	nveu32_t src_dst_addr_match;
-	/** perfect(0) or inverse(1) */
-	nveu32_t perfect_inverse_match;
-	/** ipv4 address */
-	nveu8_t ip4_addr[4];
-	/** ipv6 address */
-	nveu16_t ip6_addr[8];
-	/** Port number */
-	nveu16_t port_no;
-};
 
 /**
  * @brief struct osi_hw_features - MAC HW supported features.
@@ -815,64 +762,6 @@ struct osi_vlan_filter {
 };
 
 /**
- * @brief FRP Instruction configuration structure
- */
-struct osi_core_frp_data {
-	/* Entry Match Data */
-	nveu32_t match_data;
-	/* Entry Match Enable mask */
-	nveu32_t match_en;
-	/* Entry Accept frame flag */
-	nveu8_t accept_frame;
-	/* Entry Reject Frame flag */
-	nveu8_t reject_frame;
-	/* Entry Inverse match flag */
-	nveu8_t inverse_match;
-	/* Entry Next Instruction Control match flag */
-	nveu8_t next_ins_ctrl;
-	/* Entry Frame offset in the packet data */
-	nveu8_t frame_offset;
-	/* Entry OK Index - Next Instruction */
-	nveu8_t ok_index;
-	/* Entry DMA Channel selection (1-bit for each channel) */
-	nveu32_t dma_chsel;
-};
-
-/**
- * @brief FRP command structure for OSD to OSI
- */
-struct osi_core_frp_cmd {
-	/* FRP Command type */
-	nveu32_t cmd;
-	/* OSD FRP ID */
-	int frp_id;
-	/* OSD match data type */
-	nveu8_t match_type;
-	/* OSD match data */
-	nveu8_t match[OSI_FRP_MATCH_DATA_MAX];
-	/* OSD match data length */
-	nveu8_t match_length;
-	/* OSD Offset */
-	nveu8_t offset;
-	/* OSD FRP filter mode flag */
-	nveu8_t filter_mode;
-	/* OSD FRP Link ID */
-	int next_frp_id;
-	/* OSD DMA Channel Selection */
-	nveu32_t dma_sel;
-};
-
-/**
- * @brief FRP Instruction table entry configuration structure
- */
-struct osi_core_frp_entry {
-	/* FRP ID */
-	int frp_id;
-	/* FRP Entry data structure */
-	struct osi_core_frp_data data;
-};
-
-/**
  * @brief L2 filter function dependent parameter
  */
 struct osi_l2_da_filter {
@@ -880,40 +769,6 @@ struct osi_l2_da_filter {
 	nveu32_t perfect_hash;
 	/** perfect(0) or inverse(1) */
 	nveu32_t perfect_inverse_match;
-};
-
-/**
- * @brief OSI Core avb data structure per queue.
- */
-struct  osi_core_avb_algorithm {
-	/** TX Queue/TC index */
-	nveu32_t qindex;
-	/** CBS Algorithm enable(1) or disable(0) */
-	nveu32_t algo;
-	/** When this bit is set, the accumulated credit parameter in the
-	 * credit-based shaper algorithm logic is not reset to zero when
-	 * there is positive credit and no packet to transmit in Channel.
-	 *
-	 * Expected values are enable(1) or disable(0) */
-	nveu32_t credit_control;
-	/** idleSlopeCredit value required for CBS */
-	  nveu32_t idle_slope;
-	/** sendSlopeCredit value required for CBS */
-	nveu32_t send_slope;
-	/** hiCredit value required for CBS */
-	nveu32_t hi_credit;
-	/** lowCredit value required for CBS */
-	nveu32_t low_credit;
-	/** Transmit queue operating mode
-	 *
-	 * 00: disable
-	 *
-	 * 01: avb
-	 *
-	 * 10: enable */
-	nveu32_t oper_mode;
-	/** TC index */
-	nveu32_t tcindex;
 };
 
 /**
@@ -935,62 +790,6 @@ struct osi_pto_config {
 	nveu32_t mc_uc;
 	/** Port identification */
 	nveu32_t portid;
-};
-
-/**
- * @brief OSI Core EST structure
- */
-struct osi_est_config {
-	/** enable/disable */
-	nveu32_t en_dis;
-	/** 64 bit base time register
-	 * if both vlaues are 0, take ptp time to avoid BTRE
-	 * index 0 for nsec, index 1 for sec
-	 */
-	nveu32_t btr[2];
-	/** 64 bit base time offset index 0 for nsec, index 1 for sec */
-	nveu32_t btr_offset[2];
-	/** 40 bit cycle time register, index 0 for nsec, index 1 for sec */
-	nveu32_t ctr[2];
-	/** Configured Time Interval width + 7 bit extension register */
-	nveu32_t ter;
-	/** size of the gate control list */
-	nveu32_t llr;
-	/** data array 8 bit gate op + 24 execution time
-	 * MGBE HW support GCL depth 256 */
-	nveu32_t gcl[OSI_GCL_SIZE_256];
-};
-
-/**
- * @brief OSI Core FPE structure
- */
-struct osi_fpe_config {
-	/** Queue Mask 1 preemption 0- express bit representation */
-	nveu32_t tx_queue_preemption_enable;
-	/** RQ for all preemptable packets  which are not filtered
-	 * based on user priority or SA-DA
-	 */
-	nveu32_t rq;
-};
-
-/**
- * @brief OSI Core TSN error stats structure
- */
-struct osi_tsn_stats {
-	/** Constant Gate Control Error */
-	nveu64_t const_gate_ctr_err;
-	/** Head-Of-Line Blocking due to Scheduling */
-	nveu64_t head_of_line_blk_sch;
-	/** Per TC Schedule Error */
-	nveu64_t hlbs_q[OSI_MAX_TC_NUM];
-	/** Head-Of-Line Blocking due to Frame Size */
-	nveu64_t head_of_line_blk_frm;
-	/** Per TC Frame Size Error */
-	nveu64_t hlbf_q[OSI_MAX_TC_NUM];
-	/** BTR Error */
-	nveu64_t base_time_reg_err;
-	/** Switch to Software Owned List Complete */
-	nveu64_t sw_own_list_complete;
 };
 
 /**
@@ -1073,7 +872,6 @@ struct osi_ptp_config {
 	nveu32_t ptp_rx_queue;
 };
 
-
 /**
  * @brief osi_core_ptp_tsc_data - Struture used to store TSC and PTP time
  * information.
@@ -1088,7 +886,6 @@ struct osi_core_ptp_tsc_data {
 	/** low bits of TSC */
 	nveu32_t tsc_low_bits;
 };
-
 
 /**
  * @brief OSI VM IRQ data
@@ -1224,6 +1021,40 @@ struct osi_macsec_irq_stats {
 #endif /* MACSEC_SUPPORT */
 
 /**
+ * @brief FRP Instruction configuration structure
+ */
+struct osi_core_frp_data {
+	/** Entry Match Data */
+	nveu32_t match_data;
+	/** Entry Match Enable mask */
+	nveu32_t match_en;
+	/** Entry Accept frame flag */
+	nveu8_t accept_frame;
+	/** Entry Reject Frame flag */
+	nveu8_t reject_frame;
+	/** Entry Inverse match flag */
+	nveu8_t inverse_match;
+	/** Entry Next Instruction Control match flag */
+	nveu8_t next_ins_ctrl;
+	/** Entry Frame offset in the packet data */
+	nveu8_t frame_offset;
+	/** Entry OK Index - Next Instruction */
+	nveu8_t ok_index;
+	/** Entry DMA Channel selection (1-bit for each channel) */
+	nveu32_t dma_chsel;
+};
+
+/**
+ * @brief FRP Instruction table entry configuration structure
+ */
+struct osi_core_frp_entry {
+	/** FRP ID */
+	nve32_t frp_id;
+	/** FRP Entry data structure */
+	struct osi_core_frp_data data;
+};
+
+/**
  * @brief Core time stamp data strcuture
  */
 struct osi_core_tx_ts {
@@ -1269,22 +1100,22 @@ struct osi_ioctl {
 	struct osi_l3_l4_filter l3l4_filter;
 	/* HW feature structure */
 	struct osi_hw_features hw_feat;
-#ifndef OSI_STRIPPED_LIB
-	/* AVB structure */
+	/** AVB structure */
 	struct osi_core_avb_algorithm avb;
-	/* VLAN filter structure */
+#ifndef OSI_STRIPPED_LIB
+	/** VLAN filter structure */
 	struct osi_vlan_filter vlan_filter;
-	/* PTP offload config structure*/
+	/** PTP offload config structure*/
 	struct osi_pto_config pto_config;
-	/* FRP structure */
-	struct osi_core_frp_cmd frp_cmd;
-	/* EST structure */
-	struct osi_est_config est;
-	/* FRP structure */
-	struct osi_fpe_config fpe;
-	/* RXQ route structure */
+	/** RXQ route structure */
 	struct osi_rxq_route rxq_route;
 #endif /* !OSI_STRIPPED_LIB */
+	/** FRP structure */
+	struct osi_core_frp_cmd frp_cmd;
+	/** EST structure */
+	struct osi_est_config est;
+	/** FRP structure */
+	struct osi_fpe_config fpe;
 	/** PTP configuration settings */
 	struct osi_ptp_config ptp_config;
 	/** TX Timestamp structure */
@@ -1451,19 +1282,29 @@ struct osi_core_priv_data {
 	struct osi_xtra_stat_counters xstats;
 	/** Memory mapped base address of HV window */
 	void *hv_base;
-	/** Residual queue valid with FPE support */
-	nveu32_t residual_queue;
 	/** Functional safety config to do periodic read-verify of
 	 * certain safety critical registers */
 	void *safety_config;
 	/** Backup config to save/restore registers during suspend/resume */
 	struct core_backup backup_config;
+	/** csr clock is to program LPI 1 us tick timer register.
+	 * Value stored in MHz
+	 */
+	nveu32_t csr_clk_speed;
+	nveu64_t vf_bitmap;
+	/** Array to maintain VLAN filters */
+	nveu16_t vid[VLAN_NUM_VID];
+	/** Count of number of VLAN filters in vid array */
+	nveu16_t vlan_filter_cnt;
+	/** RSS core structure */
+	struct osi_core_rss rss;
+#endif
+	/** Residual queue valid with FPE support */
+	nveu32_t residual_queue;
 	/** FRP Instruction Table */
 	struct osi_core_frp_entry frp_table[OSI_FRP_MAX_ENTRY];
 	/** Number of valid Entries in the FRP Instruction Table */
 	nveu32_t frp_cnt;
-	/** RSS core structure */
-	struct osi_core_rss rss;
 	/* Switch to Software Owned List Complete.
 	 *  1 - Successful and User configured GCL in placed
 	 */
@@ -1474,16 +1315,6 @@ struct osi_core_priv_data {
 	nveu32_t fpe_ready;
 	/** TSN stats counters */
 	struct osi_tsn_stats tsn_stats;
-	/** csr clock is to program LPI 1 us tick timer register.
-	 * Value stored in MHz
-	 */
-	nveu32_t csr_clk_speed;
-	nveu64_t vf_bitmap;
-	/** Array to maintaion VLAN filters */
-	nveu16_t vid[VLAN_NUM_VID];
-	/** Count of number of VLAN filters in vid array */
-	nveu16_t vlan_filter_cnt;
-#endif
 	/** eqos pad control structure */
 	struct core_padctrl padctrl;
 	/** MDC clock rate */

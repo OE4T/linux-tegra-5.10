@@ -47,29 +47,30 @@
  * @brief Dynamic configuration helper macros.
  */
 #define DYNAMIC_CFG_L3_L4	OSI_BIT(0)
-#define DYNAMIC_CFG_L3_L4_IDX	0U
+#define DYNAMIC_CFG_AVB		OSI_BIT(2)
 #define DYNAMIC_CFG_L2		OSI_BIT(3)
 #define DYNAMIC_CFG_L2_IDX	3U
 #define DYNAMIC_CFG_RXCSUM	OSI_BIT(4)
-#define DYNAMIC_CFG_RXCSUM_IDX	4U
 #define DYNAMIC_CFG_PTP		OSI_BIT(7)
-#define DYNAMIC_CFG_PTP_IDX	7U
-
-#ifndef OSI_STRIPPED_LIB
-#define DYNAMIC_CFG_FC		OSI_BIT(1)
-#define DYNAMIC_CFG_AVB		OSI_BIT(2)
-#define DYNAMIC_CFG_VLAN	OSI_BIT(5)
-#define DYNAMIC_CFG_EEE		OSI_BIT(6)
 #define DYNAMIC_CFG_EST		OSI_BIT(8)
 #define DYNAMIC_CFG_FPE		OSI_BIT(9)
 
+#ifndef OSI_STRIPPED_LIB
+#define DYNAMIC_CFG_FC		OSI_BIT(1)
+#define DYNAMIC_CFG_VLAN	OSI_BIT(5)
+#define DYNAMIC_CFG_EEE		OSI_BIT(6)
 #define DYNAMIC_CFG_FC_IDX	1U
-#define DYNAMIC_CFG_AVB_IDX	2U
 #define DYNAMIC_CFG_VLAN_IDX	5U
 #define DYNAMIC_CFG_EEE_IDX	6U
+#endif /* !OSI_STRIPPED_LIB */
+
+#define DYNAMIC_CFG_L3_L4_IDX	0U
+#define DYNAMIC_CFG_AVB_IDX	2U
+#define DYNAMIC_CFG_L2_IDX	3U
+#define DYNAMIC_CFG_RXCSUM_IDX	4U
+#define DYNAMIC_CFG_PTP_IDX	7U
 #define DYNAMIC_CFG_EST_IDX	8U
 #define DYNAMIC_CFG_FPE_IDX	9U
-#endif /* !OSI_STRIPPED_LIB */
 
 #define OSI_SUSPENDED		OSI_BIT(0)
 
@@ -210,13 +211,6 @@ struct core_ops {
 	/** Called periodically to read and validate safety critical
 	 * registers against last written value */
 	nve32_t (*validate_regs)(struct osi_core_priv_data *const osi_core);
-	/** Called to set av parameter */
-	nve32_t (*set_avb_algorithm)(struct osi_core_priv_data *const osi_core,
-			   const struct osi_core_avb_algorithm *const avb);
-	/** Called to get av parameter */
-	nve32_t (*get_avb_algorithm)(struct osi_core_priv_data *const osi_core,
-				     struct osi_core_avb_algorithm *const avb);
-
 	/** Called to configure VLAN filtering */
 	nve32_t (*config_vlan_filtering)(
 				     struct osi_core_priv_data *const osi_core,
@@ -240,22 +234,6 @@ struct core_ops {
 	nve32_t (*config_mac_loopback)(
 				struct osi_core_priv_data *const osi_core,
 				const nveu32_t lb_mode);
-	/** Called to update GCL config */
-	nve32_t (*hw_config_est)(struct osi_core_priv_data *const osi_core,
-			     struct osi_est_config *const est);
-	/** Called to update FPE config */
-	nve32_t (*hw_config_fpe)(struct osi_core_priv_data *const osi_core,
-			struct osi_fpe_config *const fpe);
-	/** Called to configure FRP engine */
-	nve32_t (*config_frp)(struct osi_core_priv_data *const osi_core,
-			  const nveu32_t enabled);
-	/** Called to update FRP Instruction Table entry */
-	nve32_t (*update_frp_entry)(struct osi_core_priv_data *const osi_core,
-				const nveu32_t pos,
-				struct osi_core_frp_data *const data);
-	/** Called to update FRP NVE and  */
-	nve32_t (*update_frp_nve)(struct osi_core_priv_data *const osi_core,
-			      const nveu32_t nve);
 	/** Called to configure RSS for MAC */
 	nve32_t (*config_rss)(struct osi_core_priv_data *osi_core);
 	/** Called to configure the PTP RX packets Queue */
@@ -263,6 +241,22 @@ struct core_ops {
 				  const nveu32_t rxq_idx,
 				  const nveu32_t enable);
 #endif /* !OSI_STRIPPED_LIB */
+	/** Called to set av parameter */
+	nve32_t (*set_avb_algorithm)(struct osi_core_priv_data *const osi_core,
+				     const struct osi_core_avb_algorithm *const avb);
+	/** Called to get av parameter */
+	nve32_t (*get_avb_algorithm)(struct osi_core_priv_data *const osi_core,
+				     struct osi_core_avb_algorithm *const avb);
+	/** Called to configure FRP engine */
+	nve32_t (*config_frp)(struct osi_core_priv_data *const osi_core,
+			      const nveu32_t enabled);
+	/** Called to update FRP Instruction Table entry */
+	nve32_t (*update_frp_entry)(struct osi_core_priv_data *const osi_core,
+				    const nveu32_t pos,
+				    struct osi_core_frp_data *const data);
+	/** Called to update FRP NVE and  */
+	nve32_t (*update_frp_nve)(struct osi_core_priv_data *const osi_core,
+				  const nveu32_t nve);
 #ifdef HSI_SUPPORT
 	/** Interface function called to initialize HSI */
 	nve32_t (*core_hsi_configure)(struct osi_core_priv_data *const osi_core,
@@ -332,7 +326,6 @@ struct l3_l4_filters {
 	struct osi_l3_l4_filter l3l4_filter;
 };
 
-#ifndef OSI_STRIPPED_LIB
 /**
  * @brief AVB dynamic config storage structure
  */
@@ -342,7 +335,6 @@ struct core_avb {
 	/** AVB data structure */
 	struct osi_core_avb_algorithm avb_info;
 };
-#endif /* !OSI_STRIPPED_LIB */
 
 /**
  * @brief VLAN dynamic config storage structure
@@ -371,10 +363,8 @@ struct dynamic_cfg {
 	struct l3_l4_filters l3_l4[OSI_MGBE_MAX_L3_L4_FILTER];
 	/** flow control */
 	nveu32_t flow_ctrl;
-#ifndef OSI_STRIPPED_LIB
 	/** AVB */
 	struct core_avb avb[OSI_MGBE_MAX_NUM_QUEUES];
-#endif /* !OSI_STRIPPED_LIB */
 	/** RXCSUM */
 	nveu32_t rxcsum;
 	/** VLAN arguments storage */
@@ -384,12 +374,10 @@ struct dynamic_cfg {
 	nveu32_t tx_lpi_timer;
 	/** PTP information storage */
 	nveu32_t ptp;
-#ifndef OSI_STRIPPED_LIB
 	/** EST information storage */
 	struct osi_est_config est;
 	/** FPE information storage */
 	struct osi_fpe_config fpe;
-#endif /* !OSI_STRIPPED_LIB */
 	/** L2 filter storage */
 	struct osi_filter l2_filter;
 	/** L2 filter configuration */

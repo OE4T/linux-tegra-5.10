@@ -35,6 +35,14 @@
  */
 #define MAX_ARGS	10
 
+/*
+ *@brief All Stats
+ */
+struct osi_stats {
+	struct osi_mmc_counters mmc_s;
+	struct osi_tsn_stats tsn_s;
+};
+
 /**
  * @brief IVC commands between OSD & OSI.
  */
@@ -135,10 +143,8 @@ typedef struct ivc_msg_common {
 	union {
 		/** IVC argument structure */
 		ivc_args args;
-#ifndef OSI_STRIPPED_LIB
 		/** avb algorithm structure */
 		struct osi_core_avb_algorithm avb_algo;
-#endif
 		/** OSI filter structure */
 		struct osi_filter filter;
 		/** OSI HW features */
@@ -149,6 +155,8 @@ typedef struct ivc_msg_common {
 		ivc_core_args init_args;
 		/** ioctl command structure */
 		struct osi_ioctl ioctl_data;
+		/** All stats */
+		struct osi_stats eth_stats;
 #ifdef MACSEC_SUPPORT
 		/** lut config */
 		struct osi_macsec_lut_config lut_config;
