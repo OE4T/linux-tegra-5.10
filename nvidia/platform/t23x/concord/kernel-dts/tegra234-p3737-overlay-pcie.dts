@@ -1,0 +1,76 @@
+/*
+ * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+ * more details.
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/tegra234-gpio.h>
+
+/ {
+	overlay-name = "Add PCIe C5 dual mode support";
+	compatible = "nvidia,tegra23x";
+	nvidia,dtsfilename = __FILE__;
+	nvidia,dtbbuildtime = __DATE__, __TIME__;
+
+	/* PCIe C5 root port */
+	fragment@0 {
+		target-path = "/";
+		board_config {
+			odm-data = "nvhs-uphy-config-0";
+		};
+		__overlay__ {
+			pcie@141a0000 {
+				status = "okay";
+			};
+			pcie_ep@141a0000 {
+				status = "disabled";
+			};
+		};
+	};
+
+	/* PCIe C5 endpoint */
+	fragment@1 {
+		target-path = "/";
+		board_config {
+			odm-data = "nvhs-uphy-config-1";
+		};
+		__overlay__ {
+			pcie@141a0000 {
+				status = "disabled";
+			};
+			pcie_ep@141a0000 {
+				status = "okay";
+			};
+		};
+	};
+
+	/* PCIe changes for >= P3737-A04 revision. */
+	fragment@2 {
+		target-path = "/";
+		board_config {
+			ids = ">=3737-0000-TS4","3737-0000-RC1","3737-0000-400","3737-0000-500","3737-0000-600","3737-0000-700","3737-0000-800","3737-0000-900";
+		};
+		__overlay__ {
+			pcie_ep@141a0000 {
+				nvidia,refclk-select-gpios = <&tegra_main_gpio
+							      TEGRA234_MAIN_GPIO(Q, 4)
+							      GPIO_ACTIVE_HIGH>;
+			};
+			fixed-regulators {
+				regulator@105 {
+					gpio = <&tegra_main_gpio TEGRA234_MAIN_GPIO(H, 4) 0>;
+				};
+			};
+		};
+	};
+};
