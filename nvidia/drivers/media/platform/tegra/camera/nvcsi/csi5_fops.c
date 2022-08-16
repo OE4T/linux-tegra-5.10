@@ -416,7 +416,9 @@ int csi5_tpg_set_gain(struct tegra_csi_channel *chan, int gain_ratio_tpg)
 		return -EINVAL;
 	}
 
-	if (tegra_chan->tegra_vi_channel == NULL) {
+	vi_port = (tegra_chan->valid_ports > 1) ? port->stream_id : 0;
+
+	if (tegra_chan->tegra_vi_channel[vi_port] == NULL) {
 		/* We come here during initial v4l2 ctrl setup during TPG LKM
 		 * loading
 		 */
@@ -431,7 +433,6 @@ int csi5_tpg_set_gain(struct tegra_csi_channel *chan, int gain_ratio_tpg)
 		port->virtual_channel_id;
 	msg.csi_stream_tpg_apply_gain_req.gain_ratio =
 		get_tpg_gain_ratio_setting(gain_ratio_tpg);
-	vi_port = (tegra_chan->valid_ports > 1) ? port->stream_id : 0;
 
 	err = csi5_send_control_message(tegra_chan->tegra_vi_channel[vi_port], &msg,
 			&msg.csi_stream_tpg_apply_gain_resp.result);
