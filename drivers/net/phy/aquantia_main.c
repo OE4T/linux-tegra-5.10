@@ -35,6 +35,7 @@
 #define MDIO_PHYXS_VEND_IF_STATUS_TYPE_USXGMII	3
 #define MDIO_PHYXS_VEND_IF_STATUS_TYPE_SGMII	6
 #define MDIO_PHYXS_VEND_IF_STATUS_TYPE_OCSGMII	10
+#define MDIO_PHYXS_VEND_IF_STATUS_TX_READY	BIT(12)
 
 #define MDIO_AN_VEND_PROV			0xc400
 #define MDIO_AN_VEND_PROV_1000BASET_FULL	BIT(15)
@@ -204,6 +205,7 @@ static const struct aqr107_hw_stat aqr107_hw_stats[] = {
 
 struct aqr107_priv {
 	u64 sgmii_stats[AQR107_SGMII_STAT_SZ];
+	int wol_status;
 };
 
 static int aqr107_get_sset_count(struct phy_device *phydev)
@@ -344,7 +346,7 @@ static int aqr_ack_interrupt(struct phy_device *phydev)
 {
 	int reg;
 	int val, ret;
-
+	struct aqr107_priv *priv = phydev->priv;
 	reg = phy_read_mmd(phydev, MDIO_MMD_C22EXT, MDIO_C22EXT_GBE_PHY_SGMII_TX_ALARM1);
 	if ((reg & MDIO_C22EXT_SGMII0_MAGIC_PKT_FRAME_MASK) ==
 	    MDIO_C22EXT_SGMII0_MAGIC_PKT_FRAME_MASK) {
@@ -365,6 +367,7 @@ static int aqr_ack_interrupt(struct phy_device *phydev)
 		if (ret < 0)
 			return ret;
 		/* restart auto-negotiation */
+		priv->wol_status = 0;
 		return genphy_c45_restart_aneg(phydev);
 	}
 	reg = phy_read_mmd(phydev, MDIO_MMD_AN,
@@ -436,6 +439,7 @@ static int aqr107_read_rate(struct phy_device *phydev)
 static int aqr107_read_status(struct phy_device *phydev)
 {
 	int val, ret;
+	struct aqr107_priv *priv = phydev->priv;
 
 	ret = aqr_read_status(phydev);
 	if (ret)
@@ -469,6 +473,14 @@ static int aqr107_read_status(struct phy_device *phydev)
 		break;
 	}
 
+	if (!priv->wol_status)
+		ret = phy_read_mmd_poll_timeout(phydev, MDIO_MMD_PHYXS, MDIO_PHYXS_VEND_IF_STATUS,
+						val, (val & MDIO_PHYXS_VEND_IF_STATUS_TX_READY),
+						20000, 2000000, false);
+	if (ret) {
+		phydev_err(phydev, "PHY system interface is not yet ready\n");
+		return ret;
+	}
 	/* Read possibly downshifted rate from vendor register */
 	return aqr107_read_rate(phydev);
 }
@@ -749,6 +761,7 @@ static int aqr113c_wol_settings(struct phy_device *phydev, bool enable)
 {
 	u16 val;
 	int ret = 0;
+	struct aqr107_priv *priv = phydev->priv;
 
 	if (enable) {
 		/* Disables all advertised speeds except for the WoL
@@ -824,6 +837,7 @@ static int aqr113c_wol_settings(struct phy_device *phydev, bool enable)
 
 		/* restart auto-negotiation */
 		genphy_c45_restart_aneg(phydev);
+		priv->wol_status = 1;
 	} else {
 		/* Disable the WoL enable bit */
 		val = phy_read_mmd(phydev, MDIO_MMD_AN, MDIO_AN_RSVD_VEND_PROV1);
@@ -844,6 +858,7 @@ static int aqr113c_wol_settings(struct phy_device *phydev, bool enable)
 
 		/* restart auto-negotiation */
 		genphy_c45_restart_aneg(phydev);
+		priv->wol_status = 0;
 	}
 	return ret;
 }
