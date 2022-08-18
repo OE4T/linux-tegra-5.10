@@ -73,6 +73,7 @@ struct tegra_camera_info {
 	struct icc_path *icc_iso_path_handle;
 	int icc_noniso_id;
 	struct icc_path *icc_noniso_path_handle;
+	struct mutex icc_noniso_path_handle_lock;
 #endif
 	struct mutex update_bw_lock;
 	u64 vi_mode_isobw;
@@ -350,10 +351,13 @@ static int tegra_camera_open(struct inode *inode, struct file *file)
 #if IS_ENABLED(CONFIG_INTERCONNECT) && IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
 	/* For T194 and earlier chips Interconnect is not supported. */
 	if (tegra_get_chip_id() == TEGRA234) {
+		mutex_lock(&info->icc_noniso_path_handle_lock);
 		info->icc_noniso_id = TEGRA_ICC_ISP;
 		info->icc_noniso_path_handle =
 			icc_get(info->dev,
 				info->icc_noniso_id, TEGRA_ICC_PRIMARY);
+		mutex_unlock(&info->icc_noniso_path_handle_lock);
+
 		if (IS_ERR_OR_NULL(info->icc_noniso_path_handle)) {
 			dev_err(info->dev,
 			"%s unable to get icc path (err=%ld)\n",
@@ -392,8 +396,10 @@ static int tegra_camera_release(struct inode *inode, struct file *file)
 	info = file->private_data;
 #if IS_ENABLED(CONFIG_INTERCONNECT) && IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
 	if (tegra_get_chip_id() == TEGRA234) {
+		mutex_lock(&info->icc_noniso_path_handle_lock);
 		icc_put(info->icc_noniso_path_handle);
 		info->icc_noniso_path_handle = NULL;
+		mutex_unlock(&info->icc_noniso_path_handle_lock);
 		return 0;
 	}
 #endif
@@ -582,9 +588,11 @@ static long tegra_camera_ioctl(struct file *file,
 				__func__, kcopy.bw, mc_khz);
 #if IS_ENABLED(CONFIG_INTERCONNECT) && IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
 			if (tegra_get_chip_id() == TEGRA234) {
+				mutex_lock(&info->icc_noniso_path_handle_lock);
 				ret = icc_set_bw(info->icc_noniso_path_handle,
 						(u32)(kcopy.bw & 0xFFFFFFFF),
 						(u32)(kcopy.bw & 0xFFFFFFFF));
+				mutex_unlock(&info->icc_noniso_path_handle_lock);
 				if (ret) {
 					dev_err(info->dev,
 					"%s: ICC failed to reserve %u KBps\n",
@@ -779,6 +787,7 @@ static int tegra_camera_probe(struct platform_device *pdev)
 	mutex_init(&info->update_bw_lock);
 #if IS_ENABLED(CONFIG_INTERCONNECT) && IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
 	info->icc_iso_id = TEGRA_ICC_VI;
+	mutex_init(&info->icc_noniso_path_handle_lock);
 #endif
 	/* Register Camera as isomgr client. */
 	ret = tegra_camera_isomgr_register(info, &pdev->dev);
