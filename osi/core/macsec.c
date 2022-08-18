@@ -4779,7 +4779,7 @@ static nve32_t del_upd_sc(struct osi_core_priv_data *const osi_core,
 	if (existing_sc->curr_an == sc->curr_an) {
 		/* 1. SCI LUT */
 		lut_config.lut_sel = OSI_LUT_SEL_SCI;
-		table_config->index = (nveu16_t)(existing_sc->sc_idx_start);
+		table_config->index = (nveu16_t)(existing_sc->sc_idx_start & 0xFFU);
 		ret = macsec_lut_config(osi_core, &lut_config);
 		if (ret < 0) {
 			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
@@ -4812,8 +4812,8 @@ static nve32_t del_upd_sc(struct osi_core_priv_data *const osi_core,
 
 	/* 4. SA State LUT */
 	lut_config.lut_sel = OSI_LUT_SEL_SA_STATE;
-	table_config->index = (nveu16_t)((existing_sc->sc_idx_start * OSI_MAX_NUM_SA) +
-			       sc->curr_an);
+	table_config->index = (nveu16_t)(((existing_sc->sc_idx_start * OSI_MAX_NUM_SA) +
+			       sc->curr_an) & (0xFFU));
 	ret = macsec_lut_config(osi_core, &lut_config);
 	if (ret < 0) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
@@ -4823,8 +4823,8 @@ static nve32_t del_upd_sc(struct osi_core_priv_data *const osi_core,
 	}
 
 	/* Store key table index returned to osd */
-	*kt_idx = (nveu16_t)((existing_sc->sc_idx_start * OSI_MAX_NUM_SA) +
-		   sc->curr_an);
+	*kt_idx = (nveu16_t)(((existing_sc->sc_idx_start * OSI_MAX_NUM_SA) +
+		   sc->curr_an) & (0xFFU));
 #ifdef MACSEC_KEY_PROGRAM
 	/* 5. Key LUT */
 	table_config = &kt_config.table_config;
@@ -4945,7 +4945,7 @@ static void add_upd_sc_err_cleanup(struct osi_core_priv_data *const osi_core,
 		table_config->ctlr_sel = ctlr;
 		table_config->rw = OSI_LUT_WRITE;
 		lut_config.lut_sel = OSI_LUT_SEL_SCI;
-		table_config->index = (nveu16_t)(sc->sc_idx_start);
+		table_config->index = (nveu16_t)(sc->sc_idx_start & 0xFFU);
 		ret_fail = macsec_lut_config(osi_core, &lut_config);
 		print_error(osi_core, ret_fail);
 	}
@@ -4956,7 +4956,7 @@ static void add_upd_sc_err_cleanup(struct osi_core_priv_data *const osi_core,
 		table_config = &lut_config.table_config;
 		table_config->ctlr_sel = ctlr;
 		lut_config.lut_sel = OSI_LUT_SEL_SC_PARAM;
-		table_config->index = (nveu16_t)(sc->sc_idx_start);
+		table_config->index = (nveu16_t)(sc->sc_idx_start & 0xFFU);
 		ret_fail = macsec_lut_config(osi_core, &lut_config);
 		print_error(osi_core, ret_fail);
 	}
@@ -5078,7 +5078,7 @@ static nve32_t add_upd_sc(struct osi_core_priv_data *const osi_core,
 	/* 3. SC param LUT */
 	lut_config.flags = OSI_NONE;
 	lut_config.lut_sel = OSI_LUT_SEL_SC_PARAM;
-	table_config->index = (nveu16_t)(sc->sc_idx_start);
+	table_config->index = (nveu16_t)(sc->sc_idx_start & 0xFFU);
 	copy_rev_order(lut_config.sc_param_out.sci, sc->sci, OSI_SCI_LEN);
 	lut_config.sc_param_out.key_index_start =
 					((sc->sc_idx_start & 0xFU) *
