@@ -272,6 +272,13 @@ static void put_header(int cpuid, bool is_uncore)
 	if (quadd_mode_is_trace_tree(ctx))
 		hdr->flags |= QUADD_HDR_FLAG_MODE_TRACE_TREE;
 
+	if (ctx->exclude_user)
+		hdr->flags |= QUADD_HDR_FLAG_EXCLUDE_USER;
+	if (ctx->exclude_kernel)
+		hdr->flags |= QUADD_HDR_FLAG_EXCLUDE_KERNEL;
+	if (ctx->exclude_hv)
+		hdr->flags |= QUADD_HDR_FLAG_EXCLUDE_HV;
+
 	if (ctx->pclk_cpufreq)
 		hdr->flags |= QUADD_HDR_FLAG_CPUFREQ;
 

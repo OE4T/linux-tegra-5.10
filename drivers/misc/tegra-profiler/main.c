@@ -329,6 +329,15 @@ set_parameters(struct quadd_parameters *p)
 	if (ctx.mode_is_sampling && !validate_freq(p->freq))
 		return -EINVAL;
 
+	ctx.exclude_user =
+		extra & QUADD_PARAM_EXTRA_EXCLUDE_USER ? 1 : 0;
+	ctx.exclude_kernel =
+		extra & QUADD_PARAM_EXTRA_EXCLUDE_KERNEL ? 1 : 0;
+	ctx.exclude_hv =
+		extra & QUADD_PARAM_EXTRA_EXCLUDE_HV ? 1 : 0;
+	pr_info("exclude user/kernel/hv: %u/%u/%u\n",
+		ctx.exclude_user, ctx.exclude_kernel, ctx.exclude_hv);
+
 	uncore_freq = p->reserved[QUADD_PARAM_IDX_UNCORE_FREQ];
 	if (uncore_freq != 0 && !validate_freq(uncore_freq))
 		return -EINVAL;
@@ -630,7 +639,7 @@ static inline
 struct quadd_event_source *pmu_init(void)
 {
 #ifdef CONFIG_ARM64
-	return quadd_armv8_pmu_init();
+	return quadd_armv8_pmu_init(&ctx);
 #else
 	return quadd_armv7_pmu_init();
 #endif

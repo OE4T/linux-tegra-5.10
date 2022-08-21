@@ -1,7 +1,7 @@
 /*
  * include/uapi/linux/tegra_profiler.h
  *
- * Copyright (c) 2013-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -20,8 +20,8 @@
 #include <linux/ioctl.h>
 #include <linux/types.h>
 
-#define QUADD_SAMPLES_VERSION	49
-#define QUADD_IO_VERSION	28
+#define QUADD_SAMPLES_VERSION	50
+#define QUADD_IO_VERSION	29
 
 #define QUADD_IO_VERSION_DYNAMIC_RB		5
 #define QUADD_IO_VERSION_RB_MAX_FILL_COUNT	6
@@ -47,6 +47,7 @@
 #define QUADD_IO_VERSION_EXTABLES_PID		26
 #define QUADD_IO_VERSION_SAMPLING_CNTRL		27
 #define QUADD_IO_VERSION_UNCORE_EVENTS		28
+#define QUADD_IO_VERSION_EVENT_FILTER		29
 
 #define QUADD_SAMPLE_VERSION_THUMB_MODE_FLAG	17
 #define QUADD_SAMPLE_VERSION_GROUP_SAMPLES	18
@@ -79,6 +80,7 @@
 #define QUADD_SAMPLE_VERSION_COMM_SAMPLES	47
 #define QUADD_SAMPLE_VERSION_UNCORE_EVENTS	48
 #define QUADD_SAMPLE_VERSION_SEQID		49
+#define QUADD_SAMPLE_VERSION_EVENT_FILTER	50
 
 #define QUADD_MMAP_HEADER_VERSION	1
 
@@ -401,6 +403,9 @@ struct quadd_debug_data {
 #define QUADD_HDR_FLAG_MODE_TRACE_TREE	(1ULL << 17)
 #define QUADD_HDR_FLAG_CPUFREQ		(1ULL << 18)
 #define QUADD_HDR_FLAG_UNCORE		(1ULL << 19)
+#define QUADD_HDR_FLAG_EXCLUDE_USER	(1ULL << 20)
+#define QUADD_HDR_FLAG_EXCLUDE_KERNEL	(1ULL << 21)
+#define QUADD_HDR_FLAG_EXCLUDE_HV	(1ULL << 22)
 
 struct quadd_header_data {
 	__u16 magic;
@@ -468,6 +473,9 @@ enum {
 #define QUADD_PARAM_EXTRA_TRACE_TREE		(1 << 14)
 #define QUADD_PARAM_EXTRA_SAMPLING_TIMER	(1 << 15)
 #define QUADD_PARAM_EXTRA_SAMPLING_SCHED_OUT	(1 << 16)
+#define QUADD_PARAM_EXTRA_EXCLUDE_USER		(1 << 17)
+#define QUADD_PARAM_EXTRA_EXCLUDE_KERNEL	(1 << 18)
+#define QUADD_PARAM_EXTRA_EXCLUDE_HV		(1 << 19)
 
 enum {
 	QUADD_EVENT_TYPE_RAW			= 0,

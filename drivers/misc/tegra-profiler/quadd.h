@@ -1,7 +1,7 @@
 /*
  * drivers/misc/tegra-profiler/quadd.h
  *
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -111,6 +111,10 @@ struct quadd_ctx {
 	unsigned int mode_is_sampling_sched:1;
 
 	unsigned int pclk_cpufreq:1;
+
+	unsigned int exclude_user:1;
+	unsigned int exclude_kernel:1;
+	unsigned int exclude_hv:1;
 
 	struct list_head mmap_areas;
 	raw_spinlock_t mmaps_lock;
