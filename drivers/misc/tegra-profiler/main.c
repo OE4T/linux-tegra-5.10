@@ -366,15 +366,15 @@ set_parameters(struct quadd_parameters *p)
 		} else {
 			ctx.collect_kernel_ips = 1;
 		}
-
-		low_addr_p =
-			(u64 *)&p->reserved[QUADD_PARAM_IDX_BT_LOWER_BOUND];
-		ctx.hrt->low_addr = (unsigned long)*low_addr_p;
-
-		err = quadd_unwind_start(task);
-		if (err)
-			goto out_put_task;
 	}
+
+	low_addr_p =
+		(u64 *)&p->reserved[QUADD_PARAM_IDX_BT_LOWER_BOUND];
+	ctx.hrt->low_addr = (unsigned long)*low_addr_p;
+
+	err = quadd_unwind_start(task);
+	if (err)
+		goto out_put_task;
 
 #if defined(CONFIG_ARCH_TEGRA_19x_SOC) || defined(CONFIG_ARCH_TEGRA_194_SOC)
 	nr = p->nr_events;

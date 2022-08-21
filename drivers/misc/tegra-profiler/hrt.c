@@ -405,7 +405,7 @@ static int get_sample_data(struct quadd_sample_data *s,
 	if (in_interrupt())
 		s->flags |= QUADD_SAMPLE_FLAG_IN_INTERRUPT;
 	if (task->flags & PF_KTHREAD)
-		s->flags |= QUADD_SCHED_FLAG_PF_KTHREAD;
+		s->flags |= QUADD_SAMPLE_FLAG_PF_KTHREAD;
 
 	/* For security reasons, hide IPs from the kernel space. */
 	if (!user_mode && !quadd_ctx->collect_kernel_ips)
