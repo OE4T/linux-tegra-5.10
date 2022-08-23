@@ -46,9 +46,6 @@
 /* cpufreq transisition latency */
 #define TEGRA_CPUFREQ_TRANSITION_LATENCY (300 * 1000) /* unit in nanoseconds */
 
-#define LOOP_FOR_EACH_CLUSTER(cl)       for (cl = 0; \
-					cl < MAX_CLUSTERS; cl++)
-
 enum cluster {
 	CLUSTER0,
 	CLUSTER1,
@@ -84,6 +81,7 @@ struct tegra_cpufreq_ops {
 struct tegra_cpufreq_soc {
 	struct tegra_cpufreq_ops *ops;
 	int maxcpus_per_cluster;
+	size_t num_clusters;
 	phys_addr_t actmon_cntr_base;
 	enum emc_scaling_mngr emc_scal_mgr;
 	bool register_cpuhp_state;
@@ -91,7 +89,6 @@ struct tegra_cpufreq_soc {
 
 struct tegra194_cpufreq_data {
 	void __iomem *regs;
-	size_t num_clusters;
 	struct cpufreq_frequency_table **tables;
 	const struct tegra_cpufreq_soc *soc;
 	struct tegra_bwmgr_client **bwmgr;
@@ -205,6 +202,7 @@ const struct tegra_cpufreq_soc tegra234_cpufreq_soc = {
 	.maxcpus_per_cluster = 4,
 	.emc_scal_mgr = ICC,
 	.register_cpuhp_state = true,
+	.num_clusters = 3,
 };
 
 const struct tegra_cpufreq_soc tegra239_cpufreq_soc = {
@@ -213,6 +211,7 @@ const struct tegra_cpufreq_soc tegra239_cpufreq_soc = {
 	.maxcpus_per_cluster = 8,
 	.emc_scal_mgr = ICC,
 	.register_cpuhp_state = true,
+	.num_clusters = 1,
 };
 
 static void tegra194_get_cpu_cluster_id(u32 cpu, u32 *cpuid, u32 *clusterid)
@@ -444,7 +443,7 @@ static int tegra194_cpufreq_init(struct cpufreq_policy *policy)
 
 	data->soc->ops->get_cpu_cluster_id(policy->cpu, NULL, &clusterid);
 
-	if (clusterid >= data->num_clusters || !data->tables[clusterid])
+	if (clusterid >= data->soc->num_clusters || !data->tables[clusterid])
 		return -EINVAL;
 
 	if (cpufreq_single_policy) {
@@ -550,6 +549,7 @@ const struct tegra_cpufreq_soc tegra194_cpufreq_soc = {
 	.maxcpus_per_cluster = 2,
 	.emc_scal_mgr = BWMGR,
 	.register_cpuhp_state = false,
+	.num_clusters = 4,
 };
 
 static void tegra194_cpufreq_free_resources(void)
@@ -560,7 +560,7 @@ static void tegra194_cpufreq_free_resources(void)
 	if (read_counters_wq)
 		destroy_workqueue(read_counters_wq);
 
-	LOOP_FOR_EACH_CLUSTER(cl) {
+	for (cl = 0; cl < data->soc->num_clusters; cl++) {
 		/* unregister from emc scaling manager */
 		if (data->soc->emc_scal_mgr == BWMGR) {
 			if (data->bwmgr[cl])
@@ -706,7 +706,7 @@ static int tegra194_cpufreq_probe(struct platform_device *pdev)
 
 	soc = of_device_get_match_data(&pdev->dev);
 
-	if (soc->ops && soc->maxcpus_per_cluster) {
+	if (soc->ops && soc->maxcpus_per_cluster && soc->num_clusters) {
 		data->soc = soc;
 	} else {
 		dev_err(&pdev->dev, "soc data missing\n");
@@ -714,8 +714,7 @@ static int tegra194_cpufreq_probe(struct platform_device *pdev)
 		goto err_free_map_ptr;
 	}
 
-	data->num_clusters = MAX_CLUSTERS;
-	data->tables = devm_kcalloc(&pdev->dev, data->num_clusters,
+	data->tables = devm_kcalloc(&pdev->dev, data->soc->num_clusters,
 				    sizeof(*data->tables), GFP_KERNEL);
 	if (!data->tables) {
 		err = -ENOMEM;
@@ -723,7 +722,7 @@ static int tegra194_cpufreq_probe(struct platform_device *pdev)
 	}
 
 	if (data->soc->emc_scal_mgr == BWMGR) {
-		data->bwmgr = devm_kcalloc(&pdev->dev, data->num_clusters,
+		data->bwmgr = devm_kcalloc(&pdev->dev, data->soc->num_clusters,
 					   sizeof(struct tegra_bwmgr_client), GFP_KERNEL);
 		if (!data->bwmgr) {
 			err = -ENOMEM;
@@ -732,7 +731,7 @@ static int tegra194_cpufreq_probe(struct platform_device *pdev)
 	}
 
 	if (data->soc->emc_scal_mgr == ICC) {
-		data->icc_handle = devm_kcalloc(&pdev->dev, data->num_clusters,
+		data->icc_handle = devm_kcalloc(&pdev->dev, data->soc->num_clusters,
 						sizeof(*data->icc_handle), GFP_KERNEL);
 		if (!data->icc_handle) {
 			err = -ENOMEM;
@@ -765,7 +764,7 @@ static int tegra194_cpufreq_probe(struct platform_device *pdev)
 		goto put_bpmp;
 	}
 
-	for (i = 0; i < data->num_clusters; i++) {
+	for (i = 0; i < data->soc->num_clusters; i++) {
 		data->tables[i] = init_freq_table(pdev, bpmp, i);
 		if (IS_ERR(data->tables[i])) {
 			err = PTR_ERR(data->tables[i]);
@@ -798,9 +797,9 @@ static int tegra194_cpufreq_probe(struct platform_device *pdev)
 	if (!err) {
 		tegra_bpmp_put(bpmp);
 		if (data->soc->emc_scal_mgr == ICC)
-			dev_info(&pdev->dev, "probed with ICC\n");
+			dev_info(&pdev->dev, "probed with ICC, cl:%lu\n", data->soc->num_clusters);
 		else if (data->soc->emc_scal_mgr == BWMGR)
-			dev_info(&pdev->dev, "probed with BWMGR\n");
+			dev_info(&pdev->dev, "probed with BWMGR, cl:%lu\n", data->soc->num_clusters);
 		return err;
 	}
 
