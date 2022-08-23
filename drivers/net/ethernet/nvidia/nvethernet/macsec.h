@@ -49,6 +49,11 @@
  */
 #define MACSEC_IRQ_NAME_SZ		32
 
+/**
+ * @brief Maximum number of supplicants allowed per VF
+ */
+#define MAX_SUPPLICANTS_ALLOWED		1
+
 #define NV_MACSEC_GENL_VERSION	1
 
 #ifdef MACSEC_KEY_PROGRAM
@@ -228,6 +233,10 @@ struct macsec_priv_data {
 	struct genl_family nv_macsec_fam;
 	/** Flag to check if nv macsec nl registered */
 	unsigned int is_nv_macsec_fam_registered;
+	/** Macsec TX currently enabled AN */
+	unsigned int macsec_tx_an_map;
+	/** Macsec RX currently enabled AN */
+	unsigned int macsec_rx_an_map;
 };
 
 int macsec_probe(struct ether_priv_data *pdata);

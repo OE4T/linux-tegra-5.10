@@ -793,6 +793,8 @@ static int macsec_dis_rx_sa(struct sk_buff *skb, struct genl_info *info)
 		goto exit;
 	}
 #endif /* !MACSEC_KEY_PROGRAM */
+	/* Update the macsec pdata when AN is disabled */
+	macsec_pdata->macsec_rx_an_map &= ~((1U) << (rx_sa.curr_an & 0xFU));
 exit:
 	PRINT_EXIT();
 	return ret;
@@ -978,7 +980,8 @@ static int macsec_en_rx_sa(struct sk_buff *skb, struct genl_info *info)
 		goto exit;
 	}
 	mutex_unlock(&macsec_pdata->lock);
-
+	/* Update the macsec pdata when AN is enabled */
+	macsec_pdata->macsec_rx_an_map |= ((1U) << (rx_sa.curr_an & 0xFU));
 exit:
 	PRINT_EXIT();
 	return ret;
@@ -1057,6 +1060,8 @@ static int macsec_dis_tx_sa(struct sk_buff *skb, struct genl_info *info)
 	}
 #endif /* !MACSEC_KEY_PROGRAM */
 
+	/* Update the macsec pdata when AN is disbled */
+	macsec_pdata->macsec_tx_an_map &= ~((1U) << (tx_sa.curr_an & 0xFU));
 exit:
 	PRINT_EXIT();
 	return ret;
@@ -1204,7 +1209,8 @@ static int macsec_en_tx_sa(struct sk_buff *skb, struct genl_info *info)
 	}
 
 	mutex_unlock(&macsec_pdata->lock);
-
+	/* Update the macsec pdata when AN is enabled */
+	macsec_pdata->macsec_tx_an_map |= ((1U) << (tx_sa.curr_an & 0xFU));
 exit:
 	PRINT_EXIT();
 	return ret;
@@ -1311,11 +1317,12 @@ static int macsec_init(struct sk_buff *skb, struct genl_info *info)
 		goto exit;
 	}
 	mutex_lock(&macsec_pdata->lock);
-
-	if (macsec_pdata->next_supp_idx >= OSI_MAX_NUM_SC) {
+	/* only one supplicant is allowed per VF */
+	if (macsec_pdata->next_supp_idx >= MAX_SUPPLICANTS_ALLOWED) {
 		ret = -EPROTO;
 		mutex_unlock(&macsec_pdata->lock);
-		dev_err(dev, "%s: Reached max supported supplicants", __func__);
+		dev_err(dev, "%s: Reached max supported supplicants %u", __func__,
+			macsec_pdata->next_supp_idx);
 		goto exit;
 	}
 
@@ -1341,6 +1348,8 @@ static int macsec_init(struct sk_buff *skb, struct genl_info *info)
 		ret = -EPROTO;
 		goto exit;
 	}
+	macsec_pdata->macsec_rx_an_map = 0U;
+	macsec_pdata->macsec_tx_an_map = 0U;
 done:
 	atomic_inc(&macsec_pdata->ref_count);
 	dev_info(dev, "%s: ref_count %d", __func__,

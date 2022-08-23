@@ -182,6 +182,42 @@ static ssize_t ether_mac_loopback_store(struct device *dev,
 }
 
 #ifdef MACSEC_SUPPORT
+
+/**
+ * @brief Shows the current setting of MACsec AN status
+ *
+ * Algorithm: Display the current MACsec AN enable status
+ *
+ * @param[in] dev: Device data.
+ * @param[in] attr: Device attribute
+ * @param[in] buf: Buffer to store the current macsec an status
+ */
+static ssize_t macsec_an_status_show(struct device *dev,
+				     struct device_attribute *attr, char *buf)
+{
+	struct net_device *ndev = (struct net_device *)dev_get_drvdata(dev);
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct macsec_priv_data *macsec_pdata = pdata->macsec_pdata;
+	unsigned int macsec_status = 0;
+
+	if ((macsec_pdata->macsec_tx_an_map != 0U) &&
+	    (macsec_pdata->macsec_rx_an_map != 0U)) {
+		macsec_status = OSI_ENABLE;
+	}
+
+	return scnprintf(buf, PAGE_SIZE, "%s\n",
+			 (macsec_status == OSI_ENABLE) ?
+			 "1" : "0");
+}
+
+/**
+ * @brief Sysfs attribute for MACsec irq stats
+ *
+ */
+static DEVICE_ATTR(macsec_an_status, (S_IRUGO | S_IWUSR),
+		   macsec_an_status_show,
+		   NULL);
+
 /**
  * @brief Shows the current setting of MACsec controllers enabled
  *
@@ -2630,6 +2666,7 @@ static struct attribute *ether_sysfs_attrs[] = {
 	&dev_attr_macsec_sc_param_lut.attr,
 	&dev_attr_macsec_cipher.attr,
 	&dev_attr_macsec_enable.attr,
+	&dev_attr_macsec_an_status.attr,
 	&dev_attr_macsec_mmc_counters.attr,
 #ifdef DEBUG_MACSEC
 	&dev_attr_macsec_loopback.attr,
