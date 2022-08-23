@@ -1696,7 +1696,8 @@ static ssize_t macsec_sc_state_lut_store(struct device *dev,
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct osi_macsec_lut_config lut_config;
 	int index, ctlr;
-	int ret, curr_an;
+	int ret;
+	nveu32_t curr_an;
 
 	if (!netif_running(ndev)) {
 		dev_err(pdata->dev, "Not Allowed. Ether interface is not up\n");
