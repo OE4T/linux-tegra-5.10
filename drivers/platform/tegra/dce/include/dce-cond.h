@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -27,6 +27,37 @@ struct dce_cond {
  *
  * @c - The condition variable to sleep on
  * @condition - The condition that needs to be true
+ *
+ * Wait for a condition to become true.
+ */
+#define DCE_COND_WAIT(c, condition) \
+({\
+	int ret = 0; \
+	wait_event((c)->wq, condition); \
+	ret;\
+})
+
+/**
+ * DCE_COND_WAIT_INTERRUPTIBLE - Wait for a condition to be true
+ *
+ * @c - The condition variable to sleep on
+ * @condition - The condition that needs to be true
+ *
+ * Wait for a condition to become true. Returns -ERESTARTSYS
+ * on signal.
+ */
+#define DCE_COND_WAIT_INTERRUPTIBLE(c, condition) \
+({ \
+	int ret = 0; \
+	ret = wait_event_interruptible((c)->wq, condition); \
+	ret; \
+})
+
+/**
+ * DCE_COND_WAIT_TIMEOUT - Wait for a condition to be true
+ *
+ * @c - The condition variable to sleep on
+ * @condition - The condition that needs to be true
  * @timeout_ms - Timeout in milliseconds, or 0 for infinite wait.
  *               This parameter must be a u32. Since this is a macro, this is
  *               enforced by assigning a typecast NULL pointer to a u32 tmp
@@ -36,7 +67,7 @@ struct dce_cond {
  * Wait for a condition to become true. Returns -ETIMEOUT if
  * the wait timed out with condition false.
  */
-#define DCE_COND_WAIT(c, condition, timeout_ms) \
+#define DCE_COND_WAIT_TIMEOUT(c, condition, timeout_ms) \
 ({\
 	int ret = 0; \
 	/* This is the assignment to enforce a u32 for timeout_ms */ \
@@ -54,7 +85,7 @@ struct dce_cond {
 })
 
 /**
- * DCE_COND_WAIT_INTERRUPTIBLE - Wait for a condition to be true
+ * DCE_COND_WAIT_INTERRUPTIBLE_TIMEOUT - Wait for a condition to be true
  *
  * @c - The condition variable to sleep on
  * @condition - The condition that needs to be true
@@ -68,7 +99,7 @@ struct dce_cond {
  * the wait timed out with condition false or -ERESTARTSYS on
  * signal.
  */
-#define DCE_COND_WAIT_INTERRUPTIBLE(c, condition, timeout_ms) \
+#define DCE_COND_WAIT_INTERRUPTIBLE_TIMEOUT(c, condition, timeout_ms) \
 ({ \
 	int ret = 0; \
 	/* This is the assignment to enforce a u32 for timeout_ms */ \

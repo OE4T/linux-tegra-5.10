@@ -39,8 +39,7 @@ int dce_wait_interruptible(struct tegra_dce *d, u32 msg_id)
 	atomic_set(&wait->complete, 0);
 
 	DCE_COND_WAIT_INTERRUPTIBLE(&wait->cond_wait,
-			atomic_read(&wait->complete) == 1,
-			0);
+			atomic_read(&wait->complete) == 1);
 
 	if (atomic_read(&wait->complete) != 1)
 		return -EINTR;
