@@ -157,7 +157,6 @@ struct hdmi_spec {
 
 	bool dyn_pin_out;
 	bool dyn_pcm_assign;
-	bool tegra_fixup;	/* apply Nvidia Tegra platform-specific fixups */
 	/* hdmi interrupt trigger control flag for Nvidia codec */
 	bool hdmi_intr_trig_ctrl;
 	bool intel_hsw_fixup;	/* apply Intel platform-specific fixups */
@@ -895,11 +894,9 @@ static int hdmi_pin_hbr_setup(struct hda_codec *codec, hda_nid_t pin_nid,
 			      int dev_id, bool hbr)
 {
 	int pinctl, new_pinctl;
-	struct hdmi_spec *spec = codec->spec;
 
 	/* Assuming the HW supports HBR for Tegra HDMI */
-	if ((snd_hda_query_pin_caps(codec, pin_nid) & AC_PINCAP_HBR) ||
-		spec->tegra_fixup) {
+	if (snd_hda_query_pin_caps(codec, pin_nid) & AC_PINCAP_HBR) {
 		snd_hda_set_dev_select(codec, pin_nid, dev_id);
 		pinctl = snd_hda_codec_read(codec, pin_nid, 0,
 					    AC_VERB_GET_PIN_WIDGET_CONTROL, 0);
@@ -3878,8 +3875,6 @@ static int tegra_hdmi_init(struct hda_codec *codec)
 {
 	struct hdmi_spec *spec = codec->spec;
 	int i, err;
-
-	spec->tegra_fixup = true;
 
 	err = hdmi_parse_codec(codec);
 	if (err < 0) {
