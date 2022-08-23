@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -55,9 +55,8 @@
 
 	soctherm-oc-event {
 		compatible = "nvidia,tegra194-oc-event";
-		mboxes = <&bpmp_hsp TEGRA_HSP_MBOX_TYPE_SM TEGRA_HSP_SM_RX(2)>;
-		mbox-names = "oc-rx";
-		reg = <0x0 0x0d280000 0x0 0xa40>;
+		interrupts = <0 TEGRA194_IRQ_BPMP_HSP_SHARED_1 0x4>;
+		reg = <0x0 0x0d280000 0x0 0xa40>, <0x0 0x0d170000 0x0 0x4>;
 		status = "disabled";
 	};
 };
