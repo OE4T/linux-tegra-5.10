@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015, Mellanox Technologies, Ltd.  All rights reserved.
+ * Copyright (c) 2013-2022, Mellanox Technologies, Ltd.  All rights reserved.
  *
  * This software is available to you under a choice of one of two
  * licenses.  You may choose to be licensed under the terms of the GNU
@@ -10796,6 +10796,31 @@ struct mlx5_ifc_tls_progress_params_bits {
 	u8         auth_state[0x2];
 	u8         reserved_at_44[0x4];
 	u8         hw_offset_record_number[0x18];
+};
+
+struct mlx5_ifc_mtmp_reg_bits {
+	u8	reserved_at_0[0x14];
+	u8	sensor_id[0xc];
+
+	u8	reserved_at_20[0x10];
+	u8	temp[0x10];
+
+	u8	mte[0x1];
+	u8	mtr[0x1];
+	u8	reserved_at_42[0xe];
+	u8	max_temp[0x10];
+
+	u8	tee[0x2];
+	u8	reserved_at_62[0xe];
+	u8	temp_threshold_hi[0x10];
+
+	u8	reserved_at_80[0x10];
+	u8	temp_threshold_lo[0x10];
+
+	u8	reserved_at_a0[0x20];
+
+	u8	name_hi[0x20];
+	u8	name_lo[0x20];
 };
 
 enum {

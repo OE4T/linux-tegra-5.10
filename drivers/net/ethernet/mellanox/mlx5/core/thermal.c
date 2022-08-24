@@ -45,56 +45,29 @@
 /* Make sure all trips are writable */
 #define MLX5_THERMAL_TRIP_MASK	(BIT(MLX5_THERMAL_NUM_TRIPS) - 1)
 
-struct mlx5_reg_host_mtmp {
-	u8 rsvd1[2];
-	u8 sensor_id[2];
-
-	u8 rsvd2[2];
-	u8 temp[2];
-
-	u8 mt;
-	u8 rsvd3;
-	u8 max_temp[2];
-
-	u8 tee;
-	u8 rsvd4;
-	u8 temperature_threshold_hi[2];
-
-	u8 rsvd5[2];
-	u8 temperature_threshold_lo[2];
-
-	u8 rsvd6[4];
-
-	u8 sensor_name_hi[4];
-
-	u8 sensor_name_lo[4];
-};
-
-static int mlx5_thermal_get_mtmp_temp(struct mlx5_core_dev *core, int *p_temp)
+static int mlx5_thermal_get_mtmp_temp(struct mlx5_core_dev *core, u32 id, int *p_temp)
 {
-	struct mlx5_reg_host_mtmp mtmp_in;
-	struct mlx5_reg_host_mtmp mtmp_out;
+	u32 mtmp_out[MLX5_ST_SZ_DW(mtmp_reg)];
+	u32 mtmp_in[MLX5_ST_SZ_DW(mtmp_reg)];
 	int err;
 
-	if (!mlx5_core_is_pf(core))
-		return 0;
+	memset(mtmp_in, 0, sizeof(mtmp_in));
 
-	memset(&mtmp_in, 0, sizeof(mtmp_in));
-	memset(&mtmp_out, 0, sizeof(mtmp_out));
+	MLX5_SET(mtmp_reg, mtmp_in, sensor_id, id);
 
-	mtmp_in.sensor_id[0] = 0;
-	mtmp_in.sensor_id[1] = 0;
-	mtmp_in.mt = 0x80;
 	err = mlx5_core_access_reg(core, &mtmp_in,  sizeof(mtmp_in),
 				   &mtmp_out, sizeof(mtmp_out),
 				   MLX5_REG_MTMP, 0, 0);
-	if (!err)
+
+	if (err)
+		*p_temp = -1; //If something is broken, report wrong temp
+	else
 		/* The unit of temp returned is in 0.125 C. The thermal
 		 * framework expects the value in 0.001 C.
 		 */
-		*p_temp = (mtmp_out.temp[0] << 8 | mtmp_out.temp[1]) * 125;
+		*p_temp = MLX5_GET(mtmp_reg, mtmp_out, temp) * 125;
 
-	return err;
+	return 0;
 }
 
 static int mlx5_thermal_get_temp(struct thermal_zone_device *tzdev,
@@ -104,7 +77,7 @@ static int mlx5_thermal_get_temp(struct thermal_zone_device *tzdev,
 	struct mlx5_core_dev *core = thermal->core;
 	int ret = 0;
 
-	ret = mlx5_thermal_get_mtmp_temp(core, p_temp);
+	ret = mlx5_thermal_get_mtmp_temp(core, 0, p_temp);
 
 	return ret;
 }
