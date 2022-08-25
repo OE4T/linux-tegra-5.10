@@ -354,8 +354,6 @@ int nvhost_nvdec_riscv_finalize_poweron(struct platform_device *dev)
 		goto clean_up;
 	}
 
-	nvhost_flcn_ctxtsw_init(dev);
-
 #if defined(CONFIG_TRUSTED_LITTLE_KERNEL)
 	tlk_restore_keyslots();
 #endif
