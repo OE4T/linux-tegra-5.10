@@ -3669,6 +3669,13 @@ static inline void handle_common_irq(struct osi_core_priv_data *const osi_core)
 	if ((common_isr & MACSEC_SECURE_REG_VIOL) == MACSEC_SECURE_REG_VIOL) {
 		CERT_C__POST_INC__U64(osi_core->macsec_irq_stats.secure_reg_viol);
 		clear |= MACSEC_SECURE_REG_VIOL;
+#ifdef HSI_SUPPORT
+		if (osi_core->hsi.enabled == OSI_ENABLE) {
+			osi_core->hsi.macsec_err_code[MACSEC_REG_VIOL_ERR_IDX] =
+				OSI_MACSEC_REG_VIOL_ERR;
+			osi_core->hsi.macsec_report_err = OSI_ENABLE;
+		}
+#endif
 	}
 
 	if ((common_isr & MACSEC_RX_UNINIT_KEY_SLOT) ==
@@ -4399,8 +4406,7 @@ static void macsec_intr_config(struct osi_core_priv_data *const osi_core, nveu32
 		val |= (MACSEC_RX_UNINIT_KEY_SLOT_INT_EN |
 			MACSEC_RX_LKUP_MISS_INT_EN |
 			MACSEC_TX_UNINIT_KEY_SLOT_INT_EN |
-			MACSEC_TX_LKUP_MISS_INT_EN |
-			MACSEC_SECURE_REG_VIOL_INT_EN);
+			MACSEC_TX_LKUP_MISS_INT_EN);
 		osi_writela(osi_core, val, addr + MACSEC_COMMON_IMR);
 		LOG("Write MACSEC_COMMON_IMR: 0x%x\n", val);
 	} else {
@@ -4431,8 +4437,7 @@ static void macsec_intr_config(struct osi_core_priv_data *const osi_core, nveu32
 		val &= (~MACSEC_RX_UNINIT_KEY_SLOT_INT_EN &
 			~MACSEC_RX_LKUP_MISS_INT_EN &
 			~MACSEC_TX_UNINIT_KEY_SLOT_INT_EN &
-			~MACSEC_TX_LKUP_MISS_INT_EN &
-			~MACSEC_SECURE_REG_VIOL_INT_EN);
+			~MACSEC_TX_LKUP_MISS_INT_EN);
 		osi_writela(osi_core, val, addr + MACSEC_COMMON_IMR);
 		LOG("Write MACSEC_COMMON_IMR: 0x%x\n", val);
 	}
@@ -4561,6 +4566,9 @@ static nve32_t macsec_initialize(struct osi_core_priv_data *const osi_core, nveu
 	LOG("Write MACSEC_RX_IMR: 0x%x\n", val);
 	osi_writela(osi_core, val, addr + MACSEC_RX_IMR);
 
+	val = osi_readla(osi_core, addr + MACSEC_COMMON_IMR);
+	val |= MACSEC_SECURE_REG_VIOL_INT_EN;
+	osi_writela(osi_core, val, addr + MACSEC_COMMON_IMR);
 	/* Set AES mode
 	 * Default power on reset is AES-GCM128, leave it.
 	 */
