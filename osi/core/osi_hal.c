@@ -214,7 +214,7 @@ static nve32_t osi_hal_init_core_ops(struct osi_core_priv_data *const osi_core)
  */
 static inline void init_vlan_filters(struct osi_core_priv_data *const osi_core)
 {
-	unsigned int i = 0U;
+	nveu32_t i = 0U;
 
 	for (i = 0; i < VLAN_NUM_VID; i++) {
 		osi_core->vid[i] = VLAN_ID_INVALID;
@@ -294,7 +294,7 @@ static nve32_t conf_ptp_offload(struct osi_core_priv_data *const osi_core,
 				struct osi_pto_config *const pto_config)
 {
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
-	int ret = -1;
+	nve32_t ret = -1;
 
 	/* Validate input arguments */
 	if (pto_config == OSI_NULL) {
@@ -964,8 +964,8 @@ static nve32_t vlan_id_update(struct osi_core_priv_data *const osi_core,
 			      const nveu32_t vid)
 {
 	struct core_local *const l_core = (struct core_local *)(void *)osi_core;
-	unsigned int action = vid & VLAN_ACTION_MASK;
-	unsigned short vlan_id = (unsigned short)(vid & VLAN_VID_MASK);
+	nveu32_t action = vid & VLAN_ACTION_MASK;
+	nveu16_t vlan_id = (nveu16_t)(vid & VLAN_VID_MASK);
 
 	if ((osi_core->mac_ver == OSI_EQOS_MAC_4_10) ||
 	    (osi_core->mac_ver == OSI_EQOS_MAC_5_00)) {
@@ -1067,7 +1067,7 @@ static nve32_t conf_eee(struct osi_core_priv_data *const osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int configure_frp(struct osi_core_priv_data *const osi_core,
+static nve32_t configure_frp(struct osi_core_priv_data *const osi_core,
 			 struct osi_core_frp_cmd *const cmd)
 {
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;

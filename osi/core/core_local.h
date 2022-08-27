@@ -212,7 +212,7 @@ struct core_ops {
 				      const nveu32_t enable,
 				      const nveu8_t *ip_addr);
 	/** Called to configure HW PTP offload feature */
-	int (*config_ptp_offload)(struct osi_core_priv_data *const osi_core,
+	nve32_t (*config_ptp_offload)(struct osi_core_priv_data *const osi_core,
 				  struct osi_pto_config *const pto_config);
 	/** Called periodically to read and validate safety critical
 	 * registers against last written value */
@@ -248,31 +248,31 @@ struct core_ops {
 				struct osi_core_priv_data *const osi_core,
 				const nveu32_t lb_mode);
 	/** Called to update GCL config */
-	int (*hw_config_est)(struct osi_core_priv_data *const osi_core,
+	nve32_t (*hw_config_est)(struct osi_core_priv_data *const osi_core,
 			     struct osi_est_config *const est);
 	/** Called to update FPE config */
-	int (*hw_config_fpe)(struct osi_core_priv_data *const osi_core,
+	nve32_t (*hw_config_fpe)(struct osi_core_priv_data *const osi_core,
 			struct osi_fpe_config *const fpe);
 	/** Called to configure FRP engine */
-	int (*config_frp)(struct osi_core_priv_data *const osi_core,
-			  const unsigned int enabled);
+	nve32_t (*config_frp)(struct osi_core_priv_data *const osi_core,
+			  const nveu32_t enabled);
 	/** Called to update FRP Instruction Table entry */
-	int (*update_frp_entry)(struct osi_core_priv_data *const osi_core,
-				const unsigned int pos,
+	nve32_t (*update_frp_entry)(struct osi_core_priv_data *const osi_core,
+				const nveu32_t pos,
 				struct osi_core_frp_data *const data);
 	/** Called to update FRP NVE and  */
-	int (*update_frp_nve)(struct osi_core_priv_data *const osi_core,
-			      const unsigned int nve);
+	nve32_t (*update_frp_nve)(struct osi_core_priv_data *const osi_core,
+			      const nveu32_t nve);
 	/** Called to configure RSS for MAC */
 	nve32_t (*config_rss)(struct osi_core_priv_data *osi_core);
 	/** Called to configure the PTP RX packets Queue */
 	nve32_t (*config_ptp_rxq)(struct osi_core_priv_data *const osi_core,
-				  const unsigned int rxq_idx,
-				  const unsigned int enable);
+				  const nveu32_t rxq_idx,
+				  const nveu32_t enable);
 #endif /* !OSI_STRIPPED_LIB */
 #ifdef HSI_SUPPORT
 	/** Interface function called to initialize HSI */
-	int (*core_hsi_configure)(struct osi_core_priv_data *const osi_core,
+	nve32_t (*core_hsi_configure)(struct osi_core_priv_data *const osi_core,
 				   const nveu32_t enable);
 #endif
 };
@@ -458,7 +458,7 @@ struct core_local {
 };
 
 /**
- * @brief update_counter_u - Increment unsigned int counter
+ * @brief update_counter_u - Increment nveu32_t counter
  *
  * @param[out] value: Pointer to value to be incremented.
  * @param[in] incr: increment value

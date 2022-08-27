@@ -543,18 +543,18 @@
 #define EQOS_MTL_EST_GCRR			OSI_BIT(2)
 #define EQOS_MTL_EST_ERR0			OSI_BIT(20)
 /* EST GCRA addresses */
-#define EQOS_MTL_EST_BTR_LOW			((unsigned int)0x0 << \
+#define EQOS_MTL_EST_BTR_LOW			((nveu32_t)0x0 << \
 						 EQOS_MTL_EST_ADDR_SHIFT)
-#define EQOS_MTL_EST_BTR_HIGH			((unsigned int)0x1 << \
+#define EQOS_MTL_EST_BTR_HIGH			((nveu32_t)0x1 << \
 						 EQOS_MTL_EST_ADDR_SHIFT)
-#define EQOS_MTL_EST_CTR_LOW			((unsigned int)0x2 << \
+#define EQOS_MTL_EST_CTR_LOW			((nveu32_t)0x2 << \
 						 EQOS_MTL_EST_ADDR_SHIFT)
-#define EQOS_MTL_EST_CTR_HIGH			((unsigned int)0x3 << \
+#define EQOS_MTL_EST_CTR_HIGH			((nveu32_t)0x3 << \
 						 EQOS_MTL_EST_ADDR_SHIFT)
 #define EQOS_MTL_EST_CTR_HIGH_MAX		0xFFU
-#define EQOS_MTL_EST_TER			((unsigned int)0x4 << \
+#define EQOS_MTL_EST_TER			((nveu32_t)0x4 << \
 						 EQOS_MTL_EST_ADDR_SHIFT)
-#define EQOS_MTL_EST_LLR			((unsigned int)0x5 << \
+#define EQOS_MTL_EST_LLR			((nveu32_t)0x5 << \
 						 EQOS_MTL_EST_ADDR_SHIFT)
 /*EST MTL interrupt STATUS and ERR*/
 #define EQOS_MTL_IS_ESTIS			OSI_BIT(18)

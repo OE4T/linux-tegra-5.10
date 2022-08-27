@@ -33,7 +33,7 @@
  * PHY should be up before the LPI pattern can be transmitted to the PHY.
  * Default 1sec.
  */
-#define MGBE_DEFAULT_LPI_LS_TIMER	(unsigned int)1000
+#define MGBE_DEFAULT_LPI_LS_TIMER	((nveu32_t)1000)
 #define MGBE_LPI_LS_TIMER_MASK		0x3FFU
 #define MGBE_LPI_LS_TIMER_SHIFT		16U
 /* LPI TW timer - minimum time (in microseconds) for which MAC wait after it
@@ -491,7 +491,7 @@
 #define MGBE_MAC_VLAN_TR_VTIM			OSI_BIT(17)
 #define MGBE_MAC_VLAN_TR_VTIM_SHIFT		17
 #define MGBE_MAC_VLAN_TR_VTHM			OSI_BIT(25)
-#define MGBE_MAC_VLANTR_EVLS_ALWAYS_STRIP	((unsigned int)0x3 << 21U)
+#define MGBE_MAC_VLANTR_EVLS_ALWAYS_STRIP	((nveu32_t)0x3 << 21U)
 #define MGBE_MAC_VLANTR_EVLRXS			OSI_BIT(24)
 #define MGBE_MAC_VLANTR_DOVLTC			OSI_BIT(20)
 #define MGBE_MAC_VLANTIR_VLTI			OSI_BIT(20)
@@ -627,18 +627,18 @@
 #define MGBE_MTL_EST_GCRR			OSI_BIT(2)
 #define MGBE_MTL_EST_ERR0			OSI_BIT(20)
 /* EST GCRA addresses */
-#define MGBE_MTL_EST_BTR_LOW			((unsigned int)0x0 << \
+#define MGBE_MTL_EST_BTR_LOW			((nveu32_t)0x0 << \
 						 MGBE_MTL_EST_ADDR_SHIFT)
-#define MGBE_MTL_EST_BTR_HIGH			((unsigned int)0x1 << \
+#define MGBE_MTL_EST_BTR_HIGH			((nveu32_t)0x1 << \
 						 MGBE_MTL_EST_ADDR_SHIFT)
-#define MGBE_MTL_EST_CTR_LOW			((unsigned int)0x2 << \
+#define MGBE_MTL_EST_CTR_LOW			((nveu32_t)0x2 << \
 						 MGBE_MTL_EST_ADDR_SHIFT)
-#define MGBE_MTL_EST_CTR_HIGH			((unsigned int)0x3 << \
+#define MGBE_MTL_EST_CTR_HIGH			((nveu32_t)0x3 << \
 						 MGBE_MTL_EST_ADDR_SHIFT)
 #define MGBE_MTL_EST_CTR_HIGH_MAX		0xFFU
-#define MGBE_MTL_EST_TER			((unsigned int)0x4 << \
+#define MGBE_MTL_EST_TER			((nveu32_t)0x4 << \
 						 MGBE_MTL_EST_ADDR_SHIFT)
-#define MGBE_MTL_EST_LLR			((unsigned int)0x5 << \
+#define MGBE_MTL_EST_LLR			((nveu32_t)0x5 << \
 						 MGBE_MTL_EST_ADDR_SHIFT)
 /*EST MTL interrupt STATUS and ERR*/
 #define MGBE_MTL_IS_ESTIS			OSI_BIT(18)

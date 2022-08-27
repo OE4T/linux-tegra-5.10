@@ -200,7 +200,7 @@ static nve32_t ivc_read_phy_reg(struct osi_core_priv_data *const osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int ivc_macsec_dbg_events_config(
+static nve32_t ivc_macsec_dbg_events_config(
 		struct osi_core_priv_data *const osi_core,
 		struct osi_macsec_dbg_buf_config *const dbg_buf_config)
 {
@@ -236,7 +236,7 @@ exit:
  * @retval 0 on Success
  * @retval -1 on Failure
  */
-static int ivc_macsec_dbg_buf_config(
+static nve32_t ivc_macsec_dbg_buf_config(
 		struct osi_core_priv_data *const osi_core,
 		struct osi_macsec_dbg_buf_config *const dbg_buf_config)
 {
@@ -306,7 +306,7 @@ static void ivc_macsec_read_mmc(struct osi_core_priv_data *const osi_core)
  * @retval 0 on Success
  * @retval -1 on Failure
  */
-static int ivc_get_sc_lut_key_index(struct osi_core_priv_data *const osi_core,
+static nve32_t ivc_get_sc_lut_key_index(struct osi_core_priv_data *const osi_core,
 			     nveu8_t *sci, nveu32_t *key_index,
 			     nveu16_t ctlr)
 {
@@ -342,10 +342,10 @@ static int ivc_get_sc_lut_key_index(struct osi_core_priv_data *const osi_core,
  * @retval 0 on Success
  * @retval -1 on Failure
  */
-static int ivc_macsec_config(struct osi_core_priv_data *const osi_core,
+static nve32_t ivc_macsec_config(struct osi_core_priv_data *const osi_core,
 			     struct osi_macsec_sc_info *const sc,
-			     unsigned int enable, unsigned short ctlr,
-			     unsigned short *kt_idx)
+			     nveu32_t enable, nveu16_t ctlr,
+			     nveu16_t *kt_idx)
 {
 	ivc_msg_common_t msg;
 	nve32_t ret = 0;
@@ -379,8 +379,8 @@ exit:
  * @retval 0 on Success
  * @retval -1 on Failure
  */
-static int ivc_macsec_enable(struct osi_core_priv_data *const osi_core,
-			     unsigned int enable)
+static nve32_t ivc_macsec_enable(struct osi_core_priv_data *const osi_core,
+			     nveu32_t enable)
 {
 	ivc_msg_common_t msg;
 	nveu32_t index = 0;
@@ -405,8 +405,8 @@ static int ivc_macsec_enable(struct osi_core_priv_data *const osi_core,
  * @retval 0 on Success
  * @retval -1 on Failure
  */
-static int ivc_macsec_loopback_config(struct osi_core_priv_data *const osi_core,
-				      unsigned int enable)
+static nve32_t ivc_macsec_loopback_config(struct osi_core_priv_data *const osi_core,
+				      nveu32_t enable)
 {
 	ivc_msg_common_t msg;
 	nveu32_t index = 0;
@@ -466,8 +466,8 @@ static nve32_t ivc_macsec_kt_config(struct osi_core_priv_data *const osi_core,
  * @retval 0 on Success
  * @retval -1 on Failure
  */
-static int ivc_macsec_cipher_config(struct osi_core_priv_data *const osi_core,
-				    unsigned int cipher)
+static nve32_t ivc_macsec_cipher_config(struct osi_core_priv_data *const osi_core,
+				    nveu32_t cipher)
 {
 	ivc_msg_common_t msg;
 	nveu32_t index = 0;
@@ -537,7 +537,7 @@ static void ivc_macsec_handle_irq(OSI_UNUSED
  * @retval -1 on Failure
  */
 
-static int ivc_macsec_deinit(struct osi_core_priv_data *const osi_core)
+static nve32_t ivc_macsec_deinit(struct osi_core_priv_data *const osi_core)
 {
 	ivc_msg_common_t msg;
 
@@ -557,7 +557,7 @@ static int ivc_macsec_deinit(struct osi_core_priv_data *const osi_core)
  * @retval 0 on Success
  * @retval -1 on Failure
  */
-static int ivc_macsec_init(struct osi_core_priv_data *const osi_core,
+static nve32_t ivc_macsec_init(struct osi_core_priv_data *const osi_core,
 			   nveu32_t mtu)
 {
 	ivc_msg_common_t msg;

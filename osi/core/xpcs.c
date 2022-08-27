@@ -35,15 +35,15 @@
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static inline int xpcs_poll_for_an_complete(struct osi_core_priv_data *osi_core,
-					    unsigned int *an_status)
+static inline nve32_t xpcs_poll_for_an_complete(struct osi_core_priv_data *osi_core,
+					    nveu32_t *an_status)
 {
 	void *xpcs_base = osi_core->xpcs_base;
-	unsigned int status = 0;
-	unsigned int retry = 1000;
-	unsigned int count;
-	int cond = 1;
-	int ret = 0;
+	nveu32_t status = 0;
+	nveu32_t retry = 1000;
+	nveu32_t count;
+	nve32_t cond = 1;
+	nve32_t ret = 0;
 
 	/* 14. Poll for AN complete */
 	cond = 1;
@@ -101,11 +101,11 @@ static inline int xpcs_poll_for_an_complete(struct osi_core_priv_data *osi_core,
  * @retval 0 on success
  * @retval -1 on failure
  */
-static inline int xpcs_set_speed(struct osi_core_priv_data *osi_core,
-				  unsigned int status)
+static inline nve32_t xpcs_set_speed(struct osi_core_priv_data *osi_core,
+				  nveu32_t status)
 {
-	unsigned int speed = status & XPCS_USXG_AN_STS_SPEED_MASK;
-	unsigned int ctrl = 0;
+	nveu32_t speed = status & XPCS_USXG_AN_STS_SPEED_MASK;
+	nveu32_t ctrl = 0;
 	void *xpcs_base = osi_core->xpcs_base;
 
 	ctrl = xpcs_read(xpcs_base, XPCS_SR_MII_CTRL);
@@ -142,15 +142,15 @@ static inline int xpcs_set_speed(struct osi_core_priv_data *osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int xpcs_start(struct osi_core_priv_data *osi_core)
+nve32_t xpcs_start(struct osi_core_priv_data *osi_core)
 {
 	void *xpcs_base = osi_core->xpcs_base;
-	unsigned int an_status = 0;
-	unsigned int retry = RETRY_COUNT;
-	unsigned int count = 0;
-	unsigned int ctrl = 0;
-	int ret = 0;
-	int cond = COND_NOT_MET;
+	nveu32_t an_status = 0;
+	nveu32_t retry = RETRY_COUNT;
+	nveu32_t count = 0;
+	nveu32_t ctrl = 0;
+	nve32_t ret = 0;
+	nve32_t cond = COND_NOT_MET;
 
 	if (osi_core->xpcs_base == OSI_NULL) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
@@ -231,7 +231,7 @@ int xpcs_start(struct osi_core_priv_data *osi_core)
  * @retval -1 on failure.
  */
 static nve32_t xpcs_uphy_lane_bring_up(struct osi_core_priv_data *osi_core,
-				       unsigned int lane_init_en)
+				       nveu32_t lane_init_en)
 {
 	void *xpcs_base = osi_core->xpcs_base;
 	nveu32_t retry = XPCS_RETRY_COUNT;
@@ -329,10 +329,10 @@ static nve32_t xpcs_check_pcs_lock_status(struct osi_core_priv_data *osi_core)
 static nve32_t xpcs_lane_bring_up(struct osi_core_priv_data *osi_core)
 {
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
-	unsigned int retry = 1000;
-	unsigned int count;
+	nveu32_t retry = 1000;
+	nveu32_t count;
 	nveu32_t val = 0;
-	int cond;
+	nve32_t cond;
 
 	if (xpcs_uphy_lane_bring_up(osi_core,
 				    XPCS_WRAP_UPHY_HW_INIT_CTRL_TX_EN) < 0) {
@@ -460,14 +460,14 @@ static nve32_t xpcs_lane_bring_up(struct osi_core_priv_data *osi_core)
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int xpcs_init(struct osi_core_priv_data *osi_core)
+nve32_t xpcs_init(struct osi_core_priv_data *osi_core)
 {
 	void *xpcs_base = osi_core->xpcs_base;
-	unsigned int retry = 1000;
-	unsigned int count;
-	unsigned int ctrl = 0;
-	int cond = 1;
-	int ret = 0;
+	nveu32_t retry = 1000;
+	nveu32_t count;
+	nveu32_t ctrl = 0;
+	nve32_t cond = 1;
+	nve32_t ret = 0;
 
 	if (osi_core->xpcs_base == OSI_NULL) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
@@ -590,11 +590,11 @@ int xpcs_init(struct osi_core_priv_data *osi_core)
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int xpcs_eee(struct osi_core_priv_data *osi_core, unsigned int en_dis)
+nve32_t xpcs_eee(struct osi_core_priv_data *osi_core, nveu32_t en_dis)
 {
 	void *xpcs_base = osi_core->xpcs_base;
-	unsigned int val = 0x0U;
-	int ret = 0;
+	nveu32_t val = 0x0U;
+	nve32_t ret = 0;
 
 	if ((en_dis != OSI_ENABLE) && (en_dis != OSI_DISABLE)) {
 		return  -1;

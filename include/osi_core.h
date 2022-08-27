@@ -460,11 +460,11 @@ struct osi_filter {
 struct osi_rxq_route {
 #define OSI_RXQ_ROUTE_PTP	0U
 	/** Indicates RX routing type OSI_RXQ_ROUTE_* */
-	unsigned int route_type;
+	nveu32_t route_type;
 	/** RXQ routing enable(1) disable (0) */
-	unsigned int enable;
+	nveu32_t enable;
 	/** RX queue index */
-	unsigned int idx;
+	nveu32_t idx;
 };
 #endif
 /**
@@ -816,23 +816,23 @@ struct osi_vlan_filter {
  */
 struct osi_core_frp_data {
 	/* Entry Match Data */
-	unsigned int match_data;
+	nveu32_t match_data;
 	/* Entry Match Enable mask */
-	unsigned int match_en;
+	nveu32_t match_en;
 	/* Entry Accept frame flag */
-	unsigned char accept_frame;
+	nveu8_t accept_frame;
 	/* Entry Reject Frame flag */
-	unsigned char reject_frame;
+	nveu8_t reject_frame;
 	/* Entry Inverse match flag */
-	unsigned char inverse_match;
+	nveu8_t inverse_match;
 	/* Entry Next Instruction Control match flag */
-	unsigned char next_ins_ctrl;
+	nveu8_t next_ins_ctrl;
 	/* Entry Frame offset in the packet data */
-	unsigned char frame_offset;
+	nveu8_t frame_offset;
 	/* Entry OK Index - Next Instruction */
-	unsigned char ok_index;
+	nveu8_t ok_index;
 	/* Entry DMA Channel selection (1-bit for each channel) */
-	unsigned int dma_chsel;
+	nveu32_t dma_chsel;
 };
 
 /**
@@ -840,23 +840,23 @@ struct osi_core_frp_data {
  */
 struct osi_core_frp_cmd {
 	/* FRP Command type */
-	unsigned int cmd;
+	nveu32_t cmd;
 	/* OSD FRP ID */
 	int frp_id;
 	/* OSD match data type */
-	unsigned char match_type;
+	nveu8_t match_type;
 	/* OSD match data */
-	unsigned char match[OSI_FRP_MATCH_DATA_MAX];
+	nveu8_t match[OSI_FRP_MATCH_DATA_MAX];
 	/* OSD match data length */
-	unsigned char match_length;
+	nveu8_t match_length;
 	/* OSD Offset */
-	unsigned char offset;
+	nveu8_t offset;
 	/* OSD FRP filter mode flag */
-	unsigned char filter_mode;
+	nveu8_t filter_mode;
 	/* OSD FRP Link ID */
 	int next_frp_id;
 	/* OSD DMA Channel Selection */
-	unsigned int dma_sel;
+	nveu32_t dma_sel;
 };
 
 /**
@@ -910,7 +910,7 @@ struct  osi_core_avb_algorithm {
 	 * 10: enable */
 	nveu32_t oper_mode;
 	/** TC index */
-	unsigned int tcindex;
+	nveu32_t tcindex;
 };
 
 /**
@@ -918,20 +918,20 @@ struct  osi_core_avb_algorithm {
  */
 struct osi_pto_config {
 	/** enable(0) / disable(1) */
-	unsigned int en_dis;
+	nveu32_t en_dis;
 	/** Flag for Master mode.
 	 * OSI_ENABLE for master OSI_DISABLE for slave */
-	unsigned int master;
+	nveu32_t master;
 	/** Flag to Select PTP packets for Taking Snapshots */
-	unsigned int snap_type;
+	nveu32_t snap_type;
 	/** ptp domain */
-	unsigned int domain_num;
+	nveu32_t domain_num;
 	/**  The PTP Offload function qualifies received PTP
 	 *  packet with unicast Destination  address
 	 *  0 - only multicast, 1 - unicast and multicast */
-	unsigned int mc_uc;
+	nveu32_t mc_uc;
 	/** Port identification */
-	unsigned int portid;
+	nveu32_t portid;
 };
 
 /**
@@ -939,23 +939,23 @@ struct osi_pto_config {
  */
 struct osi_est_config {
 	/** enable/disable */
-	unsigned int en_dis;
+	nveu32_t en_dis;
 	/** 64 bit base time register
 	 * if both vlaues are 0, take ptp time to avoid BTRE
 	 * index 0 for nsec, index 1 for sec
 	 */
-	unsigned int btr[2];
+	nveu32_t btr[2];
 	/** 64 bit base time offset index 0 for nsec, index 1 for sec */
-	unsigned int btr_offset[2];
+	nveu32_t btr_offset[2];
 	/** 40 bit cycle time register, index 0 for nsec, index 1 for sec */
-	unsigned int ctr[2];
+	nveu32_t ctr[2];
 	/** Configured Time Interval width + 7 bit extension register */
-	unsigned int ter;
+	nveu32_t ter;
 	/** size of the gate control list */
-	unsigned int llr;
+	nveu32_t llr;
 	/** data array 8 bit gate op + 24 execution time
 	 * MGBE HW support GCL depth 256 */
-	unsigned int gcl[OSI_GCL_SIZE_256];
+	nveu32_t gcl[OSI_GCL_SIZE_256];
 };
 
 /**
@@ -963,11 +963,11 @@ struct osi_est_config {
  */
 struct osi_fpe_config {
 	/** Queue Mask 1 preemption 0- express bit representation */
-	unsigned int tx_queue_preemption_enable;
+	nveu32_t tx_queue_preemption_enable;
 	/** RQ for all preemptable packets  which are not filtered
 	 * based on user priority or SA-DA
 	 */
-	unsigned int rq;
+	nveu32_t rq;
 };
 
 /**
@@ -975,19 +975,19 @@ struct osi_fpe_config {
  */
 struct osi_tsn_stats {
 	/** Constant Gate Control Error */
-	unsigned long const_gate_ctr_err;
+	nveu64_t const_gate_ctr_err;
 	/** Head-Of-Line Blocking due to Scheduling */
-	unsigned long head_of_line_blk_sch;
+	nveu64_t head_of_line_blk_sch;
 	/** Per TC Schedule Error */
-	unsigned long hlbs_q[OSI_MAX_TC_NUM];
+	nveu64_t hlbs_q[OSI_MAX_TC_NUM];
 	/** Head-Of-Line Blocking due to Frame Size */
-	unsigned long head_of_line_blk_frm;
+	nveu64_t head_of_line_blk_frm;
 	/** Per TC Frame Size Error */
-	unsigned long hlbf_q[OSI_MAX_TC_NUM];
+	nveu64_t hlbf_q[OSI_MAX_TC_NUM];
 	/** BTR Error */
-	unsigned long base_time_reg_err;
+	nveu64_t base_time_reg_err;
 	/** Switch to Software Owned List Complete */
-	unsigned long sw_own_list_complete;
+	nveu64_t sw_own_list_complete;
 };
 
 /**
@@ -996,11 +996,11 @@ struct osi_tsn_stats {
  */
 struct osi_core_rss {
 	/** Flag to represent to enable RSS or not */
-	unsigned int enable;
+	nveu32_t enable;
 	/** Array for storing RSS Hash key */
-	unsigned char key[OSI_RSS_HASH_KEY_SIZE];
+	nveu8_t key[OSI_RSS_HASH_KEY_SIZE];
 	/** Array for storing RSS Hash table */
-	unsigned int table[OSI_RSS_MAX_TABLE_SIZE];
+	nveu32_t table[OSI_RSS_MAX_TABLE_SIZE];
 };
 
 /**
@@ -1104,7 +1104,7 @@ struct osi_vm_irq_data {
  */
 struct osd_core_ops {
 	/** padctrl rx pin disable/enable callback */
-	int (*padctrl_mii_rx_pins)(void *priv, nveu32_t enable);
+	nve32_t (*padctrl_mii_rx_pins)(void *priv, nveu32_t enable);
 	/** logging callback */
 	void (*ops_log)(void *priv, const nve8_t *func, nveu32_t line,
 			nveu32_t level, nveu32_t type, const nve8_t *err,
@@ -1120,7 +1120,7 @@ struct osd_core_ops {
 			    nveu32_t len);
 #ifdef MACSEC_SUPPORT
 	/** Program macsec key table through Trust Zone callback */
-	nve32_t (*macsec_tz_kt_config)(void *priv, unsigned char cmd,
+	nve32_t (*macsec_tz_kt_config)(void *priv, nveu8_t cmd,
 				   void *const kt_config,
 				   void *const genl_info);
 #endif /* MACSEC_SUPPORT */
@@ -1131,7 +1131,7 @@ struct osd_core_ops {
 		       const char *fmt, ...);
 #endif
 	/** Lane bringup restart callback */
-	void (*restart_lane_bringup)(void *priv, unsigned int en_disable);
+	void (*restart_lane_bringup)(void *priv, nveu32_t en_disable);
 };
 
 #ifdef MACSEC_SUPPORT
@@ -1297,19 +1297,19 @@ struct core_padctrl {
 	/** Memory mapped base address of eqos padctrl registers */
 	void *padctrl_base;
 	/** EQOS_RD0_0 register offset */
-	unsigned int offset_rd0;
+	nveu32_t offset_rd0;
 	/** EQOS_RD1_0 register offset */
-	unsigned int offset_rd1;
+	nveu32_t offset_rd1;
 	/** EQOS_RD2_0 register offset */
-	unsigned int offset_rd2;
+	nveu32_t offset_rd2;
 	/** EQOS_RD3_0 register offset */
-	unsigned int offset_rd3;
+	nveu32_t offset_rd3;
 	/** RX_CTL_0 register offset */
-	unsigned int offset_rx_ctl;
+	nveu32_t offset_rx_ctl;
 	/** is pad calibration in progress */
-	unsigned int is_pad_cal_in_progress;
+	nveu32_t is_pad_cal_in_progress;
 	/** This flag set/reset using priv ioctl and DT entry */
-	unsigned int pad_calibration_enable;
+	nveu32_t pad_calibration_enable;
 };
 
 #ifndef OSI_STRIPPED_LIB
@@ -1405,7 +1405,7 @@ struct osi_core_priv_data {
 	/** FPE HW configuration initited to enable/disable
 	 * 1- FPE HW configuration initiated to enable
 	 * 0- FPE HW configuration initiated to disable */
-	unsigned int is_fpe_enabled;
+	nveu32_t is_fpe_enabled;
 #endif /* MACSEC_SUPPORT */
 	/** Pointer to OSD private data structure */
 	void *osd;
@@ -1442,14 +1442,14 @@ struct osi_core_priv_data {
 	/** DMA channel selection enable (1) */
 	nveu32_t dcs_en;
 	/** TQ:TC mapping */
-	unsigned int tc[OSI_MGBE_MAX_NUM_CHANS];
+	nveu32_t tc[OSI_MGBE_MAX_NUM_CHANS];
 #ifndef OSI_STRIPPED_LIB
 	/** xtra sw error counters */
 	struct osi_xtra_stat_counters xstats;
 	/** Memory mapped base address of HV window */
 	void *hv_base;
 	/** Residual queue valid with FPE support */
-	unsigned int residual_queue;
+	nveu32_t residual_queue;
 	/** Functional safety config to do periodic read-verify of
 	 * certain safety critical registers */
 	void *safety_config;
@@ -1458,28 +1458,28 @@ struct osi_core_priv_data {
 	/** FRP Instruction Table */
 	struct osi_core_frp_entry frp_table[OSI_FRP_MAX_ENTRY];
 	/** Number of valid Entries in the FRP Instruction Table */
-	unsigned int frp_cnt;
+	nveu32_t frp_cnt;
 	/** RSS core structure */
 	struct osi_core_rss rss;
 	/* Switch to Software Owned List Complete.
 	 *  1 - Successful and User configured GCL in placed
 	 */
-	unsigned int est_ready;
+	nveu32_t est_ready;
 	/* FPE enabled, verify and respose done with peer device
 	 * 1- Successful and can be used between P2P device
 	 */
-	unsigned int fpe_ready;
+	nveu32_t fpe_ready;
 	/** TSN stats counters */
 	struct osi_tsn_stats tsn_stats;
 	/** csr clock is to program LPI 1 us tick timer register.
 	 * Value stored in MHz
 	 */
 	nveu32_t csr_clk_speed;
-	unsigned long vf_bitmap;
+	nveu64_t vf_bitmap;
 	/** Array to maintaion VLAN filters */
-	unsigned short vid[VLAN_NUM_VID];
+	nveu16_t vid[VLAN_NUM_VID];
 	/** Count of number of VLAN filters in vid array */
-	unsigned short vlan_filter_cnt;
+	nveu16_t vlan_filter_cnt;
 #endif
 	/** eqos pad control structure */
 	struct core_padctrl padctrl;

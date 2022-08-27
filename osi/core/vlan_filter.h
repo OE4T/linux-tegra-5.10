@@ -70,7 +70,6 @@
  * @return 0 on success
  * @return -1 on failure.
  */
-int update_vlan_id(struct osi_core_priv_data *osi_core,
-		   struct core_ops *ops_p,
-                   unsigned int vid);
+nve32_t update_vlan_id(struct osi_core_priv_data *osi_core,
+		       struct core_ops *ops_p, nveu32_t vid);
 #endif /* VLAN_FILTER_H */

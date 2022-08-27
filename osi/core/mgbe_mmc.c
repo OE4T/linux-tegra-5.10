@@ -43,12 +43,12 @@
  * @retval 0 on MMC counters overflow
  * @retval value on current MMC counter value.
  */
-static inline unsigned long update_mmc_val(struct osi_core_priv_data *osi_core,
-					   unsigned long last_value,
-					   unsigned long offset)
+static inline nveu64_t update_mmc_val(struct osi_core_priv_data *osi_core,
+				      nveu64_t last_value,
+				      nveu64_t offset)
 {
-	unsigned long temp;
-	unsigned int value = osi_readl((unsigned char *)osi_core->base +
+	nveu64_t temp;
+	nveu32_t value = osi_readl((nveu8_t *)osi_core->base +
 				       offset);
 
 	temp = last_value + value;
@@ -56,7 +56,7 @@ static inline unsigned long update_mmc_val(struct osi_core_priv_data *osi_core,
 		OSI_CORE_ERR(osi_core->osd,
 			OSI_LOG_ARG_OUTOFBOUND,
 			"Value overflow resetting  all counters\n",
-			(unsigned long long)offset);
+			(nveul64_t)offset);
 		mgbe_reset_mmc(osi_core);
 	} else {
 		return temp;
@@ -77,12 +77,12 @@ static inline unsigned long update_mmc_val(struct osi_core_priv_data *osi_core,
  */
 void mgbe_reset_mmc(struct osi_core_priv_data *const osi_core)
 {
-	unsigned int value;
+	nveu32_t value;
 
-	value = osi_readl((unsigned char *)osi_core->base + MGBE_MMC_CNTRL);
+	value = osi_readl((nveu8_t *)osi_core->base + MGBE_MMC_CNTRL);
 	/* self-clear bit in one clock cycle */
 	value |= MGBE_MMC_CNTRL_CNTRST;
-	osi_writel(value, (unsigned char *)osi_core->base + MGBE_MMC_CNTRL);
+	osi_writel(value, (nveu8_t *)osi_core->base + MGBE_MMC_CNTRL);
 	osi_memset(&osi_core->mmc, 0U, sizeof(struct osi_mmc_counters));
 }
 

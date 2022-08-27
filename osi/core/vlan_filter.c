@@ -36,11 +36,11 @@
  * @return Index from VID array if match found.
  * @return Return VLAN_HW_FILTER_FULL_IDX if not found.
  */
-static inline unsigned int get_vlan_filter_idx(
+static inline nveu32_t get_vlan_filter_idx(
 					struct osi_core_priv_data *osi_core,
-					unsigned short vlan_id)
+					nveu16_t vlan_id)
 {
-	unsigned int vid_idx = VLAN_HW_FILTER_FULL_IDX;
+	nveu32_t vid_idx = VLAN_HW_FILTER_FULL_IDX;
 	unsigned long bitmap = osi_core->vf_bitmap;
 	unsigned long temp = 0U;
 
@@ -49,7 +49,7 @@ static inline unsigned int get_vlan_filter_idx(
 
 		if (osi_core->vid[temp] == vlan_id) {
 			/* vlan ID match found */
-			vid_idx = (unsigned int)temp;
+			vid_idx = (nveu32_t)temp;
 			break;
 		}
 
@@ -71,11 +71,11 @@ static inline unsigned int get_vlan_filter_idx(
  *
  * @return 0 on success
  */
-static inline int allow_all_vid_tags(unsigned char *base,
-				     unsigned int pass_all_vids)
+static inline nve32_t allow_all_vid_tags(nveu8_t *base,
+				     nveu32_t pass_all_vids)
 {
-	unsigned int vlan_tag_reg = 0;
-	unsigned int hash_filter_reg = 0;
+	nveu32_t vlan_tag_reg = 0;
+	nveu32_t hash_filter_reg = 0;
 
 	vlan_tag_reg = osi_readl(base + MAC_VLAN_TAG_CTRL);
 	hash_filter_reg = osi_readl(base + MAC_VLAN_HASH_FILTER);
@@ -85,7 +85,7 @@ static inline int allow_all_vid_tags(unsigned char *base,
 		hash_filter_reg |= VLAN_HASH_ALLOW_ALL;
 	} else {
 		vlan_tag_reg &= ~MAC_VLAN_TAG_CTRL_VHTM;
-		hash_filter_reg &= (unsigned int) ~VLAN_HASH_ALLOW_ALL;
+		hash_filter_reg &= (nveu32_t) ~VLAN_HASH_ALLOW_ALL;
 	}
 
 	osi_writel(vlan_tag_reg, base + MAC_VLAN_TAG_CTRL);
@@ -108,11 +108,11 @@ static inline int allow_all_vid_tags(unsigned char *base,
  * @return 0 on Success.
  * @return negative value on failure
  */
-static inline int is_vlan_id_enqueued(struct osi_core_priv_data *osi_core,
-				      unsigned short vlan_id,
-				      unsigned int *idx)
+static inline nve32_t is_vlan_id_enqueued(struct osi_core_priv_data *osi_core,
+				      nveu16_t vlan_id,
+				      nveu32_t *idx)
 {
-	unsigned int i = 0;
+	nveu32_t i = 0;
 
 	if (osi_core->vlan_filter_cnt == VLAN_HW_FILTER_FULL_IDX) {
 		/* No elements in SW queue to search */
@@ -141,11 +141,11 @@ static inline int is_vlan_id_enqueued(struct osi_core_priv_data *osi_core,
  * @return 0 on success.
  * @return negative value on failure.
  */
-static inline int enqueue_vlan_id(struct osi_core_priv_data *osi_core,
-				  unsigned short vlan_id)
+static inline nve32_t enqueue_vlan_id(struct osi_core_priv_data *osi_core,
+				  nveu16_t vlan_id)
 {
-	int ret = 0;
-	unsigned int idx;
+	nve32_t ret = 0;
+	nveu32_t idx;
 
 	if (osi_core->vlan_filter_cnt == VLAN_NUM_VID) {
 		/* Entire SW queue full */
@@ -178,13 +178,13 @@ static inline int enqueue_vlan_id(struct osi_core_priv_data *osi_core,
  * @return 0 on success.
  * @return -1 on failure.
  */
-static inline int poll_for_vlan_filter_reg_rw(
+static inline nve32_t poll_for_vlan_filter_reg_rw(
 					struct osi_core_priv_data *osi_core)
 {
-	unsigned int retry = 10;
-	unsigned int count;
-	unsigned int val = 0;
-	int cond = 1;
+	nveu32_t retry = 10;
+	nveu32_t count;
+	nveu32_t val = 0;
+	nve32_t cond = 1;
 
 	count = 0;
 	while (cond == 1) {
@@ -196,7 +196,7 @@ static inline int poll_for_vlan_filter_reg_rw(
 
 		count++;
 
-		val = osi_readl((unsigned char *)osi_core->base +
+		val = osi_readl((nveu8_t *)osi_core->base +
 				MAC_VLAN_TAG_CTRL);
 		if ((val & MAC_VLAN_TAG_CTRL_OB) == OSI_NONE) {
 			/* Set cond to 0 to exit loop */
@@ -223,17 +223,17 @@ static inline int poll_for_vlan_filter_reg_rw(
  * @return 0 on success
  * @return -1 on failure.
  */
-static inline int update_vlan_filters(struct osi_core_priv_data *osi_core,
-				      unsigned int vid_idx,
-				      unsigned int val)
+static inline nve32_t update_vlan_filters(struct osi_core_priv_data *osi_core,
+				      nveu32_t vid_idx,
+				      nveu32_t val)
 {
-	unsigned char *base = (unsigned char *)osi_core->base;
-	int ret = 0;
+	nveu8_t *base = (nveu8_t *)osi_core->base;
+	nve32_t ret = 0;
 
 	osi_writel(val, base + MAC_VLAN_TAG_DATA);
 
 	val = osi_readl(base + MAC_VLAN_TAG_CTRL);
-	val &= (unsigned int) ~MAC_VLAN_TAG_CTRL_OFS_MASK;
+	val &= (nveu32_t) ~MAC_VLAN_TAG_CTRL_OFS_MASK;
 	val |= vid_idx << MAC_VLAN_TAG_CTRL_OFS_SHIFT;
 	val &= ~MAC_VLAN_TAG_CTRL_CT;
 	val |= MAC_VLAN_TAG_CTRL_OB;
@@ -260,13 +260,13 @@ static inline int update_vlan_filters(struct osi_core_priv_data *osi_core,
  * @return 0 on success
  * @return -1 on failure.
  */
-static inline int add_vlan_id(struct osi_core_priv_data *osi_core,
+static inline nve32_t add_vlan_id(struct osi_core_priv_data *osi_core,
 			      struct core_ops *ops_p,
-			      unsigned short vlan_id)
+			      nveu16_t vlan_id)
 {
-	unsigned int vid_idx = 0;
-	unsigned int val = 0;
-	int ret = 0;
+	nveu32_t vid_idx = 0;
+	nveu32_t val = 0;
+	nve32_t ret = 0;
 
 	/* Check if VLAN ID already programmed */
 	vid_idx = get_vlan_filter_idx(osi_core, vlan_id);
@@ -278,7 +278,7 @@ static inline int add_vlan_id(struct osi_core_priv_data *osi_core,
 	}
 
 	/* Get free index to add the VID */
-	vid_idx = (unsigned int) __builtin_ctzl(~osi_core->vf_bitmap);
+	vid_idx = (nveu32_t) __builtin_ctzl(~osi_core->vf_bitmap);
 	/* If there is no free filter index add into SW VLAN filter queue to store */
 	if (vid_idx == VLAN_HW_FILTER_FULL_IDX) {
 		/* Add VLAN ID to SW queue */
@@ -306,8 +306,8 @@ static inline int add_vlan_id(struct osi_core_priv_data *osi_core,
 		}
 	}
 
-	val = osi_readl((unsigned char *)osi_core->base + MAC_VLAN_TAG_DATA);
-	val &= (unsigned int) ~VLAN_VID_MASK;
+	val = osi_readl((nveu8_t *)osi_core->base + MAC_VLAN_TAG_DATA);
+	val &= (nveu32_t) ~VLAN_VID_MASK;
 	val |= (vlan_id | MAC_VLAN_TAG_DATA_ETV | MAC_VLAN_TAG_DATA_VEN);
 
 	return update_vlan_filters(osi_core, vid_idx, val);
@@ -326,10 +326,10 @@ static inline int add_vlan_id(struct osi_core_priv_data *osi_core,
  * @return 0 on success
  * @return -1 on failure.
  */
-static inline int dequeue_vlan_id(struct osi_core_priv_data *osi_core,
-				  unsigned int idx)
+static inline nve32_t dequeue_vlan_id(struct osi_core_priv_data *osi_core,
+				  nveu32_t idx)
 {
-	unsigned int i;
+	nveu32_t i;
 
 	if (osi_core->vlan_filter_cnt == VLAN_HW_MAX_NRVF) {
 		return -1;
@@ -364,14 +364,14 @@ static inline int dequeue_vlan_id(struct osi_core_priv_data *osi_core,
  * @return 0 on success
  * @return -1 on failure.
  */
-static inline int dequeue_vid_to_add_filter_reg(
+static inline nve32_t dequeue_vid_to_add_filter_reg(
 					struct osi_core_priv_data *osi_core,
-					unsigned int vid_idx)
+					nveu32_t vid_idx)
 {
-	unsigned int val = 0;
-	unsigned short vlan_id = 0;
-	unsigned int i = 0;
-	int ret = 0;
+	nveu32_t val = 0;
+	nveu16_t vlan_id = 0;
+	nveu32_t i = 0;
+	nve32_t ret = 0;
 
 	vlan_id = osi_core->vid[VLAN_HW_FILTER_FULL_IDX];
 	if (vlan_id == VLAN_ID_INVALID) {
@@ -381,8 +381,8 @@ static inline int dequeue_vid_to_add_filter_reg(
 	osi_core->vf_bitmap |= OSI_BIT(vid_idx);
 	osi_core->vid[vid_idx] = vlan_id;
 
-	val = osi_readl((unsigned char *)osi_core->base + MAC_VLAN_TAG_DATA);
-	val &= (unsigned int) ~VLAN_VID_MASK;
+	val = osi_readl((nveu8_t *)osi_core->base + MAC_VLAN_TAG_DATA);
+	val &= (nveu32_t) ~VLAN_VID_MASK;
 	val |= (vlan_id | MAC_VLAN_TAG_DATA_ETV | MAC_VLAN_TAG_DATA_VEN);
 
 	ret = update_vlan_filters(osi_core, vid_idx, val);
@@ -410,14 +410,14 @@ static inline int dequeue_vid_to_add_filter_reg(
  * @return 0 on success
  * @return -1 on failure.
  */
-static inline int del_vlan_id(struct osi_core_priv_data *osi_core,
+static inline nve32_t del_vlan_id(struct osi_core_priv_data *osi_core,
 			      struct core_ops *ops_p,
-			      unsigned short vlan_id)
+			      nveu16_t vlan_id)
 {
-	unsigned int vid_idx = 0;
-	unsigned int val = 0;
-	unsigned int idx;
-	int ret = 0;
+	nveu32_t vid_idx = 0;
+	nveu32_t val = 0;
+	nveu32_t idx;
+	nve32_t ret = 0;
 
 	/* Search for vlan filter index to be deleted */
 	vid_idx = get_vlan_filter_idx(osi_core, vlan_id);
@@ -463,12 +463,12 @@ static inline int del_vlan_id(struct osi_core_priv_data *osi_core,
 	return dequeue_vid_to_add_filter_reg(osi_core, vid_idx);
 }
 
-int update_vlan_id(struct osi_core_priv_data *osi_core,
+nve32_t update_vlan_id(struct osi_core_priv_data *osi_core,
 		   struct core_ops *ops_p,
-		   unsigned int vid)
+		   nveu32_t vid)
 {
-	unsigned int action = vid & VLAN_ACTION_MASK;
-	unsigned short vlan_id = (unsigned short)(vid & VLAN_VID_MASK);
+	nveu32_t action = vid & VLAN_ACTION_MASK;
+	nveu16_t vlan_id = (nveu16_t)(vid & VLAN_VID_MASK);
 
 	if (action == OSI_VLAN_ACTION_ADD) {
 		return add_vlan_id(osi_core, ops_p, vlan_id);

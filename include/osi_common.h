@@ -32,19 +32,19 @@
  * the flow control is asserted or de-asserted
  * @{
  */
-#define FULL_MINUS_1_5K		(unsigned int)1
-#define FULL_MINUS_2_K		(unsigned int)2
-#define FULL_MINUS_2_5K		(unsigned int)3
-#define FULL_MINUS_3_K		(unsigned int)4
-#define FULL_MINUS_4_K		(unsigned int)6
-#define FULL_MINUS_6_K		(unsigned int)10
-#define FULL_MINUS_10_K		(unsigned int)18
-#define FULL_MINUS_16_K		(unsigned int)30
-#define FULL_MINUS_18_K		(unsigned int)34
-#define FULL_MINUS_21_K		(unsigned int)40
-#define FULL_MINUS_24_K		(unsigned int)46
-#define FULL_MINUS_29_K		(unsigned int)56
-#define FULL_MINUS_32_K		(unsigned int)62
+#define FULL_MINUS_1_5K		((nveu32_t)1)
+#define FULL_MINUS_2_K		((nveu32_t)2)
+#define FULL_MINUS_2_5K		((nveu32_t)3)
+#define FULL_MINUS_3_K		((nveu32_t)4)
+#define FULL_MINUS_4_K		((nveu32_t)6)
+#define FULL_MINUS_6_K		((nveu32_t)10)
+#define FULL_MINUS_10_K		((nveu32_t)18)
+#define FULL_MINUS_16_K		((nveu32_t)30)
+#define FULL_MINUS_18_K		((nveu32_t)34)
+#define FULL_MINUS_21_K		((nveu32_t)40)
+#define FULL_MINUS_24_K		((nveu32_t)46)
+#define FULL_MINUS_29_K		((nveu32_t)56)
+#define FULL_MINUS_32_K		((nveu32_t)62)
 /** @} */
 
 /**

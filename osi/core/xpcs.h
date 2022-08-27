@@ -120,9 +120,9 @@
 #endif
 /** @} */
 
-int xpcs_init(struct osi_core_priv_data *osi_core);
-int xpcs_start(struct osi_core_priv_data *osi_core);
-int xpcs_eee(struct osi_core_priv_data *osi_core, unsigned int en_dis);
+nve32_t xpcs_init(struct osi_core_priv_data *osi_core);
+nve32_t xpcs_start(struct osi_core_priv_data *osi_core);
+nve32_t xpcs_eee(struct osi_core_priv_data *osi_core, nveu32_t en_dis);
 
 /**
  * @brief xpcs_read - read from xpcs.
@@ -134,11 +134,11 @@ int xpcs_eee(struct osi_core_priv_data *osi_core, unsigned int en_dis);
  *
  * @retval value read from xpcs register.
  */
-static inline unsigned int xpcs_read(void *xpcs_base, unsigned int reg_addr)
+static inline nveu32_t xpcs_read(void *xpcs_base, nveu32_t reg_addr)
 {
 	osi_writel(((reg_addr >> XPCS_REG_ADDR_SHIFT) & XPCS_REG_ADDR_MASK),
-		   ((unsigned char *)xpcs_base + XPCS_ADDRESS));
-	return osi_readl((unsigned char *)xpcs_base +
+		   ((nveu8_t *)xpcs_base + XPCS_ADDRESS));
+	return osi_readl((nveu8_t *)xpcs_base +
 			 ((reg_addr) & XPCS_REG_VALUE_MASK));
 }
 
@@ -151,12 +151,12 @@ static inline unsigned int xpcs_read(void *xpcs_base, unsigned int reg_addr)
  * @param[in] reg_addr: register address for writing
  * @param[in] val: write value to register address
  */
-static inline void xpcs_write(void *xpcs_base, unsigned int reg_addr,
-			      unsigned int val)
+static inline void xpcs_write(void *xpcs_base, nveu32_t reg_addr,
+			      nveu32_t val)
 {
 	osi_writel(((reg_addr >> XPCS_REG_ADDR_SHIFT) & XPCS_REG_ADDR_MASK),
-		   ((unsigned char *)xpcs_base + XPCS_ADDRESS));
-	osi_writel(val, (unsigned char *)xpcs_base +
+		   ((nveu8_t *)xpcs_base + XPCS_ADDRESS));
+	osi_writel(val, (nveu8_t *)xpcs_base +
 		   (((reg_addr) & XPCS_REG_VALUE_MASK)));
 }
 
@@ -174,13 +174,13 @@ static inline void xpcs_write(void *xpcs_base, unsigned int reg_addr,
  * @retval -1 on failure.
  *
  */
-static inline int xpcs_write_safety(struct osi_core_priv_data *osi_core,
-				    unsigned int reg_addr,
-				    unsigned int val)
+static inline nve32_t xpcs_write_safety(struct osi_core_priv_data *osi_core,
+				    nveu32_t reg_addr,
+				    nveu32_t val)
 {
 	void *xpcs_base = osi_core->xpcs_base;
-	unsigned int read_val;
-	int retry = 10;
+	nveu32_t read_val;
+	nve32_t retry = 10;
 
 	while (--retry > 0) {
 		xpcs_write(xpcs_base, reg_addr, val);

@@ -106,11 +106,11 @@ typedef struct macsec_config {
 	/** MACsec secure channel basic information */
 	struct osi_macsec_sc_info sc_info;
 	/** MACsec enable or disable */
-	unsigned int enable;
+	nveu32_t enable;
 	/** MACsec controller */
-	unsigned short ctlr;
+	nveu16_t ctlr;
 	/** MACsec KT index */
-	unsigned short kt_idx;
+	nveu16_t kt_idx;
 	/** MACsec KT index */
 	nveu32_t key_index;
 	/** MACsec SCI */

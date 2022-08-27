@@ -288,13 +288,13 @@ struct osi_pkt_err_stats {
 	/** FRP Parsed count, includes accept
 	 * routing-bypass, or result-bypass count.
 	 */
-	unsigned long frp_parsed;
+	nveu64_t frp_parsed;
 	/** FRP Dropped count */
-	unsigned long frp_dropped;
+	nveu64_t frp_dropped;
 	/** FRP Parsing Error count */
-	unsigned long frp_err;
+	nveu64_t frp_err;
 	/** FRP Incomplete Parsing */
-	unsigned long frp_incomplete;
+	nveu64_t frp_incomplete;
 };
 #endif /* !OSI_STRIPPED_LIB */
 
@@ -387,9 +387,9 @@ struct osi_tx_swcx {
 	 * Bit 0 is_paged_buf - whether buffer pointed by buf_phy_addr
 	 * is a paged buffer/linear buffer
 	 * Bit 1 PTP hwtime form timestamp registers */
-	unsigned int flags;
+	nveu32_t flags;
 	/** Packet id of packet for which TX timestamp needed */
-	unsigned int pktid;
+	nveu32_t pktid;
 	/** dma channel number for osd use */
 	nveu32_t chan;
 	/** reserved field 1 for future use */
@@ -444,7 +444,7 @@ struct osi_txdone_pkt_cx {
 	 * bit is set in fields */
 	nveul64_t ns;
 	/** Passing packet id to map TX time to packet */
-	unsigned int pktid;
+	nveu32_t pktid;
 };
 
 /**
@@ -608,7 +608,7 @@ struct osi_dma_priv_data {
 	 * OSI_PTP_SYNC_ONESTEP - one-step mode
 	 * OSI_PTP_SYNC_TWOSTEP - two step mode
 	 */
-	unsigned int ptp_flag;
+	nveu32_t ptp_flag;
 #ifdef OSI_DEBUG
 	/** OSI DMA IOCTL data */
 	struct osi_dma_ioctl_data ioctl_data;
@@ -667,7 +667,7 @@ nveu32_t osi_get_global_dma_status(struct osi_dma_priv_data *osi_dma);
  * @retval "Number of available free descriptors."
  */
 nveu32_t osi_get_refill_rx_desc_cnt(struct osi_dma_priv_data *osi_dma,
-				    unsigned int chan);
+				    nveu32_t chan);
 
 /**
  * @brief osi_rx_dma_desc_init - DMA Rx descriptor init
