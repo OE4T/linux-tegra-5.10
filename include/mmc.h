@@ -551,6 +551,7 @@ struct osi_mmc_counters {
 	nveu64_t mmc_rx_fpe_fragment_cnt;
 };
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @brief osi_xtra_stat_counters - OSI core extra stat counters
  */
@@ -584,6 +585,7 @@ struct osi_xtra_stat_counters {
 	/** lock fail count node removal */
 	nveu64_t ts_lock_del_fail;
 };
+#endif /* !OSI_STRIPPED_LIB */
 
 #ifdef MACSEC_SUPPORT
 /**

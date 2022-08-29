@@ -43,6 +43,62 @@ typedef long long		my_lint_64;
 typedef my_lint_64		nvel64_t;
 /** @} */
 
+#ifndef OSI_STRIPPED_LIB
+#define OSI_PTP_SNAP_TRANSPORT	1U
+#define OSI_VLAN_ACTION_DEL	0x0U
+#define OSI_VLAN_ACTION_ADD	OSI_BIT(31)
+#define OSI_RXQ_ROUTE_PTP	0U
+#define EQOS_MAX_HTR_REGS		8U
+
+/**
+ * @addtogroup RSS related information
+ *
+ * @brief RSS hash key and table size.
+ * @{
+ */
+#define OSI_RSS_HASH_KEY_SIZE	40U
+#define OSI_RSS_MAX_TABLE_SIZE	128U
+/** @} */
+
+#define OSI_CMD_SAVE_REGISTER		13U
+#define OSI_CMD_RESTORE_REGISTER	2U
+#define OSI_CMD_RESET_MMC		12U
+#define OSI_CMD_MDC_CONFIG		1U
+#define OSI_CMD_MAC_LB			14U
+#define OSI_CMD_GET_AVB			23U
+#define OSI_CMD_FLOW_CTRL		15U
+#define OSI_CMD_CONFIG_TXSTATUS		27U
+#define OSI_CMD_CONFIG_RX_CRC_CHECK	25U
+#define OSI_CMD_CONFIG_EEE		32U
+#define OSI_CMD_ARP_OFFLOAD		30U
+#define OSI_CMD_UPDATE_VLAN_ID		26U
+#define OSI_CMD_SET_AVB			24U
+#define OSI_CMD_VLAN_FILTER		31U
+#define OSI_CMD_VALIDATE_CORE_REG	11U
+
+/**
+ * @addtogroup PTP-offload PTP offload defines
+ * @{
+ */
+#define OSI_PTP_MAX_PORTID	0xFFFFU
+#define OSI_PTP_MAX_DOMAIN	0xFFU
+#define OSI_PTP_SNAP_ORDINARY	0U
+#define OSI_PTP_SNAP_P2P	3U
+/** @} */
+
+#define OSI_MAC_TCR_TSMASTERENA		OSI_BIT(15)
+#define OSI_MAC_TCR_TSEVENTENA		OSI_BIT(14)
+#define OSI_MAC_TCR_TSENALL		OSI_BIT(8)
+#define OSI_MAC_TCR_SNAPTYPSEL_3	(OSI_BIT(16) | OSI_BIT(17))
+#define OSI_MAC_TCR_SNAPTYPSEL_2	OSI_BIT(17)
+#define OSI_MAC_TCR_CSC			OSI_BIT(19)
+#define OSI_MAC_TCR_AV8021ASMEN		OSI_BIT(28)
+
+#define OSI_FLOW_CTRL_TX		OSI_BIT(0)
+#define OSI_FLOW_CTRL_RX		OSI_BIT(1)
+#endif /* !OSI_STRIPPED_LIB */
+
+
 #ifdef MACSEC_SUPPORT
 /**
  * @addtogroup MACSEC related helper MACROs
@@ -57,16 +113,6 @@ typedef my_lint_64		nvel64_t;
 #define OSI_NUM_CTLR			2U
 /** @} */
 #endif /* MACSEC_SUPPORT */
-
-/**
- * @addtogroup PTP PTP related information
- *
- * @brief PTP SSINC values
- * @{
- */
-#define OSI_PTP_SSINC_16	16U
-#define OSI_PTP_SSINC_4		4U
-/** @} */
 
 /**
  * @addtogroup PTP PTP related information
@@ -94,19 +140,12 @@ typedef my_lint_64		nvel64_t;
  */
 #define OSI_MAC_TCR_TSENA		OSI_BIT(0)
 #define OSI_MAC_TCR_TSCFUPDT		OSI_BIT(1)
-#define OSI_MAC_TCR_TSENALL		OSI_BIT(8)
 #define OSI_MAC_TCR_TSCTRLSSR		OSI_BIT(9)
 #define OSI_MAC_TCR_TSVER2ENA		OSI_BIT(10)
 #define OSI_MAC_TCR_TSIPENA		OSI_BIT(11)
 #define OSI_MAC_TCR_TSIPV6ENA		OSI_BIT(12)
 #define OSI_MAC_TCR_TSIPV4ENA		OSI_BIT(13)
-#define OSI_MAC_TCR_TSEVENTENA		OSI_BIT(14)
-#define OSI_MAC_TCR_TSMASTERENA		OSI_BIT(15)
 #define OSI_MAC_TCR_SNAPTYPSEL_1	OSI_BIT(16)
-#define OSI_MAC_TCR_SNAPTYPSEL_2	OSI_BIT(17)
-#define OSI_MAC_TCR_CSC			OSI_BIT(19)
-#define OSI_MAC_TCR_AV8021ASMEN		OSI_BIT(28)
-#define OSI_MAC_TCR_SNAPTYPSEL_3	(OSI_BIT(16) | OSI_BIT(17))
 #define OSI_MAC_TCR_TXTSSMIS		OSI_BIT(31)
 /** @} */
 
@@ -119,7 +158,6 @@ typedef my_lint_64		nvel64_t;
 #define EQOS_DMA_CHX_IER(x)		((0x0080U * (x)) + 0x1134U)
 #define EQOS_MAX_MAC_ADDRESS_FILTER	128U
 #define EQOS_MAX_L3_L4_FILTER		8U
-#define EQOS_MAX_HTR_REGS		8U
 #define OSI_MGBE_MAX_MAC_ADDRESS_FILTER	32U
 #define OSI_DA_MATCH			0U
 #define OSI_INV_MATCH			1U
@@ -128,12 +166,14 @@ typedef my_lint_64		nvel64_t;
 #define OSI_MAX_TC_NUM			8U
 #define OSI_DFLT_MTU_SIZE		1500U
 #define OSI_MTU_SIZE_9000		9000U
+
+#ifndef OSI_STRIPPED_LIB
 /* HW supports 8 Hash table regs, but eqos_validate_core_regs only checks 4 */
 #define OSI_EQOS_MAX_HASH_REGS		4U
+#endif /* !OSI_STRIPPED_LIB */
+
 #define OSI_ETH_ALEN			6U
 
-#define OSI_FLOW_CTRL_TX		OSI_BIT(0)
-#define OSI_FLOW_CTRL_RX		OSI_BIT(1)
 
 #define OSI_FULL_DUPLEX			1
 #define OSI_HALF_DUPLEX			0
@@ -184,15 +224,6 @@ typedef my_lint_64		nvel64_t;
 #define OSI_USXGMII_MODE_10G	2U
 #define OSI_USXGMII_MODE_5G	3U
 
-/**
- * @addtogroup PTP-offload PTP offload defines
- * @{
- */
-#define OSI_PTP_SNAP_ORDINARY	0U
-#define OSI_PTP_SNAP_TRANSPORT	1U
-#define OSI_PTP_SNAP_P2P	3U
-#define OSI_PTP_MAX_PORTID	0xFFFFU
-#define OSI_PTP_MAX_DOMAIN	0xFFU
 
 /**
  * @addtogroup IOCTL OPS MACROS
@@ -200,8 +231,6 @@ typedef my_lint_64		nvel64_t;
  * @brief IOCTL OPS for runtime commands
  * @{
  */
-#define OSI_CMD_MDC_CONFIG		1U
-#define OSI_CMD_RESTORE_REGISTER	2U
 #define OSI_CMD_L3L4_FILTER		3U
 #define OSI_CMD_POLL_FOR_MAC_RST	4U
 #define OSI_CMD_START_MAC		5U
@@ -210,11 +239,6 @@ typedef my_lint_64		nvel64_t;
 #define OSI_CMD_PAD_CALIBRATION		8U
 #define OSI_CMD_READ_MMC		9U
 #define OSI_CMD_GET_MAC_VER		10U
-#define OSI_CMD_VALIDATE_CORE_REG	11U
-#define OSI_CMD_RESET_MMC		12U
-#define OSI_CMD_SAVE_REGISTER		13U
-#define OSI_CMD_MAC_LB			14U
-#define OSI_CMD_FLOW_CTRL		15U
 #define OSI_CMD_SET_MODE		16U
 #define OSI_CMD_SET_SPEED		17U
 #define OSI_CMD_L2_FILTER		18U
@@ -222,16 +246,8 @@ typedef my_lint_64		nvel64_t;
 #define OSI_CMD_ADJ_FREQ		20U
 #define OSI_CMD_ADJ_TIME		21U
 #define OSI_CMD_CONFIG_PTP		22U
-#define OSI_CMD_GET_AVB			23U
-#define OSI_CMD_SET_AVB			24U
-#define OSI_CMD_CONFIG_RX_CRC_CHECK	25U
-#define OSI_CMD_UPDATE_VLAN_ID		26U
-#define OSI_CMD_CONFIG_TXSTATUS		27U
 #define OSI_CMD_GET_HW_FEAT		28U
 #define OSI_CMD_CONFIG_FW_ERR		29U
-#define OSI_CMD_ARP_OFFLOAD		30U
-#define OSI_CMD_VLAN_FILTER		31U
-#define OSI_CMD_CONFIG_EEE		32U
 #define OSI_CMD_SET_SYSTOHW_TIME	33U
 #define OSI_CMD_CONFIG_PTP_OFFLOAD	34U
 #define OSI_CMD_PTP_RXQ_ROUTE		35U
@@ -291,20 +307,8 @@ typedef my_lint_64		nvel64_t;
 }
 
 #define VLAN_NUM_VID		4096U
-#define OSI_VLAN_ACTION_ADD	OSI_BIT(31)
-#define OSI_VLAN_ACTION_DEL	0x0U
-#define OSI_RXQ_ROUTE_PTP	0U
 #define OSI_DELAY_1000US	1000U
 #define OSI_DELAY_1US		1U
-/**
- * @addtogroup RSS related information
- *
- * @brief RSS hash key and table size.
- * @{
- */
-#define OSI_RSS_HASH_KEY_SIZE	40U
-#define OSI_RSS_MAX_TABLE_SIZE	128U
-/** @} */
 
 /**
  * @addtogroup PTP related information
@@ -312,7 +316,6 @@ typedef my_lint_64		nvel64_t;
  * @brief PTP SSINC values
  * @{
  */
-#define OSI_PTP_SSINC_16	16U
 #define OSI_PTP_SSINC_4		4U
 #define OSI_PTP_SSINC_6		6U
 /** @} */

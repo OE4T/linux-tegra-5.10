@@ -23,129 +23,98 @@
 #ifndef MGBE_CORE_H_
 #define MGBE_CORE_H_
 
-/**
- * @addtogroup - MGBE-LPI LPI configuration macros
- *
- * @brief LPI timers and config register field masks.
- * @{
- */
-/* LPI LS timer - minimum time (in milliseconds) for which the link status from
- * PHY should be up before the LPI pattern can be transmitted to the PHY.
- * Default 1sec.
- */
-#define MGBE_DEFAULT_LPI_LS_TIMER	((nveu32_t)1000)
-#define MGBE_LPI_LS_TIMER_MASK		0x3FFU
-#define MGBE_LPI_LS_TIMER_SHIFT		16U
-/* LPI TW timer - minimum time (in microseconds) for which MAC wait after it
- * stops transmitting LPI pattern before resuming normal tx.
- * Default 21us
- */
-#define MGBE_DEFAULT_LPI_TW_TIMER	0x15U
-#define MGBE_LPI_TW_TIMER_MASK		0xFFFFU
-/* LPI entry timer - Time in microseconds that MAC will wait to enter LPI mode
- * after all tx is complete.
- * Default 1sec.
- */
-#define MGBE_LPI_ENTRY_TIMER_MASK	0xFFFF8U
-/* 1US TIC counter - This counter should be programmed with the number of clock
- * cycles of CSR clock that constitutes a period of 1us.
- * it should be APB clock in MHZ i.e 480-1 for silicon and 13MHZ-1 for uFPGA
- */
-#define MGBE_1US_TIC_COUNTER		0x1DF
-/** @} */
+#ifndef OSI_STRIPPED_LIB
+#define MGBE_MAC_RX_FLW_CTRL			0x0090
+#define MGBE_MAC_QX_TX_FLW_CTRL(x)		((0x0004U * (x)) + 0x0070U)
+#define MGBE_MAC_ARPPA				0x0C10
+#define MGBE_MAC_LPI_CSR			0x00D0
+#define MGBE_MAC_LPI_TIMER_CTRL			0x00D4
+#define MGBE_MAC_LPI_EN_TIMER			0x00D8
+#define MGBE_MAC_RSS_CTRL			0x0C80
+#define MGBE_MAC_RSS_ADDR			0x0C88
+#define MGBE_MAC_RSS_DATA			0x0C8C
+#define MGBE_MAC_PTO_CR				0x0DC0
+#define MGBE_MAC_PIDR0				0x0DC4
+#define MGBE_MAC_PIDR1				0x0DC8
+#define MGBE_MAC_PIDR2				0x0DCC
+#define MGBE_MAC_PMTCSR				0x00C0
+#define MGBE_MAC_HTR_REG(x)			((0x0004U * (x)) + 0x0010U)
+#define MGBE_MTL_EST_CONTROL			0x1050
+#define MGBE_MTL_EST_OVERHEAD			0x1054
+#define MGBE_MTL_EST_STATUS			0x1058
+#define MGBE_MTL_EST_SCH_ERR			0x1060
+#define MGBE_MTL_EST_FRMS_ERR			0x1064
+#define MGBE_MTL_EST_ITRE			0x1070
+#define MGBE_MTL_EST_GCL_CONTROL		0x1080
+#define MGBE_MTL_EST_DATA			0x1084
+#define MGBE_MAC_STSR				0x0D08
+#define MGBE_MAC_STNSR				0x0D0C
+#define MGBE_MAC_RX_TX_STS			0x00B8
+#define MGBE_MAC_RQC4R				0x0094
+#define MGBE_MAC_RQC2R				0x00A8
+#define MGBE_MAC_FPE_CTS			0x0280
+#define MGBE_MTL_TCQ_ETS_HCR(x)			((0x0080U * (x)) + 0x1120U)
+#define MGBE_MTL_TCQ_ETS_LCR(x)			((0x0080U * (x)) + 0x1124U)
+#define MGBE_MTL_TCQ_ETS_SSCR(x)		((0x0080U * (x)) + 0x111CU)
+#define MGBE_WRAP_AXI_ASID0_CTRL		0x8400
+#define MGBE_WRAP_AXI_ASID1_CTRL		0x8404
+#define MGBE_WRAP_AXI_ASID2_CTRL		0x8408
+#define MGBE_MTL_RXP_CS				0x10A0
+#define MGBE_MTL_RXP_INTR_CS			0x10A4
+#define MGBE_MTL_RXP_IND_CS			0x10B0
+#define MGBE_MTL_RXP_IND_DATA			0x10B4
+#define MGBE_MTL_QINT_STATUS(x)			((0x0080U * (x)) + 0x1174U)
+#define MGBE_MTL_OP_MODE			0x1000
+#define MGBE_MTL_INTR_STATUS			0x1020
+#define MGBE_MTL_FPE_CTS			0x1090
+#define MGBE_MTL_FPE_ADV			0x1094
 
-/**
- * @addtogroup MGBE MTL queue ETS algorithm mode
- *
- * @brief MTL queue algorithm type
- * @{
- */
-#define OSI_MGBE_TXQ_AVALG_ETS	2U
-/** @} */
+#define MGBE_MTL_TCQ_ETS_CR_AVALG_SHIFT		0U
+#define MGBE_MTL_QINT_TXUNIFS			OSI_BIT(0)
+#define MGBE_MTL_TX_OP_MODE_Q2TCMAP		(OSI_BIT(10) | OSI_BIT(9) |\
+						 OSI_BIT(8))
+#define MGBE_MTL_TX_OP_MODE_Q2TCMAP_SHIFT	8U
+#define MGBE_MTL_TX_OP_MODE_TXQEN		(OSI_BIT(3) | OSI_BIT(2))
+#define MGBE_MTL_TX_OP_MODE_TXQEN_SHIFT		2U
+#define MGBE_SID_VAL1(x)			(((x) << 24U) |\
+						 ((x) << 16U) |\
+						 ((x) << 8U) |\
+						 (x))
+#define MGBE_SID_VAL2(x)			(((x) << 8U) |\
+						 (x))
 
-/**
- * @addtogroup MGBE-MAC MAC register offsets
- *
- * @brief MGBE MAC register offsets
- * @{
- */
-#define MGBE_MAC_TMCR			0x0000
-#define MGBE_MAC_RMCR			0x0004
-#define MGBE_MAC_PFR			0x0008
-#define MGBE_MAC_HTR_REG(x)		((0x0004U * (x)) + 0x0010U)
-#define MGBE_MAC_VLAN_TR		0x0050
-#define MGBE_MAC_VLANTIR		0x0060
-#define MGBE_MAC_QX_TX_FLW_CTRL(x)	((0x0004U * (x)) + 0x0070U)
-#define MGBE_MAC_RX_FLW_CTRL		0x0090
-#define MGBE_MAC_RQC4R			0x0094
-#define MGBE_MAC_RQC0R			0x00A0
-#define MGBE_MAC_RQC1R			0x00A4
-#define MGBE_MAC_RQC2R			0x00A8
-#define MGBE_MAC_ISR			0x00B0
-#define MGBE_MAC_IER			0x00B4
-#define MGBE_MAC_RX_TX_STS		0x00B8
-#define MGBE_MAC_PMTCSR			0x00C0
-#define MGBE_MAC_LPI_CSR		0x00D0
-#define MGBE_MAC_LPI_TIMER_CTRL		0x00D4
-#define MGBE_MAC_LPI_EN_TIMER		0x00D8
-#define MGBE_MAC_1US_TIC_COUNT		0x00DC
-#define MGBE_MAC_EXT_CNF		0x0140
-#define MGBE_MDIO_SCCD			0x0204
-#define MGBE_MDIO_SCCA			0x0200
-#define MGBE_MAC_FPE_CTS		0x0280
-#define MGBE_MAC_ADDRH(x)		((0x0008U * (x)) + 0x0300U)
-#define MGBE_MAC_ADDRL(x)		((0x0008U * (x)) + 0x0304U)
-#define MGBE_MAC_INDIR_AC		0x0700
-#define MGBE_MAC_INDIR_DATA		0x0704
-#define MGBE_MMC_TX_INTR_EN		0x0810
-#define MGBE_MMC_RX_INTR_EN		0x080C
-#define MGBE_MMC_CNTRL			0x0800
-#define MGBE_MAC_L3L4_ADDR_CTR		0x0C00
-#define MGBE_MAC_L3L4_DATA		0x0C04
-#define MGBE_MAC_ARPPA			0x0C10
-#define MGBE_MAC_RSS_CTRL		0x0C80
-#define MGBE_MAC_RSS_ADDR		0x0C88
-#define MGBE_MAC_RSS_DATA		0x0C8C
-#define MGBE_MAC_TCR			0x0D00
-#define MGBE_MAC_SSIR			0x0D04
-#define MGBE_MAC_STSR			0x0D08
-#define MGBE_MAC_STNSR			0x0D0C
-#define MGBE_MAC_STSUR			0x0D10
-#define MGBE_MAC_STNSUR			0x0D14
-#define MGBE_MAC_TAR			0x0D18
-#define MGBE_MAC_TSS			0x0D20
-#define MGBE_MAC_TSNSSEC		0x0D30
-#define MGBE_MAC_TSSEC			0x0D34
-#define MGBE_MAC_TSPKID			0x0D38
-#define MGBE_MAC_PPS_CTL		0x0D70
-#define MGBE_MAC_PTO_CR			0x0DC0
-#define MGBE_MAC_PIDR0			0x0DC4
-#define MGBE_MAC_PIDR1			0x0DC8
-#define MGBE_MAC_PIDR2			0x0DCC
-/** @} */
+#define MGBE_MTL_TCQ_ETS_CR_CC			OSI_BIT(3)
+#define MGBE_MTL_TCQ_ETS_CR_CC_SHIFT		3U
+#define MGBE_MTL_TCQ_ETS_QW_ISCQW_MASK		0x001FFFFFU
+#define MGBE_MTL_TCQ_ETS_SSCR_SSC_MASK		0x0000FFFFU
+#define MGBE_MTL_TCQ_ETS_HCR_HC_MASK		0x1FFFFFFFU
+#define MGBE_MTL_TCQ_ETS_LCR_LC_MASK		0x1FFFFFFFU
 
-/**
- * @addtogroup MGBE-WRAPPER MGBE Wrapper register offsets
- *
- * @brief MGBE Wrapper register offsets
- * @{
- */
-#define MGBE_WRAP_AXI_ASID0_CTRL	0x8400
-#define MGBE_WRAP_AXI_ASID1_CTRL	0x8404
-#define MGBE_WRAP_AXI_ASID2_CTRL	0x8408
-#define MGBE_WRAP_COMMON_INTR_ENABLE	0x8704
-
-#ifdef HSI_SUPPORT
-#define MGBE_REGISTER_PARITY_ERR	OSI_BIT(5)
-#define MGBE_CORE_CORRECTABLE_ERR	OSI_BIT(4)
-#define MGBE_CORE_UNCORRECTABLE_ERR	OSI_BIT(3)
-#endif
-#define MGBE_MAC_SBD_INTR		OSI_BIT(2)
-#define MGBE_WRAP_COMMON_INTR_STATUS	0x8708
-#define MGBE_VIRT_INTR_APB_CHX_CNTRL(x)	(0x8200U + ((x) * 4U))
-#define MGBE_VIRTUAL_APB_ERR_CTRL	0x8300
-/** @} */
-
+#define MGBE0_SID				((nveu32_t)0x6U)
+#define MGBE1_SID				((nveu32_t)0x49U)
+#define MGBE2_SID				((nveu32_t)0x4AU)
+#define MGBE3_SID				((nveu32_t)0x4BU)
+#define MGBE_8PTP_CYCLE				26U
+#define MGBE_DMA_ISR_MTLIS                      OSI_BIT(16)
+#define MGBE_IMR_FPEIE				OSI_BIT(15)
+#define MGBE_MAC_EXT_CNF_EIPG			0x1U
+#define MGBE_MAC_EXT_CNF_EIPG_MASK		0x7FU
+#define MGBE_MAC_RQC4R_PMCBCQ			(OSI_BIT(27) | OSI_BIT(26) | \
+						 OSI_BIT(25) | OSI_BIT(24))
+#define MGBE_MAC_RQC4R_PMCBCQ_SHIFT		24U
+#define MGBE_MAC_RX_FLW_CTRL_RFE		OSI_BIT(0)
+#define MGBE_MAC_STNSR_TSSS_MASK		0x7FFFFFFFU
+#define MGBE_MAC_TCR_SNAPTYPSEL_SHIFT		16U
+#define MGBE_MAC_TCR_TSENMACADDR		OSI_BIT(18)
+#define MGBE_MAC_TMCR_IPG_MASK			0x700U
+#define MGBE_MAC_RQC1R_RQ_SHIFT			4U
+#define MGBE_MAC_PAUSE_TIME			0xFFFF0000U
+#define MGBE_MAC_PAUSE_TIME_MASK		0xFFFF0000U
+#define MGBE_MAC_TX_TJT				OSI_BIT(0)
+#define MGBE_MAC_TX_IHE				OSI_BIT(12)
+#define MGBE_MAC_VLAN_TR_VTHM			OSI_BIT(25)
+#define MGBE_MAC_VLAN_TR_VTIM			OSI_BIT(17)
+#define MGBE_MAC_VLAN_TR_VTIM_SHIFT		17
 /**
  * @addtogroup MGBE MAC hash table defines
  *
@@ -156,149 +125,157 @@
 #define MGBE_MAX_HTR_REGS		4U
 /** @} */
 
-/**
- * @addtogroup MGBE MAC Mode Select Group
- *
- * @brief MGBE MAC Indirect Access control and status for
- * Mode Select type defines.
- * @{
- */
-#define MGBE_MAC_XDCS_DMA_MAX		0x3FFU
-#define MGBE_MAC_INDIR_AC_OB_WAIT	10U
-#define MGBE_MAC_INDIR_AC_OB_RETRY	10U
-
-#define MGBE_MAC_DCHSEL			0U
-
-/* MGBE_MAC_INDIR_AC register defines */
-#define MGBE_MAC_INDIR_AC_MSEL		(OSI_BIT(19) | OSI_BIT(18) | \
-					 OSI_BIT(17) | OSI_BIT(16))
-#define MGBE_MAC_INDIR_AC_MSEL_SHIFT	16U
-#define MGBE_MAC_INDIR_AC_AOFF		(OSI_BIT(15) | OSI_BIT(14) | \
-					 OSI_BIT(13) | OSI_BIT(12) | \
-					 OSI_BIT(11) | OSI_BIT(10) | \
-					 OSI_BIT(9) | OSI_BIT(8))
-#define MGBE_MAC_INDIR_AC_AOFF_SHIFT	8U
-#define MGBE_MAC_INDIR_AC_CMD		OSI_BIT(1)
-#define MGBE_MAC_INDIR_AC_OB		OSI_BIT(0)
-/** @} */
-
-/**
- * @addtogroup MGBE MAC L3L4 defines
- *
- * @brief MGBE L3L4 Address Control register
- * IDDR filter filed type defines
- * @{
- */
 #define MGBE_MAX_VLAN_FILTER		32U
-#define MGBE_MAC_XB_WAIT		10U
-#define MGBE_MAC_L3L4_CTR		0x0
-#define MGBE_MAC_L4_ADDR		0x1
-#define MGBE_MAC_L3_AD0R		0x4
-#define MGBE_MAC_L3_AD1R		0x5
+/* EST controlOSI_BITmap */
+#define MGBE_MTL_EST_EEST			OSI_BIT(0)
+#define MGBE_MTL_EST_SSWL			OSI_BIT(1)
+#define MGBE_MTL_EST_QHLBF			OSI_BIT(3)
+/* EST GCL controlOSI_BITmap */
+#define MGBE_MTL_EST_ADDR_SHIFT			8
+#define MGBE_MTL_EST_ADDR_MASK			(OSI_BIT(8) | OSI_BIT(9) | \
+						 OSI_BIT(10) | OSI_BIT(11) | \
+						 OSI_BIT(12) | OSI_BIT(13) | \
+						 OSI_BIT(14) | OSI_BIT(15) | \
+						 OSI_BIT(16) | OSI_BIT(17) | \
+						 OSI_BIT(18) | OSI_BIT(19))
+#define MGBE_MTL_EST_SRWO			OSI_BIT(0)
+#define MGBE_MTL_EST_GCRR			OSI_BIT(2)
+#define MGBE_MTL_EST_ERR0			OSI_BIT(20)
+/*EST MTL interrupt STATUS and ERR*/
+#define MGBE_MTL_IS_ESTIS			OSI_BIT(18)
+/* MTL_EST_STATUS*/
+#define MGBE_MTL_EST_STATUS_CGCE		OSI_BIT(4)
+#define MGBE_MTL_EST_STATUS_HLBS		OSI_BIT(3)
+#define MGBE_MTL_EST_STATUS_HLBF		OSI_BIT(2)
+#define MGBE_MTL_EST_STATUS_BTRE		OSI_BIT(1)
+#define MGBE_MTL_EST_STATUS_SWLC		OSI_BIT(0)
+#define MGBE_MTL_EST_ITRE_CGCE			OSI_BIT(4)
+#define MGBE_MTL_EST_ITRE_IEHS			OSI_BIT(3)
+#define MGBE_MTL_EST_ITRE_IEHF			OSI_BIT(2)
+#define MGBE_MTL_EST_ITRE_IEBE			OSI_BIT(1)
+#define MGBE_MTL_EST_ITRE_IECC			OSI_BIT(0)
+/* EST GCRA addresses */
+#define MGBE_MTL_EST_BTR_LOW			((nveu32_t)0x0 << \
+						 MGBE_MTL_EST_ADDR_SHIFT)
+#define MGBE_MTL_EST_BTR_HIGH			((nveu32_t)0x1 << \
+						 MGBE_MTL_EST_ADDR_SHIFT)
+#define MGBE_MTL_EST_CTR_LOW			((nveu32_t)0x2 << \
+						 MGBE_MTL_EST_ADDR_SHIFT)
+#define MGBE_MTL_EST_CTR_HIGH			((nveu32_t)0x3 << \
+						 MGBE_MTL_EST_ADDR_SHIFT)
+#define MGBE_MTL_EST_CTR_HIGH_MAX		0xFFU
+#define MGBE_MTL_EST_TER			((nveu32_t)0x4 << \
+						 MGBE_MTL_EST_ADDR_SHIFT)
+#define MGBE_MTL_EST_LLR			((nveu32_t)0x5 << \
+						 MGBE_MTL_EST_ADDR_SHIFT)
+
+#define MGBE_MTL_EST_CONTROL_LCSE		(OSI_BIT(7) | OSI_BIT(6))
+#define MGBE_MTL_EST_CONTROL_LCSE_VAL		0U
+#define MGBE_MTL_EST_CONTROL_DDBF		OSI_BIT(4)
+#define MGBE_MTL_EST_OVERHEAD_OVHD		(OSI_BIT(0) | OSI_BIT(1) | \
+						 OSI_BIT(2) | OSI_BIT(3) | \
+						 OSI_BIT(4) | OSI_BIT(5))
+#define MGBE_MTL_EST_OVERHEAD_RECOMMEND		56U
+
+#define MGBE_MAC_TX_PCE				OSI_BIT(13)
+/* MAC FPE control/statusOSI_BITmap */
+#define MGBE_MAC_FPE_CTS_EFPE			OSI_BIT(0)
+#define MGBE_MAC_FPE_CTS_TRSP			OSI_BIT(19)
+#define MGBE_MAC_FPE_CTS_TVER			OSI_BIT(18)
+#define MGBE_MAC_FPE_CTS_RVER			OSI_BIT(16)
+#define MGBE_MAC_FPE_CTS_SVER			OSI_BIT(1)
+#define MGBE_MAC_FPE_CTS_SRSP			OSI_BIT(2)
+/* MTL_FPE_CTRL_STS */
+#define MGBE_MTL_FPE_CTS_PEC			(OSI_BIT(8) | OSI_BIT(9) | \
+						 OSI_BIT(10) | OSI_BIT(11) | \
+						 OSI_BIT(12) | OSI_BIT(13) | \
+						 OSI_BIT(14) | OSI_BIT(15))
+#define MGBE_MTL_FPE_CTS_PEC_SHIFT		8U
+#define MGBE_MTL_FPE_CTS_PEC_MAX_SHIFT		16U
+/* MTL FPE adv registers */
+#define MGBE_MTL_FPE_ADV_HADV_MASK		(0xFFFFU)
+#define MGBE_MTL_FPE_ADV_HADV_VAL		100U
+
+#define MGBE_MAC_IMR_FPEIS			OSI_BIT(16)
+#define MGBE_MAC_L3L4_CTR_L4DPIM0_SHIFT	21
+#define MGBE_MAC_L3L4_CTR_L4PEN0	OSI_BIT(16)
+#define MGBE_MAC_L3L4_CTR_L4SPIM0_SHIFT	19
 #define MGBE_MAC_L3_AD2R		0x6
 #define MGBE_MAC_L3_AD3R		0x7
-
-#define MGBE_MAC_L3L4_CTR_DMCHEN0	OSI_BIT(31)
-#define MGBE_MAC_L3L4_CTR_DMCHEN0_SHIFT	31
-#define MGBE_MAC_L3L4_CTR_DMCHN0	(OSI_BIT(24) | OSI_BIT(25) | \
-					 OSI_BIT(26) | OSI_BIT(27))
-#define MGBE_MAC_L3L4_CTR_DMCHN0_SHIFT	24
-#define MGBE_MAC_L3L4_CTR_L4DPIM0	OSI_BIT(21)
-#define MGBE_MAC_L3L4_CTR_L4DPIM0_SHIFT	21
-#define MGBE_MAC_L3L4_CTR_L4DPM0	OSI_BIT(20)
-#define MGBE_MAC_L3L4_CTR_L4SPIM0	OSI_BIT(19)
-#define MGBE_MAC_L3L4_CTR_L4SPIM0_SHIFT	19
-#define MGBE_MAC_L3L4_CTR_L4SPM0	OSI_BIT(18)
-#define MGBE_MAC_L3L4_CTR_L4PEN0	OSI_BIT(16)
-#define MGBE_MAC_L3L4_CTR_L3DAIM0	OSI_BIT(5)
-#define MGBE_MAC_L3L4_CTR_L3DAIM0_SHIFT	5
-#define MGBE_MAC_L3L4_CTR_L3DAM0	OSI_BIT(4)
-#define MGBE_MAC_L3L4_CTR_L3SAIM0	OSI_BIT(3)
-#define MGBE_MAC_L3L4_CTR_L3SAIM0_SHIFT	3
-#define MGBE_MAC_L3L4_CTR_L3SAM0	OSI_BIT(2)
-#define MGBE_MAC_L3L4_CTR_L3PEN0	OSI_BIT(0)
-#define MGBE_MAC_L3_IP6_CTRL_CLEAR	(MGBE_MAC_L3L4_CTR_L3SAM0  | \
-					 MGBE_MAC_L3L4_CTR_L3SAIM0 | \
-					 MGBE_MAC_L3L4_CTR_L3DAM0  | \
-					 MGBE_MAC_L3L4_CTR_L3DAIM0 | \
-					 MGBE_MAC_L3L4_CTR_DMCHEN0 | \
-					 MGBE_MAC_L3L4_CTR_DMCHN0)
-#define MGBE_MAC_L3_IP4_SA_CTRL_CLEAR	(MGBE_MAC_L3L4_CTR_L3SAM0  | \
-					 MGBE_MAC_L3L4_CTR_L3SAIM0 | \
-					 MGBE_MAC_L3L4_CTR_DMCHEN0 | \
-					 MGBE_MAC_L3L4_CTR_DMCHN0)
-#define MGBE_MAC_L3_IP4_DA_CTRL_CLEAR	(MGBE_MAC_L3L4_CTR_L3DAM0  | \
-					 MGBE_MAC_L3L4_CTR_L3DAIM0 | \
-					 MGBE_MAC_L3L4_CTR_DMCHEN0 | \
-					 MGBE_MAC_L3L4_CTR_DMCHN0)
-#define MGBE_MAC_L4_SP_CTRL_CLEAR	(MGBE_MAC_L3L4_CTR_L4SPM0  | \
-					 MGBE_MAC_L3L4_CTR_L4SPIM0 | \
-					 MGBE_MAC_L3L4_CTR_DMCHEN0 | \
-					 MGBE_MAC_L3L4_CTR_DMCHN0)
-#define MGBE_MAC_L4_DP_CTRL_CLEAR	(MGBE_MAC_L3L4_CTR_L4DPM0  | \
-					 MGBE_MAC_L3L4_CTR_L4DPIM0 | \
-					 MGBE_MAC_L3L4_CTR_DMCHEN0 | \
-					 MGBE_MAC_L3L4_CTR_DMCHN0)
-#define MGBE_MAC_L3L4_CTRL_ALL		(MGBE_MAC_L3_IP6_CTRL_CLEAR | \
-					 MGBE_MAC_L3_IP4_SA_CTRL_CLEAR | \
-					 MGBE_MAC_L3_IP4_DA_CTRL_CLEAR | \
-					 MGBE_MAC_L4_SP_CTRL_CLEAR | \
-					 MGBE_MAC_L4_DP_CTRL_CLEAR)
-#define MGBE_MAC_L4_ADDR_SP_MASK	0x0000FFFFU
-#define MGBE_MAC_L4_ADDR_DP_MASK	0xFFFF0000U
-#define MGBE_MAC_L4_ADDR_DP_SHIFT	16
-/** @} */
+#define MGBE_MAC_FPE_CTS_RRSP			OSI_BIT(17)
+#define MGBE_MAC_RQC1R_PTPQ_SHIFT		24U
+#define MGBE_MAC_RQC1R_PTPQ			(OSI_BIT(27) | OSI_BIT(26) | \
+						 OSI_BIT(25) | OSI_BIT(24))
+#define MGBE_MAC_RMCR_LM			OSI_BIT(10)
+#define MGBE_MAC_RMCR_ARPEN			OSI_BIT(31)
+#define MGBE_MAC_QX_TX_FLW_CTRL_TFE		OSI_BIT(1)
+#define MGBE_MAC_TMCR_IFP			OSI_BIT(11)
+#define MGBE_MAC_RQC1R_TPQC0			OSI_BIT(21)
+#define MGBE_MAC_RQC1R_OMCBCQ			OSI_BIT(20)
+#define MGBE_MAC_RSS_CTRL_RSSE			OSI_BIT(0)
+#define MGBE_MAC_RSS_CTRL_IP2TE			OSI_BIT(1)
+#define MGBE_MAC_RSS_CTRL_TCP4TE		OSI_BIT(2)
+#define MGBE_MAC_RSS_CTRL_UDP4TE		OSI_BIT(3)
+#define MGBE_MAC_RSS_ADDR_ADDRT			OSI_BIT(2)
+#define MGBE_MAC_RSS_ADDR_RSSIA_SHIFT		8U
+#define MGBE_MAC_RSS_ADDR_OB			OSI_BIT(0)
+#define MGBE_MAC_RSS_ADDR_CT			OSI_BIT(1)
 
 /**
- * @addtogroup MGBE-DMA DMA register offsets
+ * @addtogroup - MGBE-LPI LPI configuration macros
  *
- * @brief MGBE DMA register offsets
+ * @brief LPI timers and config register field masks.
  * @{
  */
-#define MGBE_DMA_MODE			0x3000
-#define MGBE_DMA_SBUS			0x3004
-#define MGBE_DMA_ISR			0x3008
-#define MGBE_DMA_TX_EDMA_CTRL		0x3040
-#define MGBE_DMA_RX_EDMA_CTRL		0x3044
-#define MGBE_DMA_CHX_STATUS(x)		((0x0080U * (x)) + 0x3160U)
-#define MGBE_DMA_CHX_IER(x)		((0x0080U * (x)) + 0x3138U)
-/** @} */
-
-/**
- * @addtogroup MGBE-MTL MTL register offsets
- *
- * @brief MGBE MTL register offsets
- * @{
+/* LPI LS timer - minimum time (in milliseconds) for which the link status from
+ * PHY should be up before the LPI pattern can be transmitted to the PHY.
+ * Default 1sec.
  */
-#define MGBE_MTL_OP_MODE		0x1000
-#define MGBE_MTL_INTR_STATUS		0x1020
-#define MGBE_MTL_RXQ_DMA_MAP0		0x1030
-#define MGBE_MTL_RXQ_DMA_MAP1		0x1034
-#define MGBE_MTL_RXQ_DMA_MAP2		0x1038
-#define MGBE_MTL_EST_CONTROL		0x1050
-#define MGBE_MTL_EST_OVERHEAD		0x1054
-#define MGBE_MTL_EST_STATUS		0x1058
-#define MGBE_MTL_EST_SCH_ERR		0x1060
-#define MGBE_MTL_EST_FRMS_ERR		0x1064
-#define MGBE_MTL_EST_ITRE		0x1070
-#define MGBE_MTL_EST_GCL_CONTROL	0x1080
-#define MGBE_MTL_EST_DATA		0x1084
-#define MGBE_MTL_FPE_CTS		0x1090
-#define MGBE_MTL_FPE_ADV		0x1094
-#define MGBE_MTL_CHX_TX_OP_MODE(x)	((0x0080U * (x)) + 0x1100U)
-#define MGBE_MTL_TCQ_ETS_CR(x)		((0x0080U * (x)) + 0x1110U)
-#define MGBE_MTL_TCQ_QW(x)		((0x0080U * (x)) + 0x1118U)
-#define MGBE_MTL_TCQ_ETS_SSCR(x)	((0x0080U * (x)) + 0x111CU)
-#define MGBE_MTL_TCQ_ETS_HCR(x)		((0x0080U * (x)) + 0x1120U)
-#define MGBE_MTL_TCQ_ETS_LCR(x)		((0x0080U * (x)) + 0x1124U)
-#define MGBE_MTL_CHX_RX_OP_MODE(x)	((0x0080U * (x)) + 0x1140U)
-#define MGBE_MTL_RXQ_FLOW_CTRL(x)	((0x0080U * (x)) + 0x1150U)
-#define MGBE_MTL_QINT_STATUS(x)		((0x0080U * (x)) + 0x1174U)
-#define MGBE_MTL_RXP_CS			0x10A0
-#define MGBE_MTL_RXP_INTR_CS		0x10A4
-#define MGBE_MTL_RXP_IND_CS		0x10B0
-#define MGBE_MTL_RXP_IND_DATA		0x10B4
+#define MGBE_DEFAULT_LPI_LS_TIMER		((nveu32_t)1000)
+#define MGBE_LPI_LS_TIMER_MASK			0x3FFU
+#define MGBE_LPI_LS_TIMER_SHIFT			16U
+/* LPI TW timer - minimum time (in microseconds) for which MAC wait after it
+ * stops transmitting LPI pattern before resuming normal tx.
+ * Default 21us
+ */
+#define MGBE_DEFAULT_LPI_TW_TIMER		0x15U
+#define MGBE_LPI_TW_TIMER_MASK			0xFFFFU
+/* LPI entry timer - Time in microseconds that MAC will wait to enter LPI mode
+ * after all tx is complete.
+ * Default 1sec.
+ */
+#define MGBE_LPI_ENTRY_TIMER_MASK		0xFFFF8U
+/* 1US TIC counter - This counter should be programmed with the number of clock
+ * cycles of CSR clock that constitutes a period of 1us.
+ * it should be APB clock in MHZ i.e 480-1 for silicon and 13MHZ-1 for uFPGA
+ */
+#define MGBE_1US_TIC_COUNTER			0x1DF
+#define MGBE_MAC_1US_TIC_COUNT			0x00DC
 /** @} */
+#define MGBE_MAC_PTO_CR_PTOEN			OSI_BIT(0)
+#define MGBE_MAC_PTO_CR_ASYNCEN			OSI_BIT(1)
+#define MGBE_MAC_PTO_CR_APDREQEN		OSI_BIT(2)
+#define MGBE_MAC_PTO_CR_DN			(OSI_BIT(15) | OSI_BIT(14) | \
+						 OSI_BIT(13) | OSI_BIT(12) | \
+						 OSI_BIT(11) | OSI_BIT(10) | \
+						 OSI_BIT(9) | OSI_BIT(8))
+#define MGBE_MAC_PTO_CR_DN_SHIFT		8U
+/* MTL_EST_CONTROL */
+#define MGBE_MTL_EST_CONTROL_PTOV		(OSI_BIT(23) | OSI_BIT(24) | \
+						 OSI_BIT(25) | OSI_BIT(26) | \
+						 OSI_BIT(27) | OSI_BIT(28) | \
+						 OSI_BIT(29) | OSI_BIT(30) | \
+						 OSI_BIT(31))
+#define MGBE_MTL_EST_CONTROL_PTOV_SHIFT		23U
+#define MGBE_MTL_EST_PTOV_RECOMMEND		32U
+#define MGBE_MTL_EST_CONTROL_CTOV		(OSI_BIT(11) | OSI_BIT(12) | \
+						 OSI_BIT(13) | OSI_BIT(14) | \
+						 OSI_BIT(15) | OSI_BIT(16) | \
+						 OSI_BIT(17) | OSI_BIT(18) | \
+						 OSI_BIT(19) | OSI_BIT(20) | \
+						 OSI_BIT(21) | OSI_BIT(22))
+#define MGBE_MTL_EST_CONTROL_CTOV_SHIFT		11U
+#define MGBE_MTL_EST_CTOV_RECOMMEND		42U
 
 /**
  * @addtogroup MGBE-MTL FRP Indirect Access register defines
@@ -365,6 +342,211 @@
 						 OSI_BIT(3) | OSI_BIT(2) | \
 						 OSI_BIT(1) | OSI_BIT(0))
 /** @} */
+#define MGBE_DMA_CHX_STATUS_RPS			OSI_BIT(8)
+#define MGBE_DMA_CHX_STATUS_TPS			OSI_BIT(1)
+#define MGBE_DMA_CHX_STATUS_TBU			OSI_BIT(2)
+#define MGBE_DMA_CHX_STATUS_RBU			OSI_BIT(7)
+#define MGBE_DMA_CHX_STATUS_FBE			OSI_BIT(12)
+
+#define MGBE_MAC_L4_ADDR			0x1
+#define MGBE_MAC_L4_ADDR_SP_MASK		0x0000FFFFU
+#define MGBE_MAC_L4_ADDR_DP_MASK		0xFFFF0000U
+#define MGBE_MAC_L4_ADDR_DP_SHIFT		16
+#define MGBE_MAC_LPI_CSR_LPITE			OSI_BIT(20)
+#define MGBE_MAC_LPI_CSR_LPITXA			OSI_BIT(19)
+#define MGBE_MAC_LPI_CSR_PLS			OSI_BIT(17)
+#define MGBE_MAC_LPI_CSR_LPIEN			OSI_BIT(16)
+#define MGBE_MAC_RQC1R_RQ			(OSI_BIT(7) | OSI_BIT(6) | \
+						 OSI_BIT(5) | OSI_BIT(4))
+#define MGBE_MAC_PFR_VTFE_SHIFT			16
+#define MGBE_MAC_PIDR_PID_MASK			0XFFFFU
+
+
+#endif /* !OSI_STRIPPED_LIB */
+
+/**
+ * @addtogroup MGBE MTL queue ETS algorithm mode
+ *
+ * @brief MTL queue algorithm type
+ * @{
+ */
+#define OSI_MGBE_TXQ_AVALG_ETS	2U
+#define MGBE_MTL_TCQ_ETS_CR_AVALG		(OSI_BIT(1) | OSI_BIT(0))
+/** @} */
+
+/**
+ * @addtogroup MGBE-MAC MAC register offsets
+ *
+ * @brief MGBE MAC register offsets
+ * @{
+ */
+#define MGBE_MAC_TMCR			0x0000
+#define MGBE_MAC_RMCR			0x0004
+#define MGBE_MAC_PFR			0x0008
+#define MGBE_MAC_VLAN_TR		0x0050
+#define MGBE_MAC_VLANTIR		0x0060
+#define MGBE_MAC_RQC0R			0x00A0
+#define MGBE_MAC_RQC1R			0x00A4
+#define MGBE_MAC_ISR			0x00B0
+#define MGBE_MAC_IER			0x00B4
+#define MGBE_MAC_EXT_CNF		0x0140
+#define MGBE_MDIO_SCCD			0x0204
+#define MGBE_MDIO_SCCA			0x0200
+#define MGBE_MAC_ADDRH(x)		((0x0008U * (x)) + 0x0300U)
+#define MGBE_MAC_ADDRL(x)		((0x0008U * (x)) + 0x0304U)
+#define MGBE_MAC_INDIR_AC		0x0700
+#define MGBE_MAC_INDIR_DATA		0x0704
+#define MGBE_MMC_TX_INTR_EN		0x0810
+#define MGBE_MMC_RX_INTR_EN		0x080C
+#define MGBE_MMC_CNTRL			0x0800
+#define MGBE_MAC_L3L4_ADDR_CTR		0x0C00
+#define MGBE_MAC_L3L4_DATA		0x0C04
+#define MGBE_MAC_TCR			0x0D00
+#define MGBE_MAC_SSIR			0x0D04
+#define MGBE_MAC_STSUR			0x0D10
+#define MGBE_MAC_STNSUR			0x0D14
+#define MGBE_MAC_TAR			0x0D18
+#define MGBE_MAC_TSS			0x0D20
+#define MGBE_MAC_TSNSSEC		0x0D30
+#define MGBE_MAC_TSSEC			0x0D34
+#define MGBE_MAC_TSPKID			0x0D38
+#define MGBE_MAC_PPS_CTL		0x0D70
+/** @} */
+
+/**
+ * @addtogroup MGBE-WRAPPER MGBE Wrapper register offsets
+ *
+ * @brief MGBE Wrapper register offsets
+ * @{
+ */
+#define MGBE_WRAP_COMMON_INTR_ENABLE	0x8704
+
+#ifdef HSI_SUPPORT
+#define MGBE_REGISTER_PARITY_ERR	OSI_BIT(5)
+#define MGBE_CORE_CORRECTABLE_ERR	OSI_BIT(4)
+#define MGBE_CORE_UNCORRECTABLE_ERR	OSI_BIT(3)
+#endif
+#define MGBE_MAC_SBD_INTR		OSI_BIT(2)
+#define MGBE_WRAP_COMMON_INTR_STATUS		0x8708
+#define MGBE_VIRT_INTR_APB_CHX_CNTRL(x)	(0x8200U + ((x) * 4U))
+#define MGBE_VIRTUAL_APB_ERR_CTRL	0x8300
+/** @} */
+
+
+/**
+ * @addtogroup MGBE MAC Mode Select Group
+ *
+ * @brief MGBE MAC Indirect Access control and status for
+ * Mode Select type defines.
+ * @{
+ */
+#define MGBE_MAC_XDCS_DMA_MAX		0x3FFU
+#define MGBE_MAC_INDIR_AC_OB_WAIT	10U
+#define MGBE_MAC_INDIR_AC_OB_RETRY	10U
+
+#define MGBE_MAC_DCHSEL			0U
+
+/* MGBE_MAC_INDIR_AC register defines */
+#define MGBE_MAC_INDIR_AC_MSEL		(OSI_BIT(19) | OSI_BIT(18) | \
+					 OSI_BIT(17) | OSI_BIT(16))
+#define MGBE_MAC_INDIR_AC_MSEL_SHIFT	16U
+#define MGBE_MAC_INDIR_AC_AOFF		(OSI_BIT(15) | OSI_BIT(14) | \
+					 OSI_BIT(13) | OSI_BIT(12) | \
+					 OSI_BIT(11) | OSI_BIT(10) | \
+					 OSI_BIT(9) | OSI_BIT(8))
+#define MGBE_MAC_INDIR_AC_AOFF_SHIFT	8U
+#define MGBE_MAC_INDIR_AC_CMD		OSI_BIT(1)
+#define MGBE_MAC_INDIR_AC_OB		OSI_BIT(0)
+/** @} */
+
+/**
+ * @addtogroup MGBE MAC L3L4 defines
+ *
+ * @brief MGBE L3L4 Address Control register
+ * IDDR filter filed type defines
+ * @{
+ */
+#define MGBE_MAC_XB_WAIT		10U
+#define MGBE_MAC_L3L4_CTR		0x0
+#define MGBE_MAC_L3_AD0R		0x4
+#define MGBE_MAC_L3_AD1R		0x5
+
+#define MGBE_MAC_L3L4_CTR_DMCHEN0	OSI_BIT(31)
+#define MGBE_MAC_L3L4_CTR_DMCHEN0_SHIFT	31
+#define MGBE_MAC_L3L4_CTR_DMCHN0	(OSI_BIT(24) | OSI_BIT(25) | \
+					 OSI_BIT(26) | OSI_BIT(27))
+#define MGBE_MAC_L3L4_CTR_DMCHN0_SHIFT	24
+#define MGBE_MAC_L3L4_CTR_L4DPIM0	OSI_BIT(21)
+#define MGBE_MAC_L3L4_CTR_L4DPM0	OSI_BIT(20)
+#define MGBE_MAC_L3L4_CTR_L4SPIM0	OSI_BIT(19)
+#define MGBE_MAC_L3L4_CTR_L4SPM0	OSI_BIT(18)
+#define MGBE_MAC_L3L4_CTR_L3DAIM0	OSI_BIT(5)
+#define MGBE_MAC_L3L4_CTR_L3DAIM0_SHIFT	5
+#define MGBE_MAC_L3L4_CTR_L3DAM0	OSI_BIT(4)
+#define MGBE_MAC_L3L4_CTR_L3SAIM0	OSI_BIT(3)
+#define MGBE_MAC_L3L4_CTR_L3SAIM0_SHIFT	3
+#define MGBE_MAC_L3L4_CTR_L3SAM0	OSI_BIT(2)
+#define MGBE_MAC_L3L4_CTR_L3PEN0	OSI_BIT(0)
+#define MGBE_MAC_L3_IP6_CTRL_CLEAR	(MGBE_MAC_L3L4_CTR_L3SAM0  | \
+					 MGBE_MAC_L3L4_CTR_L3SAIM0 | \
+					 MGBE_MAC_L3L4_CTR_L3DAM0  | \
+					 MGBE_MAC_L3L4_CTR_L3DAIM0 | \
+					 MGBE_MAC_L3L4_CTR_DMCHEN0 | \
+					 MGBE_MAC_L3L4_CTR_DMCHN0)
+#define MGBE_MAC_L3_IP4_SA_CTRL_CLEAR	(MGBE_MAC_L3L4_CTR_L3SAM0  | \
+					 MGBE_MAC_L3L4_CTR_L3SAIM0 | \
+					 MGBE_MAC_L3L4_CTR_DMCHEN0 | \
+					 MGBE_MAC_L3L4_CTR_DMCHN0)
+#define MGBE_MAC_L3_IP4_DA_CTRL_CLEAR	(MGBE_MAC_L3L4_CTR_L3DAM0  | \
+					 MGBE_MAC_L3L4_CTR_L3DAIM0 | \
+					 MGBE_MAC_L3L4_CTR_DMCHEN0 | \
+					 MGBE_MAC_L3L4_CTR_DMCHN0)
+#define MGBE_MAC_L4_SP_CTRL_CLEAR	(MGBE_MAC_L3L4_CTR_L4SPM0  | \
+					 MGBE_MAC_L3L4_CTR_L4SPIM0 | \
+					 MGBE_MAC_L3L4_CTR_DMCHEN0 | \
+					 MGBE_MAC_L3L4_CTR_DMCHN0)
+#define MGBE_MAC_L4_DP_CTRL_CLEAR	(MGBE_MAC_L3L4_CTR_L4DPM0  | \
+					 MGBE_MAC_L3L4_CTR_L4DPIM0 | \
+					 MGBE_MAC_L3L4_CTR_DMCHEN0 | \
+					 MGBE_MAC_L3L4_CTR_DMCHN0)
+#define MGBE_MAC_L3L4_CTRL_ALL		(MGBE_MAC_L3_IP6_CTRL_CLEAR | \
+					 MGBE_MAC_L3_IP4_SA_CTRL_CLEAR | \
+					 MGBE_MAC_L3_IP4_DA_CTRL_CLEAR | \
+					 MGBE_MAC_L4_SP_CTRL_CLEAR | \
+					 MGBE_MAC_L4_DP_CTRL_CLEAR)
+/** @} */
+
+/**
+ * @addtogroup MGBE-DMA DMA register offsets
+ *
+ * @brief MGBE DMA register offsets
+ * @{
+ */
+#define MGBE_DMA_MODE			0x3000
+#define MGBE_DMA_SBUS			0x3004
+#define MGBE_DMA_ISR			0x3008
+#define MGBE_DMA_TX_EDMA_CTRL		0x3040
+#define MGBE_DMA_RX_EDMA_CTRL		0x3044
+#define MGBE_DMA_CHX_STATUS(x)		((0x0080U * (x)) + 0x3160U)
+#define MGBE_DMA_CHX_IER(x)		((0x0080U * (x)) + 0x3138U)
+/** @} */
+
+/**
+ * @addtogroup MGBE-MTL MTL register offsets
+ *
+ * @brief MGBE MTL register offsets
+ * @{
+ */
+#define MGBE_MTL_RXQ_DMA_MAP0		0x1030
+#define MGBE_MTL_RXQ_DMA_MAP1		0x1034
+#define MGBE_MTL_RXQ_DMA_MAP2		0x1038
+#define MGBE_MTL_CHX_TX_OP_MODE(x)	((0x0080U * (x)) + 0x1100U)
+#define MGBE_MTL_TCQ_ETS_CR(x)		((0x0080U * (x)) + 0x1110U)
+#define MGBE_MTL_TCQ_QW(x)		((0x0080U * (x)) + 0x1118U)
+#define MGBE_MTL_CHX_RX_OP_MODE(x)	((0x0080U * (x)) + 0x1140U)
+#define MGBE_MTL_RXQ_FLOW_CTRL(x)	((0x0080U * (x)) + 0x1150U)
+/** @} */
+
 
 /**
  * @addtogroup HW Register BIT values
@@ -372,32 +554,16 @@
  * @brief consists of corresponding MGBE MAC, MTL register bit values
  * @{
  */
-#define MGBE_MTL_TCQ_ETS_CR_CC			OSI_BIT(3)
-#define MGBE_MTL_TCQ_ETS_CR_CC_SHIFT		3U
-#define MGBE_MTL_TCQ_ETS_CR_AVALG		(OSI_BIT(1) | OSI_BIT(0))
-#define MGBE_MTL_TCQ_ETS_CR_AVALG_SHIFT		0U
-#define MGBE_MTL_TCQ_ETS_QW_ISCQW_MASK		0x001FFFFFU
-#define MGBE_MTL_TCQ_ETS_SSCR_SSC_MASK		0x0000FFFFU
-#define MGBE_MTL_TCQ_ETS_HCR_HC_MASK		0x1FFFFFFFU
-#define MGBE_MTL_TCQ_ETS_LCR_LC_MASK		0x1FFFFFFFU
-#define MGBE_MTL_TX_OP_MODE_Q2TCMAP		(OSI_BIT(10) | OSI_BIT(9) |\
-						 OSI_BIT(8))
-#define MGBE_MTL_TX_OP_MODE_Q2TCMAP_SHIFT	8U
-#define MGBE_MTL_TX_OP_MODE_TXQEN		(OSI_BIT(3) | OSI_BIT(2))
-#define MGBE_MTL_TX_OP_MODE_TXQEN_SHIFT		2U
 #define MGBE_MTL_CHX_TX_OP_MODE_Q2TC_SH		8U
 #define MGBE_MTL_TSF				OSI_BIT(1)
 #define MGBE_MTL_TXQEN				OSI_BIT(3)
 #define MGBE_MTL_RSF				OSI_BIT(5)
 #define MGBE_MTL_TCQ_QW_ISCQW                   OSI_BIT(4)
-#define MGBE_MTL_QINT_TXUNIFS			OSI_BIT(0)
 #define MGBE_MAC_RMCR_ACS			OSI_BIT(1)
 #define MGBE_MAC_RMCR_CST			OSI_BIT(2)
 #define MGBE_MAC_RMCR_IPC			OSI_BIT(9)
 #define MGBE_MAC_RXQC0_RXQEN_MASK		0x3U
 #define MGBE_MAC_RXQC0_RXQEN_SHIFT(x)		((x) * 2U)
-#define MGBE_MAC_RMCR_LM			OSI_BIT(10)
-#define MGBE_MAC_RMCR_ARPEN			OSI_BIT(31)
 #define MGBE_MDIO_SCCD_SBUSY			OSI_BIT(22)
 #define MGBE_MDIO_SCCA_DA_SHIFT			21U
 #define MGBE_MDIO_SCCA_DA_MASK			0x1FU
@@ -414,43 +580,22 @@
 #define MGBE_MAC_RMCR_GPSLCE			OSI_BIT(6)
 #define MGBE_MAC_RMCR_WD			OSI_BIT(7)
 #define MGBE_MAC_RMCR_JE			OSI_BIT(8)
-#define MGBE_MAC_TMCR_IFP			OSI_BIT(11)
 #define MGBE_MAC_TMCR_DDIC			OSI_BIT(1)
-#define MGBE_MAC_TMCR_IPG_MASK			0x700U
 #define MGBE_MAC_TMCR_JD			OSI_BIT(16)
 #define MGBE_MMC_CNTRL_CNTRST			OSI_BIT(0)
 #define MGBE_MMC_CNTRL_RSTONRD			OSI_BIT(2)
 #define MGBE_MMC_CNTRL_CNTMCT			(OSI_BIT(4) | OSI_BIT(5))
 #define MGBE_MMC_CNTRL_CNTPRST			OSI_BIT(7)
-#define MGBE_MAC_RQC1R_PTPQ			(OSI_BIT(27) | OSI_BIT(26) | \
-						 OSI_BIT(25) | OSI_BIT(24))
-#define MGBE_MAC_RQC1R_PTPQ_SHIFT		24U
-#define MGBE_MAC_RQC1R_TPQC0			OSI_BIT(21)
-#define MGBE_MAC_RQC1R_OMCBCQ			OSI_BIT(20)
 #define MGBE_MAC_RQC1R_MCBCQEN			OSI_BIT(15)
 #define MGBE_MAC_RQC1R_MCBCQ			(OSI_BIT(11) | OSI_BIT(10) | \
 						 OSI_BIT(9) | OSI_BIT(8))
 #define MGBE_MAC_RQC1R_MCBCQ_SHIFT		8U
-#define MGBE_MAC_RQC1R_RQ			(OSI_BIT(7) | OSI_BIT(6) | \
-						 OSI_BIT(5) | OSI_BIT(4))
-#define MGBE_MAC_RQC1R_RQ_SHIFT			4U
-#define MGBE_MAC_RQC4R_PMCBCQ			(OSI_BIT(27) | OSI_BIT(26) | \
-						 OSI_BIT(25) | OSI_BIT(24))
-#define MGBE_MAC_RQC4R_PMCBCQ_SHIFT		24U
 #define MGBE_IMR_RGSMIIIE			OSI_BIT(0)
 #define MGBE_IMR_TSIE				OSI_BIT(12)
 #define MGBE_IMR_TXESIE				OSI_BIT(13)
-#define MGBE_IMR_FPEIE				OSI_BIT(15)
-#define MGBE_MAC_IMR_FPEIS			OSI_BIT(16)
 #define MGBE_ISR_TSIS				OSI_BIT(12)
-#define MGBE_DMA_ISR_MTLIS                      OSI_BIT(16)
 #define MGBE_DMA_ISR_MACIS                      OSI_BIT(17)
 #define MGBE_DMA_ISR_DCH0_DCH15_MASK		0x3FFU
-#define MGBE_DMA_CHX_STATUS_TPS			OSI_BIT(1)
-#define MGBE_DMA_CHX_STATUS_TBU			OSI_BIT(2)
-#define MGBE_DMA_CHX_STATUS_RBU			OSI_BIT(7)
-#define MGBE_DMA_CHX_STATUS_RPS			OSI_BIT(8)
-#define MGBE_DMA_CHX_STATUS_FBE			OSI_BIT(12)
 #define MGBE_DMA_CHX_STATUS_TI			OSI_BIT(0)
 #define MGBE_DMA_CHX_STATUS_RI			OSI_BIT(6)
 #define MGBE_MAC_PFR_PR				OSI_BIT(0)
@@ -462,7 +607,6 @@
 #define MGBE_MAC_PFR_SAF			OSI_BIT(9)
 #define MGBE_MAC_PFR_HPF			OSI_BIT(10)
 #define MGBE_MAC_PFR_VTFE			OSI_BIT(16)
-#define MGBE_MAC_PFR_VTFE_SHIFT			16
 #define MGBE_MAC_PFR_IPFE			OSI_BIT(20)
 #define MGBE_MAC_PFR_IPFE_SHIFT			20
 #define MGBE_MAC_PFR_DNTU			OSI_BIT(21)
@@ -488,29 +632,11 @@
 #define MGBE_MAC_L3L4_ADDR_CTR_IDDR_FTYPE_SHIFT	8
 #define MGBE_MAC_L3L4_ADDR_CTR_TT		OSI_BIT(1)
 #define MGBE_MAC_L3L4_ADDR_CTR_XB		OSI_BIT(0)
-#define MGBE_MAC_VLAN_TR_VTIM			OSI_BIT(17)
-#define MGBE_MAC_VLAN_TR_VTIM_SHIFT		17
-#define MGBE_MAC_VLAN_TR_VTHM			OSI_BIT(25)
 #define MGBE_MAC_VLANTR_EVLS_ALWAYS_STRIP	((nveu32_t)0x3 << 21U)
 #define MGBE_MAC_VLANTR_EVLRXS			OSI_BIT(24)
 #define MGBE_MAC_VLANTR_DOVLTC			OSI_BIT(20)
 #define MGBE_MAC_VLANTIR_VLTI			OSI_BIT(20)
 #define MGBE_MAC_VLANTIRR_CSVL			OSI_BIT(19)
-#define MGBE_MAC_LPI_CSR_LPITE			OSI_BIT(20)
-#define MGBE_MAC_LPI_CSR_LPITXA			OSI_BIT(19)
-#define MGBE_MAC_LPI_CSR_PLS			OSI_BIT(17)
-#define MGBE_MAC_LPI_CSR_LPIEN			OSI_BIT(16)
-#define MGBE_MAC_RSS_CTRL_RSSE			OSI_BIT(0)
-#define MGBE_MAC_RSS_CTRL_IP2TE			OSI_BIT(1)
-#define MGBE_MAC_RSS_CTRL_TCP4TE		OSI_BIT(2)
-#define MGBE_MAC_RSS_CTRL_UDP4TE		OSI_BIT(3)
-#define MGBE_MAC_RSS_ADDR_ADDRT			OSI_BIT(2)
-#define MGBE_MAC_RSS_ADDR_RSSIA_SHIFT		8U
-#define MGBE_MAC_RSS_ADDR_OB			OSI_BIT(0)
-#define MGBE_MAC_RSS_ADDR_CT			OSI_BIT(1)
-#define MGBE_MAC_TX_TJT				OSI_BIT(0)
-#define MGBE_MAC_TX_IHE				OSI_BIT(12)
-#define MGBE_MAC_TX_PCE				OSI_BIT(13)
 #define MGBE_MAC_ISR_LSI			OSI_BIT(0)
 #define MGBE_MAC_ISR_LS_MASK			(OSI_BIT(25) | OSI_BIT(24))
 #define MGBE_MAC_ISR_LS_LOCAL_FAULT		OSI_BIT(25)
@@ -523,8 +649,6 @@
 #define MGBE_DMA_SBUS_WR_OSR_LMT		0x3F000000U
 #define MGBE_DMA_TX_EDMA_CTRL_TDPS		0x00000005U
 #define MGBE_DMA_RX_EDMA_CTRL_RDPS		0x00000005U
-#define MGBE_DMA_TX_EDMA_CTRL_TDPS_PRESI	0x00000003U
-#define MGBE_DMA_RX_EDMA_CTRL_RDPS_PRESI	0x00000003U
 #define MGBE_MAC_TMCR_SS_2_5G			(OSI_BIT(31) | OSI_BIT(30))
 #define MGBE_MAC_TMCR_SS_5G			(OSI_BIT(31) | OSI_BIT(29))
 #define MGBE_MAC_TMCR_SS_10G			(OSI_BIT(31) | OSI_BIT(30) | OSI_BIT(29))
@@ -540,135 +664,22 @@
 #define MGBE_MTL_RXQ_SIZE_SHIFT			16U
 #define MGBE_MAC_RMCR_GPSL_MSK			0x3FFF0000U
 #define MGBE_MAC_TCR_TSUPDT			OSI_BIT(3)
-#define MGBE_MAC_TCR_TSENMACADDR		OSI_BIT(18)
-#define MGBE_MAC_TCR_SNAPTYPSEL_SHIFT		16U
 #define MGBE_MAC_STNSUR_ADDSUB_SHIFT		31U
-#define MGBE_MAC_STNSR_TSSS_MASK		0x7FFFFFFFU
-#define MGBE_MAC_PTO_CR_PTOEN			OSI_BIT(0)
-#define MGBE_MAC_PTO_CR_ASYNCEN			OSI_BIT(1)
-#define MGBE_MAC_PTO_CR_APDREQEN		OSI_BIT(2)
-#define MGBE_MAC_PTO_CR_DN			(OSI_BIT(15) | OSI_BIT(14) | \
-						 OSI_BIT(13) | OSI_BIT(12) | \
-						 OSI_BIT(11) | OSI_BIT(10) | \
-						 OSI_BIT(9) | OSI_BIT(8))
-#define MGBE_MAC_PTO_CR_DN_SHIFT		8U
-#define MGBE_MAC_PIDR_PID_MASK			0XFFFFU
-#define MGBE_MAC_QX_TX_FLW_CTRL_TFE		OSI_BIT(1)
-#define MGBE_MAC_RX_FLW_CTRL_RFE		OSI_BIT(0)
-#define MGBE_MAC_PAUSE_TIME			0xFFFF0000U
-#define MGBE_MAC_PAUSE_TIME_MASK		0xFFFF0000U
 #define MGBE_MTL_RXQ_OP_MODE_EHFC		OSI_BIT(7)
 #define MGBE_MTL_RXQ_OP_MODE_RFA_SHIFT		1U
 #define MGBE_MTL_RXQ_OP_MODE_RFA_MASK		0x0000007EU
 #define MGBE_MTL_RXQ_OP_MODE_RFD_SHIFT		17U
 #define MGBE_MTL_RXQ_OP_MODE_RFD_MASK		0x007E0000U
-/* MAC FPE control/statusOSI_BITmap */
-#define MGBE_MAC_FPE_CTS_EFPE			OSI_BIT(0)
-#define MGBE_MAC_FPE_CTS_TRSP			OSI_BIT(19)
-#define MGBE_MAC_FPE_CTS_TVER			OSI_BIT(18)
-#define MGBE_MAC_FPE_CTS_RRSP			OSI_BIT(17)
-#define MGBE_MAC_FPE_CTS_RVER			OSI_BIT(16)
-#define MGBE_MAC_FPE_CTS_SVER			OSI_BIT(1)
-#define MGBE_MAC_FPE_CTS_SRSP			OSI_BIT(2)
-/* MTL_FPE_CTRL_STS */
-#define MGBE_MTL_FPE_CTS_PEC			(OSI_BIT(8) | OSI_BIT(9) | \
-						 OSI_BIT(10) | OSI_BIT(11) | \
-						 OSI_BIT(12) | OSI_BIT(13) | \
-						 OSI_BIT(14) | OSI_BIT(15))
-#define MGBE_MTL_FPE_CTS_PEC_SHIFT		8U
-#define MGBE_MTL_FPE_CTS_PEC_MAX_SHIFT		16U
-/* MTL FPE adv registers */
-#define MGBE_MTL_FPE_ADV_HADV_MASK		(0xFFFFU)
-#define MGBE_MTL_FPE_ADV_HADV_VAL		100U
-/* MTL_EST_CONTROL */
-#define MGBE_MTL_EST_CONTROL_PTOV		(OSI_BIT(23) | OSI_BIT(24) | \
-						 OSI_BIT(25) | OSI_BIT(26) | \
-						 OSI_BIT(27) | OSI_BIT(28) | \
-						 OSI_BIT(29) | OSI_BIT(30) | \
-						 OSI_BIT(31))
-#define MGBE_MTL_EST_CONTROL_PTOV_SHIFT		23U
-#define MGBE_MTL_EST_PTOV_RECOMMEND		32U
-#define MGBE_MTL_EST_CONTROL_CTOV		(OSI_BIT(11) | OSI_BIT(12) | \
-						 OSI_BIT(13) | OSI_BIT(14) | \
-						 OSI_BIT(15) | OSI_BIT(16) | \
-						 OSI_BIT(17) | OSI_BIT(18) | \
-						 OSI_BIT(19) | OSI_BIT(20) | \
-						 OSI_BIT(21) | OSI_BIT(22))
-#define MGBE_MTL_EST_CONTROL_CTOV_SHIFT		11U
-#define MGBE_MTL_EST_CTOV_RECOMMEND		42U
-#define MGBE_8PTP_CYCLE				26U
-#ifdef MACSEC_SUPPORT
+#if defined(MACSEC_SUPPORT) && !defined(OSI_STRIPPED_LIB)
 /**
  * MACSEC Recommended value
  * By default PCS and UPHY are present
  */
 #define MGBE_MTL_EST_CTOV_MACSEC_RECOMMEND	295U
 #endif /*  MACSEC_SUPPORT */
-#define MGBE_MTL_EST_CONTROL_LCSE		(OSI_BIT(7) | OSI_BIT(6))
-#define MGBE_MTL_EST_CONTROL_LCSE_VAL		0U
-#define MGBE_MTL_EST_CONTROL_DDBF		OSI_BIT(4)
-#define MGBE_MTL_EST_OVERHEAD_OVHD		(OSI_BIT(0) | OSI_BIT(1) | \
-						 OSI_BIT(2) | OSI_BIT(3) | \
-						 OSI_BIT(4) | OSI_BIT(5))
-#define MGBE_MTL_EST_OVERHEAD_RECOMMEND		56U
-/* EST controlOSI_BITmap */
-#define MGBE_MTL_EST_EEST			OSI_BIT(0)
-#define MGBE_MTL_EST_SSWL			OSI_BIT(1)
-#define MGBE_MTL_EST_QHLBF			OSI_BIT(3)
-/* EST GCL controlOSI_BITmap */
-#define MGBE_MTL_EST_ADDR_SHIFT			8
-#define MGBE_MTL_EST_ADDR_MASK			(OSI_BIT(8) | OSI_BIT(9) | \
-						 OSI_BIT(10) | OSI_BIT(11) | \
-						 OSI_BIT(12) | OSI_BIT(13) | \
-						 OSI_BIT(14) | OSI_BIT(15) | \
-						 OSI_BIT(16) | OSI_BIT(17) | \
-						 OSI_BIT(18) | OSI_BIT(19))
-#define MGBE_MTL_EST_SRWO			OSI_BIT(0)
-#define MGBE_MTL_EST_GCRR			OSI_BIT(2)
-#define MGBE_MTL_EST_ERR0			OSI_BIT(20)
-/* EST GCRA addresses */
-#define MGBE_MTL_EST_BTR_LOW			((nveu32_t)0x0 << \
-						 MGBE_MTL_EST_ADDR_SHIFT)
-#define MGBE_MTL_EST_BTR_HIGH			((nveu32_t)0x1 << \
-						 MGBE_MTL_EST_ADDR_SHIFT)
-#define MGBE_MTL_EST_CTR_LOW			((nveu32_t)0x2 << \
-						 MGBE_MTL_EST_ADDR_SHIFT)
-#define MGBE_MTL_EST_CTR_HIGH			((nveu32_t)0x3 << \
-						 MGBE_MTL_EST_ADDR_SHIFT)
-#define MGBE_MTL_EST_CTR_HIGH_MAX		0xFFU
-#define MGBE_MTL_EST_TER			((nveu32_t)0x4 << \
-						 MGBE_MTL_EST_ADDR_SHIFT)
-#define MGBE_MTL_EST_LLR			((nveu32_t)0x5 << \
-						 MGBE_MTL_EST_ADDR_SHIFT)
-/*EST MTL interrupt STATUS and ERR*/
-#define MGBE_MTL_IS_ESTIS			OSI_BIT(18)
-/* MTL_EST_STATUS*/
-#define MGBE_MTL_EST_STATUS_CGCE		OSI_BIT(4)
-#define MGBE_MTL_EST_STATUS_HLBS		OSI_BIT(3)
-#define MGBE_MTL_EST_STATUS_HLBF		OSI_BIT(2)
-#define MGBE_MTL_EST_STATUS_BTRE		OSI_BIT(1)
-#define MGBE_MTL_EST_STATUS_SWLC		OSI_BIT(0)
-#define MGBE_MTL_EST_ITRE_CGCE			OSI_BIT(4)
-#define MGBE_MTL_EST_ITRE_IEHS			OSI_BIT(3)
-#define MGBE_MTL_EST_ITRE_IEHF			OSI_BIT(2)
-#define MGBE_MTL_EST_ITRE_IEBE			OSI_BIT(1)
-#define MGBE_MTL_EST_ITRE_IECC			OSI_BIT(0)
-
 #define MGBE_MAC_EXT_CNF_DDS			OSI_BIT(7)
-#define MGBE_MAC_EXT_CNF_EIPG 			0x1U
-#define MGBE_MAC_EXT_CNF_EIPG_MASK		0x7FU
 /* TX timestamp */
 #define MGBE_MAC_TSS_TXTSC			OSI_BIT(15)
-#define MGBE0_SID				((nveu32_t)0x6U)
-#define MGBE1_SID				((nveu32_t)0x49U)
-#define MGBE2_SID				((nveu32_t)0x4AU)
-#define MGBE3_SID				((nveu32_t)0x4BU)
-#define MGBE_SID_VAL1(x)			(((x) << 24U) |\
-						 ((x) << 16U) |\
-						 ((x) << 8U) |\
-						 (x))
-#define MGBE_SID_VAL2(x)			(((x) << 8U) |\
-						 (x))
 /** @} */
 
 /**
@@ -708,12 +719,11 @@
  * @brief Tx and Rx Queue SIZE Mapping defines
  * @{
  */
-#define MGBE_TX_FIFO_SIZE_64KB	9U
-#define MGBE_RX_FIFO_SIZE_64KB	9U
 #define MGBE_TX_FIFO_SIZE_128KB	10U
 #define MGBE_RX_FIFO_SIZE_192KB	12U
 /** @} */
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @addtogroup MGBE-HW-BACKUP
  *
@@ -836,6 +846,7 @@
 #define MGBE_MAX_BAK_IDX		((MGBE_MAC_DCHSEL_BAK_IDX(0U) + \
 					 OSI_MGBE_MAX_MAC_ADDRESS_FILTER + 1U))
 /** @} */
+#endif /* !OSI_STRIPPED_LIB */
 
 /**
  * @addtogroup MGBE-MAC MGBE MAC HW feature registers

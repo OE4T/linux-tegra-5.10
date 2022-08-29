@@ -2135,7 +2135,6 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		}
 
 		if (l_core->ether_m2m_role == OSI_PTP_M2M_PRIMARY) {
-			drift_value = 0x0;
 			osi_lock_irq_enabled(&secondary_osi_lcore->serv.m2m_lock);
 			read_sec_ns(osi_core->base,
 				    osi_core->mac, &sec, &nsec);

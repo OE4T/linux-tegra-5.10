@@ -24,6 +24,9 @@
 #define INCLUDED_CORE_COMMON_H
 
 #include "core_local.h"
+
+#ifndef OSI_STRIPPED_LIB
+#define MAC_TCR_TSCTRLSSR		OSI_BIT(9)
 #define MTL_EST_ADDR_MASK		(OSI_BIT(8) | OSI_BIT(9) | \
 					 OSI_BIT(10) | OSI_BIT(11) | \
 					 OSI_BIT(12) | OSI_BIT(13) | \
@@ -38,6 +41,9 @@
 #define MTL_EST_ERR0			OSI_BIT(20)
 #define MTL_EST_CONTROL_EEST		OSI_BIT(0)
 #define MTL_EST_STATUS_SWOL		OSI_BIT(7)
+#define MAC_TCR_TSCFUPDT		OSI_BIT(1)
+#endif /* !OSI_STRIPPED_LIB */
+
 #define DMA_MODE_SWR			OSI_BIT(0)
 #define MTL_QTOMR_FTQ			OSI_BIT(0)
 #define MTL_RXQ_OP_MODE_FEP		OSI_BIT(4)
@@ -45,8 +51,6 @@
 #define MAC_TCR_TSADDREG		OSI_BIT(5)
 #define MAC_PPS_CTL_PPSCTRL0		(OSI_BIT(3) | OSI_BIT(2) |\
 					OSI_BIT(1) | OSI_BIT(0))
-#define MAC_TCR_TSCFUPDT		OSI_BIT(1)
-#define MAC_TCR_TSCTRLSSR		OSI_BIT(9)
 #define MAC_SSIR_SSINC_SHIFT		16U
 
 
@@ -56,6 +60,7 @@
 #define WRAP_PTP_CAPTURE_LOW		0x8018U
 #define WRAP_PTP_CAPTURE_HIGH		0x801CU
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @addtogroup typedef related info
  *
@@ -72,7 +77,6 @@ struct est_read {
 
 /** @} */
 
-#ifndef OSI_STRIPPED_LIB
 nve32_t gcl_validate(struct osi_core_priv_data *const osi_core,
 		     struct osi_est_config *const est,
 		     const nveu32_t *btr, nveu32_t mac);

@@ -165,13 +165,13 @@
 /* log levels */
 
 #define OSI_LOG_INFO                    1U
-#define OSI_LOG_WARN			2U
 #define OSI_LOG_ERR			3U
 /* Error types */
 #define OSI_LOG_ARG_OUTOFBOUND          1U
 #define OSI_LOG_ARG_INVALID		2U
 #define OSI_LOG_ARG_HW_FAIL		4U
 #ifndef OSI_STRIPPED_LIB
+#define OSI_LOG_WARN			2U
 #define OSI_LOG_ARG_OPNOTSUPP		3U
 #endif /* !OSI_STRIPPED_LIB */
 /* Default maximum Giant Packet Size Limit is 16K */
@@ -198,8 +198,10 @@
 /* MACSEC max SC's supported 16*/
 #define OSI_MACSEC_SC_INDEX_MAX		16
 
+#ifndef OSI_STRIPPED_LIB
 /* HW supports 8 Hash table regs, but eqos_validate_core_regs only checks 4 */
 #define OSI_EQOS_MAX_HASH_REGS		4U
+#endif /* OSI_STRIPPED_LIB */
 
 #define MAC_VERSION		0x110
 #define MAC_VERSION_SNVER_MASK	0x7FU
@@ -217,11 +219,14 @@
 
 #define OSI_BIT(nr)             ((nveu32_t)1 << (nr))
 
-#define OSI_EQOS_MAC_4_10       0x41U
-#define OSI_EQOS_MAC_5_00       0x50U
-#define OSI_EQOS_MAC_5_10       0x51U
-#define OSI_EQOS_MAC_5_30       0x53U
+#ifndef OSI_STRIPPED_LIB
 #define OSI_MGBE_MAC_3_00	0x30U
+#define OSI_EQOS_MAC_4_10       0x41U
+#define OSI_EQOS_MAC_5_10       0x51U
+#endif /* OSI_STRIPPED_LIB */
+
+#define OSI_EQOS_MAC_5_00       0x50U
+#define OSI_EQOS_MAC_5_30       0x53U
 #define OSI_MGBE_MAC_3_10	0x31U
 #define OSI_MGBE_MAC_4_00	0x40U
 

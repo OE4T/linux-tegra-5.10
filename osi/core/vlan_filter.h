@@ -26,6 +26,7 @@
 #include <osi_core.h>
 #include "core_local.h"
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @addtogroup MAC-VLAN MAC VLAN configuration registers and bit fields
  *
@@ -72,4 +73,5 @@
  */
 nve32_t update_vlan_id(struct osi_core_priv_data *osi_core,
 		       struct core_ops *ops_p, nveu32_t vid);
+#endif /* !OSI_STRIPPED_LIB */
 #endif /* VLAN_FILTER_H */
