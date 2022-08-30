@@ -484,10 +484,10 @@ static int nvdec_probe(struct platform_device *pdev)
 			return PTR_ERR(mc);
 		}
 
-		err = tegra_mc_get_carveout_info(mc, 1, &nvdec->carveout_base, NULL);
-		if (err) {
-			dev_err(dev, "failed to get carveout info: %d\n", err);
-			return err;
+		{
+			void __iomem *mc_addr = ioremap(0x02c10c0c, 0x8);
+			nvdec->carveout_base |= (phys_addr_t)readl(mc_addr + 0);
+			nvdec->carveout_base |= (phys_addr_t)readl(mc_addr + 4) << 32;
 		}
 
 		nvdec->reset = devm_reset_control_get_exclusive_released(dev, "nvdec");
@@ -499,9 +499,12 @@ static int nvdec_probe(struct platform_device *pdev)
 		nvdec->riscv.dev = dev;
 		nvdec->riscv.regs = nvdec->regs;
 
-		err = tegra_drm_riscv_read_descriptors(&nvdec->riscv);
-		if (err < 0)
-			return err;
+		nvdec->riscv.bl_desc.manifest_offset = 0x100;
+		nvdec->riscv.bl_desc.data_offset = 0x900;
+		nvdec->riscv.bl_desc.code_offset = 0x5500;
+		nvdec->riscv.os_desc.manifest_offset = 0xc000;
+		nvdec->riscv.os_desc.data_offset = 0xc800;
+		nvdec->riscv.os_desc.code_offset = 0xe800;
 	} else {
 		nvdec->falcon.dev = dev;
 		nvdec->falcon.regs = nvdec->regs;
