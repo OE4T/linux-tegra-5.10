@@ -170,6 +170,7 @@ struct tegra_channel {
 	unsigned int num_video_formats;
 	struct mutex stop_kthread_lock;
 
+	unsigned int vi_channel_id[TEGRA_CSI_BLOCKS];
 	unsigned char port[TEGRA_CSI_BLOCKS];
 	unsigned int virtual_channel;
 	unsigned int syncpt[TEGRA_CSI_BLOCKS][MAX_SYNCPT_PER_CHANNEL];
