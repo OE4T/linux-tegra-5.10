@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (c) 2015, Linaro Limited
+ * Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  */
 
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
@@ -214,7 +215,13 @@ static void optee_get_version(struct tee_device *teedev,
 
 static void optee_bus_scan(struct work_struct *work)
 {
-	WARN_ON(optee_enumerate_devices(PTA_CMD_GET_DEVICES_SUPP));
+	/*
+	 * WAR to fix the hang issue with STMM.
+	 * Currently we don't have any PTA with TA_FLAG_DEVICE_ENUM_SUPP flag in OP-TEE,
+	 * disabling this scan task won't affect anything.
+	 *
+	 * WARN_ON(optee_enumerate_devices(PTA_CMD_GET_DEVICES_SUPP));
+	 */
 }
 
 static int optee_open(struct tee_context *ctx)
