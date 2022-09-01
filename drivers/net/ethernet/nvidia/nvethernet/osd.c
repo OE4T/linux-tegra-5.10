@@ -881,11 +881,11 @@ static void osd_core_printf(struct osi_core_priv_data *osi_core,
 }
 #endif
 
-static void osd_restart_lane_bringup(void *priv, unsigned int en_disable)
+void ether_restart_lane_bringup_task(struct tasklet_struct *t)
 {
-	struct ether_priv_data *pdata = (struct ether_priv_data *)priv;
+	struct ether_priv_data *pdata = from_tasklet(pdata, t, lane_restart_task);
 
-	if (en_disable == OSI_DISABLE) {
+	if (pdata->tx_start_stop == OSI_DISABLE) {
 		netif_tx_lock(pdata->ndev);
 		netif_tx_stop_all_queues(pdata->ndev);
 		netif_tx_unlock(pdata->ndev);
@@ -893,7 +893,7 @@ static void osd_restart_lane_bringup(void *priv, unsigned int en_disable)
 		if (netif_msg_drv(pdata)) {
 			netdev_info(pdata->ndev, "Disable network Tx Queue\n");
 		}
-	} else if (en_disable == OSI_ENABLE) {
+	} else if (pdata->tx_start_stop == OSI_ENABLE) {
 		netif_tx_lock(pdata->ndev);
 		netif_tx_start_all_queues(pdata->ndev);
 		netif_tx_unlock(pdata->ndev);
@@ -901,6 +901,14 @@ static void osd_restart_lane_bringup(void *priv, unsigned int en_disable)
 			netdev_info(pdata->ndev, "Enable network Tx Queue\n");
 		}
 	}
+}
+
+static void osd_restart_lane_bringup(void *priv, unsigned int en_disable)
+{
+	struct ether_priv_data *pdata = (struct ether_priv_data *)priv;
+
+	pdata->tx_start_stop = en_disable;
+	tasklet_hi_schedule(&pdata->lane_restart_task);
 }
 
 void ether_assign_osd_ops(struct osi_core_priv_data *osi_core,

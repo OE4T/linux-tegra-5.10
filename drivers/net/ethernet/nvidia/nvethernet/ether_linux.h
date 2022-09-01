@@ -607,6 +607,10 @@ struct ether_priv_data {
 	atomic_t set_speed_ref_cnt;
 	/** flag to enable logs using ethtool */
 	u32 msg_enable;
+	/** flag to indicate to start/stop the Tx */
+	unsigned int tx_start_stop;
+	/** Tasklet for restarting UPHY lanes */
+	struct tasklet_struct lane_restart_task;
 };
 
 /**
@@ -793,6 +797,7 @@ int ether_tc_setup_cbs(struct ether_priv_data *pdata,
  * @retval EAGAIN on Failure
  */
 int ether_get_tx_ts(struct ether_priv_data *pdata);
+void ether_restart_lane_bringup_task(struct tasklet_struct *t);
 #ifdef ETHER_NVGRO
 void ether_nvgro_purge_timer(struct timer_list *t);
 #endif /* ETHER_NVGRO */

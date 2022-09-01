@@ -2929,6 +2929,8 @@ static int ether_close(struct net_device *ndev)
 	/* stop tx ts pending SKB workqueue and remove skb nodes */
 	ether_flush_tx_ts_skb_list(pdata);
 
+	tasklet_kill(&pdata->lane_restart_task);
+
 	ether_stop_ivc(pdata);
 
 	if (pdata->xpcs_rst) {
@@ -6508,6 +6510,8 @@ static int ether_probe(struct platform_device *pdev)
 	pdata->rx_pcs_m_enabled = false;
 	atomic_set(&pdata->tx_ts_ref_cnt, -1);
 	atomic_set(&pdata->set_speed_ref_cnt, OSI_DISABLE);
+	tasklet_setup(&pdata->lane_restart_task,
+		      ether_restart_lane_bringup_task);
 #ifdef ETHER_NVGRO
 	__skb_queue_head_init(&pdata->mq);
 	__skb_queue_head_init(&pdata->fq);
@@ -6769,6 +6773,8 @@ static int ether_suspend_noirq(struct device *dev)
 		}
 	}
 #endif /* MACSEC_SUPPORT */
+
+	tasklet_kill(&pdata->lane_restart_task);
 
 	/* stop workqueue */
 	cancel_delayed_work_sync(&pdata->tx_ts_work);
