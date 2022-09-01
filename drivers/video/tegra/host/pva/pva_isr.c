@@ -89,7 +89,11 @@ static irqreturn_t pva_system_isr(int irq, void *dev_id)
 	}
 
 	/* Check for host1x errors*/
-	h1xflgs = sec_lic_intr_enable_h1x_f(SEC_LIC_INTR_H1X_ALL);
+	if (pva->version == PVA_HW_GEN1) {
+		h1xflgs = sec_lic_intr_enable_h1x_f(SEC_LIC_INTR_H1X_ALL_19);
+	} else {
+		h1xflgs = sec_lic_intr_enable_h1x_f(SEC_LIC_INTR_H1X_ALL_23);
+	}
 	if (lic_int_status & h1xflgs) {
 		nvpva_warn(&pdev->dev, "Pva Host1x errors (0x%x)",
 			     lic_int_status);

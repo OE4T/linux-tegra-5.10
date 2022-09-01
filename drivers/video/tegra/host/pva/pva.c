@@ -801,10 +801,18 @@ int pva_finalize_poweron(struct platform_device *pdev)
 	nvpva_write_hwid(pdev);
 
 	/* Enable LIC_INTERRUPT line for HSP1, H1X and WDT */
-	host1x_writel(pva->pdev, sec_lic_intr_enable_r(pva->version),
-		      sec_lic_intr_enable_hsp_f(SEC_LIC_INTR_HSP1) |
-			      sec_lic_intr_enable_h1x_f(SEC_LIC_INTR_H1X_ALL) |
+	if (pva->version == PVA_HW_GEN1) {
+		host1x_writel(pva->pdev, sec_lic_intr_enable_r(pva->version),
+			      sec_lic_intr_enable_hsp_f(SEC_LIC_INTR_HSP1) |
+			      sec_lic_intr_enable_h1x_f(SEC_LIC_INTR_H1X_ALL_19) |
 			      sec_lic_intr_enable_wdt_f(SEC_LIC_INTR_WDT));
+	} else {
+		host1x_writel(pva->pdev, sec_lic_intr_enable_r(pva->version),
+			      sec_lic_intr_enable_hsp_f(SEC_LIC_INTR_HSP1) |
+			      sec_lic_intr_enable_h1x_f(SEC_LIC_INTR_H1X_ALL_23) |
+			      sec_lic_intr_enable_wdt_f(SEC_LIC_INTR_WDT));
+
+	}
 
 	err = pva_load_fw(pdev);
 	if (err < 0) {
@@ -928,7 +936,9 @@ static int pva_probe(struct platform_device *pdev)
 		err = -ENODATA;
 		goto err_get_pdata;
 	}
-
+#if !IS_ENABLED(CONFIG_TEGRA_GRHOST)
+	of_platform_default_populate(dev->of_node, NULL, dev);
+#endif
 	if ((pdata->version != PVA_HW_GEN1)
 	     && !is_cntxt_initialized()) {
 		dev_warn(&pdev->dev,
@@ -1212,11 +1222,23 @@ static int __init nvpva_init(void)
 
 	err = host1x_driver_register(&host1x_nvpva_driver);
 	if (err < 0)
-		return err;
-	err = platform_driver_register(&pva_driver);
-	if (err < 0)
-		host1x_driver_unregister(&host1x_nvpva_driver);
+		goto out;
 
+	err = platform_driver_register(&nvpva_iommu_context_dev_driver);
+	if (err < 0)
+		goto ctx_failed;
+
+	err = platform_driver_register(&pva_driver);
+	if (err)
+		goto pva_failed;
+
+	return err;
+
+pva_failed:
+	platform_driver_unregister(&nvpva_iommu_context_dev_driver);
+ctx_failed:
+	host1x_driver_unregister(&host1x_nvpva_driver);
+out:
 	return err;
 }
 
@@ -1224,6 +1246,7 @@ module_init(nvpva_init);
 static void __exit nvpva_exit(void)
 {
 	platform_driver_unregister(&pva_driver);
+	platform_driver_unregister(&nvpva_iommu_context_dev_driver);
 	host1x_driver_unregister(&host1x_nvpva_driver);
 }
 
