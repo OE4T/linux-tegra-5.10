@@ -669,6 +669,7 @@ nve32_t osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
 		tx_swcx->buf_virt_addr = OSI_NULL;
 		tx_swcx->buf_phy_addr = 0;
 		tx_swcx->flags = 0;
+		tx_swcx->data_idx = 0;
 		INCR_TX_DESC_INDEX(entry, osi_dma->tx_ring_sz);
 
 		/* Don't wait to update tx_ring->clean-idx. It will
@@ -1145,7 +1146,9 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 	 * We need to make sure Tx descriptor updated above is really updated
 	 * before setting up the DMA, hence add memory write barrier here.
 	 */
-	dmb_oshst();
+	if (tx_ring->skip_dmb == 0U) {
+		dmb_oshst();
+	}
 
 #ifdef OSI_DEBUG
 	if (osi_dma->enable_desc_dump == 1U) {

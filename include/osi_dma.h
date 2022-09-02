@@ -395,8 +395,8 @@ struct osi_tx_swcx {
 	nveu32_t pktid;
 	/** dma channel number for osd use */
 	nveu32_t chan;
-	/** reserved field 1 for future use */
-	nveu64_t rsvd1;
+	/** nvsocket data index */
+	nveu64_t data_idx;
 	/** reserved field 2 for future use */
 	nveu64_t rsvd2;
 };
@@ -477,6 +477,8 @@ struct osi_tx_ring {
 	struct osi_txdone_pkt_cx txdone_pkt_cx;
 	/** Number of packets or frames transmitted */
 	nveu32_t frame_cnt;
+	/** flag to skip memory barrier */
+	nveu32_t skip_dmb;
 };
 
 #ifndef OSI_STRIPPED_LIB
