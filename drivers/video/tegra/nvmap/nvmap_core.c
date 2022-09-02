@@ -80,8 +80,11 @@ void *__nvmap_kmap(struct nvmap_handle *h, unsigned int pagenum)
 						h->pgalloc.pages[pagenum]));
 		else
 			paddr = h->carveout->base + pagenum * PAGE_SIZE;
-
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
+		addr = ioremap_prot(phys_addr, PAGE_SIZE, pgprot_val(prot));
+#else
 		addr = __ioremap(paddr, PAGE_SIZE, prot);
+#endif
 		if (addr == NULL)
 			goto out;
 		kaddr = (unsigned long)addr;
@@ -118,7 +121,11 @@ void __nvmap_kunmap(struct nvmap_handle *h, unsigned int pagenum,
 
 	if (h->flags != NVMAP_HANDLE_UNCACHEABLE &&
 	    h->flags != NVMAP_HANDLE_WRITE_COMBINE) {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
+		dcache_clean_inval_poc(addr, PAGE_SIZE);
+#else
 		__dma_flush_area(addr, PAGE_SIZE);
+#endif
 		outer_flush_range(paddr, paddr + PAGE_SIZE); /* FIXME */
 	}
 	iounmap((void __iomem *)addr);
@@ -201,8 +208,12 @@ void *__nvmap_mmap(struct nvmap_handle *h)
 
 		vaddr = vmap(pages, nr_pages, VM_MAP, prot);
 	} else {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
+		vaddr = ioremap_prot(h->carveout->base, adj_size, pgprot_val(prot));
+#else
 		vaddr = (__force void *)__ioremap(h->carveout->base, adj_size,
 			 prot);
+#endif
 	}
 	if (vaddr == NULL)
 		goto out;

@@ -716,7 +716,14 @@ static void alloc_handle(struct nvmap_client *client,
 						MEMREMAP_WB);
 				if (cpu_addr != NULL) {
 					memset(cpu_addr, 0, h->size);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
+					dcache_clean_inval_poc(
+							(unsigned long)cpu_addr,
+							(unsigned long)cpu_addr
+							+ h->size);
+#else
 					__dma_flush_area(cpu_addr, h->size);
+#endif
 					memunmap(cpu_addr);
 				}
 			}

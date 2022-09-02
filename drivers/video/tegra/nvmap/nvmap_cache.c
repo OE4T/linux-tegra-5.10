@@ -65,12 +65,21 @@ void nvmap_clean_cache(struct page **pages, int numpages)
 
 void inner_cache_maint(unsigned int op, void *vaddr, size_t size)
 {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
+	if (op == NVMAP_CACHE_OP_WB_INV)
+		dcache_clean_inval_poc((unsigned long)vaddr, (unsigned long)vaddr + size);
+	else if (op == NVMAP_CACHE_OP_INV)
+		dcache_inval_poc((unsigned long)vaddr, (unsigned long)vaddr + size);
+	else
+		dcache_clean_poc((unsigned long)vaddr, (unsigned long)vaddr + size);
+#else
 	if (op == NVMAP_CACHE_OP_WB_INV)
 		__dma_flush_area(vaddr, size);
 	else if (op == NVMAP_CACHE_OP_INV)
 		__dma_map_area(vaddr, size, DMA_FROM_DEVICE);
 	else
 		__dma_map_area(vaddr, size, DMA_TO_DEVICE);
+#endif
 }
 
 static void heap_page_cache_maint(
@@ -155,7 +164,11 @@ int nvmap_cache_maint_phys_range(unsigned int op, phys_addr_t pstart,
 		phys_addr_t next = (loop + PAGE_SIZE) & PAGE_MASK;
 		void *base;
 		next = min(next, pend);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
+		io_addr = ioremap_prot(loop, PAGE_SIZE, (unsigned long)PAGE_KERNEL);
+#else
 		io_addr = __ioremap(loop, PAGE_SIZE, PG_PROT_KERNEL);
+#endif
 		if (io_addr == NULL)
 			return -ENOMEM;
 		base = (__force void *)io_addr + (loop & ~PAGE_MASK);
