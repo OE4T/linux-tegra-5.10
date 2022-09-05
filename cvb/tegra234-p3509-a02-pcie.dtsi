@@ -28,5 +28,7 @@
 
 	pcie@140a0000 {/* C8 - Ethernet */
 		status = "okay";
+
+		nvidia,pex-wake-gpios = <&tegra_main_gpio TEGRA234_MAIN_GPIO(L, 2) GPIO_ACTIVE_LOW>;
 	};
 };
