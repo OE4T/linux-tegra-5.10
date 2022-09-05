@@ -25,7 +25,6 @@
 #include <linux/string.h>
 #include <linux/pm_runtime.h>
 
-#include <soc/tegra/fuse.h>
 #include <sound/core.h>
 #include <sound/initval.h>
 
@@ -65,10 +64,6 @@
 /* max number of SDs */
 #define NUM_CAPTURE_SD 1
 #define NUM_PLAYBACK_SD 1
-
-/* GSC_ID register */
-#define HDA_GSC_REG		0x1e0
-#define HDA_GSC_ID		10
 
 /*
  * Tegra194 does not reflect correct number of SDO lines. Below macro
@@ -120,16 +115,6 @@ static void hda_tegra_init(struct hda_tegra *hda)
 	v = readl(hda->regs + HDA_IPFS_INTR_MASK);
 	v |= HDA_IPFS_EN_INTR;
 	writel(v, hda->regs + HDA_IPFS_INTR_MASK);
-
-	/* program HDA_GSC_ID to get access to APR */
-	switch (tegra_get_chip_id()) {
-	case TEGRA194:
-	case TEGRA234:
-		writel(HDA_GSC_ID, hda->regs + HDA_GSC_REG);
-		break;
-	default:
-		break;
-	}
 }
 
 /*
