@@ -227,5 +227,6 @@
 
 	display@13800000 {
 		status = "okay";
+		os_gpio_hotplug_a = <&tegra_main_gpio TEGRA234_MAIN_GPIO(M, 0) GPIO_ACTIVE_HIGH>;
 	};
 };
