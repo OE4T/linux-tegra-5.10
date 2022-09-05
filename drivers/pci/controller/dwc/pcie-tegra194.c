@@ -4318,6 +4318,25 @@ static int tegra_pcie_dw_remove(struct platform_device *pdev)
 	return 0;
 }
 
+
+static int tegra_pcie_dw_suspend(struct device *dev)
+{
+	struct tegra_pcie_dw *pcie = dev_get_drvdata(dev);
+	int ret;
+
+	if (!pcie->link_state && !pcie->disable_power_down)
+		return 0;
+
+	/* wake_irq is set only for RP mode, below check fails for EP which is the intention. */
+	if (pcie->wake_irq && device_may_wakeup(dev)) {
+		ret = enable_irq_wake(pcie->wake_irq);
+		if (ret < 0)
+			dev_err(dev, "Failed to enable wake irq: %d\n", ret);
+	}
+
+	return 0;
+}
+
 static int tegra_pcie_dw_suspend_late(struct device *dev)
 {
 	struct tegra_pcie_dw *pcie = dev_get_drvdata(dev);
@@ -4346,7 +4365,6 @@ static int tegra_pcie_dw_suspend_late(struct device *dev)
 static int tegra_pcie_dw_suspend_noirq(struct device *dev)
 {
 	struct tegra_pcie_dw *pcie = dev_get_drvdata(dev);
-	int ret;
 
 	if (!pcie->link_state && !pcie->disable_power_down)
 		return 0;
@@ -4357,16 +4375,10 @@ static int tegra_pcie_dw_suspend_noirq(struct device *dev)
 	tegra_pcie_dw_pme_turnoff(pcie);
 	tegra_pcie_unconfig_controller(pcie);
 
-	if (pcie->wake_irq && device_may_wakeup(dev)) {
-		ret = enable_irq_wake(pcie->wake_irq);
-		if (ret < 0)
-			dev_err(dev, "Failed to enable wake irq: %d\n", ret);
-	}
-
 	return 0;
 }
 
-static int tegra_pcie_dw_resume_noirq(struct device *dev)
+static int tegra_pcie_dw_resume(struct device *dev)
 {
 	struct tegra_pcie_dw *pcie = dev_get_drvdata(dev);
 	int ret;
@@ -4379,6 +4391,17 @@ static int tegra_pcie_dw_resume_noirq(struct device *dev)
 		if (ret < 0)
 			dev_err(dev, "Failed to disable wake irq: %d\n", ret);
 	}
+
+	return 0;
+}
+
+static int tegra_pcie_dw_resume_noirq(struct device *dev)
+{
+	struct tegra_pcie_dw *pcie = dev_get_drvdata(dev);
+	int ret;
+
+	if (!pcie->link_state && !pcie->disable_power_down)
+		return 0;
 
 	ret = tegra_pcie_config_controller(pcie, true);
 	if (ret < 0)
@@ -4533,8 +4556,10 @@ static const struct of_device_id tegra_pcie_dw_of_match[] = {
 };
 
 static const struct dev_pm_ops tegra_pcie_dw_pm_ops = {
+	.suspend = tegra_pcie_dw_suspend,
 	.suspend_late = tegra_pcie_dw_suspend_late,
 	.suspend_noirq = tegra_pcie_dw_suspend_noirq,
+	.resume = tegra_pcie_dw_resume,
 	.resume_noirq = tegra_pcie_dw_resume_noirq,
 	.resume_early = tegra_pcie_dw_resume_early,
 };
