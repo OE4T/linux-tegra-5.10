@@ -33,7 +33,6 @@
 
 /* Defines for Nvidia Tegra HDA support */
 #define HDA_BAR0           0x8000
-#define HDA_DFPCI_CFG      0x1000
 
 #define HDA_CFG_CMD        0x1004
 #define HDA_CFG_BAR0       0x1010
@@ -77,7 +76,6 @@ struct hda_tegra {
 	struct clk_bulk_data *clocks;
 	unsigned int nclocks;
 	void __iomem *regs;
-	void __iomem *regs_fpci;
 	struct work_struct probe_work;
 };
 
@@ -236,7 +234,6 @@ static int hda_tegra_init_chip(struct azx *chip, struct platform_device *pdev)
 
 	bus->remap_addr = hda->regs + HDA_BAR0;
 	bus->addr = res->start + HDA_BAR0;
-	hda->regs_fpci = hda->regs + HDA_DFPCI_CFG;
 
 	hda_tegra_init(hda);
 
