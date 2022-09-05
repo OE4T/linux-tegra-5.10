@@ -9,7 +9,6 @@
 #include <linux/clk.h>
 #include <linux/clocksource.h>
 #include <linux/completion.h>
-#include <linux/cpumask.h>
 #include <linux/delay.h>
 #include <linux/dma-mapping.h>
 #include <linux/init.h>
@@ -250,9 +249,6 @@ static int hda_tegra_first_init(struct azx *chip, struct platform_device *pdev)
 	int irq_id = platform_get_irq(pdev, 0);
 	const char *sname, *drv_name = "tegra-hda";
 	struct device_node *np = pdev->dev.of_node;
-#ifdef CONFIG_ANDROID
-	cpumask_t mask;
-#endif /* #ifdef CONFIG_ANDROID */
 
 	if (irq_id < 0)
 		return irq_id;
@@ -269,12 +265,6 @@ static int hda_tegra_first_init(struct azx *chip, struct platform_device *pdev)
 			irq_id);
 		return err;
 	}
-#ifdef CONFIG_ANDROID
-	/* We want to run on all but CPU0 */
-	cpumask_setall(&mask);
-	cpumask_clear_cpu(0, &mask);
-	irq_set_affinity_hint(irq_id, &mask);
-#endif /* #ifdef CONFIG_ANDROID */
 	bus->irq = irq_id;
 	bus->dma_stop_delay = 100;
 	card->sync_irq = bus->irq;
