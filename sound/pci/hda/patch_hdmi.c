@@ -2368,11 +2368,6 @@ static int generic_hdmi_build_controls(struct hda_codec *codec)
 			err = hdmi_create_eld_ctl(codec, pcm_idx, dev);
 			if (err < 0)
 				return err;
-
-			/* add control for custom ELD */
-			err = hdmi_create_custom_eld_ctl(codec, pcm_idx, dev);
-			if (err < 0)
-				return err;
 		}
 
 	}
