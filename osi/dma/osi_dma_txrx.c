@@ -979,7 +979,7 @@ fail:
 
 nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 		    struct osi_tx_ring *tx_ring,
-		    nveu32_t chan)
+		    nveu32_t dma_chan)
 {
 	struct dma_local *l_dma = (struct dma_local *)(void *)osi_dma;
 	struct osi_tx_pkt_cx *tx_pkt_cx = OSI_NULL;
@@ -992,6 +992,7 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 	nveu32_t f_idx = tx_ring->cur_tx_idx;
 	nveu32_t l_idx = 0;
 #endif /* OSI_DEBUG */
+	nveu32_t chan = dma_chan & 0xFU;
 	const nveu32_t tail_ptr_reg[2] = {
 		EQOS_DMA_CHX_TDTP(chan),
 		MGBE_DMA_CHX_TDTLP(chan)
@@ -1204,8 +1205,9 @@ fail:
  * @retval -1 on failure.
  */
 static nve32_t rx_dma_desc_initialization(const struct osi_dma_priv_data *const osi_dma,
-					  nveu32_t chan)
+					  nveu32_t dma_chan)
 {
+	nveu32_t chan = dma_chan & 0xFU;
 	const nveu32_t start_addr_high_reg[2] = {
 		EQOS_DMA_CHX_RDLH(chan),
 		MGBE_DMA_CHX_RDLH(chan)
@@ -1345,9 +1347,10 @@ fail:
 
 static inline void set_tx_ring_len_and_start_addr(const struct osi_dma_priv_data *const osi_dma,
 						  nveu64_t tx_desc_phy_addr,
-						  nveu32_t chan,
+						  nveu32_t dma_chan,
 						  nveu32_t len)
 {
+	nveu32_t chan = dma_chan & 0xFU;
 	const nveu32_t ring_len_reg[2] = {
 		EQOS_DMA_CHX_TDRL(chan),
 		MGBE_DMA_CHX_TX_CNTRL2(chan)

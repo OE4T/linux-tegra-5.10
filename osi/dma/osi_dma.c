@@ -366,8 +366,9 @@ fail:
 	return ret;
 }
 
-static inline void start_dma(const struct osi_dma_priv_data *const osi_dma, nveu32_t chan)
+static inline void start_dma(const struct osi_dma_priv_data *const osi_dma, nveu32_t dma_chan)
 {
+	nveu32_t chan = dma_chan & 0xFU;
 	const nveu32_t tx_dma_reg[2] = {
 		EQOS_DMA_CHX_TX_CTRL(chan),
 		MGBE_DMA_CHX_TX_CTRL(chan)
@@ -391,8 +392,10 @@ static inline void start_dma(const struct osi_dma_priv_data *const osi_dma, nveu
 }
 
 static void init_dma_channel(const struct osi_dma_priv_data *const osi_dma,
-			     nveu32_t chan)
+			     nveu32_t dma_chan)
 {
+	nveu32_t chan = dma_chan & 0xFU;
+	nveu32_t riwt = osi_dma->rx_riwt & 0xFFFU;
 	const nveu32_t intr_en_reg[2] = {
 		EQOS_DMA_CHX_INTR_ENA(chan),
 		MGBE_DMA_CHX_INTR_ENA(chan)
@@ -423,9 +426,9 @@ static void init_dma_channel(const struct osi_dma_priv_data *const osi_dma,
 		((MGBE_RXQ_SIZE / osi_dma->num_dma_chans) / 2U)
 	};
 	const nveu32_t rwt_val[2] = {
-		(((osi_dma->rx_riwt * (EQOS_AXI_CLK_FREQ / OSI_ONE_MEGA_HZ)) /
+		(((riwt * (EQOS_AXI_CLK_FREQ / OSI_ONE_MEGA_HZ)) /
 		  EQOS_DMA_CHX_RX_WDT_RWTU) & EQOS_DMA_CHX_RX_WDT_RWT_MASK),
-		(((osi_dma->rx_riwt * ((nveu32_t)MGBE_AXI_CLK_FREQ / OSI_ONE_MEGA_HZ)) /
+		(((riwt * ((nveu32_t)MGBE_AXI_CLK_FREQ / OSI_ONE_MEGA_HZ)) /
 		 MGBE_DMA_CHX_RX_WDT_RWTU) & MGBE_DMA_CHX_RX_WDT_RWT_MASK)
 	};
 	const nveu32_t rwtu_val[2] = {
@@ -608,8 +611,9 @@ fail:
 }
 
 static inline void stop_dma(const struct osi_dma_priv_data *const osi_dma,
-			    nveu32_t chan)
+			    nveu32_t dma_chan)
 {
+	nveu32_t chan = dma_chan & 0xFU;
 	const nveu32_t dma_tx_reg[2] = {
 		EQOS_DMA_CHX_TX_CTRL(chan),
 		MGBE_DMA_CHX_TX_CTRL(chan)

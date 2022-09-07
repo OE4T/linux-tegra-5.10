@@ -161,7 +161,7 @@ nve32_t init_desc_ops(const struct osi_dma_priv_data *const osi_dma);
  *
  * @param[in, out] osi_dma: OSI DMA private data.
  * @param[in] tx_ring: DMA Tx ring.
- * @param[in] chan: DMA Tx channel number. Max OSI_EQOS_MAX_NUM_CHANS.
+ * @param[in] dma_chan: DMA Tx channel number. Max OSI_EQOS_MAX_NUM_CHANS.
  *
  * @note
  * API Group:
@@ -171,7 +171,7 @@ nve32_t init_desc_ops(const struct osi_dma_priv_data *const osi_dma);
  */
 nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 		    struct osi_tx_ring *tx_ring,
-		    nveu32_t chan);
+		    nveu32_t dma_chan);
 
 /* Function prototype needed for misra */
 
@@ -213,9 +213,10 @@ static inline nveu32_t is_power_of_two(nveu32_t num)
 #define H32(data)       ((nveu32_t)(((data) & 0xFFFFFFFF00000000UL) >> 32UL))
 
 static inline void update_rx_tail_ptr(const struct osi_dma_priv_data *const osi_dma,
-				      nveu32_t chan,
+				      nveu32_t dma_chan,
 				      nveu64_t tailptr)
 {
+	nveu32_t chan = dma_chan & 0xFU;
 	const nveu32_t tail_ptr_reg[2] = {
 		EQOS_DMA_CHX_RDTP(chan),
 		MGBE_DMA_CHX_RDTLP(chan)
