@@ -16,6 +16,8 @@
 #include "tegra234-p3509-a02-pcie.dtsi"
 #include "tegra234-p3509-a02-fixed-regulator.dtsi"
 #include "tegra234-p3509-audio.dtsi"
+#include "tegra234-p3768-camera-rbpcv2-imx219.dtsi"
+#include "tegra234-p3768-camera-rbpcv3-imx477.dtsi"
 
 / {
 	gpio-keys {

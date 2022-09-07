@@ -13,6 +13,9 @@ dtb-$(BUILD_ENABLE) += tegra234-p3767-0002-p3509-a02.dtb
 dtb-$(BUILD_ENABLE) += tegra234-p3767-0002-p3768-0000-a0.dtb
 dtbo-$(BUILD_ENABLE) += tegra234-p3767-0002-p3509-a02-hdr40.dtbo
 dtbo-$(BUILD_ENABLE) += tegra234-p3767-0002-p3768-0000-a0-hdr40.dtbo
+dtbo-$(BUILD_ENABLE) += tegra234-p3767-camera-imx477-imx219.dtbo
+dtbo-$(BUILD_ENABLE) += tegra234-p3767-camera-imx477-dual.dtbo
+dtbo-$(BUILD_ENABLE) += tegra234-p3767-camera-imx219-dual.dtbo
 
 ifneq ($(dtb-y),)
 dtb-y := $(addprefix $(makefile-path)/,$(dtb-y))
