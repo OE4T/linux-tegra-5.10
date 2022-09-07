@@ -8,7 +8,7 @@
  *
  * This header is for devfreq governors in drivers/devfreq/
  */
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0) && LINUX_VERSION_CODE <= KERNEL_VERSION(5, 19, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0) && LINUX_VERSION_CODE <= KERNEL_VERSION(6, 0, 0)
 #ifndef _GOVERNOR_H
 #define _GOVERNOR_H
 #include <linux/devfreq.h>
