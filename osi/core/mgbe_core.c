@@ -408,7 +408,7 @@ static nve32_t mgbe_update_mac_addr_low_high_reg(
 		osi_writela(osi_core, OSI_MAX_32BITS,
 			    (nveu8_t *)osi_core->base +  MGBE_MAC_ADDRL((idx)));
 
-		return 0;
+		return ret;
 	}
 
 	/* Add DMA channel to value in binary */
@@ -2922,7 +2922,7 @@ static inline nveu32_t get_free_ts_idx(struct core_local *l_core)
 static void mgbe_handle_mac_intrs(struct osi_core_priv_data *osi_core,
 				  nveu32_t dma_isr)
 {
-	struct core_local *l_core = (struct core_local *)osi_core;
+	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 	nveu32_t mac_isr = 0;
 	nveu32_t mac_ier = 0;
 #ifndef OSI_STRIPPED_LIB

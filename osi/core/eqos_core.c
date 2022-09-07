@@ -860,13 +860,14 @@ void update_ehfc_rfa_rfd(nveu32_t rx_fifo, nveu32_t *value)
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static nve32_t eqos_configure_mtl_queue(nveu32_t qinx,
+static nve32_t eqos_configure_mtl_queue(nveu32_t q_inx,
 				    struct osi_core_priv_data *const osi_core,
 				    nveu32_t tx_fifo,
 				    nveu32_t rx_fifo)
 {
 	nveu32_t value = 0;
 	nve32_t ret = 0;
+	nveu32_t qinx = (q_inx & 0xFU);
 
 	ret = hw_flush_mtl_tx_queue(osi_core, qinx);
 	if (ret < 0) {
@@ -2545,12 +2546,13 @@ static inline nve32_t eqos_update_mac_addr_helper(
  */
 static void eqos_l2_filter_delete(struct osi_core_priv_data *osi_core,
 				  nveu32_t *value,
-				  const nveu32_t idx,
+				  const nveu32_t filter_idx,
 				  const nveu32_t dma_routing_enable,
 				  const nveu32_t dma_chan)
 {
 	nveu32_t dcs_check = *value;
 	nveu32_t temp = OSI_DISABLE;
+	nveu32_t idx = (filter_idx  & 0xFFU);
 
 	osi_writela(osi_core, OSI_MAX_32BITS,
 		    (nveu8_t *)osi_core->base + EQOS_MAC_ADDRL((idx)));

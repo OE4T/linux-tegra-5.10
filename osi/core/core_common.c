@@ -195,10 +195,11 @@ fail:
 
 
 nve32_t hw_flush_mtl_tx_queue(struct osi_core_priv_data *const osi_core,
-			      const nveu32_t qinx)
+			      const nveu32_t q_inx)
 {
 	void *addr = osi_core->base;
 	nveu32_t tx_op_mode_val = 0U;
+	nveu32_t qinx = (q_inx & 0xFU);
 	nveu32_t value;
 	const nveu32_t tx_op_mode[2] = { EQOS_MTL_CHX_TX_OP_MODE(qinx),
 					 MGBE_MTL_CHX_TX_OP_MODE(qinx)};
@@ -214,10 +215,11 @@ nve32_t hw_flush_mtl_tx_queue(struct osi_core_priv_data *const osi_core,
 }
 
 nve32_t hw_config_fw_err_pkts(struct osi_core_priv_data *osi_core,
-			      const nveu32_t qinx, const nveu32_t enable_fw_err_pkts)
+			      const nveu32_t q_inx, const nveu32_t enable_fw_err_pkts)
 {
 	nveu32_t val;
 	nve32_t ret = 0;
+	nveu32_t qinx = (q_inx & 0xFU);
 	const nveu32_t rx_op_mode[2] = { EQOS_MTL_CHX_RX_OP_MODE(qinx),
 					 MGBE_MTL_CHX_RX_OP_MODE(qinx)};
 	const nveu32_t max_q[2] = { OSI_EQOS_MAX_NUM_QUEUES,
@@ -353,7 +355,7 @@ void hw_config_tscr(struct osi_core_priv_data *const osi_core, OSI_UNUSED const 
 #endif /* !OSI_STRIPPED_LIB */
 {
 	void *addr = osi_core->base;
-	struct core_local *l_core = (struct core_local *)osi_core;
+	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 	nveu32_t mac_tcr = 0U;
 #ifndef OSI_STRIPPED_LIB
 	nveu32_t i = 0U, temp = 0U;

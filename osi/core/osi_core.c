@@ -148,6 +148,7 @@ struct osi_core_priv_data *osi_get_core(void)
 	return &g_core[i].osi_core;
 }
 
+#ifdef ENABLE_DRIFT_CAL
 struct osi_core_priv_data *get_role_pointer(nveu32_t role)
 {
 	nveu32_t i;
@@ -167,10 +168,11 @@ struct osi_core_priv_data *get_role_pointer(nveu32_t role)
 
 	return OSI_NULL;
 }
+#endif
 
 nve32_t osi_init_core_ops(struct osi_core_priv_data *const osi_core)
 {
-	struct core_local *l_core = (struct core_local *)osi_core;
+	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 	nve32_t ret = -1;
 
 	if (osi_core == OSI_NULL) {
@@ -240,7 +242,7 @@ nve32_t osi_write_phy_reg(struct osi_core_priv_data *const osi_core,
 			  const nveu32_t phyaddr, const nveu32_t phyreg,
 			  const nveu16_t phydata)
 {
-	struct core_local *l_core = (struct core_local *)osi_core;
+	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 
 	if (validate_if_args(osi_core, l_core) < 0) {
 		return -1;
@@ -253,7 +255,7 @@ nve32_t osi_write_phy_reg(struct osi_core_priv_data *const osi_core,
 nve32_t osi_read_phy_reg(struct osi_core_priv_data *const osi_core,
 			 const nveu32_t phyaddr, const nveu32_t phyreg)
 {
-	struct core_local *l_core = (struct core_local *)osi_core;
+	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 
 	if (validate_if_args(osi_core, l_core) < 0) {
 		return -1;
@@ -265,7 +267,7 @@ nve32_t osi_read_phy_reg(struct osi_core_priv_data *const osi_core,
 nve32_t osi_hw_core_init(struct osi_core_priv_data *const osi_core,
 			 nveu32_t tx_fifo_size, nveu32_t rx_fifo_size)
 {
-	struct core_local *l_core = (struct core_local *)osi_core;
+	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 
 	if (validate_if_args(osi_core, l_core) < 0) {
 		return -1;
@@ -277,7 +279,7 @@ nve32_t osi_hw_core_init(struct osi_core_priv_data *const osi_core,
 
 nve32_t osi_hw_core_deinit(struct osi_core_priv_data *const osi_core)
 {
-	struct core_local *l_core = (struct core_local *)osi_core;
+	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 
 	if (validate_if_args(osi_core, l_core) < 0) {
 		return -1;
@@ -289,7 +291,7 @@ nve32_t osi_hw_core_deinit(struct osi_core_priv_data *const osi_core)
 nve32_t osi_handle_ioctl(struct osi_core_priv_data *osi_core,
 			 struct osi_ioctl *data)
 {
-	struct core_local *l_core = (struct core_local *)osi_core;
+	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 	nve32_t ret = -1;
 
 	if (validate_if_args(osi_core, l_core) < 0) {

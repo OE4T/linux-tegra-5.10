@@ -267,12 +267,16 @@ struct core_ops {
 /**
  * @brief constant values for drift MAC to MAC sync.
  */
-#ifndef	DRIFT_CAL
+/* No longer needed since DRIFT CAL is not used */
+#undef ENABLE_DRIFT_CAL
+#ifdef	ENABLE_DRIFT_CAL
 #define	DRIFT_CAL		1
 #define	I_COMPONENT_BY_10	3
 #define	P_COMPONENT_BY_10	7
 #define	WEIGHT_BY_10		10
 #define	MAX_FREQ		85000000LL
+#else
+#define	DRIFT_CAL		0
 #endif
 #define EQOS_SEC_OFFSET		0xB08
 #define EQOS_NSEC_OFFSET	0xB0C
@@ -526,6 +530,7 @@ void hw_interface_init_core_ops(struct if_core_ops *if_ops_p);
  */
 void ivc_interface_init_core_ops(struct if_core_ops *if_ops_p);
 
+#ifdef	ENABLE_DRIFT_CAL
 /**
  * @brief get osi pointer for PTP primary/sec interface
  *
@@ -557,4 +562,5 @@ void ivc_interface_init_core_ops(struct if_core_ops *if_ops_p);
  * @retval NULL on failure.
  */
 struct osi_core_priv_data *get_role_pointer(nveu32_t role);
+#endif
 #endif /* INCLUDED_CORE_LOCAL_H */

@@ -1343,6 +1343,7 @@ static inline void free_tx_ts(struct osi_core_priv_data *osi_core,
 	}
 }
 
+#if (!defined(ETHERNET_SERVER) && !defined(__QNX__)) || DRIFT_CAL
 /**
  * @brief read time counters from HW register
  *
@@ -1380,6 +1381,7 @@ static void read_sec_ns(void *addr, nveu32_t mac,
 		*nsec = ns1;
 	}
 }
+#endif
 
 /**
  * @brief Parses internal ts structure array and update time stamp if packet
@@ -1403,7 +1405,7 @@ static inline nve32_t get_tx_ts(struct osi_core_priv_data *osi_core,
 	struct osi_core_tx_ts const *head = &l_core->tx_ts_head;
 	nve32_t ret = -1;
 	nveu32_t count = 0U;
-#if !defined(__QNX__)
+#if !defined(ETHERNET_SERVER) && !defined(__QNX__)
 	nveu32_t nsec, sec, temp_nsec;
 	nvel64_t temp_val = 0LL;
 	nvel64_t ts_val = 0LL;
@@ -1424,7 +1426,7 @@ static inline nve32_t get_tx_ts(struct osi_core_priv_data *osi_core,
 	}
 
 	while ((temp != head) && (count < MAX_TX_TS_CNT)) {
-#if !defined(__QNX__)
+#if !defined(ETHERNET_SERVER) && !defined(__QNX__)
 		temp_nsec = temp->nsec & ETHER_NSEC_MASK;
 		temp_val = (nvel64_t)(temp->sec * OSI_1SEC_TO_NSEC) + (nvel64_t)temp_nsec;
 
