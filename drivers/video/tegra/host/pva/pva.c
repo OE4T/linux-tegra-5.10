@@ -257,6 +257,7 @@ static void pva_reset_task_status_buffer(struct pva *pva)
 	WARN_ON(atomic_read(&pva->n_pending_tasks) != 0);
 	atomic_set(&pva->n_pending_tasks, 0);
 	pva->circular_array_rd_pos = 0U;
+	pva->circular_array_wr_pos = 0U;
 }
 
 static void pva_free_task_status_buffer(struct pva *pva)

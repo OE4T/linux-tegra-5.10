@@ -411,6 +411,10 @@ struct pva {
 	 * array
 	 */
 	u32 circular_array_rd_pos;
+	/* Current position to write task status buffer from the circular
+	 * array
+	 */
+	u32 circular_array_wr_pos;
 	struct work_struct task_update_work;
 	atomic_t n_pending_tasks;
 	struct workqueue_struct *task_status_workqueue;
@@ -574,4 +578,6 @@ int nvpva_get_device_hwid(struct platform_device *pdev,
 			  unsigned int id);
 
 u32 nvpva_get_id_idx(struct pva *dev, struct platform_device *pdev);
+
+void pva_push_aisr_status(struct pva *pva, uint32_t aisr_status);
 #endif

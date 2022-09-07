@@ -247,11 +247,13 @@ struct PVA_PACKED pva_td_s {
 	uint8_t				status_interface;
 	/** @brief The ID of the batch that this task belongs to */
 	uint8_t				batch_id;
+	/** @brief The ID of this task used to identify it during AISR */
+	uint8_t				task_id;
 	/** @note The below two fields are added for backward
 	 * compatibility, will be removed once changes are merged
 	 */
 	/** Additional padding to maintain alignement */
-	uint8_t				pad0[4];
+	uint8_t				pad0[3];
 };
 
 /** Runlist version for new task descriptor format */
@@ -397,6 +399,9 @@ struct PVA_PACKED pva_task_error_s {
 
 	/* Queue to which the task belongs */
 	uint8_t queue;
+
+	/* Task ID of the task */
+	uint8_t task_id;
 };
 
 

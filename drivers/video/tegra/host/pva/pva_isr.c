@@ -32,6 +32,23 @@
 #include "pva_isr_t23x.h"
 #endif
 
+void pva_push_aisr_status(struct pva *pva, uint32_t aisr_status)
+{
+	struct pva_task_error_s *err_array = pva->priv_circular_array.va;
+	struct pva_task_error_s *src_va = &err_array[pva->circular_array_wr_pos];
+
+	src_va->queue = PVA_GET_QUEUE_ID_FROM_STATUS(aisr_status);
+	src_va->vpu = PVA_GET_VPU_ID_FROM_STATUS(aisr_status);
+	src_va->error = PVA_GET_ERROR_FROM_STATUS(aisr_status);
+	src_va->task_id = PVA_GET_TASK_ID_FROM_STATUS(aisr_status);
+	src_va->valid = 1U;
+
+	if (pva->circular_array_wr_pos == (MAX_PVA_TASK_COUNT-1))
+		pva->circular_array_wr_pos = 0;
+	else
+		pva->circular_array_wr_pos += 1;
+}
+
 static irqreturn_t pva_system_isr(int irq, void *dev_id)
 {
 	struct pva *pva = dev_id;
@@ -52,19 +69,13 @@ static irqreturn_t pva_system_isr(int irq, void *dev_id)
 			atomic_add(1, &pva->n_pending_tasks);
 			queue_work(pva->task_status_workqueue,
 				   &pva->task_update_work);
+			if ((status5 & PVA_AISR_ABORT) == 0U)
+				pva_push_aisr_status(pva, status5);
 		}
 
 		/* For now, just log the errors */
 		if (status5 & PVA_AISR_TASK_ERROR)
 			nvpva_warn(&pdev->dev, "PVA AISR: PVA_AISR_TASK_ERROR");
-		if (status5 & PVA_AISR_THRESHOLD_EXCEEDED)
-			nvpva_warn(&pdev->dev, "PVA AISR: PVA_AISR_THRESHOLD_EXCEEDED");
-		if (status5 & PVA_AISR_LOGGING_OVERFLOW)
-			nvpva_warn(&pdev->dev, "PVA AISR: PVA_AISR_LOGGING_OVERFLOW");
-		if (status5 & PVA_AISR_PRINTF_OVERFLOW)
-			nvpva_warn(&pdev->dev, "PVA AISR: PVA_AISR_PRINTF_OVERFLOW");
-		if (status5 & PVA_AISR_CRASH_LOG)
-			nvpva_warn(&pdev->dev, "PVA AISR: PVA_AISR_CRASH_LOG");
 		if (status5 & PVA_AISR_ABORT) {
 			nvpva_warn(&pdev->dev, "PVA AISR: PVA_AISR_ABORT");
 			nvpva_warn(&pdev->dev, "Checkpoint value: 0x%08x",

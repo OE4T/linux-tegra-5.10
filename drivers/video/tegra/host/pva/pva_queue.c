@@ -972,7 +972,7 @@ static void update_one_task(struct pva *pva)
 	 * version
 	 */
 	list_for_each_entry(task, &queue->tasklist, node) {
-		if (task->dma_addr == task_info.addr) {
+		if (task->pool_index == task_info.task_id) {
 			list_del(&task->node);
 				found = true;
 				break;
@@ -1304,7 +1304,8 @@ set_task_parameters(const struct pva_submit_tasks *task_header)
 	for (idx = 0U; idx < task_header->num_tasks; idx++) {
 		task = task_header->tasks[idx];
 		hw_task = task->va;
-
+		WARN_ON(task->pool_index > 0xFF);
+		hw_task->task.task_id = task->pool_index;
 		hw_task->task.status_interface = status_interface;
 		hw_task->task.batch_id = batch_id;
 
