@@ -302,10 +302,19 @@ static void nvenc_close_channel(struct tegra_drm_context *context)
 	pm_runtime_put(nvenc->dev);
 }
 
+static int nvenc_can_use_memory_ctx(struct tegra_drm_client *client, bool *supported)
+{
+	*supported = true;
+
+	return 0;
+}
+
 static const struct tegra_drm_client_ops nvenc_ops = {
 	.open_channel = nvenc_open_channel,
 	.close_channel = nvenc_close_channel,
 	.submit = tegra_drm_submit,
+	.get_streamid_offset = tegra_drm_get_streamid_offset_thi,
+	.can_use_memory_ctx = nvenc_can_use_memory_ctx,
 };
 
 #define NVIDIA_TEGRA_210_NVENC_FIRMWARE "nvidia/tegra210/nvenc.bin"
