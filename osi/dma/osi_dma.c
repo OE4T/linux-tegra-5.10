@@ -477,7 +477,13 @@ static void init_dma_channel(const struct osi_dma_priv_data *const osi_dma,
 
 	val = osi_readl((nveu8_t *)osi_dma->base + rx_ctrl_reg[osi_dma->mac]);
 	val &= ~DMA_CHX_RBSZ_MASK;
-	val |= (osi_dma->rx_buf_len << DMA_CHX_RBSZ_SHIFT);
+	/** Subtract 30 bytes again which were added for buffer address alignment
+	 * HW don't need those extra 30 bytes. If data length received more than
+	 * below programed value then it will result in two descriptors which
+	 * eventually drop by OSI. Subtracting 30 bytes so that HW don't receive
+	 * unwanted length data.
+	 **/
+	val |= ((osi_dma->rx_buf_len - 30U) << DMA_CHX_RBSZ_SHIFT);
 	if (osi_dma->mac == OSI_MAC_HW_EQOS) {
 		val |= rx_pbl[osi_dma->mac];
 	} else {
@@ -903,6 +909,12 @@ nve32_t osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
 	/* Buffer alignment */
 	osi_dma->rx_buf_len = ((rx_buf_len + (AXI_BUS_WIDTH - 1U)) &
 			       ~(AXI_BUS_WIDTH - 1U));
+
+	/* Add 30 bytes (15bytes extra at head portion for alignment and 15bytes
+	 * extra to cover tail portion) again for the buffer address alignment
+	 */
+	osi_dma->rx_buf_len += 30U;
+
 fail:
 	return ret;
 }
