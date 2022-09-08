@@ -552,6 +552,8 @@ static int fpga_clock_hacks(struct platform_device *pdev)
 		SET_CLK_ENB_XUSB_SS;
 	iowrite32(val, car_base + CLK_RST_CONTROLLER_CLK_OUT_ENB_XUSB_SET_0);
 
+	devm_iounmap(&pdev->dev, car_base);
+
 	return 0;
 }
 
@@ -2088,6 +2090,8 @@ static int tegra_xusb_init_ifr_firmware(struct tegra_xusb *tegra)
 			val &= ~((u32) 0xff);
 			val |= 0xE;
 			iowrite32(val, ao_base + 0x1c4);
+
+			devm_iounmap(tegra->dev, ao_base);
 		}
 	}
 
