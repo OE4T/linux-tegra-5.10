@@ -939,6 +939,8 @@ static void update_one_task(struct pva *pva)
 	u64 vpu_time = 0u;
 	u64 r5_overhead = 0u;
 	const u32 tsc_ticks_to_us = 31;
+	u32 vpu_assigned = 0;
+
 	nvpva_fetch_task_status_info(pva, &task_info);
 	WARN_ON(!task_info.valid);
 	WARN_ON(task_info.queue >= MAX_PVA_QUEUE_COUNT);
@@ -976,7 +978,14 @@ static void update_one_task(struct pva *pva)
 	if (!task->pva->stats_enabled)
 		goto prof;
 
+	mutex_lock(&pva->vpu_util_info.util_info_mutex);
+	vpu_assigned = stats->vpu_assigned;
 	vpu_time = (stats->vpu_complete_time - stats->vpu_start_time);
+	pva->vpu_util_info.vpu_stats_accum[vpu_assigned] += vpu_time;
+	pva->vpu_util_info.current_stamp[vpu_assigned] = stats->vpu_complete_time;
+	pva->vpu_util_info.last_start[vpu_assigned] = stats->vpu_start_time;
+	mutex_unlock(&pva->vpu_util_info.util_info_mutex);
+
 	r5_overhead = ((stats->complete_time - stats->queued_time) - vpu_time);
 	r5_overhead = r5_overhead / tsc_ticks_to_us;
 

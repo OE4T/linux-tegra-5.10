@@ -301,6 +301,29 @@ struct pva_vpu_dbg_block {
 };
 
 /**
+ * @brief		VPU utilization information
+ *
+ * vpu_stats_accum	long term accumulator of VPU active time.
+ * current_stamp	time stamp of last task completed
+ * last_start		time stamp of start of last task completed
+ * start_stamp		time stamp when measurment started
+ * end_stamp		time stamp when measurment is to end
+ * vpu_stats		avaraged vpu utilization stats
+ * flags		undefined use at this time
+ * util_info_mutex	mutex for protecting stats data structure
+ */
+struct pva_vpu_util_info {
+	u64 vpu_stats_accum[2];
+	u64 current_stamp[2];
+	u64 last_start[2];
+	u64 start_stamp;
+	u64 end_stamp;
+	u32 vpu_stats[2];
+	u32 flags;
+	struct mutex util_info_mutex;
+};
+
+/**
  * @brief		Driver private data, shared with all applications
  *
  * version		pva version; 1 or 2
@@ -381,13 +404,13 @@ struct pva {
 	bool vpu_printf_enabled;
 	bool vpu_debug_enabled;
 	bool stats_enabled;
+	struct pva_vpu_util_info vpu_util_info;
 	u32 profiling_level;
 
 	struct work_struct pva_abort_handler_work;
 	bool booted;
 	u32 log_level;
 	u32 driver_log_mask;
-
 	struct nvpva_client_context *clients;
 	struct mutex clients_lock;
 

@@ -1016,6 +1016,8 @@ static int pva_probe(struct platform_device *pdev)
 	pva->driver_log_mask = NVPVA_DEFAULT_DBG_MASK;
 	pva->profiling_level = 0;
 	pva->stats_enabled = false;
+	memset(&pva->vpu_util_info, 0, sizeof(pva->vpu_util_info));
+	mutex_init(&pva->vpu_util_info.util_info_mutex);
 
 #ifdef __linux__
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)
