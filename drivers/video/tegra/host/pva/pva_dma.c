@@ -208,8 +208,8 @@ patch_dma_desc_address(struct pva_submit_task *task,
 		u32 size = 0;
 
 		/* dest must be null*/
-		if ((umd_dma_desc->dstPtr != 0U)
-		   || (umd_dma_desc->dst2Ptr != 0U)) {
+		if ((umd_dma_desc->dstPtr != NVPVA_INVALID_SYMBOL_ID)
+		   || (umd_dma_desc->dst2Ptr != NVPVA_INVALID_SYMBOL_ID)) {
 			task_err(task, "ERROR: Invalid VPUC");
 			err = -EINVAL;
 			goto out;
@@ -363,7 +363,7 @@ patch_dma_desc_address(struct pva_submit_task *task,
 			goto out;
 		}
 
-		if (umd_dma_desc->dst2Ptr) {
+		if (umd_dma_desc->dst2Ptr != NVPVA_INVALID_SYMBOL_ID) {
 			err = pva_get_sym_offset(&task->client->elf_ctx,
 						 task->exe_id,
 						 umd_dma_desc->dst2Ptr,
@@ -684,7 +684,7 @@ static int32_t nvpva_task_dma_desc_mapping(struct pva_submit_task *task,
 		/* DMA_DESC_PY */
 		dma_desc->py = (uint8_t)umd_dma_desc->py;
 		/* DMA_DESC_FRDA */
-		if (umd_dma_desc->dst2Ptr) {
+		if (umd_dma_desc->dst2Ptr != NVPVA_INVALID_SYMBOL_ID) {
 			err = pva_get_sym_offset(&task->client->elf_ctx,
 						 task->exe_id,
 						 umd_dma_desc->dst2Ptr,

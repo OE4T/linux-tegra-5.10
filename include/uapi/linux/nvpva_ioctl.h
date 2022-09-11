@@ -28,6 +28,11 @@
  */
 #define NVPVA_SYM_NAME_MAX_LEN 64U
 
+/**
+ * Invalid symbol ID
+ */
+#define NVPVA_INVALID_SYMBOL_ID 0xFFFF
+
 /*
  * PVA specific error code
  */

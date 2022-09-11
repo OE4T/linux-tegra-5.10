@@ -110,7 +110,8 @@ int32_t pva_get_sym_offset(struct nvpva_elf_context *d, uint16_t exe_id,
 	if ((!pva_vpu_elf_is_registered(d, exe_id))
 	   || (addr == NULL)
 	   || (size == NULL)
-	   || (sym_id >= get_elf_image(d, exe_id)->num_symbols))
+	   || (sym_id >= get_elf_image(d, exe_id)->num_symbols)
+	   || (sym_id == NVPVA_INVALID_SYMBOL_ID))
 		return -EINVAL;
 
 	*addr = get_elf_image(d, exe_id)->sym[sym_id].addr;
