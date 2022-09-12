@@ -64,7 +64,8 @@ static ssize_t throt_en_show(struct device *dev, struct device_attribute *attr,
 		return -EINVAL;
 	}
 
-	return sprintf(buf, "%u\n", resp.throt_en[sensor_attr->index]);
+	return sprintf(buf, "%u\n",
+		       resp.throt_en[(unsigned int)sensor_attr->index]);
 }
 
 static ssize_t event_cnt_show(struct device *dev, struct device_attribute *attr,
@@ -95,7 +96,8 @@ static ssize_t event_cnt_show(struct device *dev, struct device_attribute *attr,
 		return -EINVAL;
 	}
 
-	return sprintf(buf, "%u\n", resp.event_cnt[sensor_attr->index]);
+	return sprintf(buf, "%u\n",
+		       resp.event_cnt[(unsigned int)sensor_attr->index]);
 }
 
 static SENSOR_DEVICE_ATTR_RO(oc1_throt_en, throt_en, TEGRA234_SOCTHERM_EDP_OC1);
