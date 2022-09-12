@@ -321,6 +321,7 @@ struct pva_vpu_util_info {
 	u32 vpu_stats[2];
 	u32 flags;
 	struct mutex util_info_mutex;
+	struct semaphore util_info_sema;
 };
 
 /**
@@ -405,6 +406,7 @@ struct pva {
 	bool vpu_debug_enabled;
 	bool stats_enabled;
 	struct pva_vpu_util_info vpu_util_info;
+	struct pva_vpu_util_info vpu_util_info_cp;
 	u32 profiling_level;
 
 	struct work_struct pva_abort_handler_work;

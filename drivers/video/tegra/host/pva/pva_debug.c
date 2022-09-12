@@ -150,24 +150,77 @@ static int set_log_level(void *data, u64 val)
 
 DEFINE_DEBUGFS_ATTRIBUTE(log_level_fops, get_log_level, set_log_level, "%llu");
 
+static void
+calculate_adjustment(struct pva *pva,
+		     struct pva_vpu_util_info *util_info,
+		     struct pva_vpu_util_info *vpu_util_info,
+		     u32 idx)
+{
+	u64 adjustment = 0;
+
+	if (vpu_util_info->flags & (1 << idx)) {
+		vpu_util_info->vpu_stats_accum[idx] = 0;
+	} else {
+		util_info->vpu_stats_accum[idx] =
+			pva->vpu_util_info_cp.vpu_stats_accum[idx];
+		util_info->current_stamp[idx] =
+			pva->vpu_util_info_cp.current_stamp[idx];
+		util_info->last_start[idx] =
+			pva->vpu_util_info_cp.last_start[idx];
+	}
+
+	if (util_info->last_start[idx] >= util_info->end_stamp)
+		adjustment = (util_info->current_stamp[idx] -
+				 util_info->last_start[idx]);
+	else if (util_info->current_stamp[idx] > util_info->end_stamp)
+		adjustment = (util_info->current_stamp[idx] - util_info->end_stamp);
+
+	if (U64_MAX - vpu_util_info->vpu_stats_accum[idx] > adjustment)
+		vpu_util_info->vpu_stats_accum[idx] += adjustment;
+
+	if (util_info->vpu_stats_accum[idx] > adjustment)
+		util_info->vpu_stats_accum[idx] -= adjustment;
+	else
+		util_info->vpu_stats_accum[idx] = 0;
+}
+
 static void update_vpu_stats(struct pva *pva)
 {
 	struct pva_vpu_util_info util_info;
 	struct pva_vpu_util_info *vpu_util_info = &pva->vpu_util_info;
 	u64 duration = 0;
+	int err = 0;
 
+	unsigned long timeout_jiffies = usecs_to_jiffies(50000U);
+
+	/* wait for next task to finish */
+	sema_init(&vpu_util_info->util_info_sema, 0);
+	vpu_util_info->flags = 0x3;
+	err = down_timeout(&vpu_util_info->util_info_sema,
+			   timeout_jiffies);
 	mutex_lock(&vpu_util_info->util_info_mutex);
+
+	/* make copy of stats */
 	util_info = *vpu_util_info;
-	vpu_util_info->vpu_stats_accum[0] = 0;
-	vpu_util_info->vpu_stats_accum[1] = 0;
+
+	/* calcualte adjustmetns */
+	calculate_adjustment(pva, &util_info, vpu_util_info, 0);
+	calculate_adjustment(pva, &util_info, vpu_util_info, 1);
+
+	/* clear flags */
+	vpu_util_info->flags = 0;
+
+	/* advance starting time stamp */
 	vpu_util_info->start_stamp = vpu_util_info->end_stamp;
 	mutex_unlock(&vpu_util_info->util_info_mutex);
+
 	duration = util_info.end_stamp - util_info.start_stamp;
+
 	if (duration > 0) {
 		vpu_util_info->vpu_stats[0] =
-		    (u32)((100ULL * util_info.vpu_stats_accum[0]) / duration);
+		    (u32)((10000ULL * util_info.vpu_stats_accum[0]) / duration);
 		vpu_util_info->vpu_stats[1] =
-		    (u32)((100ULL * util_info.vpu_stats_accum[1]) / duration);
+		    (u32)((10000ULL * util_info.vpu_stats_accum[1]) / duration);
 	} else {
 		vpu_util_info->vpu_stats[0] = 0;
 		vpu_util_info->vpu_stats[1] = 0;
