@@ -59,7 +59,7 @@
 #include <uapi/linux/nvpva_ioctl.h>
 #include <trace/events/nvhost_pva.h>
 
-static void *pva_dmabuf_vmap(struct dma_buf *dmabuf)
+void *pva_dmabuf_vmap(struct dma_buf *dmabuf)
 {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 18, 0)
@@ -78,7 +78,7 @@ static void *pva_dmabuf_vmap(struct dma_buf *dmabuf)
 #endif
 }
 
-static void pva_dmabuf_vunmap(struct dma_buf *dmabuf, void *addr)
+void pva_dmabuf_vunmap(struct dma_buf *dmabuf, void *addr)
 {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 18, 0)
@@ -153,7 +153,6 @@ static void pva_task_unpin_mem(struct pva_submit_task *task)
 	}
 
 	task->num_pinned = 0;
-	task->pinned_hwseq_config = false;
 }
 
 struct pva_pinned_memory *pva_task_pin_mem(struct pva_submit_task *task,

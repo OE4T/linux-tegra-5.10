@@ -24,6 +24,9 @@
 #include "pva-interface.h"
 #include "pva-task.h"
 
+#define task_err(task, fmt, ...) \
+	dev_err(&task->pva->pdev->dev, fmt, ##__VA_ARGS__)
+
 struct dma_buf;
 
 extern struct nvpva_queue_ops pva_queue_ops;
@@ -110,8 +113,10 @@ struct pva_submit_task {
 	u8 num_dma_descriptors;
 	u8 num_dma_channels;
 	u8 num_symbols;
+	u8 special_access;
 
 	u64 timeout;
+	u64 desc_hwseq_frm;
 	u32 syncpt_thresh;
 	u32 fence_num;
 
@@ -144,8 +149,6 @@ struct pva_submit_task {
 	u64 src_surf_base_addr;
 	u64 dst_surf_base_addr;
 	bool is_system_app;
-	bool pinned_hwseq_config;
-	u8   special_access;
 };
 
 struct pva_submit_tasks {
@@ -262,7 +265,7 @@ struct pva_pinned_memory *pva_task_pin_mem(struct pva_submit_task *task,
 					   u32 id,
 					   bool is_cntxt);
 
-#define task_err(task, fmt, ...)                                               \
-	dev_err(&task->pva->pdev->dev, fmt, ##__VA_ARGS__)
+void pva_dmabuf_vunmap(struct dma_buf *dmabuf, void *addr);
+void *pva_dmabuf_vmap(struct dma_buf *dmabuf);
 
 #endif

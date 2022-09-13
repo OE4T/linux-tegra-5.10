@@ -16,6 +16,7 @@
 
 #include <linux/kernel.h>
 #include <linux/seq_file.h>
+#include <linux/nospec.h>
 #include "pva_dma.h"
 #include "pva_queue.h"
 #include "pva-sys-dma.h"
@@ -24,6 +25,7 @@
 #include "nvpva_client.h"
 #include "pva-bit.h"
 #include "fw_config.h"
+#include "pva_hwseq.h"
 
 static int32_t check_address_range(struct nvpva_dma_descriptor const *desc,
 				   uint64_t max_size,
@@ -129,7 +131,7 @@ static int32_t check_address_range(struct nvpva_dma_descriptor const *desc,
 static int32_t
 patch_dma_desc_address(struct pva_submit_task *task,
 		      struct nvpva_dma_descriptor *umd_dma_desc,
-		      struct pva_dtd_s *dma_desc, bool is_misr)
+		      struct pva_dtd_s *dma_desc, u8 desc_id, bool is_misr)
 {
 	int32_t err = 0;
 	uint64_t addr_base = 0;
@@ -161,7 +163,7 @@ patch_dma_desc_address(struct pva_submit_task *task,
 						  false);
 		} else {
 			addr_base = 0;
-			if (task->pinned_hwseq_config == false)
+			if ((task->desc_hwseq_frm & (1ULL << desc_id)) == 0ULL)
 				err = check_address_range(umd_dma_desc,
 							  task->l2_alloc_size,
 							  0,
@@ -243,8 +245,7 @@ patch_dma_desc_address(struct pva_submit_task *task,
 				"invalid memory handle: descriptor: src MC");
 			goto out;
 		}
-
-		if (task->pinned_hwseq_config == false)
+		if ((task->desc_hwseq_frm & (1ULL << desc_id)) == 0ULL)
 			err = check_address_range(umd_dma_desc,
 						  mem->size,
 						  0,
@@ -464,7 +465,8 @@ out:
 }
 
 static bool
-is_valid_vpu_trigger_mode(const struct nvpva_dma_descriptor *desc)
+is_valid_vpu_trigger_mode(const struct nvpva_dma_descriptor *desc,
+			  u32 trigger_mode)
 {
 	bool valid = true;
 
@@ -474,7 +476,9 @@ is_valid_vpu_trigger_mode(const struct nvpva_dma_descriptor *desc)
 	switch ((enum nvpva_task_dma_trig_vpu_hw_events)
 					desc->trigVpuEvents) {
 		case TRIG_VPU_NO_TRIGGER:
-			valid = false;
+			if (trigger_mode != NVPVA_HWSEQTM_DMATRIG)
+				valid = false;
+
 			break;
 		case TRIG_VPU_CONFIG_START:
 			/** If trig = VPU configuration trigger,
@@ -521,7 +525,8 @@ is_valid_vpu_trigger_mode(const struct nvpva_dma_descriptor *desc)
 }
 
 static int32_t
-validate_descriptor(const struct nvpva_dma_descriptor *desc)
+validate_descriptor(const struct nvpva_dma_descriptor *desc,
+		    u32 trigger_mode)
 {
 	uint32_t ret = 0;
 	int32_t retval = 0;
@@ -536,7 +541,7 @@ validate_descriptor(const struct nvpva_dma_descriptor *desc)
 	}
 
 	/** Validate VPU trigger event config */
-	ret |= (!(is_valid_vpu_trigger_mode(desc))) ? 1UL : 0UL;
+	ret |= (is_valid_vpu_trigger_mode(desc, trigger_mode)) ? 0UL : 1UL;
 
 	/** Check src/dstADV values with respect to ECET bits */
 	ret |= (
@@ -572,21 +577,22 @@ static int32_t nvpva_task_dma_desc_mapping(struct pva_submit_task *task,
 	struct nvpva_dma_descriptor *umd_dma_desc = NULL;
 	struct pva_dtd_s *dma_desc = NULL;
 	int32_t err = 0;
-	unsigned int numDesc;
+	unsigned int desc_num;
 	uint32_t addr = 0U;
 	uint32_t size = 0;
 	bool is_misr;
 
 	task->special_access = 0;
 
-	for (numDesc = 0U; numDesc < task->num_dma_descriptors; numDesc++) {
-		umd_dma_desc = &task->dma_descriptors[numDesc];
-		dma_desc = &hw_task->dma_desc[numDesc];
+	for (desc_num = 0U; desc_num < task->num_dma_descriptors; desc_num++) {
+		umd_dma_desc = &task->dma_descriptors[desc_num];
+		dma_desc = &hw_task->dma_desc[desc_num];
 		is_misr = !((task->dma_misr_config.descriptor_mask
-			    & PVA_BIT64(numDesc)) == 0U);
+			    & PVA_BIT64(desc_num)) == 0U);
 		is_misr = is_misr && (task->dma_misr_config.enable != 0U);
 
-		err = validate_descriptor(umd_dma_desc);
+		err = validate_descriptor(umd_dma_desc,
+					  task->hwseq_config.hwseqTrigMode);
 		if (err) {
 			task_err(
 			    task,
@@ -595,7 +601,7 @@ static int32_t nvpva_task_dma_desc_mapping(struct pva_submit_task *task,
 		}
 
 		err = patch_dma_desc_address(task, umd_dma_desc, dma_desc,
-					     is_misr);
+					     desc_num, is_misr);
 		if (err)
 			goto out;
 
@@ -735,18 +741,235 @@ out:
 	return err;
 }
 
-/* User to FW mapping for DMA channel */
-static int nvpva_task_dma_channel_mapping(struct nvpva_dma_channel *user_ch,
-					  struct pva_dma_ch_config_s *ch,
-					  int32_t hwgen)
+static int
+verify_dma_desc_hwseq(struct pva_submit_task *task,
+		     struct nvpva_dma_channel *user_ch,
+		     struct pva_hw_sweq_blob_s *blob,
+		     u32 did)
 {
+	int err = 0;
+	u64 *desc_hwseq_frm = &task->desc_hwseq_frm;
+	struct nvpva_dma_descriptor *desc;
+
+	if ((did == 0U)
+	|| (did >= NVPVA_TASK_MAX_DMA_DESCRIPTORS)) {
+		pr_err("invalid Descritor ID");
+		err = -EINVAL;
+		goto out;
+	}
+
+	did = array_index_nospec((did - 1),
+				 NVPVA_TASK_MAX_DMA_DESCRIPTORS);
+
+	if ((*desc_hwseq_frm & (1ULL << did)) != 0ULL)
+		goto out;
+
+	*desc_hwseq_frm |= (1ULL << did);
+
+	desc = &task->dma_descriptors[did];
+
+	if ((desc->px != 0U)
+	 || (desc->py != 0U)
+	 || (desc->descReloadEnable != 0U)) {
+		pr_err("invalid descriptor padding");
+		err = -EINVAL;
+		goto out;
+	}
+
+	switch (desc->srcTransferMode) {
+	case DMA_DESC_SRC_XFER_VMEM:
+		if (((desc->dstTransferMode != DMA_DESC_DST_XFER_MC)
+		&& (desc->dstTransferMode != DMA_DESC_DST_XFER_L2RAM))
+		|| (desc->dstCbEnable == 1U)) {
+			pr_err("invalid dst transfer mode");
+			err = -EINVAL;
+		}
+		break;
+	case DMA_DESC_SRC_XFER_L2RAM:
+	case DMA_DESC_SRC_XFER_MC:
+		if ((desc->dstTransferMode != DMA_DESC_DST_XFER_VMEM)
+		|| (desc->srcCbEnable == 1U)) {
+			pr_err("invalid src transfer mode");
+			err = -EINVAL;
+		}
+		break;
+	case DMA_DESC_SRC_XFER_MMIO:
+	case DMA_DESC_SRC_XFER_INVAL:
+	case DMA_DESC_SRC_XFER_R5TCM:
+	case DMA_DESC_SRC_XFER_RSVD:
+	default:
+		pr_err("invalid dma desc transfer mode");
+		err = -EINVAL;
+		break;
+	}
+
+	if (err)
+		goto out;
+
+	if (user_ch->hwseqTxSelect != 1U)
+		goto out;
+
+	if (((desc->srcFormat == 1U)
+	|| (desc->dstFormat == 1U))
+	   && (blob->f_header.to == 0)) {
+		pr_err("invalid tile offset");
+		err = -EINVAL;
+		goto out;
+	}
+
+	if (user_ch->hwseqTraversalOrder == 0) {
+		if (((uint32_t)((uint32_t)desc->tx +
+				(uint32_t)blob->f_header.pad_l) > 0xFFFFU)
+		|| ((uint32_t)((uint32_t)desc->tx +
+				(uint32_t)blob->f_header.pad_r) > 0xFFFFU)) {
+			pr_err("invalid tx + pad x");
+			err = -EINVAL;
+		}
+	} else if (user_ch->hwseqTraversalOrder == 1) {
+		if (((uint32_t)((uint32_t)desc->ty +
+				(uint32_t)blob->f_header.pad_t) > 0xFFFFU)
+		|| ((uint32_t)((uint32_t)desc->ty +
+				(uint32_t)blob->f_header.pad_b) > 0xFFFFU)) {
+			pr_err("invalid ty + pad y");
+			err = -EINVAL;
+		}
+	} else {
+		pr_err("invalid traversal order");
+		err = -EINVAL;
+	}
+out:
+	return err;
+}
+
+static int
+verify_hwseq_blob(struct pva_submit_task *task,
+		  struct nvpva_dma_channel *user_ch,
+		  struct nvpva_dma_descriptor *decriptors,
+		  uint8_t *hwseqbuf_cpuva,
+		  int8_t ch_num)
+
+{
+	struct pva_hw_sweq_blob_s *blob;
+	struct pva_hwseq_desc_header_s *blob_desc;
+	struct pva_hwseq_cr_header_s *cr_header;
+	struct pva_hwseq_cr_header_s *end_addr;
+	u32 end = user_ch->hwseqEnd * 4;
+	u32 start = user_ch->hwseqStart * 4;
+	int err = 0;
+	u32 i;
+	u32 j;
+	u32 k;
+	u32 cr_count = 0;
+	u32 entry_size;
+
+	blob = (struct pva_hw_sweq_blob_s *)&hwseqbuf_cpuva[start];
+	end_addr = (struct pva_hwseq_cr_header_s *)&hwseqbuf_cpuva[end + 4];
+	cr_header = &blob->cr_header;
+	blob_desc = &blob->desc_header;
+
+	if ((end <= start)
+	   || (((end - start + 4U) < sizeof(*blob)))) {
+		pr_err("invalid size of HW sequencer blob");
+		err = -EINVAL;
+		goto out;
+	}
+
+	if (end > task->hwseq_config.hwseqBuf.size) {
+		pr_err("blob end greater than buffer size");
+		err = -EINVAL;
+		goto out;
+	}
+
+	if (is_desc_mode(blob->f_header.fid)) {
+		if (task->hwseq_config.hwseqTrigMode == NVPVA_HWSEQTM_DMATRIG) {
+			pr_err("dma master not allowed");
+			err = -EINVAL;
+		}
+
+		goto out;
+	}
+
+	if (!is_frame_mode(blob->f_header.fid)) {
+		pr_err("invalid addressing mode");
+		err = -EINVAL;
+		goto out;
+	}
+
+	cr_count = (blob->f_header.no_cr + 1U);
+	start += sizeof(blob->f_header);
+	end += 4;
+	for (i = 0; i < cr_count; i++) {
+		u32 num_descriptors = cr_header->dec + 1;
+		u32 num_desc_entries = (cr_header->dec + 1) / 2;
+
+		entry_size = num_desc_entries;
+		entry_size *= sizeof(struct pva_hwseq_desc_header_s);
+		entry_size += sizeof(struct pva_hwseq_cr_header_s);
+		if ((start + entry_size) > end) {
+			pr_err("row/column entries larger than blob");
+			err = -EINVAL;
+			goto out;
+		}
+
+		for (j = 0, k = 0; j < num_desc_entries; j++) {
+			err = verify_dma_desc_hwseq(task,
+						    user_ch,
+						    blob,
+						    blob_desc->did1);
+			if (err) {
+				pr_err("seq descriptor 1 verification failed");
+				goto out;
+			}
+
+			++k;
+			if (k >= num_descriptors)
+				break;
+
+			err = verify_dma_desc_hwseq(task,
+						    user_ch,
+						    blob,
+						    blob_desc->did2);
+			if (err) {
+				pr_err("seq descriptor 2 verification failed");
+				goto out;
+			}
+
+			++blob_desc;
+		}
+
+		start += entry_size;
+		cr_header = (struct pva_hwseq_cr_header_s *)blob_desc;
+		blob_desc = (struct pva_hwseq_desc_header_s *)(cr_header + 1);
+		if (cr_header > end_addr) {
+			pr_err("blob size smaller than entries");
+			err = -EINVAL;
+			goto out;
+		}
+	}
+out:
+	return err;
+}
+/* User to FW mapping for DMA channel */
+static int
+nvpva_task_dma_channel_mapping(struct pva_submit_task *task,
+			       struct pva_dma_ch_config_s *ch,
+			       u8 *hwseqbuf_cpuva,
+			       int8_t ch_num,
+			       int32_t hwgen,
+			       bool hwseq_in_use)
+
+{
+	struct nvpva_dma_channel *user_ch = &task->dma_channels[ch_num - 1];
+	struct nvpva_dma_descriptor *decriptors = task->dma_descriptors;
 	u32 adb_limit;
+	int err = 0;
 
 	if (((user_ch->descIndex > PVA_NUM_DYNAMIC_DESCS) ||
 	     ((user_ch->vdbSize + user_ch->vdbOffset) >
 	      PVA_NUM_DYNAMIC_VDB_BUFFS))) {
 		pr_err("ERR: Invalid Channel control data");
-		return -EINVAL;
+		err = -EINVAL;
+		goto out;
 	}
 
 	if (hwgen == PVA_HW_GEN1)
@@ -756,7 +979,8 @@ static int nvpva_task_dma_channel_mapping(struct nvpva_dma_channel *user_ch,
 
 	if ((user_ch->adbSize + user_ch->adbOffset) > adb_limit) {
 		pr_err("ERR: Invalid ADB Buff size or offset");
-		return -EINVAL;
+		err =  -EINVAL;
+		goto out;
 	}
 
 	/* DMA_CHANNEL_CNTL0_CHSDID: DMA_CHANNEL_CNTL0[0] = descIndex + 1;*/
@@ -798,7 +1022,8 @@ static int nvpva_task_dma_channel_mapping(struct nvpva_dma_channel *user_ch,
 	/* DMA_CHANNEL_CNTL1_CHREP */
 	if ((user_ch->chRepFactor) && (user_ch->chRepFactor != 6)) {
 		pr_err("ERR: Invalid replication factor");
-		return -EINVAL;
+		err = -EINVAL;
+		goto out;
 	}
 
 	ch->cntl1 |= ((user_ch->chRepFactor & 0x7U) << 8U);
@@ -820,8 +1045,16 @@ static int nvpva_task_dma_channel_mapping(struct nvpva_dma_channel *user_ch,
 
 	/* DMA_CHANNEL_HWSEQCNTL_CHHWSEQEN */
 	ch->hwseqcntl |= ((user_ch->hwseqEnable & 0x1U) << 31U);
+
+	if ((user_ch->hwseqEnable & 0x1U) && hwseq_in_use)
+		err = verify_hwseq_blob(task,
+					user_ch,
+					decriptors,
+					hwseqbuf_cpuva,
+					ch_num);
+
 out:
-	return 0;
+	return err;
 }
 
 int pva_task_write_dma_info(struct pva_submit_task *task,
@@ -832,19 +1065,21 @@ int pva_task_write_dma_info(struct pva_submit_task *task,
 	int hwgen = task->pva->version;
 	bool is_hwseq_mode = false;
 	struct pva_pinned_memory *mem;
+	u8 *hwseqbuf_cpuva = NULL;
 	u32 i;
 	u32 j;
 	u32 mask;
 
 	if (task->num_dma_descriptors == 0L || task->num_dma_channels == 0L) {
 		nvpva_dbg_info(task->pva, "pva: no DMA resources: NOOP mode");
-		return err;
+		goto out;
 	}
 
 	if (task->hwseq_config.hwseqBuf.pin_id != 0U) {
 		if (hwgen != PVA_HW_GEN2) {
 			/* HW sequencer is supported only in HW_GEN2 */
-			return -EINVAL;
+			err = -EINVAL;
+			goto out;
 		}
 
 		/* Ensure that HWSeq blob size is valid and within the
@@ -853,7 +1088,8 @@ int pva_task_write_dma_info(struct pva_submit_task *task,
 		 */
 		if ((task->hwseq_config.hwseqBuf.size == 0U) ||
 		    (task->hwseq_config.hwseqBuf.size > 1024U)) {
-			return -EINVAL;
+			err = -EINVAL;
+			goto out;
 		}
 
 		is_hwseq_mode = true;
@@ -870,43 +1106,44 @@ int pva_task_write_dma_info(struct pva_submit_task *task,
 		if (IS_ERR(mem)) {
 			err = PTR_ERR(mem);
 			task_err(task, "failed to pin hwseq buffer");
-			return err;
+			goto out;
 		}
 
-		task->pinned_hwseq_config = true;
-
+		hwseqbuf_cpuva = pva_dmabuf_vmap(mem->dmabuf) +
+				 task->hwseq_config.hwseqBuf.offset;
 		hw_task->dma_info.dma_hwseq_base =
 			mem->dma_addr + task->hwseq_config.hwseqBuf.offset;
 		hw_task->dma_info.num_hwseq = task->hwseq_config.hwseqBuf.size;
-	}
-
-	err = nvpva_task_dma_desc_mapping(task, hw_task);
-	if (err) {
-		task_err(task, "failed to map DMA desc info");
-		return err;
 	}
 
 	/* write dma channel info */
 	hw_task->dma_info.num_channels = task->num_dma_channels;
 	hw_task->dma_info.num_descriptors = task->num_dma_descriptors;
 	hw_task->dma_info.descriptor_id = 1U; /* PVA_DMA_DESC0 */
+	task->desc_hwseq_frm = 0ULL;
 
 	for (i = 0; i < task->num_dma_channels; i++) {
 		ch_num = i + 1; /* Channel 0 can't use */
 		err = nvpva_task_dma_channel_mapping(
-			&task->dma_channels[i],
-			&hw_task->dma_info.dma_channels[i], hwgen);
+			task,
+			&hw_task->dma_info.dma_channels[i],
+			hwseqbuf_cpuva,
+			ch_num,
+			hwgen,
+			(is_hwseq_mode ? 1:0));
 		if (err) {
 			task_err(task, "failed to map DMA channel info");
-			return err;
+			goto out;
 		}
+
 		/* Ensure that HWSEQCNTRL is zero for all dma channels in SW
 		 * mode
 		 */
 		if (!is_hwseq_mode &&
 		    (hw_task->dma_info.dma_channels[i].hwseqcntl != 0U)) {
 			task_err(task, "invalid HWSeq config in SW mode");
-			return -EINVAL;
+			err = -EINVAL;
+			goto out;
 		}
 
 		hw_task->dma_info.dma_channels[i].ch_number = ch_num;
@@ -927,6 +1164,12 @@ int pva_task_write_dma_info(struct pva_submit_task *task,
 		}
 	}
 
+	err = nvpva_task_dma_desc_mapping(task, hw_task);
+	if (err) {
+		task_err(task, "failed to map DMA desc info");
+		goto out;
+	}
+
 	hw_task->task.dma_info =
 		task->dma_addr + offsetof(struct pva_hw_task, dma_info);
 	hw_task->dma_info.dma_descriptor_base =
@@ -934,6 +1177,9 @@ int pva_task_write_dma_info(struct pva_submit_task *task,
 
 	hw_task->dma_info.dma_info_version = PVA_DMA_INFO_VERSION_ID;
 	hw_task->dma_info.dma_info_size = sizeof(struct pva_dma_info_s);
+out:
+	if (hwseqbuf_cpuva != NULL)
+		pva_dmabuf_vunmap(mem->dmabuf, hwseqbuf_cpuva);
 
 	return err;
 }
