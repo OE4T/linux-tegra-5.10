@@ -46,7 +46,7 @@ struct osi_stats {
 /**
  * @brief IVC commands between OSD & OSI.
  */
-typedef enum ivc_cmd {
+typedef enum {
 	core_init = 1,
 	core_deinit,
 	write_phy_reg,
@@ -73,7 +73,7 @@ typedef enum ivc_cmd {
 /**
  * @brief IVC arguments structure.
  */
-typedef struct ivc_args {
+typedef struct {
 	/** Number of arguments */
 	nveu32_t count;
 	/** arguments */
@@ -83,7 +83,7 @@ typedef struct ivc_args {
 /**
  * @brief IVC core argument structure.
  */
-typedef struct ivc_core_args {
+typedef struct {
 	/** Number of MTL queues enabled in MAC */
 	nveu32_t num_mtl_queues;
 	/** Array of MTL queues */
@@ -110,7 +110,7 @@ typedef struct ivc_core_args {
  * @brief macsec config structure.
  */
 #ifdef MACSEC_SUPPORT
-typedef struct macsec_config {
+typedef struct {
 	/** MACsec secure channel basic information */
 	struct osi_macsec_sc_info sc_info;
 	/** MACsec enable or disable */

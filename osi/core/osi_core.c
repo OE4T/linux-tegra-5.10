@@ -45,17 +45,6 @@ nveu32_t hsi_err_code[][3] = {
 #endif
 
 /**
- * @brief g_core - Static core local data array
- */
-static struct core_local g_core[MAX_CORE_INSTANCES];
-
-/**
- * @brief if_ops - Static core interface operations for virtual/non-virtual
- * case
- */
-static struct if_core_ops if_ops[MAX_INTERFACE_OPS];
-
-/**
  * @brief Function to validate function pointers.
  *
  * @param[in] osi_core: OSI Core private data structure.
@@ -126,6 +115,7 @@ static inline nve32_t validate_if_args(struct osi_core_priv_data *const osi_core
 struct osi_core_priv_data *osi_get_core(void)
 {
 	nveu32_t i;
+	static struct core_local g_core[MAX_CORE_INSTANCES];
 
 	for (i = 0U; i < MAX_CORE_INSTANCES; i++) {
 		if (g_core[i].if_init_done == OSI_ENABLE) {
@@ -173,6 +163,7 @@ struct osi_core_priv_data *get_role_pointer(nveu32_t role)
 nve32_t osi_init_core_ops(struct osi_core_priv_data *const osi_core)
 {
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
+	static struct if_core_ops if_ops[MAX_INTERFACE_OPS];
 	nve32_t ret = -1;
 
 	if (osi_core == OSI_NULL) {
@@ -210,10 +201,12 @@ nve32_t osi_init_core_ops(struct osi_core_priv_data *const osi_core)
 	}
 	l_core->ts_lock = OSI_DISABLE;
 	l_core->ether_m2m_role = osi_core->m2m_role;
+#if DRIFT_CAL
 	l_core->serv.count = SERVO_STATS_0;
 	l_core->serv.drift = 0;
 	l_core->serv.last_ppb = 0;
 	osi_lock_init(&l_core->serv.m2m_lock);
+#endif
 #ifdef MACSEC_SUPPORT
 	osi_lock_init(&osi_core->macsec_fpe_lock);
 #endif /* MACSEC_SUPPORT */

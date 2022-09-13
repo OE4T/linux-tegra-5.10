@@ -31,11 +31,6 @@
 #include "macsec.h"
 
 /**
- * @brief ivc_safety_config - EQOS MAC core safety configuration
- */
-static struct core_func_safety ivc_safety_config;
-
-/**
  * @brief ivc_handle_ioctl - marshell input argument to handle runtime command
  *
  * @param[in] osi_core: OSI core private data structure.
@@ -55,29 +50,31 @@ static nve32_t ivc_handle_ioctl(struct osi_core_priv_data *osi_core,
 	osi_memset(&msg, 0, sizeof(msg));
 
 	msg.cmd = handle_ioctl;
-	msg.status = osi_memcpy((void *)&msg.data.ioctl_data,
-				(void *)data,
-				sizeof(struct osi_ioctl));
+	/* osi_memcpy is treated as void since it is
+	 * an internal functin which will be always success
+	 */
+	(void)osi_memcpy((void *)&msg.data.ioctl_data, (void *)data,
+			 sizeof(struct osi_ioctl));
 
 	if (data->cmd == OSI_CMD_CONFIG_PTP) {
-		osi_memcpy((void *)&msg.data.ioctl_data.ptp_config,
-			   (void *)&osi_core->ptp_config,
-			   sizeof(struct osi_ptp_config));
+		(void)osi_memcpy((void *)&msg.data.ioctl_data.ptp_config,
+				 (void *)&osi_core->ptp_config,
+				 sizeof(struct osi_ptp_config));
 	}
 
 	ret = osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
 
 	if (data->cmd == OSI_CMD_READ_MMC) {
-		msg.status = osi_memcpy((void *)&osi_core->mmc,
-				(void *)&msg.data.mmc,
-				sizeof(struct osi_mmc_counters));
-		msg.status = osi_memcpy((void *)&osi_core->tsn_stats,
-				(void *)&msg.data.eth_stats.tsn_s,
-				sizeof(struct osi_tsn_stats));
+		(void)osi_memcpy((void *)&osi_core->mmc,
+				 (void *)&msg.data.mmc,
+				 sizeof(struct osi_mmc_counters));
+		(void)osi_memcpy((void *)&osi_core->tsn_stats,
+				 (void *)&msg.data.eth_stats.tsn_s,
+				 sizeof(struct osi_tsn_stats));
 	} else {
-		msg.status = osi_memcpy((void *)data,
-				(void *)&msg.data.ioctl_data,
-					sizeof(struct osi_ioctl));
+		(void)osi_memcpy((void *)data,
+				 (void *)&msg.data.ioctl_data,
+				 sizeof(struct osi_ioctl));
 	}
 	return ret;
 }
@@ -214,18 +211,18 @@ static nve32_t ivc_macsec_dbg_events_config(
 
 	msg.cmd = dbg_events_config_macsec;
 
-	msg.status = osi_memcpy((void *)&msg.data.dbg_buf_config,
-				(void *)dbg_buf_config,
-				sizeof(struct osi_macsec_dbg_buf_config));
+	(void)osi_memcpy((void *)&msg.data.dbg_buf_config,
+			 (void *)dbg_buf_config,
+			 sizeof(struct osi_macsec_dbg_buf_config));
 
 	ret = osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
 	if (ret != 0) {
 		goto done;
 	}
 
-	msg.status = osi_memcpy((void *)dbg_buf_config,
-				(void *)&msg.data.dbg_buf_config,
-				sizeof(struct osi_macsec_dbg_buf_config));
+	(void)osi_memcpy((void *)dbg_buf_config,
+			 (void *)&msg.data.dbg_buf_config,
+			 sizeof(struct osi_macsec_dbg_buf_config));
 done:
 	return ret;
 }
@@ -250,18 +247,18 @@ static nve32_t ivc_macsec_dbg_buf_config(
 
 	msg.cmd = dbg_buf_config_macsec;
 
-	msg.status = osi_memcpy((void *)&msg.data.dbg_buf_config,
-				(void *)dbg_buf_config,
-				sizeof(struct osi_macsec_dbg_buf_config));
+	(void)osi_memcpy((void *)&msg.data.dbg_buf_config,
+			 (void *)dbg_buf_config,
+			 sizeof(struct osi_macsec_dbg_buf_config));
 
 	ret = osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
 	if (ret != 0) {
 		goto done;
 	}
 
-	msg.status = osi_memcpy((void *)dbg_buf_config,
-				(void *) &msg.data.dbg_buf_config,
-				sizeof(struct osi_macsec_dbg_buf_config));
+	(void)osi_memcpy((void *)dbg_buf_config,
+			 (void *) &msg.data.dbg_buf_config,
+			 sizeof(struct osi_macsec_dbg_buf_config));
 done:
 	return ret;
 }
@@ -289,12 +286,12 @@ static void ivc_macsec_read_mmc(struct osi_core_priv_data *const osi_core)
 
 	msg.status = osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
 
-	msg.status = osi_memcpy((void *)&osi_core->macsec_mmc,
-				(void *) &msg.data.macsec_mmc,
-				sizeof(struct osi_macsec_mmc_counters));
-	msg.status = osi_memcpy((void *)&osi_core->macsec_irq_stats,
-				(void *) &msg.data.macsec_irq_stats,
-				sizeof(struct osi_macsec_irq_stats));
+	(void)osi_memcpy((void *)&osi_core->macsec_mmc,
+			 (void *) &msg.data.macsec_mmc,
+			 sizeof(struct osi_macsec_mmc_counters));
+	(void)osi_memcpy((void *)&osi_core->macsec_irq_stats,
+			 (void *) &msg.data.macsec_irq_stats,
+			 sizeof(struct osi_macsec_irq_stats));
 }
 
 /**
@@ -319,9 +316,9 @@ static nve32_t ivc_get_sc_lut_key_index(struct osi_core_priv_data *const osi_cor
 	osi_memset(&msg, 0, sizeof(msg));
 
 	msg.cmd = macsec_get_sc_lut_key_index;
-	msg.status = osi_memcpy((void *) &msg.data.macsec_cfg.sci,
-				(void *)sci,
-				OSI_SCI_LEN);
+	(void)osi_memcpy((void *) &msg.data.macsec_cfg.sci,
+			 (void *)sci,
+			 OSI_SCI_LEN);
 	msg.data.macsec_cfg.ctlr = ctlr;
 
 	ret = osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
@@ -356,9 +353,9 @@ static nve32_t ivc_macsec_config(struct osi_core_priv_data *const osi_core,
 	osi_memset(&msg, 0, sizeof(msg));
 
 	msg.cmd = config_macsec;
-	msg.status = osi_memcpy((void *) &msg.data.macsec_cfg.sc_info,
-				(void *)sc,
-				sizeof(struct osi_macsec_sc_info));
+	(void)osi_memcpy((void *) &msg.data.macsec_cfg.sc_info,
+			 (void *)sc,
+			 sizeof(struct osi_macsec_sc_info));
 	msg.data.macsec_cfg.enable = enable;
 	msg.data.macsec_cfg.ctlr = ctlr;
 	msg.data.macsec_cfg.kt_idx = *kt_idx;
@@ -444,18 +441,18 @@ static nve32_t ivc_macsec_kt_config(struct osi_core_priv_data *const osi_core,
 	osi_memset(&msg, 0, sizeof(msg));
 
 	msg.cmd = kt_config_macsec;
-	msg.status = osi_memcpy((void *) &msg.data.kt_config,
-				(void *)kt_config,
-				sizeof(struct osi_macsec_kt_config));
+	(void)osi_memcpy((void *) &msg.data.kt_config,
+			 (void *)kt_config,
+			 sizeof(struct osi_macsec_kt_config));
 
 	ret = osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
 	if (ret != 0) {
 		return ret;
 	}
 
-	msg.status = osi_memcpy((void *)kt_config,
-				(void *)&msg.data.kt_config,
-				 sizeof(struct osi_macsec_kt_config));
+	(void)osi_memcpy((void *)kt_config,
+			 (void *)&msg.data.kt_config,
+			 sizeof(struct osi_macsec_kt_config));
 	return ret;
 }
 #endif /* MACSEC_KEY_PROGRAM */
@@ -502,18 +499,18 @@ static nve32_t ivc_macsec_lut_config(struct osi_core_priv_data *const osi_core,
 	osi_memset(&msg, 0, sizeof(msg));
 
 	msg.cmd = lut_config_macsec;
-	msg.status = osi_memcpy((void *) &msg.data.lut_config,
-				(void *)lut_config,
-				sizeof(struct osi_macsec_lut_config));
+	(void)osi_memcpy((void *) &msg.data.lut_config,
+			 (void *)lut_config,
+			 sizeof(struct osi_macsec_lut_config));
 
 	ret = osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
 	if (ret != 0) {
 		goto done;
 	}
 
-	msg.status = osi_memcpy((void *)lut_config,
-				(void *)&msg.data.lut_config,
-				sizeof(struct osi_macsec_lut_config));
+	(void)osi_memcpy((void *)lut_config,
+			 (void *)&msg.data.lut_config,
+			 sizeof(struct osi_macsec_lut_config));
 done:
 	return ret;
 }
@@ -614,6 +611,8 @@ void ivc_init_macsec_ops(void *macsecops)
  */
 void *ivc_get_core_safety_config(void)
 {
+	static struct core_func_safety ivc_safety_config;
+
 	return &ivc_safety_config;
 }
 

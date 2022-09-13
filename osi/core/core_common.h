@@ -24,7 +24,14 @@
 #define INCLUDED_CORE_COMMON_H
 
 #include "core_local.h"
+
+#ifndef OSI_STRIPPED_LIB
+#define MAC_PFR_PR			OSI_BIT(0)
+#define MAC_TCR_TSCFUPDT		OSI_BIT(1)
 #define MAC_TCR_TSCTRLSSR		OSI_BIT(9)
+#define MAC_PFR_PM			OSI_BIT(4)
+#endif /* !OSI_STRIPPED_LIB */
+
 #define MTL_EST_ADDR_SHIFT			8
 #define MTL_EST_ADDR_MASK		(OSI_BIT(8) | OSI_BIT(9) | \
 					 OSI_BIT(10) | OSI_BIT(11) | \
@@ -40,7 +47,6 @@
 #define MTL_EST_ERR0			OSI_BIT(20)
 #define MTL_EST_CONTROL_EEST		OSI_BIT(0)
 #define MTL_EST_STATUS_SWOL		OSI_BIT(7)
-#define MAC_TCR_TSCFUPDT		OSI_BIT(1)
 /* EST control OSI_BIT map */
 #define MTL_EST_EEST			OSI_BIT(0)
 #define MTL_EST_SSWL			OSI_BIT(1)
@@ -71,9 +77,7 @@
 #define MAC_PPS_CTL_PPSCTRL0		(OSI_BIT(3) | OSI_BIT(2) |\
 					OSI_BIT(1) | OSI_BIT(0))
 #define MAC_SSIR_SSINC_SHIFT		16U
-#define MAC_PFR_PR			OSI_BIT(0)
 #define MAC_PFR_DAIF			OSI_BIT(3)
-#define MAC_PFR_PM			OSI_BIT(4)
 #define MAC_PFR_DBF			OSI_BIT(5)
 #define MAC_PFR_PCF			(OSI_BIT(6) | OSI_BIT(7))
 #define MAC_PFR_SAIF			OSI_BIT(8)
@@ -115,9 +119,9 @@ void hw_stop_mac(struct osi_core_priv_data *const osi_core);
 nve32_t hw_set_mode(struct osi_core_priv_data *const osi_core, const nve32_t mode);
 nve32_t hw_set_speed(struct osi_core_priv_data *const osi_core, const nve32_t speed);
 nve32_t hw_flush_mtl_tx_queue(struct osi_core_priv_data *const osi_core,
-			       const nveu32_t qinx);
+			       const nveu32_t q_inx);
 nve32_t hw_config_fw_err_pkts(struct osi_core_priv_data *osi_core,
-			      const nveu32_t qinx, const nveu32_t enable_fw_err_pkts);
+			      const nveu32_t q_inx, const nveu32_t enable_fw_err_pkts);
 nve32_t hw_config_rxcsum_offload(struct osi_core_priv_data *const osi_core,
 				nveu32_t enabled);
 nve32_t hw_set_systime_to_mac(struct osi_core_priv_data *const osi_core,

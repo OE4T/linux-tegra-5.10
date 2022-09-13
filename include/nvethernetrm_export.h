@@ -68,6 +68,23 @@
 #define OSI_MTL_TXQ_AVALG_SP	0U
 /** @} */
 
+#ifndef OSI_STRIPPED_LIB
+/**
+ * @addtogroup Helper MACROS
+ *
+ * @brief EQOS generic helper MACROS.
+ * @{
+ */
+/* L2 DA filter mode(enable/disable) */
+#define OSI_OPER_EN_L2_DA_INV		OSI_BIT(4)
+#define OSI_OPER_DIS_L2_DA_INV		OSI_BIT(5)
+#endif /* !OSI_STRIPPED_LIB */
+
+/* Ethernet Address length */
+#define OSI_ETH_ALEN			6U
+#define OSI_MAX_TC_NUM			8U
+/** @} */
+
 #pragma pack(push, 1)
 /**
  * @brief FRP command structure for OSD to OSI

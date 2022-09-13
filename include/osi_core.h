@@ -45,6 +45,8 @@ typedef my_lint_64		nvel64_t;
 /** @} */
 
 #ifndef OSI_STRIPPED_LIB
+#define OSI_OPER_EN_L2_DA_INV	OSI_BIT(4)
+#define OSI_OPER_DIS_L2_DA_INV	OSI_BIT(5)
 #define OSI_PTP_SNAP_TRANSPORT	1U
 #define OSI_VLAN_ACTION_DEL	0x0U
 #define OSI_VLAN_ACTION_ADD	OSI_BIT(31)
@@ -125,13 +127,6 @@ typedef my_lint_64		nvel64_t;
 #define OSI_PTP_M2M_SECONDARY	2U
 /** @} */
 
-/**
- * @addtogroup PTP PTP related information
- *
- *@brief 1 Second in NenoSec
- */
-#define OSI_1SEC_TO_NSEC		1000000000LL
-/** @} */
 
 /**
  * @addtogroup EQOS_PTP PTP Helper MACROS
@@ -190,8 +185,6 @@ typedef my_lint_64		nvel64_t;
 #define OSI_OPER_DIS_PROMISC		OSI_BIT(1)
 #define OSI_OPER_EN_ALLMULTI		OSI_BIT(2)
 #define OSI_OPER_DIS_ALLMULTI		OSI_BIT(3)
-#define OSI_OPER_EN_L2_DA_INV		OSI_BIT(4)
-#define OSI_OPER_DIS_L2_DA_INV		OSI_BIT(5)
 #define OSI_OPER_EN_PERFECT		OSI_BIT(6)
 #define OSI_OPER_DIS_PERFECT		OSI_BIT(7)
 #define OSI_OPER_ADDR_UPDATE		OSI_BIT(8)
@@ -220,7 +213,7 @@ typedef my_lint_64		nvel64_t;
  * @brief Ethernet PHY Interface Modes
  */
 #define OSI_XFI_MODE_10G	0U
-#define OSI_XFI_MODE_5G		1U
+#define OSI_XFI_MODE_5G	1U
 #define OSI_USXGMII_MODE_10G	2U
 #define OSI_USXGMII_MODE_5G	3U
 
@@ -238,7 +231,6 @@ typedef my_lint_64		nvel64_t;
 #define OSI_CMD_PAD_CALIBRATION		8U
 #define OSI_CMD_READ_MMC		9U
 #define OSI_CMD_GET_MAC_VER		10U
-#define OSI_CMD_RESET_MMC		12U
 #define OSI_CMD_SET_MODE		16U
 #define OSI_CMD_SET_SPEED		17U
 #define OSI_CMD_L2_FILTER		18U

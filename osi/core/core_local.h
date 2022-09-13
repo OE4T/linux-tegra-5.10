@@ -106,8 +106,8 @@ struct if_core_ops {
 struct core_ops {
 	/** Called to initialize MAC and MTL registers */
 	nve32_t (*core_init)(struct osi_core_priv_data *const osi_core,
-			     const nveu32_t tx_fifo_size,
-			     const nveu32_t rx_fifo_size);
+			     nveu32_t tx_fifo_size,
+			     nveu32_t rx_fifo_size);
 	/** Called to handle common interrupt */
 	void (*handle_common_intr)(struct osi_core_priv_data *const osi_core);
 	/** Called to do pad caliberation */
@@ -268,25 +268,29 @@ struct core_ops {
  * @brief constant values for drift MAC to MAC sync.
  */
 /* No longer needed since DRIFT CAL is not used */
-#undef ENABLE_DRIFT_CAL
 #ifdef	ENABLE_DRIFT_CAL
 #define	DRIFT_CAL		1
 #define	I_COMPONENT_BY_10	3
 #define	P_COMPONENT_BY_10	7
 #define	WEIGHT_BY_10		10
 #define	MAX_FREQ		85000000LL
+#define SERVO_STATS_0		0U
+#define SERVO_STATS_1		1U
+#define SERVO_STATS_2		2U
 #else
 #define	DRIFT_CAL		0
 #endif
+
+#if (!defined(ETHERNET_SERVER) && !defined(__QNX__)) || DRIFT_CAL
 #define EQOS_SEC_OFFSET		0xB08
 #define EQOS_NSEC_OFFSET	0xB0C
 #define MGBE_SEC_OFFSET		0xD08
 #define MGBE_NSEC_OFFSET	0xD0C
 #define ETHER_NSEC_MASK		0x7FFFFFFFU
-#define SERVO_STATS_0		0U
-#define SERVO_STATS_1		1U
-#define SERVO_STATS_2		2U
+#define OSI_1SEC_TO_NSEC	1000000000LL
+#endif
 
+#if DRIFT_CAL
 /**
  * @brief servo data structure.
  */
@@ -311,6 +315,7 @@ struct core_ptp_servo {
 	/* MAC to MAC locking to access HW time register within OSI calls */
 	nveu32_t m2m_lock;
 };
+#endif
 
 /**
  * @brief L3/L4 dynamic config storage structure.
@@ -409,7 +414,7 @@ struct core_local {
 	/** This is the head node for PTP packet ID queue */
 	struct osi_core_tx_ts tx_ts_head;
 	/** Maximum number of queues/channels */
-	nveu32_t max_chans;
+	nveu32_t num_max_chans;
 	/** GCL depth supported by HW */
 	nveu32_t gcl_dep;
 	/** Max GCL width (time + gate) value supported by HW */
@@ -418,8 +423,10 @@ struct core_local {
 	nveu32_t ts_lock;
 	/** Controller mac to mac role */
 	nveu32_t ether_m2m_role;
+#if DRIFT_CAL
 	/** Servo structure */
 	struct core_ptp_servo serv;
+#endif
 	/** HW comeout from reset successful OSI_ENABLE else OSI_DISABLE */
 	nveu32_t hw_init_successful;
 	/** Dynamic MAC to MAC time sync control for secondary interface */

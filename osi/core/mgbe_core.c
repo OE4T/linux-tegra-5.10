@@ -848,18 +848,20 @@ static inline nveu32_t mgbe_set_dcs(struct osi_core_priv_data *osi_core,
 				    nveu32_t dma_routing_enable,
 				    nveu32_t dma_chan)
 {
+	nveu32_t temp = value;
+
 	if ((dma_routing_enable == OSI_ENABLE) && (dma_chan <
 	    OSI_MGBE_MAX_NUM_CHANS) && (osi_core->dcs_en ==
 	    OSI_ENABLE)) {
-		value |= ((dma_routing_enable <<
-			  MGBE_MAC_L3L4_CTR_DMCHEN0_SHIFT) &
-			  MGBE_MAC_L3L4_CTR_DMCHEN0);
-		value |= ((dma_chan <<
-			  MGBE_MAC_L3L4_CTR_DMCHN0_SHIFT) &
-			  MGBE_MAC_L3L4_CTR_DMCHN0);
+		temp |= ((dma_routing_enable <<
+			 MGBE_MAC_L3L4_CTR_DMCHEN0_SHIFT) &
+			 MGBE_MAC_L3L4_CTR_DMCHEN0);
+		temp |= ((dma_chan <<
+			 MGBE_MAC_L3L4_CTR_DMCHN0_SHIFT) &
+			 MGBE_MAC_L3L4_CTR_DMCHN0);
 	}
 
-	return value;
+	return temp;
 }
 
 /**
@@ -918,7 +920,7 @@ static inline void mgbe_helper_l3l4_bitmask(nveu32_t *bitmask,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static nve32_t mgbe_config_l3_filters(struct osi_core_priv_data *osi_core,
+static nve32_t mgbe_config_l3_filters(struct osi_core_priv_data *const osi_core,
 				      const nveu32_t filter_no,
 				      const nveu32_t enb_dis,
 				      const nveu32_t ipv4_ipv6_match,
@@ -2353,7 +2355,7 @@ static nve32_t mgbe_configure_mac(struct osi_core_priv_data *osi_core)
 		/* if MTU greater 9K use GPSLCE */
 		value |= MGBE_MAC_RMCR_GPSLCE | MGBE_MAC_RMCR_WD;
 		value &= ~MGBE_MAC_RMCR_GPSL_MSK;
-		value |=  ((OSI_MAX_MTU_SIZE << 16) & MGBE_MAC_RMCR_GPSL_MSK);
+		value |=  ((((nveu32_t)OSI_MAX_MTU_SIZE) << 16U) & MGBE_MAC_RMCR_GPSL_MSK);
 	} else {
 		value &= ~MGBE_MAC_RMCR_JE;
 		value &= ~MGBE_MAC_RMCR_GPSLCE;
@@ -4033,10 +4035,10 @@ static inline nve32_t mgbe_restore_registers(
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static nve32_t mgbe_write_phy_reg(struct osi_core_priv_data *osi_core,
-				  nveu32_t phyaddr,
-				  nveu32_t phyreg,
-				  nveu16_t phydata)
+static nve32_t mgbe_write_phy_reg(struct osi_core_priv_data *const osi_core,
+				  const nveu32_t phyaddr,
+				  const nveu32_t phyreg,
+				  const nveu16_t phydata)
 {
 	nve32_t ret = 0;
 	nveu32_t reg;
@@ -4063,7 +4065,7 @@ static nve32_t mgbe_write_phy_reg(struct osi_core_priv_data *osi_core,
 
 	/* Program Data register */
 	reg = phydata |
-	      (MGBE_MDIO_SCCD_CMD_WR << MGBE_MDIO_SCCD_CMD_SHIFT) |
+	      (((nveu32_t)MGBE_MDIO_SCCD_CMD_WR) << MGBE_MDIO_SCCD_CMD_SHIFT) |
 	      MGBE_MDIO_SCCD_SBUSY;
 
 	/**
@@ -4073,7 +4075,7 @@ static nve32_t mgbe_write_phy_reg(struct osi_core_priv_data *osi_core,
 	 * of 2.5MHz only CR need to be set to 5.
 	 */
 	reg &= ~MGBE_MDIO_SCCD_CRS;
-	reg |= ((0x5U & MGBE_MDIO_SCCD_CR_MASK) << MGBE_MDIO_SCCD_CR_SHIFT);
+	reg |= ((((nveu32_t)0x5U) & MGBE_MDIO_SCCD_CR_MASK) << MGBE_MDIO_SCCD_CR_SHIFT);
 
 	osi_writela(osi_core, reg, (nveu8_t *)
 		    osi_core->base + MGBE_MDIO_SCCD);
@@ -4105,9 +4107,9 @@ static nve32_t mgbe_write_phy_reg(struct osi_core_priv_data *osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static nve32_t mgbe_read_phy_reg(struct osi_core_priv_data *osi_core,
-				 nveu32_t phyaddr,
-				 nveu32_t phyreg)
+static nve32_t mgbe_read_phy_reg(struct osi_core_priv_data *const osi_core,
+				 const nveu32_t phyaddr,
+				 const nveu32_t phyreg)
 {
 	nveu32_t reg;
 	nveu32_t data;
@@ -4133,7 +4135,7 @@ static nve32_t mgbe_read_phy_reg(struct osi_core_priv_data *osi_core,
 		    osi_core->base + MGBE_MDIO_SCCA);
 
 	/* Program Data register */
-	reg = (MGBE_MDIO_SCCD_CMD_RD << MGBE_MDIO_SCCD_CMD_SHIFT) |
+	reg = (((nveu32_t)MGBE_MDIO_SCCD_CMD_RD) << MGBE_MDIO_SCCD_CMD_SHIFT) |
 	       MGBE_MDIO_SCCD_SBUSY;
 
 	 /**
@@ -4143,7 +4145,7 @@ static nve32_t mgbe_read_phy_reg(struct osi_core_priv_data *osi_core,
          * of 2.5MHz only CR need to be set to 5.
          */
 	reg &= ~MGBE_MDIO_SCCD_CRS;
-	reg |= ((0x5U & MGBE_MDIO_SCCD_CR_MASK) << MGBE_MDIO_SCCD_CR_SHIFT);
+	reg |= ((((nveu32_t)0x5U) & MGBE_MDIO_SCCD_CR_MASK) << MGBE_MDIO_SCCD_CR_SHIFT);
 
 	osi_writela(osi_core, reg, (nveu8_t *)
 		    osi_core->base + MGBE_MDIO_SCCD);
@@ -4511,17 +4513,21 @@ static inline nve32_t mgbe_poll_for_update_ts_complete(
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static nve32_t mgbe_adjust_mactime(struct osi_core_priv_data *osi_core,
-				   nveu32_t sec, nveu32_t nsec,
-				   nveu32_t add_sub,
-				   nveu32_t one_nsec_accuracy)
+static nve32_t mgbe_adjust_mactime(struct osi_core_priv_data *const osi_core,
+				   const nveu32_t sec, const nveu32_t nsec,
+				   const nveu32_t add_sub,
+				   const nveu32_t one_nsec_accuracy)
 {
 	void *addr = osi_core->base;
 	nveu32_t mac_tcr;
 	nveu32_t value = 0;
 	nveul64_t temp = 0;
+	nveu32_t temp_sec;
+	nveu32_t temp_nsec;
 	nve32_t ret;
 
+	temp_sec = sec;
+	temp_nsec = nsec;
 	/* To be sure previous write was flushed (if Any) */
 	ret = mgbe_poll_for_update_ts_complete(osi_core, &mac_tcr);
 	if (ret == -1) {
@@ -4533,9 +4539,9 @@ static nve32_t mgbe_adjust_mactime(struct osi_core_priv_data *osi_core,
 		 * the system time, then MAC_STSUR reg should be
 		 * programmed with (2^32 – <new_sec_value>)
 		 */
-		temp = (TWO_POWER_32 - sec);
+		temp = (TWO_POWER_32 - temp_sec);
 		if (temp < UINT_MAX) {
-			sec = (nveu32_t)temp;
+			temp_sec = (nveu32_t)temp;
 		} else {
 			/* do nothing here */
 		}
@@ -4547,23 +4553,23 @@ static nve32_t mgbe_adjust_mactime(struct osi_core_priv_data *osi_core,
 		 * (2^32 - <new_nsec_value> if MAC_TCR.TSCTRLSSR is reset)
 		 */
 		if (one_nsec_accuracy == OSI_ENABLE) {
-			if (nsec < UINT_MAX) {
-				nsec = (TEN_POWER_9 - nsec);
+			if (temp_nsec < UINT_MAX) {
+				temp_nsec = (TEN_POWER_9 - temp_nsec);
 			}
 		} else {
-			if (nsec < UINT_MAX) {
-				nsec = (TWO_POWER_31 - nsec);
+			if (temp_nsec < UINT_MAX) {
+				temp_nsec = (TWO_POWER_31 - temp_nsec);
 			}
 		}
 	}
 
 	/* write seconds value to MAC_System_Time_Seconds_Update register */
-	osi_writela(osi_core, sec, (nveu8_t *)addr + MGBE_MAC_STSUR);
+	osi_writela(osi_core, temp_sec, (nveu8_t *)addr + MGBE_MAC_STSUR);
 
 	/* write nano seconds value and add_sub to
 	 * MAC_System_Time_Nanoseconds_Update register
 	 */
-	value |= nsec;
+	value |= temp_nsec;
 	value |= (add_sub << MGBE_MAC_STNSUR_ADDSUB_SHIFT);
 	osi_writela(osi_core, value, (nveu8_t *)addr + MGBE_MAC_STNSUR);
 

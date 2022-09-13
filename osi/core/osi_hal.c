@@ -34,7 +34,6 @@
 /**
  * @brief g_ops - Static core operations array.
  */
-static struct core_ops g_ops[MAX_MAC_IP_TYPES];
 
 /**
  * @brief Function to validate input arguments of API.
@@ -136,11 +135,12 @@ nve32_t osi_hal_read_phy_reg(struct osi_core_priv_data *const osi_core,
 static nve32_t osi_hal_init_core_ops(struct osi_core_priv_data *const osi_core)
 {
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
-	typedef void (*init_ops_arr)(struct core_ops *local_ops);
+	typedef void (*init_core_ops_arr)(struct core_ops *local_ops);
+	static struct core_ops g_ops[MAX_MAC_IP_TYPES];
 #ifndef OSI_STRIPPED_LIB
 	typedef void *(*safety_init)(void);
 #endif
-	init_ops_arr i_ops[MAX_MAC_IP_TYPES][MAX_MAC_IP_TYPES] = {
+	init_core_ops_arr i_ops[MAX_MAC_IP_TYPES][MAX_MAC_IP_TYPES] = {
 		{ eqos_init_core_ops, OSI_NULL },
 		{ mgbe_init_core_ops, OSI_NULL }
 	};
@@ -836,7 +836,8 @@ static nve32_t osi_get_mac_version(struct osi_core_priv_data *const osi_core, nv
 	*mac_ver = osi_readla(osi_core, ((nveu8_t *)osi_core->base + (nve32_t)MAC_VERSION)) &
 			      MAC_VERSION_SNVER_MASK;
 
-	if (validate_mac_ver_update_chans(*mac_ver, &l_core->max_chans, &l_core->l_mac_ver) == 0) {
+	if (validate_mac_ver_update_chans(*mac_ver, &l_core->num_max_chans,
+					  &l_core->l_mac_ver) == 0) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "Invalid MAC version\n", (nveu64_t)*mac_ver)
 		return -1;
@@ -1710,7 +1711,7 @@ static void apply_dynamic_cfg(struct osi_core_priv_data *osi_core)
 {
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 	typedef void (*cfg_fn)(struct core_local *local_core);
-	const cfg_fn fn[] = {
+	const cfg_fn fn[10] = {
 		[DYNAMIC_CFG_L3_L4_IDX] = cfg_l3_l4_filter,
 		[DYNAMIC_CFG_L2_IDX] = cfg_l2_filter,
 		[DYNAMIC_CFG_RXCSUM_IDX] = cfg_rxcsum,

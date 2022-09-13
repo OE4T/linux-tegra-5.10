@@ -39,6 +39,7 @@ static nve32_t eqos_pre_pad_calibrate(
 		struct osi_core_priv_data *const osi_core);
 #endif /* UPDATED_PAD_CAL */
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @brief eqos_core_safety_config - EQOS MAC core safety configuration
  */
@@ -82,7 +83,6 @@ static inline void eqos_core_safety_writel(
 	osi_unlock_irq_enabled(&config->core_safety_lock);
 }
 
-#ifndef OSI_STRIPPED_LIB
 /**
  * @brief Initialize the eqos_core_safety_config.
  *
@@ -387,9 +387,7 @@ static nve32_t eqos_config_flow_control(
 	}
 
 	/* Write to MAC Tx Flow control Register of Q0 */
-	eqos_core_safety_writel(osi_core, val, (nveu8_t *)addr +
-				EQOS_MAC_QX_TX_FLW_CTRL(0U),
-				EQOS_MAC_Q0_TXFC_IDX);
+	osi_writela(osi_core, val, (nveu8_t *)addr + EQOS_MAC_QX_TX_FLW_CTRL(0U));
 
 	/* Configure MAC Rx Flow control*/
 	/* Read MAC Rx Flow control Register */
@@ -595,9 +593,7 @@ static nve32_t eqos_pad_calibrate(struct osi_core_priv_data *const osi_core)
 			   (nveu8_t *)ioaddr + EQOS_PAD_AUTO_CAL_CFG);
 	value |= EQOS_PAD_AUTO_CAL_CFG_START |
 		 EQOS_PAD_AUTO_CAL_CFG_ENABLE;
-	eqos_core_safety_writel(osi_core, value, (nveu8_t *)ioaddr +
-				EQOS_PAD_AUTO_CAL_CFG,
-				EQOS_PAD_AUTO_CAL_CFG_IDX);
+	osi_writela(osi_core, value, (nveu8_t *)ioaddr + EQOS_PAD_AUTO_CAL_CFG);
 
 	/* 4. Wait on 10 to 12 us before start checking for calibration done.
 	 *    This delay is consumed in delay inside while loop.
@@ -687,9 +683,8 @@ static nve32_t eqos_pad_calibrate(struct osi_core_priv_data *const osi_core)
 			   (nveu8_t *)ioaddr + EQOS_PAD_AUTO_CAL_CFG);
 	value |= EQOS_PAD_AUTO_CAL_CFG_START |
 		 EQOS_PAD_AUTO_CAL_CFG_ENABLE;
-	eqos_core_safety_writel(osi_core, value, (nveu8_t *)ioaddr +
-				EQOS_PAD_AUTO_CAL_CFG,
-				EQOS_PAD_AUTO_CAL_CFG_IDX);
+	osi_writela(osi_core, value, (nveu8_t *)ioaddr + EQOS_PAD_AUTO_CAL_CFG);
+
 	/* 4. Wait on 1 to 3 us before start checking for calibration done.
 	 *    This delay is consumed in delay inside while loop.
 	 */
@@ -867,9 +862,9 @@ static nve32_t eqos_configure_mtl_queue(nveu32_t q_inx,
 {
 	nveu32_t value = 0;
 	nve32_t ret = 0;
-	nveu32_t qinx = (q_inx & 0xFU);
+	nveu32_t que_idx = (q_inx & 0xFU);
 
-	ret = hw_flush_mtl_tx_queue(osi_core, qinx);
+	ret = hw_flush_mtl_tx_queue(osi_core, que_idx);
 	if (ret < 0) {
 		return ret;
 	}
@@ -879,13 +874,11 @@ static nve32_t eqos_configure_mtl_queue(nveu32_t q_inx,
 	value |= EQOS_MTL_TSF;
 	/* Enable TxQ */
 	value |= EQOS_MTL_TXQEN;
-	eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
-				EQOS_MTL_CHX_TX_OP_MODE(qinx),
-				EQOS_MTL_CH0_TX_OP_MODE_IDX + qinx);
+	osi_writela(osi_core, value, (nveu8_t *)osi_core->base + EQOS_MTL_CHX_TX_OP_MODE(que_idx));
 
 	/* read RX Q0 Operating Mode Register */
 	value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
-			   EQOS_MTL_CHX_RX_OP_MODE(qinx));
+			   EQOS_MTL_CHX_RX_OP_MODE(que_idx));
 	value |= (rx_fifo << EQOS_MTL_RXQ_SIZE_SHIFT);
 	/* Enable Store and Forward mode */
 	value |= EQOS_MTL_RSF;
@@ -895,24 +888,19 @@ static nve32_t eqos_configure_mtl_queue(nveu32_t q_inx,
 	 * RFD: Threshold for Deactivating Flow Control
 	 */
 	update_ehfc_rfa_rfd(rx_fifo, &value);
-	eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
-				EQOS_MTL_CHX_RX_OP_MODE(qinx),
-				EQOS_MTL_CH0_RX_OP_MODE_IDX + qinx);
+	osi_writela(osi_core, value, (nveu8_t *)osi_core->base + EQOS_MTL_CHX_RX_OP_MODE(que_idx));
 
 	/* Transmit Queue weight */
 	value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
-			   EQOS_MTL_TXQ_QW(qinx));
+			   EQOS_MTL_TXQ_QW(que_idx));
 	value |= EQOS_MTL_TXQ_QW_ISCQW;
-	eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
-				EQOS_MTL_TXQ_QW(qinx),
-				EQOS_MTL_TXQ0_QW_IDX + qinx);
+	osi_writela(osi_core, value, (nveu8_t *)osi_core->base + EQOS_MTL_TXQ_QW(que_idx));
 
 	/* Enable Rx Queue Control */
 	value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
 			  EQOS_MAC_RQC0R);
-	value |= ((osi_core->rxq_ctrl[qinx] & EQOS_RXQ_EN_MASK) << (qinx * 2U));
-	eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
-				EQOS_MAC_RQC0R, EQOS_MAC_RQC0R_IDX);
+	value |= ((osi_core->rxq_ctrl[que_idx] & EQOS_RXQ_EN_MASK) << (que_idx * 2U));
+	osi_writela(osi_core, value, (nveu8_t *)osi_core->base + EQOS_MAC_RQC0R);
 
 	return 0;
 }
@@ -1275,9 +1263,7 @@ static void eqos_configure_rxq_priority(
 		mfix_var2 <<= mfix_var1;
 		val |= (temp & mfix_var2);
 		/* Priorities Selected in the Receive Queue 0 */
-		eqos_core_safety_writel(osi_core, val,
-					(nveu8_t *)osi_core->base +
-					EQOS_MAC_RQC2R, EQOS_MAC_RQC2R_IDX);
+		osi_writela(osi_core, val, (nveu8_t *)osi_core->base + EQOS_MAC_RQC2R);
 	}
 }
 
@@ -1308,8 +1294,7 @@ static nve32_t eqos_hsi_configure(struct osi_core_priv_data *const osi_core,
 		value = osi_readla(osi_core,
 				   (nveu8_t *)osi_core->base + EQOS_MAC_IMR);
 		value |= EQOS_IMR_TXESIE;
-		eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
-					EQOS_MAC_IMR, EQOS_MAC_IMR_IDX);
+		osi_writela(osi_core, value, (nveu8_t *)osi_core->base + EQOS_MAC_IMR);
 
 		/*  T23X-EQOS_HSIv2-1: Enabling of Memory ECC */
 		value = osi_readla(osi_core,
@@ -1375,8 +1360,7 @@ static nve32_t eqos_hsi_configure(struct osi_core_priv_data *const osi_core,
 		value = osi_readla(osi_core,
 				   (nveu8_t *)osi_core->base + EQOS_MAC_IMR);
 		value &= ~EQOS_IMR_TXESIE;
-		eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
-					EQOS_MAC_IMR, EQOS_MAC_IMR_IDX);
+		osi_writela(osi_core, value, (nveu8_t *)osi_core->base + EQOS_MAC_IMR);
 
 		/*  T23X-EQOS_HSIv2-1: Disable of Memory ECC */
 		value = osi_readla(osi_core,
@@ -1483,8 +1467,7 @@ static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 		/* do nothing for default mtu size */
 	}
 
-	eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
-				EQOS_MAC_MCR, EQOS_MAC_MCR_IDX);
+	osi_writela(osi_core, value, (nveu8_t *)osi_core->base + EQOS_MAC_MCR);
 
 	/* Enable common interrupt at wrapper level */
 	if (osi_core->mac_ver >= OSI_EQOS_MAC_5_30) {
@@ -1511,12 +1494,11 @@ static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 	/* Routing Multicast and Broadcast depending on mac version */
 	value &= ~(EQOS_MAC_RQC1R_MCBCQ);
 	if (osi_core->mac_ver > OSI_EQOS_MAC_5_00) {
-		value |= EQOS_MAC_RQC1R_MCBCQ7 << EQOS_MAC_RQC1R_MCBCQ_SHIFT;
+		value |= ((nveu32_t)EQOS_MAC_RQC1R_MCBCQ7) << EQOS_MAC_RQC1R_MCBCQ_SHIFT;
 	} else {
-		value |= EQOS_MAC_RQC1R_MCBCQ3 << EQOS_MAC_RQC1R_MCBCQ_SHIFT;
+		value |= ((nveu32_t)EQOS_MAC_RQC1R_MCBCQ3) << EQOS_MAC_RQC1R_MCBCQ_SHIFT;
 	}
-	eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
-				EQOS_MAC_RQC1R, EQOS_MAC_RQC1R_IDX);
+	osi_writela(osi_core, value, (nveu8_t *)osi_core->base + EQOS_MAC_RQC1R);
 
 	/* Disable all MMC interrupts */
 	/* Disable all MMC Tx Interrupts */
@@ -1544,8 +1526,7 @@ static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 	/* RGSMIIIE - RGMII/SMII interrupt Enable.
 	 * LPIIE is not enabled. MMC LPI counters is maintained in HW */
 	value |= EQOS_IMR_RGSMIIIE;
-	eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
-				EQOS_MAC_IMR, EQOS_MAC_IMR_IDX);
+	osi_writela(osi_core, value, (nveu8_t *)osi_core->base + EQOS_MAC_IMR);
 
 	/* Enable VLAN configuration */
 	value = osi_readla(osi_core,
@@ -1628,9 +1609,7 @@ static void eqos_configure_dma(struct osi_core_priv_data *const osi_core)
 	/* AXI Maximum Write Outstanding Request Limit = 31 */
 	value |= EQOS_DMA_SBUS_WR_OSR_LMT;
 
-	eqos_core_safety_writel(osi_core, value,
-				(nveu8_t *)base + EQOS_DMA_SBUS,
-				EQOS_DMA_SBUS_IDX);
+	osi_writela(osi_core, value, (nveu8_t *)base + EQOS_DMA_SBUS);
 
 	value = osi_readla(osi_core, (nveu8_t *)base + EQOS_DMA_BMR);
 	value |= EQOS_DMA_BMR_DPSW;
@@ -1709,8 +1688,8 @@ static void eqos_dma_chan_to_vmirq_map(struct osi_core_priv_data *osi_core)
  * @retval -1 on failure.
  */
 static nve32_t eqos_core_init(struct osi_core_priv_data *const osi_core,
-			      const nveu32_t tx_fifo_size,
-			      const nveu32_t rx_fifo_size)
+			      nveu32_t tx_fifo_size,
+			      nveu32_t rx_fifo_size)
 {
 	nve32_t ret = 0;
 	nveu32_t qinx = 0;
@@ -1774,15 +1753,10 @@ static nve32_t eqos_core_init(struct osi_core_priv_data *const osi_core,
 		value1 = EQOS_RXQ_TO_DMA_CHAN_MAP1;
 	}
 
-	eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
-				EQOS_MTL_RXQ_DMA_MAP0,
-				EQOS_MTL_RXQ_DMA_MAP0_IDX);
+	osi_writela(osi_core, value, (nveu8_t *)osi_core->base + EQOS_MTL_RXQ_DMA_MAP0);
 
 	if (osi_core->mac_ver >= OSI_EQOS_MAC_5_30) {
-		eqos_core_safety_writel(osi_core, value1,
-					(nveu8_t *)osi_core->base +
-					EQOS_MTL_RXQ_DMA_MAP1,
-					EQOS_MTL_RXQ_DMA_MAP1_IDX);
+		osi_writela(osi_core, value1, (nveu8_t *)osi_core->base + EQOS_MTL_RXQ_DMA_MAP1);
 	}
 
 	if (osi_unlikely(osi_core->num_mtl_queues > OSI_EQOS_MAX_NUM_QUEUES)) {
@@ -1993,14 +1967,17 @@ static void eqos_handle_mac_intrs(struct osi_core_priv_data *const osi_core,
 	/* set speed at MAC level */
 	/* TODO: set_tx_clk needs to be done */
 	/* Maybe through workqueue for QNX */
+	/* hw_set_speed is treated as void since it is
+	 * an internal functin which will be always success
+	 */
 	if ((mac_pcs & EQOS_MAC_PCS_LNKSPEED) == EQOS_MAC_PCS_LNKSPEED_10) {
-		hw_set_speed(osi_core, OSI_SPEED_10);
+		(void)hw_set_speed(osi_core, OSI_SPEED_10);
 	} else if ((mac_pcs & EQOS_MAC_PCS_LNKSPEED) ==
 		   EQOS_MAC_PCS_LNKSPEED_100) {
-		hw_set_speed(osi_core, OSI_SPEED_100);
+		(void)hw_set_speed(osi_core, OSI_SPEED_100);
 	} else if ((mac_pcs & EQOS_MAC_PCS_LNKSPEED) ==
 		   EQOS_MAC_PCS_LNKSPEED_1000) {
-		hw_set_speed(osi_core, OSI_SPEED_1000);
+		(void)hw_set_speed(osi_core, OSI_SPEED_1000);
 	} else {
 		/* Nothing here */
 	}
@@ -2424,16 +2401,12 @@ static void eqos_config_mac_tx(struct osi_core_priv_data *const osi_core,
 		value = osi_readla(osi_core, (nveu8_t *)addr + EQOS_MAC_MCR);
 		/* Enable MAC Transmit */
 		value |= EQOS_MCR_TE;
-		eqos_core_safety_writel(osi_core, value,
-					(nveu8_t *)addr + EQOS_MAC_MCR,
-					EQOS_MAC_MCR_IDX);
+		osi_writela(osi_core, value, (nveu8_t *)addr + EQOS_MAC_MCR);
 	} else {
 		value = osi_readla(osi_core, (nveu8_t *)addr + EQOS_MAC_MCR);
 		/* Disable MAC Transmit */
 		value &= ~EQOS_MCR_TE;
-		eqos_core_safety_writel(osi_core, value,
-					(nveu8_t *)addr + EQOS_MAC_MCR,
-					EQOS_MAC_MCR_IDX);
+		osi_writela(osi_core, value, (nveu8_t *)addr + EQOS_MAC_MCR);
 	}
 }
 #endif /*  MACSEC_SUPPORT */
@@ -2791,8 +2764,7 @@ static nve32_t eqos_config_ptp_offload(struct osi_core_priv_data *const osi_core
 	if (pto_config->en_dis == OSI_DISABLE) {
 		osi_core->ptp_config.ptp_filter = value;
 		osi_writela(osi_core, ptc_value, addr + EQOS_MAC_PTO_CR);
-		eqos_core_safety_writel(osi_core, value, addr +
-					EQOS_MAC_TCR, EQOS_MAC_TCR_IDX);
+		osi_writela(osi_core, value, addr + EQOS_MAC_TCR);
 		osi_writela(osi_core, OSI_NONE, addr + EQOS_MAC_PIDR0);
 		osi_writela(osi_core, OSI_NONE, addr + EQOS_MAC_PIDR1);
 		osi_writela(osi_core, OSI_NONE, addr + EQOS_MAC_PIDR2);
@@ -2845,8 +2817,7 @@ static nve32_t eqos_config_ptp_offload(struct osi_core_priv_data *const osi_core
 	osi_core->ptp_config.ptp_filter = value;
 	/** Write PTO_CR and TCR registers */
 	osi_writela(osi_core, ptc_value, addr + EQOS_MAC_PTO_CR);
-	eqos_core_safety_writel(osi_core, value, addr + EQOS_MAC_TCR,
-				EQOS_MAC_TCR_IDX);
+	osi_writela(osi_core, value, addr + EQOS_MAC_TCR);
 	/* Port ID for PTP offload packet created */
 	port_id = pto_config->portid & EQOS_MAC_PIDR_PID_MASK;
 	osi_writela(osi_core, port_id, addr + EQOS_MAC_PIDR0);
@@ -3545,9 +3516,7 @@ static nve32_t eqos_adjust_mactime(struct osi_core_priv_data *const osi_core,
 	 * specified in MAC_STSUR and MAC_STNSUR
 	 */
 	mac_tcr |= EQOS_MAC_TCR_TSUPDT;
-	eqos_core_safety_writel(osi_core, mac_tcr,
-				(nveu8_t *)addr + EQOS_MAC_TCR,
-				EQOS_MAC_TCR_IDX);
+	osi_writela(osi_core, mac_tcr, (nveu8_t *)addr + EQOS_MAC_TCR);
 
 	ret = eqos_poll_for_update_ts_complete(osi_core, &mac_tcr);
 	if (ret == -1) {
@@ -4270,9 +4239,7 @@ static nve32_t eqos_set_avb_algorithm(
 	/* Set TxQ/TC mode as per input struct after masking 3 bit */
 	value |= (avb->oper_mode << EQOS_MTL_TXQEN_MASK_SHIFT) &
 		  EQOS_MTL_TXQEN_MASK;
-	eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
-				EQOS_MTL_CHX_TX_OP_MODE(qinx),
-				EQOS_MTL_CH0_TX_OP_MODE_IDX + qinx);
+	osi_writela(osi_core, value, (nveu8_t *)osi_core->base + EQOS_MTL_CHX_TX_OP_MODE(qinx));
 
 	/* Set Algo and Credit control */
 	value = OSI_DISABLE;
@@ -4489,9 +4456,7 @@ static nve32_t eqos_config_arp_offload(
 		mac_mcr &= ~EQOS_MCR_ARPEN;
 	}
 
-	eqos_core_safety_writel(osi_core, mac_mcr,
-				(nveu8_t *)addr + EQOS_MAC_MCR,
-				EQOS_MAC_MCR_IDX);
+	osi_writela(osi_core, mac_mcr, (nveu8_t *)addr + EQOS_MAC_MCR);
 
 	return 0;
 }
@@ -4555,8 +4520,7 @@ static nve32_t eqos_config_vlan_filtering(
 	value = osi_readla(osi_core, (nveu8_t *)base + EQOS_MAC_PFR);
 	value &= ~(EQOS_MAC_PFR_VTFE);
 	value |= ((filter_enb_dis << EQOS_MAC_PFR_SHIFT) & EQOS_MAC_PFR_VTFE);
-	eqos_core_safety_writel(osi_core, value, (nveu8_t *)base + EQOS_MAC_PFR,
-				EQOS_MAC_PFR_IDX);
+	osi_writela(osi_core, value, (nveu8_t *)base + EQOS_MAC_PFR);
 
 	value = osi_readla(osi_core, (nveu8_t *)base + EQOS_MAC_VLAN_TR);
 	value &= ~(EQOS_MAC_VLAN_TR_VTIM | EQOS_MAC_VLAN_TR_VTHM);
@@ -4831,9 +4795,7 @@ static nve32_t eqos_config_mac_loopback(
 		    (nveu8_t *)addr + EQOS_CLOCK_CTRL_0);
 
 	/* Write to MAC Configuration Register */
-	eqos_core_safety_writel(osi_core, mcr_val,
-				(nveu8_t *)addr + EQOS_MAC_MCR,
-				EQOS_MAC_MCR_IDX);
+	osi_writela(osi_core, mcr_val, (nveu8_t *)addr + EQOS_MAC_MCR);
 
 	return 0;
 }
@@ -5114,8 +5076,7 @@ static nve32_t eqos_pre_pad_calibrate(struct osi_core_priv_data *const osi_core)
 	/* Read MAC IMR Register */
 	value = osi_readla(osi_core, (nveu8_t *)osi_core->base + EQOS_MAC_IMR);
 	value &= ~(EQOS_IMR_RGSMIIIE);
-	eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
-				EQOS_MAC_IMR, EQOS_MAC_IMR_IDX);
+	osi_writela(osi_core, value, (nveu8_t *)osi_core->base + EQOS_MAC_IMR);
 	hw_stop_mac(osi_core);
 	ret = poll_for_mii_idle(osi_core);
 	if (ret < 0) {
@@ -5152,8 +5113,7 @@ error:
 	/* Read MAC IMR Register */
 	value = osi_readl((nveu8_t *)osi_core->base + EQOS_MAC_IMR);
 	value |= EQOS_IMR_RGSMIIIE;
-	eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
-				EQOS_MAC_IMR, EQOS_MAC_IMR_IDX);
+	osi_writela(osi_core, value, (nveu8_t *)osi_core->base + EQOS_MAC_IMR);
 
 	return ret;
 }
@@ -5208,8 +5168,7 @@ static nve32_t eqos_post_pad_calibrate(
 	hw_start_mac(osi_core);
 	/* Enable MAC RGSMIIIE - RGMII/SMII interrupts */
 	mac_imr |= EQOS_IMR_RGSMIIIE;
-	eqos_core_safety_writel(osi_core, mac_imr, (nveu8_t *)osi_core->base +
-				EQOS_MAC_IMR, EQOS_MAC_IMR_IDX);
+	osi_writela(osi_core, mac_imr, (nveu8_t *)osi_core->base + EQOS_MAC_IMR);
 	return ret;
 }
 #endif /* UPDATED_PAD_CAL */

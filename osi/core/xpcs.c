@@ -600,8 +600,9 @@ nve32_t xpcs_eee(struct osi_core_priv_data *osi_core, nveu32_t en_dis)
 		return  -1;
 	}
 
-	if (xpcs_base == OSI_NULL)
+	if (xpcs_base == OSI_NULL) {
 		return -1;
+	}
 
 	if (en_dis == OSI_DISABLE) {
 		val = xpcs_read(xpcs_base, XPCS_VR_XS_PCS_EEE_MCTRL0);

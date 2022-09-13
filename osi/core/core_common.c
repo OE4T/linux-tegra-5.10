@@ -109,7 +109,7 @@ nve32_t hw_set_mode(struct osi_core_priv_data *const osi_core, const nve32_t mod
 	void *base = osi_core->base;
 	nveu32_t mcr_val;
 	nve32_t ret = 0;
-	const nveu32_t set_bit[2] = { EQOS_MCR_DO, EQOS_MCR_DM };
+	const nveu32_t bit_set[2] = { EQOS_MCR_DO, EQOS_MCR_DM };
 	const nveu32_t clear_bit[2] = { EQOS_MCR_DM, EQOS_MCR_DO };
 
 	/* don't allow only if loopback mode is other than 0 or 1 */
@@ -122,7 +122,7 @@ nve32_t hw_set_mode(struct osi_core_priv_data *const osi_core, const nve32_t mod
 
 	if (osi_core->mac == OSI_MAC_HW_EQOS) {
 		mcr_val = osi_readla(osi_core, (nveu8_t *)base + EQOS_MAC_MCR);
-		mcr_val |= set_bit[mode];
+		mcr_val |= bit_set[mode];
 		mcr_val &= ~clear_bit[mode];
 		osi_writela(osi_core, mcr_val, ((nveu8_t *)base + EQOS_MAC_MCR));
 	}
@@ -137,9 +137,9 @@ nve32_t hw_set_speed(struct osi_core_priv_data *const osi_core, const nve32_t sp
 	void *base = osi_core->base;
 	const nveu32_t mac_mcr[2] = { EQOS_MAC_MCR, MGBE_MAC_TMCR };
 
-	if ((osi_core->mac == OSI_MAC_HW_EQOS && speed > OSI_SPEED_1000) ||
-	    (osi_core->mac == OSI_MAC_HW_MGBE && (speed < OSI_SPEED_2500 ||
-	    speed > OSI_SPEED_10000))) {
+	if (((osi_core->mac == OSI_MAC_HW_EQOS) && (speed > OSI_SPEED_1000)) ||
+	    ((osi_core->mac == OSI_MAC_HW_MGBE) && ((speed < OSI_SPEED_2500) ||
+	    (speed > OSI_SPEED_10000)))) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			     "unsupported speed\n", (nveul64_t)speed);
 		ret = -1;
@@ -148,11 +148,6 @@ nve32_t hw_set_speed(struct osi_core_priv_data *const osi_core, const nve32_t sp
 
 	value = osi_readla(osi_core, ((nveu8_t *)base + mac_mcr[osi_core->mac]));
 	switch (speed) {
-	default:
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
-			     "unsupported speed\n",  (nveul64_t)speed);
-		ret = -1;
-		goto fail;
 	case OSI_SPEED_10:
 		value |= EQOS_MCR_PS;
 		value &= ~EQOS_MCR_FES;
@@ -174,7 +169,16 @@ nve32_t hw_set_speed(struct osi_core_priv_data *const osi_core, const nve32_t sp
 	case OSI_SPEED_10000:
 		value &= ~MGBE_MAC_TMCR_SS_10G;
 		break;
-
+	default:
+		if (osi_core->mac == OSI_MAC_HW_EQOS) {
+			value &= ~EQOS_MCR_PS;
+			value &= ~EQOS_MCR_FES;
+		} else if (osi_core->mac == OSI_MAC_HW_MGBE) {
+			value &= ~MGBE_MAC_TMCR_SS_10G;
+		} else {
+			/* Do Nothing */
+		}
+		break;
 	}
 	osi_writela(osi_core, value, ((nveu8_t *)osi_core->base + mac_mcr[osi_core->mac]));
 
@@ -199,10 +203,10 @@ nve32_t hw_flush_mtl_tx_queue(struct osi_core_priv_data *const osi_core,
 {
 	void *addr = osi_core->base;
 	nveu32_t tx_op_mode_val = 0U;
-	nveu32_t qinx = (q_inx & 0xFU);
+	nveu32_t que_idx = (q_inx & 0xFU);
 	nveu32_t value;
-	const nveu32_t tx_op_mode[2] = { EQOS_MTL_CHX_TX_OP_MODE(qinx),
-					 MGBE_MTL_CHX_TX_OP_MODE(qinx)};
+	const nveu32_t tx_op_mode[2] = { EQOS_MTL_CHX_TX_OP_MODE(que_idx),
+					 MGBE_MTL_CHX_TX_OP_MODE(que_idx)};
 
 	/* Read Tx Q Operating Mode Register and flush TxQ */
 	value = osi_readla(osi_core, ((nveu8_t *)addr + tx_op_mode[osi_core->mac]));
@@ -219,16 +223,16 @@ nve32_t hw_config_fw_err_pkts(struct osi_core_priv_data *osi_core,
 {
 	nveu32_t val;
 	nve32_t ret = 0;
-	nveu32_t qinx = (q_inx & 0xFU);
-	const nveu32_t rx_op_mode[2] = { EQOS_MTL_CHX_RX_OP_MODE(qinx),
-					 MGBE_MTL_CHX_RX_OP_MODE(qinx)};
+	nveu32_t que_idx = (q_inx & 0xFU);
+	const nveu32_t rx_op_mode[2] = { EQOS_MTL_CHX_RX_OP_MODE(que_idx),
+					 MGBE_MTL_CHX_RX_OP_MODE(que_idx)};
 	const nveu32_t max_q[2] = { OSI_EQOS_MAX_NUM_QUEUES,
 				    OSI_MGBE_MAX_NUM_QUEUES};
 
-	/* Check for valid enable_fw_err_pkts and qinx values */
-	if ((enable_fw_err_pkts != OSI_ENABLE &&
-	    enable_fw_err_pkts != OSI_DISABLE) ||
-	    (qinx >= max_q[osi_core->mac])) {
+	/* Check for valid enable_fw_err_pkts and que_idx values */
+	if (((enable_fw_err_pkts != OSI_ENABLE) &&
+	    (enable_fw_err_pkts != OSI_DISABLE)) ||
+	    (que_idx >= max_q[osi_core->mac])) {
 		ret = -1;
 		goto fail;
 	}
@@ -269,7 +273,7 @@ nve32_t hw_config_rxcsum_offload(struct osi_core_priv_data *const osi_core,
 	const nveu32_t rxcsum_mode[2] = { EQOS_MAC_MCR, MGBE_MAC_RMCR};
 	const nveu32_t ipc_value[2] = { EQOS_MCR_IPC, MGBE_MAC_RMCR_IPC};
 
-	if (enabled != OSI_ENABLE && enabled != OSI_DISABLE) {
+	if ((enabled != OSI_ENABLE) && (enabled != OSI_DISABLE)) {
 		ret = -1;
 		goto fail;
 	}
@@ -435,7 +439,7 @@ void hw_config_ssir(struct osi_core_priv_data *const osi_core)
 {
 	nveul64_t val = 0U;
 	void *addr = osi_core->base;
-	const struct core_local *l_core = (struct core_local *)osi_core;
+	const struct core_local *l_core = (struct core_local *)(void *)osi_core;
 	const nveu32_t mac_ssir[2] = { EQOS_MAC_SSIR, MGBE_MAC_SSIR};
 	const nveu32_t ptp_ssinc[3] = {OSI_PTP_SSINC_4, OSI_PTP_SSINC_6, OSI_PTP_SSINC_4};
 
@@ -568,7 +572,7 @@ nve32_t hw_config_l3_l4_filter_enable(struct osi_core_priv_data *const osi_core,
 	nve32_t ret = 0;
 
 	/* validate filter_enb_dis argument */
-	if (filter_enb_dis != OSI_ENABLE && filter_enb_dis != OSI_DISABLE) {
+	if ((filter_enb_dis != OSI_ENABLE) && (filter_enb_dis != OSI_DISABLE)) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			"Invalid filter_enb_dis value\n",
 			filter_enb_dis);

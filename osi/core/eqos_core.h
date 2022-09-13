@@ -642,6 +642,27 @@
 
 void update_ehfc_rfa_rfd(nveu32_t rx_fifo, nveu32_t *value);
 
+#define EQOS_MAX_CORE_SAFETY_REGS		45U
+
+/**
+ * @brief core_func_safety - Struct used to store last written values of
+ *	critical core HW registers.
+ */
+struct core_func_safety {
+	/** Array of reg MMIO addresses (base of EQoS + offset of reg) */
+	void *reg_addr[EQOS_MAX_CORE_SAFETY_REGS];
+	/** Array of bit-mask value of each corresponding reg
+	 * (used to ignore self-clearing/reserved bits in reg)
+	 */
+	nveu32_t reg_mask[EQOS_MAX_CORE_SAFETY_REGS];
+	/** Array of value stored in each corresponding register */
+	nveu32_t reg_val[EQOS_MAX_CORE_SAFETY_REGS];
+	/** OSI lock variable used to protect writes to reg while
+	 * validation is in-progress
+	 */
+	nveu32_t core_safety_lock;
+};
+
 /**
  * @addtogroup EQOS-Safety-Register EQOS Safety Register Mask
  *
@@ -654,6 +675,7 @@ void update_ehfc_rfa_rfd(nveu32_t rx_fifo, nveu32_t *value);
  * EQOS_MAX_CORE_SAFETY_REGS.
  * Using macro instead of enum due to misra error.
  */
+#ifndef OSI_STRIPPED_LIB
 #define EQOS_MAC_MCR_IDX			0U
 #define EQOS_MAC_PFR_IDX			1U
 #define EQOS_MAC_RQC0R_IDX			7U
@@ -668,27 +690,8 @@ void update_ehfc_rfa_rfd(nveu32_t rx_fifo, nveu32_t *value);
 #define EQOS_MTL_CH0_RX_OP_MODE_IDX		34U
 #define EQOS_DMA_SBUS_IDX			43U
 #define EQOS_MTL_RXQ_DMA_MAP1_IDX		44U
-#define EQOS_MAX_CORE_SAFETY_REGS		45U
 /** @} */
 
-/**
- * @brief core_func_safety - Struct used to store last written values of
- *	critical core HW registers.
- */
-struct core_func_safety {
-	/** Array of reg MMIO addresses (base of EQoS + offset of reg) */
-	void *reg_addr[EQOS_MAX_CORE_SAFETY_REGS];
-	/** Array of bit-mask value of each corresponding reg
-	 * (used to ignore self-clearing/reserved bits in reg) */
-	nveu32_t reg_mask[EQOS_MAX_CORE_SAFETY_REGS];
-	/** Array of value stored in each corresponding register */
-	nveu32_t reg_val[EQOS_MAX_CORE_SAFETY_REGS];
-	/** OSI lock variable used to protect writes to reg while
-	 * validation is in-progress */
-	nveu32_t core_safety_lock;
-};
-
-#ifndef OSI_STRIPPED_LIB
 /**
  * @addtogroup EQOS_HW EQOS HW BACKUP registers
  *

@@ -4440,7 +4440,7 @@ static void macsec_intr_config(struct osi_core_priv_data *const osi_core, nveu32
 #endif /* DEBUG_MACSEC */
 
 /**
- * @brief macsec_init - Inititlizes macsec
+ * @brief macsec_initialize - Inititlizes macsec
  *
  * @note
  * Algorithm:
@@ -4476,8 +4476,7 @@ static void macsec_intr_config(struct osi_core_priv_data *const osi_core, nveu32
  * @retval 0 for success
  * @retval -1 for failure
  */
-static nve32_t macsec_init(struct osi_core_priv_data *const osi_core,
-			   nveu32_t mtu)
+static nve32_t macsec_initialize(struct osi_core_priv_data *const osi_core, nveu32_t mtu)
 {
 	nveu32_t val = 0;
 #if defined(MACSEC_SUPPORT) && !defined(OSI_STRIPPED_LIB)
@@ -5311,7 +5310,7 @@ exit:
 }
 
 /**
- * @brief config_macsec - API to update LUTs for addition/deletion of SC/SA
+ * @brief macsec_configure - API to update LUTs for addition/deletion of SC/SA
  *
  * @note
  * Algorithm:
@@ -5342,10 +5341,10 @@ exit:
  * @retval 0 on success
  * @retval -1 on failure
  */
-static nve32_t config_macsec(struct osi_core_priv_data *const osi_core,
-			 struct osi_macsec_sc_info *const sc,
-			 nveu32_t enable, nveu16_t ctlr,
-			 nveu16_t *kt_idx)
+static nve32_t macsec_configure(struct osi_core_priv_data *const osi_core,
+				struct osi_macsec_sc_info *const sc,
+				nveu32_t enable, nveu16_t ctlr,
+				nveu16_t *kt_idx)
 {
 	struct osi_macsec_sc_info *existing_sc = OSI_NULL;
 	struct osi_macsec_sc_info tmp_sc;
@@ -5465,7 +5464,7 @@ nve32_t osi_init_macsec_ops(struct osi_core_priv_data *const osi_core)
 	static struct osi_macsec_core_ops virt_macsec_ops;
 	nve32_t ret = 0;
 	static struct osi_macsec_core_ops macsec_ops = {
-		.init = macsec_init,
+		.init = macsec_initialize,
 		.deinit = macsec_deinit,
 		.handle_irq = macsec_handle_irq,
 		.lut_config = macsec_lut_config,
@@ -5474,7 +5473,7 @@ nve32_t osi_init_macsec_ops(struct osi_core_priv_data *const osi_core)
 #endif /* MACSEC_KEY_PROGRAM */
 		.cipher_config = macsec_cipher_config,
 		.macsec_en = macsec_enable,
-		.config = config_macsec,
+		.config = macsec_configure,
 		.read_mmc = macsec_read_mmc,
 		.get_sc_lut_key_index = macsec_get_key_index,
 		.update_mtu = macsec_update_mtu,
