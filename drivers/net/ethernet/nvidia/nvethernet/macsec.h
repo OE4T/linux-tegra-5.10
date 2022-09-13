@@ -69,7 +69,7 @@
 /* For 128 bit SAK, key len is 16 bytes, wrapped key len is 24 bytes
  * and for 256 SAK, key len is 32 bytes, wrapped key len is 40 bytes
  */
-#define NV_SAK_WRAPPED_LEN 24
+#define NV_SAK_WRAPPED_LEN 40
 /* PKCS KEK CK_OBJECT_HANDLE is u64 type */
 #define NV_KEK_HANDLE_SIZE 8
 

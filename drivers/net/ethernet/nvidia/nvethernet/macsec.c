@@ -715,7 +715,7 @@ static int parse_sa_config(struct nlattr **attrs, struct nlattr **tb_sa,
 		sc_info->lowest_pn = nla_get_u32(tb_sa[NV_MACSEC_SA_ATTR_LOWEST_PN]);
 	}
 #ifdef NVPKCS_MACSEC
-	if (pkcs != NULL) {
+	if (pkcs) {
 		if (tb_sa[NV_MACSEC_SA_PKCS_KEY_WRAP]) {
 			memcpy(pkcs->nv_key,
 				nla_data(tb_sa[NV_MACSEC_SA_PKCS_KEY_WRAP]),
@@ -728,7 +728,7 @@ static int parse_sa_config(struct nlattr **attrs, struct nlattr **tb_sa,
 #else
 	if (tb_sa[NV_MACSEC_SA_ATTR_KEY]) {
 		memcpy(sc_info->sak, nla_data(tb_sa[NV_MACSEC_SA_ATTR_KEY]),
-			sizeof(sc_info->sak));
+		       sizeof(sc_info->sak));
 	}
 #endif /* NVPKCS_MACSEC */
 	return 0;
@@ -1764,7 +1764,7 @@ static int macsec_tz_kt_config(struct ether_priv_data *pdata,
 			   kt_config->table_config.index);
 		nla_put_u32(msg, NV_MACSEC_TZ_ATTR_FLAG, kt_config->flags);
 #ifdef NVPKCS_MACSEC
-		if (pkcs != NULL) {
+		if (pkcs) {
 			nla_put(msg, NV_MACSEC_TZ_PKCS_KEY_WRAP,
 				sizeof(pkcs->nv_key),
 				pkcs->nv_key);
