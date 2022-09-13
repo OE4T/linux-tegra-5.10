@@ -1,9 +1,5 @@
 /*
- * include/trace/events/dce_events.h
- *
- * Display event logging to ftrace.
- *
- * Copyright (c) 2020-, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION, All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,7 +41,7 @@ DECLARE_EVENT_CLASS(dce_ipc_events_notifier,
 		  "No of Frames = [%u], Rx Iova = [0x%llx], Tx Iova = [0x%llx], Region Current Offset = [%u], Region Iova Base = [0x%llx], "
 		  "Region Size = [%lu] Region Base Address = [0x%p]",
 		__entry->ch->ch_type, __entry->ch->flags, __entry->ch->w_type,
-		__entry->ch->d_ivc.w_pos, __entry->ch->d_ivc.r_pos,
+		__entry->ch->d_ivc.tx.position, __entry->ch->d_ivc.rx.position,
 		__entry->ch->q_info.frame_sz, __entry->ch->q_info.nframes,
 		__entry->ch->q_info.rx_iova, __entry->ch->q_info.tx_iova,
 		__entry->d->d_ipc.region.s_offset, __entry->d->d_ipc.region.iova,

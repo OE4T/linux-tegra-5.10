@@ -10,9 +10,15 @@ ccflags-y += -Wno-error=cpp
 ifeq ($(VERSION),4)
 ccflags-y += -Wextra -Wno-unused-parameter -Wno-missing-field-initializers
 endif
-obj-$(CONFIG_TEGRA_DCE) += tegra-dce.o
 
-tegra-dce-y += \
+# Set config when build as OOT module.
+ifeq ($(CONFIG_TEGRA_OOT_MODULE),m)
+CONFIG_TEGRA_DCE := m
+ccflags-y += -I$(srctree.nvidia)/include
+endif
+
+obj-$(CONFIG_TEGRA_DCE) += tegra-dce.o
+tegra-dce-$(CONFIG_TEGRA_DCE) += \
 	dce-ast.o \
 	dce-reset.o \
 	dce-hsp-smb.o \
@@ -30,6 +36,8 @@ tegra-dce-y += \
 	dce-pm.o \
 	dce-util-common.o
 
-tegra-dce-$(CONFIG_DEBUG_FS) += \
+ifeq ($(CONFIG_DEBUG_FS),y)
+tegra-dce-$(CONFIG_TEGRA_DCE) += \
 	dce-debug.o
+endif
 

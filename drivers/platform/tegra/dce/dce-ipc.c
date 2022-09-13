@@ -201,13 +201,13 @@ void dce_ipc_free_region(struct tegra_dce *d)
 /**
  * dce_ipc_signal_target - Generic function to signal target.
  *
- * @d_ivc : Pointer to struct ivc.
+ * @d_ivc : Pointer to struct tegra_ivc.
  *
  * Do not take a channel lock here.
  *
  * Return : Void.
  */
-static void dce_ipc_signal_target(struct ivc *ivc)
+static void dce_ipc_signal_target(struct tegra_ivc *ivc, void *data)
 {
 }
 
@@ -336,12 +336,10 @@ int dce_ipc_channel_init(struct tegra_dce *d, u32 ch_type)
 
 	dev = dev_from_dce(d);
 
-	ret = tegra_ivc_init_with_dma_handle(&ch->d_ivc,
-			(uintptr_t)r->base + r->s_offset,
-			r->iova + r->s_offset,
-			(uintptr_t)r->base + r->s_offset + q_sz,
-			r->iova + r->s_offset +	q_sz,
-			q_info->nframes, msg_sz, dev, dce_ipc_signal_target);
+	ret = tegra_ivc_init(&ch->d_ivc, NULL, r->base + r->s_offset,
+			r->iova + r->s_offset, r->base + r->s_offset + q_sz,
+			r->iova + r->s_offset + q_sz, q_info->nframes, msg_sz,
+			dce_ipc_signal_target, NULL);
 	if (ret) {
 		dce_err(d, "IVC creation failed");
 		goto out_lock_destroy;
@@ -432,7 +430,7 @@ bool dce_ipc_channel_is_ready(struct tegra_dce *d, u32 ch_type)
 
 	dce_mutex_lock(&ch->lock);
 
-	ret = (tegra_ivc_channel_notified(&ch->d_ivc) ? false : true);
+	ret = (tegra_ivc_notified(&ch->d_ivc) ? false : true);
 
 	if (ret == false)
 		ch->signal.notify(d, &ch->signal.to_d);
@@ -480,7 +478,7 @@ void dce_ipc_channel_reset(struct tegra_dce *d, u32 ch_type)
 
 	dce_mutex_lock(&ch->lock);
 
-	tegra_ivc_channel_reset(&ch->d_ivc);
+	tegra_ivc_reset(&ch->d_ivc);
 
 	trace_ivc_channel_reset_triggered(d, ch);
 
@@ -793,11 +791,13 @@ int dce_ipc_get_region_iova_info(struct tegra_dce *d, u64 *iova, u32 *size)
 bool dce_ipc_is_data_available(struct tegra_dce *d, u32 ch_type)
 {
 	bool ret = false;
+	void *frame;
 	struct dce_ipc_channel *ch = d->d_ipc.ch[ch_type];
 
 	dce_mutex_lock(&ch->lock);
 
-	if (tegra_ivc_can_read(&ch->d_ivc))
+	frame = tegra_ivc_read_get_next_frame(&ch->d_ivc);
+	if (!IS_ERR(frame))
 		ret = true;
 
 	dce_mutex_unlock(&ch->lock);

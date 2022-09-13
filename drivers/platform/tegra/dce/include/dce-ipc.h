@@ -15,8 +15,7 @@
 #define DCE_IPC_H
 
 #include <dce-lock.h>
-#include <linux/tegra-ivc-instance.h>
-#include <linux/tegra-ivc.h>
+#include <soc/tegra/ivc.h>
 #include <interface/dce-admin-cmds.h>
 #include <interface/dce-core-interface-ipc-types.h>
 #include <interface/dce-ipc-state.h>
@@ -131,7 +130,7 @@ struct dce_ipc_channel {
 	u32	ipc_type;
 	void *ibuff;
 	void *obuff;
-	struct ivc	d_ivc;
+	struct tegra_ivc	d_ivc;
 	struct tegra_dce *d;
 	struct dce_mutex lock;
 	struct dce_ipc_signal signal;
