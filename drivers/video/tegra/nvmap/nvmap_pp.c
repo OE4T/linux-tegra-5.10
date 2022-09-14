@@ -744,8 +744,11 @@ int nvmap_page_pool_init(struct nvmap_device *dev)
 					    NULL, "nvmap-bz");
 	if (IS_ERR(background_allocator))
 		goto fail;
-
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
+	register_shrinker(&nvmap_page_pool_shrinker, "nvmap_pp_shrinker");
+#else
 	register_shrinker(&nvmap_page_pool_shrinker);
+#endif
 
 	return 0;
 fail:
