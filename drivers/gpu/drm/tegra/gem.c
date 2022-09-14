@@ -716,14 +716,29 @@ static int tegra_gem_prime_vmap(struct dma_buf *buf, struct iosys_map *map)
 {
 	struct drm_gem_object *gem = buf->priv;
 	struct tegra_bo *bo = to_tegra_bo(gem);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
+	void *vaddr;
 
+	vaddr = tegra_bo_mmap(&bo->base);
+	if (IS_ERR(vaddr))
+		return PTR_ERR(vaddr);
+
+	iosys_map_set_vaddr(map, vaddr);
+#else
 	iosys_map_set_vaddr(map, bo->vaddr);
+#endif
 
 	return 0;
 }
 
 static void tegra_gem_prime_vunmap(struct dma_buf *buf, struct iosys_map *map)
 {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
+	struct drm_gem_object *gem = buf->priv;
+	struct tegra_bo *bo = to_tegra_bo(gem);
+
+	tegra_bo_munmap(&bo->base, map->vaddr);
+#endif
 }
 #else
 static int tegra_gem_prime_vmap(struct dma_buf *buf, struct dma_buf_map *map)

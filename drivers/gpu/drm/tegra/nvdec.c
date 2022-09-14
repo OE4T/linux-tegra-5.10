@@ -5,6 +5,7 @@
 
 #include <linux/clk.h>
 #include <linux/delay.h>
+#include <linux/dma-mapping.h>
 #include <linux/host1x-next.h>
 #include <linux/iommu.h>
 #include <linux/iopoll.h>
