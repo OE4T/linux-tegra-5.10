@@ -524,6 +524,73 @@ static int ether_config_l3_l4_filtering(struct net_device *dev,
 
 /**
  * @brief This function is invoked by ioctl function when user issues an ioctl
+ * command to configure L2 filtering.
+ *
+ * Algorithm:
+ * 1) Return error if Ethrmet virtualization is not enabled.
+ * 2) Select source/destination address matching.
+ * 3) Select perfect/inverse matching.
+ * 4) Update the L2 MAC address into MAC register.
+ *
+ * @param[in] dev: Pointer to net device structure.
+ * @param[in] ifdata: pointer to IOCTL specific structure.
+ *
+ * @note MAC and PHY need to be initialized. Only
+ *
+ * @retval 0 on Success
+ * @retval "negative value" on Failure
+ */
+static int ether_config_l2_filters(struct net_device *dev,
+				   struct ether_ifr_data *ifdata)
+{
+	struct ether_priv_data *pdata = netdev_priv(dev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	struct ether_l2_filter u_l2_filter;
+	struct osi_ioctl ioctl_data = {};
+	int ret = -1;
+
+	if (ifdata->ptr == NULL) {
+		dev_err(pdata->dev, "%s: Invalid data for priv ioctl %d\n",
+			__func__, ifdata->ifcmd);
+		return ret;
+	}
+
+	if (osi_core->use_virtualization == OSI_DISABLE) {
+		dev_err(pdata->dev, "%s Ethernet virualization is not enabled\n", __func__);
+		return ret;
+	}
+	if (copy_from_user(&u_l2_filter, (void __user *)ifdata->ptr,
+			   sizeof(struct ether_l2_filter)) != 0U) {
+		dev_err(pdata->dev, "%s copy from user failed\n", __func__);
+		return ret;
+	}
+
+	ioctl_data.l2_filter.index = u_l2_filter.index;
+	ioctl_data.l2_filter.src_dest = OSI_DA_MATCH;
+
+	ioctl_data.l2_filter.oper_mode = (OSI_OPER_EN_PERFECT |
+			OSI_OPER_DIS_PROMISC |
+			OSI_OPER_DIS_ALLMULTI);
+
+	if (u_l2_filter.en_dis == OSI_ENABLE) {
+		ioctl_data.l2_filter.oper_mode |= OSI_OPER_ADDR_UPDATE;
+	} else {
+		ioctl_data.l2_filter.oper_mode |= OSI_OPER_ADDR_DEL;
+	}
+
+	memcpy(ioctl_data.l2_filter.mac_address,
+	       u_l2_filter.mac_address, ETH_ALEN);
+	ioctl_data.l2_filter.dma_routing = OSI_ENABLE;
+	ioctl_data.l2_filter.addr_mask = OSI_DISABLE;
+	ioctl_data.l2_filter.dma_chan = osi_dma->dma_chans[0];
+	ioctl_data.l2_filter.dma_chansel = OSI_BIT(osi_dma->dma_chans[0]);
+	ioctl_data.cmd = OSI_CMD_L2_FILTER;
+	return osi_handle_ioctl(osi_core, &ioctl_data);
+}
+
+/**
+ * @brief This function is invoked by ioctl function when user issues an ioctl
  * command to configure L3(IPv4) filtering.
  *
  * Algorithm:
@@ -1396,6 +1463,11 @@ int ether_handle_priv_ioctl(struct net_device *ndev,
 	case ETHER_M2M_TSYNC:
 		ret = ether_m2m_tsync(ndev, &ifdata);
 		break;
+
+	case ETHER_L2_ADDR:
+		ret = ether_config_l2_filters(ndev, &ifdata);
+		break;
+
 	default:
 		break;
 	}

@@ -17,14 +17,42 @@
 #ifndef ETHER_EXPORT_H
 #define ETHER_EXPORT_H
 
-/* private ioctl number*/
-/* Line speed */
+#include <nvethernetrm_export.h>
+/**
+ * @addtogroup private IOCTL related info
+ *
+ * @brief MACRO are defined for driver supported
+ * private IOCTLs. These IOCTLs can be called using
+ * SIOCDEVPRIVATE custom ioctl command.
+ * @{
+ */
+/** Line speed */
 #define EQOS_GET_CONNECTED_SPEED	25
-
+/** To set HW AVB configuration from user application */
 #define ETHER_AVB_ALGORITHM		27
+/** To get current configuration in HW */
 #define ETHER_GET_AVB_ALGORITHM		46
+/** To configure EST(802.1 bv) in HW */
 #define ETHER_CONFIG_EST		49
+/** For configure FPE (802.1 bu + 803.2 br) in HW */
 #define ETHER_CONFIG_FPE		50
-/* FRP Command */
+/* FRP command */
 #define ETHER_CONFIG_FRP_CMD		51
+/** To configure L2 Filter (Only with Ethernet virtualization) */
+#define ETHER_L2_ADDR			61
+/** @} */
+
+/**
+ * @brief Structure for L2 filters input
+ */
+struct ether_l2_filter {
+	/** indicates enable(1)/disable(0) L2 filter */
+
+	nveu32_t en_dis;
+	/** Indicates the index of the filter to be modified.
+	 * Filter index must be between 0 - 31 */
+	nveu32_t index;
+	/** Ethernet MAC address to be added */
+	nveu8_t mac_address[OSI_ETH_ALEN];
+};
 #endif /* ETHER_EXPORT_H */
