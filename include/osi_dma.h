@@ -148,7 +148,7 @@
  * @brief These flags used to convey transmit done packet context information,
  * whether transmitted packet used a paged buffer, whether transmitted packet
  * has an tx error, whether transmitted packet has an TS
- * 
+ *
  * @{
  */
 /** Flag to indicate if buffer programmed in desc. is DMA map'd from
@@ -327,6 +327,8 @@ struct osi_rx_swcx {
 	nveu32_t len;
 	/** Flags to share info about Rx swcx between OSD and OSI */
 	nveu32_t flags;
+	/** nvsocket data index */
+	nveu64_t data_idx;
 };
 
 /**
