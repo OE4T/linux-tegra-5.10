@@ -900,7 +900,7 @@ verify_hwseq_blob(struct pva_submit_task *task,
 	end += 4;
 	for (i = 0; i < cr_count; i++) {
 		u32 num_descriptors = cr_header->dec + 1;
-		u32 num_desc_entries = (cr_header->dec + 1) / 2;
+		u32 num_desc_entries = (cr_header->dec + 2) / 2;
 
 		entry_size = num_desc_entries;
 		entry_size *= sizeof(struct pva_hwseq_desc_header_s);
@@ -1130,7 +1130,7 @@ int pva_task_write_dma_info(struct pva_submit_task *task,
 			hwseqbuf_cpuva,
 			ch_num,
 			hwgen,
-			(is_hwseq_mode ? 1:0));
+			is_hwseq_mode);
 		if (err) {
 			task_err(task, "failed to map DMA channel info");
 			goto out;
