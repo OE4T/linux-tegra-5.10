@@ -922,8 +922,10 @@ verify_hwseq_blob(struct pva_submit_task *task,
 			}
 
 			++k;
-			if (k >= num_descriptors)
+			if (k >= num_descriptors) {
+				++blob_desc;
 				break;
+			}
 
 			err = verify_dma_desc_hwseq(task,
 						    user_ch,
