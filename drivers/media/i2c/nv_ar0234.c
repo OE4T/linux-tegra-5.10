@@ -416,11 +416,11 @@ static int ar0234_power_on(struct camera_common_data *s_data)
 		return err;
 	}
 
-	if (pw->reset_gpio > 0)
+	if (gpio_is_valid(pw->reset_gpio > 0))
 		gpio_set_value(pw->reset_gpio, 1);
 
 	usleep_range(1000, 2000);
-	if (pw->reset_gpio > 0)
+	if (gpio_is_valid(pw->reset_gpio > 0))
 		gpio_set_value(pw->reset_gpio, 1);
 
 	usleep_range(10000, 20000);
