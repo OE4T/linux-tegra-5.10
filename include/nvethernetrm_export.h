@@ -23,7 +23,7 @@
 #ifndef INCLUDED_NVETHERNETRM_EXPORT_H
 #define INCLUDED_NVETHERNETRM_EXPORT_H
 
-#include "../osi/common/type.h"
+#include <nvethernet_type.h>
 
 /**
  * @addtogroup Helper MACROS

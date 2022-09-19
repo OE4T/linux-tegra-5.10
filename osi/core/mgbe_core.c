@@ -21,7 +21,6 @@
  */
 
 #include "../osi/common/common.h"
-#include "../osi/common/type.h"
 #include <local_common.h>
 #include <osi_common.h>
 #include <osi_core.h>

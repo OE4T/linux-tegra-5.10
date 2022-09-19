@@ -23,7 +23,6 @@
 #include "../osi/common/common.h"
 #include "dma_local.h"
 #include "eqos_dma.h"
-#include "../osi/common/type.h"
 
 #ifndef OSI_STRIPPED_LIB
 /**

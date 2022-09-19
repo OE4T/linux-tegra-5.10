@@ -22,7 +22,7 @@
 #ifndef INCLUDED_COMMON_H
 #define INCLUDED_COMMON_H
 
-#include "../osi/common/type.h"
+#include <nvethernet_type.h>
 #include <osi_common.h>
 
 /**

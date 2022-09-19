@@ -23,7 +23,7 @@
 #ifndef INCLUDED_MMC_H
 #define INCLUDED_MMC_H
 
-#include "../osi/common/type.h"
+#include <nvethernet_type.h>
 #include "osi_common.h"
 
 #ifndef OSI_STRIPPED_LIB

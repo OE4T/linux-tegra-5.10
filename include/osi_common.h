@@ -23,7 +23,7 @@
 #ifndef INCLUDED_OSI_COMMON_H
 #define INCLUDED_OSI_COMMON_H
 
-#include "../osi/common/type.h"
+#include <nvethernet_type.h>
 
 /**
  * @addtogroup FC Flow Control Threshold Macros
