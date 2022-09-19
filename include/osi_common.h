@@ -69,6 +69,24 @@
 #define osi_unlikely(x)			__builtin_expect(!!(x), 0)
 /** @} */
 
+/**
+ * @addtogroup Helper MACROS
+ *
+ * @brief EQOS generic helper MACROS.
+ * @{
+ */
+#define OSI_MAX_24BITS			0xFFFFFFU
+#define OSI_MAX_28BITS			0xFFFFFFFU
+#define OSI_MAX_32BITS			0xFFFFFFFFU
+#define OSI_MASK_16BITS			0xFFFFU
+#define OSI_MASK_20BITS			0xFFFFFU
+#define OSI_MASK_24BITS			0xFFFFFFU
+#define OSI_GCL_SIZE_64			64U
+#define OSI_GCL_SIZE_128		128U
+#define OSI_GCL_SIZE_512		512U
+#define OSI_GCL_SIZE_1024		1024U
+/** @} */
+
 #ifndef OSI_STRIPPED_LIB
 
 /**
@@ -80,7 +98,6 @@
 #define OSI_PAUSE_FRAMES_ENABLE		0U
 #define OSI_PTP_REQ_CLK_FREQ		250000000U
 #define OSI_FLOW_CTRL_DISABLE		0U
-
 #define OSI_ADDRESS_32BIT		0
 #define OSI_ADDRESS_40BIT		1
 #define OSI_ADDRESS_48BIT		2
@@ -197,7 +214,6 @@
 
 #define OSI_MAC_HW_EQOS		0U
 #define OSI_MAC_HW_MGBE		1U
-#define OSI_ETH_ALEN		6U
 #define OSI_MAX_VM_IRQS		5U
 
 #define OSI_NULL                ((void *)0)

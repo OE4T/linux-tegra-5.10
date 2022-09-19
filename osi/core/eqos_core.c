@@ -2621,6 +2621,7 @@ static nve32_t eqos_update_mac_addr_low_high_reg(
 				struct osi_core_priv_data *const osi_core,
 				const struct osi_filter *filter)
 {
+	const struct core_local *l_core = (struct core_local *)(void *)osi_core;
 	nveu32_t idx = filter->index;
 	nveu32_t dma_routing_enable = filter->dma_routing;
 	nveu32_t dma_chan = filter->dma_chan;
@@ -2628,8 +2629,10 @@ static nve32_t eqos_update_mac_addr_low_high_reg(
 	nveu32_t src_dest = filter->src_dest;
 	nveu32_t value = OSI_DISABLE;
 	nve32_t ret = 0;
+	const nveu32_t eqos_max_madd[2] = {EQOS_MAX_MAC_ADDRESS_FILTER,
+					   EQOS_MAX_MAC_5_3_ADDRESS_FILTER};
 
-	if ((idx > (EQOS_MAX_MAC_ADDRESS_FILTER -  0x1U)) ||
+	if ((idx >= eqos_max_madd[l_core->l_mac_ver]) ||
 	    (dma_chan >= OSI_EQOS_MAX_NUM_CHANS)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "invalid MAC filter index or channel number\n",

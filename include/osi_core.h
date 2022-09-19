@@ -158,6 +158,7 @@ typedef my_lint_64		nvel64_t;
  */
 #define EQOS_DMA_CHX_IER(x)		((0x0080U * (x)) + 0x1134U)
 #define EQOS_MAX_MAC_ADDRESS_FILTER	128U
+#define EQOS_MAX_MAC_5_3_ADDRESS_FILTER	32U
 #define EQOS_MAX_L3_L4_FILTER		8U
 #define OSI_MGBE_MAX_MAC_ADDRESS_FILTER	32U
 #define OSI_DA_MATCH			0U
@@ -189,6 +190,8 @@ typedef my_lint_64		nvel64_t;
 #define OSI_OPER_DIS_PROMISC		OSI_BIT(1)
 #define OSI_OPER_EN_ALLMULTI		OSI_BIT(2)
 #define OSI_OPER_DIS_ALLMULTI		OSI_BIT(3)
+#define OSI_OPER_EN_L2_DA_INV		OSI_BIT(4)
+#define OSI_OPER_DIS_L2_DA_INV		OSI_BIT(5)
 #define OSI_OPER_EN_PERFECT		OSI_BIT(6)
 #define OSI_OPER_DIS_PERFECT		OSI_BIT(7)
 #define OSI_OPER_ADDR_UPDATE		OSI_BIT(8)
@@ -423,6 +426,34 @@ extern nveu32_t hsi_err_code[][3];
 
 struct osi_core_priv_data;
 
+/**
+ * @brief OSI core structure for filters
+ */
+struct osi_filter {
+	/** indicates operation needs to perform. refer to OSI_OPER_* */
+	nveu32_t oper_mode;
+	/** Indicates the index of the filter to be modified.
+	 * Filter index must be between 0 - 127 */
+	nveu32_t index;
+	/** Ethernet MAC address to be added */
+	nveu8_t mac_address[OSI_ETH_ALEN];
+	/** Indicates dma channel routing enable(1) disable (0) */
+	nveu32_t dma_routing;
+	/**  indicates dma channel number to program */
+	nveu32_t dma_chan;
+	/** filter will not consider byte in comparison
+	 *	Bit 5: MAC_Address${i}_High[15:8]
+	 *	Bit 4: MAC_Address${i}_High[7:0]
+	 *	Bit 3: MAC_Address${i}_Low[31:24]
+	 *	..
+	 *	Bit 0: MAC_Address${i}_Low[7:0] */
+	nveu32_t addr_mask;
+	/** src_dest: SA(1) or DA(0) */
+	nveu32_t src_dest;
+	/**  indicates one hot encoded DMA receive channels to program */
+	nveu32_t dma_chansel;
+};
+
 #ifndef OSI_STRIPPED_LIB
 /**
  * @brief OSI core structure for RXQ route
@@ -437,6 +468,27 @@ struct osi_rxq_route {
 	nveu32_t idx;
 };
 #endif
+
+/**
+ * @brief L3/L4 filter function dependent parameter
+ */
+struct osi_l3_l4_filter {
+	/** Indicates the index of the filter to be modified.
+	 * Filter index must be between 0 - 7 */
+	nveu32_t filter_no;
+	/** filter enable(1) or disable(0) */
+	nveu32_t filter_enb_dis;
+	/** source(0) or destination(1) */
+	nveu32_t src_dst_addr_match;
+	/** perfect(0) or inverse(1) */
+	nveu32_t perfect_inverse_match;
+	/** ipv4 address */
+	nveu8_t ip4_addr[4];
+	/** ipv6 address */
+	nveu16_t ip6_addr[8];
+	/** Port number */
+	nveu16_t port_no;
+};
 
 /**
  * @brief struct osi_hw_features - MAC HW supported features.

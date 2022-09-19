@@ -31,17 +31,11 @@
  * @brief EQOS generic helper MACROS.
  * @{
  */
-#define OSI_MAX_24BITS			0xFFFFFFU
-#define OSI_MAX_28BITS			0xFFFFFFFU
-#define OSI_MAX_32BITS			0xFFFFFFFFU
-#define OSI_MASK_16BITS			0xFFFFU
-#define OSI_MASK_20BITS			0xFFFFFU
-#define OSI_MASK_24BITS			0xFFFFFFU
-#define OSI_GCL_SIZE_64			64U
-#define OSI_GCL_SIZE_128		128U
 #define OSI_GCL_SIZE_256		256U
-#define OSI_GCL_SIZE_512		512U
-#define OSI_GCL_SIZE_1024		1024U
+#define OSI_MAX_TC_NUM			8U
+/* Ethernet Address length */
+#define OSI_ETH_ALEN			6U
+/** @} */
 
 /**
  * @addtogroup Flexible Receive Parser related information
@@ -72,21 +66,6 @@
  */
 #define OSI_MTL_TXQ_AVALG_CBS	1U
 #define OSI_MTL_TXQ_AVALG_SP	0U
-/** @} */
-
-/**
- * @addtogroup Helper MACROS
- *
- * @brief EQOS generic helper MACROS.
- * @{
- */
-/* L2 DA filter mode(enable/disable) */
-#define OSI_OPER_EN_L2_DA_INV		OSI_BIT(4)
-#define OSI_OPER_DIS_L2_DA_INV		OSI_BIT(5)
-
-/* Ethernet Address length */
-#define OSI_ETH_ALEN			6U
-#define OSI_MAX_TC_NUM			8U
 /** @} */
 
 #pragma pack(push, 1)
@@ -124,7 +103,7 @@ struct  osi_core_avb_algorithm {
 	nveu32_t algo;
 	/** When this bit is set, the accumulated credit parameter in the
 	 * credit-based shaper algorithm logic is not reset to zero when
-	 * there is positive credit and no packet to transmit in Channel.
+	 * there is positive credit and no packet to transmit in the channel.
 	 *
 	 * Expected values are enable(1) or disable(0) */
 	nveu32_t credit_control;
@@ -155,7 +134,7 @@ struct osi_est_config {
 	/** enable/disable */
 	nveu32_t en_dis;
 	/** 64 bit base time register
-	 * if both vlaues are 0, take ptp time to avoid BTRE
+	 * if both values are 0, take ptp time to avoid BTRE
 	 * index 0 for nsec, index 1 for sec
 	 */
 	nveu32_t btr[2];
@@ -182,55 +161,6 @@ struct osi_fpe_config {
 	 * based on user priority or SA-DA
 	 */
 	nveu32_t rq;
-};
-
-/**
- * @brief OSI core structure for filters
- */
-struct osi_filter {
-	/** indicates operation needs to perform. refer to OSI_OPER_* */
-	nveu32_t oper_mode;
-	/** Indicates the index of the filter to be modified.
-	 * Filter index must be between 0 - 127 */
-	nveu32_t index;
-	/** Ethernet MAC address to be added */
-	nveu8_t mac_address[OSI_ETH_ALEN];
-	/** Indicates dma channel routing enable(1) disable (0) */
-	nveu32_t dma_routing;
-	/**  indicates dma channel number to program */
-	nveu32_t dma_chan;
-	/** filter will not consider byte in comparison
-	 *	Bit 5: MAC_Address${i}_High[15:8]
-	 *	Bit 4: MAC_Address${i}_High[7:0]
-	 *	Bit 3: MAC_Address${i}_Low[31:24]
-	 *	..
-	 *	Bit 0: MAC_Address${i}_Low[7:0] */
-	nveu32_t addr_mask;
-	/** src_dest: SA(1) or DA(0) */
-	nveu32_t src_dest;
-	/**  indicates one hot encoded DMA receive channels to program */
-	nveu32_t dma_chansel;
-};
-
-/**
- * @brief L3/L4 filter function dependent parameter
- */
-struct osi_l3_l4_filter {
-	/** Indicates the index of the filter to be modified.
-	 * Filter index must be between 0 - 7 */
-	nveu32_t filter_no;
-	/** filter enable(1) or disable(0) */
-	nveu32_t filter_enb_dis;
-	/** source(0) or destination(1) */
-	nveu32_t src_dst_addr_match;
-	/** perfect(0) or inverse(1) */
-	nveu32_t perfect_inverse_match;
-	/** ipv4 address */
-	nveu8_t ip4_addr[4];
-	/** ipv6 address */
-	nveu16_t ip6_addr[8];
-	/** Port number */
-	nveu16_t port_no;
 };
 
 /**
