@@ -2154,12 +2154,6 @@ static nve32_t mgbe_hsi_configure(struct osi_core_priv_data *const osi_core,
 		osi_core->hsi.enabled = OSI_ENABLE;
 		osi_core->hsi.reporter_id = hsi_err_code[osi_core->instance_id][REPORTER_IDX];
 
-		/* T23X-MGBE_HSIv2-10 Enable PCS ECC */
-		value = (EN_ERR_IND | FEC_EN);
-		ret = xpcs_write_safety(osi_core, XPCS_BASE_PMA_MMD_SR_PMA_KR_FEC_CTRL, value);
-		if (ret != 0) {
-			return ret;
-		}
 		/* T23X-MGBE_HSIv2-12:Initialization of Transaction Timeout in PCS */
 		/* T23X-MGBE_HSIv2-11:Initialization of Watchdog Timer */
 		value = (0xCCU << XPCS_SFTY_1US_MULT_SHIFT) & XPCS_SFTY_1US_MULT_MASK;
@@ -2189,7 +2183,8 @@ static nve32_t mgbe_hsi_configure(struct osi_core_priv_data *const osi_core,
 
 		/* T23X-MGBE_HSIv2-3: Enabling and Initialization of Watchdog Timer */
 		/* T23X-MGBE_HSIv2-4: Enabling of Consistency Monitor for XGMAC FSM State */
-		value = (MGBE_PRTYEN | MGBE_TMOUTEN);
+		/* TODO enable MGBE_TMOUTEN. Bug 3584387 */
+		value = MGBE_PRTYEN;
 		osi_writela(osi_core, value,
 			    (nveu8_t *)osi_core->base + MGBE_MAC_FSM_CONTROL);
 
@@ -2243,11 +2238,6 @@ static nve32_t mgbe_hsi_configure(struct osi_core_priv_data *const osi_core,
 	} else {
 		osi_core->hsi.enabled = OSI_DISABLE;
 
-		/* T23X-MGBE_HSIv2-10 Disable PCS ECC */
-		ret = xpcs_write_safety(osi_core, XPCS_BASE_PMA_MMD_SR_PMA_KR_FEC_CTRL, 0);
-		if (ret != 0) {
-			return ret;
-		}
 		/* T23X-MGBE_HSIv2-11:Deinitialization of Watchdog Timer */
 		ret = xpcs_write_safety(osi_core, XPCS_VR_XS_PCS_SFTY_TMR_CTRL, 0);
 		if (ret != 0) {

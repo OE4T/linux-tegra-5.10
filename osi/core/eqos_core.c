@@ -1028,7 +1028,8 @@ static nve32_t eqos_hsi_configure(struct osi_core_priv_data *const osi_core,
 
 		/* T23X-EQOS_HSIv2-3: Enabling and Initialization of Watchdog */
 		/* T23X-EQOS_HSIv2-4: Enabling of Consistency Monitor for FSM States */
-		value = (EQOS_PRTYEN | EQOS_TMOUTEN);
+		/* TODO enable EQOS_TMOUTEN. Bug 3584387 */
+		value = EQOS_PRTYEN;
 		osi_writela(osi_core, value,
 			    (nveu8_t *)osi_core->base + EQOS_MAC_FSM_CONTROL);
 
