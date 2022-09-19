@@ -227,6 +227,8 @@ struct PVA_PACKED pva_task_action_status_s {
 	/* IOVA to pva_gen_task_status_t struct */
 	pva_iova		p;
 	uint16_t		status;
+	/* Padding to ensure that structure is 4byte aligned for FW perf optimization */
+	uint8_t			pad[2];
 };
 
 struct PVA_PACKED pva_task_action_statistics_s {
@@ -235,6 +237,8 @@ struct PVA_PACKED pva_task_action_statistics_s {
 };
 struct PVA_PACKED pva_task_action_s {
 	uint8_t		action;
+	/* Padding to ensure that structure is 4byte aligned for FW perf optimization */
+	uint8_t		pad[3];
 	union {
 		struct pva_task_action_ptr_s		ptr;
 		struct pva_task_action_status_s		status;
