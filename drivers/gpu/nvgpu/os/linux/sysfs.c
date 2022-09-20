@@ -1077,7 +1077,11 @@ static ssize_t tpc_pg_mask_store(struct device *dev,
 			!= 0) {
 		nvgpu_err(g, "golden image size already initialized");
 		nvgpu_mutex_release(&g->static_pg_lock);
-		return -EINVAL;
+		/*
+		 * as golden context is already created,
+		 * return busy error code
+		 */
+		return -EBUSY;
 	}
 
 	if (platform->set_tpc_pg_mask != NULL) {
