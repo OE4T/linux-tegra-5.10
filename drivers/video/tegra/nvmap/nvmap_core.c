@@ -121,11 +121,7 @@ void __nvmap_kunmap(struct nvmap_handle *h, unsigned int pagenum,
 
 	if (h->flags != NVMAP_HANDLE_UNCACHEABLE &&
 	    h->flags != NVMAP_HANDLE_WRITE_COMBINE) {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
-		dcache_clean_inval_poc(addr, PAGE_SIZE);
-#else
 		__dma_flush_area(addr, PAGE_SIZE);
-#endif
 		outer_flush_range(paddr, paddr + PAGE_SIZE); /* FIXME */
 	}
 	iounmap((void __iomem *)addr);
