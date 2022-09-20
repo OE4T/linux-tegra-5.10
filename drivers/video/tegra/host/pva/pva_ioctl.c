@@ -970,9 +970,17 @@ static int pva_open(struct inode *inode, struct file *file)
 		dev_err(&pdev->dev, "failed to allocate client context");
 		goto err_alloc_context;
 	}
+	err = nvhost_module_busy(pva->pdev);
+	if (err < 0) {
+		dev_err(&pva->pdev->dev, "error in powering up pva %d",
+			err);
+		goto err_device_busy;
+	}
 
 	return nonseekable_open(inode, file);
 
+err_device_busy:
+	nvpva_client_context_put(priv->client);
 err_alloc_context:
 	nvpva_queue_put(priv->queue);
 err_alloc_queue:
@@ -1043,6 +1051,8 @@ static int pva_release(struct inode *inode, struct file *file)
 			break;
 		}
 	}
+
+	nvhost_module_idle(priv->pva->pdev);
 
 	/* Release reference to client */
 	nvpva_client_context_put(priv->client);
