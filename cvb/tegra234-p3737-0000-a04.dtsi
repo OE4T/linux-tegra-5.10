@@ -308,7 +308,7 @@
 	};
 
 	serial@3110000 {
-		status = "disabled";
+		status = "okay";
 	};
 
 	tachometer@39c0000 {
