@@ -24,6 +24,7 @@
 
 #include <linux/nvhost.h>
 
+#include "nvpva_syncpt.h"
 #include "nvpva_queue.h"
 #include "pva_bit_helpers.h"
 #include "pva.h"
@@ -63,6 +64,8 @@ static int nvpva_queue_task_pool_alloc(struct platform_device *pdev,
 	unsigned int i;
 	unsigned int num_segments = num_tasks/MAX_PVA_TASK_COUNT_PER_QUEUE_SEG;
 	struct nvpva_queue_task_pool *task_pool;
+	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
+	struct pva *pva = pdata->private_data;
 
 	task_pool = queue->task_pool;
 
@@ -93,6 +96,10 @@ static int nvpva_queue_task_pool_alloc(struct platform_device *pdev,
 		err = -ENOMEM;
 		goto err_alloc_task_pool;
 	}
+
+	nvpva_dbg_info(pva,
+		       "task_pool->dma_addr = %llx",
+		       (u64)task_pool->dma_addr);
 
 	task_pool->max_task_cnt = num_tasks;
 	mutex_init(&task_pool->lock);
@@ -278,7 +285,7 @@ static void nvpva_queue_release(struct kref *ref)
 	nvpva_dbg_fn(pva, "");
 
 	/* release allocated resources */
-	nvhost_syncpt_put_ref_ext(pool->pdev, queue->syncpt_id);
+	nvpva_syncpt_put_ref_ext(pool->pdev, queue->syncpt_id);
 
 	/* free the task_pool */
 	if (queue->task_dma_size)
@@ -338,14 +345,16 @@ struct nvpva_queue *nvpva_queue_alloc(struct nvpva_queue_pool *pool,
 	set_bit(index%64, &pool->alloc_table[index/64]);
 
 	/* allocate a syncpt for the queue */
-	queue->syncpt_id = nvhost_get_syncpt_client_managed(pdev, "pva_syncpt");
+	queue->syncpt_id = nvpva_get_syncpt_client_managed(pdev, "pva_syncpt");
 	if (queue->syncpt_id == 0) {
 		dev_err(&pdev->dev, "failed to get syncpt\n");
 		err = -ENOMEM;
 		goto err_alloc_syncpt;
 	}
-	if (nvhost_syncpt_read_ext_check(pdev, queue->syncpt_id, &syncpt_val) !=
-	    0) {
+
+	if (nvhost_syncpt_read_ext_check(pdev,
+					 queue->syncpt_id,
+					 &syncpt_val) != 0) {
 		err = -EIO;
 		goto err_read_syncpt;
 	}
@@ -382,7 +391,7 @@ struct nvpva_queue *nvpva_queue_alloc(struct nvpva_queue_pool *pool,
 err_alloc_task_pool:
 	mutex_lock(&pool->queue_lock);
 err_read_syncpt:
-	nvhost_syncpt_put_ref_ext(pdev, queue->syncpt_id);
+	nvpva_syncpt_put_ref_ext(pool->pdev, queue->syncpt_id);
 err_alloc_syncpt:
 	clear_bit(queue->id%64, &pool->alloc_table[queue->id/64]);
 err_alloc_queue:

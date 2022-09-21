@@ -45,7 +45,8 @@ nvhost-pva-objs  = \
 		pva_sha256.o \
 		pva_system_allow_list.o \
 		pva_vpu_app_auth.o \
-		pva_iommu_context_dev.o
+		pva_iommu_context_dev.o \
+		nvpva_syncpt.o
 
 ifdef NVPVA_T23X
 nvhost-pva-objs  += \

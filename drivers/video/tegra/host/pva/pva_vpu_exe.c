@@ -140,6 +140,8 @@ static int32_t pva_vpu_elf_alloc_mem(struct pva *pva,
 	if (va == NULL)
 		goto fail;
 
+	nvpva_dbg_info(pva, "vpu app addr = %llx", (u64)pa);
+
 	buffer->size = size;
 	buffer->va = va;
 	buffer->pa = pa;

@@ -324,6 +324,26 @@ struct pva_vpu_util_info {
 	struct semaphore util_info_sema;
 };
 
+struct scatterlist;
+struct nvpva_syncpt_desc {
+	struct scatterlist *sg;
+	dma_addr_t addr;
+	u32 id;
+	u32 assigned;
+};
+
+struct nvpva_syncpts_desc {
+	struct scatterlist *sg;
+	struct nvpva_syncpt_desc syncpts_rw[MAX_PVA_QUEUE_COUNT];
+	dma_addr_t syncpt_start_iova_r;
+	dma_addr_t syncpt_range_r;
+	dma_addr_t syncpt_start_iova_rw;
+	dma_addr_t syncpt_range_rw;
+	uint32_t   page_size;
+	bool	   syncpts_mapped_r;
+	bool	   syncpts_mapped_rw;
+};
+
 /**
  * @brief		Driver private data, shared with all applications
  *
@@ -366,6 +386,7 @@ struct pva {
 	struct pva_fw fw_info;
 	struct pva_vpu_auth_s pva_auth;
 	struct pva_vpu_auth_s pva_auth_sys;
+	struct nvpva_syncpts_desc syncpts;
 
 	int irq[MAX_PVA_IRQS];
 	s32 sids[16];
@@ -393,7 +414,6 @@ struct pva {
 	struct work_struct task_update_work;
 	atomic_t n_pending_tasks;
 	struct workqueue_struct *task_status_workqueue;
-
 	struct pva_trace_log pva_trace;
 	u32 submit_task_mode;
 	u32 submit_cmd_mode;

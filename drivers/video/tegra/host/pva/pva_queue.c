@@ -44,6 +44,9 @@
 #endif
 
 #include <linux/seq_file.h>
+#include <uapi/linux/nvpva_ioctl.h>
+#include <trace/events/nvhost_pva.h>
+
 #include "pva.h"
 #include "nvpva_buffer.h"
 #include "nvpva_queue.h"
@@ -55,9 +58,7 @@
 #include "pva-interface.h"
 #include "pva_vpu_exe.h"
 #include "nvpva_client.h"
-
-#include <uapi/linux/nvpva_ioctl.h>
-#include <trace/events/nvhost_pva.h>
+#include "nvpva_syncpt.h"
 
 void *pva_dmabuf_vmap(struct dma_buf *dmabuf)
 {
@@ -211,14 +212,20 @@ static int pva_task_pin_fence(struct pva_submit_task *task,
 		break;
 	}
 	case NVPVA_FENCE_OBJ_SYNCPT: {
-		dma_addr_t syncpt_addr = nvhost_syncpt_address(
-				task->queue->vm_pdev, fence->obj.syncpt.id);
-		if (syncpt_addr)
+		dma_addr_t syncpt_addr = nvpva_syncpt_address(
+				task->queue->vm_pdev, fence->obj.syncpt.id,
+				false);
+		nvpva_dbg_info(task->pva,
+			       "id = %d, syncpt addr = %llx",
+			       fence->obj.syncpt.id,
+			       syncpt_addr);
+
+		if (syncpt_addr) {
 			*addr = syncpt_addr;
-		else {
-			task_err(
-				task,
-				"%s: can't get syncpoint address", __func__);
+		} else {
+			task_err(task,
+				"%s: can't get syncpoint address",
+				__func__);
 			err = -EINVAL;
 		}
 		break;
@@ -344,8 +351,13 @@ static int pva_task_process_fence_actions(struct pva_submit_task *task,
 			{
 				u32 id = task->queue->syncpt_id;
 				fence_action->fence.obj.syncpt.id = id;
-				fence_addr = nvhost_syncpt_address(
-				    task->queue->vm_pdev, id);
+				fence_addr = nvpva_syncpt_address(
+				    task->queue->vm_pdev, id, true);
+				nvpva_dbg_info(task->pva,
+					       "id = %d, fence_addr = %llx ",
+					       task->queue->syncpt_id,
+					       fence_addr);
+
 				if (fence_addr == 0) {
 					err = -EFAULT;
 					goto out;
