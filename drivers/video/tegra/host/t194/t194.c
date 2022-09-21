@@ -175,6 +175,8 @@ struct nvhost_device_data t19_nvcsi_info = {
 		{"nvcsi", 400000000},
 	},
 	.devfs_name		= "nvcsi",
+	.autosuspend_delay      = 500,
+	.can_powergate = true,
 };
 #endif
 
@@ -193,6 +195,8 @@ struct nvhost_device_data t19_isp5_info = {
 	.ctrl_ops		= &tegra194_isp5_ctrl_ops,
 	.pre_virt_init		= isp5_priv_early_probe,
 	.post_virt_init		= isp5_priv_late_probe,
+	.autosuspend_delay      = 500,
+	.can_powergate = true,
 };
 #endif
 
