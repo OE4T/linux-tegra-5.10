@@ -1789,99 +1789,6 @@ done:
 }
 
 /**
- * @brief update_rfa_rfd - Update RFD and RSA values
- *
- * Algorithm: Calulates and stores the RSD (Threshold for Dectivating
- *	  Flow control) and RSA (Threshold for Activating Flow Control) values
- *	  based on the Rx FIFO size
- *
- * @param[in] rx_fifo: Rx FIFO size.
- * @param[in] value: Stores RFD and RSA values
- */
-static void update_rfa_rfd(nveu32_t rx_fifo, nveu32_t *value)
-{
-	switch (rx_fifo) {
-		case MGBE_21K:
-			/* Update RFD */
-			*value &= ~MGBE_MTL_RXQ_OP_MODE_RFD_MASK;
-			*value |= (FULL_MINUS_4_K <<
-				   MGBE_MTL_RXQ_OP_MODE_RFD_SHIFT) &
-				   MGBE_MTL_RXQ_OP_MODE_RFD_MASK;
-			/* Update RFA */
-			*value &= ~MGBE_MTL_RXQ_OP_MODE_RFA_MASK;
-			*value |= (FULL_MINUS_18_K <<
-				   MGBE_MTL_RXQ_OP_MODE_RFA_SHIFT) &
-				   MGBE_MTL_RXQ_OP_MODE_RFA_MASK;
-			break;
-		case MGBE_24K:
-			/* Update RFD */
-			*value &= ~MGBE_MTL_RXQ_OP_MODE_RFD_MASK;
-			*value |= (FULL_MINUS_4_K <<
-				   MGBE_MTL_RXQ_OP_MODE_RFD_SHIFT) &
-				   MGBE_MTL_RXQ_OP_MODE_RFD_MASK;
-			/* Update RFA */
-			*value &= ~MGBE_MTL_RXQ_OP_MODE_RFA_MASK;
-			*value |= (FULL_MINUS_21_K <<
-				   MGBE_MTL_RXQ_OP_MODE_RFA_SHIFT) &
-				   MGBE_MTL_RXQ_OP_MODE_RFA_MASK;
-			break;
-		case MGBE_27K:
-			/* Update RFD */
-			*value &= ~MGBE_MTL_RXQ_OP_MODE_RFD_MASK;
-			*value |= (FULL_MINUS_4_K <<
-				   MGBE_MTL_RXQ_OP_MODE_RFD_SHIFT) &
-				   MGBE_MTL_RXQ_OP_MODE_RFD_MASK;
-			/* Update RFA */
-			*value &= ~MGBE_MTL_RXQ_OP_MODE_RFA_MASK;
-			*value |= (FULL_MINUS_24_K <<
-				   MGBE_MTL_RXQ_OP_MODE_RFA_SHIFT) &
-				   MGBE_MTL_RXQ_OP_MODE_RFA_MASK;
-			break;
-		case MGBE_32K:
-			/* Update RFD */
-			*value &= ~MGBE_MTL_RXQ_OP_MODE_RFD_MASK;
-			*value |= (FULL_MINUS_4_K <<
-				   MGBE_MTL_RXQ_OP_MODE_RFD_SHIFT) &
-				   MGBE_MTL_RXQ_OP_MODE_RFD_MASK;
-			/* Update RFA */
-			*value &= ~MGBE_MTL_RXQ_OP_MODE_RFA_MASK;
-			*value |= (FULL_MINUS_29_K <<
-				   MGBE_MTL_RXQ_OP_MODE_RFA_SHIFT) &
-				   MGBE_MTL_RXQ_OP_MODE_RFA_MASK;
-			break;
-		case MGBE_38K:
-		case MGBE_48K:
-		case MGBE_64K:
-		case MGBE_96K:
-		case MGBE_192K:
-			/* Update RFD */
-			*value &= ~MGBE_MTL_RXQ_OP_MODE_RFD_MASK;
-			*value |= (FULL_MINUS_4_K <<
-				   MGBE_MTL_RXQ_OP_MODE_RFD_SHIFT) &
-				   MGBE_MTL_RXQ_OP_MODE_RFD_MASK;
-			/* Update RFA */
-			*value &= ~MGBE_MTL_RXQ_OP_MODE_RFA_MASK;
-			*value |= (FULL_MINUS_32_K <<
-				   MGBE_MTL_RXQ_OP_MODE_RFA_SHIFT) &
-				   MGBE_MTL_RXQ_OP_MODE_RFA_MASK;
-			break;
-		case MGBE_19K:
-		default:
-			/* Update RFD */
-			*value &= ~MGBE_MTL_RXQ_OP_MODE_RFD_MASK;
-			*value |= (FULL_MINUS_4_K <<
-				   MGBE_MTL_RXQ_OP_MODE_RFD_SHIFT) &
-				   MGBE_MTL_RXQ_OP_MODE_RFD_MASK;
-			/* Update RFA */
-			*value &= ~MGBE_MTL_RXQ_OP_MODE_RFA_MASK;
-			*value |= (FULL_MINUS_16_K <<
-				   MGBE_MTL_RXQ_OP_MODE_RFA_SHIFT) &
-				   MGBE_MTL_RXQ_OP_MODE_RFA_MASK;
-			break;
-	}
-}
-
-/**
  * @brief mgbe_configure_mtl_queue - Configure MTL Queue
  *
  * Algorithm: This takes care of configuring the  below
@@ -1904,11 +1811,38 @@ static void update_rfa_rfd(nveu32_t rx_fifo, nveu32_t *value)
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static nve32_t mgbe_configure_mtl_queue(nveu32_t qinx,
+static nve32_t mgbe_configure_mtl_queue(nveu32_t hw_qinx,
 					struct osi_core_priv_data *osi_core,
-					nveu32_t tx_fifo,
-					nveu32_t rx_fifo)
+					nveu32_t tx_fifo)
 {
+	nveu32_t qinx = hw_qinx & 0xFU;
+	/*
+	 * Total available Rx queue size is 192KB.
+	 * Below is the destribution among the Rx queueu -
+	 * Q0 - 160KB
+	 * Q1 to Q8 - 2KB each = 8 * 2KB = 16KB
+	 * Q9 - 16KB (MVBCQ)
+	 *
+	 * Formula to calculate the value to be programmed in HW
+	 *
+	 * vale= (size in KB / 256) - 1U
+	 */
+	const nveu32_t rx_fifo_sz[OSI_MGBE_MAX_NUM_QUEUES] = {
+		160U, 2U, 2U, 2U, 2U, 2U, 2U, 2U, 2U, 16U,
+	};
+	const nveu32_t rfd_rfa[OSI_MGBE_MAX_NUM_QUEUES] = {
+		FULL_MINUS_32_K,
+		FULL_MINUS_1_5K,
+		FULL_MINUS_1_5K,
+		FULL_MINUS_1_5K,
+		FULL_MINUS_1_5K,
+		FULL_MINUS_1_5K,
+		FULL_MINUS_1_5K,
+		FULL_MINUS_1_5K,
+		FULL_MINUS_1_5K,
+		FULL_MINUS_1_5K,
+	};
+	nveu32_t rx_fifo_sz_t = 0U;
 	nveu32_t value = 0;
 	nve32_t ret = 0;
 
@@ -1957,7 +1891,8 @@ static nve32_t mgbe_configure_mtl_queue(nveu32_t qinx,
 	/* read RX Q0 Operating Mode Register */
 	value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
 			  MGBE_MTL_CHX_RX_OP_MODE(qinx));
-	value |= (rx_fifo << MGBE_MTL_RXQ_SIZE_SHIFT);
+	rx_fifo_sz_t = (((rx_fifo_sz[qinx] * 1024U) / 256U) - 1U);
+	value |= (rx_fifo_sz_t << MGBE_MTL_RXQ_SIZE_SHIFT);
 	/* Enable Store and Forward mode */
 	value |= MGBE_MTL_RSF;
 	/* Enable HW flow control */
@@ -1972,7 +1907,10 @@ static nve32_t mgbe_configure_mtl_queue(nveu32_t qinx,
 	 */
 	value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
 			  MGBE_MTL_RXQ_FLOW_CTRL(qinx));
-	update_rfa_rfd(rx_fifo, &value);
+	value &= ~MGBE_MTL_RXQ_OP_MODE_RFD_MASK;
+	value &= ~MGBE_MTL_RXQ_OP_MODE_RFA_MASK;
+	value |= (rfd_rfa[qinx] << MGBE_MTL_RXQ_OP_MODE_RFD_SHIFT) & MGBE_MTL_RXQ_OP_MODE_RFD_MASK;
+	value |= (rfd_rfa[qinx] << MGBE_MTL_RXQ_OP_MODE_RFA_SHIFT) & MGBE_MTL_RXQ_OP_MODE_RFA_MASK;
 	osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
 		   MGBE_MTL_RXQ_FLOW_CTRL(qinx));
 
@@ -2747,13 +2685,12 @@ static nve32_t mgbe_dma_chan_to_vmirq_map(struct osi_core_priv_data *osi_core)
  */
 static nve32_t mgbe_core_init(struct osi_core_priv_data *const osi_core,
 			      nveu32_t tx_fifo_size,
-			      nveu32_t rx_fifo_size)
+			      OSI_UNUSED nveu32_t rx_fifo_size)
 {
 	nve32_t ret = 0;
 	nveu32_t qinx = 0;
 	nveu32_t value = 0;
 	nveu32_t tx_fifo = 0;
-	nveu32_t rx_fifo = 0;
 
 #ifndef OSI_STRIPPED_LIB
 	mgbe_core_backup_init(osi_core);
@@ -2794,21 +2731,16 @@ static nve32_t mgbe_core_init(struct osi_core_priv_data *const osi_core,
 
 	/* Actual HW RAM size for Tx is 128KB and Rx is 192KB */
 	tx_fifo_size = MGBE_TX_FIFO_SIZE_128KB;
-	rx_fifo_size = MGBE_RX_FIFO_SIZE_192KB;
 
 	/* Calculate value of Transmit queue fifo size to be programmed */
 	tx_fifo = mgbe_calculate_per_queue_fifo(tx_fifo_size,
-						osi_core->num_mtl_queues);
-
-	/* Calculate value of Receive queue fifo size to be programmed */
-	rx_fifo = mgbe_calculate_per_queue_fifo(rx_fifo_size,
 						osi_core->num_mtl_queues);
 
 	/* Configure MTL Queues */
 	/* TODO: Iterate over Number MTL queues need to be removed */
 	for (qinx = 0; qinx < osi_core->num_mtl_queues; qinx++) {
 		ret = mgbe_configure_mtl_queue(osi_core->mtl_queues[qinx],
-					       osi_core, tx_fifo, rx_fifo);
+					       osi_core, tx_fifo);
 		if (ret < 0) {
 			return ret;
 		}

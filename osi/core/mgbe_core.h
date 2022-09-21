@@ -649,28 +649,6 @@
 /** @} */
 
 /**
- * @addtogroup MGBE-QUEUE QUEUE fifo size programmable values
- *
- * @brief Queue FIFO size programmable values
- * @{
- */
-/* Formula is "Programmed value = (x + 1 )*256"
- * Total Rx buf size is 192KB so 192*1024 = (x + 1)*256
- * which gives x as 0x2FF
- */
-#define MGBE_19K	0x4BU  /* For Ten MTL queues */
-#define MGBE_21K	0x53U  /* For Nine MTL queues */
-#define MGBE_24K	0x5FU  /* For Eight MTL queues */
-#define MGBE_27K	0x6BU  /* For Seven MTL queues */
-#define MGBE_32K	0x7FU  /* For Six MTL queues */
-#define MGBE_38K	0x97U  /* For Five MTL queues */
-#define MGBE_48K	0xBFU  /* For Four MTL queues */
-#define MGBE_64K	0xFFU  /* For Three MTL queues */
-#define MGBE_96K	0x17FU /* For Two MTL queues */
-#define MGBE_192K	0x2FFU /* For One MTL queue */
-/** @} */
-
-/**
  * @addtogroup MGBE-SIZE SIZE calculation helper Macros
  *
  * @brief SIZE calculation defines
@@ -686,7 +664,6 @@
  * @{
  */
 #define MGBE_TX_FIFO_SIZE_128KB	10U
-#define MGBE_RX_FIFO_SIZE_192KB	12U
 /** @} */
 
 #ifndef OSI_STRIPPED_LIB
