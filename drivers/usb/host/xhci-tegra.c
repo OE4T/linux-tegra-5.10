@@ -248,6 +248,8 @@ enum build_info_log {
 	USB_DEVICE(vid, pid), \
 	.driver_info = QUIRK_FOR_LS_DEVICE,
 
+#define PORT_WAKE_BITS (PORT_WKOC_E | PORT_WKDISC_E | PORT_WKCONN_E)
+
 static struct usb_device_id disable_usb_persist_quirk_list[] = {
 	/* Sandisk Extreme USB 3.0 pen drive, SuperSpeed */
 	{ USB_DEVICE_SS(0x0781, 0x5580) },
@@ -3659,6 +3661,8 @@ static void tegra_xhci_enable_phy_sleepwalk_wake(struct tegra_xusb *tegra)
 				continue;
 
 			portsc = readl(rhub->ports[index]->addr);
+			if (!(portsc & PORT_WAKE_BITS))
+				continue;
 			speed = tegra_xhci_portsc_to_speed(tegra, portsc);
 			tegra_xusb_padctl_enable_phy_sleepwalk(padctl, phy, speed);
 			tegra_xusb_padctl_enable_phy_wake(padctl, phy);
