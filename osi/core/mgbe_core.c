@@ -2152,7 +2152,7 @@ static nve32_t mgbe_hsi_configure(struct osi_core_priv_data *const osi_core,
 
 	if (enable == OSI_ENABLE) {
 		osi_core->hsi.enabled = OSI_ENABLE;
-		osi_core->hsi.reporter_id = hsi_err_code[osi_core->instance_id][REPORTER_IDX];
+		osi_core->hsi.reporter_id = hsi_reporter_id[osi_core->instance_id];
 
 		/* T23X-MGBE_HSIv2-12:Initialization of Transaction Timeout in PCS */
 		/* T23X-MGBE_HSIv2-11:Initialization of Watchdog Timer */

@@ -369,7 +369,8 @@ typedef my_lint_64		nvel64_t;
 #define MACSEC_REG_VIOL_ERR_IDX 3U
 /** @} */
 
-extern nveu32_t hsi_err_code[][3];
+extern nveu32_t hsi_err_code[][2];
+extern nveu16_t hsi_reporter_id[];
 
 /**
  * @addtogroup HSI_TIME_THRESHOLD
@@ -1217,7 +1218,7 @@ struct osi_hsi_data {
 	/** error count threshold to report error  */
 	nveu32_t err_count_threshold;
 	/** HSI reporter ID */
-	nveu32_t reporter_id;
+	nveu16_t reporter_id;
 	/** HSI error codes */
 	nveu32_t err_code[HSI_MAX_MAC_ERROR_CODE];
 	/** HSI MAC report count threshold based error */

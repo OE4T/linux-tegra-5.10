@@ -999,7 +999,7 @@ static nve32_t eqos_hsi_configure(struct osi_core_priv_data *const osi_core,
 
 	if (enable == OSI_ENABLE) {
 		osi_core->hsi.enabled = OSI_ENABLE;
-		osi_core->hsi.reporter_id = hsi_err_code[osi_core->instance_id][REPORTER_IDX];
+		osi_core->hsi.reporter_id = hsi_reporter_id[osi_core->instance_id];
 
 		/* T23X-EQOS_HSIv2-19: Enabling of Consistency Monitor for TX Frame Errors */
 		value = osi_readla(osi_core,
