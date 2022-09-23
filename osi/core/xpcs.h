@@ -171,7 +171,7 @@ static inline void xpcs_write(void *xpcs_base, nveu32_t reg_addr,
  * @param[in] val: write value to register address
  *
  * @retval 0 on success
- * @retval -1 on failure.
+ * @retval XPCS_WRITE_FAIL_CODE on failure
  *
  */
 static inline nve32_t xpcs_write_safety(struct osi_core_priv_data *osi_core,
@@ -193,6 +193,6 @@ static inline nve32_t xpcs_write_safety(struct osi_core_priv_data *osi_core,
 
 	OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 		     "xpcs_write_safety failed", reg_addr);
-	return -1;
+	return XPCS_WRITE_FAIL_CODE;
 }
 #endif

@@ -347,6 +347,8 @@ typedef my_lint_64		nvel64_t;
 #define OSI_FRP_MATCH_VLAN		9U
 /** @} */
 
+#define XPCS_WRITE_FAIL_CODE	-9
+
 #ifdef HSI_SUPPORT
 /**
  * @addtogroup hsi_err_code_idx
@@ -362,6 +364,7 @@ typedef my_lint_64		nvel64_t;
 #define TX_FRAME_ERR_IDX	3U
 #define RX_CSUM_ERR_IDX		4U
 #define AUTONEG_ERR_IDX		5U
+#define XPCS_WRITE_FAIL_IDX	6U
 
 #define MACSEC_RX_CRC_ERR_IDX	0U
 #define MACSEC_TX_CRC_ERR_IDX	1U
@@ -392,7 +395,7 @@ extern nveu16_t hsi_reporter_id[];
  * @brief Maximum number of different mac error code
  * HSI_SW_ERR_CODE + Two (Corrected and Uncorrected error code)
  */
-#define HSI_MAX_MAC_ERROR_CODE		6U
+#define HSI_MAX_MAC_ERROR_CODE		7U
 
 /**
  * @brief Maximum number of different macsec error code
@@ -413,6 +416,7 @@ extern nveu16_t hsi_reporter_id[];
 #define OSI_MACSEC_TX_CRC_ERR		0x1006U
 #define OSI_MACSEC_RX_ICV_ERR		0x1007U
 #define OSI_MACSEC_REG_VIOL_ERR		0x1008U
+#define OSI_XPCS_WRITE_FAIL_ERR		0x1009U
 /** @} */
 #endif
 

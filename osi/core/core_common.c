@@ -183,8 +183,8 @@ nve32_t hw_set_speed(struct osi_core_priv_data *const osi_core, const nve32_t sp
 	osi_writela(osi_core, value, ((nveu8_t *)osi_core->base + mac_mcr[osi_core->mac]));
 
 	if (osi_core->mac == OSI_MAC_HW_MGBE) {
-		if (xpcs_init(osi_core) < 0) {
-			ret = -1;
+		ret = xpcs_init(osi_core);
+		if (ret < 0) {
 			goto fail;
 		}
 
