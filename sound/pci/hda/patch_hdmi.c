@@ -895,7 +895,6 @@ static int hdmi_pin_hbr_setup(struct hda_codec *codec, hda_nid_t pin_nid,
 {
 	int pinctl, new_pinctl;
 
-	/* Assuming the HW supports HBR for Tegra HDMI */
 	if (snd_hda_query_pin_caps(codec, pin_nid) & AC_PINCAP_HBR) {
 		snd_hda_set_dev_select(codec, pin_nid, dev_id);
 		pinctl = snd_hda_codec_read(codec, pin_nid, 0,
@@ -1649,11 +1648,6 @@ static void hdmi_present_sense_via_verbs(struct hdmi_spec_per_pin *per_pin,
 		if (spec->ops.pin_get_eld(codec, pin_nid, dev_id,
 					  eld->eld_buffer, &eld->eld_size) < 0)
 			eld->eld_valid = false;
-
-		if (snd_hdmi_parse_eld(codec, &eld->info, eld->eld_buffer,
-						    eld->eld_size) < 0)
-			eld->eld_valid = false;
-
 	}
 
 	update_eld(codec, per_pin, eld, repoll);
