@@ -24,6 +24,19 @@ int nvhost_syncpt_unit_interface_get_aperture(
 				phys_addr_t *base,
 				size_t *size);
 
+#ifdef CONFIG_TEGRA_HOST1X
+u32 nvhost_syncpt_unit_interface_get_byte_offset_ext(
+				struct platform_device *host_pdev,
+				u32 syncpt_id);
+#else
 u32 nvhost_syncpt_unit_interface_get_byte_offset(u32 syncpt_id);
+
+static inline u32 nvhost_syncpt_unit_interface_get_byte_offset_ext(
+				struct platform_device *host_pdev,
+				u32 syncpt_id)
+{
+	return nvhost_syncpt_unit_interface_get_byte_offset(syncpt_id);
+}
+#endif
 
 #endif /* __LINUX_NVHOST_T194_H__ */

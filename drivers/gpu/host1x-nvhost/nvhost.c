@@ -12,6 +12,7 @@
 #include <linux/iommu.h>
 #include <linux/module.h>
 #include <linux/nvhost.h>
+#include <linux/nvhost_t194.h>
 #include <linux/of_platform.h>
 #include <linux/pm_runtime.h>
 #include <linux/reset.h>
@@ -389,6 +390,27 @@ static int nvhost_syncpt_get_page_size(struct device_node *np, uint32_t *size)
 
 	return -ENODEV;
 }
+
+u32 nvhost_syncpt_unit_interface_get_byte_offset_ext(struct platform_device *pdev,
+						     u32 syncpt_id)
+{
+	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
+	struct nvhost_syncpt_interface *syncpt_if = pdata->syncpt_unit_interface;
+
+	if (WARN_ON(!syncpt_if))
+		return 0;
+
+	return syncpt_id * syncpt_if->page_size;
+}
+EXPORT_SYMBOL(nvhost_syncpt_unit_interface_get_byte_offset_ext);
+
+int nvhost_syncpt_unit_interface_get_aperture(struct platform_device *pdev,
+					      u64 *base, size_t *size)
+{
+	return nvhost_syncpt_get_aperture(pdev->dev.parent->of_node, base,
+					  size);
+}
+EXPORT_SYMBOL(nvhost_syncpt_unit_interface_get_aperture);
 
 int nvhost_syncpt_unit_interface_init(struct platform_device *pdev)
 {
