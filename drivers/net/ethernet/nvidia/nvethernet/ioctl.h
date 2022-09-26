@@ -75,35 +75,7 @@
 #ifdef OSI_DEBUG
 #define ETHER_DEBUG_INTR_CONFIG	60
 #endif
-
 /** @} */
-
-/**
- * @brief struct ether_ifr_data - Private data of struct ifreq
- */
-struct ether_ifr_data {
-	/** Flags used for specific ioctl - like enable/disable */
-	unsigned int if_flags;
-	/** qinx: Queue index to be used for certain ioctls */
-	unsigned int qinx;
-	/** The private ioctl command number */
-	unsigned int ifcmd;
-	/** Used to indicate if context descriptor needs to be setup to
-	 * handle ioctl */
-	unsigned int context_setup;
-	/** Used to query the connected link speed */
-	unsigned int connected_speed;
- 	/** Used to set Remote wakeup filters */
-	unsigned int rwk_filter_values[EQOS_RWK_FILTER_LENGTH];
-	/** Number of remote wakeup filters to use */
-	unsigned int rwk_filter_length;
-	/** The return value of IOCTL handler func */
-	int command_error;
-	/** test_done: Not in use, keep for app compatibility */
-	int test_done;
-	/** IOCTL cmd specific structure pointer */
-	void *ptr;
-};
 
 /**
  * @brief struct arp_offload_param - Parameter to support ARP offload.

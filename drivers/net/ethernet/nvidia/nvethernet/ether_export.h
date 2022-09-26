@@ -55,4 +55,22 @@ struct ether_l2_filter {
 	/** Ethernet MAC address to be added */
 	nveu8_t mac_address[OSI_ETH_ALEN];
 };
+
+/**
+ * @brief struct ether_exported_ifr_data - Private data of struct ifreq
+ */
+struct ether_exported_ifr_data {
+	/** Flags used for specific ioctl - like enable/disable */
+	nveu32_t if_flags;
+	/** qinx: Queue index to be used for certain ioctls */
+	nveu32_t qinx;
+	/** The private ioctl command number */
+	nveu32_t ifcmd;
+	/** Used to query the connected link speed */
+	nveu32_t connected_speed;
+	/** The return value of IOCTL handler func */
+	nve32_t command_error;
+	/** IOCTL cmd specific structure pointer */
+	void *ptr;
+};
 #endif /* ETHER_EXPORT_H */

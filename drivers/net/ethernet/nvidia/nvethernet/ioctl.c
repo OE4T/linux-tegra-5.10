@@ -118,7 +118,7 @@ static bool ether_is_bc_addr(unsigned char *bc_addr)
  * @retval "nagative value" on Failure
  */
 static int ether_set_avb_algo(struct net_device *ndev,
-			      struct ether_ifr_data *ifdata)
+			      struct ether_exported_ifr_data *ifdata)
 {
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
@@ -174,7 +174,7 @@ static int ether_set_avb_algo(struct net_device *ndev,
  * @retval "nagative value" on Failure
  */
 static int ether_m2m_tsync(struct net_device *ndev,
-			   struct ether_ifr_data *ifdata)
+			   struct ether_exported_ifr_data *ifdata)
 {
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
@@ -214,7 +214,7 @@ static int ether_m2m_tsync(struct net_device *ndev,
  * @retval "negative value" on Failure
  */
 static int ether_get_tsc_ptp_cap(struct net_device *ndev,
-				 struct ether_ifr_data *ifdata)
+				 struct ether_exported_ifr_data *ifdata)
 {
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
@@ -266,7 +266,7 @@ static int ether_get_tsc_ptp_cap(struct net_device *ndev,
  * @retval "negative value" on Failure
  */
 static int ether_get_avb_algo(struct net_device *ndev,
-			      struct ether_ifr_data *ifdata)
+			      struct ether_exported_ifr_data *ifdata)
 {
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
@@ -315,7 +315,7 @@ static int ether_get_avb_algo(struct net_device *ndev,
  * @retval "negative value" on Failure
  */
 static int ether_config_ptp_offload(struct ether_priv_data *pdata,
-				    struct ether_ifr_data *ifrd_p)
+				    struct ether_exported_ifr_data *ifrd_p)
 {
 	int ret = -EINVAL;
 	struct ptp_offload_param param;
@@ -415,7 +415,7 @@ static int ether_config_ptp_offload(struct ether_priv_data *pdata,
  * @retval "negative value" on Failure
  */
 static int ether_config_arp_offload(struct ether_priv_data *pdata,
-				    struct ether_ifr_data *ifrd_p)
+				    struct ether_exported_ifr_data *ifrd_p)
 {
 	int ret = -EINVAL;
 	struct arp_offload_param param;
@@ -465,7 +465,7 @@ static int ether_config_arp_offload(struct ether_priv_data *pdata,
  * @retval "negative value" on Failure
  */
 static int ether_config_frp_cmd(struct net_device *dev,
-				struct ether_ifr_data *ifdata)
+				struct ether_exported_ifr_data *ifdata)
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
@@ -541,7 +541,7 @@ static int ether_config_l3_l4_filtering(struct net_device *dev,
  * @retval "negative value" on Failure
  */
 static int ether_config_l2_filters(struct net_device *dev,
-				   struct ether_ifr_data *ifdata)
+				   struct ether_exported_ifr_data *ifdata)
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
@@ -609,7 +609,7 @@ static int ether_config_l2_filters(struct net_device *dev,
  * @retval "negative value" on Failure
  */
 static int ether_config_ip4_filters(struct net_device *dev,
-				    struct ether_ifr_data *ifdata)
+				    struct ether_exported_ifr_data *ifdata)
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
@@ -671,7 +671,7 @@ static int ether_config_ip4_filters(struct net_device *dev,
  * @retval "negative value" on Failure
  */
 static int ether_config_ip6_filters(struct net_device *dev,
-				    struct ether_ifr_data *ifdata)
+				    struct ether_exported_ifr_data *ifdata)
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
@@ -735,7 +735,7 @@ static int ether_config_ip6_filters(struct net_device *dev,
  * @retval "negative value" on Failure
  */
 static int ether_config_tcp_udp_filters(struct net_device *dev,
-					struct ether_ifr_data *ifdata,
+					struct ether_exported_ifr_data *ifdata,
 					unsigned int tcp_udp)
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
@@ -797,7 +797,7 @@ static int ether_config_tcp_udp_filters(struct net_device *dev,
  * @retval "negative value" on Failure
  */
 static int ether_config_vlan_filter(struct net_device *dev,
-				    struct ether_ifr_data *ifdata)
+				    struct ether_exported_ifr_data *ifdata)
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
@@ -897,7 +897,7 @@ static int ether_config_mc_dmasel(struct net_device *dev,
  * @retval "negative value" on Failure
  */
 static int ether_config_l2_da_filter(struct net_device *dev,
-				     struct ether_ifr_data *ifdata)
+				     struct ether_exported_ifr_data *ifdata)
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
@@ -1146,7 +1146,7 @@ static int ether_config_ptp_rxq(struct net_device *ndev,
  * @retval "negative value" on Failure
  */
 static int ether_config_est(struct net_device *dev,
-			    struct ether_ifr_data *ifdata)
+			    struct ether_exported_ifr_data *ifdata)
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
@@ -1193,7 +1193,7 @@ static int ether_config_est(struct net_device *dev,
  * @retval "negative value" on Failure
  */
 static int ether_config_fpe(struct net_device *dev,
-			    struct ether_ifr_data *ifdata)
+			    struct ether_exported_ifr_data *ifdata)
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
@@ -1241,7 +1241,7 @@ static int ether_config_fpe(struct net_device *dev,
  * @retval "nagative value" on Failure
  */
 static int ether_debug_intr_config(struct net_device *ndev,
-				   struct ether_ifr_data *ifdata)
+				   struct ether_exported_ifr_data *ifdata)
 {
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
@@ -1283,7 +1283,7 @@ int ether_handle_priv_ioctl(struct net_device *ndev,
 {
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	struct phy_device *phydev = ndev->phydev;
-	struct ether_ifr_data ifdata;
+	struct ether_exported_ifr_data ifdata;
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 #ifdef OSI_DEBUG
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
