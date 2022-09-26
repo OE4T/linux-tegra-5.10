@@ -458,7 +458,7 @@ static void tegra_capture_ivc_remove(struct tegra_ivc_channel *chan)
 	else if (__scivc_capture == civc)
 		__scivc_capture = NULL;
 	else
-		dev_WARN(&chan->dev, "Unknown ivc channel\n");
+		dev_warn(&chan->dev, "Unknown ivc channel\n");
 }
 
 static struct of_device_id tegra_capture_ivc_channel_of_match[] = {

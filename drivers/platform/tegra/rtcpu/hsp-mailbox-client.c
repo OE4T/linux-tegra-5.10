@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -478,7 +478,7 @@ int camrtc_hsp_bye(struct camrtc_hsp *camhsp)
 	mutex_unlock(&camhsp->mutex);
 
 	if (response != 0)
-		dev_WARN(&camhsp->dev, "BYE failed: 0x%08x\n", response);
+		dev_warn(&camhsp->dev, "BYE failed: 0x%08x\n", response);
 
 	return response;
 }
@@ -493,7 +493,7 @@ int camrtc_hsp_ch_setup(struct camrtc_hsp *camhsp, dma_addr_t iova)
 		return -EINVAL;
 
 	if (iova >= BIT_ULL(32) || (iova & 0xffU) != 0) {
-		dev_WARN(&camhsp->dev,
+		dev_warn(&camhsp->dev,
 			"CH_SETUP invalid iova: 0x%08llx\n", iova);
 		return -EINVAL;
 	}

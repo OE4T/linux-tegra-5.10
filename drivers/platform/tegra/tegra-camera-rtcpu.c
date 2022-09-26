@@ -592,7 +592,7 @@ static int tegra_sce_cam_wait_for_idle(struct device *dev)
 			break;
 
 		if (timeout < 0) {
-			dev_WARN(dev, "timeout waiting for WFI\n");
+			dev_warn(dev, "timeout waiting for WFI\n");
 			return -EBUSY;
 		}
 

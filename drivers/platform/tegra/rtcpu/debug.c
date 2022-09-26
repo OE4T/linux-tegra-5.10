@@ -1919,7 +1919,7 @@ static struct device *camrtc_get_linked_device(
 	of_node_put(np);
 
 	if (pdev == NULL) {
-		dev_WARN(dev, "%s[%u] node has no device\n", name, index);
+		dev_warn(dev, "%s[%u] node has no device\n", name, index);
 		return NULL;
 	}
 

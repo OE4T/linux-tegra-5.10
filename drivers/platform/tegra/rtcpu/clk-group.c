@@ -173,7 +173,7 @@ static void camrtc_clk_group_error(
 
 	of_property_read_string_index(grp->device->of_node,
 				"clock-names", index, &name);
-	dev_WARN(grp->device, "%s clk %s (at [%d]): failed (%d)\n",
+	dev_warn(grp->device, "%s clk %s (at [%d]): failed (%d)\n",
 				op, name, index, error);
 }
 
