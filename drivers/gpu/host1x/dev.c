@@ -2,7 +2,7 @@
 /*
  * Tegra host1x driver
  *
- * Copyright (c) 2010-2022, NVIDIA Corporation.
+ * Copyright (c) 2010-2022, NVIDIA CORPORATION & AFFILIATES. All Rights Reserved.
  */
 
 #include <linux/clk.h>
@@ -256,6 +256,42 @@ static const struct host1x_info host1x07_info = {
  * and firmware stream ID in the MMIO path table.
  */
 static const struct host1x_sid_entry tegra234_sid_table[] = {
+	{
+		/* SE1 MMIO */
+		.base = 0x1650,
+		.offset = 0x90,
+		.limit = 0x90
+	},
+	{
+		/* SE2 MMIO */
+		.base = 0x1658,
+		.offset = 0x90,
+		.limit = 0x90
+	},
+	{
+		/* SE4 MMIO */
+		.base = 0x1660,
+		.offset = 0x90,
+		.limit = 0x90
+	},
+	{
+		/* SE1 channel */
+		.base = 0x1730,
+		.offset = 0x90,
+		.limit = 0x90
+	},
+	{
+		/* SE2 channel */
+		.base = 0x1738,
+		.offset = 0x90,
+		.limit = 0x90
+	},
+	{
+		/* SE4 channel */
+		.base = 0x1740,
+		.offset = 0x90,
+		.limit = 0x90
+	},
 	{
 		/* VIC channel */
 		.base = 0x17b8,
