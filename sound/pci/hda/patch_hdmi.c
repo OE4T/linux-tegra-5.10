@@ -207,9 +207,7 @@ struct dp_audio_infoframe {
 	u8 type; /* 0x84 */
 	u8 len;  /* 0x1b */
 	u8 ver;  /* 0x11 << 2 */
-#if IS_ENABLED(CONFIG_SND_HDA_TEGRA)
-	u8 checksum;
-#endif
+
 	u8 CC02_CT47;	/* match with HDMI infoframe from this on */
 	u8 SS01_SF24;
 	u8 CXT04;
