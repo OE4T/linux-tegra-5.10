@@ -703,9 +703,9 @@ static void __get_free_counters(void *arg)
 }
 
 static int
-set_events(int cpuid, const struct quadd_event *events, int size)
+set_events(int cpuid, const struct quadd_event *events, int size, size_t base_idx)
 {
-	int i, free_pcntrs, err;
+	int i, free_pcntrs, err, nr_events = 0;
 	struct quadd_cntrs_info free_ci;
 	struct quadd_pmu_ctx *local_pmu_ctx = &per_cpu(pmu_ctx, cpuid);
 
@@ -779,13 +779,14 @@ set_events(int cpuid, const struct quadd_event *events, int size)
 		}
 
 		ei->event = events[i];
+		nr_events++;
 
 		pr_debug("[%d] Event has been added: id: %#x (%s), hw value: %#x\n",
 			 cpuid, id, type == QUADD_EVENT_TYPE_RAW ? "raw" : "hw",
 			 ei->hw_value);
 	}
 
-	return 0;
+	return nr_events;
 
 out_free:
 	free_events(&local_pmu_ctx->used_events);
@@ -794,7 +795,7 @@ out_free:
 
 static int
 supported_events(int cpuid, struct quadd_event *events,
-		 int max_events, unsigned int *raw_event_mask)
+		 int max_events, unsigned int *raw_event_mask, int *nr_ctrs)
 {
 	int i, nr_events = 0;
 
@@ -847,6 +848,7 @@ static const struct quadd_arch_info *get_arch(int cpuid)
 
 static struct quadd_event_source pmu_armv8_int = {
 	.name			= "armv8_pmuv3",
+	.description		= "ARMv8 PMUv3",
 	.enable			= pmu_enable,
 	.disable		= pmu_disable,
 	.start			= pmu_start,

@@ -1,7 +1,7 @@
 /*
  * drivers/misc/tegra-profiler/comm.c
  *
- * Copyright (c) 2013-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -505,7 +505,7 @@ device_ioctl(struct file *file,
 		per_cpu(cpu_ctx, cpuid).params_ok = 0;
 
 		err = comm_ctx.control->set_parameters_for_cpu(cpu_pmu_params);
-		if (err) {
+		if (err < 0) {
 			pr_err("error: setup failed\n");
 			vfree(cpu_pmu_params);
 			goto error_out;
@@ -541,7 +541,7 @@ device_ioctl(struct file *file,
 		}
 
 		err = comm_ctx.control->set_parameters(user_params);
-		if (err) {
+		if (err < 0) {
 			pr_err("error: setup failed\n");
 			vfree(user_params);
 			goto error_out;
