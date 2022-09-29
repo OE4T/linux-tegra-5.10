@@ -2159,7 +2159,7 @@ static nve32_t mgbe_hsi_configure(struct osi_core_priv_data *const osi_core,
 		value = (0xCCU << XPCS_SFTY_1US_MULT_SHIFT) & XPCS_SFTY_1US_MULT_MASK;
 		ret = xpcs_write_safety(osi_core, XPCS_VR_XS_PCS_SFTY_TMR_CTRL, value);
 		if (ret != 0) {
-			return ret;
+			goto fail;
 		}
 		/* T23X-MGBE_HSIv2-1 Configure ECC */
 		value = osi_readla(osi_core,
@@ -2175,9 +2175,9 @@ static nve32_t mgbe_hsi_configure(struct osi_core_priv_data *const osi_core,
 
 		/* T23X-MGBE_HSIv2-5: Enabling and Initialization of Transaction Timeout  */
 		value = (0x198U << MGBE_TMR_SHIFT) & MGBE_TMR_MASK;
-		value |= (0x0U << MGBE_CTMR_SHIFT) & MGBE_CTMR_MASK;
-		value |= (0x2U << MGBE_LTMRMD_SHIFT) & MGBE_LTMRMD_MASK;
-		value |= (0x2U << MGBE_NTMRMD_SHIFT) & MGBE_NTMRMD_MASK;
+		value |= ((nveu32_t)0x0U << MGBE_CTMR_SHIFT) & MGBE_CTMR_MASK;
+		value |= ((nveu32_t)0x2U << MGBE_LTMRMD_SHIFT) & MGBE_LTMRMD_MASK;
+		value |= ((nveu32_t)0x2U << MGBE_NTMRMD_SHIFT) & MGBE_NTMRMD_MASK;
 		osi_writela(osi_core, value,
 			    (nveu8_t *)osi_core->base + MGBE_DWCXG_CORE_MAC_FSM_ACT_TIMER);
 
@@ -2241,7 +2241,7 @@ static nve32_t mgbe_hsi_configure(struct osi_core_priv_data *const osi_core,
 		/* T23X-MGBE_HSIv2-11:Deinitialization of Watchdog Timer */
 		ret = xpcs_write_safety(osi_core, XPCS_VR_XS_PCS_SFTY_TMR_CTRL, 0);
 		if (ret != 0) {
-			return ret;
+			goto fail;
 		}
 		/* T23X-MGBE_HSIv2-1 Disable ECC */
 		value = osi_readla(osi_core,
@@ -2300,6 +2300,7 @@ static nve32_t mgbe_hsi_configure(struct osi_core_priv_data *const osi_core,
 		osi_writela(osi_core, value, (nveu8_t *)osi_core->xpcs_base +
 			    XPCS_WRAP_INTERRUPT_CONTROL);
 	}
+fail:
 	return ret;
 }
 #endif

@@ -853,7 +853,6 @@ void update_ehfc_rfa_rfd(nveu32_t rx_fifo, nveu32_t *value);
 #define EQOS_TMR_SHIFT				0U
 #define EQOS_TMR_MASK				0x3FFU
 #define EQOS_MAC_FSM_CONTROL			0x148U
-#define EQOS_TMOUTEN				OSI_BIT(0)
 #define EQOS_PRTYEN				OSI_BIT(1)
 #define EQOS_MAC_DPP_FSM_INTERRUPT_STATUS       0x140U
 #define EQOS_MTL_DPP_CONTROL			0xCE0U

@@ -356,8 +356,6 @@ typedef my_lint_64		nvel64_t;
  * @brief data index for hsi_err_code array
  * @{
  */
-#define REPORTER_IDX		2U
-
 #define UE_IDX			0U
 #define CE_IDX			1U
 #define RX_CRC_ERR_IDX		2U
@@ -365,7 +363,6 @@ typedef my_lint_64		nvel64_t;
 #define RX_CSUM_ERR_IDX		4U
 #define AUTONEG_ERR_IDX		5U
 #define XPCS_WRITE_FAIL_IDX	6U
-
 #define MACSEC_RX_CRC_ERR_IDX	0U
 #define MACSEC_TX_CRC_ERR_IDX	1U
 #define MACSEC_RX_ICV_ERR_IDX	2U

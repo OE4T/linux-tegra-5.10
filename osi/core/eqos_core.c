@@ -1021,8 +1021,8 @@ static nve32_t eqos_hsi_configure(struct osi_core_priv_data *const osi_core,
 
 		/* T23X-EQOS_HSIv2-5: Enabling and Initialization of Transaction Timeout */
 		value = (0x198U << EQOS_TMR_SHIFT) & EQOS_TMR_MASK;
-		value |= (0x2U << EQOS_LTMRMD_SHIFT) & EQOS_LTMRMD_MASK;
-		value |= (0x2U << EQOS_NTMRMD_SHIFT) & EQOS_NTMRMD_MASK;
+		value |= ((nveu32_t)0x2U << EQOS_LTMRMD_SHIFT) & EQOS_LTMRMD_MASK;
+		value |= ((nveu32_t)0x2U << EQOS_NTMRMD_SHIFT) & EQOS_NTMRMD_MASK;
 		osi_writela(osi_core, value,
 			    (nveu8_t *)osi_core->base + EQOS_MAC_FSM_ACT_TIMER);
 

@@ -47,6 +47,7 @@ NV_COMPONENT_SOURCES           := \
 	$(NV_SOURCE)/nvethernetrm/osi/common/mgbe_common.c \
 	$(NV_SOURCE)/nvethernetrm/osi/core/macsec.c
 
+NV_COMPONENT_CFLAGS += -DHSI_SUPPORT
 NV_COMPONENT_CFLAGS += -DMACSEC_SUPPORT
 #NV_COMPONENT_CFLAGS += -DMACSEC_KEY_PROGRAM
 
