@@ -492,6 +492,7 @@ done:
 	return ret;
 }
 
+#ifndef OSI_STRIPPED_LIB
 static inline void config_l2_da_perfect_inverse_match(
 					struct osi_core_priv_data *osi_core,
 					nveu32_t perfect_inverse_match)
@@ -506,6 +507,7 @@ static inline void config_l2_da_perfect_inverse_match(
 	}
 	osi_writela(osi_core, value, ((nveu8_t *)osi_core->base + MAC_PKT_FILTER_REG));
 }
+#endif /* !OSI_STRIPPED_LIB */
 
 nve32_t hw_config_mac_pkt_filter_reg(struct osi_core_priv_data *const osi_core,
 				     const struct osi_filter *filter)
@@ -555,10 +557,13 @@ nve32_t hw_config_mac_pkt_filter_reg(struct osi_core_priv_data *const osi_core,
 	}
 
 	if ((filter->oper_mode & OSI_OPER_DIS_L2_DA_INV) != OSI_DISABLE) {
-#endif /* !OSI_STRIPPED_LIB */
 		config_l2_da_perfect_inverse_match(osi_core, OSI_PFT_MATCH);
-#ifndef OSI_STRIPPED_LIB
 	}
+#else
+	value = osi_readla(osi_core, ((nveu8_t *)osi_core->base + MAC_PKT_FILTER_REG));
+	value &= ~MAC_PFR_DAIF;
+	osi_writela(osi_core, value, ((nveu8_t *)osi_core->base + MAC_PKT_FILTER_REG));
+
 #endif /* !OSI_STRIPPED_LIB */
 
 	return ret;
@@ -574,8 +579,8 @@ nve32_t hw_config_l3_l4_filter_enable(struct osi_core_priv_data *const osi_core,
 	/* validate filter_enb_dis argument */
 	if ((filter_enb_dis != OSI_ENABLE) && (filter_enb_dis != OSI_DISABLE)) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			"Invalid filter_enb_dis value\n",
-			filter_enb_dis);
+			     "Invalid filter_enb_dis value\n",
+			     filter_enb_dis);
 		ret = -1;
 		goto fail;
 	}

@@ -271,7 +271,9 @@ static inline nve32_t validate_mac_ver_update_chans(nveu32_t mac_ver,
 		ret = 1;
 		break;
 	case OSI_MGBE_MAC_3_10:
+#ifndef OSI_STRIPPED_LIB
 	case OSI_MGBE_MAC_4_00:
+#endif /* !OSI_STRIPPED_LIB */
 		*num_max_chans = OSI_MGBE_MAX_NUM_CHANS;
 		*l_mac_ver = MAC_CORE_VER_TYPE_MGBE;
 		ret = 1;

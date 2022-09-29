@@ -35,6 +35,7 @@
  * @brief g_ops - Static core operations array.
  */
 
+#if DRIFT_CAL
 /**
  * @brief Function to validate input arguments of API.
  *
@@ -61,6 +62,7 @@ static inline nve32_t validate_args(struct osi_core_priv_data *const osi_core,
 
 	return 0;
 }
+#endif
 
 /**
  * @brief Function to validate function pointers.
@@ -106,28 +108,101 @@ static nve32_t validate_func_ptrs(struct osi_core_priv_data *const osi_core,
 	return 0;
 }
 
-nve32_t osi_hal_write_phy_reg(struct osi_core_priv_data *const osi_core,
-			      const nveu32_t phyaddr, const nveu32_t phyreg,
-			      const nveu16_t phydata)
+/**
+ * @brief osi_hal_write_phy_reg - HW API to Write to a PHY register through MAC
+ * over MDIO bus.
+ *
+ * @note
+ * Algorithm:
+ * - Before proceeding for reading for PHY register check whether any MII
+ *   operation going on MDIO bus by polling MAC_GMII_BUSY bit.
+ * - Program data into MAC MDIO data register.
+ * - Populate required parameters like phy address, phy register etc,,
+ *   in MAC MDIO Address register. write and GMII busy bits needs to be set
+ *   in this operation.
+ * - Write into MAC MDIO address register poll for GMII busy for MDIO
+ *   operation to complete.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] phyaddr: PHY address (PHY ID) associated with PHY
+ * @param[in] phyreg: Register which needs to be write to PHY.
+ * @param[in] phydata: Data to write to a PHY register.
+ *
+ * @pre MAC should be init and started. see osi_start_mac()
+ *
+ * @note
+ * Traceability Details:
+ * - SWUD_ID: TODO
+ *
+ * @usage
+ * - Allowed context for the API call
+ *  - Interrupt handler: No
+ *  - Signal handler: No
+ *  - Thread safe: No
+ *  - Async/Sync: Sync
+ *  - Required Privileges: None
+ * - API Group:
+ *  - Initialization: Yes
+ *  - Run time: Yes
+ *  - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static nve32_t osi_hal_write_phy_reg(struct osi_core_priv_data *const osi_core,
+				     const nveu32_t phyaddr, const nveu32_t phyreg,
+				     const nveu16_t phydata)
 {
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
-
-	if (validate_args(osi_core, l_core) < 0) {
-		return -1;
-	}
 
 	return l_core->ops_p->write_phy_reg(osi_core, phyaddr, phyreg, phydata);
 }
 
-nve32_t osi_hal_read_phy_reg(struct osi_core_priv_data *const osi_core,
-			     const nveu32_t phyaddr, const nveu32_t phyreg)
+/**
+ * @brief osi_hal_read_phy_reg - HW API to Read from a PHY register through MAC
+ * over MDIO bus.
+ *
+ * @note
+ * Algorithm:
+ *  - Before proceeding for reading for PHY register check whether any MII
+ *    operation going on MDIO bus by polling MAC_GMII_BUSY bit.
+ *  - Populate required parameters like phy address, phy register etc,,
+ *    in program it in MAC MDIO Address register. Read and GMII busy bits
+ *    needs to be set in this operation.
+ *  - Write into MAC MDIO address register poll for GMII busy for MDIO
+ *    operation to complete. After this data will be available at MAC MDIO
+ *    data register.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] phyaddr: PHY address (PHY ID) associated with PHY
+ * @param[in] phyreg: Register which needs to be read from PHY.
+ *
+ * @pre MAC should be init and started. see osi_start_mac()
+ *
+ * @note
+ * Traceability Details:
+ * - SWUD_ID: TODO
+ *
+ * @usage
+ * - Allowed context for the API call
+ *  - Interrupt handler: No
+ *  - Signal handler: No
+ *  - Thread safe: No
+ *  - Async/Sync: Sync
+ *  - Required Privileges: None
+ * - API Group:
+ *  - Initialization: Yes
+ *  - Run time: Yes
+ *  - De-initialization: No
+ *
+ * @retval data from PHY register on success
+ * @retval -1 on failure
+ */
+static nve32_t osi_hal_read_phy_reg(struct osi_core_priv_data *const osi_core,
+				    const nveu32_t phyaddr, const nveu32_t phyreg)
 
 {
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
-
-	if (validate_args(osi_core, l_core) < 0) {
-		return -1;
-	}
 
 	return l_core->ops_p->read_phy_reg(osi_core, phyaddr, phyreg);
 }
@@ -210,15 +285,11 @@ static inline void init_vlan_filters(struct osi_core_priv_data *const osi_core)
 }
 #endif
 
-nve32_t osi_hal_hw_core_init(struct osi_core_priv_data *const osi_core,
-			     nveu32_t tx_fifo_size, nveu32_t rx_fifo_size)
+static nve32_t osi_hal_hw_core_init(struct osi_core_priv_data *const osi_core,
+				    nveu32_t tx_fifo_size, nveu32_t rx_fifo_size)
 {
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 	nve32_t ret;
-
-	if (validate_args(osi_core, l_core) < 0) {
-		return -1;
-	}
 
 #ifndef OSI_STRIPPED_LIB
 	init_vlan_filters(osi_core);
@@ -240,13 +311,39 @@ nve32_t osi_hal_hw_core_init(struct osi_core_priv_data *const osi_core,
 	return ret;
 }
 
-nve32_t osi_hal_hw_core_deinit(struct osi_core_priv_data *const osi_core)
+/**
+ * @brief osi_hal_hw_core_deinit - HW API for MAC deinitialization.
+ *
+ * @note
+ * Algorithm:
+ *  - Stops MAC transmission and reception.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @pre MAC has to be out of reset.
+ *
+ * @note
+ * Traceability Details:
+ * - SWUD_ID: TODO
+ *
+ * @usage
+ * - Allowed context for the API call
+ *  - Interrupt handler: No
+ *  - Signal handler: No
+ *  - Thread safe: No
+ *  - Async/Sync: Sync
+ *  - Required Privileges: None
+ * - API Group:
+ *  - Initialization: No
+ *  - Run time: No
+ *  - De-initialization: Yes
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static nve32_t osi_hal_hw_core_deinit(struct osi_core_priv_data *const osi_core)
 {
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
-
-	if (validate_args(osi_core, l_core) < 0) {
-		return -1;
-	}
 
 	/* Stop the MAC */
 	hw_stop_mac(osi_core);
@@ -274,17 +371,149 @@ nve32_t osi_hal_hw_core_deinit(struct osi_core_priv_data *const osi_core)
 	return 0;
 }
 
-nve32_t osi_common_isr(struct osi_core_priv_data *const osi_core)
+/**
+ * @brief div_u64 - Calls a function which returns quotient
+ *
+ * @param[in] dividend: Dividend
+ * @param[in] divisor: Divisor
+ *
+ * @pre MAC IP should be out of reset and need to be initialized as the
+ *      requirements.
+ *
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ * @returns Quotient
+ */
+static inline nveu64_t div_u64(nveu64_t dividend,
+			       nveu64_t divisor)
 {
+	nveu64_t remain;
+
+	return div_u64_rem(dividend, divisor, &remain);
+}
+
+/**
+ * @brief osi_ptp_configuration - Configure PTP
+ *
+ * @note
+ * Algorithm:
+ *  - Configure the PTP registers that are required for PTP.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] enable: Enable or disable Time Stamping. 0: Disable 1: Enable
+ *
+ * @pre
+ *  - MAC should be init and started. see osi_start_mac()
+ *  - osi->ptp_config.ptp_filter need to be filled accordingly to the
+ *    filter that need to be set for PTP packets. Please check osi_ptp_config
+ *    structure declaration on the bit fields that need to be filled.
+ *  - osi->ptp_config.ptp_clock need to be filled with the ptp system clk.
+ *    Currently it is set to 62500000Hz.
+ *  - osi->ptp_config.ptp_ref_clk_rate need to be filled with the ptp
+ *    reference clock that platform supports.
+ *  - osi->ptp_config.sec need to be filled with current time of seconds
+ *  - osi->ptp_config.nsec need to be filled with current time of nseconds
+ *  - osi->base need to be filled with the ioremapped base address
+ *
+ * @note
+ * Traceability Details:
+ * - SWUD_ID: ETHERNET_NVETHERNETRM_021
+ *
+ * @usage
+ * - Allowed context for the API call
+ *  - Interrupt handler: No
+ *  - Signal handler: No
+ *  - Thread safe: No
+ *  - Async/Sync: Sync
+ *  - Required Privileges: None
+ * - API Group:
+ *  - Initialization: Yes
+ *  - Run time: Yes
+ *  - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static nve32_t osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
+				     OSI_UNUSED const nveu32_t enable)
+{
+#ifndef OSI_STRIPPED_LIB
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
+#endif /* !OSI_STRIPPED_LIB */
+	nve32_t ret = 0;
+	nveu64_t temp = 0, temp1 = 0, temp2 = 0;
+	nveu64_t ssinc = 0;
 
-	if (validate_args(osi_core, l_core) < 0) {
-		return -1;
+#ifndef OSI_STRIPPED_LIB
+	if (enable == OSI_DISABLE) {
+		/* disable hw time stamping */
+		/* Program MAC_Timestamp_Control Register */
+		hw_config_tscr(osi_core, OSI_DISABLE);
+		/* Disable PTP RX Queue routing */
+		ret = l_core->ops_p->config_ptp_rxq(osi_core,
+					    osi_core->ptp_config.ptp_rx_queue,
+					    OSI_DISABLE);
+	} else {
+#endif /* !OSI_STRIPPED_LIB */
+		/* Program MAC_Timestamp_Control Register */
+		hw_config_tscr(osi_core, osi_core->ptp_config.ptp_filter);
+
+		/* Program Sub Second Increment Register */
+		hw_config_ssir(osi_core);
+
+		/* formula for calculating addend value is
+		 * TSAR = (2^32 * 1000) / (ptp_ref_clk_rate in MHz * SSINC)
+		 * 2^x * y == (y << x), hence
+		 * 2^32 * 1000 == (1000 << 32)
+		 * so addend = (2^32 * 1000)/(ptp_ref_clk_rate in MHZ * SSINC);
+		 */
+		ssinc = OSI_PTP_SSINC_4;
+		if (osi_core->mac_ver == OSI_EQOS_MAC_5_30) {
+			ssinc = OSI_PTP_SSINC_6;
+		}
+
+		temp = ((nveu64_t)1000 << 32);
+		temp = (nveu64_t)temp * 1000000U;
+
+		temp1 = div_u64(temp,
+			(nveu64_t)osi_core->ptp_config.ptp_ref_clk_rate);
+
+		temp2 = div_u64(temp1, (nveu64_t)ssinc);
+
+		if (temp2 < UINT_MAX) {
+			osi_core->default_addend = (nveu32_t)temp2;
+		} else {
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+				     "core: temp2 >= UINT_MAX\n", 0ULL);
+			return -1;
+		}
+
+		/* Program addend value */
+		ret = hw_config_addend(osi_core, osi_core->default_addend);
+
+		/* Set current time */
+		if (ret == 0) {
+			ret = hw_set_systime_to_mac(osi_core,
+						    osi_core->ptp_config.sec,
+						    osi_core->ptp_config.nsec);
+#ifndef OSI_STRIPPED_LIB
+			if (ret == 0) {
+				/* Enable PTP RX Queue routing */
+				ret = l_core->ops_p->config_ptp_rxq(osi_core,
+					osi_core->ptp_config.ptp_rx_queue,
+					OSI_ENABLE);
+			}
+#endif /* !OSI_STRIPPED_LIB */
+		}
+#ifndef OSI_STRIPPED_LIB
 	}
+#endif /* !OSI_STRIPPED_LIB */
 
-	l_core->ops_p->handle_common_intr(osi_core);
-
-	return 0;
+	return ret;
 }
 
 #ifndef OSI_STRIPPED_LIB
@@ -369,21 +598,45 @@ static nve32_t conf_ptp_offload(struct osi_core_priv_data *const osi_core,
 }
 #endif /* !OSI_STRIPPED_LIB */
 
-nve32_t osi_l2_filter(struct osi_core_priv_data *const osi_core,
-		      const struct osi_filter *filter)
+/**
+ * @brief osi_l2_filter - configure L2 mac filter.
+ *
+ * @note
+ * Algorithm:
+ *  - This sequence is used to configure MAC in different packet
+ *    processing modes like promiscuous, multicast, unicast,
+ *    hash unicast/multicast and perfect/inverse matching for L2 DA
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] filter: OSI filter structure.
+ *
+ * @pre
+ *  - MAC should be initialized and started. see osi_start_mac()
+ *
+ * @note
+ * Traceability Details:
+ * - SWUD_ID: ETHERNET_NVETHERNETRM_018
+ *
+ * @usage
+ * - Allowed context for the API call
+ *  - Interrupt handler: No
+ *  - Signal handler: No
+ *  - Thread safe: No
+ *  - Async/Sync: Sync
+ *  - Required Privileges: None
+ * - API Group:
+ *  - Initialization: Yes
+ *  - Run time: Yes
+ *  - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static nve32_t osi_l2_filter(struct osi_core_priv_data *const osi_core,
+			     const struct osi_filter *filter)
 {
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 	nve32_t ret;
-
-	if ((validate_args(osi_core, l_core) < 0) || (filter == OSI_NULL)) {
-		return -1;
-	}
-
-	if (filter == OSI_NULL) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			     "CORE: filter is NULL\n", 0ULL);
-		return -1;
-	}
 
 	ret = hw_config_mac_pkt_filter_reg(osi_core, filter);
 	if (ret < 0) {
@@ -534,10 +787,6 @@ static nve32_t osi_l3l4_filter(struct osi_core_priv_data *const osi_core,
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 	nve32_t ret = -1;
 
-	if (validate_args(osi_core, l_core) < 0) {
-		return -1;
-	}
-
 	if ((dma_routing_enable == OSI_ENABLE) &&
 	    (osi_core->dcs_en != OSI_ENABLE)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
@@ -571,59 +820,41 @@ static nve32_t osi_l3l4_filter(struct osi_core_priv_data *const osi_core,
 	return ret;
 }
 
-nve32_t osi_config_rxcsum_offload(struct osi_core_priv_data *const osi_core,
-				  const nveu32_t enable)
-{
-	struct core_local *l_core = (struct core_local *)(void *)osi_core;
-
-	if (validate_args(osi_core, l_core) < 0) {
-		return -1;
-	}
-
-	return hw_config_rxcsum_offload(osi_core, enable);
-}
-
-nve32_t osi_set_systime_to_mac(struct osi_core_priv_data *const osi_core,
-			       const nveu32_t sec, const nveu32_t nsec)
-{
-	struct core_local *l_core = (struct core_local *)(void *)osi_core;
-
-	if (validate_args(osi_core, l_core) < 0) {
-		return -1;
-	}
-
-	return hw_set_systime_to_mac(osi_core, sec, nsec);
-}
-
 /**
- * @brief div_u64 - Calls a function which returns quotient
- *
- * @param[in] dividend: Dividend
- * @param[in] divisor: Divisor
- *
- * @pre MAC IP should be out of reset and need to be initialized as the
- *      requirements.
- *
+ * @brief osi_adjust_freq - Adjust frequency
  *
  * @note
- * API Group:
- * - Initialization: No
- * - Run time: Yes
- * - De-initialization: No
- * @returns Quotient
+ * Algorithm:
+ *  - Adjust a drift of +/- comp nanoseconds per second.
+ *    "Compensation" is the difference in frequency between
+ *    the master and slave clocks in Parts Per Billion.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] ppb: Parts per Billion
+ *
+ * @pre MAC should be init and started. see osi_start_mac()
+ *
+ * @note
+ * Traceability Details:
+ * - SWUD_ID: ETHERNET_NVETHERNETRM_023
+ *
+ * @usage
+ * - Allowed context for the API call
+ *  - Interrupt handler: No
+ *  - Signal handler: No
+ *  - Thread safe: No
+ *  - Async/Sync: Sync
+ *  - Required Privileges: None
+ * - API Group:
+ *  - Initialization: No
+ *  - Run time: Yes
+ *  - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
-static inline nveu64_t div_u64(nveu64_t dividend,
-			       nveu64_t divisor)
+static nve32_t osi_adjust_freq(struct osi_core_priv_data *const osi_core, nve32_t ppb)
 {
-	nveu64_t remain;
-
-	return div_u64_rem(dividend, divisor, &remain);
-}
-
-nve32_t osi_adjust_freq(struct osi_core_priv_data *const osi_core, nve32_t ppb)
-{
-	struct core_local *l_core = (struct core_local *)(void *)osi_core;
-
 	nveu64_t adj;
 	nveu64_t temp;
 	nveu32_t diff = 0;
@@ -631,10 +862,6 @@ nve32_t osi_adjust_freq(struct osi_core_priv_data *const osi_core, nve32_t ppb)
 	nveu32_t neg_adj = 0;
 	nve32_t ret = -1;
 	nve32_t ppb1 = ppb;
-
-	if (validate_args(osi_core, l_core) < 0) {
-		return -1;
-	}
 
 	addend = osi_core->default_addend;
 	if (ppb1 < 0) {
@@ -680,8 +907,8 @@ nve32_t osi_adjust_freq(struct osi_core_priv_data *const osi_core, nve32_t ppb)
 	return hw_config_addend(osi_core, addend);
 }
 
-nve32_t osi_adjust_time(struct osi_core_priv_data *const osi_core,
-			nvel64_t nsec_delta)
+static nve32_t osi_adjust_time(struct osi_core_priv_data *const osi_core,
+			       nvel64_t nsec_delta)
 {
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 	nveu32_t neg_adj = 0;
@@ -691,10 +918,6 @@ nve32_t osi_adjust_time(struct osi_core_priv_data *const osi_core,
 	nveu64_t udelta = 0;
 	nve32_t ret = -1;
 	nvel64_t nsec_delta1 = nsec_delta;
-
-	if (validate_args(osi_core, l_core) < 0) {
-		return -1;
-	}
 
 	if (nsec_delta1 < 0) {
 		neg_adj = 1;
@@ -725,111 +948,9 @@ nve32_t osi_adjust_time(struct osi_core_priv_data *const osi_core,
 					     osi_core->ptp_config.one_nsec_accuracy);
 }
 
-nve32_t osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
-			      const nveu32_t enable)
-{
-	struct core_local *l_core = (struct core_local *)(void *)osi_core;
-	nve32_t ret = 0;
-	nveu64_t temp = 0, temp1 = 0, temp2 = 0;
-	nveu64_t ssinc = 0;
-
-	if (validate_args(osi_core, l_core) < 0) {
-		return -1;
-	}
-
-	if (enable == OSI_DISABLE) {
-		/* disable hw time stamping */
-		/* Program MAC_Timestamp_Control Register */
-		hw_config_tscr(osi_core, OSI_DISABLE);
-#ifndef OSI_STRIPPED_LIB
-		/* Disable PTP RX Queue routing */
-		ret = l_core->ops_p->config_ptp_rxq(osi_core,
-					    osi_core->ptp_config.ptp_rx_queue,
-					    OSI_DISABLE);
-#endif /* !OSI_STRIPPED_LIB */
-	} else {
-		/* Program MAC_Timestamp_Control Register */
-		hw_config_tscr(osi_core,
-					   osi_core->ptp_config.ptp_filter);
-
-		/* Program Sub Second Increment Register */
-		hw_config_ssir(osi_core);
-
-		/* formula for calculating addend value is
-		 * TSAR = (2^32 * 1000) / (ptp_ref_clk_rate in MHz * SSINC)
-		 * 2^x * y == (y << x), hence
-		 * 2^32 * 1000 == (1000 << 32)
-		 * so addend = (2^32 * 1000)/(ptp_ref_clk_rate in MHZ * SSINC);
-		 */
-		ssinc = OSI_PTP_SSINC_4;
-		if (osi_core->mac_ver == OSI_EQOS_MAC_5_30) {
-			ssinc = OSI_PTP_SSINC_6;
-		}
-
-		temp = ((nveu64_t)1000 << 32);
-		temp = (nveu64_t)temp * 1000000U;
-
-		temp1 = div_u64(temp,
-			(nveu64_t)osi_core->ptp_config.ptp_ref_clk_rate);
-
-		temp2 = div_u64(temp1, (nveu64_t)ssinc);
-
-		if (temp2 < UINT_MAX) {
-			osi_core->default_addend = (nveu32_t)temp2;
-		} else {
-			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-				     "core: temp2 >= UINT_MAX\n", 0ULL);
-			return -1;
-		}
-
-		/* Program addend value */
-		ret = hw_config_addend(osi_core, osi_core->default_addend);
-
-		/* Set current time */
-		if (ret == 0) {
-			ret = hw_set_systime_to_mac(osi_core,
-						    osi_core->ptp_config.sec,
-						    osi_core->ptp_config.nsec);
-			if (ret == 0) {
-#ifndef OSI_STRIPPED_LIB
-				/* Enable PTP RX Queue routing */
-				ret = l_core->ops_p->config_ptp_rxq(osi_core,
-					osi_core->ptp_config.ptp_rx_queue,
-					OSI_ENABLE);
-#endif /* !OSI_STRIPPED_LIB */
-			}
-		}
-	}
-
-	return ret;
-}
-
-nve32_t osi_read_mmc(struct osi_core_priv_data *const osi_core)
-{
-	struct core_local *l_core = (struct core_local *)(void *)osi_core;
-
-	if (validate_args(osi_core, l_core) < 0) {
-		return -1;
-	}
-
-	l_core->ops_p->read_mmc(osi_core);
-
-	return 0;
-}
-
 static nve32_t osi_get_mac_version(struct osi_core_priv_data *const osi_core, nveu32_t *mac_ver)
 {
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
-
-	if (validate_args(osi_core, l_core) < 0) {
-		return -1;
-	}
-
-	if (mac_ver == OSI_NULL) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			     "mac_ver is NULL\n", 0ULL);
-		return -1;
-	}
 
 	*mac_ver = osi_readla(osi_core, ((nveu8_t *)osi_core->base + (nve32_t)MAC_VERSION)) &
 			      MAC_VERSION_SNVER_MASK;
@@ -1724,8 +1845,173 @@ static void store_l2_filter(struct osi_core_priv_data *osi_core,
 	}
 }
 
-nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
-			     struct osi_ioctl *data)
+/**
+ * @brief osi_hal_handle_ioctl - HW function API to handle runtime command
+ *
+ * @note
+ * Algorithm:
+ *  - Handle runtime commands to OSI
+ *  - OSI_CMD_MDC_CONFIG
+ *	Derive MDC clock based on provided AXI_CBB clk
+ *	arg1_u32 - CSR (AXI CBB) clock rate.
+ *  - OSI_CMD_RESTORE_REGISTER
+ *	Restore backup of MAC MMIO address space
+ *  - OSI_CMD_POLL_FOR_MAC_RST
+ *	Poll Software reset bit in MAC HW
+ *  - OSI_CMD_START_MAC
+ *	Start MAC Tx/Rx engine
+ *  - OSI_CMD_STOP_MAC
+ *	Stop MAC Tx/Rx engine
+ *  - OSI_CMD_COMMON_ISR
+ *	Common ISR handler
+ *  - OSI_CMD_PAD_CALIBRATION
+ *	PAD calibration
+ *  - OSI_CMD_READ_MMC
+ *	invoke function to read actual registers and update
+ *     structure variable mmc
+ *  - OSI_CMD_GET_MAC_VER
+ *	Reading MAC version
+ *	arg1_u32 - holds mac version
+ *  - OSI_CMD_VALIDATE_CORE_REG
+ *	 Read-validate HW registers for func safety
+ *  - OSI_CMD_RESET_MMC
+ *	invoke function to reset MMC counter and data
+ *        structure
+ *  - OSI_CMD_SAVE_REGISTER
+ *	 Take backup of MAC MMIO address space
+ *  - OSI_CMD_MAC_LB
+ *	Configure MAC loopback
+ *  - OSI_CMD_FLOW_CTRL
+ *	Configure flow control settings
+ *	arg1_u32 - Enable or disable flow control settings
+ *  - OSI_CMD_SET_MODE
+ *	Set Full/Half Duplex mode.
+ *	arg1_u32 - mode
+ *  - OSI_CMD_SET_SPEED
+ *	Set Operating speed
+ *	arg1_u32 - Operating speed
+ *  - OSI_CMD_L2_FILTER
+ *	configure L2 mac filter
+ *	l2_filter_struct - OSI filter structure
+ *  - OSI_CMD_RXCSUM_OFFLOAD
+ *	Configure RX checksum offload in MAC
+ *	arg1_u32 - enable(1)/disable(0)
+ *  - OSI_CMD_ADJ_FREQ
+ *	Adjust frequency
+ *	arg6_u32 - Parts per Billion
+ *  - OSI_CMD_ADJ_TIME
+ *	Adjust MAC time with system time
+ *	arg1_u32 - Delta time in nano seconds
+ *  - OSI_CMD_CONFIG_PTP
+ *	Configure PTP
+ *	arg1_u32 - Enable(1) or disable(0) Time Stamping
+ *  - OSI_CMD_GET_AVB
+ *	Get CBS algo and parameters
+ *	avb_struct -  osi core avb data structure
+ *  - OSI_CMD_SET_AVB
+ *	Set CBS algo and parameters
+ *	avb_struct -  osi core avb data structure
+ *  - OSI_CMD_CONFIG_RX_CRC_CHECK
+ *	Configure CRC Checking for Received Packets
+ *	arg1_u32 - Enable or disable checking of CRC field in
+ *	received pkts
+ *  - OSI_CMD_UPDATE_VLAN_ID
+ *	invoke osi call to update VLAN ID
+ *	arg1_u32 - VLAN ID
+ *  - OSI_CMD_CONFIG_TXSTATUS
+ *	Configure Tx packet status reporting
+ *	Enable(1) or disable(0) tx packet status reporting
+ *  - OSI_CMD_GET_HW_FEAT
+ *	Reading MAC HW features
+ *	hw_feat_struct - holds the supported features of the hardware
+ *  - OSI_CMD_CONFIG_FW_ERR
+ *	Configure forwarding of error packets
+ *	arg1_u32 - queue index, Max OSI_EQOS_MAX_NUM_QUEUES
+ *	arg2_u32 - FWD error enable(1)/disable(0)
+ *  - OSI_CMD_ARP_OFFLOAD
+ *	Configure ARP offload in MAC
+ *	arg1_u32 - Enable/disable flag
+ *	arg7_u8_p - Char array representation of IP address
+ *  - OSI_CMD_VLAN_FILTER
+ *	OSI call for configuring VLAN filter
+ *	vlan_filter - vlan filter structure
+ *  - OSI_CMD_CONFIG_EEE
+ *	Configure EEE LPI in MAC
+ *	arg1_u32 - Enable (1)/disable (0) tx lpi
+ *	arg2_u32 - Tx LPI entry timer in usecs upto
+ *		   OSI_MAX_TX_LPI_TIMER (in steps of 8usec)
+ *  - OSI_CMD_L3L4_FILTER
+ *	invoke OSI call to add L3/L4
+ *	l3l4_filter - l3_l4 filter structure
+ *	arg1_u32 - L3 filter (ipv4(0) or ipv6(1))
+ *            or L4 filter (tcp(0) or udp(1)
+ *	arg2_u32 - filter based dma routing enable(1)
+ *	arg3_u32 - dma channel for routing based on filter.
+ *		   Max OSI_EQOS_MAX_NUM_CHANS.
+ *	arg4_u32 - API call for L3 filter(0) or L4 filter(1)
+ *  - OSI_CMD_SET_SYSTOHW_TIME
+ *	set system to MAC hardware
+ *	arg1_u32 - sec
+ *	arg1_u32 - nsec
+ *  - OSI_CMD_CONFIG_PTP_OFFLOAD
+ *	enable/disable PTP offload feature
+ *	pto_config - ptp offload structure
+ *  - OSI_CMD_PTP_RXQ_ROUTE
+ *	rxq routing to secific queue
+ *	rxq_route - rxq routing information in structure
+ *  - OSI_CMD_CONFIG_FRP
+ *	Issue FRP command to HW
+ *	frp_cmd - FRP command parameter
+ *  - OSI_CMD_CONFIG_RSS
+ *	Configure RSS
+ *  - OSI_CMD_CONFIG_EST
+ *	Configure EST registers and GCL to hw
+ *	est - EST configuration structure
+ *  - OSI_CMD_CONFIG_FPE
+ *	Configuration FPE register and preemptable queue
+ *	fpe - FPE configuration structure
+ *
+ *  - OSI_CMD_GET_TX_TS
+ *	Command to get TX timestamp for PTP packet
+ *	ts - OSI core timestamp structure
+ *
+ *  - OSI_CMD_FREE_TS
+ *	Command to free old timestamp for PTP packet
+ *	chan - DMA channel number +1. 0 will be used for onestep
+ *
+ *  - OSI_CMD_CAP_TSC_PTP
+ *      Capture TSC and PTP time stamp
+ *      ptp_tsc_data - output structure with time
+ *
+ *  - OSI_CMD_CONF_M2M_TS
+ *	Enable/Disable MAC to MAC time sync for Secondary interface
+ *	enable_disable - 1 - enable, 0- disable
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] data: void pointer pointing to osi_ioctl
+ *
+ * @pre MAC should be init and started. see osi_start_mac()
+ *
+ * @note
+ * Traceability Details:
+ *
+ * @usage
+ * - Allowed context for the API call
+ *  - Interrupt handler: No
+ *  - Signal handler: No
+ *  - Thread safe: No
+ *  - Async/Sync: Sync
+ *  - Required Privileges: None
+ * - API Group:
+ *  - Initialization: No
+ *  - Run time: Yes
+ *  - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
+				    struct osi_ioctl *data)
 {
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 	const struct core_ops *ops_p;
@@ -1742,19 +2028,7 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 	nvel64_t secondary_time;
 #endif
 
-	if (validate_args(osi_core, l_core) < 0) {
-		ret = -1;
-		goto done;
-	}
-
 	ops_p = l_core->ops_p;
-
-	if (data == OSI_NULL) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			     "CORE: Invalid argument\n", 0ULL);
-		ret = -1;
-		goto done;
-	}
 
 	switch (data->cmd) {
 	case OSI_CMD_L3L4_FILTER:
@@ -2232,7 +2506,6 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		break;
 	}
 
-done:
 	return ret;
 }
 

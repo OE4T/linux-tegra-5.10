@@ -224,16 +224,15 @@
 #define OSI_MGBE_MAC_3_00	0x30U
 #define OSI_EQOS_MAC_4_10       0x41U
 #define OSI_EQOS_MAC_5_10       0x51U
+#define OSI_MGBE_MAC_4_00	0x40U
 #endif /* OSI_STRIPPED_LIB */
 
 #define OSI_EQOS_MAC_5_00       0x50U
 #define OSI_EQOS_MAC_5_30       0x53U
 #define OSI_MGBE_MAC_3_10	0x31U
-#define OSI_MGBE_MAC_4_00	0x40U
 
 #define OSI_MAX_VM_IRQS              5U
 #define OSI_IP4_FILTER		0U
-#define OSI_IP6_FILTER		1U
 
 #ifndef OSI_STRIPPED_LIB
 #define OSI_HASH_FILTER_MODE	1U
