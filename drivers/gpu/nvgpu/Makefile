@@ -39,7 +39,7 @@ endif
 # srctree.host1x path in order to find the necessary header files for
 # the upstream host1x driver.
 ifeq ($(CONFIG_TEGRA_GK20A_NVHOST_HOST1X),y)
-ccflags-y += -I$(srctree.host1x)/include
+ccflags-y += -I$(srctree.nvidia)/drivers/gpu/host1x/include
 endif
 
 # When using the upstream nvmap driver, the Makefile must define the
@@ -47,7 +47,7 @@ endif
 # the upstream nvmap driver.
 ifeq ($(CONFIG_NVGPU_NVMAP_NEXT),y)
 ifeq ($(origin srctree.nvmap), undefined)
-srctree.nvmap := $(abspath $(shell dirname $(lastword $(MAKEFILE_LIST)))/../../../../nvidia/drivers/video/tegra/nvmap)
+srctree.nvmap := $(srctree.nvidia)/drivers/video/tegra/nvmap
 endif
 ccflags-y += -I$(srctree.nvmap)/include
 endif
