@@ -7,7 +7,7 @@
 
 ccflags-y += -I$(srctree.nvidia)/include
 ccflags-y += -I$(srctree.nvidia)/include/uapi/linux
-ccflags-y += -I$(srctree.host1x)/include
+ccflags-y += -I$(srctree.nvidia)/drivers/gpu/host1x/include
 ccflags-y += -DCONFIG_TEGRA_HOST1X
 ccflags-y += -Werror
 
