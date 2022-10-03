@@ -167,6 +167,11 @@ static ssize_t irq_count_show(struct device *dev, struct device_attribute *attr,
 	struct sensor_device_attribute *sensor_attr = container_of(attr,
 			struct sensor_device_attribute, dev_attr);
 
+	if (sensor_attr->index < 0) {
+		dev_err(dev, "Negative index for OC events\n");
+		return -EDOM;
+	}
+
 	return sprintf(buf, "%u\n", tegra_oc.edp_oc[sensor_attr->index].irq_cnt);
 }
 
@@ -175,6 +180,11 @@ static ssize_t priority_show(struct device *dev, struct device_attribute *attr,
 {
 	struct sensor_device_attribute *sensor_attr = container_of(attr,
 			struct sensor_device_attribute, dev_attr);
+
+	if (sensor_attr->index < 0) {
+		dev_err(dev, "Negative index for OC events\n");
+		return -EDOM;
+	}
 
 	return sprintf(buf, "%u\n",
 			tegra_oc.throttle_ctrl[sensor_attr->index].priority);
@@ -186,6 +196,11 @@ static ssize_t cpu_thrtl_ctrl_show(struct device *dev,
 	struct sensor_device_attribute *sensor_attr = container_of(attr,
 			struct sensor_device_attribute, dev_attr);
 
+	if (sensor_attr->index < 0) {
+		dev_err(dev, "Negative index for OC events\n");
+		return -EDOM;
+	}
+
 	return sprintf(buf, "%u\n",
 			tegra_oc.throttle_ctrl[sensor_attr->index].cpu_depth);
 }
@@ -195,6 +210,11 @@ static ssize_t gpu_thrtl_ctrl_show(struct device *dev,
 {
 	struct sensor_device_attribute *sensor_attr = container_of(attr,
 			struct sensor_device_attribute, dev_attr);
+
+	if (sensor_attr->index < 0) {
+		dev_err(dev, "Negative index for OC events\n");
+		return -EDOM;
+	}
 
 	return sprintf(buf, "%u\n",
 			tegra_oc.throttle_ctrl[sensor_attr->index].gpu_depth);

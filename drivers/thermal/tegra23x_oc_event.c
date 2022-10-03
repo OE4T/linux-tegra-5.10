@@ -52,6 +52,11 @@ static ssize_t throt_en_show(struct device *dev, struct device_attribute *attr,
 		},
 	};
 
+	if (sensor_attr->index < 0) {
+		dev_err(dev, "Negative index for OC events\n");
+		return -EDOM;
+	}
+
 	err = tegra_bpmp_transfer(tegra23x_oc->bpmp, &msg);
 	if (err) {
 		dev_err(dev, "Failed to transfer message: %d\n", err);
@@ -82,6 +87,11 @@ static ssize_t event_cnt_show(struct device *dev, struct device_attribute *attr,
 			.size = sizeof(resp),
 		},
 	};
+
+	if (sensor_attr->index < 0) {
+		dev_err(dev, "Negative index for OC events\n");
+		return -EDOM;
+	}
 
 	err = tegra_bpmp_transfer(tegra23x_oc->bpmp, &msg);
 	if (err) {
