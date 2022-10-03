@@ -124,18 +124,25 @@ bool nvgpu_nvhost_syncpt_is_expired_ext(struct nvgpu_nvhost_dev *nvhost_dev,
 
 struct nvgpu_host1x_cb {
 	struct dma_fence_cb cb;
+	struct work_struct work;
 	void (*notifier)(void *, int);
 	void *notifier_data;
 };
 
+static void nvgpu_host1x_work_func(struct work_struct *work)
+{
+	struct nvgpu_host1x_cb *host1x_cb = container_of(work, struct nvgpu_host1x_cb, work);
+
+	host1x_cb->notifier(host1x_cb->notifier_data, 0);
+	kfree_rcu(host1x_cb);
+}
+
 static void nvgpu_host1x_cb_func(struct dma_fence *f, struct dma_fence_cb *cb)
 {
-	struct nvgpu_host1x_cb *host1x_cb;
+	struct nvgpu_host1x_cb *host1x_cb = container_of(cb, struct nvgpu_host1x_cb, cb);
 
-	host1x_cb = container_of(cb, struct nvgpu_host1x_cb, cb);
-	host1x_cb->notifier(host1x_cb->notifier_data, 0);
+	schedule_work(&host1x_cb->work);
 	dma_fence_put(f);
-	kfree(host1x_cb);
 }
 
 int nvgpu_nvhost_intr_register_notifier(struct nvgpu_nvhost_dev *nvhost_dev,
@@ -157,7 +164,7 @@ int nvgpu_nvhost_intr_register_notifier(struct nvgpu_nvhost_dev *nvhost_dev,
 	if (!sp)
 		return -EINVAL;
 
-	fence = host1x_fence_create(sp, thresh);
+	fence = host1x_fence_create(sp, thresh, true);
 	if (IS_ERR(fence)) {
 		pr_err("error %d during construction of fence!",
 			(int)PTR_ERR(fence));
@@ -170,6 +177,8 @@ int nvgpu_nvhost_intr_register_notifier(struct nvgpu_nvhost_dev *nvhost_dev,
 
 	cb->notifier = notifier;
 	cb->notifier_data = notifier_data;
+
+	INIT_WORK(&cb->work, nvgpu_host1x_work_func);
 
 	err = dma_fence_add_callback(fence, &cb->cb, nvgpu_host1x_cb_func);
 	if (err < 0) {
@@ -378,7 +387,7 @@ struct nvhost_fence *nvgpu_nvhost_fence_create(struct platform_device *pdev,
 	if (WARN_ON(!sp))
 		return ERR_PTR(-EINVAL);
 
-	return (struct nvhost_fence *)host1x_fence_create(sp, pts->thresh);
+	return (struct nvhost_fence *)host1x_fence_create(sp, pts->thresh, true);
 }
 
 struct nvhost_fence *nvgpu_nvhost_fence_get(int fd)
