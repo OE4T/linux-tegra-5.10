@@ -20,6 +20,7 @@
 #include "tegra234-dcb-p3701-0000-a02-p3737-0000-a01.dtsi"
 #include <tegra234-soc/mods-simple-bus.dtsi>
 #include "cvb/tegra234-p3737-0000-camera-imx274-dual.dtsi"
+#include <t234-common-cvm/tegra234-cpuidle.dtsi>
 #include <t234-common-cvm/tegra234-thermal.dtsi>
 
 / {
