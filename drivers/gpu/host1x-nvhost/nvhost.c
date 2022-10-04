@@ -689,7 +689,7 @@ static void nvhost_intr_do_work(struct work_struct *work)
 
 	host1x_cb = container_of(work, struct nvhost_host1x_cb, work);
 	host1x_cb->notifier(host1x_cb->notifier_data, 0);
-	kfree(host1x_cb);
+	kfree_rcu(host1x_cb);
 }
 
 int nvhost_intr_register_notifier(struct platform_device *pdev,
@@ -707,7 +707,7 @@ int nvhost_intr_register_notifier(struct platform_device *pdev,
 	if (!sp)
 		return -EINVAL;
 
-	fence = host1x_fence_create(sp, thresh);
+	fence = host1x_fence_create(sp, thresh, true);
 	if (IS_ERR(fence)) {
 		pr_err("error %d during construction of fence!",
 			(int)PTR_ERR(fence));
