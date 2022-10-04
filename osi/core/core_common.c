@@ -25,6 +25,7 @@
 #include "mgbe_core.h"
 #include "eqos_core.h"
 #include "xpcs.h"
+#include "macsec.h"
 
 static inline nve32_t poll_check(struct osi_core_priv_data *const osi_core, nveu8_t *addr,
 				 nveu32_t bit_check, nveu32_t *value)
@@ -1408,3 +1409,74 @@ void hw_tsn_init(struct osi_core_priv_data *osi_core,
 	   user application should use IOCTL to set CBS as per requirement
 	 */
 }
+
+#ifdef HSI_SUPPORT
+/**
+ * @brief hsi_common_error_inject
+ *
+ * Algorithm:
+ * - For macsec HSI: trigger interrupt using MACSEC_*_INTERRUPT_SET_0 register
+ * - For mmc counter based: trigger interrupt by incrementing count by threshold value
+ * - For rest: Directly set the error detected as there is no other mean to induce error
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] error_code: Ethernet HSI error code
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ */
+void hsi_common_error_inject(struct osi_core_priv_data *osi_core,
+			     nveu32_t error_code)
+{
+	switch (error_code) {
+	case OSI_INBOUND_BUS_CRC_ERR:
+		osi_core->mmc.mmc_rx_crc_error =
+			osi_update_stats_counter(osi_core->mmc.mmc_rx_crc_error,
+						 osi_core->hsi.err_count_threshold);
+		break;
+	case OSI_RECEIVE_CHECKSUM_ERR:
+		osi_core->mmc.mmc_rx_udp_err =
+			osi_update_stats_counter(osi_core->mmc.mmc_rx_udp_err,
+						 osi_core->hsi.err_count_threshold);
+		break;
+	case OSI_MACSEC_RX_CRC_ERR:
+		osi_writela(osi_core, MACSEC_RX_MAC_CRC_ERROR,
+			    (nveu8_t *)osi_core->macsec_base +
+			    MACSEC_RX_ISR_SET);
+		break;
+	case OSI_MACSEC_TX_CRC_ERR:
+		osi_writela(osi_core, MACSEC_TX_MAC_CRC_ERROR,
+			    (nveu8_t *)osi_core->macsec_base +
+			    MACSEC_TX_ISR_SET);
+		break;
+	case OSI_MACSEC_RX_ICV_ERR:
+		osi_writela(osi_core, MACSEC_RX_ICV_ERROR,
+			    (nveu8_t *)osi_core->macsec_base +
+			    MACSEC_RX_ISR_SET);
+		break;
+	case OSI_MACSEC_REG_VIOL_ERR:
+		osi_writela(osi_core, MACSEC_SECURE_REG_VIOL,
+			    (nveu8_t *)osi_core->macsec_base +
+			    MACSEC_COMMON_ISR_SET);
+		break;
+	case OSI_TX_FRAME_ERR:
+		osi_core->hsi.report_count_err[TX_FRAME_ERR_IDX] = OSI_ENABLE;
+		osi_core->hsi.err_code[TX_FRAME_ERR_IDX] = OSI_TX_FRAME_ERR;
+		osi_core->hsi.report_err = OSI_ENABLE;
+		break;
+	case OSI_PCS_AUTONEG_ERR:
+		osi_core->hsi.err_code[AUTONEG_ERR_IDX] = OSI_PCS_AUTONEG_ERR;
+		osi_core->hsi.report_err = OSI_ENABLE;
+		osi_core->hsi.report_count_err[AUTONEG_ERR_IDX] = OSI_ENABLE;
+		break;
+	case OSI_XPCS_WRITE_FAIL_ERR:
+		osi_core->hsi.err_code[XPCS_WRITE_FAIL_IDX] = OSI_XPCS_WRITE_FAIL_ERR;
+		osi_core->hsi.report_err = OSI_ENABLE;
+		osi_core->hsi.report_count_err[XPCS_WRITE_FAIL_IDX] = OSI_ENABLE;
+		break;
+	default:
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+			     "Invalid error code\n", (nveu32_t)error_code);
+		break;
+	}
+}
+#endif

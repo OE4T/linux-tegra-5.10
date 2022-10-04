@@ -96,6 +96,13 @@ typedef my_lint_64		nvel64_t;
 #define OSI_MAC_TCR_AV8021ASMEN		OSI_BIT(28)
 
 #define OSI_FLOW_CTRL_RX		OSI_BIT(1)
+
+#define OSI_INSTANCE_ID_MBGE0	0
+#define OSI_INSTANCE_ID_MGBE1	1
+#define OSI_INSTANCE_ID_MGBE2	2
+#define OSI_INSTANCE_ID_MGBE3	3
+#define OSI_INSTANCE_ID_EQOS0	4
+
 #endif /* !OSI_STRIPPED_LIB */
 
 
@@ -266,6 +273,9 @@ typedef my_lint_64		nvel64_t;
 #endif
 #define OSI_CMD_SUSPEND			53U
 #define OSI_CMD_RESUME			54U
+#ifdef HSI_SUPPORT
+#define OSI_CMD_HSI_INJECT_ERR		55U
+#endif
 /** @} */
 
 /**
@@ -290,8 +300,8 @@ typedef my_lint_64		nvel64_t;
  */
 #define OSI_CORE_INFO(priv, type, err, loga)				\
 {									\
-	osi_core->osd_ops.ops_log(priv, __func__, __LINE__,		\
-				  OSI_LOG_INFO, type, err, loga);	\
+	osi_core->osd_ops.ops_log((priv), __func__, __LINE__,		\
+				  OSI_LOG_INFO, (type), (err), (loga));	\
 }
 
 #define VLAN_NUM_VID		4096U
@@ -414,6 +424,24 @@ extern nveu16_t hsi_reporter_id[];
 #define OSI_MACSEC_RX_ICV_ERR		0x1007U
 #define OSI_MACSEC_REG_VIOL_ERR		0x1008U
 #define OSI_XPCS_WRITE_FAIL_ERR		0x1009U
+
+#define OSI_HSI_MGBE0_UE_CODE 0x2A00U
+#define OSI_HSI_MGBE1_UE_CODE 0x2A01U
+#define OSI_HSI_MGBE2_UE_CODE 0x2A02U
+#define OSI_HSI_MGBE3_UE_CODE 0x2A03U
+#define OSI_HSI_EQOS0_UE_CODE 0x28ADU
+
+#define OSI_HSI_MGBE0_CE_CODE 0x2E08U
+#define OSI_HSI_MGBE1_CE_CODE 0x2E09U
+#define OSI_HSI_MGBE2_CE_CODE 0x2E0AU
+#define OSI_HSI_MGBE3_CE_CODE 0x2E0BU
+#define OSI_HSI_EQOS0_CE_CODE 0x2DE6U
+
+#define OSI_HSI_MGBE0_REPORTER_ID 0x8019U
+#define OSI_HSI_MGBE1_REPORTER_ID 0x801AU
+#define OSI_HSI_MGBE2_REPORTER_ID 0x801BU
+#define OSI_HSI_MGBE3_REPORTER_ID 0x801CU
+#define OSI_HSI_EQOS0_REPORTER_ID 0x8009U
 /** @} */
 #endif
 

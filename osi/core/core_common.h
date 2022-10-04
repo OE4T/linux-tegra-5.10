@@ -142,4 +142,8 @@ nve32_t hw_config_fpe(struct osi_core_priv_data *const osi_core,
 		      struct osi_fpe_config *const fpe);
 void hw_tsn_init(struct osi_core_priv_data *osi_core,
 		 nveu32_t est_sel, nveu32_t fpe_sel);
+#ifdef HSI_SUPPORT
+void hsi_common_error_inject(struct osi_core_priv_data *osi_core,
+			     nveu32_t error_code);
+#endif
 #endif /* INCLUDED_CORE_COMMON_H */

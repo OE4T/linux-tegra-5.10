@@ -27,28 +27,25 @@
 
 #ifdef HSI_SUPPORT
 /**
- * @brief hsi_err_code - Arry of error code and reporter ID to be use by
- * each Ethernet controller instance
- * a condition is met or a timeout occurs
- * Below is the data:
- * uncorrectable_error_code, correctable_error_code, reporter ID
- * hsi_err_code[0] to hsi_err_code[3] for MGBE instance
- * hsi_err_code[4] is for EQOS
+ * @brief hsi_err_code - Array of error code
  */
 nveu32_t hsi_err_code[][2] = {
-	{0x2A00, 0x2E08},
-	{0x2A01, 0x2E09},
-	{0x2A02, 0x2E0A},
-	{0x2A03, 0x2E0B},
-	{0x28AD, 0x2DE6},
+	{OSI_HSI_MGBE0_UE_CODE, OSI_HSI_MGBE0_CE_CODE},
+	{OSI_HSI_MGBE1_UE_CODE, OSI_HSI_MGBE1_CE_CODE},
+	{OSI_HSI_MGBE2_UE_CODE, OSI_HSI_MGBE2_CE_CODE},
+	{OSI_HSI_MGBE3_UE_CODE, OSI_HSI_MGBE3_CE_CODE},
+	{OSI_HSI_EQOS0_UE_CODE, OSI_HSI_EQOS0_CE_CODE},
 };
 
+/**
+ * @brief hsi_reporter_id - Array of reporter_id
+ */
 nveu16_t hsi_reporter_id[] = {
-	0x8019,
-	0x801A,
-	0x801B,
-	0x801C,
-	0x8009,
+	OSI_HSI_MGBE0_REPORTER_ID,
+	OSI_HSI_MGBE1_REPORTER_ID,
+	OSI_HSI_MGBE2_REPORTER_ID,
+	OSI_HSI_MGBE3_REPORTER_ID,
+	OSI_HSI_EQOS0_REPORTER_ID,
 };
 #endif
 

@@ -30,6 +30,7 @@
 #include "mgbe_mmc.h"
 #include "vlan_filter.h"
 #include "core_common.h"
+#include "macsec.h"
 
 /**
  * @brief mgbe_calculate_per_queue_fifo - Calculate per queue FIFO size
@@ -2302,6 +2303,50 @@ static nve32_t mgbe_hsi_configure(struct osi_core_priv_data *const osi_core,
 	}
 fail:
 	return ret;
+}
+
+/**
+ * @brief mgbe_hsi_inject_err - Inject error
+ *
+ * Algorithm: Use error injection method to induce error
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] error_code: HSI Error code
+ *
+ */
+static void mgbe_hsi_inject_err(struct osi_core_priv_data *const osi_core,
+				const nveu32_t error_code)
+{
+	const nveu32_t val_ce = (MGBE_MTL_DEBUG_CONTROL_FDBGEN |
+				 MGBE_MTL_DEBUG_CONTROL_DBGMOD |
+				 MGBE_MTL_DEBUG_CONTROL_FIFORDEN |
+				 MGBE_MTL_DEBUG_CONTROL_EIEE |
+				 MGBE_MTL_DEBUG_CONTROL_EIEC);
+
+	const nveu32_t val_ue = (MGBE_MTL_DEBUG_CONTROL_FDBGEN |
+				 MGBE_MTL_DEBUG_CONTROL_DBGMOD |
+				 MGBE_MTL_DEBUG_CONTROL_FIFORDEN |
+				 MGBE_MTL_DEBUG_CONTROL_EIEE);
+
+	switch (error_code) {
+	case OSI_HSI_MGBE0_CE_CODE:
+	case OSI_HSI_MGBE1_CE_CODE:
+	case OSI_HSI_MGBE2_CE_CODE:
+	case OSI_HSI_MGBE3_CE_CODE:
+		osi_writela(osi_core, val_ce, (nveu8_t *)osi_core->base +
+			    MGBE_MTL_DEBUG_CONTROL);
+		break;
+	case OSI_HSI_MGBE0_UE_CODE:
+	case OSI_HSI_MGBE1_UE_CODE:
+	case OSI_HSI_MGBE2_UE_CODE:
+	case OSI_HSI_MGBE3_UE_CODE:
+		osi_writela(osi_core, val_ue, (nveu8_t *)osi_core->base +
+			    MGBE_MTL_DEBUG_CONTROL);
+		break;
+	default:
+		hsi_common_error_inject(osi_core, error_code);
+		break;
+	}
 }
 #endif
 
@@ -4618,5 +4663,6 @@ void mgbe_init_core_ops(struct core_ops *ops)
 #endif /* !OSI_STRIPPED_LIB */
 #ifdef HSI_SUPPORT
 	ops->core_hsi_configure = mgbe_hsi_configure;
+	ops->core_hsi_inject_err = mgbe_hsi_inject_err;
 #endif
 };

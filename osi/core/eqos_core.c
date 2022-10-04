@@ -28,6 +28,7 @@
 #include "core_local.h"
 #include "vlan_filter.h"
 #include "core_common.h"
+#include "macsec.h"
 
 #ifdef UPDATED_PAD_CAL
 /*
@@ -1117,6 +1118,46 @@ static nve32_t eqos_hsi_configure(struct osi_core_priv_data *const osi_core,
 			    EQOS_WRAP_COMMON_INTR_ENABLE);
 	}
 	return 0;
+}
+
+/**
+ * @brief eqos_hsi_inject_err - inject error
+ *
+ * @note
+ * Algorithm:
+ *  - Use error injection method induce error
+ *
+ * @param[in, out] osi_core: OSI core private data structure.
+ * @param[in] type: UE_IDX/CE_IDX
+ *
+ * @retval 0 on success
+ * @retval -1 on failure
+ */
+
+static void eqos_hsi_inject_err(struct osi_core_priv_data *const osi_core,
+			 const nveu32_t error_code)
+{
+	nveu32_t value;
+
+	switch (error_code) {
+	case OSI_HSI_EQOS0_CE_CODE:
+		value = (EQOS_MTL_DBG_CTL_EIEC | EQOS_MTL_DBG_CTL_EIEE);
+		osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
+				EQOS_MTL_DBG_CTL);
+		break;
+	case OSI_HSI_EQOS0_UE_CODE:
+		value = EQOS_MTL_DPP_ECC_EIC_BLEI;
+		osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
+				EQOS_MTL_DPP_ECC_EIC);
+
+		value = (EQOS_MTL_DBG_CTL_EIEC | EQOS_MTL_DBG_CTL_EIEE);
+		osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
+				EQOS_MTL_DBG_CTL);
+		break;
+	default:
+		hsi_common_error_inject(osi_core, error_code);
+		break;
+	}
 }
 #endif
 
@@ -4923,5 +4964,6 @@ void eqos_init_core_ops(struct core_ops *ops)
 #endif /* !OSI_STRIPPED_LIB */
 #ifdef HSI_SUPPORT
 	ops->core_hsi_configure = eqos_hsi_configure;
+	ops->core_hsi_inject_err = eqos_hsi_inject_err;
 #endif
 }

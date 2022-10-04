@@ -461,4 +461,13 @@
 #define INTEGER_LEN		4U
 #endif /* MACSEC_KEY_PROGRAM */
 
+#ifdef HSI_SUPPORT
+/* Set RX ISR set interrupt status bit */
+#define MACSEC_RX_ISR_SET		0x4050U
+/* Set TX ISR set interrupt status bit */
+#define MACSEC_TX_ISR_SET		0x4010U
+/* Set Common ISR set interrupt status bit */
+#define MACSEC_COMMON_ISR_SET		0xd05cU
+#endif
+
 #endif /* INCLUDED_MACSEC_H */

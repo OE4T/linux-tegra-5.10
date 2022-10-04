@@ -858,6 +858,11 @@ void update_ehfc_rfa_rfd(nveu32_t rx_fifo, nveu32_t *value);
 #define EQOS_MTL_DPP_CONTROL			0xCE0U
 #define EQOS_EDPP				OSI_BIT(0)
 #define EQOS_MAC_DPP_FSM_INTERRUPT_STATUS	0x140U
+#define EQOS_MTL_DBG_CTL			0xC08U
+#define EQOS_MTL_DBG_CTL_EIEC			OSI_BIT(18)
+#define EQOS_MTL_DBG_CTL_EIEE			OSI_BIT(16)
+#define EQOS_MTL_DPP_ECC_EIC			0xCE4U
+#define EQOS_MTL_DPP_ECC_EIC_BLEI		OSI_BIT(0)
 /** @} */
 #endif
 

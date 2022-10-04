@@ -254,6 +254,9 @@ struct core_ops {
 	/** Interface function called to initialize HSI */
 	nve32_t (*core_hsi_configure)(struct osi_core_priv_data *const osi_core,
 				   const nveu32_t enable);
+	/** Interface function called to inject error */
+	void (*core_hsi_inject_err)(struct osi_core_priv_data *const osi_core,
+				    const nveu32_t error_code);
 #endif
 };
 
