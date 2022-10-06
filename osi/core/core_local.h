@@ -208,9 +208,6 @@ struct core_ops {
 	/** Called to configure HW PTP offload feature */
 	nve32_t (*config_ptp_offload)(struct osi_core_priv_data *const osi_core,
 				  struct osi_pto_config *const pto_config);
-	/** Called periodically to read and validate safety critical
-	 * registers against last written value */
-	nve32_t (*validate_regs)(struct osi_core_priv_data *const osi_core);
 	/** Called to configure VLAN filtering */
 	nve32_t (*config_vlan_filtering)(
 				     struct osi_core_priv_data *const osi_core,
@@ -223,10 +220,6 @@ struct core_ops {
 	void (*configure_eee)(struct osi_core_priv_data *const osi_core,
 			      const nveu32_t tx_lpi_enabled,
 			      const nveu32_t tx_lpi_timer);
-	/** Called to save MAC register space during SoC suspend */
-	nve32_t (*save_registers)(struct osi_core_priv_data *const osi_core);
-	/** Called to restore MAC control registers during SoC resume */
-	nve32_t (*restore_registers)(struct osi_core_priv_data *const osi_core);
 	/** Called to set MDC clock rate for MDIO operation */
 	void (*set_mdc_clk_rate)(struct osi_core_priv_data *const osi_core,
 				 const nveu64_t csr_clk_rate);

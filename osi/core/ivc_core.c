@@ -607,16 +607,6 @@ void ivc_init_macsec_ops(void *macsecops)
 #endif
 
 /**
- * @brief ivc_get_core_safety_config - EQOS MAC safety configuration
- */
-void *ivc_get_core_safety_config(void)
-{
-	static struct core_func_safety ivc_safety_config;
-
-	return &ivc_safety_config;
-}
-
-/**
  * @brief vir_ivc_core_deinit - MAC core deinitialization
  *
  * @param[in] osi_core: OSI core private data structure.

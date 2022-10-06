@@ -63,8 +63,6 @@ typedef my_lint_64		nvel64_t;
 #define OSI_RSS_MAX_TABLE_SIZE	128U
 /** @} */
 
-#define OSI_CMD_SAVE_REGISTER		13U
-#define OSI_CMD_RESTORE_REGISTER	2U
 #define OSI_CMD_RESET_MMC		12U
 #define OSI_CMD_MDC_CONFIG		1U
 #define OSI_CMD_MAC_LB			14U
@@ -75,7 +73,6 @@ typedef my_lint_64		nvel64_t;
 #define OSI_CMD_ARP_OFFLOAD		30U
 #define OSI_CMD_UPDATE_VLAN_ID		26U
 #define OSI_CMD_VLAN_FILTER		31U
-#define OSI_CMD_VALIDATE_CORE_REG	11U
 #define OSI_CMD_CONFIG_PTP_OFFLOAD	34U
 #define OSI_CMD_PTP_RXQ_ROUTE		35U
 #define OSI_CMD_CONFIG_RSS		37U
@@ -1326,11 +1323,6 @@ struct osi_core_priv_data {
 	struct osi_xtra_stat_counters xstats;
 	/** Memory mapped base address of HV window */
 	void *hv_base;
-	/** Functional safety config to do periodic read-verify of
-	 * certain safety critical registers */
-	void *safety_config;
-	/** Backup config to save/restore registers during suspend/resume */
-	struct core_backup backup_config;
 	/** csr clock is to program LPI 1 us tick timer register.
 	 * Value stored in MHz
 	 */
@@ -1878,15 +1870,6 @@ nve32_t osi_adjust_time(struct osi_core_priv_data *const osi_core,
 nve32_t osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
 			      const nveu32_t enable);
 
-#ifndef OSI_STRIPPED_LIB
-/* MAC version specific implementation function prototypes added here
- * for misra compliance to have
- * 1. Visible prototype for all functions.
- * 2. Only one prototype for all function.
- */
-void *eqos_get_core_safety_config(void);
-#endif
-
 /**
  * @brief osi_handle_ioctl - API to handle runtime command
  *
@@ -1896,8 +1879,6 @@ void *eqos_get_core_safety_config(void);
  *  - OSI_CMD_MDC_CONFIG
  *	Derive MDC clock based on provided AXI_CBB clk
  *	arg1_u32 - CSR (AXI CBB) clock rate.
- *  - OSI_CMD_RESTORE_REGISTER
- *	Restore backup of MAC MMIO address space
  *  - OSI_CMD_POLL_FOR_MAC_RST
  *	Poll Software reset bit in MAC HW
  *  - OSI_CMD_START_MAC
@@ -1914,13 +1895,9 @@ void *eqos_get_core_safety_config(void);
  *  - OSI_CMD_GET_MAC_VER
  *	Reading MAC version
  *	arg1_u32 - holds mac version
- *  - OSI_CMD_VALIDATE_CORE_REG
- *	 Read-validate HW registers for func safety
  *  - OSI_CMD_RESET_MMC
  *	invoke function to reset MMC counter and data
  *        structure
- *  - OSI_CMD_SAVE_REGISTER
- *	 Take backup of MAC MMIO address space
  *  - OSI_CMD_MAC_LB
  *	Configure MAC loopback
  *  - OSI_CMD_FLOW_CTRL
@@ -2094,8 +2071,6 @@ struct osi_core_priv_data *osi_get_core(void);
  *  - OSI_CMD_MDC_CONFIG
  *	Derive MDC clock based on provided AXI_CBB clk
  *	arg1_u32 - CSR (AXI CBB) clock rate.
- *  - OSI_CMD_RESTORE_REGISTER
- *	Restore backup of MAC MMIO address space
  *  - OSI_CMD_POLL_FOR_MAC_RST
  *	Poll Software reset bit in MAC HW
  *  - OSI_CMD_START_MAC
@@ -2112,13 +2087,9 @@ struct osi_core_priv_data *osi_get_core(void);
  *  - OSI_CMD_GET_MAC_VER
  *	Reading MAC version
  *	arg1_u32 - holds mac version
- *  - OSI_CMD_VALIDATE_CORE_REG
- *	 Read-validate HW registers for func safety
  *  - OSI_CMD_RESET_MMC
  *	invoke function to reset MMC counter and data
  *        structure
- *  - OSI_CMD_SAVE_REGISTER
- *	 Take backup of MAC MMIO address space
  *  - OSI_CMD_MAC_LB
  *	Configure MAC loopback
  *  - OSI_CMD_FLOW_CTRL

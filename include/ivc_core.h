@@ -193,14 +193,4 @@ typedef struct ivc_msg_common {
  */
 nve32_t osd_ivc_send_cmd(void *priv, ivc_msg_common_t *ivc_buf,
 			 nveu32_t len);
-
-/**
- * @brief ivc_get_core_safety_config - Get core safety config
- *
- * API Group:
- * - Initialization: Yes
- * - Run time: Yes
- * - De-initialization: Yes
- */
-void *ivc_get_core_safety_config(void);
 #endif /* IVC_CORE_H */

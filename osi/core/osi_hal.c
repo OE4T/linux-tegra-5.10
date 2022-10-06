@@ -137,20 +137,11 @@ static nve32_t osi_hal_init_core_ops(struct osi_core_priv_data *const osi_core)
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 	typedef void (*init_core_ops_arr)(struct core_ops *local_ops);
 	static struct core_ops g_ops[MAX_MAC_IP_TYPES];
-#ifndef OSI_STRIPPED_LIB
-	typedef void *(*safety_init)(void);
-#endif
 	init_core_ops_arr i_ops[MAX_MAC_IP_TYPES][MAX_MAC_IP_TYPES] = {
 		{ eqos_init_core_ops, OSI_NULL },
 		{ mgbe_init_core_ops, OSI_NULL }
 	};
 
-#ifndef OSI_STRIPPED_LIB
-	safety_init s_init[MAX_MAC_IP_TYPES][MAX_MAC_IP_TYPES] = {
-		{ eqos_get_core_safety_config, ivc_get_core_safety_config },
-		{ OSI_NULL, OSI_NULL }
-	};
-#endif
 	if (osi_core == OSI_NULL) {
 		return -1;
 	}
@@ -186,12 +177,6 @@ static nve32_t osi_hal_init_core_ops(struct osi_core_priv_data *const osi_core)
 		i_ops[osi_core->mac][osi_core->use_virtualization](&g_ops[osi_core->mac]);
 	}
 
-#ifndef OSI_STRIPPED_LIB
-	if (s_init[osi_core->mac][osi_core->use_virtualization] != OSI_NULL) {
-		osi_core->safety_config =
-			s_init[osi_core->mac][osi_core->use_virtualization]();
-	}
-#endif
 	if (validate_func_ptrs(osi_core, &g_ops[osi_core->mac]) < 0) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "core: function ptrs validation failed\n", 0ULL);
@@ -876,56 +861,6 @@ static nve32_t rxq_route_config(struct osi_core_priv_data *const osi_core,
 	return l_core->ops_p->config_ptp_rxq(osi_core,
 				     rxq_route->idx,
 				     rxq_route->enable);
-}
-
-
-/**
- * @brief validate_core_regs - Read-validate HW registers for func safety.
- *
- * @note
- * Algorithm:
- *  - Reads pre-configured list of MAC/MTL configuration registers
- *    and compares with last written value for any modifications.
- *
- * @param[in] osi_core: OSI core private data structure.
- *
- * @pre
- *  - MAC has to be out of reset.
- *  - osi_hal_hw_core_init has to be called. Internally this would initialize
- *    the safety_config (see osi_core_priv_data) based on MAC version and
- *    which specific registers needs to be validated periodically.
- *  - Invoke this call if (osi_core_priv_data->safety_config != OSI_NULL)
- *
- * @note
- * Traceability Details:
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static nve32_t validate_core_regs(struct osi_core_priv_data *const osi_core)
-{
-	struct core_local *l_core = (struct core_local *)(void *)osi_core;
-
-	if (osi_core->safety_config == OSI_NULL) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			     "CORE: Safety config is NULL\n", 0ULL);
-		return -1;
-	}
-
-	return l_core->ops_p->validate_regs(osi_core);
 }
 
 /**
@@ -1823,26 +1758,14 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		break;
 
 #ifndef OSI_STRIPPED_LIB
-	case OSI_CMD_RESTORE_REGISTER:
-		ret = ops_p->restore_registers(osi_core);
-		break;
-
 	case OSI_CMD_MDC_CONFIG:
 		ops_p->set_mdc_clk_rate(osi_core, data->arg5_u64);
 		ret = 0;
 		break;
 
-	case OSI_CMD_VALIDATE_CORE_REG:
-		ret = validate_core_regs(osi_core);
-		break;
-
 	case OSI_CMD_RESET_MMC:
 		ops_p->reset_mmc(osi_core);
 		ret = 0;
-		break;
-
-	case OSI_CMD_SAVE_REGISTER:
-		ret = ops_p->save_registers(osi_core);
 		break;
 
 	case OSI_CMD_MAC_LB:
