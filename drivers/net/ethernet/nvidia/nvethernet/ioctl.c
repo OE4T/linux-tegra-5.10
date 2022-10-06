@@ -949,48 +949,6 @@ static int ether_config_l2_da_filter(struct net_device *dev,
 
 /**
  * @brief This function is invoked by ioctl when user issues an ioctl command
- * to save/restore MAC registers.
- *
- * Algorithm: Call osi_save_registers and osi_restore_registers
- * based on user flags.
- *
- * @param[in] ndev: network device structure
- * @param[in] flags: flags to indicate whether to save and restore MAC registers
- *
- * @note Ethernet interface need to be up.
- *
- * @retval 0 on Success
- * @retval "negative value" on Failure
- */
-static int ether_reg_save_restore(struct net_device *ndev,
-				  unsigned int flags)
-{
-	struct ether_priv_data *pdata = netdev_priv(ndev);
-	struct osi_core_priv_data *osi_core = pdata->osi_core;
-	struct osi_ioctl ioctl_data = {};
-
-	if (flags == OSI_ENABLE) {
-		ioctl_data.cmd = OSI_CMD_RESTORE_REGISTER;
-		if (osi_handle_ioctl(osi_core, &ioctl_data)) {
-			dev_err(pdata->dev, "Restore MAC registers fail\n");
-			return -EBUSY;
-		}
-	} else if (flags == OSI_DISABLE) {
-		ioctl_data.cmd = OSI_CMD_SAVE_REGISTER;
-		if (osi_handle_ioctl(osi_core, &ioctl_data)) {
-			dev_err(pdata->dev, "Save MAC registers fail\n");
-			return -EBUSY;
-		}
-	} else {
-		dev_err(pdata->dev, "Invalid flag values:%d\n", flags);
-		return -EINVAL;
-	}
-
-	return 0;
-}
-
-/**
- * @brief This function is invoked by ioctl when user issues an ioctl command
  * to enable/disable pad calibration at run time.
  *
  * Algorithm: set/reset the priv data structure flag to control involking pad
@@ -1407,9 +1365,6 @@ int ether_handle_priv_ioctl(struct net_device *ndev,
 		break;
 	case ETHER_CONFIG_LOOPBACK_MODE:
 		ret = ether_config_loopback_mode(ndev, ifdata.if_flags);
-		break;
-	case ETHER_SAVE_RESTORE:
-		ret = ether_reg_save_restore(ndev, ifdata.if_flags);
 		break;
 	case ETHER_CONFIG_EST:
 		ret = ether_config_est(ndev, &ifdata);
