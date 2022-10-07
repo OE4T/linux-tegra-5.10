@@ -165,24 +165,26 @@ static int tegra23x_oc_event_probe(struct platform_device *pdev)
 {
 	int err = 0;
 	const struct of_device_id *match;
+	struct tegra_bpmp *tb;
 	struct tegra23x_oc_event *tegra23x_oc;
 
 	match = of_match_node(of_tegra23x_oc_event_match, pdev->dev.of_node);
 	if (!match)
 		return -ENODEV;
 
+	tb = tegra_bpmp_get(&pdev->dev);
+	if (IS_ERR(tb))
+		return PTR_ERR(tb);
+
 	tegra23x_oc =
 		devm_kzalloc(&pdev->dev, sizeof(*tegra23x_oc), GFP_KERNEL);
-	if (!tegra23x_oc)
-		return -ENOMEM;
-
-	tegra23x_oc->bpmp = tegra_bpmp_get(&pdev->dev);
-	if (IS_ERR(tegra23x_oc->bpmp)) {
-		devm_kfree(&pdev->dev, (void *)tegra23x_oc);
-		return PTR_ERR(tegra23x_oc->bpmp);
+	if (!tegra23x_oc) {
+		err = -ENOMEM;
+		goto put_bpmp;
 	}
 
 	platform_set_drvdata(pdev, tegra23x_oc);
+	tegra23x_oc->bpmp = tb;
 	memcpy(&tegra23x_oc->soc_data, match->data, sizeof(struct oc_soc_data));
 	tegra23x_oc->hwmon = devm_hwmon_device_register_with_groups(
 		&pdev->dev, "soctherm_oc", tegra23x_oc,
@@ -190,15 +192,16 @@ static int tegra23x_oc_event_probe(struct platform_device *pdev)
 	if (IS_ERR(tegra23x_oc->hwmon)) {
 		dev_err(&pdev->dev, "Failed to register hwmon device\n");
 		err = -EINVAL;
-		goto clean_up;
+		goto free_mem;
 	}
 
 	dev_info(&pdev->dev, "Finished tegra23x overcurrent event probing\n");
 	return err;
 
-clean_up:
-	tegra_bpmp_put(tegra23x_oc->bpmp);
+free_mem:
 	devm_kfree(&pdev->dev, (void *)tegra23x_oc);
+put_bpmp:
+	tegra_bpmp_put(tb);
 
 	return err;
 }
