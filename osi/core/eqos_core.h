@@ -250,34 +250,6 @@
 #define EQOS_MTL_FRP_IE2_AF			OSI_BIT(0)
 
 /**
- * @addtogroup EQOS-SIZE SIZE calculation helper Macros
- *
- * @brief SIZE calculation defines
- * @{
- */
-#define FIFO_SIZE_B(x) (x)
-#define FIFO_SIZE_KB(x) ((x) * 1024U)
-/** @} */
-
-/**
- * @addtogroup EQOS-QUEUE QUEUE fifo size programmable values
- *
- * @brief Queue FIFO size programmable values
- * @{
- */
-#define EQOS_256	0x00U
-#define EQOS_512	0x01U
-#define EQOS_1K		0x03U
-#define EQOS_2K		0x07U
-#define EQOS_4K		0x0FU
-#define EQOS_8K		0x1FU
-#define EQOS_9K		0x23U
-#define EQOS_16K	0x3FU
-#define EQOS_32K	0x7FU
-#define EQOS_36K	0x8FU
-/** @} */
-
-/**
  * @addtogroup EQOS-HW Hardware Register offsets
  *
  * @brief EQOS HW register offsets

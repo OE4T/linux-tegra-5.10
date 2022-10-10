@@ -33,12 +33,6 @@
  * @{
  */
 #define FULL_MINUS_1_5K		((nveu32_t)1)
-#define FULL_MINUS_2_K		((nveu32_t)2)
-#define FULL_MINUS_2_5K		((nveu32_t)3)
-#define FULL_MINUS_3_K		((nveu32_t)4)
-#define FULL_MINUS_4_K		((nveu32_t)6)
-#define FULL_MINUS_6_K		((nveu32_t)10)
-#define FULL_MINUS_10_K		((nveu32_t)18)
 #define FULL_MINUS_16_K		((nveu32_t)30)
 #define FULL_MINUS_32_K		((nveu32_t)62)
 /** @} */

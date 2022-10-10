@@ -89,9 +89,7 @@ static nve32_t ivc_handle_ioctl(struct osi_core_priv_data *osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static nve32_t ivc_core_init(struct osi_core_priv_data *const osi_core,
-			     OSI_UNUSED nveu32_t tx_fifo_size,
-			     OSI_UNUSED nveu32_t rx_fifo_size)
+static nve32_t ivc_core_init(struct osi_core_priv_data *const osi_core)
 {
 	ivc_msg_common_t msg;
 

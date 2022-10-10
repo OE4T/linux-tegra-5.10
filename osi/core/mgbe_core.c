@@ -33,80 +33,6 @@
 #include "macsec.h"
 
 /**
- * @brief mgbe_calculate_per_queue_fifo - Calculate per queue FIFO size
- *
- * Algorithm: Total Tx/Rx FIFO size which is read from
- *	MAC HW is being shared equally among the queues that are
- *	configured.
- *
- * @param[in] fifo_size: Total Tx/RX HW FIFO size.
- * @param[in] queue_count: Total number of Queues configured.
- *
- * @note MAC has to be out of reset.
- *
- * @retval Queue size that need to be programmed.
- */
-static nveu32_t mgbe_calculate_per_queue_fifo(nveu32_t fifo_size,
-					      nveu32_t queue_count)
-{
-	nveu32_t q_fifo_size = 0;  /* calculated fifo size per queue */
-	nveu32_t p_fifo = 0; /* per queue fifo size program value */
-
-	if (queue_count == 0U) {
-		return 0U;
-	}
-
-	/* calculate Tx/Rx fifo share per queue */
-	switch (fifo_size) {
-	case 0:
-	case 1:
-	case 2:
-	case 3:
-		q_fifo_size = FIFO_SIZE_KB(1U);
-		break;
-	case 4:
-		q_fifo_size = FIFO_SIZE_KB(2U);
-		break;
-	case 5:
-		q_fifo_size = FIFO_SIZE_KB(4U);
-		break;
-	case 6:
-		q_fifo_size = FIFO_SIZE_KB(8U);
-		break;
-	case 7:
-		q_fifo_size = FIFO_SIZE_KB(16U);
-		break;
-	case 8:
-		q_fifo_size = FIFO_SIZE_KB(32U);
-		break;
-	case 9:
-		q_fifo_size = FIFO_SIZE_KB(64U);
-		break;
-	case 10:
-		q_fifo_size = FIFO_SIZE_KB(128U);
-		break;
-	case 11:
-		q_fifo_size = FIFO_SIZE_KB(256U);
-		break;
-	case 12:
-		/* Size mapping not found for 192KB, so assigned 12 */
-		q_fifo_size = FIFO_SIZE_KB(192U);
-		break;
-	default:
-		q_fifo_size = FIFO_SIZE_KB(1U);
-		break;
-	}
-
-	q_fifo_size = q_fifo_size / queue_count;
-
-	if (q_fifo_size < UINT_MAX) {
-		p_fifo = (q_fifo_size / 256U) - 1U;
-	}
-
-	return p_fifo;
-}
-
-/**
  * @brief mgbe_poll_for_mac_accrtl - Poll for Indirect Access control and status
  * register operations complete.
  *
@@ -1807,16 +1733,14 @@ done:
  * @param[in] qinx: Queue number that need to be configured.
  * @param[in] osi_core: OSI core private data.
  * @param[in] tx_fifo: MTL TX queue size for a MTL queue.
- * @param[in] rx_fifo: MTL RX queue size for a MTL queue.
  *
  * @note MAC has to be out of reset.
  *
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static nve32_t mgbe_configure_mtl_queue(nveu32_t hw_qinx,
-					struct osi_core_priv_data *osi_core,
-					nveu32_t tx_fifo)
+static nve32_t mgbe_configure_mtl_queue(struct osi_core_priv_data *osi_core,
+					nveu32_t hw_qinx)
 {
 	nveu32_t qinx = hw_qinx & 0xFU;
 	/*
@@ -1831,7 +1755,12 @@ static nve32_t mgbe_configure_mtl_queue(nveu32_t hw_qinx,
 	 * vale= (size in KB / 256) - 1U
 	 */
 	const nveu32_t rx_fifo_sz[OSI_MGBE_MAX_NUM_QUEUES] = {
-		160U, 2U, 2U, 2U, 2U, 2U, 2U, 2U, 2U, 16U,
+		FIFO_SZ(160U), FIFO_SZ(2U), FIFO_SZ(2U), FIFO_SZ(2U), FIFO_SZ(2U),
+		FIFO_SZ(2U), FIFO_SZ(2U), FIFO_SZ(2U), FIFO_SZ(2U), FIFO_SZ(16U),
+	};
+	const nveu32_t tx_fifo_sz[OSI_MGBE_MAX_NUM_QUEUES] = {
+		FIFO_SZ(12U), FIFO_SZ(12U), FIFO_SZ(12U), FIFO_SZ(12U), FIFO_SZ(12U),
+		FIFO_SZ(12U), FIFO_SZ(12U), FIFO_SZ(12U), FIFO_SZ(12U), FIFO_SZ(12U),
 	};
 	const nveu32_t rfd_rfa[OSI_MGBE_MAX_NUM_QUEUES] = {
 		FULL_MINUS_32_K,
@@ -1845,7 +1774,6 @@ static nve32_t mgbe_configure_mtl_queue(nveu32_t hw_qinx,
 		FULL_MINUS_1_5K,
 		FULL_MINUS_1_5K,
 	};
-	nveu32_t rx_fifo_sz_t = 0U;
 	nveu32_t value = 0;
 	nve32_t ret = 0;
 
@@ -1881,7 +1809,7 @@ static nve32_t mgbe_configure_mtl_queue(nveu32_t hw_qinx,
 		goto end;
 	}
 
-	value = (tx_fifo << MGBE_MTL_TXQ_SIZE_SHIFT);
+	value = (tx_fifo_sz[qinx] << MGBE_MTL_TXQ_SIZE_SHIFT);
 	/* Enable Store and Forward mode */
 	value |= MGBE_MTL_TSF;
 	/*TTC  not applicable for TX*/
@@ -1894,8 +1822,7 @@ static nve32_t mgbe_configure_mtl_queue(nveu32_t hw_qinx,
 	/* read RX Q0 Operating Mode Register */
 	value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
 			  MGBE_MTL_CHX_RX_OP_MODE(qinx));
-	rx_fifo_sz_t = (((rx_fifo_sz[qinx] * 1024U) / 256U) - 1U);
-	value |= (rx_fifo_sz_t << MGBE_MTL_RXQ_SIZE_SHIFT);
+	value |= (rx_fifo_sz[qinx] << MGBE_MTL_RXQ_SIZE_SHIFT);
 	/* Enable Store and Forward mode */
 	value |= MGBE_MTL_RSF;
 	/* Enable HW flow control */
@@ -2622,8 +2549,6 @@ static nve32_t mgbe_dma_chan_to_vmirq_map(struct osi_core_priv_data *osi_core)
  *	common DMA registers.
  *
  * @param[in] osi_core: OSI core private data structure.
- * @param[in] tx_fifo_size: MTL TX FIFO size
- * @param[in] rx_fifo_size: MTL RX FIFO size
  *
  * @note 1) MAC should be out of reset. See osi_poll_for_swr() for details.
  *	 2) osi_core->base needs to be filled based on ioremap.
@@ -2633,14 +2558,11 @@ static nve32_t mgbe_dma_chan_to_vmirq_map(struct osi_core_priv_data *osi_core)
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static nve32_t mgbe_core_init(struct osi_core_priv_data *const osi_core,
-			      nveu32_t tx_fifo_size,
-			      OSI_UNUSED nveu32_t rx_fifo_size)
+static nve32_t mgbe_core_init(struct osi_core_priv_data *const osi_core)
 {
 	nve32_t ret = 0;
 	nveu32_t qinx = 0;
 	nveu32_t value = 0;
-	nveu32_t tx_fifo = 0;
 
 	/* reset mmc counters */
 	osi_writela(osi_core, MGBE_MMC_CNTRL_CNTRST, (nveu8_t *)osi_core->base +
@@ -2675,18 +2597,10 @@ static nve32_t mgbe_core_init(struct osi_core_priv_data *const osi_core,
 	osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
 		   MGBE_MAC_EXT_CNF);
 
-	/* Actual HW RAM size for Tx is 128KB and Rx is 192KB */
-	tx_fifo_size = MGBE_TX_FIFO_SIZE_128KB;
-
-	/* Calculate value of Transmit queue fifo size to be programmed */
-	tx_fifo = mgbe_calculate_per_queue_fifo(tx_fifo_size,
-						osi_core->num_mtl_queues);
-
 	/* Configure MTL Queues */
 	/* TODO: Iterate over Number MTL queues need to be removed */
 	for (qinx = 0; qinx < osi_core->num_mtl_queues; qinx++) {
-		ret = mgbe_configure_mtl_queue(osi_core->mtl_queues[qinx],
-					       osi_core, tx_fifo);
+		ret = mgbe_configure_mtl_queue(osi_core, osi_core->mtl_queues[qinx]);
 		if (ret < 0) {
 			return ret;
 		}

@@ -44,6 +44,11 @@
 #define MAX_TX_TS_CNT		(PKT_ID_CNT * OSI_MGBE_MAX_NUM_CHANS)
 
 /**
+ * @brief FIFO size helper macro
+ */
+#define FIFO_SZ(x)		((((x) * 1024U) / 256U) - 1U)
+
+/**
  * @brief Dynamic configuration helper macros.
  */
 #define DYNAMIC_CFG_L3_L4	OSI_BIT(0)
@@ -80,8 +85,7 @@
  */
 struct if_core_ops {
 	/** Interface function called to initialize MAC and MTL registers */
-	nve32_t (*if_core_init)(struct osi_core_priv_data *const osi_core,
-				nveu32_t tx_fifo_size, nveu32_t rx_fifo_size);
+	nve32_t (*if_core_init)(struct osi_core_priv_data *const osi_core);
 	/** Interface function called to deinitialize MAC and MTL registers */
 	nve32_t (*if_core_deinit)(struct osi_core_priv_data *const osi_core);
 	/** Interface function called to write into a PHY reg over MDIO bus */
@@ -105,9 +109,7 @@ struct if_core_ops {
  */
 struct core_ops {
 	/** Called to initialize MAC and MTL registers */
-	nve32_t (*core_init)(struct osi_core_priv_data *const osi_core,
-			     nveu32_t tx_fifo_size,
-			     nveu32_t rx_fifo_size);
+	nve32_t (*core_init)(struct osi_core_priv_data *const osi_core);
 	/** Called to handle common interrupt */
 	void (*handle_common_intr)(struct osi_core_priv_data *const osi_core);
 	/** Called to do pad caliberation */
@@ -431,10 +433,6 @@ struct core_local {
 	nveu32_t pps_freq;
 	/** Time interval mask for GCL entry */
 	nveu32_t ti_mask;
-	/** HW Tx fifo size */
-	nveu32_t tx_fifo_size;
-	/** HW RX fifo size */
-	nveu32_t rx_fifo_size;
 	/** Hardware dynamic configuration context */
 	struct dynamic_cfg cfg;
 	/** Hardware dynamic configuration state */

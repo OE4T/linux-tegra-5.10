@@ -262,8 +262,7 @@ nve32_t osi_read_phy_reg(struct osi_core_priv_data *const osi_core,
 	return l_core->if_ops_p->if_read_phy_reg(osi_core, phyaddr, phyreg);
 }
 
-nve32_t osi_hw_core_init(struct osi_core_priv_data *const osi_core,
-			 nveu32_t tx_fifo_size, nveu32_t rx_fifo_size)
+nve32_t osi_hw_core_init(struct osi_core_priv_data *const osi_core)
 {
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 
@@ -271,8 +270,7 @@ nve32_t osi_hw_core_init(struct osi_core_priv_data *const osi_core,
 		return -1;
 	}
 
-	return l_core->if_ops_p->if_core_init(osi_core, tx_fifo_size,
-					      rx_fifo_size);
+	return l_core->if_ops_p->if_core_init(osi_core);
 }
 
 nve32_t osi_hw_core_deinit(struct osi_core_priv_data *const osi_core)

@@ -125,120 +125,6 @@ static nve32_t eqos_config_flow_control(
 }
 #endif /* !OSI_STRIPPED_LIB */
 
-/**
- * @brief eqos_calculate_per_queue_fifo - Calculate per queue FIFO size
- *
- * @note
- * Algorithm:
- *  - Identify Total Tx/Rx HW FIFO size in KB based on fifo_size
- *  - Divide the same for each queue.
- *  - Correct the size to its nearest value of 256B to 32K with next correction value
- *    which is a 2power(2^x).
- *    - Correct for 9K and Max of 36K also.
- *    - i.e if share is >256 and < 512, set it to 256.
- *  - SWUD_ID: ETHERNET_NVETHERNETRM_006_1
- *
- * @param[in] mac_ver: MAC version value.
- * @param[in] fifo_size: Total Tx/RX HW FIFO size.
- * @param[in] queue_count: Total number of Queues configured.
- *
- * @pre MAC has to be out of reset.
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: No
- * - De-initialization: No
- *
- * @retval Queue size that need to be programmed.
- */
-static nveu32_t eqos_calculate_per_queue_fifo(nveu32_t mac_ver,
-					      nveu32_t fifo_size,
-					      nveu32_t queue_count)
-{
-	nveu32_t q_fifo_size = 0;  /* calculated fifo size per queue */
-	nveu32_t p_fifo = EQOS_256; /* per queue fifo size program value */
-
-	if (queue_count == 0U) {
-		return 0U;
-	}
-
-	/* calculate Tx/Rx fifo share per queue */
-	switch (fifo_size) {
-	case 0:
-		q_fifo_size = FIFO_SIZE_B(128U);
-		break;
-	case 1:
-		q_fifo_size = FIFO_SIZE_B(256U);
-		break;
-	case 2:
-		q_fifo_size = FIFO_SIZE_B(512U);
-		break;
-	case 3:
-		q_fifo_size = FIFO_SIZE_KB(1U);
-		break;
-	case 4:
-		q_fifo_size = FIFO_SIZE_KB(2U);
-		break;
-	case 5:
-		q_fifo_size = FIFO_SIZE_KB(4U);
-		break;
-	case 6:
-		q_fifo_size = FIFO_SIZE_KB(8U);
-		break;
-	case 7:
-		q_fifo_size = FIFO_SIZE_KB(16U);
-		break;
-	case 8:
-		q_fifo_size = FIFO_SIZE_KB(32U);
-		break;
-	case 9:
-		if (mac_ver == OSI_EQOS_MAC_5_30) {
-			q_fifo_size = FIFO_SIZE_KB(64U);
-		} else {
-			q_fifo_size = FIFO_SIZE_KB(36U);
-		}
-		break;
-	case 10:
-		q_fifo_size = FIFO_SIZE_KB(128U);
-		break;
-	case 11:
-		q_fifo_size = FIFO_SIZE_KB(256U);
-		break;
-	default:
-		q_fifo_size = FIFO_SIZE_KB(36U);
-		break;
-	}
-
-	q_fifo_size = q_fifo_size / queue_count;
-
-	if (q_fifo_size >= FIFO_SIZE_KB(36U)) {
-		p_fifo = EQOS_36K;
-	} else if (q_fifo_size >= FIFO_SIZE_KB(32U)) {
-		p_fifo = EQOS_32K;
-	} else if (q_fifo_size >= FIFO_SIZE_KB(16U)) {
-		p_fifo = EQOS_16K;
-	} else if (q_fifo_size == FIFO_SIZE_KB(9U)) {
-		p_fifo = EQOS_9K;
-	} else if (q_fifo_size >= FIFO_SIZE_KB(8U)) {
-		p_fifo = EQOS_8K;
-	} else if (q_fifo_size >= FIFO_SIZE_KB(4U)) {
-		p_fifo = EQOS_4K;
-	} else if (q_fifo_size >= FIFO_SIZE_KB(2U)) {
-		p_fifo = EQOS_2K;
-	} else if (q_fifo_size >= FIFO_SIZE_KB(1U)) {
-		p_fifo = EQOS_1K;
-	} else if (q_fifo_size >= FIFO_SIZE_B(512U)) {
-		p_fifo = EQOS_512;
-	} else if (q_fifo_size >= FIFO_SIZE_B(256U)) {
-		p_fifo = EQOS_256;
-	} else {
-		/* Nothing here */
-	}
-
-	return p_fifo;
-}
-
 #ifdef UPDATED_PAD_CAL
 /**
  * @brief eqos_pad_calibrate - performs PAD calibration
@@ -427,115 +313,6 @@ calibration_failed:
 }
 #endif /* UPDATED_PAD_CAL */
 
-/**
- * @brief update_ehfc_rfa_rfd - Update EHFC, RFD and RSA values
- *
- * @note
- * Algorithm:
- *  - Caculates and stores the RSD (Threshold for Deactivating
- *    Flow control) and RSA (Threshold for Activating Flow Control) values
- *    based on the Rx FIFO size and also enables HW flow control.
- *   - Maping detials for rx_fifo are:(minimum EQOS_4K)
- *    - EQOS_4K, configure FULL_MINUS_2_5K for RFD and FULL_MINUS_1_5K for RFA
- *    - EQOS_8K, configure FULL_MINUS_4_K for RFD and FULL_MINUS_6_K for RFA
- *    - EQOS_16K, configure FULL_MINUS_4_K for RFD and FULL_MINUS_10_K for RFA
- *    - EQOS_32K, configure FULL_MINUS_4_K for RFD and FULL_MINUS_16_K for RFA
- *    - EQOS_9K/Deafult, configure FULL_MINUS_3_K for RFD and FULL_MINUS_2_K for RFA
- *  - SWUD_ID: ETHERNET_NVETHERNETRM_006_3
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: No
- * - De-initialization: No
- *
- * @param[in] rx_fifo: Rx FIFO size.
- * @param[out] value: Stores RFD and RSA values
- */
-void update_ehfc_rfa_rfd(nveu32_t rx_fifo, nveu32_t *value)
-{
-	if (rx_fifo >= EQOS_4K) {
-		/* Enable HW Flow Control */
-		*value |= EQOS_MTL_RXQ_OP_MODE_EHFC;
-
-		switch (rx_fifo) {
-		case EQOS_4K:
-			/* Update RFD */
-			*value &= ~EQOS_MTL_RXQ_OP_MODE_RFD_MASK;
-			*value |= (FULL_MINUS_2_5K <<
-				   EQOS_MTL_RXQ_OP_MODE_RFD_SHIFT) &
-				   EQOS_MTL_RXQ_OP_MODE_RFD_MASK;
-			/* Update RFA */
-			*value &= ~EQOS_MTL_RXQ_OP_MODE_RFA_MASK;
-			*value |= (FULL_MINUS_1_5K <<
-				   EQOS_MTL_RXQ_OP_MODE_RFA_SHIFT) &
-				   EQOS_MTL_RXQ_OP_MODE_RFA_MASK;
-			break;
-		case EQOS_8K:
-			/* Update RFD */
-			*value &= ~EQOS_MTL_RXQ_OP_MODE_RFD_MASK;
-			*value |= (FULL_MINUS_4_K <<
-				   EQOS_MTL_RXQ_OP_MODE_RFD_SHIFT) &
-				   EQOS_MTL_RXQ_OP_MODE_RFD_MASK;
-			/* Update RFA */
-			*value &= ~EQOS_MTL_RXQ_OP_MODE_RFA_MASK;
-			*value |= (FULL_MINUS_6_K <<
-				   EQOS_MTL_RXQ_OP_MODE_RFA_SHIFT) &
-				   EQOS_MTL_RXQ_OP_MODE_RFA_MASK;
-			break;
-		case EQOS_9K:
-			/* Update RFD */
-			*value &= ~EQOS_MTL_RXQ_OP_MODE_RFD_MASK;
-			*value |= (FULL_MINUS_3_K <<
-				   EQOS_MTL_RXQ_OP_MODE_RFD_SHIFT) &
-				   EQOS_MTL_RXQ_OP_MODE_RFD_MASK;
-			/* Update RFA */
-			*value &= ~EQOS_MTL_RXQ_OP_MODE_RFA_MASK;
-			*value |= (FULL_MINUS_2_K <<
-				   EQOS_MTL_RXQ_OP_MODE_RFA_SHIFT) &
-				   EQOS_MTL_RXQ_OP_MODE_RFA_MASK;
-			break;
-		case EQOS_16K:
-			/* Update RFD */
-			*value &= ~EQOS_MTL_RXQ_OP_MODE_RFD_MASK;
-			*value |= (FULL_MINUS_4_K <<
-				   EQOS_MTL_RXQ_OP_MODE_RFD_SHIFT) &
-				   EQOS_MTL_RXQ_OP_MODE_RFD_MASK;
-			/* Update RFA */
-			*value &= ~EQOS_MTL_RXQ_OP_MODE_RFA_MASK;
-			*value |= (FULL_MINUS_10_K <<
-				   EQOS_MTL_RXQ_OP_MODE_RFA_SHIFT) &
-				   EQOS_MTL_RXQ_OP_MODE_RFA_MASK;
-			break;
-		case EQOS_32K:
-			/* Update RFD */
-			*value &= ~EQOS_MTL_RXQ_OP_MODE_RFD_MASK;
-			*value |= (FULL_MINUS_4_K <<
-				   EQOS_MTL_RXQ_OP_MODE_RFD_SHIFT) &
-				   EQOS_MTL_RXQ_OP_MODE_RFD_MASK;
-			/* Update RFA */
-			*value &= ~EQOS_MTL_RXQ_OP_MODE_RFA_MASK;
-			*value |= (FULL_MINUS_16_K <<
-				   EQOS_MTL_RXQ_OP_MODE_RFA_SHIFT) &
-				   EQOS_MTL_RXQ_OP_MODE_RFA_MASK;
-			break;
-		default:
-			/* Use 9K values */
-			/* Update RFD */
-			*value &= ~EQOS_MTL_RXQ_OP_MODE_RFD_MASK;
-			*value |= (FULL_MINUS_3_K <<
-				   EQOS_MTL_RXQ_OP_MODE_RFD_SHIFT) &
-				   EQOS_MTL_RXQ_OP_MODE_RFD_MASK;
-			/* Update RFA */
-			*value &= ~EQOS_MTL_RXQ_OP_MODE_RFA_MASK;
-			*value |= (FULL_MINUS_2_K <<
-				   EQOS_MTL_RXQ_OP_MODE_RFA_SHIFT) &
-				   EQOS_MTL_RXQ_OP_MODE_RFA_MASK;
-			break;
-		}
-	}
-}
-
 /** \cond DO_NOT_DOCUMENT */
 /**
  * @brief eqos_configure_mtl_queue - Configure MTL Queue
@@ -567,21 +344,47 @@ void update_ehfc_rfa_rfd(nveu32_t rx_fifo, nveu32_t *value)
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static nve32_t eqos_configure_mtl_queue(nveu32_t q_inx,
-				    struct osi_core_priv_data *const osi_core,
-				    nveu32_t tx_fifo,
-				    nveu32_t rx_fifo)
+static nve32_t eqos_configure_mtl_queue(struct osi_core_priv_data *const osi_core,
+					nveu32_t q_inx)
 {
+	const struct core_local *l_core = (struct core_local *)(void *)osi_core;
+	const nveu32_t rx_fifo_sz[2U][OSI_EQOS_MAX_NUM_QUEUES] = {
+		{ FIFO_SZ(9U), FIFO_SZ(9U), FIFO_SZ(9U), FIFO_SZ(9U),
+		  FIFO_SZ(1U), FIFO_SZ(1U), FIFO_SZ(1U), FIFO_SZ(1U) },
+		{ FIFO_SZ(36U), FIFO_SZ(2U), FIFO_SZ(2U), FIFO_SZ(2U),
+		  FIFO_SZ(2U), FIFO_SZ(2U), FIFO_SZ(2U), FIFO_SZ(16U) },
+	};
+	const nveu32_t tx_fifo_sz[2U][OSI_EQOS_MAX_NUM_QUEUES] = {
+		{ FIFO_SZ(9U), FIFO_SZ(9U), FIFO_SZ(9U), FIFO_SZ(9U),
+		  FIFO_SZ(1U), FIFO_SZ(1U), FIFO_SZ(1U), FIFO_SZ(1U) },
+		{ FIFO_SZ(8U), FIFO_SZ(8U), FIFO_SZ(8U), FIFO_SZ(8U),
+		  FIFO_SZ(8U), FIFO_SZ(8U), FIFO_SZ(8U), FIFO_SZ(8U) },
+	};
+	const nveu32_t rfd_rfa[OSI_EQOS_MAX_NUM_QUEUES] = {
+		FULL_MINUS_16_K,
+		FULL_MINUS_1_5K,
+		FULL_MINUS_1_5K,
+		FULL_MINUS_1_5K,
+		FULL_MINUS_1_5K,
+		FULL_MINUS_1_5K,
+		FULL_MINUS_1_5K,
+		FULL_MINUS_1_5K,
+	};
+	nveu32_t l_macv = (l_core->l_mac_ver & 0x1U);
+	nveu32_t que_idx = (q_inx & 0x7U);
+	nveu32_t rx_fifo_sz_t = 0U;
+	nveu32_t tx_fifo_sz_t = 0U;
 	nveu32_t value = 0;
 	nve32_t ret = 0;
-	nveu32_t que_idx = (q_inx & 0xFU);
+
+	tx_fifo_sz_t = tx_fifo_sz[l_macv][que_idx];
 
 	ret = hw_flush_mtl_tx_queue(osi_core, que_idx);
 	if (ret < 0) {
 		return ret;
 	}
 
-	value = (tx_fifo << EQOS_MTL_TXQ_SIZE_SHIFT);
+	value = (tx_fifo_sz_t << EQOS_MTL_TXQ_SIZE_SHIFT);
 	/* Enable Store and Forward mode */
 	value |= EQOS_MTL_TSF;
 	/* Enable TxQ */
@@ -591,7 +394,9 @@ static nve32_t eqos_configure_mtl_queue(nveu32_t q_inx,
 	/* read RX Q0 Operating Mode Register */
 	value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
 			   EQOS_MTL_CHX_RX_OP_MODE(que_idx));
-	value |= (rx_fifo << EQOS_MTL_RXQ_SIZE_SHIFT);
+
+	rx_fifo_sz_t = rx_fifo_sz[l_macv][que_idx];
+	value |= (rx_fifo_sz_t << EQOS_MTL_RXQ_SIZE_SHIFT);
 	/* Enable Store and Forward mode */
 	value |= EQOS_MTL_RSF;
 	/* Update EHFL, RFA and RFD
@@ -599,7 +404,13 @@ static nve32_t eqos_configure_mtl_queue(nveu32_t q_inx,
 	 * RFA: Threshold for Activating Flow Control
 	 * RFD: Threshold for Deactivating Flow Control
 	 */
-	update_ehfc_rfa_rfd(rx_fifo, &value);
+	value &= ~EQOS_MTL_RXQ_OP_MODE_RFD_MASK;
+	value &= ~EQOS_MTL_RXQ_OP_MODE_RFA_MASK;
+	value |= EQOS_MTL_RXQ_OP_MODE_EHFC;
+	value |= (rfd_rfa[que_idx] << EQOS_MTL_RXQ_OP_MODE_RFD_SHIFT) &
+		  EQOS_MTL_RXQ_OP_MODE_RFD_MASK;
+	value |= (rfd_rfa[que_idx] << EQOS_MTL_RXQ_OP_MODE_RFA_SHIFT) &
+		  EQOS_MTL_RXQ_OP_MODE_RFA_MASK;
 	osi_writela(osi_core, value, (nveu8_t *)osi_core->base + EQOS_MTL_CHX_RX_OP_MODE(que_idx));
 
 	/* Transmit Queue weight */
@@ -1440,16 +1251,12 @@ static void eqos_dma_chan_to_vmirq_map(struct osi_core_priv_data *osi_core)
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static nve32_t eqos_core_init(struct osi_core_priv_data *const osi_core,
-			      nveu32_t tx_fifo_size,
-			      nveu32_t rx_fifo_size)
+static nve32_t eqos_core_init(struct osi_core_priv_data *const osi_core)
 {
 	nve32_t ret = 0;
 	nveu32_t qinx = 0;
 	nveu32_t value = 0;
 	nveu32_t value1 = 0;
-	nveu32_t tx_fifo = 0;
-	nveu32_t rx_fifo = 0;
 
 #ifndef UPDATED_PAD_CAL
 	/* PAD calibration */
@@ -1514,15 +1321,6 @@ static nve32_t eqos_core_init(struct osi_core_priv_data *const osi_core,
 		return -1;
 	}
 
-	/* Calculate value of Transmit queue fifo size to be programmed */
-	tx_fifo = eqos_calculate_per_queue_fifo(osi_core->mac_ver,
-						tx_fifo_size,
-						osi_core->num_mtl_queues);
-	/* Calculate value of Receive queue fifo size to be programmed */
-	rx_fifo = eqos_calculate_per_queue_fifo(osi_core->mac_ver,
-						rx_fifo_size,
-						osi_core->num_mtl_queues);
-
 	/* Configure MTL Queues */
 	for (qinx = 0; qinx < osi_core->num_mtl_queues; qinx++) {
 		if (osi_unlikely(osi_core->mtl_queues[qinx] >=
@@ -1531,8 +1329,7 @@ static nve32_t eqos_core_init(struct osi_core_priv_data *const osi_core,
 				     "Incorrect queues number\n", 0ULL);
 			return -1;
 		}
-		ret = eqos_configure_mtl_queue(osi_core->mtl_queues[qinx],
-					       osi_core, tx_fifo, rx_fifo);
+		ret = eqos_configure_mtl_queue(osi_core, osi_core->mtl_queues[qinx]);
 		if (ret < 0) {
 			return ret;
 		}

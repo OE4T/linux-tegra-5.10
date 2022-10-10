@@ -1465,8 +1465,7 @@ struct osi_core_priv_data {
  * @retval 0 on success
  * @retval -1 on failure.
  */
-nve32_t osi_hw_core_init(struct osi_core_priv_data *const osi_core,
-			 nveu32_t tx_fifo_size, nveu32_t rx_fifo_size);
+nve32_t osi_hw_core_init(struct osi_core_priv_data *const osi_core);
 
 /**
  * @brief osi_hw_core_deinit - EQOS MAC deinitialization.

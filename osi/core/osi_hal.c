@@ -285,8 +285,7 @@ static inline void init_vlan_filters(struct osi_core_priv_data *const osi_core)
 }
 #endif
 
-static nve32_t osi_hal_hw_core_init(struct osi_core_priv_data *const osi_core,
-				    nveu32_t tx_fifo_size, nveu32_t rx_fifo_size)
+static nve32_t osi_hal_hw_core_init(struct osi_core_priv_data *const osi_core)
 {
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 	nve32_t ret;
@@ -298,14 +297,12 @@ static nve32_t osi_hal_hw_core_init(struct osi_core_priv_data *const osi_core,
 	init_frp(osi_core);
 #endif /* !OSI_STRIPPED_LIB */
 
-	ret = l_core->ops_p->core_init(osi_core, tx_fifo_size, rx_fifo_size);
+	ret = l_core->ops_p->core_init(osi_core);
 	if (ret < 0) {
 		return ret;
 	}
 
 	l_core->lane_status = OSI_ENABLE;
-	l_core->tx_fifo_size = tx_fifo_size;
-	l_core->rx_fifo_size = rx_fifo_size;
 	l_core->hw_init_successful = OSI_ENABLE;
 
 	return ret;
@@ -2496,7 +2493,7 @@ static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		ret = osi_hal_hw_core_deinit(osi_core);
 		break;
 	case OSI_CMD_RESUME:
-		ret = osi_hal_hw_core_init(osi_core, l_core->tx_fifo_size, l_core->rx_fifo_size);
+		ret = osi_hal_hw_core_init(osi_core);
 		if (ret < 0) {
 			break;
 		}

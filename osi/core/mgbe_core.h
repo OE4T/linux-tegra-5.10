@@ -657,24 +657,6 @@
 #define MGBE_MAC_TSS_TXTSC			OSI_BIT(15)
 /** @} */
 
-/**
- * @addtogroup MGBE-SIZE SIZE calculation helper Macros
- *
- * @brief SIZE calculation defines
- * @{
- */
-#define FIFO_SIZE_KB(x) ((x) * 1024U)
-/** @} */
-
-/**
- * @addtogroup MGBE-QSIZE Queue SIZE Mapping Macros
- *
- * @brief Tx and Rx Queue SIZE Mapping defines
- * @{
- */
-#define MGBE_TX_FIFO_SIZE_128KB	10U
-/** @} */
-
 #ifndef OSI_STRIPPED_LIB
 /**
  * @addtogroup MGBE-HW-BACKUP
