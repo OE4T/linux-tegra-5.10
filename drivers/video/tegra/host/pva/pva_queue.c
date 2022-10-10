@@ -343,7 +343,7 @@ static int pva_task_process_fence_actions(struct pva_submit_task *task,
 		for (i = 0; i < task->num_pva_fence_actions[fence_type]; i++) {
 			struct nvpva_fence_action *fence_action =
 			    &task->pva_fence_actions[fence_type][i];
-			dma_addr_t fence_addr;
+			dma_addr_t fence_addr = 0;
 			u32 fence_value;
 			dma_addr_t timestamp_addr;
 			switch (fence_action->fence.type) {
@@ -408,6 +408,7 @@ static int pva_task_process_fence_actions(struct pva_submit_task *task,
 			} else {
 				timestamp_addr = 0;
 			}
+
 			current_fw_actions = &fw_actions[*action_counter];
 			pva_task_write_fence_action_op(current_fw_actions,
 						       action_code, fence_addr,
@@ -427,18 +428,22 @@ static int pva_task_process_prefences(struct pva_submit_task *task,
 	struct pva_task_action_s *fw_preactions = NULL;
 	for (i = 0; i < task->num_prefences; i++) {
 		struct nvpva_submit_fence *fence = &task->prefences[i];
-		dma_addr_t fence_addr;
+		dma_addr_t fence_addr = 0;
 		u32 fence_val;
+
 		err = pva_task_pin_fence(task, fence, &fence_addr);
 		if (err)
 			goto out;
+
 		if (fence_addr == 0) {
 			err = -EINVAL;
 			goto out;
 		}
+
 		err = get_fence_value(fence, &fence_val);
 		if (err)
 			goto out;
+
 		fw_preactions =
 			&hw_task->preactions[hw_task->task.num_preactions];
 		pva_task_write_fence_action_op(fw_preactions,
@@ -984,12 +989,12 @@ static void update_one_task(struct pva *pva)
 
 	WARN_ON(task_info.error == PVA_ERR_BAD_TASK ||
 		task_info.error == PVA_ERR_BAD_TASK_ACTION_LIST);
-	hw_task = task->va;
+	hw_task = (struct pva_hw_task *)task->va;
 	stats = &hw_task->statistics;
 	if (!task->pva->stats_enabled)
 		goto prof;
 
-	vpu_assigned = stats->vpu_assigned;
+	vpu_assigned = (stats->vpu_assigned & 0x1);
 	vpu_time = (stats->vpu_complete_time - stats->vpu_start_time);
 	mutex_lock(&pva->vpu_util_info.util_info_mutex);
 

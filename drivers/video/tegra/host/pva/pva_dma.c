@@ -861,6 +861,7 @@ verify_hwseq_blob(struct pva_submit_task *task,
 	u32 k;
 	u32 cr_count = 0;
 	u32 entry_size;
+	uintptr_t tmp_addr;
 
 	blob = (struct pva_hw_sweq_blob_s *)&hwseqbuf_cpuva[start];
 	end_addr = (struct pva_hwseq_cr_header_s *)&hwseqbuf_cpuva[end + 4];
@@ -941,7 +942,8 @@ verify_hwseq_blob(struct pva_submit_task *task,
 
 		start += entry_size;
 		cr_header = (struct pva_hwseq_cr_header_s *)blob_desc;
-		blob_desc = (struct pva_hwseq_desc_header_s *)(cr_header + 1);
+		tmp_addr = (uintptr_t)blob_desc + sizeof(*cr_header);
+		blob_desc = (struct pva_hwseq_desc_header_s *)tmp_addr;
 		if (cr_header > end_addr) {
 			pr_err("blob size smaller than entries");
 			err = -EINVAL;
