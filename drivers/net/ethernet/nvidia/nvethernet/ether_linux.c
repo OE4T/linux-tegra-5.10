@@ -2560,9 +2560,7 @@ static int ether_open(struct net_device *dev)
 	}
 
 	/* initialize MAC/MTL/DMA Common registers */
-	ret = osi_hw_core_init(pdata->osi_core,
-			       pdata->hw_feat.tx_fifo_size,
-			       pdata->hw_feat.rx_fifo_size);
+	ret = osi_hw_core_init(pdata->osi_core);
 	if (ret < 0) {
 		dev_err(pdata->dev,
 			"%s: failed to initialize MAC HW core with reason %d\n",
