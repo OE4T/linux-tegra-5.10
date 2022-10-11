@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2022, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2023, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -127,7 +127,7 @@
  * @{
  */
 #ifndef OSI_STRIPPED_LIB
-#define OSI_PAUSE_FRAMES_ENABLE		0U
+#define OSI_PAUSE_FRAMES_ENABLE		1U
 #define OSI_PTP_REQ_CLK_FREQ		250000000U
 #define OSI_FLOW_CTRL_DISABLE		0U
 #define OSI_MAX_24BITS			0xFFFFFFU

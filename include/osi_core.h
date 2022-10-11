@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2022, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2023, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -985,7 +985,7 @@ struct osi_tsn_stats {
  */
 struct osi_ptp_config {
 	/** PTP filter parameters bit fields.
-	 * 
+	 *
 	 * Enable Timestamp, Fine Timestamp, 1 nanosecond accuracy
 	 * are enabled by default.
 	 *
@@ -1012,7 +1012,7 @@ struct osi_ptp_config {
 	 * Select PTP packets for Taking Snapshots (OSI_BIT(16) + OSI_BIT(17))
 	 *
 	 * AV 802.1AS Mode Enable				OSI_BIT(28)
-	 * 
+	 *
 	 * if ptp_filter is set to Zero then Time stamping is disabled */
 	nveu32_t ptp_filter;
 	/** seconds to be updated to MAC */
@@ -1419,7 +1419,7 @@ struct osi_core_priv_data {
 	nveu32_t mtu;
 	/** Ethernet MAC address */
 	nveu8_t mac_addr[OSI_ETH_ALEN];
-	/** DT entry to enable(0) or disable(1) pause frame support */
+	/** DT entry to enable(1) or disable(0) pause frame support */
 	nveu32_t pause_frames;
 	/** Current flow control settings */
 	nveu32_t flow_ctrl;
@@ -1537,7 +1537,7 @@ nve32_t osi_poll_for_mac_reset_complete(
 
 /**
  * @brief osi_hw_core_init - EQOS MAC, MTL and common DMA initialization.
- * 
+ *
  * @note
  * Algorithm:
  *  - Invokes EQOS MAC, MTL and common DMA register init code.
@@ -1674,7 +1674,7 @@ nve32_t osi_stop_mac(struct osi_core_priv_data *const osi_core);
 
 /**
  * @brief osi_common_isr - Common ISR.
- * 
+ *
  * @note
  * Algorithm:
  *  - Takes care of handling the common interrupts accordingly as per
