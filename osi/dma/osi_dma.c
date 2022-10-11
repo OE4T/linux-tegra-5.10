@@ -910,14 +910,14 @@ nve32_t osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
 	/* Add Ethernet header + FCS */
 	rx_buf_len = osi_dma->mtu + OSI_ETH_HLEN + NV_VLAN_HLEN;
 
-	/* Buffer alignment */
-	osi_dma->rx_buf_len = ((rx_buf_len + (AXI_BUS_WIDTH - 1U)) &
-			       ~(AXI_BUS_WIDTH - 1U));
-
 	/* Add 30 bytes (15bytes extra at head portion for alignment and 15bytes
 	 * extra to cover tail portion) again for the buffer address alignment
 	 */
-	osi_dma->rx_buf_len += 30U;
+	rx_buf_len += 30U;
+
+	/* Buffer alignment */
+	osi_dma->rx_buf_len = ((rx_buf_len + (AXI_BUS_WIDTH - 1U)) &
+			       ~(AXI_BUS_WIDTH - 1U));
 
 fail:
 	return ret;
