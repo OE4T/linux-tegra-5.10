@@ -91,7 +91,7 @@
  * @brief EQOS generic helper MACROS.
  * @{
  */
-#define OSI_PAUSE_FRAMES_ENABLE		0U
+#define OSI_PAUSE_FRAMES_ENABLE		1U
 #define OSI_PTP_REQ_CLK_FREQ		250000000U
 #define OSI_FLOW_CTRL_DISABLE		0U
 #define OSI_ADDRESS_32BIT		0
