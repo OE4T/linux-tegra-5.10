@@ -95,8 +95,8 @@
 #define WRAP_PTP_CAPTURE_LOW		0x8018U
 #define WRAP_PTP_CAPTURE_HIGH		0x801CU
 #define MAC_PKT_FILTER_REG		0x0008
-
-
+#define HW_MAC_IER				0x00B4U
+#define WRAP_COMMON_INTR_ENABLE		0x8704U
 /**
  * @addtogroup typedef related info
  *
