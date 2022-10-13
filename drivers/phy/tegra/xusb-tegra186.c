@@ -102,6 +102,7 @@
 
 #define XUSB_PADCTL_USB2_BIAS_PAD_CTL2		0x28c
 #define  USB2_TRK_HW_MODE			BIT(0)
+#define  CYA_TRK_CODE_UPDATE_ON_IDLE		BIT(31)
 
 #define XUSB_PADCTL_HSIC_PADX_CTL0(x)		(0x300 + (x) * 0x20)
 #define  HSIC_PD_TX_DATA0			BIT(1)
@@ -657,6 +658,7 @@ static void tegra186_utmi_bias_pad_power_on(struct tegra_xusb_padctl *padctl)
 	if (padctl->soc->trk_hw_mode) {
 		value = padctl_readl(padctl, XUSB_PADCTL_USB2_BIAS_PAD_CTL2);
 		value |= USB2_TRK_HW_MODE;
+		value &= ~CYA_TRK_CODE_UPDATE_ON_IDLE;
 		padctl_writel(padctl, value, XUSB_PADCTL_USB2_BIAS_PAD_CTL2);
 	} else {
 		if (!padctl->is_xhci_iov)
