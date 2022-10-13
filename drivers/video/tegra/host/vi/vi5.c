@@ -1,7 +1,7 @@
 /*
  * VI5 driver
  *
- * Copyright (c) 2017-2021, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -105,11 +105,12 @@ int nvhost_vi5_aggregate_constraints(struct platform_device *dev,
 			"No platform data, fall back to default policy\n");
 		return 0;
 	}
-	if (!pixelrate || clk_index != 0)
+
+	if (clk_index != 0)
 		return 0;
-	/* SCF send request using NVHOST_CLK, which is calculated
-	 * in floor_rate, so we need to aggregate its request
-	 * with V4L2 pixelrate request
+	/*
+	 * SCF and V4l2 send request using NVHOST_CLK through tegra_camera_platform,
+	 * which is calculated in floor_rate.
 	 */
 	return floor_rate + (pixelrate / pdata->num_ppc);
 }
