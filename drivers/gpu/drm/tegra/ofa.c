@@ -168,8 +168,6 @@ static const struct host1x_client_ops ofa_client_ops = {
 
 static int ofa_load_firmware(struct ofa *ofa)
 {
-	struct host1x_client *client = &ofa->client.base;
-	struct tegra_drm *tegra = ofa->client.drm;
 	dma_addr_t iova;
 	size_t size;
 	void *virt;
