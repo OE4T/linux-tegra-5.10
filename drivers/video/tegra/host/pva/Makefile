@@ -21,6 +21,7 @@ ccflags-$(NVPVA_OOT) += -I$(srctree.host1x)/include
 ccflags-$(NVPVA_OOT) += -DCONFIG_TEGRA_HOST1X
 ccflags-$(NVPVA_OOT) += -DCONFIG_TEGRA_FUSE_UPSTREAM
 ccflags-$(NVPVA_OOT) += -DCONFIG_TEGRA_T23X_GRHOST
+ccflags-$(NVPVA_OOT) += -DTEGRA_OOT_MODULE
 
 nvhost-pva-objs  = \
 		pva.o \

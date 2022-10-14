@@ -107,7 +107,7 @@ nvpva_syncpt_address(struct platform_device *pdev, u32 id, bool rw)
 {
 	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
 	struct pva *pva = pdata->private_data;
-	struct platform_device *host_pdev;
+	struct platform_device *host_pdev = pva->syncpts.host_pdev;
 	dma_addr_t addr = 0;
 	u32 offset = 0;
 	int i;
@@ -117,7 +117,6 @@ nvpva_syncpt_address(struct platform_device *pdev, u32 id, bool rw)
 		goto out;
 	}
 
-	host_pdev = to_platform_device(pdev->dev.parent);
 	if (!rw) {
 		offset = nvhost_syncpt_unit_interface_get_byte_offset_ext(host_pdev, id);
 		addr = pva->syncpts.syncpt_start_iova_r + (dma_addr_t)offset;
@@ -190,7 +189,6 @@ int nvpva_syncpt_unit_interface_init(struct platform_device *pdev)
 {
 	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
 	struct pva *pva = pdata->private_data;
-	struct platform_device *host_pdev;
 	phys_addr_t base;
 	size_t size;
 	dma_addr_t syncpt_addr_rw;
@@ -215,8 +213,12 @@ int nvpva_syncpt_unit_interface_init(struct platform_device *pdev)
 	}
 
 	syncpt_offset = nvhost_syncpt_unit_interface_get_byte_offset_ext(pdev, 1);
-	host_pdev = to_platform_device(pdev->dev.parent);
-	err = nvhost_syncpt_unit_interface_get_aperture(host_pdev,
+#ifdef TEGRA_OOT_MODULE
+	pva->syncpts.host_pdev = pdev;
+#else
+	pva->syncpts.host_pdev = to_platform_device(pdev->dev.parent);
+#endif
+	err = nvhost_syncpt_unit_interface_get_aperture(pva->syncpts.host_pdev,
 							&base,
 							&size);
 	if (err) {

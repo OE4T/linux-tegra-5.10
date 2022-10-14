@@ -1190,7 +1190,7 @@ static int pva_probe(struct platform_device *pdev)
 
 	if ((UINT_MAX - offset) < pdev->resource[0].start) {
 		err = -ENODEV;
-		goto err_mss_init;
+		goto err_iommu_ctxt_init;
 	}
 
 	nvpva_dbg_info(pva, "hwpm ip %s register", pdev->name);
@@ -1207,7 +1207,6 @@ static int pva_probe(struct platform_device *pdev)
 err_iommu_ctxt_init:
 	nvpva_syncpt_unit_interface_deinit(pdev);
 err_syncpt_xface_init:
-err_mss_init:
 	nvhost_syncpt_unit_interface_deinit(pdev);
 err_isr_init:
 	nvpva_client_context_deinit(pva);
