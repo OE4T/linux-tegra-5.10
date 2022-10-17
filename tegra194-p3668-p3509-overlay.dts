@@ -94,11 +94,6 @@
 			sdhci@3460000 {
 				status = "disabled";
 			};
-#if TEGRA_SDMMC_VERSION >= DT_VERSION_2
-			aliases {
-				delete-target-property = "mmc0";
-			};
-#endif
 		};
 	};
 
@@ -167,4 +162,15 @@
 #endif
 		};
 	};
+
+#if TEGRA_SDMMC_VERSION >= DT_VERSION_2
+	/* Fix mmc0 naming for SKU0 */
+	fragment@8 {
+		target-path = "/aliases";
+		delete_prop = "mmc0";
+		board_config {
+			ids = ">=3668-0000-000";
+		};
+	};
+#endif
 };
