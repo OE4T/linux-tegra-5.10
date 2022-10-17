@@ -244,6 +244,7 @@ static int bwmgr_update_clk(void)
 	unsigned long iso_bw_other_clients = 0; //Other ISO clients
 	unsigned long non_iso_cap = bwmgr.emc_max_rate;
 	unsigned long iso_cap = bwmgr.emc_max_rate;
+	unsigned long clk_cap = bwmgr.emc_max_rate;
 	unsigned long floor = 0;
 	unsigned long iso_bw_min;
 	u64 iso_client_flags = 0;
@@ -292,6 +293,22 @@ static int bwmgr_update_clk(void)
 		iso_cap = min(iso_cap, bwmgr.bwmgr_client[i].iso_cap);
 		floor = max(floor, bwmgr.bwmgr_client[i].floor);
 	}
+
+	ret = clk_set_max_rate(bwmgr.emc_clk, ULONG_MAX);
+	if (ret) {
+		pr_err("bwmgr: clk_set_max_rate failed for freq %lu Hz with errno %d\n",
+		       ULONG_MAX, ret);
+		return ret;
+	}
+
+	clk_cap = clk_round_rate(bwmgr.emc_clk, min(iso_cap, non_iso_cap));
+	ret = clk_set_max_rate(bwmgr.emc_clk, clk_cap);
+	if (ret) {
+		pr_err("bwmgr: clk_set_max_rate failed for freq %lu Hz with errno %d\n",
+		       clk_cap, ret);
+		return ret;
+	}
+
 	debug_info.bw = bw;
 	debug_info.iso_bw = iso_bw;
 	debug_info.floor = floor;
