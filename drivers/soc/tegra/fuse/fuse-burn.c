@@ -679,7 +679,7 @@ static ssize_t tegra_fuse_calc_h2_code(struct device *dev,
 #define FUSE_OPT_FAB_CODE_MASK		0x3f
 #define FUSE_OPT_LOT_CODE_0		0x108
 #define FUSE_OPT_LOT_CODE_1		0x10c
-#define FUSE_OPT_WAFER_ID		0x118
+#define FUSE_OPT_WAFER_ID		0x110
 #define FUSE_OPT_WAFER_ID_MASK		0x3f
 #define FUSE_OPT_X_COORDINATE		0x114
 #define FUSE_OPT_X_COORDINATE_MASK	0x1ff
