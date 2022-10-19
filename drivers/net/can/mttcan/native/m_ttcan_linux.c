@@ -159,6 +159,9 @@ static int mttcan_hw_reinit(const struct mttcan_priv *priv)
 
 	struct ttcan_controller *ttcan = priv->ttcan;
 
+	/* initialize mttcan message RAM with 0s */
+	ttcan_mesg_ram_init(ttcan);
+
 	ttcan_set_ok(ttcan);
 
 	err = ttcan_set_config_change_enable(ttcan);
