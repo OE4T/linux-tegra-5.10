@@ -35,7 +35,7 @@ static void dump_struct(struct osi_dma_priv_data *osi_dma,
 			unsigned char *ptr,
 			unsigned long size)
 {
-	nveu32_t i = 0, rem, j;
+	nveu32_t i = 0, rem, j = 0;
 	unsigned long temp;
 
 	if (ptr == OSI_NULL) {
@@ -205,9 +205,9 @@ static void tx_desc_dump(struct osi_dma_priv_data *osi_dma, unsigned int f_idx,
 		int cnt;
 
 		if (f_idx > l_idx) {
-			cnt = l_idx + osi_dma->tx_ring_sz - f_idx;
+			cnt = (int)(l_idx + osi_dma->tx_ring_sz - f_idx);
 		} else {
-			cnt = l_idx - f_idx;
+			cnt = (int)(l_idx - f_idx);
 		}
 
 		for (i = f_idx; cnt >= 0; cnt--) {

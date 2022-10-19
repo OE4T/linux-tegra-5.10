@@ -35,7 +35,7 @@ static void core_dump_struct(struct osi_core_priv_data *osi_core,
 			     nveu8_t *ptr,
 			     unsigned long size)
 {
-	nveu32_t i = 0, rem, j;
+	nveu32_t i = 0, rem, j = 0;
 	unsigned long temp;
 
 	if (ptr == OSI_NULL) {
