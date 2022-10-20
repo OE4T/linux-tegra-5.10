@@ -13,7 +13,7 @@
 / {
 	overlay-name = "Camera IMX477 Dual";
 	jetson-header-name = "Jetson Nano CSI Connector";
-	compatible = "nvidia,p3768-0000+p3767-0002", "nvidia,p3509-0000+p3767-0002";
+	compatible = "nvidia,p3768-0000+p3767-0000", "nvidia,p3509-0000+p3767-0000";
 
 	/* IMX477 dual sensor module */
 	fragment@0 {

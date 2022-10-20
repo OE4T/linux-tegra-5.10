@@ -21,4 +21,4 @@
 /dts-v1/;
 /plugin/;
 
-#include "tegra234-p3767-0002-common-hdr40.dtsi"
+#include "tegra234-p3767-0000-common-hdr40.dtsi"
