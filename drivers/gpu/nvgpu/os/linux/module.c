@@ -61,6 +61,7 @@
 #include <nvgpu/engines.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/gr/gr_instances.h>
 #include <nvgpu/gr/gr_utils.h>
 #include <nvgpu/pmu/pmu_pstate.h>
 #include <nvgpu/cyclestats_snapshot.h>
@@ -72,6 +73,7 @@
 #include <nvgpu/nvs.h>
 #include <nvgpu/l1ss_err_reporting.h>
 
+#include "common/gr/gr_priv.h"
 #include "platform_gk20a.h"
 #include "sysfs.h"
 #include "vgpu/vgpu_linux.h"
@@ -148,8 +150,12 @@ static int nvgpu_kernel_shutdown_notification(struct notifier_block *nb,
 	struct nvgpu_os_linux *l = container_of(nb, struct nvgpu_os_linux,
 						nvgpu_reboot_nb);
 	struct gk20a *g = &l->g;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 
 	nvgpu_set_enabled(g, NVGPU_KERNEL_IS_DYING, true);
+	/* signal the gr wait */
+	nvgpu_cond_signal(&gr->init_wq);
+
 	return NOTIFY_DONE;
 }
 
@@ -1578,10 +1584,14 @@ static int gk20a_pm_deinit(struct device *dev)
 
 void nvgpu_start_gpu_idle(struct gk20a *g)
 {
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 
 	down_write(&l->busy_lock);
 	nvgpu_set_enabled(g, NVGPU_DRIVER_IS_DYING, true);
+
+	/* signal the gr wait */
+	nvgpu_cond_signal(&gr->init_wq);
 	/*
 	 * GR SW ready needs to be invalidated at this time with the busy lock
 	 * held to prevent a racing condition on the gr/mm code

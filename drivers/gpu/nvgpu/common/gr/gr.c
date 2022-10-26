@@ -1180,7 +1180,9 @@ void nvgpu_gr_wait_initialized(struct gk20a *g)
 {
 	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 
-	NVGPU_COND_WAIT(&gr->init_wq, gr->initialized, 0U);
+	NVGPU_COND_WAIT(&gr->init_wq, gr->initialized ||
+			(nvgpu_is_enabled(g, NVGPU_KERNEL_IS_DYING) ||
+			nvgpu_is_enabled(g, NVGPU_DRIVER_IS_DYING)), 0U);
 }
 #endif
 
