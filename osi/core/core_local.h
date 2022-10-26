@@ -118,15 +118,10 @@ struct core_ops {
 	nve32_t (*update_mac_addr_low_high_reg)(
 				struct osi_core_priv_data *const osi_core,
 				const struct osi_filter *filter);
-	/** Called to configure L3 filter */
-	nve32_t (*config_l3_filters)(struct osi_core_priv_data *const osi_core,
-				     const nveu32_t filter_no,
-				     const nveu32_t enb_dis,
-				     const nveu32_t ipv4_ipv6_match,
-				     const nveu32_t src_dst_addr_match,
-				     const nveu32_t perfect_inverse_match,
-				     const nveu32_t dma_routing_enable,
-				     const nveu32_t dma_chan);
+	/** Called to configure L3L4 filter */
+	nve32_t (*config_l3l4_filters)(struct osi_core_priv_data *const osi_core,
+				       nveu32_t filter_no,
+				       const struct osi_l3_l4_filter *const l3_l4);
 	/** Called to adjust the mac time */
 	nve32_t (*adjust_mactime)(struct osi_core_priv_data *const osi_core,
 				  const nveu32_t sec,
@@ -147,11 +142,6 @@ struct core_ops {
 	/** Called to get HW features */
 	nve32_t (*get_hw_features)(struct osi_core_priv_data *const osi_core,
 				   struct osi_hw_features *hw_feat);
-	/** Called to update ip4 src or desc address */
-	nve32_t (*update_ip4_addr)(struct osi_core_priv_data *const osi_core,
-				   const nveu32_t filter_no,
-				   const nveu8_t addr[],
-				   const nveu32_t src_dst_addr_match);
 	/** Called to read reg */
 	nveu32_t (*read_reg)(struct osi_core_priv_data *const osi_core,
 			     const nve32_t reg);
@@ -173,25 +163,6 @@ struct core_ops {
 #endif /* !OSI_STRIPPED_LIB */
 #endif /*  MACSEC_SUPPORT */
 #ifndef OSI_STRIPPED_LIB
-	/** Called to update ip6 address */
-	nve32_t (*update_ip6_addr)(struct osi_core_priv_data *const osi_core,
-				   const nveu32_t filter_no,
-				   const nveu16_t addr[]);
-	/** Called to configure L4 filter */
-	nve32_t (*config_l4_filters)(struct osi_core_priv_data *const osi_core,
-				     const nveu32_t filter_no,
-				     const nveu32_t enb_dis,
-				     const nveu32_t tcp_udp_match,
-				     const nveu32_t src_dst_port_match,
-				     const nveu32_t perfect_inverse_match,
-				     const nveu32_t dma_routing_enable,
-				     const nveu32_t dma_chan);
-	/** Called to update L4 Port for filter packet */
-	nve32_t (*update_l4_port_no)(struct osi_core_priv_data *const osi_core,
-				     const nveu32_t filter_no,
-				     const nveu16_t port_no,
-				     const nveu32_t src_dst_port_match);
-
 	/** Called to configure the MTL to forward/drop tx status */
 	nve32_t (*config_tx_status)(struct osi_core_priv_data *const osi_core,
 				    const nveu32_t tx_status);
@@ -316,24 +287,6 @@ struct core_ptp_servo {
 #endif
 
 /**
- * @brief L3/L4 dynamic config storage structure.
- */
-struct l3_l4_filters {
-	/** Represent whether index used or not */
-	nveu32_t used;
-	/** Type of filter */
-	nveu32_t type;
-	/** Represents whether DMA routing enabled or not */
-	nveu32_t dma_routing_enable;
-	/** DMA channel number of routing enabled */
-	nveu32_t dma_chan;
-	/** Tells whether its L4 or L3 filter */
-	nveu32_t is_l4_filter;
-	/** Filter information */
-	struct osi_l3_l4_filter l3l4_filter;
-};
-
-/**
  * @brief AVB dynamic config storage structure
  */
 struct core_avb {
@@ -367,7 +320,7 @@ struct core_l2 {
 struct dynamic_cfg {
 	nveu32_t flags;
 	/** L3_L4 filters */
-	struct l3_l4_filters l3_l4[OSI_MGBE_MAX_L3_L4_FILTER];
+	struct osi_l3_l4_filter l3_l4[OSI_MGBE_MAX_L3_L4_FILTER];
 	/** flow control */
 	nveu32_t flow_ctrl;
 	/** AVB */
@@ -441,6 +394,12 @@ struct core_local {
 	nveu32_t lane_status;
 	/** Exact MAC used across SOCs 0:Legacy EQOS, 1:Orin EQOS, 2:Orin MGBE */
 	nveu32_t l_mac_ver;
+#ifndef OSI_STRIPPED_LIB
+#ifdef L3L4_WILDCARD_FILTER
+	/** l3l4 wildcard filter configured (OSI_ENABLE) / not configured (OSI_DISABLE) */
+	nveu32_t l3l4_wildcard_filter_configured;
+#endif /* L3L4_WILDCARD_FILTER */
+#endif /* OSI_STRIPPED_LIB */
 };
 
 /**

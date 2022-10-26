@@ -24,6 +24,7 @@
 #define INCLUDED_OSI_CORE_H
 
 #include "nvethernetrm_export.h"
+#include "nvethernetrm_l3l4.h"
 #include <osi_common.h>
 #include "mmc.h"
 
@@ -166,7 +167,9 @@ typedef my_lint_64		nvel64_t;
 #define EQOS_MAX_L3_L4_FILTER		8U
 #define OSI_MGBE_MAX_MAC_ADDRESS_FILTER	32U
 #define OSI_DA_MATCH			0U
+#ifndef OSI_STRIPPED_LIB
 #define OSI_INV_MATCH			1U
+#endif /* !OSI_STRIPPED_LIB */
 #define OSI_AMASK_DISABLE		0U
 #define OSI_CHAN_ANY			0xFFU
 #define OSI_DFLT_MTU_SIZE		1500U
@@ -182,11 +185,6 @@ typedef my_lint_64		nvel64_t;
 #define OSI_FULL_DUPLEX			1
 #define OSI_HALF_DUPLEX			0
 
-#define OSI_IP4_FILTER			0U
-#define OSI_IP6_FILTER			1U
-#define OSI_IPV6_MATCH			1U
-#define OSI_IPV4_MATCH			0U
-
 /* L2 filter operations supported by OSI layer. These operation modes shall be
  * set by OSD driver as input to update registers accordingly.
  */
@@ -201,7 +199,6 @@ typedef my_lint_64		nvel64_t;
 
 #define OSI_PAUSE_FRAMES_DISABLE	1U
 #define OSI_PFT_MATCH		0U
-#define OSI_SOURCE_MATCH	0U
 #define OSI_SA_MATCH		1U
 
 #define OSI_SPEED_10		10
@@ -487,27 +484,6 @@ struct osi_rxq_route {
 	nveu32_t idx;
 };
 #endif
-
-/**
- * @brief L3/L4 filter function dependent parameter
- */
-struct osi_l3_l4_filter {
-	/** Indicates the index of the filter to be modified.
-	 * Filter index must be between 0 - 7 */
-	nveu32_t filter_no;
-	/** filter enable(1) or disable(0) */
-	nveu32_t filter_enb_dis;
-	/** source(0) or destination(1) */
-	nveu32_t src_dst_addr_match;
-	/** perfect(0) or inverse(1) */
-	nveu32_t perfect_inverse_match;
-	/** ipv4 address */
-	nveu8_t ip4_addr[4];
-	/** ipv6 address */
-	nveu16_t ip6_addr[8];
-	/** Port number */
-	nveu16_t port_no;
-};
 
 /**
  * @brief struct osi_hw_features - MAC HW supported features.

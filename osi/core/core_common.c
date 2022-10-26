@@ -1495,3 +1495,227 @@ void hsi_common_error_inject(struct osi_core_priv_data *osi_core,
 	}
 }
 #endif
+
+/**
+ * @brief prepare_l3l4_ctr_reg - Prepare control register for L3L4 filters.
+ *
+ * @note
+ * Algorithm:
+ * - This sequence is used to prepare L3L4 control register for SA and DA Port Number matching.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] l3_l4: Pointer to l3 l4 filter structure (#osi_l3_l4_filter)
+ * @param[out] ctr_reg: Pointer to L3L4 CTR register value
+ *
+ * @note 1) MAC should be init and started. see osi_start_mac()
+ *
+ * @retval L3L4 CTR register value
+ */
+static void prepare_l3l4_ctr_reg(const struct osi_core_priv_data *const osi_core,
+				 const struct osi_l3_l4_filter *const l3_l4,
+				 nveu32_t *ctr_reg)
+{
+#ifndef OSI_STRIPPED_LIB
+	nveu32_t perfect_inverse_match = l3_l4->data.perfect_inverse_match;
+	nveu32_t dma_routing_enable = l3_l4->dma_routing_enable;
+	nveu32_t dst_addr_match = l3_l4->data.dst.addr_match;
+#else
+	nveu32_t perfect_inverse_match = OSI_FALSE;
+	nveu32_t dma_routing_enable = OSI_TRUE;
+	nveu32_t dst_addr_match = OSI_TRUE;
+#endif /* !OSI_STRIPPED_LIB */
+	const nveu32_t dma_chan_shift[2] = {
+		EQOS_MAC_L3L4_CTR_DMCHN_SHIFT,
+		MGBE_MAC_L3L4_CTR_DMCHN_SHIFT
+	};
+
+	const nveu32_t dma_chan_en_shift[2] = {
+		EQOS_MAC_L3L4_CTR_DMCHEN_SHIFT,
+		MGBE_MAC_L3L4_CTR_DMCHEN_SHIFT
+	};
+	nveu32_t value = 0U;
+
+	/* set routing dma channel */
+	value |= dma_routing_enable << (dma_chan_en_shift[osi_core->mac] & 0x1FU);
+	value |= l3_l4->dma_chan << (dma_chan_shift[osi_core->mac] & 0x1FU);
+
+	/* Enable L3 filters for IPv4 DESTINATION addr matching */
+	value |= (dst_addr_match << MAC_L3L4_CTR_L3DAM_SHIFT) |
+		 (perfect_inverse_match << MAC_L3L4_CTR_L3DAIM_SHIFT);
+
+#ifndef OSI_STRIPPED_LIB
+	/* Enable L3 filters for IPv4 SOURCE addr matching */
+	value |= (l3_l4->data.src.addr_match << MAC_L3L4_CTR_L3SAM_SHIFT) |
+		 (perfect_inverse_match << MAC_L3L4_CTR_L3SAIM_SHIFT);
+
+	/* Enable L4 filters for DESTINATION port No matching */
+	value |= (l3_l4->data.dst.port_match << MAC_L3L4_CTR_L4DPM_SHIFT) |
+		 (perfect_inverse_match << MAC_L3L4_CTR_L4DPIM_SHIFT);
+
+	/* Enable L4 filters for SOURCE Port No matching */
+	value |= (l3_l4->data.src.port_match << MAC_L3L4_CTR_L4SPM_SHIFT) |
+		 (perfect_inverse_match << MAC_L3L4_CTR_L4SPIM_SHIFT);
+
+	/* set udp / tcp port matching bit (for l4) */
+	value |= l3_l4->data.is_udp << MAC_L3L4_CTR_L4PEN_SHIFT;
+
+	/* set ipv4 / ipv6 protocol matching bit (for l3) */
+	value |= l3_l4->data.is_ipv6 << MAC_L3L4_CTR_L3PEN_SHIFT;
+#endif /* !OSI_STRIPPED_LIB */
+
+	*ctr_reg = value;
+}
+
+/**
+ * @brief prepare_l3_addr_registers - prepare register data for IPv4/IPv6 address filtering
+ *
+ * @note
+ * Algorithm:
+ *  - Update IPv4/IPv6 source/destination address for L3 layer filtering.
+ *  - For IPv4, both source/destination address can be configured but
+ *    for IPv6, only one of the source/destination address can be configured.
+ *
+ * @param[in] l3_l4: Pointer to l3 l4 filter structure (#osi_l3_l4_filter)
+ * @param[out] l3_addr1_reg: Pointer to L3 ADDR1 register value
+ *
+ * @note 1) MAC should be init and started. see osi_start_mac()
+ */
+static void prepare_l3_addr_registers(const struct osi_l3_l4_filter *const l3_l4,
+#ifndef OSI_STRIPPED_LIB
+				      nveu32_t *l3_addr0_reg,
+				      nveu32_t *l3_addr2_reg,
+				      nveu32_t *l3_addr3_reg,
+#endif /* !OSI_STRIPPED_LIB */
+				      nveu32_t *l3_addr1_reg)
+{
+#ifndef OSI_STRIPPED_LIB
+	if (l3_l4->data.is_ipv6 == OSI_TRUE) {
+		const nveu16_t *addr;
+		/* For IPv6, either source address or destination
+		 * address only one of them can be enabled
+		 */
+		if (l3_l4->data.src.addr_match == OSI_TRUE) {
+			/* select src address only */
+			addr = l3_l4->data.src.ip6_addr;
+		} else {
+			/* select dst address only */
+			addr = l3_l4->data.dst.ip6_addr;
+		}
+		/* update Bits[31:0] of 128-bit IP addr */
+		*l3_addr0_reg = addr[7] | ((nveu32_t)addr[6] << 16);
+
+		/* update Bits[63:32] of 128-bit IP addr */
+		*l3_addr1_reg = addr[5] | ((nveu32_t)addr[4] << 16);
+
+		/* update Bits[95:64] of 128-bit IP addr */
+		*l3_addr2_reg = addr[3] | ((nveu32_t)addr[2] << 16);
+
+		/* update Bits[127:96] of 128-bit IP addr */
+		*l3_addr3_reg = addr[1] | ((nveu32_t)addr[0] << 16);
+	} else {
+#endif /* !OSI_STRIPPED_LIB */
+		const nveu8_t *addr;
+		nveu32_t value;
+
+#ifndef OSI_STRIPPED_LIB
+		/* set source address */
+		addr = l3_l4->data.src.ip4_addr;
+		value = addr[3];
+		value |= (nveu32_t)addr[2] << 8;
+		value |= (nveu32_t)addr[1] << 16;
+		value |= (nveu32_t)addr[0] << 24;
+		*l3_addr0_reg = value;
+#endif /* !OSI_STRIPPED_LIB */
+
+		/* set destination address */
+		addr = l3_l4->data.dst.ip4_addr;
+		value = addr[3];
+		value |= (nveu32_t)addr[2] << 8;
+		value |= (nveu32_t)addr[1] << 16;
+		value |= (nveu32_t)addr[0] << 24;
+		*l3_addr1_reg = value;
+#ifndef OSI_STRIPPED_LIB
+	}
+#endif /* !OSI_STRIPPED_LIB */
+}
+
+#ifndef OSI_STRIPPED_LIB
+/**
+ * @brief prepare_l4_port_register - program source and destination port number
+ *
+ * @note
+ * Algorithm:
+ *  - Program l4 address register with source and destination port numbers.
+ *
+ * @param[in] l3_l4: Pointer to l3 l4 filter structure (#osi_l3_l4_filter)
+ * @param[out] l4_addr_reg: Pointer to L3 ADDR0 register value
+ *
+ * @note 1) MAC should be init and started. see osi_start_mac()
+ *	 3) DCS bits should be enabled in RXQ to DMA mapping register
+ */
+static void prepare_l4_port_register(const struct osi_l3_l4_filter *const l3_l4,
+				     nveu32_t *l4_addr_reg)
+{
+	nveu32_t value = 0U;
+
+	/* set source port */
+	value |= ((nveu32_t)l3_l4->data.src.port_no
+		   & MGBE_MAC_L4_ADDR_SP_MASK);
+
+	/* set destination port */
+	value |= (((nveu32_t)l3_l4->data.dst.port_no <<
+		    MGBE_MAC_L4_ADDR_DP_SHIFT) & MGBE_MAC_L4_ADDR_DP_MASK);
+
+	*l4_addr_reg = value;
+}
+#endif /* !OSI_STRIPPED_LIB */
+
+/**
+ * @brief prepare_l3l4_registers - function to prepare l3l4 registers
+ *
+ * @note
+ * Algorithm:
+ *  - If filter to be enabled,
+ *        - Prepare l3 ip address registers using prepare_l3_addr_registers().
+ *        - Prepare l4 port register using prepare_l4_port_register().
+ *        - Prepare l3l4 control register using prepare_l3l4_ctr_reg().
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] l3_l4: Pointer to l3 l4 filter structure (#osi_l3_l4_filter)
+ * @param[out] l4_addr_reg: Pointer to L3 ADDR0 register value
+ *
+ * @note 1) MAC should be init and started. see osi_start_mac()
+ *	 2) osi_core->osd should be populated
+ *	 3) DCS bits should be enabled in RXQ to DMA mapping register
+ */
+void prepare_l3l4_registers(const struct osi_core_priv_data *const osi_core,
+			    const struct osi_l3_l4_filter *const l3_l4,
+#ifndef OSI_STRIPPED_LIB
+			    nveu32_t *l3_addr0_reg,
+			    nveu32_t *l3_addr2_reg,
+			    nveu32_t *l3_addr3_reg,
+			    nveu32_t *l4_addr_reg,
+#endif /* !OSI_STRIPPED_LIB */
+			    nveu32_t *l3_addr1_reg,
+			    nveu32_t *ctr_reg)
+{
+	/* prepare regiser data if filter to be enabled */
+	if (l3_l4->filter_enb_dis == OSI_TRUE) {
+		/* prepare l3 filter ip address register data */
+		prepare_l3_addr_registers(l3_l4,
+#ifndef OSI_STRIPPED_LIB
+				   l3_addr0_reg,
+				   l3_addr2_reg,
+				   l3_addr3_reg,
+#endif /* !OSI_STRIPPED_LIB */
+				   l3_addr1_reg);
+
+#ifndef OSI_STRIPPED_LIB
+		/* prepare l4 filter port register data */
+		prepare_l4_port_register(l3_l4, l4_addr_reg);
+#endif /* !OSI_STRIPPED_LIB */
+
+		/* prepare control register data */
+		prepare_l3l4_ctr_reg(osi_core, l3_l4, ctr_reg);
+	}
+}

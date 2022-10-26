@@ -729,157 +729,355 @@ static nve32_t osi_l2_filter(struct osi_core_priv_data *const osi_core,
 	return ret;
 }
 
-#ifndef OSI_STRIPPED_LIB
 /**
- * @brief helper_l4_filter helper function for l4 filtering
- *
- * @param[in] osi_core: OSI Core private data structure.
- * @param[in] l_filter: filter structure
- * @param[in] type: filter type l3 or l4
- * @param[in] dma_routing_enable: dma routing enable (1) or disable (0)
- * @param[in] dma_chan: dma channel
- *
- * @pre MAC needs to be out of reset and proper clock configured.
+ * @brief l3l4_find_match - function to find filter match
  *
  * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: Yes
- * - De-initialization: No
+ * Algorithm:
+ * - Search through filter list l_core->cfg.l3_l4[] and find for a
+ *   match with l3_l4 input data.
+ * - Filter data matches, store the filter index into filter_no.
+ * - Store first found filter index into free_filter_no.
+ * - Return 0 on match.
+ * - Return -1 on failure.
  *
- * @retval 0 on Success
- * @retval -1 on Failure
+ * @param[in] l_core: OSI local core data structure.
+ * @param[in] l3_l4: Pointer to l3 l4 filter structure (#osi_l3_l4_filter)
+ * @param[out] filter_no: pointer to filter index
+ * @param[out] free_filter_no: pointer to free filter index
+ * @param[in] max_filter_no: maximum allowed filter number
+ *
+ * @pre
+ *  - MAC should be initialized and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
-static inline nve32_t helper_l4_filter(
-				   struct osi_core_priv_data *const osi_core,
-				   struct core_ops *ops_p,
-				   struct osi_l3_l4_filter *l_filter,
-				   nveu32_t type,
-				   nveu32_t dma_routing_enable,
-				   nveu32_t dma_chan)
+static nve32_t l3l4_find_match(const struct core_local *const l_core,
+			       const struct osi_l3_l4_filter *const l3_l4,
+			       nveu32_t *filter_no,
+			       nveu32_t *free_filter_no,
+			       nveu32_t max_filter_no)
 {
-	nve32_t ret = 0;
+	nveu32_t i;
+	nve32_t ret = -1;
+	nveu32_t found_free_index = 0;
+	nve32_t filter_size = (nve32_t)sizeof(l3_l4->data);
 
-	ret = ops_p->config_l4_filters(osi_core,
-				    l_filter->filter_no,
-				    l_filter->filter_enb_dis,
-				    type,
-				    l_filter->src_dst_addr_match,
-				    l_filter->perfect_inverse_match,
-				    dma_routing_enable,
-				    dma_chan);
-	if (ret < 0) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
-			     "failed to configure L4 filters\n", 0ULL);
-		return ret;
-	}
+	/* init free index value to invalid value */
+	*free_filter_no = UINT_MAX;
 
-	return ops_p->update_l4_port_no(osi_core,
-				     l_filter->filter_no,
-				     l_filter->port_no,
-				     l_filter->src_dst_addr_match);
-}
-#endif /* !OSI_STRIPPED_LIB */
+	for (i = 0; i < max_filter_no; i++) {
+		if (l_core->cfg.l3_l4[i].filter_enb_dis == OSI_FALSE) {
+			/* filter not enabled, save free index */
+			if (found_free_index == 0U) {
+				*free_filter_no = i;
+				found_free_index = 1;
+			}
+			continue;
+		}
 
-/**
- * @brief helper_l3_filter helper function for l3 filtering
- *
- * @param[in] osi_core: OSI Core private data structure.
- * @param[in] l_filter: filter structure
- * @param[in] type: filter type l3 or l4
- * @param[in] dma_routing_enable: dma routing enable (1) or disable (0)
- * @param[in] dma_chan: dma channel
- *
- * @pre MAC needs to be out of reset and proper clock configured.
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval 0 on Success
- * @retval -1 on Failure
- */
-static inline nve32_t helper_l3_filter(
-				   struct osi_core_priv_data *const osi_core,
-				   struct core_ops *ops_p,
-				   struct osi_l3_l4_filter *l_filter,
-				   nveu32_t type,
-				   nveu32_t dma_routing_enable,
-				   nveu32_t dma_chan)
-{
-	nve32_t ret = 0;
+		if (osi_memcmp(&(l_core->cfg.l3_l4[i].data), &(l3_l4->data),
+			      filter_size) != 0) {
+			/* data do not match */
+			continue;
+		}
 
-	ret = ops_p->config_l3_filters(osi_core,
-				    l_filter->filter_no,
-				    l_filter->filter_enb_dis,
-				    type,
-				    l_filter->src_dst_addr_match,
-				    l_filter->perfect_inverse_match,
-				    dma_routing_enable,
-				    dma_chan);
-	if (ret < 0) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
-			     "failed to configure L3 filters\n", 0ULL);
-		return ret;
-	}
-
-	if (type == OSI_IP6_FILTER) {
-#ifndef OSI_STRIPPED_LIB
-		ret = ops_p->update_ip6_addr(osi_core, l_filter->filter_no,
-					  l_filter->ip6_addr);
-#endif /* !OSI_STRIPPED_LIB */
-	} else if (type == OSI_IP4_FILTER) {
-		ret = ops_p->update_ip4_addr(osi_core, l_filter->filter_no,
-					  l_filter->ip4_addr,
-					  l_filter->src_dst_addr_match);
-	} else {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			     "Invalid L3 filter type\n", 0ULL);
-		return -1;
+		/* found a match */
+		ret = 0;
+		*filter_no = i;
+		break;
 	}
 
 	return ret;
 }
 
-static nve32_t osi_l3l4_filter(struct osi_core_priv_data *const osi_core,
-			       struct osi_l3_l4_filter *const l_filter,
-			       const nveu32_t type, const nveu32_t dma_routing_enable,
-			       const nveu32_t dma_chan, const nveu32_t is_l4_filter)
+/**
+ * @brief configure_l3l4_filter_helper - helper function for l3l4 configuration
+ *
+ * @note
+ * Algorithm:
+ * - Validate all the l3_l4 structure parameter.
+ *   Return -1 if parameter validation fails.
+ * - Confifure l3l4 filter using l_core->ops_p->config_l3l4_filters().
+ *   Return -1 if config_l3l4_filters() fails.
+ * - Store the filter into l_core->cfg.l3_l4[] and enable
+ *   l3l4 filter if any of the filter index enabled currently.
+ *
+ * @param[inout] l_core: OSI local core data structure.
+ * @param[in] filter_no: pointer to filter number
+ * @param[in] l3_l4: Pointer to l3 l4 filter structure (#osi_l3_l4_filter)
+ *
+ * @pre
+ *  - MAC should be initialized and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static nve32_t configure_l3l4_filter_helper(struct osi_core_priv_data *const osi_core,
+					    nveu32_t filter_no,
+					    const struct osi_l3_l4_filter *const l3_l4)
 {
-	struct core_local *l_core = (struct core_local *)(void *)osi_core;
+	struct osi_l3_l4_filter *cfg_l3_l4;
+	struct core_local *const l_core = (struct core_local *)(void *)osi_core;
+	const nveu32_t max_filter_no[2] = {
+		EQOS_MAX_L3_L4_FILTER,
+		OSI_MGBE_MAX_L3_L4_FILTER
+	};
+	const nveu32_t max_dma_chan[2] = {
+		OSI_EQOS_MAX_NUM_CHANS,
+		OSI_MGBE_MAX_NUM_CHANS
+	};
 	nve32_t ret = -1;
 
-	if ((dma_routing_enable == OSI_ENABLE) &&
-	    (osi_core->dcs_en != OSI_ENABLE)) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			     "dma routing enabled but dcs disabled in DT\n",
-			     0ULL);
-		return ret;
+	/* validate filter index */
+	if (filter_no >= max_filter_no[osi_core->mac]) {
+		OSI_CORE_ERR((osi_core->osd), (OSI_LOG_ARG_OUTOFBOUND),
+			("invalid filter index for L3/L4 filter\n"), (filter_no));
+		goto exit_func;
 	}
 
-	if (is_l4_filter == OSI_ENABLE) {
+	/* validate dma channel */
+	if (l3_l4->dma_chan > max_dma_chan[osi_core->mac]) {
+		OSI_CORE_ERR((osi_core->osd), (OSI_LOG_ARG_OUTOFBOUND),
+			("L3L4: Wrong DMA channel: "), (l3_l4->dma_chan));
+		goto exit_func;
+	}
+
+	/* valate enb parameters */
+	if ((
 #ifndef OSI_STRIPPED_LIB
-		ret = helper_l4_filter(osi_core, l_core->ops_p, l_filter, type,
-				       dma_routing_enable, dma_chan);
+		l3_l4->dma_routing_enable |
+		l3_l4->data.is_udp |
+		l3_l4->data.is_ipv6 |
+		l3_l4->data.perfect_inverse_match |
+		l3_l4->data.src.port_match |
+		l3_l4->data.src.addr_match |
+		l3_l4->data.dst.port_match |
+		l3_l4->data.dst.addr_match |
 #endif /* !OSI_STRIPPED_LIB */
-	} else {
-		ret = helper_l3_filter(osi_core, l_core->ops_p, l_filter, type,
-				       dma_routing_enable, dma_chan);
+		l3_l4->filter_enb_dis
+		) > OSI_TRUE) {
+		OSI_CORE_ERR((osi_core->osd), (OSI_LOG_ARG_OUTOFBOUND),
+			("L3L4: one of the enb param > OSI_TRUE: "), (filter_no));
+		goto exit_func;
 	}
 
+#ifndef OSI_STRIPPED_LIB
+	/* validate port/addr enb bits */
+	if (l3_l4->filter_enb_dis == OSI_TRUE) {
+		if ((l3_l4->data.src.port_match | l3_l4->data.src.addr_match |
+		     l3_l4->data.dst.port_match | l3_l4->data.dst.addr_match)
+			== OSI_FALSE) {
+			OSI_CORE_ERR((osi_core->osd), (OSI_LOG_ARG_OUTOFBOUND),
+				("L3L4: None of the enb bits are not set: "),
+				(filter_no));
+			goto exit_func;
+		}
+		if ((l3_l4->data.is_ipv6 & l3_l4->data.src.addr_match &
+			l3_l4->data.dst.addr_match) != OSI_FALSE) {
+			OSI_CORE_ERR((osi_core->osd), (OSI_LOG_ARG_OUTOFBOUND),
+				("L3L4: Both ip6 addr match bits are set\n"),
+				(filter_no));
+			goto exit_func;
+		}
+	}
+#endif /* !OSI_STRIPPED_LIB */
+
+	ret = l_core->ops_p->config_l3l4_filters(osi_core, filter_no, l3_l4);
 	if (ret < 0) {
-		OSI_CORE_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
-			      "L3/L4 helper function failed\n", 0ULL);
-		return ret;
+		OSI_CORE_ERR((osi_core->osd), (OSI_LOG_ARG_HW_FAIL),
+			("Failed to config L3L4 filters: "), (filter_no));
+		goto exit_func;
 	}
 
-	if (osi_core->l3l4_filter_bitmask != OSI_DISABLE) {
+	cfg_l3_l4 = &(l_core->cfg.l3_l4[filter_no]);
+	if (l3_l4->filter_enb_dis == OSI_TRUE) {
+		/* Store the filter.
+		 * osi_memcpy is an internal function and it cannot fail, hence
+		 * ignoring return value.
+		 */
+		(void)osi_memcpy(cfg_l3_l4, l3_l4, sizeof(struct osi_l3_l4_filter));
+		OSI_CORE_INFO((osi_core->osd), (OSI_LOG_ARG_OUTOFBOUND),
+			("L3L4: ADD: "), (filter_no));
+
+		/* update filter mask bit */
+		osi_core->l3l4_filter_bitmask |= (((nveu32_t)1U << filter_no) & 0x1FU);
+	} else {
+		/* Clear the filter data.
+		 * osi_memset is an internal function and it cannot fail, hence
+		 * ignoring return value.
+		 */
+		(void)osi_memset(cfg_l3_l4, 0, sizeof(struct osi_l3_l4_filter));
+		OSI_CORE_INFO((osi_core->osd), (OSI_LOG_ARG_OUTOFBOUND),
+			("L3L4: DELETE: "), (filter_no));
+
+		/* update filter mask bit */
+		osi_core->l3l4_filter_bitmask &= ~(((nveu32_t)1U << filter_no) & 0x1FU);
+	}
+
+	if (osi_core->l3l4_filter_bitmask != 0U) {
+		/* enable l3l4 filter */
 		ret = hw_config_l3_l4_filter_enable(osi_core, OSI_ENABLE);
 	} else {
+		/* disable l3l4 filter */
 		ret = hw_config_l3_l4_filter_enable(osi_core, OSI_DISABLE);
 	}
+
+exit_func:
+
+	return ret;
+}
+
+#ifndef OSI_STRIPPED_LIB
+#ifdef L3L4_WILDCARD_FILTER
+/**
+ * @brief l3l4_add_wildcard_filter - function to configure wildcard filter.
+ *
+ * @note
+ * Algorithm:
+ *  - Configure wildcard filter with all 4 tuple as 0s using configure_l3l4_filter_helper().
+ *
+ * @param[in] osi_core: OSI Core private data structure.
+ * @param[in] max_filter_no: maximum allowed filter number
+ *
+ * @pre
+ *  - MAC should be initialized and started. see osi_start_mac()
+ */
+static void l3l4_add_wildcard_filter(struct osi_core_priv_data *const osi_core,
+				     nveu32_t max_filter_no)
+{
+	nve32_t err;
+	struct osi_l3_l4_filter *l3l4_filter;
+	struct core_local *l_core = (struct core_local *)(void *)osi_core;
+
+	/* use max filter index to confiture wildcard filter */
+	if (l_core->l3l4_wildcard_filter_configured != OSI_ENABLE) {
+		/* configure INV filter for IPV4/UDP with DA(0) + SP (0) +
+		 * DP (0) with routing not enabled
+		 */
+		l3l4_filter = &(l_core->cfg.l3_l4[max_filter_no]);
+		osi_memset(l3l4_filter, 0, sizeof(struct osi_l3_l4_filter));
+		l3l4_filter->filter_enb_dis = OSI_TRUE;
+		l3l4_filter->data.is_udp = OSI_TRUE;
+		l3l4_filter->data.perfect_inverse_match = OSI_TRUE;
+		l3l4_filter->data.src.port_match = OSI_TRUE;
+		l3l4_filter->data.dst.port_match = OSI_TRUE;
+		l3l4_filter->data.src.addr_match = OSI_TRUE;
+		l3l4_filter->data.dst.addr_match = OSI_TRUE;
+
+		/* configure wildcard at last filter index */
+		err = configure_l3l4_filter_helper(osi_core, max_filter_no, l3l4_filter);
+		if (err < 0) {
+			/* wildcard config failed */
+			OSI_CORE_ERR((osi_core->osd), (OSI_LOG_ARG_INVALID),
+				("L3L4: Wildcard config failed: "), (max_filter_no));
+		} else {
+			/* wildcard config success */
+			l_core->l3l4_wildcard_filter_configured = OSI_ENABLE;
+			OSI_CORE_INFO((osi_core->osd), (OSI_LOG_ARG_INVALID),
+				("L3L4: Wildcard config success"), (max_filter_no));
+		}
+	}
+}
+#endif /* L3L4_WILDCARD_FILTER */
+#endif /* !OSI_STRIPPED_LIB */
+
+/**
+ * @brief configure_l3l4_filter - function to configure l3l4 filter.
+ *
+ * @note
+ * Algorithm:
+ *  - For filter enable case,
+ *    -> If filter already enabled, return -1 to report error.
+ *    -> Otherwise find free index and configure filter using configure_l3l4_filter_helper().
+ *  - For filter disable case,
+ *    -> If filter match not found, return 0 to report caller that filter already removed.
+ *    -> Otherwise disable filter using configure_l3l4_filter_helper().
+ *  - Return -1 if configure_l3l4_filter_helper() fails.
+ *  - Return 0 on success.
+ *
+ * @param[in] osi_core: OSI Core private data structure.
+ * @param[in] l3_l4: Pointer to l3 l4 filter structure (#osi_l3_l4_filter)
+ *
+ * @pre
+ *  - MAC should be initialized and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static nve32_t configure_l3l4_filter(struct osi_core_priv_data *const osi_core,
+				     const struct osi_l3_l4_filter *const l3_l4)
+{
+	nve32_t err;
+	nveu32_t filter_no = 0;
+	nveu32_t free_filter_no = UINT_MAX;
+	const struct core_local *l_core = (struct core_local *)(void *)osi_core;
+	const nveu32_t max_filter_no[2] = {
+		/* max usable filter number is less by 1 for accommodating
+		 * wildcard filter at last index.
+		 */
+		EQOS_MAX_L3_L4_FILTER - 1U,
+		OSI_MGBE_MAX_L3_L4_FILTER - 1U,
+	};
+	nve32_t ret = -1;
+
+	/* search for a duplicate filter request or find for free index */
+	err = l3l4_find_match(l_core, l3_l4, &filter_no, &free_filter_no,
+				  max_filter_no[osi_core->mac]);
+
+	if (l3_l4->filter_enb_dis == OSI_TRUE) {
+		if (err == 0) {
+			/* duplicate filter request */
+			OSI_CORE_ERR((osi_core->osd), (OSI_LOG_ARG_HW_FAIL),
+				("L3L4: Failed: duplicate filter: "), (filter_no));
+			goto exit_func;
+		}
+
+		/* check free index */
+		if (free_filter_no >= max_filter_no[osi_core->mac]) {
+			/* no free entry found */
+			OSI_CORE_INFO((osi_core->osd), (OSI_LOG_ARG_HW_FAIL),
+				("L3L4: Failed: no free filter: "), (free_filter_no));
+			goto exit_func;
+		}
+		filter_no = free_filter_no;
+	} else {
+		if (err < 0) {
+			/* no match found */
+			OSI_CORE_INFO((osi_core->osd), (OSI_LOG_ARG_HW_FAIL),
+				("L3L4: delete: no filter match: "), (filter_no));
+			/* filter already deleted, return success */
+			ret = 0;
+			goto exit_func;
+		}
+	}
+
+#ifndef OSI_STRIPPED_LIB
+#ifdef L3L4_WILDCARD_FILTER
+	/* setup l3l4 wildcard filter for l3l4 */
+	l3l4_add_wildcard_filter(osi_core, max_filter_no[osi_core->mac]);
+	if (l_core->l3l4_wildcard_filter_configured != OSI_ENABLE) {
+		OSI_CORE_ERR((osi_core->osd), (OSI_LOG_ARG_HW_FAIL),
+			("L3L4: Rejected: wildcard is not enabled: "), (filter_no));
+		goto exit_func;
+	}
+#endif /* L3L4_WILDCARD_FILTER */
+#endif /* !OSI_STRIPPED_LIB */
+
+	/* configure l3l4 filter */
+	err = configure_l3l4_filter_helper(osi_core, filter_no, l3_l4);
+	if (err < 0) {
+		/* filter config failed */
+		OSI_CORE_ERR((osi_core->osd), (OSI_LOG_ARG_HW_FAIL),
+			("L3L4: configure_l3l4_filter_helper() failed"), (filter_no));
+		goto exit_func;
+	}
+
+	/* success */
+	ret = 0;
+
+exit_func:
 
 	return ret;
 }
@@ -1723,16 +1921,23 @@ static void cfg_l3_l4_filter(struct core_local *l_core)
 	nveu32_t i = 0U;
 
 	for (i = 0U; i < OSI_MGBE_MAX_L3_L4_FILTER; i++) {
-		if (l_core->cfg.l3_l4[i].used == OSI_DISABLE) {
+		if (l_core->cfg.l3_l4[i].filter_enb_dis == OSI_FALSE) {
+			/* filter not enabled */
 			continue;
 		}
 
-		(void)osi_l3l4_filter((struct osi_core_priv_data *)(void *)l_core,
-				      &l_core->cfg.l3_l4[i].l3l4_filter,
-				      l_core->cfg.l3_l4[i].type,
-				      l_core->cfg.l3_l4[i].dma_routing_enable,
-				      l_core->cfg.l3_l4[i].dma_chan,
-				      l_core->cfg.l3_l4[i].is_l4_filter);
+		(void)configure_l3l4_filter_helper(
+			(struct osi_core_priv_data *)(void *)l_core,
+			i, &l_core->cfg.l3_l4[i]);
+
+#ifdef L3L4_WILDCARD_FILTER
+#ifndef OSI_STRIPPED_LIB
+		if (i == (OSI_MGBE_MAX_L3_L4_FILTER - 1U)) {
+			/* last filter supposed to be wildcard filter */
+			l_core->l3l4_wildcard_filter_configured = OSI_ENABLE;
+		}
+#endif /* L3L4_WILDCARD_FILTER */
+#endif /* !OSI_STRIPPED_LIB */
 	}
 }
 
@@ -1853,27 +2058,6 @@ static void apply_dynamic_cfg(struct osi_core_priv_data *osi_core)
 
 		flags = flags >> 1U;
 		update_counter_u(&i, 1U);
-	}
-}
-
-static void store_l3l4_filter(struct osi_core_priv_data *osi_core,
-			      struct osi_l3_l4_filter *l3l4_filter,
-			      nveu32_t type, nveu32_t dma_routing_enable,
-			      nveu32_t dma_chan, nveu32_t is_l4_filter)
-{
-	struct core_local *l_core = (struct core_local *)(void *)osi_core;
-	struct l3_l4_filters *l3_l4 = &l_core->cfg.l3_l4[l3l4_filter->filter_no];
-
-	if (l3l4_filter->filter_enb_dis == OSI_ENABLE) {
-		l3_l4->type = type;
-		l3_l4->dma_routing_enable = dma_routing_enable;
-		l3_l4->dma_chan = dma_chan;
-		l3_l4->is_l4_filter = is_l4_filter;
-		(void)osi_memcpy(&l3_l4->l3l4_filter, l3l4_filter,
-				 sizeof(struct osi_l3_l4_filter));
-		l3_l4->used = OSI_ENABLE;
-	} else {
-		l3_l4->used = OSI_DISABLE;
 	}
 }
 
@@ -2081,16 +2265,10 @@ static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 
 	switch (data->cmd) {
 	case OSI_CMD_L3L4_FILTER:
-		ret = osi_l3l4_filter(osi_core, &data->l3l4_filter,
-				      data->arg1_u32, data->arg2_u32,
-				      data->arg3_u32, data->arg4_u32);
+		ret = configure_l3l4_filter(osi_core, &data->l3l4_filter);
 		if (ret == 0) {
-			store_l3l4_filter(osi_core, &data->l3l4_filter,
-					  data->arg1_u32, data->arg2_u32,
-					  data->arg3_u32, data->arg4_u32);
 			l_core->cfg.flags |= DYNAMIC_CFG_L3_L4;
 		}
-
 		break;
 
 #ifndef OSI_STRIPPED_LIB

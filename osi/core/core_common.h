@@ -97,6 +97,27 @@
 #define MAC_PKT_FILTER_REG		0x0008
 #define HW_MAC_IER				0x00B4U
 #define WRAP_COMMON_INTR_ENABLE		0x8704U
+
+/* common l3 l4 register bit fields for eqos and mgbe */
+#ifndef OSI_STRIPPED_LIB
+#define MAC_L3L4_CTR_L3PEN_SHIFT	0
+#define MAC_L3L4_CTR_L3SAM_SHIFT	2
+#define MAC_L3L4_CTR_L3SAIM_SHIFT	3
+#endif /* !OSI_STRIPPED_LIB */
+#define MAC_L3L4_CTR_L3DAM_SHIFT	4
+#define MAC_L3L4_CTR_L3DAIM_SHIFT	5
+#ifndef OSI_STRIPPED_LIB
+#define MAC_L3L4_CTR_L4PEN_SHIFT	16
+#define MAC_L3L4_CTR_L4SPM_SHIFT	18
+#define MAC_L3L4_CTR_L4SPIM_SHIFT	19
+#define MAC_L3L4_CTR_L4DPM_SHIFT	20
+#define MAC_L3L4_CTR_L4DPIM_SHIFT	21
+#endif /* !OSI_STRIPPED_LIB */
+#define EQOS_MAC_L3L4_CTR_DMCHN_SHIFT	24 /* 3 bits */
+#define EQOS_MAC_L3L4_CTR_DMCHEN_SHIFT	28
+#define MGBE_MAC_L3L4_CTR_DMCHN_SHIFT	24 /* 4 bits */
+#define MGBE_MAC_L3L4_CTR_DMCHEN_SHIFT	31
+
 /**
  * @addtogroup typedef related info
  *
@@ -142,6 +163,16 @@ nve32_t hw_config_fpe(struct osi_core_priv_data *const osi_core,
 		      struct osi_fpe_config *const fpe);
 void hw_tsn_init(struct osi_core_priv_data *osi_core,
 		 nveu32_t est_sel, nveu32_t fpe_sel);
+void prepare_l3l4_registers(const struct osi_core_priv_data *const osi_core,
+			    const struct osi_l3_l4_filter *const l3_l4,
+#ifndef OSI_STRIPPED_LIB
+			    nveu32_t *l3_addr0_reg,
+			    nveu32_t *l3_addr2_reg,
+			    nveu32_t *l3_addr3_reg,
+			    nveu32_t *l4_addr_reg,
+#endif /* !OSI_STRIPPED_LIB */
+			    nveu32_t *l3_addr1_reg,
+			    nveu32_t *ctr_reg);
 #ifdef HSI_SUPPORT
 void hsi_common_error_inject(struct osi_core_priv_data *osi_core,
 			     nveu32_t error_code);

@@ -63,12 +63,5 @@ typedef my_ulint_64		nveul64_t;
 typedef my_uint64_t		nveu64_t;
 /** @} */
 
-#ifndef OSI_STRIPPED_LIB
-/** intermediate type for short */
-typedef short			my_int16_t;
-/** typedef equivalent to short */
-typedef my_int16_t		nve16_t;
-#endif /* !OSI_STRIPPED_LIB */
-
 #endif /* INCLUDED_TYPE_H */
 

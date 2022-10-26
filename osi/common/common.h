@@ -332,10 +332,10 @@ done:
  * - Run time: Yes
  * - De-initialization: No
  */
-static inline nve32_t osi_memcpy(void *dest, void *src, nveu64_t n)
+static inline nve32_t osi_memcpy(void *dest, const void *src, nveu64_t n)
 {
-	nve8_t *cdest = (nve8_t *)dest;
-	const nve8_t *csrc = (nve8_t *)src;
+	nve8_t *cdest = dest;
+	const nve8_t *csrc = src;
 	nve32_t ret = 0;
 	nveu64_t i = 0;
 
@@ -351,10 +351,10 @@ fail:
 	return ret;
 }
 
-static inline nve32_t osi_memcmp(void *dest, void *src, nve32_t n)
+static inline nve32_t osi_memcmp(const void *dest, const void *src, nve32_t n)
 {
-	const nve8_t *const cdest = (nve8_t *)dest;
-	const nve8_t *const csrc = (nve8_t *)src;
+	const nve8_t *const cdest = dest;
+	const nve8_t *const csrc = src;
 	nve32_t ret = 0;
 	nve32_t i;
 

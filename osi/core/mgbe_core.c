@@ -484,672 +484,105 @@ static nve32_t mgbe_l3l4_filter_write(struct osi_core_priv_data *osi_core,
 }
 
 /**
- * @brief mgbe_l3l4_filter_read - L3_L4 filter register read.
+ * @brief mgbe_config_l3l4_filters - Config L3L4 filters.
  *
- * Algorithm: writes L3_L4 filter register
- *
- * @param[in] base: MGBE virtual base address.
- * @param[in] filter_no: MGBE  L3_L4 filter number
- * @param[in] filter_type: MGBE L3_L4 filter register type.
- * @param[in] *value: Pointer MGBE L3_L4 filter register value
- *
- * @note MAC needs to be out of reset and proper clock configured.
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static nve32_t mgbe_l3l4_filter_read(struct osi_core_priv_data *osi_core,
-				     nveu32_t filter_no,
-				     nveu32_t filter_type,
-				     nveu32_t *value)
-{
-	void *base = osi_core->base;
-	nveu32_t addr = 0;
-
-	/* Program MAC_L3_L4_Address_Control */
-	addr = osi_readla(osi_core,
-			  (nveu8_t *)base + MGBE_MAC_L3L4_ADDR_CTR);
-
-	/* update filter number */
-	addr &= ~(MGBE_MAC_L3L4_ADDR_CTR_IDDR_FNUM);
-	addr |= ((filter_no << MGBE_MAC_L3L4_ADDR_CTR_IDDR_FNUM_SHIFT) &
-		  MGBE_MAC_L3L4_ADDR_CTR_IDDR_FNUM);
-
-	/* update filter type */
-	addr &= ~(MGBE_MAC_L3L4_ADDR_CTR_IDDR_FTYPE);
-	addr |= ((filter_type << MGBE_MAC_L3L4_ADDR_CTR_IDDR_FTYPE_SHIFT) &
-		  MGBE_MAC_L3L4_ADDR_CTR_IDDR_FTYPE);
-
-	/* Set TT field 1 for read */
-	addr |= MGBE_MAC_L3L4_ADDR_CTR_TT;
-
-	/* Set XB bit to initiate write */
-	addr |= MGBE_MAC_L3L4_ADDR_CTR_XB;
-
-	/* Write MGBE_MAC_L3L4_ADDR_CTR */
-	osi_writela(osi_core, addr,
-		    (nveu8_t *)base + MGBE_MAC_L3L4_ADDR_CTR);
-
-	/* Wait untile XB bit reset */
-	if (mgbe_poll_for_l3l4crtl(osi_core) < 0) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
-			    "Fail to read L3L4 Address\n",
-			    filter_type);
-		return -1;
-	}
-
-	/* Read the MGBE_MAC_L3L4_DATA for filter register data */
-	*value = osi_readla(osi_core,
-			    (nveu8_t *)base + MGBE_MAC_L3L4_DATA);
-	return 0;
-}
-
-/**
- * @brief mgbe_update_ip4_addr - configure register for IPV4 address filtering
- *
- * Algorithm:  This sequence is used to update IPv4 source/destination
- *	Address for L3 layer filtering
+ * @note
+ * Algorithm:
+ * - This sequence is used to configure L3L4 filters for SA and DA Port Number matching.
+ * - Prepare register data using prepare_l3l4_registers().
+ * - Write l3l4 reigsters using mgbe_l3l4_filter_write().
+ * - Return 0 on success.
+ * - Return -1 on any register failure.
  *
  * @param[in] osi_core: OSI core private data structure.
- * @param[in] filter_no: filter index
- * @param[in] addr: ipv4 address
- * @param[in] src_dst_addr_match: 0 - source addr otherwise - dest addr
- *
- * @note 1) MAC should be init and started. see osi_start_mac()
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static nve32_t mgbe_update_ip4_addr(struct osi_core_priv_data *const osi_core,
-				    const nveu32_t filter_no,
-				    const nveu8_t addr[],
-				    const nveu32_t src_dst_addr_match)
-{
-	nveu32_t value = 0U;
-	nveu32_t temp = 0U;
-	nve32_t ret = 0;
-
-	if (addr == OSI_NULL) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			"invalid address\n",
-			0ULL);
-		return -1;
-	}
-
-	if (filter_no >= OSI_MGBE_MAX_L3_L4_FILTER) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
-			"invalid filter index for L3/L4 filter\n",
-			(nveul64_t)filter_no);
-		return -1;
-	}
-
-	/* validate src_dst_addr_match argument */
-	if ((src_dst_addr_match != OSI_SOURCE_MATCH) &&
-	    (src_dst_addr_match != OSI_INV_MATCH)) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			"Invalid src_dst_addr_match value\n",
-			src_dst_addr_match);
-		return -1;
-	}
-
-	value = addr[3];
-	temp = (nveu32_t)addr[2] << 8;
-	value |= temp;
-	temp = (nveu32_t)addr[1] << 16;
-	value |= temp;
-	temp = (nveu32_t)addr[0] << 24;
-	value |= temp;
-	if (src_dst_addr_match == OSI_SOURCE_MATCH) {
-		ret = mgbe_l3l4_filter_write(osi_core,
-					     filter_no,
-					     MGBE_MAC_L3_AD0R,
-					     value);
-	} else {
-		ret = mgbe_l3l4_filter_write(osi_core,
-					     filter_no,
-					     MGBE_MAC_L3_AD1R,
-					     value);
-	}
-
-	return ret;
-}
-
-#ifndef OSI_STRIPPED_LIB
-/**
- * @brief mgbe_update_ip6_addr - add ipv6 address in register
- *
- * Algorithm: This sequence is used to update IPv6 source/destination
- *	      Address for L3 layer filtering
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] filter_no: filter index
- * @param[in] addr: ipv6 adderss
- *
- * @note 1) MAC should be init and started. see osi_start_mac()
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static nve32_t mgbe_update_ip6_addr(struct osi_core_priv_data *const osi_core,
-				    const nveu32_t filter_no,
-				    const nveu16_t addr[])
-{
-	nveu32_t value = 0U;
-	nveu32_t temp = 0U;
-	nve32_t ret = 0;
-
-	if (addr == OSI_NULL) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			"invalid address\n",
-			0ULL);
-		return -1;
-	}
-
-	if (filter_no >= OSI_MGBE_MAX_L3_L4_FILTER) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			"invalid filter index for L3/L4 filter\n",
-			(nveul64_t)filter_no);
-		return -1;
-	}
-
-	/* update Bits[31:0] of 128-bit IP addr */
-	value = addr[7];
-	temp = (nveu32_t)addr[6] << 16;
-	value |= temp;
-
-	ret = mgbe_l3l4_filter_write(osi_core, filter_no,
-				     MGBE_MAC_L3_AD0R, value);
-	if (ret < 0) {
-		/* Write MGBE_MAC_L3_AD0R fail return error */
-		return ret;
-	}
-	/* update Bits[63:32] of 128-bit IP addr */
-	value = addr[5];
-	temp = (nveu32_t)addr[4] << 16;
-	value |= temp;
-
-	ret = mgbe_l3l4_filter_write(osi_core, filter_no,
-				     MGBE_MAC_L3_AD1R, value);
-	if (ret < 0) {
-		/* Write MGBE_MAC_L3_AD1R fail return error */
-		return ret;
-	}
-	/* update Bits[95:64] of 128-bit IP addr */
-	value = addr[3];
-	temp = (nveu32_t)addr[2] << 16;
-	value |= temp;
-
-	ret = mgbe_l3l4_filter_write(osi_core, filter_no,
-				     MGBE_MAC_L3_AD2R, value);
-	if (ret < 0) {
-		/* Write MGBE_MAC_L3_AD2R fail return error */
-		return ret;
-	}
-
-	/* update Bits[127:96] of 128-bit IP addr */
-	value = addr[1];
-	temp = (nveu32_t)addr[0] << 16;
-	value |= temp;
-
-	return mgbe_l3l4_filter_write(osi_core, filter_no,
-				      MGBE_MAC_L3_AD3R, value);
-}
-
-/**
- * @brief mgbe_update_l4_port_no -program source  port no
- *
- * Algorithm: sequence is used to update Source Port Number for
- *	L4(TCP/UDP) layer filtering.
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] filter_no: filter index
- * @param[in] port_no: port number
- * @param[in] src_dst_port_match: 0 - source port, otherwise - dest port
+ * @param[in] filter_no_r: filter index
+ * @param[in] l3_l4: Pointer to l3 l4 filter structure (#osi_l3_l4_filter)
  *
  * @note 1) MAC should be init and started. see osi_start_mac()
  *	 2) osi_core->osd should be populated
- *	 3) DCS bits should be enabled in RXQ to DMA mapping register
  *
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static nve32_t mgbe_update_l4_port_no(struct osi_core_priv_data *osi_core,
-				      const nveu32_t filter_no,
-				      const nveu16_t port_no,
-				      const nveu32_t src_dst_port_match)
+static nve32_t mgbe_config_l3l4_filters(struct osi_core_priv_data *const osi_core,
+					nveu32_t filter_no_r,
+					const struct osi_l3_l4_filter *const l3_l4)
 {
-	nveu32_t value = 0U;
-	nveu32_t temp = 0U;
-	nve32_t ret = 0;
+#ifndef OSI_STRIPPED_LIB
+	nveu32_t l3_addr0_reg = 0;
+	nveu32_t l3_addr2_reg = 0;
+	nveu32_t l3_addr3_reg = 0;
+	nveu32_t l4_addr_reg = 0;
+#endif /* !OSI_STRIPPED_LIB */
+	nveu32_t l3_addr1_reg = 0;
+	nveu32_t ctr_reg = 0;
+	nveu32_t filter_no = filter_no_r & (OSI_MGBE_MAX_L3_L4_FILTER - 1U);
+	nve32_t err;
+	nve32_t ret = -1;
 
-	if (filter_no >= OSI_MGBE_MAX_L3_L4_FILTER) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
-			"invalid filter index for L3/L4 filter\n",
-			(nveul64_t)filter_no);
-		return -1;
+	prepare_l3l4_registers(osi_core, l3_l4,
+#ifndef OSI_STRIPPED_LIB
+			       &l3_addr0_reg,
+			       &l3_addr2_reg,
+			       &l3_addr3_reg,
+			       &l4_addr_reg,
+#endif /* !OSI_STRIPPED_LIB */
+			       &l3_addr1_reg,
+			       &ctr_reg);
+
+#ifndef OSI_STRIPPED_LIB
+	/* Update l3 ip addr MGBE_MAC_L3_AD0R register */
+	err = mgbe_l3l4_filter_write(osi_core, filter_no, MGBE_MAC_L3_AD0R, l3_addr0_reg);
+	if (err < 0) {
+		/* Write MGBE_MAC_L3_AD0R fail return error */
+		goto exit_func;
 	}
 
-	ret = mgbe_l3l4_filter_read(osi_core, filter_no,
-				    MGBE_MAC_L4_ADDR, &value);
-	if (ret < 0) {
-		/* Read MGBE_MAC_L4_ADDR fail return error */
-		return ret;
+	/* Update l3 ip addr MGBE_MAC_L3_AD2R register */
+	err = mgbe_l3l4_filter_write(osi_core, filter_no, MGBE_MAC_L3_AD2R, l3_addr2_reg);
+	if (err < 0) {
+		/* Write MGBE_MAC_L3_AD2R fail return error */
+		goto exit_func;
 	}
 
-	if (src_dst_port_match == OSI_SOURCE_MATCH) {
-		value &= ~MGBE_MAC_L4_ADDR_SP_MASK;
-		value |= ((nveu32_t)port_no  & MGBE_MAC_L4_ADDR_SP_MASK);
-	} else {
-		value &= ~MGBE_MAC_L4_ADDR_DP_MASK;
-		temp = port_no;
-		value |= ((temp << MGBE_MAC_L4_ADDR_DP_SHIFT) &
-			  MGBE_MAC_L4_ADDR_DP_MASK);
+	/* Update l3 ip addr MGBE_MAC_L3_AD3R register */
+	err = mgbe_l3l4_filter_write(osi_core, filter_no, MGBE_MAC_L3_AD3R, l3_addr3_reg);
+	if (err < 0) {
+		/* Write MGBE_MAC_L3_AD3R fail return error */
+		goto exit_func;
 	}
 
-	return mgbe_l3l4_filter_write(osi_core, filter_no,
-				      MGBE_MAC_L4_ADDR, value);
-}
+	/* Update l4 port register MGBE_MAC_L4_ADDR register */
+	err = mgbe_l3l4_filter_write(osi_core, filter_no, MGBE_MAC_L4_ADDR, l4_addr_reg);
+	if (err < 0) {
+		/* Write MGBE_MAC_L4_ADDR fail return error */
+		goto exit_func;
+	}
 #endif /* !OSI_STRIPPED_LIB */
 
-/**
- * @brief mgbe_set_dcs - check and update dma routing register
- *
- * Algorithm: Check for request for DCS_enable as well as validate chan
- *	number and dcs_enable is set. After validation, this sequence is used
- *	to configure L3((IPv4/IPv6) filters for address matching.
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] value: nveu32_t value for caller
- * @param[in] dma_routing_enable: filter based dma routing enable(1)
- * @param[in] dma_chan: dma channel for routing based on filter
- *
- * @note 1) MAC IP should be out of reset and need to be initialized
- *	 as the requirements.
- *	 2) DCS bit of RxQ should be enabled for dynamic channel selection
- *	    in filter support
- *
- * @retval updated nveu32_t value param
- */
-static inline nveu32_t mgbe_set_dcs(struct osi_core_priv_data *osi_core,
-				    nveu32_t value,
-				    nveu32_t dma_routing_enable,
-				    nveu32_t dma_chan)
-{
-	nveu32_t temp = value;
-
-	if ((dma_routing_enable == OSI_ENABLE) && (dma_chan <
-	    OSI_MGBE_MAX_NUM_CHANS) && (osi_core->dcs_en ==
-	    OSI_ENABLE)) {
-		temp |= ((dma_routing_enable <<
-			 MGBE_MAC_L3L4_CTR_DMCHEN0_SHIFT) &
-			 MGBE_MAC_L3L4_CTR_DMCHEN0);
-		temp |= ((dma_chan <<
-			 MGBE_MAC_L3L4_CTR_DMCHN0_SHIFT) &
-			 MGBE_MAC_L3L4_CTR_DMCHN0);
+	/* Update l3 ip addr MGBE_MAC_L3_AD1R register */
+	err = mgbe_l3l4_filter_write(osi_core, filter_no, MGBE_MAC_L3_AD1R, l3_addr1_reg);
+	if (err < 0) {
+		/* Write MGBE_MAC_L3_AD1R fail return error */
+		goto exit_func;
 	}
 
-	return temp;
-}
-
-/**
- * @brief mgbe_helper_l3l4_bitmask - helper function to set L3L4
- * bitmask.
- *
- * Algorithm: set bit corresponding to L3l4 filter index
- *
- * @param[in] bitmask: bit mask OSI core private data structure.
- * @param[in] filter_no: filter index
- * @param[in] value:  0 - disable  otherwise - l3/l4 filter enabled
- *
- * @note 1) MAC should be init and started. see osi_start_mac()
- */
-static inline void mgbe_helper_l3l4_bitmask(nveu32_t *bitmask,
-					    nveu32_t filter_no,
-					    nveu32_t value)
-{
-	nveu32_t temp;
-
-	temp = OSI_ENABLE;
-	temp = temp << filter_no;
-
-	/* check against all bit fields for L3L4 filter enable */
-	if ((value & MGBE_MAC_L3L4_CTRL_ALL) != OSI_DISABLE) {
-		/* Set bit mask for index */
-		*bitmask |= temp;
-	} else {
-		/* Reset bit mask for index */
-		*bitmask &= ~temp;
-	}
-}
-
-/**
- * @brief mgbe_config_l3_filters - config L3 filters.
- *
- * Algorithm: Check for DCS_enable as well as validate channel
- *	number and if dcs_enable is set. After validation, code flow
- *	is used to configure L3((IPv4/IPv6) filters resister
- *	for address matching.
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] filter_no: filter index
- * @param[in] enb_dis:  1 - enable otherwise - disable L3 filter
- * @param[in] ipv4_ipv6_match: 1 - IPv6, otherwise - IPv4
- * @param[in] src_dst_addr_match: 0 - source, otherwise - destination
- * @param[in] perfect_inverse_match: normal match(0) or inverse map(1)
- * @param[in] dma_routing_enable: filter based dma routing enable(1)
- * @param[in] dma_chan: dma channel for routing based on filter
- *
- * @note 1) MAC should be init and started. see osi_start_mac()
- *	 2) osi_core->osd should be populated
- *	 3) DCS bit of RxQ should be enabled for dynamic channel selection
- *	    in filter support
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static nve32_t mgbe_config_l3_filters(struct osi_core_priv_data *const osi_core,
-				      const nveu32_t filter_no,
-				      const nveu32_t enb_dis,
-				      const nveu32_t ipv4_ipv6_match,
-				      const nveu32_t src_dst_addr_match,
-				      const nveu32_t perfect_inverse_match,
-				      const nveu32_t dma_routing_enable,
-				      const nveu32_t dma_chan)
-{
-	nveu32_t value = 0U;
-	nve32_t ret = 0;
-
-	if (filter_no >= OSI_MGBE_MAX_L3_L4_FILTER) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
-			"invalid filter index for L3/L4 filter\n",
-			(nveul64_t)filter_no);
-		return -1;
-	}
-	/* validate enb_dis argument */
-	if ((enb_dis != OSI_ENABLE) && (enb_dis != OSI_DISABLE)) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			"Invalid filter_enb_dis value\n",
-			enb_dis);
-		return -1;
-	}
-	/* validate ipv4_ipv6_match argument */
-	if ((ipv4_ipv6_match != OSI_IPV6_MATCH) &&
-	    (ipv4_ipv6_match != OSI_IPV4_MATCH)) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			"Invalid ipv4_ipv6_match value\n",
-			ipv4_ipv6_match);
-		return -1;
-	}
-	/* validate src_dst_addr_match argument */
-	if ((src_dst_addr_match != OSI_SOURCE_MATCH) &&
-	    (src_dst_addr_match != OSI_INV_MATCH)) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			"Invalid src_dst_addr_match value\n",
-			src_dst_addr_match);
-		return -1;
-	}
-	/* validate perfect_inverse_match argument */
-	if ((perfect_inverse_match != OSI_ENABLE) &&
-	    (perfect_inverse_match != OSI_DISABLE)) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			"Invalid perfect_inverse_match value\n",
-			perfect_inverse_match);
-		return -1;
-	}
-	if ((dma_routing_enable == OSI_ENABLE) &&
-	    (dma_chan > (OSI_MGBE_MAX_NUM_CHANS - 1U))) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
-			"Wrong DMA channel\n",
-			(nveul64_t)dma_chan);
-		return -1;
-	}
-
-	ret = mgbe_l3l4_filter_read(osi_core, filter_no,
-				    MGBE_MAC_L3L4_CTR, &value);
-	if (ret < 0) {
-		/* MGBE_MAC_L3L4_CTR read fail return here */
-		return ret;
-	}
-
-	value &= ~MGBE_MAC_L3L4_CTR_L3PEN0;
-	value |= (ipv4_ipv6_match  & MGBE_MAC_L3L4_CTR_L3PEN0);
-
-	/* For IPv6 either SA/DA can be checked not both */
-	if (ipv4_ipv6_match == OSI_IPV6_MATCH) {
-		if (enb_dis == OSI_ENABLE) {
-			if (src_dst_addr_match == OSI_SOURCE_MATCH) {
-				/* Enable L3 filters for IPv6 SOURCE addr
-				 *  matching
-				 */
-				value &= ~MGBE_MAC_L3_IP6_CTRL_CLEAR;
-				value |= ((MGBE_MAC_L3L4_CTR_L3SAM0) |
-					  ((perfect_inverse_match <<
-					  MGBE_MAC_L3L4_CTR_L3SAIM0_SHIFT) &
-					  (MGBE_MAC_L3L4_CTR_L3SAM0 |
-					  MGBE_MAC_L3L4_CTR_L3SAIM0)));
-				value |= mgbe_set_dcs(osi_core, value,
-						      dma_routing_enable,
-						      dma_chan);
-
-			} else {
-				/* Enable L3 filters for IPv6 DESTINATION addr
-				 * matching
-				 */
-				value &= ~MGBE_MAC_L3_IP6_CTRL_CLEAR;
-				value |= ((MGBE_MAC_L3L4_CTR_L3DAM0) |
-					  ((perfect_inverse_match <<
-					  MGBE_MAC_L3L4_CTR_L3DAIM0_SHIFT) &
-					  (MGBE_MAC_L3L4_CTR_L3DAM0 |
-					  MGBE_MAC_L3L4_CTR_L3DAIM0)));
-				value |= mgbe_set_dcs(osi_core, value,
-						      dma_routing_enable,
-						      dma_chan);
-			}
-		} else {
-			/* Disable L3 filters for IPv6 SOURCE/DESTINATION addr
-			 * matching
-			 */
-			value &= ~(MGBE_MAC_L3_IP6_CTRL_CLEAR |
-				   MGBE_MAC_L3L4_CTR_L3PEN0);
-		}
-	} else {
-		if (src_dst_addr_match == OSI_SOURCE_MATCH) {
-			if (enb_dis == OSI_ENABLE) {
-				/* Enable L3 filters for IPv4 SOURCE addr
-				 * matching
-				 */
-				value &= ~MGBE_MAC_L3_IP4_SA_CTRL_CLEAR;
-				value |= ((MGBE_MAC_L3L4_CTR_L3SAM0) |
-					  ((perfect_inverse_match <<
-					  MGBE_MAC_L3L4_CTR_L3SAIM0_SHIFT) &
-					  (MGBE_MAC_L3L4_CTR_L3SAM0 |
-					  MGBE_MAC_L3L4_CTR_L3SAIM0)));
-				value |= mgbe_set_dcs(osi_core, value,
-						      dma_routing_enable,
-						      dma_chan);
-			} else {
-				/* Disable L3 filters for IPv4 SOURCE addr
-				 * matching
-				 */
-				value &= ~MGBE_MAC_L3_IP4_SA_CTRL_CLEAR;
-			}
-		} else {
-			if (enb_dis == OSI_ENABLE) {
-				/* Enable L3 filters for IPv4 DESTINATION addr
-				 * matching
-				 */
-				value &= ~MGBE_MAC_L3_IP4_DA_CTRL_CLEAR;
-				value |= ((MGBE_MAC_L3L4_CTR_L3DAM0) |
-					  ((perfect_inverse_match <<
-					  MGBE_MAC_L3L4_CTR_L3DAIM0_SHIFT) &
-					  (MGBE_MAC_L3L4_CTR_L3DAM0 |
-					  MGBE_MAC_L3L4_CTR_L3DAIM0)));
-				value |= mgbe_set_dcs(osi_core, value,
-						      dma_routing_enable,
-						      dma_chan);
-			} else {
-				/* Disable L3 filters for IPv4 DESTINATION addr
-				 * matching
-				 */
-				value &= ~MGBE_MAC_L3_IP4_DA_CTRL_CLEAR;
-			}
-		}
-	}
-
-	ret = mgbe_l3l4_filter_write(osi_core, filter_no,
-				     MGBE_MAC_L3L4_CTR, value);
-	if (ret < 0) {
+	/* Write CTR register */
+	err = mgbe_l3l4_filter_write(osi_core, filter_no, MGBE_MAC_L3L4_CTR, ctr_reg);
+	if (err < 0) {
 		/* Write MGBE_MAC_L3L4_CTR fail return error */
-		return ret;
+		goto exit_func;
 	}
 
-	/* Set bit corresponding to filter index if value is non-zero */
-	mgbe_helper_l3l4_bitmask(&osi_core->l3l4_filter_bitmask,
-				 filter_no, value);
+	/* success */
+	ret = 0;
+
+exit_func:
 
 	return ret;
 }
 
 #ifndef OSI_STRIPPED_LIB
-/**
- * @brief mgbe_config_l4_filters - Config L4 filters.
- *
- * Algorithm: This sequence is used to configure L4(TCP/UDP) filters for
- *	SA and DA Port Number matching
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] filter_no: filter index
- * @param[in] enb_dis: 1 - enable, otherwise - disable L4 filter
- * @param[in] tcp_udp_match: 1 - udp, 0 - tcp
- * @param[in] src_dst_port_match: 0 - source port, otherwise - dest port
- * @param[in] perfect_inverse_match: normal match(0) or inverse map(1)
- * @param[in] dma_routing_enable: filter based dma routing enable(1)
- * @param[in] dma_chan: dma channel for routing based on filter
- *
- * @note 1) MAC should be init and started. see osi_start_mac()
- *	 2) osi_core->osd should be populated
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static nve32_t mgbe_config_l4_filters(struct osi_core_priv_data *const osi_core,
-				      const nveu32_t filter_no,
-				      const nveu32_t enb_dis,
-				      const nveu32_t tcp_udp_match,
-				      const nveu32_t src_dst_port_match,
-				      const nveu32_t perfect_inverse_match,
-				      const nveu32_t dma_routing_enable,
-				      const nveu32_t dma_chan)
-{
-	nveu32_t value = 0U;
-	nve32_t ret = 0;
-
-	if (filter_no >= OSI_MGBE_MAX_L3_L4_FILTER) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
-			"invalid filter index for L3/L4 filter\n",
-			(nveul64_t)filter_no);
-		return -1;
-	}
-	/* validate enb_dis argument */
-	if ((enb_dis != OSI_ENABLE) && (enb_dis != OSI_DISABLE)) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			"Invalid filter_enb_dis value\n",
-			enb_dis);
-		return -1;
-	}
-	/* validate tcp_udp_match argument */
-	if ((tcp_udp_match != OSI_ENABLE) && (tcp_udp_match != OSI_DISABLE)) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			"Invalid tcp_udp_match value\n",
-			tcp_udp_match);
-		return -1;
-	}
-	/* validate src_dst_port_match argument */
-	if ((src_dst_port_match != OSI_SOURCE_MATCH) &&
-	    (src_dst_port_match != OSI_INV_MATCH)) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			"Invalid src_dst_port_match value\n",
-			src_dst_port_match);
-		return -1;
-	}
-	/* validate perfect_inverse_match argument */
-	if ((perfect_inverse_match != OSI_ENABLE) &&
-	    (perfect_inverse_match != OSI_DISABLE)) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			"Invalid perfect_inverse_match value\n",
-			perfect_inverse_match);
-		return -1;
-	}
-	if ((dma_routing_enable == OSI_ENABLE) &&
-	    (dma_chan > (OSI_MGBE_MAX_NUM_CHANS - 1U))) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
-			"Wrong DMA channel\n",
-			(nveu32_t)dma_chan);
-		return -1;
-	}
-
-	ret = mgbe_l3l4_filter_read(osi_core, filter_no,
-				    MGBE_MAC_L3L4_CTR, &value);
-	if (ret < 0) {
-		/* MGBE_MAC_L3L4_CTR read fail return here */
-		return ret;
-	}
-
-	value &= ~MGBE_MAC_L3L4_CTR_L4PEN0;
-	value |= ((tcp_udp_match << 16) & MGBE_MAC_L3L4_CTR_L4PEN0);
-
-	if (src_dst_port_match == OSI_SOURCE_MATCH) {
-		if (enb_dis == OSI_ENABLE) {
-			/* Enable L4 filters for SOURCE Port No matching */
-			value &= ~MGBE_MAC_L4_SP_CTRL_CLEAR;
-			value |= ((MGBE_MAC_L3L4_CTR_L4SPM0) |
-				  ((perfect_inverse_match <<
-				  MGBE_MAC_L3L4_CTR_L4SPIM0_SHIFT) &
-				  (MGBE_MAC_L3L4_CTR_L4SPM0 |
-				  MGBE_MAC_L3L4_CTR_L4SPIM0)));
-			value |= mgbe_set_dcs(osi_core, value,
-					      dma_routing_enable,
-					      dma_chan);
-		} else {
-			/* Disable L4 filters for SOURCE Port No matching  */
-			value &= ~MGBE_MAC_L4_SP_CTRL_CLEAR;
-		}
-	} else {
-		if (enb_dis == OSI_ENABLE) {
-			/* Enable L4 filters for DESTINATION port No
-			 * matching
-			 */
-			value &= ~MGBE_MAC_L4_DP_CTRL_CLEAR;
-			value |= (((MGBE_MAC_L3L4_CTR_L4DPM0) |
-				  (perfect_inverse_match <<
-				  MGBE_MAC_L3L4_CTR_L4DPIM0_SHIFT)) &
-				  (MGBE_MAC_L3L4_CTR_L4DPM0 |
-				  MGBE_MAC_L3L4_CTR_L4DPIM0));
-			value |= mgbe_set_dcs(osi_core, value,
-					      dma_routing_enable,
-					      dma_chan);
-		} else {
-			/* Disable L4 filters for DESTINATION port No
-			 * matching
-			 */
-			value &= ~MGBE_MAC_L4_DP_CTRL_CLEAR;
-		}
-	}
-
-	ret = mgbe_l3l4_filter_write(osi_core, filter_no,
-				     MGBE_MAC_L3L4_CTR, value);
-	if (ret < 0) {
-		/* Write MGBE_MAC_L3L4_CTR fail return error */
-		return ret;
-	}
-
-	/* Set bit corresponding to filter index if value is non-zero */
-	mgbe_helper_l3l4_bitmask(&osi_core->l3l4_filter_bitmask,
-				 filter_no, value);
-
-	return ret;
-}
-
 /**
  * @brief mgbe_config_vlan_filter_reg - config vlan filter register
  *
@@ -4560,13 +3993,11 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->handle_common_intr = mgbe_handle_common_intr;
 	ops->pad_calibrate = mgbe_pad_calibrate;
 	ops->update_mac_addr_low_high_reg = mgbe_update_mac_addr_low_high_reg;
-	ops->config_l3_filters = mgbe_config_l3_filters;
 	ops->adjust_mactime = mgbe_adjust_mactime;
 	ops->read_mmc = mgbe_read_mmc;
 	ops->write_phy_reg = mgbe_write_phy_reg;
 	ops->read_phy_reg = mgbe_read_phy_reg;
 	ops->get_hw_features = mgbe_get_hw_features;
-	ops->update_ip4_addr = mgbe_update_ip4_addr;
 	ops->read_reg = mgbe_read_reg;
 	ops->write_reg = mgbe_write_reg;
 	ops->set_avb_algorithm = mgbe_set_avb_algorithm;
@@ -4581,10 +4012,8 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->macsec_config_mac = mgbe_config_for_macsec;
 #endif /* !OSI_STRIPPED_LIB */
 #endif /*  MACSEC_SUPPORT */
+	ops->config_l3l4_filters = mgbe_config_l3l4_filters;
 #ifndef OSI_STRIPPED_LIB
-	ops->update_ip6_addr = mgbe_update_ip6_addr;
-	ops->config_l4_filters = mgbe_config_l4_filters;
-	ops->update_l4_port_no = mgbe_update_l4_port_no;
 	ops->config_tx_status = mgbe_config_tx_status;
 	ops->config_rx_crc_check = mgbe_config_rx_crc_check;
 	ops->config_flow_control = mgbe_config_flow_control;

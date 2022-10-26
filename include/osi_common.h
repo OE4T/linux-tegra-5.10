@@ -228,7 +228,6 @@
 #define OSI_MGBE_MAC_3_10	0x31U
 
 #define OSI_MAX_VM_IRQS              5U
-#define OSI_IP4_FILTER		0U
 
 #ifndef OSI_STRIPPED_LIB
 #define OSI_HASH_FILTER_MODE	1U
