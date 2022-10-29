@@ -193,6 +193,15 @@ config NV_VIDEO_AR0234
 	  To compile this driver as a module, choose M here: the module
 	  will be called ar0234.
 
+config NV_VIDEO_HAWK_OWL
+	tristate "Hawk & Owl camera sensor support"
+	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+	help
+	  This is a Video4Linux2 sensor-level driver for the Hawk
+	   and Owl camera.
+
+	  To compile this driver as a module, choose M here: the module
+	  will be called hawk_owl.
 endmenu
 
 endif
