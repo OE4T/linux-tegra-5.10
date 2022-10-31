@@ -23,6 +23,7 @@ struct platform_device;
 struct nvhost_syncpt;
 
 struct nvhost_syncpt_unit_interface {
+	struct scatterlist sg;
 	dma_addr_t start;
 	uint32_t syncpt_page_size;
 };

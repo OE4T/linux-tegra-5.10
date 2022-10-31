@@ -33,6 +33,7 @@
 #define NVHOST_NUM_CDEV 1
 
 struct nvhost_syncpt_interface {
+	struct scatterlist sg;
 	dma_addr_t base;
 	uint32_t page_size;
 };
@@ -417,12 +418,10 @@ int nvhost_syncpt_unit_interface_init(struct platform_device *pdev)
 
 	/* If IOMMU is enabled, map it into the device memory */
 	if (iommu_get_domain_for_dev(&pdev->dev)) {
-		struct scatterlist sg;
+		sg_init_table(&syncpt_if->sg, 1);
+		sg_set_page(&syncpt_if->sg, phys_to_page(base), size, 0);
 
-		sg_init_table(&sg, 1);
-		sg_set_page(&sg, phys_to_page(base), size, 0);
-
-		err = dma_map_sg_attrs(&pdev->dev, &sg, 1,
+		err = dma_map_sg_attrs(&pdev->dev, &syncpt_if->sg, 1,
 				       DMA_BIDIRECTIONAL,
 				       DMA_ATTR_SKIP_CPU_SYNC);
 		if (err == 0) {
@@ -430,7 +429,7 @@ int nvhost_syncpt_unit_interface_init(struct platform_device *pdev)
 			return err;
 		}
 
-		syncpt_if->base = sg_dma_address(&sg);
+		syncpt_if->base = sg_dma_address(&syncpt_if->sg);
 	} else {
 		syncpt_if->base = base;
 	}
@@ -444,6 +443,21 @@ int nvhost_syncpt_unit_interface_init(struct platform_device *pdev)
 	return 0;
 }
 EXPORT_SYMBOL(nvhost_syncpt_unit_interface_init);
+
+void nvhost_syncpt_unit_interface_deinit(struct platform_device *pdev)
+{
+	struct nvhost_syncpt_interface *syncpt_if;
+	struct nvhost_device_data *pdata;
+
+	if (iommu_get_domain_for_dev(&pdev->dev)) {
+		pdata = platform_get_drvdata(pdev);
+		syncpt_if = pdata->syncpt_unit_interface;
+
+		dma_unmap_sg_attrs(&pdev->dev, &syncpt_if->sg, 1,
+				   DMA_BIDIRECTIONAL, DMA_ATTR_SKIP_CPU_SYNC);
+	}
+}
+EXPORT_SYMBOL(nvhost_syncpt_unit_interface_deinit);
 
 dma_addr_t nvhost_syncpt_address(struct platform_device *pdev, u32 id)
 {

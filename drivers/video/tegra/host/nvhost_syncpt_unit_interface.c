@@ -152,13 +152,13 @@ int nvhost_syncpt_unit_interface_init(struct platform_device *engine_pdev)
 
 	/* If IOMMU is enabled, map it into the device memory */
 	if (iommu_get_domain_for_dev(&engine_pdev->dev)) {
-		struct scatterlist sg;
-
 		/* Initialize the scatterlist to cover the whole range */
-		sg_init_table(&sg, 1);
-		sg_set_page(&sg, phys_to_page(res->start), range_size, 0);
+		sg_init_table(&syncpt_unit_interface->sg, 1);
+		sg_set_page(&syncpt_unit_interface->sg,
+			    phys_to_page(res->start), range_size, 0);
 
-		err = dma_map_sg_attrs(&engine_pdev->dev, &sg, 1,
+		err = dma_map_sg_attrs(&engine_pdev->dev,
+				       &syncpt_unit_interface->sg, 1,
 				       DMA_BIDIRECTIONAL, DMA_ATTR_SKIP_CPU_SYNC);
 
 		/* dma_map_sg_attrs returns 0 on errors */
@@ -167,7 +167,7 @@ int nvhost_syncpt_unit_interface_init(struct platform_device *engine_pdev)
 			return err;
 		}
 
-		range_start = sg_dma_address(&sg);
+		range_start = sg_dma_address(&syncpt_unit_interface->sg);
 		err = 0;
 	}
 
@@ -180,4 +180,18 @@ int nvhost_syncpt_unit_interface_init(struct platform_device *engine_pdev)
 			(u64)range_start, (u64)range_start + (u64)range_size);
 
 	return err;
+}
+
+void nvhost_syncpt_unit_interface_deinit(struct platform_device *pdev)
+{
+	struct nvhost_syncpt_unit_interface *syncpt_unit_interface;
+	struct nvhost_device_data *pdata;
+
+	if (iommu_get_domain_for_dev(&pdev->dev)) {
+		pdata = platform_get_drvdata(pdev);
+		syncpt_unit_interface = pdata->syncpt_unit_interface;
+
+		dma_unmap_sg_attrs(&pdev->dev, &syncpt_unit_interface->sg, 1,
+				   DMA_BIDIRECTIONAL, DMA_ATTR_SKIP_CPU_SYNC);
+	}
 }

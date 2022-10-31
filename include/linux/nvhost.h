@@ -494,6 +494,7 @@ int nvhost_syncpt_is_expired_ext(struct platform_device *dev, u32 id,
 				 u32 thresh);
 dma_addr_t nvhost_syncpt_address(struct platform_device *engine_pdev, u32 id);
 int nvhost_syncpt_unit_interface_init(struct platform_device *pdev);
+void nvhost_syncpt_unit_interface_deinit(struct platform_device *pdev);
 
 /* public host1x interrupt management APIs */
 int nvhost_intr_register_notifier(struct platform_device *pdev,
