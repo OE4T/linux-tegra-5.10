@@ -616,7 +616,6 @@ static int ether_config_ip4_filters(struct net_device *dev,
 	struct osi_l3_l4_filter *u_l3_filter =
 		(struct osi_l3_l4_filter *)ifdata->ptr;
 	struct osi_ioctl ioctl_data = {};
-	unsigned int is_l4_filter = OSI_DISABLE;
 	int ret = -EINVAL;
 
 	if (pdata->hw_feat.l3l4_filter_num == OSI_DISABLE) {
@@ -636,19 +635,7 @@ static int ether_config_ip4_filters(struct net_device *dev,
 		return -EFAULT;
 	}
 
-	if (ioctl_data.l3l4_filter.filter_no >
-	    (pdata->hw_feat.l3l4_filter_num - 1U)) {
-		dev_err(pdata->dev, "%d filter is not supported in the HW\n",
-			ioctl_data.l3l4_filter.filter_no);
-		return ret;
-	}
-
 	ioctl_data.cmd = OSI_CMD_L3L4_FILTER;
-	ioctl_data.arg1_u32 = OSI_IP4_FILTER;
-	ioctl_data.arg2_u32 = OSI_DISABLE;
-	ioctl_data.arg3_u32 = OSI_CHAN_ANY;
-	ioctl_data.arg4_u32 = is_l4_filter;
-
 	return osi_handle_ioctl(osi_core, &ioctl_data);
 }
 
@@ -678,7 +665,6 @@ static int ether_config_ip6_filters(struct net_device *dev,
 	struct osi_l3_l4_filter *u_l3_filter =
 		(struct osi_l3_l4_filter *)ifdata->ptr;
 	struct osi_ioctl ioctl_data = {};
-	unsigned int is_l4_filter = OSI_DISABLE;
 	int ret = -EINVAL;
 
 	if (pdata->hw_feat.l3l4_filter_num == OSI_DISABLE) {
@@ -698,19 +684,7 @@ static int ether_config_ip6_filters(struct net_device *dev,
 		return -EFAULT;
 	}
 
-	if (ioctl_data.l3l4_filter.filter_no >
-	    (pdata->hw_feat.l3l4_filter_num - 1U)) {
-		dev_err(pdata->dev, "%d filter is not supported in the HW\n",
-			ioctl_data.l3l4_filter.filter_no);
-		return ret;
-	}
-
 	ioctl_data.cmd = OSI_CMD_L3L4_FILTER;
-	ioctl_data.arg1_u32 = OSI_IP6_FILTER;
-	ioctl_data.arg2_u32 = OSI_DISABLE;
-	ioctl_data.arg3_u32 = OSI_CHAN_ANY;
-	ioctl_data.arg4_u32 = is_l4_filter;
-
 	return osi_handle_ioctl(osi_core, &ioctl_data);
 }
 
@@ -743,7 +717,6 @@ static int ether_config_tcp_udp_filters(struct net_device *dev,
 	struct osi_l3_l4_filter *u_l4_filter =
 		(struct osi_l3_l4_filter *)ifdata->ptr;
 	struct osi_ioctl ioctl_data = {};
-	unsigned int is_l4_filter = OSI_ENABLE;
 	int ret = -EINVAL;
 
 	if (ifdata->ptr == NULL) {
@@ -764,19 +737,7 @@ static int ether_config_tcp_udp_filters(struct net_device *dev,
 		return -EFAULT;
 	}
 
-	if (ioctl_data.l3l4_filter.filter_no >
-	    (pdata->hw_feat.l3l4_filter_num - 1U)) {
-		dev_err(pdata->dev, "%d filter is not supported in the HW\n",
-			ioctl_data.l3l4_filter.filter_no);
-		return ret;
-	}
-
 	ioctl_data.cmd = OSI_CMD_L3L4_FILTER;
-	ioctl_data.arg1_u32 = tcp_udp;
-	ioctl_data.arg2_u32 = OSI_DISABLE;
-	ioctl_data.arg3_u32 = OSI_CHAN_ANY;
-	ioctl_data.arg4_u32 = is_l4_filter;
-
 	return osi_handle_ioctl(osi_core, &ioctl_data);
 }
 
