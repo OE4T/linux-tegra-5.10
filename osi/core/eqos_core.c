@@ -1000,7 +1000,7 @@ static nve32_t eqos_hsi_configure(struct osi_core_priv_data *const osi_core,
 
 	if (enable == OSI_ENABLE) {
 		osi_core->hsi.enabled = OSI_ENABLE;
-		osi_core->hsi.reporter_id = hsi_reporter_id[osi_core->instance_id];
+		osi_core->hsi.reporter_id = osi_hsi_reporter_id[osi_core->instance_id];
 
 		/* T23X-EQOS_HSIv2-19: Enabling of Consistency Monitor for TX Frame Errors */
 		value = osi_readla(osi_core,
@@ -1960,7 +1960,7 @@ static void eqos_handle_hsi_intr(struct osi_core_priv_data *const osi_core)
 	if (((val & EQOS_REGISTER_PARITY_ERR) == EQOS_REGISTER_PARITY_ERR) ||
 	    ((val & EQOS_CORE_UNCORRECTABLE_ERR) == EQOS_CORE_UNCORRECTABLE_ERR)) {
 		osi_core->hsi.err_code[UE_IDX] =
-			hsi_err_code[osi_core->instance_id][UE_IDX];
+			osi_hsi_err_code[osi_core->instance_id][UE_IDX];
 		osi_core->hsi.report_err = OSI_ENABLE;
 		osi_core->hsi.report_count_err[UE_IDX] = OSI_ENABLE;
 		/* Disable the interrupt */
@@ -1973,7 +1973,7 @@ static void eqos_handle_hsi_intr(struct osi_core_priv_data *const osi_core)
 	}
 	if ((val & EQOS_CORE_CORRECTABLE_ERR) == EQOS_CORE_CORRECTABLE_ERR) {
 		osi_core->hsi.err_code[CE_IDX] =
-			hsi_err_code[osi_core->instance_id][CE_IDX];
+			osi_hsi_err_code[osi_core->instance_id][CE_IDX];
 		osi_core->hsi.report_err = OSI_ENABLE;
 		osi_core->hsi.ce_count =
 			osi_update_stats_counter(osi_core->hsi.ce_count, 1UL);

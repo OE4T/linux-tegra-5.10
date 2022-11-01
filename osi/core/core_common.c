@@ -1429,13 +1429,13 @@ void hsi_common_error_inject(struct osi_core_priv_data *osi_core,
 {
 	switch (error_code) {
 	case OSI_INBOUND_BUS_CRC_ERR:
-		osi_core->mmc.mmc_rx_crc_error =
-			osi_update_stats_counter(osi_core->mmc.mmc_rx_crc_error,
+		osi_core->hsi.inject_crc_err_count =
+			osi_update_stats_counter(osi_core->hsi.inject_crc_err_count,
 						 osi_core->hsi.err_count_threshold);
 		break;
 	case OSI_RECEIVE_CHECKSUM_ERR:
-		osi_core->mmc.mmc_rx_udp_err =
-			osi_update_stats_counter(osi_core->mmc.mmc_rx_udp_err,
+		osi_core->hsi.inject_udp_err_count =
+			osi_update_stats_counter(osi_core->hsi.inject_udp_err_count,
 						 osi_core->hsi.err_count_threshold);
 		break;
 	case OSI_MACSEC_RX_CRC_ERR:

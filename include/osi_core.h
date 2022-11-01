@@ -101,7 +101,7 @@ typedef my_lint_64		nvel64_t;
 #define OSI_INSTANCE_ID_MGBE1	1
 #define OSI_INSTANCE_ID_MGBE2	2
 #define OSI_INSTANCE_ID_MGBE3	3
-#define OSI_INSTANCE_ID_EQOS0	4
+#define OSI_INSTANCE_ID_EQOS	4
 
 #endif /* !OSI_STRIPPED_LIB */
 
@@ -361,9 +361,9 @@ typedef my_lint_64		nvel64_t;
 
 #ifdef HSI_SUPPORT
 /**
- * @addtogroup hsi_err_code_idx
+ * @addtogroup osi_hsi_err_code_idx
  *
- * @brief data index for hsi_err_code array
+ * @brief data index for osi_hsi_err_code array
  * @{
  */
 #define UE_IDX			0U
@@ -379,8 +379,8 @@ typedef my_lint_64		nvel64_t;
 #define MACSEC_REG_VIOL_ERR_IDX 3U
 /** @} */
 
-extern nveu32_t hsi_err_code[][2];
-extern nveu16_t hsi_reporter_id[];
+extern nveu32_t osi_hsi_err_code[][2];
+extern nveu16_t osi_hsi_reporter_id[];
 
 /**
  * @addtogroup HSI_TIME_THRESHOLD
@@ -402,7 +402,7 @@ extern nveu16_t hsi_reporter_id[];
  * @brief Maximum number of different mac error code
  * HSI_SW_ERR_CODE + Two (Corrected and Uncorrected error code)
  */
-#define HSI_MAX_MAC_ERROR_CODE		7U
+#define OSI_HSI_MAX_MAC_ERROR_CODE		7U
 
 /**
  * @brief Maximum number of different macsec error code
@@ -425,23 +425,23 @@ extern nveu16_t hsi_reporter_id[];
 #define OSI_MACSEC_REG_VIOL_ERR		0x1008U
 #define OSI_XPCS_WRITE_FAIL_ERR		0x1009U
 
-#define OSI_HSI_MGBE0_UE_CODE 0x2A00U
-#define OSI_HSI_MGBE1_UE_CODE 0x2A01U
-#define OSI_HSI_MGBE2_UE_CODE 0x2A02U
-#define OSI_HSI_MGBE3_UE_CODE 0x2A03U
-#define OSI_HSI_EQOS0_UE_CODE 0x28ADU
+#define OSI_HSI_MGBE0_UE_CODE		0x2A00U
+#define OSI_HSI_MGBE1_UE_CODE		0x2A01U
+#define OSI_HSI_MGBE2_UE_CODE		0x2A02U
+#define OSI_HSI_MGBE3_UE_CODE		0x2A03U
+#define OSI_HSI_EQOS0_UE_CODE		0x28ADU
 
-#define OSI_HSI_MGBE0_CE_CODE 0x2E08U
-#define OSI_HSI_MGBE1_CE_CODE 0x2E09U
-#define OSI_HSI_MGBE2_CE_CODE 0x2E0AU
-#define OSI_HSI_MGBE3_CE_CODE 0x2E0BU
-#define OSI_HSI_EQOS0_CE_CODE 0x2DE6U
+#define OSI_HSI_MGBE0_CE_CODE		0x2E08U
+#define OSI_HSI_MGBE1_CE_CODE		0x2E09U
+#define OSI_HSI_MGBE2_CE_CODE		0x2E0AU
+#define OSI_HSI_MGBE3_CE_CODE		0x2E0BU
+#define OSI_HSI_EQOS0_CE_CODE		0x2DE6U
 
-#define OSI_HSI_MGBE0_REPORTER_ID 0x8019U
-#define OSI_HSI_MGBE1_REPORTER_ID 0x801AU
-#define OSI_HSI_MGBE2_REPORTER_ID 0x801BU
-#define OSI_HSI_MGBE3_REPORTER_ID 0x801CU
-#define OSI_HSI_EQOS0_REPORTER_ID 0x8009U
+#define OSI_HSI_MGBE0_REPORTER_ID	0x8019U
+#define OSI_HSI_MGBE1_REPORTER_ID	0x801AU
+#define OSI_HSI_MGBE2_REPORTER_ID	0x801BU
+#define OSI_HSI_MGBE3_REPORTER_ID	0x801CU
+#define OSI_HSI_EQOS0_REPORTER_ID	0x8009U
 /** @} */
 #endif
 
@@ -1249,9 +1249,9 @@ struct osi_hsi_data {
 	/** HSI reporter ID */
 	nveu16_t reporter_id;
 	/** HSI error codes */
-	nveu32_t err_code[HSI_MAX_MAC_ERROR_CODE];
+	nveu32_t err_code[OSI_HSI_MAX_MAC_ERROR_CODE];
 	/** HSI MAC report count threshold based error */
-	nveu32_t report_count_err[HSI_MAX_MAC_ERROR_CODE];
+	nveu32_t report_count_err[OSI_HSI_MAX_MAC_ERROR_CODE];
 	/** Indicates if error reporting to FSI is pending */
 	nveu32_t report_err;
 	/** HSI MACSEC error codes */
@@ -1278,6 +1278,10 @@ struct osi_hsi_data {
 	nveu64_t tx_frame_err_count;
 	/** tx frame error count threshold hit */
 	nveu64_t tx_frame_err_threshold;
+	/** Rx UDP error injection count */
+	nveu64_t inject_udp_err_count;
+	/** Rx CRC error injection count */
+	nveu64_t inject_crc_err_count;
 };
 #endif
 

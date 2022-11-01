@@ -27,9 +27,9 @@
 
 #ifdef HSI_SUPPORT
 /**
- * @brief hsi_err_code - Array of error code
+ * @brief osi_hsi_err_code - Array of error code
  */
-nveu32_t hsi_err_code[][2] = {
+nveu32_t osi_hsi_err_code[][2] = {
 	{OSI_HSI_MGBE0_UE_CODE, OSI_HSI_MGBE0_CE_CODE},
 	{OSI_HSI_MGBE1_UE_CODE, OSI_HSI_MGBE1_CE_CODE},
 	{OSI_HSI_MGBE2_UE_CODE, OSI_HSI_MGBE2_CE_CODE},
@@ -38,9 +38,9 @@ nveu32_t hsi_err_code[][2] = {
 };
 
 /**
- * @brief hsi_reporter_id - Array of reporter_id
+ * @brief osi_hsi_reporter_id - Array of reporter_id
  */
-nveu16_t hsi_reporter_id[] = {
+nveu16_t osi_hsi_reporter_id[] = {
 	OSI_HSI_MGBE0_REPORTER_ID,
 	OSI_HSI_MGBE1_REPORTER_ID,
 	OSI_HSI_MGBE2_REPORTER_ID,
