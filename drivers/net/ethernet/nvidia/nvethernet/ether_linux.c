@@ -146,7 +146,7 @@ static irqreturn_t ether_common_isr_thread(int irq, void *data)
 	/* Called from ether_hsi_work */
 	if (osi_core->hsi.report_err && irq == 0) {
 		osi_core->hsi.report_err = OSI_DISABLE;
-		for (i = 0; i < HSI_MAX_MAC_ERROR_CODE; i++) {
+		for (i = 0; i < OSI_HSI_MAX_MAC_ERROR_CODE; i++) {
 			if (osi_core->hsi.err_code[i] > 0) {
 				error_report.error_code =
 					osi_core->hsi.err_code[i];
@@ -189,7 +189,7 @@ static irqreturn_t ether_common_isr_thread(int irq, void *data)
 
 	/* Called from interrupt handler */
 	if (osi_core->hsi.report_err && irq != 0) {
-		for (i = 0; i < HSI_MAX_MAC_ERROR_CODE; i++) {
+		for (i = 0; i < OSI_HSI_MAX_MAC_ERROR_CODE; i++) {
 			if (osi_core->hsi.err_code[i] > 0 &&
 			    osi_core->hsi.report_count_err[i] == OSI_ENABLE) {
 				error_report.error_code =

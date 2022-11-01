@@ -557,14 +557,14 @@ static ssize_t hsi_enable_store(struct device *dev,
 			osi_core->hsi.enabled = OSI_ENABLE;
 			dev_info(pdata->dev, "HSI Enabled\n");
 #if (IS_ENABLED(CONFIG_TEGRA_HSIERRRPTINJ))
-			if (osi_core->instance_id == OSI_INSTANCE_ID_EQOS0)
+			if (osi_core->instance_id == OSI_INSTANCE_ID_EQOS)
 				inst_id = 0;
 
 			ret = hsierrrpt_reg_cb(ip_type[osi_core->mac], inst_id,
 					       hsi_inject_err_fsi, pdata);
 			if (ret != 0) {
-				dev_info(pdata->dev, "Err inj callback registration failed: %d",
-					 ret);
+				dev_err(pdata->dev, "Err inj callback registration failed: %d",
+					ret);
 			}
 #endif
 		}
@@ -578,13 +578,13 @@ static ssize_t hsi_enable_store(struct device *dev,
 			osi_core->hsi.enabled = OSI_DISABLE;
 			dev_info(pdata->dev, "HSI Disabled\n");
 #if (IS_ENABLED(CONFIG_TEGRA_HSIERRRPTINJ))
-			if (osi_core->instance_id == OSI_INSTANCE_ID_EQOS0)
+			if (osi_core->instance_id == OSI_INSTANCE_ID_EQOS)
 				inst_id = 0;
 
 			ret = hsierrrpt_dereg_cb(ip_type[osi_core->mac], inst_id);
 			if (ret != 0) {
-				dev_info(pdata->dev, "Err inj callback deregistration failed: %d",
-					 ret);
+				dev_err(pdata->dev, "Err inj callback deregistration failed: %d",
+					ret);
 			}
 #endif
 		}
@@ -3343,13 +3343,14 @@ int ether_sysfs_register(struct ether_priv_data *pdata)
 
 #if (IS_ENABLED(CONFIG_TEGRA_HSIERRRPTINJ)) && defined(HSI_SUPPORT)
 	if (osi_core->use_virtualization == OSI_ENABLE) {
-		if (osi_core->instance_id == OSI_INSTANCE_ID_EQOS0)
+		if (osi_core->instance_id == OSI_INSTANCE_ID_EQOS)
 			inst_id = 0;
 		ret = hsierrrpt_reg_cb(ip_type[osi_core->mac], inst_id,
 				       hsi_inject_err_fsi, pdata);
 		if (ret != 0) {
-			dev_info(pdata->dev, "Err inj callback registration failed: %d",
-				 ret);
+			dev_err(pdata->dev, "Err inj callback registration failed: %d",
+				ret);
+			return ret;
 		}
 	}
 #endif
@@ -3372,13 +3373,13 @@ void ether_sysfs_unregister(struct ether_priv_data *pdata)
 #endif
 #if (IS_ENABLED(CONFIG_TEGRA_HSIERRRPTINJ)) && defined(HSI_SUPPORT)
 	if (osi_core->use_virtualization == OSI_ENABLE) {
-		if (osi_core->instance_id == OSI_INSTANCE_ID_EQOS0)
+		if (osi_core->instance_id == OSI_INSTANCE_ID_EQOS)
 			inst_id = 0;
 
 		ret = hsierrrpt_dereg_cb(ip_type[osi_core->mac], inst_id);
 		if (ret != 0) {
-			dev_info(pdata->dev, "Err inj callback deregistration failed: %d",
-				 ret);
+			dev_err(pdata->dev, "Err inj callback deregistration failed: %d",
+				ret);
 		}
 	}
 #endif
