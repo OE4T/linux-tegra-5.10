@@ -1077,7 +1077,7 @@ static int pva_probe(struct platform_device *pdev)
 
 	err = nvhost_syncpt_unit_interface_init(pdev);
 	if (err)
-		goto err_mss_init;
+		goto err_isr_init;
 
 	mutex_init(&pva->pva_auth.allow_list_lock);
 	mutex_init(&pva->pva_auth_sys.allow_list_lock);
@@ -1123,6 +1123,7 @@ static int pva_probe(struct platform_device *pdev)
 	return 0;
 
 err_mss_init:
+	nvhost_syncpt_unit_interface_deinit(pdev);
 err_isr_init:
 	nvpva_client_context_deinit(pva);
 err_client_ctx_init:
@@ -1156,6 +1157,7 @@ static int __exit pva_remove(struct platform_device *pdev)
 	pva_auth_allow_list_destroy(&pva->pva_auth_sys);
 	pva_auth_allow_list_destroy(&pva->pva_auth);
 	pva_free_task_status_buffer(pva);
+	nvhost_syncpt_unit_interface_deinit(pdev);
 	nvpva_client_context_deinit(pva);
 	nvpva_queue_deinit(pva->pool);
 	nvhost_client_device_release(pdev);

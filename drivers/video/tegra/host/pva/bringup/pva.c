@@ -907,6 +907,7 @@ static int __exit pva_remove(struct platform_device *pdev)
 	struct pva *pva = pdata->private_data;
 	int i;
 
+	nvhost_syncpt_unit_interface_deinit(pdev);
 	nvhost_queue_deinit(pva->pool);
 	nvhost_client_device_release(pdev);
 	for (i = 0; i < pva->version_config->irq_count; i++)
