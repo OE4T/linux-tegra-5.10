@@ -29,7 +29,7 @@
 #include "tegra_l1ss.h"
 
 #define NV(p) "nvidia," #p
-#define TEGRA_SAFETY_IVC_INIT_DONE_TIME		(15 * 1000)
+#define TEGRA_SAFETY_IVC_INIT_DONE_TIME		(30 * 1000)
 
 uint32_t ivc_chan_count;
 struct tegra_safety_ivc_chan *tegra_safety_get_ivc_chan_from_str(

@@ -23,7 +23,11 @@
 
 #include "tegra_l1ss_cmd_resp_exec_config.h"
 
+#ifdef CONFIG_TEGRA_SAFETY_IVC_DEBUG
 #define PDEBUG(fmt, args...) printk(KERN_DEBUG "L1SS : " fmt, ## args)
+#else
+#define PDEBUG(fmt, args...)
+#endif
 #define TEGRA_SAFETY_L1SS_MAJOR_VERSION 4
 #define TEGRA_SAFETY_L1SS_MINOR_VERSION 0
 #define TEGRA_SAFETY_L1SS_PATCH_VERSION 0
