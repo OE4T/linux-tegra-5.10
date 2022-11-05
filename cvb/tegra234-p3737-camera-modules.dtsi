@@ -22,6 +22,7 @@
  * #include "tegra234-p3737-0000-camera-imx274-a00.dtsi"
  */
 
+#include "tegra234-p3737-0000-camera-p3762-a00.dtsi"
 #include "tegra234-p3737-0000-camera-e3331-a00.dtsi"
 #include "tegra234-p3737-0000-camera-e3333-a00.dtsi"
 #include "tegra234-p3737-0000-camera-imx185-a00.dtsi"
@@ -99,6 +100,20 @@
 			vi_port5: port@5 {
 				status = "disabled";
 				vi_in5: endpoint {
+					vc-id = <0>;
+					status = "disabled";
+				};
+			};
+			vi_port6: port@6 {
+				status = "disabled";
+				vi_in6: endpoint {
+					vc-id = <0>;
+					status = "disabled";
+				};
+			};
+			vi_port7: port@7 {
+				status = "disabled";
+				vi_in7: endpoint {
 					vc-id = <0>;
 					status = "disabled";
 				};
@@ -211,10 +226,70 @@
 					};
 				};
 			};
+			csi_chan6: channel@6 {
+				status = "disabled";
+				ports {
+					csi_chan6_port0: port@0 {
+						status = "disabled";
+						csi_in6: endpoint@12 {
+							status = "disabled";
+						};
+					};
+					csi_chan6_port1: port@1 {
+						status = "disabled";
+						csi_out6: endpoint@13 {
+							status = "disabled";
+						};
+					};
+				};
+			};
+			csi_chan7: channel@7 {
+				status = "disabled";
+				ports {
+					csi_chan7_port0: port@0 {
+						status = "disabled";
+						csi_in7: endpoint@14 {
+							status = "disabled";
+						};
+					};
+					csi_chan7_port1: port@1 {
+						status = "disabled";
+						csi_out7: endpoint@15 {
+							status = "disabled";
+						};
+					};
+				};
+			};
 		};
 	};
 
+	i2c@31e0000 {
+		hawk_cam0: ar0234_a@30 {
+			status = "disabled";
+		};
+		hawk_cam1: ar0234_b@31 {
+			status = "disabled";
+		};
+		hawk_cam2: ar0234_c@32 {
+			status = "disabled";
+		};
+		hawk_cam3: ar0234_d@33 {
+			status = "disabled";
+		};
+	};
 	i2c@3180000 {
+		owl_cam0: ar0234_e@30 {
+			status = "disabled";
+		};
+		owl_cam1: ar0234_f@32 {
+			status = "disabled";
+		};
+		owl_cam2: ar0234_g@34 {
+			status = "disabled";
+		};
+		owl_cam3: ar0234_h@36 {
+			status = "disabled";
+		};
 		e3326_cam0: ov5693_c@36 {
 			status = "disabled";
 		};
@@ -358,6 +433,26 @@
 					status = "disabled";
 				};
 				cam_module5_drivernode1: drivernode1 {
+					status = "disabled";
+					pcl_id = "v4l2_lens";
+				};
+			};
+			cam_module6: module6 {
+				status = "disabled";
+				cam_module6_drivernode0: drivernode0 {
+					status = "disabled";
+				};
+				cam_module6_drivernode1: drivernode1 {
+					status = "disabled";
+					pcl_id = "v4l2_lens";
+				};
+			};
+			cam_module7: module7 {
+				status = "disabled";
+				cam_module7_drivernode0: drivernode0 {
+					status = "disabled";
+				};
+				cam_module7_drivernode1: drivernode1 {
 					status = "disabled";
 					pcl_id = "v4l2_lens";
 				};
