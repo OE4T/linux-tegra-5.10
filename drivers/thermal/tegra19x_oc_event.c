@@ -167,9 +167,7 @@ static ssize_t irq_count_show(struct device *dev, struct device_attribute *attr,
 	struct sensor_device_attribute *sensor_attr = container_of(attr,
 			struct sensor_device_attribute, dev_attr);
 
-	return sprintf(
-		buf, "%u\n",
-		tegra_oc.edp_oc[(unsigned int)sensor_attr->index].irq_cnt);
+	return sprintf(buf, "%u\n", tegra_oc.edp_oc[sensor_attr->index].irq_cnt);
 }
 
 static ssize_t priority_show(struct device *dev, struct device_attribute *attr,
@@ -179,8 +177,7 @@ static ssize_t priority_show(struct device *dev, struct device_attribute *attr,
 			struct sensor_device_attribute, dev_attr);
 
 	return sprintf(buf, "%u\n",
-		       tegra_oc.throttle_ctrl[(unsigned int)sensor_attr->index]
-			       .priority);
+			tegra_oc.throttle_ctrl[sensor_attr->index].priority);
 }
 
 static ssize_t cpu_thrtl_ctrl_show(struct device *dev,
@@ -190,8 +187,7 @@ static ssize_t cpu_thrtl_ctrl_show(struct device *dev,
 			struct sensor_device_attribute, dev_attr);
 
 	return sprintf(buf, "%u\n",
-		       tegra_oc.throttle_ctrl[(unsigned int)sensor_attr->index]
-			       .cpu_depth);
+			tegra_oc.throttle_ctrl[sensor_attr->index].cpu_depth);
 }
 
 static ssize_t gpu_thrtl_ctrl_show(struct device *dev,
@@ -201,8 +197,7 @@ static ssize_t gpu_thrtl_ctrl_show(struct device *dev,
 			struct sensor_device_attribute, dev_attr);
 
 	return sprintf(buf, "%u\n",
-		       tegra_oc.throttle_ctrl[(unsigned int)sensor_attr->index]
-			       .gpu_depth);
+			tegra_oc.throttle_ctrl[sensor_attr->index].gpu_depth);
 }
 
 static SENSOR_DEVICE_ATTR(oc1_irq_cnt, 0444, irq_count_show, NULL,
