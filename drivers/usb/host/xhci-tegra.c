@@ -467,6 +467,8 @@ struct tegra_xusb {
 	struct notifier_block id_nb;
 	struct work_struct id_work;
 
+	struct notifier_block genpd_nb;
+
 	/* Firmware loading related */
 	struct {
 		size_t size;
@@ -2143,11 +2145,42 @@ static int tegra_xusb_init_ifr_firmware(struct tegra_xusb *tegra)
 	return 0;
 }
 
+static void tegra_genpd_down_postwork(struct tegra_xusb *tegra)
+{
+	unsigned int i;
+	bool wakeup = device_may_wakeup(tegra->dev);
+
+	if (tegra->suspended) {
+		for (i = 0; i < tegra->num_phys; i++) {
+			if (!tegra->phys[i])
+				continue;
+
+			phy_power_off(tegra->phys[i]);
+			if (!wakeup)
+				phy_exit(tegra->phys[i]);
+		}
+	}
+}
+
+static int tegra_xhci_genpd_notify(struct notifier_block *nb,
+					unsigned long action, void *data)
+{
+	struct tegra_xusb *tegra = container_of(nb, struct tegra_xusb,
+						    genpd_nb);
+
+	if (action == GENPD_NOTIFY_OFF)
+		tegra_genpd_down_postwork(tegra);
+
+	return 0;
+}
+
 static void tegra_xusb_powerdomain_remove(struct device *dev,
 					  struct tegra_xusb *tegra)
 {
 	if (!tegra->use_genpd)
 		return;
+
+	dev_pm_genpd_remove_notifier(tegra->genpd_dev_host);
 
 	if (!IS_ERR_OR_NULL(tegra->genpd_dev_ss))
 		dev_pm_domain_detach(tegra->genpd_dev_ss, true);
@@ -2178,6 +2211,8 @@ static int tegra_xusb_powerdomain_init(struct device *dev,
 
 	device_init_wakeup(tegra->genpd_dev_host, true);
 	device_init_wakeup(tegra->genpd_dev_ss, true);
+	tegra->genpd_nb.notifier_call = tegra_xhci_genpd_notify;
+	dev_pm_genpd_add_notifier(tegra->genpd_dev_host, &tegra->genpd_nb);
 
 	tegra->use_genpd = true;
 
@@ -3792,6 +3827,14 @@ static int tegra_xusb_enter_elpg(struct tegra_xusb *tegra, bool runtime)
 
 	tegra_xusb_powergate_partitions(tegra);
 
+	if ((!runtime) && (tegra->use_genpd)) {
+		/*
+		 * in system suspend path, phy_power_off()/phy_exit() will be done
+		 * in genpd notifier.
+		 */
+		goto out;
+	}
+
 skip_firmware_and_powergate:
 
 	for (i = 0; i < tegra->num_phys; i++) {
@@ -3843,12 +3886,22 @@ static int tegra_xusb_exit_elpg(struct tegra_xusb *tegra, bool runtime)
 	if (tegra->soc->is_xhci_vf)
 		goto skip_clock_and_powergate;
 
+	if ((!runtime) && (tegra->use_genpd)) {
+		/*
+		 * in system resume path, skip enabling partition clocks because
+		 * the clocks are not disabled at system suspend.
+		 */
+		goto skip_clk_enable;
+	}
+
 	err = tegra_xusb_clk_enable(tegra);
 	if (err < 0) {
 		dev_err(tegra->dev, "failed to enable clocks: %d\n", err);
 		goto out;
 	}
 
+
+skip_clk_enable:
 	err = tegra_xusb_unpowergate_partitions(tegra);
 	if (err)
 		goto disable_clks;
