@@ -171,6 +171,7 @@ dce_start_boot_flow(struct tegra_dce *d)
 	} else {
 		d->boot_status |= DCE_FW_BOOT_DONE;
 		dce_info(d, "DCE_BOOT_DONE");
+		dce_cond_broadcast_interruptible(&d->dce_bootstrap_done);
 	}
 
 exit:

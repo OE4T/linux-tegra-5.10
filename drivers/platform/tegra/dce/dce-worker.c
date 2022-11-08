@@ -95,6 +95,12 @@ int dce_work_cond_sw_resource_init(struct tegra_dce *d)
 		goto exit;
 	}
 
+	if (dce_cond_init(&d->dce_bootstrap_done)) {
+		dce_err(d, "dce boot wait condition init failed");
+		ret = -1;
+		goto exit;
+	}
+
 	for (i = 0; i < DCE_MAX_WAIT; i++) {
 		struct dce_wait_cond *wait = &d->ipc_waits[i];
 
@@ -115,6 +121,7 @@ init_error:
 		dce_cond_destroy(&wait->cond_wait);
 		i--;
 	}
+	dce_cond_destroy(&d->dce_bootstrap_done);
 exit:
 	return ret;
 }
@@ -136,4 +143,6 @@ void dce_work_cond_sw_resource_deinit(struct tegra_dce *d)
 		dce_cond_destroy(&wait->cond_wait);
 		atomic_set(&wait->complete, 0);
 	}
+
+	dce_cond_destroy(&d->dce_bootstrap_done);
 }

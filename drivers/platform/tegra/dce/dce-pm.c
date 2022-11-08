@@ -82,6 +82,9 @@ int dce_pm_handle_sc7_enter_requested_event(struct tegra_dce *d, void *params)
 		goto out;
 	}
 
+	dce_set_boot_complete(d, false);
+	d->boot_status |= DCE_FW_SUSPENDED;
+
 out:
 	dce_admin_free_message(d, msg);
 	return ret;
