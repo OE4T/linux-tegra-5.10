@@ -321,8 +321,7 @@
 			overrides@18 {
                                 target = <&dspk2_to_codec>;
                                 _overlay_ {
-					link-name = "dspk-playback-r",
-						    "dspk-playback-l";
+					link-name = "dspk-playback-dual-tas2552";
 
 					codec {
 						sound-dai = <&e2614_tas2552_r 0>;
