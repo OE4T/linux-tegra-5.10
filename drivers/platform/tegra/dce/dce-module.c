@@ -43,6 +43,7 @@ __weak const struct of_device_id tegra_dce_of_match[] = {
 	},
 	{ },
 };
+MODULE_DEVICE_TABLE(of, tegra_dce_of_match);
 
 /**
  * dce_get_pdata_dce - inline function to get the tegra_dce pointer
