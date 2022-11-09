@@ -2209,8 +2209,6 @@ static int tegra_xusb_powerdomain_init(struct device *dev,
 		return err;
 	}
 
-	device_init_wakeup(tegra->genpd_dev_host, true);
-	device_init_wakeup(tegra->genpd_dev_ss, true);
 	tegra->genpd_nb.notifier_call = tegra_xhci_genpd_notify;
 	dev_pm_genpd_add_notifier(tegra->genpd_dev_host, &tegra->genpd_nb);
 
