@@ -186,9 +186,14 @@ static nve32_t eqos_pad_calibrate(struct osi_core_priv_data *const osi_core)
 
 	/* 3. Set AUTO_CAL_ENABLE and AUTO_CAL_START in
 	 * reg ETHER_QOS_AUTO_CAL_CONFIG_0.
+	 * Set pad_auto_cal pd/pu offset values
 	 */
 	value = osi_readla(osi_core,
 			   (nveu8_t *)ioaddr + EQOS_PAD_AUTO_CAL_CFG);
+	value &= ~EQOS_PAD_CRTL_PU_OFFSET_MASK;
+	value &= ~EQOS_PAD_CRTL_PD_OFFSET_MASK;
+	value |= osi_core->padctrl.pad_auto_cal_pu_offset;
+	value |= (osi_core->padctrl.pad_auto_cal_pd_offset << 8U);
 	value |= EQOS_PAD_AUTO_CAL_CFG_START |
 		 EQOS_PAD_AUTO_CAL_CFG_ENABLE;
 	osi_writela(osi_core, value, (nveu8_t *)ioaddr + EQOS_PAD_AUTO_CAL_CFG);
@@ -276,9 +281,15 @@ static nve32_t eqos_pad_calibrate(struct osi_core_priv_data *const osi_core)
 	osi_core->osd_ops.usleep_range(1, 3);
 	/* 3. Set AUTO_CAL_ENABLE and AUTO_CAL_START in
 	 * reg ETHER_QOS_AUTO_CAL_CONFIG_0.
+	 * Set pad_auto_cal pd/pu offset values
 	 */
+
 	value = osi_readla(osi_core,
 			   (nveu8_t *)ioaddr + EQOS_PAD_AUTO_CAL_CFG);
+	value &= ~EQOS_PAD_CRTL_PU_OFFSET_MASK;
+	value &= ~EQOS_PAD_CRTL_PD_OFFSET_MASK;
+	value |= osi_core->padctrl.pad_auto_cal_pu_offset;
+	value |= (osi_core->padctrl.pad_auto_cal_pd_offset << 8U);
 	value |= EQOS_PAD_AUTO_CAL_CFG_START |
 		 EQOS_PAD_AUTO_CAL_CFG_ENABLE;
 	osi_writela(osi_core, value, (nveu8_t *)ioaddr + EQOS_PAD_AUTO_CAL_CFG);

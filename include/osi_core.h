@@ -174,6 +174,8 @@ typedef my_lint_64		nvel64_t;
 #define OSI_CHAN_ANY			0xFFU
 #define OSI_DFLT_MTU_SIZE		1500U
 #define OSI_MTU_SIZE_9000		9000U
+/* Reg ETHER_QOS_AUTO_CAL_CONFIG_0[AUTO_CAL_PD/PU_OFFSET] max value */
+#define OSI_PAD_CAL_CONFIG_PD_PU_OFFSET_MAX	0x1FU
 
 #ifndef OSI_STRIPPED_LIB
 /* HW supports 8 Hash table regs, but eqos_validate_core_regs only checks 4 */
@@ -1191,6 +1193,10 @@ struct core_padctrl {
 	nveu32_t is_pad_cal_in_progress;
 	/** This flag set/reset using priv ioctl and DT entry */
 	nveu32_t pad_calibration_enable;
+	/** Reg ETHER_QOS_AUTO_CAL_CONFIG_0[AUTO_CAL_PD_OFFSET] value */
+	nveu32_t pad_auto_cal_pd_offset;
+	/** Reg ETHER_QOS_AUTO_CAL_CONFIG_0[AUTO_CAL_PU_OFFSET] value */
+	nveu32_t pad_auto_cal_pu_offset;
 };
 
 #ifdef HSI_SUPPORT
