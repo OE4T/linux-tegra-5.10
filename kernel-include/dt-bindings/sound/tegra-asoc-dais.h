@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -204,7 +204,7 @@
 /* DSPK */
 #define DSPK_CIF	0
 #define DSPK_DAP	1
-#define DSPK_DUMMY	4
+#define DSPK_DUMMY	2
 
 /* SFC */
 #define SFC_IN		0
