@@ -1091,8 +1091,6 @@
 			codec {
 				sound-dai = <&tegra_dspk1 DSPK_DUMMY>;
 			};
-			codec@1 {
-			};
 		};
 
 		dspk2_to_codec: nvidia-audio-card,dai-link@87 {
@@ -1105,8 +1103,6 @@
 			};
 			codec {
 				sound-dai = <&tegra_dspk2 DSPK_DUMMY>;
-			};
-			codec@1 {
 			};
 		};
 
