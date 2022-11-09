@@ -5509,6 +5509,8 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 	int ret = -EINVAL;
 	unsigned int i, mtlq, chan, bitmap;
 	unsigned int dt_pad_calibration_enable;
+	unsigned int dt_pad_auto_cal_pu_offset;
+	unsigned int dt_pad_auto_cal_pd_offset;
 	/* This variable is for DT entry which should not fail bootup */
 	int ret_val = 0;
 
@@ -5953,6 +5955,44 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 			osi_core->padctrl.pad_calibration_enable = OSI_ENABLE;
 		} else {
 			osi_core->padctrl.pad_calibration_enable = dt_pad_calibration_enable;
+		}
+
+		/* Read pad calibration config reg offset, default 0 */
+		ret = of_property_read_u32(np, "nvidia,pad_auto_cal_pu_offset",
+					   &dt_pad_auto_cal_pu_offset);
+		if (ret < 0) {
+			dev_info(dev, "missing nvidia,pad_auto_cal_pu_offset, "
+				 "setting default 0\n");
+			osi_core->padctrl.pad_auto_cal_pu_offset = 0U;
+			ret = 0;
+		} else if (dt_pad_auto_cal_pu_offset >
+			   OSI_PAD_CAL_CONFIG_PD_PU_OFFSET_MAX) {
+			dev_err(dev, "Error: Invalid dt "
+				"pad_auto_cal_pu_offset: %u value\n",
+				dt_pad_auto_cal_pu_offset);
+			ret = -EINVAL;
+			goto exit;
+		} else {
+			osi_core->padctrl.pad_auto_cal_pu_offset =
+						 dt_pad_auto_cal_pu_offset;
+		}
+		ret = of_property_read_u32(np, "nvidia,pad_auto_cal_pd_offset",
+					   &dt_pad_auto_cal_pd_offset);
+		if (ret < 0) {
+			dev_info(dev, "missing nvidia,pad_auto_cal_pd_offset, "
+				 "setting default 0\n");
+			osi_core->padctrl.pad_auto_cal_pd_offset = 0U;
+			ret = 0;
+		} else if (dt_pad_auto_cal_pd_offset >
+			   OSI_PAD_CAL_CONFIG_PD_PU_OFFSET_MAX) {
+			dev_err(dev, "Error: Invalid dt "
+				"pad_auto_cal_pu_offset: %u value\n",
+				dt_pad_auto_cal_pd_offset);
+			ret = -EINVAL;
+			goto exit;
+		} else {
+			osi_core->padctrl.pad_auto_cal_pd_offset =
+						dt_pad_auto_cal_pd_offset;
 		}
 
 		pdata->pin = devm_pinctrl_get(dev);
