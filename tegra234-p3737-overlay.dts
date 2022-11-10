@@ -17,6 +17,7 @@
 #include <dt-bindings/gpio/tegra234-gpio.h>
 #include "dt-bindings/input/input.h"
 #include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/sound/tegra-asoc-dais.h>
 
 / {
 	overlay-name = "Add P3737 Overlay Support for A01-A03 and ODMDATA";
@@ -113,6 +114,41 @@
 			};
 			pcie_ep@141a0000 {
 				status = "okay";
+			};
+		};
+	};
+
+	/* Onboard RT5640 audio codec disable changes for <= P3737-A03 revision. */
+	fragment@5 {
+		target-path = "/i2c@31e0000";
+		board_config {
+			ids = "3737-0000-TS1","3737-0000-TS2","3737-0000-TS3","3737-0000-EB1","3737-0000-EB2","3737-0000-EB3","3737-0000-000","3737-0000-100","3737-0000-200";
+		};
+		__overlay__ {
+			rt5640.8-001c@1c {
+				status = "disabled";
+			};
+		};
+	};
+
+	fragment@6 {
+		target-path = "/sound";
+		delete_prop = "nvidia-audio-card,widgets", "nvidia-audio-card,routing";
+		board_config {
+			ids = "3737-0000-TS1","3737-0000-TS2","3737-0000-TS3","3737-0000-EB1","3737-0000-EB2","3737-0000-EB3","3737-0000-000","3737-0000-100","3737-0000-200";
+		};
+	};
+
+	fragment@7 {
+		target-path = "/sound/nvidia-audio-card,dai-link@76";
+		delete_prop = "link-name";
+
+		board_config {
+			ids = "3737-0000-TS1","3737-0000-TS2","3737-0000-TS3","3737-0000-EB1","3737-0000-EB2","3737-0000-EB3","3737-0000-000","3737-0000-100","3737-0000-200";
+		};
+		__overlay__ {
+			codec {
+				sound-dai = <&tegra_i2s1 I2S_DUMMY>;
 			};
 		};
 	};
