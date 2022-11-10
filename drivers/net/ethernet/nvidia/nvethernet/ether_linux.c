@@ -3116,7 +3116,6 @@ static int ether_tx_swcx_alloc(struct ether_priv_data *pdata,
 
 	if (unlikely(skb_vlan_tag_present(skb))) {
 		tx_pkt_cx->vtag_id = skb_vlan_tag_get(skb);
-		tx_pkt_cx->vtag_id |= (skb->priority << VLAN_PRIO_SHIFT);
 		tx_pkt_cx->flags |= OSI_PKT_CX_VLAN;
 	}
 
@@ -3298,11 +3297,10 @@ static unsigned short ether_select_queue(struct net_device *dev,
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	unsigned short txqueue_select = 0;
 	unsigned int i, mtlq;
-	u16 vlan_tci;
 	unsigned int priority = skb->priority;
 
-	if (vlan_get_tag(skb, &vlan_tci) == 0) {
-		priority = (vlan_tci & VLAN_PRIO_MASK) >> VLAN_PRIO_SHIFT;
+	if (skb_vlan_tag_present(skb)) {
+		priority = skb_vlan_tag_get_prio(skb);
 	}
 
 	for (i = 0; i < osi_core->num_mtl_queues; i++) {
