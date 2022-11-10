@@ -300,8 +300,8 @@ typedef my_lint_64		nvel64_t;
  */
 #define OSI_CORE_INFO(priv, type, err, loga)				\
 {									\
-	osi_core->osd_ops.ops_log((priv), __func__, __LINE__,		\
-				  OSI_LOG_INFO, (type), (err), (loga));	\
+	osi_core->osd_ops.ops_log(priv, __func__, __LINE__,		\
+				  OSI_LOG_INFO, type, err, loga);	\
 }
 
 #define VLAN_NUM_VID		4096U
@@ -378,9 +378,6 @@ typedef my_lint_64		nvel64_t;
 #define MACSEC_RX_ICV_ERR_IDX	2U
 #define MACSEC_REG_VIOL_ERR_IDX 3U
 /** @} */
-
-extern nveu32_t osi_hsi_err_code[][2];
-extern nveu16_t osi_hsi_reporter_id[];
 
 /**
  * @addtogroup HSI_TIME_THRESHOLD

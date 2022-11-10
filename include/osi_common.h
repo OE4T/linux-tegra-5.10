@@ -160,7 +160,7 @@
 /* Logging defines */
 /* log levels */
 
-#define OSI_LOG_INFO                    1U
+#define OSI_LOG_INFO			1U
 #ifndef OSI_STRIPPED_LIB
 #define OSI_LOG_WARN			2U
 #endif /* OSI_STRIPPED_LIB */

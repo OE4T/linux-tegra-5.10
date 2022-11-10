@@ -2077,6 +2077,12 @@ static nve32_t mgbe_hsi_configure(struct osi_core_priv_data *const osi_core,
 {
 	nveu32_t value = 0U;
 	nve32_t ret = 0;
+	const nveu16_t osi_hsi_reporter_id[] = {
+		OSI_HSI_MGBE0_REPORTER_ID,
+		OSI_HSI_MGBE1_REPORTER_ID,
+		OSI_HSI_MGBE2_REPORTER_ID,
+		OSI_HSI_MGBE3_REPORTER_ID,
+	};
 
 	if (enable == OSI_ENABLE) {
 		osi_core->hsi.enabled = OSI_ENABLE;
@@ -3434,6 +3440,12 @@ static void mgbe_handle_hsi_intr(struct osi_core_priv_data *osi_core)
 	nveu32_t val2 = 0;
 	void *xpcs_base = osi_core->xpcs_base;
 	nveu64_t ce_count_threshold;
+	const nveu32_t osi_hsi_err_code[][2] = {
+		{OSI_HSI_MGBE0_UE_CODE, OSI_HSI_MGBE0_CE_CODE},
+		{OSI_HSI_MGBE1_UE_CODE, OSI_HSI_MGBE1_CE_CODE},
+		{OSI_HSI_MGBE2_UE_CODE, OSI_HSI_MGBE2_CE_CODE},
+		{OSI_HSI_MGBE3_UE_CODE, OSI_HSI_MGBE3_CE_CODE},
+	};
 
 	val = osi_readla(osi_core, (nveu8_t *)osi_core->base +
 			MGBE_WRAP_COMMON_INTR_STATUS);

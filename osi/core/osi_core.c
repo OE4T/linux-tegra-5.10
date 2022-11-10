@@ -25,30 +25,6 @@
 #include "core_local.h"
 #include "../osi/common/common.h"
 
-#ifdef HSI_SUPPORT
-/**
- * @brief osi_hsi_err_code - Array of error code
- */
-nveu32_t osi_hsi_err_code[][2] = {
-	{OSI_HSI_MGBE0_UE_CODE, OSI_HSI_MGBE0_CE_CODE},
-	{OSI_HSI_MGBE1_UE_CODE, OSI_HSI_MGBE1_CE_CODE},
-	{OSI_HSI_MGBE2_UE_CODE, OSI_HSI_MGBE2_CE_CODE},
-	{OSI_HSI_MGBE3_UE_CODE, OSI_HSI_MGBE3_CE_CODE},
-	{OSI_HSI_EQOS0_UE_CODE, OSI_HSI_EQOS0_CE_CODE},
-};
-
-/**
- * @brief osi_hsi_reporter_id - Array of reporter_id
- */
-nveu16_t osi_hsi_reporter_id[] = {
-	OSI_HSI_MGBE0_REPORTER_ID,
-	OSI_HSI_MGBE1_REPORTER_ID,
-	OSI_HSI_MGBE2_REPORTER_ID,
-	OSI_HSI_MGBE3_REPORTER_ID,
-	OSI_HSI_EQOS0_REPORTER_ID,
-};
-#endif
-
 /**
  * @brief Function to validate function pointers.
  *
