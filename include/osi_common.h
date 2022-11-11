@@ -211,6 +211,8 @@
 #define OSI_NONE		0U
 #define OSI_NONE_SIGNED		0
 #define OSI_DISABLE		0U
+#define OSI_H_DISABLE		0x10101010U
+#define OSI_H_ENABLE		(~OSI_H_DISABLE)
 
 #define OSI_BIT(nr)             ((nveu32_t)1 << (nr))
 

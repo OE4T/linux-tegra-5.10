@@ -149,10 +149,10 @@ static nve32_t ivc_write_phy_reg(struct osi_core_priv_data *const osi_core,
 	osi_memset(&msg, 0, sizeof(msg));
 
 	msg.cmd = write_phy_reg;
-	msg.data.args.arguments[index++] = phyaddr;
-	msg.data.args.arguments[index++] = phyreg;
-	msg.data.args.arguments[index++] = phydata;
-	msg.data.args.count = index;
+	msg.args.arguments[index++] = phyaddr;
+	msg.args.arguments[index++] = phyreg;
+	msg.args.arguments[index++] = phydata;
+	msg.args.count = index;
 
 	return osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
 }
@@ -180,9 +180,9 @@ static nve32_t ivc_read_phy_reg(struct osi_core_priv_data *const osi_core,
 	osi_memset(&msg, 0, sizeof(msg));
 
 	msg.cmd = read_phy_reg;
-	msg.data.args.arguments[index++] = phyaddr;
-	msg.data.args.arguments[index++] = phyreg;
-	msg.data.args.count = index;
+	msg.args.arguments[index++] = phyaddr;
+	msg.args.arguments[index++] = phyreg;
+	msg.args.count = index;
 
 	return osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
 }
@@ -386,9 +386,9 @@ static nve32_t ivc_macsec_enable(struct osi_core_priv_data *const osi_core,
 	osi_memset(&msg, 0, sizeof(msg));
 
 	msg.cmd = en_macsec;
-	msg.data.args.arguments[index] = enable;
+	msg.args.arguments[index] = enable;
 	index++;
-	msg.data.args.count = index;
+	msg.args.count = index;
 
 	return osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
 }
@@ -412,9 +412,9 @@ static nve32_t ivc_macsec_loopback_config(struct osi_core_priv_data *const osi_c
 	osi_memset(&msg, 0, sizeof(msg));
 
 	msg.cmd = loopback_config_macsec;
-	msg.data.args.arguments[index] = enable;
+	msg.args.arguments[index] = enable;
 	index++;
-	msg.data.args.count = index;
+	msg.args.count = index;
 
 	return osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
 }
@@ -473,9 +473,9 @@ static nve32_t ivc_macsec_cipher_config(struct osi_core_priv_data *const osi_cor
 	osi_memset(&msg, 0, sizeof(msg));
 
 	msg.cmd = cipher_config;
-	msg.data.args.arguments[index] = cipher;
+	msg.args.arguments[index] = cipher;
 	index++;
-	msg.data.args.count = index;
+	msg.args.count = index;
 
 	return osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
 }
@@ -564,9 +564,9 @@ static nve32_t ivc_macsec_init(struct osi_core_priv_data *const osi_core,
 	osi_memset(&msg, 0, sizeof(msg));
 
 	msg.cmd = init_macsec;
-	msg.data.args.arguments[index] = mtu;
+	msg.args.arguments[index] = mtu;
 	index++;
-	msg.data.args.count = index;
+	msg.args.count = index;
 
 	return osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
 }

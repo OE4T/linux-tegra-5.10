@@ -140,9 +140,10 @@ typedef struct ivc_msg_common {
 	/** message count, used for debug */
 	nveu32_t count;
 
+	/** IVC argument structure */
+	ivc_args args;
+
 	union {
-		/** IVC argument structure */
-		ivc_args args;
 		/** avb algorithm structure */
 		struct osi_core_avb_algorithm avb_algo;
 		/** OSI filter structure */
