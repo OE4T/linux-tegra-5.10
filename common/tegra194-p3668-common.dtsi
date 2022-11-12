@@ -207,6 +207,18 @@
 
 	/* Below node can be moved to cvb to make decision about enabling/disabling */
 	arm-pmu {
+		interrupts = <0 384 0x4>,
+			     <0 385 0x4>,
+			     <0 386 0x4>,
+			     <0 387 0x4>,
+			     <0 388 0x4>,
+			     <0 389 0x4>;
+		interrupt-affinity =	<&cl0_0>,
+					<&cl0_1>,
+					<&cl1_0>,
+					<&cl1_1>,
+					<&cl2_0>,
+					<&cl2_1>;
 		status = "okay";
 	};
 
