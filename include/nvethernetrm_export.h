@@ -56,6 +56,9 @@
 #define OSI_MTL_QUEUE_AVB	0x1U
 #define OSI_MTL_QUEUE_ENABLE	0x2U
 #define OSI_MTL_QUEUE_MODEMAX	0x3U
+#ifndef OSI_STRIPPED_LIB
+#define OSI_MTL_MAX_NUM_QUEUES	10U
+#endif
 /** @} */
 
 /**
@@ -181,9 +184,9 @@ struct osi_fpe_config {
 };
 
 /**
- * @brief OSI Core TSN error stats structure
+ * @brief OSI Core error stats structure
  */
-struct osi_tsn_stats {
+struct osi_stats {
 	/** Constant Gate Control Error */
 	nveu64_t const_gate_ctr_err;
 	/** Head-Of-Line Blocking due to Scheduling */
@@ -198,6 +201,32 @@ struct osi_tsn_stats {
 	nveu64_t base_time_reg_err;
 	/** Switch to Software Owned List Complete */
 	nveu64_t sw_own_list_complete;
+#ifndef OSI_STRIPPED_LIB
+	/** IP Header Error */
+	nveu64_t mgbe_ip_header_err;
+	/** Jabber time out Error */
+	nveu64_t mgbe_jabber_timeout_err;
+	/** Payload Checksum Error */
+	nveu64_t mgbe_payload_cs_err;
+	/** Under Flow Error */
+	nveu64_t mgbe_tx_underflow_err;
+	/** RX buffer unavailable irq count */
+	nveu64_t rx_buf_unavail_irq_n[OSI_MTL_MAX_NUM_QUEUES];
+	/** Transmit Process Stopped irq count */
+	nveu64_t tx_proc_stopped_irq_n[OSI_MTL_MAX_NUM_QUEUES];
+	/** Transmit Buffer Unavailable irq count */
+	nveu64_t tx_buf_unavail_irq_n[OSI_MTL_MAX_NUM_QUEUES];
+	/** Receive Process Stopped irq count */
+	nveu64_t rx_proc_stopped_irq_n[OSI_MTL_MAX_NUM_QUEUES];
+	/** Receive Watchdog Timeout irq count */
+	nveu64_t rx_watchdog_irq_n;
+	/** Fatal Bus Error irq count */
+	nveu64_t fatal_bus_error_irq_n;
+	/** lock fail count node addition */
+	nveu64_t ts_lock_add_fail;
+	/** lock fail count node removal */
+	nveu64_t ts_lock_del_fail;
+#endif
 };
 
 /**

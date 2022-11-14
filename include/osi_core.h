@@ -276,6 +276,7 @@ typedef my_lint_64		nvel64_t;
 #ifdef HSI_SUPPORT
 #define OSI_CMD_HSI_INJECT_ERR		55U
 #endif
+#define OSI_CMD_READ_STATS		56U
 /** @} */
 
 /**
@@ -1216,22 +1217,6 @@ struct core_padctrl {
 	nveu32_t pad_calibration_enable;
 };
 
-#ifndef OSI_STRIPPED_LIB
-/**
- * @brief OSI CORE packet error stats
- */
-struct osi_core_pkt_err_stats {
-	/** IP Header Error */
-	nveu64_t mgbe_ip_header_err;
-	/** Jabber time out Error */
-	nveu64_t mgbe_jabber_timeout_err;
-	/** Payload Checksum Error */
-	nveu64_t mgbe_payload_cs_err;
-	/** Under Flow Error */
-	nveu64_t mgbe_tx_underflow_err;
-};
-#endif
-
 #ifdef HSI_SUPPORT
 /**
  * @brief The OSI Core HSI private data structure.
@@ -1352,8 +1337,6 @@ struct osi_core_priv_data {
 	/** TQ:TC mapping */
 	nveu32_t tc[OSI_MGBE_MAX_NUM_CHANS];
 #ifndef OSI_STRIPPED_LIB
-	/** xtra sw error counters */
-	struct osi_xtra_stat_counters xstats;
 	/** Memory mapped base address of HV window */
 	void *hv_base;
 	/** csr clock is to program LPI 1 us tick timer register.
@@ -1382,8 +1365,8 @@ struct osi_core_priv_data {
 	 * 1- Successful and can be used between P2P device
 	 */
 	nveu32_t fpe_ready;
-	/** TSN stats counters */
-	struct osi_tsn_stats tsn_stats;
+	/** MAC stats counters */
+	struct osi_stats stats;
 	/** eqos pad control structure */
 	struct core_padctrl padctrl;
 	/** MDC clock rate */
@@ -1409,10 +1392,6 @@ struct osi_core_priv_data {
 	nveu32_t phy_iface_mode;
 	/** MGBE MAC instance ID's */
 	nveu32_t instance_id;
-#ifndef OSI_STRIPPED_LIB
-	/** Packet error stats */
-	struct osi_core_pkt_err_stats pkt_err_stats;
-#endif
 	/** Ethernet controller MAC to MAC Time sync role
 	 * 1 - Primary interface, 2 - secondary interface, 0 - inactive interface
 	 */

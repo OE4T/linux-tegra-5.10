@@ -26,42 +26,6 @@
 #include <nvethernet_type.h>
 #include "osi_common.h"
 
-#ifndef OSI_STRIPPED_LIB
-/**
- * @brief osi_xtra_stat_counters - OSI core extra stat counters
- */
-struct osi_xtra_stat_counters {
-	/** RX buffer unavailable irq count */
-	nveu64_t rx_buf_unavail_irq_n[OSI_MGBE_MAX_NUM_QUEUES];
-	/** Transmit Process Stopped irq count */
-	nveu64_t tx_proc_stopped_irq_n[OSI_MGBE_MAX_NUM_QUEUES];
-	/** Transmit Buffer Unavailable irq count */
-	nveu64_t tx_buf_unavail_irq_n[OSI_MGBE_MAX_NUM_QUEUES];
-	/** Receive Process Stopped irq count */
-	nveu64_t rx_proc_stopped_irq_n[OSI_MGBE_MAX_NUM_QUEUES];
-	/** Receive Watchdog Timeout irq count */
-	nveu64_t rx_watchdog_irq_n;
-	/** Fatal Bus Error irq count */
-	nveu64_t fatal_bus_error_irq_n;
-	/** rx skb allocation failure count */
-	nveu64_t re_alloc_rxbuf_failed[OSI_MGBE_MAX_NUM_QUEUES];
-	/** TX per channel interrupt count */
-	nveu64_t tx_normal_irq_n[OSI_MGBE_MAX_NUM_QUEUES];
-	/** TX per channel SW timer callback count */
-	nveu64_t tx_usecs_swtimer_n[OSI_MGBE_MAX_NUM_QUEUES];
-	/** RX per channel interrupt count */
-	nveu64_t rx_normal_irq_n[OSI_MGBE_MAX_NUM_QUEUES];
-	/** link connect count */
-	nveu64_t link_connect_count;
-	/** link disconnect count */
-	nveu64_t link_disconnect_count;
-	/** lock fail count node addition */
-	nveu64_t ts_lock_add_fail;
-	/** lock fail count node removal */
-	nveu64_t ts_lock_del_fail;
-};
-#endif /* !OSI_STRIPPED_LIB */
-
 #ifdef MACSEC_SUPPORT
 /**
  * @brief The structure hold macsec statistics counters

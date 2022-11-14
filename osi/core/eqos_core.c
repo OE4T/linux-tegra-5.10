@@ -1561,33 +1561,33 @@ static inline void update_dma_sr_stats(
 	nveu64_t val;
 
 	if ((dma_sr & EQOS_DMA_CHX_STATUS_RBU) == EQOS_DMA_CHX_STATUS_RBU) {
-		val = osi_core->xstats.rx_buf_unavail_irq_n[qinx];
-		osi_core->xstats.rx_buf_unavail_irq_n[qinx] =
+		val = osi_core->stats.rx_buf_unavail_irq_n[qinx];
+		osi_core->stats.rx_buf_unavail_irq_n[qinx] =
 			osi_update_stats_counter(val, 1U);
 	}
 	if ((dma_sr & EQOS_DMA_CHX_STATUS_TPS) == EQOS_DMA_CHX_STATUS_TPS) {
-		val = osi_core->xstats.tx_proc_stopped_irq_n[qinx];
-		osi_core->xstats.tx_proc_stopped_irq_n[qinx] =
+		val = osi_core->stats.tx_proc_stopped_irq_n[qinx];
+		osi_core->stats.tx_proc_stopped_irq_n[qinx] =
 			osi_update_stats_counter(val, 1U);
 	}
 	if ((dma_sr & EQOS_DMA_CHX_STATUS_TBU) == EQOS_DMA_CHX_STATUS_TBU) {
-		val = osi_core->xstats.tx_buf_unavail_irq_n[qinx];
-		osi_core->xstats.tx_buf_unavail_irq_n[qinx] =
+		val = osi_core->stats.tx_buf_unavail_irq_n[qinx];
+		osi_core->stats.tx_buf_unavail_irq_n[qinx] =
 			osi_update_stats_counter(val, 1U);
 	}
 	if ((dma_sr & EQOS_DMA_CHX_STATUS_RPS) == EQOS_DMA_CHX_STATUS_RPS) {
-		val = osi_core->xstats.rx_proc_stopped_irq_n[qinx];
-		osi_core->xstats.rx_proc_stopped_irq_n[qinx] =
+		val = osi_core->stats.rx_proc_stopped_irq_n[qinx];
+		osi_core->stats.rx_proc_stopped_irq_n[qinx] =
 			osi_update_stats_counter(val, 1U);
 	}
 	if ((dma_sr & EQOS_DMA_CHX_STATUS_RWT) == EQOS_DMA_CHX_STATUS_RWT) {
-		val = osi_core->xstats.rx_watchdog_irq_n;
-		osi_core->xstats.rx_watchdog_irq_n =
+		val = osi_core->stats.rx_watchdog_irq_n;
+		osi_core->stats.rx_watchdog_irq_n =
 			osi_update_stats_counter(val, 1U);
 	}
 	if ((dma_sr & EQOS_DMA_CHX_STATUS_FBE) == EQOS_DMA_CHX_STATUS_FBE) {
-		val = osi_core->xstats.fatal_bus_error_irq_n;
-		osi_core->xstats.fatal_bus_error_irq_n =
+		val = osi_core->stats.fatal_bus_error_irq_n;
+		osi_core->stats.fatal_bus_error_irq_n =
 			osi_update_stats_counter(val, 1U);
 	}
 }
@@ -1634,15 +1634,15 @@ static void eqos_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 	/* increase counter write 1 back will clear */
 	if ((val & EQOS_MTL_EST_STATUS_CGCE) == EQOS_MTL_EST_STATUS_CGCE) {
 		osi_core->est_ready = OSI_DISABLE;
-		stat_val = osi_core->tsn_stats.const_gate_ctr_err;
-		osi_core->tsn_stats.const_gate_ctr_err =
+		stat_val = osi_core->stats.const_gate_ctr_err;
+		osi_core->stats.const_gate_ctr_err =
 				osi_update_stats_counter(stat_val, 1U);
 	}
 
 	if ((val & EQOS_MTL_EST_STATUS_HLBS) == EQOS_MTL_EST_STATUS_HLBS) {
 		osi_core->est_ready = OSI_DISABLE;
-		stat_val = osi_core->tsn_stats.head_of_line_blk_sch;
-		osi_core->tsn_stats.head_of_line_blk_sch =
+		stat_val = osi_core->stats.head_of_line_blk_sch;
+		osi_core->stats.head_of_line_blk_sch =
 				osi_update_stats_counter(stat_val, 1U);
 		/* Need to read MTL_EST_Sch_Error register and cleared */
 		sch_err = osi_readla(osi_core, (nveu8_t *)osi_core->base +
@@ -1651,8 +1651,8 @@ static void eqos_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 			temp = OSI_ENABLE;
 			temp = temp << i;
 			if ((sch_err & temp) == temp) {
-				stat_val = osi_core->tsn_stats.hlbs_q[i];
-				osi_core->tsn_stats.hlbs_q[i] =
+				stat_val = osi_core->stats.hlbs_q[i];
+				osi_core->stats.hlbs_q[i] =
 					osi_update_stats_counter(stat_val, 1U);
 			}
 		}
@@ -1675,8 +1675,8 @@ static void eqos_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 
 	if ((val & EQOS_MTL_EST_STATUS_HLBF) == EQOS_MTL_EST_STATUS_HLBF) {
 		osi_core->est_ready = OSI_DISABLE;
-		stat_val = osi_core->tsn_stats.head_of_line_blk_frm;
-		osi_core->tsn_stats.head_of_line_blk_frm =
+		stat_val = osi_core->stats.head_of_line_blk_frm;
+		osi_core->stats.head_of_line_blk_frm =
 				osi_update_stats_counter(stat_val, 1U);
 		/* Need to read MTL_EST_Frm_Size_Error register and cleared */
 		frm_err = osi_readla(osi_core, (nveu8_t *)osi_core->base +
@@ -1685,8 +1685,8 @@ static void eqos_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 			temp = OSI_ENABLE;
 			temp = temp << i;
 			if ((frm_err & temp) == temp) {
-				stat_val = osi_core->tsn_stats.hlbf_q[i];
-				osi_core->tsn_stats.hlbf_q[i] =
+				stat_val = osi_core->stats.hlbf_q[i];
+				osi_core->stats.hlbf_q[i] =
 					osi_update_stats_counter(stat_val, 1U);
 			}
 		}
@@ -1713,15 +1713,15 @@ static void eqos_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 		    EQOS_MTL_EST_STATUS_BTRE) {
 			osi_core->est_ready = OSI_ENABLE;
 		}
-		stat_val = osi_core->tsn_stats.sw_own_list_complete;
-		osi_core->tsn_stats.sw_own_list_complete =
+		stat_val = osi_core->stats.sw_own_list_complete;
+		osi_core->stats.sw_own_list_complete =
 				osi_update_stats_counter(stat_val, 1U);
 	}
 
 	if ((val & EQOS_MTL_EST_STATUS_BTRE) == EQOS_MTL_EST_STATUS_BTRE) {
 		osi_core->est_ready = OSI_DISABLE;
-		stat_val = osi_core->tsn_stats.base_time_reg_err;
-		osi_core->tsn_stats.base_time_reg_err =
+		stat_val = osi_core->stats.base_time_reg_err;
+		osi_core->stats.base_time_reg_err =
 				osi_update_stats_counter(stat_val, 1U);
 		osi_core->est_ready = OSI_DISABLE;
 	}
@@ -1818,7 +1818,8 @@ static void eqos_handle_hsi_intr(struct osi_core_priv_data *const osi_core)
  * Algorithm:
  *  - Reads DMA ISR register
  *   - Returns if calue is 0.
- *   - Handle Non-TI/RI interrupts for all MTL queues and increments #osi_core_priv_data->xstats
+ *   - Handle Non-TI/RI interrupts for all MTL queues and
+ *     increments #osi_core_priv_data->stats
  *     based on error detected per cahnnel.
  *  - Calls eqos_handle_mac_intrs() to handle MAC interrupts.
  *  - Refer to EQOS column of <<RM_10, (sequence diagram)>> for API details.

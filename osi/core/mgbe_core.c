@@ -2771,23 +2771,23 @@ static void mgbe_handle_mac_intrs(struct osi_core_priv_data *osi_core,
 				      MGBE_MAC_RX_TX_STS);
 		if ((tx_errors & MGBE_MAC_TX_TJT) == MGBE_MAC_TX_TJT) {
 			/* increment Tx Jabber timeout stats */
-			osi_core->pkt_err_stats.mgbe_jabber_timeout_err =
+			osi_core->stats.mgbe_jabber_timeout_err =
 				osi_update_stats_counter(
-				osi_core->pkt_err_stats.mgbe_jabber_timeout_err,
+				osi_core->stats.mgbe_jabber_timeout_err,
 				1UL);
 		}
 		if ((tx_errors & MGBE_MAC_TX_IHE) == MGBE_MAC_TX_IHE) {
 			/* IP Header Error */
-			osi_core->pkt_err_stats.mgbe_ip_header_err =
+			osi_core->stats.mgbe_ip_header_err =
 				osi_update_stats_counter(
-				osi_core->pkt_err_stats.mgbe_ip_header_err,
+				osi_core->stats.mgbe_ip_header_err,
 				1UL);
 		}
 		if ((tx_errors & MGBE_MAC_TX_PCE) == MGBE_MAC_TX_PCE) {
 			/* Payload Checksum error */
-			osi_core->pkt_err_stats.mgbe_payload_cs_err =
+			osi_core->stats.mgbe_payload_cs_err =
 				osi_update_stats_counter(
-				osi_core->pkt_err_stats.mgbe_payload_cs_err,
+				osi_core->stats.mgbe_payload_cs_err,
 				1UL);
 		}
 	}
@@ -2800,9 +2800,9 @@ static void mgbe_handle_mac_intrs(struct osi_core_priv_data *osi_core,
 			/* mask return as initial value is returned always */
 			(void)__sync_fetch_and_sub(&l_core->ts_lock, 1);
 #ifndef OSI_STRIPPED_LIB
-			osi_core->xstats.ts_lock_add_fail =
+			osi_core->stats.ts_lock_add_fail =
 					osi_update_stats_counter(
-					osi_core->xstats.ts_lock_add_fail, 1U);
+					osi_core->stats.ts_lock_add_fail, 1U);
 #endif /* !OSI_STRIPPED_LIB */
 			goto done;
 		}
@@ -2873,28 +2873,28 @@ static inline void mgbe_update_dma_sr_stats(struct osi_core_priv_data *osi_core,
 	nveu64_t val;
 
 	if ((dma_sr & MGBE_DMA_CHX_STATUS_RBU) == MGBE_DMA_CHX_STATUS_RBU) {
-		val = osi_core->xstats.rx_buf_unavail_irq_n[qinx];
-		osi_core->xstats.rx_buf_unavail_irq_n[qinx] =
+		val = osi_core->stats.rx_buf_unavail_irq_n[qinx];
+		osi_core->stats.rx_buf_unavail_irq_n[qinx] =
 			osi_update_stats_counter(val, 1U);
 	}
 	if ((dma_sr & MGBE_DMA_CHX_STATUS_TPS) == MGBE_DMA_CHX_STATUS_TPS) {
-		val = osi_core->xstats.tx_proc_stopped_irq_n[qinx];
-		osi_core->xstats.tx_proc_stopped_irq_n[qinx] =
+		val = osi_core->stats.tx_proc_stopped_irq_n[qinx];
+		osi_core->stats.tx_proc_stopped_irq_n[qinx] =
 			osi_update_stats_counter(val, 1U);
 	}
 	if ((dma_sr & MGBE_DMA_CHX_STATUS_TBU) == MGBE_DMA_CHX_STATUS_TBU) {
-		val = osi_core->xstats.tx_buf_unavail_irq_n[qinx];
-		osi_core->xstats.tx_buf_unavail_irq_n[qinx] =
+		val = osi_core->stats.tx_buf_unavail_irq_n[qinx];
+		osi_core->stats.tx_buf_unavail_irq_n[qinx] =
 			osi_update_stats_counter(val, 1U);
 	}
 	if ((dma_sr & MGBE_DMA_CHX_STATUS_RPS) == MGBE_DMA_CHX_STATUS_RPS) {
-		val = osi_core->xstats.rx_proc_stopped_irq_n[qinx];
-		osi_core->xstats.rx_proc_stopped_irq_n[qinx] =
+		val = osi_core->stats.rx_proc_stopped_irq_n[qinx];
+		osi_core->stats.rx_proc_stopped_irq_n[qinx] =
 			osi_update_stats_counter(val, 1U);
 	}
 	if ((dma_sr & MGBE_DMA_CHX_STATUS_FBE) == MGBE_DMA_CHX_STATUS_FBE) {
-		val = osi_core->xstats.fatal_bus_error_irq_n;
-		osi_core->xstats.fatal_bus_error_irq_n =
+		val = osi_core->stats.fatal_bus_error_irq_n;
+		osi_core->stats.fatal_bus_error_irq_n =
 			osi_update_stats_counter(val, 1U);
 	}
 }
@@ -3196,9 +3196,9 @@ static void mgbe_handle_mtl_intrs(struct osi_core_priv_data *osi_core,
 			/* Transmit Queue Underflow Interrupt Status */
 			if ((qstatus & MGBE_MTL_QINT_TXUNIFS) == MGBE_MTL_QINT_TXUNIFS) {
 #ifndef OSI_STRIPPED_LIB
-				osi_core->pkt_err_stats.mgbe_tx_underflow_err =
+				osi_core->stats.mgbe_tx_underflow_err =
 				osi_update_stats_counter(
-				osi_core->pkt_err_stats.mgbe_tx_underflow_err,
+				osi_core->stats.mgbe_tx_underflow_err,
 				1UL);
 #endif /* !OSI_STRIPPED_LIB */
 			}
@@ -3226,15 +3226,15 @@ static void mgbe_handle_mtl_intrs(struct osi_core_priv_data *osi_core,
 	/* increase counter write 1 back will clear */
 	if ((val & MGBE_MTL_EST_STATUS_CGCE) == MGBE_MTL_EST_STATUS_CGCE) {
 		osi_core->est_ready = OSI_DISABLE;
-		stat_val = osi_core->tsn_stats.const_gate_ctr_err;
-		osi_core->tsn_stats.const_gate_ctr_err =
+		stat_val = osi_core->stats.const_gate_ctr_err;
+		osi_core->stats.const_gate_ctr_err =
 				osi_update_stats_counter(stat_val, 1U);
 	}
 
 	if ((val & MGBE_MTL_EST_STATUS_HLBS) == MGBE_MTL_EST_STATUS_HLBS) {
 		osi_core->est_ready = OSI_DISABLE;
-		stat_val = osi_core->tsn_stats.head_of_line_blk_sch;
-		osi_core->tsn_stats.head_of_line_blk_sch =
+		stat_val = osi_core->stats.head_of_line_blk_sch;
+		osi_core->stats.head_of_line_blk_sch =
 				osi_update_stats_counter(stat_val, 1U);
 		/* Need to read MTL_EST_Sch_Error register and cleared */
 		sch_err = osi_readla(osi_core, (nveu8_t *)osi_core->base +
@@ -3243,8 +3243,8 @@ static void mgbe_handle_mtl_intrs(struct osi_core_priv_data *osi_core,
 			temp = OSI_ENABLE;
 			temp = temp << i;
 			if ((sch_err & temp) == temp) {
-				stat_val = osi_core->tsn_stats.hlbs_q[i];
-				osi_core->tsn_stats.hlbs_q[i] =
+				stat_val = osi_core->stats.hlbs_q[i];
+				osi_core->stats.hlbs_q[i] =
 					osi_update_stats_counter(stat_val, 1U);
 			}
 		}
@@ -3263,8 +3263,8 @@ static void mgbe_handle_mtl_intrs(struct osi_core_priv_data *osi_core,
 
 	if ((val & MGBE_MTL_EST_STATUS_HLBF) == MGBE_MTL_EST_STATUS_HLBF) {
 		osi_core->est_ready = OSI_DISABLE;
-		stat_val = osi_core->tsn_stats.head_of_line_blk_frm;
-		osi_core->tsn_stats.head_of_line_blk_frm =
+		stat_val = osi_core->stats.head_of_line_blk_frm;
+		osi_core->stats.head_of_line_blk_frm =
 				osi_update_stats_counter(stat_val, 1U);
 		/* Need to read MTL_EST_Frm_Size_Error register and cleared */
 		frm_err = osi_readla(osi_core, (nveu8_t *)osi_core->base +
@@ -3273,8 +3273,8 @@ static void mgbe_handle_mtl_intrs(struct osi_core_priv_data *osi_core,
 			temp = OSI_ENABLE;
 			temp = temp << i;
 			if ((frm_err & temp) == temp) {
-				stat_val = osi_core->tsn_stats.hlbf_q[i];
-				osi_core->tsn_stats.hlbf_q[i] =
+				stat_val = osi_core->stats.hlbf_q[i];
+				osi_core->stats.hlbf_q[i] =
 					osi_update_stats_counter(stat_val, 1U);
 			}
 		}
@@ -3302,15 +3302,15 @@ static void mgbe_handle_mtl_intrs(struct osi_core_priv_data *osi_core,
 		    MGBE_MTL_EST_STATUS_BTRE) {
 			osi_core->est_ready = OSI_ENABLE;
 		}
-		stat_val = osi_core->tsn_stats.sw_own_list_complete;
-		osi_core->tsn_stats.sw_own_list_complete =
+		stat_val = osi_core->stats.sw_own_list_complete;
+		osi_core->stats.sw_own_list_complete =
 				osi_update_stats_counter(stat_val, 1U);
 	}
 
 	if ((val & MGBE_MTL_EST_STATUS_BTRE) == MGBE_MTL_EST_STATUS_BTRE) {
 		osi_core->est_ready = OSI_DISABLE;
-		stat_val = osi_core->tsn_stats.base_time_reg_err;
-		osi_core->tsn_stats.base_time_reg_err =
+		stat_val = osi_core->stats.base_time_reg_err;
+		osi_core->stats.base_time_reg_err =
 				osi_update_stats_counter(stat_val, 1U);
 		osi_core->est_ready = OSI_DISABLE;
 	}

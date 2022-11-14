@@ -35,14 +35,6 @@
  */
 #define MAX_ARGS	10
 
-/*
- *@brief All Stats
- */
-struct osi_stats {
-	struct osi_mmc_counters mmc_s;
-	struct osi_tsn_stats tsn_s;
-};
-
 /**
  * @brief IVC commands between OSD & OSI.
  */
@@ -151,13 +143,13 @@ typedef struct ivc_msg_common {
 		/** OSI HW features */
 		struct osi_hw_features hw_feat;
 		/** MMC counters */
-		struct osi_mmc_counters mmc;
+		struct osi_mmc_counters mmc_s;
+		/** OSI stats counters */
+		struct osi_stats stats_s;
 		/** core argument structure */
 		ivc_core_args init_args;
 		/** ioctl command structure */
 		struct osi_ioctl ioctl_data;
-		/** All stats */
-		struct osi_stats eth_stats;
 #ifdef MACSEC_SUPPORT
 		/** lut config */
 		struct osi_macsec_lut_config lut_config;
