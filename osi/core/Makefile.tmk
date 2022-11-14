@@ -47,26 +47,11 @@ NV_COMPONENT_SOURCES           := \
 	$(NV_SOURCE)/nvethernetrm/osi/common/mgbe_common.c \
 	$(NV_SOURCE)/nvethernetrm/osi/core/macsec.c
 
-NV_COMPONENT_CFLAGS += -DHSI_SUPPORT
-NV_COMPONENT_CFLAGS += -DMACSEC_SUPPORT
-#NV_COMPONENT_CFLAGS += -DMACSEC_KEY_PROGRAM
-
-ifeq ($(NV_BUILD_CONFIGURATION_OS_IS_LINUX),1)
-        NV_COMPONENT_CFLAGS += -DLINUX_OS
-else ifeq ($(NV_BUILD_CONFIGURATION_OS_IS_QNX),1)
-        NV_COMPONENT_CFLAGS += -DQNX_OS
-endif
-
-ifeq ($(NV_BUILD_CONFIGURATION_IS_SAFETY),0)
-NV_COMPONENT_CFLAGS            += -DOSI_DEBUG
-NV_COMPONENT_CFLAGS            += -DDEBUG_MACSEC
-else
-NV_COMPONENT_CFLAGS            += -DOSI_STRIPPED_LIB
-endif
-
 NV_COMPONENT_INCLUDES          := \
 	$(NV_SOURCE)/nvethernetrm/include \
 	$(NV_SOURCE)/nvethernetrm/osi/common/include
+
+include $(NV_SOURCE)/nvethernetrm/include/config.tmk
 
 include $(NV_BUILD_STATIC_LIBRARY)
 endif
