@@ -18,11 +18,10 @@ OSI_DMA := nvethernetrm/osi/dma
 
 obj-$(CONFIG_NVETHERNET) += nvethernet.o
 
-ccflags-y += -DLINUX_IVC -DUPDATED_PAD_CAL \
-	     -I$(srctree.nvidia)/drivers/net/ethernet/nvidia/nvethernet/nvethernetrm/include \
+# These CFLAGS must not be shared/used in OSI. These are local to Linux
+ccflags-y +=  -DLINUX_OS -DNET30 -DNVPKCS_MACSEC -DLINUX_IVC -DUPDATED_PAD_CAL \
+              -I$(srctree.nvidia)/drivers/net/ethernet/nvidia/nvethernet/nvethernetrm/include \
 	     -I$(srctree.nvidia)/drivers/net/ethernet/nvidia/nvethernet/nvethernetrm/osi/common/include
-
-ccflags-y += -DMACSEC_SUPPORT -DNET30 -DDEBUG_MACSEC -DOSI_DEBUG -DHSI_SUPPORT -DLINUX_OS -DNVPKCS_MACSEC
 
 nvethernet-objs:= ether_linux.o \
 		  osd.o \
@@ -55,5 +54,7 @@ nvethernet-objs:= ether_linux.o \
 		  $(OSI_CORE)/frp.o \
 		  $(OSI_CORE)/vlan_filter.o \
 		  $(OSI_CORE)/debug.o
+
+include $(srctree.nvidia)/drivers/net/ethernet/nvidia/nvethernet/nvethernetrm/include/config.tmk
 
 nvethernet-$(CONFIG_NVETHERNET_SELFTESTS) += selftests.o
