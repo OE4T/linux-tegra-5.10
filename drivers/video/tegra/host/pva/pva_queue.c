@@ -1036,11 +1036,6 @@ static void update_one_task(struct pva *pva)
 				    task->syncpt_thresh,
 				    stats->vpu_assigned_time,
 				    stats->complete_time);
-	nvhost_eventlib_log_task(pdev,
-				 queue->syncpt_id,
-				 task->syncpt_thresh,
-				 stats->vpu_assigned_time,
-				 stats->complete_time);
 	nvpva_dbg_info(pva, "Completed task %p (0x%llx), "
 			"start_time=%llu, "
 			"end_time=%llu",
