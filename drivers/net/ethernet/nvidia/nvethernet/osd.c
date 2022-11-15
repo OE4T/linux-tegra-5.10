@@ -234,8 +234,8 @@ static inline int ether_alloc_skb(struct ether_priv_data *pdata,
 		rx_swcx->buf_virt_addr = pdata->osi_dma->resv_buf_virt_addr;
 		rx_swcx->buf_phy_addr = pdata->osi_dma->resv_buf_phy_addr;
 		rx_swcx->flags |= OSI_RX_SWCX_BUF_VALID;
-		val = pdata->osi_core->xstats.re_alloc_rxbuf_failed[chan];
-		pdata->osi_core->xstats.re_alloc_rxbuf_failed[chan] =
+		val = pdata->xstats.re_alloc_rxbuf_failed[chan];
+		pdata->xstats.re_alloc_rxbuf_failed[chan] =
 			osi_update_stats_counter(val, 1UL);
 		return 0;
 	}
@@ -256,8 +256,8 @@ static inline int ether_alloc_skb(struct ether_priv_data *pdata,
 		rx_swcx->buf_virt_addr = pdata->osi_dma->resv_buf_virt_addr;
 		rx_swcx->buf_phy_addr = pdata->osi_dma->resv_buf_phy_addr;
 		rx_swcx->flags |= OSI_RX_SWCX_BUF_VALID;
-		val = pdata->osi_core->xstats.re_alloc_rxbuf_failed[chan];
-		pdata->osi_core->xstats.re_alloc_rxbuf_failed[chan] =
+		val = pdata->xstats.re_alloc_rxbuf_failed[chan];
+		pdata->xstats.re_alloc_rxbuf_failed[chan] =
 			osi_update_stats_counter(val, 1UL);
 		return 0;
 	}

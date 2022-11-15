@@ -377,6 +377,24 @@ struct ether_tx_ts_skb_list {
 };
 
 /**
+ * @brief ether_xtra_stat_counters - OSI core extra stat counters
+ */
+struct ether_xtra_stat_counters {
+	/** rx skb allocation failure count */
+	nveu64_t re_alloc_rxbuf_failed[OSI_MGBE_MAX_NUM_QUEUES];
+	/** TX per channel interrupt count */
+	nveu64_t tx_normal_irq_n[OSI_MGBE_MAX_NUM_QUEUES];
+	/** TX per channel SW timer callback count */
+	nveu64_t tx_usecs_swtimer_n[OSI_MGBE_MAX_NUM_QUEUES];
+	/** RX per channel interrupt count */
+	nveu64_t rx_normal_irq_n[OSI_MGBE_MAX_NUM_QUEUES];
+	/** link connect count */
+	nveu64_t link_connect_count;
+	/** link disconnect count */
+	nveu64_t link_disconnect_count;
+};
+
+/**
  * @brief Ethernet driver private data
  */
 struct ether_priv_data {
@@ -611,6 +629,8 @@ struct ether_priv_data {
 	unsigned int tx_start_stop;
 	/** Tasklet for restarting UPHY lanes */
 	struct tasklet_struct lane_restart_task;
+	/** xtra sw error counters */
+	struct ether_xtra_stat_counters xstats;
 };
 
 /**

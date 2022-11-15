@@ -1083,8 +1083,8 @@ static void ether_adjust_link(struct net_device *dev)
 		if (!pdata->oldlink) {
 			new_state = 1;
 			pdata->oldlink = 1;
-			val = pdata->osi_core->xstats.link_connect_count;
-			pdata->osi_core->xstats.link_connect_count =
+			val = pdata->xstats.link_connect_count;
+			pdata->xstats.link_connect_count =
 				osi_update_stats_counter(val, 1UL);
 		}
 	} else if (pdata->oldlink) {
@@ -1092,8 +1092,8 @@ static void ether_adjust_link(struct net_device *dev)
 		pdata->oldlink = 0;
 		pdata->speed = 0;
 		pdata->oldduplex = -1;
-		val = pdata->osi_core->xstats.link_disconnect_count;
-		pdata->osi_core->xstats.link_disconnect_count =
+		val = pdata->xstats.link_disconnect_count;
+		pdata->xstats.link_disconnect_count =
 			osi_update_stats_counter(val, 1UL);
 		ether_en_dis_monitor_clks(pdata, OSI_DISABLE);
 	} else {
@@ -1276,7 +1276,6 @@ static irqreturn_t ether_tx_chan_isr(int irq, void *data)
 	struct ether_tx_napi *tx_napi = (struct ether_tx_napi *)data;
 	struct ether_priv_data *pdata = tx_napi->pdata;
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
-	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	unsigned int chan = tx_napi->chan;
 	unsigned long flags;
 	unsigned long val;
@@ -1287,8 +1286,8 @@ static irqreturn_t ether_tx_chan_isr(int irq, void *data)
 			    OSI_DMA_INTR_DISABLE);
 	raw_spin_unlock_irqrestore(&pdata->rlock, flags);
 
-	val = osi_core->xstats.tx_normal_irq_n[chan];
-	osi_core->xstats.tx_normal_irq_n[chan] =
+	val = pdata->xstats.tx_normal_irq_n[chan];
+	pdata->xstats.tx_normal_irq_n[chan] =
 		osi_update_stats_counter(val, 1U);
 
 	if (likely(napi_schedule_prep(&tx_napi->napi))) {
@@ -1325,7 +1324,6 @@ static irqreturn_t ether_rx_chan_isr(int irq, void *data)
 	struct ether_rx_napi *rx_napi = (struct ether_rx_napi *)data;
 	struct ether_priv_data *pdata = rx_napi->pdata;
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
-	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	unsigned int chan = rx_napi->chan;
 	unsigned long val, flags;
 
@@ -1335,8 +1333,8 @@ static irqreturn_t ether_rx_chan_isr(int irq, void *data)
 			    OSI_DMA_INTR_DISABLE);
 	raw_spin_unlock_irqrestore(&pdata->rlock, flags);
 
-	val = osi_core->xstats.rx_normal_irq_n[chan];
-	osi_core->xstats.rx_normal_irq_n[chan] =
+	val = pdata->xstats.rx_normal_irq_n[chan];
+	pdata->xstats.rx_normal_irq_n[chan] =
 		osi_update_stats_counter(val, 1U);
 
 	if (likely(napi_schedule_prep(&rx_napi->napi))) {
@@ -2722,7 +2720,7 @@ err_get_sync:
  *
  * Algorithm: This routine clears the following sw stats structures.
  * 1) struct osi_mmc_counters
- * 2) struct osi_xtra_stat_counters
+ * 2) struct ether_xtra_stat_counters
  * 3) struct osi_xtra_dma_stat_counters
  * 4) struct osi_pkt_err_stats
  *
@@ -2736,8 +2734,8 @@ static inline void ether_reset_stats(struct ether_priv_data *pdata)
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 
 	memset(&osi_core->mmc, 0U, sizeof(struct osi_mmc_counters));
-	memset(&osi_core->xstats, 0U,
-	       sizeof(struct osi_xtra_stat_counters));
+	memset(&pdata->xstats, 0U,
+	       sizeof(struct ether_xtra_stat_counters));
 	memset(&osi_dma->dstats, 0U,
 	       sizeof(struct osi_xtra_dma_stat_counters));
 	memset(&osi_dma->pkt_err_stats, 0U, sizeof(struct osi_pkt_err_stats));
@@ -4254,11 +4252,10 @@ static enum hrtimer_restart ether_tx_usecs_hrtimer(struct hrtimer *data)
 	struct ether_tx_napi *tx_napi = container_of(data, struct ether_tx_napi,
 						     tx_usecs_timer);
 	struct ether_priv_data *pdata = tx_napi->pdata;
-	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	unsigned long val;
 
-	val = osi_core->xstats.tx_usecs_swtimer_n[tx_napi->chan];
-	osi_core->xstats.tx_usecs_swtimer_n[tx_napi->chan] =
+	val = pdata->xstats.tx_usecs_swtimer_n[tx_napi->chan];
+	pdata->xstats.tx_usecs_swtimer_n[tx_napi->chan] =
 		osi_update_stats_counter(val, 1U);
 
 	atomic_set(&pdata->tx_napi[tx_napi->chan]->tx_usecs_timer_armed,
