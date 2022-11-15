@@ -227,9 +227,9 @@ nve32_t hw_config_fw_err_pkts(struct osi_core_priv_data *osi_core,
 	nveu32_t que_idx = (q_inx & 0xFU);
 	const nveu32_t rx_op_mode[2] = { EQOS_MTL_CHX_RX_OP_MODE(que_idx),
 					 MGBE_MTL_CHX_RX_OP_MODE(que_idx)};
+#ifndef OSI_STRIPPED_LIB
 	const nveu32_t max_q[2] = { OSI_EQOS_MAX_NUM_QUEUES,
 				    OSI_MGBE_MAX_NUM_QUEUES};
-
 	/* Check for valid enable_fw_err_pkts and que_idx values */
 	if (((enable_fw_err_pkts != OSI_ENABLE) &&
 	    (enable_fw_err_pkts != OSI_DISABLE)) ||
@@ -263,6 +263,21 @@ nve32_t hw_config_fw_err_pkts(struct osi_core_priv_data *osi_core,
 		    rx_op_mode[osi_core->mac]));
 fail:
 	return ret;
+#else
+	/* using void to skip the misra error of unused variable */
+	(void)enable_fw_err_pkts;
+	/* Read MTL RXQ Operation_Mode Register */
+	val = osi_readla(osi_core, ((nveu8_t *)osi_core->base +
+			 rx_op_mode[osi_core->mac]));
+	val |= MTL_RXQ_OP_MODE_FEP;
+	/* Write to FEP bit of MTL RXQ Operation Mode Register to enable or
+	 * disable the forwarding of error packets to DMA or application.
+	 */
+	osi_writela(osi_core, val, ((nveu8_t *)osi_core->base +
+		    rx_op_mode[osi_core->mac]));
+
+	return ret;
+#endif /* !OSI_STRIPPED_LIB */
 }
 
 nve32_t hw_config_rxcsum_offload(struct osi_core_priv_data *const osi_core,

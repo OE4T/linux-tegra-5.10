@@ -26,6 +26,8 @@
 #include "../osi/common/common.h"
 #include "vlan_filter.h"
 #include "core_common.h"
+#include "eqos_core.h"
+#include "mgbe_core.h"
 #include "frp.h"
 #ifdef OSI_DEBUG
 #include "debug.h"
@@ -285,29 +287,6 @@ static inline void init_vlan_filters(struct osi_core_priv_data *const osi_core)
 }
 #endif
 
-static nve32_t osi_hal_hw_core_init(struct osi_core_priv_data *const osi_core)
-{
-	struct core_local *l_core = (struct core_local *)(void *)osi_core;
-	nve32_t ret;
-
-#ifndef OSI_STRIPPED_LIB
-	init_vlan_filters(osi_core);
-
-	/* Init FRP */
-	init_frp(osi_core);
-#endif /* !OSI_STRIPPED_LIB */
-
-	ret = l_core->ops_p->core_init(osi_core);
-	if (ret < 0) {
-		return ret;
-	}
-
-	l_core->lane_status = OSI_ENABLE;
-	l_core->hw_init_successful = OSI_ENABLE;
-
-	return ret;
-}
-
 /**
  * @brief osi_hal_hw_core_deinit - HW API for MAC deinitialization.
  *
@@ -510,6 +489,94 @@ static nve32_t osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
 	}
 #endif /* !OSI_STRIPPED_LIB */
 
+	return ret;
+}
+
+static nve32_t osi_get_mac_version(struct osi_core_priv_data *const osi_core, nveu32_t *mac_ver)
+{
+	struct core_local *l_core = (struct core_local *)(void *)osi_core;
+	nve32_t ret = 0;
+
+	*mac_ver = osi_readla(osi_core, ((nveu8_t *)osi_core->base + (nve32_t)MAC_VERSION)) &
+			      MAC_VERSION_SNVER_MASK;
+
+	if (validate_mac_ver_update_chans(*mac_ver, &l_core->num_max_chans,
+					  &l_core->l_mac_ver) == 0) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "Invalid MAC version\n", (nveu64_t)*mac_ver)
+		ret = -1;
+	}
+
+	return ret;
+}
+
+static nve32_t osi_hal_hw_core_init(struct osi_core_priv_data *const osi_core)
+{
+	struct core_local *l_core = (struct core_local *)(void *)osi_core;
+	const nveu32_t ptp_ref_clk_rate[3] = {EQOS_X_PTP_CLK_SPEED, EQOS_PTP_CLK_SPEED,
+					      MGBE_PTP_CLK_SPEED};
+	nve32_t ret;
+
+	ret = osi_get_mac_version(osi_core, &osi_core->mac_ver);
+	if (ret < 0) {
+		goto fail;
+	}
+
+	/* Bring MAC out of reset */
+	ret = hw_poll_for_swr(osi_core);
+	if (ret < 0) {
+		goto fail;
+	}
+
+#ifndef OSI_STRIPPED_LIB
+	init_vlan_filters(osi_core);
+
+	/* Init FRP */
+	init_frp(osi_core);
+#endif /* !OSI_STRIPPED_LIB */
+
+	ret = l_core->ops_p->core_init(osi_core);
+	if (ret < 0) {
+		goto fail;
+	}
+
+	/* By default set MAC to Full duplex mode.
+	 * Since this is a local function it will always return sucess,
+	 * so no need to check for return value
+	 */
+	(void)hw_set_mode(osi_core, OSI_FULL_DUPLEX);
+
+	/* By default enable rxcsum */
+	ret = hw_config_rxcsum_offload(osi_core, OSI_ENABLE);
+	if (ret == 0) {
+		l_core->cfg.rxcsum = OSI_ENABLE;
+		l_core->cfg.flags |= DYNAMIC_CFG_RXCSUM;
+	}
+
+	/* Set default PTP settings */
+	osi_core->ptp_config.ptp_rx_queue = 3U;
+	osi_core->ptp_config.ptp_ref_clk_rate = ptp_ref_clk_rate[l_core->l_mac_ver];
+	osi_core->ptp_config.ptp_filter = OSI_MAC_TCR_TSENA | OSI_MAC_TCR_TSCFUPDT |
+					  OSI_MAC_TCR_TSCTRLSSR | OSI_MAC_TCR_TSVER2ENA |
+					  OSI_MAC_TCR_TSIPENA | OSI_MAC_TCR_TSIPV6ENA |
+					  OSI_MAC_TCR_TSIPV4ENA | OSI_MAC_TCR_SNAPTYPSEL_1;
+	osi_core->ptp_config.sec = 0;
+	osi_core->ptp_config.nsec = 0;
+	osi_core->ptp_config.one_nsec_accuracy = OSI_ENABLE;
+	ret = osi_ptp_configuration(osi_core, OSI_ENABLE);
+	if (ret < 0) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "Fail to configure PTP\n", 0ULL);
+		goto fail;
+	}
+
+	/* Start the MAC */
+	hw_start_mac(osi_core);
+
+	l_core->lane_status = OSI_ENABLE;
+	l_core->hw_init_successful = OSI_ENABLE;
+
+fail:
 	return ret;
 }
 
@@ -945,22 +1012,7 @@ static nve32_t osi_adjust_time(struct osi_core_priv_data *const osi_core,
 					     osi_core->ptp_config.one_nsec_accuracy);
 }
 
-static nve32_t osi_get_mac_version(struct osi_core_priv_data *const osi_core, nveu32_t *mac_ver)
-{
-	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 
-	*mac_ver = osi_readla(osi_core, ((nveu8_t *)osi_core->base + (nve32_t)MAC_VERSION)) &
-			      MAC_VERSION_SNVER_MASK;
-
-	if (validate_mac_ver_update_chans(*mac_ver, &l_core->num_max_chans,
-					  &l_core->l_mac_ver) == 0) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			     "Invalid MAC version\n", (nveu64_t)*mac_ver)
-		return -1;
-	}
-
-	return 0;
-}
 
 #ifndef OSI_STRIPPED_LIB
 /**
@@ -2111,21 +2163,6 @@ static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		}
 
 		break;
-#endif /* !OSI_STRIPPED_LIB */
-	case OSI_CMD_GET_AVB:
-		ret = ops_p->get_avb_algorithm(osi_core, &data->avb);
-		break;
-
-	case OSI_CMD_SET_AVB:
-		ret = ops_p->set_avb_algorithm(osi_core, &data->avb);
-		if (ret == 0) {
-			(void)osi_memcpy(&l_core->cfg.avb[data->avb.qindex].avb_info,
-					 &data->avb, sizeof(struct osi_core_avb_algorithm));
-			l_core->cfg.avb[data->avb.qindex].used = OSI_ENABLE;
-			l_core->cfg.flags |= DYNAMIC_CFG_AVB;
-		}
-		break;
-
 	case OSI_CMD_CONFIG_FW_ERR:
 		ret = hw_config_fw_err_pkts(osi_core, data->arg1_u32, data->arg2_u32);
 		break;
@@ -2143,6 +2180,28 @@ static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		hw_stop_mac(osi_core);
 		ret = 0;
 		break;
+	case OSI_CMD_GET_MAC_VER:
+		ret = osi_get_mac_version(osi_core, &data->arg1_u32);
+		break;
+
+	case OSI_CMD_SET_MODE:
+		ret = hw_set_mode(osi_core, data->arg6_32);
+		break;
+#endif /* !OSI_STRIPPED_LIB */
+
+	case OSI_CMD_GET_AVB:
+		ret = ops_p->get_avb_algorithm(osi_core, &data->avb);
+		break;
+
+	case OSI_CMD_SET_AVB:
+		ret = ops_p->set_avb_algorithm(osi_core, &data->avb);
+		if (ret == 0) {
+			(void)osi_memcpy(&l_core->cfg.avb[data->avb.qindex].avb_info,
+					 &data->avb, sizeof(struct osi_core_avb_algorithm));
+			l_core->cfg.avb[data->avb.qindex].used = OSI_ENABLE;
+			l_core->cfg.flags |= DYNAMIC_CFG_AVB;
+		}
+		break;
 
 	case OSI_CMD_COMMON_ISR:
 		ops_p->handle_common_intr(osi_core);
@@ -2156,14 +2215,6 @@ static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 	case OSI_CMD_READ_MMC:
 		ops_p->read_mmc(osi_core);
 		ret = 0;
-		break;
-
-	case OSI_CMD_GET_MAC_VER:
-		ret = osi_get_mac_version(osi_core, &data->arg1_u32);
-		break;
-
-	case OSI_CMD_SET_MODE:
-		ret = hw_set_mode(osi_core, data->arg6_32);
 		break;
 
 	case OSI_CMD_SET_SPEED:

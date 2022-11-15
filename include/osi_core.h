@@ -76,6 +76,11 @@ typedef my_lint_64		nvel64_t;
 #define OSI_CMD_CONFIG_PTP_OFFLOAD	34U
 #define OSI_CMD_PTP_RXQ_ROUTE		35U
 #define OSI_CMD_CONFIG_RSS		37U
+#define OSI_CMD_CONFIG_FW_ERR		29U
+#define OSI_CMD_START_MAC		5U
+#define OSI_CMD_SET_MODE		16U
+#define OSI_CMD_POLL_FOR_MAC_RST	4U
+#define OSI_CMD_GET_MAC_VER		10U
 
 /**
  * @addtogroup PTP-offload PTP offload defines
@@ -228,14 +233,10 @@ typedef my_lint_64		nvel64_t;
  * @{
  */
 #define OSI_CMD_L3L4_FILTER		3U
-#define OSI_CMD_POLL_FOR_MAC_RST	4U
-#define OSI_CMD_START_MAC		5U
 #define OSI_CMD_STOP_MAC		6U
 #define OSI_CMD_COMMON_ISR		7U
 #define OSI_CMD_PAD_CALIBRATION		8U
 #define OSI_CMD_READ_MMC		9U
-#define OSI_CMD_GET_MAC_VER		10U
-#define OSI_CMD_SET_MODE		16U
 #define OSI_CMD_SET_SPEED		17U
 #define OSI_CMD_L2_FILTER		18U
 #define OSI_CMD_RXCSUM_OFFLOAD		19U
@@ -245,7 +246,6 @@ typedef my_lint_64		nvel64_t;
 #define OSI_CMD_GET_AVB			23U
 #define OSI_CMD_SET_AVB			24U
 #define OSI_CMD_GET_HW_FEAT		28U
-#define OSI_CMD_CONFIG_FW_ERR		29U
 #define OSI_CMD_SET_SYSTOHW_TIME	33U
 #define OSI_CMD_CONFIG_FRP		36U
 #define OSI_CMD_CONFIG_EST		38U

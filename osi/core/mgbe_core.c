@@ -2610,6 +2610,14 @@ static nve32_t mgbe_core_init(struct osi_core_priv_data *const osi_core)
 		if (ret < 0) {
 			return ret;
 		}
+		/* Enable by default to configure forward error packets.
+		 * Since this is a local function this will always return sucess,
+		 * so no need to check for return value
+		 */
+		ret = hw_config_fw_err_pkts(osi_core, osi_core->mtl_queues[qinx], OSI_ENABLE);
+		if (ret < 0) {
+			return ret;
+		}
 	}
 
 	/* configure MGBE MAC HW */

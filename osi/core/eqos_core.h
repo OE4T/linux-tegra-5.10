@@ -296,6 +296,8 @@
 #define EQOS_DMA_BMR			0x1000
 #define EQOS_DMA_SBUS			0x1004
 #define EQOS_DMA_ISR			0x1008
+#define EQOS_PTP_CLK_SPEED		208333334U
+#define EQOS_X_PTP_CLK_SPEED		312500000U
 /** @} */
 
 /**
