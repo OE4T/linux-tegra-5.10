@@ -36,6 +36,7 @@
 #define MAX_RADIAL_COEFFICIENTS         6
 #define MAX_TANGENTIAL_COEFFICIENTS     2
 #define MAX_FISHEYE_COEFFICIENTS        6
+#define CAMERA_MAX_SN_LENGTH 32
 
 extern int max96712_write_reg_Dser(int slaveAddr,int channel,
 		u16 addr, u8 val);
@@ -142,6 +143,12 @@ typedef struct
 	float gravity_acceleration[3];
 	// Extrinsic structure for IMU device
 	camera_extrinsics extr;
+	// Noise model parameters
+	float update_rate;
+	float linear_acceleration_noise_density;
+	float linear_acceleration_random_walk;
+	float angular_velocity_noise_density;
+	float angular_velocity_random_walk;
 } imu_params;
 
 typedef struct
@@ -153,10 +160,13 @@ typedef struct
 	camera_extrinsics cam_extr;
 
 	// Flag for IMU availability
-	u32 imu_present;
+	u8 imu_present;
 
 	// Intrinsic structure for IMU
 	imu_params imu;
+
+	// HAWK module serial number
+	u8 serial_number[CAMERA_MAX_SN_LENGTH];
 } NvCamSyncSensorCalibData;
 
 typedef struct
@@ -182,11 +192,14 @@ typedef struct
 	/**
 	 * Flag for IMU 0-absent, 1-present
 	 */
-	u32 imu_present;
+	u8 imu_present;
 	/**
 	 * Intrinsic structure for IMU
 	 */
 	imu_params imu;
+
+	// HAWK module serial number
+	u8 serial_number[CAMERA_MAX_SN_LENGTH];
 } LiEeprom_Content_Struct;
 
 struct ar0234 {
@@ -614,6 +627,8 @@ static int ar0234_fill_eeprom(struct tegracam_device *tc_dev,
 			priv->EepromCalib.cam_extr = tmp.cam_extr;
 			priv->EepromCalib.imu_present = tmp.imu_present;
 			priv->EepromCalib.imu = tmp.imu;
+			memcpy(priv->EepromCalib.serial_number, tmp.serial_number,
+				CAMERA_MAX_SN_LENGTH);
 
 			memcpy(ctrl->p_new.p, (u8 *)&(priv->EepromCalib), sizeof(NvCamSyncSensorCalibData));
 			break;
