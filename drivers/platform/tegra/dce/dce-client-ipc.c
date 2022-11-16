@@ -312,7 +312,7 @@ static void dce_client_process_event_ipc(struct tegra_dce *d,
 	}
 	msg_length = DCE_CLIENT_MAX_IPC_MSG_SIZE;
 
-	do {
+	while (dce_ipc_is_data_available(d, cl->int_type)) {
 		ret = dce_ipc_read_message(d, cl->int_type, msg_data, msg_length);
 		if (ret) {
 			dce_info(d, "Error in reading DCE msg for ch_type [%d]",
@@ -321,7 +321,7 @@ static void dce_client_process_event_ipc(struct tegra_dce *d,
 		}
 
 		cl->callback_fn(cl->handle, cl->type, msg_length, msg_data, cl->data);
-	} while (dce_ipc_is_data_available(d, cl->int_type));
+	}
 
 done:
 	if (msg_data)
