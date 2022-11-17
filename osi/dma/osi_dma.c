@@ -259,6 +259,7 @@ static nve32_t validate_func_ptrs(struct osi_dma_priv_data *osi_dma,
 		    "DMA: Undefined architecture\n", 0ULL);
 	return -1;
 #endif
+	(void) osi_dma;
 
 	for (i = 0; i < (sizeof(*ops_p) / (nveu64_t)__SIZEOF_POINTER__); i++) {
 		if (*l_ops == 0U) {

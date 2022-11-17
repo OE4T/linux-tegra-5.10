@@ -98,6 +98,7 @@ static nve32_t validate_func_ptrs(struct osi_core_priv_data *const osi_core,
 	ret = -1;
 	goto fail;
 #endif
+	(void) osi_core;
 
 	for (i = 0; i < (sizeof(*ops_p) / (nveu64_t)__SIZEOF_POINTER__); i++) {
 		if (*l_ops == 0U) {

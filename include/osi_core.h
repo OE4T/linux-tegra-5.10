@@ -275,6 +275,7 @@ typedef my_lint_64		nvel64_t;
 #define OSI_CMD_READ_STATS		56U
 /** @} */
 
+#ifdef LOG_OSI
 /**
  * @brief OSI error macro definition,
  * @param[in] priv: OSD private data OR NULL
@@ -300,6 +301,10 @@ typedef my_lint_64		nvel64_t;
 	osi_core->osd_ops.ops_log(priv, __func__, __LINE__,		\
 				  OSI_LOG_INFO, type, err, loga);	\
 }
+#else
+#define OSI_CORE_ERR(priv, type, err, loga)
+#define OSI_CORE_INFO(priv, type, err, loga)
+#endif
 
 #define VLAN_NUM_VID		4096U
 #define OSI_DELAY_1000US	1000U

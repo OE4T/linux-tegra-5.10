@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2022, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2023, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -930,6 +930,7 @@ static inline nve32_t validate_ctx(const struct osi_dma_priv_data *const osi_dma
 {
 	nve32_t ret = 0;
 
+	(void) osi_dma;
 	if ((tx_pkt_cx->flags & OSI_PKT_CX_TSO) == OSI_PKT_CX_TSO) {
 		if (osi_unlikely((tx_pkt_cx->tcp_udp_hdrlen /
 				  OSI_TSO_HDR_LEN_DIVISOR) > TDES3_THL_MASK)) {

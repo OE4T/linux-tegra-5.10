@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2022, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2023, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -57,6 +57,7 @@ static nve32_t validate_if_func_ptrs(struct osi_core_priv_data *const osi_core,
 	ret = -1;
 	goto fail;
 #endif
+	(void) osi_core;
 
 	for (i = 0; i < (sizeof(*if_ops_p) / (nveu64_t)__SIZEOF_POINTER__);
 	     i++) {

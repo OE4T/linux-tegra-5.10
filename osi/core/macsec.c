@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2021-2023, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,13 +26,13 @@
 #include "../osi/common/common.h"
 #include "core_local.h"
 
-#if defined(DEBUG_MACSEC) && defined(QNX_OS)
+#if 0 /* Qnx */
 #define MACSEC_LOG(...) \
 	{ \
 		slogf(0, 6, ##__VA_ARGS__); \
 	}
 
-#elif defined(DEBUG_MACSEC) && defined(LINUX_OS)
+#elif 0 /* Linux */
 #include <linux/printk.h>
 #define MACSEC_LOG(...) \
 	{ \
@@ -484,6 +484,7 @@ static nve32_t validate_inputs_macsec_dbg_buf_conf(
 {
 	nve32_t ret = 0;
 
+	(void) osi_core;
 	/* Validate inputs */
 	if ((dbg_buf_config->rw > OSI_RW_MAX) ||
 		(dbg_buf_config->ctlr_sel > OSI_CTLR_SEL_MAX)) {
@@ -3183,6 +3184,7 @@ static inline void handle_tx_sc_invalid_key(
 static inline void handle_safety_err_irq(
 				const struct osi_core_priv_data *const osi_core)
 {
+	(void) osi_core;
 	OSI_CORE_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
 		      "Safety Error Handler \n", 0ULL);
 	MACSEC_LOG("%s()\n", __func__);
@@ -4877,6 +4879,7 @@ exit:
 static void print_error(const struct osi_core_priv_data *const osi_core,
 			   nve32_t ret)
 {
+	(void) osi_core;
 	if (ret < 0) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			     "Failed to config macsec\n", (nveul64_t)ret);

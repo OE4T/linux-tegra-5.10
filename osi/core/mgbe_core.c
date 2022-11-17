@@ -215,6 +215,7 @@ static nve32_t mgbe_filter_args_validate(struct osi_core_priv_data *const osi_co
 	nveu32_t dma_chansel = filter->dma_chansel;
 	nve32_t ret = 0;
 
+	(void) osi_core;
 	/* check for valid index (0 to 31) */
 	if (idx >= OSI_MGBE_MAX_MAC_ADDRESS_FILTER) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,

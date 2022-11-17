@@ -4106,6 +4106,7 @@ static nve32_t eqos_post_pad_calibrate(
  */
 static nve32_t eqos_config_rss(struct osi_core_priv_data *osi_core)
 {
+	(void) osi_core;
 	OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 		     "RSS not supported by EQOS\n", 0ULL);
 

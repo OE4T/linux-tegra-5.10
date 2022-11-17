@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2022, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2023, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -66,6 +66,7 @@
 #define OSI_VM_IRQ_RX_CHAN_MASK(x)	OSI_BIT(((x) * 2U) + 1U)
 /** @} */
 
+#ifdef LOG_OSI
 /**
  * OSI error macro definition,
  * @param[in] priv: OSD private data OR NULL
@@ -93,6 +94,10 @@
 				 OSI_LOG_INFO, type, err, loga);\
 }
 #endif /* !OSI_STRIPPED_LIB */
+#else
+#define OSI_DMA_ERR(priv, type, err, loga)
+#endif /* LOG_OSI */
+
 /**
  * @addtogroup EQOS-PKT Packet context fields
  *
