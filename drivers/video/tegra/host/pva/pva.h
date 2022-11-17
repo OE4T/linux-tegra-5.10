@@ -303,25 +303,18 @@ struct pva_vpu_dbg_block {
 /**
  * @brief		VPU utilization information
  *
- * vpu_stats_accum	long term accumulator of VPU active time.
- * current_stamp	time stamp of last task completed
- * last_start		time stamp of start of last task completed
  * start_stamp		time stamp when measurment started
  * end_stamp		time stamp when measurment is to end
  * vpu_stats		avaraged vpu utilization stats
- * flags		undefined use at this time
- * util_info_mutex	mutex for protecting stats data structure
+ * stats_fw_buffer_iova
+ * stats_fw_buffer_va
  */
 struct pva_vpu_util_info {
-	u64 vpu_stats_accum[2];
-	u64 current_stamp[2];
-	u64 last_start[2];
-	u64 start_stamp;
-	u64 end_stamp;
-	u32 vpu_stats[2];
-	u32 flags;
-	struct mutex util_info_mutex;
-	struct semaphore util_info_sema;
+	u64			start_stamp;
+	u64			end_stamp;
+	u64			vpu_stats[2];
+	dma_addr_t		stats_fw_buffer_iova;
+	struct pva_vpu_stats_s	*stats_fw_buffer_va;
 };
 
 struct scatterlist;
@@ -430,7 +423,6 @@ struct pva {
 	bool vpu_debug_enabled;
 	bool stats_enabled;
 	struct pva_vpu_util_info vpu_util_info;
-	struct pva_vpu_util_info vpu_util_info_cp;
 	u32 profiling_level;
 
 	struct work_struct pva_abort_handler_work;
@@ -470,6 +462,15 @@ void pva_trace_copy_to_ftrace(struct pva *pva);
  *
  */
 int pva_register_isr(struct platform_device *dev);
+
+/**
+ * @brief	deInitiallze pva debug utils
+ *
+ * @param pva	Pointer to PVA device
+ * @return	none
+ *
+ */
+void pva_debugfs_deinit(struct pva *pva);
 
 /**
  * @brief	Initiallze pva debug utils

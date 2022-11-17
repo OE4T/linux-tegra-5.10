@@ -998,37 +998,6 @@ static void update_one_task(struct pva *pva)
 
 	vpu_assigned = (stats->vpu_assigned & 0x1);
 	vpu_time = (stats->vpu_complete_time - stats->vpu_start_time);
-	mutex_lock(&pva->vpu_util_info.util_info_mutex);
-
-	/* update stats for assigned VPU */
-	pva->vpu_util_info.vpu_stats_accum[vpu_assigned] += vpu_time;
-	pva->vpu_util_info.current_stamp[vpu_assigned] = stats->vpu_complete_time;
-	pva->vpu_util_info.last_start[vpu_assigned] = stats->vpu_start_time;
-
-	/* check if need to wake up stats thread */
-	if (pva->vpu_util_info.flags & (1U << vpu_assigned)) {
-		if ((stats->vpu_complete_time >= pva->vpu_util_info.end_stamp)
-		|| (stats->vpu_start_time >=  pva->vpu_util_info.end_stamp)) {
-			pva->vpu_util_info.flags ^= (1U << vpu_assigned);
-
-			/* take a snap shot of counters */
-			pva->vpu_util_info_cp.vpu_stats_accum[vpu_assigned] =
-			    pva->vpu_util_info.vpu_stats_accum[vpu_assigned];
-			pva->vpu_util_info_cp.current_stamp[vpu_assigned] =
-			    pva->vpu_util_info.current_stamp[vpu_assigned];
-			pva->vpu_util_info_cp.last_start[vpu_assigned] =
-			    pva->vpu_util_info.last_start[vpu_assigned];
-
-			/* reset counter */
-			pva->vpu_util_info.vpu_stats_accum[stats->vpu_assigned] = 0;
-		}
-
-		if ((pva->vpu_util_info.flags & 0x3) == 0)
-			up(&pva->vpu_util_info.util_info_sema);
-	}
-
-	mutex_unlock(&pva->vpu_util_info.util_info_mutex);
-
 	r5_overhead = ((stats->complete_time - stats->queued_time) - vpu_time);
 	r5_overhead = r5_overhead / tsc_ticks_to_us;
 

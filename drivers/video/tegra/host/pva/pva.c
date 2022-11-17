@@ -1084,8 +1084,6 @@ static int pva_probe(struct platform_device *pdev)
 	pva->profiling_level = 0;
 	pva->stats_enabled = false;
 	memset(&pva->vpu_util_info, 0, sizeof(pva->vpu_util_info));
-	mutex_init(&pva->vpu_util_info.util_info_mutex);
-	sema_init(&pva->vpu_util_info.util_info_sema, 0);
 	pva->syncpts.syncpts_mapped_r = false;
 	pva->syncpts.syncpts_mapped_rw = false;
 
@@ -1239,6 +1237,9 @@ static int __exit pva_remove(struct platform_device *pdev)
 	tegra_soc_hwpm_ip_unregister(&pva->hwpm_ip_ops);
 #endif
 
+#ifdef CONFIG_DEBUG_FS
+	pva_debugfs_deinit(pva);
+#endif
 	pva_auth_allow_list_destroy(&pva->pva_auth_sys);
 	pva_auth_allow_list_destroy(&pva->pva_auth);
 	pva_free_task_status_buffer(pva);

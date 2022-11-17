@@ -164,15 +164,15 @@
  * interface.
  */
 typedef uint8_t pva_cmds_t;
-#define CMD_NOOP 0U
-#define CMD_GET_STATUS 1U
-#define CMD_SET_LOGGING 4U
-#define CMD_SUBMIT 8U
-#define CMD_FLUSH 11U
-#define CMD_SW_BIST 19U
-#define CMD_ABORT_QUEUE 20U
-#define CMD_SET_STATUS_BUFFER 21U
-#define CMD_NEXT 22U /* Must be last */
+#define CMD_NOOP		0U
+#define CMD_GET_STATUS		1U
+#define CMD_GET_VPU_STATS	2U
+#define CMD_SET_LOGGING		4U
+#define CMD_SUBMIT		8U
+#define CMD_FLUSH		11U
+#define CMD_SW_BIST		19U
+#define CMD_ABORT_QUEUE		20U
+#define CMD_NEXT		22U /* Must be last */
 
 /*
  * CMD_GET_STATUS subcommands
@@ -279,6 +279,21 @@ typedef uint8_t pva_status_cmds_t;
 struct pva_cmd_s {
 	uint32_t cmd_field[4];
 };
+
+struct pva_vpu_stats_s {
+	/**
+	 * @brief The accumulated VPU utilization time in the current window.
+	 */
+	uint64_t total_utilization_time[2];
+	/**
+	 * @brief The timestamp which signifies start of the current window.
+	 */
+	uint64_t window_start_time;
+	/**
+	 * @brief The timestamp of end of the current window.
+	 */
+	uint64_t window_end_time;
+} __packed;
 
 /*
  * CMD_NOOP command
@@ -460,20 +475,18 @@ static inline uint32_t pva_cmd_abort_task(struct pva_cmd_s *const cmd,
 }
 
 /*
- * CMD_SET_STATUS_BUFFER
+ * CMD_SET_VPU_STATS
  */
-static inline uint32_t pva_cmd_set_status_buffer(struct pva_cmd_s *const cmd,
-						 const uint64_t addr,
-						 const uint32_t size,
-						 const uint32_t flags)
+static inline uint32_t
+pva_cmd_get_vpu_stats(struct pva_cmd_s * const cmd,
+		      const uint64_t addr,
+		      const uint32_t flags)
 {
-	cmd->cmd_field[0] =
-		flags | PVA_SET_COMMAND(CMD_SET_STATUS_BUFFER) |
-		PVA_INSERT(PVA_EXTRACT64(addr, PVA_EXTRACT_ADDR_HIGHER_8BITS_MSB,
-					PVA_EXTRACT_ADDR_HIGHER_8BITS_LSB, uint32_t),
-					PVA_ADDR_HIGHER_8BITS_MSB, PVA_ADDR_HIGHER_8BITS_LSB) |
-		PVA_INSERT(size, PVA_CMD_STATUS_BUFFER_LENGTH_MSB,
-		PVA_CMD_STATUS_BUFFER_LENGTH_LSB);
+	cmd->cmd_field[0] = flags
+		       | PVA_SET_COMMAND(CMD_GET_VPU_STATS)
+		       | PVA_INSERT(PVA_EXTRACT64(addr, PVA_EXTRACT_ADDR_HIGHER_8BITS_MSB,
+				    PVA_EXTRACT_ADDR_HIGHER_8BITS_LSB, uint32_t),
+				    PVA_ADDR_HIGHER_8BITS_MSB, PVA_ADDR_HIGHER_8BITS_LSB);
 	cmd->cmd_field[1] = PVA_LOW32(addr);
 
 	return 2U;

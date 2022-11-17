@@ -23,6 +23,9 @@
 #include <linux/interrupt.h>
 #include <linux/nvhost.h>
 #include <linux/uaccess.h>
+#include <linux/dma-mapping.h>
+#include <linux/types.h>
+#include <linux/slab.h>
 #include "pva.h"
 #include <uapi/linux/nvpva_ioctl.h>
 #include "pva_vpu_ocd.h"
@@ -150,95 +153,69 @@ static int set_log_level(void *data, u64 val)
 
 DEFINE_DEBUGFS_ATTRIBUTE(log_level_fops, get_log_level, set_log_level, "%llu");
 
-static void
-calculate_adjustment(struct pva *pva,
-		     struct pva_vpu_util_info *util_info,
-		     struct pva_vpu_util_info *vpu_util_info,
-		     u32 idx)
-{
-	u64 adjustment = 0;
-
-	if (vpu_util_info->flags & (1 << idx)) {
-		vpu_util_info->vpu_stats_accum[idx] = 0;
-	} else {
-		util_info->vpu_stats_accum[idx] =
-			pva->vpu_util_info_cp.vpu_stats_accum[idx];
-		util_info->current_stamp[idx] =
-			pva->vpu_util_info_cp.current_stamp[idx];
-		util_info->last_start[idx] =
-			pva->vpu_util_info_cp.last_start[idx];
-	}
-
-	if (util_info->last_start[idx] >= util_info->end_stamp)
-		adjustment = (util_info->current_stamp[idx] -
-				 util_info->last_start[idx]);
-	else if (util_info->current_stamp[idx] > util_info->end_stamp)
-		adjustment = (util_info->current_stamp[idx] - util_info->end_stamp);
-
-	if (U64_MAX - vpu_util_info->vpu_stats_accum[idx] > adjustment)
-		vpu_util_info->vpu_stats_accum[idx] += adjustment;
-
-	if (util_info->vpu_stats_accum[idx] > adjustment)
-		util_info->vpu_stats_accum[idx] -= adjustment;
-	else
-		util_info->vpu_stats_accum[idx] = 0;
-}
-
 static void update_vpu_stats(struct pva *pva)
 {
-	struct pva_vpu_util_info util_info;
-	struct pva_vpu_util_info *vpu_util_info = &pva->vpu_util_info;
-	u64 duration = 0;
+	u32 flags = PVA_CMD_INT_ON_ERR | PVA_CMD_INT_ON_COMPLETE;
+	struct pva_cmd_status_regs status = {};
+	struct pva_cmd_s cmd = {};
 	int err = 0;
+	u32 nregs;
+	u64 duration = 0;
+	struct pva_vpu_stats_s *stats_buf =
+		pva->vpu_util_info.stats_fw_buffer_va;
+	u64 *vpu_stats = pva->vpu_util_info.vpu_stats;
 
-	unsigned long timeout_jiffies = usecs_to_jiffies(50000U);
+	if (vpu_stats == 0)
+		goto err_out;
 
-	/* wait for next task to finish */
-	sema_init(&vpu_util_info->util_info_sema, 0);
-	vpu_util_info->flags = 0x3;
-	err = down_timeout(&vpu_util_info->util_info_sema,
-			   timeout_jiffies);
-	mutex_lock(&vpu_util_info->util_info_mutex);
-
-	/* make copy of stats */
-	util_info = *vpu_util_info;
-
-	/* calcualte adjustmetns */
-	calculate_adjustment(pva, &util_info, vpu_util_info, 0);
-	calculate_adjustment(pva, &util_info, vpu_util_info, 1);
-
-	/* clear flags */
-	vpu_util_info->flags = 0;
-
-	/* advance starting time stamp */
-	vpu_util_info->start_stamp = vpu_util_info->end_stamp;
-	mutex_unlock(&vpu_util_info->util_info_mutex);
-
-	duration = util_info.end_stamp - util_info.start_stamp;
-
-	if (duration > 0) {
-		vpu_util_info->vpu_stats[0] =
-		    (u32)((10000ULL * util_info.vpu_stats_accum[0]) / duration);
-		vpu_util_info->vpu_stats[1] =
-		    (u32)((10000ULL * util_info.vpu_stats_accum[1]) / duration);
-	} else {
-		vpu_util_info->vpu_stats[0] = 0;
-		vpu_util_info->vpu_stats[1] = 0;
+	err = nvhost_module_busy(pva->pdev);
+	if (err < 0) {
+		dev_err(&pva->pdev->dev, "error in powering up pva %d",
+			err);
+		vpu_stats[0] = 0;
+		vpu_stats[1] = 0;
+		return;
 	}
+
+	nregs = pva_cmd_get_vpu_stats(&cmd,
+				      pva->vpu_util_info.stats_fw_buffer_iova,
+				      flags);
+	err = pva_mailbox_send_cmd_sync(pva, &cmd, nregs, &status);
+	if (err < 0) {
+		nvpva_warn(&pva->pdev->dev, "get vpu stats cmd failed: %d\n",
+			    err);
+		goto err_out;
+	}
+
+	duration = stats_buf->window_end_time - stats_buf->window_start_time;
+	if (duration == 0)
+		goto err_out;
+
+	vpu_stats[0] =
+		(10000ULL * stats_buf->total_utilization_time[0]) / duration;
+	vpu_stats[1] =
+		(10000ULL * stats_buf->total_utilization_time[1]) / duration;
+	pva->vpu_util_info.start_stamp = stats_buf->window_start_time;
+	pva->vpu_util_info.end_stamp = stats_buf->window_end_time;
+	goto out;
+err_out:
+	vpu_stats[0] = 0;
+	vpu_stats[1] = 0;
+out:
+	nvhost_module_idle(pva->pdev);
 }
 
 static int print_vpu_stats(struct seq_file *s, void *data)
 {
 	struct pva *pva = s->private;
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
-	pva->vpu_util_info.end_stamp = arch_timer_read_counter();
-#else
-	pva->vpu_util_info.end_stamp = arch_counter_get_cntvct();
-#endif
+
 	update_vpu_stats(pva);
-	seq_printf(s, "%d\n%d\n",
+	seq_printf(s, "%llu\n%llu\n%llu\n%llu\n",
+		   pva->vpu_util_info.start_stamp,
+		   pva->vpu_util_info.end_stamp,
 		   pva->vpu_util_info.vpu_stats[0],
 		   pva->vpu_util_info.vpu_stats[1]);
+
 	return 0;
 }
 
@@ -318,6 +295,20 @@ static const struct file_operations pva_vpu_ocd_fops = {
 	.unlocked_ioctl = vpu_ocd_ioctl
 };
 
+void pva_debugfs_deinit(struct pva *pva)
+{
+
+	if (pva->vpu_util_info.stats_fw_buffer_va == 0)
+		return;
+
+	dma_free_coherent(&pva->pdev->dev,
+			  sizeof(struct pva_vpu_stats_s),
+			  pva->vpu_util_info.stats_fw_buffer_va,
+			  pva->vpu_util_info.stats_fw_buffer_iova);
+	pva->vpu_util_info.stats_fw_buffer_va = 0;
+	pva->vpu_util_info.stats_fw_buffer_iova = 0;
+}
+
 void pva_debugfs_init(struct platform_device *pdev)
 {
 	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
@@ -360,6 +351,18 @@ void pva_debugfs_init(struct platform_device *pdev)
 	debugfs_create_u32("profiling_level", 0644, de, &pva->profiling_level);
 	debugfs_create_bool("stats_enabled", 0644, de, &pva->stats_enabled);
 	debugfs_create_file("vpu_stats", 0644, de, pva, &pva_stats_fops);
+
+	pva->vpu_util_info.stats_fw_buffer_va =
+					dma_alloc_coherent(&pva->pdev->dev,
+					sizeof(struct pva_vpu_stats_s),
+					&pva->vpu_util_info.stats_fw_buffer_iova,
+					GFP_KERNEL);
+	if (IS_ERR_OR_NULL(pva->vpu_util_info.stats_fw_buffer_va)) {
+		err = PTR_ERR(pva->vpu_util_info.stats_fw_buffer_va);
+		dev_err(&pva->pdev->dev, "failed to allocate stats buffer\n");
+		pva->vpu_util_info.stats_fw_buffer_va = 0;
+		pva->vpu_util_info.stats_fw_buffer_iova = 0;
+	}
 
 	err = pva_vpu_ocd_init(pva);
 	if (err == 0) {
