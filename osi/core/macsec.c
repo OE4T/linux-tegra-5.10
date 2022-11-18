@@ -26,21 +26,7 @@
 #include "../osi/common/common.h"
 #include "core_local.h"
 
-#if defined(DEBUG_MACSEC) && defined(QNX_OS)
-#define LOG(...) \
-	{ \
-		slogf(0, 6, ##__VA_ARGS__); \
-	}
-
-#elif defined(DEBUG_MACSEC) && defined(LINUX_OS)
-#include <linux/printk.h>
-#define LOG(...) \
-	{ \
-		pr_debug(__VA_ARGS__); \
-	}
-#else
 #define LOG(...)
-#endif
 
 #ifdef DEBUG_MACSEC
 /**

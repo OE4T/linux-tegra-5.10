@@ -116,7 +116,7 @@
 #define OSI_SA_LUT_MAX_INDEX	OSI_TABLE_INDEX_MAX
 /** @} */
 
-#ifndef OSI_STRIPPED_LIB
+#ifdef DEBUG_MACSEC
 /**
  * @addtogroup Debug buffer table CONFIG register helpers macros
  *
@@ -141,7 +141,7 @@
 #define OSI_RX_DBG_ICV_ERROR_EVT	OSI_BIT(10)
 #define OSI_RX_DBG_CAPTURE_EVT		OSI_BIT(11)
 /** @} */
-#endif /* !OSI_STRIPPED_LIB */
+#endif /* DEBUG_MACSEC*/
 
 /**
  * @addtogroup AES ciphers

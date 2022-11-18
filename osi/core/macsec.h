@@ -453,10 +453,10 @@
 #define MACSEC_RX_SCI_LUT_PREEMPT_INACTIVE	OSI_BIT(9)
 /** @} */
 
-#ifndef OSI_STRIPPED_LIB
+#ifdef DEBUG_MACSEC
 /* debug buffer data read/write length */
 #define DBG_BUF_LEN		4U
-#endif /* !OSI_STRIPPED_LIB */
+#endif /* DEBUG_MACSEC */
 #ifdef MACSEC_KEY_PROGRAM
 #define INTEGER_LEN		4U
 #endif /* MACSEC_KEY_PROGRAM */
