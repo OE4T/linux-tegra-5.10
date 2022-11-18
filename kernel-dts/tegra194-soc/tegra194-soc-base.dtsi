@@ -728,6 +728,7 @@
 
 			head1: display@15210000 {
 				status = "disabled";
+				bootloader-status = "disabled";
 				compatible = "nvidia,tegra194-dc";
 				reg = <0x0 0x15210000 0x0 0x10000>;
 				interrupts = <0 154 4>;
@@ -803,6 +804,7 @@
 
 			head2: display@15220000 {
 				status = "disabled";
+				bootloader-status = "disabled";
 				compatible = "nvidia,tegra194-dc";
 				reg = <0x0 0x15220000 0x0 0x10000>;
 				interrupts = <0 155 4>;
@@ -877,6 +879,7 @@
 
 			head3: display@15230000 {
 				status = "disabled";
+				bootloader-status = "disabled";
 				compatible = "nvidia,tegra194-dc";
 				reg = <0x0 0x15230000 0x0 0x10000>;
 				interrupts = <0 242 4>;
