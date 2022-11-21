@@ -243,6 +243,7 @@ enum nvdla_submit_mode {
  * @gcov_dump_pa	physical address of fw gcov buffer
  * @gcov_dump_va	virtual address of fw gcovbuffer
  * @is_suspended	flag to check if module is in suspend state.
+ * @ping_lock	lock to synchronize the ping operation requests.
  */
 struct nvdla_device {
 	struct platform_device *pdev;
@@ -269,6 +270,7 @@ struct nvdla_device {
 #ifdef CONFIG_PM
 	bool is_suspended;
 #endif
+	struct mutex ping_lock;
 };
 
 /**

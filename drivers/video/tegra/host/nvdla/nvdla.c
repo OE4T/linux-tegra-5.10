@@ -838,6 +838,7 @@ static int nvdla_probe(struct platform_device *pdev)
 	mutex_init(&pdata->lock);
 	mutex_init(&nvdla_dev->cmd_lock);
 	init_completion(&nvdla_dev->cmd_completion);
+	mutex_init(&nvdla_dev->ping_lock);
 	pdata->private_data = nvdla_dev;
 	platform_set_drvdata(pdev, pdata);
 	nvdla_dev->dbg_mask = debug_err;
@@ -901,6 +902,7 @@ err_client_device_init:
 	nvhost_module_deinit(pdev);
 err_module_init:
 err_get_resources:
+	mutex_destroy(&nvdla_dev->ping_lock);
 	devm_kfree(dev, nvdla_dev);
 err_alloc_nvdla:
 err_no_ip:
@@ -930,7 +932,7 @@ static int __exit nvdla_remove(struct platform_device *pdev)
 	nvdla_queue_deinit(nvdla_dev->pool);
 	nvhost_client_device_release(pdev);
 	nvhost_module_deinit(pdev);
-
+	mutex_destroy(&nvdla_dev->ping_lock);
 	nvdla_free_gcov_region(pdev, false);
 
 	if (nvdla_dev->trace_dump_pa) {
