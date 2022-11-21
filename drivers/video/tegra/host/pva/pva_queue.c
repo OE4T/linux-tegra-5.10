@@ -688,6 +688,8 @@ static int set_flags(struct pva_submit_task *task, struct pva_hw_task *hw_task)
 
 	if (flags & NVPVA_PRE_BARRIER_TASK_TRUE)
 		hw_task->task.flags |= PVA_TASK_FL_SYNC_TASKS;
+	if (flags & NVPVA_GR_CHECK_EXE_FLAG)
+		hw_task->task.flags |= PVA_TASK_FL_GR_CHECK;
 	if (flags & NVPVA_AFFINITY_VPU0)
 		hw_task->task.flags |= PVA_TASK_FL_VPU0;
 	if (flags & NVPVA_AFFINITY_VPU1)

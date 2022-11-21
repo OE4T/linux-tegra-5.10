@@ -198,7 +198,8 @@ enum nvpva_flags {
 	NVPVA_PRE_BARRIER_TASK_TRUE = 1U << 2U,
 	NVPVA_ERR_MASK_ILLEGAL_INSTR = 1U << 3U,
 	NVPVA_ERR_MASK_DIVIDE_BY_0 = 1U << 4U,
-	NVPVA_ERR_MASK_FP_NAN = 1U << 5U
+	NVPVA_ERR_MASK_FP_NAN = 1U << 5U,
+	NVPVA_GR_CHECK_EXE_FLAG = 1U << 6U
 };
 
 enum nvpva_fence_action_type {

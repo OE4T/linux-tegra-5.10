@@ -321,6 +321,9 @@ struct PVA_PACKED pva_td_s {
 /** Flag to indicate R5 complete time is needed by task */
 #define PVA_TASK_FL_EOT_R_TS PVA_BIT(22U)
 
+/** Flag to indicate Golden register check is needed by task */
+#define PVA_TASK_FL_GR_CHECK		PVA_BIT(23U)
+
 /** Flag to indicate that stats are enabled */
 #define PVA_TASK_FL_STATS_ENABLE (PVA_TASK_FL_QUEUED_TS | PVA_TASK_FL_HEAD_TS  |\
 				  PVA_TASK_FL_READY_TS  | PVA_TASK_FL_SOT_R_TS |\
