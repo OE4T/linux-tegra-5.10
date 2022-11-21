@@ -63,32 +63,43 @@ static const struct of_device_id host1x_match[] = {
 	{},
 };
 
-static int nvhost_get_host1x_dev(struct platform_device *pdev)
+struct platform_device *nvhost_get_default_device(void)
 {
-	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
 	struct platform_device *host1x_pdev;
 	struct device_node *np;
 
 	np = of_find_matching_node(NULL, host1x_match);
-	if (!np) {
-		dev_err(&pdev->dev, "Failed to find host1x!\n");
-		return -ENODEV;
-	}
+	if (!np)
+		return NULL;
 
 	host1x_pdev = of_find_device_by_node(np);
+	if (!host1x_pdev)
+		return NULL;
+
+	return host1x_pdev;
+}
+EXPORT_SYMBOL(nvhost_get_default_device);
+
+struct host1x *nvhost_get_host1x(struct platform_device *pdev)
+{
+	struct platform_device *host1x_pdev;
+	struct host1x *host1x;
+
+	host1x_pdev = nvhost_get_default_device();
 	if (!host1x_pdev) {
 		dev_dbg(&pdev->dev, "host1x device not available\n");
-		return -EPROBE_DEFER;
+		return NULL;
 	}
 
-	pdata->host1x = platform_get_drvdata(host1x_pdev);
-	if (!pdata->host1x) {
+	host1x = platform_get_drvdata(host1x_pdev);
+	if (!host1x) {
 		dev_warn(&pdev->dev, "No platform data for host1x!\n");
-		return -ENODEV;
+		return NULL;
 	}
 
-	return 0;
+	return host1x;
 }
+EXPORT_SYMBOL(nvhost_get_host1x);
 
 static struct device *nvhost_client_device_create(struct platform_device *pdev,
 						  struct cdev *cdev,
@@ -135,9 +146,11 @@ int nvhost_client_device_get_resources(struct platform_device *pdev)
 	int err;
 	u32 i;
 
-	err = nvhost_get_host1x_dev(pdev);
-	if (err)
-		return err;
+	pdata->host1x = nvhost_get_host1x(pdev);
+	if (!pdata->host1x) {
+		dev_warn(&pdev->dev, "No platform data for host1x!\n");
+		return -ENODEV;
+	}
 
 	for (i = 0; i < pdev->num_resources; i++) {
 		void __iomem *regs = NULL;
@@ -394,21 +407,34 @@ static int nvhost_syncpt_get_page_size(struct device_node *np, uint32_t *size)
 u32 nvhost_syncpt_unit_interface_get_byte_offset_ext(struct platform_device *pdev,
 						     u32 syncpt_id)
 {
-	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
-	struct nvhost_syncpt_interface *syncpt_if = pdata->syncpt_unit_interface;
+	uint32_t size;
+	int err;
 
-	if (WARN_ON(!syncpt_if))
+	err = nvhost_syncpt_get_page_size(pdev->dev.of_node, &size);
+	if (WARN_ON(err < 0))
 		return 0;
 
-	return syncpt_id * syncpt_if->page_size;
+	return syncpt_id * size;
 }
 EXPORT_SYMBOL(nvhost_syncpt_unit_interface_get_byte_offset_ext);
+
+u32 nvhost_syncpt_unit_interface_get_byte_offset(u32 syncpt_id)
+{
+	struct platform_device *host1x_pdev;
+
+	host1x_pdev = nvhost_get_default_device();
+	if (WARN_ON(!host1x_pdev))
+		return 0;
+
+	return nvhost_syncpt_unit_interface_get_byte_offset_ext(host1x_pdev,
+								syncpt_id);
+}
+EXPORT_SYMBOL(nvhost_syncpt_unit_interface_get_byte_offset);
 
 int nvhost_syncpt_unit_interface_get_aperture(struct platform_device *pdev,
 					      u64 *base, size_t *size)
 {
-	return nvhost_syncpt_get_aperture(pdev->dev.parent->of_node, base,
-					  size);
+	return nvhost_syncpt_get_aperture(pdev->dev.of_node, base, size);
 }
 EXPORT_SYMBOL(nvhost_syncpt_unit_interface_get_aperture);
 

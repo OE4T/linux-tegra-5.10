@@ -204,12 +204,7 @@ int nvpva_syncpt_unit_interface_init(struct platform_device *pdev)
 		goto out;
 	}
 
-	syncpt_offset = nvhost_syncpt_unit_interface_get_byte_offset_ext(pdev, 1);
-#ifdef TEGRA_OOT_MODULE
-	pva->syncpts.host_pdev = pdev;
-#else
 	pva->syncpts.host_pdev = to_platform_device(pdev->dev.parent);
-#endif
 	err = nvhost_syncpt_unit_interface_get_aperture(pva->syncpts.host_pdev,
 							&base,
 							&size);
@@ -217,6 +212,8 @@ int nvpva_syncpt_unit_interface_init(struct platform_device *pdev)
 		dev_err(&pdev->dev, "failed to get aperture");
 		goto out;
 	}
+
+	syncpt_offset = nvhost_syncpt_unit_interface_get_byte_offset_ext(pva->syncpts.host_pdev, 1);
 
 	err = nvpva_map_sp(&pdev->dev,
 			   base,
@@ -244,7 +241,9 @@ int nvpva_syncpt_unit_interface_init(struct platform_device *pdev)
 			goto err_alloc_syncpt;
 		}
 
-		syncpt_offset = nvhost_syncpt_unit_interface_get_byte_offset_ext(pdev, id);
+		syncpt_offset =
+			nvhost_syncpt_unit_interface_get_byte_offset_ext(pva->syncpts.host_pdev,
+									 id);
 		err = nvpva_map_sp(&pdev->dev,
 				   (base + syncpt_offset),
 				   pva->syncpts.page_size,
