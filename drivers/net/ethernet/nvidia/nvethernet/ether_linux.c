@@ -4841,31 +4841,31 @@ static int ether_get_mgbe_clks(struct ether_priv_data *pdata)
 	struct device *dev = pdata->dev;
 	int ret;
 
-	pdata->rx_m_clk = devm_clk_get(dev, "rx_input_m");
+	pdata->rx_m_clk = devm_clk_get(dev, "rx-input-m");
 	if (IS_ERR(pdata->rx_m_clk)) {
 		ret = PTR_ERR(pdata->rx_m_clk);
-		dev_err(dev, "failed to get rx_input_m\n");
+		dev_err(dev, "failed to get rx-input-m\n");
 		goto err_rx_m;
 	}
 
-	pdata->rx_pcs_m_clk = devm_clk_get(dev, "rx_pcs_m");
+	pdata->rx_pcs_m_clk = devm_clk_get(dev, "rx-pcs-m");
 	if (IS_ERR(pdata->rx_pcs_m_clk)) {
 		ret = PTR_ERR(pdata->rx_pcs_m_clk);
-		dev_err(dev, "failed to get rx_pcs_m clk\n");
+		dev_err(dev, "failed to get rx-pcs-m clk\n");
 		goto err_rx_pcs_m;
 	}
 
-	pdata->rx_pcs_input_clk = devm_clk_get(dev, "rx_pcs_input");
+	pdata->rx_pcs_input_clk = devm_clk_get(dev, "rx-pcs-input");
 	if (IS_ERR(pdata->rx_pcs_input_clk)) {
 		ret = PTR_ERR(pdata->rx_pcs_input_clk);
-		dev_err(dev, "failed to get rx_pcs_input clk\n");
+		dev_err(dev, "failed to get rx-pcs-input clk\n");
 		goto err_rx_pcs_input;
 	}
 
-	pdata->rx_pcs_clk = devm_clk_get(dev, "rx_pcs");
+	pdata->rx_pcs_clk = devm_clk_get(dev, "rx-pcs");
 	if (IS_ERR(pdata->rx_pcs_clk)) {
 		ret = PTR_ERR(pdata->rx_pcs_clk);
-		dev_err(dev, "failed to get rx_pcs clk\n");
+		dev_err(dev, "failed to get rx-pcs clk\n");
 		goto err_rx_pcs;
 	}
 
@@ -4876,17 +4876,17 @@ static int ether_get_mgbe_clks(struct ether_priv_data *pdata)
 		goto err_tx;
 	}
 
-	pdata->tx_pcs_clk = devm_clk_get(dev, "tx_pcs");
+	pdata->tx_pcs_clk = devm_clk_get(dev, "tx-pcs");
 	if (IS_ERR(pdata->tx_pcs_clk)) {
 		ret = PTR_ERR(pdata->tx_pcs_clk);
-		dev_err(dev, "failed to get tx_pcs clk\n");
+		dev_err(dev, "failed to get tx-pcs clk\n");
 		goto err_tx_pcs;
 	}
 
-	pdata->mac_div_clk = devm_clk_get(dev, "mac_divider");
+	pdata->mac_div_clk = devm_clk_get(dev, "mac-divider");
 	if (IS_ERR(pdata->mac_div_clk)) {
 		ret = PTR_ERR(pdata->mac_div_clk);
-		dev_err(dev, "failed to get mac_divider clk\n");
+		dev_err(dev, "failed to get mac-divider clk\n");
 		goto err_mac_div;
 	}
 
@@ -4897,31 +4897,31 @@ static int ether_get_mgbe_clks(struct ether_priv_data *pdata)
 		goto err_mac;
 	}
 
-	pdata->eee_pcs_clk = devm_clk_get(dev, "eee_pcs");
+	pdata->eee_pcs_clk = devm_clk_get(dev, "eee-pcs");
 	if (IS_ERR(pdata->eee_pcs_clk)) {
 		ret = PTR_ERR(pdata->eee_pcs_clk);
-		dev_err(dev, "failed to get eee_pcs clk\n");
+		dev_err(dev, "failed to get eee-pcs clk\n");
 		goto err_eee_pcs;
 	}
 
-	pdata->app_clk = devm_clk_get(dev, "app");
+	pdata->app_clk = devm_clk_get(dev, "mgbe");
 	if (IS_ERR(pdata->app_clk)) {
 		ret = PTR_ERR(pdata->app_clk);
-		dev_err(dev, "failed to get app clk\n");
+		dev_err(dev, "failed to get mgbe clk\n");
 		goto err_app;
 	}
 
-	pdata->ptp_ref_clk = devm_clk_get(dev, "ptp_ref");
+	pdata->ptp_ref_clk = devm_clk_get(dev, "ptp-ref");
 	if (IS_ERR(pdata->ptp_ref_clk)) {
 		ret = PTR_ERR(pdata->ptp_ref_clk);
-		dev_err(dev, "failed to get ptp_ref clk\n");
+		dev_err(dev, "failed to get ptp-ref clk\n");
 		goto err_ptp_ref;
 	}
 
-	pdata->rx_input_clk = devm_clk_get(dev, "rx_input");
+	pdata->rx_input_clk = devm_clk_get(dev, "rx-input");
 	if (IS_ERR(pdata->rx_input_clk)) {
 		ret = PTR_ERR(pdata->rx_input_clk);
-		dev_err(dev, "failed to get rx_input clk\n");
+		dev_err(dev, "failed to get rx-input clk\n");
 		goto err_rx_input;
 	}
 
@@ -5100,7 +5100,7 @@ static int ether_configure_car(struct platform_device *pdev,
 
 	/* get MAC reset */
 	if (!pdata->skip_mac_reset) {
-		pdata->mac_rst = devm_reset_control_get(&pdev->dev, "mac_rst");
+		pdata->mac_rst = devm_reset_control_get(&pdev->dev, "mac");
 		if (IS_ERR_OR_NULL(pdata->mac_rst)) {
 			if (PTR_ERR(pdata->mac_rst) != -EPROBE_DEFER)
 				dev_err(&pdev->dev, "failed to get MAC rst\n");
@@ -5110,7 +5110,7 @@ static int ether_configure_car(struct platform_device *pdev,
 
 	if (osi_core->mac == OSI_MAC_HW_MGBE) {
 		pdata->xpcs_rst = devm_reset_control_get(&pdev->dev,
-							 "xpcs_rst");
+							 "pcs");
 		if (IS_ERR_OR_NULL(pdata->xpcs_rst)) {
 			dev_info(&pdev->dev, "failed to get XPCS reset\n");
 			return PTR_ERR(pdata->xpcs_rst);
@@ -5222,7 +5222,7 @@ static int ether_init_plat_resources(struct platform_device *pdev,
 	int ret = 0;
 
 	/* get base address and remap */
-	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "mac-base");
+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "mac");
 	osi_core->base = devm_ioremap_resource(&pdev->dev, res);
 	if (IS_ERR(osi_core->base)) {
 		dev_err(&pdev->dev, "failed to ioremap MAC base address\n");
@@ -5230,8 +5230,7 @@ static int ether_init_plat_resources(struct platform_device *pdev,
 	}
 
 	if (!tegra_hypervisor_mode) {
-		res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
-						   "hv-base");
+		res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "hypervisor");
 		if (res) {
 			osi_core->hv_base = devm_ioremap_resource(&pdev->dev,
 								  res);
@@ -5264,8 +5263,7 @@ static int ether_init_plat_resources(struct platform_device *pdev,
 	}
 
 	if (osi_core->mac == OSI_MAC_HW_MGBE) {
-		res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
-						   "xpcs-base");
+		res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "xpcs");
 		if (res) {
 			osi_core->xpcs_base = devm_ioremap_resource(&pdev->dev,
 								    res);
@@ -6074,14 +6072,14 @@ static void ether_get_num_dma_chan_mtl_q(struct platform_device *pdev,
 	unsigned int max_chans = 1;
 	int ret = 0;
 
-	ret = of_device_is_compatible(np, "nvidia,nveqos");
-	if (ret != 0) {
+	if (of_device_is_compatible(np, "nvidia,nveqos") ||
+	    of_device_is_compatible(np, "nvidia,tegra234-eqos")) {
 		*mac = OSI_MAC_HW_EQOS;
 		max_chans = OSI_EQOS_MAX_NUM_CHANS;
 	}
 
-	ret = of_device_is_compatible(np, "nvidia,nvmgbe");
-	if (ret != 0) {
+	if (of_device_is_compatible(np, "nvidia,nvmgbe") ||
+	    of_device_is_compatible(np, "nvidia,tegra234-mgbe")) {
 		*mac = OSI_MAC_HW_MGBE;
 		max_chans = OSI_MGBE_MAX_NUM_CHANS;
 	}
@@ -6909,6 +6907,8 @@ static const struct dev_pm_ops ether_pm_ops = {
 static const struct of_device_id ether_of_match[] = {
 	{ .compatible = "nvidia,nveqos" },
 	{ .compatible = "nvidia,nvmgbe" },
+	{ .compatible = "nvidia,tegra234-mgbe" },
+	{ .compatible = "nvidia,tegra234-eqos" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, ether_of_match);
