@@ -37,6 +37,8 @@
 #define MAX_TANGENTIAL_COEFFICIENTS     2
 #define MAX_FISHEYE_COEFFICIENTS        6
 #define CAMERA_MAX_SN_LENGTH 32
+#define MAX_RLS_COLOR_CHANNELS 4
+#define MAX_RLS_BREAKPOINTS 6
 
 extern int max96712_write_reg_Dser(int slaveAddr,int channel,
 		u16 addr, u8 val);
@@ -151,6 +153,37 @@ typedef struct
 	float angular_velocity_random_walk;
 } imu_params;
 
+typedef struct {
+	// Image height
+	u16 image_height;
+	// Image width
+	u16 image_width;
+	// Number of color channels
+	u8 n_channels;
+	// Coordinate x of center point
+	float rls_x0[MAX_RLS_COLOR_CHANNELS];
+	// Coordinate y of center point
+	float rls_y0[MAX_RLS_COLOR_CHANNELS];
+	// Ellipse xx parameter
+	double ekxx[MAX_RLS_COLOR_CHANNELS];
+	// Ellipse xy parameter
+	double ekxy[MAX_RLS_COLOR_CHANNELS];
+	// Ellipse yx parameter
+	double ekyx[MAX_RLS_COLOR_CHANNELS];
+	// Ellipse yy parameter
+	double ekyy[MAX_RLS_COLOR_CHANNELS];
+	// Number of breakpoints in LSC radial transfer function
+	u8 rls_n_points;
+	// LSC radial transfer function X
+	float rls_rad_tf_x[MAX_RLS_COLOR_CHANNELS][MAX_RLS_BREAKPOINTS];
+	// LSC radial transfer function Y
+	float rls_rad_tf_y[MAX_RLS_COLOR_CHANNELS][MAX_RLS_BREAKPOINTS];
+	// LSC radial transfer function slope
+	float rls_rad_tf_slope[MAX_RLS_COLOR_CHANNELS][MAX_RLS_BREAKPOINTS];
+	// rScale parameter
+	u8 r_scale;
+} radial_lsc_params;
+
 typedef struct
 {
 	// Intrinsic structure for  camera device
@@ -167,6 +200,9 @@ typedef struct
 
 	// HAWK module serial number
 	u8 serial_number[CAMERA_MAX_SN_LENGTH];
+
+	// Radial Lens Shading Correction parameters
+	radial_lsc_params rls;
 } NvCamSyncSensorCalibData;
 
 typedef struct
@@ -200,6 +236,10 @@ typedef struct
 
 	// HAWK module serial number
 	u8 serial_number[CAMERA_MAX_SN_LENGTH];
+
+	// Radial Lens Shading Correction parameters
+	radial_lsc_params left_rls;
+	radial_lsc_params right_rls;
 } LiEeprom_Content_Struct;
 
 struct ar0234 {
@@ -629,6 +669,13 @@ static int ar0234_fill_eeprom(struct tegracam_device *tc_dev,
 			priv->EepromCalib.imu = tmp.imu;
 			memcpy(priv->EepromCalib.serial_number, tmp.serial_number,
 				CAMERA_MAX_SN_LENGTH);
+
+			if (priv->sync_sensor_index == 1)
+				priv->EepromCalib.rls = tmp.left_rls;
+			else if (priv->sync_sensor_index == 2)
+				priv->EepromCalib.rls = tmp.right_rls;
+			else
+				priv->EepromCalib.rls = tmp.left_rls;
 
 			memcpy(ctrl->p_new.p, (u8 *)&(priv->EepromCalib), sizeof(NvCamSyncSensorCalibData));
 			break;
