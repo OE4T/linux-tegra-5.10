@@ -2384,7 +2384,10 @@ static nve32_t mgbe_configure_mac(struct osi_core_priv_data *osi_core)
 	/* RGSMIIIM - RGMII/SMII interrupt and TSIE Enable */
 	/* TXESIE - Transmit Error Status Interrupt Enable */
 	/* TODO: LPI need to be enabled during EEE implementation */
-	value |= (MGBE_IMR_RGSMIIIE | MGBE_IMR_TSIE | MGBE_IMR_TXESIE);
+#ifndef OSI_STRIPPED_LIB
+	value |= (MGBE_IMR_TXESIE);
+#endif
+	value |= (MGBE_IMR_RGSMIIIE | MGBE_IMR_TSIE);
 	osi_writela(osi_core, value, (nveu8_t *)osi_core->base + MGBE_MAC_IER);
 
 	/* Enable common interrupt at wrapper level */
