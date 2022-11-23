@@ -2181,11 +2181,13 @@ static void mgbe_handle_mac_intrs(struct osi_core_priv_data *osi_core)
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 	nveu32_t mac_isr = 0;
 	nveu32_t mac_ier = 0;
-#ifndef OSI_STRIPPED_LIB
 	nveu32_t tx_errors = 0;
-#endif /* !OSI_STRIPPED_LIB */
+	nveu8_t *base = (nveu8_t *)osi_core->base;
+#ifdef HSI_SUPPORT
+	nveu64_t tx_frame_err = 0;
+#endif
 
-	mac_isr = osi_readla(osi_core, (nveu8_t *)osi_core->base + MGBE_MAC_ISR);
+	mac_isr = osi_readla(osi_core, base + MGBE_MAC_ISR);
 
 	/* Check for Link status change interrupt */
 	if ((mac_isr & MGBE_MAC_ISR_LSI) == OSI_ENABLE) {
@@ -2199,19 +2201,19 @@ static void mgbe_handle_mac_intrs(struct osi_core_priv_data *osi_core)
 		}
 	}
 
-	mac_ier = osi_readla(osi_core, (nveu8_t *)osi_core->base + MGBE_MAC_IER);
+	mac_ier = osi_readla(osi_core, base + MGBE_MAC_IER);
 	if (((mac_isr & MGBE_MAC_IMR_FPEIS) == MGBE_MAC_IMR_FPEIS) &&
 	    ((mac_ier & MGBE_IMR_FPEIE) == MGBE_IMR_FPEIE)) {
 		mgbe_handle_mac_fpe_intrs(osi_core);
 	}
 
-#ifndef OSI_STRIPPED_LIB
 	/* Check for any MAC Transmit Error Status Interrupt */
 	if ((mac_isr & MGBE_IMR_TXESIE) == MGBE_IMR_TXESIE) {
 		/* Check for the type of Tx error by reading  MAC_Rx_Tx_Status
 		 * register
 		 */
-		tx_errors = osi_readl((nveu8_t *)osi_core->base + MGBE_MAC_RX_TX_STS);
+		tx_errors = osi_readl(base + MGBE_MAC_RX_TX_STS);
+#ifndef OSI_STRIPPED_LIB
 		if ((tx_errors & MGBE_MAC_TX_TJT) == MGBE_MAC_TX_TJT) {
 			/* increment Tx Jabber timeout stats */
 			osi_core->stats.mgbe_jabber_timeout_err =
@@ -2233,8 +2235,26 @@ static void mgbe_handle_mac_intrs(struct osi_core_priv_data *osi_core)
 						osi_core->stats.mgbe_payload_cs_err,
 						1UL);
 		}
-	}
 #endif /* !OSI_STRIPPED_LIB */
+
+#ifdef HSI_SUPPORT
+		tx_errors &= (MGBE_MAC_TX_TJT | MGBE_MAC_TX_IHE | MGBE_MAC_TX_PCE);
+		if (tx_errors != OSI_NONE) {
+			osi_core->hsi.tx_frame_err_count =
+				osi_update_stats_counter(
+				osi_core->hsi.tx_frame_err_count, 1UL);
+			tx_frame_err = osi_core->hsi.tx_frame_err_count /
+				osi_core->hsi.err_count_threshold;
+			if (osi_core->hsi.tx_frame_err_threshold <
+			    tx_frame_err) {
+				osi_core->hsi.tx_frame_err_threshold = tx_frame_err;
+				osi_core->hsi.report_count_err[TX_FRAME_ERR_IDX] = OSI_ENABLE;
+			}
+			osi_core->hsi.err_code[TX_FRAME_ERR_IDX] = OSI_TX_FRAME_ERR;
+			osi_core->hsi.report_err = OSI_ENABLE;
+		}
+#endif
+	}
 
 	if ((mac_isr & MGBE_ISR_TSIS) == MGBE_ISR_TSIS) {
 		struct osi_core_tx_ts *head = &l_core->tx_ts_head;
@@ -2250,7 +2270,7 @@ static void mgbe_handle_mac_intrs(struct osi_core_priv_data *osi_core)
 		}
 
 		/* TXTSC bit should get reset when all timestamp read */
-		while (((osi_readla(osi_core, (nveu8_t *)osi_core->base + MGBE_MAC_TSS) &
+		while (((osi_readla(osi_core, base + MGBE_MAC_TSS) &
 		       MGBE_MAC_TSS_TXTSC) == MGBE_MAC_TSS_TXTSC)) {
 			nveu32_t i = get_free_ts_idx(l_core);
 
@@ -2275,17 +2295,11 @@ static void mgbe_handle_mac_intrs(struct osi_core_priv_data *osi_core)
 				}
 			}
 
-			l_core->ts[i].nsec = osi_readla(osi_core,
-							(nveu8_t *)osi_core->base +
-							MGBE_MAC_TSNSSEC);
+			l_core->ts[i].nsec = osi_readla(osi_core, base + MGBE_MAC_TSNSSEC);
 
 			l_core->ts[i].in_use = OSI_ENABLE;
-			l_core->ts[i].pkt_id = osi_readla(osi_core,
-							  (nveu8_t *)osi_core->base +
-							  MGBE_MAC_TSPKID);
-			l_core->ts[i].sec = osi_readla(osi_core,
-						       (nveu8_t *)osi_core->base +
-						       MGBE_MAC_TSSEC);
+			l_core->ts[i].pkt_id = osi_readla(osi_core, base + MGBE_MAC_TSPKID);
+			l_core->ts[i].sec = osi_readla(osi_core, base + MGBE_MAC_TSSEC);
 			/* Add time stamp to end of list */
 			l_core->ts[i].next = head->prev->next;
 			head->prev->next = &l_core->ts[i];
