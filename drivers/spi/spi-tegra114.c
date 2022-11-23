@@ -2015,8 +2015,6 @@ static int tegra_spi_remove(struct platform_device *pdev)
 
 	free_irq(tspi->irq, tspi);
 
-	spi_unregister_master(ctrl);
-
 	if (tspi->tx_dma_chan)
 		tegra_spi_deinit_dma_param(tspi, false);
 
