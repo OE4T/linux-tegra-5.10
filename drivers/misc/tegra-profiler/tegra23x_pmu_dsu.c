@@ -437,11 +437,13 @@ quadd_event_source tegra23x_pmu_dsu_int = {
 
 static void dsu_get_associated_cpus(int cluster_id, cpumask_t *mask)
 {
-	int cpuid;
+	int cpu;
 
-	for_each_possible_cpu(cpuid) {
-		if (cpu_topology[cpuid].package_id == cluster_id)
-			cpumask_set_cpu(cpuid, mask);
+	cpumask_clear(mask);
+
+	for_each_possible_cpu(cpu) {
+		if (topology_physical_package_id(cpu) == cluster_id)
+			cpumask_set_cpu(cpu, mask);
 	}
 }
 
@@ -449,13 +451,10 @@ static bool is_cluster_available(int cluster_id)
 {
 	int cpu;
 
-	for_each_possible_cpu(cpu)
-#if KERNEL_VERSION(4, 18, 0) > LINUX_VERSION_CODE
-		if (cpu_topology[cpu].cluster_id == cluster_id)
-#else
-		if (cpu_topology[cpu].package_id == cluster_id)
-#endif
+	for_each_possible_cpu(cpu) {
+		if (topology_physical_package_id(cpu) == cluster_id)
 			return true;
+	}
 
 	return false;
 }
