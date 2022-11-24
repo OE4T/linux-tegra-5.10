@@ -202,31 +202,28 @@ static int tegra23x_icc_set(struct icc_node *src, struct icc_node *dst)
 
 	/* nvpmodel emc cap request */
 	if (src->id == TEGRA_ICC_NVPMODEL) {
-		if (src->peak_bw) {
-			ret = clk_set_max_rate(tp->dram_clk, UINT_MAX);
-			if (ret) {
-				pr_err("clk_set_max_rate failed %d\n", ret);
-				return ret;
-			}
-
-			cap_req = src->peak_bw;
-			cap_req = emc_bw_to_freq(cap_req);
-			clk_rate = clk_round_rate(tp->dram_clk, cap_req * 1000);
-
-			ret = clk_set_max_rate(tp->dram_clk, clk_rate);
-			if (ret) {
-				pr_err("clk_set_max_rate fail %d\n", ret);
-				return ret;
-			}
-			tp->cap_rate = clk_rate;
-		} else {
-			ret = clk_set_max_rate(tp->dram_clk, UINT_MAX);
-			if (ret) {
-				pr_err("clk_set_max_rate failed %d\n", ret);
-				return ret;
-			}
-			tp->cap_rate = tp->max_rate;
+		/* remove existing cap by increasing max rate to bpmp Fmax */
+		ret = clk_set_max_rate(tp->dram_clk, UINT_MAX);
+		if (ret) {
+			pr_err("clk_set_max_rate failed %d\n", ret);
+			return ret;
 		}
+
+		/* round the requested clock cap rate */
+		/* note: the peak_bw 0 is considered an uncapped request */
+		cap_req = emc_bw_to_freq(src->peak_bw) * HZ_TO_KHZ_MULT;
+		cap_req = cap_req ? cap_req : UINT_MAX;
+		clk_rate = clk_round_rate(tp->dram_clk, cap_req);
+
+		/* apply the rounded clock cap rate */
+		ret = clk_set_max_rate(tp->dram_clk, clk_rate);
+		if (ret) {
+			pr_err("clk_set_max_rate fail %d\n", ret);
+			return ret;
+		}
+
+		tp->cap_rate = clk_rate;
+		tp->max_rate = tp->cap_rate;
 		return 0;
 	}
 
