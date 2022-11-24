@@ -91,6 +91,7 @@
 			usb2-0 {/* Goes to recovery port */
 				mode = "peripheral";
 				status = "okay";
+				vbus-supply = <&p3768_vdd_5v_sys>;
 				usb-role-switch;
 				connector {
 					compatible = "usb-b-connector", "gpio-usb-b-connector";
@@ -101,10 +102,12 @@
 			};
 			usb2-1 {/* Goes to hub */
 				mode = "host";
+				vbus-supply = <&p3768_vdd_av10_hub>;
 				status = "okay";
 			};
 			usb2-2 {/* Goes to M2.E */
 				mode = "host";
+				vbus-supply = <&p3768_vdd_5v_sys>;
 				status = "okay";
 			};
 			usb3-0 {/* Goes to hub */

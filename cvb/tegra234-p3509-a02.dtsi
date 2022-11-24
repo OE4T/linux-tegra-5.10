@@ -91,6 +91,7 @@
 			usb2-0 {
 				mode = "otg";
 				status = "okay";
+                                vbus-supply = <&p3509_vdd_5v_sys>;
 #if TEGRA_XUSB_DT_VERSION >= DT_VERSION_3
 				usb-role-switch;
 				connector {
@@ -103,10 +104,12 @@
 			};
 			usb2-1 {
 				mode = "host";
+                                vbus-supply = <&p3509_vdd_av10_hub>;
 				status = "okay";
 			};
 			usb2-2 {/* Goes to M2.E */
 				mode = "host";
+                                vbus-supply = <&p3509_vdd_5v_sys>;
 				status = "okay";
 			};
 			usb3-0 {
