@@ -146,6 +146,8 @@ struct pva_elf_images {
 
 struct nvpva_elf_context {
 	struct pva *dev;
+	/* context device */
+	struct platform_device *cntxt_dev;
 	/* Contains context for all elf images */
 	struct pva_elf_images *elf_images;
 	/* Mutex for atomic access */

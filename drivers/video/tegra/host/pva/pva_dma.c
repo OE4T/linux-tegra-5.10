@@ -146,7 +146,7 @@ patch_dma_desc_address(struct pva_submit_task *task,
 		 */
 		if (task->pva->version == PVA_HW_GEN1) {
 			struct pva_pinned_memory *mem =
-				pva_task_pin_mem(task, umd_dma_desc->srcPtr, false);
+				pva_task_pin_mem(task, umd_dma_desc->srcPtr);
 			if (IS_ERR(mem)) {
 				err = PTR_ERR(mem);
 				task_err(task,
@@ -237,7 +237,7 @@ patch_dma_desc_address(struct pva_submit_task *task,
 	}
 	case DMA_DESC_SRC_XFER_MC: {
 		struct pva_pinned_memory *mem =
-			pva_task_pin_mem(task, umd_dma_desc->srcPtr, true);
+			pva_task_pin_mem(task, umd_dma_desc->srcPtr);
 		if (IS_ERR(mem)) {
 			err = PTR_ERR(mem);
 			task_err(
@@ -291,7 +291,6 @@ patch_dma_desc_address(struct pva_submit_task *task,
 	addr_base += umd_dma_desc->src_offset;
 	dma_desc->src_adr0 = (uint32_t)(addr_base & 0xFFFFFFFFLL);
 	dma_desc->src_adr1 = (uint8_t)((addr_base >> 32U) & 0xFF);
-
 	if (umd_dma_desc->srcTransferMode ==
 		(uint8_t)DMA_DESC_SRC_XFER_VPU_CONFIG)
 		goto out;
@@ -315,7 +314,7 @@ patch_dma_desc_address(struct pva_submit_task *task,
 	case DMA_DESC_DST_XFER_L2RAM:
 		if (task->pva->version == PVA_HW_GEN1) {
 			struct pva_pinned_memory *mem =
-				pva_task_pin_mem(task, umd_dma_desc->dstPtr, false);
+				pva_task_pin_mem(task, umd_dma_desc->dstPtr);
 			if (IS_ERR(mem)) {
 				err = PTR_ERR(mem);
 				task_err(task,
@@ -407,7 +406,7 @@ patch_dma_desc_address(struct pva_submit_task *task,
 	}
 	case DMA_DESC_DST_XFER_MC: {
 		struct pva_pinned_memory *mem =
-			pva_task_pin_mem(task, umd_dma_desc->dstPtr, true);
+			pva_task_pin_mem(task, umd_dma_desc->dstPtr);
 		if (IS_ERR(mem)) {
 			err = PTR_ERR(mem);
 			task_err(
@@ -736,7 +735,6 @@ static int32_t nvpva_task_dma_desc_mapping(struct pva_submit_task *task,
 			(((umd_dma_desc->dstRpt3 & 0xFF) << 24U) |
 			 (umd_dma_desc->dstAdv3 & 0xFFFFFF));
 	}
-
 out:
 	return err;
 }
@@ -1105,8 +1103,7 @@ int pva_task_write_dma_info(struct pva_submit_task *task,
 			(task->hwseq_config.hwseqTrigMode & 0x1U) << 12U;
 
 		mem = pva_task_pin_mem(task,
-				       task->hwseq_config.hwseqBuf.pin_id,
-				       false);
+				       task->hwseq_config.hwseqBuf.pin_id);
 		if (IS_ERR(mem)) {
 			err = PTR_ERR(mem);
 			task_err(task, "failed to pin hwseq buffer");

@@ -140,9 +140,10 @@ union nvpva_get_sym_tab_args {
  */
 
 enum nvpva_pin_segment {
-	NVPVA_SEGMENT_LOWMEM = 1U,
-	NVPVA_SEGMENT_HIGHMEM = 2U,
+	NVPVA_SEGMENT_PRIV = 1U,
+	NVPVA_SEGMENT_USER = 2U,
 	NVPVA_SEGMENT_CVSRAM = 3U,
+	NVPVA_SEGMENT_MAX
 };
 
 enum nvpva_pin_buf {

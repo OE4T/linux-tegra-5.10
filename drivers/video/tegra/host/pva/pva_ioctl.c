@@ -415,7 +415,9 @@ static int pva_submit(struct pva_private *priv, void *arg)
 		tasks_header->num_tasks += 1;
 
 		task->dma_addr = task_mem_info.dma_addr;
+		task->aux_dma_addr = task_mem_info.aux_dma_addr;
 		task->va = task_mem_info.va;
+		task->aux_va = task_mem_info.aux_va;
 		task->pool_index = task_mem_info.pool_index;
 
 		task->pva = priv->pva;
@@ -516,6 +518,7 @@ static int pva_pin(struct pva_private *priv, void *arg)
 			       &dmabuf[0],
 			       &in_arg->pin.offset,
 			       &in_arg->pin.size,
+			       in_arg->pin.segment,
 			       1,
 			       &out_arg->pin_id,
 			       &out_arg->error_code);
@@ -955,8 +958,16 @@ static int pva_open(struct inode *inode, struct file *file)
 
 	file->private_data = priv;
 	priv->pva = pva;
+	priv->client = nvpva_client_context_alloc(pdev, pva, current->pid);
+	if (priv->client == NULL) {
+		err = -ENOMEM;
+		dev_err(&pdev->dev, "failed to allocate client context");
+		goto err_alloc_context;
+	}
+
 	priv->queue = nvpva_queue_alloc(pva->pool,
-					 MAX_PVA_TASK_COUNT_PER_QUEUE);
+					priv->client->cntxt_dev,
+					MAX_PVA_TASK_COUNT_PER_QUEUE);
 
 	if (IS_ERR(priv->queue)) {
 		err = PTR_ERR(priv->queue);
@@ -964,12 +975,6 @@ static int pva_open(struct inode *inode, struct file *file)
 	}
 
 	sema_init(&priv->queue->task_pool_sem, MAX_PVA_TASK_COUNT_PER_QUEUE);
-	priv->client = nvpva_client_context_alloc(pdev, pva, current->pid);
-	if (priv->client == NULL) {
-		err = -ENOMEM;
-		dev_err(&pdev->dev, "failed to allocate client context");
-		goto err_alloc_context;
-	}
 	err = nvhost_module_busy(pva->pdev);
 	if (err < 0) {
 		dev_err(&pva->pdev->dev, "error in powering up pva %d",
@@ -980,10 +985,10 @@ static int pva_open(struct inode *inode, struct file *file)
 	return nonseekable_open(inode, file);
 
 err_device_busy:
-	nvpva_client_context_put(priv->client);
-err_alloc_context:
 	nvpva_queue_put(priv->queue);
 err_alloc_queue:
+	nvpva_client_context_put(priv->client);
+err_alloc_context:
 	nvhost_module_remove_client(pdev, priv);
 	kfree(priv);
 err_alloc_priv:

@@ -42,20 +42,15 @@
  */
 struct nvpva_vm_buffer {
 	struct dma_buf_attachment	*attach;
-	struct dma_buf_attachment	*attach_cntxt;
 	struct dma_buf			*dmabuf;
-	struct dma_buf			*dmabuf_cntxt;
 	struct sg_table			*sgt;
-	struct sg_table			*sgt_cntxt;
 	dma_addr_t			addr;
-	dma_addr_t			addr_cntxt;
 	size_t				size;
 	enum				nvpva_buffers_heap heap;
 	s32				user_map_count;
 	s32				submit_map_count;
 	u32				id;
 	dma_addr_t			user_addr;
-	dma_addr_t			user_addr_cntxt;
 	u64				user_offset;
 	u64				user_size;
 	struct				rb_node rb_node;
@@ -234,6 +229,7 @@ static void nvpva_buffer_insert_map_buffer_id(
 
 static int
 nvpva_buffer_map(struct platform_device *pdev,
+		 struct platform_device *pdev_ctxt,
 		 struct dma_buf *dmabuf,
 		 u64 offset,
 		 u64 size,
@@ -250,7 +246,11 @@ nvpva_buffer_map(struct platform_device *pdev,
 	int err = 0;
 
 	get_dma_buf(dmabuf);
-	attach = dma_buf_attach(dmabuf, &pdev->dev);
+	if (is_cntxt)
+		attach = dma_buf_attach(dmabuf, &pdev_ctxt->dev);
+	else
+		attach = dma_buf_attach(dmabuf, &pdev->dev);
+
 	if (IS_ERR_OR_NULL(attach)) {
 		err = PTR_ERR(dmabuf);
 		dev_err(&pdev->dev, "dma_attach failed: %d\n", err);
@@ -280,19 +280,11 @@ nvpva_buffer_map(struct platform_device *pdev,
 	if (!dma_addr || vm->heap == NVPVA_BUFFERS_HEAP_CVNAS)
 		dma_addr = phys_addr;
 
-	if (!is_cntxt) {
-		vm->sgt		= sgt;
-		vm->attach	= attach;
-		vm->dmabuf	= dmabuf;
-		vm->addr	= dma_addr;
-		vm->user_addr	= dma_addr + offset;
-	} else {
-		vm->sgt_cntxt		= sgt;
-		vm->attach_cntxt	= attach;
-		vm->dmabuf_cntxt	= dmabuf;
-		vm->addr_cntxt		= dma_addr;
-		vm->user_addr_cntxt	= dma_addr + offset;
-	}
+	vm->sgt		= sgt;
+	vm->attach	= attach;
+	vm->dmabuf	= dmabuf;
+	vm->addr	= dma_addr;
+	vm->user_addr	= dma_addr + offset;
 
 	vm->size = dmabuf->size;
 	vm->user_offset = offset;
@@ -330,17 +322,6 @@ static void nvpva_buffer_unmap(struct nvpva_buffers *nvpva_buffers,
 	dma_buf_unmap_attachment(vm->attach, vm->sgt, DMA_BIDIRECTIONAL);
 	dma_buf_detach(vm->dmabuf, vm->attach);
 	dma_buf_put(vm->dmabuf);
-
-	if (vm->attach_cntxt) {
-		dma_buf_unmap_attachment(vm->attach_cntxt,
-					 vm->sgt_cntxt,
-					 DMA_BIDIRECTIONAL);
-		dma_buf_detach(vm->dmabuf_cntxt, vm->attach_cntxt);
-		dma_buf_put(vm->dmabuf_cntxt);
-		vm->attach_cntxt = NULL;
-		vm->dmabuf_cntxt = NULL;
-		vm->sgt_cntxt = NULL;
-	}
 
 	rb_erase(&vm->rb_node, &nvpva_buffers->rb_root);
 	list_del(&vm->list_head);
@@ -385,8 +366,7 @@ int nvpva_buffer_submit_pin_id(struct nvpva_buffers *nvpva_buffers,
 			       struct dma_buf **dmabuf,
 			       dma_addr_t *paddr,
 			       size_t *psize,
-			       enum nvpva_buffers_heap *heap,
-			       bool is_cntxt)
+			       enum nvpva_buffers_heap *heap)
 {
 	struct nvpva_vm_buffer *vm;
 	int i = 0;
@@ -401,15 +381,9 @@ int nvpva_buffer_submit_pin_id(struct nvpva_buffers *nvpva_buffers,
 			goto submit_err;
 
 		vm->submit_map_count++;
-		if (!is_cntxt || (nvpva_buffers->pdev_cntxt == NULL)) {
-			paddr[i]  = vm->user_addr;
-			dmabuf[i] = vm->dmabuf;
-			psize[i]  = vm->user_size;
-		} else {
-			paddr[i]  = vm->user_addr_cntxt;
-			dmabuf[i] = vm->dmabuf_cntxt;
-			psize[i]  = vm->user_size;
-		}
+		paddr[i]  = vm->user_addr;
+		dmabuf[i] = vm->dmabuf;
+		psize[i]  = vm->user_size;
 
 		/* Return heap only if requested */
 		if (heap != NULL)
@@ -433,6 +407,7 @@ int nvpva_buffer_pin(struct nvpva_buffers *nvpva_buffers,
 		     struct dma_buf **dmabufs,
 		     u64 *offset,
 		     u64 *size,
+		     u32 segment,
 		     u32 count,
 		     u32 *id,
 		     u32 *eerr)
@@ -442,6 +417,10 @@ int nvpva_buffer_pin(struct nvpva_buffers *nvpva_buffers,
 	int err = 0;
 
 	*eerr = 0;
+
+	if (segment >= NVPVA_SEGMENT_MAX)
+		return -EINVAL;
+
 	mutex_lock(&nvpva_buffers->mutex);
 
 	for (i = 0; i < count; i++) {
@@ -483,27 +462,15 @@ int nvpva_buffer_pin(struct nvpva_buffers *nvpva_buffers,
 		}
 
 		err = nvpva_buffer_map(nvpva_buffers->pdev,
+				       nvpva_buffers->pdev_cntxt,
 				       dmabufs[i],
 				       offset[i],
 				       size[i],
 				       vm,
-				       false);
+				       (segment == NVPVA_SEGMENT_USER));
 		if (err) {
 			put_unique_id(nvpva_buffers, vm->id);
 			goto free_vm;
-		}
-
-		if (nvpva_buffers->pdev_cntxt != NULL) {
-			err = nvpva_buffer_map(nvpva_buffers->pdev_cntxt,
-					       dmabufs[i],
-					       offset[i],
-					       size[i],
-					       vm,
-					       true);
-			if (err) {
-				nvpva_buffer_unmap(nvpva_buffers, vm);
-				goto unpin;
-			}
 		}
 
 		nvpva_buffer_insert_map_buffer(nvpva_buffers, vm);

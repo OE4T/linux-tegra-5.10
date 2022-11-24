@@ -65,16 +65,18 @@ client_context_search_locked(struct platform_device *pdev,
 
 		c_node->sid_index = nvpva_get_id_idx(dev, c_node->cntxt_dev) - 1;
 	} else {
-		c_node->cntxt_dev = NULL;
+		c_node->cntxt_dev = pdev;
 		c_node->sid_index = 0;
 	}
 
+	c_node->elf_ctx.cntxt_dev = c_node->cntxt_dev;
 	c_node->buffers = nvpva_buffer_init(dev->pdev, c_node->cntxt_dev);
 	if (IS_ERR(c_node->buffers)) {
 		dev_err(&dev->pdev->dev,
 			"failed to init nvhost buffer for client:%lu",
 			PTR_ERR(c_node->buffers));
-		nvpva_iommu_context_dev_release(c_node->cntxt_dev);
+		if (dev->version == PVA_HW_GEN2)
+			nvpva_iommu_context_dev_release(c_node->cntxt_dev);
 		c_node = NULL;
 	}
 

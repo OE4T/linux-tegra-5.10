@@ -34,7 +34,9 @@ struct pva_hw_task;
  *
  * kmem_addr	Address for the task kernel memory
  * dma_addr	Physical address of task memory
+ * aux_dma_addr	Physical address of aux task memory
  * va		Virtual address of the task memory
+ * aux_va	Virtual address of the aux task memory
  * pool_index	Index to the allocated task memory
  *
  * This is keep track of the memory details of the task
@@ -43,7 +45,9 @@ struct pva_hw_task;
 struct nvpva_queue_task_mem_info {
 	void *kmem_addr;
 	dma_addr_t dma_addr;
+	dma_addr_t aux_dma_addr;
 	void *va;
+	void *aux_va;
 	int pool_index;
 };
 /**
@@ -59,6 +63,7 @@ struct nvpva_queue_task_mem_info {
  * task_pool		pointer to struct for task memory pool
  * task_dma_size	dma size used in hardware for a task
  * task_kmem_size	kernel memory size for a task
+ * aux_dma_size		kernel memory size for a task aux buffer
  * attr			queue attribute associated with the host module
  *
  */
@@ -74,11 +79,13 @@ struct nvpva_queue {
 	/* Host1x resources */
 	struct nvhost_channel *channel;
 	struct platform_device *vm_pdev;
+	struct platform_device *vm_paux_dev;
 	u32 syncpt_id;
 	atomic_t syncpt_maxval;
 
 	size_t task_dma_size;
 	size_t task_kmem_size;
+	size_t aux_dma_size;
 
 	u32 sequence;
 
@@ -110,7 +117,9 @@ struct nvpva_queue_ops {
 	void (*dump)(struct nvpva_queue *queue, struct seq_file *s);
 	int (*abort)(struct nvpva_queue *queue);
 	int (*submit)(struct nvpva_queue *queue, void *task_arg);
-	void (*get_task_size)(size_t *dma_size, size_t *kmem_size);
+	void (*get_task_size)(size_t *dma_size,
+			      size_t *kmem_size,
+			      size_t *aux_dma_size);
 	int (*set_attribute)(struct nvpva_queue *queue, void *arg);
 };
 
@@ -128,6 +137,7 @@ struct nvpva_queue_ops {
  */
 struct nvpva_queue_pool {
 	struct platform_device *pdev;
+	struct platform_device *paux_dev;
 	struct nvpva_queue_ops *ops;
 	struct nvpva_queue *queues;
 	struct mutex queue_lock;
@@ -190,6 +200,7 @@ void nvpva_queue_get(struct nvpva_queue *queue);
  * This function allocates a queue from the pool to client for the user.
  *
  * @param pool		Pointer to a queue pool table
+ * @param paux_dev	pointer to auxiliary dev
  * @param num_tasks	Max number of tasks per queue
  *
  * @return		Pointer to a queue struct on success
@@ -197,7 +208,8 @@ void nvpva_queue_get(struct nvpva_queue *queue);
  *
  */
 struct nvpva_queue *nvpva_queue_alloc(struct nvpva_queue_pool *pool,
-					unsigned int num_tasks);
+				      struct platform_device *paux_dev,
+				      unsigned int num_tasks);
 
 /**
  * @brief		Abort all active queues

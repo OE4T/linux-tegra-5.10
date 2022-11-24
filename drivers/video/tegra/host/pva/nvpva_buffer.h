@@ -86,6 +86,7 @@ int nvpva_buffer_pin(struct nvpva_buffers *nvpva_buffers,
 		     struct dma_buf **dmabufs,
 		     u64 *offset,
 		     u64 *size,
+		     u32 segment,
 		     u32 count,
 		     u32 *id,
 		     u32 *eerr);
@@ -165,8 +166,7 @@ int nvpva_buffer_submit_pin_id(struct nvpva_buffers *nvpva_buffers,
 			       struct dma_buf **dmabuf,
 			       dma_addr_t *paddr,
 			       size_t *psize,
-			       enum nvpva_buffers_heap *heap,
-			       bool is_cntxt);
+			       enum nvpva_buffers_heap *heap);
 
 /**
  * @brief		UnPins the mapped address space on task completion.

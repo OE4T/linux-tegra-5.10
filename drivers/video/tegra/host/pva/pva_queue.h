@@ -63,8 +63,10 @@ struct pva_cb {
  * queue			Pointer to struct nvpva_queue
  * node				Used to build queue task list
  * kref				Used to manage allocation and freeing
- * dma_addr			task dma_addr_t
+ * dma_addr			task dma_addr
+ * aux_dma_addr			task auxdma_addr
  * va				task virtual address
+ * aux_va			task aux virtual address
  * pool_index			task pool index
  * postfence_va			postfence virtual address
  * num_prefences		Number of pre-fences in this task
@@ -95,7 +97,9 @@ struct pva_submit_task {
 	struct kref ref;
 
 	dma_addr_t dma_addr;
+	dma_addr_t aux_dma_addr;
 	void *va;
+	void *aux_va;
 	int pool_index;
 
 	bool pinned_app;
@@ -255,7 +259,6 @@ struct pva_hw_task {
 	struct pva_dtd_s dma_desc[NVPVA_TASK_MAX_DMA_DESCRIPTORS];
 	struct pva_vpu_parameter_info_s param_info;
 	struct pva_vpu_parameters_s param_list[NVPVA_TASK_MAX_SYMBOLS];
-	u8 sym_payload[NVPVA_TASK_MAX_PAYLOAD_SIZE];
 	struct pva_task_statistics_s statistics;
 	struct pva_circular_buffer_info_s stdout_cb_info;
 };
@@ -266,8 +269,7 @@ void pva_task_free(struct kref *ref);
 void pva_task_update(struct work_struct *work);
 
 struct pva_pinned_memory *pva_task_pin_mem(struct pva_submit_task *task,
-					   u32 id,
-					   bool is_cntxt);
+					   u32 id);
 
 void pva_dmabuf_vunmap(struct dma_buf *dmabuf, void *addr);
 void *pva_dmabuf_vmap(struct dma_buf *dmabuf);
