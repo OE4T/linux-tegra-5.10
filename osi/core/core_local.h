@@ -250,14 +250,7 @@ struct core_ops {
 #define	DRIFT_CAL		0
 #endif
 
-#if (!defined(ETHERNET_SERVER) && !defined(__QNX__)) || DRIFT_CAL
-#define EQOS_SEC_OFFSET		0xB08
-#define EQOS_NSEC_OFFSET	0xB0C
-#define MGBE_SEC_OFFSET		0xD08
-#define MGBE_NSEC_OFFSET	0xD0C
 #define ETHER_NSEC_MASK		0x7FFFFFFFU
-#define OSI_1SEC_TO_NSEC	1000000000LL
-#endif
 
 #if DRIFT_CAL
 /**

@@ -1660,45 +1660,28 @@ static inline void free_tx_ts(struct osi_core_priv_data *osi_core,
 	}
 }
 
-#if (!defined(ETHERNET_SERVER) && !defined(__QNX__)) || DRIFT_CAL
 /**
- * @brief read time counters from HW register
- *
+ * @brief Return absolute difference
  * Algorithm:
- * - read HW time counters and take care of roll-over
+ * - calculate absolute positive difference
  *
- * @param[in] addr: base address
- * @param[in] mac: IP type
- * @param[out] sec: sec counter
- * @param[out] nsec: nsec counter
+ * @param[in] a - First input argument
+ * @param[in] b - Second input argument
+ *
+ * @retval absolute difference
  */
-static void read_sec_ns(void *addr, nveu32_t mac,
-			nveu32_t *sec,
-			nveu32_t *nsec)
+static inline nveul64_t eth_abs(nveul64_t a, nveul64_t b)
 {
-	nveu32_t ns1, ns2;
-	nveu32_t time_reg_offset[][2] = {{EQOS_SEC_OFFSET, EQOS_NSEC_OFFSET},
-					 {MGBE_SEC_OFFSET, MGBE_NSEC_OFFSET}};
+	nveul64_t temp = 0ULL;
 
-	ns1 = osi_readl((nveu8_t *)addr + time_reg_offset[mac][1]);
-	ns1 = (ns1 & ETHER_NSEC_MASK);
-
-	*sec = osi_readl((nveu8_t *)addr + time_reg_offset[mac][0]);
-
-	ns2 = osi_readl((nveu8_t *)addr + time_reg_offset[mac][1]);
-	ns2 = (ns2 & ETHER_NSEC_MASK);
-
-	/* if ns1 is greater than ns2, it means nsec counter rollover
-	 * happened. In that case read the updated sec counter again
-	 */
-	if (ns1 >= ns2) {
-		*sec = osi_readl((nveu8_t *)addr + time_reg_offset[mac][0]);
-		*nsec = ns2;
+	if (a > b) {
+		temp = (a - b);
 	} else {
-		*nsec = ns1;
+		temp = (b - a);
 	}
+
+	return temp;
 }
-#endif
 
 /**
  * @brief Parses internal ts structure array and update time stamp if packet
@@ -1722,14 +1705,12 @@ static inline nve32_t get_tx_ts(struct osi_core_priv_data *osi_core,
 	struct osi_core_tx_ts const *head = &l_core->tx_ts_head;
 	nve32_t ret = -1;
 	nveu32_t count = 0U;
-#if !defined(ETHERNET_SERVER) && !defined(__QNX__)
 	nveu32_t nsec, sec, temp_nsec;
-	nvel64_t temp_val = 0LL;
-	nvel64_t ts_val = 0LL;
+	nveul64_t temp_val = 0ULL;
+	nveul64_t ts_val = 0ULL;
 
-	read_sec_ns(osi_core->base, osi_core->mac, &sec, &nsec);
-	ts_val = (nvel64_t)(sec * OSI_1SEC_TO_NSEC) + (nvel64_t)nsec;
-#endif
+	common_get_systime_from_mac(osi_core->base, osi_core->mac, &sec, &nsec);
+	ts_val = (sec * OSI_NSEC_PER_SEC) + nsec;
 
 	if (__sync_fetch_and_add(&l_core->ts_lock, 1) == 1U) {
 		/* mask return as initial value is returned always */
@@ -1743,11 +1724,10 @@ static inline nve32_t get_tx_ts(struct osi_core_priv_data *osi_core,
 	}
 
 	while ((temp != head) && (count < MAX_TX_TS_CNT)) {
-#if !defined(ETHERNET_SERVER) && !defined(__QNX__)
 		temp_nsec = temp->nsec & ETHER_NSEC_MASK;
-		temp_val = (nvel64_t)(temp->sec * OSI_1SEC_TO_NSEC) + (nvel64_t)temp_nsec;
+		temp_val = (temp->sec * OSI_NSEC_PER_SEC) + temp_nsec;
 
-		if (((ts_val - temp_val) > (2LL * OSI_1SEC_TO_NSEC)) &&
+		if ((eth_abs(ts_val, temp_val) > OSI_NSEC_PER_SEC) &&
 		    (temp->in_use != OSI_NONE)) {
 			/* remove old node from the link */
 			temp->next->prev = temp->prev;
@@ -1756,13 +1736,11 @@ static inline nve32_t get_tx_ts(struct osi_core_priv_data *osi_core,
 			temp->in_use = OSI_DISABLE;
 			OSI_CORE_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
 				      "Removing stale TS from queue pkt_id\n",
-				      temp->pkt_id);
+				      (nveul64_t)temp->pkt_id);
 			count++;
 			temp = temp->next;
 			continue;
-		} else
-#endif
-		if ((temp->pkt_id == ts->pkt_id) &&
+		} else if ((temp->pkt_id == ts->pkt_id) &&
 			   (temp->in_use != OSI_NONE)) {
 			ts->sec = temp->sec;
 			ts->nsec = temp->nsec;
@@ -2442,9 +2420,9 @@ static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		if (l_core->ether_m2m_role == OSI_PTP_M2M_PRIMARY) {
 			drift_value = 0x0;
 			osi_lock_irq_enabled(&secondary_osi_lcore->serv.m2m_lock);
-			read_sec_ns(sec_osi_core->base,
+			common_get_systime_from_mac(sec_osi_core->base,
 				    sec_osi_core->mac, &secondary_sec, &secondary_nsec);
-			read_sec_ns(osi_core->base,
+			common_get_systime_from_mac(osi_core->base,
 				    osi_core->mac, &sec, &nsec);
 			osi_unlock_irq_enabled(&secondary_osi_lcore->serv.m2m_lock);
 
@@ -2499,9 +2477,9 @@ static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		if (l_core->ether_m2m_role == OSI_PTP_M2M_PRIMARY) {
 			drift_value = 0x0;
 			osi_lock_irq_enabled(&secondary_osi_lcore->serv.m2m_lock);
-			read_sec_ns(sec_osi_core->base,
+			common_get_systime_from_mac(sec_osi_core->base,
 				    sec_osi_core->mac, &secondary_sec, &secondary_nsec);
-			read_sec_ns(osi_core->base,
+			common_get_systime_from_mac(osi_core->base,
 				    osi_core->mac, &sec, &nsec);
 			osi_unlock_irq_enabled(&secondary_osi_lcore->serv.m2m_lock);
 			drift_value = dirft_calculation(sec, nsec,
@@ -2587,7 +2565,7 @@ static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 
 		if (l_core->ether_m2m_role == OSI_PTP_M2M_PRIMARY) {
 			osi_lock_irq_enabled(&secondary_osi_lcore->serv.m2m_lock);
-			read_sec_ns(osi_core->base,
+			common_get_systime_from_mac(osi_core->base,
 				    osi_core->mac, &sec, &nsec);
 			osi_unlock_irq_enabled(&secondary_osi_lcore->serv.m2m_lock);
 			ret = hw_set_systime_to_mac(sec_osi_core, sec, nsec);
