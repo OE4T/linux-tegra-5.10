@@ -146,6 +146,9 @@
 #endif
 #ifndef INT_MAX
 #define INT_MAX				(0x7FFFFFFF)
+#ifndef OSI_LLONG_MAX
+#define OSI_LLONG_MAX			(0x7FFFFFFFFFFFFFFF)
+#endif
 #endif
 /** @} */
 

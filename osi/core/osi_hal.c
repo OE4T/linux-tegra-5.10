@@ -37,7 +37,6 @@
  * @brief g_ops - Static core operations array.
  */
 
-#if DRIFT_CAL
 /**
  * @brief Function to validate input arguments of API.
  *
@@ -54,17 +53,18 @@
  * @retval -1 on Failure
  */
 static inline nve32_t validate_args(struct osi_core_priv_data *const osi_core,
-				    struct core_local *l_core)
+				    struct core_local *const l_core)
 {
+	nve32_t ret = 0;
+
 	if ((osi_core == OSI_NULL) || (osi_core->base == OSI_NULL) ||
 	    (l_core->init_done == OSI_DISABLE) ||
 	    (l_core->magic_num != (nveu64_t)osi_core)) {
-		return -1;
+		ret = -1;
 	}
 
-	return 0;
+	return ret;
 }
-#endif
 
 /**
  * @brief Function to validate function pointers.
@@ -1795,7 +1795,6 @@ done:
 	return ret;
 }
 
-#if DRIFT_CAL
 /**
  * @brief calculate time drift between primary and secondary
  *  interface.
@@ -1839,10 +1838,11 @@ static inline nvel64_t dirft_calculation(nveu32_t sec, nveu32_t nsec,
  * @retval calculated frequency adjustment value in ppb
  */
 static inline nve32_t freq_offset_calculate(struct osi_core_priv_data *sec_osi_core,
-					    nvel64_t offset, nvel64_t secondary_time)
+					    nvel64_t offset,
+					    nvel64_t secondary_time)
 {
 	struct core_ptp_servo *s;
-	struct core_local *secondary_osi_lcore = (struct core_local *)sec_osi_core;
+	struct core_local *secondary_osi_lcore = (struct core_local *)(void *)sec_osi_core;
 	nvel64_t ki_term, ppb = 0;
 	nvel64_t cofficient;
 
@@ -1853,9 +1853,9 @@ static inline nve32_t freq_offset_calculate(struct osi_core_priv_data *sec_osi_c
 	 * it should be corrected with adjust time
 	 * threshold value 1 sec
 	 */
-	if ((offset >= 1000000000) || (offset <= -1000000000)) {
+	if ((offset >= 1000000000LL) || (offset <= -1000000000LL)) {
 		s->count = SERVO_STATS_0; /* JUMP */
-		return (nve32_t) s->last_ppb;
+		goto fail;
 	}
 
 	switch (s->count) {
@@ -1871,14 +1871,29 @@ static inline nve32_t freq_offset_calculate(struct osi_core_priv_data *sec_osi_c
 
 		/* Make sure the first sample is older than the second. */
 		if (s->local[0] >= s->local[1]) {
+			s->offset[0] = s->offset[1];
+			s->local[0] = s->local[1];
 			s->count = SERVO_STATS_0;
 			break;
 		}
 
 		/* Adjust drift by the measured frequency offset. */
 		cofficient = (1000000000LL - s->drift) / (s->local[1] - s->local[0]);
-		s->drift += cofficient * s->offset[1];
+		if ((cofficient == 0) ||
+		 (((cofficient < 0) && (s->offset[1] < 0)) &&
+		  ((OSI_LLONG_MAX / cofficient) < s->offset[1])) ||
+		    ((cofficient < 0) && ((-OSI_LLONG_MAX / cofficient) > s->offset[1])) ||
+		    ((s->offset[1] < 0) && ((-OSI_LLONG_MAX / cofficient) > s->offset[1]))) {
+			/* do nothing */
+		} else {
 
+			if (((s->drift >= 0) && ((OSI_LLONG_MAX - s->drift) < (cofficient * s->offset[1]))) ||
+			    ((s->drift < 0) && ((-OSI_LLONG_MAX - s->drift) > (cofficient * s->offset[1])))) {
+				/* Do nothing */
+			} else {
+				s->drift += cofficient * s->offset[1];
+			}
+		}
 		/* update this with constant */
 		if (s->drift < -MAX_FREQ) {
 			s->drift = -MAX_FREQ;
@@ -1897,10 +1912,31 @@ static inline nve32_t freq_offset_calculate(struct osi_core_priv_data *sec_osi_c
 	case SERVO_STATS_2:
 		s->offset[1] = offset;
 		s->local[1] = secondary_time;
+		if (s->local[0] >= s->local[1]) {
+			s->offset[0] = s->offset[1];
+			s->local[0] = s->local[1];
+			s->count = SERVO_STATS_0;
+			break;
+		}
+
 		cofficient = (1000000000LL) / (s->local[1] - s->local[0]);
+
+		if ((cofficient != 0) && (offset < 0) &&
+		    ((s->const_i > (-OSI_LLONG_MAX / (WEIGHT_BY_10 * cofficient * offset))) ||
+		     (s->const_p > (-OSI_LLONG_MAX / (WEIGHT_BY_10 * cofficient * offset))))) {
+			s->count = SERVO_STATS_0;
+			break;
+		}
+		if ((cofficient != 0) && (offset > 0) &&
+		    ((s->const_i > (OSI_LLONG_MAX / (WEIGHT_BY_10 * cofficient * offset))) ||
+		     (s->const_p > (OSI_LLONG_MAX / (WEIGHT_BY_10 * cofficient * offset))))) {
+			s->count = SERVO_STATS_0;
+			break;
+		}
+
 		/* calculate ppb */
-		ki_term = (s->const_i * cofficient * offset * WEIGHT_BY_10) / (100);
-		ppb = ((s->const_p * cofficient * offset * WEIGHT_BY_10) / (100)) + s->drift +
+		ki_term = ((s->const_i * cofficient * offset) / WEIGHT_BY_10);
+		ppb = (s->const_p * cofficient * offset / WEIGHT_BY_10) + s->drift +
 		      ki_term;
 
 		/* FIXME tune cofficients */
@@ -1909,10 +1945,15 @@ static inline nve32_t freq_offset_calculate(struct osi_core_priv_data *sec_osi_c
 		} else if (ppb > MAX_FREQ) {
 			ppb = MAX_FREQ;
 		} else {
-			s->drift += ki_term;
+			if (((s->drift >= 0) && ((OSI_LLONG_MAX - s->drift) < ki_term)) ||
+			    ((s->drift < 0) && ((-OSI_LLONG_MAX - s->drift) > ki_term))) {
+			} else {
+
+				s->drift += ki_term;
+			}
+			s->offset[0] = s->offset[1];
+			s->local[0] = s->local[1];
 		}
-		s->offset[0] = s->offset[1];
-		s->local[0] = s->local[1];
 		break;
 	default:
 		break;
@@ -1920,9 +1961,13 @@ static inline nve32_t freq_offset_calculate(struct osi_core_priv_data *sec_osi_c
 
 	s->last_ppb = ppb;
 
+fail:
+	if ((ppb > INT_MAX) || (ppb < -INT_MAX)) {
+		ppb = 0LL;
+	}
+
 	return (nve32_t)ppb;
 }
-#endif
 
 static void cfg_l3_l4_filter(struct core_local *l_core)
 {
@@ -2257,7 +2302,6 @@ static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 	const struct core_ops *ops_p;
 	nve32_t ret = -1;
-#if DRIFT_CAL
 	struct osi_core_priv_data *sec_osi_core;
 	struct core_local *secondary_osi_lcore;
 	nvel64_t drift_value = 0x0;
@@ -2267,7 +2311,6 @@ static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 	nveu32_t secondary_nsec = 0x0;
 	nve32_t freq_adj_value = 0x0;
 	nvel64_t secondary_time;
-#endif
 
 	ops_p = l_core->ops_p;
 
@@ -2427,7 +2470,6 @@ static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 
 	case OSI_CMD_ADJ_FREQ:
 		ret = osi_adjust_freq(osi_core, data->arg6_32);
-#if DRIFT_CAL
 		if (ret < 0) {
 			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "CORE: adjust freq failed\n", 0ULL);
@@ -2440,7 +2482,7 @@ static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		}
 
 		sec_osi_core = get_role_pointer(OSI_PTP_M2M_SECONDARY);
-		secondary_osi_lcore = (struct core_local *)sec_osi_core;
+		secondary_osi_lcore = (struct core_local *)(void *)sec_osi_core;
 		if ((validate_args(sec_osi_core, secondary_osi_lcore) < 0) ||
 		    (secondary_osi_lcore->hw_init_successful != OSI_ENABLE) ||
 		    (secondary_osi_lcore->m2m_tsync != OSI_ENABLE)) {
@@ -2457,7 +2499,7 @@ static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 			osi_unlock_irq_enabled(&secondary_osi_lcore->serv.m2m_lock);
 
 			drift_value = dirft_calculation(sec, nsec, secondary_sec, secondary_nsec);
-			secondary_time = (secondary_sec * 1000000000LL) + secondary_nsec;
+			secondary_time = ((nvel64_t)secondary_sec * 1000000000LL) + (nvel64_t)secondary_nsec;
 			secondary_osi_lcore->serv.const_i = I_COMPONENT_BY_10;
 			secondary_osi_lcore->serv.const_p = P_COMPONENT_BY_10;
 			freq_adj_value = freq_offset_calculate(sec_osi_core,
@@ -2479,12 +2521,12 @@ static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 				     0ULL);
 			ret = 0;
 		}
-#endif
+
 		break;
 
 	case OSI_CMD_ADJ_TIME:
 		ret = osi_adjust_time(osi_core, data->arg8_64);
-#if DRIFT_CAL
+
 		if (ret < 0) {
 			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "CORE: adjust_time failed\n", 0ULL);
@@ -2497,7 +2539,7 @@ static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		}
 
 		sec_osi_core = get_role_pointer(OSI_PTP_M2M_SECONDARY);
-		secondary_osi_lcore = (struct core_local *)sec_osi_core;
+		secondary_osi_lcore = (struct core_local *)(void *)sec_osi_core;
 		if ((validate_args(sec_osi_core, secondary_osi_lcore) < 0) ||
 		    (secondary_osi_lcore->hw_init_successful != OSI_ENABLE) ||
 		    (secondary_osi_lcore->m2m_tsync != OSI_ENABLE)) {
@@ -2529,7 +2571,7 @@ static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 				     0ULL);
 			ret = 0;
 		}
-#endif
+
 		break;
 
 	case OSI_CMD_CONFIG_PTP:
@@ -2538,7 +2580,7 @@ static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 			l_core->cfg.ptp = data->arg1_u32;
 			l_core->cfg.flags |= DYNAMIC_CFG_PTP;
 		}
-#if DRIFT_CAL
+
 		if (ret < 0) {
 			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "CORE: configure_ptp failed\n", 0ULL);
@@ -2551,7 +2593,7 @@ static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		}
 
 		sec_osi_core = get_role_pointer(OSI_PTP_M2M_SECONDARY);
-		secondary_osi_lcore = (struct core_local *)sec_osi_core;
+		secondary_osi_lcore = (struct core_local *)(void *)sec_osi_core;
 		if ((validate_args(sec_osi_core, secondary_osi_lcore) < 0) ||
 		    (secondary_osi_lcore->hw_init_successful != OSI_ENABLE) ||
 		    (secondary_osi_lcore->m2m_tsync != OSI_ENABLE)) {
@@ -2564,7 +2606,7 @@ static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 			secondary_osi_lcore->serv.drift = 0;
 			secondary_osi_lcore->serv.last_ppb = 0;
 		}
-#endif
+
 		break;
 
 	case OSI_CMD_GET_HW_FEAT:
@@ -2573,7 +2615,7 @@ static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 
 	case OSI_CMD_SET_SYSTOHW_TIME:
 		ret = hw_set_systime_to_mac(osi_core, data->arg1_u32, data->arg2_u32);
-#if DRIFT_CAL
+
 		if (ret < 0) {
 			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "CORE: set systohw time failed\n", 0ULL);
@@ -2586,7 +2628,7 @@ static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		}
 
 		sec_osi_core = get_role_pointer(OSI_PTP_M2M_SECONDARY);
-		secondary_osi_lcore = (struct core_local *)sec_osi_core;
+		secondary_osi_lcore = (struct core_local *)(void *)sec_osi_core;
 		if ((validate_args(sec_osi_core, secondary_osi_lcore) < 0) ||
 		    (secondary_osi_lcore->hw_init_successful != OSI_ENABLE) ||
 		    (secondary_osi_lcore->m2m_tsync != OSI_ENABLE)) {
@@ -2611,7 +2653,7 @@ static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 				     0ULL);
 			ret = 0;
 		}
-#endif
+
 		break;
 #ifndef OSI_STRIPPED_LIB
 	case OSI_CMD_CONFIG_PTP_OFFLOAD:

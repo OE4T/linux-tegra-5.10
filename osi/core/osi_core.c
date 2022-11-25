@@ -25,6 +25,8 @@
 #include "core_local.h"
 #include "../osi/common/common.h"
 
+static struct core_local g_core[MAX_CORE_INSTANCES];
+
 /**
  * @brief Function to validate function pointers.
  *
@@ -96,7 +98,6 @@ static inline nve32_t validate_if_args(struct osi_core_priv_data *const osi_core
 struct osi_core_priv_data *osi_get_core(void)
 {
 	nveu32_t i;
-	static struct core_local g_core[MAX_CORE_INSTANCES];
 
 	for (i = 0U; i < MAX_CORE_INSTANCES; i++) {
 		if (g_core[i].if_init_done == OSI_ENABLE) {
@@ -119,27 +120,27 @@ struct osi_core_priv_data *osi_get_core(void)
 	return &g_core[i].osi_core;
 }
 
-#ifdef ENABLE_DRIFT_CAL
 struct osi_core_priv_data *get_role_pointer(nveu32_t role)
 {
 	nveu32_t i;
+	struct osi_core_priv_data *ret_ptr = OSI_NULL;
 
 	if ((role != OSI_PTP_M2M_PRIMARY) &&
 	    (role != OSI_PTP_M2M_SECONDARY)) {
-		return OSI_NULL;
+		goto done;
 	}
 
 	/* Current approch to give pointer for 1st role */
 	for (i = 0U; i < MAX_CORE_INSTANCES; i++) {
 		if ((g_core[i].if_init_done == OSI_ENABLE) &&
 		    (g_core[i].ether_m2m_role == role)) {
-			return &g_core[i].osi_core;
+			ret_ptr = &g_core[i].osi_core;
 		}
 	}
 
-	return OSI_NULL;
+done:
+	return ret_ptr;
 }
-#endif
 
 nve32_t osi_init_core_ops(struct osi_core_priv_data *const osi_core)
 {
@@ -182,12 +183,10 @@ nve32_t osi_init_core_ops(struct osi_core_priv_data *const osi_core)
 	}
 	l_core->ts_lock = OSI_DISABLE;
 	l_core->ether_m2m_role = osi_core->m2m_role;
-#if DRIFT_CAL
 	l_core->serv.count = SERVO_STATS_0;
 	l_core->serv.drift = 0;
 	l_core->serv.last_ppb = 0;
 	osi_lock_init(&l_core->serv.m2m_lock);
-#endif
 #ifdef MACSEC_SUPPORT
 	osi_lock_init(&osi_core->macsec_fpe_lock);
 #endif /* MACSEC_SUPPORT */

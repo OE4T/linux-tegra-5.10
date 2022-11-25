@@ -237,22 +237,16 @@ struct core_ops {
  * @brief constant values for drift MAC to MAC sync.
  */
 /* No longer needed since DRIFT CAL is not used */
-#ifdef	ENABLE_DRIFT_CAL
-#define	DRIFT_CAL		1
-#define	I_COMPONENT_BY_10	3
-#define	P_COMPONENT_BY_10	7
-#define	WEIGHT_BY_10		10
+#define	I_COMPONENT_BY_10	3LL
+#define	P_COMPONENT_BY_10	7LL
+#define	WEIGHT_BY_10		10LL
 #define	MAX_FREQ		85000000LL
 #define SERVO_STATS_0		0U
 #define SERVO_STATS_1		1U
 #define SERVO_STATS_2		2U
-#else
-#define	DRIFT_CAL		0
-#endif
 
 #define ETHER_NSEC_MASK		0x7FFFFFFFU
 
-#if DRIFT_CAL
 /**
  * @brief servo data structure.
  */
@@ -277,7 +271,6 @@ struct core_ptp_servo {
 	/* MAC to MAC locking to access HW time register within OSI calls */
 	nveu32_t m2m_lock;
 };
-#endif
 
 /**
  * @brief AVB dynamic config storage structure
@@ -367,10 +360,8 @@ struct core_local {
 	nveu32_t ts_lock;
 	/** Controller mac to mac role */
 	nveu32_t ether_m2m_role;
-#if DRIFT_CAL
 	/** Servo structure */
 	struct core_ptp_servo serv;
-#endif
 	/** HW comeout from reset successful OSI_ENABLE else OSI_DISABLE */
 	nveu32_t hw_init_successful;
 	/** Dynamic MAC to MAC time sync control for secondary interface */
@@ -483,7 +474,6 @@ void hw_interface_init_core_ops(struct if_core_ops *if_ops_p);
  */
 void ivc_interface_init_core_ops(struct if_core_ops *if_ops_p);
 
-#ifdef	ENABLE_DRIFT_CAL
 /**
  * @brief get osi pointer for PTP primary/sec interface
  *
@@ -515,5 +505,4 @@ void ivc_interface_init_core_ops(struct if_core_ops *if_ops_p);
  * @retval NULL on failure.
  */
 struct osi_core_priv_data *get_role_pointer(nveu32_t role);
-#endif
 #endif /* INCLUDED_CORE_LOCAL_H */
