@@ -166,7 +166,7 @@ static int32_t pva_vpu_bin_info_allocate(struct pva *dev,
 	aligned_size = ALIGN(size + 128, 128);
 
 	ret = pva_vpu_elf_alloc_mem(dev,
-				    dev->pdev,
+				    dev->aux_pdev,
 				    &elf_img->vpu_bin_buffer,
 				    aligned_size);
 	if (ret) {
@@ -244,7 +244,7 @@ pva_allocate_data_section_info(struct pva *dev,
 		goto out;
 
 	err = pva_vpu_elf_alloc_mem(dev,
-				    dev->pdev,
+				    dev->aux_pdev,
 				    &elf_img->vpu_data_segment_info,
 				    elf_img->vpu_data_segment_info.localsize);
 	if (err != 0) {
@@ -771,9 +771,9 @@ vpu_bin_clean(struct nvpva_elf_context *d,
 		return;
 
 	/* Initialize vpu_bin_buffer */
-	pva_elf_free_buffer(d->dev->pdev, &elf_img->vpu_bin_buffer);
+	pva_elf_free_buffer(d->dev->aux_pdev, &elf_img->vpu_bin_buffer);
 
-	pva_elf_free_buffer(d->dev->pdev, &elf_img->vpu_data_segment_info);
+	pva_elf_free_buffer(d->dev->aux_pdev, &elf_img->vpu_data_segment_info);
 
 	/* Initiaize VPU segments buffer */
 	for (i = 0; i < PVA_SEG_VPU_MAX_TYPE; i++)

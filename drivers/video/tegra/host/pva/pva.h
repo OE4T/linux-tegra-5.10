@@ -31,6 +31,7 @@
 #include "pva_nvhost.h"
 #include "pva-ucode-header.h"
 #include "pva_vpu_app_auth.h"
+#include "pva_fw_carveout.h"
 
 #ifdef CONFIG_TEGRA_SOC_HWPM
 #include <uapi/linux/tegra-soc-hwpm-uapi.h>
@@ -375,8 +376,10 @@ struct pva {
 	int version;
 	struct pva_version_config *version_config;
 	struct platform_device *pdev;
+	struct platform_device *aux_pdev;
 	struct nvpva_queue_pool *pool;
 	struct pva_fw fw_info;
+	struct nvpva_carveout_info *co;
 	struct pva_vpu_auth_s pva_auth;
 	struct pva_vpu_auth_s pva_auth_sys;
 	struct nvpva_syncpts_desc syncpts;
@@ -422,6 +425,8 @@ struct pva {
 	bool vpu_printf_enabled;
 	bool vpu_debug_enabled;
 	bool stats_enabled;
+	bool map_co_needed;
+	bool boot_from_file;
 	struct pva_vpu_util_info vpu_util_info;
 	u32 profiling_level;
 

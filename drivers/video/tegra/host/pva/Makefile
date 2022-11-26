@@ -12,6 +12,7 @@ ccflags-y += -I$(srctree.nvidia)/drivers/video/tegra/host/pva
 ccflags-y += -I$(srctree.nvidia)/drivers/video/tegra/host/pva/fw_include
 ccflags-y += -I$(srctree.nvidia)/include
 ccflags-y += -I$(srctree.nvidia)/include/linux
+ccflags-y += -DCONFIG_PVA_CO_DISABLED
 ccflags-y += -Werror
 
 # When using the upstream host1x driver, the Makefile must define the
@@ -21,7 +22,9 @@ ccflags-$(NVPVA_OOT) += -I$(srctree.host1x)/include
 ccflags-$(NVPVA_OOT) += -DCONFIG_TEGRA_HOST1X
 ccflags-$(NVPVA_OOT) += -DCONFIG_TEGRA_FUSE_UPSTREAM
 ccflags-$(NVPVA_OOT) += -DCONFIG_TEGRA_T23X_GRHOST
+ccflags-$(NVPVA_OOT) += -DCONFIG_PVA_CO_DISABLED
 ccflags-$(NVPVA_OOT) += -DTEGRA_OOT_MODULE
+
 
 nvhost-pva-objs  = \
 		pva.o \
@@ -47,7 +50,8 @@ nvhost-pva-objs  = \
 		pva_system_allow_list.o \
 		pva_vpu_app_auth.o \
 		pva_iommu_context_dev.o \
-		nvpva_syncpt.o
+		nvpva_syncpt.o \
+		pva_fw_carveout.o
 
 ifdef NVPVA_T23X
 nvhost-pva-objs  += \

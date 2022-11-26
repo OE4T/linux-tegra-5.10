@@ -229,12 +229,13 @@ static void nvpva_buffer_insert_map_buffer_id(
 
 static int
 nvpva_buffer_map(struct platform_device *pdev,
-		 struct platform_device *pdev_ctxt,
+		 struct platform_device *pdev_priv,
+		 struct platform_device *pdev_user,
 		 struct dma_buf *dmabuf,
 		 u64 offset,
 		 u64 size,
 		 struct nvpva_vm_buffer *vm,
-		 bool is_cntxt)
+		 bool is_user)
 {
 
 	const dma_addr_t cvnas_begin = nvcvnas_get_cvsram_base();
@@ -246,10 +247,10 @@ nvpva_buffer_map(struct platform_device *pdev,
 	int err = 0;
 
 	get_dma_buf(dmabuf);
-	if (is_cntxt)
-		attach = dma_buf_attach(dmabuf, &pdev_ctxt->dev);
+	if (is_user)
+		attach = dma_buf_attach(dmabuf, &pdev_user->dev);
 	else
-		attach = dma_buf_attach(dmabuf, &pdev->dev);
+		attach = dma_buf_attach(dmabuf, &pdev_priv->dev);
 
 	if (IS_ERR_OR_NULL(attach)) {
 		err = PTR_ERR(dmabuf);
@@ -333,7 +334,8 @@ static void nvpva_buffer_unmap(struct nvpva_buffers *nvpva_buffers,
 
 struct nvpva_buffers
 *nvpva_buffer_init(struct platform_device *pdev,
-		   struct platform_device *pdev_cntxt)
+		   struct platform_device *pdev_priv,
+		   struct platform_device *pdev_user)
 {
 	struct nvpva_buffers *nvpva_buffers;
 	int err = 0;
@@ -345,7 +347,8 @@ struct nvpva_buffers
 	}
 
 	nvpva_buffers->pdev = pdev;
-	nvpva_buffers->pdev_cntxt = pdev_cntxt;
+	nvpva_buffers->pdev_priv = pdev_priv;
+	nvpva_buffers->pdev_user = pdev_user;
 	mutex_init(&nvpva_buffers->mutex);
 	nvpva_buffers->rb_root = RB_ROOT;
 	nvpva_buffers->rb_root_id = RB_ROOT;
@@ -462,7 +465,8 @@ int nvpva_buffer_pin(struct nvpva_buffers *nvpva_buffers,
 		}
 
 		err = nvpva_buffer_map(nvpva_buffers->pdev,
-				       nvpva_buffers->pdev_cntxt,
+				       nvpva_buffers->pdev_priv,
+				       nvpva_buffers->pdev_user,
 				       dmabufs[i],
 				       offset[i],
 				       size[i],

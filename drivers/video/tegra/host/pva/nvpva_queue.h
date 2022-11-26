@@ -79,6 +79,7 @@ struct nvpva_queue {
 	/* Host1x resources */
 	struct nvhost_channel *channel;
 	struct platform_device *vm_pdev;
+	struct platform_device *vm_pprim_dev;
 	struct platform_device *vm_paux_dev;
 	u32 syncpt_id;
 	atomic_t syncpt_maxval;
@@ -137,7 +138,7 @@ struct nvpva_queue_ops {
  */
 struct nvpva_queue_pool {
 	struct platform_device *pdev;
-	struct platform_device *paux_dev;
+	struct platform_device *pprim_dev;
 	struct nvpva_queue_ops *ops;
 	struct nvpva_queue *queues;
 	struct mutex queue_lock;
@@ -152,12 +153,14 @@ struct nvpva_queue_pool {
  * This function allocates and initializes queue data structures.
  *
  * @param pdev		Pointer to the Queue client device
+ * @param paux_dev	Pointer to the Queue client aux device
  * @param ops		Pointer to device speicific callbacks
  * @param num_queues	Max number queues available for client
  * @return		pointer to queue pool
  *
  */
 struct nvpva_queue_pool *nvpva_queue_init(struct platform_device *pdev,
+					struct platform_device *paux_dev,
 					struct nvpva_queue_ops *ops,
 					unsigned int num_queues);
 

@@ -763,7 +763,7 @@ static int pva_set_vpu_print_buffer_size(struct pva_private *priv, void *arg)
 	union nvpva_set_vpu_print_buffer_size_args *in_arg =
 		(union nvpva_set_vpu_print_buffer_size_args *)arg;
 	uint32_t buffer_size = in_arg->in.size;
-	struct device *dev = &priv->pva->pdev->dev;
+	struct device *dev = &priv->pva->aux_pdev->dev;
 	int err = 0;
 
 	if (buffer_size > MAX_VPU_PRINT_BUFFER_SIZE) {

@@ -304,7 +304,7 @@ void pva_debugfs_deinit(struct pva *pva)
 	if (pva->vpu_util_info.stats_fw_buffer_va == 0)
 		return;
 
-	dma_free_coherent(&pva->pdev->dev,
+	dma_free_coherent(&pva->aux_pdev->dev,
 			  sizeof(struct pva_vpu_stats_s),
 			  pva->vpu_util_info.stats_fw_buffer_va,
 			  pva->vpu_util_info.stats_fw_buffer_iova);
@@ -356,7 +356,7 @@ void pva_debugfs_init(struct platform_device *pdev)
 	debugfs_create_file("vpu_stats", 0644, de, pva, &pva_stats_fops);
 
 	pva->vpu_util_info.stats_fw_buffer_va =
-					dma_alloc_coherent(&pva->pdev->dev,
+					dma_alloc_coherent(&pva->aux_pdev->dev,
 					sizeof(struct pva_vpu_stats_s),
 					&pva->vpu_util_info.stats_fw_buffer_iova,
 					GFP_KERNEL);

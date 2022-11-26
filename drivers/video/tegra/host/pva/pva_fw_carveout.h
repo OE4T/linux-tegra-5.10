@@ -1,5 +1,6 @@
+/* SPDX-License-Identifier: GPL-2.0-only */
 /*
- * Host1x Application Specific Virtual Memory
+ * PVA carveout handling
  *
  * Copyright (c) 2022, NVIDIA Corporation.  All rights reserved.
  *
@@ -16,13 +17,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef IOMMU_CONTEXT_DEV_H
-#define IOMMU_CONTEXT_DEV_H
+#ifndef PVA_FW_CO_H
+#define PVA_FW_CO_H
 
-struct platform_device
-*nvpva_iommu_context_dev_allocate(char *identifier, size_t len, bool shared);
-void nvpva_iommu_context_dev_release(struct platform_device *pdev);
-int nvpva_iommu_context_dev_get_sids(int *hwids, int *count, int max_cnt);
-bool is_cntxt_initialized(void);
+struct nvpva_carveout_info {
+	dma_addr_t	base;
+	dma_addr_t	base_pa;
+	void		*base_va;
+	size_t		size;
+	bool		initialized;
+};
+
+struct nvpva_carveout_info *pva_fw_co_get_info(struct platform_device *pdev);
+bool pva_fw_co_initialized(void);
 
 #endif

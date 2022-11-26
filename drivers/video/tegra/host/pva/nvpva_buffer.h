@@ -43,7 +43,8 @@ enum nvpva_buffers_heap {
 			(NVPVA_MAX_NUM_UNIQUE_IDS/NVPVA_ID_SEGMENT_SIZE)
 struct nvpva_buffers {
 	struct platform_device *pdev;
-	struct platform_device *pdev_cntxt;
+	struct platform_device *pdev_priv;
+	struct platform_device *pdev_user;
 	struct list_head list_head;
 	struct rb_root rb_root;
 	struct rb_root rb_root_id;
@@ -66,7 +67,8 @@ struct nvpva_buffers {
  */
 struct nvpva_buffers
 *nvpva_buffer_init(struct platform_device *pdev,
-		   struct platform_device *pdev_cntxt);
+		   struct platform_device *pdev_priv,
+		   struct platform_device *pdev_user);
 
 /**
  * @brief			Pin the memhandle using dma_buf functions
