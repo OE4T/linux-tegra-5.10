@@ -14,6 +14,10 @@
 #include <linux/tegra-epl.h>
 #include <linux/gpio.h>
 #include <linux/gpio/consumer.h>
+#if IS_ENABLED(CONFIG_INTERCONNECT)
+#include <linux/interconnect.h>
+#include <dt-bindings/interconnect/tegra_icc_id.h>
+#endif
 #include <linux/interrupt.h>
 #include <linux/iopoll.h>
 #include <linux/kernel.h>
@@ -32,6 +36,11 @@
 #include <linux/phy/phy.h>
 #include <linux/pinctrl/consumer.h>
 #include <linux/platform_device.h>
+#include <linux/platform/tegra/mc_utils.h>
+#if IS_ENABLED(CONFIG_TEGRA_BWMGR)
+#include <linux/platform/tegra/emc_bwmgr.h>
+#include <linux/platform/tegra/bwmgr_mc.h>
+#endif
 #include <linux/pm_runtime.h>
 #include <linux/random.h>
 #include <linux/reset.h>
@@ -380,6 +389,12 @@
 #define BAR0_MSI_OFFSET		SZ_64K
 #define BAR0_MSI_SIZE		SZ_64K
 
+#if IS_ENABLED(CONFIG_ARCH_TEGRA_23x_SOC)
+#define FREQ2ICC(x) (Bps_to_icc(emc_freq_to_bw(x)))
+#else
+#define FREQ2ICC(x) 0UL
+#endif
+
 enum ep_event {
 	EP_EVENT_NONE = 0,
 	EP_PEX_RST_DEASSERT,
@@ -389,6 +404,33 @@ enum ep_event {
 	EP_EVENT_EXIT,
 	EP_EVENT_INVALID,
 };
+
+#if IS_ENABLED(CONFIG_TEGRA_BWMGR)
+static unsigned int pcie_emc_client_id[] = {
+	TEGRA_BWMGR_CLIENT_PCIE,
+	TEGRA_BWMGR_CLIENT_PCIE_1,
+	TEGRA_BWMGR_CLIENT_PCIE_2,
+	TEGRA_BWMGR_CLIENT_PCIE_3,
+	TEGRA_BWMGR_CLIENT_PCIE_4,
+	TEGRA_BWMGR_CLIENT_PCIE_5
+};
+#endif
+
+#if IS_ENABLED(CONFIG_INTERCONNECT)
+static unsigned int pcie_icc_client_id[] = {
+	TEGRA_ICC_PCIE_0,
+	TEGRA_ICC_PCIE_1,
+	TEGRA_ICC_PCIE_2,
+	TEGRA_ICC_PCIE_3,
+	TEGRA_ICC_PCIE_4,
+	TEGRA_ICC_PCIE_5,
+	TEGRA_ICC_PCIE_6,
+	TEGRA_ICC_PCIE_7,
+	TEGRA_ICC_PCIE_8,
+	TEGRA_ICC_PCIE_9,
+	TEGRA_ICC_PCIE_10,
+};
+#endif
 
 static const unsigned int pcie_gen_freq[] = {
 	GEN1_CORE_CLK_FREQ,
@@ -440,6 +482,14 @@ struct tegra_pcie_dw {
 
 	struct tegra_pcie_of_data *of_data;
 	enum dw_pcie_device_mode mode;
+
+#if IS_ENABLED(CONFIG_TEGRA_BWMGR)
+	struct tegra_bwmgr_client *emc_bw;
+#endif
+#if IS_ENABLED(CONFIG_INTERCONNECT)
+	struct icc_path *icc_path;
+#endif
+	u32 dvfs_tbl[4][4]; /* Row for x1/x2/x3/x4 and Col for Gen-1/2/3/4 */
 
 	bool supports_clkreq;
 	bool enable_cdm_check;
@@ -534,6 +584,8 @@ struct tegra_pcie_of_data {
 	u32 gen4_preset_vec;
 	/* Bug 200762207 */
 	u8 n_fts[2];
+	/* interconnect framework support */
+	bool icc_bwmgr;
 };
 
 static void tegra_pcie_dw_pme_turnoff(struct tegra_pcie_dw *pcie);
@@ -959,9 +1011,10 @@ static irqreturn_t tegra_pcie_ep_irq_thread(int irq, void *arg)
 {
 	struct tegra_pcie_dw *pcie = arg;
 	struct dw_pcie *pci = &pcie->pci;
-	u32 val, speed;
+	u32 val, speed, width;
 	struct epl_error_report_frame error_report;
 	int ret;
+	unsigned long freq;
 
 	if (atomic_dec_and_test(&pcie->report_epl_error)) {
 		error_report.error_code = epl_error_code[pcie->cid].error_code;
@@ -974,8 +1027,28 @@ static irqreturn_t tegra_pcie_ep_irq_thread(int irq, void *arg)
 	}
 
 	if (atomic_dec_and_test(&pcie->ep_link_up)) {
-		speed = dw_pcie_readw_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKSTA) &
-			PCI_EXP_LNKSTA_CLS;
+		val = dw_pcie_readw_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKSTA);
+
+		speed = val & PCI_EXP_LNKSTA_CLS;
+		width = (val & PCI_EXP_LNKSTA_NLW) >> PCI_EXP_LNKSTA_NLW_SHIFT;
+		width = find_first_bit((const unsigned long *)&width, 6);
+
+		freq = pcie->dvfs_tbl[width][speed - 1];
+
+#if IS_ENABLED(CONFIG_INTERCONNECT)
+		if (pcie->icc_path) {
+			if (icc_set_bw(pcie->icc_path, 0, FREQ2ICC(freq)))
+				dev_err(pcie->dev, "icc: can't set emc clock[%lu]\n", freq);
+		}
+#endif
+
+#if IS_ENABLED(CONFIG_TEGRA_BWMGR)
+		if (pcie->emc_bw) {
+			if (tegra_bwmgr_set_emc(pcie->emc_bw, freq, TEGRA_BWMGR_SET_EMC_FLOOR))
+				dev_err(pcie->dev, "bwmgr: can't set emc clock[%lu]\n", freq);
+		}
+#endif
+
 		if ((speed > 0) && (speed <= 4) && !pcie->is_safety_platform)
 			clk_set_rate(pcie->core_clk, pcie_gen_freq[speed - 1]);
 	}
@@ -2405,7 +2478,8 @@ static int tegra_pcie_dw_host_init(struct pcie_port *pp)
 {
 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
 	struct tegra_pcie_dw *pcie = to_tegra_pcie(pci);
-	u32 val, tmp, offset, speed, link_up_to = pcie->link_up_to, linkup = 0;
+	u32 val, tmp, offset, speed, width, link_up_to = pcie->link_up_to, linkup = 0;
+	unsigned long freq;
 
 	pp->bridge->ops = &tegra_pci_ops;
 
@@ -2463,8 +2537,28 @@ static int tegra_pcie_dw_host_init(struct pcie_port *pp)
 			goto link_down;
 	}
 
-	speed = dw_pcie_readw_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKSTA) &
-		PCI_EXP_LNKSTA_CLS;
+	val = dw_pcie_readw_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKSTA);
+
+	speed = val & PCI_EXP_LNKSTA_CLS;
+	width = (val & PCI_EXP_LNKSTA_NLW) >> PCI_EXP_LNKSTA_NLW_SHIFT;
+	width = find_first_bit((const unsigned long *)&width, 6);
+
+	freq = pcie->dvfs_tbl[width][speed - 1];
+
+#if IS_ENABLED(CONFIG_INTERCONNECT)
+	if (pcie->icc_path) {
+		if (icc_set_bw(pcie->icc_path, 0, FREQ2ICC(freq)))
+			dev_err(pcie->dev, "icc: can't set emc clock[%lu]\n", freq);
+	}
+#endif
+
+#if IS_ENABLED(CONFIG_TEGRA_BWMGR)
+	if (pcie->emc_bw) {
+		if (tegra_bwmgr_set_emc(pcie->emc_bw, freq, TEGRA_BWMGR_SET_EMC_FLOOR))
+			dev_err(pcie->dev, "bwmgr: can't set emc clock[%lu]\n", freq);
+	}
+#endif
+
 	if ((speed > 0) && (speed <= 4) && !pcie->is_safety_platform)
 		clk_set_rate(pcie->core_clk, pcie_gen_freq[speed - 1]);
 
@@ -2638,6 +2732,12 @@ static int tegra_pcie_dw_parse_dt(struct tegra_pcie_dw *pcie)
 		of_property_read_bool(np, "nvidia,enable-safety");
 
 	pcie->enable_srns = of_property_read_bool(np, "nvidia,enable-srns");
+
+	ret = of_property_read_u32_array(np, "nvidia,dvfs-tbl", &pcie->dvfs_tbl[0][0], 16);
+	if (ret < 0) {
+		dev_err(pcie->dev, "fail to read EMC BW table: %d\n", ret);
+		return ret;
+	}
 
 	pcie->disable_power_down =
 		of_property_read_bool(np, "nvidia,disable-power-down");
@@ -4150,6 +4250,26 @@ static int tegra_pcie_dw_probe(struct platform_device *pdev)
 	if (pp->irq < 0)
 		return pp->irq;
 
+	if (pcie->of_data->icc_bwmgr) {
+#if IS_ENABLED(CONFIG_INTERCONNECT)
+		pcie->icc_path = icc_get(dev, pcie_icc_client_id[pcie->cid], TEGRA_ICC_PRIMARY);
+		if (IS_ERR_OR_NULL(pcie->icc_path)) {
+			ret = IS_ERR(pcie->icc_path) ? PTR_ERR(pcie->icc_path) : -ENODEV;
+			dev_info(pcie->dev, "icc bwmgr registration failed: %d\n", ret);
+			return ret;
+		}
+#endif
+	} else {
+#if IS_ENABLED(CONFIG_TEGRA_BWMGR)
+		pcie->emc_bw = tegra_bwmgr_register(pcie_emc_client_id[pcie->cid]);
+		if (IS_ERR_OR_NULL(pcie->emc_bw)) {
+			ret = IS_ERR(pcie->emc_bw) ? PTR_ERR(pcie->emc_bw) : -ENODEV;
+			dev_info(pcie->dev, "bwmgr registration failed: %d\n", ret);
+			return ret;
+		}
+#endif
+	}
+
 	pcie->bpmp = tegra_bpmp_get(dev);
 	if (IS_ERR(pcie->bpmp))
 		return PTR_ERR(pcie->bpmp);
@@ -4309,6 +4429,16 @@ static int tegra_pcie_dw_remove(struct platform_device *pdev)
 			gpiod_set_value_cansleep(pcie->pex_prsnt_gpiod, 0);
 		pex_ep_event_pex_rst_assert(pcie);
 	}
+
+#if IS_ENABLED(CONFIG_INTERCONNECT)
+	if (pcie->icc_path)
+		icc_put(pcie->icc_path);
+#endif
+
+#if IS_ENABLED(CONFIG_TEGRA_BWMGR)
+	if (pcie->emc_bw)
+		tegra_bwmgr_unregister(pcie->emc_bw);
+#endif
 
 	pm_runtime_disable(pcie->dev);
 	tegra_bpmp_put(pcie->bpmp);
@@ -4494,6 +4624,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t194 = {
 	/* Gen4 - 5, 6, 8 and 9 presets enabled */
 	.gen4_preset_vec = 0x360,
 	.n_fts = { 52, 52 },
+	.icc_bwmgr = false,
 };
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t194_ep = {
@@ -4507,6 +4638,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t194_ep = {
 	/* Gen4 - 5, 6, 8 and 9 presets enabled */
 	.gen4_preset_vec = 0x360,
 	.n_fts = { 52, 52 },
+	.icc_bwmgr = false,
 };
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t234 = {
@@ -4520,6 +4652,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t234 = {
 	/* Gen4 - 6, 8 and 9 presets enabled */
 	.gen4_preset_vec = 0x340,
 	.n_fts = { 52, 80 },
+	.icc_bwmgr = true,
 };
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t234_ep = {
@@ -4533,6 +4666,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t234_ep = {
 	/* Gen4 - 6, 8 and 9 presets enabled */
 	.gen4_preset_vec = 0x340,
 	.n_fts = { 52, 80 },
+	.icc_bwmgr = true,
 };
 
 static const struct of_device_id tegra_pcie_dw_of_match[] = {
