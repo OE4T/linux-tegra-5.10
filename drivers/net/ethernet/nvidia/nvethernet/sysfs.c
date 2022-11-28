@@ -3336,9 +3336,11 @@ int ether_sysfs_register(struct ether_priv_data *pdata)
 #endif
 
 #ifdef CONFIG_DEBUG_FS
-	ret = ether_create_debugfs(pdata);
-	if (ret < 0)
-		return ret;
+	/* Intentionally ignored the return value of debugfs
+	 * and continues to initialize the driver even it fails
+	 * to support Linux Production profile
+	 */
+	ether_create_debugfs(pdata);
 #endif
 
 #if (IS_ENABLED(CONFIG_TEGRA_HSIERRRPTINJ)) && defined(HSI_SUPPORT)
